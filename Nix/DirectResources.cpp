@@ -14,14 +14,6 @@ HRESULT DirectResources::InitDevice()
 	createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
-	D3D_DRIVER_TYPE driverTypes[] =
-	{
-		D3D_DRIVER_TYPE_HARDWARE,
-		D3D_DRIVER_TYPE_WARP,
-		D3D_DRIVER_TYPE_REFERENCE,
-	};
-	UINT numDriverTypes = ARRAYSIZE(driverTypes);
-
 	D3D_FEATURE_LEVEL featureLevels[] =
 	{
 		D3D_FEATURE_LEVEL_11_1,
@@ -30,40 +22,36 @@ HRESULT DirectResources::InitDevice()
 		D3D_FEATURE_LEVEL_10_0,
 	};
 	UINT numFeatureLevels = ARRAYSIZE(featureLevels);
+	D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_1;
+	D3D_DRIVER_TYPE driverType = D3D_DRIVER_TYPE_REFERENCE;
 
-	D3D_DRIVER_TYPE driverType;
-	D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_0;
-	for (UINT driverTypeIndex = 0; driverTypeIndex < numDriverTypes; driverTypeIndex++)
-	{
-		driverType = driverTypes[driverTypeIndex];
-		hr = D3D11CreateDevice(nullptr, driverType, nullptr, createDeviceFlags, featureLevels, numFeatureLevels,
-			D3D11_SDK_VERSION, &g_pDevice, &featureLevel, &g_pContext);
-
-		if (hr == E_INVALIDARG)
-		{
-			// DirectX 11.0 platforms will not recognize D3D_FEATURE_LEVEL_11_1 so we need to retry without it
-			hr = D3D11CreateDevice(nullptr, driverType, nullptr, createDeviceFlags, &featureLevels[1], numFeatureLevels - 1,
-				D3D11_SDK_VERSION, &g_pDevice, &featureLevel, &g_pContext);
-		}
-
-		if (SUCCEEDED(hr))
-			break;
-	}
-	if (FAILED(hr))
+	ID3D11Device* pDevice;
+	ID3D11DeviceContext* pContext;
+	hr = D3D11CreateDevice( nullptr, driverType, nullptr, createDeviceFlags, featureLevels, numFeatureLevels, 
+							D3D11_SDK_VERSION, &pDevice, &featureLevel, &pContext);
+	if (FAILED(hr)) 
+		return hr;
+	hr = pDevice->QueryInterface(__uuidof(ID3D11Device5), reinterpret_cast<void**>(&g_pDevice));
+	if (FAILED(hr)) 
+		return hr;
+	hr = pContext->QueryInterface(__uuidof(ID3D11DeviceContext4), reinterpret_cast<void**>(&g_pContext));
+	if (FAILED(hr)) 
 		return hr;
 
 	// Obtain DXGI factory from device (since we used nullptr for pAdapter above)
-	IDXGIFactory1* dxgiFactory = nullptr;
+	IDXGIFactory5* dxgiFactory = nullptr;
 	{
-		IDXGIDevice* dxgiDevice = nullptr;
-		hr = g_pDevice->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void**>(&dxgiDevice));
+		IDXGIDevice4* dxgiDevice = nullptr;
+		hr = g_pDevice->QueryInterface(__uuidof(IDXGIDevice4), reinterpret_cast<void**>(&dxgiDevice));
 		if (SUCCEEDED(hr))
 		{
-			IDXGIAdapter* adapter = nullptr;
-			hr = dxgiDevice->GetAdapter(&adapter);
+			IDXGIAdapter* temp;
+			IDXGIAdapter3* adapter = nullptr;
+			hr = dxgiDevice->GetAdapter(&temp);
+			temp->QueryInterface(__uuidof(IDXGIAdapter3), reinterpret_cast<void**>(&adapter));
 			if (SUCCEEDED(hr))
 			{
-				hr = adapter->GetParent(__uuidof(IDXGIFactory1), reinterpret_cast<void**>(&dxgiFactory));
+				hr = adapter->GetParent(__uuidof(IDXGIFactory5), reinterpret_cast<void**>(&dxgiFactory));
 				adapter->Release();
 			}
 			dxgiDevice->Release();
@@ -72,18 +60,8 @@ HRESULT DirectResources::InitDevice()
 	if (FAILED(hr))
 		return hr;
 
-	// Create swap chain
-	IDXGIFactory2* dxgiFactory2 = nullptr;
-	hr = dxgiFactory->QueryInterface(__uuidof(IDXGIFactory2), reinterpret_cast<void**>(&dxgiFactory2));
-	if (dxgiFactory2)
+	if (dxgiFactory)
 	{
-		// DirectX 11.1 or later
-		hr = g_pDevice->QueryInterface(__uuidof(ID3D11Device1), reinterpret_cast<void**>(&g_pDevice1));
-		if (SUCCEEDED(hr))
-		{
-			(void)g_pContext->QueryInterface(__uuidof(ID3D11DeviceContext1), reinterpret_cast<void**>(&g_pContext1));
-		}
-
 		DXGI_SWAP_CHAIN_DESC1 sd;
 		ZeroMemory(&sd, sizeof(sd));
 		sd.Width = width;
@@ -92,38 +70,20 @@ HRESULT DirectResources::InitDevice()
 		sd.SampleDesc.Count = 1;
 		sd.SampleDesc.Quality = 0;
 		sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		sd.BufferCount = 1;
+		sd.BufferCount = 2;
+		sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 
-		hr = dxgiFactory2->CreateSwapChainForHwnd(g_pDevice, g_hWnd, &sd, nullptr, nullptr, &g_pSwapChain1);
+		IDXGISwapChain1* pSwapChain;
+		hr = dxgiFactory->CreateSwapChainForHwnd(g_pDevice, g_hWnd, &sd, nullptr, nullptr, &pSwapChain);
+
 		if (SUCCEEDED(hr))
 		{
-			hr = g_pSwapChain1->QueryInterface(__uuidof(IDXGISwapChain), reinterpret_cast<void**>(&g_pSwapChain));
+			hr = pSwapChain->QueryInterface(__uuidof(IDXGISwapChain4), reinterpret_cast<void**>(&g_pSwapChain));
 		}
-
-		dxgiFactory2->Release();
-	}
-	else
-	{
-		// DirectX 11.0 systems
-		DXGI_SWAP_CHAIN_DESC sd;
-		ZeroMemory(&sd, sizeof(sd));
-		sd.BufferCount = 1;
-		sd.BufferDesc.Width = width;
-		sd.BufferDesc.Height = height;
-		sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		sd.BufferDesc.RefreshRate.Numerator = 60;
-		sd.BufferDesc.RefreshRate.Denominator = 1;
-		sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		sd.OutputWindow = g_hWnd;
-		sd.SampleDesc.Count = 1;
-		sd.SampleDesc.Quality = 0;
-		sd.Windowed = TRUE;
-
-		hr = dxgiFactory->CreateSwapChain(g_pDevice, &sd, &g_pSwapChain);
 	}
 
-	// Note this tutorial doesn't handle full-screen swapchains so we block the ALT+ENTER shortcut
-	dxgiFactory->MakeWindowAssociation(g_hWnd, DXGI_MWA_NO_ALT_ENTER);
+	// block the ALT+ENTER shortcut
+	//dxgiFactory->MakeWindowAssociation(g_hWnd, DXGI_MWA_NO_ALT_ENTER);
 
 	dxgiFactory->Release();
 
@@ -141,17 +101,14 @@ HRESULT DirectResources::InitDevice()
 	if (FAILED(hr))
 		return hr;
 
-	g_pContext->OMSetRenderTargets(1, &g_pRenderTargetView, nullptr);
-
 	// Setup the viewport
-	D3D11_VIEWPORT vp;
-	vp.Width = (FLOAT)width;
-	vp.Height = (FLOAT)height;
-	vp.MinDepth = 0.0f;
-	vp.MaxDepth = 1.0f;
-	vp.TopLeftX = 0;
-	vp.TopLeftY = 0;
-	g_pContext->RSSetViewports(1, &vp);
+	m_ViewPort.Width = (FLOAT)width;
+	m_ViewPort.Height = (FLOAT)height;
+	m_ViewPort.MinDepth = 0.0f;
+	m_ViewPort.MaxDepth = 1.0f;
+	m_ViewPort.TopLeftX = 0;
+	m_ViewPort.TopLeftY = 0;
+	g_pContext->RSSetViewports(1, &m_ViewPort);
 
 	return S_OK;
 }
@@ -161,10 +118,12 @@ void DirectResources::ClearDevices()
 	if (g_pContext) g_pContext->ClearState();
 
 	if (g_pRenderTargetView) g_pRenderTargetView->Release();
-	if (g_pSwapChain1) g_pSwapChain1->Release();
 	if (g_pSwapChain) g_pSwapChain->Release();
-	if (g_pContext1) g_pContext1->Release();
 	if (g_pContext) g_pContext->Release();
-	if (g_pDevice1) g_pDevice1->Release();
 	if (g_pDevice) g_pDevice->Release();
+}
+
+Vector2 DirectResources::GetViewPortSize()
+{
+	return Vector2(m_ViewPort.Width, m_ViewPort.Height);
 }

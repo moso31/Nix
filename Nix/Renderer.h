@@ -4,12 +4,21 @@
 struct SimpleVertex
 {
 	Vector3 Pos;
+	Vector4 Color;
+};
+
+struct ConstantBuffer
+{
+	Matrix mWorld;
+	Matrix mView;
+	Matrix mProjection;
 };
 
 class Renderer
 {
 public:
 	HRESULT InitRenderer();
+	void Update();
 	void Render();
 
 private:
@@ -18,4 +27,8 @@ private:
 	ID3D11PixelShader*		m_pPixelShader;
 
 	ID3D11Buffer*           m_pVertexBuffer;
+	ID3D11Buffer*			m_pIndexBuffer;
+	ID3D11Buffer*			m_pConstantBuffer;
+
+	ConstantBuffer m_boxData;
 };

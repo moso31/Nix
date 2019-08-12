@@ -22,6 +22,7 @@ void App::Init()
 
 void App::Update()
 {
+	m_pRenderer->Update();
 }
 
 void App::Render()

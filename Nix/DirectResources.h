@@ -7,6 +7,8 @@ public:
 	HRESULT InitDevice();
 	void	ClearDevices();
 
-private:
+	Vector2 GetViewPortSize();
 
+private:
+	D3D11_VIEWPORT	m_ViewPort;
 };

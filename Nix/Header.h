@@ -19,7 +19,7 @@
 #include <map>
 
 // DirectX
-#include <d3d11_1.h>
+#include <d3d11_4.h>
 #include <DirectXColors.h>
 #include <d3dcompiler.h>
 
@@ -39,12 +39,9 @@ class DirectResources;
 // Global variables
 extern	HINSTANCE					g_hInst;
 extern	HWND						g_hWnd;
-extern	ID3D11Device*				g_pDevice;
-extern	ID3D11Device1*				g_pDevice1;
-extern	ID3D11DeviceContext*		g_pContext;
-extern	ID3D11DeviceContext1*		g_pContext1;
-extern	IDXGISwapChain*				g_pSwapChain;
-extern	IDXGISwapChain1*			g_pSwapChain1;
+extern	ID3D11Device5*				g_pDevice;
+extern	ID3D11DeviceContext4*		g_pContext;
+extern	IDXGISwapChain4*			g_pSwapChain;
 extern	ID3D11RenderTargetView*		g_pRenderTargetView;
 
 extern	shared_ptr<App>					g_app;
