@@ -42,7 +42,6 @@ extern	HWND						g_hWnd;
 extern	ID3D11Device5*				g_pDevice;
 extern	ID3D11DeviceContext4*		g_pContext;
 extern	IDXGISwapChain4*			g_pSwapChain;
-extern	ID3D11RenderTargetView*		g_pRenderTargetView;
 
 extern	shared_ptr<App>					g_app;
 extern	shared_ptr<DirectResources>		g_dxResources;

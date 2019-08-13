@@ -96,8 +96,34 @@ HRESULT DirectResources::InitDevice()
 	if (FAILED(hr))
 		return hr;
 
-	hr = g_pDevice->CreateRenderTargetView(pBackBuffer, nullptr, &g_pRenderTargetView);
+	hr = g_pDevice->CreateRenderTargetView(pBackBuffer, nullptr, &m_pRenderTargetView);
 	pBackBuffer->Release();
+	if (FAILED(hr))
+		return hr;
+
+	D3D11_TEXTURE2D_DESC descDepth;
+	ZeroMemory(&descDepth, sizeof(descDepth));
+	descDepth.Width = width;
+	descDepth.Height = height;
+	descDepth.MipLevels = 1;
+	descDepth.ArraySize = 1;
+	descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	descDepth.SampleDesc.Count = 1;
+	descDepth.SampleDesc.Quality = 0;
+	descDepth.Usage = D3D11_USAGE_DEFAULT;
+	descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	descDepth.CPUAccessFlags = 0;
+	descDepth.MiscFlags = 0;
+	hr = g_pDevice->CreateTexture2D(&descDepth, nullptr, &m_pDepthStencil);
+	if (FAILED(hr))
+		return hr;
+
+	D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
+	ZeroMemory(&descDSV, sizeof(descDSV));
+	descDSV.Format = descDepth.Format;
+	descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	descDSV.Texture2D.MipSlice = 0;
+	hr = g_pDevice->CreateDepthStencilView(m_pDepthStencil, &descDSV, &m_pDepthStencilView);
 	if (FAILED(hr))
 		return hr;
 
@@ -115,12 +141,14 @@ HRESULT DirectResources::InitDevice()
 
 void DirectResources::ClearDevices()
 {
-	if (g_pContext) g_pContext->ClearState();
+	if (g_pContext)				g_pContext->ClearState();
 
-	if (g_pRenderTargetView) g_pRenderTargetView->Release();
-	if (g_pSwapChain) g_pSwapChain->Release();
-	if (g_pContext) g_pContext->Release();
-	if (g_pDevice) g_pDevice->Release();
+	if (g_pSwapChain)			g_pSwapChain->Release();
+	if (g_pContext)				g_pContext->Release();
+	if (g_pDevice)				g_pDevice->Release();
+	if (m_pRenderTargetView)	m_pRenderTargetView->Release();
+	if (m_pDepthStencil)		m_pDepthStencil->Release();
+	if (m_pDepthStencilView)	m_pDepthStencilView->Release();
 }
 
 Vector2 DirectResources::GetViewPortSize()

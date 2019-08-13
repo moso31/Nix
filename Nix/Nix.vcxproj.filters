@@ -7,6 +7,12 @@
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="ShaderComplier.h" />
     <ClInclude Include="App.h" />
+    <ClInclude Include="Files\WICTextureLoader.h">
+      <Filter>File</Filter>
+    </ClInclude>
+    <ClInclude Include="Files\DDSTextureLoader.h">
+      <Filter>File</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl" />
@@ -19,5 +25,16 @@
     <ClCompile Include="Global.cpp" />
     <ClCompile Include="ShaderComplier.cpp" />
     <ClCompile Include="App.cpp" />
+    <ClCompile Include="Files\WICTextureLoader.cpp">
+      <Filter>File</Filter>
+    </ClCompile>
+    <ClCompile Include="Files\DDSTextureLoader.cpp">
+      <Filter>File</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="File">
+      <UniqueIdentifier>{785c917d-93e8-4fee-a4b4-13762b3e564a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

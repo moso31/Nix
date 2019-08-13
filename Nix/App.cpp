@@ -32,5 +32,6 @@ void App::Render()
 
 void App::Release()
 {
+	m_pRenderer->Release();
 	g_dxResources->ClearDevices();
 }

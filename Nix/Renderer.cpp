@@ -1,6 +1,7 @@
 #include "Renderer.h"
 #include "DirectResources.h"
 #include "ShaderComplier.h"
+#include "WICTextureLoader.h"
 
 HRESULT Renderer::InitRenderer()
 {
@@ -25,7 +26,7 @@ HRESULT Renderer::InitRenderer()
 	D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 	UINT numElements = ARRAYSIZE(layout);
 
@@ -58,14 +59,35 @@ HRESULT Renderer::InitRenderer()
 	// Create vertex buffer
 	SimpleVertex vertices[] =
 	{
-		{ Vector3(-1.0f, 1.0f, -1.0f),	Vector4(0.0f, 0.0f, 1.0f, 1.0f) },
-		{ Vector3(1.0f, 1.0f, -1.0f),	Vector4(0.0f, 1.0f, 0.0f, 1.0f) },
-		{ Vector3(1.0f, 1.0f, 1.0f),	Vector4(0.0f, 1.0f, 1.0f, 1.0f) },
-		{ Vector3(-1.0f, 1.0f, 1.0f),	Vector4(1.0f, 0.0f, 0.0f, 1.0f) },
-		{ Vector3(-1.0f, -1.0f, -1.0f), Vector4(1.0f, 0.0f, 1.0f, 1.0f) },
-		{ Vector3(1.0f, -1.0f, -1.0f),	Vector4(1.0f, 1.0f, 0.0f, 1.0f) },
-		{ Vector3(1.0f, -1.0f, 1.0f),	Vector4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ Vector3(-1.0f, -1.0f, 1.0f),	Vector4(0.0f, 0.0f, 0.0f, 1.0f) },
+		{ Vector3(-1.0f, 1.0f, -1.0f),		Vector2(1.0f, 0.0f) },
+		{ Vector3(1.0f, 1.0f, -1.0f),		Vector2(0.0f, 0.0f) },
+		{ Vector3(1.0f, 1.0f, 1.0f),		Vector2(0.0f, 1.0f) },
+		{ Vector3(-1.0f, 1.0f, 1.0f),		Vector2(1.0f, 1.0f) },
+
+		{ Vector3(-1.0f, -1.0f, -1.0f),		Vector2(0.0f, 0.0f) },
+		{ Vector3(1.0f, -1.0f, -1.0f),		Vector2(1.0f, 0.0f) },
+		{ Vector3(1.0f, -1.0f, 1.0f),		Vector2(1.0f, 1.0f) },
+		{ Vector3(-1.0f, -1.0f, 1.0f),		Vector2(0.0f, 1.0f) },
+
+		{ Vector3(-1.0f, -1.0f, 1.0f),		Vector2(0.0f, 1.0f) },
+		{ Vector3(-1.0f, -1.0f, -1.0f),		Vector2(1.0f, 1.0f) },
+		{ Vector3(-1.0f, 1.0f, -1.0f),		Vector2(1.0f, 0.0f) },
+		{ Vector3(-1.0f, 1.0f, 1.0f),		Vector2(0.0f, 0.0f) },
+
+		{ Vector3(1.0f, -1.0f, 1.0f),		Vector2(1.0f, 1.0f) },
+		{ Vector3(1.0f, -1.0f, -1.0f),		Vector2(0.0f, 1.0f) },
+		{ Vector3(1.0f, 1.0f, -1.0f),		Vector2(0.0f, 0.0f) },
+		{ Vector3(1.0f, 1.0f, 1.0f),		Vector2(1.0f, 0.0f) },
+
+		{ Vector3(-1.0f, -1.0f, -1.0f),		Vector2(0.0f, 1.0f) },
+		{ Vector3(1.0f, -1.0f, -1.0f),		Vector2(1.0f, 1.0f) },
+		{ Vector3(1.0f, 1.0f, -1.0f),		Vector2(1.0f, 0.0f) },
+		{ Vector3(-1.0f, 1.0f, -1.0f),		Vector2(0.0f, 0.0f) },
+
+		{ Vector3(-1.0f, -1.0f, 1.0f),		Vector2(1.0f, 1.0f) },
+		{ Vector3(1.0f, -1.0f, 1.0f),		Vector2(0.0f, 1.0f) },
+		{ Vector3(1.0f, 1.0f, 1.0f),		Vector2(0.0f, 0.0f) },
+		{ Vector3(-1.0f, 1.0f, 1.0f),		Vector2(1.0f, 0.0f) },
 	};
 
 	D3D11_BUFFER_DESC bd;
@@ -116,15 +138,30 @@ HRESULT Renderer::InitRenderer()
 	if (FAILED(hr))
 		return hr;
 
-	// Set index buffer
 	g_pContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
-	// Create the constant buffer
 	bd.Usage = D3D11_USAGE_DEFAULT;
 	bd.ByteWidth = sizeof(ConstantBuffer);
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bd.CPUAccessFlags = 0;
 	hr = g_pDevice->CreateBuffer(&bd, nullptr, &m_pConstantBuffer);
+	if (FAILED(hr))
+		return hr;
+
+	hr = CreateWICTextureFromFile(g_pDevice, L"D:\\rgb.bmp", nullptr, &m_pBoxSRV);
+	if (FAILED(hr))
+		return hr;
+
+	D3D11_SAMPLER_DESC sampDesc;
+	ZeroMemory(&sampDesc, sizeof(sampDesc));
+	sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	sampDesc.MinLOD = 0;
+	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	hr = g_pDevice->CreateSamplerState(&sampDesc, &m_pSamplerLinear);
 	if (FAILED(hr))
 		return hr;
 
@@ -146,9 +183,6 @@ HRESULT Renderer::InitRenderer()
 
 void Renderer::Update()
 {
-	g_pContext->ClearRenderTargetView(g_pRenderTargetView, Colors::MidnightBlue);
-	g_pContext->OMSetRenderTargets(1, &g_pRenderTargetView, nullptr);
-
 	// Update our time
 	static float t = 0.0f;
 	static ULONGLONG timeStart = 0;
@@ -168,14 +202,34 @@ void Renderer::Update()
 
 void Renderer::Render()
 {
+	auto pRenderTargetView = g_dxResources->GetRenderTargetView();
+	auto pDepthStencilView = g_dxResources->GetDepthStencilView();
+	g_pContext->ClearRenderTargetView(pRenderTargetView, Colors::WhiteSmoke);
+	g_pContext->ClearDepthStencilView(pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	g_pContext->OMSetRenderTargets(1, &pRenderTargetView, pDepthStencilView);
+
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// Render a triangle
 	g_pContext->VSSetShader(m_pVertexShader, nullptr, 0);
 	g_pContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
 	g_pContext->PSSetShader(m_pPixelShader, nullptr, 0);
+	g_pContext->PSSetShaderResources(0, 1, &m_pBoxSRV);
+	g_pContext->PSSetSamplers(0, 1, &m_pSamplerLinear);
 	g_pContext->DrawIndexed(36, 0, 0);
 
 	// Present the information rendered to the back buffer to the front buffer (the screen)
 	g_pSwapChain->Present(0, 0);
+}
+
+void Renderer::Release()
+{
+	if (m_pInputLayout)		m_pInputLayout->Release();
+	if (m_pVertexShader)	m_pVertexShader->Release();
+	if (m_pPixelShader)		m_pPixelShader->Release();
+	if (m_pVertexBuffer)	m_pVertexBuffer->Release();
+	if (m_pIndexBuffer)		m_pIndexBuffer->Release();
+	if (m_pConstantBuffer)	m_pConstantBuffer->Release();
+	if (m_pBoxSRV)			m_pBoxSRV->Release();
+	if (m_pSamplerLinear)	m_pSamplerLinear->Release();
 }
