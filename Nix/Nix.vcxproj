@@ -106,7 +106,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>.\Files;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;.\Core;.\File;.\Object;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -144,7 +144,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>.\Files;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;.\Core;.\File;.\Object;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -155,30 +155,35 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="App.h" />
-    <ClInclude Include="DirectResources.h" />
-    <ClInclude Include="Files\DDSTextureLoader.h" />
-    <ClInclude Include="Files\WICTextureLoader.h" />
-    <ClInclude Include="Header.h" />
-    <ClInclude Include="Renderer.h" />
-    <ClInclude Include="ShaderComplier.h" />
-    <ClInclude Include="SimpleMath.h" />
+    <ClInclude Include="Core\App.h" />
+    <ClInclude Include="Core\DirectResources.h" />
+    <ClInclude Include="Core\Header.h" />
+    <ClInclude Include="Core\Renderer.h" />
+    <ClInclude Include="Core\ShaderComplier.h" />
+    <ClInclude Include="Core\ShaderStructures.h" />
+    <ClInclude Include="Core\SimpleMath.h" />
+    <ClInclude Include="File\DDSTextureLoader.h" />
+    <ClInclude Include="File\WICTextureLoader.h" />
+    <ClInclude Include="Object\Box.h" />
+    <ClInclude Include="Object\Camera.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="App.cpp" />
-    <ClCompile Include="DirectResources.cpp" />
-    <ClCompile Include="Files\DDSTextureLoader.cpp" />
-    <ClCompile Include="Files\WICTextureLoader.cpp" />
-    <ClCompile Include="Global.cpp" />
-    <ClCompile Include="Main.cpp" />
-    <ClCompile Include="Renderer.cpp" />
-    <ClCompile Include="ShaderComplier.cpp" />
+    <ClCompile Include="Core\App.cpp" />
+    <ClCompile Include="Core\DirectResources.cpp" />
+    <ClCompile Include="Core\Global.cpp" />
+    <ClCompile Include="Core\Main.cpp" />
+    <ClCompile Include="Core\Renderer.cpp" />
+    <ClCompile Include="Core\ShaderComplier.cpp" />
+    <ClCompile Include="File\DDSTextureLoader.cpp" />
+    <ClCompile Include="File\WICTextureLoader.cpp" />
+    <ClCompile Include="Object\Box.cpp" />
+    <ClCompile Include="Object\Camera.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="SimpleMath.inl" />
+    <None Include="Core\SimpleMath.inl" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Tutorial03.fx">
+    <None Include="Shader\Tutorial03.fx">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

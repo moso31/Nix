@@ -1,40 +1,92 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClInclude Include="SimpleMath.h" />
-    <ClInclude Include="Header.h" />
-    <ClInclude Include="DirectResources.h" />
-    <ClInclude Include="Renderer.h" />
-    <ClInclude Include="ShaderComplier.h" />
-    <ClInclude Include="App.h" />
-    <ClInclude Include="Files\WICTextureLoader.h">
+    <ClInclude Include="File\WICTextureLoader.h">
       <Filter>File</Filter>
     </ClInclude>
-    <ClInclude Include="Files\DDSTextureLoader.h">
+    <ClInclude Include="File\DDSTextureLoader.h">
       <Filter>File</Filter>
+    </ClInclude>
+    <ClInclude Include="Object\Box.h">
+      <Filter>Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Renderer.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ShaderComplier.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ShaderStructures.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\SimpleMath.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\App.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\DirectResources.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Header.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Object\Camera.h">
+      <Filter>Object</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="SimpleMath.inl" />
-    <None Include="Tutorial03.fx" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="Main.cpp" />
-    <ClCompile Include="DirectResources.cpp" />
-    <ClCompile Include="Renderer.cpp" />
-    <ClCompile Include="Global.cpp" />
-    <ClCompile Include="ShaderComplier.cpp" />
-    <ClCompile Include="App.cpp" />
-    <ClCompile Include="Files\WICTextureLoader.cpp">
+    <ClCompile Include="File\DDSTextureLoader.cpp">
       <Filter>File</Filter>
     </ClCompile>
-    <ClCompile Include="Files\DDSTextureLoader.cpp">
+    <ClCompile Include="File\WICTextureLoader.cpp">
       <Filter>File</Filter>
+    </ClCompile>
+    <ClCompile Include="Object\Box.cpp">
+      <Filter>Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Main.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Renderer.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\ShaderComplier.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\App.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\DirectResources.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Global.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Object\Camera.cpp">
+      <Filter>Object</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="File">
       <UniqueIdentifier>{785c917d-93e8-4fee-a4b4-13762b3e564a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Object">
+      <UniqueIdentifier>{cb91577a-f3dd-4038-9460-92506b071a08}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core">
+      <UniqueIdentifier>{b6872d19-f1ba-4911-8abc-a6f06962891b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader">
+      <UniqueIdentifier>{d99dfb08-f23b-4a25-8f50-c19ef8d7e01a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Core\SimpleMath.inl">
+      <Filter>Core</Filter>
+    </None>
+    <None Include="Shader\Tutorial03.fx">
+      <Filter>Shader</Filter>
+    </None>
   </ItemGroup>
 </Project>

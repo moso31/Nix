@@ -31,10 +31,12 @@ using namespace std;
 using namespace DirectX;
 using namespace SimpleMath;
 
-
 // class preload
 class App;
 class DirectResources;
+
+class Box;
+class Camera;
 
 // Global variables
 extern	HINSTANCE					g_hInst;

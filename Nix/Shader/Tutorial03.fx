@@ -1,9 +1,13 @@
 Texture2D txDiffuse : register(t0);
 SamplerState samLinear : register(s0);
 
-cbuffer ConstantBuffer : register(b0)
+cbuffer ConstantBufferPrimitive : register(b0)
 {
 	matrix World;
+}
+
+cbuffer ConstantBufferCamera : register(b1)
+{
 	matrix View;
 	matrix Projection;
 }
@@ -11,12 +15,14 @@ cbuffer ConstantBuffer : register(b0)
 struct VS_INPUT
 {
 	float4 Pos : POSITION;
+	float3 Norm : NORMAL0;
 	float2 Tex : TEXCOORD0;
 };
 
 struct PS_INPUT
 {
 	float4 Pos : SV_POSITION;
+	float3 Norm : NORMAL0;
 	float2 Tex : TEXCOORD0;
 };
 
@@ -26,6 +32,7 @@ PS_INPUT VS(VS_INPUT input)
 	output.Pos = mul(input.Pos, World);
 	output.Pos = mul(output.Pos, View);
 	output.Pos = mul(output.Pos, Projection);
+	output.Norm = input.Norm;
 	output.Tex = input.Tex;
 
 	return output;
