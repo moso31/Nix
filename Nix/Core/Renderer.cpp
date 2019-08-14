@@ -2,8 +2,7 @@
 #include "DirectResources.h"
 #include "ShaderComplier.h"
 
-#include "Box.h"
-#include "Camera.h"
+#include "Scene.h"
 
 HRESULT Renderer::InitRenderer()
 {
@@ -72,18 +71,15 @@ HRESULT Renderer::InitRenderer()
 	if (FAILED(hr))
 		return hr;
 
-	m_box = new Box();
-	m_box->Init();
-	m_camera = new Camera();
-	m_camera->Init();
+	m_scene = make_shared<Scene>();
+	m_scene->Init();
 
 	return S_OK;
 }
 
 void Renderer::Update()
 {
-	m_camera->Update();
-	m_box->Update();
+	m_scene->Update();
 }
 
 void Renderer::Render()
@@ -96,14 +92,12 @@ void Renderer::Render()
 
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	m_camera->Render();
-
 	// Render a triangle
 	g_pContext->VSSetShader(m_pVertexShader, nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShader, nullptr, 0);
 	g_pContext->PSSetSamplers(0, 1, &m_pSamplerLinear);
 
-	m_box->Render();
+	m_scene->Render();
 
 	// Present the information rendered to the back buffer to the front buffer (the screen)
 	g_pSwapChain->Present(0, 0);
@@ -116,6 +110,5 @@ void Renderer::Release()
 	if (m_pPixelShader)		m_pPixelShader->Release();
 	if (m_pSamplerLinear)	m_pSamplerLinear->Release();
 
-	if (m_box) m_box->Release();
-	if (m_camera) m_camera->Release();
+	m_scene.reset();
 }

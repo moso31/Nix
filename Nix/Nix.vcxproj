@@ -166,6 +166,7 @@
     <ClInclude Include="File\WICTextureLoader.h" />
     <ClInclude Include="Object\Box.h" />
     <ClInclude Include="Object\Camera.h" />
+    <ClInclude Include="Object\Scene.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp" />
@@ -178,6 +179,7 @@
     <ClCompile Include="File\WICTextureLoader.cpp" />
     <ClCompile Include="Object\Box.cpp" />
     <ClCompile Include="Object\Camera.cpp" />
+    <ClCompile Include="Object\Scene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Core\SimpleMath.inl" />

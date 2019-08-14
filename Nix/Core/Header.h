@@ -35,6 +35,8 @@ using namespace SimpleMath;
 class App;
 class DirectResources;
 
+class Scene;
+class Primitive;
 class Box;
 class Camera;
 

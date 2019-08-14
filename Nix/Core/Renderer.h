@@ -15,6 +15,5 @@ private:
 	ID3D11PixelShader*			m_pPixelShader;
 	ID3D11SamplerState*			m_pSamplerLinear;
 
-	Box* m_box;
-	Camera* m_camera;
+	shared_ptr<Scene>			m_scene;
 };

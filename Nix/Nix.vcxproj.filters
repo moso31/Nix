@@ -34,6 +34,9 @@
     <ClInclude Include="Object\Camera.h">
       <Filter>Object</Filter>
     </ClInclude>
+    <ClInclude Include="Object\Scene.h">
+      <Filter>Object</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="File\DDSTextureLoader.cpp">
@@ -64,6 +67,9 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Object\Camera.cpp">
+      <Filter>Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Object\Scene.cpp">
       <Filter>Object</Filter>
     </ClCompile>
   </ItemGroup>
