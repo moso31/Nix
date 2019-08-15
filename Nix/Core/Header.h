@@ -37,7 +37,6 @@ class DirectResources;
 
 class Scene;
 class Primitive;
-class Box;
 class Camera;
 
 // Global variables

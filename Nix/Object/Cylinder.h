@@ -6,7 +6,7 @@ class Cylinder : public Primitive
 public:
 	Cylinder() = default;
 
-	HRESULT Init(int radius, int length, int segmentCircle, int segmentLength);
+	HRESULT Init(float radius, float length, int segmentCircle, int segmentLength);
 	void Update();
 	void Render();
 	void Release();

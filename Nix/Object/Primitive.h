@@ -1,6 +1,11 @@
 #pragma once
 #include "ShaderStructures.h"
 
+class Box;
+class Sphere;
+class Cylinder;
+class Cone;
+
 class Primitive
 {
 public:

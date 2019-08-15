@@ -133,7 +133,7 @@ void Box::Render()
 {
 	g_pContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
 	g_pContext->PSSetShaderResources(0, 1, &m_pTextureSRV);
-	g_pContext->DrawIndexed(m_indices.size(), 0, 0);
+	g_pContext->DrawIndexed((UINT)m_indices.size(), 0, 0);
 }
 
 void Box::Release()
