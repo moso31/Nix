@@ -1,69 +1,63 @@
-#include "Box.h"
+#include "Sphere.h"
 #include "WICTextureLoader.h"
 
-HRESULT Box::Init()
+HRESULT Sphere::Init(float radius, int segmentHorizontal, int segmentVertical)
 {
-	float x = 0.5f, y = 0.5f, z = 0.5f;
-	// Create vertex buffer
-	m_vertices =
+	int currVertIdx = 0;
+	for (int i = 0; i < segmentVertical; i++)
 	{
-		// -X
-		{ Vector3(-x, +y, +z), Vector3(-1.0f, 0.0f, 0.0f),	Vector2(0.0f, 1.0f) },
-		{ Vector3(-x, +y, -z), Vector3(-1.0f, 0.0f, 0.0f),	Vector2(1.0f, 1.0f) },
-		{ Vector3(-x, -y, -z), Vector3(-1.0f, 0.0f, 0.0f),	Vector2(1.0f, 0.0f) },
-		{ Vector3(-x, -y, +z), Vector3(-1.0f, 0.0f, 0.0f),	Vector2(0.0f, 0.0f) },
+		float yDown = ((float)i / (float)segmentVertical * 2.0f - 1.0f) * radius;
+		float yUp = ((float)(i + 1) / (float)segmentVertical * 2.0f - 1.0f) * radius;
+		float radiusDown = sqrtf(radius * radius - yDown * yDown);
+		float radiusUp = sqrtf(radius * radius - yUp * yUp);
 
-		// +X
-		{ Vector3(+x, +y, -z), Vector3(1.0f, 0.0f, 0.0f),	Vector2(0.0f, 1.0f) },
-		{ Vector3(+x, +y, +z), Vector3(1.0f, 0.0f, 0.0f),	Vector2(1.0f, 1.0f) },
-		{ Vector3(+x, -y, +z), Vector3(1.0f, 0.0f, 0.0f),	Vector2(1.0f, 0.0f) },
-		{ Vector3(+x, -y, -z), Vector3(1.0f, 0.0f, 0.0f),	Vector2(0.0f, 0.0f) },
+		for (int j = 0; j < segmentHorizontal; j++)
+		{
+			float segNow = (float)j / (float)segmentHorizontal;
+			float segNext = (float)(j + 1) / (float)segmentHorizontal;
+			float angleNow = segNow * XM_2PI;
+			float angleNext = segNext * XM_2PI;
+			float xNow = sinf(angleNow);
+			float zNow = cosf(angleNow);
+			float xNext = sinf(angleNext);
+			float zNext = cosf(angleNext);
 
-		// -Y
-		{ Vector3(-x, -y, -z), Vector3(0.0f, -1.0f, 0.0f),	Vector2(0.0f, 1.0f) },
-		{ Vector3(+x, -y, -z), Vector3(0.0f, -1.0f, 0.0f),	Vector2(1.0f, 1.0f) },
-		{ Vector3(+x, -y, +z), Vector3(0.0f, -1.0f, 0.0f),	Vector2(1.0f, 0.0f) },
-		{ Vector3(-x, -y, +z), Vector3(0.0f, -1.0f, 0.0f),	Vector2(0.0f, 0.0f) },
+			Vector3 pNowUp = { xNow * radiusUp, yUp, zNow * radiusUp };
+			Vector3 pNextUp = { xNext * radiusUp, yUp, zNext * radiusUp };
+			Vector3 pNowDown = { xNow * radiusDown, yDown, zNow * radiusDown };
+			Vector3 pNextDown = { xNext * radiusDown, yDown, zNext * radiusDown };
 
-		// +Y
-		{ Vector3(-x, +y, +z), Vector3(0.0f, 1.0f, 0.0f),	Vector2(0.0f, 1.0f) },
-		{ Vector3(+x, +y, +z), Vector3(0.0f, 1.0f, 0.0f),	Vector2(1.0f, 1.0f) },
-		{ Vector3(+x, +y, -z), Vector3(0.0f, 1.0f, 0.0f),	Vector2(1.0f, 0.0f) },
-		{ Vector3(-x, +y, -z), Vector3(0.0f, 1.0f, 0.0f),	Vector2(0.0f, 0.0f) },
+			Vector2 uvNowUp = { segNow, yUp };
+			Vector2 uvNextUp = { segNext, yUp };
+			Vector2 uvNowDown = { segNow, yDown };
+			Vector2 uvNextDown = { segNext, yDown };
 
-		// -Z
-		{ Vector3(-x, +y, -z), Vector3(0.0f, 0.0f, -1.0f),	Vector2(0.0f, 1.0f) },
-		{ Vector3(+x, +y, -z), Vector3(0.0f, 0.0f, -1.0f),	Vector2(1.0f, 1.0f) },
-		{ Vector3(+x, -y, -z), Vector3(0.0f, 0.0f, -1.0f),	Vector2(1.0f, 0.0f) },
-		{ Vector3(-x, -y, -z), Vector3(0.0f, 0.0f, -1.0f),	Vector2(0.0f, 0.0f) },
+			float invRadius = 1.0f / radius;
+			Vector3 nNowUp, nNowDown, nNextUp, nNextDown;
+			nNowUp = pNowUp * invRadius;
+			nNextUp = pNextUp * invRadius;
+			nNowDown = pNowDown * invRadius;
+			nNextDown = pNextDown * invRadius;
 
-		// +Z
-		{ Vector3(+x, +y, +z), Vector3(0.0f, 0.0f, 1.0f),	Vector2(0.0f, 1.0f) },
-		{ Vector3(-x, +y, +z), Vector3(0.0f, 0.0f, 1.0f),	Vector2(1.0f, 1.0f) },
-		{ Vector3(-x, -y, +z), Vector3(0.0f, 0.0f, 1.0f),	Vector2(1.0f, 0.0f) },
-		{ Vector3(+x, -y, +z), Vector3(0.0f, 0.0f, 1.0f),	Vector2(0.0f, 0.0f) },
-	};
+			m_vertices.push_back({ pNowUp,		nNowUp,		uvNowUp });
+			m_vertices.push_back({ pNextUp,		nNextUp,	uvNextUp });
+			m_vertices.push_back({ pNextDown,	nNextDown,	uvNextDown });
+			m_vertices.push_back({ pNowDown,	nNowDown,	uvNowDown });
 
-	m_indices =
-	{
-		0,  1,  2,
-		0,  2,  3,
+			m_indices.push_back(currVertIdx);
+			m_indices.push_back(currVertIdx + 2);
+			m_indices.push_back(currVertIdx + 1);
+			m_indices.push_back(currVertIdx);
+			m_indices.push_back(currVertIdx + 3);
+			m_indices.push_back(currVertIdx + 2);
 
-		4,  5,  6,
-		4,  6,  7,
+			currVertIdx += 4;
+		}
+	}
 
-		8,  9,  10,
-		8,  10, 11,
-
-		12, 13, 14,
-		12, 14, 15,
-
-		16, 17, 18,
-		16, 18, 19,
-
-		20, 21, 22,
-		20, 22, 23
-	};
+	m_radius = radius;
+	m_segmentVertical = segmentVertical;
+	m_segmentHorizontal = segmentHorizontal;
 
 	D3D11_BUFFER_DESC bufferDesc;
 	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
@@ -112,7 +106,7 @@ HRESULT Box::Init()
 	return S_OK;
 }
 
-void Box::Update()
+void Sphere::Update()
 {
 	// Update our time
 	static float t = 0.0f;
@@ -129,14 +123,14 @@ void Box::Update()
 	g_pContext->UpdateSubresource(m_pConstantBuffer, 0, nullptr, &cb, 0, 0);
 }
 
-void Box::Render()
+void Sphere::Render()
 {
 	g_pContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
 	g_pContext->PSSetShaderResources(0, 1, &m_pTextureSRV);
 	g_pContext->DrawIndexed(m_indices.size(), 0, 0);
 }
 
-void Box::Release()
+void Sphere::Release()
 {
 	if (m_pVertexBuffer)	m_pVertexBuffer->Release();
 	if (m_pIndexBuffer)		m_pIndexBuffer->Release();

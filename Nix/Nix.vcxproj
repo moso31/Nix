@@ -166,7 +166,10 @@
     <ClInclude Include="File\WICTextureLoader.h" />
     <ClInclude Include="Object\Box.h" />
     <ClInclude Include="Object\Camera.h" />
+    <ClInclude Include="Object\Cylinder.h" />
+    <ClInclude Include="Object\Primitive.h" />
     <ClInclude Include="Object\Scene.h" />
+    <ClInclude Include="Object\Sphere.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp" />
@@ -179,7 +182,10 @@
     <ClCompile Include="File\WICTextureLoader.cpp" />
     <ClCompile Include="Object\Box.cpp" />
     <ClCompile Include="Object\Camera.cpp" />
+    <ClCompile Include="Object\Cylinder.cpp" />
+    <ClCompile Include="Object\Primitive.cpp" />
     <ClCompile Include="Object\Scene.cpp" />
+    <ClCompile Include="Object\Sphere.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Core\SimpleMath.inl" />

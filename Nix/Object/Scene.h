@@ -13,6 +13,6 @@ public:
 	void Release();
 
 private:
-	vector<shared_ptr<Box>> m_primitives;
+	vector<shared_ptr<Primitive>> m_primitives;
 	shared_ptr<Camera> m_mainCamera;
 };

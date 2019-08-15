@@ -37,6 +37,15 @@
     <ClInclude Include="Object\Scene.h">
       <Filter>Object</Filter>
     </ClInclude>
+    <ClInclude Include="Object\Sphere.h">
+      <Filter>Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Object\Primitive.h">
+      <Filter>Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Object\Cylinder.h">
+      <Filter>Object</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="File\DDSTextureLoader.cpp">
@@ -70,6 +79,15 @@
       <Filter>Object</Filter>
     </ClCompile>
     <ClCompile Include="Object\Scene.cpp">
+      <Filter>Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Object\Sphere.cpp">
+      <Filter>Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Object\Primitive.cpp">
+      <Filter>Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Object\Cylinder.cpp">
       <Filter>Object</Filter>
     </ClCompile>
   </ItemGroup>

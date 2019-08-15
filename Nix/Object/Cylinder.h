@@ -1,12 +1,12 @@
 #pragma once
 #include "Primitive.h"
 
-class Box : public Primitive
+class Cylinder : public Primitive
 {
 public:
-	Box() = default;
+	Cylinder() = default;
 
-	HRESULT Init();
+	HRESULT Init(int radius, int length, int segmentCircle, int segmentLength);
 	void Update();
 	void Render();
 	void Release();

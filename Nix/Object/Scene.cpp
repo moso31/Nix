@@ -1,5 +1,6 @@
 #include "Scene.h"
 #include "Box.h"
+#include "Sphere.h"
 #include "Camera.h"
 
 Scene::Scene()
@@ -12,9 +13,9 @@ Scene::~Scene()
 
 void Scene::Init()
 {
-	auto pBox = make_shared<Box>();
-	pBox->Init();
-	m_primitives.push_back(pBox);
+	auto pPrimitive = make_shared<Sphere>();
+	pPrimitive->Init(0.5, 8, 8);
+	m_primitives.push_back(pPrimitive);
 
 	auto pCamera = make_shared<Camera>();
 	pCamera->Init();
