@@ -2,13 +2,10 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClInclude Include="File\WICTextureLoader.h">
-      <Filter>File</Filter>
+      <Filter>Nix\File</Filter>
     </ClInclude>
     <ClInclude Include="File\DDSTextureLoader.h">
-      <Filter>File</Filter>
-    </ClInclude>
-    <ClInclude Include="Object\Box.h">
-      <Filter>Object</Filter>
+      <Filter>Nix\File</Filter>
     </ClInclude>
     <ClInclude Include="Core\Renderer.h">
       <Filter>Core</Filter>
@@ -22,43 +19,44 @@
     <ClInclude Include="Core\SimpleMath.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Core\App.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="Core\DirectResources.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Header.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="Object\Camera.h">
-      <Filter>Object</Filter>
+      <Filter>Nix\Object</Filter>
     </ClInclude>
-    <ClInclude Include="Object\Scene.h">
-      <Filter>Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Object\Sphere.h">
-      <Filter>Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Object\Primitive.h">
-      <Filter>Object</Filter>
+    <ClInclude Include="Object\Box.h">
+      <Filter>Nix\Object\Primitive</Filter>
     </ClInclude>
     <ClInclude Include="Object\Cylinder.h">
-      <Filter>Object</Filter>
+      <Filter>Nix\Object\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="Object\Sphere.h">
+      <Filter>Nix\Object\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="Object\Primitive.h">
+      <Filter>Nix\Object\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Header.h" />
+    <ClInclude Include="Core\App.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Object\Light.h">
+      <Filter>Nix\Object\Light</Filter>
+    </ClInclude>
+    <ClInclude Include="Object\Material.h">
+      <Filter>Nix\Object\Material</Filter>
+    </ClInclude>
+    <ClInclude Include="Object\Scene.h">
+      <Filter>Nix</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="File\DDSTextureLoader.cpp">
-      <Filter>File</Filter>
+      <Filter>Nix\File</Filter>
     </ClCompile>
     <ClCompile Include="File\WICTextureLoader.cpp">
-      <Filter>File</Filter>
-    </ClCompile>
-    <ClCompile Include="Object\Box.cpp">
-      <Filter>Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Main.cpp">
-      <Filter>Core</Filter>
+      <Filter>Nix\File</Filter>
     </ClCompile>
     <ClCompile Include="Core\Renderer.cpp">
       <Filter>Core</Filter>
@@ -66,43 +64,63 @@
     <ClCompile Include="Core\ShaderComplier.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Core\App.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="Core\DirectResources.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Core\Global.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="Object\Camera.cpp">
-      <Filter>Object</Filter>
+      <Filter>Nix\Object</Filter>
     </ClCompile>
-    <ClCompile Include="Object\Scene.cpp">
-      <Filter>Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Object\Sphere.cpp">
-      <Filter>Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Object\Primitive.cpp">
-      <Filter>Object</Filter>
+    <ClCompile Include="Object\Box.cpp">
+      <Filter>Nix\Object\Primitive</Filter>
     </ClCompile>
     <ClCompile Include="Object\Cylinder.cpp">
-      <Filter>Object</Filter>
+      <Filter>Nix\Object\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="Object\Sphere.cpp">
+      <Filter>Nix\Object\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="Object\Primitive.cpp">
+      <Filter>Nix\Object\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Main.cpp" />
+    <ClCompile Include="Core\Global.cpp" />
+    <ClCompile Include="Core\App.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Object\Light.cpp">
+      <Filter>Nix\Object\Light</Filter>
+    </ClCompile>
+    <ClCompile Include="Object\Material.cpp">
+      <Filter>Nix\Object\Material</Filter>
+    </ClCompile>
+    <ClCompile Include="Object\Scene.cpp">
+      <Filter>Nix</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="File">
-      <UniqueIdentifier>{785c917d-93e8-4fee-a4b4-13762b3e564a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Object">
-      <UniqueIdentifier>{cb91577a-f3dd-4038-9460-92506b071a08}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Core">
       <UniqueIdentifier>{b6872d19-f1ba-4911-8abc-a6f06962891b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shader">
+    <Filter Include="Nix">
+      <UniqueIdentifier>{b98cce96-7ef9-43b4-9ff9-b62958c35f70}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Nix\File">
+      <UniqueIdentifier>{785c917d-93e8-4fee-a4b4-13762b3e564a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Nix\Object">
+      <UniqueIdentifier>{cb91577a-f3dd-4038-9460-92506b071a08}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Nix\Object\Primitive">
+      <UniqueIdentifier>{e408db57-5c08-430d-9bb0-28d118781db9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Nix\Shader">
       <UniqueIdentifier>{d99dfb08-f23b-4a25-8f50-c19ef8d7e01a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Nix\Object\Light">
+      <UniqueIdentifier>{1bb77c6d-c8ba-41fe-b73f-0f017daaa595}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Nix\Object\Material">
+      <UniqueIdentifier>{159fbfcd-8fee-427d-b7b7-88b61a1e7b34}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -110,7 +128,12 @@
       <Filter>Core</Filter>
     </None>
     <None Include="Shader\Tutorial03.fx">
-      <Filter>Shader</Filter>
+      <Filter>Nix\Shader</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="Shader\Light.fx">
+      <Filter>Nix\Shader</Filter>
+    </Xml>
   </ItemGroup>
 </Project>

@@ -38,6 +38,8 @@ class DirectResources;
 class Scene;
 class Primitive;
 class Camera;
+class Light;
+class Material;
 
 // Global variables
 extern	HINSTANCE					g_hInst;

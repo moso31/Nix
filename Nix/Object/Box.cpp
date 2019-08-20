@@ -109,6 +109,8 @@ HRESULT Box::Init()
 		return hr;
 
 	m_pConstantBufferData.world = Matrix::Identity();
+	m_pConstantBufferData.worldInvTranspose = Matrix::Identity();
+
 	return S_OK;
 }
 
@@ -122,11 +124,21 @@ void Box::Update()
 		timeStart = timeCur;
 	t = (timeCur - timeStart) / 1000.0f;
 
-	m_pConstantBufferData.world = Matrix::CreateRotationY(t);
+	Matrix mxWorld = Matrix::CreateRotationY(t);
+	m_pConstantBufferData.world = mxWorld;
+	m_pConstantBufferData.worldInvTranspose = mxWorld.Invert().Transpose();
 
 	ConstantBufferPrimitive cb;
 	cb.world = m_pConstantBufferData.world.Transpose();
+	cb.worldInvTranspose = m_pConstantBufferData.worldInvTranspose.Transpose();
 	g_pContext->UpdateSubresource(m_pConstantBuffer, 0, nullptr, &cb, 0, 0);
+
+	if (m_pMaterial)
+	{
+		ConstantBufferMaterial cb;
+		cb.material = m_cbDataMaterial.material;
+		g_pContext->UpdateSubresource(m_cbMaterial, 0, nullptr, &cb, 0, 0);
+	}
 }
 
 void Box::Render()
@@ -142,4 +154,9 @@ void Box::Release()
 	if (m_pIndexBuffer)		m_pIndexBuffer->Release();
 	if (m_pConstantBuffer)	m_pConstantBuffer->Release();
 	if (m_pTextureSRV)			m_pTextureSRV->Release();
+}
+
+void Box::SetMaterial(const shared_ptr<Material> pMaterial)
+{
+	m_pMaterial = pMaterial;
 }

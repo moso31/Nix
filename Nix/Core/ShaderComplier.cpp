@@ -16,8 +16,10 @@ HRESULT ShaderComplier::Compile(wstring szFileName, LPCSTR szEntryPoint, LPCSTR 
 	dwShaderFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
 
+	ID3DInclude* pInclude = D3D_COMPILE_STANDARD_FILE_INCLUDE;
+
 	ID3DBlob* pErrorBlob = nullptr;
-	hr = D3DCompileFromFile(szFileName.c_str(), nullptr, nullptr, szEntryPoint, szShaderModel,
+	hr = D3DCompileFromFile(szFileName.c_str(), nullptr, pInclude, szEntryPoint, szShaderModel,
 		dwShaderFlags, 0, ppBlobOut, &pErrorBlob);
 	if (FAILED(hr))
 	{

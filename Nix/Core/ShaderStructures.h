@@ -1,5 +1,7 @@
 #pragma once
 #include "Header.h"
+#include "Material.h"
+#include "Light.h"
 
 struct VertexPNT
 {
@@ -23,10 +25,21 @@ struct VertexPNTC
 struct ConstantBufferPrimitive
 {
 	Matrix world;
+	Matrix worldInvTranspose;
 };
 
 struct ConstantBufferCamera
 {
 	Matrix view;
 	Matrix projection;
+};
+
+struct ConstantBufferMaterial
+{
+	MaterialInfo material;
+};
+
+struct ConstantBufferLight
+{
+	LightInfo light;
 };
