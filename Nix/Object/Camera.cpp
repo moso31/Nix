@@ -4,7 +4,7 @@
 HRESULT Camera::Init()
 {
 	// Initialize the view matrix
-	Vector4 Eye(0.0f, 0.7f, -1.5f, 0.0f);
+	Vector4 Eye(0.0f, 0.0f, -1.5f, 0.0f);
 	Vector4 At(0.0f, 0.0f, 0.0f, 0.0f);
 	Vector4 Up(0.0f, 1.0f, 0.0f, 0.0f);
 	m_pConstantBufferData.view = XMMatrixLookAtLH(Eye, At, Up);

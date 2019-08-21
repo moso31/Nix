@@ -18,11 +18,11 @@ Scene::~Scene()
 
 void Scene::Init()
 {
-	auto pLight = make_shared<Light>();
+	auto pLight = make_shared<DirectionalLight>();
 	pLight->SetAmbient(Vector4(0.2f, 0.2f, 0.2f, 1.0f));
 	pLight->SetDiffuse(Vector4(0.8f, 0.8f, 0.8f, 1.0f));
-	pLight->SetSpecular(Vector4(0.8f, 0.8f, 0.8f, 1.0f));	
-	pLight->SetDirection(Vector3(1.0f, -1.0f, 1.0f));
+	pLight->SetSpecular(Vector4(0.8f, 0.8f, 0.8f, 200.0f));	
+	pLight->SetDirection(Vector3(1.0f, 0.0f, 1.0f));
 	m_lights.push_back(pLight);
 
 	D3D11_BUFFER_DESC bufferDesc;

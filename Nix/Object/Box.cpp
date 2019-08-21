@@ -124,7 +124,7 @@ void Box::Update()
 		timeStart = timeCur;
 	t = (timeCur - timeStart) / 1000.0f;
 
-	Matrix mxWorld = Matrix::CreateRotationY(t);
+	Matrix mxWorld = Matrix::CreateRotationY(t * 0.5);
 	m_pConstantBufferData.world = mxWorld;
 	m_pConstantBufferData.worldInvTranspose = mxWorld.Invert().Transpose();
 

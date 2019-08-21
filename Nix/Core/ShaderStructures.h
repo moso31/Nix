@@ -43,5 +43,5 @@ struct ConstantBufferMaterial
 
 struct ConstantBufferLight
 {
-	LightInfo light;
+	DirectionalLightInfo light;
 };
