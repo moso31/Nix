@@ -32,6 +32,8 @@ struct ConstantBufferCamera
 {
 	Matrix view;
 	Matrix projection;
+	Vector3 eyePosition;
+	float _align16;
 };
 
 struct ConstantBufferMaterial

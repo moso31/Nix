@@ -4,7 +4,7 @@
 HRESULT Camera::Init()
 {
 	// Initialize the view matrix
-	Vector4 Eye(0.0f, 0.0f, -6.0f, 0.0f);
+	Vector4 Eye(0.0f, 0.7f, -1.5f, 0.0f);
 	Vector4 At(0.0f, 0.0f, 0.0f, 0.0f);
 	Vector4 Up(0.0f, 1.0f, 0.0f, 0.0f);
 	m_pConstantBufferData.view = XMMatrixLookAtLH(Eye, At, Up);
@@ -28,6 +28,7 @@ HRESULT Camera::Init()
 	ConstantBufferCamera cb;
 	cb.view = m_pConstantBufferData.view.Transpose();
 	cb.projection = m_pConstantBufferData.projection.Transpose();
+	cb.eyePosition = Vector3(Eye);
 
 	g_pContext->UpdateSubresource(m_pConstantBuffer, 0, nullptr, &cb, 0, 0);
 
@@ -41,6 +42,7 @@ void Camera::Update()
 void Camera::Render()
 {
 	g_pContext->VSSetConstantBuffers(1, 1, &m_pConstantBuffer);
+	g_pContext->PSSetConstantBuffers(1, 1, &m_pConstantBuffer);
 }
 
 void Camera::Release()

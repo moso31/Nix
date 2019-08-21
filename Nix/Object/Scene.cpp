@@ -20,8 +20,8 @@ void Scene::Init()
 {
 	auto pLight = make_shared<Light>();
 	pLight->SetAmbient(Vector4(0.2f, 0.2f, 0.2f, 1.0f));
-	pLight->SetDiffuse(Vector4(0.5f, 0.5f, 0.5f, 1.0f));
-	pLight->SetSpecular(Vector4(0.5f, 0.5f, 0.5f, 1.0f));	
+	pLight->SetDiffuse(Vector4(0.8f, 0.8f, 0.8f, 1.0f));
+	pLight->SetSpecular(Vector4(0.8f, 0.8f, 0.8f, 1.0f));	
 	pLight->SetDirection(Vector3(1.0f, -1.0f, 1.0f));
 	m_lights.push_back(pLight);
 
@@ -49,8 +49,8 @@ void Scene::Init()
 	pMaterial->SetSpecular(Vector4(0.8f, 0.8f, 0.8f, 16.0f));
 	m_materials.push_back(pMaterial);
 
-	auto pPrimitive = make_shared<Cylinder>();
-	pPrimitive->Init(2.0f, 2.0f, 44, 7);
+	auto pPrimitive = make_shared<Box>();
+	pPrimitive->Init();
 	pPrimitive->SetMaterial(pMaterial);
 	m_primitives.push_back(pPrimitive);
 
@@ -71,6 +71,8 @@ void Scene::Update()
 
 void Scene::Render()
 {
+	g_pContext->PSSetConstantBuffers(2, 1, &m_cbLight);
+
 	m_mainCamera->Render();
 
 	for (auto it = m_primitives.begin(); it != m_primitives.end(); it++)

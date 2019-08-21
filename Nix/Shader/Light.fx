@@ -1,18 +1,18 @@
 struct DirectionalLight
 {
-	float4 Ambient;
-	float4 Diffuse;
-	float4 Specular;
-	float3 Direction;
+	float4 ambient;
+	float4 diffuse;
+	float4 specular;
+	float3 direction;
 	float pad;
 };
 
 struct Material
 {
-	float4 Ambient;
-	float4 Diffuse;
-	float4 Specular; // w = SpecPower
-	float4 Reflect;
+	float4 ambient;
+	float4 diffuse;
+	float4 specular; // w = SpecPower
+	float4 reflect;
 };
 
 void ComputeDirectionalLight(Material mat, DirectionalLight L,
@@ -27,10 +27,10 @@ void ComputeDirectionalLight(Material mat, DirectionalLight L,
 	spec = float4(0.0f, 0.0f, 0.0f, 0.0f);
 
 	// The light vector aims opposite the direction the light rays travel.
-	float3 lightVec = -L.Direction;
+	float3 lightVec = -L.direction;
 
 	// Add ambient term.
-	ambient = mat.Ambient * L.Ambient;
+	ambient = mat.ambient * L.ambient;
 
 	// Add diffuse and specular term, provided the surface is in 
 	// the line of site of the light.
@@ -42,9 +42,9 @@ void ComputeDirectionalLight(Material mat, DirectionalLight L,
 	if (diffuseFactor > 0.0f)
 	{
 		float3 v = reflect(-lightVec, normal);
-		float specFactor = pow(max(dot(v, toEye), 0.0f), mat.Specular.w);
+		float specFactor = pow(max(dot(v, toEye), 0.0f), mat.specular.w);
 
-		diffuse = diffuseFactor * mat.Diffuse * L.Diffuse;
-		spec = specFactor * mat.Specular * L.Specular;
+		diffuse = diffuseFactor * mat.diffuse * L.diffuse;
+		spec = specFactor * mat.specular * L.specular;
 	}
 }

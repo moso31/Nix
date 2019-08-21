@@ -19,9 +19,7 @@ public:
 	void SetMaterial(const shared_ptr<Material>& material);
 
 protected:
-	ConstantBufferMaterial m_cbDataMaterial;
-	ID3D11Buffer* m_cbMaterial;
-
-private:
-	shared_ptr<Material> m_pMaterial;
+	ConstantBufferMaterial	m_cbDataMaterial;
+	ID3D11Buffer*			m_cbMaterial;
+	shared_ptr<Material>	m_pMaterial;
 };

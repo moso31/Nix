@@ -145,6 +145,7 @@ void Box::Render()
 {
 	g_pContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
 	g_pContext->PSSetShaderResources(0, 1, &m_pTextureSRV);
+	g_pContext->PSSetConstantBuffers(3, 1, &m_cbMaterial);
 	g_pContext->DrawIndexed((UINT)m_indices.size(), 0, 0);
 }
 
@@ -153,10 +154,5 @@ void Box::Release()
 	if (m_pVertexBuffer)	m_pVertexBuffer->Release();
 	if (m_pIndexBuffer)		m_pIndexBuffer->Release();
 	if (m_pConstantBuffer)	m_pConstantBuffer->Release();
-	if (m_pTextureSRV)			m_pTextureSRV->Release();
-}
-
-void Box::SetMaterial(const shared_ptr<Material> pMaterial)
-{
-	m_pMaterial = pMaterial;
+	if (m_pTextureSRV)		m_pTextureSRV->Release();
 }

@@ -13,11 +13,13 @@ cbuffer ConstantBufferCamera : register(b1)
 {
 	matrix m_view;
 	matrix m_projection;
+	float3 m_eyePos;
+	float _align16;
 }
 
 cbuffer ConstantBufferLight : register(b2)
 {
-	DirectionalLight m_dirLights[3];
+	DirectionalLight m_light;
 }
 
 cbuffer ConstantBufferMaterial : register(b3)
@@ -55,5 +57,9 @@ PS_INPUT VS(VS_INPUT input)
 
 float4 PS(PS_INPUT input) : SV_Target
 {
-	return txDiffuse.Sample(samLinear, input.Tex);
+	float4 A = m_material.ambient * m_light.ambient;
+	float4 D = m_material.diffuse * m_light.diffuse;
+	float kDiff = m_light.direction * input.PosW;
+	return A + kDiff * D;
+	//return txDiffuse.Sample(samLinear, input.Tex);
 }
