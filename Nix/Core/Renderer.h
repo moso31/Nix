@@ -4,7 +4,8 @@
 class Renderer
 {
 public:
-	HRESULT InitRenderer();
+	void Init();
+	void InitRenderer();
 	void Update();
 	void Render();
 	void Release();

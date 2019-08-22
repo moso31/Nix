@@ -1,7 +1,6 @@
 #include "NXBox.h"
-#include "WICTextureLoader.h"
 
-HRESULT NXBox::Init(float x, float y, float z)
+void NXBox::Init(float x, float y, float z)
 {
 	x *= 0.5f;
 	y *= 0.5f;
@@ -67,53 +66,7 @@ HRESULT NXBox::Init(float x, float y, float z)
 		20, 22, 23
 	};
 
-	D3D11_BUFFER_DESC bufferDesc;
-	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(VertexPNT) * (UINT)m_vertices.size();
-	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bufferDesc.CPUAccessFlags = 0;
-	D3D11_SUBRESOURCE_DATA InitData;
-	ZeroMemory(&InitData, sizeof(InitData));
-	InitData.pSysMem = m_vertices.data();
-
-	HRESULT hr;
-	hr = g_pDevice->CreateBuffer(&bufferDesc, &InitData, &m_pVertexBuffer);
-	if (FAILED(hr))
-		return hr;
-
-	UINT stride = sizeof(VertexPNT);
-	UINT offset = 0;
-	g_pContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &stride, &offset);
-
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(USHORT) * (UINT)m_indices.size();
-	bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	bufferDesc.CPUAccessFlags = 0;
-	InitData.pSysMem = m_indices.data();
-
-	g_pDevice->CreateBuffer(&bufferDesc, &InitData, &m_pIndexBuffer);
-	if (FAILED(hr))
-		return hr;
-
-	g_pContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(ConstantBufferPrimitive);
-	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bufferDesc.CPUAccessFlags = 0;
-	hr = g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_pConstantBuffer);
-	if (FAILED(hr))
-		return hr;
-
-	hr = CreateWICTextureFromFile(g_pDevice, L"D:\\rgb.bmp", nullptr, &m_pTextureSRV);
-	if (FAILED(hr))
-		return hr;
-
-	m_pConstantBufferData.world = Matrix::Identity();
-	m_pConstantBufferData.worldInvTranspose = Matrix::Identity();
-
-	return S_OK;
+	InitVertexIndexBuffer();
 }
 
 void NXBox::Update()

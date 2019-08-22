@@ -1,5 +1,5 @@
 #pragma once
-#include "Header.h"
+#include "NXTransform.h"
 
 struct DirectionalLightInfo
 {
@@ -40,7 +40,7 @@ struct SpotLightInfo
 	float _align16;
 };
 
-class NXLight
+class NXLight : public NXTransform
 {
 public:
 	NXLight() {}

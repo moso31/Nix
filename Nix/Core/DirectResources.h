@@ -4,7 +4,7 @@
 class DirectResources
 {
 public:
-	HRESULT InitDevice();
+	void	InitDevice();
 	void	ClearDevices();
 
 	Vector2						GetViewPortSize();

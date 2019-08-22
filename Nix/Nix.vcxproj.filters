@@ -1,12 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClInclude Include="File\WICTextureLoader.h">
-      <Filter>Nix\File</Filter>
-    </ClInclude>
-    <ClInclude Include="File\DDSTextureLoader.h">
-      <Filter>Nix\File</Filter>
-    </ClInclude>
     <ClInclude Include="Core\Renderer.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -22,45 +16,53 @@
     <ClInclude Include="Core\DirectResources.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Header.h" />
     <ClInclude Include="Core\App.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Object\NXPlane.h">
+    <ClInclude Include="Nix\Object\NXBox.h">
       <Filter>Nix\Object\Primitive</Filter>
     </ClInclude>
-    <ClInclude Include="Object\NXBox.h">
+    <ClInclude Include="Nix\Object\NXCylinder.h">
       <Filter>Nix\Object\Primitive</Filter>
     </ClInclude>
-    <ClInclude Include="Object\NXCylinder.h">
-      <Filter>Nix\Object\Primitive</Filter>
+    <ClInclude Include="Nix\Object\NXLight.h">
+      <Filter>Nix\Object\Light</Filter>
     </ClInclude>
-    <ClInclude Include="Object\NXPrimitive.h">
-      <Filter>Nix\Object\Primitive</Filter>
-    </ClInclude>
-    <ClInclude Include="Object\NXSphere.h">
-      <Filter>Nix\Object\Primitive</Filter>
-    </ClInclude>
-    <ClInclude Include="Object\NXCamera.h">
-      <Filter>Nix\Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Object\NXScene.h">
-      <Filter>Nix</Filter>
-    </ClInclude>
-    <ClInclude Include="Object\NXMaterial.h">
+    <ClInclude Include="Nix\Object\NXMaterial.h">
       <Filter>Nix\Object\Material</Filter>
     </ClInclude>
-    <ClInclude Include="Object\NXLight.h">
-      <Filter>Nix\Object\Light</Filter>
+    <ClInclude Include="Nix\Object\NXPlane.h">
+      <Filter>Nix\Object\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\Object\NXPrimitive.h">
+      <Filter>Nix\Object\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\File\DDSTextureLoader.h">
+      <Filter>Nix\File</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\File\WICTextureLoader.h">
+      <Filter>Nix\File</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\Object\NXSphere.h">
+      <Filter>Nix\Object\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXScene.h">
+      <Filter>Nix</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXTransform.h">
+      <Filter>Nix</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\Object\NXCamera.h">
+      <Filter>Nix\Object\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXDXHelper.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Header.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="File\DDSTextureLoader.cpp">
-      <Filter>Nix\File</Filter>
-    </ClCompile>
-    <ClCompile Include="File\WICTextureLoader.cpp">
-      <Filter>Nix\File</Filter>
-    </ClCompile>
     <ClCompile Include="Core\Renderer.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -70,37 +72,53 @@
     <ClCompile Include="Core\DirectResources.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Core\Main.cpp" />
-    <ClCompile Include="Core\Global.cpp" />
     <ClCompile Include="Core\App.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Object\NXPlane.cpp">
+    <ClCompile Include="Nix\Object\NXBox.cpp">
       <Filter>Nix\Object\Primitive</Filter>
     </ClCompile>
-    <ClCompile Include="Object\NXBox.cpp">
+    <ClCompile Include="Nix\Object\NXCylinder.cpp">
       <Filter>Nix\Object\Primitive</Filter>
     </ClCompile>
-    <ClCompile Include="Object\NXCylinder.cpp">
-      <Filter>Nix\Object\Primitive</Filter>
+    <ClCompile Include="Nix\Object\NXLight.cpp">
+      <Filter>Nix\Object\Light</Filter>
     </ClCompile>
-    <ClCompile Include="Object\NXPrimitive.cpp">
-      <Filter>Nix\Object\Primitive</Filter>
-    </ClCompile>
-    <ClCompile Include="Object\NXSphere.cpp">
-      <Filter>Nix\Object\Primitive</Filter>
-    </ClCompile>
-    <ClCompile Include="Object\NXCamera.cpp">
-      <Filter>Nix\Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Object\NXScene.cpp">
-      <Filter>Nix</Filter>
-    </ClCompile>
-    <ClCompile Include="Object\NXMaterial.cpp">
+    <ClCompile Include="Nix\Object\NXMaterial.cpp">
       <Filter>Nix\Object\Material</Filter>
     </ClCompile>
-    <ClCompile Include="Object\NXLight.cpp">
-      <Filter>Nix\Object\Light</Filter>
+    <ClCompile Include="Nix\Object\NXPlane.cpp">
+      <Filter>Nix\Object\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\Object\NXPrimitive.cpp">
+      <Filter>Nix\Object\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\File\DDSTextureLoader.cpp">
+      <Filter>Nix\File</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\File\WICTextureLoader.cpp">
+      <Filter>Nix\File</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\Object\NXSphere.cpp">
+      <Filter>Nix\Object\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXScene.cpp">
+      <Filter>Nix</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXTransform.cpp">
+      <Filter>Nix</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\Object\NXCamera.cpp">
+      <Filter>Nix\Object\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Global.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Main.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXDXHelper.cpp">
+      <Filter>Core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -127,6 +145,9 @@
     </Filter>
     <Filter Include="Nix\Object\Material">
       <UniqueIdentifier>{159fbfcd-8fee-427d-b7b7-88b61a1e7b34}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Nix\Object\Camera">
+      <UniqueIdentifier>{06e93e78-451b-41a8-ab31-822cef030ae6}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

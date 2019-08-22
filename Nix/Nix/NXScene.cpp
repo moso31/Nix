@@ -52,9 +52,8 @@ void Scene::Init()
 	bufferDesc.ByteWidth = sizeof(ConstantBufferLight);
 	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
-	HRESULT hr = g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbLights);
-	if (FAILED(hr))
-		return;
+	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbLights));
+
 	m_cbDataLights.dirLight = pDirLight->GetLightInfo();
 	m_cbDataLights.pointLight = pPointLight->GetLightInfo();
 	m_cbDataLights.spotLight = pSpotLight->GetLightInfo();

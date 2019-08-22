@@ -1,7 +1,8 @@
 #pragma once
 #include "ShaderStructures.h"
+#include "NXTransform.h"
 
-class NXCamera
+class NXCamera : public NXTransform
 {
 public:
 	NXCamera() = default;

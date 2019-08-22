@@ -4,24 +4,23 @@
 
 #include "NXScene.h"
 
-HRESULT Renderer::InitRenderer()
+void Renderer::Init()
+{
+	InitRenderer();
+
+	m_scene = make_shared<Scene>();
+	m_scene->Init();
+}
+
+void Renderer::InitRenderer()
 {
 	ID3DBlob* pVSBlob = nullptr;
-	HRESULT hr = ShaderComplier::Compile(L"Shader\\Tutorial03.fx", "VS", "vs_4_0", &pVSBlob);
-	if (FAILED(hr))
-	{
-		MessageBox(nullptr,
-			L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
-		return hr;
-	}
+	NX::MessageBoxIfFailed(
+		ShaderComplier::Compile(L"Shader\\Tutorial03.fx", "VS", "vs_4_0", &pVSBlob), 
+		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
 
 	// Create the vertex shader
-	hr = g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVertexShader);
-	if (FAILED(hr))
-	{
-		pVSBlob->Release();
-		return hr;
-	}
+	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVertexShader));
 
 	// Define the input layout
 	D3D11_INPUT_ELEMENT_DESC layout[] =
@@ -33,30 +32,21 @@ HRESULT Renderer::InitRenderer()
 	UINT numElements = ARRAYSIZE(layout);
 
 	// Create the input layout
-	hr = g_pDevice->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(),
-		pVSBlob->GetBufferSize(), &m_pInputLayout);
+	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pInputLayout));
 	pVSBlob->Release();
-	if (FAILED(hr))
-		return hr;
 
 	// Set the input layout
 	g_pContext->IASetInputLayout(m_pInputLayout);
 
 	// Compile the pixel shader
 	ID3DBlob* pPSBlob = nullptr;
-	hr = ShaderComplier::Compile(L"Shader\\Tutorial03.fx", "PS", "ps_4_0", &pPSBlob);
-	if (FAILED(hr))
-	{
-		MessageBox(nullptr,
-			L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
-		return hr;
-	}
+	NX::MessageBoxIfFailed(
+		ShaderComplier::Compile(L"Shader\\Tutorial03.fx", "PS", "ps_4_0", &pPSBlob),
+		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
 
 	// Create the pixel shader
-	hr = g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShader);
+	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShader));
 	pPSBlob->Release();
-	if (FAILED(hr))
-		return hr;
 
 	D3D11_SAMPLER_DESC sampDesc;
 	ZeroMemory(&sampDesc, sizeof(sampDesc));
@@ -67,14 +57,7 @@ HRESULT Renderer::InitRenderer()
 	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 	sampDesc.MinLOD = 0;
 	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	hr = g_pDevice->CreateSamplerState(&sampDesc, &m_pSamplerLinear);
-	if (FAILED(hr))
-		return hr;
-
-	m_scene = make_shared<Scene>();
-	m_scene->Init();
-
-	return S_OK;
+	NX::ThrowIfFailed(g_pDevice->CreateSamplerState(&sampDesc, &m_pSamplerLinear));
 }
 
 void Renderer::Update()

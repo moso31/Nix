@@ -10,14 +10,10 @@ App::App() :
 void App::Init()
 {
 	g_dxResources = std::make_shared<DirectResources>();
-	if (FAILED(g_dxResources->InitDevice()))
-	{
-		g_dxResources->ClearDevices();
-		return;
-	}
+	g_dxResources->InitDevice();
 
 	m_pRenderer = make_shared<Renderer>();
-	m_pRenderer->InitRenderer();
+	m_pRenderer->Init();
 }
 
 void App::Update()

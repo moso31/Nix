@@ -20,10 +20,7 @@ HRESULT NXCamera::Init()
 	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
 
-	HRESULT hr;
-	hr = g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_pConstantBuffer);
-	if (FAILED(hr))
-		return hr;
+	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_pConstantBuffer));
 
 	ConstantBufferCamera cb;
 	cb.view = m_pConstantBufferData.view.Transpose();

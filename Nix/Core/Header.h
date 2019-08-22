@@ -23,6 +23,9 @@
 #include <DirectXColors.h>
 #include <d3dcompiler.h>
 
+// NX DirectX "helper"
+#include "NXDXHelper.h"
+
 // Math
 #include "SimpleMath.h"
 
