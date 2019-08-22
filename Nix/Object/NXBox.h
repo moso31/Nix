@@ -1,12 +1,12 @@
 #pragma once
-#include "Primitive.h"
+#include "NXPrimitive.h"
 
-class Box : public Primitive
+class NXBox : public NXPrimitive
 {
 public:
-	Box() = default;
+	NXBox() = default;
 
-	HRESULT Init();
+	HRESULT Init(float x = 1.0f, float y = 1.0f, float z = 1.0f);
 	void Update();
 	void Render();
 	void Release();

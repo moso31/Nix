@@ -1,10 +1,10 @@
 #pragma once
 #include "ShaderStructures.h"
 
-class Camera
+class NXCamera
 {
 public:
-	Camera() = default;
+	NXCamera() = default;
 
 	HRESULT Init();
 	void Update();

@@ -1,7 +1,7 @@
-#include "Sphere.h"
+#include "NXSphere.h"
 #include "WICTextureLoader.h"
 
-HRESULT Sphere::Init(float radius, int segmentHorizontal, int segmentVertical)
+HRESULT NXSphere::Init(float radius, int segmentHorizontal, int segmentVertical)
 {
 	int currVertIdx = 0;
 	for (int i = 0; i < segmentVertical; i++)
@@ -106,7 +106,7 @@ HRESULT Sphere::Init(float radius, int segmentHorizontal, int segmentVertical)
 	return S_OK;
 }
 
-void Sphere::Update()
+void NXSphere::Update()
 {
 	// Update our time
 	static float t = 0.0f;
@@ -123,14 +123,14 @@ void Sphere::Update()
 	g_pContext->UpdateSubresource(m_pConstantBuffer, 0, nullptr, &cb, 0, 0);
 }
 
-void Sphere::Render()
+void NXSphere::Render()
 {
 	g_pContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
 	g_pContext->PSSetShaderResources(0, 1, &m_pTextureSRV);
 	g_pContext->DrawIndexed((UINT)m_indices.size(), 0, 0);
 }
 
-void Sphere::Release()
+void NXSphere::Release()
 {
 	if (m_pVertexBuffer)	m_pVertexBuffer->Release();
 	if (m_pIndexBuffer)		m_pIndexBuffer->Release();

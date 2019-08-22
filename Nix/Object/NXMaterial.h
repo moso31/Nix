@@ -11,10 +11,10 @@ struct MaterialInfo
 	Vector4 reflect;
 };
 
-class Material
+class NXMaterial
 {
 public:
-	Material() {}
+	NXMaterial() {}
 
 	Vector4 GetAmbient();
 	Vector4 GetDiffuse();

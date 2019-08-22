@@ -1,25 +1,26 @@
 #pragma once
 #include "ShaderStructures.h"
 
-class Box;
-class Sphere;
-class Cylinder;
-class Cone;
+class NXBox;
+class NXSphere;
+class NXCylinder;
+class NXCone;
+class NXPlane;
 
-class Primitive
+class NXPrimitive
 {
 public:
-	Primitive();
-	~Primitive();
+	NXPrimitive();
+	~NXPrimitive();
 
 	virtual void Update() = 0;
 	virtual void Render() = 0;
 	virtual void Release() = 0;
 
-	void SetMaterial(const shared_ptr<Material>& material);
+	void SetMaterial(const shared_ptr<NXMaterial>& material);
 
 protected:
 	ConstantBufferMaterial	m_cbDataMaterial;
 	ID3D11Buffer*			m_cbMaterial;
-	shared_ptr<Material>	m_pMaterial;
+	shared_ptr<NXMaterial>	m_pMaterial;
 };

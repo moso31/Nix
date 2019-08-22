@@ -2,7 +2,7 @@
 #include "DirectResources.h"
 #include "ShaderComplier.h"
 
-#include "Scene.h"
+#include "NXScene.h"
 
 HRESULT Renderer::InitRenderer()
 {

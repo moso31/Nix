@@ -1,12 +1,12 @@
 #pragma once
-#include "Primitive.h"
+#include "NXPrimitive.h"
 
-class Cylinder : public Primitive
+class NXSphere : public NXPrimitive
 {
 public:
-	Cylinder() = default;
+	NXSphere() = default;
 
-	HRESULT Init(float radius, float length, int segmentCircle, int segmentLength);
+	HRESULT Init(float radius, int segmentHorizontal, int segmentVertical);
 	void Update();
 	void Render();
 	void Release();
@@ -21,4 +21,8 @@ private:
 	vector<USHORT>				m_indices;
 
 	ConstantBufferPrimitive		m_pConstantBufferData;
+
+	float m_radius;
+	UINT m_segmentVertical;
+	UINT m_segmentHorizontal;
 };

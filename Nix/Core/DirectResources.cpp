@@ -23,12 +23,26 @@ HRESULT DirectResources::InitDevice()
 	};
 	UINT numFeatureLevels = ARRAYSIZE(featureLevels);
 	D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_1;
-	D3D_DRIVER_TYPE driverType = D3D_DRIVER_TYPE_REFERENCE;
+	D3D_DRIVER_TYPE driverTypes[] =
+	{
+		D3D_DRIVER_TYPE_HARDWARE,
+		D3D_DRIVER_TYPE_WARP,
+		D3D_DRIVER_TYPE_REFERENCE,
+	};
 
-	ID3D11Device* pDevice;
-	ID3D11DeviceContext* pContext;
-	hr = D3D11CreateDevice( nullptr, driverType, nullptr, createDeviceFlags, featureLevels, numFeatureLevels, 
-							D3D11_SDK_VERSION, &pDevice, &featureLevel, &pContext);
+	ID3D11Device* pDevice = nullptr;
+	ID3D11DeviceContext* pContext = nullptr;
+	for (UINT driverTypeId = 0; driverTypeId < ARRAYSIZE(driverTypes); driverTypeId++)
+	{
+		D3D_DRIVER_TYPE driverType = driverTypes[driverTypeId];
+
+		hr = D3D11CreateDevice(nullptr, driverType, nullptr, createDeviceFlags, featureLevels, numFeatureLevels,
+			D3D11_SDK_VERSION, &pDevice, &featureLevel, &pContext);
+
+		if (SUCCEEDED(hr))
+			break;
+	}
+
 	if (FAILED(hr)) 
 		return hr;
 	hr = pDevice->QueryInterface(__uuidof(ID3D11Device5), reinterpret_cast<void**>(&g_pDevice));

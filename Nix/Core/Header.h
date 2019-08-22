@@ -36,10 +36,10 @@ class App;
 class DirectResources;
 
 class Scene;
-class Primitive;
-class Camera;
-class DirectionalLight;
-class Material;
+class NXPrimitive;
+class NXCamera;
+class NXDirectionalLight;
+class NXMaterial;
 
 // Global variables
 extern	HINSTANCE					g_hInst;

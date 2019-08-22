@@ -1,7 +1,7 @@
-#include "Cylinder.h"
+#include "NXCylinder.h"
 #include "WICTextureLoader.h"
 
-HRESULT Cylinder::Init(float radius, float length, int segmentCircle, int segmentLength)
+HRESULT NXCylinder::Init(float radius, float length, int segmentCircle, int segmentLength)
 {
 	int currVertIdx = 0;
 
@@ -172,7 +172,7 @@ HRESULT Cylinder::Init(float radius, float length, int segmentCircle, int segmen
 	return S_OK;
 }
 
-void Cylinder::Update()
+void NXCylinder::Update()
 {
 	// Update our time
 	static float t = 0.0f;
@@ -189,14 +189,14 @@ void Cylinder::Update()
 	g_pContext->UpdateSubresource(m_pConstantBuffer, 0, nullptr, &cb, 0, 0);
 }
 
-void Cylinder::Render()
+void NXCylinder::Render()
 {
 	g_pContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
 	g_pContext->PSSetShaderResources(0, 1, &m_pTextureSRV);
 	g_pContext->DrawIndexed((UINT)m_indices.size(), 0, 0);
 }
 
-void Cylinder::Release()
+void NXCylinder::Release()
 {
 	if (m_pVertexBuffer)	m_pVertexBuffer->Release();
 	if (m_pIndexBuffer)		m_pIndexBuffer->Release();

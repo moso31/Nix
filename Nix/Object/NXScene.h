@@ -16,8 +16,8 @@ public:
 	void Release();
 
 private:
-	vector<shared_ptr<DirectionalLight>> m_lights;
-	vector<shared_ptr<Material>> m_materials;
+	vector<shared_ptr<NXLight>> m_lights;
+	vector<shared_ptr<NXMaterial>> m_materials;
 	vector<shared_ptr<NXPrimitive>> m_primitives;
 	shared_ptr<NXCamera> m_mainCamera;
 

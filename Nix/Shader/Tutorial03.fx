@@ -19,7 +19,9 @@ cbuffer ConstantBufferCamera : register(b1)
 
 cbuffer ConstantBufferLight : register(b2)
 {
-	DirectionalLight m_light;
+	DirectionalLight m_dirLight;
+	PointLight m_pointLight;
+	SpotLight m_spotLight;
 }
 
 cbuffer ConstantBufferMaterial : register(b3)
@@ -58,9 +60,28 @@ PS_INPUT VS(VS_INPUT input)
 float4 PS(PS_INPUT input) : SV_Target
 {
 	float3 toEye = normalize(m_eyePos - input.posW);
-	float4 A, D, S;
-	ComputeDirectionalLight(m_material, m_light, input.normW, toEye, A, D, S);
-	return A + D + S;
+	float4 A, D, S, sumA, sumD, sumS;
+	A = 0;
+	D = 0;
+	S = 0;
+	sumA = 0;
+	sumD = 0;
+	sumS = 0;
+	//ComputeDirectionalLight(m_material, m_dirLight, input.normW, toEye, A, D, S);
+	sumA += A;
+	sumD += D;
+	sumS += S;
+	//ComputePointLight(m_material, m_pointLight, input.posW, input.normW, toEye, A, D, S);
+	sumA += A;
+	sumD += D;
+	sumS += S;
+	ComputeSpotLight(m_material, m_spotLight, input.posW, input.normW, toEye, A, D, S);
+	sumA += A;
+	sumD += D;
+	sumS += S;
+
+	float4 result = sumA + sumD + sumS;
+	return result;
 
 	//return txDiffuse.Sample(samLinear, input.tex);
 }

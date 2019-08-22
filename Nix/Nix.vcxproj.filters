@@ -22,33 +22,36 @@
     <ClInclude Include="Core\DirectResources.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Object\Camera.h">
-      <Filter>Nix\Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Object\Box.h">
-      <Filter>Nix\Object\Primitive</Filter>
-    </ClInclude>
-    <ClInclude Include="Object\Cylinder.h">
-      <Filter>Nix\Object\Primitive</Filter>
-    </ClInclude>
-    <ClInclude Include="Object\Sphere.h">
-      <Filter>Nix\Object\Primitive</Filter>
-    </ClInclude>
-    <ClInclude Include="Object\Primitive.h">
-      <Filter>Nix\Object\Primitive</Filter>
-    </ClInclude>
     <ClInclude Include="Core\Header.h" />
     <ClInclude Include="Core\App.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Object\Light.h">
-      <Filter>Nix\Object\Light</Filter>
+    <ClInclude Include="Object\NXPlane.h">
+      <Filter>Nix\Object\Primitive</Filter>
     </ClInclude>
-    <ClInclude Include="Object\Material.h">
+    <ClInclude Include="Object\NXBox.h">
+      <Filter>Nix\Object\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="Object\NXCylinder.h">
+      <Filter>Nix\Object\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="Object\NXPrimitive.h">
+      <Filter>Nix\Object\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="Object\NXSphere.h">
+      <Filter>Nix\Object\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="Object\NXCamera.h">
+      <Filter>Nix\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Object\NXScene.h">
+      <Filter>Nix</Filter>
+    </ClInclude>
+    <ClInclude Include="Object\NXMaterial.h">
       <Filter>Nix\Object\Material</Filter>
     </ClInclude>
-    <ClInclude Include="Object\Scene.h">
-      <Filter>Nix</Filter>
+    <ClInclude Include="Object\NXLight.h">
+      <Filter>Nix\Object\Light</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -67,34 +70,37 @@
     <ClCompile Include="Core\DirectResources.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Object\Camera.cpp">
-      <Filter>Nix\Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Object\Box.cpp">
-      <Filter>Nix\Object\Primitive</Filter>
-    </ClCompile>
-    <ClCompile Include="Object\Cylinder.cpp">
-      <Filter>Nix\Object\Primitive</Filter>
-    </ClCompile>
-    <ClCompile Include="Object\Sphere.cpp">
-      <Filter>Nix\Object\Primitive</Filter>
-    </ClCompile>
-    <ClCompile Include="Object\Primitive.cpp">
-      <Filter>Nix\Object\Primitive</Filter>
-    </ClCompile>
     <ClCompile Include="Core\Main.cpp" />
     <ClCompile Include="Core\Global.cpp" />
     <ClCompile Include="Core\App.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Object\Light.cpp">
-      <Filter>Nix\Object\Light</Filter>
+    <ClCompile Include="Object\NXPlane.cpp">
+      <Filter>Nix\Object\Primitive</Filter>
     </ClCompile>
-    <ClCompile Include="Object\Material.cpp">
+    <ClCompile Include="Object\NXBox.cpp">
+      <Filter>Nix\Object\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="Object\NXCylinder.cpp">
+      <Filter>Nix\Object\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="Object\NXPrimitive.cpp">
+      <Filter>Nix\Object\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="Object\NXSphere.cpp">
+      <Filter>Nix\Object\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="Object\NXCamera.cpp">
+      <Filter>Nix\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Object\NXScene.cpp">
+      <Filter>Nix</Filter>
+    </ClCompile>
+    <ClCompile Include="Object\NXMaterial.cpp">
       <Filter>Nix\Object\Material</Filter>
     </ClCompile>
-    <ClCompile Include="Object\Scene.cpp">
-      <Filter>Nix</Filter>
+    <ClCompile Include="Object\NXLight.cpp">
+      <Filter>Nix\Object\Light</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

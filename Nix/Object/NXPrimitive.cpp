@@ -1,14 +1,14 @@
-#include "Primitive.h"
+#include "NXPrimitive.h"
 
-Primitive::Primitive()
+NXPrimitive::NXPrimitive()
 {
 }
 
-Primitive::~Primitive()
+NXPrimitive::~NXPrimitive()
 {
 }
 
-void Primitive::SetMaterial(const shared_ptr<Material>& pMaterial)
+void NXPrimitive::SetMaterial(const shared_ptr<NXMaterial>& pMaterial)
 {
 	m_pMaterial = pMaterial;
 

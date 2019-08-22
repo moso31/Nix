@@ -1,10 +1,10 @@
-#include "Camera.h"
+#include "NXCamera.h"
 #include "DirectResources.h"
 
-HRESULT Camera::Init()
+HRESULT NXCamera::Init()
 {
 	// Initialize the view matrix
-	Vector4 Eye(0.0f, 0.0f, -1.5f, 0.0f);
+	Vector4 Eye(0.0f, 0.7f, -1.5f, 0.0f);
 	Vector4 At(0.0f, 0.0f, 0.0f, 0.0f);
 	Vector4 Up(0.0f, 1.0f, 0.0f, 0.0f);
 	m_pConstantBufferData.view = XMMatrixLookAtLH(Eye, At, Up);
@@ -35,16 +35,16 @@ HRESULT Camera::Init()
 	return S_OK;
 }
 
-void Camera::Update()
+void NXCamera::Update()
 {
 }
 
-void Camera::Render()
+void NXCamera::Render()
 {
 	g_pContext->VSSetConstantBuffers(1, 1, &m_pConstantBuffer);
 	g_pContext->PSSetConstantBuffers(1, 1, &m_pConstantBuffer);
 }
 
-void Camera::Release()
+void NXCamera::Release()
 {
 }

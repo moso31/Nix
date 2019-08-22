@@ -164,14 +164,15 @@
     <ClInclude Include="Core\SimpleMath.h" />
     <ClInclude Include="File\DDSTextureLoader.h" />
     <ClInclude Include="File\WICTextureLoader.h" />
-    <ClInclude Include="Object\Box.h" />
-    <ClInclude Include="Object\Camera.h" />
-    <ClInclude Include="Object\Cylinder.h" />
-    <ClInclude Include="Object\Light.h" />
-    <ClInclude Include="Object\Material.h" />
-    <ClInclude Include="Object\Primitive.h" />
-    <ClInclude Include="Object\Scene.h" />
-    <ClInclude Include="Object\Sphere.h" />
+    <ClInclude Include="Object\NXBox.h" />
+    <ClInclude Include="Object\NXCamera.h" />
+    <ClInclude Include="Object\NXCylinder.h" />
+    <ClInclude Include="Object\NXLight.h" />
+    <ClInclude Include="Object\NXMaterial.h" />
+    <ClInclude Include="Object\NXPlane.h" />
+    <ClInclude Include="Object\NXPrimitive.h" />
+    <ClInclude Include="Object\NXScene.h" />
+    <ClInclude Include="Object\NXSphere.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp" />
@@ -182,14 +183,15 @@
     <ClCompile Include="Core\ShaderComplier.cpp" />
     <ClCompile Include="File\DDSTextureLoader.cpp" />
     <ClCompile Include="File\WICTextureLoader.cpp" />
-    <ClCompile Include="Object\Box.cpp" />
-    <ClCompile Include="Object\Camera.cpp" />
-    <ClCompile Include="Object\Cylinder.cpp" />
-    <ClCompile Include="Object\Light.cpp" />
-    <ClCompile Include="Object\Material.cpp" />
-    <ClCompile Include="Object\Primitive.cpp" />
-    <ClCompile Include="Object\Scene.cpp" />
-    <ClCompile Include="Object\Sphere.cpp" />
+    <ClCompile Include="Object\NXBox.cpp" />
+    <ClCompile Include="Object\NXCamera.cpp" />
+    <ClCompile Include="Object\NXCylinder.cpp" />
+    <ClCompile Include="Object\NXLight.cpp" />
+    <ClCompile Include="Object\NXMaterial.cpp" />
+    <ClCompile Include="Object\NXPlane.cpp" />
+    <ClCompile Include="Object\NXPrimitive.cpp" />
+    <ClCompile Include="Object\NXScene.cpp" />
+    <ClCompile Include="Object\NXSphere.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Core\SimpleMath.inl" />

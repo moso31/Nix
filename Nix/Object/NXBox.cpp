@@ -1,9 +1,11 @@
-#include "Box.h"
+#include "NXBox.h"
 #include "WICTextureLoader.h"
 
-HRESULT Box::Init()
+HRESULT NXBox::Init(float x, float y, float z)
 {
-	float x = 0.5f, y = 0.5f, z = 0.5f;
+	x *= 0.5f;
+	y *= 0.5f;
+	z *= 0.5f;
 	// Create vertex buffer
 	m_vertices =
 	{
@@ -114,7 +116,7 @@ HRESULT Box::Init()
 	return S_OK;
 }
 
-void Box::Update()
+void NXBox::Update()
 {
 	// Update our time
 	static float t = 0.0f;
@@ -124,7 +126,7 @@ void Box::Update()
 		timeStart = timeCur;
 	t = (timeCur - timeStart) / 1000.0f;
 
-	Matrix mxWorld = Matrix::CreateRotationY(t * 0.5);
+	Matrix mxWorld = Matrix::CreateRotationY(t * 0.5f);
 	m_pConstantBufferData.world = mxWorld;
 	m_pConstantBufferData.worldInvTranspose = mxWorld.Invert().Transpose();
 
@@ -141,7 +143,7 @@ void Box::Update()
 	}
 }
 
-void Box::Render()
+void NXBox::Render()
 {
 	g_pContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
 	g_pContext->PSSetShaderResources(0, 1, &m_pTextureSRV);
@@ -149,7 +151,7 @@ void Box::Render()
 	g_pContext->DrawIndexed((UINT)m_indices.size(), 0, 0);
 }
 
-void Box::Release()
+void NXBox::Release()
 {
 	if (m_pVertexBuffer)	m_pVertexBuffer->Release();
 	if (m_pIndexBuffer)		m_pIndexBuffer->Release();

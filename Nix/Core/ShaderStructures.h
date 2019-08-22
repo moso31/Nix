@@ -1,7 +1,7 @@
 #pragma once
 #include "Header.h"
-#include "Material.h"
-#include "Light.h"
+#include "NXMaterial.h"
+#include "NXLight.h"
 
 struct VertexPNT
 {
@@ -43,5 +43,7 @@ struct ConstantBufferMaterial
 
 struct ConstantBufferLight
 {
-	DirectionalLightInfo light;
+	DirectionalLightInfo dirLight;
+	PointLightInfo pointLight;
+	SpotLightInfo spotLight;
 };
