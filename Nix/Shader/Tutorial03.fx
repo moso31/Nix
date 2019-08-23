@@ -6,7 +6,6 @@ SamplerState samLinear : register(s0);
 cbuffer ConstantBufferPrimitive : register(b0)
 {
 	matrix m_world;
-	matrix m_worldInvTranspose;
 }
 
 cbuffer ConstantBufferCamera : register(b1)

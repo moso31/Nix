@@ -4,7 +4,7 @@
 class NXTransform
 {
 public:
-	NXTransform() {}
+	NXTransform();
 
 	Vector3 GetTranslation();
 	Vector3 GetRotation();
@@ -14,8 +14,16 @@ public:
 	void SetRotation(Vector3 value);
 	void SetScale(Vector3 value);
 
+	Matrix GetWorldMatrix();
+	Matrix GetWorldMatrixInv();
+
+	void PrevUpdate();
+
 protected:
 	Vector3 m_translation;
 	Vector3 m_rotation;
 	Vector3 m_scale;
+
+	Matrix m_worldMatrix;
+	Matrix m_worldMatrixInv;
 };

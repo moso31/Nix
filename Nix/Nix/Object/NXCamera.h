@@ -7,13 +7,19 @@ class NXCamera : public NXTransform
 public:
 	NXCamera() = default;
 
-	HRESULT Init();
+	void Init(Vector3 cameraPosition, Vector3 cameraLookAt, Vector3 cameraLookUp);
+	void PrevUpdate();
 	void Update();
 	void Render();
 	void Release();
 
 private:
-	ID3D11Buffer*			m_pConstantBuffer;
+	ID3D11Buffer*			m_cbCamera;
+	ConstantBufferCamera	m_cbDataCamera;
 
-	ConstantBufferCamera	m_pConstantBufferData;
+	Vector3 m_at;
+	Vector3 m_up;
+
+	Matrix m_view;
+	Matrix m_projection;
 };

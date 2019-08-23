@@ -62,6 +62,7 @@ void Renderer::InitRenderer()
 
 void Renderer::Update()
 {
+	m_scene->PrevUpdate();
 	m_scene->Update();
 }
 

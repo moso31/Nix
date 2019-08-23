@@ -69,33 +69,6 @@ void NXBox::Init(float x, float y, float z)
 	InitVertexIndexBuffer();
 }
 
-void NXBox::Update()
-{
-	// Update our time
-	static float t = 0.0f;
-	static ULONGLONG timeStart = 0;
-	ULONGLONG timeCur = GetTickCount64();
-	if (timeStart == 0)
-		timeStart = timeCur;
-	t = (timeCur - timeStart) / 1000.0f;
-
-	Matrix mxWorld = Matrix::CreateRotationY(t * 0.5f);
-	m_pConstantBufferData.world = mxWorld;
-	m_pConstantBufferData.worldInvTranspose = mxWorld.Invert().Transpose();
-
-	ConstantBufferPrimitive cb;
-	cb.world = m_pConstantBufferData.world.Transpose();
-	cb.worldInvTranspose = m_pConstantBufferData.worldInvTranspose.Transpose();
-	g_pContext->UpdateSubresource(m_pConstantBuffer, 0, nullptr, &cb, 0, 0);
-
-	if (m_pMaterial)
-	{
-		ConstantBufferMaterial cb;
-		cb.material = m_cbDataMaterial.material;
-		g_pContext->UpdateSubresource(m_cbMaterial, 0, nullptr, &cb, 0, 0);
-	}
-}
-
 void NXBox::Render()
 {
 	g_pContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);

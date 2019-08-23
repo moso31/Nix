@@ -7,7 +7,6 @@ public:
 	NXSphere() = default;
 
 	void Init(float radius, int segmentHorizontal, int segmentVertical);
-	void Update();
 	void Render();
 	void Release();
 

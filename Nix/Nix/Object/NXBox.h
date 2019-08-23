@@ -7,7 +7,6 @@ public:
 	NXBox() = default;
 
 	void Init(float x = 1.0f, float y = 1.0f, float z = 1.0f);
-	void Update();
 	void Render();
 	void Release();
 

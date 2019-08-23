@@ -11,6 +11,7 @@ public:
 	~Scene();
 
 	void Init();
+	void PrevUpdate();
 	void Update();
 	void Render();
 	void Release();

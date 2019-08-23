@@ -62,23 +62,6 @@ void NXSphere::Init(float radius, int segmentHorizontal, int segmentVertical)
 	InitVertexIndexBuffer();
 }
 
-void NXSphere::Update()
-{
-	// Update our time
-	static float t = 0.0f;
-	static ULONGLONG timeStart = 0;
-	ULONGLONG timeCur = GetTickCount64();
-	if (timeStart == 0)
-		timeStart = timeCur;
-	t = (timeCur - timeStart) / 1000.0f;
-
-	m_pConstantBufferData.world = Matrix::CreateRotationY(t);
-
-	ConstantBufferPrimitive cb;
-	cb.world = m_pConstantBufferData.world.Transpose();
-	g_pContext->UpdateSubresource(m_pConstantBuffer, 0, nullptr, &cb, 0, 0);
-}
-
 void NXSphere::Render()
 {
 	g_pContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);

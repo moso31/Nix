@@ -80,7 +80,6 @@ public:
 	Vector4 GetAmbient();
 	Vector4 GetDiffuse();
 	Vector4 GetSpecular();
-	Vector3 GetPosition();
 	float GetRange();
 	Vector3 GetAtt();
 	PointLightInfo GetLightInfo();
@@ -88,7 +87,6 @@ public:
 	void SetAmbient(Vector4 ambient);
 	void SetDiffuse(Vector4 diffuse);
 	void SetSpecular(Vector4 specular);
-	void SetPosition(Vector3 position);
 	void SetRange(float range);
 	void SetAtt(Vector3 att);
 
@@ -99,7 +97,6 @@ private:
 	Vector4 m_ambient;
 	Vector4 m_diffuse;
 	Vector4 m_specular;
-	Vector3 m_position;
 	float m_range;
 	Vector3 m_att;
 };
@@ -112,7 +109,6 @@ public:
 	Vector4 GetAmbient();
 	Vector4 GetDiffuse();
 	Vector4 GetSpecular();
-	Vector3 GetPosition();
 	float GetRange();
 	Vector3 GetDirection();
 	float GetSpot();
@@ -122,7 +118,6 @@ public:
 	void SetAmbient(Vector4 ambient);
 	void SetDiffuse(Vector4 diffuse);
 	void SetSpecular(Vector4 specular);
-	void SetPosition(Vector3 position);
 	void SetRange(float range);
 	void SetDirection(Vector3 direction);
 	void SetSpot(float spot);
@@ -135,7 +130,6 @@ private:
 	Vector4 m_ambient;
 	Vector4 m_diffuse;
 	Vector4 m_specular;
-	Vector3 m_position;
 	float m_range;
 	Vector3 m_direction;
 	float m_spot;

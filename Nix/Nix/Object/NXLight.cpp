@@ -74,11 +74,6 @@ Vector4 NXPointLight::GetSpecular()
 	return m_specular;
 }
 
-Vector3 NXPointLight::GetPosition()
-{
-	return m_position;
-}
-
 float NXPointLight::GetRange()
 {
 	return m_range;
@@ -95,7 +90,7 @@ PointLightInfo NXPointLight::GetLightInfo()
 	li.ambient = m_ambient;
 	li.diffuse = m_diffuse;
 	li.specular = m_specular;
-	li.position = m_position;
+	li.position = m_translation;
 	li.range = m_range;
 	li.att = m_att;
 	return li;
@@ -114,11 +109,6 @@ void NXPointLight::SetDiffuse(Vector4 diffuse)
 void NXPointLight::SetSpecular(Vector4 specular)
 {
 	m_specular = specular;
-}
-
-void NXPointLight::SetPosition(Vector3 position)
-{
-	m_position = position;
 }
 
 void NXPointLight::SetRange(float range)
@@ -154,11 +144,6 @@ Vector4 NXSpotLight::GetSpecular()
 	return m_specular;
 }
 
-Vector3 NXSpotLight::GetPosition()
-{
-	return m_position;
-}
-
 float NXSpotLight::GetRange()
 {
 	return m_range;
@@ -185,7 +170,7 @@ SpotLightInfo NXSpotLight::GetLightInfo()
 	li.ambient = m_ambient;
 	li.diffuse = m_diffuse;
 	li.specular = m_specular;
-	li.position = m_position;
+	li.position = m_translation;
 	li.range = m_range;
 	li.direction = m_direction;
 	li.spot = m_spot;
@@ -206,11 +191,6 @@ void NXSpotLight::SetDiffuse(Vector4 diffuse)
 void NXSpotLight::SetSpecular(Vector4 specular)
 {
 	m_specular = specular;
-}
-
-void NXSpotLight::SetPosition(Vector3 position)
-{
-	m_position = position;
 }
 
 void NXSpotLight::SetRange(float range)

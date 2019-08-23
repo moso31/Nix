@@ -9,6 +9,27 @@ NXPrimitive::~NXPrimitive()
 {
 }
 
+void NXPrimitive::Update()
+{
+	//// Update our time
+	//static float t = 0.0f;
+	//static ULONGLONG timeStart = 0;
+	//ULONGLONG timeCur = GetTickCount64();
+	//if (timeStart == 0)
+	//	timeStart = timeCur;
+	//t = (timeCur - timeStart) / 1000.0f;
+
+	m_pConstantBufferData.world = m_worldMatrix.Transpose();
+	g_pContext->UpdateSubresource(m_pConstantBuffer, 0, nullptr, &m_pConstantBufferData, 0, 0);
+
+	if (m_pMaterial)
+	{
+		ConstantBufferMaterial cb;
+		cb.material = m_cbDataMaterial.material;
+		g_pContext->UpdateSubresource(m_cbMaterial, 0, nullptr, &cb, 0, 0);
+	}
+}
+
 void NXPrimitive::SetMaterial(const shared_ptr<NXMaterial>& pMaterial)
 {
 	m_pMaterial = pMaterial;
@@ -57,7 +78,4 @@ void NXPrimitive::InitVertexIndexBuffer()
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_pConstantBuffer));
 	
 	NX::ThrowIfFailed(CreateWICTextureFromFile(g_pDevice, L"D:\\rgb.bmp", nullptr, &m_pTextureSRV));
-
-	m_pConstantBufferData.world = Matrix::Identity();
-	m_pConstantBufferData.worldInvTranspose = Matrix::Identity();
 }

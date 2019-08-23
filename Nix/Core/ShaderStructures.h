@@ -25,7 +25,6 @@ struct VertexPNTC
 struct ConstantBufferPrimitive
 {
 	Matrix world;
-	Matrix worldInvTranspose;
 };
 
 struct ConstantBufferCamera

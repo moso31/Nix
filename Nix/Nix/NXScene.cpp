@@ -30,7 +30,7 @@ void Scene::Init()
 	pPointLight->SetAmbient(Vector4(0.2f, 0.2f, 0.2f, 1.0f));
 	pPointLight->SetDiffuse(Vector4(0.8f, 0.8f, 0.8f, 1.0f));
 	pPointLight->SetSpecular(Vector4(0.8f, 0.8f, 0.8f, 1.0f));
-	pPointLight->SetPosition(Vector3(1.0f, 1.0f, -1.0f));
+	pPointLight->SetTranslation(Vector3(1.0f, 1.0f, -1.0f));
 	pPointLight->SetRange(100.0f);
 	pPointLight->SetAtt(Vector3(0.0f, 0.0f, 1.0f));
 	m_lights.push_back(pPointLight);
@@ -39,7 +39,7 @@ void Scene::Init()
 	pSpotLight->SetAmbient(Vector4(0.2f, 0.2f, 0.2f, 1.0f));
 	pSpotLight->SetDiffuse(Vector4(0.8f, 0.8f, 0.8f, 1.0f));
 	pSpotLight->SetSpecular(Vector4(0.8f, 0.8f, 0.8f, 1.0f));
-	pSpotLight->SetPosition(Vector3(-1.0f, 1.0f, -1.0f));
+	pSpotLight->SetTranslation(Vector3(-1.0f, 1.0f, -1.0f));
 	pSpotLight->SetRange(100.0f);
 	pSpotLight->SetDirection(Vector3(1.0f, -1.0f, 1.0f));
 	pSpotLight->SetSpot(1.0f);
@@ -76,11 +76,29 @@ void Scene::Init()
 	auto pPrimitive = make_shared<NXPlane>();
 	pPrimitive->Init(5.0f, 5.0f);
 	pPrimitive->SetMaterial(pMaterial);
+	pPrimitive->SetTranslation(Vector3(0.0f, 0.0f, 0.0f));
 	m_primitives.push_back(pPrimitive);
 
 	auto pCamera = make_shared<NXCamera>();
-	pCamera->Init();
+	pCamera->Init(Vector3(0.0f, 0.7f, -1.5f),
+		Vector3(0.0f, 0.0f, 0.0f),
+		Vector3(0.0f, 1.0f, 0.0f));
 	m_mainCamera = pCamera;
+}
+
+void Scene::PrevUpdate()
+{
+	for (auto it = m_lights.begin(); it != m_lights.end(); it++)
+	{
+		(*it)->PrevUpdate();
+	}
+
+	m_mainCamera->PrevUpdate();
+
+	for (auto it = m_primitives.begin(); it != m_primitives.end(); it++)
+	{
+		(*it)->PrevUpdate();
+	}
 }
 
 void Scene::Update()
