@@ -13,9 +13,6 @@
 #include "NXLight.h"
 #include "NXMaterial.h"
 
-#define BindScript(classType, scriptType, pObject) dynamic_pointer_cast<classType>(m_sceneManager->CreateScript(scriptType, pObject))
-#define RegisterEventListener(object, script, eventType, pFunction) m_sceneManager->AddEventListener(eventType, object, std::bind(&pFunction, script, std::placeholders::_1));
-
 Scene::Scene()
 {
 }
@@ -26,8 +23,6 @@ Scene::~Scene()
 
 void Scene::Init()
 {
-	m_sceneManager = make_shared<SceneManager>(shared_from_this());
-
 	auto pDirLight = make_shared<NXDirectionalLight>();
 	pDirLight->SetAmbient(Vector4(0.2f, 0.2f, 0.2f, 1.0f));
 	pDirLight->SetDiffuse(Vector4(0.8f, 0.8f, 0.8f, 1.0f));
@@ -104,10 +99,16 @@ void Scene::Init()
 		Vector3(0.0f, 1.0f, 0.0f));
 	m_mainCamera = pCamera;
 
-	auto pScript = BindScript(NSFirstPersonalCamera, NXScriptType::NXSCRIPT_FIRST_PERSONAL_CAMERA, pSphere);
-	RegisterEventListener(m_mainCamera, pScript, NXEventType::NXEVENT_KEYDOWN, NSFirstPersonalCamera::OnKeyDown);
-	RegisterEventListener(m_mainCamera, pScript, NXEventType::NXEVENT_KEYUP, NSFirstPersonalCamera::OnKeyUp);
-	RegisterEventListener(m_mainCamera, pScript, NXEventType::NXEVENT_MOUSEMOVE, NSFirstPersonalCamera::OnMouseMove);
+	auto pScript = make_shared<NSFirstPersonalCamera>();
+	pScript->SetFPSCamera(m_mainCamera);
+	m_mainCamera->AddScript(pScript);
+
+	auto pListener_onKeyDown = make_shared<NXListener>(m_mainCamera, std::bind(&NSFirstPersonalCamera::OnKeyDown, pScript, std::placeholders::_1));
+	auto pListener_onKeyUp = make_shared<NXListener>(m_mainCamera, std::bind(&NSFirstPersonalCamera::OnKeyUp, pScript, std::placeholders::_1));
+	auto pListener_onMouseMove = make_shared<NXListener>(m_mainCamera, std::bind(&NSFirstPersonalCamera::OnMouseMove, pScript, std::placeholders::_1));
+	NXEventKeyDown::GetInstance()->AddListener(pListener_onKeyDown);
+	NXEventKeyUp::GetInstance()->AddListener(pListener_onKeyUp);
+	NXEventMouseMove::GetInstance()->AddListener(pListener_onMouseMove);
 }
 
 void Scene::PrevUpdate()
@@ -127,15 +128,23 @@ void Scene::PrevUpdate()
 
 void Scene::Update()
 {
-	for (auto it = m_scripts.begin(); it != m_scripts.end(); it++)
-	{
-		(*it)->Update();
-	}
-
 	for (auto it = m_primitives.begin(); it != m_primitives.end(); it++)
 	{
 		auto pPrim = *it;
+		auto pPrimScripts = pPrim->GetScripts();
+		for (auto itScripts = pPrimScripts.begin(); itScripts != pPrimScripts.end(); itScripts++)
+		{
+			auto pScript = *itScripts;
+			pScript->Update();
+		}
+
 		pPrim->Update();
+	}
+	auto pScripts = m_mainCamera->GetScripts();
+	for (auto itScripts = pScripts.begin(); itScripts != pScripts.end(); itScripts++)
+	{
+		auto pScript = *itScripts;
+		pScript->Update();
 	}
 	m_mainCamera->Update();
 }

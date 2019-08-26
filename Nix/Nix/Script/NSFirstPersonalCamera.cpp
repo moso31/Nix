@@ -2,13 +2,16 @@
 #include "NXCamera.h"
 #include "NXEvent.h"
 
-NSFirstPersonalCamera::NSFirstPersonalCamera(shared_ptr<NXObject> pObject) :
-	NXScript(pObject),
-	m_fMoveSpeed(0.3f),
+NSFirstPersonalCamera::NSFirstPersonalCamera() :
+	m_fMoveSpeed(0.03f),
 	m_fSensitivity(0.005f)
 {
-	m_pCamera = dynamic_pointer_cast<NXCamera>(pObject);
 	memset(m_bMoveState, false, sizeof(m_bMoveState));
+}
+
+void NSFirstPersonalCamera::SetFPSCamera(const shared_ptr<NXCamera>& pCamera)
+{
+	m_pCamera = pCamera;
 }
 
 void NSFirstPersonalCamera::Update()
@@ -65,10 +68,24 @@ void NSFirstPersonalCamera::OnMouseMove(NXEventArg eArg)
 	Vector3 vUp = m_pCamera->GetUp();
 	Vector3 vRight = m_pCamera->GetRight();
 
-	Matrix mxOld = Matrix::CreateFromYawPitchRoll(m_pCamera->GetRotation().y, m_pCamera->GetRotation().x, m_pCamera->GetRotation().z);
+	Vector3 test = m_pCamera->GetRotation();
+	printf("%f, %f\t%f\t%f\t%f\t", fYaw, fPitch, test.x, test.y, test.z);
+
+	Matrix mxOld = Matrix::CreateFromXYZ(m_pCamera->GetRotation());
 	Matrix mxRotUp = Matrix::CreateFromAxisAngle(vUp, fYaw);
 	Matrix mxRotRight = Matrix::CreateFromAxisAngle(vRight, fPitch);
 
 	Vector3 result = (mxRotUp * mxRotRight * mxOld).EulerXYZ();
 	m_pCamera->SetRotation(result);
+
+	Vector3 g(0.0f, 1.0f, 0.0f);
+	Vector3 g2 = g;
+	Matrix m = Matrix::CreateFromXYZ(Vector3(XM_PIDIV2, 0.0f, 0.0f));
+	Matrix m2 = Matrix::CreateFromYawPitchRoll(0.0f, XM_PIDIV2, 0.0f);
+	g = g.Transform(g, m);
+	g2 = g2.Transform(g2, m2);
+
+	test = { 0.0f, 0.0f, 1.0f };
+	Vector3 yana = Matrix::CreateFromXYZ(test).EulerXYZ();
+	printf("%f\t%f\t%f\n", test.x, test.y, test.z);
 }

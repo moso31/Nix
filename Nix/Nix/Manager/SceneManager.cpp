@@ -20,8 +20,8 @@ shared_ptr<NXScript> SceneManager::CreateScript(const NXScriptType scriptType, c
 	{
 	case NXScriptType::NXSCRIPT_FIRST_PERSONAL_CAMERA:
 	{
-		auto pScript = make_shared<NSFirstPersonalCamera>(pObject);
-		m_scene->GetScripts().push_back(pScript);
+		auto pScript = make_shared<NSFirstPersonalCamera>();
+		//m_scene->GetScripts().push_back(pScript);
 		return pScript;
 	}
 	default:

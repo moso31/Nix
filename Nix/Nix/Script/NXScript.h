@@ -4,13 +4,8 @@
 class NXScript
 {
 public:
-	NXScript(const shared_ptr<NXObject>& pObject);
+	NXScript() {}
 	virtual ~NXScript() {}
 
-	void SetObject(const shared_ptr<NXObject>& pObject) { m_pObject = pObject; }
-
-	virtual void Update() {};
-
-protected:
-	shared_ptr<NXObject> m_pObject;
+	virtual void Update() = 0;
 };

@@ -1,10 +1,16 @@
 ﻿#include "Header.h"
 #include "App.h"
+#include "NXInput.h"
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
 HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow)
 {
+	AllocConsole();
+
+	FILE* fp = 0;
+	freopen_s(&fp, "CONOUT$", "w", stdout);
+
 	// Register class
 	WNDCLASSEX wcex;
 	wcex.cbSize = sizeof(WNDCLASSEX);
@@ -24,8 +30,8 @@ HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow)
 
 	// Create window
 	g_hInst = hInstance;
-	//RECT rc = { 0, 0, 800, 600 };
-	RECT rc = { 0, 0, 150, 100 };
+	RECT rc = { 0, 0, 800, 600 };
+	//RECT rc = { 0, 0, 150, 100 };
 	AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
 	g_hWnd = CreateWindow(L"NixWindowClass", L"Nix",
 		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
@@ -54,6 +60,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	MSG msg = { 0 };
 	while (WM_QUIT != msg.message)
 	{
+		NXII->Update();
+
 		if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 		{
 			TranslateMessage(&msg);
@@ -63,6 +71,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 		{
 			g_app->Update();
 			g_app->Render();
+
+			NXII->RestoreData(); // 清空一次鼠标位置
 		}
 	}
 
@@ -85,6 +95,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_DESTROY:
 		PostQuitMessage(0);
+		break;
+
+	case WM_INPUT:
+		NXII->UpdateRawInput(lParam);
+
+		if (NXII->KeyDown(VK_ESCAPE))
+			PostQuitMessage(0);
 		break;
 
 		// Note that this tutorial does not handle resizing (WM_SIZE) requests,

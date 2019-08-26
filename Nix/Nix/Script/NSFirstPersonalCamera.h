@@ -11,7 +11,10 @@
 class NSFirstPersonalCamera : public NXScript
 {
 public:
-	NSFirstPersonalCamera(shared_ptr<NXObject> pObject);
+	NSFirstPersonalCamera();
+
+	void SetFPSCamera(const shared_ptr<NXCamera>& pCamera);
+
 	void Update();
 
 	void OnKeyDown(NXEventArg eArg);
