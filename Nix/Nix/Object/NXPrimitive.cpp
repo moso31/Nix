@@ -1,7 +1,12 @@
 #include "NXPrimitive.h"
 #include "WICTextureLoader.h"
 
-NXPrimitive::NXPrimitive()
+NXPrimitive::NXPrimitive() :
+	m_pVertexBuffer(nullptr),
+	m_pIndexBuffer(nullptr),
+	m_pConstantBuffer(nullptr),
+	m_pTextureSRV(nullptr),
+	m_cbMaterial(nullptr)
 {
 }
 

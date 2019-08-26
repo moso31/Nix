@@ -37,8 +37,11 @@ using namespace SimpleMath;
 // class preload
 class App;
 class DirectResources;
+class NXInput;
+struct NXEventArg;
 
 class Scene;
+class NXObject;
 class NXPrimitive;
 class NXCamera;
 class NXDirectionalLight;

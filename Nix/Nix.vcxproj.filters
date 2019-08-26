@@ -1,21 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClInclude Include="Core\Renderer.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\ShaderComplier.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\ShaderStructures.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\SimpleMath.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\DirectResources.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="Core\App.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -37,41 +22,68 @@
     <ClInclude Include="Nix\Object\NXPrimitive.h">
       <Filter>Nix\Object\Primitive</Filter>
     </ClInclude>
-    <ClInclude Include="Nix\File\DDSTextureLoader.h">
-      <Filter>Nix\File</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\File\WICTextureLoader.h">
-      <Filter>Nix\File</Filter>
-    </ClInclude>
     <ClInclude Include="Nix\Object\NXSphere.h">
       <Filter>Nix\Object\Primitive</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXScene.h">
       <Filter>Nix</Filter>
     </ClInclude>
-    <ClInclude Include="Nix\NXTransform.h">
-      <Filter>Nix</Filter>
-    </ClInclude>
     <ClInclude Include="Nix\Object\NXCamera.h">
       <Filter>Nix\Object\Camera</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\NXDXHelper.h">
-      <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Core\Header.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Core\DX\DirectResources.h">
+      <Filter>Core\DX</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\DX\NXDXHelper.h">
+      <Filter>Core\DX</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\DX\Renderer.h">
+      <Filter>Core\DX</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\DX\ShaderComplier.h">
+      <Filter>Core\DX</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\DX\ShaderStructures.h">
+      <Filter>Core\DX</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\DX\SimpleMath.h">
+      <Filter>Core\DX</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Input\NXInput.h">
+      <Filter>Core\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXInstance.h">
+      <Filter>Core\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Input\NXEvent.h">
+      <Filter>Core\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Input\NXListener.h">
+      <Filter>Core\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\File\DDSTextureLoader.h">
+      <Filter>Core\File</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\File\WICTextureLoader.h">
+      <Filter>Core\File</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\Object\NXObject.h">
+      <Filter>Nix\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\Script\NXScript.h">
+      <Filter>Nix\Script</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXTransform.h">
+      <Filter>Nix\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\Script\NSFirstPersonalCamera.h">
+      <Filter>Nix\Script</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Core\Renderer.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\ShaderComplier.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\DirectResources.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="Core\App.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -93,19 +105,10 @@
     <ClCompile Include="Nix\Object\NXPrimitive.cpp">
       <Filter>Nix\Object\Primitive</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\File\DDSTextureLoader.cpp">
-      <Filter>Nix\File</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\File\WICTextureLoader.cpp">
-      <Filter>Nix\File</Filter>
-    </ClCompile>
     <ClCompile Include="Nix\Object\NXSphere.cpp">
       <Filter>Nix\Object\Primitive</Filter>
     </ClCompile>
     <ClCompile Include="Nix\NXScene.cpp">
-      <Filter>Nix</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\NXTransform.cpp">
       <Filter>Nix</Filter>
     </ClCompile>
     <ClCompile Include="Nix\Object\NXCamera.cpp">
@@ -117,8 +120,44 @@
     <ClCompile Include="Core\Main.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Core\NXDXHelper.cpp">
-      <Filter>Core</Filter>
+    <ClCompile Include="Core\DX\DirectResources.cpp">
+      <Filter>Core\DX</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\DX\NXDXHelper.cpp">
+      <Filter>Core\DX</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\DX\Renderer.cpp">
+      <Filter>Core\DX</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\DX\ShaderComplier.cpp">
+      <Filter>Core\DX</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Input\NXInput.cpp">
+      <Filter>Core\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Input\NXEvent.cpp">
+      <Filter>Core\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Input\NXListener.cpp">
+      <Filter>Core\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\File\DDSTextureLoader.cpp">
+      <Filter>Core\File</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\File\WICTextureLoader.cpp">
+      <Filter>Core\File</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\Script\NXScript.cpp">
+      <Filter>Nix\Script</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXTransform.cpp">
+      <Filter>Nix\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\Script\NSFirstPersonalCamera.cpp">
+      <Filter>Nix\Script</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\Object\NXObject.cpp">
+      <Filter>Nix\Object</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -127,9 +166,6 @@
     </Filter>
     <Filter Include="Nix">
       <UniqueIdentifier>{b98cce96-7ef9-43b4-9ff9-b62958c35f70}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Nix\File">
-      <UniqueIdentifier>{785c917d-93e8-4fee-a4b4-13762b3e564a}</UniqueIdentifier>
     </Filter>
     <Filter Include="Nix\Object">
       <UniqueIdentifier>{cb91577a-f3dd-4038-9460-92506b071a08}</UniqueIdentifier>
@@ -149,13 +185,25 @@
     <Filter Include="Nix\Object\Camera">
       <UniqueIdentifier>{06e93e78-451b-41a8-ab31-822cef030ae6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Core\DX">
+      <UniqueIdentifier>{3479236b-a7ec-4fc7-b837-af9c645262ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Input">
+      <UniqueIdentifier>{bc3eaf13-2850-4cf2-85a0-03533fc0bdca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\File">
+      <UniqueIdentifier>{e65b0615-3957-48d8-a032-183d36c46fc0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Nix\Script">
+      <UniqueIdentifier>{c37fc375-7e15-48b0-be3c-a508f7f01ed9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Core\SimpleMath.inl">
-      <Filter>Core</Filter>
-    </None>
     <None Include="Shader\Tutorial03.fx">
       <Filter>Nix\Shader</Filter>
+    </None>
+    <None Include="Core\DX\SimpleMath.inl">
+      <Filter>Core\DX</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

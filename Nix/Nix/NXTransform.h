@@ -1,7 +1,7 @@
 #pragma once
-#include "Header.h"
+#include "NXObject.h"
 
-class NXTransform
+class NXTransform : public NXObject
 {
 public:
 	NXTransform();

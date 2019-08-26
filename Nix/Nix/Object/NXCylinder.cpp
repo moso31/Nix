@@ -1,6 +1,14 @@
 #include "NXCylinder.h"
 #include "WICTextureLoader.h"
 
+NXCylinder::NXCylinder() :
+	m_radius(0.0f),
+	m_length(0.0f),
+	m_segmentCircle(0.0f),
+	m_segmentLength(0.0f)
+{
+}
+
 void NXCylinder::Init(float radius, float length, int segmentCircle, int segmentLength)
 {
 	int currVertIdx = 0;

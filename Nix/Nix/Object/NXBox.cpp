@@ -1,11 +1,15 @@
 #include "NXBox.h"
 
+NXBox::NXBox()
+{
+}
+
 void NXBox::Init(float x, float y, float z)
 {
 	x *= 0.5f;
 	y *= 0.5f;
 	z *= 0.5f;
-	// Create vertex buffer
+
 	m_vertices =
 	{
 		// -X

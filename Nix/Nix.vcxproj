@@ -106,7 +106,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>.\;.\Core;.\Nix;.\Nix\File;.\Nix\Object;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;.\Core;.\Core\DX;.\Core\File;.\Core\Input;.\Nix;.\Nix\Object;.\Nix\Script;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -144,7 +144,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>.\;.\Core;.\Nix;.\Nix\File;.\Nix\Object;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;.\Core;.\Core\DX;.\Core\File;.\Core\Input;.\Nix;.\Nix\Object;.\Nix\Script;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -156,49 +156,62 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h" />
-    <ClInclude Include="Core\DirectResources.h" />
-    <ClInclude Include="Core\NXDXHelper.h" />
+    <ClInclude Include="Core\DX\DirectResources.h" />
+    <ClInclude Include="Core\DX\NXDXHelper.h" />
     <ClInclude Include="Core\Header.h" />
-    <ClInclude Include="Core\Renderer.h" />
-    <ClInclude Include="Core\ShaderComplier.h" />
-    <ClInclude Include="Core\ShaderStructures.h" />
-    <ClInclude Include="Core\SimpleMath.h" />
-    <ClInclude Include="Nix\File\DDSTextureLoader.h" />
-    <ClInclude Include="Nix\File\WICTextureLoader.h" />
+    <ClInclude Include="Core\DX\Renderer.h" />
+    <ClInclude Include="Core\DX\ShaderComplier.h" />
+    <ClInclude Include="Core\DX\ShaderStructures.h" />
+    <ClInclude Include="Core\DX\SimpleMath.h" />
+    <ClInclude Include="Core\File\DDSTextureLoader.h" />
+    <ClInclude Include="Core\File\WICTextureLoader.h" />
+    <ClInclude Include="Core\Input\NXListener.h" />
+    <ClInclude Include="Core\Input\NXEvent.h" />
+    <ClInclude Include="Core\Input\NXInput.h" />
+    <ClInclude Include="Core\NXInstance.h" />
     <ClInclude Include="Nix\Object\NXBox.h" />
     <ClInclude Include="Nix\Object\NXCamera.h" />
     <ClInclude Include="Nix\Object\NXCylinder.h" />
     <ClInclude Include="Nix\Object\NXLight.h" />
     <ClInclude Include="Nix\Object\NXMaterial.h" />
+    <ClInclude Include="Nix\Object\NXObject.h" />
     <ClInclude Include="Nix\Object\NXPlane.h" />
     <ClInclude Include="Nix\Object\NXPrimitive.h" />
     <ClInclude Include="Nix\NXScene.h" />
     <ClInclude Include="Nix\Object\NXSphere.h" />
     <ClInclude Include="Nix\NXTransform.h" />
+    <ClInclude Include="Nix\Script\NSFirstPersonalCamera.h" />
+    <ClInclude Include="Nix\Script\NXScript.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp" />
-    <ClCompile Include="Core\DirectResources.cpp" />
+    <ClCompile Include="Core\DX\DirectResources.cpp" />
     <ClCompile Include="Core\Global.cpp" />
+    <ClCompile Include="Core\Input\NXEvent.cpp" />
+    <ClCompile Include="Core\Input\NXListener.cpp" />
+    <ClCompile Include="Core\Input\NXInput.cpp" />
     <ClCompile Include="Core\Main.cpp" />
-    <ClCompile Include="Core\NXDXHelper.cpp" />
-    <ClCompile Include="Core\Renderer.cpp" />
-    <ClCompile Include="Core\ShaderComplier.cpp" />
-    <ClCompile Include="Nix\File\DDSTextureLoader.cpp" />
-    <ClCompile Include="Nix\File\WICTextureLoader.cpp" />
+    <ClCompile Include="Core\DX\NXDXHelper.cpp" />
+    <ClCompile Include="Core\DX\Renderer.cpp" />
+    <ClCompile Include="Core\DX\ShaderComplier.cpp" />
+    <ClCompile Include="Core\File\DDSTextureLoader.cpp" />
+    <ClCompile Include="Core\File\WICTextureLoader.cpp" />
     <ClCompile Include="Nix\Object\NXBox.cpp" />
     <ClCompile Include="Nix\Object\NXCamera.cpp" />
     <ClCompile Include="Nix\Object\NXCylinder.cpp" />
     <ClCompile Include="Nix\Object\NXLight.cpp" />
     <ClCompile Include="Nix\Object\NXMaterial.cpp" />
+    <ClCompile Include="Nix\Object\NXObject.cpp" />
     <ClCompile Include="Nix\Object\NXPlane.cpp" />
     <ClCompile Include="Nix\Object\NXPrimitive.cpp" />
     <ClCompile Include="Nix\NXScene.cpp" />
     <ClCompile Include="Nix\Object\NXSphere.cpp" />
     <ClCompile Include="Nix\NXTransform.cpp" />
+    <ClCompile Include="Nix\Script\NSFirstPersonalCamera.cpp" />
+    <ClCompile Include="Nix\Script\NXScript.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Core\SimpleMath.inl" />
+    <None Include="Core\DX\SimpleMath.inl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Tutorial03.fx">

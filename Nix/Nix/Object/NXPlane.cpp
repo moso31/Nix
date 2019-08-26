@@ -1,6 +1,12 @@
 #include "NXPlane.h"
 #include "WICTextureLoader.h"
 
+NXPlane::NXPlane() :
+	m_width(0.0f),
+	m_height(0.0f)
+{
+}
+
 void NXPlane::Init(float width, float height)
 {
 	float x = width * 0.5f, z = height * 0.5f;

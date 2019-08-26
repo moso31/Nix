@@ -5,7 +5,7 @@
 class NXCamera : public NXTransform
 {
 public:
-	NXCamera() = default;
+	NXCamera();
 
 	void Init(Vector3 cameraPosition, Vector3 cameraLookAt, Vector3 cameraLookUp);
 	void PrevUpdate();
