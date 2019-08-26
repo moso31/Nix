@@ -73,11 +73,21 @@ void Scene::Init()
 	pMaterial->SetSpecular(Vector4(0.8f, 0.8f, 0.8f, 16.0f));
 	m_materials.push_back(pMaterial);
 
-	auto pPrimitive = make_shared<NXPlane>();
-	pPrimitive->Init(5.0f, 5.0f);
-	pPrimitive->SetMaterial(pMaterial);
-	pPrimitive->SetTranslation(Vector3(0.0f, 0.0f, 0.0f));
-	m_primitives.push_back(pPrimitive);
+	auto pPlane = make_shared<NXPlane>();
+	{
+		pPlane->Init(5.0f, 5.0f);
+		pPlane->SetMaterial(pMaterial);
+		pPlane->SetTranslation(Vector3(0.0f, 0.0f, 0.0f));
+		m_primitives.push_back(pPlane);
+	}
+
+	auto pSphere = make_shared<NXSphere>();
+	{
+		pSphere->Init(1.0f, 16.0f, 16.0f);
+		pSphere->SetMaterial(pMaterial);
+		pSphere->SetTranslation(Vector3(0.0f, 0.0f, 0.0f));
+		m_primitives.push_back(pSphere);
+	}
 
 	auto pCamera = make_shared<NXCamera>();
 	pCamera->Init(Vector3(0.0f, 0.7f, -1.5f),
