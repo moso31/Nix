@@ -10,10 +10,6 @@ NXPrimitive::NXPrimitive() :
 {
 }
 
-NXPrimitive::~NXPrimitive()
-{
-}
-
 void NXPrimitive::Update()
 {
 	//// Update our time

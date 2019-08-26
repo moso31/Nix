@@ -1,5 +1,4 @@
 #include "NXCylinder.h"
-#include "WICTextureLoader.h"
 
 NXCylinder::NXCylinder() :
 	m_radius(0.0f),

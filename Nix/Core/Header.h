@@ -28,6 +28,7 @@
 
 // Math
 #include "SimpleMath.h"
+#include "SimpleMath.inl"
 
 // namespace
 using namespace std;

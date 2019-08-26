@@ -1,3 +1,4 @@
+#include "SimpleMath.h"
 //-------------------------------------------------------------------------------------
 // SimpleMath.inl -- Simplified C++ Math wrapper for DirectXMath
 //
@@ -1158,6 +1159,22 @@ inline void Vector3::TransformNormal( const Vector3* varray, size_t count, const
     XMVector3TransformNormalStream( resultArray, sizeof(XMFLOAT3), varray, sizeof(XMFLOAT3), count, M );
 }
 
+inline float DirectX::SimpleMath::Vector3::Angle(const Vector3& v1, const Vector3& v2)
+{
+	float cosAngle = v1.Dot(v2) / (v1.Length() * v2.Length());
+	float result = SimpleMath::Clamp(cosAngle, -1.0f, 1.0f);
+	result = acosf(result);
+	return result;
+}
+
+inline float DirectX::SimpleMath::Vector3::AngleNormalize(const Vector3& v1, const Vector3& v2)
+{
+	float cosAngle = v1.Dot(v2);
+	float result = SimpleMath::Clamp(cosAngle, -1.0f, 1.0f);
+	result = acosf(result);
+	return result;
+}
+
 
 /****************************************************************************
  *
@@ -2129,6 +2146,33 @@ inline bool Matrix::Decompose( Vector3& scale, Quaternion& rotation, Vector3& tr
     return true;
 }
 
+inline Vector3 DirectX::SimpleMath::Matrix::EulerXYZ()
+{
+	Vector3 result;
+	if (_13 < 1.0f)
+	{
+		if (_13 > -1.0f)
+		{
+			result.y = asinf(_13);
+			result.x = atan2f(-_23, _33);
+			result.z = atan2f(-_12, _11);
+		}
+		else
+		{
+			result.y = -XM_PIDIV2;
+			result.x = -atan2f(_21, _22);
+			result.z = 0.0f;
+		}
+	}
+	else
+	{
+		result.y = XM_PIDIV2;
+		result.x = atan2f(_21, _22);
+		result.z = 0.0f;
+	}
+	return result;
+}
+
 inline Matrix Matrix::Transpose() const
 {
     using namespace DirectX;
@@ -2332,6 +2376,24 @@ inline Matrix Matrix::CreateFromQuaternion( const Quaternion& rotation )
     XMVECTOR quatv = XMLoadFloat4( &rotation );
     XMStoreFloat4x4( &R, XMMatrixRotationQuaternion( quatv ) );
     return R;
+}
+
+inline Matrix DirectX::SimpleMath::Matrix::CreateFromXYZ(Vector3 rotation)
+{
+	float cx = cosf(rotation.x);
+	float cy = cosf(rotation.y);
+	float cz = cosf(rotation.z);
+	float sx = sinf(rotation.x);
+	float sy = sinf(rotation.y);
+	float sz = sinf(rotation.z);
+	float cxcz = cx * cz;
+	float sxsz = sx * sz;
+	float sxcz = sx * cz;
+	return Matrix(
+		cy * cz, cx * sz + sxcz * sy, sxsz - cxcz * sy, 0.0f,
+		-cy * sz, cxcz - sxsz * sy, sxcz + cx * sy * sz, 0.0f,
+		sy, -sx * cy, cx * cy, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 inline Matrix Matrix::CreateFromYawPitchRoll( float yaw, float pitch, float roll )
@@ -2785,6 +2847,22 @@ inline float Quaternion::Dot( const Quaternion& q ) const
     XMVECTOR q1 = XMLoadFloat4( this );
     XMVECTOR q2 = XMLoadFloat4( &q );
     return XMVectorGetX( XMQuaternionDot( q1, q2 ) );
+}
+
+inline Vector3 DirectX::SimpleMath::Quaternion::EulerXYZ() const
+{
+	float  xx = x * x;
+	float  yy = y * y;
+	float  zz = z * z;
+	float  ww = w * w;
+
+	float  z1 = x * y + w * z;
+	float  z2 = ww + xx - yy - zz;
+	float  y1 = -2.0f * (x * z - w * y);
+	float  x1 = 2.0f * (y * z + w * x);
+	float  x2 = ww - xx - yy + zz;
+
+	return Vector3(atan2f(x1, x2), asinf(y1), atan2f(z1, z2));
 }
 
 //------------------------------------------------------------------------------

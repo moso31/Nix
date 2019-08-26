@@ -5,6 +5,7 @@ class NXSphere : public NXPrimitive
 {
 public:
 	NXSphere();
+	~NXSphere() {}
 
 	void Init(float radius, int segmentHorizontal, int segmentVertical);
 	void Render();

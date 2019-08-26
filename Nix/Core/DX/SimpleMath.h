@@ -33,6 +33,14 @@ struct Matrix;
 struct Quaternion;
 struct Plane;
 
+// 1D value
+template <typename T, typename U, typename V>
+inline T Clamp(T val, U low, V high) {
+	if ((T)val < (T)low) return (T)low;
+	else if ((T)val > (T)high) return (T)high;
+	else return (T)val;
+}
+
 //------------------------------------------------------------------------------
 // 2D vector
 struct Vector2 : public XMFLOAT2
@@ -219,6 +227,9 @@ struct Vector3 : public XMFLOAT3
     static void TransformNormal( const Vector3& v, const Matrix& m, Vector3& result );
     static Vector3 TransformNormal( const Vector3& v, const Matrix& m );
     static void TransformNormal( _In_reads_(count) const Vector3* varray, size_t count, const Matrix& m, _Out_writes_(count) Vector3* resultArray );
+
+	static float Angle(const Vector3& v1, const Vector3& v2);
+	static float AngleNormalize(const Vector3& v1, const Vector3& v2);
 };
 
 // Binary operators
@@ -398,6 +409,8 @@ struct Matrix : public XMFLOAT4X4
     // Matrix operations
     bool Decompose( Vector3& scale, Quaternion& rotation, Vector3& translation );
 
+	Vector3 EulerXYZ();
+
     Matrix Transpose() const;
     void Transpose( Matrix& result ) const;
 
@@ -433,6 +446,7 @@ struct Matrix : public XMFLOAT4X4
 
     static Matrix CreateFromQuaternion( const Quaternion& quat );
 
+	static Matrix CreateFromXYZ(Vector3 rotation);
     static Matrix CreateFromYawPitchRoll( float yaw, float pitch, float roll );
 
     static Matrix CreateShadow( const Vector3& lightDir, const Plane& plane );
@@ -545,6 +559,8 @@ struct Quaternion : public XMFLOAT4
     void Inverse( Quaternion& result ) const;
 
     float Dot( const Quaternion& Q ) const;
+
+	Vector3 EulerXYZ() const;
 
     // Static functions
     static Quaternion CreateFromAxisAngle( const Vector3& axis, float angle );

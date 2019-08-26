@@ -12,7 +12,7 @@ class NXPrimitive : public NXTransform
 {
 public:
 	NXPrimitive();
-	~NXPrimitive();
+	virtual ~NXPrimitive() {}
 
 	virtual void Update();
 	virtual void Render() = 0;

@@ -5,6 +5,7 @@ class NXCylinder : public NXPrimitive
 {
 public:
 	NXCylinder();
+	~NXCylinder() {}
 
 	void Init(float radius, float length, int segmentCircle, int segmentLength);
 	void Render();

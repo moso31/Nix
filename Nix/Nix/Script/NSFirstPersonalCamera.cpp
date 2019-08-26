@@ -59,16 +59,16 @@ void NSFirstPersonalCamera::OnMouseDown(NXEventArg eArg)
 
 void NSFirstPersonalCamera::OnMouseMove(NXEventArg eArg)
 {
-	HFloat fYaw = (HFloat)eArg.LastX * m_fSensitivity;
-	HFloat fPitch = (HFloat)eArg.LastY * m_fSensitivity;
+	float fYaw = (float)eArg.LastX * m_fSensitivity;
+	float fPitch = (float)eArg.LastY * m_fSensitivity;
 
 	Vector3 vUp = m_pCamera->GetUp();
 	Vector3 vRight = m_pCamera->GetRight();
-	HFloat4x4 mxOld, mxRotUp, mxRotRight;
-	mxOld.SetRotationXYZ(m_pCamera->GetRotation());
-	mxRotUp.SetRotationAxis(vUp, fYaw);
-	mxRotRight.SetRotationAxis(vRight, fPitch);
 
-	Vector3 result = (mxRotUp * mxRotRight * mxOld).GetEulerXYZ();
-	m_pCamera->SetRotation(result.x, result.y, result.z);
+	Matrix mxOld = Matrix::CreateFromYawPitchRoll(m_pCamera->GetRotation().y, m_pCamera->GetRotation().x, m_pCamera->GetRotation().z);
+	Matrix mxRotUp = Matrix::CreateFromAxisAngle(vUp, fYaw);
+	Matrix mxRotRight = Matrix::CreateFromAxisAngle(vRight, fPitch);
+
+	Vector3 result = (mxRotUp * mxRotRight * mxOld).EulerXYZ();
+	m_pCamera->SetRotation(result);
 }

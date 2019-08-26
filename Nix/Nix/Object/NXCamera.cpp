@@ -4,9 +4,80 @@
 NXCamera::NXCamera() :
 	NXTransform(),
 	m_at(0.0f, 0.0f, 0.0f),
-	m_up(0.0f, 1.0f, 0.0f)
+	m_up(0.0f, 1.0f, 0.0f),
+	m_cbCamera(nullptr)
 {
 	m_name = "Camera";
+}
+
+void NXCamera::SetTranslation(Vector3 value)
+{
+	m_translation = value;
+	Vector3 dir = Vector3::TransformNormal(Vector3(0.0f, 0.0f, 1.0f), Matrix::CreateFromXYZ(m_rotation));
+
+	m_at = m_translation + dir;
+	m_up = { 0.0f, 1.0f, 0.0f };
+
+	m_view.CreateLookAt(m_translation, m_at, m_up);
+}
+
+void NXCamera::SetRotation(Vector3 value)
+{
+	m_rotation = value;
+	Vector3 dir = Vector3::TransformNormal(Vector3(0.0f, 0.0f, 1.0f), Matrix::CreateFromXYZ(m_rotation));
+
+	m_at = m_translation + dir;
+	m_up = { 0.0f, 1.0f, 0.0f };
+
+	m_view.CreateLookAt(m_translation, m_at, m_up);
+}
+
+void NXCamera::SetLookAt(Vector3 value)
+{
+	m_at = value;
+	m_up = { 0.0f, 1.0f, 0.0f };
+
+	Vector3 vForward = (m_at - m_translation);
+	vForward.Normalize();
+	Vector3 vAxis = Vector3(0.0f, 0.0f, 1.0f).Cross(vForward);
+	if (vAxis.LengthSquared() == 0.0f) vAxis.y = 1.0f;
+
+	float fAngle = Vector3::AngleNormalize(vForward, Vector3(0.0f, 0.0f, 1.0f));
+	Quaternion q(vAxis, fAngle);
+	m_rotation = q.EulerXYZ();
+
+	m_view.CreateLookAt(m_translation, m_at, m_up);
+}
+
+Vector3 NXCamera::GetForward()
+{
+	Vector3 result = (m_at - m_translation);
+	result.Normalize();
+	return result;
+}
+
+Vector3 NXCamera::GetLeft()
+{
+	Vector3 result = (m_at - m_translation).Cross(m_up);
+	result.Normalize();
+	return result;
+}
+
+Vector3 NXCamera::GetRight()
+{
+	Vector3 result = (m_translation - m_at).Cross(m_up);
+	result.Normalize();
+	return result;
+}
+
+Vector3 NXCamera::GetAt()
+{
+	return m_at;
+}
+
+Vector3 NXCamera::GetUp()
+{
+	return m_up;
 }
 
 void NXCamera::Init(Vector3 cameraPosition, Vector3 cameraLookAt, Vector3 cameraLookUp)

@@ -1,10 +1,9 @@
 #include "NXSphere.h"
-#include "WICTextureLoader.h"
 
 NXSphere::NXSphere() :
 	m_radius(0.0f),
-	m_segmentVertical(0.0f),
-	m_segmentHorizontal(0.0f)
+	m_segmentVertical(0),
+	m_segmentHorizontal(0)
 {
 }
 

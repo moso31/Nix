@@ -1,5 +1,4 @@
 #include "NXPlane.h"
-#include "WICTextureLoader.h"
 
 NXPlane::NXPlane() :
 	m_width(0.0f),

@@ -6,6 +6,17 @@ class NXCamera : public NXTransform
 {
 public:
 	NXCamera();
+	~NXCamera() {}
+
+	void SetTranslation(Vector3 value);
+	void SetRotation(Vector3 value);
+	void SetLookAt(Vector3 value);
+
+	Vector3 GetForward();
+	Vector3 GetLeft();
+	Vector3 GetRight();
+	Vector3 GetAt();
+	Vector3 GetUp();
 
 	void Init(Vector3 cameraPosition, Vector3 cameraLookAt, Vector3 cameraLookUp);
 	void PrevUpdate();

@@ -5,19 +5,20 @@ class NXTransform : public NXObject
 {
 public:
 	NXTransform();
+	virtual ~NXTransform() {}
 
-	Vector3 GetTranslation();
-	Vector3 GetRotation();
-	Vector3 GetScale();
+	virtual Vector3 GetTranslation();
+	virtual Vector3 GetRotation();
+	virtual Vector3 GetScale();
 
-	void SetTranslation(Vector3 value);
-	void SetRotation(Vector3 value);
-	void SetScale(Vector3 value);
+	virtual void SetTranslation(Vector3 value);
+	virtual void SetRotation(Vector3 value);
+	virtual void SetScale(Vector3 value);
 
-	Matrix GetWorldMatrix();
-	Matrix GetWorldMatrixInv();
+	virtual Matrix GetWorldMatrix();
+	virtual Matrix GetWorldMatrixInv();
 
-	void PrevUpdate();
+	virtual void PrevUpdate();
 
 protected:
 	Vector3 m_translation;
