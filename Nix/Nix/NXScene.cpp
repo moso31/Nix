@@ -1,13 +1,20 @@
 #include "NXScene.h"
+#include "SceneManager.h"
+
 #include "NXBox.h"
 #include "NXSphere.h"
 #include "NXCylinder.h"
 #include "NXPlane.h"
 #include "NXCamera.h"
+#include "NXScript.h"
+#include "NSFirstPersonalCamera.h"
 
 // temp include.
 #include "NXLight.h"
 #include "NXMaterial.h"
+
+#define BindScript(classType, scriptType, pObject) dynamic_pointer_cast<classType>(m_sceneManager->CreateScript(scriptType, pObject))
+#define RegisterEventListener(object, script, eventType, pFunction) m_sceneManager->AddEventListener(eventType, object, std::bind(&pFunction, script, std::placeholders::_1));
 
 Scene::Scene()
 {
@@ -19,6 +26,8 @@ Scene::~Scene()
 
 void Scene::Init()
 {
+	m_sceneManager = make_shared<SceneManager>(shared_from_this());
+
 	auto pDirLight = make_shared<NXDirectionalLight>();
 	pDirLight->SetAmbient(Vector4(0.2f, 0.2f, 0.2f, 1.0f));
 	pDirLight->SetDiffuse(Vector4(0.8f, 0.8f, 0.8f, 1.0f));
@@ -94,6 +103,11 @@ void Scene::Init()
 		Vector3(0.0f, 0.0f, 0.0f),
 		Vector3(0.0f, 1.0f, 0.0f));
 	m_mainCamera = pCamera;
+
+	auto pScript = BindScript(NSFirstPersonalCamera, NXScriptType::NXSCRIPT_FIRST_PERSONAL_CAMERA, pSphere);
+	RegisterEventListener(m_mainCamera, pScript, NXEventType::NXEVENT_KEYDOWN, NSFirstPersonalCamera::OnKeyDown);
+	RegisterEventListener(m_mainCamera, pScript, NXEventType::NXEVENT_KEYUP, NSFirstPersonalCamera::OnKeyUp);
+	RegisterEventListener(m_mainCamera, pScript, NXEventType::NXEVENT_MOUSEMOVE, NSFirstPersonalCamera::OnMouseMove);
 }
 
 void Scene::PrevUpdate()
@@ -113,6 +127,11 @@ void Scene::PrevUpdate()
 
 void Scene::Update()
 {
+	for (auto it = m_scripts.begin(); it != m_scripts.end(); it++)
+	{
+		(*it)->Update();
+	}
+
 	for (auto it = m_primitives.begin(); it != m_primitives.end(); it++)
 	{
 		auto pPrim = *it;

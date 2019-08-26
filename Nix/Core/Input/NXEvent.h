@@ -14,64 +14,64 @@ struct NXEventArg
 	USHORT VWheel;
 };
 
-enum HEVENTTYPE
+enum NXEventType
 {
-	HEVENT_NONE,
-	HEVENT_KEYDOWN,
-	HEVENT_KEYUP,
-	HEVENT_MOUSEDOWN,
-	HEVENT_MOUSEUP,
-	HEVENT_MOUSEMOVE
+	NXEVENT_NONE,
+	NXEVENT_KEYDOWN,
+	NXEVENT_KEYUP,
+	NXEVENT_MOUSEDOWN,
+	NXEVENT_MOUSEUP,
+	NXEVENT_MOUSEMOVE
 };
 
 class NXEvent
 {
 public:
-	NXEvent() : m_type(HEVENT_NONE) {}
+	NXEvent() : m_type(NXEVENT_NONE) {}
 	virtual ~NXEvent() {}
 
 	virtual void AddListener(const shared_ptr<NXListener>& pListener);
 	void OnNotify(NXEventArg eArg);
 
-	HEVENTTYPE GetType() const { return m_type; }
-	void SetType(const HEVENTTYPE type) { m_type = type; }
+	NXEventType GetType() const { return m_type; }
+	void SetType(const NXEventType type) { m_type = type; }
 
 protected:
 	vector<shared_ptr<NXListener>> m_listeners;
-	HEVENTTYPE m_type;
+	NXEventType m_type;
 };
 
 class NXEventKeyDown : public NXEvent, public NXInstance<NXEventKeyDown>
 {
 public:
-	NXEventKeyDown() { m_type = HEVENT_KEYDOWN; }
+	NXEventKeyDown() { m_type = NXEVENT_KEYDOWN; }
 	~NXEventKeyDown() {}
 };
 
 class NXEventKeyUp : public NXEvent, public NXInstance<NXEventKeyUp>
 {
 public:
-	NXEventKeyUp() { m_type = HEVENT_KEYUP; }
+	NXEventKeyUp() { m_type = NXEVENT_KEYUP; }
 	~NXEventKeyUp() {}
 };
 
 class NXEventMouseDown : public NXEvent, public NXInstance<NXEventMouseDown>
 {
 public:
-	NXEventMouseDown() { m_type = HEVENT_MOUSEDOWN; }
+	NXEventMouseDown() { m_type = NXEVENT_MOUSEDOWN; }
 	~NXEventMouseDown() {}
 };
 
 class NXEventMouseUp : public NXEvent, public NXInstance<NXEventMouseUp>
 {
 public:
-	NXEventMouseUp() { m_type = HEVENT_MOUSEUP; }
+	NXEventMouseUp() { m_type = NXEVENT_MOUSEUP; }
 	~NXEventMouseUp() {}
 };
 
 class NXEventMouseMove : public NXEvent, public NXInstance<NXEventMouseMove>
 {
 public:
-	NXEventMouseMove() { m_type = HEVENT_MOUSEMOVE; }
+	NXEventMouseMove() { m_type = NXEVENT_MOUSEMOVE; }
 	~NXEventMouseMove() {}
 };

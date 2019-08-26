@@ -82,6 +82,12 @@
     <ClInclude Include="Nix\Script\NSFirstPersonalCamera.h">
       <Filter>Nix\Script</Filter>
     </ClInclude>
+    <ClInclude Include="Nix\Manager\SceneManager.h">
+      <Filter>Nix\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\Script\NXScriptType.h">
+      <Filter>Nix\Script</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">
@@ -159,6 +165,9 @@
     <ClCompile Include="Nix\Object\NXObject.cpp">
       <Filter>Nix\Object</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\Manager\SceneManager.cpp">
+      <Filter>Nix\Manager</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Core">
@@ -172,9 +181,6 @@
     </Filter>
     <Filter Include="Nix\Object\Primitive">
       <UniqueIdentifier>{e408db57-5c08-430d-9bb0-28d118781db9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Nix\Shader">
-      <UniqueIdentifier>{d99dfb08-f23b-4a25-8f50-c19ef8d7e01a}</UniqueIdentifier>
     </Filter>
     <Filter Include="Nix\Object\Light">
       <UniqueIdentifier>{1bb77c6d-c8ba-41fe-b73f-0f017daaa595}</UniqueIdentifier>
@@ -197,10 +203,16 @@
     <Filter Include="Nix\Script">
       <UniqueIdentifier>{c37fc375-7e15-48b0-be3c-a508f7f01ed9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Nix\Manager">
+      <UniqueIdentifier>{b5833360-be0e-4cf0-89b7-b61914261b6b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader">
+      <UniqueIdentifier>{d99dfb08-f23b-4a25-8f50-c19ef8d7e01a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Tutorial03.fx">
-      <Filter>Nix\Shader</Filter>
+      <Filter>Shader</Filter>
     </None>
     <None Include="Core\DX\SimpleMath.inl">
       <Filter>Core\DX</Filter>
@@ -208,7 +220,7 @@
   </ItemGroup>
   <ItemGroup>
     <Xml Include="Shader\Light.fx">
-      <Filter>Nix\Shader</Filter>
+      <Filter>Shader</Filter>
     </Xml>
   </ItemGroup>
 </Project>

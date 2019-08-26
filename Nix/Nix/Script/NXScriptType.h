@@ -1,0 +1,8 @@
+#pragma once
+
+enum NXScriptType
+{
+	NXSCRIPT_NONE,
+	NXSCRIPT_TEST,
+	NXSCRIPT_FIRST_PERSONAL_CAMERA
+};

@@ -40,8 +40,10 @@ class App;
 class DirectResources;
 class NXInput;
 struct NXEventArg;
+class NXScript;
 
 class Scene;
+class SceneManager;
 class NXObject;
 class NXPrimitive;
 class NXCamera;
