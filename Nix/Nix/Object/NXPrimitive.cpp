@@ -12,14 +12,6 @@ NXPrimitive::NXPrimitive() :
 
 void NXPrimitive::Update()
 {
-	//// Update our time
-	//static float t = 0.0f;
-	//static ULONGLONG timeStart = 0;
-	//ULONGLONG timeCur = GetTickCount64();
-	//if (timeStart == 0)
-	//	timeStart = timeCur;
-	//t = (timeCur - timeStart) / 1000.0f;
-
 	m_pConstantBufferData.world = m_worldMatrix.Transpose();
 	g_pContext->UpdateSubresource(m_pConstantBuffer, 0, nullptr, &m_pConstantBufferData, 0, 0);
 

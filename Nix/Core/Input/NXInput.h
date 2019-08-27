@@ -8,6 +8,13 @@
 #define MK_MID		1
 #define MK_RIGHT	2
 
+enum NXKeyCode
+{
+	LeftShift = 16,
+	LeftControl = 17,
+	LeftAlt = 18,
+};
+
 class NXInput : public NXInstance<NXInput>
 {
 public:
