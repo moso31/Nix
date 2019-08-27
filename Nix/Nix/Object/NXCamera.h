@@ -9,7 +9,7 @@ public:
 	~NXCamera() {}
 
 	void SetTranslation(Vector3 value);
-	void SetRotation(Vector3 value);
+	void SetRotation(Quaternion value);
 	void SetLookAt(Vector3 value);
 
 	Vector3 GetForward();

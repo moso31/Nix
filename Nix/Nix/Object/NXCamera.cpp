@@ -13,7 +13,7 @@ NXCamera::NXCamera() :
 void NXCamera::SetTranslation(Vector3 value)
 {
 	m_translation = value;
-	Vector3 dir = Vector3::TransformNormal(Vector3(0.0f, 0.0f, 1.0f), Matrix::CreateFromXYZ(m_rotation));
+	Vector3 dir = Vector3::TransformNormal(Vector3(0.0f, 0.0f, 1.0f), Matrix::CreateFromQuaternion(m_rotation));
 
 	m_at = m_translation + dir;
 	m_up = { 0.0f, 1.0f, 0.0f };
@@ -21,10 +21,10 @@ void NXCamera::SetTranslation(Vector3 value)
 	m_view.CreateLookAt(m_translation, m_at, m_up);
 }
 
-void NXCamera::SetRotation(Vector3 value)
+void NXCamera::SetRotation(Quaternion value)
 {
 	m_rotation = value;
-	Vector3 dir = Vector3::TransformNormal(Vector3(0.0f, 0.0f, 1.0f), Matrix::CreateFromXYZ(m_rotation));
+	Vector3 dir = Vector3::TransformNormal(Vector3(0.0f, 0.0f, 1.0f), Matrix::CreateFromQuaternion(m_rotation));
 
 	m_at = m_translation + dir;
 	m_up = { 0.0f, 1.0f, 0.0f };
@@ -43,8 +43,7 @@ void NXCamera::SetLookAt(Vector3 value)
 	if (vAxis.LengthSquared() == 0.0f) vAxis.y = 1.0f;
 
 	float fAngle = Vector3::AngleNormalize(vForward, Vector3(0.0f, 0.0f, 1.0f));
-	Quaternion q(vAxis, fAngle);
-	m_rotation = q.EulerXYZ();
+	m_rotation = Quaternion(vAxis, fAngle);
 
 	m_view.CreateLookAt(m_translation, m_at, m_up);
 }
