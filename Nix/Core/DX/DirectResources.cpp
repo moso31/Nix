@@ -72,7 +72,7 @@ void DirectResources::InitDevice()
 		sd.SampleDesc.Quality = 0;
 		sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 		sd.BufferCount = 2;
-		sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+		sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 
 		IDXGISwapChain1* pSwapChain;
 		NX::ThrowIfFailed(dxgiFactory->CreateSwapChainForHwnd(g_pDevice, g_hWnd, &sd, nullptr, nullptr, &pSwapChain));
