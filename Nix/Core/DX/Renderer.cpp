@@ -83,8 +83,8 @@ void Renderer::Render()
 
 	m_scene->Render();
 
-	// Present the information rendered to the back buffer to the front buffer (the screen)
-	g_pSwapChain->Present(0, 0);
+	DXGI_PRESENT_PARAMETERS parameters = { 0 };
+	HRESULT hr = g_pSwapChain->Present1(1, 0, &parameters);
 }
 
 void Renderer::Release()

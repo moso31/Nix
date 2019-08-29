@@ -5,6 +5,7 @@ class DirectResources
 {
 public:
 	void	InitDevice();
+	void	OnResize(UINT width, UINT height);
 	void	ClearDevices();
 
 	Vector2						GetViewPortSize();
@@ -14,7 +15,6 @@ public:
 private:
 	D3D11_VIEWPORT				m_ViewPort;
 
-	ID3D11RenderTargetView*		m_pRenderTargetView;
-	ID3D11Texture2D*			m_pDepthStencil;
+	ID3D11RenderTargetView1*	m_pRenderTargetView;
 	ID3D11DepthStencilView*		m_pDepthStencilView;
 };

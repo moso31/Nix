@@ -19,107 +19,98 @@ void DirectResources::InitDevice()
 		D3D_FEATURE_LEVEL_10_1,
 		D3D_FEATURE_LEVEL_10_0,
 	};
-	UINT numFeatureLevels = ARRAYSIZE(featureLevels);
 	D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_1;
-	D3D_DRIVER_TYPE driverTypes[] =
-	{
-		D3D_DRIVER_TYPE_HARDWARE,
-		D3D_DRIVER_TYPE_WARP,
-		D3D_DRIVER_TYPE_REFERENCE,
-	};
 
 	ID3D11Device* pDevice = nullptr;
 	ID3D11DeviceContext* pContext = nullptr;
-	for (UINT driverTypeId = 0; driverTypeId < ARRAYSIZE(driverTypes); driverTypeId++)
+	HRESULT hr = D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, 0, createDeviceFlags,
+		featureLevels, ARRAYSIZE(featureLevels), D3D11_SDK_VERSION, &pDevice, &featureLevel, &pContext);
+
+	if (FAILED(hr))
 	{
-		D3D_DRIVER_TYPE driverType = driverTypes[driverTypeId];
-
-		HRESULT hr = D3D11CreateDevice(nullptr, driverType, nullptr, createDeviceFlags, featureLevels, numFeatureLevels,
-			D3D11_SDK_VERSION, &pDevice, &featureLevel, &pContext);
-
-		if (SUCCEEDED(hr))
-			break;
+		NX::ThrowIfFailed(D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_WARP, 0, createDeviceFlags,
+			featureLevels, ARRAYSIZE(featureLevels), D3D11_SDK_VERSION, &pDevice, &featureLevel, &pContext));
 	}
 
 	NX::ThrowIfFailed(pDevice->QueryInterface(__uuidof(ID3D11Device5), reinterpret_cast<void**>(&g_pDevice)));
 	NX::ThrowIfFailed(pContext->QueryInterface(__uuidof(ID3D11DeviceContext4), reinterpret_cast<void**>(&g_pContext)));
 
-	// Obtain DXGI factory from device (since we used nullptr for pAdapter above)
-	IDXGIFactory5* dxgiFactory = nullptr;
+	OnResize(width, height);
+}
+
+void DirectResources::OnResize(UINT width, UINT height)
+{
+	// 清除特定于上一窗口大小的上下文。
+	ID3D11RenderTargetView* nullViews[] = { nullptr };
+	g_pContext->OMSetRenderTargets(ARRAYSIZE(nullViews), nullViews, nullptr);
+	m_pRenderTargetView = nullptr;
+	m_pDepthStencilView = nullptr;
+	g_pContext->Flush1(D3D11_CONTEXT_TYPE_ALL, nullptr);
+
+	if (g_pSwapChain)
 	{
-		IDXGIDevice4* dxgiDevice = nullptr;
-		NX::ThrowIfFailed(g_pDevice->QueryInterface(__uuidof(IDXGIDevice4), reinterpret_cast<void**>(&dxgiDevice)));
-
-		IDXGIAdapter* temp;
-		IDXGIAdapter3* adapter = nullptr;
-		NX::ThrowIfFailed(dxgiDevice->GetAdapter(&temp));
-		temp->QueryInterface(__uuidof(IDXGIAdapter3), reinterpret_cast<void**>(&adapter));
-
-		NX::ThrowIfFailed(adapter->GetParent(__uuidof(IDXGIFactory5), reinterpret_cast<void**>(&dxgiFactory)));
-		adapter->Release();
-
-		dxgiDevice->Release();
+		// 如果交换链已存在，请调整其大小。
+		HRESULT hr = g_pSwapChain->ResizeBuffers(2, width, height, DXGI_FORMAT_B8G8R8A8_UNORM, 0);
 	}
-
-	if (dxgiFactory)
+	else
 	{
 		DXGI_SWAP_CHAIN_DESC1 sd;
 		ZeroMemory(&sd, sizeof(sd));
 		sd.Width = width;
 		sd.Height = height;
 		sd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		sd.Stereo = false;
+		// 暂不使用多采样
 		sd.SampleDesc.Count = 1;
 		sd.SampleDesc.Quality = 0;
 		sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+		// 使用双缓冲最大程度地减小延迟
 		sd.BufferCount = 2;
 		sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+		sd.Flags = 0;
+		sd.Scaling = DXGI_SCALING_NONE;
+		sd.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
+
+		IDXGIDevice4* pDxgiDevice;
+		NX::ThrowIfFailed(g_pDevice->QueryInterface(__uuidof(IDXGIDevice4), reinterpret_cast<void**>(&pDxgiDevice)));
+
+		IDXGIAdapter* pDxgiAdapter;
+		NX::ThrowIfFailed(pDxgiDevice->GetAdapter(&pDxgiAdapter));
+
+		IDXGIFactory7* pDxgiFactory;
+		NX::ThrowIfFailed(pDxgiAdapter->GetParent(IID_PPV_ARGS(&pDxgiFactory)));
 
 		IDXGISwapChain1* pSwapChain;
-		NX::ThrowIfFailed(dxgiFactory->CreateSwapChainForHwnd(g_pDevice, g_hWnd, &sd, nullptr, nullptr, &pSwapChain));
+		NX::ThrowIfFailed(pDxgiFactory->CreateSwapChainForHwnd(g_pDevice, g_hWnd, &sd, nullptr, nullptr, &pSwapChain));
+		
 		NX::ThrowIfFailed(pSwapChain->QueryInterface(__uuidof(IDXGISwapChain4), reinterpret_cast<void**>(&g_pSwapChain)));
 	}
 
-	// block the ALT+ENTER shortcut
-	//dxgiFactory->MakeWindowAssociation(g_hWnd, DXGI_MWA_NO_ALT_ENTER);
 
-	dxgiFactory->Release();
-
-
-	// Create a render target view
-	ID3D11Texture2D* pBackBuffer = nullptr;
-	NX::ThrowIfFailed(g_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&pBackBuffer)));
-	NX::ThrowIfFailed(g_pDevice->CreateRenderTargetView(pBackBuffer, nullptr, &m_pRenderTargetView));
+	// 创建交换链后台缓冲区的渲染目标视图。
+	ID3D11Texture2D1* pBackBuffer = nullptr;
+	NX::ThrowIfFailed(g_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer)));
+	NX::ThrowIfFailed(g_pDevice->CreateRenderTargetView1(pBackBuffer, nullptr, &m_pRenderTargetView));
 	pBackBuffer->Release();
 
-	D3D11_TEXTURE2D_DESC descDepth;
-	ZeroMemory(&descDepth, sizeof(descDepth));
-	descDepth.Width = width;
-	descDepth.Height = height;
-	descDepth.MipLevels = 1;
-	descDepth.ArraySize = 1;
-	descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	descDepth.SampleDesc.Count = 1;
-	descDepth.SampleDesc.Quality = 0;
-	descDepth.Usage = D3D11_USAGE_DEFAULT;
-	descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-	descDepth.CPUAccessFlags = 0;
-	descDepth.MiscFlags = 0;
-	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&descDepth, nullptr, &m_pDepthStencil));
+	// 根据需要创建用于 3D 渲染的深度模具视图。
+	CD3D11_TEXTURE2D_DESC1 descDepth(
+		DXGI_FORMAT_D24_UNORM_S8_UINT,
+		lround(width),
+		lround(height),
+		1, // 此深度模具视图只有一个纹理。
+		1, // 使用单一 mipmap 级别。
+		D3D11_BIND_DEPTH_STENCIL
+	);
 
-	D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
-	ZeroMemory(&descDSV, sizeof(descDSV));
-	descDSV.Format = descDepth.Format;
-	descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-	descDSV.Texture2D.MipSlice = 0;
-	NX::ThrowIfFailed(g_pDevice->CreateDepthStencilView(m_pDepthStencil, &descDSV, &m_pDepthStencilView));
+	ID3D11Texture2D1* pDepthStencil;
+	NX::ThrowIfFailed(g_pDevice->CreateTexture2D1(&descDepth, nullptr, &pDepthStencil));
+
+	CD3D11_DEPTH_STENCIL_VIEW_DESC descDepthStencilView(D3D11_DSV_DIMENSION_TEXTURE2D);
+	NX::ThrowIfFailed(g_pDevice->CreateDepthStencilView(pDepthStencil, &descDepthStencilView, &m_pDepthStencilView));
 
 	// Setup the viewport
-	m_ViewPort.Width = (FLOAT)width;
-	m_ViewPort.Height = (FLOAT)height;
-	m_ViewPort.MinDepth = 0.0f;
-	m_ViewPort.MaxDepth = 1.0f;
-	m_ViewPort.TopLeftX = 0;
-	m_ViewPort.TopLeftY = 0;
+	m_ViewPort = CD3D11_VIEWPORT(0.0f, 0.0f, (FLOAT)width, (FLOAT)height);
 	g_pContext->RSSetViewports(1, &m_ViewPort);
 }
 
@@ -131,7 +122,6 @@ void DirectResources::ClearDevices()
 	if (g_pContext)				g_pContext->Release();
 	if (g_pDevice)				g_pDevice->Release();
 	if (m_pRenderTargetView)	m_pRenderTargetView->Release();
-	if (m_pDepthStencil)		m_pDepthStencil->Release();
 	if (m_pDepthStencilView)	m_pDepthStencilView->Release();
 }
 
