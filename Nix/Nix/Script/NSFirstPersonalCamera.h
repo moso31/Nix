@@ -1,9 +1,6 @@
 #pragma once
 #include "NXScript.h"
 
-#include <chrono>
-using namespace chrono;
-
 #define POSITIVE_X 0
 #define POSITIVE_Y 1
 #define POSITIVE_Z 2

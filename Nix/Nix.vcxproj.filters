@@ -88,6 +88,7 @@
     <ClInclude Include="Nix\Script\NXScriptType.h">
       <Filter>Nix\Script</Filter>
     </ClInclude>
+    <ClInclude Include="Core\Timer\NXTimer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">
@@ -168,6 +169,7 @@
     <ClCompile Include="Nix\Manager\SceneManager.cpp">
       <Filter>Nix\Manager</Filter>
     </ClCompile>
+    <ClCompile Include="Core\Timer\NXTimer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Core">

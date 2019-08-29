@@ -8,3 +8,4 @@ IDXGISwapChain4*				g_pSwapChain = nullptr;
 
 shared_ptr<App>					g_app;
 shared_ptr<DirectResources>		g_dxResources = nullptr;
+shared_ptr<NXTimer>				g_timer = nullptr;

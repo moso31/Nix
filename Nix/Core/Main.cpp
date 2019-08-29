@@ -1,6 +1,7 @@
 ﻿#include "Header.h"
 #include "App.h"
 #include "NXInput.h"
+#include "NXTimer.h"
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
@@ -30,8 +31,8 @@ HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow)
 
 	// Create window
 	g_hInst = hInstance;
-	//RECT rc = { 0, 0, 800, 600 };
-	RECT rc = { 0, 0, 150, 100 };
+	RECT rc = { 0, 0, 800, 600 };
+	//RECT rc = { 0, 0, 150, 100 };
 	AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
 	g_hWnd = CreateWindow(L"NixWindowClass", L"Nix",
 		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
@@ -56,6 +57,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	g_app = make_shared<App>();
 	g_app->Init();
 
+	g_timer = make_shared<NXTimer>();
+
 	// Main message loop
 	MSG msg = { 0 };
 	while (WM_QUIT != msg.message)
@@ -69,6 +72,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 		}
 		else
 		{
+			g_timer->Tick();
 			g_app->Update();
 			g_app->Render();
 

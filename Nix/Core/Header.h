@@ -17,6 +17,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <chrono>
 
 // DirectX
 #include <d3d11_4.h>
@@ -33,6 +34,7 @@
 
 // namespace
 using namespace std;
+using namespace std::chrono;
 using namespace DirectX;
 using namespace SimpleMath;
 
@@ -42,6 +44,7 @@ class DirectResources;
 class NXInput;
 struct NXEventArg;
 class NXScript;
+class NXTimer;
 
 class Scene;
 class SceneManager;
@@ -60,3 +63,4 @@ extern	IDXGISwapChain4*			g_pSwapChain;
 
 extern	shared_ptr<App>					g_app;
 extern	shared_ptr<DirectResources>		g_dxResources;
+extern	shared_ptr<NXTimer>				g_timer;
