@@ -106,12 +106,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>.\;.\Core;.\Core\DX;.\Core\File;.\Core\Input;.\Core\Timer;.\Nix;.\Nix\Manager;.\Nix\Object;.\Nix\Script;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\;.\Core;.\Core\DX;.\Core\File;.\Core\Input;.\Core\Timer;.\Nix;.\Nix\Manager;.\Nix\Object;.\Nix\Script;..\FBXImporter\common;..\FBXImporter\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxguid.lib;winmm.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxguid.lib;winmm.lib;comctl32.lib;FBXImporter.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>.\lib\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -144,20 +145,22 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>.\;.\Core;.\Core\DX;.\Core\File;.\Core\Input;.\Nix;.\Nix\Manager;.\Nix\Object;.\Nix\Script;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\;.\Core;.\Core\DX;.\Core\File;.\Core\Input;.\Core\Timer;.\Nix;.\Nix\Manager;.\Nix\Object;.\Nix\Script;..\FBXImporter\common;..\FBXImporter\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxguid.lib;winmm.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxguid.lib;winmm.lib;comctl32.lib;FBXImporter.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>.\lib\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h" />
     <ClInclude Include="Core\DX\DirectResources.h" />
     <ClInclude Include="Core\DX\NXDXHelper.h" />
+    <ClInclude Include="Core\File\FBXMeshLoader.h" />
     <ClInclude Include="Core\Header.h" />
     <ClInclude Include="Core\DX\Renderer.h" />
     <ClInclude Include="Core\DX\ShaderComplier.h" />
@@ -176,6 +179,7 @@
     <ClInclude Include="Nix\Object\NXCylinder.h" />
     <ClInclude Include="Nix\Object\NXLight.h" />
     <ClInclude Include="Nix\Object\NXMaterial.h" />
+    <ClInclude Include="Nix\Object\NXMesh.h" />
     <ClInclude Include="Nix\Object\NXObject.h" />
     <ClInclude Include="Nix\Object\NXPlane.h" />
     <ClInclude Include="Nix\Object\NXPrimitive.h" />
@@ -189,6 +193,7 @@
   <ItemGroup>
     <ClCompile Include="Core\App.cpp" />
     <ClCompile Include="Core\DX\DirectResources.cpp" />
+    <ClCompile Include="Core\File\FBXMeshLoader.cpp" />
     <ClCompile Include="Core\Global.cpp" />
     <ClCompile Include="Core\Input\NXEvent.cpp" />
     <ClCompile Include="Core\Input\NXListener.cpp" />
@@ -206,6 +211,7 @@
     <ClCompile Include="Nix\Object\NXCylinder.cpp" />
     <ClCompile Include="Nix\Object\NXLight.cpp" />
     <ClCompile Include="Nix\Object\NXMaterial.cpp" />
+    <ClCompile Include="Nix\Object\NXMesh.cpp" />
     <ClCompile Include="Nix\Object\NXObject.cpp" />
     <ClCompile Include="Nix\Object\NXPlane.cpp" />
     <ClCompile Include="Nix\Object\NXPrimitive.cpp" />

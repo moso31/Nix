@@ -5,6 +5,7 @@
 
 struct VertexPNT
 {
+	VertexPNT() = default;
 	VertexPNT(Vector3 pos, Vector3 norm, Vector2 tex) : 
 		pos(pos), norm(norm), tex(tex) {}
 	Vector3 pos;

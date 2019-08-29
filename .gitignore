@@ -6,3 +6,11 @@
 /.vs
 /Nix/Debug
 /Nix/x64/Debug
+*.lib
+*.pdb
+*.tlog
+*.obj
+*.log
+*.txt
+/FBXImporter/x64/Debug
+*.dll

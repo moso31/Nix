@@ -148,6 +148,7 @@ struct Vector3 : public XMFLOAT3
     Vector3(float _x, float _y, float _z) : XMFLOAT3(_x, _y, _z) {}
     explicit Vector3(_In_reads_(3) const float *pArray) : XMFLOAT3(pArray) {}
     Vector3(FXMVECTOR V) { XMStoreFloat3( this, V ); }
+	Vector3(const Vector4& v);
 
     operator XMVECTOR() const { return XMLoadFloat3( this ); }
 

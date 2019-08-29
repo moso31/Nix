@@ -1,6 +1,7 @@
 #include "NXScene.h"
 #include "SceneManager.h"
 
+#include "NXMesh.h"
 #include "NXBox.h"
 #include "NXSphere.h"
 #include "NXCylinder.h"
@@ -89,8 +90,16 @@ void Scene::Init()
 	{
 		pSphere->Init(1.0f, 16, 16);
 		pSphere->SetMaterial(pMaterial);
-		pSphere->SetTranslation(Vector3(0.0f, 0.0f, 0.0f));
+		pSphere->SetTranslation(Vector3(-2.0f, 0.0f, 0.0f));
 		m_primitives.push_back(pSphere);
+	}
+
+	auto pMesh = make_shared<NXMesh>();
+	{
+		pMesh->Init("D:\\test.fbx");
+		pMesh->SetMaterial(pMaterial);
+		pMesh->SetTranslation(Vector3(0.0f, 0.0f, 0.0f));
+		m_primitives.push_back(pMesh);
 	}
 
 	auto pCamera = make_shared<NXCamera>();

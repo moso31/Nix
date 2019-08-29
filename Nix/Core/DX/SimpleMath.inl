@@ -591,6 +591,11 @@ inline void Vector2::TransformNormal( const Vector2* varray, size_t count, const
 // Comparision operators
 //------------------------------------------------------------------------------
 
+inline Vector3::Vector3(const Vector4& v) :
+	XMFLOAT3(v.x, v.y, v.z)
+{
+}
+
 inline bool Vector3::operator == ( const Vector3& V ) const
 {
     using namespace DirectX;

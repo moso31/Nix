@@ -88,7 +88,15 @@
     <ClInclude Include="Nix\Script\NXScriptType.h">
       <Filter>Nix\Script</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Timer\NXTimer.h" />
+    <ClInclude Include="Core\File\FBXMeshLoader.h">
+      <Filter>Core\File</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Timer\NXTimer.h">
+      <Filter>Core\Timer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\Object\NXMesh.h">
+      <Filter>Nix\Object\Primitive</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">
@@ -169,7 +177,15 @@
     <ClCompile Include="Nix\Manager\SceneManager.cpp">
       <Filter>Nix\Manager</Filter>
     </ClCompile>
-    <ClCompile Include="Core\Timer\NXTimer.cpp" />
+    <ClCompile Include="Core\File\FBXMeshLoader.cpp">
+      <Filter>Core\File</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Timer\NXTimer.cpp">
+      <Filter>Core\Timer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\Object\NXMesh.cpp">
+      <Filter>Nix\Object\Primitive</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Core">
@@ -210,6 +226,9 @@
     </Filter>
     <Filter Include="Shader">
       <UniqueIdentifier>{d99dfb08-f23b-4a25-8f50-c19ef8d7e01a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Timer">
+      <UniqueIdentifier>{52ac6179-eceb-4ece-a5cf-e18bf297329c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
