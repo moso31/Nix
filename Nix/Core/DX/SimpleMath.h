@@ -148,6 +148,7 @@ struct Vector3 : public XMFLOAT3
     Vector3(float _x, float _y, float _z) : XMFLOAT3(_x, _y, _z) {}
     explicit Vector3(_In_reads_(3) const float *pArray) : XMFLOAT3(pArray) {}
     Vector3(FXMVECTOR V) { XMStoreFloat3( this, V ); }
+	Vector3(const XMFLOAT3& v) : XMFLOAT3(v.x, v.y, v.z) {}
 	Vector3(const Vector4& v);
 
     operator XMVECTOR() const { return XMLoadFloat3( this ); }
@@ -167,12 +168,15 @@ struct Vector3 : public XMFLOAT3
     // Urnary operators
     Vector3 operator+ () const { return *this; }
     Vector3 operator- () const;
+	float& operator[] (const int& index);
 
     // Vector operations
     bool InBounds( const Vector3& Bounds ) const;
 
     float Length() const;
     float LengthSquared() const;
+
+	Vector3 Reciprocal() const;
 
     float Dot( const Vector3& V ) const;
     void Cross( const Vector3& V, Vector3& result ) const;
@@ -675,6 +679,18 @@ Color operator/ (const Color& C1, const Color& C2);
 Color operator* (float S, const Color& C);
 
 //------------------------------------------------------------------------------
+// AABB
+struct AABB : public BoundingBox
+{
+	Vector3 GetCenter() const;
+	Vector3 GetMin() const;
+	Vector3 GetMax() const;
+	Vector3 Offset(const Vector3& position) const;
+	int GetMaximumExtent() const;
+	float GetSurfaceArea() const;
+};
+
+//------------------------------------------------------------------------------
 // Ray
 class Ray
 {
@@ -691,7 +707,9 @@ public:
 
     // Ray operations
     bool Intersects( const BoundingSphere& sphere, _Out_ float& Dist ) const;
-    bool Intersects( const BoundingBox& box, _Out_ float& Dist ) const;
+    bool Intersects( const AABB& box, _Out_ float& Dist ) const;
+	bool IntersectsFast( const AABB& aabb, _Out_ float& Dist) const;
+	bool IntersectsFast( const AABB& aabb, _Out_ float& Dist0, _Out_ float& Dist1) const;
     bool Intersects( const Vector3& tri0, const Vector3& tri1, const Vector3& tri2, _Out_ float& Dist ) const;
     bool Intersects( const Plane& plane, _Out_ float& Dist ) const;
 };

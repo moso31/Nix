@@ -679,6 +679,12 @@ inline Vector3 Vector3::operator- () const
     return R;
 }
 
+inline float& Vector3::operator[](const int& index)
+{
+	assert(index >= 0 && index < 3);
+	return index < 1 ? x : index > 1 ? z : y;
+}
+
 //------------------------------------------------------------------------------
 // Binary operators
 //------------------------------------------------------------------------------
@@ -773,6 +779,15 @@ inline float Vector3::LengthSquared() const
     XMVECTOR v1 = XMLoadFloat3( this );
     XMVECTOR X = XMVector3LengthSq( v1 );
     return XMVectorGetX( X );
+}
+
+inline Vector3 DirectX::SimpleMath::Vector3::Reciprocal() const
+{
+	XMVECTOR v = XMLoadFloat3(this);
+	XMVECTOR R = XMVectorReciprocal(v);
+	Vector3 result;
+	XMStoreFloat3(&result, R);
+	return result;
 }
 
 inline float Vector3::Dot( const Vector3& V ) const
@@ -1164,7 +1179,7 @@ inline void Vector3::TransformNormal( const Vector3* varray, size_t count, const
     XMVector3TransformNormalStream( resultArray, sizeof(XMFLOAT3), varray, sizeof(XMFLOAT3), count, M );
 }
 
-inline float DirectX::SimpleMath::Vector3::Angle(const Vector3& v1, const Vector3& v2)
+inline float Vector3::Angle(const Vector3& v1, const Vector3& v2)
 {
 	float cosAngle = v1.Dot(v2) / (v1.Length() * v2.Length());
 	float result = SimpleMath::Clamp(cosAngle, -1.0f, 1.0f);
@@ -1172,7 +1187,7 @@ inline float DirectX::SimpleMath::Vector3::Angle(const Vector3& v1, const Vector
 	return result;
 }
 
-inline float DirectX::SimpleMath::Vector3::AngleNormalize(const Vector3& v1, const Vector3& v2)
+inline float Vector3::AngleNormalize(const Vector3& v1, const Vector3& v2)
 {
 	float cosAngle = v1.Dot(v2);
 	float result = SimpleMath::Clamp(cosAngle, -1.0f, 1.0f);
@@ -3301,6 +3316,60 @@ inline Color Color::Lerp( const Color& c1, const Color& c2, float t )
     return result;
 }
 
+inline Vector3 AABB::GetCenter() const
+{
+	return Center;
+}
+
+inline Vector3 AABB::GetMin() const
+{
+	XMVECTOR C = XMLoadFloat3(&Center);
+	XMVECTOR NE = XMVectorNegate(XMLoadFloat3(&Extents));
+
+	Vector3 result;
+	XMStoreFloat3(&result, XMVectorAdd(C, NE));
+	return result;
+}
+
+inline Vector3 AABB::GetMax() const
+{
+	XMVECTOR C = XMLoadFloat3(&Center);
+	XMVECTOR E = XMLoadFloat3(&Extents);
+
+	Vector3 result;
+	XMStoreFloat3(&result, XMVectorAdd(C, E));
+	return result;
+}
+
+inline Vector3 AABB::Offset(const Vector3& position) const
+{
+	XMVECTOR C = XMLoadFloat3(&Center);
+	XMVECTOR Len = XMVectorReciprocal(XMVectorMultiply(XMLoadFloat3(&Extents), XMVectorSet(2.0f, 2.0f, 2.0f, 1.0f)));
+	XMVECTOR Min = XMVectorNegate(XMLoadFloat3(&Extents));
+
+	Vector3 result;
+	XMStoreFloat3(&result, XMVectorMultiply(XMVectorAdd(position, Min), Len));	// result = (p - min) / (max - min);
+	return result;	
+}
+
+inline int AABB::GetMaximumExtent() const
+{
+	if (Extents.x > Extents.y)
+	{
+		return Extents.x > Extents.z ? 0 : 2;
+	}
+	else
+	{
+		return Extents.y > Extents.z ? 1 : 2;
+	}
+}
+
+inline float AABB::GetSurfaceArea() const
+{
+	Vector3 v = Extents;
+	return (v.x * v.y + v.y * v.z + v.x * v.z) * 2.0f;
+}
+
 
 /****************************************************************************
  *
@@ -3340,9 +3409,42 @@ inline bool Ray::Intersects( const BoundingSphere& sphere, _Out_ float& Dist ) c
     return sphere.Intersects( position, direction, Dist );
 }
 
-inline bool Ray::Intersects( const BoundingBox& box, _Out_ float& Dist ) const
+inline bool Ray::Intersects( const AABB& box, _Out_ float& Dist ) const
 {
     return box.Intersects( position, direction, Dist );
+}
+
+inline bool Ray::IntersectsFast(const AABB& aabb, float& Dist) const
+{
+	Vector3 vRayDirInv = direction.Reciprocal();
+	Vector3 tMax = (aabb.GetMax() - position) * vRayDirInv;
+	Vector3 tMin = (aabb.GetMin() - position) * vRayDirInv;
+
+	Vector3 t1 = Vector3::Min(tMin, tMax);
+	Vector3 t2 = Vector3::Max(tMin, tMax);
+
+	float tNear = fmaxf(t1.x, fmaxf(t1.y, t1.z));
+	float tFar = fminf(t2.x, fminf(t2.y, t2.z));
+
+	Dist = tNear;
+	return tFar > 0 && tNear < tFar;
+}
+
+inline bool Ray::IntersectsFast(const AABB& aabb, _Out_ float& Dist0, _Out_ float& Dist1) const
+{
+	Vector3 vRayDirInv = direction.Reciprocal();
+	Vector3 tMax = (aabb.GetMax() - position) * vRayDirInv;
+	Vector3 tMin = (aabb.GetMin() - position) * vRayDirInv;
+
+	Vector3 t1 = Vector3::Min(tMin, tMax);
+	Vector3 t2 = Vector3::Max(tMin, tMax);
+
+	float tNear = fmaxf(t1.x, fmaxf(t1.y, t1.z));
+	float tFar = fminf(t2.x, fminf(t2.y, t2.z));
+
+	Dist0 = tNear;
+	Dist1 = tFar;// *(1 + 2 * gamma(3));
+	return tFar > 0 && tNear < tFar;
 }
 
 inline bool Ray::Intersects( const Vector3& tri0, const Vector3& tri1, const Vector3& tri2, _Out_ float& Dist ) const

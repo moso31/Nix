@@ -41,9 +41,10 @@ void NXCamera::SetLookAt(Vector3 value)
 	vForward.Normalize();
 	Vector3 vAxis = Vector3(0.0f, 0.0f, 1.0f).Cross(vForward);
 	if (vAxis.LengthSquared() == 0.0f) vAxis.y = 1.0f;
+	vAxis.Normalize();
 
 	float fAngle = Vector3::AngleNormalize(vForward, Vector3(0.0f, 0.0f, 1.0f));
-	m_rotation = Quaternion(vAxis, fAngle);
+	m_rotation = Quaternion::CreateFromAxisAngle(vAxis, fAngle);
 
 	m_view.CreateLookAt(m_translation, m_at, m_up);
 }
@@ -79,10 +80,28 @@ Vector3 NXCamera::GetUp()
 	return m_up;
 }
 
+Ray NXCamera::GenerateRay(Vector2 cursorPosition)
+{
+	Vector2 outputSize = g_dxResources->GetViewSize();
+
+	float x = (2.0f * cursorPosition.x / outputSize.x - 1.0f) / m_projection._11;
+	float y = (1.0f - 2.0f * cursorPosition.y / outputSize.y) / m_projection._22;
+
+	Vector3 vOrig(0.0f);
+	Vector3 vDir = Vector3(x, y, 1.0f);
+	vDir.Normalize();
+
+	Matrix viewInv = m_view.Invert();
+	Vector3 vOrigWorld = Vector3::Transform(vOrig, viewInv);
+	Vector3 vDirWorld = Vector3::TransformNormal(vDir, viewInv);
+
+	return Ray(vOrigWorld, vDirWorld);
+}
+
 void NXCamera::Init(Vector3 cameraPosition, Vector3 cameraLookAt, Vector3 cameraLookUp)
 {
 	SetTranslation(cameraPosition);
-	m_at = cameraLookAt;
+	SetLookAt(cameraLookAt);
 	m_up = cameraLookUp;
 
 	D3D11_BUFFER_DESC bufferDesc;

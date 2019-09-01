@@ -109,8 +109,9 @@ void DirectResources::OnResize(UINT width, UINT height)
 	CD3D11_DEPTH_STENCIL_VIEW_DESC descDepthStencilView(D3D11_DSV_DIMENSION_TEXTURE2D);
 	NX::ThrowIfFailed(g_pDevice->CreateDepthStencilView(pDepthStencil, &descDepthStencilView, &m_pDepthStencilView));
 
+	m_viewSize = { (FLOAT)width, (FLOAT)height };
 	// Setup the viewport
-	m_ViewPort = CD3D11_VIEWPORT(0.0f, 0.0f, (FLOAT)width, (FLOAT)height);
+	m_ViewPort = CD3D11_VIEWPORT(0.0f, 0.0f, m_viewSize.x, m_viewSize.y);
 	g_pContext->RSSetViewports(1, &m_ViewPort);
 }
 
@@ -123,6 +124,11 @@ void DirectResources::ClearDevices()
 	if (g_pDevice)				g_pDevice->Release();
 	if (m_pRenderTargetView)	m_pRenderTargetView->Release();
 	if (m_pDepthStencilView)	m_pDepthStencilView->Release();
+}
+
+Vector2 DirectResources::GetViewSize()
+{
+	return m_viewSize;
 }
 
 Vector2 DirectResources::GetViewPortSize()

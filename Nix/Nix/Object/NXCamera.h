@@ -18,6 +18,8 @@ public:
 	Vector3 GetAt();
 	Vector3 GetUp();
 
+	Ray GenerateRay(Vector2 cursorPosition);
+
 	void Init(Vector3 cameraPosition, Vector3 cameraLookAt, Vector3 cameraLookUp);
 	void PrevUpdate();
 	void Update();

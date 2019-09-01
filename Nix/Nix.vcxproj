@@ -106,7 +106,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>.\;..\;.\Core;.\Core\DX;.\Core\File;.\Core\Input;.\Core\Timer;.\Nix;.\Nix\Manager;.\Nix\Object;.\Nix\Script;..\FBXImporter\common;..\FBXImporter\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\;.\Core;.\Core\DX;.\Core\File;.\Core\Input;.\Core\Timer;.\Nix;.\Nix\Accelerator;.\Nix\Manager;.\Nix\Object;.\Nix\Script;..\FBXImporter\common;..\FBXImporter\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -145,7 +145,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>.\;..\;.\Core;.\Core\DX;.\Core\File;.\Core\Input;.\Core\Timer;.\Nix;.\Nix\Manager;.\Nix\Object;.\Nix\Script;..\FBXImporter\common;..\FBXImporter\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\;.\Core;.\Core\DX;.\Core\File;.\Core\Input;.\Core\Timer;.\Nix;.\Nix\Accelerator;.\Nix\Manager;.\Nix\Object;.\Nix\Script;..\FBXImporter\common;..\FBXImporter\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -173,6 +173,7 @@
     <ClInclude Include="Core\Input\NXInput.h" />
     <ClInclude Include="Core\NXInstance.h" />
     <ClInclude Include="Core\Timer\NXTimer.h" />
+    <ClInclude Include="Nix\Accelerator\HBVH.h" />
     <ClInclude Include="Nix\Manager\SceneManager.h" />
     <ClInclude Include="Nix\Object\NXBox.h" />
     <ClInclude Include="Nix\Object\NXCamera.h" />
@@ -205,6 +206,7 @@
     <ClCompile Include="Core\File\DDSTextureLoader.cpp" />
     <ClCompile Include="Core\File\WICTextureLoader.cpp" />
     <ClCompile Include="Core\Timer\NXTimer.cpp" />
+    <ClCompile Include="Nix\Accelerator\HBVH.cpp" />
     <ClCompile Include="Nix\Manager\SceneManager.cpp" />
     <ClCompile Include="Nix\Object\NXBox.cpp" />
     <ClCompile Include="Nix\Object\NXCamera.cpp" />

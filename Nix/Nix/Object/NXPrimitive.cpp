@@ -38,6 +38,41 @@ void NXPrimitive::SetMaterial(const shared_ptr<NXMaterial>& pMaterial)
 	m_cbDataMaterial.material = pMaterial->GetMaterialInfo();
 }
 
+AABB NXPrimitive::GetAABB() const
+{
+	return m_aabb;
+}
+
+bool NXPrimitive::Intersect(const Ray& Ray, _Out_ Vector3& outHitPos, _Out_ float& outDist)
+{
+	int outIndex = -1;
+	outDist = FLT_MAX;
+	for (int i = 0; i < (int)m_indices.size() / 3; i++)
+	{
+		Vector3 P0 = m_vertices[m_indices[i]].pos;
+		Vector3 P1 = m_vertices[m_indices[i + 1]].pos;
+		Vector3 P2 = m_vertices[m_indices[i + 2]].pos;
+
+		float dist;
+		if (Ray.Intersects(P0, P1, P2, dist))
+		{
+			if (dist < outDist)
+			{
+				outDist = dist;
+				outIndex = i;
+			}
+		}
+	}
+
+	if (outIndex != -1)
+	{
+		outHitPos = Ray.position + Ray.direction * outDist;
+		return true;
+	}
+	else
+		return false;
+}
+
 void NXPrimitive::InitVertexIndexBuffer()
 {
 	D3D11_BUFFER_DESC bufferDesc;
@@ -65,4 +100,10 @@ void NXPrimitive::InitVertexIndexBuffer()
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_pConstantBuffer));
 	
 	NX::ThrowIfFailed(CreateWICTextureFromFile(g_pDevice, L"D:\\rgb.bmp", nullptr, &m_pTextureSRV));
+
+	for (auto it = m_vertices.begin(); it != m_vertices.end(); it++)
+	{
+		m_points.push_back(it->pos);
+	}
+	AABB::CreateFromPoints(m_aabb, m_points.size(), m_points.data(), sizeof(Vector3));
 }

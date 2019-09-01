@@ -97,6 +97,9 @@
     <ClInclude Include="Nix\Object\NXMesh.h">
       <Filter>Nix\Object\Primitive</Filter>
     </ClInclude>
+    <ClInclude Include="Nix\Accelerator\HBVH.h">
+      <Filter>Nix\Accelerator</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">
@@ -186,6 +189,9 @@
     <ClCompile Include="Nix\Object\NXMesh.cpp">
       <Filter>Nix\Object\Primitive</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\Accelerator\HBVH.cpp">
+      <Filter>Nix\Accelerator</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Core">
@@ -229,6 +235,9 @@
     </Filter>
     <Filter Include="Core\Timer">
       <UniqueIdentifier>{52ac6179-eceb-4ece-a5cf-e18bf297329c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Nix\Accelerator">
+      <UniqueIdentifier>{0c0af698-e0d8-4070-9eea-156755aa397f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -1,5 +1,6 @@
 #include "NXScene.h"
 #include "SceneManager.h"
+#include "HBVH.h"
 
 #include "NXMesh.h"
 #include "NXBox.h"
@@ -20,6 +21,19 @@ Scene::Scene()
 
 Scene::~Scene()
 {
+}
+
+void Scene::OnMouseDown(NXEventArg eArg)
+{
+	auto ray = m_mainCamera->GenerateRay(Vector2(eArg.X, eArg.Y));
+	//printf("pos: %.3f, %.3f, %.3f; dir: %.3f, %.3f, %.3f\n", ray.position.x, ray.position.y, ray.position.z, ray.direction.x, ray.direction.y, ray.direction.z);
+	shared_ptr<NXPrimitive> pHitPrimitive;
+	Vector3 pHitPosition;
+	float pHitDist;
+	if (Intersect(ray, pHitPrimitive, pHitPosition, pHitDist))
+	{
+		printf("object: %s, hitPos: %.3f, %.3f, %.3f, dist: %.3f\n", pHitPrimitive->GetName().c_str(), pHitPosition.x, pHitPosition.y, pHitPosition.z, pHitDist);
+	}
 }
 
 void Scene::Init()
@@ -80,6 +94,7 @@ void Scene::Init()
 
 	auto pPlane = make_shared<NXPlane>();
 	{
+		pPlane->SetName("Plane");
 		pPlane->Init(5.0f, 5.0f);
 		pPlane->SetMaterial(pMaterial);
 		pPlane->SetTranslation(Vector3(0.0f, 0.0f, 0.0f));
@@ -88,6 +103,7 @@ void Scene::Init()
 
 	auto pSphere = make_shared<NXSphere>();
 	{
+		pSphere->SetName("Sphere");
 		pSphere->Init(1.0f, 16, 16);
 		pSphere->SetMaterial(pMaterial);
 		pSphere->SetTranslation(Vector3(-2.0f, 0.0f, 0.0f));
@@ -96,6 +112,7 @@ void Scene::Init()
 
 	auto pMesh = make_shared<NXMesh>();
 	{
+		pMesh->SetName("Mesh");
 		pMesh->Init("D:\\test.fbx");
 		pMesh->SetMaterial(pMaterial);
 		pMesh->SetTranslation(Vector3(0.0f, 0.0f, 0.0f));
@@ -103,7 +120,7 @@ void Scene::Init()
 	}
 
 	auto pCamera = make_shared<NXCamera>();
-	pCamera->Init(Vector3(0.0f, 0.7f, -1.5f),
+	pCamera->Init(Vector3(0.0f, 0.0f, -1.5f),
 		Vector3(0.0f, 0.0f, 0.0f),
 		Vector3(0.0f, 1.0f, 0.0f));
 	m_mainCamera = pCamera;
@@ -118,6 +135,10 @@ void Scene::Init()
 	NXEventKeyDown::GetInstance()->AddListener(pListener_onKeyDown);
 	NXEventKeyUp::GetInstance()->AddListener(pListener_onKeyUp);
 	NXEventMouseMove::GetInstance()->AddListener(pListener_onMouseMove);
+	auto pListener_onMouseDown = make_shared<NXListener>(shared_from_this(), std::bind(&Scene::OnMouseDown, shared_from_this(), std::placeholders::_1));
+	NXEventMouseDown::GetInstance()->AddListener(pListener_onMouseDown);
+
+	InitAABB();
 }
 
 void Scene::PrevUpdate()
@@ -181,4 +202,42 @@ void Scene::Release()
 
 	m_mainCamera->Release();
 	m_mainCamera.reset();
+}
+
+void Scene::InitAABB()
+{
+	// construct AABB for scene.
+	for (auto it = m_primitives.begin(); it != m_primitives.end(); it++)
+	{
+		AABB::CreateMerged(m_aabb, m_aabb, (*it)->GetAABB());
+	}
+}
+
+bool Scene::Intersect(const Ray& worldRay, shared_ptr<NXPrimitive>& outTarget, Vector3& outPos, float& outDist)
+{
+	outTarget = nullptr;
+	float minDist = FLT_MAX;
+	for (auto it = m_primitives.begin(); it != m_primitives.end(); it++)
+	{
+		Ray LocalRay(
+			Vector3::Transform(worldRay.position, (*it)->GetWorldMatrixInv()),
+			Vector3::TransformNormal(worldRay.direction, (*it)->GetWorldMatrixInv())
+		);
+
+		// ray-aabb
+		if (LocalRay.IntersectsFast((*it)->GetAABB(), outDist))
+		{
+			// ray-triangle
+			if ((*it)->Intersect(LocalRay, outPos, outDist))
+			{
+				if (minDist > outDist)
+				{
+					minDist = outDist;
+					outTarget = *it;
+				}
+			}
+		}
+	}
+
+	return outTarget != nullptr;
 }

@@ -18,6 +18,7 @@
 #include <vector>
 #include <map>
 #include <chrono>
+#include <algorithm>
 
 // DirectX
 #include <d3d11_4.h>
@@ -48,6 +49,7 @@ class NXTimer;
 
 class Scene;
 class SceneManager;
+//class HBVHTree;	// 暂时先不用这个
 class NXObject;
 class NXPrimitive;
 class NXCamera;
