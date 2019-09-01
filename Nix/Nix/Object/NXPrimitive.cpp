@@ -12,6 +12,11 @@ NXPrimitive::NXPrimitive() :
 
 void NXPrimitive::Update()
 {
+	static float y = 0.0f;
+	y += 0.01f;
+	SetRotation(Vector3(0.0f, y, 0.0f));
+	SetScale(Vector3(sin(y), sin(y), sin(y)));
+
 	m_pConstantBufferData.world = m_worldMatrix.Transpose();
 	g_pContext->UpdateSubresource(m_pConstantBuffer, 0, nullptr, &m_pConstantBufferData, 0, 0);
 
@@ -49,9 +54,9 @@ bool NXPrimitive::Intersect(const Ray& Ray, _Out_ Vector3& outHitPos, _Out_ floa
 	outDist = FLT_MAX;
 	for (int i = 0; i < (int)m_indices.size() / 3; i++)
 	{
-		Vector3 P0 = m_vertices[m_indices[i]].pos;
-		Vector3 P1 = m_vertices[m_indices[i + 1]].pos;
-		Vector3 P2 = m_vertices[m_indices[i + 2]].pos;
+		Vector3 P0 = m_vertices[m_indices[i * 3 + 0]].pos;
+		Vector3 P1 = m_vertices[m_indices[i * 3 + 1]].pos;
+		Vector3 P2 = m_vertices[m_indices[i * 3 + 2]].pos;
 
 		float dist;
 		if (Ray.Intersects(P0, P1, P2, dist))

@@ -23,7 +23,7 @@ public:
 
 private:
 	void InitAABB();
-	bool Intersect(const Ray& worldRay, _Out_ shared_ptr<NXPrimitive>& outTarget, _Out_ Vector3& outPos, _Out_ float& outDist );
+	bool Intersect(const Ray& worldRay, _Out_ shared_ptr<NXPrimitive>& outTarget, _Out_ Vector3& outHitPosition, _Out_ float& outDist);
 
 private:
 	vector<shared_ptr<NXLight>> m_lights;

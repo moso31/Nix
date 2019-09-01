@@ -26,13 +26,13 @@ Scene::~Scene()
 void Scene::OnMouseDown(NXEventArg eArg)
 {
 	auto ray = m_mainCamera->GenerateRay(Vector2(eArg.X, eArg.Y));
-	//printf("pos: %.3f, %.3f, %.3f; dir: %.3f, %.3f, %.3f\n", ray.position.x, ray.position.y, ray.position.z, ray.direction.x, ray.direction.y, ray.direction.z);
+	printf("pos: %.3f, %.3f, %.3f; dir: %.3f, %.3f, %.3f\n", ray.position.x, ray.position.y, ray.position.z, ray.direction.x, ray.direction.y, ray.direction.z);
 	shared_ptr<NXPrimitive> pHitPrimitive;
 	Vector3 pHitPosition;
 	float pHitDist;
 	if (Intersect(ray, pHitPrimitive, pHitPosition, pHitDist))
 	{
-		printf("object: %s, hitPos: %.3f, %.3f, %.3f, dist: %.3f\n", pHitPrimitive->GetName().c_str(), pHitPosition.x, pHitPosition.y, pHitPosition.z, pHitDist);
+		printf("object: %s, hitPos: %.3f, %.3f, %.3f, dist: %.6f\n", pHitPrimitive->GetName().c_str(), pHitPosition.x, pHitPosition.y, pHitPosition.z, pHitDist);
 	}
 }
 
@@ -106,8 +106,8 @@ void Scene::Init()
 		pSphere->SetName("Sphere");
 		pSphere->Init(1.0f, 16, 16);
 		pSphere->SetMaterial(pMaterial);
-		pSphere->SetTranslation(Vector3(-2.0f, 0.0f, 0.0f));
-		m_primitives.push_back(pSphere);
+		pSphere->SetTranslation(Vector3(0.0f, 0.0f, 0.0f));
+		//m_primitives.push_back(pSphere);
 	}
 
 	auto pMesh = make_shared<NXMesh>();
@@ -116,7 +116,7 @@ void Scene::Init()
 		pMesh->Init("D:\\test.fbx");
 		pMesh->SetMaterial(pMaterial);
 		pMesh->SetTranslation(Vector3(0.0f, 0.0f, 0.0f));
-		m_primitives.push_back(pMesh);
+		//m_primitives.push_back(pMesh);
 	}
 
 	auto pCamera = make_shared<NXCamera>();
@@ -213,7 +213,7 @@ void Scene::InitAABB()
 	}
 }
 
-bool Scene::Intersect(const Ray& worldRay, shared_ptr<NXPrimitive>& outTarget, Vector3& outPos, float& outDist)
+bool Scene::Intersect(const Ray& worldRay, _Out_ shared_ptr<NXPrimitive>& outTarget, _Out_ Vector3& outHitPosition, _Out_ float& outDist)
 {
 	outTarget = nullptr;
 	float minDist = FLT_MAX;
@@ -223,12 +223,13 @@ bool Scene::Intersect(const Ray& worldRay, shared_ptr<NXPrimitive>& outTarget, V
 			Vector3::Transform(worldRay.position, (*it)->GetWorldMatrixInv()),
 			Vector3::TransformNormal(worldRay.direction, (*it)->GetWorldMatrixInv())
 		);
+		LocalRay.direction.Normalize();
 
 		// ray-aabb
 		if (LocalRay.IntersectsFast((*it)->GetAABB(), outDist))
 		{
 			// ray-triangle
-			if ((*it)->Intersect(LocalRay, outPos, outDist))
+			if ((*it)->Intersect(LocalRay, outHitPosition, outDist))
 			{
 				if (minDist > outDist)
 				{
@@ -237,6 +238,12 @@ bool Scene::Intersect(const Ray& worldRay, shared_ptr<NXPrimitive>& outTarget, V
 				}
 			}
 		}
+	}
+
+	if (outTarget)
+	{
+		outHitPosition = Vector3::Transform(outHitPosition, outTarget->GetWorldMatrix());
+		outDist = Vector3::Distance(worldRay.position, outHitPosition);
 	}
 
 	return outTarget != nullptr;

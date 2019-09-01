@@ -11,9 +11,10 @@ public:
 	virtual Quaternion GetRotation();
 	virtual Vector3 GetScale();
 
-	virtual void SetTranslation(const Vector3 &value);
-	virtual void SetRotation(const Quaternion &value);
-	virtual void SetScale(const Vector3 &value);
+	virtual void SetTranslation(const Vector3& value);
+	virtual void SetRotation(const Quaternion& value);
+	virtual void SetRotation(const Vector3& value);
+	virtual void SetScale(const Vector3& value);
 
 	virtual Matrix GetWorldMatrix();
 	virtual Matrix GetWorldMatrixInv();

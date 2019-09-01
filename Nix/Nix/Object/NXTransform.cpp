@@ -1,4 +1,5 @@
 #include "NXTransform.h"
+#include "Object\NXTransform.h"
 
 
 NXTransform::NXTransform() :
@@ -33,6 +34,11 @@ void NXTransform::SetTranslation(const Vector3 &value)
 void NXTransform::SetRotation(const Quaternion &value)
 {
 	m_rotation = value;
+}
+
+void NXTransform::SetRotation(const Vector3& value)
+{
+	m_rotation = Quaternion::CreateFromYawPitchRoll(value.y, value.x, value.z);
 }
 
 void NXTransform::SetScale(const Vector3 &value)

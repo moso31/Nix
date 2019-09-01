@@ -3414,7 +3414,7 @@ inline bool Ray::Intersects( const AABB& box, _Out_ float& Dist ) const
     return box.Intersects( position, direction, Dist );
 }
 
-inline bool Ray::IntersectsFast(const AABB& aabb, float& Dist) const
+inline bool Ray::IntersectsFast(const AABB& aabb, _Out_ float& Dist) const
 {
 	Vector3 vRayDirInv = direction.Reciprocal();
 	Vector3 tMax = (aabb.GetMax() - position) * vRayDirInv;
@@ -3427,7 +3427,7 @@ inline bool Ray::IntersectsFast(const AABB& aabb, float& Dist) const
 	float tFar = fminf(t2.x, fminf(t2.y, t2.z));
 
 	Dist = tNear;
-	return tFar > 0 && tNear < tFar;
+	return tFar > 0 && tNear <= tFar;
 }
 
 inline bool Ray::IntersectsFast(const AABB& aabb, _Out_ float& Dist0, _Out_ float& Dist1) const

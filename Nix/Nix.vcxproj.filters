@@ -76,9 +76,6 @@
     <ClInclude Include="Nix\Script\NXScript.h">
       <Filter>Nix\Script</Filter>
     </ClInclude>
-    <ClInclude Include="Nix\NXTransform.h">
-      <Filter>Nix\Object</Filter>
-    </ClInclude>
     <ClInclude Include="Nix\Script\NSFirstPersonalCamera.h">
       <Filter>Nix\Script</Filter>
     </ClInclude>
@@ -99,6 +96,9 @@
     </ClInclude>
     <ClInclude Include="Nix\Accelerator\HBVH.h">
       <Filter>Nix\Accelerator</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\Object\NXTransform.h">
+      <Filter>Nix\Object</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -168,9 +168,6 @@
     <ClCompile Include="Nix\Script\NXScript.cpp">
       <Filter>Nix\Script</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\NXTransform.cpp">
-      <Filter>Nix\Object</Filter>
-    </ClCompile>
     <ClCompile Include="Nix\Script\NSFirstPersonalCamera.cpp">
       <Filter>Nix\Script</Filter>
     </ClCompile>
@@ -191,6 +188,9 @@
     </ClCompile>
     <ClCompile Include="Nix\Accelerator\HBVH.cpp">
       <Filter>Nix\Accelerator</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\Object\NXTransform.cpp">
+      <Filter>Nix\Object</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
