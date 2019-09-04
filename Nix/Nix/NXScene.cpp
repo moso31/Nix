@@ -11,6 +11,7 @@
 #include "NXCamera.h"
 #include "NXScript.h"
 #include "NSFirstPersonalCamera.h"
+#include "NSTest.h"
 
 // temp include.
 #include "NXLight.h"
@@ -91,6 +92,7 @@ void Scene::Init()
 	pMaterial->SetAmbient(Vector4(0.7f, 0.85f, 0.7f, 1.0f));
 	pMaterial->SetDiffuse(Vector4(0.7f, 0.85f, 0.7f, 1.0f));
 	pMaterial->SetSpecular(Vector4(0.8f, 0.8f, 0.8f, 16.0f));
+	pMaterial->SetOpacity(0.2f);
 	m_materials.push_back(pMaterial);
 
 	auto pPlane = make_shared<NXPlane>();
@@ -102,13 +104,26 @@ void Scene::Init()
 		m_blendingPrimitives.push_back(pPlane);
 	}
 
+	pPlane = make_shared<NXPlane>();
+	{
+		pPlane->SetName("Plane");
+		pPlane->Init(5.0f, 5.0f);
+		pPlane->SetMaterial(pMaterial);
+		pPlane->SetTranslation(Vector3(0.0f, 2.5f, 2.5f));
+		pPlane->SetRotation(Vector3(-XM_PIDIV2, 0.0f, 0.0f));
+		m_primitives.push_back(pPlane);
+	}
+
+	auto pScript_test = make_shared<NSTest>();
+	//pPlane->AddScript(pScript_test);
+
 	auto pSphere = make_shared<NXSphere>();
 	{
 		pSphere->SetName("Sphere");
 		pSphere->Init(1.0f, 16, 16);
 		pSphere->SetMaterial(pMaterial);
-		pSphere->SetTranslation(Vector3(0.0f, 0.0f, 0.0f));
-		//m_primitives.push_back(pSphere);
+		pSphere->SetTranslation(Vector3(2.0f, 0.0f, 0.0f));
+		m_blendingPrimitives.push_back(pSphere);
 	}
 
 	auto pMesh = make_shared<NXMesh>();
@@ -127,7 +142,6 @@ void Scene::Init()
 	m_mainCamera = pCamera;
 
 	auto pScript = make_shared<NSFirstPersonalCamera>();
-	pScript->SetFPSCamera(m_mainCamera);
 	m_mainCamera->AddScript(pScript);
 
 	auto pListener_onKeyDown = make_shared<NXListener>(m_mainCamera, std::bind(&NSFirstPersonalCamera::OnKeyDown, pScript, std::placeholders::_1));
@@ -136,7 +150,9 @@ void Scene::Init()
 	NXEventKeyDown::GetInstance()->AddListener(pListener_onKeyDown);
 	NXEventKeyUp::GetInstance()->AddListener(pListener_onKeyUp);
 	NXEventMouseMove::GetInstance()->AddListener(pListener_onMouseMove);
-	auto pListener_onMouseDown = make_shared<NXListener>(shared_from_this(), std::bind(&Scene::OnMouseDown, shared_from_this(), std::placeholders::_1));
+
+	auto pThisScene = dynamic_pointer_cast<Scene>(shared_from_this());
+	auto pListener_onMouseDown = make_shared<NXListener>(pThisScene, std::bind(&Scene::OnMouseDown, pThisScene, std::placeholders::_1));
 	NXEventMouseDown::GetInstance()->AddListener(pListener_onMouseDown);
 
 	InitAABB();

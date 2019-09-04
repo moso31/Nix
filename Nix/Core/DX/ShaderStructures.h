@@ -1,6 +1,5 @@
 #pragma once
 #include "Header.h"
-#include "NXMaterial.h"
 #include "NXLight.h"
 
 struct VertexPNT
@@ -38,7 +37,12 @@ struct ConstantBufferCamera
 
 struct ConstantBufferMaterial
 {
-	MaterialInfo material;
+	Vector4 ambient;
+	Vector4 diffuse;
+	Vector4 specular; // w = SpecPower
+	Vector4 reflect;
+	float opacity;
+	Vector3 _align16;
 };
 
 struct ConstantBufferLight

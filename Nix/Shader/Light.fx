@@ -37,6 +37,8 @@ struct Material
 	float4 diffuse;
 	float4 specular; // w = SpecPower
 	float4 reflect;
+	float opacity;
+	float3 _align16;
 };
 
 void ComputeDirectionalLight(Material mat, DirectionalLight L,

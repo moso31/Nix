@@ -13,6 +13,7 @@ void NXObject::SetName(string name)
 
 void NXObject::AddScript(const shared_ptr<NXScript> &script)
 {
+	script->SetObject(shared_from_this());
 	m_scripts.push_back(script);
 }
 

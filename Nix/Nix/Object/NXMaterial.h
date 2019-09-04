@@ -1,15 +1,5 @@
 #pragma once
-#include "Header.h"
-
-struct MaterialInfo
-{
-	MaterialInfo() {}
-
-	Vector4 ambient;
-	Vector4 diffuse;
-	Vector4 specular; // w = SpecPower
-	Vector4 reflect;
-};
+#include "ShaderStructures.h"
 
 class NXMaterial
 {
@@ -20,12 +10,14 @@ public:
 	Vector4 GetDiffuse();
 	Vector4 GetSpecular();
 	Vector4 GetReflect();
-	MaterialInfo GetMaterialInfo();
+	float GetOpacity();
+	ConstantBufferMaterial GetMaterialInfo();
 
 	void SetAmbient(Vector4 ambient);
 	void SetDiffuse(Vector4 diffuse);
 	void SetSpecular(Vector4 specular);
 	void SetReflect(Vector4 reflect);
+	void SetOpacity(float opacity);
 
 	void Update();
 	void Render();
@@ -35,4 +27,5 @@ private:
 	Vector4 m_diffuse;
 	Vector4 m_specular; // w = SpecPower
 	Vector4 m_reflect;
+	float m_opacity;
 };

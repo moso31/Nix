@@ -80,7 +80,7 @@ float4 PS(PS_INPUT input) : SV_Target
 	sumS += S;
 
 	float4 result = sumA + sumD + sumS;
-	result.a = 0.2f;
+	result.a = m_material.opacity;
 	return result;
 
 	//return txDiffuse.Sample(samLinear, input.tex);

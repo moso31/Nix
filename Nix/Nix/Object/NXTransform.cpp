@@ -59,10 +59,9 @@ Matrix NXTransform::GetWorldMatrixInv()
 void NXTransform::PrevUpdate()
 {
 	Matrix result =
-		Matrix::CreateTranslation(m_translation) *
+		Matrix::CreateScale(m_scale) *
 		Matrix::CreateFromQuaternion(m_rotation) *
-		//Matrix::CreateFromXYZ(m_rotation) *
-		Matrix::CreateScale(m_scale);
+		Matrix::CreateTranslation(m_translation);
 	m_worldMatrix = result;
 	m_worldMatrixInv = result.Invert();
 }

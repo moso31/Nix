@@ -103,6 +103,7 @@
     <ClInclude Include="Core\DX\RenderStates.h">
       <Filter>Core\DX</Filter>
     </ClInclude>
+    <ClInclude Include="Nix\Script\NSTest.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">
@@ -198,6 +199,7 @@
     <ClCompile Include="Core\DX\RenderStates.cpp">
       <Filter>Core\DX</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\Script\NSTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Core">

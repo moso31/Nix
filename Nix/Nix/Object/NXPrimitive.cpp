@@ -1,4 +1,5 @@
 #include "NXPrimitive.h"
+#include "NXMaterial.h"
 #include "WICTextureLoader.h"
 
 NXPrimitive::NXPrimitive() :
@@ -17,9 +18,7 @@ void NXPrimitive::Update()
 
 	if (m_pMaterial)
 	{
-		ConstantBufferMaterial cb;
-		cb.material = m_cbDataMaterial.material;
-		g_pContext->UpdateSubresource(m_cbMaterial, 0, nullptr, &cb, 0, 0);
+		g_pContext->UpdateSubresource(m_cbMaterial, 0, nullptr, &m_cbDataMaterial, 0, 0);
 	}
 }
 
@@ -35,7 +34,7 @@ void NXPrimitive::SetMaterial(const shared_ptr<NXMaterial>& pMaterial)
 	bufferDesc.CPUAccessFlags = 0;
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbMaterial));
 
-	m_cbDataMaterial.material = pMaterial->GetMaterialInfo();
+	m_cbDataMaterial = pMaterial->GetMaterialInfo();
 }
 
 AABB NXPrimitive::GetAABB() const

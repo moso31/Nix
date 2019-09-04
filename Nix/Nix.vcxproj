@@ -189,6 +189,7 @@
     <ClInclude Include="Nix\Object\NXSphere.h" />
     <ClInclude Include="Nix\Object\NXTransform.h" />
     <ClInclude Include="Nix\Script\NSFirstPersonalCamera.h" />
+    <ClInclude Include="Nix\Script\NSTest.h" />
     <ClInclude Include="Nix\Script\NXScript.h" />
     <ClInclude Include="Nix\Script\NXScriptType.h" />
   </ItemGroup>
@@ -223,6 +224,7 @@
     <ClCompile Include="Nix\Object\NXSphere.cpp" />
     <ClCompile Include="Nix\Object\NXTransform.cpp" />
     <ClCompile Include="Nix\Script\NSFirstPersonalCamera.cpp" />
+    <ClCompile Include="Nix\Script\NSTest.cpp" />
     <ClCompile Include="Nix\Script\NXScript.cpp" />
   </ItemGroup>
   <ItemGroup>

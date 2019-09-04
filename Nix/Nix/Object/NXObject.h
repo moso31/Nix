@@ -1,7 +1,7 @@
 #pragma once
 #include "Header.h"
 
-class NXObject
+class NXObject : public enable_shared_from_this<NXObject>
 {
 public:
 	NXObject() = default;
