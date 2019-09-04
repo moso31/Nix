@@ -1,6 +1,7 @@
 #include "NXScene.h"
 #include "SceneManager.h"
-#include "HBVH.h"
+#include "RenderStates.h"
+//#include "HBVH.h"
 
 #include "NXMesh.h"
 #include "NXBox.h"
@@ -98,7 +99,7 @@ void Scene::Init()
 		pPlane->Init(5.0f, 5.0f);
 		pPlane->SetMaterial(pMaterial);
 		pPlane->SetTranslation(Vector3(0.0f, 0.0f, 0.0f));
-		m_primitives.push_back(pPlane);
+		m_blendingPrimitives.push_back(pPlane);
 	}
 
 	auto pSphere = make_shared<NXSphere>();
@@ -116,7 +117,7 @@ void Scene::Init()
 		pMesh->Init("D:\\test.fbx");
 		pMesh->SetMaterial(pMaterial);
 		pMesh->SetTranslation(Vector3(0.0f, 0.0f, 0.0f));
-		//m_primitives.push_back(pMesh);
+		m_primitives.push_back(pMesh);
 	}
 
 	auto pCamera = make_shared<NXCamera>();
@@ -154,6 +155,11 @@ void Scene::PrevUpdate()
 	{
 		(*it)->PrevUpdate();
 	}
+
+	for (auto it = m_blendingPrimitives.begin(); it != m_blendingPrimitives.end(); it++)
+	{
+		(*it)->PrevUpdate();
+	}
 }
 
 void Scene::Update()
@@ -170,6 +176,20 @@ void Scene::Update()
 
 		pPrim->Update();
 	}
+
+	for (auto it = m_blendingPrimitives.begin(); it != m_blendingPrimitives.end(); it++)
+	{
+		auto pPrim = *it;
+		auto pPrimScripts = pPrim->GetScripts();
+		for (auto itScripts = pPrimScripts.begin(); itScripts != pPrimScripts.end(); itScripts++)
+		{
+			auto pScript = *itScripts;
+			pScript->Update();
+		}
+
+		pPrim->Update();
+	}
+
 	auto pScripts = m_mainCamera->GetScripts();
 	for (auto itScripts = pScripts.begin(); itScripts != pScripts.end(); itScripts++)
 	{
@@ -181,6 +201,9 @@ void Scene::Update()
 
 void Scene::Render()
 {
+	float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	g_pContext->RSSetState(nullptr);	// back culling
+	g_pContext->OMSetBlendState(nullptr, blendFactor, 0xffffffff);
 	g_pContext->PSSetConstantBuffers(2, 1, &m_cbLights);
 
 	m_mainCamera->Render();
@@ -190,11 +213,26 @@ void Scene::Render()
 		auto pPrim = *it;
 		pPrim->Render();
 	}
+
+	g_pContext->RSSetState(RenderStates::NoCullRS);
+	g_pContext->OMSetBlendState(RenderStates::TransparentBS, blendFactor, 0xffffffff);
+
+	for (auto it = m_blendingPrimitives.begin(); it != m_blendingPrimitives.end(); it++)
+	{
+		auto pPrim = *it;
+		pPrim->Render();
+	}
 }
 
 void Scene::Release()
 {
 	for (auto it = m_primitives.begin(); it != m_primitives.end(); it++)
+	{
+		(*it)->Release();
+		it->reset();
+	}
+
+	for (auto it = m_blendingPrimitives.begin(); it != m_blendingPrimitives.end(); it++)
 	{
 		(*it)->Release();
 		it->reset();
@@ -211,6 +249,12 @@ void Scene::InitAABB()
 	{
 		AABB::CreateMerged(m_aabb, m_aabb, (*it)->GetAABB());
 	}
+
+	// construct AABB for scene.
+	for (auto it = m_blendingPrimitives.begin(); it != m_blendingPrimitives.end(); it++)
+	{
+		AABB::CreateMerged(m_aabb, m_aabb, (*it)->GetAABB());
+	}
 }
 
 bool Scene::Intersect(const Ray& worldRay, _Out_ shared_ptr<NXPrimitive>& outTarget, _Out_ Vector3& outHitPosition, _Out_ float& outDist)
@@ -218,6 +262,29 @@ bool Scene::Intersect(const Ray& worldRay, _Out_ shared_ptr<NXPrimitive>& outTar
 	outTarget = nullptr;
 	float minDist = FLT_MAX;
 	for (auto it = m_primitives.begin(); it != m_primitives.end(); it++)
+	{
+		Ray LocalRay(
+			Vector3::Transform(worldRay.position, (*it)->GetWorldMatrixInv()),
+			Vector3::TransformNormal(worldRay.direction, (*it)->GetWorldMatrixInv())
+		);
+		LocalRay.direction.Normalize();
+
+		// ray-aabb
+		if (LocalRay.IntersectsFast((*it)->GetAABB(), outDist))
+		{
+			// ray-triangle
+			if ((*it)->Intersect(LocalRay, outHitPosition, outDist))
+			{
+				if (minDist > outDist)
+				{
+					minDist = outDist;
+					outTarget = *it;
+				}
+			}
+		}
+	}
+
+	for (auto it = m_blendingPrimitives.begin(); it != m_blendingPrimitives.end(); it++)
 	{
 		Ray LocalRay(
 			Vector3::Transform(worldRay.position, (*it)->GetWorldMatrixInv()),

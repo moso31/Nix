@@ -100,6 +100,9 @@
     <ClInclude Include="Nix\Object\NXTransform.h">
       <Filter>Nix\Object</Filter>
     </ClInclude>
+    <ClInclude Include="Core\DX\RenderStates.h">
+      <Filter>Core\DX</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">
@@ -191,6 +194,9 @@
     </ClCompile>
     <ClCompile Include="Nix\Object\NXTransform.cpp">
       <Filter>Nix\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\DX\RenderStates.cpp">
+      <Filter>Core\DX</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

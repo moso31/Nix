@@ -29,6 +29,7 @@ private:
 	vector<shared_ptr<NXLight>> m_lights;
 	vector<shared_ptr<NXMaterial>> m_materials;
 	vector<shared_ptr<NXPrimitive>> m_primitives;
+	vector<shared_ptr<NXPrimitive>> m_blendingPrimitives;
 	shared_ptr<NXCamera> m_mainCamera;
 
 	ID3D11Buffer* m_cbLights;

@@ -160,6 +160,7 @@
     <ClInclude Include="Core\App.h" />
     <ClInclude Include="Core\DX\DirectResources.h" />
     <ClInclude Include="Core\DX\NXDXHelper.h" />
+    <ClInclude Include="Core\DX\RenderStates.h" />
     <ClInclude Include="Core\File\FBXMeshLoader.h" />
     <ClInclude Include="Core\Header.h" />
     <ClInclude Include="Core\DX\Renderer.h" />
@@ -194,6 +195,7 @@
   <ItemGroup>
     <ClCompile Include="Core\App.cpp" />
     <ClCompile Include="Core\DX\DirectResources.cpp" />
+    <ClCompile Include="Core\DX\RenderStates.cpp" />
     <ClCompile Include="Core\File\FBXMeshLoader.cpp" />
     <ClCompile Include="Core\Global.cpp" />
     <ClCompile Include="Core\Input\NXEvent.cpp" />

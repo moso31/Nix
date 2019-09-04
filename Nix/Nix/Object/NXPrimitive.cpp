@@ -12,11 +12,6 @@ NXPrimitive::NXPrimitive() :
 
 void NXPrimitive::Update()
 {
-	static float y = 0.0f;
-	y += 0.01f;
-	SetRotation(Vector3(0.0f, y, 0.0f));
-	SetScale(Vector3(sin(y), sin(y), sin(y)));
-
 	m_pConstantBufferData.world = m_worldMatrix.Transpose();
 	g_pContext->UpdateSubresource(m_pConstantBuffer, 0, nullptr, &m_pConstantBufferData, 0, 0);
 
