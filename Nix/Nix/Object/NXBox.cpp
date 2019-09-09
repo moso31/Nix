@@ -71,6 +71,7 @@ void NXBox::Init(float x, float y, float z)
 	};
 
 	InitVertexIndexBuffer();
+	InitAABB();
 }
 
 void NXBox::Render()

@@ -21,6 +21,7 @@ void NXMesh::Init(string filePath)
 	m_filePath = filePath;
 
 	InitVertexIndexBuffer();
+	InitAABB();
 }
 
 void NXMesh::Render()

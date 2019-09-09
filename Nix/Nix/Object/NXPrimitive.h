@@ -25,6 +25,7 @@ public:
 
 protected:
 	void InitVertexIndexBuffer();
+	void InitAABB();
 
 protected:
 	ID3D11Buffer*				m_pVertexBuffer;

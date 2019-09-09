@@ -107,8 +107,8 @@ void Scene::Init()
 		pSphere->SetName("Sphere");
 		pSphere->Init(1.0f, 16, 16);
 		pSphere->SetMaterial(pMaterial);
-		pSphere->SetTranslation(Vector3(0.0f, 0.0f, 0.0f));
-		//m_primitives.push_back(pSphere);
+		pSphere->SetTranslation(Vector3(-2.0f, 0.0f, 0.0f));
+		m_primitives.push_back(pSphere);
 	}
 
 	auto pMesh = make_shared<NXMesh>();

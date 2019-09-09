@@ -99,8 +99,12 @@ void NXPrimitive::InitVertexIndexBuffer()
 	bufferDesc.CPUAccessFlags = 0;
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_pConstantBuffer));
 	
+	// TODO：纹理的SRV应该改成全局通用的
 	NX::ThrowIfFailed(CreateWICTextureFromFile(g_pDevice, L"D:\\rgb.bmp", nullptr, &m_pTextureSRV));
+}
 
+void NXPrimitive::InitAABB()
+{
 	for (auto it = m_vertices.begin(); it != m_vertices.end(); it++)
 	{
 		m_points.push_back(it->pos);

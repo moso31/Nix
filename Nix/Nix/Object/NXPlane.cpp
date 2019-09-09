@@ -26,6 +26,7 @@ void NXPlane::Init(float width, float height)
 	};
 
 	InitVertexIndexBuffer();
+	InitAABB();
 }
 
 void NXPlane::Render()

@@ -43,6 +43,7 @@ void DirectResources::OnResize(UINT width, UINT height)
 	// 清除特定于上一窗口大小的上下文。
 	ID3D11RenderTargetView* nullViews[] = { nullptr };
 	g_pContext->OMSetRenderTargets(ARRAYSIZE(nullViews), nullViews, nullptr);
+	m_pOffScreenRTV = nullptr;
 	m_pRenderTargetView = nullptr;
 	m_pDepthStencilView = nullptr;
 	g_pContext->Flush1(D3D11_CONTEXT_TYPE_ALL, nullptr);
@@ -77,7 +78,7 @@ void DirectResources::OnResize(UINT width, UINT height)
 		IDXGIAdapter* pDxgiAdapter;
 		NX::ThrowIfFailed(pDxgiDevice->GetAdapter(&pDxgiAdapter));
 
-		IDXGIFactory7* pDxgiFactory;
+		IDXGIFactory5* pDxgiFactory;
 		NX::ThrowIfFailed(pDxgiAdapter->GetParent(IID_PPV_ARGS(&pDxgiFactory)));
 
 		IDXGISwapChain1* pSwapChain;
@@ -109,8 +110,22 @@ void DirectResources::OnResize(UINT width, UINT height)
 	CD3D11_DEPTH_STENCIL_VIEW_DESC descDepthStencilView(D3D11_DSV_DIMENSION_TEXTURE2D);
 	NX::ThrowIfFailed(g_pDevice->CreateDepthStencilView(pDepthStencil, &descDepthStencilView, &m_pDepthStencilView));
 
-	m_viewSize = { (FLOAT)width, (FLOAT)height };
+	// Create Render Target
+	CD3D11_TEXTURE2D_DESC1 descOffScreen(
+		DXGI_FORMAT_R8G8B8A8_UNORM, 
+		lround(width), 
+		lround(height), 
+		1, 
+		1,
+		D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS
+	);
+	ID3D11Texture2D1* pOffScreenBuffer = nullptr;
+	g_pDevice->CreateTexture2D1(&descOffScreen, nullptr, &pOffScreenBuffer);
+	NX::ThrowIfFailed(g_pDevice->CreateRenderTargetView1(pOffScreenBuffer, nullptr, &m_pOffScreenRTV));
+	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView1(pOffScreenBuffer, nullptr, &m_pOffScreenSRV));
+
 	// Setup the viewport
+	m_viewSize = { (FLOAT)width, (FLOAT)height };
 	m_ViewPort = CD3D11_VIEWPORT(0.0f, 0.0f, m_viewSize.x, m_viewSize.y);
 	g_pContext->RSSetViewports(1, &m_ViewPort);
 }

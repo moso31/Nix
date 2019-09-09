@@ -66,6 +66,7 @@ void NXSphere::Init(float radius, int segmentHorizontal, int segmentVertical)
 	m_segmentHorizontal = segmentHorizontal;
 
 	InitVertexIndexBuffer();
+	InitAABB();
 }
 
 void NXSphere::Render()

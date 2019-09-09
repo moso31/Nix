@@ -191,6 +191,7 @@
     <ClInclude Include="Nix\Script\NSFirstPersonalCamera.h" />
     <ClInclude Include="Nix\Script\NXScript.h" />
     <ClInclude Include="Nix\Script\NXScriptType.h" />
+    <ClInclude Include="Nix\Object\NXRenderTarget.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp" />
@@ -224,6 +225,7 @@
     <ClCompile Include="Nix\Object\NXTransform.cpp" />
     <ClCompile Include="Nix\Script\NSFirstPersonalCamera.cpp" />
     <ClCompile Include="Nix\Script\NXScript.cpp" />
+    <ClCompile Include="Nix\Object\NXRenderTarget.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Core\DX\SimpleMath.inl" />
@@ -237,6 +239,11 @@
     <Xml Include="Shader\Light.fx">
       <FileType>Document</FileType>
     </Xml>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shader\RenderTarget.fx">
+      <FileType>Document</FileType>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

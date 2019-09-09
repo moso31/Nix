@@ -133,6 +133,7 @@ void NXCylinder::Init(float radius, float length, int segmentCircle, int segment
 	}
 
 	InitVertexIndexBuffer();
+	InitAABB();
 }
 
 void NXCylinder::Render()

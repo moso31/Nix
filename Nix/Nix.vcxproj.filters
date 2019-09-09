@@ -103,6 +103,9 @@
     <ClInclude Include="Core\DX\RenderStates.h">
       <Filter>Core\DX</Filter>
     </ClInclude>
+    <ClInclude Include="Nix\Object\NXRenderTarget.h">
+      <Filter>Nix\Object</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">
@@ -198,6 +201,9 @@
     <ClCompile Include="Core\DX\RenderStates.cpp">
       <Filter>Core\DX</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\Object\NXRenderTarget.cpp">
+      <Filter>Nix\Object</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Core">
@@ -252,6 +258,9 @@
     </None>
     <None Include="Core\DX\SimpleMath.inl">
       <Filter>Core\DX</Filter>
+    </None>
+    <None Include="Shader\RenderTarget.fx">
+      <Filter>Shader</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
