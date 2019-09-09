@@ -13,16 +13,12 @@ NSFirstPersonalCamera::NSFirstPersonalCamera() :
 	memset(m_bMoveState, false, sizeof(m_bMoveState));
 }
 
-void NSFirstPersonalCamera::SetFPSCamera(const shared_ptr<NXCamera>& pCamera)
-{
-	m_pCamera = pCamera;
-}
-
 void NSFirstPersonalCamera::Update()
 {
-	Vector3 pos = m_pCamera->GetTranslation();
-	Vector3 fw = m_pCamera->GetForward();
-	Vector3 right = m_pCamera->GetRight();
+	auto pCamera = dynamic_pointer_cast<NXCamera>(m_pObject);
+	Vector3 pos = pCamera->GetTranslation();
+	Vector3 fw = pCamera->GetForward();
+	Vector3 right = pCamera->GetRight();
 
 	Vector3 moveCommandV(0.0f);
 	if (m_bMoveState[POSITIVE_Z]) moveCommandV += fw;
@@ -41,7 +37,7 @@ void NSFirstPersonalCamera::Update()
 	auto timeDelta = g_timer->GetTimeDelta() / 1000000.0f;
 
 	Vector3 result = pos + moveCommandV * moveSpeed * timeDelta;
-	m_pCamera->SetTranslation(result);
+	pCamera->SetTranslation(result);
 }
 
 void NSFirstPersonalCamera::OnKeyDown(NXEventArg eArg)
@@ -72,18 +68,20 @@ void NSFirstPersonalCamera::OnMouseDown(NXEventArg eArg)
 
 void NSFirstPersonalCamera::OnMouseMove(NXEventArg eArg)
 {
+	auto pCamera = dynamic_pointer_cast<NXCamera>(m_pObject);
+
 	float fYaw = (float)eArg.LastX * m_fSensitivity;
 	float fPitch = (float)eArg.LastY * m_fSensitivity;
 
-	Vector3 vUp = m_pCamera->GetUp();
-	Vector3 vRight = m_pCamera->GetRight();
+	Vector3 vUp = pCamera->GetUp();
+	Vector3 vRight = pCamera->GetRight();
 
-	Matrix mxOld = Matrix::CreateFromQuaternion(m_pCamera->GetRotation());
+	Matrix mxOld = Matrix::CreateFromQuaternion(pCamera->GetRotation());
 	Matrix mxRot = Matrix::CreateFromAxisAngle(vRight, fPitch) * Matrix::CreateFromAxisAngle(vUp, fYaw);
 	Matrix mxNew = mxOld * mxRot;
 
 	Vector3 ignore;
 	Quaternion rotation;
 	mxNew.Decompose(ignore, rotation, ignore);
-	m_pCamera->SetRotation(rotation);
+	pCamera->SetRotation(rotation);
 }

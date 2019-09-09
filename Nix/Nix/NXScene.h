@@ -4,7 +4,7 @@
 // temp include.
 #include "ShaderStructures.h"
 
-class Scene : public NXObject, public enable_shared_from_this<Scene>
+class Scene : public NXObject
 {
 public:
 	Scene();

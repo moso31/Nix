@@ -20,13 +20,19 @@ Vector4 NXMaterial::GetReflect()
 	return m_reflect;
 }
 
-MaterialInfo NXMaterial::GetMaterialInfo()
+float NXMaterial::GetOpacity()
 {
-	MaterialInfo mi;
+	return m_opacity;
+}
+
+ConstantBufferMaterial NXMaterial::GetMaterialInfo()
+{
+	ConstantBufferMaterial mi;
 	mi.ambient = m_ambient;
 	mi.diffuse = m_diffuse;
 	mi.specular = m_specular;
 	mi.reflect = m_reflect;
+	mi.opacity = m_opacity;
 	return mi;
 }
 
@@ -48,6 +54,11 @@ void NXMaterial::SetSpecular(Vector4 specular)
 void NXMaterial::SetReflect(Vector4 Reflect)
 {
 	m_reflect = Reflect;
+}
+
+void NXMaterial::SetOpacity(float opacity)
+{
+	m_opacity = opacity;
 }
 
 void NXMaterial::Update()
