@@ -72,8 +72,8 @@ void DirectResources::OnResize(UINT width, UINT height)
 		sd.Scaling = DXGI_SCALING_NONE;
 		sd.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
 
-		IDXGIDevice4* pDxgiDevice;
-		NX::ThrowIfFailed(g_pDevice->QueryInterface(__uuidof(IDXGIDevice4), reinterpret_cast<void**>(&pDxgiDevice)));
+		IDXGIDevice3* pDxgiDevice;
+		NX::ThrowIfFailed(g_pDevice->QueryInterface(__uuidof(IDXGIDevice3), reinterpret_cast<void**>(&pDxgiDevice)));
 
 		IDXGIAdapter* pDxgiAdapter;
 		NX::ThrowIfFailed(pDxgiDevice->GetAdapter(&pDxgiAdapter));

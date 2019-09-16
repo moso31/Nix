@@ -118,6 +118,10 @@ void Renderer::Render()
 
 	DXGI_PRESENT_PARAMETERS parameters = { 0 };
 	NX::ThrowIfFailed(g_pSwapChain->Present1(1, 0, &parameters));
+
+	// clear SRV.
+	ID3D11ShaderResourceView* const pNullSRV[1] = { nullptr };
+	g_pContext->PSSetShaderResources(0, 1, pNullSRV);
 }
 
 void Renderer::Release()

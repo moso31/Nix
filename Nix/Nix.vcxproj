@@ -176,6 +176,7 @@
     <ClInclude Include="Core\Timer\NXTimer.h" />
     <ClInclude Include="Nix\Accelerator\HBVH.h" />
     <ClInclude Include="Nix\Manager\SceneManager.h" />
+    <ClInclude Include="Nix\NXShadowMap.h" />
     <ClInclude Include="Nix\Object\NXBox.h" />
     <ClInclude Include="Nix\Object\NXCamera.h" />
     <ClInclude Include="Nix\Object\NXCylinder.h" />
@@ -212,6 +213,7 @@
     <ClCompile Include="Core\Timer\NXTimer.cpp" />
     <ClCompile Include="Nix\Accelerator\HBVH.cpp" />
     <ClCompile Include="Nix\Manager\SceneManager.cpp" />
+    <ClCompile Include="Nix\NXShadowMap.cpp" />
     <ClCompile Include="Nix\Object\NXBox.cpp" />
     <ClCompile Include="Nix\Object\NXCamera.cpp" />
     <ClCompile Include="Nix\Object\NXCylinder.cpp" />

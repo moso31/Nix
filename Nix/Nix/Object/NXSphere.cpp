@@ -12,8 +12,8 @@ void NXSphere::Init(float radius, int segmentHorizontal, int segmentVertical)
 	int currVertIdx = 0;
 	for (int i = 0; i < segmentVertical; i++)
 	{
-		float yDown = sin(((float)i / (float)segmentVertical * 2.0f - 1.0f) * XM_PIDIV2) * radius;
-		float yUp = sin(((float)(i + 1) / (float)segmentVertical * 2.0f - 1.0f) * XM_PIDIV2) * radius;
+		float yDown = sinf(((float)i / (float)segmentVertical * 2.0f - 1.0f) * XM_PIDIV2) * radius;
+		float yUp = sinf(((float)(i + 1) / (float)segmentVertical * 2.0f - 1.0f) * XM_PIDIV2) * radius;
 		float radiusDown = sqrtf(radius * radius - yDown * yDown);
 		float radiusUp = sqrtf(radius * radius - yUp * yUp);
 

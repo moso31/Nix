@@ -106,6 +106,12 @@
     <ClInclude Include="Nix\Object\NXRenderTarget.h">
       <Filter>Nix\Object</Filter>
     </ClInclude>
+    <ClInclude Include="Nix\Script\NSTest.h">
+      <Filter>Nix\Script</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXShadowMap.h">
+      <Filter>Nix</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">
@@ -203,6 +209,12 @@
     </ClCompile>
     <ClCompile Include="Nix\Object\NXRenderTarget.cpp">
       <Filter>Nix\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\Script\NSTest.cpp">
+      <Filter>Nix\Script</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXShadowMap.cpp">
+      <Filter>Nix</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
