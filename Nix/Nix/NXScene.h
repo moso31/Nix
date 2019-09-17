@@ -23,6 +23,10 @@ public:
 
 private:
 	void InitAABB();
+
+	// 目前只对第一个光源创建Parallel ShadowMap。
+	void InitShadowMap();
+
 	bool Intersect(const Ray& worldRay, _Out_ shared_ptr<NXPrimitive>& outTarget, _Out_ Vector3& outHitPosition, _Out_ float& outDist);
 
 private:
@@ -31,6 +35,8 @@ private:
 	vector<shared_ptr<NXPrimitive>> m_primitives;
 	vector<shared_ptr<NXPrimitive>> m_blendingPrimitives;
 	shared_ptr<NXCamera> m_mainCamera;
+
+	shared_ptr<NXShadowMap>		m_pShadowMap;
 
 	ID3D11Buffer* m_cbLights;
 	ConstantBufferLight m_cbDataLights;

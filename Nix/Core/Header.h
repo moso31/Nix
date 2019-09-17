@@ -55,7 +55,9 @@ class NXPrimitive;
 class NXCamera;
 class NXDirectionalLight;
 class NXMaterial;
+
 class NXRenderTarget;
+class NXShadowMap;
 
 // Global variables
 extern	HINSTANCE					g_hInst;

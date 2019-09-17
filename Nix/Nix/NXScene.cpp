@@ -9,6 +9,9 @@
 #include "NXCylinder.h"
 #include "NXPlane.h"
 #include "NXCamera.h"
+
+#include "NXShadowMap.h"
+
 #include "NXScript.h"
 #include "NSFirstPersonalCamera.h"
 #include "NSTest.h"
@@ -156,6 +159,7 @@ void Scene::Init()
 	NXEventMouseDown::GetInstance()->AddListener(pListener_onMouseDown);
 
 	InitAABB();
+	InitShadowMap();
 }
 
 void Scene::PrevUpdate()
@@ -271,6 +275,11 @@ void Scene::InitAABB()
 	{
 		AABB::CreateMerged(m_aabb, m_aabb, (*it)->GetAABB());
 	}
+}
+
+void Scene::InitShadowMap()
+{
+	m_pShadowMap->Init(2048, 2048);
 }
 
 bool Scene::Intersect(const Ray& worldRay, _Out_ shared_ptr<NXPrimitive>& outTarget, _Out_ Vector3& outHitPosition, _Out_ float& outDist)
