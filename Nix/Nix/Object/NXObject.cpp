@@ -3,10 +3,6 @@
 
 NXObject::~NXObject()
 {
-	for (auto it = m_scripts.begin(); it != m_scripts.end(); it++)
-	{
-		(*it).reset();
-	}
 }
 
 string NXObject::GetName()
@@ -35,5 +31,13 @@ void NXObject::Update()
 	for (auto it = m_scripts.begin(); it != m_scripts.end(); it++)
 	{
 		(*it)->Update();
+	}
+}
+
+void NXObject::Release()
+{
+	for (auto it = m_scripts.begin(); it != m_scripts.end(); it++)
+	{
+		(*it).reset();
 	}
 }

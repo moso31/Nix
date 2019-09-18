@@ -1,6 +1,7 @@
 #include "App.h"
 #include "DirectResources.h"
 #include "RenderStates.h"
+#include "NXEvent.h"
 
 App::App() :
 	m_pRenderer(nullptr)
@@ -44,4 +45,15 @@ void App::Release()
 		g_dxResources->ClearDevices();
 		g_dxResources.reset();
 	}
+
+	NXEventKeyDown::GetInstance()->Release();
+	NXEventKeyUp::GetInstance()->Release();
+	NXEventMouseDown::GetInstance()->Release();
+	NXEventMouseUp::GetInstance()->Release();
+	NXEventMouseMove::GetInstance()->Release();
+	NXEventKeyDown::GetInstance().reset();
+	NXEventKeyUp::GetInstance().reset();
+	NXEventMouseDown::GetInstance().reset();
+	NXEventMouseUp::GetInstance().reset();
+	NXEventMouseMove::GetInstance().reset();
 }

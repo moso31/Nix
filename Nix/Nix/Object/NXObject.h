@@ -14,6 +14,7 @@ public:
 	vector<shared_ptr<NXScript>> GetScripts();
 
 	virtual void Update();
+	virtual void Release();
 
 protected:
 	string m_name;

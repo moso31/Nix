@@ -20,3 +20,11 @@ void NXEvent::OnNotify(NXEventArg eArg)
 		(*it)->GetFunc()(eArg);
 	}
 }
+
+void NXEvent::Release()
+{
+	for (auto it = m_listeners.begin(); it != m_listeners.end(); it++)
+	{
+		(*it)->Release();
+	}
+}

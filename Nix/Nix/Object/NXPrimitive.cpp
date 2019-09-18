@@ -31,6 +31,7 @@ void NXPrimitive::Release()
 
 	m_pMaterial.reset();
 	if (m_cbMaterial)		m_cbMaterial->Release();
+	NXObject::Release();
 }
 
 void NXPrimitive::SetMaterial(const shared_ptr<NXMaterial>& pMaterial)

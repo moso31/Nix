@@ -141,4 +141,5 @@ void NXCamera::Render()
 
 void NXCamera::Release()
 {
+	NXObject::Release();
 }

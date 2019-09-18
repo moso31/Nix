@@ -15,3 +15,7 @@ function<void(NXEventArg)> NXListener::GetFunc() const
 {
 	return m_pFunc;
 }
+
+void NXListener::Release()
+{
+}

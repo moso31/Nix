@@ -100,7 +100,7 @@ void Scene::Init()
 
 	auto pPlane = make_shared<NXPlane>();
 	{
-		pPlane->SetName("Plane");
+		pPlane->SetName("PlaneMir");
 		pPlane->Init(5.0f, 5.0f);
 		pPlane->SetMaterial(pMaterial);
 		pPlane->SetTranslation(Vector3(0.0f, 0.0f, 0.0f));
@@ -120,45 +120,45 @@ void Scene::Init()
 	auto pScript_test = make_shared<NSTest>();
 	pPlane->AddScript(pScript_test);
 
-	//auto pSphere = make_shared<NXSphere>();
-	//{
-	//	pSphere->SetName("Sphere");
-	//	pSphere->Init(1.0f, 16, 16);
-	//	pSphere->SetMaterial(pMaterial);
-	//	pSphere->SetTranslation(Vector3(2.0f, 0.0f, 0.0f));
-	//	m_blendingPrimitives.push_back(pSphere);
-	//}
+	auto pSphere = make_shared<NXSphere>();
+	{
+		pSphere->SetName("Sphere");
+		pSphere->Init(1.0f, 16, 16);
+		pSphere->SetMaterial(pMaterial);
+		pSphere->SetTranslation(Vector3(2.0f, 0.0f, 0.0f));
+		m_blendingPrimitives.push_back(pSphere);
+	}
 
-	//auto pMesh = make_shared<NXMesh>();
-	//{
-	//	pMesh->SetName("Mesh");
-	//	pMesh->Init("D:\\test.fbx");
-	//	pMesh->SetMaterial(pMaterial);
-	//	pMesh->SetTranslation(Vector3(0.0f, 0.0f, 0.0f));
-	//	m_primitives.push_back(pMesh);
-	//}
+	auto pMesh = make_shared<NXMesh>();
+	{
+		pMesh->SetName("Mesh");
+		pMesh->Init("D:\\test.fbx");
+		pMesh->SetMaterial(pMaterial);
+		pMesh->SetTranslation(Vector3(0.0f, 0.0f, 0.0f));
+		m_primitives.push_back(pMesh);
+	}
 
-	//auto pCamera = make_shared<NXCamera>();
-	//pCamera->Init(Vector3(0.0f, 0.0f, -1.5f),
-	//	Vector3(0.0f, 0.0f, 0.0f),
-	//	Vector3(0.0f, 1.0f, 0.0f));
-	//m_mainCamera = pCamera;
+	auto pCamera = make_shared<NXCamera>();
+	pCamera->Init(Vector3(0.0f, 0.0f, -1.5f),
+		Vector3(0.0f, 0.0f, 0.0f),
+		Vector3(0.0f, 1.0f, 0.0f));
+	m_mainCamera = pCamera;
 
-	//auto pScript = make_shared<NSFirstPersonalCamera>();
-	//m_mainCamera->AddScript(pScript);
+	auto pScript = make_shared<NSFirstPersonalCamera>();
+	m_mainCamera->AddScript(pScript);
 
-	//auto pListener_onKeyDown = make_shared<NXListener>(m_mainCamera, std::bind(&NSFirstPersonalCamera::OnKeyDown, pScript, std::placeholders::_1));
-	//auto pListener_onKeyUp = make_shared<NXListener>(m_mainCamera, std::bind(&NSFirstPersonalCamera::OnKeyUp, pScript, std::placeholders::_1));
-	//auto pListener_onMouseMove = make_shared<NXListener>(m_mainCamera, std::bind(&NSFirstPersonalCamera::OnMouseMove, pScript, std::placeholders::_1));
-	//NXEventKeyDown::GetInstance()->AddListener(pListener_onKeyDown);
-	//NXEventKeyUp::GetInstance()->AddListener(pListener_onKeyUp);
-	//NXEventMouseMove::GetInstance()->AddListener(pListener_onMouseMove);
+	auto pListener_onKeyDown = make_shared<NXListener>(m_mainCamera, std::bind(&NSFirstPersonalCamera::OnKeyDown, pScript, std::placeholders::_1));
+	auto pListener_onKeyUp = make_shared<NXListener>(m_mainCamera, std::bind(&NSFirstPersonalCamera::OnKeyUp, pScript, std::placeholders::_1));
+	auto pListener_onMouseMove = make_shared<NXListener>(m_mainCamera, std::bind(&NSFirstPersonalCamera::OnMouseMove, pScript, std::placeholders::_1));
+	NXEventKeyDown::GetInstance()->AddListener(pListener_onKeyDown);
+	NXEventKeyUp::GetInstance()->AddListener(pListener_onKeyUp);
+	NXEventMouseMove::GetInstance()->AddListener(pListener_onMouseMove);
 
-	//auto pThisScene = dynamic_pointer_cast<Scene>(shared_from_this());
-	//auto pListener_onMouseDown = make_shared<NXListener>(pThisScene, std::bind(&Scene::OnMouseDown, pThisScene, std::placeholders::_1));
-	//NXEventMouseDown::GetInstance()->AddListener(pListener_onMouseDown);
+	auto pThisScene = dynamic_pointer_cast<Scene>(shared_from_this());
+	auto pListener_onMouseDown = make_shared<NXListener>(pThisScene, std::bind(&Scene::OnMouseDown, pThisScene, std::placeholders::_1));
+	NXEventMouseDown::GetInstance()->AddListener(pListener_onMouseDown);
 
-	//InitBoundingStructures();
+	InitBoundingStructures();
 	//InitShadowMap();
 }
 
@@ -255,21 +255,16 @@ void Scene::Release()
 	for (auto it = m_primitives.begin(); it != m_primitives.end(); it++)
 	{
 		(*it)->Release();
-		it->reset();
 	}
 
 	for (auto it = m_blendingPrimitives.begin(); it != m_blendingPrimitives.end(); it++)
 	{
 		(*it)->Release();
-		it->reset();
 	}
 
-	m_mainCamera->Release();
-	m_mainCamera.reset();
-
-	for (auto it = m_materials.begin(); it != m_materials.end(); it++)
+	if (m_mainCamera)
 	{
-		(*it).reset();
+		m_mainCamera->Release();
 	}
 
 	if (m_pShadowMap)

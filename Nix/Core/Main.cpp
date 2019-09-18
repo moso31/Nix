@@ -49,7 +49,8 @@ HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow)
 int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 {
 #if defined(DEBUG) | defined(_DEBUG)
-	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF |
+		_CRTDBG_CHECK_ALWAYS_DF | _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG));
 #endif
 
 	UNREFERENCED_PARAMETER(hPrevInstance);
@@ -61,33 +62,32 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	g_app = make_shared<App>();
 	g_app->Init();
 
-	//g_timer = make_shared<NXTimer>();
+	g_timer = make_shared<NXTimer>();
 
 	// Main message loop
 	MSG msg = { 0 };
-	//while (WM_QUIT != msg.message)
-	//{
-	//	NXII->Update();
+	while (WM_QUIT != msg.message)
+	{
+		NXII->Update();
 
-	//	if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
-	//	{
-	//		TranslateMessage(&msg);
-	//		DispatchMessage(&msg);
-	//	}
-	//	else
-	//	{
-	//		g_timer->Tick();
-	//		g_app->Update();
-	//		g_app->Render();
+		if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+		else
+		{
+			g_timer->Tick();
+			g_app->Update();
+			g_app->Render();
 
-	//		NXII->RestoreData(); // 清空一次鼠标位置
-	//	}
-	//}
+			NXII->RestoreData(); // 清空一次鼠标位置
+		}
+	}
 
 	g_app->Release();
 	g_app.reset();
 
-	_CrtDumpMemoryLeaks();
 	return (int)msg.wParam;
 }
 

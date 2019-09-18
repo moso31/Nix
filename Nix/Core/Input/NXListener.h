@@ -10,6 +10,8 @@ public:
 	void SetFunc(const function<void(NXEventArg)>& pFunc);
 	function<void(NXEventArg)> GetFunc() const;
 
+	void Release();
+
 private:
 	shared_ptr<NXObject> m_pObject;
 	function<void(NXEventArg)> m_pFunc;

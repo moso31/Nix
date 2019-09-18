@@ -36,6 +36,8 @@ public:
 	NXEventType GetType() const { return m_type; }
 	void SetType(const NXEventType type) { m_type = type; }
 
+	void Release();
+
 protected:
 	vector<shared_ptr<NXListener>> m_listeners;
 	NXEventType m_type;
