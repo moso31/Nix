@@ -1,6 +1,7 @@
 #include "Light.fx"
 
 Texture2D txDiffuse : register(t0);
+Texture2D txShadowMap : register(t1);
 SamplerState samLinear : register(s0);
 
 cbuffer ConstantBufferPrimitive : register(b0)
@@ -81,6 +82,7 @@ float4 PS(PS_INPUT input) : SV_Target
 
 	float4 result = sumA + sumD + sumS;
 	result.a = m_material.opacity;
+	result.x = txShadowMap.Sample(samLinear, input.tex);
 	return result;
 
 	//return txDiffuse.Sample(samLinear, input.tex);

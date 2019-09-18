@@ -9,7 +9,7 @@ void DirectResources::InitDevice()
 
 	UINT createDeviceFlags = 0;
 #ifdef _DEBUG
-	createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+	//createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
 	D3D_FEATURE_LEVEL featureLevels[] =
@@ -34,6 +34,8 @@ void DirectResources::InitDevice()
 
 	NX::ThrowIfFailed(pDevice->QueryInterface(__uuidof(ID3D11Device5), reinterpret_cast<void**>(&g_pDevice)));
 	NX::ThrowIfFailed(pContext->QueryInterface(__uuidof(ID3D11DeviceContext4), reinterpret_cast<void**>(&g_pContext)));
+	pDevice->Release();
+	pContext->Release();
 
 	OnResize(width, height);
 }
@@ -77,14 +79,18 @@ void DirectResources::OnResize(UINT width, UINT height)
 
 		IDXGIAdapter* pDxgiAdapter;
 		NX::ThrowIfFailed(pDxgiDevice->GetAdapter(&pDxgiAdapter));
+		pDxgiDevice->Release();
 
 		IDXGIFactory5* pDxgiFactory;
 		NX::ThrowIfFailed(pDxgiAdapter->GetParent(IID_PPV_ARGS(&pDxgiFactory)));
+		pDxgiAdapter->Release();
 
 		IDXGISwapChain1* pSwapChain;
 		NX::ThrowIfFailed(pDxgiFactory->CreateSwapChainForHwnd(g_pDevice, g_hWnd, &sd, nullptr, nullptr, &pSwapChain));
+		pDxgiFactory->Release();
 		
 		NX::ThrowIfFailed(pSwapChain->QueryInterface(__uuidof(IDXGISwapChain4), reinterpret_cast<void**>(&g_pSwapChain)));
+		pSwapChain->Release();
 	}
 
 
@@ -109,6 +115,7 @@ void DirectResources::OnResize(UINT width, UINT height)
 
 	CD3D11_DEPTH_STENCIL_VIEW_DESC descDepthStencilView(D3D11_DSV_DIMENSION_TEXTURE2D);
 	NX::ThrowIfFailed(g_pDevice->CreateDepthStencilView(pDepthStencil, &descDepthStencilView, &m_pDepthStencilView));
+	pDepthStencil->Release();
 
 	// Create Render Target
 	CD3D11_TEXTURE2D_DESC1 descOffScreen(
@@ -123,6 +130,7 @@ void DirectResources::OnResize(UINT width, UINT height)
 	g_pDevice->CreateTexture2D1(&descOffScreen, nullptr, &pOffScreenBuffer);
 	NX::ThrowIfFailed(g_pDevice->CreateRenderTargetView1(pOffScreenBuffer, nullptr, &m_pOffScreenRTV));
 	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView1(pOffScreenBuffer, nullptr, &m_pOffScreenSRV));
+	pOffScreenBuffer->Release();
 
 	// Setup the viewport
 	m_viewSize = { (FLOAT)width, (FLOAT)height };

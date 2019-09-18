@@ -31,6 +31,17 @@ void App::Render()
 
 void App::Release()
 {
-	m_pRenderer->Release();
-	g_dxResources->ClearDevices();
+	if (m_pRenderer)
+	{
+		m_pRenderer->Release();
+		m_pRenderer.reset();
+	}
+
+	RenderStates::Release();
+
+	if (g_dxResources)
+	{
+		g_dxResources->ClearDevices();
+		g_dxResources.reset();
+	}
 }

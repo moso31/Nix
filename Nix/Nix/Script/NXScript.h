@@ -5,7 +5,7 @@ class NXScript
 {
 public:
 	NXScript() {}
-	virtual ~NXScript() {}
+	virtual ~NXScript();
 
 	void SetObject(const shared_ptr<NXObject>& pObject);
 

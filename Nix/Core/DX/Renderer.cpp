@@ -132,6 +132,11 @@ void Renderer::Release()
 	if (m_pSamplerLinearWrap)	m_pSamplerLinearWrap->Release();
 	if (m_pSamplerLinearClamp)	m_pSamplerLinearClamp->Release();
 
+	if (m_scene)
+		m_scene->Release();
+	if (m_renderTarget)	
+		m_renderTarget->Release();
+
 	m_scene.reset();
 	m_renderTarget.reset();
 }

@@ -9,7 +9,6 @@ public:
 
 	void Init(string filePath = "");
 	void Render();
-	void Release();
 
 private:
 	string m_filePath;

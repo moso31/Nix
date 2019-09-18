@@ -118,48 +118,48 @@ void Scene::Init()
 	}
 
 	auto pScript_test = make_shared<NSTest>();
-	//pPlane->AddScript(pScript_test);
+	pPlane->AddScript(pScript_test);
 
-	auto pSphere = make_shared<NXSphere>();
-	{
-		pSphere->SetName("Sphere");
-		pSphere->Init(1.0f, 16, 16);
-		pSphere->SetMaterial(pMaterial);
-		pSphere->SetTranslation(Vector3(2.0f, 0.0f, 0.0f));
-		m_blendingPrimitives.push_back(pSphere);
-	}
+	//auto pSphere = make_shared<NXSphere>();
+	//{
+	//	pSphere->SetName("Sphere");
+	//	pSphere->Init(1.0f, 16, 16);
+	//	pSphere->SetMaterial(pMaterial);
+	//	pSphere->SetTranslation(Vector3(2.0f, 0.0f, 0.0f));
+	//	m_blendingPrimitives.push_back(pSphere);
+	//}
 
-	auto pMesh = make_shared<NXMesh>();
-	{
-		pMesh->SetName("Mesh");
-		pMesh->Init("D:\\test.fbx");
-		pMesh->SetMaterial(pMaterial);
-		pMesh->SetTranslation(Vector3(0.0f, 0.0f, 0.0f));
-		m_primitives.push_back(pMesh);
-	}
+	//auto pMesh = make_shared<NXMesh>();
+	//{
+	//	pMesh->SetName("Mesh");
+	//	pMesh->Init("D:\\test.fbx");
+	//	pMesh->SetMaterial(pMaterial);
+	//	pMesh->SetTranslation(Vector3(0.0f, 0.0f, 0.0f));
+	//	m_primitives.push_back(pMesh);
+	//}
 
-	auto pCamera = make_shared<NXCamera>();
-	pCamera->Init(Vector3(0.0f, 0.0f, -1.5f),
-		Vector3(0.0f, 0.0f, 0.0f),
-		Vector3(0.0f, 1.0f, 0.0f));
-	m_mainCamera = pCamera;
+	//auto pCamera = make_shared<NXCamera>();
+	//pCamera->Init(Vector3(0.0f, 0.0f, -1.5f),
+	//	Vector3(0.0f, 0.0f, 0.0f),
+	//	Vector3(0.0f, 1.0f, 0.0f));
+	//m_mainCamera = pCamera;
 
-	auto pScript = make_shared<NSFirstPersonalCamera>();
-	m_mainCamera->AddScript(pScript);
+	//auto pScript = make_shared<NSFirstPersonalCamera>();
+	//m_mainCamera->AddScript(pScript);
 
-	auto pListener_onKeyDown = make_shared<NXListener>(m_mainCamera, std::bind(&NSFirstPersonalCamera::OnKeyDown, pScript, std::placeholders::_1));
-	auto pListener_onKeyUp = make_shared<NXListener>(m_mainCamera, std::bind(&NSFirstPersonalCamera::OnKeyUp, pScript, std::placeholders::_1));
-	auto pListener_onMouseMove = make_shared<NXListener>(m_mainCamera, std::bind(&NSFirstPersonalCamera::OnMouseMove, pScript, std::placeholders::_1));
-	NXEventKeyDown::GetInstance()->AddListener(pListener_onKeyDown);
-	NXEventKeyUp::GetInstance()->AddListener(pListener_onKeyUp);
-	NXEventMouseMove::GetInstance()->AddListener(pListener_onMouseMove);
+	//auto pListener_onKeyDown = make_shared<NXListener>(m_mainCamera, std::bind(&NSFirstPersonalCamera::OnKeyDown, pScript, std::placeholders::_1));
+	//auto pListener_onKeyUp = make_shared<NXListener>(m_mainCamera, std::bind(&NSFirstPersonalCamera::OnKeyUp, pScript, std::placeholders::_1));
+	//auto pListener_onMouseMove = make_shared<NXListener>(m_mainCamera, std::bind(&NSFirstPersonalCamera::OnMouseMove, pScript, std::placeholders::_1));
+	//NXEventKeyDown::GetInstance()->AddListener(pListener_onKeyDown);
+	//NXEventKeyUp::GetInstance()->AddListener(pListener_onKeyUp);
+	//NXEventMouseMove::GetInstance()->AddListener(pListener_onMouseMove);
 
-	auto pThisScene = dynamic_pointer_cast<Scene>(shared_from_this());
-	auto pListener_onMouseDown = make_shared<NXListener>(pThisScene, std::bind(&Scene::OnMouseDown, pThisScene, std::placeholders::_1));
-	NXEventMouseDown::GetInstance()->AddListener(pListener_onMouseDown);
+	//auto pThisScene = dynamic_pointer_cast<Scene>(shared_from_this());
+	//auto pListener_onMouseDown = make_shared<NXListener>(pThisScene, std::bind(&Scene::OnMouseDown, pThisScene, std::placeholders::_1));
+	//NXEventMouseDown::GetInstance()->AddListener(pListener_onMouseDown);
 
-	InitAABB();
-	InitShadowMap();
+	//InitBoundingStructures();
+	//InitShadowMap();
 }
 
 void Scene::PrevUpdate()
@@ -226,6 +226,10 @@ void Scene::Render()
 	g_pContext->OMSetBlendState(nullptr, blendFactor, 0xffffffff);
 	g_pContext->PSSetConstantBuffers(2, 1, &m_cbLights);
 
+	//m_pShadowMap->Render(dynamic_pointer_cast<Scene>(shared_from_this()));
+	//auto pShadowMapSRV = m_pShadowMap->GetSRV();
+	//g_pContext->PSSetShaderResources(1, 1, &pShadowMapSRV);
+
 	m_mainCamera->Render();
 
 	for (auto it = m_primitives.begin(); it != m_primitives.end(); it++)
@@ -246,6 +250,8 @@ void Scene::Render()
 
 void Scene::Release()
 {
+	if (m_cbLights) m_cbLights->Release();
+
 	for (auto it = m_primitives.begin(); it != m_primitives.end(); it++)
 	{
 		(*it)->Release();
@@ -260,9 +266,17 @@ void Scene::Release()
 
 	m_mainCamera->Release();
 	m_mainCamera.reset();
+
+	for (auto it = m_materials.begin(); it != m_materials.end(); it++)
+	{
+		(*it).reset();
+	}
+
+	if (m_pShadowMap)
+		m_pShadowMap->Release();
 }
 
-void Scene::InitAABB()
+void Scene::InitBoundingStructures()
 {
 	// construct AABB for scene.
 	for (auto it = m_primitives.begin(); it != m_primitives.end(); it++)
@@ -275,11 +289,32 @@ void Scene::InitAABB()
 	{
 		AABB::CreateMerged(m_aabb, m_aabb, (*it)->GetAABB());
 	}
+
+	BoundingSphere::CreateFromBoundingBox(m_boundingSphere, m_aabb);
 }
 
 void Scene::InitShadowMap()
 {
+	m_pShadowMap = make_shared<NXShadowMap>();
 	m_pShadowMap->Init(2048, 2048);
+	
+	// 目前仅对第一个平行光提供支持
+	Vector3 direction = dynamic_pointer_cast<NXDirectionalLight>(m_lights[0])->GetDirection();
+	Vector3 shadowMapAt = m_boundingSphere.Center;
+	Vector3 shadowMapEye = shadowMapAt - 2.0f * m_boundingSphere.Radius * direction;
+	Vector3 shadowMapUp(0.0f, 1.0f, 0.0f);
+	Matrix mxV = XMMatrixLookAtLH(shadowMapEye, shadowMapAt, shadowMapUp);
+
+	Vector3 shadowMapAtInViewSpace = Vector3::Transform(shadowMapAt, mxV);
+	Vector3 OrthoBoxRangeMin = shadowMapAtInViewSpace - Vector3(m_boundingSphere.Radius);
+	Vector3 OrthoBoxRangeMax = shadowMapAtInViewSpace + Vector3(m_boundingSphere.Radius);
+	Matrix mxP = XMMatrixOrthographicOffCenterLH(OrthoBoxRangeMin.x, OrthoBoxRangeMax.x, OrthoBoxRangeMin.y, OrthoBoxRangeMax.y, OrthoBoxRangeMin.z, OrthoBoxRangeMax.z);
+
+	Matrix mxT(
+		0.5f, 0.0f, 0.0f, 0.0f,
+		0.0f, -0.5f, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		0.5f, 0.5f, 0.0f, 1.0f);
 }
 
 bool Scene::Intersect(const Ray& worldRay, _Out_ shared_ptr<NXPrimitive>& outTarget, _Out_ Vector3& outHitPosition, _Out_ float& outDist)

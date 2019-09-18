@@ -1,6 +1,14 @@
 #include "NXObject.h"
 #include "NXScript.h"
 
+NXObject::~NXObject()
+{
+	for (auto it = m_scripts.begin(); it != m_scripts.end(); it++)
+	{
+		(*it).reset();
+	}
+}
+
 string NXObject::GetName()
 {
 	return m_name;

@@ -7,11 +7,16 @@ public:
 	NXShadowMap();
 	~NXShadowMap();
 
+	ID3D11ShaderResourceView* GetSRV() const { return m_pDepthSRV; }
+
 	void Init(UINT width, UINT height);
 	void Update();
-	void Render();
+	void Render(shared_ptr<Scene> pTargetScene);
+	void Release();
 
 private:
 	ID3D11DepthStencilView*		m_pDepthDSV;
 	ID3D11ShaderResourceView1*	m_pDepthSRV;
+
+	D3D11_VIEWPORT m_viewPort;
 };

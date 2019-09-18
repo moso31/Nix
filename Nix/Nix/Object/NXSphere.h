@@ -9,7 +9,6 @@ public:
 
 	void Init(float radius, int segmentHorizontal, int segmentVertical);
 	void Render();
-	void Release();
 
 private:
 	float m_radius;

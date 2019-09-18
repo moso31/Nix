@@ -40,11 +40,3 @@ void NXPlane::Render()
 	g_pContext->PSSetConstantBuffers(3, 1, &m_cbMaterial);
 	g_pContext->DrawIndexed((UINT)m_indices.size(), 0, 0);
 }
-
-void NXPlane::Release()
-{
-	if (m_pVertexBuffer)	m_pVertexBuffer->Release();
-	if (m_pIndexBuffer)		m_pIndexBuffer->Release();
-	if (m_pConstantBuffer)	m_pConstantBuffer->Release();
-	if (m_pTextureSRV)		m_pTextureSRV->Release();
-}

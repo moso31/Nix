@@ -1,5 +1,13 @@
 #include "NXEvent.h"
 
+NXEvent::~NXEvent()
+{
+	for (auto it = m_listeners.begin(); it != m_listeners.end(); it++)
+	{
+		(*it).reset();
+	}
+}
+
 void NXEvent::AddListener(const shared_ptr<NXListener>& pListener)
 {
 	m_listeners.push_back(pListener);

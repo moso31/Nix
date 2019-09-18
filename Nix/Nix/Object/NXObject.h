@@ -5,7 +5,7 @@ class NXObject : public enable_shared_from_this<NXObject>
 {
 public:
 	NXObject() = default;
-	virtual ~NXObject() {}
+	~NXObject();
 
 	string GetName();
 	void SetName(string name);

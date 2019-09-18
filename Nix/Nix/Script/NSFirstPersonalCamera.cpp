@@ -13,6 +13,10 @@ NSFirstPersonalCamera::NSFirstPersonalCamera() :
 	memset(m_bMoveState, false, sizeof(m_bMoveState));
 }
 
+NSFirstPersonalCamera::~NSFirstPersonalCamera()
+{
+}
+
 void NSFirstPersonalCamera::Update()
 {
 	auto pCamera = dynamic_pointer_cast<NXCamera>(m_pObject);

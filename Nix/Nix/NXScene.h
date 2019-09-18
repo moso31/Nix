@@ -18,11 +18,13 @@ public:
 	void Render();
 	void Release();
 
+	BoundingSphere GetBoundingSphere() { return m_boundingSphere; }
 	AABB GetAABB() { return m_aabb; }
 	vector<shared_ptr<NXPrimitive>> GetPrimitives() { return m_primitives; }
+	vector<shared_ptr<NXPrimitive>> GetBlendingPrimitives() { return m_blendingPrimitives; }
 
 private:
-	void InitAABB();
+	void InitBoundingStructures();
 
 	// 目前只对第一个光源创建Parallel ShadowMap。
 	void InitShadowMap();
@@ -42,4 +44,5 @@ private:
 	ConstantBufferLight m_cbDataLights;
 
 	AABB m_aabb;
+	BoundingSphere m_boundingSphere;
 };

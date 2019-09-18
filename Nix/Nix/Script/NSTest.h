@@ -5,6 +5,7 @@ class NSTest : public NXScript
 {
 public:
 	NSTest();
+	~NSTest();
 
 	void Update();
 

@@ -28,7 +28,7 @@ class NXEvent
 {
 public:
 	NXEvent() : m_type(NXEVENT_NONE) {}
-	virtual ~NXEvent() {}
+	virtual ~NXEvent();
 
 	virtual void AddListener(const shared_ptr<NXListener>& pListener);
 	void OnNotify(NXEventArg eArg);

@@ -16,7 +16,7 @@ public:
 
 	virtual void Update();
 	virtual void Render() = 0;
-	virtual void Release() = 0;
+	virtual void Release();
 
 	void SetMaterial(const shared_ptr<NXMaterial>& material);
 	AABB GetAABB() const;

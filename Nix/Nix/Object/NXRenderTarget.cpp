@@ -38,6 +38,3 @@ void NXRenderTarget::Render()
 	g_pContext->DrawIndexed((UINT)m_indices.size(), 0, 0);
 }
 
-void NXRenderTarget::Release()
-{
-}

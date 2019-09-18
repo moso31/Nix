@@ -22,6 +22,17 @@ void NXPrimitive::Update()
 	}
 }
 
+void NXPrimitive::Release()
+{
+	if (m_pVertexBuffer)	m_pVertexBuffer->Release();
+	if (m_pIndexBuffer)		m_pIndexBuffer->Release();
+	if (m_pConstantBuffer)	m_pConstantBuffer->Release();
+	if (m_pTextureSRV)		m_pTextureSRV->Release();
+
+	m_pMaterial.reset();
+	if (m_cbMaterial)		m_cbMaterial->Release();
+}
+
 void NXPrimitive::SetMaterial(const shared_ptr<NXMaterial>& pMaterial)
 {
 	m_pMaterial = pMaterial;

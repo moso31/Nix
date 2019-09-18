@@ -81,10 +81,3 @@ void NXSphere::Render()
 	g_pContext->DrawIndexed((UINT)m_indices.size(), 0, 0);
 }
 
-void NXSphere::Release()
-{
-	if (m_pVertexBuffer)	m_pVertexBuffer->Release();
-	if (m_pIndexBuffer)		m_pIndexBuffer->Release();
-	if (m_pConstantBuffer)	m_pConstantBuffer->Release();
-	if (m_pTextureSRV)		m_pTextureSRV->Release();
-}

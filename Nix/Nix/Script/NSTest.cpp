@@ -7,6 +7,10 @@ NSTest::NSTest() :
 {
 }
 
+NSTest::~NSTest()
+{
+}
+
 void NSTest::Update()
 {
 	auto timeDelta = g_timer->GetTimeDelta() / 1000000.0f;

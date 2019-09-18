@@ -9,7 +9,6 @@ public:
 
 	void Init();
 	void Render();
-	void Release();
 
 private:
 };
