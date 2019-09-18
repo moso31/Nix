@@ -8,7 +8,6 @@ public:
 	~NXMesh();
 
 	void Init(string filePath = "");
-	void Render();
 
 private:
 	string m_filePath;

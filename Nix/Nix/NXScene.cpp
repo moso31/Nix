@@ -117,9 +117,9 @@ void Scene::Init()
 		m_primitives.push_back(pPlane);
 	}
 
-	auto pScript_test = make_shared<NSTest>();
-	pPlane->AddScript(pScript_test);
-
+	//auto pScript_test = make_shared<NSTest>();
+	//pPlane->AddScript(pScript_test);
+	
 	auto pSphere = make_shared<NXSphere>();
 	{
 		pSphere->SetName("Sphere");
@@ -159,7 +159,7 @@ void Scene::Init()
 	NXEventMouseDown::GetInstance()->AddListener(pListener_onMouseDown);
 
 	InitBoundingStructures();
-	//InitShadowMap();
+	InitShadowMap();
 }
 
 void Scene::PrevUpdate()
@@ -219,16 +219,29 @@ void Scene::Update()
 	m_mainCamera->Update();
 }
 
+void Scene::RenderShadowMap()
+{
+	m_pShadowMap->Render(dynamic_pointer_cast<Scene>(shared_from_this()));
+
+	for (auto it = m_primitives.begin(); it != m_primitives.end(); it++)
+	{
+		auto pPrim = *it;
+		pPrim->Render();
+	}
+
+	for (auto it = m_blendingPrimitives.begin(); it != m_blendingPrimitives.end(); it++)
+	{
+		auto pPrim = *it;
+		pPrim->Render();
+	}
+}
+
 void Scene::Render()
 {
 	float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	g_pContext->RSSetState(nullptr);	// back culling
 	g_pContext->OMSetBlendState(nullptr, blendFactor, 0xffffffff);
 	g_pContext->PSSetConstantBuffers(2, 1, &m_cbLights);
-
-	//m_pShadowMap->Render(dynamic_pointer_cast<Scene>(shared_from_this()));
-	//auto pShadowMapSRV = m_pShadowMap->GetSRV();
-	//g_pContext->PSSetShaderResources(1, 1, &pShadowMapSRV);
 
 	m_mainCamera->Render();
 

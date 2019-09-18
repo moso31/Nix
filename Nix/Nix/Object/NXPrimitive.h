@@ -15,7 +15,7 @@ public:
 	virtual ~NXPrimitive() {}
 
 	virtual void Update();
-	virtual void Render() = 0;
+	virtual void Render();
 	virtual void Release();
 
 	void SetMaterial(const shared_ptr<NXMaterial>& material);

@@ -28,15 +28,3 @@ void NXPlane::Init(float width, float height)
 	InitVertexIndexBuffer();
 	InitAABB();
 }
-
-void NXPlane::Render()
-{
-	UINT stride = sizeof(VertexPNT);
-	UINT offset = 0;
-	g_pContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &stride, &offset);
-	g_pContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-	g_pContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
-	g_pContext->PSSetShaderResources(0, 1, &m_pTextureSRV);
-	g_pContext->PSSetConstantBuffers(3, 1, &m_cbMaterial);
-	g_pContext->DrawIndexed((UINT)m_indices.size(), 0, 0);
-}

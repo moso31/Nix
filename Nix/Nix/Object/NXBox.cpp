@@ -74,18 +74,6 @@ void NXBox::Init(float x, float y, float z)
 	InitAABB();
 }
 
-void NXBox::Render()
-{
-	UINT stride = sizeof(VertexPNT);
-	UINT offset = 0;
-	g_pContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &stride, &offset);
-	g_pContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-	g_pContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
-	g_pContext->PSSetShaderResources(0, 1, &m_pTextureSRV);
-	g_pContext->PSSetConstantBuffers(3, 1, &m_cbMaterial);
-	g_pContext->DrawIndexed((UINT)m_indices.size(), 0, 0);
-}
-
 void NXBox::Release()
 {
 	if (m_pVertexBuffer)	m_pVertexBuffer->Release();

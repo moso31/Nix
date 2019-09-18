@@ -8,7 +8,6 @@ public:
 	~NXSphere() {}
 
 	void Init(float radius, int segmentHorizontal, int segmentVertical);
-	void Render();
 
 private:
 	float m_radius;

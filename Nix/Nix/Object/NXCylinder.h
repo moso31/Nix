@@ -8,7 +8,6 @@ public:
 	~NXCylinder() {}
 
 	void Init(float radius, float length, int segmentCircle, int segmentLength);
-	void Render();
 
 private:
 	float m_radius;

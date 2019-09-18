@@ -57,7 +57,7 @@ void NXShadowMap::Update()
 {
 }
 
-void NXShadowMap::Render(shared_ptr<Scene> pTargetScene)
+void NXShadowMap::Render(const shared_ptr<Scene>& pTargetScene)
 {
 	g_pContext->RSSetViewports(1, &m_viewPort);
 
@@ -66,17 +66,8 @@ void NXShadowMap::Render(shared_ptr<Scene> pTargetScene)
 	g_pContext->OMSetRenderTargets(1, renderTargets, m_pDepthDSV);
 	g_pContext->ClearDepthStencilView(m_pDepthDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-	for (auto it = pTargetScene->GetPrimitives().begin(); it != pTargetScene->GetPrimitives().end(); it++)
-	{
-		auto pPrim = *it;
-		pPrim->Render();
-	}
-
-	for (auto it = pTargetScene->GetBlendingPrimitives().begin(); it != pTargetScene->GetBlendingPrimitives().end(); it++)
-	{
-		auto pPrim = *it;
-		pPrim->Render();
-	}
+	auto pShadowMapSRV = GetSRV();
+	g_pContext->PSSetShaderResources(1, 1, &pShadowMapSRV);
 }
 
 void NXShadowMap::Release()

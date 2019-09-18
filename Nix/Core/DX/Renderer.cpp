@@ -89,11 +89,13 @@ void Renderer::Render()
 	auto pRenderTargetView = g_dxResources->GetRenderTargetView();
 	auto pDepthStencilView = g_dxResources->GetDepthStencilView();
 
+	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	m_scene->RenderShadowMap();
+	
 	g_pContext->ClearRenderTargetView(pOffScreenRTV, Colors::WhiteSmoke);
 	g_pContext->ClearDepthStencilView(pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 	g_pContext->OMSetRenderTargets(1, &pOffScreenRTV, pDepthStencilView);
-
-	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// Render a triangle
 	g_pContext->VSSetShader(m_pVertexShader, nullptr, 0);

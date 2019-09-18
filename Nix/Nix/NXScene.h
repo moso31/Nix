@@ -15,6 +15,7 @@ public:
 	void Init();
 	void PrevUpdate();
 	void Update();
+	void RenderShadowMap();
 	void Render();
 	void Release();
 

@@ -8,7 +8,6 @@ public:
 	~NXPlane() {}
 
 	void Init(float width = 0.5f, float height = 0.5f);
-	void Render();
 
 private:
 	float m_width;
