@@ -46,4 +46,8 @@ private:
 
 	AABB m_aabb;
 	BoundingSphere m_boundingSphere;
+
+	Matrix m_mxShadowMapView;
+	Matrix m_mxShadowMapProj;
+	Matrix m_mxShadowMapTex;
 };

@@ -274,10 +274,9 @@
     <None Include="Shader\RenderTarget.fx">
       <Filter>Shader</Filter>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Xml Include="Shader\Light.fx">
+    <None Include="Shader\ShadowMap.fx" />
+    <None Include="Shader\Light.fx">
       <Filter>Shader</Filter>
-    </Xml>
+    </None>
   </ItemGroup>
 </Project>

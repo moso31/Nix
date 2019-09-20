@@ -12,6 +12,15 @@ NXShadowMap::~NXShadowMap()
 {
 }
 
+void NXShadowMap::UpdateConstantBuffer(const Matrix& viewMatrix, const Matrix& projMatrix)
+{
+	m_cbShadowMapCameraData.view = viewMatrix.Transpose();
+	m_cbShadowMapCameraData.projection = projMatrix.Transpose();
+	g_pContext->UpdateSubresource(m_cbShadowMapCamera, 0, nullptr, &m_cbShadowMapCameraData, 0, 0);
+	g_pContext->VSSetConstantBuffers(1, 1, &m_cbShadowMapCamera);
+	g_pContext->PSSetConstantBuffers(1, 1, &m_cbShadowMapCamera);
+}
+
 void NXShadowMap::Init(UINT width, UINT height)
 {
 	m_viewPort.TopLeftX = 0.0f;
@@ -51,6 +60,15 @@ void NXShadowMap::Init(UINT width, UINT height)
 	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView1(pTexShadowMap, &descSRV, &m_pDepthSRV));
 
 	if (pTexShadowMap) pTexShadowMap->Release();
+
+	D3D11_BUFFER_DESC bufferDesc;
+	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = sizeof(ConstantBufferShadowMapCamera);
+	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+
+	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbShadowMapCamera));
 }
 
 void NXShadowMap::Update()
@@ -59,15 +77,12 @@ void NXShadowMap::Update()
 
 void NXShadowMap::Render(const shared_ptr<Scene>& pTargetScene)
 {
-	g_pContext->RSSetViewports(1, &m_viewPort);
+	g_pContext->RSSetViewports(1, &m_viewPort); 
 
 	// 无需RenderTarget，只绘制DSV
 	ID3D11RenderTargetView* renderTargets[1] = { nullptr };
 	g_pContext->OMSetRenderTargets(1, renderTargets, m_pDepthDSV);
 	g_pContext->ClearDepthStencilView(m_pDepthDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
-
-	auto pShadowMapSRV = GetSRV();
-	g_pContext->PSSetShaderResources(1, 1, &pShadowMapSRV);
 }
 
 void NXShadowMap::Release()

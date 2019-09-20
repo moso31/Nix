@@ -27,6 +27,11 @@ void Renderer::InitRenderer()
 		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
 	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVertexShaderOffScreen));
 
+	NX::MessageBoxIfFailed(
+		ShaderComplier::Compile(L"Shader\\ShadowMap.fx", "VS", "vs_5_0", &pVSBlob),
+		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
+	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVertexShaderShadowMap));
+
 	D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -51,6 +56,11 @@ void Renderer::InitRenderer()
 		ShaderComplier::Compile(L"Shader\\RenderTarget.fx", "PS", "ps_5_0", &pPSBlob),
 		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
 	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShaderOffScreen));
+
+	NX::MessageBoxIfFailed(
+		ShaderComplier::Compile(L"Shader\\ShadowMap.fx", "PS", "ps_5_0", &pPSBlob),
+		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
+	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShaderShadowMap));
 	pPSBlob->Release();
 
 	// Create Sampler
@@ -75,33 +85,37 @@ void Renderer::InitRenderer()
 	{
 		m_renderTarget->Init();
 	}
+
+	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-void Renderer::Update()
+void Renderer::DrawShadowMap()
+{
+	g_pContext->VSSetShader(m_pVertexShaderShadowMap, nullptr, 0);
+	g_pContext->PSSetShader(m_pPixelShaderShadowMap, nullptr, 0);
+	g_pContext->PSSetSamplers(0, 1, &m_pSamplerLinearWrap);
+
+	m_scene->RenderShadowMap();
+}
+
+void Renderer::DrawScene()
 {
 	m_scene->PrevUpdate();
 	m_scene->Update();
-}
 
-void Renderer::Render()
-{
 	auto pOffScreenRTV = g_dxResources->GetOffScreenRTV();
 	auto pRenderTargetView = g_dxResources->GetRenderTargetView();
 	auto pDepthStencilView = g_dxResources->GetDepthStencilView();
-
-	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	m_scene->RenderShadowMap();
 	
 	g_pContext->ClearRenderTargetView(pOffScreenRTV, Colors::WhiteSmoke);
 	g_pContext->ClearDepthStencilView(pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 	g_pContext->OMSetRenderTargets(1, &pOffScreenRTV, pDepthStencilView);
 
-	// Render a triangle
 	g_pContext->VSSetShader(m_pVertexShader, nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShader, nullptr, 0);
-	g_pContext->PSSetSamplers(0, 1, &m_pSamplerLinearWrap);
 
+	auto vp = g_dxResources->GetViewPortSize();
+	g_pContext->RSSetViewports(1, &CD3D11_VIEWPORT(0.0f, 0.0f, vp.x, vp.y));
 	m_scene->Render();
 
 	g_pContext->ClearRenderTargetView(pRenderTargetView, Colors::WhiteSmoke);
@@ -118,12 +132,12 @@ void Renderer::Render()
 
 	m_renderTarget->Render();
 
+	// clear SRV.
+	ID3D11ShaderResourceView* const pNullSRV[2] = { nullptr };
+	g_pContext->PSSetShaderResources(0, 2, pNullSRV);
+
 	DXGI_PRESENT_PARAMETERS parameters = { 0 };
 	NX::ThrowIfFailed(g_pSwapChain->Present1(1, 0, &parameters));
-
-	// clear SRV.
-	ID3D11ShaderResourceView* const pNullSRV[1] = { nullptr };
-	g_pContext->PSSetShaderResources(0, 1, pNullSRV);
 }
 
 void Renderer::Release()

@@ -35,6 +35,12 @@ struct ConstantBufferCamera
 	float _align16;
 };
 
+struct ConstantBufferShadowMapCamera
+{
+	Matrix view;
+	Matrix projection;
+};
+
 struct ConstantBufferMaterial
 {
 	Vector4 ambient;

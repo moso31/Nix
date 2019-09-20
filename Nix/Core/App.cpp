@@ -20,14 +20,10 @@ void App::Init()
 	m_pRenderer->Init();
 }
 
-void App::Update()
+void App::Draw()
 {
-	m_pRenderer->Update();
-}
-
-void App::Render()
-{
-	m_pRenderer->Render();
+	m_pRenderer->DrawShadowMap();
+	m_pRenderer->DrawScene();
 }
 
 void App::Release()

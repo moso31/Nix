@@ -7,8 +7,7 @@ public:
 	App();
 
 	void Init();
-	void Update();
-	void Render();
+	void Draw();
 	void Release();
 
 private:

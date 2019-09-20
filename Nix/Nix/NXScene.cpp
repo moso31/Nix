@@ -221,6 +221,7 @@ void Scene::Update()
 
 void Scene::RenderShadowMap()
 {
+	m_pShadowMap->UpdateConstantBuffer(m_mxShadowMapView, m_mxShadowMapProj);
 	m_pShadowMap->Render(dynamic_pointer_cast<Scene>(shared_from_this()));
 
 	for (auto it = m_primitives.begin(); it != m_primitives.end(); it++)
@@ -238,6 +239,9 @@ void Scene::RenderShadowMap()
 
 void Scene::Render()
 {
+	auto pShadowMapSRV = m_pShadowMap->GetSRV();
+	g_pContext->PSSetShaderResources(1, 1, &pShadowMapSRV);
+
 	float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	g_pContext->RSSetState(nullptr);	// back culling
 	g_pContext->OMSetBlendState(nullptr, blendFactor, 0xffffffff);
@@ -323,6 +327,9 @@ void Scene::InitShadowMap()
 		0.0f, -0.5f, 0.0f, 0.0f,
 		0.0f, 0.0f, 1.0f, 0.0f,
 		0.5f, 0.5f, 0.0f, 1.0f);
+
+	m_mxShadowMapView = mxV;
+	m_mxShadowMapProj = mxP;
 }
 
 bool Scene::Intersect(const Ray& worldRay, _Out_ shared_ptr<NXPrimitive>& outTarget, _Out_ Vector3& outHitPosition, _Out_ float& outDist)
