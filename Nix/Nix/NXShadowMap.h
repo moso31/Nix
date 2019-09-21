@@ -10,7 +10,7 @@ public:
 	D3D11_VIEWPORT				GetViewPort()	const	{ return m_viewPort; }
 	ID3D11ShaderResourceView*	GetSRV()		const	{ return m_pDepthSRV; }
 
-	void UpdateConstantBuffer(const Matrix& viewMatrix, const Matrix& projMatrix);
+	void UpdateConstantBuffer(const Matrix& viewMatrix, const Matrix& projMatrix, const Matrix& texMatrix);
 
 	void Init(UINT width, UINT height);
 	void Update();

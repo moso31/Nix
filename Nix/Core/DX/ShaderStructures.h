@@ -39,6 +39,7 @@ struct ConstantBufferShadowMapCamera
 {
 	Matrix view;
 	Matrix projection;
+	Matrix texture;
 };
 
 struct ConstantBufferMaterial

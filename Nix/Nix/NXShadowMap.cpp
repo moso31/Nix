@@ -12,10 +12,11 @@ NXShadowMap::~NXShadowMap()
 {
 }
 
-void NXShadowMap::UpdateConstantBuffer(const Matrix& viewMatrix, const Matrix& projMatrix)
+void NXShadowMap::UpdateConstantBuffer(const Matrix& viewMatrix, const Matrix& projMatrix, const Matrix& texMatrix)
 {
 	m_cbShadowMapCameraData.view = viewMatrix.Transpose();
 	m_cbShadowMapCameraData.projection = projMatrix.Transpose();
+	m_cbShadowMapCameraData.texture = texMatrix.Transpose();
 	g_pContext->UpdateSubresource(m_cbShadowMapCamera, 0, nullptr, &m_cbShadowMapCameraData, 0, 0);
 	g_pContext->VSSetConstantBuffers(1, 1, &m_cbShadowMapCamera);
 	g_pContext->PSSetConstantBuffers(1, 1, &m_cbShadowMapCamera);

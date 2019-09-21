@@ -7,6 +7,7 @@ cbuffer ConstantBufferShadowMapCamera : register(b1)
 {
 	matrix m_view;
 	matrix m_projection;
+	matrix m_tex;
 }
 
 struct VS_INPUT
