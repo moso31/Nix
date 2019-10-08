@@ -29,6 +29,13 @@ cbuffer ConstantBufferMaterial : register(b3)
 	Material m_material;
 }
 
+cbuffer ConstantBufferShadowMapCamera : register(b1)
+{
+	matrix m_shadowMapView;
+	matrix m_shadowMapProjection;
+	matrix m_shadowMapTex;
+}
+
 struct VS_INPUT
 {
 	float4 pos : POSITION;
