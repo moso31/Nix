@@ -22,6 +22,7 @@ void App::Init()
 
 void App::Draw()
 {
+	m_pRenderer->UpdateSceneData();
 	m_pRenderer->DrawShadowMap();
 	m_pRenderer->DrawScene();
 }

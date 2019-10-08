@@ -109,9 +109,8 @@
     <ClInclude Include="Nix\Script\NSTest.h">
       <Filter>Nix\Script</Filter>
     </ClInclude>
-    <ClInclude Include="Nix\NXShadowMap.h">
-      <Filter>Nix</Filter>
-    </ClInclude>
+    <ClInclude Include="Nix\Effect\NXPassShadowMap.h" />
+    <ClInclude Include="Core\Effect\GlobalBufferManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">
@@ -213,9 +212,8 @@
     <ClCompile Include="Nix\Script\NSTest.cpp">
       <Filter>Nix\Script</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\NXShadowMap.cpp">
-      <Filter>Nix</Filter>
-    </ClCompile>
+    <ClCompile Include="Nix\Effect\NXPassShadowMap.cpp" />
+    <ClCompile Include="Core\Effect\GlobalBufferManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Core">
@@ -278,5 +276,8 @@
     <None Include="Shader\Light.fx">
       <Filter>Shader</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\issues" />
   </ItemGroup>
 </Project>

@@ -21,7 +21,10 @@ public:
 	void SetMaterial(const shared_ptr<NXMaterial>& material);
 	AABB GetAABB() const;
 
-	virtual bool Intersect(const Ray& Ray, _Out_ Vector3& outHitPos, _Out_ float& outDist);
+	ID3D11ShaderResourceView* GetTextureSRV() const { return m_pTextureSRV; }
+	ID3D11Buffer* GetMaterialBuffer() const { return m_cbMaterial; }
+
+	virtual bool Intersect(const Ray& Ray, Vector3& outHitPos, float& outDist);
 
 protected:
 	void InitVertexIndexBuffer();
@@ -30,14 +33,11 @@ protected:
 protected:
 	ID3D11Buffer*				m_pVertexBuffer;
 	ID3D11Buffer*				m_pIndexBuffer;
-	ID3D11Buffer*				m_pConstantBuffer;
 	ID3D11ShaderResourceView*	m_pTextureSRV;
 
 	vector<VertexPNT>			m_vertices;
 	vector<USHORT>				m_indices;
 	vector<Vector3>				m_points;	// vertices position ађСа
-
-	ConstantBufferPrimitive		m_pConstantBufferData;
 
 	ConstantBufferMaterial		m_cbDataMaterial;
 	ID3D11Buffer*				m_cbMaterial;

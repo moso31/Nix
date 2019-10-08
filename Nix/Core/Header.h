@@ -42,6 +42,7 @@ using namespace SimpleMath;
 // class preload
 class App;
 class DirectResources;
+class NXGlobalBufferManager;
 class NXInput;
 struct NXEventArg;
 class NXScript;
@@ -56,8 +57,10 @@ class NXCamera;
 class NXDirectionalLight;
 class NXMaterial;
 
+// effects
+class NXPassShadowMap;
+class NXPassScene;
 class NXRenderTarget;
-class NXShadowMap;
 
 // Global variables
 extern	HINSTANCE					g_hInst;

@@ -1,16 +1,28 @@
 #include "Renderer.h"
 #include "DirectResources.h"
+#include "GlobalBufferManager.h"
 #include "ShaderComplier.h"
 
 #include "NXRenderTarget.h"
 #include "NXScene.h"
+#include "NXPassShadowMap.h"
 
 void Renderer::Init()
 {
 	InitRenderer();
 
+	m_globalBufferManager = make_shared<NXGlobalBufferManager>();
+	m_globalBufferManager->Init();
+
 	m_scene = make_shared<Scene>();
 	m_scene->Init();
+
+	m_pPassShadowMap = make_shared<NXPassShadowMap>(m_scene);
+	m_pPassShadowMap->Init(2048, 2048);
+
+	ConstantBufferShadowMapCamera cb;
+	m_scene->GetShadowMapTransformInfo(cb);
+	m_pPassShadowMap->SetConstantBufferCamera(cb);
 }
 
 void Renderer::InitRenderer()
@@ -87,6 +99,16 @@ void Renderer::InitRenderer()
 	}
 
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	//float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	//g_pContext->RSSetState(nullptr);	// back culling
+	//g_pContext->OMSetBlendState(nullptr, blendFactor, 0xffffffff);
+}
+
+void Renderer::UpdateSceneData()
+{
+	m_scene->PrevUpdate();
+	m_scene->UpdateScripts();
 }
 
 void Renderer::DrawShadowMap()
@@ -95,36 +117,53 @@ void Renderer::DrawShadowMap()
 	g_pContext->PSSetShader(m_pPixelShaderShadowMap, nullptr, 0);
 	g_pContext->PSSetSamplers(0, 1, &m_pSamplerLinearWrap);
 
-	m_scene->RenderShadowMap();
+	m_pPassShadowMap->Load();
+	m_pPassShadowMap->UpdateConstantBuffer();
+	m_pPassShadowMap->Render();
 }
 
 void Renderer::DrawScene()
 {
-	m_scene->PrevUpdate();
-	m_scene->Update();
-
 	auto pOffScreenRTV = g_dxResources->GetOffScreenRTV();
 	auto pRenderTargetView = g_dxResources->GetRenderTargetView();
 	auto pDepthStencilView = g_dxResources->GetDepthStencilView();
+
+	auto vp = g_dxResources->GetViewPortSize();
+	g_pContext->RSSetViewports(1, &CD3D11_VIEWPORT(0.0f, 0.0f, vp.x, vp.y));
 	
+	g_pContext->OMSetRenderTargets(1, &pOffScreenRTV, pDepthStencilView);
 	g_pContext->ClearRenderTargetView(pOffScreenRTV, Colors::WhiteSmoke);
 	g_pContext->ClearDepthStencilView(pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
-	g_pContext->OMSetRenderTargets(1, &pOffScreenRTV, pDepthStencilView);
 
 	g_pContext->VSSetShader(m_pVertexShader, nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShader, nullptr, 0);
 
-	auto vp = g_dxResources->GetViewPortSize();
-	g_pContext->RSSetViewports(1, &CD3D11_VIEWPORT(0.0f, 0.0f, vp.x, vp.y));
-	m_scene->Render();
+	m_scene->UpdateCamera();
+	g_pContext->VSSetConstantBuffers(1, 1, &NXGlobalBufferManager::m_cbCamera);
+	g_pContext->PSSetConstantBuffers(1, 1, &NXGlobalBufferManager::m_cbCamera);
 
+	auto pCbLights = m_scene->GetConstantBufferLights();
+	g_pContext->PSSetConstantBuffers(2, 1, &pCbLights);
+
+	auto pShadowMapSRV = m_pPassShadowMap->GetSRV();
+	g_pContext->PSSetShaderResources(1, 1, &pShadowMapSRV);
+
+	auto pPrims = m_scene->GetPrimitives();
+	for (auto it = pPrims.begin(); it != pPrims.end(); it++)
+	{
+		auto p = *it;
+		p->Update();
+		auto pTexSRV = p->GetTextureSRV();
+		auto pMaterial = p->GetMaterialBuffer();
+		g_pContext->VSSetConstantBuffers(0, 1, &NXGlobalBufferManager::m_cbWorld);
+		g_pContext->PSSetShaderResources(0, 1, &pTexSRV);
+		g_pContext->PSSetConstantBuffers(3, 1, &pMaterial);
+		p->Render();
+	}
+
+	g_pContext->OMSetRenderTargets(1, &pRenderTargetView, pDepthStencilView);
 	g_pContext->ClearRenderTargetView(pRenderTargetView, Colors::WhiteSmoke);
 	g_pContext->ClearDepthStencilView(pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
-	g_pContext->OMSetRenderTargets(1, &pRenderTargetView, pDepthStencilView);
-
-	float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-	g_pContext->RSSetState(nullptr);	// back culling
-	g_pContext->OMSetBlendState(nullptr, blendFactor, 0xffffffff);
 
 	g_pContext->VSSetShader(m_pVertexShaderOffScreen, nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShaderOffScreen, nullptr, 0);

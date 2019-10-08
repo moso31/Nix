@@ -27,9 +27,6 @@ public:
 	void Release();
 
 private:
-	ID3D11Buffer*			m_cbCamera;
-	ConstantBufferCamera	m_cbDataCamera;
-
 	Vector3 m_at;
 	Vector3 m_up;
 

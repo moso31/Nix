@@ -10,7 +10,8 @@
 #include "NXPlane.h"
 #include "NXCamera.h"
 
-#include "NXShadowMap.h"
+//#include "NXShadowMap.h"
+#include "NXPassShadowMap.h"
 
 #include "NXScript.h"
 #include "NSFirstPersonalCamera.h"
@@ -104,7 +105,7 @@ void Scene::Init()
 		pPlane->Init(5.0f, 5.0f);
 		pPlane->SetMaterial(pMaterial);
 		pPlane->SetTranslation(Vector3(0.0f, 0.0f, 0.0f));
-		m_blendingPrimitives.push_back(pPlane);
+		m_primitives.push_back(pPlane);
 	}
 
 	pPlane = make_shared<NXPlane>();
@@ -126,7 +127,7 @@ void Scene::Init()
 		pSphere->Init(1.0f, 16, 16);
 		pSphere->SetMaterial(pMaterial);
 		pSphere->SetTranslation(Vector3(2.0f, 0.0f, 0.0f));
-		m_blendingPrimitives.push_back(pSphere);
+		m_primitives.push_back(pSphere);
 	}
 
 	auto pMesh = make_shared<NXMesh>();
@@ -159,7 +160,6 @@ void Scene::Init()
 	NXEventMouseDown::GetInstance()->AddListener(pListener_onMouseDown);
 
 	InitBoundingStructures();
-	InitShadowMap();
 }
 
 void Scene::PrevUpdate()
@@ -175,14 +175,9 @@ void Scene::PrevUpdate()
 	{
 		(*it)->PrevUpdate();
 	}
-
-	for (auto it = m_blendingPrimitives.begin(); it != m_blendingPrimitives.end(); it++)
-	{
-		(*it)->PrevUpdate();
-	}
 }
 
-void Scene::Update()
+void Scene::UpdateScripts()
 {
 	for (auto it = m_primitives.begin(); it != m_primitives.end(); it++)
 	{
@@ -193,21 +188,6 @@ void Scene::Update()
 			auto pScript = *itScripts;
 			pScript->Update();
 		}
-
-		pPrim->Update();
-	}
-
-	for (auto it = m_blendingPrimitives.begin(); it != m_blendingPrimitives.end(); it++)
-	{
-		auto pPrim = *it;
-		auto pPrimScripts = pPrim->GetScripts();
-		for (auto itScripts = pPrimScripts.begin(); itScripts != pPrimScripts.end(); itScripts++)
-		{
-			auto pScript = *itScripts;
-			pScript->Update();
-		}
-
-		pPrim->Update();
 	}
 
 	auto pScripts = m_mainCamera->GetScripts();
@@ -216,53 +196,11 @@ void Scene::Update()
 		auto pScript = *itScripts;
 		pScript->Update();
 	}
+}
+
+void Scene::UpdateCamera()
+{
 	m_mainCamera->Update();
-}
-
-void Scene::RenderShadowMap()
-{
-	m_pShadowMap->UpdateConstantBuffer(m_mxShadowMapView, m_mxShadowMapProj);
-	m_pShadowMap->Render(dynamic_pointer_cast<Scene>(shared_from_this()));
-
-	for (auto it = m_primitives.begin(); it != m_primitives.end(); it++)
-	{
-		auto pPrim = *it;
-		pPrim->Render();
-	}
-
-	for (auto it = m_blendingPrimitives.begin(); it != m_blendingPrimitives.end(); it++)
-	{
-		auto pPrim = *it;
-		pPrim->Render();
-	}
-}
-
-void Scene::Render()
-{
-	auto pShadowMapSRV = m_pShadowMap->GetSRV();
-	g_pContext->PSSetShaderResources(1, 1, &pShadowMapSRV);
-
-	float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-	g_pContext->RSSetState(nullptr);	// back culling
-	g_pContext->OMSetBlendState(nullptr, blendFactor, 0xffffffff);
-	g_pContext->PSSetConstantBuffers(2, 1, &m_cbLights);
-
-	m_mainCamera->Render();
-
-	for (auto it = m_primitives.begin(); it != m_primitives.end(); it++)
-	{
-		auto pPrim = *it;
-		pPrim->Render();
-	}
-
-	g_pContext->RSSetState(RenderStates::NoCullRS);
-	g_pContext->OMSetBlendState(RenderStates::TransparentBS, blendFactor, 0xffffffff);
-
-	for (auto it = m_blendingPrimitives.begin(); it != m_blendingPrimitives.end(); it++)
-	{
-		auto pPrim = *it;
-		pPrim->Render();
-	}
 }
 
 void Scene::Release()
@@ -274,42 +212,14 @@ void Scene::Release()
 		(*it)->Release();
 	}
 
-	for (auto it = m_blendingPrimitives.begin(); it != m_blendingPrimitives.end(); it++)
-	{
-		(*it)->Release();
-	}
-
 	if (m_mainCamera)
 	{
 		m_mainCamera->Release();
 	}
-
-	if (m_pShadowMap)
-		m_pShadowMap->Release();
 }
 
-void Scene::InitBoundingStructures()
+void Scene::GetShadowMapTransformInfo(ConstantBufferShadowMapCamera& out_cb)
 {
-	// construct AABB for scene.
-	for (auto it = m_primitives.begin(); it != m_primitives.end(); it++)
-	{
-		AABB::CreateMerged(m_aabb, m_aabb, (*it)->GetAABB());
-	}
-
-	// construct AABB for scene.
-	for (auto it = m_blendingPrimitives.begin(); it != m_blendingPrimitives.end(); it++)
-	{
-		AABB::CreateMerged(m_aabb, m_aabb, (*it)->GetAABB());
-	}
-
-	BoundingSphere::CreateFromBoundingBox(m_boundingSphere, m_aabb);
-}
-
-void Scene::InitShadowMap()
-{
-	m_pShadowMap = make_shared<NXShadowMap>();
-	m_pShadowMap->Init(2048, 2048);
-	
 	// 目前仅对第一个平行光提供支持
 	Vector3 direction = dynamic_pointer_cast<NXDirectionalLight>(m_lights[0])->GetDirection();
 	Vector3 shadowMapAt = m_boundingSphere.Center;
@@ -328,38 +238,26 @@ void Scene::InitShadowMap()
 		0.0f, 0.0f, 1.0f, 0.0f,
 		0.5f, 0.5f, 0.0f, 1.0f);
 
-	m_mxShadowMapView = mxV;
-	m_mxShadowMapProj = mxP;
+	out_cb.view = mxV.Transpose();
+	out_cb.projection = mxP.Transpose();
 }
 
-bool Scene::Intersect(const Ray& worldRay, _Out_ shared_ptr<NXPrimitive>& outTarget, _Out_ Vector3& outHitPosition, _Out_ float& outDist)
+void Scene::InitBoundingStructures()
+{
+	// construct AABB for scene.
+	for (auto it = m_primitives.begin(); it != m_primitives.end(); it++)
+	{
+		AABB::CreateMerged(m_aabb, m_aabb, (*it)->GetAABB());
+	}
+
+	BoundingSphere::CreateFromBoundingBox(m_boundingSphere, m_aabb);
+}
+
+bool Scene::Intersect(const Ray& worldRay, shared_ptr<NXPrimitive>& outTarget, Vector3& outHitPosition, float& outDist)
 {
 	outTarget = nullptr;
 	float minDist = FLT_MAX;
 	for (auto it = m_primitives.begin(); it != m_primitives.end(); it++)
-	{
-		Ray LocalRay(
-			Vector3::Transform(worldRay.position, (*it)->GetWorldMatrixInv()),
-			Vector3::TransformNormal(worldRay.direction, (*it)->GetWorldMatrixInv())
-		);
-		LocalRay.direction.Normalize();
-
-		// ray-aabb
-		if (LocalRay.IntersectsFast((*it)->GetAABB(), outDist))
-		{
-			// ray-triangle
-			if ((*it)->Intersect(LocalRay, outHitPosition, outDist))
-			{
-				if (minDist > outDist)
-				{
-					minDist = outDist;
-					outTarget = *it;
-				}
-			}
-		}
-	}
-
-	for (auto it = m_blendingPrimitives.begin(); it != m_blendingPrimitives.end(); it++)
 	{
 		Ray LocalRay(
 			Vector3::Transform(worldRay.position, (*it)->GetWorldMatrixInv()),

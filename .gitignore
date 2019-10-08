@@ -14,3 +14,4 @@
 *.txt
 /FBXImporter/x64/Debug
 *.dll
+/Nix/lib/Debug

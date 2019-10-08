@@ -1,11 +1,11 @@
 #include "NXCamera.h"
 #include "DirectResources.h"
+#include "GlobalBufferManager.h"
 
 NXCamera::NXCamera() :
 	NXTransform(),
 	m_at(0.0f, 0.0f, 0.0f),
-	m_up(0.0f, 1.0f, 0.0f),
-	m_cbCamera(nullptr)
+	m_up(0.0f, 1.0f, 0.0f)
 {
 	m_name = "Camera";
 }
@@ -111,7 +111,7 @@ void NXCamera::Init(Vector3 cameraPosition, Vector3 cameraLookAt, Vector3 camera
 	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
 
-	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbCamera));
+	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &NXGlobalBufferManager::m_cbCamera));
 }
 
 void NXCamera::PrevUpdate()
@@ -126,17 +126,15 @@ void NXCamera::PrevUpdate()
 
 void NXCamera::Update()
 {
-	m_cbDataCamera.view = m_view.Transpose();
-	m_cbDataCamera.projection = m_projection.Transpose();
-	m_cbDataCamera.eyePosition = m_translation;
+	NXGlobalBufferManager::m_cbDataCamera.view = m_view.Transpose();
+	NXGlobalBufferManager::m_cbDataCamera.projection = m_projection.Transpose();
+	NXGlobalBufferManager::m_cbDataCamera.eyePosition = m_translation;
 
-	g_pContext->UpdateSubresource(m_cbCamera, 0, nullptr, &m_cbDataCamera, 0, 0);
+	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbCamera, 0, nullptr, &NXGlobalBufferManager::m_cbDataCamera, 0, 0);
 }
 
 void NXCamera::Render()
 {
-	g_pContext->VSSetConstantBuffers(1, 1, &m_cbCamera);
-	g_pContext->PSSetConstantBuffers(1, 1, &m_cbCamera);
 }
 
 void NXCamera::Release()

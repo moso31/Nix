@@ -6,6 +6,7 @@ class Renderer
 public:
 	void Init();
 	void InitRenderer();
+	void UpdateSceneData();
 	void DrawShadowMap();
 	void DrawScene();
 	void Release();
@@ -25,5 +26,7 @@ private:
 	ID3D11SamplerState*			m_pSamplerLinearClamp;
 	shared_ptr<NXRenderTarget>	m_renderTarget;
 
-	shared_ptr<Scene>			m_scene;
+	shared_ptr<NXGlobalBufferManager>	m_globalBufferManager;
+	shared_ptr<Scene>					m_scene;
+	shared_ptr<NXPassShadowMap>			m_pPassShadowMap; 
 };

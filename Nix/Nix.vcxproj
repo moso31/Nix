@@ -106,7 +106,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>.\;..\;.\Core;.\Core\DX;.\Core\File;.\Core\Input;.\Core\Timer;.\Nix;.\Nix\Accelerator;.\Nix\Manager;.\Nix\Object;.\Nix\Script;..\FBXImporter\common;..\FBXImporter\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\;.\Core;.\Core\DX;.\Core\Effect;.\Core\File;.\Core\Input;.\Core\Timer;.\Nix;.\Nix\Accelerator;.\Nix\Effect;.\Nix\Manager;.\Nix\Object;.\Nix\Script;..\FBXImporter\common;..\FBXImporter\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -148,7 +148,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>.\;..\;.\Core;.\Core\DX;.\Core\File;.\Core\Input;.\Core\Timer;.\Nix;.\Nix\Accelerator;.\Nix\Manager;.\Nix\Object;.\Nix\Script;..\FBXImporter\common;..\FBXImporter\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\;.\Core;.\Core\DX;.\Core\Effect;.\Core\File;.\Core\Input;.\Core\Timer;.\Nix;.\Nix\Accelerator;.\Nix\Effect;.\Nix\Manager;.\Nix\Object;.\Nix\Script;..\FBXImporter\common;..\FBXImporter\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -167,6 +167,7 @@
     <ClInclude Include="Core\DX\DirectResources.h" />
     <ClInclude Include="Core\DX\NXDXHelper.h" />
     <ClInclude Include="Core\DX\RenderStates.h" />
+    <ClInclude Include="Core\Effect\GlobalBufferManager.h" />
     <ClInclude Include="Core\File\FBXMeshLoader.h" />
     <ClInclude Include="Core\Header.h" />
     <ClInclude Include="Core\DX\Renderer.h" />
@@ -182,7 +183,6 @@
     <ClInclude Include="Core\Timer\NXTimer.h" />
     <ClInclude Include="Nix\Accelerator\HBVH.h" />
     <ClInclude Include="Nix\Manager\SceneManager.h" />
-    <ClInclude Include="Nix\NXShadowMap.h" />
     <ClInclude Include="Nix\Object\NXBox.h" />
     <ClInclude Include="Nix\Object\NXCamera.h" />
     <ClInclude Include="Nix\Object\NXCylinder.h" />
@@ -200,11 +200,13 @@
     <ClInclude Include="Nix\Script\NXScript.h" />
     <ClInclude Include="Nix\Script\NXScriptType.h" />
     <ClInclude Include="Nix\Object\NXRenderTarget.h" />
+    <ClInclude Include="Nix\Effect\NXPassShadowMap.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp" />
     <ClCompile Include="Core\DX\DirectResources.cpp" />
     <ClCompile Include="Core\DX\RenderStates.cpp" />
+    <ClCompile Include="Core\Effect\GlobalBufferManager.cpp" />
     <ClCompile Include="Core\File\FBXMeshLoader.cpp" />
     <ClCompile Include="Core\Global.cpp" />
     <ClCompile Include="Core\Input\NXEvent.cpp" />
@@ -219,7 +221,6 @@
     <ClCompile Include="Core\Timer\NXTimer.cpp" />
     <ClCompile Include="Nix\Accelerator\HBVH.cpp" />
     <ClCompile Include="Nix\Manager\SceneManager.cpp" />
-    <ClCompile Include="Nix\NXShadowMap.cpp" />
     <ClCompile Include="Nix\Object\NXBox.cpp" />
     <ClCompile Include="Nix\Object\NXCamera.cpp" />
     <ClCompile Include="Nix\Object\NXCylinder.cpp" />
@@ -236,6 +237,7 @@
     <ClCompile Include="Nix\Script\NSTest.cpp" />
     <ClCompile Include="Nix\Script\NXScript.cpp" />
     <ClCompile Include="Nix\Object\NXRenderTarget.cpp" />
+    <ClCompile Include="Nix\Effect\NXPassShadowMap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Core\DX\SimpleMath.inl" />
@@ -267,6 +269,9 @@
       <FileType>Document</FileType>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\issues" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -291,7 +291,7 @@ void HBVHTree::BuildTree(HBVHTreeNode * node, int stIndex, int edIndex, HBVHSpli
 	BuildTree(node->child[1], splitPos, edIndex, mode);
 }
 
-void HBVHTree::RecursiveIntersect(HBVHTreeNode * node, const Ray & worldRay, _Out_ Vector3& outHitPos, _Out_ float& out_tResult, _Out_ int& out_hitIndex)
+void HBVHTree::RecursiveIntersect(HBVHTreeNode * node, const Ray & worldRay, Vector3& outHitPos, float& out_tResult, int& out_hitIndex)
 {
 	auto pPrimitives = m_scene->GetPrimitives();
 	float t0, t1;
