@@ -23,7 +23,7 @@ public:
 	vector<shared_ptr<NXPrimitive>>		GetPrimitives()			{ return m_primitives; }
 
 	// 目前只对第一个光源创建Parallel ShadowMap。
-	void GetShadowMapTransformInfo(ConstantBufferShadowMapCamera& out_cb);
+	void GetShadowMapTransformInfo(ConstantBufferShadowMapTransform& out_cb);
 
 	ID3D11Buffer* GetConstantBufferLights() const { return m_cbLights; }
 

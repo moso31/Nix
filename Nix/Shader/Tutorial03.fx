@@ -4,6 +4,13 @@ Texture2D txDiffuse : register(t0);
 Texture2D txShadowMap : register(t1);
 SamplerState samLinear : register(s0);
 
+RasterizerState Depth
+{
+	DepthBias = 100000;
+	DepthBiasClamp = 0.0f;
+	SlopeScaledDepthBias = 1.0f;
+};
+
 cbuffer ConstantBufferPrimitive : register(b0)
 {
 	matrix m_world;
@@ -29,7 +36,7 @@ cbuffer ConstantBufferMaterial : register(b3)
 	Material m_material;
 }
 
-cbuffer ConstantBufferShadowMapCamera : register(b1)
+cbuffer ConstantBufferShadowMapTransform : register(b4)
 {
 	matrix m_shadowMapView;
 	matrix m_shadowMapProjection;
@@ -74,22 +81,28 @@ float4 PS(PS_INPUT input) : SV_Target
 	sumA = 0;
 	sumD = 0;
 	sumS = 0;
-	//ComputeDirectionalLight(m_material, m_dirLight, input.normW, toEye, A, D, S);
+	ComputeDirectionalLight(m_material, m_dirLight, input.normW, toEye, A, D, S);
 	sumA += A;
 	sumD += D;
 	sumS += S;
 	//ComputePointLight(m_material, m_pointLight, input.posW, input.normW, toEye, A, D, S);
-	sumA += A;
-	sumD += D;
-	sumS += S;
-	ComputeSpotLight(m_material, m_spotLight, input.posW, input.normW, toEye, A, D, S);
-	sumA += A;
-	sumD += D;
-	sumS += S;
+	//sumA += A;
+	//sumD += D;
+	//sumS += S;
+	//ComputeSpotLight(m_material, m_spotLight, input.posW, input.normW, toEye, A, D, S);
+	//sumA += A;
+	//sumD += D;
+	//sumS += S;
 
 	float4 result = sumA + sumD + sumS;
-	result.a = m_material.opacity;
-	result.x = txShadowMap.Sample(samLinear, input.tex);
+
+	float4 shadowMapPos = mul(input.posW, m_shadowMapView);
+	shadowMapPos = mul(shadowMapPos, m_shadowMapProjection);
+	shadowMapPos = mul(shadowMapPos, m_shadowMapTex);
+	float shadowMapDepZ = txShadowMap.Sample(samLinear, shadowMapPos.xy);
+	if (shadowMapDepZ < shadowMapPos.z)
+		result = lerp(result, float4(0.0f, 0.0f, 0.0f, 0.0f), 0.8);
+	
 	return result;
 
 	//return txDiffuse.Sample(samLinear, input.tex);

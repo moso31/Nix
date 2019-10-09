@@ -11,8 +11,9 @@ public:
 	D3D11_VIEWPORT				GetViewPort()	const	{ return m_viewPort; }
 	ID3D11ShaderResourceView*	GetSRV()		const	{ return m_pDepthSRV; }
 
-	void SetConstantBufferCamera(const ConstantBufferShadowMapCamera& cbDataVP);
+	void SetConstantBufferTransform(const ConstantBufferShadowMapTransform& cbDataVP);
 	void SetConstantBufferWorld(const ConstantBufferPrimitive& cbDataWorld);
+	ID3D11Buffer* GetConstantBufferTransform() { return m_cbTransform; }
 
 	void Init(UINT width, UINT height);
 	void UpdateConstantBuffer();
@@ -21,8 +22,8 @@ public:
 	void Release();
 
 private:
-	ID3D11Buffer*					m_cbCamera;
-	ConstantBufferShadowMapCamera	m_cbDataCamera;
+	ID3D11Buffer*						m_cbTransform;
+	ConstantBufferShadowMapTransform	m_cbDataTransform;
 
 	ID3D11DepthStencilView*			m_pDepthDSV;
 	ID3D11ShaderResourceView1*		m_pDepthSRV;

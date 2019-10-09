@@ -13,9 +13,9 @@ NXPassShadowMap::~NXPassShadowMap()
 {
 }
 
-void NXPassShadowMap::SetConstantBufferCamera(const ConstantBufferShadowMapCamera& cbDataVP)
+void NXPassShadowMap::SetConstantBufferTransform(const ConstantBufferShadowMapTransform& cbDataVP)
 {
-	m_cbDataCamera = cbDataVP;
+	m_cbDataTransform = cbDataVP;
 }
 
 void NXPassShadowMap::SetConstantBufferWorld(const ConstantBufferPrimitive& cbDataWorld)
@@ -66,10 +66,10 @@ void NXPassShadowMap::Init(UINT width, UINT height)
 	D3D11_BUFFER_DESC bufferDesc;
 	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
 	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(ConstantBufferShadowMapCamera);
+	bufferDesc.ByteWidth = sizeof(ConstantBufferShadowMapTransform);
 	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
-	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbCamera));
+	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbTransform));
 }
 
 void NXPassShadowMap::Load()
@@ -85,13 +85,13 @@ void NXPassShadowMap::Load()
 void NXPassShadowMap::UpdateConstantBuffer()
 {
 	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbWorld, 0, nullptr, &NXGlobalBufferManager::m_cbDataWorld, 0, 0);
-	g_pContext->UpdateSubresource(m_cbCamera, 0, nullptr, &m_cbDataCamera, 0, 0);
+	g_pContext->UpdateSubresource(m_cbTransform, 0, nullptr, &m_cbDataTransform, 0, 0);
 }
 
 void NXPassShadowMap::Render()
 {
-	g_pContext->VSSetConstantBuffers(1, 1, &m_cbCamera);
-	g_pContext->PSSetConstantBuffers(1, 1, &m_cbCamera);
+	g_pContext->VSSetConstantBuffers(1, 1, &m_cbTransform);
+	g_pContext->PSSetConstantBuffers(1, 1, &m_cbTransform);
 
 	auto pPrims = m_pScene->GetPrimitives();
 	for (auto it = pPrims.begin(); it != pPrims.end(); it++)
@@ -115,6 +115,6 @@ void NXPassShadowMap::Release()
 	if (m_pDepthSRV)
 		m_pDepthSRV->Release();
 
-	if (m_cbCamera)
-		m_cbCamera->Release();
+	if (m_cbTransform)
+		m_cbTransform->Release();
 }

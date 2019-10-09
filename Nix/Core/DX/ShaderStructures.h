@@ -35,7 +35,7 @@ struct ConstantBufferCamera
 	float _align16;
 };
 
-struct ConstantBufferShadowMapCamera
+struct ConstantBufferShadowMapTransform
 {
 	Matrix view;
 	Matrix projection;

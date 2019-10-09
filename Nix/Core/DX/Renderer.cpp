@@ -20,9 +20,9 @@ void Renderer::Init()
 	m_pPassShadowMap = make_shared<NXPassShadowMap>(m_scene);
 	m_pPassShadowMap->Init(2048, 2048);
 
-	ConstantBufferShadowMapCamera cb;
+	ConstantBufferShadowMapTransform cb;
 	m_scene->GetShadowMapTransformInfo(cb);
-	m_pPassShadowMap->SetConstantBufferCamera(cb);
+	m_pPassShadowMap->SetConstantBufferTransform(cb);
 }
 
 void Renderer::InitRenderer()
@@ -147,6 +147,9 @@ void Renderer::DrawScene()
 
 	auto pShadowMapSRV = m_pPassShadowMap->GetSRV();
 	g_pContext->PSSetShaderResources(1, 1, &pShadowMapSRV);
+
+	auto pShadowMapConstantBufferTransform = m_pPassShadowMap->GetConstantBufferTransform();
+	g_pContext->PSSetConstantBuffers(4, 1, &pShadowMapConstantBufferTransform);
 
 	auto pPrims = m_scene->GetPrimitives();
 	for (auto it = pPrims.begin(); it != pPrims.end(); it++)

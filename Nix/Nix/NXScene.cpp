@@ -218,7 +218,7 @@ void Scene::Release()
 	}
 }
 
-void Scene::GetShadowMapTransformInfo(ConstantBufferShadowMapCamera& out_cb)
+void Scene::GetShadowMapTransformInfo(ConstantBufferShadowMapTransform& out_cb)
 {
 	// 目前仅对第一个平行光提供支持
 	Vector3 direction = dynamic_pointer_cast<NXDirectionalLight>(m_lights[0])->GetDirection();
@@ -240,6 +240,7 @@ void Scene::GetShadowMapTransformInfo(ConstantBufferShadowMapCamera& out_cb)
 
 	out_cb.view = mxV.Transpose();
 	out_cb.projection = mxP.Transpose();
+	out_cb.texture = mxT.Transpose();
 }
 
 void Scene::InitBoundingStructures()

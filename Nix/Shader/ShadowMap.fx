@@ -3,7 +3,7 @@ cbuffer ConstantBufferPrimitive : register(b0)
 	matrix m_world;
 }
 
-cbuffer ConstantBufferShadowMapCamera : register(b1)
+cbuffer ConstantBufferShadowMapTransform : register(b1)
 {
 	matrix m_view;
 	matrix m_projection;
