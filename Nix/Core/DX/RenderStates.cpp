@@ -3,6 +3,7 @@
 
 ID3D11RasterizerState2*		RenderStates::WireframeRS = nullptr;
 ID3D11RasterizerState2*		RenderStates::NoCullRS = nullptr;
+ID3D11RasterizerState2*		RenderStates::ShadowMapRS = nullptr;
 
 ID3D11BlendState1*			RenderStates::AlphaToCoverageBS = nullptr;
 ID3D11BlendState1*			RenderStates::TransparentBS = nullptr;
@@ -32,6 +33,18 @@ void RenderStates::Init()
 	noCullDesc.DepthClipEnable = true;
 
 	NX::ThrowIfFailed(g_pDevice->CreateRasterizerState2(&noCullDesc, &NoCullRS));
+
+	// ShadowMapRS
+	D3D11_RASTERIZER_DESC2 shadowMapDesc;
+	ZeroMemory(&shadowMapDesc, sizeof(D3D11_RASTERIZER_DESC2));
+	shadowMapDesc.FillMode = D3D11_FILL_SOLID;
+	shadowMapDesc.CullMode = D3D11_CULL_BACK;
+	shadowMapDesc.FrontCounterClockwise = false;
+	shadowMapDesc.DepthClipEnable = true;
+	shadowMapDesc.DepthBias = 100000;
+	shadowMapDesc.DepthBiasClamp = 0.0f;
+	shadowMapDesc.SlopeScaledDepthBias = 1.0f;
+	NX::ThrowIfFailed(g_pDevice->CreateRasterizerState2(&shadowMapDesc, &ShadowMapRS));
 
 	//
 	// AlphaToCoverageBS

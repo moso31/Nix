@@ -24,6 +24,8 @@ private:
 
 	ID3D11SamplerState*			m_pSamplerLinearWrap;
 	ID3D11SamplerState*			m_pSamplerLinearClamp;
+	ID3D11SamplerState*			m_pSamplerShadowMapPCF;	// shadowMap PCF滤波采样，模糊阴影边缘
+
 	shared_ptr<NXRenderTarget>	m_renderTarget;
 
 	shared_ptr<NXGlobalBufferManager>	m_globalBufferManager;

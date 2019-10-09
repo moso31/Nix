@@ -119,7 +119,7 @@ void NXCamera::PrevUpdate()
 	Vector2 vpsz = g_dxResources->GetViewPortSize();
 	float aspectRatio = vpsz.x / vpsz.y;
 	m_view = XMMatrixLookAtLH(m_translation, m_at, m_up);
-	m_projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, aspectRatio, 0.1f, 1000.0f);
+	m_projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, aspectRatio, 0.01f, 1000.0f);
 
 	NXTransform::PrevUpdate();
 }

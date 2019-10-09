@@ -3,13 +3,7 @@
 Texture2D txDiffuse : register(t0);
 Texture2D txShadowMap : register(t1);
 SamplerState samLinear : register(s0);
-
-RasterizerState Depth
-{
-	DepthBias = 100000;
-	DepthBiasClamp = 0.0f;
-	SlopeScaledDepthBias = 1.0f;
-};
+SamplerComparisonState samShadowMap : register(s1);
 
 cbuffer ConstantBufferPrimitive : register(b0)
 {
@@ -74,6 +68,13 @@ PS_INPUT VS(VS_INPUT input)
 float4 PS(PS_INPUT input) : SV_Target
 {
 	float3 toEye = normalize(m_eyePos - input.posW);
+	float4 shadowMapPos = mul(input.posW, m_shadowMapView);
+	shadowMapPos = mul(shadowMapPos, m_shadowMapProjection);
+	shadowMapPos = mul(shadowMapPos, m_shadowMapTex);
+
+	//float shadowMapDepZ = txShadowMap.Sample(samLinear, shadowMapPos.xy);
+	float shadowMapFactor = ShadowMapFilter(samShadowMap, txShadowMap, shadowMapPos);
+
 	float4 A, D, S, sumA, sumD, sumS;
 	A = 0;
 	D = 0;
@@ -82,9 +83,10 @@ float4 PS(PS_INPUT input) : SV_Target
 	sumD = 0;
 	sumS = 0;
 	ComputeDirectionalLight(m_material, m_dirLight, input.normW, toEye, A, D, S);
-	sumA += A;
-	sumD += D;
-	sumS += S;
+	// 被阴影贴图覆盖，即处于阴影区域时，该像素的光通量自然会减小。
+	sumA += A;	// 不影响自发光。
+	sumD += shadowMapFactor * D;
+	sumS += shadowMapFactor * S;
 	//ComputePointLight(m_material, m_pointLight, input.posW, input.normW, toEye, A, D, S);
 	//sumA += A;
 	//sumD += D;
@@ -95,14 +97,6 @@ float4 PS(PS_INPUT input) : SV_Target
 	//sumS += S;
 
 	float4 result = sumA + sumD + sumS;
-
-	float4 shadowMapPos = mul(input.posW, m_shadowMapView);
-	shadowMapPos = mul(shadowMapPos, m_shadowMapProjection);
-	shadowMapPos = mul(shadowMapPos, m_shadowMapTex);
-	float shadowMapDepZ = txShadowMap.Sample(samLinear, shadowMapPos.xy);
-	if (shadowMapDepZ < shadowMapPos.z)
-		result = lerp(result, float4(0.0f, 0.0f, 0.0f, 0.0f), 0.8);
-	
 	return result;
 
 	//return txDiffuse.Sample(samLinear, input.tex);

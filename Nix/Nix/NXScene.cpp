@@ -117,9 +117,6 @@ void Scene::Init()
 		pPlane->SetRotation(Vector3(-XM_PIDIV2, 0.0f, 0.0f));
 		m_primitives.push_back(pPlane);
 	}
-
-	//auto pScript_test = make_shared<NSTest>();
-	//pPlane->AddScript(pScript_test);
 	
 	auto pSphere = make_shared<NXSphere>();
 	{
@@ -138,6 +135,9 @@ void Scene::Init()
 		pMesh->SetTranslation(Vector3(0.0f, 0.0f, 0.0f));
 		m_primitives.push_back(pMesh);
 	}
+
+	//auto pScript_test = make_shared<NSTest>();
+	//pMesh->AddScript(pScript_test);
 
 	auto pCamera = make_shared<NXCamera>();
 	pCamera->Init(Vector3(0.0f, 0.0f, -1.5f),
