@@ -57,7 +57,14 @@ void NXPrimitive::SetMaterial(const shared_ptr<NXMaterial>& pMaterial)
 	m_cbDataMaterial = pMaterial->GetMaterialInfo();
 }
 
-AABB NXPrimitive::GetAABB() const
+AABB NXPrimitive::GetAABBWorld() 
+{
+	AABB worldAABB;
+	AABB::Transform(m_aabb, m_worldMatrix, worldAABB);
+	return worldAABB;
+}
+
+AABB NXPrimitive::GetAABBLocal() const
 {
 	return m_aabb;
 }

@@ -688,6 +688,8 @@ struct AABB : public BoundingBox
 	Vector3 Offset(const Vector3& position) const;
 	int GetMaximumExtent() const;
 	float GetSurfaceArea() const;
+
+	static void Transform(AABB& aabb, const Matrix& m, AABB& result);
 };
 
 //------------------------------------------------------------------------------

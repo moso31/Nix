@@ -99,40 +99,54 @@ void Scene::Init()
 	pMaterial->SetOpacity(0.2f);
 	m_materials.push_back(pMaterial);
 
-	auto pPlane = make_shared<NXPlane>();
-	{
-		pPlane->SetName("PlaneMir");
-		pPlane->Init(5.0f, 5.0f);
-		pPlane->SetMaterial(pMaterial);
-		pPlane->SetTranslation(Vector3(0.0f, 0.0f, 0.0f));
-		m_primitives.push_back(pPlane);
-	}
+	//auto pPlane = make_shared<NXPlane>();
+	//{
+	//	pPlane->SetName("PlaneMir");
+	//	pPlane->Init(5.0f, 5.0f);
+	//	pPlane->SetMaterial(pMaterial);
+	//	pPlane->SetTranslation(Vector3(0.0f, 0.0f, 0.0f));
+	//	m_primitives.push_back(pPlane);
+	//}
 
-	pPlane = make_shared<NXPlane>();
-	{
-		pPlane->SetName("Plane");
-		pPlane->Init(5.0f, 5.0f);
-		pPlane->SetMaterial(pMaterial);
-		pPlane->SetTranslation(Vector3(0.0f, 2.5f, 2.5f));
-		pPlane->SetRotation(Vector3(-XM_PIDIV2, 0.0f, 0.0f));
-		m_primitives.push_back(pPlane);
-	}
-	
-	auto pSphere = make_shared<NXSphere>();
-	{
-		pSphere->SetName("Sphere");
-		pSphere->Init(1.0f, 16, 16);
-		pSphere->SetMaterial(pMaterial);
-		pSphere->SetTranslation(Vector3(2.0f, 0.0f, 0.0f));
-		m_primitives.push_back(pSphere);
-	}
+	//pPlane = make_shared<NXPlane>();
+	//{
+	//	pPlane->SetName("Plane");
+	//	pPlane->Init(5.0f, 5.0f);
+	//	pPlane->SetMaterial(pMaterial);
+	//	pPlane->SetTranslation(Vector3(0.0f, 2.5f, 2.5f));
+	//	pPlane->SetRotation(Vector3(-XM_PIDIV2, 0.0f, 0.0f));
+	//	m_primitives.push_back(pPlane);
+	//}
+	//
+	//auto pSphere = make_shared<NXSphere>();
+	//{
+	//	pSphere->SetName("Sphere");
+	//	pSphere->Init(1.0f, 16, 16);
+	//	pSphere->SetMaterial(pMaterial);
+	//	pSphere->SetTranslation(Vector3(2.0f, 0.0f, 0.0f));
+	//	m_primitives.push_back(pSphere);
+	//}
+
+	//auto pMesh = make_shared<NXMesh>();
+	//{
+	//	pMesh->SetName("Mesh");
+	//	pMesh->Init("D:\\1.fbx");
+	//	//pMesh->Init();
+	//	pMesh->SetMaterial(pMaterial);
+	//	//pMesh->SetTranslation(Vector3(-1.0f, 1.0f, -1.0f));
+	//	pMesh->SetScale(Vector3(0.01f));
+	//	pMesh->SetTranslation(Vector3(0.0f)); 
+	//	m_primitives.push_back(pMesh);
+	//}
 
 	auto pMesh = make_shared<NXMesh>();
 	{
 		pMesh->SetName("Mesh");
-		pMesh->Init("D:\\test.fbx");
+		pMesh->Init("D:\\2.fbx");
+		//pMesh->Init();
 		pMesh->SetMaterial(pMaterial);
-		pMesh->SetTranslation(Vector3(0.0f, 0.0f, 0.0f));
+		pMesh->SetScale(Vector3(1.0f));
+		pMesh->SetTranslation(Vector3(0.0f)); 
 		m_primitives.push_back(pMesh);
 	}
 
@@ -159,6 +173,8 @@ void Scene::Init()
 	auto pListener_onMouseDown = make_shared<NXListener>(pThisScene, std::bind(&Scene::OnMouseDown, pThisScene, std::placeholders::_1));
 	NXEventMouseDown::GetInstance()->AddListener(pListener_onMouseDown);
 
+	// 更新AABB需要世界坐标，而Init阶段还没有拿到世界坐标，所以需要提前PrevUpdate一次。
+	PrevUpdate();
 	InitBoundingStructures();
 }
 
@@ -248,7 +264,7 @@ void Scene::InitBoundingStructures()
 	// construct AABB for scene.
 	for (auto it = m_primitives.begin(); it != m_primitives.end(); it++)
 	{
-		AABB::CreateMerged(m_aabb, m_aabb, (*it)->GetAABB());
+		AABB::CreateMerged(m_aabb, m_aabb, (*it)->GetAABBWorld());
 	}
 
 	BoundingSphere::CreateFromBoundingBox(m_boundingSphere, m_aabb);
@@ -267,7 +283,7 @@ bool Scene::Intersect(const Ray& worldRay, shared_ptr<NXPrimitive>& outTarget, V
 		LocalRay.direction.Normalize();
 
 		// ray-aabb
-		if (LocalRay.IntersectsFast((*it)->GetAABB(), outDist))
+		if (LocalRay.IntersectsFast((*it)->GetAABBLocal(), outDist))
 		{
 			// ray-triangle
 			if ((*it)->Intersect(LocalRay, outHitPosition, outDist))

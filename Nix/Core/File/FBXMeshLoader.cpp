@@ -47,7 +47,7 @@ void FBXMeshLoader::LoadContent(FbxNode* pNode, NXMesh* pEngineMesh)
 		}
 	}
 
-	DisplayGeometricTransform(pNode, pEngineMesh);
+	LoadNodeTransformInfo(pNode, pEngineMesh);
 
 	for (i = 0; i < pNode->GetChildCount(); i++)
 	{
@@ -55,31 +55,19 @@ void FBXMeshLoader::LoadContent(FbxNode* pNode, NXMesh* pEngineMesh)
 	}
 }
 
-void FBXMeshLoader::DisplayGeometricTransform(FbxNode* pNode, NXMesh* pEngineMesh)
+void FBXMeshLoader::LoadNodeTransformInfo(FbxNode* pNode, NXMesh* pEngineMesh)
 {
-	FbxVector4 lTmpVector;
-	Vector4 vec;
-
-	//
-	// Translation
-	//
-	lTmpVector = pNode->GetGeometricTranslation(FbxNode::eSourcePivot);
-	vec = Vector4((float)lTmpVector[0], (float)lTmpVector[1], (float)lTmpVector[2], (float)lTmpVector[3]);
+	FbxDouble3 fVec = pNode->LclTranslation.Get();
+	Vector3 vec = { (float)fVec[0], (float)fVec[1], (float)fVec[2] };
 	pEngineMesh->SetTranslation(vec);
 
-	//
-	// Rotation
-	//
-	lTmpVector = pNode->GetGeometricRotation(FbxNode::eSourcePivot);
-	vec = Vector4((float)lTmpVector[0], (float)lTmpVector[1], (float)lTmpVector[2], (float)lTmpVector[3]);
-	pEngineMesh->SetTranslation(vec);
+	fVec = pNode->LclRotation.Get();
+	vec = { (float)fVec[0], (float)fVec[1], (float)fVec[2] };
+	pEngineMesh->SetRotation(vec);
 
-	//
-	// Scaling
-	//
-	lTmpVector = pNode->GetGeometricScaling(FbxNode::eSourcePivot);
-	vec = Vector4((float)lTmpVector[0], (float)lTmpVector[1], (float)lTmpVector[2], (float)lTmpVector[3]);
-	pEngineMesh->SetTranslation(vec);
+	fVec = pNode->LclScaling.Get();
+	vec = { (float)fVec[0], (float)fVec[1], (float)fVec[2] };
+	pEngineMesh->SetScale(vec);
 }
 
 void FBXMeshLoader::LoadMesh(FbxNode* pNode, NXMesh* pEngineMesh)

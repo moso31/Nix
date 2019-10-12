@@ -3370,6 +3370,12 @@ inline float AABB::GetSurfaceArea() const
 	return (v.x * v.y + v.y * v.z + v.x * v.z) * 2.0f;
 }
 
+inline void DirectX::SimpleMath::AABB::Transform(AABB& aabb, const Matrix& m, AABB& result)
+{
+	result.Center = Vector3::Transform(aabb.Center, m);
+	result.Extents = Vector3::TransformNormal(aabb.Extents, m);
+}
+
 
 /****************************************************************************
  *

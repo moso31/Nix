@@ -19,7 +19,8 @@ public:
 	virtual void Release();
 
 	void SetMaterial(const shared_ptr<NXMaterial>& material);
-	AABB GetAABB() const;
+	AABB GetAABBWorld();
+	AABB GetAABBLocal() const;
 
 	ID3D11ShaderResourceView* GetTextureSRV() const { return m_pTextureSRV; }
 	ID3D11Buffer* GetMaterialBuffer() const { return m_cbMaterial; }
