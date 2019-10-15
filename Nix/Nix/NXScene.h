@@ -33,9 +33,14 @@ private:
 	bool Intersect(const Ray& worldRay, shared_ptr<NXPrimitive>& outTarget, Vector3& outHitPosition, float& outDist);
 
 private:
+	friend SceneManager;
+	shared_ptr<SceneManager> m_sceneManager;
+
+	// object : light¡¢camera¡¢primitive¾ùÊôÓÚobject¡£
+	vector<shared_ptr<NXObject>> m_objects;
 	vector<shared_ptr<NXLight>> m_lights;
-	vector<shared_ptr<NXMaterial>> m_materials;
 	vector<shared_ptr<NXPrimitive>> m_primitives;
+	vector<shared_ptr<NXMaterial>> m_materials;
 	shared_ptr<NXCamera> m_mainCamera;
 
 	ID3D11Buffer* m_cbLights;

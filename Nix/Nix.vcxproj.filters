@@ -109,8 +109,12 @@
     <ClInclude Include="Nix\Script\NSTest.h">
       <Filter>Nix\Script</Filter>
     </ClInclude>
-    <ClInclude Include="Nix\Effect\NXPassShadowMap.h" />
-    <ClInclude Include="Core\Effect\GlobalBufferManager.h" />
+    <ClInclude Include="Core\Effect\GlobalBufferManager.h">
+      <Filter>Core\DX</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\Effect\NXPassShadowMap.h">
+      <Filter>Nix\Effects</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">
@@ -212,8 +216,12 @@
     <ClCompile Include="Nix\Script\NSTest.cpp">
       <Filter>Nix\Script</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\Effect\NXPassShadowMap.cpp" />
-    <ClCompile Include="Core\Effect\GlobalBufferManager.cpp" />
+    <ClCompile Include="Core\Effect\GlobalBufferManager.cpp">
+      <Filter>Core\DX</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\Effect\NXPassShadowMap.cpp">
+      <Filter>Nix\Effects</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Core">
@@ -261,19 +269,24 @@
     <Filter Include="Nix\Accelerator">
       <UniqueIdentifier>{0c0af698-e0d8-4070-9eea-156755aa397f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Nix\Effects">
+      <UniqueIdentifier>{391064e7-e0f7-42ec-8e64-f87b2db546ce}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shader\Tutorial03.fx">
-      <Filter>Shader</Filter>
-    </None>
     <None Include="Core\DX\SimpleMath.inl">
       <Filter>Core\DX</Filter>
     </None>
     <None Include="Shader\RenderTarget.fx">
       <Filter>Shader</Filter>
     </None>
-    <None Include="Shader\ShadowMap.fx" />
     <None Include="Shader\Light.fx">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Shader\ShadowMap.fx">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Shader\Scene.fx">
       <Filter>Shader</Filter>
     </None>
   </ItemGroup>

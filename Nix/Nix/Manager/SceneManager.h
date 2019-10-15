@@ -3,6 +3,15 @@
 #include "NXScriptType.h"
 #include "NXEvent.h"
 
+#include "NXMesh.h"
+#include "NXBox.h"
+#include "NXSphere.h"
+#include "NXCylinder.h"
+#include "NXPlane.h"
+#include "NXCamera.h"
+#include "NXLight.h"
+#include "NXMaterial.h"
+
 class SceneManager
 {
 public:
@@ -12,6 +21,20 @@ public:
 
 	shared_ptr<NXScript>	CreateScript(const NXScriptType scriptType, const shared_ptr<NXObject>& pObject);
 	shared_ptr<NXListener>	AddEventListener(const NXEventType eventType, const shared_ptr<NXObject>& pObject, const function<void(NXEventArg)>& pFunc);
+
+	shared_ptr<NXBox> CreateBox(const string& name, const float width, const float height, const float length, const shared_ptr<NXMaterial>& material, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));
+	shared_ptr<NXSphere> CreateSphere(const string& name, const float radius, const UINT segmentHorizontal, const UINT segmentVertical, const shared_ptr<NXMaterial>& material, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));
+	shared_ptr<NXCylinder> CreateCylinder(const string& name, const float radius, const float length, const UINT segmentCircle, const UINT segmentLength, const shared_ptr<NXMaterial>& material, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));
+	shared_ptr<NXPlane> CreatePlane(const string& name, const float width, const float height, const shared_ptr<NXMaterial>& material, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));
+	shared_ptr<NXMesh> CreateMesh(const string& name, const string& filePath, const shared_ptr<NXMaterial>& material, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));
+
+	shared_ptr<NXDirectionalLight> CreateDirectionalLight(const string& name, const Vector4& ambient, const Vector4& diffuse, const Vector3& specular, const float specularW, const Vector3& direction);
+	shared_ptr<NXPointLight> CreatePointLight(const string& name, const Vector4& ambient, const Vector4& diffuse, const Vector3& specular, const float specularW, const Vector3& position, const float range, const Vector3& attenuation);
+	shared_ptr<NXSpotLight> CreateSpotLight(const string& name, const Vector4& ambient, const Vector4& diffuse, const Vector3& specular, const float specularW, const Vector3& position, const float range, const Vector3& direction, const float spot, const Vector3& attenuation);
+
+	shared_ptr<NXCamera> CreateCamera(const string& name, const float zNear, const float zFar, const Vector3& eye, const Vector3& at, const Vector3& up);
+
+	shared_ptr<NXMaterial> CreateMaterial(const string& name, const Vector4& ambient = Vector4(0.5f, 0.5f, 0.5f, 0.5f), const Vector4& diffuse = Vector4(0.5f, 0.5f, 0.5f, 0.5f), const Vector4& specular = Vector4(0.5f, 0.5f, 0.5f, 0.5f), const float opacity = 1.0f, const Vector4& reflect = Vector4(0.0f));
 
 private:
 	shared_ptr<Scene> m_scene;

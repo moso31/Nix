@@ -9,6 +9,8 @@
 #include "NXCylinder.h"
 #include "NXPlane.h"
 #include "NXCamera.h"
+#include "NXLight.h"
+#include "NXMaterial.h"
 
 //#include "NXShadowMap.h"
 #include "NXPassShadowMap.h"
@@ -18,8 +20,6 @@
 #include "NSTest.h"
 
 // temp include.
-#include "NXLight.h"
-#include "NXMaterial.h"
 
 Scene::Scene()
 {
@@ -44,32 +44,39 @@ void Scene::OnMouseDown(NXEventArg eArg)
 
 void Scene::Init()
 {
-	auto pDirLight = make_shared<NXDirectionalLight>();
-	pDirLight->SetAmbient(Vector4(0.2f, 0.2f, 0.2f, 1.0f));
-	pDirLight->SetDiffuse(Vector4(0.8f, 0.8f, 0.8f, 1.0f));
-	pDirLight->SetSpecular(Vector4(0.8f, 0.8f, 0.8f, 1.0f));	
-	pDirLight->SetDirection(Vector3(1.0f, -1.0f, 1.0f));
-	m_lights.push_back(pDirLight);
+	m_sceneManager = make_shared<SceneManager>(dynamic_pointer_cast<Scene>(shared_from_this()));
+	auto pDirLight = m_sceneManager->CreateDirectionalLight(
+		"DirLight1",
+		Vector4(0.2f, 0.2f, 0.2f, 1.0f),
+		Vector4(0.8f, 0.8f, 0.8f, 1.0f),
+		Vector3(0.8f, 0.8f, 0.8f),
+		1.0f,
+		Vector3(1.0f, -1.0f, 1.0f)
+		);
 
-	auto pPointLight = make_shared<NXPointLight>();
-	pPointLight->SetAmbient(Vector4(0.2f, 0.2f, 0.2f, 1.0f));
-	pPointLight->SetDiffuse(Vector4(0.8f, 0.8f, 0.8f, 1.0f));
-	pPointLight->SetSpecular(Vector4(0.8f, 0.8f, 0.8f, 1.0f));
-	pPointLight->SetTranslation(Vector3(1.0f, 1.0f, -1.0f));
-	pPointLight->SetRange(100.0f);
-	pPointLight->SetAtt(Vector3(0.0f, 0.0f, 1.0f));
-	m_lights.push_back(pPointLight);
+	auto pPointLight = m_sceneManager->CreatePointLight(
+		"PointLight1",
+		Vector4(0.2f, 0.2f, 0.2f, 1.0f),
+		Vector4(0.8f, 0.8f, 0.8f, 1.0f),
+		Vector3(0.8f, 0.8f, 0.8f),
+		1.0f,
+		Vector3(1.0f, 1.0f, -1.0f),
+		100.0f,
+		Vector3(0.0f, 0.0f, 1.0f)
+	);
 
-	auto pSpotLight = make_shared<NXSpotLight>();
-	pSpotLight->SetAmbient(Vector4(0.2f, 0.2f, 0.2f, 1.0f));
-	pSpotLight->SetDiffuse(Vector4(0.8f, 0.8f, 0.8f, 1.0f));
-	pSpotLight->SetSpecular(Vector4(0.8f, 0.8f, 0.8f, 1.0f));
-	pSpotLight->SetTranslation(Vector3(-1.0f, 1.0f, -1.0f));
-	pSpotLight->SetRange(100.0f);
-	pSpotLight->SetDirection(Vector3(1.0f, -1.0f, 1.0f));
-	pSpotLight->SetSpot(1.0f);
-	pSpotLight->SetAtt(Vector3(0.0f, 0.0f, 1.0f));
-	m_lights.push_back(pSpotLight);
+	auto pSpotLight = m_sceneManager->CreateSpotLight(
+		"SpotLight1",
+		Vector4(0.2f, 0.2f, 0.2f, 1.0f),
+		Vector4(0.8f, 0.8f, 0.8f, 1.0f),
+		Vector3(0.8f, 0.8f, 0.8f),
+		1.0f,
+		Vector3(1.0f, 1.0f, -1.0f),
+		100.0f,
+		Vector3(1.0f, -1.0f, 1.0f),
+		1.0f,
+		Vector3(0.0f, 0.0f, 1.0f)
+	);
 
 	D3D11_BUFFER_DESC bufferDesc;
 	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
@@ -79,85 +86,66 @@ void Scene::Init()
 	bufferDesc.CPUAccessFlags = 0;
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbLights));
 
+	// 这里直接转指针很危险的，后面务必改一下lights的管理结构。
 	m_cbDataLights.dirLight = pDirLight->GetLightInfo();
 	m_cbDataLights.pointLight = pPointLight->GetLightInfo();
 	m_cbDataLights.spotLight = pSpotLight->GetLightInfo();
 
-	if (pDirLight)
-	{
-		ConstantBufferLight cb;
-		cb.dirLight = m_cbDataLights.dirLight;
-		cb.pointLight = m_cbDataLights.pointLight;
-		cb.spotLight = m_cbDataLights.spotLight;
-		g_pContext->UpdateSubresource(m_cbLights, 0, nullptr, &cb, 0, 0);
-	}
+	ConstantBufferLight cb;
+	cb.dirLight = m_cbDataLights.dirLight;
+	cb.pointLight = m_cbDataLights.pointLight;
+	cb.spotLight = m_cbDataLights.spotLight;
+	g_pContext->UpdateSubresource(m_cbLights, 0, nullptr, &cb, 0, 0);
 	
-	auto pMaterial = make_shared<NXMaterial>();
-	pMaterial->SetAmbient(Vector4(0.7f, 0.85f, 0.7f, 1.0f));
-	pMaterial->SetDiffuse(Vector4(0.7f, 0.85f, 0.7f, 1.0f));
-	pMaterial->SetSpecular(Vector4(0.8f, 0.8f, 0.8f, 16.0f));
-	pMaterial->SetOpacity(0.2f);
-	m_materials.push_back(pMaterial);
+	auto pMaterial = m_sceneManager->CreateMaterial(
+		"defaultMaterial",
+		Vector4(0.0f, 0.0f, 0.0f, 1.0f),
+		Vector4(0.7f, 0.85f, 0.7f, 1.0f),
+		Vector4(0.8f, 0.8f, 0.8f, 1.0f),
+		0.2f
+	);
 
-	//auto pPlane = make_shared<NXPlane>();
-	//{
-	//	pPlane->SetName("PlaneMir");
-	//	pPlane->Init(5.0f, 5.0f);
-	//	pPlane->SetMaterial(pMaterial);
-	//	pPlane->SetTranslation(Vector3(0.0f, 0.0f, 0.0f));
-	//	m_primitives.push_back(pPlane);
-	//}
+	auto pPlane = m_sceneManager->CreatePlane(
+		"Wall",
+		5.0f, 5.0f,
+		pMaterial,
+		Vector3(0.0f)
+	);
 
-	//pPlane = make_shared<NXPlane>();
-	//{
-	//	pPlane->SetName("Plane");
-	//	pPlane->Init(5.0f, 5.0f);
-	//	pPlane->SetMaterial(pMaterial);
-	//	pPlane->SetTranslation(Vector3(0.0f, 2.5f, 2.5f));
-	//	pPlane->SetRotation(Vector3(-XM_PIDIV2, 0.0f, 0.0f));
-	//	m_primitives.push_back(pPlane);
-	//}
-	//
-	//auto pSphere = make_shared<NXSphere>();
-	//{
-	//	pSphere->SetName("Sphere");
-	//	pSphere->Init(1.0f, 16, 16);
-	//	pSphere->SetMaterial(pMaterial);
-	//	pSphere->SetTranslation(Vector3(2.0f, 0.0f, 0.0f));
-	//	m_primitives.push_back(pSphere);
-	//}
+	pPlane = m_sceneManager->CreatePlane(
+		"Ground",
+		5.0f, 5.0f,
+		pMaterial,
+		Vector3(0.0f, 2.5f, 2.5f),
+		Vector3(-XM_PIDIV2, 0.0f, 0.0f)
+	);
+	
+	auto pSphere = m_sceneManager->CreateSphere(
+		"Sphere",
+		1.0f, 16, 16,
+		pMaterial,
+		Vector3(2.0f, 0.0f, 0.0f)
+	);
 
-	//auto pMesh = make_shared<NXMesh>();
-	//{
-	//	pMesh->SetName("Mesh");
-	//	pMesh->Init("D:\\1.fbx");
-	//	//pMesh->Init();
-	//	pMesh->SetMaterial(pMaterial);
-	//	//pMesh->SetTranslation(Vector3(-1.0f, 1.0f, -1.0f));
-	//	pMesh->SetScale(Vector3(0.01f));
-	//	pMesh->SetTranslation(Vector3(0.0f)); 
-	//	m_primitives.push_back(pMesh);
-	//}
-
-	auto pMesh = make_shared<NXMesh>();
-	{
-		pMesh->SetName("Mesh");
-		pMesh->Init("D:\\2.fbx");
-		//pMesh->Init();
-		pMesh->SetMaterial(pMaterial);
-		pMesh->SetScale(Vector3(1.0f));
-		pMesh->SetTranslation(Vector3(0.0f)); 
-		m_primitives.push_back(pMesh);
-	}
+	auto pMesh = m_sceneManager->CreateMesh(
+		"Mesh",
+		"D:\\test.fbx",
+		pMaterial,
+		Vector3(-0.0f, 1.0f, -0.0f)
+	);
 
 	//auto pScript_test = make_shared<NSTest>();
 	//pMesh->AddScript(pScript_test);
 
-	auto pCamera = make_shared<NXCamera>();
-	pCamera->Init(Vector3(0.0f, 0.0f, -1.5f),
+	auto pCamera = m_sceneManager->CreateCamera(
+		"Camera1", 
+		0.01f, 1000.f, 
+		Vector3(0.0f, 0.0f, -1.5f),
 		Vector3(0.0f, 0.0f, 0.0f),
-		Vector3(0.0f, 1.0f, 0.0f));
+		Vector3(0.0f, 1.0f, 0.0f)
+	);
 	m_mainCamera = pCamera;
+	m_objects.push_back(pCamera);
 
 	auto pScript = make_shared<NSFirstPersonalCamera>();
 	m_mainCamera->AddScript(pScript);
@@ -182,14 +170,14 @@ void Scene::PrevUpdate()
 {
 	for (auto it = m_lights.begin(); it != m_lights.end(); it++)
 	{
-		(*it)->PrevUpdate();
+		(*it)->UpdateTransform();
 	}
 
 	m_mainCamera->PrevUpdate();
 
 	for (auto it = m_primitives.begin(); it != m_primitives.end(); it++)
 	{
-		(*it)->PrevUpdate();
+		(*it)->UpdateTransform();
 	}
 }
 
@@ -232,6 +220,8 @@ void Scene::Release()
 	{
 		m_mainCamera->Release();
 	}
+
+	m_sceneManager.reset();
 }
 
 void Scene::GetShadowMapTransformInfo(ConstantBufferShadowMapTransform& out_cb)

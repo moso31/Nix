@@ -16,16 +16,18 @@ public:
 	virtual void SetRotation(const Vector3& value);
 	virtual void SetScale(const Vector3& value);
 
+	Matrix GetLocalMatrix();
 	virtual Matrix GetWorldMatrix();
 	virtual Matrix GetWorldMatrixInv();
 
-	virtual void PrevUpdate();
+	virtual void UpdateTransform();
 
 protected:
 	Vector3 m_translation;
 	Quaternion m_rotation;
 	Vector3 m_scale;
 
+	Matrix m_localMatrix;
 	Matrix m_worldMatrix;
 	Matrix m_worldMatrixInv;
 };

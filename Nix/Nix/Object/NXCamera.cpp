@@ -5,7 +5,9 @@
 NXCamera::NXCamera() :
 	NXTransform(),
 	m_at(0.0f, 0.0f, 0.0f),
-	m_up(0.0f, 1.0f, 0.0f)
+	m_up(0.0f, 1.0f, 0.0f),
+	m_near(0.1f),
+	m_far(1000.0f)
 {
 	m_name = "Camera";
 }
@@ -98,7 +100,7 @@ Ray NXCamera::GenerateRay(Vector2 cursorPosition)
 	return Ray(vOrigWorld, vDirWorld);
 }
 
-void NXCamera::Init(Vector3 cameraPosition, Vector3 cameraLookAt, Vector3 cameraLookUp)
+void NXCamera::Init(float zNear, float zFar, Vector3 cameraPosition, Vector3 cameraLookAt, Vector3 cameraLookUp)
 {
 	SetTranslation(cameraPosition);
 	SetLookAt(cameraLookAt);
@@ -119,9 +121,9 @@ void NXCamera::PrevUpdate()
 	Vector2 vpsz = g_dxResources->GetViewPortSize();
 	float aspectRatio = vpsz.x / vpsz.y;
 	m_view = XMMatrixLookAtLH(m_translation, m_at, m_up);
-	m_projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, aspectRatio, 0.01f, 1000.0f);
+	m_projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, aspectRatio, m_near, m_far);
 
-	NXTransform::PrevUpdate();
+	NXTransform::UpdateTransform();
 }
 
 void NXCamera::Update()

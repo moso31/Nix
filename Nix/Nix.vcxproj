@@ -243,7 +243,7 @@
     <None Include="Core\DX\SimpleMath.inl" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shader\Tutorial03.fx">
+    <None Include="Shader\Scene.fx">
       <FileType>Document</FileType>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>

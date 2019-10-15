@@ -13,10 +13,17 @@ public:
 	void AddScript(const shared_ptr<NXScript> &script);
 	vector<shared_ptr<NXScript>> GetScripts();
 
+	shared_ptr<NXObject> GetParent();
+	void SetParent(shared_ptr<NXObject> pParent);
+
 	virtual void Update();
 	virtual void Release();
 
 protected:
 	string m_name;
 	vector<shared_ptr<NXScript>> m_scripts;
+	
+private:
+	shared_ptr<NXObject> m_parent;
+	vector<shared_ptr<NXObject>> m_childs;
 };

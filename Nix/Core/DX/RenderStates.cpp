@@ -41,9 +41,9 @@ void RenderStates::Init()
 	shadowMapDesc.CullMode = D3D11_CULL_BACK;
 	shadowMapDesc.FrontCounterClockwise = false;
 	shadowMapDesc.DepthClipEnable = true;
-	shadowMapDesc.DepthBias = 100000;
+	shadowMapDesc.DepthBias = 10000;
 	shadowMapDesc.DepthBiasClamp = 0.0f;
-	shadowMapDesc.SlopeScaledDepthBias = 1.0f;
+	shadowMapDesc.SlopeScaledDepthBias = 2.0f;
 	NX::ThrowIfFailed(g_pDevice->CreateRasterizerState2(&shadowMapDesc, &ShadowMapRS));
 
 	//

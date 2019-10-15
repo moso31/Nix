@@ -26,6 +26,16 @@ vector<shared_ptr<NXScript>> NXObject::GetScripts()
 	return m_scripts;
 }
 
+shared_ptr<NXObject> NXObject::GetParent()
+{
+	return m_parent;
+}
+
+void NXObject::SetParent(shared_ptr<NXObject> pParent)
+{
+	m_parent = pParent;
+}
+
 void NXObject::Update()
 {
 	for (auto it = m_scripts.begin(); it != m_scripts.end(); it++)

@@ -46,6 +46,11 @@ void NXTransform::SetScale(const Vector3 &value)
 	m_scale = value;
 }
 
+Matrix NXTransform::GetLocalMatrix()
+{
+	return m_localMatrix;
+}
+
 Matrix NXTransform::GetWorldMatrix()
 {
 	return m_worldMatrix;
@@ -56,12 +61,26 @@ Matrix NXTransform::GetWorldMatrixInv()
 	return m_worldMatrixInv;
 }
 
-void NXTransform::PrevUpdate()
+void NXTransform::UpdateTransform()
 {
 	Matrix result =
 		Matrix::CreateScale(m_scale) *
 		Matrix::CreateFromQuaternion(m_rotation) *
 		Matrix::CreateTranslation(m_translation);
+
+	m_localMatrix = result;
+	
+	auto pParent = GetParent();
+	while (pParent)
+	{
+		auto pTransform = dynamic_pointer_cast<NXTransform>(pParent);
+		if (pTransform)
+		{
+			pTransform->UpdateTransform();
+			result *= pTransform->GetLocalMatrix();
+		}
+	}
+	
 	m_worldMatrix = result;
 	m_worldMatrixInv = result.Invert();
 }

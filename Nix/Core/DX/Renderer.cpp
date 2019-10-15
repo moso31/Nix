@@ -31,7 +31,7 @@ void Renderer::InitRenderer()
 	// create VS & IL
 	ID3DBlob* pVSBlob = nullptr;
 	NX::MessageBoxIfFailed(
-		ShaderComplier::Compile(L"Shader\\Tutorial03.fx", "VS", "vs_5_0", &pVSBlob), 
+		ShaderComplier::Compile(L"Shader\\Scene.fx", "VS", "vs_5_0", &pVSBlob), 
 		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
 	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVertexShader));
 
@@ -61,7 +61,7 @@ void Renderer::InitRenderer()
 	// Create PS
 	ID3DBlob* pPSBlob = nullptr;
 	NX::MessageBoxIfFailed(
-		ShaderComplier::Compile(L"Shader\\Tutorial03.fx", "PS", "ps_5_0", &pPSBlob),
+		ShaderComplier::Compile(L"Shader\\Scene.fx", "PS", "ps_5_0", &pPSBlob),
 		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
 	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShader));
 

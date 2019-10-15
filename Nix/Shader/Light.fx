@@ -160,7 +160,7 @@ float ShadowMapFilter(SamplerComparisonState samp, Texture2D tex, float4 pos)
 	for (int i = 0; i < 9; ++i)
 	{
 		// 对ShadowMap进行3x3范围采样
-		float offset = offset3x3[i] * 0.0f * SHADOWMAP_INVSIZE;
+		float offset = offset3x3[i] * SHADOWMAP_INVSIZE;
 		// 采用的比较是less，即：如果shadowMap的depth < 当前渲染坐标的depth，就计入percentLit。
 		percentLit += tex.SampleCmpLevelZero(samp, pos.xy + offset, pos.z).r;
 	}
