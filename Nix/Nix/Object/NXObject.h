@@ -4,7 +4,7 @@
 class NXObject : public enable_shared_from_this<NXObject>
 {
 public:
-	NXObject() = default;
+	NXObject();
 	~NXObject();
 
 	string GetName();
@@ -15,10 +15,14 @@ public:
 
 	shared_ptr<NXObject> GetParent();
 	void SetParent(shared_ptr<NXObject> pParent);
+	void ClearParent();
 
 	size_t GetChildCount();
-	vector<shared_ptr<NXObject>> GetChilds();
-	shared_ptr<NXObject> GetChild(size_t index);
+	list<shared_ptr<NXObject>> GetChilds();
+	void RemoveChild(const shared_ptr<NXObject>& pObject);
+
+	// 检测pObject是否是当前节点的子节点。
+	bool IsChild(shared_ptr<NXObject> pObject);
 
 	virtual void Update();
 	virtual void Release();
@@ -29,5 +33,5 @@ protected:
 	
 private:
 	shared_ptr<NXObject> m_parent;
-	vector<shared_ptr<NXObject>> m_childs;
+	list<shared_ptr<NXObject>> m_childs;
 };

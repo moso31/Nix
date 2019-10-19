@@ -207,3 +207,11 @@ shared_ptr<NXMaterial> SceneManager::CreateMaterial(const string& name, const Ve
 	return p;
 }
 
+bool SceneManager::BindRelation(shared_ptr<NXObject> pParent, shared_ptr<NXObject> pChild)
+{
+	if (!pChild || !pParent)
+		return false;
+
+	pChild->SetParent(pParent);
+}
+

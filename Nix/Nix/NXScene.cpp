@@ -135,8 +135,8 @@ void Scene::Init()
 		Vector3(-0.0f, 1.0f, -0.0f)
 	);
 
-	//auto pScript_test = make_shared<NSTest>();
-	//pMesh->AddScript(pScript_test);
+	auto pScript_test = make_shared<NSTest>();
+	pMesh->AddScript(pScript_test);
 
 	auto pCamera = m_sceneManager->CreateCamera(
 		"Camera1", 
@@ -145,6 +145,8 @@ void Scene::Init()
 		Vector3(0.0f, 0.0f, 0.0f),
 		Vector3(0.0f, 1.0f, 0.0f)
 	);
+
+	m_sceneManager->BindRelation(pMesh, pSphere);
 	m_mainCamera = pCamera;
 	m_objects.push_back(pCamera);
 
@@ -179,31 +181,24 @@ void Scene::UpdateTransform(shared_ptr<NXObject> pObject)
 		auto pT = dynamic_pointer_cast<NXTransform>(pObject);
 		if (pT)
 			pT->UpdateTransform();
-		for (size_t i = 0; i < pObject->GetChildCount(); i++)
+		auto ch = pObject->GetChilds();
+		for (auto it = ch.begin(); it != ch.end(); it++)
 		{
-			UpdateTransform(pObject->GetChild(i));
+			UpdateTransform(*it);
 		}
 	}
 }
 
 void Scene::UpdateScripts()
 {
-	for (auto it = m_primitives.begin(); it != m_primitives.end(); it++)
+	for (auto it = m_objects.begin(); it != m_objects.end(); it++)
 	{
-		auto pPrim = *it;
-		auto pPrimScripts = pPrim->GetScripts();
-		for (auto itScripts = pPrimScripts.begin(); itScripts != pPrimScripts.end(); itScripts++)
+		auto scripts = (*it)->GetScripts();
+		for (auto itScr = scripts.begin(); itScr != scripts.end(); itScr++)
 		{
-			auto pScript = *itScripts;
+			auto pScript = *itScr;
 			pScript->Update();
 		}
-	}
-
-	auto pScripts = m_mainCamera->GetScripts();
-	for (auto itScripts = pScripts.begin(); itScripts != pScripts.end(); itScripts++)
-	{
-		auto pScript = *itScripts;
-		pScript->Update();
 	}
 }
 

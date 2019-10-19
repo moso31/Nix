@@ -14,8 +14,8 @@ NSTest::~NSTest()
 void NSTest::Update()
 {
 	auto timeDelta = g_timer->GetTimeDelta() / 1000000.0f;
-	m_rotValue += timeDelta;
+	m_rotValue += 0.01f;// timeDelta;
 
 	auto pPrimitive = dynamic_pointer_cast<NXPrimitive>(m_pObject);
-	pPrimitive->SetRotation(Vector3(m_rotValue, 0.0f, 0.0f));
+	pPrimitive->SetRotation(Vector3(m_rotValue, m_rotValue, 0.0f));
 }

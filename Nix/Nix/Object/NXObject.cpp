@@ -1,6 +1,11 @@
 #include "NXObject.h"
 #include "NXScript.h"
 
+NXObject::NXObject() :
+	m_parent(nullptr)
+{
+}
+
 NXObject::~NXObject()
 {
 }
@@ -33,8 +38,19 @@ shared_ptr<NXObject> NXObject::GetParent()
 
 void NXObject::SetParent(shared_ptr<NXObject> pParent)
 {
+	if (m_parent)
+	{
+		m_parent->RemoveChild(shared_from_this());
+	}
+
+	// 不考虑SetParent为nullptr的情况，因为场景中始终有一个pRootObject。
 	m_parent = pParent;
 	pParent->m_childs.push_back(shared_from_this());
+}
+
+void NXObject::ClearParent()
+{
+	m_parent->GetChildCount();
 }
 
 size_t NXObject::GetChildCount()
@@ -42,14 +58,25 @@ size_t NXObject::GetChildCount()
 	return m_childs.size();
 }
 
-vector<shared_ptr<NXObject>> NXObject::GetChilds()
+list<shared_ptr<NXObject>> NXObject::GetChilds()
 {
 	return m_childs;
 }
 
-shared_ptr<NXObject> NXObject::GetChild(size_t index)
+void NXObject::RemoveChild(const shared_ptr<NXObject>& pObject)
 {
-	return m_childs[index];
+	m_childs.remove(pObject);
+}
+
+bool NXObject::IsChild(shared_ptr<NXObject> pObject)
+{
+	auto pParent = pObject->m_parent;
+	while (pParent)
+	{
+		if (pParent == shared_from_this()) return true;
+		pParent = pParent->m_parent;
+	}
+	return false;
 }
 
 void NXObject::Update()
