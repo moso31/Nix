@@ -13,7 +13,7 @@ public:
 	void OnMouseDown(NXEventArg eArg);
 
 	void Init();
-	void PrevUpdate();
+	void UpdateTransform(shared_ptr<NXObject> pObject = nullptr);
 	void UpdateScripts();
 	void UpdateCamera();
 	void Release();
@@ -36,6 +36,7 @@ private:
 	friend SceneManager;
 	shared_ptr<SceneManager> m_sceneManager;
 
+	shared_ptr<NXObject> m_pRootObject;
 	// object : light¡¢camera¡¢primitive¾ùÊôÓÚobject¡£
 	vector<shared_ptr<NXObject>> m_objects;
 	vector<shared_ptr<NXLight>> m_lights;

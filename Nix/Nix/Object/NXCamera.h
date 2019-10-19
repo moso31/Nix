@@ -21,7 +21,7 @@ public:
 	Ray GenerateRay(Vector2 cursorPosition);
 
 	void Init(float zNear, float zFar, Vector3 cameraPosition, Vector3 cameraLookAt, Vector3 cameraLookUp);
-	void PrevUpdate();
+	void UpdateTransform();
 	void Update();
 	void Render();
 	void Release();

@@ -76,6 +76,7 @@ shared_ptr<NXBox> SceneManager::CreateBox(const string& name, const float width,
 	p->SetScale(scale);
 	m_scene->m_primitives.push_back(p);
 	m_scene->m_objects.push_back(p);
+	p->SetParent(m_scene->m_pRootObject);
 	return p;
 }
 
@@ -90,6 +91,7 @@ shared_ptr<NXSphere> SceneManager::CreateSphere(const string& name, const float 
 	p->SetScale(scale);
 	m_scene->m_primitives.push_back(p);
 	m_scene->m_objects.push_back(p);
+	p->SetParent(m_scene->m_pRootObject);
 	return p;
 }
 
@@ -104,6 +106,7 @@ shared_ptr<NXCylinder> SceneManager::CreateCylinder(const string& name, const fl
 	p->SetScale(scale);
 	m_scene->m_primitives.push_back(p);
 	m_scene->m_objects.push_back(p);
+	p->SetParent(m_scene->m_pRootObject);
 	return p;
 }
 
@@ -118,6 +121,7 @@ shared_ptr<NXPlane> SceneManager::CreatePlane(const string& name, const float wi
 	p->SetScale(scale);
 	m_scene->m_primitives.push_back(p);
 	m_scene->m_objects.push_back(p);
+	p->SetParent(m_scene->m_pRootObject);
 	return p;
 }
 
@@ -132,6 +136,7 @@ shared_ptr<NXMesh> SceneManager::CreateMesh(const string& name, const string& fi
 	p->SetScale(scale);
 	m_scene->m_primitives.push_back(p);
 	m_scene->m_objects.push_back(p);
+	p->SetParent(m_scene->m_pRootObject);
 	return p;
 }
 
@@ -144,6 +149,7 @@ shared_ptr<NXDirectionalLight> SceneManager::CreateDirectionalLight(const string
 	p->SetDirection(direction);
 	m_scene->m_lights.push_back(p);
 	m_scene->m_objects.push_back(p);
+	p->SetParent(m_scene->m_pRootObject);
 	return p;
 }
 
@@ -158,6 +164,7 @@ shared_ptr<NXPointLight> SceneManager::CreatePointLight(const string& name, cons
 	p->SetAtt(attenuation);
 	m_scene->m_lights.push_back(p);
 	m_scene->m_objects.push_back(p);
+	p->SetParent(m_scene->m_pRootObject);
 	return p;
 }
 
@@ -174,6 +181,7 @@ shared_ptr<NXSpotLight> SceneManager::CreateSpotLight(const string& name, const 
 	p->SetAtt(attenuation);
 	m_scene->m_lights.push_back(p);
 	m_scene->m_objects.push_back(p);
+	p->SetParent(m_scene->m_pRootObject);
 	return p;
 }
 
@@ -183,6 +191,7 @@ shared_ptr<NXCamera> SceneManager::CreateCamera(const string& name, const float 
 	p->Init(zNear, zFar, eye, at, up);
 	m_scene->m_mainCamera = p;
 	m_scene->m_objects.push_back(p);
+	p->SetParent(m_scene->m_pRootObject);
 	return p;
 }
 

@@ -21,7 +21,8 @@
 
 // temp include.
 
-Scene::Scene()
+Scene::Scene() :
+	m_pRootObject(make_shared<NXObject>())
 {
 }
 
@@ -162,22 +163,26 @@ void Scene::Init()
 	NXEventMouseDown::GetInstance()->AddListener(pListener_onMouseDown);
 
 	// 更新AABB需要世界坐标，而Init阶段还没有拿到世界坐标，所以需要提前PrevUpdate一次。
-	PrevUpdate();
+	UpdateTransform(m_pRootObject);
 	InitBoundingStructures();
 }
 
-void Scene::PrevUpdate()
+void Scene::UpdateTransform(shared_ptr<NXObject> pObject)
 {
-	for (auto it = m_lights.begin(); it != m_lights.end(); it++)
+	// pObject为空时代表从根节点开始更新Transform。
+	if (!pObject)
 	{
-		(*it)->UpdateTransform();
+		UpdateTransform(m_pRootObject);
 	}
-
-	m_mainCamera->PrevUpdate();
-
-	for (auto it = m_primitives.begin(); it != m_primitives.end(); it++)
+	else
 	{
-		(*it)->UpdateTransform();
+		auto pT = dynamic_pointer_cast<NXTransform>(pObject);
+		if (pT)
+			pT->UpdateTransform();
+		for (size_t i = 0; i < pObject->GetChildCount(); i++)
+		{
+			UpdateTransform(pObject->GetChild(i));
+		}
 	}
 }
 

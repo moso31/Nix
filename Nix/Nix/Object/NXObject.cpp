@@ -34,6 +34,22 @@ shared_ptr<NXObject> NXObject::GetParent()
 void NXObject::SetParent(shared_ptr<NXObject> pParent)
 {
 	m_parent = pParent;
+	pParent->m_childs.push_back(shared_from_this());
+}
+
+size_t NXObject::GetChildCount()
+{
+	return m_childs.size();
+}
+
+vector<shared_ptr<NXObject>> NXObject::GetChilds()
+{
+	return m_childs;
+}
+
+shared_ptr<NXObject> NXObject::GetChild(size_t index)
+{
+	return m_childs[index];
 }
 
 void NXObject::Update()

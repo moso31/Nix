@@ -120,7 +120,7 @@ void Renderer::InitRenderer()
 
 void Renderer::UpdateSceneData()
 {
-	m_scene->PrevUpdate();
+	m_scene->UpdateTransform();
 	m_scene->UpdateScripts();
 }
 

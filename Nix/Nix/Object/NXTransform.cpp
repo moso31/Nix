@@ -79,6 +79,7 @@ void NXTransform::UpdateTransform()
 			pTransform->UpdateTransform();
 			result *= pTransform->GetLocalMatrix();
 		}
+		pParent = pTransform;
 	}
 	
 	m_worldMatrix = result;

@@ -16,6 +16,10 @@ public:
 	shared_ptr<NXObject> GetParent();
 	void SetParent(shared_ptr<NXObject> pParent);
 
+	size_t GetChildCount();
+	vector<shared_ptr<NXObject>> GetChilds();
+	shared_ptr<NXObject> GetChild(size_t index);
+
 	virtual void Update();
 	virtual void Release();
 

@@ -116,7 +116,7 @@ void NXCamera::Init(float zNear, float zFar, Vector3 cameraPosition, Vector3 cam
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &NXGlobalBufferManager::m_cbCamera));
 }
 
-void NXCamera::PrevUpdate()
+void NXCamera::UpdateTransform()
 {
 	Vector2 vpsz = g_dxResources->GetViewPortSize();
 	float aspectRatio = vpsz.x / vpsz.y;
