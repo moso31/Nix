@@ -39,9 +39,7 @@ shared_ptr<NXObject> NXObject::GetParent()
 void NXObject::SetParent(shared_ptr<NXObject> pParent)
 {
 	if (m_parent)
-	{
 		m_parent->RemoveChild(shared_from_this());
-	}
 
 	// 不考虑SetParent为nullptr的情况，因为场景中始终有一个pRootObject。
 	m_parent = pParent;

@@ -128,15 +128,12 @@ void Scene::Init()
 		Vector3(2.0f, 0.0f, 0.0f)
 	);
 
-	auto pMesh = m_sceneManager->CreateMesh(
-		"Mesh",
-		"D:\\test.fbx",
+	vector<shared_ptr<NXMesh>> pMeshes;
+	bool pMesh = m_sceneManager->CreateFBXMeshes(
+		"D:\\2.fbx", 
 		pMaterial,
-		Vector3(-0.0f, 1.0f, -0.0f)
+		pMeshes
 	);
-
-	auto pScript_test = make_shared<NSTest>();
-	pMesh->AddScript(pScript_test);
 
 	auto pCamera = m_sceneManager->CreateCamera(
 		"Camera1", 
@@ -146,7 +143,16 @@ void Scene::Init()
 		Vector3(0.0f, 1.0f, 0.0f)
 	);
 
-	m_sceneManager->BindRelation(pMesh, pSphere);
+	if (!pMeshes.empty())
+	{
+		bool bBind = m_sceneManager->BindRelation(pMeshes[0], pSphere);
+		if (bBind)
+		{
+			auto pScript_test = make_shared<NSTest>();
+			pMeshes[0]->AddScript(pScript_test);
+		}
+	}
+
 	m_mainCamera = pCamera;
 	m_objects.push_back(pCamera);
 

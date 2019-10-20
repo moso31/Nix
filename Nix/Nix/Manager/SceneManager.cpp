@@ -1,5 +1,6 @@
 #include "SceneManager.h"
 #include "NSFirstPersonalCamera.h"
+#include "FBXMeshLoader.h"
 
 SceneManager::SceneManager()
 {
@@ -125,19 +126,17 @@ shared_ptr<NXPlane> SceneManager::CreatePlane(const string& name, const float wi
 	return p;
 }
 
-shared_ptr<NXMesh> SceneManager::CreateMesh(const string& name, const string& filePath, const shared_ptr<NXMaterial>& material, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
+bool SceneManager::CreateFBXMeshes(const string& filePath, const shared_ptr<NXMaterial>& pDefaultMaterial, vector<shared_ptr<NXMesh>>& outMeshes)
 {
-	auto p = make_shared<NXMesh>();
-	p->SetName(name);
-	p->Init(filePath);
-	p->SetMaterial(material);
-	p->SetTranslation(translation);
-	p->SetRotation(rotation);
-	p->SetScale(scale);
-	m_scene->m_primitives.push_back(p);
-	m_scene->m_objects.push_back(p);
-	p->SetParent(m_scene->m_pRootObject);
-	return p;
+	FBXMeshLoader::LoadFBXFile(filePath, m_scene, outMeshes);
+	for (auto it = outMeshes.begin(); it != outMeshes.end(); it++)
+	{
+		(*it)->SetMaterial(pDefaultMaterial);
+		m_scene->m_primitives.push_back(*it);
+		m_scene->m_objects.push_back(*it);
+		(*it)->SetParent(m_scene->m_pRootObject);
+	}
+	return true;
 }
 
 shared_ptr<NXDirectionalLight> SceneManager::CreateDirectionalLight(const string& name, const Vector4& ambient, const Vector4& diffuse, const Vector3& specular, const float specularW, const Vector3& direction)
@@ -213,5 +212,6 @@ bool SceneManager::BindRelation(shared_ptr<NXObject> pParent, shared_ptr<NXObjec
 		return false;
 
 	pChild->SetParent(pParent);
+	return true;
 }
 

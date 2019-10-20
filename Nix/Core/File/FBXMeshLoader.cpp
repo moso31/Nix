@@ -1,7 +1,8 @@
 #include "FBXMeshLoader.h"
 #include "NXMesh.h"
+#include "NXScene.h"
 
-void FBXMeshLoader::LoadContent(FbxScene* pScene, NXMesh* pEngineMesh)
+void FBXMeshLoader::LoadContent(FbxScene* pScene, shared_ptr<NXMesh> pEngineMesh)
 {
 	int i;
 	FbxNode* lNode = pScene->GetRootNode();
@@ -15,7 +16,7 @@ void FBXMeshLoader::LoadContent(FbxScene* pScene, NXMesh* pEngineMesh)
 	}
 }
 
-void FBXMeshLoader::LoadContent(FbxNode* pNode, NXMesh* pEngineMesh)
+void FBXMeshLoader::LoadContent(FbxNode* pNode, shared_ptr<NXMesh> pEngineMesh)
 {
 	FbxNodeAttribute::EType lAttributeType;
 	int i;
@@ -55,7 +56,7 @@ void FBXMeshLoader::LoadContent(FbxNode* pNode, NXMesh* pEngineMesh)
 	}
 }
 
-void FBXMeshLoader::LoadNodeTransformInfo(FbxNode* pNode, NXMesh* pEngineMesh)
+void FBXMeshLoader::LoadNodeTransformInfo(FbxNode* pNode, shared_ptr<NXMesh> pEngineMesh)
 {
 	FbxDouble3 fVec = pNode->LclTranslation.Get();
 	Vector3 vec = { (float)fVec[0], (float)fVec[1], (float)fVec[2] };
@@ -70,7 +71,7 @@ void FBXMeshLoader::LoadNodeTransformInfo(FbxNode* pNode, NXMesh* pEngineMesh)
 	pEngineMesh->SetScale(vec);
 }
 
-void FBXMeshLoader::LoadMesh(FbxNode* pNode, NXMesh* pEngineMesh)
+void FBXMeshLoader::LoadMesh(FbxNode* pNode, shared_ptr<NXMesh> pEngineMesh)
 {
 	pEngineMesh->SetName((char*)pNode->GetName());
 	FbxMesh* lMesh = (FbxMesh*)pNode->GetNodeAttribute();
@@ -78,7 +79,7 @@ void FBXMeshLoader::LoadMesh(FbxNode* pNode, NXMesh* pEngineMesh)
 	LoadPolygons(lMesh, pEngineMesh);
 }
 
-void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXMesh* pEngineMesh)
+void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, shared_ptr<NXMesh> pEngineMesh)
 {
 	int i, j, lPolygonCount = pMesh->GetPolygonCount();
 	FbxVector4* lControlPoints = pMesh->GetControlPoints();
@@ -333,7 +334,7 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXMesh* pEngineMesh)
 	//DisplayString("");
 }
 
-void FBXMeshLoader::LoadFBXFile(string filepath, NXMesh* pEngineMesh)
+void FBXMeshLoader::LoadFBXFile(string filepath, shared_ptr<Scene> pRenderScene, vector<shared_ptr<NXMesh>>& outMeshes)
 {
 	FbxManager* lSdkManager = NULL;
 	FbxScene* lScene = NULL;
@@ -357,9 +358,14 @@ void FBXMeshLoader::LoadFBXFile(string filepath, NXMesh* pEngineMesh)
 
 	if (lNode)
 	{
+		outMeshes.resize((size_t)lNode->GetChildCount());
 		for (int i = 0; i < lNode->GetChildCount(); i++)
 		{
-			LoadContent(lNode->GetChild(i), pEngineMesh);
+			auto pMesh = make_shared<NXMesh>();
+			LoadContent(lNode->GetChild(i), pMesh);
+			pMesh->Init(filepath);
+			pMesh->SetName(lNode->GetName());
+			outMeshes[i] = pMesh;
 		}
 	}
 }
