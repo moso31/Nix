@@ -37,7 +37,7 @@ public:
 	shared_ptr<NXMaterial> CreateMaterial(const string& name, const Vector4& ambient = Vector4(0.5f, 0.5f, 0.5f, 0.5f), const Vector4& diffuse = Vector4(0.5f, 0.5f, 0.5f, 0.5f), const Vector4& specular = Vector4(0.5f, 0.5f, 0.5f, 0.5f), const float opacity = 1.0f, const Vector4& reflect = Vector4(0.0f));
 
 	// 绑定Outline父子关系
-	bool BindRelation(shared_ptr<NXObject> pParent, shared_ptr<NXObject> pChild);
+	bool BindParent(shared_ptr<NXObject> pParent, shared_ptr<NXObject> pChild);
 
 private:
 	shared_ptr<Scene> m_scene;

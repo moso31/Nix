@@ -15,7 +15,6 @@ public:
 
 	shared_ptr<NXObject> GetParent();
 	void SetParent(shared_ptr<NXObject> pParent);
-	void ClearParent();
 
 	size_t GetChildCount();
 	list<shared_ptr<NXObject>> GetChilds();

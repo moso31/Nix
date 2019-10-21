@@ -46,11 +46,6 @@ void NXObject::SetParent(shared_ptr<NXObject> pParent)
 	pParent->m_childs.push_back(shared_from_this());
 }
 
-void NXObject::ClearParent()
-{
-	m_parent->GetChildCount();
-}
-
 size_t NXObject::GetChildCount()
 {
 	return m_childs.size();

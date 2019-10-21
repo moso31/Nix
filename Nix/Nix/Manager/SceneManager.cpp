@@ -134,7 +134,10 @@ bool SceneManager::CreateFBXMeshes(const string& filePath, const shared_ptr<NXMa
 		(*it)->SetMaterial(pDefaultMaterial);
 		m_scene->m_primitives.push_back(*it);
 		m_scene->m_objects.push_back(*it);
-		(*it)->SetParent(m_scene->m_pRootObject);
+
+		// 将所有FBXMeshes为nullptr的全算作root的子节点（场景内最外一层）
+		if ((*it)->GetParent() == nullptr)
+			(*it)->SetParent(m_scene->m_pRootObject);
 	}
 	return true;
 }
@@ -206,7 +209,7 @@ shared_ptr<NXMaterial> SceneManager::CreateMaterial(const string& name, const Ve
 	return p;
 }
 
-bool SceneManager::BindRelation(shared_ptr<NXObject> pParent, shared_ptr<NXObject> pChild)
+bool SceneManager::BindParent(shared_ptr<NXObject> pParent, shared_ptr<NXObject> pChild)
 {
 	if (!pChild || !pParent)
 		return false;

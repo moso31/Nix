@@ -145,7 +145,7 @@ void Scene::Init()
 
 	if (!pMeshes.empty())
 	{
-		bool bBind = m_sceneManager->BindRelation(pMeshes[0], pSphere);
+		bool bBind = m_sceneManager->BindParent(pMeshes[0], pSphere);
 		if (bBind)
 		{
 			auto pScript_test = make_shared<NSTest>();

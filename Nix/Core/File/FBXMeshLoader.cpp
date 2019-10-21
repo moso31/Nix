@@ -2,21 +2,7 @@
 #include "NXMesh.h"
 #include "NXScene.h"
 
-void FBXMeshLoader::LoadContent(FbxScene* pScene, shared_ptr<NXMesh> pEngineMesh)
-{
-	int i;
-	FbxNode* lNode = pScene->GetRootNode();
-
-	if (lNode)
-	{
-		for (i = 0; i < lNode->GetChildCount(); i++)
-		{
-			LoadContent(lNode->GetChild(i), pEngineMesh);
-		}
-	}
-}
-
-void FBXMeshLoader::LoadContent(FbxNode* pNode, shared_ptr<NXMesh> pEngineMesh)
+void FBXMeshLoader::LoadContent(FbxNode* pNode, shared_ptr<NXMesh>& pEngineMesh, vector<shared_ptr<NXMesh>>& outMeshes)
 {
 	FbxNodeAttribute::EType lAttributeType;
 	int i;
@@ -48,15 +34,20 @@ void FBXMeshLoader::LoadContent(FbxNode* pNode, shared_ptr<NXMesh> pEngineMesh)
 		}
 	}
 
+	pEngineMesh->SetName(pNode->GetName());
+	pEngineMesh->Init();
 	LoadNodeTransformInfo(pNode, pEngineMesh);
+	outMeshes.push_back(pEngineMesh);
 
 	for (i = 0; i < pNode->GetChildCount(); i++)
 	{
-		LoadContent(pNode->GetChild(i), pEngineMesh);
+		shared_ptr<NXMesh> pChildMesh = make_shared<NXMesh>();
+		LoadContent(pNode->GetChild(i), pChildMesh, outMeshes);
+		pChildMesh->SetParent(pEngineMesh);
 	}
 }
 
-void FBXMeshLoader::LoadNodeTransformInfo(FbxNode* pNode, shared_ptr<NXMesh> pEngineMesh)
+void FBXMeshLoader::LoadNodeTransformInfo(FbxNode* pNode, shared_ptr<NXMesh>& pEngineMesh)
 {
 	FbxDouble3 fVec = pNode->LclTranslation.Get();
 	Vector3 vec = { (float)fVec[0], (float)fVec[1], (float)fVec[2] };
@@ -71,15 +62,14 @@ void FBXMeshLoader::LoadNodeTransformInfo(FbxNode* pNode, shared_ptr<NXMesh> pEn
 	pEngineMesh->SetScale(vec);
 }
 
-void FBXMeshLoader::LoadMesh(FbxNode* pNode, shared_ptr<NXMesh> pEngineMesh)
+void FBXMeshLoader::LoadMesh(FbxNode* pNode, shared_ptr<NXMesh>& pEngineMesh)
 {
-	pEngineMesh->SetName((char*)pNode->GetName());
 	FbxMesh* lMesh = (FbxMesh*)pNode->GetNodeAttribute();
 
 	LoadPolygons(lMesh, pEngineMesh);
 }
 
-void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, shared_ptr<NXMesh> pEngineMesh)
+void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, shared_ptr<NXMesh>& pEngineMesh)
 {
 	int i, j, lPolygonCount = pMesh->GetPolygonCount();
 	FbxVector4* lControlPoints = pMesh->GetControlPoints();
@@ -358,14 +348,10 @@ void FBXMeshLoader::LoadFBXFile(string filepath, shared_ptr<Scene> pRenderScene,
 
 	if (lNode)
 	{
-		outMeshes.resize((size_t)lNode->GetChildCount());
 		for (int i = 0; i < lNode->GetChildCount(); i++)
 		{
 			auto pMesh = make_shared<NXMesh>();
-			LoadContent(lNode->GetChild(i), pMesh);
-			pMesh->Init(filepath);
-			pMesh->SetName(lNode->GetName());
-			outMeshes[i] = pMesh;
+			LoadContent(lNode->GetChild(i), pMesh, outMeshes);
 		}
 	}
 }
