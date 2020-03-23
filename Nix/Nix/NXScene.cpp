@@ -1,6 +1,7 @@
 #include "NXScene.h"
 #include "SceneManager.h"
 #include "RenderStates.h"
+#include "GlobalBufferManager.h"
 //#include "HBVH.h"
 
 #include "NXMesh.h"
@@ -145,17 +146,26 @@ void Scene::Init()
 
 	if (!pMeshes.empty())
 	{
-		bool bBind = m_sceneManager->BindParent(pMeshes[0], pSphere);
-		if (bBind)
-		{
-			auto pScript_test = make_shared<NSTest>();
-			pMeshes[0]->AddScript(pScript_test);
-		}
+		bool bBind = m_sceneManager->BindParent(pMeshes[1], pSphere);
+		auto pScript_test = make_shared<NSTest>();
+		pMeshes[1]->AddScript(pScript_test);
 	}
 
 	m_mainCamera = pCamera;
 	m_objects.push_back(pCamera);
 
+	InitScripts();
+
+	// 更新AABB需要世界坐标，而Init阶段还没有拿到世界坐标，所以需要提前PrevUpdate一次。(nice annotation.)
+	UpdateTransform(m_pRootObject);
+	InitBoundingStructures();
+	
+	// 设置常量缓存
+	InitShadowMapTransformInfo(NXGlobalBufferManager::m_cbDataShadowMap);
+}
+
+void Scene::InitScripts()
+{
 	auto pScript = make_shared<NSFirstPersonalCamera>();
 	m_mainCamera->AddScript(pScript);
 
@@ -169,10 +179,6 @@ void Scene::Init()
 	auto pThisScene = dynamic_pointer_cast<Scene>(shared_from_this());
 	auto pListener_onMouseDown = make_shared<NXListener>(pThisScene, std::bind(&Scene::OnMouseDown, pThisScene, std::placeholders::_1));
 	NXEventMouseDown::GetInstance()->AddListener(pListener_onMouseDown);
-
-	// 更新AABB需要世界坐标，而Init阶段还没有拿到世界坐标，所以需要提前PrevUpdate一次。
-	UpdateTransform(m_pRootObject);
-	InitBoundingStructures();
 }
 
 void Scene::UpdateTransform(shared_ptr<NXObject> pObject)
@@ -230,7 +236,7 @@ void Scene::Release()
 	m_sceneManager.reset();
 }
 
-void Scene::GetShadowMapTransformInfo(ConstantBufferShadowMapTransform& out_cb)
+void Scene::InitShadowMapTransformInfo(ConstantBufferShadowMapTransform& out_cb)
 {
 	// 目前仅对第一个平行光提供支持
 	Vector3 direction = dynamic_pointer_cast<NXDirectionalLight>(m_lights[0])->GetDirection();

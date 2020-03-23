@@ -12,8 +12,6 @@ shadowMap
 
 microfacet
 	GGX
-		f = fdiff+fspec+fms.
-			µÚÒ»½×¶Î²»¿¼ÂÇfms.
 
 normalmap
 

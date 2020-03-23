@@ -70,6 +70,9 @@ void NXPassShadowMap::Init(UINT width, UINT height)
 	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbTransform));
+
+	// …Ë÷√≥£¡øª∫¥Ê
+	SetConstantBufferTransform(NXGlobalBufferManager::m_cbDataShadowMap);
 }
 
 void NXPassShadowMap::Load()

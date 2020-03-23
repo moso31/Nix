@@ -291,6 +291,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\issues" />
+    <Text Include="..\Next to do" />
   </ItemGroup>
 </Project>

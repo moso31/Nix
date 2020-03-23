@@ -1,9 +1,11 @@
 #include "GlobalBufferManager.h"
 
-ID3D11Buffer*				NXGlobalBufferManager::m_cbWorld;
-ConstantBufferPrimitive		NXGlobalBufferManager::m_cbDataWorld;
-ID3D11Buffer*				NXGlobalBufferManager::m_cbCamera;
-ConstantBufferCamera		NXGlobalBufferManager::m_cbDataCamera;
+ID3D11Buffer*						NXGlobalBufferManager::m_cbWorld;
+ConstantBufferPrimitive				NXGlobalBufferManager::m_cbDataWorld;
+ID3D11Buffer*						NXGlobalBufferManager::m_cbCamera;
+ConstantBufferCamera				NXGlobalBufferManager::m_cbDataCamera;
+ID3D11Buffer*						NXGlobalBufferManager::m_cbShadowMap;
+ConstantBufferShadowMapTransform	NXGlobalBufferManager::m_cbDataShadowMap;
 
 NXGlobalBufferManager::NXGlobalBufferManager()
 {

@@ -20,10 +20,6 @@ void Renderer::Init()
 
 	m_pPassShadowMap = make_shared<NXPassShadowMap>(m_scene);
 	m_pPassShadowMap->Init(2048, 2048);
-
-	ConstantBufferShadowMapTransform cb;
-	m_scene->GetShadowMapTransformInfo(cb);
-	m_pPassShadowMap->SetConstantBufferTransform(cb);
 }
 
 void Renderer::InitRenderer()
