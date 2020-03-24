@@ -49,7 +49,7 @@ struct NXEventArg;
 class NXScript;
 class NXTimer;
 
-class Scene;
+class NXScene;
 class SceneManager;
 //class HBVHTree;	// 暂时先不用这个
 class NXObject;

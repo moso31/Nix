@@ -324,7 +324,7 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, shared_ptr<NXMesh>& pEngineMesh
 	//DisplayString("");
 }
 
-void FBXMeshLoader::LoadFBXFile(string filepath, shared_ptr<Scene> pRenderScene, vector<shared_ptr<NXMesh>>& outMeshes)
+void FBXMeshLoader::LoadFBXFile(string filepath, shared_ptr<NXScene> pRenderScene, vector<shared_ptr<NXMesh>>& outMeshes)
 {
 	FbxManager* lSdkManager = NULL;
 	FbxScene* lScene = NULL;

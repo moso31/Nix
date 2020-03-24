@@ -15,7 +15,7 @@ void Renderer::Init()
 	m_globalBufferManager = make_shared<NXGlobalBufferManager>();
 	m_globalBufferManager->Init();
 
-	m_scene = make_shared<Scene>();
+	m_scene = make_shared<NXScene>();
 	m_scene->Init();
 
 	m_pPassShadowMap = make_shared<NXPassShadowMap>(m_scene);

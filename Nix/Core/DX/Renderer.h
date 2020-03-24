@@ -29,6 +29,6 @@ private:
 	shared_ptr<NXRenderTarget>	m_renderTarget;
 
 	shared_ptr<NXGlobalBufferManager>	m_globalBufferManager;
-	shared_ptr<Scene>					m_scene;
+	shared_ptr<NXScene>					m_scene;
 	shared_ptr<NXPassShadowMap>			m_pPassShadowMap; 
 };

@@ -109,12 +109,16 @@
     <ClInclude Include="Nix\Script\NSTest.h">
       <Filter>Nix\Script</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Effect\GlobalBufferManager.h">
-      <Filter>Core\DX</Filter>
-    </ClInclude>
     <ClInclude Include="Nix\Effect\NXPassShadowMap.h">
       <Filter>Nix\Effects</Filter>
     </ClInclude>
+    <ClInclude Include="Core\DX\GlobalBufferManager.h">
+      <Filter>Core\DX</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\Intersect\NXIntersection.h" />
+    <ClInclude Include="Nix\Accelerator\KdTree.h" />
+    <ClInclude Include="Nix\RayTracing\NXReflection.h" />
+    <ClInclude Include="Nix\RayTracing\NXPhotonMap.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">
@@ -216,12 +220,16 @@
     <ClCompile Include="Nix\Script\NSTest.cpp">
       <Filter>Nix\Script</Filter>
     </ClCompile>
-    <ClCompile Include="Core\Effect\GlobalBufferManager.cpp">
-      <Filter>Core\DX</Filter>
-    </ClCompile>
     <ClCompile Include="Nix\Effect\NXPassShadowMap.cpp">
       <Filter>Nix\Effects</Filter>
     </ClCompile>
+    <ClCompile Include="Core\DX\GlobalBufferManager.cpp">
+      <Filter>Core\DX</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\Intersect\NXIntersection.cpp" />
+    <ClCompile Include="Nix\Accelerator\KdTree.cpp" />
+    <ClCompile Include="Nix\RayTracing\NXReflection.cpp" />
+    <ClCompile Include="Nix\RayTracing\NXPhotonMap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Core">

@@ -2,6 +2,7 @@
 #include "SceneManager.h"
 #include "RenderStates.h"
 #include "GlobalBufferManager.h"
+#include "NXIntersection.h"
 //#include "HBVH.h"
 
 #include "NXMesh.h"
@@ -22,31 +23,30 @@
 
 // temp include.
 
-Scene::Scene() :
+NXScene::NXScene() :
 	m_pRootObject(make_shared<NXObject>())
 {
 }
 
-Scene::~Scene()
+NXScene::~NXScene()
 {
 }
 
-void Scene::OnMouseDown(NXEventArg eArg)
+void NXScene::OnMouseDown(NXEventArg eArg)
 {
 	auto ray = m_mainCamera->GenerateRay(Vector2(eArg.X, eArg.Y));
 	printf("pos: %.3f, %.3f, %.3f; dir: %.3f, %.3f, %.3f\n", ray.position.x, ray.position.y, ray.position.z, ray.direction.x, ray.direction.y, ray.direction.z);
-	shared_ptr<NXPrimitive> pHitPrimitive;
-	Vector3 pHitPosition;
-	float pHitDist;
-	if (Intersect(ray, pHitPrimitive, pHitPosition, pHitDist))
+
+	NXIntersectionInfo isect;
+	if (NXIntersection::GetInstance()->RayIntersect(dynamic_pointer_cast<NXScene>(shared_from_this()), ray, isect))
 	{
-		printf("object: %s, hitPos: %.3f, %.3f, %.3f, dist: %.6f\n", pHitPrimitive->GetName().c_str(), pHitPosition.x, pHitPosition.y, pHitPosition.z, pHitDist);
+		printf("object: %s, hitPos: %.3f, %.3f, %.3f, dist: %.6f\n", isect.primitive->GetName().c_str(), isect.position.x, isect.position.y, isect.position.z, isect.distance);
 	}
 }
 
-void Scene::Init()
+void NXScene::Init()
 {
-	m_sceneManager = make_shared<SceneManager>(dynamic_pointer_cast<Scene>(shared_from_this()));
+	m_sceneManager = make_shared<SceneManager>(dynamic_pointer_cast<NXScene>(shared_from_this()));
 	auto pDirLight = m_sceneManager->CreateDirectionalLight(
 		"DirLight1",
 		Vector4(0.2f, 0.2f, 0.2f, 1.0f),
@@ -164,7 +164,7 @@ void Scene::Init()
 	InitShadowMapTransformInfo(NXGlobalBufferManager::m_cbDataShadowMap);
 }
 
-void Scene::InitScripts()
+void NXScene::InitScripts()
 {
 	auto pScript = make_shared<NSFirstPersonalCamera>();
 	m_mainCamera->AddScript(pScript);
@@ -176,12 +176,12 @@ void Scene::InitScripts()
 	NXEventKeyUp::GetInstance()->AddListener(pListener_onKeyUp);
 	NXEventMouseMove::GetInstance()->AddListener(pListener_onMouseMove);
 
-	auto pThisScene = dynamic_pointer_cast<Scene>(shared_from_this());
-	auto pListener_onMouseDown = make_shared<NXListener>(pThisScene, std::bind(&Scene::OnMouseDown, pThisScene, std::placeholders::_1));
+	auto pThisScene = dynamic_pointer_cast<NXScene>(shared_from_this());
+	auto pListener_onMouseDown = make_shared<NXListener>(pThisScene, std::bind(&NXScene::OnMouseDown, pThisScene, std::placeholders::_1));
 	NXEventMouseDown::GetInstance()->AddListener(pListener_onMouseDown);
 }
 
-void Scene::UpdateTransform(shared_ptr<NXObject> pObject)
+void NXScene::UpdateTransform(shared_ptr<NXObject> pObject)
 {
 	// pObject为空时代表从根节点开始更新Transform。
 	if (!pObject)
@@ -201,7 +201,7 @@ void Scene::UpdateTransform(shared_ptr<NXObject> pObject)
 	}
 }
 
-void Scene::UpdateScripts()
+void NXScene::UpdateScripts()
 {
 	for (auto it = m_objects.begin(); it != m_objects.end(); it++)
 	{
@@ -214,12 +214,12 @@ void Scene::UpdateScripts()
 	}
 }
 
-void Scene::UpdateCamera()
+void NXScene::UpdateCamera()
 {
 	m_mainCamera->Update();
 }
 
-void Scene::Release()
+void NXScene::Release()
 {
 	if (m_cbLights) m_cbLights->Release();
 
@@ -236,7 +236,7 @@ void Scene::Release()
 	m_sceneManager.reset();
 }
 
-void Scene::InitShadowMapTransformInfo(ConstantBufferShadowMapTransform& out_cb)
+void NXScene::InitShadowMapTransformInfo(ConstantBufferShadowMapTransform& out_cb)
 {
 	// 目前仅对第一个平行光提供支持
 	Vector3 direction = dynamic_pointer_cast<NXDirectionalLight>(m_lights[0])->GetDirection();
@@ -261,7 +261,7 @@ void Scene::InitShadowMapTransformInfo(ConstantBufferShadowMapTransform& out_cb)
 	out_cb.texture = mxT.Transpose();
 }
 
-void Scene::InitBoundingStructures()
+void NXScene::InitBoundingStructures()
 {
 	// construct AABB for scene.
 	for (auto it = m_primitives.begin(); it != m_primitives.end(); it++)
@@ -270,40 +270,4 @@ void Scene::InitBoundingStructures()
 	}
 
 	BoundingSphere::CreateFromBoundingBox(m_boundingSphere, m_aabb);
-}
-
-bool Scene::Intersect(const Ray& worldRay, shared_ptr<NXPrimitive>& outTarget, Vector3& outHitPosition, float& outDist)
-{
-	outTarget = nullptr;
-	float minDist = FLT_MAX;
-	for (auto it = m_primitives.begin(); it != m_primitives.end(); it++)
-	{
-		Ray LocalRay(
-			Vector3::Transform(worldRay.position, (*it)->GetWorldMatrixInv()),
-			Vector3::TransformNormal(worldRay.direction, (*it)->GetWorldMatrixInv())
-		);
-		LocalRay.direction.Normalize();
-
-		// ray-aabb
-		if (LocalRay.IntersectsFast((*it)->GetAABBLocal(), outDist))
-		{
-			// ray-triangle
-			if ((*it)->Intersect(LocalRay, outHitPosition, outDist))
-			{
-				if (minDist > outDist)
-				{
-					minDist = outDist;
-					outTarget = *it;
-				}
-			}
-		}
-	}
-
-	if (outTarget)
-	{
-		outHitPosition = Vector3::Transform(outHitPosition, outTarget->GetWorldMatrix());
-		outDist = Vector3::Distance(worldRay.position, outHitPosition);
-	}
-
-	return outTarget != nullptr;
 }

@@ -5,7 +5,7 @@
 class NXPassShadowMap
 {
 public:
-	NXPassShadowMap(const shared_ptr<Scene>& pScene);
+	NXPassShadowMap(const shared_ptr<NXScene>& pScene);
 	~NXPassShadowMap();
 
 	D3D11_VIEWPORT				GetViewPort()	const	{ return m_viewPort; }
@@ -29,6 +29,6 @@ private:
 	ID3D11ShaderResourceView1*		m_pDepthSRV;
 	D3D11_VIEWPORT					m_viewPort;
 
-	shared_ptr<Scene>				m_pScene;
+	shared_ptr<NXScene>				m_pScene;
 };
 

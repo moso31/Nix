@@ -6,7 +6,7 @@ SceneManager::SceneManager()
 {
 }
 
-SceneManager::SceneManager(const shared_ptr<Scene>& pScene) :
+SceneManager::SceneManager(const shared_ptr<NXScene>& pScene) :
 	m_scene(pScene)
 {
 }

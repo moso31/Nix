@@ -16,7 +16,7 @@ class SceneManager
 {
 public:
 	SceneManager();
-	SceneManager(const shared_ptr<Scene>& pScene);
+	SceneManager(const shared_ptr<NXScene>& pScene);
 	~SceneManager();
 
 	shared_ptr<NXScript>	CreateScript(const NXScriptType scriptType, const shared_ptr<NXObject>& pObject);
@@ -40,5 +40,5 @@ public:
 	bool BindParent(shared_ptr<NXObject> pParent, shared_ptr<NXObject> pChild);
 
 private:
-	shared_ptr<Scene> m_scene;
+	shared_ptr<NXScene> m_scene;
 };
