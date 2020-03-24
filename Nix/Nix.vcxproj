@@ -106,7 +106,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>.\;..\;.\Core;.\Core\DX;.\Core\Effect;.\Core\File;.\Core\Input;.\Core\Timer;.\Nix;.\Nix\Accelerator;.\Nix\Effect;.\Nix\Manager;.\Nix\Object;.\Nix\Script;..\FBXImporter\common;..\FBXImporter\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\;..\FBXImporter\common;..\FBXImporter\include;.\Core;.\Core\DX;.\Core\Effect;.\Core\File;.\Core\Input;.\Core\Timer;.\Nix;.\Nix\Accelerator;.\Nix\Effect;.\Nix\Manager;.\Nix\Object;.\Nix\Script;.\Nix\Intersect;.\Nix\RayTracing;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -148,7 +148,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>.\;..\;.\Core;.\Core\DX;.\Core\Effect;.\Core\File;.\Core\Input;.\Core\Timer;.\Nix;.\Nix\Accelerator;.\Nix\Effect;.\Nix\Manager;.\Nix\Object;.\Nix\Script;..\FBXImporter\common;..\FBXImporter\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\;..\FBXImporter\common;..\FBXImporter\include;.\Core;.\Core\DX;.\Core\Effect;.\Core\File;.\Core\Input;.\Core\Timer;.\Nix;.\Nix\Accelerator;.\Nix\Effect;.\Nix\Manager;.\Nix\Object;.\Nix\Script;.\Nix\Intersect;.\Nix\RayTracing;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -167,7 +167,7 @@
     <ClInclude Include="Core\DX\DirectResources.h" />
     <ClInclude Include="Core\DX\NXDXHelper.h" />
     <ClInclude Include="Core\DX\RenderStates.h" />
-    <ClInclude Include="Core\Effect\GlobalBufferManager.h" />
+    <ClInclude Include="Core\DX\GlobalBufferManager.h" />
     <ClInclude Include="Core\File\FBXMeshLoader.h" />
     <ClInclude Include="Core\Header.h" />
     <ClInclude Include="Core\DX\Renderer.h" />
@@ -182,6 +182,8 @@
     <ClInclude Include="Core\NXInstance.h" />
     <ClInclude Include="Core\Timer\NXTimer.h" />
     <ClInclude Include="Nix\Accelerator\HBVH.h" />
+    <ClInclude Include="Nix\Accelerator\KdTree.h" />
+    <ClInclude Include="Nix\Intersect\NXIntersection.h" />
     <ClInclude Include="Nix\Manager\SceneManager.h" />
     <ClInclude Include="Nix\Object\NXBox.h" />
     <ClInclude Include="Nix\Object\NXCamera.h" />
@@ -195,6 +197,8 @@
     <ClInclude Include="Nix\NXScene.h" />
     <ClInclude Include="Nix\Object\NXSphere.h" />
     <ClInclude Include="Nix\Object\NXTransform.h" />
+    <ClInclude Include="Nix\RayTracing\NXPhotonMap.h" />
+    <ClInclude Include="Nix\RayTracing\NXReflection.h" />
     <ClInclude Include="Nix\Script\NSFirstPersonalCamera.h" />
     <ClInclude Include="Nix\Script\NSTest.h" />
     <ClInclude Include="Nix\Script\NXScript.h" />
@@ -206,7 +210,7 @@
     <ClCompile Include="Core\App.cpp" />
     <ClCompile Include="Core\DX\DirectResources.cpp" />
     <ClCompile Include="Core\DX\RenderStates.cpp" />
-    <ClCompile Include="Core\Effect\GlobalBufferManager.cpp" />
+    <ClCompile Include="Core\DX\GlobalBufferManager.cpp" />
     <ClCompile Include="Core\File\FBXMeshLoader.cpp" />
     <ClCompile Include="Core\Global.cpp" />
     <ClCompile Include="Core\Input\NXEvent.cpp" />
@@ -220,6 +224,8 @@
     <ClCompile Include="Core\File\WICTextureLoader.cpp" />
     <ClCompile Include="Core\Timer\NXTimer.cpp" />
     <ClCompile Include="Nix\Accelerator\HBVH.cpp" />
+    <ClCompile Include="Nix\Accelerator\KdTree.cpp" />
+    <ClCompile Include="Nix\Intersect\NXIntersection.cpp" />
     <ClCompile Include="Nix\Manager\SceneManager.cpp" />
     <ClCompile Include="Nix\Object\NXBox.cpp" />
     <ClCompile Include="Nix\Object\NXCamera.cpp" />
@@ -233,6 +239,8 @@
     <ClCompile Include="Nix\NXScene.cpp" />
     <ClCompile Include="Nix\Object\NXSphere.cpp" />
     <ClCompile Include="Nix\Object\NXTransform.cpp" />
+    <ClCompile Include="Nix\RayTracing\NXReflection.cpp" />
+    <ClCompile Include="Nix\RayTracing\NXPhotonMap.cpp" />
     <ClCompile Include="Nix\Script\NSFirstPersonalCamera.cpp" />
     <ClCompile Include="Nix\Script\NSTest.cpp" />
     <ClCompile Include="Nix\Script\NXScript.cpp" />

@@ -4,11 +4,11 @@
 // temp include.
 #include "ShaderStructures.h"
 
-class Scene : public NXObject
+class NXScene : public NXObject
 {
 public:
-	Scene();
-	~Scene();
+	NXScene();
+	~NXScene();
 
 	void OnMouseDown(NXEventArg eArg);
 
@@ -30,8 +30,6 @@ public:
 
 private:
 	void InitBoundingStructures();
-
-	bool Intersect(const Ray& worldRay, shared_ptr<NXPrimitive>& outTarget, Vector3& outHitPosition, float& outDist);
 
 private:
 	friend SceneManager;
