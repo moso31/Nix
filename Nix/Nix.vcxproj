@@ -205,6 +205,7 @@
     <ClInclude Include="Nix\Script\NXScriptType.h" />
     <ClInclude Include="Nix\Object\NXRenderTarget.h" />
     <ClInclude Include="Nix\Effect\NXPassShadowMap.h" />
+    <ClInclude Include="Nix\RayTracing\NXPBRTRenderer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp" />
@@ -246,6 +247,7 @@
     <ClCompile Include="Nix\Script\NXScript.cpp" />
     <ClCompile Include="Nix\Object\NXRenderTarget.cpp" />
     <ClCompile Include="Nix\Effect\NXPassShadowMap.cpp" />
+    <ClCompile Include="Nix\RayTracing\NXPBRTRenderer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Core\DX\SimpleMath.inl" />

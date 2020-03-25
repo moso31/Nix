@@ -33,6 +33,11 @@ struct Matrix;
 struct Quaternion;
 struct Plane;
 
+#define PI 3.1415926535897932384626f
+#define INVPI 1.0f / PI
+#define DEGTORAD PI / 180.0f
+#define RADTODEG 180.0f / PI
+
 // 1D value
 template <typename T, typename U, typename V>
 inline T Clamp(T val, U low, V high) {

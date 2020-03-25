@@ -16,8 +16,7 @@ public:
 
 	// 创建初始即平衡的kd树。
 	void BuildBalanceTree(vector<PhotonMap>& data);
-
-	void RecursiveBuildBalanceTree(vector<PhotonMap>::iterator& itBegin, vector<PhotonMap>::iterator& itEnd);
+	unique_ptr<KdTreeNode> RecursiveBuild(vector<PhotonMap>::iterator& itBegin, vector<PhotonMap>::iterator& itEnd, vector<PhotonMap>& data);
 
 private:
 	unique_ptr<KdTreeNode> pRoot;
