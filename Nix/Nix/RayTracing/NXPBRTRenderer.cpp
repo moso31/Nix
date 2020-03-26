@@ -1,10 +1,36 @@
 #include "NXPBRTRenderer.h"
 #include "NXScene.h"
+#include "NXIntersection.h"
 
 NXPBRTRenderer::NXPBRTRenderer()
 {
 	int seed = 0;	// can be changed as time.
 	m_rng = default_random_engine(seed);
+}
+
+void NXPBRTRenderer::GeneratePhotonMap(const shared_ptr<NXScene>& pScene, const NXPhotonMap& photonMapInfo)
+{
+	for (int i = 0; i < photonMapInfo.Photons; i++)
+	{
+
+	}
+
+	vector<float> intensityWeights;
+	float fIntensitySum = 0.0f;
+	auto pLights = pScene->GetPBRLights();
+	for (auto it = pLights.begin(); it != pLights.end(); it++)
+	{
+		Vector3 lightIntensity = (*it)->Intensity;
+		fIntensitySum += (lightIntensity.x + lightIntensity.y + lightIntensity.z) / 3.0f;
+		intensityWeights.push_back(fIntensitySum);
+	}
+
+	uniform_real_distribution<float> rand(0.0f, fIntensitySum);
+	float fRandom = rand(m_rng);
+	for (int i = pLights.size(); i >= 0; i--)
+	{
+		if (fRandom < pLights[i])
+	}
 }
 
 void NXPBRTRenderer::DrawPhotonMapping(const shared_ptr<NXScene>& pScene, const NXPBRTCamera& cameraInfo, const NXPBRTImage& imageInfo)
@@ -46,6 +72,9 @@ void NXPBRTRenderer::DrawPhotonMapping(const shared_ptr<NXScene>& pScene, const 
 
 Vector3 NXPBRTRenderer::DrawPhotonMappingPerSample(const shared_ptr<NXScene>& pScene, const Ray& rayWorld)
 {
+	NXIntersectionInfo isect;
+	NXIntersection::GetInstance()->RayIntersect(pScene, rayWorld, isect);
+
 	return Vector3(0.0f);
 }
 

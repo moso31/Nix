@@ -9,13 +9,18 @@ struct NXPBRTCamera
 	Vector3 direction;
 	Vector3 up;
 	float fFovAngleY;
-	int iViewWidth;
-	int iViewHeight;
+	short iViewWidth;
+	short iViewHeight;
 };
 
 struct NXPBRTImage
 {
 	int iEachPixelSimples;
+};
+
+struct NXPhotonMap
+{
+	int Photons;
 };
 
 class NXPBRTRenderer : public NXInstance<NXPBRTRenderer>
@@ -24,6 +29,8 @@ public:
 	NXPBRTRenderer();
 	~NXPBRTRenderer() {}
 
+	// 生成光子贴图
+	void GeneratePhotonMap(const shared_ptr<NXScene>& pScene, const NXPhotonMap& photonMapInfo);
 	void DrawPhotonMapping(const shared_ptr<NXScene>& pScene, const NXPBRTCamera& cameraInfo, const NXPBRTImage& imageInfo);
 	Vector3 DrawPhotonMappingPerSample(const shared_ptr<NXScene>& pScene, const Ray& rayWorld);
 
