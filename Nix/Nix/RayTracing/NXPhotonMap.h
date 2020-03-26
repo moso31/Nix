@@ -1,7 +1,7 @@
 #pragma once
 #include "Header.h"
 
-struct PhotonMap
+struct NXPhoton
 {
 	Vector3 position;
 	Vector3 direction;

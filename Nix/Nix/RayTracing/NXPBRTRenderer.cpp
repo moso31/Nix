@@ -1,6 +1,7 @@
 #include "NXPBRTRenderer.h"
 #include "NXScene.h"
 #include "NXIntersection.h"
+#include "NXPhotonMap.h"
 
 NXPBRTRenderer::NXPBRTRenderer()
 {
@@ -10,26 +11,18 @@ NXPBRTRenderer::NXPBRTRenderer()
 
 void NXPBRTRenderer::GeneratePhotonMap(const shared_ptr<NXScene>& pScene, const NXPhotonMap& photonMapInfo)
 {
+	auto pLights = pScene->GetPBRLights();
+	float fEachLightPhotonsInv = (float)pLights.size() / (float)photonMapInfo.Photons;
+
 	for (int i = 0; i < photonMapInfo.Photons; i++)
 	{
+		uniform_int_distribution<int> rand(0.0f, pLights.size() - 1);
+		shared_ptr<NXPBRPointLight> pLight = pLights[rand(m_rng)];
 
-	}
-
-	vector<float> intensityWeights;
-	float fIntensitySum = 0.0f;
-	auto pLights = pScene->GetPBRLights();
-	for (auto it = pLights.begin(); it != pLights.end(); it++)
-	{
-		Vector3 lightIntensity = (*it)->Intensity;
-		fIntensitySum += (lightIntensity.x + lightIntensity.y + lightIntensity.z) / 3.0f;
-		intensityWeights.push_back(fIntensitySum);
-	}
-
-	uniform_real_distribution<float> rand(0.0f, fIntensitySum);
-	float fRandom = rand(m_rng);
-	for (int i = pLights.size(); i >= 0; i--)
-	{
-		if (fRandom < pLights[i])
+		NXPhoton photon;
+		photon.position = pLight->Position;
+		photon.direction = ;	// Ëæ»ú·½Ïò theta phi->x y z
+		photon.power = pLight->Intensity * fEachLightPhotonsInv;
 	}
 }
 

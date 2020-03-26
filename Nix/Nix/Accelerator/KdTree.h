@@ -1,22 +1,22 @@
 #pragma once
 #include "Header.h"
 
-struct PhotonMap;
+struct NXPhoton;
 
 struct KdTreeNode
 {
 	unique_ptr<KdTreeNode> lc, rc;
 };
 
-class KdTree
+class NXKdTree
 {
 public:
-	KdTree();
-	~KdTree();
+	NXKdTree();
+	~NXKdTree();
 
 	// 创建初始即平衡的kd树。
-	void BuildBalanceTree(vector<PhotonMap>& data);
-	unique_ptr<KdTreeNode> RecursiveBuild(vector<PhotonMap>::iterator& itBegin, vector<PhotonMap>::iterator& itEnd, vector<PhotonMap>& data);
+	void BuildBalanceTree(vector<NXPhoton>& data);
+	unique_ptr<KdTreeNode> RecursiveBuild(vector<NXPhoton>::iterator& itBegin, vector<NXPhoton>::iterator& itEnd, vector<NXPhoton>& data);
 
 private:
 	unique_ptr<KdTreeNode> pRoot;

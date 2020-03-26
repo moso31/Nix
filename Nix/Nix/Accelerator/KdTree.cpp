@@ -1,22 +1,22 @@
 #include "KdTree.h"
 #include "NXPhotonMap.h"
 
-KdTree::KdTree()
+NXKdTree::NXKdTree()
 {
 }
 
-KdTree::~KdTree()
+NXKdTree::~NXKdTree()
 {
 }
 
-void KdTree::BuildBalanceTree(vector<PhotonMap>& data)
+void NXKdTree::BuildBalanceTree(vector<NXPhoton>& data)
 {
-	vector<PhotonMap>::iterator itBegin = data.begin();
-	vector<PhotonMap>::iterator itEnd = data.end();
+	vector<NXPhoton>::iterator itBegin = data.begin();
+	vector<NXPhoton>::iterator itEnd = data.end();
 	pRoot = RecursiveBuild(itBegin, itEnd, data);
 }
 
-unique_ptr<KdTreeNode> KdTree::RecursiveBuild(vector<PhotonMap>::iterator& itBegin, vector<PhotonMap>::iterator& itEnd, vector<PhotonMap>& data)
+unique_ptr<KdTreeNode> NXKdTree::RecursiveBuild(vector<NXPhoton>::iterator& itBegin, vector<NXPhoton>::iterator& itEnd, vector<NXPhoton>& data)
 {
 	unique_ptr<KdTreeNode> node;
 
@@ -47,9 +47,9 @@ unique_ptr<KdTreeNode> KdTree::RecursiveBuild(vector<PhotonMap>::iterator& itBeg
 	int maxExtent = aabb.GetMaximumExtent();
 
 	int idxSplit = (idxBegin + idxEnd) >> 1;
-	vector<PhotonMap>::iterator itSplit = itBegin + idxSplit;
+	vector<NXPhoton>::iterator itSplit = itBegin + idxSplit;
 
-	std::nth_element(itBegin, itSplit, itEnd, [maxExtent](PhotonMap& a, PhotonMap& b)
+	std::nth_element(itBegin, itSplit, itEnd, [maxExtent](NXPhoton& a, NXPhoton& b)
 		{
 			return a.position[maxExtent] < b.position[maxExtent];
 		});
