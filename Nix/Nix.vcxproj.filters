@@ -120,6 +120,7 @@
     <ClInclude Include="Nix\RayTracing\NXReflection.h" />
     <ClInclude Include="Nix\RayTracing\NXPhotonMap.h" />
     <ClInclude Include="Nix\RayTracing\NXPBRTRenderer.h" />
+    <ClInclude Include="Core\Sampler\SamplerMath.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">
@@ -232,6 +233,7 @@
     <ClCompile Include="Nix\RayTracing\NXReflection.cpp" />
     <ClCompile Include="Nix\RayTracing\NXPhotonMap.cpp" />
     <ClCompile Include="Nix\RayTracing\NXPBRTRenderer.cpp" />
+    <ClCompile Include="Core\Sampler\SamplerMath.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Core">

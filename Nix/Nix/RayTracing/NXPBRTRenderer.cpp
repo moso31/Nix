@@ -1,7 +1,11 @@
 #include "NXPBRTRenderer.h"
+#include <SamplerMath.h>
+
 #include "NXScene.h"
 #include "NXIntersection.h"
 #include "NXPhotonMap.h"
+
+using namespace SamplerMath;
 
 NXPBRTRenderer::NXPBRTRenderer()
 {
@@ -14,15 +18,33 @@ void NXPBRTRenderer::GeneratePhotonMap(const shared_ptr<NXScene>& pScene, const 
 	auto pLights = pScene->GetPBRLights();
 	float fEachLightPhotonsInv = (float)pLights.size() / (float)photonMapInfo.Photons;
 
-	for (int i = 0; i < photonMapInfo.Photons; i++)
+	// 随机光源发射随机光子
+	int iCount = 0;
+	while(true)
 	{
-		uniform_int_distribution<int> rand(0.0f, pLights.size() - 1);
-		shared_ptr<NXPBRPointLight> pLight = pLights[rand(m_rng)];
+		if (iCount >= photonMapInfo.Photons)
+			return;
 
+		uniform_int_distribution<int> iRandom(0.0f, pLights.size() - 1);
+		shared_ptr<NXPBRPointLight> pLight = pLights[iRandom(m_rng)];
+
+		uniform_real_distribution<float> fRandom(0.0f, 1.0f);
+		Vector2 v(fRandom(m_rng), fRandom(m_rng));	// 随机2D向量
+
+		// 点光源，向全球方向发射光子
 		NXPhoton photon;
 		photon.position = pLight->Position;
-		photon.direction = ;	// 随机方向 theta phi->x y z
+		photon.direction = UniformSampleSphere(v);	// 随机方向 theta phi->x y z
 		photon.power = pLight->Intensity * fEachLightPhotonsInv;
+
+		Ray photonRay(photon.position, photon.direction);
+		NXIntersectionInfo isect;
+
+		// 和场景进行迭代，发生交互
+		if (NXIntersection::GetInstance()->RayIntersect(pScene, photonRay, isect))
+		{
+			
+		}
 	}
 }
 
@@ -40,7 +62,7 @@ void NXPBRTRenderer::DrawPhotonMapping(const shared_ptr<NXScene>& pScene, const 
 		{
 			for (int k = 0; k < imageInfo.iEachPixelSimples; k++)
 			{
-				uniform_real_distribution<float> rand(0.0f, 0.999999999f);
+				uniform_real_distribution<float> rand(0.0f, 1.0f);
 				float jitX = rand(m_rng);
 				float jitY = rand(m_rng);
 

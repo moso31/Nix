@@ -106,7 +106,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>.\;..\;..\FBXImporter\common;..\FBXImporter\include;.\Core;.\Core\DX;.\Core\Effect;.\Core\File;.\Core\Input;.\Core\Timer;.\Nix;.\Nix\Accelerator;.\Nix\Effect;.\Nix\Manager;.\Nix\Object;.\Nix\Script;.\Nix\Intersect;.\Nix\RayTracing;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\;..\FBXImporter\common;..\FBXImporter\include;.\Core;.\Core\DX;.\Core\Effect;.\Core\File;.\Core\Input;.\Core\Sampler;.\Core\Timer;.\Nix;.\Nix\Accelerator;.\Nix\Effect;.\Nix\Manager;.\Nix\Object;.\Nix\Script;.\Nix\Intersect;.\Nix\RayTracing;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -148,7 +148,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>.\;..\;..\FBXImporter\common;..\FBXImporter\include;.\Core;.\Core\DX;.\Core\Effect;.\Core\File;.\Core\Input;.\Core\Timer;.\Nix;.\Nix\Accelerator;.\Nix\Effect;.\Nix\Manager;.\Nix\Object;.\Nix\Script;.\Nix\Intersect;.\Nix\RayTracing;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\;..\FBXImporter\common;..\FBXImporter\include;.\Core;.\Core\DX;.\Core\Effect;.\Core\File;.\Core\Input;.\Core\Sampler;.\Core\Timer;.\Nix;.\Nix\Accelerator;.\Nix\Effect;.\Nix\Manager;.\Nix\Object;.\Nix\Script;.\Nix\Intersect;.\Nix\RayTracing;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -206,6 +206,7 @@
     <ClInclude Include="Nix\Object\NXRenderTarget.h" />
     <ClInclude Include="Nix\Effect\NXPassShadowMap.h" />
     <ClInclude Include="Nix\RayTracing\NXPBRTRenderer.h" />
+    <ClInclude Include="Core\Sampler\SamplerMath.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp" />
@@ -248,6 +249,7 @@
     <ClCompile Include="Nix\Object\NXRenderTarget.cpp" />
     <ClCompile Include="Nix\Effect\NXPassShadowMap.cpp" />
     <ClCompile Include="Nix\RayTracing\NXPBRTRenderer.cpp" />
+    <ClCompile Include="Core\Sampler\SamplerMath.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Core\DX\SimpleMath.inl" />
