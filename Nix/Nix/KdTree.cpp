@@ -34,7 +34,7 @@ unique_ptr<KdTreeNode> NXKdTree::RecursiveBuild(vector<NXPhoton>::iterator& itBe
 
 	Vector3 vMax(FLT_MIN), vMin(FLT_MAX);
 
-	int idxBegin = itBegin - data.begin(), idxEnd = itEnd - data.begin();
+	size_t idxBegin = itBegin - data.begin(), idxEnd = itEnd - data.begin();
 	for (auto it = itBegin; it != itEnd; it++)
 	{
 		vMax.Max(vMax, it->position);
@@ -46,7 +46,7 @@ unique_ptr<KdTreeNode> NXKdTree::RecursiveBuild(vector<NXPhoton>::iterator& itBe
 	aabb.Extents = (vMax - vMin) * 0.5f;
 	int maxExtent = aabb.GetMaximumExtent();
 
-	int idxSplit = (idxBegin + idxEnd) >> 1;
+	size_t idxSplit = (idxBegin + idxEnd) >> 1;
 	vector<NXPhoton>::iterator itSplit = itBegin + idxSplit;
 
 	std::nth_element(itBegin, itSplit, itEnd, [maxExtent](NXPhoton& a, NXPhoton& b)

@@ -25,7 +25,7 @@ void NXPBRTRenderer::GeneratePhotonMap(const shared_ptr<NXScene>& pScene, const 
 		if (iCount >= photonMapInfo.Photons)
 			return;
 
-		uniform_int_distribution<int> iRandom(0.0f, pLights.size() - 1);
+		uniform_int_distribution<int> iRandom(0, (int)pLights.size() - 1);
 		shared_ptr<NXPBRPointLight> pLight = pLights[iRandom(m_rng)];
 
 		uniform_real_distribution<float> fRandom(0.0f, 1.0f);

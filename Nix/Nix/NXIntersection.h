@@ -4,6 +4,7 @@
 
 struct NXIntersectionInfo
 {
+	NXIntersectionInfo() : primitive(nullptr), distance(0) {}
 	// »÷ÖĞÎïÌå
 	shared_ptr<NXPrimitive> primitive;
 	Vector3 position;

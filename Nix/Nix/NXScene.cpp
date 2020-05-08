@@ -24,7 +24,8 @@
 // temp include.
 
 NXScene::NXScene() :
-	m_pRootObject(make_shared<NXObject>())
+	m_pRootObject(make_shared<NXObject>()),
+	m_cbLights(nullptr)
 {
 }
 

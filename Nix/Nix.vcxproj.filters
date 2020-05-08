@@ -1,294 +1,68 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClInclude Include="Core\App.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\Object\NXBox.h">
-      <Filter>Nix\Object\Primitive</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\Object\NXCylinder.h">
-      <Filter>Nix\Object\Primitive</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\Object\NXLight.h">
-      <Filter>Nix\Object\Light</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\Object\NXMaterial.h">
-      <Filter>Nix\Object\Material</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\Object\NXPlane.h">
-      <Filter>Nix\Object\Primitive</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\Object\NXPrimitive.h">
-      <Filter>Nix\Object\Primitive</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\Object\NXSphere.h">
-      <Filter>Nix\Object\Primitive</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\NXScene.h">
-      <Filter>Nix</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\Object\NXCamera.h">
-      <Filter>Nix\Object\Camera</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Header.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\DX\DirectResources.h">
-      <Filter>Core\DX</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\DX\NXDXHelper.h">
-      <Filter>Core\DX</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\DX\Renderer.h">
-      <Filter>Core\DX</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\DX\ShaderComplier.h">
-      <Filter>Core\DX</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\DX\ShaderStructures.h">
-      <Filter>Core\DX</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\DX\SimpleMath.h">
-      <Filter>Core\DX</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Input\NXInput.h">
-      <Filter>Core\Input</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\NXInstance.h">
-      <Filter>Core\Input</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Input\NXEvent.h">
-      <Filter>Core\Input</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Input\NXListener.h">
-      <Filter>Core\Input</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\File\DDSTextureLoader.h">
-      <Filter>Core\File</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\File\WICTextureLoader.h">
-      <Filter>Core\File</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\Object\NXObject.h">
-      <Filter>Nix\Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\Script\NXScript.h">
-      <Filter>Nix\Script</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\Script\NSFirstPersonalCamera.h">
-      <Filter>Nix\Script</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\Manager\SceneManager.h">
-      <Filter>Nix\Manager</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\Script\NXScriptType.h">
-      <Filter>Nix\Script</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\File\FBXMeshLoader.h">
-      <Filter>Core\File</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Timer\NXTimer.h">
-      <Filter>Core\Timer</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\Object\NXMesh.h">
-      <Filter>Nix\Object\Primitive</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\Accelerator\HBVH.h">
-      <Filter>Nix\Accelerator</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\Object\NXTransform.h">
-      <Filter>Nix\Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\DX\RenderStates.h">
-      <Filter>Core\DX</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\Object\NXRenderTarget.h">
-      <Filter>Nix\Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\Script\NSTest.h">
-      <Filter>Nix\Script</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\Effect\NXPassShadowMap.h">
-      <Filter>Nix\Effects</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\DX\GlobalBufferManager.h">
-      <Filter>Core\DX</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\Intersect\NXIntersection.h" />
-    <ClInclude Include="Nix\Accelerator\KdTree.h" />
-    <ClInclude Include="Nix\RayTracing\NXReflection.h" />
-    <ClInclude Include="Nix\RayTracing\NXPhotonMap.h" />
-    <ClInclude Include="Nix\RayTracing\NXPBRTRenderer.h" />
-    <ClInclude Include="Core\Sampler\SamplerMath.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="Core\App.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\Object\NXBox.cpp">
-      <Filter>Nix\Object\Primitive</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\Object\NXCylinder.cpp">
-      <Filter>Nix\Object\Primitive</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\Object\NXLight.cpp">
-      <Filter>Nix\Object\Light</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\Object\NXMaterial.cpp">
-      <Filter>Nix\Object\Material</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\Object\NXPlane.cpp">
-      <Filter>Nix\Object\Primitive</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\Object\NXPrimitive.cpp">
-      <Filter>Nix\Object\Primitive</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\Object\NXSphere.cpp">
-      <Filter>Nix\Object\Primitive</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\NXScene.cpp">
-      <Filter>Nix</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\Object\NXCamera.cpp">
-      <Filter>Nix\Object\Camera</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Global.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Main.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\DX\DirectResources.cpp">
-      <Filter>Core\DX</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\DX\NXDXHelper.cpp">
-      <Filter>Core\DX</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\DX\Renderer.cpp">
-      <Filter>Core\DX</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\DX\ShaderComplier.cpp">
-      <Filter>Core\DX</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Input\NXInput.cpp">
-      <Filter>Core\Input</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Input\NXEvent.cpp">
-      <Filter>Core\Input</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Input\NXListener.cpp">
-      <Filter>Core\Input</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\File\DDSTextureLoader.cpp">
-      <Filter>Core\File</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\File\WICTextureLoader.cpp">
-      <Filter>Core\File</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\Script\NXScript.cpp">
-      <Filter>Nix\Script</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\Script\NSFirstPersonalCamera.cpp">
-      <Filter>Nix\Script</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\Object\NXObject.cpp">
-      <Filter>Nix\Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\Manager\SceneManager.cpp">
-      <Filter>Nix\Manager</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\File\FBXMeshLoader.cpp">
-      <Filter>Core\File</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Timer\NXTimer.cpp">
-      <Filter>Core\Timer</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\Object\NXMesh.cpp">
-      <Filter>Nix\Object\Primitive</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\Accelerator\HBVH.cpp">
-      <Filter>Nix\Accelerator</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\Object\NXTransform.cpp">
-      <Filter>Nix\Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\DX\RenderStates.cpp">
-      <Filter>Core\DX</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\Object\NXRenderTarget.cpp">
-      <Filter>Nix\Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\Script\NSTest.cpp">
-      <Filter>Nix\Script</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\Effect\NXPassShadowMap.cpp">
-      <Filter>Nix\Effects</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\DX\GlobalBufferManager.cpp">
-      <Filter>Core\DX</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\Intersect\NXIntersection.cpp" />
-    <ClCompile Include="Nix\Accelerator\KdTree.cpp" />
-    <ClCompile Include="Nix\RayTracing\NXReflection.cpp" />
-    <ClCompile Include="Nix\RayTracing\NXPhotonMap.cpp" />
-    <ClCompile Include="Nix\RayTracing\NXPBRTRenderer.cpp" />
-    <ClCompile Include="Core\Sampler\SamplerMath.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Filter Include="Core">
-      <UniqueIdentifier>{b6872d19-f1ba-4911-8abc-a6f06962891b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Nix">
-      <UniqueIdentifier>{b98cce96-7ef9-43b4-9ff9-b62958c35f70}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Nix\Object">
-      <UniqueIdentifier>{cb91577a-f3dd-4038-9460-92506b071a08}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Nix\Object\Primitive">
-      <UniqueIdentifier>{e408db57-5c08-430d-9bb0-28d118781db9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Nix\Object\Light">
-      <UniqueIdentifier>{1bb77c6d-c8ba-41fe-b73f-0f017daaa595}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Nix\Object\Material">
-      <UniqueIdentifier>{159fbfcd-8fee-427d-b7b7-88b61a1e7b34}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Nix\Object\Camera">
-      <UniqueIdentifier>{06e93e78-451b-41a8-ab31-822cef030ae6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\DX">
-      <UniqueIdentifier>{3479236b-a7ec-4fc7-b837-af9c645262ac}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\Input">
-      <UniqueIdentifier>{bc3eaf13-2850-4cf2-85a0-03533fc0bdca}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\File">
-      <UniqueIdentifier>{e65b0615-3957-48d8-a032-183d36c46fc0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Nix\Script">
-      <UniqueIdentifier>{c37fc375-7e15-48b0-be3c-a508f7f01ed9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Nix\Manager">
-      <UniqueIdentifier>{b5833360-be0e-4cf0-89b7-b61914261b6b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shader">
       <UniqueIdentifier>{d99dfb08-f23b-4a25-8f50-c19ef8d7e01a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\Timer">
-      <UniqueIdentifier>{52ac6179-eceb-4ece-a5cf-e18bf297329c}</UniqueIdentifier>
+    <Filter Include="Core">
+      <UniqueIdentifier>{09d76e45-341d-4fc6-b5ac-235f2eb3a219}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\DirectX">
+      <UniqueIdentifier>{ca2e5c32-2029-429d-9f92-4a6d2488cf8c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Input">
+      <UniqueIdentifier>{7839a120-6d02-4163-88ad-97af4f368343}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Helper">
+      <UniqueIdentifier>{96ebf3ac-bd17-4bb6-b13f-043a28337db8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\File">
+      <UniqueIdentifier>{7687d245-65ec-43bf-b96d-c06d3b864c3c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Nix">
+      <UniqueIdentifier>{a38f319f-8ffb-4e0c-b295-e26ccd9d809f}</UniqueIdentifier>
     </Filter>
     <Filter Include="Nix\Accelerator">
-      <UniqueIdentifier>{0c0af698-e0d8-4070-9eea-156755aa397f}</UniqueIdentifier>
+      <UniqueIdentifier>{c22a8de2-b186-4f54-b032-b8d32af30a5d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Nix\Effects">
-      <UniqueIdentifier>{391064e7-e0f7-42ec-8e64-f87b2db546ce}</UniqueIdentifier>
+    <Filter Include="Nix\Script">
+      <UniqueIdentifier>{6c77a9d9-b8d3-4309-b48d-605df7d87e31}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Nix\Object">
+      <UniqueIdentifier>{9dd25a29-7490-4cad-b848-a98a49376647}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Nix\Object\Light">
+      <UniqueIdentifier>{ee90d1fb-d328-4b30-8484-4e5468b64abd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Nix\Material">
+      <UniqueIdentifier>{ec249b18-6eb1-4e3f-ab69-fa45f38ce911}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Nix\Object\Transform">
+      <UniqueIdentifier>{5a941b34-6909-4331-be37-685641732363}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Nix\Object\Transform\Primitive">
+      <UniqueIdentifier>{f3755d2c-4e07-43f5-a8fe-bf2096c2ee55}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Nix\Object\Transform\Primitive\Shape">
+      <UniqueIdentifier>{7525b90e-ff3e-4a65-8989-9d59da76ed60}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Nix\Object\Transform\Primitive\Other">
+      <UniqueIdentifier>{a195dd0d-fa7c-4d8a-82cb-017765c56820}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Nix\Object\Transform\Camera">
+      <UniqueIdentifier>{d32f33d5-ff4a-4baf-afb1-d64131dd1410}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Nix\Effect">
+      <UniqueIdentifier>{c9eedf95-48c5-4e48-aeba-aeaef4a77fd1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Nix\Scene">
+      <UniqueIdentifier>{d197e267-4212-4de3-a89b-ab57b9ca0af8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Nix\RayTracer">
+      <UniqueIdentifier>{9cb355b4-fe1c-44d1-ad65-30c22ae78c2e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Core\DX\SimpleMath.inl">
-      <Filter>Core\DX</Filter>
-    </None>
     <None Include="Shader\RenderTarget.fx">
       <Filter>Shader</Filter>
     </None>
@@ -303,6 +77,253 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\Next to do" />
+    <ClCompile Include="Core\App.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Global.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Main.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\DDSTextureLoader.cpp">
+      <Filter>Core\File</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\FBXMeshLoader.cpp">
+      <Filter>Core\File</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\DirectResources.cpp">
+      <Filter>Core\DirectX</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\GlobalBufferManager.cpp">
+      <Filter>Core\DirectX</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXEvent.cpp">
+      <Filter>Core\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXInput.cpp">
+      <Filter>Core\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXListener.cpp">
+      <Filter>Core\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXTimer.cpp">
+      <Filter>Core\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXDXHelper.cpp">
+      <Filter>Core\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\WICTextureLoader.cpp">
+      <Filter>Core\File</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Renderer.cpp">
+      <Filter>Core\DirectX</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\RenderStates.cpp">
+      <Filter>Core\DirectX</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\ShaderComplier.cpp">
+      <Filter>Core\DirectX</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\HBVH.cpp">
+      <Filter>Nix\Accelerator</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\KdTree.cpp">
+      <Filter>Nix\Accelerator</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\Script\NSFirstPersonalCamera.cpp">
+      <Filter>Nix\Script</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\Script\NSTest.cpp">
+      <Filter>Nix\Script</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXBox.cpp">
+      <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXCamera.cpp">
+      <Filter>Nix\Object\Transform\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXCylinder.cpp">
+      <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXMesh.cpp">
+      <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXObject.cpp">
+      <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXPlane.cpp">
+      <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXLight.cpp">
+      <Filter>Nix\Object\Light</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXMaterial.cpp">
+      <Filter>Nix\Material</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXIntersection.cpp">
+      <Filter>Nix\Accelerator</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXRenderTarget.cpp">
+      <Filter>Nix\Object\Transform\Primitive\Other</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\Script\NXScript.cpp">
+      <Filter>Nix\Script</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXPrimitive.cpp">
+      <Filter>Nix\Object\Transform\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXTransform.cpp">
+      <Filter>Nix\Object\Transform</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXPassShadowMap.cpp">
+      <Filter>Nix\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXScene.cpp">
+      <Filter>Nix\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXSphere.cpp">
+      <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\SceneManager.cpp">
+      <Filter>Nix\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXPBRTRenderer.cpp">
+      <Filter>Nix\RayTracer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXPhotonMap.cpp">
+      <Filter>Nix\RayTracer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXReflection.cpp">
+      <Filter>Nix\RayTracer</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Core\App.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Header.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXInstance.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\DDSTextureLoader.h">
+      <Filter>Core\File</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\FBXMeshLoader.h">
+      <Filter>Core\File</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\DirectResources.h">
+      <Filter>Core\DirectX</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\GlobalBufferManager.h">
+      <Filter>Core\DirectX</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXEvent.h">
+      <Filter>Core\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXInput.h">
+      <Filter>Core\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXListener.h">
+      <Filter>Core\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXTimer.h">
+      <Filter>Core\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXDXHelper.h">
+      <Filter>Core\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\WICTextureLoader.h">
+      <Filter>Core\File</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Renderer.h">
+      <Filter>Core\DirectX</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\RenderStates.h">
+      <Filter>Core\DirectX</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ShaderComplier.h">
+      <Filter>Core\DirectX</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ShaderStructures.h">
+      <Filter>Core\DirectX</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\HBVH.h">
+      <Filter>Nix\Accelerator</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\KdTree.h">
+      <Filter>Nix\Accelerator</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\Script\NSTest.h">
+      <Filter>Nix\Script</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\Script\NSFirstPersonalCamera.h">
+      <Filter>Nix\Script</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXBox.h">
+      <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXCamera.h">
+      <Filter>Nix\Object\Transform\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXCylinder.h">
+      <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXMesh.h">
+      <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXObject.h">
+      <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXPlane.h">
+      <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXLight.h">
+      <Filter>Nix\Object\Light</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXMaterial.h">
+      <Filter>Nix\Material</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXIntersection.h">
+      <Filter>Nix\Accelerator</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXRenderTarget.h">
+      <Filter>Nix\Object\Transform\Primitive\Other</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\Script\NXScript.h">
+      <Filter>Nix\Script</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\Script\NXScriptType.h">
+      <Filter>Nix\Script</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXPrimitive.h">
+      <Filter>Nix\Object\Transform\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXTransform.h">
+      <Filter>Nix\Object\Transform</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXPassShadowMap.h">
+      <Filter>Nix\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXScene.h">
+      <Filter>Nix\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXSphere.h">
+      <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\SceneManager.h">
+      <Filter>Nix\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXReflection.h">
+      <Filter>Nix\RayTracer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXPBRTRenderer.h">
+      <Filter>Nix\RayTracer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXPhotonMap.h">
+      <Filter>Nix\RayTracer</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

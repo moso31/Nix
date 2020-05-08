@@ -6,9 +6,12 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Nix", "Nix\Nix.vcxproj", "{580AF3ED-67A1-4AC5-91B9-D29D0A946CF2}"
 	ProjectSection(ProjectDependencies) = postProject
 		{33842630-5245-444F-B7CD-F038F3C2707A} = {33842630-5245-444F-B7CD-F038F3C2707A}
+		{6C25EBDE-60BB-4BE7-B488-262DFEF88485} = {6C25EBDE-60BB-4BE7-B488-262DFEF88485}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FBXImporter", "FBXImporter\FBXImporter.vcxproj", "{33842630-5245-444F-B7CD-F038F3C2707A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NixMath", "NixMath\NixMath.vcxproj", "{6C25EBDE-60BB-4BE7-B488-262DFEF88485}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -34,6 +37,14 @@ Global
 		{33842630-5245-444F-B7CD-F038F3C2707A}.Release|x64.Build.0 = Release|x64
 		{33842630-5245-444F-B7CD-F038F3C2707A}.Release|x86.ActiveCfg = Release|Win32
 		{33842630-5245-444F-B7CD-F038F3C2707A}.Release|x86.Build.0 = Release|Win32
+		{6C25EBDE-60BB-4BE7-B488-262DFEF88485}.Debug|x64.ActiveCfg = Debug|x64
+		{6C25EBDE-60BB-4BE7-B488-262DFEF88485}.Debug|x64.Build.0 = Debug|x64
+		{6C25EBDE-60BB-4BE7-B488-262DFEF88485}.Debug|x86.ActiveCfg = Debug|Win32
+		{6C25EBDE-60BB-4BE7-B488-262DFEF88485}.Debug|x86.Build.0 = Debug|Win32
+		{6C25EBDE-60BB-4BE7-B488-262DFEF88485}.Release|x64.ActiveCfg = Release|x64
+		{6C25EBDE-60BB-4BE7-B488-262DFEF88485}.Release|x64.Build.0 = Release|x64
+		{6C25EBDE-60BB-4BE7-B488-262DFEF88485}.Release|x86.ActiveCfg = Release|Win32
+		{6C25EBDE-60BB-4BE7-B488-262DFEF88485}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

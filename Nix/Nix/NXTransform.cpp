@@ -1,5 +1,4 @@
 #include "NXTransform.h"
-#include "Object\NXTransform.h"
 
 
 NXTransform::NXTransform() :

@@ -31,6 +31,7 @@
 #include "NXDXHelper.h"
 
 // Math
+#include "SimpleMath.h"
 #include "SimpleMath.inl"
 
 // namespace
