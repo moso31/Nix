@@ -239,6 +239,7 @@
     <ClCompile Include="Nix\NXSphere.cpp" />
     <ClCompile Include="Nix\NXTransform.cpp" />
     <ClCompile Include="Nix\SceneManager.cpp" />
+    <ClCompile Include="Nix\NXRayTracer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h" />
@@ -283,6 +284,7 @@
     <ClInclude Include="Nix\NXSphere.h" />
     <ClInclude Include="Nix\NXTransform.h" />
     <ClInclude Include="Nix\SceneManager.h" />
+    <ClInclude Include="Nix\NXRayTracer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

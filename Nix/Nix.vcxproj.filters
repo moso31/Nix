@@ -61,6 +61,9 @@
     <Filter Include="Nix\RayTracer">
       <UniqueIdentifier>{9cb355b4-fe1c-44d1-ad65-30c22ae78c2e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Nix\RayTracer\Integrator">
+      <UniqueIdentifier>{bdd7ed85-60a9-4355-9428-9b22321871eb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\RenderTarget.fx">
@@ -197,6 +200,9 @@
     <ClCompile Include="Nix\NXReflection.cpp">
       <Filter>Nix\RayTracer</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\NXRayTracer.cpp">
+      <Filter>Nix\RayTracer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -323,6 +329,9 @@
       <Filter>Nix\RayTracer</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXPhotonMap.h">
+      <Filter>Nix\RayTracer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXRayTracer.h">
       <Filter>Nix\RayTracer</Filter>
     </ClInclude>
   </ItemGroup>
