@@ -3492,3 +3492,13 @@ inline bool Ray::Intersects( const Plane& plane, _Out_ float& Dist ) const
         }
     }
 }
+
+inline Ray Ray::Transform(const Matrix& M) const
+{
+	return Ray(Vector3::Transform(position, M), Vector3::TransformNormal(direction, M));
+}
+
+inline Ray Ray::Transform(const Ray& ray, const Matrix& M) const
+{
+	return ray.Transform(M);
+}

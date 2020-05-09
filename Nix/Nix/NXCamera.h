@@ -18,6 +18,9 @@ public:
 	Vector3 GetAt();
 	Vector3 GetUp();
 
+	const Matrix& GetViewMatrix();
+	const Matrix& GetProjectionMatrix();
+
 	Ray GenerateRay(Vector2 cursorPosition);
 
 	void Init(float zNear, float zFar, Vector3 cameraPosition, Vector3 cameraLookAt, Vector3 cameraLookUp);

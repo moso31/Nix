@@ -82,6 +82,16 @@ Vector3 NXCamera::GetUp()
 	return m_up;
 }
 
+const Matrix& NXCamera::GetViewMatrix()
+{
+	return m_view;
+}
+
+const Matrix& NXCamera::GetProjectionMatrix()
+{
+	return m_projection;
+}
+
 Ray NXCamera::GenerateRay(Vector2 cursorPosition)
 {
 	Vector2 outputSize = g_dxResources->GetViewSize();

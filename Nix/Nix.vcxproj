@@ -228,11 +228,8 @@
     <ClCompile Include="Nix\NXMesh.cpp" />
     <ClCompile Include="Nix\NXObject.cpp" />
     <ClCompile Include="Nix\NXPassShadowMap.cpp" />
-    <ClCompile Include="Nix\NXPBRTRenderer.cpp" />
-    <ClCompile Include="Nix\NXPhotonMap.cpp" />
     <ClCompile Include="Nix\NXPlane.cpp" />
     <ClCompile Include="Nix\NXPrimitive.cpp" />
-    <ClCompile Include="Nix\NXReflection.cpp" />
     <ClCompile Include="Nix\NXRenderTarget.cpp" />
     <ClCompile Include="Nix\NXScene.cpp" />
     <ClCompile Include="Nix\Script\NXScript.cpp" />
@@ -272,11 +269,8 @@
     <ClInclude Include="Nix\NXMesh.h" />
     <ClInclude Include="Nix\NXObject.h" />
     <ClInclude Include="Nix\NXPassShadowMap.h" />
-    <ClInclude Include="Nix\NXPBRTRenderer.h" />
-    <ClInclude Include="Nix\NXPhotonMap.h" />
     <ClInclude Include="Nix\NXPlane.h" />
     <ClInclude Include="Nix\NXPrimitive.h" />
-    <ClInclude Include="Nix\NXReflection.h" />
     <ClInclude Include="Nix\NXRenderTarget.h" />
     <ClInclude Include="Nix\NXScene.h" />
     <ClInclude Include="Nix\Script\NXScript.h" />

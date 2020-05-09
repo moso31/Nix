@@ -37,12 +37,6 @@ void NXScene::OnMouseDown(NXEventArg eArg)
 {
 	auto ray = m_mainCamera->GenerateRay(Vector2(eArg.X, eArg.Y));
 	printf("pos: %.3f, %.3f, %.3f; dir: %.3f, %.3f, %.3f\n", ray.position.x, ray.position.y, ray.position.z, ray.direction.x, ray.direction.y, ray.direction.z);
-
-	NXIntersectionInfo isect;
-	if (NXIntersection::GetInstance()->RayIntersect(dynamic_pointer_cast<NXScene>(shared_from_this()), ray, isect))
-	{
-		printf("object: %s, hitPos: %.3f, %.3f, %.3f, dist: %.6f\n", isect.primitive->GetName().c_str(), isect.position.x, isect.position.y, isect.position.z, isect.distance);
-	}
 }
 
 void NXScene::Init()

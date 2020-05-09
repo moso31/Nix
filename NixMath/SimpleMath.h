@@ -155,6 +155,8 @@ struct Vector3 : public XMFLOAT3
     Vector3(FXMVECTOR V) { XMStoreFloat3( this, V ); }
 	Vector3(const XMFLOAT3& v) : XMFLOAT3(v.x, v.y, v.z) {}
 	Vector3(const Vector4& v);
+	Vector3(const Vector2& v, const float z) : XMFLOAT3(v.x, v.y, z) {};
+	Vector3(const float x, const Vector2& v) : XMFLOAT3(x, v.x, v.y) {};
 
     operator XMVECTOR() const { return XMLoadFloat3( this ); }
 
@@ -719,6 +721,9 @@ public:
 	bool IntersectsFast( const AABB& aabb, _Out_ float& Dist0, _Out_ float& Dist1) const;
     bool Intersects( const Vector3& tri0, const Vector3& tri1, const Vector3& tri2, _Out_ float& Dist ) const;
     bool Intersects( const Plane& plane, _Out_ float& Dist ) const;
+
+	Ray Transform(const Matrix& M) const;
+	Ray Transform(const Ray& ray, const Matrix& M) const;
 };
 
 #include "SimpleMath.inl"

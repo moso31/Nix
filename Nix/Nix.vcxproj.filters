@@ -191,15 +191,6 @@
     <ClCompile Include="Nix\SceneManager.cpp">
       <Filter>Nix\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\NXPBRTRenderer.cpp">
-      <Filter>Nix\RayTracer</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\NXPhotonMap.cpp">
-      <Filter>Nix\RayTracer</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\NXReflection.cpp">
-      <Filter>Nix\RayTracer</Filter>
-    </ClCompile>
     <ClCompile Include="Nix\NXRayTracer.cpp">
       <Filter>Nix\RayTracer</Filter>
     </ClCompile>
@@ -321,15 +312,6 @@
     </ClInclude>
     <ClInclude Include="Nix\SceneManager.h">
       <Filter>Nix\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\NXReflection.h">
-      <Filter>Nix\RayTracer</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\NXPBRTRenderer.h">
-      <Filter>Nix\RayTracer</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\NXPhotonMap.h">
-      <Filter>Nix\RayTracer</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXRayTracer.h">
       <Filter>Nix\RayTracer</Filter>
