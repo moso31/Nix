@@ -3,19 +3,6 @@
 
 class NXIntegrator;
 
-class BSDF
-{
-public:
-	BSDF() {}
-	~BSDF() {}
-
-	void ();
-
-private:
-	Vector3 p;
-	Vector3 wi;
-};
-
 // 离线渲染的图像信息
 struct NXRenderImageInfo
 {

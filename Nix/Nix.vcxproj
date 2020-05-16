@@ -218,6 +218,7 @@
     <ClCompile Include="Core\WICTextureLoader.cpp" />
     <ClCompile Include="Nix\HBVH.cpp" />
     <ClCompile Include="Nix\KdTree.cpp" />
+    <ClCompile Include="Nix\NXFresnel.cpp" />
     <ClCompile Include="Nix\Script\NSFirstPersonalCamera.cpp" />
     <ClCompile Include="Nix\Script\NSTest.cpp" />
     <ClCompile Include="Nix\NXBox.cpp" />
@@ -261,6 +262,7 @@
     <ClInclude Include="Core\WICTextureLoader.h" />
     <ClInclude Include="Nix\HBVH.h" />
     <ClInclude Include="Nix\KdTree.h" />
+    <ClInclude Include="Nix\NXFresnel.h" />
     <ClInclude Include="Nix\Script\NSFirstPersonalCamera.h" />
     <ClInclude Include="Nix\Script\NSTest.h" />
     <ClInclude Include="Nix\NXBox.h" />

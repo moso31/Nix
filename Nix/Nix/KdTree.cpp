@@ -1,6 +1,6 @@
 #include "KdTree.h"
-#include "NXPhotonMap.h"
 
+#if _TODO_
 NXKdTree::NXKdTree()
 {
 }
@@ -61,3 +61,4 @@ unique_ptr<KdTreeNode> NXKdTree::RecursiveBuild(vector<NXPhoton>::iterator& itBe
 	node->rc = RecursiveBuild(itRcL, itEnd, data);
 	return node;
 }
+#endif

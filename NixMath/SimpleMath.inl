@@ -1195,6 +1195,11 @@ inline float Vector3::AngleNormalize(const Vector3& v1, const Vector3& v2)
 	return result;
 }
 
+inline Vector3 Vector3::Sqrt(const Vector3& v)
+{
+    assert(v.x > 0.0f && v.y > 0.0f && v.z > 0.0f);
+    return Vector3(sqrtf(v.x), sqrtf(v.y), sqrtf(v.z));
+}
 
 /****************************************************************************
  *

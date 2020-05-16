@@ -200,6 +200,9 @@
     <ClCompile Include="Core\NXRandom.cpp">
       <Filter>Core\Helper</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\NXFresnel.cpp">
+      <Filter>Nix\RayTracer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -327,6 +330,9 @@
     </ClInclude>
     <ClInclude Include="Core\NXRandom.h">
       <Filter>Core\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXFresnel.h">
+      <Filter>Nix\RayTracer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

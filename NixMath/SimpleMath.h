@@ -242,6 +242,8 @@ struct Vector3 : public XMFLOAT3
 
 	static float Angle(const Vector3& v1, const Vector3& v2);
 	static float AngleNormalize(const Vector3& v1, const Vector3& v2);
+
+    static Vector3 Sqrt(const Vector3& v);
 };
 
 // Binary operators
