@@ -1,8 +1,20 @@
 #pragma once
 #include "header.h"
-#include <random>
 
 class NXIntegrator;
+
+class BSDF
+{
+public:
+	BSDF() {}
+	~BSDF() {}
+
+	void ();
+
+private:
+	Vector3 p;
+	Vector3 wi;
+};
 
 // 离线渲染的图像信息
 struct NXRenderImageInfo
@@ -18,7 +30,7 @@ class NXRayTracer
 {
 public:
 	NXRayTracer();
-	~NXRayTracer() {};
+	~NXRayTracer() {}
 
 	void MakeImage(const shared_ptr<NXScene>& pScene, const shared_ptr<NXCamera>& pMainCamera, const shared_ptr<NXIntegrator>& pIntegrator, const NXRenderImageInfo& ImageInfo);
 	void RayCast(const shared_ptr<NXScene>& pScene, const Ray& rayWorld, const shared_ptr<NXIntegrator>& pIntegrator);
@@ -26,5 +38,4 @@ public:
 	void Release();
 
 private:
-	default_random_engine m_rng;
 };

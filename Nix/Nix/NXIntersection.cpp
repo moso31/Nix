@@ -2,15 +2,15 @@
 #include "NXScene.h"
 #include "NXPrimitive.h"
 
-NXIntersection::NXIntersection()
+NXHit::NXHit()
 {
 }
 
-NXIntersection::~NXIntersection()
+NXHit::~NXHit()
 {
 }
 
-bool NXIntersection::RayIntersect(const shared_ptr<NXScene>& pScene, const Ray& ray, NXIntersectionInfo& oInfo)
+bool NXHit::RayCast(const shared_ptr<NXScene>& pScene, const Ray& ray, NXHitInfo& oInfo)
 {
 	float minDist = FLT_MAX;
 	auto pPrimitives = pScene->GetPrimitives();

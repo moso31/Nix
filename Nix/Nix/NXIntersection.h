@@ -2,23 +2,23 @@
 #include "Header.h"
 #include "NXInstance.h"
 
-struct NXIntersectionInfo
+struct NXHitInfo
 {
-	NXIntersectionInfo() : primitive(nullptr), distance(0) {}
+	NXHitInfo() : primitive(nullptr), distance(0) {}
 	// 击中物体
 	shared_ptr<NXPrimitive> primitive;
 	Vector3 position;
 	float distance;
 };
 
-class NXIntersection : public NXInstance<NXIntersection>
+class NXHit : public NXInstance<NXHit>
 {
 public:
-	NXIntersection();
-	~NXIntersection();
+	NXHit();
+	~NXHit();
 
 	// 提供场景和射线数据（世界坐标），计算交点及相关信息。
-	bool RayIntersect(const shared_ptr<NXScene>& pScene, const Ray& ray, NXIntersectionInfo& oInfo);
+	bool RayCast(const shared_ptr<NXScene>& pScene, const Ray& ray, NXHitInfo& oInfo);
 
 private:
 	

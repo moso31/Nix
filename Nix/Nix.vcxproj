@@ -210,6 +210,7 @@
     <ClCompile Include="Core\NXEvent.cpp" />
     <ClCompile Include="Core\NXInput.cpp" />
     <ClCompile Include="Core\NXListener.cpp" />
+    <ClCompile Include="Core\NXRandom.cpp" />
     <ClCompile Include="Core\NXTimer.cpp" />
     <ClCompile Include="Core\Renderer.cpp" />
     <ClCompile Include="Core\RenderStates.cpp" />
@@ -237,6 +238,7 @@
     <ClCompile Include="Nix\NXTransform.cpp" />
     <ClCompile Include="Nix\SceneManager.cpp" />
     <ClCompile Include="Nix\NXRayTracer.cpp" />
+    <ClCompile Include="Nix\NXReflectionModel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h" />
@@ -250,6 +252,7 @@
     <ClInclude Include="Core\NXInput.h" />
     <ClInclude Include="Core\NXInstance.h" />
     <ClInclude Include="Core\NXListener.h" />
+    <ClInclude Include="Core\NXRandom.h" />
     <ClInclude Include="Core\NXTimer.h" />
     <ClInclude Include="Core\Renderer.h" />
     <ClInclude Include="Core\RenderStates.h" />
@@ -279,6 +282,7 @@
     <ClInclude Include="Nix\NXTransform.h" />
     <ClInclude Include="Nix\SceneManager.h" />
     <ClInclude Include="Nix\NXRayTracer.h" />
+    <ClInclude Include="Nix\NXReflectionModel.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

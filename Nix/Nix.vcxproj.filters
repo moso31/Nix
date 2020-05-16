@@ -194,6 +194,12 @@
     <ClCompile Include="Nix\NXRayTracer.cpp">
       <Filter>Nix\RayTracer</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\NXReflectionModel.cpp">
+      <Filter>Nix\RayTracer</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXRandom.cpp">
+      <Filter>Core\Helper</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -315,6 +321,12 @@
     </ClInclude>
     <ClInclude Include="Nix\NXRayTracer.h">
       <Filter>Nix\RayTracer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXReflectionModel.h">
+      <Filter>Nix\RayTracer</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXRandom.h">
+      <Filter>Core\Helper</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
