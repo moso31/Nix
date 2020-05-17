@@ -231,6 +231,43 @@ void NXScene::Release()
 	m_sceneManager.reset();
 }
 
+bool NXScene::RayCast(const Ray& ray, NXHit& out_hitInfo)
+{
+	float minDist = FLT_MAX;
+
+	// 目前还是用遍历找的……将来改成KD树或BVH树。
+	for (auto it = m_primitives.begin(); it != m_primitives.end(); it++)
+	{
+		Ray LocalRay(
+			Vector3::Transform(ray.position, (*it)->GetWorldMatrixInv()),
+			Vector3::TransformNormal(ray.direction, (*it)->GetWorldMatrixInv())
+		);
+		LocalRay.direction.Normalize();
+
+		// ray-aabb
+		if (LocalRay.IntersectsFast((*it)->GetAABBLocal(), out_hitInfo.distance))
+		{
+			// ray-triangle
+			if ((*it)->Intersect(LocalRay, out_hitInfo.position, out_hitInfo.distance))
+			{
+				if (minDist > out_hitInfo.distance)
+				{
+					minDist = out_hitInfo.distance;
+					out_hitInfo.primitive = *it;
+				}
+			}
+		}
+	}
+
+	if (out_hitInfo.primitive)
+	{
+		out_hitInfo.position = Vector3::Transform(out_hitInfo.position, out_hitInfo.primitive->GetWorldMatrix());
+		out_hitInfo.distance = Vector3::Distance(ray.position, out_hitInfo.position);
+	}
+
+	return out_hitInfo.primitive != nullptr;
+}
+
 void NXScene::InitShadowMapTransformInfo(ConstantBufferShadowMapTransform& out_cb)
 {
 	// 目前仅对第一个平行光提供支持

@@ -203,6 +203,18 @@
     <ClCompile Include="Nix\NXFresnel.cpp">
       <Filter>Nix\RayTracer</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\NXIntegrator.cpp">
+      <Filter>Nix\RayTracer\Integrator</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXBSDF.cpp">
+      <Filter>Nix\RayTracer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXPBRMaterial.cpp">
+      <Filter>Nix\Material</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXPBRLight.cpp">
+      <Filter>Nix\Object\Light</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -333,6 +345,18 @@
     </ClInclude>
     <ClInclude Include="Nix\NXFresnel.h">
       <Filter>Nix\RayTracer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXIntegrator.h">
+      <Filter>Nix\RayTracer\Integrator</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXBSDF.h">
+      <Filter>Nix\RayTracer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXPBRMaterial.h">
+      <Filter>Nix\Material</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXPBRLight.h">
+      <Filter>Nix\Object\Light</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,7 +1,6 @@
 #include "NXRayTracer.h"
 #include "NXCamera.h"
 #include "NXScene.h"
-#include "NXIntersection.h"
 #include "NXRandom.h"
 
 NXRayTracer::NXRayTracer()
@@ -20,7 +19,7 @@ void NXRayTracer::MakeImage(const shared_ptr<NXScene>& pScene, const shared_ptr<
 	{
 		for (int py = 0; py < ImageInfo.ImageSize.y; py++)
 		{
-			Vector2 pixel(px, py);
+			Vector2 pixel((float)px, (float)py);
 			// 每个像素pixelSample个样本。
 			for (int pixelSample = 0; pixelSample < ImageInfo.EachPixelSamples; pixelSample++)
 			{
@@ -33,16 +32,10 @@ void NXRayTracer::MakeImage(const shared_ptr<NXScene>& pScene, const shared_ptr<
 				Ray rayView(Vector3(0.0f), viewDir);
 				Ray rayWorld = rayView.Transform(mxViewToWorld);	// 获取该射线的world空间坐标值
 
-				RayCast(pScene, rayWorld, pIntegrator);
+				pIntegrator->Radiance(rayWorld, pScene, 0);
 			}
 		}
 	}
-}
-
-void NXRayTracer::RayCast(const shared_ptr<NXScene>& pScene, const Ray& rayWorld, const shared_ptr<NXIntegrator>& pIntegrator)
-{
-	NXHitInfo isect;
-	NXHit::GetInstance()->RayCast(pScene, rayWorld, isect);
 }
 
 void NXRayTracer::Release()

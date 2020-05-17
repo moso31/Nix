@@ -1,5 +1,7 @@
 #include "NXPrimitive.h"
 #include "NXMaterial.h"
+#include "NXPBRMaterial.h"
+#include "NXIntersection.h"
 #include "WICTextureLoader.h"
 #include "GlobalBufferManager.h"
 
@@ -57,7 +59,12 @@ void NXPrimitive::SetMaterial(const shared_ptr<NXMaterial>& pMaterial)
 	m_cbDataMaterial = pMaterial->GetMaterialInfo();
 }
 
-AABB NXPrimitive::GetAABBWorld() 
+shared_ptr<NXPBRMaterial> NXPrimitive::GetPBRMaterial() const
+{
+	return m_pPBRMaterial;
+}
+
+AABB NXPrimitive::GetAABBWorld()
 {
 	AABB worldAABB;
 	AABB::Transform(m_aabb, m_worldMatrix, worldAABB);
@@ -97,6 +104,96 @@ bool NXPrimitive::Intersect(const Ray& Ray, Vector3& outHitPos, float& outDist)
 	}
 	else
 		return false;
+}
+
+bool NXPrimitive::RayCast(const Ray& ray, NXHit& outHitInfo)
+{
+	for (int i = 0; i < (int)m_indices.size() / 3; i++)
+	{
+		Vector3 p0 = m_vertices[m_indices[i * 3 + 0]].pos;
+		Vector3 p1 = m_vertices[m_indices[i * 3 + 1]].pos;
+		Vector3 p2 = m_vertices[m_indices[i * 3 + 2]].pos;
+
+		// 从世界空间转换到射线空间：World * T * P * S = Ray。
+
+		// T变换：只是简单的平移。
+		Vector3 p0t = p0 - ray.position;
+		Vector3 p1t = p1 - ray.position;
+		Vector3 p2t = p2 - ray.position;
+
+		// P变换：xyz轴置换。z永远作为最大轴。之后xy随意分配。
+		// 将射线最长的一个方向作为最大轴，以尽可能减少仿射变换的浮点精度损失。
+		int kz = Vector3::Abs(ray.direction).MaxDimension();
+		int kx = kz + 1;
+		if (kx == 3) kx = 0;
+		int ky = kx + 1;
+		if (ky == 3) ky = 0;
+
+		Vector3 d = Vector3::Permute(ray.direction, kx, ky, kz);
+		p0t = Vector3::Permute(p0t, kx, ky, kz);
+		p1t = Vector3::Permute(p0t, kx, ky, kz);
+		p2t = Vector3::Permute(p0t, kx, ky, kz);
+
+		// S变换：仿射变换。
+		float shearX = -d.x / d.z;
+		float shearY = -d.y / d.z;
+		float shearZ = 1.0f / d.z;
+		p0t.x += shearX * p0t.z;
+		p1t.x += shearX * p1t.z;
+		p2t.x += shearX * p2t.z;
+
+		p0t.y += shearY * p0t.z;
+		p1t.y += shearY * p1t.z;
+		p2t.y += shearY * p2t.z;
+
+		// 仿射变换后三角形就已经被转换到射线空间了。
+		// 之后即可求在射线空间中的边缘函数e0 e1 e2。
+		float e0 = p1t.x * p2t.y - p1t.y * p2t.x;
+		float e1 = p2t.x * p0t.y - p2t.y * p0t.x;
+		float e2 = p0t.x * p1t.y - p0t.y * p1t.x;
+
+		// 射线测试：e0, e1, e2同为非零正数或非零负数，说明p在三角形内。
+		if ((e0 < 0 || e1 < 0 || e2 < 0) && (e0 > 0 || e1 > 0 || e2 > 0))
+			return false;
+		// 存储三个边缘函数值的总和，对后续计算很有用。
+		float det = e0 + e1 + e2;
+		// 如果三个边缘函数值的总和为零，说明射线正好落于三角形边上。这种情况视作未击中。
+		// 只要三角Mesh是完全封闭的，该射线在其他相邻三角形中就一定能得到一个击中且det != 0的反馈。
+		if (det == 0) return false;
+
+		// 完成还未做的Z轴S仿射变换。
+		p0t.z *= shearZ;
+		p1t.z *= shearZ;
+		p2t.z *= shearZ;
+
+		// 求击中点的t值
+		float tScaled = e0 * p0t.z + e1 * p1t.z + e2 * p2t.z;
+		
+		// 两种击中三角形背面的情况（det>0但t<=0，或det<0但t>=0）。
+		// 这两种情况视作为被击中。
+		// 另外使用tScaled判断而不是t。因为计算出t需要执行一次除法操作（见后续）。
+		// 但符号判断是不需要进行除法的。
+		if (det < 0 && (tScaled >= 0))
+			return false;
+		else if (det > 0 && (tScaled <= 0))
+			return false;
+
+		// 计算重心坐标b0 b1 b2 + 击中点的t值
+		float invDet = 1 / det;
+		float b0 = e0 * invDet;
+		float b1 = e1 * invDet;
+		float b2 = e2 * invDet;
+		float t = tScaled * invDet;
+
+		// 至此已经确定击中，并计算了t。
+
+		Vector3 dpdu, dpdv;
+		Vector2 uv[3];
+		for (int i = 0; i < 3; i++)
+		{
+			uv[i] = m_vertices[i].tex;
+		}
+	}
 }
 
 void NXPrimitive::InitVertexIndexBuffer()

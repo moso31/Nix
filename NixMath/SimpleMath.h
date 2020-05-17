@@ -176,6 +176,7 @@ struct Vector3 : public XMFLOAT3
     Vector3 operator+ () const { return *this; }
     Vector3 operator- () const;
 	float& operator[] (const int& index);
+	float operator[] (const int& index) const;
 
     // Vector operations
     bool InBounds( const Vector3& Bounds ) const;
@@ -194,6 +195,9 @@ struct Vector3 : public XMFLOAT3
 
     void Clamp( const Vector3& vmin, const Vector3& vmax );
     void Clamp( const Vector3& vmin, const Vector3& vmax, Vector3& result ) const;
+
+	bool IsZero() const;
+	int MaxDimension() const;
 
     // Static functions
     static float Distance( const Vector3& v1, const Vector3& v2 );
@@ -243,7 +247,11 @@ struct Vector3 : public XMFLOAT3
 	static float Angle(const Vector3& v1, const Vector3& v2);
 	static float AngleNormalize(const Vector3& v1, const Vector3& v2);
 
+	static Vector3 Abs(const Vector3& v);
+
     static Vector3 Sqrt(const Vector3& v);
+
+	static Vector3 Permute(const Vector3& v, int x, int y, int z);
 };
 
 // Binary operators

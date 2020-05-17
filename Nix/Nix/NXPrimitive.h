@@ -8,6 +8,9 @@ class NXCylinder;
 class NXCone;
 class NXPlane;
 
+class NXHit;
+class NXPBRMaterial;
+
 class NXPrimitive : public NXTransform
 {
 public:
@@ -19,13 +22,16 @@ public:
 	virtual void Release();
 
 	void SetMaterial(const shared_ptr<NXMaterial>& material);
+
+	shared_ptr<NXPBRMaterial> GetPBRMaterial() const;
 	AABB GetAABBWorld();
 	AABB GetAABBLocal() const;
 
 	ID3D11ShaderResourceView* GetTextureSRV() const { return m_pTextureSRV; }
 	ID3D11Buffer* GetMaterialBuffer() const { return m_cbMaterial; }
 
-	virtual bool Intersect(const Ray& Ray, Vector3& outHitPos, float& outDist);
+	virtual bool Intersect(const Ray& ray, Vector3& outHitPos, float& outDist);
+	virtual bool RayCast(const Ray& ray, NXHit& outHitInfo);
 
 protected:
 	void InitVertexIndexBuffer();
@@ -43,6 +49,7 @@ protected:
 	ConstantBufferMaterial		m_cbDataMaterial;
 	ID3D11Buffer*				m_cbMaterial;
 	shared_ptr<NXMaterial>		m_pMaterial;
+	shared_ptr<NXPBRMaterial>	m_pPBRMaterial;
 
 	AABB m_aabb;
 };

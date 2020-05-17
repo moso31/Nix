@@ -45,7 +45,7 @@ Vector3 NXRPrefectReflection::Sample_f(const Vector3& wo, Vector3& wi)
 Vector3 NXRPrefectTransmission::Sample_f(const Vector3& wo, Vector3& wi)
 {
 	// 确定etaA和etaB的入射/折射关系
-	bool entering = wo.z > 0;	// 是从外部进入到内部吗？
+	bool entering = wo.z > 0;	// 是从外部进入到内部吗？是的话就反转入射/出射介质。
 	float etaI = entering ? etaA : etaB;
 	float etaT = entering ? etaB : etaA;
 

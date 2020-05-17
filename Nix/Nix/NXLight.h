@@ -135,15 +135,3 @@ private:
 	float m_spot;
 	Vector3 m_att;
 };
-
-// ¡Ÿ ±PBRπ‚‘¥
-class NXPBRPointLight
-{
-public:
-	NXPBRPointLight() {}
-	~NXPBRPointLight() {}
-
-public:
-	Vector3 Position;
-	Vector3 Intensity;
-};

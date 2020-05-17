@@ -685,6 +685,12 @@ inline float& Vector3::operator[](const int& index)
 	return index < 1 ? x : index > 1 ? z : y;
 }
 
+inline float Vector3::operator[](const int& index) const
+{
+	assert(index >= 0 && index < 3);
+	return index < 1 ? x : index > 1 ? z : y;
+}
+
 //------------------------------------------------------------------------------
 // Binary operators
 //------------------------------------------------------------------------------
@@ -854,6 +860,16 @@ inline void Vector3::Clamp( const Vector3& vmin, const Vector3& vmax, Vector3& r
     XMVECTOR v3 = XMLoadFloat3( &vmax );
     XMVECTOR X = XMVectorClamp( v1, v2, v3 );
     XMStoreFloat3( &result, X );
+}
+
+inline bool Vector3::IsZero() const
+{
+	return x == 0 && y == 0 && z == 0;
+}
+
+inline int Vector3::MaxDimension() const
+{
+	return (x > y) ? ((x > z) ? 0 : 2) : ((y > z) ? 1 : 2);
 }
 
 //------------------------------------------------------------------------------
@@ -1195,10 +1211,20 @@ inline float Vector3::AngleNormalize(const Vector3& v1, const Vector3& v2)
 	return result;
 }
 
+inline Vector3 Vector3::Abs(const Vector3& v)
+{
+	return Vector3(fabsf(v.x), fabsf(v.y), fabsf(v.z));
+}
+
 inline Vector3 Vector3::Sqrt(const Vector3& v)
 {
     assert(v.x > 0.0f && v.y > 0.0f && v.z > 0.0f);
     return Vector3(sqrtf(v.x), sqrtf(v.y), sqrtf(v.z));
+}
+
+inline Vector3 Vector3::Permute(const Vector3& v, int x, int y, int z)
+{
+	return Vector3(v[x], v[y], v[z]);
 }
 
 /****************************************************************************

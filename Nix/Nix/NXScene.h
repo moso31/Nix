@@ -1,6 +1,8 @@
 #pragma once
 #include "NXObject.h"
 #include "NXMaterial.h"
+#include "NXPBRMaterial.h"
+#include "NXPBRLight.h"
 
 // temp include.
 #include "ShaderStructures.h"
@@ -19,6 +21,9 @@ public:
 	void UpdateScripts();
 	void UpdateCamera();
 	void Release();
+
+	// 场景-射线相交测试
+	bool RayCast(const Ray& ray, NXHit& out_hitInfo);
 
 	BoundingSphere						GetBoundingSphere()		{ return m_boundingSphere; }
 	AABB								GetAABB()				{ return m_aabb; }
