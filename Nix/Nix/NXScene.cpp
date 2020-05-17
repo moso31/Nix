@@ -248,6 +248,10 @@ bool NXScene::RayCast(const Ray& ray, NXHit& out_hitInfo)
 		if (LocalRay.IntersectsFast((*it)->GetAABBLocal(), out_hitInfo.distance))
 		{
 			// ray-triangle
+			if ((*it)->RayCast(LocalRay, out_hitInfo))
+			{
+				minDist = ;
+			}
 			if ((*it)->Intersect(LocalRay, out_hitInfo.position, out_hitInfo.distance))
 			{
 				if (minDist > out_hitInfo.distance)
@@ -259,6 +263,11 @@ bool NXScene::RayCast(const Ray& ray, NXHit& out_hitInfo)
 		}
 	}
 
+	shared_ptr<NXPrimitive>& pShape = out_hitInfo.primitive;
+	if (pShape)
+	{
+		pShape-
+	}
 	if (out_hitInfo.primitive)
 	{
 		out_hitInfo.position = Vector3::Transform(out_hitInfo.position, out_hitInfo.primitive->GetWorldMatrix());

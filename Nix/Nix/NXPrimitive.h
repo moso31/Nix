@@ -17,6 +17,8 @@ public:
 	NXPrimitive();
 	virtual ~NXPrimitive() {}
 
+	friend class NXTriangle;
+
 	virtual void Update();
 	virtual void Render();
 	virtual void Release();
@@ -31,7 +33,7 @@ public:
 	ID3D11Buffer* GetMaterialBuffer() const { return m_cbMaterial; }
 
 	virtual bool Intersect(const Ray& ray, Vector3& outHitPos, float& outDist);
-	virtual bool RayCast(const Ray& ray, NXHit& outHitInfo);
+	virtual bool RayCast(const Ray& localRay, NXHit& outHitInfo);
 
 protected:
 	void InitVertexIndexBuffer();
@@ -52,4 +54,18 @@ protected:
 	shared_ptr<NXPBRMaterial>	m_pPBRMaterial;
 
 	AABB m_aabb;
+};
+
+class NXTriangle
+{
+public:
+	NXTriangle(Vector3 p0, Vector3 p1, Vector3 p2) : p0(p0), p1(p1), p2(p2) {}
+	NXTriangle(const shared_ptr<NXPrimitive>& pShape, int startIndex);
+	~NXTriangle() {};
+
+	bool RayCast(const Ray& localRay, NXHit& outHitInfo);
+
+private:
+	Vector3 p0, p1, p2;
+	shared_ptr<NXPrimitive> pShape;
 };

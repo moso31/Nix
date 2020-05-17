@@ -73,6 +73,8 @@ struct Vector2 : public XMFLOAT2
     // Urnary operators
     Vector2 operator+ () const { return *this; }
     Vector2 operator- () const { return Vector2(-x, -y); }
+    float& operator[] (const int& index);
+    float operator[] (const int& index) const;
 
     // Vector operations
     bool InBounds( const Vector2& Bounds ) const;
@@ -198,6 +200,7 @@ struct Vector3 : public XMFLOAT3
 
 	bool IsZero() const;
 	int MaxDimension() const;
+    Vector3 GenerateCoordinateSpace(Vector3& basis1, Vector3 basis2);
 
     // Static functions
     static float Distance( const Vector3& v1, const Vector3& v2 );

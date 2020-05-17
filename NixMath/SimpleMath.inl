@@ -95,6 +95,18 @@ inline Vector2& Vector2::operator/= (float S)
     return *this;
 } 
 
+inline float& Vector2::operator[](const int& index)
+{
+    assert(index >= 0 && index < 2);
+    return index < 1 ? x : y;
+}
+
+inline float Vector2::operator[](const int& index) const
+{
+    assert(index >= 0 && index < 3);
+    return index < 1 ? x : y;
+}
+
 //------------------------------------------------------------------------------
 // Binary operators
 //------------------------------------------------------------------------------
@@ -870,6 +882,15 @@ inline bool Vector3::IsZero() const
 inline int Vector3::MaxDimension() const
 {
 	return (x > y) ? ((x > z) ? 0 : 2) : ((y > z) ? 1 : 2);
+}
+
+inline Vector3 Vector3::GenerateCoordinateSpace(Vector3& basis1, Vector3 basis2)
+{
+    if (fabsf(x) < fabsf(y))
+        basis1 = Vector3(-z, 0.0f, x) / sqrtf(x * x + z * z);
+    else
+        basis1 = Vector3(0.0f, z, -y) / sqrtf(y * y + z * z);
+    basis2 = this->Cross(basis1);
 }
 
 //------------------------------------------------------------------------------
