@@ -884,7 +884,7 @@ inline int Vector3::MaxDimension() const
 	return (x > y) ? ((x > z) ? 0 : 2) : ((y > z) ? 1 : 2);
 }
 
-inline Vector3 Vector3::GenerateCoordinateSpace(Vector3& basis1, Vector3 basis2)
+inline void Vector3::GenerateCoordinateSpace(Vector3& basis1, Vector3 basis2)
 {
     if (fabsf(x) < fabsf(y))
         basis1 = Vector3(-z, 0.0f, x) / sqrtf(x * x + z * z);

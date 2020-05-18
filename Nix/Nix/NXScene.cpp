@@ -231,9 +231,9 @@ void NXScene::Release()
 	m_sceneManager.reset();
 }
 
-bool NXScene::RayCast(const Ray& ray, NXHit& out_hitInfo)
+bool NXScene::RayCast(const Ray& ray, NXHit& outHitInfo)
 {
-	float minDist = FLT_MAX;
+	float outDist = FLT_MAX;
 
 	// 目前还是用遍历找的……将来改成KD树或BVH树。
 	for (auto it = m_primitives.begin(); it != m_primitives.end(); it++)
@@ -245,36 +245,22 @@ bool NXScene::RayCast(const Ray& ray, NXHit& out_hitInfo)
 		LocalRay.direction.Normalize();
 
 		// ray-aabb
-		if (LocalRay.IntersectsFast((*it)->GetAABBLocal(), out_hitInfo.distance))
+		float aabbDist;
+		if (LocalRay.IntersectsFast((*it)->GetAABBLocal(), aabbDist))
 		{
-			// ray-triangle
-			if ((*it)->RayCast(LocalRay, out_hitInfo))
+			if (aabbDist < outDist)
 			{
-				minDist = ;
-			}
-			if ((*it)->Intersect(LocalRay, out_hitInfo.position, out_hitInfo.distance))
-			{
-				if (minDist > out_hitInfo.distance)
+				// ray-triangle
+				if ((*it)->RayCast(LocalRay, outHitInfo, outDist))
 				{
-					minDist = out_hitInfo.distance;
-					out_hitInfo.primitive = *it;
+					// 得到了更近的相交结果。
+					// 保留当前outHitInfo和outDist。
 				}
 			}
 		}
 	}
 
-	shared_ptr<NXPrimitive>& pShape = out_hitInfo.primitive;
-	if (pShape)
-	{
-		pShape-
-	}
-	if (out_hitInfo.primitive)
-	{
-		out_hitInfo.position = Vector3::Transform(out_hitInfo.position, out_hitInfo.primitive->GetWorldMatrix());
-		out_hitInfo.distance = Vector3::Distance(ray.position, out_hitInfo.position);
-	}
-
-	return out_hitInfo.primitive != nullptr;
+	return outHitInfo.pPrimitive != nullptr;
 }
 
 void NXScene::InitShadowMapTransformInfo(ConstantBufferShadowMapTransform& out_cb)

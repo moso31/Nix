@@ -33,7 +33,7 @@ public:
 	ID3D11Buffer* GetMaterialBuffer() const { return m_cbMaterial; }
 
 	virtual bool Intersect(const Ray& ray, Vector3& outHitPos, float& outDist);
-	virtual bool RayCast(const Ray& localRay, NXHit& outHitInfo);
+	virtual bool RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist);
 
 protected:
 	void InitVertexIndexBuffer();
@@ -63,7 +63,7 @@ public:
 	NXTriangle(const shared_ptr<NXPrimitive>& pShape, int startIndex);
 	~NXTriangle() {};
 
-	bool RayCast(const Ray& localRay, NXHit& outHitInfo);
+	bool RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist);
 
 private:
 	Vector3 p0, p1, p2;

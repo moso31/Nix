@@ -200,7 +200,7 @@ struct Vector3 : public XMFLOAT3
 
 	bool IsZero() const;
 	int MaxDimension() const;
-    Vector3 GenerateCoordinateSpace(Vector3& basis1, Vector3 basis2);
+    void GenerateCoordinateSpace(Vector3& basis1, Vector3 basis2);
 
     // Static functions
     static float Distance( const Vector3& v1, const Vector3& v2 );

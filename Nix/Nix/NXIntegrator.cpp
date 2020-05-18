@@ -42,12 +42,12 @@ Vector3 NXIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& pScene
 	{
 		Vector3 incidentDirection;
 		Vector3 Li = (*it)->SampleIncidentRadiance(hitInfo, incidentDirection);
-		Vector3 f = hitInfo.bsdf.f();
+		Vector3 f = hitInfo.BSDF.f();
 
 		// ÔÝÊ±²»¿¼ÂÇVisibility Tester
 		if (!f.IsZero())
 		{
-			L += f * Li * cos(incidentDirection * hitInfo.normal);
+			L += f * Li * cosf(incidentDirection.Dot(hitInfo.normal));
 		}
 	}
 

@@ -2,15 +2,30 @@
 #include "NXInstance.h"
 #include "NXBSDF.h"
 
+struct NXShadingHit
+{
+	Vector3 normal;
+	Vector3 dpdu, dpdv;
+};
+
 class NXHit : public enable_shared_from_this<NXHit>
 {
 public:
+	NXHit() = default;
+	NXHit(const shared_ptr<NXPrimitive>& pPrimitive, const Vector3& position, const Vector2& uv, const Vector3& dpdu, const Vector3& dpdv);
+	~NXHit() {}
+
 	void ConstructReflectionModel();
+	void SetShadingGeometry(Vector3 shadingdpdu, Vector3 shadingdpdv);
 
-	// »÷ÖÐÎïÌå
-	shared_ptr<NXPrimitive> primitive;
+	shared_ptr<NXPrimitive> pPrimitive;
+
 	Vector3 position;
-	float distance;
+	Vector3 normal;
+	Vector2 uv;
+	Vector3 dpdu;
+	Vector3 dpdv;
+	NXShadingHit shading;
 
-	NXBSDF bsdf;
+	shared_ptr<NXBSDF> BSDF;
 };

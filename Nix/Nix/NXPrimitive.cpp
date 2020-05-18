@@ -106,8 +106,9 @@ bool NXPrimitive::Intersect(const Ray& Ray, Vector3& outHitPos, float& outDist)
 		return false;
 }
 
-bool NXPrimitive::RayCast(const Ray& localRay, NXHit& outHitInfo)
+bool NXPrimitive::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist)
 {
+	bool bSuccess = false;
 	for (int i = 0; i < (int)m_indices.size() / 3; i++)
 	{
 		Vector3 p0 = m_vertices[m_indices[i * 3 + 0]].pos;
@@ -115,8 +116,11 @@ bool NXPrimitive::RayCast(const Ray& localRay, NXHit& outHitInfo)
 		Vector3 p2 = m_vertices[m_indices[i * 3 + 2]].pos;
 
 		NXTriangle triangle(dynamic_pointer_cast<NXPrimitive>(shared_from_this()), i * 3);
-		triangle.RayCast(localRay, outHitInfo);
+		if (triangle.RayCast(localRay, outHitInfo, outDist))
+			bSuccess = true;
 	}
+
+	return bSuccess;
 }
 
 void NXPrimitive::InitVertexIndexBuffer()
@@ -159,7 +163,7 @@ NXTriangle::NXTriangle(const shared_ptr<NXPrimitive>& pShape, int startIndex) :
 {
 }
 
-bool NXTriangle::RayCast(const Ray& localRay, NXHit& outHitInfo)
+bool NXTriangle::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist)
 {
 	// 从世界空间转换到射线空间：World * T * P * S = Ray。
 
@@ -236,7 +240,7 @@ bool NXTriangle::RayCast(const Ray& localRay, NXHit& outHitInfo)
 	// 至此已经确定击中，并计算了t（射线到三角形的距离）。
 
 	// 判断t是否是当前最近交点。是的话就计算dpdu，dpdv等数据，并更新outHitInfo。
-	if (outHitInfo.distance > t)
+	if (outDist > t)
 	{
 		// 计算dpdu和dpdv。
 		Vector3 dpdu, dpdv;
@@ -266,7 +270,7 @@ bool NXTriangle::RayCast(const Ray& localRay, NXHit& outHitInfo)
 			dpdv = (dp12 * du02 - dp02 * du12) * uvdetInv;
 		}
 
-		if (uvdet < 1e-6 || dpdu.Cross(dpdv).LengthSquared == 0.0f)
+		if (uvdet < 1e-6 || dpdu.Cross(dpdv).LengthSquared() == 0.0f)
 		{
 			// 如果uv行列式结果=0，那么无法计算出有效dpdu dpdv。
 			// 这种情况下需要强行为法向量生成一个坐标系。
@@ -282,13 +286,9 @@ bool NXTriangle::RayCast(const Ray& localRay, NXHit& outHitInfo)
 		Vector3 pHit = b0 * p0 + b1 * p1 + b2 * p2;
 		Vector2 uvHit = b0 * uv[0] + b1 * uv[1] + b2 * uv[2];
 
-		【慎重考虑一下outHitInfo应该在何时转换到世界空间！】
-		outHitInfo.position = pHit;
-		outHitInfo.primitive = pShape;
-		outHitInfo.dpdu = dpdu;
-		outHitInfo.dpdv = dpdv;
+		outHitInfo = NXHit(pShape, pHit, uvHit, dpdu, dpdv);
 
-		// 然后更新hitInfo的shading部分。
+		// 然后开始更新hitInfo的shading部分。
 		bool bEnableNormal = true;
 		bool bEnableTangent = false;	// 不考虑模型自带的切线数据
 		bool bEnableNormalDerivative = false;	// 不生成dndu，dndv。
@@ -321,7 +321,7 @@ bool NXTriangle::RayCast(const Ray& localRay, NXHit& outHitInfo)
 					dndv = (dn12 * du02 - dn02 * du12) * uvdetInv;
 				}
 
-				if (uvdet < 1e-6 || dndu.Cross(dndv).LengthSquared == 0.0f)
+				if (uvdet < 1e-6 || dndu.Cross(dndv).LengthSquared() == 0.0f)
 				{
 					// 如果uv行列式结果=0，那么无法计算出有效dndu dndv。
 					// 这种情况下需要强行为切向量生成一个坐标系。
@@ -371,14 +371,9 @@ bool NXTriangle::RayCast(const Ray& localRay, NXHit& outHitInfo)
 		else
 			ns.GenerateCoordinateSpace(ss, ts);
 
-		outHitInfo.SetShadingGeometry();
-
-		// Ensure correct orientation of the geometric normal ???
-		.....
-
-		outHitInfo.distance = t;
+		outHitInfo.SetShadingGeometry(ss, ts);
+		outDist = t;
 	}
-
 
 	return true;
 }
