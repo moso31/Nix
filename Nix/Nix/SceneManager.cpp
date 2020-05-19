@@ -209,6 +209,15 @@ shared_ptr<NXMaterial> SceneManager::CreateMaterial(const string& name, const Ve
 	return p;
 }
 
+shared_ptr<NXPBRMaterial> SceneManager::CreatePBRMatte(const Vector3& diffuse, float IOR)
+{
+	auto p = make_shared<NXMatteMaterial>();
+	p->Diffuse = diffuse;
+	p->IOR = IOR;
+
+	return p;
+}
+
 bool SceneManager::BindParent(shared_ptr<NXObject> pParent, shared_ptr<NXObject> pChild)
 {
 	if (!pChild || !pParent)

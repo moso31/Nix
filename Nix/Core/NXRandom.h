@@ -9,6 +9,7 @@ public:
 	NXRandom();
 	~NXRandom();
 
+	int CreateInt(int minValue, int maxValue);
 	float CreateFloat(float minValue = 0.0f, float maxValue = 1.0f);
 	Vector2 CreateVector2(float minValue = 0.0f, float maxValue = 1.0f);
 	Vector3 CreateVector3(float minValue = 0.0f, float maxValue = 1.0f);

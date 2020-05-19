@@ -11,12 +11,11 @@ public:
 
 	virtual void ConstructReflectionModel(const shared_ptr<NXHit>& hitInfo) = 0;
 
-protected:
-	Vector3 m_diffuse;
+	Vector3 Diffuse;
 	Vector3 m_specular;
 	float m_roughness;
 	Vector3 m_reflectivity;
-	float m_IOR;
+	float IOR;
 };
 
 class NXMatteMaterial : public NXPBRMaterial

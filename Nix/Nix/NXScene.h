@@ -14,6 +14,7 @@ public:
 	~NXScene();
 
 	void OnMouseDown(NXEventArg eArg);
+	void OnKeyDown(NXEventArg eArg);
 
 	void Init();
 	void InitScripts();

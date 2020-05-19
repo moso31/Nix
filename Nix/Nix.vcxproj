@@ -294,6 +294,9 @@
     <ClInclude Include="Nix\NXRayTracer.h" />
     <ClInclude Include="Nix\NXReflectionModel.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="场景添加物体说明.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

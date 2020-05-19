@@ -59,6 +59,11 @@ void NXPrimitive::SetMaterial(const shared_ptr<NXMaterial>& pMaterial)
 	m_cbDataMaterial = pMaterial->GetMaterialInfo();
 }
 
+void NXPrimitive::SetMaterialPBR(const shared_ptr<NXPBRMaterial>& mat)
+{
+	m_pPBRMaterial = mat;
+}
+
 shared_ptr<NXPBRMaterial> NXPrimitive::GetPBRMaterial() const
 {
 	return m_pPBRMaterial;
@@ -76,36 +81,6 @@ AABB NXPrimitive::GetAABBLocal() const
 	return m_aabb;
 }
 
-bool NXPrimitive::Intersect(const Ray& Ray, Vector3& outHitPos, float& outDist)
-{
-	int outIndex = -1;
-	outDist = FLT_MAX;
-	for (int i = 0; i < (int)m_indices.size() / 3; i++)
-	{
-		Vector3 P0 = m_vertices[m_indices[i * 3 + 0]].pos;
-		Vector3 P1 = m_vertices[m_indices[i * 3 + 1]].pos;
-		Vector3 P2 = m_vertices[m_indices[i * 3 + 2]].pos;
-
-		float dist;
-		if (Ray.Intersects(P0, P1, P2, dist))
-		{
-			if (dist < outDist)
-			{
-				outDist = dist;
-				outIndex = i;
-			}
-		}
-	}
-
-	if (outIndex != -1)
-	{
-		outHitPos = Ray.position + Ray.direction * outDist;
-		return true;
-	}
-	else
-		return false;
-}
-
 bool NXPrimitive::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist)
 {
 	bool bSuccess = false;
@@ -117,7 +92,10 @@ bool NXPrimitive::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist
 
 		NXTriangle triangle(dynamic_pointer_cast<NXPrimitive>(shared_from_this()), i * 3);
 		if (triangle.RayCast(localRay, outHitInfo, outDist))
+		{
+			outHitInfo.faceIndex = i;
 			bSuccess = true;
+		}
 	}
 
 	return bSuccess;
@@ -286,7 +264,7 @@ bool NXTriangle::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist)
 		Vector3 pHit = b0 * p0 + b1 * p1 + b2 * p2;
 		Vector2 uvHit = b0 * uv[0] + b1 * uv[1] + b2 * uv[2];
 
-		outHitInfo = NXHit(pShape, pHit, uvHit, dpdu, dpdv);
+		outHitInfo = NXHit(pShape, pHit, uvHit, -localRay.direction, dpdu, dpdv);
 
 		// 然后开始更新hitInfo的shading部分。
 		bool bEnableNormal = true;

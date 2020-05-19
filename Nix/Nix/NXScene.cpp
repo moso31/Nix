@@ -14,6 +14,10 @@
 #include "NXLight.h"
 #include "NXMaterial.h"
 
+#include "NXRayTracer.h"
+#include "NXPBRLight.h"
+#include "NXPBRMaterial.h"
+
 //#include "NXShadowMap.h"
 #include "NXPassShadowMap.h"
 
@@ -37,6 +41,12 @@ void NXScene::OnMouseDown(NXEventArg eArg)
 {
 	auto ray = m_mainCamera->GenerateRay(Vector2(eArg.X, eArg.Y));
 	printf("pos: %.3f, %.3f, %.3f; dir: %.3f, %.3f, %.3f\n", ray.position.x, ray.position.y, ray.position.z, ray.direction.x, ray.direction.y, ray.direction.z);
+}
+
+void NXScene::OnKeyDown(NXEventArg eArg)
+{
+	if (eArg.VKey == 'G')
+		printf("key down\n");
 }
 
 void NXScene::Init()
@@ -102,12 +112,16 @@ void NXScene::Init()
 		0.2f
 	);
 
+	auto pPBRMat = m_sceneManager->CreatePBRMatte(Vector3(1.0f, 0.0f, 0.0f), 1.0f);
+
 	auto pPlane = m_sceneManager->CreatePlane(
 		"Wall",
 		5.0f, 5.0f,
 		pMaterial,
 		Vector3(0.0f)
 	);
+
+	pPlane->SetMaterialPBR(pPBRMat);
 
 	pPlane = m_sceneManager->CreatePlane(
 		"Ground",
@@ -116,6 +130,8 @@ void NXScene::Init()
 		Vector3(0.0f, 2.5f, 2.5f),
 		Vector3(-XM_PIDIV2, 0.0f, 0.0f)
 	);
+
+	pPlane->SetMaterialPBR(pPBRMat);
 	
 	auto pSphere = m_sceneManager->CreateSphere(
 		"Sphere",
@@ -124,12 +140,16 @@ void NXScene::Init()
 		Vector3(2.0f, 0.0f, 0.0f)
 	);
 
+	pSphere->SetMaterialPBR(pPBRMat);
+
 	vector<shared_ptr<NXMesh>> pMeshes;
 	bool pMesh = m_sceneManager->CreateFBXMeshes(
 		"D:\\2.fbx", 
 		pMaterial,
 		pMeshes
 	);
+
+	pMeshes[0]->SetMaterialPBR(pPBRMat);
 
 	auto pCamera = m_sceneManager->CreateCamera(
 		"Camera1", 
@@ -139,12 +159,12 @@ void NXScene::Init()
 		Vector3(0.0f, 1.0f, 0.0f)
 	);
 
-	if (!pMeshes.empty())
-	{
-		bool bBind = m_sceneManager->BindParent(pMeshes[1], pSphere);
-		auto pScript_test = make_shared<NSTest>();
-		pMeshes[1]->AddScript(pScript_test);
-	}
+	//if (!pMeshes.empty())
+	//{
+	//	bool bBind = m_sceneManager->BindParent(pMeshes[1], pSphere);
+	//	auto pScript_test = make_shared<NSTest>();
+	//	pMeshes[1]->AddScript(pScript_test);
+	//}
 
 	m_mainCamera = pCamera;
 	m_objects.push_back(pCamera);
@@ -174,6 +194,8 @@ void NXScene::InitScripts()
 	auto pThisScene = dynamic_pointer_cast<NXScene>(shared_from_this());
 	auto pListener_onMouseDown = make_shared<NXListener>(pThisScene, std::bind(&NXScene::OnMouseDown, pThisScene, std::placeholders::_1));
 	NXEventMouseDown::GetInstance()->AddListener(pListener_onMouseDown);
+	pListener_onKeyDown = make_shared<NXListener>(pThisScene, std::bind(&NXScene::OnKeyDown, pThisScene, std::placeholders::_1));
+	NXEventKeyDown::GetInstance()->AddListener(pListener_onKeyDown);
 }
 
 void NXScene::UpdateTransform(shared_ptr<NXObject> pObject)
@@ -259,8 +281,12 @@ bool NXScene::RayCast(const Ray& ray, NXHit& outHitInfo)
 			}
 		}
 	}
+	
+	if (!outHitInfo.pPrimitive)
+		return false;
 
-	return outHitInfo.pPrimitive != nullptr;
+	outHitInfo.LocalToWorld();
+	return true;
 }
 
 void NXScene::InitShadowMapTransformInfo(ConstantBufferShadowMapTransform& out_cb)

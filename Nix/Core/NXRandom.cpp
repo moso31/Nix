@@ -10,6 +10,12 @@ NXRandom::~NXRandom()
 {
 }
 
+int NXRandom::CreateInt(int minValue, int maxValue)
+{
+	uniform_int_distribution<int> r(minValue, maxValue);
+	return r(m_rng);
+}
+
 float NXRandom::CreateFloat(float minValue, float maxValue)
 {
 	uniform_real_distribution<float> r(minValue, maxValue);

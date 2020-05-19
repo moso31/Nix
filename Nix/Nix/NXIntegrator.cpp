@@ -42,7 +42,7 @@ Vector3 NXIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& pScene
 	{
 		Vector3 incidentDirection;
 		Vector3 Li = (*it)->SampleIncidentRadiance(hitInfo, incidentDirection);
-		Vector3 f = hitInfo.BSDF.f();
+		Vector3 f = hitInfo.BSDF->f(hitInfo.direction, incidentDirection);
 
 		// 暂时不考虑Visibility Tester
 		if (!f.IsZero())
@@ -57,27 +57,31 @@ Vector3 NXIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& pScene
 	const static int maxDepth = 5;
 	if (depth < maxDepth)
 	{
+		// 间接反射：仅提取bsdf中具有完美反射的ReflectionModel，并统计其Sample_f。
 		L += SpecularReflect(ray, hitInfo, pScene, depth);
+		// 间接折射：仅提取bsdf中具有完美折射的ReflectionModel，并统计其Sample_f。
 		L += SpecularTransmit(ray, hitInfo, pScene, depth);
 	}
 
 	return L;
-
-	// 间接反射：
-	// f：仅提取bsdf中具有完美反射的ReflectionModel，并统计其Sample_f。
-	// Lr：递归计算，depth+1。
-
-	// 间接折射：
-	// f：仅提取bsdf中具有完美折射的ReflectionModel，并统计其Sample_f。
-	// Lr：递归计算，depth+1。
 }
 
 Vector3 NXIntegrator::SpecularReflect(const Ray& ray, const NXHit& hit, const shared_ptr<NXScene>& pScene, int depth)
 {
-	return Vector3();
+	Vector3 wo = hit.direction, wi;
+	Vector3 f = hit.BSDF->Sample_f(wo, wi, ReflectionType(REFLECTIONTYPE_REFLECTION | REFLECTIONTYPE_SPECULAR));
+	
+	if (f.IsZero()) return Vector3(0.0f);
+
+	return f * Radiance(Ray(hit.position, wi), pScene, depth + 1) * fabsf(cosf(wi.Dot(hit.shading.normal)));
 }
 
 Vector3 NXIntegrator::SpecularTransmit(const Ray& ray, const NXHit& hit, const shared_ptr<NXScene>& pScene, int depth)
 {
-	return Vector3();
+	Vector3 wo = hit.direction, wi;
+	Vector3 f = hit.BSDF->Sample_f(wo, wi, ReflectionType(REFLECTIONTYPE_TRANSMISSION | REFLECTIONTYPE_SPECULAR));
+
+	if (f.IsZero()) return Vector3(0.0f);
+
+	return f * Radiance(Ray(hit.position, wi), pScene, depth + 1) * fabsf(cosf(wi.Dot(hit.shading.normal)));
 }

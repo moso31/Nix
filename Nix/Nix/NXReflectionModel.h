@@ -18,8 +18,13 @@ class NXReflectionModel
 public:
 	NXReflectionModel(ReflectionType type) : m_type(type) {}
 	~NXReflectionModel() {}
+
 	virtual Vector3 f(const Vector3& wo, const Vector3& wi) = 0;
 	virtual Vector3 Sample_f(const Vector3& wo, Vector3& wi) = 0;
+
+	ReflectionType GetReflectionType() { return m_type; }
+	// 是否匹配指定类型。只要有一项相同即视作匹配。
+	bool IsMatchingType(ReflectionType type) { return (m_type & type) == m_type; }
 
 protected:
 	ReflectionType m_type;

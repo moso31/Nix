@@ -12,6 +12,9 @@
 #include "NXLight.h"
 #include "NXMaterial.h"
 
+#include "NXPBRLight.h"
+#include "NXPBRMaterial.h"
+
 class SceneManager
 {
 public:
@@ -35,6 +38,8 @@ public:
 	shared_ptr<NXCamera> CreateCamera(const string& name, const float zNear, const float zFar, const Vector3& eye, const Vector3& at, const Vector3& up);
 
 	shared_ptr<NXMaterial> CreateMaterial(const string& name, const Vector4& ambient = Vector4(0.5f, 0.5f, 0.5f, 0.5f), const Vector4& diffuse = Vector4(0.5f, 0.5f, 0.5f, 0.5f), const Vector4& specular = Vector4(0.5f, 0.5f, 0.5f, 0.5f), const float opacity = 1.0f, const Vector4& reflect = Vector4(0.0f));
+
+	shared_ptr<NXPBRMaterial> CreatePBRMatte(const Vector3& diffuse, float IOR);
 
 	// 绑定Outline父子关系
 	bool BindParent(shared_ptr<NXObject> pParent, shared_ptr<NXObject> pChild);

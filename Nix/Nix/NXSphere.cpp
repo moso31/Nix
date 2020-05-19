@@ -1,4 +1,5 @@
 #include "NXSphere.h"
+#include "NXIntersection.h"
 
 NXSphere::NXSphere() :
 	m_radius(0.0f),
@@ -67,4 +68,51 @@ void NXSphere::Init(float radius, int segmentHorizontal, int segmentVertical)
 
 	InitVertexIndexBuffer();
 	InitAABB();
+}
+
+bool NXSphere::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist)
+{
+	const Vector3& o = localRay.position;
+	const Vector3& d = localRay.direction;
+
+	float a = d.LengthSquared();
+	float b = 2.0f * (o.x * d.x + o.y * d.y + o.z * d.z);
+	float c = o.LengthSquared() - m_radius * m_radius;
+
+	float dt2 = b * b - 4 * a * c;
+	if (dt2 < 0.0f)
+		return false;
+
+	float dt = sqrtf(dt2);
+	float inv2a = 0.5f / a;
+	float t0 = (-b - dt) * inv2a;
+	float t1 = (-b + dt) * inv2a;
+
+	float tMin = min(t0, t1);
+	float tMax = max(t0, t1);
+	if (tMax < 0.0f)
+		return false;
+
+	// t should be always get the nearest positive value.
+	float t = tMin > 0.0f ? tMin : tMax;
+
+	Vector3 pHit = o + t * d;
+
+	// get theta and phi.
+	float phi = atan2f(pHit.y, pHit.x);
+	float theta = acosf(pHit.z / m_radius) - XM_PIDIV2;
+
+	// get uvHit
+	Vector2 uvHit(phi / XM_2PI, theta / XM_PI);
+
+	Vector3 dpdu(-XM_1DIV2PI * pHit.y, -XM_1DIV2PI * pHit.x, 0.0f);
+	float piz = XM_PI * pHit.z;
+	Vector3 dpdv(piz * cosf(phi), piz * sinf(phi), -XM_PI * m_radius * sinf(theta));
+
+	auto pShape = dynamic_pointer_cast<NXSphere>(shared_from_this());
+	outHitInfo = NXHit(pShape, pHit, uvHit, -localRay.direction, dpdu, dpdv);
+	outDist = t;
+
+	// ps: 二次曲面的计算是矢量级的，所以不需要计算shadingGeometry。
+	return true;
 }

@@ -4,8 +4,8 @@
 
 void NXMatteMaterial::ConstructReflectionModel(const shared_ptr<NXHit>& hitInfo)
 {
-	if (m_diffuse != Vector3(0.0f))
+	if (Diffuse != Vector3(0.0f))
 	{
-		hitInfo->BSDF->AddReflectionModel(make_shared<NXRLambertianReflection>(m_diffuse));
+		hitInfo->BSDF->AddReflectionModel(make_shared<NXRLambertianReflection>(Diffuse));
 	}
 }

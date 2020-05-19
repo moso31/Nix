@@ -1,4 +1,5 @@
 #pragma once
+#include "NXInstance.h"
 #include "NXIntegrator.h"
 
 // 离线渲染的图像信息
@@ -11,7 +12,7 @@ struct NXRenderImageInfo
 	int EachPixelSamples;
 };
 
-class NXRayTracer
+class NXRayTracer : public NXInstance<NXRayTracer>
 {
 public:
 	NXRayTracer();

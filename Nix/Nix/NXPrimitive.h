@@ -24,6 +24,7 @@ public:
 	virtual void Release();
 
 	void SetMaterial(const shared_ptr<NXMaterial>& material);
+	void SetMaterialPBR(const shared_ptr<NXPBRMaterial>& mat);
 
 	shared_ptr<NXPBRMaterial> GetPBRMaterial() const;
 	AABB GetAABBWorld();
@@ -32,7 +33,6 @@ public:
 	ID3D11ShaderResourceView* GetTextureSRV() const { return m_pTextureSRV; }
 	ID3D11Buffer* GetMaterialBuffer() const { return m_cbMaterial; }
 
-	virtual bool Intersect(const Ray& ray, Vector3& outHitPos, float& outDist);
 	virtual bool RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist);
 
 protected:
