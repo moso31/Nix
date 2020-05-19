@@ -41,6 +41,8 @@ public:
 
 	shared_ptr<NXPBRMaterial> CreatePBRMatte(const Vector3& diffuse, float IOR);
 
+	shared_ptr<NXPBRLight> CreatePBRPointLight(const Vector3& position, const Vector3 &intensity);
+
 	// 绑定Outline父子关系
 	bool BindParent(shared_ptr<NXObject> pParent, shared_ptr<NXObject> pChild);
 

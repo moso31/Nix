@@ -9,7 +9,7 @@ public:
 	NXPBRMaterial() {}
 	~NXPBRMaterial() {}
 
-	virtual void ConstructReflectionModel(const shared_ptr<NXHit>& hitInfo) = 0;
+	virtual void ConstructReflectionModel(NXHit& hitInfo) = 0;
 
 	Vector3 Diffuse;
 	Vector3 m_specular;
@@ -21,7 +21,7 @@ public:
 class NXMatteMaterial : public NXPBRMaterial
 {
 public:
-	void ConstructReflectionModel(const shared_ptr<NXHit>& hitInfo);
+	void ConstructReflectionModel(NXHit& hitInfo) override;
 
 private:
 

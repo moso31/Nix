@@ -211,11 +211,19 @@ shared_ptr<NXMaterial> SceneManager::CreateMaterial(const string& name, const Ve
 
 shared_ptr<NXPBRMaterial> SceneManager::CreatePBRMatte(const Vector3& diffuse, float IOR)
 {
-	auto p = make_shared<NXMatteMaterial>();
-	p->Diffuse = diffuse;
-	p->IOR = IOR;
+	auto pMat = make_shared<NXMatteMaterial>();
+	pMat->Diffuse = diffuse;
+	pMat->IOR = IOR;
 
-	return p;
+	m_scene->m_pbrMaterials.push_back(pMat);
+	return pMat;
+}
+
+shared_ptr<NXPBRLight> SceneManager::CreatePBRPointLight(const Vector3& position, const Vector3& intensity)
+{
+	auto pLight = make_shared<NXPBRPointLight>(position, intensity);
+	m_scene->m_pbrLights.push_back(pLight);
+	return pLight;
 }
 
 bool SceneManager::BindParent(shared_ptr<NXObject> pParent, shared_ptr<NXObject> pChild)

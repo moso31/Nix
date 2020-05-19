@@ -86,10 +86,6 @@ bool NXPrimitive::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist
 	bool bSuccess = false;
 	for (int i = 0; i < (int)m_indices.size() / 3; i++)
 	{
-		Vector3 p0 = m_vertices[m_indices[i * 3 + 0]].pos;
-		Vector3 p1 = m_vertices[m_indices[i * 3 + 1]].pos;
-		Vector3 p2 = m_vertices[m_indices[i * 3 + 2]].pos;
-
 		NXTriangle triangle(dynamic_pointer_cast<NXPrimitive>(shared_from_this()), i * 3);
 		if (triangle.RayCast(localRay, outHitInfo, outDist))
 		{
@@ -135,9 +131,9 @@ void NXPrimitive::InitAABB()
 }
 
 NXTriangle::NXTriangle(const shared_ptr<NXPrimitive>& pShape, int startIndex) :
-	p0(pShape->m_vertices[startIndex].pos),
-	p1(pShape->m_vertices[startIndex + 1].pos),
-	p2(pShape->m_vertices[startIndex + 2].pos)
+	p0(pShape->m_vertices[pShape->m_indices[startIndex + 0]].pos),
+	p1(pShape->m_vertices[pShape->m_indices[startIndex + 1]].pos),
+	p2(pShape->m_vertices[pShape->m_indices[startIndex + 2]].pos)
 {
 }
 

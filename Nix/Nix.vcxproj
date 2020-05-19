@@ -205,6 +205,7 @@
     <ClCompile Include="Core\FBXMeshLoader.cpp" />
     <ClCompile Include="Core\Global.cpp" />
     <ClCompile Include="Core\GlobalBufferManager.cpp" />
+    <ClCompile Include="Core\ImageGenerator.cpp" />
     <ClCompile Include="Core\Main.cpp" />
     <ClCompile Include="Core\NXDXHelper.cpp" />
     <ClCompile Include="Core\NXEvent.cpp" />
@@ -252,6 +253,7 @@
     <ClInclude Include="Core\FBXMeshLoader.h" />
     <ClInclude Include="Core\GlobalBufferManager.h" />
     <ClInclude Include="Core\Header.h" />
+    <ClInclude Include="Core\ImageGenerator.h" />
     <ClInclude Include="Core\NXDXHelper.h" />
     <ClInclude Include="Core\NXEvent.h" />
     <ClInclude Include="Core\NXInput.h" />

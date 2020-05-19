@@ -55,7 +55,7 @@ Vector3 NXBSDF::Sample_f(const Vector3& woWorld, Vector3& outwiWorld, Reflection
 		if (m_reflectionModels[i]->IsMatchingType(reflectType))
 			matchList.push_back(i);
 
-	if (!matchList.empty()) 
+	if (matchList.empty()) 
 		return Vector3(0.0f);
 
 	// 获取是哪一个反射模型被采样。

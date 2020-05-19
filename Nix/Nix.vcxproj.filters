@@ -215,6 +215,9 @@
     <ClCompile Include="Nix\NXPBRLight.cpp">
       <Filter>Nix\Object\Light</Filter>
     </ClCompile>
+    <ClCompile Include="Core\ImageGenerator.cpp">
+      <Filter>Core\File</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -357,6 +360,9 @@
     </ClInclude>
     <ClInclude Include="Nix\NXPBRLight.h">
       <Filter>Nix\Object\Light</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ImageGenerator.h">
+      <Filter>Core\File</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

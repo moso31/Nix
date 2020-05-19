@@ -113,6 +113,7 @@ bool NXSphere::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist)
 	outHitInfo = NXHit(pShape, pHit, uvHit, -localRay.direction, dpdu, dpdv);
 	outDist = t;
 
-	// ps: 二次曲面的计算是矢量级的，所以不需要计算shadingGeometry。
+	// ps: 二次曲面的计算是矢量级的，所以shading与Geometry相同。
+	outHitInfo.SetShadingGeometry(dpdu, dpdv);
 	return true;
 }

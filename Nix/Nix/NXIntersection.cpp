@@ -20,7 +20,7 @@ void NXHit::ConstructReflectionModel()
 {
 	shared_ptr<NXPBRMaterial> pMat = pPrimitive->GetPBRMaterial();
 	if (pMat)
-		pMat->ConstructReflectionModel(shared_from_this());
+		pMat->ConstructReflectionModel(*this);
 }
 
 void NXHit::SetShadingGeometry(Vector3 shadingdpdu, Vector3 shadingdpdv)

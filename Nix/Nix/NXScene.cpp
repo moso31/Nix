@@ -46,7 +46,19 @@ void NXScene::OnMouseDown(NXEventArg eArg)
 void NXScene::OnKeyDown(NXEventArg eArg)
 {
 	if (eArg.VKey == 'G')
-		printf("key down\n");
+	{
+		printf("making...\n");
+
+		auto pScene = dynamic_pointer_cast<NXScene>(shared_from_this());
+
+		NXRenderImageInfo imageInfo;
+		imageInfo.ImageSize = XMINT2(400, 300);
+		imageInfo.EachPixelSamples = 1;
+		shared_ptr<NXIntegrator> pWhitted = make_shared<NXIntegrator>();
+		NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pWhitted, imageInfo);
+
+		printf("done.\n");
+	}
 }
 
 void NXScene::Init()
@@ -112,6 +124,8 @@ void NXScene::Init()
 		0.2f
 	);
 
+	m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 0.0f, 5.0f), Vector3(100.0f));
+
 	auto pPBRMat = m_sceneManager->CreatePBRMatte(Vector3(1.0f, 0.0f, 0.0f), 1.0f);
 
 	auto pPlane = m_sceneManager->CreatePlane(
@@ -133,14 +147,14 @@ void NXScene::Init()
 
 	pPlane->SetMaterialPBR(pPBRMat);
 	
-	auto pSphere = m_sceneManager->CreateSphere(
-		"Sphere",
-		1.0f, 16, 16,
-		pMaterial,
-		Vector3(2.0f, 0.0f, 0.0f)
-	);
+	//auto pSphere = m_sceneManager->CreateSphere(
+	//	"Sphere",
+	//	1.0f, 16, 16,
+	//	pMaterial,
+	//	Vector3(2.0f, 0.0f, 0.0f)
+	//);
 
-	pSphere->SetMaterialPBR(pPBRMat);
+	//pSphere->SetMaterialPBR(pPBRMat);
 
 	vector<shared_ptr<NXMesh>> pMeshes;
 	bool pMesh = m_sceneManager->CreateFBXMeshes(
@@ -149,7 +163,7 @@ void NXScene::Init()
 		pMeshes
 	);
 
-	pMeshes[0]->SetMaterialPBR(pPBRMat);
+	//pMeshes[0]->SetMaterialPBR(pPBRMat);
 
 	auto pCamera = m_sceneManager->CreateCamera(
 		"Camera1", 
