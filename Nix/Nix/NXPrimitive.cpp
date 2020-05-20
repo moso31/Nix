@@ -251,6 +251,8 @@ bool NXTriangle::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist)
 			dpdu = (dp02 * dv12 - dp12 * dv02) * uvdetInv;
 			dpdv = (dp12 * du02 - dp02 * du12) * uvdetInv;
 		}
+		dpdu.Normalize();
+		dpdv.Normalize();
 
 		// 如果uv行列式结果=0，那么无法计算出有效dpdu dpdv。
 		// 这种情况下需要强行为法向量生成一个坐标系。

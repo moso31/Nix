@@ -110,8 +110,12 @@ Ray NXCamera::GenerateRay(Vector2 cursorPosition)
 	return Ray(vOrigWorld, vDirWorld);
 }
 
-void NXCamera::Init(float zNear, float zFar, Vector3 cameraPosition, Vector3 cameraLookAt, Vector3 cameraLookUp)
+void NXCamera::Init(float fovY, float zNear, float zFar, Vector3 cameraPosition, Vector3 cameraLookAt, Vector3 cameraLookUp)
 {
+	m_fovY = fovY;
+	m_near = zNear;
+	m_far = zFar;
+
 	SetTranslation(cameraPosition);
 	SetLookAt(cameraLookAt);
 	m_up = cameraLookUp;
@@ -131,7 +135,7 @@ void NXCamera::UpdateTransform()
 	Vector2 vpsz = g_dxResources->GetViewPortSize();
 	float aspectRatio = vpsz.x / vpsz.y;
 	m_view = XMMatrixLookAtLH(m_translation, m_at, m_up);
-	m_projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, aspectRatio, m_near, m_far);
+	m_projection = XMMatrixPerspectiveFovLH(m_fovY * XM_PI / 180.0f, aspectRatio, m_near, m_far);
 
 	NXTransform::UpdateTransform();
 }

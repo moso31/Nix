@@ -187,10 +187,10 @@ shared_ptr<NXSpotLight> SceneManager::CreateSpotLight(const string& name, const 
 	return p;
 }
 
-shared_ptr<NXCamera> SceneManager::CreateCamera(const string& name, const float zNear, const float zFar, const Vector3& eye, const Vector3& at, const Vector3& up)
+shared_ptr<NXCamera> SceneManager::CreateCamera(const string& name, const float FovY, const float zNear, const float zFar, const Vector3& eye, const Vector3& at, const Vector3& up)
 {
 	auto p = make_shared<NXCamera>();
-	p->Init(zNear, zFar, eye, at, up);
+	p->Init(FovY, zNear, zFar, eye, at, up);
 	m_scene->m_mainCamera = p;
 	m_scene->m_objects.push_back(p);
 	p->SetParent(m_scene->m_pRootObject);

@@ -11,7 +11,7 @@ NXHit::NXHit(const shared_ptr<NXPrimitive>& pPrimitive, const Vector3& position,
 	direction(direction),
 	dpdu(dpdu),
 	dpdv(dpdv),
-	normal(dpdu.Cross(dpdv)),
+	normal(dpdv.Cross(dpdu)),
 	faceIndex(-1)
 {
 	normal.Normalize();
@@ -28,7 +28,7 @@ void NXHit::SetShadingGeometry(Vector3 shadingdpdu, Vector3 shadingdpdv)
 {
 	shading.dpdu = shadingdpdu;
 	shading.dpdv = shadingdpdv;
-	shading.normal = shadingdpdu.Cross(shadingdpdv);
+	shading.normal = shadingdpdv.Cross(shadingdpdu);
 
 	// 按理说击中点处的主法向量和shading法向量应该始终处于同一方向
 	// 但由于主法向量一定是使用dpdu和dpdv的叉积计算的，而shading法向量则不一定（还可能使用mesh本身数据）

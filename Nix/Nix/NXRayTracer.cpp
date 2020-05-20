@@ -47,7 +47,7 @@ void NXRayTracer::MakeImage(const shared_ptr<NXScene>& pScene, const shared_ptr<
 				result.y > 1.0f ? 255 : (int)(result.y * 255.0f),
 				result.z > 1.0f ? 255 : (int)(result.z * 255.0f));
 
-			int rgbIdx = (ImageInfo.ImageSize.y - py - 1) * ImageInfo.ImageSize.x + px;
+			int rgbIdx = py * ImageInfo.ImageSize.x + px;
 			pRGB[rgbIdx].r += resultRGB.x;
 			pRGB[rgbIdx].g += resultRGB.y;
 			pRGB[rgbIdx].b += resultRGB.z;
@@ -67,7 +67,7 @@ void NXRayTracer::CenterRayTest(const shared_ptr<NXScene>& pScene, const shared_
 
 	Vector3 result = pIntegrator->Radiance(rayWorld, pScene, 0);
 
-	printf("%.f, %.f, %.f\n", result.x, result.y, result.z);
+	printf("%f, %f, %f\n", result.x, result.y, result.z);
 }
 
 void NXRayTracer::Release()

@@ -97,17 +97,21 @@ bool NXSphere::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist)
 	float t = tMin > 0.0f ? tMin : tMax;
 
 	Vector3 pHit = o + t * d;
+	pHit *= m_radius / pHit.Length();
 
 	// get theta and phi.
 	float phi = atan2f(pHit.y, pHit.x);
-	float theta = acosf(pHit.z / m_radius) - XM_PIDIV2;
+	if (phi < 0.0f) phi += XM_2PI;
+	float theta = acosf(pHit.z / m_radius);
 
 	// get uvHit
-	Vector2 uvHit(phi / XM_2PI, theta / XM_PI);
+	Vector2 uvHit(phi * XM_1DIV2PI, theta * XM_1DIVPI);
 
-	Vector3 dpdu(-XM_1DIV2PI * pHit.y, -XM_1DIV2PI * pHit.x, 0.0f);
+	Vector3 dpdu(-XM_2PI * pHit.y, XM_2PI * pHit.x, 0.0f);
 	float piz = XM_PI * pHit.z;
 	Vector3 dpdv(piz * cosf(phi), piz * sinf(phi), -XM_PI * m_radius * sinf(theta));
+	dpdu.Normalize();
+	dpdv.Normalize();
 
 	auto pShape = dynamic_pointer_cast<NXSphere>(shared_from_this());
 	outHitInfo = NXHit(pShape, pHit, uvHit, -localRay.direction, dpdu, dpdv);

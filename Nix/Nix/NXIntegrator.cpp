@@ -47,7 +47,7 @@ Vector3 NXIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& pScene
 		// ÔÝÊ±²»¿¼ÂÇVisibility Tester
 		if (!f.IsZero())
 		{
-			L += f * Li * cosf(incidentDirection.Dot(hitInfo.normal));
+			L += f * Li * incidentDirection.Dot(hitInfo.normal);
 		}
 	}
 

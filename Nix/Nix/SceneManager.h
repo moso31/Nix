@@ -35,7 +35,7 @@ public:
 	shared_ptr<NXPointLight> CreatePointLight(const string& name, const Vector4& ambient, const Vector4& diffuse, const Vector3& specular, const float specularW, const Vector3& position, const float range, const Vector3& attenuation);
 	shared_ptr<NXSpotLight> CreateSpotLight(const string& name, const Vector4& ambient, const Vector4& diffuse, const Vector3& specular, const float specularW, const Vector3& position, const float range, const Vector3& direction, const float spot, const Vector3& attenuation);
 
-	shared_ptr<NXCamera> CreateCamera(const string& name, const float zNear, const float zFar, const Vector3& eye, const Vector3& at, const Vector3& up);
+	shared_ptr<NXCamera> CreateCamera(const string& name, const float FovY, const float zNear, const float zFar, const Vector3& eye, const Vector3& at, const Vector3& up);
 
 	shared_ptr<NXMaterial> CreateMaterial(const string& name, const Vector4& ambient = Vector4(0.5f, 0.5f, 0.5f, 0.5f), const Vector4& diffuse = Vector4(0.5f, 0.5f, 0.5f, 0.5f), const Vector4& specular = Vector4(0.5f, 0.5f, 0.5f, 0.5f), const float opacity = 1.0f, const Vector4& reflect = Vector4(0.0f));
 

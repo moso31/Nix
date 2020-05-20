@@ -64,6 +64,24 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 	{
 		printf("center ray testing...\n");
 		NXRayTracer::GetInstance()->CenterRayTest(pScene, m_mainCamera, pWhitted);
+
+		shared_ptr<NXSphere> p = dynamic_pointer_cast<NXSphere>(m_primitives[0]);
+		printf("camera: pos %f, %f, %f, at %f, %f, %f, sphere: pos %f, %f, %f, dir %f, %f, %f, scal %f, %f, %f\n",
+			m_mainCamera->GetTranslation().x,
+			m_mainCamera->GetTranslation().y,
+			m_mainCamera->GetTranslation().z,
+			m_mainCamera->GetAt().x,
+			m_mainCamera->GetAt().y,
+			m_mainCamera->GetAt().z,
+			p->GetTranslation().x,
+			p->GetTranslation().y,
+			p->GetTranslation().z,
+			p->GetRotation().EulerXYZ().x,
+			p->GetRotation().EulerXYZ().y,
+			p->GetRotation().EulerXYZ().z,
+			p->GetScale().x,
+			p->GetScale().y,
+			p->GetScale().z);
 		printf("done.\n");
 	}
 
@@ -88,7 +106,7 @@ void NXScene::Init()
 		Vector4(0.8f, 0.8f, 0.8f, 1.0f),
 		Vector3(0.8f, 0.8f, 0.8f),
 		1.0f,
-		Vector3(1.0f, 1.0f, -1.0f),
+		Vector3(0.0f, 1.0f, 0.0f),
 		100.0f,
 		Vector3(0.0f, 0.0f, 1.0f)
 	);
@@ -115,9 +133,9 @@ void NXScene::Init()
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbLights));
 
 	// 这里直接转指针很危险的，后面务必改一下lights的管理结构。
-	m_cbDataLights.dirLight = pDirLight->GetLightInfo();
+	//m_cbDataLights.dirLight = pDirLight->GetLightInfo();
 	m_cbDataLights.pointLight = pPointLight->GetLightInfo();
-	m_cbDataLights.spotLight = pSpotLight->GetLightInfo();
+	//m_cbDataLights.spotLight = pSpotLight->GetLightInfo();
 
 	ConstantBufferLight cb;
 	cb.dirLight = m_cbDataLights.dirLight;
@@ -133,7 +151,7 @@ void NXScene::Init()
 		0.2f
 	);
 
-	m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 5.0f, 0.0f), Vector3(100.0f));
+	m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 10.0f, 0.0f), Vector3(100.0f));
 
 	auto pPBRMat = m_sceneManager->CreatePBRMatte(Vector3(1.0f, 0.0f, 0.0f), 1.0f);
 
@@ -160,7 +178,7 @@ void NXScene::Init()
 		"Sphere",
 		1.0f, 16, 16,
 		pMaterial,
-		Vector3(2.0f, 0.0f, 0.0f)
+		Vector3(0.0f, 0.0f, 0.0f)
 	);
 
 	pSphere->SetMaterialPBR(pPBRMat);
@@ -176,9 +194,9 @@ void NXScene::Init()
 
 	auto pCamera = m_sceneManager->CreateCamera(
 		"Camera1", 
-		0.01f, 1000.f, 
-		Vector3(0.0f, 0.0f, -1.5f),
-		Vector3(0.0f, 0.0f, 0.0f),
+		70.0f, 0.01f, 1000.f, 
+		Vector3(-2.173037, 1.620013, 2.557192),
+		Vector3(-1.552438, 1.319719, 1.832843),
 		Vector3(0.0f, 1.0f, 0.0f)
 	);
 

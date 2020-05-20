@@ -23,13 +23,14 @@ public:
 
 	Ray GenerateRay(Vector2 cursorPosition);
 
-	void Init(float zNear, float zFar, Vector3 cameraPosition, Vector3 cameraLookAt, Vector3 cameraLookUp);
+	void Init(float fovY, float zNear, float zFar, Vector3 cameraPosition, Vector3 cameraLookAt, Vector3 cameraLookUp);
 	void UpdateTransform();
 	void Update();
 	void Render();
 	void Release();
 
 private:
+	float m_fovY;
 	float m_near, m_far;
 	Vector3 m_at;
 	Vector3 m_up;
