@@ -18,26 +18,29 @@ void NXSphere::Init(float radius, int segmentHorizontal, int segmentVertical)
 		float radiusDown = sqrtf(radius * radius - yDown * yDown);
 		float radiusUp = sqrtf(radius * radius - yUp * yUp);
 
+		float yUVUp = Clamp(yUp * 0.5f + 0.5f, 0.0f, 1.0f);
+		float yUVDown = Clamp(yDown * 0.5f + 0.5f, 0.0f, 1.0f);
+
 		for (int j = 0; j < segmentHorizontal; j++)
 		{
 			float segNow = (float)j / (float)segmentHorizontal;
 			float segNext = (float)(j + 1) / (float)segmentHorizontal;
 			float angleNow = segNow * XM_2PI;
 			float angleNext = segNext * XM_2PI;
-			float xNow = sinf(angleNow);
-			float zNow = cosf(angleNow);
-			float xNext = sinf(angleNext);
-			float zNext = cosf(angleNext);
+			float xNow = cosf(angleNow);
+			float zNow = sinf(angleNow);
+			float xNext = cosf(angleNext);
+			float zNext = sinf(angleNext);
 
 			Vector3 pNowUp = { xNow * radiusUp, yUp, zNow * radiusUp };
 			Vector3 pNextUp = { xNext * radiusUp, yUp, zNext * radiusUp };
 			Vector3 pNowDown = { xNow * radiusDown, yDown, zNow * radiusDown };
 			Vector3 pNextDown = { xNext * radiusDown, yDown, zNext * radiusDown };
 
-			Vector2 uvNowUp = { segNow, yUp };
-			Vector2 uvNextUp = { segNext, yUp };
-			Vector2 uvNowDown = { segNow, yDown };
-			Vector2 uvNextDown = { segNext, yDown };
+			Vector2 uvNowUp = { segNow, yUVUp };
+			Vector2 uvNextUp = { segNext, yUVUp };
+			Vector2 uvNowDown = { segNow, yUVDown };
+			Vector2 uvNextDown = { segNext, yUVDown };
 
 			float invRadius = 1.0f / radius;
 			Vector3 nNowUp, nNowDown, nNextUp, nNextDown;
@@ -52,11 +55,11 @@ void NXSphere::Init(float radius, int segmentHorizontal, int segmentVertical)
 			m_vertices.push_back({ pNowDown,	nNowDown,	uvNowDown });
 
 			m_indices.push_back(currVertIdx);
-			m_indices.push_back(currVertIdx + 2);
 			m_indices.push_back(currVertIdx + 1);
-			m_indices.push_back(currVertIdx);
-			m_indices.push_back(currVertIdx + 3);
 			m_indices.push_back(currVertIdx + 2);
+			m_indices.push_back(currVertIdx);
+			m_indices.push_back(currVertIdx + 2);
+			m_indices.push_back(currVertIdx + 3);
 
 			currVertIdx += 4;
 		}
@@ -100,16 +103,16 @@ bool NXSphere::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist)
 	pHit *= m_radius / pHit.Length();
 
 	// get theta and phi.
-	float phi = atan2f(pHit.y, pHit.x);
+	float phi = atan2f(pHit.z, pHit.x);
 	if (phi < 0.0f) phi += XM_2PI;
-	float theta = acosf(pHit.z / m_radius);
+	float theta = acosf(Clamp(-pHit.y / m_radius, -1.0f, 1.0f));
 
 	// get uvHit
 	Vector2 uvHit(phi * XM_1DIV2PI, theta * XM_1DIVPI);
 
-	Vector3 dpdu(-XM_2PI * pHit.y, XM_2PI * pHit.x, 0.0f);
-	float piz = XM_PI * pHit.z;
-	Vector3 dpdv(piz * cosf(phi), piz * sinf(phi), -XM_PI * m_radius * sinf(theta));
+	Vector3 dpdu(-XM_2PI * pHit.z, XM_2PI * pHit.x, 0.0f);
+	float piy = -XM_PI * pHit.y;
+	Vector3 dpdv(piy * cosf(phi), piy * sinf(phi), XM_PI * m_radius * sinf(theta));
 	dpdu.Normalize();
 	dpdv.Normalize();
 

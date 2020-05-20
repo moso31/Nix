@@ -47,7 +47,7 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 {
 	auto pScene = dynamic_pointer_cast<NXScene>(shared_from_this());
 	NXRenderImageInfo imageInfo;
-	imageInfo.ImageSize = XMINT2(400, 300);
+	imageInfo.ImageSize = XMINT2(800, 600);
 	imageInfo.EachPixelSamples = 1;
 	shared_ptr<NXIntegrator> pWhitted = make_shared<NXIntegrator>();
 
@@ -65,23 +65,14 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		printf("center ray testing...\n");
 		NXRayTracer::GetInstance()->CenterRayTest(pScene, m_mainCamera, pWhitted);
 
-		shared_ptr<NXSphere> p = dynamic_pointer_cast<NXSphere>(m_primitives[0]);
-		printf("camera: pos %f, %f, %f, at %f, %f, %f, sphere: pos %f, %f, %f, dir %f, %f, %f, scal %f, %f, %f\n",
+		shared_ptr<NXPrimitive> p = dynamic_pointer_cast<NXPrimitive>(m_primitives[0]);
+		printf("camera: pos %f, %f, %f, at %f, %f, %f\n",
 			m_mainCamera->GetTranslation().x,
 			m_mainCamera->GetTranslation().y,
 			m_mainCamera->GetTranslation().z,
 			m_mainCamera->GetAt().x,
 			m_mainCamera->GetAt().y,
-			m_mainCamera->GetAt().z,
-			p->GetTranslation().x,
-			p->GetTranslation().y,
-			p->GetTranslation().z,
-			p->GetRotation().EulerXYZ().x,
-			p->GetRotation().EulerXYZ().y,
-			p->GetRotation().EulerXYZ().z,
-			p->GetScale().x,
-			p->GetScale().y,
-			p->GetScale().z);
+			m_mainCamera->GetAt().z);
 		printf("done.\n");
 	}
 
@@ -133,9 +124,9 @@ void NXScene::Init()
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbLights));
 
 	// 这里直接转指针很危险的，后面务必改一下lights的管理结构。
-	//m_cbDataLights.dirLight = pDirLight->GetLightInfo();
+	m_cbDataLights.dirLight = pDirLight->GetLightInfo();
 	m_cbDataLights.pointLight = pPointLight->GetLightInfo();
-	//m_cbDataLights.spotLight = pSpotLight->GetLightInfo();
+	m_cbDataLights.spotLight = pSpotLight->GetLightInfo();
 
 	ConstantBufferLight cb;
 	cb.dirLight = m_cbDataLights.dirLight;
@@ -155,24 +146,24 @@ void NXScene::Init()
 
 	auto pPBRMat = m_sceneManager->CreatePBRMatte(Vector3(1.0f, 0.0f, 0.0f), 1.0f);
 
-	auto pPlane = m_sceneManager->CreatePlane(
-		"Wall",
-		5.0f, 5.0f,
-		pMaterial,
-		Vector3(0.0f)
-	);
+	//auto pPlane = m_sceneManager->CreatePlane(
+	//	"Wall",
+	//	5.0f, 5.0f,
+	//	pMaterial,
+	//	Vector3(0.0f)
+	//);
 
-	pPlane->SetMaterialPBR(pPBRMat);
+	//pPlane->SetMaterialPBR(pPBRMat);
 
-	pPlane = m_sceneManager->CreatePlane(
-		"Ground",
-		5.0f, 5.0f,
-		pMaterial,
-		Vector3(0.0f, 2.5f, 2.5f),
-		Vector3(-XM_PIDIV2, 0.0f, 0.0f)
-	);
+	//pPlane = m_sceneManager->CreatePlane(
+	//	"Ground",
+	//	5.0f, 5.0f,
+	//	pMaterial,
+	//	Vector3(0.0f, 2.5f, 2.5f),
+	//	Vector3(-XM_PIDIV2, 0.0f, 0.0f)
+	//);
 
-	pPlane->SetMaterialPBR(pPBRMat);
+	//pPlane->SetMaterialPBR(pPBRMat);
 	
 	auto pSphere = m_sceneManager->CreateSphere(
 		"Sphere",
@@ -195,8 +186,8 @@ void NXScene::Init()
 	auto pCamera = m_sceneManager->CreateCamera(
 		"Camera1", 
 		70.0f, 0.01f, 1000.f, 
-		Vector3(-2.173037, 1.620013, 2.557192),
-		Vector3(-1.552438, 1.319719, 1.832843),
+		Vector3(3.0, 3.0, 0.0),
+		Vector3(0.0, 0.0, 0.0),
 		Vector3(0.0f, 1.0f, 0.0f)
 	);
 
