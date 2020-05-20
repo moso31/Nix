@@ -33,6 +33,8 @@ public:
 	ID3D11ShaderResourceView* GetTextureSRV() const { return m_pTextureSRV; }
 	ID3D11Buffer* GetMaterialBuffer() const { return m_cbMaterial; }
 
+	//VertexPNT GetVertexPNT() { return }
+
 	virtual bool RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist);
 
 protected:
@@ -59,13 +61,12 @@ protected:
 class NXTriangle
 {
 public:
-	NXTriangle(Vector3 p0, Vector3 p1, Vector3 p2) : p0(p0), p1(p1), p2(p2) {}
 	NXTriangle(const shared_ptr<NXPrimitive>& pShape, int startIndex);
 	~NXTriangle() {};
 
 	bool RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist);
 
 private:
-	Vector3 p0, p1, p2;
+	int startIndex;
 	shared_ptr<NXPrimitive> pShape;
 };

@@ -131,14 +131,21 @@ void NXPrimitive::InitAABB()
 }
 
 NXTriangle::NXTriangle(const shared_ptr<NXPrimitive>& pShape, int startIndex) :
-	p0(pShape->m_vertices[pShape->m_indices[startIndex + 0]].pos),
-	p1(pShape->m_vertices[pShape->m_indices[startIndex + 1]].pos),
-	p2(pShape->m_vertices[pShape->m_indices[startIndex + 2]].pos)
+	pShape(pShape),
+	startIndex(startIndex)
 {
 }
 
 bool NXTriangle::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist)
 {
+	VertexPNT data0 = pShape->m_vertices[pShape->m_indices[startIndex]];
+	VertexPNT data1 = pShape->m_vertices[pShape->m_indices[startIndex + 1]];
+	VertexPNT data2 = pShape->m_vertices[pShape->m_indices[startIndex + 2]];
+
+	Vector3 p0 = data0.pos;
+	Vector3 p1 = data1.pos;
+	Vector3 p2 = data2.pos;
+
 	// 从世界空间转换到射线空间：World * T * P * S = Ray。
 
 	// T变换：只是简单的平移。
@@ -156,8 +163,8 @@ bool NXTriangle::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist)
 
 	Vector3 d = Vector3::Permute(localRay.direction, kx, ky, kz);
 	p0t = Vector3::Permute(p0t, kx, ky, kz);
-	p1t = Vector3::Permute(p0t, kx, ky, kz);
-	p2t = Vector3::Permute(p0t, kx, ky, kz);
+	p1t = Vector3::Permute(p1t, kx, ky, kz);
+	p2t = Vector3::Permute(p2t, kx, ky, kz);
 
 	// S变换：仿射变换。
 	float shearX = -d.x / d.z;
@@ -219,8 +226,9 @@ bool NXTriangle::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist)
 		// 计算dpdu和dpdv。
 		Vector3 dpdu, dpdv;
 		Vector2 uv[3];
-		for (int i = 0; i < 3; i++)
-			uv[i] = pShape->m_vertices[i].tex;
+		uv[0] = data0.tex;
+		uv[1] = data1.tex;
+		uv[2] = data2.tex;
 
 		float u0 = uv[0][0];
 		float u1 = uv[1][0];
@@ -237,17 +245,17 @@ bool NXTriangle::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist)
 		float uvdetInv = 0.0f;
 		Vector3 dp02 = p0 - p2;
 		Vector3 dp12 = p1 - p2;
-		if (uvdet >= 1e-6)
+		if (abs(uvdet) >= 1e-6)
 		{
 			uvdetInv = 1.0f / uvdet;
 			dpdu = (dp02 * dv12 - dp12 * dv02) * uvdetInv;
 			dpdv = (dp12 * du02 - dp02 * du12) * uvdetInv;
 		}
 
-		if (uvdet < 1e-6 || dpdu.Cross(dpdv).LengthSquared() == 0.0f)
+		// 如果uv行列式结果=0，那么无法计算出有效dpdu dpdv。
+		// 这种情况下需要强行为法向量生成一个坐标系。
+		if (abs(uvdet) < 1e-6 || dpdu.Cross(dpdv).LengthSquared() == 0.0f)
 		{
-			// 如果uv行列式结果=0，那么无法计算出有效dpdu dpdv。
-			// 这种情况下需要强行为法向量生成一个坐标系。
 			Vector3 ng = dp12.Cross(dp02);
 			if (ng.LengthSquared() == 0.0f)
 				return false;
@@ -273,9 +281,9 @@ bool NXTriangle::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist)
 		if (bEnableNormal)
 		{
 			Vector3 n[3];
-			n[0] = pShape->m_vertices[0].norm;
-			n[1] = pShape->m_vertices[1].norm;
-			n[2] = pShape->m_vertices[2].norm;
+			n[0] = data0.norm;
+			n[1] = data0.norm;
+			n[2] = data0.norm;
 
 			ns = b0 * n[0] + b1 * n[1] + b2 * n[2];
 			if (ns.LengthSquared() > 0)
@@ -324,9 +332,9 @@ bool NXTriangle::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist)
 		{
 #if _TODO_
 			Vector3 s[3];
-			s[0] = pShape->m_vertices[0].tangent;
-			s[1] = pShape->m_vertices[1].tangent;
-			s[2] = pShape->m_vertices[2].tangent;
+			s[0] = data0.tangent;
+			s[1] = data1.tangent;
+			s[2] = data2.tangent;
 
 			ss = b0 * s[0] + b1 * s[1] + b2 * s[2];
 			if (ss.LengthSquared() > 0)

@@ -14,6 +14,7 @@ NXHit::NXHit(const shared_ptr<NXPrimitive>& pPrimitive, const Vector3& position,
 	normal(dpdu.Cross(dpdv)),
 	faceIndex(-1)
 {
+	normal.Normalize();
 }
 
 void NXHit::ConstructReflectionModel()

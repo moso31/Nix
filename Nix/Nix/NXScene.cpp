@@ -45,20 +45,29 @@ void NXScene::OnMouseDown(NXEventArg eArg)
 
 void NXScene::OnKeyDown(NXEventArg eArg)
 {
+	auto pScene = dynamic_pointer_cast<NXScene>(shared_from_this());
+	NXRenderImageInfo imageInfo;
+	imageInfo.ImageSize = XMINT2(400, 300);
+	imageInfo.EachPixelSamples = 1;
+	shared_ptr<NXIntegrator> pWhitted = make_shared<NXIntegrator>();
+
 	if (eArg.VKey == 'G')
 	{
 		printf("making...\n");
 
-		auto pScene = dynamic_pointer_cast<NXScene>(shared_from_this());
-
-		NXRenderImageInfo imageInfo;
-		imageInfo.ImageSize = XMINT2(400, 300);
-		imageInfo.EachPixelSamples = 1;
-		shared_ptr<NXIntegrator> pWhitted = make_shared<NXIntegrator>();
 		NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pWhitted, imageInfo);
 
 		printf("done.\n");
 	}
+
+	if (eArg.VKey == 'H')
+	{
+		printf("center ray testing...\n");
+		NXRayTracer::GetInstance()->CenterRayTest(pScene, m_mainCamera, pWhitted);
+		printf("done.\n");
+	}
+
+	pWhitted.reset();
 }
 
 void NXScene::Init()
@@ -124,7 +133,7 @@ void NXScene::Init()
 		0.2f
 	);
 
-	m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 0.0f, 5.0f), Vector3(100.0f));
+	m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 5.0f, 0.0f), Vector3(100.0f));
 
 	auto pPBRMat = m_sceneManager->CreatePBRMatte(Vector3(1.0f, 0.0f, 0.0f), 1.0f);
 
@@ -147,21 +156,21 @@ void NXScene::Init()
 
 	pPlane->SetMaterialPBR(pPBRMat);
 	
-	//auto pSphere = m_sceneManager->CreateSphere(
-	//	"Sphere",
-	//	1.0f, 16, 16,
-	//	pMaterial,
-	//	Vector3(2.0f, 0.0f, 0.0f)
-	//);
-
-	//pSphere->SetMaterialPBR(pPBRMat);
-
-	vector<shared_ptr<NXMesh>> pMeshes;
-	bool pMesh = m_sceneManager->CreateFBXMeshes(
-		"D:\\2.fbx", 
+	auto pSphere = m_sceneManager->CreateSphere(
+		"Sphere",
+		1.0f, 16, 16,
 		pMaterial,
-		pMeshes
+		Vector3(2.0f, 0.0f, 0.0f)
 	);
+
+	pSphere->SetMaterialPBR(pPBRMat);
+
+	//vector<shared_ptr<NXMesh>> pMeshes;
+	//bool pMesh = m_sceneManager->CreateFBXMeshes(
+	//	"D:\\2.fbx", 
+	//	pMaterial,
+	//	pMeshes
+	//);
 
 	//pMeshes[0]->SetMaterialPBR(pPBRMat);
 
@@ -274,11 +283,11 @@ bool NXScene::RayCast(const Ray& ray, NXHit& outHitInfo)
 	// 目前还是用遍历找的……将来改成KD树或BVH树。
 	for (auto it = m_primitives.begin(); it != m_primitives.end(); it++)
 	{
+		Matrix mxWorldInv = (*it)->GetWorldMatrixInv();
 		Ray LocalRay(
-			Vector3::Transform(ray.position, (*it)->GetWorldMatrixInv()),
-			Vector3::TransformNormal(ray.direction, (*it)->GetWorldMatrixInv())
+			Vector3::Transform(ray.position, mxWorldInv),
+			Vector3::TransformNormal(ray.direction, mxWorldInv)
 		);
-		LocalRay.direction.Normalize();
 
 		// ray-aabb
 		float aabbDist;

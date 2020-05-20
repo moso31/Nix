@@ -24,7 +24,7 @@ Vector3 NXBSDF::f(const Vector3& woWorld, const Vector3& wiWorld, ReflectionType
 
 	// 光线是和几何体进行hit检测的，所以应该使用几何法线ng判断当前BSDF的反射/折射特性，而不是着色插值法线ns。
 	// 使用ns确实可以得到更平滑的数值，但由于ns和实际几何值ng存在不一致，可能会导致形成漏光或暗点。
-	bool isReflect = wo.Dot(ng) * wi.Dot(ng) > 0;
+	bool isReflect = woWorld.Dot(ng) * wiWorld.Dot(ng) > 0;
 
 	Vector3 f(0.0f);
 	for (int i = 0; i < (int)m_reflectionModels.size(); i++)

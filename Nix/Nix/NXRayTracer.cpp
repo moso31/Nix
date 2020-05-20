@@ -33,6 +33,7 @@ void NXRayTracer::MakeImage(const shared_ptr<NXScene>& pScene, const shared_ptr<
 				Vector2 sampleNDCxyCoord(sampleCoord * imageSizeInv * 2.0f - Vector2(1.0f));
 
 				Vector3 viewDir(sampleNDCxyCoord * NDCToViewSpaceFactorInv, 1.0f);	// 至此屏幕坐标已被转换为view空间的(x, y, 1)射线。
+				viewDir.Normalize();
 				
 				Ray rayView(Vector3(0.0f), viewDir);
 				Ray rayWorld = rayView.Transform(mxViewToWorld);	// 获取该射线的world空间坐标值
@@ -54,6 +55,19 @@ void NXRayTracer::MakeImage(const shared_ptr<NXScene>& pScene, const shared_ptr<
 	}
 
 	ImageGenerator::GenerateImageBMP((BYTE*)pRGB, ImageInfo.ImageSize.x, ImageInfo.ImageSize.y, "D:\\nix.bmp");
+}
+
+void NXRayTracer::CenterRayTest(const shared_ptr<NXScene>& pScene, const shared_ptr<NXCamera>& pMainCamera, const shared_ptr<NXIntegrator>& pIntegrator)
+{
+	Matrix mxViewToWorld = pMainCamera->GetViewMatrix().Invert();
+
+	Vector3 viewDir(0.0f, 0.0f, 1.0f);
+	Ray rayView(Vector3(0.0f), viewDir);
+	Ray rayWorld = rayView.Transform(mxViewToWorld);	// 获取该射线的world空间坐标值
+
+	Vector3 result = pIntegrator->Radiance(rayWorld, pScene, 0);
+
+	printf("%.f, %.f, %.f\n", result.x, result.y, result.z);
 }
 
 void NXRayTracer::Release()
