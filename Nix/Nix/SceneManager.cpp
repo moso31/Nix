@@ -228,6 +228,15 @@ shared_ptr<NXPBRMaterial> SceneManager::CreatePBRGlass(const Vector3& diffuse, f
 	return pMat;
 }
 
+shared_ptr<NXPBRMaterial> SceneManager::CreatePBRMirror(const Vector3& diffuse)
+{
+	auto pMat = make_shared<NXMirrorMaterial>();
+	pMat->Diffuse = diffuse;
+
+	m_scene->m_pbrMaterials.push_back(pMat);
+	return pMat;
+}
+
 shared_ptr<NXPBRLight> SceneManager::CreatePBRPointLight(const Vector3& position, const Vector3& intensity)
 {
 	auto pLight = make_shared<NXPBRPointLight>(position, intensity);

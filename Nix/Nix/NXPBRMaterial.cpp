@@ -14,7 +14,7 @@ void NXMatteMaterial::ConstructReflectionModel(NXHit& hitInfo)
 
 void NXMirrorMaterial::ConstructReflectionModel(NXHit& hitInfo)
 {
-	hitInfo.BSDF = make_shared<NXBSDF>(hitInfo, IOR);
+	hitInfo.BSDF = make_shared<NXBSDF>(hitInfo);
 	shared_ptr<NXFresnel> fresnel = make_shared<NXFresnelNoOp>();
 	if (Diffuse != Vector3(0.0f))
 	{

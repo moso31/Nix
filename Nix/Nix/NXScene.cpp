@@ -158,6 +158,7 @@ void NXScene::Init()
 		m_sceneManager->CreatePBRMatte(Vector3(0.0f, 0.0f, 1.0f)),
 		m_sceneManager->CreatePBRGlass(Vector3(1.0f, 1.0f, 1.0f), 1.5f),
 		m_sceneManager->CreatePBRMatte(Vector3(1.0f, 1.0f, 1.0f)),
+		m_sceneManager->CreatePBRMirror(Vector3(1.0f, 1.0f, 1.0f)),
 	};
 
 	auto pPlane = m_sceneManager->CreatePlane(
@@ -213,7 +214,16 @@ void NXScene::Init()
 		"Sphere",
 		1.0f, 16, 16,
 		pMaterial,
-		Vector3(0.0f, 1.0f, 0.0f)
+		Vector3(-1.0f, 1.0f, 0.0f)
+	);
+
+	pSphere->SetMaterialPBR(pPBRMat[5]);
+
+	pSphere = m_sceneManager->CreateSphere(
+		"Sphere",
+		1.0f, 16, 16,
+		pMaterial,
+		Vector3(1.0f, 1.0f, -1.0f)
 	);
 
 	pSphere->SetMaterialPBR(pPBRMat[3]);
@@ -232,7 +242,7 @@ void NXScene::Init()
 		"Camera1", 
 		70.0f, 0.01f, 1000.f, 
 		Vector3(0.0, 3.0, -3.0),
-		Vector3(0.0, 0.0, 0.0),
+		Vector3(-0.085163, 2.680313, -2.056312),
 		Vector3(0.0f, 1.0f, 0.0f)
 	);
 
