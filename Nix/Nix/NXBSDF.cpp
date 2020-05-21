@@ -59,7 +59,7 @@ Vector3 NXBSDF::Sample_f(const Vector3& woWorld, Vector3& outwiWorld, Reflection
 		return Vector3(0.0f);
 
 	// 获取是哪一个反射模型被采样。
-	int sampleId = NXRandom::GetInstance()->CreateInt(0, (int)matchList.size());
+	int sampleId = NXRandom::GetInstance()->CreateInt(0, (int)matchList.size() - 1);
 	shared_ptr<NXReflectionModel> sampledModel = m_reflectionModels[matchList[sampleId]];
 
 	// 将wo从世界坐标系转换为反射坐标系。

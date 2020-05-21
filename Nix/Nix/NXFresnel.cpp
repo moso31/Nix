@@ -8,7 +8,7 @@ NXFresnel::~NXFresnel()
 {
 }
 
-Vector3 NXFresnelDielectric::FresnelReflectance(float cosThetaI)
+Vector3 NXFresnelDielectric::FresnelReflectance(float cosThetaI) 
 {
 	// 电介质中法线有可能处于进入状态(entering)或逃逸状态(!entering)
 	bool entering = cosThetaI > 0;
@@ -31,7 +31,7 @@ Vector3 NXFresnelDielectric::FresnelReflectance(float cosThetaI)
 	return Vector3(0.5f * (Rs * Rs + Rp * Rp));
 }
 
-Vector3 NXFresnelConductor::FresnelReflectance(float cosThetaI)
+Vector3 NXFresnelConductor::FresnelReflectance(float cosThetaI) 
 {
 	// 导体中不存在逃逸状态，只有进入状态。
 	// 但以防万一，还是有必要对cosThetaI进行绝对值处理，以确保入射方向和表面法线同向。

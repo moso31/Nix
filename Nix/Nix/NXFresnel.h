@@ -19,7 +19,7 @@ public:
 	NXFresnelDielectric(float etaI, float etaT) : etaI(etaI), etaT(etaT) {}
 	~NXFresnelDielectric() {}
 
-	Vector3 FresnelReflectance(float cosThetaI);
+	Vector3 FresnelReflectance(float cosThetaI) override;
 
 private:
 	float etaI, etaT;
@@ -31,8 +31,17 @@ public:
 	NXFresnelConductor(const Vector3& etaI, const Vector3& etaT, const Vector3& kT) : etaI(etaI), etaT(etaT), kT(kT) {}
 	~NXFresnelConductor() {}
 
-	Vector3 FresnelReflectance(float cosThetaI);
+	Vector3 FresnelReflectance(float cosThetaI) override;
 
 private:
 	Vector3 etaI, etaT, kT;
+};
+
+class NXFresnelNoOp : public NXFresnel
+{
+public:
+	NXFresnelNoOp() {}
+	~NXFresnelNoOp() {}
+
+	Vector3 FresnelReflectance(float cosThetaI) override { return Vector3(1.0f); }
 };

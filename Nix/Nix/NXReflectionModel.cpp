@@ -56,7 +56,7 @@ Vector3 NXRPrefectTransmission::Sample_f(const Vector3& wo, Vector3& wi)
 	// pdf skip.
 	
 	float cosThetaI = wi.z;
-	Vector3 f_transmittion = T * (Vector3(1.0f) - fresnel->FresnelReflectance(cosThetaI)) / abs(wi.z);
+	Vector3 f_transmittion = T * (Vector3(1.0f) - fresnel.FresnelReflectance(cosThetaI)) / abs(wi.z);
 	// 根据PBRT指示，在计算基于Camera出发的射线的时候，不需要etaT^2/etaI^2。
 	// 16章有解释，但现在还没看到那里，先维持现状。
 	// 还有，公式8.8给的是etaT^2/etaI^2，但PBRT实际代码是etaI^2/etaT^2，反过来了。

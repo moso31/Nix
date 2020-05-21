@@ -22,7 +22,16 @@ class NXMatteMaterial : public NXPBRMaterial
 {
 public:
 	void ConstructReflectionModel(NXHit& hitInfo) override;
+};
 
-private:
+class NXMirrorMaterial : public NXPBRMaterial
+{
+public:
+	void ConstructReflectionModel(NXHit& hitInfo) override;
+};
 
+class NXGlassMaterial : public NXPBRMaterial
+{
+public:
+	void ConstructReflectionModel(NXHit& hitInfo) override;
 };

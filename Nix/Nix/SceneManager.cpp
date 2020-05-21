@@ -209,9 +209,18 @@ shared_ptr<NXMaterial> SceneManager::CreateMaterial(const string& name, const Ve
 	return p;
 }
 
-shared_ptr<NXPBRMaterial> SceneManager::CreatePBRMatte(const Vector3& diffuse, float IOR)
+shared_ptr<NXPBRMaterial> SceneManager::CreatePBRMatte(const Vector3& diffuse)
 {
 	auto pMat = make_shared<NXMatteMaterial>();
+	pMat->Diffuse = diffuse;
+
+	m_scene->m_pbrMaterials.push_back(pMat);
+	return pMat;
+}
+
+shared_ptr<NXPBRMaterial> SceneManager::CreatePBRGlass(const Vector3& diffuse, float IOR)
+{
+	auto pMat = make_shared<NXGlassMaterial>();
 	pMat->Diffuse = diffuse;
 	pMat->IOR = IOR;
 

@@ -73,7 +73,9 @@ Vector3 NXIntegrator::SpecularReflect(const Ray& ray, const NXHit& hit, const sh
 	
 	if (f.IsZero()) return Vector3(0.0f);
 
-	return f * Radiance(Ray(hit.position, wi), pScene, depth + 1) * fabsf(cosf(wi.Dot(hit.shading.normal)));
+	Ray nextRay = Ray(hit.position, wi);
+	nextRay.position += nextRay.direction * 0.001f;
+	return f * Radiance(nextRay, pScene, depth + 1) * fabsf(cosf(wi.Dot(hit.shading.normal)));
 }
 
 Vector3 NXIntegrator::SpecularTransmit(const Ray& ray, const NXHit& hit, const shared_ptr<NXScene>& pScene, int depth)
@@ -83,5 +85,7 @@ Vector3 NXIntegrator::SpecularTransmit(const Ray& ray, const NXHit& hit, const s
 
 	if (f.IsZero()) return Vector3(0.0f);
 
-	return f * Radiance(Ray(hit.position, wi), pScene, depth + 1) * fabsf(cosf(wi.Dot(hit.shading.normal)));
+	Ray nextRay = Ray(hit.position, wi);
+	nextRay.position += nextRay.direction * 0.001f;
+	return f * Radiance(nextRay, pScene, depth + 1) * fabsf(cosf(wi.Dot(hit.shading.normal)));
 }

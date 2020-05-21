@@ -48,7 +48,7 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 	auto pScene = dynamic_pointer_cast<NXScene>(shared_from_this());
 	NXRenderImageInfo imageInfo;
 	imageInfo.ImageSize = XMINT2(800, 600);
-	imageInfo.EachPixelSamples = 1;
+	imageInfo.EachPixelSamples = 16;
 	shared_ptr<NXIntegrator> pWhitted = make_shared<NXIntegrator>();
 
 	if (eArg.VKey == 'G')
@@ -116,7 +116,7 @@ void NXScene::Init()
 		Vector4(0.8f, 0.8f, 0.8f, 1.0f),
 		Vector3(0.8f, 0.8f, 0.8f),
 		1.0f,
-		Vector3(1.0f, 1.0f, -1.0f),
+		Vector3(0.0f, 2.5f, 0.0f),
 		100.0f,
 		Vector3(1.0f, -1.0f, 1.0f),
 		1.0f,
@@ -150,9 +150,15 @@ void NXScene::Init()
 		0.2f
 	);
 
-	m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 10.0f, 0.0f), Vector3(100.0f));
+	m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 4.5f, 0.0f), Vector3(25.0f));
 
-	auto pPBRMat = m_sceneManager->CreatePBRMatte(Vector3(1.0f, 0.0f, 0.0f), 1.0f);
+	shared_ptr<NXPBRMaterial> pPBRMat[6] = {
+		m_sceneManager->CreatePBRMatte(Vector3(1.0f, 0.0f, 0.0f)),
+		m_sceneManager->CreatePBRMatte(Vector3(0.0f, 1.0f, 0.0f)),
+		m_sceneManager->CreatePBRMatte(Vector3(0.0f, 0.0f, 1.0f)),
+		m_sceneManager->CreatePBRGlass(Vector3(1.0f, 1.0f, 1.0f), 1.5f),
+		m_sceneManager->CreatePBRMatte(Vector3(1.0f, 1.0f, 1.0f)),
+	};
 
 	auto pPlane = m_sceneManager->CreatePlane(
 		"Ground",
@@ -161,41 +167,71 @@ void NXScene::Init()
 		Vector3(0.0f)
 	);
 
-	pPlane->SetMaterialPBR(pPBRMat);
+	pPlane->SetMaterialPBR(pPBRMat[4]);
 
 	pPlane = m_sceneManager->CreatePlane(
-		"Wall",
+		"Wall +Y",
+		5.0f, 5.0f,
+		pMaterial,
+		Vector3(0.0f, 5.0f, 0.0f),
+		Vector3(XM_PI, 0.0f, 0.0f)
+	);
+
+	pPlane->SetMaterialPBR(pPBRMat[4]);
+
+	pPlane = m_sceneManager->CreatePlane(
+		"Wall +Z",
 		5.0f, 5.0f,
 		pMaterial,
 		Vector3(0.0f, 2.5f, 2.5f),
 		Vector3(-XM_PIDIV2, 0.0f, 0.0f)
 	);
 
-	pPlane->SetMaterialPBR(pPBRMat);
-	
+	pPlane->SetMaterialPBR(pPBRMat[4]);
+
+	pPlane = m_sceneManager->CreatePlane(
+		"Wall -X",
+		5.0f, 5.0f,
+		pMaterial,
+		Vector3(-2.5f, 2.5f, 0.0f),
+		Vector3(0.0f, 0.0f, -XM_PIDIV2)
+	);
+
+	pPlane->SetMaterialPBR(pPBRMat[1]);
+
+	pPlane = m_sceneManager->CreatePlane(
+		"Wall +X",
+		5.0f, 5.0f,
+		pMaterial,
+		Vector3(2.5f, 2.5f, 0.0f),
+		Vector3(0.0f, 0.0f, XM_PIDIV2)
+	);
+
+	pPlane->SetMaterialPBR(pPBRMat[2]);
+
 	auto pSphere = m_sceneManager->CreateSphere(
 		"Sphere",
 		1.0f, 16, 16,
 		pMaterial,
-		Vector3(0.0f, 0.0f, 0.0f)
+		Vector3(0.0f, 1.0f, 0.0f)
 	);
 
-	pSphere->SetMaterialPBR(pPBRMat);
+	pSphere->SetMaterialPBR(pPBRMat[3]);
 
-	vector<shared_ptr<NXMesh>> pMeshes;
-	bool pMesh = m_sceneManager->CreateFBXMeshes(
-		"D:\\2.fbx", 
-		pMaterial,
-		pMeshes
-	);
+	//vector<shared_ptr<NXMesh>> pMeshes;
+	//bool pMesh = m_sceneManager->CreateFBXMeshes(
+	//	"D:\\2.fbx", 
+	//	pMaterial,
+	//	pMeshes
+	//);
 
-	pMeshes[0]->SetMaterialPBR(pPBRMat);
-	pMeshes[1]->SetMaterialPBR(pPBRMat);
+	//pMeshes[0]->SetMaterialPBR(pPBRMat);
+	//pMeshes[1]->SetMaterialPBR(pPBRMat);
 
 	auto pCamera = m_sceneManager->CreateCamera(
 		"Camera1", 
 		70.0f, 0.01f, 1000.f, 
-		Vector3(3.0, 3.0, 0.0),
+		Vector3(0.0, 3.0, -3.0),
 		Vector3(0.0, 0.0, 0.0),
 		Vector3(0.0f, 1.0f, 0.0f)
 	);

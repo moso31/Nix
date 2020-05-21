@@ -6,7 +6,7 @@ class NXHit;
 class NXBSDF
 {
 public:
-	NXBSDF(const NXHit& pHitInfo, float matIOR);
+	NXBSDF(const NXHit& pHitInfo, float matIOR = 1.0f);
 	~NXBSDF() {}
 
 	void AddReflectionModel(const shared_ptr<NXReflectionModel>& pReflectionModel);

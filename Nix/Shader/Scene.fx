@@ -68,6 +68,8 @@ PS_INPUT VS(VS_INPUT input)
 float4 PS(PS_INPUT input) : SV_Target
 {
 	float3 toEye = normalize(m_eyePos - input.posW);
+	return float4(input.tex, 0.0f, 1.0f);
+
 	float4 shadowMapPos = mul(input.posW, m_shadowMapView);
 	shadowMapPos = mul(shadowMapPos, m_shadowMapProjection);
 	shadowMapPos = mul(shadowMapPos, m_shadowMapTex);

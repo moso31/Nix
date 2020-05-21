@@ -48,9 +48,9 @@ private:
 class NXRPrefectReflection : public NXReflectionModel
 {
 public:
-	NXRPrefectReflection(const Vector3& R) :
+	NXRPrefectReflection(const Vector3& R, const shared_ptr<NXFresnel>& fresnel) :
 		NXReflectionModel(ReflectionType(REFLECTIONTYPE_REFLECTION | REFLECTIONTYPE_SPECULAR)), 
-		R(R) {}
+		R(R), fresnel(fresnel) {}
 	~NXRPrefectReflection() {}
 
 	Vector3 f(const Vector3& wo, const Vector3& wi) { return Vector3(0.0f); }
@@ -66,7 +66,7 @@ class NXRPrefectTransmission : public NXReflectionModel
 public:
 	NXRPrefectTransmission(const Vector3& T, float etaA, float etaB) :
 		NXReflectionModel(ReflectionType(REFLECTIONTYPE_TRANSMISSION | REFLECTIONTYPE_SPECULAR)),
-		T(T), etaA(etaA), etaB(etaB) {} 
+		T(T), etaA(etaA), etaB(etaB), fresnel(etaA, etaB) {}
 	~NXRPrefectTransmission() {}
 
 	Vector3 f(const Vector3& wo, const Vector3& wi) { return Vector3(0.0f); }
@@ -74,7 +74,7 @@ public:
 
 private:
 	Vector3 T;
-	shared_ptr<NXFresnel> fresnel;
+	NXFresnelDielectric fresnel;	// 导体不可能折射
 	float etaA, etaB;
 };
 
