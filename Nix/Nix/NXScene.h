@@ -42,7 +42,7 @@ public:
 
 private:
 	void InitBoundingStructures();
-	void CreateBVHTrees();
+	void CreateBVHTrees(const HBVHSplitMode SplitMode);
 
 private:
 	friend SceneManager;

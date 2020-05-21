@@ -324,11 +324,13 @@ void HBVHTree::RecursiveIntersect(HBVHTreeNode* node, const Ray& worldRay, NXHit
 								Matrix mxWorldInv = pPrim->GetWorldMatrixInv();
 								Ray LocalRay = worldRay.Transform(mxWorldInv);
 
-								float tHit;
-								if (pPrim->RayCast(LocalRay, outHitInfo, tHit))
+								float tHit = FLT_MAX;
+								NXHit hitInfo;
+								if (pPrim->RayCast(LocalRay, hitInfo, tHit))
 								{
 									if (out_tHit > tHit)
 									{
+										outHitInfo = hitInfo;
 										out_tHit = tHit;
 									}
 								}
@@ -353,11 +355,13 @@ void HBVHTree::RecursiveIntersect(HBVHTreeNode* node, const Ray& worldRay, NXHit
 							Matrix mxWorldInv = pPrim->GetWorldMatrixInv();
 							Ray LocalRay = worldRay.Transform(mxWorldInv);
 
-							float tHit;
-							if (pPrim->RayCast(LocalRay, outHitInfo, tHit))
+							float tHit = FLT_MAX;
+							NXHit hitInfo;
+							if (pPrim->RayCast(LocalRay, hitInfo, tHit))
 							{
 								if (out_tHit > tHit)
 								{
+									outHitInfo = hitInfo;
 									out_tHit = tHit;
 								}
 							}

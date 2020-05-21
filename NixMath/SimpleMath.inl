@@ -3425,7 +3425,7 @@ inline float AABB::GetSurfaceArea() const
 inline void DirectX::SimpleMath::AABB::Transform(AABB& aabb, const Matrix& m, AABB& result)
 {
 	result.Center = Vector3::Transform(aabb.Center, m);
-	result.Extents = Vector3::Transform(aabb.Extents, m);
+	result.Extents = Vector3::TransformNormal(aabb.Extents, m);
 }
 
 
@@ -3502,7 +3502,7 @@ inline bool Ray::IntersectsFast(const AABB& aabb, _Out_ float& Dist0, _Out_ floa
 
 	Dist0 = tNear;
 	Dist1 = tFar;// *(1 + 2 * gamma(3));
-	return tFar > 0 && tNear < tFar;
+	return tFar > 0 && tNear <= tFar;
 }
 
 inline bool Ray::Intersects( const Vector3& tri0, const Vector3& tri1, const Vector3& tri2, _Out_ float& Dist ) const

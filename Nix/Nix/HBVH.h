@@ -25,7 +25,12 @@ struct HBVHBucketInfo
 
 struct HBVHTreeNode
 {
-	HBVHTreeNode() = default;
+	HBVHTreeNode() 
+	{
+		child[0] = nullptr;
+		child[1] = nullptr;
+		aabb.Extents = Vector3(0.0f);
+	}
 	HBVHTreeNode* child[2];
 	AABB aabb;
 	int index;

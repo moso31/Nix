@@ -3,6 +3,7 @@
 #include "RenderStates.h"
 #include "GlobalBufferManager.h"
 #include "NXIntersection.h"
+#include "NXRandom.h"
 //#include "HBVH.h"
 
 #include "NXMesh.h"
@@ -53,14 +54,16 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 
 	if (eArg.VKey == 'G')
 	{
-		// 创建求交加速结构以增加渲染速度。
-		printf("Generating BVH Structure...");
-		//CreateBVHTrees();
-		printf("done.\n");
-
+		auto time_st = GetTickCount64();
 		printf("rendering...\n");
+
+		// 创建求交加速结构以增加渲染速度。
+		CreateBVHTrees(HBVHSplitMode::SAH);
+
 		NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pWhitted, imageInfo);
-		printf("done.\n");
+
+		auto time_ed = GetTickCount64();
+		printf("Render done. 用时：%.3f 秒\n", (float)(time_ed - time_st) / 1000.0f);
 	}
 
 	if (eArg.VKey == 'H')
@@ -150,7 +153,7 @@ void NXScene::Init()
 		0.2f
 	);
 
-	m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 4.5f, 0.0f), Vector3(25.0f));
+	m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 100.0f, 0.0f), Vector3(20000.0f));
 
 	shared_ptr<NXPBRMaterial> pPBRMat[6] = {
 		m_sceneManager->CreatePBRMatte(Vector3(1.0f, 0.0f, 0.0f)),
@@ -163,70 +166,66 @@ void NXScene::Init()
 
 	auto pPlane = m_sceneManager->CreatePlane(
 		"Ground",
-		5.0f, 5.0f,
+		50.0f, 50.0f,
 		pMaterial,
 		Vector3(0.0f)
 	);
 
 	pPlane->SetMaterialPBR(pPBRMat[4]);
 
-	pPlane = m_sceneManager->CreatePlane(
-		"Wall +Y",
-		5.0f, 5.0f,
-		pMaterial,
-		Vector3(0.0f, 5.0f, 0.0f),
-		Vector3(XM_PI, 0.0f, 0.0f)
-	);
+	//pPlane = m_sceneManager->CreatePlane(
+	//	"Wall +Y",
+	//	5.0f, 5.0f,
+	//	pMaterial,
+	//	Vector3(0.0f, 5.0f, 0.0f),
+	//	Vector3(XM_PI, 0.0f, 0.0f)
+	//);
 
-	pPlane->SetMaterialPBR(pPBRMat[4]);
+	//pPlane->SetMaterialPBR(pPBRMat[4]);
 
-	pPlane = m_sceneManager->CreatePlane(
-		"Wall +Z",
-		5.0f, 5.0f,
-		pMaterial,
-		Vector3(0.0f, 2.5f, 2.5f),
-		Vector3(-XM_PIDIV2, 0.0f, 0.0f)
-	);
+	//pPlane = m_sceneManager->CreatePlane(
+	//	"Wall +Z",
+	//	5.0f, 5.0f,
+	//	pMaterial,
+	//	Vector3(0.0f, 2.5f, 2.5f),
+	//	Vector3(-XM_PIDIV2, 0.0f, 0.0f)
+	//);
 
-	pPlane->SetMaterialPBR(pPBRMat[4]);
+	//pPlane->SetMaterialPBR(pPBRMat[4]);
 
-	pPlane = m_sceneManager->CreatePlane(
-		"Wall -X",
-		5.0f, 5.0f,
-		pMaterial,
-		Vector3(-2.5f, 2.5f, 0.0f),
-		Vector3(0.0f, 0.0f, -XM_PIDIV2)
-	);
+	//pPlane = m_sceneManager->CreatePlane(
+	//	"Wall -X",
+	//	5.0f, 5.0f,
+	//	pMaterial,
+	//	Vector3(-2.5f, 2.5f, 0.0f),
+	//	Vector3(0.0f, 0.0f, -XM_PIDIV2)
+	//);
 
-	pPlane->SetMaterialPBR(pPBRMat[1]);
+	//pPlane->SetMaterialPBR(pPBRMat[1]);
 
-	pPlane = m_sceneManager->CreatePlane(
-		"Wall +X",
-		5.0f, 5.0f,
-		pMaterial,
-		Vector3(2.5f, 2.5f, 0.0f),
-		Vector3(0.0f, 0.0f, XM_PIDIV2)
-	);
+	//pPlane = m_sceneManager->CreatePlane(
+	//	"Wall +X",
+	//	5.0f, 5.0f,
+	//	pMaterial,
+	//	Vector3(2.5f, 2.5f, 0.0f),
+	//	Vector3(0.0f, 0.0f, XM_PIDIV2)
+	//);
 
-	pPlane->SetMaterialPBR(pPBRMat[2]);
+	//pPlane->SetMaterialPBR(pPBRMat[2]);
 
-	auto pSphere = m_sceneManager->CreateSphere(
-		"Sphere",
-		1.0f, 16, 16,
-		pMaterial,
-		Vector3(-1.0f, 1.0f, 0.0f)
-	);
+	for (int i = 0; i < 20; i++)
+	{
+		Vector2 randomPos = NXRandom::GetInstance()->CreateVector2(-5, 5);
 
-	pSphere->SetMaterialPBR(pPBRMat[5]);
+		auto pSphere = m_sceneManager->CreateSphere(
+			"Sphere",
+			0.5f, 16, 16,
+			pMaterial,
+			Vector3(randomPos.x, 0.5f, randomPos.y)
+		);
 
-	pSphere = m_sceneManager->CreateSphere(
-		"Sphere",
-		1.0f, 16, 16,
-		pMaterial,
-		Vector3(1.0f, 1.0f, -1.0f)
-	);
-
-	pSphere->SetMaterialPBR(pPBRMat[3]);
+		pSphere->SetMaterialPBR(pPBRMat[i % 6]);
+	}
 
 	//vector<shared_ptr<NXMesh>> pMeshes;
 	//bool pMesh = m_sceneManager->CreateFBXMeshes(
@@ -416,12 +415,12 @@ void NXScene::InitBoundingStructures()
 	BoundingSphere::CreateFromBoundingBox(m_boundingSphere, m_aabb);
 }
 
-void NXScene::CreateBVHTrees()
+void NXScene::CreateBVHTrees(const HBVHSplitMode SplitMode)
 {
 	if (m_pBVHTree)
 		m_pBVHTree.reset();
 
 	auto pThis = dynamic_pointer_cast<NXScene>(shared_from_this());
 	m_pBVHTree = make_shared<HBVHTree>(pThis);
-	m_pBVHTree->BuildTreesWithScene(HBVHSplitMode::SplitPosition);
+	m_pBVHTree->BuildTreesWithScene(SplitMode);
 }
