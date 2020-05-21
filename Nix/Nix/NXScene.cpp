@@ -146,24 +146,24 @@ void NXScene::Init()
 
 	auto pPBRMat = m_sceneManager->CreatePBRMatte(Vector3(1.0f, 0.0f, 0.0f), 1.0f);
 
-	//auto pPlane = m_sceneManager->CreatePlane(
-	//	"Wall",
-	//	5.0f, 5.0f,
-	//	pMaterial,
-	//	Vector3(0.0f)
-	//);
+	auto pPlane = m_sceneManager->CreatePlane(
+		"Wall",
+		5.0f, 5.0f,
+		pMaterial,
+		Vector3(0.0f)
+	);
 
-	//pPlane->SetMaterialPBR(pPBRMat);
+	pPlane->SetMaterialPBR(pPBRMat);
 
-	//pPlane = m_sceneManager->CreatePlane(
-	//	"Ground",
-	//	5.0f, 5.0f,
-	//	pMaterial,
-	//	Vector3(0.0f, 2.5f, 2.5f),
-	//	Vector3(-XM_PIDIV2, 0.0f, 0.0f)
-	//);
+	pPlane = m_sceneManager->CreatePlane(
+		"Ground",
+		5.0f, 5.0f,
+		pMaterial,
+		Vector3(0.0f, 2.5f, 2.5f),
+		Vector3(-XM_PIDIV2, 0.0f, 0.0f)
+	);
 
-	//pPlane->SetMaterialPBR(pPBRMat);
+	pPlane->SetMaterialPBR(pPBRMat);
 	
 	auto pSphere = m_sceneManager->CreateSphere(
 		"Sphere",
@@ -174,14 +174,15 @@ void NXScene::Init()
 
 	pSphere->SetMaterialPBR(pPBRMat);
 
-	//vector<shared_ptr<NXMesh>> pMeshes;
-	//bool pMesh = m_sceneManager->CreateFBXMeshes(
-	//	"D:\\2.fbx", 
-	//	pMaterial,
-	//	pMeshes
-	//);
+	vector<shared_ptr<NXMesh>> pMeshes;
+	bool pMesh = m_sceneManager->CreateFBXMeshes(
+		"D:\\2.fbx", 
+		pMaterial,
+		pMeshes
+	);
 
-	//pMeshes[0]->SetMaterialPBR(pPBRMat);
+	pMeshes[0]->SetMaterialPBR(pPBRMat);
+	pMeshes[1]->SetMaterialPBR(pPBRMat);
 
 	auto pCamera = m_sceneManager->CreateCamera(
 		"Camera1", 

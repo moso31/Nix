@@ -274,8 +274,8 @@ bool NXTriangle::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist)
 
 		// 然后开始更新hitInfo的shading部分。
 		bool bEnableNormal = true;
-		bool bEnableTangent = false;	// 不考虑模型自带的切线数据
-		bool bEnableNormalDerivative = false;	// 不生成dndu，dndv。
+		bool bEnableTangent = false;	// 暂不考虑模型自带的切线数据
+		bool bEnableNormalDerivative = false;	// 暂不生成dndu，dndv。
 
 		Vector3 ns, ss, ts;
 		Vector3 dndu, dndv;
@@ -350,7 +350,7 @@ bool NXTriangle::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist)
 		ts = ss.Cross(ns);
 		if (ts.LengthSquared() > 0.f) {
 			ts.Normalize();
-			ss = ts.Cross(ns);
+			ss = ns.Cross(ts);
 		}
 		else
 			ns.GenerateCoordinateSpace(ss, ts);

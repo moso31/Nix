@@ -110,9 +110,9 @@ bool NXSphere::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist)
 	// get uvHit
 	Vector2 uvHit(phi * XM_1DIV2PI, theta * XM_1DIVPI);
 
-	Vector3 dpdu(-XM_2PI * pHit.z, XM_2PI * pHit.x, 0.0f);
+	Vector3 dpdu(-XM_2PI * pHit.z, 0.0f, XM_2PI * pHit.x);
 	float piy = -XM_PI * pHit.y;
-	Vector3 dpdv(piy * cosf(phi), piy * sinf(phi), XM_PI * m_radius * sinf(theta));
+	Vector3 dpdv(piy * cosf(phi), XM_PI * m_radius * sinf(theta), piy * sinf(phi));
 	dpdu.Normalize();
 	dpdv.Normalize();
 
