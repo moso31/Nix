@@ -3,6 +3,7 @@
 #include "NXMaterial.h"
 #include "NXPBRMaterial.h"
 #include "NXPBRLight.h"
+#include "HBVH.h"
 
 // temp include.
 #include "ShaderStructures.h"
@@ -41,10 +42,14 @@ public:
 
 private:
 	void InitBoundingStructures();
+	void CreateBVHTrees();
 
 private:
 	friend SceneManager;
 	shared_ptr<SceneManager> m_sceneManager;
+
+	// 求交加速结构（用于NXRayTracer的射线检测）
+	shared_ptr<HBVHTree> m_pBVHTree;
 
 	// 隐藏的根object
 	shared_ptr<NXObject> m_pRootObject;

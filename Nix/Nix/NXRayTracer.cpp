@@ -70,6 +70,3 @@ void NXRayTracer::CenterRayTest(const shared_ptr<NXScene>& pScene, const shared_
 	printf("%f, %f, %f\n", result.x, result.y, result.z);
 }
 
-void NXRayTracer::Release()
-{
-}

@@ -1,4 +1,3 @@
-#if _TODO_
 #include "HBVH.h"
 #include "NXScene.h"
 #include "NXPrimitive.h"
@@ -16,7 +15,7 @@ inline int EncodeMorton3(const XMINT3 &v) {
 	return (LeftShift3(v.z) << 2) | (LeftShift3(v.y) << 1) | LeftShift3(v.x);
 }
 
-HBVHTree::HBVHTree(const shared_ptr<Scene>& scene)
+HBVHTree::HBVHTree(const shared_ptr<NXScene>& scene)
 {
 	m_scene = scene;
 }
@@ -33,7 +32,7 @@ void HBVHTree::BuildTreesWithScene(HBVHSplitMode mode)
 
 	auto time_st = GetTickCount64();
 
-	m_mode_temp = mode;
+	m_buildMode = mode;
 
 	root = new HBVHTreeNode();
 	int count = 0;	// 场景中的primitive总数
@@ -47,7 +46,7 @@ void HBVHTree::BuildTreesWithScene(HBVHSplitMode mode)
 			{
 				HBVHPrimitiveInfo primitiveInfo;
 				primitiveInfo.index = count++;
-				primitiveInfo.aabb = (*it)->GetAABB();
+				primitiveInfo.aabb = (*it)->GetAABBWorld();
 				m_primitiveInfo.push_back(primitiveInfo);
 			}
 			//else
@@ -67,7 +66,7 @@ void HBVHTree::BuildTreesWithScene(HBVHSplitMode mode)
 			{
 				HBVHMortonPrimitiveInfo primitiveInfo;
 				primitiveInfo.index = count++;
-				primitiveInfo.aabb = (*it)->GetAABB();
+				primitiveInfo.aabb = (*it)->GetAABBWorld();
 				Vector3 fRelativePosition = m_scene->GetAABB().Offset(primitiveInfo.aabb.Center);
 				int mortonScale = 1 << 10;
 				XMINT3 iRelativePositionScaled = { (int)(fRelativePosition.x * mortonScale), (int)(fRelativePosition.y * mortonScale), (int)(fRelativePosition.z * mortonScale) };
@@ -118,10 +117,9 @@ void HBVHTree::BuildTreesWithScene(HBVHSplitMode mode)
 	printf("BVH done. 用时：%.3f 秒\n", (float)(time_ed - time_st) / 1000.0f);
 }
 
-void HBVHTree::Intersect(const Ray & worldRay, Vector3& outHitPos, int& outHitIndex, float tMax)
+void HBVHTree::Intersect(const Ray& worldRay, NXHit& outHitInfo, float tMax)
 {
-	float tResult = tMax;
-	RecursiveIntersect(root, worldRay, outHitPos, tResult, outHitIndex);
+	RecursiveIntersect(root, worldRay, outHitInfo, tMax);
 }
 
 void HBVHTree::BuildTree(HBVHTreeNode * node, int stIndex, int edIndex, HBVHSplitMode mode)
@@ -291,10 +289,12 @@ void HBVHTree::BuildTree(HBVHTreeNode * node, int stIndex, int edIndex, HBVHSpli
 	BuildTree(node->child[1], splitPos, edIndex, mode);
 }
 
-void HBVHTree::RecursiveIntersect(HBVHTreeNode * node, const Ray & worldRay, Vector3& outHitPos, float& out_tResult, int& out_hitIndex)
+void HBVHTree::RecursiveIntersect(HBVHTreeNode* node, const Ray& worldRay, NXHit& outHitInfo, float& out_tHit)
 {
 	auto pPrimitives = m_scene->GetPrimitives();
 	float t0, t1;
+	auto v1 = node->aabb.GetMax();
+	auto v2 = node->aabb.GetMin();
 	if (worldRay.IntersectsFast(node->aabb, t0, t1))
 	{
 		float tNodeHit = t0;
@@ -304,7 +304,7 @@ void HBVHTree::RecursiveIntersect(HBVHTreeNode * node, const Ray & worldRay, Vec
 
 		if (node->child[0] == nullptr && node->child[1] == nullptr)
 		{
-			if (m_mode_temp == HLBVH)
+			if (m_buildMode == HLBVH)
 			{
 				// leaf
 				for (int i = node->index; i < node->index + node->offset; i++)
@@ -319,14 +319,17 @@ void HBVHTree::RecursiveIntersect(HBVHTreeNode * node, const Ray & worldRay, Vec
 
 							if (worldRay.IntersectsFast(m_mortonPrimitiveInfo[idx].aabb, t0, t1))
 							{
-								float tHit;
 								auto pPrim = pPrimitives[m_mortonPrimitiveInfo[idx].index];
-								if (pPrim->Intersect(worldRay, outHitPos, tHit))
+
+								Matrix mxWorldInv = pPrim->GetWorldMatrixInv();
+								Ray LocalRay = worldRay.Transform(mxWorldInv);
+
+								float tHit;
+								if (pPrim->RayCast(LocalRay, outHitInfo, tHit))
 								{
-									if (out_tResult > tHit)
+									if (out_tHit > tHit)
 									{
-										out_tResult = tHit;
-										out_hitIndex = m_mortonPrimitiveInfo[idx].index;
+										out_tHit = tHit;
 									}
 								}
 							}
@@ -345,14 +348,17 @@ void HBVHTree::RecursiveIntersect(HBVHTreeNode * node, const Ray & worldRay, Vec
 					{
 						if (worldRay.IntersectsFast(m_primitiveInfo[i].aabb, t0, t1))
 						{
-							float tHit;
 							auto pPrim = pPrimitives[m_primitiveInfo[i].index];
-							if (pPrim->Intersect(worldRay, outHitPos, tHit))
+
+							Matrix mxWorldInv = pPrim->GetWorldMatrixInv();
+							Ray LocalRay = worldRay.Transform(mxWorldInv);
+
+							float tHit;
+							if (pPrim->RayCast(LocalRay, outHitInfo, tHit))
 							{
-								if (out_tResult > tHit)
+								if (out_tHit > tHit)
 								{
-									out_tResult = tHit;
-									out_hitIndex = m_primitiveInfo[i].index;
+									out_tHit = tHit;
 								}
 							}
 						}
@@ -363,8 +369,8 @@ void HBVHTree::RecursiveIntersect(HBVHTreeNode * node, const Ray & worldRay, Vec
 		else
 		{
 			// interior
-			RecursiveIntersect(node->child[0], worldRay, outHitPos, out_tResult, out_hitIndex);
-			RecursiveIntersect(node->child[1], worldRay, outHitPos, out_tResult, out_hitIndex);
+			RecursiveIntersect(node->child[0], worldRay, outHitInfo, out_tHit);
+			RecursiveIntersect(node->child[1], worldRay, outHitInfo, out_tHit);
 		}
 	}
 }
@@ -378,7 +384,7 @@ HBVHTreeNode* HBVHTree::BuildTreelet(int stIndex, int edIndex, int bitIndex)
 		HBVHTreeNode* result = new HBVHTreeNode();
 		for (int i = stIndex; i < edIndex; i++)
 		{
-			AABB::CreateMerged(result->aabb, result->aabb, m_scene->GetPrimitives()[m_mortonPrimitiveInfo[i].index]->GetAABB());
+			AABB::CreateMerged(result->aabb, result->aabb, m_scene->GetPrimitives()[m_mortonPrimitiveInfo[i].index]->GetAABBWorld());
 		}
 		result->index = stIndex;
 		result->offset = edIndex - stIndex;
@@ -408,7 +414,7 @@ HBVHTreeNode* HBVHTree::BuildTreelet(int stIndex, int edIndex, int bitIndex)
 	HBVHTreeNode* result = new HBVHTreeNode();
 	for (int i = stIndex; i < edIndex; i++)
 	{
-		AABB::CreateMerged(result->aabb, result->aabb, m_scene->GetPrimitives()[m_mortonPrimitiveInfo[i].index]->GetAABB());
+		AABB::CreateMerged(result->aabb, result->aabb, m_scene->GetPrimitives()[m_mortonPrimitiveInfo[i].index]->GetAABBWorld());
 	}
 	result->index = stIndex;
 	result->offset = edIndex - stIndex;
@@ -504,4 +510,23 @@ void HBVHTree::BuildUpperTree(HBVHTreeNode* node, int stIndex, int edIndex)
 	BuildUpperTree(node->child[0], stIndex, splitIndex);
 	BuildUpperTree(node->child[1], splitIndex, edIndex);
 }
-#endif
+
+void HBVHTree::Release()
+{
+	m_treeletInfo.clear();
+	m_mortonPrimitiveInfo.clear();
+	m_primitiveInfo.clear();
+
+	if (root)
+	{
+		ReleaseTreeNode(root);
+	}
+}
+
+void HBVHTree::ReleaseTreeNode(HBVHTreeNode* node)
+{
+	if (node->child[0]) ReleaseTreeNode(node->child[0]); 
+	if (node->child[1]) ReleaseTreeNode(node->child[1]);
+
+	delete node;
+}

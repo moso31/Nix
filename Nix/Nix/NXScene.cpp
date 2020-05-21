@@ -53,15 +53,23 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 
 	if (eArg.VKey == 'G')
 	{
-		printf("making...\n");
+		// 创建求交加速结构以增加渲染速度。
+		printf("Generating BVH Structure...");
+		//CreateBVHTrees();
+		printf("done.\n");
 
+		printf("rendering...\n");
 		NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pWhitted, imageInfo);
-
 		printf("done.\n");
 	}
 
 	if (eArg.VKey == 'H')
 	{
+		// 创建求交加速结构以增加渲染速度。
+		printf("Generating BVH Structure...");
+		//CreateBVHTrees();
+		printf("done.\n");
+
 		printf("center ray testing...\n");
 		NXRayTracer::GetInstance()->CenterRayTest(pScene, m_mainCamera, pWhitted);
 
@@ -147,7 +155,7 @@ void NXScene::Init()
 	auto pPBRMat = m_sceneManager->CreatePBRMatte(Vector3(1.0f, 0.0f, 0.0f), 1.0f);
 
 	auto pPlane = m_sceneManager->CreatePlane(
-		"Wall",
+		"Ground",
 		5.0f, 5.0f,
 		pMaterial,
 		Vector3(0.0f)
@@ -156,7 +164,7 @@ void NXScene::Init()
 	pPlane->SetMaterialPBR(pPBRMat);
 
 	pPlane = m_sceneManager->CreatePlane(
-		"Ground",
+		"Wall",
 		5.0f, 5.0f,
 		pMaterial,
 		Vector3(0.0f, 2.5f, 2.5f),
@@ -284,32 +292,36 @@ void NXScene::Release()
 	}
 
 	m_sceneManager.reset();
+	m_pBVHTree.reset();
 }
 
 bool NXScene::RayCast(const Ray& ray, NXHit& outHitInfo)
 {
 	float outDist = FLT_MAX;
 
-	// 目前还是用遍历找的……将来改成KD树或BVH树。
-	for (auto it = m_primitives.begin(); it != m_primitives.end(); it++)
+	if (m_pBVHTree)
 	{
-		Matrix mxWorldInv = (*it)->GetWorldMatrixInv();
-		Ray LocalRay(
-			Vector3::Transform(ray.position, mxWorldInv),
-			Vector3::TransformNormal(ray.direction, mxWorldInv)
-		);
-
-		// ray-aabb
-		float aabbDist;
-		if (LocalRay.IntersectsFast((*it)->GetAABBLocal(), aabbDist))
+		m_pBVHTree->Intersect(ray, outHitInfo, outDist);
+	}
+	else
+	{
+		for (auto it = m_primitives.begin(); it != m_primitives.end(); it++)
 		{
-			if (aabbDist < outDist)
+			Matrix mxWorldInv = (*it)->GetWorldMatrixInv();
+			Ray LocalRay = ray.Transform(mxWorldInv);
+
+			// ray-aabb
+			float aabbDist;
+			if (LocalRay.IntersectsFast((*it)->GetAABBLocal(), aabbDist))
 			{
-				// ray-triangle
-				if ((*it)->RayCast(LocalRay, outHitInfo, outDist))
+				if (aabbDist < outDist)
 				{
-					// 得到了更近的相交结果。
-					// 保留当前outHitInfo和outDist。
+					// ray-triangle
+					if ((*it)->RayCast(LocalRay, outHitInfo, outDist))
+					{
+						// 得到了更近的相交结果。
+						// 保留当前outHitInfo和outDist。
+					}
 				}
 			}
 		}
@@ -356,4 +368,14 @@ void NXScene::InitBoundingStructures()
 	}
 
 	BoundingSphere::CreateFromBoundingBox(m_boundingSphere, m_aabb);
+}
+
+void NXScene::CreateBVHTrees()
+{
+	if (m_pBVHTree)
+		m_pBVHTree.reset();
+
+	auto pThis = dynamic_pointer_cast<NXScene>(shared_from_this());
+	m_pBVHTree = make_shared<HBVHTree>(pThis);
+	m_pBVHTree->BuildTreesWithScene(HBVHSplitMode::SplitPosition);
 }

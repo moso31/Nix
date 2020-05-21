@@ -1,6 +1,7 @@
 #pragma once
 #include "NXInstance.h"
 #include "NXIntegrator.h"
+#include "HBVH.h"
 
 // 离线渲染的图像信息
 struct NXRenderImageInfo
@@ -19,10 +20,7 @@ public:
 	~NXRayTracer() {}
 
 	void MakeImage(const shared_ptr<NXScene>& pScene, const shared_ptr<NXCamera>& pMainCamera, const shared_ptr<NXIntegrator>& pIntegrator, const NXRenderImageInfo& ImageInfo);
-
 	void CenterRayTest(const shared_ptr<NXScene>& pScene, const shared_ptr<NXCamera>& pMainCamera, const shared_ptr<NXIntegrator>& pIntegrator);
 
 	void Release();
-
-private:
 };
