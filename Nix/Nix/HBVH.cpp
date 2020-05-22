@@ -15,9 +15,10 @@ inline int EncodeMorton3(const XMINT3 &v) {
 	return (LeftShift3(v.z) << 2) | (LeftShift3(v.y) << 1) | LeftShift3(v.x);
 }
 
-HBVHTree::HBVHTree(const shared_ptr<NXScene>& scene)
+HBVHTree::HBVHTree(const shared_ptr<NXScene>& scene, const vector<shared_ptr<NXPrimitive>>& pPrimitives) :
+	m_scene(scene),
+	m_primitives(scene->GetPrimitives())
 {
-	m_scene = scene;
 }
 
 void HBVHTree::BuildTreesWithScene(HBVHSplitMode mode)
@@ -33,14 +34,14 @@ void HBVHTree::BuildTreesWithScene(HBVHSplitMode mode)
 	auto time_st = GetTickCount64();
 
 	m_buildMode = mode;
+	m_primitives = m_scene->GetPrimitives();
 
 	root = new HBVHTreeNode();
 	int count = 0;	// 场景中的primitive总数
 	int skipCount = 0;	// 跳过的primitive总数（诸如line之类不可能相交计算的primitive都会被跳过）。
-	auto pPrimitives = m_scene->GetPrimitives();
 	if (mode != HLBVH)
 	{
-		for (auto it = pPrimitives.begin(); it < pPrimitives.end(); it++)
+		for (auto it = m_primitives.begin(); it < m_primitives.end(); it++)
 		{
 			//if ((*it)->GetRenderType() == eRenderType::Shape)
 			{
@@ -61,7 +62,7 @@ void HBVHTree::BuildTreesWithScene(HBVHSplitMode mode)
 	else
 	{
 		// 遍历所有primitive
-		for (auto it = pPrimitives.begin(); it < pPrimitives.end(); it++)
+		for (auto it = m_primitives.begin(); it < m_primitives.end(); it++)
 		{
 			HBVHMortonPrimitiveInfo primitiveInfo;
 			primitiveInfo.index = count++;
@@ -290,7 +291,6 @@ void HBVHTree::BuildTree(HBVHTreeNode * node, int stIndex, int edIndex, HBVHSpli
 
 void HBVHTree::RecursiveIntersect(HBVHTreeNode* node, const Ray& worldRay, NXHit& outHitInfo, float& out_tHit)
 {
-	auto pPrimitives = m_scene->GetPrimitives();
 	float t0, t1;
 	auto v1 = node->aabb.GetMax();
 	auto v2 = node->aabb.GetMin();
@@ -318,7 +318,7 @@ void HBVHTree::RecursiveIntersect(HBVHTreeNode* node, const Ray& worldRay, NXHit
 
 							if (worldRay.IntersectsFast(m_mortonPrimitiveInfo[idx].aabb, t0, t1))
 							{
-								auto pPrim = pPrimitives[m_mortonPrimitiveInfo[idx].index];
+								auto pPrim = m_primitives[m_mortonPrimitiveInfo[idx].index];
 
 								Matrix mxWorldInv = pPrim->GetWorldMatrixInv();
 								Ray LocalRay = worldRay.Transform(mxWorldInv);
@@ -343,13 +343,13 @@ void HBVHTree::RecursiveIntersect(HBVHTreeNode* node, const Ray& worldRay, NXHit
 				// leaf
 				for (int i = node->index; i < node->index + node->offset; i++)
 				{
-					auto str = pPrimitives[m_primitiveInfo[i].index]->GetName();
+					auto str = m_primitives[m_primitiveInfo[i].index]->GetName();
 
 					//if (pPrimitives[m_primitiveInfo[i].index]->GetRenderType() == eRenderType::Shape)
 					{
 						if (worldRay.IntersectsFast(m_primitiveInfo[i].aabb, t0, t1))
 						{
-							auto pPrim = pPrimitives[m_primitiveInfo[i].index];
+							auto pPrim = m_primitives[m_primitiveInfo[i].index];
 
 							Matrix mxWorldInv = pPrim->GetWorldMatrixInv();
 							Ray LocalRay = worldRay.Transform(mxWorldInv);
@@ -387,7 +387,7 @@ HBVHTreeNode* HBVHTree::BuildTreelet(int stIndex, int edIndex, int bitIndex)
 		HBVHTreeNode* result = new HBVHTreeNode();
 		for (int i = stIndex; i < edIndex; i++)
 		{
-			AABB::CreateMerged(result->aabb, result->aabb, m_scene->GetPrimitives()[m_mortonPrimitiveInfo[i].index]->GetAABBWorld());
+			AABB::CreateMerged(result->aabb, result->aabb, m_primitives[m_mortonPrimitiveInfo[i].index]->GetAABBWorld());
 		}
 		result->index = stIndex;
 		result->offset = edIndex - stIndex;
@@ -417,7 +417,7 @@ HBVHTreeNode* HBVHTree::BuildTreelet(int stIndex, int edIndex, int bitIndex)
 	HBVHTreeNode* result = new HBVHTreeNode();
 	for (int i = stIndex; i < edIndex; i++)
 	{
-		AABB::CreateMerged(result->aabb, result->aabb, m_scene->GetPrimitives()[m_mortonPrimitiveInfo[i].index]->GetAABBWorld());
+		AABB::CreateMerged(result->aabb, result->aabb, m_primitives[m_mortonPrimitiveInfo[i].index]->GetAABBWorld());
 	}
 	result->index = stIndex;
 	result->offset = edIndex - stIndex;

@@ -57,37 +57,37 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 	{
 		size_t time_st, time_ed;
 
-		printf("rendering(no optimize)...\n");
-		time_st = GetTickCount64();
-		NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pWhitted, imageInfo);
-		time_ed = GetTickCount64();
-		printf("Render done. time：%.3f s\n", (float)(time_ed - time_st) / 1000.0f);
+		//printf("rendering(no optimize)...\n");
+		//time_st = GetTickCount64();
+		//NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pWhitted, imageInfo);
+		//time_ed = GetTickCount64();
+		//printf("Render done. time：%.3f s\n", (float)(time_ed - time_st) / 1000.0f);
 
-		imageInfo.outPath = "D:\\xx2.bmp";
-		printf("rendering(SplitPosition)...\n");
-		time_st = GetTickCount64();
-		CreateBVHTrees(HBVHSplitMode::SplitPosition);
-		NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pWhitted, imageInfo);
-		time_ed = GetTickCount64();
-		printf("Render done. time：%.3f s\n", (float)(time_ed - time_st) / 1000.0f);
+		//imageInfo.outPath = "D:\\xx2.bmp";
+		//printf("rendering(SplitPosition)...\n");
+		//time_st = GetTickCount64();
+		//CreateBVHTrees(HBVHSplitMode::SplitPosition);
+		//NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pWhitted, imageInfo);
+		//time_ed = GetTickCount64();
+		//printf("Render done. time：%.3f s\n", (float)(time_ed - time_st) / 1000.0f);
 
-		imageInfo.outPath = "D:\\xx3.bmp";
-		printf("rendering(SplitCount)...\n");
-		time_st = GetTickCount64();
-		CreateBVHTrees(HBVHSplitMode::SplitCount);
-		NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pWhitted, imageInfo);
-		time_ed = GetTickCount64();
-		printf("Render done. time：%.3f s\n", (float)(time_ed - time_st) / 1000.0f);
+		//imageInfo.outPath = "D:\\xx3.bmp";
+		//printf("rendering(SplitCount)...\n");
+		//time_st = GetTickCount64();
+		//CreateBVHTrees(HBVHSplitMode::SplitCount);
+		//NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pWhitted, imageInfo);
+		//time_ed = GetTickCount64();
+		//printf("Render done. time：%.3f s\n", (float)(time_ed - time_st) / 1000.0f);
 
-		imageInfo.outPath = "D:\\xx4.bmp";
-		printf("rendering(SAH)...\n");
-		time_st = GetTickCount64();
-		CreateBVHTrees(HBVHSplitMode::SAH);
-		NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pWhitted, imageInfo);
-		time_ed = GetTickCount64();
-		printf("Render done. time：%.3f s\n", (float)(time_ed - time_st) / 1000.0f);
+		//imageInfo.outPath = "D:\\xx4.bmp";
+		//printf("rendering(SAH)...\n");
+		//time_st = GetTickCount64();
+		//CreateBVHTrees(HBVHSplitMode::SAH);
+		//NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pWhitted, imageInfo);
+		//time_ed = GetTickCount64();
+		//printf("Render done. time：%.3f s\n", (float)(time_ed - time_st) / 1000.0f);
 
-		imageInfo.outPath = "D:\\xx5.bmp";
+		imageInfo.outPath = "D:\\nix.bmp";
 		printf("rendering(HLBVH)...\n");
 		time_st = GetTickCount64();
 		CreateBVHTrees(HBVHSplitMode::HLBVH);
@@ -100,7 +100,7 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 	{
 		// 创建求交加速结构以增加渲染速度。
 		printf("Generating BVH Structure...");
-		CreateBVHTrees(HBVHSplitMode::SAH);
+		CreateBVHTrees(HBVHSplitMode::HLBVH);
 		printf("done.\n");
 
 		printf("center ray testing...\n");
@@ -464,6 +464,6 @@ void NXScene::CreateBVHTrees(const HBVHSplitMode SplitMode)
 		m_pBVHTree.reset();
 
 	auto pThis = dynamic_pointer_cast<NXScene>(shared_from_this());
-	m_pBVHTree = make_shared<HBVHTree>(pThis);
+	m_pBVHTree = make_shared<HBVHTree>(pThis, m_primitives);
 	m_pBVHTree->BuildTreesWithScene(SplitMode);
 }

@@ -57,7 +57,8 @@ class NXHit;
 class HBVHTree
 {
 public:
-	HBVHTree(const shared_ptr<NXScene>& scene);
+	// primitive在递归过程中的使用非常频繁。使用引用成员变量存一下避免反复调用。
+	HBVHTree(const shared_ptr<NXScene>& scene, const vector<shared_ptr<NXPrimitive>>& pPrimitives);
 	~HBVHTree() {}
 
 	// 根据场景信息，生成构建BVH树所需要的信息。
@@ -86,6 +87,7 @@ private:
 
 	HBVHTreeNode* root;
 	shared_ptr<NXScene> m_scene;
+	vector<shared_ptr<NXPrimitive>> m_primitives;
 	vector<HBVHPrimitiveInfo> m_primitiveInfo;
 	vector<HBVHMortonPrimitiveInfo> m_mortonPrimitiveInfo;
 	vector<HBVHTreeletInfo> m_treeletInfo;
