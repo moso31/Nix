@@ -54,7 +54,7 @@ void NXRayTracer::MakeImage(const shared_ptr<NXScene>& pScene, const shared_ptr<
 		}
 	}
 
-	ImageGenerator::GenerateImageBMP((BYTE*)pRGB, ImageInfo.ImageSize.x, ImageInfo.ImageSize.y, "D:\\nix.bmp");
+	ImageGenerator::GenerateImageBMP((BYTE*)pRGB, ImageInfo.ImageSize.x, ImageInfo.ImageSize.y, ImageInfo.outPath.c_str());
 }
 
 void NXRayTracer::CenterRayTest(const shared_ptr<NXScene>& pScene, const shared_ptr<NXCamera>& pMainCamera, const shared_ptr<NXIntegrator>& pIntegrator)

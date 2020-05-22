@@ -22,7 +22,7 @@ HBVHTree::HBVHTree(const shared_ptr<NXScene>& scene)
 
 void HBVHTree::BuildTreesWithScene(HBVHSplitMode mode)
 {
-	printf("Building BVH tree for scene...\n");
+	//printf("Building BVH tree for scene...\n");
 
 	if (!m_scene)
 	{
@@ -60,19 +60,18 @@ void HBVHTree::BuildTreesWithScene(HBVHSplitMode mode)
 	}
 	else
 	{
+		// 遍历所有primitive
 		for (auto it = pPrimitives.begin(); it < pPrimitives.end(); it++)
 		{
-			//if ((*it)->GetRenderType() == eRenderType::Shape)
-			{
-				HBVHMortonPrimitiveInfo primitiveInfo;
-				primitiveInfo.index = count++;
-				primitiveInfo.aabb = (*it)->GetAABBWorld();
-				Vector3 fRelativePosition = m_scene->GetAABB().Offset(primitiveInfo.aabb.Center);
-				int mortonScale = 1 << 10;
-				XMINT3 iRelativePositionScaled = { (int)(fRelativePosition.x * mortonScale), (int)(fRelativePosition.y * mortonScale), (int)(fRelativePosition.z * mortonScale) };
-				primitiveInfo.mortonCode = EncodeMorton3(iRelativePositionScaled);
-				m_mortonPrimitiveInfo.push_back(primitiveInfo);
-			}
+			HBVHMortonPrimitiveInfo primitiveInfo;
+			primitiveInfo.index = count++;
+			primitiveInfo.aabb = (*it)->GetAABBWorld();
+			Vector3 fRelativePosition = m_scene->GetAABB().Offset(primitiveInfo.aabb.Center);
+			int mortonScale = 1 << 10;
+			XMINT3 iRelativePositionScaled = { (int)(fRelativePosition.x * mortonScale), (int)(fRelativePosition.y * mortonScale), (int)(fRelativePosition.z * mortonScale) };
+			// 为每个物体指定morton码。HLBVH方法将场景划分为若干细分区域。一个morton码对应一个细分区域。
+			primitiveInfo.mortonCode = EncodeMorton3(iRelativePositionScaled);
+			m_mortonPrimitiveInfo.push_back(primitiveInfo);
 		}
 
 		sort(m_mortonPrimitiveInfo.begin(), m_mortonPrimitiveInfo.end(), [](const HBVHMortonPrimitiveInfo& a, const HBVHMortonPrimitiveInfo& b) {
@@ -114,7 +113,7 @@ void HBVHTree::BuildTreesWithScene(HBVHSplitMode mode)
 	}
 
 	auto time_ed = GetTickCount64();
-	printf("BVH done. 用时：%.3f 秒\n", (float)(time_ed - time_st) / 1000.0f);
+	//printf("BVH done. 用时：%.3f 秒\n", (float)(time_ed - time_st) / 1000.0f);
 }
 
 void HBVHTree::Intersect(const Ray& worldRay, NXHit& outHitInfo, float tMax)

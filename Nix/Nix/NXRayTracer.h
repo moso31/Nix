@@ -11,6 +11,9 @@ struct NXRenderImageInfo
 
 	// 每个像素中的样本数量
 	int EachPixelSamples;
+
+	// 输出图像路径
+	string outPath;
 };
 
 class NXRayTracer : public NXInstance<NXRayTracer>

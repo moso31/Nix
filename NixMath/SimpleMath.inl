@@ -3395,13 +3395,10 @@ inline Vector3 AABB::GetMax() const
 
 inline Vector3 AABB::Offset(const Vector3& position) const
 {
-	XMVECTOR C = XMLoadFloat3(&Center);
-	XMVECTOR Len = XMVectorReciprocal(XMVectorMultiply(XMLoadFloat3(&Extents), XMVectorSet(2.0f, 2.0f, 2.0f, 1.0f)));
-	XMVECTOR Min = XMVectorNegate(XMLoadFloat3(&Extents));
-
-	Vector3 result;
-	XMStoreFloat3(&result, XMVectorMultiply(XMVectorAdd(position, Min), Len));	// result = (p - min) / (max - min);
-	return result;	
+	Vector3 c = Center;
+	Vector3 e = Extents;
+	Vector3 result = (position - c + e) / (2.0f * e);
+	return result;
 }
 
 inline int AABB::GetMaximumExtent() const

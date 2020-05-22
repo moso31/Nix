@@ -50,27 +50,57 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 	NXRenderImageInfo imageInfo;
 	imageInfo.ImageSize = XMINT2(800, 600);
 	imageInfo.EachPixelSamples = 16;
+	imageInfo.outPath = "D:\\xx1.bmp";
 	shared_ptr<NXIntegrator> pWhitted = make_shared<NXIntegrator>();
 
 	if (eArg.VKey == 'G')
 	{
-		auto time_st = GetTickCount64();
-		printf("rendering...\n");
+		size_t time_st, time_ed;
 
-		// 创建求交加速结构以增加渲染速度。
-		CreateBVHTrees(HBVHSplitMode::SAH);
-
+		printf("rendering(no optimize)...\n");
+		time_st = GetTickCount64();
 		NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pWhitted, imageInfo);
+		time_ed = GetTickCount64();
+		printf("Render done. time：%.3f s\n", (float)(time_ed - time_st) / 1000.0f);
 
-		auto time_ed = GetTickCount64();
-		printf("Render done. 用时：%.3f 秒\n", (float)(time_ed - time_st) / 1000.0f);
+		imageInfo.outPath = "D:\\xx2.bmp";
+		printf("rendering(SplitPosition)...\n");
+		time_st = GetTickCount64();
+		CreateBVHTrees(HBVHSplitMode::SplitPosition);
+		NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pWhitted, imageInfo);
+		time_ed = GetTickCount64();
+		printf("Render done. time：%.3f s\n", (float)(time_ed - time_st) / 1000.0f);
+
+		imageInfo.outPath = "D:\\xx3.bmp";
+		printf("rendering(SplitCount)...\n");
+		time_st = GetTickCount64();
+		CreateBVHTrees(HBVHSplitMode::SplitCount);
+		NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pWhitted, imageInfo);
+		time_ed = GetTickCount64();
+		printf("Render done. time：%.3f s\n", (float)(time_ed - time_st) / 1000.0f);
+
+		imageInfo.outPath = "D:\\xx4.bmp";
+		printf("rendering(SAH)...\n");
+		time_st = GetTickCount64();
+		CreateBVHTrees(HBVHSplitMode::SAH);
+		NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pWhitted, imageInfo);
+		time_ed = GetTickCount64();
+		printf("Render done. time：%.3f s\n", (float)(time_ed - time_st) / 1000.0f);
+
+		imageInfo.outPath = "D:\\xx5.bmp";
+		printf("rendering(HLBVH)...\n");
+		time_st = GetTickCount64();
+		CreateBVHTrees(HBVHSplitMode::HLBVH);
+		NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pWhitted, imageInfo);
+		time_ed = GetTickCount64();
+		printf("Render done. time：%.3f s\n", (float)(time_ed - time_st) / 1000.0f);
 	}
 
 	if (eArg.VKey == 'H')
 	{
 		// 创建求交加速结构以增加渲染速度。
 		printf("Generating BVH Structure...");
-		//CreateBVHTrees();
+		CreateBVHTrees(HBVHSplitMode::SAH);
 		printf("done.\n");
 
 		printf("center ray testing...\n");
@@ -213,9 +243,9 @@ void NXScene::Init()
 
 	//pPlane->SetMaterialPBR(pPBRMat[2]);
 
-	for (int i = 0; i < 20; i++)
+	for (int i = 0; i < 100; i++)
 	{
-		Vector2 randomPos = NXRandom::GetInstance()->CreateVector2(-5, 5);
+		Vector2 randomPos = NXRandom::GetInstance()->CreateVector2(-12, 12);
 
 		auto pSphere = m_sceneManager->CreateSphere(
 			"Sphere",
@@ -223,8 +253,21 @@ void NXScene::Init()
 			pMaterial,
 			Vector3(randomPos.x, 0.5f, randomPos.y)
 		);
-
-		pSphere->SetMaterialPBR(pPBRMat[i % 6]);
+		
+		float randomType = NXRandom::GetInstance()->CreateFloat(0.0f, 1.0f);
+		Vector3 randomColor = NXRandom::GetInstance()->CreateVector3(0.0f, 1.0f);
+		if (randomType < 0.8f)
+		{
+			pSphere->SetMaterialPBR(m_sceneManager->CreatePBRMatte(randomColor));
+		}
+		else if (randomType < 0.9f)
+		{
+			pSphere->SetMaterialPBR(pPBRMat[3]);
+		}
+		else
+		{
+			pSphere->SetMaterialPBR(pPBRMat[5]);
+		}
 	}
 
 	//vector<shared_ptr<NXMesh>> pMeshes;
@@ -241,7 +284,7 @@ void NXScene::Init()
 		"Camera1", 
 		70.0f, 0.01f, 1000.f, 
 		Vector3(0.0, 3.0, -3.0),
-		Vector3(-0.085163, 2.680313, -2.056312),
+		Vector3(0.3, -0.386, 0.702),
 		Vector3(0.0f, 1.0f, 0.0f)
 	);
 
