@@ -20,7 +20,8 @@ public:
 	~NXReflectionModel() {}
 
 	virtual Vector3 f(const Vector3& wo, const Vector3& wi) = 0;
-	virtual Vector3 Sample_f(const Vector3& wo, Vector3& wi) = 0;
+	virtual Vector3 Sample_f(const Vector3& wo, Vector3& wi, float& pdf);
+	virtual float Pdf(const Vector3& wo, const Vector3& wi);
 
 	ReflectionType GetReflectionType() { return m_type; }
 	// 是否匹配指定类型。只要有一项相同即视作匹配。
@@ -38,8 +39,7 @@ public:
 		R(R) {}
 	~NXRLambertianReflection() {}
 
-	Vector3 f(const Vector3& wo, const Vector3& wi);
-	Vector3 Sample_f(const Vector3& wo, Vector3& wi);
+	Vector3 f(const Vector3& wo, const Vector3& wi) override;
 
 private:
 	Vector3 R;
@@ -53,8 +53,12 @@ public:
 		R(R), fresnel(fresnel) {}
 	~NXRPrefectReflection() {}
 
-	Vector3 f(const Vector3& wo, const Vector3& wi) { return Vector3(0.0f); }
-	Vector3 Sample_f(const Vector3& wo, Vector3& wi);
+	Vector3 f(const Vector3& wo, const Vector3& wi) override { return Vector3(0.0f); }
+	Vector3 Sample_f(const Vector3& wo, Vector3& wi, float& pdf) override;
+
+	// 作为delta分布数学模型，完美反射的实现比较特殊，
+	// 在遍历时其pdf=0，在被选中为样本计算Sample_f时其pdf=1。
+	float Pdf(const Vector3& wo, const Vector3& wi) override { return 0.0f; }
 
 private:
 	Vector3 R;
@@ -69,8 +73,12 @@ public:
 		T(T), etaA(etaA), etaB(etaB), fresnel(etaA, etaB) {}
 	~NXRPrefectTransmission() {}
 
-	Vector3 f(const Vector3& wo, const Vector3& wi) { return Vector3(0.0f); }
-	Vector3 Sample_f(const Vector3& wo, Vector3& wi);
+	Vector3 f(const Vector3& wo, const Vector3& wi) override { return Vector3(0.0f); }
+	Vector3 Sample_f(const Vector3& wo, Vector3& wi, float& pdf) override;
+
+	// 作为delta分布数学模型，完美反射的实现比较特殊，
+	// 在遍历时其pdf=0，在被选中为样本计算Sample_f时其pdf=1。
+	float Pdf(const Vector3& wo, const Vector3& wi) override { return 0.0f; }
 
 private:
 	Vector3 T;

@@ -18,22 +18,28 @@ bool Refract(const Vector3& dirIn, const Vector3& dirNormal, float etaI, float e
 	return true;
 }
 
-Vector3 NXRLambertianReflection::f(const Vector3& wo, const Vector3& wi)
+float NXReflectionModel::Pdf(const Vector3& wo, const Vector3& wi)
 {
-	return R / XM_PI;
+	if (wo.z * wi.z > 0) return fabsf(wi.z) * XM_1DIVPI; // 默认均匀采样，pdf = cos(thetaI)/PI = |wi·n|/Pi
+	return 0.0f;	// 不在同一半球没有被采样的必要，pdf直接返回0
 }
 
-Vector3 NXRLambertianReflection::Sample_f(const Vector3& wo, Vector3& wi)
+Vector3 NXReflectionModel::Sample_f(const Vector3& wo, Vector3& wi, float& pdf)
 {
 	Vector2 u = NXRandom::GetInstance()->CreateVector2();
 	wi = SamplerMath::UniformSampleHemisphere(u);
 	// （反射空间）强制约束wi，使其和wo始终处于同一半球。
 	if (wo.z < 0.0f) wi.z *= -1;
-	// pdf skip.
+	pdf = Pdf(wo, wi);
 	return f(wo, wi);
 }
 
-Vector3 NXRPrefectReflection::Sample_f(const Vector3& wo, Vector3& wi)
+Vector3 NXRLambertianReflection::f(const Vector3& wo, const Vector3& wi)
+{
+	return R / XM_PI;
+}
+
+Vector3 NXRPrefectReflection::Sample_f(const Vector3& wo, Vector3& wi, float& pdf)
 {
 	// （反射空间）Reflect方法的优化。
 	wi = Vector3(-wo.x, -wo.y, wo.z);
@@ -42,7 +48,7 @@ Vector3 NXRPrefectReflection::Sample_f(const Vector3& wo, Vector3& wi)
 	return Vector3(fresnel->FresnelReflectance(cosThetaI) * R / abs(cosThetaI));
 }
 
-Vector3 NXRPrefectTransmission::Sample_f(const Vector3& wo, Vector3& wi)
+Vector3 NXRPrefectTransmission::Sample_f(const Vector3& wo, Vector3& wi, float& pdf)
 {
 	// 确定etaA和etaB的入射/折射关系
 	bool entering = wo.z > 0;	// 是从外部进入到内部吗？是的话就反转入射/出射介质。

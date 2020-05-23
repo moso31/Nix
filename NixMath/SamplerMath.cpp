@@ -21,3 +21,19 @@ Vector3 SamplerMath::UniformSampleSphere(const Vector2& u)
 	float y = sinf(phi) * r;
 	return Vector3(x, y, z);
 }
+
+Vector2 SamplerMath::UniformSampleDisk(const Vector2& u)
+{
+	float r = sqrtf(u[0]);
+	float phi = XM_2PI * u[1];
+	float x = cosf(phi) * r;
+	float y = sinf(phi) * r;
+	return Vector2(x, y);
+}
+
+Vector3 SamplerMath::CosineSampleHemisphere(const Vector2& u)
+{
+	Vector2 v = UniformSampleDisk(u);
+	float z = sqrtf(1.0f - v.x * v.x - v.y * v.y);
+	return Vector3(v.x, v.y, z);
+}

@@ -73,11 +73,12 @@ Vector3 NXBSDF::Sample_f(const Vector3& woWorld, Vector3& outwiWorld, Reflection
 
 	if (sampledModel->GetReflectionType() & REFLECTIONTYPE_SPECULAR)
 	{
-		// 如果是Specular反射模型就省事了。对完美反射的Sample_f计算会直接得到采样方向上的f()值。
+		// 如果是Specular反射模型就省事了。
+		// 完美反射的Sample_f可以直接得到采样方向上的f()值。直接使用即可
 		return f;
 	}
 
-	// 否则就采用和f()一样的方法，计算所有反射模型的f值。
+	// 否则就计算所有反射模型的f值。
 	f = Vector3(0.0f);
 	bool isReflect = wo.Dot(ng) * wi.Dot(ng) > 0;
 	for (int i = 0; i < (int)m_reflectionModels.size(); i++)
