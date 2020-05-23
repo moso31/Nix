@@ -48,7 +48,7 @@ Vector3 NXBSDF::f(const Vector3& woWorld, const Vector3& wiWorld, ReflectionType
 	return f;
 }
 
-Vector3 NXBSDF::Sample_f(const Vector3& woWorld, Vector3& outwiWorld, ReflectionType reflectType)
+Vector3 NXBSDF::Sample_f(const Vector3& woWorld, Vector3& outwiWorld, float& pdf, ReflectionType reflectType)
 {
 	vector<int> matchList;
 	for (int i = 0; i < (int)m_reflectionModels.size(); i++)
@@ -68,8 +68,19 @@ Vector3 NXBSDF::Sample_f(const Vector3& woWorld, Vector3& outwiWorld, Reflection
 
 	// 获取随机采样方向wi
 	Vector3 wi;
-	Vector3 f = sampledModel->Sample_f(wo, wi);
+	Vector3 f = sampledModel->Sample_f(wo, wi, pdf);
 	outwiWorld = ReflectionToWorld(wi);
+
+	// 计算pdf
+	for (int i = 0; i < (int)matchList.size(); i++)
+	{
+		if (i == sampleId) continue;
+		pdf += m_reflectionModels[matchList[i]]->Pdf(wo, wi);
+	}
+	pdf /= (float)matchList.size();
+
+	if (pdf == 0.0f) 
+		return Vector3(0.0f);
 
 	if (sampledModel->GetReflectionType() & REFLECTIONTYPE_SPECULAR)
 	{

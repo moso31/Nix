@@ -20,7 +20,7 @@ bool Refract(const Vector3& dirIn, const Vector3& dirNormal, float etaI, float e
 
 float NXReflectionModel::Pdf(const Vector3& wo, const Vector3& wi)
 {
-	if (wo.z * wi.z > 0) return fabsf(wi.z) * XM_1DIVPI; // 默认均匀采样，pdf = cos(thetaI)/PI = |wi·n|/Pi
+	if (wo.z * wi.z > 0) return fabsf(wi.z) * XM_1DIVPI; // 默认使用余弦采样，所以pdf(wi) = cos(thetaI)/PI = |wi·n|/Pi
 	return 0.0f;	// 不在同一半球没有被采样的必要，pdf直接返回0
 }
 
@@ -45,6 +45,7 @@ Vector3 NXRPrefectReflection::Sample_f(const Vector3& wo, Vector3& wi, float& pd
 	wi = Vector3(-wo.x, -wo.y, wo.z);
 	// pdf skip.
 	float cosThetaI = wi.z;
+	pdf = 1.0f;	// 完美反射模型被选中时pdf=1，未被选中时pdf=0
 	return Vector3(fresnel->FresnelReflectance(cosThetaI) * R / abs(cosThetaI));
 }
 
@@ -59,7 +60,8 @@ Vector3 NXRPrefectTransmission::Sample_f(const Vector3& wo, Vector3& wi, float& 
 	Vector3 normal = Vector3(0.0f, 0.0f, entering ? 1.0f : -1.0f);
 	if (!Refract(wo, normal, etaI, etaT, wi))
 		return Vector3(0.0f);	// 全内反射情况
-	// pdf skip.
+
+	pdf = 1.0f;	// 完美反射模型被选中时pdf=1，未被选中时pdf=0
 	
 	float cosThetaI = wi.z;
 	Vector3 f_transmittion = T * (Vector3(1.0f) - fresnel.FresnelReflectance(cosThetaI)) / abs(wi.z);

@@ -56,8 +56,8 @@ public:
 	Vector3 f(const Vector3& wo, const Vector3& wi) override { return Vector3(0.0f); }
 	Vector3 Sample_f(const Vector3& wo, Vector3& wi, float& pdf) override;
 
-	// 作为delta分布数学模型，完美反射的实现比较特殊，
-	// 在遍历时其pdf=0，在被选中为样本计算Sample_f时其pdf=1。
+	// 作为delta分布数学模型，完美反射的pdf实现比较特殊，
+	// 未被选为样本时其pdf=0，被选中为样本（计算Sample_f）时其pdf=1。
 	float Pdf(const Vector3& wo, const Vector3& wi) override { return 0.0f; }
 
 private:
@@ -76,8 +76,8 @@ public:
 	Vector3 f(const Vector3& wo, const Vector3& wi) override { return Vector3(0.0f); }
 	Vector3 Sample_f(const Vector3& wo, Vector3& wi, float& pdf) override;
 
-	// 作为delta分布数学模型，完美反射的实现比较特殊，
-	// 在遍历时其pdf=0，在被选中为样本计算Sample_f时其pdf=1。
+	// 作为delta分布数学模型，完美折射的pdf实现比较特殊，
+	// 未被选为样本时其pdf=0，被选中为样本（计算Sample_f）时其pdf=1。
 	float Pdf(const Vector3& wo, const Vector3& wi) override { return 0.0f; }
 
 private:
