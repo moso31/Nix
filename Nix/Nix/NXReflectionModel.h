@@ -1,7 +1,22 @@
 #pragma once
 #include "NXFresnel.h"
+#include "NXReflectionDistribution.h"
 
-bool Refract(const Vector3& dirIn, const Vector3& dirNormal, float etaI, float etaT, Vector3& outRefract);
+namespace NXReflection
+{
+	Vector3 Reflect(const Vector3& dirIn, const Vector3& dirNormal);
+	bool Refract(const Vector3& dirIn, const Vector3& dirNormal, float etaI, float etaT, Vector3& outRefract);
+
+	float CosTheta(const Vector3& w);
+	float AbsCosTheta(const Vector3& w);
+	float Cos2Theta(const Vector3& w);
+	float Sin2Theta(const Vector3& w);
+	float SinTheta(const Vector3& w);
+	float Tan2Theta(const Vector3& w);
+	float TanTheta(const Vector3& w);
+
+	bool IsSameHemisphere(const Vector3& wo, const Vector3& wi);
+}
 
 enum ReflectionType
 {
@@ -89,6 +104,19 @@ private:
 class NXRMicrofacetReflection : public NXReflectionModel
 {
 public:
+	NXRMicrofacetReflection(const Vector3& R, const shared_ptr<NXRMicrofacetDistribution>& distrib, const shared_ptr<NXFresnel> fresnel) :
+		NXReflectionModel(ReflectionType(REFLECTIONTYPE_GLOSSY | REFLECTIONTYPE_REFLECTION)),
+		R(R), distrib(distrib), fresnel(fresnel) {}
+	~NXRMicrofacetReflection() {}
+
+	Vector3 f(const Vector3& wo, const Vector3& wi) override;
+	Vector3 Sample_f(const Vector3& wo, Vector3& wi, float& pdf) override;
+	float Pdf(const Vector3& wo, const Vector3& wi) override;
+
+private:
+	Vector3 R;
+	shared_ptr<NXRMicrofacetDistribution> distrib;
+	shared_ptr<NXFresnel> fresnel;
 };
 
 class NXRMicrofacetTransmission : public NXReflectionModel

@@ -2,7 +2,14 @@
 #include "SamplerMath.h"
 #include "NXRandom.h"
 
-bool Refract(const Vector3& dirIn, const Vector3& dirNormal, float etaI, float etaT, Vector3& outRefract)
+using namespace NXReflection;
+
+Vector3 NXReflection::Reflect(const Vector3& dirIn, const Vector3& dirNormal)
+{
+	return 2.0f * dirIn.Dot(dirNormal) * dirNormal - dirIn;
+}
+
+bool NXReflection::Refract(const Vector3& dirIn, const Vector3& dirNormal, float etaI, float etaT, Vector3& outRefract)
 {
 	float eta = etaI / etaT;
 	float cosThetaI = dirIn.Dot(dirNormal);
@@ -18,9 +25,52 @@ bool Refract(const Vector3& dirIn, const Vector3& dirNormal, float etaI, float e
 	return true;
 }
 
+float NXReflection::CosTheta(const Vector3& w)
+{
+	return w.z;
+}
+
+float NXReflection::AbsCosTheta(const Vector3& w)
+{
+	return fabsf(w.z);
+}
+
+float NXReflection::Cos2Theta(const Vector3& w)
+{
+	return w.z * w.z;
+}
+
+float NXReflection::Sin2Theta(const Vector3& w)
+{
+	return 1.0f - Cos2Theta(w);
+}
+
+float NXReflection::SinTheta(const Vector3& w)
+{
+	return sqrtf(Sin2Theta(w));
+}
+
+float NXReflection::Tan2Theta(const Vector3& w)
+{
+	return Sin2Theta(w) / Cos2Theta(w);
+}
+
+float NXReflection::TanTheta(const Vector3& w)
+{
+	return sqrtf(Tan2Theta(w));
+}
+
+bool NXReflection::IsSameHemisphere(const Vector3& wo, const Vector3& wi)
+{
+	return wo.z * wi.z > 0;
+}
+
 float NXReflectionModel::Pdf(const Vector3& wo, const Vector3& wi)
 {
-	if (wo.z * wi.z > 0) return fabsf(wi.z) * XM_1DIVPI; // 默认使用余弦采样，所以pdf(wi) = cos(thetaI)/PI = |wi·n|/Pi
+	if (IsSameHemisphere(wo, wi)) 
+		// 默认使用余弦采样，所以pdf(wi) = |wi·n|/Pi
+		// 绝对值是为了确保wi处于n朝向的半球。
+		return AbsCosTheta(wi) * XM_1DIVPI; 
 	return 0.0f;	// 不在同一半球没有被采样的必要，pdf直接返回0
 }
 
@@ -43,8 +93,7 @@ Vector3 NXRPrefectReflection::Sample_f(const Vector3& wo, Vector3& wi, float& pd
 {
 	// （反射空间）Reflect方法的优化。
 	wi = Vector3(-wo.x, -wo.y, wo.z);
-	// pdf skip.
-	float cosThetaI = wi.z;
+	float cosThetaI = CosTheta(wi);
 	pdf = 1.0f;	// 完美反射模型被选中时pdf=1，未被选中时pdf=0
 	return Vector3(fresnel->FresnelReflectance(cosThetaI) * R / abs(cosThetaI));
 }
@@ -71,4 +120,33 @@ Vector3 NXRPrefectTransmission::Sample_f(const Vector3& wo, Vector3& wi, float& 
 	// 具体原因也不明。待查。
 	// if (!Camera) f_transmittion *= (etaT * etaT) / (etaI * etaI);
 	return f_transmittion;
+}
+
+Vector3 NXRMicrofacetReflection::f(const Vector3& wo, const Vector3& wi)
+{
+	Vector3 wh = wo + wi;
+	wh.Normalize();
+	// 使用绝对值确保wo、wi均和n处于同一半球
+	float cosThetaO = fabsf(wo.z);
+	float cosThetaI = fabsf(wi.z);
+	return R * distrib->D(wh) * distrib->G(wo, wi) * fresnel->FresnelReflectance(wi.Dot(wh)) / (4.0f * cosThetaO * cosThetaI);
+}
+
+Vector3 NXRMicrofacetReflection::Sample_f(const Vector3& wo, Vector3& wi, float& pdf)
+{
+	Vector3 wh = distrib->Sample_wh(wo);
+	wi = Reflect(wo, wh);
+	if (wo.Dot(wi) < 0) return Vector3(0.0f);
+
+	pdf = distrib->Pdf(wh) / (4.0f * wi.Dot(wh));
+	return f(wo, wi);
+}
+
+float NXRMicrofacetReflection::Pdf(const Vector3& wo, const Vector3& wi)
+{
+	if (wo.Dot(wi) < 0) return 0;
+
+	Vector3 wh = wo + wi;
+	wh.Normalize();
+	return distrib->Pdf(wh) / (4.0f * wi.Dot(wh));
 }

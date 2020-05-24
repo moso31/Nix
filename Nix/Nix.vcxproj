@@ -224,6 +224,7 @@
     <ClCompile Include="Nix\NXIntegrator.cpp" />
     <ClCompile Include="Nix\NXPBRLight.cpp" />
     <ClCompile Include="Nix\NXPBRMaterial.cpp" />
+    <ClCompile Include="Nix\NXReflectionDistribution.cpp" />
     <ClCompile Include="Nix\Script\NSFirstPersonalCamera.cpp" />
     <ClCompile Include="Nix\Script\NSTest.cpp" />
     <ClCompile Include="Nix\NXBox.cpp" />
@@ -273,6 +274,7 @@
     <ClInclude Include="Nix\NXIntegrator.h" />
     <ClInclude Include="Nix\NXPBRLight.h" />
     <ClInclude Include="Nix\NXPBRMaterial.h" />
+    <ClInclude Include="Nix\NXReflectionDistribution.h" />
     <ClInclude Include="Nix\Script\NSFirstPersonalCamera.h" />
     <ClInclude Include="Nix\Script\NSTest.h" />
     <ClInclude Include="Nix\NXBox.h" />

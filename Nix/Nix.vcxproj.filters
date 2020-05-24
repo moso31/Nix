@@ -218,6 +218,7 @@
     <ClCompile Include="Core\ImageGenerator.cpp">
       <Filter>Core\File</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\NXReflectionDistribution.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -364,6 +365,7 @@
     <ClInclude Include="Core\ImageGenerator.h">
       <Filter>Core\File</Filter>
     </ClInclude>
+    <ClInclude Include="Nix\NXReflectionDistribution.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="场景添加物体说明.txt" />
