@@ -20,14 +20,13 @@ float NXRDistribution::Pdf(const Vector3& wh)
 float NXRDistributionBeckmann::D(const Vector3& wh)
 {
 	// thetaN = wh和n的夹角。
-	// thetaH = wh和wo、wh和wi的夹角。
-	float cos2ThetaN = wh.z * wh.z;
-	float sin2ThetaN = 1 - cos2ThetaN;
-	float tan2ThetaN = sin2ThetaN / cos2ThetaN;
+	// thetaH = wh和wo 或 wh和wi 的夹角。
+	float tan2ThetaN = Tan2Theta(wh);
 	if (isinf(tan2ThetaN))
 		return 0.0f;
-	float cos4ThetaN = cos2ThetaN * cos2ThetaN;
-	return exp(-tan2ThetaN / alpha) / (XM_PI * alpha * alpha * cos4ThetaN);
+	float cos4ThetaN = Cos2Theta(wh) * Cos2Theta(wh);
+	float alpha2 = alpha * alpha;
+	return exp(-tan2ThetaN / alpha2) / (XM_PI * alpha2 * cos4ThetaN);
 }
 
 Vector3 NXRDistributionBeckmann::Sample_wh(const Vector3& wo)

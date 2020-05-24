@@ -243,6 +243,10 @@ void NXScene::Init()
 
 	//pPlane->SetMaterialPBR(pPBRMat[2]);
 
+	float a[10] = { 0.00001, 0.0001, 0.001, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1 };
+	Vector3 randomDiffuse = NXRandom::GetInstance()->CreateVector3(0.0f, 1.0f);
+	Vector3 randomSpecular(1.0f);
+
 	for (int i = 0; i < 10; i++)
 	{
 		Vector2 randomPos(i / 5, i % 5);
@@ -253,9 +257,7 @@ void NXScene::Init()
 			Vector3(randomPos.x, 0.5f, randomPos.y)
 		);
 		
-		Vector3 randomDiffuse = NXRandom::GetInstance()->CreateVector3(0.0f, 1.0f);
-		Vector3 randomSpecular(1.0f);
-		float randomRoughness = (i / 10.0f) * 0.01f;
+		float randomRoughness = (((float)i + 0.5f) / 10.0f) * 1.0f;
 		pSphere->SetMaterialPBR(m_sceneManager->CreatePBRPlastic(randomDiffuse, randomSpecular, randomRoughness));
 	}
 
