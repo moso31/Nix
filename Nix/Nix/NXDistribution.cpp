@@ -1,15 +1,15 @@
-#include "NXReflectionDistribution.h"
+#include "NXDistribution.h"
 #include "NXRandom.h"
 #include "NXReflectionModel.h"
 
 using namespace NXReflection;
 
-float NXRMicrofacetDistribution::G(const Vector3& wo, const Vector3& wi)
+float NXRDistribution::G(const Vector3& wo, const Vector3& wi)
 {
 	return 1.0f / (1.0f + lambda(wo) + lambda(wi));
 }
 
-float NXRMicrofacetDistribution::Pdf(const Vector3& wh)
+float NXRDistribution::Pdf(const Vector3& wh)
 {
 	// 求微表面密度分布中，wh方向的概率密度p(wh)。
 	// 通常和D(wh)的密度分布相同。

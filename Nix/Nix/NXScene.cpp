@@ -48,7 +48,7 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 {
 	auto pScene = dynamic_pointer_cast<NXScene>(shared_from_this());
 	NXRenderImageInfo imageInfo;
-	imageInfo.ImageSize = XMINT2(800, 600);
+	imageInfo.ImageSize = XMINT2(1600, 1200);
 	imageInfo.EachPixelSamples = 16;
 	imageInfo.outPath = "D:\\xx1.bmp";
 	shared_ptr<NXIntegrator> pWhitted = make_shared<NXIntegrator>();
@@ -243,10 +243,9 @@ void NXScene::Init()
 
 	//pPlane->SetMaterialPBR(pPBRMat[2]);
 
-	for (int i = 0; i < 100; i++)
+	for (int i = 0; i < 10; i++)
 	{
-		Vector2 randomPos = NXRandom::GetInstance()->CreateVector2(-12, 12);
-
+		Vector2 randomPos(i / 5, i % 5);
 		auto pSphere = m_sceneManager->CreateSphere(
 			"Sphere",
 			0.5f, 16, 16,
@@ -254,20 +253,10 @@ void NXScene::Init()
 			Vector3(randomPos.x, 0.5f, randomPos.y)
 		);
 		
-		float randomType = NXRandom::GetInstance()->CreateFloat(0.0f, 1.0f);
-		Vector3 randomColor = NXRandom::GetInstance()->CreateVector3(0.0f, 1.0f);
-		if (randomType < 0.8f)
-		{
-			pSphere->SetMaterialPBR(m_sceneManager->CreatePBRMatte(randomColor));
-		}
-		else if (randomType < 0.9f)
-		{
-			pSphere->SetMaterialPBR(pPBRMat[3]);
-		}
-		else
-		{
-			pSphere->SetMaterialPBR(pPBRMat[5]);
-		}
+		Vector3 randomDiffuse = NXRandom::GetInstance()->CreateVector3(0.0f, 1.0f);
+		Vector3 randomSpecular(1.0f);
+		float randomRoughness = (i / 10.0f) * 0.01f;
+		pSphere->SetMaterialPBR(m_sceneManager->CreatePBRPlastic(randomDiffuse, randomSpecular, randomRoughness));
 	}
 
 	//vector<shared_ptr<NXMesh>> pMeshes;

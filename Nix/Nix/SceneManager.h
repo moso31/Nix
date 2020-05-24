@@ -42,6 +42,7 @@ public:
 	shared_ptr<NXPBRMaterial> CreatePBRMatte(const Vector3& diffuse);
 	shared_ptr<NXPBRMaterial> CreatePBRGlass(const Vector3& diffuse, float IOR = 1.5);
 	shared_ptr<NXPBRMaterial> CreatePBRMirror(const Vector3& diffuse);
+	shared_ptr<NXPBRMaterial> CreatePBRPlastic(const Vector3& diffuse, const Vector3& specular, float roughness, float IOR = 1.5);
 
 	shared_ptr<NXPBRLight> CreatePBRPointLight(const Vector3& position, const Vector3 &intensity);
 

@@ -237,6 +237,18 @@ shared_ptr<NXPBRMaterial> SceneManager::CreatePBRMirror(const Vector3& diffuse)
 	return pMat;
 }
 
+shared_ptr<NXPBRMaterial> SceneManager::CreatePBRPlastic(const Vector3& diffuse, const Vector3& specular, float roughness, float IOR)
+{
+	auto pMat = make_shared<NXPlasticMaterial>();
+	pMat->Diffuse = diffuse;
+	pMat->Specular = specular;
+	pMat->Roughness = roughness;
+	pMat->IOR = IOR;
+
+	m_scene->m_pbrMaterials.push_back(pMat);
+	return pMat;
+}
+
 shared_ptr<NXPBRLight> SceneManager::CreatePBRPointLight(const Vector3& position, const Vector3& intensity)
 {
 	auto pLight = make_shared<NXPBRPointLight>(position, intensity);

@@ -1,6 +1,6 @@
 #pragma once
 #include "NXFresnel.h"
-#include "NXReflectionDistribution.h"
+#include "NXDistribution.h"
 
 namespace NXReflection
 {
@@ -104,7 +104,7 @@ private:
 class NXRMicrofacetReflection : public NXReflectionModel
 {
 public:
-	NXRMicrofacetReflection(const Vector3& R, const shared_ptr<NXRMicrofacetDistribution>& distrib, const shared_ptr<NXFresnel> fresnel) :
+	NXRMicrofacetReflection(const Vector3& R, const shared_ptr<NXRDistribution>& distrib, const shared_ptr<NXFresnel> fresnel) :
 		NXReflectionModel(ReflectionType(REFLECTIONTYPE_GLOSSY | REFLECTIONTYPE_REFLECTION)),
 		R(R), distrib(distrib), fresnel(fresnel) {}
 	~NXRMicrofacetReflection() {}
@@ -115,7 +115,7 @@ public:
 
 private:
 	Vector3 R;
-	shared_ptr<NXRMicrofacetDistribution> distrib;
+	shared_ptr<NXRDistribution> distrib;
 	shared_ptr<NXFresnel> fresnel;
 };
 
