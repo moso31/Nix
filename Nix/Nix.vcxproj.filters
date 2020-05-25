@@ -64,6 +64,9 @@
     <Filter Include="Nix\RayTracer\Integrator">
       <UniqueIdentifier>{bdd7ed85-60a9-4355-9428-9b22321871eb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Core\File\Texture">
+      <UniqueIdentifier>{7d6084ab-293b-4ab5-8f1c-93f106cb3b6c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\RenderTarget.fx">
@@ -78,6 +81,9 @@
     <None Include="Shader\Scene.fx">
       <Filter>Shader</Filter>
     </None>
+    <None Include="Core\DirectXTex.inl">
+      <Filter>Core\File\Texture</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">
@@ -88,9 +94,6 @@
     </ClCompile>
     <ClCompile Include="Core\Main.cpp">
       <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\DDSTextureLoader.cpp">
-      <Filter>Core\File</Filter>
     </ClCompile>
     <ClCompile Include="Core\FBXMeshLoader.cpp">
       <Filter>Core\File</Filter>
@@ -115,9 +118,6 @@
     </ClCompile>
     <ClCompile Include="Core\NXDXHelper.cpp">
       <Filter>Core\Helper</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\WICTextureLoader.cpp">
-      <Filter>Core\File</Filter>
     </ClCompile>
     <ClCompile Include="Core\Renderer.cpp">
       <Filter>Core\DirectX</Filter>
@@ -221,6 +221,12 @@
     <ClCompile Include="Nix\NXDistribution.cpp">
       <Filter>Nix\RayTracer</Filter>
     </ClCompile>
+    <ClCompile Include="Core\DDSTextureLoader.cpp">
+      <Filter>Core\File\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\WICTextureLoader.cpp">
+      <Filter>Core\File\Texture</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -231,9 +237,6 @@
     </ClInclude>
     <ClInclude Include="Core\NXInstance.h">
       <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\DDSTextureLoader.h">
-      <Filter>Core\File</Filter>
     </ClInclude>
     <ClInclude Include="Core\FBXMeshLoader.h">
       <Filter>Core\File</Filter>
@@ -258,9 +261,6 @@
     </ClInclude>
     <ClInclude Include="Core\NXDXHelper.h">
       <Filter>Core\Helper</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\WICTextureLoader.h">
-      <Filter>Core\File</Filter>
     </ClInclude>
     <ClInclude Include="Core\Renderer.h">
       <Filter>Core\DirectX</Filter>
@@ -369,6 +369,15 @@
     </ClInclude>
     <ClInclude Include="Nix\NXDistribution.h">
       <Filter>Nix\RayTracer</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\DirectXTex.h">
+      <Filter>Core\File\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\DDSTextureLoader.h">
+      <Filter>Core\File\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\WICTextureLoader.h">
+      <Filter>Core\File\Texture</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -22,6 +22,8 @@
 //#include "NXShadowMap.h"
 #include "NXPassShadowMap.h"
 
+#include "DirectXTex.h"
+#include "DirectXTex.inl"
 #include "DDSTextureLoader.h"
 
 #include "NXScript.h"
@@ -293,6 +295,24 @@ void NXScene::Init()
 
 	m_mainCamera = pCamera;
 	m_objects.push_back(pCamera);
+
+	TexMetadata metadata;
+	ScratchImage image;
+	//LoadFromDDSFile(L"D:\\sunsetcube1024.dds", DDS_FLAGS_NONE, &metadata, image);
+	//CD3D11_TEXTURE2D_DESC cubeMapDesc(metadata.format, metadata.width, metadata.height, metadata.arraySize, metadata.mipLevels, 8, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_WRITE, 1, 0, metadata.miscFlags);
+	LoadFromWICFile(L"D:\\1.png", WIC_FLAGS_NONE, &metadata, image);
+	CD3D11_TEXTURE2D_DESC cubeMapDesc(metadata.format, metadata.width, metadata.height, metadata.arraySize, metadata.mipLevels, 8, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE, 1, 0, metadata.miscFlags);
+	HRESULT hr = g_pDevice->CreateTexture2D(&cubeMapDesc, nullptr, &m_pCubeMap);
+
+	int t = image.GetPixelsSize();
+	byte* p = image.GetPixels();
+	for (int i = 0; i < t; i++)
+	{
+		printf("%d ", (int)*p);
+		if (i % 4 == 3) printf(", ");
+		if (i % (metadata.width * 4) == (metadata.width * 4) - 1) printf("\n");
+		p++;
+	}
 
 	InitScripts();
 
