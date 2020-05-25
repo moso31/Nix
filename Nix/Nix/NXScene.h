@@ -30,6 +30,7 @@ public:
 	BoundingSphere						GetBoundingSphere()		{ return m_boundingSphere; }
 	AABB								GetAABB()				{ return m_aabb; }
 	vector<shared_ptr<NXPrimitive>>		GetPrimitives()			{ return m_primitives; }
+	shared_ptr<NXCubeMap>				GetCubeMap()			{ return m_pCubeMap; }
 
 	// PBR³¡¾°Êý¾Ý
 	vector<shared_ptr<NXPBRPointLight>>	GetPBRLights()			{ return m_pbrLights; }
@@ -65,7 +66,7 @@ private:
 
 	ID3D11Buffer* m_cbLights;
 	ConstantBufferLight m_cbDataLights;
-	ID3D11Texture2D* m_pCubeMap;
+	shared_ptr<NXCubeMap> m_pCubeMap;
 
 	AABB m_aabb;
 	BoundingSphere m_boundingSphere;

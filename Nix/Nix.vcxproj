@@ -221,6 +221,7 @@
     <ClCompile Include="Nix\HBVH.cpp" />
     <ClCompile Include="Nix\KdTree.cpp" />
     <ClCompile Include="Nix\NXBSDF.cpp" />
+    <ClCompile Include="Nix\NXCubeMap.cpp" />
     <ClCompile Include="Nix\NXFresnel.cpp" />
     <ClCompile Include="Nix\NXIntegrator.cpp" />
     <ClCompile Include="Nix\NXPBRLight.cpp" />
@@ -272,6 +273,7 @@
     <ClInclude Include="Nix\HBVH.h" />
     <ClInclude Include="Nix\KdTree.h" />
     <ClInclude Include="Nix\NXBSDF.h" />
+    <ClInclude Include="Nix\NXCubeMap.h" />
     <ClInclude Include="Nix\NXFresnel.h" />
     <ClInclude Include="Nix\NXIntegrator.h" />
     <ClInclude Include="Nix\NXPBRLight.h" />

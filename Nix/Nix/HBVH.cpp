@@ -17,7 +17,8 @@ inline int EncodeMorton3(const XMINT3 &v) {
 
 HBVHTree::HBVHTree(const shared_ptr<NXScene>& scene, const vector<shared_ptr<NXPrimitive>>& pPrimitives) :
 	m_scene(scene),
-	m_primitives(scene->GetPrimitives())
+	m_primitives(scene->GetPrimitives()),
+	root(nullptr)
 {
 }
 
@@ -35,6 +36,10 @@ void HBVHTree::BuildTreesWithScene(HBVHSplitMode mode)
 
 	m_buildMode = mode;
 	m_primitives = m_scene->GetPrimitives();
+	if (m_primitives.empty())
+	{
+		return;
+	}
 
 	root = new HBVHTreeNode();
 	int count = 0;	// 场景中的primitive总数
@@ -119,6 +124,7 @@ void HBVHTree::BuildTreesWithScene(HBVHSplitMode mode)
 
 void HBVHTree::Intersect(const Ray& worldRay, NXHit& outHitInfo, float tMax)
 {
+	if (!root) return;
 	RecursiveIntersect(root, worldRay, outHitInfo, tMax);
 }
 

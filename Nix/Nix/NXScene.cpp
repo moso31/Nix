@@ -19,12 +19,10 @@
 #include "NXPBRLight.h"
 #include "NXPBRMaterial.h"
 
+#include "NXCubeMap.h"
+
 //#include "NXShadowMap.h"
 #include "NXPassShadowMap.h"
-
-#include "DirectXTex.h"
-#include "DirectXTex.inl"
-#include "DDSTextureLoader.h"
 
 #include "NXScript.h"
 #include "NSFirstPersonalCamera.h"
@@ -110,15 +108,18 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		printf("center ray testing...\n");
 		NXRayTracer::GetInstance()->CenterRayTest(pScene, m_mainCamera, pWhitted);
 
-		shared_ptr<NXPrimitive> p = dynamic_pointer_cast<NXPrimitive>(m_primitives[0]);
-		printf("camera: pos %f, %f, %f, at %f, %f, %f\n",
-			m_mainCamera->GetTranslation().x,
-			m_mainCamera->GetTranslation().y,
-			m_mainCamera->GetTranslation().z,
-			m_mainCamera->GetAt().x,
-			m_mainCamera->GetAt().y,
-			m_mainCamera->GetAt().z);
-		printf("done.\n");
+		if (!m_primitives.empty())
+		{
+			shared_ptr<NXPrimitive> p = dynamic_pointer_cast<NXPrimitive>(m_primitives[0]);
+			printf("camera: pos %f, %f, %f, at %f, %f, %f\n",
+				m_mainCamera->GetTranslation().x,
+				m_mainCamera->GetTranslation().y,
+				m_mainCamera->GetTranslation().z,
+				m_mainCamera->GetAt().x,
+				m_mainCamera->GetAt().y,
+				m_mainCamera->GetAt().z);
+			printf("done.\n");
+		}
 	}
 
 	pWhitted.reset();
@@ -247,26 +248,26 @@ void NXScene::Init()
 
 	//pPlane->SetMaterialPBR(pPBRMat[2]);
 
-	//float a[10] = { 0.0, 0.25, 0.5, 0.75, 1 };
-	//Vector3 rBaseColor = Vector3(1.0, 0.782, 0.344);
+	float a[10] = { 0.0, 0.25, 0.5, 0.75, 1 };
+	Vector3 rBaseColor = Vector3(1.0, 0.782, 0.344);
 
-	//for (int i = 0; i < 5; i++)
-	//{
-	//	float metalness = a[i];
-	//	for(int j = 0; j < 5; j++)
-	//	{
-	//		Vector2 randomPos(i, j);
-	//		auto pSphere = m_sceneManager->CreateSphere(
-	//			"Sphere",
-	//			0.5f, 16, 16,
-	//			pMaterial,
-	//			Vector3(randomPos.x, 0.5f, randomPos.y)
-	//		);
+	for (int i = 0; i < 5; i++)
+	{
+		float metalness = a[i];
+		for(int j = 0; j < 5; j++)
+		{
+			Vector2 randomPos(i, j);
+			auto pSphere = m_sceneManager->CreateSphere(
+				"Sphere",
+				0.5f, 16, 16,
+				pMaterial,
+				Vector3(randomPos.x, 0.0f, randomPos.y) * 1.2f
+			);
 
-	//		float roughness = a[j];
-	//		pSphere->SetMaterialPBR(m_sceneManager->CreateCommonMaterial(rBaseColor, metalness, roughness));
-	//	}
-	//}
+			float roughness = a[j];
+			pSphere->SetMaterialPBR(m_sceneManager->CreateCommonMaterial(rBaseColor, metalness, roughness));
+		}
+	}
 
 	//vector<shared_ptr<NXMesh>> pMeshes;
 	//bool pMesh = m_sceneManager->CreateFBXMeshes(
@@ -281,8 +282,8 @@ void NXScene::Init()
 	auto pCamera = m_sceneManager->CreateCamera(
 		"Camera1", 
 		70.0f, 0.01f, 1000.f, 
-		Vector3(0.0, 3.0, -3.0),
-		Vector3(0.3, -0.386, 0.702),
+		Vector3(0.0f, 2.5f, 0.0f),
+		Vector3(0.0f, 2.5f, 1.0f),
 		Vector3(0.0f, 1.0f, 0.0f)
 	);
 
@@ -296,23 +297,8 @@ void NXScene::Init()
 	m_mainCamera = pCamera;
 	m_objects.push_back(pCamera);
 
-	TexMetadata metadata;
-	ScratchImage image;
-	//LoadFromDDSFile(L"D:\\sunsetcube1024.dds", DDS_FLAGS_NONE, &metadata, image);
-	//CD3D11_TEXTURE2D_DESC cubeMapDesc(metadata.format, metadata.width, metadata.height, metadata.arraySize, metadata.mipLevels, 8, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_WRITE, 1, 0, metadata.miscFlags);
-	LoadFromWICFile(L"D:\\1.png", WIC_FLAGS_NONE, &metadata, image);
-	CD3D11_TEXTURE2D_DESC cubeMapDesc(metadata.format, metadata.width, metadata.height, metadata.arraySize, metadata.mipLevels, 8, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE, 1, 0, metadata.miscFlags);
-	HRESULT hr = g_pDevice->CreateTexture2D(&cubeMapDesc, nullptr, &m_pCubeMap);
-
-	int t = image.GetPixelsSize();
-	byte* p = image.GetPixels();
-	for (int i = 0; i < t; i++)
-	{
-		printf("%d ", (int)*p);
-		if (i % 4 == 3) printf(", ");
-		if (i % (metadata.width * 4) == (metadata.width * 4) - 1) printf("\n");
-		p++;
-	}
+	m_pCubeMap = make_shared<NXCubeMap>();
+	m_pCubeMap->Init(L"D:\\sunsetcube1024.dds");
 
 	InitScripts();
 
@@ -394,6 +380,9 @@ void NXScene::Release()
 	{
 		m_mainCamera->Release();
 	}
+
+	m_pCubeMap->Release();
+	m_pCubeMap.reset();
 
 	m_sceneManager.reset();
 	m_pBVHTree.reset();

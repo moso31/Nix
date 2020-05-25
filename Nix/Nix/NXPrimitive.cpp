@@ -120,7 +120,7 @@ void NXPrimitive::InitVertexIndexBuffer()
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &m_pIndexBuffer));
 	
 	// TODO：纹理的SRV应该改成全局通用的
-	NX::ThrowIfFailed(CreateWICTextureFromFile(g_pDevice, L"D:\\rgb.bmp", nullptr, &m_pTextureSRV));
+	//NX::ThrowIfFailed(CreateWICTextureFromFile(g_pDevice, L"D:\\rgb.bmp", nullptr, &m_pTextureSRV));
 }
 
 void NXPrimitive::InitAABB()

@@ -1,5 +1,6 @@
 #include "NXIntegrator.h"
 #include "NXBSDF.h"
+#include "NXCubeMap.h"
 
 NXIntegrator::NXIntegrator()
 {
@@ -18,8 +19,7 @@ Vector3 NXIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& pScene
 	// 如果没有相交，拿背景贴图的radiance并结束计算即可。
 	if (!isIntersect)
 	{	
-		// 暂无背景贴图
-		return Vector3(0.0);
+		return pScene->GetCubeMap()->BackgroundColorByDirection(ray.direction);
 	}
 
 	// 生成当前hit的bsdf（为其添加各种ReflectionModel）
@@ -33,6 +33,7 @@ Vector3 NXIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& pScene
 	}
 
 	Vector3 L(0.0);
+
 	// 计算Lr分为两部分，L直接+L间接。
 	// 先计算直接光照=Integrate(f(wo, wi) + Ld(wo, wi) * cos(wi), d(wi))
 	// f：bsdf所有ReflectionModel的f。

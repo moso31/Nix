@@ -55,6 +55,7 @@ class SceneManager;
 class NXObject;
 class NXPrimitive;
 class NXCamera;
+class NXCubeMap;
 class NXDirectionalLight;
 class NXMaterial;
 

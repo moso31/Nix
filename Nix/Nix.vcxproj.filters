@@ -227,6 +227,9 @@
     <ClCompile Include="Core\WICTextureLoader.cpp">
       <Filter>Core\File\Texture</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\NXCubeMap.cpp">
+      <Filter>Nix\Object</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -378,6 +381,9 @@
     </ClInclude>
     <ClInclude Include="Core\WICTextureLoader.h">
       <Filter>Core\File\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXCubeMap.h">
+      <Filter>Nix\Object</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
