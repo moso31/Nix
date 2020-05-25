@@ -26,6 +26,8 @@ float NXRDistributionBeckmann::D(const Vector3& wh)
 		return 0.0f;
 	float cos4ThetaN = Cos2Theta(wh) * Cos2Theta(wh);
 	float alpha2 = alpha * alpha;
+	if (alpha2 <= 0.0f)
+		return 0.0f;
 	return exp(-tan2ThetaN / alpha2) / (XM_PI * alpha2 * cos4ThetaN);
 }
 

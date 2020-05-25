@@ -6,7 +6,7 @@ class NXHit;
 class NXBSDF
 {
 public:
-	NXBSDF(const NXHit& pHitInfo, float matIOR = 1.0f);
+	NXBSDF(const NXHit& pHitInfo);
 	~NXBSDF() {}
 
 	void AddReflectionModel(const shared_ptr<NXReflectionModel>& pReflectionModel);
@@ -21,5 +21,4 @@ private:
 	vector<shared_ptr<NXReflectionModel>> m_reflectionModels;
 	Vector3 ng;
 	Vector3 ns, ss, ts;
-	Vector3 eta;	// ’€…‰≤ƒ÷ µƒIOR
 };

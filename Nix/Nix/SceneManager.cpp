@@ -249,6 +249,13 @@ shared_ptr<NXPBRMaterial> SceneManager::CreatePBRPlastic(const Vector3& diffuse,
 	return pMat;
 }
 
+shared_ptr<NXCommonMaterial> SceneManager::CreateCommonMaterial(const Vector3& baseColor, float metalness, float roughness)
+{
+	auto pMat = make_shared<NXCommonMaterial>(baseColor, metalness, roughness);
+	m_scene->m_pbrMaterials.push_back(pMat);
+	return pMat;
+}
+
 shared_ptr<NXPBRLight> SceneManager::CreatePBRPointLight(const Vector3& position, const Vector3& intensity)
 {
 	auto pLight = make_shared<NXPBRPointLight>(position, intensity);

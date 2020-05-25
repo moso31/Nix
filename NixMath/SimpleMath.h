@@ -46,6 +46,11 @@ inline T Clamp(T val, U low, V high) {
 	else return (T)val;
 }
 
+template <typename T, typename U, typename V>
+inline T Lerp(T lerp, U x, V y) {
+	return x + (y - x) * lerp;
+}
+
 //------------------------------------------------------------------------------
 // 2D vector
 struct Vector2 : public XMFLOAT2

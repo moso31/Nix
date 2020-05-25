@@ -22,6 +22,8 @@
 //#include "NXShadowMap.h"
 #include "NXPassShadowMap.h"
 
+#include "DDSTextureLoader.h"
+
 #include "NXScript.h"
 #include "NSFirstPersonalCamera.h"
 #include "NSTest.h"
@@ -194,14 +196,14 @@ void NXScene::Init()
 		m_sceneManager->CreatePBRMirror(Vector3(1.0f, 1.0f, 1.0f)),
 	};
 
-	auto pPlane = m_sceneManager->CreatePlane(
-		"Ground",
-		50.0f, 50.0f,
-		pMaterial,
-		Vector3(0.0f)
-	);
+	//auto pPlane = m_sceneManager->CreatePlane(
+	//	"Ground",
+	//	50.0f, 50.0f,
+	//	pMaterial,
+	//	Vector3(0.0f)
+	//);
 
-	pPlane->SetMaterialPBR(pPBRMat[4]);
+	//pPlane->SetMaterialPBR(pPBRMat[4]);
 
 	//pPlane = m_sceneManager->CreatePlane(
 	//	"Wall +Y",
@@ -243,23 +245,26 @@ void NXScene::Init()
 
 	//pPlane->SetMaterialPBR(pPBRMat[2]);
 
-	float a[10] = { 0.00001, 0.0001, 0.001, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1 };
-	Vector3 randomDiffuse = NXRandom::GetInstance()->CreateVector3(0.0f, 1.0f);
-	Vector3 randomSpecular(1.0f);
+	//float a[10] = { 0.0, 0.25, 0.5, 0.75, 1 };
+	//Vector3 rBaseColor = Vector3(1.0, 0.782, 0.344);
 
-	for (int i = 0; i < 10; i++)
-	{
-		Vector2 randomPos(i / 5, i % 5);
-		auto pSphere = m_sceneManager->CreateSphere(
-			"Sphere",
-			0.5f, 16, 16,
-			pMaterial,
-			Vector3(randomPos.x, 0.5f, randomPos.y)
-		);
-		
-		float randomRoughness = (((float)i + 0.5f) / 10.0f) * 1.0f;
-		pSphere->SetMaterialPBR(m_sceneManager->CreatePBRPlastic(randomDiffuse, randomSpecular, randomRoughness));
-	}
+	//for (int i = 0; i < 5; i++)
+	//{
+	//	float metalness = a[i];
+	//	for(int j = 0; j < 5; j++)
+	//	{
+	//		Vector2 randomPos(i, j);
+	//		auto pSphere = m_sceneManager->CreateSphere(
+	//			"Sphere",
+	//			0.5f, 16, 16,
+	//			pMaterial,
+	//			Vector3(randomPos.x, 0.5f, randomPos.y)
+	//		);
+
+	//		float roughness = a[j];
+	//		pSphere->SetMaterialPBR(m_sceneManager->CreateCommonMaterial(rBaseColor, metalness, roughness));
+	//	}
+	//}
 
 	//vector<shared_ptr<NXMesh>> pMeshes;
 	//bool pMesh = m_sceneManager->CreateFBXMeshes(

@@ -2,12 +2,11 @@
 #include "NXIntersection.h"
 #include "NXRandom.h"
 
-NXBSDF::NXBSDF(const NXHit& pHitInfo, float matIOR) :
+NXBSDF::NXBSDF(const NXHit& pHitInfo) :
 	ng(pHitInfo.normal),
 	ns(pHitInfo.shading.normal),
 	ss(pHitInfo.shading.dpdu),
-	ts(ns.Cross(ss)),
-	eta(matIOR)
+	ts(ns.Cross(ss))
 {
 }
 

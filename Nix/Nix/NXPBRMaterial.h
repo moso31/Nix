@@ -14,7 +14,7 @@ public:
 	Vector3 Diffuse;
 	Vector3 Specular;
 	float Roughness;
-	Vector3 m_reflectivity;
+	float Metalness;
 	float IOR;
 };
 
@@ -42,8 +42,15 @@ public:
 	void ConstructReflectionModel(NXHit& hitInfo) override;
 };
 
-class NXMetalMaterial : public NXPBRMaterial
+// 尝试重新自己设计了一个通用的材质类。
+// 没有考虑折射。
+class NXCommonMaterial : public NXPBRMaterial
 {
 public:
+	NXCommonMaterial(const Vector3& BaseColor, float Metalness, float Roughness) : BaseColor(BaseColor) { this->Metalness = Metalness; this->Roughness = Roughness; }
+	~NXCommonMaterial() {}
+
 	void ConstructReflectionModel(NXHit& hitInfo) override;
+
+	Vector3 BaseColor;
 };

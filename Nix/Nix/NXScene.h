@@ -65,6 +65,7 @@ private:
 
 	ID3D11Buffer* m_cbLights;
 	ConstantBufferLight m_cbDataLights;
+	ID3D11Texture2D* m_pCubeMap;
 
 	AABB m_aabb;
 	BoundingSphere m_boundingSphere;

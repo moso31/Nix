@@ -45,3 +45,15 @@ public:
 
 	Vector3 FresnelReflectance(float cosThetaI) override { return Vector3(1.0f); }
 };
+
+class NXFresnelCommon : public NXFresnel
+{
+public:
+	NXFresnelCommon(const Vector3& Specular) : Specular(Specular) {}	// Specular = F0.
+	~NXFresnelCommon() {}
+
+	Vector3 FresnelReflectance(float cosThetaH) override;
+
+private:
+	Vector3 Specular;
+};

@@ -60,3 +60,8 @@ Vector3 NXFresnelConductor::FresnelReflectance(float cosThetaI)
 	
 	return 0.5 * (Rp + Rs);
 }
+
+Vector3 NXFresnelCommon::FresnelReflectance(float cosThetaH)
+{
+	return Specular + (Vector3(1.0f) - Specular) * powf(1.0f - fabsf(cosThetaH), 5.0f);
+}
