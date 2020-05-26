@@ -37,3 +37,11 @@ Vector3 SamplerMath::CosineSampleHemisphere(const Vector2& u)
 	float z = sqrtf(1.0f - v.x * v.x - v.y * v.y);
 	return Vector3(v.x, v.y, z);
 }
+
+Vector2 DirectX::SamplerMath::UniformTriangleSample(const Vector2& u)
+{
+	float sx = sqrtf(u.x);
+	float x = 1.0f - sx;
+	float y = sx * u.y;
+	return Vector2(x, y);
+}

@@ -25,7 +25,7 @@ public:
 	void Release();
 
 	// 场景-射线相交测试
-	bool RayCast(const Ray& ray, NXHit& out_hitInfo);
+	bool RayCast(const Ray& ray, NXHit& out_hitInfo, float tMax = FLT_MAX);
 
 	BoundingSphere						GetBoundingSphere()		{ return m_boundingSphere; }
 	AABB								GetAABB()				{ return m_aabb; }

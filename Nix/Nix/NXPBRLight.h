@@ -1,5 +1,19 @@
 #pragma once
+#include "NXInstance.h"
 #include "NXIntersection.h"
+
+class NXVisibleTest : public NXInstance<NXVisibleTest>
+{
+public:
+	NXVisibleTest() {}
+	~NXVisibleTest() {}
+
+	void SetScene(shared_ptr<NXScene>& pScene) { m_pScene = pScene; }
+	bool Do(const Vector3& startPosition, const Vector3& targetPosition);
+
+private:
+	shared_ptr<NXScene> m_pScene;
+};
 
 class NXPBRLight
 {

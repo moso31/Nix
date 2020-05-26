@@ -127,6 +127,9 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 
 void NXScene::Init()
 {
+	auto pScene = dynamic_pointer_cast<NXScene>(shared_from_this());
+	NXVisibleTest::GetInstance()->SetScene(pScene);
+
 	m_sceneManager = make_shared<SceneManager>(dynamic_pointer_cast<NXScene>(shared_from_this()));
 	auto pMaterial = m_sceneManager->CreateMaterial(
 		"defaultMaterial",
@@ -145,14 +148,14 @@ void NXScene::Init()
 		m_sceneManager->CreatePBRMirror(Vector3(1.0f, 1.0f, 1.0f)),
 	};
 
-	//auto pPlane = m_sceneManager->CreatePlane(
-	//	"Ground",
-	//	50.0f, 50.0f,
-	//	pMaterial,
-	//	Vector3(0.0f)
-	//);
+	auto pPlane = m_sceneManager->CreatePlane(
+		"Ground",
+		50.0f, 50.0f,
+		pMaterial,
+		Vector3(0.0f)
+	);
 
-	//pPlane->SetMaterialPBR(pPBRMat[4]);
+	pPlane->SetMaterialPBR(pPBRMat[4]);
 
 	//pPlane = m_sceneManager->CreatePlane(
 	//	"Wall +Y",
@@ -207,7 +210,7 @@ void NXScene::Init()
 				"Sphere",
 				0.5f, 16, 16,
 				pMaterial,
-				Vector3(randomPos.x, 0.0f, randomPos.y) * 1.2f
+				Vector3(randomPos.x, 0.5f, randomPos.y) * 1.0f
 			);
 
 			float roughness = a[j];
@@ -243,8 +246,8 @@ void NXScene::Init()
 	m_mainCamera = pCamera;
 	m_objects.push_back(pCamera);
 
-	//m_pCubeMap = make_shared<NXCubeMap>();
-	//m_pCubeMap->Init(L"D:\\sunsetcube1024.dds");
+	m_pCubeMap = make_shared<NXCubeMap>();
+	m_pCubeMap->Init(L"D:\\sunsetcube1024.dds");
 
 	// 更新AABB需要世界坐标，而Init阶段还没有拿到世界坐标，所以需要提前PrevUpdate一次。
 	UpdateTransform(m_pRootObject);
@@ -395,7 +398,7 @@ void NXScene::Release()
 	m_pBVHTree.reset();
 }
 
-bool NXScene::RayCast(const Ray& ray, NXHit& outHitInfo)
+bool NXScene::RayCast(const Ray& ray, NXHit& outHitInfo, float tMax)
 {
 	float outDist = FLT_MAX;
 
