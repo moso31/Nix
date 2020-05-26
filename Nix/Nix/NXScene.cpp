@@ -128,58 +128,6 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 void NXScene::Init()
 {
 	m_sceneManager = make_shared<SceneManager>(dynamic_pointer_cast<NXScene>(shared_from_this()));
-	auto pDirLight = m_sceneManager->CreateDirectionalLight(
-		"DirLight1",
-		Vector4(0.2f, 0.2f, 0.2f, 1.0f),
-		Vector4(0.8f, 0.8f, 0.8f, 1.0f),
-		Vector3(0.8f, 0.8f, 0.8f),
-		1.0f,
-		Vector3(1.0f, -1.0f, 1.0f)
-		);
-
-	auto pPointLight = m_sceneManager->CreatePointLight(
-		"PointLight1",
-		Vector4(0.2f, 0.2f, 0.2f, 1.0f),
-		Vector4(0.8f, 0.8f, 0.8f, 1.0f),
-		Vector3(0.8f, 0.8f, 0.8f),
-		1.0f,
-		Vector3(0.0f, 1.0f, 0.0f),
-		100.0f,
-		Vector3(0.0f, 0.0f, 1.0f)
-	);
-
-	auto pSpotLight = m_sceneManager->CreateSpotLight(
-		"SpotLight1",
-		Vector4(0.2f, 0.2f, 0.2f, 1.0f),
-		Vector4(0.8f, 0.8f, 0.8f, 1.0f),
-		Vector3(0.8f, 0.8f, 0.8f),
-		1.0f,
-		Vector3(0.0f, 2.5f, 0.0f),
-		100.0f,
-		Vector3(1.0f, -1.0f, 1.0f),
-		1.0f,
-		Vector3(0.0f, 0.0f, 1.0f)
-	);
-
-	D3D11_BUFFER_DESC bufferDesc;
-	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(ConstantBufferLight);
-	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bufferDesc.CPUAccessFlags = 0;
-	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbLights));
-
-	// 这里直接转指针很危险的，后面务必改一下lights的管理结构。
-	m_cbDataLights.dirLight = pDirLight->GetLightInfo();
-	m_cbDataLights.pointLight = pPointLight->GetLightInfo();
-	m_cbDataLights.spotLight = pSpotLight->GetLightInfo();
-
-	ConstantBufferLight cb;
-	cb.dirLight = m_cbDataLights.dirLight;
-	cb.pointLight = m_cbDataLights.pointLight;
-	cb.spotLight = m_cbDataLights.spotLight;
-	g_pContext->UpdateSubresource(m_cbLights, 0, nullptr, &cb, 0, 0);
-	
 	auto pMaterial = m_sceneManager->CreateMaterial(
 		"defaultMaterial",
 		Vector4(0.0f, 0.0f, 0.0f, 1.0f),
@@ -187,8 +135,6 @@ void NXScene::Init()
 		Vector4(0.8f, 0.8f, 0.8f, 1.0f),
 		0.2f
 	);
-
-	m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 100.0f, 0.0f), Vector3(20000.0f));
 
 	shared_ptr<NXPBRMaterial> pPBRMat[6] = {
 		m_sceneManager->CreatePBRMatte(Vector3(1.0f, 0.0f, 0.0f)),
@@ -297,17 +243,75 @@ void NXScene::Init()
 	m_mainCamera = pCamera;
 	m_objects.push_back(pCamera);
 
-	m_pCubeMap = make_shared<NXCubeMap>();
-	m_pCubeMap->Init(L"D:\\sunsetcube1024.dds");
+	//m_pCubeMap = make_shared<NXCubeMap>();
+	//m_pCubeMap->Init(L"D:\\sunsetcube1024.dds");
 
-	InitScripts();
-
-	// 更新AABB需要世界坐标，而Init阶段还没有拿到世界坐标，所以需要提前PrevUpdate一次。(nice annotation.)
+	// 更新AABB需要世界坐标，而Init阶段还没有拿到世界坐标，所以需要提前PrevUpdate一次。
 	UpdateTransform(m_pRootObject);
 	InitBoundingStructures();
-	
+
+	// InitLights()
+	{
+		//m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 100.0f, 0.0f), Vector3(20000.0f));
+		m_sceneManager->CreatePBRDistantLight(Vector3(-1.f), Vector3(3.0f));
+
+		//auto pDirLight = m_sceneManager->CreateDirectionalLight(
+		//	"DirLight1",
+		//	Vector4(0.2f, 0.2f, 0.2f, 1.0f),
+		//	Vector4(0.8f, 0.8f, 0.8f, 1.0f),
+		//	Vector3(0.8f, 0.8f, 0.8f),
+		//	1.0f,
+		//	Vector3(1.0f, -1.0f, 1.0f)
+		//);
+
+		//auto pPointLight = m_sceneManager->CreatePointLight(
+		//	"PointLight1",
+		//	Vector4(0.2f, 0.2f, 0.2f, 1.0f),
+		//	Vector4(0.8f, 0.8f, 0.8f, 1.0f),
+		//	Vector3(0.8f, 0.8f, 0.8f),
+		//	1.0f,
+		//	Vector3(0.0f, 1.0f, 0.0f),
+		//	100.0f,
+		//	Vector3(0.0f, 0.0f, 1.0f)
+		//);
+
+		//auto pSpotLight = m_sceneManager->CreateSpotLight(
+		//	"SpotLight1",
+		//	Vector4(0.2f, 0.2f, 0.2f, 1.0f),
+		//	Vector4(0.8f, 0.8f, 0.8f, 1.0f),
+		//	Vector3(0.8f, 0.8f, 0.8f),
+		//	1.0f,
+		//	Vector3(0.0f, 2.5f, 0.0f),
+		//	100.0f,
+		//	Vector3(1.0f, -1.0f, 1.0f),
+		//	1.0f,
+		//	Vector3(0.0f, 0.0f, 1.0f)
+		//);
+
+		//D3D11_BUFFER_DESC bufferDesc;
+		//ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+		//bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+		//bufferDesc.ByteWidth = sizeof(ConstantBufferLight);
+		//bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		//bufferDesc.CPUAccessFlags = 0;
+		//NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbLights));
+
+		//// 这里直接转指针很危险的，后面务必改一下lights的管理结构。
+		//m_cbDataLights.dirLight = pDirLight->GetLightInfo();
+		//m_cbDataLights.pointLight = pPointLight->GetLightInfo();
+		//m_cbDataLights.spotLight = pSpotLight->GetLightInfo();
+
+		//ConstantBufferLight cb;
+		//cb.dirLight = m_cbDataLights.dirLight;
+		//cb.pointLight = m_cbDataLights.pointLight;
+		//cb.spotLight = m_cbDataLights.spotLight;
+		//g_pContext->UpdateSubresource(m_cbLights, 0, nullptr, &cb, 0, 0);
+	}
+
 	// 设置常量缓存
 	InitShadowMapTransformInfo(NXGlobalBufferManager::m_cbDataShadowMap);
+
+	InitScripts();
 }
 
 void NXScene::InitScripts()
@@ -381,8 +385,11 @@ void NXScene::Release()
 		m_mainCamera->Release();
 	}
 
-	m_pCubeMap->Release();
-	m_pCubeMap.reset();
+	if (m_pCubeMap)
+	{
+		m_pCubeMap->Release();
+		m_pCubeMap.reset();
+	}
 
 	m_sceneManager.reset();
 	m_pBVHTree.reset();
@@ -429,6 +436,9 @@ bool NXScene::RayCast(const Ray& ray, NXHit& outHitInfo)
 
 void NXScene::InitShadowMapTransformInfo(ConstantBufferShadowMapTransform& out_cb)
 {
+	if (m_lights.empty())
+		return;
+
 	// 目前仅对第一个平行光提供支持
 	Vector3 direction = dynamic_pointer_cast<NXDirectionalLight>(m_lights[0])->GetDirection();
 	Vector3 shadowMapAt = m_boundingSphere.Center;

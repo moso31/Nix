@@ -33,7 +33,7 @@ public:
 	shared_ptr<NXCubeMap>				GetCubeMap()			{ return m_pCubeMap; }
 
 	// PBR场景数据
-	vector<shared_ptr<NXPBRPointLight>>	GetPBRLights()			{ return m_pbrLights; }
+	vector<shared_ptr<NXPBRLight>>		GetPBRLights()			{ return m_pbrLights; }
 	vector<shared_ptr<NXPBRMaterial>>	GetPBRMaterials()		{ return m_pbrMaterials; }
 
 	// 目前只对第一个光源创建Parallel ShadowMap。
@@ -72,6 +72,6 @@ private:
 	BoundingSphere m_boundingSphere;
 
 	// PBR材质
-	vector<shared_ptr<NXPBRPointLight>> m_pbrLights;
+	vector<shared_ptr<NXPBRLight>> m_pbrLights;
 	vector<shared_ptr<NXPBRMaterial>> m_pbrMaterials;
 };

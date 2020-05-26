@@ -19,6 +19,9 @@ Vector3 NXIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& pScene
 	// 如果没有相交，拿背景贴图的radiance并结束计算即可。
 	if (!isIntersect)
 	{	
+		auto pCubeMap = pScene->GetCubeMap();
+		if (!pCubeMap) return Vector3(0.0f);
+
 		return pScene->GetCubeMap()->BackgroundColorByDirection(ray.direction);
 	}
 
@@ -42,7 +45,8 @@ Vector3 NXIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& pScene
 	for (auto it = pLights.begin(); it != pLights.end(); it++)
 	{
 		Vector3 incidentDirection;
-		Vector3 Li = (*it)->SampleIncidentRadiance(hitInfo, incidentDirection);
+		float pdf;
+		Vector3 Li = (*it)->SampleIncidentRadiance(hitInfo, incidentDirection, pdf);
 		Vector3 f = hitInfo.BSDF->f(hitInfo.direction, incidentDirection);
 
 		// 暂时不考虑Visibility Tester

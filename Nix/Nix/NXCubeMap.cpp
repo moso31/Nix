@@ -98,5 +98,5 @@ Vector3 NXCubeMap::BackgroundColorByDirection(const Vector3& v)
 
 void NXCubeMap::Release()
 {
-	m_image.reset();
+	if (m_image) m_image.reset();
 }

@@ -12,10 +12,10 @@
 *.obj
 *.log
 *.txt
+*.idb
 /FBXImporter/x64/Debug
 *.dll
 /Nix/lib/Debug
-/x64/Release/Nix.ipdb
-/x64/Release/Nix.iobj
-/x64/Release/Nix.exe
+/x64/Debug
 /x64/Release
+/NixMath/x64/Debug
