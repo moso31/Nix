@@ -3,15 +3,22 @@
 #include "NXPBRMaterial.h"
 #include "NXIntersection.h"
 #include "GlobalBufferManager.h"
+#include "NXRandom.h"
+#include "SamplerMath.h"
 
 #include "WICTextureLoader.h"
 #include "DDSTextureLoader.h"
+
+using namespace SamplerMath;
 
 NXPrimitive::NXPrimitive() :
 	m_pVertexBuffer(nullptr),
 	m_pIndexBuffer(nullptr),
 	m_pTextureSRV(nullptr),
-	m_cbMaterial(nullptr)
+	m_cbMaterial(nullptr),
+	m_bEnableNormal(true),
+	m_bEnableTangent(false),
+	m_bEnableNormalDerivative(false)
 {
 }
 
@@ -83,10 +90,17 @@ AABB NXPrimitive::GetAABBLocal() const
 	return m_aabb;
 }
 
+NXTriangle NXPrimitive::GetTriangle(int faceIndex) 
+{
+	return NXTriangle(dynamic_pointer_cast<NXPrimitive>(shared_from_this()), faceIndex * 3);
+}
+
 bool NXPrimitive::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist)
 {
+	// 遍历所有三角形寻找最近交点。还可以进一步优化成BVH，但暂时没做。
 	bool bSuccess = false;
-	for (int i = 0; i < (int)m_indices.size() / 3; i++)
+	int faceCount = (int)m_indices.size() / 3;
+	for (int i = 0; i < faceCount; i++)
 	{
 		NXTriangle triangle(dynamic_pointer_cast<NXPrimitive>(shared_from_this()), i * 3);
 		if (triangle.RayCast(localRay, outHitInfo, outDist))
@@ -97,6 +111,25 @@ bool NXPrimitive::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist
 	}
 
 	return bSuccess;
+}
+
+void NXPrimitive::SampleFromSurface(int faceIndex, Vector3& out_hitPos, Vector3& out_hitNorm, float& out_pdf)
+{
+	Vector2 r = NXRandom::GetInstance()->CreateVector2();
+	Vector2 b = UniformTriangleSample(r);	// 重心坐标
+	NXTriangle tri = GetTriangle(faceIndex);
+	VertexPNT P0 = tri.GetPointData(0);
+	VertexPNT P1 = tri.GetPointData(1);
+	VertexPNT P2 = tri.GetPointData(2);
+	out_hitPos = b.x * P0.pos + b.y * P1.pos + (1 - b.x - b.y) * P2.pos;
+	out_hitNorm = (P1.pos - P2.pos).Cross(P1.pos - P0.pos);
+	if (m_bEnableNormal)
+	{
+		Vector3 ns = b.x * P0.norm + b.y * P1.norm + (1 - b.x - b.y) * P2.norm;
+		if (out_hitNorm.Dot(ns) < 0)
+			out_hitNorm = -out_hitNorm;
+	}
+	out_pdf = 1.0f / tri.Area();
 }
 
 void NXPrimitive::InitVertexIndexBuffer()
@@ -136,6 +169,20 @@ NXTriangle::NXTriangle(const shared_ptr<NXPrimitive>& pShape, int startIndex) :
 	pShape(pShape),
 	startIndex(startIndex)
 {
+}
+
+float NXTriangle::Area() const
+{
+	Vector3 P0 = GetPointData(0).pos;
+	Vector3 P1 = GetPointData(1).pos;
+	Vector3 P2 = GetPointData(2).pos;
+	return 0.5f * (P1 - P0).Cross(P2 - P0).Length();
+}
+
+VertexPNT NXTriangle::GetPointData(int PointId) const
+{
+	assert(PointId >= 0 && PointId < 3);
+	return pShape->m_vertices[pShape->m_indices[startIndex + PointId]];
 }
 
 bool NXTriangle::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist)
@@ -274,15 +321,10 @@ bool NXTriangle::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist)
 
 		outHitInfo = NXHit(pShape, pHit, uvHit, -localRay.direction, dpdu, dpdv);
 
-		// 然后开始更新hitInfo的shading部分。
-		bool bEnableNormal = true;
-		bool bEnableTangent = false;	// 暂不考虑模型自带的切线数据
-		bool bEnableNormalDerivative = false;	// 暂不生成dndu，dndv。
-
 		Vector3 ns, ss, ts;
 		Vector3 dndu, dndv;
 
-		if (bEnableNormal)
+		if (pShape->m_bEnableNormal)
 		{
 			Vector3 n[3];
 			n[0] = data0.norm;
@@ -295,7 +337,7 @@ bool NXTriangle::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist)
 			else
 				ns = outHitInfo.normal;
 
-			if (bEnableNormalDerivative)
+			if (pShape->m_bEnableNormalDerivative)	// 暂不生成dndu，dndv。
 			{
 				// 如果有法线，进一步计算dndu dndv
 				// 和计算dpdu dpdv的方法完全相同，唯一的变化是将位置p替换为法线n
@@ -332,7 +374,7 @@ bool NXTriangle::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist)
 			dndv = Vector3(0.0f);
 		}
 
-		if (bEnableTangent)
+		if (pShape->m_bEnableTangent)		// 暂不考虑模型自带的切线数据
 		{
 #if _TODO_
 			Vector3 s[3];

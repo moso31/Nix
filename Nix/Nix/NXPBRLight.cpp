@@ -18,15 +18,14 @@ Vector3 NXPBRPointLight::SampleIncidentRadiance(const NXHit& hitInfo, Vector3& o
 	out_wi.Normalize();
 	out_pdf = 1;
 	if (!NXVisibleTest::GetInstance()->Do(hitInfo.position, Position))
-	{
 		return Vector3(0.0f);
-	}
+
 	return lightRadiance;
 }
 
-NXPBRDistantLight::NXPBRDistantLight(const Vector3& Direction, const Vector3& Intensity, const shared_ptr<NXScene>& pScene) : 
+NXPBRDistantLight::NXPBRDistantLight(const Vector3& Direction, const Vector3& Radiance, const shared_ptr<NXScene>& pScene) : 
 	Direction(Direction), 
-	Intensity(Intensity),
+	Radiance(Radiance),
 	SceneBoundingSphere(pScene->GetBoundingSphere())
 {
 }
@@ -37,8 +36,22 @@ Vector3 NXPBRDistantLight::SampleIncidentRadiance(const NXHit& hitInfo, Vector3&
 	out_wi.Normalize();
 	out_pdf = 1;
 	if (!NXVisibleTest::GetInstance()->Do(hitInfo.position, hitInfo.position - Direction))
-	{
 		return Vector3(0.0f);
-	}
-	return Intensity;
+
+	return Radiance;
+}
+
+Vector3 NXPBRAreaLight::SampleIncidentRadiance(const NXHit& hitInfo, Vector3& out_wi, float& out_pdf)
+{
+	Vector3 samplePoint, sampleNorm;
+	m_pPrimitive->SampleFromSurface(hitInfo.faceIndex, samplePoint, sampleNorm, out_pdf);
+	out_wi = samplePoint - hitInfo.position;
+	out_wi.Normalize();
+
+	if (sampleNorm.Dot(out_wi) > 0)
+		return Vector3(0.0f);	// 无效光源：采样射线方向背朝表面
+	if (!NXVisibleTest::GetInstance()->Do(hitInfo.position, samplePoint))
+		return Vector3(0.0f);	// 无效光源：被场景中其他物体挡住
+
+	return Radiance;
 }

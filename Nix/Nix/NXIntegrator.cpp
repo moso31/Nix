@@ -1,6 +1,7 @@
 #include "NXIntegrator.h"
 #include "NXBSDF.h"
 #include "NXCubeMap.h"
+#include "NXPBRLight.h"
 
 NXIntegrator::NXIntegrator()
 {
@@ -29,10 +30,10 @@ Vector3 NXIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& pScene
 	hitInfo.ConstructReflectionModel();
 
 	// 计算当前hit的bsdf的Radiance：Lo=Le+Lr
-	// 计算Le（如果hit本身就是光源的话）
-	if (false)
+	if (hitInfo.pPrimitive->IsAreaLight())
 	{
-		//  现在还没有面积光源。
+		// 如果hit物体本身就是光源的话，计算Le
+		shared_ptr<NXPBRAreaLight> pAreaLight = hitInfo.pPrimitive->GetAreaLight();
 	}
 
 	Vector3 L(0.0);

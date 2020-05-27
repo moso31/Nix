@@ -1,6 +1,7 @@
 #pragma once
 #include "NXInstance.h"
 #include "NXIntersection.h"
+#include "NXPrimitive.h"
 
 class NXVisibleTest : public NXInstance<NXVisibleTest>
 {
@@ -11,7 +12,7 @@ public:
 	void SetScene(shared_ptr<NXScene>& pScene) { m_pScene = pScene; }
 	bool Do(const Vector3& startPosition, const Vector3& targetPosition);
 
-private:
+protected:
 	shared_ptr<NXScene> m_pScene;
 };
 
@@ -43,12 +44,26 @@ public:
 class NXPBRDistantLight : public NXPBRLight
 {
 public:
-	NXPBRDistantLight(const Vector3& Direction, const Vector3& Intensity, const shared_ptr<NXScene>& pScene);
+	NXPBRDistantLight(const Vector3& Direction, const Vector3& Radiance, const shared_ptr<NXScene>& pScene);
 
 	Vector3 SampleIncidentRadiance(const NXHit& hitInfo, Vector3& out_wi, float& out_pdf) override;
 
 public:
 	Vector3 Direction;
-	Vector3 Intensity;
+	Vector3 Radiance;
 	BoundingSphere SceneBoundingSphere;
+};
+
+class NXPBRAreaLight : public NXPBRLight
+{
+public:
+	NXPBRAreaLight(const Vector3& Radiance, const shared_ptr<NXPrimitive>& pPrimitive);
+
+	Vector3 SampleIncidentRadiance(const NXHit& hitInfo, Vector3& out_wi, float& out_pdf) override;
+
+public:
+	Vector3 Radiance;
+
+private:
+	shared_ptr<NXPrimitive> m_pPrimitive;
 };

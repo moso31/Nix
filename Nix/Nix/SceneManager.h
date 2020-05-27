@@ -46,7 +46,7 @@ public:
 	shared_ptr<NXCommonMaterial> CreateCommonMaterial(const Vector3& baseColor, float metalness, float roughness);
 
 	shared_ptr<NXPBRLight> CreatePBRPointLight(const Vector3& position, const Vector3& intensity);
-	shared_ptr<NXPBRLight> CreatePBRDistantLight(const Vector3& direction, const Vector3& intensity);
+	shared_ptr<NXPBRLight> CreatePBRDistantLight(const Vector3& direction, const Vector3& radiance);
 
 	// 绑定Outline父子关系
 	bool BindParent(shared_ptr<NXObject> pParent, shared_ptr<NXObject> pChild);
