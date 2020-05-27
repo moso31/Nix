@@ -61,6 +61,10 @@ public:
 
 	Vector3 SampleIncidentRadiance(const NXHit& hitInfo, Vector3& out_wi, float& out_pdf) override;
 
+	// 计算从samplePosition朝targetDirection方向发射光线的Radiance值。
+	// 提供灯面发射点出的surfaceNormal用于判断本次交互是否相向。
+	Vector3 GetRadiance(const Vector3& samplePosition, const Vector3& lightSurfaceNormal, const Vector3& targetDirection);
+
 public:
 	Vector3 Radiance;
 

@@ -51,7 +51,7 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 	auto pScene = dynamic_pointer_cast<NXScene>(shared_from_this());
 	NXRenderImageInfo imageInfo;
 	imageInfo.ImageSize = XMINT2(1600, 1200);
-	imageInfo.EachPixelSamples = 16;
+	imageInfo.EachPixelSamples = 1;
 	imageInfo.outPath = "D:\\xx1.bmp";
 	shared_ptr<NXIntegrator> pWhitted = make_shared<NXIntegrator>();
 
@@ -197,6 +197,16 @@ void NXScene::Init()
 
 	//pPlane->SetMaterialPBR(pPBRMat[2]);
 
+	shared_ptr<NXPlane> pLight = m_sceneManager->CreatePlane(
+		"Light",
+		1.0f, 1.0f,
+		pMaterial,
+		Vector3(0.0f, 5.0f, 0.0f),
+		Vector3(XM_PI, 0.0f, 0.0f)
+	);
+
+	pLight->SetMaterialPBR(pPBRMat[4]);
+
 	float a[10] = { 0.0, 0.25, 0.5, 0.75, 1 };
 	Vector3 rBaseColor = Vector3(1.0, 0.782, 0.344);
 
@@ -256,7 +266,8 @@ void NXScene::Init()
 	// InitLights()
 	{
 		//m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 100.0f, 0.0f), Vector3(20000.0f));
-		m_sceneManager->CreatePBRDistantLight(Vector3(-1.f), Vector3(3.0f));
+		//m_sceneManager->CreatePBRDistantLight(Vector3(-1.f), Vector3(3.0f));
+		m_sceneManager->CreatePBRAreaLight(pLight, Vector3(5.0f));
 
 		//auto pDirLight = m_sceneManager->CreateDirectionalLight(
 		//	"DirLight1",
@@ -400,7 +411,7 @@ void NXScene::Release()
 
 bool NXScene::RayCast(const Ray& ray, NXHit& outHitInfo, float tMax)
 {
-	float outDist = FLT_MAX;
+	float outDist = tMax;
 
 	if (m_pBVHTree)
 	{
@@ -471,6 +482,7 @@ void NXScene::InitBoundingStructures()
 	for (auto it = m_primitives.begin(); it != m_primitives.end(); it++)
 	{
 		AABB::CreateMerged(m_aabb, m_aabb, (*it)->GetAABBWorld());
+		(*it)->UpdateSurfaceAreaInfo();
 	}
 
 	BoundingSphere::CreateFromBoundingBox(m_boundingSphere, m_aabb);

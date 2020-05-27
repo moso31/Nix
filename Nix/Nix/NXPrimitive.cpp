@@ -95,6 +95,37 @@ NXTriangle NXPrimitive::GetTriangle(int faceIndex)
 	return NXTriangle(dynamic_pointer_cast<NXPrimitive>(shared_from_this()), faceIndex * 3);
 }
 
+void NXPrimitive::UpdateSurfaceAreaInfo()
+{
+	int faceCount = (int)m_indices.size() / 3;
+	m_triangleAreas.resize(faceCount);
+	for (int i = 0; i < faceCount; i++)
+	{
+		float lastArea = i ? m_triangleAreas[i - 1] : 0.0f;
+		m_triangleAreas[i] = lastArea + GetTriangle(i).Area();
+	}
+	m_fArea = m_triangleAreas[faceCount - 1];
+}
+
+float NXPrimitive::GetSurfaceArea()
+{
+	if (m_triangleAreas.empty() && !m_vertices.empty())
+		UpdateSurfaceAreaInfo();
+	return m_fArea;
+}
+
+NXTriangle NXPrimitive::SampleTriangle()
+{
+	float randomArea = NXRandom::GetInstance()->CreateFloat() * GetSurfaceArea();
+	int sampleId = 0;
+	for (sampleId = 0; sampleId < m_triangleAreas.size(); sampleId++)
+	{
+		if (randomArea < m_triangleAreas[sampleId])
+			break;
+	}
+	return GetTriangle(sampleId);
+}
+
 bool NXPrimitive::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist)
 {
 	// 遍历所有三角形寻找最近交点。还可以进一步优化成BVH，但暂时没做。
@@ -113,23 +144,27 @@ bool NXPrimitive::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist
 	return bSuccess;
 }
 
-void NXPrimitive::SampleFromSurface(int faceIndex, Vector3& out_hitPos, Vector3& out_hitNorm, float& out_pdf)
+void NXPrimitive::SampleFromSurface(Vector3& out_hitPos, Vector3& out_hitNorm, float& out_pdf)
 {
 	Vector2 r = NXRandom::GetInstance()->CreateVector2();
 	Vector2 b = UniformTriangleSample(r);	// 重心坐标
-	NXTriangle tri = GetTriangle(faceIndex);
+	NXTriangle tri = SampleTriangle();
 	VertexPNT P0 = tri.GetPointData(0);
 	VertexPNT P1 = tri.GetPointData(1);
 	VertexPNT P2 = tri.GetPointData(2);
 	out_hitPos = b.x * P0.pos + b.y * P1.pos + (1 - b.x - b.y) * P2.pos;
 	out_hitNorm = (P1.pos - P2.pos).Cross(P1.pos - P0.pos);
+	out_hitNorm.Normalize();
 	if (m_bEnableNormal)
 	{
 		Vector3 ns = b.x * P0.norm + b.y * P1.norm + (1 - b.x - b.y) * P2.norm;
 		if (out_hitNorm.Dot(ns) < 0)
 			out_hitNorm = -out_hitNorm;
 	}
-	out_pdf = 1.0f / tri.Area();
+
+	out_hitPos = Vector3::Transform(out_hitPos, m_worldMatrix);
+	out_hitNorm = Vector3::TransformNormal(out_hitNorm, m_worldMatrix);
+	out_pdf = 1.0f / GetSurfaceArea();
 }
 
 void NXPrimitive::InitVertexIndexBuffer()

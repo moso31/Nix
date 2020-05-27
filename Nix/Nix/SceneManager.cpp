@@ -270,6 +270,14 @@ shared_ptr<NXPBRLight> SceneManager::CreatePBRDistantLight(const Vector3& direct
 	return pLight;
 }
 
+shared_ptr<NXPBRLight> SceneManager::CreatePBRAreaLight(const shared_ptr<NXPrimitive>& pPrimitive, const Vector3& radiance)
+{
+	auto pLight = make_shared<NXPBRAreaLight>(radiance, pPrimitive);
+	pPrimitive->SetAreaLight(pLight);
+	m_scene->m_pbrLights.push_back(pLight);
+	return pLight;
+}
+
 bool SceneManager::BindParent(shared_ptr<NXObject> pParent, shared_ptr<NXObject> pChild)
 {
 	if (!pChild || !pParent)

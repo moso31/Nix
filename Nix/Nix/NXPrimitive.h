@@ -11,6 +11,7 @@ class NXTriangle;
 
 class NXHit;
 class NXPBRMaterial;
+class NXPBRAreaLight;
 
 class NXPrimitive : public NXTransform
 {
@@ -32,15 +33,20 @@ public:
 	AABB GetAABBLocal() const;
 	NXTriangle GetTriangle(int faceIndex);
 
+	void UpdateSurfaceAreaInfo();		// 更新此物体表面积相关的信息。
+	float GetSurfaceArea();				// 计算表面积
+	NXTriangle SampleTriangle();		// 按面积的PDF采样任一三角形
+
 	ID3D11ShaderResourceView* GetTextureSRV() const { return m_pTextureSRV; }
 	ID3D11Buffer* GetMaterialBuffer() const { return m_cbMaterial; }
 
-	//VertexPNT GetVertexPNT() { return }
+	void SetAreaLight(shared_ptr<NXPBRAreaLight> pAreaLight) { m_pAreaLight = pAreaLight; }
+	shared_ptr<NXPBRAreaLight> GetAreaLight() const { return m_pAreaLight; }
 
 	virtual bool RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist);
 
 	// 在当前Primitive表面上进行采样。随机挑选表面上任意一点。
-	virtual void SampleFromSurface(int faceIndex, Vector3& out_hitPos, Vector3& out_hitNorm, float& out_pdf);
+	virtual void SampleFromSurface(Vector3& out_hitPos, Vector3& out_hitNorm, float& out_pdf);
 
 protected:
 	void InitVertexIndexBuffer();
@@ -60,7 +66,11 @@ protected:
 	shared_ptr<NXMaterial>		m_pMaterial;
 	shared_ptr<NXPBRMaterial>	m_pPBRMaterial;
 
+	shared_ptr<NXPBRAreaLight>	m_pAreaLight;	// 可以将Primitive设置为光源
+
 	AABB m_aabb;
+	float m_fArea;		// 纪录当前Mesh的总表面积。
+	vector<float> m_triangleAreas;	// 纪录由每个三角形的表面积的累积CDF。均匀采样时很有用。
 
 private:
 	bool m_bEnableNormal;			// 是否使用纹理自带的法线数据

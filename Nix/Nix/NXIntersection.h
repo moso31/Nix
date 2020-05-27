@@ -25,7 +25,7 @@ public:
 
 	Vector3 direction;	// 入射方向
 	Vector3 position;
-	Vector3 normal;
+	Vector3 normal;	// 几何法线 geometry normal
 	Vector2 uv;
 	Vector3 dpdu;
 	Vector3 dpdv;

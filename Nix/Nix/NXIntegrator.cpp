@@ -29,14 +29,15 @@ Vector3 NXIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& pScene
 	// 生成当前hit的bsdf（为其添加各种ReflectionModel）
 	hitInfo.ConstructReflectionModel();
 
-	// 计算当前hit的bsdf的Radiance：Lo=Le+Lr
-	if (hitInfo.pPrimitive->IsAreaLight())
-	{
-		// 如果hit物体本身就是光源的话，计算Le
-		shared_ptr<NXPBRAreaLight> pAreaLight = hitInfo.pPrimitive->GetAreaLight();
-	}
-
+	// 然后计算当前hit的Radiance：Lo=Le+Lr
 	Vector3 L(0.0);
+
+	// 如果hit物体本身就是光源的话，计算Le
+	shared_ptr<NXPBRAreaLight> pAreaLight = hitInfo.pPrimitive->GetAreaLight();
+	if (pAreaLight)
+	{
+		L += pAreaLight->GetRadiance(hitInfo.position, hitInfo.normal, hitInfo.direction);
+	}
 
 	// 计算Lr分为两部分，L直接+L间接。
 	// 先计算直接光照=Integrate(f(wo, wi) + Ld(wo, wi) * cos(wi), d(wi))
