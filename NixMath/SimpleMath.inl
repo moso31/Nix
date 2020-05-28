@@ -3368,6 +3368,11 @@ inline Color Color::Lerp( const Color& c1, const Color& c2, float t )
     return result;
 }
 
+inline AABB::AABB()
+{
+	Center = Extents = Vector3(0.0f);
+}
+
 inline Vector3 AABB::GetCenter() const
 {
 	return Center;
@@ -3395,10 +3400,7 @@ inline Vector3 AABB::GetMax() const
 
 inline Vector3 AABB::Offset(const Vector3& position) const
 {
-	Vector3 c = Center;
-	Vector3 e = Extents;
-	Vector3 result = (position - c + e) / (2.0f * e);
-	return result;
+	return (position - Center + Extents) / (2.0f * Extents);
 }
 
 inline int AABB::GetMaximumExtent() const
@@ -3422,7 +3424,7 @@ inline float AABB::GetSurfaceArea() const
 inline void DirectX::SimpleMath::AABB::Transform(AABB& aabb, const Matrix& m, AABB& result)
 {
 	result.Center = Vector3::Transform(aabb.Center, m);
-	result.Extents = Vector3::TransformNormal(aabb.Extents, m);
+	result.Extents = Vector3::Abs(Vector3::TransformNormal(aabb.Extents, m));
 }
 
 

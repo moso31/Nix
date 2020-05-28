@@ -4,10 +4,12 @@
 bool NXVisibleTest::Do(const Vector3& startPosition, const Vector3& targetPosition)
 {
 	Vector3 visibleTestDir = targetPosition - startPosition;
-	float maxDist = visibleTestDir.Length();
+	// 需要减两个单位。
+	// 因为ray本身向发射方向偏移了一个单位。所以为了确保检测距离短于比ray到灯光的距离，应该在此基础上再减一个单位。
+	float maxDist = visibleTestDir.Length() - NXRT_EPSILON - NXRT_EPSILON;
 	visibleTestDir.Normalize();
 	Ray ray(startPosition, visibleTestDir);
-	ray.position += ray.direction * 0.001f;
+	ray.position += ray.direction * NXRT_EPSILON;
 	NXHit ignore;
 	return !m_pScene->RayCast(ray, ignore, maxDist);
 }

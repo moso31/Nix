@@ -38,6 +38,8 @@ struct Plane;
 #define DEGTORAD PI / 180.0f
 #define RADTODEG 180.0f / PI
 
+#define NXRT_EPSILON 1e-4f	// NXRayTracer 浮点精度校正
+
 // 1D value
 template <typename T, typename U, typename V>
 inline T Clamp(T val, U low, V high) {
@@ -707,6 +709,8 @@ Color operator* (float S, const Color& C);
 // AABB
 struct AABB : public BoundingBox
 {
+	AABB();
+
 	Vector3 GetCenter() const;
 	Vector3 GetMin() const;
 	Vector3 GetMax() const;

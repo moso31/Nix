@@ -51,7 +51,7 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 	auto pScene = dynamic_pointer_cast<NXScene>(shared_from_this());
 	NXRenderImageInfo imageInfo;
 	imageInfo.ImageSize = XMINT2(1600, 1200);
-	imageInfo.EachPixelSamples = 1;
+	imageInfo.EachPixelSamples = 16;
 	imageInfo.outPath = "D:\\xx1.bmp";
 	shared_ptr<NXIntegrator> pWhitted = make_shared<NXIntegrator>();
 
@@ -157,51 +157,51 @@ void NXScene::Init()
 
 	pPlane->SetMaterialPBR(pPBRMat[4]);
 
-	//pPlane = m_sceneManager->CreatePlane(
-	//	"Wall +Y",
-	//	5.0f, 5.0f,
-	//	pMaterial,
-	//	Vector3(0.0f, 5.0f, 0.0f),
-	//	Vector3(XM_PI, 0.0f, 0.0f)
-	//);
+	pPlane = m_sceneManager->CreatePlane(
+		"Wall +Y",
+		5.0f, 5.0f,
+		pMaterial,
+		Vector3(0.0f, 5.0f, 0.0f),
+		Vector3(XM_PI, 0.0f, 0.0f)
+	);
 
-	//pPlane->SetMaterialPBR(pPBRMat[4]);
+	pPlane->SetMaterialPBR(pPBRMat[4]);
 
-	//pPlane = m_sceneManager->CreatePlane(
-	//	"Wall +Z",
-	//	5.0f, 5.0f,
-	//	pMaterial,
-	//	Vector3(0.0f, 2.5f, 2.5f),
-	//	Vector3(-XM_PIDIV2, 0.0f, 0.0f)
-	//);
+	pPlane = m_sceneManager->CreatePlane(
+		"Wall +Z",
+		5.0f, 5.0f,
+		pMaterial,
+		Vector3(0.0f, 2.5f, 2.5f),
+		Vector3(-XM_PIDIV2, 0.0f, 0.0f)
+	);
 
-	//pPlane->SetMaterialPBR(pPBRMat[4]);
+	pPlane->SetMaterialPBR(pPBRMat[4]);
 
-	//pPlane = m_sceneManager->CreatePlane(
-	//	"Wall -X",
-	//	5.0f, 5.0f,
-	//	pMaterial,
-	//	Vector3(-2.5f, 2.5f, 0.0f),
-	//	Vector3(0.0f, 0.0f, -XM_PIDIV2)
-	//);
+	pPlane = m_sceneManager->CreatePlane(
+		"Wall -X",
+		5.0f, 5.0f,
+		pMaterial,
+		Vector3(-2.5f, 2.5f, 0.0f),
+		Vector3(0.0f, 0.0f, -XM_PIDIV2)
+	);
 
-	//pPlane->SetMaterialPBR(pPBRMat[1]);
+	pPlane->SetMaterialPBR(pPBRMat[1]);
 
-	//pPlane = m_sceneManager->CreatePlane(
-	//	"Wall +X",
-	//	5.0f, 5.0f,
-	//	pMaterial,
-	//	Vector3(2.5f, 2.5f, 0.0f),
-	//	Vector3(0.0f, 0.0f, XM_PIDIV2)
-	//);
+	pPlane = m_sceneManager->CreatePlane(
+		"Wall +X",
+		5.0f, 5.0f,
+		pMaterial,
+		Vector3(2.5f, 2.5f, 0.0f),
+		Vector3(0.0f, 0.0f, XM_PIDIV2)
+	);
 
-	//pPlane->SetMaterialPBR(pPBRMat[2]);
+	pPlane->SetMaterialPBR(pPBRMat[2]);
 
 	shared_ptr<NXPlane> pLight = m_sceneManager->CreatePlane(
 		"Light",
 		1.0f, 1.0f,
 		pMaterial,
-		Vector3(0.0f, 5.0f, 0.0f),
+		Vector3(0.0f, 4.999f, 0.0f),
 		Vector3(XM_PI, 0.0f, 0.0f)
 	);
 
@@ -210,10 +210,11 @@ void NXScene::Init()
 	float a[10] = { 0.0, 0.25, 0.5, 0.75, 1 };
 	Vector3 rBaseColor = Vector3(1.0, 0.782, 0.344);
 
-	for (int i = 0; i < 5; i++)
+	int sz = 5;
+	for (int i = 0; i < sz; i++)
 	{
 		float metalness = a[i];
-		for(int j = 0; j < 5; j++)
+		for(int j = 0; j < sz; j++)
 		{
 			Vector2 randomPos(i, j);
 			auto pSphere = m_sceneManager->CreateSphere(

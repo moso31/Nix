@@ -393,6 +393,7 @@ HBVHTreeNode* HBVHTree::BuildTreelet(int stIndex, int edIndex, int bitIndex)
 		HBVHTreeNode* result = new HBVHTreeNode();
 		for (int i = stIndex; i < edIndex; i++)
 		{
+			auto tt = m_primitives[m_mortonPrimitiveInfo[i].index]->GetAABBWorld();
 			AABB::CreateMerged(result->aabb, result->aabb, m_primitives[m_mortonPrimitiveInfo[i].index]->GetAABBWorld());
 		}
 		result->index = stIndex;
