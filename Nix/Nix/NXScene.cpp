@@ -157,45 +157,45 @@ void NXScene::Init()
 
 	pPlane->SetMaterialPBR(pPBRMat[4]);
 
-	pPlane = m_sceneManager->CreatePlane(
-		"Wall +Y",
-		5.0f, 5.0f,
-		pMaterial,
-		Vector3(0.0f, 5.0f, 0.0f),
-		Vector3(XM_PI, 0.0f, 0.0f)
-	);
+	//pPlane = m_sceneManager->CreatePlane(
+	//	"Wall +Y",
+	//	5.0f, 5.0f,
+	//	pMaterial,
+	//	Vector3(0.0f, 5.0f, 0.0f),
+	//	Vector3(XM_PI, 0.0f, 0.0f)
+	//);
 
-	pPlane->SetMaterialPBR(pPBRMat[4]);
+	//pPlane->SetMaterialPBR(pPBRMat[4]);
 
-	pPlane = m_sceneManager->CreatePlane(
-		"Wall +Z",
-		5.0f, 5.0f,
-		pMaterial,
-		Vector3(0.0f, 2.5f, 2.5f),
-		Vector3(-XM_PIDIV2, 0.0f, 0.0f)
-	);
+	//pPlane = m_sceneManager->CreatePlane(
+	//	"Wall +Z",
+	//	5.0f, 5.0f,
+	//	pMaterial,
+	//	Vector3(0.0f, 2.5f, 2.5f),
+	//	Vector3(-XM_PIDIV2, 0.0f, 0.0f)
+	//);
 
-	pPlane->SetMaterialPBR(pPBRMat[4]);
+	//pPlane->SetMaterialPBR(pPBRMat[4]);
 
-	pPlane = m_sceneManager->CreatePlane(
-		"Wall -X",
-		5.0f, 5.0f,
-		pMaterial,
-		Vector3(-2.5f, 2.5f, 0.0f),
-		Vector3(0.0f, 0.0f, -XM_PIDIV2)
-	);
+	//pPlane = m_sceneManager->CreatePlane(
+	//	"Wall -X",
+	//	5.0f, 5.0f,
+	//	pMaterial,
+	//	Vector3(-2.5f, 2.5f, 0.0f),
+	//	Vector3(0.0f, 0.0f, -XM_PIDIV2)
+	//);
 
-	pPlane->SetMaterialPBR(pPBRMat[1]);
+	//pPlane->SetMaterialPBR(pPBRMat[1]);
 
-	pPlane = m_sceneManager->CreatePlane(
-		"Wall +X",
-		5.0f, 5.0f,
-		pMaterial,
-		Vector3(2.5f, 2.5f, 0.0f),
-		Vector3(0.0f, 0.0f, XM_PIDIV2)
-	);
+	//pPlane = m_sceneManager->CreatePlane(
+	//	"Wall +X",
+	//	5.0f, 5.0f,
+	//	pMaterial,
+	//	Vector3(2.5f, 2.5f, 0.0f),
+	//	Vector3(0.0f, 0.0f, XM_PIDIV2)
+	//);
 
-	pPlane->SetMaterialPBR(pPBRMat[2]);
+	//pPlane->SetMaterialPBR(pPBRMat[2]);
 
 	shared_ptr<NXPlane> pLight = m_sceneManager->CreatePlane(
 		"Light",
@@ -207,7 +207,7 @@ void NXScene::Init()
 
 	pLight->SetMaterialPBR(pPBRMat[4]);
 
-	float a[10] = { 0.0, 0.25, 0.5, 0.75, 1 };
+	float a[10] = { 0.02, 0.25, 0.5, 0.75, 1 };
 	Vector3 rBaseColor = Vector3(1.0, 0.782, 0.344);
 
 	int sz = 5;
