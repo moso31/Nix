@@ -28,4 +28,8 @@ public:
 	void CenterRayTest(const shared_ptr<NXScene>& pScene, const shared_ptr<NXCamera>& pMainCamera, const shared_ptr<NXIntegrator>& pIntegrator);
 
 	void Release();
+
+private:
+	int m_progressCount;
+	int m_threadCount;
 };
