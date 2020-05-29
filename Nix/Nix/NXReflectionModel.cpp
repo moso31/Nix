@@ -135,7 +135,7 @@ Vector3 NXRMicrofacetReflection::Sample_f(const Vector3& wo, Vector3& wi, float&
 {
 	Vector3 wh = distrib->Sample_wh(wo);
 	wi = Reflect(wo, wh);
-	if (wo.Dot(wi) < 0) return Vector3(0.0f);
+	if (!IsSameHemisphere(wo, wi)) return Vector3(0.0f);
 
 	pdf = distrib->Pdf(wh) / (4.0f * wi.Dot(wh));
 	return f(wo, wi);
@@ -143,7 +143,7 @@ Vector3 NXRMicrofacetReflection::Sample_f(const Vector3& wo, Vector3& wi, float&
 
 float NXRMicrofacetReflection::Pdf(const Vector3& wo, const Vector3& wi)
 {
-	if (wo.Dot(wi) < 0) return 0;
+	if (!IsSameHemisphere(wo, wi)) return 0;
 
 	Vector3 wh = wo + wi;
 	wh.Normalize();

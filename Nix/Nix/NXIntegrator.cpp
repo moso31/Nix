@@ -21,7 +21,8 @@ Vector3 NXIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& pScene
 	if (!isIntersect)
 	{	
 		auto pCubeMap = pScene->GetCubeMap();
-		if (!pCubeMap) return Vector3(0.0f);
+		if (!pCubeMap || !pCubeMap->GetEnvironmentLight()) 
+			return Vector3(0.0f);
 
 		return pScene->GetCubeMap()->GetEnvironmentLight()->GetRadiance(ray.direction); 
 	}
@@ -47,11 +48,12 @@ Vector3 NXIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& pScene
 	for (auto it = pLights.begin(); it != pLights.end(); it++)
 	{
 		Vector3 incidentDirection;
-		float pdf;
+		float pdf = 0.0f;
 		Vector3 Li = (*it)->SampleIncidentRadiance(hitInfo, incidentDirection, pdf);
-		Vector3 f = hitInfo.BSDF->f(hitInfo.direction, incidentDirection);
+		if (Li.IsZero() || pdf == 0.0f)
+			continue;
 
-		// ÔÝÊ±²»¿¼ÂÇVisibility Tester
+		Vector3 f = hitInfo.BSDF->f(hitInfo.direction, incidentDirection);
 		if (!f.IsZero())
 		{
 			L += f * Li * incidentDirection.Dot(hitInfo.normal) / pdf;

@@ -148,14 +148,14 @@ void NXScene::Init()
 		m_sceneManager->CreatePBRMirror(Vector3(1.0f, 1.0f, 1.0f)),
 	};
 
-	auto pPlane = m_sceneManager->CreatePlane(
-		"Ground",
-		50.0f, 50.0f,
-		pMaterial,
-		Vector3(0.0f)
-	);
+	//auto pPlane = m_sceneManager->CreatePlane(
+	//	"Ground",
+	//	50.0f, 50.0f,
+	//	pMaterial,
+	//	Vector3(0.0f)
+	//);
 
-	pPlane->SetMaterialPBR(pPBRMat[4]);
+	//pPlane->SetMaterialPBR(pPBRMat[4]);
 
 	//pPlane = m_sceneManager->CreatePlane(
 	//	"Wall +Y",
@@ -268,7 +268,7 @@ void NXScene::Init()
 	{
 		//m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 100.0f, 0.0f), Vector3(20000.0f));
 		//m_sceneManager->CreatePBRDistantLight(Vector3(-1.f), Vector3(3.0f));
-		//m_sceneManager->CreatePBRAreaLight(pLight, Vector3(1.0f));
+		//m_sceneManager->CreatePBRAreaLight(pLight, Vector3(5.0f));
 		m_sceneManager->CreatePBREnvironmentLight(m_pCubeMap, Vector3(2.0f));
 
 		//auto pDirLight = m_sceneManager->CreateDirectionalLight(
