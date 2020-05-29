@@ -77,7 +77,7 @@ float NXReflectionModel::Pdf(const Vector3& wo, const Vector3& wi)
 Vector3 NXReflectionModel::Sample_f(const Vector3& wo, Vector3& wi, float& pdf)
 {
 	Vector2 u = NXRandom::GetInstance()->CreateVector2();
-	wi = SamplerMath::UniformSampleHemisphere(u);
+	wi = SamplerMath::CosineSampleHemisphere(u);
 	// （反射空间）强制约束wi，使其和wo始终处于同一半球。
 	if (wo.z < 0.0f) wi.z *= -1;
 	pdf = Pdf(wo, wi);
@@ -101,7 +101,7 @@ Vector3 NXRPrefectReflection::Sample_f(const Vector3& wo, Vector3& wi, float& pd
 Vector3 NXRPrefectTransmission::Sample_f(const Vector3& wo, Vector3& wi, float& pdf)
 {
 	// 确定etaA和etaB的入射/折射关系
-	bool entering = wo.z > 0;	// 是从外部进入到内部吗？是的话就反转入射/出射介质。
+	bool entering = CosTheta(wo) > 0;	// 是从外部进入到内部吗？是的话就反转入射/出射介质。
 	float etaI = entering ? etaA : etaB;
 	float etaT = entering ? etaB : etaA;
 
@@ -112,8 +112,7 @@ Vector3 NXRPrefectTransmission::Sample_f(const Vector3& wo, Vector3& wi, float& 
 
 	pdf = 1.0f;	// 完美反射模型被选中时pdf=1，未被选中时pdf=0
 	
-	float cosThetaI = wi.z;
-	Vector3 f_transmittion = T * (Vector3(1.0f) - fresnel.FresnelReflectance(cosThetaI)) / abs(wi.z);
+	Vector3 f_transmittion = T * (Vector3(1.0f) - fresnel.FresnelReflectance(CosTheta(wi))) / AbsCosTheta(wi);
 	// 根据PBRT指示，在计算基于Camera出发的射线的时候，不需要etaT^2/etaI^2。
 	// 16章有解释，但现在还没看到那里，先维持现状。
 	// 还有，公式8.8给的是etaT^2/etaI^2，但PBRT实际代码是etaI^2/etaT^2，反过来了。
@@ -127,8 +126,8 @@ Vector3 NXRMicrofacetReflection::f(const Vector3& wo, const Vector3& wi)
 	Vector3 wh = wo + wi;
 	wh.Normalize();
 	// 使用绝对值确保wo、wi均和n处于同一半球
-	float cosThetaO = fabsf(wo.z);
-	float cosThetaI = fabsf(wi.z);
+	float cosThetaO = AbsCosTheta(wo);
+	float cosThetaI = AbsCosTheta(wi);
 	return R * distrib->D(wh) * distrib->G(wo, wi) * fresnel->FresnelReflectance(wi.Dot(wh)) / (4.0f * cosThetaO * cosThetaI);
 }
 

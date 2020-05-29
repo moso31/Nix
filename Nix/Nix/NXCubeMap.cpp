@@ -1,4 +1,5 @@
 #include "NXCubeMap.h"
+#include "NXLight.h"
 
 NXCubeMap::NXCubeMap()
 {
@@ -95,6 +96,12 @@ Vector3 NXCubeMap::BackgroundColorByDirection(const Vector3& v)
 	float b = *(c + 2) * fInv;
 	return Vector3(r, g, b);
 }
+
+shared_ptr<NXPBREnvironmentLight> NXCubeMap::GetEnvironmentLight() const 
+{ 
+	return m_pEnvironmentLight; 
+}
+
 
 void NXCubeMap::Release()
 {

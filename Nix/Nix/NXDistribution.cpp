@@ -35,8 +35,8 @@ Vector3 NXRDistributionBeckmann::Sample_wh(const Vector3& wo)
 {
 	Vector2 u = NXRandom::GetInstance()->CreateVector2();
 	float a2lnux = alpha * alpha * logf(u.x);
-	float sinTheta = sqrt(1.0f / (1.0f - a2lnux));
-	float cosTheta = sqrt(1.0f - sinTheta * sinTheta);
+	float cosTheta = sqrt(1.0f / (1.0f - a2lnux));
+	float sinTheta = sqrt(1.0f - cosTheta * cosTheta);
 	float phi = XM_2PI * u.y;
 	Vector3 wh = Vector3(sinTheta * cosf(phi), sinTheta * sinf(phi), cosTheta);
 	if (!IsSameHemisphere(wo, wh)) wh = -wh;	// wh和wo同一方向

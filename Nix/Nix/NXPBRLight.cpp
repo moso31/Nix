@@ -1,5 +1,10 @@
 #include "NXPBRLight.h"
+#include "SamplerMath.h"
 #include "NXScene.h"
+#include "NXCubeMap.h"
+#include "NXRandom.h"
+
+using namespace SamplerMath;
 
 bool NXVisibleTest::Do(const Vector3& startPosition, const Vector3& targetPosition)
 {
@@ -45,23 +50,23 @@ Vector3 NXPBRDistantLight::SampleIncidentRadiance(const NXHit& hitInfo, Vector3&
 	return Radiance;
 }
 
-NXPBRAreaLight::NXPBRAreaLight(const Vector3& Radiance, const shared_ptr<NXPrimitive>& pPrimitive) :
-	Radiance(Radiance),
-	m_pPrimitive(pPrimitive)
+NXPBRAreaLight::NXPBRAreaLight(const shared_ptr<NXPrimitive>& pPrimitive, const Vector3& Radiance) :
+	m_pPrimitive(pPrimitive),
+	Radiance(Radiance)
 {
 }
 
 Vector3 NXPBRAreaLight::SampleIncidentRadiance(const NXHit& hitInfo, Vector3& out_wi, float& out_pdf)
 {
-	Vector3 samplePoint, lightSurfaceNormal;
-	m_pPrimitive->SampleFromSurface(samplePoint, lightSurfaceNormal, out_pdf);
-	out_wi = samplePoint - hitInfo.position;
+	Vector3 sampleLightPosition, sampleLightNormal;		// 灯光采样点的位置和该处的法向量
+	m_pPrimitive->SampleFromSurface(sampleLightPosition, sampleLightNormal, out_pdf);
+	out_wi = sampleLightPosition - hitInfo.position;
 	out_wi.Normalize();
 
-	if (!NXVisibleTest::GetInstance()->Do(hitInfo.position, samplePoint))
+	if (!NXVisibleTest::GetInstance()->Do(hitInfo.position, sampleLightPosition))
 		return Vector3(0.0f);	// 无效光源：被场景中其他物体挡住
 
-	return GetRadiance(samplePoint, lightSurfaceNormal, -out_wi);
+	return GetRadiance(sampleLightPosition, sampleLightNormal, -out_wi);
 }
 
 Vector3 NXPBRAreaLight::GetRadiance(const Vector3& samplePosition, const Vector3& lightSurfaceNormal, const Vector3& targetDirection)
@@ -69,4 +74,30 @@ Vector3 NXPBRAreaLight::GetRadiance(const Vector3& samplePosition, const Vector3
 	if (lightSurfaceNormal.Dot(targetDirection) <= 0)
 		return Vector3(0.0f);	// 无效光源：采样射线方向背朝表面
 	return Radiance;
+}
+
+NXPBREnvironmentLight::NXPBREnvironmentLight(const shared_ptr<NXCubeMap>& pCubeMap, const Vector3& Intensity, float SceneRadius) :
+	m_pCubeMap(pCubeMap),
+	Intensity(Intensity),
+	SceneRadius(SceneRadius)
+{
+}
+
+Vector3 NXPBREnvironmentLight::SampleIncidentRadiance(const NXHit& hitInfo, Vector3& out_wi, float& out_pdf)
+{
+	//Vector2 vRandom = NXRandom::GetInstance()->CreateVector2();
+	//Vector3 vIndirectRef = CosineSampleHemisphere(vRandom);
+	//out_wi = hitInfo.BSDF->ReflectionToWorld(vIndirectRef);
+	//out_pdf = NXReflection::AbsCosTheta(vIndirectRef) / XM_PI;		// 暂时使用简单的余弦采样
+	hitInfo.BSDF->Sample_f(hitInfo.direction, out_wi, out_pdf);
+
+	if (!NXVisibleTest::GetInstance()->Do(hitInfo.position, hitInfo.position + out_wi * 2.0f * SceneRadius))
+		return Vector3(0.0f);	// 无效光源：被场景中其他物体挡住
+	
+	return GetRadiance(out_wi);
+}
+
+Vector3 NXPBREnvironmentLight::GetRadiance(const Vector3& targetDirection)
+{
+	return m_pCubeMap->BackgroundColorByDirection(targetDirection) * Intensity;
 }

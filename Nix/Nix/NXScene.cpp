@@ -197,15 +197,15 @@ void NXScene::Init()
 
 	//pPlane->SetMaterialPBR(pPBRMat[2]);
 
-	shared_ptr<NXPlane> pLight = m_sceneManager->CreatePlane(
-		"Light",
-		1.0f, 1.0f,
-		pMaterial,
-		Vector3(0.0f, 4.999f, 0.0f),
-		Vector3(XM_PI, 0.0f, 0.0f)
-	);
+	//shared_ptr<NXPlane> pLight = m_sceneManager->CreatePlane(
+	//	"Light",
+	//	1.0f, 1.0f,
+	//	pMaterial,
+	//	Vector3(0.0f, 4.999f, 0.0f),
+	//	Vector3(XM_PI, 0.0f, 0.0f)
+	//);
 
-	pLight->SetMaterialPBR(pPBRMat[4]);
+	//pLight->SetMaterialPBR(pPBRMat[4]);
 
 	float a[10] = { 0.02, 0.25, 0.5, 0.75, 1 };
 	Vector3 rBaseColor = Vector3(1.0, 0.782, 0.344);
@@ -242,8 +242,8 @@ void NXScene::Init()
 	auto pCamera = m_sceneManager->CreateCamera(
 		"Camera1", 
 		70.0f, 0.01f, 1000.f, 
-		Vector3(0.0f, 2.5f, 0.0f),
-		Vector3(0.0f, 2.5f, 1.0f),
+		Vector3(4.0f, 1.5f, 0.0f),
+		Vector3(4.0f, 0.0f, 0.0f),
 		Vector3(0.0f, 1.0f, 0.0f)
 	);
 
@@ -268,7 +268,8 @@ void NXScene::Init()
 	{
 		//m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 100.0f, 0.0f), Vector3(20000.0f));
 		//m_sceneManager->CreatePBRDistantLight(Vector3(-1.f), Vector3(3.0f));
-		m_sceneManager->CreatePBRAreaLight(pLight, Vector3(5.0f));
+		//m_sceneManager->CreatePBRAreaLight(pLight, Vector3(1.0f));
+		m_sceneManager->CreatePBREnvironmentLight(m_pCubeMap, Vector3(2.0f));
 
 		//auto pDirLight = m_sceneManager->CreateDirectionalLight(
 		//	"DirLight1",

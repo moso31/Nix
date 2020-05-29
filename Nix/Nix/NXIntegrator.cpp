@@ -23,7 +23,7 @@ Vector3 NXIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& pScene
 		auto pCubeMap = pScene->GetCubeMap();
 		if (!pCubeMap) return Vector3(0.0f);
 
-		return pScene->GetCubeMap()->BackgroundColorByDirection(ray.direction);
+		return pScene->GetCubeMap()->GetEnvironmentLight()->GetRadiance(ray.direction); 
 	}
 
 	// 生成当前hit的bsdf（为其添加各种ReflectionModel）
@@ -54,7 +54,7 @@ Vector3 NXIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& pScene
 		// 暂时不考虑Visibility Tester
 		if (!f.IsZero())
 		{
-			L += f * Li * incidentDirection.Dot(hitInfo.normal);
+			L += f * Li * incidentDirection.Dot(hitInfo.normal) / pdf;
 		}
 	}
 

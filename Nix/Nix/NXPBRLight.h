@@ -57,7 +57,7 @@ public:
 class NXPBRAreaLight : public NXPBRLight
 {
 public:
-	NXPBRAreaLight(const Vector3& Radiance, const shared_ptr<NXPrimitive>& pPrimitive);
+	NXPBRAreaLight(const shared_ptr<NXPrimitive>& pPrimitive, const Vector3& Radiance);
 
 	Vector3 SampleIncidentRadiance(const NXHit& hitInfo, Vector3& out_wi, float& out_pdf) override;
 
@@ -70,4 +70,20 @@ public:
 
 private:
 	shared_ptr<NXPrimitive> m_pPrimitive;
+};
+
+class NXPBREnvironmentLight : public NXPBRLight
+{
+public:
+	NXPBREnvironmentLight(const shared_ptr<NXCubeMap>& pCubeMap, const Vector3& Intensity, float SceneRadius);
+
+	Vector3 SampleIncidentRadiance(const NXHit& hitInfo, Vector3& out_wi, float& out_pdf) override;
+	Vector3 GetRadiance(const Vector3& targetDirection);
+
+public:
+	Vector3 Intensity;
+	float SceneRadius;
+
+private:
+	shared_ptr<NXCubeMap> m_pCubeMap;
 };

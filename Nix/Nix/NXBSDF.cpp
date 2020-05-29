@@ -2,6 +2,8 @@
 #include "NXIntersection.h"
 #include "NXRandom.h"
 
+using namespace NXReflection;
+
 NXBSDF::NXBSDF(const NXHit& pHitInfo) :
 	ng(pHitInfo.normal),
 	ns(pHitInfo.shading.normal),
@@ -63,7 +65,7 @@ Vector3 NXBSDF::Sample_f(const Vector3& woWorld, Vector3& outwiWorld, float& pdf
 
 	// 将wo从世界坐标系转换为反射坐标系。
 	Vector3 wo = WorldToReflection(woWorld);
-	if (wo.z == 0.0f) return Vector3(0.0f);
+	if (CosTheta(wo) == 0.0f) return Vector3(0.0f);
 
 	// 获取随机采样方向wi
 	Vector3 wi;

@@ -1,6 +1,7 @@
 #include "SceneManager.h"
 #include "NSFirstPersonalCamera.h"
 #include "FBXMeshLoader.h"
+#include "NXCubeMap.h"
 
 SceneManager::SceneManager()
 {
@@ -272,8 +273,17 @@ shared_ptr<NXPBRLight> SceneManager::CreatePBRDistantLight(const Vector3& direct
 
 shared_ptr<NXPBRLight> SceneManager::CreatePBRAreaLight(const shared_ptr<NXPrimitive>& pPrimitive, const Vector3& radiance)
 {
-	auto pLight = make_shared<NXPBRAreaLight>(radiance, pPrimitive);
+	auto pLight = make_shared<NXPBRAreaLight>(pPrimitive, radiance);
 	pPrimitive->SetAreaLight(pLight);
+	m_scene->m_pbrLights.push_back(pLight);
+	return pLight;
+}
+
+shared_ptr<NXPBRLight> SceneManager::CreatePBREnvironmentLight(const shared_ptr<NXCubeMap>& pCubeMap, const Vector3& Intensity)
+{
+	float sceneRadius = m_scene->GetBoundingSphere().Radius;
+	auto pLight = make_shared<NXPBREnvironmentLight>(pCubeMap, Intensity, sceneRadius);
+	pCubeMap->SetEnvironmentLight(pLight);
 	m_scene->m_pbrLights.push_back(pLight);
 	return pLight;
 }
