@@ -3,6 +3,7 @@
 #include "NXScene.h"
 #include "NXCubeMap.h"
 #include "NXRandom.h"
+#include "NXReflectionModel.h"
 
 using namespace SamplerMath;
 
@@ -85,11 +86,12 @@ NXPBREnvironmentLight::NXPBREnvironmentLight(const shared_ptr<NXCubeMap>& pCubeM
 
 Vector3 NXPBREnvironmentLight::SampleIncidentRadiance(const NXHit& hitInfo, Vector3& out_wi, float& out_pdf)
 {
-	//Vector2 vRandom = NXRandom::GetInstance()->CreateVector2();
-	//Vector3 vIndirectRef = CosineSampleHemisphere(vRandom);
-	//out_wi = hitInfo.BSDF->ReflectionToWorld(vIndirectRef);
-	//out_pdf = NXReflection::AbsCosTheta(vIndirectRef) / XM_PI;		// 暂时使用简单的余弦采样
-	hitInfo.BSDF->Sample_f(hitInfo.direction, out_wi, out_pdf);
+	Vector2 vRandom = NXRandom::GetInstance()->CreateVector2();
+	out_wi = CosineSampleHemisphere(vRandom);
+	out_pdf = fabsf(out_wi.z * XM_1DIVPI);
+	out_wi = hitInfo.BSDF->ReflectionToWorld(out_wi);
+
+	//hitInfo.BSDF->Sample_f(hitInfo.direction, out_wi, out_pdf);
 
 	if (!NXVisibleTest::GetInstance()->Do(hitInfo.position, hitInfo.position + out_wi * 2.0f * SceneRadius))
 		return Vector3(0.0f);	// 无效光源：被场景中其他物体挡住

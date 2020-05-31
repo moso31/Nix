@@ -38,10 +38,17 @@ Vector3 SamplerMath::CosineSampleHemisphere(const Vector2& u)
 	return Vector3(v.x, v.y, z);
 }
 
-Vector2 DirectX::SamplerMath::UniformTriangleSample(const Vector2& u)
+Vector2 SamplerMath::UniformTriangleSample(const Vector2& u)
 {
 	float sx = sqrtf(u.x);
 	float x = 1.0f - sx;
 	float y = sx * u.y;
 	return Vector2(x, y);
+}
+
+float SamplerMath::PowerHeuristicWeightPdf(int nf, float fPdf, int ng, float gPdf)
+{
+	// 使用启发式方案对进行pdf采样的权重计算。
+	float f = nf * fPdf, g = ng * gPdf;
+	return (f * f) / (f * f + g * g);
 }

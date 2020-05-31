@@ -14,6 +14,7 @@ namespace SamplerMath
 	Vector2 UniformSampleDisk(const Vector2& u);
 	Vector3 CosineSampleHemisphere(const Vector2& u);
 	Vector2 UniformTriangleSample(const Vector2& u);
+	float PowerHeuristicWeightPdf(int nf, float fPdf, int ng, float gPdf);
 } // namespace SamplerMath
 
 } // namespace DirectX

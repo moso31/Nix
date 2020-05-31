@@ -221,7 +221,7 @@ void NXScene::Init()
 				"Sphere",
 				0.5f, 16, 16,
 				pMaterial,
-				Vector3(randomPos.x, 0.5f, randomPos.y) * 1.0f
+				Vector3(randomPos.x, 0.5f, randomPos.y) * 1.2f
 			);
 
 			float roughness = a[j];
@@ -242,8 +242,8 @@ void NXScene::Init()
 	auto pCamera = m_sceneManager->CreateCamera(
 		"Camera1", 
 		70.0f, 0.01f, 1000.f, 
-		Vector3(4.0f, 1.5f, 0.0f),
-		Vector3(4.0f, 0.0f, 0.0f),
+		Vector3(3.6f, 1.f, 1.2f),
+		Vector3(2.4f, -0.3f, 2.4f),
 		Vector3(0.0f, 1.0f, 0.0f)
 	);
 
@@ -493,7 +493,10 @@ void NXScene::InitBoundingStructures()
 void NXScene::CreateBVHTrees(const HBVHSplitMode SplitMode)
 {
 	if (m_pBVHTree)
+	{
+		m_pBVHTree->Release();
 		m_pBVHTree.reset();
+	}
 
 	auto pThis = dynamic_pointer_cast<NXScene>(shared_from_this());
 	m_pBVHTree = make_shared<HBVHTree>(pThis, m_primitives);

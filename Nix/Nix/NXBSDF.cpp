@@ -110,6 +110,27 @@ Vector3 NXBSDF::Sample_f(const Vector3& woWorld, Vector3& outwiWorld, float& pdf
 	return f;
 }
 
+float NXBSDF::Pdf(const Vector3& woWorld, const Vector3& wiWorld, ReflectionType reflectType)
+{
+	if (m_reflectionModels.empty())
+		return 0.f;
+
+	Vector3 wo = WorldToReflection(woWorld), wi = WorldToReflection(wiWorld);
+	if (wo.z == 0) return 0.;
+	float pdf = 0.f;
+	int matchingCount = 0;
+	for (int i = 0; i < m_reflectionModels.size(); ++i)
+	{
+		if (m_reflectionModels[i]->IsMatchingType(reflectType)) 
+		{
+			matchingCount++;
+			pdf += m_reflectionModels[i]->Pdf(wo, wi);
+		}
+	}
+
+	return matchingCount == 0 ? 0.0f : pdf / (float)matchingCount;
+}
+
 Vector3 NXBSDF::WorldToReflection(const Vector3& p)
 {
 	return Vector3(p.Dot(ss), p.Dot(ts), p.Dot(ns));

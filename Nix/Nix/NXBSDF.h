@@ -13,6 +13,7 @@ public:
 
 	Vector3 f(const Vector3& woWorld, const Vector3& wiWorld, ReflectionType reflectType = REFLECTIONTYPE_ALL);
 	Vector3 Sample_f(const Vector3& woWorld, Vector3& outwiWorld, float& pdf, ReflectionType reflectType = REFLECTIONTYPE_ALL);
+	float Pdf(const Vector3& woWorld, const Vector3& wiWorld, ReflectionType reflectType = REFLECTIONTYPE_ALL);
 
 	Vector3 WorldToReflection(const Vector3& p);
 	Vector3 ReflectionToWorld(const Vector3& p);
