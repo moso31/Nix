@@ -11,7 +11,7 @@ class NXTriangle;
 
 class NXHit;
 class NXPBRMaterial;
-class NXPBRAreaLight;
+class NXTangibleLight;
 
 class NXPrimitive : public NXTransform
 {
@@ -40,13 +40,14 @@ public:
 	ID3D11ShaderResourceView* GetTextureSRV() const { return m_pTextureSRV; }
 	ID3D11Buffer* GetMaterialBuffer() const { return m_cbMaterial; }
 
-	void SetAreaLight(shared_ptr<NXPBRAreaLight> pAreaLight) { m_pAreaLight = pAreaLight; }
-	shared_ptr<NXPBRAreaLight> GetAreaLight() const { return m_pAreaLight; }
+	void SetTangibleLight(shared_ptr<NXTangibleLight> pTangibleLight) { m_pTangibleLight = pTangibleLight; }
+	shared_ptr<NXTangibleLight> GetTangibleLight() const { return m_pTangibleLight; }
 
 	virtual bool RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist);
 
 	// 在当前Primitive表面上进行采样。随机挑选表面上任意一点。
 	virtual void SampleFromSurface(Vector3& out_hitPos, Vector3& out_hitNorm, float& out_pdf);
+	float GetPdf(const NXHit& hitInfo, const Vector3& direction) { return 1.0f / GetSurfaceArea(); }
 
 protected:
 	void InitVertexIndexBuffer();
@@ -66,7 +67,7 @@ protected:
 	shared_ptr<NXMaterial>		m_pMaterial;
 	shared_ptr<NXPBRMaterial>	m_pPBRMaterial;
 
-	shared_ptr<NXPBRAreaLight>	m_pAreaLight;	// 可以将Primitive设置为光源
+	shared_ptr<NXTangibleLight>	m_pTangibleLight;	// 可以将Primitive设置为光源
 
 	AABB m_aabb;
 	float m_fArea;		// 纪录当前Mesh的总表面积。

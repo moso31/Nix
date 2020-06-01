@@ -44,20 +44,6 @@ bool NXCubeMap::Init(wstring filePath)
 	{
 		auto faceImage = m_image->GetImage(0, item, 0);
 		m_faceData[item] = faceImage->pixels;
-		//for (int i = 0; i < faceImage->height; i++)
-		//{
-		//	for (int j = 0; j < faceImage->width; j++)
-		//	{
-		//		int offset = (i * faceImage->width + j) * 4;
-		//		byte* data = p + offset;
-		//		for (int k = 0; k < 4; k++)
-		//		{
-		//			int c = *(data + k);
-		//			printf("%3d ", c);
-		//		}
-		//		printf("\n");
-		//	}
-		//}
 	}
 
 	return true;

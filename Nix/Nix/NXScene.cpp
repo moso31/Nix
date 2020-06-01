@@ -268,7 +268,7 @@ void NXScene::Init()
 	{
 		//m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 100.0f, 0.0f), Vector3(20000.0f));
 		//m_sceneManager->CreatePBRDistantLight(Vector3(-1.f), Vector3(3.0f));
-		//m_sceneManager->CreatePBRAreaLight(pLight, Vector3(5.0f));
+		//m_sceneManager->CreatePBRTangibleLight(pLight, Vector3(5.0f));
 		m_sceneManager->CreatePBREnvironmentLight(m_pCubeMap, Vector3(2.0f));
 
 		//auto pDirLight = m_sceneManager->CreateDirectionalLight(

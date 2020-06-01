@@ -47,7 +47,7 @@ public:
 
 	shared_ptr<NXPBRLight> CreatePBRPointLight(const Vector3& position, const Vector3& intensity);
 	shared_ptr<NXPBRLight> CreatePBRDistantLight(const Vector3& direction, const Vector3& radiance);
-	shared_ptr<NXPBRLight> CreatePBRAreaLight(const shared_ptr<NXPrimitive>& pPrimitive, const Vector3& radiance);
+	shared_ptr<NXPBRLight> CreatePBRTangibleLight(const shared_ptr<NXPrimitive>& pPrimitive, const Vector3& radiance);
 	shared_ptr<NXPBRLight> CreatePBREnvironmentLight(const shared_ptr<NXCubeMap>& pCubeMap, const Vector3& Intensity = Vector3(1.0f));
 
 	// 绑定Outline父子关系

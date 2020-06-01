@@ -51,13 +51,13 @@ Vector3 NXPBRDistantLight::SampleIncidentRadiance(const NXHit& hitInfo, Vector3&
 	return Radiance;
 }
 
-NXPBRAreaLight::NXPBRAreaLight(const shared_ptr<NXPrimitive>& pPrimitive, const Vector3& Radiance) :
+NXTangibleLight::NXTangibleLight(const shared_ptr<NXPrimitive>& pPrimitive, const Vector3& Radiance) :
 	m_pPrimitive(pPrimitive),
 	Radiance(Radiance)
 {
 }
 
-Vector3 NXPBRAreaLight::SampleIncidentRadiance(const NXHit& hitInfo, Vector3& out_wi, float& out_pdf)
+Vector3 NXTangibleLight::SampleIncidentRadiance(const NXHit& hitInfo, Vector3& out_wi, float& out_pdf)
 {
 	Vector3 sampleLightPosition, sampleLightNormal;		// 灯光采样点的位置和该处的法向量
 	m_pPrimitive->SampleFromSurface(sampleLightPosition, sampleLightNormal, out_pdf);
@@ -70,16 +70,21 @@ Vector3 NXPBRAreaLight::SampleIncidentRadiance(const NXHit& hitInfo, Vector3& ou
 	return GetRadiance(sampleLightPosition, sampleLightNormal, -out_wi);
 }
 
-Vector3 NXPBRAreaLight::GetRadiance(const Vector3& samplePosition, const Vector3& lightSurfaceNormal, const Vector3& targetDirection)
+Vector3 NXTangibleLight::GetRadiance(const Vector3& samplePosition, const Vector3& lightSurfaceNormal, const Vector3& targetDirection)
 {
 	if (lightSurfaceNormal.Dot(targetDirection) <= 0)
 		return Vector3(0.0f);	// 无效光源：采样射线方向背朝表面
 	return Radiance;
 }
 
-NXPBREnvironmentLight::NXPBREnvironmentLight(const shared_ptr<NXCubeMap>& pCubeMap, const Vector3& Intensity, float SceneRadius) :
+float NXTangibleLight::GetPdf(const NXHit& hitInfo, const Vector3& direction)
+{
+	return m_pPrimitive->GetPdf(hitInfo, direction);
+}
+
+NXPBREnvironmentLight::NXPBREnvironmentLight(const shared_ptr<NXCubeMap>& pCubeMap, const Vector3& Radiance, float SceneRadius) :
 	m_pCubeMap(pCubeMap),
-	Intensity(Intensity),
+	Radiance(Radiance),
 	SceneRadius(SceneRadius)
 {
 }
@@ -96,10 +101,19 @@ Vector3 NXPBREnvironmentLight::SampleIncidentRadiance(const NXHit& hitInfo, Vect
 	if (!NXVisibleTest::GetInstance()->Do(hitInfo.position, hitInfo.position + out_wi * 2.0f * SceneRadius))
 		return Vector3(0.0f);	// 无效光源：被场景中其他物体挡住
 	
-	return GetRadiance(out_wi);
+	Vector3 ignore;
+	return GetRadiance(ignore, ignore, -out_wi);
 }
 
-Vector3 NXPBREnvironmentLight::GetRadiance(const Vector3& targetDirection)
+Vector3 NXPBREnvironmentLight::GetRadiance(const Vector3& samplePosition, const Vector3& lightSurfaceNormal, const Vector3& targetDirection)
 {
-	return m_pCubeMap->BackgroundColorByDirection(targetDirection) * Intensity;
+	// 提取颜色值时对方向取反。
+	// targetDirection从光源朝向目标发射，但用于cubemap的计算向量则是反过来的，从中心朝光源发射。
+	return m_pCubeMap->BackgroundColorByDirection(-targetDirection) * Radiance;
+}
+
+float NXPBREnvironmentLight::GetPdf(const NXHit& hitInfo, const Vector3& targetDirection)
+{
+	Vector3 localDirection = hitInfo.BSDF->WorldToReflection(targetDirection);
+	return fabsf(localDirection.z * XM_1DIVPI);
 }

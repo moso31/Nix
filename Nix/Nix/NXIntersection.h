@@ -2,6 +2,8 @@
 #include "NXInstance.h"
 #include "NXBSDF.h"
 
+#define NXRT_EPSILON 1e-4f	// NXRayTracer 浮点精度校正
+
 struct NXShadingHit
 {
 	Vector3 normal;

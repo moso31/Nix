@@ -38,8 +38,6 @@ struct Plane;
 #define DEGTORAD PI / 180.0f
 #define RADTODEG 180.0f / PI
 
-#define NXRT_EPSILON 1e-4f	// NXRayTracer 浮点精度校正
-
 // 1D value
 template <typename T, typename U, typename V>
 inline T Clamp(T val, U low, V high) {
