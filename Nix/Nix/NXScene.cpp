@@ -21,6 +21,9 @@
 
 #include "NXCubeMap.h"
 
+#include "NXWhittedIntegrator.h"
+#include "NXDirectIntegrator.h"
+
 //#include "NXShadowMap.h"
 #include "NXPassShadowMap.h"
 
@@ -53,7 +56,9 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 	imageInfo.ImageSize = XMINT2(1600, 1200);
 	imageInfo.EachPixelSamples = 16;
 	imageInfo.outPath = "D:\\xx1.bmp";
-	shared_ptr<NXIntegrator> pWhitted = make_shared<NXIntegrator>();
+
+	//shared_ptr<NXWhittedIntegrator> pIntegrator = make_shared<NXWhittedIntegrator>();
+	shared_ptr<NXDirectIntegrator> pIntegrator = make_shared<NXDirectIntegrator>();
 
 	if (eArg.VKey == 'G')
 	{
@@ -61,7 +66,7 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 
 		//printf("rendering(no optimize)...\n");
 		//time_st = GetTickCount64();
-		//NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pWhitted, imageInfo);
+		//NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pIntegrator, imageInfo);
 		//time_ed = GetTickCount64();
 		//printf("Render done. time£º%.3f s\n", (float)(time_ed - time_st) / 1000.0f);
 
@@ -69,7 +74,7 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		//printf("rendering(SplitPosition)...\n");
 		//time_st = GetTickCount64();
 		//CreateBVHTrees(HBVHSplitMode::SplitPosition);
-		//NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pWhitted, imageInfo);
+		//NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pIntegrator, imageInfo);
 		//time_ed = GetTickCount64();
 		//printf("Render done. time£º%.3f s\n", (float)(time_ed - time_st) / 1000.0f);
 
@@ -77,7 +82,7 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		//printf("rendering(SplitCount)...\n");
 		//time_st = GetTickCount64();
 		//CreateBVHTrees(HBVHSplitMode::SplitCount);
-		//NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pWhitted, imageInfo);
+		//NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pIntegrator, imageInfo);
 		//time_ed = GetTickCount64();
 		//printf("Render done. time£º%.3f s\n", (float)(time_ed - time_st) / 1000.0f);
 
@@ -85,7 +90,7 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		//printf("rendering(SAH)...\n");
 		//time_st = GetTickCount64();
 		//CreateBVHTrees(HBVHSplitMode::SAH);
-		//NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pWhitted, imageInfo);
+		//NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pIntegrator, imageInfo);
 		//time_ed = GetTickCount64();
 		//printf("Render done. time£º%.3f s\n", (float)(time_ed - time_st) / 1000.0f);
 
@@ -93,7 +98,7 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		printf("rendering(HLBVH)...\n");
 		time_st = GetTickCount64();
 		CreateBVHTrees(HBVHSplitMode::HLBVH);
-		NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pWhitted, imageInfo);
+		NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pIntegrator, imageInfo);
 		time_ed = GetTickCount64();
 		printf("Render done. time£º%.3f s\n", (float)(time_ed - time_st) / 1000.0f);
 	}
@@ -106,7 +111,7 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		printf("done.\n");
 
 		printf("center ray testing...\n");
-		NXRayTracer::GetInstance()->CenterRayTest(pScene, m_mainCamera, pWhitted);
+		NXRayTracer::GetInstance()->CenterRayTest(pScene, m_mainCamera, pIntegrator);
 
 		if (!m_primitives.empty())
 		{
@@ -122,7 +127,7 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		}
 	}
 
-	pWhitted.reset();
+	pIntegrator.reset();
 }
 
 void NXScene::Init()

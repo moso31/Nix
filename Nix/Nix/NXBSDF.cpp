@@ -92,7 +92,7 @@ Vector3 NXBSDF::Sample_f(const Vector3& woWorld, Vector3& outwiWorld, float& pdf
 
 	// 否则就计算所有反射模型的f值。
 	f = Vector3(0.0f);
-	bool isReflect = wo.Dot(ng) * wi.Dot(ng) > 0;
+	bool isReflect = woWorld.Dot(ng) * outwiWorld.Dot(ng) > 0;
 	for (int i = 0; i < (int)m_reflectionModels.size(); i++)
 	{
 		shared_ptr<NXReflectionModel> refModel = m_reflectionModels[i];

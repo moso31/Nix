@@ -67,9 +67,6 @@
     <Filter Include="Core\File\Texture">
       <UniqueIdentifier>{7d6084ab-293b-4ab5-8f1c-93f106cb3b6c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Nix\RayTracer\Reflection">
-      <UniqueIdentifier>{9ee6e46b-be17-4d9f-bac0-d5a9c5e06f6a}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\RenderTarget.fx">
@@ -197,11 +194,20 @@
     <ClCompile Include="Nix\NXRayTracer.cpp">
       <Filter>Nix\RayTracer</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\NXReflectionModel.cpp">
+      <Filter>Nix\RayTracer</Filter>
+    </ClCompile>
     <ClCompile Include="Core\NXRandom.cpp">
       <Filter>Core\Helper</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\NXFresnel.cpp">
+      <Filter>Nix\RayTracer</Filter>
+    </ClCompile>
     <ClCompile Include="Nix\NXIntegrator.cpp">
       <Filter>Nix\RayTracer\Integrator</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXBSDF.cpp">
+      <Filter>Nix\RayTracer</Filter>
     </ClCompile>
     <ClCompile Include="Nix\NXPBRMaterial.cpp">
       <Filter>Nix\Material</Filter>
@@ -212,6 +218,9 @@
     <ClCompile Include="Core\ImageGenerator.cpp">
       <Filter>Core\File</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\NXDistribution.cpp">
+      <Filter>Nix\RayTracer</Filter>
+    </ClCompile>
     <ClCompile Include="Core\DDSTextureLoader.cpp">
       <Filter>Core\File\Texture</Filter>
     </ClCompile>
@@ -221,17 +230,11 @@
     <ClCompile Include="Nix\NXCubeMap.cpp">
       <Filter>Nix\Object</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\NXBSDF.cpp">
-      <Filter>Nix\RayTracer\Reflection</Filter>
+    <ClCompile Include="Nix\NXDirectIntegrator.cpp">
+      <Filter>Nix\RayTracer\Integrator</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\NXDistribution.cpp">
-      <Filter>Nix\RayTracer\Reflection</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\NXFresnel.cpp">
-      <Filter>Nix\RayTracer\Reflection</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\NXReflectionModel.cpp">
-      <Filter>Nix\RayTracer\Reflection</Filter>
+    <ClCompile Include="Nix\NXWhittedIntegrator.cpp">
+      <Filter>Nix\RayTracer\Integrator</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -349,11 +352,20 @@
     <ClInclude Include="Nix\NXRayTracer.h">
       <Filter>Nix\RayTracer</Filter>
     </ClInclude>
+    <ClInclude Include="Nix\NXReflectionModel.h">
+      <Filter>Nix\RayTracer</Filter>
+    </ClInclude>
     <ClInclude Include="Core\NXRandom.h">
       <Filter>Core\Helper</Filter>
     </ClInclude>
+    <ClInclude Include="Nix\NXFresnel.h">
+      <Filter>Nix\RayTracer</Filter>
+    </ClInclude>
     <ClInclude Include="Nix\NXIntegrator.h">
       <Filter>Nix\RayTracer\Integrator</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXBSDF.h">
+      <Filter>Nix\RayTracer</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXPBRMaterial.h">
       <Filter>Nix\Material</Filter>
@@ -363,6 +375,9 @@
     </ClInclude>
     <ClInclude Include="Core\ImageGenerator.h">
       <Filter>Core\File</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXDistribution.h">
+      <Filter>Nix\RayTracer</Filter>
     </ClInclude>
     <ClInclude Include="Core\DirectXTex.h">
       <Filter>Core\File\Texture</Filter>
@@ -376,17 +391,11 @@
     <ClInclude Include="Nix\NXCubeMap.h">
       <Filter>Nix\Object</Filter>
     </ClInclude>
-    <ClInclude Include="Nix\NXBSDF.h">
-      <Filter>Nix\RayTracer\Reflection</Filter>
+    <ClInclude Include="Nix\NXDirectIntegrator.h">
+      <Filter>Nix\RayTracer\Integrator</Filter>
     </ClInclude>
-    <ClInclude Include="Nix\NXDistribution.h">
-      <Filter>Nix\RayTracer\Reflection</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\NXFresnel.h">
-      <Filter>Nix\RayTracer\Reflection</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\NXReflectionModel.h">
-      <Filter>Nix\RayTracer\Reflection</Filter>
+    <ClInclude Include="Nix\NXWhittedIntegrator.h">
+      <Filter>Nix\RayTracer\Integrator</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

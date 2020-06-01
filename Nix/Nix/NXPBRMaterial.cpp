@@ -56,7 +56,7 @@ void NXCommonMaterial::ConstructReflectionModel(NXHit& hitInfo)
 	hitInfo.BSDF = make_shared<NXBSDF>(hitInfo);
 	Vector3 Diffuse, Specular;
 	Diffuse = BaseColor * (1.0f - Metalness);
-	Specular = Vector3::Lerp(Vector3(0.04), BaseColor, Metalness);	// 0.04 是拟合的。
+	Specular = Vector3::Lerp(Vector3(0.04f), BaseColor, Metalness);	// 0.04 是拟合的。
 
 	if (Diffuse != Vector3(0.0f))
 	{

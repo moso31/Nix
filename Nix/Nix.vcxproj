@@ -222,11 +222,13 @@
     <ClCompile Include="Nix\KdTree.cpp" />
     <ClCompile Include="Nix\NXBSDF.cpp" />
     <ClCompile Include="Nix\NXCubeMap.cpp" />
+    <ClCompile Include="Nix\NXDirectIntegrator.cpp" />
     <ClCompile Include="Nix\NXFresnel.cpp" />
     <ClCompile Include="Nix\NXIntegrator.cpp" />
     <ClCompile Include="Nix\NXPBRLight.cpp" />
     <ClCompile Include="Nix\NXPBRMaterial.cpp" />
     <ClCompile Include="Nix\NXDistribution.cpp" />
+    <ClCompile Include="Nix\NXWhittedIntegrator.cpp" />
     <ClCompile Include="Nix\Script\NSFirstPersonalCamera.cpp" />
     <ClCompile Include="Nix\Script\NSTest.cpp" />
     <ClCompile Include="Nix\NXBox.cpp" />
@@ -274,11 +276,13 @@
     <ClInclude Include="Nix\KdTree.h" />
     <ClInclude Include="Nix\NXBSDF.h" />
     <ClInclude Include="Nix\NXCubeMap.h" />
+    <ClInclude Include="Nix\NXDirectIntegrator.h" />
     <ClInclude Include="Nix\NXFresnel.h" />
     <ClInclude Include="Nix\NXIntegrator.h" />
     <ClInclude Include="Nix\NXPBRLight.h" />
     <ClInclude Include="Nix\NXPBRMaterial.h" />
     <ClInclude Include="Nix\NXDistribution.h" />
+    <ClInclude Include="Nix\NXWhittedIntegrator.h" />
     <ClInclude Include="Nix\Script\NSFirstPersonalCamera.h" />
     <ClInclude Include="Nix\Script\NSTest.h" />
     <ClInclude Include="Nix\NXBox.h" />
