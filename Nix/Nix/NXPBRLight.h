@@ -97,7 +97,11 @@ class NXPBREnvironmentLight : public NXPBRAreaLight
 public:
 	NXPBREnvironmentLight(const shared_ptr<NXCubeMap>& pCubeMap, const Vector3& Radiance, float SceneRadius);
 
+	// 提供hit位置信息，并在光源上随机生成方向wi。
+	// 计算从wi方向到hit处的radiance，并返回该方向的概率密度分布值pdf。
 	Vector3 SampleIncidentRadiance(const NXHit& hitInfo, Vector3& out_wi, float& out_pdf) override;
+
+	// 计算自发光(emission)的radiance。
 	Vector3 GetRadiance(const Vector3& samplePosition, const Vector3& lightSurfaceNormal, const Vector3& targetDirection) override;
 
 	float GetPdf(const NXHit& hitInfo, const Vector3& targetDirection) override;

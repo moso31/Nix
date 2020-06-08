@@ -65,10 +65,10 @@ Vector3 NXIntegrator::DirectEstimate(const Ray& ray, const shared_ptr<NXScene>& 
 			// 未击中光源：使用环境贴图的自发光作为Li（没有环境贴图则返回0.）
 			Ray ray(hitInfo.position, incidentDirection);
 			ray.position += incidentDirection * NXRT_EPSILON;
+			Vector3 Li(0.0f);
 			NXHit hitLightInfo;
 			pScene->RayCast(ray, hitLightInfo);
 			shared_ptr<NXPBRAreaLight> pHitAreaLight;
-			Vector3 Li(0.0f);
 			if (hitLightInfo.pPrimitive)
 			{
 				pHitAreaLight = hitLightInfo.pPrimitive->GetTangibleLight();
@@ -79,15 +79,18 @@ Vector3 NXIntegrator::DirectEstimate(const Ray& ray, const shared_ptr<NXScene>& 
 			}
 
 			pdfLight = 0.0f;
-			if (pHitAreaLight)
+			if (pHitAreaLight == pLight)
 			{
 				Li = pHitAreaLight->GetRadiance(hitLightInfo.position, hitLightInfo.normal, -incidentDirection);
 				pdfLight = pHitAreaLight->GetPdf(hitInfo, -incidentDirection);
 			}
 
-			// 计算权重。对基于BSDF的采样，BSDF为主要加权，Light其次。
-			pdfWeight = PowerHeuristicWeightPdf(1, pdfBSDF, 1, pdfLight);
-			L += f * Li * incidentDirection.Dot(hitInfo.normal) * pdfWeight / pdfBSDF;
+			if (!Li.IsZero())
+			{
+				// 计算权重。对基于BSDF的采样，BSDF为主要加权，Light其次。
+				pdfWeight = PowerHeuristicWeightPdf(1, pdfBSDF, 1, pdfLight);
+				L += f * Li * incidentDirection.Dot(hitInfo.normal) * pdfWeight / pdfBSDF;
+			}
 		}
 	}
 
