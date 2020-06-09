@@ -23,6 +23,7 @@
 
 #include "NXWhittedIntegrator.h"
 #include "NXDirectIntegrator.h"
+#include "NXPathIntegrator.h"
 
 //#include "NXShadowMap.h"
 #include "NXPassShadowMap.h"
@@ -55,56 +56,43 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 	NXRenderImageInfo imageInfo;
 	imageInfo.ImageSize = XMINT2(1600, 1200);
 	imageInfo.EachPixelSamples = 16;
-	imageInfo.outPath = "D:\\xx1.bmp";
-
-	//shared_ptr<NXWhittedIntegrator> pIntegrator = make_shared<NXWhittedIntegrator>();
-	shared_ptr<NXDirectIntegrator> pIntegrator = make_shared<NXDirectIntegrator>();
 
 	if (eArg.VKey == 'G')
 	{
+		shared_ptr<NXIntegrator> pIntegrator = make_shared<NXPathIntegrator>();
+
 		size_t time_st, time_ed;
-
-		//printf("rendering(no optimize)...\n");
-		//time_st = GetTickCount64();
-		//NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pIntegrator, imageInfo);
-		//time_ed = GetTickCount64();
-		//printf("Render done. time：%.3f s\n", (float)(time_ed - time_st) / 1000.0f);
-
-		//imageInfo.outPath = "D:\\xx2.bmp";
-		//printf("rendering(SplitPosition)...\n");
-		//time_st = GetTickCount64();
-		//CreateBVHTrees(HBVHSplitMode::SplitPosition);
-		//NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pIntegrator, imageInfo);
-		//time_ed = GetTickCount64();
-		//printf("Render done. time：%.3f s\n", (float)(time_ed - time_st) / 1000.0f);
-
-		//imageInfo.outPath = "D:\\xx3.bmp";
-		//printf("rendering(SplitCount)...\n");
-		//time_st = GetTickCount64();
-		//CreateBVHTrees(HBVHSplitMode::SplitCount);
-		//NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pIntegrator, imageInfo);
-		//time_ed = GetTickCount64();
-		//printf("Render done. time：%.3f s\n", (float)(time_ed - time_st) / 1000.0f);
-
-		//imageInfo.outPath = "D:\\xx4.bmp";
-		//printf("rendering(SAH)...\n");
-		//time_st = GetTickCount64();
-		//CreateBVHTrees(HBVHSplitMode::SAH);
-		//NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pIntegrator, imageInfo);
-		//time_ed = GetTickCount64();
-		//printf("Render done. time：%.3f s\n", (float)(time_ed - time_st) / 1000.0f);
-
-		imageInfo.outPath = "D:\\nix.bmp";
+		imageInfo.outPath = "D:\\nix_pathtracing.bmp";
 		printf("rendering(HLBVH)...\n");
 		time_st = GetTickCount64();
 		CreateBVHTrees(HBVHSplitMode::HLBVH);
 		NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pIntegrator, imageInfo);
 		time_ed = GetTickCount64();
 		printf("Render done. time：%.3f s\n", (float)(time_ed - time_st) / 1000.0f);
+
+		pIntegrator.reset();
+	}
+
+	if (eArg.VKey == 'U')
+	{
+		shared_ptr<NXIntegrator> pIntegrator = make_shared<NXDirectIntegrator>();
+
+		size_t time_st, time_ed;
+		imageInfo.outPath = "D:\\nix_directlighting.bmp";
+		printf("rendering(HLBVH)...\n");
+		time_st = GetTickCount64();
+		CreateBVHTrees(HBVHSplitMode::HLBVH);
+		NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pIntegrator, imageInfo);
+		time_ed = GetTickCount64();
+		printf("Render done. time：%.3f s\n", (float)(time_ed - time_st) / 1000.0f);
+
+		pIntegrator.reset();
 	}
 
 	if (eArg.VKey == 'H')
 	{
+		shared_ptr<NXIntegrator> pIntegrator = make_shared<NXPathIntegrator>();
+
 		// 创建求交加速结构以增加渲染速度。
 		printf("Generating BVH Structure...");
 		CreateBVHTrees(HBVHSplitMode::HLBVH);
@@ -125,9 +113,9 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 				m_mainCamera->GetAt().z);
 			printf("done.\n");
 		}
-	}
 
-	pIntegrator.reset();
+		pIntegrator.reset();
+	}
 }
 
 void NXScene::Init()

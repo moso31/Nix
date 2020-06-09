@@ -32,13 +32,11 @@ Vector3 NXDirectIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& 
 		L += pTangibleLight->GetRadiance(hitInfo.position, hitInfo.normal, hitInfo.direction);
 	}
 
-	// All : 统计所有的光源并求平均值。
-	auto pLights = pScene->GetPBRLights();
-	for (auto it = pLights.begin(); it != pLights.end(); it++)
-	{
-		L += DirectEstimate(ray, pScene, *it, hitInfo);
-	}
-	L /= (float)pLights.size();
+	bool bIsUniformAll = false;
+	if (bIsUniformAll)
+		L += UniformLightAll(ray, pScene, hitInfo);
+	else
+		L += UniformLightOne(ray, pScene, hitInfo);
 
 	// 然后计算间接光照。
 	// Whitted积分光照仅统计来自完美镜面反射和完美镜面折射的间接照明。

@@ -3,6 +3,7 @@
 #include "NXCubeMap.h"
 #include "NXPBRLight.h"
 #include "SamplerMath.h"
+#include "NXRandom.h"
 
 using namespace SimpleMath;
 using namespace SamplerMath;
@@ -83,18 +84,41 @@ Vector3 NXIntegrator::DirectEstimate(const Ray& ray, const shared_ptr<NXScene>& 
 			{
 				Li = pHitAreaLight->GetRadiance(hitLightInfo.position, hitLightInfo.normal, -incidentDirection);
 				pdfLight = pHitAreaLight->GetPdf(hitInfo, -incidentDirection);
-			}
 
-			if (!Li.IsZero())
-			{
-				// 计算权重。对基于BSDF的采样，BSDF为主要加权，Light其次。
-				pdfWeight = PowerHeuristicWeightPdf(1, pdfBSDF, 1, pdfLight);
-				L += f * Li * incidentDirection.Dot(hitInfo.normal) * pdfWeight / pdfBSDF;
+				if (!Li.IsZero())
+				{
+					// 计算权重。对基于BSDF的采样，BSDF为主要加权，Light其次。
+					pdfWeight = PowerHeuristicWeightPdf(1, pdfBSDF, 1, pdfLight);
+					L += f * Li * incidentDirection.Dot(hitInfo.normal) * pdfWeight / pdfBSDF;
+				}
 			}
 		}
 	}
 
 	return L;
+}
+
+Vector3 NXIntegrator::UniformLightAll(const Ray& ray, const shared_ptr<NXScene>& pScene, const NXHit& hitInfo)
+{
+	// All: 统计所有的光源并求平均值。
+	Vector3 result(0.0f);
+	auto pLights = pScene->GetPBRLights();
+	for (auto it = pLights.begin(); it != pLights.end(); it++)
+	{
+		result += DirectEstimate(ray, pScene, *it, hitInfo);
+	}
+	result /= (float)pLights.size();
+	return result;
+}
+
+Vector3 NXIntegrator::UniformLightOne(const Ray& ray, const shared_ptr<NXScene>& pScene, const NXHit& hitInfo)
+{
+	// One: 仅统计单个光源。
+	// 但统计哪个样本数量完全是随机的。此方法期望值和All方法是等同的。
+	Vector3 result(0.0f);
+	auto pLights = pScene->GetPBRLights();
+	int index = NXRandom::GetInstance()->CreateInt(0, (int)pLights.size() - 1);
+	return DirectEstimate(ray, pScene, pLights[index], hitInfo);
 }
 
 Vector3 NXIntegrator::SpecularReflect(const Ray& ray, const NXHit& hit, const shared_ptr<NXScene>& pScene, int depth)
@@ -107,7 +131,6 @@ Vector3 NXIntegrator::SpecularReflect(const Ray& ray, const NXHit& hit, const sh
 
 	Ray nextRay = Ray(hit.position, wi);
 	nextRay.position += nextRay.direction * NXRT_EPSILON;
-	//Vector3 result = f * Radiance(nextRay, pScene, depth + 1) * fabsf(wi.Dot(hit.shading.normal)) / pdf;
 	Vector3 result = f * Radiance(nextRay, pScene, depth + 1) * fabsf(wi.Dot(hit.shading.normal)) / pdf;
 	return result;
 }
@@ -122,7 +145,6 @@ Vector3 NXIntegrator::SpecularTransmit(const Ray& ray, const NXHit& hit, const s
 
 	Ray nextRay = Ray(hit.position, wi);
 	nextRay.position += nextRay.direction * NXRT_EPSILON;
-	//Vector3 result = f * Radiance(nextRay, pScene, depth + 1) * fabsf(wi.Dot(hit.shading.normal)) / pdf;
 	Vector3 result = f * Radiance(nextRay, pScene, depth + 1) * fabsf(wi.Dot(hit.shading.normal)) / pdf;
 	return result;
 }

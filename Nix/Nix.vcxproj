@@ -225,6 +225,7 @@
     <ClCompile Include="Nix\NXDirectIntegrator.cpp" />
     <ClCompile Include="Nix\NXFresnel.cpp" />
     <ClCompile Include="Nix\NXIntegrator.cpp" />
+    <ClCompile Include="Nix\NXPathIntegrator.cpp" />
     <ClCompile Include="Nix\NXPBRLight.cpp" />
     <ClCompile Include="Nix\NXPBRMaterial.cpp" />
     <ClCompile Include="Nix\NXDistribution.cpp" />
@@ -279,6 +280,7 @@
     <ClInclude Include="Nix\NXDirectIntegrator.h" />
     <ClInclude Include="Nix\NXFresnel.h" />
     <ClInclude Include="Nix\NXIntegrator.h" />
+    <ClInclude Include="Nix\NXPathIntegrator.h" />
     <ClInclude Include="Nix\NXPBRLight.h" />
     <ClInclude Include="Nix\NXPBRMaterial.h" />
     <ClInclude Include="Nix\NXDistribution.h" />
