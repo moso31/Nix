@@ -33,6 +33,11 @@ public:
 	AABB GetAABBLocal() const;
 	NXTriangle GetTriangle(int faceIndex);
 
+	// 其实就是获取子类格式的this指针。
+	// 由于使用了shared_ptr，每次获取子类格式的this都需要执行一次动态转换，很吃性能。
+	// 为每一个Primitive开一个指针存储this，在单次PathIntegrator计算中可以节省大概4%-8%左右的全局性能开销。非常划算。
+	shared_ptr<NXPrimitive> GetSelf();
+
 	void UpdateSurfaceAreaInfo();		// 更新此物体表面积相关的信息。
 	float GetSurfaceArea();				// 计算表面积
 	NXTriangle SampleTriangle();		// 按面积的PDF采样任一三角形
@@ -68,6 +73,7 @@ protected:
 	shared_ptr<NXPBRMaterial>	m_pPBRMaterial;
 
 	shared_ptr<NXTangibleLight>	m_pTangibleLight;	// 可以将Primitive设置为光源
+	shared_ptr<NXPrimitive>		m_pThis;
 
 	AABB m_aabb;
 	float m_fArea;		// 纪录当前Mesh的总表面积。

@@ -92,7 +92,13 @@ AABB NXPrimitive::GetAABBLocal() const
 
 NXTriangle NXPrimitive::GetTriangle(int faceIndex) 
 {
-	return NXTriangle(dynamic_pointer_cast<NXPrimitive>(shared_from_this()), faceIndex * 3);
+	return NXTriangle(GetSelf(), faceIndex * 3);
+}
+
+shared_ptr<NXPrimitive> NXPrimitive::GetSelf() 
+{
+	if (!m_pThis) m_pThis = dynamic_pointer_cast<NXPrimitive>(shared_from_this());
+	return m_pThis;
 }
 
 void NXPrimitive::UpdateSurfaceAreaInfo()
@@ -133,8 +139,7 @@ bool NXPrimitive::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist
 	int faceCount = (int)m_indices.size() / 3;
 	for (int i = 0; i < faceCount; i++)
 	{
-		NXTriangle triangle(dynamic_pointer_cast<NXPrimitive>(shared_from_this()), i * 3);
-		if (triangle.RayCast(localRay, outHitInfo, outDist))
+		if (GetTriangle(i).RayCast(localRay, outHitInfo, outDist))
 		{
 			outHitInfo.faceIndex = i;
 			bSuccess = true;
