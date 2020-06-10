@@ -2,6 +2,7 @@
 #include "DirectResources.h"
 #include "RenderStates.h"
 #include "NXEvent.h"
+#include "NXRayTracer.h"
 
 App::App() :
 	m_pRenderer(nullptr)
@@ -25,6 +26,7 @@ void App::Draw()
 	m_pRenderer->UpdateSceneData();
 	m_pRenderer->DrawShadowMap();
 	m_pRenderer->DrawScene();
+	NXRayTracer::GetInstance()->Update();
 }
 
 void App::Release()

@@ -55,20 +55,16 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 	auto pScene = dynamic_pointer_cast<NXScene>(shared_from_this());
 	NXRenderImageInfo imageInfo;
 	imageInfo.ImageSize = XMINT2(1600, 1200);
-	imageInfo.EachPixelSamples = 1024;
+	imageInfo.EachPixelSamples = 16;
 
 	if (eArg.VKey == 'G')
 	{
 		shared_ptr<NXIntegrator> pIntegrator = make_shared<NXPathIntegrator>();
 
-		size_t time_st, time_ed;
 		imageInfo.outPath = "D:\\nix_pathtracing.bmp";
 		printf("rendering(HLBVH)...\n");
-		time_st = GetTickCount64();
 		CreateBVHTrees(HBVHSplitMode::HLBVH);
 		NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pIntegrator, imageInfo);
-		time_ed = GetTickCount64();
-		printf("Render done. time£º%.3f s\n", (float)(time_ed - time_st) / 1000.0f);
 
 		pIntegrator.reset();
 	}
@@ -77,14 +73,10 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 	{
 		shared_ptr<NXIntegrator> pIntegrator = make_shared<NXDirectIntegrator>();
 
-		size_t time_st, time_ed;
 		imageInfo.outPath = "D:\\nix_directlighting.bmp";
 		printf("rendering(HLBVH)...\n");
-		time_st = GetTickCount64();
 		CreateBVHTrees(HBVHSplitMode::HLBVH);
 		NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pIntegrator, imageInfo);
-		time_ed = GetTickCount64();
-		printf("Render done. time£º%.3f s\n", (float)(time_ed - time_st) / 1000.0f);
 
 		pIntegrator.reset();
 	}
