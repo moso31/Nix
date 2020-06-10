@@ -49,14 +49,17 @@ Vector3 NXBSDF::f(const Vector3& woWorld, const Vector3& wiWorld, ReflectionType
 	return f;
 }
 
-Vector3 NXBSDF::Sample_f(const Vector3& woWorld, Vector3& outwiWorld, float& pdf, ReflectionType reflectType)
+Vector3 NXBSDF::Sample_f(const Vector3& woWorld, Vector3& outwiWorld, float& pdf, ReflectionType reflectType, shared_ptr<ReflectionType> out_sampledReflectType)
 {
+	if (out_sampledReflectType)
+		*out_sampledReflectType = ReflectionType(0);
+
 	vector<int> matchList;
 	for (int i = 0; i < (int)m_reflectionModels.size(); i++)
 		if (m_reflectionModels[i]->IsMatchingType(reflectType))
 			matchList.push_back(i);
 
-	if (matchList.empty()) 
+	if (matchList.empty())
 		return Vector3(0.0f);
 
 	// 获取是哪一个反射模型被采样。
@@ -82,6 +85,11 @@ Vector3 NXBSDF::Sample_f(const Vector3& woWorld, Vector3& outwiWorld, float& pdf
 
 	if (pdf == 0.0f) 
 		return Vector3(0.0f);
+
+	// 记录当前被采样的反射模型的Type。
+	// 路径追踪时需要保留当前反射模型的Type，用于下一次迭代的条件判断。
+	if (out_sampledReflectType)
+		*out_sampledReflectType = sampledModel->GetReflectionType();
 
 	if (sampledModel->GetReflectionType() & REFLECTIONTYPE_SPECULAR)
 	{

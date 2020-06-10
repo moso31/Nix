@@ -7,14 +7,17 @@ Vector3 NXPathIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& pS
 	Vector3 throughput(1.0f);
 	Vector3 L(0.0f);
 	Ray nextRay(ray);
+	bool bIsSpecular(false);
 	while (true)
 	{
 		NXHit hitInfo;
 		bool bIsIntersect = pScene->RayCast(nextRay, hitInfo);
 
-		// 只有在第一次迭代的时候考虑直接光照。
+		// 在第一次迭代(depth=0)的时候需要手动计算直接光照。
 		// 后续2-n次迭代，光照相关的数据全部由UniformLightOne提供。
-		if (depth == 0)
+		// 同理，在上一次是高亮反射(IsSpecular)的情况下也要手动计算全局光照。
+		// 因为由于delta分布的特殊性，这种情况下UniformLightOne提供照明的可能性是0。
+		if (depth == 0 || bIsSpecular)
 		{
 			if (!bIsIntersect)
 			{
@@ -45,7 +48,10 @@ Vector3 NXPathIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& pS
 
 		float pdf;
 		Vector3 nextDirection;
-		Vector3 f = hitInfo.BSDF->Sample_f(hitInfo.direction, nextDirection, pdf);
+		shared_ptr<ReflectionType> outReflectType = make_shared<ReflectionType>();
+		Vector3 f = hitInfo.BSDF->Sample_f(hitInfo.direction, nextDirection, pdf, REFLECTIONTYPE_ALL, outReflectType);
+		bIsSpecular = (*outReflectType & REFLECTIONTYPE_SPECULAR);
+		outReflectType.reset();
 
 		if (f.IsZero()) break;
 

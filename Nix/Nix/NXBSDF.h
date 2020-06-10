@@ -12,7 +12,7 @@ public:
 	void AddReflectionModel(const shared_ptr<NXReflectionModel>& pReflectionModel);
 
 	Vector3 f(const Vector3& woWorld, const Vector3& wiWorld, ReflectionType reflectType = REFLECTIONTYPE_ALL);
-	Vector3 Sample_f(const Vector3& woWorld, Vector3& outwiWorld, float& pdf, ReflectionType reflectType = REFLECTIONTYPE_ALL);
+	Vector3 Sample_f(const Vector3& woWorld, Vector3& outwiWorld, float& pdf, ReflectionType reflectType = REFLECTIONTYPE_ALL, shared_ptr<ReflectionType> out_sampledReflectType = nullptr);
 	float Pdf(const Vector3& woWorld, const Vector3& wiWorld, ReflectionType reflectType = REFLECTIONTYPE_ALL);
 
 	Vector3 WorldToReflection(const Vector3& p);

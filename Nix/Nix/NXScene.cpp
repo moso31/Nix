@@ -55,7 +55,7 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 	auto pScene = dynamic_pointer_cast<NXScene>(shared_from_this());
 	NXRenderImageInfo imageInfo;
 	imageInfo.ImageSize = XMINT2(1600, 1200);
-	imageInfo.EachPixelSamples = 16;
+	imageInfo.EachPixelSamples = 1024;
 
 	if (eArg.VKey == 'G')
 	{
@@ -141,14 +141,14 @@ void NXScene::Init()
 		m_sceneManager->CreatePBRMirror(Vector3(1.0f, 1.0f, 1.0f)),
 	};
 
-	//auto pPlane = m_sceneManager->CreatePlane(
-	//	"Ground",
-	//	50.0f, 50.0f,
-	//	pMaterial,
-	//	Vector3(0.0f)
-	//);
+	auto pPlane = m_sceneManager->CreatePlane(
+		"Ground",
+		50.0f, 50.0f,
+		pMaterial,
+		Vector3(0.0f)
+	);
 
-	//pPlane->SetMaterialPBR(pPBRMat[4]);
+	pPlane->SetMaterialPBR(pPBRMat[4]);
 
 	//pPlane = m_sceneManager->CreatePlane(
 	//	"Wall +Y",
@@ -190,20 +190,28 @@ void NXScene::Init()
 
 	//pPlane->SetMaterialPBR(pPBRMat[2]);
 
-	//shared_ptr<NXPlane> pLight = m_sceneManager->CreatePlane(
-	//	"Light",
-	//	1.0f, 1.0f,
-	//	pMaterial,
-	//	Vector3(0.0f, 4.999f, 0.0f),
-	//	Vector3(XM_PI, 0.0f, 0.0f)
-	//);
+	shared_ptr<NXPlane> pLight = m_sceneManager->CreatePlane(
+		"Light",
+		1.0f, 1.0f,
+		pMaterial,
+		Vector3(0.0f, 4.999f, 0.0f),
+		Vector3(XM_PI, 0.0f, 0.0f)
+	);
 
-	//pLight->SetMaterialPBR(pPBRMat[4]);
+	pLight->SetMaterialPBR(pPBRMat[4]);
+
+	auto pSphere = m_sceneManager->CreateSphere(
+		"Sphere",
+		1.0f, 16, 16,
+		pMaterial,
+		Vector3(1.0f, 1.0f, -1.0f)
+	);
+	pSphere->SetMaterialPBR(m_sceneManager->CreatePBRGlass(Vector3(1.0f)));
 
 	float a[10] = { 0.02, 0.25, 0.5, 0.75, 1 };
 	Vector3 rBaseColor = Vector3(1.0, 0.782, 0.344);
 
-	int sz = 5;
+	int sz = 0;
 	for (int i = 0; i < sz; i++)
 	{
 		float metalness = a[i];
@@ -261,8 +269,8 @@ void NXScene::Init()
 	{
 		//m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 100.0f, 0.0f), Vector3(20000.0f));
 		//m_sceneManager->CreatePBRDistantLight(Vector3(-1.f), Vector3(3.0f));
-		//m_sceneManager->CreatePBRTangibleLight(pLight, Vector3(5.0f));
-		m_sceneManager->CreatePBREnvironmentLight(m_pCubeMap, Vector3(2.0f));
+		m_sceneManager->CreatePBRTangibleLight(pLight, Vector3(5.0f));
+		//m_sceneManager->CreatePBREnvironmentLight(m_pCubeMap, Vector3(2.0f));
 
 		//auto pDirLight = m_sceneManager->CreateDirectionalLight(
 		//	"DirLight1",
