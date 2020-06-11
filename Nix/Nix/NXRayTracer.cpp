@@ -152,7 +152,7 @@ void NXRayTracer::Update()
 	{
 		while (m_iTaskIter < m_renderTileTaskIn.size() && m_iRunningThreadCount < MAX_THREAD_COUNT)
 		{
-			printf("Running Threads: %d\n", (int)m_iRunningThreadCount + 1);
+			// printf("Running Threads: %d\n", (int)m_iRunningThreadCount + 1);
 			thread task = thread(&NXRayTracer::MakeImageTile, this, m_iTaskIter++);
 			task.detach();
 		}
