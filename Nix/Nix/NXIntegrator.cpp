@@ -51,7 +51,8 @@ Vector3 NXIntegrator::DirectEstimate(const Ray& ray, const shared_ptr<NXScene>& 
 			f = hitInfo.BSDF->f(hitInfo.direction, incidentDirection);
 			if (!f.IsZero())
 			{
-				pdfBSDF = hitInfo.BSDF->Pdf(hitInfo.direction, incidentDirection, refType);
+				//【没有pdfBSDF可能比有pdfBSDF更优？需要更广泛的理论分析和样本测试。】
+				//pdfBSDF = hitInfo.BSDF->Pdf(hitInfo.direction, incidentDirection, refType);
 				pdfWeight = PowerHeuristicWeightPdf(1, pdfLight, 1, pdfBSDF);
 				L += f * Li * incidentDirection.Dot(hitInfo.shading.normal) * pdfWeight / pdfLight;
 			}
