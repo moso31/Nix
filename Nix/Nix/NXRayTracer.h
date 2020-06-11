@@ -42,7 +42,7 @@ public:
 	void MakeImageTile(const int taskIter);
 	
 	// 向屏幕中心方向发出测试射线。
-	void CenterRayTest(const shared_ptr<NXScene>& pScene, const shared_ptr<NXCamera>& pMainCamera, const shared_ptr<NXIntegrator>& pIntegrator);
+	void CenterRayTest(const shared_ptr<NXScene>& pScene, const shared_ptr<NXCamera>& pMainCamera, const shared_ptr<NXIntegrator>& pIntegrator, const int testTime = 1);
 
 	// 将所有Tile整合成一张最终图像。
 	void GenerateImage();

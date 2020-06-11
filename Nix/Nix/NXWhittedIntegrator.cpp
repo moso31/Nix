@@ -48,7 +48,7 @@ Vector3 NXWhittedIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>&
 		Vector3 f = hitInfo.BSDF->f(hitInfo.direction, incidentDirection);
 		if (!f.IsZero())
 		{
-			L += f * Li * incidentDirection.Dot(hitInfo.normal) / pdf;
+			L += f * Li * incidentDirection.Dot(hitInfo.shading.normal) / pdf;
 		}
 	}
 

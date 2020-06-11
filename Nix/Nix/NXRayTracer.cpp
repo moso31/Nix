@@ -103,7 +103,7 @@ void NXRayTracer::MakeImageTile(const int taskIter)
 	printf("\r%.2f%% (%d / %d) ", process, count, threadCount);
 }
 
-void NXRayTracer::CenterRayTest(const shared_ptr<NXScene>& pScene, const shared_ptr<NXCamera>& pMainCamera, const shared_ptr<NXIntegrator>& pIntegrator)
+void NXRayTracer::CenterRayTest(const shared_ptr<NXScene>& pScene, const shared_ptr<NXCamera>& pMainCamera, const shared_ptr<NXIntegrator>& pIntegrator, const int testTime)
 {
 	Matrix mxViewToWorld = pMainCamera->GetViewMatrix().Invert();
 
@@ -111,7 +111,10 @@ void NXRayTracer::CenterRayTest(const shared_ptr<NXScene>& pScene, const shared_
 	Ray rayView(Vector3(0.0f), viewDir);
 	Ray rayWorld = rayView.Transform(mxViewToWorld);	// 获取该射线的world空间坐标值
 
-	Vector3 result = pIntegrator->Radiance(rayWorld, pScene, 0);
+	Vector3 result(0.0f);
+	for (int i = 0; i < testTime; i++)
+		result += pIntegrator->Radiance(rayWorld, pScene, 0);
+	result /= (float)testTime;
 
 	printf("%f, %f, %f\n", result.x, result.y, result.z);
 }

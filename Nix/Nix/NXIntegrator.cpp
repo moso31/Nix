@@ -34,7 +34,7 @@ Vector3 NXIntegrator::DirectEstimate(const Ray& ray, const shared_ptr<NXScene>& 
 			Vector3 f = hitInfo.BSDF->f(hitInfo.direction, incidentDirection);
 			if (!f.IsZero())
 			{
-				L += f * Li * incidentDirection.Dot(hitInfo.normal);
+				L += f * Li * incidentDirection.Dot(hitInfo.shading.normal);
 			}
 		}
 	}
@@ -53,7 +53,7 @@ Vector3 NXIntegrator::DirectEstimate(const Ray& ray, const shared_ptr<NXScene>& 
 			{
 				pdfBSDF = hitInfo.BSDF->Pdf(hitInfo.direction, incidentDirection, refType);
 				pdfWeight = PowerHeuristicWeightPdf(1, pdfLight, 1, pdfBSDF);
-				L += f * Li * incidentDirection.Dot(hitInfo.normal) * pdfWeight / pdfLight;
+				L += f * Li * incidentDirection.Dot(hitInfo.shading.normal) * pdfWeight / pdfLight;
 			}
 		}
 
@@ -89,7 +89,7 @@ Vector3 NXIntegrator::DirectEstimate(const Ray& ray, const shared_ptr<NXScene>& 
 				{
 					// 计算权重。对基于BSDF的采样，BSDF为主要加权，Light其次。
 					pdfWeight = PowerHeuristicWeightPdf(1, pdfBSDF, 1, pdfLight);
-					L += f * Li * incidentDirection.Dot(hitInfo.normal) * pdfWeight / pdfBSDF;
+					L += f * Li * incidentDirection.Dot(hitInfo.shading.normal) * pdfWeight / pdfBSDF;
 				}
 			}
 		}

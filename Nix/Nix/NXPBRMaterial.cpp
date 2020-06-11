@@ -64,7 +64,8 @@ void NXCommonMaterial::ConstructReflectionModel(NXHit& hitInfo)
 	}
 	if (Specular != Vector3(0.0f))
 	{
-		float alpha = Roughness;
+		//float alpha = Roughness;
+		float alpha = NXRDistributionBeckmann::RoughnessToAlpha(Roughness);
 		shared_ptr<NXRDistributionBeckmann> distrib = make_shared<NXRDistributionBeckmann>(alpha);
 		shared_ptr<NXFresnelCommon> fresnel = make_shared<NXFresnelCommon>(Specular);
 		hitInfo.BSDF->AddReflectionModel(make_shared<NXRMicrofacetReflection>(Specular, distrib, fresnel));

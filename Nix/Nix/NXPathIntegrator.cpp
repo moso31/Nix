@@ -55,7 +55,7 @@ Vector3 NXPathIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& pS
 
 		if (f.IsZero()) break;
 
-		throughput *= f * fabsf(hitInfo.normal.Dot(nextDirection)) / pdf;
+		throughput *= f * fabsf(hitInfo.shading.normal.Dot(nextDirection)) / pdf;
 		nextRay = Ray(hitInfo.position, nextDirection);
 		nextRay.position += nextRay.direction * NXRT_EPSILON;
 	}
