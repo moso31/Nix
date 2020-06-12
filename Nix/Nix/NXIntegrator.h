@@ -8,6 +8,7 @@ public:
 	NXIntegrator();
 	~NXIntegrator();
 
+	// º∆À„Lo
 	virtual Vector3 Radiance(const Ray& ray, const shared_ptr<NXScene>& pScene, int depth) = 0;
 
 	/*

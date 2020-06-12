@@ -55,7 +55,7 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 	auto pScene = dynamic_pointer_cast<NXScene>(shared_from_this());
 	NXRenderImageInfo imageInfo;
 	imageInfo.ImageSize = XMINT2(120, 90);
-	imageInfo.EachPixelSamples = 64;
+	imageInfo.EachPixelSamples = 1024;
 
 	if (eArg.VKey == 'G')
 	{

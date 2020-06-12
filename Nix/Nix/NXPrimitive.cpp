@@ -124,7 +124,7 @@ NXTriangle NXPrimitive::SampleTriangle()
 {
 	float randomArea = NXRandom::GetInstance()->CreateFloat() * GetSurfaceArea();
 	int sampleId = 0;
-	for (sampleId = 0; sampleId < m_triangleAreas.size(); sampleId++)
+	for (sampleId = 0; sampleId < m_triangleAreas.size() - 1; sampleId++)
 	{
 		if (randomArea < m_triangleAreas[sampleId])
 			break;
