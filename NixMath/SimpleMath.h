@@ -205,7 +205,11 @@ struct Vector3 : public XMFLOAT3
 
 	bool IsZero() const;
 	int MaxDimension() const;
+	float MaxComponent() const;
     void GenerateCoordinateSpace(Vector3& basis1, Vector3 basis2);
+
+	// ªÒ»°ª“∂»
+	float GetGrayValue();
 
     // Static functions
     static float Distance( const Vector3& v1, const Vector3& v2 );

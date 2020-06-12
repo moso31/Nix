@@ -884,6 +884,11 @@ inline int Vector3::MaxDimension() const
 	return (x > y) ? ((x > z) ? 0 : 2) : ((y > z) ? 1 : 2);
 }
 
+inline float Vector3::MaxComponent() const
+{
+	return (x > y) ? ((x > z) ? x : z) : ((y > z) ? y : z);
+}
+
 inline void Vector3::GenerateCoordinateSpace(Vector3& basis1, Vector3 basis2)
 {
     if (fabsf(x) < fabsf(y))
@@ -891,6 +896,12 @@ inline void Vector3::GenerateCoordinateSpace(Vector3& basis1, Vector3 basis2)
     else
         basis1 = Vector3(0.0f, z, -y) / sqrtf(y * y + z * z);
     basis2 = this->Cross(basis1);
+}
+
+inline float DirectX::SimpleMath::Vector3::GetGrayValue()
+{
+	Vector3 grayScale(0.212671f, 0.715160f, 0.072169f);
+	return this->Dot(grayScale);
 }
 
 //------------------------------------------------------------------------------
