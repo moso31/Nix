@@ -100,8 +100,11 @@ Vector3 NXRPrefectReflection::Sample_f(const Vector3& wo, Vector3& wi, float& pd
 
 Vector3 NXRPrefectTransmission::Sample_f(const Vector3& wo, Vector3& wi, float& pdf)
 {
+	bool entering = CosTheta(wo) > 0;	// 是从外部进入到内部吗？
+
 	// 确定etaA和etaB的入射/折射关系
-	bool entering = CosTheta(wo) > 0;	// 是从外部进入到内部吗？是的话就反转入射/出射介质。
+	// 这里使用的方向和PBRT中使用的向量反过来了：wo位于入射介质，wi位于出射介质。
+	// 出现这种问题是Sample_f()统一化代码格式导致的。推导时需要注意。
 	float etaI = entering ? etaA : etaB;
 	float etaT = entering ? etaB : etaA;
 
@@ -113,11 +116,11 @@ Vector3 NXRPrefectTransmission::Sample_f(const Vector3& wo, Vector3& wi, float& 
 	pdf = 1.0f;	// 完美反射模型被选中时pdf=1，未被选中时pdf=0
 	
 	Vector3 f_transmittion = T * (Vector3(1.0f) - fresnel.FresnelReflectance(CosTheta(wi))) / AbsCosTheta(wi);
-	// 根据PBRT指示，在计算基于Camera出发的射线的时候，不需要etaT^2/etaI^2。
-	// 16章有解释，但现在还没看到那里，先维持现状。
-	// 还有，公式8.8给的是etaT^2/etaI^2，但PBRT实际代码是etaI^2/etaT^2，反过来了。
-	// 具体原因也不明。待查。
-	// if (!Camera) f_transmittion *= (etaT * etaT) / (etaI * etaI);
+
+	bool bIsCameraRay = true;
+	// 如果是从相机出发的射线，考虑折射过程中微分角压缩比。
+	// 如果是从光源出发，则此项正好和伴随BSDF相互抵消，不用考虑。
+	if (bIsCameraRay) f_transmittion *= etaI * etaI / (etaT * etaT);
 	return f_transmittion;
 }
 
