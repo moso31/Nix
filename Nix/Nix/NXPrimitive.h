@@ -11,7 +11,7 @@ class NXTriangle;
 
 class NXHit;
 class NXPBRMaterial;
-class NXTangibleLight;
+class NXPBRTangibleLight;
 
 class NXPrimitive : public NXTransform
 {
@@ -45,8 +45,8 @@ public:
 	ID3D11ShaderResourceView* GetTextureSRV() const { return m_pTextureSRV; }
 	ID3D11Buffer* GetMaterialBuffer() const { return m_cbMaterial; }
 
-	void SetTangibleLight(shared_ptr<NXTangibleLight> pTangibleLight) { m_pTangibleLight = pTangibleLight; }
-	shared_ptr<NXTangibleLight> GetTangibleLight() const { return m_pTangibleLight; }
+	void SetTangibleLight(shared_ptr<NXPBRTangibleLight> pTangibleLight) { m_pTangibleLight = pTangibleLight; }
+	shared_ptr<NXPBRTangibleLight> GetTangibleLight() const { return m_pTangibleLight; }
 
 	virtual bool RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist);
 
@@ -72,7 +72,7 @@ protected:
 	shared_ptr<NXMaterial>		m_pMaterial;
 	shared_ptr<NXPBRMaterial>	m_pPBRMaterial;
 
-	shared_ptr<NXTangibleLight>	m_pTangibleLight;	// 可以将Primitive设置为光源
+	shared_ptr<NXPBRTangibleLight>	m_pTangibleLight;	// 可以将Primitive设置为光源
 	shared_ptr<NXPrimitive>		m_pThis;
 
 	AABB m_aabb;

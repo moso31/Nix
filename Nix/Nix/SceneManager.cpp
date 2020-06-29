@@ -273,7 +273,7 @@ shared_ptr<NXPBRLight> SceneManager::CreatePBRDistantLight(const Vector3& direct
 
 shared_ptr<NXPBRLight> SceneManager::CreatePBRTangibleLight(const shared_ptr<NXPrimitive>& pPrimitive, const Vector3& radiance)
 {
-	auto pLight = make_shared<NXTangibleLight>(pPrimitive, radiance);
+	auto pLight = make_shared<NXPBRTangibleLight>(pPrimitive, radiance);
 	pPrimitive->SetTangibleLight(pLight);
 	m_scene->m_pbrLights.push_back(pLight);
 	return pLight;

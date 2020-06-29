@@ -30,7 +30,7 @@ Vector3 NXPathIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& pS
 				break;
 			}
 
-			shared_ptr<NXTangibleLight> pTangibleLight = hitInfo.pPrimitive->GetTangibleLight();
+			shared_ptr<NXPBRTangibleLight> pTangibleLight = hitInfo.pPrimitive->GetTangibleLight();
 			if (pTangibleLight)
 			{
 				L += throughput * pTangibleLight->GetRadiance(hitInfo.position, hitInfo.normal, hitInfo.direction);
@@ -44,7 +44,7 @@ Vector3 NXPathIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& pS
 		
 		// depth的终指条件建议放在此处。这里可以看作两次迭代计算之间的交界。
 		// 后续对throughput的计算，实质上是在为下一层迭代做准备。
-		if (depth++ > 5) break;	
+		//if (depth++ > 5) break;	
 
 		float pdf;
 		Vector3 nextDirection;

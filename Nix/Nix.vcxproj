@@ -251,6 +251,7 @@
     <ClCompile Include="Nix\SceneManager.cpp" />
     <ClCompile Include="Nix\NXRayTracer.cpp" />
     <ClCompile Include="Nix\NXReflectionModel.cpp" />
+    <ClCompile Include="Nix\NXPhotonMappingIntegrator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h" />
@@ -307,6 +308,7 @@
     <ClInclude Include="Nix\SceneManager.h" />
     <ClInclude Include="Nix\NXRayTracer.h" />
     <ClInclude Include="Nix\NXReflectionModel.h" />
+    <ClInclude Include="Nix\NXPhotonMappingIntegrator.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="场景添加物体说明.txt" />

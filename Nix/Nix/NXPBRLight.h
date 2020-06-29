@@ -73,11 +73,12 @@ public:
 	virtual float GetPdf(const NXHit& hitInfo, const Vector3& direction) = 0;
 };
 
-class NXTangibleLight : public NXPBRAreaLight
+class NXPBRTangibleLight : public NXPBRAreaLight
 {
 public:
-	NXTangibleLight(const shared_ptr<NXPrimitive>& pPrimitive, const Vector3& Radiance);
+	NXPBRTangibleLight(const shared_ptr<NXPrimitive>& pPrimitive, const Vector3& Radiance);
 
+	Vector3 SampleEmissionRadiance(Ray& out_emissionRay, Vector3& out_lightNormal, float& out_pdfPos, float& out_pdfDir);
 	Vector3 SampleIncidentRadiance(const NXHit& hitInfo, Vector3& out_wi, float& out_pdf) override;
 
 	// 计算从 任意采样点 朝 目标方向 发射光线得到的Radiance值。

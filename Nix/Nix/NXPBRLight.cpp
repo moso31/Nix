@@ -51,13 +51,25 @@ Vector3 NXPBRDistantLight::SampleIncidentRadiance(const NXHit& hitInfo, Vector3&
 	return Radiance;
 }
 
-NXTangibleLight::NXTangibleLight(const shared_ptr<NXPrimitive>& pPrimitive, const Vector3& Radiance) :
+NXPBRTangibleLight::NXPBRTangibleLight(const shared_ptr<NXPrimitive>& pPrimitive, const Vector3& Radiance) :
 	m_pPrimitive(pPrimitive),
 	Radiance(Radiance)
 {
 }
 
-Vector3 NXTangibleLight::SampleIncidentRadiance(const NXHit& hitInfo, Vector3& out_wi, float& out_pdf)
+Vector3 NXPBRTangibleLight::SampleEmissionRadiance(Ray& out_emissionRay, Vector3& out_lightNormal, float& out_pdfPos, float& out_pdfDirLocal)
+{
+	Vector3 sampleLightPosition;
+	m_pPrimitive->SampleFromSurface(sampleLightPosition, out_lightNormal, out_pdfPos);
+	Vector2 vRandomDir = NXRandom::GetInstance()->CreateVector2();
+	Vector3 sampleDir = CosineSampleHemisphere(vRandomDir);
+	out_pdfDirLocal = CosineSampleHemispherePdf(sampleDir.z);
+
+	out_emissionRay = Ray(sampleLightPosition, sampleLightDirection);
+	out_emissionRay.position += sampleLightDirection * NXRT_EPSILON;
+}
+
+Vector3 NXPBRTangibleLight::SampleIncidentRadiance(const NXHit& hitInfo, Vector3& out_wi, float& out_pdf)
 {
 	Vector3 sampleLightPosition, sampleLightNormal;		// 灯光采样点的位置和该处的法向量
 	m_pPrimitive->SampleFromSurface(sampleLightPosition, sampleLightNormal, out_pdf);
@@ -70,14 +82,14 @@ Vector3 NXTangibleLight::SampleIncidentRadiance(const NXHit& hitInfo, Vector3& o
 	return GetRadiance(sampleLightPosition, sampleLightNormal, -out_wi);
 }
 
-Vector3 NXTangibleLight::GetRadiance(const Vector3& samplePosition, const Vector3& lightSurfaceNormal, const Vector3& targetDirection)
+Vector3 NXPBRTangibleLight::GetRadiance(const Vector3& samplePosition, const Vector3& lightSurfaceNormal, const Vector3& targetDirection)
 {
 	if (lightSurfaceNormal.Dot(targetDirection) <= 0)
 		return Vector3(0.0f);	// 无效光源：采样射线方向背朝表面
 	return Radiance;
 }
 
-float NXTangibleLight::GetPdf(const NXHit& hitInfo, const Vector3& direction)
+float NXPBRTangibleLight::GetPdf(const NXHit& hitInfo, const Vector3& direction)
 {
 	return m_pPrimitive->GetPdf(hitInfo, direction);
 }

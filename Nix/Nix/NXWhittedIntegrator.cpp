@@ -26,7 +26,7 @@ Vector3 NXWhittedIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>&
 	Vector3 L(0.0);
 
 	// 如果hit物体本身就是光源的话，计算Le
-	shared_ptr<NXTangibleLight> pTangebleLight = hitInfo.pPrimitive->GetTangibleLight();
+	shared_ptr<NXPBRTangibleLight> pTangebleLight = hitInfo.pPrimitive->GetTangibleLight();
 	if (pTangebleLight)
 	{
 		L += pTangebleLight->GetRadiance(hitInfo.position, hitInfo.normal, hitInfo.direction);
