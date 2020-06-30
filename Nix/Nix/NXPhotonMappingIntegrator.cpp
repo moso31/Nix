@@ -42,12 +42,13 @@ void NXPhotonMappingIntegrator::GeneratePhotons(const shared_ptr<NXScene>& pScen
 			Vector3 nextDirection;
 			float pdfBSDF;
 			Vector3 f = hitInfo.BSDF->Sample_f(-ray.direction, nextDirection, pdfBSDF, REFLECTIONTYPE_ALL);
-			Vector3 reflectance = f * hitInfo.normal.Dot(nextDirection) / pdfBSDF;
+			if (f.IsZero() || pdfBSDF == 0) break;
+			Vector3 reflectance = f * hitInfo.shading.normal.Dot(nextDirection) / pdfBSDF;
 
 			// Roulette
-			float q = NXRandom::GetInstance()->CreateFloat();
-			if (q < 1.0f - reflectance.GetGrayValue()) break;
-			throughput *= reflectance / (1 - q);
+			float q = 1.0f - reflectance.GetGrayValue();
+			float random = NXRandom::GetInstance()->CreateFloat();
+			if (random < q) break;
 
 			// make new photon
 			NXPhoton photon;
