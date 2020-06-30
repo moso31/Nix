@@ -11,6 +11,8 @@ struct NXPhoton
 class NXPhotonMappingIntegrator : public NXIntegrator
 {
 public:
+	NXPhotonMappingIntegrator();
+	~NXPhotonMappingIntegrator();
 	void GeneratePhotons(const shared_ptr<NXScene>& pScene);
 	Vector3 Radiance(const Ray& ray, const shared_ptr<NXScene>& pScene, int depth) override;
 

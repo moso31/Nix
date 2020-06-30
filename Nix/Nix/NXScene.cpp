@@ -24,6 +24,7 @@
 #include "NXWhittedIntegrator.h"
 #include "NXDirectIntegrator.h"
 #include "NXPathIntegrator.h"
+#include "NXPhotonMappingIntegrator.h"
 
 //#include "NXShadowMap.h"
 #include "NXPassShadowMap.h"
@@ -54,10 +55,24 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 {
 	auto pScene = dynamic_pointer_cast<NXScene>(shared_from_this());
 	NXRenderImageInfo imageInfo;
-	imageInfo.ImageSize = XMINT2(240, 180);
-	imageInfo.EachPixelSamples = 16;
+	imageInfo.ImageSize = XMINT2(40, 30);
+	imageInfo.EachPixelSamples = 1;
 
 	if (eArg.VKey == 'G')
+	{
+		shared_ptr<NXPhotonMappingIntegrator> pIntegrator = make_shared<NXPhotonMappingIntegrator>();
+		auto pThis = dynamic_pointer_cast<NXScene>(shared_from_this());
+		pIntegrator->GeneratePhotons(pThis);
+
+		imageInfo.outPath = "D:\\nix_PMtracing.bmp";
+		printf("rendering(HLBVH)...\n");
+		CreateBVHTrees(HBVHSplitMode::HLBVH);
+		NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pIntegrator, imageInfo);
+
+		pIntegrator.reset();
+	}
+
+	if (eArg.VKey == 'T')
 	{
 		shared_ptr<NXIntegrator> pIntegrator = make_shared<NXPathIntegrator>();
 
@@ -263,9 +278,9 @@ void NXScene::Init()
 
 	// InitLights()
 	{
-		//m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 4.999f, 0.0f), Vector3(25.0f));
+		m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 4.999f, 0.0f), Vector3(25.0f));
 		//m_sceneManager->CreatePBRDistantLight(Vector3(-1.f), Vector3(3.0f));
-		m_sceneManager->CreatePBRTangibleLight(pLight, Vector3(1.0f));
+		//m_sceneManager->CreatePBRTangibleLight(pLight, Vector3(1.0f));
 		//m_sceneManager->CreatePBREnvironmentLight(m_pCubeMap, Vector3(2.0f));
 
 		//auto pDirLight = m_sceneManager->CreateDirectionalLight(
