@@ -16,7 +16,7 @@ Vector3 NXWhittedIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>&
 			return Vector3(0.0f);
 
 		Vector3 ignore;
-		return pCubeMap->GetEnvironmentLight()->GetRadiance(ignore, ignore, -ray.direction);
+		return pCubeMap->GetEnvironmentLight()->GetRadiance(ignore, ignore, ray.direction);
 	}
 
 	// 生成当前hit的bsdf（为其添加各种ReflectionModel）
@@ -29,7 +29,7 @@ Vector3 NXWhittedIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>&
 	shared_ptr<NXPBRTangibleLight> pTangebleLight = hitInfo.pPrimitive->GetTangibleLight();
 	if (pTangebleLight)
 	{
-		L += pTangebleLight->GetRadiance(hitInfo.position, hitInfo.normal, hitInfo.direction);
+		L += pTangebleLight->GetRadiance(hitInfo.position, hitInfo.normal, -hitInfo.direction);
 	}
 
 	// 计算Lr分为两部分，L直接+L间接。

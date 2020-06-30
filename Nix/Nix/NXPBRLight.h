@@ -23,6 +23,7 @@ public:
 	~NXPBRLight() {}
 
 	virtual bool IsDeltaLight() = 0;
+	virtual Vector3 SampleEmissionRadiance(Ray& out_emissionRay, Vector3& out_lightNormal, float& out_pdfPos, float& out_pdfDir) = 0;
 	virtual Vector3 SampleIncidentRadiance(const NXHit& hitInfo, Vector3& out_wi, float& out_pdf) = 0;
 };
 
@@ -35,7 +36,7 @@ public:
 
 	bool IsDeltaLight() override { return true; }
 
-	// 计算点光源的入射辐射率
+	Vector3 SampleEmissionRadiance(Ray& out_emissionRay, Vector3& out_lightNormal, float& out_pdfPos, float& out_pdfDir) override;
 	Vector3 SampleIncidentRadiance(const NXHit& hitInfo, Vector3& out_wi, float& out_pdf) override;
 
 public:
@@ -49,6 +50,7 @@ public:
 	NXPBRDistantLight(const Vector3& Direction, const Vector3& Radiance, const shared_ptr<NXScene>& pScene);
 
 	bool IsDeltaLight() override { return true; }
+	Vector3 SampleEmissionRadiance(Ray& out_emissionRay, Vector3& out_lightNormal, float& out_pdfPos, float& out_pdfDir) override;
 	Vector3 SampleIncidentRadiance(const NXHit& hitInfo, Vector3& out_wi, float& out_pdf) override;
 
 public:
@@ -78,7 +80,7 @@ class NXPBRTangibleLight : public NXPBRAreaLight
 public:
 	NXPBRTangibleLight(const shared_ptr<NXPrimitive>& pPrimitive, const Vector3& Radiance);
 
-	Vector3 SampleEmissionRadiance(Ray& out_emissionRay, Vector3& out_lightNormal, float& out_pdfPos, float& out_pdfDir);
+	Vector3 SampleEmissionRadiance(Ray& out_emissionRay, Vector3& out_lightNormal, float& out_pdfPos, float& out_pdfDir) override;
 	Vector3 SampleIncidentRadiance(const NXHit& hitInfo, Vector3& out_wi, float& out_pdf) override;
 
 	// 计算从 任意采样点 朝 目标方向 发射光线得到的Radiance值。
@@ -98,8 +100,7 @@ class NXPBREnvironmentLight : public NXPBRAreaLight
 public:
 	NXPBREnvironmentLight(const shared_ptr<NXCubeMap>& pCubeMap, const Vector3& Radiance, float SceneRadius);
 
-	// 提供hit位置信息，并在光源上随机生成方向wi。
-	// 计算从wi方向到hit处的radiance，并返回该方向的概率密度分布值pdf。
+	Vector3 SampleEmissionRadiance(Ray& out_emissionRay, Vector3& out_lightNormal, float& out_pdfPos, float& out_pdfDir) override;
 	Vector3 SampleIncidentRadiance(const NXHit& hitInfo, Vector3& out_wi, float& out_pdf) override;
 
 	// 计算自发光(emission)的radiance。

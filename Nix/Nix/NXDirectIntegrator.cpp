@@ -16,7 +16,7 @@ Vector3 NXDirectIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& 
 			return Vector3(0.0f);
 
 		Vector3 ignore;
-		return pCubeMap->GetEnvironmentLight()->GetRadiance(ignore, ignore, -ray.direction);
+		return pCubeMap->GetEnvironmentLight()->GetRadiance(ignore, ignore, ray.direction);
 	}
 
 	// 生成当前hit的bsdf（为其添加各种ReflectionModel）
@@ -29,7 +29,7 @@ Vector3 NXDirectIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& 
 	shared_ptr<NXPBRTangibleLight> pTangibleLight = hitInfo.pPrimitive->GetTangibleLight();
 	if (pTangibleLight)
 	{
-		L += pTangibleLight->GetRadiance(hitInfo.position, hitInfo.normal, hitInfo.direction);
+		L += pTangibleLight->GetRadiance(hitInfo.position, hitInfo.normal, -hitInfo.direction);
 	}
 
 	bool bIsUniformAll = false;

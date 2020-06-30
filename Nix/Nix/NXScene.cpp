@@ -54,8 +54,8 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 {
 	auto pScene = dynamic_pointer_cast<NXScene>(shared_from_this());
 	NXRenderImageInfo imageInfo;
-	imageInfo.ImageSize = XMINT2(120, 90);
-	imageInfo.EachPixelSamples = 1024;
+	imageInfo.ImageSize = XMINT2(240, 180);
+	imageInfo.EachPixelSamples = 16;
 
 	if (eArg.VKey == 'G')
 	{
@@ -238,8 +238,9 @@ void NXScene::Init()
 	auto pCamera = m_sceneManager->CreateCamera(
 		"Camera1", 
 		70.0f, 0.01f, 1000.f, 
-		Vector3(0.341750, 2.880165, -1.603207),
-		Vector3(0.263815, 3.182455, -0.653182),
+		Vector3(0.0f, 2.5f, 0.0f),
+		//Vector3(0.0f, 0.0f, 0.0001f),
+		Vector3(0.0f, 2.5f, 1.000f),
 		Vector3(0.0f, 1.0f, 0.0f)
 	);
 
@@ -262,7 +263,7 @@ void NXScene::Init()
 
 	// InitLights()
 	{
-		//m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 100.0f, 0.0f), Vector3(20000.0f));
+		//m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 4.999f, 0.0f), Vector3(25.0f));
 		//m_sceneManager->CreatePBRDistantLight(Vector3(-1.f), Vector3(3.0f));
 		m_sceneManager->CreatePBRTangibleLight(pLight, Vector3(1.0f));
 		//m_sceneManager->CreatePBREnvironmentLight(m_pCubeMap, Vector3(2.0f));

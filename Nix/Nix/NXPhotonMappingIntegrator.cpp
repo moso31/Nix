@@ -10,9 +10,11 @@ void NXPhotonMappingIntegrator::GeneratePhotons(const shared_ptr<NXScene>& pScen
 	float pdfLight = 1.0f / lightCount;
 	float pdfPos, pdfDir;
 	Vector3 throughput;
-	pLights[sampleLight]->SampleEmissionRadiance();
-	
 	Ray ray;
+	Vector3 lightNormal;
+	Vector3 Le = pLights[sampleLight]->SampleEmissionRadiance(ray, lightNormal, pdfPos, pdfDir);
+	throughput = Le * fabsf(lightNormal.Dot(ray.direction)) / (pdfLight * pdfPos * pdfDir);
+	
 	while (true)
 	{
 		NXHit hitInfo;
