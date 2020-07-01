@@ -6,6 +6,7 @@ struct NXPhoton
 	Vector3 position;
 	Vector3 direction;
 	Vector3 power;
+	int depth;
 };
 
 class NXPhotonMappingIntegrator : public NXIntegrator

@@ -15,7 +15,9 @@ void NXPhotonMappingIntegrator::GeneratePhotons(const shared_ptr<NXScene>& pScen
 	m_photons.clear();
 
 	printf("Generate photons...");
-	for (int i = 0; i < 10000; i++)	
+	int numPhotons = 10000;
+	float numPhotonsInv = 1.0f / (float)numPhotons;
+	for (int i = 0; i < numPhotons; i++)	
 	{
 		auto pLights = pScene->GetPBRLights();
 		int lightCount = pLights.size();
@@ -27,7 +29,7 @@ void NXPhotonMappingIntegrator::GeneratePhotons(const shared_ptr<NXScene>& pScen
 		Ray ray;
 		Vector3 lightNormal;
 		Vector3 Le = pLights[sampleLight]->SampleEmissionRadiance(ray, lightNormal, pdfPos, pdfDir);
-		throughput = Le * fabsf(lightNormal.Dot(ray.direction)) / (pdfLight * pdfPos * pdfDir);
+		throughput = numPhotonsInv * Le * fabsf(lightNormal.Dot(ray.direction)) / (pdfLight * pdfPos * pdfDir);
 
 		int depth = 0;
 		while (true)
@@ -46,15 +48,18 @@ void NXPhotonMappingIntegrator::GeneratePhotons(const shared_ptr<NXScene>& pScen
 			Vector3 reflectance = f * hitInfo.shading.normal.Dot(nextDirection) / pdfBSDF;
 
 			// Roulette
-			float q = 1.0f - reflectance.GetGrayValue();
+			float q = max(0, 1.0f - reflectance.GetGrayValue());
 			float random = NXRandom::GetInstance()->CreateFloat();
 			if (random < q) break;
+
+			throughput *= reflectance / (1 - q);
 
 			// make new photon
 			NXPhoton photon;
 			photon.position = hitInfo.position;
 			photon.direction = hitInfo.direction;
 			photon.power = throughput;
+			photon.depth = depth;
 			m_photons.push_back(photon);
 
 			ray = Ray(hitInfo.position, nextDirection);
@@ -77,22 +82,28 @@ Vector3 NXPhotonMappingIntegrator::Radiance(const Ray& ray, const shared_ptr<NXS
 	}
 
 	NXHit hitInfo;
-	pScene->RayCast(ray, hitInfo);
-
-	Vector3 pos = hitInfo.position;
-
-	vector<NXPhoton> p(m_photons);
-	sort(p.begin(), p.end(), [pos](NXPhoton& photonA, NXPhoton& photonB) {
-		float distA = Vector3::DistanceSquared(pos, photonA.position);
-		float distB = Vector3::DistanceSquared(pos, photonB.position);
-		return distA < distB;
-		});
-
 	Vector3 result;
-	for (int i = 0; i < max(1, m_photons.size()); i++)
+	if (pScene->RayCast(ray, hitInfo))
 	{
-		result += m_photons[i].power;
+		Vector3 pos = hitInfo.position;
+
+		float d = FLT_MAX;
+		for (auto it = m_photons.begin(); it != m_photons.end(); it++)
+		{
+			float dist = Vector3::DistanceSquared(pos, it->position);
+			if (dist < d)
+			{
+				d = dist;
+				result = it->power;
+			}
+		}
+
+		if (d > 0.0001f) result = Vector3(1.0f);
+	}
+	else
+	{
+		result = Vector3(1.0f);
 	}
 
-	return result / 10000000;
+	return result;
 }
