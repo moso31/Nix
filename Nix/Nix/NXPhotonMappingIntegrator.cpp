@@ -15,7 +15,7 @@ void NXPhotonMappingIntegrator::GeneratePhotons(const shared_ptr<NXScene>& pScen
 	m_photons.clear();
 
 	printf("Generate photons...");
-	int numPhotons = 100000;
+	int numPhotons = 1000000;
 	float numPhotonsInv = 1.0f / (float)numPhotons;
 	for (int i = 0; i < numPhotons; i++)	
 	{
@@ -32,6 +32,7 @@ void NXPhotonMappingIntegrator::GeneratePhotons(const shared_ptr<NXScene>& pScen
 		throughput = numPhotonsInv * Le * fabsf(lightNormal.Dot(ray.direction)) / (pdfLight * pdfPos * pdfDir);
 
 		int depth = 0;
+		bool bIsSpecular = false;
 		while (true)
 		{
 			NXHit hitInfo;
@@ -43,25 +44,32 @@ void NXPhotonMappingIntegrator::GeneratePhotons(const shared_ptr<NXScene>& pScen
 
 			Vector3 nextDirection;
 			float pdfBSDF;
-			Vector3 f = hitInfo.BSDF->Sample_f(-ray.direction, nextDirection, pdfBSDF, REFLECTIONTYPE_ALL);
-			if (f.IsZero() || pdfBSDF == 0) break;
-			Vector3 reflectance = f * fabsf(hitInfo.shading.normal.Dot(nextDirection)) / pdfBSDF;
+			shared_ptr<ReflectionType> outReflectType = make_shared<ReflectionType>();
+			Vector3 f = hitInfo.BSDF->Sample_f(-ray.direction, nextDirection, pdfBSDF, REFLECTIONTYPE_ALL, outReflectType);
+			bIsSpecular = (*outReflectType & REFLECTIONTYPE_SPECULAR);
+			outReflectType.reset();
 
-			// Roulette
-			float q = max(0, 1.0f - reflectance.GetGrayValue());
-			float random = NXRandom::GetInstance()->CreateFloat();
-			if (random < q) break;
+			if (!bIsSpecular)
+			{
+				if (f.IsZero() || pdfBSDF == 0) break;
+				Vector3 reflectance = f * fabsf(hitInfo.shading.normal.Dot(nextDirection)) / pdfBSDF;
 
-			throughput *= reflectance / (1 - q);
+				// Roulette
+				float q = max(0, 1.0f - reflectance.GetGrayValue());
+				float random = NXRandom::GetInstance()->CreateFloat();
+				if (random < q) break;
 
-			// make new photon
-			NXPhoton photon;
-			photon.position = hitInfo.position;
-			photon.direction = hitInfo.direction;
-			photon.power = throughput;
-			photon.depth = depth;
-			m_photons.push_back(photon);
+				throughput *= reflectance / (1 - q);
 
+				// make new photon
+				NXPhoton photon;
+				photon.position = hitInfo.position;
+				photon.direction = hitInfo.direction;
+				photon.power = throughput;
+				photon.depth = depth;
+				m_photons.push_back(photon);
+			}
+			
 			ray = Ray(hitInfo.position, nextDirection);
 			ray.position += ray.direction * NXRT_EPSILON;
 
@@ -105,5 +113,5 @@ Vector3 NXPhotonMappingIntegrator::Radiance(const Ray& ray, const shared_ptr<NXS
 		result = Vector3(0.0f);
 	}
 
-	return result;
+	return result * 50000.0f;
 }
