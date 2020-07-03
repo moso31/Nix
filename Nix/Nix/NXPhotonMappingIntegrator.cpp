@@ -15,7 +15,7 @@ void NXPhotonMappingIntegrator::GeneratePhotons(const shared_ptr<NXScene>& pScen
 	m_photons.clear();
 
 	printf("Generate photons...");
-	int numPhotons = 10000;
+	int numPhotons = 100000;
 	float numPhotonsInv = 1.0f / (float)numPhotons;
 	for (int i = 0; i < numPhotons; i++)	
 	{
@@ -45,7 +45,7 @@ void NXPhotonMappingIntegrator::GeneratePhotons(const shared_ptr<NXScene>& pScen
 			float pdfBSDF;
 			Vector3 f = hitInfo.BSDF->Sample_f(-ray.direction, nextDirection, pdfBSDF, REFLECTIONTYPE_ALL);
 			if (f.IsZero() || pdfBSDF == 0) break;
-			Vector3 reflectance = f * hitInfo.shading.normal.Dot(nextDirection) / pdfBSDF;
+			Vector3 reflectance = f * fabsf(hitInfo.shading.normal.Dot(nextDirection)) / pdfBSDF;
 
 			// Roulette
 			float q = max(0, 1.0f - reflectance.GetGrayValue());
@@ -98,11 +98,11 @@ Vector3 NXPhotonMappingIntegrator::Radiance(const Ray& ray, const shared_ptr<NXS
 			}
 		}
 
-		if (d > 0.0001f) result = Vector3(1.0f);
+		if (d > 0.0001f) result = Vector3(0.0f);
 	}
 	else
 	{
-		result = Vector3(1.0f);
+		result = Vector3(0.0f);
 	}
 
 	return result;

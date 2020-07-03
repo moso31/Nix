@@ -153,7 +153,7 @@ void NXScene::Init()
 
 	auto pPlane = m_sceneManager->CreatePlane(
 		"Ground",
-		50.0f, 50.0f,
+		5.0f, 5.0f,
 		pMaterial,
 		Vector3(0.0f)
 	);
@@ -200,15 +200,15 @@ void NXScene::Init()
 
 	pPlane->SetMaterialPBR(pPBRMat[2]);
 
-	//shared_ptr<NXPlane> pLight = m_sceneManager->CreatePlane(
-	//	"Light",
-	//	1.0f, 1.0f,
-	//	pMaterial,
-	//	Vector3(0.0f, 4.999f, 0.0f),
-	//	Vector3(XM_PI, 0.0f, 0.0f)
-	//);
+	shared_ptr<NXPlane> pLight = m_sceneManager->CreatePlane(
+		"Light",
+		1.0f, 1.0f,
+		pMaterial,
+		Vector3(0.0f, 4.9999f, 0.0f),
+		Vector3(XM_PI, 0.0f, 0.0f)
+	);
 
-	//pLight->SetMaterialPBR(pPBRMat[3]);
+	pLight->SetMaterialPBR(pPBRMat[3]);
 
 	auto pSphere = m_sceneManager->CreateSphere(
 		"Sphere",
@@ -278,10 +278,10 @@ void NXScene::Init()
 
 	// InitLights()
 	{
-		m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 4.999f, 0.0f), Vector3(100.0f));
-		//m_sceneManager->CreatePBRDistantLight(Vector3(-1.f), Vector3(3.0f));
+		//m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 4.999f, 0.0f), Vector3(1.0f));
+		//m_sceneManager->CreatePBRDistantLight(Vector3(-1.0f), Vector3(1.0f));
 		//m_sceneManager->CreatePBRTangibleLight(pLight, Vector3(1.0f));
-		//m_sceneManager->CreatePBREnvironmentLight(m_pCubeMap, Vector3(2.0f));
+		m_sceneManager->CreatePBREnvironmentLight(m_pCubeMap, Vector3(1.0f));
 
 		//auto pDirLight = m_sceneManager->CreateDirectionalLight(
 		//	"DirLight1",

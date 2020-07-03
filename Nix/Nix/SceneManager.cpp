@@ -266,7 +266,8 @@ shared_ptr<NXPBRLight> SceneManager::CreatePBRPointLight(const Vector3& position
 
 shared_ptr<NXPBRLight> SceneManager::CreatePBRDistantLight(const Vector3& direction, const Vector3& radiance)
 {
-	auto pLight = make_shared<NXPBRDistantLight>(direction, radiance, m_scene);
+	auto bound = m_scene->GetBoundingSphere();
+	auto pLight = make_shared<NXPBRDistantLight>(direction, radiance, bound.Center, bound.Radius);
 	m_scene->m_pbrLights.push_back(pLight);
 	return pLight;
 }
@@ -281,8 +282,8 @@ shared_ptr<NXPBRLight> SceneManager::CreatePBRTangibleLight(const shared_ptr<NXP
 
 shared_ptr<NXPBRLight> SceneManager::CreatePBREnvironmentLight(const shared_ptr<NXCubeMap>& pCubeMap, const Vector3& Intensity)
 {
-	float sceneRadius = m_scene->GetBoundingSphere().Radius;
-	auto pLight = make_shared<NXPBREnvironmentLight>(pCubeMap, Intensity, sceneRadius);
+	auto bound = m_scene->GetBoundingSphere();
+	auto pLight = make_shared<NXPBREnvironmentLight>(pCubeMap, Intensity, bound.Center, bound.Radius);
 	pCubeMap->SetEnvironmentLight(pLight);
 	m_scene->m_pbrLights.push_back(pLight);
 	return pLight;

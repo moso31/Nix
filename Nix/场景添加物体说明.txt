@@ -1,0 +1,58 @@
+设置光源
+	auto pDirLight = m_sceneManager->CreateDirectionalLight(
+		"DirLight1",
+		Vector4(0.2f, 0.2f, 0.2f, 1.0f),
+		Vector4(0.8f, 0.8f, 0.8f, 1.0f),
+		Vector3(0.8f, 0.8f, 0.8f),
+		1.0f,
+		Vector3(1.0f, -1.0f, 1.0f)
+		);
+
+设置材质
+	auto pMaterial = m_sceneManager->CreateMaterial(
+		"defaultMaterial",
+		Vector4(0.0f, 0.0f, 0.0f, 1.0f),
+		Vector4(0.7f, 0.85f, 0.7f, 1.0f),
+		Vector4(0.8f, 0.8f, 0.8f, 1.0f),
+		0.2f
+	);
+
++网格物体
+	auto pPlane = m_sceneManager->CreatePlane(
+		"Wall",
+		5.0f, 5.0f,
+		pMaterial,
+		Vector3(0.0f)
+	);
+
+	auto pSphere = m_sceneManager->CreateSphere(
+		"Sphere",
+		1.0f, 16, 16,
+		pMaterial,
+		Vector3(2.0f, 0.0f, 0.0f)
+	);
+
++导入FBX模型文件
+	vector<shared_ptr<NXMesh>> pMeshes;
+	bool pMesh = m_sceneManager->CreateFBXMeshes(
+		"D:\\2.fbx", 
+		pMaterial,
+		pMeshes
+	);
+
++Camera
+	auto pCamera = m_sceneManager->CreateCamera(
+		"Camera1", 
+		0.01f, 1000.f, 
+		Vector3(0.0f, 0.0f, -1.5f),
+		Vector3(0.0f, 0.0f, 0.0f),
+		Vector3(0.0f, 1.0f, 0.0f)
+	);
+
+父子关系绑定和脚本设置
+	if (!pMeshes.empty())
+	{
+		bool bBind = m_sceneManager->BindParent(pMeshes[1], pSphere);
+		auto pScript_test = make_shared<NSTest>();
+		pMeshes[1]->AddScript(pScript_test);
+	}

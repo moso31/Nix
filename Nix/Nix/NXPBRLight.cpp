@@ -43,26 +43,26 @@ Vector3 NXPBRPointLight::SampleIncidentRadiance(const NXHit& hitInfo, Vector3& o
 	return lightRadiance;
 }
 
-NXPBRDistantLight::NXPBRDistantLight(const Vector3& Direction, const Vector3& Radiance, const shared_ptr<NXScene>& pScene) : 
+NXPBRDistantLight::NXPBRDistantLight(const Vector3& Direction, const Vector3& Radiance, Vector3 WorldCenter, float WorldRadius) :
 	Direction(Direction), 
 	Radiance(Radiance),
-	SceneBoundingSphere(pScene->GetBoundingSphere())
+	WorldCenter(WorldCenter),
+	WorldRadius(WorldRadius)
 {
+	this->Direction.Normalize();
 }
 
 Vector3 NXPBRDistantLight::SampleEmissionRadiance(Ray& out_emissionRay, Vector3& out_lightNormal, float& out_pdfPos, float& out_pdfDir)
 {
-	float worldRadius = SceneBoundingSphere.Radius;
-
 	Vector3 basis1, basis2;
 	Direction.GenerateCoordinateSpace(basis1, basis2);
 	Vector2 random = NXRandom::GetInstance()->CreateVector2();
 	Vector2 diskCoord = UniformSampleDisk(random);
-	Vector3 sampleLightPosition = (diskCoord.x * basis1 + diskCoord.y * basis2 - Direction) * worldRadius;
+	Vector3 sampleLightPosition = WorldCenter + (diskCoord.x * basis1 + diskCoord.y * basis2 - Direction) * WorldRadius;
 
 	out_emissionRay = Ray(sampleLightPosition, Direction);
 	out_lightNormal = Direction;
-	out_pdfPos = 1.0f / (XM_PI * worldRadius * worldRadius);
+	out_pdfPos = 1.0f / (XM_PI * WorldRadius * WorldRadius);
 	out_pdfDir = 1.0f;
 
 	return Radiance;
@@ -129,10 +129,11 @@ float NXPBRTangibleLight::GetPdf(const NXHit& hitInfo, const Vector3& direction)
 	return m_pPrimitive->GetPdf(hitInfo, direction);
 }
 
-NXPBREnvironmentLight::NXPBREnvironmentLight(const shared_ptr<NXCubeMap>& pCubeMap, const Vector3& Radiance, float SceneRadius) :
+NXPBREnvironmentLight::NXPBREnvironmentLight(const shared_ptr<NXCubeMap>& pCubeMap, const Vector3& Radiance, Vector3 WorldCenter, float WorldRadius) :
 	m_pCubeMap(pCubeMap),
 	Radiance(Radiance),
-	SceneRadius(SceneRadius)
+	WorldCenter(WorldCenter),
+	WorldRadius(WorldRadius)
 {
 }
 
@@ -146,12 +147,12 @@ Vector3 NXPBREnvironmentLight::SampleEmissionRadiance(Ray& out_emissionRay, Vect
 
 	Vector2 randomPos = NXRandom::GetInstance()->CreateVector2();
 	Vector2 diskCoord = UniformSampleDisk(randomPos);
-	Vector3 sampleLightPosition = (diskCoord.x * basis1 + diskCoord.y * basis2 + sampleDir) * SceneRadius;
+	Vector3 sampleLightPosition = WorldCenter + (diskCoord.x * basis1 + diskCoord.y * basis2 + sampleDir) * WorldRadius;
 
 	out_lightNormal = -sampleDir;
 	out_emissionRay = Ray(sampleLightPosition, out_lightNormal);
 	out_pdfDir = UniformSampleSpherePdf();
-	out_pdfPos = 1.0f / (XM_PI * SceneRadius * SceneRadius);
+	out_pdfPos = 1.0f / (XM_PI * WorldRadius * WorldRadius);
 
 	Vector3 ignore;
 	return GetRadiance(ignore, ignore, sampleDir);
@@ -165,7 +166,7 @@ Vector3 NXPBREnvironmentLight::SampleIncidentRadiance(const NXHit& hitInfo, Vect
 	out_pdf = CosineSampleHemispherePdf(out_wi.z);
 	out_wi = hitInfo.BSDF->ReflectionToWorld(out_wi);
 
-	if (!NXVisibleTest::GetInstance()->Do(hitInfo.position, hitInfo.position + out_wi * 2.0f * SceneRadius))
+	if (!NXVisibleTest::GetInstance()->Do(hitInfo.position, hitInfo.position + out_wi * 2.0f * WorldRadius))
 		return Vector3(0.0f);	// 无效光源：被场景中其他物体挡住
 	
 	Vector3 ignore;

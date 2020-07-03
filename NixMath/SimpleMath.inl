@@ -889,12 +889,24 @@ inline float Vector3::MaxComponent() const
 	return (x > y) ? ((x > z) ? x : z) : ((y > z) ? y : z);
 }
 
-inline void Vector3::GenerateCoordinateSpace(Vector3& basis1, Vector3 basis2)
+inline void Vector3::GenerateCoordinateSpace(Vector3& basis1, Vector3& basis2)
 {
-    if (fabsf(x) < fabsf(y))
-        basis1 = Vector3(-z, 0.0f, x) / sqrtf(x * x + z * z);
-    else
-        basis1 = Vector3(0.0f, z, -y) / sqrtf(y * y + z * z);
+	if (fabsf(x) < fabsf(y))
+	{
+		float delta = x * x + z * z;
+		if (delta == 0.0f)
+			basis1 = Vector3(1.0f, 0.0f, 0.0f);
+		else
+			basis1 = Vector3(-z, 0.0f, x) / sqrtf(delta);
+	}
+	else
+	{
+		float delta = y * y + z * z;
+		if (delta == 0.0f)
+			basis1 = Vector3(0.0f, 1.0f, 0.0f);
+		else
+			basis1 = Vector3(0.0f, z, -y) / sqrtf(delta);
+	}
     basis2 = this->Cross(basis1);
 }
 

@@ -206,7 +206,7 @@ struct Vector3 : public XMFLOAT3
 	bool IsZero() const;
 	int MaxDimension() const;
 	float MaxComponent() const;
-    void GenerateCoordinateSpace(Vector3& basis1, Vector3 basis2);
+    void GenerateCoordinateSpace(Vector3& basis1, Vector3& basis2);
 
 	// ªÒ»°ª“∂»
 	float GetGrayValue();

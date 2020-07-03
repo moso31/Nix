@@ -47,7 +47,7 @@ public:
 class NXPBRDistantLight : public NXPBRLight
 {
 public:
-	NXPBRDistantLight(const Vector3& Direction, const Vector3& Radiance, const shared_ptr<NXScene>& pScene);
+	NXPBRDistantLight(const Vector3& Direction, const Vector3& Radiance, Vector3 WorldCenter, float WorldRadius);
 
 	bool IsDeltaLight() override { return true; }
 	Vector3 SampleEmissionRadiance(Ray& out_emissionRay, Vector3& out_lightNormal, float& out_pdfPos, float& out_pdfDir) override;
@@ -56,7 +56,8 @@ public:
 public:
 	Vector3 Direction;
 	Vector3 Radiance;
-	BoundingSphere SceneBoundingSphere;
+	Vector3 WorldCenter;
+	float WorldRadius;
 };
 
 class NXPBRAreaLight : public NXPBRLight
@@ -98,7 +99,7 @@ private:
 class NXPBREnvironmentLight : public NXPBRAreaLight
 {
 public:
-	NXPBREnvironmentLight(const shared_ptr<NXCubeMap>& pCubeMap, const Vector3& Radiance, float SceneRadius);
+	NXPBREnvironmentLight(const shared_ptr<NXCubeMap>& pCubeMap, const Vector3& Radiance, Vector3 WorldCenter, float WorldRadius);
 
 	Vector3 SampleEmissionRadiance(Ray& out_emissionRay, Vector3& out_lightNormal, float& out_pdfPos, float& out_pdfDir) override;
 	Vector3 SampleIncidentRadiance(const NXHit& hitInfo, Vector3& out_wi, float& out_pdf) override;
@@ -109,7 +110,8 @@ public:
 	float GetPdf(const NXHit& hitInfo, const Vector3& targetDirection) override;
 public:
 	Vector3 Radiance;
-	float SceneRadius;
+	Vector3 WorldCenter;
+	float WorldRadius;
 
 private:
 	shared_ptr<NXCubeMap> m_pCubeMap;
