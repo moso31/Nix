@@ -131,9 +131,6 @@
     <ClCompile Include="Nix\HBVH.cpp">
       <Filter>Nix\Accelerator</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\KdTree.cpp">
-      <Filter>Nix\Accelerator</Filter>
-    </ClCompile>
     <ClCompile Include="Nix\Script\NSFirstPersonalCamera.cpp">
       <Filter>Nix\Script</Filter>
     </ClCompile>
@@ -242,6 +239,9 @@
     <ClCompile Include="Nix\NXPhotonMappingIntegrator.cpp">
       <Filter>Nix\RayTracer\Integrator</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\NXKdTree.cpp">
+      <Filter>Nix\Accelerator</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -290,9 +290,6 @@
       <Filter>Core\DirectX</Filter>
     </ClInclude>
     <ClInclude Include="Nix\HBVH.h">
-      <Filter>Nix\Accelerator</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\KdTree.h">
       <Filter>Nix\Accelerator</Filter>
     </ClInclude>
     <ClInclude Include="Nix\Script\NSTest.h">
@@ -408,6 +405,9 @@
     </ClInclude>
     <ClInclude Include="Nix\NXPhotonMappingIntegrator.h">
       <Filter>Nix\RayTracer\Integrator</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXKdTree.h">
+      <Filter>Nix\Accelerator</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

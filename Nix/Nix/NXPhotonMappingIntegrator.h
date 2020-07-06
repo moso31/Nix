@@ -1,23 +1,16 @@
 #pragma once
 #include "NXIntegrator.h"
-
-struct NXPhoton
-{
-	Vector3 position;
-	Vector3 direction;
-	Vector3 power;
-	int depth;
-};
+#include "NXKdTree.h"
 
 class NXPhotonMappingIntegrator : public NXIntegrator
 {
 public:
 	NXPhotonMappingIntegrator();
 	~NXPhotonMappingIntegrator();
-	void GeneratePhotons(const shared_ptr<NXScene>& pScene);
+
+	void GeneratePhotons(const shared_ptr<NXScene>& pScene, const shared_ptr<NXCamera>& pCamera);
 	Vector3 Radiance(const Ray& ray, const shared_ptr<NXScene>& pScene, int depth) override;
 
 private:
-	int m_iPhotonCount;
-	vector<NXPhoton> m_photons;
+	shared_ptr<NXKdTree> m_pKdTree;
 };
