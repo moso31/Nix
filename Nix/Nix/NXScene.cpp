@@ -106,7 +106,7 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		printf("done.\n");
 
 		printf("center ray testing...\n");
-		NXRayTracer::GetInstance()->CenterRayTest(pScene, m_mainCamera, pIntegrator, 2500);
+		NXRayTracer::GetInstance()->CenterRayTest(pScene, m_mainCamera, pIntegrator, 100);
 
 		if (!m_primitives.empty())
 		{
@@ -204,7 +204,7 @@ void NXScene::Init()
 		"Light",
 		1.0f, 1.0f,
 		pMaterial,
-		Vector3(0.0f, 4.9999f, 0.0f),
+		Vector3(0.0f, 4.999f, 0.0f),
 		Vector3(XM_PI, 0.0f, 0.0f)
 	);
 
@@ -278,7 +278,7 @@ void NXScene::Init()
 
 	// InitLights()
 	{
-		m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 4.999f, 0.0f), Vector3(1.0f));
+		m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 2.5f, 0.0f), Vector3(1.0f));
 		//m_sceneManager->CreatePBRDistantLight(Vector3(-1.0f), Vector3(1.0f));
 		//m_sceneManager->CreatePBRTangibleLight(pLight, Vector3(1.0f));
 		//m_sceneManager->CreatePBREnvironmentLight(m_pCubeMap, Vector3(1.0f));

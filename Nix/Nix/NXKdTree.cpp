@@ -80,10 +80,10 @@ shared_ptr<NXKdTreeNode> NXKdTree::RecursiveBuild(size_t begin, size_t offset, v
 	return node;
 }
 
-void NXKdTree::GetNearest(const Vector3& position, float& out_distSqr, priority_quque_NXPhoton& out_nearestPhotons, float range)
+void NXKdTree::GetNearest(const Vector3& position, float& out_distSqr, priority_quque_NXPhoton& out_nearestPhotons, int maxLimit, float range)
 {
 	out_distSqr = range;
-	Locate(position, pRoot, out_distSqr, out_nearestPhotons);
+	Locate(position, pRoot, maxLimit, out_distSqr, out_nearestPhotons);
 }
 
 void NXKdTree::Release()
@@ -92,7 +92,7 @@ void NXKdTree::Release()
 	pRoot.reset();
 }
 
-void NXKdTree::Locate(const Vector3& position, const shared_ptr<NXKdTreeNode>& p, float& out_mindistSqr, priority_quque_NXPhoton& out_nearestPhotons)
+void NXKdTree::Locate(const Vector3& position, const shared_ptr<NXKdTreeNode>& p, int maxLimit, float& out_mindistSqr, priority_quque_NXPhoton& out_nearestPhotons)
 {
 	if (p->lc || p->rc)
 	{
@@ -101,25 +101,29 @@ void NXKdTree::Locate(const Vector3& position, const shared_ptr<NXKdTreeNode>& p
 		float disPlaneSqr = disPlane * disPlane;
 		if (disPlane < 0.0f)
 		{
-			if (p->lc) Locate(position, p->lc, out_mindistSqr, out_nearestPhotons);
+			if (p->lc) Locate(position, p->lc, maxLimit, out_mindistSqr, out_nearestPhotons);
 			if (disPlaneSqr < out_mindistSqr) // 说明另一侧可能有更近点，需要进一步检查另一侧的子树
-				if (p->rc) Locate(position, p->rc, out_mindistSqr, out_nearestPhotons);
+				if (p->rc) Locate(position, p->rc, maxLimit, out_mindistSqr, out_nearestPhotons);
 		}
 		else
 		{
-			if (p->rc) Locate(position, p->rc, out_mindistSqr, out_nearestPhotons);
+			if (p->rc) Locate(position, p->rc, maxLimit, out_mindistSqr, out_nearestPhotons);
 			if (disPlaneSqr < out_mindistSqr) // 说明另一侧可能有更近点，需要进一步检查另一侧的子树
-				if (p->lc) Locate(position, p->lc, out_mindistSqr, out_nearestPhotons);
+				if (p->lc) Locate(position, p->lc, maxLimit, out_mindistSqr, out_nearestPhotons);
 		}
 
 		float disSqr = Vector3::DistanceSquared(position, p->data.position);
-		int sz = 500;
-		if (out_nearestPhotons.size() < sz || disSqr < out_mindistSqr)
+		if (disSqr < out_mindistSqr)
 		{
-			out_mindistSqr = disSqr;
 			out_nearestPhotons.push(&p->data);
-			if (out_nearestPhotons.size() > 500)
-				out_nearestPhotons.pop();
+			if (maxLimit != -1)
+			{
+				if (out_nearestPhotons.size() > maxLimit)
+				{
+					out_nearestPhotons.pop();
+					out_mindistSqr = Vector3::DistanceSquared(position, out_nearestPhotons.top()->position);
+				}
+			}
 		}
 	}
 }

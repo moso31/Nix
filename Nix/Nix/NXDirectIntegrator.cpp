@@ -29,7 +29,7 @@ Vector3 NXDirectIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& 
 	shared_ptr<NXPBRTangibleLight> pTangibleLight = hitInfo.pPrimitive->GetTangibleLight();
 	if (pTangibleLight)
 	{
-		L += pTangibleLight->GetRadiance(hitInfo.position, hitInfo.normal, -hitInfo.direction);
+		L += pTangibleLight->GetRadiance(hitInfo.position, hitInfo.normal, hitInfo.direction);
 	}
 
 	bool bIsUniformAll = false;

@@ -29,7 +29,7 @@ void NXPhotonMappingIntegrator::GeneratePhotons(const shared_ptr<NXScene>& pScen
 		Ray ray;
 		Vector3 lightNormal;
 		Vector3 Le = pLights[sampleLight]->SampleEmissionRadiance(ray, lightNormal, pdfPos, pdfDir);
-		throughput = numPhotonsInv * Le * fabsf(lightNormal.Dot(ray.direction)) / (pdfLight * pdfPos * pdfDir);
+		throughput = Le * fabsf(lightNormal.Dot(ray.direction)) / (pdfLight * pdfPos * pdfDir);
 
 		int depth = 0;
 		bool bIsSpecular = false;
@@ -65,7 +65,7 @@ void NXPhotonMappingIntegrator::GeneratePhotons(const shared_ptr<NXScene>& pScen
 				NXPhoton photon;
 				photon.position = hitInfo.position;
 				photon.direction = hitInfo.direction;
-				photon.power = throughput;
+				photon.power = throughput * numPhotonsInv;
 				photon.depth = depth;
 				photons.push_back(photon);
 			}
@@ -80,7 +80,6 @@ void NXPhotonMappingIntegrator::GeneratePhotons(const shared_ptr<NXScene>& pScen
 	m_pKdTree.reset();
 	m_pKdTree = make_shared<NXKdTree>();
 	m_pKdTree->BuildBalanceTree(photons);
-
 	// use kd-tree manage all photons.
 	printf("done.\n");
 }
@@ -108,21 +107,33 @@ Vector3 NXPhotonMappingIntegrator::Radiance(const Ray& ray, const shared_ptr<NXS
 			return distA < distB;
 		});
 
-		m_pKdTree->GetNearest(pos, distSqr, nearestPhotons, FLT_MAX);
+		m_pKdTree->GetNearest(pos, distSqr, nearestPhotons, 500, 100.0f);
 
 		hitInfo.ConstructReflectionModel();
 
 		Vector3 wo = -ray.direction;
 		float photonCount = (float)nearestPhotons.size();
 		Vector3 result(0.0f);
+
+		float area = 1.0f;
+		if (photonCount)
+		{
+			float rr = Vector3::DistanceSquared(pos, nearestPhotons.top()->position);
+			area = rr * XM_PI;
+			//printf("%f\n", sqrtf(rr));
+		}
+		else
+		{
+			//printf("no radius!\n");
+		}
 		while (!nearestPhotons.empty())
 		{
 			auto photon = nearestPhotons.top();
 			float pdfBSDF = hitInfo.BSDF->Pdf(wo, photon->direction);
-			result += photon->power * hitInfo.BSDF->f(wo, photon->direction) * hitInfo.shading.normal.Dot(wo) / pdfBSDF;
+			result += photon->power * hitInfo.BSDF->f(wo, photon->direction); // *hitInfo.shading.normal.Dot(wo) / pdfBSDF;
 			nearestPhotons.pop();
 		}
-		L += result;
+		L += result / area;
 	}
 
 	return L;

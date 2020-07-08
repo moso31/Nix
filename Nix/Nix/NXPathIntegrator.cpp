@@ -33,7 +33,7 @@ Vector3 NXPathIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& pS
 			shared_ptr<NXPBRTangibleLight> pTangibleLight = hitInfo.pPrimitive->GetTangibleLight();
 			if (pTangibleLight)
 			{
-				L += throughput * pTangibleLight->GetRadiance(hitInfo.position, hitInfo.normal, -hitInfo.direction);
+				L += throughput * pTangibleLight->GetRadiance(hitInfo.position, hitInfo.normal, hitInfo.direction);
 			}
 		}
 
