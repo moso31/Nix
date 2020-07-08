@@ -18,6 +18,8 @@ namespace SamplerMath
 	float CosineSampleHemispherePdf(const float cosTheta);
 	Vector2 UniformTriangleSample(const Vector2& u);
 	float PowerHeuristicWeightPdf(int nf, float fPdf, int ng, float gPdf);
+
+	Vector3 EpanechnikovKernel(const Vector3& t);
 } // namespace SamplerMath
 
 } // namespace DirectX

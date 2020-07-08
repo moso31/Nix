@@ -1,6 +1,7 @@
 #include "NXPhotonMappingIntegrator.h"
 #include "NXRandom.h"
 #include "NXCamera.h"
+#include "SamplerMath.h"
 
 NXPhotonMappingIntegrator::NXPhotonMappingIntegrator()
 {
@@ -113,27 +114,30 @@ Vector3 NXPhotonMappingIntegrator::Radiance(const Ray& ray, const shared_ptr<NXS
 
 		Vector3 wo = -ray.direction;
 		float photonCount = (float)nearestPhotons.size();
-		Vector3 result(0.0f);
 
-		float area = 1.0f;
-		if (photonCount)
+		float dist2 = 0.0f;
+		float distInv = 0.0f;
+		if (!photonCount)
 		{
-			float rr = Vector3::DistanceSquared(pos, nearestPhotons.top()->position);
-			area = rr * XM_PI;
-			//printf("%f\n", sqrtf(rr));
+			L = Vector3(0.0f);
+			return L;
 		}
-		else
-		{
-			//printf("no radius!\n");
-		}
+
+		dist2 = Vector3::DistanceSquared(pos, nearestPhotons.top()->position);
+		distInv = 1.0f / sqrtf(dist2);
+		Vector3 result(0.0f);
 		while (!nearestPhotons.empty())
 		{
 			auto photon = nearestPhotons.top();
 			float pdfBSDF = hitInfo.BSDF->Pdf(wo, photon->direction);
-			result += photon->power * hitInfo.BSDF->f(wo, photon->direction); // *hitInfo.shading.normal.Dot(wo) / pdfBSDF;
+
+			Vector3 kernelFactor = SamplerMath::EpanechnikovKernel((pos - photon->position) * distInv);
+			result += kernelFactor * photon->power * hitInfo.BSDF->f(wo, photon->direction);
+
 			nearestPhotons.pop();
 		}
-		L += result / area;
+		L = result / (photonCount * dist2);
+		//printf("%f %f %f %f %f\n", result.x, result.y, result.z, photonCount, dist2);
 	}
 
 	return L;

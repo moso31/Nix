@@ -67,3 +67,8 @@ float SamplerMath::PowerHeuristicWeightPdf(int nf, float fPdf, int ng, float gPd
 	float f = nf * fPdf, g = ng * gPdf;
 	return (f * f) / (f * f + g * g);
 }
+
+Vector3 DirectX::SamplerMath::EpanechnikovKernel(const Vector3& t)
+{
+	return Vector3(0.75) * (Vector3(1.0f) - Vector3(0.2f * t * t) / Vector3(XM_SQRT5));
+}
