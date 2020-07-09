@@ -16,9 +16,9 @@ void NXPhotonMappingIntegrator::GeneratePhotons(const shared_ptr<NXScene>& pScen
 	vector<NXPhoton> photons;
 
 	printf("Generate photons...");
-	int numPhotons = 1000000;
+	int numPhotons = 100000;
 	float numPhotonsInv = 1.0f / (float)numPhotons;
-	for (int i = 0; i < numPhotons; i++)	
+	for (int i = 0; i < numPhotons; i++)
 	{
 		auto pLights = pScene->GetPBRLights();
 		int lightCount = (int)pLights.size();
@@ -34,7 +34,7 @@ void NXPhotonMappingIntegrator::GeneratePhotons(const shared_ptr<NXScene>& pScen
 
 		int depth = 0;
 		bool bIsSpecular = false;
-		while (true)
+		while (!depth)
 		{
 			NXHit hitInfo;
 			bool bIsIntersect = pScene->RayCast(ray, hitInfo);
@@ -53,28 +53,32 @@ void NXPhotonMappingIntegrator::GeneratePhotons(const shared_ptr<NXScene>& pScen
 			if (!bIsSpecular)
 			{
 				if (f.IsZero() || pdfBSDF == 0) break;
-				Vector3 reflectance = f * fabsf(hitInfo.shading.normal.Dot(nextDirection)) / pdfBSDF;
+
+				//printf("%f %f %f\n", photon.power.x, photon.power.y, photon.power.z);
+				Vector3 reflectance = f * fabsf(hitInfo.shading.normal.Dot(nextDirection));// / pdfBSDF;
+				throughput *= reflectance;
 
 				// Roulette
-				float q = max(0, 1.0f - reflectance.GetGrayValue());
-				float random = NXRandom::GetInstance()->CreateFloat();
-				if (random < q) break;
+				//float q = max(0, 1.0f - reflectance.GetGrayValue());
+				//float random = NXRandom::GetInstance()->CreateFloat();
+				//if (random < q) break;
 
-				throughput *= reflectance / (1 - q);
+				//throughput *= reflectance / (1 - q);
 
+				// 【这里的光子记录位置是否正确？是应该在吞吐量之前还是之后？】
 				// make new photon
 				NXPhoton photon;
 				photon.position = hitInfo.position;
 				photon.direction = hitInfo.direction;
-				photon.power = throughput * numPhotonsInv;
+				photon.power = throughput;
 				photon.depth = depth;
 				photons.push_back(photon);
+
+				depth++;
 			}
-			
+
 			ray = Ray(hitInfo.position, nextDirection);
 			ray.position += ray.direction * NXRT_EPSILON;
-
-			depth++;
 		}
 	}
 
@@ -95,7 +99,7 @@ Vector3 NXPhotonMappingIntegrator::Radiance(const Ray& ray, const shared_ptr<NXS
 
 	NXHit hitInfo;
 	Vector3 L(0.0f);
-	
+
 	if (pScene->RayCast(ray, hitInfo))
 	{
 		Vector3 pos = hitInfo.position;
@@ -106,38 +110,42 @@ Vector3 NXPhotonMappingIntegrator::Radiance(const Ray& ray, const shared_ptr<NXS
 			float distA = Vector3::DistanceSquared(pos, photonA->position);
 			float distB = Vector3::DistanceSquared(pos, photonB->position);
 			return distA < distB;
-		});
+			});
 
-		m_pKdTree->GetNearest(pos, distSqr, nearestPhotons, 500, 100.0f);
+		m_pKdTree->GetNearest(pos, distSqr, nearestPhotons, 100, FLT_MAX);
 
 		hitInfo.ConstructReflectionModel();
 
 		Vector3 wo = -ray.direction;
 		float photonCount = (float)nearestPhotons.size();
 
-		float dist2 = 0.0f;
-		float distInv = 0.0f;
 		if (!photonCount)
 		{
 			L = Vector3(0.0f);
 			return L;
 		}
 
-		dist2 = Vector3::DistanceSquared(pos, nearestPhotons.top()->position);
-		distInv = 1.0f / sqrtf(dist2);
+		float maxDist2 = Vector3::DistanceSquared(pos, nearestPhotons.top()->position);;
+		float maxDistInv = 1.0f / sqrt(maxDist2);
 		Vector3 result(0.0f);
+		float test(0.0f);
 		while (!nearestPhotons.empty())
 		{
 			auto photon = nearestPhotons.top();
 			float pdfBSDF = hitInfo.BSDF->Pdf(wo, photon->direction);
 
-			Vector3 kernelFactor = SamplerMath::EpanechnikovKernel((pos - photon->position) * distInv);
+			float dist = Vector3::Distance(pos, photon->position);
+			float kernelFactor = SamplerMath::EpanechnikovKernel(dist * maxDistInv);
 			result += kernelFactor * photon->power * hitInfo.BSDF->f(wo, photon->direction);
+			test += kernelFactor;
+			//printf("in: %f factor: %f\n", dist * maxDistInv, kernelFactor);
 
 			nearestPhotons.pop();
 		}
-		L = result / (photonCount * dist2);
-		//printf("%f %f %f %f %f\n", result.x, result.y, result.z, photonCount, dist2);
+		L = result / (photonCount * maxDist2);
+		test /= photonCount;
+		//printf("avg: %f count: %f\n", test, photonCount);
+		//printf("%f %f %f %f %f\n", L.x, L.y, L.z, photonCount, maxDist2);
 	}
 
 	return L;

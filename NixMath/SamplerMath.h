@@ -19,7 +19,7 @@ namespace SamplerMath
 	Vector2 UniformTriangleSample(const Vector2& u);
 	float PowerHeuristicWeightPdf(int nf, float fPdf, int ng, float gPdf);
 
-	Vector3 EpanechnikovKernel(const Vector3& t);
+	float EpanechnikovKernel(const float t);
 } // namespace SamplerMath
 
 } // namespace DirectX
