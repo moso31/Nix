@@ -42,4 +42,5 @@ private:
 
 private:
 	shared_ptr<NXKdTreeNode> pRoot;
+	int m_x;
 };

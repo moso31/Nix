@@ -22,6 +22,7 @@ void NXKdTreeNode::Release()
 
 NXKdTree::NXKdTree()
 {
+	m_x = 0;
 }
 
 NXKdTree::~NXKdTree()
@@ -41,6 +42,7 @@ shared_ptr<NXKdTreeNode> NXKdTree::RecursiveBuild(size_t begin, size_t offset, v
 	unique_ptr<NXKdTreeNode> node;
 	if (offset == 1)
 	{
+		m_x++;
 		// leaf node
 		node = make_unique<NXKdTreeNode>();
 		node->data = data[begin];
@@ -111,18 +113,18 @@ void NXKdTree::Locate(const Vector3& position, const shared_ptr<NXKdTreeNode>& p
 			if (disPlaneSqr < out_mindistSqr) // 说明另一侧可能有更近点，需要进一步检查另一侧的子树
 				if (p->lc) Locate(position, p->lc, maxLimit, out_mindistSqr, out_nearestPhotons);
 		}
+	}
 
-		float disSqr = Vector3::DistanceSquared(position, p->data.position);
-		if (disSqr < out_mindistSqr)
+	float disSqr = Vector3::DistanceSquared(position, p->data.position);
+	if (disSqr < out_mindistSqr)
+	{
+		out_nearestPhotons.push(&p->data);
+		if (maxLimit != -1)
 		{
-			out_nearestPhotons.push(&p->data);
-			if (maxLimit != -1)
+			if (out_nearestPhotons.size() > maxLimit)
 			{
-				if (out_nearestPhotons.size() > maxLimit)
-				{
-					out_nearestPhotons.pop();
-					out_mindistSqr = Vector3::DistanceSquared(position, out_nearestPhotons.top()->position);
-				}
+				out_nearestPhotons.pop();
+				out_mindistSqr = Vector3::DistanceSquared(position, out_nearestPhotons.top()->position);
 			}
 		}
 	}
