@@ -17,11 +17,11 @@ NXHit::NXHit(const shared_ptr<NXPrimitive>& pPrimitive, const Vector3& position,
 	normal.Normalize();
 }
 
-void NXHit::ConstructReflectionModel()
+void NXHit::ConstructReflectionModel(bool IsFromCamera)
 {
 	shared_ptr<NXPBRMaterial> pMat = pPrimitive->GetPBRMaterial();
 	if (pMat)
-		pMat->ConstructReflectionModel(*this);
+		pMat->ConstructReflectionModel(*this, IsFromCamera);
 }
 
 void NXHit::SetShadingGeometry(Vector3 shadingdpdu, Vector3 shadingdpdv)

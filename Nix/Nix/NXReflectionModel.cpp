@@ -74,6 +74,11 @@ float NXReflectionModel::Pdf(const Vector3& wo, const Vector3& wi)
 	return 0.0f;	// 不在同一半球没有被采样的必要，pdf直接返回0
 }
 
+bool NXReflectionModel::IsMatchingType(ReflectionType type)
+{
+	return (m_type & type) == m_type;
+}
+
 Vector3 NXReflectionModel::Sample_f(const Vector3& wo, Vector3& wi, float& pdf)
 {
 	Vector2 u = NXRandom::GetInstance()->CreateVector2();
@@ -117,10 +122,10 @@ Vector3 NXRPrefectTransmission::Sample_f(const Vector3& wo, Vector3& wi, float& 
 	
 	Vector3 f_transmittion = T * (Vector3(1.0f) - fresnel.FresnelReflectance(CosTheta(wi))) / AbsCosTheta(wi);
 
-	bool bIsCameraRay = true;
+	bool IsFromCamera = true;
 	// 如果是从相机出发的射线，考虑折射过程中微分角压缩比。
 	// 如果是从光源出发，则此项正好和伴随BSDF相互抵消，不用考虑。
-	if (bIsCameraRay) f_transmittion *= etaI * etaI / (etaT * etaT);
+	if (IsFromCamera) f_transmittion *= etaI * etaI / (etaT * etaT);
 	return f_transmittion;
 }
 

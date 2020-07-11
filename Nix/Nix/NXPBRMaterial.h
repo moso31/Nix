@@ -9,7 +9,7 @@ public:
 	NXPBRMaterial() {}
 	~NXPBRMaterial() {}
 
-	virtual void ConstructReflectionModel(NXHit& hitInfo) = 0;
+	virtual void ConstructReflectionModel(NXHit& hitInfo, bool IsFromCamera) = 0;
 
 	Vector3 Diffuse;
 	Vector3 Specular;
@@ -21,25 +21,25 @@ public:
 class NXMatteMaterial : public NXPBRMaterial
 {
 public:
-	void ConstructReflectionModel(NXHit& hitInfo) override;
+	void ConstructReflectionModel(NXHit& hitInfo, bool IsFromCamera) override;
 };
 
 class NXMirrorMaterial : public NXPBRMaterial
 {
 public:
-	void ConstructReflectionModel(NXHit& hitInfo) override;
+	void ConstructReflectionModel(NXHit& hitInfo, bool IsFromCamera) override;
 };
 
 class NXGlassMaterial : public NXPBRMaterial
 {
 public:
-	void ConstructReflectionModel(NXHit& hitInfo) override;
+	void ConstructReflectionModel(NXHit& hitInfo, bool IsFromCamera) override;
 };
 
 class NXPlasticMaterial : public NXPBRMaterial
 {
 public:
-	void ConstructReflectionModel(NXHit& hitInfo) override;
+	void ConstructReflectionModel(NXHit& hitInfo, bool IsFromCamera) override;
 };
 
 // 尝试重新自己设计了一个通用的材质类。
@@ -50,7 +50,7 @@ public:
 	NXCommonMaterial(const Vector3& BaseColor, float Metalness, float Roughness) : BaseColor(BaseColor) { this->Metalness = Metalness; this->Roughness = Roughness; }
 	~NXCommonMaterial() {}
 
-	void ConstructReflectionModel(NXHit& hitInfo) override;
+	void ConstructReflectionModel(NXHit& hitInfo, bool IsFromCamera) override;
 
 	Vector3 BaseColor;
 };

@@ -39,7 +39,7 @@ Vector3 NXPathIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& pS
 
 		if (!bIsIntersect) break;
 
-		hitInfo.ConstructReflectionModel();
+		hitInfo.ConstructReflectionModel(true);
 		L += throughput * UniformLightOne(nextRay, pScene, hitInfo);
 		
 		// depth的终指条件建议放在此处。这里可以看作两次迭代计算之间的交界。

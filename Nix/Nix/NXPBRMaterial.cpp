@@ -4,7 +4,7 @@
 #include "NXFresnel.h"
 #include "NXDistribution.h"
 
-void NXMatteMaterial::ConstructReflectionModel(NXHit& hitInfo)
+void NXMatteMaterial::ConstructReflectionModel(NXHit& hitInfo, bool IsFromCamera)
 {
 	hitInfo.BSDF = make_shared<NXBSDF>(hitInfo);
 	if (Diffuse != Vector3(0.0f))
@@ -13,7 +13,7 @@ void NXMatteMaterial::ConstructReflectionModel(NXHit& hitInfo)
 	}
 }
 
-void NXMirrorMaterial::ConstructReflectionModel(NXHit& hitInfo)
+void NXMirrorMaterial::ConstructReflectionModel(NXHit& hitInfo, bool IsFromCamera)
 {
 	hitInfo.BSDF = make_shared<NXBSDF>(hitInfo);
 	shared_ptr<NXFresnel> fresnel = make_shared<NXFresnelNoOp>();
@@ -23,18 +23,18 @@ void NXMirrorMaterial::ConstructReflectionModel(NXHit& hitInfo)
 	}
 }
 
-void NXGlassMaterial::ConstructReflectionModel(NXHit& hitInfo)
+void NXGlassMaterial::ConstructReflectionModel(NXHit& hitInfo, bool IsFromCamera)
 {
 	hitInfo.BSDF = make_shared<NXBSDF>(hitInfo);
 	shared_ptr<NXFresnel> fresnel = make_shared<NXFresnelDielectric>(1.0f, IOR);
 	if (Diffuse != Vector3(0.0f))
 	{
 		hitInfo.BSDF->AddReflectionModel(make_shared<NXRPrefectReflection>(Diffuse, fresnel));
-		hitInfo.BSDF->AddReflectionModel(make_shared<NXRPrefectTransmission>(Diffuse, 1.0f, IOR));
+		hitInfo.BSDF->AddReflectionModel(make_shared<NXRPrefectTransmission>(Diffuse, 1.0f, IOR, IsFromCamera));
 	}
 }
 
-void NXPlasticMaterial::ConstructReflectionModel(NXHit& hitInfo)
+void NXPlasticMaterial::ConstructReflectionModel(NXHit& hitInfo, bool IsFromCamera)
 {
 	hitInfo.BSDF = make_shared<NXBSDF>(hitInfo);
 	if (Diffuse != Vector3(0.0f))
@@ -51,7 +51,7 @@ void NXPlasticMaterial::ConstructReflectionModel(NXHit& hitInfo)
 	}
 }
 
-void NXCommonMaterial::ConstructReflectionModel(NXHit& hitInfo)
+void NXCommonMaterial::ConstructReflectionModel(NXHit& hitInfo, bool IsFromCamera)
 {
 	hitInfo.BSDF = make_shared<NXBSDF>(hitInfo);
 	Vector3 Diffuse, Specular;

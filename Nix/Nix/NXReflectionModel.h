@@ -39,8 +39,8 @@ public:
 	virtual float Pdf(const Vector3& wo, const Vector3& wi);
 
 	ReflectionType GetReflectionType() { return m_type; }
-	// 是否匹配指定类型。只要有一项相同即视作匹配。
-	bool IsMatchingType(ReflectionType type) { return (m_type & type) == m_type; }
+	// 是否匹配指定类型。type各bit全部相同时视作匹配。
+	bool IsMatchingType(ReflectionType type);
 
 protected:
 	ReflectionType m_type;
@@ -83,9 +83,9 @@ private:
 class NXRPrefectTransmission : public NXReflectionModel
 {
 public:
-	NXRPrefectTransmission(const Vector3& T, float etaA, float etaB) :
+	NXRPrefectTransmission(const Vector3& T, float etaA, float etaB, bool IsFromCamera) :
 		NXReflectionModel(ReflectionType(REFLECTIONTYPE_TRANSMISSION | REFLECTIONTYPE_SPECULAR)),
-		T(T), etaA(etaA), etaB(etaB), fresnel(etaA, etaB) {}
+		T(T), etaA(etaA), etaB(etaB), fresnel(etaA, etaB), IsFromCamera(IsFromCamera) {}
 	~NXRPrefectTransmission() {}
 
 	Vector3 f(const Vector3& wo, const Vector3& wi) override { return Vector3(0.0f); }
@@ -99,6 +99,7 @@ private:
 	Vector3 T;
 	NXFresnelDielectric fresnel;	// 导体不可能折射
 	float etaA, etaB;
+	bool IsFromCamera;
 };
 
 class NXRMicrofacetReflection : public NXReflectionModel

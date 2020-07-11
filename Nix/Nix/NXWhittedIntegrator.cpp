@@ -20,7 +20,7 @@ Vector3 NXWhittedIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>&
 	}
 
 	// 生成当前hit的bsdf（为其添加各种ReflectionModel）
-	hitInfo.ConstructReflectionModel();
+	hitInfo.ConstructReflectionModel(true);
 
 	// 然后计算当前hit的Radiance：Lo=Le+Lr
 	Vector3 L(0.0);
