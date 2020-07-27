@@ -242,6 +242,9 @@
     <ClCompile Include="Nix\NXKdTree.cpp">
       <Filter>Nix\Accelerator</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\NXPMIntegrator.cpp">
+      <Filter>Nix\RayTracer\Integrator</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -408,6 +411,9 @@
     </ClInclude>
     <ClInclude Include="Nix\NXKdTree.h">
       <Filter>Nix\Accelerator</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXPMIntegrator.h">
+      <Filter>Nix\RayTracer\Integrator</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

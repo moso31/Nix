@@ -20,7 +20,7 @@ Vector3 NXWhittedIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>&
 	}
 
 	// 生成当前hit的bsdf（为其添加各种ReflectionModel）
-	hitInfo.ConstructReflectionModel(true);
+	hitInfo.GenerateBSDF(true);
 
 	// 然后计算当前hit的Radiance：Lo=Le+Lr
 	Vector3 L(0.0);
@@ -40,15 +40,15 @@ Vector3 NXWhittedIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>&
 	for (auto it = pLights.begin(); it != pLights.end(); it++)
 	{
 		Vector3 incidentDirection;
-		float pdf = 0.0f;
-		Vector3 Li = (*it)->SampleIncidentRadiance(hitInfo, incidentDirection, pdf);
-		if (Li.IsZero() || pdf == 0.0f)
+		float pdfLight = 0.0f, pdfBSDF = 0.0f;
+		Vector3 Li = (*it)->SampleIncidentRadiance(hitInfo, incidentDirection, pdfLight);
+		if (Li.IsZero() || pdfLight == 0.0f)
 			continue;
 
-		Vector3 f = hitInfo.BSDF->f(hitInfo.direction, incidentDirection);
+		Vector3 f = hitInfo.BSDF->Evaluate(hitInfo.direction, incidentDirection, pdfBSDF);
 		if (!f.IsZero())
 		{
-			L += f * Li * incidentDirection.Dot(hitInfo.shading.normal) / pdf;
+			L += f * Li * incidentDirection.Dot(hitInfo.shading.normal) / pdfLight;
 		}
 	}
 

@@ -23,12 +23,15 @@ void NSFirstPersonalCamera::Update()
 	Vector3 pos = pCamera->GetTranslation();
 	Vector3 fw = pCamera->GetForward();
 	Vector3 right = pCamera->GetRight();
+	Vector3 up = fw.Cross(right);
 
 	Vector3 moveCommandV(0.0f);
 	if (m_bMoveState[POSITIVE_Z]) moveCommandV += fw;
 	if (m_bMoveState[NEGATIVE_Z]) moveCommandV -= fw;
 	if (m_bMoveState[POSITIVE_X]) moveCommandV += right;
 	if (m_bMoveState[NEGATIVE_X]) moveCommandV -= right;
+	if (m_bMoveState[POSITIVE_Y]) moveCommandV += up;
+	if (m_bMoveState[NEGATIVE_Y]) moveCommandV -= up;
 
 	float moveSpeed = 3.0f;
 	switch (m_bSpeedState)
@@ -50,6 +53,8 @@ void NSFirstPersonalCamera::OnKeyDown(NXEventArg eArg)
 	if (eArg.VKey == 'S') m_bMoveState[NEGATIVE_Z] = true;
 	if (eArg.VKey == 'D') m_bMoveState[POSITIVE_X] = true;
 	if (eArg.VKey == 'A') m_bMoveState[NEGATIVE_X] = true;
+	if (eArg.VKey == 'Q') m_bMoveState[POSITIVE_Y] = true;
+	if (eArg.VKey == 'E') m_bMoveState[NEGATIVE_Y] = true;
 
 	if (eArg.VKey == NXKeyCode::LeftShift) m_bSpeedState = SPEED_HIGH;
 	if (eArg.VKey == NXKeyCode::LeftControl) m_bSpeedState = SPEED_LOW;
@@ -61,6 +66,8 @@ void NSFirstPersonalCamera::OnKeyUp(NXEventArg eArg)
 	if (eArg.VKey == 'S') m_bMoveState[NEGATIVE_Z] = false;
 	if (eArg.VKey == 'D') m_bMoveState[POSITIVE_X] = false;
 	if (eArg.VKey == 'A') m_bMoveState[NEGATIVE_X] = false;
+	if (eArg.VKey == 'Q') m_bMoveState[POSITIVE_Y] = false;
+	if (eArg.VKey == 'E') m_bMoveState[NEGATIVE_Y] = false;
 
 	if (eArg.VKey == NXKeyCode::LeftShift) m_bSpeedState = SPEED_MID;
 	if (eArg.VKey == NXKeyCode::LeftControl) m_bSpeedState = SPEED_MID;

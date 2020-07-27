@@ -19,8 +19,8 @@ Vector3 NXDirectIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& 
 		return pCubeMap->GetEnvironmentLight()->GetRadiance(ignore, ignore, ray.direction);
 	}
 
-	// 生成当前hit的bsdf（为其添加各种ReflectionModel）
-	hitInfo.ConstructReflectionModel(true);
+	// 生成当前hit的bsdf
+	hitInfo.GenerateBSDF(true);
 
 	// 然后计算当前hit的Radiance：Lo=Le+Lr
 	Vector3 L(0.0f);
@@ -37,6 +37,8 @@ Vector3 NXDirectIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& 
 		L += UniformLightAll(ray, pScene, hitInfo);
 	else
 		L += UniformLightOne(ray, pScene, hitInfo);
+
+	return L;	//（暂时的，反射折射还没做）
 
 	// 然后计算间接光照。
 	// Whitted积分光照仅统计来自完美镜面反射和完美镜面折射的间接照明。

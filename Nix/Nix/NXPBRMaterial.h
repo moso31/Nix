@@ -6,51 +6,25 @@
 class NXPBRMaterial
 {
 public:
-	NXPBRMaterial() {}
+	// 采样概率
+	struct SampleProbabilities
+	{
+		float Diff;
+		float Spec;
+	};
+
+	NXPBRMaterial(const Vector3& Diffuse, const Vector3& Specular, const Vector3& Reflectivity, float Roughness, float IOR);
 	~NXPBRMaterial() {}
 
-	virtual void ConstructReflectionModel(NXHit& hitInfo, bool IsFromCamera) = 0;
+	void CalcSampleProbabilities();
 
-	Vector3 Diffuse;
-	Vector3 Specular;
-	float Roughness;
-	float Metalness;
-	float IOR;
-};
+	Vector3 m_diffuse;
+	Vector3 m_specular;
+	Vector3 m_reflectivity;
+	float m_roughness;
+	float m_IOR;
 
-class NXMatteMaterial : public NXPBRMaterial
-{
-public:
-	void ConstructReflectionModel(NXHit& hitInfo, bool IsFromCamera) override;
-};
-
-class NXMirrorMaterial : public NXPBRMaterial
-{
-public:
-	void ConstructReflectionModel(NXHit& hitInfo, bool IsFromCamera) override;
-};
-
-class NXGlassMaterial : public NXPBRMaterial
-{
-public:
-	void ConstructReflectionModel(NXHit& hitInfo, bool IsFromCamera) override;
-};
-
-class NXPlasticMaterial : public NXPBRMaterial
-{
-public:
-	void ConstructReflectionModel(NXHit& hitInfo, bool IsFromCamera) override;
-};
-
-// 尝试重新自己设计了一个通用的材质类。
-// 没有考虑折射。
-class NXCommonMaterial : public NXPBRMaterial
-{
-public:
-	NXCommonMaterial(const Vector3& BaseColor, float Metalness, float Roughness) : BaseColor(BaseColor) { this->Metalness = Metalness; this->Roughness = Roughness; }
-	~NXCommonMaterial() {}
-
-	void ConstructReflectionModel(NXHit& hitInfo, bool IsFromCamera) override;
-
-	Vector3 BaseColor;
+	// Roulette概率
+	float m_probability;
+	SampleProbabilities m_sampleProbs;
 };

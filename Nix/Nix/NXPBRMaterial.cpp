@@ -1,73 +1,33 @@
-#include "NXPBRMaterial.h"
 #include "NXReflectionModel.h"
-#include "NXBSDF.h"
-#include "NXFresnel.h"
-#include "NXDistribution.h"
+#include "NXPBRMaterial.h"
 
-void NXMatteMaterial::ConstructReflectionModel(NXHit& hitInfo, bool IsFromCamera)
+NXPBRMaterial::NXPBRMaterial(const Vector3& Diffuse, const Vector3& Specular, const Vector3& Reflectivity, float Roughness, float IOR) :
+	m_diffuse(Diffuse),
+	m_specular(Specular),
+	m_reflectivity(Reflectivity),
+	m_roughness(Roughness),
+	m_IOR(IOR)
 {
-	hitInfo.BSDF = make_shared<NXBSDF>(hitInfo);
-	if (Diffuse != Vector3(0.0f))
-	{
-		hitInfo.BSDF->AddReflectionModel(make_shared<NXRLambertianReflection>(Diffuse));
-	}
+	CalcSampleProbabilities();
 }
 
-void NXMirrorMaterial::ConstructReflectionModel(NXHit& hitInfo, bool IsFromCamera)
+void NXPBRMaterial::CalcSampleProbabilities()
 {
-	hitInfo.BSDF = make_shared<NXBSDF>(hitInfo);
-	shared_ptr<NXFresnel> fresnel = make_shared<NXFresnelNoOp>();
-	if (Diffuse != Vector3(0.0f))
-	{
-		hitInfo.BSDF->AddReflectionModel(make_shared<NXRPrefectReflection>(Diffuse, fresnel));
-	}
-}
+	float prob = (m_diffuse + m_specular).MaxComponent();
+	m_probability = Clamp(prob, 0.0f, 1.0f);
 
-void NXGlassMaterial::ConstructReflectionModel(NXHit& hitInfo, bool IsFromCamera)
-{
-	hitInfo.BSDF = make_shared<NXBSDF>(hitInfo);
-	shared_ptr<NXFresnel> fresnel = make_shared<NXFresnelDielectric>(1.0f, IOR);
-	if (Diffuse != Vector3(0.0f))
-	{
-		hitInfo.BSDF->AddReflectionModel(make_shared<NXRPrefectReflection>(Diffuse, fresnel));
-		hitInfo.BSDF->AddReflectionModel(make_shared<NXRPrefectTransmission>(Diffuse, 1.0f, IOR, IsFromCamera));
-	}
-}
+	float sumDiffuse = m_diffuse.x + m_diffuse.y + m_diffuse.z;
+	float sumSpecular = m_specular.x + m_specular.y + m_specular.z;
+	float sumInv = 1.0f / (sumDiffuse + sumSpecular);
 
-void NXPlasticMaterial::ConstructReflectionModel(NXHit& hitInfo, bool IsFromCamera)
-{
-	hitInfo.BSDF = make_shared<NXBSDF>(hitInfo);
-	if (Diffuse != Vector3(0.0f))
+	if (!isnan(sumInv))
 	{
-		hitInfo.BSDF->AddReflectionModel(make_shared<NXRLambertianReflection>(Diffuse));
+		m_sampleProbs.Diff = sumDiffuse * sumInv;
+		m_sampleProbs.Spec = sumSpecular * sumInv;
 	}
-	if (Specular != Vector3(0.0f))
+	else
 	{
-		// 粗糙度roughness-alpha转换。roughness=0：光滑，roughness=1：粗糙
-		float alpha = NXRDistributionBeckmann::RoughnessToAlpha(Roughness);
-		shared_ptr<NXRDistributionBeckmann> distrib = make_shared<NXRDistributionBeckmann>(alpha);
-		shared_ptr<NXFresnel> fresnel = make_shared<NXFresnelDielectric>(1.0f, 1.5f);	// 塑料折射率1.5
-		hitInfo.BSDF->AddReflectionModel(make_shared<NXRMicrofacetReflection>(Specular, distrib, fresnel));
-	}
-}
-
-void NXCommonMaterial::ConstructReflectionModel(NXHit& hitInfo, bool IsFromCamera)
-{
-	hitInfo.BSDF = make_shared<NXBSDF>(hitInfo);
-	Vector3 Diffuse, Specular;
-	Diffuse = BaseColor * (1.0f - Metalness);
-	Specular = Vector3::Lerp(Vector3(0.04f), BaseColor, Metalness);	// 0.04 是拟合的。
-
-	if (Diffuse != Vector3(0.0f))
-	{
-		hitInfo.BSDF->AddReflectionModel(make_shared<NXRLambertianReflection>(Diffuse));
-	}
-	if (Specular != Vector3(0.0f))
-	{
-		//float alpha = Roughness;
-		float alpha = NXRDistributionBeckmann::RoughnessToAlpha(Roughness);
-		shared_ptr<NXRDistributionBeckmann> distrib = make_shared<NXRDistributionBeckmann>(alpha);
-		shared_ptr<NXFresnelCommon> fresnel = make_shared<NXFresnelCommon>(Specular);
-		hitInfo.BSDF->AddReflectionModel(make_shared<NXRMicrofacetReflection>(Specular, distrib, fresnel));
+		m_sampleProbs.Diff = 0.0f;
+		m_sampleProbs.Spec = 0.0f;
 	}
 }

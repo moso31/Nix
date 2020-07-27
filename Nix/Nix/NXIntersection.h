@@ -17,7 +17,7 @@ public:
 	NXHit(const shared_ptr<NXPrimitive>& pPrimitive, const Vector3& position, const Vector2& uv, const Vector3& direction, const Vector3& dpdu, const Vector3& dpdv);
 	~NXHit() {}
 
-	void ConstructReflectionModel(bool IsFromCamera);
+	void GenerateBSDF(bool IsFromCamera);
 	void SetShadingGeometry(Vector3 shadingdpdu, Vector3 shadingdpdv);
 	
 	// 计算完毕后得到的hitInfo是Local空间数据。使用本方法将其数据转换到world空间。

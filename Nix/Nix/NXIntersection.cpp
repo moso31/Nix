@@ -1,8 +1,7 @@
 #include "NXIntersection.h"
 #include "NXScene.h"
-#include "NXPBRMaterial.h"
-
 #include "NXPrimitive.h"
+#include "NXPBRMaterial.h"
 
 NXHit::NXHit(const shared_ptr<NXPrimitive>& pPrimitive, const Vector3& position, const Vector2& uv, const Vector3& direction, const Vector3& dpdu, const Vector3& dpdv) :
 	pPrimitive(pPrimitive),
@@ -17,11 +16,11 @@ NXHit::NXHit(const shared_ptr<NXPrimitive>& pPrimitive, const Vector3& position,
 	normal.Normalize();
 }
 
-void NXHit::ConstructReflectionModel(bool IsFromCamera)
+void NXHit::GenerateBSDF(bool IsFromCamera)
 {
+	BSDF.reset();
 	shared_ptr<NXPBRMaterial> pMat = pPrimitive->GetPBRMaterial();
-	if (pMat)
-		pMat->ConstructReflectionModel(*this, IsFromCamera);
+	BSDF = make_shared<NXBSDF>(*this, pMat);
 }
 
 void NXHit::SetShadingGeometry(Vector3 shadingdpdu, Vector3 shadingdpdv)

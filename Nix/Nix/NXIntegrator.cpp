@@ -21,7 +21,6 @@ Vector3 NXIntegrator::DirectEstimate(const Ray& ray, const shared_ptr<NXScene>& 
 	Vector3 L(0.0f);
 
 	// 统计pdf时，不统计带有SPECULAR类型的反射模型。
-	ReflectionType refType = (ReflectionType)(REFLECTIONTYPE_ALL & ~REFLECTIONTYPE_SPECULAR);
 	bool bIsDeltaLight = pLight->IsDeltaLight();
 
 	if (bIsDeltaLight)
@@ -31,10 +30,11 @@ Vector3 NXIntegrator::DirectEstimate(const Ray& ray, const shared_ptr<NXScene>& 
 		Vector3 Li = pLight->SampleIncidentRadiance(hitInfo, incidentDirection, pdfLight);
 		if (!Li.IsZero())
 		{
-			Vector3 f = hitInfo.BSDF->f(hitInfo.direction, incidentDirection);
+			float pdfBSDF;
+			Vector3 f = hitInfo.BSDF->Evaluate(hitInfo.direction, incidentDirection, pdfBSDF);
 			if (!f.IsZero())
 			{
-				L += f * Li * incidentDirection.Dot(hitInfo.shading.normal);
+				L += f * Li * incidentDirection.Dot(hitInfo.shading.normal) / pdfBSDF;
 			}
 		}
 	}
@@ -48,18 +48,16 @@ Vector3 NXIntegrator::DirectEstimate(const Ray& ray, const shared_ptr<NXScene>& 
 		Vector3 Li = pLight->SampleIncidentRadiance(hitInfo, incidentDirection, pdfLight);
 		if (!Li.IsZero() && pdfLight > 0.0f)
 		{
-			f = hitInfo.BSDF->f(hitInfo.direction, incidentDirection);
+			f = hitInfo.BSDF->Evaluate(hitInfo.direction, incidentDirection, pdfBSDF);
 			if (!f.IsZero())
 			{
-				//【没有pdfBSDF可能比有pdfBSDF更优？需要更广泛的理论分析和样本测试。】
-				//pdfBSDF = hitInfo.BSDF->Pdf(hitInfo.direction, incidentDirection, refType);
 				pdfWeight = PowerHeuristicWeightPdf(1, pdfLight, 1, pdfBSDF);
 				L += f * Li * incidentDirection.Dot(hitInfo.shading.normal) * pdfWeight / pdfLight;
 			}
 		}
 
 		// 基于BSDF采样一次
-		f = hitInfo.BSDF->Sample_f(hitInfo.direction, incidentDirection, pdfBSDF, refType);
+		f = hitInfo.BSDF->Sample(hitInfo.direction, incidentDirection, pdfBSDF);
 		if (!f.IsZero())
 		{
 			// 基于BSDF采样的方向寻找此次采样是否击中光源。
@@ -126,7 +124,7 @@ Vector3 NXIntegrator::SpecularReflect(const Ray& ray, const NXHit& hit, const sh
 {
 	float pdf;
 	Vector3 wo = hit.direction, wi;
-	Vector3 f = hit.BSDF->Sample_f(wo, wi, pdf, ReflectionType(REFLECTIONTYPE_REFLECTION | REFLECTIONTYPE_SPECULAR));
+	Vector3 f = hit.BSDF->Sample(wo, wi, pdf);
 	
 	if (f.IsZero()) return Vector3(0.0f);
 
@@ -140,7 +138,7 @@ Vector3 NXIntegrator::SpecularTransmit(const Ray& ray, const NXHit& hit, const s
 {
 	float pdf;
 	Vector3 wo = hit.direction, wi;
-	Vector3 f = hit.BSDF->Sample_f(wo, wi, pdf, ReflectionType(REFLECTIONTYPE_TRANSMISSION | REFLECTIONTYPE_SPECULAR));
+	Vector3 f = hit.BSDF->Sample(wo, wi, pdf);
 
 	if (f.IsZero()) return Vector3(0.0f);
 

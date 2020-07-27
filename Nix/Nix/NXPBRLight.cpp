@@ -176,7 +176,7 @@ Vector3 NXPBREnvironmentLight::SampleIncidentRadiance(const NXHit& hitInfo, Vect
 Vector3 NXPBREnvironmentLight::GetRadiance(const Vector3& samplePosition, const Vector3& lightSurfaceNormal, const Vector3& targetDirection)
 {
 	// targetDirection从中心向外发射。
-	return m_pCubeMap->BackgroundColorByDirection(targetDirection) * Radiance;
+	return m_pCubeMap->BackgroundColorByDirection(-targetDirection) * Radiance;
 }
 
 float NXPBREnvironmentLight::GetPdf(const NXHit& hitInfo, const Vector3& targetDirection)

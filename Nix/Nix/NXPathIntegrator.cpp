@@ -39,7 +39,7 @@ Vector3 NXPathIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& pS
 
 		if (!bIsIntersect) break;
 
-		hitInfo.ConstructReflectionModel(true);
+		hitInfo.GenerateBSDF(true);
 		L += throughput * UniformLightOne(nextRay, pScene, hitInfo);
 		
 		// depth的终指条件建议放在此处。这里可以看作两次迭代计算之间的交界。
@@ -49,7 +49,7 @@ Vector3 NXPathIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& pS
 		float pdf;
 		Vector3 nextDirection;
 		shared_ptr<ReflectionType> outReflectType = make_shared<ReflectionType>();
-		Vector3 f = hitInfo.BSDF->Sample_f(hitInfo.direction, nextDirection, pdf, REFLECTIONTYPE_ALL, outReflectType);
+		Vector3 f = hitInfo.BSDF->Evaluate(hitInfo.direction, nextDirection, pdf);
 		bIsSpecular = (*outReflectType & REFLECTIONTYPE_SPECULAR);
 		outReflectType.reset();
 

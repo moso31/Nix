@@ -210,49 +210,9 @@ shared_ptr<NXMaterial> SceneManager::CreateMaterial(const string& name, const Ve
 	return p;
 }
 
-shared_ptr<NXPBRMaterial> SceneManager::CreatePBRMatte(const Vector3& diffuse)
+shared_ptr<NXPBRMaterial> SceneManager::CreatePBRMaterial(const Vector3& diffuse, const Vector3& specular, float roughness)
 {
-	auto pMat = make_shared<NXMatteMaterial>();
-	pMat->Diffuse = diffuse;
-
-	m_scene->m_pbrMaterials.push_back(pMat);
-	return pMat;
-}
-
-shared_ptr<NXPBRMaterial> SceneManager::CreatePBRGlass(const Vector3& diffuse, float IOR)
-{
-	auto pMat = make_shared<NXGlassMaterial>();
-	pMat->Diffuse = diffuse;
-	pMat->IOR = IOR;
-
-	m_scene->m_pbrMaterials.push_back(pMat);
-	return pMat;
-}
-
-shared_ptr<NXPBRMaterial> SceneManager::CreatePBRMirror(const Vector3& diffuse)
-{
-	auto pMat = make_shared<NXMirrorMaterial>();
-	pMat->Diffuse = diffuse;
-
-	m_scene->m_pbrMaterials.push_back(pMat);
-	return pMat;
-}
-
-shared_ptr<NXPBRMaterial> SceneManager::CreatePBRPlastic(const Vector3& diffuse, const Vector3& specular, float roughness, float IOR)
-{
-	auto pMat = make_shared<NXPlasticMaterial>();
-	pMat->Diffuse = diffuse;
-	pMat->Specular = specular;
-	pMat->Roughness = roughness;
-	pMat->IOR = IOR;
-
-	m_scene->m_pbrMaterials.push_back(pMat);
-	return pMat;
-}
-
-shared_ptr<NXCommonMaterial> SceneManager::CreateCommonMaterial(const Vector3& baseColor, float metalness, float roughness)
-{
-	auto pMat = make_shared<NXCommonMaterial>(baseColor, metalness, roughness);
+	auto pMat = make_shared<NXPBRMaterial>(diffuse, specular, roughness);
 	m_scene->m_pbrMaterials.push_back(pMat);
 	return pMat;
 }
