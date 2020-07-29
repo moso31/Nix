@@ -32,13 +32,12 @@
 
 // Math
 #include "SimpleMath.h"
-#include "SimpleMath.inl"
 
 // namespace
 using namespace std;
 using namespace std::chrono;
 using namespace DirectX;
-using namespace SimpleMath;
+using namespace DirectX::SimpleMath;
 
 // class preload
 class App;

@@ -1,6 +1,4 @@
 NXBSDF.cpp
-	没有确定是应该采用单折射率eta还是双折射率etaI/etaT模型。现在是etaI/etaT，但etaI被强制锁定=1.0
 	没有对IsFromCamera进行调整，目前强制设为true。
-	SmallVCM+PBRT混搭式的实现，感觉有点混乱。比如构造函数阶段pFresnelReflectivity
 
 ray的offset 在计算距离的时候没有得到补偿

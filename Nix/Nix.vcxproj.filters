@@ -191,9 +191,6 @@
     <ClCompile Include="Nix\NXRayTracer.cpp">
       <Filter>Nix\RayTracer</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\NXReflectionModel.cpp">
-      <Filter>Nix\RayTracer</Filter>
-    </ClCompile>
     <ClCompile Include="Core\NXRandom.cpp">
       <Filter>Core\Helper</Filter>
     </ClCompile>
@@ -227,12 +224,6 @@
     <ClCompile Include="Nix\NXCubeMap.cpp">
       <Filter>Nix\Object</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\NXDirectIntegrator.cpp">
-      <Filter>Nix\RayTracer\Integrator</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\NXWhittedIntegrator.cpp">
-      <Filter>Nix\RayTracer\Integrator</Filter>
-    </ClCompile>
     <ClCompile Include="Nix\NXPathIntegrator.cpp">
       <Filter>Nix\RayTracer\Integrator</Filter>
     </ClCompile>
@@ -242,8 +233,8 @@
     <ClCompile Include="Nix\NXKdTree.cpp">
       <Filter>Nix\Accelerator</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\NXPMIntegrator.cpp">
-      <Filter>Nix\RayTracer\Integrator</Filter>
+    <ClCompile Include="Nix\NXReflection.inl">
+      <Filter>Nix\RayTracer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -358,9 +349,6 @@
     <ClInclude Include="Nix\NXRayTracer.h">
       <Filter>Nix\RayTracer</Filter>
     </ClInclude>
-    <ClInclude Include="Nix\NXReflectionModel.h">
-      <Filter>Nix\RayTracer</Filter>
-    </ClInclude>
     <ClInclude Include="Core\NXRandom.h">
       <Filter>Core\Helper</Filter>
     </ClInclude>
@@ -397,12 +385,6 @@
     <ClInclude Include="Nix\NXCubeMap.h">
       <Filter>Nix\Object</Filter>
     </ClInclude>
-    <ClInclude Include="Nix\NXDirectIntegrator.h">
-      <Filter>Nix\RayTracer\Integrator</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\NXWhittedIntegrator.h">
-      <Filter>Nix\RayTracer\Integrator</Filter>
-    </ClInclude>
     <ClInclude Include="Nix\NXPathIntegrator.h">
       <Filter>Nix\RayTracer\Integrator</Filter>
     </ClInclude>
@@ -412,8 +394,8 @@
     <ClInclude Include="Nix\NXKdTree.h">
       <Filter>Nix\Accelerator</Filter>
     </ClInclude>
-    <ClInclude Include="Nix\NXPMIntegrator.h">
-      <Filter>Nix\RayTracer\Integrator</Filter>
+    <ClInclude Include="Nix\NXReflection.h">
+      <Filter>Nix\RayTracer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

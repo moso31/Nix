@@ -1,4 +1,4 @@
-#include "NXReflectionModel.h"
+#include "NXReflection.h"
 #include "NXPBRMaterial.h"
 
 NXPBRMaterial::NXPBRMaterial(const Vector3& Diffuse, const Vector3& Specular, const Vector3& Reflectivity, const Vector3& Refractivity, float Roughness, float IOR) :

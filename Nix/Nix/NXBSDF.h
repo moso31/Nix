@@ -1,5 +1,7 @@
 #pragma once
-#include "NXReflectionModel.h"
+#include "NXDistribution.h"
+#include "NXFresnel.h"
+#include "NXReflection.h"
 
 using namespace NXReflection;
 

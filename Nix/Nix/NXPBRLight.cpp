@@ -3,7 +3,7 @@
 #include "NXScene.h"
 #include "NXCubeMap.h"
 #include "NXRandom.h"
-#include "NXReflectionModel.h"
+#include "NXReflection.h"
 
 using namespace SamplerMath;
 

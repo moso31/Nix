@@ -47,11 +47,11 @@ void NXPhotonMappingIntegrator::GeneratePhotons(const shared_ptr<NXScene>& pScen
 
 			Vector3 nextDirection;
 			float pdfBSDF;
-			shared_ptr<ReflectionType> outReflectType = make_shared<ReflectionType>();
+			//shared_ptr<ReflectionType> outReflectType = make_shared<ReflectionType>();
 			Vector3 f = hitInfo.BSDF->Evaluate(-ray.direction, nextDirection, pdfBSDF);
-			bIsDiffuse = (*outReflectType & REFLECTIONTYPE_DIFFUSE);
-			bIsGlossy = (*outReflectType & REFLECTIONTYPE_GLOSSY);
-			outReflectType.reset();
+			bIsDiffuse = false;// (*outReflectType & REFLECTIONTYPE_DIFFUSE);
+			bIsGlossy =  false;//(*outReflectType & REFLECTIONTYPE_GLOSSY);
+			//outReflectType.reset();
 
 			if (f.IsZero() || pdfBSDF == 0) break;
 

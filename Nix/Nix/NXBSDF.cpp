@@ -146,7 +146,7 @@ Vector3 NXBSDF::SampleRefract(const Vector3& wo, Vector3& o_wi, float& o_pdf)
 		return Vector3(0.0f);	// 全内反射
 
 	o_pdf = pMat->m_sampleProbs.Refract;
-	Vector3 transmitivity = pMat->m_reflectivity * (1.0f - m_reflectance) / AbsCosTheta(o_wi);
+	Vector3 transmitivity = pMat->m_refractivity * (1.0f - m_reflectance) / AbsCosTheta(o_wi);
 
 	bool IsFromCamera = true;
 	// 如果是从相机出发的射线(PT)，考虑折射过程中微分角压缩比。

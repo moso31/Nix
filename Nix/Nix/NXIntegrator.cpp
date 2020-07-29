@@ -119,31 +119,3 @@ Vector3 NXIntegrator::UniformLightOne(const Ray& ray, const shared_ptr<NXScene>&
 	int index = NXRandom::GetInstance()->CreateInt(0, (int)pLights.size() - 1);
 	return DirectEstimate(ray, pScene, pLights[index], hitInfo);
 }
-
-Vector3 NXIntegrator::SpecularReflect(const Ray& ray, const NXHit& hit, const shared_ptr<NXScene>& pScene, int depth)
-{
-	float pdf;
-	Vector3 wo = hit.direction, wi;
-	Vector3 f = hit.BSDF->Sample(wo, wi, pdf);
-	
-	if (f.IsZero()) return Vector3(0.0f);
-
-	Ray nextRay = Ray(hit.position, wi);
-	nextRay.position += nextRay.direction * NXRT_EPSILON;
-	Vector3 result = f * Radiance(nextRay, pScene, depth + 1) * fabsf(wi.Dot(hit.shading.normal)) / pdf;
-	return result;
-}
-
-Vector3 NXIntegrator::SpecularTransmit(const Ray& ray, const NXHit& hit, const shared_ptr<NXScene>& pScene, int depth)
-{
-	float pdf;
-	Vector3 wo = hit.direction, wi;
-	Vector3 f = hit.BSDF->Sample(wo, wi, pdf);
-
-	if (f.IsZero()) return Vector3(0.0f);
-
-	Ray nextRay = Ray(hit.position, wi);
-	nextRay.position += nextRay.direction * NXRT_EPSILON;
-	Vector3 result = f * Radiance(nextRay, pScene, depth + 1) * fabsf(wi.Dot(hit.shading.normal)) / pdf;
-	return result;
-}

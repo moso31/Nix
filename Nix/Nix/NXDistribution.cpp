@@ -1,6 +1,6 @@
 #include "NXDistribution.h"
 #include "NXRandom.h"
-#include "NXReflectionModel.h"
+#include "NXReflection.h"
 
 using namespace NXReflection;
 

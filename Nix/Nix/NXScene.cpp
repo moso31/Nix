@@ -21,8 +21,6 @@
 
 #include "NXCubeMap.h"
 
-#include "NXWhittedIntegrator.h"
-#include "NXDirectIntegrator.h"
 #include "NXPathIntegrator.h"
 #include "NXPhotonMappingIntegrator.h"
 
@@ -84,18 +82,6 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		pIntegrator.reset();
 	}
 
-	if (eArg.VKey == 'U')
-	{
-		shared_ptr<NXIntegrator> pIntegrator = make_shared<NXDirectIntegrator>();
-
-		imageInfo.outPath = "D:\\nix_directlighting.bmp";
-		printf("rendering(HLBVH)...\n");
-		CreateBVHTrees(HBVHSplitMode::HLBVH);
-		NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pIntegrator, imageInfo);
-
-		pIntegrator.reset();
-	}
-
 	if (eArg.VKey == 'H')
 	{
 		//shared_ptr<NXIntegrator> pIntegrator = make_shared<NXDirectIntegrator>();
@@ -147,7 +133,7 @@ void NXScene::Init()
 		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), Vector3(0.0f), Vector3(0.0f), Vector3(0.0f), 0.0f, 0.0f),
 		m_sceneManager->CreatePBRMaterial(Vector3(1.0f, 0.0f, 0.0f), Vector3(0.0f), Vector3(0.0f), Vector3(0.0f), 0.0f, 0.0f),
 		m_sceneManager->CreatePBRMaterial(Vector3(0.0f, 0.0f, 1.0f), Vector3(0.0f), Vector3(0.0f), Vector3(0.0f), 0.0f, 0.0f),
-		m_sceneManager->CreatePBRMaterial(Vector3(0.0f), Vector3(1.0f), Vector3(0.0f), Vector3(0.0f), 0.04f, 0.0f),
+		m_sceneManager->CreatePBRMaterial(Vector3(0.0f), Vector3(1.0f), Vector3(0.0f), Vector3(0.0f), 0.03f, 0.0f),
 		m_sceneManager->CreatePBRMaterial(Vector3(0.0f), Vector3(0.0f), Vector3(1.0f), Vector3(1.0f), 0.5f, 1.55f),
 	};
 
@@ -178,7 +164,7 @@ void NXScene::Init()
 		Vector3(-XM_PIDIV2, 0.0f, 0.0f)
 	);
 
-	pPlane->SetMaterialPBR(pPBRMat[0]);
+	pPlane->SetMaterialPBR(pPBRMat[3]);
 
 	pPlane = m_sceneManager->CreatePlane(
 		"Wall -X",
