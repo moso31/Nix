@@ -14,29 +14,40 @@ NXBSDF::NXBSDF(const NXHit& pHitInfo, const shared_ptr<NXPBRMaterial>& pMaterial
 	// 这里直接把微面分布和Fresnel放在外面用不太好
 	// 微面分布和Fresnel模型分别都具有很多种。将来可以改成更具有可扩展性的方案
 	pDistrib = make_unique<NXRDistributionBeckmann>(pMat->m_roughness);
-	pFresnel = make_unique<NXFresnelCommon>(pMat->m_specular);
+	pFresnelSpecular = make_unique<NXFresnelCommon>(pMat->m_specular);
+	auto pFresnelReflectivity = make_unique<NXFresnelDielectric>(1.0f, pMat->m_IOR);
+
+	Vector3 wo = WorldToReflection(pHitInfo.direction);
+	m_reflectance = pFresnelReflectivity->FresnelReflectance(CosTheta(wo)).x;	// xyz都一样 取谁都行
+	pMat->CalcSampleProbabilities(m_reflectance);
 }
 
-Vector3 NXBSDF::Sample(const Vector3& woWorld, Vector3& o_wiWorld, float& o_pdf)
+Vector3 NXBSDF::Sample(const Vector3& woWorld, Vector3& o_wiWorld, float& o_pdf, shared_ptr<SampleEvents> o_sampleEvent)
 {
 	// 如果是漫反射or高亮反射，执行漫反射+高亮反射
 	// 如果是纯反射，执行纯反射
 	// 如果是纯折射，执行纯折射
-
 	SampleEvents eEvent(NONE);
 	float fRandom = NXRandom::GetInstance()->CreateFloat();
-	if (fRandom < pMat->m_sampleProbs.Diff)
+	if (fRandom < pMat->m_sampleProbs.Diffuse)
 	{
 		eEvent = DIFFUSE;
 	}
-	else if (fRandom < pMat->m_sampleProbs.Spec) 
+	else if (fRandom < pMat->m_sampleProbs.Diffuse + pMat->m_sampleProbs.Specular)
 	{
 		eEvent = SPECULAR;
 	}
-	else
+	else if (fRandom < pMat->m_sampleProbs.Diffuse + pMat->m_sampleProbs.Specular + pMat->m_sampleProbs.Reflect)
 	{
-		// absorb.
+		eEvent = REFLECT;
 	}
+	else 
+	{
+		eEvent = REFRACT;
+	}
+
+	if (o_sampleEvent)
+		*o_sampleEvent = eEvent;
 
 	Vector3 result(0.0f);
 	Vector3 wo = WorldToReflection(woWorld);
@@ -60,10 +71,10 @@ Vector3 NXBSDF::Sample(const Vector3& woWorld, Vector3& o_wiWorld, float& o_pdf)
 		o_pdf = pdfD + pdfS;
 		break;
 	case NXBSDF::REFLECT:
-		// 暂未实现
+		result += SampleReflect(wo, wi, o_pdf);
 		break;
 	case NXBSDF::REFRACT:
-		// 暂未实现
+		result += SampleRefract(wo, wi, o_pdf);
 		break;
 	}
 
@@ -106,7 +117,7 @@ Vector3 NXBSDF::SampleSpecular(const Vector3& wo, Vector3& o_wi, float& o_pdf)
 	if (!IsSameHemisphere(wo, o_wi)) 
 		return Vector3(0.0f);
 	o_pdf = PdfSpecular(wo, wh);
-	return pMat->m_specular * pDistrib->D(wh) * pDistrib->G(wo, o_wi) * pFresnel->FresnelReflectance(o_wi.Dot(wh)) / (4.0f * AbsCosTheta(wo) * AbsCosTheta(o_wi));
+	return pMat->m_specular * pDistrib->D(wh) * pDistrib->G(wo, o_wi) * pFresnelSpecular->FresnelReflectance(o_wi.Dot(wh)) / (4.0f * AbsCosTheta(wo) * AbsCosTheta(o_wi));
 }
 
 Vector3 NXBSDF::EvaluateSpecular(const Vector3& wo, const Vector3& wi, float& o_pdf)
@@ -114,26 +125,41 @@ Vector3 NXBSDF::EvaluateSpecular(const Vector3& wo, const Vector3& wi, float& o_
 	Vector3 wh = wo + wi;
 	wh.Normalize();
 	o_pdf = PdfSpecular(wo, wh);
-	return pMat->m_specular * pDistrib->D(wh) * pDistrib->G(wo, wi) * pFresnel->FresnelReflectance(wi.Dot(wh)) / (4.0f * AbsCosTheta(wo) * AbsCosTheta(wi));
+	return pMat->m_specular * pDistrib->D(wh) * pDistrib->G(wo, wi) * pFresnelSpecular->FresnelReflectance(wi.Dot(wh)) / (4.0f * AbsCosTheta(wo) * AbsCosTheta(wi));
 }
 
 Vector3 NXBSDF::SampleReflect(const Vector3& wo, Vector3& o_wi, float& o_pdf)
 {
 	o_wi = Vector3(-wo.x, -wo.y, wo.z);
-	o_pdf = 1.0f;	// 完美反射模型被选中时pdf=1，未被选中时pdf=0
-	return Vector3(pFresnel->FresnelReflectance(CosTheta(o_wi)) * pMat->m_ / abs(CosTheta(o_wi)));
+	o_pdf = pMat->m_sampleProbs.Reflect;
+	return pMat->m_reflectivity * m_reflectance / AbsCosTheta(o_wi);
 }
 
 Vector3 NXBSDF::SampleRefract(const Vector3& wo, Vector3& o_wi, float& o_pdf)
 {
-	return Vector3();
+	bool bEntering = CosTheta(wo) > 0;
+	float etaI = bEntering ? 1.0f : pMat->m_IOR;
+	float etaT = bEntering ? pMat->m_IOR : 1.0f;
+
+	Vector3 normal = Vector3(0.0f, 0.0f, bEntering ? 1.0f : -1.0f);
+	if (!Refract(wo, normal, etaI, etaT, o_wi))
+		return Vector3(0.0f);	// 全内反射
+
+	o_pdf = pMat->m_sampleProbs.Refract;
+	Vector3 transmitivity = pMat->m_reflectivity * (1.0f - m_reflectance) / AbsCosTheta(o_wi);
+
+	bool IsFromCamera = true;
+	// 如果是从相机出发的射线(PT)，考虑折射过程中微分角压缩比。
+	// 如果是从光源出发(PM)，则此项正好和伴随BSDF相互抵消，不用考虑。
+	if (IsFromCamera) transmitivity *= etaI * etaI / (etaT * etaT);
+	return transmitivity;
 }
 
 float NXBSDF::PdfDiffuse(const Vector3& wo, const Vector3& wi)
 {
 	// Diffuse使用的是余弦采样。
 	if (IsSameHemisphere(wo, wi)) 
-		return AbsCosTheta(wi) * XM_1DIVPI * pMat->m_sampleProbs.Diff;
+		return AbsCosTheta(wi) * XM_1DIVPI * pMat->m_sampleProbs.Diffuse;
 	return 0.0f;
 }
 
@@ -142,7 +168,7 @@ float NXBSDF::PdfSpecular(const Vector3& wo, const Vector3& wh)
 	// Specular使用D分布进行重点采样。根据文章
 	// https://agraphicsguy.wordpress.com/2015/11/01/sampling-microfacet-brdf/
 	// 的说法，除以一个4*wo*wh可以获得更好的采样结果。
-	return pDistrib->Pdf(wh) / (4.0f * wo.Dot(wh)) * pMat->m_sampleProbs.Spec;
+	return pDistrib->Pdf(wh) / (4.0f * wo.Dot(wh)) * pMat->m_sampleProbs.Specular;
 }
 
 Vector3 NXBSDF::WorldToReflection(const Vector3& p)

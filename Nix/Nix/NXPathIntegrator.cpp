@@ -4,6 +4,7 @@
 
 Vector3 NXPathIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& pScene, int depth)
 {
+	const int maxDepth = 5;
 	Vector3 throughput(1.0f);
 	Vector3 L(0.0f);
 	Ray nextRay(ray);
@@ -26,7 +27,7 @@ Vector3 NXPathIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& pS
 				if (!pCubeMap || !pCubeMapLight)
 					break;
 
-				L += throughput * pCubeMapLight->GetRadiance(Vector3(), Vector3(), nextRay.direction);
+				L += throughput * pCubeMapLight->GetRadiance(Vector3(), Vector3(), -nextRay.direction);
 				break;
 			}
 
@@ -44,14 +45,14 @@ Vector3 NXPathIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& pS
 		
 		// depth的终指条件建议放在此处。这里可以看作两次迭代计算之间的交界。
 		// 后续对throughput的计算，实质上是在为下一层迭代做准备。
-		if (depth++ > 5) break;	
+		if (depth++ > maxDepth) break;
 
 		float pdf;
 		Vector3 nextDirection;
-		shared_ptr<ReflectionType> outReflectType = make_shared<ReflectionType>();
-		Vector3 f = hitInfo.BSDF->Evaluate(hitInfo.direction, nextDirection, pdf);
-		bIsSpecular = (*outReflectType & REFLECTIONTYPE_SPECULAR);
-		outReflectType.reset();
+		shared_ptr<NXBSDF::SampleEvents> sampleEvent = make_shared<NXBSDF::SampleEvents>();
+		Vector3 f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
+		bIsSpecular = *sampleEvent & NXBSDF::DELTA;
+		sampleEvent.reset();
 
 		if (f.IsZero()) break;
 

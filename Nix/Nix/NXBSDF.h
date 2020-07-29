@@ -16,12 +16,15 @@ public:
 		SPECULAR = 2,
 		REFLECT = 4,
 		REFRACT = 8,
+		DELTA = (REFLECT | REFRACT),
+		NONDELTA = (DIFFUSE | SPECULAR),
+		ALL = (DELTA | NONDELTA)
 	};
 
 	NXBSDF(const NXHit& pHitInfo, const shared_ptr<NXPBRMaterial>& pMaterial);
 	~NXBSDF() {}
 
-	Vector3 Sample(const Vector3& woWorld, Vector3& o_wiWorld, float& o_pdf);
+	Vector3 Sample(const Vector3& woWorld, Vector3& o_wiWorld, float& o_pdf, shared_ptr<SampleEvents> o_sampleEvent = nullptr);
 	Vector3 Evaluate(const Vector3& woWorld, const Vector3& wiWorld, float& o_pdf);
 	Vector3 SampleDiffuse(const Vector3& wo, Vector3& o_wi, float& o_pdf);
 	Vector3 EvaluateDiffuse(const Vector3& wo, const Vector3& wi, float& o_pdf);
@@ -41,5 +44,7 @@ private:
 	Vector3 ns, ss, ts;
 	shared_ptr<NXPBRMaterial> pMat;
 	unique_ptr<NXRDistributionBeckmann> pDistrib;
-	unique_ptr<NXFresnelCommon> pFresnel;
+	unique_ptr<NXFresnel> pFresnelSpecular;
+
+	float m_reflectance; // 对镜面反射，可以不记录Fresnel模型，直接记录反射率。
 };

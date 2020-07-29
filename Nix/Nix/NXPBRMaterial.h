@@ -9,18 +9,21 @@ public:
 	// ²ÉÑù¸ÅÂÊ
 	struct SampleProbabilities
 	{
-		float Diff;
-		float Spec;
+		float Diffuse;
+		float Specular;
+		float Reflect;
+		float Refract;
 	};
 
-	NXPBRMaterial(const Vector3& Diffuse, const Vector3& Specular, const Vector3& Reflectivity, float Roughness, float IOR);
+	NXPBRMaterial(const Vector3& Diffuse, const Vector3& Specular, const Vector3& Reflectivity, const Vector3& Refractivity, float Roughness, float IOR);
 	~NXPBRMaterial() {}
 
-	void CalcSampleProbabilities();
+	void CalcSampleProbabilities(float reflectance);
 
 	Vector3 m_diffuse;
 	Vector3 m_specular;
 	Vector3 m_reflectivity;
+	Vector3 m_refractivity;
 	float m_roughness;
 	float m_IOR;
 

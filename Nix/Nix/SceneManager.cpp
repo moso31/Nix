@@ -210,9 +210,9 @@ shared_ptr<NXMaterial> SceneManager::CreateMaterial(const string& name, const Ve
 	return p;
 }
 
-shared_ptr<NXPBRMaterial> SceneManager::CreatePBRMaterial(const Vector3& diffuse, const Vector3& specular, float roughness)
+shared_ptr<NXPBRMaterial> SceneManager::CreatePBRMaterial(const Vector3& diffuse, const Vector3& specular, const Vector3& reflectivity, const Vector3& refractivity, float roughness, float IOR)
 {
-	auto pMat = make_shared<NXPBRMaterial>(diffuse, specular, roughness);
+	auto pMat = make_shared<NXPBRMaterial>(diffuse, specular, reflectivity, refractivity, roughness, IOR);
 	m_scene->m_pbrMaterials.push_back(pMat);
 	return pMat;
 }
