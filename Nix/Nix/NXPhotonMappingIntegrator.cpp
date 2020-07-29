@@ -3,7 +3,8 @@
 #include "NXCamera.h"
 #include "SamplerMath.h"
 
-NXPhotonMappingIntegrator::NXPhotonMappingIntegrator()
+NXPhotonMappingIntegrator::NXPhotonMappingIntegrator() :
+	m_numPhotons(100000)
 {
 }
 
@@ -16,9 +17,8 @@ void NXPhotonMappingIntegrator::GeneratePhotons(const shared_ptr<NXScene>& pScen
 	vector<NXPhoton> photons;
 
 	printf("Generate photons...");
-	int numPhotons = 1000000;
-	float numPhotonsInv = 1.0f / (float)numPhotons;
-	for (int i = 0; i < numPhotons; i++)
+	float numPhotonsInv = 1.0f / (float)m_numPhotons;
+	for (int i = 0; i < m_numPhotons; i++)
 	{
 		auto pLights = pScene->GetPBRLights();
 		int lightCount = (int)pLights.size();
@@ -29,7 +29,7 @@ void NXPhotonMappingIntegrator::GeneratePhotons(const shared_ptr<NXScene>& pScen
 		Vector3 throughput;
 		Ray ray;
 		Vector3 lightNormal;
-		Vector3 Le = pLights[sampleLight]->SampleEmissionRadiance(ray, lightNormal, pdfPos, pdfDir);
+		Vector3 Le = pLights[sampleLight]->Emit(ray, lightNormal, pdfPos, pdfDir);
 		throughput = Le * fabsf(lightNormal.Dot(ray.direction)) / (pdfLight * pdfPos * pdfDir);
 
 		int depth = 0;
@@ -45,15 +45,15 @@ void NXPhotonMappingIntegrator::GeneratePhotons(const shared_ptr<NXScene>& pScen
 
 			hitInfo.GenerateBSDF(false);
 
+			float pdf;
 			Vector3 nextDirection;
-			float pdfBSDF;
-			//shared_ptr<ReflectionType> outReflectType = make_shared<ReflectionType>();
-			Vector3 f = hitInfo.BSDF->Evaluate(-ray.direction, nextDirection, pdfBSDF);
-			bIsDiffuse = false;// (*outReflectType & REFLECTIONTYPE_DIFFUSE);
-			bIsGlossy =  false;//(*outReflectType & REFLECTIONTYPE_GLOSSY);
-			//outReflectType.reset();
+			shared_ptr<NXBSDF::SampleEvents> sampleEvent = make_shared<NXBSDF::SampleEvents>();
+			Vector3 f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
+			bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
+			bIsGlossy = *sampleEvent & NXBSDF::GLOSSY;
+			sampleEvent.reset();
 
-			if (f.IsZero() || pdfBSDF == 0) break;
+			if (f.IsZero() || pdf == 0) break;
 
 			if (bIsDiffuse || (bIsGlossy && depth + 1 == maxDepth))
 			{
@@ -70,14 +70,16 @@ void NXPhotonMappingIntegrator::GeneratePhotons(const shared_ptr<NXScene>& pScen
 				depth++;
 			}
 
-			Vector3 reflectance = f * fabsf(hitInfo.shading.normal.Dot(nextDirection)) / pdfBSDF;
+			Vector3 reflectance = f * fabsf(hitInfo.shading.normal.Dot(nextDirection)) / pdf;
+
+			auto mat = hitInfo.pPrimitive->GetPBRMaterial();
+			float random = NXRandom::GetInstance()->CreateFloat();
 
 			// Roulette
-			float q = max(0, 1.0f - reflectance.GetGrayValue());
-			float random = NXRandom::GetInstance()->CreateFloat();
-			if (random < q) break;
+			if (random > mat->m_probability)
+				break;
 
-			throughput *= reflectance / (1 - q);
+			throughput *= reflectance / mat->m_probability;
 
 			ray = Ray(hitInfo.position, nextDirection);
 			ray.position += ray.direction * NXRT_EPSILON;
@@ -100,38 +102,36 @@ Vector3 NXPhotonMappingIntegrator::Radiance(const Ray& cameraRay, const shared_p
 		return Vector3(0.0f);
 	}
 
-	bool bOnlyPhotons = true;
+	bool bOnlyPhotons = false;
 
 	Ray ray(cameraRay);
 	Vector3 nextDirection;
 	float pdf;
 	NXHit hitInfo;
-	bool bIsHit = true;
-
-	Vector3 throughput(1.0f);
-	while(bIsHit)
-	{
-		hitInfo = NXHit();
-		bIsHit = pScene->RayCast(ray, hitInfo);
-
-		if (bOnlyPhotons)
-			break;
-
-		if (bIsHit)
-		{
-			hitInfo.GenerateBSDF(true);
-
-			Vector3 f = hitInfo.BSDF->Sample(-ray.direction, nextDirection, pdf);
-			if (f.IsZero()) break;
-			throughput *= f * fabsf(hitInfo.shading.normal.Dot(nextDirection)) / pdf;
-
-			ray = Ray(hitInfo.position, nextDirection);
-			ray.position += ray.direction * NXRT_EPSILON; 
-		}
-	}
 
 	Vector3 L(0.0f);
-	if (!bIsHit) return L;
+	Vector3 throughput(1.0f);
+
+	bool bIsSpecular = true;
+
+	while (true)
+	{
+		hitInfo = NXHit();
+		if (!pScene->RayCast(ray, hitInfo))
+			return Vector3(0.0f);
+
+		hitInfo.GenerateBSDF(true);
+		shared_ptr<NXBSDF::SampleEvents> sampleEvent = make_shared<NXBSDF::SampleEvents>();
+		Vector3 f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
+		bIsSpecular = *sampleEvent & NXBSDF::DELTA;
+		sampleEvent.reset();
+
+		if (!bIsSpecular || bOnlyPhotons) break;
+
+		throughput *= f;
+		ray = Ray(hitInfo.position, nextDirection);
+		ray.position += ray.direction * NXRT_EPSILON;
+	}
 
 	Vector3 pos = hitInfo.position;
 
@@ -145,21 +145,18 @@ Vector3 NXPhotonMappingIntegrator::Radiance(const Ray& cameraRay, const shared_p
 
 	if (bOnlyPhotons)
 	{
-		m_pKdTree->GetNearest(pos, distSqr, nearestPhotons, 1, 0.00001f);
+		m_pKdTree->GetNearest(pos, distSqr, nearestPhotons, 1, 0.00005f);
 		Vector3 result(0.0f);
 		if (!nearestPhotons.empty())
 		{
 			result = nearestPhotons.top()->power;	// photon data only.
-			result *= 1000000.0f;
+			result *= m_numPhotons;
 		}
 		return result;
 	}
 
 	m_pKdTree->GetNearest(pos, distSqr, nearestPhotons, 500, FLT_MAX);
 
-	hitInfo.GenerateBSDF(true);
-
-	Vector3 wo = -ray.direction;
 	float photonCount = (float)nearestPhotons.size();
 	if (!photonCount) 
 		return L;
@@ -170,8 +167,8 @@ Vector3 NXPhotonMappingIntegrator::Radiance(const Ray& cameraRay, const shared_p
 	while (!nearestPhotons.empty())
 	{
 		auto photon = nearestPhotons.top();
-		//Vector3 f = hitInfo.BSDF->f(photon->direction, wo);
-		//result += f * photon->power;
+		Vector3 f = hitInfo.BSDF->Evaluate(-ray.direction, photon->direction, pdf);
+		result += f * photon->power;
 
 		//float dist = Vector3::Distance(pos, photon->position);
 		//float kernelFactor = SamplerMath::EpanechnikovKernel(dist / sqrtf(radius2));
@@ -183,7 +180,7 @@ Vector3 NXPhotonMappingIntegrator::Radiance(const Ray& cameraRay, const shared_p
 		nearestPhotons.pop();
 	}
 	L = throughput * result / (XM_PI * radius2);
-	//printf("%f %f %f\n", result.x, result.y, result.z);
+	printf("%f %f %f\n", L.x, L.y, L.z);
 
 	return L;
 }

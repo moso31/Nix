@@ -27,7 +27,7 @@ Vector3 NXIntegrator::DirectEstimate(const Ray& ray, const shared_ptr<NXScene>& 
 	{
 		Vector3 incidentDirection;
 		float pdfLight = 0.0f;
-		Vector3 Li = pLight->SampleIncidentRadiance(hitInfo, incidentDirection, pdfLight);
+		Vector3 Li = pLight->Illuminate(hitInfo, incidentDirection, pdfLight);
 		if (!Li.IsZero())
 		{
 			float pdfBSDF;
@@ -45,7 +45,7 @@ Vector3 NXIntegrator::DirectEstimate(const Ray& ray, const shared_ptr<NXScene>& 
 		float pdfLight = 0.0f, pdfBSDF = 0.0f, pdfWeight = 0.0f;
 
 		// 基于光源采样一次
-		Vector3 Li = pLight->SampleIncidentRadiance(hitInfo, incidentDirection, pdfLight);
+		Vector3 Li = pLight->Illuminate(hitInfo, incidentDirection, pdfLight);
 		if (!Li.IsZero() && pdfLight > 0.0f)
 		{
 			f = hitInfo.BSDF->Evaluate(hitInfo.direction, incidentDirection, pdfBSDF);

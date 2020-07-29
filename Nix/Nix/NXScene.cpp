@@ -84,11 +84,10 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 
 	if (eArg.VKey == 'H')
 	{
-		//shared_ptr<NXIntegrator> pIntegrator = make_shared<NXDirectIntegrator>();
-		shared_ptr<NXIntegrator> pIntegrator = make_shared<NXPathIntegrator>();
-		//shared_ptr<NXPhotonMappingIntegrator> pIntegrator = make_shared<NXPhotonMappingIntegrator>();
-		//auto pThis = dynamic_pointer_cast<NXScene>(shared_from_this());
-		//pIntegrator->GeneratePhotons(pThis, m_mainCamera);
+		//shared_ptr<NXIntegrator> pIntegrator = make_shared<NXPathIntegrator>();
+		shared_ptr<NXPhotonMappingIntegrator> pIntegrator = make_shared<NXPhotonMappingIntegrator>();
+		auto pThis = dynamic_pointer_cast<NXScene>(shared_from_this());
+		pIntegrator->GeneratePhotons(pThis, m_mainCamera);
 
 		// 创建求交加速结构以增加渲染速度。
 		printf("Generating BVH Structure...");
@@ -139,7 +138,7 @@ void NXScene::Init()
 
 	auto pPlane = m_sceneManager->CreatePlane(
 		"Ground",
-		5.0f, 5.0f,
+		15.0f, 15.0f,
 		pMaterial,
 		Vector3(0.0f)
 	);
@@ -269,7 +268,7 @@ void NXScene::Init()
 		//m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 2.5f, 0.0f), Vector3(1.0f));
 		//m_sceneManager->CreatePBRDistantLight(Vector3(-1.0f), Vector3(1.0f));
 		m_sceneManager->CreatePBRTangibleLight(pLight, Vector3(1.0f));
-		m_sceneManager->CreatePBREnvironmentLight(m_pCubeMap, Vector3(1.0f));
+		//m_sceneManager->CreatePBREnvironmentLight(m_pCubeMap, Vector3(1.0f));
 
 		//auto pDirLight = m_sceneManager->CreateDirectionalLight(
 		//	"DirLight1",

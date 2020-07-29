@@ -23,8 +23,8 @@ public:
 	~NXPBRLight() {}
 
 	virtual bool IsDeltaLight() = 0;
-	virtual Vector3 SampleEmissionRadiance(Ray& out_emissionRay, Vector3& out_lightNormal, float& out_pdfPos, float& out_pdfDir) = 0;
-	virtual Vector3 SampleIncidentRadiance(const NXHit& hitInfo, Vector3& out_wi, float& out_pdf) = 0;
+	virtual Vector3 Emit(Ray& o_ray, Vector3& o_lightNormal, float& o_pdfPos, float& o_pdfDir) = 0;
+	virtual Vector3 Illuminate(const NXHit& hitInfo, Vector3& o_wi, float& o_pdf) = 0;
 };
 
 // 临时PBR光源
@@ -36,8 +36,8 @@ public:
 
 	bool IsDeltaLight() override { return true; }
 
-	Vector3 SampleEmissionRadiance(Ray& out_emissionRay, Vector3& out_lightNormal, float& out_pdfPos, float& out_pdfDir) override;
-	Vector3 SampleIncidentRadiance(const NXHit& hitInfo, Vector3& out_wi, float& out_pdf) override;
+	Vector3 Emit(Ray& o_ray, Vector3& o_lightNormal, float& o_pdfPos, float& o_pdfDir) override;
+	Vector3 Illuminate(const NXHit& hitInfo, Vector3& o_wi, float& o_pdf) override;
 
 public:
 	Vector3 Position;
@@ -50,8 +50,8 @@ public:
 	NXPBRDistantLight(const Vector3& Direction, const Vector3& Radiance, Vector3 WorldCenter, float WorldRadius);
 
 	bool IsDeltaLight() override { return true; }
-	Vector3 SampleEmissionRadiance(Ray& out_emissionRay, Vector3& out_lightNormal, float& out_pdfPos, float& out_pdfDir) override;
-	Vector3 SampleIncidentRadiance(const NXHit& hitInfo, Vector3& out_wi, float& out_pdf) override;
+	Vector3 Emit(Ray& o_ray, Vector3& o_lightNormal, float& o_pdfPos, float& o_pdfDir) override;
+	Vector3 Illuminate(const NXHit& hitInfo, Vector3& o_wi, float& o_pdf) override;
 
 public:
 	Vector3 Direction;
@@ -81,8 +81,8 @@ class NXPBRTangibleLight : public NXPBRAreaLight
 public:
 	NXPBRTangibleLight(const shared_ptr<NXPrimitive>& pPrimitive, const Vector3& Radiance);
 
-	Vector3 SampleEmissionRadiance(Ray& out_emissionRay, Vector3& out_lightNormal, float& out_pdfPos, float& out_pdfDir) override;
-	Vector3 SampleIncidentRadiance(const NXHit& hitInfo, Vector3& out_wi, float& out_pdf) override;
+	Vector3 Emit(Ray& o_ray, Vector3& o_lightNormal, float& o_pdfPos, float& o_pdfDir) override;
+	Vector3 Illuminate(const NXHit& hitInfo, Vector3& o_wi, float& o_pdf) override;
 
 	// 计算从 任意采样点 朝 目标方向 发射光线得到的Radiance值。
 	// 需要提供 灯面发射点处的法向量，以判断本次交互是否相向。
@@ -101,8 +101,8 @@ class NXPBREnvironmentLight : public NXPBRAreaLight
 public:
 	NXPBREnvironmentLight(const shared_ptr<NXCubeMap>& pCubeMap, const Vector3& Radiance, Vector3 WorldCenter, float WorldRadius);
 
-	Vector3 SampleEmissionRadiance(Ray& out_emissionRay, Vector3& out_lightNormal, float& out_pdfPos, float& out_pdfDir) override;
-	Vector3 SampleIncidentRadiance(const NXHit& hitInfo, Vector3& out_wi, float& out_pdf) override;
+	Vector3 Emit(Ray& o_ray, Vector3& o_lightNormal, float& o_pdfPos, float& o_pdfDir) override;
+	Vector3 Illuminate(const NXHit& hitInfo, Vector3& o_wi, float& o_pdf) override;
 
 	// 计算自发光(emission)的radiance。
 	Vector3 GetRadiance(const Vector3& samplePosition, const Vector3& lightSurfaceNormal, const Vector3& targetDirection) override;

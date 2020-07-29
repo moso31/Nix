@@ -51,7 +51,7 @@ public:
 	virtual bool RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist);
 
 	// 在当前Primitive表面上进行采样。随机挑选表面上任意一点。
-	virtual void SampleFromSurface(Vector3& out_hitPos, Vector3& out_hitNorm, float& out_pdf);
+	virtual void SampleFromSurface(Vector3& out_hitPos, Vector3& out_hitNorm, float& o_pdf);
 	float GetPdf(const NXHit& hitInfo, const Vector3& direction) { return 1.0f / GetSurfaceArea(); }
 
 protected:

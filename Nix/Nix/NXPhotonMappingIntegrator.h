@@ -14,4 +14,5 @@ public:
 private:
 	shared_ptr<NXKdTree> m_pKdTree;
 	vector<NXPhoton> m_photons;
+	int m_numPhotons;
 };

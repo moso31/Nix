@@ -35,7 +35,7 @@ Vector3 NXBSDF::Sample(const Vector3& woWorld, Vector3& o_wiWorld, float& o_pdf,
 	}
 	else if (fRandom < pMat->m_sampleProbs.Diffuse + pMat->m_sampleProbs.Specular)
 	{
-		eEvent = SPECULAR;
+		eEvent = GLOSSY;
 	}
 	else if (fRandom < pMat->m_sampleProbs.Diffuse + pMat->m_sampleProbs.Specular + pMat->m_sampleProbs.Reflect)
 	{
@@ -63,7 +63,7 @@ Vector3 NXBSDF::Sample(const Vector3& woWorld, Vector3& o_wiWorld, float& o_pdf,
 		result += EvaluateSpecular(wo, wi, pdfS);
 		o_pdf = pdfD + pdfS;
 		break;
-	case NXBSDF::SPECULAR:
+	case NXBSDF::GLOSSY:
 		result += SampleSpecular(wo, wi, pdfD);
 		if (result.IsZero())
 			return Vector3(0.0f);

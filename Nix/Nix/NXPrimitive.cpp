@@ -149,7 +149,7 @@ bool NXPrimitive::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist
 	return bSuccess;
 }
 
-void NXPrimitive::SampleFromSurface(Vector3& out_hitPos, Vector3& out_hitNorm, float& out_pdf)
+void NXPrimitive::SampleFromSurface(Vector3& out_hitPos, Vector3& out_hitNorm, float& o_pdf)
 {
 	Vector2 r = NXRandom::GetInstance()->CreateVector2();
 	Vector2 b = UniformTriangleSample(r);	// ÖØÐÄ×ø±ê
@@ -169,7 +169,7 @@ void NXPrimitive::SampleFromSurface(Vector3& out_hitPos, Vector3& out_hitNorm, f
 
 	out_hitPos = Vector3::Transform(out_hitPos, m_worldMatrix);
 	out_hitNorm = Vector3::TransformNormal(out_hitNorm, m_worldMatrix);
-	out_pdf = 1.0f / GetSurfaceArea();
+	o_pdf = 1.0f / GetSurfaceArea();
 }
 
 void NXPrimitive::InitVertexIndexBuffer()
