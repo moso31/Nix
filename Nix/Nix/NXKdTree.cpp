@@ -22,7 +22,6 @@ void NXKdTreeNode::Release()
 
 NXKdTree::NXKdTree()
 {
-	m_x = 0;
 }
 
 NXKdTree::~NXKdTree()
@@ -42,7 +41,6 @@ shared_ptr<NXKdTreeNode> NXKdTree::RecursiveBuild(size_t begin, size_t offset, v
 	unique_ptr<NXKdTreeNode> node;
 	if (offset == 1)
 	{
-		m_x++;
 		// leaf node
 		node = make_unique<NXKdTreeNode>();
 		node->data = data[begin];
@@ -55,11 +53,11 @@ shared_ptr<NXKdTreeNode> NXKdTree::RecursiveBuild(size_t begin, size_t offset, v
 	size_t mid = begin + ((offset - 1) >> 1);
 	auto it0 = data.begin();
 	auto itLeft = it0 + begin;
-	auto itRight = itLeft + (offset - 1);
+	auto itRight = itLeft + offset;
 	auto itSplit = it0 + mid;
 
 	Vector3 vMax(-FLT_MAX), vMin(FLT_MAX);
-	for (auto it = itLeft; it <= itRight; it++)
+	for (auto it = itLeft; it < itRight; it++)
 	{
 		vMax = Vector3::Max(vMax, it->position);
 		vMin = Vector3::Min(vMin, it->position);
@@ -94,38 +92,35 @@ void NXKdTree::Release()
 	pRoot.reset();
 }
 
-void NXKdTree::Locate(const Vector3& position, const shared_ptr<NXKdTreeNode>& p, int maxLimit, float& out_mindistSqr, priority_quque_NXPhoton& out_nearestPhotons)
+void NXKdTree::Locate(const Vector3& position, const shared_ptr<NXKdTreeNode>& p, int maxLimit, float& out_mindist2, priority_quque_NXPhoton& out_nearestPhotons)
 {
 	if (p->lc || p->rc)
 	{
 		int dim = p->dim;
 		float disPlane = position[dim] - p->data.position[dim];
-		float disPlaneSqr = disPlane * disPlane;
+		float disPlane2 = disPlane * disPlane;
 		if (disPlane < 0.0f)
 		{
-			if (p->lc) Locate(position, p->lc, maxLimit, out_mindistSqr, out_nearestPhotons);
-			if (disPlaneSqr < out_mindistSqr) // 说明另一侧可能有更近点，需要进一步检查另一侧的子树
-				if (p->rc) Locate(position, p->rc, maxLimit, out_mindistSqr, out_nearestPhotons);
+			if (p->lc) Locate(position, p->lc, maxLimit, out_mindist2, out_nearestPhotons);
+			if (disPlane2 < out_mindist2) // 说明另一侧可能有更近点，需要进一步检查另一侧的子树
+				if (p->rc) Locate(position, p->rc, maxLimit, out_mindist2, out_nearestPhotons);
 		}
 		else
 		{
-			if (p->rc) Locate(position, p->rc, maxLimit, out_mindistSqr, out_nearestPhotons);
-			if (disPlaneSqr < out_mindistSqr) // 说明另一侧可能有更近点，需要进一步检查另一侧的子树
-				if (p->lc) Locate(position, p->lc, maxLimit, out_mindistSqr, out_nearestPhotons);
+			if (p->rc) Locate(position, p->rc, maxLimit, out_mindist2, out_nearestPhotons);
+			if (disPlane2 < out_mindist2) // 说明另一侧可能有更近点，需要进一步检查另一侧的子树
+				if (p->lc) Locate(position, p->lc, maxLimit, out_mindist2, out_nearestPhotons);
 		}
 	}
 
-	float disSqr = Vector3::DistanceSquared(position, p->data.position);
-	if (disSqr < out_mindistSqr)
+	float dist2 = Vector3::DistanceSquared(position, p->data.position);
+	if (dist2 < out_mindist2)
 	{
 		out_nearestPhotons.push(&p->data);
-		if (maxLimit != -1)
+		if (maxLimit != -1 && out_nearestPhotons.size() > maxLimit)
 		{
-			if (out_nearestPhotons.size() > maxLimit)
-			{
-				out_nearestPhotons.pop();
-				out_mindistSqr = Vector3::DistanceSquared(position, out_nearestPhotons.top()->position);
-			}
+			out_nearestPhotons.pop();
+			out_mindist2 = Vector3::DistanceSquared(position, out_nearestPhotons.top()->position);
 		}
 	}
 }

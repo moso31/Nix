@@ -54,17 +54,18 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 	auto pScene = dynamic_pointer_cast<NXScene>(shared_from_this());
 	NXRenderImageInfo imageInfo;
 	imageInfo.ImageSize = XMINT2(800, 600);
-	imageInfo.EachPixelSamples = 16;
+	imageInfo.EachPixelSamples = 1;
 
 	if (eArg.VKey == 'G')
 	{
+		imageInfo.outPath = "D:\\nix_PMtracing.bmp";
+		printf("rendering(HLBVH)...\n");
+		CreateBVHTrees(HBVHSplitMode::HLBVH);
+
 		shared_ptr<NXPhotonMappingIntegrator> pIntegrator = make_shared<NXPhotonMappingIntegrator>();
 		auto pThis = dynamic_pointer_cast<NXScene>(shared_from_this());
 		pIntegrator->GeneratePhotons(pThis, m_mainCamera);
 
-		imageInfo.outPath = "D:\\nix_PMtracing.bmp";
-		printf("rendering(HLBVH)...\n");
-		CreateBVHTrees(HBVHSplitMode::HLBVH);
 		NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pIntegrator, imageInfo);
 
 		pIntegrator.reset();
@@ -84,18 +85,18 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 
 	if (eArg.VKey == 'H')
 	{
-		//shared_ptr<NXIntegrator> pIntegrator = make_shared<NXPathIntegrator>();
-		shared_ptr<NXPhotonMappingIntegrator> pIntegrator = make_shared<NXPhotonMappingIntegrator>();
-		auto pThis = dynamic_pointer_cast<NXScene>(shared_from_this());
-		pIntegrator->GeneratePhotons(pThis, m_mainCamera);
-
 		// 创建求交加速结构以增加渲染速度。
 		printf("Generating BVH Structure...");
 		CreateBVHTrees(HBVHSplitMode::HLBVH);
 		printf("done.\n");
 
+		//shared_ptr<NXIntegrator> pIntegrator = make_shared<NXPathIntegrator>();
+		shared_ptr<NXPhotonMappingIntegrator> pIntegrator = make_shared<NXPhotonMappingIntegrator>();
+		auto pThis = dynamic_pointer_cast<NXScene>(shared_from_this());
+		pIntegrator->GeneratePhotons(pThis, m_mainCamera);
+
 		printf("center ray testing...\n");
-		NXRayTracer::GetInstance()->CenterRayTest(pScene, m_mainCamera, pIntegrator, 100);
+		NXRayTracer::GetInstance()->CenterRayTest(pScene, m_mainCamera, pIntegrator, 1);
 
 		if (!m_primitives.empty())
 		{
@@ -138,7 +139,7 @@ void NXScene::Init()
 
 	auto pPlane = m_sceneManager->CreatePlane(
 		"Ground",
-		15.0f, 15.0f,
+		5.0f, 5.0f,
 		pMaterial,
 		Vector3(0.0f)
 	);
