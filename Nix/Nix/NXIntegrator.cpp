@@ -116,6 +116,7 @@ Vector3 NXIntegrator::UniformLightOne(const Ray& ray, const shared_ptr<NXScene>&
 	// 但统计哪个样本数量完全是随机的。此方法期望值和All方法是等同的。
 	Vector3 result(0.0f);
 	auto pLights = pScene->GetPBRLights();
-	int index = NXRandom::GetInstance()->CreateInt(0, (int)pLights.size() - 1);
-	return DirectEstimate(ray, pScene, pLights[index], hitInfo);
+	int lightCount = (int)pLights.size();
+	int index = NXRandom::GetInstance()->CreateInt(0, lightCount - 1);
+	return DirectEstimate(ray, pScene, pLights[index], hitInfo) * lightCount;
 }
