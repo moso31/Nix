@@ -1,2 +1,0 @@
-NXPhotonMappingIntegrator.cpp
-	焦散的效果不太正确，Box场景中玻璃球下侧产生了多余的焦散

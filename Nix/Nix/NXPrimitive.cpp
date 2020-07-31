@@ -1,4 +1,5 @@
 #include "NXPrimitive.h"
+#include "NXScene.h"
 #include "NXMaterial.h"
 #include "NXPBRMaterial.h"
 #include "NXIntersection.h"
@@ -149,7 +150,7 @@ bool NXPrimitive::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist
 	return bSuccess;
 }
 
-void NXPrimitive::SampleFromSurface(Vector3& out_hitPos, Vector3& out_hitNorm, float& o_pdf)
+void NXPrimitive::SampleForArea(Vector3& o_pos, Vector3& o_norm, float& o_pdfA)
 {
 	Vector2 r = NXRandom::GetInstance()->CreateVector2();
 	Vector2 b = UniformTriangleSample(r);	// ÖØÐÄ×ø±ê
@@ -157,19 +158,35 @@ void NXPrimitive::SampleFromSurface(Vector3& out_hitPos, Vector3& out_hitNorm, f
 	VertexPNT P0 = tri.GetPointData(0);
 	VertexPNT P1 = tri.GetPointData(1);
 	VertexPNT P2 = tri.GetPointData(2);
-	out_hitPos = b.x * P0.pos + b.y * P1.pos + (1 - b.x - b.y) * P2.pos;
-	out_hitNorm = (P1.pos - P2.pos).Cross(P1.pos - P0.pos);
-	out_hitNorm.Normalize();
+	o_pos = b.x * P0.pos + b.y * P1.pos + (1 - b.x - b.y) * P2.pos;
+	o_norm = (P1.pos - P2.pos).Cross(P1.pos - P0.pos);
+	o_norm.Normalize();
 	if (m_bEnableNormal)
 	{
 		Vector3 ns = b.x * P0.norm + b.y * P1.norm + (1 - b.x - b.y) * P2.norm;
-		if (out_hitNorm.Dot(ns) < 0)
-			out_hitNorm = -out_hitNorm;
+		if (o_norm.Dot(ns) < 0)
+			o_norm = -o_norm;
 	}
 
-	out_hitPos = Vector3::Transform(out_hitPos, m_worldMatrix);
-	out_hitNorm = Vector3::TransformNormal(out_hitNorm, m_worldMatrix);
-	o_pdf = 1.0f / GetSurfaceArea();
+	o_pos = Vector3::Transform(o_pos, m_worldMatrix);
+	o_norm = Vector3::TransformNormal(o_norm, m_worldMatrix);
+	o_pdfA = 1.0f / GetSurfaceArea();
+}
+
+void NXPrimitive::SampleForSolidAngle(const Vector3& point, Vector3& o_pos, Vector3& o_norm, float& o_pdfW)
+{
+	float pdfA;
+	SampleForArea(o_pos, o_norm, pdfA);
+	Vector3 dirLight = point - o_pos;
+	float cosTheta = o_norm.Dot(dirLight);
+	float dist2 = dirLight.LengthSquared();
+	if (dist2 < 0.0f)
+		o_pdfW = 0.0f;
+	else
+	{
+		dirLight.Normalize();
+		o_pdfW = pdfA * dist2 / fabsf(o_norm.Dot(dirLight));
+	}
 }
 
 void NXPrimitive::InitVertexIndexBuffer()

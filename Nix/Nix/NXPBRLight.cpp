@@ -88,7 +88,7 @@ NXPBRTangibleLight::NXPBRTangibleLight(const shared_ptr<NXPrimitive>& pPrimitive
 Vector3 NXPBRTangibleLight::Emit(Ray& o_ray, Vector3& o_lightNormal, float& o_pdfPos, float& o_pdfDirLocal)
 {
 	Vector3 sampleLightPosition;
-	m_pPrimitive->SampleFromSurface(sampleLightPosition, o_lightNormal, o_pdfPos);
+	m_pPrimitive->SampleForArea(sampleLightPosition, o_lightNormal, o_pdfPos);
 	Vector2 vRandomDir = NXRandom::GetInstance()->CreateVector2();
 	Vector3 sampleDir = CosineSampleHemisphere(vRandomDir);
 	o_pdfDirLocal = CosineSampleHemispherePdf(sampleDir.z);
@@ -103,10 +103,10 @@ Vector3 NXPBRTangibleLight::Emit(Ray& o_ray, Vector3& o_lightNormal, float& o_pd
 	return GetRadiance(sampleLightPosition, o_lightNormal, sampleLightDirection);
 }
 
-Vector3 NXPBRTangibleLight::Illuminate(const NXHit& hitInfo, Vector3& o_wi, float& o_pdf)
+Vector3 NXPBRTangibleLight::Illuminate(const NXHit& hitInfo, Vector3& o_wi, float& o_pdfW)
 {
 	Vector3 sampleLightPosition, sampleLightNormal;		// 灯光采样点的位置和该处的法向量
-	m_pPrimitive->SampleFromSurface(sampleLightPosition, sampleLightNormal, o_pdf);
+	m_pPrimitive->SampleForSolidAngle(hitInfo.position, sampleLightPosition, sampleLightNormal, o_pdfW);
 	o_wi = sampleLightPosition - hitInfo.position;
 	o_wi.Normalize();
 

@@ -54,7 +54,7 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 	auto pScene = dynamic_pointer_cast<NXScene>(shared_from_this());
 	NXRenderImageInfo imageInfo;
 	imageInfo.ImageSize = XMINT2(800, 600);
-	imageInfo.EachPixelSamples = 1;
+	imageInfo.EachPixelSamples = 16;
 
 	if (eArg.VKey == 'G')
 	{
@@ -90,13 +90,13 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		CreateBVHTrees(HBVHSplitMode::HLBVH);
 		printf("done.\n");
 
-		//shared_ptr<NXIntegrator> pIntegrator = make_shared<NXPathIntegrator>();
-		shared_ptr<NXPhotonMappingIntegrator> pIntegrator = make_shared<NXPhotonMappingIntegrator>();
-		auto pThis = dynamic_pointer_cast<NXScene>(shared_from_this());
-		pIntegrator->GeneratePhotons(pThis, m_mainCamera);
+		shared_ptr<NXIntegrator> pIntegrator = make_shared<NXPathIntegrator>();
+		//shared_ptr<NXPhotonMappingIntegrator> pIntegrator = make_shared<NXPhotonMappingIntegrator>();
+		//auto pThis = dynamic_pointer_cast<NXScene>(shared_from_this());
+		//pIntegrator->GeneratePhotons(pThis, m_mainCamera);
 
 		printf("center ray testing...\n");
-		NXRayTracer::GetInstance()->CenterRayTest(pScene, m_mainCamera, pIntegrator, 1);
+		NXRayTracer::GetInstance()->CenterRayTest(pScene, m_mainCamera, pIntegrator, 10000);
 
 		if (!m_primitives.empty())
 		{
@@ -243,7 +243,7 @@ void NXScene::Init()
 		//Vector3(0.0f, 1.0f, 0.0f),
 		//Vector3(0.0f, 0.0f, 0.0001f),
 		Vector3(0.0f, 2.5f, -6.2f),
-		Vector3(0.0f, 2.5f, 0.0f),
+		Vector3(-0.398430, 2.529995, -5.283292),
 		Vector3(0.0f, 1.0f, 0.0f)
 	);
 
@@ -266,9 +266,9 @@ void NXScene::Init()
 
 	// InitLights()
 	{
-		//m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 2.5f, 0.0f), Vector3(1.0f));
+		//m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 4.5f, 0.0f), Vector3(1.0f));
 		//m_sceneManager->CreatePBRDistantLight(Vector3(-1.0f), Vector3(1.0f));
-		m_sceneManager->CreatePBRTangibleLight(pLight, Vector3(1.0f));
+		m_sceneManager->CreatePBRTangibleLight(pLight, Vector3(50.0f));
 		//m_sceneManager->CreatePBREnvironmentLight(m_pCubeMap, Vector3(1.0f));
 
 		//auto pDirLight = m_sceneManager->CreateDirectionalLight(

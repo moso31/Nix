@@ -34,7 +34,7 @@ Vector3 NXIntegrator::DirectEstimate(const Ray& ray, const shared_ptr<NXScene>& 
 			Vector3 f = hitInfo.BSDF->Evaluate(hitInfo.direction, incidentDirection, pdfBSDF);
 			if (!f.IsZero())
 			{
-				L += f * Li * incidentDirection.Dot(hitInfo.shading.normal) / pdfBSDF;
+				L += f * Li * incidentDirection.Dot(hitInfo.shading.normal);
 			}
 		}
 	}
