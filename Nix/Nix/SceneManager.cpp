@@ -112,11 +112,11 @@ shared_ptr<NXCylinder> SceneManager::CreateCylinder(const string& name, const fl
 	return p;
 }
 
-shared_ptr<NXPlane> SceneManager::CreatePlane(const string& name, const float width, const float height, const shared_ptr<NXMaterial>& material, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
+shared_ptr<NXPlane> SceneManager::CreatePlane(const string& name, const float width, const float height, const NXPlaneAxis axis, const shared_ptr<NXMaterial>& material, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
 {
 	auto p = make_shared<NXPlane>();
 	p->SetName(name);
-	p->Init(width, height);
+	p->Init(width, height, axis);
 	p->SetMaterial(material);
 	p->SetTranslation(translation);
 	p->SetRotation(rotation);

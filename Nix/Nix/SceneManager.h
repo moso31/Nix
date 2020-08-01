@@ -28,7 +28,7 @@ public:
 	shared_ptr<NXBox> CreateBox(const string& name, const float width, const float height, const float length, const shared_ptr<NXMaterial>& material, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));
 	shared_ptr<NXSphere> CreateSphere(const string& name, const float radius, const UINT segmentHorizontal, const UINT segmentVertical, const shared_ptr<NXMaterial>& material, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));
 	shared_ptr<NXCylinder> CreateCylinder(const string& name, const float radius, const float length, const UINT segmentCircle, const UINT segmentLength, const shared_ptr<NXMaterial>& material, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));
-	shared_ptr<NXPlane> CreatePlane(const string& name, const float width, const float height, const shared_ptr<NXMaterial>& material, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));
+	shared_ptr<NXPlane> CreatePlane(const string& name, const float width, const float height, const NXPlaneAxis axis, const shared_ptr<NXMaterial>& material, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));
 	bool CreateFBXMeshes(const string& filePath, const shared_ptr<NXMaterial>& pDefaultMaterial, vector<shared_ptr<NXMesh>>& outMeshes);
 
 	shared_ptr<NXDirectionalLight> CreateDirectionalLight(const string& name, const Vector4& ambient, const Vector4& diffuse, const Vector3& specular, const float specularW, const Vector3& direction);

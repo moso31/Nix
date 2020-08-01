@@ -1,10 +1,11 @@
 #include "NXPhotonMappingIntegrator.h"
 #include "NXRandom.h"
-#include "NXCamera.h"
 #include "SamplerMath.h"
+#include "NXCamera.h"
+#include "NXCubeMap.h"
 
 NXPhotonMappingIntegrator::NXPhotonMappingIntegrator() :
-	m_numPhotons(100000)
+	m_numPhotons(10000000)
 {
 }
 
@@ -101,21 +102,31 @@ Vector3 NXPhotonMappingIntegrator::Radiance(const Ray& cameraRay, const shared_p
 	}
 
 	bool PHOTONS_ONLY = false;
+	int maxDepth = 10;
 
 	Ray ray(cameraRay);
 	Vector3 nextDirection;
 	float pdf;
 	NXHit hitInfo;
 
+	Vector3 result(0.0f);
 	Vector3 throughput(1.0f);
 
 	bool bIsDiffuse = false;
-
-	while (true)
+	while (depth < maxDepth)
 	{
 		hitInfo = NXHit();
-		if (!pScene->RayCast(ray, hitInfo))
-			return Vector3(0.0f);
+		bool bIsIntersect = pScene->RayCast(ray, hitInfo);
+		if (!bIsIntersect)
+			return result;
+
+		shared_ptr<NXPBRAreaLight> pHitAreaLight;
+		if (hitInfo.pPrimitive)pHitAreaLight = hitInfo.pPrimitive->GetTangibleLight();
+		else if (pScene->GetCubeMap()) pHitAreaLight = pScene->GetCubeMap()->GetEnvironmentLight();
+		if (pHitAreaLight)
+		{
+			result += throughput * pHitAreaLight->GetRadiance(hitInfo.position, hitInfo.normal, -ray.direction);
+		}
 
 		hitInfo.GenerateBSDF(true);
 		shared_ptr<NXBSDF::SampleEvents> sampleEvent = make_shared<NXBSDF::SampleEvents>();
@@ -125,7 +136,7 @@ Vector3 NXPhotonMappingIntegrator::Radiance(const Ray& cameraRay, const shared_p
 
 		if (bIsDiffuse || PHOTONS_ONLY) break;
 
-		throughput *= f;
+		throughput *= f * fabsf(hitInfo.shading.normal.Dot(nextDirection)) / pdf;
 		ray = Ray(hitInfo.position, nextDirection);
 		ray.position += ray.direction * NXRT_EPSILON;
 	}
@@ -143,7 +154,6 @@ Vector3 NXPhotonMappingIntegrator::Radiance(const Ray& cameraRay, const shared_p
 	if (PHOTONS_ONLY)
 	{
 		m_pKdTree->GetNearest(pos, distSqr, nearestPhotons, 1, 0.00005f);
-		Vector3 result(0.0f);
 		if (!nearestPhotons.empty())
 		{
 			result = nearestPhotons.top()->power;	// photon data only.
@@ -152,28 +162,20 @@ Vector3 NXPhotonMappingIntegrator::Radiance(const Ray& cameraRay, const shared_p
 		return result;
 	}
 
-	m_pKdTree->GetNearest(pos, distSqr, nearestPhotons, 100, FLT_MAX);
+	m_pKdTree->GetNearest(pos, distSqr, nearestPhotons, 1000, FLT_MAX);
 	if (nearestPhotons.empty())
 		return Vector3(0.0f);
 
 	float radius2 = Vector3::DistanceSquared(pos, nearestPhotons.top()->position);
-	//printf("radius2 %f\n", radius2);
 	Vector3 flux(0.0f);
 
-	//printf("size: %d\n", (int)nearestPhotons.size());
 	while (!nearestPhotons.empty())
 	{
 		auto photon = nearestPhotons.top();
 		Vector3 f = hitInfo.BSDF->Evaluate(-ray.direction, photon->direction, pdf);
 		flux += f * photon->power;
-
-		//printf("%d: %f\n", (int)nearestPhotons.size(), r2);
-		//printf("%f %f %f\n", photon->power.x, photon->power.y, photon->power.z);
-
 		nearestPhotons.pop();
 	}
-	Vector3 result = throughput * flux / (XM_PI * radius2);
-	//printf("\n");
-
+	result += throughput * flux / (XM_PI * radius2);
 	return result;
 }

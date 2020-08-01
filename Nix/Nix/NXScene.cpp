@@ -54,7 +54,7 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 	auto pScene = dynamic_pointer_cast<NXScene>(shared_from_this());
 	NXRenderImageInfo imageInfo;
 	imageInfo.ImageSize = XMINT2(800, 600);
-	imageInfo.EachPixelSamples = 16;
+	imageInfo.EachPixelSamples = 1;
 
 	if (eArg.VKey == 'G')
 	{
@@ -130,16 +130,17 @@ void NXScene::Init()
 	);
 
 	shared_ptr<NXPBRMaterial> pPBRMat[] = {
-		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), Vector3(0.0f), Vector3(0.0f), Vector3(0.0f), 0.0f, 0.0f),
-		m_sceneManager->CreatePBRMaterial(Vector3(1.0f, 0.0f, 0.0f), Vector3(0.0f), Vector3(0.0f), Vector3(0.0f), 0.0f, 0.0f),
-		m_sceneManager->CreatePBRMaterial(Vector3(0.0f, 0.0f, 1.0f), Vector3(0.0f), Vector3(0.0f), Vector3(0.0f), 0.0f, 0.0f),
+		m_sceneManager->CreatePBRMaterial(Vector3(0.8f), Vector3(0.0f), Vector3(0.0f), Vector3(0.0f), 0.0f, 0.0f),
+		m_sceneManager->CreatePBRMaterial(Vector3(0.8f, 0.0f, 0.0f), Vector3(0.0f), Vector3(0.0f), Vector3(0.0f), 0.0f, 0.0f),
+		m_sceneManager->CreatePBRMaterial(Vector3(0.0f, 0.0f, 0.8f), Vector3(0.0f), Vector3(0.0f), Vector3(0.0f), 0.0f, 0.0f),
 		m_sceneManager->CreatePBRMaterial(Vector3(0.0f), Vector3(1.0f), Vector3(0.0f), Vector3(0.0f), 0.03f, 0.0f),
 		m_sceneManager->CreatePBRMaterial(Vector3(0.0f), Vector3(0.0f), Vector3(1.0f), Vector3(1.0f), 0.5f, 1.55f),
 	};
 
 	auto pPlane = m_sceneManager->CreatePlane(
 		"Ground",
-		5.0f, 5.0f,
+		8.0f, 12.0f, 
+		NXPlaneAxis(POSITIVE_Y),
 		pMaterial,
 		Vector3(0.0f)
 	);
@@ -148,50 +149,60 @@ void NXScene::Init()
 
 	pPlane = m_sceneManager->CreatePlane(
 		"Wall +Y",
-		5.0f, 5.0f,
+		8.0f, 12.0f,
+		NXPlaneAxis(NEGATIVE_Y),
 		pMaterial,
-		Vector3(0.0f, 5.0f, 0.0f),
-		Vector3(XM_PI, 0.0f, 0.0f)
+		Vector3(0.0f, 6.0f, 0.0f)
+	);
+
+	pPlane->SetMaterialPBR(pPBRMat[0]);
+
+	pPlane = m_sceneManager->CreatePlane(
+		"Wall -Z",
+		8.0f, 6.0f,
+		NXPlaneAxis(POSITIVE_Z),
+		pMaterial,
+		Vector3(0.0f, 3.0f, -6.0f)
 	);
 
 	pPlane->SetMaterialPBR(pPBRMat[0]);
 
 	pPlane = m_sceneManager->CreatePlane(
 		"Wall +Z",
-		5.0f, 5.0f,
+		8.0f, 6.0f,
+		NXPlaneAxis(NEGATIVE_Z),
 		pMaterial,
-		Vector3(0.0f, 2.5f, 2.5f),
-		Vector3(-XM_PIDIV2, 0.0f, 0.0f)
+		Vector3(0.0f, 3.0f, 6.0f)
 	);
 
-	pPlane->SetMaterialPBR(pPBRMat[3]);
+	pPlane->SetMaterialPBR(pPBRMat[0]);
 
 	pPlane = m_sceneManager->CreatePlane(
 		"Wall -X",
-		5.0f, 5.0f,
+		6.0f, 12.0f,
+		NXPlaneAxis(POSITIVE_X),
 		pMaterial,
-		Vector3(-2.5f, 2.5f, 0.0f),
-		Vector3(0.0f, 0.0f, -XM_PIDIV2)
+		Vector3(-4.0f, 3.0f, 0.0f)
 	);
 
 	pPlane->SetMaterialPBR(pPBRMat[1]);
 
 	pPlane = m_sceneManager->CreatePlane(
 		"Wall +X",
-		5.0f, 5.0f,
+		6.0f, 12.0f,
+		NXPlaneAxis(NEGATIVE_X),
 		pMaterial,
-		Vector3(2.5f, 2.5f, 0.0f),
-		Vector3(0.0f, 0.0f, XM_PIDIV2)
+		Vector3(4.0f, 3.0f, 0.0f)
 	);
 
 	pPlane->SetMaterialPBR(pPBRMat[2]);
 
 	shared_ptr<NXPlane> pLight = m_sceneManager->CreatePlane(
 		"Light",
-		1.0f, 1.0f,
+		2.0f, 2.0f,
+		NXPlaneAxis(NEGATIVE_Y),
 		pMaterial,
-		Vector3(0.0f, 4.999f, 0.0f),
-		Vector3(XM_PI, 0.0f, 0.0f)
+		Vector3(0.0f, 5.999f, 2.0f)
 	);
 
 	pLight->SetMaterialPBR(pPBRMat[0]);
@@ -200,7 +211,7 @@ void NXScene::Init()
 		"Sphere",
 		1.0f, 16, 16,
 		pMaterial,
-		Vector3(1.0f, 1.0f, -1.0f)
+		Vector3(1.0f, 1.0f, 1.0f)
 	);
 	pSphere->SetMaterialPBR(pPBRMat[4]);
 
@@ -242,8 +253,8 @@ void NXScene::Init()
 		70.0f, 0.01f, 1000.f,
 		//Vector3(0.0f, 1.0f, 0.0f),
 		//Vector3(0.0f, 0.0f, 0.0001f),
-		Vector3(0.0f, 2.5f, -6.2f),
-		Vector3(0.0f, 2.5f, 0.0f),
+		Vector3(0.0f, 3.0f, -5.2f),
+		Vector3(0.0f, 3.0f, 1.0f),
 		Vector3(0.0f, 1.0f, 0.0f)
 	);
 
@@ -268,8 +279,8 @@ void NXScene::Init()
 	{
 		//m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 4.5f, 0.0f), Vector3(1.0f));
 		//m_sceneManager->CreatePBRDistantLight(Vector3(-1.0f), Vector3(1.0f));
-		m_sceneManager->CreatePBRTangibleLight(pLight, Vector3(50.0f));
-		m_sceneManager->CreatePBREnvironmentLight(m_pCubeMap, Vector3(1.0f));
+		m_sceneManager->CreatePBRTangibleLight(pLight, Vector3(12.5f));
+		//m_sceneManager->CreatePBREnvironmentLight(m_pCubeMap, Vector3(1.0f));
 
 		//auto pDirLight = m_sceneManager->CreateDirectionalLight(
 		//	"DirLight1",

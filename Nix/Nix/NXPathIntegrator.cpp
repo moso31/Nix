@@ -67,13 +67,8 @@ Vector3 NXPathIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& pS
 			float q = max(0.05f, throughput.MaxComponent());
 			float fRandom = NXRandom::GetInstance()->CreateFloat();
 			if (fRandom < 1.0f - q)
-			{
 				break;
-			}
-			else
-			{
-				throughput /= q;
-			}
+			throughput /= q;
 		}
 	}
 

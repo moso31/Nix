@@ -149,7 +149,7 @@ void NXRayTracer::GenerateImage()
 
 void NXRayTracer::Update()
 {
-	const static int MAX_THREAD_COUNT = 100;
+	const static int MAX_THREAD_COUNT = 16;
 	if (m_bIsRayTracing)
 	{
 		while (m_iTaskIter < m_renderTileTaskIn.size() && m_iRunningThreadCount < MAX_THREAD_COUNT)
