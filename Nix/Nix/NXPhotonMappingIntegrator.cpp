@@ -5,7 +5,7 @@
 #include "NXCubeMap.h"
 
 NXPhotonMappingIntegrator::NXPhotonMappingIntegrator() :
-	m_numPhotons(10000000)
+	m_numPhotons(100000)
 {
 }
 
@@ -142,6 +142,7 @@ Vector3 NXPhotonMappingIntegrator::Radiance(const Ray& cameraRay, const shared_p
 	}
 
 	Vector3 pos = hitInfo.position;
+	Vector3 norm = hitInfo.normal;
 
 	float distSqr;
 	// 大根堆，负责记录pos周围的最近顶点。
@@ -153,7 +154,7 @@ Vector3 NXPhotonMappingIntegrator::Radiance(const Ray& cameraRay, const shared_p
 
 	if (PHOTONS_ONLY)
 	{
-		m_pKdTree->GetNearest(pos, distSqr, nearestPhotons, 1, 0.00005f);
+		m_pKdTree->GetNearest(pos, norm, distSqr, nearestPhotons, 1, 0.00005f);
 		if (!nearestPhotons.empty())
 		{
 			result = nearestPhotons.top()->power;	// photon data only.
@@ -162,7 +163,7 @@ Vector3 NXPhotonMappingIntegrator::Radiance(const Ray& cameraRay, const shared_p
 		return result;
 	}
 
-	m_pKdTree->GetNearest(pos, distSqr, nearestPhotons, 1000, FLT_MAX);
+	m_pKdTree->GetNearest(pos, norm, distSqr, nearestPhotons, 500, FLT_MAX);
 	if (nearestPhotons.empty())
 		return Vector3(0.0f);
 

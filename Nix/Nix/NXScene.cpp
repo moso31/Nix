@@ -90,13 +90,13 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		CreateBVHTrees(HBVHSplitMode::HLBVH);
 		printf("done.\n");
 
-		shared_ptr<NXIntegrator> pIntegrator = make_shared<NXPathIntegrator>();
-		//shared_ptr<NXPhotonMappingIntegrator> pIntegrator = make_shared<NXPhotonMappingIntegrator>();
-		//auto pThis = dynamic_pointer_cast<NXScene>(shared_from_this());
-		//pIntegrator->GeneratePhotons(pThis, m_mainCamera);
+		//shared_ptr<NXIntegrator> pIntegrator = make_shared<NXPathIntegrator>();
+		shared_ptr<NXPhotonMappingIntegrator> pIntegrator = make_shared<NXPhotonMappingIntegrator>();
+		auto pThis = dynamic_pointer_cast<NXScene>(shared_from_this());
+		pIntegrator->GeneratePhotons(pThis, m_mainCamera);
 
 		printf("center ray testing...\n");
-		NXRayTracer::GetInstance()->CenterRayTest(pScene, m_mainCamera, pIntegrator, 10000);
+		NXRayTracer::GetInstance()->CenterRayTest(pScene, m_mainCamera, pIntegrator, 1);
 
 		if (!m_primitives.empty())
 		{

@@ -80,10 +80,10 @@ shared_ptr<NXKdTreeNode> NXKdTree::RecursiveBuild(size_t begin, size_t offset, v
 	return node;
 }
 
-void NXKdTree::GetNearest(const Vector3& position, float& out_distSqr, priority_quque_NXPhoton& out_nearestPhotons, int maxLimit, float range)
+void NXKdTree::GetNearest(const Vector3& position, const Vector3& normal, float& out_distSqr, priority_quque_NXPhoton& out_nearestPhotons, int maxLimit, float range, LocateFilter locateFilter)
 {
 	out_distSqr = range;
-	Locate(position, pRoot, maxLimit, out_distSqr, out_nearestPhotons);
+	Locate(position, normal, pRoot, maxLimit, out_distSqr, out_nearestPhotons);
 }
 
 void NXKdTree::Release()
@@ -92,7 +92,7 @@ void NXKdTree::Release()
 	pRoot.reset();
 }
 
-void NXKdTree::Locate(const Vector3& position, const shared_ptr<NXKdTreeNode>& p, int maxLimit, float& out_mindist2, priority_quque_NXPhoton& out_nearestPhotons)
+void NXKdTree::Locate(const Vector3& position, const Vector3& normal, const shared_ptr<NXKdTreeNode>& p, int maxLimit, float& out_mindist2, priority_quque_NXPhoton& out_nearestPhotons, LocateFilter locateFilter)
 {
 	if (p->lc || p->rc)
 	{
@@ -101,19 +101,25 @@ void NXKdTree::Locate(const Vector3& position, const shared_ptr<NXKdTreeNode>& p
 		float disPlane2 = disPlane * disPlane;
 		if (disPlane < 0.0f)
 		{
-			if (p->lc) Locate(position, p->lc, maxLimit, out_mindist2, out_nearestPhotons);
+			if (p->lc) Locate(position, normal, p->lc, maxLimit, out_mindist2, out_nearestPhotons);
 			if (disPlane2 < out_mindist2) // 说明另一侧可能有更近点，需要进一步检查另一侧的子树
-				if (p->rc) Locate(position, p->rc, maxLimit, out_mindist2, out_nearestPhotons);
+				if (p->rc) Locate(position, normal, p->rc, maxLimit, out_mindist2, out_nearestPhotons);
 		}
 		else
 		{
-			if (p->rc) Locate(position, p->rc, maxLimit, out_mindist2, out_nearestPhotons);
+			if (p->rc) Locate(position, normal, p->rc, maxLimit, out_mindist2, out_nearestPhotons);
 			if (disPlane2 < out_mindist2) // 说明另一侧可能有更近点，需要进一步检查另一侧的子树
-				if (p->lc) Locate(position, p->lc, maxLimit, out_mindist2, out_nearestPhotons);
+				if (p->lc) Locate(position, normal, p->lc, maxLimit, out_mindist2, out_nearestPhotons);
 		}
 	}
 
-	float dist2 = Vector3::DistanceSquared(position, p->data.position);
+	Vector3 nearestDir = p->data.position - position;
+	if (locateFilter == Disk)
+	{
+		if (nearestDir.Dot(normal) > 1e-4f) return;
+	}
+
+	float dist2 = nearestDir.LengthSquared();
 	if (dist2 < out_mindist2)
 	{
 		out_nearestPhotons.push(&p->data);
