@@ -83,7 +83,7 @@ shared_ptr<NXKdTreeNode> NXKdTree::RecursiveBuild(size_t begin, size_t offset, v
 void NXKdTree::GetNearest(const Vector3& position, const Vector3& normal, float& out_distSqr, priority_quque_NXPhoton& out_nearestPhotons, int maxLimit, float range, LocateFilter locateFilter)
 {
 	out_distSqr = range;
-	Locate(position, normal, pRoot, maxLimit, out_distSqr, out_nearestPhotons);
+	Locate(position, normal, pRoot, maxLimit, out_distSqr, out_nearestPhotons, locateFilter);
 }
 
 void NXKdTree::Release()
@@ -101,15 +101,15 @@ void NXKdTree::Locate(const Vector3& position, const Vector3& normal, const shar
 		float disPlane2 = disPlane * disPlane;
 		if (disPlane < 0.0f)
 		{
-			if (p->lc) Locate(position, normal, p->lc, maxLimit, out_mindist2, out_nearestPhotons);
+			if (p->lc) Locate(position, normal, p->lc, maxLimit, out_mindist2, out_nearestPhotons, locateFilter);
 			if (disPlane2 < out_mindist2) // 说明另一侧可能有更近点，需要进一步检查另一侧的子树
-				if (p->rc) Locate(position, normal, p->rc, maxLimit, out_mindist2, out_nearestPhotons);
+				if (p->rc) Locate(position, normal, p->rc, maxLimit, out_mindist2, out_nearestPhotons, locateFilter);
 		}
 		else
 		{
-			if (p->rc) Locate(position, normal, p->rc, maxLimit, out_mindist2, out_nearestPhotons);
+			if (p->rc) Locate(position, normal, p->rc, maxLimit, out_mindist2, out_nearestPhotons, locateFilter);
 			if (disPlane2 < out_mindist2) // 说明另一侧可能有更近点，需要进一步检查另一侧的子树
-				if (p->lc) Locate(position, normal, p->lc, maxLimit, out_mindist2, out_nearestPhotons);
+				if (p->lc) Locate(position, normal, p->lc, maxLimit, out_mindist2, out_nearestPhotons, locateFilter);
 		}
 	}
 

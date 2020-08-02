@@ -163,7 +163,7 @@ Vector3 NXPhotonMappingIntegrator::Radiance(const Ray& cameraRay, const shared_p
 		return result;
 	}
 
-	m_pKdTree->GetNearest(pos, norm, distSqr, nearestPhotons, 500, FLT_MAX);
+	m_pKdTree->GetNearest(pos, norm, distSqr, nearestPhotons, 500, FLT_MAX, LocateFilter::Disk);
 	if (nearestPhotons.empty())
 		return Vector3(0.0f);
 
