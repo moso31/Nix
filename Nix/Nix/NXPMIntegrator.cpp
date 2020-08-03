@@ -1,23 +1,22 @@
-#include "NXPhotonMappingIntegrator.h"
+#include "NXPMIntegrator.h"
 #include "NXRandom.h"
 #include "SamplerMath.h"
 #include "NXCamera.h"
 #include "NXCubeMap.h"
 
-NXPhotonMappingIntegrator::NXPhotonMappingIntegrator() :
+NXPMIntegrator::NXPMIntegrator() :
 	m_numPhotons(100000)
 {
 }
 
-NXPhotonMappingIntegrator::~NXPhotonMappingIntegrator()
+NXPMIntegrator::~NXPMIntegrator()
 {
 }
 
-void NXPhotonMappingIntegrator::GeneratePhotons(const shared_ptr<NXScene>& pScene, const shared_ptr<NXCamera>& pCamera)
+void NXPMIntegrator::GeneratePhotons(const shared_ptr<NXScene>& pScene, const shared_ptr<NXCamera>& pCamera)
 {
 	vector<NXPhoton> photons;
-
-	printf("Generate photons...");
+	printf("Generating photons...");
 	float numPhotonsInv = 1.0f / (float)m_numPhotons;
 	for (int i = 0; i < m_numPhotons; i++)
 	{
@@ -62,7 +61,7 @@ void NXPhotonMappingIntegrator::GeneratePhotons(const shared_ptr<NXScene>& pScen
 				photon.direction = hitInfo.direction;
 				photon.power = throughput * numPhotonsInv;
 				photon.depth = depth;
-				m_photons.push_back(photon);
+				photons.push_back(photon);
 
 				//if (depth > 1)
 				//printf("%d: %f %f %f\n", depth, photon.power.x, photon.power.y, photon.power.z);
@@ -87,13 +86,12 @@ void NXPhotonMappingIntegrator::GeneratePhotons(const shared_ptr<NXScene>& pScen
 
 	m_pKdTree.reset();
 	m_pKdTree = make_shared<NXKdTree>();
-	m_pKdTree->BuildBalanceTree(m_photons);
-	m_photons.clear();
+	m_pKdTree->BuildBalanceTree(photons);
 	// use kd-tree manage all photons.
 	printf("done.\n");
 }
 
-Vector3 NXPhotonMappingIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXScene>& pScene, int depth)
+Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXScene>& pScene, int depth)
 {
 	if (!m_pKdTree)
 	{

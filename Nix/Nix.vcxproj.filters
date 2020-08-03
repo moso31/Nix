@@ -227,14 +227,17 @@
     <ClCompile Include="Nix\NXPathIntegrator.cpp">
       <Filter>Nix\RayTracer\Integrator</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\NXPhotonMappingIntegrator.cpp">
-      <Filter>Nix\RayTracer\Integrator</Filter>
-    </ClCompile>
     <ClCompile Include="Nix\NXKdTree.cpp">
       <Filter>Nix\Accelerator</Filter>
     </ClCompile>
     <ClCompile Include="Nix\NXReflection.inl">
       <Filter>Nix\RayTracer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXPMIntegrator.cpp">
+      <Filter>Nix\RayTracer\Integrator</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXPMSplitIntegrator.cpp">
+      <Filter>Nix\RayTracer\Integrator</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -388,14 +391,17 @@
     <ClInclude Include="Nix\NXPathIntegrator.h">
       <Filter>Nix\RayTracer\Integrator</Filter>
     </ClInclude>
-    <ClInclude Include="Nix\NXPhotonMappingIntegrator.h">
-      <Filter>Nix\RayTracer\Integrator</Filter>
-    </ClInclude>
     <ClInclude Include="Nix\NXKdTree.h">
       <Filter>Nix\Accelerator</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXReflection.h">
       <Filter>Nix\RayTracer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXPMIntegrator.h">
+      <Filter>Nix\RayTracer\Integrator</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXPMSplitIntegrator.h">
+      <Filter>Nix\RayTracer\Integrator</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

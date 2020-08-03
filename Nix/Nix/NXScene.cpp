@@ -22,7 +22,8 @@
 #include "NXCubeMap.h"
 
 #include "NXPathIntegrator.h"
-#include "NXPhotonMappingIntegrator.h"
+#include "NXPMIntegrator.h"
+#include "NXPMSplitIntegrator.h"
 
 //#include "NXShadowMap.h"
 #include "NXPassShadowMap.h"
@@ -62,7 +63,8 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		printf("rendering(HLBVH)...\n");
 		CreateBVHTrees(HBVHSplitMode::HLBVH);
 
-		shared_ptr<NXPhotonMappingIntegrator> pIntegrator = make_shared<NXPhotonMappingIntegrator>();
+		//shared_ptr<NXPMIntegrator> pIntegrator = make_shared<NXPMIntegrator>();
+		shared_ptr<NXPMSplitIntegrator> pIntegrator = make_shared<NXPMSplitIntegrator>();
 		auto pThis = dynamic_pointer_cast<NXScene>(shared_from_this());
 		pIntegrator->GeneratePhotons(pThis, m_mainCamera);
 
@@ -91,7 +93,8 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		printf("done.\n");
 
 		//shared_ptr<NXIntegrator> pIntegrator = make_shared<NXPathIntegrator>();
-		shared_ptr<NXPhotonMappingIntegrator> pIntegrator = make_shared<NXPhotonMappingIntegrator>();
+		//shared_ptr<NXPMIntegrator> pIntegrator = make_shared<NXPMIntegrator>();
+		shared_ptr<NXPMSplitIntegrator> pIntegrator = make_shared<NXPMSplitIntegrator>();
 		auto pThis = dynamic_pointer_cast<NXScene>(shared_from_this());
 		pIntegrator->GeneratePhotons(pThis, m_mainCamera);
 
