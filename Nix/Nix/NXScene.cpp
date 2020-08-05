@@ -21,6 +21,7 @@
 
 #include "NXCubeMap.h"
 
+#include "NXDirectIntegrator.h"
 #include "NXPathIntegrator.h"
 #include "NXPMIntegrator.h"
 #include "NXPMSplitIntegrator.h"
@@ -55,7 +56,7 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 	auto pScene = dynamic_pointer_cast<NXScene>(shared_from_this());
 	NXRenderImageInfo imageInfo;
 	imageInfo.ImageSize = XMINT2(800, 600);
-	imageInfo.EachPixelSamples = 1;
+	imageInfo.EachPixelSamples = 128;
 
 	if (eArg.VKey == 'G')
 	{
@@ -85,6 +86,18 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		pIntegrator.reset();
 	}
 
+	if (eArg.VKey == 'U')
+	{
+		shared_ptr<NXIntegrator> pIntegrator = make_shared<NXDirectIntegrator>();
+
+		imageInfo.outPath = "D:\\nix_directlighting.bmp";
+		printf("rendering(HLBVH)...\n");
+		CreateBVHTrees(HBVHSplitMode::HLBVH);
+		NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pIntegrator, imageInfo);
+
+		pIntegrator.reset();
+	}
+
 	if (eArg.VKey == 'H')
 	{
 		// 创建求交加速结构以增加渲染速度。
@@ -92,11 +105,12 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		CreateBVHTrees(HBVHSplitMode::HLBVH);
 		printf("done.\n");
 
+		shared_ptr<NXIntegrator> pIntegrator = make_shared<NXDirectIntegrator>();
 		//shared_ptr<NXIntegrator> pIntegrator = make_shared<NXPathIntegrator>();
 		//shared_ptr<NXPMIntegrator> pIntegrator = make_shared<NXPMIntegrator>();
-		shared_ptr<NXPMSplitIntegrator> pIntegrator = make_shared<NXPMSplitIntegrator>();
-		auto pThis = dynamic_pointer_cast<NXScene>(shared_from_this());
-		pIntegrator->GeneratePhotons(pThis, m_mainCamera);
+		//shared_ptr<NXPMSplitIntegrator> pIntegrator = make_shared<NXPMSplitIntegrator>();
+		//auto pThis = dynamic_pointer_cast<NXScene>(shared_from_this());
+		//pIntegrator->GeneratePhotons(pThis, m_mainCamera);
 
 		printf("center ray testing...\n");
 		NXRayTracer::GetInstance()->CenterRayTest(pScene, m_mainCamera, pIntegrator, 1);

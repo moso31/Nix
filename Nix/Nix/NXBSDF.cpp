@@ -155,6 +155,30 @@ Vector3 NXBSDF::SampleRefract(const Vector3& wo, Vector3& o_wi, float& o_pdf)
 	return transmitivity;
 }
 
+Vector3 NXBSDF::SampleDiffuseWorld(const Vector3& woWorld, Vector3& o_wiWorld, float& o_pdf)
+{
+	Vector3 wo = WorldToReflection(woWorld), wi;
+	Vector3 result = SampleDiffuse(wo, wi, o_pdf);
+	o_wiWorld = ReflectionToWorld(wi);
+	return result;
+}
+
+Vector3 NXBSDF::SampleReflectWorld(const Vector3& woWorld, Vector3& o_wiWorld, float& o_pdf)
+{
+	Vector3 wo = WorldToReflection(woWorld), wi;
+	Vector3 result = SampleReflect(wo, wi, o_pdf);
+	o_wiWorld = ReflectionToWorld(wi);
+	return result;
+}
+
+Vector3 NXBSDF::SampleRefractWorld(const Vector3& woWorld, Vector3& o_wiWorld, float& o_pdf)
+{
+	Vector3 wo = WorldToReflection(woWorld), wi;
+	Vector3 result = SampleRefract(wo, wi, o_pdf);
+	o_wiWorld = ReflectionToWorld(wi);
+	return result;
+}
+
 float NXBSDF::PdfDiffuse(const Vector3& wo, const Vector3& wi)
 {
 	// Diffuse使用的是余弦采样。

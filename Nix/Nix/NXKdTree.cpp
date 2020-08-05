@@ -94,6 +94,8 @@ void NXKdTree::Release()
 
 void NXKdTree::Locate(const Vector3& position, const Vector3& normal, const shared_ptr<NXKdTreeNode>& p, int maxLimit, float& out_mindist2, priority_quque_NXPhoton& out_nearestPhotons, LocateFilter locateFilter)
 {
+	if (!p) return;
+
 	if (p->lc || p->rc)
 	{
 		int dim = p->dim;

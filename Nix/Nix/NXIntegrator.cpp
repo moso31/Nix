@@ -43,6 +43,7 @@ Vector3 NXIntegrator::DirectEstimate(const Ray& ray, const shared_ptr<NXScene>& 
 		Vector3 f(0.0f);
 		Vector3 incidentDirection;
 		float pdfLight = 0.0f, pdfBSDF = 0.0f, pdfWeight = 0.0f;
+		bool LIGHT_SAMPLE_ONLY = false;
 
 		// 基于光源采样一次
 		Vector3 Li = pLight->Illuminate(hitInfo, incidentDirection, pdfLight);
@@ -51,10 +52,13 @@ Vector3 NXIntegrator::DirectEstimate(const Ray& ray, const shared_ptr<NXScene>& 
 			f = hitInfo.BSDF->Evaluate(hitInfo.direction, incidentDirection, pdfBSDF);
 			if (!f.IsZero())
 			{
-				pdfWeight = PowerHeuristicWeightPdf(1, pdfLight, 1, pdfBSDF);
+				pdfWeight = LIGHT_SAMPLE_ONLY ? 1.0f : PowerHeuristicWeightPdf(1, pdfLight, 1, pdfBSDF);
 				L += f * Li * incidentDirection.Dot(hitInfo.shading.normal) * pdfWeight / pdfLight;
 			}
 		}
+
+		if (LIGHT_SAMPLE_ONLY)
+			return L;
 
 		// 基于BSDF采样一次
 		f = hitInfo.BSDF->Sample(hitInfo.direction, incidentDirection, pdfBSDF);
@@ -78,7 +82,6 @@ Vector3 NXIntegrator::DirectEstimate(const Ray& ray, const shared_ptr<NXScene>& 
 				pHitAreaLight = pScene->GetCubeMap()->GetEnvironmentLight();
 			}
 
-			pdfLight = 0.0f;
 			if (pHitAreaLight == pLight)
 			{
 				Li = pHitAreaLight->GetRadiance(hitLightInfo.position, hitLightInfo.normal, -incidentDirection);

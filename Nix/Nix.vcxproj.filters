@@ -239,6 +239,9 @@
     <ClCompile Include="Nix\NXPMSplitIntegrator.cpp">
       <Filter>Nix\RayTracer\Integrator</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\NXDirectIntegrator.cpp">
+      <Filter>Nix\RayTracer\Integrator</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -401,6 +404,9 @@
       <Filter>Nix\RayTracer\Integrator</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXPMSplitIntegrator.h">
+      <Filter>Nix\RayTracer\Integrator</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXDirectIntegrator.h">
       <Filter>Nix\RayTracer\Integrator</Filter>
     </ClInclude>
   </ItemGroup>

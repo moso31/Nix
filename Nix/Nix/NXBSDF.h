@@ -34,6 +34,9 @@ public:
 	Vector3 EvaluateSpecular(const Vector3& wo, const Vector3& wi, float& o_pdf);
 	Vector3 SampleReflect(const Vector3& wo, Vector3& o_wi, float& o_pdf);
 	Vector3 SampleRefract(const Vector3& wo, Vector3& o_wi, float& o_pdf);
+	Vector3 SampleDiffuseWorld(const Vector3& woWorld, Vector3& o_wiWorld, float& o_pdf);
+	Vector3 SampleReflectWorld(const Vector3& woWorld, Vector3& o_wiWorld, float& o_pdf);
+	Vector3 SampleRefractWorld(const Vector3& woWorld, Vector3& o_wiWorld, float& o_pdf);
 
 	float PdfDiffuse(const Vector3& wo, const Vector3& wi);
 	float PdfSpecular(const Vector3& wo, const Vector3& wh);	// 注意计算Specular使用半向量 wh！
