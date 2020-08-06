@@ -73,8 +73,9 @@ void NXSphere::Init(float radius, int segmentHorizontal, int segmentVertical)
 	InitAABB();
 }
 
-bool NXSphere::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist)
+bool NXSphere::RayCast(const Ray& worldRay, NXHit& outHitInfo, float& outDist)
 {
+	Ray localRay = worldRay.Transform(m_worldMatrixInv);
 	const Vector3& o = localRay.position;
 	const Vector3& d = localRay.direction;
 

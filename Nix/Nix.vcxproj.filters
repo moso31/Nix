@@ -242,6 +242,9 @@
     <ClCompile Include="Nix\NXDirectIntegrator.cpp">
       <Filter>Nix\RayTracer\Integrator</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\NXShape.cpp">
+      <Filter>Nix\Object\Transform\Primitive</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -409,10 +412,13 @@
     <ClInclude Include="Nix\NXDirectIntegrator.h">
       <Filter>Nix\RayTracer\Integrator</Filter>
     </ClInclude>
+    <ClInclude Include="Nix\NXShape.h">
+      <Filter>Nix\Object\Transform\Primitive</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="场景添加物体说明.txt" />
-    <Text Include="未实现细节（3级）.txt" />
-    <Text Include="未实现功能（2级）.txt" />
+    <Text Include="普通问题（3级）.txt" />
+    <Text Include="较严重问题（2级）.txt" />
   </ItemGroup>
 </Project>

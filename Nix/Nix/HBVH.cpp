@@ -326,12 +326,9 @@ void HBVHTree::RecursiveIntersect(HBVHTreeNode* node, const Ray& worldRay, NXHit
 							{
 								auto pPrim = m_primitives[m_mortonPrimitiveInfo[idx].index];
 
-								Matrix mxWorldInv = pPrim->GetWorldMatrixInv();
-								Ray LocalRay = worldRay.Transform(mxWorldInv);
-
 								float tHit = FLT_MAX;
 								NXHit hitInfo;
-								if (pPrim->RayCast(LocalRay, hitInfo, tHit))
+								if (pPrim->RayCast(worldRay, hitInfo, tHit))
 								{
 									if (out_tHit > tHit)
 									{
@@ -357,12 +354,9 @@ void HBVHTree::RecursiveIntersect(HBVHTreeNode* node, const Ray& worldRay, NXHit
 						{
 							auto pPrim = m_primitives[m_primitiveInfo[i].index];
 
-							Matrix mxWorldInv = pPrim->GetWorldMatrixInv();
-							Ray LocalRay = worldRay.Transform(mxWorldInv);
-
 							float tHit = FLT_MAX;
 							NXHit hitInfo;
-							if (pPrim->RayCast(LocalRay, hitInfo, tHit))
+							if (pPrim->RayCast(worldRay, hitInfo, tHit))
 							{
 								if (out_tHit > tHit)
 								{

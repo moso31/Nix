@@ -133,8 +133,10 @@ NXTriangle NXPrimitive::SampleTriangle()
 	return GetTriangle(sampleId);
 }
 
-bool NXPrimitive::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist)
+bool NXPrimitive::RayCast(const Ray& worldRay, NXHit& outHitInfo, float& outDist)
 {
+	Ray localRay = worldRay.Transform(m_worldMatrixInv);
+
 	// 遍历所有三角形寻找最近交点。还可以进一步优化成BVH，但暂时没做。
 	bool bSuccess = false;
 	int faceCount = (int)m_indices.size() / 3;
@@ -173,11 +175,11 @@ void NXPrimitive::SampleForArea(Vector3& o_pos, Vector3& o_norm, float& o_pdfA)
 	o_pdfA = 1.0f / GetSurfaceArea();
 }
 
-void NXPrimitive::SampleForSolidAngle(const Vector3& point, Vector3& o_pos, Vector3& o_norm, float& o_pdfW)
+void NXPrimitive::SampleForSolidAngle(const NXHit& hitInfo, Vector3& o_pos, Vector3& o_norm, float& o_pdfW)
 {
 	float pdfA;
 	SampleForArea(o_pos, o_norm, pdfA);
-	Vector3 dirLight = point - o_pos;
+	Vector3 dirLight = hitInfo.position - o_pos;
 	float cosTheta = o_norm.Dot(dirLight);
 	float dist2 = dirLight.LengthSquared();
 	if (dist2 < 0.0f)

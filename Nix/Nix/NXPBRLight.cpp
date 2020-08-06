@@ -106,7 +106,7 @@ Vector3 NXPBRTangibleLight::Emit(Ray& o_ray, Vector3& o_lightNormal, float& o_pd
 Vector3 NXPBRTangibleLight::Illuminate(const NXHit& hitInfo, Vector3& o_wi, float& o_pdfW)
 {
 	Vector3 sampleLightPosition, sampleLightNormal;		// 灯光采样点的位置和该处的法向量
-	m_pPrimitive->SampleForSolidAngle(hitInfo.position, sampleLightPosition, sampleLightNormal, o_pdfW);
+	m_pPrimitive->SampleForSolidAngle(hitInfo, sampleLightPosition, sampleLightNormal, o_pdfW);
 	o_wi = sampleLightPosition - hitInfo.position;
 	o_wi.Normalize();
 

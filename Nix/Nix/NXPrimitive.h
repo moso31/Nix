@@ -48,14 +48,14 @@ public:
 	void SetTangibleLight(shared_ptr<NXPBRTangibleLight> pTangibleLight) { m_pTangibleLight = pTangibleLight; }
 	shared_ptr<NXPBRTangibleLight> GetTangibleLight() const { return m_pTangibleLight; }
 
-	virtual bool RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist);
+	virtual bool RayCast(const Ray& worldRay, NXHit& outHitInfo, float& outDist);
 
 	// 基于表面积对Primitive表面采样
 	virtual void SampleForArea(Vector3& o_pos, Vector3& o_norm, float& o_pdfA);
 	float GetPdfArea() { return 1.0f / GetSurfaceArea(); }
 
 	// 基于立体角对Primitive表面采样
-	virtual void SampleForSolidAngle(const Vector3& point, Vector3& o_pos, Vector3& o_norm, float& o_pdfW);
+	virtual void SampleForSolidAngle(const NXHit& hitInfo, Vector3& o_pos, Vector3& o_norm, float& o_pdfW);
 	float GetPdfSolidAngle(const NXHit& hitInfo, const Vector3& posLight, const Vector3& normLight, const Vector3& dirLight);
 
 protected:

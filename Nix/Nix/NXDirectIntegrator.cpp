@@ -27,7 +27,7 @@ Vector3 NXDirectIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& 
 	// 生成当前hit的bsdf（为其添加各种ReflectionModel）
 	hitInfo.GenerateBSDF(true);
 
-	bool bIsUniformAll = false;
+	bool bIsUniformAll = true;
 	if (bIsUniformAll)
 		L += UniformLightAll(ray, pScene, hitInfo);
 	else
