@@ -124,9 +124,9 @@ Vector3 NXPBRTangibleLight::GetRadiance(const Vector3& samplePosition, const Vec
 	return Radiance;
 }
 
-float NXPBRTangibleLight::GetPdf(const NXHit& hitInfo, const Vector3& direction)
+float NXPBRTangibleLight::GetPdf(const NXHit& hitInfo, const Vector3& lightPos, const Vector3& lightNorm, const Vector3& lightDir)
 {
-	return m_pPrimitive->GetPdf(hitInfo, direction);
+	return m_pPrimitive->GetPdfSolidAngle(hitInfo, lightPos, lightNorm, lightDir);
 }
 
 NXPBREnvironmentLight::NXPBREnvironmentLight(const shared_ptr<NXCubeMap>& pCubeMap, const Vector3& Radiance, Vector3 WorldCenter, float WorldRadius) :
@@ -179,8 +179,8 @@ Vector3 NXPBREnvironmentLight::GetRadiance(const Vector3& samplePosition, const 
 	return m_pCubeMap->BackgroundColorByDirection(-targetDirection) * Radiance;
 }
 
-float NXPBREnvironmentLight::GetPdf(const NXHit& hitInfo, const Vector3& targetDirection)
+float NXPBREnvironmentLight::GetPdf(const NXHit& hitInfo, const Vector3& lightPos, const Vector3& lightNorm, const Vector3& lightDir)
 {
-	Vector3 localDirection = hitInfo.BSDF->WorldToReflection(targetDirection);
+	Vector3 localDirection = hitInfo.BSDF->WorldToReflection(lightDir);
 	return fabsf(localDirection.z * XM_1DIVPI);
 }

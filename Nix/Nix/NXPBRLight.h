@@ -73,7 +73,7 @@ public:
 	virtual Vector3 GetRadiance(const Vector3& samplePosition, const Vector3& lightSurfaceNormal, const Vector3& targetDirection) = 0;
 
 	// 获取朝某个采样方向发射时，对应的pdf值。
-	virtual float GetPdf(const NXHit& hitInfo, const Vector3& direction) = 0;
+	virtual float GetPdf(const NXHit& hitInfo, const Vector3& lightPos, const Vector3& lightNorm, const Vector3& lightDir) = 0;
 };
 
 class NXPBRTangibleLight : public NXPBRAreaLight
@@ -88,7 +88,7 @@ public:
 	// 需要提供 灯面发射点处的法向量，以判断本次交互是否相向。
 	Vector3 GetRadiance(const Vector3& samplePosition, const Vector3& lightSurfaceNormal, const Vector3& targetDirection) override;
 
-	float GetPdf(const NXHit& hitInfo, const Vector3& direction) override;
+	float GetPdf(const NXHit& hitInfo, const Vector3& lightPos, const Vector3& lightNorm, const Vector3& lightDir) override;
 public:
 	Vector3 Radiance;
 
@@ -107,7 +107,7 @@ public:
 	// 计算自发光(emission)的radiance。
 	Vector3 GetRadiance(const Vector3& samplePosition, const Vector3& lightSurfaceNormal, const Vector3& targetDirection) override;
 
-	float GetPdf(const NXHit& hitInfo, const Vector3& targetDirection) override;
+	float GetPdf(const NXHit& hitInfo, const Vector3& lightPos, const Vector3& lightNorm, const Vector3& lightDir) override;
 public:
 	Vector3 Radiance;
 	Vector3 WorldCenter;

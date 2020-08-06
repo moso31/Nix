@@ -189,6 +189,16 @@ void NXPrimitive::SampleForSolidAngle(const Vector3& point, Vector3& o_pos, Vect
 	}
 }
 
+float NXPrimitive::GetPdfSolidAngle(const NXHit& hitInfo, const Vector3& posLight, const Vector3& normLight, const Vector3& dirLight)
+{
+	float pdfA = GetPdfArea();
+	float dist2 = Vector3::DistanceSquared(posLight, hitInfo.position);
+	if (dist2 < 0.0f)
+		return 0.0f;
+
+	return pdfA * dist2 / fabsf(normLight.Dot(dirLight));
+}
+
 void NXPrimitive::InitVertexIndexBuffer()
 {
 	D3D11_BUFFER_DESC bufferDesc;
