@@ -2,6 +2,7 @@
 #include "SamplerMath.h"
 #include "NXScene.h"
 #include "NXCubeMap.h"
+#include "NXPrimitive.h"
 #include "NXRandom.h"
 #include "NXReflection.h"
 

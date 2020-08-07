@@ -197,14 +197,14 @@ void NXScene::Init()
 	//auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 16, 16, pMaterial, Vector3(1.0f, 1.0f, 1.0f));
 	//pSphere->SetMaterialPBR(pPBRMat[4]);
 
-	//float a[4] = { 0.216, 0.036, 0.006, 0.001 };
-	//float b[4] = { 27.5f, 40.0f, 52.5f, 65.0f };
-	//for (int i = 1; i < 5; i++)
-	//{
-	//	float angle = XM_PIDIV2 * i / 6.0f;
-	//	auto pPlane = m_sceneManager->CreatePlane("Grounds", 10.0f, 1.0f, NXPlaneAxis(POSITIVE_Y), pMaterial, 6.0f * Vector3(0.0f, 1.0 - cosf(angle), sinf(angle)), Vector3(-b[i - 1] * XM_PI / 180.0f, 0.0f, 0.0f));
-	//	pPlane->SetMaterialPBR(m_sceneManager->CreatePBRMaterial(Vector3(0.5f), Vector3(0.5f), Vector3(0.0f), Vector3(0.0f), a[i - 1], 0.0f));
-	//}
+	float a[4] = { 0.216, 0.036, 0.006, 0.001 };
+	float b[4] = { 27.5f, 40.0f, 52.5f, 65.0f };
+	for (int i = 1; i < 5; i++)
+	{
+		float angle = XM_PIDIV2 * i / 6.0f;
+		auto pPlane = m_sceneManager->CreatePlane("Grounds", 10.0f, 1.0f, NXPlaneAxis(POSITIVE_Y), pMaterial, 6.0f * Vector3(0.0f, 1.0 - cosf(angle), sinf(angle)), Vector3(-b[i - 1] * XM_PI / 180.0f, 0.0f, 0.0f));
+		pPlane->SetMaterialPBR(m_sceneManager->CreatePBRMaterial(Vector3(0.5f), Vector3(0.5f), Vector3(0.0f), Vector3(0.0f), a[i - 1], 0.0f));
+	}
 
 	auto pPlane = m_sceneManager->CreatePlane("Ground", 50.0f, 12.0f, NXPlaneAxis(POSITIVE_Y), pMaterial, Vector3(0.0f, -5.0f, 0.0f));
 	pPlane->SetMaterialPBR(pPBRMat[0]);

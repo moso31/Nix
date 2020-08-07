@@ -165,6 +165,11 @@ Vector3 NXBSDF::SampleDiffuseWorld(const Vector3& woWorld, Vector3& o_wiWorld, f
 
 Vector3 NXBSDF::SampleReflectWorld(const Vector3& woWorld, Vector3& o_wiWorld, float& o_pdf)
 {
+	if (pMat->m_sampleProbs.Reflect == 0.0f)
+	{
+		o_pdf = 0.0f;
+		return Vector3(0.0f);
+	}
 	Vector3 wo = WorldToReflection(woWorld), wi;
 	Vector3 result = SampleReflect(wo, wi, o_pdf);
 	o_wiWorld = ReflectionToWorld(wi);
@@ -173,6 +178,11 @@ Vector3 NXBSDF::SampleReflectWorld(const Vector3& woWorld, Vector3& o_wiWorld, f
 
 Vector3 NXBSDF::SampleRefractWorld(const Vector3& woWorld, Vector3& o_wiWorld, float& o_pdf)
 {
+	if (pMat->m_sampleProbs.Refract == 0.0f)
+	{
+		o_pdf = 0.0f;
+		return Vector3(0.0f);
+	}
 	Vector3 wo = WorldToReflection(woWorld), wi;
 	Vector3 result = SampleRefract(wo, wi, o_pdf);
 	o_wiWorld = ReflectionToWorld(wi);

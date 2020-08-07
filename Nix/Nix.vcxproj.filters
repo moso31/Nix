@@ -242,9 +242,6 @@
     <ClCompile Include="Nix\NXDirectIntegrator.cpp">
       <Filter>Nix\RayTracer\Integrator</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\NXShape.cpp">
-      <Filter>Nix\Object\Transform\Primitive</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -411,9 +408,6 @@
     </ClInclude>
     <ClInclude Include="Nix\NXDirectIntegrator.h">
       <Filter>Nix\RayTracer\Integrator</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\NXShape.h">
-      <Filter>Nix\Object\Transform\Primitive</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

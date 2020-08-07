@@ -121,18 +121,6 @@ float NXPrimitive::GetSurfaceArea()
 	return m_fArea;
 }
 
-NXTriangle NXPrimitive::SampleTriangle()
-{
-	float randomArea = NXRandom::GetInstance()->CreateFloat() * GetSurfaceArea();
-	int sampleId = 0;
-	for (sampleId = 0; sampleId < m_triangleAreas.size() - 1; sampleId++)
-	{
-		if (randomArea < m_triangleAreas[sampleId])
-			break;
-	}
-	return GetTriangle(sampleId);
-}
-
 bool NXPrimitive::RayCast(const Ray& worldRay, NXHit& outHitInfo, float& outDist)
 {
 	Ray localRay = worldRay.Transform(m_worldMatrixInv);
@@ -232,6 +220,18 @@ void NXPrimitive::InitAABB()
 		m_points.push_back(it->pos);
 	}
 	AABB::CreateFromPoints(m_aabb, m_points.size(), m_points.data(), sizeof(Vector3));
+}
+
+NXTriangle NXPrimitive::SampleTriangle()
+{
+	float randomArea = NXRandom::GetInstance()->CreateFloat() * GetSurfaceArea();
+	int sampleId = 0;
+	for (sampleId = 0; sampleId < m_triangleAreas.size() - 1; sampleId++)
+	{
+		if (randomArea < m_triangleAreas[sampleId])
+			break;
+	}
+	return GetTriangle(sampleId);
 }
 
 NXTriangle::NXTriangle(const shared_ptr<NXPrimitive>& pShape, int startIndex) :

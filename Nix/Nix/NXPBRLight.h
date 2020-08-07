@@ -1,7 +1,8 @@
 #pragma once
 #include "NXInstance.h"
 #include "NXIntersection.h"
-#include "NXPrimitive.h"
+
+class NXPrimitive;
 
 class NXVisibleTest : public NXInstance<NXVisibleTest>
 {

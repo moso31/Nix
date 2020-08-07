@@ -2,13 +2,6 @@
 #include "ShaderStructures.h"
 #include "NXTransform.h"
 
-class NXBox;
-class NXSphere;
-class NXCylinder;
-class NXCone;
-class NXPlane;
-class NXTriangle;
-
 class NXHit;
 class NXPBRMaterial;
 class NXPBRTangibleLight;
@@ -38,9 +31,8 @@ public:
 	// 为每一个Primitive开一个指针存储this，在单次PathIntegrator计算中可以节省大概4%-8%左右的全局性能开销。非常划算。
 	shared_ptr<NXPrimitive> GetSelf();
 
-	void UpdateSurfaceAreaInfo();		// 更新此物体表面积相关的信息。
-	float GetSurfaceArea();				// 计算表面积
-	NXTriangle SampleTriangle();		// 按面积的PDF采样任一三角形
+	virtual void UpdateSurfaceAreaInfo();		// 更新此物体表面积相关的信息。
+	virtual float GetSurfaceArea();				// 计算表面积
 
 	ID3D11ShaderResourceView* GetTextureSRV() const { return m_pTextureSRV; }
 	ID3D11Buffer* GetMaterialBuffer() const { return m_cbMaterial; }
@@ -52,15 +44,18 @@ public:
 
 	// 基于表面积对Primitive表面采样
 	virtual void SampleForArea(Vector3& o_pos, Vector3& o_norm, float& o_pdfA);
-	float GetPdfArea() { return 1.0f / GetSurfaceArea(); }
+	virtual float GetPdfArea() { return 1.0f / GetSurfaceArea(); }
 
 	// 基于立体角对Primitive表面采样
 	virtual void SampleForSolidAngle(const NXHit& hitInfo, Vector3& o_pos, Vector3& o_norm, float& o_pdfW);
-	float GetPdfSolidAngle(const NXHit& hitInfo, const Vector3& posLight, const Vector3& normLight, const Vector3& dirLight);
+	virtual float GetPdfSolidAngle(const NXHit& hitInfo, const Vector3& posLight, const Vector3& normLight, const Vector3& dirLight);
 
 protected:
 	void InitVertexIndexBuffer();
 	void InitAABB();
+
+private:
+	NXTriangle SampleTriangle();		// 按面积的PDF采样任一三角形
 
 protected:
 	ID3D11Buffer*				m_pVertexBuffer;

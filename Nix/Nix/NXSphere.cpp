@@ -1,5 +1,9 @@
 #include "NXSphere.h"
 #include "NXIntersection.h"
+#include "SamplerMath.h"
+#include "NXRandom.h"
+
+using namespace SamplerMath;
 
 NXSphere::NXSphere() :
 	m_radius(0.0f),
@@ -73,6 +77,16 @@ void NXSphere::Init(float radius, int segmentHorizontal, int segmentVertical)
 	InitAABB();
 }
 
+void NXSphere::UpdateSurfaceAreaInfo()
+{
+	m_fArea = XM_4PI * m_radius * m_radius;
+}
+
+float NXSphere::GetSurfaceArea()
+{
+	return m_fArea;
+}
+
 bool NXSphere::RayCast(const Ray& worldRay, NXHit& outHitInfo, float& outDist)
 {
 	Ray localRay = worldRay.Transform(m_worldMatrixInv);
@@ -124,4 +138,40 @@ bool NXSphere::RayCast(const Ray& worldRay, NXHit& outHitInfo, float& outDist)
 	// ps: 二次曲面的计算是矢量级的，所以shading与Geometry相同。
 	outHitInfo.SetShadingGeometry(dpdu, dpdv);
 	return true;
+}
+
+void NXSphere::SampleForArea(Vector3& o_pos, Vector3& o_norm, float& o_pdfA)
+{
+	Vector2 vRandom = NXRandom::GetInstance()->CreateVector2();
+	o_norm = UniformSampleSphere(vRandom);
+	o_pos = o_norm * m_radius;
+	o_pos = Vector3::Transform(o_pos, m_worldMatrix);
+	o_norm = Vector3::TransformNormal(o_norm, m_worldMatrix);
+	o_pdfA = 1.0f / GetSurfaceArea();
+}
+
+void NXSphere::SampleForSolidAngle(const NXHit& hitInfo, Vector3& o_pos, Vector3& o_norm, float& o_pdfW)
+{
+	float pdfA;
+	SampleForArea(o_pos, o_norm, pdfA);
+	Vector3 dirLight = hitInfo.position - o_pos;
+	float cosTheta = o_norm.Dot(dirLight);
+	float dist2 = dirLight.LengthSquared();
+	if (dist2 < 0.0f)
+		o_pdfW = 0.0f;
+	else
+	{
+		dirLight.Normalize();
+		o_pdfW = pdfA * dist2 / fabsf(o_norm.Dot(dirLight));
+	}
+}
+
+float NXSphere::GetPdfSolidAngle(const NXHit& hitInfo, const Vector3& posLight, const Vector3& normLight, const Vector3& dirLight)
+{
+	float pdfA = GetPdfArea();
+	float dist2 = Vector3::DistanceSquared(posLight, hitInfo.position);
+	if (dist2 < 0.0f)
+		return 0.0f;
+
+	return pdfA * dist2 / fabsf(normLight.Dot(dirLight));
 }

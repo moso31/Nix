@@ -1,6 +1,7 @@
 #include "NXPathIntegrator.h"
 #include "NXCubeMap.h"
 #include "NXRandom.h"
+#include "NXPrimitive.h"
 
 Vector3 NXPathIntegrator::Radiance(const Ray& ray, const shared_ptr<NXScene>& pScene, int depth)
 {

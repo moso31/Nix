@@ -3,6 +3,7 @@
 #include "SamplerMath.h"
 #include "NXCamera.h"
 #include "NXCubeMap.h"
+#include "NXPrimitive.h"
 
 NXPMIntegrator::NXPMIntegrator() :
 	m_numPhotons(100000)

@@ -1,6 +1,7 @@
 #include "NXIntegrator.h"
 #include "NXBSDF.h"
 #include "NXCubeMap.h"
+#include "NXPrimitive.h"
 #include "NXPBRLight.h"
 #include "SamplerMath.h"
 #include "NXRandom.h"
