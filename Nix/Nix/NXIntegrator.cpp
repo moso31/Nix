@@ -99,21 +99,17 @@ Vector3 NXIntegrator::DirectEstimate(const Ray& ray, const shared_ptr<NXScene>& 
 
 Vector3 NXIntegrator::UniformLightAll(const Ray& ray, const shared_ptr<NXScene>& pScene, const NXHit& hitInfo)
 {
-	// All: 统计所有的光源并求平均值。
+	// All: 统计所有的光源
 	Vector3 result(0.0f);
 	auto pLights = pScene->GetPBRLights();
 	for (auto it = pLights.begin(); it != pLights.end(); it++)
-	{
 		result += DirectEstimate(ray, pScene, *it, hitInfo);
-	}
-	result /= (float)pLights.size();
 	return result;
 }
 
 Vector3 NXIntegrator::UniformLightOne(const Ray& ray, const shared_ptr<NXScene>& pScene, const NXHit& hitInfo)
 {
-	// One: 仅统计单个光源。
-	// 但统计哪个样本数量完全是随机的。此方法期望值和All方法是等同的。
+	// One: 仅统计单个光源，但对光源的选取完全随机。此方法期望值和All方法等同。
 	Vector3 result(0.0f);
 	auto pLights = pScene->GetPBRLights();
 	int lightCount = (int)pLights.size();

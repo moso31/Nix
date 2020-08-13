@@ -56,7 +56,7 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 	auto pScene = dynamic_pointer_cast<NXScene>(shared_from_this());
 	NXRenderImageInfo imageInfo;
 	imageInfo.ImageSize = XMINT2(800, 600);
-	imageInfo.EachPixelSamples = 16;
+	imageInfo.EachPixelSamples = 4;
 
 	if (eArg.VKey == 'G')
 	{
@@ -113,7 +113,7 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		//pIntegrator->GeneratePhotons(pThis, m_mainCamera);
 
 		printf("center ray testing...\n");
-		NXRayTracer::GetInstance()->CenterRayTest(pScene, m_mainCamera, pIntegrator, 1);
+		NXRayTracer::GetInstance()->CenterRayTest(pScene, m_mainCamera, pIntegrator, 10);
 
 		if (!m_primitives.empty())
 		{
@@ -155,35 +155,50 @@ void NXScene::Init()
 		m_sceneManager->CreatePBRMaterial(Vector3(0.0f), Vector3(0.0f), Vector3(1.0f), Vector3(0.0f), 0.0f, 1.55f),
 	};
 
-	//auto pPlane = m_sceneManager->CreatePlane("Ground", 8.0f, 12.0f, NXPlaneAxis(POSITIVE_Y), pMaterial, Vector3(0.0f));
-	//pPlane->SetMaterialPBR(pPBRMat[0]);
+	auto pPlane = m_sceneManager->CreatePlane("Ground", 8.0f, 12.0f, NXPlaneAxis(POSITIVE_Y), pMaterial, Vector3(0.0f));
+	pPlane->SetMaterialPBR(pPBRMat[0]);
 
-	//pPlane = m_sceneManager->CreatePlane("Wall +Y", 8.0f, 12.0f, NXPlaneAxis(NEGATIVE_Y), pMaterial, Vector3(0.0f, 6.0f, 0.0f));
-	//pPlane->SetMaterialPBR(pPBRMat[0]);
+	pPlane = m_sceneManager->CreatePlane("Wall +Y", 8.0f, 12.0f, NXPlaneAxis(NEGATIVE_Y), pMaterial, Vector3(0.0f, 6.0f, 0.0f));
+	pPlane->SetMaterialPBR(pPBRMat[0]);
 
-	//pPlane = m_sceneManager->CreatePlane("Wall -Z", 8.0f, 6.0f, NXPlaneAxis(POSITIVE_Z), pMaterial, Vector3(0.0f, 3.0f, -6.0f));
-	//pPlane->SetMaterialPBR(pPBRMat[0]);
+	pPlane = m_sceneManager->CreatePlane("Wall -Z", 8.0f, 6.0f, NXPlaneAxis(POSITIVE_Z), pMaterial, Vector3(0.0f, 3.0f, -6.0f));
+	pPlane->SetMaterialPBR(pPBRMat[0]);
 
-	//pPlane = m_sceneManager->CreatePlane("Wall +Z", 8.0f, 6.0f, NXPlaneAxis(NEGATIVE_Z), pMaterial, Vector3(0.0f, 3.0f, 6.0f));
-	//pPlane->SetMaterialPBR(pPBRMat[0]);
+	pPlane = m_sceneManager->CreatePlane("Wall +Z", 8.0f, 6.0f, NXPlaneAxis(NEGATIVE_Z), pMaterial, Vector3(0.0f, 3.0f, 6.0f));
+	pPlane->SetMaterialPBR(pPBRMat[0]);
 
-	//pPlane = m_sceneManager->CreatePlane("Wall -X", 6.0f, 12.0f, NXPlaneAxis(POSITIVE_X), pMaterial, Vector3(-4.0f, 3.0f, 0.0f));
-	//pPlane->SetMaterialPBR(pPBRMat[1]);
+	pPlane = m_sceneManager->CreatePlane("Wall -X", 6.0f, 12.0f, NXPlaneAxis(POSITIVE_X), pMaterial, Vector3(-4.0f, 3.0f, 0.0f));
+	pPlane->SetMaterialPBR(pPBRMat[1]);
 
-	//pPlane = m_sceneManager->CreatePlane("Wall +X", 6.0f, 12.0f, NXPlaneAxis(NEGATIVE_X), pMaterial, Vector3(4.0f, 3.0f, 0.0f));
-	//pPlane->SetMaterialPBR(pPBRMat[2]);
+	pPlane = m_sceneManager->CreatePlane("Wall +X", 6.0f, 12.0f, NXPlaneAxis(NEGATIVE_X), pMaterial, Vector3(4.0f, 3.0f, 0.0f));
+	pPlane->SetMaterialPBR(pPBRMat[2]);
 
-	shared_ptr<NXSphere> pLight = m_sceneManager->CreateSphere("Light", 1.0f, 64, 64, pMaterial, Vector3(-4.5f, 5.999f, 2.0f));
+	//shared_ptr<NXSphere> pLight = m_sceneManager->CreateSphere("Light", 1.0f, 64, 64, pMaterial, Vector3(-4.5f, 5.999f, 2.0f));
+	//pLight->SetMaterialPBR(pPBRMat[0]);
+
+	//shared_ptr<NXSphere> pLight1 = m_sceneManager->CreateSphere("Light", 0.75f, 64, 64, pMaterial, Vector3(-1.5f, 5.999f, 2.0f));
+	//pLight1->SetMaterialPBR(pPBRMat[0]);
+
+	//shared_ptr<NXSphere> pLight2 = m_sceneManager->CreateSphere("Light", 0.5f, 64, 64, pMaterial, Vector3(1.5f, 5.999f, 2.0f));
+	//pLight2->SetMaterialPBR(pPBRMat[0]);
+
+	//shared_ptr<NXSphere> pLight3 = m_sceneManager->CreateSphere("Light", 0.25f, 64, 64, pMaterial, Vector3(4.5f, 5.999f, 2.0f));
+	//pLight3->SetMaterialPBR(pPBRMat[0]);
+
+	shared_ptr<NXPlane> pLight = m_sceneManager->CreatePlane("Light", 2.0f, 2.0f, NXPlaneAxis(NEGATIVE_Y), pMaterial, Vector3(0.0f, 5.999f, 2.0f));
 	pLight->SetMaterialPBR(pPBRMat[0]);
 
-	shared_ptr<NXSphere> pLight1 = m_sceneManager->CreateSphere("Light", 0.75f, 64, 64, pMaterial, Vector3(-1.5f, 5.999f, 2.0f));
-	pLight1->SetMaterialPBR(pPBRMat[0]);
+	//shared_ptr<NXPlane> pLight = m_sceneManager->CreatePlane("Light", 1.0f, 1.0f, NXPlaneAxis(NEGATIVE_Y), pMaterial, Vector3(0.0f, 5.999f, 2.0f));
+	//pLight->SetMaterialPBR(pPBRMat[0]);
 
-	shared_ptr<NXSphere> pLight2 = m_sceneManager->CreateSphere("Light", 0.5f, 64, 64, pMaterial, Vector3(1.5f, 5.999f, 2.0f));
-	pLight2->SetMaterialPBR(pPBRMat[0]);
+	//shared_ptr<NXPlane> pLight1 = m_sceneManager->CreatePlane("Light", 1.0f, 1.0f, NXPlaneAxis(NEGATIVE_Y), pMaterial, Vector3(-1.5f, 5.999f, 2.0f));
+	//pLight1->SetMaterialPBR(pPBRMat[0]);
 
-	shared_ptr<NXSphere> pLight3 = m_sceneManager->CreateSphere("Light", 0.25f, 64, 64, pMaterial, Vector3(4.5f, 5.999f, 2.0f));
-	pLight3->SetMaterialPBR(pPBRMat[0]);
+	//shared_ptr<NXPlane> pLight2 = m_sceneManager->CreatePlane("Light", 1.0f, 1.0f, NXPlaneAxis(NEGATIVE_Y), pMaterial, Vector3(1.5f, 5.999f, 2.0f));
+	//pLight2->SetMaterialPBR(pPBRMat[0]);
+
+	//shared_ptr<NXPlane> pLight3 = m_sceneManager->CreatePlane("Light", 1.0f, 1.0f, NXPlaneAxis(NEGATIVE_Y), pMaterial, Vector3(4.5f, 5.999f, 2.0f));
+	//pLight3->SetMaterialPBR(pPBRMat[0]);
 
 	//shared_ptr<NXPlane> pLight1 = m_sceneManager->CreatePlane("Light", 0.75f, 0.75f, NXPlaneAxis(NEGATIVE_Y), pMaterial, Vector3(-1.5f, 5.999f, 2.0f));
 	//pLight1->SetMaterialPBR(pPBRMat[0]);
@@ -197,20 +212,20 @@ void NXScene::Init()
 	//auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 16, 16, pMaterial, Vector3(1.0f, 1.0f, 1.0f));
 	//pSphere->SetMaterialPBR(pPBRMat[4]);
 
-	float a[4] = { 0.216, 0.036, 0.006, 0.001 };
-	float b[4] = { 27.5f, 40.0f, 52.5f, 65.0f };
-	for (int i = 1; i < 5; i++)
-	{
-		float angle = XM_PIDIV2 * i / 6.0f;
-		auto pPlane = m_sceneManager->CreatePlane("Grounds", 10.0f, 1.0f, NXPlaneAxis(POSITIVE_Y), pMaterial, 6.0f * Vector3(0.0f, 1.0 - cosf(angle), sinf(angle)), Vector3(-b[i - 1] * XM_PI / 180.0f, 0.0f, 0.0f));
-		pPlane->SetMaterialPBR(m_sceneManager->CreatePBRMaterial(Vector3(0.5f), Vector3(0.5f), Vector3(0.0f), Vector3(0.0f), a[i - 1], 0.0f));
-	}
+	//float a[4] = { 0.216, 0.036, 0.006, 0.001 };
+	//float b[4] = { 27.5f, 40.0f, 52.5f, 65.0f };
+	//for (int i = 1; i < 5; i++)
+	//{
+	//	float angle = XM_PIDIV2 * i / 6.0f;
+	//	auto pPlane = m_sceneManager->CreatePlane("Grounds", 10.0f, 1.0f, NXPlaneAxis(POSITIVE_Y), pMaterial, 6.0f * Vector3(0.0f, 1.0 - cosf(angle), sinf(angle)), Vector3(-b[i - 1] * XM_PI / 180.0f, 0.0f, 0.0f));
+	//	pPlane->SetMaterialPBR(m_sceneManager->CreatePBRMaterial(Vector3(0.5f), Vector3(0.5f), Vector3(0.0f), Vector3(0.0f), a[i - 1], 0.0f));
+	//}
 
-	auto pPlane = m_sceneManager->CreatePlane("Ground", 50.0f, 12.0f, NXPlaneAxis(POSITIVE_Y), pMaterial, Vector3(0.0f, -5.0f, 0.0f));
-	pPlane->SetMaterialPBR(pPBRMat[0]);
+	//auto pPlane = m_sceneManager->CreatePlane("Ground", 50.0f, 12.0f, NXPlaneAxis(POSITIVE_Y), pMaterial, Vector3(0.0f, -5.0f, -3.0f));
+	//pPlane->SetMaterialPBR(pPBRMat[0]);
 
-	pPlane = m_sceneManager->CreatePlane("Wall +Z", 50.0f, 50.0f, NXPlaneAxis(NEGATIVE_Z), pMaterial, Vector3(0.0f, 20.0f, 6.0f));
-	pPlane->SetMaterialPBR(pPBRMat[0]);
+	//pPlane = m_sceneManager->CreatePlane("Wall +Z", 50.0f, 50.0f, NXPlaneAxis(NEGATIVE_Z), pMaterial, Vector3(0.0f, 20.0f, 3.0f));
+	//pPlane->SetMaterialPBR(pPBRMat[0]);
 
 	//float a[11] = { 0.001, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0 };
 	//Vector3 rBaseColor = Vector3(1.0, 0.782, 0.344);
@@ -249,7 +264,7 @@ void NXScene::Init()
 		70.0f, 0.01f, 1000.f,
 		//Vector3(0.0f, 1.0f, 0.0f),
 		//Vector3(0.0f, 0.0f, 0.0001f),
-		Vector3(0.0f, 4.0f, -5.0f),
+		Vector3(0.0f, 3.0f, -5.0f),
 		Vector3(0.0f, 3.0f, 0.0f),
 		Vector3(0.0f, 1.0f, 0.0f)
 	);
@@ -275,10 +290,13 @@ void NXScene::Init()
 	{
 		//m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 4.5f, 0.0f), Vector3(1.0f));
 		//m_sceneManager->CreatePBRDistantLight(Vector3(-1.0f), Vector3(1.0f));
-		m_sceneManager->CreatePBRTangibleLight(pLight,  Vector3( 50.0f));
-		m_sceneManager->CreatePBRTangibleLight(pLight1, Vector3( 88.9f));
-		m_sceneManager->CreatePBRTangibleLight(pLight2, Vector3(200.0f));
-		m_sceneManager->CreatePBRTangibleLight(pLight3, Vector3(800.0f));
+		m_sceneManager->CreatePBRTangibleLight(pLight,  Vector3(10.0f));
+		//m_sceneManager->CreatePBRTangibleLight(pLight1, Vector3(20.0f));
+		//m_sceneManager->CreatePBRTangibleLight(pLight2, Vector3(20.0f));
+		//m_sceneManager->CreatePBRTangibleLight(pLight3, Vector3(20.0f));
+		//m_sceneManager->CreatePBRTangibleLight(pLight1, Vector3( 88.9f));
+		//m_sceneManager->CreatePBRTangibleLight(pLight2, Vector3(200.0f));
+		//m_sceneManager->CreatePBRTangibleLight(pLight3, Vector3(800.0f));
 		//m_sceneManager->CreatePBREnvironmentLight(m_pCubeMap, Vector3(1.0f));
 
 		//auto pDirLight = m_sceneManager->CreateDirectionalLight(

@@ -112,7 +112,11 @@ void NXRayTracer::CenterRayTest(const shared_ptr<NXScene>& pScene, const shared_
 
 	Vector3 result(0.0f);
 	for (int i = 0; i < testTime; i++)
-		result += pIntegrator->Radiance(rayWorld, pScene, 0);
+	{
+		Vector3 L = pIntegrator->Radiance(rayWorld, pScene, 0);
+		//printf("%d: %f, %f, %f\n", i, L.x, L.y, L.z);
+		result += L;
+	}
 	result /= (float)testTime;
 
 	printf("%f, %f, %f\n", result.x, result.y, result.z);

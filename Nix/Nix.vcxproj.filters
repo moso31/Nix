@@ -67,6 +67,9 @@
     <Filter Include="Core\File\Texture">
       <UniqueIdentifier>{7d6084ab-293b-4ab5-8f1c-93f106cb3b6c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Nix\RayTracer\IrradianceCache">
+      <UniqueIdentifier>{37acfc55-a531-4610-ad88-9ac01112c20a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\RenderTarget.fx">
@@ -242,6 +245,9 @@
     <ClCompile Include="Nix\NXDirectIntegrator.cpp">
       <Filter>Nix\RayTracer\Integrator</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\NXIrradianceCache.cpp">
+      <Filter>Nix\RayTracer\IrradianceCache</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -408,6 +414,9 @@
     </ClInclude>
     <ClInclude Include="Nix\NXDirectIntegrator.h">
       <Filter>Nix\RayTracer\Integrator</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXIrradianceCache.h">
+      <Filter>Nix\RayTracer\IrradianceCache</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

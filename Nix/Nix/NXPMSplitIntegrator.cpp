@@ -3,7 +3,6 @@
 #include "SamplerMath.h"
 #include "NXCamera.h"
 #include "NXCubeMap.h"
-#include "NXPrimitive.h"
 
 NXPMSplitIntegrator::NXPMSplitIntegrator() :
 	m_numGlobalPhotons(200000),
