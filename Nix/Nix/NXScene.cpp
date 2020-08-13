@@ -69,7 +69,8 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		auto pThis = dynamic_pointer_cast<NXScene>(shared_from_this());
 		pIntegrator->GeneratePhotons(pThis, m_mainCamera);
 
-		NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pIntegrator, imageInfo);
+		NXRayTracer::GetInstance()->Load(pScene, m_mainCamera, pIntegrator, imageInfo);
+		NXRayTracer::GetInstance()->MakeImage();
 
 		pIntegrator.reset();
 	}
@@ -81,7 +82,8 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		imageInfo.outPath = "D:\\nix_pathtracing.bmp";
 		printf("rendering(HLBVH)...\n");
 		CreateBVHTrees(HBVHSplitMode::HLBVH);
-		NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pIntegrator, imageInfo);
+		NXRayTracer::GetInstance()->Load(pScene, m_mainCamera, pIntegrator, imageInfo);
+		NXRayTracer::GetInstance()->MakeImage();
 
 		pIntegrator.reset();
 	}
@@ -93,7 +95,8 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		imageInfo.outPath = "D:\\nix_directlighting.bmp";
 		printf("rendering(HLBVH)...\n");
 		CreateBVHTrees(HBVHSplitMode::HLBVH);
-		NXRayTracer::GetInstance()->MakeImage(pScene, m_mainCamera, pIntegrator, imageInfo);
+		NXRayTracer::GetInstance()->Load(pScene, m_mainCamera, pIntegrator, imageInfo);
+		NXRayTracer::GetInstance()->MakeImage();
 
 		pIntegrator.reset();
 	}
@@ -113,7 +116,8 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		//pIntegrator->GeneratePhotons(pThis, m_mainCamera);
 
 		printf("center ray testing...\n");
-		NXRayTracer::GetInstance()->CenterRayTest(pScene, m_mainCamera, pIntegrator, 10);
+		NXRayTracer::GetInstance()->Load(pScene, m_mainCamera, pIntegrator, imageInfo);
+		NXRayTracer::GetInstance()->CenterRayTest(10);
 
 		if (!m_primitives.empty())
 		{
@@ -173,6 +177,9 @@ void NXScene::Init()
 	pPlane = m_sceneManager->CreatePlane("Wall +X", 6.0f, 12.0f, NXPlaneAxis(NEGATIVE_X), pMaterial, Vector3(4.0f, 3.0f, 0.0f));
 	pPlane->SetMaterialPBR(pPBRMat[2]);
 
+	auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 16, 16, pMaterial, Vector3(1.0f, 1.0f, 1.0f));
+	pSphere->SetMaterialPBR(pPBRMat[4]);
+
 	//shared_ptr<NXSphere> pLight = m_sceneManager->CreateSphere("Light", 1.0f, 64, 64, pMaterial, Vector3(-4.5f, 5.999f, 2.0f));
 	//pLight->SetMaterialPBR(pPBRMat[0]);
 
@@ -208,9 +215,6 @@ void NXScene::Init()
 
 	//shared_ptr<NXPlane> pLight3 = m_sceneManager->CreatePlane("Light", 0.25f, 0.25f, NXPlaneAxis(NEGATIVE_Y), pMaterial, Vector3(4.5f, 5.999f, 2.0f));
 	//pLight3->SetMaterialPBR(pPBRMat[0]);
-
-	//auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 16, 16, pMaterial, Vector3(1.0f, 1.0f, 1.0f));
-	//pSphere->SetMaterialPBR(pPBRMat[4]);
 
 	//float a[4] = { 0.216, 0.036, 0.006, 0.001 };
 	//float b[4] = { 27.5f, 40.0f, 52.5f, 65.0f };

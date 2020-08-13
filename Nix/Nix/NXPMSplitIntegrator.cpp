@@ -3,6 +3,8 @@
 #include "SamplerMath.h"
 #include "NXCamera.h"
 #include "NXCubeMap.h"
+#include "NXPrimitive.h"
+#include "NXIntersection.h"
 
 NXPMSplitIntegrator::NXPMSplitIntegrator() :
 	m_numGlobalPhotons(200000),
@@ -258,51 +260,121 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXS
 		result += throughput * flux / (XM_PI * radius2);
 	}
 
-	// multiple diffuse reflections.
-	throughput *= f * fabsf(hitInfo.shading.normal.Dot(nextDirection)) / pdf;
-	Ray nextRay = Ray(hitInfo.position, nextDirection);
-	nextRay.position += nextRay.direction * NXRT_EPSILON;
-
-	NXHit hitInfoDiffuse;
-	if (!pScene->RayCast(nextRay, hitInfoDiffuse))
-		return result;
-
-	Vector3 posDiff = hitInfoDiffuse.position;
-	Vector3 normDiff = hitInfoDiffuse.normal;
-
-	priority_quque_NXPhoton nearestGlobalPhotons([posDiff](NXPhoton* photonA, NXPhoton* photonB) {
-		float distA = Vector3::DistanceSquared(posDiff, photonA->position);
-		float distB = Vector3::DistanceSquared(posDiff, photonB->position);
-		return distA < distB;
-		});
-
-	if (PHOTONS_ONLY)
+	Vector3 Irradiance(0.0f);
+	bool bIrradianceCache = true;
+	if (bIrradianceCache)
 	{
-		m_pGlobalPhotons->GetNearest(posDiff, normDiff, distSqr, nearestGlobalPhotons, 1, 0.00005f);
+		// if (there is at least one stored irradiance value near x)
+		{
+			// inteprolate irradiance from the stored values.
+		}
+		// else
+		{
+			// compute a new irradiance value at x.
+			float tolerance = 0.05f;
+			float count = truncf(1.0f / tolerance);
+			float sumDistInv = 0.0f;
+			float HarmonicDist;
+			for (float i = 0.0f; i < 1.0f; i += tolerance)
+			{
+				for (float j = 0.0f; j < 1.0f; j += tolerance)
+				{
+					Vector2 u(i, j);
+					nextDirection = SamplerMath::CosineSampleHemisphere(u);
+
+					Ray nextRay = Ray(hitInfo.position, nextDirection);
+					nextRay.position += nextRay.direction * NXRT_EPSILON;
+
+					NXHit hitInfoDiffuse;
+					if (!pScene->RayCast(nextRay, hitInfoDiffuse))
+					{
+						count -= 1.0f;
+						continue;
+					}
+
+					sumDistInv += 1.0f / Vector3::Distance(hitInfoDiffuse.position, hitInfo.position);
+
+					Vector3 posDiff = hitInfoDiffuse.position;
+					Vector3 normDiff = hitInfoDiffuse.normal;
+
+					priority_quque_NXPhoton nearestGlobalPhotons([posDiff](NXPhoton* photonA, NXPhoton* photonB) {
+						float distA = Vector3::DistanceSquared(posDiff, photonA->position);
+						float distB = Vector3::DistanceSquared(posDiff, photonB->position);
+						return distA < distB;
+						});
+
+					hitInfoDiffuse.GenerateBSDF(true);
+
+					m_pGlobalPhotons->GetNearest(posDiff, normDiff, distSqr, nearestGlobalPhotons, 100, FLT_MAX, LocateFilter::Disk);
+					if (!nearestGlobalPhotons.empty())
+					{
+						float radius2 = Vector3::DistanceSquared(posDiff, nearestGlobalPhotons.top()->position);
+						Vector3 flux(0.0f);
+						while (!nearestGlobalPhotons.empty())
+						{
+							float pdfPhoton;
+							auto photon = nearestGlobalPhotons.top();
+							Vector3 f = hitInfoDiffuse.BSDF->Evaluate(-nextRay.direction, photon->direction, pdfPhoton);
+							flux += f * photon->power;
+							nearestGlobalPhotons.pop();
+						}
+
+						Irradiance += flux / (XM_PI * radius2);
+					}
+				}
+			}
+
+			HarmonicDist = sumDistInv == 0 ? INFINITY : count * count / sumDistInv;
+		}
+	}
+	else
+	{
+		// multiple diffuse reflections.
+		throughput *= f * fabsf(hitInfo.shading.normal.Dot(nextDirection)) / pdf;
+		Ray nextRay = Ray(hitInfo.position, nextDirection);
+		nextRay.position += nextRay.direction * NXRT_EPSILON;
+
+		NXHit hitInfoDiffuse;
+		if (!pScene->RayCast(nextRay, hitInfoDiffuse))
+			return result;
+
+		Vector3 posDiff = hitInfoDiffuse.position;
+		Vector3 normDiff = hitInfoDiffuse.normal;
+
+		priority_quque_NXPhoton nearestGlobalPhotons([posDiff](NXPhoton* photonA, NXPhoton* photonB) {
+			float distA = Vector3::DistanceSquared(posDiff, photonA->position);
+			float distB = Vector3::DistanceSquared(posDiff, photonB->position);
+			return distA < distB;
+			});
+
+		if (PHOTONS_ONLY)
+		{
+			m_pGlobalPhotons->GetNearest(posDiff, normDiff, distSqr, nearestGlobalPhotons, 1, 0.00005f);
+			if (!nearestGlobalPhotons.empty())
+			{
+				result = nearestGlobalPhotons.top()->power;	// photon data only.
+				result *= (float)m_numGlobalPhotons;
+			}
+			return result;
+		}
+
+		hitInfoDiffuse.GenerateBSDF(true);
+
+		m_pGlobalPhotons->GetNearest(posDiff, normDiff, distSqr, nearestGlobalPhotons, 100, FLT_MAX, LocateFilter::Disk);
 		if (!nearestGlobalPhotons.empty())
 		{
-			result = nearestGlobalPhotons.top()->power;	// photon data only.
-			result *= (float)m_numGlobalPhotons;
+			float radius2 = Vector3::DistanceSquared(posDiff, nearestGlobalPhotons.top()->position);
+			Vector3 flux(0.0f);
+			while (!nearestGlobalPhotons.empty())
+			{
+				float pdfPhoton;
+				auto photon = nearestGlobalPhotons.top();
+				Vector3 f = hitInfoDiffuse.BSDF->Evaluate(-nextRay.direction, photon->direction, pdfPhoton);
+				flux += f * photon->power;
+				nearestGlobalPhotons.pop();
+			}
+			result += throughput * flux / (XM_PI * radius2);
 		}
-		return result;
-	}
-
-	hitInfoDiffuse.GenerateBSDF(true);
-
-	m_pGlobalPhotons->GetNearest(posDiff, normDiff, distSqr, nearestGlobalPhotons, 100, FLT_MAX, LocateFilter::Disk);
-	if (!nearestGlobalPhotons.empty())
-	{
-		float radius2 = Vector3::DistanceSquared(posDiff, nearestGlobalPhotons.top()->position);
-		Vector3 flux(0.0f);
-		while (!nearestGlobalPhotons.empty())
-		{
-			float pdfPhoton;
-			auto photon = nearestGlobalPhotons.top();
-			Vector3 f = hitInfoDiffuse.BSDF->Evaluate(-nextRay.direction, photon->direction, pdfPhoton);
-			flux += f * photon->power;
-			nearestGlobalPhotons.pop();
-		}
-		result += throughput * flux / (XM_PI * radius2);
 	}
 
 	return result;

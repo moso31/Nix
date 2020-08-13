@@ -2,6 +2,7 @@
 #include <atomic>
 #include "NXInstance.h"
 #include "NXIntegrator.h"
+#include "NXIrradianceCache.h"
 #include "HBVH.h"
 #include "ImageGenerator.h"
 
@@ -35,14 +36,19 @@ public:
 	NXRayTracer();
 	~NXRayTracer() {}
 
+	void Load(const shared_ptr<NXScene>& pScene, const shared_ptr<NXCamera>& pMainCamera, const shared_ptr<NXIntegrator>& pIntegrator, const NXRenderImageInfo& ImageInfo);
+
 	// 生成整个图像。
-	void MakeImage(const shared_ptr<NXScene>& pScene, const shared_ptr<NXCamera>& pMainCamera, const shared_ptr<NXIntegrator>& pIntegrator, const NXRenderImageInfo& ImageInfo);
+	void MakeImage();
 
 	// 多线程生成每个Tile。
 	void MakeImageTile(const int taskIter);
+
+	// 预计算IrradianceCache，以对漫反射间接光照进行加速。
+	void MakeIrradianceCache();
 	
 	// 向屏幕中心方向发出测试射线。
-	void CenterRayTest(const shared_ptr<NXScene>& pScene, const shared_ptr<NXCamera>& pMainCamera, const shared_ptr<NXIntegrator>& pIntegrator, const int testTime = 1);
+	void CenterRayTest(const int testTime = 1);
 
 	// 将所有Tile整合成一张最终图像。
 	void GenerateImage();
@@ -53,7 +59,9 @@ public:
 
 private:
 	shared_ptr<NXScene> m_pScene;
+	shared_ptr<NXCamera> m_pRayTraceCamera;
 	shared_ptr<NXIntegrator> m_pIntegrator;
+	shared_ptr<NXIrradianceCache> m_pIrradianceCache;
 	NXRenderImageInfo m_imageInfo;
 
 	Vector2 m_fImageSizeInv;

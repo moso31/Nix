@@ -14,21 +14,25 @@ NXRayTracer::NXRayTracer() :
 {
 }
 
-void NXRayTracer::MakeImage(const shared_ptr<NXScene>& pScene, const shared_ptr<NXCamera>& pMainCamera, const shared_ptr<NXIntegrator>& pIntegrator, const NXRenderImageInfo& ImageInfo)
+void NXRayTracer::Load(const shared_ptr<NXScene>& pScene, const shared_ptr<NXCamera>& pMainCamera, const shared_ptr<NXIntegrator>& pIntegrator, const NXRenderImageInfo& ImageInfo)
 {
-	m_iStartTime = GetTickCount64();
-
-	m_bIsRayTracing = true;
 	m_pScene = pScene;
+	m_pRayTraceCamera = pMainCamera;
 	m_pIntegrator = pIntegrator;
 	m_imageInfo = ImageInfo;
 
 	m_fImageSizeInv = Vector2(1.0f / (float)ImageInfo.ImageSize.x, 1.0f / (float)ImageInfo.ImageSize.y);
 	m_fNDCToViewSpaceFactorInv = Vector2(1.0f / pMainCamera->GetProjectionMatrix()._11, 1.0f / pMainCamera->GetProjectionMatrix()._22);
 	m_mxViewToWorld = pMainCamera->GetViewMatrix().Invert();
+}
+
+void NXRayTracer::MakeImage()
+{
+	m_iStartTime = GetTickCount64();
+	m_bIsRayTracing = true;
 	
 	// 获取tile总数
-	XMINT2 tileCount((ImageInfo.ImageSize.x + m_iTileSize.x - 1) / m_iTileSize.x, (ImageInfo.ImageSize.y + m_iTileSize.y - 1) / m_iTileSize.y);		
+	XMINT2 tileCount((m_imageInfo.ImageSize.x + m_iTileSize.x - 1) / m_iTileSize.x, (m_imageInfo.ImageSize.y + m_iTileSize.y - 1) / m_iTileSize.y);
 
 	m_renderTileTaskIn.clear();
 	m_renderTileTaskOut.clear();
@@ -102,9 +106,29 @@ void NXRayTracer::MakeImageTile(const int taskIter)
 	printf("\r%.2f%% (%d / %d) ", process, count, threadCount);
 }
 
-void NXRayTracer::CenterRayTest(const shared_ptr<NXScene>& pScene, const shared_ptr<NXCamera>& pMainCamera, const shared_ptr<NXIntegrator>& pIntegrator, const int testTime)
+void NXRayTracer::MakeIrradianceCache()
 {
-	Matrix mxViewToWorld = pMainCamera->GetViewMatrix().Invert();
+	for (int i = 0; i < m_imageInfo.ImageSize.x; i++)
+	{
+		for (int j = 0; j < m_imageInfo.ImageSize.y; j++)
+		{
+			Vector2 pixel((float)i, (float)j);
+
+			Vector2 coord = pixel + Vector2(0.5f, 0.5f);
+			Vector2 NDCxyCoord(coord * m_fImageSizeInv * 2.0f - Vector2(1.0f));
+
+			Vector3 viewDir(NDCxyCoord * m_fNDCToViewSpaceFactorInv, 1.0f);	// 至此屏幕坐标已被转换为view空间的(x, y, 1)射线。
+			viewDir.Normalize();
+
+			Ray rayView(Vector3(0.0f), viewDir);
+			Ray rayWorld = rayView.Transform(m_mxViewToWorld);	// 获取该射线的world空间坐标值
+		}
+	}
+}
+
+void NXRayTracer::CenterRayTest(const int testTime)
+{
+	Matrix mxViewToWorld = m_pRayTraceCamera->GetViewMatrix().Invert();
 
 	Vector3 viewDir(0.0f, 0.0f, 1.0f);
 	Ray rayView(Vector3(0.0f), viewDir);
@@ -113,7 +137,7 @@ void NXRayTracer::CenterRayTest(const shared_ptr<NXScene>& pScene, const shared_
 	Vector3 result(0.0f);
 	for (int i = 0; i < testTime; i++)
 	{
-		Vector3 L = pIntegrator->Radiance(rayWorld, pScene, 0);
+		Vector3 L = m_pIntegrator->Radiance(rayWorld, m_pScene, 0);
 		//printf("%d: %f, %f, %f\n", i, L.x, L.y, L.z);
 		result += L;
 	}
