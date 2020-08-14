@@ -248,6 +248,9 @@
     <ClCompile Include="Nix\NXIrradianceCache.cpp">
       <Filter>Nix\RayTracer\IrradianceCache</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\NXPhoton.cpp">
+      <Filter>Nix\RayTracer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -417,6 +420,9 @@
     </ClInclude>
     <ClInclude Include="Nix\NXIrradianceCache.h">
       <Filter>Nix\RayTracer\IrradianceCache</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXPhoton.h">
+      <Filter>Nix\RayTracer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

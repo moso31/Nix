@@ -21,6 +21,7 @@
 
 #include "NXCubeMap.h"
 
+#include "NXPhoton.h"
 #include "NXDirectIntegrator.h"
 #include "NXPathIntegrator.h"
 #include "NXPMIntegrator.h"
@@ -64,12 +65,16 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		printf("rendering(HLBVH)...\n");
 		CreateBVHTrees(HBVHSplitMode::HLBVH);
 
-		//shared_ptr<NXPMIntegrator> pIntegrator = make_shared<NXPMIntegrator>();
-		shared_ptr<NXPMSplitIntegrator> pIntegrator = make_shared<NXPMSplitIntegrator>();
-		auto pThis = dynamic_pointer_cast<NXScene>(shared_from_this());
-		pIntegrator->GeneratePhotons(pThis, m_mainCamera);
+		shared_ptr<NXPhotonMap> pGlobalPhotonMap = make_shared<NXPhotonMap>(200000);
+		pGlobalPhotonMap->Generate(pScene, m_mainCamera, PhotonMapType::Global);
+		shared_ptr<NXPhotonMap> pCausticPhotonMap = make_shared<NXPhotonMap>(200000);
+		pCausticPhotonMap->Generate(pScene, m_mainCamera, PhotonMapType::Caustic);
+
+		//shared_ptr<NXPMIntegrator> pIntegrator = make_shared<NXPMIntegrator>(pGlobalPhotonMap);
+		shared_ptr<NXPMSplitIntegrator> pIntegrator = make_shared<NXPMSplitIntegrator>(pGlobalPhotonMap, pCausticPhotonMap);
 
 		NXRayTracer::GetInstance()->Load(pScene, m_mainCamera, pIntegrator, imageInfo);
+		//NXRayTracer::GetInstance()->MakeIrradianceCache();
 		NXRayTracer::GetInstance()->MakeImage();
 
 		pIntegrator.reset();

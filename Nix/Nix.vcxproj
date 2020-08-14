@@ -220,6 +220,7 @@
     <ClCompile Include="Core\WICTextureLoader.cpp" />
     <ClCompile Include="Nix\HBVH.cpp" />
     <ClCompile Include="Nix\NXDirectIntegrator.cpp" />
+    <ClCompile Include="Nix\NXPhoton.cpp" />
     <ClCompile Include="Nix\NXPMSplitIntegrator.cpp" />
     <ClCompile Include="Nix\NXKdTree.cpp" />
     <ClCompile Include="Nix\NXBSDF.cpp" />
@@ -277,6 +278,7 @@
     <ClInclude Include="Core\WICTextureLoader.h" />
     <ClInclude Include="Nix\HBVH.h" />
     <ClInclude Include="Nix\NXDirectIntegrator.h" />
+    <ClInclude Include="Nix\NXPhoton.h" />
     <ClInclude Include="Nix\NXPMSplitIntegrator.h" />
     <ClInclude Include="Nix\NXKdTree.h" />
     <ClInclude Include="Nix\NXBSDF.h" />

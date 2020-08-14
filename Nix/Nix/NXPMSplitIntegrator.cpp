@@ -6,9 +6,10 @@
 #include "NXPrimitive.h"
 #include "NXIntersection.h"
 
-NXPMSplitIntegrator::NXPMSplitIntegrator() :
-	m_numGlobalPhotons(200000),
-	m_numCausticPhotons(200000)
+NXPMSplitIntegrator::NXPMSplitIntegrator(const shared_ptr<NXPhotonMap>& pGlobalPhotons, const shared_ptr<NXPhotonMap>& pCausticPhotons) :
+	m_pGlobalPhotonMap(pGlobalPhotons),
+	m_pCausticPhotonMap(pCausticPhotons),
+	m_bUseIrradianceCache(false)
 {
 }
 
@@ -16,160 +17,9 @@ NXPMSplitIntegrator::~NXPMSplitIntegrator()
 {
 }
 
-void NXPMSplitIntegrator::GeneratePhotons(const shared_ptr<NXScene>& pScene, const shared_ptr<NXCamera>& pCamera)
-{
-	vector<NXPhoton> causticPhotons, globalPhotons;
-
-	printf("Generating global photons...");
-	float numGlobalPhotonsInv = 1.0f / (float)m_numGlobalPhotons;
-	for (int i = 0; i < m_numGlobalPhotons; i++)
-	{
-		auto pLights = pScene->GetPBRLights();
-		int lightCount = (int)pLights.size();
-		int sampleLight = NXRandom::GetInstance()->CreateInt(0, lightCount - 1);
-
-		float pdfLight = 1.0f / lightCount;
-		float pdfPos, pdfDir;
-		Vector3 throughput;
-		Ray ray;
-		Vector3 lightNormal;
-		Vector3 Le = pLights[sampleLight]->Emit(ray, lightNormal, pdfPos, pdfDir);
-		throughput = Le * fabsf(lightNormal.Dot(ray.direction)) / (pdfLight * pdfPos * pdfDir);
-
-		int depth = 0;
-		bool bIsDiffuse = false;
-		bool bIsGlossy = false;
-		while (true)
-		{
-			NXHit hitInfo;
-			bool bIsIntersect = pScene->RayCast(ray, hitInfo);
-			if (!bIsIntersect)
-				break;
-
-			hitInfo.GenerateBSDF(false);
-
-			float pdf;
-			Vector3 nextDirection;
-			shared_ptr<NXBSDF::SampleEvents> sampleEvent = make_shared<NXBSDF::SampleEvents>();
-			Vector3 f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
-			bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
-			sampleEvent.reset();
-
-			if (f.IsZero() || pdf == 0) break;
-
-			if (bIsDiffuse)
-			{
-				// make new photon
-				NXPhoton photon;
-				photon.position = hitInfo.position;
-				photon.direction = hitInfo.direction;
-				photon.power = throughput * numGlobalPhotonsInv;
-				photon.depth = depth;
-				globalPhotons.push_back(photon);
-
-				depth++;
-			}
-
-			Vector3 reflectance = f * fabsf(hitInfo.shading.normal.Dot(nextDirection)) / pdf;
-
-			auto mat = hitInfo.pPrimitive->GetPBRMaterial();
-			float random = NXRandom::GetInstance()->CreateFloat();
-
-			// Roulette
-			if (random > mat->m_probability)
-				break;
-
-			throughput *= reflectance / mat->m_probability;
-
-			ray = Ray(hitInfo.position, nextDirection);
-			ray.position += ray.direction * NXRT_EPSILON;
-		}
-	}
-
-	m_pGlobalPhotons.reset();
-	m_pGlobalPhotons = make_shared<NXKdTree>();
-	m_pGlobalPhotons->BuildBalanceTree(globalPhotons);
-	printf("done.\n");
-
-	printf("Generating caustic photons...");
-	float numCausticPhotonsInv = 1.0f / (float)m_numCausticPhotons;
-	for (int i = 0; i < m_numCausticPhotons; i++)
-	{
-		auto pLights = pScene->GetPBRLights();
-		int lightCount = (int)pLights.size();
-		int sampleLight = NXRandom::GetInstance()->CreateInt(0, lightCount - 1);
-
-		float pdfLight = 1.0f / lightCount;
-		float pdfPos, pdfDir;
-		Vector3 throughput;
-		Ray ray;
-		Vector3 lightNormal;
-		Vector3 Le = pLights[sampleLight]->Emit(ray, lightNormal, pdfPos, pdfDir);
-		throughput = Le * fabsf(lightNormal.Dot(ray.direction)) / (pdfLight * pdfPos * pdfDir);
-
-		int depth = 0;
-		bool bIsDiffuse = true;
-		bool bHasSpecularOrGlossy = false;
-		while (true)
-		{
-			NXHit hitInfo;
-			bool bIsIntersect = pScene->RayCast(ray, hitInfo);
-			if (!bIsIntersect)
-				break;
-
-			hitInfo.GenerateBSDF(false);
-
-			float pdf;
-			Vector3 nextDirection;
-			shared_ptr<NXBSDF::SampleEvents> sampleEvent = make_shared<NXBSDF::SampleEvents>();
-			Vector3 f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
-			bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
-			bHasSpecularOrGlossy |= !bIsDiffuse;
-			sampleEvent.reset();
-
-			if (f.IsZero() || pdf == 0) break;
-
-			if (bIsDiffuse)
-			{
-				if (bHasSpecularOrGlossy)
-				{
-					// make new photon
-					NXPhoton photon;
-					photon.position = hitInfo.position;
-					photon.direction = hitInfo.direction;
-					photon.power = throughput * numCausticPhotonsInv;
-					photon.depth = depth;
-					causticPhotons.push_back(photon);
-				}
-				break;
-			}
-			
-			depth++;
-			Vector3 reflectance = f * fabsf(hitInfo.shading.normal.Dot(nextDirection)) / pdf;
-
-			auto mat = hitInfo.pPrimitive->GetPBRMaterial();
-			float random = NXRandom::GetInstance()->CreateFloat();
-
-			// Roulette
-			if (random > mat->m_probability)
-				break;
-
-			throughput *= reflectance / mat->m_probability;
-
-			ray = Ray(hitInfo.position, nextDirection);
-			ray.position += ray.direction * NXRT_EPSILON;
-		}
-	}
-
-	m_pCausticPhotons.reset();
-	m_pCausticPhotons = make_shared<NXKdTree>();
-	m_pCausticPhotons->BuildBalanceTree(causticPhotons);
-	printf("done.\n");
-}
-
 Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXScene>& pScene, int depth)
 {
-	if (!m_pCausticPhotons)
+	if (!m_pCausticPhotonMap)
 	{
 		printf("Error: Couldn't find photon map data!\n");
 		return Vector3(0.0f);
@@ -233,16 +83,16 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXS
 	float distSqr;
 	if (PHOTONS_ONLY)
 	{
-		m_pCausticPhotons->GetNearest(pos, norm, distSqr, nearestCausticPhotons, 1, 0.00005f);
+		m_pCausticPhotonMap->GetNearest(pos, norm, distSqr, nearestCausticPhotons, 1, 0.00005f);
 		if (!nearestCausticPhotons.empty())
 		{
 			result = nearestCausticPhotons.top()->power;	// photon data only.
-			result *= (float)m_numCausticPhotons;
+			result *= (float)m_pCausticPhotonMap->GetPhotonCount();
 		}
 		return result;
 	}
 
-	m_pCausticPhotons->GetNearest(pos, norm, distSqr, nearestCausticPhotons, 50, 0.15f, LocateFilter::Disk);
+	m_pCausticPhotonMap->GetNearest(pos, norm, distSqr, nearestCausticPhotons, 50, 0.15f, LocateFilter::Disk);
 	if (!nearestCausticPhotons.empty())
 	{
 		float radius2 = Vector3::DistanceSquared(pos, nearestCausticPhotons.top()->position);
@@ -261,7 +111,7 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXS
 	}
 
 	Vector3 Irradiance(0.0f);
-	bool bIrradianceCache = true;
+	bool bIrradianceCache = false;
 	if (bIrradianceCache)
 	{
 		// if (there is at least one stored irradiance value near x)
@@ -305,7 +155,7 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXS
 
 					hitInfoDiffuse.GenerateBSDF(true);
 
-					m_pGlobalPhotons->GetNearest(posDiff, normDiff, distSqr, nearestGlobalPhotons, 100, FLT_MAX, LocateFilter::Disk);
+					m_pGlobalPhotonMap->GetNearest(posDiff, normDiff, distSqr, nearestGlobalPhotons, 100, FLT_MAX, LocateFilter::Disk);
 					if (!nearestGlobalPhotons.empty())
 					{
 						float radius2 = Vector3::DistanceSquared(posDiff, nearestGlobalPhotons.top()->position);
@@ -349,18 +199,18 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXS
 
 		if (PHOTONS_ONLY)
 		{
-			m_pGlobalPhotons->GetNearest(posDiff, normDiff, distSqr, nearestGlobalPhotons, 1, 0.00005f);
+			m_pGlobalPhotonMap->GetNearest(posDiff, normDiff, distSqr, nearestGlobalPhotons, 1, 0.00005f);
 			if (!nearestGlobalPhotons.empty())
 			{
 				result = nearestGlobalPhotons.top()->power;	// photon data only.
-				result *= (float)m_numGlobalPhotons;
+				result *= (float)m_pGlobalPhotonMap->GetPhotonCount();
 			}
 			return result;
 		}
 
 		hitInfoDiffuse.GenerateBSDF(true);
 
-		m_pGlobalPhotons->GetNearest(posDiff, normDiff, distSqr, nearestGlobalPhotons, 100, FLT_MAX, LocateFilter::Disk);
+		m_pGlobalPhotonMap->GetNearest(posDiff, normDiff, distSqr, nearestGlobalPhotons, 100, FLT_MAX, LocateFilter::Disk);
 		if (!nearestGlobalPhotons.empty())
 		{
 			float radius2 = Vector3::DistanceSquared(posDiff, nearestGlobalPhotons.top()->position);

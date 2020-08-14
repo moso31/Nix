@@ -1,23 +1,7 @@
 #pragma once
-#include "Header.h"
-#include <queue>
+#include "NXPhoton.h"
 
-#define priority_quque_NXPhoton priority_queue<NXPhoton*, vector<NXPhoton*>, function<bool(NXPhoton* photonA, NXPhoton* photonB)>>
-
-enum LocateFilter
-{
-	// 按何种方法统计kNN近邻点。
-	Disk,
-	Sphere
-};
-
-struct NXPhoton
-{
-	Vector3 position;
-	Vector3 direction;
-	Vector3 power;
-	int depth;
-};
+// 这个类将来还是做个Template吧...
 
 struct NXKdTreeNode
 {

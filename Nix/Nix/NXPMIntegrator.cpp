@@ -5,8 +5,8 @@
 #include "NXCubeMap.h"
 #include "NXPrimitive.h"
 
-NXPMIntegrator::NXPMIntegrator() :
-	m_numPhotons(100000)
+NXPMIntegrator::NXPMIntegrator(const shared_ptr<NXPhotonMap>& pGlobalPhotons) :
+	m_pPhotonMap(pGlobalPhotons)
 {
 }
 
@@ -14,87 +14,9 @@ NXPMIntegrator::~NXPMIntegrator()
 {
 }
 
-void NXPMIntegrator::GeneratePhotons(const shared_ptr<NXScene>& pScene, const shared_ptr<NXCamera>& pCamera)
-{
-	vector<NXPhoton> photons;
-	printf("Generating photons...");
-	float numPhotonsInv = 1.0f / (float)m_numPhotons;
-	for (int i = 0; i < m_numPhotons; i++)
-	{
-		auto pLights = pScene->GetPBRLights();
-		int lightCount = (int)pLights.size();
-		int sampleLight = NXRandom::GetInstance()->CreateInt(0, lightCount - 1);
-
-		float pdfLight = 1.0f / lightCount;
-		float pdfPos, pdfDir;
-		Vector3 throughput;
-		Ray ray;
-		Vector3 lightNormal;
-		Vector3 Le = pLights[sampleLight]->Emit(ray, lightNormal, pdfPos, pdfDir);
-		throughput = Le * fabsf(lightNormal.Dot(ray.direction)) / (pdfLight * pdfPos * pdfDir);
-
-		int depth = 0;
-		bool bIsDiffuse = false;
-		bool bIsGlossy = false;
-		while (true)
-		{
-			NXHit hitInfo;
-			bool bIsIntersect = pScene->RayCast(ray, hitInfo);
-			if (!bIsIntersect)
-				break;
-
-			hitInfo.GenerateBSDF(false);
-
-			float pdf;
-			Vector3 nextDirection;
-			shared_ptr<NXBSDF::SampleEvents> sampleEvent = make_shared<NXBSDF::SampleEvents>();
-			Vector3 f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
-			bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
-			sampleEvent.reset();
-
-			if (f.IsZero() || pdf == 0) break;
-
-			if (bIsDiffuse)
-			{
-				// make new photon
-				NXPhoton photon;
-				photon.position = hitInfo.position;
-				photon.direction = hitInfo.direction;
-				photon.power = throughput * numPhotonsInv;
-				photon.depth = depth;
-				photons.push_back(photon);
-
-				//if (depth > 1)
-				//printf("%d: %f %f %f\n", depth, photon.power.x, photon.power.y, photon.power.z);
-				depth++;
-			}
-
-			Vector3 reflectance = f * fabsf(hitInfo.shading.normal.Dot(nextDirection)) / pdf;
-
-			auto mat = hitInfo.pPrimitive->GetPBRMaterial();
-			float random = NXRandom::GetInstance()->CreateFloat();
-
-			// Roulette
-			if (random > mat->m_probability)
-				break;
-
-			throughput *= reflectance / mat->m_probability;
-
-			ray = Ray(hitInfo.position, nextDirection);
-			ray.position += ray.direction * NXRT_EPSILON;
-		}
-	}
-
-	m_pKdTree.reset();
-	m_pKdTree = make_shared<NXKdTree>();
-	m_pKdTree->BuildBalanceTree(photons);
-	// use kd-tree manage all photons.
-	printf("done.\n");
-}
-
 Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXScene>& pScene, int depth)
 {
-	if (!m_pKdTree)
+	if (!m_pPhotonMap)
 	{
 		printf("Error: Couldn't find photon map data!\n");
 		return Vector3(0.0f);
@@ -153,16 +75,16 @@ Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXScene>
 
 	if (PHOTONS_ONLY)
 	{
-		m_pKdTree->GetNearest(pos, norm, distSqr, nearestPhotons, 1, 0.00005f);
+		m_pPhotonMap->GetNearest(pos, norm, distSqr, nearestPhotons, 1, 0.00005f);
 		if (!nearestPhotons.empty())
 		{
 			result = nearestPhotons.top()->power;	// photon data only.
-			result *= (float)m_numPhotons;
+			result *= (float)m_pPhotonMap->GetPhotonCount();
 		}
 		return result;
 	}
 
-	m_pKdTree->GetNearest(pos, norm, distSqr, nearestPhotons, 500, FLT_MAX, LocateFilter::Disk);
+	m_pPhotonMap->GetNearest(pos, norm, distSqr, nearestPhotons, 500, FLT_MAX, LocateFilter::Disk);
 	if (nearestPhotons.empty())
 		return Vector3(0.0f);
 
