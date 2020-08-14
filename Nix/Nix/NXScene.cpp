@@ -74,7 +74,7 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		shared_ptr<NXPMSplitIntegrator> pIntegrator = make_shared<NXPMSplitIntegrator>(pGlobalPhotonMap, pCausticPhotonMap);
 
 		NXRayTracer::GetInstance()->Load(pScene, m_mainCamera, pIntegrator, imageInfo);
-		//NXRayTracer::GetInstance()->MakeIrradianceCache();
+		NXRayTracer::GetInstance()->MakeIrradianceCache(pGlobalPhotonMap);
 		NXRayTracer::GetInstance()->MakeImage();
 
 		pIntegrator.reset();

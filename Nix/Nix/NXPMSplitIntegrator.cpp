@@ -19,12 +19,6 @@ NXPMSplitIntegrator::~NXPMSplitIntegrator()
 
 Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXScene>& pScene, int depth)
 {
-	if (!m_pCausticPhotonMap)
-	{
-		printf("Error: Couldn't find photon map data!\n");
-		return Vector3(0.0f);
-	}
-
 	bool PHOTONS_ONLY = false;
 	int maxDepth = 10;
 
