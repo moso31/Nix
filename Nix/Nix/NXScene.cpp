@@ -72,9 +72,9 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 
 		//shared_ptr<NXPMIntegrator> pIntegrator = make_shared<NXPMIntegrator>(pGlobalPhotonMap);
 		shared_ptr<NXPMSplitIntegrator> pIntegrator = make_shared<NXPMSplitIntegrator>(pGlobalPhotonMap, pCausticPhotonMap);
-
 		NXRayTracer::GetInstance()->Load(pScene, m_mainCamera, pIntegrator, imageInfo);
-		NXRayTracer::GetInstance()->MakeIrradianceCache(pGlobalPhotonMap);
+		auto pIrradianceCache = NXRayTracer::GetInstance()->MakeIrradianceCache(pGlobalPhotonMap);
+		pIntegrator->SetIrradianceCache(pIrradianceCache);
 		NXRayTracer::GetInstance()->MakeImage();
 
 		pIntegrator.reset();
@@ -170,8 +170,8 @@ void NXScene::Init()
 	pPlane = m_sceneManager->CreatePlane("Wall +Y", 8.0f, 12.0f, NXPlaneAxis(NEGATIVE_Y), pMaterial, Vector3(0.0f, 6.0f, 0.0f));
 	pPlane->SetMaterialPBR(pPBRMat[0]);
 
-	pPlane = m_sceneManager->CreatePlane("Wall -Z", 8.0f, 6.0f, NXPlaneAxis(POSITIVE_Z), pMaterial, Vector3(0.0f, 3.0f, -6.0f));
-	pPlane->SetMaterialPBR(pPBRMat[0]);
+	//pPlane = m_sceneManager->CreatePlane("Wall -Z", 8.0f, 6.0f, NXPlaneAxis(POSITIVE_Z), pMaterial, Vector3(0.0f, 3.0f, -6.0f));
+	//pPlane->SetMaterialPBR(pPBRMat[0]);
 
 	pPlane = m_sceneManager->CreatePlane("Wall +Z", 8.0f, 6.0f, NXPlaneAxis(NEGATIVE_Z), pMaterial, Vector3(0.0f, 3.0f, 6.0f));
 	pPlane->SetMaterialPBR(pPBRMat[0]);
@@ -183,7 +183,7 @@ void NXScene::Init()
 	pPlane->SetMaterialPBR(pPBRMat[2]);
 
 	auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 16, 16, pMaterial, Vector3(1.0f, 1.0f, 1.0f));
-	pSphere->SetMaterialPBR(pPBRMat[4]);
+	pSphere->SetMaterialPBR(pPBRMat[0]);
 
 	//shared_ptr<NXSphere> pLight = m_sceneManager->CreateSphere("Light", 1.0f, 64, 64, pMaterial, Vector3(-4.5f, 5.999f, 2.0f));
 	//pLight->SetMaterialPBR(pPBRMat[0]);

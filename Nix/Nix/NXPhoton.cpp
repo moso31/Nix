@@ -107,6 +107,7 @@ void NXPhotonMap::GenerateCausticMap(const shared_ptr<NXScene>& pScene, const sh
 	m_pKdTree.reset();
 	m_pKdTree = make_shared<NXKdTree>();
 	m_pKdTree->BuildBalanceTree(causticPhotons);
+	printf("done.\n");
 }
 
 void NXPhotonMap::GenerateGlobalMap(const shared_ptr<NXScene>& pScene, const shared_ptr<NXCamera>& pCamera)

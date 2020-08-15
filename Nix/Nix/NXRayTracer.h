@@ -46,7 +46,7 @@ public:
 	void MakeImageTile(const int taskIter);
 
 	// 预计算IrradianceCache，以对漫反射间接光照进行加速。
-	void MakeIrradianceCache(const shared_ptr<NXPhotonMap>& pGlobalPhotonMap);
+	shared_ptr<NXIrradianceCache> MakeIrradianceCache(const shared_ptr<NXPhotonMap>& pGlobalPhotonMap);
 	
 	// 向屏幕中心方向发出测试射线。
 	void CenterRayTest(const int testTime = 1);

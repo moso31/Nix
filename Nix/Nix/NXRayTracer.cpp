@@ -106,8 +106,9 @@ void NXRayTracer::MakeImageTile(const int taskIter)
 	printf("\r%.2f%% (%d / %d) ", process, count, threadCount);
 }
 
-void NXRayTracer::MakeIrradianceCache(const shared_ptr<NXPhotonMap>& pGlobalPhotonMap)
+shared_ptr<NXIrradianceCache> NXRayTracer::MakeIrradianceCache(const shared_ptr<NXPhotonMap>& pGlobalPhotonMap)
 {
+	printf("Preloading irradiance caches...");
 	m_pIrradianceCache.reset();
 	m_pIrradianceCache = make_shared<NXIrradianceCache>();
 	m_pIrradianceCache->SetPhotonMaps(pGlobalPhotonMap);
@@ -127,9 +128,12 @@ void NXRayTracer::MakeIrradianceCache(const shared_ptr<NXPhotonMap>& pGlobalPhot
 			Ray rayView(Vector3(0.0f), viewDir);
 			Ray rayWorld = rayView.Transform(m_mxViewToWorld);	// 获取该射线的world空间坐标值
 
-			m_pIrradianceCache->Irradiance(rayWorld, m_pScene, 0);
+			m_pIrradianceCache->PreIrradiance(rayWorld, m_pScene, 0);
 		}
 	}
+
+	printf("done.\n");
+	return m_pIrradianceCache;
 }
 
 void NXRayTracer::CenterRayTest(const int testTime)
