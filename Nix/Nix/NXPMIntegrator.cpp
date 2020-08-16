@@ -67,9 +67,9 @@ Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXScene>
 
 	float distSqr;
 	// 大根堆，负责记录pos周围的最近顶点。
-	priority_quque_NXPhoton nearestPhotons([pos](NXPhoton* photonA, NXPhoton* photonB) {
-		float distA = Vector3::DistanceSquared(pos, photonA->position);
-		float distB = Vector3::DistanceSquared(pos, photonB->position);
+	priority_queue_distance_cartesian<NXPhoton> nearestPhotons([pos](const NXPhoton& photonA, const NXPhoton& photonB) {
+		float distA = Vector3::DistanceSquared(pos, photonA.position);
+		float distB = Vector3::DistanceSquared(pos, photonB.position);
 		return distA < distB;
 		});
 
@@ -78,7 +78,7 @@ Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXScene>
 		m_pPhotonMap->GetNearest(pos, norm, distSqr, nearestPhotons, 1, 0.00005f);
 		if (!nearestPhotons.empty())
 		{
-			result = nearestPhotons.top()->power;	// photon data only.
+			result = nearestPhotons.top().power;	// photon data only.
 			result *= (float)m_pPhotonMap->GetPhotonCount();
 		}
 		return result;
@@ -88,14 +88,14 @@ Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXScene>
 	if (nearestPhotons.empty())
 		return Vector3(0.0f);
 
-	float radius2 = Vector3::DistanceSquared(pos, nearestPhotons.top()->position);
+	float radius2 = Vector3::DistanceSquared(pos, nearestPhotons.top().position);
 	Vector3 flux(0.0f);
 
 	while (!nearestPhotons.empty())
 	{
 		auto photon = nearestPhotons.top();
-		Vector3 f = hitInfo.BSDF->Evaluate(-ray.direction, photon->direction, pdf);
-		flux += f * photon->power;
+		Vector3 f = hitInfo.BSDF->Evaluate(-ray.direction, photon.direction, pdf);
+		flux += f * photon.power;
 		nearestPhotons.pop();
 	}
 	result += throughput * flux / (XM_PI * radius2);

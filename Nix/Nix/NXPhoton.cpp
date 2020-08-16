@@ -25,7 +25,7 @@ void NXPhotonMap::Generate(const shared_ptr<NXScene>& pScene, const shared_ptr<N
 	}
 }
 
-void NXPhotonMap::GetNearest(const Vector3& position, const Vector3& normal, float& out_distSqr, priority_quque_NXPhoton& out_nearestPhotons, int maxLimit, float range, LocateFilter locateFilter)
+void NXPhotonMap::GetNearest(const Vector3& position, const Vector3& normal, float& out_distSqr, priority_queue_distance_cartesian<NXPhoton>& out_nearestPhotons, int maxLimit, float range, LocateFilter locateFilter)
 {
 	m_pKdTree->GetNearest(position, normal, out_distSqr, out_nearestPhotons, maxLimit, range, locateFilter);
 }
@@ -105,7 +105,7 @@ void NXPhotonMap::GenerateCausticMap(const shared_ptr<NXScene>& pScene, const sh
 	}
 
 	m_pKdTree.reset();
-	m_pKdTree = make_shared<NXKdTree>();
+	m_pKdTree = make_shared<NXKdTree<NXPhoton>>();
 	m_pKdTree->BuildBalanceTree(causticPhotons);
 	printf("done.\n");
 }
@@ -181,7 +181,7 @@ void NXPhotonMap::GenerateGlobalMap(const shared_ptr<NXScene>& pScene, const sha
 	}
 
 	m_pKdTree.reset();
-	m_pKdTree = make_shared<NXKdTree>();
+	m_pKdTree = make_shared<NXKdTree<NXPhoton>>();
 	m_pKdTree->BuildBalanceTree(globalPhotons);
 	printf("done.\n");
 }

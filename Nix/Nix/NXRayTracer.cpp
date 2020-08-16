@@ -108,10 +108,16 @@ void NXRayTracer::MakeImageTile(const int taskIter)
 
 shared_ptr<NXIrradianceCache> NXRayTracer::MakeIrradianceCache(const shared_ptr<NXPhotonMap>& pGlobalPhotonMap)
 {
-	printf("Preloading irradiance caches...");
+	printf("Preloading irradiance caches...\n");
 	m_pIrradianceCache.reset();
 	m_pIrradianceCache = make_shared<NXIrradianceCache>();
 	m_pIrradianceCache->SetPhotonMaps(pGlobalPhotonMap);
+
+	// 进度条
+	int process = 0;
+	int pxCount = m_imageInfo.ImageSize.x * m_imageInfo.ImageSize.y;
+	int barrier = 5000;
+	int nodeCount = (pxCount + barrier - 1) / barrier;
 
 	for (int i = 0; i < m_imageInfo.ImageSize.x; i++)
 	{
@@ -129,10 +135,13 @@ shared_ptr<NXIrradianceCache> NXRayTracer::MakeIrradianceCache(const shared_ptr<
 			Ray rayWorld = rayView.Transform(m_mxViewToWorld);	// 获取该射线的world空间坐标值
 
 			m_pIrradianceCache->PreIrradiance(rayWorld, m_pScene, 0);
+
+			process++;
+			if (process % barrier == 0)
+				printf("\r%.2f%% ", (float)process * 100 / pxCount);
 		}
 	}
-
-	printf("done.\n");
+	printf("done. (caches: %zd)\n", m_pIrradianceCache->GetCacheSize());
 	return m_pIrradianceCache;
 }
 

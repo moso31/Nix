@@ -56,7 +56,7 @@ void NXIrradianceCache::PreIrradiance(const Ray& cameraRay, const shared_ptr<NXS
 		int samplePhi = 20;
 		NXIrradianceCacheInfo cacheInfo;
 		CalculateOneCache(pScene, hitInfo, sampleTheta, samplePhi, cacheInfo);
-		m_cacheInfo.push_back(cacheInfo);
+		m_caches.push_back(cacheInfo);
 	}
 }
 
@@ -115,7 +115,7 @@ Vector3 NXIrradianceCache::Irradiance(const Ray& cameraRay, const shared_ptr<NXS
 		int samplePhi = 20;
 		NXIrradianceCacheInfo cacheInfo;
 		result += CalculateOneCache(pScene, hitInfo, sampleTheta, samplePhi, cacheInfo);
-		m_cacheInfo.push_back(cacheInfo);
+		m_caches.push_back(cacheInfo);
 	}
 
 	return result;
@@ -126,7 +126,8 @@ bool NXIrradianceCache::FindEstimateCaches(const Vector3& position, const Vector
 	bool find = false;
 	Vector3 sum(0.0f);
 	float sumWeight = 0.0f;
-	for (auto it = m_cacheInfo.begin(); it != m_cacheInfo.end(); it++)
+
+	for (auto it = m_caches.begin(); it != m_caches.end(); it++)
 	{
 		float weightInv = Vector3::Distance(position, it->position) / it->harmonicDistance + sqrtf(1.0f - normal.Dot(it->normal));
 		if (weightInv < m_threshold)
@@ -154,7 +155,7 @@ Vector3 NXIrradianceCache::CalculateOneCache(const shared_ptr<NXScene>& pScene, 
 	float sumHarmonicDistance = 0.0f;
 
 	Vector3 irradiance;
-	float distSqr;
+	float ignore;
 	// 在半球空间上密集采样
 	for (float i = 0.0f; i < 1.0f; i += tTheta)
 	{
@@ -180,9 +181,9 @@ Vector3 NXIrradianceCache::CalculateOneCache(const shared_ptr<NXScene>& pScene, 
 			Vector3 posDiff = hitInfoDiffuse.position;
 			Vector3 normDiff = hitInfoDiffuse.normal;
 
-			priority_quque_NXPhoton nearestPhotons([posDiff](NXPhoton* photonA, NXPhoton* photonB) {
-				float distA = Vector3::DistanceSquared(posDiff, photonA->position);
-				float distB = Vector3::DistanceSquared(posDiff, photonB->position);
+			priority_queue_distance_cartesian<NXPhoton> nearestPhotons([posDiff](const NXPhoton& photonA, const NXPhoton& photonB) {
+				float distA = Vector3::DistanceSquared(posDiff, photonA.position);
+				float distB = Vector3::DistanceSquared(posDiff, photonB.position);
 				return distA < distB;
 				});
 
@@ -190,16 +191,16 @@ Vector3 NXIrradianceCache::CalculateOneCache(const shared_ptr<NXScene>& pScene, 
 
 			// 使用现成的全局光子图，可以快速统计出某一点附近的Radiance。
 			Vector3 radiance(0.0f);
-			m_pPhotonMap->GetNearest(posDiff, normDiff, distSqr, nearestPhotons, 100, FLT_MAX, LocateFilter::Disk);
+			m_pPhotonMap->GetNearest(posDiff, normDiff, ignore, nearestPhotons, 100, FLT_MAX, LocateFilter::Disk);
 			if (!nearestPhotons.empty())
 			{
-				float radius2 = Vector3::DistanceSquared(posDiff, nearestPhotons.top()->position);
+				float radius2 = Vector3::DistanceSquared(posDiff, nearestPhotons.top().position);
 				while (!nearestPhotons.empty())
 				{
 					float pdfPhoton;
 					auto photon = nearestPhotons.top();
-					Vector3 f = hitInfoDiffuse.BSDF->Evaluate(-nextRay.direction, photon->direction, pdfPhoton);
-					radiance += f * photon->power;
+					Vector3 f = hitInfoDiffuse.BSDF->Evaluate(-nextRay.direction, photon.direction, pdfPhoton);
+					radiance += f * photon.power;
 					nearestPhotons.pop();
 				}
 

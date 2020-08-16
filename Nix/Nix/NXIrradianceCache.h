@@ -1,6 +1,6 @@
 #pragma once
-#include "NXPhoton.h"
 #include "NXIntersection.h"
+#include "NXPhoton.h"
 
 struct NXIrradianceCacheInfo
 {
@@ -17,7 +17,8 @@ public:
 	NXIrradianceCache();
 	~NXIrradianceCache() {}
 
-	void AddCache(const NXIrradianceCacheInfo& cache) { m_cacheInfo.push_back(cache); };
+	void AddCache(const NXIrradianceCacheInfo& cache) { m_caches.push_back(cache); };
+	size_t GetCacheSize() { return m_caches.size(); }
 	void SetPhotonMaps(const shared_ptr<NXPhotonMap>& pPhotonMap) { m_pPhotonMap = pPhotonMap; }
 
 	void PreIrradiance(const Ray& ray, const shared_ptr<NXScene>& pScene, int depth);
@@ -27,6 +28,6 @@ public:
 
 private:
 	shared_ptr<NXPhotonMap> m_pPhotonMap;
-	vector<NXIrradianceCacheInfo> m_cacheInfo;
+	vector<NXIrradianceCacheInfo> m_caches;	
 	float m_threshold;
 };

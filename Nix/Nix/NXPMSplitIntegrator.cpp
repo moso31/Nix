@@ -78,9 +78,9 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXS
 	// caustics
 	if (bCaustic)
 	{
-		priority_quque_NXPhoton nearestCausticPhotons([pos](NXPhoton* photonA, NXPhoton* photonB) {
-			float distA = Vector3::DistanceSquared(pos, photonA->position);
-			float distB = Vector3::DistanceSquared(pos, photonB->position);
+		priority_queue_distance_cartesian<NXPhoton> nearestCausticPhotons([pos](const NXPhoton& photonA, const NXPhoton& photonB) {
+			float distA = Vector3::DistanceSquared(pos, photonA.position);
+			float distB = Vector3::DistanceSquared(pos, photonB.position);
 			return distA < distB;
 			});
 
@@ -89,7 +89,7 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXS
 			m_pCausticPhotonMap->GetNearest(pos, norm, distSqr, nearestCausticPhotons, 1, 0.00005f);
 			if (!nearestCausticPhotons.empty())
 			{
-				result = nearestCausticPhotons.top()->power;	// photon data only.
+				result = nearestCausticPhotons.top().power;	// photon data only.
 				result *= (float)m_pCausticPhotonMap->GetPhotonCount();
 			}
 			return result;
@@ -98,7 +98,7 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXS
 		m_pCausticPhotonMap->GetNearest(pos, norm, distSqr, nearestCausticPhotons, 50, 0.15f, LocateFilter::Disk);
 		if (!nearestCausticPhotons.empty())
 		{
-			float radius2 = Vector3::DistanceSquared(pos, nearestCausticPhotons.top()->position);
+			float radius2 = Vector3::DistanceSquared(pos, nearestCausticPhotons.top().position);
 			if (nearestCausticPhotons.size() < 50) radius2 = max(radius2, 0.15f);
 
 			Vector3 flux(0.0f);
@@ -106,8 +106,8 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXS
 			{
 				float pdfPhoton;
 				auto photon = nearestCausticPhotons.top();
-				Vector3 f = hitInfo.BSDF->Evaluate(-ray.direction, photon->direction, pdfPhoton);
-				flux += f * photon->power;
+				Vector3 f = hitInfo.BSDF->Evaluate(-ray.direction, photon.direction, pdfPhoton);
+				flux += f * photon.power;
 				nearestCausticPhotons.pop();
 			}
 			result += throughput * flux / (XM_PI * radius2);
@@ -135,9 +135,9 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXS
 			Vector3 posDiff = hitInfoDiffuse.position;
 			Vector3 normDiff = hitInfoDiffuse.normal;
 
-			priority_quque_NXPhoton nearestGlobalPhotons([posDiff](NXPhoton* photonA, NXPhoton* photonB) {
-				float distA = Vector3::DistanceSquared(posDiff, photonA->position);
-				float distB = Vector3::DistanceSquared(posDiff, photonB->position);
+			priority_queue_distance_cartesian<NXPhoton> nearestGlobalPhotons([pos](const NXPhoton& photonA, const NXPhoton& photonB) {
+				float distA = Vector3::DistanceSquared(pos, photonA.position);
+				float distB = Vector3::DistanceSquared(pos, photonB.position);
 				return distA < distB;
 				});
 
@@ -146,7 +146,7 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXS
 				m_pGlobalPhotonMap->GetNearest(posDiff, normDiff, distSqr, nearestGlobalPhotons, 1, 0.00005f);
 				if (!nearestGlobalPhotons.empty())
 				{
-					result = nearestGlobalPhotons.top()->power;	// photon data only.
+					result = nearestGlobalPhotons.top().power;	// photon data only.
 					result *= (float)m_pGlobalPhotonMap->GetPhotonCount();
 				}
 				return result;
@@ -157,14 +157,14 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXS
 			m_pGlobalPhotonMap->GetNearest(posDiff, normDiff, distSqr, nearestGlobalPhotons, 100, FLT_MAX, LocateFilter::Disk);
 			if (!nearestGlobalPhotons.empty())
 			{
-				float radius2 = Vector3::DistanceSquared(posDiff, nearestGlobalPhotons.top()->position);
+				float radius2 = Vector3::DistanceSquared(posDiff, nearestGlobalPhotons.top().position);
 				Vector3 flux(0.0f);
 				while (!nearestGlobalPhotons.empty())
 				{
 					float pdfPhoton;
 					auto photon = nearestGlobalPhotons.top();
-					Vector3 f = hitInfoDiffuse.BSDF->Evaluate(-nextRay.direction, photon->direction, pdfPhoton);
-					flux += f * photon->power;
+					Vector3 f = hitInfoDiffuse.BSDF->Evaluate(-nextRay.direction, photon.direction, pdfPhoton);
+					flux += f * photon.power;
 					nearestGlobalPhotons.pop();
 				}
 				result += throughput * flux / (XM_PI * radius2);
