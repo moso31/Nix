@@ -204,7 +204,8 @@ Vector3 NXIrradianceCache::CalculateOneCache(const shared_ptr<NXScene>& pScene, 
 					nearestPhotons.pop();
 				}
 
-				radiance /= (XM_PI * radius2);
+				float numPhotons = (float)m_pPhotonMap->GetPhotonCount();
+				radiance /= (XM_PI * radius2 * numPhotons);
 			}
 
 			irradiance += radiance; // * hitInfo.shading.normal.Dot(nextDirWorld) / SamplerMath::CosineSampleHemispherePdf(不算两个余弦项了反正也会被抵消掉);

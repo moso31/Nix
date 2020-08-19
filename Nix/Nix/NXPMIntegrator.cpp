@@ -79,7 +79,6 @@ Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXScene>
 		if (!nearestPhotons.empty())
 		{
 			result = nearestPhotons.top().power;	// photon data only.
-			result *= (float)m_pPhotonMap->GetPhotonCount();
 		}
 		return result;
 	}
@@ -98,6 +97,7 @@ Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXScene>
 		flux += f * photon.power;
 		nearestPhotons.pop();
 	}
-	result += throughput * flux / (XM_PI * radius2);
+	float numPhotons = (float)m_pPhotonMap->GetPhotonCount();
+	result += throughput * flux / (XM_PI * radius2 * numPhotons);
 	return result;
 }

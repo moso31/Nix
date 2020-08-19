@@ -35,7 +35,6 @@ void NXPhotonMap::GenerateCausticMap(const shared_ptr<NXScene>& pScene, const sh
 	vector<NXPhoton> causticPhotons;
 
 	printf("Generating caustic photons...");
-	float numCausticPhotonsInv = 1.0f / (float)m_numPhotons;
 	for (int i = 0; i < m_numPhotons; i++)
 	{
 		auto pLights = pScene->GetPBRLights();
@@ -80,7 +79,7 @@ void NXPhotonMap::GenerateCausticMap(const shared_ptr<NXScene>& pScene, const sh
 					NXPhoton photon;
 					photon.position = hitInfo.position;
 					photon.direction = hitInfo.direction;
-					photon.power = throughput * numCausticPhotonsInv;
+					photon.power = throughput;
 					photon.depth = depth;
 					causticPhotons.push_back(photon);
 				}
@@ -115,7 +114,6 @@ void NXPhotonMap::GenerateGlobalMap(const shared_ptr<NXScene>& pScene, const sha
 	vector<NXPhoton> globalPhotons;
 
 	printf("Generating global photons...");
-	float numGlobalPhotonsInv = 1.0f / (float)m_numPhotons;
 	for (int i = 0; i < m_numPhotons; i++)
 	{
 		auto pLights = pScene->GetPBRLights();
@@ -157,7 +155,7 @@ void NXPhotonMap::GenerateGlobalMap(const shared_ptr<NXScene>& pScene, const sha
 				NXPhoton photon;
 				photon.position = hitInfo.position;
 				photon.direction = hitInfo.direction;
-				photon.power = throughput * numGlobalPhotonsInv;
+				photon.power = throughput;
 				photon.depth = depth;
 				globalPhotons.push_back(photon);
 

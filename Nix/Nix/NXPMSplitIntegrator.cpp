@@ -90,7 +90,6 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXS
 			if (!nearestCausticPhotons.empty())
 			{
 				result = nearestCausticPhotons.top().power;	// photon data only.
-				result *= (float)m_pCausticPhotonMap->GetPhotonCount();
 			}
 			return result;
 		}
@@ -110,7 +109,8 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXS
 				flux += f * photon.power;
 				nearestCausticPhotons.pop();
 			}
-			result += throughput * flux / (XM_PI * radius2);
+			float numPhotons = (float)m_pCausticPhotonMap->GetPhotonCount();
+			result += throughput * flux / (XM_PI * radius2 * numPhotons);
 		}
 	}
 
@@ -147,7 +147,6 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXS
 				if (!nearestGlobalPhotons.empty())
 				{
 					result = nearestGlobalPhotons.top().power;	// photon data only.
-					result *= (float)m_pGlobalPhotonMap->GetPhotonCount();
 				}
 				return result;
 			}
@@ -167,7 +166,8 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXS
 					flux += f * photon.power;
 					nearestGlobalPhotons.pop();
 				}
-				result += throughput * flux / (XM_PI * radius2);
+				float numPhotons = (float)m_pGlobalPhotonMap->GetPhotonCount();
+				result += throughput * flux / (XM_PI * radius2 * numPhotons);
 			}
 		}
 	}
