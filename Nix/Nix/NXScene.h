@@ -24,6 +24,8 @@ public:
 	void UpdateCamera();
 	void Release();
 
+	shared_ptr<NXCamera> GetMainCamera() { return m_pMainCamera; }
+
 	// 场景-射线相交测试
 	bool RayCast(const Ray& ray, NXHit& out_hitInfo, float tMax = FLT_MAX);
 
@@ -59,7 +61,7 @@ private:
 	vector<shared_ptr<NXObject>> m_objects;
 	vector<shared_ptr<NXLight>> m_lights;
 	vector<shared_ptr<NXPrimitive>> m_primitives;
-	shared_ptr<NXCamera> m_mainCamera;
+	shared_ptr<NXCamera> m_pMainCamera;
 
 	// 材质
 	vector<shared_ptr<NXMaterial>> m_materials;

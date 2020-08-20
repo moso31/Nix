@@ -251,6 +251,9 @@
     <ClCompile Include="Nix\NXPhoton.cpp">
       <Filter>Nix\RayTracer</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\NXPPMIntegrator.cpp">
+      <Filter>Nix\RayTracer\Integrator</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -423,6 +426,9 @@
     </ClInclude>
     <ClInclude Include="Nix\NXPhoton.h">
       <Filter>Nix\RayTracer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXPPMIntegrator.h">
+      <Filter>Nix\RayTracer\Integrator</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

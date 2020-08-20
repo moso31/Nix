@@ -192,7 +192,7 @@ shared_ptr<NXCamera> SceneManager::CreateCamera(const string& name, const float 
 {
 	auto p = make_shared<NXCamera>();
 	p->Init(FovY, zNear, zFar, eye, at, up);
-	m_scene->m_mainCamera = p;
+	m_scene->m_pMainCamera = p;
 	m_scene->m_objects.push_back(p);
 	p->SetParent(m_scene->m_pRootObject);
 	return p;

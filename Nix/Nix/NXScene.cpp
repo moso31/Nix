@@ -26,6 +26,7 @@
 #include "NXPathIntegrator.h"
 #include "NXPMIntegrator.h"
 #include "NXPMSplitIntegrator.h"
+#include "NXPPMIntegrator.h"
 
 //#include "NXShadowMap.h"
 #include "NXPassShadowMap.h"
@@ -48,7 +49,7 @@ NXScene::~NXScene()
 
 void NXScene::OnMouseDown(NXEventArg eArg)
 {
-	auto ray = m_mainCamera->GenerateRay(Vector2(eArg.X, eArg.Y));
+	auto ray = m_pMainCamera->GenerateRay(Vector2(eArg.X, eArg.Y));
 	printf("pos: %.3f, %.3f, %.3f; dir: %.3f, %.3f, %.3f\n", ray.position.x, ray.position.y, ray.position.z, ray.direction.x, ray.direction.y, ray.direction.z);
 }
 
@@ -65,14 +66,27 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		printf("rendering(HLBVH)...\n");
 		CreateBVHTrees(HBVHSplitMode::HLBVH);
 
+		shared_ptr<NXPPMIntegrator> pIntegrator = make_shared<NXPPMIntegrator>();
+		NXRayTracer::GetInstance()->Load(pScene, m_pMainCamera, pIntegrator, imageInfo);
+		NXRayTracer::GetInstance()->MakeImage();
+
+		pIntegrator.reset();
+	}
+
+	if (eArg.VKey == 'B')
+	{
+		imageInfo.outPath = "D:\\nix_PMtracing.bmp";
+		printf("rendering(HLBVH)...\n");
+		CreateBVHTrees(HBVHSplitMode::HLBVH);
+
 		shared_ptr<NXPhotonMap> pGlobalPhotonMap = make_shared<NXPhotonMap>(200000);
-		pGlobalPhotonMap->Generate(pScene, m_mainCamera, PhotonMapType::Global);
+		pGlobalPhotonMap->Generate(pScene, m_pMainCamera, PhotonMapType::Global);
 		shared_ptr<NXPhotonMap> pCausticPhotonMap = make_shared<NXPhotonMap>(200000);
-		pCausticPhotonMap->Generate(pScene, m_mainCamera, PhotonMapType::Caustic);
+		pCausticPhotonMap->Generate(pScene, m_pMainCamera, PhotonMapType::Caustic);
 
 		//shared_ptr<NXPMIntegrator> pIntegrator = make_shared<NXPMIntegrator>(pGlobalPhotonMap);
 		shared_ptr<NXPMSplitIntegrator> pIntegrator = make_shared<NXPMSplitIntegrator>(pGlobalPhotonMap, pCausticPhotonMap);
-		NXRayTracer::GetInstance()->Load(pScene, m_mainCamera, pIntegrator, imageInfo);
+		NXRayTracer::GetInstance()->Load(pScene, m_pMainCamera, pIntegrator, imageInfo);
 		auto pIrradianceCache = NXRayTracer::GetInstance()->MakeIrradianceCache(pGlobalPhotonMap);
 		pIntegrator->SetIrradianceCache(pIrradianceCache);
 		NXRayTracer::GetInstance()->MakeImage();
@@ -87,7 +101,7 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		imageInfo.outPath = "D:\\nix_pathtracing.bmp";
 		printf("rendering(HLBVH)...\n");
 		CreateBVHTrees(HBVHSplitMode::HLBVH);
-		NXRayTracer::GetInstance()->Load(pScene, m_mainCamera, pIntegrator, imageInfo);
+		NXRayTracer::GetInstance()->Load(pScene, m_pMainCamera, pIntegrator, imageInfo);
 		NXRayTracer::GetInstance()->MakeImage();
 
 		pIntegrator.reset();
@@ -100,7 +114,7 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		imageInfo.outPath = "D:\\nix_directlighting.bmp";
 		printf("rendering(HLBVH)...\n");
 		CreateBVHTrees(HBVHSplitMode::HLBVH);
-		NXRayTracer::GetInstance()->Load(pScene, m_mainCamera, pIntegrator, imageInfo);
+		NXRayTracer::GetInstance()->Load(pScene, m_pMainCamera, pIntegrator, imageInfo);
 		NXRayTracer::GetInstance()->MakeImage();
 
 		pIntegrator.reset();
@@ -121,19 +135,19 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		//pIntegrator->GeneratePhotons(pThis, m_mainCamera);
 
 		printf("center ray testing...\n");
-		NXRayTracer::GetInstance()->Load(pScene, m_mainCamera, pIntegrator, imageInfo);
+		NXRayTracer::GetInstance()->Load(pScene, m_pMainCamera, pIntegrator, imageInfo);
 		NXRayTracer::GetInstance()->CenterRayTest(10);
 
 		if (!m_primitives.empty())
 		{
 			shared_ptr<NXPrimitive> p = dynamic_pointer_cast<NXPrimitive>(m_primitives[0]);
 			printf("camera: pos %f, %f, %f, at %f, %f, %f\n",
-				m_mainCamera->GetTranslation().x,
-				m_mainCamera->GetTranslation().y,
-				m_mainCamera->GetTranslation().z,
-				m_mainCamera->GetAt().x,
-				m_mainCamera->GetAt().y,
-				m_mainCamera->GetAt().z);
+				m_pMainCamera->GetTranslation().x,
+				m_pMainCamera->GetTranslation().y,
+				m_pMainCamera->GetTranslation().z,
+				m_pMainCamera->GetAt().x,
+				m_pMainCamera->GetAt().y,
+				m_pMainCamera->GetAt().z);
 			printf("done.\n");
 		}
 
@@ -285,7 +299,7 @@ void NXScene::Init()
 	//	pMeshes[1]->AddScript(pScript_test);
 	//}
 
-	m_mainCamera = pCamera;
+	m_pMainCamera = pCamera;
 	m_objects.push_back(pCamera);
 
 	m_pCubeMap = make_shared<NXCubeMap>();
@@ -370,11 +384,11 @@ void NXScene::Init()
 void NXScene::InitScripts()
 {
 	auto pScript = make_shared<NSFirstPersonalCamera>();
-	m_mainCamera->AddScript(pScript);
+	m_pMainCamera->AddScript(pScript);
 
-	auto pListener_onKeyDown = make_shared<NXListener>(m_mainCamera, std::bind(&NSFirstPersonalCamera::OnKeyDown, pScript, std::placeholders::_1));
-	auto pListener_onKeyUp = make_shared<NXListener>(m_mainCamera, std::bind(&NSFirstPersonalCamera::OnKeyUp, pScript, std::placeholders::_1));
-	auto pListener_onMouseMove = make_shared<NXListener>(m_mainCamera, std::bind(&NSFirstPersonalCamera::OnMouseMove, pScript, std::placeholders::_1));
+	auto pListener_onKeyDown = make_shared<NXListener>(m_pMainCamera, std::bind(&NSFirstPersonalCamera::OnKeyDown, pScript, std::placeholders::_1));
+	auto pListener_onKeyUp = make_shared<NXListener>(m_pMainCamera, std::bind(&NSFirstPersonalCamera::OnKeyUp, pScript, std::placeholders::_1));
+	auto pListener_onMouseMove = make_shared<NXListener>(m_pMainCamera, std::bind(&NSFirstPersonalCamera::OnMouseMove, pScript, std::placeholders::_1));
 	NXEventKeyDown::GetInstance()->AddListener(pListener_onKeyDown);
 	NXEventKeyUp::GetInstance()->AddListener(pListener_onKeyUp);
 	NXEventMouseMove::GetInstance()->AddListener(pListener_onMouseMove);
@@ -421,7 +435,7 @@ void NXScene::UpdateScripts()
 
 void NXScene::UpdateCamera()
 {
-	m_mainCamera->Update();
+	m_pMainCamera->Update();
 }
 
 void NXScene::Release()
@@ -433,9 +447,9 @@ void NXScene::Release()
 		(*it)->Release();
 	}
 
-	if (m_mainCamera)
+	if (m_pMainCamera)
 	{
-		m_mainCamera->Release();
+		m_pMainCamera->Release();
 	}
 
 	if (m_pCubeMap)

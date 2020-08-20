@@ -63,7 +63,7 @@ Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXScene>
 	}
 
 	Vector3 pos = hitInfo.position;
-	Vector3 norm = hitInfo.normal;
+	Vector3 norm = hitInfo.shading.normal;
 
 	float distSqr;
 	// 大根堆，负责记录pos周围的最近顶点。
