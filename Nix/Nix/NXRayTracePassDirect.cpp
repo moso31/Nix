@@ -24,15 +24,36 @@ void NXRayTracePassDirect::Render()
 	m_progress = 0;
 	m_tileCount = XMINT2((m_imageSize.x + m_tileSize.x - 1) / m_tileSize.x, (m_imageSize.y + m_tileSize.y - 1) / m_tileSize.y);
 
-#pragma omp parallel for
-	for (int tx = 0; tx < m_tileCount.x; tx++)
-		for (int ty = 0; ty < m_tileCount.y; ty++)
-		{
-			NXRayTracePassDirect::RenderTile(pImageData, XMINT2(tx, ty));
-		}
+	bool useOpenMP = false;
+	RenderImageDataParallel(pImageData, useOpenMP);
 
-	ImageGenerator::GenerateImageBMP((BYTE*)pImageData, m_imageSize.x, m_imageSize.y, m_outFilePath.c_str());
+	ImageGenerator::GenerateImageBMP((byte*)pImageData, m_imageSize.x, m_imageSize.y, m_outFilePath.c_str());
 	delete pImageData;
+}
+
+void NXRayTracePassDirect::RenderImageDataParallel(ImageBMPData* pImageData, bool useOpenMP)
+{
+	// 两种并行方案：OpenMP 或 C++17 execution
+	if (useOpenMP)
+	{
+#pragma omp parallel for
+		for (int tx = 0; tx < m_tileCount.x; tx++)
+			for (int ty = 0; ty < m_tileCount.y; ty++)
+			{
+				NXRayTracePassDirect::RenderTile(pImageData, XMINT2(tx, ty));
+			}
+	}
+	else
+	{
+		std::vector<XMINT2> tasks;
+		for (int tx = 0; tx < m_tileCount.x; tx++)
+			for (int ty = 0; ty < m_tileCount.y; ty++)
+				tasks.push_back(XMINT2(tx, ty));
+
+		std::for_each(std::execution::par, tasks.begin(), tasks.end(), [this, pImageData](const XMINT2& tileId) {
+			RenderTile(pImageData, tileId);
+			});
+	}
 }
 
 void NXRayTracePassDirect::RenderTile(ImageBMPData* pImageData, const XMINT2& tileId)

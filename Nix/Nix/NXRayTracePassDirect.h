@@ -14,6 +14,7 @@ public:
 	void Render() override;
 
 private:
+	void RenderImageDataParallel(ImageBMPData* pImageData, bool useOpenMP);
 	void RenderTile(ImageBMPData* pImageData, const XMINT2& tileId);
 
 private:
