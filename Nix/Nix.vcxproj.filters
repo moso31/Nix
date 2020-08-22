@@ -70,9 +70,6 @@
     <Filter Include="Nix\RayTracer\IrradianceCache">
       <UniqueIdentifier>{37acfc55-a531-4610-ad88-9ac01112c20a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Nix\RayTracer\Way">
-      <UniqueIdentifier>{8f7cfd9e-d607-40d2-a794-2e4cdb641d0b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Nix\RayTracer\Pass">
       <UniqueIdentifier>{87e18c17-655e-49f4-b2f4-96de2d3ed331}</UniqueIdentifier>
     </Filter>
@@ -260,13 +257,13 @@
     <ClCompile Include="Nix\NXPPMIntegrator.cpp">
       <Filter>Nix\RayTracer\Integrator</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\NXRayTraceWay.cpp">
-      <Filter>Nix\RayTracer\Way</Filter>
-    </ClCompile>
     <ClCompile Include="Nix\NXRayTracePass.cpp">
       <Filter>Nix\RayTracer\Pass</Filter>
     </ClCompile>
     <ClCompile Include="Nix\NXRayTracePassDirect.cpp">
+      <Filter>Nix\RayTracer\Pass</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXRayTracePassPMSplit.cpp">
       <Filter>Nix\RayTracer\Pass</Filter>
     </ClCompile>
   </ItemGroup>
@@ -445,13 +442,13 @@
     <ClInclude Include="Nix\NXPPMIntegrator.h">
       <Filter>Nix\RayTracer\Integrator</Filter>
     </ClInclude>
-    <ClInclude Include="Nix\NXRayTraceWay.h">
-      <Filter>Nix\RayTracer\Way</Filter>
-    </ClInclude>
     <ClInclude Include="Nix\NXRayTracePass.h">
       <Filter>Nix\RayTracer\Pass</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXRayTracePassDirect.h">
+      <Filter>Nix\RayTracer\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXRayTracePassPMSplit.h">
       <Filter>Nix\RayTracer\Pass</Filter>
     </ClInclude>
   </ItemGroup>

@@ -116,12 +116,12 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const std::shared_pt
 
 	if (bDiffuseIndirect)
 	{
-		if (m_pIrradianceCache)
-		{
-			Vector3 Irradiance = m_pIrradianceCache->Irradiance(ray, pScene, depth);
-			result += f * Irradiance;
-		}
-		else
+		//if (m_pIrradianceCache)
+		//{
+		//	Vector3 Irradiance = m_pIrradianceCache->Irradiance(ray, pScene, depth);
+		//	result += f * Irradiance;
+		//}
+		//else
 		{
 			// multiple diffuse reflections.
 			throughput *= f * fabsf(hitInfo.shading.normal.Dot(nextDirection)) / pdf;
@@ -133,7 +133,7 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const std::shared_pt
 				return result;
 
 			Vector3 posDiff = hitInfoDiffuse.position;
-			Vector3 normDiff = hitInfoDiffuse.normal;
+			Vector3 normDiff = hitInfoDiffuse.shading.normal;
 
 			priority_queue_distance_cartesian<NXPhoton> nearestGlobalPhotons([pos](const NXPhoton& photonA, const NXPhoton& photonB) {
 				float distA = Vector3::DistanceSquared(pos, photonA.position);
@@ -168,6 +168,8 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const std::shared_pt
 				}
 				float numPhotons = (float)m_pGlobalPhotonMap->GetPhotonCount();
 				result += throughput * flux / (XM_PI * radius2 * numPhotons);
+				Vector3 g = throughput * flux;
+				printf("%.3f, %.3f, %.3f, denom = %.3f\n", throughput.x, throughput.y, throughput.z, XM_PI * distSqr * numPhotons);
 			}
 		}
 	}

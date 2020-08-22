@@ -9,14 +9,13 @@ void NXRayTracePassDirect::Load(const std::shared_ptr<NXScene>& pScene, XMINT2 i
 	m_tileSize = tileSize;
 	m_eachPixelSamples = eachPixelSamples;
 
-	m_imageSizeInv = Vector2(1.0f / (float)m_imageSize.x, 1.0f / (float)m_imageSize.y);
-
 	m_pIntegrator.reset();
 	m_pIntegrator = std::make_shared<NXDirectIntegrator>();
 }
 
 void NXRayTracePassDirect::Render()
 {
+	printf("Rendering...");
 	int pixelCount = m_imageSize.x * m_imageSize.y;
 	ImageBMPData* pImageData = new ImageBMPData[pixelCount];
 	memset(pImageData, 0, sizeof(ImageBMPData) * pixelCount);
@@ -29,6 +28,7 @@ void NXRayTracePassDirect::Render()
 
 	ImageGenerator::GenerateImageBMP((byte*)pImageData, m_imageSize.x, m_imageSize.y, m_outFilePath.c_str());
 	delete pImageData;
+	printf("done.\n");
 }
 
 void NXRayTracePassDirect::RenderImageDataParallel(ImageBMPData* pImageData, bool useOpenMP)

@@ -236,6 +236,7 @@
     <ClCompile Include="Nix\NXPBRMaterial.cpp" />
     <ClCompile Include="Nix\NXDistribution.cpp" />
     <ClCompile Include="Nix\NXPPMIntegrator.cpp" />
+    <ClCompile Include="Nix\NXRayTracePassPMSplit.cpp" />
     <ClCompile Include="Nix\Script\NSFirstPersonalCamera.cpp" />
     <ClCompile Include="Nix\Script\NSTest.cpp" />
     <ClCompile Include="Nix\NXBox.cpp" />
@@ -260,7 +261,6 @@
     <ClCompile Include="Nix\NXPMIntegrator.cpp" />
     <ClCompile Include="Nix\NXIrradianceCache.cpp" />
     <ClCompile Include="Nix\NXRayTracePass.cpp" />
-    <ClCompile Include="Nix\NXRayTraceWay.cpp" />
     <ClCompile Include="Nix\NXRayTracePassDirect.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -298,6 +298,7 @@
     <ClInclude Include="Nix\NXPBRMaterial.h" />
     <ClInclude Include="Nix\NXDistribution.h" />
     <ClInclude Include="Nix\NXPPMIntegrator.h" />
+    <ClInclude Include="Nix\NXRayTracePassPMSplit.h" />
     <ClInclude Include="Nix\Script\NSFirstPersonalCamera.h" />
     <ClInclude Include="Nix\Script\NSTest.h" />
     <ClInclude Include="Nix\NXBox.h" />
@@ -323,7 +324,6 @@
     <ClInclude Include="Nix\NXPMIntegrator.h" />
     <ClInclude Include="Nix\NXIrradianceCache.h" />
     <ClInclude Include="Nix\NXRayTracePass.h" />
-    <ClInclude Include="Nix\NXRayTraceWay.h" />
     <ClInclude Include="Nix\NXRayTracePassDirect.h" />
   </ItemGroup>
   <ItemGroup>

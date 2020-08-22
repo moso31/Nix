@@ -83,7 +83,7 @@ Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const std::shared_ptr<NXS
 		return result;
 	}
 
-	m_pPhotonMap->GetNearest(pos, norm, distSqr, nearestPhotons, 500, FLT_MAX, LocateFilter::Disk);
+	m_pPhotonMap->GetNearest(pos, norm, distSqr, nearestPhotons, 100, FLT_MAX, LocateFilter::Disk);
 	if (nearestPhotons.empty())
 		return Vector3(0.0f);
 
@@ -99,5 +99,7 @@ Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const std::shared_ptr<NXS
 	}
 	float numPhotons = (float)m_pPhotonMap->GetPhotonCount();
 	result += throughput * flux / (XM_PI * radius2 * numPhotons);
+	Vector3 g = throughput * flux;
+	printf("%.3f, %.3f, %.3f, denom = %.3f\n", g.x, g.y, g.z, XM_PI * distSqr * numPhotons);
 	return result;
 }

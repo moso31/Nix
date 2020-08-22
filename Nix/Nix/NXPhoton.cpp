@@ -10,15 +10,15 @@ NXPhotonMap::NXPhotonMap(int numPhotons) :
 {
 }
 
-void NXPhotonMap::Generate(const std::shared_ptr<NXScene>& pScene, const std::shared_ptr<NXCamera>& pCamera, PhotonMapType photonMapType)
+void NXPhotonMap::Generate(const std::shared_ptr<NXScene>& pScene, PhotonMapType photonMapType)
 {
 	switch (photonMapType)
 	{
 	case Caustic:
-		GenerateCausticMap(pScene, pCamera);
+		GenerateCausticMap(pScene);
 		break;
 	case Global:
-		GenerateGlobalMap(pScene, pCamera);
+		GenerateGlobalMap(pScene);
 		break;
 	default:
 		break;
@@ -30,11 +30,9 @@ void NXPhotonMap::GetNearest(const Vector3& position, const Vector3& normal, flo
 	m_pKdTree->GetNearest(position, normal, out_distSqr, out_nearestPhotons, maxLimit, range, locateFilter);
 }
 
-void NXPhotonMap::GenerateCausticMap(const std::shared_ptr<NXScene>& pScene, const std::shared_ptr<NXCamera>& pCamera)
+void NXPhotonMap::GenerateCausticMap(const std::shared_ptr<NXScene>& pScene)
 {
 	std::vector<NXPhoton> causticPhotons;
-
-	printf("Generating caustic photons...");
 	for (int i = 0; i < m_numPhotons; i++)
 	{
 		auto pLights = pScene->GetPBRLights();
@@ -106,14 +104,11 @@ void NXPhotonMap::GenerateCausticMap(const std::shared_ptr<NXScene>& pScene, con
 	m_pKdTree.reset();
 	m_pKdTree = std::make_shared<NXKdTree<NXPhoton>>();
 	m_pKdTree->BuildBalanceTree(causticPhotons);
-	printf("done.\n");
 }
 
-void NXPhotonMap::GenerateGlobalMap(const std::shared_ptr<NXScene>& pScene, const std::shared_ptr<NXCamera>& pCamera)
+void NXPhotonMap::GenerateGlobalMap(const std::shared_ptr<NXScene>& pScene)
 {
 	std::vector<NXPhoton> globalPhotons;
-
-	printf("Generating global photons...");
 	for (int i = 0; i < m_numPhotons; i++)
 	{
 		auto pLights = pScene->GetPBRLights();
@@ -181,5 +176,4 @@ void NXPhotonMap::GenerateGlobalMap(const std::shared_ptr<NXScene>& pScene, cons
 	m_pKdTree.reset();
 	m_pKdTree = std::make_shared<NXKdTree<NXPhoton>>();
 	m_pKdTree->BuildBalanceTree(globalPhotons);
-	printf("done.\n");
 }

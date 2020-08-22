@@ -81,18 +81,28 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		CreateBVHTrees(HBVHSplitMode::HLBVH);
 
 		std::shared_ptr<NXPhotonMap> pGlobalPhotonMap = std::make_shared<NXPhotonMap>(200000);
-		pGlobalPhotonMap->Generate(pScene, m_pMainCamera, PhotonMapType::Global);
+		pGlobalPhotonMap->Generate(pScene, PhotonMapType::Global);
 		std::shared_ptr<NXPhotonMap> pCausticPhotonMap = std::make_shared<NXPhotonMap>(200000);
-		pCausticPhotonMap->Generate(pScene, m_pMainCamera, PhotonMapType::Caustic);
+		pCausticPhotonMap->Generate(pScene, PhotonMapType::Caustic);
 
 		//std::shared_ptr<NXPMIntegrator> pIntegrator = std::make_shared<NXPMIntegrator>(pGlobalPhotonMap);
 		std::shared_ptr<NXPMSplitIntegrator> pIntegrator = std::make_shared<NXPMSplitIntegrator>(pGlobalPhotonMap, pCausticPhotonMap);
 		NXRayTracer::GetInstance()->Load(pScene, m_pMainCamera, pIntegrator, imageInfo);
-		auto pIrradianceCache = NXRayTracer::GetInstance()->MakeIrradianceCache(pGlobalPhotonMap);
+		auto pIrradianceCache = nullptr;// NXRayTracer::GetInstance()->MakeIrradianceCache(pGlobalPhotonMap);
 		pIntegrator->SetIrradianceCache(pIrradianceCache);
 		NXRayTracer::GetInstance()->MakeImage();
 
 		pIntegrator.reset();
+	}
+
+	if (eArg.VKey == 'N')
+	{
+		imageInfo.outPath = "D:\\nix_PMtracing.bmp";
+		printf("rendering(HLBVH)...\n");
+		CreateBVHTrees(HBVHSplitMode::HLBVH);
+		
+		NXRayTracer::GetInstance()->Load(pScene, m_pMainCamera, nullptr, imageInfo);
+		NXRayTracer::GetInstance()->Render();
 	}
 
 	if (eArg.VKey == 'T')
@@ -116,8 +126,6 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		printf("rendering(HLBVH)...\n");
 		CreateBVHTrees(HBVHSplitMode::HLBVH);
 		NXRayTracer::GetInstance()->Load(pScene, m_pMainCamera, pIntegrator, imageInfo);
-		//NXRayTracer::GetInstance()->MakeImage();
-
 		NXRayTracer::GetInstance()->Render();
 
 		pIntegrator.reset();
@@ -187,8 +195,8 @@ void NXScene::Init()
 	pPlane = m_sceneManager->CreatePlane("Wall +Y", 8.0f, 12.0f, NXPlaneAxis(NEGATIVE_Y), pMaterial, Vector3(0.0f, 6.0f, 0.0f));
 	pPlane->SetMaterialPBR(pPBRMat[0]);
 
-	//pPlane = m_sceneManager->CreatePlane("Wall -Z", 8.0f, 6.0f, NXPlaneAxis(POSITIVE_Z), pMaterial, Vector3(0.0f, 3.0f, -6.0f));
-	//pPlane->SetMaterialPBR(pPBRMat[0]);
+	pPlane = m_sceneManager->CreatePlane("Wall -Z", 8.0f, 6.0f, NXPlaneAxis(POSITIVE_Z), pMaterial, Vector3(0.0f, 3.0f, -6.0f));
+	pPlane->SetMaterialPBR(pPBRMat[0]);
 
 	pPlane = m_sceneManager->CreatePlane("Wall +Z", 8.0f, 6.0f, NXPlaneAxis(NEGATIVE_Z), pMaterial, Vector3(0.0f, 3.0f, 6.0f));
 	pPlane->SetMaterialPBR(pPBRMat[0]);

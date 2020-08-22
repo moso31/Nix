@@ -72,7 +72,7 @@ Vector3 NXPPMIntegrator::Radiance(const Ray& cameraRay, const std::shared_ptr<NX
 	for (int t = 0; t < 1; t++);
 	{
 		m_pPhotonMap = std::make_shared<NXPhotonMap>(nPhotonsAtOnce);
-		m_pPhotonMap->Generate(pScene, pScene->GetMainCamera(), PhotonMapType::Global);
+		m_pPhotonMap->Generate(pScene, PhotonMapType::Global);
 		nPhotonsAtAll += nPhotonsAtOnce;
 
 		priority_queue_distance_cartesian<NXPhoton> nearestPhotons([pos](const NXPhoton& photonA, const NXPhoton& photonB) {

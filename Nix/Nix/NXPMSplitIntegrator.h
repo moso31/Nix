@@ -8,7 +8,7 @@ public:
 	NXPMSplitIntegrator(const std::shared_ptr<NXPhotonMap>& pGlobalPhotons, const std::shared_ptr<NXPhotonMap>& pCausticPhotons);
 	~NXPMSplitIntegrator();
 
-	void SetIrradianceCache(std::shared_ptr<NXIrradianceCache>& pIrradianceCache) { m_pIrradianceCache = pIrradianceCache; }
+	void SetIrradianceCache(const std::shared_ptr<NXIrradianceCache>& pIrradianceCache) { m_pIrradianceCache = pIrradianceCache; }
 	Vector3 Radiance(const Ray& ray, const std::shared_ptr<NXScene>& pScene, int depth) override;
 
 private:

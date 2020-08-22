@@ -4,7 +4,8 @@
 #include "NXCamera.h"
 #include "NXScene.h"
 #include "NXRandom.h"
-#include "NXRayTraceWay.h"
+#include "NXRayTracePassDirect.h"
+#include "NXRayTracePassPMSplit.h"
 
 NXRayTracer::NXRayTracer() :
 	m_iTaskIter(0),
@@ -29,9 +30,44 @@ void NXRayTracer::Load(const std::shared_ptr<NXScene>& pScene, const std::shared
 
 void NXRayTracer::Render()
 {
-	auto pRayTraceWay = std::make_shared<NXRayTraceWayDirect>();
-	pRayTraceWay->LoadPasses(m_pScene, m_imageInfo.ImageSize);
-	pRayTraceWay->Render();
+	// common valuess
+	XMINT2 tileSize(16, 16);
+	int eachPixelSamples = 4;
+
+	if (false)	// direct lighting
+	{
+		std::shared_ptr<NXRayTracePassDirect> pass = std::make_shared<NXRayTracePassDirect>();
+		pass->SetOutFilePath("D:\\nix_directLighting.bmp");
+		pass->Load(m_pScene, m_imageInfo.ImageSize, tileSize, eachPixelSamples);
+		pass->Render();
+	}
+	else if (true)	// photon mapping split(irradiance cache + caustic map + global map)
+	{
+		bool EnableIrradianceCache = false;
+
+		auto pass1 = std::make_unique<NXRayTracePassPMSplitPhotonMap>();
+		pass1->Load(m_pScene, 200000, 200000);
+		pass1->Render();
+
+		auto pGlobalPhotonMap = pass1->GetGlobalPhotonMap();
+		auto pCausticPhotonMap = pass1->GetCausticPhotonMap();
+		std::shared_ptr<NXIrradianceCache> pIrradianceCache = nullptr;
+		if (EnableIrradianceCache)
+		{
+			auto pass2 = std::make_unique<NXRayTracePassPMSplitIrradianceCache>();
+			pass2->Load(m_pScene, m_imageInfo.ImageSize, pGlobalPhotonMap);
+			pass2->Render();
+
+			pIrradianceCache = pass2->GetIrradianceCache();
+		}
+		auto pass3 = std::make_unique<NXRayTracePassPMSplit>();
+		pass3->Load(m_pScene, pGlobalPhotonMap, pCausticPhotonMap, pIrradianceCache, m_imageInfo.ImageSize, tileSize, eachPixelSamples);
+		pass3->SetOutFilePath("D:\\nix_PMSplit.bmp");
+		pass3->Render();
+	}
+	else if (true)
+	{
+	}
 }
 
 void NXRayTracer::MakeImage()

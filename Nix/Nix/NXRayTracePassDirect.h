@@ -25,7 +25,6 @@ private:
 	int m_eachPixelSamples;		// 每个像素多少样本 
 
 	// 加速计算
-	Vector2 m_imageSizeInv;	
 	XMINT2 m_tileCount;
 
 	std::shared_ptr<NXDirectIntegrator> m_pIntegrator;
