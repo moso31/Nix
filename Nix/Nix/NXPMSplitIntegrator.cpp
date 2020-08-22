@@ -116,12 +116,12 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const std::shared_pt
 
 	if (bDiffuseIndirect)
 	{
-		//if (m_pIrradianceCache)
-		//{
-		//	Vector3 Irradiance = m_pIrradianceCache->Irradiance(ray, pScene, depth);
-		//	result += f * Irradiance;
-		//}
-		//else
+		if (m_pIrradianceCache)
+		{
+			Vector3 Irradiance = m_pIrradianceCache->Irradiance(ray, pScene, depth);
+			result += f * Irradiance;
+		}
+		else
 		{
 			// multiple diffuse reflections.
 			throughput *= f * fabsf(hitInfo.shading.normal.Dot(nextDirection)) / pdf;
@@ -135,9 +135,9 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const std::shared_pt
 			Vector3 posDiff = hitInfoDiffuse.position;
 			Vector3 normDiff = hitInfoDiffuse.shading.normal;
 
-			priority_queue_distance_cartesian<NXPhoton> nearestGlobalPhotons([pos](const NXPhoton& photonA, const NXPhoton& photonB) {
-				float distA = Vector3::DistanceSquared(pos, photonA.position);
-				float distB = Vector3::DistanceSquared(pos, photonB.position);
+			priority_queue_distance_cartesian<NXPhoton> nearestGlobalPhotons([posDiff](const NXPhoton& photonA, const NXPhoton& photonB) {
+				float distA = Vector3::DistanceSquared(posDiff, photonA.position);
+				float distB = Vector3::DistanceSquared(posDiff, photonB.position);
 				return distA < distB;
 				});
 
@@ -160,16 +160,13 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const std::shared_pt
 				Vector3 flux(0.0f);
 				while (!nearestGlobalPhotons.empty())
 				{
-					float pdfPhoton;
 					auto photon = nearestGlobalPhotons.top();
-					Vector3 f = hitInfoDiffuse.BSDF->Evaluate(-nextRay.direction, photon.direction, pdfPhoton);
+					Vector3 f = hitInfoDiffuse.BSDF->Evaluate(-nextRay.direction, photon.direction, pdf);
 					flux += f * photon.power;
 					nearestGlobalPhotons.pop();
 				}
 				float numPhotons = (float)m_pGlobalPhotonMap->GetPhotonCount();
 				result += throughput * flux / (XM_PI * radius2 * numPhotons);
-				Vector3 g = throughput * flux;
-				printf("%.3f, %.3f, %.3f, denom = %.3f\n", throughput.x, throughput.y, throughput.z, XM_PI * distSqr * numPhotons);
 			}
 		}
 	}

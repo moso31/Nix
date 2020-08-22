@@ -163,6 +163,7 @@ std::shared_ptr<NXIrradianceCache> NXRayTracer::MakeIrradianceCache(const std::s
 	int barrier = 5000;
 	int nodeCount = (pxCount + barrier - 1) / barrier;
 
+#pragma omp parallel for
 	for (int i = 0; i < m_imageInfo.ImageSize.x; i++)
 	{
 		for (int j = 0; j < m_imageInfo.ImageSize.y; j++)

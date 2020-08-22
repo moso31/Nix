@@ -99,7 +99,5 @@ Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const std::shared_ptr<NXS
 	}
 	float numPhotons = (float)m_pPhotonMap->GetPhotonCount();
 	result += throughput * flux / (XM_PI * radius2 * numPhotons);
-	Vector3 g = throughput * flux;
-	printf("%.3f, %.3f, %.3f, denom = %.3f\n", g.x, g.y, g.z, XM_PI * distSqr * numPhotons);
 	return result;
 }
