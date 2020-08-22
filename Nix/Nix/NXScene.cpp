@@ -38,7 +38,7 @@
 // temp include.
 
 NXScene::NXScene() :
-	m_pRootObject(make_shared<NXObject>()),
+	m_pRootObject(std::make_shared<NXObject>()),
 	m_cbLights(nullptr)
 {
 }
@@ -50,12 +50,13 @@ NXScene::~NXScene()
 void NXScene::OnMouseDown(NXEventArg eArg)
 {
 	auto ray = m_pMainCamera->GenerateRay(Vector2(eArg.X, eArg.Y));
-	printf("pos: %.3f, %.3f, %.3f; dir: %.3f, %.3f, %.3f\n", ray.position.x, ray.position.y, ray.position.z, ray.direction.x, ray.direction.y, ray.direction.z);
+	//printf("cursor: %.3f, %.3f\n", (float)eArg.X, (float)eArg.Y);
+	//printf("pos: %.3f, %.3f, %.3f; dir: %.3f, %.3f, %.3f\n", ray.position.x, ray.position.y, ray.position.z, ray.direction.x, ray.direction.y, ray.direction.z);
 }
 
 void NXScene::OnKeyDown(NXEventArg eArg)
 {
-	auto pScene = dynamic_pointer_cast<NXScene>(shared_from_this());
+	auto pScene = std::dynamic_pointer_cast<NXScene>(shared_from_this());
 	NXRenderImageInfo imageInfo;
 	imageInfo.ImageSize = XMINT2(800, 600);
 	imageInfo.EachPixelSamples = 4;
@@ -66,7 +67,7 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		printf("rendering(HLBVH)...\n");
 		CreateBVHTrees(HBVHSplitMode::HLBVH);
 
-		shared_ptr<NXPPMIntegrator> pIntegrator = make_shared<NXPPMIntegrator>();
+		std::shared_ptr<NXPPMIntegrator> pIntegrator = std::make_shared<NXPPMIntegrator>();
 		NXRayTracer::GetInstance()->Load(pScene, m_pMainCamera, pIntegrator, imageInfo);
 		NXRayTracer::GetInstance()->MakeImage();
 
@@ -79,13 +80,13 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		printf("rendering(HLBVH)...\n");
 		CreateBVHTrees(HBVHSplitMode::HLBVH);
 
-		shared_ptr<NXPhotonMap> pGlobalPhotonMap = make_shared<NXPhotonMap>(200000);
+		std::shared_ptr<NXPhotonMap> pGlobalPhotonMap = std::make_shared<NXPhotonMap>(200000);
 		pGlobalPhotonMap->Generate(pScene, m_pMainCamera, PhotonMapType::Global);
-		shared_ptr<NXPhotonMap> pCausticPhotonMap = make_shared<NXPhotonMap>(200000);
+		std::shared_ptr<NXPhotonMap> pCausticPhotonMap = std::make_shared<NXPhotonMap>(200000);
 		pCausticPhotonMap->Generate(pScene, m_pMainCamera, PhotonMapType::Caustic);
 
-		//shared_ptr<NXPMIntegrator> pIntegrator = make_shared<NXPMIntegrator>(pGlobalPhotonMap);
-		shared_ptr<NXPMSplitIntegrator> pIntegrator = make_shared<NXPMSplitIntegrator>(pGlobalPhotonMap, pCausticPhotonMap);
+		//std::shared_ptr<NXPMIntegrator> pIntegrator = std::make_shared<NXPMIntegrator>(pGlobalPhotonMap);
+		std::shared_ptr<NXPMSplitIntegrator> pIntegrator = std::make_shared<NXPMSplitIntegrator>(pGlobalPhotonMap, pCausticPhotonMap);
 		NXRayTracer::GetInstance()->Load(pScene, m_pMainCamera, pIntegrator, imageInfo);
 		auto pIrradianceCache = NXRayTracer::GetInstance()->MakeIrradianceCache(pGlobalPhotonMap);
 		pIntegrator->SetIrradianceCache(pIrradianceCache);
@@ -96,7 +97,7 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 
 	if (eArg.VKey == 'T')
 	{
-		shared_ptr<NXIntegrator> pIntegrator = make_shared<NXPathIntegrator>();
+		std::shared_ptr<NXIntegrator> pIntegrator = std::make_shared<NXPathIntegrator>();
 
 		imageInfo.outPath = "D:\\nix_pathtracing.bmp";
 		printf("rendering(HLBVH)...\n");
@@ -109,13 +110,15 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 
 	if (eArg.VKey == 'U')
 	{
-		shared_ptr<NXIntegrator> pIntegrator = make_shared<NXDirectIntegrator>();
+		std::shared_ptr<NXIntegrator> pIntegrator = std::make_shared<NXDirectIntegrator>();
 
 		imageInfo.outPath = "D:\\nix_directlighting.bmp";
 		printf("rendering(HLBVH)...\n");
 		CreateBVHTrees(HBVHSplitMode::HLBVH);
 		NXRayTracer::GetInstance()->Load(pScene, m_pMainCamera, pIntegrator, imageInfo);
-		NXRayTracer::GetInstance()->MakeImage();
+		//NXRayTracer::GetInstance()->MakeImage();
+
+		NXRayTracer::GetInstance()->Render();
 
 		pIntegrator.reset();
 	}
@@ -127,11 +130,11 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		CreateBVHTrees(HBVHSplitMode::HLBVH);
 		printf("done.\n");
 
-		shared_ptr<NXIntegrator> pIntegrator = make_shared<NXDirectIntegrator>();
-		//shared_ptr<NXIntegrator> pIntegrator = make_shared<NXPathIntegrator>();
-		//shared_ptr<NXPMIntegrator> pIntegrator = make_shared<NXPMIntegrator>();
-		//shared_ptr<NXPMSplitIntegrator> pIntegrator = make_shared<NXPMSplitIntegrator>();
-		//auto pThis = dynamic_pointer_cast<NXScene>(shared_from_this());
+		std::shared_ptr<NXIntegrator> pIntegrator = std::make_shared<NXDirectIntegrator>();
+		//std::shared_ptr<NXIntegrator> pIntegrator = std::make_shared<NXPathIntegrator>();
+		//std::shared_ptr<NXPMIntegrator> pIntegrator = std::make_shared<NXPMIntegrator>();
+		//std::shared_ptr<NXPMSplitIntegrator> pIntegrator = std::make_shared<NXPMSplitIntegrator>();
+		//auto pThis = std::dynamic_pointer_cast<NXScene>(shared_from_this());
 		//pIntegrator->GeneratePhotons(pThis, m_mainCamera);
 
 		printf("center ray testing...\n");
@@ -140,7 +143,7 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 
 		if (!m_primitives.empty())
 		{
-			shared_ptr<NXPrimitive> p = dynamic_pointer_cast<NXPrimitive>(m_primitives[0]);
+			std::shared_ptr<NXPrimitive> p = std::dynamic_pointer_cast<NXPrimitive>(m_primitives[0]);
 			printf("camera: pos %f, %f, %f, at %f, %f, %f\n",
 				m_pMainCamera->GetTranslation().x,
 				m_pMainCamera->GetTranslation().y,
@@ -157,10 +160,10 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 
 void NXScene::Init()
 {
-	auto pScene = dynamic_pointer_cast<NXScene>(shared_from_this());
+	auto pScene = std::dynamic_pointer_cast<NXScene>(shared_from_this());
 	NXVisibleTest::GetInstance()->SetScene(pScene);
 
-	m_sceneManager = make_shared<SceneManager>(dynamic_pointer_cast<NXScene>(shared_from_this()));
+	m_sceneManager = std::make_shared<SceneManager>(std::dynamic_pointer_cast<NXScene>(shared_from_this()));
 	auto pMaterial = m_sceneManager->CreateMaterial(
 		"defaultMaterial",
 		Vector4(0.0f, 0.0f, 0.0f, 1.0f),
@@ -169,7 +172,7 @@ void NXScene::Init()
 		0.2f
 	);
 
-	shared_ptr<NXPBRMaterial> pPBRMat[] = {
+	std::shared_ptr<NXPBRMaterial> pPBRMat[] = {
 		m_sceneManager->CreatePBRMaterial(Vector3(0.8f), Vector3(0.0f), Vector3(0.0f), Vector3(0.0f), 0.0f, 0.0f),
 		m_sceneManager->CreatePBRMaterial(Vector3(0.8f, 0.0f, 0.0f), Vector3(0.0f), Vector3(0.0f), Vector3(0.0f), 0.0f, 0.0f),
 		m_sceneManager->CreatePBRMaterial(Vector3(0.0f, 0.0f, 0.8f), Vector3(0.0f), Vector3(0.0f), Vector3(0.0f), 0.0f, 0.0f),
@@ -199,40 +202,40 @@ void NXScene::Init()
 	auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 16, 16, pMaterial, Vector3(1.0f, 1.0f, 1.0f));
 	pSphere->SetMaterialPBR(pPBRMat[0]);
 
-	//shared_ptr<NXSphere> pLight = m_sceneManager->CreateSphere("Light", 1.0f, 64, 64, pMaterial, Vector3(-4.5f, 5.999f, 2.0f));
+	//std::shared_ptr<NXSphere> pLight = m_sceneManager->CreateSphere("Light", 1.0f, 64, 64, pMaterial, Vector3(-4.5f, 5.999f, 2.0f));
 	//pLight->SetMaterialPBR(pPBRMat[0]);
 
-	//shared_ptr<NXSphere> pLight1 = m_sceneManager->CreateSphere("Light", 0.75f, 64, 64, pMaterial, Vector3(-1.5f, 5.999f, 2.0f));
+	//std::shared_ptr<NXSphere> pLight1 = m_sceneManager->CreateSphere("Light", 0.75f, 64, 64, pMaterial, Vector3(-1.5f, 5.999f, 2.0f));
 	//pLight1->SetMaterialPBR(pPBRMat[0]);
 
-	//shared_ptr<NXSphere> pLight2 = m_sceneManager->CreateSphere("Light", 0.5f, 64, 64, pMaterial, Vector3(1.5f, 5.999f, 2.0f));
+	//std::shared_ptr<NXSphere> pLight2 = m_sceneManager->CreateSphere("Light", 0.5f, 64, 64, pMaterial, Vector3(1.5f, 5.999f, 2.0f));
 	//pLight2->SetMaterialPBR(pPBRMat[0]);
 
-	//shared_ptr<NXSphere> pLight3 = m_sceneManager->CreateSphere("Light", 0.25f, 64, 64, pMaterial, Vector3(4.5f, 5.999f, 2.0f));
+	//std::shared_ptr<NXSphere> pLight3 = m_sceneManager->CreateSphere("Light", 0.25f, 64, 64, pMaterial, Vector3(4.5f, 5.999f, 2.0f));
 	//pLight3->SetMaterialPBR(pPBRMat[0]);
 
-	shared_ptr<NXPlane> pLight = m_sceneManager->CreatePlane("Light", 2.0f, 2.0f, NXPlaneAxis(NEGATIVE_Y), pMaterial, Vector3(0.0f, 5.999f, 2.0f));
+	std::shared_ptr<NXPlane> pLight = m_sceneManager->CreatePlane("Light", 2.0f, 2.0f, NXPlaneAxis(NEGATIVE_Y), pMaterial, Vector3(0.0f, 5.999f, 2.0f));
 	pLight->SetMaterialPBR(pPBRMat[0]);
 
-	//shared_ptr<NXPlane> pLight = m_sceneManager->CreatePlane("Light", 1.0f, 1.0f, NXPlaneAxis(NEGATIVE_Y), pMaterial, Vector3(0.0f, 5.999f, 2.0f));
+	//std::shared_ptr<NXPlane> pLight = m_sceneManager->CreatePlane("Light", 1.0f, 1.0f, NXPlaneAxis(NEGATIVE_Y), pMaterial, Vector3(0.0f, 5.999f, 2.0f));
 	//pLight->SetMaterialPBR(pPBRMat[0]);
 
-	//shared_ptr<NXPlane> pLight1 = m_sceneManager->CreatePlane("Light", 1.0f, 1.0f, NXPlaneAxis(NEGATIVE_Y), pMaterial, Vector3(-1.5f, 5.999f, 2.0f));
+	//std::shared_ptr<NXPlane> pLight1 = m_sceneManager->CreatePlane("Light", 1.0f, 1.0f, NXPlaneAxis(NEGATIVE_Y), pMaterial, Vector3(-1.5f, 5.999f, 2.0f));
 	//pLight1->SetMaterialPBR(pPBRMat[0]);
 
-	//shared_ptr<NXPlane> pLight2 = m_sceneManager->CreatePlane("Light", 1.0f, 1.0f, NXPlaneAxis(NEGATIVE_Y), pMaterial, Vector3(1.5f, 5.999f, 2.0f));
+	//std::shared_ptr<NXPlane> pLight2 = m_sceneManager->CreatePlane("Light", 1.0f, 1.0f, NXPlaneAxis(NEGATIVE_Y), pMaterial, Vector3(1.5f, 5.999f, 2.0f));
 	//pLight2->SetMaterialPBR(pPBRMat[0]);
 
-	//shared_ptr<NXPlane> pLight3 = m_sceneManager->CreatePlane("Light", 1.0f, 1.0f, NXPlaneAxis(NEGATIVE_Y), pMaterial, Vector3(4.5f, 5.999f, 2.0f));
+	//std::shared_ptr<NXPlane> pLight3 = m_sceneManager->CreatePlane("Light", 1.0f, 1.0f, NXPlaneAxis(NEGATIVE_Y), pMaterial, Vector3(4.5f, 5.999f, 2.0f));
 	//pLight3->SetMaterialPBR(pPBRMat[0]);
 
-	//shared_ptr<NXPlane> pLight1 = m_sceneManager->CreatePlane("Light", 0.75f, 0.75f, NXPlaneAxis(NEGATIVE_Y), pMaterial, Vector3(-1.5f, 5.999f, 2.0f));
+	//std::shared_ptr<NXPlane> pLight1 = m_sceneManager->CreatePlane("Light", 0.75f, 0.75f, NXPlaneAxis(NEGATIVE_Y), pMaterial, Vector3(-1.5f, 5.999f, 2.0f));
 	//pLight1->SetMaterialPBR(pPBRMat[0]);
 
-	//shared_ptr<NXPlane> pLight2 = m_sceneManager->CreatePlane("Light", 0.5f, 0.5f, NXPlaneAxis(NEGATIVE_Y), pMaterial, Vector3(1.5f, 5.999f, 2.0f));
+	//std::shared_ptr<NXPlane> pLight2 = m_sceneManager->CreatePlane("Light", 0.5f, 0.5f, NXPlaneAxis(NEGATIVE_Y), pMaterial, Vector3(1.5f, 5.999f, 2.0f));
 	//pLight2->SetMaterialPBR(pPBRMat[0]);
 
-	//shared_ptr<NXPlane> pLight3 = m_sceneManager->CreatePlane("Light", 0.25f, 0.25f, NXPlaneAxis(NEGATIVE_Y), pMaterial, Vector3(4.5f, 5.999f, 2.0f));
+	//std::shared_ptr<NXPlane> pLight3 = m_sceneManager->CreatePlane("Light", 0.25f, 0.25f, NXPlaneAxis(NEGATIVE_Y), pMaterial, Vector3(4.5f, 5.999f, 2.0f));
 	//pLight3->SetMaterialPBR(pPBRMat[0]);
 
 	//float a[4] = { 0.216, 0.036, 0.006, 0.001 };
@@ -272,7 +275,7 @@ void NXScene::Init()
 	//	}
 	//}
 
-	//vector<shared_ptr<NXMesh>> pMeshes;
+	//vector<std::shared_ptr<NXMesh>> pMeshes;
 	//bool pMesh = m_sceneManager->CreateFBXMeshes(
 	//	"D:\\2.fbx", 
 	//	pMaterial,
@@ -295,14 +298,14 @@ void NXScene::Init()
 	//if (!pMeshes.empty())
 	//{
 	//	bool bBind = m_sceneManager->BindParent(pMeshes[1], pSphere);
-	//	auto pScript_test = make_shared<NSTest>();
+	//	auto pScript_test = std::make_shared<NSTest>();
 	//	pMeshes[1]->AddScript(pScript_test);
 	//}
 
 	m_pMainCamera = pCamera;
 	m_objects.push_back(pCamera);
 
-	m_pCubeMap = make_shared<NXCubeMap>();
+	m_pCubeMap = std::make_shared<NXCubeMap>();
 	m_pCubeMap->Init(L"D:\\sunsetcube1024.dds");
 
 	// 更新AABB需要世界坐标，而Init阶段还没有拿到世界坐标，所以需要提前PrevUpdate一次。
@@ -383,24 +386,24 @@ void NXScene::Init()
 
 void NXScene::InitScripts()
 {
-	auto pScript = make_shared<NSFirstPersonalCamera>();
+	auto pScript = std::make_shared<NSFirstPersonalCamera>();
 	m_pMainCamera->AddScript(pScript);
 
-	auto pListener_onKeyDown = make_shared<NXListener>(m_pMainCamera, std::bind(&NSFirstPersonalCamera::OnKeyDown, pScript, std::placeholders::_1));
-	auto pListener_onKeyUp = make_shared<NXListener>(m_pMainCamera, std::bind(&NSFirstPersonalCamera::OnKeyUp, pScript, std::placeholders::_1));
-	auto pListener_onMouseMove = make_shared<NXListener>(m_pMainCamera, std::bind(&NSFirstPersonalCamera::OnMouseMove, pScript, std::placeholders::_1));
+	auto pListener_onKeyDown = std::make_shared<NXListener>(m_pMainCamera, std::bind(&NSFirstPersonalCamera::OnKeyDown, pScript, std::placeholders::_1));
+	auto pListener_onKeyUp = std::make_shared<NXListener>(m_pMainCamera, std::bind(&NSFirstPersonalCamera::OnKeyUp, pScript, std::placeholders::_1));
+	auto pListener_onMouseMove = std::make_shared<NXListener>(m_pMainCamera, std::bind(&NSFirstPersonalCamera::OnMouseMove, pScript, std::placeholders::_1));
 	NXEventKeyDown::GetInstance()->AddListener(pListener_onKeyDown);
 	NXEventKeyUp::GetInstance()->AddListener(pListener_onKeyUp);
 	NXEventMouseMove::GetInstance()->AddListener(pListener_onMouseMove);
 
-	auto pThisScene = dynamic_pointer_cast<NXScene>(shared_from_this());
-	auto pListener_onMouseDown = make_shared<NXListener>(pThisScene, std::bind(&NXScene::OnMouseDown, pThisScene, std::placeholders::_1));
+	auto pThisScene = std::dynamic_pointer_cast<NXScene>(shared_from_this());
+	auto pListener_onMouseDown = std::make_shared<NXListener>(pThisScene, std::bind(&NXScene::OnMouseDown, pThisScene, std::placeholders::_1));
 	NXEventMouseDown::GetInstance()->AddListener(pListener_onMouseDown);
-	pListener_onKeyDown = make_shared<NXListener>(pThisScene, std::bind(&NXScene::OnKeyDown, pThisScene, std::placeholders::_1));
+	pListener_onKeyDown = std::make_shared<NXListener>(pThisScene, std::bind(&NXScene::OnKeyDown, pThisScene, std::placeholders::_1));
 	NXEventKeyDown::GetInstance()->AddListener(pListener_onKeyDown);
 }
 
-void NXScene::UpdateTransform(shared_ptr<NXObject> pObject)
+void NXScene::UpdateTransform(std::shared_ptr<NXObject> pObject)
 {
 	// pObject为空时代表从根节点开始更新Transform。
 	if (!pObject)
@@ -409,7 +412,7 @@ void NXScene::UpdateTransform(shared_ptr<NXObject> pObject)
 	}
 	else
 	{
-		auto pT = dynamic_pointer_cast<NXTransform>(pObject);
+		auto pT = std::dynamic_pointer_cast<NXTransform>(pObject);
 		if (pT)
 			pT->UpdateTransform();
 		auto ch = pObject->GetChilds();
@@ -504,7 +507,7 @@ void NXScene::InitShadowMapTransformInfo(ConstantBufferShadowMapTransform& out_c
 		return;
 
 	// 目前仅对第一个平行光提供支持
-	Vector3 direction = dynamic_pointer_cast<NXDirectionalLight>(m_lights[0])->GetDirection();
+	Vector3 direction = std::dynamic_pointer_cast<NXDirectionalLight>(m_lights[0])->GetDirection();
 	Vector3 shadowMapAt = m_boundingSphere.Center;
 	Vector3 shadowMapEye = shadowMapAt - 2.0f * m_boundingSphere.Radius * direction;
 	Vector3 shadowMapUp(0.0f, 1.0f, 0.0f);
@@ -546,7 +549,7 @@ void NXScene::CreateBVHTrees(const HBVHSplitMode SplitMode)
 		m_pBVHTree.reset();
 	}
 
-	auto pThis = dynamic_pointer_cast<NXScene>(shared_from_this());
-	m_pBVHTree = make_shared<HBVHTree>(pThis, m_primitives);
+	auto pThis = std::dynamic_pointer_cast<NXScene>(shared_from_this());
+	m_pBVHTree = std::make_shared<HBVHTree>(pThis, m_primitives);
 	m_pBVHTree->BuildTreesWithScene(SplitMode);
 }

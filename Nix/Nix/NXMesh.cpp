@@ -9,7 +9,7 @@ NXMesh::~NXMesh()
 {
 }
 
-void NXMesh::Init(string filePath)
+void NXMesh::Init(std::string filePath)
 {
 	m_filePath = filePath;
 

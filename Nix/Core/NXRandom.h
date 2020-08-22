@@ -3,6 +3,9 @@
 #include "Header.h"
 #include "NXInstance.h"
 
+using RandomFloatDistribution = std::uniform_real_distribution<float>;
+using RandomIntDistribution = std::uniform_int_distribution<int>;
+
 class NXRandom : public	NXInstance<NXRandom>
 {
 public:
@@ -17,5 +20,5 @@ public:
 
 private:
 	int m_rngSeed;
-	default_random_engine m_rng;
+	std::default_random_engine m_rng;
 };

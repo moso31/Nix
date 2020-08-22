@@ -6,7 +6,7 @@
 #include "NXPrimitive.h"
 #include "NXIntersection.h"
 
-NXPMSplitIntegrator::NXPMSplitIntegrator(const shared_ptr<NXPhotonMap>& pGlobalPhotons, const shared_ptr<NXPhotonMap>& pCausticPhotons) :
+NXPMSplitIntegrator::NXPMSplitIntegrator(const std::shared_ptr<NXPhotonMap>& pGlobalPhotons, const std::shared_ptr<NXPhotonMap>& pCausticPhotons) :
 	m_pGlobalPhotonMap(pGlobalPhotons),
 	m_pCausticPhotonMap(pCausticPhotons)
 {
@@ -16,7 +16,7 @@ NXPMSplitIntegrator::~NXPMSplitIntegrator()
 {
 }
 
-Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXScene>& pScene, int depth)
+Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const std::shared_ptr<NXScene>& pScene, int depth)
 {
 	bool PHOTONS_ONLY = false;
 
@@ -45,7 +45,7 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXS
 		if (!bIsIntersect)
 			return result;
 
-		shared_ptr<NXPBRAreaLight> pHitAreaLight;
+		std::shared_ptr<NXPBRAreaLight> pHitAreaLight;
 		if (hitInfo.pPrimitive) pHitAreaLight = hitInfo.pPrimitive->GetTangibleLight();
 		else if (pScene->GetCubeMap()) pHitAreaLight = pScene->GetCubeMap()->GetEnvironmentLight();
 
@@ -59,7 +59,7 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXS
 		if (bDirect)
 			result += throughput * UniformLightOne(ray, pScene, hitInfo);
 
-		shared_ptr<NXBSDF::SampleEvents> sampleEvent = make_shared<NXBSDF::SampleEvents>();
+		std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
 		f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
 		bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
 		sampleEvent.reset();

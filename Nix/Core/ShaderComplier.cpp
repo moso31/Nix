@@ -1,6 +1,6 @@
 #include "ShaderComplier.h"
 
-HRESULT ShaderComplier::Compile(wstring szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut)
+HRESULT ShaderComplier::Compile(std::wstring szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut)
 {
 	HRESULT hr = S_OK;
 

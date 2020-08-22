@@ -10,7 +10,7 @@ NXPhotonMap::NXPhotonMap(int numPhotons) :
 {
 }
 
-void NXPhotonMap::Generate(const shared_ptr<NXScene>& pScene, const shared_ptr<NXCamera>& pCamera, PhotonMapType photonMapType)
+void NXPhotonMap::Generate(const std::shared_ptr<NXScene>& pScene, const std::shared_ptr<NXCamera>& pCamera, PhotonMapType photonMapType)
 {
 	switch (photonMapType)
 	{
@@ -30,9 +30,9 @@ void NXPhotonMap::GetNearest(const Vector3& position, const Vector3& normal, flo
 	m_pKdTree->GetNearest(position, normal, out_distSqr, out_nearestPhotons, maxLimit, range, locateFilter);
 }
 
-void NXPhotonMap::GenerateCausticMap(const shared_ptr<NXScene>& pScene, const shared_ptr<NXCamera>& pCamera)
+void NXPhotonMap::GenerateCausticMap(const std::shared_ptr<NXScene>& pScene, const std::shared_ptr<NXCamera>& pCamera)
 {
-	vector<NXPhoton> causticPhotons;
+	std::vector<NXPhoton> causticPhotons;
 
 	printf("Generating caustic photons...");
 	for (int i = 0; i < m_numPhotons; i++)
@@ -63,7 +63,7 @@ void NXPhotonMap::GenerateCausticMap(const shared_ptr<NXScene>& pScene, const sh
 
 			float pdf;
 			Vector3 nextDirection;
-			shared_ptr<NXBSDF::SampleEvents> sampleEvent = make_shared<NXBSDF::SampleEvents>();
+			std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
 			Vector3 f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
 			bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
 			bHasSpecularOrGlossy |= !bIsDiffuse;
@@ -104,14 +104,14 @@ void NXPhotonMap::GenerateCausticMap(const shared_ptr<NXScene>& pScene, const sh
 	}
 
 	m_pKdTree.reset();
-	m_pKdTree = make_shared<NXKdTree<NXPhoton>>();
+	m_pKdTree = std::make_shared<NXKdTree<NXPhoton>>();
 	m_pKdTree->BuildBalanceTree(causticPhotons);
 	printf("done.\n");
 }
 
-void NXPhotonMap::GenerateGlobalMap(const shared_ptr<NXScene>& pScene, const shared_ptr<NXCamera>& pCamera)
+void NXPhotonMap::GenerateGlobalMap(const std::shared_ptr<NXScene>& pScene, const std::shared_ptr<NXCamera>& pCamera)
 {
-	vector<NXPhoton> globalPhotons;
+	std::vector<NXPhoton> globalPhotons;
 
 	printf("Generating global photons...");
 	for (int i = 0; i < m_numPhotons; i++)
@@ -142,7 +142,7 @@ void NXPhotonMap::GenerateGlobalMap(const shared_ptr<NXScene>& pScene, const sha
 
 			float pdf;
 			Vector3 nextDirection;
-			shared_ptr<NXBSDF::SampleEvents> sampleEvent = make_shared<NXBSDF::SampleEvents>();
+			std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
 			Vector3 f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
 			bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
 			sampleEvent.reset();
@@ -179,7 +179,7 @@ void NXPhotonMap::GenerateGlobalMap(const shared_ptr<NXScene>& pScene, const sha
 	}
 
 	m_pKdTree.reset();
-	m_pKdTree = make_shared<NXKdTree<NXPhoton>>();
+	m_pKdTree = std::make_shared<NXKdTree<NXPhoton>>();
 	m_pKdTree->BuildBalanceTree(globalPhotons);
 	printf("done.\n");
 }

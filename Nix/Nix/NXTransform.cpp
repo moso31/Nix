@@ -72,7 +72,7 @@ void NXTransform::UpdateTransform()
 	auto pParent = GetParent();
 	while (pParent)
 	{
-		auto pTransform = dynamic_pointer_cast<NXTransform>(pParent);
+		auto pTransform = std::dynamic_pointer_cast<NXTransform>(pParent);
 		if (pTransform)
 		{
 			pTransform->UpdateTransform();

@@ -9,7 +9,7 @@ public:
 	~NXIntegrator();
 
 	// 计算Lo
-	virtual Vector3 Radiance(const Ray& ray, const shared_ptr<NXScene>& pScene, int depth) = 0;
+	virtual Vector3 Radiance(const Ray& ray, const std::shared_ptr<NXScene>& pScene, int depth) = 0;
 
 	/*
 	对单次采样进行评估。
@@ -21,8 +21,8 @@ public:
 			2.基于BSDF采样一次。
 		之后将两次采样的结果结合，得到一个较为准确的估算值。
 	*/
-	Vector3 DirectEstimate(const Ray& ray, const shared_ptr<NXScene>& pScene, const shared_ptr<NXPBRLight>& pLight, const NXHit& hitInfo);
+	Vector3 DirectEstimate(const Ray& ray, const std::shared_ptr<NXScene>& pScene, const std::shared_ptr<NXPBRLight>& pLight, const NXHit& hitInfo);
 
-	Vector3 UniformLightAll(const Ray& ray, const shared_ptr<NXScene>& pScene, const NXHit& hitInfo);
-	Vector3 UniformLightOne(const Ray& ray, const shared_ptr<NXScene>& pScene, const NXHit& hitInfo);
+	Vector3 UniformLightAll(const Ray& ray, const std::shared_ptr<NXScene>& pScene, const NXHit& hitInfo);
+	Vector3 UniformLightOne(const Ray& ray, const std::shared_ptr<NXScene>& pScene, const NXHit& hitInfo);
 };

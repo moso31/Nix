@@ -5,13 +5,13 @@ NXCubeMap::NXCubeMap()
 {
 }
 
-bool NXCubeMap::Init(wstring filePath)
+bool NXCubeMap::Init(std::wstring filePath)
 {
 	m_image.reset(); 
-	m_image = make_unique<ScratchImage>();
+	m_image = std::make_unique<ScratchImage>();
 
 	TexMetadata metadata;
-	unique_ptr<ScratchImage> dcImage = make_unique<ScratchImage>();
+	std::unique_ptr<ScratchImage> dcImage = std::make_unique<ScratchImage>();
 	HRESULT hr; 
 	hr = LoadFromDDSFile(filePath.c_str(), DDS_FLAGS_NONE, &metadata, *m_image);
 	if (FAILED(hr))
@@ -83,7 +83,7 @@ Vector3 NXCubeMap::BackgroundColorByDirection(const Vector3& v)
 	return Vector3(r, g, b);
 }
 
-shared_ptr<NXPBREnvironmentLight> NXCubeMap::GetEnvironmentLight() const 
+std::shared_ptr<NXPBREnvironmentLight> NXCubeMap::GetEnvironmentLight() const 
 { 
 	return m_pEnvironmentLight; 
 }

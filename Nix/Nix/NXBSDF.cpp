@@ -4,7 +4,7 @@
 #include "NXPBRMaterial.h"
 #include "SamplerMath.h"
 
-NXBSDF::NXBSDF(const NXHit& pHitInfo, const shared_ptr<NXPBRMaterial>& pMaterial) :
+NXBSDF::NXBSDF(const NXHit& pHitInfo, const std::shared_ptr<NXPBRMaterial>& pMaterial) :
 	ng(pHitInfo.normal),
 	ns(pHitInfo.shading.normal),
 	ss(pHitInfo.shading.dpdu),
@@ -13,16 +13,16 @@ NXBSDF::NXBSDF(const NXHit& pHitInfo, const shared_ptr<NXPBRMaterial>& pMaterial
 {
 	// 这里直接把微面分布和Fresnel放在外面用不太好
 	// 微面分布和Fresnel模型分别都具有很多种。将来可以改成更具有可扩展性的方案
-	pDistrib = make_unique<NXRDistributionBeckmann>(pMat->m_roughness);
-	pFresnelSpecular = make_unique<NXFresnelCommon>(pMat->m_specular);
-	auto pFresnelReflectivity = make_unique<NXFresnelDielectric>(1.0f, pMat->m_IOR);
+	pDistrib = std::make_unique<NXRDistributionBeckmann>(pMat->m_roughness);
+	pFresnelSpecular = std::make_unique<NXFresnelCommon>(pMat->m_specular);
+	auto pFresnelReflectivity = std::make_unique<NXFresnelDielectric>(1.0f, pMat->m_IOR);
 
 	Vector3 wo = WorldToReflection(pHitInfo.direction);
 	m_reflectance = pMat->m_IOR > 0.0f ? pFresnelReflectivity->FresnelReflectance(CosTheta(wo)).x : 0.0f;	// 有反射率必然为电介质，xyz都一样 取谁都行
 	pMat->CalcSampleProbabilities(m_reflectance);
 }
 
-Vector3 NXBSDF::Sample(const Vector3& woWorld, Vector3& o_wiWorld, float& o_pdf, shared_ptr<SampleEvents> o_sampleEvent)
+Vector3 NXBSDF::Sample(const Vector3& woWorld, Vector3& o_wiWorld, float& o_pdf, std::shared_ptr<SampleEvents> o_sampleEvent)
 {
 	// 如果是漫反射or高亮反射，执行漫反射+高亮反射
 	// 如果是纯反射，执行纯反射

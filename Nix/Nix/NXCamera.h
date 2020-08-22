@@ -21,7 +21,8 @@ public:
 	const Matrix& GetViewMatrix();
 	const Matrix& GetProjectionMatrix();
 
-	Ray GenerateRay(Vector2 cursorPosition);
+	Ray GenerateRay(const Vector2& cursorPosition);
+	Ray GenerateRay(const Vector2& cursor, const Vector2& imageSize);
 
 	void Init(float fovY, float zNear, float zFar, Vector3 cameraPosition, Vector3 cameraLookAt, Vector3 cameraLookUp);
 	void UpdateTransform();

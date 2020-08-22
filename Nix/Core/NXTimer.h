@@ -11,7 +11,7 @@ public:
 	void Tick();
 
 private:
-	time_point<steady_clock> m_lastTime;
+	TimePoint m_lastTime;
 	int64_t m_timeDelta;
 	int64_t m_global_time;
 };

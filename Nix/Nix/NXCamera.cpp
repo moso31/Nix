@@ -92,12 +92,15 @@ const Matrix& NXCamera::GetProjectionMatrix()
 	return m_projection;
 }
 
-Ray NXCamera::GenerateRay(Vector2 cursorPosition)
+Ray NXCamera::GenerateRay(const Vector2& cursorPosition)
 {
-	Vector2 outputSize = g_dxResources->GetViewSize();
+	return GenerateRay(cursorPosition, g_dxResources->GetViewSize());
+}
 
-	float x = (2.0f * cursorPosition.x / outputSize.x - 1.0f) / m_projection._11;
-	float y = (1.0f - 2.0f * cursorPosition.y / outputSize.y) / m_projection._22;
+Ray NXCamera::GenerateRay(const Vector2& cursor, const Vector2& imageSize)
+{
+	float x = (2.0f * cursor.x / imageSize.x - 1.0f) / m_projection._11;
+	float y = (1.0f - 2.0f * cursor.y / imageSize.y) / m_projection._22;
 
 	Vector3 vOrig(0.0f);
 	Vector3 vDir = Vector3(x, y, 1.0f);

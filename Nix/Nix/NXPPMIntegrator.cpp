@@ -13,7 +13,7 @@ NXPPMIntegrator::~NXPPMIntegrator()
 {
 }
 
-Vector3 NXPPMIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXScene>& pScene, int depth)
+Vector3 NXPPMIntegrator::Radiance(const Ray& cameraRay, const std::shared_ptr<NXScene>& pScene, int depth)
 {
 	int maxDepth = 10;
 
@@ -33,7 +33,7 @@ Vector3 NXPPMIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXScene
 		if (!bIsIntersect)
 			return result;
 
-		shared_ptr<NXPBRAreaLight> pHitAreaLight;
+		std::shared_ptr<NXPBRAreaLight> pHitAreaLight;
 		if (hitInfo.pPrimitive)pHitAreaLight = hitInfo.pPrimitive->GetTangibleLight();
 		else if (pScene->GetCubeMap()) pHitAreaLight = pScene->GetCubeMap()->GetEnvironmentLight();
 		if (pHitAreaLight)
@@ -42,7 +42,7 @@ Vector3 NXPPMIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXScene
 		}
 
 		hitInfo.GenerateBSDF(true);
-		shared_ptr<NXBSDF::SampleEvents> sampleEvent = make_shared<NXBSDF::SampleEvents>();
+		std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
 		Vector3 f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
 		bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
 		sampleEvent.reset();
@@ -71,7 +71,7 @@ Vector3 NXPPMIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXScene
 	Vector3 L(0.0f);
 	for (int t = 0; t < 1; t++);
 	{
-		m_pPhotonMap = make_shared<NXPhotonMap>(nPhotonsAtOnce);
+		m_pPhotonMap = std::make_shared<NXPhotonMap>(nPhotonsAtOnce);
 		m_pPhotonMap->Generate(pScene, pScene->GetMainCamera(), PhotonMapType::Global);
 		nPhotonsAtAll += nPhotonsAtOnce;
 

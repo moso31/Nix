@@ -26,7 +26,7 @@ public:
 	void OnMouseMove(NXEventArg eArg);
 
 private:
-	shared_ptr<NXCamera> m_pCamera;
+	std::shared_ptr<NXCamera> m_pCamera;
 	float m_fMoveSpeed;
 	float m_fSensitivity;
 
@@ -34,6 +34,6 @@ private:
 	bool m_bMoveState[6]; 
 	int m_bSpeedState;
 
-	steady_clock::time_point m_lastTime;
-	steady_clock::time_point m_currTime;
+	TimePoint m_lastTime;
+	TimePoint m_currTime;
 };

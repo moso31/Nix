@@ -8,7 +8,7 @@ NXEvent::~NXEvent()
 	}
 }
 
-void NXEvent::AddListener(const shared_ptr<NXListener>& pListener)
+void NXEvent::AddListener(const std::shared_ptr<NXListener>& pListener)
 {
 	m_listeners.push_back(pListener);
 }

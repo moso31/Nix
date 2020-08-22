@@ -59,10 +59,10 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	if (FAILED(InitWindow(hInstance, nCmdShow)))
 		return 0;
 
-	g_app = make_shared<App>();
+	g_app = std::make_shared<App>();
 	g_app->Init();
 
-	g_timer = make_shared<NXTimer>();
+	g_timer = std::make_shared<NXTimer>();
 
 	// Main message loop
 	MSG msg = { 0 };

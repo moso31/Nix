@@ -2,8 +2,8 @@
 #include "Header.h"
 #include <queue>
 
-template <typename T> using priority_queue_distance_cartesian = priority_queue<T, vector<T>, function<bool(const T& valA, const T& valB)>>;
-//template <typename T> using priority_queue_distance_harmonic = priority_queue<T, vector<T>, function<bool(const T& valA)>>;
+template <typename T> using priority_queue_distance_cartesian = std::priority_queue<T, std::vector<T>, std::function<bool(const T& valA, const T& valB)>>;
+//template <typename T> using priority_queue_distance_harmonic = std::priority_queue<T, vector<T>, function<bool(const T& valA)>>;
 
 enum LocateFilter
 {
@@ -32,7 +32,7 @@ struct NXKdTreeNode
 		}
 	}
 
-	shared_ptr<NXKdTreeNode<T>> lc, rc;
+	std::shared_ptr<NXKdTreeNode<T>> lc, rc;
 	T data;
 	int dim;
 };
@@ -45,21 +45,21 @@ public:
 	~NXKdTree() {}
 
 	// 创建初始即平衡的kd树。
-	void BuildBalanceTree(vector<T>& data)
+	void BuildBalanceTree(std::vector<T>& data)
 	{
 		pRoot = RecursiveBuild(0, data.size(), data);
 	}
 
-	shared_ptr<NXKdTreeNode<T>> RecursiveBuild(size_t begin, size_t offset, vector<T>& data)
+	std::shared_ptr<NXKdTreeNode<T>> RecursiveBuild(size_t begin, size_t offset, std::vector<T>& data)
 	{
 		if (offset < 1)
 			return nullptr;
 
-		unique_ptr<NXKdTreeNode<T>> node;
+		std::unique_ptr<NXKdTreeNode<T>> node;
 		if (offset == 1)
 		{
 			// leaf node
-			node = make_unique<NXKdTreeNode<T>>();
+			node = std::make_unique<NXKdTreeNode<T>>();
 			node->data = data[begin];
 			node->dim = -1;
 			node->lc = nullptr;
@@ -89,7 +89,7 @@ public:
 				return a.position[maxExtent] < b.position[maxExtent];
 			});
 
-		node = make_unique<NXKdTreeNode<T>>();
+		node = std::make_unique<NXKdTreeNode<T>>();
 		node->data = *itSplit;
 		node->dim = maxExtent;
 		node->lc = RecursiveBuild(begin, mid - begin, data);
@@ -97,7 +97,7 @@ public:
 		return node;
 	}
 	
-	void Locate(const Vector3& position, const Vector3& normal, const shared_ptr<NXKdTreeNode<T>>& p, int maxLimit, float& out_mindist2, priority_queue_distance_cartesian<T>& out_nearest, LocateFilter locateFilter)
+	void Locate(const Vector3& position, const Vector3& normal, const std::shared_ptr<NXKdTreeNode<T>>& p, int maxLimit, float& out_mindist2, priority_queue_distance_cartesian<T>& out_nearest, LocateFilter locateFilter)
 	{
 		if (!p) return;
 
@@ -151,6 +151,6 @@ public:
 	}
 
 private:
-	shared_ptr<NXKdTreeNode<T>> pRoot;
+	std::shared_ptr<NXKdTreeNode<T>> pRoot;
 	int m_x;
 };

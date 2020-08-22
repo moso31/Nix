@@ -10,6 +10,6 @@ public:
 	void Update();
 
 private:
-	shared_ptr<NXPrimitive> pPrimitive;
+	std::shared_ptr<NXPrimitive> pPrimitive;
 	float m_rotValue;
 };

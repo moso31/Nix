@@ -12,13 +12,13 @@ void Renderer::Init()
 {
 	InitRenderer();
 
-	m_globalBufferManager = make_shared<NXGlobalBufferManager>();
+	m_globalBufferManager = std::make_shared<NXGlobalBufferManager>();
 	m_globalBufferManager->Init();
 
-	m_scene = make_shared<NXScene>();
+	m_scene = std::make_shared<NXScene>();
 	m_scene->Init();
 
-	m_pPassShadowMap = make_shared<NXPassShadowMap>(m_scene);
+	m_pPassShadowMap = std::make_shared<NXPassShadowMap>(m_scene);
 	m_pPassShadowMap->Init(2048, 2048);
 }
 
@@ -102,7 +102,7 @@ void Renderer::InitRenderer()
 	NX::ThrowIfFailed(g_pDevice->CreateSamplerState(&sampShadowMapPCFDesc, &m_pSamplerShadowMapPCF));
 
 	// Create RenderTarget
-	m_renderTarget = make_shared<NXRenderTarget>();
+	m_renderTarget = std::make_shared<NXRenderTarget>();
 	{
 		m_renderTarget->Init();
 	}

@@ -4,6 +4,7 @@
 #include "NXCamera.h"
 #include "NXScene.h"
 #include "NXRandom.h"
+#include "NXRayTraceWay.h"
 
 NXRayTracer::NXRayTracer() :
 	m_iTaskIter(0),
@@ -14,7 +15,7 @@ NXRayTracer::NXRayTracer() :
 {
 }
 
-void NXRayTracer::Load(const shared_ptr<NXScene>& pScene, const shared_ptr<NXCamera>& pMainCamera, const shared_ptr<NXIntegrator>& pIntegrator, const NXRenderImageInfo& ImageInfo)
+void NXRayTracer::Load(const std::shared_ptr<NXScene>& pScene, const std::shared_ptr<NXCamera>& pMainCamera, const std::shared_ptr<NXIntegrator>& pIntegrator, const NXRenderImageInfo& ImageInfo)
 {
 	m_pScene = pScene;
 	m_pRayTraceCamera = pMainCamera;
@@ -24,6 +25,13 @@ void NXRayTracer::Load(const shared_ptr<NXScene>& pScene, const shared_ptr<NXCam
 	m_fImageSizeInv = Vector2(1.0f / (float)ImageInfo.ImageSize.x, 1.0f / (float)ImageInfo.ImageSize.y);
 	m_fNDCToViewSpaceFactorInv = Vector2(1.0f / pMainCamera->GetProjectionMatrix()._11, 1.0f / pMainCamera->GetProjectionMatrix()._22);
 	m_mxViewToWorld = pMainCamera->GetViewMatrix().Invert();
+}
+
+void NXRayTracer::Render()
+{
+	auto pRayTraceWay = std::make_shared<NXRayTraceWayDirect>();
+	pRayTraceWay->LoadPasses(m_pScene, m_imageInfo.ImageSize);
+	pRayTraceWay->Render();
 }
 
 void NXRayTracer::MakeImage()
@@ -106,11 +114,11 @@ void NXRayTracer::MakeImageTile(const int taskIter)
 	printf("\r%.2f%% (%d / %d) ", process, count, threadCount);
 }
 
-shared_ptr<NXIrradianceCache> NXRayTracer::MakeIrradianceCache(const shared_ptr<NXPhotonMap>& pGlobalPhotonMap)
+std::shared_ptr<NXIrradianceCache> NXRayTracer::MakeIrradianceCache(const std::shared_ptr<NXPhotonMap>& pGlobalPhotonMap)
 {
 	printf("Preloading irradiance caches...\n");
 	m_pIrradianceCache.reset();
-	m_pIrradianceCache = make_shared<NXIrradianceCache>();
+	m_pIrradianceCache = std::make_shared<NXIrradianceCache>();
 	m_pIrradianceCache->SetPhotonMaps(pGlobalPhotonMap);
 
 	// ½ø¶ÈÌõ
@@ -203,7 +211,7 @@ void NXRayTracer::Update()
 		{
 			// printf("Running Threads: %d\n", (int)m_iRunningThreadCount + 1);
 			m_iRunningThreadCount++;
-			thread task = thread(&NXRayTracer::MakeImageTile, this, m_iTaskIter++);
+			std::thread task = std::thread(&NXRayTracer::MakeImageTile, this, m_iTaskIter++);
 			task.detach();
 		}
 

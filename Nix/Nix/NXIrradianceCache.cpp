@@ -11,7 +11,7 @@ NXIrradianceCache::NXIrradianceCache() :
 {
 }
 
-void NXIrradianceCache::PreIrradiance(const Ray& cameraRay, const shared_ptr<NXScene>& pScene, int depth)
+void NXIrradianceCache::PreIrradiance(const Ray& cameraRay, const std::shared_ptr<NXScene>& pScene, int depth)
 {
 	int maxDepth = 10;
 
@@ -32,7 +32,7 @@ void NXIrradianceCache::PreIrradiance(const Ray& cameraRay, const shared_ptr<NXS
 
 		hitInfo.GenerateBSDF(true);
 
-		shared_ptr<NXBSDF::SampleEvents> sampleEvent = make_shared<NXBSDF::SampleEvents>();
+		std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
 		Vector3 f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
 		bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
 		sampleEvent.reset();
@@ -60,7 +60,7 @@ void NXIrradianceCache::PreIrradiance(const Ray& cameraRay, const shared_ptr<NXS
 	}
 }
 
-Vector3 NXIrradianceCache::Irradiance(const Ray& cameraRay, const shared_ptr<NXScene>& pScene, int depth)
+Vector3 NXIrradianceCache::Irradiance(const Ray& cameraRay, const std::shared_ptr<NXScene>& pScene, int depth)
 {
 	int maxDepth = 10;
 
@@ -84,7 +84,7 @@ Vector3 NXIrradianceCache::Irradiance(const Ray& cameraRay, const shared_ptr<NXS
 
 		hitInfo.GenerateBSDF(true);
 
-		shared_ptr<NXBSDF::SampleEvents> sampleEvent = make_shared<NXBSDF::SampleEvents>();
+		std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
 		f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
 		bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
 		sampleEvent.reset();
@@ -147,7 +147,7 @@ bool NXIrradianceCache::FindEstimateCaches(const Vector3& position, const Vector
 	return false;
 }
 
-Vector3 NXIrradianceCache::CalculateOneCache(const shared_ptr<NXScene>& pScene, const NXHit& hitInfo, int sampleTheta, int samplePhi, NXIrradianceCacheInfo& oCacheInfo)
+Vector3 NXIrradianceCache::CalculateOneCache(const std::shared_ptr<NXScene>& pScene, const NXHit& hitInfo, int sampleTheta, int samplePhi, NXIrradianceCacheInfo& oCacheInfo)
 {
 	float tTheta = 1.0f / (float)sampleTheta;
 	float tPhi = 1.0f / (float)samplePhi;

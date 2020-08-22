@@ -5,7 +5,7 @@
 #include "NXCubeMap.h"
 #include "NXPrimitive.h"
 
-NXPMIntegrator::NXPMIntegrator(const shared_ptr<NXPhotonMap>& pGlobalPhotons) :
+NXPMIntegrator::NXPMIntegrator(const std::shared_ptr<NXPhotonMap>& pGlobalPhotons) :
 	m_pPhotonMap(pGlobalPhotons)
 {
 }
@@ -14,7 +14,7 @@ NXPMIntegrator::~NXPMIntegrator()
 {
 }
 
-Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXScene>& pScene, int depth)
+Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const std::shared_ptr<NXScene>& pScene, int depth)
 {
 	if (!m_pPhotonMap)
 	{
@@ -41,7 +41,7 @@ Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXScene>
 		if (!bIsIntersect)
 			return result;
 
-		shared_ptr<NXPBRAreaLight> pHitAreaLight;
+		std::shared_ptr<NXPBRAreaLight> pHitAreaLight;
 		if (hitInfo.pPrimitive)pHitAreaLight = hitInfo.pPrimitive->GetTangibleLight();
 		else if (pScene->GetCubeMap()) pHitAreaLight = pScene->GetCubeMap()->GetEnvironmentLight();
 		if (pHitAreaLight)
@@ -50,7 +50,7 @@ Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const shared_ptr<NXScene>
 		}
 
 		hitInfo.GenerateBSDF(true);
-		shared_ptr<NXBSDF::SampleEvents> sampleEvent = make_shared<NXBSDF::SampleEvents>();
+		std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
 		Vector3 f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
 		bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
 		sampleEvent.reset();

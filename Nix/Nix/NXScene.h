@@ -19,24 +19,24 @@ public:
 
 	void Init();
 	void InitScripts();
-	void UpdateTransform(shared_ptr<NXObject> pObject = nullptr);
+	void UpdateTransform(std::shared_ptr<NXObject> pObject = nullptr);
 	void UpdateScripts();
 	void UpdateCamera();
 	void Release();
 
-	shared_ptr<NXCamera> GetMainCamera() { return m_pMainCamera; }
+	std::shared_ptr<NXCamera> GetMainCamera() { return m_pMainCamera; }
 
 	// 场景-射线相交测试
 	bool RayCast(const Ray& ray, NXHit& out_hitInfo, float tMax = FLT_MAX);
 
-	BoundingSphere						GetBoundingSphere()		{ return m_boundingSphere; }
-	AABB								GetAABB()				{ return m_aabb; }
-	vector<shared_ptr<NXPrimitive>>		GetPrimitives()			{ return m_primitives; }
-	shared_ptr<NXCubeMap>				GetCubeMap()			{ return m_pCubeMap; }
+	BoundingSphere	GetBoundingSphere() { return m_boundingSphere; }
+	AABB GetAABB() { return m_aabb; }
+	std::vector<std::shared_ptr<NXPrimitive>> GetPrimitives() { return m_primitives; }
+	std::shared_ptr<NXCubeMap> GetCubeMap() { return m_pCubeMap; }
 
 	// PBR场景数据
-	vector<shared_ptr<NXPBRLight>>		GetPBRLights()			{ return m_pbrLights; }
-	vector<shared_ptr<NXPBRMaterial>>	GetPBRMaterials()		{ return m_pbrMaterials; }
+	std::vector<std::shared_ptr<NXPBRLight>> GetPBRLights() { return m_pbrLights; }
+	std::vector<std::shared_ptr<NXPBRMaterial>>	GetPBRMaterials() { return m_pbrMaterials; }
 
 	// 目前只对第一个光源创建Parallel ShadowMap。
 	void InitShadowMapTransformInfo(ConstantBufferShadowMapTransform& out_cb);
@@ -49,31 +49,31 @@ private:
 
 private:
 	friend SceneManager;
-	shared_ptr<SceneManager> m_sceneManager;
+	std::shared_ptr<SceneManager> m_sceneManager;
 
 	// 求交加速结构（用于NXRayTracer的射线检测）
-	shared_ptr<HBVHTree> m_pBVHTree;
+	std::shared_ptr<HBVHTree> m_pBVHTree;
 
 	// 隐藏的根object
-	shared_ptr<NXObject> m_pRootObject;
+	std::shared_ptr<NXObject> m_pRootObject;
 
 	// object : light、camera、primitive均属于object。
-	vector<shared_ptr<NXObject>> m_objects;
-	vector<shared_ptr<NXLight>> m_lights;
-	vector<shared_ptr<NXPrimitive>> m_primitives;
-	shared_ptr<NXCamera> m_pMainCamera;
+	std::vector<std::shared_ptr<NXObject>> m_objects;
+	std::vector<std::shared_ptr<NXLight>> m_lights;
+	std::vector<std::shared_ptr<NXPrimitive>> m_primitives;
+	std::shared_ptr<NXCamera> m_pMainCamera;
 
 	// 材质
-	vector<shared_ptr<NXMaterial>> m_materials;
+	std::vector<std::shared_ptr<NXMaterial>> m_materials;
 
 	ID3D11Buffer* m_cbLights;
 	ConstantBufferLight m_cbDataLights;
-	shared_ptr<NXCubeMap> m_pCubeMap;
+	std::shared_ptr<NXCubeMap> m_pCubeMap;
 
 	AABB m_aabb;
 	BoundingSphere m_boundingSphere;
 
 	// PBR材质
-	vector<shared_ptr<NXPBRLight>> m_pbrLights;
-	vector<shared_ptr<NXPBRMaterial>> m_pbrMaterials;
+	std::vector<std::shared_ptr<NXPBRLight>> m_pbrLights;
+	std::vector<std::shared_ptr<NXPBRMaterial>> m_pbrMaterials;
 };

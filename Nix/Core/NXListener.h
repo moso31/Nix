@@ -4,15 +4,15 @@
 class NXListener
 {
 public:
-	NXListener(const shared_ptr<NXObject>& pObject, const function<void(NXEventArg)>& pFunc);
+	NXListener(const std::shared_ptr<NXObject>& pObject, const std::function<void(NXEventArg)>& pFunc);
 	virtual ~NXListener() {}
 
-	void SetFunc(const function<void(NXEventArg)>& pFunc);
-	function<void(NXEventArg)> GetFunc() const;
+	void SetFunc(const std::function<void(NXEventArg)>& pFunc);
+	std::function<void(NXEventArg)> GetFunc() const;
 
 	void Release();
 
 private:
-	shared_ptr<NXObject> m_pObject;
-	function<void(NXEventArg)> m_pFunc;
+	std::shared_ptr<NXObject> m_pObject;
+	std::function<void(NXEventArg)> m_pFunc;
 };

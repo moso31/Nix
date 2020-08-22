@@ -17,7 +17,7 @@ NXIntegrator::~NXIntegrator()
 {
 }
 
-Vector3 NXIntegrator::DirectEstimate(const Ray& ray, const shared_ptr<NXScene>& pScene, const shared_ptr<NXPBRLight>& pLight, const NXHit& hitInfo)
+Vector3 NXIntegrator::DirectEstimate(const Ray& ray, const std::shared_ptr<NXScene>& pScene, const std::shared_ptr<NXPBRLight>& pLight, const NXHit& hitInfo)
 {
 	Vector3 L(0.0f);
 
@@ -69,7 +69,7 @@ Vector3 NXIntegrator::DirectEstimate(const Ray& ray, const shared_ptr<NXScene>& 
 			Vector3 Li(0.0f);
 			NXHit hitLightInfo;
 			pScene->RayCast(ray, hitLightInfo);
-			shared_ptr<NXPBRAreaLight> pHitAreaLight;
+			std::shared_ptr<NXPBRAreaLight> pHitAreaLight;
 			if (hitLightInfo.pPrimitive)
 			{
 				pHitAreaLight = hitLightInfo.pPrimitive->GetTangibleLight();
@@ -97,7 +97,7 @@ Vector3 NXIntegrator::DirectEstimate(const Ray& ray, const shared_ptr<NXScene>& 
 	return L;
 }
 
-Vector3 NXIntegrator::UniformLightAll(const Ray& ray, const shared_ptr<NXScene>& pScene, const NXHit& hitInfo)
+Vector3 NXIntegrator::UniformLightAll(const Ray& ray, const std::shared_ptr<NXScene>& pScene, const NXHit& hitInfo)
 {
 	// All: 统计所有的光源
 	Vector3 result(0.0f);
@@ -107,12 +107,12 @@ Vector3 NXIntegrator::UniformLightAll(const Ray& ray, const shared_ptr<NXScene>&
 	return result;
 }
 
-Vector3 NXIntegrator::UniformLightOne(const Ray& ray, const shared_ptr<NXScene>& pScene, const NXHit& hitInfo)
+Vector3 NXIntegrator::UniformLightOne(const Ray& ray, const std::shared_ptr<NXScene>& pScene, const NXHit& hitInfo)
 {
 	// One: 仅统计单个光源，但对光源的选取完全随机。此方法期望值和All方法等同。
 	Vector3 result(0.0f);
 	auto pLights = pScene->GetPBRLights();
 	int lightCount = (int)pLights.size();
 	int index = NXRandom::GetInstance()->CreateInt(0, lightCount - 1);
-	return DirectEstimate(ray, pScene, pLights[index], hitInfo) * lightCount;
+	return DirectEstimate(ray, pScene, pLights[index], hitInfo) * (float)lightCount;
 }

@@ -4,5 +4,5 @@
 class ShaderComplier
 {
 public:
-	static HRESULT Compile(wstring szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);
+	static HRESULT Compile(std::wstring szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);
 };

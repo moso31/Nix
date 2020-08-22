@@ -10,18 +10,18 @@ public:
 	NXCubeMap();
 	~NXCubeMap() {}
 
-	bool Init(wstring filePath);
+	bool Init(std::wstring filePath);
 	Vector3 BackgroundColorByDirection(const Vector3& v);
 
-	void SetEnvironmentLight(shared_ptr<NXPBREnvironmentLight> pEnvironmentLight) { m_pEnvironmentLight = pEnvironmentLight; }
-	shared_ptr<NXPBREnvironmentLight> GetEnvironmentLight() const;
+	void SetEnvironmentLight(std::shared_ptr<NXPBREnvironmentLight> pEnvironmentLight) { m_pEnvironmentLight = pEnvironmentLight; }
+	std::shared_ptr<NXPBREnvironmentLight> GetEnvironmentLight() const;
 
 	void Release();
 
 private:
-	unique_ptr<ScratchImage> m_image;
+	std::unique_ptr<ScratchImage> m_image;
 	byte* m_faceData[6];
 	size_t m_width, m_height;
 
-	shared_ptr<NXPBREnvironmentLight> m_pEnvironmentLight;
+	std::shared_ptr<NXPBREnvironmentLight> m_pEnvironmentLight;
 };

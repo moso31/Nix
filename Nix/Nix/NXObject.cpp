@@ -10,33 +10,33 @@ NXObject::~NXObject()
 {
 }
 
-string NXObject::GetName()
+std::string NXObject::GetName()
 {
 	return m_name;
 }
 
-void NXObject::SetName(string name)
+void NXObject::SetName(std::string name)
 {
 	m_name = name;
 }
 
-void NXObject::AddScript(const shared_ptr<NXScript> &script)
+void NXObject::AddScript(const std::shared_ptr<NXScript> &script)
 {
 	script->SetObject(shared_from_this());
 	m_scripts.push_back(script);
 }
 
-vector<shared_ptr<NXScript>> NXObject::GetScripts()
+std::vector<std::shared_ptr<NXScript>> NXObject::GetScripts()
 {
 	return m_scripts;
 }
 
-shared_ptr<NXObject> NXObject::GetParent()
+std::shared_ptr<NXObject> NXObject::GetParent()
 {
 	return m_parent;
 }
 
-void NXObject::SetParent(shared_ptr<NXObject> pParent)
+void NXObject::SetParent(std::shared_ptr<NXObject> pParent)
 {
 	if (m_parent)
 		m_parent->RemoveChild(shared_from_this());
@@ -51,17 +51,17 @@ size_t NXObject::GetChildCount()
 	return m_childs.size();
 }
 
-list<shared_ptr<NXObject>> NXObject::GetChilds()
+std::list<std::shared_ptr<NXObject>> NXObject::GetChilds()
 {
 	return m_childs;
 }
 
-void NXObject::RemoveChild(const shared_ptr<NXObject>& pObject)
+void NXObject::RemoveChild(const std::shared_ptr<NXObject>& pObject)
 {
 	m_childs.remove(pObject);
 }
 
-bool NXObject::IsChild(shared_ptr<NXObject> pObject)
+bool NXObject::IsChild(std::shared_ptr<NXObject> pObject)
 {
 	auto pParent = pObject->m_parent;
 	while (pParent)

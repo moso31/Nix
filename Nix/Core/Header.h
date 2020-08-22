@@ -33,9 +33,9 @@
 // Math
 #include "SimpleMath.h"
 
-// namespace
-using namespace std;
-using namespace std::chrono;
+// using & namespace
+using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
+
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
 
@@ -60,7 +60,6 @@ class NXMaterial;
 
 // effects
 class NXPassShadowMap;
-class NXPassScene;
 class NXRenderTarget;
 
 // Global variables
@@ -70,6 +69,6 @@ extern	ID3D11Device5*				g_pDevice;
 extern	ID3D11DeviceContext4*		g_pContext;
 extern	IDXGISwapChain4*			g_pSwapChain;
 
-extern	shared_ptr<App>					g_app;
-extern	shared_ptr<DirectResources>		g_dxResources;
-extern	shared_ptr<NXTimer>				g_timer;
+extern	std::shared_ptr<App>					g_app;
+extern	std::shared_ptr<DirectResources>		g_dxResources;
+extern	std::shared_ptr<NXTimer>				g_timer;

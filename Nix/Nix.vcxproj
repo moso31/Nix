@@ -107,6 +107,8 @@
       <PreprocessorDefinitions>DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>.\;..\;..\FBXImporter\common;..\FBXImporter\include;..\NixMath\;.\Core;.\Nix;.\Nix\Script;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OpenMPSupport>true</OpenMPSupport>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -149,6 +151,8 @@
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>.\;..\;..\FBXImporter\common;..\FBXImporter\include;..\NixMath\;.\Core;.\Nix;.\Nix\Script;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OpenMPSupport>true</OpenMPSupport>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -255,6 +259,9 @@
     <ClCompile Include="Nix\NXReflection.inl" />
     <ClCompile Include="Nix\NXPMIntegrator.cpp" />
     <ClCompile Include="Nix\NXIrradianceCache.cpp" />
+    <ClCompile Include="Nix\NXRayTracePass.cpp" />
+    <ClCompile Include="Nix\NXRayTraceWay.cpp" />
+    <ClCompile Include="Nix\NXRayTracePassDirect.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h" />
@@ -315,6 +322,9 @@
     <ClInclude Include="Nix\NXReflection.h" />
     <ClInclude Include="Nix\NXPMIntegrator.h" />
     <ClInclude Include="Nix\NXIrradianceCache.h" />
+    <ClInclude Include="Nix\NXRayTracePass.h" />
+    <ClInclude Include="Nix\NXRayTraceWay.h" />
+    <ClInclude Include="Nix\NXRayTracePassDirect.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="场景添加物体说明.txt" />

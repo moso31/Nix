@@ -10,11 +10,11 @@ public:
 	NXVisibleTest() {}
 	~NXVisibleTest() {}
 
-	void SetScene(shared_ptr<NXScene>& pScene) { m_pScene = pScene; }
+	void SetScene(std::shared_ptr<NXScene>& pScene) { m_pScene = pScene; }
 	bool Do(const Vector3& startPosition, const Vector3& targetPosition);
 
 protected:
-	shared_ptr<NXScene> m_pScene;
+	std::shared_ptr<NXScene> m_pScene;
 };
 
 class NXPBRLight
@@ -80,7 +80,7 @@ public:
 class NXPBRTangibleLight : public NXPBRAreaLight
 {
 public:
-	NXPBRTangibleLight(const shared_ptr<NXPrimitive>& pPrimitive, const Vector3& Radiance);
+	NXPBRTangibleLight(const std::shared_ptr<NXPrimitive>& pPrimitive, const Vector3& Radiance);
 
 	Vector3 Emit(Ray& o_ray, Vector3& o_lightNormal, float& o_pdfPos, float& o_pdfDir) override;
 	Vector3 Illuminate(const NXHit& hitInfo, Vector3& o_wi, float& o_pdf) override;
@@ -94,13 +94,13 @@ public:
 	Vector3 Radiance;
 
 private:
-	shared_ptr<NXPrimitive> m_pPrimitive;
+	std::shared_ptr<NXPrimitive> m_pPrimitive;
 };
 
 class NXPBREnvironmentLight : public NXPBRAreaLight
 {
 public:
-	NXPBREnvironmentLight(const shared_ptr<NXCubeMap>& pCubeMap, const Vector3& Radiance, Vector3 WorldCenter, float WorldRadius);
+	NXPBREnvironmentLight(const std::shared_ptr<NXCubeMap>& pCubeMap, const Vector3& Radiance, Vector3 WorldCenter, float WorldRadius);
 
 	Vector3 Emit(Ray& o_ray, Vector3& o_lightNormal, float& o_pdfPos, float& o_pdfDir) override;
 	Vector3 Illuminate(const NXHit& hitInfo, Vector3& o_wi, float& o_pdf) override;
@@ -115,5 +115,5 @@ public:
 	float WorldRadius;
 
 private:
-	shared_ptr<NXCubeMap> m_pCubeMap;
+	std::shared_ptr<NXCubeMap> m_pCubeMap;
 };

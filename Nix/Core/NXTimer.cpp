@@ -16,8 +16,8 @@ int64_t NXTimer::GetTimeDelta()
 
 void NXTimer::Tick()
 {
-	auto currTime = steady_clock::now();
-	auto duration = duration_cast<microseconds>(currTime - m_lastTime);
+	auto currTime = std::chrono::steady_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(currTime - m_lastTime);
 	m_timeDelta = duration.count();
 	m_global_time += m_timeDelta;
 	m_lastTime = currTime;

@@ -1,36 +1,36 @@
 #pragma once
 #include "Header.h"
 
-class NXObject : public enable_shared_from_this<NXObject>
+class NXObject : public std::enable_shared_from_this<NXObject>
 {
 public:
 	NXObject();
 	~NXObject();
 
-	string GetName();
-	void SetName(string name);
+	std::string GetName();
+	void SetName(std::string name);
 
-	void AddScript(const shared_ptr<NXScript> &script);
-	vector<shared_ptr<NXScript>> GetScripts();
+	void AddScript(const std::shared_ptr<NXScript> &script);
+	std::vector<std::shared_ptr<NXScript>> GetScripts();
 
-	shared_ptr<NXObject> GetParent();
-	void SetParent(shared_ptr<NXObject> pParent);
+	std::shared_ptr<NXObject> GetParent();
+	void SetParent(std::shared_ptr<NXObject> pParent);
 
 	size_t GetChildCount();
-	list<shared_ptr<NXObject>> GetChilds();
-	void RemoveChild(const shared_ptr<NXObject>& pObject);
+	std::list<std::shared_ptr<NXObject>> GetChilds();
+	void RemoveChild(const std::shared_ptr<NXObject>& pObject);
 
 	// 检测pObject是否是当前节点的子节点。
-	bool IsChild(shared_ptr<NXObject> pObject);
+	bool IsChild(std::shared_ptr<NXObject> pObject);
 
 	virtual void Update();
 	virtual void Release();
 
 protected:
-	string m_name;
-	vector<shared_ptr<NXScript>> m_scripts;
+	std::string m_name;
+	std::vector<std::shared_ptr<NXScript>> m_scripts;
 	
 private:
-	shared_ptr<NXObject> m_parent;
-	list<shared_ptr<NXObject>> m_childs;
+	std::shared_ptr<NXObject> m_parent;
+	std::list<std::shared_ptr<NXObject>> m_childs;
 };

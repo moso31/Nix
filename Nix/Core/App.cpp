@@ -17,7 +17,7 @@ void App::Init()
 
 	RenderStates::Init();
 
-	m_pRenderer = make_shared<Renderer>();
+	m_pRenderer = std::make_shared<Renderer>();
 	m_pRenderer->Init();
 }
 

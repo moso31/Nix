@@ -80,7 +80,7 @@ Vector3 NXPBRDistantLight::Illuminate(const NXHit& hitInfo, Vector3& o_wi, float
 	return Radiance;
 }
 
-NXPBRTangibleLight::NXPBRTangibleLight(const shared_ptr<NXPrimitive>& pPrimitive, const Vector3& Radiance) :
+NXPBRTangibleLight::NXPBRTangibleLight(const std::shared_ptr<NXPrimitive>& pPrimitive, const Vector3& Radiance) :
 	m_pPrimitive(pPrimitive),
 	Radiance(Radiance)
 {
@@ -130,7 +130,7 @@ float NXPBRTangibleLight::GetPdf(const NXHit& hitInfo, const Vector3& lightPos, 
 	return m_pPrimitive->GetPdfSolidAngle(hitInfo, lightPos, lightNorm, lightDir);
 }
 
-NXPBREnvironmentLight::NXPBREnvironmentLight(const shared_ptr<NXCubeMap>& pCubeMap, const Vector3& Radiance, Vector3 WorldCenter, float WorldRadius) :
+NXPBREnvironmentLight::NXPBREnvironmentLight(const std::shared_ptr<NXCubeMap>& pCubeMap, const Vector3& Radiance, Vector3 WorldCenter, float WorldRadius) :
 	m_pCubeMap(pCubeMap),
 	Radiance(Radiance),
 	WorldCenter(WorldCenter),

@@ -15,7 +15,7 @@ Vector3 NXFresnelDielectric::FresnelReflectance(float cosThetaI)
 	if (!entering)
 	{
 		// 逃逸状态时，反转上下折射率，并反转入射方向cosThetaI以确保和表面法线同向
-		swap(etaI, etaT);
+		std::swap(etaI, etaT);
 		cosThetaI = abs(cosThetaI);
 	}
 

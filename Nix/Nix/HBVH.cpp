@@ -15,7 +15,7 @@ inline int EncodeMorton3(const XMINT3 &v) {
 	return (LeftShift3(v.z) << 2) | (LeftShift3(v.y) << 1) | LeftShift3(v.x);
 }
 
-HBVHTree::HBVHTree(const shared_ptr<NXScene>& scene, const vector<shared_ptr<NXPrimitive>>& pPrimitives) :
+HBVHTree::HBVHTree(const std::shared_ptr<NXScene>& scene, const std::vector<std::shared_ptr<NXPrimitive>>& pPrimitives) :
 	m_scene(scene),
 	m_primitives(scene->GetPrimitives()),
 	root(nullptr)
@@ -159,10 +159,10 @@ void HBVHTree::BuildTree(HBVHTreeNode * node, int stIndex, int edIndex, HBVHSpli
 		return;
 	}
 
-	vector<HBVHPrimitiveInfo>::iterator itSplit;
+	std::vector<HBVHPrimitiveInfo>::iterator itSplit;
 
 	AABB centroidAABB;
-	vector<Vector3> centroidAABBPoints;
+	std::vector<Vector3> centroidAABBPoints;
 	for (int i = stIndex; i < edIndex; i++)
 	{
 		centroidAABBPoints.push_back(m_primitiveInfo[i].aabb.Center);
@@ -444,14 +444,14 @@ void HBVHTree::BuildUpperTree(HBVHTreeNode* node, int stIndex, int edIndex)
 	}
 
 	AABB centroidAABB;
-	vector<Vector3> centroidAABBPoints;
+	std::vector<Vector3> centroidAABBPoints;
 	for (int i = stIndex; i < edIndex; i++)
 	{
 		centroidAABBPoints.push_back(m_treeletInfo[i].node->aabb.Center);
 	}
 	AABB::CreateFromPoints(centroidAABB, centroidAABBPoints.size(), centroidAABBPoints.data(), sizeof(Vector3));
 
-	vector<HBVHTreeletInfo>::iterator itSplit;
+	std::vector<HBVHTreeletInfo>::iterator itSplit;
 	int dim = centroidAABB.GetMaximumExtent();
 	const int nBucket = 12;
 	HBVHBucketInfo bucket[nBucket];

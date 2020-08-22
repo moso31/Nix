@@ -19,15 +19,15 @@ public:
 
 	void AddCache(const NXIrradianceCacheInfo& cache) { m_caches.push_back(cache); };
 	size_t GetCacheSize() { return m_caches.size(); }
-	void SetPhotonMaps(const shared_ptr<NXPhotonMap>& pPhotonMap) { m_pPhotonMap = pPhotonMap; }
+	void SetPhotonMaps(const std::shared_ptr<NXPhotonMap>& pPhotonMap) { m_pPhotonMap = pPhotonMap; }
 
-	void PreIrradiance(const Ray& ray, const shared_ptr<NXScene>& pScene, int depth);
-	Vector3 Irradiance(const Ray& ray, const shared_ptr<NXScene>& pScene, int depth);
+	void PreIrradiance(const Ray& ray, const std::shared_ptr<NXScene>& pScene, int depth);
+	Vector3 Irradiance(const Ray& ray, const std::shared_ptr<NXScene>& pScene, int depth);
 	bool FindEstimateCaches(const Vector3& position, const Vector3& normal, Vector3& oEstimateIrradiance);
-	Vector3 CalculateOneCache(const shared_ptr<NXScene>& pScene, const NXHit& hitInfo, int sampleTheta, int samplePhi, NXIrradianceCacheInfo& oCacheInfo);
+	Vector3 CalculateOneCache(const std::shared_ptr<NXScene>& pScene, const NXHit& hitInfo, int sampleTheta, int samplePhi, NXIrradianceCacheInfo& oCacheInfo);
 
 private:
-	shared_ptr<NXPhotonMap> m_pPhotonMap;
-	vector<NXIrradianceCacheInfo> m_caches;	
+	std::shared_ptr<NXPhotonMap> m_pPhotonMap;
+	std::vector<NXIrradianceCacheInfo> m_caches;
 	float m_threshold;
 };
