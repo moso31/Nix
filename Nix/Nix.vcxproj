@@ -262,6 +262,8 @@
     <ClCompile Include="Nix\NXIrradianceCache.cpp" />
     <ClCompile Include="Nix\NXRayTracePass.cpp" />
     <ClCompile Include="Nix\NXRayTracePassDirect.cpp" />
+    <ClCompile Include="Nix\NXRayPassPPM.cpp" />
+    <ClCompile Include="Nix\NXPPMPixel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h" />
@@ -325,6 +327,8 @@
     <ClInclude Include="Nix\NXIrradianceCache.h" />
     <ClInclude Include="Nix\NXRayTracePass.h" />
     <ClInclude Include="Nix\NXRayTracePassDirect.h" />
+    <ClInclude Include="Nix\NXRayPassPPM.h" />
+    <ClInclude Include="Nix\NXPPMPixel.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="场景添加物体说明.txt" />

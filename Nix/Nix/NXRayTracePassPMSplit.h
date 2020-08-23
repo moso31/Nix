@@ -61,10 +61,8 @@ private:
 
 	XMINT2 m_imageSize;			// 当前Pass的分辨率大小
 	XMINT2 m_tileSize;			// 如果需要分tile多线程计算
+	XMINT2 m_tileCount;			// tile数量
 	int m_eachPixelSamples;		// 每个像素多少样本 
-
-	// 加速计算
-	XMINT2 m_tileCount;
 
 	std::shared_ptr<NXPMSplitIntegrator> m_pIntegrator;
 	std::vector<ImageBMPData> pImageData;

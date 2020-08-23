@@ -98,9 +98,6 @@
     <ClCompile Include="Core\Global.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Core\Main.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="Core\FBXMeshLoader.cpp">
       <Filter>Core\File</Filter>
     </ClCompile>
@@ -265,6 +262,15 @@
     </ClCompile>
     <ClCompile Include="Nix\NXRayTracePassPMSplit.cpp">
       <Filter>Nix\RayTracer\Pass</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Main.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXRayPassPPM.cpp">
+      <Filter>Nix\RayTracer\Pass</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXPPMPixel.cpp">
+      <Filter>Nix\RayTracer\Integrator</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -450,6 +456,12 @@
     </ClInclude>
     <ClInclude Include="Nix\NXRayTracePassPMSplit.h">
       <Filter>Nix\RayTracer\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXRayPassPPM.h">
+      <Filter>Nix\RayTracer\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXPPMPixel.h">
+      <Filter>Nix\RayTracer\Integrator</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

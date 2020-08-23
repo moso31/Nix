@@ -99,7 +99,7 @@ void NXRayTracePassPMSplit::RenderImageDataParallel(ImageBMPData* pImageData, bo
 		for (int tx = 0; tx < m_tileCount.x; tx++)
 			for (int ty = 0; ty < m_tileCount.y; ty++)
 			{
-				NXRayTracePassPMSplit::RenderTile(pImageData, XMINT2(tx, ty));
+				RenderTile(pImageData, XMINT2(tx, ty));
 			}
 	}
 	else

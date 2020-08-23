@@ -6,6 +6,7 @@
 #include "NXRandom.h"
 #include "NXRayTracePassDirect.h"
 #include "NXRayTracePassPMSplit.h"
+#include "NXRayPassPPM.h"
 
 NXRayTracer::NXRayTracer() :
 	m_iTaskIter(0),
@@ -40,33 +41,53 @@ void NXRayTracer::Render()
 		pass->SetOutFilePath("D:\\nix_directLighting.bmp");
 		pass->Load(m_pScene, m_imageInfo.ImageSize, tileSize, eachPixelSamples);
 		pass->Render();
+
+		pass->Release();
 	}
-	else if (true)	// photon mapping split(irradiance cache + caustic map + global map)
+	else if (false)	// photon mapping split(irradiance cache + caustic map + global map)
 	{
 		bool EnableIrradianceCache = false;
 
-		auto pass1 = std::make_unique<NXRayTracePassPMSplitPhotonMap>();
-		pass1->Load(m_pScene, 200000, 200000);
-		pass1->Render();
+		auto passMakeMap = std::make_unique<NXRayTracePassPMSplitPhotonMap>();
+		passMakeMap->Load(m_pScene, 200000, 200000);
+		passMakeMap->Render();
 
-		auto pGlobalPhotonMap = pass1->GetGlobalPhotonMap();
-		auto pCausticPhotonMap = pass1->GetCausticPhotonMap();
-		std::shared_ptr<NXIrradianceCache> pIrradianceCache = nullptr;
+		auto pGlobalPhotonMap = passMakeMap->GetGlobalPhotonMap();
+		auto pCausticPhotonMap = passMakeMap->GetCausticPhotonMap();
+		std::shared_ptr<NXIrradianceCache> pIrradianceCache;
+		std::unique_ptr<NXRayTracePassPMSplitIrradianceCache> passIrrCache;
 		if (EnableIrradianceCache)
 		{
-			auto pass2 = std::make_unique<NXRayTracePassPMSplitIrradianceCache>();
-			pass2->Load(m_pScene, m_imageInfo.ImageSize, pGlobalPhotonMap);
-			pass2->Render();
+			passIrrCache = std::make_unique<NXRayTracePassPMSplitIrradianceCache>();
+			passIrrCache->Load(m_pScene, m_imageInfo.ImageSize, pGlobalPhotonMap);
+			passIrrCache->Render();
 
-			pIrradianceCache = pass2->GetIrradianceCache();
+			pIrradianceCache = passIrrCache->GetIrradianceCache();
 		}
-		auto pass3 = std::make_unique<NXRayTracePassPMSplit>();
-		pass3->Load(m_pScene, pGlobalPhotonMap, pCausticPhotonMap, pIrradianceCache, m_imageInfo.ImageSize, tileSize, eachPixelSamples);
-		pass3->SetOutFilePath("D:\\nix_PMSplit.bmp");
-		pass3->Render();
+		auto passDraw = std::make_unique<NXRayTracePassPMSplit>();
+		passDraw->Load(m_pScene, pGlobalPhotonMap, pCausticPhotonMap, pIrradianceCache, m_imageInfo.ImageSize, tileSize, eachPixelSamples);
+		passDraw->SetOutFilePath("D:\\nix_PMSplit.bmp");
+		passDraw->Render();
+
+		passMakeMap->Release();
+		passIrrCache->Release();
+		passDraw->Release();
 	}
 	else if (true)
 	{
+		auto passPPMPixel = std::make_unique<NXRayPassPPMGeneratePixels>();
+		passPPMPixel->Load(m_pScene, m_imageInfo.ImageSize, tileSize, m_imageInfo.EachPixelSamples);
+		passPPMPixel->Render();
+		auto pPPMPixelGenerator = passPPMPixel->GetPPMPixelGenerator();
+
+		auto passDraw = std::make_unique<NXRayPassPPM>();
+		passDraw->Load(m_pScene, pPPMPixelGenerator, m_imageInfo.ImageSize, 100000);
+		passDraw->GeneratePhotonMap();
+		passDraw->SetOutFilePath("D:\\nix_PPM.bmp");
+		passDraw->Render();
+
+		passPPMPixel->Release();
+		passDraw->Release();
 	}
 }
 
