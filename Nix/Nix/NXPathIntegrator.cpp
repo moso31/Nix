@@ -3,6 +3,11 @@
 #include "NXRandom.h"
 #include "NXPrimitive.h"
 
+NXPathIntegrator::NXPathIntegrator(const XMINT2& imageSize, int eachPixelSamples, std::string outPath) :
+	NXSampleIntegrator(imageSize, eachPixelSamples, outPath)
+{
+}
+
 Vector3 NXPathIntegrator::Radiance(const Ray& ray, const std::shared_ptr<NXScene>& pScene, int depth)
 {
 	const int maxDepth = 5;

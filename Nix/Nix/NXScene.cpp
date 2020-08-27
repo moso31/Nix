@@ -26,7 +26,7 @@
 #include "NXPathIntegrator.h"
 #include "NXPMIntegrator.h"
 #include "NXPMSplitIntegrator.h"
-#include "NXPPMIntegrator.h"
+#include "NXSPPMIntegrator.h"
 
 //#include "NXShadowMap.h"
 #include "NXPassShadowMap.h"
@@ -57,97 +57,37 @@ void NXScene::OnMouseDown(NXEventArg eArg)
 void NXScene::OnKeyDown(NXEventArg eArg)
 {
 	auto pScene = std::dynamic_pointer_cast<NXScene>(shared_from_this());
-	NXRenderImageInfo imageInfo;
-	imageInfo.ImageSize = XMINT2(800, 600);
-	imageInfo.EachPixelSamples = 4;
 
-	if (eArg.VKey == 'G')
+	switch (eArg.VKey)
 	{
-		imageInfo.outPath = "D:\\nix_PMtracing.bmp";
-		printf("rendering(HLBVH)...\n");
-		CreateBVHTrees(HBVHSplitMode::HLBVH);
-
-		std::shared_ptr<NXPPMIntegrator> pIntegrator = std::make_shared<NXPPMIntegrator>();
-		NXRayTracer::GetInstance()->Load(pScene, m_pMainCamera, pIntegrator, imageInfo);
-		NXRayTracer::GetInstance()->MakeImage();
-
-		pIntegrator.reset();
-	}
-
-	if (eArg.VKey == 'B')
-	{
-		imageInfo.outPath = "D:\\nix_PMtracing.bmp";
-		printf("rendering(HLBVH)...\n");
-		CreateBVHTrees(HBVHSplitMode::HLBVH);
-
-		std::shared_ptr<NXPhotonMap> pGlobalPhotonMap = std::make_shared<NXPhotonMap>(200000);
-		pGlobalPhotonMap->Generate(pScene, PhotonMapType::Global);
-		std::shared_ptr<NXPhotonMap> pCausticPhotonMap = std::make_shared<NXPhotonMap>(200000);
-		pCausticPhotonMap->Generate(pScene, PhotonMapType::Caustic);
-
-		//std::shared_ptr<NXPMIntegrator> pIntegrator = std::make_shared<NXPMIntegrator>(pGlobalPhotonMap);
-		std::shared_ptr<NXPMSplitIntegrator> pIntegrator = std::make_shared<NXPMSplitIntegrator>(pGlobalPhotonMap, pCausticPhotonMap);
-		NXRayTracer::GetInstance()->Load(pScene, m_pMainCamera, pIntegrator, imageInfo);
-		auto pIrradianceCache = nullptr;// NXRayTracer::GetInstance()->MakeIrradianceCache(pGlobalPhotonMap);
-		pIntegrator->SetIrradianceCache(pIrradianceCache);
-		NXRayTracer::GetInstance()->MakeImage();
-
-		pIntegrator.reset();
-	}
-
-	if (eArg.VKey == 'N')
-	{
-		imageInfo.outPath = "D:\\nix_PMtracing.bmp";
-		printf("rendering(HLBVH)...\n");
-		CreateBVHTrees(HBVHSplitMode::HLBVH);
-		
-		NXRayTracer::GetInstance()->Load(pScene, m_pMainCamera, nullptr, imageInfo);
-		NXRayTracer::GetInstance()->Render();
-	}
-
-	if (eArg.VKey == 'T')
-	{
-		std::shared_ptr<NXIntegrator> pIntegrator = std::make_shared<NXPathIntegrator>();
-
-		imageInfo.outPath = "D:\\nix_pathtracing.bmp";
-		printf("rendering(HLBVH)...\n");
-		CreateBVHTrees(HBVHSplitMode::HLBVH);
-		NXRayTracer::GetInstance()->Load(pScene, m_pMainCamera, pIntegrator, imageInfo);
-		NXRayTracer::GetInstance()->MakeImage();
-
-		pIntegrator.reset();
-	}
-
-	if (eArg.VKey == 'U')
-	{
-		std::shared_ptr<NXIntegrator> pIntegrator = std::make_shared<NXDirectIntegrator>();
-
-		imageInfo.outPath = "D:\\nix_directlighting.bmp";
-		printf("rendering(HLBVH)...\n");
-		CreateBVHTrees(HBVHSplitMode::HLBVH);
-		NXRayTracer::GetInstance()->Load(pScene, m_pMainCamera, pIntegrator, imageInfo);
-		NXRayTracer::GetInstance()->Render();
-
-		pIntegrator.reset();
+	case 'U':
+		NXRayTracer::GetInstance()->RenderImage(pScene, NXRayTraceRenderMode::DirectLighting);
+		break;
+	case 'T':
+		NXRayTracer::GetInstance()->RenderImage(pScene, NXRayTraceRenderMode::PathTracing);
+		break;
+	case 'Y':
+		NXRayTracer::GetInstance()->RenderImage(pScene, NXRayTraceRenderMode::PhotonMapping);
+		break;
+	case 'J':
+		NXRayTracer::GetInstance()->RenderImage(pScene, NXRayTraceRenderMode::IrradianceCache);
+		break;
+	case 'G':
+		NXRayTracer::GetInstance()->RenderImage(pScene, NXRayTraceRenderMode::SPPM);
+		break;
+	default:
+		break;
 	}
 
 	if (eArg.VKey == 'H')
 	{
 		// 创建求交加速结构以增加渲染速度。
 		printf("Generating BVH Structure...");
-		CreateBVHTrees(HBVHSplitMode::HLBVH);
+		BuildBVHTrees(HLBVH);
 		printf("done.\n");
 
-		std::shared_ptr<NXIntegrator> pIntegrator = std::make_shared<NXDirectIntegrator>();
-		//std::shared_ptr<NXIntegrator> pIntegrator = std::make_shared<NXPathIntegrator>();
-		//std::shared_ptr<NXPMIntegrator> pIntegrator = std::make_shared<NXPMIntegrator>();
-		//std::shared_ptr<NXPMSplitIntegrator> pIntegrator = std::make_shared<NXPMSplitIntegrator>();
-		//auto pThis = std::dynamic_pointer_cast<NXScene>(shared_from_this());
-		//pIntegrator->GeneratePhotons(pThis, m_mainCamera);
-
 		printf("center ray testing...\n");
-		NXRayTracer::GetInstance()->Load(pScene, m_pMainCamera, pIntegrator, imageInfo);
-		NXRayTracer::GetInstance()->CenterRayTest(10);
+		//NXRayTracer::GetInstance()->CenterRayTest(10);
 
 		if (!m_primitives.empty())
 		{
@@ -161,8 +101,6 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 				m_pMainCamera->GetAt().z);
 			printf("done.\n");
 		}
-
-		pIntegrator.reset();
 	}
 }
 
@@ -549,7 +487,7 @@ void NXScene::InitBoundingStructures()
 	BoundingSphere::CreateFromBoundingBox(m_boundingSphere, m_aabb);
 }
 
-void NXScene::CreateBVHTrees(const HBVHSplitMode SplitMode)
+void NXScene::BuildBVHTrees(const HBVHSplitMode SplitMode)
 {
 	if (m_pBVHTree)
 	{

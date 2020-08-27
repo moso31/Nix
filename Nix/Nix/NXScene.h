@@ -43,9 +43,10 @@ public:
 
 	ID3D11Buffer* GetConstantBufferLights() const { return m_cbLights; }
 
+	// ¸üÐÂ³¡¾°BVHÊ÷
+	void BuildBVHTrees(const HBVHSplitMode SplitMode);
 private:
 	void InitBoundingStructures();
-	void CreateBVHTrees(const HBVHSplitMode SplitMode);
 
 private:
 	friend SceneManager;

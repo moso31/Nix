@@ -1,10 +1,12 @@
 #include "NXIntegrator.h"
 #include "NXBSDF.h"
+#include "NXCamera.h"
 #include "NXCubeMap.h"
 #include "NXPrimitive.h"
 #include "NXPBRLight.h"
 #include "SamplerMath.h"
 #include "NXRandom.h"
+#include "NXRayTracer.h"
 
 using namespace SimpleMath;
 using namespace SamplerMath;
@@ -115,4 +117,93 @@ Vector3 NXIntegrator::UniformLightOne(const Ray& ray, const std::shared_ptr<NXSc
 	int lightCount = (int)pLights.size();
 	int index = NXRandom::GetInstance()->CreateInt(0, lightCount - 1);
 	return DirectEstimate(ray, pScene, pLights[index], hitInfo) * (float)lightCount;
+}
+
+NXSampleIntegrator::NXSampleIntegrator(const XMINT2& imageSize, int eachPixelSamples, std::string outPath) :
+	m_imageSize(imageSize),
+	m_eachPixelSamples(eachPixelSamples),
+	m_outFilePath(outPath),
+	m_tileSize(XMINT2(64, 64))
+{
+}
+
+void NXSampleIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
+{
+	printf("Building BVH Trees...");
+	pScene->BuildBVHTrees(HLBVH);
+	printf("Done.\n");
+
+	printf("Rendering...");
+	int pixelCount = m_imageSize.x * m_imageSize.y;
+	ImageBMPData* pImageData = new ImageBMPData[pixelCount];
+	memset(pImageData, 0, sizeof(ImageBMPData) * pixelCount);
+
+	m_progress = 0;
+	XMINT2 tileCount = XMINT2((m_imageSize.x + m_tileSize.x - 1) / m_tileSize.x, (m_imageSize.y + m_tileSize.y - 1) / m_tileSize.y);
+	int nTiles = tileCount.x * tileCount.y;
+
+	bool useOpenMP = false;
+	// 两种并行方案：OpenMP 或 C++17 execution
+	if (useOpenMP)
+	{
+#pragma omp parallel for
+		for (int tx = 0; tx < tileCount.x; tx++)
+			for (int ty = 0; ty < tileCount.y; ty++)
+			{
+				RenderTile(pScene, XMINT2(tx, ty), pImageData);
+			}
+	}
+	else
+	{
+		std::vector<XMINT2> tasks;
+		for (int tx = 0; tx < tileCount.x; tx++)
+			for (int ty = 0; ty < tileCount.y; ty++)
+				tasks.push_back(XMINT2(tx, ty));
+
+		std::for_each(std::execution::par, tasks.begin(), tasks.end(), [this, pScene, pImageData, nTiles](const XMINT2& tileId) {
+			RenderTile(pScene, tileId, pImageData);
+			printf("\r%.2f%% ", (float)++m_progress * 100.0f / (float)nTiles);	// 进度条更新
+			});
+	}
+
+	ImageGenerator::GenerateImageBMP((byte*)pImageData, m_imageSize.x, m_imageSize.y, m_outFilePath.c_str());
+	delete pImageData;
+	printf("done.\n");
+}
+
+void NXSampleIntegrator::RenderTile(const std::shared_ptr<NXScene>& pScene, const XMINT2& tileId, ImageBMPData* oImageData)
+{
+	for (int i = 0; i < m_tileSize.x; i++)
+	{
+		for (int j = 0; j < m_tileSize.y; j++)
+		{
+			Vector3 result(0.0f);
+			int pixelX = tileId.x * m_tileSize.x + i;
+			int pixelY = tileId.y * m_tileSize.y + j;
+			if (pixelX >= m_imageSize.x || pixelY >= m_imageSize.y)
+				continue;
+
+			Vector2 pixelCoord((float)pixelX, (float)pixelY);
+			for (UINT pixelSample = 0; pixelSample < m_eachPixelSamples; pixelSample++)
+			{
+				// pixel + [0, 1)^2.
+				Vector2 sampleCoord = pixelCoord + NXRandom::GetInstance()->CreateVector2();
+
+				Ray rayWorld = pScene->GetMainCamera()->GenerateRay(sampleCoord, Vector2((float)m_imageSize.x, (float)m_imageSize.y));
+				result += Radiance(rayWorld, pScene, 0);
+			}
+			result /= (float)m_eachPixelSamples;
+
+			XMINT3 RGBValue(
+				result.x > 1.0f ? 255 : (int)(result.x * 255.0f),
+				result.y > 1.0f ? 255 : (int)(result.y * 255.0f),
+				result.z > 1.0f ? 255 : (int)(result.z * 255.0f));
+
+			int index = (m_tileSize.y - j - 1) * m_tileSize.x + i;
+			int rgbIdx = (m_imageSize.y - pixelY - 1) * m_imageSize.x + pixelX;
+			oImageData[rgbIdx].r = RGBValue.x;
+			oImageData[rgbIdx].g = RGBValue.y;
+			oImageData[rgbIdx].b = RGBValue.z;
+		}
+	}
 }

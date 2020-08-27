@@ -6,14 +6,22 @@
 #include "NXPrimitive.h"
 #include "NXIntersection.h"
 
-NXPMSplitIntegrator::NXPMSplitIntegrator(const std::shared_ptr<NXPhotonMap>& pGlobalPhotons, const std::shared_ptr<NXPhotonMap>& pCausticPhotons) :
-	m_pGlobalPhotonMap(pGlobalPhotons),
-	m_pCausticPhotonMap(pCausticPhotons)
+NXPMSplitIntegrator::NXPMSplitIntegrator(const XMINT2& imageSize, int eachPixelSamples, std::string outPath, UINT nCausticPhotons, UINT nGlobalPhotons) :
+	NXSampleIntegrator(imageSize, eachPixelSamples, outPath),
+	m_numCausticPhotons(nCausticPhotons),
+	m_numGlobalPhotons(nGlobalPhotons)
 {
 }
 
 NXPMSplitIntegrator::~NXPMSplitIntegrator()
 {
+}
+
+void NXPMSplitIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
+{
+	BuildPhotonMap(pScene);
+	BuildIrradianceCache(pScene);
+	NXSampleIntegrator::Render(pScene);
 }
 
 Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const std::shared_ptr<NXScene>& pScene, int depth)
@@ -172,4 +180,50 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const std::shared_pt
 	}
 
 	return result;
+}
+
+void NXPMSplitIntegrator::BuildPhotonMap(const std::shared_ptr<NXScene>& pScene)
+{
+	printf("Building Caustic Photon Map...");
+	m_pCausticPhotonMap.reset();
+	m_pCausticPhotonMap = std::make_shared<NXPhotonMap>(m_numCausticPhotons);
+	m_pCausticPhotonMap->Generate(pScene, PhotonMapType::Caustic);
+	printf("Done.\n");
+	printf("Building Global Photon Map...");
+	m_pGlobalPhotonMap.reset();
+	m_pGlobalPhotonMap = std::make_shared<NXPhotonMap>(m_numGlobalPhotons);
+	m_pGlobalPhotonMap->Generate(pScene, PhotonMapType::Global);
+	printf("Done.\n");
+}
+
+void NXPMSplitIntegrator::BuildIrradianceCache(const std::shared_ptr<NXScene>& pScene)
+{
+	printf("Preloading irradiance caches...\n");
+	m_pIrradianceCache.reset();
+	m_pIrradianceCache = std::make_shared<NXIrradianceCache>();
+	m_pIrradianceCache->SetPhotonMaps(m_pGlobalPhotonMap);
+
+	// ½ø¶ÈÌõ
+	int process = 0;
+	int pxCount = m_imageSize.x * m_imageSize.y;
+	int barrier = 5000;
+	int nodeCount = (pxCount + barrier - 1) / barrier;
+
+#pragma omp parallel for
+	for (int i = 0; i < m_imageSize.x; i++)
+	{
+		for (int j = 0; j < m_imageSize.y; j++)
+		{
+			Vector2 pixel((float)i, (float)j);
+
+			Vector2 coord = pixel + Vector2(0.5f, 0.5f);
+			Ray rayWorld = pScene->GetMainCamera()->GenerateRay(coord, Vector2((float)m_imageSize.x, (float)m_imageSize.y));
+			m_pIrradianceCache->PreIrradiance(rayWorld, pScene, 0);
+
+			process++;
+			if (process % barrier == 0)
+				printf("\r%.2f%% ", (float)process * 100 / pxCount);
+		}
+	}
+	printf("done. (caches: %zd)\n", m_pIrradianceCache->GetCacheSize());
 }

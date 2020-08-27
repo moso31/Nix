@@ -5,13 +5,20 @@
 #include "NXCubeMap.h"
 #include "NXPrimitive.h"
 
-NXPMIntegrator::NXPMIntegrator(const std::shared_ptr<NXPhotonMap>& pGlobalPhotons) :
-	m_pPhotonMap(pGlobalPhotons)
+NXPMIntegrator::NXPMIntegrator(const XMINT2& imageSize, int eachPixelSamples, std::string outPath, UINT nPhotons) :
+	NXSampleIntegrator(imageSize, eachPixelSamples, outPath),
+	m_numPhotons(nPhotons)
 {
 }
 
 NXPMIntegrator::~NXPMIntegrator()
 {
+}
+
+void NXPMIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
+{
+	BuildPhotonMap(pScene);
+	NXSampleIntegrator::Render(pScene);
 }
 
 Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const std::shared_ptr<NXScene>& pScene, int depth)
@@ -100,4 +107,13 @@ Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const std::shared_ptr<NXS
 	float numPhotons = (float)m_pPhotonMap->GetPhotonCount();
 	result += throughput * flux / (XM_PI * radius2 * numPhotons);
 	return result;
+}
+
+void NXPMIntegrator::BuildPhotonMap(const std::shared_ptr<NXScene>& pScene)
+{
+	printf("Building Global Photon Map...");
+	m_pPhotonMap.reset();
+	m_pPhotonMap = std::make_shared<NXPhotonMap>(m_numPhotons);
+	m_pPhotonMap->Generate(pScene, PhotonMapType::Global);
+	printf("Done.\n");
 }

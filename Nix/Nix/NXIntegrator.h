@@ -1,15 +1,14 @@
 #pragma once
+#include <execution>
 #include "NXIntersection.h"
 #include "NXScene.h"
+#include "ImageGenerator.h"
 
 class NXIntegrator
 {
 public:
 	NXIntegrator();
 	~NXIntegrator();
-
-	// 计算Lo
-	virtual Vector3 Radiance(const Ray& ray, const std::shared_ptr<NXScene>& pScene, int depth) = 0;
 
 	/*
 	对单次采样进行评估。
@@ -25,4 +24,46 @@ public:
 
 	Vector3 UniformLightAll(const Ray& ray, const std::shared_ptr<NXScene>& pScene, const NXHit& hitInfo);
 	Vector3 UniformLightOne(const Ray& ray, const std::shared_ptr<NXScene>& pScene, const NXHit& hitInfo);
+
+	virtual void Render(const std::shared_ptr<NXScene>& pScene) = 0;
+};
+
+// 离线渲染的图像信息
+struct NXRenderImageInfo
+{
+	// 图像分辨率
+	XMINT2 ImageSize;
+
+	// 每个像素中的样本数量
+	int EachPixelSamples;
+
+	// 输出图像路径
+	std::string outPath;
+};
+
+class NXSampleIntegrator : public NXIntegrator
+{
+public:
+	NXSampleIntegrator() {}
+	NXSampleIntegrator(const XMINT2& imageSize, int eachPixelSamples, std::string outPath);
+	~NXSampleIntegrator() {}
+
+	void Render(const std::shared_ptr<NXScene>& pScene) override;
+	virtual Vector3 Radiance(const Ray& ray, const std::shared_ptr<NXScene>& pScene, int depth) = 0;
+
+private:
+	void RenderTile(const std::shared_ptr<NXScene>& pScene, const XMINT2& tileId, ImageBMPData* oImageData);
+
+protected:
+	XMINT2 m_imageSize;		// 渲染图像分辨率
+
+private:
+	// 进度条
+	UINT m_progress;
+
+	// 渲染图片存放路径
+	std::string m_outFilePath;
+
+	XMINT2 m_tileSize;		// 单个并行渲染Tile的大小
+	UINT m_eachPixelSamples;	// 单个像素样本数量
 };

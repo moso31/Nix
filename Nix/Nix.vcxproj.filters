@@ -70,9 +70,6 @@
     <Filter Include="Nix\RayTracer\IrradianceCache">
       <UniqueIdentifier>{37acfc55-a531-4610-ad88-9ac01112c20a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Nix\RayTracer\Pass">
-      <UniqueIdentifier>{87e18c17-655e-49f4-b2f4-96de2d3ed331}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\RenderTarget.fx">
@@ -251,25 +248,10 @@
     <ClCompile Include="Nix\NXPhoton.cpp">
       <Filter>Nix\RayTracer</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\NXPPMIntegrator.cpp">
-      <Filter>Nix\RayTracer\Integrator</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\NXRayTracePass.cpp">
-      <Filter>Nix\RayTracer\Pass</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\NXRayTracePassDirect.cpp">
-      <Filter>Nix\RayTracer\Pass</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\NXRayTracePassPMSplit.cpp">
-      <Filter>Nix\RayTracer\Pass</Filter>
-    </ClCompile>
     <ClCompile Include="Core\Main.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\NXRayPassPPM.cpp">
-      <Filter>Nix\RayTracer\Pass</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\NXPPMPixel.cpp">
+    <ClCompile Include="Nix\NXSPPMIntegrator.cpp">
       <Filter>Nix\RayTracer\Integrator</Filter>
     </ClCompile>
   </ItemGroup>
@@ -445,22 +427,7 @@
     <ClInclude Include="Nix\NXPhoton.h">
       <Filter>Nix\RayTracer</Filter>
     </ClInclude>
-    <ClInclude Include="Nix\NXPPMIntegrator.h">
-      <Filter>Nix\RayTracer\Integrator</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\NXRayTracePass.h">
-      <Filter>Nix\RayTracer\Pass</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\NXRayTracePassDirect.h">
-      <Filter>Nix\RayTracer\Pass</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\NXRayTracePassPMSplit.h">
-      <Filter>Nix\RayTracer\Pass</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\NXRayPassPPM.h">
-      <Filter>Nix\RayTracer\Pass</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\NXPPMPixel.h">
+    <ClInclude Include="Nix\NXSPPMIntegrator.h">
       <Filter>Nix\RayTracer\Integrator</Filter>
     </ClInclude>
   </ItemGroup>

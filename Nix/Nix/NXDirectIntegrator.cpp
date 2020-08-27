@@ -3,6 +3,11 @@
 #include "NXScene.h"
 #include "NXCubeMap.h"
 
+NXDirectIntegrator::NXDirectIntegrator(const XMINT2& imageSize, int eachPixelSamples, std::string outPath) :
+	NXSampleIntegrator(imageSize, eachPixelSamples, outPath)
+{
+}
+
 Vector3 NXDirectIntegrator::Radiance(const Ray& ray, const std::shared_ptr<NXScene>& pScene, int depth)
 {
 	// —∞’“…‰œﬂ-≥°æ∞hit

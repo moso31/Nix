@@ -1,1 +1,0 @@
-#include "NXRayTracePass.h"

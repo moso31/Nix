@@ -26,7 +26,6 @@ void App::Draw()
 	m_pRenderer->UpdateSceneData();
 	m_pRenderer->DrawShadowMap();
 	m_pRenderer->DrawScene();
-	NXRayTracer::GetInstance()->Update();
 }
 
 void App::Release()
