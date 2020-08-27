@@ -7,8 +7,9 @@
 class NXIntegrator
 {
 public:
-	NXIntegrator();
-	~NXIntegrator();
+	NXIntegrator() {}
+	NXIntegrator(const XMINT2& imageSize) : m_imageSize(imageSize) {}
+	~NXIntegrator() {}
 
 	/*
 	对单次采样进行评估。
@@ -26,6 +27,12 @@ public:
 	Vector3 UniformLightOne(const Ray& ray, const std::shared_ptr<NXScene>& pScene, const NXHit& hitInfo);
 
 	virtual void Render(const std::shared_ptr<NXScene>& pScene) = 0;
+
+protected:
+	XMINT2 m_imageSize;		// 渲染图像分辨率
+
+	// 进度条
+	UINT m_progress;
 };
 
 // 离线渲染的图像信息
@@ -54,12 +61,7 @@ public:
 private:
 	void RenderTile(const std::shared_ptr<NXScene>& pScene, const XMINT2& tileId, ImageBMPData* oImageData);
 
-protected:
-	XMINT2 m_imageSize;		// 渲染图像分辨率
-
 private:
-	// 进度条
-	UINT m_progress;
 
 	// 渲染图片存放路径
 	std::string m_outFilePath;

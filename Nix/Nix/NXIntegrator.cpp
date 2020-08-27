@@ -4,20 +4,11 @@
 #include "NXCubeMap.h"
 #include "NXPrimitive.h"
 #include "NXPBRLight.h"
-#include "SamplerMath.h"
 #include "NXRandom.h"
 #include "NXRayTracer.h"
+#include "SamplerMath.h"
 
-using namespace SimpleMath;
 using namespace SamplerMath;
-
-NXIntegrator::NXIntegrator()
-{
-}
-
-NXIntegrator::~NXIntegrator()
-{
-}
 
 Vector3 NXIntegrator::DirectEstimate(const Ray& ray, const std::shared_ptr<NXScene>& pScene, const std::shared_ptr<NXPBRLight>& pLight, const NXHit& hitInfo)
 {
@@ -120,7 +111,7 @@ Vector3 NXIntegrator::UniformLightOne(const Ray& ray, const std::shared_ptr<NXSc
 }
 
 NXSampleIntegrator::NXSampleIntegrator(const XMINT2& imageSize, int eachPixelSamples, std::string outPath) :
-	m_imageSize(imageSize),
+	NXIntegrator(imageSize),
 	m_eachPixelSamples(eachPixelSamples),
 	m_outFilePath(outPath),
 	m_tileSize(XMINT2(64, 64))

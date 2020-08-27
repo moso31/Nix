@@ -4,6 +4,7 @@
 #include "NXPathIntegrator.h"
 #include "NXPMIntegrator.h"
 #include "NXPMSplitIntegrator.h"
+#include "NXSPPMIntegrator.h"
 
 NXRayTracer::NXRayTracer()
 {
@@ -40,7 +41,11 @@ void NXRayTracer::RenderImage(const std::shared_ptr<NXScene>& pScene, NXRayTrace
 		break;
 	}
 	case NXRayTraceRenderMode::SPPM:
+	{
+		int nPhotons = 200000;
+		std::make_unique<NXSPPMIntegrator>(renderResolution,  "D:\\Nix_SPPM.bmp", nPhotons)->Render(pScene);
 		break;
+	}
 	default:
 		break;
 	}
