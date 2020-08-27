@@ -25,9 +25,9 @@ void NXPhotonMap::Generate(const std::shared_ptr<NXScene>& pScene, PhotonMapType
 	}
 }
 
-void NXPhotonMap::GetNearest(const Vector3& position, const Vector3& normal, float& out_distSqr, priority_queue_distance_cartesian<NXPhoton>& out_nearestPhotons, int maxLimit, float range, LocateFilter locateFilter)
+void NXPhotonMap::GetNearest(const Vector3& position, const Vector3& normal, float& out_distSqr, priority_queue_distance_cartesian<NXPhoton>& out_nearestPhotons, int maxPhotonsLimit, float range2, LocateFilter locateFilter)
 {
-	m_pKdTree->GetNearest(position, normal, out_distSqr, out_nearestPhotons, maxLimit, range, locateFilter);
+	m_pKdTree->GetNearest(position, normal, out_distSqr, out_nearestPhotons, maxPhotonsLimit, range2, locateFilter);
 }
 
 void NXPhotonMap::GenerateCausticMap(const std::shared_ptr<NXScene>& pScene)
