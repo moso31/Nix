@@ -5,9 +5,10 @@
 
 struct NXSPPMPixel
 {
-	NXSPPMPixel() : flux(0.0f), photons(0), radius2(0.0f) {}
+	NXSPPMPixel() : flux(0.0f), photons(0), radius2(0.0f), Ld(0.0f) {}
 	~NXSPPMPixel() {}
 
+	Vector3 Ld;
 	float radius2;
 	UINT photons;
 	Vector3 flux;

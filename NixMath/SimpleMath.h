@@ -274,6 +274,7 @@ Vector3 operator* (const Vector3& V1, const Vector3& V2);
 Vector3 operator* (const Vector3& V, float S);
 Vector3 operator/ (const Vector3& V1, const Vector3& V2);
 Vector3 operator* (float S, const Vector3& V);
+Vector3 operator/ (const Vector3& V, float S);
 
 //------------------------------------------------------------------------------
 // 4D vector

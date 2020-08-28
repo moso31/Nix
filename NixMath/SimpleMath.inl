@@ -771,6 +771,16 @@ inline Vector3 operator* (float S, const Vector3& V)
     return R;
 }
 
+inline Vector3 operator/ (const Vector3& V, float S)
+{
+    using namespace DirectX;
+    XMVECTOR v1 = XMLoadFloat3(&V);
+    XMVECTOR X = XMVectorScale(v1, 1.0f / S);
+    Vector3 R;
+    XMStoreFloat3(&R, X);
+    return R;
+}
+
 //------------------------------------------------------------------------------
 // std::vector operations
 //------------------------------------------------------------------------------

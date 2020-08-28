@@ -69,6 +69,8 @@ void NXSPPMIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
 					}
 
 					hitInfo.GenerateBSDF(true);
+					//Le += throughput * UniformLightOne(ray, pScene, hitInfo);
+
 					std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
 					Vector3 f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
 					bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
@@ -122,8 +124,9 @@ void NXSPPMIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
 					pixel.flux = flux;
 					pixel.photons = photons;
 					pixel.radius2 = radius2;
+					pixel.Ld += Le;
 
-					Vector3 result = Le + Lr;
+					Vector3 result = (pixel.Ld / (float)(k + 1)) + Lr;
 
 					XMINT3 RGBValue(
 						result.x > 1.0f ? 255 : (int)(result.x * 255.0f),
@@ -150,6 +153,6 @@ void NXSPPMIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
 void NXSPPMIntegrator::RefreshPhotonMap(const std::shared_ptr<NXScene>& pScene)
 {
 	m_pPhotonMap.reset();
-	m_pPhotonMap = std::make_shared<NXPhotonMap>(200000);
+	m_pPhotonMap = std::make_shared<NXPhotonMap>(m_numPhotonsEachStep);
 	m_pPhotonMap->Generate(pScene, PhotonMapType::Global);
 }
