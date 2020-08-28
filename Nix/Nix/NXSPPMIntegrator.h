@@ -5,7 +5,7 @@
 
 struct NXSPPMPixel
 {
-	NXSPPMPixel() {}
+	NXSPPMPixel() : flux(0.0f), photons(0), radius2(0.0f) {}
 	~NXSPPMPixel() {}
 
 	float radius2;

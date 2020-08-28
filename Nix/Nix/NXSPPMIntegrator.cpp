@@ -18,19 +18,13 @@ void NXSPPMIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
 	pScene->BuildBVHTrees(HLBVH);
 	printf("Done.\n");
 
+	UINT nPixels = m_imageSize.x * m_imageSize.y;
+	std::unique_ptr<NXSPPMPixel[]> pixels(new NXSPPMPixel[nPixels]);
 	for (int k = 0; ; k++)
 	{
 		printf("SPPM iteration sequences rendering...(Image %d)\n", k);
-		UINT nPixels = m_imageSize.x * m_imageSize.y;
-		std::unique_ptr<NXSPPMPixel[]> pixels(new NXSPPMPixel[nPixels]);
-
 		ImageBMPData* pImageData = new ImageBMPData[nPixels];
 		memset(pImageData, 0, sizeof(ImageBMPData) * nPixels);
-
-		for (int i = 0; i < nPixels; i++)
-		{
-			// 如果需要visible points初始化，写在这里
-		}
 
 		printf("Refreshing photon map...");
 		RefreshPhotonMap(pScene);
@@ -57,11 +51,12 @@ void NXSPPMIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
 				Vector3 Le(0.0f);
 				Vector3 throughput(1.0f);
 
+				bool bIsIntersect = false;
 				bool bIsDiffuse = false;
 				while (true)
 				{
 					hitInfo = NXHit();
-					bool bIsIntersect = pScene->RayCast(ray, hitInfo);
+					bIsIntersect = pScene->RayCast(ray, hitInfo);
 					if (!bIsIntersect)
 						break;
 
@@ -86,41 +81,60 @@ void NXSPPMIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
 					ray.position += ray.direction * NXRT_EPSILON;
 				}
 
-				Vector3 pos = hitInfo.position;
-				Vector3 norm = hitInfo.shading.normal;
-
-				// 大根堆，负责记录pos周围的最近顶点。
-				priority_queue_distance_cartesian<NXPhoton> nearestPhotons([pos](const NXPhoton& photonA, const NXPhoton& photonB) {
-					float distA = Vector3::DistanceSquared(pos, photonA.position);
-					float distB = Vector3::DistanceSquared(pos, photonB.position);
-					return distA < distB;
-					});
-
-				float radius2;
-				m_pPhotonMap->GetNearest(pos, norm, radius2, nearestPhotons, 100, FLT_MAX, LocateFilter::Disk);
-
-				Vector3 flux(0.0f);
-				while (!nearestPhotons.empty())
+				if (bIsIntersect)
 				{
-					auto photon = nearestPhotons.top();
-					Vector3 f = hitInfo.BSDF->Evaluate(-ray.direction, photon.direction, pdf);
-					flux += f * photon.power;
-					nearestPhotons.pop();
+					Vector3 pos = hitInfo.position;
+					Vector3 norm = hitInfo.shading.normal;
+
+					// 大根堆，负责记录pos周围的最近顶点。
+					priority_queue_distance_cartesian<NXPhoton> nearestPhotons([pos](const NXPhoton& photonA, const NXPhoton& photonB) {
+						float distA = Vector3::DistanceSquared(pos, photonA.position);
+						float distB = Vector3::DistanceSquared(pos, photonB.position);
+						return distA < distB;
+						});
+
+					const static float alpha = 0.66666667f;
+					UINT photons;	// 下一次累积的光子数量
+					float radius2;
+					if (!k)
+					{
+						photons = 100;
+						m_pPhotonMap->GetNearest(pos, norm, radius2, nearestPhotons, photons, FLT_MAX, LocateFilter::Disk);
+					}
+					else
+					{
+						m_pPhotonMap->GetNearest(pos, norm, radius2, nearestPhotons, -1, pixel.radius2, LocateFilter::Disk);
+						photons = pixel.photons + (UINT)(alpha * nearestPhotons.size());
+						radius2 = pixel.radius2 * ((float)photons / (pixel.photons + (UINT)nearestPhotons.size()));
+					}
+
+					Vector3 flux(0.0f);
+					while (!nearestPhotons.empty())
+					{
+						auto photon = nearestPhotons.top();
+						Vector3 f = hitInfo.BSDF->Evaluate(-ray.direction, photon.direction, pdf);
+						flux += f * photon.power;
+						nearestPhotons.pop();
+					}
+
+					if (k) flux = (pixel.flux + flux) * radius2 / pixel.radius2;
+					Vector3 Lr = throughput * flux / (XM_PI * (float)m_pPhotonMap->GetPhotonCount() * (k + 1) * radius2);
+					pixel.flux = flux;
+					pixel.photons = photons;
+					pixel.radius2 = radius2;
+
+					Vector3 result = Le + Lr;
+
+					XMINT3 RGBValue(
+						result.x > 1.0f ? 255 : (int)(result.x * 255.0f),
+						result.y > 1.0f ? 255 : (int)(result.y * 255.0f),
+						result.z > 1.0f ? 255 : (int)(result.z * 255.0f));
+
+					int rgbIdx = (m_imageSize.y - j - 1) * m_imageSize.x + i;
+					pImageData[rgbIdx].r = RGBValue.x;
+					pImageData[rgbIdx].g = RGBValue.y;
+					pImageData[rgbIdx].b = RGBValue.z;
 				}
-
-				Vector3 Lr = throughput * flux / (XM_PI * (float)m_pPhotonMap->GetPhotonCount() * radius2);
-
-				Vector3 result = Le + Lr;
-
-				XMINT3 RGBValue(
-					result.x > 1.0f ? 255 : (int)(result.x * 255.0f),
-					result.y > 1.0f ? 255 : (int)(result.y * 255.0f),
-					result.z > 1.0f ? 255 : (int)(result.z * 255.0f));
-
-				int rgbIdx = (m_imageSize.y - j - 1) * m_imageSize.x + i;
-				pImageData[rgbIdx].r = RGBValue.x;
-				pImageData[rgbIdx].g = RGBValue.y;
-				pImageData[rgbIdx].b = RGBValue.z;
 			}
 
 			printf("\r%.2f%% ", (float)++m_progress * 100.0f / (float)m_imageSize.x);	// 进度条更新
