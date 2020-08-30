@@ -146,7 +146,7 @@ void NXScene::Init()
 	pPlane->SetMaterialPBR(pPBRMat[2]);
 
 	auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 16, 16, pMaterial, Vector3(1.0f, 1.0f, 1.0f));
-	pSphere->SetMaterialPBR(pPBRMat[4]);
+	pSphere->SetMaterialPBR(pPBRMat[0]);
 
 	//std::shared_ptr<NXSphere> pLight = m_sceneManager->CreateSphere("Light", 1.0f, 64, 64, pMaterial, Vector3(-4.5f, 5.999f, 2.0f));
 	//pLight->SetMaterialPBR(pPBRMat[0]);

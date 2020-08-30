@@ -23,8 +23,14 @@ void NXSPPMIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
 	for (int k = 0; ; k++)
 	{
 		printf("SPPM iteration sequences rendering...(Image %d)\n", k);
-		ImageBMPData* pImageData = new ImageBMPData[nPixels];
-		memset(pImageData, 0, sizeof(ImageBMPData) * nPixels);
+
+		bool bRenderOnce = k % 10 == 0;
+		ImageBMPData* pImageData = nullptr;
+		if (bRenderOnce)
+		{
+			pImageData = new ImageBMPData[nPixels];
+			memset(pImageData, 0, sizeof(ImageBMPData) * nPixels);
+		}
 
 		printf("Refreshing photon map...");
 		RefreshPhotonMap(pScene);
@@ -101,11 +107,11 @@ void NXSPPMIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
 					if (!k)
 					{
 						photons = 100;
-						m_pPhotonMap->GetNearest(pos, norm, radius2, nearestPhotons, photons, FLT_MAX, LocateFilter::Disk);
+						m_pPhotonMap->GetNearest(pos, norm, radius2, nearestPhotons, photons, FLT_MAX, LocateFilter::Sphere);
 					}
 					else
 					{
-						m_pPhotonMap->GetNearest(pos, norm, radius2, nearestPhotons, -1, pixel.radius2, LocateFilter::Disk);
+						m_pPhotonMap->GetNearest(pos, norm, radius2, nearestPhotons, -1, pixel.radius2, LocateFilter::Sphere);
 						photons = pixel.photons + (UINT)(alpha * nearestPhotons.size());
 						radius2 = pixel.radius2 * ((float)photons / (pixel.photons + (UINT)nearestPhotons.size()));
 					}
@@ -126,17 +132,20 @@ void NXSPPMIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
 					pixel.radius2 = radius2;
 					pixel.Ld += Le;
 
-					Vector3 result = (pixel.Ld / (float)(k + 1)) + Lr;
+					if (bRenderOnce)
+					{
+						Vector3 result = (pixel.Ld / (float)(k + 1)) + Lr;
 
-					XMINT3 RGBValue(
-						result.x > 1.0f ? 255 : (int)(result.x * 255.0f),
-						result.y > 1.0f ? 255 : (int)(result.y * 255.0f),
-						result.z > 1.0f ? 255 : (int)(result.z * 255.0f));
+						XMINT3 RGBValue(
+							result.x > 1.0f ? 255 : (int)(result.x * 255.0f),
+							result.y > 1.0f ? 255 : (int)(result.y * 255.0f),
+							result.z > 1.0f ? 255 : (int)(result.z * 255.0f));
 
-					int rgbIdx = (m_imageSize.y - j - 1) * m_imageSize.x + i;
-					pImageData[rgbIdx].r = RGBValue.x;
-					pImageData[rgbIdx].g = RGBValue.y;
-					pImageData[rgbIdx].b = RGBValue.z;
+						int rgbIdx = (m_imageSize.y - j - 1) * m_imageSize.x + i;
+						pImageData[rgbIdx].r = RGBValue.x;
+						pImageData[rgbIdx].g = RGBValue.y;
+						pImageData[rgbIdx].b = RGBValue.z;
+					}
 				}
 			}
 
@@ -144,8 +153,11 @@ void NXSPPMIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
 		}
 
 		m_outFilePath = "D:\\Nix_SPPM_" + std::to_string(k) + ".bmp";
-		ImageGenerator::GenerateImageBMP((byte*)pImageData, m_imageSize.x, m_imageSize.y, m_outFilePath.c_str());
-		delete pImageData;
+		if (bRenderOnce)
+		{
+			ImageGenerator::GenerateImageBMP((byte*)pImageData, m_imageSize.x, m_imageSize.y, m_outFilePath.c_str());
+			delete pImageData;
+		}
 		printf("done.\n");
 	}
 }
