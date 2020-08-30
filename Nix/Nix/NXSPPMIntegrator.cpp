@@ -24,7 +24,7 @@ void NXSPPMIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
 	{
 		printf("SPPM iteration sequences rendering...(Image %d)\n", k);
 
-		bool bRenderOnce = k % 10 == 0;
+		bool bRenderOnce = true;// k % 10 == 0;
 		ImageBMPData* pImageData = nullptr;
 		if (bRenderOnce)
 		{
@@ -54,7 +54,8 @@ void NXSPPMIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
 				float pdf;
 				NXHit hitInfo;
 
-				Vector3 Le(0.0f);
+				Vector3 f(0.0f);
+				Vector3 Le(0.0f), Lr(0.0f);
 				Vector3 throughput(1.0f);
 
 				bool bIsIntersect = false;
@@ -75,10 +76,10 @@ void NXSPPMIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
 					}
 
 					hitInfo.GenerateBSDF(true);
-					//Le += throughput * UniformLightOne(ray, pScene, hitInfo);
+					Le += throughput * UniformLightOne(ray, pScene, hitInfo);
 
 					std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
-					Vector3 f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
+					f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
 					bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
 					sampleEvent.reset();
 
@@ -89,48 +90,59 @@ void NXSPPMIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
 					ray.position += ray.direction * NXRT_EPSILON;
 				}
 
-				if (bIsIntersect)
+				if (bIsDiffuse && bIsIntersect)
 				{
-					Vector3 pos = hitInfo.position;
-					Vector3 norm = hitInfo.shading.normal;
+					// multiple diffuse reflections.
+					throughput *= f * fabsf(hitInfo.shading.normal.Dot(nextDirection)) / pdf;
+					Ray nextRay = Ray(hitInfo.position, nextDirection);
+					nextRay.position += nextRay.direction * NXRT_EPSILON;
 
-					// 大根堆，负责记录pos周围的最近顶点。
-					priority_queue_distance_cartesian<NXPhoton> nearestPhotons([pos](const NXPhoton& photonA, const NXPhoton& photonB) {
-						float distA = Vector3::DistanceSquared(pos, photonA.position);
-						float distB = Vector3::DistanceSquared(pos, photonB.position);
-						return distA < distB;
-						});
-
-					const static float alpha = 0.66666667f;
-					UINT photons;	// 下一次累积的光子数量
-					float radius2;
-					if (!k)
+					NXHit hitInfoDiffuse;
+					if (pScene->RayCast(nextRay, hitInfoDiffuse))
 					{
-						photons = 100;
-						m_pPhotonMap->GetNearest(pos, norm, radius2, nearestPhotons, photons, FLT_MAX, LocateFilter::Sphere);
-					}
-					else
-					{
-						m_pPhotonMap->GetNearest(pos, norm, radius2, nearestPhotons, -1, pixel.radius2, LocateFilter::Sphere);
-						photons = pixel.photons + (UINT)(alpha * nearestPhotons.size());
-						radius2 = pixel.radius2 * ((float)photons / (pixel.photons + (UINT)nearestPhotons.size()));
-					}
+						Vector3 posDiff = hitInfoDiffuse.position;
+						Vector3 normDiff = hitInfoDiffuse.shading.normal;
+						
+						hitInfoDiffuse.GenerateBSDF(true);
 
-					Vector3 flux(0.0f);
-					while (!nearestPhotons.empty())
-					{
-						auto photon = nearestPhotons.top();
-						Vector3 f = hitInfo.BSDF->Evaluate(-ray.direction, photon.direction, pdf);
-						flux += f * photon.power;
-						nearestPhotons.pop();
-					}
+						priority_queue_distance_cartesian<NXPhoton> nearestPhotons([posDiff](const NXPhoton& photonA, const NXPhoton& photonB) {
+							float distA = Vector3::DistanceSquared(posDiff, photonA.position);
+							float distB = Vector3::DistanceSquared(posDiff, photonB.position);
+							return distA < distB;
+							});
 
-					if (k) flux = (pixel.flux + flux) * radius2 / pixel.radius2;
-					Vector3 Lr = throughput * flux / (XM_PI * (float)m_pPhotonMap->GetPhotonCount() * (k + 1) * radius2);
-					pixel.flux = flux;
-					pixel.photons = photons;
-					pixel.radius2 = radius2;
-					pixel.Ld += Le;
+						const static float alpha = 0.66666667f;
+						UINT photons;	// 下一次累积的光子数量
+						float radius2;
+						if (!k)
+						{
+							photons = 100;
+							m_pPhotonMap->GetNearest(posDiff, normDiff, radius2, nearestPhotons, photons, FLT_MAX, LocateFilter::Sphere);
+						}
+						else
+						{
+							m_pPhotonMap->GetNearest(posDiff, normDiff, radius2, nearestPhotons, -1, pixel.radius2, LocateFilter::Sphere);
+							photons = pixel.photons + (UINT)(alpha * nearestPhotons.size());
+							radius2 = pixel.radius2 * ((float)photons / (pixel.photons + (UINT)nearestPhotons.size()));
+						}
+
+						Vector3 flux(0.0f);
+						while (!nearestPhotons.empty())
+						{
+							auto photon = nearestPhotons.top();
+							Vector3 f = hitInfoDiffuse.BSDF->Evaluate(-nextRay.direction, photon.direction, pdf);
+							flux += f * photon.power;
+							nearestPhotons.pop();
+						}
+
+						if (k) flux = (pixel.flux + flux) * radius2 / pixel.radius2;
+
+						Lr = throughput * flux / (XM_PI * (float)m_pPhotonMap->GetPhotonCount() * (k + 1) * radius2);
+						pixel.flux = flux;
+						pixel.photons = photons;
+						pixel.radius2 = radius2;
+						pixel.Ld += Le;
+					}
 
 					if (bRenderOnce)
 					{
