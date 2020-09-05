@@ -41,11 +41,11 @@ void NXPhotonMap::GenerateCausticMap(const std::shared_ptr<NXScene>& pScene)
 
 		float pdfLight = 1.0f / lightCount;
 		float pdfPos, pdfDir;
-		Vector3 throughput;
+		Vector3 power;
 		Ray ray;
 		Vector3 lightNormal;
 		Vector3 Le = pLights[sampleLight]->Emit(ray, lightNormal, pdfPos, pdfDir);
-		throughput = Le * fabsf(lightNormal.Dot(ray.direction)) / (pdfLight * pdfPos * pdfDir);
+		power = Le * fabsf(lightNormal.Dot(ray.direction)) / (pdfLight * pdfPos * pdfDir);
 
 		int depth = 0;
 		bool bIsDiffuse = true;
@@ -77,7 +77,7 @@ void NXPhotonMap::GenerateCausticMap(const std::shared_ptr<NXScene>& pScene)
 					NXPhoton photon;
 					photon.position = hitInfo.position;
 					photon.direction = hitInfo.direction;
-					photon.power = throughput;
+					photon.power = power;
 					photon.depth = depth;
 					causticPhotons.push_back(photon);
 				}
@@ -94,7 +94,7 @@ void NXPhotonMap::GenerateCausticMap(const std::shared_ptr<NXScene>& pScene)
 			if (random > mat->m_probability)
 				break;
 
-			throughput *= reflectance / mat->m_probability;
+			power *= reflectance / mat->m_probability;
 
 			ray = Ray(hitInfo.position, nextDirection);
 			ray.position += ray.direction * NXRT_EPSILON;
@@ -117,11 +117,11 @@ void NXPhotonMap::GenerateGlobalMap(const std::shared_ptr<NXScene>& pScene)
 
 		float pdfLight = 1.0f / lightCount;
 		float pdfPos, pdfDir;
-		Vector3 throughput;
+		Vector3 power;
 		Ray ray;
 		Vector3 lightNormal;
 		Vector3 Le = pLights[sampleLight]->Emit(ray, lightNormal, pdfPos, pdfDir);
-		throughput = Le * fabsf(lightNormal.Dot(ray.direction)) / (pdfLight * pdfPos * pdfDir);
+		power = Le * fabsf(lightNormal.Dot(ray.direction)) / (pdfLight * pdfPos * pdfDir);
 
 		int depth = 0;
 		bool bIsDiffuse = false;
@@ -150,7 +150,7 @@ void NXPhotonMap::GenerateGlobalMap(const std::shared_ptr<NXScene>& pScene)
 				NXPhoton photon;
 				photon.position = hitInfo.position;
 				photon.direction = hitInfo.direction;
-				photon.power = throughput;
+				photon.power = power;
 				photon.depth = depth;
 				globalPhotons.push_back(photon);
 
@@ -166,7 +166,7 @@ void NXPhotonMap::GenerateGlobalMap(const std::shared_ptr<NXScene>& pScene)
 			if (random > mat->m_probability)
 				break;
 
-			throughput *= reflectance / mat->m_probability;
+			power *= reflectance / mat->m_probability;
 
 			ray = Ray(hitInfo.position, nextDirection);
 			ray.position += ray.direction * NXRT_EPSILON;

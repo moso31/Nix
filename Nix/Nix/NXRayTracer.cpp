@@ -29,8 +29,9 @@ void NXRayTracer::RenderImage(const std::shared_ptr<NXScene>& pScene, NXRayTrace
 	}
 	case NXRayTraceRenderMode::PhotonMapping:
 	{
-		int nPhotons = 200000;
-		std::make_unique<NXPMIntegrator>(renderResolution, pixelSample, "D:\\Nix_PhotonMapping.bmp", nPhotons)->Render(pScene);
+		int nPhotons = 100000;
+		int nEstimatePhotons = 100;
+		std::make_unique<NXPMIntegrator>(renderResolution, pixelSample, "D:\\Nix_PhotonMapping.bmp", nPhotons, nEstimatePhotons)->Render(pScene);
 		break;
 	}
 	case NXRayTraceRenderMode::IrradianceCache:

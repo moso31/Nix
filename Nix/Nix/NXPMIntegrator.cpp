@@ -5,9 +5,10 @@
 #include "NXCubeMap.h"
 #include "NXPrimitive.h"
 
-NXPMIntegrator::NXPMIntegrator(const XMINT2& imageSize, int eachPixelSamples, std::string outPath, UINT nPhotons) :
+NXPMIntegrator::NXPMIntegrator(const XMINT2& imageSize, int eachPixelSamples, std::string outPath, UINT nPhotons, UINT nEstimatePhotons) :
 	NXSampleIntegrator(imageSize, eachPixelSamples, outPath),
-	m_numPhotons(nPhotons)
+	m_numPhotons(nPhotons),
+	m_estimatePhotons(nEstimatePhotons)
 {
 }
 
@@ -90,7 +91,7 @@ Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const std::shared_ptr<NXS
 		return result;
 	}
 
-	m_pPhotonMap->GetNearest(pos, norm, distSqr, nearestPhotons, 100, FLT_MAX, LocateFilter::Disk);
+	m_pPhotonMap->GetNearest(pos, norm, distSqr, nearestPhotons, m_estimatePhotons, FLT_MAX, LocateFilter::Disk);
 	if (nearestPhotons.empty())
 		return Vector3(0.0f);
 
