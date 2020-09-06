@@ -102,7 +102,8 @@ Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const std::shared_ptr<NXS
 	{
 		auto photon = nearestPhotons.top();
 		Vector3 f = hitInfo.BSDF->Evaluate(-ray.direction, photon.direction, pdf);
-		flux += f * photon.power;
+		float dist2 = Vector3::DistanceSquared(pos, photon.position);
+		flux += f * photon.power * GaussianFilter(dist2, radius2);
 		nearestPhotons.pop();
 	}
 	float numPhotons = (float)m_pPhotonMap->GetPhotonCount();
@@ -117,4 +118,13 @@ void NXPMIntegrator::BuildPhotonMap(const std::shared_ptr<NXScene>& pScene)
 	m_pPhotonMap = std::make_shared<NXPhotonMap>(m_numPhotons);
 	m_pPhotonMap->Generate(pScene, PhotonMapType::Global);
 	printf("Done.\n");
+}
+
+float NXPMIntegrator::GaussianFilter(float distance2, float radius2)
+{
+	float alpha = 1.818f;
+	float beta = 1.953f;
+	float oneMinusEB = 1.0f - exp(-beta);
+	float oneMinusEBDR = 1.0f - exp(-beta * (distance2 / (2.0f * radius2)));
+	return alpha * (1.0f - oneMinusEBDR / oneMinusEB);
 }

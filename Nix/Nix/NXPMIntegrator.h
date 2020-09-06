@@ -12,6 +12,7 @@ public:
 	Vector3 Radiance(const Ray& ray, const std::shared_ptr<NXScene>& pScene, int depth);
 
 	void BuildPhotonMap(const std::shared_ptr<NXScene>& pScene);
+	float GaussianFilter(float distance2, float radius2);
 
 private:
 	std::shared_ptr<NXPhotonMap> m_pPhotonMap;
