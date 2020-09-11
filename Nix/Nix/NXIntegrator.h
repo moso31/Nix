@@ -57,6 +57,7 @@ public:
 
 	void Render(const std::shared_ptr<NXScene>& pScene) override;
 	virtual Vector3 Radiance(const Ray& ray, const std::shared_ptr<NXScene>& pScene, int depth) = 0;
+	Vector3 CenterRayTest(const std::shared_ptr<NXScene>& pScene);
 
 private:
 	void RenderTile(const std::shared_ptr<NXScene>& pScene, const XMINT2& tileId, ImageBMPData* oImageData);

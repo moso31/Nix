@@ -17,7 +17,7 @@ public:
 	NXRayTracer();
 	~NXRayTracer() {}
 
-	void RenderImage(const std::shared_ptr<NXScene>& pScene, NXRayTraceRenderMode rayTraceMode);
+	void RenderImage(const std::shared_ptr<NXScene>& pScene, NXRayTraceRenderMode rayTraceMode, bool bCenterRayTest = false);
 
 private:
 	NXRayTraceRenderMode m_rayTraceMode;

@@ -124,7 +124,7 @@ void NXScene::Init()
 		m_sceneManager->CreatePBRMaterial(Vector3(0.0f, 0.0f, 0.8f), Vector3(0.0f), Vector3(0.0f), Vector3(0.0f), 0.0f, 0.0f),
 		m_sceneManager->CreatePBRMaterial(Vector3(0.0f), Vector3(1.0f), Vector3(0.0f), Vector3(0.0f), 0.03f, 0.0f),
 		m_sceneManager->CreatePBRMaterial(Vector3(0.0f), Vector3(0.0f), Vector3(1.0f), Vector3(1.0f), 0.5f, 1.55f),
-		m_sceneManager->CreatePBRMaterial(Vector3(0.0f), Vector3(0.0f), Vector3(1.0f), Vector3(0.0f), 0.0f, 1.55f),
+		m_sceneManager->CreatePBRMaterial(Vector3(0.0f), Vector3(0.0f), Vector3(1.0f), Vector3(0.0f), 0.0f, 0.0f),
 	};
 
 	auto pPlane = m_sceneManager->CreatePlane("Ground", 8.0f, 12.0f, NXPlaneAxis(POSITIVE_Y), pMaterial, Vector3(0.0f));
@@ -147,6 +147,9 @@ void NXScene::Init()
 
 	auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 16, 16, pMaterial, Vector3(1.0f, 1.0f, 1.0f));
 	pSphere->SetMaterialPBR(pPBRMat[4]);
+
+	pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 16, 16, pMaterial, Vector3(-1.0f, 1.0f, 2.0f));
+	pSphere->SetMaterialPBR(pPBRMat[5]);
 
 	//std::shared_ptr<NXSphere> pLight = m_sceneManager->CreateSphere("Light", 1.0f, 64, 64, pMaterial, Vector3(-4.5f, 5.999f, 2.0f));
 	//pLight->SetMaterialPBR(pPBRMat[0]);

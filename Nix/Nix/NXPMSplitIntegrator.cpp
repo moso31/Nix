@@ -20,7 +20,7 @@ NXPMSplitIntegrator::~NXPMSplitIntegrator()
 void NXPMSplitIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
 {
 	BuildPhotonMap(pScene);
-	BuildIrradianceCache(pScene);
+	//BuildIrradianceCache(pScene);
 	NXSampleIntegrator::Render(pScene);
 }
 
