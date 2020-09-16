@@ -26,6 +26,8 @@ public:
 	bool FindEstimateCaches(const Vector3& position, const Vector3& normal, Vector3& oEstimateIrradiance);
 	Vector3 CalculateOneCache(const std::shared_ptr<NXScene>& pScene, const NXHit& hitInfo, int sampleTheta, int samplePhi, NXIrradianceCacheInfo& oCacheInfo);
 
+	void Render(const std::shared_ptr<NXScene>& pScene, const XMINT2& imageSize, std::string outFilePath);
+
 private:
 	std::shared_ptr<NXPhotonMap> m_pPhotonMap;
 	std::vector<NXIrradianceCacheInfo> m_caches;

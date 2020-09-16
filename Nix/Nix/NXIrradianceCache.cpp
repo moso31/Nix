@@ -4,6 +4,9 @@
 #include "NXPrimitive.h"
 #include "SamplerMath.h"
 
+#include "NXCamera.h"
+#include "ImageGenerator.h"
+
 using namespace SamplerMath;
 
 NXIrradianceCache::NXIrradianceCache() :
@@ -221,4 +224,30 @@ Vector3 NXIrradianceCache::CalculateOneCache(const std::shared_ptr<NXScene>& pSc
 	oCacheInfo.harmonicDistance = count / sumHarmonicDistance;
 	//printf("+cache: %f\n", oCacheInfo.harmonicDistance);
 	return irradiance;
+}
+
+void NXIrradianceCache::Render(const std::shared_ptr<NXScene>& pScene, const XMINT2& imageSize, std::string outFilePath)
+{
+	UINT nPixels = imageSize.x * imageSize.y;
+	ImageBMPData* pImageData = new ImageBMPData[nPixels];
+	memset(pImageData, 0, sizeof(ImageBMPData) * nPixels);
+
+	std::shared_ptr<NXCamera> pCamera = pScene->GetMainCamera();
+	Vector3 camPos = pCamera->GetTranslation();
+	for(auto cache : m_caches)
+	{
+		Vector3 camDirView = Vector3::TransformNormal(cache.position - camPos, pCamera->GetViewMatrix());
+		float tx = camDirView.x * pCamera->GetProjectionMatrix()._11 / camDirView.z;
+		float ty = camDirView.y * pCamera->GetProjectionMatrix()._22 / camDirView.z;
+		float x = (int)((tx + 1.0f) * 0.5f * imageSize.x);
+		float y = (int)((1.0f - ty) * 0.5f * imageSize.y);
+
+		int rgbIdx = (imageSize.y - y - 1) * imageSize.x + x;
+		pImageData[rgbIdx].r = 255;
+		pImageData[rgbIdx].g = 255;
+		pImageData[rgbIdx].b = 255;
+	}
+
+	ImageGenerator::GenerateImageBMP((byte*)pImageData, imageSize.x, imageSize.y, outFilePath.c_str());
+	delete pImageData;
 }

@@ -21,6 +21,7 @@ void NXPMSplitIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
 {
 	BuildPhotonMap(pScene);
 	BuildIrradianceCache(pScene);
+	//m_pIrradianceCache->Render(pScene, m_imageSize, "D:\\Nix_IrradianceCacheDistribution.bmp");
 	NXSampleIntegrator::Render(pScene);
 }
 
