@@ -122,6 +122,11 @@ void NXPhotonMap::GenerateGlobalMap(const std::shared_ptr<NXScene>& pScene)
 		Vector3 lightNormal;
 		Vector3 Le = pLights[sampleLight]->Emit(ray, lightNormal, pdfPos, pdfDir);
 		power = Le * fabsf(lightNormal.Dot(ray.direction)) / (pdfLight * pdfPos * pdfDir);
+		if (Vector3::IsNaN(power))
+		{
+			printf("Le: %f %f %f\n", Le.x, Le.y, Le.z);
+			printf("pdfLight: %f pdfPos: %f pdfDir: %f\n", pdfLight, pdfPos, pdfDir);
+		}
 
 		int depth = 0;
 		bool bIsDiffuse = false;
@@ -167,6 +172,15 @@ void NXPhotonMap::GenerateGlobalMap(const std::shared_ptr<NXScene>& pScene)
 				break;
 
 			power *= reflectance / mat->m_probability;
+			if (Vector3::IsNaN(power))
+			{
+				printf("reflectance: %f %f %f\n", reflectance.x, reflectance.y, reflectance.z);
+				printf("mat->m_probability: %f\n", mat->m_probability);
+				printf("f: %f %f %f\n", f.x, f.y, f.z);
+				printf("hitInfo.shading.normal: %f %f %f\n", hitInfo.shading.normal.x, hitInfo.shading.normal.y, hitInfo.shading.normal.z);
+				printf("nextDirection: %f %f %f\n", nextDirection.x, nextDirection.y, nextDirection.z);
+				printf("pdf: %f\n", pdf);
+			}
 
 			ray = Ray(hitInfo.position, nextDirection);
 			ray.position += ray.direction * NXRT_EPSILON;

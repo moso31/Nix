@@ -239,8 +239,8 @@ void NXIrradianceCache::Render(const std::shared_ptr<NXScene>& pScene, const XMI
 		Vector3 camDirView = Vector3::TransformNormal(cache.position - camPos, pCamera->GetViewMatrix());
 		float tx = camDirView.x * pCamera->GetProjectionMatrix()._11 / camDirView.z;
 		float ty = camDirView.y * pCamera->GetProjectionMatrix()._22 / camDirView.z;
-		float x = (int)((tx + 1.0f) * 0.5f * imageSize.x);
-		float y = (int)((1.0f - ty) * 0.5f * imageSize.y);
+		float x = (int)((tx + 1.0f) * 0.5f * (float)imageSize.x);
+		float y = (int)((1.0f - ty) * 0.5f * (float)imageSize.y);
 
 		int rgbIdx = (imageSize.y - y - 1) * imageSize.x + x;
 		pImageData[rgbIdx].r = 255;

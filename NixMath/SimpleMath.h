@@ -265,6 +265,8 @@ struct Vector3 : public XMFLOAT3
     static Vector3 Sqrt(const Vector3& v);
 
 	static Vector3 Permute(const Vector3& v, int x, int y, int z);
+
+    static bool IsNaN(const Vector3& v);
 };
 
 // Binary operators

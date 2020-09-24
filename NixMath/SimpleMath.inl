@@ -1281,6 +1281,12 @@ inline Vector3 Vector3::Permute(const Vector3& v, int x, int y, int z)
 	return Vector3(v[x], v[y], v[z]);
 }
 
+inline bool Vector3::IsNaN(const Vector3& v)
+{
+    return isnan(v.x) | isnan(v.y) | isnan(v.z);
+}
+
+
 /****************************************************************************
  *
  * Vector4

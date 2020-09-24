@@ -7,6 +7,12 @@ using namespace NXReflection;
 float NXRDistribution::G(const Vector3& wo, const Vector3& wi)
 {
 	float result = 1.0f / (1.0f + lambda(wo) + lambda(wi));
+	if (isnan(result))
+	{
+		float temp_wo = lambda(wo);
+		float temp_wi = lambda(wi);
+		printf("lambda(wo): %f, lambda(wi): %f\n", temp_wo, temp_wi);
+	}
 	return result;
 }
 
@@ -54,5 +60,11 @@ float NXRDistributionBeckmann::lambda(const Vector3& w)
 	float a = 1 / (alpha * absTanTheta);
 	if (a >= 1.6f) return 0;
 	float result = (1 - 1.259f * a + 0.396f * a * a) / (3.535f * a + 2.181f * a * a);
+
+	if (isnan(result))
+	{
+		printf("absTanTheta: %f alpha: %f a: %f\n", absTanTheta, alpha, a);
+	}
+
 	return result;
 }

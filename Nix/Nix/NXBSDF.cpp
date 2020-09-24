@@ -90,6 +90,14 @@ Vector3 NXBSDF::Evaluate(const Vector3& woWorld, const Vector3& wiWorld, float& 
 	float pdfD, pdfS;
 	result += EvaluateDiffuse(wo, wi, pdfD);
 	result += EvaluateSpecular(wo, wi, pdfS);
+	if (Vector3::IsNaN(result))
+	{
+		Vector3 D = EvaluateDiffuse(wo, wi, pdfD);
+		Vector3 S = EvaluateSpecular(wo, wi, pdfS);
+		printf("pMat->m_diffuse: %f %f %f\n", pMat->m_diffuse.x, pMat->m_diffuse.y, pMat->m_diffuse.z);
+		printf("pMat->m_specular: %f %f %f\n", pMat->m_specular.x, pMat->m_specular.y, pMat->m_specular.z);
+
+	}
 	o_pdf = pdfD + pdfS;
 	return result;
 }
@@ -112,24 +120,47 @@ Vector3 NXBSDF::EvaluateDiffuse(const Vector3& wo, const Vector3& wi, float& o_p
 
 Vector3 NXBSDF::SampleSpecular(const Vector3& wo, Vector3& o_wi, float& o_pdf)
 {
+	float absCosThetaO = AbsCosTheta(wo);
+	if (absCosThetaO == 0.0f) return Vector3(0.0f);
+
 	Vector3 wh = pDistrib->Sample_wh(wo);
 	o_wi = Reflect(wo, wh);
-	if (!IsSameHemisphere(wo, o_wi)) 
-		return Vector3(0.0f);
+	float absCosThetaI = AbsCosTheta(o_wi);
+
+	if (absCosThetaI == 0.0f || !IsSameHemisphere(wo, o_wi)) return Vector3(0.0f);
+
 	o_pdf = PdfSpecular(wo, wh);
-	return pMat->m_specular * pDistrib->D(wh) * pDistrib->G(wo, o_wi) * pFresnelSpecular->FresnelReflectance(o_wi.Dot(wh)) / (4.0f * AbsCosTheta(wo) * AbsCosTheta(o_wi));
+	return pMat->m_specular * pDistrib->D(wh) * pDistrib->G(wo, o_wi) * pFresnelSpecular->FresnelReflectance(o_wi.Dot(wh)) / (4.0f * absCosThetaO * absCosThetaI);
 }
 
 Vector3 NXBSDF::EvaluateSpecular(const Vector3& wo, const Vector3& wi, float& o_pdf)
 {
+	float absCosThetaO = AbsCosTheta(wo);
+	float absCosThetaI = AbsCosTheta(wi);
+	if (absCosThetaO == 0.0f || absCosThetaI == 0.0f) return Vector3(0.0f);
+
 	Vector3 wh = wo + wi;
 	wh.Normalize();
 	o_pdf = PdfSpecular(wo, wh);
-	return pMat->m_specular * pDistrib->D(wh) * pDistrib->G(wo, wi) * pFresnelSpecular->FresnelReflectance(wi.Dot(wh)) / (4.0f * AbsCosTheta(wo) * AbsCosTheta(wi));
+	Vector3 result = pMat->m_specular * pDistrib->D(wh) * pDistrib->G(wo, wi) * pFresnelSpecular->FresnelReflectance(wi.Dot(wh)) / (4.0f * absCosThetaO * absCosThetaI);
+
+	if (Vector3::IsNaN(result))
+	{
+		auto F = pFresnelSpecular->FresnelReflectance(wi.Dot(wh));
+		printf("pMat->m_specular: %f %f %f\n", pMat->m_specular.x, pMat->m_specular.y, pMat->m_specular.z);
+		printf("pDistrib->D: %f G: %f F: %f %f %f\n", pDistrib->D(wh), pDistrib->G(wo, wi), F.x, F.y, F.z);
+		printf("wo: %f %f %f\n", wo.x, wo.y, wo.z);
+		printf("wi: %f %f %f\n", wi.x, wi.y, wi.z);
+		printf("wh: %f %f %f\n", wh.x, wh.y, wh.z);
+	}
+
+	return result;
 }
 
 Vector3 NXBSDF::SampleReflect(const Vector3& wo, Vector3& o_wi, float& o_pdf)
 {
+	if (wo.z == 0.0f) return Vector3(0.0f);
+
 	o_wi = Vector3(-wo.x, -wo.y, wo.z);
 	o_pdf = pMat->m_sampleProbs.Reflect;
 	return pMat->m_reflectivity * m_reflectance / AbsCosTheta(o_wi);

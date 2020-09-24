@@ -5,10 +5,10 @@
 
 struct NXSPPMPixel
 {
-	NXSPPMPixel() : flux(0.0f), photons(0), radius2(0.0f), Ld(0.0f) {}
+	NXSPPMPixel() : flux(0.0f), photons(0), radius2(0.0f), radiance(0.0f) {}
 	~NXSPPMPixel() {}
 
-	Vector3 Ld;
+	Vector3 radiance;
 	float radius2;
 	UINT photons;
 	Vector3 flux;
@@ -22,6 +22,10 @@ public:
 
 	void Render(const std::shared_ptr<NXScene>& pScene);
 	void RefreshPhotonMap(const std::shared_ptr<NXScene>& pScene);
+
+private:
+	void RenderWithPM(const std::shared_ptr<NXScene>& pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int depth, bool RenderOnce);
+	void RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int depth, bool RenderOnce);
 
 private:
 	std::shared_ptr<NXPhotonMap> m_pPhotonMap;

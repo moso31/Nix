@@ -39,7 +39,7 @@ inline float Cos2Theta(const Vector3& w)
 
 inline float Sin2Theta(const Vector3& w)
 {
-	return 1.0f - Cos2Theta(w);
+	return fmaxf(0.0f, 1.0f - Cos2Theta(w));
 }
 
 inline float SinTheta(const Vector3& w)
