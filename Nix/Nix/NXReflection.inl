@@ -10,7 +10,7 @@ inline bool Refract(const Vector3& in, const Vector3& normal, float etaI, float 
 {
 	float eta = etaI / etaT;
 	float cosThetaI = in.Dot(normal);
-	float sin2ThetaT = eta * eta * (1 - cosThetaI * cosThetaI);
+	float sin2ThetaT = fmaxf(0.0f, eta * eta * (1 - cosThetaI * cosThetaI));
 	if (sin2ThetaT >= 1.0f)
 	{
 		// 折射角超过90度，形成全内反射。此时折射无作用。

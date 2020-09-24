@@ -33,18 +33,25 @@ void NXPhotonMap::GetNearest(const Vector3& position, const Vector3& normal, flo
 void NXPhotonMap::GenerateCausticMap(const std::shared_ptr<NXScene>& pScene)
 {
 	std::vector<NXPhoton> causticPhotons;
+
+	auto pLights = pScene->GetPBRLights();
+	int lightCount = (int)pLights.size();
+	if (!lightCount) return;
+	float pdfLight = 1.0f / lightCount;
+
 	for (int i = 0; i < m_numPhotons; i++)
 	{
-		auto pLights = pScene->GetPBRLights();
-		int lightCount = (int)pLights.size();
 		int sampleLight = NXRandom::GetInstance()->CreateInt(0, lightCount - 1);
 
-		float pdfLight = 1.0f / lightCount;
 		float pdfPos, pdfDir;
 		Vector3 power;
 		Ray ray;
 		Vector3 lightNormal;
 		Vector3 Le = pLights[sampleLight]->Emit(ray, lightNormal, pdfPos, pdfDir);
+
+		if (pdfPos == 0.0f || pdfDir == 0.0f)
+			continue;
+
 		power = Le * fabsf(lightNormal.Dot(ray.direction)) / (pdfLight * pdfPos * pdfDir);
 
 		int depth = 0;
@@ -109,18 +116,25 @@ void NXPhotonMap::GenerateCausticMap(const std::shared_ptr<NXScene>& pScene)
 void NXPhotonMap::GenerateGlobalMap(const std::shared_ptr<NXScene>& pScene)
 {
 	std::vector<NXPhoton> globalPhotons;
+
+	auto pLights = pScene->GetPBRLights();
+	int lightCount = (int)pLights.size();
+	if (!lightCount) return;
+	float pdfLight = 1.0f / lightCount;
+
 	for (int i = 0; i < m_numPhotons; i++)
 	{
-		auto pLights = pScene->GetPBRLights();
-		int lightCount = (int)pLights.size();
 		int sampleLight = NXRandom::GetInstance()->CreateInt(0, lightCount - 1);
 
-		float pdfLight = 1.0f / lightCount;
 		float pdfPos, pdfDir;
 		Vector3 power;
 		Ray ray;
 		Vector3 lightNormal;
 		Vector3 Le = pLights[sampleLight]->Emit(ray, lightNormal, pdfPos, pdfDir);
+
+		if (pdfPos == 0.0f || pdfDir == 0.0f)
+			continue;
+
 		power = Le * fabsf(lightNormal.Dot(ray.direction)) / (pdfLight * pdfPos * pdfDir);
 		if (Vector3::IsNaN(power))
 		{
@@ -171,7 +185,6 @@ void NXPhotonMap::GenerateGlobalMap(const std::shared_ptr<NXScene>& pScene)
 			if (random > mat->m_probability)
 				break;
 
-			power *= reflectance / mat->m_probability;
 			if (Vector3::IsNaN(power))
 			{
 				printf("reflectance: %f %f %f\n", reflectance.x, reflectance.y, reflectance.z);
@@ -181,6 +194,8 @@ void NXPhotonMap::GenerateGlobalMap(const std::shared_ptr<NXScene>& pScene)
 				printf("nextDirection: %f %f %f\n", nextDirection.x, nextDirection.y, nextDirection.z);
 				printf("pdf: %f\n", pdf);
 			}
+
+			power *= reflectance / mat->m_probability;
 
 			ray = Ray(hitInfo.position, nextDirection);
 			ray.position += ray.direction * NXRT_EPSILON;
