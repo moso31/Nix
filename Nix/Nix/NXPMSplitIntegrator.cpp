@@ -79,7 +79,7 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const std::shared_pt
 	}
 
 	Vector3 pos = hitInfo.position;
-	Vector3 norm = hitInfo.normal;
+	Vector3 norm = hitInfo.shading.normal;
 	float distSqr;
 
 	// caustics

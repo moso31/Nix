@@ -54,8 +54,9 @@ void NXRayTracer::RenderImage(const std::shared_ptr<NXScene>& pScene, NXRayTrace
 	case NXRayTraceRenderMode::SPPM:
 	{
 		printf("SPPM Integrator Running...\n");
-		int nPhotons = 200000;
-		std::make_unique<NXSPPMIntegrator>(renderResolution,  "D:\\Nix_SPPM.bmp", nPhotons)->Render(pScene);
+		int nCausticPhotons = 50000;
+		int nGlobalPhotons = 200000;
+		std::make_unique<NXSPPMIntegrator>(renderResolution,  "D:\\Nix_SPPM.bmp", nCausticPhotons, nGlobalPhotons)->Render(pScene);
 		break;
 	}
 	default:
