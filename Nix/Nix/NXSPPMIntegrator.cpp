@@ -98,7 +98,7 @@ void NXSPPMIntegrator::RenderWithPM(const std::shared_ptr<NXScene>& pScene, std:
 					break;
 
 				std::shared_ptr<NXPBRAreaLight> pHitAreaLight;
-				if (hitInfo.pPrimitive)pHitAreaLight = hitInfo.pPrimitive->GetTangibleLight();
+				if (hitInfo.pPrimitive) pHitAreaLight = hitInfo.pPrimitive->GetTangibleLight();
 				else if (pScene->GetCubeMap()) pHitAreaLight = pScene->GetCubeMap()->GetEnvironmentLight();
 				if (pHitAreaLight)
 				{
@@ -119,7 +119,7 @@ void NXSPPMIntegrator::RenderWithPM(const std::shared_ptr<NXScene>& pScene, std:
 				ray.position += ray.direction * NXRT_EPSILON;
 			}
 
-			if (bIsDiffuse && bIsIntersect)
+			if (bIsIntersect)
 			{
 				Vector3 posDiff = hitInfo.position;
 				Vector3 normDiff = hitInfo.shading.normal;
@@ -222,7 +222,7 @@ void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene,
 					break;
 
 				std::shared_ptr<NXPBRAreaLight> pHitAreaLight;
-				if (hitInfo.pPrimitive)pHitAreaLight = hitInfo.pPrimitive->GetTangibleLight();
+				if (hitInfo.pPrimitive) pHitAreaLight = hitInfo.pPrimitive->GetTangibleLight();
 				else if (pScene->GetCubeMap()) pHitAreaLight = pScene->GetCubeMap()->GetEnvironmentLight();
 				if (pHitAreaLight)
 				{
@@ -246,7 +246,7 @@ void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene,
 
 			const static float alpha = 0.66666667f;
 
-			if (bIsDiffuse && bIsIntersect)
+			if (bIsIntersect)
 			{
 				// caustics
 				Vector3 pos = hitInfo.position;
@@ -296,13 +296,32 @@ void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene,
 				Ray nextRay = Ray(hitInfo.position, nextDirection);
 				nextRay.position += nextRay.direction * NXRT_EPSILON;
 
+				bIsDiffuse = false;
 				NXHit hitInfoDiffuse;
-				if (pScene->RayCast(nextRay, hitInfoDiffuse))
+				while (true)
+				{
+					bIsIntersect = pScene->RayCast(nextRay, hitInfoDiffuse);
+					if (!bIsIntersect)
+						break;
+
+					hitInfoDiffuse.GenerateBSDF(true);
+
+					std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
+					f = hitInfoDiffuse.BSDF->Sample(hitInfoDiffuse.direction, nextDirection, pdf, sampleEvent);
+					bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
+					sampleEvent.reset();
+
+					if (bIsDiffuse) break;
+
+					throughput *= f * fabsf(hitInfoDiffuse.shading.normal.Dot(nextDirection)) / pdf;
+					nextRay = Ray(hitInfoDiffuse.position, nextDirection);
+					nextRay.position += nextRay.direction * NXRT_EPSILON;
+				}
+
+				if (bIsIntersect)
 				{
 					Vector3 posDiff = hitInfoDiffuse.position;
 					Vector3 normDiff = hitInfoDiffuse.shading.normal;
-
-					hitInfoDiffuse.GenerateBSDF(true);
 
 					priority_queue_distance_cartesian<NXPhoton> nearestPhotons([posDiff](const NXPhoton& photonA, const NXPhoton& photonB) {
 						float distA = Vector3::DistanceSquared(posDiff, photonA.position);

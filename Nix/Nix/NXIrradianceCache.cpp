@@ -23,13 +23,13 @@ void NXIrradianceCache::PreIrradiance(const Ray& cameraRay, const std::shared_pt
 	float pdf = 0.0f;
 	NXHit hitInfo;
 
-	// 只需要找到最终的首次漫反射位置。不需要计算吞吐量，那是Integrator该干的事儿。
-	// Irradiance只需要对辐照缓存点进行定位。
+	// Irradiance只需要找到最终的首次漫反射位置。不需要计算吞吐量，那是Integrator该干的事儿。
 	bool bIsDiffuse = false;
+	bool bIsIntersect = false;
 	while (true)
 	{
 		hitInfo = NXHit();
-		bool bIsIntersect = pScene->RayCast(ray, hitInfo);
+		bIsIntersect = pScene->RayCast(ray, hitInfo);
 		if (!bIsIntersect)
 			return;
 
@@ -49,7 +49,7 @@ void NXIrradianceCache::PreIrradiance(const Ray& cameraRay, const std::shared_pt
 		depth++;
 	}
 
-	if (!bIsDiffuse)
+	if (!bIsIntersect)
 		return;
 
 	Vector3 estimateIrradiance;
@@ -78,10 +78,11 @@ Vector3 NXIrradianceCache::Irradiance(const Ray& cameraRay, const std::shared_pt
 	// 只需要找到最终的首次漫反射位置。不需要计算吞吐量，那是Integrator该干的事儿。
 	// Irradiance只需要对辐照缓存点进行定位。
 	bool bIsDiffuse = false;
+	bool bIsIntersect = false;
 	while (true)
 	{
 		hitInfo = NXHit();
-		bool bIsIntersect = pScene->RayCast(ray, hitInfo);
+		bIsIntersect = pScene->RayCast(ray, hitInfo);
 		if (!bIsIntersect)
 			return result;
 
@@ -101,7 +102,7 @@ Vector3 NXIrradianceCache::Irradiance(const Ray& cameraRay, const std::shared_pt
 		depth++;
 	}
 
-	if (!bIsDiffuse)
+	if (!bIsIntersect)
 		return result;
 
 	Vector3 estimateIrradiance;
@@ -166,14 +167,34 @@ Vector3 NXIrradianceCache::CalculateOneCache(const std::shared_ptr<NXScene>& pSc
 		{
 			// 对每个方向都计算
 			Vector2 u(i, j);
-			Vector3 nextDirLocal = SamplerMath::CosineSampleHemisphere(u);
-			Vector3 nextDirWorld = hitInfo.BSDF->ReflectionToWorld(nextDirLocal);
+			Vector3 dir = SamplerMath::CosineSampleHemisphere(u);
+			Vector3 nextDirection = hitInfo.BSDF->ReflectionToWorld(dir);
 
-			Ray nextRay = Ray(hitInfo.position, nextDirWorld);
+			Ray nextRay = Ray(hitInfo.position, nextDirection);
 			nextRay.position += nextRay.direction * NXRT_EPSILON;
 
+			bool bIsDiffuse = false;
+			bool bIsIntersect = false;
 			NXHit hitInfoDiffuse;
-			if (!pScene->RayCast(nextRay, hitInfoDiffuse))
+			Vector3 throughput(1.0f);
+			float pdf;
+			while (true)
+			{
+				bIsIntersect = pScene->RayCast(nextRay, hitInfoDiffuse);
+				if (!bIsIntersect)
+					break;
+
+				hitInfoDiffuse.GenerateBSDF(true);
+
+				std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
+				Vector3 f = hitInfoDiffuse.BSDF->Sample(hitInfoDiffuse.direction, nextDirection, pdf, sampleEvent);
+				bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
+				sampleEvent.reset();
+
+				break;
+			}
+
+			if (!bIsDiffuse || !bIsIntersect)
 			{
 				count -= 1.0f;
 				continue;
@@ -182,15 +203,13 @@ Vector3 NXIrradianceCache::CalculateOneCache(const std::shared_ptr<NXScene>& pSc
 			sumHarmonicDistance += 1.0f / Vector3::Distance(hitInfo.position, hitInfoDiffuse.position);
 
 			Vector3 posDiff = hitInfoDiffuse.position;
-			Vector3 normDiff = hitInfoDiffuse.normal;
+			Vector3 normDiff = hitInfoDiffuse.shading.normal;
 
 			priority_queue_distance_cartesian<NXPhoton> nearestPhotons([posDiff](const NXPhoton& photonA, const NXPhoton& photonB) {
 				float distA = Vector3::DistanceSquared(posDiff, photonA.position);
 				float distB = Vector3::DistanceSquared(posDiff, photonB.position);
 				return distA < distB;
 				});
-
-			hitInfoDiffuse.GenerateBSDF(true);
 
 			// 使用现成的全局光子图，可以快速统计出某一点附近的Radiance。
 			Vector3 radiance(0.0f);
@@ -211,7 +230,7 @@ Vector3 NXIrradianceCache::CalculateOneCache(const std::shared_ptr<NXScene>& pSc
 				radiance /= (XM_PI * radius2 * numPhotons);
 			}
 
-			irradiance += radiance; // * hitInfo.shading.normal.Dot(nextDirWorld) / SamplerMath::CosineSampleHemispherePdf(不算两个余弦项了反正也会被抵消掉);
+			irradiance += throughput * radiance; // * hitInfo.shading.normal.Dot(nextDirWorld) / SamplerMath::CosineSampleHemispherePdf(不算两个余弦项了反正也会被抵消掉);
 		}
 	}
 	// 最后统计平均值
