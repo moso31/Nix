@@ -112,12 +112,16 @@ void NXSPPMIntegrator::RenderWithPM(const std::shared_ptr<NXScene>& pScene, std:
 				bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
 				sampleEvent.reset();
 
+				if (f.IsZero() || pdf == 0) break;
 				if (bIsDiffuse) break;
 
 				throughput *= f * fabsf(hitInfo.shading.normal.Dot(nextDirection)) / pdf;
 				ray = Ray(hitInfo.position, nextDirection);
 				ray.position += ray.direction * NXRT_EPSILON;
 			}
+
+			if (f.IsZero() || pdf == 0)
+				continue;
 
 			if (bIsIntersect)
 			{
@@ -135,10 +139,11 @@ void NXSPPMIntegrator::RenderWithPM(const std::shared_ptr<NXScene>& pScene, std:
 				const static float alpha = 0.66666667f;
 				UINT photons;	// 下一次累积的光子数量
 				float radius2;
-				if (!depth)
+				if (!pixel.estimateFlag)
 				{
 					photons = 100;
 					m_pGlobalPhotonMap->GetNearest(posDiff, normDiff, radius2, nearestPhotons, photons, FLT_MAX, LocateFilter::Sphere);
+					pixel.estimateFlag = true;
 				}
 				else
 				{
@@ -154,8 +159,8 @@ void NXSPPMIntegrator::RenderWithPM(const std::shared_ptr<NXScene>& pScene, std:
 				{
 					auto photon = nearestPhotons.top();
 					Vector3 f = hitInfo.BSDF->Evaluate(-ray.direction, photon.direction, pdf);
-
-					flux += f * photon.power;
+					if (!f.IsZero() && pdf != 0) 
+						flux += f * photon.power;
 					nearestPhotons.pop();
 				}
 				flux *= throughput;
@@ -204,8 +209,14 @@ void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene,
 			UINT pixelOffset = (m_imageSize.y - j - 1) * m_imageSize.x + i;
 			NXSPPMPixel& pixel = oPixels[pixelOffset];
 
+			if (!depth)
+			{
+				pixel.causticRadius2 = 1e-7f;
+				pixel.globalRadius2 = 1e-7f;
+			}
+
 			Vector3 nextDirection;
-			float pdf, ignore;
+			float pdf, pdfPhotons;
 			NXHit hitInfo;
 
 			Vector3 f(0.0f);
@@ -237,14 +248,23 @@ void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene,
 				bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
 				sampleEvent.reset();
 
+				if (f.IsZero() || pdf == 0) break;
 				if (bIsDiffuse) break;
 
 				throughput *= f * fabsf(hitInfo.shading.normal.Dot(nextDirection)) / pdf;
+				if (Vector3::IsNaN(throughput))
+				{
+					printf("nextDirection: %f %f %f\n", nextDirection.x, nextDirection.y, nextDirection.z);
+					printf("f: %f %f %f\n", f.x, f.y, f.z);
+					printf("pdf: %f\n", pdf);
+				}
 				ray = Ray(hitInfo.position, nextDirection);
 				ray.position += ray.direction * NXRT_EPSILON;
 			}
 
-			const static float alpha = 0.66666667f;
+			if (f.IsZero() || pdf == 0) continue;
+
+			const static float alpha = 0.66666667f; 
 
 			if (bIsIntersect)
 			{
@@ -275,14 +295,18 @@ void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene,
 				}
 
 				Vector3 causticFlux(0.0f);
-				while (!nearestCausticPhotons.empty())
+				if (!nearestCausticPhotons.empty())
 				{
-					auto photon = nearestCausticPhotons.top();
-					Vector3 f = hitInfo.BSDF->Evaluate(-ray.direction, photon.direction, ignore);
-					causticFlux += f * photon.power;
-					nearestCausticPhotons.pop();
+					while (!nearestCausticPhotons.empty())
+					{
+						auto photon = nearestCausticPhotons.top();
+						Vector3 f = hitInfo.BSDF->Evaluate(-ray.direction, photon.direction, pdfPhotons);
+						if (!f.IsZero() && pdfPhotons != 0.0f)
+							causticFlux += f * photon.power;
+						nearestCausticPhotons.pop();
+					}
+					causticFlux *= throughput;
 				}
-				causticFlux *= throughput;
 
 				if (depth) causticFlux = (pixel.causticFlux + causticFlux) * causticRadius2 / pixel.causticRadius2;
 
@@ -295,6 +319,13 @@ void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene,
 				throughput *= f * fabsf(hitInfo.shading.normal.Dot(nextDirection)) / pdf;
 				Ray nextRay = Ray(hitInfo.position, nextDirection);
 				nextRay.position += nextRay.direction * NXRT_EPSILON;
+
+				if (Vector3::IsNaN(throughput))
+				{
+					printf("nextDirection: %f %f %f\n", nextDirection.x, nextDirection.y, nextDirection.z);
+					printf("f: %f %f %f\n", f.x, f.y, f.z);
+					printf("pdf: %f\n", pdf);
+				}
 
 				bIsDiffuse = false;
 				NXHit hitInfoDiffuse;
@@ -311,19 +342,29 @@ void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene,
 					bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
 					sampleEvent.reset();
 
+					if (f.IsZero() || pdf == 0) break;
 					if (bIsDiffuse) break;
 
 					throughput *= f * fabsf(hitInfoDiffuse.shading.normal.Dot(nextDirection)) / pdf;
+					if (Vector3::IsNaN(throughput))
+					{
+						printf("nextDirection: %f %f %f\n", nextDirection.x, nextDirection.y, nextDirection.z);
+						printf("f: %f %f %f\n", f.x, f.y, f.z);
+						printf("pdf: %f\n", pdf);
+					}
 					nextRay = Ray(hitInfoDiffuse.position, nextDirection);
 					nextRay.position += nextRay.direction * NXRT_EPSILON;
 				}
+
+				if (f.IsZero() || pdf == 0)
+					continue;
 
 				if (bIsIntersect)
 				{
 					Vector3 posDiff = hitInfoDiffuse.position;
 					Vector3 normDiff = hitInfoDiffuse.shading.normal;
 
-					priority_queue_distance_cartesian<NXPhoton> nearestPhotons([posDiff](const NXPhoton& photonA, const NXPhoton& photonB) {
+					priority_queue_distance_cartesian<NXPhoton> nearestGlobalPhotons([posDiff](const NXPhoton& photonA, const NXPhoton& photonB) {
 						float distA = Vector3::DistanceSquared(posDiff, photonA.position);
 						float distB = Vector3::DistanceSquared(posDiff, photonB.position);
 						return distA < distB;
@@ -331,44 +372,72 @@ void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene,
 
 					UINT globalPhotons;	// 下一次累积的光子数量
 					float globalRadius2;
-					if (!depth)
+					if (!pixel.estimateFlag)
 					{
 						globalPhotons = 100;
-						m_pGlobalPhotonMap->GetNearest(posDiff, normDiff, globalRadius2, nearestPhotons, globalPhotons, FLT_MAX, LocateFilter::Sphere);
+						m_pGlobalPhotonMap->GetNearest(posDiff, normDiff, globalRadius2, nearestGlobalPhotons, globalPhotons, FLT_MAX, LocateFilter::Sphere);
+						pixel.estimateFlag = true;
 					}
 					else
 					{
-						m_pGlobalPhotonMap->GetNearest(posDiff, normDiff, globalRadius2, nearestPhotons, -1, pixel.globalRadius2, LocateFilter::Sphere);
-						globalPhotons = pixel.globalPhotons + (UINT)(alpha * nearestPhotons.size());
-						globalRadius2 = nearestPhotons.empty() ?
+						m_pGlobalPhotonMap->GetNearest(posDiff, normDiff, globalRadius2, nearestGlobalPhotons, -1, pixel.globalRadius2, LocateFilter::Sphere);
+						globalPhotons = pixel.globalPhotons + (UINT)(alpha * nearestGlobalPhotons.size());
+						globalRadius2 = nearestGlobalPhotons.empty() ?
 							pixel.globalRadius2 :
-							pixel.globalRadius2 * ((float)globalPhotons / (pixel.globalPhotons + (UINT)nearestPhotons.size()));
+							pixel.globalRadius2 * ((float)globalPhotons / (pixel.globalPhotons + (UINT)nearestGlobalPhotons.size()));
+					}
+
+					if (globalRadius2 == 0.0f)
+					{
+						printf("globalPhotons: %d\n", globalPhotons);
+						printf("pixel.globalRadius2: %f\n", pixel.globalRadius2);
+						printf("pixel.globalPhotons: %d\n", pixel.globalPhotons);
+						printf("nearestGlobalPhotons.size(): %d\n", (int)nearestGlobalPhotons.size());
 					}
 
 					Vector3 globalFlux(0.0f);
-					while (!nearestPhotons.empty())
+					if (!nearestGlobalPhotons.empty())
 					{
-						auto photon = nearestPhotons.top();
-						Vector3 f = hitInfoDiffuse.BSDF->Evaluate(-nextRay.direction, photon.direction, ignore);
-						globalFlux += f * photon.power;
-						nearestPhotons.pop();
+						while (!nearestGlobalPhotons.empty())
+						{
+							auto photon = nearestGlobalPhotons.top();
+							Vector3 f = hitInfoDiffuse.BSDF->Evaluate(-nextRay.direction, photon.direction, pdfPhotons);
+							if (!f.IsZero() && pdfPhotons != 0.0f)
+								globalFlux += f * photon.power;
+							nearestGlobalPhotons.pop();
+						}
+						globalFlux *= throughput;
 					}
-					globalFlux *= throughput;
 
 					if (depth) globalFlux = (pixel.globalFlux + globalFlux) * globalRadius2 / pixel.globalRadius2;
 
 					LrGlobal = globalFlux / (XM_PI * (float)m_pGlobalPhotonMap->GetPhotonCount() * (depth + 1) * globalRadius2);
+					if (Vector3::IsNaN(LrGlobal))
+					{
+						printf("throughput: %f %f %f\n", throughput.x, throughput.y, throughput.z);
+						printf("globalFlux: %f %f %f\n", globalFlux.x, globalFlux.y, globalFlux.z);
+						printf("pixel.globalFlux: %f %f %f\n", pixel.globalFlux.x, pixel.globalFlux.y, pixel.globalFlux.z);
+						printf("globalRadius2: %f pixel.globalRadius2: %f", globalRadius2, pixel.globalRadius2);
+					}
+
 					pixel.globalFlux = globalFlux;
 					pixel.globalPhotons = globalPhotons;
 					pixel.globalRadius2 = globalRadius2;
-
-					// final radiance
-					pixel.radiance += Le + Ld;
 				}
+
+				// final radiance
+				pixel.radiance += Le + Ld;
 
 				if (RenderOnce)
 				{
 					Vector3 result = (pixel.radiance / (float)(depth + 1)) + LrGlobal + LrCaustic;
+
+					if (Vector3::IsNaN(result))
+					{
+						printf("pixel.radiance: %f %f %f\n", pixel.radiance.x, pixel.radiance.y, pixel.radiance.z);
+						printf("LrGlobal: %f %f %f\n", LrGlobal.x, LrGlobal.y, LrGlobal.z);
+						printf("LrCaustic: %f %f %f\n", LrCaustic.x, LrCaustic.y, LrCaustic.z);
+					}
 
 					XMINT3 RGBValue(
 						result.x > 1.0f ? 255 : (int)(result.x * 255.0f),

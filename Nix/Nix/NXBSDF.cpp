@@ -29,15 +29,15 @@ Vector3 NXBSDF::Sample(const Vector3& woWorld, Vector3& o_wiWorld, float& o_pdf,
 	// Èç¹ûÊÇ´¿ÕÛÉä£¬Ö´ÐÐ´¿ÕÛÉä
 	SampleEvents eEvent(NONE);
 	float fRandom = NXRandom::GetInstance()->CreateFloat();
-	if (fRandom < pMat->m_sampleProbs.Diffuse)
+	if (fRandom <= pMat->m_sampleProbs.Diffuse)
 	{
 		eEvent = DIFFUSE;
 	}
-	else if (fRandom < pMat->m_sampleProbs.Diffuse + pMat->m_sampleProbs.Specular)
+	else if (fRandom <= pMat->m_sampleProbs.Diffuse + pMat->m_sampleProbs.Specular)
 	{
 		eEvent = GLOSSY;
 	}
-	else if (fRandom < pMat->m_sampleProbs.Diffuse + pMat->m_sampleProbs.Specular + pMat->m_sampleProbs.Reflect)
+	else if (fRandom <= pMat->m_sampleProbs.Diffuse + pMat->m_sampleProbs.Specular + pMat->m_sampleProbs.Reflect)
 	{
 		eEvent = REFLECT;
 	}
@@ -78,6 +78,16 @@ Vector3 NXBSDF::Sample(const Vector3& woWorld, Vector3& o_wiWorld, float& o_pdf,
 		break;
 	}
 
+	//if (o_pdf == 0.0f)
+	//{
+	//	printf("wo: %f %f %f\n", wo.x, wo.y, wo.z);
+	//	printf("wi: %f %f %f\n", wi.x, wi.y, wi.z);
+	//	printf("result: %f %f %f\n", result.x, result.y, result.z);
+	//	printf("eEvent: %d\n", eEvent);
+	//	printf("sampleProb: Diffuse: %f Specular: %f Reflect: %f Refract:%f\n", pMat->m_sampleProbs.Diffuse, pMat->m_sampleProbs.Specular, pMat->m_sampleProbs.Reflect, pMat->m_sampleProbs.Refract);
+	//	printf("fRandom: %f\n", fRandom);
+	//}
+
 	o_wiWorld = ReflectionToWorld(wi);
 	return result;
 }
@@ -96,7 +106,6 @@ Vector3 NXBSDF::Evaluate(const Vector3& woWorld, const Vector3& wiWorld, float& 
 		Vector3 S = EvaluateSpecular(wo, wi, pdfS);
 		printf("pMat->m_diffuse: %f %f %f\n", pMat->m_diffuse.x, pMat->m_diffuse.y, pMat->m_diffuse.z);
 		printf("pMat->m_specular: %f %f %f\n", pMat->m_specular.x, pMat->m_specular.y, pMat->m_specular.z);
-
 	}
 	o_pdf = pdfD + pdfS;
 	return result;

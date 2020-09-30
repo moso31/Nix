@@ -182,8 +182,10 @@ void NXPhotonMap::GenerateGlobalMap(const std::shared_ptr<NXScene>& pScene)
 			float random = NXRandom::GetInstance()->CreateFloat();
 
 			// Roulette
-			if (random > mat->m_probability)
+			if (random > mat->m_probability || random == 0)
 				break;
+
+			power *= reflectance / mat->m_probability;
 
 			if (Vector3::IsNaN(power))
 			{
@@ -194,8 +196,6 @@ void NXPhotonMap::GenerateGlobalMap(const std::shared_ptr<NXScene>& pScene)
 				printf("nextDirection: %f %f %f\n", nextDirection.x, nextDirection.y, nextDirection.z);
 				printf("pdf: %f\n", pdf);
 			}
-
-			power *= reflectance / mat->m_probability;
 
 			ray = Ray(hitInfo.position, nextDirection);
 			ray.position += ray.direction * NXRT_EPSILON;

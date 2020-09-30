@@ -7,13 +7,15 @@ struct NXSPPMPixel
 {
 	NXSPPMPixel() : 
 		causticFlux(0.0f), causticPhotons(0), causticRadius2(0.0f), 
-		globalFlux(0.0f), globalPhotons(0), globalRadius2(0.0f), radiance(0.0f) {}
+		globalFlux(0.0f), globalPhotons(0), globalRadius2(0.0f), 
+		radiance(0.0f), estimateFlag(false) {}
 	~NXSPPMPixel() {}
 
 	Vector3 causticFlux, globalFlux;
 	UINT causticPhotons, globalPhotons;
 	float causticRadius2, globalRadius2;
 	Vector3 radiance;
+	bool estimateFlag;
 };
 
 class NXSPPMIntegrator : public NXIntegrator
