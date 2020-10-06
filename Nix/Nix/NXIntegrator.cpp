@@ -201,7 +201,7 @@ void NXSampleIntegrator::RenderTile(const std::shared_ptr<NXScene>& pScene, cons
 
 Vector3 NXSampleIntegrator::CenterRayTest(const std::shared_ptr<NXScene>& pScene)
 {
-	Vector2 sampleCoord = Vector2((float)m_imageSize.x * 0.5, (float)m_imageSize.y * 0.5);
+	Vector2 sampleCoord = Vector2((float)m_imageSize.x * 0.5f, (float)m_imageSize.y * 0.5f);
 	Ray rayWorld = pScene->GetMainCamera()->GenerateRay(sampleCoord, Vector2((float)m_imageSize.x, (float)m_imageSize.y));
 	Vector3 result = Radiance(rayWorld, pScene, 0);
 	printf("center ray test: %f %f %f\n", result.x, result.y, result.z);

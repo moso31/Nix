@@ -105,8 +105,8 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>.\;..\;..\FBXImporter\common;..\FBXImporter\include;..\NixMath\;.\Core;.\Nix;.\Nix\Script;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ConformanceMode>false</ConformanceMode>
+      <AdditionalIncludeDirectories>.\;..\;..\FBXImporter\common;..\FBXImporter\include;..\DirectxTex\DirectxTex\;..\NixMath\;.\Core;.\Nix;.\Nix\Script;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OpenMPSupport>true</OpenMPSupport>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
@@ -149,8 +149,8 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>.\;..\;..\FBXImporter\common;..\FBXImporter\include;..\NixMath\;.\Core;.\Nix;.\Nix\Script;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ConformanceMode>false</ConformanceMode>
+      <AdditionalIncludeDirectories>.\;..\;..\FBXImporter\common;..\FBXImporter\include;..\DirectxTex\DirectxTex\;..\NixMath\;.\Core;.\Nix;.\Nix\Script;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OpenMPSupport>true</OpenMPSupport>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
@@ -167,7 +167,6 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="Core\DirectXTex.inl" />
     <None Include="Shader\Scene.fx">
       <FileType>Document</FileType>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
@@ -205,7 +204,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp" />
-    <ClCompile Include="Core\DDSTextureLoader.cpp" />
     <ClCompile Include="Core\DirectResources.cpp" />
     <ClCompile Include="Core\FBXMeshLoader.cpp" />
     <ClCompile Include="Core\Global.cpp" />
@@ -221,7 +219,6 @@
     <ClCompile Include="Core\Renderer.cpp" />
     <ClCompile Include="Core\RenderStates.cpp" />
     <ClCompile Include="Core\ShaderComplier.cpp" />
-    <ClCompile Include="Core\WICTextureLoader.cpp" />
     <ClCompile Include="Nix\HBVH.cpp" />
     <ClCompile Include="Nix\NXDirectIntegrator.cpp" />
     <ClCompile Include="Nix\NXPhoton.cpp" />
@@ -262,9 +259,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h" />
-    <ClInclude Include="Core\DDSTextureLoader.h" />
     <ClInclude Include="Core\DirectResources.h" />
-    <ClInclude Include="Core\DirectXTex.h" />
     <ClInclude Include="Core\FBXMeshLoader.h" />
     <ClInclude Include="Core\GlobalBufferManager.h" />
     <ClInclude Include="Core\Header.h" />
@@ -280,7 +275,6 @@
     <ClInclude Include="Core\RenderStates.h" />
     <ClInclude Include="Core\ShaderComplier.h" />
     <ClInclude Include="Core\ShaderStructures.h" />
-    <ClInclude Include="Core\WICTextureLoader.h" />
     <ClInclude Include="Nix\HBVH.h" />
     <ClInclude Include="Nix\NXDirectIntegrator.h" />
     <ClInclude Include="Nix\NXPhoton.h" />

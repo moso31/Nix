@@ -48,3 +48,8 @@ void NXHit::LocalToWorld()
 	Vector3::TransformNormal(shading.dpdu, mxWorld).Normalize(shading.dpdu);
 	Vector3::TransformNormal(shading.dpdv, mxWorld).Normalize(shading.dpdv);
 }
+
+void NXHit::Reset()
+{
+	pPrimitive = nullptr;
+}

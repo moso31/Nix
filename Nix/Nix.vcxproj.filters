@@ -64,9 +64,6 @@
     <Filter Include="Nix\RayTracer\Integrator">
       <UniqueIdentifier>{bdd7ed85-60a9-4355-9428-9b22321871eb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\File\Texture">
-      <UniqueIdentifier>{7d6084ab-293b-4ab5-8f1c-93f106cb3b6c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Nix\RayTracer\IrradianceCache">
       <UniqueIdentifier>{37acfc55-a531-4610-ad88-9ac01112c20a}</UniqueIdentifier>
     </Filter>
@@ -83,9 +80,6 @@
     </None>
     <None Include="Shader\Scene.fx">
       <Filter>Shader</Filter>
-    </None>
-    <None Include="Core\DirectXTex.inl">
-      <Filter>Core\File\Texture</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -214,12 +208,6 @@
     </ClCompile>
     <ClCompile Include="Nix\NXDistribution.cpp">
       <Filter>Nix\RayTracer</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\DDSTextureLoader.cpp">
-      <Filter>Core\File\Texture</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\WICTextureLoader.cpp">
-      <Filter>Core\File\Texture</Filter>
     </ClCompile>
     <ClCompile Include="Nix\NXCubeMap.cpp">
       <Filter>Nix\Object</Filter>
@@ -390,15 +378,6 @@
     </ClInclude>
     <ClInclude Include="Nix\NXDistribution.h">
       <Filter>Nix\RayTracer</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\DirectXTex.h">
-      <Filter>Core\File\Texture</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\DDSTextureLoader.h">
-      <Filter>Core\File\Texture</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\WICTextureLoader.h">
-      <Filter>Core\File\Texture</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXCubeMap.h">
       <Filter>Nix\Object</Filter>

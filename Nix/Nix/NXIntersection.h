@@ -19,9 +19,12 @@ public:
 
 	void GenerateBSDF(bool IsFromCamera);
 	void SetShadingGeometry(Vector3 shadingdpdu, Vector3 shadingdpdv);
-	
+
 	// 计算完毕后得到的hitInfo是Local空间数据。使用本方法将其数据转换到world空间。
 	void LocalToWorld();
+
+	// 重设primitive
+	void Reset();
 
 	std::shared_ptr<NXPrimitive> pPrimitive;
 

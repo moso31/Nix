@@ -7,9 +7,6 @@
 #include "NXRandom.h"
 #include "SamplerMath.h"
 
-#include "WICTextureLoader.h"
-#include "DDSTextureLoader.h"
-
 using namespace SamplerMath;
 
 NXPrimitive::NXPrimitive() :

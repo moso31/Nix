@@ -9,3 +9,5 @@
 /NixMath/x64
 /x64/Debug
 /x64/Release
+/Nix/lib/Debug
+/DirectXTex/.nuget
