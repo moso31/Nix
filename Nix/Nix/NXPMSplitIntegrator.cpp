@@ -54,15 +54,25 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const std::shared_pt
 		hitInfo = NXHit();
 		bIsIntersect = pScene->RayCast(ray, hitInfo);
 		if (!bIsIntersect)
-			return result;
-
-		std::shared_ptr<NXPBRAreaLight> pHitAreaLight;
-		if (hitInfo.pPrimitive) pHitAreaLight = hitInfo.pPrimitive->GetTangibleLight();
-		else if (pScene->GetCubeMap()) pHitAreaLight = pScene->GetCubeMap()->GetEnvironmentLight();
-		if (pHitAreaLight)
 		{
-			if (bEmission)
-				result += throughput * pHitAreaLight->GetRadiance(hitInfo.position, hitInfo.normal, -ray.direction);
+			auto pCubeMap = pScene->GetCubeMap();
+			if (pCubeMap)
+			{
+				auto pCubeMapLight = pCubeMap->GetEnvironmentLight();
+				if (pCubeMapLight)
+					result += throughput * pCubeMapLight->GetRadiance(hitInfo.position, hitInfo.normal, ray.direction);
+			}
+			return result;
+		}
+
+		if (hitInfo.pPrimitive)
+		{
+			auto pTangibleLight = hitInfo.pPrimitive->GetTangibleLight();
+			if (pTangibleLight)
+			{
+				if (bEmission)
+					result += throughput * pTangibleLight->GetRadiance(hitInfo.position, hitInfo.normal, hitInfo.direction);
+			}
 		}
 
 		hitInfo.GenerateBSDF(true);

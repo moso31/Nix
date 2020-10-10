@@ -27,7 +27,7 @@ void NXSPPMIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
 	{
 		printf("SPPM iteration sequences rendering...(Image %d)\n", k);
 
-		bool bRenderOnce = (k < 30) || (k % 10 == 0);
+		bool bRenderOnce = (k < 0) || (k % 10 == 0);
 		ImageBMPData* pImageData = nullptr;
 		if (bRenderOnce)
 		{
@@ -109,17 +109,27 @@ void NXSPPMIntegrator::RenderWithPM(const std::shared_ptr<NXScene>& pScene, std:
 	bool bIsDiffuse = false;
 	while (true)
 	{
-		hitInfo = NXHit();
 		bIsIntersect = pScene->RayCast(ray, hitInfo);
 		if (!bIsIntersect)
-			break;
-
-		std::shared_ptr<NXPBRAreaLight> pHitAreaLight;
-		if (hitInfo.pPrimitive) pHitAreaLight = hitInfo.pPrimitive->GetTangibleLight();
-		else if (pScene->GetCubeMap()) pHitAreaLight = pScene->GetCubeMap()->GetEnvironmentLight();
-		if (pHitAreaLight)
 		{
-			Le += throughput * pHitAreaLight->GetRadiance(hitInfo.position, hitInfo.normal, -ray.direction);
+			auto pCubeMap = pScene->GetCubeMap();
+			if (pCubeMap)
+			{
+				auto pCubeMapLight = pCubeMap->GetEnvironmentLight();
+				if (pCubeMapLight)
+					Le += throughput * pCubeMapLight->GetRadiance(hitInfo.position, hitInfo.normal, ray.direction);
+			}
+
+			break;
+		}
+
+		if (hitInfo.pPrimitive)
+		{
+			auto pTangibleLight = hitInfo.pPrimitive->GetTangibleLight();
+			if (pTangibleLight)
+			{
+				Le += throughput * pTangibleLight->GetRadiance(hitInfo.position, hitInfo.normal, hitInfo.direction);
+			}
 		}
 
 		hitInfo.GenerateBSDF(true);
@@ -137,8 +147,26 @@ void NXSPPMIntegrator::RenderWithPM(const std::shared_ptr<NXScene>& pScene, std:
 		ray.position += ray.direction * NXRT_EPSILON;
 	}
 
+	pixel.radiance += Le;
+
 	if (f.IsZero() || pdf == 0)
+	{
+		if (RenderOnce)
+		{
+			Vector3 result = (pixel.radiance / (float)(depth + 1)) + Lr;
+
+			XMINT3 RGBValue(
+				result.x > 1.0f ? 255 : (int)(result.x * 255.0f),
+				result.y > 1.0f ? 255 : (int)(result.y * 255.0f),
+				result.z > 1.0f ? 255 : (int)(result.z * 255.0f));
+
+			int rgbIdx = (m_imageSize.y - y - 1) * m_imageSize.x + x;
+			pImageData[rgbIdx].r = RGBValue.x;
+			pImageData[rgbIdx].g = RGBValue.y;
+			pImageData[rgbIdx].b = RGBValue.z;
+		}
 		return;
+	}
 
 	if (bIsIntersect)
 	{
@@ -239,14 +267,25 @@ void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene,
 	{
 		bIsIntersect = pScene->RayCast(ray, hitInfo);
 		if (!bIsIntersect)
-			break;
-
-		std::shared_ptr<NXPBRAreaLight> pHitAreaLight;
-		if (hitInfo.pPrimitive) pHitAreaLight = hitInfo.pPrimitive->GetTangibleLight();
-		else if (pScene->GetCubeMap()) pHitAreaLight = pScene->GetCubeMap()->GetEnvironmentLight();
-		if (pHitAreaLight)
 		{
-			Le += throughput * pHitAreaLight->GetRadiance(hitInfo.position, hitInfo.normal, -ray.direction);
+			auto pCubeMap = pScene->GetCubeMap();
+			if (pCubeMap)
+			{
+				auto pCubeMapLight = pCubeMap->GetEnvironmentLight();
+				if (pCubeMapLight)
+					Le += throughput * pCubeMapLight->GetRadiance(hitInfo.position, hitInfo.normal, ray.direction);
+			}
+
+			break;
+		}
+
+		if (hitInfo.pPrimitive)
+		{
+			auto pTangibleLight = hitInfo.pPrimitive->GetTangibleLight();
+			if (pTangibleLight)
+			{
+				Le += throughput * pTangibleLight->GetRadiance(hitInfo.position, hitInfo.normal, hitInfo.direction);
+			}
 		}
 
 		hitInfo.GenerateBSDF(true);

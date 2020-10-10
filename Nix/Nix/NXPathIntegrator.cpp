@@ -33,7 +33,7 @@ Vector3 NXPathIntegrator::Radiance(const Ray& ray, const std::shared_ptr<NXScene
 				if (!pCubeMap || !pCubeMapLight)
 					break;
 
-				L += throughput * pCubeMapLight->GetRadiance(Vector3(), Vector3(), -nextRay.direction);
+				L += throughput * pCubeMapLight->GetRadiance(Vector3(), Vector3(), nextRay.direction);
 				break;
 			}
 

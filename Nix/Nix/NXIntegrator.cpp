@@ -74,8 +74,8 @@ Vector3 NXIntegrator::DirectEstimate(const Ray& ray, const std::shared_ptr<NXSce
 
 			if (pHitAreaLight == pLight)
 			{
-				Li = pHitAreaLight->GetRadiance(hitLightInfo.position, hitLightInfo.normal, -incidentDirection);
-				pdfLight = pHitAreaLight->GetPdf(hitInfo, hitLightInfo.position, hitLightInfo.normal, -incidentDirection);
+				Li = pHitAreaLight->GetRadiance(hitLightInfo.position, hitLightInfo.normal, incidentDirection);
+				pdfLight = pHitAreaLight->GetPdf(hitInfo, hitLightInfo.position, hitLightInfo.normal, hitLightInfo.direction);
 
 				if (!Li.IsZero())
 				{

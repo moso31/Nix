@@ -39,35 +39,52 @@ Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const std::shared_ptr<NXS
 	NXHit hitInfo;
 
 	Vector3 result(0.0f);
-	Vector3 throughput(1.0f);
+	Vector3 throughput(1.0f), f(0.0f);
 
 	bool bIsDiffuse = false;
 	while (depth < maxDepth)
 	{
-		hitInfo = NXHit();
 		bool bIsIntersect = pScene->RayCast(ray, hitInfo);
 		if (!bIsIntersect)
-			return result;
-
-		std::shared_ptr<NXPBRAreaLight> pHitAreaLight;
-		if (hitInfo.pPrimitive) pHitAreaLight = hitInfo.pPrimitive->GetTangibleLight();
-		else if (pScene->GetCubeMap()) pHitAreaLight = pScene->GetCubeMap()->GetEnvironmentLight();
-		if (pHitAreaLight)
 		{
-			result += throughput * pHitAreaLight->GetRadiance(hitInfo.position, hitInfo.normal, -ray.direction);
+			auto pCubeMap = pScene->GetCubeMap();
+			if (pCubeMap)
+			{
+				auto pCubeMapLight = pCubeMap->GetEnvironmentLight();
+				if (pCubeMapLight)
+					result += throughput * pCubeMapLight->GetRadiance(hitInfo.position, hitInfo.normal, ray.direction);
+			}
+			return result;
+		}
+
+		if (hitInfo.pPrimitive)
+		{
+			auto pTangibleLight = hitInfo.pPrimitive->GetTangibleLight();
+			if (pTangibleLight)
+			{
+				result += throughput * pTangibleLight->GetRadiance(hitInfo.position, hitInfo.normal, hitInfo.direction);
+			}
 		}
 
 		hitInfo.GenerateBSDF(true);
 		std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
-		Vector3 f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
+		f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
 		bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
 		sampleEvent.reset();
 
-		if (bIsDiffuse || PHOTONS_ONLY) break;
+		if (f.IsZero() || pdf == 0) break;
+		if (bIsDiffuse) break;
+		if (PHOTONS_ONLY) break;
 
 		throughput *= f * fabsf(hitInfo.shading.normal.Dot(nextDirection)) / pdf;
 		ray = Ray(hitInfo.position, nextDirection);
 		ray.position += ray.direction * NXRT_EPSILON;
+	}
+
+
+	if (f.IsZero() || pdf == 0)
+	{
+		return result;
 	}
 
 	Vector3 pos = hitInfo.position;
@@ -108,6 +125,7 @@ Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const std::shared_ptr<NXS
 	}
 	float numPhotons = (float)m_pPhotonMap->GetPhotonCount();
 	result += throughput * flux / (XM_PI * radius2 * numPhotons);
+
 	return result;
 }
 

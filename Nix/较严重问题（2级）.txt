@@ -11,4 +11,7 @@ Irradiance Cache已经加上了，但是某些情况下，间接漫反射照明会存在比较小的黑点。
 Irradiance Cache后面还有两个主要的优化方向还没有做：
 	Irradiance Cache可以进一步进行梯度优化
 	Irradiance Cache可以使用八叉树进行查找优化
-	另外是先做PPM，还是先完善Irradiance Cache？
+
+没有测试光源照向表面背面时的情况
+	虽然Nix目前规定NXRayTracer中不透明表面不分正反面，但是没有对这种情况进行过哪怕是基本的测试。
+	建议后续设置一个光源-表面A背面-表面B正面的模型，以检测表面A、表面B的照明情况是否正常。

@@ -24,7 +24,7 @@ public:
 	void PreIrradiance(const Ray& ray, const std::shared_ptr<NXScene>& pScene, int depth);
 	Vector3 Irradiance(const Ray& ray, const std::shared_ptr<NXScene>& pScene, int depth);
 	bool FindEstimateCaches(const Vector3& position, const Vector3& normal, Vector3& oEstimateIrradiance);
-	Vector3 CalculateOneCache(const std::shared_ptr<NXScene>& pScene, const NXHit& hitInfo, int sampleTheta, int samplePhi, NXIrradianceCacheInfo& oCacheInfo);
+	bool CalculateOneCache(const std::shared_ptr<NXScene>& pScene, const NXHit& hitInfo, int sampleTheta, int samplePhi, Vector3& oIrradiance, NXIrradianceCacheInfo& oCacheInfo);
 
 	void Render(const std::shared_ptr<NXScene>& pScene, const XMINT2& imageSize, std::string outFilePath);
 

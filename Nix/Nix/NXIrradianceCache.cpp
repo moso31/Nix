@@ -58,8 +58,9 @@ void NXIrradianceCache::PreIrradiance(const Ray& cameraRay, const std::shared_pt
 		int sampleTheta = 20;
 		int samplePhi = 20;
 		NXIrradianceCacheInfo cacheInfo;
-		CalculateOneCache(pScene, hitInfo, sampleTheta, samplePhi, cacheInfo);
-		m_caches.push_back(cacheInfo);
+		Vector3 irradiance;
+		if (CalculateOneCache(pScene, hitInfo, sampleTheta, samplePhi, irradiance, cacheInfo))
+			m_caches.push_back(cacheInfo);
 	}
 }
 
@@ -118,8 +119,12 @@ Vector3 NXIrradianceCache::Irradiance(const Ray& cameraRay, const std::shared_pt
 		int sampleTheta = 20;
 		int samplePhi = 20;
 		NXIrradianceCacheInfo cacheInfo;
-		result += CalculateOneCache(pScene, hitInfo, sampleTheta, samplePhi, cacheInfo);
-		m_caches.push_back(cacheInfo);
+		Vector3 irradiance(0.0f);
+		if (CalculateOneCache(pScene, hitInfo, sampleTheta, samplePhi, irradiance, cacheInfo))
+		{
+			result += irradiance;
+			m_caches.push_back(cacheInfo);
+		}
 	}
 
 	return result;
@@ -151,14 +156,13 @@ bool NXIrradianceCache::FindEstimateCaches(const Vector3& position, const Vector
 	return false;
 }
 
-Vector3 NXIrradianceCache::CalculateOneCache(const std::shared_ptr<NXScene>& pScene, const NXHit& hitInfo, int sampleTheta, int samplePhi, NXIrradianceCacheInfo& oCacheInfo)
+bool NXIrradianceCache::CalculateOneCache(const std::shared_ptr<NXScene>& pScene, const NXHit& hitInfo, int sampleTheta, int samplePhi, Vector3& oIrradiance, NXIrradianceCacheInfo& oCacheInfo)
 {
 	float tTheta = 1.0f / (float)sampleTheta;
 	float tPhi = 1.0f / (float)samplePhi;
 	float count = (float)(sampleTheta * samplePhi);
 	float sumHarmonicDistance = 0.0f;
 
-	Vector3 irradiance;
 	float ignore;
 	// 在半球空间上密集采样
 	for (float i = 0.0f; i < 1.0f; i += tTheta)
@@ -230,19 +234,27 @@ Vector3 NXIrradianceCache::CalculateOneCache(const std::shared_ptr<NXScene>& pSc
 				radiance /= (XM_PI * radius2 * numPhotons);
 			}
 
-			irradiance += throughput * radiance; // * hitInfo.shading.normal.Dot(nextDirWorld) / SamplerMath::CosineSampleHemispherePdf(不算两个余弦项了反正也会被抵消掉);
+			oIrradiance += throughput * radiance; // * hitInfo.shading.normal.Dot(nextDirWorld) / SamplerMath::CosineSampleHemispherePdf(不算两个余弦项了反正也会被抵消掉);
 		}
 	}
+
+	if (count == 0.0f)
+	{
+		oIrradiance = Vector3(0.0f);
+		return false;
+	}
+
 	// 最后统计平均值
-	irradiance *= XM_PI / count;	// XM_PI：上面两个余弦项抵消，会导致半球余弦pdf的pi未处理。所以在这里补一下。
+	oIrradiance *= XM_PI / count;	// XM_PI：上面两个余弦项抵消，会导致半球余弦pdf的pi未处理。所以在这里补一下。
 
 	// 计算完毕后储存
 	oCacheInfo.position = hitInfo.position;
-	oCacheInfo.irradiance = irradiance;
+	oCacheInfo.irradiance = oIrradiance;
 	oCacheInfo.normal = hitInfo.shading.normal;
 	oCacheInfo.harmonicDistance = count / sumHarmonicDistance;
 	//printf("+cache: %f\n", oCacheInfo.harmonicDistance);
-	return irradiance;
+
+	return true;
 }
 
 void NXIrradianceCache::Render(const std::shared_ptr<NXScene>& pScene, const XMINT2& imageSize, std::string outFilePath)
