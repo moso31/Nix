@@ -28,7 +28,7 @@ Vector3 NXIntegrator::DirectEstimate(const Ray& ray, const std::shared_ptr<NXSce
 			Vector3 f = hitInfo.BSDF->Evaluate(hitInfo.direction, incidentDirection, pdfBSDF);
 			if (!f.IsZero())
 			{
-				L += f * Li * incidentDirection.Dot(hitInfo.shading.normal);
+				L = f * Li * incidentDirection.Dot(hitInfo.shading.normal);
 			}
 		}
 	}
@@ -40,19 +40,31 @@ Vector3 NXIntegrator::DirectEstimate(const Ray& ray, const std::shared_ptr<NXSce
 
 		// 基于光源采样一次
 		Vector3 Li = pLight->Illuminate(hitInfo, incidentDirection, pdfLight);
-		if (!Li.IsZero() && pdfLight > 0.0f)
+		if (!Li.IsZero() && pdfLight != 0)
 		{
 			f = hitInfo.BSDF->Evaluate(hitInfo.direction, incidentDirection, pdfBSDF);
 			if (!f.IsZero())
 			{
+				// 这里计算出pdfWeight，但先不用。等后面代码确认了并非DeltaBSDF后再使用。
 				pdfWeight = PowerHeuristicWeightPdf(1, pdfLight, 1, pdfBSDF);
-				L += f * Li * incidentDirection.Dot(hitInfo.shading.normal) * pdfWeight / pdfLight;
+				L += f * Li * incidentDirection.Dot(hitInfo.shading.normal) / pdfLight;
 			}
 		}
 
 		// 基于BSDF采样一次
-		f = hitInfo.BSDF->Sample(hitInfo.direction, incidentDirection, pdfBSDF);
-		if (!f.IsZero())
+		std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
+		f = hitInfo.BSDF->Sample(hitInfo.direction, incidentDirection, pdfBSDF, sampleEvent);
+		bool bIsDeltaBSDF = *sampleEvent & NXBSDF::DELTA;
+
+		// 如果是DeltaBSDF，不使用重点采样，仅使用灯光采样。
+		// 否则会被重复迭代。
+		if (bIsDeltaBSDF)
+			return L;
+
+		// 确认了并非DeltaBSDF后补上上面计算中的pdfWeight。
+		L *= pdfWeight;
+
+		if (!f.IsZero() && pdfBSDF != 0)
 		{
 			// 基于BSDF采样的方向寻找此次采样是否击中光源。
 			// 击中光源：使用该光源的自发光数据作为BSDF样本的Li。

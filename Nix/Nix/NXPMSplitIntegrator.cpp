@@ -45,33 +45,36 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const std::shared_pt
 	Vector3 result(0.0f);
 	Vector3 throughput(1.0f);
 
+	bool isDeltaBSDF = false;
 	bool bIsDiffuse = false;
 	bool bIsIntersect = false;
 
 	// Direct illumination + specular/glossy reflection
 	while (depth < maxDepth)
 	{
-		hitInfo = NXHit();
 		bIsIntersect = pScene->RayCast(ray, hitInfo);
-		if (!bIsIntersect)
+		if (depth == 0 || isDeltaBSDF)
 		{
-			auto pCubeMap = pScene->GetCubeMap();
-			if (pCubeMap)
+			if (!bIsIntersect)
 			{
-				auto pCubeMapLight = pCubeMap->GetEnvironmentLight();
-				if (pCubeMapLight)
-					result += throughput * pCubeMapLight->GetRadiance(hitInfo.position, hitInfo.normal, ray.direction);
+				auto pCubeMap = pScene->GetCubeMap();
+				if (pCubeMap)
+				{
+					auto pCubeMapLight = pCubeMap->GetEnvironmentLight();
+					if (pCubeMapLight)
+						result += throughput * pCubeMapLight->GetRadiance(hitInfo.position, hitInfo.normal, ray.direction);
+				}
+				return result;
 			}
-			return result;
-		}
 
-		if (hitInfo.pPrimitive)
-		{
-			auto pTangibleLight = hitInfo.pPrimitive->GetTangibleLight();
-			if (pTangibleLight)
+			if (hitInfo.pPrimitive)
 			{
-				if (bEmission)
-					result += throughput * pTangibleLight->GetRadiance(hitInfo.position, hitInfo.normal, hitInfo.direction);
+				auto pTangibleLight = hitInfo.pPrimitive->GetTangibleLight();
+				if (pTangibleLight)
+				{
+					if (bEmission)
+						result += throughput * pTangibleLight->GetRadiance(hitInfo.position, hitInfo.normal, hitInfo.direction);
+				}
 			}
 		}
 
@@ -81,6 +84,7 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const std::shared_pt
 		std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
 		f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
 		bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
+		isDeltaBSDF = *sampleEvent & NXBSDF::DELTA;
 		sampleEvent.reset();
 
 		if (bIsDiffuse || PHOTONS_ONLY) break;
@@ -88,6 +92,8 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const std::shared_pt
 		throughput *= f * fabsf(hitInfo.shading.normal.Dot(nextDirection)) / pdf;
 		ray = Ray(hitInfo.position, nextDirection);
 		ray.position += ray.direction * NXRT_EPSILON;
+
+		depth++;
 	}
 
 	if (!bIsIntersect)
@@ -140,7 +146,7 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const std::shared_pt
 	{
 		if (m_pIrradianceCache)
 		{
-			Vector3 Irradiance = m_pIrradianceCache->Irradiance(ray, pScene, depth);
+			Vector3 Irradiance = m_pIrradianceCache->Irradiance(ray, pScene, 0);
 			result += f * Irradiance;
 		}
 		else

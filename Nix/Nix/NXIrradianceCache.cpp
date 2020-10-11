@@ -82,7 +82,6 @@ Vector3 NXIrradianceCache::Irradiance(const Ray& cameraRay, const std::shared_pt
 	bool bIsIntersect = false;
 	while (true)
 	{
-		hitInfo = NXHit();
 		bIsIntersect = pScene->RayCast(ray, hitInfo);
 		if (!bIsIntersect)
 			return result;

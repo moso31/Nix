@@ -14,7 +14,7 @@ Vector3 NXPathIntegrator::Radiance(const Ray& ray, const std::shared_ptr<NXScene
 	Vector3 throughput(1.0f);
 	Vector3 L(0.0f);
 	Ray nextRay(ray);
-	bool bIsSpecular(false);
+	bool isDeltaBSDF(false);
 	while (true)
 	{
 		NXHit hitInfo;
@@ -22,9 +22,9 @@ Vector3 NXPathIntegrator::Radiance(const Ray& ray, const std::shared_ptr<NXScene
 
 		// 在第一次迭代(depth=0)的时候需要手动计算直接光照。
 		// 后续2-n次迭代，光照相关的数据全部由UniformLightOne提供。
-		// 同理，在上一次是高亮反射(IsSpecular)的情况下也要手动计算全局光照。
+		// 同理，在上一次是高亮反射(isDeltaBSDF)的情况下也要手动计算全局光照。
 		// 因为由于delta分布的特殊性，这种情况下UniformLightOne提供照明的可能性是0。
-		if (depth == 0 || bIsSpecular)
+		if (depth == 0 || isDeltaBSDF)
 		{
 			if (!bIsIntersect)
 			{
@@ -57,7 +57,7 @@ Vector3 NXPathIntegrator::Radiance(const Ray& ray, const std::shared_ptr<NXScene
 		Vector3 nextDirection;
 		std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
 		Vector3 f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
-		bIsSpecular = *sampleEvent & NXBSDF::DELTA;
+		isDeltaBSDF = *sampleEvent & NXBSDF::DELTA;
 		sampleEvent.reset();
 
 		if (f.IsZero()) break;

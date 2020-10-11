@@ -41,28 +41,32 @@ Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const std::shared_ptr<NXS
 	Vector3 result(0.0f);
 	Vector3 throughput(1.0f), f(0.0f);
 
+	bool isDeltaBSDF = false;
 	bool bIsDiffuse = false;
 	while (depth < maxDepth)
 	{
 		bool bIsIntersect = pScene->RayCast(ray, hitInfo);
-		if (!bIsIntersect)
+		if (depth == 0 || isDeltaBSDF)
 		{
-			auto pCubeMap = pScene->GetCubeMap();
-			if (pCubeMap)
+			if (!bIsIntersect)
 			{
-				auto pCubeMapLight = pCubeMap->GetEnvironmentLight();
-				if (pCubeMapLight)
-					result += throughput * pCubeMapLight->GetRadiance(hitInfo.position, hitInfo.normal, ray.direction);
+				auto pCubeMap = pScene->GetCubeMap();
+				if (pCubeMap)
+				{
+					auto pCubeMapLight = pCubeMap->GetEnvironmentLight();
+					if (pCubeMapLight)
+						result += throughput * pCubeMapLight->GetRadiance(hitInfo.position, hitInfo.normal, ray.direction);
+				}
+				return result;
 			}
-			return result;
-		}
 
-		if (hitInfo.pPrimitive)
-		{
-			auto pTangibleLight = hitInfo.pPrimitive->GetTangibleLight();
-			if (pTangibleLight)
+			if (hitInfo.pPrimitive)
 			{
-				result += throughput * pTangibleLight->GetRadiance(hitInfo.position, hitInfo.normal, hitInfo.direction);
+				auto pTangibleLight = hitInfo.pPrimitive->GetTangibleLight();
+				if (pTangibleLight)
+				{
+					result += throughput * pTangibleLight->GetRadiance(hitInfo.position, hitInfo.normal, hitInfo.direction);
+				}
 			}
 		}
 
@@ -70,6 +74,7 @@ Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const std::shared_ptr<NXS
 		std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
 		f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
 		bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
+		isDeltaBSDF = *sampleEvent & NXBSDF::DELTA;
 		sampleEvent.reset();
 
 		if (f.IsZero() || pdf == 0) break;
@@ -79,6 +84,8 @@ Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const std::shared_ptr<NXS
 		throughput *= f * fabsf(hitInfo.shading.normal.Dot(nextDirection)) / pdf;
 		ray = Ray(hitInfo.position, nextDirection);
 		ray.position += ray.direction * NXRT_EPSILON;
+
+		depth++;
 	}
 
 

@@ -21,13 +21,22 @@ void NXSPPMIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
 	pScene->BuildBVHTrees(HLBVH);
 	printf("Done.\n");
 
-	UINT nPixels = m_imageSize.x * m_imageSize.y;
+	int nPixels = m_imageSize.x * m_imageSize.y;
 	std::unique_ptr<NXSPPMPixel[]> pixels(new NXSPPMPixel[nPixels]);
+
+#pragma omp parallel for 
+	for (int i = 0; i < nPixels; i++)
+	{
+		// SPPMPixels 初始化
+		pixels[i].causticRadius2 = 1e-7f;
+		pixels[i].globalRadius2 = 1e-7f;
+	}
+
 	for (int k = 0; ; k++)
 	{
 		printf("SPPM iteration sequences rendering...(Image %d)\n", k);
 
-		bool bRenderOnce = (k < 0) || (k % 10 == 0);
+		bool bRenderOnce = (k < 0) || (k % 30 == 0);
 		ImageBMPData* pImageData = nullptr;
 		if (bRenderOnce)
 		{
@@ -66,29 +75,29 @@ void NXSPPMIntegrator::RefreshPhotonMap(const std::shared_ptr<NXScene>& pScene)
 	m_pGlobalPhotonMap->Generate(pScene, PhotonMapType::Global);
 }
 
-void NXSPPMIntegrator::RenderWithPM(const std::shared_ptr<NXScene>& pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int depth, bool RenderOnce)
+void NXSPPMIntegrator::RenderWithPM(const std::shared_ptr<NXScene>& pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int iter, bool RenderOnce)
 {
 #pragma omp parallel for
 	for (int i = 0; i < m_imageSize.x; i++)
 	{
 		for (int j = 0; j < m_imageSize.y; j++)
-			RenderWithPM(pScene, oPixels, pImageData, depth, RenderOnce, i, j);
+			RenderWithPM(pScene, oPixels, pImageData, iter, RenderOnce, i, j);
 		printf("\r%.2f%% ", (float)++m_progress * 100.0f / (float)m_imageSize.x);	// 进度条更新
 	}
 }
 
-void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int depth, bool RenderOnce)
+void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int iter, bool RenderOnce)
 {
 #pragma omp parallel for
 	for (int i = 0; i < m_imageSize.x; i++)
 	{
 		for (int j = 0; j < m_imageSize.y; j++)
-			RenderWithPMSplit(pScene, oPixels, pImageData, depth, RenderOnce, i, j);
+			RenderWithPMSplit(pScene, oPixels, pImageData, iter, RenderOnce, i, j);
 		printf("\r%.2f%% ", (float)++m_progress * 100.0f / (float)m_imageSize.x);	// 进度条更新
 	}
 }
 
-void NXSPPMIntegrator::RenderWithPM(const std::shared_ptr<NXScene>& pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int depth, bool RenderOnce, int x, int y)
+void NXSPPMIntegrator::RenderWithPM(const std::shared_ptr<NXScene>& pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int iter, bool RenderOnce, int x, int y)
 {
 	Vector2 pixelCoord((float)x, (float)y);
 	Vector2 sampleCoord = pixelCoord + NXRandom::GetInstance()->CreateVector2();
@@ -105,30 +114,35 @@ void NXSPPMIntegrator::RenderWithPM(const std::shared_ptr<NXScene>& pScene, std:
 	Vector3 Le(0.0f), Lr(0.0f);
 	Vector3 throughput(1.0f);
 
-	bool bIsIntersect = false;
+	bool isDeltaBSDF = false;
 	bool bIsDiffuse = false;
+	bool bIsIntersect = false;
+	int depth = 0;
 	while (true)
 	{
 		bIsIntersect = pScene->RayCast(ray, hitInfo);
-		if (!bIsIntersect)
+		if (depth == 0 || isDeltaBSDF)
 		{
-			auto pCubeMap = pScene->GetCubeMap();
-			if (pCubeMap)
+			if (!bIsIntersect)
 			{
-				auto pCubeMapLight = pCubeMap->GetEnvironmentLight();
-				if (pCubeMapLight)
-					Le += throughput * pCubeMapLight->GetRadiance(hitInfo.position, hitInfo.normal, ray.direction);
+				auto pCubeMap = pScene->GetCubeMap();
+				if (pCubeMap)
+				{
+					auto pCubeMapLight = pCubeMap->GetEnvironmentLight();
+					if (pCubeMapLight)
+						Le += throughput * pCubeMapLight->GetRadiance(hitInfo.position, hitInfo.normal, ray.direction);
+				}
+
+				break;
 			}
 
-			break;
-		}
-
-		if (hitInfo.pPrimitive)
-		{
-			auto pTangibleLight = hitInfo.pPrimitive->GetTangibleLight();
-			if (pTangibleLight)
+			if (hitInfo.pPrimitive)
 			{
-				Le += throughput * pTangibleLight->GetRadiance(hitInfo.position, hitInfo.normal, hitInfo.direction);
+				auto pTangibleLight = hitInfo.pPrimitive->GetTangibleLight();
+				if (pTangibleLight)
+				{
+					Le += throughput * pTangibleLight->GetRadiance(hitInfo.position, hitInfo.normal, hitInfo.direction);
+				}
 			}
 		}
 
@@ -137,6 +151,7 @@ void NXSPPMIntegrator::RenderWithPM(const std::shared_ptr<NXScene>& pScene, std:
 		std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
 		f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
 		bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
+		isDeltaBSDF = *sampleEvent & NXBSDF::DELTA;
 		sampleEvent.reset();
 
 		if (f.IsZero() || pdf == 0) break;
@@ -145,6 +160,8 @@ void NXSPPMIntegrator::RenderWithPM(const std::shared_ptr<NXScene>& pScene, std:
 		throughput *= f * fabsf(hitInfo.shading.normal.Dot(nextDirection)) / pdf;
 		ray = Ray(hitInfo.position, nextDirection);
 		ray.position += ray.direction * NXRT_EPSILON;
+
+		depth++;
 	}
 
 	pixel.radiance += Le;
@@ -153,7 +170,7 @@ void NXSPPMIntegrator::RenderWithPM(const std::shared_ptr<NXScene>& pScene, std:
 	{
 		if (RenderOnce)
 		{
-			Vector3 result = (pixel.radiance / (float)(depth + 1)) + Lr;
+			Vector3 result = (pixel.radiance / (float)(iter + 1)) + Lr;
 
 			XMINT3 RGBValue(
 				result.x > 1.0f ? 255 : (int)(result.x * 255.0f),
@@ -220,11 +237,11 @@ void NXSPPMIntegrator::RenderWithPM(const std::shared_ptr<NXScene>& pScene, std:
 		pixel.radiance += Le;
 	}
 
-	Lr = pixel.globalFlux / (XM_PI * (float)m_pGlobalPhotonMap->GetPhotonCount() * (depth + 1) * pixel.globalRadius2);
+	Lr = pixel.globalFlux / (XM_PI * (float)m_pGlobalPhotonMap->GetPhotonCount() * (iter + 1) * pixel.globalRadius2);
 
 	if (RenderOnce)
 	{
-		Vector3 result = (pixel.radiance / (float)(depth + 1)) + Lr;
+		Vector3 result = (pixel.radiance / (float)(iter + 1)) + Lr;
 
 		XMINT3 RGBValue(
 			result.x > 1.0f ? 255 : (int)(result.x * 255.0f),
@@ -238,7 +255,7 @@ void NXSPPMIntegrator::RenderWithPM(const std::shared_ptr<NXScene>& pScene, std:
 	}
 }
 
-void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int depth, bool RenderOnce, int x, int y)
+void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int iter, bool RenderOnce, int x, int y)
 {
 	Vector2 pixelCoord((float)x, (float)y);
 	Vector2 sampleCoord = pixelCoord + NXRandom::GetInstance()->CreateVector2();
@@ -246,12 +263,6 @@ void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene,
 
 	UINT pixelOffset = (m_imageSize.y - y - 1) * m_imageSize.x + x;
 	NXSPPMPixel& pixel = oPixels[pixelOffset];
-
-	if (!depth)
-	{
-		pixel.causticRadius2 = 1e-7f;
-		pixel.globalRadius2 = 1e-7f;
-	}
 
 	Vector3 nextDirection;
 	float pdf, pdfPhotons;
@@ -261,30 +272,35 @@ void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene,
 	Vector3 Le(0.0f), Ld(0.0f), LrCaustic(0.0f), LrGlobal(0.0f);
 	Vector3 throughput(1.0f);
 
-	bool bIsIntersect = false;
+	bool isDeltaBSDF = false;
 	bool bIsDiffuse = false;
+	bool bIsIntersect = false;
+	int depth = 0;
 	while (true)
 	{
 		bIsIntersect = pScene->RayCast(ray, hitInfo);
-		if (!bIsIntersect)
+		if (depth == 0 || isDeltaBSDF)
 		{
-			auto pCubeMap = pScene->GetCubeMap();
-			if (pCubeMap)
+			if (!bIsIntersect)
 			{
-				auto pCubeMapLight = pCubeMap->GetEnvironmentLight();
-				if (pCubeMapLight)
-					Le += throughput * pCubeMapLight->GetRadiance(hitInfo.position, hitInfo.normal, ray.direction);
+				auto pCubeMap = pScene->GetCubeMap();
+				if (pCubeMap)
+				{
+					auto pCubeMapLight = pCubeMap->GetEnvironmentLight();
+					if (pCubeMapLight)
+						Le += throughput * pCubeMapLight->GetRadiance(hitInfo.position, hitInfo.normal, ray.direction);
+				}
+
+				break;
 			}
 
-			break;
-		}
-
-		if (hitInfo.pPrimitive)
-		{
-			auto pTangibleLight = hitInfo.pPrimitive->GetTangibleLight();
-			if (pTangibleLight)
+			if (hitInfo.pPrimitive)
 			{
-				Le += throughput * pTangibleLight->GetRadiance(hitInfo.position, hitInfo.normal, hitInfo.direction);
+				auto pTangibleLight = hitInfo.pPrimitive->GetTangibleLight();
+				if (pTangibleLight)
+				{
+					Le += throughput * pTangibleLight->GetRadiance(hitInfo.position, hitInfo.normal, hitInfo.direction);
+				}
 			}
 		}
 
@@ -294,6 +310,7 @@ void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene,
 		std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
 		f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
 		bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
+		isDeltaBSDF = *sampleEvent & NXBSDF::DELTA;
 		sampleEvent.reset();
 
 		if (f.IsZero() || pdf == 0) break;
@@ -308,6 +325,8 @@ void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene,
 		}
 		ray = Ray(hitInfo.position, nextDirection);
 		ray.position += ray.direction * NXRT_EPSILON;
+
+		depth++;
 	}
 
 	pixel.radiance += Le + Ld;
@@ -316,7 +335,7 @@ void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene,
 	{
 		if (RenderOnce)
 		{
-			Vector3 result = pixel.radiance / (float)(depth + 1);
+			Vector3 result = pixel.radiance / (float)(iter + 1);
 
 			XMINT3 RGBValue(
 				result.x > 1.0f ? 255 : (int)(result.x * 255.0f),
@@ -426,13 +445,13 @@ void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene,
 		nextRay.position += nextRay.direction * NXRT_EPSILON;
 	}
 
-	LrCaustic = pixel.causticFlux / (XM_PI * (float)m_pCausticPhotonMap->GetPhotonCount() * (depth + 1) * pixel.causticRadius2);
+	LrCaustic = pixel.causticFlux / (XM_PI * (float)m_pCausticPhotonMap->GetPhotonCount() * (iter + 1) * pixel.causticRadius2);
 
 	if (f.IsZero() || pdf == 0)
 	{
 		if (RenderOnce)
 		{
-			Vector3 result = (pixel.radiance / (float)(depth + 1)) + LrCaustic;
+			Vector3 result = (pixel.radiance / (float)(iter + 1)) + LrCaustic;
 
 			XMINT3 RGBValue(
 				result.x > 1.0f ? 255 : (int)(result.x * 255.0f),
@@ -507,12 +526,12 @@ void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene,
 	}
 
 	// final radiance
-	LrGlobal = pixel.globalFlux / (XM_PI * (float)m_pGlobalPhotonMap->GetPhotonCount() * (depth + 1) * pixel.globalRadius2);
+	LrGlobal = pixel.globalFlux / (XM_PI * (float)m_pGlobalPhotonMap->GetPhotonCount() * (iter + 1) * pixel.globalRadius2);
 
-	Vector3 result = (pixel.radiance / (float)(depth + 1)) + LrGlobal + LrCaustic;
+	Vector3 result = (pixel.radiance / (float)(iter + 1)) + LrGlobal + LrCaustic;
 	//if (Vector3::IsNaN(result))
 	{
-		//printf("pixel.radiance_avg: %f %f %f\n", pixel.radiance.x / (float)(depth + 1), pixel.radiance.y / (float)(depth + 1), pixel.radiance.z / (float)(depth + 1));
+		//printf("pixel.radiance_avg: %f %f %f\n", pixel.radiance.x / (float)(iter + 1), pixel.radiance.y / (float)(iter + 1), pixel.radiance.z / (float)(iter + 1));
 		//printf("LrGlobal: %f %f %f\n", LrGlobal.x, LrGlobal.y, LrGlobal.z);
 		//printf("pixel.globalFlux: %f %f %f\n", pixel.globalFlux.x, pixel.globalFlux.y, pixel.globalFlux.z);
 		//printf("pixel.globalRadius2: %.7f\n", pixel.globalRadius2);
@@ -520,7 +539,7 @@ void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene,
 
 	if (RenderOnce)
 	{
-		Vector3 result = (pixel.radiance / (float)(depth + 1)) + LrGlobal + LrCaustic;
+		Vector3 result = (pixel.radiance / (float)(iter + 1)) + LrGlobal + LrCaustic;
 
 		XMINT3 RGBValue(
 			result.x > 1.0f ? 255 : (int)(result.x * 255.0f),

@@ -24,8 +24,8 @@ void NXRayTracer::RenderImage(const std::shared_ptr<NXScene>& pScene, NXRayTrace
 	case NXRayTraceRenderMode::DirectLighting:
 	{
 		printf("DirectLighting Integrator Running...\n");
-		//std::make_unique<NXDirectIntegrator>(renderResolution, pixelSample, "D:\\Nix_DirectLighting.bmp")->Render(pScene);
-		std::make_unique<NXDirectIntegrator>(renderResolution, pixelSample, "D:\\Nix_DirectLighting.bmp")->CenterRayTest(pScene);
+		std::make_unique<NXDirectIntegrator>(renderResolution, pixelSample, "D:\\Nix_DirectLighting.bmp")->Render(pScene);
+		//std::make_unique<NXDirectIntegrator>(renderResolution, pixelSample, "D:\\Nix_DirectLighting.bmp")->CenterRayTest(pScene);
 		break;
 	}
 	case NXRayTraceRenderMode::PathTracing:

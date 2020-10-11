@@ -18,7 +18,7 @@ NXBSDF::NXBSDF(const NXHit& pHitInfo, const std::shared_ptr<NXPBRMaterial>& pMat
 	auto pFresnelReflectivity = std::make_unique<NXFresnelDielectric>(1.0f, pMat->m_IOR);
 
 	Vector3 wo = WorldToReflection(pHitInfo.direction);
-	m_reflectance = pMat->m_IOR > 0.0f ? pFresnelReflectivity->FresnelReflectance(CosTheta(wo)).x : 1.0f;	// 有反射率必然为电介质，xyz都一样 取谁都行
+	m_reflectance = pMat->m_IOR > 0.0f ? pFresnelReflectivity->FresnelReflectance(CosTheta(wo)).x : 1.0f;	// 有IOR必然为绝缘电介质，xyz都一样 取谁都行
 	pMat->CalcSampleProbabilities(m_reflectance);
 }
 
