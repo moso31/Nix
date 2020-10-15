@@ -7,6 +7,7 @@ public:
 	App();
 
 	void Init();
+	void Update();
 	void Draw();
 	void Release();
 

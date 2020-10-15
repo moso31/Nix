@@ -21,10 +21,18 @@ void App::Init()
 	m_pRenderer->Init();
 }
 
+void App::Update()
+{
+	// 更新场景数据
+	m_pRenderer->UpdateSceneData();
+}
+
 void App::Draw()
 {
-	m_pRenderer->UpdateSceneData();
-	m_pRenderer->DrawShadowMap();
+	// 绘制阴影贴图
+	// m_pRenderer->DrawShadowMap();
+
+	// 绘制主场景
 	m_pRenderer->DrawScene();
 }
 

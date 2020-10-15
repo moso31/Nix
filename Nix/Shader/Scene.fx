@@ -40,16 +40,16 @@ cbuffer ConstantBufferShadowMapTransform : register(b4)
 struct VS_INPUT
 {
 	float4 pos : POSITION;
-	float3 norm : NORMAL0;
-	float2 tex : TEXCOORD0;
+	float3 norm : NORMAL;
+	float2 tex : TEXCOORD;
 };
 
 struct PS_INPUT
 {
 	float4 posH : SV_POSITION;
 	float4 posW : POSITION;
-	float3 normW : NORMAL0;
-	float2 tex : TEXCOORD0;
+	float3 normW : NORMAL;
+	float2 tex : TEXCOORD;
 };
 
 PS_INPUT VS(VS_INPUT input)

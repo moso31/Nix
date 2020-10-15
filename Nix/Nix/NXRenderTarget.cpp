@@ -29,6 +29,8 @@ void NXRenderTarget::Init()
 
 void NXRenderTarget::Render()
 {
+	// QuadRTV的绘制只需要提供一下四边形顶点信息、SRV并绘制就好。
+	// 不过这里InputLayout还是用的VertexPNT格式，实际上做一个专用的VertexQuad顶点格式更加优化。这里没做。
 	UINT stride = sizeof(VertexPNT);
 	UINT offset = 0;
 	g_pContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &stride, &offset);

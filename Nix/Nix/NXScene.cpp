@@ -330,7 +330,11 @@ void NXScene::Init()
 	}
 
 	// …Ë÷√≥£¡øª∫¥Ê
-	InitShadowMapTransformInfo(NXGlobalBufferManager::m_cbDataShadowMap);
+	bool bEnableShadowMap = false;
+	if (bEnableShadowMap)
+	{
+		InitShadowMapTransformInfo(NXGlobalBufferManager::m_cbDataShadowMap);
+	}
 
 	InitScripts();
 }

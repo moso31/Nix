@@ -78,6 +78,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 		else
 		{
 			g_timer->Tick();
+			g_app->Update();
 			g_app->Draw();
 
 			NXII->RestoreData(); // 清空一次鼠标位置

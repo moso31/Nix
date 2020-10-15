@@ -116,7 +116,10 @@ void Renderer::InitRenderer()
 
 void Renderer::UpdateSceneData()
 {
+	// 更新Transform
 	m_scene->UpdateTransform();
+
+	// 更新场景Scripts。实际上是用Scripts控制指定物体的Transform。
 	m_scene->UpdateScripts();
 }
 
@@ -124,7 +127,7 @@ void Renderer::DrawShadowMap()
 {
 	g_pContext->VSSetShader(m_pVertexShaderShadowMap, nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShaderShadowMap, nullptr, 0);
-	g_pContext->PSSetSamplers(0, 1, &m_pSamplerLinearWrap);
+	g_pContext->PSSetSamplers(1, 1, &m_pSamplerShadowMapPCF);
 
 	g_pContext->RSSetState(RenderStates::ShadowMapRS);
 	m_pPassShadowMap->Load();
@@ -134,23 +137,35 @@ void Renderer::DrawShadowMap()
 
 void Renderer::DrawScene()
 {
-	g_pContext->RSSetState(nullptr);	// back culling
+	// 使用默认背向剔除（指针设为空就是默认的back culling）
+	g_pContext->RSSetState(nullptr);
+
+	// 设置两个RTV，一个用于绘制主场景，一个用于绘制显示区
 	auto pOffScreenRTV = g_dxResources->GetOffScreenRTV();
 	auto pRenderTargetView = g_dxResources->GetRenderTargetView();
 	auto pDepthStencilView = g_dxResources->GetDepthStencilView();
 
+	// 设置视口
 	auto vp = g_dxResources->GetViewPortSize();
 	g_pContext->RSSetViewports(1, &CD3D11_VIEWPORT(0.0f, 0.0f, vp.x, vp.y));
 	
+	// 切换到主RTV，并清空主RTV和DSV
 	g_pContext->OMSetRenderTargets(1, &pOffScreenRTV, pDepthStencilView);
 	g_pContext->ClearRenderTargetView(pOffScreenRTV, Colors::WhiteSmoke);
 	g_pContext->ClearDepthStencilView(pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
+	// 设置使用的VS和PS（这里是scene.fx）
 	g_pContext->VSSetShader(m_pVertexShader, nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShader, nullptr, 0);
-	g_pContext->PSSetSamplers(1, 1, &m_pSamplerShadowMapPCF);
 
+	// 以及渲染主场景所用的Sampler
+	g_pContext->PSSetSamplers(0, 1, &m_pSamplerLinearWrap);
+
+	// 更新Camera的常量缓存数据到Shader（VP矩阵、眼睛位置）
 	m_scene->UpdateCamera();
+
+	// 填上渲染Buffer的Slot。其实总结成一句话就是：
+	// 将VS/PS的CB/SRV/Sampler的xxx号槽（Slot）填上数据xxx。
 	g_pContext->VSSetConstantBuffers(1, 1, &NXGlobalBufferManager::m_cbCamera);
 	g_pContext->PSSetConstantBuffers(1, 1, &NXGlobalBufferManager::m_cbCamera);
 
@@ -166,6 +181,9 @@ void Renderer::DrawScene()
 	auto pPrims = m_scene->GetPrimitives();
 	for (auto it = pPrims.begin(); it != pPrims.end(); it++)
 	{
+		// 这里渲染场景中所有Mesh。
+		// 其他几个CB/SRV的Slot都不变，但每个物体的World、Material、Tex信息都可能改变。
+		// 可以进一步优化，比如按Material绘制、按Tex绘制。
 		auto p = *it;
 		p->Update();
 		auto pTexSRV = p->GetTextureSRV();
@@ -176,6 +194,8 @@ void Renderer::DrawScene()
 		p->Render();
 	}
 
+	// 以上操作全部都是在主RTV中进行的。
+	// 下面切换到QuadRTV，简单来说就是将主RTV绘制到这个RTV，然后作为一张四边形纹理进行最终输出。
 	g_pContext->OMSetRenderTargets(1, &pRenderTargetView, pDepthStencilView);
 	g_pContext->ClearRenderTargetView(pRenderTargetView, Colors::WhiteSmoke);
 	g_pContext->ClearDepthStencilView(pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
@@ -183,6 +203,7 @@ void Renderer::DrawScene()
 	g_pContext->VSSetShader(m_pVertexShaderOffScreen, nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShaderOffScreen, nullptr, 0);
 
+	// 对RTV的绘制详见以下函数：
 	m_renderTarget->Render();
 
 	// clear SRV.
