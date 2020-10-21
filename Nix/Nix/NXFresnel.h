@@ -49,11 +49,11 @@ public:
 class NXFresnelCommon : public NXFresnel
 {
 public:
-	NXFresnelCommon(const Vector3& Specular) : Specular(Specular) {}	// Specular = F0.
+	NXFresnelCommon(const Vector3& Specular) : F0(Specular) {}	// Specular = F0.
 	~NXFresnelCommon() {}
 
 	Vector3 FresnelReflectance(float cosThetaH) override;
 
 private:
-	Vector3 Specular;
+	Vector3 F0;
 };

@@ -39,7 +39,7 @@ public:
 
 	std::shared_ptr<NXMaterial> CreateMaterial(const std::string& name, const Vector4& ambient = Vector4(0.5f, 0.5f, 0.5f, 0.5f), const Vector4& diffuse = Vector4(0.5f, 0.5f, 0.5f, 0.5f), const Vector4& specular = Vector4(0.5f, 0.5f, 0.5f, 0.5f), const float opacity = 1.0f, const Vector4& reflect = Vector4(0.0f));
 
-	std::shared_ptr<NXPBRMaterial> CreatePBRMaterial(const Vector3& diffuse, const Vector3& specular, const Vector3& reflectivity, const Vector3& refractivity, float roughness, float IOR);
+	std::shared_ptr<NXPBRMaterial> CreatePBRMaterial(const Vector3& albedo, const float metallic, const float roughness, const float reflectivity, const float refractivity, const float IOR);
 
 	std::shared_ptr<NXPBRLight> CreatePBRPointLight(const Vector3& position, const Vector3& intensity);
 	std::shared_ptr<NXPBRLight> CreatePBRDistantLight(const Vector3& direction, const Vector3& radiance);

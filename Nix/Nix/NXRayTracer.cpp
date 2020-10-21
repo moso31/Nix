@@ -40,7 +40,8 @@ void NXRayTracer::RenderImage(const std::shared_ptr<NXScene>& pScene, NXRayTrace
 	{
 		printf("PhotonMapping Integrator Running...\n");
 		int nPhotons = 100000;
-		int nEstimatePhotons = 500;
+		int nEstimatePhotons = 200;
+		int pixelSample = 1;
 		std::make_unique<NXPMIntegrator>(renderResolution, pixelSample, "D:\\Nix_PhotonMapping.bmp", nPhotons, nEstimatePhotons)->Render(pScene);
 		break;
 	}

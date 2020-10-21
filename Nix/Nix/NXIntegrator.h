@@ -62,11 +62,11 @@ public:
 private:
 	void RenderTile(const std::shared_ptr<NXScene>& pScene, const XMINT2& tileId, ImageBMPData* oImageData);
 
-private:
-
+public:
 	// 渲染图片存放路径
 	std::string m_outFilePath;
 
+private:
 	XMINT2 m_tileSize;		// 单个并行渲染Tile的大小
 	UINT m_eachPixelSamples;	// 单个像素样本数量
 };

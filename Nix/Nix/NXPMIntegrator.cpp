@@ -19,7 +19,8 @@ NXPMIntegrator::~NXPMIntegrator()
 void NXPMIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
 {
 	BuildPhotonMap(pScene);
-	NXSampleIntegrator::Render(pScene);
+	m_pPhotonMap->Render(pScene, m_imageSize, m_outFilePath);
+	//NXSampleIntegrator::Render(pScene);
 }
 
 Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const std::shared_ptr<NXScene>& pScene, int depth)
@@ -69,6 +70,9 @@ Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const std::shared_ptr<NXS
 				}
 			}
 		}
+		
+		if (!bIsIntersect)
+			return result;
 
 		hitInfo.GenerateBSDF(true);
 		std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
@@ -127,7 +131,7 @@ Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const std::shared_ptr<NXS
 		auto photon = nearestPhotons.top();
 		Vector3 f = hitInfo.BSDF->Evaluate(-ray.direction, photon.direction, pdf);
 		float dist2 = Vector3::DistanceSquared(pos, photon.position);
-		flux += f * photon.power * GaussianFilter(dist2, radius2);
+		flux += f * photon.power;// * GaussianFilter(dist2, radius2);
 		nearestPhotons.pop();
 	}
 	float numPhotons = (float)m_pPhotonMap->GetPhotonCount();

@@ -78,6 +78,7 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const std::shared_pt
 			}
 		}
 
+		if (!bIsIntersect) break;
 		hitInfo.GenerateBSDF(true);
 		if (bDirect) result += throughput * UniformLightOne(ray, pScene, hitInfo);
 

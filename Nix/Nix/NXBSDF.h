@@ -26,8 +26,12 @@ public:
 	NXBSDF(const NXHit& pHitInfo, const std::shared_ptr<NXPBRMaterial>& pMaterial);
 	~NXBSDF() {}
 
+	// 对BRDF上按重点采样方法对某一方向进行采样，并评估入射方向和该方向的BRDF。
 	Vector3 Sample(const Vector3& woWorld, Vector3& o_wiWorld, float& o_pdf, std::shared_ptr<SampleEvents> o_sampleEvent = nullptr);
+
+	// 评估某一点的BRDF。
 	Vector3 Evaluate(const Vector3& woWorld, const Vector3& wiWorld, float& o_pdf);
+
 	Vector3 SampleDiffuse(const Vector3& wo, Vector3& o_wi, float& o_pdf);
 	Vector3 EvaluateDiffuse(const Vector3& wo, const Vector3& wi, float& o_pdf);
 	Vector3 SampleSpecular(const Vector3& wo, Vector3& o_wi, float& o_pdf);
@@ -49,7 +53,5 @@ private:
 	Vector3 ns, ss, ts;
 	std::shared_ptr<NXPBRMaterial> pMat;
 	std::unique_ptr<NXRDistributionBeckmann> pDistrib;
-	std::unique_ptr<NXFresnel> pFresnelSpecular;
-
-	float m_reflectance; // 对镜面反射，可以不记录Fresnel模型，直接记录反射率。
+	std::unique_ptr<NXFresnel> pFresnel;
 };

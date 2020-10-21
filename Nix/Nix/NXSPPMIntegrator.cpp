@@ -146,6 +146,7 @@ void NXSPPMIntegrator::RenderWithPM(const std::shared_ptr<NXScene>& pScene, std:
 			}
 		}
 
+		if (!bIsIntersect) break;
 		hitInfo.GenerateBSDF(true);
 
 		std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
@@ -304,6 +305,7 @@ void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene,
 			}
 		}
 
+		if (!bIsIntersect) break;
 		hitInfo.GenerateBSDF(true);
 		Ld += throughput * UniformLightOne(ray, pScene, hitInfo);
 
