@@ -36,7 +36,7 @@ void NXSPPMIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
 	{
 		printf("SPPM iteration sequences rendering...(Image %d)\n", k);
 
-		bool bRenderOnce = (k < 0) || (k % 30 == 0);
+		bool bRenderOnce = (k < 30) || (k % 10 == 0);
 		ImageBMPData* pImageData = nullptr;
 		if (bRenderOnce)
 		{
@@ -51,7 +51,7 @@ void NXSPPMIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
 		m_progress = 0;
 		printf("Rendering...");
 
-		bSplitRender ? 
+		bSplitRender ?
 			RenderWithPMSplit(pScene, pixels, pImageData, k, bRenderOnce) :
 			RenderWithPM(pScene, pixels, pImageData, k, bRenderOnce);
 
@@ -94,6 +94,30 @@ void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene,
 		for (int j = 0; j < m_imageSize.y; j++)
 			RenderWithPMSplit(pScene, oPixels, pImageData, iter, RenderOnce, i, j);
 		printf("\r%.2f%% ", (float)++m_progress * 100.0f / (float)m_imageSize.x);	// 进度条更新
+	}
+}
+
+void NXSPPMIntegrator::RenderWithPMArea(const std::shared_ptr<NXScene>& pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int iter, bool RenderOnce, int x, int y, int offsetX, int offsetY)
+{
+#pragma omp parallel for
+	for (int i = x; i < min(x + offsetX, m_imageSize.x); i++)
+	{
+		for (int j = y; j < min(y + offsetY, m_imageSize.y); j++)
+		{
+			RenderWithPM(pScene, oPixels, pImageData, iter, RenderOnce, i, j);
+		}
+	}
+}
+
+void NXSPPMIntegrator::RenderWithPMSplitArea(const std::shared_ptr<NXScene>& pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int iter, bool RenderOnce, int x, int y, int offsetX, int offsetY)
+{
+#pragma omp parallel for
+	for (int i = x; i < min(x + offsetX, m_imageSize.x); i++)
+	{
+		for (int j = y; j < min(y + offsetY, m_imageSize.y); j++)
+		{
+			RenderWithPMSplit(pScene, oPixels, pImageData, iter, RenderOnce, i, j);
+		}
 	}
 }
 
@@ -171,6 +195,7 @@ void NXSPPMIntegrator::RenderWithPM(const std::shared_ptr<NXScene>& pScene, std:
 	{
 		if (RenderOnce)
 		{
+			Lr = pixel.globalFlux / (XM_PI * (float)m_pGlobalPhotonMap->GetPhotonCount() * (iter + 1) * pixel.globalRadius2);
 			Vector3 result = (pixel.radiance / (float)(iter + 1)) + Lr;
 
 			XMINT3 RGBValue(
@@ -238,10 +263,9 @@ void NXSPPMIntegrator::RenderWithPM(const std::shared_ptr<NXScene>& pScene, std:
 		pixel.radiance += Le;
 	}
 
-	Lr = pixel.globalFlux / (XM_PI * (float)m_pGlobalPhotonMap->GetPhotonCount() * (iter + 1) * pixel.globalRadius2);
-
 	if (RenderOnce)
 	{
+		Lr = pixel.globalFlux / (XM_PI * (float)m_pGlobalPhotonMap->GetPhotonCount() * (iter + 1) * pixel.globalRadius2);
 		Vector3 result = (pixel.radiance / (float)(iter + 1)) + Lr;
 
 		XMINT3 RGBValue(
@@ -337,7 +361,9 @@ void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene,
 	{
 		if (RenderOnce)
 		{
-			Vector3 result = pixel.radiance / (float)(iter + 1);
+			LrCaustic = pixel.causticFlux / (XM_PI * (float)m_pCausticPhotonMap->GetPhotonCount() * (iter + 1) * pixel.causticRadius2);
+			LrGlobal = pixel.globalFlux / (XM_PI * (float)m_pGlobalPhotonMap->GetPhotonCount() * (iter + 1) * pixel.globalRadius2);
+			Vector3 result = (pixel.radiance / (float)(iter + 1)) + LrGlobal + LrCaustic;
 
 			XMINT3 RGBValue(
 				result.x > 1.0f ? 255 : (int)(result.x * 255.0f),
@@ -447,13 +473,13 @@ void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene,
 		nextRay.position += nextRay.direction * NXRT_EPSILON;
 	}
 
-	LrCaustic = pixel.causticFlux / (XM_PI * (float)m_pCausticPhotonMap->GetPhotonCount() * (iter + 1) * pixel.causticRadius2);
-
 	if (f.IsZero() || pdf == 0)
 	{
 		if (RenderOnce)
 		{
-			Vector3 result = (pixel.radiance / (float)(iter + 1)) + LrCaustic;
+			LrCaustic = pixel.causticFlux / (XM_PI * (float)m_pCausticPhotonMap->GetPhotonCount() * (iter + 1) * pixel.causticRadius2);
+			LrGlobal = pixel.globalFlux / (XM_PI * (float)m_pGlobalPhotonMap->GetPhotonCount() * (iter + 1) * pixel.globalRadius2);
+			Vector3 result = (pixel.radiance / (float)(iter + 1)) + LrGlobal + LrCaustic;
 
 			XMINT3 RGBValue(
 				result.x > 1.0f ? 255 : (int)(result.x * 255.0f),
@@ -527,20 +553,10 @@ void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene,
 		pixel.globalRadius2 = globalRadius2;
 	}
 
-	// final radiance
-	LrGlobal = pixel.globalFlux / (XM_PI * (float)m_pGlobalPhotonMap->GetPhotonCount() * (iter + 1) * pixel.globalRadius2);
-
-	Vector3 result = (pixel.radiance / (float)(iter + 1)) + LrGlobal + LrCaustic;
-	//if (Vector3::IsNaN(result))
-	{
-		//printf("pixel.radiance_avg: %f %f %f\n", pixel.radiance.x / (float)(iter + 1), pixel.radiance.y / (float)(iter + 1), pixel.radiance.z / (float)(iter + 1));
-		//printf("LrGlobal: %f %f %f\n", LrGlobal.x, LrGlobal.y, LrGlobal.z);
-		//printf("pixel.globalFlux: %f %f %f\n", pixel.globalFlux.x, pixel.globalFlux.y, pixel.globalFlux.z);
-		//printf("pixel.globalRadius2: %.7f\n", pixel.globalRadius2);
-	}
-
 	if (RenderOnce)
 	{
+		LrCaustic = pixel.causticFlux / (XM_PI * (float)m_pCausticPhotonMap->GetPhotonCount() * (iter + 1) * pixel.causticRadius2);
+		LrGlobal = pixel.globalFlux / (XM_PI * (float)m_pGlobalPhotonMap->GetPhotonCount() * (iter + 1) * pixel.globalRadius2);
 		Vector3 result = (pixel.radiance / (float)(iter + 1)) + LrGlobal + LrCaustic;
 
 		XMINT3 RGBValue(
