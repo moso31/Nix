@@ -27,8 +27,6 @@ void NXPMSplitIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
 
 Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const std::shared_ptr<NXScene>& pScene, int depth)
 {
-	bool PHOTONS_ONLY = false;
-
 	bool bEmission			= true;
 	bool bDirect			= true;
 	bool bCaustic			= true;
@@ -88,7 +86,7 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const std::shared_pt
 		isDeltaBSDF = *sampleEvent & NXBSDF::DELTA;
 		sampleEvent.reset();
 
-		if (bIsDiffuse || PHOTONS_ONLY) break;
+		if (bIsDiffuse) break;
 
 		throughput *= f * fabsf(hitInfo.shading.normal.Dot(nextDirection)) / pdf;
 		ray = Ray(hitInfo.position, nextDirection);
@@ -112,16 +110,6 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const std::shared_pt
 			float distB = Vector3::DistanceSquared(pos, photonB.position);
 			return distA < distB;
 			});
-
-		if (PHOTONS_ONLY)
-		{
-			m_pCausticPhotonMap->GetNearest(pos, norm, distSqr, nearestCausticPhotons, 1, 0.00005f);
-			if (!nearestCausticPhotons.empty())
-			{
-				result = nearestCausticPhotons.top().power;	// photon data only.
-			}
-			return result;
-		}
 
 		m_pCausticPhotonMap->GetNearest(pos, norm, distSqr, nearestCausticPhotons, 50, 0.15f, LocateFilter::Disk);
 		if (!nearestCausticPhotons.empty())
@@ -188,16 +176,6 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const std::shared_pt
 					float distB = Vector3::DistanceSquared(posDiff, photonB.position);
 					return distA < distB;
 					});
-
-				if (PHOTONS_ONLY)
-				{
-					m_pGlobalPhotonMap->GetNearest(posDiff, normDiff, distSqr, nearestGlobalPhotons, 1, 0.00005f);
-					if (!nearestGlobalPhotons.empty())
-					{
-						result = nearestGlobalPhotons.top().power;	// photon data only.
-					}
-					return result;
-				}
 
 				hitInfoDiffuse.GenerateBSDF(true);
 

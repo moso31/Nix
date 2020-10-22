@@ -19,8 +19,8 @@ NXPMIntegrator::~NXPMIntegrator()
 void NXPMIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
 {
 	BuildPhotonMap(pScene);
-	m_pPhotonMap->Render(pScene, m_imageSize, m_outFilePath);
-	//NXSampleIntegrator::Render(pScene);
+	//m_pPhotonMap->Render(pScene, m_imageSize, m_outFilePath);
+	NXSampleIntegrator::Render(pScene);
 }
 
 Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const std::shared_ptr<NXScene>& pScene, int depth)
@@ -31,7 +31,6 @@ Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const std::shared_ptr<NXS
 		return Vector3(0.0f);
 	}
 
-	bool PHOTONS_ONLY = false;
 	int maxDepth = 10;
 
 	Ray ray(cameraRay);
@@ -83,7 +82,6 @@ Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const std::shared_ptr<NXS
 
 		if (f.IsZero() || pdf == 0) break;
 		if (bIsDiffuse) break;
-		if (PHOTONS_ONLY) break;
 
 		throughput *= f * fabsf(hitInfo.shading.normal.Dot(nextDirection)) / pdf;
 		ray = Ray(hitInfo.position, nextDirection);
@@ -108,16 +106,6 @@ Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const std::shared_ptr<NXS
 		float distB = Vector3::DistanceSquared(pos, photonB.position);
 		return distA < distB;
 		});
-
-	if (PHOTONS_ONLY)
-	{
-		m_pPhotonMap->GetNearest(pos, norm, distSqr, nearestPhotons, 1, 0.00005f);
-		if (!nearestPhotons.empty())
-		{
-			result = nearestPhotons.top().power;	// photon data only.
-		}
-		return result;
-	}
 
 	m_pPhotonMap->GetNearest(pos, norm, distSqr, nearestPhotons, m_estimatePhotons, FLT_MAX, LocateFilter::Disk);
 	if (nearestPhotons.empty())
