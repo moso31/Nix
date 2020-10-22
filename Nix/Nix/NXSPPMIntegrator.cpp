@@ -304,28 +304,32 @@ void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene,
 	while (true)
 	{
 		bIsIntersect = pScene->RayCast(ray, hitInfo);
-		if (!bIsIntersect)
+		if (depth == 0 || isDeltaBSDF)
 		{
-			auto pCubeMap = pScene->GetCubeMap();
-			if (pCubeMap)
+			if (!bIsIntersect)
 			{
-				auto pCubeMapLight = pCubeMap->GetEnvironmentLight();
-				if (pCubeMapLight)
-					Le += throughput * pCubeMapLight->GetRadiance(hitInfo.position, hitInfo.normal, ray.direction);
+				auto pCubeMap = pScene->GetCubeMap();
+				if (pCubeMap)
+				{
+					auto pCubeMapLight = pCubeMap->GetEnvironmentLight();
+					if (pCubeMapLight)
+						Le += throughput * pCubeMapLight->GetRadiance(hitInfo.position, hitInfo.normal, ray.direction);
+				}
+
+				break;
 			}
 
-			break;
-		}
-
-		if (hitInfo.pPrimitive)
-		{
-			auto pTangibleLight = hitInfo.pPrimitive->GetTangibleLight();
-			if (pTangibleLight)
+			if (hitInfo.pPrimitive)
 			{
-				Le += throughput * pTangibleLight->GetRadiance(hitInfo.position, hitInfo.normal, hitInfo.direction);
+				auto pTangibleLight = hitInfo.pPrimitive->GetTangibleLight();
+				if (pTangibleLight)
+				{
+					Le += throughput * pTangibleLight->GetRadiance(hitInfo.position, hitInfo.normal, hitInfo.direction);
+				}
 			}
 		}
 
+		if (!bIsIntersect) break;
 		hitInfo.GenerateBSDF(true);
 		Ld += throughput * UniformLightOne(ray, pScene, hitInfo);
 
