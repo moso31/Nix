@@ -9,23 +9,10 @@ NXPBRMaterial::NXPBRMaterial(const Vector3& albedo, const float metallic, const 
 	m_refractivity(refractivity),
 	m_IOR(IOR)
 {
-	m_rSS = albedo * (1.0f - metallic); 
+	// F0: 入射角度为0度时的Fresnel反射率。
 	m_F0 = Vector3::Lerp(Vector3(0.04f), albedo, metallic); 
-
-	m_diffuseAlbedo = m_rSS * (1.0f - m_refractivity);
-	m_specularAlbedo = m_F0 * (1.0f - m_reflectivity);
-	m_reflectAlbedo = m_albedo * m_reflectivity;
-	m_refractAlbedo = m_albedo * m_refractivity;
 }
 
-/*
-关于离线渲染各项BRDF的采样概率：按照
-	kD = (1-F) * (1-T)
-	kT = (1-F) *   T
-	kS =   F   * (1-R)
-	kR =   F   *   R
-的比例进行采样。
-*/
 void NXPBRMaterial::CalcSampleProbabilities(float F)
 {
 	m_sampleProbs.Diffuse  = (1.0f - F) * (1.0f - m_refractivity);

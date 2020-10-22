@@ -31,7 +31,7 @@ void NXRayTracer::RenderImage(const std::shared_ptr<NXScene>& pScene, NXRayTrace
 	case NXRayTraceRenderMode::PathTracing:
 	{
 		printf("PathTracing Integrator Running...\n");
-		int pixelSample = 64;
+		int pixelSample = 16;
 		std::make_unique<NXPathIntegrator>(renderResolution, pixelSample, "D:\\Nix_PathTracing.bmp")->Render(pScene);
 		//std::make_unique<NXPathIntegrator>(renderResolution, pixelSample, "D:\\Nix_PathTracing.bmp")->CenterRayTest(pScene);
 		break;

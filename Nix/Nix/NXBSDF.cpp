@@ -12,12 +12,9 @@ NXBSDF::NXBSDF(const NXHit& pHitInfo, const std::shared_ptr<NXPBRMaterial>& pMat
 	pMat(pMaterial)
 {
 	pDistrib = std::make_unique<NXRDistributionBeckmann>(pMat->m_roughness);
-
-	// 什么时候用金属Fresnel？什么时候用非金属Fresnel？
-	// 能否只在这里分情况使用不同但唯一的Fresnel值，而不是一次把所有的Fresnel都放上？
 	pFresnel = std::make_unique<NXFresnelCommon>(pMat->GetF0());
 
-	// 计算当前相交位置的采样概率
+	// 计算BSDF的采样概率（结合入射角度wo）
 	Vector3 wo = WorldToReflection(pHitInfo.direction);
 	float F = pFresnel->FresnelReflectance(CosTheta(wo)).GetGrayValue();
 	pMat->CalcSampleProbabilities(F); 
@@ -96,13 +93,13 @@ Vector3 NXBSDF::SampleDiffuse(const Vector3& wo, Vector3& o_wi, float& o_pdf)
 	if (wo.z < 0.0f) 
 		o_wi.z *= -1.0f;
 	o_pdf = PdfDiffuse(wo, o_wi);
-	return pMat->GetDiffuseAlbedo() / XM_PI;
+	return pMat->m_albedo * (1.0f - pMat->m_metallic) / XM_PI;
 }
 
 Vector3 NXBSDF::EvaluateDiffuse(const Vector3& wo, const Vector3& wi, float& o_pdf)
 {
 	o_pdf = PdfDiffuse(wo, wi);
-	return pMat->GetDiffuseAlbedo() / XM_PI;
+	return pMat->m_albedo * (1.0f - pMat->m_metallic) / XM_PI;
 }
 
 Vector3 NXBSDF::SampleSpecular(const Vector3& wo, Vector3& o_wi, float& o_pdf)
@@ -117,7 +114,7 @@ Vector3 NXBSDF::SampleSpecular(const Vector3& wo, Vector3& o_wi, float& o_pdf)
 	if (absCosThetaI == 0.0f || !IsSameHemisphere(wo, o_wi)) return Vector3(0.0f);
 
 	o_pdf = PdfSpecular(wo, wh);
-	return pMat->GetSpecularAlbedo() * pDistrib->D(wh) * pDistrib->G(wo, o_wi) * pFresnel->FresnelReflectance(o_wi.Dot(wh)) / (4.0f * absCosThetaO * absCosThetaI);
+	return pDistrib->D(wh) * pDistrib->G(wo, o_wi) * pFresnel->FresnelReflectance(o_wi.Dot(wh)) / (4.0f * absCosThetaO * absCosThetaI);
 }
 
 Vector3 NXBSDF::EvaluateSpecular(const Vector3& wo, const Vector3& wi, float& o_pdf)
@@ -129,7 +126,7 @@ Vector3 NXBSDF::EvaluateSpecular(const Vector3& wo, const Vector3& wi, float& o_
 	Vector3 wh = wo + wi;
 	wh.Normalize();
 	o_pdf = PdfSpecular(wo, wh);
-	Vector3 result = pMat->GetSpecularAlbedo() * pDistrib->D(wh) * pDistrib->G(wo, wi) * pFresnel->FresnelReflectance(wi.Dot(wh)) / (4.0f * absCosThetaO * absCosThetaI);
+	Vector3 result = pDistrib->D(wh) * pDistrib->G(wo, wi) * pFresnel->FresnelReflectance(wi.Dot(wh)) / (4.0f * absCosThetaO * absCosThetaI);
 
 	return result;
 }
@@ -142,7 +139,7 @@ Vector3 NXBSDF::SampleReflect(const Vector3& wo, Vector3& o_wi, float& o_pdf)
 	o_pdf = pMat->m_sampleProbs.Reflect;
 
 	Vector3 F = pFresnel->FresnelReflectance(CosTheta(wo));
-	return pMat->GetReflectAlbedo() * F / AbsCosTheta(o_wi);
+	return pMat->m_albedo * F / AbsCosTheta(o_wi);
 }
 
 Vector3 NXBSDF::SampleRefract(const Vector3& wo, Vector3& o_wi, float& o_pdf)
@@ -157,7 +154,7 @@ Vector3 NXBSDF::SampleRefract(const Vector3& wo, Vector3& o_wi, float& o_pdf)
 
 	o_pdf = pMat->m_sampleProbs.Refract;
 	Vector3 F = pFresnel->FresnelReflectance(CosTheta(wo));
-	Vector3 transmitivity = pMat->GetRefractAlbedo() * (1.0f - F.GetGrayValue()) / AbsCosTheta(o_wi);
+	Vector3 transmitivity = pMat->m_albedo * (1.0f - F.GetGrayValue()) / AbsCosTheta(o_wi);
 
 	bool IsFromCamera = true;
 	// 如果是从相机出发的射线(PT)，考虑折射过程中微分角压缩比。
