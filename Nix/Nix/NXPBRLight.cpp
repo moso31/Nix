@@ -48,7 +48,9 @@ ConstantBufferPointLight NXPBRPointLight::GetConstantBuffer()
 {
 	ConstantBufferPointLight cb;
 	cb.position = Position;
+	cb._0 = 0;
 	cb.color = Intensity;
+	cb._1 = 0;
 	return cb;
 }
 

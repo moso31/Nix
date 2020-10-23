@@ -11,8 +11,6 @@ public:
 	D3D11_VIEWPORT				GetViewPort()	const	{ return m_viewPort; }
 	ID3D11ShaderResourceView*	GetSRV()		const	{ return m_pDepthSRV; }
 
-	void SetConstantBufferTransform(const ConstantBufferShadowMapTransform& cbDataVP);
-	void SetConstantBufferWorld(const ConstantBufferPrimitive& cbDataWorld);
 	ID3D11Buffer* GetConstantBufferTransform() { return m_cbTransform; }
 
 	void Init(UINT width, UINT height);

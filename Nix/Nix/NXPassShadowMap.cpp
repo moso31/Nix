@@ -13,16 +13,6 @@ NXPassShadowMap::~NXPassShadowMap()
 {
 }
 
-void NXPassShadowMap::SetConstantBufferTransform(const ConstantBufferShadowMapTransform& cbDataVP)
-{
-	m_cbDataTransform = cbDataVP;
-}
-
-void NXPassShadowMap::SetConstantBufferWorld(const ConstantBufferPrimitive& cbDataWorld)
-{
-	NXGlobalBufferManager::m_cbDataWorld = cbDataWorld;
-}
-
 void NXPassShadowMap::Init(UINT width, UINT height)
 {
 	m_viewPort.TopLeftX = 0.0f;
@@ -72,7 +62,7 @@ void NXPassShadowMap::Init(UINT width, UINT height)
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbTransform));
 
 	// …Ë÷√≥£¡øª∫¥Ê
-	SetConstantBufferTransform(NXGlobalBufferManager::m_cbDataShadowMap);
+	m_cbDataTransform = NXGlobalBufferManager::m_cbDataShadowMap;
 }
 
 void NXPassShadowMap::Load()

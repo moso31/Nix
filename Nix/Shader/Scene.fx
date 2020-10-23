@@ -8,6 +8,7 @@ SamplerComparisonState samShadowMap : register(s1);
 cbuffer ConstantBufferPrimitive : register(b0)
 {
 	matrix m_world;
+	matrix m_worldInverseTranspose;
 }
 
 cbuffer ConstantBufferCamera : register(b1)
@@ -15,7 +16,6 @@ cbuffer ConstantBufferCamera : register(b1)
 	matrix m_view;
 	matrix m_projection;
 	float3 m_eyePos;
-	float _align16;
 }
 
 const static int NUM_LIGHTS = 1;
@@ -58,7 +58,7 @@ PS_INPUT VS(VS_INPUT input)
 	output.posW = output.posH;
 	output.posH = mul(output.posH, m_view);
 	output.posH = mul(output.posH, m_projection);
-	output.normW = mul(float4(input.norm, 0.0), m_world).xyz;
+	output.normW = mul(float4(input.norm, 0.0), m_worldInverseTranspose).xyz;
 	output.tex = input.tex;
 
 	return output;
@@ -68,6 +68,7 @@ float4 PS(PS_INPUT input) : SV_Target
 {
 	float3 N = normalize(input.normW);
 	float3 V = normalize(m_eyePos - input.posW);
+	//return float4(m_material.albedo, 1.0f);
 	
 	float3 F0 = 0.04;
 	F0 = lerp(F0, m_material.albedo, m_material.metallic);
@@ -104,5 +105,12 @@ float4 PS(PS_INPUT input) : SV_Target
         Lo += (kD * m_material.albedo / PI + specular) * radiance * NdotL;
     }
 
-	return float4(Lo, 1.0f);
+	float3 ambient = 0.0f;// float3(0.03)* albedo* ao;
+	float3 color = ambient + Lo;
+
+	// gamma.
+	color = color / (color + 1.0);
+	color = pow(color, 1.0 / 2.2);
+
+	return float4(color, 1.0f);
 }

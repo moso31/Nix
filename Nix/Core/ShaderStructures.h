@@ -24,6 +24,7 @@ struct VertexPNTC
 struct ConstantBufferPrimitive
 {
 	Matrix world;
+	Matrix worldInverseTranspose;
 };
 
 struct ConstantBufferCamera
@@ -31,7 +32,7 @@ struct ConstantBufferCamera
 	Matrix view;
 	Matrix projection;
 	Vector3 eyePosition;
-	float _align16;
+	float _0;
 };
 
 struct ConstantBufferShadowMapTransform
@@ -46,29 +47,33 @@ struct ConstantBufferMaterial
 	Vector3 albedo;
 	float metallic;
 	float roughness;
-	Vector3 _align16;
+	Vector3 _0;
 };
 
 struct ConstantBufferDistantLight
 {
 	Vector3 direction;
+	float _0;
 	Vector3 color;
-	Vector2 _align16;
+	float _1;
 };
 
 struct ConstantBufferPointLight
 {
 	Vector3 position;
+	float _0;
 	Vector3 color;
-	Vector2 _align16;
+	float _1;
 };
 
 struct ConstantBufferSpotLight
 {
 	Vector3 position;
+	float _0;
 	Vector3 direction;
+	float _1;
 	Vector3 color;
-	Vector3 _align16;
+	float _2;
 };
 
 struct ConstantBufferLight

@@ -1,23 +1,27 @@
 struct DirectionalLight
 {
-	float3 direction;
+	float3 position;
+	float _0;
 	float3 color;
-	float2 _align16;
+	float _1;
 };
 
 struct PointLight
 {
 	float3 position;
+	float _0;
 	float3 color;
-	float2 _align16;
+	float _1;
 };
 
 struct SpotLight
 {
 	float3 position;
+	float _0;
 	float3 direction;
+	float _1;
 	float3 color;
-	float3 _align16;
+	float _2;
 };
 
 struct Material
@@ -25,7 +29,7 @@ struct Material
 	float3 albedo;
 	float metallic;
 	float roughness;
-	float3 _align16;
+	float3 _0;
 };
 
 const static float PI = 3.1415926535897932384626;
