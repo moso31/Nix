@@ -72,13 +72,13 @@
     <None Include="Shader\RenderTarget.fx">
       <Filter>Shader</Filter>
     </None>
-    <None Include="Shader\Light.fx">
-      <Filter>Shader</Filter>
-    </None>
     <None Include="Shader\ShadowMap.fx">
       <Filter>Shader</Filter>
     </None>
     <None Include="Shader\Scene.fx">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Shader\PBR.fx">
       <Filter>Shader</Filter>
     </None>
   </ItemGroup>
@@ -148,12 +148,6 @@
     </ClCompile>
     <ClCompile Include="Nix\NXPlane.cpp">
       <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\NXLight.cpp">
-      <Filter>Nix\Object\Light</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\NXMaterial.cpp">
-      <Filter>Nix\Material</Filter>
     </ClCompile>
     <ClCompile Include="Nix\NXIntersection.cpp">
       <Filter>Nix\Accelerator</Filter>
@@ -315,12 +309,6 @@
     </ClInclude>
     <ClInclude Include="Nix\NXPlane.h">
       <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\NXLight.h">
-      <Filter>Nix\Object\Light</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\NXMaterial.h">
-      <Filter>Nix\Material</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXIntersection.h">
       <Filter>Nix\Accelerator</Filter>

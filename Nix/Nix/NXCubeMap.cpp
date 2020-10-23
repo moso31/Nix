@@ -1,5 +1,4 @@
 #include "NXCubeMap.h"
-#include "NXLight.h"
 
 NXCubeMap::NXCubeMap()
 {

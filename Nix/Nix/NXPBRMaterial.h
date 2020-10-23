@@ -1,5 +1,6 @@
 #pragma once
 #include "NXIntersection.h"
+#include "ShaderStructures.h"
 
 class NXPBRMaterial
 {
@@ -16,7 +17,13 @@ public:
 	NXPBRMaterial(const Vector3& albedo, const float metallic, const float roughness, const float reflectivity, const float refractivity, const float IOR);
 	~NXPBRMaterial() {}
 
+	Vector3 GetF0() const { return m_F0; }
 	void CalcSampleProbabilities(float reflectance);
+
+	// DirectX
+	ConstantBufferMaterial GetConstantBuffer();
+
+public:
 
 	Vector3 m_albedo;
 	float m_metallic;
@@ -29,17 +36,6 @@ public:
 	// ²ÉÑù¸ÅÂÊ
 	SampleProbabilities m_sampleProbs;
 
-	Vector3 GetF0() const { return m_F0; }
-	//Vector3 GetDiffuseAlbedo() const { return m_diffuseAlbedo; }
-	//Vector3 GetSpecularAlbedo() const { return m_specularAlbedo; }
-	//Vector3 GetReflectAlbedo() const { return m_reflectAlbedo; }
-	//Vector3 GetRefractAlbedo() const { return m_refractAlbedo; }
-
 private:
 	Vector3 m_F0;
-
-	//Vector3 m_diffuseAlbedo;
-	//Vector3 m_specularAlbedo;
-	//Vector3 m_reflectAlbedo;
-	//Vector3 m_refractAlbedo;
 };

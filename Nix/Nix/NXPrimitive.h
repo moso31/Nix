@@ -18,7 +18,6 @@ public:
 	virtual void Render();
 	virtual void Release();
 
-	void SetMaterial(const std::shared_ptr<NXMaterial>& material);
 	void SetMaterialPBR(const std::shared_ptr<NXPBRMaterial>& mat);
 
 	std::shared_ptr<NXPBRMaterial> GetPBRMaterial() const;
@@ -68,7 +67,6 @@ protected:
 
 	ConstantBufferMaterial				m_cbDataMaterial;
 	ID3D11Buffer*						m_cbMaterial;
-	std::shared_ptr<NXMaterial>			m_pMaterial;
 	std::shared_ptr<NXPBRMaterial>		m_pPBRMaterial;
 
 	std::shared_ptr<NXPBRTangibleLight>	m_pTangibleLight;	// 可以将Primitive设置为光源

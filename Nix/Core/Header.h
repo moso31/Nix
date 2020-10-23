@@ -55,8 +55,6 @@ class NXObject;
 class NXPrimitive;
 class NXCamera;
 class NXCubeMap;
-class NXDirectionalLight;
-class NXMaterial;
 
 // effects
 class NXPassShadowMap;

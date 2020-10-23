@@ -67,12 +67,11 @@ std::shared_ptr<NXListener> SceneManager::AddEventListener(const NXEventType eve
 	return pListener;
 }
 
-std::shared_ptr<NXBox> SceneManager::CreateBox(const std::string& name, const float width, const float height, const float length, const std::shared_ptr<NXMaterial>& material, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
+std::shared_ptr<NXBox> SceneManager::CreateBox(const std::string& name, const float width, const float height, const float length, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
 {
 	auto p = std::make_shared<NXBox>();
 	p->SetName(name);
 	p->Init(width, height, length);
-	p->SetMaterial(material);
 	p->SetTranslation(translation);
 	p->SetRotation(rotation);
 	p->SetScale(scale);
@@ -82,12 +81,11 @@ std::shared_ptr<NXBox> SceneManager::CreateBox(const std::string& name, const fl
 	return p;
 }
 
-std::shared_ptr<NXSphere> SceneManager::CreateSphere(const std::string& name, const float radius, const UINT segmentHorizontal, const UINT segmentVertical, const std::shared_ptr<NXMaterial>& material, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
+std::shared_ptr<NXSphere> SceneManager::CreateSphere(const std::string& name, const float radius, const UINT segmentHorizontal, const UINT segmentVertical, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
 {
 	auto p = std::make_shared<NXSphere>();
 	p->SetName(name);
 	p->Init(radius, segmentHorizontal, segmentVertical);
-	p->SetMaterial(material);
 	p->SetTranslation(translation);
 	p->SetRotation(rotation);
 	p->SetScale(scale);
@@ -97,12 +95,11 @@ std::shared_ptr<NXSphere> SceneManager::CreateSphere(const std::string& name, co
 	return p;
 }
 
-std::shared_ptr<NXCylinder> SceneManager::CreateCylinder(const std::string& name, const float radius, const float length, const UINT segmentCircle, const UINT segmentLength, const std::shared_ptr<NXMaterial>& material, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
+std::shared_ptr<NXCylinder> SceneManager::CreateCylinder(const std::string& name, const float radius, const float length, const UINT segmentCircle, const UINT segmentLength, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
 {
 	auto p = std::make_shared<NXCylinder>();
 	p->SetName(name);
 	p->Init(radius, length, segmentCircle, segmentLength);
-	p->SetMaterial(material);
 	p->SetTranslation(translation);
 	p->SetRotation(rotation);
 	p->SetScale(scale);
@@ -112,12 +109,11 @@ std::shared_ptr<NXCylinder> SceneManager::CreateCylinder(const std::string& name
 	return p;
 }
 
-std::shared_ptr<NXPlane> SceneManager::CreatePlane(const std::string& name, const float width, const float height, const NXPlaneAxis axis, const std::shared_ptr<NXMaterial>& material, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
+std::shared_ptr<NXPlane> SceneManager::CreatePlane(const std::string& name, const float width, const float height, const NXPlaneAxis axis, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
 {
 	auto p = std::make_shared<NXPlane>();
 	p->SetName(name);
 	p->Init(width, height, axis);
-	p->SetMaterial(material);
 	p->SetTranslation(translation);
 	p->SetRotation(rotation);
 	p->SetScale(scale);
@@ -127,12 +123,12 @@ std::shared_ptr<NXPlane> SceneManager::CreatePlane(const std::string& name, cons
 	return p;
 }
 
-bool SceneManager::CreateFBXMeshes(const std::string& filePath, const std::shared_ptr<NXMaterial>& pDefaultMaterial, std::vector<std::shared_ptr<NXMesh>>& outMeshes)
+bool SceneManager::CreateFBXMeshes(const std::string& filePath, const std::shared_ptr<NXPBRMaterial>& pDefaultMaterial, std::vector<std::shared_ptr<NXMesh>>& outMeshes)
 {
 	FBXMeshLoader::LoadFBXFile(filePath, m_scene, outMeshes);
 	for (auto it = outMeshes.begin(); it != outMeshes.end(); it++)
 	{
-		(*it)->SetMaterial(pDefaultMaterial);
+		(*it)->SetMaterialPBR(pDefaultMaterial);
 		m_scene->m_primitives.push_back(*it);
 		m_scene->m_objects.push_back(*it);
 
@@ -141,51 +137,6 @@ bool SceneManager::CreateFBXMeshes(const std::string& filePath, const std::share
 			(*it)->SetParent(m_scene->m_pRootObject);
 	}
 	return true;
-}
-
-std::shared_ptr<NXDirectionalLight> SceneManager::CreateDirectionalLight(const std::string& name, const Vector4& ambient, const Vector4& diffuse, const Vector3& specular, const float specularW, const Vector3& direction)
-{
-	auto p = std::make_shared<NXDirectionalLight>();
-	p->SetAmbient(ambient);
-	p->SetDiffuse(diffuse);
-	p->SetSpecular(Vector4(specular.x, specular.y, specular.z, specularW));
-	p->SetDirection(direction);
-	m_scene->m_lights.push_back(p);
-	m_scene->m_objects.push_back(p);
-	p->SetParent(m_scene->m_pRootObject);
-	return p;
-}
-
-std::shared_ptr<NXPointLight> SceneManager::CreatePointLight(const std::string& name, const Vector4& ambient, const Vector4& diffuse, const Vector3& specular, const float specularW, const Vector3& position, const float range, const Vector3& attenuation)
-{
-	auto p = std::make_shared<NXPointLight>();
-	p->SetAmbient(ambient);
-	p->SetDiffuse(diffuse);
-	p->SetSpecular(Vector4(specular.x, specular.y, specular.z, specularW));
-	p->SetTranslation(position);
-	p->SetRange(range);
-	p->SetAtt(attenuation);
-	m_scene->m_lights.push_back(p);
-	m_scene->m_objects.push_back(p);
-	p->SetParent(m_scene->m_pRootObject);
-	return p;
-}
-
-std::shared_ptr<NXSpotLight> SceneManager::CreateSpotLight(const std::string& name, const Vector4& ambient, const Vector4& diffuse, const Vector3& specular, const float specularW, const Vector3& position, const float range, const Vector3& direction, const float spot, const Vector3& attenuation)
-{
-	auto p = std::make_shared<NXSpotLight>();
-	p->SetAmbient(ambient);
-	p->SetDiffuse(diffuse);
-	p->SetSpecular(Vector4(specular.x, specular.y, specular.z, specularW));
-	p->SetTranslation(position);
-	p->SetRange(range);
-	p->SetDirection(direction);
-	p->SetSpot(spot);
-	p->SetAtt(attenuation);
-	m_scene->m_lights.push_back(p);
-	m_scene->m_objects.push_back(p);
-	p->SetParent(m_scene->m_pRootObject);
-	return p;
 }
 
 std::shared_ptr<NXCamera> SceneManager::CreateCamera(const std::string& name, const float FovY, const float zNear, const float zFar, const Vector3& eye, const Vector3& at, const Vector3& up)
@@ -198,18 +149,6 @@ std::shared_ptr<NXCamera> SceneManager::CreateCamera(const std::string& name, co
 	return p;
 }
 
-std::shared_ptr<NXMaterial> SceneManager::CreateMaterial(const std::string& name, const Vector4& ambient, const Vector4& diffuse, const Vector4& specular, const float opacity, const Vector4& reflect)
-{
-	auto p = std::make_shared<NXMaterial>();
-	p->SetAmbient(ambient);
-	p->SetDiffuse(diffuse);
-	p->SetSpecular(specular);
-	p->SetOpacity(opacity);
-	p->SetReflect(reflect);
-	m_scene->m_materials.push_back(p);
-	return p;
-}
-
 std::shared_ptr<NXPBRMaterial> SceneManager::CreatePBRMaterial(const Vector3& albedo, const float metallic, const float roughness, const float reflectivity, const float refractivity, const float IOR)
 {
 	auto pMat = std::make_shared<NXPBRMaterial>(albedo, metallic, roughness, reflectivity, refractivity, IOR);
@@ -217,14 +156,14 @@ std::shared_ptr<NXPBRMaterial> SceneManager::CreatePBRMaterial(const Vector3& al
 	return pMat;
 }
 
-std::shared_ptr<NXPBRLight> SceneManager::CreatePBRPointLight(const Vector3& position, const Vector3& intensity)
+std::shared_ptr<NXPBRPointLight> SceneManager::CreatePBRPointLight(const Vector3& position, const Vector3& intensity)
 {
 	auto pLight = std::make_shared<NXPBRPointLight>(position, intensity);
 	m_scene->m_pbrLights.push_back(pLight);
 	return pLight;
 }
 
-std::shared_ptr<NXPBRLight> SceneManager::CreatePBRDistantLight(const Vector3& direction, const Vector3& radiance)
+std::shared_ptr<NXPBRDistantLight> SceneManager::CreatePBRDistantLight(const Vector3& direction, const Vector3& radiance)
 {
 	auto bound = m_scene->GetBoundingSphere();
 	auto pLight = std::make_shared<NXPBRDistantLight>(direction, radiance, bound.Center, bound.Radius);
@@ -232,7 +171,7 @@ std::shared_ptr<NXPBRLight> SceneManager::CreatePBRDistantLight(const Vector3& d
 	return pLight;
 }
 
-std::shared_ptr<NXPBRLight> SceneManager::CreatePBRTangibleLight(const std::shared_ptr<NXPrimitive>& pPrimitive, const Vector3& radiance)
+std::shared_ptr<NXPBRTangibleLight> SceneManager::CreatePBRTangibleLight(const std::shared_ptr<NXPrimitive>& pPrimitive, const Vector3& radiance)
 {
 	auto pLight = std::make_shared<NXPBRTangibleLight>(pPrimitive, radiance);
 	pPrimitive->SetTangibleLight(pLight);
@@ -240,7 +179,7 @@ std::shared_ptr<NXPBRLight> SceneManager::CreatePBRTangibleLight(const std::shar
 	return pLight;
 }
 
-std::shared_ptr<NXPBRLight> SceneManager::CreatePBREnvironmentLight(const std::shared_ptr<NXCubeMap>& pCubeMap, const Vector3& Intensity)
+std::shared_ptr<NXPBREnvironmentLight> SceneManager::CreatePBREnvironmentLight(const std::shared_ptr<NXCubeMap>& pCubeMap, const Vector3& Intensity)
 {
 	auto bound = m_scene->GetBoundingSphere();
 	auto pLight = std::make_shared<NXPBREnvironmentLight>(pCubeMap, Intensity, bound.Center, bound.Radius);

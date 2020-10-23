@@ -44,6 +44,14 @@ Vector3 NXPBRPointLight::Illuminate(const NXHit& hitInfo, Vector3& o_wi, float& 
 	return lightRadiance;
 }
 
+ConstantBufferPointLight NXPBRPointLight::GetConstantBuffer()
+{
+	ConstantBufferPointLight cb;
+	cb.position = Position;
+	cb.color = Intensity;
+	return cb;
+}
+
 NXPBRDistantLight::NXPBRDistantLight(const Vector3& Direction, const Vector3& Radiance, Vector3 WorldCenter, float WorldRadius) :
 	Direction(Direction), 
 	Radiance(Radiance),
@@ -78,6 +86,14 @@ Vector3 NXPBRDistantLight::Illuminate(const NXHit& hitInfo, Vector3& o_wi, float
 		return Vector3(0.0f);
 
 	return Radiance;
+}
+
+ConstantBufferDistantLight NXPBRDistantLight::GetConstantBuffer()
+{
+	ConstantBufferDistantLight cb;
+	cb.direction = Direction;
+	cb.color = Radiance;
+	return cb;
 }
 
 NXPBRTangibleLight::NXPBRTangibleLight(const std::shared_ptr<NXPrimitive>& pPrimitive, const Vector3& Radiance) :

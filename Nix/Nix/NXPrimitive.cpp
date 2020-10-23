@@ -1,6 +1,5 @@
 #include "NXPrimitive.h"
 #include "NXScene.h"
-#include "NXMaterial.h"
 #include "NXPBRMaterial.h"
 #include "NXIntersection.h"
 #include "GlobalBufferManager.h"
@@ -25,7 +24,7 @@ void NXPrimitive::Update()
 	NXGlobalBufferManager::m_cbDataWorld.world = m_worldMatrix.Transpose();
 	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbWorld, 0, nullptr, &NXGlobalBufferManager::m_cbDataWorld, 0, 0);
 
-	if (m_pMaterial)
+	if (m_pPBRMaterial)
 	{
 		g_pContext->UpdateSubresource(m_cbMaterial, 0, nullptr, &m_cbDataMaterial, 0, 0);
 	}
@@ -46,14 +45,14 @@ void NXPrimitive::Release()
 	if (m_pIndexBuffer)		m_pIndexBuffer->Release();
 	if (m_pTextureSRV)		m_pTextureSRV->Release();
 
-	m_pMaterial.reset();
+	m_pPBRMaterial.reset();
 	if (m_cbMaterial)		m_cbMaterial->Release();
 	NXObject::Release();
 }
 
-void NXPrimitive::SetMaterial(const std::shared_ptr<NXMaterial>& pMaterial)
+void NXPrimitive::SetMaterialPBR(const std::shared_ptr<NXPBRMaterial>& mat)
 {
-	m_pMaterial = pMaterial;
+	m_pPBRMaterial = mat;
 
 	D3D11_BUFFER_DESC bufferDesc;
 	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
@@ -63,12 +62,7 @@ void NXPrimitive::SetMaterial(const std::shared_ptr<NXMaterial>& pMaterial)
 	bufferDesc.CPUAccessFlags = 0;
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbMaterial));
 
-	m_cbDataMaterial = pMaterial->GetMaterialInfo();
-}
-
-void NXPrimitive::SetMaterialPBR(const std::shared_ptr<NXPBRMaterial>& mat)
-{
-	m_pPBRMaterial = mat;
+	m_cbDataMaterial = m_pPBRMaterial->GetConstantBuffer();
 }
 
 std::shared_ptr<NXPBRMaterial> NXPrimitive::GetPBRMaterial() const

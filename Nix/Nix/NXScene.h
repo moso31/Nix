@@ -1,6 +1,5 @@
 #pragma once
 #include "NXObject.h"
-#include "NXMaterial.h"
 #include "NXPBRMaterial.h"
 #include "NXPBRLight.h"
 #include "HBVH.h"
@@ -60,21 +59,19 @@ private:
 
 	// object : light、camera、primitive均属于object。
 	std::vector<std::shared_ptr<NXObject>> m_objects;
-	std::vector<std::shared_ptr<NXLight>> m_lights;
+	std::vector<std::shared_ptr<NXPBRLight>> m_lights;
 	std::vector<std::shared_ptr<NXPrimitive>> m_primitives;
 	std::shared_ptr<NXCamera> m_pMainCamera;
 
-	// 材质
-	std::vector<std::shared_ptr<NXMaterial>> m_materials;
+	// PBR材质
+	std::vector<std::shared_ptr<NXPBRMaterial>> m_pbrMaterials;
 
+	// 灯光
+	std::vector<std::shared_ptr<NXPBRLight>> m_pbrLights;
 	ID3D11Buffer* m_cbLights;
 	ConstantBufferLight m_cbDataLights;
 	std::shared_ptr<NXCubeMap> m_pCubeMap;
 
 	AABB m_aabb;
 	BoundingSphere m_boundingSphere;
-
-	// PBR材质
-	std::vector<std::shared_ptr<NXPBRLight>> m_pbrLights;
-	std::vector<std::shared_ptr<NXPBRMaterial>> m_pbrMaterials;
 };

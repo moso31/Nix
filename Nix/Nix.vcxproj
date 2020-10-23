@@ -176,7 +176,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shader\Light.fx">
+    <None Include="Shader\PBR.fx">
       <FileType>Document</FileType>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
@@ -238,8 +238,6 @@
     <ClCompile Include="Nix\NXCamera.cpp" />
     <ClCompile Include="Nix\NXCylinder.cpp" />
     <ClCompile Include="Nix\NXIntersection.cpp" />
-    <ClCompile Include="Nix\NXLight.cpp" />
-    <ClCompile Include="Nix\NXMaterial.cpp" />
     <ClCompile Include="Nix\NXMesh.cpp" />
     <ClCompile Include="Nix\NXObject.cpp" />
     <ClCompile Include="Nix\NXPassShadowMap.cpp" />
@@ -294,8 +292,6 @@
     <ClInclude Include="Nix\NXCamera.h" />
     <ClInclude Include="Nix\NXCylinder.h" />
     <ClInclude Include="Nix\NXIntersection.h" />
-    <ClInclude Include="Nix\NXLight.h" />
-    <ClInclude Include="Nix\NXMaterial.h" />
     <ClInclude Include="Nix\NXMesh.h" />
     <ClInclude Include="Nix\NXObject.h" />
     <ClInclude Include="Nix\NXPassShadowMap.h" />

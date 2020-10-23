@@ -1,6 +1,7 @@
 #pragma once
 #include "NXInstance.h"
 #include "NXIntersection.h"
+#include "ShaderStructures.h"
 
 class NXPrimitive;
 
@@ -40,6 +41,9 @@ public:
 	Vector3 Emit(Ray& o_ray, Vector3& o_lightNormal, float& o_pdfPos, float& o_pdfDir) override;
 	Vector3 Illuminate(const NXHit& hitInfo, Vector3& o_wi, float& o_pdf) override;
 
+	// DirectX
+	ConstantBufferPointLight GetConstantBuffer();
+
 public:
 	Vector3 Position;
 	Vector3 Intensity;
@@ -53,6 +57,9 @@ public:
 	bool IsDeltaLight() override { return true; }
 	Vector3 Emit(Ray& o_ray, Vector3& o_lightNormal, float& o_pdfPos, float& o_pdfDir) override;
 	Vector3 Illuminate(const NXHit& hitInfo, Vector3& o_wi, float& o_pdf) override;
+
+	// DirectX
+	ConstantBufferDistantLight GetConstantBuffer();
 
 public:
 	Vector3 Direction;
@@ -90,6 +97,7 @@ public:
 	Vector3 GetRadiance(const Vector3& samplePosition, const Vector3& lightSurfaceNormal, const Vector3& targetDirection) override;
 
 	float GetPdf(const NXHit& hitInfo, const Vector3& lightPos, const Vector3& lightNorm, const Vector3& lightDir) override;
+
 public:
 	Vector3 Radiance;
 
@@ -109,6 +117,7 @@ public:
 	Vector3 GetRadiance(const Vector3& samplePosition, const Vector3& lightSurfaceNormal, const Vector3& targetDirection) override;
 
 	float GetPdf(const NXHit& hitInfo, const Vector3& lightPos, const Vector3& lightNorm, const Vector3& lightDir) override;
+
 public:
 	Vector3 Radiance;
 	Vector3 WorldCenter;

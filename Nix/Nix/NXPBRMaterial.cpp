@@ -20,3 +20,12 @@ void NXPBRMaterial::CalcSampleProbabilities(float F)
 	m_sampleProbs.Reflect  = F * m_reflectivity;
 	m_sampleProbs.Refract  = (1.0f - F) * m_refractivity;
 }
+
+ConstantBufferMaterial NXPBRMaterial::GetConstantBuffer()
+{
+	ConstantBufferMaterial cb;
+	cb.albedo = m_albedo;
+	cb.metallic = m_metallic;
+	cb.roughness = m_roughness;
+	return cb;
+}

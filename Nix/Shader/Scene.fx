@@ -1,4 +1,4 @@
-#include "Light.fx"
+#include "PBR.fx"
 
 Texture2D txDiffuse : register(t0);
 Texture2D txShadowMap : register(t1);
@@ -18,11 +18,10 @@ cbuffer ConstantBufferCamera : register(b1)
 	float _align16;
 }
 
+const static int NUM_LIGHTS = 1;
 cbuffer ConstantBufferLight : register(b2)
 {
-	DirectionalLight m_dirLight;
-	PointLight m_pointLight;
-	SpotLight m_spotLight;
+	PointLight m_pointLight[NUM_LIGHTS];
 }
 
 cbuffer ConstantBufferMaterial : register(b3)
@@ -59,7 +58,7 @@ PS_INPUT VS(VS_INPUT input)
 	output.posW = output.posH;
 	output.posH = mul(output.posH, m_view);
 	output.posH = mul(output.posH, m_projection);
-	output.normW = mul(float4(input.norm, 1.0), m_world).xyz;
+	output.normW = mul(float4(input.norm, 0.0), m_world).xyz;
 	output.tex = input.tex;
 
 	return output;
@@ -67,39 +66,43 @@ PS_INPUT VS(VS_INPUT input)
 
 float4 PS(PS_INPUT input) : SV_Target
 {
-	float3 toEye = normalize(m_eyePos - input.posW);
-	return float4(input.tex, 0.0f, 1.0f);
+	float3 N = normalize(input.normW);
+	float3 V = normalize(m_eyePos - input.posW);
+	
+	float3 F0 = 0.04;
+	F0 = lerp(F0, m_material.albedo, m_material.metallic);
 
-	float4 shadowMapPos = mul(input.posW, m_shadowMapView);
-	shadowMapPos = mul(shadowMapPos, m_shadowMapProjection);
-	shadowMapPos = mul(shadowMapPos, m_shadowMapTex);
+    // reflectance equation
+    float3 Lo = 0.0;
+    for (int i = 0; i < NUM_LIGHTS; i++)
+    {
+		float3 lightPos = m_pointLight[i].position;
+		float3 lightColor = m_pointLight[i].color;
 
-	//float shadowMapDepZ = txShadowMap.Sample(samLinear, shadowMapPos.xy);
-	float shadowMapFactor = ShadowMapFilter(samShadowMap, txShadowMap, shadowMapPos);
+        // calculate per-light radiance
+        float3 L = normalize(lightPos - input.posW);
+        float3 H = normalize(V + L);
+        float distance = length(lightPos - input.posW);
+        float attenuation = 1.0 / (distance * distance);
+        float3 radiance = lightColor * attenuation;
 
-	float4 A, D, S, sumA, sumD, sumS;
-	A = 0;
-	D = 0;
-	S = 0;
-	sumA = 0;
-	sumD = 0;
-	sumS = 0;
-	ComputeDirectionalLight(m_material, m_dirLight, input.normW, toEye, A, D, S);
-	// 被阴影贴图覆盖，即处于阴影区域时，该像素的光通量自然会减小。
-	sumA += A;	// 不影响自发光。
-	sumD += shadowMapFactor * D;
-	sumS += shadowMapFactor * S;
-	//ComputePointLight(m_material, m_pointLight, input.posW, input.normW, toEye, A, D, S);
-	//sumA += A;
-	//sumD += D;
-	//sumS += S;
-	//ComputeSpotLight(m_material, m_spotLight, input.posW, input.normW, toEye, A, D, S);
-	//sumA += A;
-	//sumD += D;
-	//sumS += S;
+        // cook-torrance brdf
+		float NDF = DistributionGGX(N, H, m_material.roughness);
+		float G = GeometrySmith(N, V, L, m_material.roughness);
+		float3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
 
-	float4 result = sumA + sumD + sumS;
-	return result;
+        float3 kS = F;
+        float3 kD = 1.0 - kS;
+        kD *= 1.0 - m_material.metallic;
 
-	//return txDiffuse.Sample(samLinear, input.tex);
+        float3 numerator = NDF * G * F;
+        float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
+        float3 specular = numerator / max(denominator, 0.001);
+
+        // add to outgoing radiance Lo
+        float NdotL = max(dot(N, L), 0.0);
+        Lo += (kD * m_material.albedo / PI + specular) * radiance * NdotL;
+    }
+
+	return float4(Lo, 1.0f);
 }

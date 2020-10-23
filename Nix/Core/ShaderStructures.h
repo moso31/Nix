@@ -1,6 +1,5 @@
 #pragma once
 #include "Header.h"
-#include "NXLight.h"
 
 struct VertexPNT
 {
@@ -44,17 +43,35 @@ struct ConstantBufferShadowMapTransform
 
 struct ConstantBufferMaterial
 {
-	Vector4 ambient;
-	Vector4 diffuse;
-	Vector4 specular; // w = SpecPower
-	Vector4 reflect;
-	float opacity;
+	Vector3 albedo;
+	float metallic;
+	float roughness;
+	Vector3 _align16;
+};
+
+struct ConstantBufferDistantLight
+{
+	Vector3 direction;
+	Vector3 color;
+	Vector2 _align16;
+};
+
+struct ConstantBufferPointLight
+{
+	Vector3 position;
+	Vector3 color;
+	Vector2 _align16;
+};
+
+struct ConstantBufferSpotLight
+{
+	Vector3 position;
+	Vector3 direction;
+	Vector3 color;
 	Vector3 _align16;
 };
 
 struct ConstantBufferLight
 {
-	DirectionalLightInfo dirLight;
-	PointLightInfo pointLight;
-	SpotLightInfo spotLight;
+	ConstantBufferPointLight pointLight;
 };
