@@ -24,4 +24,6 @@ private:
 	size_t m_width, m_height;
 
 	std::shared_ptr<NXPBREnvironmentLight> m_pEnvironmentLight;
+
+	ID3D11ShaderResourceView* m_pTextureSRV; // cube texture.
 };

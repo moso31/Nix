@@ -5,12 +5,14 @@
 #include "GlobalBufferManager.h"
 #include "NXRandom.h"
 #include "SamplerMath.h"
+#include "DirectXTex.h"
 
 using namespace SamplerMath;
 
 NXPrimitive::NXPrimitive() :
 	m_pVertexBuffer(nullptr),
 	m_pIndexBuffer(nullptr),
+	//m_pTexture(nullptr),
 	m_pTextureSRV(nullptr),
 	m_cbMaterial(nullptr),
 	m_bEnableNormal(true),
@@ -47,6 +49,7 @@ void NXPrimitive::Release()
 {
 	if (m_pVertexBuffer)	m_pVertexBuffer->Release();
 	if (m_pIndexBuffer)		m_pIndexBuffer->Release();
+	//if (m_pTexture)			m_pTexture->Release();
 	if (m_pTextureSRV)		m_pTextureSRV->Release();
 
 	m_pPBRMaterial.reset();
@@ -204,8 +207,11 @@ void NXPrimitive::InitVertexIndexBuffer()
 	InitData.pSysMem = m_indices.data();
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &m_pIndexBuffer));
 	
-	// TODO：纹理的SRV应该改成全局通用的
-	//NX::ThrowIfFailed(CreateWICTextureFromFile(g_pDevice, L"D:\\rgb.bmp", nullptr, &m_pTextureSRV));
+	//// TODO：纹理的SRV应该改成全局通用的
+	//TexMetadata info;
+	//std::unique_ptr<ScratchImage> image(new (std::nothrow) ScratchImage);
+	//LoadFromWICFile(L"D:\\rgb.bmp", WIC_FLAGS_NONE, &info, *image);
+	//CreateShaderResourceView(g_pDevice, image->GetImage(0, 0, 0), image->GetImageCount(), info, &m_pTextureSRV);
 }
 
 void NXPrimitive::InitAABB()

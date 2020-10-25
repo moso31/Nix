@@ -68,10 +68,12 @@ float4 PS(PS_INPUT input) : SV_Target
 {
 	float3 N = normalize(input.normW);
 	float3 V = normalize(m_eyePos - input.posW);
-	//return float4(m_material.albedo, 1.0f);
 	
+	float albedoMap = txDiffuse.Sample(samLinear, input.tex).xyz;
+	float3 albedo = m_material.albedo;// *albedoMap;
+
 	float3 F0 = 0.04;
-	F0 = lerp(F0, m_material.albedo, m_material.metallic);
+	F0 = lerp(F0, albedo, m_material.metallic);
 
     // reflectance equation
     float3 Lo = 0.0;
@@ -102,7 +104,7 @@ float4 PS(PS_INPUT input) : SV_Target
 
         // add to outgoing radiance Lo
         float NdotL = max(dot(N, L), 0.0);
-        Lo += (kD * m_material.albedo / PI + specular) * radiance * NdotL;
+        Lo += (kD * albedo / PI + specular) * radiance * NdotL;
     }
 
 	float3 ambient = 0.0f;// float3(0.03)* albedo* ao;
