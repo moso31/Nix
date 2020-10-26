@@ -50,7 +50,7 @@ public:
 	virtual float GetPdfSolidAngle(const NXHit& hitInfo, const Vector3& posLight, const Vector3& normLight, const Vector3& dirLight);
 
 protected:
-	void InitVertexIndexBuffer();
+	virtual void InitVertexIndexBuffer();
 	void InitAABB();
 
 private:

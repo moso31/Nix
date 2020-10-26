@@ -77,7 +77,7 @@ void NXPassShadowMap::Load()
 
 void NXPassShadowMap::UpdateConstantBuffer()
 {
-	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbWorld, 0, nullptr, &NXGlobalBufferManager::m_cbDataWorld, 0, 0);
+	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbObject, 0, nullptr, &NXGlobalBufferManager::m_cbDataObject, 0, 0);
 	g_pContext->UpdateSubresource(m_cbTransform, 0, nullptr, &m_cbDataTransform, 0, 0);
 }
 
@@ -93,7 +93,7 @@ void NXPassShadowMap::Render()
 		p->Update();
 		auto pTexSRV = p->GetTextureSRV();
 		auto pMaterial = p->GetMaterialBuffer();
-		g_pContext->VSSetConstantBuffers(0, 1, &NXGlobalBufferManager::m_cbWorld);
+		g_pContext->VSSetConstantBuffers(0, 1, &NXGlobalBufferManager::m_cbObject);
 		g_pContext->PSSetShaderResources(0, 1, &pTexSRV);
 		g_pContext->PSSetConstantBuffers(3, 1, &pMaterial);
 		p->Render();

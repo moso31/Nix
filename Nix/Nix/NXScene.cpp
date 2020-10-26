@@ -198,7 +198,7 @@ void NXScene::Init()
 	m_pMainCamera = pCamera;
 	m_objects.push_back(pCamera);
 
-	m_pCubeMap = std::make_shared<NXCubeMap>();
+	m_pCubeMap = std::make_shared<NXCubeMap>(pScene);
 	m_pCubeMap->Init(L"D:\\sunsetcube1024.dds");
 
 	// 更新AABB需要世界坐标，而Init阶段还没有拿到世界坐标，所以需要提前PrevUpdate一次。

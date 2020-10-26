@@ -1,13 +1,13 @@
 #pragma once
-#include "Header.h"
+#include "NXPrimitive.h"
 #include "DirectXTex.h"
 
 class NXPBREnvironmentLight;
 
-class NXCubeMap
+class NXCubeMap : public NXPrimitive
 {
 public:
-	NXCubeMap();
+	NXCubeMap(const std::shared_ptr<NXScene>& pScene);
 	~NXCubeMap() {}
 
 	bool Init(std::wstring filePath);
@@ -16,14 +16,21 @@ public:
 	void SetEnvironmentLight(std::shared_ptr<NXPBREnvironmentLight> pEnvironmentLight) { m_pEnvironmentLight = pEnvironmentLight; }
 	std::shared_ptr<NXPBREnvironmentLight> GetEnvironmentLight() const;
 
-	void Release();
+	void Update() override;
+	void Render() override;
+	void Release() override;
+
+private:
+	void InitVertex();
+	void InitVertexIndexBuffer() override;
 
 private:
 	std::unique_ptr<ScratchImage> m_image;
 	byte* m_faceData[6];
 	size_t m_width, m_height;
 
+	std::shared_ptr<NXScene> m_pScene;
 	std::shared_ptr<NXPBREnvironmentLight> m_pEnvironmentLight;
 
-	ID3D11ShaderResourceView* m_pTextureSRV; // cube texture.
+	std::vector<VertexP>	m_vertices;
 };

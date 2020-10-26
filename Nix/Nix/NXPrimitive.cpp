@@ -26,9 +26,9 @@ void NXPrimitive::Update()
 	// 所以为什么要转置？龙书中没有这一步转置。
 	// 回头看一下吧，我忘掉矩阵计算最早基于什么参考系了……
 	auto mxWorld = m_worldMatrix.Transpose();
-	NXGlobalBufferManager::m_cbDataWorld.world = mxWorld;
-	NXGlobalBufferManager::m_cbDataWorld.worldInverseTranspose = mxWorld.Invert().Transpose();
-	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbWorld, 0, nullptr, &NXGlobalBufferManager::m_cbDataWorld, 0, 0);
+	NXGlobalBufferManager::m_cbDataObject.world = mxWorld;
+	NXGlobalBufferManager::m_cbDataObject.worldInverseTranspose = mxWorld.Invert().Transpose();
+	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbObject, 0, nullptr, &NXGlobalBufferManager::m_cbDataObject, 0, 0);
 
 	if (m_pPBRMaterial)
 	{

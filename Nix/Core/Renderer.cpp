@@ -7,6 +7,7 @@
 #include "NXRenderTarget.h"
 #include "NXScene.h"
 #include "NXPassShadowMap.h"
+#include "NXCubeMap.h"
 
 void Renderer::Init()
 {
@@ -41,18 +42,26 @@ void Renderer::InitRenderer()
 		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
 	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVertexShaderShadowMap));
 
-	D3D11_INPUT_ELEMENT_DESC layout[] =
+	D3D11_INPUT_ELEMENT_DESC layoutPNT[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
-	UINT numElements = ARRAYSIZE(layout);
-
-	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pInputLayout));
+	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(layoutPNT, ARRAYSIZE(layoutPNT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pInputLayoutPNT));
 	pVSBlob->Release();
 
-	g_pContext->IASetInputLayout(m_pInputLayout);
+	NX::MessageBoxIfFailed(
+		ShaderComplier::Compile(L"Shader\\CubeMap.fx", "VS", "vs_5_0", &pVSBlob),
+		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
+	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVertexShaderCubeMap)); 
+
+	D3D11_INPUT_ELEMENT_DESC layoutP[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	};
+	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(layoutP, ARRAYSIZE(layoutP), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pInputLayoutP));
+	pVSBlob->Release();
 
 	// Create PS
 	ID3DBlob* pPSBlob = nullptr;
@@ -70,6 +79,11 @@ void Renderer::InitRenderer()
 		ShaderComplier::Compile(L"Shader\\ShadowMap.fx", "PS", "ps_5_0", &pPSBlob),
 		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
 	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShaderShadowMap));
+
+	NX::MessageBoxIfFailed(
+		ShaderComplier::Compile(L"Shader\\CubeMap.fx", "PS", "ps_5_0", &pPSBlob),
+		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
+	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShaderCubeMap));
 	pPSBlob->Release();
 
 	// Create Sampler
@@ -123,18 +137,6 @@ void Renderer::UpdateSceneData()
 	m_scene->UpdateScripts();
 }
 
-void Renderer::DrawShadowMap()
-{
-	g_pContext->VSSetShader(m_pVertexShaderShadowMap, nullptr, 0);
-	g_pContext->PSSetShader(m_pPixelShaderShadowMap, nullptr, 0);
-	g_pContext->PSSetSamplers(1, 1, &m_pSamplerShadowMapPCF);
-
-	g_pContext->RSSetState(RenderStates::ShadowMapRS);
-	m_pPassShadowMap->Load();
-	m_pPassShadowMap->UpdateConstantBuffer();
-	m_pPassShadowMap->Render();
-}
-
 void Renderer::DrawScene()
 {
 	// 使用默认背向剔除（指针设为空就是默认的back culling）
@@ -154,45 +156,22 @@ void Renderer::DrawScene()
 	g_pContext->ClearRenderTargetView(pOffScreenRTV, Colors::WhiteSmoke);
 	g_pContext->ClearDepthStencilView(pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-	// 设置使用的VS和PS（这里是scene.fx）
-	g_pContext->VSSetShader(m_pVertexShader, nullptr, 0);
-	g_pContext->PSSetShader(m_pPixelShader, nullptr, 0);
-
-	// 以及渲染主场景所用的Sampler
-	g_pContext->PSSetSamplers(0, 1, &m_pSamplerLinearWrap);
-
-	// 更新Camera的常量缓存数据到Shader（VP矩阵、眼睛位置）
+	// 更新Camera的常量缓存数据（VP矩阵、眼睛位置）
 	m_scene->UpdateCamera();
 
-	// 填上渲染Buffer的Slot。其实总结成一句话就是：
-	// 将VS/PS的CB/SRV/Sampler的xxx号槽（Slot）填上数据xxx。
-	g_pContext->VSSetConstantBuffers(1, 1, &NXGlobalBufferManager::m_cbCamera);
-	g_pContext->PSSetConstantBuffers(1, 1, &NXGlobalBufferManager::m_cbCamera);
+	// IL: Position only
+	// 目前仅用于CubeMap
+	g_pContext->IASetInputLayout(m_pInputLayoutP);
 
-	auto pCbLights = m_scene->GetConstantBufferLights();
-	g_pContext->PSSetConstantBuffers(2, 1, &pCbLights);
+	// 绘制CubeMap
+	DrawCubeMap();
 
-	auto pShadowMapSRV = m_pPassShadowMap->GetSRV();
-	g_pContext->PSSetShaderResources(1, 1, &pShadowMapSRV);
+	// IL: PNT
+	// 除了CubeMap以外，其他内容目前全部都是PNT顶点结构
+	g_pContext->IASetInputLayout(m_pInputLayoutPNT);
 
-	auto pShadowMapConstantBufferTransform = m_pPassShadowMap->GetConstantBufferTransform();
-	g_pContext->PSSetConstantBuffers(4, 1, &pShadowMapConstantBufferTransform);
-
-	auto pPrims = m_scene->GetPrimitives();
-	for (auto it = pPrims.begin(); it != pPrims.end(); it++)
-	{
-		// 这里渲染场景中所有Mesh。
-		// 其他几个CB/SRV的Slot都不变，但每个物体的World、Material、Tex信息都可能改变。
-		// 可以进一步优化，比如按Material绘制、按Tex绘制。
-		auto p = *it;
-		p->Update();
-		auto pTexSRV = p->GetTextureSRV();
-		auto pMaterial = p->GetMaterialBuffer();
-		g_pContext->VSSetConstantBuffers(0, 1, &NXGlobalBufferManager::m_cbWorld);
-		g_pContext->PSSetShaderResources(0, 1, &pTexSRV);
-		g_pContext->PSSetConstantBuffers(3, 1, &pMaterial);
-		p->Render();
-	}
+	// 绘制Primitives
+	DrawPrimitives();
 
 	// 以上操作全部都是在主RTV中进行的。
 	// 下面切换到QuadRTV，简单来说就是将主RTV绘制到这个RTV，然后作为一张四边形纹理进行最终输出。
@@ -216,7 +195,8 @@ void Renderer::DrawScene()
 
 void Renderer::Release()
 {
-	if (m_pInputLayout)			m_pInputLayout->Release();
+	if (m_pInputLayoutP)		m_pInputLayoutP->Release();
+	if (m_pInputLayoutPNT)		m_pInputLayoutPNT->Release();
 	if (m_pVertexShader)		m_pVertexShader->Release();
 	if (m_pPixelShader)			m_pPixelShader->Release();
 	if (m_pSamplerLinearWrap)	m_pSamplerLinearWrap->Release();
@@ -230,4 +210,75 @@ void Renderer::Release()
 
 	m_scene.reset();
 	m_renderTarget.reset();
+}
+
+void Renderer::DrawPrimitives()
+{
+	// 设置使用的VS和PS（这里是scene.fx）
+	g_pContext->VSSetShader(m_pVertexShader, nullptr, 0);
+	g_pContext->PSSetShader(m_pPixelShader, nullptr, 0);
+
+	// 以及渲染主场景所用的Sampler
+	g_pContext->PSSetSamplers(0, 1, &m_pSamplerLinearWrap);
+
+	// 填上渲染Buffer的Slot。其实总结成一句话就是：
+	// 将VS/PS的CB/SRV/Sampler的xxx号槽（Slot）填上数据xxx。
+	g_pContext->VSSetConstantBuffers(1, 1, &NXGlobalBufferManager::m_cbCamera);
+	g_pContext->PSSetConstantBuffers(1, 1, &NXGlobalBufferManager::m_cbCamera);
+
+	auto pCbLights = m_scene->GetConstantBufferLights();
+	g_pContext->PSSetConstantBuffers(2, 1, &pCbLights);
+
+	auto pShadowMapSRV = m_pPassShadowMap->GetSRV();
+	g_pContext->PSSetShaderResources(1, 1, &pShadowMapSRV);
+
+	auto pShadowMapConstantBufferTransform = m_pPassShadowMap->GetConstantBufferTransform();
+	g_pContext->PSSetConstantBuffers(4, 1, &pShadowMapConstantBufferTransform);
+
+	auto pPrims = m_scene->GetPrimitives();
+	for (auto it = pPrims.begin(); it != pPrims.end(); it++)
+	{
+		// 这里渲染场景中所有Mesh。
+		// 其他几个CB/SRV的Slot都不变，但每个物体的World、Material、Tex信息都可能改变。
+		// 可以进一步优化，比如按Material绘制、按Tex绘制。
+		auto p = *it;
+		p->Update();
+		g_pContext->VSSetConstantBuffers(0, 1, &NXGlobalBufferManager::m_cbObject);
+
+		auto pTexSRV = p->GetTextureSRV();
+		auto pMaterial = p->GetMaterialBuffer();
+		g_pContext->PSSetShaderResources(0, 1, &pTexSRV);
+		g_pContext->PSSetConstantBuffers(3, 1, &pMaterial);
+		p->Render();
+	}
+}
+
+void Renderer::DrawCubeMap()
+{
+	g_pContext->VSSetShader(m_pVertexShaderCubeMap, nullptr, 0);
+	g_pContext->PSSetShader(m_pPixelShaderCubeMap, nullptr, 0);
+
+	auto pCubeMap = m_scene->GetCubeMap();
+	if (pCubeMap)
+	{
+		pCubeMap->Update();
+		g_pContext->VSSetConstantBuffers(0, 1, &NXGlobalBufferManager::m_cbObject);
+
+		auto pCubeMapSRV = pCubeMap->GetTextureSRV();
+		g_pContext->PSSetShaderResources(0, 1, &pCubeMapSRV);
+
+		pCubeMap->Render();
+	}
+}
+
+void Renderer::DrawShadowMap()
+{
+	g_pContext->VSSetShader(m_pVertexShaderShadowMap, nullptr, 0);
+	g_pContext->PSSetShader(m_pPixelShaderShadowMap, nullptr, 0);
+	g_pContext->PSSetSamplers(1, 1, &m_pSamplerShadowMapPCF);
+
+	g_pContext->RSSetState(RenderStates::ShadowMapRS);
+	m_pPassShadowMap->Load();
+	m_pPassShadowMap->UpdateConstantBuffer();
+	m_pPassShadowMap->Render();
 }

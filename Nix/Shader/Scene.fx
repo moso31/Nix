@@ -2,19 +2,20 @@
 
 Texture2D txDiffuse : register(t0);
 Texture2D txShadowMap : register(t1);
+Texture2D txCubeMap : register(t2);
 SamplerState samLinear : register(s0);
 SamplerComparisonState samShadowMap : register(s1);
 
-cbuffer ConstantBufferPrimitive : register(b0)
+cbuffer ConstantBufferObject : register(b0)
 {
 	matrix m_world;
 	matrix m_worldInverseTranspose;
+	matrix m_view;
+	matrix m_projection;
 }
 
 cbuffer ConstantBufferCamera : register(b1)
 {
-	matrix m_view;
-	matrix m_projection;
 	float3 m_eyePos;
 }
 
@@ -69,7 +70,7 @@ float4 PS(PS_INPUT input) : SV_Target
 	float3 N = normalize(input.normW);
 	float3 V = normalize(m_eyePos - input.posW);
 	
-	float albedoMap = txDiffuse.Sample(samLinear, input.tex).xyz;
+	float3 albedoMap = txDiffuse.Sample(samLinear, input.tex).xyz;
 	float3 albedo = m_material.albedo;// *albedoMap;
 
 	float3 F0 = 0.04;

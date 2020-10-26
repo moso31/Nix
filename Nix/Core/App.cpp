@@ -29,9 +29,6 @@ void App::Update()
 
 void App::Draw()
 {
-	// 绘制阴影贴图
-	// m_pRenderer->DrawShadowMap();
-
 	// 绘制主场景
 	m_pRenderer->DrawScene();
 }

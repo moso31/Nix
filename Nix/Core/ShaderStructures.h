@@ -1,6 +1,13 @@
 #pragma once
 #include "Header.h"
 
+struct VertexP
+{
+	VertexP() = default;
+	VertexP(Vector3 pos) : pos(pos) {}
+	Vector3 pos;
+};
+
 struct VertexPNT
 {
 	VertexPNT() = default;
@@ -21,16 +28,16 @@ struct VertexPNTC
 	Vector4 color;
 };
 
-struct ConstantBufferPrimitive
+struct ConstantBufferObject
 {
 	Matrix world;
 	Matrix worldInverseTranspose;
+	Matrix view;
+	Matrix projection;
 };
 
 struct ConstantBufferCamera
 {
-	Matrix view;
-	Matrix projection;
 	Vector3 eyePosition;
 	float _0;
 };

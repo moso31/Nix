@@ -145,10 +145,11 @@ void NXCamera::UpdateTransform()
 
 void NXCamera::Update()
 {
-	NXGlobalBufferManager::m_cbDataCamera.view = m_view.Transpose();
-	NXGlobalBufferManager::m_cbDataCamera.projection = m_projection.Transpose();
-	NXGlobalBufferManager::m_cbDataCamera.eyePosition = m_translation;
+	NXGlobalBufferManager::m_cbDataObject.view = m_view.Transpose();
+	NXGlobalBufferManager::m_cbDataObject.projection = m_projection.Transpose();
+	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbObject, 0, nullptr, &NXGlobalBufferManager::m_cbDataObject, 0, 0);
 
+	NXGlobalBufferManager::m_cbDataCamera.eyePosition = m_translation;
 	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbCamera, 0, nullptr, &NXGlobalBufferManager::m_cbDataCamera, 0, 0);
 }
 

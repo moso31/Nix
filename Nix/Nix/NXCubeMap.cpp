@@ -1,6 +1,10 @@
 #include "NXCubeMap.h"
+#include "GlobalBufferManager.h"
+#include "NXScene.h"
+#include "NXCamera.h"
 
-NXCubeMap::NXCubeMap()
+NXCubeMap::NXCubeMap(const std::shared_ptr<NXScene>& pScene) :
+	m_pScene(pScene)
 {
 }
 
@@ -18,6 +22,10 @@ bool NXCubeMap::Init(std::wstring filePath)
 		dcImage.reset();
 		return false;
 	}
+
+	// 创建CubeMap SRV。
+	// 需要使用初始格式创建，也就是说要在Decompress之前创建。
+	CreateShaderResourceView(g_pDevice, m_image->GetImages(), m_image->GetImageCount(), metadata, &m_pTextureSRV);
 
 	if (IsCompressed(metadata.format))
 	{
@@ -44,6 +52,9 @@ bool NXCubeMap::Init(std::wstring filePath)
 		auto faceImage = m_image->GetImage(0, item, 0);
 		m_faceData[item] = faceImage->pixels;
 	}
+
+	// create vertex
+	InitVertex();
 
 	return true;
 }
@@ -87,8 +98,95 @@ std::shared_ptr<NXPBREnvironmentLight> NXCubeMap::GetEnvironmentLight() const
 	return m_pEnvironmentLight; 
 }
 
+void NXCubeMap::Update()
+{
+	auto pCamera = m_pScene->GetMainCamera();
+	NXGlobalBufferManager::m_cbDataObject.world = Matrix::CreateTranslation(pCamera->GetTranslation()).Transpose();
+	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbObject, 0, nullptr, &NXGlobalBufferManager::m_cbDataObject, 0, 0);
+}
+
+void NXCubeMap::Render()
+{
+	UINT stride = sizeof(VertexP);
+	UINT offset = 0;
+	g_pContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &stride, &offset);
+	g_pContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+	g_pContext->DrawIndexed((UINT)m_indices.size(), 0, 0);
+}
 
 void NXCubeMap::Release()
 {
 	if (m_image) m_image.reset();
+	NXPrimitive::Release();
+}
+
+void NXCubeMap::InitVertex()
+{
+	int currVertIdx = 0;
+	int segmentVertical = 32;
+	int segmentHorizontal = 32;
+	for (int i = 0; i < segmentVertical; i++)
+	{
+		float yDown = sinf(((float)i / (float)segmentVertical * 2.0f - 1.0f) * XM_PIDIV2);
+		float yUp = sinf(((float)(i + 1) / (float)segmentVertical * 2.0f - 1.0f) * XM_PIDIV2);
+		float radiusDown = sqrtf(1.0f - yDown * yDown);
+		float radiusUp = sqrtf(1.0f - yUp * yUp);
+
+		float yUVUp = Clamp(yUp * 0.5f + 0.5f, 0.0f, 1.0f);
+		float yUVDown = Clamp(yDown * 0.5f + 0.5f, 0.0f, 1.0f);
+
+		for (int j = 0; j < segmentHorizontal; j++)
+		{
+			float segNow = (float)j / (float)segmentHorizontal;
+			float segNext = (float)(j + 1) / (float)segmentHorizontal;
+			float angleNow = segNow * XM_2PI;
+			float angleNext = segNext * XM_2PI;
+			float xNow = cosf(angleNow);
+			float zNow = sinf(angleNow);
+			float xNext = cosf(angleNext);
+			float zNext = sinf(angleNext);
+
+			Vector3 pNowUp = { xNow * radiusUp, yUp, zNow * radiusUp };
+			Vector3 pNextUp = { xNext * radiusUp, yUp, zNext * radiusUp };
+			Vector3 pNowDown = { xNow * radiusDown, yDown, zNow * radiusDown };
+			Vector3 pNextDown = { xNext * radiusDown, yDown, zNext * radiusDown };
+
+			m_vertices.push_back(pNowUp);
+			m_vertices.push_back(pNextUp);
+			m_vertices.push_back(pNextDown);
+			m_vertices.push_back(pNowDown);
+
+			m_indices.push_back(currVertIdx);
+			m_indices.push_back(currVertIdx + 2);
+			m_indices.push_back(currVertIdx + 1);
+			m_indices.push_back(currVertIdx);
+			m_indices.push_back(currVertIdx + 3);
+			m_indices.push_back(currVertIdx + 2);
+
+			currVertIdx += 4;
+		}
+	}
+
+	InitVertexIndexBuffer();
+}
+
+void NXCubeMap::InitVertexIndexBuffer()
+{
+	D3D11_BUFFER_DESC bufferDesc;
+	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = sizeof(VertexP) * (UINT)m_vertices.size();
+	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	D3D11_SUBRESOURCE_DATA InitData;
+	ZeroMemory(&InitData, sizeof(InitData));
+	InitData.pSysMem = m_vertices.data();
+	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &m_pVertexBuffer));
+
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = sizeof(USHORT) * (UINT)m_indices.size();
+	bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	InitData.pSysMem = m_indices.data();
+	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &m_pIndexBuffer));
 }

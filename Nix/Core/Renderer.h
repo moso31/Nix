@@ -7,18 +7,25 @@ public:
 	void Init();
 	void InitRenderer();
 	void UpdateSceneData();
-	void DrawShadowMap();
 	void DrawScene();
 	void Release();
 
 private:
-	ID3D11InputLayout*			m_pInputLayout;
+	void DrawPrimitives();
+	void DrawCubeMap();
+	void DrawShadowMap();
+
+private:
+	ID3D11InputLayout*			m_pInputLayoutP;
+	ID3D11InputLayout*			m_pInputLayoutPNT;
 
 	ID3D11VertexShader*			m_pVertexShader;
+	ID3D11VertexShader*			m_pVertexShaderCubeMap;
 	ID3D11VertexShader*			m_pVertexShaderOffScreen;
 	ID3D11VertexShader*			m_pVertexShaderShadowMap;
 
 	ID3D11PixelShader*			m_pPixelShader;
+	ID3D11PixelShader*			m_pPixelShaderCubeMap;
 	ID3D11PixelShader*			m_pPixelShaderOffScreen;
 	ID3D11PixelShader*			m_pPixelShaderShadowMap;
 
