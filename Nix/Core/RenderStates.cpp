@@ -8,6 +8,8 @@ ID3D11RasterizerState2*		RenderStates::ShadowMapRS = nullptr;
 ID3D11BlendState1*			RenderStates::AlphaToCoverageBS = nullptr;
 ID3D11BlendState1*			RenderStates::TransparentBS = nullptr;
 
+ID3D11DepthStencilState*	RenderStates::CubeMapDSS = nullptr;
+
 void RenderStates::Init()
 {
 	//
@@ -76,6 +78,12 @@ void RenderStates::Init()
 	transparentDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
 	NX::ThrowIfFailed(g_pDevice->CreateBlendState1(&transparentDesc, &TransparentBS));
+
+	// CubemapDSS
+	D3D11_DEPTH_STENCIL_DESC cubeMapDesc = { 0 };
+	cubeMapDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+
+	NX::ThrowIfFailed(g_pDevice->CreateDepthStencilState(&cubeMapDesc, &CubeMapDSS));
 }
 
 void RenderStates::Release()

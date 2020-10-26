@@ -142,6 +142,9 @@ void Renderer::DrawScene()
 	// 使用默认背向剔除（指针设为空就是默认的back culling）
 	g_pContext->RSSetState(nullptr);
 
+	// 渲染主场景所用的Sampler
+	g_pContext->PSSetSamplers(0, 1, &m_pSamplerLinearWrap);
+
 	// 设置两个RTV，一个用于绘制主场景，一个用于绘制显示区
 	auto pOffScreenRTV = g_dxResources->GetOffScreenRTV();
 	auto pRenderTargetView = g_dxResources->GetRenderTargetView();
@@ -159,18 +162,16 @@ void Renderer::DrawScene()
 	// 更新Camera的常量缓存数据（VP矩阵、眼睛位置）
 	m_scene->UpdateCamera();
 
-	// IL: Position only
-	// 目前仅用于CubeMap
-	g_pContext->IASetInputLayout(m_pInputLayoutP);
-
 	// 绘制CubeMap
+	g_pContext->IASetInputLayout(m_pInputLayoutP);
+	g_pContext->RSSetState(RenderStates::NoCullRS);
+	g_pContext->OMSetDepthStencilState(RenderStates::CubeMapDSS, 0);
 	DrawCubeMap();
 
-	// IL: PNT
-	// 除了CubeMap以外，其他内容目前全部都是PNT顶点结构
-	g_pContext->IASetInputLayout(m_pInputLayoutPNT);
-
 	// 绘制Primitives
+	g_pContext->IASetInputLayout(m_pInputLayoutPNT);
+	g_pContext->RSSetState(nullptr);
+	g_pContext->OMSetDepthStencilState(nullptr, 0);
 	DrawPrimitives();
 
 	// 以上操作全部都是在主RTV中进行的。
@@ -182,7 +183,7 @@ void Renderer::DrawScene()
 	g_pContext->VSSetShader(m_pVertexShaderOffScreen, nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShaderOffScreen, nullptr, 0);
 
-	// 对RTV的绘制详见以下函数：
+	// 绘制主渲染屏幕RTV：
 	m_renderTarget->Render();
 
 	// clear SRV.
@@ -217,9 +218,6 @@ void Renderer::DrawPrimitives()
 	// 设置使用的VS和PS（这里是scene.fx）
 	g_pContext->VSSetShader(m_pVertexShader, nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShader, nullptr, 0);
-
-	// 以及渲染主场景所用的Sampler
-	g_pContext->PSSetSamplers(0, 1, &m_pSamplerLinearWrap);
 
 	// 填上渲染Buffer的Slot。其实总结成一句话就是：
 	// 将VS/PS的CB/SRV/Sampler的xxx号槽（Slot）填上数据xxx。
