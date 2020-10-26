@@ -130,11 +130,11 @@ void Renderer::InitRenderer()
 
 void Renderer::UpdateSceneData()
 {
-	// 更新Transform
-	m_scene->UpdateTransform();
-
 	// 更新场景Scripts。实际上是用Scripts控制指定物体的Transform。
 	m_scene->UpdateScripts();
+
+	// 更新Transform
+	m_scene->UpdateTransform();
 }
 
 void Renderer::DrawScene()
