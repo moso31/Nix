@@ -228,7 +228,7 @@ void Renderer::DrawPrimitives()
 	g_pContext->PSSetConstantBuffers(2, 1, &pCbLights);
 
 	auto pShadowMapSRV = m_pPassShadowMap->GetSRV();
-	g_pContext->PSSetShaderResources(1, 1, &pShadowMapSRV);
+	g_pContext->PSSetShaderResources(2, 1, &pShadowMapSRV);
 
 	auto pShadowMapConstantBufferTransform = m_pPassShadowMap->GetConstantBufferTransform();
 	g_pContext->PSSetConstantBuffers(4, 1, &pShadowMapConstantBufferTransform);
@@ -245,7 +245,7 @@ void Renderer::DrawPrimitives()
 
 		auto pTexSRV = p->GetTextureSRV();
 		auto pMaterial = p->GetMaterialBuffer();
-		g_pContext->PSSetShaderResources(0, 1, &pTexSRV);
+		g_pContext->PSSetShaderResources(1, 1, &pTexSRV);
 		g_pContext->PSSetConstantBuffers(3, 1, &pMaterial);
 		p->Render();
 	}

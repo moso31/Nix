@@ -1,8 +1,8 @@
 #include "PBR.fx"
 
-Texture2D txDiffuse : register(t0);
-Texture2D txShadowMap : register(t1);
-Texture2D txCubeMap : register(t2);
+TextureCube txCubeMap : register(t0);
+Texture2D txDiffuse : register(t1);
+Texture2D txShadowMap : register(t2);
 SamplerState samLinear : register(s0);
 SamplerComparisonState samShadowMap : register(s1);
 
@@ -69,6 +69,9 @@ float4 PS(PS_INPUT input) : SV_Target
 {
 	float3 N = normalize(input.normW);
 	float3 V = normalize(m_eyePos - input.posW);
+	
+	// reflection test
+	//return txCubeMap.Sample(samLinear, reflect(-V, N)); 
 	
 	float3 albedoMap = txDiffuse.Sample(samLinear, input.tex).xyz;
 	float3 albedo = m_material.albedo;// *albedoMap;
