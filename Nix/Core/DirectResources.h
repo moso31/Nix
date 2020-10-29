@@ -19,8 +19,8 @@ private:
 	D3D11_VIEWPORT				m_ViewPort;
 	Vector2						m_viewSize;
 
-	ID3D11ShaderResourceView1*	m_pOffScreenSRV;
-	ID3D11RenderTargetView1*	m_pOffScreenRTV;
-	ID3D11RenderTargetView1*	m_pRenderTargetView;
+	ID3D11ShaderResourceView*	m_pOffScreenSRV;
+	ID3D11RenderTargetView*		m_pOffScreenRTV;
+	ID3D11RenderTargetView*		m_pRenderTargetView;
 	ID3D11DepthStencilView*		m_pDepthStencilView;
 };

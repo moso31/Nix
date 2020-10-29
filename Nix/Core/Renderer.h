@@ -6,6 +6,7 @@ class Renderer
 public:
 	void Init();
 	void InitRenderer();
+	void Preload();
 	void UpdateSceneData();
 	void DrawScene();
 	void Release();

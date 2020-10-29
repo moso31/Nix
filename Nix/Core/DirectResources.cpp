@@ -95,13 +95,13 @@ void DirectResources::OnResize(UINT width, UINT height)
 
 
 	// 创建交换链后台缓冲区的渲染目标视图。
-	ID3D11Texture2D1* pBackBuffer = nullptr;
+	ID3D11Texture2D* pBackBuffer = nullptr;
 	NX::ThrowIfFailed(g_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer)));
-	NX::ThrowIfFailed(g_pDevice->CreateRenderTargetView1(pBackBuffer, nullptr, &m_pRenderTargetView));
+	NX::ThrowIfFailed(g_pDevice->CreateRenderTargetView(pBackBuffer, nullptr, &m_pRenderTargetView));
 	pBackBuffer->Release();
 
 	// 根据需要创建用于 3D 渲染的深度模具视图。
-	CD3D11_TEXTURE2D_DESC1 descDepth(
+	CD3D11_TEXTURE2D_DESC descDepth(
 		DXGI_FORMAT_D24_UNORM_S8_UINT,
 		lround(width),
 		lround(height),
@@ -110,15 +110,15 @@ void DirectResources::OnResize(UINT width, UINT height)
 		D3D11_BIND_DEPTH_STENCIL
 	);
 
-	ID3D11Texture2D1* pDepthStencil;
-	NX::ThrowIfFailed(g_pDevice->CreateTexture2D1(&descDepth, nullptr, &pDepthStencil));
+	ID3D11Texture2D* pDepthStencil;
+	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&descDepth, nullptr, &pDepthStencil));
 
 	CD3D11_DEPTH_STENCIL_VIEW_DESC descDepthStencilView(D3D11_DSV_DIMENSION_TEXTURE2D);
 	NX::ThrowIfFailed(g_pDevice->CreateDepthStencilView(pDepthStencil, &descDepthStencilView, &m_pDepthStencilView));
 	pDepthStencil->Release();
 
 	// Create Render Target
-	CD3D11_TEXTURE2D_DESC1 descOffScreen(
+	CD3D11_TEXTURE2D_DESC descOffScreen(
 		DXGI_FORMAT_R8G8B8A8_UNORM, 
 		lround(width), 
 		lround(height), 
@@ -126,10 +126,10 @@ void DirectResources::OnResize(UINT width, UINT height)
 		1,
 		D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS
 	);
-	ID3D11Texture2D1* pOffScreenBuffer = nullptr;
-	g_pDevice->CreateTexture2D1(&descOffScreen, nullptr, &pOffScreenBuffer);
-	NX::ThrowIfFailed(g_pDevice->CreateRenderTargetView1(pOffScreenBuffer, nullptr, &m_pOffScreenRTV));
-	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView1(pOffScreenBuffer, nullptr, &m_pOffScreenSRV));
+	ID3D11Texture2D* pOffScreenBuffer = nullptr;
+	g_pDevice->CreateTexture2D(&descOffScreen, nullptr, &pOffScreenBuffer);
+	NX::ThrowIfFailed(g_pDevice->CreateRenderTargetView(pOffScreenBuffer, nullptr, &m_pOffScreenRTV));
+	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(pOffScreenBuffer, nullptr, &m_pOffScreenSRV));
 	pOffScreenBuffer->Release();
 
 	// Setup the viewport

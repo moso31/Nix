@@ -123,9 +123,20 @@ void Renderer::InitRenderer()
 
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	//float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-	//g_pContext->RSSetState(nullptr);	// back culling
-	//g_pContext->OMSetBlendState(nullptr, blendFactor, 0xffffffff);
+	float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	g_pContext->RSSetState(nullptr);	// back culling
+	g_pContext->OMSetBlendState(nullptr, blendFactor, 0xffffffff);
+
+	g_pContext->PSSetSamplers(0, 1, &m_pSamplerLinearWrap);
+}
+
+void Renderer::Preload()
+{
+	auto pCubeMap = m_scene->GetCubeMap();
+	if (pCubeMap)
+	{
+		pCubeMap->GenerateIrradianceMap();
+	}
 }
 
 void Renderer::UpdateSceneData()
@@ -262,7 +273,8 @@ void Renderer::DrawCubeMap()
 		pCubeMap->Update();
 		g_pContext->VSSetConstantBuffers(0, 1, &NXGlobalBufferManager::m_cbObject);
 
-		auto pCubeMapSRV = pCubeMap->GetTextureSRV();
+		// Get IrradianceMap SRV(Test)
+		auto pCubeMapSRV = pCubeMap->GetIrradianceMapSRV();
 		g_pContext->PSSetShaderResources(0, 1, &pCubeMapSRV);
 
 		pCubeMap->Render();

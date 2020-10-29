@@ -19,6 +19,7 @@ void App::Init()
 
 	m_pRenderer = std::make_shared<Renderer>();
 	m_pRenderer->Init();
+	m_pRenderer->Preload();
 }
 
 void App::Update()

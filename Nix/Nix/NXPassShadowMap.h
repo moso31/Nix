@@ -24,7 +24,7 @@ private:
 	ConstantBufferShadowMapTransform	m_cbDataTransform;
 
 	ID3D11DepthStencilView*			m_pDepthDSV;
-	ID3D11ShaderResourceView1*		m_pDepthSRV;
+	ID3D11ShaderResourceView*		m_pDepthSRV;
 	D3D11_VIEWPORT					m_viewPort;
 
 	std::shared_ptr<NXScene>				m_pScene;

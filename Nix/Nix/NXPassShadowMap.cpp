@@ -23,7 +23,7 @@ void NXPassShadowMap::Init(UINT width, UINT height)
 	m_viewPort.MaxDepth = 1.0f;
 
 	// 根据需要创建用于 3D 渲染的深度模具视图。
-	CD3D11_TEXTURE2D_DESC1 descTex(
+	CD3D11_TEXTURE2D_DESC descTex(
 		DXGI_FORMAT_R24G8_TYPELESS,
 		width,
 		height,
@@ -32,8 +32,8 @@ void NXPassShadowMap::Init(UINT width, UINT height)
 		D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE
 	);
 
-	ID3D11Texture2D1* pTexShadowMap;
-	NX::ThrowIfFailed(g_pDevice->CreateTexture2D1(&descTex, nullptr, &pTexShadowMap));
+	ID3D11Texture2D* pTexShadowMap;
+	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&descTex, nullptr, &pTexShadowMap));
 
 	CD3D11_DEPTH_STENCIL_VIEW_DESC descDSV(
 		D3D11_DSV_DIMENSION_TEXTURE2D,
@@ -41,7 +41,7 @@ void NXPassShadowMap::Init(UINT width, UINT height)
 	);
 	NX::ThrowIfFailed(g_pDevice->CreateDepthStencilView(pTexShadowMap, &descDSV, &m_pDepthDSV));
 
-	CD3D11_SHADER_RESOURCE_VIEW_DESC1 descSRV(
+	CD3D11_SHADER_RESOURCE_VIEW_DESC descSRV(
 		D3D11_SRV_DIMENSION_TEXTURE2D,
 		DXGI_FORMAT_R24_UNORM_X8_TYPELESS,
 		0,
@@ -49,7 +49,7 @@ void NXPassShadowMap::Init(UINT width, UINT height)
 		0,
 		0
 	);
-	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView1(pTexShadowMap, &descSRV, &m_pDepthSRV));
+	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(pTexShadowMap, &descSRV, &m_pDepthSRV));
 
 	if (pTexShadowMap) pTexShadowMap->Release();
 
