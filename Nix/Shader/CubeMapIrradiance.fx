@@ -17,10 +17,31 @@ cbuffer ConstantBufferObject : register(b0)
 	matrix m_projection;
 }
 
-float3 GetIrradianceMap(float3 wiWorld)
+float3 GetIrradiance(float3 wi)
 {
-	float3 up = float3(0.0f, 1.0f, 0.0f);
-	float3 right = cross(wiWorld, up);
+	// 形成wi, wt(tangent), wb(bitangent) 坐标系
+	float3 wb = float3(0.0f, 1.0f, 0.0f);
+	float3 wt = normalize(cross(wb, wi));
+	wb = cross(wi, wt);
+	float3 irradiance = 0.0f;
+
+	float sampleDelta = 0.025f;
+	int nrSamples = 0;
+	for (float phi = 0.0f; phi < 2.0f * PI; phi += sampleDelta)
+	{
+		for (float theta = 0.0f; theta < 0.5f * PI; theta += sampleDelta)
+		{
+			// spherical to cartesian (in tangent space)
+			float3 tangentSample = float3(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
+			// tangent space to world
+			float3 sampleVec = tangentSample.x * wt + tangentSample.y * wb + tangentSample.z * wi;
+
+			irradiance += txCubeMap.Sample(samTriLinearSam, sampleVec).rgb * cos(theta) * sin(theta);
+			nrSamples++;
+		}
+	}
+	irradiance = PI * irradiance * (1.0f / float(nrSamples));
+	return irradiance;
 }
 
 struct VS_INPUT
@@ -53,6 +74,6 @@ PS_INPUT VS(VS_INPUT input)
 
 float4 PS(PS_INPUT input) : SV_Target
 {
-	float3 irradiance = GetIrradianceMap(input.posL);
-	return txCubeMap.Sample(samTriLinearSam, input.posL).yzxw;
+	float3 irradiance = GetIrradiance(input.posL);
+	return float4(irradiance, 1.0f);
 }

@@ -108,7 +108,6 @@ void NXCubeMap::Update()
 	Quaternion q;
 	pCamera->GetWorldMatrix().Decompose(a, q, t);
 	a = pCamera->GetTranslation();
-	printf("cam: %f %f %f\tmx: %f %f %f\n", a.x, a.y, a.z, t.x, t.y, t.z);
 	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbObject, 0, nullptr, &NXGlobalBufferManager::m_cbDataObject, 0, 0);
 }
 

@@ -3,6 +3,7 @@
 TextureCube txCubeMap : register(t0);
 Texture2D txDiffuse : register(t1);
 Texture2D txShadowMap : register(t2);
+TextureCube txIrradianceMap : register(t3);
 SamplerState samLinear : register(s0);
 SamplerComparisonState samShadowMap : register(s1);
 
@@ -86,32 +87,35 @@ float4 PS(PS_INPUT input) : SV_Target
 		float3 lightPos = m_pointLight[i].position;
 		float3 lightColor = m_pointLight[i].color;
 
-        // calculate per-light radiance
+        // 第i个光源的入射radiance
         float3 L = normalize(lightPos - input.posW);
         float3 H = normalize(V + L);
         float distance = length(lightPos - input.posW);
         float attenuation = 1.0 / (distance * distance);
         float3 radiance = lightColor * attenuation;
 
-        // cook-torrance brdf
+        // 微表面 BRDF
 		float NDF = DistributionGGX(N, H, m_material.roughness);
 		float G = GeometrySmith(N, V, L, m_material.roughness);
 		float3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
-
-        float3 kS = F;
-        float3 kD = 1.0 - kS;
-        kD *= 1.0 - m_material.metallic;
 
         float3 numerator = NDF * G * F;
         float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
         float3 specular = numerator / max(denominator, 0.001);
 
-        // add to outgoing radiance Lo
+		float3 kS = F;
+		float3 kD = 1.0 - kS;
+		kD *= 1.0 - m_material.metallic;
         float NdotL = max(dot(N, L), 0.0);
         Lo += (kD * albedo / PI + specular) * radiance * NdotL;
     }
 
-	float3 ambient = 0.0f;// float3(0.03)* albedo* ao;
+	float3 kS = fresnelSchlick(max(dot(N, V), 0.0), F0);
+	float3 kD = 1.0 - kS;
+	kD *= 1.0 - m_material.metallic;
+	float3 irradiance = txIrradianceMap.Sample(samLinear, N).xyz;
+	float3 diffuseIBL = kD * albedo * irradiance;
+	float3 ambient = diffuseIBL; // * ao;
 	float3 color = ambient + Lo;
 
 	// gamma.
