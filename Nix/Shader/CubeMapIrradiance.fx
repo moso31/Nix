@@ -25,11 +25,14 @@ float3 GetIrradiance(float3 wi)
 	wb = cross(wi, wt);
 	float3 irradiance = 0.0f;
 
-	float sampleDelta = 0.025f;
+	float rTheta = 0.5f * PI;
+	float rPhi = 2.0f * PI;
+	float nTheta = rTheta / 0.05f;
+	float nPhi = rTheta / 0.05f;
 	int nrSamples = 0;
-	for (float phi = 0.0f; phi < 2.0f * PI; phi += sampleDelta)
+	for (float phi = 0.0f; phi < rPhi; phi += nTheta)
 	{
-		for (float theta = 0.0f; theta < 0.5f * PI; theta += sampleDelta)
+		for (float theta = 0.0f; theta < rTheta; theta += nTheta)
 		{
 			// spherical to cartesian (in tangent space)
 			float3 tangentSample = float3(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));

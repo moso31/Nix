@@ -286,27 +286,25 @@ void NXCubeMap::GenerateIrradianceMap()
 	UINT offset = 0;
 	g_pContext->IASetVertexBuffers(0, 1, &pVertexBuffer, &stride, &offset);
 	g_pContext->IASetIndexBuffer(pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+	for (int i = 0; i < 6; i++)
+		g_pContext->ClearRenderTargetView(m_pTestRTVs[i], Colors::WhiteSmoke);
+
 	for (int i = 0; i < 6; i++)
 	{
 		g_pContext->OMSetRenderTargets(1, &m_pTestRTVs[i], nullptr);
-		g_pContext->ClearRenderTargetView(m_pTestRTVs[i], Colors::WhiteSmoke);
 
 		cbData.view = mxCubeMapView[i].Transpose();
 		g_pContext->UpdateSubresource(cb, 0, nullptr, &cbData, 0, 0);
 		g_pContext->DrawIndexed((UINT)indices.size() / 6, i * 6, 0);
 	}
 
-	//ID3D11SamplerState* pSamplerLinearWrap;
-	//D3D11_SAMPLER_DESC sampDesc;
-	//ZeroMemory(&sampDesc, sizeof(sampDesc));
-	//sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	//sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	//sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	//sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	//sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-	//sampDesc.MinLOD = 0;
-	//sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	//NX::ThrowIfFailed(g_pDevice->CreateSamplerState(&sampDesc, &pSamplerLinearWrap));
+	pVertexBuffer->Release();
+	pIndexBuffer->Release();
+	pVertexShader->Release();
+	pPixelShader->Release();
+	pInputLayoutPNT->Release();
+	cb->Release();
 }
 
 void NXCubeMap::InitVertex()
