@@ -12,7 +12,7 @@ App::App() :
 
 void App::Init()
 {
-	g_dxResources = std::make_shared<DirectResources>();
+	g_dxResources = new DirectResources();
 	g_dxResources->InitDevice();
 
 	RenderStates::Init();
@@ -47,7 +47,7 @@ void App::Release()
 	if (g_dxResources)
 	{
 		g_dxResources->ClearDevices();
-		g_dxResources.reset();
+		delete g_dxResources;
 	}
 
 	NXEventKeyDown::GetInstance()->Release();

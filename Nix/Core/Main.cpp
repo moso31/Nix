@@ -59,10 +59,10 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	if (FAILED(InitWindow(hInstance, nCmdShow)))
 		return 0;
 
-	g_app = std::make_shared<App>();
+	g_app = new App();
 	g_app->Init();
 
-	g_timer = std::make_shared<NXTimer>();
+	g_timer = new NXTimer();
 
 	// Main message loop
 	MSG msg = { 0 };
@@ -85,8 +85,10 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 		}
 	}
 
+	delete g_timer;
+
 	g_app->Release();
-	g_app.reset();
+	delete g_app;
 
 	return (int)msg.wParam;
 }

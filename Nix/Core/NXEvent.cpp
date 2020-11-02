@@ -4,11 +4,11 @@ NXEvent::~NXEvent()
 {
 	for (auto it = m_listeners.begin(); it != m_listeners.end(); it++)
 	{
-		(*it).reset();
+		delete *it;
 	}
 }
 
-void NXEvent::AddListener(const std::shared_ptr<NXListener>& pListener)
+void NXEvent::AddListener(NXListener* pListener)
 {
 	m_listeners.push_back(pListener);
 }

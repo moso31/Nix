@@ -31,9 +31,9 @@ std::shared_ptr<NXScript> SceneManager::CreateScript(const NXScriptType scriptTy
 	}
 }
 
-std::shared_ptr<NXListener> SceneManager::AddEventListener(const NXEventType eventType, const std::shared_ptr<NXObject>& pObject, const std::function<void(NXEventArg)>& pFunc)
+NXListener* SceneManager::AddEventListener(const NXEventType eventType, const std::shared_ptr<NXObject>& pObject, const std::function<void(NXEventArg)>& pFunc)
 {
-	auto pListener = std::make_shared<NXListener>(pObject, pFunc);
+	auto pListener = new NXListener(pObject, pFunc);
 	switch (eventType)
 	{
 	case NXEventType::NXEVENT_KEYDOWN:
@@ -62,6 +62,7 @@ std::shared_ptr<NXListener> SceneManager::AddEventListener(const NXEventType eve
 		break;
 	}
 	default:
+		delete pListener;
 		return nullptr;
 	}
 	return pListener;

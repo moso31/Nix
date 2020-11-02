@@ -262,7 +262,7 @@ void Renderer::DrawCubeMap()
 		pCubeMap->Update();
 		g_pContext->VSSetConstantBuffers(0, 1, &NXGlobalBufferManager::m_cbObject);
 
-		auto pCubeMapSRV = pCubeMap->GetPreFilterMapSRV();
+		auto pCubeMapSRV = pCubeMap->GetTextureSRV();
 		g_pContext->PSSetShaderResources(0, 1, &pCubeMapSRV);
 
 		auto pIrradianceMapSRV = pCubeMap->GetIrradianceMapSRV();

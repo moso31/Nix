@@ -240,18 +240,13 @@ void NXScene::InitScripts()
 	auto pScript = std::make_shared<NSFirstPersonalCamera>();
 	m_pMainCamera->AddScript(pScript);
 
-	auto pListener_onKeyDown = std::make_shared<NXListener>(m_pMainCamera, std::bind(&NSFirstPersonalCamera::OnKeyDown, pScript, std::placeholders::_1));
-	auto pListener_onKeyUp = std::make_shared<NXListener>(m_pMainCamera, std::bind(&NSFirstPersonalCamera::OnKeyUp, pScript, std::placeholders::_1));
-	auto pListener_onMouseMove = std::make_shared<NXListener>(m_pMainCamera, std::bind(&NSFirstPersonalCamera::OnMouseMove, pScript, std::placeholders::_1));
-	NXEventKeyDown::GetInstance()->AddListener(pListener_onKeyDown);
-	NXEventKeyUp::GetInstance()->AddListener(pListener_onKeyUp);
-	NXEventMouseMove::GetInstance()->AddListener(pListener_onMouseMove);
+	m_sceneManager->AddEventListener(NXEventType::NXEVENT_KEYDOWN, m_pMainCamera, std::bind(&NSFirstPersonalCamera::OnKeyDown, pScript, std::placeholders::_1));
+	m_sceneManager->AddEventListener(NXEventType::NXEVENT_KEYUP, m_pMainCamera, std::bind(&NSFirstPersonalCamera::OnKeyUp, pScript, std::placeholders::_1));
+	m_sceneManager->AddEventListener(NXEventType::NXEVENT_MOUSEUP, m_pMainCamera, std::bind(&NSFirstPersonalCamera::OnMouseMove, pScript, std::placeholders::_1));
 
 	auto pThisScene = std::dynamic_pointer_cast<NXScene>(shared_from_this());
-	auto pListener_onMouseDown = std::make_shared<NXListener>(pThisScene, std::bind(&NXScene::OnMouseDown, pThisScene, std::placeholders::_1));
-	NXEventMouseDown::GetInstance()->AddListener(pListener_onMouseDown);
-	pListener_onKeyDown = std::make_shared<NXListener>(pThisScene, std::bind(&NXScene::OnKeyDown, pThisScene, std::placeholders::_1));
-	NXEventKeyDown::GetInstance()->AddListener(pListener_onKeyDown);
+	m_sceneManager->AddEventListener(NXEventType::NXEVENT_MOUSEDOWN, pThisScene, std::bind(&NXScene::OnMouseDown, pThisScene, std::placeholders::_1));
+	m_sceneManager->AddEventListener(NXEventType::NXEVENT_KEYDOWN, pThisScene, std::bind(&NXScene::OnKeyDown, pThisScene, std::placeholders::_1));
 }
 
 void NXScene::UpdateTransform(std::shared_ptr<NXObject> pObject)

@@ -30,7 +30,7 @@ public:
 	NXEvent() : m_type(NXEVENT_NONE) {}
 	virtual ~NXEvent();
 
-	virtual void AddListener(const std::shared_ptr<NXListener>& pListener);
+	virtual void AddListener(NXListener* pListener);
 	void OnNotify(NXEventArg eArg);
 
 	NXEventType GetType() const { return m_type; }
@@ -39,7 +39,7 @@ public:
 	void Release();
 
 protected:
-	std::vector<std::shared_ptr<NXListener>> m_listeners;
+	std::vector<NXListener*> m_listeners;
 	NXEventType m_type;
 };
 
