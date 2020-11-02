@@ -42,7 +42,6 @@ using namespace DirectX::SimpleMath;
 // class preload
 class App;
 class DirectResources;
-class NXGlobalBufferManager;
 class NXInput;
 struct NXEventArg;
 class NXScript;

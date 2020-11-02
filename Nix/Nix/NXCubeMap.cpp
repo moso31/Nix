@@ -129,20 +129,20 @@ void NXCubeMap::Release()
 void NXCubeMap::GenerateIrradianceMap()
 {
 	const static float MapSize = 32.0f;
+	CD3D11_VIEWPORT vp(0.0f, 0.0f, MapSize, MapSize);
+	g_pContext->RSSetViewports(1, &vp);
+
 	CD3D11_TEXTURE2D_DESC descTex(DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)MapSize, (UINT)MapSize, 6, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, D3D11_RESOURCE_MISC_TEXTURECUBE);
 	g_pDevice->CreateTexture2D(&descTex, nullptr, &m_pIrradianceMap);
 
 	CD3D11_SHADER_RESOURCE_VIEW_DESC descSRV(D3D11_SRV_DIMENSION_TEXTURECUBE, descTex.Format, 0, descTex.MipLevels, 0, descTex.ArraySize);
-	g_pDevice->CreateShaderResourceView(m_pIrradianceMap, &descSRV, &m_pSRVIrradianceMap);
+	g_pDevice->CreateShaderResourceView(m_pIrradianceMap, &descSRV, &m_pIrradianceMapSRV);
 
 	for (int i = 0; i < 6; i++)
 	{
 		CD3D11_RENDER_TARGET_VIEW_DESC descRTV(D3D11_RTV_DIMENSION_TEXTURE2DARRAY, descTex.Format, 0, i, 1);
-		g_pDevice->CreateRenderTargetView(m_pIrradianceMap, &descRTV, &m_pTestRTVs[i]);
+		g_pDevice->CreateRenderTargetView(m_pIrradianceMap, &descRTV, &m_pIrradianceMapRTVs[i]);
 	}
-
-	CD3D11_VIEWPORT vp(0.0f, 0.0f, MapSize, MapSize);
-	g_pContext->RSSetViewports(1, &vp);
 
 	std::vector<VertexPNT> vertices =
 	{
@@ -226,30 +226,26 @@ void NXCubeMap::GenerateIrradianceMap()
 	ID3D11Buffer* pIndexBuffer;
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &pIndexBuffer));
 
+	ID3D11InputLayout* pInputLayoutPNT;
 	ID3D11VertexShader* pVertexShader;
 	ID3D11PixelShader* pPixelShader;
 	ID3DBlob* pVSBlob = nullptr;
+	ID3DBlob* pPSBlob = nullptr;
+
 	NX::MessageBoxIfFailed(
 		ShaderComplier::Compile(L"Shader\\CubeMapIrradiance.fx", "VS", "vs_5_0", &pVSBlob),
 		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
 	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &pVertexShader));
 
-	ID3D11InputLayout* pInputLayoutPNT;
-	D3D11_INPUT_ELEMENT_DESC layoutPNT[] =
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	};
-	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(layoutPNT, ARRAYSIZE(layoutPNT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &pInputLayoutPNT));
-	pVSBlob->Release();
+	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutPNT, ARRAYSIZE(NXGlobalInputLayout::layoutPNT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &pInputLayoutPNT));
 	g_pContext->IASetInputLayout(pInputLayoutPNT);
 
-	ID3DBlob* pPSBlob = nullptr;
 	NX::MessageBoxIfFailed(
 		ShaderComplier::Compile(L"Shader\\CubeMapIrradiance.fx", "PS", "ps_5_0", &pPSBlob),
 		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
 	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &pPixelShader));
+
+	pVSBlob->Release();
 	pPSBlob->Release();
 
 	ID3D11Buffer* cb = nullptr;
@@ -287,8 +283,8 @@ void NXCubeMap::GenerateIrradianceMap()
 
 	for (int i = 0; i < 6; i++)
 	{
-		g_pContext->ClearRenderTargetView(m_pTestRTVs[i], Colors::WhiteSmoke);
-		g_pContext->OMSetRenderTargets(1, &m_pTestRTVs[i], nullptr);
+		g_pContext->ClearRenderTargetView(m_pIrradianceMapRTVs[i], Colors::WhiteSmoke);
+		g_pContext->OMSetRenderTargets(1, &m_pIrradianceMapRTVs[i], nullptr);
 
 		cbData.view = mxCubeMapView[i].Transpose();
 		g_pContext->UpdateSubresource(cb, 0, nullptr, &cbData, 0, 0);

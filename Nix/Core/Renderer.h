@@ -1,5 +1,6 @@
 #pragma once
 #include "Header.h"
+#include "GlobalBufferManager.h"
 
 class Renderer
 {
@@ -34,9 +35,8 @@ private:
 	ID3D11SamplerState*			m_pSamplerLinearClamp;
 	ID3D11SamplerState*			m_pSamplerShadowMapPCF;	// shadowMap PCF滤波采样，模糊阴影边缘
 
-	std::shared_ptr<NXRenderTarget>	m_renderTarget;
+	std::shared_ptr<NXRenderTarget>				m_renderTarget;
 
-	std::shared_ptr<NXGlobalBufferManager>		m_globalBufferManager;
 	std::shared_ptr<NXScene>					m_scene;
 	std::shared_ptr<NXPassShadowMap>			m_pPassShadowMap; 
 };

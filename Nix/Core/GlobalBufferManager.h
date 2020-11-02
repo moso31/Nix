@@ -5,10 +5,7 @@
 class NXGlobalBufferManager
 {
 public:
-	NXGlobalBufferManager();
-	~NXGlobalBufferManager();
-
-	void Init();
+	static void Init();
 
 	static ID3D11Buffer*						m_cbObject;
 	static ConstantBufferObject					m_cbDataObject;
@@ -18,4 +15,13 @@ public:
 
 	static ID3D11Buffer*						m_cbShadowMap;
 	static ConstantBufferShadowMapTransform		m_cbDataShadowMap;
+};
+
+class NXGlobalInputLayout
+{
+public:
+	static void Init();
+
+	static D3D11_INPUT_ELEMENT_DESC layoutP[1];
+	static D3D11_INPUT_ELEMENT_DESC layoutPNT[3];
 };

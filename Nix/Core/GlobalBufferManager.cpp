@@ -7,14 +7,6 @@ ConstantBufferCamera				NXGlobalBufferManager::m_cbDataCamera;
 ID3D11Buffer*						NXGlobalBufferManager::m_cbShadowMap;
 ConstantBufferShadowMapTransform	NXGlobalBufferManager::m_cbDataShadowMap;
 
-NXGlobalBufferManager::NXGlobalBufferManager()
-{
-}
-
-NXGlobalBufferManager::~NXGlobalBufferManager()
-{
-}
-
 void NXGlobalBufferManager::Init()
 {
 	D3D11_BUFFER_DESC bufferDesc;
@@ -27,4 +19,16 @@ void NXGlobalBufferManager::Init()
 
 	bufferDesc.ByteWidth = sizeof(ConstantBufferCamera);
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbCamera));
+}
+
+D3D11_INPUT_ELEMENT_DESC	NXGlobalInputLayout::layoutP[1];
+D3D11_INPUT_ELEMENT_DESC	NXGlobalInputLayout::layoutPNT[3];
+
+void NXGlobalInputLayout::Init()
+{
+	layoutP[0] = { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 };
+
+	layoutPNT[0] = { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 };
+	layoutPNT[1] = { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 };
+	layoutPNT[2] = { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 };
 }

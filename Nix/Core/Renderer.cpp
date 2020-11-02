@@ -1,6 +1,5 @@
 #include "Renderer.h"
 #include "DirectResources.h"
-#include "GlobalBufferManager.h"
 #include "ShaderComplier.h"
 #include "RenderStates.h"
 
@@ -11,10 +10,9 @@
 
 void Renderer::Init()
 {
+	NXGlobalInputLayout::Init();
+	NXGlobalBufferManager::Init();
 	InitRenderer();
-
-	m_globalBufferManager = std::make_shared<NXGlobalBufferManager>();
-	m_globalBufferManager->Init();
 
 	m_scene = std::make_shared<NXScene>();
 	m_scene->Init();
@@ -42,13 +40,7 @@ void Renderer::InitRenderer()
 		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
 	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVertexShaderShadowMap));
 
-	D3D11_INPUT_ELEMENT_DESC layoutPNT[] =
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	};
-	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(layoutPNT, ARRAYSIZE(layoutPNT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pInputLayoutPNT));
+	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutPNT, ARRAYSIZE(NXGlobalInputLayout::layoutPNT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pInputLayoutPNT));
 	pVSBlob->Release();
 
 	NX::MessageBoxIfFailed(
@@ -56,11 +48,7 @@ void Renderer::InitRenderer()
 		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
 	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVertexShaderCubeMap)); 
 
-	D3D11_INPUT_ELEMENT_DESC layoutP[] =
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	};
-	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(layoutP, ARRAYSIZE(layoutP), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pInputLayoutP));
+	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutP, ARRAYSIZE(NXGlobalInputLayout::layoutP), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pInputLayoutP));
 	pVSBlob->Release();
 
 	// Create PS
@@ -278,7 +266,6 @@ void Renderer::DrawCubeMap()
 
 		auto pIrradianceMapSRV = pCubeMap->GetIrradianceMapSRV();
 		g_pContext->PSSetShaderResources(3, 1, &pIrradianceMapSRV);
-		g_pContext->PSSetShaderResources(0, 1, &pIrradianceMapSRV);
 
 		pCubeMap->Render();
 	}
