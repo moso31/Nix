@@ -128,7 +128,8 @@ void NXCubeMap::Release()
 
 void NXCubeMap::GenerateIrradianceMap()
 {
-	CD3D11_TEXTURE2D_DESC descTex(DXGI_FORMAT_R8G8B8A8_UNORM, 512, 512, 6, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, D3D11_RESOURCE_MISC_TEXTURECUBE);
+	const static float MapSize = 32.0f;
+	CD3D11_TEXTURE2D_DESC descTex(DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)MapSize, (UINT)MapSize, 6, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, D3D11_RESOURCE_MISC_TEXTURECUBE);
 	g_pDevice->CreateTexture2D(&descTex, nullptr, &m_pIrradianceMap);
 
 	CD3D11_SHADER_RESOURCE_VIEW_DESC descSRV(D3D11_SRV_DIMENSION_TEXTURECUBE, descTex.Format, 0, descTex.MipLevels, 0, descTex.ArraySize);
@@ -138,12 +139,9 @@ void NXCubeMap::GenerateIrradianceMap()
 	{
 		CD3D11_RENDER_TARGET_VIEW_DESC descRTV(D3D11_RTV_DIMENSION_TEXTURE2DARRAY, descTex.Format, 0, i, 1);
 		g_pDevice->CreateRenderTargetView(m_pIrradianceMap, &descRTV, &m_pTestRTVs[i]);
-
-		//CD3D11_SHADER_RESOURCE_VIEW_DESC descSRV(D3D11_SRV_DIMENSION_TEXTURECUBE, descTex.Format, 0, 1, i, 1);
-		//g_pDevice->CreateShaderResourceView(m_pIrradianceMap, &descSRV, &m_pTestSRVs[i]);
 	}
 
-	CD3D11_VIEWPORT vp(0.0f, 0.0f, 512.0f, 512.0f);
+	CD3D11_VIEWPORT vp(0.0f, 0.0f, MapSize, MapSize);
 	g_pContext->RSSetViewports(1, &vp);
 
 	std::vector<VertexPNT> vertices =
@@ -265,12 +263,12 @@ void NXCubeMap::GenerateIrradianceMap()
 	Matrix mxCubeMapProj = XMMatrixPerspectiveFovLH(XMConvertToRadians(90.0f), 1.0f, 0.1f, 10.0f);
 	Matrix mxCubeMapView[6] =
 	{
-		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3( 1.0f,  0.0f,  0.0f), Vector3(0.0f,  1.0f,  0.0f)),
-		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(-1.0f,  0.0f,  0.0f), Vector3(0.0f,  1.0f,  0.0f)),
-		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3( 0.0f,  1.0f,  0.0f), Vector3(0.0f,  0.0f, -1.0f)),
-		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3( 0.0f, -1.0f,  0.0f), Vector3(0.0f,  0.0f,  1.0f)),
-		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3( 0.0f,  0.0f,  1.0f), Vector3(0.0f,  1.0f,  0.0f)),
-		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3( 0.0f,  0.0f, -1.0f), Vector3(0.0f,  1.0f,  0.0f))
+		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3( 1.0f,  0.0f,  0.0f), Vector3(0.0f, 1.0f,  0.0f)),
+		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(-1.0f,  0.0f,  0.0f), Vector3(0.0f, 1.0f,  0.0f)),
+		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3( 0.0f,  1.0f,  0.0f), Vector3(0.0f, 0.0f, -1.0f)),
+		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3( 0.0f, -1.0f,  0.0f), Vector3(0.0f, 0.0f,  1.0f)),
+		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3( 0.0f,  0.0f,  1.0f), Vector3(0.0f, 1.0f,  0.0f)),
+		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3( 0.0f,  0.0f, -1.0f), Vector3(0.0f, 1.0f,  0.0f))
 	};
 
 	g_pContext->VSSetShader(pVertexShader, nullptr, 0);
@@ -288,10 +286,8 @@ void NXCubeMap::GenerateIrradianceMap()
 	g_pContext->IASetIndexBuffer(pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
 	for (int i = 0; i < 6; i++)
-		g_pContext->ClearRenderTargetView(m_pTestRTVs[i], Colors::WhiteSmoke);
-
-	for (int i = 0; i < 6; i++)
 	{
+		g_pContext->ClearRenderTargetView(m_pTestRTVs[i], Colors::WhiteSmoke);
 		g_pContext->OMSetRenderTargets(1, &m_pTestRTVs[i], nullptr);
 
 		cbData.view = mxCubeMapView[i].Transpose();

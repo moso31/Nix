@@ -27,8 +27,8 @@ float3 GetIrradiance(float3 wi)
 
 	float rTheta = 0.5f * PI;
 	float rPhi = 2.0f * PI;
-	float nTheta = rTheta / 0.05f;
-	float nPhi = rTheta / 0.05f;
+	float nTheta = rTheta * 0.05f;
+	float nPhi = rTheta * 0.05f;
 	int nrSamples = 0;
 	for (float phi = 0.0f; phi < rPhi; phi += nTheta)
 	{

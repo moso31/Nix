@@ -38,7 +38,5 @@ private:
 
 	ID3D11Texture2D*			m_pIrradianceMap;
 	ID3D11ShaderResourceView*	m_pSRVIrradianceMap;
-
 	ID3D11RenderTargetView*		m_pTestRTVs[6];
-	ID3D11ShaderResourceView*	m_pTestSRVs[6];
 };

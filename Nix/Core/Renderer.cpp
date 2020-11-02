@@ -278,6 +278,7 @@ void Renderer::DrawCubeMap()
 
 		auto pIrradianceMapSRV = pCubeMap->GetIrradianceMapSRV();
 		g_pContext->PSSetShaderResources(3, 1, &pIrradianceMapSRV);
+		g_pContext->PSSetShaderResources(0, 1, &pIrradianceMapSRV);
 
 		pCubeMap->Render();
 	}
