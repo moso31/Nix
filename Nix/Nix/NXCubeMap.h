@@ -16,12 +16,14 @@ public:
 	void Release() override;
 
 	void GenerateIrradianceMap();
+	void GeneratePreFilterMap();
 
 	Vector3 BackgroundColorByDirection(const Vector3& v);
 	void SetEnvironmentLight(std::shared_ptr<NXPBREnvironmentLight> pEnvironmentLight) { m_pEnvironmentLight = pEnvironmentLight; }
 	std::shared_ptr<NXPBREnvironmentLight> GetEnvironmentLight() const;
 
 	ID3D11ShaderResourceView* GetIrradianceMapSRV() { return m_pIrradianceMapSRV; }
+	ID3D11ShaderResourceView* GetPreFilterMapSRV() { return m_pPreFilterMapSRV; }
 
 private:
 	void InitVertex();
@@ -40,6 +42,7 @@ private:
 	ID3D11Texture2D*			m_pIrradianceMap;
 	ID3D11ShaderResourceView*	m_pIrradianceMapSRV;
 	ID3D11RenderTargetView*		m_pIrradianceMapRTVs[6];
+	ID3D11Texture2D*			m_pPreFilterMap;
 	ID3D11ShaderResourceView*	m_pPreFilterMapSRV;
 	ID3D11RenderTargetView*		m_pPreFilterMapRTVs[6];
 };

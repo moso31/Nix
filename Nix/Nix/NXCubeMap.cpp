@@ -6,7 +6,11 @@
 #include "DirectResources.h"
 
 NXCubeMap::NXCubeMap(const std::shared_ptr<NXScene>& pScene) :
-	m_pScene(pScene)
+	m_pScene(pScene),
+	m_pIrradianceMap(nullptr),
+	m_pIrradianceMapSRV(nullptr),
+	m_pPreFilterMap(nullptr),
+	m_pPreFilterMapSRV(nullptr)
 {
 }
 
@@ -297,6 +301,195 @@ void NXCubeMap::GenerateIrradianceMap()
 	pPixelShader->Release();
 	pInputLayoutPNT->Release();
 	cb->Release();
+}
+
+void NXCubeMap::GeneratePreFilterMap()
+{
+	const static float MapSize = 512.0f;
+	CD3D11_VIEWPORT vp(0.0f, 0.0f, MapSize, MapSize);
+	g_pContext->RSSetViewports(1, &vp);
+
+	CD3D11_TEXTURE2D_DESC descTex(DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)MapSize, (UINT)MapSize, 6, 5, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, D3D11_RESOURCE_MISC_TEXTURECUBE);
+	g_pDevice->CreateTexture2D(&descTex, nullptr, &m_pPreFilterMap);
+
+	CD3D11_SHADER_RESOURCE_VIEW_DESC descSRV(D3D11_SRV_DIMENSION_TEXTURECUBE, descTex.Format, 0, descTex.MipLevels, 0, descTex.ArraySize);
+	g_pDevice->CreateShaderResourceView(m_pPreFilterMap, &descSRV, &m_pPreFilterMapSRV);
+
+	//for (int i = 0; i < 5; i++)
+	{
+		for (int j = 0; j < 6; j++)
+		{
+			CD3D11_RENDER_TARGET_VIEW_DESC descRTV(D3D11_RTV_DIMENSION_TEXTURE2DARRAY, descTex.Format, 0, j, 1);
+			g_pDevice->CreateRenderTargetView(m_pPreFilterMap, &descRTV, &m_pPreFilterMapRTVs[j]);
+		}
+	}
+
+	std::vector<VertexPNT> vertices =
+	{
+		// +X
+		{ Vector3(+0.5f, +0.5f, -0.5f), Vector3(1.0f, 0.0f, 0.0f),	Vector2(0.0f, 1.0f) },
+		{ Vector3(+0.5f, +0.5f, +0.5f), Vector3(1.0f, 0.0f, 0.0f),	Vector2(1.0f, 1.0f) },
+		{ Vector3(+0.5f, -0.5f, +0.5f), Vector3(1.0f, 0.0f, 0.0f),	Vector2(1.0f, 0.0f) },
+		{ Vector3(+0.5f, -0.5f, -0.5f), Vector3(1.0f, 0.0f, 0.0f),	Vector2(0.0f, 0.0f) },
+
+		// -X
+		{ Vector3(-0.5f, +0.5f, +0.5f), Vector3(-1.0f, 0.0f, 0.0f),	Vector2(0.0f, 1.0f) },
+		{ Vector3(-0.5f, +0.5f, -0.5f), Vector3(-1.0f, 0.0f, 0.0f),	Vector2(1.0f, 1.0f) },
+		{ Vector3(-0.5f, -0.5f, -0.5f), Vector3(-1.0f, 0.0f, 0.0f),	Vector2(1.0f, 0.0f) },
+		{ Vector3(-0.5f, -0.5f, +0.5f), Vector3(-1.0f, 0.0f, 0.0f),	Vector2(0.0f, 0.0f) },
+
+		// +Y
+		{ Vector3(-0.5f, +0.5f, +0.5f), Vector3(0.0f, 1.0f, 0.0f),	Vector2(0.0f, 1.0f) },
+		{ Vector3(+0.5f, +0.5f, +0.5f), Vector3(0.0f, 1.0f, 0.0f),	Vector2(1.0f, 1.0f) },
+		{ Vector3(+0.5f, +0.5f, -0.5f), Vector3(0.0f, 1.0f, 0.0f),	Vector2(1.0f, 0.0f) },
+		{ Vector3(-0.5f, +0.5f, -0.5f), Vector3(0.0f, 1.0f, 0.0f),	Vector2(0.0f, 0.0f) },
+
+		// -Y
+		{ Vector3(-0.5f, -0.5f, -0.5f), Vector3(0.0f, -1.0f, 0.0f),	Vector2(0.0f, 1.0f) },
+		{ Vector3(+0.5f, -0.5f, -0.5f), Vector3(0.0f, -1.0f, 0.0f),	Vector2(1.0f, 1.0f) },
+		{ Vector3(+0.5f, -0.5f, +0.5f), Vector3(0.0f, -1.0f, 0.0f),	Vector2(1.0f, 0.0f) },
+		{ Vector3(-0.5f, -0.5f, +0.5f), Vector3(0.0f, -1.0f, 0.0f),	Vector2(0.0f, 0.0f) },
+
+		// +Z
+		{ Vector3(+0.5f, +0.5f, +0.5f), Vector3(0.0f, 0.0f, 1.0f),	Vector2(0.0f, 1.0f) },
+		{ Vector3(-0.5f, +0.5f, +0.5f), Vector3(0.0f, 0.0f, 1.0f),	Vector2(1.0f, 1.0f) },
+		{ Vector3(-0.5f, -0.5f, +0.5f), Vector3(0.0f, 0.0f, 1.0f),	Vector2(1.0f, 0.0f) },
+		{ Vector3(+0.5f, -0.5f, +0.5f), Vector3(0.0f, 0.0f, 1.0f),	Vector2(0.0f, 0.0f) },
+
+		// -Z
+		{ Vector3(-0.5f, +0.5f, -0.5f), Vector3(0.0f, 0.0f, -1.0f),	Vector2(0.0f, 1.0f) },
+		{ Vector3(+0.5f, +0.5f, -0.5f), Vector3(0.0f, 0.0f, -1.0f),	Vector2(1.0f, 1.0f) },
+		{ Vector3(+0.5f, -0.5f, -0.5f), Vector3(0.0f, 0.0f, -1.0f),	Vector2(1.0f, 0.0f) },
+		{ Vector3(-0.5f, -0.5f, -0.5f), Vector3(0.0f, 0.0f, -1.0f),	Vector2(0.0f, 0.0f) },
+	};
+
+	std::vector<USHORT> indices =
+	{
+		0,  2,	1,
+		0,  3,	2,
+
+		4,  6,	5,
+		4,  7,	6,
+
+		8,  10,	9,
+		8,  11,	10,
+
+		12, 14,	13,
+		12, 15,	14,
+
+		16, 18,	17,
+		16, 19,	18,
+
+		20, 22,	21,
+		20, 23,	22,
+	};
+
+	D3D11_BUFFER_DESC bufferDesc;
+	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = sizeof(VertexPNT) * (UINT)vertices.size();
+	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	D3D11_SUBRESOURCE_DATA InitData;
+	ZeroMemory(&InitData, sizeof(InitData));
+	InitData.pSysMem = vertices.data();
+
+	ID3D11Buffer* pVertexBuffer;
+	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &pVertexBuffer));
+
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = sizeof(USHORT) * (UINT)indices.size();
+	bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	InitData.pSysMem = indices.data();
+
+	ID3D11Buffer* pIndexBuffer;
+	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &pIndexBuffer));
+
+	ID3D11InputLayout* pInputLayoutPNT;
+	ID3D11VertexShader* pVertexShader;
+	ID3D11PixelShader* pPixelShader;
+	ID3DBlob* pVSBlob = nullptr;
+	ID3DBlob* pPSBlob = nullptr;
+
+	NX::MessageBoxIfFailed(
+		ShaderComplier::Compile(L"Shader\\CubeMapPreFilter.fx", "VS", "vs_5_0", &pVSBlob),
+		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
+	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &pVertexShader));
+
+	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutPNT, ARRAYSIZE(NXGlobalInputLayout::layoutPNT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &pInputLayoutPNT));
+	g_pContext->IASetInputLayout(pInputLayoutPNT);
+
+	NX::MessageBoxIfFailed(
+		ShaderComplier::Compile(L"Shader\\CubeMapPreFilter.fx", "PS", "ps_5_0", &pPSBlob),
+		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
+	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &pPixelShader));
+
+	pVSBlob->Release();
+	pPSBlob->Release();
+
+	ID3D11Buffer* cbCubeCamera = nullptr;
+	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = sizeof(ConstantBufferObject);
+	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &cbCubeCamera));
+
+	ID3D11Buffer* cbRoughness = nullptr;
+	bufferDesc.ByteWidth = sizeof(ConstantBufferObject);
+	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &cbRoughness));
+
+	Matrix mxCubeMapProj = XMMatrixPerspectiveFovLH(XMConvertToRadians(90.0f), 1.0f, 0.1f, 10.0f);
+	Matrix mxCubeMapView[6] =
+	{
+		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(1.0f,  0.0f,  0.0f), Vector3(0.0f, 1.0f,  0.0f)),
+		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(-1.0f,  0.0f,  0.0f), Vector3(0.0f, 1.0f,  0.0f)),
+		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f,  1.0f,  0.0f), Vector3(0.0f, 0.0f, -1.0f)),
+		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, -1.0f,  0.0f), Vector3(0.0f, 0.0f,  1.0f)),
+		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f,  0.0f,  1.0f), Vector3(0.0f, 1.0f,  0.0f)),
+		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f,  0.0f, -1.0f), Vector3(0.0f, 1.0f,  0.0f))
+	};
+
+	g_pContext->VSSetShader(pVertexShader, nullptr, 0);
+	g_pContext->PSSetShader(pPixelShader, nullptr, 0);
+	g_pContext->PSSetShaderResources(0, 1, &m_pTextureSRV);
+	g_pContext->VSSetConstantBuffers(0, 1, &cbCubeCamera);
+	g_pContext->PSSetConstantBuffers(1, 1, &cbRoughness);
+
+	ConstantBufferObject cbDataCubeCamera;
+	cbDataCubeCamera.world = Matrix::Identity();
+	cbDataCubeCamera.projection = mxCubeMapProj.Transpose();
+
+	UINT stride = sizeof(VertexPNT);
+	UINT offset = 0;
+	g_pContext->IASetVertexBuffers(0, 1, &pVertexBuffer, &stride, &offset);
+	g_pContext->IASetIndexBuffer(pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+	ConstantBufferFloat cbDataRoughness;
+	cbDataRoughness.Value = 0;
+
+	for (int i = 0; i < 6; i++)
+	{
+		cbDataCubeCamera.view = mxCubeMapView[i].Transpose();
+		//for (int j = 0; j < 5; i++)
+		{
+			g_pContext->ClearRenderTargetView(m_pPreFilterMapRTVs[i], Colors::WhiteSmoke);
+			g_pContext->OMSetRenderTargets(1, &m_pPreFilterMapRTVs[i], nullptr);
+
+			g_pContext->UpdateSubresource(cbCubeCamera, 0, nullptr, &cbDataCubeCamera, 0, 0);
+			g_pContext->UpdateSubresource(cbRoughness, 0, nullptr, &cbDataRoughness, 0, 0);
+			g_pContext->DrawIndexed((UINT)indices.size() / 6, i * 6, 0);
+		}
+	}
+
+	pVertexBuffer->Release();
+	pIndexBuffer->Release();
+	pVertexShader->Release();
+	pPixelShader->Release();
+	pInputLayoutPNT->Release();
+	cbCubeCamera->Release();
+	cbRoughness->Release();
 }
 
 void NXCubeMap::InitVertex()

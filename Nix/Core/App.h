@@ -12,5 +12,5 @@ public:
 	void Release();
 
 private:
-	std::shared_ptr<Renderer> m_pRenderer;
+	Renderer* m_pRenderer;
 };

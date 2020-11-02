@@ -1,4 +1,5 @@
 #include "PBR.fx"
+#include "Random.fx"
 
 TextureCube txCubeMap : register(t0);
 
@@ -17,34 +18,31 @@ cbuffer ConstantBufferObject : register(b0)
 	matrix m_projection;
 }
 
-float3 GetIrradiance(float3 wi)
+cbuffer ConstantBufferPreFilter : register(b1)
 {
-	// 形成wi, wt(tangent), wb(bitangent) 坐标系
-	float3 wb = float3(0.0f, 1.0f, 0.0f);
-	float3 wt = normalize(cross(wb, wi));
-	wb = cross(wi, wt);
-	float3 irradiance = 0.0f;
+	float m_roughness;
+}
 
-	float rTheta = 0.5f * PI;
-	float rPhi = 2.0f * PI;
-	float nTheta = rTheta * 0.05f;
-	float nPhi = rTheta * 0.05f;
-	int nrSamples = 0;
-	for (float phi = 0.0f; phi < rPhi; phi += nTheta)
+float3 GetPrefilter(float roughness, float3 R)
+{
+	float3 N = R;
+	float3 V = R;
+	float3 PrefilteredColor = 0;
+	const uint NumSamples = 1024;
+	float TotalWeight = 0.0f;
+	for (uint i = 0; i < NumSamples; i++)
 	{
-		for (float theta = 0.0f; theta < rTheta; theta += nTheta)
+		float2 Xi = Hammersley(i, NumSamples);
+		float3 H = ImportanceSampleGGX(Xi, roughness, N);
+		float3 L = reflect(-V, H);
+		float NoL = saturate(dot(N, L));
+		if (NoL > 0.0f)
 		{
-			// spherical to cartesian (in tangent space)
-			float3 tangentSample = float3(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
-			// tangent space to world
-			float3 sampleVec = tangentSample.x * wt + tangentSample.y * wb + tangentSample.z * wi;
-
-			irradiance += txCubeMap.Sample(samTriLinearSam, sampleVec).rgb * cos(theta) * sin(theta);
-			nrSamples++;
+			PrefilteredColor += txCubeMap.SampleLevel(samTriLinearSam, L, 0).rgb * NoL;
+			TotalWeight += NoL;
 		}
 	}
-	irradiance = PI * irradiance * (1.0f / float(nrSamples));
-	return irradiance;
+	return PrefilteredColor / TotalWeight;
 }
 
 struct VS_INPUT
@@ -77,6 +75,6 @@ PS_INPUT VS(VS_INPUT input)
 
 float4 PS(PS_INPUT input) : SV_Target
 {
-	float3 irradiance = GetIrradiance(input.posL);
+	float3 irradiance = GetPrefilter(m_roughness, normalize(input.posL));
 	return float4(irradiance, 1.0f);
 }

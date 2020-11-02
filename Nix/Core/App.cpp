@@ -17,7 +17,7 @@ void App::Init()
 
 	RenderStates::Init();
 
-	m_pRenderer = std::make_shared<Renderer>();
+	m_pRenderer = new Renderer();
 	m_pRenderer->Init();
 	m_pRenderer->Preload();
 }
@@ -39,7 +39,7 @@ void App::Release()
 	if (m_pRenderer)
 	{
 		m_pRenderer->Release();
-		m_pRenderer.reset();
+		delete m_pRenderer;
 	}
 
 	RenderStates::Release();

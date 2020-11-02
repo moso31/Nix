@@ -28,6 +28,29 @@ struct VertexPNTC
 	Vector4 color;
 };
 
+struct ConstantBufferFloat
+{
+	float Value;
+	Vector3 _0;
+};
+
+struct ConstantBufferVector2
+{
+	Vector2 Value;
+	Vector2 _0;
+};
+
+struct ConstantBufferVector3
+{
+	float _0;
+	Vector3 Value;
+};
+
+struct ConstantBufferVector4
+{
+	Vector4 Value;
+};
+
 struct ConstantBufferObject
 {
 	Matrix world;

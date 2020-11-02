@@ -409,4 +409,12 @@
     <Text Include="普通问题（3级）.txt" />
     <Text Include="较严重问题（2级）.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Shader\CubeMapPreFilter.fx">
+      <Filter>Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="Shader\Random.fx">
+      <Filter>Shader</Filter>
+    </FxCompile>
+  </ItemGroup>
 </Project>

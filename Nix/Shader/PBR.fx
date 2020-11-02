@@ -73,3 +73,20 @@ float3 fresnelSchlick(float cosTheta, float3 F0)
 {
 	return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
+
+float3 ImportanceSampleGGX(float2 Xi, float roughness, float3 N)
+{
+	float a = roughness * roughness;
+	float Phi = 2 * PI * Xi.x;
+	float CosTheta = sqrt((1 - Xi.y) / (1 + (a * a - 1) * Xi.y));
+	float SinTheta = sqrt(1 - CosTheta * CosTheta);
+	float3 H;
+	H.x = SinTheta * cos(Phi);
+	H.y = SinTheta * sin(Phi);
+	H.z = CosTheta;
+	float3 UpVector = abs(N.z) < 0.999 ? float3(0, 0, 1) : float3(1, 0, 0);
+	float3 TangentX = normalize(cross(UpVector, N));
+	float3 TangentY = cross(N, TangentX);
+	// Tangent to world space
+	return TangentX * H.x + TangentY * H.y + N * H.z;
+}
