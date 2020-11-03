@@ -20,19 +20,13 @@ struct NXKdTreeNode
 
 	void Release()
 	{
-		if (lc)
-		{
-			lc->Release();
-			lc.reset();
-		}
-		if (rc)
-		{
-			rc->Release();
-			rc.reset();
-		}
+		if (lc) lc->Release();
+		if (rc) rc->Release();
+		delete this;
 	}
 
-	std::shared_ptr<NXKdTreeNode<T>> lc, rc;
+	NXKdTreeNode<T>* lc; 
+	NXKdTreeNode<T>* rc;
 	T data;
 	int dim;
 };
@@ -50,16 +44,16 @@ public:
 		pRoot = RecursiveBuild(0, data.size(), data);
 	}
 
-	std::shared_ptr<NXKdTreeNode<T>> RecursiveBuild(size_t begin, size_t offset, std::vector<T>& data)
+	NXKdTreeNode<T>* RecursiveBuild(size_t begin, size_t offset, std::vector<T>& data)
 	{
 		if (offset < 1)
 			return nullptr;
 
-		std::unique_ptr<NXKdTreeNode<T>> node;
+		NXKdTreeNode<T>* node;
 		if (offset == 1)
 		{
 			// leaf node
-			node = std::make_unique<NXKdTreeNode<T>>();
+			node = new NXKdTreeNode<T>();
 			node->data = data[begin];
 			node->dim = -1;
 			node->lc = nullptr;
@@ -89,7 +83,7 @@ public:
 				return a.position[maxExtent] < b.position[maxExtent];
 			});
 
-		node = std::make_unique<NXKdTreeNode<T>>();
+		node = new NXKdTreeNode<T>();
 		node->data = *itSplit;
 		node->dim = maxExtent;
 		node->lc = RecursiveBuild(begin, mid - begin, data);
@@ -97,7 +91,7 @@ public:
 		return node;
 	}
 	
-	void Locate(const Vector3& position, const Vector3& normal, const std::shared_ptr<NXKdTreeNode<T>>& p, int maxLimit, float& out_mindist2, priority_queue_distance_cartesian<T>& out_nearest, LocateFilter locateFilter)
+	void Locate(const Vector3& position, const Vector3& normal, NXKdTreeNode<T>* p, int maxLimit, float& out_mindist2, priority_queue_distance_cartesian<T>& out_nearest, LocateFilter locateFilter)
 	{
 		if (!p) return;
 
@@ -147,10 +141,9 @@ public:
 	void Release()
 	{
 		pRoot->Release();
-		pRoot.reset();
 	}
 
 private:
-	std::shared_ptr<NXKdTreeNode<T>> pRoot;
+	NXKdTreeNode<T>* pRoot;
 	int m_x;
 };

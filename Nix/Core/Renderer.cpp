@@ -14,10 +14,10 @@ void Renderer::Init()
 	NXGlobalBufferManager::Init();
 	InitRenderer();
 
-	m_scene = std::make_shared<NXScene>();
+	m_scene = new NXScene();
 	m_scene->Init();
 
-	m_pPassShadowMap = std::make_shared<NXPassShadowMap>(m_scene);
+	m_pPassShadowMap = new NXPassShadowMap(m_scene);
 	m_pPassShadowMap->Init(2048, 2048);
 }
 
@@ -104,10 +104,8 @@ void Renderer::InitRenderer()
 	NX::ThrowIfFailed(g_pDevice->CreateSamplerState(&sampShadowMapPCFDesc, &m_pSamplerShadowMapPCF));
 
 	// Create RenderTarget
-	m_renderTarget = std::make_shared<NXRenderTarget>();
-	{
-		m_renderTarget->Init();
-	}
+	m_renderTarget = new NXRenderTarget();
+	m_renderTarget->Init();
 
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -196,6 +194,8 @@ void Renderer::DrawScene()
 
 void Renderer::Release()
 {
+	m_pPassShadowMap->Release();
+
 	if (m_pInputLayoutP)		m_pInputLayoutP->Release();
 	if (m_pInputLayoutPNT)		m_pInputLayoutPNT->Release();
 	if (m_pVertexShader)		m_pVertexShader->Release();
@@ -205,12 +205,15 @@ void Renderer::Release()
 	if (m_pSamplerShadowMapPCF)	m_pSamplerShadowMapPCF->Release();
 
 	if (m_scene)
+	{
 		m_scene->Release();
-	if (m_renderTarget)	
+		delete m_scene;
+	}
+	if (m_renderTarget)
+	{
 		m_renderTarget->Release();
-
-	m_scene.reset();
-	m_renderTarget.reset();
+		delete m_renderTarget;
+	}
 }
 
 void Renderer::DrawPrimitives()

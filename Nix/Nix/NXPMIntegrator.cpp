@@ -16,14 +16,14 @@ NXPMIntegrator::~NXPMIntegrator()
 {
 }
 
-void NXPMIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
+void NXPMIntegrator::Render(NXScene* pScene)
 {
 	BuildPhotonMap(pScene);
 	//m_pPhotonMap->Render(pScene, m_imageSize, m_outFilePath);
 	NXSampleIntegrator::Render(pScene);
 }
 
-Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const std::shared_ptr<NXScene>& pScene, int depth)
+Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, NXScene* pScene, int depth)
 {
 	if (!m_pPhotonMap)
 	{
@@ -74,11 +74,11 @@ Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const std::shared_ptr<NXS
 			return result;
 
 		hitInfo.GenerateBSDF(true);
-		std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
+		NXBSDF::SampleEvents* sampleEvent = new NXBSDF::SampleEvents();
 		f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
 		bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
 		isDeltaBSDF = *sampleEvent & NXBSDF::DELTA;
-		sampleEvent.reset();
+		delete sampleEvent;
 
 		if (f.IsZero() || pdf == 0) break;
 		if (bIsDiffuse) break;
@@ -128,11 +128,12 @@ Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, const std::shared_ptr<NXS
 	return result;
 }
 
-void NXPMIntegrator::BuildPhotonMap(const std::shared_ptr<NXScene>& pScene)
+void NXPMIntegrator::BuildPhotonMap(NXScene* pScene)
 {
 	printf("Building Global Photon Map...");
-	m_pPhotonMap.reset();
-	m_pPhotonMap = std::make_shared<NXPhotonMap>(m_numPhotons);
+	if (m_pPhotonMap)
+		m_pPhotonMap->Release();
+	m_pPhotonMap = new NXPhotonMap(m_numPhotons);
 	m_pPhotonMap->Generate(pScene, PhotonMapType::Global);
 	printf("Done.\n");
 }

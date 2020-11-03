@@ -55,9 +55,10 @@ void App::Release()
 	NXEventMouseDown::GetInstance()->Release();
 	NXEventMouseUp::GetInstance()->Release();
 	NXEventMouseMove::GetInstance()->Release();
-	NXEventKeyDown::GetInstance().reset();
-	NXEventKeyUp::GetInstance().reset();
-	NXEventMouseDown::GetInstance().reset();
-	NXEventMouseUp::GetInstance().reset();
-	NXEventMouseMove::GetInstance().reset();
+
+	NXEventKeyDown::GetInstance()->Destroy();
+	NXEventKeyUp::GetInstance()->Destroy();
+	NXEventMouseDown::GetInstance()->Destroy();
+	NXEventMouseUp::GetInstance()->Destroy();
+	NXEventMouseMove::GetInstance()->Destroy();
 }

@@ -21,12 +21,12 @@ public:
 			2.基于BSDF采样一次。
 		之后将两次采样的结果结合，得到一个较为准确的估算值。
 	*/
-	Vector3 DirectEstimate(const Ray& ray, const std::shared_ptr<NXScene>& pScene, const std::shared_ptr<NXPBRLight>& pLight, const NXHit& hitInfo);
+	Vector3 DirectEstimate(const Ray& ray, NXScene* pScene, NXPBRLight* pLight, const NXHit& hitInfo);
 
-	Vector3 UniformLightAll(const Ray& ray, const std::shared_ptr<NXScene>& pScene, const NXHit& hitInfo);
-	Vector3 UniformLightOne(const Ray& ray, const std::shared_ptr<NXScene>& pScene, const NXHit& hitInfo);
+	Vector3 UniformLightAll(const Ray& ray, NXScene* pScene, const NXHit& hitInfo);
+	Vector3 UniformLightOne(const Ray& ray, NXScene* pScene, const NXHit& hitInfo);
 
-	virtual void Render(const std::shared_ptr<NXScene>& pScene) = 0;
+	virtual void Render(NXScene* pScene) = 0;
 
 protected:
 	XMINT2 m_imageSize;		// 渲染图像分辨率
@@ -55,12 +55,12 @@ public:
 	NXSampleIntegrator(const XMINT2& imageSize, int eachPixelSamples, std::string outPath);
 	~NXSampleIntegrator() {}
 
-	void Render(const std::shared_ptr<NXScene>& pScene) override;
-	virtual Vector3 Radiance(const Ray& ray, const std::shared_ptr<NXScene>& pScene, int depth) = 0;
-	Vector3 CenterRayTest(const std::shared_ptr<NXScene>& pScene);
+	void Render(NXScene* pScene) override;
+	virtual Vector3 Radiance(const Ray& ray, NXScene* pScene, int depth) = 0;
+	Vector3 CenterRayTest(NXScene* pScene);
 
 private:
-	void RenderTile(const std::shared_ptr<NXScene>& pScene, const XMINT2& tileId, ImageBMPData* oImageData);
+	void RenderTile(NXScene* pScene, const XMINT2& tileId, ImageBMPData* oImageData);
 
 public:
 	// 渲染图片存放路径

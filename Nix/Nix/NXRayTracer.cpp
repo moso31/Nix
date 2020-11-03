@@ -11,7 +11,7 @@ NXRayTracer::NXRayTracer()
 {
 }
 
-void NXRayTracer::RenderImage(const std::shared_ptr<NXScene>& pScene, NXRayTraceRenderMode rayTraceMode, bool bCenterRayTest)
+void NXRayTracer::RenderImage(NXScene* pScene, NXRayTraceRenderMode rayTraceMode, bool bCenterRayTest)
 {
 	NXTimer t1, t2;
 	t1.Tick();

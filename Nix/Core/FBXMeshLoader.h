@@ -11,11 +11,11 @@ class NXScene;
 class FBXMeshLoader
 {
 public:
-	static void LoadContent(FbxNode* pNode, std::shared_ptr<NXMesh>& pEngineMesh, std::vector<std::shared_ptr<NXMesh>>& outMeshes);
-	static void LoadNodeTransformInfo(FbxNode* pNode, std::shared_ptr<NXMesh>& pEngineMesh);
+	static void LoadContent(FbxNode* pNode, NXMesh* pEngineMesh, std::vector<NXMesh*>& outMeshes);
+	static void LoadNodeTransformInfo(FbxNode* pNode, NXMesh* pEngineMesh);
 
-	static void LoadMesh(FbxNode* pNode, std::shared_ptr<NXMesh>& pEngineMesh);
-	static void LoadPolygons(FbxMesh* pMesh, std::shared_ptr<NXMesh>& pEngineMesh);
+	static void LoadMesh(FbxNode* pNode, NXMesh* pEngineMesh);
+	static void LoadPolygons(FbxMesh* pMesh, NXMesh* pEngineMesh);
 
-	static void LoadFBXFile(std::string filepath, std::shared_ptr<NXScene> pRenderScene, std::vector<std::shared_ptr<NXMesh>>& outMeshes);
+	static void LoadFBXFile(std::string filepath, NXScene* pRenderScene, std::vector<NXMesh*>& outMeshes);
 };

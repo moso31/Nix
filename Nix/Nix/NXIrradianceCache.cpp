@@ -1,4 +1,6 @@
 #include "NXIrradianceCache.h"
+#include <omp.h>
+
 #include "NXScene.h"
 #include "NXCubeMap.h"
 #include "NXPrimitive.h"
@@ -14,7 +16,7 @@ NXIrradianceCache::NXIrradianceCache() :
 {
 }
 
-void NXIrradianceCache::PreIrradiance(const Ray& cameraRay, const std::shared_ptr<NXScene>& pScene, int depth)
+void NXIrradianceCache::PreIrradiance(const Ray& cameraRay, NXScene* pScene, int depth)
 {
 	int maxDepth = 10;
 
@@ -35,10 +37,10 @@ void NXIrradianceCache::PreIrradiance(const Ray& cameraRay, const std::shared_pt
 
 		hitInfo.GenerateBSDF(true);
 
-		std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
+		NXBSDF::SampleEvents* sampleEvent = new NXBSDF::SampleEvents();
 		Vector3 f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
 		bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
-		sampleEvent.reset();
+		delete sampleEvent;
 
 		if (bIsDiffuse || depth < maxDepth)
 			break;
@@ -64,7 +66,7 @@ void NXIrradianceCache::PreIrradiance(const Ray& cameraRay, const std::shared_pt
 	}
 }
 
-Vector3 NXIrradianceCache::Irradiance(const Ray& cameraRay, const std::shared_ptr<NXScene>& pScene, int depth)
+Vector3 NXIrradianceCache::Irradiance(const Ray& cameraRay, NXScene* pScene, int depth)
 {
 	int maxDepth = 10;
 
@@ -88,10 +90,10 @@ Vector3 NXIrradianceCache::Irradiance(const Ray& cameraRay, const std::shared_pt
 
 		hitInfo.GenerateBSDF(true);
 
-		std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
+		NXBSDF::SampleEvents* sampleEvent = new NXBSDF::SampleEvents();
 		f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
 		bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
-		sampleEvent.reset();
+		delete sampleEvent;
 
 		if (bIsDiffuse || depth < maxDepth) 
 			break;
@@ -135,13 +137,13 @@ bool NXIrradianceCache::FindEstimateCaches(const Vector3& position, const Vector
 	Vector3 sum(0.0f);
 	float sumWeight = 0.0f;
 
-	for (auto it = m_caches.begin(); it != m_caches.end(); it++)
+	for (auto cache : m_caches)
 	{
-		float weightInv = Vector3::Distance(position, it->position) / it->harmonicDistance + sqrtf(1.0f - normal.Dot(it->normal));
+		float weightInv = Vector3::Distance(position, cache.position) / cache.harmonicDistance + sqrtf(1.0f - normal.Dot(cache.normal));
 		if (weightInv < m_threshold)
 		{
 			float weight = 1.0f / weightInv;
-			sum += weight * it->irradiance;
+			sum += weight * cache.irradiance;
 			sumWeight += weight;
 			find = true;
 		}
@@ -155,7 +157,7 @@ bool NXIrradianceCache::FindEstimateCaches(const Vector3& position, const Vector
 	return false;
 }
 
-bool NXIrradianceCache::CalculateOneCache(const std::shared_ptr<NXScene>& pScene, const NXHit& hitInfo, int sampleTheta, int samplePhi, Vector3& oIrradiance, NXIrradianceCacheInfo& oCacheInfo)
+bool NXIrradianceCache::CalculateOneCache(NXScene* pScene, const NXHit& hitInfo, int sampleTheta, int samplePhi, Vector3& oIrradiance, NXIrradianceCacheInfo& oCacheInfo)
 {
 	float tTheta = 1.0f / (float)sampleTheta;
 	float tPhi = 1.0f / (float)samplePhi;
@@ -189,10 +191,10 @@ bool NXIrradianceCache::CalculateOneCache(const std::shared_ptr<NXScene>& pScene
 
 				hitInfoDiffuse.GenerateBSDF(true);
 
-				std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
+				NXBSDF::SampleEvents* sampleEvent = new NXBSDF::SampleEvents();
 				Vector3 f = hitInfoDiffuse.BSDF->Sample(hitInfoDiffuse.direction, nextDirection, pdf, sampleEvent);
 				bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
-				sampleEvent.reset();
+				delete sampleEvent;
 
 				break;
 			}
@@ -256,13 +258,13 @@ bool NXIrradianceCache::CalculateOneCache(const std::shared_ptr<NXScene>& pScene
 	return true;
 }
 
-void NXIrradianceCache::Render(const std::shared_ptr<NXScene>& pScene, const XMINT2& imageSize, std::string outFilePath)
+void NXIrradianceCache::Render(NXScene* pScene, const XMINT2& imageSize, std::string outFilePath)
 {
 	UINT nPixels = imageSize.x * imageSize.y;
 	ImageBMPData* pImageData = new ImageBMPData[nPixels];
 	memset(pImageData, 0, sizeof(ImageBMPData) * nPixels);
 
-	std::shared_ptr<NXCamera> pCamera = pScene->GetMainCamera();
+	NXCamera* pCamera = pScene->GetMainCamera();
 	Vector3 camPos = pCamera->GetTranslation();
 	for(auto cache : m_caches)
 	{
@@ -280,4 +282,8 @@ void NXIrradianceCache::Render(const std::shared_ptr<NXScene>& pScene, const XMI
 
 	ImageGenerator::GenerateImageBMP((byte*)pImageData, imageSize.x, imageSize.y, outFilePath.c_str());
 	delete pImageData;
+}
+
+void NXIrradianceCache::Release()
+{
 }

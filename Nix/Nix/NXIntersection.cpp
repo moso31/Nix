@@ -3,7 +3,7 @@
 #include "NXPrimitive.h"
 #include "NXPBRMaterial.h"
 
-NXHit::NXHit(const std::shared_ptr<NXPrimitive>& pPrimitive, const Vector3& position, const Vector2& uv, const Vector3& direction, const Vector3& dpdu, const Vector3& dpdv) :
+NXHit::NXHit(NXPrimitive* pPrimitive, const Vector3& position, const Vector2& uv, const Vector3& direction, const Vector3& dpdu, const Vector3& dpdv) :
 	pPrimitive(pPrimitive),
 	position(position),
 	uv(uv),
@@ -18,9 +18,9 @@ NXHit::NXHit(const std::shared_ptr<NXPrimitive>& pPrimitive, const Vector3& posi
 
 void NXHit::GenerateBSDF(bool IsFromCamera)
 {
-	BSDF.reset();
-	std::shared_ptr<NXPBRMaterial> pMat = pPrimitive->GetPBRMaterial();
-	BSDF = std::make_shared<NXBSDF>(*this, pMat);
+	BSDF->Release();
+	NXPBRMaterial* pMat = pPrimitive->GetPBRMaterial();
+	BSDF = new NXBSDF(*this, pMat);
 }
 
 void NXHit::SetShadingGeometry(Vector3 shadingdpdu, Vector3 shadingdpdv)

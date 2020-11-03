@@ -8,7 +8,7 @@ NXPathIntegrator::NXPathIntegrator(const XMINT2& imageSize, int eachPixelSamples
 {
 }
 
-Vector3 NXPathIntegrator::Radiance(const Ray& ray, const std::shared_ptr<NXScene>& pScene, int depth)
+Vector3 NXPathIntegrator::Radiance(const Ray& ray, NXScene* pScene, int depth)
 {
 	const int maxDepth = 5;
 	Vector3 throughput(1.0f);
@@ -37,7 +37,7 @@ Vector3 NXPathIntegrator::Radiance(const Ray& ray, const std::shared_ptr<NXScene
 				break;
 			}
 
-			std::shared_ptr<NXPBRTangibleLight> pTangibleLight = hitInfo.pPrimitive->GetTangibleLight();
+			NXPBRTangibleLight* pTangibleLight = hitInfo.pPrimitive->GetTangibleLight();
 			if (pTangibleLight)
 			{
 				L += throughput * pTangibleLight->GetRadiance(hitInfo.position, hitInfo.normal, hitInfo.direction);
@@ -55,10 +55,10 @@ Vector3 NXPathIntegrator::Radiance(const Ray& ray, const std::shared_ptr<NXScene
 
 		float pdf;
 		Vector3 nextDirection;
-		std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
+		NXBSDF::SampleEvents* sampleEvent = new NXBSDF::SampleEvents();
 		Vector3 f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
 		isDeltaBSDF = *sampleEvent & NXBSDF::DELTA;
-		sampleEvent.reset();
+		delete sampleEvent;
 
 		if (f.IsZero()) break;
 

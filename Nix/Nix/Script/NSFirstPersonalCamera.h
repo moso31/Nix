@@ -26,7 +26,7 @@ public:
 	void OnMouseMove(NXEventArg eArg);
 
 private:
-	std::shared_ptr<NXCamera> m_pCamera;
+	NXCamera* m_pCamera;
 	float m_fMoveSpeed;
 	float m_fSensitivity;
 

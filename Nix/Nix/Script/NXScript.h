@@ -7,10 +7,10 @@ public:
 	NXScript() {}
 	virtual ~NXScript();
 
-	void SetObject(const std::shared_ptr<NXObject>& pObject);
+	void SetObject(NXObject* pObject);
 
 	virtual void Update() = 0;
 
 protected:
-	std::shared_ptr<NXObject> m_pObject;
+	NXObject* m_pObject;
 };

@@ -7,7 +7,7 @@ class NXPBREnvironmentLight;
 class NXCubeMap : public NXPrimitive
 {
 public:
-	NXCubeMap(const std::shared_ptr<NXScene>& pScene);
+	NXCubeMap(NXScene* pScene);
 	~NXCubeMap() {}
 
 	bool Init(std::wstring filePath);
@@ -19,8 +19,8 @@ public:
 	void GeneratePreFilterMap();
 
 	Vector3 BackgroundColorByDirection(const Vector3& v);
-	void SetEnvironmentLight(std::shared_ptr<NXPBREnvironmentLight> pEnvironmentLight) { m_pEnvironmentLight = pEnvironmentLight; }
-	std::shared_ptr<NXPBREnvironmentLight> GetEnvironmentLight() const;
+	void SetEnvironmentLight(NXPBREnvironmentLight* pEnvironmentLight) { m_pEnvironmentLight = pEnvironmentLight; }
+	NXPBREnvironmentLight* GetEnvironmentLight() const { return m_pEnvironmentLight; }
 
 	ID3D11ShaderResourceView* GetIrradianceMapSRV() { return m_pIrradianceMapSRV; }
 	ID3D11ShaderResourceView* GetPreFilterMapSRV() { return m_pPreFilterMapSRV; }
@@ -34,8 +34,8 @@ private:
 	byte* m_faceData[6];
 	size_t m_width, m_height;
 
-	std::shared_ptr<NXScene>	m_pScene;
-	std::shared_ptr<NXPBREnvironmentLight> m_pEnvironmentLight;
+	NXScene* m_pScene;
+	NXPBREnvironmentLight* m_pEnvironmentLight;
 
 	std::vector<VertexP>		m_vertices;
 

@@ -13,7 +13,7 @@ NXSPPMIntegrator::NXSPPMIntegrator(const XMINT2& imageSize, std::string outPath,
 {
 }
 
-void NXSPPMIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
+void NXSPPMIntegrator::Render(NXScene* pScene)
 {
 	bool bSplitRender = 1;
 
@@ -65,17 +65,19 @@ void NXSPPMIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
 	}
 }
 
-void NXSPPMIntegrator::RefreshPhotonMap(const std::shared_ptr<NXScene>& pScene)
+void NXSPPMIntegrator::RefreshPhotonMap(NXScene* pScene)
 {
-	m_pCausticPhotonMap.reset();
-	m_pCausticPhotonMap = std::make_shared<NXPhotonMap>(m_numCausticPhotonsEachStep);
+	if (m_pCausticPhotonMap)
+		m_pCausticPhotonMap->Release();
+	m_pCausticPhotonMap = new NXPhotonMap(m_numCausticPhotonsEachStep);
 	m_pCausticPhotonMap->Generate(pScene, PhotonMapType::Caustic);
-	m_pGlobalPhotonMap.reset();
-	m_pGlobalPhotonMap = std::make_shared<NXPhotonMap>(m_numGlobalPhotonsEachStep);
+	if (m_pGlobalPhotonMap)
+		m_pGlobalPhotonMap->Release();
+	m_pGlobalPhotonMap = new NXPhotonMap(m_numGlobalPhotonsEachStep);
 	m_pGlobalPhotonMap->Generate(pScene, PhotonMapType::Global);
 }
 
-void NXSPPMIntegrator::RenderWithPM(const std::shared_ptr<NXScene>& pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int iter, bool RenderOnce)
+void NXSPPMIntegrator::RenderWithPM(NXScene* pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int iter, bool RenderOnce)
 {
 #pragma omp parallel for
 	for (int i = 0; i < m_imageSize.x; i++)
@@ -86,7 +88,7 @@ void NXSPPMIntegrator::RenderWithPM(const std::shared_ptr<NXScene>& pScene, std:
 	}
 }
 
-void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int iter, bool RenderOnce)
+void NXSPPMIntegrator::RenderWithPMSplit(NXScene* pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int iter, bool RenderOnce)
 {
 #pragma omp parallel for
 	for (int i = 0; i < m_imageSize.x; i++)
@@ -97,7 +99,7 @@ void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene,
 	}
 }
 
-void NXSPPMIntegrator::RenderWithPMArea(const std::shared_ptr<NXScene>& pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int iter, bool RenderOnce, int x, int y, int offsetX, int offsetY)
+void NXSPPMIntegrator::RenderWithPMArea(NXScene* pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int iter, bool RenderOnce, int x, int y, int offsetX, int offsetY)
 {
 #pragma omp parallel for
 	for (int i = x; i < min(x + offsetX, m_imageSize.x); i++)
@@ -109,7 +111,7 @@ void NXSPPMIntegrator::RenderWithPMArea(const std::shared_ptr<NXScene>& pScene, 
 	}
 }
 
-void NXSPPMIntegrator::RenderWithPMSplitArea(const std::shared_ptr<NXScene>& pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int iter, bool RenderOnce, int x, int y, int offsetX, int offsetY)
+void NXSPPMIntegrator::RenderWithPMSplitArea(NXScene* pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int iter, bool RenderOnce, int x, int y, int offsetX, int offsetY)
 {
 #pragma omp parallel for
 	for (int i = x; i < min(x + offsetX, m_imageSize.x); i++)
@@ -121,7 +123,7 @@ void NXSPPMIntegrator::RenderWithPMSplitArea(const std::shared_ptr<NXScene>& pSc
 	}
 }
 
-void NXSPPMIntegrator::RenderWithPM(const std::shared_ptr<NXScene>& pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int iter, bool RenderOnce, int x, int y)
+void NXSPPMIntegrator::RenderWithPM(NXScene* pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int iter, bool RenderOnce, int x, int y)
 {
 	Vector2 pixelCoord((float)x, (float)y);
 	Vector2 sampleCoord = pixelCoord + NXRandom::GetInstance()->CreateVector2();
@@ -173,11 +175,11 @@ void NXSPPMIntegrator::RenderWithPM(const std::shared_ptr<NXScene>& pScene, std:
 		if (!bIsIntersect) break;
 		hitInfo.GenerateBSDF(true);
 
-		std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
+		NXBSDF::SampleEvents* sampleEvent = new NXBSDF::SampleEvents();
 		f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
 		bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
 		isDeltaBSDF = *sampleEvent & NXBSDF::DELTA;
-		sampleEvent.reset();
+		delete sampleEvent;
 
 		if (f.IsZero() || pdf == 0) break;
 		if (bIsDiffuse) break;
@@ -280,7 +282,7 @@ void NXSPPMIntegrator::RenderWithPM(const std::shared_ptr<NXScene>& pScene, std:
 	}
 }
 
-void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int iter, bool RenderOnce, int x, int y)
+void NXSPPMIntegrator::RenderWithPMSplit(NXScene* pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int iter, bool RenderOnce, int x, int y)
 {
 	Vector2 pixelCoord((float)x, (float)y);
 	Vector2 sampleCoord = pixelCoord + NXRandom::GetInstance()->CreateVector2();
@@ -333,11 +335,11 @@ void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene,
 		hitInfo.GenerateBSDF(true);
 		Ld += throughput * UniformLightOne(ray, pScene, hitInfo);
 
-		std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
+		NXBSDF::SampleEvents* sampleEvent = new NXBSDF::SampleEvents();
 		f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
 		bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
 		isDeltaBSDF = *sampleEvent & NXBSDF::DELTA;
-		sampleEvent.reset();
+		delete sampleEvent;
 
 		if (f.IsZero() || pdf == 0) break;
 		if (bIsDiffuse) break;
@@ -454,10 +456,10 @@ void NXSPPMIntegrator::RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene,
 
 		hitInfoDiffuse.GenerateBSDF(true);
 
-		std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
+		NXBSDF::SampleEvents* sampleEvent = new NXBSDF::SampleEvents();
 		f = hitInfoDiffuse.BSDF->Sample(hitInfoDiffuse.direction, nextDirection, pdf, sampleEvent);
 		bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
-		sampleEvent.reset();
+		delete sampleEvent;
 
 		if (f.IsZero() || pdf == 0) break;
 		if (bIsDiffuse) break;

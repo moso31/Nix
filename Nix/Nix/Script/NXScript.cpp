@@ -4,7 +4,7 @@ NXScript::~NXScript()
 {
 }
 
-void NXScript::SetObject(const std::shared_ptr<NXObject>& pObject)
+void NXScript::SetObject(NXObject* pObject)
 {
 	m_pObject = pObject;
 }

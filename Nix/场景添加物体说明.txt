@@ -33,7 +33,7 @@
 	);
 
 +导入FBX模型文件
-	std::vector<std::shared_ptr<NXMesh>> pMeshes;
+	std::vector<NXMesh*> pMeshes;
 	bool pMesh = m_sceneManager->CreateFBXMeshes(
 		"D:\\2.fbx", 
 		pMaterial,
@@ -53,6 +53,6 @@
 	if (!pMeshes.empty())
 	{
 		bool bBind = m_sceneManager->BindParent(pMeshes[1], pSphere);
-		auto pScript_test = std::make_shared<NSTest>();
+		auto pScript_test = new NSTest();
 		pMeshes[1]->AddScript(pScript_test);
 	}

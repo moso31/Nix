@@ -52,12 +52,11 @@ void NXPrimitive::Release()
 	//if (m_pTexture)			m_pTexture->Release();
 	if (m_pTextureSRV)		m_pTextureSRV->Release();
 
-	m_pPBRMaterial.reset();
 	if (m_cbMaterial)		m_cbMaterial->Release();
 	NXObject::Release();
 }
 
-void NXPrimitive::SetMaterialPBR(const std::shared_ptr<NXPBRMaterial>& mat)
+void NXPrimitive::SetMaterialPBR(NXPBRMaterial* mat)
 {
 	m_pPBRMaterial = mat;
 
@@ -72,7 +71,7 @@ void NXPrimitive::SetMaterialPBR(const std::shared_ptr<NXPBRMaterial>& mat)
 	m_cbDataMaterial = m_pPBRMaterial->GetConstantBuffer();
 }
 
-std::shared_ptr<NXPBRMaterial> NXPrimitive::GetPBRMaterial() const
+NXPBRMaterial* NXPrimitive::GetPBRMaterial() const
 {
 	return m_pPBRMaterial;
 }
@@ -91,13 +90,7 @@ AABB NXPrimitive::GetAABBLocal() const
 
 NXTriangle NXPrimitive::GetTriangle(int faceIndex) 
 {
-	return NXTriangle(GetSelf(), faceIndex * 3);
-}
-
-std::shared_ptr<NXPrimitive> NXPrimitive::GetSelf() 
-{
-	if (!m_pThis) m_pThis = std::dynamic_pointer_cast<NXPrimitive>(shared_from_this());
-	return m_pThis;
+	return NXTriangle(this, faceIndex * 3);
 }
 
 void NXPrimitive::UpdateSurfaceAreaInfo()
@@ -235,7 +228,7 @@ NXTriangle NXPrimitive::SampleTriangle()
 	return GetTriangle(sampleId);
 }
 
-NXTriangle::NXTriangle(const std::shared_ptr<NXPrimitive>& pShape, int startIndex) :
+NXTriangle::NXTriangle(NXPrimitive* pShape, int startIndex) :
 	pShape(pShape),
 	startIndex(startIndex)
 {

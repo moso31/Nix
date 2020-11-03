@@ -17,7 +17,7 @@ NXPMSplitIntegrator::~NXPMSplitIntegrator()
 {
 }
 
-void NXPMSplitIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
+void NXPMSplitIntegrator::Render(NXScene* pScene)
 {
 	BuildPhotonMap(pScene);
 	BuildIrradianceCache(pScene);
@@ -25,7 +25,7 @@ void NXPMSplitIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
 	NXSampleIntegrator::Render(pScene);
 }
 
-Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const std::shared_ptr<NXScene>& pScene, int depth)
+Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, NXScene* pScene, int depth)
 {
 	bool bEmission			= true;
 	bool bDirect			= true;
@@ -80,11 +80,11 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const std::shared_pt
 		hitInfo.GenerateBSDF(true);
 		if (bDirect) result += throughput * UniformLightOne(ray, pScene, hitInfo);
 
-		std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
+		NXBSDF::SampleEvents* sampleEvent = new NXBSDF::SampleEvents();
 		f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
 		bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
 		isDeltaBSDF = *sampleEvent & NXBSDF::DELTA;
-		sampleEvent.reset();
+		delete sampleEvent;
 
 		if (bIsDiffuse) break;
 
@@ -154,10 +154,10 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const std::shared_pt
 
 				hitInfoDiffuse.GenerateBSDF(true);
 
-				std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
+				NXBSDF::SampleEvents* sampleEvent = new NXBSDF::SampleEvents();
 				f = hitInfoDiffuse.BSDF->Sample(hitInfoDiffuse.direction, nextDirection, pdf, sampleEvent);
 				bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
-				sampleEvent.reset();
+				delete sampleEvent;
 
 				if (bIsDiffuse) break;
 
@@ -201,25 +201,28 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, const std::shared_pt
 	return result;
 }
 
-void NXPMSplitIntegrator::BuildPhotonMap(const std::shared_ptr<NXScene>& pScene)
+void NXPMSplitIntegrator::BuildPhotonMap(NXScene* pScene)
 {
 	printf("Building Caustic Photon Map...");
-	m_pCausticPhotonMap.reset();
-	m_pCausticPhotonMap = std::make_shared<NXPhotonMap>(m_numCausticPhotons);
+	if (m_pCausticPhotonMap)
+		m_pCausticPhotonMap->Release();
+	m_pCausticPhotonMap = new NXPhotonMap(m_numCausticPhotons);
 	m_pCausticPhotonMap->Generate(pScene, PhotonMapType::Caustic);
 	printf("Done.\n");
 	printf("Building Global Photon Map...");
-	m_pGlobalPhotonMap.reset();
-	m_pGlobalPhotonMap = std::make_shared<NXPhotonMap>(m_numGlobalPhotons);
+	if (m_pGlobalPhotonMap)
+		m_pGlobalPhotonMap->Release();
+	m_pGlobalPhotonMap = new NXPhotonMap(m_numGlobalPhotons);
 	m_pGlobalPhotonMap->Generate(pScene, PhotonMapType::Global);
 	printf("Done.\n");
 }
 
-void NXPMSplitIntegrator::BuildIrradianceCache(const std::shared_ptr<NXScene>& pScene)
+void NXPMSplitIntegrator::BuildIrradianceCache(NXScene* pScene)
 {
 	printf("Preloading irradiance caches...\n");
-	m_pIrradianceCache.reset();
-	m_pIrradianceCache = std::make_shared<NXIrradianceCache>();
+	if (m_pIrradianceCache)
+		m_pIrradianceCache->Release();
+	m_pIrradianceCache = new NXIrradianceCache();
 	m_pIrradianceCache->SetPhotonMaps(m_pGlobalPhotonMap);
 
 	// ½ø¶ÈÌõ

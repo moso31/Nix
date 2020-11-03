@@ -6,17 +6,24 @@ class NXInstance
 {
 public:
 	NXInstance() {}
-	virtual ~NXInstance() {}
-
-	static std::shared_ptr<T> GetInstance()
+	virtual ~NXInstance() 
 	{
-		if (!s_instance) s_instance = std::make_shared<T>();
+	}
+
+	static T* GetInstance()
+	{
+		if (!s_instance) 
+			s_instance = new T();
 		return s_instance;
 	}
 
+	virtual void Destroy() 
+	{
+	}
+
 protected:
-	static std::shared_ptr<T> s_instance;
+	static T* s_instance;
 };
 
 template <typename T>
-std::shared_ptr<T> NXInstance<T>::s_instance;
+T* NXInstance<T>::s_instance;

@@ -4,7 +4,7 @@
 #include "NXScene.h"
 #include "NXPrimitive.h"
 
-NXPassShadowMap::NXPassShadowMap(const std::shared_ptr<NXScene>& pScene) :
+NXPassShadowMap::NXPassShadowMap(NXScene* pScene) :
 	m_pScene(pScene)
 {
 }

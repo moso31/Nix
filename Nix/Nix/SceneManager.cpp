@@ -1,14 +1,10 @@
 #include "SceneManager.h"
-#include "NSFirstPersonalCamera.h"
+#include "NXScene.h"
 #include "FBXMeshLoader.h"
-#include "NXCubeMap.h"
+
+#include "NSFirstPersonalCamera.h"
 
 SceneManager::SceneManager()
-{
-}
-
-SceneManager::SceneManager(const std::shared_ptr<NXScene>& pScene) :
-	m_scene(pScene)
 {
 }
 
@@ -16,14 +12,26 @@ SceneManager::~SceneManager()
 {
 }
 
-std::shared_ptr<NXScript> SceneManager::CreateScript(const NXScriptType scriptType, const std::shared_ptr<NXObject>& pObject)
+void SceneManager::BuildBVHTrees(const HBVHSplitMode SplitMode)
+{
+	if (m_pBVHTree)
+	{
+		m_pBVHTree->Release();
+	}
+
+	m_pBVHTree = new HBVHTree(m_pScene, m_primitives);
+	m_pBVHTree->BuildTreesWithScene(SplitMode);
+}
+
+NXScript* SceneManager::CreateScript(const NXScriptType scriptType, NXObject* pObject)
 {
 	switch (scriptType)
 	{
 	case NXScriptType::NXSCRIPT_FIRST_PERSONAL_CAMERA:
 	{
-		auto pScript = std::make_shared<NSFirstPersonalCamera>();
-		//m_scene->GetScripts().push_back(pScript);
+		auto pScript = new NSFirstPersonalCamera();
+		pObject->AddScript(pScript);
+		//GetScripts().push_back(pScript);
 		return pScript;
 	}
 	default:
@@ -31,7 +39,7 @@ std::shared_ptr<NXScript> SceneManager::CreateScript(const NXScriptType scriptTy
 	}
 }
 
-NXListener* SceneManager::AddEventListener(const NXEventType eventType, const std::shared_ptr<NXObject>& pObject, const std::function<void(NXEventArg)>& pFunc)
+NXListener* SceneManager::AddEventListener(const NXEventType eventType, NXObject* pObject, const std::function<void(NXEventArg)>& pFunc)
 {
 	auto pListener = new NXListener(pObject, pFunc);
 	switch (eventType)
@@ -68,128 +76,123 @@ NXListener* SceneManager::AddEventListener(const NXEventType eventType, const st
 	return pListener;
 }
 
-std::shared_ptr<NXBox> SceneManager::CreateBox(const std::string& name, const float width, const float height, const float length, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
+NXBox* SceneManager::CreateBox(const std::string& name, const float width, const float height, const float length, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
 {
-	auto p = std::make_shared<NXBox>();
+	auto p = new NXBox();
 	p->SetName(name);
 	p->Init(width, height, length);
 	p->SetTranslation(translation);
 	p->SetRotation(rotation);
 	p->SetScale(scale);
-	m_scene->m_primitives.push_back(p);
-	m_scene->m_objects.push_back(p);
-	p->SetParent(m_scene->m_pRootObject);
+	RegisterPrimitive(p);
 	return p;
 }
 
-std::shared_ptr<NXSphere> SceneManager::CreateSphere(const std::string& name, const float radius, const UINT segmentHorizontal, const UINT segmentVertical, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
+NXSphere* SceneManager::CreateSphere(const std::string& name, const float radius, const UINT segmentHorizontal, const UINT segmentVertical, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
 {
-	auto p = std::make_shared<NXSphere>();
+	auto p = new NXSphere();
 	p->SetName(name);
 	p->Init(radius, segmentHorizontal, segmentVertical);
 	p->SetTranslation(translation);
 	p->SetRotation(rotation);
 	p->SetScale(scale);
-	m_scene->m_primitives.push_back(p);
-	m_scene->m_objects.push_back(p);
-	p->SetParent(m_scene->m_pRootObject);
+	RegisterPrimitive(p);
 	return p;
 }
 
-std::shared_ptr<NXCylinder> SceneManager::CreateCylinder(const std::string& name, const float radius, const float length, const UINT segmentCircle, const UINT segmentLength, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
+NXCylinder* SceneManager::CreateCylinder(const std::string& name, const float radius, const float length, const UINT segmentCircle, const UINT segmentLength, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
 {
-	auto p = std::make_shared<NXCylinder>();
+	auto p = new NXCylinder();
 	p->SetName(name);
 	p->Init(radius, length, segmentCircle, segmentLength);
 	p->SetTranslation(translation);
 	p->SetRotation(rotation);
 	p->SetScale(scale);
-	m_scene->m_primitives.push_back(p);
-	m_scene->m_objects.push_back(p);
-	p->SetParent(m_scene->m_pRootObject);
+	RegisterPrimitive(p);
 	return p;
 }
 
-std::shared_ptr<NXPlane> SceneManager::CreatePlane(const std::string& name, const float width, const float height, const NXPlaneAxis axis, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
+NXPlane* SceneManager::CreatePlane(const std::string& name, const float width, const float height, const NXPlaneAxis axis, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
 {
-	auto p = std::make_shared<NXPlane>();
+	auto p = new NXPlane();
 	p->SetName(name);
 	p->Init(width, height, axis);
 	p->SetTranslation(translation);
 	p->SetRotation(rotation);
 	p->SetScale(scale);
-	m_scene->m_primitives.push_back(p);
-	m_scene->m_objects.push_back(p);
-	p->SetParent(m_scene->m_pRootObject);
+	RegisterPrimitive(p);
 	return p;
 }
 
-bool SceneManager::CreateFBXMeshes(const std::string& filePath, const std::shared_ptr<NXPBRMaterial>& pDefaultMaterial, std::vector<std::shared_ptr<NXMesh>>& outMeshes)
+bool SceneManager::CreateFBXMeshes(const std::string& filePath, NXPBRMaterial* pDefaultMaterial, std::vector<NXMesh*> outMeshes)
 {
-	FBXMeshLoader::LoadFBXFile(filePath, m_scene, outMeshes);
+	FBXMeshLoader::LoadFBXFile(filePath, m_pScene, outMeshes);
 	for (auto it = outMeshes.begin(); it != outMeshes.end(); it++)
 	{
 		(*it)->SetMaterialPBR(pDefaultMaterial);
-		m_scene->m_primitives.push_back(*it);
-		m_scene->m_objects.push_back(*it);
-
-		// 将所有FBXMeshes为nullptr的全算作root的子节点（场景内最外一层）
-		if ((*it)->GetParent() == nullptr)
-			(*it)->SetParent(m_scene->m_pRootObject);
+		RegisterPrimitive(*it, (*it)->GetParent());
 	}
 	return true;
 }
 
-std::shared_ptr<NXCamera> SceneManager::CreateCamera(const std::string& name, const float FovY, const float zNear, const float zFar, const Vector3& eye, const Vector3& at, const Vector3& up)
+NXCamera* SceneManager::CreateCamera(const std::string& name, const float FovY, const float zNear, const float zFar, const Vector3& eye, const Vector3& at, const Vector3& up)
 {
-	auto p = std::make_shared<NXCamera>();
+	auto p = new NXCamera();
 	p->Init(FovY, zNear, zFar, eye, at, up);
-	m_scene->m_pMainCamera = p;
-	m_scene->m_objects.push_back(p);
-	p->SetParent(m_scene->m_pRootObject);
+
+	RegisterCamera(p, true);
 	return p;
 }
 
-std::shared_ptr<NXPBRMaterial> SceneManager::CreatePBRMaterial(const Vector3& albedo, const float metallic, const float roughness, const float reflectivity, const float refractivity, const float IOR)
+NXPBRMaterial* SceneManager::CreatePBRMaterial(const Vector3& albedo, const float metallic, const float roughness, const float reflectivity, const float refractivity, const float IOR)
 {
-	auto pMat = std::make_shared<NXPBRMaterial>(albedo, metallic, roughness, reflectivity, refractivity, IOR);
-	m_scene->m_pbrMaterials.push_back(pMat);
+	auto pMat = new NXPBRMaterial(albedo, metallic, roughness, reflectivity, refractivity, IOR);
+	RegisterMaterial(pMat);
 	return pMat;
 }
 
-std::shared_ptr<NXPBRPointLight> SceneManager::CreatePBRPointLight(const Vector3& position, const Vector3& intensity)
+NXPBRPointLight* SceneManager::CreatePBRPointLight(const Vector3& position, const Vector3& intensity)
 {
-	auto pLight = std::make_shared<NXPBRPointLight>(position, intensity);
-	m_scene->m_pbrLights.push_back(pLight);
+	auto pLight = new NXPBRPointLight(position, intensity);
+	RegisterLight(pLight);
 	return pLight;
 }
 
-std::shared_ptr<NXPBRDistantLight> SceneManager::CreatePBRDistantLight(const Vector3& direction, const Vector3& radiance)
+NXPBRDistantLight* SceneManager::CreatePBRDistantLight(const Vector3& direction, const Vector3& radiance)
 {
-	auto bound = m_scene->GetBoundingSphere();
-	auto pLight = std::make_shared<NXPBRDistantLight>(direction, radiance, bound.Center, bound.Radius);
-	m_scene->m_pbrLights.push_back(pLight);
+	auto bound = m_pScene->GetBoundingSphere();
+	auto pLight = new NXPBRDistantLight(direction, radiance, bound.Center, bound.Radius);
+	RegisterLight(pLight);
 	return pLight;
 }
 
-std::shared_ptr<NXPBRTangibleLight> SceneManager::CreatePBRTangibleLight(const std::shared_ptr<NXPrimitive>& pPrimitive, const Vector3& radiance)
+NXPBRTangibleLight* SceneManager::CreatePBRTangibleLight(NXPrimitive* pPrimitive, const Vector3& radiance)
 {
-	auto pLight = std::make_shared<NXPBRTangibleLight>(pPrimitive, radiance);
+	auto pLight = new NXPBRTangibleLight(pPrimitive, radiance);
 	pPrimitive->SetTangibleLight(pLight);
-	m_scene->m_pbrLights.push_back(pLight);
+	RegisterLight(pLight);
 	return pLight;
 }
 
-std::shared_ptr<NXPBREnvironmentLight> SceneManager::CreatePBREnvironmentLight(const std::shared_ptr<NXCubeMap>& pCubeMap, const Vector3& Intensity)
+NXPBREnvironmentLight* SceneManager::CreatePBREnvironmentLight(NXCubeMap* pCubeMap, const Vector3& Intensity)
 {
-	auto bound = m_scene->GetBoundingSphere();
-	auto pLight = std::make_shared<NXPBREnvironmentLight>(pCubeMap, Intensity, bound.Center, bound.Radius);
+	auto bound = m_pScene->GetBoundingSphere();
+	auto pLight = new NXPBREnvironmentLight(pCubeMap, Intensity, bound.Center, bound.Radius);
 	pCubeMap->SetEnvironmentLight(pLight);
-	m_scene->m_pbrLights.push_back(pLight);
+	RegisterLight(pLight);
 	return pLight;
 }
 
-bool SceneManager::BindParent(std::shared_ptr<NXObject> pParent, std::shared_ptr<NXObject> pChild)
+NXCubeMap* SceneManager::CreateCubeMap(const std::string& name, const std::wstring& filePath)
+{
+	auto pCubeMap = new NXCubeMap(m_pScene);
+	pCubeMap->SetName(name);
+	pCubeMap->Init(filePath);
+	RegisterCubeMap(pCubeMap);
+	return pCubeMap;
+}
+
+bool SceneManager::BindParent(NXObject* pParent, NXObject* pChild)
 {
 	if (!pChild || !pParent)
 		return false;
@@ -198,3 +201,64 @@ bool SceneManager::BindParent(std::shared_ptr<NXObject> pParent, std::shared_ptr
 	return true;
 }
 
+void SceneManager::Release()
+{
+	for (auto pLight : m_pbrLights)
+	{
+		delete pLight;
+	}
+
+	for (auto pMat : m_pbrMaterials)
+	{
+		delete pMat;
+	}
+
+	if (m_pBVHTree)
+	{
+		m_pBVHTree->Release();
+		delete m_pBVHTree;
+	}
+
+	for (auto it = m_objects.begin(); it != m_objects.end(); it++)
+	{
+		(*it)->Release();
+	}
+
+	m_pRootObject->Release();
+}
+
+void SceneManager::RegisterCubeMap(NXCubeMap* newCubeMap)
+{
+	if (m_pCubeMap)
+	{
+		printf("Warning: cubemap has been set already! strightly cover cubemap maybe will make some problem.\n");
+	}
+	m_pCubeMap = newCubeMap;
+	m_objects.push_back(newCubeMap);
+	newCubeMap->SetParent(m_pRootObject);
+}
+
+void SceneManager::RegisterPrimitive(NXPrimitive* newPrimitive, NXObject* pParent)
+{
+	m_primitives.push_back(newPrimitive);
+	m_objects.push_back(newPrimitive);
+
+	newPrimitive->SetParent(pParent ? pParent : m_pRootObject);
+}
+
+void SceneManager::RegisterCamera(NXCamera* newCamera, bool isMainCamera, NXObject* pParent)
+{
+	if (isMainCamera) m_pMainCamera = newCamera;
+	m_objects.push_back(newCamera);
+	newCamera->SetParent(pParent ? pParent : m_pRootObject);
+}
+
+void SceneManager::RegisterMaterial(NXPBRMaterial* newMaterial)
+{
+	m_pbrMaterials.push_back(newMaterial);
+}
+
+void SceneManager::RegisterLight(NXPBRLight* newLight, NXObject* pParent)
+{
+	m_pbrLights.push_back(newLight);
+}

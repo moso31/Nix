@@ -24,26 +24,26 @@ public:
 	NXSPPMIntegrator(const XMINT2& imageSize, std::string outPath, UINT nCausticPhotons, UINT nGlobalPhotons);
 	~NXSPPMIntegrator() {}
 
-	void Render(const std::shared_ptr<NXScene>& pScene);
-	void RefreshPhotonMap(const std::shared_ptr<NXScene>& pScene);
+	void Render(NXScene* pScene);
+	void RefreshPhotonMap(NXScene* pScene);
 
 private:
-	void RenderWithPM(const std::shared_ptr<NXScene>& pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int depth, bool RenderOnce);
-	void RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int depth, bool RenderOnce);
+	void RenderWithPM(NXScene* pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int depth, bool RenderOnce);
+	void RenderWithPMSplit(NXScene* pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int depth, bool RenderOnce);
 
 	// 渲染指定区域
-	void RenderWithPMArea(const std::shared_ptr<NXScene>& pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int depth, bool RenderOnce, int x, int y, int offsetX, int offsetY);
-	void RenderWithPMSplitArea(const std::shared_ptr<NXScene>& pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int depth, bool RenderOnce, int x, int y, int offsetX, int offsetY);
+	void RenderWithPMArea(NXScene* pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int depth, bool RenderOnce, int x, int y, int offsetX, int offsetY);
+	void RenderWithPMSplitArea(NXScene* pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int depth, bool RenderOnce, int x, int y, int offsetX, int offsetY);
 
 	// 渲染单个像素 
-	void RenderWithPM(const std::shared_ptr<NXScene>& pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int depth, bool RenderOnce, int x, int y);
-	void RenderWithPMSplit(const std::shared_ptr<NXScene>& pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int depth, bool RenderOnce, int x, int y);
+	void RenderWithPM(NXScene* pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int depth, bool RenderOnce, int x, int y);
+	void RenderWithPMSplit(NXScene* pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int depth, bool RenderOnce, int x, int y);
 
 
 
 private:
-	std::shared_ptr<NXPhotonMap> m_pCausticPhotonMap;
-	std::shared_ptr<NXPhotonMap> m_pGlobalPhotonMap;
+	NXPhotonMap* m_pCausticPhotonMap;
+	NXPhotonMap* m_pGlobalPhotonMap;
 	std::string m_outFilePath;
 
 	// 每次步进所需的光子数量

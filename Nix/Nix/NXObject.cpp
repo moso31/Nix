@@ -20,30 +20,30 @@ void NXObject::SetName(std::string name)
 	m_name = name;
 }
 
-void NXObject::AddScript(const std::shared_ptr<NXScript> &script)
+void NXObject::AddScript(NXScript* script)
 {
-	script->SetObject(shared_from_this());
+	script->SetObject(this);
 	m_scripts.push_back(script);
 }
 
-std::vector<std::shared_ptr<NXScript>> NXObject::GetScripts()
+std::vector<NXScript*> NXObject::GetScripts()
 {
 	return m_scripts;
 }
 
-std::shared_ptr<NXObject> NXObject::GetParent()
+NXObject* NXObject::GetParent()
 {
 	return m_parent;
 }
 
-void NXObject::SetParent(std::shared_ptr<NXObject> pParent)
+void NXObject::SetParent(NXObject* pParent)
 {
 	if (m_parent)
-		m_parent->RemoveChild(shared_from_this());
+		m_parent->RemoveChild(this);
 
 	// 不考虑SetParent为nullptr的情况，因为场景中始终有一个pRootObject。
 	m_parent = pParent;
-	pParent->m_childs.push_back(shared_from_this());
+	pParent->m_childs.push_back(this);
 }
 
 size_t NXObject::GetChildCount()
@@ -51,22 +51,22 @@ size_t NXObject::GetChildCount()
 	return m_childs.size();
 }
 
-std::list<std::shared_ptr<NXObject>> NXObject::GetChilds()
+std::list<NXObject*> NXObject::GetChilds()
 {
 	return m_childs;
 }
 
-void NXObject::RemoveChild(const std::shared_ptr<NXObject>& pObject)
+void NXObject::RemoveChild(NXObject* pObject)
 {
 	m_childs.remove(pObject);
 }
 
-bool NXObject::IsChild(std::shared_ptr<NXObject> pObject)
+bool NXObject::IsChild(NXObject* pObject)
 {
 	auto pParent = pObject->m_parent;
 	while (pParent)
 	{
-		if (pParent == shared_from_this()) return true;
+		if (pParent == this) return true;
 		pParent = pParent->m_parent;
 	}
 	return false;
@@ -74,16 +74,16 @@ bool NXObject::IsChild(std::shared_ptr<NXObject> pObject)
 
 void NXObject::Update()
 {
-	for (auto it = m_scripts.begin(); it != m_scripts.end(); it++)
+	for (auto script : m_scripts)
 	{
-		(*it)->Update();
+		script->Update();
 	}
 }
 
 void NXObject::Release()
 {
-	for (auto it = m_scripts.begin(); it != m_scripts.end(); it++)
+	for (auto script : m_scripts)
 	{
-		(*it).reset();
+		delete script;
 	}
 }

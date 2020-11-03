@@ -19,7 +19,7 @@ NSFirstPersonalCamera::~NSFirstPersonalCamera()
 
 void NSFirstPersonalCamera::Update()
 {
-	auto pCamera = std::dynamic_pointer_cast<NXCamera>(m_pObject);
+	auto pCamera = dynamic_cast<NXCamera*>(m_pObject);
 	Vector3 pos = pCamera->GetTranslation();
 	Vector3 fw = pCamera->GetForward();
 	Vector3 right = pCamera->GetRight();
@@ -79,7 +79,7 @@ void NSFirstPersonalCamera::OnMouseDown(NXEventArg eArg)
 
 void NSFirstPersonalCamera::OnMouseMove(NXEventArg eArg)
 {
-	auto pCamera = std::dynamic_pointer_cast<NXCamera>(m_pObject);
+	auto pCamera = dynamic_cast<NXCamera*>(m_pObject);
 
 	float fYaw = (float)eArg.LastX * m_fSensitivity;
 	float fPitch = (float)eArg.LastY * m_fSensitivity;

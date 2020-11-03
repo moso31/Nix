@@ -1,6 +1,6 @@
 #include "NXListener.h"
 
-NXListener::NXListener(const std::shared_ptr<NXObject>& pObject, const std::function<void(NXEventArg)>& pFunc) :
+NXListener::NXListener(NXObject* pObject, const std::function<void(NXEventArg)>& pFunc) :
 	m_pObject(pObject),
 	m_pFunc(pFunc)
 {

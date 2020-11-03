@@ -8,7 +8,7 @@ NXDirectIntegrator::NXDirectIntegrator(const XMINT2& imageSize, int eachPixelSam
 {
 }
 
-Vector3 NXDirectIntegrator::Radiance(const Ray& ray, const std::shared_ptr<NXScene>& pScene, int depth)
+Vector3 NXDirectIntegrator::Radiance(const Ray& ray, NXScene* pScene, int depth)
 {
 	// —∞’“…‰œﬂ-≥°æ∞hit
 	NXHit hitInfo;
@@ -24,7 +24,7 @@ Vector3 NXDirectIntegrator::Radiance(const Ray& ray, const std::shared_ptr<NXSce
 		Vector3 ignore;
 		return pCubeMap->GetEnvironmentLight()->GetRadiance(ignore, ignore, ray.direction);
 	}
-	std::shared_ptr<NXPBRTangibleLight> pTangibleLight = hitInfo.pPrimitive->GetTangibleLight();
+	NXPBRTangibleLight* pTangibleLight = hitInfo.pPrimitive->GetTangibleLight();
 	if (pTangibleLight)
 	{
 		L += pTangibleLight->GetRadiance(hitInfo.position, hitInfo.normal, hitInfo.direction);

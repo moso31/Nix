@@ -23,11 +23,11 @@ public:
 		ALL = (DELTA | NONDELTA)
 	};
 
-	NXBSDF(const NXHit& pHitInfo, const std::shared_ptr<NXPBRMaterial>& pMaterial);
+	NXBSDF(const NXHit& pHitInfo, NXPBRMaterial* pMaterial);
 	~NXBSDF() {}
 
 	// 对BRDF上按重点采样方法对某一方向进行采样，并评估入射方向和该方向的BRDF。
-	Vector3 Sample(const Vector3& woWorld, Vector3& o_wiWorld, float& o_pdf, std::shared_ptr<SampleEvents> o_sampleEvent = nullptr);
+	Vector3 Sample(const Vector3& woWorld, Vector3& o_wiWorld, float& o_pdf, SampleEvents* o_sampleEvent = nullptr);
 
 	// 评估某一点的BRDF。
 	Vector3 Evaluate(const Vector3& woWorld, const Vector3& wiWorld, float& o_pdf);
@@ -48,10 +48,12 @@ public:
 	Vector3 WorldToReflection(const Vector3& p);
 	Vector3 ReflectionToWorld(const Vector3& p);
 
+	void Release();
+
 private:
 	Vector3 ng;
 	Vector3 ns, ss, ts;
-	std::shared_ptr<NXPBRMaterial> pMat;
+	NXPBRMaterial* pMat;
 	std::unique_ptr<NXRDistributionBeckmann> pDistrib;
 	std::unique_ptr<NXFresnel> pFresnel;
 };

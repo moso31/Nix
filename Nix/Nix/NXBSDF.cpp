@@ -4,7 +4,7 @@
 #include "NXPBRMaterial.h"
 #include "SamplerMath.h"
 
-NXBSDF::NXBSDF(const NXHit& pHitInfo, const std::shared_ptr<NXPBRMaterial>& pMaterial) :
+NXBSDF::NXBSDF(const NXHit& pHitInfo, NXPBRMaterial* pMaterial) :
 	ng(pHitInfo.normal),
 	ns(pHitInfo.shading.normal),
 	ss(pHitInfo.shading.dpdu),
@@ -20,7 +20,7 @@ NXBSDF::NXBSDF(const NXHit& pHitInfo, const std::shared_ptr<NXPBRMaterial>& pMat
 	pMat->CalcSampleProbabilities(F); 
 }
 
-Vector3 NXBSDF::Sample(const Vector3& woWorld, Vector3& o_wiWorld, float& o_pdf, std::shared_ptr<SampleEvents> o_sampleEvent)
+Vector3 NXBSDF::Sample(const Vector3& woWorld, Vector3& o_wiWorld, float& o_pdf, SampleEvents* o_sampleEvent)
 {
 	// 按各种基本分布的概率选取采样事件。
 	// 目前只有四种基本分布：漫反射/光滑反射/纯反射/纯折射
@@ -224,4 +224,8 @@ Vector3 NXBSDF::ReflectionToWorld(const Vector3& p)
 		p.x * ss.x + p.y * ts.x + p.z * ns.x,
 		p.x * ss.y + p.y * ts.y + p.z * ns.y,
 		p.x * ss.z + p.y * ts.z + p.z * ns.z);
+}
+
+void NXBSDF::Release()
+{
 }

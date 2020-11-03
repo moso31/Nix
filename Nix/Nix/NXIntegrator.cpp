@@ -10,7 +10,7 @@
 
 using namespace SamplerMath;
 
-Vector3 NXIntegrator::DirectEstimate(const Ray& ray, const std::shared_ptr<NXScene>& pScene, const std::shared_ptr<NXPBRLight>& pLight, const NXHit& hitInfo)
+Vector3 NXIntegrator::DirectEstimate(const Ray& ray, NXScene* pScene, NXPBRLight* pLight, const NXHit& hitInfo)
 {
 	Vector3 L(0.0f);
 
@@ -52,9 +52,10 @@ Vector3 NXIntegrator::DirectEstimate(const Ray& ray, const std::shared_ptr<NXSce
 		}
 
 		// 基于BSDF采样一次
-		std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
+		NXBSDF::SampleEvents* sampleEvent = new NXBSDF::SampleEvents();
 		f = hitInfo.BSDF->Sample(hitInfo.direction, incidentDirection, pdfBSDF, sampleEvent);
 		bool bIsDeltaBSDF = *sampleEvent & NXBSDF::DELTA;
+		delete sampleEvent;
 
 		// 如果是DeltaBSDF，不使用重点采样，仅使用灯光采样。
 		// 否则会被重复迭代。
@@ -74,7 +75,7 @@ Vector3 NXIntegrator::DirectEstimate(const Ray& ray, const std::shared_ptr<NXSce
 			Vector3 Li(0.0f);
 			NXHit hitLightInfo;
 			pScene->RayCast(ray, hitLightInfo);
-			std::shared_ptr<NXPBRAreaLight> pHitAreaLight;
+			NXPBRAreaLight* pHitAreaLight = nullptr;
 			if (hitLightInfo.pPrimitive)
 			{
 				pHitAreaLight = hitLightInfo.pPrimitive->GetTangibleLight();
@@ -102,7 +103,7 @@ Vector3 NXIntegrator::DirectEstimate(const Ray& ray, const std::shared_ptr<NXSce
 	return L;
 }
 
-Vector3 NXIntegrator::UniformLightAll(const Ray& ray, const std::shared_ptr<NXScene>& pScene, const NXHit& hitInfo)
+Vector3 NXIntegrator::UniformLightAll(const Ray& ray, NXScene* pScene, const NXHit& hitInfo)
 {
 	// All: 统计所有的光源
 	Vector3 result(0.0f);
@@ -112,7 +113,7 @@ Vector3 NXIntegrator::UniformLightAll(const Ray& ray, const std::shared_ptr<NXSc
 	return result;
 }
 
-Vector3 NXIntegrator::UniformLightOne(const Ray& ray, const std::shared_ptr<NXScene>& pScene, const NXHit& hitInfo)
+Vector3 NXIntegrator::UniformLightOne(const Ray& ray, NXScene* pScene, const NXHit& hitInfo)
 {
 	// One: 仅统计单个光源，但对光源的选取完全随机。此方法期望值和All方法等同。
 	Vector3 result(0.0f);
@@ -130,7 +131,7 @@ NXSampleIntegrator::NXSampleIntegrator(const XMINT2& imageSize, int eachPixelSam
 {
 }
 
-void NXSampleIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
+void NXSampleIntegrator::Render(NXScene* pScene)
 {
 	printf("Building BVH Trees...");
 	pScene->BuildBVHTrees(HLBVH);
@@ -174,7 +175,7 @@ void NXSampleIntegrator::Render(const std::shared_ptr<NXScene>& pScene)
 	printf("done.\n");
 }
 
-void NXSampleIntegrator::RenderTile(const std::shared_ptr<NXScene>& pScene, const XMINT2& tileId, ImageBMPData* oImageData)
+void NXSampleIntegrator::RenderTile(NXScene* pScene, const XMINT2& tileId, ImageBMPData* oImageData)
 {
 	for (int i = 0; i < m_tileSize.x; i++)
 	{
@@ -211,7 +212,7 @@ void NXSampleIntegrator::RenderTile(const std::shared_ptr<NXScene>& pScene, cons
 	}
 }
 
-Vector3 NXSampleIntegrator::CenterRayTest(const std::shared_ptr<NXScene>& pScene)
+Vector3 NXSampleIntegrator::CenterRayTest(NXScene* pScene)
 {
 	Vector2 sampleCoord = Vector2((float)m_imageSize.x * 0.5f, (float)m_imageSize.y * 0.5f);
 	Ray rayWorld = pScene->GetMainCamera()->GenerateRay(sampleCoord, Vector2((float)m_imageSize.x, (float)m_imageSize.y));

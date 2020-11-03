@@ -15,8 +15,8 @@ inline int EncodeMorton3(const XMINT3 &v) {
 	return (LeftShift3(v.z) << 2) | (LeftShift3(v.y) << 1) | LeftShift3(v.x);
 }
 
-HBVHTree::HBVHTree(const std::shared_ptr<NXScene>& scene, const std::vector<std::shared_ptr<NXPrimitive>>& pPrimitives) :
-	m_scene(scene),
+HBVHTree::HBVHTree(NXScene* scene, const std::vector<NXPrimitive*>& pPrimitives) :
+	m_pScene(scene),
 	m_primitives(scene->GetPrimitives()),
 	root(nullptr)
 {
@@ -26,7 +26,7 @@ void HBVHTree::BuildTreesWithScene(HBVHSplitMode mode)
 {
 	//printf("Building BVH tree for scene...\n");
 
-	if (!m_scene)
+	if (!m_pScene)
 	{
 		printf("ERROR: Can not create BVH trees. scene has pointed to nullptr.\n");
 		return;
@@ -35,7 +35,7 @@ void HBVHTree::BuildTreesWithScene(HBVHSplitMode mode)
 	auto time_st = GetTickCount64();
 
 	m_buildMode = mode;
-	m_primitives = m_scene->GetPrimitives();
+	m_primitives = m_pScene->GetPrimitives();
 	if (m_primitives.empty())
 	{
 		return;
@@ -72,7 +72,7 @@ void HBVHTree::BuildTreesWithScene(HBVHSplitMode mode)
 			HBVHMortonPrimitiveInfo primitiveInfo;
 			primitiveInfo.index = count++;
 			primitiveInfo.aabb = (*it)->GetAABBWorld();
-			Vector3 fRelativePosition = m_scene->GetAABB().Offset(primitiveInfo.aabb.Center);
+			Vector3 fRelativePosition = m_pScene->GetAABB().Offset(primitiveInfo.aabb.Center);
 			int mortonScale = 1 << 10;
 			XMINT3 iRelativePositionScaled = { (int)(fRelativePosition.x * mortonScale), (int)(fRelativePosition.y * mortonScale), (int)(fRelativePosition.z * mortonScale) };
 			// 为每个物体指定morton码。HLBVH方法将场景划分为若干细分区域。一个morton码对应一个细分区域。

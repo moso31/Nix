@@ -131,8 +131,7 @@ bool NXSphere::RayCast(const Ray& worldRay, NXHit& outHitInfo, float& outDist)
 	dpdu.Normalize();
 	dpdv.Normalize();
 
-	auto pShape = std::dynamic_pointer_cast<NXSphere>(shared_from_this());
-	outHitInfo = NXHit(pShape, pHit, uvHit, -localRay.direction, dpdu, dpdv);
+	outHitInfo = NXHit(this, pHit, uvHit, -localRay.direction, dpdu, dpdv);
 	outDist = t;
 
 	// ps: 二次曲面的计算是矢量级的，所以shading与Geometry相同。

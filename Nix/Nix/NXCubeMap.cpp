@@ -5,7 +5,7 @@
 #include "ShaderComplier.h"
 #include "DirectResources.h"
 
-NXCubeMap::NXCubeMap(const std::shared_ptr<NXScene>& pScene) :
+NXCubeMap::NXCubeMap(NXScene* pScene) :
 	m_pScene(pScene),
 	m_pIrradianceMap(nullptr),
 	m_pIrradianceMapSRV(nullptr),
@@ -97,11 +97,6 @@ Vector3 NXCubeMap::BackgroundColorByDirection(const Vector3& v)
 	float g = *(c + 1) * fInv;
 	float b = *(c + 2) * fInv;
 	return Vector3(r, g, b);
-}
-
-std::shared_ptr<NXPBREnvironmentLight> NXCubeMap::GetEnvironmentLight() const 
-{ 
-	return m_pEnvironmentLight; 
 }
 
 void NXCubeMap::Update()

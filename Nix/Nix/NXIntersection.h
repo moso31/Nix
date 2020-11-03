@@ -10,11 +10,11 @@ struct NXShadingHit
 	Vector3 dpdu, dpdv;
 };
 
-class NXHit : public std::enable_shared_from_this<NXHit>
+class NXHit
 {
 public:
 	NXHit() : faceIndex(-1) {}
-	NXHit(const std::shared_ptr<NXPrimitive>& pPrimitive, const Vector3& position, const Vector2& uv, const Vector3& direction, const Vector3& dpdu, const Vector3& dpdv);
+	NXHit(NXPrimitive* pPrimitive, const Vector3& position, const Vector2& uv, const Vector3& direction, const Vector3& dpdu, const Vector3& dpdv);
 	~NXHit() {}
 
 	void GenerateBSDF(bool IsFromCamera);
@@ -26,7 +26,7 @@ public:
 	// 重设primitive
 	void Reset();
 
-	std::shared_ptr<NXPrimitive> pPrimitive;
+	NXPrimitive* pPrimitive;
 
 	Vector3 direction;	// 入射方向
 	Vector3 position;
@@ -36,7 +36,7 @@ public:
 	Vector3 dpdv;
 	NXShadingHit shading;
 
-	std::shared_ptr<NXBSDF> BSDF;
+	NXBSDF* BSDF;
 
 	int faceIndex;
 };

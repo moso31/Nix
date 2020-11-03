@@ -12,7 +12,7 @@ NXPhotonMap::NXPhotonMap(int numPhotons) :
 {
 }
 
-void NXPhotonMap::Generate(const std::shared_ptr<NXScene>& pScene, PhotonMapType photonMapType)
+void NXPhotonMap::Generate(NXScene* pScene, PhotonMapType photonMapType)
 {
 	switch (photonMapType)
 	{
@@ -32,13 +32,13 @@ void NXPhotonMap::GetNearest(const Vector3& position, const Vector3& normal, flo
 	m_pKdTree->GetNearest(position, normal, out_distSqr, out_nearestPhotons, maxPhotonsLimit, range2, locateFilter);
 }
 
-void NXPhotonMap::Render(const std::shared_ptr<NXScene>& pScene, const XMINT2& imageSize, std::string outFilePath)
+void NXPhotonMap::Render(NXScene* pScene, const XMINT2& imageSize, std::string outFilePath)
 {
 	UINT nPixels = imageSize.x * imageSize.y;
 	ImageBMPData* pImageData = new ImageBMPData[nPixels];
 	memset(pImageData, 0, sizeof(ImageBMPData) * nPixels);
 
-	std::shared_ptr<NXCamera> pCamera = pScene->GetMainCamera();
+	NXCamera* pCamera = pScene->GetMainCamera();
 	Vector3 camPos = pCamera->GetTranslation();
 	for (auto photon : m_pData)
 	{
@@ -61,7 +61,14 @@ void NXPhotonMap::Render(const std::shared_ptr<NXScene>& pScene, const XMINT2& i
 	delete pImageData;
 }
 
-void NXPhotonMap::GenerateCausticMap(const std::shared_ptr<NXScene>& pScene)
+void NXPhotonMap::Release()
+{
+	if (m_pKdTree)
+		m_pKdTree->Release();
+	delete m_pKdTree;
+}
+
+void NXPhotonMap::GenerateCausticMap(NXScene* pScene)
 {
 	auto pLights = pScene->GetPBRLights();
 	int lightCount = (int)pLights.size();
@@ -97,11 +104,11 @@ void NXPhotonMap::GenerateCausticMap(const std::shared_ptr<NXScene>& pScene)
 
 			float pdf;
 			Vector3 nextDirection;
-			std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
+			NXBSDF::SampleEvents* sampleEvent = new NXBSDF::SampleEvents();
 			Vector3 f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
 			bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
 			bHasSpecularOrGlossy |= !bIsDiffuse;
-			sampleEvent.reset();
+			delete sampleEvent;
 
 			if (f.IsZero() || pdf == 0) break;
 
@@ -137,12 +144,13 @@ void NXPhotonMap::GenerateCausticMap(const std::shared_ptr<NXScene>& pScene)
 		}
 	}
 
-	m_pKdTree.reset();
-	m_pKdTree = std::make_shared<NXKdTree<NXPhoton>>();
+	if (m_pKdTree)
+		m_pKdTree->Release();
+	m_pKdTree = new NXKdTree<NXPhoton>();
 	m_pKdTree->BuildBalanceTree(m_pData);
 }
 
-void NXPhotonMap::GenerateGlobalMap(const std::shared_ptr<NXScene>& pScene)
+void NXPhotonMap::GenerateGlobalMap(NXScene* pScene)
 {
 	auto pLights = pScene->GetPBRLights();
 	int lightCount = (int)pLights.size();
@@ -183,10 +191,10 @@ void NXPhotonMap::GenerateGlobalMap(const std::shared_ptr<NXScene>& pScene)
 
 			float pdf;
 			Vector3 nextDirection;
-			std::shared_ptr<NXBSDF::SampleEvents> sampleEvent = std::make_shared<NXBSDF::SampleEvents>();
+			NXBSDF::SampleEvents* sampleEvent = new NXBSDF::SampleEvents();
 			Vector3 f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
 			bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
-			sampleEvent.reset();
+			delete sampleEvent;
 
 			if (f.IsZero() || pdf == 0) break;
 
@@ -219,7 +227,8 @@ void NXPhotonMap::GenerateGlobalMap(const std::shared_ptr<NXScene>& pScene)
 		}
 	}
 
-	m_pKdTree.reset();
-	m_pKdTree = std::make_shared<NXKdTree<NXPhoton>>();
+	if (m_pKdTree)
+		m_pKdTree->Release();
+	m_pKdTree = new NXKdTree<NXPhoton>();
 	m_pKdTree->BuildBalanceTree(m_pData);
 }
