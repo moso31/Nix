@@ -1,4 +1,5 @@
 #pragma once
+#include "Header.h"
 #include <SimpleMath.h>
 
 using namespace DirectX::SimpleMath;

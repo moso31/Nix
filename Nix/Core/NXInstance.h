@@ -1,5 +1,5 @@
 #pragma once
-#include <memory>
+#include "Header.h"
 
 template <typename T>
 class NXInstance

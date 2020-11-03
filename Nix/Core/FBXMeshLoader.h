@@ -1,13 +1,9 @@
 #pragma once
-#include <memory>
-#include <string>
-#include <vector>
-
+#include "header.h"
 #include "Common.h"
 
 class NXMesh;
 class NXScene;
-
 class FBXMeshLoader
 {
 public:

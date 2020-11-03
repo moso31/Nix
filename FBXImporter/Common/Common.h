@@ -11,6 +11,11 @@
 #ifndef _COMMON_H
 #define _COMMON_H
 
+#if defined(DEBUG) | defined(_DEBUG)
+    #undef DEBUG_NEW
+    #undef new
+#endif
+
 #include <fbxsdk.h>
 
 void InitializeSdkObjects(FbxManager*& pManager, FbxScene*& pScene);
@@ -20,6 +25,9 @@ void CreateAndFillIOSettings(FbxManager* pManager);
 bool SaveScene(FbxManager* pManager, FbxDocument* pScene, const char* pFilename, int pFileFormat=-1, bool pEmbedMedia=false);
 bool LoadScene(FbxManager* pManager, FbxDocument* pScene, const char* pFilename);
 
+#if defined(DEBUG) | defined(_DEBUG)
+    #define DEBUG_NEW new( _NORMAL_BLOCK, __FILE__, __LINE__)
+    #define new DEBUG_NEW 
+#endif
+
 #endif // #ifndef _COMMON_H
-
-

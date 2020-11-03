@@ -8,6 +8,15 @@ SceneManager::SceneManager()
 {
 }
 
+SceneManager::SceneManager(NXScene* pScene) :
+	m_pScene(pScene), 
+	m_pRootObject(new NXObject()),
+	m_pBVHTree(nullptr),
+	m_pCubeMap(nullptr),
+	m_pMainCamera(nullptr)
+{
+}
+
 SceneManager::~SceneManager()
 {
 }

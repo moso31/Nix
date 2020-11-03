@@ -19,7 +19,7 @@ class SceneManager
 {
 public:
 	SceneManager();
-	SceneManager(NXScene* pScene) : m_pScene(pScene), m_pRootObject(new NXObject()) {};
+	SceneManager(NXScene* pScene);
 	~SceneManager();
 
 	void BuildBVHTrees(const HBVHSplitMode SplitMode);
