@@ -228,12 +228,14 @@ void SceneManager::Release()
 		delete m_pBVHTree;
 	}
 
-	for (auto it = m_objects.begin(); it != m_objects.end(); it++)
+	for (auto obj : m_objects)
 	{
-		(*it)->Release();
+		obj->Release();
+		delete obj;
 	}
 
 	m_pRootObject->Release();
+	delete m_pRootObject;
 }
 
 void SceneManager::RegisterCubeMap(NXCubeMap* newCubeMap)

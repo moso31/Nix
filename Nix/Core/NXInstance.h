@@ -19,6 +19,7 @@ public:
 
 	virtual void Destroy() 
 	{
+		delete s_instance;
 	}
 
 protected:

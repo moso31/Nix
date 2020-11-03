@@ -12,6 +12,7 @@ void Renderer::Init()
 {
 	NXGlobalInputLayout::Init();
 	NXGlobalBufferManager::Init();
+
 	InitRenderer();
 
 	m_scene = new NXScene();
@@ -194,7 +195,11 @@ void Renderer::DrawScene()
 
 void Renderer::Release()
 {
-	m_pPassShadowMap->Release();
+	if (m_pPassShadowMap)
+	{
+		m_pPassShadowMap->Release();
+		delete m_pPassShadowMap;
+	}
 
 	if (m_pInputLayoutP)		m_pInputLayoutP->Release();
 	if (m_pInputLayoutPNT)		m_pInputLayoutPNT->Release();

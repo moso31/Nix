@@ -286,8 +286,11 @@ void NXScene::UpdateCamera()
 
 void NXScene::Release()
 {
-	if (m_cbLights) m_cbLights->Release();
+	if (m_cbLights)
+		m_cbLights->Release();
+
 	m_sceneManager->Release();
+	delete m_sceneManager;
 }
 
 bool NXScene::RayCast(const Ray& ray, NXHit& outHitInfo, float tMax)

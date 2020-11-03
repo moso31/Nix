@@ -2,10 +2,6 @@
 
 NXEvent::~NXEvent()
 {
-	for (auto it = m_listeners.begin(); it != m_listeners.end(); it++)
-	{
-		delete *it;
-	}
 }
 
 void NXEvent::AddListener(NXListener* pListener)
@@ -15,16 +11,17 @@ void NXEvent::AddListener(NXListener* pListener)
 
 void NXEvent::OnNotify(NXEventArg eArg)
 {
-	for (auto it = m_listeners.begin(); it != m_listeners.end(); it++)
+	for (auto listener : m_listeners)
 	{
-		(*it)->GetFunc()(eArg);
+		listener->GetFunc()(eArg);
 	}
 }
 
 void NXEvent::Release()
 {
-	for (auto it = m_listeners.begin(); it != m_listeners.end(); it++)
+	for (auto listener : m_listeners)
 	{
-		(*it)->Release();
+		listener->Release();
+		delete listener;
 	}
 }

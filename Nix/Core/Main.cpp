@@ -60,7 +60,10 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 		return 0;
 
 	g_app = new App();
-	g_app->Init();
+	g_app->Init(); 
+	g_app->Release();
+	delete g_app;
+	return 0;
 
 	g_timer = new NXTimer();
 
