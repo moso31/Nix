@@ -13,7 +13,7 @@ struct NXShadingHit
 class NXHit
 {
 public:
-	NXHit() : faceIndex(-1) {}
+	NXHit() : faceIndex(-1), BSDF(nullptr) {}
 	NXHit(NXPrimitive* pPrimitive, const Vector3& position, const Vector2& uv, const Vector3& direction, const Vector3& dpdu, const Vector3& dpdv);
 	~NXHit();
 

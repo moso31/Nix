@@ -140,7 +140,8 @@ public:
 
 	void Release()
 	{
-		pRoot->Release();
+		if (pRoot)
+			pRoot->Release();
 	}
 
 private:

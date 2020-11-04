@@ -22,9 +22,10 @@ class NXSPPMIntegrator : public NXIntegrator
 {
 public:
 	NXSPPMIntegrator(const XMINT2& imageSize, std::string outPath, UINT nCausticPhotons, UINT nGlobalPhotons);
-	~NXSPPMIntegrator() {}
+	~NXSPPMIntegrator();
 
 	void Render(NXScene* pScene);
+	void BuildPhotonMap(NXScene* pScene);
 	void RefreshPhotonMap(NXScene* pScene);
 
 private:

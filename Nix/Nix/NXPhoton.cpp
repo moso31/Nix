@@ -8,7 +8,8 @@
 #include "ImageGenerator.h"
 
 NXPhotonMap::NXPhotonMap(int numPhotons) :
-	m_numPhotons(numPhotons)
+	m_numPhotons(numPhotons),
+	m_pKdTree(nullptr)
 {
 }
 
@@ -64,8 +65,10 @@ void NXPhotonMap::Render(NXScene* pScene, const XMINT2& imageSize, std::string o
 void NXPhotonMap::Release()
 {
 	if (m_pKdTree)
+	{
 		m_pKdTree->Release();
-	delete m_pKdTree;
+		delete m_pKdTree;
+	}
 }
 
 void NXPhotonMap::GenerateCausticMap(NXScene* pScene)
@@ -144,8 +147,6 @@ void NXPhotonMap::GenerateCausticMap(NXScene* pScene)
 		}
 	}
 
-	if (m_pKdTree)
-		m_pKdTree->Release();
 	m_pKdTree = new NXKdTree<NXPhoton>();
 	m_pKdTree->BuildBalanceTree(m_pData);
 }
@@ -227,8 +228,6 @@ void NXPhotonMap::GenerateGlobalMap(NXScene* pScene)
 		}
 	}
 
-	if (m_pKdTree)
-		m_pKdTree->Release();
 	m_pKdTree = new NXKdTree<NXPhoton>();
 	m_pKdTree->BuildBalanceTree(m_pData);
 }

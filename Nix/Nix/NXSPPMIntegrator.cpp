@@ -9,8 +9,24 @@
 NXSPPMIntegrator::NXSPPMIntegrator(const XMINT2& imageSize, std::string outPath, UINT nCausticPhotons, UINT nGlobalPhotons) :
 	NXIntegrator(imageSize),
 	m_numCausticPhotonsEachStep(nCausticPhotons),
-	m_numGlobalPhotonsEachStep(nGlobalPhotons)
+	m_numGlobalPhotonsEachStep(nGlobalPhotons),
+	m_pGlobalPhotonMap(nullptr),
+	m_pCausticPhotonMap(nullptr)
 {
+}
+
+NXSPPMIntegrator::~NXSPPMIntegrator()
+{
+	if (m_pCausticPhotonMap)
+	{
+		m_pCausticPhotonMap->Release();
+		delete m_pCausticPhotonMap;
+	}
+	if (m_pGlobalPhotonMap)
+	{
+		m_pGlobalPhotonMap->Release();
+		delete m_pGlobalPhotonMap;
+	}
 }
 
 void NXSPPMIntegrator::Render(NXScene* pScene)
@@ -32,7 +48,7 @@ void NXSPPMIntegrator::Render(NXScene* pScene)
 		pixels[i].globalRadius2 = 1e-7f;
 	}
 
-	for (int k = 0; ; k++)
+	for (int k = 0; k < 2; k++)
 	{
 		printf("SPPM iteration sequences rendering...(Image %d)\n", k);
 
@@ -45,7 +61,7 @@ void NXSPPMIntegrator::Render(NXScene* pScene)
 		}
 
 		printf("Refreshing photon map...");
-		RefreshPhotonMap(pScene);
+		k == 0 ? BuildPhotonMap(pScene) : RefreshPhotonMap(pScene);
 		printf("done.\n");
 
 		m_progress = 0;
@@ -65,15 +81,19 @@ void NXSPPMIntegrator::Render(NXScene* pScene)
 	}
 }
 
-void NXSPPMIntegrator::RefreshPhotonMap(NXScene* pScene)
+void NXSPPMIntegrator::BuildPhotonMap(NXScene* pScene)
 {
-	if (m_pCausticPhotonMap)
-		m_pCausticPhotonMap->Release();
 	m_pCausticPhotonMap = new NXPhotonMap(m_numCausticPhotonsEachStep);
 	m_pCausticPhotonMap->Generate(pScene, PhotonMapType::Caustic);
-	if (m_pGlobalPhotonMap)
-		m_pGlobalPhotonMap->Release();
 	m_pGlobalPhotonMap = new NXPhotonMap(m_numGlobalPhotonsEachStep);
+	m_pGlobalPhotonMap->Generate(pScene, PhotonMapType::Global);
+}
+
+void NXSPPMIntegrator::RefreshPhotonMap(NXScene* pScene)
+{
+	if (m_pCausticPhotonMap) m_pCausticPhotonMap->Release();
+	m_pCausticPhotonMap->Generate(pScene, PhotonMapType::Caustic);
+	if (m_pGlobalPhotonMap) m_pGlobalPhotonMap->Release();
 	m_pGlobalPhotonMap->Generate(pScene, PhotonMapType::Global);
 }
 

@@ -82,8 +82,16 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		BuildBVHTrees(HBVHSplitMode::HLBVH);
 		printf("done.\n");
 
-		printf("center ray testing...\n");
-		//NXRayTracer::GetInstance().CenterRayTest(10);
+		Vector2 sampleCoord = Vector2((float)200 * 0.5f, (float)150 * 0.5f);
+		Ray rayWorld = GetMainCamera()->GenerateRay(sampleCoord, Vector2((float)200, (float)150));
+
+		NXHit hit;
+		RayCast(rayWorld, hit);
+		if (hit.pPrimitive)
+		{
+			hit.GenerateBSDF(true);
+			RayCast(rayWorld, hit);
+		}
 
 		if (!GetPrimitives().empty())
 		{

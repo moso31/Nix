@@ -28,7 +28,11 @@ NXHit::~NXHit()
 
 void NXHit::GenerateBSDF(bool IsFromCamera)
 {
-	BSDF->Release();
+	if (BSDF)
+	{
+		BSDF->Release();
+		delete BSDF;
+	}
 	NXPBRMaterial* pMat = pPrimitive->GetPBRMaterial();
 	BSDF = new NXBSDF(*this, pMat);
 }
@@ -62,4 +66,12 @@ void NXHit::LocalToWorld()
 void NXHit::Reset()
 {
 	pPrimitive = nullptr;
+	if (BSDF)
+	{
+		BSDF->Release();
+		delete BSDF;
+
+		// Reset以后BSDF指针是有可能重用的，所以需要将BSDF指针置空，以确保下次使用时的内存安全。
+		BSDF = nullptr;	
+	}
 }
