@@ -15,7 +15,7 @@ class NXHit
 public:
 	NXHit() : faceIndex(-1) {}
 	NXHit(NXPrimitive* pPrimitive, const Vector3& position, const Vector2& uv, const Vector3& direction, const Vector3& dpdu, const Vector3& dpdv);
-	~NXHit() {}
+	~NXHit();
 
 	void GenerateBSDF(bool IsFromCamera);
 	void SetShadingGeometry(Vector3 shadingdpdu, Vector3 shadingdpdv);

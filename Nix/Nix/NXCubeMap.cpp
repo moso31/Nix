@@ -7,6 +7,7 @@
 
 NXCubeMap::NXCubeMap(NXScene* pScene) :
 	m_pScene(pScene),
+	m_pEnvironmentLight(nullptr),
 	m_pIrradianceMap(nullptr),
 	m_pIrradianceMapSRV(nullptr),
 	m_pPreFilterMap(nullptr),

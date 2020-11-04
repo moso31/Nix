@@ -391,6 +391,7 @@ HBVHTreeNode* HBVHTree::BuildTreelet(int stIndex, int edIndex, int bitIndex)
 			AABB::CreateMerged(result->aabb, result->aabb, m_primitives[m_mortonPrimitiveInfo[i].index]->GetAABBWorld());
 		}
 		result->index = stIndex;
+		printf("index: %d\n", stIndex);
 		result->offset = edIndex - stIndex;
 		result->child[0] = result->child[1] = nullptr;
 
@@ -421,6 +422,7 @@ HBVHTreeNode* HBVHTree::BuildTreelet(int stIndex, int edIndex, int bitIndex)
 		AABB::CreateMerged(result->aabb, result->aabb, m_primitives[m_mortonPrimitiveInfo[i].index]->GetAABBWorld());
 	}
 	result->index = stIndex;
+	printf("index: %d\n", stIndex);
 	result->offset = edIndex - stIndex;
 	result->child[0] = BuildTreelet(stIndex, splitIndex, bitIndex - 1);
 	result->child[1] = BuildTreelet(splitIndex, edIndex, bitIndex - 1);
@@ -430,6 +432,14 @@ HBVHTreeNode* HBVHTree::BuildTreelet(int stIndex, int edIndex, int bitIndex)
 
 void HBVHTree::BuildUpperTree(HBVHTreeNode* node, int stIndex, int edIndex)
 {
+	if (edIndex - stIndex == 1)
+	{
+		if (node) delete node;
+		node = m_treeletInfo[stIndex].node;
+		node->child[0] = node->child[1] = nullptr;
+		return;
+	}
+	
 	for (int i = stIndex; i < edIndex; i++)
 	{
 		AABB::CreateMerged(node->aabb, node->aabb, m_treeletInfo[i].node->aabb);
@@ -437,11 +447,6 @@ void HBVHTree::BuildUpperTree(HBVHTreeNode* node, int stIndex, int edIndex)
 
 	node->index = stIndex;
 	node->offset = edIndex - stIndex;
-	if (edIndex - stIndex == 1)
-	{
-		node = m_treeletInfo[stIndex].node;
-		return;
-	}
 
 	AABB centroidAABB;
 	std::vector<Vector3> centroidAABBPoints;
@@ -517,10 +522,6 @@ void HBVHTree::BuildUpperTree(HBVHTreeNode* node, int stIndex, int edIndex)
 
 void HBVHTree::Release()
 {
-	m_treeletInfo.clear();
-	m_mortonPrimitiveInfo.clear();
-	m_primitiveInfo.clear();
-
 	if (root)
 	{
 		ReleaseTreeNode(root);

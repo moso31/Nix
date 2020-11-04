@@ -26,6 +26,7 @@ void SceneManager::BuildBVHTrees(const HBVHSplitMode SplitMode)
 	if (m_pBVHTree)
 	{
 		m_pBVHTree->Release();
+		delete m_pBVHTree;
 	}
 
 	m_pBVHTree = new HBVHTree(m_pScene, m_primitives);

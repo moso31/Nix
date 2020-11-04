@@ -11,9 +11,19 @@ NXHit::NXHit(NXPrimitive* pPrimitive, const Vector3& position, const Vector2& uv
 	dpdu(dpdu),
 	dpdv(dpdv),
 	normal(dpdv.Cross(dpdu)),
-	faceIndex(-1)
+	faceIndex(-1),
+	BSDF(nullptr)
 {
 	normal.Normalize();
+}
+
+NXHit::~NXHit()
+{
+	if (BSDF)
+	{
+		BSDF->Release();
+		delete BSDF;
+	}
 }
 
 void NXHit::GenerateBSDF(bool IsFromCamera)

@@ -27,10 +27,17 @@ struct HBVHTreeNode
 {
 	HBVHTreeNode() 
 	{
+		printf("in : %x\n", this);
 		child[0] = nullptr;
 		child[1] = nullptr;
 		aabb.Extents = Vector3(0.0f);
 	}
+
+	~HBVHTreeNode()
+	{
+		printf("out: %x\n", this);
+	}
+
 	HBVHTreeNode* child[2];
 	AABB aabb;
 	int index;
