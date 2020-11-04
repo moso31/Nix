@@ -126,7 +126,7 @@ void NXSPPMIntegrator::RenderWithPMSplitArea(NXScene* pScene, std::unique_ptr<NX
 void NXSPPMIntegrator::RenderWithPM(NXScene* pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int iter, bool RenderOnce, int x, int y)
 {
 	Vector2 pixelCoord((float)x, (float)y);
-	Vector2 sampleCoord = pixelCoord + NXRandom::GetInstance()->CreateVector2();
+	Vector2 sampleCoord = pixelCoord + NXRandom::GetInstance().CreateVector2();
 	Ray ray = pScene->GetMainCamera()->GenerateRay(sampleCoord, Vector2((float)m_imageSize.x, (float)m_imageSize.y));
 
 	UINT pixelOffset = (m_imageSize.y - y - 1) * m_imageSize.x + x;
@@ -285,7 +285,7 @@ void NXSPPMIntegrator::RenderWithPM(NXScene* pScene, std::unique_ptr<NXSPPMPixel
 void NXSPPMIntegrator::RenderWithPMSplit(NXScene* pScene, std::unique_ptr<NXSPPMPixel[]>& oPixels, ImageBMPData* pImageData, int iter, bool RenderOnce, int x, int y)
 {
 	Vector2 pixelCoord((float)x, (float)y);
-	Vector2 sampleCoord = pixelCoord + NXRandom::GetInstance()->CreateVector2();
+	Vector2 sampleCoord = pixelCoord + NXRandom::GetInstance().CreateVector2();
 	Ray ray = pScene->GetMainCamera()->GenerateRay(sampleCoord, Vector2((float)m_imageSize.x, (float)m_imageSize.y));
 
 	UINT pixelOffset = (m_imageSize.y - y - 1) * m_imageSize.x + x;

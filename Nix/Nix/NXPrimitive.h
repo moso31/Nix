@@ -10,7 +10,7 @@ class NXPrimitive : public NXTransform
 {
 public:
 	NXPrimitive();
-	virtual ~NXPrimitive() {}
+	~NXPrimitive() {}
 
 	friend class NXTriangle;
 

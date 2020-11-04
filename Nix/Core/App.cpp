@@ -50,15 +50,9 @@ void App::Release()
 		delete g_dxResources;
 	}
 
-	NXEventKeyDown::GetInstance()->Release();
-	NXEventKeyUp::GetInstance()->Release();
-	NXEventMouseDown::GetInstance()->Release();
-	NXEventMouseUp::GetInstance()->Release();
-	NXEventMouseMove::GetInstance()->Release();
-
-	NXEventKeyDown::GetInstance()->Destroy();
-	NXEventKeyUp::GetInstance()->Destroy();
-	NXEventMouseDown::GetInstance()->Destroy();
-	NXEventMouseUp::GetInstance()->Destroy();
-	NXEventMouseMove::GetInstance()->Destroy();
+	NXEventKeyDown::GetInstance().Release();
+	NXEventKeyUp::GetInstance().Release();
+	NXEventMouseDown::GetInstance().Release();
+	NXEventMouseUp::GetInstance().Release();
+	NXEventMouseMove::GetInstance().Release();
 }

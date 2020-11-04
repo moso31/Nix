@@ -5,7 +5,7 @@ class NXRDistribution
 {
 public:
 	NXRDistribution() = default;
-	~NXRDistribution() {};
+	virtual ~NXRDistribution() {};
 
 	virtual float D(const Vector3& wh) = 0;
 	float G(const Vector3& wo, const Vector3& wi);

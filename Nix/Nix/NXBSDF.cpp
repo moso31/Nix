@@ -25,7 +25,7 @@ Vector3 NXBSDF::Sample(const Vector3& woWorld, Vector3& o_wiWorld, float& o_pdf,
 	// 按各种基本分布的概率选取采样事件。
 	// 目前只有四种基本分布：漫反射/光滑反射/纯反射/纯折射
 	SampleEvents eEvent(NONE);
-	float fRandom = NXRandom::GetInstance()->CreateFloat();
+	float fRandom = NXRandom::GetInstance().CreateFloat();
 	if (fRandom <= pMat->m_sampleProbs.Diffuse)
 		eEvent = DIFFUSE;
 	else if (fRandom <= pMat->m_sampleProbs.Diffuse + pMat->m_sampleProbs.Specular)
@@ -88,7 +88,7 @@ Vector3 NXBSDF::Evaluate(const Vector3& woWorld, const Vector3& wiWorld, float& 
 
 Vector3 NXBSDF::SampleDiffuse(const Vector3& wo, Vector3& o_wi, float& o_pdf)
 {
-	Vector2 u = NXRandom::GetInstance()->CreateVector2();
+	Vector2 u = NXRandom::GetInstance().CreateVector2();
 	o_wi = SamplerMath::CosineSampleHemisphere(u);
 	if (wo.z < 0.0f) 
 		o_wi.z *= -1.0f;

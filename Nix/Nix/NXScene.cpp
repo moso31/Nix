@@ -57,19 +57,19 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 	switch (eArg.VKey)
 	{
 	case 'U':
-		NXRayTracer::GetInstance()->RenderImage(this, NXRayTraceRenderMode::DirectLighting);
+		NXRayTracer::GetInstance().RenderImage(this, NXRayTraceRenderMode::DirectLighting);
 		break;
 	case 'T':
-		NXRayTracer::GetInstance()->RenderImage(this, NXRayTraceRenderMode::PathTracing);
+		NXRayTracer::GetInstance().RenderImage(this, NXRayTraceRenderMode::PathTracing);
 		break;
 	case 'Y':
-		NXRayTracer::GetInstance()->RenderImage(this, NXRayTraceRenderMode::PhotonMapping);
+		NXRayTracer::GetInstance().RenderImage(this, NXRayTraceRenderMode::PhotonMapping);
 		break;
 	case 'J':
-		NXRayTracer::GetInstance()->RenderImage(this, NXRayTraceRenderMode::IrradianceCache);
+		NXRayTracer::GetInstance().RenderImage(this, NXRayTraceRenderMode::IrradianceCache);
 		break;
 	case 'G':
-		NXRayTracer::GetInstance()->RenderImage(this, NXRayTraceRenderMode::SPPM);
+		NXRayTracer::GetInstance().RenderImage(this, NXRayTraceRenderMode::SPPM);
 		break;
 	default:
 		break;
@@ -83,7 +83,7 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 		printf("done.\n");
 
 		printf("center ray testing...\n");
-		//NXRayTracer::GetInstance()->CenterRayTest(10);
+		//NXRayTracer::GetInstance().CenterRayTest(10);
 
 		if (!GetPrimitives().empty())
 		{
@@ -102,7 +102,7 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 
 void NXScene::Init()
 {
-	NXVisibleTest::GetInstance()->SetScene(this);
+	NXVisibleTest::GetInstance().SetScene(this);
 
 	NXPBRMaterial* pPBRMat[] = {
 		m_sceneManager->CreatePBRMaterial(Vector3(0.8f), 0.0f, 1.0f, 0.0f, 0.0f, 0.0f),
@@ -141,26 +141,26 @@ void NXScene::Init()
 	//NXPlane* pLight = m_sceneManager->CreatePlane("Light", 2.0f, 2.0f, NXPlaneAxis(NEGATIVE_Y), Vector3(0.0f, 5.999f, 2.0f));
 	//pLight->SetMaterialPBR(pPBRMat[0]);
 
-	//float a[11] = { 0.001, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0 };
-	//Vector3 rBaseColor = Vector3(1.0, 0.782, 0.344);
-	//int sz = 11;
-	//for (int i = 0; i < sz; i++)
-	//{
-	//	float metallic = a[i];
-	//	for(int j = 0; j < sz; j++)
-	//	{
-	//		Vector2 randomPos(i, j);
-	//		auto pSphere = m_sceneManager->CreateSphere(
-	//			"Sphere",
-	//			0.5f, 16, 16,
-	//			Vector3(randomPos.x, 0.5f, randomPos.y) * 1.2f
-	//		);
+	float a[11] = { 0.001, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0 };
+	Vector3 rBaseColor = Vector3(1.0, 0.782, 0.344);
+	int sz = 11;
+	for (int i = 0; i < sz; i++)
+	{
+		float metallic = a[i];
+		for(int j = 0; j < sz; j++)
+		{
+			Vector2 randomPos(i, j);
+			auto pSphere = m_sceneManager->CreateSphere(
+				"Sphere",
+				0.5f, 16, 16,
+				Vector3(randomPos.x, 0.5f, randomPos.y) * 1.2f
+			);
 
-	//		float roughness = a[j];
-	//		auto m = m_sceneManager->CreatePBRMaterial(Vector3(1.0f, 0.782f, 0.344f), metallic, roughness, 0.0f, 0.0f, 0.0f);
-	//		pSphere->SetMaterialPBR(m);
-	//	}
-	//}
+			float roughness = a[j];
+			auto m = m_sceneManager->CreatePBRMaterial(Vector3(1.0f, 0.782f, 0.344f), metallic, roughness, 0.0f, 0.0f, 0.0f);
+			pSphere->SetMaterialPBR(m);
+		}
+	}
 
 	//vector<NXMesh*> pMeshes;
 	//bool pMesh = m_sceneManager->CreateFBXMeshes(

@@ -49,8 +49,7 @@ HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow)
 int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 {
 #if defined(DEBUG) | defined(_DEBUG)
-	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF |
-		_CRTDBG_CHECK_ALWAYS_DF | _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG));
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 
 	UNREFERENCED_PARAMETER(hPrevInstance);
@@ -61,9 +60,6 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
 	g_app = new App();
 	g_app->Init(); 
-	g_app->Release();
-	delete g_app;
-	return 0;
 
 	g_timer = new NXTimer();
 
@@ -71,7 +67,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	MSG msg = { 0 };
 	while (WM_QUIT != msg.message)
 	{
-		NXII->Update();
+		NXII.Update();
 
 		if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 		{
@@ -84,7 +80,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 			g_app->Update();
 			g_app->Draw();
 
-			NXII->RestoreData(); // 清空一次鼠标位置
+			NXII.RestoreData(); // 清空一次鼠标位置
 		}
 	}
 
@@ -92,7 +88,6 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
 	g_app->Release();
 	delete g_app;
-
 	return (int)msg.wParam;
 }
 
@@ -113,9 +108,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 
 	case WM_INPUT:
-		NXII->UpdateRawInput(lParam);
+		NXII.UpdateRawInput(lParam);
 
-		if (NXII->KeyDown(VK_ESCAPE))
+		if (NXII.KeyDown(VK_ESCAPE))
 			PostQuitMessage(0);
 		break;
 

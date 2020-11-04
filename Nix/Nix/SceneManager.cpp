@@ -40,7 +40,7 @@ NXScript* SceneManager::CreateScript(const NXScriptType scriptType, NXObject* pO
 	{
 		auto pScript = new NSFirstPersonalCamera();
 		pObject->AddScript(pScript);
-		//GetScripts().push_back(pScript);
+		//m_scripts.push_back(pScript);
 		return pScript;
 	}
 	default:
@@ -55,27 +55,27 @@ NXListener* SceneManager::AddEventListener(const NXEventType eventType, NXObject
 	{
 	case NXEventType::NXEVENT_KEYDOWN:
 	{
-		NXEventKeyDown::GetInstance()->AddListener(pListener);
+		NXEventKeyDown::GetInstance().AddListener(pListener);
 		break;
 	}
 	case NXEventType::NXEVENT_KEYUP:
 	{
-		NXEventKeyUp::GetInstance()->AddListener(pListener);
+		NXEventKeyUp::GetInstance().AddListener(pListener);
 		break;
 	}
 	case NXEventType::NXEVENT_MOUSEDOWN:
 	{
-		NXEventMouseDown::GetInstance()->AddListener(pListener);
+		NXEventMouseDown::GetInstance().AddListener(pListener);
 		break;
 	}
 	case NXEventType::NXEVENT_MOUSEUP:
 	{
-		NXEventMouseUp::GetInstance()->AddListener(pListener);
+		NXEventMouseUp::GetInstance().AddListener(pListener);
 		break;
 	}
 	case NXEventType::NXEVENT_MOUSEMOVE:
 	{
-		NXEventMouseMove::GetInstance()->AddListener(pListener);
+		NXEventMouseMove::GetInstance().AddListener(pListener);
 		break;
 	}
 	default:
@@ -221,6 +221,11 @@ void SceneManager::Release()
 	{
 		delete pMat;
 	}
+
+	//for (auto script : m_scripts)
+	//{
+	//	delete script;
+	//}
 
 	if (m_pBVHTree)
 	{

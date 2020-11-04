@@ -5,7 +5,7 @@ class NXObject
 {
 public:
 	NXObject();
-	~NXObject();
+	virtual ~NXObject();
 
 	std::string GetName();
 	void SetName(std::string name);

@@ -15,6 +15,8 @@ NXPrimitive::NXPrimitive() :
 	//m_pTexture(nullptr),
 	m_pTextureSRV(nullptr),
 	m_cbMaterial(nullptr),
+	m_pPBRMaterial(nullptr),
+	m_pTangibleLight(nullptr),
 	m_bEnableNormal(true),
 	m_bEnableTangent(false),
 	m_bEnableNormalDerivative(false)
@@ -133,7 +135,7 @@ bool NXPrimitive::RayCast(const Ray& worldRay, NXHit& outHitInfo, float& outDist
 
 void NXPrimitive::SampleForArea(Vector3& o_pos, Vector3& o_norm, float& o_pdfA)
 {
-	Vector2 r = NXRandom::GetInstance()->CreateVector2();
+	Vector2 r = NXRandom::GetInstance().CreateVector2();
 	Vector2 b = UniformTriangleSample(r);	// ÖØÐÄ×ø±ê
 	NXTriangle tri = SampleTriangle();
 	VertexPNT P0 = tri.GetPointData(0);
@@ -218,7 +220,7 @@ void NXPrimitive::InitAABB()
 
 NXTriangle NXPrimitive::SampleTriangle()
 {
-	float randomArea = NXRandom::GetInstance()->CreateFloat() * GetSurfaceArea();
+	float randomArea = NXRandom::GetInstance().CreateFloat() * GetSurfaceArea();
 	int sampleId = 0;
 	for (sampleId = 0; sampleId < m_triangleAreas.size() - 1; sampleId++)
 	{

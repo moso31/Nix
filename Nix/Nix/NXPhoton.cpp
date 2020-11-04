@@ -77,7 +77,7 @@ void NXPhotonMap::GenerateCausticMap(NXScene* pScene)
 
 	for (int i = 0; i < m_numPhotons; i++)
 	{
-		int sampleLight = NXRandom::GetInstance()->CreateInt(0, lightCount - 1);
+		int sampleLight = NXRandom::GetInstance().CreateInt(0, lightCount - 1);
 
 		float pdfPos, pdfDir;
 		Vector3 power;
@@ -131,7 +131,7 @@ void NXPhotonMap::GenerateCausticMap(NXScene* pScene)
 			Vector3 reflectance = f * fabsf(hitInfo.shading.normal.Dot(nextDirection)) / pdf;
 
 			auto mat = hitInfo.pPrimitive->GetPBRMaterial();
-			float random = NXRandom::GetInstance()->CreateFloat();
+			float random = NXRandom::GetInstance().CreateFloat();
 
 			// Roulette
 			if (random > mat->m_albedo.GetGrayValue())
@@ -159,7 +159,7 @@ void NXPhotonMap::GenerateGlobalMap(NXScene* pScene)
 
 	for (int i = 0; i < m_numPhotons; i++)
 	{
-		int sampleLight = NXRandom::GetInstance()->CreateInt(0, lightCount - 1);
+		int sampleLight = NXRandom::GetInstance().CreateInt(0, lightCount - 1);
 
 		float pdfPos, pdfDir;
 		Vector3 power;
@@ -214,7 +214,7 @@ void NXPhotonMap::GenerateGlobalMap(NXScene* pScene)
 			Vector3 reflectance = f * fabsf(hitInfo.shading.normal.Dot(nextDirection)) / pdf;
 
 			auto mat = hitInfo.pPrimitive->GetPBRMaterial();
-			float random = NXRandom::GetInstance()->CreateFloat();
+			float random = NXRandom::GetInstance().CreateFloat();
 
 			// Roulette
 			if (random > mat->m_albedo.GetGrayValue() || random == 0)

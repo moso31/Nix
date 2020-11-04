@@ -6,25 +6,12 @@ class NXInstance
 {
 public:
 	NXInstance() {}
-	virtual ~NXInstance() 
-	{
-	}
+	//NXInstance& operator=(const NXInstance&) = delete;
+	virtual ~NXInstance() {}
 
-	static T* GetInstance()
+	static T& GetInstance()
 	{
-		if (!s_instance) 
-			s_instance = new T();
-		return s_instance;
+		static T instance;
+		return instance;
 	}
-
-	virtual void Destroy() 
-	{
-		delete s_instance;
-	}
-
-protected:
-	static T* s_instance;
 };
-
-template <typename T>
-T* NXInstance<T>::s_instance;
