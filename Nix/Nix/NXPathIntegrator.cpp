@@ -71,7 +71,7 @@ Vector3 NXPathIntegrator::Radiance(const Ray& ray, NXScene* pScene, int depth)
 			// q的最低值设为0.05，以期望20个样本中至少有1个是有效样本。
 			// 避免在低频采样的地方选择率过低。
 			float q = max(0.05f, throughput.MaxComponent());
-			float fRandom = NXRandom::GetInstance()->CreateFloat();
+			float fRandom = NXRandom::GetInstance().CreateFloat();
 			if (fRandom < 1.0f - q)
 				break;
 			throughput /= q;

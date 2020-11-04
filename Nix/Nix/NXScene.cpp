@@ -57,19 +57,19 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 	switch (eArg.VKey)
 	{
 	case 'U':
-		NXRayTracer::GetInstance()->RenderImage(this, NXRayTraceRenderMode::DirectLighting);
+		NXRayTracer::GetInstance().RenderImage(this, NXRayTraceRenderMode::DirectLighting);
 		break;
 	case 'T':
-		NXRayTracer::GetInstance()->RenderImage(this, NXRayTraceRenderMode::PathTracing);
+		NXRayTracer::GetInstance().RenderImage(this, NXRayTraceRenderMode::PathTracing);
 		break;
 	case 'Y':
-		NXRayTracer::GetInstance()->RenderImage(this, NXRayTraceRenderMode::PhotonMapping);
+		NXRayTracer::GetInstance().RenderImage(this, NXRayTraceRenderMode::PhotonMapping);
 		break;
 	case 'J':
-		NXRayTracer::GetInstance()->RenderImage(this, NXRayTraceRenderMode::IrradianceCache);
+		NXRayTracer::GetInstance().RenderImage(this, NXRayTraceRenderMode::IrradianceCache);
 		break;
 	case 'G':
-		NXRayTracer::GetInstance()->RenderImage(this, NXRayTraceRenderMode::SPPM);
+		NXRayTracer::GetInstance().RenderImage(this, NXRayTraceRenderMode::SPPM);
 		break;
 	default:
 		break;
@@ -79,11 +79,19 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 	{
 		// 创建求交加速结构以增加渲染速度。
 		printf("Generating BVH Structure...");
-		BuildBVHTrees(HLBVH);
+		BuildBVHTrees(HBVHSplitMode::HLBVH);
 		printf("done.\n");
 
-		printf("center ray testing...\n");
-		//NXRayTracer::GetInstance()->CenterRayTest(10);
+		Vector2 sampleCoord = Vector2((float)200 * 0.5f, (float)150 * 0.5f);
+		Ray rayWorld = GetMainCamera()->GenerateRay(sampleCoord, Vector2((float)200, (float)150));
+
+		NXHit hit;
+		RayCast(rayWorld, hit);
+		if (hit.pPrimitive)
+		{
+			hit.GenerateBSDF(true);
+			RayCast(rayWorld, hit);
+		}
 
 		if (!GetPrimitives().empty())
 		{
@@ -102,7 +110,7 @@ void NXScene::OnKeyDown(NXEventArg eArg)
 
 void NXScene::Init()
 {
-	NXVisibleTest::GetInstance()->SetScene(this);
+	NXVisibleTest::GetInstance().SetScene(this);
 
 	NXPBRMaterial* pPBRMat[] = {
 		m_sceneManager->CreatePBRMaterial(Vector3(0.8f), 0.0f, 1.0f, 0.0f, 0.0f, 0.0f),
@@ -120,17 +128,17 @@ void NXScene::Init()
 	//pPlane = m_sceneManager->CreatePlane("Wall +Y", 8.0f, 12.0f, NXPlaneAxis(NEGATIVE_Y), Vector3(0.0f, 6.0f, 0.0f));
 	//pPlane->SetMaterialPBR(pPBRMat[0]);
 
-	pPlane = m_sceneManager->CreatePlane("Wall -Z", 8.0f, 6.0f, NXPlaneAxis(POSITIVE_Z), Vector3(0.0f, 3.0f, -6.0f));
-	pPlane->SetMaterialPBR(pPBRMat[0]);
+	//pPlane = m_sceneManager->CreatePlane("Wall -Z", 8.0f, 6.0f, NXPlaneAxis(POSITIVE_Z), Vector3(0.0f, 3.0f, -6.0f));
+	//pPlane->SetMaterialPBR(pPBRMat[0]);
 
-	pPlane = m_sceneManager->CreatePlane("Wall +Z", 8.0f, 6.0f, NXPlaneAxis(NEGATIVE_Z), Vector3(0.0f, 3.0f, 6.0f));
-	pPlane->SetMaterialPBR(pPBRMat[0]);
+	//pPlane = m_sceneManager->CreatePlane("Wall +Z", 8.0f, 6.0f, NXPlaneAxis(NEGATIVE_Z), Vector3(0.0f, 3.0f, 6.0f));
+	//pPlane->SetMaterialPBR(pPBRMat[0]);
 
-	pPlane = m_sceneManager->CreatePlane("Wall -X", 6.0f, 12.0f, NXPlaneAxis(POSITIVE_X), Vector3(-4.0f, 3.0f, 0.0f));
-	pPlane->SetMaterialPBR(pPBRMat[1]);
+	//pPlane = m_sceneManager->CreatePlane("Wall -X", 6.0f, 12.0f, NXPlaneAxis(POSITIVE_X), Vector3(-4.0f, 3.0f, 0.0f));
+	//pPlane->SetMaterialPBR(pPBRMat[1]);
 
-	pPlane = m_sceneManager->CreatePlane("Wall +X", 6.0f, 12.0f, NXPlaneAxis(NEGATIVE_X), Vector3(4.0f, 3.0f, 0.0f));
-	pPlane->SetMaterialPBR(pPBRMat[2]);
+	//pPlane = m_sceneManager->CreatePlane("Wall +X", 6.0f, 12.0f, NXPlaneAxis(NEGATIVE_X), Vector3(4.0f, 3.0f, 0.0f));
+	//pPlane->SetMaterialPBR(pPBRMat[2]);
 
 	auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 16, 16, Vector3(1.0f, 1.0f, 1.0f));
 	pSphere->SetMaterialPBR(pPBRMat[4]);

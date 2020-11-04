@@ -9,12 +9,30 @@
 NXPMSplitIntegrator::NXPMSplitIntegrator(const XMINT2& imageSize, int eachPixelSamples, std::string outPath, UINT nCausticPhotons, UINT nGlobalPhotons) :
 	NXSampleIntegrator(imageSize, eachPixelSamples, outPath),
 	m_numCausticPhotons(nCausticPhotons),
-	m_numGlobalPhotons(nGlobalPhotons)
+	m_numGlobalPhotons(nGlobalPhotons),
+	m_pGlobalPhotonMap(nullptr),
+	m_pCausticPhotonMap(nullptr),
+	m_pIrradianceCache(nullptr)
 {
 }
 
 NXPMSplitIntegrator::~NXPMSplitIntegrator()
 {
+	if (m_pCausticPhotonMap)
+	{
+		m_pCausticPhotonMap->Release();
+		delete m_pCausticPhotonMap;
+	}
+	if (m_pGlobalPhotonMap)
+	{
+		m_pGlobalPhotonMap->Release();
+		delete m_pGlobalPhotonMap;
+	}
+	if (m_pIrradianceCache)
+	{
+		m_pIrradianceCache->Release();
+		delete m_pIrradianceCache;
+	}
 }
 
 void NXPMSplitIntegrator::Render(NXScene* pScene)

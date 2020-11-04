@@ -11,14 +11,28 @@ NXHit::NXHit(NXPrimitive* pPrimitive, const Vector3& position, const Vector2& uv
 	dpdu(dpdu),
 	dpdv(dpdv),
 	normal(dpdv.Cross(dpdu)),
-	faceIndex(-1)
+	faceIndex(-1),
+	BSDF(nullptr)
 {
 	normal.Normalize();
 }
 
+NXHit::~NXHit()
+{
+	if (BSDF)
+	{
+		BSDF->Release();
+		delete BSDF;
+	}
+}
+
 void NXHit::GenerateBSDF(bool IsFromCamera)
 {
-	BSDF->Release();
+	if (BSDF)
+	{
+		BSDF->Release();
+		delete BSDF;
+	}
 	NXPBRMaterial* pMat = pPrimitive->GetPBRMaterial();
 	BSDF = new NXBSDF(*this, pMat);
 }
@@ -52,4 +66,12 @@ void NXHit::LocalToWorld()
 void NXHit::Reset()
 {
 	pPrimitive = nullptr;
+	if (BSDF)
+	{
+		BSDF->Release();
+		delete BSDF;
+
+		// Reset以后BSDF指针是有可能重用的，所以需要将BSDF指针置空，以确保下次使用时的内存安全。
+		BSDF = nullptr;	
+	}
 }

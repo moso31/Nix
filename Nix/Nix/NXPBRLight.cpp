@@ -23,7 +23,7 @@ bool NXVisibleTest::Do(const Vector3& startPosition, const Vector3& targetPositi
 
 Vector3 NXPBRPointLight::Emit(Ray& o_ray, Vector3& o_lightNormal, float& o_pdfPos, float& o_pdfDir)
 {
-	Vector2 random = NXRandom::GetInstance()->CreateVector2();
+	Vector2 random = NXRandom::GetInstance().CreateVector2();
 	o_lightNormal = UniformSampleSphere(random);
 	o_ray = Ray(Position, o_lightNormal);
 	o_pdfPos = 1.0f;
@@ -38,7 +38,7 @@ Vector3 NXPBRPointLight::Illuminate(const NXHit& hitInfo, Vector3& o_wi, float& 
 	Vector3 lightRadiance = Intensity / o_wi.LengthSquared();
 	o_wi.Normalize();
 	o_pdf = 1;
-	if (!NXVisibleTest::GetInstance()->Do(hitInfo.position, Position))
+	if (!NXVisibleTest::GetInstance().Do(hitInfo.position, Position))
 		return Vector3(0.0f);
 
 	return lightRadiance;
@@ -67,7 +67,7 @@ Vector3 NXPBRDistantLight::Emit(Ray& o_ray, Vector3& o_lightNormal, float& o_pdf
 {
 	Vector3 basis1, basis2;
 	Direction.GenerateCoordinateSpace(basis1, basis2);
-	Vector2 random = NXRandom::GetInstance()->CreateVector2();
+	Vector2 random = NXRandom::GetInstance().CreateVector2();
 	Vector2 diskCoord = UniformSampleDisk(random);
 	Vector3 sampleLightPosition = WorldCenter + (diskCoord.x * basis1 + diskCoord.y * basis2 - Direction) * WorldRadius;
 
@@ -84,7 +84,7 @@ Vector3 NXPBRDistantLight::Illuminate(const NXHit& hitInfo, Vector3& o_wi, float
 	o_wi = -Direction;
 	o_wi.Normalize();
 	o_pdf = 1;
-	if (!NXVisibleTest::GetInstance()->Do(hitInfo.position, hitInfo.position - Direction))
+	if (!NXVisibleTest::GetInstance().Do(hitInfo.position, hitInfo.position - Direction))
 		return Vector3(0.0f);
 
 	return Radiance;
@@ -108,7 +108,7 @@ Vector3 NXPBRTangibleLight::Emit(Ray& o_ray, Vector3& o_lightNormal, float& o_pd
 {
 	Vector3 sampleLightPosition;
 	m_pPrimitive->SampleForArea(sampleLightPosition, o_lightNormal, o_pdfPos);
-	Vector2 vRandomDir = NXRandom::GetInstance()->CreateVector2();
+	Vector2 vRandomDir = NXRandom::GetInstance().CreateVector2();
 	Vector3 sampleDir = CosineSampleHemisphere(vRandomDir);
 	o_pdfDirLocal = CosineSampleHemispherePdf(sampleDir.z);
 
@@ -129,7 +129,7 @@ Vector3 NXPBRTangibleLight::Illuminate(const NXHit& hitInfo, Vector3& o_wi, floa
 	o_wi = sampleLightPosition - hitInfo.position;
 	o_wi.Normalize();
 
-	if (!NXVisibleTest::GetInstance()->Do(hitInfo.position, sampleLightPosition))
+	if (!NXVisibleTest::GetInstance().Do(hitInfo.position, sampleLightPosition))
 		return Vector3(0.0f);	// 无效光源：被场景中其他物体挡住
 
 	return GetRadiance(sampleLightPosition, sampleLightNormal, -o_wi);
@@ -160,11 +160,11 @@ Vector3 NXPBREnvironmentLight::Emit(Ray& o_ray, Vector3& o_lightNormal, float& o
 {
 	Vector3 basis1, basis2;
 
-	Vector2 randomDir = NXRandom::GetInstance()->CreateVector2();
+	Vector2 randomDir = NXRandom::GetInstance().CreateVector2();
 	Vector3 sampleDir = UniformSampleSphere(randomDir);	// 从全球方向均匀采样。水平线以下的样本可能很少用到（用余弦可能更好？）。
 	sampleDir.GenerateCoordinateSpace(basis1, basis2);
 
-	Vector2 randomPos = NXRandom::GetInstance()->CreateVector2();
+	Vector2 randomPos = NXRandom::GetInstance().CreateVector2();
 	Vector2 diskCoord = UniformSampleDisk(randomPos);
 	Vector3 sampleLightPosition = WorldCenter + (diskCoord.x * basis1 + diskCoord.y * basis2 + sampleDir) * WorldRadius;
 
@@ -179,13 +179,13 @@ Vector3 NXPBREnvironmentLight::Emit(Ray& o_ray, Vector3& o_lightNormal, float& o
 
 Vector3 NXPBREnvironmentLight::Illuminate(const NXHit& hitInfo, Vector3& o_wi, float& o_pdf)
 {
-	Vector2 random = NXRandom::GetInstance()->CreateVector2();
+	Vector2 random = NXRandom::GetInstance().CreateVector2();
 	// 暂时用余弦采样。可能均匀采样更好？
 	o_wi = CosineSampleHemisphere(random);
 	o_pdf = CosineSampleHemispherePdf(o_wi.z);
 	o_wi = hitInfo.BSDF->ReflectionToWorld(o_wi);
 
-	if (!NXVisibleTest::GetInstance()->Do(hitInfo.position, hitInfo.position + o_wi * 2.0f * WorldRadius))
+	if (!NXVisibleTest::GetInstance().Do(hitInfo.position, hitInfo.position + o_wi * 2.0f * WorldRadius))
 		return Vector3(0.0f);	// 无效光源：被场景中其他物体挡住
 	
 	Vector3 ignore;

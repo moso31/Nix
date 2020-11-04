@@ -16,7 +16,7 @@ void NXRayTracer::RenderImage(NXScene* pScene, NXRayTraceRenderMode rayTraceMode
 	NXTimer t1, t2;
 	t1.Tick();
 
-	XMINT2 renderResolution = XMINT2(800, 600);
+	XMINT2 renderResolution = XMINT2(200, 150);
 	int pixelSample = 16;
 
 	switch (rayTraceMode)

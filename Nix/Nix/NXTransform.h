@@ -5,7 +5,7 @@ class NXTransform : public NXObject
 {
 public:
 	NXTransform();
-	virtual ~NXTransform() {}
+	~NXTransform() {}
 
 	virtual Vector3 GetTranslation();
 	virtual Quaternion GetRotation();

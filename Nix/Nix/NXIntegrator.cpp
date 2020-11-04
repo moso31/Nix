@@ -119,7 +119,7 @@ Vector3 NXIntegrator::UniformLightOne(const Ray& ray, NXScene* pScene, const NXH
 	Vector3 result(0.0f);
 	auto pLights = pScene->GetPBRLights();
 	int lightCount = (int)pLights.size();
-	int index = NXRandom::GetInstance()->CreateInt(0, lightCount - 1);
+	int index = NXRandom::GetInstance().CreateInt(0, lightCount - 1);
 	return DirectEstimate(ray, pScene, pLights[index], hitInfo) * (float)lightCount;
 }
 
@@ -191,7 +191,7 @@ void NXSampleIntegrator::RenderTile(NXScene* pScene, const XMINT2& tileId, Image
 			for (UINT pixelSample = 0; pixelSample < m_eachPixelSamples; pixelSample++)
 			{
 				// pixel + [0, 1)^2.
-				Vector2 sampleCoord = pixelCoord + NXRandom::GetInstance()->CreateVector2();
+				Vector2 sampleCoord = pixelCoord + NXRandom::GetInstance().CreateVector2();
 
 				Ray rayWorld = pScene->GetMainCamera()->GenerateRay(sampleCoord, Vector2((float)m_imageSize.x, (float)m_imageSize.y));
 				result += Radiance(rayWorld, pScene, 0);

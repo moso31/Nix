@@ -117,14 +117,16 @@ Vector3 NXIrradianceCache::Irradiance(const Ray& cameraRay, NXScene* pScene, int
 	{
 		// 附近没有Cache点，就只能精确计算。
 		// 具体做法：在半球空间上密集采样，对每个方向都计算，最后统计平均值。
-		int sampleTheta = 20;
-		int samplePhi = 20;
+		int sampleTheta = 5;
+		int samplePhi = 5;
 		NXIrradianceCacheInfo cacheInfo;
 		Vector3 irradiance(0.0f);
 		if (CalculateOneCache(pScene, hitInfo, sampleTheta, samplePhi, irradiance, cacheInfo))
 		{
 			result += irradiance;
-			m_caches.push_back(cacheInfo);
+
+			// 暂时无法确保m_caches的线程安全，故停用。将来需要改进。
+			//m_caches.push_back(cacheInfo);
 		}
 	}
 

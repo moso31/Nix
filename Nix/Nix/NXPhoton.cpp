@@ -8,7 +8,8 @@
 #include "ImageGenerator.h"
 
 NXPhotonMap::NXPhotonMap(int numPhotons) :
-	m_numPhotons(numPhotons)
+	m_numPhotons(numPhotons),
+	m_pKdTree(nullptr)
 {
 }
 
@@ -64,8 +65,10 @@ void NXPhotonMap::Render(NXScene* pScene, const XMINT2& imageSize, std::string o
 void NXPhotonMap::Release()
 {
 	if (m_pKdTree)
+	{
 		m_pKdTree->Release();
-	delete m_pKdTree;
+		delete m_pKdTree;
+	}
 }
 
 void NXPhotonMap::GenerateCausticMap(NXScene* pScene)
@@ -77,7 +80,7 @@ void NXPhotonMap::GenerateCausticMap(NXScene* pScene)
 
 	for (int i = 0; i < m_numPhotons; i++)
 	{
-		int sampleLight = NXRandom::GetInstance()->CreateInt(0, lightCount - 1);
+		int sampleLight = NXRandom::GetInstance().CreateInt(0, lightCount - 1);
 
 		float pdfPos, pdfDir;
 		Vector3 power;
@@ -131,7 +134,7 @@ void NXPhotonMap::GenerateCausticMap(NXScene* pScene)
 			Vector3 reflectance = f * fabsf(hitInfo.shading.normal.Dot(nextDirection)) / pdf;
 
 			auto mat = hitInfo.pPrimitive->GetPBRMaterial();
-			float random = NXRandom::GetInstance()->CreateFloat();
+			float random = NXRandom::GetInstance().CreateFloat();
 
 			// Roulette
 			if (random > mat->m_albedo.GetGrayValue())
@@ -144,8 +147,6 @@ void NXPhotonMap::GenerateCausticMap(NXScene* pScene)
 		}
 	}
 
-	if (m_pKdTree)
-		m_pKdTree->Release();
 	m_pKdTree = new NXKdTree<NXPhoton>();
 	m_pKdTree->BuildBalanceTree(m_pData);
 }
@@ -159,7 +160,7 @@ void NXPhotonMap::GenerateGlobalMap(NXScene* pScene)
 
 	for (int i = 0; i < m_numPhotons; i++)
 	{
-		int sampleLight = NXRandom::GetInstance()->CreateInt(0, lightCount - 1);
+		int sampleLight = NXRandom::GetInstance().CreateInt(0, lightCount - 1);
 
 		float pdfPos, pdfDir;
 		Vector3 power;
@@ -214,7 +215,7 @@ void NXPhotonMap::GenerateGlobalMap(NXScene* pScene)
 			Vector3 reflectance = f * fabsf(hitInfo.shading.normal.Dot(nextDirection)) / pdf;
 
 			auto mat = hitInfo.pPrimitive->GetPBRMaterial();
-			float random = NXRandom::GetInstance()->CreateFloat();
+			float random = NXRandom::GetInstance().CreateFloat();
 
 			// Roulette
 			if (random > mat->m_albedo.GetGrayValue() || random == 0)
@@ -227,8 +228,6 @@ void NXPhotonMap::GenerateGlobalMap(NXScene* pScene)
 		}
 	}
 
-	if (m_pKdTree)
-		m_pKdTree->Release();
 	m_pKdTree = new NXKdTree<NXPhoton>();
 	m_pKdTree->BuildBalanceTree(m_pData);
 }

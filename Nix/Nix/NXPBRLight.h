@@ -22,7 +22,7 @@ class NXPBRLight
 {
 public:
 	NXPBRLight() {}
-	~NXPBRLight() {}
+	virtual ~NXPBRLight() {}
 
 	virtual bool IsDeltaLight() = 0;
 	virtual Vector3 Emit(Ray& o_ray, Vector3& o_lightNormal, float& o_pdfPos, float& o_pdfDir) = 0;

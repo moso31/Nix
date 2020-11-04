@@ -8,12 +8,18 @@
 NXPMIntegrator::NXPMIntegrator(const XMINT2& imageSize, int eachPixelSamples, std::string outPath, UINT nPhotons, UINT nEstimatePhotons) :
 	NXSampleIntegrator(imageSize, eachPixelSamples, outPath),
 	m_numPhotons(nPhotons),
-	m_estimatePhotons(nEstimatePhotons)
+	m_estimatePhotons(nEstimatePhotons),
+	m_pPhotonMap(nullptr)
 {
 }
 
 NXPMIntegrator::~NXPMIntegrator()
 {
+	if (m_pPhotonMap)
+	{
+		m_pPhotonMap->Release();
+		delete m_pPhotonMap;
+	}
 }
 
 void NXPMIntegrator::Render(NXScene* pScene)
@@ -86,7 +92,6 @@ Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, NXScene* pScene, int dept
 		throughput *= f * fabsf(hitInfo.shading.normal.Dot(nextDirection)) / pdf;
 		ray = Ray(hitInfo.position, nextDirection);
 		ray.position += ray.direction * NXRT_EPSILON;
-
 		depth++;
 	}
 

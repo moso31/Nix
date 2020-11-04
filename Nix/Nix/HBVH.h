@@ -31,6 +31,9 @@ struct HBVHTreeNode
 		child[1] = nullptr;
 		aabb.Extents = Vector3(0.0f);
 	}
+
+	~HBVHTreeNode()	{}
+
 	HBVHTreeNode* child[2];
 	AABB aabb;
 	int index;
@@ -78,7 +81,7 @@ private:
 	HBVHTreeNode* BuildTreelet(int stIndex, int edIndex, int bitIndex);
 
 	// 构建上层总树。
-	void BuildUpperTree(HBVHTreeNode* node, int stIndex, int edIndex);
+	void BuildUpperTree(HBVHTreeNode*& node, int stIndex, int edIndex);
 
 	void ReleaseTreeNode(HBVHTreeNode* node);
 

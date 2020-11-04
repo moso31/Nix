@@ -141,7 +141,7 @@ bool NXSphere::RayCast(const Ray& worldRay, NXHit& outHitInfo, float& outDist)
 
 void NXSphere::SampleForArea(Vector3& o_pos, Vector3& o_norm, float& o_pdfA)
 {
-	Vector2 vRandom = NXRandom::GetInstance()->CreateVector2();
+	Vector2 vRandom = NXRandom::GetInstance().CreateVector2();
 	o_norm = UniformSampleSphere(vRandom);
 	o_pos = o_norm * m_radius;
 	o_pos = Vector3::Transform(o_pos, m_worldMatrix);

@@ -42,7 +42,7 @@ float NXRDistributionBeckmann::D(const Vector3& wh)
 
 Vector3 NXRDistributionBeckmann::Sample_wh(const Vector3& wo)
 {
-	Vector2 u = NXRandom::GetInstance()->CreateVector2();
+	Vector2 u = NXRandom::GetInstance().CreateVector2();
 	float a2lnux = alpha * alpha * logf(u.x);
 	float cosTheta = sqrt(1.0f / (1.0f - a2lnux));
 	float sinTheta = sqrt(1.0f - cosTheta * cosTheta);

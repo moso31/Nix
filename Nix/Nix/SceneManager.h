@@ -1,6 +1,6 @@
 #pragma once
-#include "NXScriptType.h"
 #include "NXEvent.h"
+#include "NXScriptType.h"
 
 #include "HBVH.h"
 
@@ -63,6 +63,7 @@ private:
 	// Òþ²ØµÄ¸ùobject
 	NXObject* m_pRootObject;
 	std::vector<NXObject*> m_objects;
+	//std::vector<NXScript*> m_scripts;
 
 	std::vector<NXPrimitive*> m_primitives;
 	std::vector<NXPBRMaterial*> m_pbrMaterials;

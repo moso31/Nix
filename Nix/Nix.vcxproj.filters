@@ -87,6 +87,8 @@
     <None Include="Shader\CubeMapIrradiance.fx">
       <Filter>Shader</Filter>
     </None>
+    <None Include="Shader\CubeMapPreFilter.fx" />
+    <None Include="Shader\Random.fx" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">
@@ -408,13 +410,5 @@
     <Text Include="场景添加物体说明.txt" />
     <Text Include="普通问题（3级）.txt" />
     <Text Include="较严重问题（2级）.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Shader\CubeMapPreFilter.fx">
-      <Filter>Shader</Filter>
-    </FxCompile>
-    <FxCompile Include="Shader\Random.fx">
-      <Filter>Shader</Filter>
-    </FxCompile>
   </ItemGroup>
 </Project>
