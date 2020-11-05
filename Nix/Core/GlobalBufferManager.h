@@ -23,5 +23,6 @@ public:
 	static void Init();
 
 	static D3D11_INPUT_ELEMENT_DESC layoutP[1];
+	static D3D11_INPUT_ELEMENT_DESC layoutPT[2];
 	static D3D11_INPUT_ELEMENT_DESC layoutPNT[3];
 };

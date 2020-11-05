@@ -50,13 +50,13 @@ float DistributionGGX(float3 N, float3 H, float roughness)
 
 float GeometrySchlickGGX(float NdotV, float roughness)
 {
-	float r = (roughness + 1.0);
-	float k = (r * r) / 8.0;
+	float a = roughness;
+	float k = (a * a) / 2.0;
 
-	float num = NdotV;
+	float nom = NdotV;
 	float denom = NdotV * (1.0 - k) + k;
 
-	return num / denom;
+	return nom / denom;
 }
 
 float GeometrySmith(float3 N, float3 V, float3 L, float roughness)

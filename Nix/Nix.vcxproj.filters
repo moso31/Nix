@@ -87,11 +87,13 @@
     <None Include="Shader\CubeMapIrradiance.fx">
       <Filter>Shader</Filter>
     </None>
-    <None Include="Shader\Random.fx" />
     <None Include="Shader\CubeMapPreFilter.fx">
       <Filter>Shader</Filter>
     </None>
     <None Include="Shader\BRDF2DLUT.fx">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Shader\Random.fx">
       <Filter>Shader</Filter>
     </None>
   </ItemGroup>

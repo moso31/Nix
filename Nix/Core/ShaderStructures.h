@@ -4,14 +4,23 @@
 struct VertexP
 {
 	VertexP() = default;
-	VertexP(Vector3 pos) : pos(pos) {}
+	VertexP(const Vector3& pos) : pos(pos) {}
 	Vector3 pos;
+};
+
+struct VertexPT
+{
+	VertexPT() = default;
+	VertexPT(const Vector3& pos, const Vector2& tex) :
+		pos(pos), tex(tex) {}
+	Vector3 pos;
+	Vector2 tex;
 };
 
 struct VertexPNT
 {
 	VertexPNT() = default;
-	VertexPNT(Vector3 pos, Vector3 norm, Vector2 tex) : 
+	VertexPNT(const Vector3& pos, const Vector3& norm, const Vector2& tex) : 
 		pos(pos), norm(norm), tex(tex) {}
 	Vector3 pos;
 	Vector3 norm;
@@ -20,7 +29,7 @@ struct VertexPNT
 
 struct VertexPNTC
 {
-	VertexPNTC(Vector3 pos, Vector3 norm, Vector2 tex, Vector4 color) : 
+	VertexPNTC(const Vector3& pos, const Vector3& norm, const Vector2& tex, const Vector4& color) : 
 		pos(pos), norm(norm), tex(tex), color(color) {}
 	Vector3 pos;
 	Vector3 norm;

@@ -535,25 +535,25 @@ void NXCubeMap::GenerateBRDF2DLUT()
 	CD3D11_RENDER_TARGET_VIEW_DESC descRTV(D3D11_RTV_DIMENSION_TEXTURE2D, descTex.Format);
 	g_pDevice->CreateRenderTargetView(m_pBRDF2DLUT, &descRTV, &m_pBRDF2DLUTRTV);
 
-	std::vector<VertexP> vertices =
+	std::vector<VertexPT> vertices =
 	{
 		// +Z
-		{ Vector3(+1.0f, +1.0f, +1.0f) },
-		{ Vector3(-1.0f, +1.0f, +1.0f) },
-		{ Vector3(-1.0f, -1.0f, +1.0f) },
-		{ Vector3(+1.0f, -1.0f, +1.0f) },
+		{ Vector3(+1.0f, +1.0f, +1.0f), Vector2(1.0f, 1.0f) },
+		{ Vector3(-1.0f, +1.0f, +1.0f), Vector2(1.0f, 0.0f) },
+		{ Vector3(-1.0f, -1.0f, +1.0f), Vector2(0.0f, 0.0f) },
+		{ Vector3(+1.0f, -1.0f, +1.0f), Vector2(0.0f, 1.0f) },
 	};
-
+	 
 	std::vector<USHORT> indices =
 	{
-		0,  2,	1,
-		0,  3,	2,
+		0,  2,	1, 
+		0,  3,	2, 
 	};
 
 	D3D11_BUFFER_DESC bufferDesc;
 	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
 	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(VertexP) * (UINT)vertices.size();
+	bufferDesc.ByteWidth = sizeof(VertexPT) * (UINT)vertices.size();
 	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
 	D3D11_SUBRESOURCE_DATA InitData;
@@ -572,7 +572,7 @@ void NXCubeMap::GenerateBRDF2DLUT()
 	ID3D11Buffer* pIndexBuffer;
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &pIndexBuffer));
 
-	ID3D11InputLayout* pInputLayoutPNT;
+	ID3D11InputLayout* pInputLayoutPT;
 	ID3D11VertexShader* pVertexShader;
 	ID3D11PixelShader* pPixelShader;
 	ID3DBlob* pVSBlob = nullptr;
@@ -583,8 +583,8 @@ void NXCubeMap::GenerateBRDF2DLUT()
 		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
 	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &pVertexShader));
 
-	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutPNT, ARRAYSIZE(NXGlobalInputLayout::layoutPNT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &pInputLayoutPNT));
-	g_pContext->IASetInputLayout(pInputLayoutPNT);
+	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutPT, ARRAYSIZE(NXGlobalInputLayout::layoutPT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &pInputLayoutPT));
+	g_pContext->IASetInputLayout(pInputLayoutPT);
 
 	NX::MessageBoxIfFailed(
 		ShaderComplier::Compile(L"Shader\\BRDF2DLUT.fx", "PS", "ps_5_0", &pPSBlob),
@@ -594,27 +594,13 @@ void NXCubeMap::GenerateBRDF2DLUT()
 	pVSBlob->Release();
 	pPSBlob->Release();
 
-	ID3D11Buffer* cbObject = nullptr;
-	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(ConstantBufferObject);
-	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bufferDesc.CPUAccessFlags = 0;
-	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &cbObject));
-
 	Matrix mxCubeMapProj = XMMatrixPerspectiveFovLH(XMConvertToRadians(90.0f), 1.0f, 0.1f, 10.0f);
 	Matrix mxCubeMapView = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 1.0f), Vector3(0.0f, 1.0f, 0.0f));
 
 	g_pContext->VSSetShader(pVertexShader, nullptr, 0);
 	g_pContext->PSSetShader(pPixelShader, nullptr, 0);
-	g_pContext->VSSetConstantBuffers(0, 1, &cbObject);
-	 
-	//ConstantBufferObject cbDataObject;
-	//cbDataObject.world = Matrix::Identity();
-	//cbDataObject.projection = mxCubeMapProj.Transpose();
-	//cbDataObject.view = mxCubeMapView.Transpose();
 
-	UINT stride = sizeof(VertexP); 
+	UINT stride = sizeof(VertexPT); 
 	UINT offset = 0;
 	g_pContext->IASetVertexBuffers(0, 1, &pVertexBuffer, &stride, &offset);
 	g_pContext->IASetIndexBuffer(pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
@@ -622,7 +608,6 @@ void NXCubeMap::GenerateBRDF2DLUT()
 	{
 		g_pContext->ClearRenderTargetView(m_pBRDF2DLUTRTV, Colors::WhiteSmoke);
 		g_pContext->OMSetRenderTargets(1, &m_pBRDF2DLUTRTV, nullptr);
-		//g_pContext->UpdateSubresource(cbObject, 0, nullptr, &cbDataObject, 0, 0);
 		g_pContext->DrawIndexed((UINT)indices.size(), 0, 0);
 	}
 
@@ -630,8 +615,7 @@ void NXCubeMap::GenerateBRDF2DLUT()
 	pIndexBuffer->Release();
 	pVertexShader->Release();
 	pPixelShader->Release();
-	pInputLayoutPNT->Release();
-	cbObject->Release();
+	pInputLayoutPT->Release();
 }
 
 void NXCubeMap::InitVertex()
@@ -689,7 +673,7 @@ void NXCubeMap::InitVertexIndexBuffer()
 	D3D11_BUFFER_DESC bufferDesc;
 	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
 	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(VertexP) * (UINT)m_vertices.size();
+	bufferDesc.ByteWidth = sizeof(VertexPT) * (UINT)m_vertices.size();
 	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
 	D3D11_SUBRESOURCE_DATA InitData;
