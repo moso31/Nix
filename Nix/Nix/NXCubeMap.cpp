@@ -11,8 +11,16 @@ NXCubeMap::NXCubeMap(NXScene* pScene) :
 	m_pIrradianceMap(nullptr),
 	m_pIrradianceMapSRV(nullptr),
 	m_pPreFilterMap(nullptr),
-	m_pPreFilterMapSRV(nullptr)
+	m_pPreFilterMapSRV(nullptr),
+	m_pBRDF2DLUT(nullptr),
+	m_pBRDF2DLUTSRV(nullptr),
+	m_pBRDF2DLUTRTV(nullptr)
 {
+	for (int i = 0; i < 6; i++) m_faceData[i] = nullptr;
+	for (int i = 0; i < 6; i++) m_pIrradianceMapRTVs[i] = nullptr;
+	for (int i = 0; i < 5; i++)
+		for (int j = 0; j < 6; j++)
+			m_pPreFilterMapRTVs[i][j] = nullptr;
 }
 
 bool NXCubeMap::Init(std::wstring filePath)
@@ -32,6 +40,7 @@ bool NXCubeMap::Init(std::wstring filePath)
 
 	// 创建CubeMap SRV。
 	// 需要使用初始格式创建，也就是说要在Decompress之前创建。
+	CreateTextureEx(g_pDevice, m_image->GetImages(), m_image->GetImageCount(), metadata, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, (ID3D11Resource**)&m_pTexture);
 	CreateShaderResourceView(g_pDevice, m_image->GetImages(), m_image->GetImageCount(), metadata, &m_pTextureSRV);
 
 	if (IsCompressed(metadata.format))
@@ -122,7 +131,23 @@ void NXCubeMap::Render()
 
 void NXCubeMap::Release()
 {
+	if (m_pIrradianceMap) m_pIrradianceMap->Release();
+	if (m_pIrradianceMapSRV) m_pIrradianceMapSRV->Release();
+	for (int i = 0; i < 6; i++)
+		if (m_pIrradianceMapRTVs[i]) m_pIrradianceMapRTVs[i]->Release();
+
+	if (m_pPreFilterMap) m_pPreFilterMap->Release();
+	if (m_pPreFilterMapSRV) m_pPreFilterMapSRV->Release();
+	for (int i = 0; i < 5; i++)
+		for (int j = 0; j < 6; j++)
+			if (m_pPreFilterMapRTVs[i][j]) m_pPreFilterMapRTVs[i][j]->Release();
+
+	if (m_pBRDF2DLUT) m_pBRDF2DLUT->Release();
+	if (m_pBRDF2DLUTSRV) m_pBRDF2DLUTSRV->Release();
+	if (m_pBRDF2DLUTRTV) m_pBRDF2DLUTRTV->Release();
+
 	if (m_image) m_image.reset();
+	for (int i = 0; i < 6; i++) m_faceData[i] = nullptr;
 	NXPrimitive::Release();
 }
 
@@ -302,21 +327,18 @@ void NXCubeMap::GenerateIrradianceMap()
 void NXCubeMap::GeneratePreFilterMap()
 {
 	const static float MapSize = 512.0f;
-	CD3D11_VIEWPORT vp(0.0f, 0.0f, MapSize, MapSize);
-	g_pContext->RSSetViewports(1, &vp);
-
 	CD3D11_TEXTURE2D_DESC descTex(DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)MapSize, (UINT)MapSize, 6, 5, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, D3D11_RESOURCE_MISC_TEXTURECUBE);
 	g_pDevice->CreateTexture2D(&descTex, nullptr, &m_pPreFilterMap);
 
 	CD3D11_SHADER_RESOURCE_VIEW_DESC descSRV(D3D11_SRV_DIMENSION_TEXTURECUBE, descTex.Format, 0, descTex.MipLevels, 0, descTex.ArraySize);
 	g_pDevice->CreateShaderResourceView(m_pPreFilterMap, &descSRV, &m_pPreFilterMapSRV);
 
-	//for (int i = 0; i < 5; i++)
+	for (int i = 0; i < 5; i++)
 	{
 		for (int j = 0; j < 6; j++)
 		{
-			CD3D11_RENDER_TARGET_VIEW_DESC descRTV(D3D11_RTV_DIMENSION_TEXTURE2DARRAY, descTex.Format, 0, j, 1);
-			g_pDevice->CreateRenderTargetView(m_pPreFilterMap, &descRTV, &m_pPreFilterMapRTVs[j]);
+			CD3D11_RENDER_TARGET_VIEW_DESC descRTV(D3D11_RTV_DIMENSION_TEXTURE2DARRAY, descTex.Format, i, j, 1);
+			g_pDevice->CreateRenderTargetView(m_pPreFilterMap, &descRTV, &m_pPreFilterMapRTVs[i][j]);
 		}
 	}
 
@@ -439,12 +461,12 @@ void NXCubeMap::GeneratePreFilterMap()
 	Matrix mxCubeMapProj = XMMatrixPerspectiveFovLH(XMConvertToRadians(90.0f), 1.0f, 0.1f, 10.0f);
 	Matrix mxCubeMapView[6] =
 	{
-		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(1.0f,  0.0f,  0.0f), Vector3(0.0f, 1.0f,  0.0f)),
+		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3( 1.0f,  0.0f,  0.0f), Vector3(0.0f, 1.0f,  0.0f)),
 		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(-1.0f,  0.0f,  0.0f), Vector3(0.0f, 1.0f,  0.0f)),
-		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f,  1.0f,  0.0f), Vector3(0.0f, 0.0f, -1.0f)),
-		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, -1.0f,  0.0f), Vector3(0.0f, 0.0f,  1.0f)),
-		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f,  0.0f,  1.0f), Vector3(0.0f, 1.0f,  0.0f)),
-		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f,  0.0f, -1.0f), Vector3(0.0f, 1.0f,  0.0f))
+		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3( 0.0f,  1.0f,  0.0f), Vector3(0.0f, 0.0f, -1.0f)),
+		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3( 0.0f, -1.0f,  0.0f), Vector3(0.0f, 0.0f,  1.0f)),
+		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3( 0.0f,  0.0f,  1.0f), Vector3(0.0f, 1.0f,  0.0f)),
+		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3( 0.0f,  0.0f, -1.0f), Vector3(0.0f, 1.0f,  0.0f))
 	};
 
 	g_pContext->VSSetShader(pVertexShader, nullptr, 0);
@@ -462,20 +484,30 @@ void NXCubeMap::GeneratePreFilterMap()
 	g_pContext->IASetVertexBuffers(0, 1, &pVertexBuffer, &stride, &offset);
 	g_pContext->IASetIndexBuffer(pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
+	float roughValues[5] = { 0.0f, 0.25f, 0.5f, 0.75f, 1.0f };
 	ConstantBufferFloat cbDataRoughness;
 	cbDataRoughness.Value = 0;
 
-	for (int i = 0; i < 6; i++)
+	UINT uMapSize = (UINT)MapSize;
+	CD3D11_VIEWPORT vp[5];
+	for (int i = 0; i < 5; i++)
 	{
-		cbDataCubeCamera.view = mxCubeMapView[i].Transpose();
-		//for (int j = 0; j < 5; i++)
+		vp[i] = CD3D11_VIEWPORT(0.0f, 0.0f, (float)(uMapSize >> i), (float)(uMapSize >> i));
+	}
+
+	for (int i = 0; i < 5; i++)
+	{
+		cbDataRoughness.Value = roughValues[i];
+		g_pContext->RSSetViewports(1, &vp[i]);
+		for (int j = 0; j < 6; j++)
 		{
-			g_pContext->ClearRenderTargetView(m_pPreFilterMapRTVs[i], Colors::WhiteSmoke);
-			g_pContext->OMSetRenderTargets(1, &m_pPreFilterMapRTVs[i], nullptr);
+			cbDataCubeCamera.view = mxCubeMapView[j].Transpose();
+			g_pContext->ClearRenderTargetView(m_pPreFilterMapRTVs[i][j], Colors::WhiteSmoke);
+			g_pContext->OMSetRenderTargets(1, &m_pPreFilterMapRTVs[i][j], nullptr);
 
 			g_pContext->UpdateSubresource(cbCubeCamera, 0, nullptr, &cbDataCubeCamera, 0, 0);
 			g_pContext->UpdateSubresource(cbRoughness, 0, nullptr, &cbDataRoughness, 0, 0);
-			g_pContext->DrawIndexed((UINT)indices.size() / 6, i * 6, 0);
+			g_pContext->DrawIndexed((UINT)indices.size() / 6, j * 6, 0);
 		}
 	}
 
@@ -486,6 +518,120 @@ void NXCubeMap::GeneratePreFilterMap()
 	pInputLayoutPNT->Release();
 	cbCubeCamera->Release();
 	cbRoughness->Release();
+}
+
+void NXCubeMap::GenerateBRDF2DLUT()
+{
+	const static float MapSize = 512.0f;
+	CD3D11_VIEWPORT vp(0.0f, 0.0f, MapSize, MapSize);
+	g_pContext->RSSetViewports(1, &vp);
+
+	CD3D11_TEXTURE2D_DESC descTex(DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)MapSize, (UINT)MapSize, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, 0);
+	g_pDevice->CreateTexture2D(&descTex, nullptr, &m_pBRDF2DLUT);
+
+	CD3D11_SHADER_RESOURCE_VIEW_DESC descSRV(D3D11_SRV_DIMENSION_TEXTURE2D, descTex.Format, 0, descTex.MipLevels, 0, descTex.ArraySize);
+	g_pDevice->CreateShaderResourceView(m_pBRDF2DLUT, &descSRV, &m_pBRDF2DLUTSRV); 
+
+	CD3D11_RENDER_TARGET_VIEW_DESC descRTV(D3D11_RTV_DIMENSION_TEXTURE2D, descTex.Format);
+	g_pDevice->CreateRenderTargetView(m_pBRDF2DLUT, &descRTV, &m_pBRDF2DLUTRTV);
+
+	std::vector<VertexP> vertices =
+	{
+		// +Z
+		{ Vector3(+1.0f, +1.0f, +1.0f) },
+		{ Vector3(-1.0f, +1.0f, +1.0f) },
+		{ Vector3(-1.0f, -1.0f, +1.0f) },
+		{ Vector3(+1.0f, -1.0f, +1.0f) },
+	};
+
+	std::vector<USHORT> indices =
+	{
+		0,  2,	1,
+		0,  3,	2,
+	};
+
+	D3D11_BUFFER_DESC bufferDesc;
+	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = sizeof(VertexP) * (UINT)vertices.size();
+	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	D3D11_SUBRESOURCE_DATA InitData;
+	ZeroMemory(&InitData, sizeof(InitData));
+	InitData.pSysMem = vertices.data();
+
+	ID3D11Buffer* pVertexBuffer;
+	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &pVertexBuffer));
+
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = sizeof(USHORT) * (UINT)indices.size();
+	bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	InitData.pSysMem = indices.data();
+
+	ID3D11Buffer* pIndexBuffer;
+	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &pIndexBuffer));
+
+	ID3D11InputLayout* pInputLayoutPNT;
+	ID3D11VertexShader* pVertexShader;
+	ID3D11PixelShader* pPixelShader;
+	ID3DBlob* pVSBlob = nullptr;
+	ID3DBlob* pPSBlob = nullptr;
+
+	NX::MessageBoxIfFailed( 
+		ShaderComplier::Compile(L"Shader\\BRDF2DLUT.fx", "VS", "vs_5_0", &pVSBlob),
+		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
+	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &pVertexShader));
+
+	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutPNT, ARRAYSIZE(NXGlobalInputLayout::layoutPNT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &pInputLayoutPNT));
+	g_pContext->IASetInputLayout(pInputLayoutPNT);
+
+	NX::MessageBoxIfFailed(
+		ShaderComplier::Compile(L"Shader\\BRDF2DLUT.fx", "PS", "ps_5_0", &pPSBlob),
+		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
+	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &pPixelShader));
+
+	pVSBlob->Release();
+	pPSBlob->Release();
+
+	ID3D11Buffer* cbObject = nullptr;
+	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = sizeof(ConstantBufferObject);
+	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &cbObject));
+
+	Matrix mxCubeMapProj = XMMatrixPerspectiveFovLH(XMConvertToRadians(90.0f), 1.0f, 0.1f, 10.0f);
+	Matrix mxCubeMapView = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 1.0f), Vector3(0.0f, 1.0f, 0.0f));
+
+	g_pContext->VSSetShader(pVertexShader, nullptr, 0);
+	g_pContext->PSSetShader(pPixelShader, nullptr, 0);
+	g_pContext->VSSetConstantBuffers(0, 1, &cbObject);
+	 
+	//ConstantBufferObject cbDataObject;
+	//cbDataObject.world = Matrix::Identity();
+	//cbDataObject.projection = mxCubeMapProj.Transpose();
+	//cbDataObject.view = mxCubeMapView.Transpose();
+
+	UINT stride = sizeof(VertexP); 
+	UINT offset = 0;
+	g_pContext->IASetVertexBuffers(0, 1, &pVertexBuffer, &stride, &offset);
+	g_pContext->IASetIndexBuffer(pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+	{
+		g_pContext->ClearRenderTargetView(m_pBRDF2DLUTRTV, Colors::WhiteSmoke);
+		g_pContext->OMSetRenderTargets(1, &m_pBRDF2DLUTRTV, nullptr);
+		//g_pContext->UpdateSubresource(cbObject, 0, nullptr, &cbDataObject, 0, 0);
+		g_pContext->DrawIndexed((UINT)indices.size(), 0, 0);
+	}
+
+	pVertexBuffer->Release();
+	pIndexBuffer->Release();
+	pVertexShader->Release();
+	pPixelShader->Release();
+	pInputLayoutPNT->Release();
+	cbObject->Release();
 }
 
 void NXCubeMap::InitVertex()

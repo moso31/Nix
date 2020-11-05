@@ -17,6 +17,7 @@ public:
 
 	void GenerateIrradianceMap();
 	void GeneratePreFilterMap();
+	void GenerateBRDF2DLUT();
 
 	Vector3 BackgroundColorByDirection(const Vector3& v);
 	void SetEnvironmentLight(NXPBREnvironmentLight* pEnvironmentLight) { m_pEnvironmentLight = pEnvironmentLight; }
@@ -44,5 +45,8 @@ private:
 	ID3D11RenderTargetView*		m_pIrradianceMapRTVs[6];
 	ID3D11Texture2D*			m_pPreFilterMap;
 	ID3D11ShaderResourceView*	m_pPreFilterMapSRV;
-	ID3D11RenderTargetView*		m_pPreFilterMapRTVs[6];
+	ID3D11RenderTargetView*		m_pPreFilterMapRTVs[5][6];
+	ID3D11Texture2D*			m_pBRDF2DLUT;
+	ID3D11ShaderResourceView*	m_pBRDF2DLUTSRV;
+	ID3D11RenderTargetView*		m_pBRDF2DLUTRTV;
 };

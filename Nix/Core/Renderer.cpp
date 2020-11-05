@@ -124,6 +124,7 @@ void Renderer::Preload()
 	{
 		pCubeMap->GenerateIrradianceMap();
 		pCubeMap->GeneratePreFilterMap();
+		pCubeMap->GenerateBRDF2DLUT(); 
 	}
 }
 

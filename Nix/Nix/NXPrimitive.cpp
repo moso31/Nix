@@ -12,7 +12,7 @@ using namespace SamplerMath;
 NXPrimitive::NXPrimitive() :
 	m_pVertexBuffer(nullptr),
 	m_pIndexBuffer(nullptr),
-	//m_pTexture(nullptr),
+	m_pTexture(nullptr),
 	m_pTextureSRV(nullptr),
 	m_cbMaterial(nullptr),
 	m_pPBRMaterial(nullptr),
@@ -51,7 +51,7 @@ void NXPrimitive::Release()
 {
 	if (m_pVertexBuffer)	m_pVertexBuffer->Release();
 	if (m_pIndexBuffer)		m_pIndexBuffer->Release();
-	//if (m_pTexture)			m_pTexture->Release();
+	if (m_pTexture)			m_pTexture->Release();
 	if (m_pTextureSRV)		m_pTextureSRV->Release();
 
 	if (m_cbMaterial)		m_cbMaterial->Release();

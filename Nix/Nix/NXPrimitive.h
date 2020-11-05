@@ -54,7 +54,7 @@ private:
 protected:
 	ID3D11Buffer*				m_pVertexBuffer;
 	ID3D11Buffer*				m_pIndexBuffer;
-	//ID3D11Texture2D*			m_pTexture;
+	ID3D11Texture2D*			m_pTexture;
 	ID3D11ShaderResourceView*	m_pTextureSRV;
 
 	std::vector<VertexPNT>		m_vertices;
