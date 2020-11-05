@@ -25,6 +25,7 @@ public:
 
 	ID3D11ShaderResourceView* GetIrradianceMapSRV() { return m_pIrradianceMapSRV; }
 	ID3D11ShaderResourceView* GetPreFilterMapSRV() { return m_pPreFilterMapSRV; }
+	ID3D11ShaderResourceView* GetBRDF2DLUT() { return m_pBRDF2DLUTSRV; }
 
 private:
 	void InitVertex();

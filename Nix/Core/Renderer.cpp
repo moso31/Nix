@@ -29,7 +29,7 @@ void Renderer::InitRenderer()
 	NX::MessageBoxIfFailed(
 		ShaderComplier::Compile(L"Shader\\Scene.fx", "VS", "vs_5_0", &pVSBlob), 
 		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVertexShader));
+	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVertexShader)); 
 
 	NX::MessageBoxIfFailed(
 		ShaderComplier::Compile(L"Shader\\RenderTarget.fx", "VS", "vs_5_0", &pVSBlob),
@@ -272,10 +272,13 @@ void Renderer::DrawCubeMap()
 		g_pContext->VSSetConstantBuffers(0, 1, &NXGlobalBufferManager::m_cbObject);
 
 		auto pCubeMapSRV = pCubeMap->GetTextureSRV();
-		g_pContext->PSSetShaderResources(0, 1, &pCubeMapSRV);
-
 		auto pIrradianceMapSRV = pCubeMap->GetIrradianceMapSRV();
+		auto pPreFilterMapSRV = pCubeMap->GetPreFilterMapSRV();
+		auto pBRDF2DLUT = pCubeMap->GetBRDF2DLUT();
+		g_pContext->PSSetShaderResources(0, 1, &pCubeMapSRV);
 		g_pContext->PSSetShaderResources(3, 1, &pIrradianceMapSRV);
+		g_pContext->PSSetShaderResources(4, 1, &pPreFilterMapSRV);
+		g_pContext->PSSetShaderResources(5, 1, &pBRDF2DLUT);
 
 		pCubeMap->Render();
 	}

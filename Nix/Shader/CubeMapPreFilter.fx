@@ -27,7 +27,7 @@ float3 GetPrefilter(float roughness, float3 R)
 {
 	float3 N = R;
 	float3 V = R;
-	float3 PrefilteredColor = 0;
+	float3 result = 0;
 	const uint NumSamples = 1024;
 	float TotalWeight = 0.0f;
 	for (uint i = 0; i < NumSamples; i++)
@@ -38,11 +38,11 @@ float3 GetPrefilter(float roughness, float3 R)
 		float NoL = saturate(dot(N, L));
 		if (NoL > 0.0f)
 		{
-			PrefilteredColor += txCubeMap.SampleLevel(samTriLinearSam, L, 0).rgb * NoL;
+			result += txCubeMap.SampleLevel(samTriLinearSam, L, 0).rgb * NoL;
 			TotalWeight += NoL;
 		}
 	}
-	return PrefilteredColor / TotalWeight;
+	return result / TotalWeight;
 }
 
 struct VS_INPUT

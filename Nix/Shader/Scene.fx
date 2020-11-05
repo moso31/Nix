@@ -4,6 +4,8 @@ TextureCube txCubeMap : register(t0);
 Texture2D txDiffuse : register(t1);
 Texture2D txShadowMap : register(t2);
 TextureCube txIrradianceMap : register(t3);
+TextureCube txPreFilterMap : register(t4);
+Texture2D txBRDF2DLUT : register(t5);
 SamplerState samLinear : register(s0);
 SamplerComparisonState samShadowMap : register(s1);
 
@@ -68,9 +70,10 @@ PS_INPUT VS(VS_INPUT input)
 
 float4 PS(PS_INPUT input) : SV_Target
 {
+	float3 pos = input.posW.xyz;
 	float3 N = normalize(input.normW);
-	float3 V = normalize(m_eyePos - input.posW);
-	
+	float3 V = normalize(m_eyePos - pos);
+
 	// reflection test
 	//return txCubeMap.Sample(samLinear, reflect(-V, N)); 
 	
@@ -88,9 +91,9 @@ float4 PS(PS_INPUT input) : SV_Target
 		float3 lightColor = m_pointLight[i].color;
 
         // 第i个光源的入射radiance
-        float3 L = normalize(lightPos - input.posW);
+        float3 L = normalize(lightPos - pos);
         float3 H = normalize(V + L);
-        float distance = length(lightPos - input.posW);
+        float distance = length(lightPos - pos);
         float attenuation = 1.0 / (distance * distance);
         float3 radiance = lightColor * attenuation;
 
@@ -115,7 +118,12 @@ float4 PS(PS_INPUT input) : SV_Target
 	kD *= 1.0 - m_material.metallic;
 	float3 irradiance = txIrradianceMap.Sample(samLinear, N).xyz;
 	float3 diffuseIBL = kD * albedo * irradiance;
-	float3 ambient = diffuseIBL; // * ao;
+
+	float3 preFilteredColor = txPreFilterMap.SampleLevel(samLinear, reflect(-V, N), m_material.roughness * 4.0f).rgb;
+	float2 envBRDF = txBRDF2DLUT.Sample(samLinear, float2(saturate(dot(N, V)), m_material.roughness)).rg;
+	float3 SpecularIBL = preFilteredColor * float3(kS * envBRDF.x + envBRDF.y);
+
+	float3 ambient = diffuseIBL + SpecularIBL; // * ao;
 	float3 color = ambient + Lo;
 
 	// gamma.

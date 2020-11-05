@@ -113,10 +113,6 @@ void NXCubeMap::Update()
 {
 	auto pCamera = m_pScene->GetMainCamera();
 	NXGlobalBufferManager::m_cbDataObject.world = Matrix::CreateTranslation(pCamera->GetTranslation()).Transpose();
-	Vector3 a, t;
-	Quaternion q;
-	pCamera->GetWorldMatrix().Decompose(a, q, t);
-	a = pCamera->GetTranslation();
 	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbObject, 0, nullptr, &NXGlobalBufferManager::m_cbDataObject, 0, 0);
 }
 
@@ -673,7 +669,7 @@ void NXCubeMap::InitVertexIndexBuffer()
 	D3D11_BUFFER_DESC bufferDesc;
 	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
 	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(VertexPT) * (UINT)m_vertices.size();
+	bufferDesc.ByteWidth = sizeof(VertexP) * (UINT)m_vertices.size();
 	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
 	D3D11_SUBRESOURCE_DATA InitData;
