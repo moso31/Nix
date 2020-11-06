@@ -165,43 +165,43 @@ void NXCubeMap::GenerateIrradianceMap()
 		g_pDevice->CreateRenderTargetView(m_pIrradianceMap, &descRTV, &m_pIrradianceMapRTVs[i]);
 	}
 
-	std::vector<VertexPNT> vertices =
+	std::vector<VertexP> vertices =
 	{
 		// +X
-		{ Vector3(+0.5f, +0.5f, -0.5f), Vector3(1.0f, 0.0f, 0.0f),	Vector2(0.0f, 1.0f) },
-		{ Vector3(+0.5f, +0.5f, +0.5f), Vector3(1.0f, 0.0f, 0.0f),	Vector2(1.0f, 1.0f) },
-		{ Vector3(+0.5f, -0.5f, +0.5f), Vector3(1.0f, 0.0f, 0.0f),	Vector2(1.0f, 0.0f) },
-		{ Vector3(+0.5f, -0.5f, -0.5f), Vector3(1.0f, 0.0f, 0.0f),	Vector2(0.0f, 0.0f) },
+		{ Vector3(+0.5f, +0.5f, -0.5f) },
+		{ Vector3(+0.5f, +0.5f, +0.5f) },
+		{ Vector3(+0.5f, -0.5f, +0.5f) },
+		{ Vector3(+0.5f, -0.5f, -0.5f) },
 
 		// -X
-		{ Vector3(-0.5f, +0.5f, +0.5f), Vector3(-1.0f, 0.0f, 0.0f),	Vector2(0.0f, 1.0f) },
-		{ Vector3(-0.5f, +0.5f, -0.5f), Vector3(-1.0f, 0.0f, 0.0f),	Vector2(1.0f, 1.0f) },
-		{ Vector3(-0.5f, -0.5f, -0.5f), Vector3(-1.0f, 0.0f, 0.0f),	Vector2(1.0f, 0.0f) },
-		{ Vector3(-0.5f, -0.5f, +0.5f), Vector3(-1.0f, 0.0f, 0.0f),	Vector2(0.0f, 0.0f) },
+		{ Vector3(-0.5f, +0.5f, +0.5f) },
+		{ Vector3(-0.5f, +0.5f, -0.5f) },
+		{ Vector3(-0.5f, -0.5f, -0.5f) },
+		{ Vector3(-0.5f, -0.5f, +0.5f) },
 
 		// +Y
-		{ Vector3(-0.5f, +0.5f, +0.5f), Vector3(0.0f, 1.0f, 0.0f),	Vector2(0.0f, 1.0f) },
-		{ Vector3(+0.5f, +0.5f, +0.5f), Vector3(0.0f, 1.0f, 0.0f),	Vector2(1.0f, 1.0f) },
-		{ Vector3(+0.5f, +0.5f, -0.5f), Vector3(0.0f, 1.0f, 0.0f),	Vector2(1.0f, 0.0f) },
-		{ Vector3(-0.5f, +0.5f, -0.5f), Vector3(0.0f, 1.0f, 0.0f),	Vector2(0.0f, 0.0f) },
+		{ Vector3(-0.5f, +0.5f, +0.5f) },
+		{ Vector3(+0.5f, +0.5f, +0.5f) },
+		{ Vector3(+0.5f, +0.5f, -0.5f) },
+		{ Vector3(-0.5f, +0.5f, -0.5f) },
 
 		// -Y
-		{ Vector3(-0.5f, -0.5f, -0.5f), Vector3(0.0f, -1.0f, 0.0f),	Vector2(0.0f, 1.0f) },
-		{ Vector3(+0.5f, -0.5f, -0.5f), Vector3(0.0f, -1.0f, 0.0f),	Vector2(1.0f, 1.0f) },
-		{ Vector3(+0.5f, -0.5f, +0.5f), Vector3(0.0f, -1.0f, 0.0f),	Vector2(1.0f, 0.0f) },
-		{ Vector3(-0.5f, -0.5f, +0.5f), Vector3(0.0f, -1.0f, 0.0f),	Vector2(0.0f, 0.0f) },
+		{ Vector3(-0.5f, -0.5f, -0.5f) },
+		{ Vector3(+0.5f, -0.5f, -0.5f) },
+		{ Vector3(+0.5f, -0.5f, +0.5f) },
+		{ Vector3(-0.5f, -0.5f, +0.5f) },
 
 		// +Z
-		{ Vector3(+0.5f, +0.5f, +0.5f), Vector3(0.0f, 0.0f, 1.0f),	Vector2(0.0f, 1.0f) },
-		{ Vector3(-0.5f, +0.5f, +0.5f), Vector3(0.0f, 0.0f, 1.0f),	Vector2(1.0f, 1.0f) },
-		{ Vector3(-0.5f, -0.5f, +0.5f), Vector3(0.0f, 0.0f, 1.0f),	Vector2(1.0f, 0.0f) },
-		{ Vector3(+0.5f, -0.5f, +0.5f), Vector3(0.0f, 0.0f, 1.0f),	Vector2(0.0f, 0.0f) },
+		{ Vector3(+0.5f, +0.5f, +0.5f) },
+		{ Vector3(-0.5f, +0.5f, +0.5f) },
+		{ Vector3(-0.5f, -0.5f, +0.5f) },
+		{ Vector3(+0.5f, -0.5f, +0.5f) },
 
 		// -Z
-		{ Vector3(-0.5f, +0.5f, -0.5f), Vector3(0.0f, 0.0f, -1.0f),	Vector2(0.0f, 1.0f) },
-		{ Vector3(+0.5f, +0.5f, -0.5f), Vector3(0.0f, 0.0f, -1.0f),	Vector2(1.0f, 1.0f) },
-		{ Vector3(+0.5f, -0.5f, -0.5f), Vector3(0.0f, 0.0f, -1.0f),	Vector2(1.0f, 0.0f) },
-		{ Vector3(-0.5f, -0.5f, -0.5f), Vector3(0.0f, 0.0f, -1.0f),	Vector2(0.0f, 0.0f) },
+		{ Vector3(-0.5f, +0.5f, -0.5f) },
+		{ Vector3(+0.5f, +0.5f, -0.5f) },
+		{ Vector3(+0.5f, -0.5f, -0.5f) },
+		{ Vector3(-0.5f, -0.5f, -0.5f) },
 	};
 
 	std::vector<USHORT> indices =
@@ -228,7 +228,7 @@ void NXCubeMap::GenerateIrradianceMap()
 	D3D11_BUFFER_DESC bufferDesc;
 	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
 	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(VertexPNT) * (UINT)vertices.size();
+	bufferDesc.ByteWidth = sizeof(VertexP) * (UINT)vertices.size();
 	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
 	D3D11_SUBRESOURCE_DATA InitData;
@@ -297,7 +297,7 @@ void NXCubeMap::GenerateIrradianceMap()
 	cbData.world = Matrix::Identity();
 	cbData.projection = mxCubeMapProj.Transpose();
 
-	UINT stride = sizeof(VertexPNT);
+	UINT stride = sizeof(VertexP);
 	UINT offset = 0;
 	g_pContext->IASetVertexBuffers(0, 1, &pVertexBuffer, &stride, &offset);
 	g_pContext->IASetIndexBuffer(pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
@@ -338,43 +338,43 @@ void NXCubeMap::GeneratePreFilterMap()
 		}
 	}
 
-	std::vector<VertexPNT> vertices =
+	std::vector<VertexP> vertices =
 	{
 		// +X
-		{ Vector3(+0.5f, +0.5f, -0.5f), Vector3(1.0f, 0.0f, 0.0f),	Vector2(0.0f, 1.0f) },
-		{ Vector3(+0.5f, +0.5f, +0.5f), Vector3(1.0f, 0.0f, 0.0f),	Vector2(1.0f, 1.0f) },
-		{ Vector3(+0.5f, -0.5f, +0.5f), Vector3(1.0f, 0.0f, 0.0f),	Vector2(1.0f, 0.0f) },
-		{ Vector3(+0.5f, -0.5f, -0.5f), Vector3(1.0f, 0.0f, 0.0f),	Vector2(0.0f, 0.0f) },
+		{ Vector3(+0.5f, +0.5f, -0.5f) },
+		{ Vector3(+0.5f, +0.5f, +0.5f) },
+		{ Vector3(+0.5f, -0.5f, +0.5f) },
+		{ Vector3(+0.5f, -0.5f, -0.5f) },
 
 		// -X
-		{ Vector3(-0.5f, +0.5f, +0.5f), Vector3(-1.0f, 0.0f, 0.0f),	Vector2(0.0f, 1.0f) },
-		{ Vector3(-0.5f, +0.5f, -0.5f), Vector3(-1.0f, 0.0f, 0.0f),	Vector2(1.0f, 1.0f) },
-		{ Vector3(-0.5f, -0.5f, -0.5f), Vector3(-1.0f, 0.0f, 0.0f),	Vector2(1.0f, 0.0f) },
-		{ Vector3(-0.5f, -0.5f, +0.5f), Vector3(-1.0f, 0.0f, 0.0f),	Vector2(0.0f, 0.0f) },
+		{ Vector3(-0.5f, +0.5f, +0.5f) },
+		{ Vector3(-0.5f, +0.5f, -0.5f) },
+		{ Vector3(-0.5f, -0.5f, -0.5f) },
+		{ Vector3(-0.5f, -0.5f, +0.5f) },
 
 		// +Y
-		{ Vector3(-0.5f, +0.5f, +0.5f), Vector3(0.0f, 1.0f, 0.0f),	Vector2(0.0f, 1.0f) },
-		{ Vector3(+0.5f, +0.5f, +0.5f), Vector3(0.0f, 1.0f, 0.0f),	Vector2(1.0f, 1.0f) },
-		{ Vector3(+0.5f, +0.5f, -0.5f), Vector3(0.0f, 1.0f, 0.0f),	Vector2(1.0f, 0.0f) },
-		{ Vector3(-0.5f, +0.5f, -0.5f), Vector3(0.0f, 1.0f, 0.0f),	Vector2(0.0f, 0.0f) },
+		{ Vector3(-0.5f, +0.5f, +0.5f) },
+		{ Vector3(+0.5f, +0.5f, +0.5f) },
+		{ Vector3(+0.5f, +0.5f, -0.5f) },
+		{ Vector3(-0.5f, +0.5f, -0.5f) },
 
 		// -Y
-		{ Vector3(-0.5f, -0.5f, -0.5f), Vector3(0.0f, -1.0f, 0.0f),	Vector2(0.0f, 1.0f) },
-		{ Vector3(+0.5f, -0.5f, -0.5f), Vector3(0.0f, -1.0f, 0.0f),	Vector2(1.0f, 1.0f) },
-		{ Vector3(+0.5f, -0.5f, +0.5f), Vector3(0.0f, -1.0f, 0.0f),	Vector2(1.0f, 0.0f) },
-		{ Vector3(-0.5f, -0.5f, +0.5f), Vector3(0.0f, -1.0f, 0.0f),	Vector2(0.0f, 0.0f) },
+		{ Vector3(-0.5f, -0.5f, -0.5f) },
+		{ Vector3(+0.5f, -0.5f, -0.5f) },
+		{ Vector3(+0.5f, -0.5f, +0.5f) },
+		{ Vector3(-0.5f, -0.5f, +0.5f) },
 
 		// +Z
-		{ Vector3(+0.5f, +0.5f, +0.5f), Vector3(0.0f, 0.0f, 1.0f),	Vector2(0.0f, 1.0f) },
-		{ Vector3(-0.5f, +0.5f, +0.5f), Vector3(0.0f, 0.0f, 1.0f),	Vector2(1.0f, 1.0f) },
-		{ Vector3(-0.5f, -0.5f, +0.5f), Vector3(0.0f, 0.0f, 1.0f),	Vector2(1.0f, 0.0f) },
-		{ Vector3(+0.5f, -0.5f, +0.5f), Vector3(0.0f, 0.0f, 1.0f),	Vector2(0.0f, 0.0f) },
+		{ Vector3(+0.5f, +0.5f, +0.5f) },
+		{ Vector3(-0.5f, +0.5f, +0.5f) },
+		{ Vector3(-0.5f, -0.5f, +0.5f) },
+		{ Vector3(+0.5f, -0.5f, +0.5f) },
 
 		// -Z
-		{ Vector3(-0.5f, +0.5f, -0.5f), Vector3(0.0f, 0.0f, -1.0f),	Vector2(0.0f, 1.0f) },
-		{ Vector3(+0.5f, +0.5f, -0.5f), Vector3(0.0f, 0.0f, -1.0f),	Vector2(1.0f, 1.0f) },
-		{ Vector3(+0.5f, -0.5f, -0.5f), Vector3(0.0f, 0.0f, -1.0f),	Vector2(1.0f, 0.0f) },
-		{ Vector3(-0.5f, -0.5f, -0.5f), Vector3(0.0f, 0.0f, -1.0f),	Vector2(0.0f, 0.0f) },
+		{ Vector3(-0.5f, +0.5f, -0.5f) },
+		{ Vector3(+0.5f, +0.5f, -0.5f) },
+		{ Vector3(+0.5f, -0.5f, -0.5f) },
+		{ Vector3(-0.5f, -0.5f, -0.5f) },
 	};
 
 	std::vector<USHORT> indices =
@@ -401,7 +401,7 @@ void NXCubeMap::GeneratePreFilterMap()
 	D3D11_BUFFER_DESC bufferDesc;
 	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
 	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(VertexPNT) * (UINT)vertices.size();
+	bufferDesc.ByteWidth = sizeof(VertexP) * (UINT)vertices.size();
 	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
 	D3D11_SUBRESOURCE_DATA InitData;
@@ -475,7 +475,7 @@ void NXCubeMap::GeneratePreFilterMap()
 	cbDataCubeCamera.world = Matrix::Identity();
 	cbDataCubeCamera.projection = mxCubeMapProj.Transpose();
 
-	UINT stride = sizeof(VertexPNT);
+	UINT stride = sizeof(VertexP);
 	UINT offset = 0;
 	g_pContext->IASetVertexBuffers(0, 1, &pVertexBuffer, &stride, &offset);
 	g_pContext->IASetIndexBuffer(pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);

@@ -48,16 +48,12 @@ float3 GetPrefilter(float roughness, float3 R)
 struct VS_INPUT
 {
 	float3 pos : POSITION;
-	float3 norm : NORMAL;
-	float2 tex : TEXCOORD;
 };
 
 struct PS_INPUT
 {
 	float4 posH : SV_POSITION;
 	float3 posL : POSITION;
-	float3 normW : NORMAL;
-	float2 tex : TEXCOORD;
 };
 
 PS_INPUT VS(VS_INPUT input)
@@ -67,8 +63,6 @@ PS_INPUT VS(VS_INPUT input)
 	output.posH = mul(float4(input.pos, 1.0f), m_world);
 	output.posH = mul(output.posH, m_view);
 	output.posH = mul(output.posH, m_projection);
-	output.normW = mul(float4(input.norm, 0.0), m_worldInverseTranspose).xyz;
-	output.tex = input.tex;
 
 	return output;
 }

@@ -1,11 +1,16 @@
 #include "PBR.fx"
 
 TextureCube txCubeMap : register(t0);
-Texture2D txDiffuse : register(t1);
-Texture2D txShadowMap : register(t2);
-TextureCube txIrradianceMap : register(t3);
-TextureCube txPreFilterMap : register(t4);
-Texture2D txBRDF2DLUT : register(t5);
+Texture2D txAlbedo : register(t1);
+Texture2D txNormalMap : register(t2);
+Texture2D txMetallicMap : register(t3);
+Texture2D txRoughnessMap : register(t4);
+//Texture2D txAmbientOcclusionMap : register(t5);
+//Texture2D txHeightMap : register(t6);
+TextureCube txIrradianceMap : register(t7);
+TextureCube txPreFilterMap : register(t8);
+Texture2D txBRDF2DLUT : register(t9);
+//Texture2D txShadowMap : register(t10);
 SamplerState samLinear : register(s0);
 SamplerComparisonState samShadowMap : register(s1);
 
@@ -77,7 +82,7 @@ float4 PS(PS_INPUT input) : SV_Target
 	// reflection test
 	//return txCubeMap.Sample(samLinear, reflect(-V, N)); 
 	
-	float3 albedoMap = txDiffuse.Sample(samLinear, input.tex).xyz;
+	float3 albedoMap = txAlbedo.Sample(samLinear, input.tex).xyz;
 	float3 albedo = m_material.albedo;// *albedoMap;
 
 	float3 F0 = 0.04;

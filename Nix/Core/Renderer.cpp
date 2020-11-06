@@ -236,8 +236,9 @@ void Renderer::DrawPrimitives()
 	auto pCbLights = m_scene->GetConstantBufferLights();
 	g_pContext->PSSetConstantBuffers(2, 1, &pCbLights);
 
-	auto pShadowMapSRV = m_pPassShadowMap->GetSRV();
-	g_pContext->PSSetShaderResources(2, 1, &pShadowMapSRV);
+	// PBR大改。阴影贴图暂时停用。
+	//auto pShadowMapSRV = m_pPassShadowMap->GetSRV();
+	//g_pContext->PSSetShaderResources(10, 1, &pShadowMapSRV);
 
 	auto pShadowMapConstantBufferTransform = m_pPassShadowMap->GetConstantBufferTransform();
 	g_pContext->PSSetConstantBuffers(4, 1, &pShadowMapConstantBufferTransform);
@@ -276,9 +277,9 @@ void Renderer::DrawCubeMap()
 		auto pPreFilterMapSRV = pCubeMap->GetPreFilterMapSRV();
 		auto pBRDF2DLUT = pCubeMap->GetBRDF2DLUT();
 		g_pContext->PSSetShaderResources(0, 1, &pCubeMapSRV);
-		g_pContext->PSSetShaderResources(3, 1, &pIrradianceMapSRV);
-		g_pContext->PSSetShaderResources(4, 1, &pPreFilterMapSRV);
-		g_pContext->PSSetShaderResources(5, 1, &pBRDF2DLUT);
+		g_pContext->PSSetShaderResources(7, 1, &pIrradianceMapSRV);
+		g_pContext->PSSetShaderResources(8, 1, &pPreFilterMapSRV);
+		g_pContext->PSSetShaderResources(9, 1, &pBRDF2DLUT);
 
 		pCubeMap->Render();
 	}
