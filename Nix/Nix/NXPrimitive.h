@@ -28,7 +28,6 @@ public:
 	virtual void UpdateSurfaceAreaInfo();		// 更新此物体表面积相关的信息。
 	virtual float GetSurfaceArea();				// 计算表面积
 
-	ID3D11ShaderResourceView* GetTextureSRV() const { return m_pTextureSRV; }
 	ID3D11Buffer* GetMaterialBuffer() const { return m_cbMaterial; }
 
 	void SetTangibleLight(NXPBRTangibleLight* pTangibleLight) { m_pTangibleLight = pTangibleLight; }
@@ -54,8 +53,6 @@ private:
 protected:
 	ID3D11Buffer*				m_pVertexBuffer;
 	ID3D11Buffer*				m_pIndexBuffer;
-	ID3D11Texture2D*			m_pTexture;
-	ID3D11ShaderResourceView*	m_pTextureSRV;
 
 	std::vector<VertexPNT>		m_vertices;
 	std::vector<USHORT>			m_indices;

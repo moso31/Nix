@@ -5,15 +5,12 @@
 #include "GlobalBufferManager.h"
 #include "NXRandom.h"
 #include "SamplerMath.h"
-#include "DirectXTex.h"
 
 using namespace SamplerMath;
 
 NXPrimitive::NXPrimitive() :
 	m_pVertexBuffer(nullptr),
 	m_pIndexBuffer(nullptr),
-	m_pTexture(nullptr),
-	m_pTextureSRV(nullptr),
 	m_cbMaterial(nullptr),
 	m_pPBRMaterial(nullptr),
 	m_pTangibleLight(nullptr),
@@ -51,8 +48,6 @@ void NXPrimitive::Release()
 {
 	if (m_pVertexBuffer)	m_pVertexBuffer->Release();
 	if (m_pIndexBuffer)		m_pIndexBuffer->Release();
-	if (m_pTexture)			m_pTexture->Release();
-	if (m_pTextureSRV)		m_pTextureSRV->Release();
 
 	if (m_cbMaterial)		m_cbMaterial->Release();
 	NXObject::Release();
@@ -201,12 +196,6 @@ void NXPrimitive::InitVertexIndexBuffer()
 	bufferDesc.CPUAccessFlags = 0;
 	InitData.pSysMem = m_indices.data();
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &m_pIndexBuffer));
-	
-	//// TODO：纹理的SRV应该改成全局通用的
-	//TexMetadata info;
-	//std::unique_ptr<ScratchImage> image(new (std::nothrow) ScratchImage);
-	//LoadFromWICFile(L"D:\\rgb.bmp", WIC_FLAGS_NONE, &info, *image);
-	//CreateShaderResourceView(g_pDevice, image->GetImage(0, 0, 0), image->GetImageCount(), info, &m_pTextureSRV);
 }
 
 void NXPrimitive::InitAABB()

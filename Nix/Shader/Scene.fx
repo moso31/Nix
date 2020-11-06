@@ -5,7 +5,7 @@ Texture2D txAlbedo : register(t1);
 Texture2D txNormalMap : register(t2);
 Texture2D txMetallicMap : register(t3);
 Texture2D txRoughnessMap : register(t4);
-//Texture2D txAmbientOcclusionMap : register(t5);
+Texture2D txAmbientOcclusionMap : register(t5);
 //Texture2D txHeightMap : register(t6);
 TextureCube txIrradianceMap : register(t7);
 TextureCube txPreFilterMap : register(t8);
@@ -83,7 +83,7 @@ float4 PS(PS_INPUT input) : SV_Target
 	//return txCubeMap.Sample(samLinear, reflect(-V, N)); 
 	
 	float3 albedoMap = txAlbedo.Sample(samLinear, input.tex).xyz;
-	float3 albedo = m_material.albedo;// *albedoMap;
+	float3 albedo = m_material.albedo * albedoMap;
 
 	float3 F0 = 0.04;
 	F0 = lerp(F0, albedo, m_material.metallic);

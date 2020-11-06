@@ -243,21 +243,36 @@ void Renderer::DrawPrimitives()
 	auto pShadowMapConstantBufferTransform = m_pPassShadowMap->GetConstantBufferTransform();
 	g_pContext->PSSetConstantBuffers(4, 1, &pShadowMapConstantBufferTransform);
 
-	auto pPrims = m_scene->GetPrimitives();
-	for (auto it = pPrims.begin(); it != pPrims.end(); it++)
+	for (auto pPrim : m_scene->GetPrimitives())
 	{
 		// 这里渲染场景中所有Mesh。
 		// 其他几个CB/SRV的Slot都不变，但每个物体的World、Material、Tex信息都可能改变。
 		// 可以进一步优化，比如按Material绘制、按Tex绘制。
-		auto p = *it;
-		p->Update();
+		pPrim->Update();
 		g_pContext->VSSetConstantBuffers(0, 1, &NXGlobalBufferManager::m_cbObject);
 
-		auto pTexSRV = p->GetTextureSRV();
-		auto pMaterial = p->GetMaterialBuffer();
-		g_pContext->PSSetShaderResources(1, 1, &pTexSRV);
-		g_pContext->PSSetConstantBuffers(3, 1, &pMaterial);
-		p->Render();
+		auto pMat = pPrim->GetPBRMaterial();
+		if (pMat)
+		{
+			auto pSRVAlbedo = pMat->GetSRVAlbedo();
+			g_pContext->PSSetShaderResources(1, 1, &pSRVAlbedo);
+
+			auto pSRVNormal = pMat->GetSRVNormal();
+			g_pContext->PSSetShaderResources(2, 1, &pSRVNormal);
+
+			auto pSRVMetallic = pMat->GetSRVMetallic();
+			g_pContext->PSSetShaderResources(3, 1, &pSRVMetallic);
+
+			auto pSRVRoughness = pMat->GetSRVRoughness();
+			g_pContext->PSSetShaderResources(4, 1, &pSRVRoughness);
+
+			auto pSRVAO = pMat->GetSRVAO();
+			g_pContext->PSSetShaderResources(5, 1, &pSRVAO);
+
+			auto pCBMaterial = pPrim->GetMaterialBuffer();
+			g_pContext->PSSetConstantBuffers(3, 1, &pCBMaterial);
+		}
+		pPrim->Render();
 	}
 }
 
@@ -272,10 +287,10 @@ void Renderer::DrawCubeMap()
 		pCubeMap->Update();
 		g_pContext->VSSetConstantBuffers(0, 1, &NXGlobalBufferManager::m_cbObject);
 
-		auto pCubeMapSRV = pCubeMap->GetTextureSRV();
-		auto pIrradianceMapSRV = pCubeMap->GetIrradianceMapSRV();
-		auto pPreFilterMapSRV = pCubeMap->GetPreFilterMapSRV();
-		auto pBRDF2DLUT = pCubeMap->GetBRDF2DLUT();
+		auto pCubeMapSRV = pCubeMap->GetSRVCubeMap();
+		auto pIrradianceMapSRV = pCubeMap->GetSRVIrradianceMap();
+		auto pPreFilterMapSRV = pCubeMap->GetSRVPreFilterMap();
+		auto pBRDF2DLUT = pCubeMap->GetSRVBRDF2DLUT();
 		g_pContext->PSSetShaderResources(0, 1, &pCubeMapSRV);
 		g_pContext->PSSetShaderResources(7, 1, &pIrradianceMapSRV);
 		g_pContext->PSSetShaderResources(8, 1, &pPreFilterMapSRV);

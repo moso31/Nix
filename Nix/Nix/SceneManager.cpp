@@ -220,6 +220,7 @@ void SceneManager::Release()
 
 	for (auto pMat : m_pbrMaterials)
 	{
+		pMat->Release();
 		delete pMat;
 	}
 

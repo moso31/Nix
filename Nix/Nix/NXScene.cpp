@@ -122,6 +122,8 @@ void NXScene::Init()
 		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), 1.0f, 0.0f, 1.0f, 0.0f, 0.0f),
 	};
 
+	pPBRMat[0]->SetTexAlbedo(L"D:\\NixAssets\\hex-stones1\\hex-stones1-albedo.png");
+
 	//auto pPlane = m_sceneManager->CreatePlane("Ground", 8.0f, 12.0f, NXPlaneAxis(POSITIVE_Y), Vector3(0.0f));
 	//pPlane->SetMaterialPBR(pPBRMat[0]);
 
@@ -140,8 +142,8 @@ void NXScene::Init()
 	//pPlane = m_sceneManager->CreatePlane("Wall +X", 6.0f, 12.0f, NXPlaneAxis(NEGATIVE_X), Vector3(4.0f, 3.0f, 0.0f));
 	//pPlane->SetMaterialPBR(pPBRMat[2]);
 
-	//auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 16, 16, Vector3(1.0f, 1.0f, 1.0f));
-	//pSphere->SetMaterialPBR(pPBRMat[4]);
+	auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 16, 16, Vector3(1.0f, 1.0f, 1.0f));
+	pSphere->SetMaterialPBR(pPBRMat[0]);
 
 	//pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 16, 16, Vector3(-1.0f, 1.0f, 2.0f));
 	//pSphere->SetMaterialPBR(pPBRMat[3]);
@@ -149,26 +151,26 @@ void NXScene::Init()
 	//NXPlane* pLight = m_sceneManager->CreatePlane("Light", 2.0f, 2.0f, NXPlaneAxis(NEGATIVE_Y), Vector3(0.0f, 5.999f, 2.0f));
 	//pLight->SetMaterialPBR(pPBRMat[0]);
 
-	float a[11] = { 0.001, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0 };
-	Vector3 rBaseColor = Vector3(1.0, 0.782, 0.344);
-	int sz = 11;
-	for (int i = 0; i < sz; i++)
-	{
-		float metallic = a[i];
-		for(int j = 0; j < sz; j++)
-		{
-			Vector2 randomPos(i, j);
-			auto pSphere = m_sceneManager->CreateSphere(
-				"Sphere",
-				0.5f, 16, 16,
-				Vector3(randomPos.x, 0.5f, randomPos.y) * 1.2f
-			);
+	//float a[11] = { 0.001, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0 };
+	//Vector3 rBaseColor = Vector3(1.0, 0.782, 0.344);
+	//int sz = 11;
+	//for (int i = 0; i < sz; i++)
+	//{
+	//	float metallic = a[i];
+	//	for(int j = 0; j < sz; j++)
+	//	{
+	//		Vector2 randomPos(i, j);
+	//		auto pSphere = m_sceneManager->CreateSphere(
+	//			"Sphere",
+	//			0.5f, 16, 16,
+	//			Vector3(randomPos.x, 0.5f, randomPos.y) * 1.2f
+	//		);
 
-			float roughness = a[j];
-			auto m = m_sceneManager->CreatePBRMaterial(Vector3(1.0f, 0.782f, 0.344f), metallic, roughness, 0.0f, 0.0f, 0.0f);
-			pSphere->SetMaterialPBR(m);
-		}
-	}
+	//		float roughness = a[j];
+	//		auto m = m_sceneManager->CreatePBRMaterial(Vector3(1.0f, 0.782f, 0.344f), metallic, roughness, 0.0f, 0.0f, 0.0f);
+	//		pSphere->SetMaterialPBR(m);
+	//	}
+	//}
 
 	//vector<NXMesh*> pMeshes;
 	//bool pMesh = m_sceneManager->CreateFBXMeshes(

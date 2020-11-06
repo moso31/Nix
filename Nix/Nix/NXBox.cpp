@@ -76,7 +76,4 @@ void NXBox::Init(float x, float y, float z)
 
 void NXBox::Release()
 {
-	if (m_pVertexBuffer)	m_pVertexBuffer->Release();
-	if (m_pIndexBuffer)		m_pIndexBuffer->Release();
-	if (m_pTextureSRV)		m_pTextureSRV->Release();
 }

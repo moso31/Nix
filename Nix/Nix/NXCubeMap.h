@@ -23,9 +23,10 @@ public:
 	void SetEnvironmentLight(NXPBREnvironmentLight* pEnvironmentLight) { m_pEnvironmentLight = pEnvironmentLight; }
 	NXPBREnvironmentLight* GetEnvironmentLight() const { return m_pEnvironmentLight; }
 
-	ID3D11ShaderResourceView* GetIrradianceMapSRV() { return m_pIrradianceMapSRV; }
-	ID3D11ShaderResourceView* GetPreFilterMapSRV() { return m_pPreFilterMapSRV; }
-	ID3D11ShaderResourceView* GetBRDF2DLUT() { return m_pBRDF2DLUTSRV; }
+	ID3D11ShaderResourceView* GetSRVCubeMap() { return m_pSRVCubeMap; }
+	ID3D11ShaderResourceView* GetSRVIrradianceMap() { return m_pSRVIrradianceMap; }
+	ID3D11ShaderResourceView* GetSRVPreFilterMap() { return m_pSRVPreFilterMap; }
+	ID3D11ShaderResourceView* GetSRVBRDF2DLUT() { return m_pSRVBRDF2DLUT; }
 
 private:
 	void InitVertex();
@@ -41,13 +42,18 @@ private:
 
 	std::vector<VertexP>		m_vertices;
 
-	ID3D11Texture2D*			m_pIrradianceMap;
-	ID3D11ShaderResourceView*	m_pIrradianceMapSRV;
-	ID3D11RenderTargetView*		m_pIrradianceMapRTVs[6];
-	ID3D11Texture2D*			m_pPreFilterMap;
-	ID3D11ShaderResourceView*	m_pPreFilterMapSRV;
-	ID3D11RenderTargetView*		m_pPreFilterMapRTVs[5][6];
-	ID3D11Texture2D*			m_pBRDF2DLUT;
-	ID3D11ShaderResourceView*	m_pBRDF2DLUTSRV;
-	ID3D11RenderTargetView*		m_pBRDF2DLUTRTV;
+	ID3D11Texture2D*			m_pTexCubeMap;
+	ID3D11ShaderResourceView*	m_pSRVCubeMap;
+
+	ID3D11Texture2D*			m_pTexIrradianceMap;
+	ID3D11ShaderResourceView*	m_pSRVIrradianceMap;
+	ID3D11RenderTargetView*		m_pRTVIrradianceMaps[6];
+
+	ID3D11Texture2D*			m_pTexPreFilterMap;
+	ID3D11ShaderResourceView*	m_pSRVPreFilterMap;
+	ID3D11RenderTargetView*		m_pRTVPreFilterMaps[5][6];
+
+	ID3D11Texture2D*			m_pTexBRDF2DLUT;
+	ID3D11ShaderResourceView*	m_pSRVBRDF2DLUT;
+	ID3D11RenderTargetView*		m_pRTVBRDF2DLUT;
 };

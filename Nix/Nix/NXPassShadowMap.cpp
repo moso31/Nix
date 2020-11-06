@@ -83,21 +83,21 @@ void NXPassShadowMap::UpdateConstantBuffer()
 
 void NXPassShadowMap::Render()
 {
-	g_pContext->VSSetConstantBuffers(1, 1, &m_cbTransform);
-	g_pContext->PSSetConstantBuffers(1, 1, &m_cbTransform);
+	//g_pContext->VSSetConstantBuffers(1, 1, &m_cbTransform);
+	//g_pContext->PSSetConstantBuffers(1, 1, &m_cbTransform);
 
-	auto pPrims = m_pScene->GetPrimitives();
-	for (auto it = pPrims.begin(); it != pPrims.end(); it++)
-	{
-		auto p = *it;
-		p->Update();
-		auto pTexSRV = p->GetTextureSRV();
-		auto pMaterial = p->GetMaterialBuffer();
-		g_pContext->VSSetConstantBuffers(0, 1, &NXGlobalBufferManager::m_cbObject);
-		g_pContext->PSSetShaderResources(0, 1, &pTexSRV);
-		g_pContext->PSSetConstantBuffers(3, 1, &pMaterial);
-		p->Render();
-	}
+	//auto pPrims = m_pScene->GetPrimitives();
+	//for (auto it = pPrims.begin(); it != pPrims.end(); it++)
+	//{
+	//	auto p = *it;
+	//	p->Update();
+	//	auto pTexSRV = p->GetTextureSRV();
+	//	auto pMaterial = p->GetMaterialBuffer();
+	//	g_pContext->VSSetConstantBuffers(0, 1, &NXGlobalBufferManager::m_cbObject);
+	//	g_pContext->PSSetShaderResources(0, 1, &pTexSRV);
+	//	g_pContext->PSSetConstantBuffers(3, 1, &pMaterial);
+	//	p->Render();
+	//}
 }
 
 void NXPassShadowMap::Release()
