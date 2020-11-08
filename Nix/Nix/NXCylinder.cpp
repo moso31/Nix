@@ -22,7 +22,8 @@ void NXCylinder::Init(float radius, float length, int segmentCircle, int segment
 	Vector3 pTop(0.0f, yTop, 0.0f);
 	Vector2 uvBottomTop(0.5f, 0.5f);
 
-	m_vertices.push_back({ pBottom, nBottom, uvBottomTop });
+	Vector3 tSide = Vector3(1.0f, 0.0f, 0.0f);	// 上下两个盖子的切线方向
+	m_vertices.push_back({ pBottom, nBottom, uvBottomTop, tSide });
 	currVertIdx++;
 	float segmentCircleInv = 1.0f / (float)segmentCircle;
 	for (int i = 0; i < segmentCircle; i++)
@@ -43,8 +44,8 @@ void NXCylinder::Init(float radius, float length, int segmentCircle, int segment
 		Vector2 uvNow((xNow + 1.0f) * 0.5f, (zNow + 1.0f) * 0.5f);
 		Vector2 uvNext((xNext + 1.0f) * 0.5f, (zNext + 1.0f) * 0.5f);
 
-		m_vertices.push_back({ pNow, nBottom, uvNow });
-		m_vertices.push_back({ pNext, nBottom, uvNext });
+		m_vertices.push_back({ pNow, nBottom, uvNow, tSide });
+		m_vertices.push_back({ pNext, nBottom, uvNext, tSide });
 		
 		m_indices.push_back(0);
 		m_indices.push_back(currVertIdx + 1);
@@ -86,10 +87,19 @@ void NXCylinder::Init(float radius, float length, int segmentCircle, int segment
 			Vector2 uvNowDown	= { segNow,		uvDown };
 			Vector2 uvNextDown	= { segNext,	uvDown };
 
-			m_vertices.push_back({ pNowUp,		nNow,	uvNowUp });
-			m_vertices.push_back({ pNextUp,		nNext,	uvNextUp });
-			m_vertices.push_back({ pNowDown,	nNow,	uvNowDown });
-			m_vertices.push_back({ pNextDown,	nNext,	uvNextDown });
+			// 计算切线
+			Vector3 vNowUp = { xNow, yUp, zNow };
+			Vector3 vNextUp = { xNext, yUp, zNext };
+			Vector3 vNowDown = { xNow, yDown, zNow };
+			Vector3 vNextDown = { xNext, yDown, zNext };
+			Vector3 tNowUp = vNowUp.Cross(nTop);
+			Vector3 tNextUp = vNextUp.Cross(nTop);
+			Vector3 tNowDown = vNowDown.Cross(nTop);
+			Vector3 tNextDown = vNextDown.Cross(nTop);
+			m_vertices.push_back({ pNowUp,		nNow,	uvNowUp,	 tNowUp    });
+			m_vertices.push_back({ pNextUp,		nNext,	uvNextUp,	 tNextUp   });
+			m_vertices.push_back({ pNowDown,	nNow,	uvNowDown,	 tNowDown  });
+			m_vertices.push_back({ pNextDown,	nNext,	uvNextDown,	 tNextDown });
 
 			m_indices.push_back(currVertIdx);
 			m_indices.push_back(currVertIdx + 2);
@@ -102,7 +112,8 @@ void NXCylinder::Init(float radius, float length, int segmentCircle, int segment
 		}
 	}
 
-	m_vertices.push_back({ pTop, nTop, uvBottomTop });
+	// 圆柱顶部
+	m_vertices.push_back({ pTop, nTop, uvBottomTop, tSide });
 	int SaveIdx = currVertIdx++;
 	for (int i = 0; i < segmentCircle; i++)
 	{
@@ -122,8 +133,8 @@ void NXCylinder::Init(float radius, float length, int segmentCircle, int segment
 		Vector2 uvNow((xNow + 1.0f) * 0.5f, (zNow + 1.0f) * 0.5f);
 		Vector2 uvNext((xNext + 1.0f) * 0.5f, (zNext + 1.0f) * 0.5f);
 
-		m_vertices.push_back({ pNow, nTop, uvNow });
-		m_vertices.push_back({ pNext, nTop, uvNext });
+		m_vertices.push_back({ pNow, nTop, uvNow, tSide });
+		m_vertices.push_back({ pNext, nTop, uvNext, tSide });
 		
 		m_indices.push_back(SaveIdx);
 		m_indices.push_back(currVertIdx);

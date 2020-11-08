@@ -14,6 +14,9 @@ NXSphere::NXSphere() :
 
 void NXSphere::Init(float radius, int segmentHorizontal, int segmentVertical)
 {
+	Vector3 vTop(0.0f, 1.0f, 0.0f);
+	Vector3 vBottom(0.0f, -1.0f, 0.0f);
+
 	int currVertIdx = 0;
 	for (int i = 0; i < segmentVertical; i++)
 	{
@@ -22,8 +25,8 @@ void NXSphere::Init(float radius, int segmentHorizontal, int segmentVertical)
 		float radiusDown = sqrtf(radius * radius - yDown * yDown);
 		float radiusUp = sqrtf(radius * radius - yUp * yUp);
 
-		float yUVUp = Clamp(yUp * 0.5f + 0.5f, 0.0f, 1.0f);
-		float yUVDown = Clamp(yDown * 0.5f + 0.5f, 0.0f, 1.0f);
+		float yUVUp = 1.0f - Clamp(yUp * 0.5f + 0.5f, 0.0f, 1.0f);
+		float yUVDown = 1.0f - Clamp(yDown * 0.5f + 0.5f, 0.0f, 1.0f);
 
 		for (int j = 0; j < segmentHorizontal; j++)
 		{
@@ -53,10 +56,20 @@ void NXSphere::Init(float radius, int segmentHorizontal, int segmentVertical)
 			nNowDown = pNowDown * invRadius;
 			nNextDown = pNextDown * invRadius;
 
-			m_vertices.push_back({ pNowUp,		nNowUp,		uvNowUp });
-			m_vertices.push_back({ pNextUp,		nNextUp,	uvNextUp });
-			m_vertices.push_back({ pNextDown,	nNextDown,	uvNextDown });
-			m_vertices.push_back({ pNowDown,	nNowDown,	uvNowDown });
+			// ¼ÆËãÇÐÏß
+			Vector3 vNowUp = { xNow, yUp, zNow };
+			Vector3 vNextUp = { xNext, yUp, zNext };
+			Vector3 vNowDown = { xNow, yDown, zNow };
+			Vector3 vNextDown = { xNext, yDown, zNext };
+			Vector3 tNowUp = vNowUp.y > 0 ? nNowUp.Cross(vTop - vNowUp) : nNowUp.Cross(vNowUp - vBottom);
+			Vector3 tNextUp = vNextUp.y > 0 ? nNextUp.Cross(vTop - vNextUp) : nNextUp.Cross(vNextUp - vBottom);
+			Vector3 tNowDown = vNowDown.y > 0 ? nNowDown.Cross(vTop - vNowDown) : nNowDown.Cross(vNowDown - vBottom);
+			Vector3 tNextDown = vNextDown.y > 0 ? nNextDown.Cross(vTop - vNextDown) : nNextDown.Cross(vNextDown - vBottom);
+
+			m_vertices.push_back({ pNowUp,		nNowUp,		uvNowUp,	tNowUp	  });
+			m_vertices.push_back({ pNextUp,		nNextUp,	uvNextUp,	tNextUp	  });
+			m_vertices.push_back({ pNextDown,	nNextDown,	uvNextDown, tNowDown  });
+			m_vertices.push_back({ pNowDown,	nNowDown,	uvNowDown,	tNextDown });
 
 			m_indices.push_back(currVertIdx);
 			m_indices.push_back(currVertIdx + 1);
