@@ -29,7 +29,9 @@ void Renderer::InitRenderer()
 	NX::MessageBoxIfFailed(
 		ShaderComplier::Compile(L"Shader\\Scene.fx", "VS", "vs_5_0", &pVSBlob), 
 		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVertexShader)); 
+	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVertexShader));
+
+	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pInputLayoutPNTT));
 
 	NX::MessageBoxIfFailed(
 		ShaderComplier::Compile(L"Shader\\RenderTarget.fx", "VS", "vs_5_0", &pVSBlob),
@@ -169,7 +171,7 @@ void Renderer::DrawScene()
 	DrawCubeMap();
 
 	// »æÖÆPrimitives
-	g_pContext->IASetInputLayout(m_pInputLayoutPNT);
+	g_pContext->IASetInputLayout(m_pInputLayoutPNTT);
 	g_pContext->RSSetState(nullptr);
 	g_pContext->OMSetDepthStencilState(nullptr, 0);
 	DrawPrimitives();
@@ -180,6 +182,7 @@ void Renderer::DrawScene()
 	g_pContext->ClearRenderTargetView(pRenderTargetView, Colors::WhiteSmoke);
 	g_pContext->ClearDepthStencilView(pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
+	g_pContext->IASetInputLayout(m_pInputLayoutPNT);
 	g_pContext->VSSetShader(m_pVertexShaderOffScreen, nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShaderOffScreen, nullptr, 0);
 
@@ -204,6 +207,7 @@ void Renderer::Release()
 
 	if (m_pInputLayoutP)		m_pInputLayoutP->Release();
 	if (m_pInputLayoutPNT)		m_pInputLayoutPNT->Release();
+	if (m_pInputLayoutPNTT)		m_pInputLayoutPNTT->Release();
 	if (m_pVertexShader)		m_pVertexShader->Release();
 	if (m_pPixelShader)			m_pPixelShader->Release();
 	if (m_pSamplerLinearWrap)	m_pSamplerLinearWrap->Release();

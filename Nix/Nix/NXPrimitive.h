@@ -18,6 +18,9 @@ public:
 	virtual void Render();
 	virtual void Release();
 
+	// 自动计算顶点的切线数据。
+	void CalculateTangents(bool bUpdateVertexIndexBuffer = false);
+
 	void SetMaterialPBR(NXPBRMaterial* mat);
 
 	NXPBRMaterial* GetPBRMaterial() const;
@@ -81,7 +84,7 @@ public:
 	~NXTriangle() {};
 
 	float Area() const;
-	VertexPNTT GetPointData(int PointId) const;
+	VertexPNTT GetVertex(int VertexId) const;
 	bool RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist);
 
 private:

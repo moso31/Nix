@@ -50,6 +50,7 @@ struct VS_INPUT
 	float4 pos : POSITION;
 	float3 norm : NORMAL;
 	float2 tex : TEXCOORD;
+	float3 tangent : TANGENT;
 };
 
 struct PS_INPUT
@@ -58,6 +59,7 @@ struct PS_INPUT
 	float4 posW : POSITION;
 	float3 normW : NORMAL;
 	float2 tex : TEXCOORD;
+	float3 tangent : TANGENT;
 };
 
 PS_INPUT VS(VS_INPUT input)
@@ -69,7 +71,7 @@ PS_INPUT VS(VS_INPUT input)
 	output.posH = mul(output.posH, m_projection);
 	output.normW = mul(float4(input.norm, 0.0), m_worldInverseTranspose).xyz;
 	output.tex = input.tex;
-
+	output.tangent = input.tangent;
 	return output;
 }
 
@@ -84,6 +86,7 @@ float4 PS(PS_INPUT input) : SV_Target
 	
 	float3 albedoMap = txAlbedo.Sample(samLinear, input.tex).xyz;
 	float3 albedo = m_material.albedo * albedoMap;
+	return float4(abs(input.tangent * albedoMap), 1.0f);
 
 	float3 F0 = 0.04;
 	F0 = lerp(F0, albedo, m_material.metallic);

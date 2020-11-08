@@ -2,7 +2,7 @@
 #include "NXMesh.h"
 #include "NXScene.h"
 
-void FBXMeshLoader::LoadContent(FbxNode* pNode, NXMesh* pEngineMesh, std::vector<NXMesh*>& outMeshes)
+void FBXMeshLoader::LoadContent(FbxNode* pNode, NXMesh* pEngineMesh, std::vector<NXMesh*>& outMeshes, bool bAutoCalcTangents)
 {
 	FbxNodeAttribute::EType lAttributeType;
 	int i;
@@ -35,14 +35,20 @@ void FBXMeshLoader::LoadContent(FbxNode* pNode, NXMesh* pEngineMesh, std::vector
 	}
 
 	pEngineMesh->SetName(pNode->GetName());
+
+	// 一定要在Init之前计算切线，不然值传不到VB/IB
+	if (bAutoCalcTangents) 
+		pEngineMesh->CalculateTangents();
+
 	pEngineMesh->Init();
+
 	LoadNodeTransformInfo(pNode, pEngineMesh);
 	outMeshes.push_back(pEngineMesh);
 
 	for (i = 0; i < pNode->GetChildCount(); i++)
 	{
 		NXMesh* pChildMesh = new NXMesh();
-		LoadContent(pNode->GetChild(i), pChildMesh, outMeshes);
+		LoadContent(pNode->GetChild(i), pChildMesh, outMeshes, bAutoCalcTangents);
 		pChildMesh->SetParent(pEngineMesh);
 	}
 }
@@ -324,7 +330,7 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXMesh* pEngineMesh)
 	//DisplayString("");
 }
 
-void FBXMeshLoader::LoadFBXFile(std::string filepath, NXScene* pRenderScene, std::vector<NXMesh*>& outMeshes)
+void FBXMeshLoader::LoadFBXFile(std::string filepath, NXScene* pRenderScene, std::vector<NXMesh*>& outMeshes, bool bAutoCalcTangents)
 {
 	FbxManager* lSdkManager = NULL;
 	FbxScene* lScene = NULL;
@@ -351,7 +357,7 @@ void FBXMeshLoader::LoadFBXFile(std::string filepath, NXScene* pRenderScene, std
 		for (int i = 0; i < lNode->GetChildCount(); i++)
 		{
 			auto pMesh = new NXMesh();
-			LoadContent(lNode->GetChild(i), pMesh, outMeshes);
+			LoadContent(lNode->GetChild(i), pMesh, outMeshes, bAutoCalcTangents);
 		}
 	}
 }

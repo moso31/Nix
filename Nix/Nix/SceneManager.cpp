@@ -134,9 +134,9 @@ NXPlane* SceneManager::CreatePlane(const std::string& name, const float width, c
 	return p;
 }
 
-bool SceneManager::CreateFBXMeshes(const std::string& filePath, NXPBRMaterial* pDefaultMaterial, std::vector<NXMesh*> outMeshes)
+bool SceneManager::CreateFBXMeshes(const std::string& filePath, NXPBRMaterial* pDefaultMaterial, std::vector<NXMesh*>& outMeshes, bool bAutoCalcTangents)
 {
-	FBXMeshLoader::LoadFBXFile(filePath, m_pScene, outMeshes);
+	FBXMeshLoader::LoadFBXFile(filePath, m_pScene, outMeshes, bAutoCalcTangents);
 	for (auto it = outMeshes.begin(); it != outMeshes.end(); it++)
 	{
 		(*it)->SetMaterialPBR(pDefaultMaterial);

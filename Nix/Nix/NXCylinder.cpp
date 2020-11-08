@@ -87,14 +87,13 @@ void NXCylinder::Init(float radius, float length, int segmentCircle, int segment
 			Vector2 uvNextDown	= { 1.0f - segNext,	1.0f - uvDown };
 
 			// º∆À„«–œﬂ
-			Vector3 vNowUp = { xNow, yUp, zNow };
-			Vector3 vNextUp = { xNext, yUp, zNext };
-			Vector3 vNowDown = { xNow, yDown, zNow };
-			Vector3 vNextDown = { xNext, yDown, zNext };
-			Vector3 tNowUp = vNowUp.Cross(nTop);
-			Vector3 tNextUp = vNextUp.Cross(nTop);
-			Vector3 tNowDown = vNowDown.Cross(nTop);
-			Vector3 tNextDown = vNextDown.Cross(nTop);
+			Vector3 vNow = { xNow, 0.0f, zNow };
+			Vector3 vNext = { xNext, 0.0f, zNext };
+
+			Vector3 tNowUp = vNow.Cross(nTop);
+			Vector3 tNextUp = vNext.Cross(nTop);
+			Vector3 tNowDown = vNow.Cross(nTop);
+			Vector3 tNextDown = vNext.Cross(nTop);
 			m_vertices.push_back({ pNowUp,		nNow,	uvNowUp,	 tNowUp    });
 			m_vertices.push_back({ pNextUp,		nNext,	uvNextUp,	 tNextUp   });
 			m_vertices.push_back({ pNowDown,	nNow,	uvNowDown,	 tNowDown  });

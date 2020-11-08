@@ -37,16 +37,16 @@ void NXBox::Init(float x, float y, float z)
 		{ Vector3(-x, +y, -z), Vector3(0.0f, 1.0f, 0.0f),	Vector2(0.0f, 1.0f), Vector3(1.0f, 0.0f, 0.0f)  },
 
 		// -Z
-		{ Vector3(-x, +y, -z), Vector3(0.0f, 0.0f, -1.0f),	Vector2(0.0f, 0.0f), Vector3(-1.0f, 0.0f, 0.0f)  },
-		{ Vector3(+x, +y, -z), Vector3(0.0f, 0.0f, -1.0f),	Vector2(1.0f, 0.0f), Vector3(-1.0f, 0.0f, 0.0f)  },
-		{ Vector3(+x, -y, -z), Vector3(0.0f, 0.0f, -1.0f),	Vector2(1.0f, 1.0f), Vector3(-1.0f, 0.0f, 0.0f)  },
-		{ Vector3(-x, -y, -z), Vector3(0.0f, 0.0f, -1.0f),	Vector2(0.0f, 1.0f), Vector3(-1.0f, 0.0f, 0.0f)  },
+		{ Vector3(-x, +y, -z), Vector3(0.0f, 0.0f, -1.0f),	Vector2(0.0f, 0.0f), Vector3(1.0f, 0.0f, 0.0f)  },
+		{ Vector3(+x, +y, -z), Vector3(0.0f, 0.0f, -1.0f),	Vector2(1.0f, 0.0f), Vector3(1.0f, 0.0f, 0.0f)  },
+		{ Vector3(+x, -y, -z), Vector3(0.0f, 0.0f, -1.0f),	Vector2(1.0f, 1.0f), Vector3(1.0f, 0.0f, 0.0f)  },
+		{ Vector3(-x, -y, -z), Vector3(0.0f, 0.0f, -1.0f),	Vector2(0.0f, 1.0f), Vector3(1.0f, 0.0f, 0.0f)  },
 
 		// +Z
-		{ Vector3(-x, -y, +z), Vector3(0.0f, 0.0f, 1.0f),	Vector2(1.0f, 1.0f), Vector3(1.0f, 0.0f, 0.0f)  },
-		{ Vector3(+x, -y, +z), Vector3(0.0f, 0.0f, 1.0f),	Vector2(0.0f, 1.0f), Vector3(1.0f, 0.0f, 0.0f)  },
-		{ Vector3(+x, +y, +z), Vector3(0.0f, 0.0f, 1.0f),	Vector2(0.0f, 0.0f), Vector3(1.0f, 0.0f, 0.0f)  },
-		{ Vector3(-x, +y, +z), Vector3(0.0f, 0.0f, 1.0f),	Vector2(1.0f, 0.0f), Vector3(1.0f, 0.0f, 0.0f)  },
+		{ Vector3(-x, -y, +z), Vector3(0.0f, 0.0f, 1.0f),	Vector2(1.0f, 1.0f), Vector3(-1.0f, 0.0f, 0.0f)  },
+		{ Vector3(+x, -y, +z), Vector3(0.0f, 0.0f, 1.0f),	Vector2(0.0f, 1.0f), Vector3(-1.0f, 0.0f, 0.0f)  },
+		{ Vector3(+x, +y, +z), Vector3(0.0f, 0.0f, 1.0f),	Vector2(0.0f, 0.0f), Vector3(-1.0f, 0.0f, 0.0f)  },
+		{ Vector3(-x, +y, +z), Vector3(0.0f, 0.0f, 1.0f),	Vector2(1.0f, 0.0f), Vector3(-1.0f, 0.0f, 0.0f)  },
 	};
 
 	m_indices =

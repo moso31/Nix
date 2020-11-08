@@ -57,19 +57,22 @@ void NXSphere::Init(float radius, int segmentHorizontal, int segmentVertical)
 			nNextDown = pNextDown * invRadius;
 
 			// ¼ÆËãÇÐÏß
-			Vector3 vNowUp = { xNow, yUp, zNow };
-			Vector3 vNextUp = { xNext, yUp, zNext };
-			Vector3 vNowDown = { xNow, yDown, zNow };
-			Vector3 vNextDown = { xNext, yDown, zNext };
-			Vector3 tNowUp = vNowUp.y > 0 ? nNowUp.Cross(vTop - vNowUp) : nNowUp.Cross(vNowUp - vBottom);
-			Vector3 tNextUp = vNextUp.y > 0 ? nNextUp.Cross(vTop - vNextUp) : nNextUp.Cross(vNextUp - vBottom);
-			Vector3 tNowDown = vNowDown.y > 0 ? nNowDown.Cross(vTop - vNowDown) : nNowDown.Cross(vNowDown - vBottom);
-			Vector3 tNextDown = vNextDown.y > 0 ? nNextDown.Cross(vTop - vNextDown) : nNextDown.Cross(vNextDown - vBottom);
+			Vector3 vNow = { xNow, 0.0f, zNow };
+			Vector3 vNext = { xNext, 0.0f, zNext };
+
+			Vector3 tNowUp = vNow.Cross(vTop);
+			Vector3 tNextUp = vNext.Cross(vTop);
+			Vector3 tNowDown = vNow.Cross(vTop);
+			Vector3 tNextDown = vNext.Cross(vTop);
+			tNowUp.Normalize();
+			tNextUp.Normalize();
+			tNowDown.Normalize();
+			tNextDown.Normalize();
 
 			m_vertices.push_back({ pNowUp,		nNowUp,		uvNowUp,	tNowUp	  });
 			m_vertices.push_back({ pNextUp,		nNextUp,	uvNextUp,	tNextUp	  });
-			m_vertices.push_back({ pNextDown,	nNextDown,	uvNextDown, tNowDown  });
-			m_vertices.push_back({ pNowDown,	nNowDown,	uvNowDown,	tNextDown });
+			m_vertices.push_back({ pNextDown,	nNextDown,	uvNextDown, tNextDown });
+			m_vertices.push_back({ pNowDown,	nNowDown,	uvNowDown,	tNowDown  });
 
 			m_indices.push_back(currVertIdx);
 			m_indices.push_back(currVertIdx + 1);

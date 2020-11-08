@@ -53,6 +53,41 @@ void NXPrimitive::Release()
 	NXObject::Release();
 }
 
+void NXPrimitive::CalculateTangents(bool bUpdateVertexIndexBuffer = false)
+{
+	int faceCount = (int)m_indices.size() / 3;
+	for (int i = 0; i < m_indices.size(); i += 3)
+	{
+		auto& P0 = m_vertices[m_indices[i + 0]];
+		auto& P1 = m_vertices[m_indices[i + 1]];
+		auto& P2 = m_vertices[m_indices[i + 2]];
+
+		auto e0 = P1.pos - P0.pos;
+		auto e1 = P2.pos - P0.pos;
+
+		auto uv0 = P1.tex - P0.tex;
+		auto uv1 = P2.tex - P0.tex;
+
+		float u0 = uv0.x;
+		float v0 = uv0.y;
+		float u1 = uv1.x;
+		float v1 = uv1.y;
+
+		float detInvUV = 1.0f / (u0 * v1 - v0 * u1);
+
+		Vector3 dpdu = v1 * e0 - v0 * e1;
+		dpdu.Normalize();
+		P0.tangent = dpdu;
+		P1.tangent = dpdu;
+		P2.tangent = dpdu;
+	}
+
+	if (bUpdateVertexIndexBuffer)
+	{
+		InitVertexIndexBuffer();
+	}
+}
+
 void NXPrimitive::SetMaterialPBR(NXPBRMaterial* mat)
 {
 	m_pPBRMaterial = mat;
@@ -133,9 +168,9 @@ void NXPrimitive::SampleForArea(Vector3& o_pos, Vector3& o_norm, float& o_pdfA)
 	Vector2 r = NXRandom::GetInstance().CreateVector2();
 	Vector2 b = UniformTriangleSample(r);	// ÖØÐÄ×ø±ê
 	NXTriangle tri = SampleTriangle();
-	VertexPNTT P0 = tri.GetPointData(0);
-	VertexPNTT P1 = tri.GetPointData(1);
-	VertexPNTT P2 = tri.GetPointData(2);
+	VertexPNTT P0 = tri.GetVertex(0);
+	VertexPNTT P1 = tri.GetVertex(1);
+	VertexPNTT P2 = tri.GetVertex(2);
 	o_pos = b.x * P0.pos + b.y * P1.pos + (1 - b.x - b.y) * P2.pos;
 	o_norm = (P1.pos - P2.pos).Cross(P1.pos - P0.pos);
 	o_norm.Normalize();
@@ -227,16 +262,16 @@ NXTriangle::NXTriangle(NXPrimitive* pShape, int startIndex) :
 
 float NXTriangle::Area() const
 {
-	Vector3 P0 = GetPointData(0).pos;
-	Vector3 P1 = GetPointData(1).pos;
-	Vector3 P2 = GetPointData(2).pos;
+	Vector3 P0 = GetVertex(0).pos;
+	Vector3 P1 = GetVertex(1).pos;
+	Vector3 P2 = GetVertex(2).pos;
 	return 0.5f * (P1 - P0).Cross(P2 - P0).Length();
 }
 
-VertexPNTT NXTriangle::GetPointData(int PointId) const
+VertexPNTT NXTriangle::GetVertex(int VertexId) const
 {
-	assert(PointId >= 0 && PointId < 3);
-	return pShape->m_vertices[pShape->m_indices[startIndex + PointId]];
+	assert(VertexId >= 0 && VertexId < 3);
+	return pShape->m_vertices[pShape->m_indices[startIndex + VertexId]];
 }
 
 bool NXTriangle::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist)

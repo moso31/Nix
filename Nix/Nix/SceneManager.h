@@ -31,7 +31,7 @@ public:
 	NXSphere* CreateSphere(const std::string& name, const float radius, const UINT segmentHorizontal, const UINT segmentVertical, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));
 	NXCylinder* CreateCylinder(const std::string& name, const float radius, const float length, const UINT segmentCircle, const UINT segmentLength, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));
 	NXPlane* CreatePlane(const std::string& name, const float width, const float height, const NXPlaneAxis axis, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));
-	bool CreateFBXMeshes(const std::string& filePath, NXPBRMaterial* pDefaultMaterial, std::vector<NXMesh*> outMeshes);
+	bool CreateFBXMeshes(const std::string& filePath, NXPBRMaterial* pDefaultMaterial, std::vector<NXMesh*>& outMeshes, bool bAutoCalcTangents = true);
 
 	NXCamera* CreateCamera(const std::string& name, const float FovY, const float zNear, const float zFar, const Vector3& eye, const Vector3& at, const Vector3& up);
 	NXPBRMaterial* CreatePBRMaterial(const Vector3& albedo, const float metallic, const float roughness, const float reflectivity, const float refractivity, const float IOR);
