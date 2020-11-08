@@ -113,17 +113,40 @@ void NXScene::Init()
 	NXVisibleTest::GetInstance().SetScene(this);
 
 	NXPBRMaterial* pPBRMat[] = {
-		m_sceneManager->CreatePBRMaterial(Vector3(0.8f), 0.0f, 1.0f, 0.0f, 0.0f, 0.0f),
-		m_sceneManager->CreatePBRMaterial(Vector3(0.8f, 0.0f, 0.0f), 0.0f, 1.0f, 0.0f, 0.0f, 0.0f),
-		m_sceneManager->CreatePBRMaterial(Vector3(0.0f, 0.0f, 0.8f), 0.0f, 1.0f, 0.0f, 0.0f, 0.0f),
-		m_sceneManager->CreatePBRMaterial(Vector3(0.0f, 0.6f, 0.0f), 1.0f, 1.0f, 0.0f, 0.0f, 0.0f),
-		m_sceneManager->CreatePBRMaterial(Vector3(0.0f, 0.6f, 0.0f), 1.0f, 0.1f, 0.0f, 0.0f, 0.0f),
-		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), 0.0f, 0.0f, 1.0f, 1.0f, 1.55f),
-		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), 1.0f, 0.0f, 1.0f, 0.0f, 0.0f),
+		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f),
+		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f),
+		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), 0.0f, 1.0f, 0.0f, 0.0f, 0.0f),
+		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), 0.0f, 1.0f, 0.0f, 0.0f, 0.0f),
+		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), 0.0f, 1.0f, 0.0f, 0.0f, 0.0f),
+		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), 0.0f, 1.0f, 0.0f, 0.0f, 0.0f),
 	};
 
-	//pPBRMat[0]->SetTexAlbedo(L"D:\\NixAssets\\hex-stones1\\hex-stones1-albedo.png");
 	pPBRMat[0]->SetTexAlbedo(L"D:\\test.png");
+
+	pPBRMat[1]->SetTexAlbedo(L"D:\\NixAssets\\hex-stones1\\albedo.png");
+	pPBRMat[1]->SetTexNormal(L"D:\\NixAssets\\hex-stones1\\normal.png");
+	pPBRMat[1]->SetTexMetallic(L"D:\\NixAssets\\hex-stones1\\metallic.png");
+	pPBRMat[1]->SetTexRoughness(L"D:\\NixAssets\\hex-stones1\\roughness.png");
+
+	pPBRMat[2]->SetTexAlbedo(L"D:\\NixAssets\\circle-textured-metal1\\albedo.png");
+	pPBRMat[2]->SetTexNormal(L"D:\\NixAssets\\circle-textured-metal1\\normal.png");
+	pPBRMat[2]->SetTexMetallic(L"D:\\NixAssets\\circle-textured-metal1\\metallic.png");
+	pPBRMat[2]->SetTexRoughness(L"D:\\NixAssets\\circle-textured-metal1\\roughness.png");
+
+	pPBRMat[3]->SetTexAlbedo(L"D:\\NixAssets\\gray-granite-flecks\\albedo.png");
+	pPBRMat[3]->SetTexNormal(L"D:\\NixAssets\\gray-granite-flecks\\normal.png");
+	pPBRMat[3]->SetTexMetallic(L"D:\\NixAssets\\gray-granite-flecks\\metallic.png");
+	pPBRMat[3]->SetTexRoughness(L"D:\\NixAssets\\gray-granite-flecks\\roughness.png");
+
+	pPBRMat[4]->SetTexAlbedo(L"D:\\NixAssets\\pirate-gold\\albedo.png");
+	pPBRMat[4]->SetTexNormal(L"D:\\NixAssets\\pirate-gold\\normal.png");
+	pPBRMat[4]->SetTexMetallic(L"D:\\NixAssets\\pirate-gold\\metallic.png");
+	pPBRMat[4]->SetTexRoughness(L"D:\\NixAssets\\pirate-gold\\roughness.png");
+
+	pPBRMat[5]->SetTexAlbedo(L"D:\\NixAssets\\rustediron2\\albedo.png");
+	pPBRMat[5]->SetTexNormal(L"D:\\NixAssets\\rustediron2\\normal.png");
+	pPBRMat[5]->SetTexMetallic(L"D:\\NixAssets\\rustediron2\\metallic.png");
+	pPBRMat[5]->SetTexRoughness(L"D:\\NixAssets\\rustediron2\\roughness.png");
 
 	//auto pPlane = m_sceneManager->CreatePlane("Ground", 8.0f, 12.0f, NXPlaneAxis(POSITIVE_Y), Vector3(0.0f));
 	//pPlane->SetMaterialPBR(pPBRMat[0]);
@@ -143,14 +166,12 @@ void NXScene::Init()
 	//pPlane = m_sceneManager->CreatePlane("Wall +X", 6.0f, 12.0f, NXPlaneAxis(NEGATIVE_X), Vector3(4.0f, 3.0f, 0.0f));
 	//pPlane->SetMaterialPBR(pPBRMat[0]);
 
-	auto pBox = m_sceneManager->CreateBox("Box", 1.0f, 1.0f, 1.0f, Vector3(3.0f, 0.0f, 0.0f));
-	pBox->SetMaterialPBR(pPBRMat[0]);
-
-	auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 16, 16, Vector3(5.0f, 1.0f, 1.0f));
-	pSphere->SetMaterialPBR(pPBRMat[0]);
-
-	auto pCylinder = m_sceneManager->CreateCylinder("Cylinder", 1.0f, 3.0f, 16, 16, Vector3(-3.0f, 1.0f, 1.0f));
-	pCylinder->SetMaterialPBR(pPBRMat[0]);
+	for (int i = 0; i < 6; i++)
+	{
+		float posX = ((float)i - 3.0f) * 2.0f;
+		auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 128, 128, Vector3(posX, 0.0f, 0.0f));
+		pSphere->SetMaterialPBR(pPBRMat[i]);
+	}
 
 	//pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 16, 16, Vector3(-1.0f, 1.0f, 2.0f));
 	//pSphere->SetMaterialPBR(pPBRMat[3]);
@@ -179,12 +200,12 @@ void NXScene::Init()
 	//	}
 	//}
 
-	std::vector<NXMesh*> pMeshes;
-	bool pMesh = m_sceneManager->CreateFBXMeshes(
-		"D:\\2.fbx", 
-		pPBRMat[0],
-		pMeshes
-	); 
+	//std::vector<NXMesh*> pMeshes;
+	//bool pMesh = m_sceneManager->CreateFBXMeshes(
+	//	"D:\\2.fbx", 
+	//	pPBRMat[0],
+	//	pMeshes
+	//); 
 
 	//pMeshes[0]->SetMaterialPBR(pPBRMat);
 	//pMeshes[1]->SetMaterialPBR(pPBRMat);

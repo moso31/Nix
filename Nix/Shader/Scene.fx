@@ -59,7 +59,7 @@ struct PS_INPUT
 	float4 posW : POSITION;
 	float3 normW : NORMAL;
 	float2 tex : TEXCOORD;
-	float3 tangent : TANGENT;
+	float3 tangentW : TANGENT;
 };
 
 PS_INPUT VS(VS_INPUT input)
@@ -71,25 +71,43 @@ PS_INPUT VS(VS_INPUT input)
 	output.posH = mul(output.posH, m_projection);
 	output.normW = mul(float4(input.norm, 0.0), m_worldInverseTranspose).xyz;
 	output.tex = input.tex;
-	output.tangent = input.tangent;
+	output.tangentW = mul(float4(input.norm, 0.0), m_worldInverseTranspose).xyz;
 	return output;
+}
+
+float3 TangentSpaceToWorldSpace(float3 normalMapValue, float3 normalWorldSpace, float3 tangentWorldSpace)
+{
+	float3 normalTangentSpace = normalMapValue * 2.0f - 1.0f; // 从 [0, 1] 转换到 [-1, 1] 区间
+	float3 N = normalWorldSpace;
+	float3 T = normalize(tangentWorldSpace - dot(tangentWorldSpace, N) * N); 
+	float3 B = cross(N, T);
+	float3x3 mxTBN = float3x3(T, B, N);
+	float3 bumpedNormalWorldSpace = mul(normalTangentSpace, mxTBN);
+	return bumpedNormalWorldSpace;
 }
 
 float4 PS(PS_INPUT input) : SV_Target
 {
+	float3 normalMap = txNormalMap.Sample(samLinear, input.tex).xyz;
+
 	float3 pos = input.posW.xyz;
-	float3 N = normalize(input.normW);
+	//float3 N = normalize(input.normW);
+	float3 N = TangentSpaceToWorldSpace(normalMap, input.normW, input.tangentW);
 	float3 V = normalize(m_eyePos - pos);
 
-	// reflection test
-	//return txCubeMap.Sample(samLinear, reflect(-V, N)); 
-	
+	//return txCubeMap.Sample(samLinear, reflect(-V, N));	// perfect reflection test
+
 	float3 albedoMap = txAlbedo.Sample(samLinear, input.tex).xyz;
 	float3 albedo = m_material.albedo * albedoMap;
-	return float4(abs(input.tangent * albedoMap), 1.0f);
+
+	float roughnessMap = txRoughnessMap.Sample(samLinear, input.tex).x;
+	float roughness = roughnessMap;// m_material.roughness;
+
+	float metallicMap = txMetallicMap.Sample(samLinear, input.tex).x;
+	float metallic = metallicMap;// m_material.metallic;
 
 	float3 F0 = 0.04;
-	F0 = lerp(F0, albedo, m_material.metallic);
+	F0 = lerp(F0, albedo, metallic);
 
     // reflectance equation
     float3 Lo = 0.0;
@@ -106,8 +124,8 @@ float4 PS(PS_INPUT input) : SV_Target
         float3 radiance = lightColor * attenuation;
 
         // 微表面 BRDF
-		float NDF = DistributionGGX(N, H, m_material.roughness);
-		float G = GeometrySmith(N, V, L, m_material.roughness);
+		float NDF = DistributionGGX(N, H, roughness);
+		float G = GeometrySmith(N, V, L, roughness);
 		float3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
 
         float3 numerator = NDF * G * F;
@@ -116,19 +134,19 @@ float4 PS(PS_INPUT input) : SV_Target
 
 		float3 kS = F;
 		float3 kD = 1.0 - kS;
-		kD *= 1.0 - m_material.metallic;
+		kD *= 1.0 - metallic;
         float NdotL = max(dot(N, L), 0.0);
         Lo += (kD * albedo / PI + specular) * radiance * NdotL;
     }
 
 	float3 kS = fresnelSchlick(max(dot(N, V), 0.0), F0);
 	float3 kD = 1.0 - kS;
-	kD *= 1.0 - m_material.metallic;
+	kD *= 1.0 - metallic;
 	float3 irradiance = txIrradianceMap.Sample(samLinear, N).xyz;
 	float3 diffuseIBL = kD * albedo * irradiance;
 
-	float3 preFilteredColor = txPreFilterMap.SampleLevel(samLinear, reflect(-V, N), m_material.roughness * 4.0f).rgb;
-	float2 envBRDF = txBRDF2DLUT.Sample(samLinear, float2(saturate(dot(N, V)), m_material.roughness)).rg;
+	float3 preFilteredColor = txPreFilterMap.SampleLevel(samLinear, reflect(-V, N), roughness * 4.0f).rgb;
+	float2 envBRDF = txBRDF2DLUT.Sample(samLinear, float2(saturate(dot(N, V)), roughness)).rg;
 	float3 SpecularIBL = preFilteredColor * float3(kS * envBRDF.x + envBRDF.y);
 
 	float3 ambient = diffuseIBL + SpecularIBL; // * ao;

@@ -53,7 +53,7 @@ void NXPrimitive::Release()
 	NXObject::Release();
 }
 
-void NXPrimitive::CalculateTangents(bool bUpdateVertexIndexBuffer = false)
+void NXPrimitive::CalculateTangents(bool bUpdateVertexIndexBuffer)
 {
 	int faceCount = (int)m_indices.size() / 3;
 	for (int i = 0; i < m_indices.size(); i += 3)

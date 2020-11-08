@@ -28,7 +28,7 @@ float3 GetPrefilter(float roughness, float3 R)
 	float3 N = R;
 	float3 V = R;
 	float3 result = 0;
-	const uint NumSamples = 1024;
+	const uint NumSamples = 512;
 	float TotalWeight = 0.0f;
 	for (uint i = 0; i < NumSamples; i++)
 	{
