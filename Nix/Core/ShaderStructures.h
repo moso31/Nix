@@ -37,6 +37,16 @@ struct VertexPNTC
 	Vector4 color;
 };
 
+struct VertexPNTT
+{
+	VertexPNTT(const Vector3& pos, const Vector3& norm, const Vector2& tex, const Vector3& tangent) :
+		pos(pos), norm(norm), tex(tex), tangent(tangent) {}
+	Vector3 pos;
+	Vector3 norm;
+	Vector2 tex;
+	Vector3 tangent;
+};
+
 struct ConstantBufferFloat
 {
 	float Value;
