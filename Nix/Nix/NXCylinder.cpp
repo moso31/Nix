@@ -43,7 +43,6 @@ void NXCylinder::Init(float radius, float length, int segmentCircle, int segment
 
 		Vector2 uvNow((xNow + 1.0f) * 0.5f, (zNow + 1.0f) * 0.5f);
 		Vector2 uvNext((xNext + 1.0f) * 0.5f, (zNext + 1.0f) * 0.5f);
-
 		m_vertices.push_back({ pNow, nBottom, uvNow, tSide });
 		m_vertices.push_back({ pNext, nBottom, uvNext, tSide });
 		
@@ -82,10 +81,10 @@ void NXCylinder::Init(float radius, float length, int segmentCircle, int segment
 			Vector3 nNow = { xNow, 0.0f, zNow };
 			Vector3 nNext = { xNext, 0.0f, zNext };
 
-			Vector2 uvNowUp		= { segNow,		uvUp };
-			Vector2 uvNextUp	= { segNext,	uvUp };
-			Vector2 uvNowDown	= { segNow,		uvDown };
-			Vector2 uvNextDown	= { segNext,	uvDown };
+			Vector2 uvNowUp		= { 1.0f - segNow,	1.0f - uvUp };
+			Vector2 uvNextUp	= { 1.0f - segNext,	1.0f - uvUp };
+			Vector2 uvNowDown	= { 1.0f - segNow,	1.0f - uvDown };
+			Vector2 uvNextDown	= { 1.0f - segNext,	1.0f - uvDown };
 
 			// º∆À„«–œﬂ
 			Vector3 vNowUp = { xNow, yUp, zNow };
@@ -130,9 +129,8 @@ void NXCylinder::Init(float radius, float length, int segmentCircle, int segment
 		Vector3 pNow(xNow * radius, yTop, zNow * radius);
 		Vector3 pNext(xNext * radius, yTop, zNext * radius);
 
-		Vector2 uvNow((xNow + 1.0f) * 0.5f, (zNow + 1.0f) * 0.5f);
-		Vector2 uvNext((xNext + 1.0f) * 0.5f, (zNext + 1.0f) * 0.5f);
-
+		Vector2 uvNow((xNow + 1.0f) * 0.5f, (1.0f - zNow) * 0.5f);
+		Vector2 uvNext((xNext + 1.0f) * 0.5f, (1.0f - zNext) * 0.5f);
 		m_vertices.push_back({ pNow, nTop, uvNow, tSide });
 		m_vertices.push_back({ pNext, nTop, uvNext, tSide });
 		

@@ -146,7 +146,10 @@ void NXScene::Init()
 	//auto pBox = m_sceneManager->CreateBox("Box", 1.0f, 1.0f, 1.0f);
 	//pBox->SetMaterialPBR(pPBRMat[0]);
 
-	auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 16, 16, Vector3(1.0f, 1.0f, 1.0f));
+	//auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 16, 16, Vector3(1.0f, 1.0f, 1.0f));
+	//pSphere->SetMaterialPBR(pPBRMat[0]);
+
+	auto pSphere = m_sceneManager->CreateCylinder("Sphere", 2.0f, 3.0, 16, 16, Vector3(1.0f, 1.0f, 1.0f));
 	pSphere->SetMaterialPBR(pPBRMat[0]);
 
 	//pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 16, 16, Vector3(-1.0f, 1.0f, 2.0f));
