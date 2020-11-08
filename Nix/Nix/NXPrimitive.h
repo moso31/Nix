@@ -54,7 +54,7 @@ protected:
 	ID3D11Buffer*				m_pVertexBuffer;
 	ID3D11Buffer*				m_pIndexBuffer;
 
-	std::vector<VertexPNT>		m_vertices;
+	std::vector<VertexPNTT>		m_vertices;
 	std::vector<USHORT>			m_indices;
 	std::vector<Vector3>		m_points;	// vertices position ађСа
 
@@ -81,7 +81,7 @@ public:
 	~NXTriangle() {};
 
 	float Area() const;
-	VertexPNT GetPointData(int PointId) const;
+	VertexPNTT GetPointData(int PointId) const;
 	bool RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist);
 
 private:

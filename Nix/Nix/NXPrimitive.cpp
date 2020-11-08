@@ -37,7 +37,7 @@ void NXPrimitive::Update()
 
 void NXPrimitive::Render()
 {
-	UINT stride = sizeof(VertexPNT);
+	UINT stride = sizeof(VertexPNTT);
 	UINT offset = 0;
 	g_pContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &stride, &offset);
 	g_pContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
@@ -133,9 +133,9 @@ void NXPrimitive::SampleForArea(Vector3& o_pos, Vector3& o_norm, float& o_pdfA)
 	Vector2 r = NXRandom::GetInstance().CreateVector2();
 	Vector2 b = UniformTriangleSample(r);	// ÖØÐÄ×ø±ê
 	NXTriangle tri = SampleTriangle();
-	VertexPNT P0 = tri.GetPointData(0);
-	VertexPNT P1 = tri.GetPointData(1);
-	VertexPNT P2 = tri.GetPointData(2);
+	VertexPNTT P0 = tri.GetPointData(0);
+	VertexPNTT P1 = tri.GetPointData(1);
+	VertexPNTT P2 = tri.GetPointData(2);
 	o_pos = b.x * P0.pos + b.y * P1.pos + (1 - b.x - b.y) * P2.pos;
 	o_norm = (P1.pos - P2.pos).Cross(P1.pos - P0.pos);
 	o_norm.Normalize();
@@ -182,7 +182,7 @@ void NXPrimitive::InitVertexIndexBuffer()
 	D3D11_BUFFER_DESC bufferDesc;
 	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
 	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(VertexPNT) * (UINT)m_vertices.size();
+	bufferDesc.ByteWidth = sizeof(VertexPNTT) * (UINT)m_vertices.size();
 	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
 	D3D11_SUBRESOURCE_DATA InitData;
@@ -233,7 +233,7 @@ float NXTriangle::Area() const
 	return 0.5f * (P1 - P0).Cross(P2 - P0).Length();
 }
 
-VertexPNT NXTriangle::GetPointData(int PointId) const
+VertexPNTT NXTriangle::GetPointData(int PointId) const
 {
 	assert(PointId >= 0 && PointId < 3);
 	return pShape->m_vertices[pShape->m_indices[startIndex + PointId]];
@@ -241,9 +241,9 @@ VertexPNT NXTriangle::GetPointData(int PointId) const
 
 bool NXTriangle::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist)
 {
-	VertexPNT data0 = pShape->m_vertices[pShape->m_indices[startIndex]];
-	VertexPNT data1 = pShape->m_vertices[pShape->m_indices[startIndex + 1]];
-	VertexPNT data2 = pShape->m_vertices[pShape->m_indices[startIndex + 2]];
+	VertexPNTT data0 = pShape->m_vertices[pShape->m_indices[startIndex]];
+	VertexPNTT data1 = pShape->m_vertices[pShape->m_indices[startIndex + 1]];
+	VertexPNTT data2 = pShape->m_vertices[pShape->m_indices[startIndex + 2]];
 
 	Vector3 p0 = data0.pos;
 	Vector3 p1 = data1.pos;

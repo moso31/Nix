@@ -125,29 +125,29 @@ void NXScene::Init()
 	//pPBRMat[0]->SetTexAlbedo(L"D:\\NixAssets\\hex-stones1\\hex-stones1-albedo.png");
 	pPBRMat[0]->SetTexAlbedo(L"D:\\test.png");
 
-	auto pPlane = m_sceneManager->CreatePlane("Ground", 8.0f, 12.0f, NXPlaneAxis(POSITIVE_Y), Vector3(0.0f));
-	pPlane->SetMaterialPBR(pPBRMat[0]);
+	//auto pPlane = m_sceneManager->CreatePlane("Ground", 8.0f, 12.0f, NXPlaneAxis(POSITIVE_Y), Vector3(0.0f));
+	//pPlane->SetMaterialPBR(pPBRMat[0]);
 
-	pPlane = m_sceneManager->CreatePlane("Wall +Y", 8.0f, 12.0f, NXPlaneAxis(NEGATIVE_Y), Vector3(0.0f, 6.0f, 0.0f));
-	pPlane->SetMaterialPBR(pPBRMat[0]);
+	//pPlane = m_sceneManager->CreatePlane("Wall +Y", 8.0f, 12.0f, NXPlaneAxis(NEGATIVE_Y), Vector3(0.0f, 6.0f, 0.0f));
+	//pPlane->SetMaterialPBR(pPBRMat[0]);
 
-	pPlane = m_sceneManager->CreatePlane("Wall -Z", 8.0f, 6.0f, NXPlaneAxis(POSITIVE_Z), Vector3(0.0f, 3.0f, -6.0f));
-	pPlane->SetMaterialPBR(pPBRMat[0]);
+	//pPlane = m_sceneManager->CreatePlane("Wall -Z", 8.0f, 6.0f, NXPlaneAxis(POSITIVE_Z), Vector3(0.0f, 3.0f, -6.0f));
+	//pPlane->SetMaterialPBR(pPBRMat[0]);
 
-	pPlane = m_sceneManager->CreatePlane("Wall +Z", 8.0f, 6.0f, NXPlaneAxis(NEGATIVE_Z), Vector3(0.0f, 3.0f, 6.0f));
-	pPlane->SetMaterialPBR(pPBRMat[0]);
+	//pPlane = m_sceneManager->CreatePlane("Wall +Z", 8.0f, 6.0f, NXPlaneAxis(NEGATIVE_Z), Vector3(0.0f, 3.0f, 6.0f));
+	//pPlane->SetMaterialPBR(pPBRMat[0]);
 
-	pPlane = m_sceneManager->CreatePlane("Wall -X", 6.0f, 12.0f, NXPlaneAxis(POSITIVE_X), Vector3(-4.0f, 3.0f, 0.0f));
-	pPlane->SetMaterialPBR(pPBRMat[0]);
+	//pPlane = m_sceneManager->CreatePlane("Wall -X", 6.0f, 12.0f, NXPlaneAxis(POSITIVE_X), Vector3(-4.0f, 3.0f, 0.0f));
+	//pPlane->SetMaterialPBR(pPBRMat[0]);
 
-	pPlane = m_sceneManager->CreatePlane("Wall +X", 6.0f, 12.0f, NXPlaneAxis(NEGATIVE_X), Vector3(4.0f, 3.0f, 0.0f));
-	pPlane->SetMaterialPBR(pPBRMat[0]);
+	//pPlane = m_sceneManager->CreatePlane("Wall +X", 6.0f, 12.0f, NXPlaneAxis(NEGATIVE_X), Vector3(4.0f, 3.0f, 0.0f));
+	//pPlane->SetMaterialPBR(pPBRMat[0]);
 
 	//auto pBox = m_sceneManager->CreateBox("Box", 1.0f, 1.0f, 1.0f);
 	//pBox->SetMaterialPBR(pPBRMat[0]);
 
-	//auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 16, 16, Vector3(1.0f, 1.0f, 1.0f));
-	//pSphere->SetMaterialPBR(pPBRMat[0]);
+	auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 16, 16, Vector3(1.0f, 1.0f, 1.0f));
+	pSphere->SetMaterialPBR(pPBRMat[0]);
 
 	//pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 16, 16, Vector3(-1.0f, 1.0f, 2.0f));
 	//pSphere->SetMaterialPBR(pPBRMat[3]);

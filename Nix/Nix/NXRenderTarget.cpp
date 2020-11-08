@@ -40,3 +40,24 @@ void NXRenderTarget::Render()
 	g_pContext->DrawIndexed((UINT)m_indices.size(), 0, 0);
 }
 
+void NXRenderTarget::InitVertexIndexBuffer()
+{
+	D3D11_BUFFER_DESC bufferDesc;
+	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = sizeof(VertexPNT) * (UINT)m_vertices.size();
+	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	D3D11_SUBRESOURCE_DATA InitData;
+	ZeroMemory(&InitData, sizeof(InitData));
+	InitData.pSysMem = m_vertices.data();
+	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &m_pVertexBuffer));
+
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = sizeof(USHORT) * (UINT)m_indices.size();
+	bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	InitData.pSysMem = m_indices.data();
+	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &m_pIndexBuffer));
+}
+

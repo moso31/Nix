@@ -103,7 +103,7 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXMesh* pEngineMesh)
 			}
 		}
 
-		VertexPNT vertex;
+		VertexPNTT vertex;
 		int lPolygonSize = pMesh->GetPolygonSize(i);
 
 		for (j = 0; j < lPolygonSize; j++)
