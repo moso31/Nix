@@ -33,7 +33,16 @@ bool NXCubeMap::Init(std::wstring filePath)
 	TexMetadata metadata;
 	std::unique_ptr<ScratchImage> dcImage = std::make_unique<ScratchImage>();
 	HRESULT hr; 
-	hr = LoadFromDDSFile(filePath.c_str(), DDS_FLAGS_NONE, &metadata, *m_image);
+	std::wstring suffix = filePath.substr(filePath.rfind(L"."));
+	if (_wcsicmp(suffix.c_str(), L".dds") == 0)
+	{
+		hr = LoadFromDDSFile(filePath.c_str(), DDS_FLAGS_NONE, &metadata, *m_image);
+	}
+	else if (_wcsicmp(suffix.c_str(), L".hdr") == 0)
+	{
+		hr = LoadFromHDRFile(filePath.c_str(), &metadata, *m_image);
+	}
+
 	if (FAILED(hr))
 	{
 		dcImage.reset();

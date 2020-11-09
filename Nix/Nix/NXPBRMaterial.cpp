@@ -1,5 +1,6 @@
 #include "NXPBRMaterial.h"
 #include <memory>
+#include <direct.h>
 #include "NXReflection.h"
 #include "DirectXTex.h"
 
@@ -67,11 +68,24 @@ void NXPBRMaterial::SetTexAO(const std::wstring& TexFilePath)
 	SetTex(TexFilePath, m_pTexAmbientOcclusion, m_pSRVAmbientOcclusion);
 }
 
-void NXPBRMaterial::SetTex(const std::wstring& TexFilePath, ID3D11Texture2D*& pTex, ID3D11ShaderResourceView*& pSRV)
+void NXPBRMaterial::SetTex(const std::wstring& texFilePath, ID3D11Texture2D*& pTex, ID3D11ShaderResourceView*& pSRV)
 {
 	TexMetadata info;
 	std::unique_ptr<ScratchImage> image = std::make_unique<ScratchImage>(); //(new (std::nothrow) ScratchImage);
-	auto hr = LoadFromWICFile(TexFilePath.c_str(), WIC_FLAGS_NONE, &info, *image);
+	auto hr = LoadFromWICFile(texFilePath.c_str(), WIC_FLAGS_NONE, &info, *image);
+
+	//std::wstring assetPath = L"D:\\NixAssets\\";
+	//size_t assetFolderIndex = texFilePath.find(assetPath) + assetPath.length();
+	//std::wstring texFolderPath = texFilePath.substr(assetFolderIndex, texFilePath.rfind(L"\\") - assetFolderIndex);
+	////std::wstring texFolderPath = texFilePath.substr(assetFolderIndex, texFilePath.find(L".png") - assetFolderIndex);
+	//std::wstring ddsFolderPath = L"D:\\Caches\\" + texFolderPath + L"\\";
+	//std::wstring ddsFilePath = ddsFolderPath + L".dds";
+
+	//hr = CreateDirectory(ddsFolderPath.c_str(), nullptr);
+	//if (SUCCEEDED(hr))
+	//{
+	//	hr = SaveToDDSFile(image->GetImage(0, 0, 0), image->GetImageCount(), info, DDS_FLAGS_NONE, ddsFilePath.c_str());
+	//}
 
 	CD3D11_TEXTURE2D_DESC descTex(info.format, (UINT)info.width, (UINT)info.height, (UINT)info.arraySize, (UINT)info.mipLevels, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, (UINT)info.miscFlags);
 	auto img = image->GetImage(0, 0, 0);

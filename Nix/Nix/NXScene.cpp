@@ -121,7 +121,10 @@ void NXScene::Init()
 		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), 0.0f, 1.0f, 0.0f, 0.0f, 0.0f),
 	};
 
-	pPBRMat[0]->SetTexAlbedo(L"D:\\test.png");
+	pPBRMat[0]->SetTexAlbedo(L"D:\\NixAssets\\test\\albedo.png");
+	pPBRMat[0]->SetTexNormal(L"D:\\NixAssets\\test\\normal.png");
+	pPBRMat[0]->SetTexMetallic(L"D:\\NixAssets\\test\\metallic.png");
+	pPBRMat[0]->SetTexRoughness(L"D:\\NixAssets\\test\\roughness.png");
 
 	pPBRMat[1]->SetTexAlbedo(L"D:\\NixAssets\\hex-stones1\\albedo.png");
 	pPBRMat[1]->SetTexNormal(L"D:\\NixAssets\\hex-stones1\\normal.png");
@@ -166,11 +169,18 @@ void NXScene::Init()
 	//pPlane = m_sceneManager->CreatePlane("Wall +X", 6.0f, 12.0f, NXPlaneAxis(NEGATIVE_X), Vector3(4.0f, 3.0f, 0.0f));
 	//pPlane->SetMaterialPBR(pPBRMat[0]);
 
+	//auto pPlane = m_sceneManager->CreatePlane("Wall 1", 4.0f, 4.0f, NXPlaneAxis(NEGATIVE_Z), Vector3(0.0f, 0.0f, 4.0f));
+	//pPlane->SetMaterialPBR(pPBRMat[0]);
+
 	for (int i = 0; i < 6; i++)
 	{
 		float posX = ((float)i - 3.0f) * 2.0f;
 		auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 128, 128, Vector3(posX, 0.0f, 0.0f));
 		pSphere->SetMaterialPBR(pPBRMat[i]);
+
+		posX = ((float)i - 3.0f) * 2.0f;
+		//auto pPlane = m_sceneManager->CreatePlane("Wall", 2.0f, 2.0f, NXPlaneAxis(NEGATIVE_Z), Vector3(posX, 0.0f, 2.0f));
+		//pPlane->SetMaterialPBR(pPBRMat[i]);  
 	}
 
 	//pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 16, 16, Vector3(-1.0f, 1.0f, 2.0f));
@@ -229,7 +239,8 @@ void NXScene::Init()
 	//	pMeshes[1]->AddScript(pScript_test);
 	//}
 
-	m_sceneManager->CreateCubeMap("Sky", L"D:\\sunsetcube1024.dds");
+	//m_sceneManager->CreateCubeMap("Sky", L"D:\\sunsetcube1024.dds");
+	m_sceneManager->CreateCubeMap("Sky", L"D:\\Arches_E_PineTree_3k.hdr");
 
 	// 更新AABB需要世界坐标，而Init阶段还没有拿到世界坐标，所以需要提前PrevUpdate一次。
 	UpdateTransform();

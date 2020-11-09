@@ -212,6 +212,7 @@
     <ClCompile Include="Core\Main.cpp" />
     <ClCompile Include="Core\NXDXHelper.cpp" />
     <ClCompile Include="Core\NXEvent.cpp" />
+    <ClCompile Include="Core\NXFileIO.cpp" />
     <ClCompile Include="Core\NXInput.cpp" />
     <ClCompile Include="Core\NXListener.cpp" />
     <ClCompile Include="Core\NXRandom.cpp" />
@@ -264,6 +265,7 @@
     <ClInclude Include="Core\ImageGenerator.h" />
     <ClInclude Include="Core\NXDXHelper.h" />
     <ClInclude Include="Core\NXEvent.h" />
+    <ClInclude Include="Core\NXFileIO.h" />
     <ClInclude Include="Core\NXInput.h" />
     <ClInclude Include="Core\NXInstance.h" />
     <ClInclude Include="Core\NXListener.h" />
@@ -353,6 +355,9 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Shader\HDRToCubeMap.fx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

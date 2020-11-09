@@ -71,11 +71,20 @@ PS_INPUT VS(VS_INPUT input)
 	output.posH = mul(output.posH, m_projection);
 	output.normW = mul(float4(input.norm, 0.0), m_worldInverseTranspose).xyz;
 	output.tex = input.tex;
-	output.tangentW = mul(float4(input.norm, 0.0), m_worldInverseTranspose).xyz;
+	//output.tangentW = input.tangent;
+	output.tangentW = mul(input.tangent, (float3x3)m_world).xyz;
 	return output;
 }
 
-float3 TangentSpaceToWorldSpace(float3 normalMapValue, float3 normalWorldSpace, float3 tangentWorldSpace)
+float3 test(float3 V, float3 A, float3 B, float3 C)
+{
+	float x = V.x * A.x + V.y * B.x + V.z * C.x;
+	float y = V.x * A.y + V.y * B.y + V.z * C.y;
+	float z = V.x * A.z + V.y * B.z + V.z * C.z;
+	return float3(x, y, z);
+}
+
+float3 TangentSpaceToWorldSpace(float3 normalMapValue, float3 normalWorldSpace, float3 tangentWorldSpace, float2 uv)
 {
 	float3 normalTangentSpace = normalMapValue * 2.0f - 1.0f; // 从 [0, 1] 转换到 [-1, 1] 区间
 	float3 N = normalWorldSpace;
@@ -89,22 +98,27 @@ float3 TangentSpaceToWorldSpace(float3 normalMapValue, float3 normalWorldSpace, 
 float4 PS(PS_INPUT input) : SV_Target
 {
 	float3 normalMap = txNormalMap.Sample(samLinear, input.tex).xyz;
+	//return float4(input.tangentW, 1.0f);
 
 	float3 pos = input.posW.xyz;
 	//float3 N = normalize(input.normW);
-	float3 N = TangentSpaceToWorldSpace(normalMap, input.normW, input.tangentW);
+	float3 N = TangentSpaceToWorldSpace(normalMap, input.normW, input.tangentW, input.tex);
 	float3 V = normalize(m_eyePos - pos);
 
+	//return float4(N, 1.0f);
 	//return txCubeMap.Sample(samLinear, reflect(-V, N));	// perfect reflection test
 
 	float3 albedoMap = txAlbedo.Sample(samLinear, input.tex).xyz;
 	float3 albedo = m_material.albedo * albedoMap;
+	//return float4(albedoMap, 1.0f);
 
 	float roughnessMap = txRoughnessMap.Sample(samLinear, input.tex).x;
-	float roughness = roughnessMap;// m_material.roughness;
+	//float roughness = m_material.roughness;
+	float roughness = roughnessMap;
 
 	float metallicMap = txMetallicMap.Sample(samLinear, input.tex).x;
-	float metallic = metallicMap;// m_material.metallic;
+	//float metallic = m_material.metallic;
+	float metallic = metallicMap;
 
 	float3 F0 = 0.04;
 	F0 = lerp(F0, albedo, metallic);
@@ -150,7 +164,7 @@ float4 PS(PS_INPUT input) : SV_Target
 	float3 SpecularIBL = preFilteredColor * float3(kS * envBRDF.x + envBRDF.y);
 
 	float3 ambient = diffuseIBL + SpecularIBL; // * ao;
-	float3 color = ambient + Lo;
+	float3 color = Lo;// ambient + Lo;
 
 	// gamma.
 	color = color / (color + 1.0);
