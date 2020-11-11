@@ -15,6 +15,7 @@ public:
 	void Render() override;
 	void Release() override;
 
+	void GenerateCubeMap();
 	void GenerateIrradianceMap();
 	void GeneratePreFilterMap();
 	void GenerateBRDF2DLUT();
@@ -42,8 +43,12 @@ private:
 
 	std::vector<VertexP>		m_vertices;
 
+	ID3D11Texture2D*			m_pTexHDRMap;
+	ID3D11ShaderResourceView*	m_pSRVHDRMap;
+
 	ID3D11Texture2D*			m_pTexCubeMap;
 	ID3D11ShaderResourceView*	m_pSRVCubeMap;
+	ID3D11RenderTargetView*		m_pRTVCubeMaps[6];
 
 	ID3D11Texture2D*			m_pTexIrradianceMap;
 	ID3D11ShaderResourceView*	m_pSRVIrradianceMap;

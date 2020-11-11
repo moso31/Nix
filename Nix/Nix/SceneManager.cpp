@@ -23,11 +23,7 @@ SceneManager::~SceneManager()
 
 void SceneManager::BuildBVHTrees(const HBVHSplitMode SplitMode)
 {
-	if (m_pBVHTree)
-	{
-		m_pBVHTree->Release();
-		delete m_pBVHTree;
-	}
+	SafeRelease(m_pBVHTree);
 
 	m_pBVHTree = new HBVHTree(m_pScene, m_primitives);
 	m_pBVHTree->BuildTreesWithScene(SplitMode);
@@ -213,36 +209,11 @@ bool SceneManager::BindParent(NXObject* pParent, NXObject* pChild)
 
 void SceneManager::Release()
 {
-	for (auto pLight : m_pbrLights)
-	{
-		delete pLight;
-	}
-
-	for (auto pMat : m_pbrMaterials)
-	{
-		pMat->Release();
-		delete pMat;
-	}
-
-	//for (auto script : m_scripts)
-	//{
-	//	delete script;
-	//}
-
-	if (m_pBVHTree)
-	{
-		m_pBVHTree->Release();
-		delete m_pBVHTree;
-	}
-
-	for (auto obj : m_objects)
-	{
-		obj->Release();
-		delete obj;
-	}
-
-	m_pRootObject->Release();
-	delete m_pRootObject;
+	for (auto pLight : m_pbrLights) SafeDelete(pLight);
+	for (auto pMat : m_pbrMaterials) SafeRelease(pMat);
+	SafeRelease(m_pBVHTree);
+	for (auto obj : m_objects) SafeRelease(obj);
+	SafeRelease(m_pRootObject);
 }
 
 void SceneManager::RegisterCubeMap(NXCubeMap* newCubeMap)

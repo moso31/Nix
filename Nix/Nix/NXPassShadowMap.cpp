@@ -51,7 +51,7 @@ void NXPassShadowMap::Init(UINT width, UINT height)
 	);
 	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(pTexShadowMap, &descSRV, &m_pDepthSRV));
 
-	if (pTexShadowMap) pTexShadowMap->Release();
+	SafeReleaseCOM(pTexShadowMap);
 
 	D3D11_BUFFER_DESC bufferDesc;
 	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
@@ -102,12 +102,7 @@ void NXPassShadowMap::Render()
 
 void NXPassShadowMap::Release()
 {
-	if (m_pDepthDSV)
-		m_pDepthDSV->Release();
-
-	if (m_pDepthSRV)
-		m_pDepthSRV->Release();
-
-	if (m_cbTransform)
-		m_cbTransform->Release();
+	SafeReleaseCOM(m_pDepthDSV);
+	SafeReleaseCOM(m_pDepthSRV);
+	SafeReleaseCOM(m_cbTransform);
 }

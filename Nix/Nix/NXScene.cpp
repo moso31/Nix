@@ -239,8 +239,8 @@ void NXScene::Init()
 	//	pMeshes[1]->AddScript(pScript_test);
 	//}
 
-	//m_sceneManager->CreateCubeMap("Sky", L"D:\\sunsetcube1024.dds");
-	m_sceneManager->CreateCubeMap("Sky", L"D:\\Arches_E_PineTree_3k.hdr");
+	m_sceneManager->CreateCubeMap("Sky", L"D:\\sunsetcube1024.dds");
+	//m_sceneManager->CreateCubeMap("Sky", L"D:\\Arches_E_PineTree_3k.hdr");
 
 	// 更新AABB需要世界坐标，而Init阶段还没有拿到世界坐标，所以需要提前PrevUpdate一次。
 	UpdateTransform();
@@ -335,11 +335,8 @@ void NXScene::UpdateCamera()
 
 void NXScene::Release()
 {
-	if (m_cbLights)
-		m_cbLights->Release();
-
-	m_sceneManager->Release();
-	delete m_sceneManager;
+	SafeReleaseCOM(m_cbLights);
+	SafeRelease(m_sceneManager);
 }
 
 bool NXScene::RayCast(const Ray& ray, NXHit& outHitInfo, float tMax)

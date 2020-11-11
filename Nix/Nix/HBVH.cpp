@@ -531,5 +531,5 @@ void HBVHTree::ReleaseTreeNode(HBVHTreeNode* node)
 	if (node->child[0]) ReleaseTreeNode(node->child[0]); 
 	if (node->child[1]) ReleaseTreeNode(node->child[1]);
 
-	delete node;
+	SafeDelete(node);
 }

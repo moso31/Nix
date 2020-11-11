@@ -17,16 +17,8 @@ NXSPPMIntegrator::NXSPPMIntegrator(const XMINT2& imageSize, std::string outPath,
 
 NXSPPMIntegrator::~NXSPPMIntegrator()
 {
-	if (m_pCausticPhotonMap)
-	{
-		m_pCausticPhotonMap->Release();
-		delete m_pCausticPhotonMap;
-	}
-	if (m_pGlobalPhotonMap)
-	{
-		m_pGlobalPhotonMap->Release();
-		delete m_pGlobalPhotonMap;
-	}
+	SafeRelease(m_pCausticPhotonMap);
+	SafeRelease(m_pGlobalPhotonMap);
 }
 
 void NXSPPMIntegrator::Render(NXScene* pScene)
@@ -75,7 +67,7 @@ void NXSPPMIntegrator::Render(NXScene* pScene)
 		if (bRenderOnce)
 		{
 			ImageGenerator::GenerateImageBMP((byte*)pImageData, m_imageSize.x, m_imageSize.y, m_outFilePath.c_str());
-			delete pImageData;
+			SafeDelete(pImageData);
 		}
 		printf("done.\n");
 	}
@@ -199,7 +191,7 @@ void NXSPPMIntegrator::RenderWithPM(NXScene* pScene, std::unique_ptr<NXSPPMPixel
 		f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
 		bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
 		isDeltaBSDF = *sampleEvent & NXBSDF::DELTA;
-		delete sampleEvent;
+		SafeDelete(sampleEvent);
 
 		if (f.IsZero() || pdf == 0) break;
 		if (bIsDiffuse) break;
@@ -359,7 +351,7 @@ void NXSPPMIntegrator::RenderWithPMSplit(NXScene* pScene, std::unique_ptr<NXSPPM
 		f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
 		bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
 		isDeltaBSDF = *sampleEvent & NXBSDF::DELTA;
-		delete sampleEvent;
+		SafeDelete(sampleEvent);
 
 		if (f.IsZero() || pdf == 0) break;
 		if (bIsDiffuse) break;
@@ -479,7 +471,7 @@ void NXSPPMIntegrator::RenderWithPMSplit(NXScene* pScene, std::unique_ptr<NXSPPM
 		NXBSDF::SampleEvents* sampleEvent = new NXBSDF::SampleEvents();
 		f = hitInfoDiffuse.BSDF->Sample(hitInfoDiffuse.direction, nextDirection, pdf, sampleEvent);
 		bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
-		delete sampleEvent;
+		SafeDelete(sampleEvent);
 
 		if (f.IsZero() || pdf == 0) break;
 		if (bIsDiffuse) break;

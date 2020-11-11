@@ -59,16 +59,12 @@ void NXPhotonMap::Render(NXScene* pScene, const XMINT2& imageSize, std::string o
 	}
 
 	ImageGenerator::GenerateImageBMP((byte*)pImageData, imageSize.x, imageSize.y, outFilePath.c_str());
-	delete pImageData;
+	SafeDelete(pImageData);
 }
 
 void NXPhotonMap::Release()
 {
-	if (m_pKdTree)
-	{
-		m_pKdTree->Release();
-		delete m_pKdTree;
-	}
+	SafeRelease(m_pKdTree);
 }
 
 void NXPhotonMap::GenerateCausticMap(NXScene* pScene)
@@ -111,7 +107,7 @@ void NXPhotonMap::GenerateCausticMap(NXScene* pScene)
 			Vector3 f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
 			bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
 			bHasSpecularOrGlossy |= !bIsDiffuse;
-			delete sampleEvent;
+			SafeDelete(sampleEvent);
 
 			if (f.IsZero() || pdf == 0) break;
 
@@ -147,6 +143,7 @@ void NXPhotonMap::GenerateCausticMap(NXScene* pScene)
 		}
 	}
 
+	SafeRelease(m_pKdTree);
 	m_pKdTree = new NXKdTree<NXPhoton>();
 	m_pKdTree->BuildBalanceTree(m_pData);
 }
@@ -195,7 +192,7 @@ void NXPhotonMap::GenerateGlobalMap(NXScene* pScene)
 			NXBSDF::SampleEvents* sampleEvent = new NXBSDF::SampleEvents();
 			Vector3 f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
 			bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
-			delete sampleEvent;
+			SafeDelete(sampleEvent);
 
 			if (f.IsZero() || pdf == 0) break;
 

@@ -46,10 +46,9 @@ void NXPrimitive::Render()
 
 void NXPrimitive::Release()
 {
-	if (m_pVertexBuffer)	m_pVertexBuffer->Release();
-	if (m_pIndexBuffer)		m_pIndexBuffer->Release();
-
-	if (m_cbMaterial)		m_cbMaterial->Release();
+	SafeReleaseCOM(m_pVertexBuffer);
+	SafeReleaseCOM(m_pIndexBuffer);
+	SafeReleaseCOM(m_cbMaterial);
 	NXObject::Release();
 }
 

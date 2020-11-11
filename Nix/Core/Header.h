@@ -47,6 +47,11 @@ using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
 
+#define SafeDeleteArray(x) { delete[] x; x = nullptr; }
+#define SafeDelete(x) { delete x; x = nullptr; }
+#define SafeReleaseCOM(x) { if (x) { x->Release(); x = nullptr; } }
+#define SafeRelease(x) { if (x) { x->Release(); SafeDelete(x); } }
+
 // class preload
 class App;
 class DirectResources;

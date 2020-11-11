@@ -19,9 +19,6 @@ void NXEvent::OnNotify(NXEventArg eArg)
 
 void NXEvent::Release()
 {
-	for (auto listener : m_listeners)
-	{
-		listener->Release();
-		delete listener;
-	}
+	for (auto listener : m_listeners) 
+		SafeRelease(listener);
 }

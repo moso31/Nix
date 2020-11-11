@@ -15,11 +15,7 @@ NXPMIntegrator::NXPMIntegrator(const XMINT2& imageSize, int eachPixelSamples, st
 
 NXPMIntegrator::~NXPMIntegrator()
 {
-	if (m_pPhotonMap)
-	{
-		m_pPhotonMap->Release();
-		delete m_pPhotonMap;
-	}
+	SafeRelease(m_pPhotonMap);
 }
 
 void NXPMIntegrator::Render(NXScene* pScene)
@@ -84,7 +80,7 @@ Vector3 NXPMIntegrator::Radiance(const Ray& cameraRay, NXScene* pScene, int dept
 		f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
 		bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
 		isDeltaBSDF = *sampleEvent & NXBSDF::DELTA;
-		delete sampleEvent;
+		SafeDelete(sampleEvent);
 
 		if (f.IsZero() || pdf == 0) break;
 		if (bIsDiffuse) break;

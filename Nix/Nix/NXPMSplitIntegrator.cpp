@@ -18,21 +18,9 @@ NXPMSplitIntegrator::NXPMSplitIntegrator(const XMINT2& imageSize, int eachPixelS
 
 NXPMSplitIntegrator::~NXPMSplitIntegrator()
 {
-	if (m_pCausticPhotonMap)
-	{
-		m_pCausticPhotonMap->Release();
-		delete m_pCausticPhotonMap;
-	}
-	if (m_pGlobalPhotonMap)
-	{
-		m_pGlobalPhotonMap->Release();
-		delete m_pGlobalPhotonMap;
-	}
-	if (m_pIrradianceCache)
-	{
-		m_pIrradianceCache->Release();
-		delete m_pIrradianceCache;
-	}
+	SafeRelease(m_pCausticPhotonMap);
+	SafeRelease(m_pGlobalPhotonMap);
+	SafeRelease(m_pIrradianceCache);
 }
 
 void NXPMSplitIntegrator::Render(NXScene* pScene)
@@ -102,7 +90,7 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, NXScene* pScene, int
 		f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
 		bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
 		isDeltaBSDF = *sampleEvent & NXBSDF::DELTA;
-		delete sampleEvent;
+		SafeDelete(sampleEvent);
 
 		if (bIsDiffuse) break;
 
@@ -175,7 +163,7 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, NXScene* pScene, int
 				NXBSDF::SampleEvents* sampleEvent = new NXBSDF::SampleEvents();
 				f = hitInfoDiffuse.BSDF->Sample(hitInfoDiffuse.direction, nextDirection, pdf, sampleEvent);
 				bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
-				delete sampleEvent;
+				SafeDelete(sampleEvent);
 
 				if (bIsDiffuse) break;
 
@@ -222,14 +210,12 @@ Vector3 NXPMSplitIntegrator::Radiance(const Ray& cameraRay, NXScene* pScene, int
 void NXPMSplitIntegrator::BuildPhotonMap(NXScene* pScene)
 {
 	printf("Building Caustic Photon Map...");
-	if (m_pCausticPhotonMap)
-		m_pCausticPhotonMap->Release();
+	SafeRelease(m_pCausticPhotonMap);
 	m_pCausticPhotonMap = new NXPhotonMap(m_numCausticPhotons);
 	m_pCausticPhotonMap->Generate(pScene, PhotonMapType::Caustic);
 	printf("Done.\n");
 	printf("Building Global Photon Map...");
-	if (m_pGlobalPhotonMap)
-		m_pGlobalPhotonMap->Release();
+	SafeRelease(m_pGlobalPhotonMap);
 	m_pGlobalPhotonMap = new NXPhotonMap(m_numGlobalPhotons);
 	m_pGlobalPhotonMap->Generate(pScene, PhotonMapType::Global);
 	printf("Done.\n");
@@ -238,8 +224,7 @@ void NXPMSplitIntegrator::BuildPhotonMap(NXScene* pScene)
 void NXPMSplitIntegrator::BuildIrradianceCache(NXScene* pScene)
 {
 	printf("Preloading irradiance caches...\n");
-	if (m_pIrradianceCache)
-		m_pIrradianceCache->Release();
+	SafeRelease(m_pIrradianceCache);
 	m_pIrradianceCache = new NXIrradianceCache();
 	m_pIrradianceCache->SetPhotonMaps(m_pGlobalPhotonMap);
 

@@ -40,7 +40,7 @@ void NXIrradianceCache::PreIrradiance(const Ray& cameraRay, NXScene* pScene, int
 		NXBSDF::SampleEvents* sampleEvent = new NXBSDF::SampleEvents();
 		Vector3 f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
 		bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
-		delete sampleEvent;
+		SafeDelete(sampleEvent);
 
 		if (bIsDiffuse || depth < maxDepth)
 			break;
@@ -93,7 +93,7 @@ Vector3 NXIrradianceCache::Irradiance(const Ray& cameraRay, NXScene* pScene, int
 		NXBSDF::SampleEvents* sampleEvent = new NXBSDF::SampleEvents();
 		f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
 		bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
-		delete sampleEvent;
+		SafeDelete(sampleEvent);
 
 		if (bIsDiffuse || depth < maxDepth) 
 			break;
@@ -196,7 +196,7 @@ bool NXIrradianceCache::CalculateOneCache(NXScene* pScene, const NXHit& hitInfo,
 				NXBSDF::SampleEvents* sampleEvent = new NXBSDF::SampleEvents();
 				Vector3 f = hitInfoDiffuse.BSDF->Sample(hitInfoDiffuse.direction, nextDirection, pdf, sampleEvent);
 				bIsDiffuse = *sampleEvent & NXBSDF::DIFFUSE;
-				delete sampleEvent;
+				SafeDelete(sampleEvent);
 
 				break;
 			}
@@ -283,7 +283,7 @@ void NXIrradianceCache::Render(NXScene* pScene, const XMINT2& imageSize, std::st
 	}
 
 	ImageGenerator::GenerateImageBMP((byte*)pImageData, imageSize.x, imageSize.y, outFilePath.c_str());
-	delete pImageData;
+	SafeDelete(pImageData);
 }
 
 void NXIrradianceCache::Release()

@@ -55,7 +55,7 @@ Vector3 NXIntegrator::DirectEstimate(const Ray& ray, NXScene* pScene, NXPBRLight
 		NXBSDF::SampleEvents* sampleEvent = new NXBSDF::SampleEvents();
 		f = hitInfo.BSDF->Sample(hitInfo.direction, incidentDirection, pdfBSDF, sampleEvent);
 		bool bIsDeltaBSDF = *sampleEvent & NXBSDF::DELTA;
-		delete sampleEvent;
+		SafeDelete(sampleEvent);
 
 		// 如果是DeltaBSDF，不使用重点采样，仅使用灯光采样。
 		// 否则会被重复迭代。
@@ -171,7 +171,7 @@ void NXSampleIntegrator::Render(NXScene* pScene)
 	}
 
 	ImageGenerator::GenerateImageBMP((byte*)pImageData, m_imageSize.x, m_imageSize.y, m_outFilePath.c_str());
-	delete pImageData;
+	SafeDelete(pImageData);
 	printf("done.\n");
 }
 

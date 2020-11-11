@@ -36,19 +36,11 @@ void App::Draw()
 
 void App::Release()
 {
-	if (m_pRenderer)
-	{
-		m_pRenderer->Release();
-		delete m_pRenderer;
-	}
+	SafeRelease(m_pRenderer);
 
 	RenderStates::Release();
 
-	if (g_dxResources)
-	{
-		g_dxResources->ClearDevices();
-		delete g_dxResources;
-	}
+	SafeRelease(g_dxResources);
 
 	NXEventKeyDown::GetInstance().Release();
 	NXEventKeyUp::GetInstance().Release();

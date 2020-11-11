@@ -84,10 +84,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 		}
 	}
 
-	delete g_timer;
-
-	g_app->Release();
-	delete g_app;
+	SafeDelete(g_timer);
+	SafeRelease(g_app);
 	return (int)msg.wParam;
 }
 

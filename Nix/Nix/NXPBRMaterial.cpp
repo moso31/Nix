@@ -101,18 +101,14 @@ void NXPBRMaterial::SetTex(const std::wstring& texFilePath, ID3D11Texture2D*& pT
 
 void NXPBRMaterial::Release()
 {
-	if (m_pTexAlbedo) m_pTexAlbedo->Release();
-	if (m_pSRVAlbedo) m_pSRVAlbedo->Release();
-
-	if (m_pTexNormal) m_pTexNormal->Release();
-	if (m_pSRVNormal) m_pSRVNormal->Release();
-
-	if (m_pTexMetallic) m_pTexMetallic->Release();
-	if (m_pSRVMetallic) m_pSRVMetallic->Release();
-
-	if (m_pTexRoughness) m_pTexRoughness->Release();
-	if (m_pSRVRoughness) m_pSRVRoughness->Release();
-
-	if (m_pTexAmbientOcclusion) m_pTexAmbientOcclusion->Release();
-	if (m_pSRVAmbientOcclusion) m_pSRVAmbientOcclusion->Release();
+	SafeReleaseCOM(m_pTexAlbedo);
+	SafeReleaseCOM(m_pSRVAlbedo);
+	SafeReleaseCOM(m_pTexNormal);
+	SafeReleaseCOM(m_pSRVNormal);
+	SafeReleaseCOM(m_pTexMetallic);
+	SafeReleaseCOM(m_pSRVMetallic);
+	SafeReleaseCOM(m_pTexRoughness);
+	SafeReleaseCOM(m_pSRVRoughness);
+	SafeReleaseCOM(m_pTexAmbientOcclusion);
+	SafeReleaseCOM(m_pSRVAmbientOcclusion);
 }

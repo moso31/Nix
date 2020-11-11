@@ -251,9 +251,6 @@
     <ClCompile Include="Nix\NXCubeMap.cpp">
       <Filter>Nix\Object\Transform\Primitive\Other</Filter>
     </ClCompile>
-    <ClCompile Include="Core\NXFileIO.cpp">
-      <Filter>Core\File</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -414,9 +411,6 @@
     </ClInclude>
     <ClInclude Include="Nix\NXCubeMap.h">
       <Filter>Nix\Object\Transform\Primitive\Other</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\NXFileIO.h">
-      <Filter>Core\File</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

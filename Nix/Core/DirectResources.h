@@ -6,7 +6,7 @@ class DirectResources
 public:
 	void	InitDevice();
 	void	OnResize(UINT width, UINT height);
-	void	ClearDevices();
+	void	Release();
 	Vector2	GetViewSize();
 
 	Vector2						GetViewPortSize();

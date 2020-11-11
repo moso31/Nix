@@ -88,9 +88,10 @@ void RenderStates::Init()
 
 void RenderStates::Release()
 {
-	if (WireframeRS) WireframeRS->Release();
-	if (NoCullRS) NoCullRS->Release();
-
-	if (AlphaToCoverageBS) AlphaToCoverageBS->Release();
-	if (TransparentBS) TransparentBS->Release();
+	SafeReleaseCOM(WireframeRS);
+	SafeReleaseCOM(NoCullRS);
+	SafeReleaseCOM(AlphaToCoverageBS);
+	SafeReleaseCOM(TransparentBS);
+	SafeReleaseCOM(ShadowMapRS);
+	SafeReleaseCOM(CubeMapDSS);
 }

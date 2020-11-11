@@ -8,6 +8,8 @@
 NXCubeMap::NXCubeMap(NXScene* pScene) :
 	m_pScene(pScene),
 	m_pEnvironmentLight(nullptr),
+	m_pTexHDRMap(nullptr),
+	m_pSRVHDRMap(nullptr),
 	m_pTexCubeMap(nullptr),
 	m_pSRVCubeMap(nullptr),
 	m_pTexIrradianceMap(nullptr),
@@ -19,7 +21,11 @@ NXCubeMap::NXCubeMap(NXScene* pScene) :
 	m_pRTVBRDF2DLUT(nullptr)
 {
 	for (int i = 0; i < 6; i++) m_faceData[i] = nullptr;
-	for (int i = 0; i < 6; i++) m_pRTVIrradianceMaps[i] = nullptr;
+	for (int i = 0; i < 6; i++)
+	{
+		m_pRTVCubeMaps[i] = nullptr;
+		m_pRTVIrradianceMaps[i] = nullptr;
+	}
 	for (int i = 0; i < 5; i++)
 		for (int j = 0; j < 6; j++)
 			m_pRTVPreFilterMaps[i][j] = nullptr;
@@ -34,13 +40,33 @@ bool NXCubeMap::Init(std::wstring filePath)
 	std::unique_ptr<ScratchImage> dcImage = std::make_unique<ScratchImage>();
 	HRESULT hr; 
 	std::wstring suffix = filePath.substr(filePath.rfind(L"."));
+
+	// 创建CubeMap SRV。
+	// 需要使用初始格式创建，也就是说要在Decompress之前创建。
 	if (_wcsicmp(suffix.c_str(), L".dds") == 0)
 	{
 		hr = LoadFromDDSFile(filePath.c_str(), DDS_FLAGS_NONE, &metadata, *m_image);
+		CreateTextureEx(g_pDevice, m_image->GetImages(), m_image->GetImageCount(), metadata, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, (ID3D11Resource**)&m_pTexCubeMap);
+		CreateShaderResourceView(g_pDevice, m_image->GetImages(), m_image->GetImageCount(), metadata, &m_pSRVCubeMap);
 	}
 	else if (_wcsicmp(suffix.c_str(), L".hdr") == 0)
 	{
-		hr = LoadFromHDRFile(filePath.c_str(), &metadata, *m_image);
+		//filePath = L"D:\\1.bmp";
+		//hr = LoadFromWICFile(filePath.c_str(), WIC_FLAGS_NONE, &metadata, *m_image);
+		hr = LoadFromHDRFile(filePath.c_str(), &metadata, *m_image); 
+
+		CD3D11_TEXTURE2D_DESC descTex(metadata.format, (UINT)metadata.width, (UINT)metadata.height, (UINT)metadata.arraySize, (UINT)metadata.mipLevels, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, (UINT)metadata.miscFlags);
+		auto img = m_image->GetImage(0, 0, 0);
+		D3D11_SUBRESOURCE_DATA initData;
+		initData.pSysMem = img->pixels;
+		initData.SysMemPitch = static_cast<DWORD>(img->rowPitch);
+		initData.SysMemSlicePitch = static_cast<DWORD>(img->slicePitch);
+		hr = g_pDevice->CreateTexture2D(&descTex, &initData, &m_pTexHDRMap);
+
+		CD3D11_SHADER_RESOURCE_VIEW_DESC descSRV(D3D11_SRV_DIMENSION_TEXTURE2D, metadata.format, 0, (UINT)metadata.mipLevels, 0, (UINT)metadata.arraySize);
+		g_pDevice->CreateShaderResourceView(m_pTexHDRMap, &descSRV, &m_pSRVHDRMap);
+		
+		GenerateCubeMap();
 	}
 
 	if (FAILED(hr))
@@ -48,11 +74,6 @@ bool NXCubeMap::Init(std::wstring filePath)
 		dcImage.reset();
 		return false;
 	}
-
-	// 创建CubeMap SRV。
-	// 需要使用初始格式创建，也就是说要在Decompress之前创建。
-	CreateTextureEx(g_pDevice, m_image->GetImages(), m_image->GetImageCount(), metadata, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, (ID3D11Resource**)&m_pTexCubeMap);
-	CreateShaderResourceView(g_pDevice, m_image->GetImages(), m_image->GetImageCount(), metadata, &m_pSRVCubeMap);
 
 	if (IsCompressed(metadata.format))
 	{
@@ -138,27 +159,207 @@ void NXCubeMap::Render()
 
 void NXCubeMap::Release()
 {
-	if (m_pTexCubeMap) m_pTexCubeMap->Release();
-	if (m_pSRVCubeMap) m_pSRVCubeMap->Release();
-
-	if (m_pTexIrradianceMap) m_pTexIrradianceMap->Release();
-	if (m_pSRVIrradianceMap) m_pSRVIrradianceMap->Release();
+	SafeReleaseCOM(m_pTexHDRMap);
+	SafeReleaseCOM(m_pSRVHDRMap);
+	SafeReleaseCOM(m_pTexCubeMap);
+	SafeReleaseCOM(m_pSRVCubeMap);
+	SafeReleaseCOM(m_pTexIrradianceMap);
+	SafeReleaseCOM(m_pSRVIrradianceMap);
 	for (int i = 0; i < 6; i++)
-		if (m_pRTVIrradianceMaps[i]) m_pRTVIrradianceMaps[i]->Release();
+	{
+		SafeReleaseCOM(m_pRTVCubeMaps[i]);
+		SafeReleaseCOM(m_pRTVIrradianceMaps[i]);
+	}
 
-	if (m_pTexPreFilterMap) m_pTexPreFilterMap->Release();
-	if (m_pSRVPreFilterMap) m_pSRVPreFilterMap->Release();
+	SafeReleaseCOM(m_pTexPreFilterMap);
+	SafeReleaseCOM(m_pSRVPreFilterMap);
 	for (int i = 0; i < 5; i++)
 		for (int j = 0; j < 6; j++)
-			if (m_pRTVPreFilterMaps[i][j]) m_pRTVPreFilterMaps[i][j]->Release();
+			SafeReleaseCOM(m_pRTVPreFilterMaps[i][j]);
 
-	if (m_pTexBRDF2DLUT) m_pTexBRDF2DLUT->Release();
-	if (m_pSRVBRDF2DLUT) m_pSRVBRDF2DLUT->Release();
-	if (m_pRTVBRDF2DLUT) m_pRTVBRDF2DLUT->Release();
+	SafeReleaseCOM(m_pTexBRDF2DLUT);
+	SafeReleaseCOM(m_pSRVBRDF2DLUT);
+	SafeReleaseCOM(m_pRTVBRDF2DLUT);
 
 	if (m_image) m_image.reset();
-	for (int i = 0; i < 6; i++) m_faceData[i] = nullptr;
+	for (int i = 0; i < 6; i++)
+	{
+		SafeDeleteArray(m_faceData[i]);
+	}
 	NXPrimitive::Release();
+}
+
+void NXCubeMap::GenerateCubeMap()
+{
+	const static float MapSize = 1024;
+	CD3D11_VIEWPORT vp(0.0f, 0.0f, MapSize, MapSize);
+	g_pContext->RSSetViewports(1, &vp);
+
+	CD3D11_TEXTURE2D_DESC descTex(DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)MapSize, (UINT)MapSize, 6, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, D3D11_RESOURCE_MISC_TEXTURECUBE);
+	g_pDevice->CreateTexture2D(&descTex, nullptr, &m_pTexCubeMap);
+
+	CD3D11_SHADER_RESOURCE_VIEW_DESC descSRV(D3D11_SRV_DIMENSION_TEXTURECUBE, descTex.Format, 0, descTex.MipLevels, 0, descTex.ArraySize);
+	g_pDevice->CreateShaderResourceView(m_pTexCubeMap, &descSRV, &m_pSRVCubeMap);
+
+	for (int i = 0; i < 6; i++)
+	{
+		CD3D11_RENDER_TARGET_VIEW_DESC descRTV(D3D11_RTV_DIMENSION_TEXTURE2DARRAY, descTex.Format, 0, i, 1);
+		g_pDevice->CreateRenderTargetView(m_pTexCubeMap, &descRTV, &m_pRTVCubeMaps[i]);
+	}
+
+	std::vector<VertexP> vertices =
+	{
+		// +X
+		{ Vector3(+0.5f, +0.5f, -0.5f) },
+		{ Vector3(+0.5f, +0.5f, +0.5f) },
+		{ Vector3(+0.5f, -0.5f, +0.5f) },
+		{ Vector3(+0.5f, -0.5f, -0.5f) },
+
+		// -X
+		{ Vector3(-0.5f, +0.5f, +0.5f) },
+		{ Vector3(-0.5f, +0.5f, -0.5f) },
+		{ Vector3(-0.5f, -0.5f, -0.5f) },
+		{ Vector3(-0.5f, -0.5f, +0.5f) },
+
+		// +Y
+		{ Vector3(-0.5f, +0.5f, +0.5f) },
+		{ Vector3(+0.5f, +0.5f, +0.5f) },
+		{ Vector3(+0.5f, +0.5f, -0.5f) },
+		{ Vector3(-0.5f, +0.5f, -0.5f) },
+
+		// -Y
+		{ Vector3(-0.5f, -0.5f, -0.5f) },
+		{ Vector3(+0.5f, -0.5f, -0.5f) },
+		{ Vector3(+0.5f, -0.5f, +0.5f) },
+		{ Vector3(-0.5f, -0.5f, +0.5f) },
+
+		// +Z
+		{ Vector3(+0.5f, +0.5f, +0.5f) },
+		{ Vector3(-0.5f, +0.5f, +0.5f) },
+		{ Vector3(-0.5f, -0.5f, +0.5f) },
+		{ Vector3(+0.5f, -0.5f, +0.5f) },
+
+		// -Z
+		{ Vector3(-0.5f, +0.5f, -0.5f) },
+		{ Vector3(+0.5f, +0.5f, -0.5f) },
+		{ Vector3(+0.5f, -0.5f, -0.5f) },
+		{ Vector3(-0.5f, -0.5f, -0.5f) },
+	};
+
+	std::vector<USHORT> indices =
+	{
+		0,  2,	1,
+		0,  3,	2,
+
+		4,  6,	5,
+		4,  7,	6,
+
+		8,  10,	9,
+		8,  11,	10,
+
+		12, 14,	13,
+		12, 15,	14,
+
+		16, 18,	17,
+		16, 19,	18,
+
+		20, 22,	21,
+		20, 23,	22,
+	};
+
+	D3D11_BUFFER_DESC bufferDesc;
+	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = sizeof(VertexP) * (UINT)vertices.size();
+	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	D3D11_SUBRESOURCE_DATA InitData;
+	ZeroMemory(&InitData, sizeof(InitData));
+	InitData.pSysMem = vertices.data();
+
+	ID3D11Buffer* pVertexBuffer;
+	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &pVertexBuffer));
+
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = sizeof(USHORT) * (UINT)indices.size();
+	bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	InitData.pSysMem = indices.data();
+
+	ID3D11Buffer* pIndexBuffer;
+	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &pIndexBuffer));
+
+	ID3D11InputLayout* pInputLayoutP;
+	ID3D11VertexShader* pVertexShader;
+	ID3D11PixelShader* pPixelShader;
+	ID3DBlob* pVSBlob = nullptr;
+	ID3DBlob* pPSBlob = nullptr;
+
+	NX::MessageBoxIfFailed(
+		ShaderComplier::Compile(L"Shader\\HDRToCubeMap.fx", "VS", "vs_5_0", &pVSBlob),
+		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
+	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &pVertexShader));
+
+	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutP, ARRAYSIZE(NXGlobalInputLayout::layoutP), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &pInputLayoutP));
+	g_pContext->IASetInputLayout(pInputLayoutP);
+
+	NX::MessageBoxIfFailed(
+		ShaderComplier::Compile(L"Shader\\HDRToCubeMap.fx", "PS", "ps_5_0", &pPSBlob),
+		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
+	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &pPixelShader));
+
+	pVSBlob->Release();
+	pPSBlob->Release();
+
+	ID3D11Buffer* cb = nullptr;
+	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = sizeof(ConstantBufferObject);
+	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &cb));
+
+	Matrix mxCubeMapProj = XMMatrixPerspectiveFovLH(XMConvertToRadians(90.0f), 1.0f, 0.1f, 10.0f);
+	Matrix mxCubeMapView[6] =
+	{
+		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3( 1.0f,	0.0f,  0.0f), Vector3(0.0f, 1.0f,  0.0f)),
+		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(-1.0f,	0.0f,  0.0f), Vector3(0.0f, 1.0f,  0.0f)),
+		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3( 0.0f,	1.0f,  0.0f), Vector3(0.0f, 0.0f, -1.0f)),
+		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3( 0.0f, -1.0f,  0.0f), Vector3(0.0f, 0.0f,  1.0f)),
+		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3( 0.0f,	0.0f,  1.0f), Vector3(0.0f, 1.0f,  0.0f)),
+		XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3( 0.0f,	0.0f, -1.0f), Vector3(0.0f, 1.0f,  0.0f))
+	};
+
+	g_pContext->VSSetShader(pVertexShader, nullptr, 0);
+	g_pContext->PSSetShader(pPixelShader, nullptr, 0);
+	g_pContext->PSSetShaderResources(0, 1, &m_pSRVHDRMap);
+	g_pContext->VSSetConstantBuffers(0, 1, &cb);
+
+	ConstantBufferObject cbData;
+	cbData.world = Matrix::Identity();
+	cbData.projection = mxCubeMapProj.Transpose();
+
+	UINT stride = sizeof(VertexP);
+	UINT offset = 0;
+	g_pContext->IASetVertexBuffers(0, 1, &pVertexBuffer, &stride, &offset);
+	g_pContext->IASetIndexBuffer(pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+	for (int i = 0; i < 6; i++)
+	{
+		g_pContext->ClearRenderTargetView(m_pRTVCubeMaps[i], Colors::WhiteSmoke);
+		g_pContext->OMSetRenderTargets(1, &m_pRTVCubeMaps[i], nullptr);
+
+		cbData.view = mxCubeMapView[i].Transpose();
+		g_pContext->UpdateSubresource(cb, 0, nullptr, &cbData, 0, 0);
+		g_pContext->DrawIndexed((UINT)indices.size() / 6, i * 6, 0);
+	}
+
+	SafeReleaseCOM(pVertexBuffer);
+	SafeReleaseCOM(pIndexBuffer);
+	SafeReleaseCOM(pVertexShader);
+	SafeReleaseCOM(pPixelShader);
+	SafeReleaseCOM(pInputLayoutP);
+	SafeReleaseCOM(cb);
 }
 
 void NXCubeMap::GenerateIrradianceMap()
@@ -261,7 +462,7 @@ void NXCubeMap::GenerateIrradianceMap()
 	ID3D11Buffer* pIndexBuffer;
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &pIndexBuffer));
 
-	ID3D11InputLayout* pInputLayoutPNT;
+	ID3D11InputLayout* pInputLayoutP;
 	ID3D11VertexShader* pVertexShader;
 	ID3D11PixelShader* pPixelShader;
 	ID3DBlob* pVSBlob = nullptr;
@@ -272,8 +473,8 @@ void NXCubeMap::GenerateIrradianceMap()
 		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
 	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &pVertexShader));
 
-	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutPNT, ARRAYSIZE(NXGlobalInputLayout::layoutPNT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &pInputLayoutPNT));
-	g_pContext->IASetInputLayout(pInputLayoutPNT);
+	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutPNT, ARRAYSIZE(NXGlobalInputLayout::layoutPNT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &pInputLayoutP));
+	g_pContext->IASetInputLayout(pInputLayoutP);
 
 	NX::MessageBoxIfFailed(
 		ShaderComplier::Compile(L"Shader\\CubeMapIrradiance.fx", "PS", "ps_5_0", &pPSBlob),
@@ -326,12 +527,12 @@ void NXCubeMap::GenerateIrradianceMap()
 		g_pContext->DrawIndexed((UINT)indices.size() / 6, i * 6, 0);
 	}
 
-	pVertexBuffer->Release();
-	pIndexBuffer->Release();
-	pVertexShader->Release();
-	pPixelShader->Release();
-	pInputLayoutPNT->Release();
-	cb->Release();
+	SafeReleaseCOM(pVertexBuffer);
+	SafeReleaseCOM(pIndexBuffer);
+	SafeReleaseCOM(pVertexShader);
+	SafeReleaseCOM(pPixelShader);
+	SafeReleaseCOM(pInputLayoutP);
+	SafeReleaseCOM(cb);
 }
 
 void NXCubeMap::GeneratePreFilterMap()
@@ -434,7 +635,7 @@ void NXCubeMap::GeneratePreFilterMap()
 	ID3D11Buffer* pIndexBuffer;
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &pIndexBuffer));
 
-	ID3D11InputLayout* pInputLayoutPNT;
+	ID3D11InputLayout* pInputLayoutP;
 	ID3D11VertexShader* pVertexShader;
 	ID3D11PixelShader* pPixelShader;
 	ID3DBlob* pVSBlob = nullptr;
@@ -445,8 +646,8 @@ void NXCubeMap::GeneratePreFilterMap()
 		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
 	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &pVertexShader));
 
-	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutPNT, ARRAYSIZE(NXGlobalInputLayout::layoutPNT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &pInputLayoutPNT));
-	g_pContext->IASetInputLayout(pInputLayoutPNT);
+	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutPNT, ARRAYSIZE(NXGlobalInputLayout::layoutPNT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &pInputLayoutP));
+	g_pContext->IASetInputLayout(pInputLayoutP);
 
 	NX::MessageBoxIfFailed(
 		ShaderComplier::Compile(L"Shader\\CubeMapPreFilter.fx", "PS", "ps_5_0", &pPSBlob),
@@ -521,13 +722,13 @@ void NXCubeMap::GeneratePreFilterMap()
 		}
 	}
 
-	pVertexBuffer->Release();
-	pIndexBuffer->Release();
-	pVertexShader->Release();
-	pPixelShader->Release();
-	pInputLayoutPNT->Release();
-	cbCubeCamera->Release();
-	cbRoughness->Release();
+	SafeReleaseCOM(pVertexBuffer);
+	SafeReleaseCOM(pIndexBuffer);
+	SafeReleaseCOM(pVertexShader);
+	SafeReleaseCOM(pPixelShader);
+	SafeReleaseCOM(pInputLayoutP);
+	SafeReleaseCOM(cbCubeCamera);
+	SafeReleaseCOM(cbRoughness);
 }
 
 void NXCubeMap::GenerateBRDF2DLUT()
@@ -621,11 +822,11 @@ void NXCubeMap::GenerateBRDF2DLUT()
 		g_pContext->DrawIndexed((UINT)indices.size(), 0, 0);
 	}
 
-	pVertexBuffer->Release();
-	pIndexBuffer->Release();
-	pVertexShader->Release();
-	pPixelShader->Release();
-	pInputLayoutPT->Release();
+	SafeReleaseCOM(pVertexBuffer);
+	SafeReleaseCOM(pIndexBuffer);
+	SafeReleaseCOM(pVertexShader);
+	SafeReleaseCOM(pPixelShader);
+	SafeReleaseCOM(pInputLayoutPT);
 }
 
 void NXCubeMap::InitVertex()

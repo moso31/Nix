@@ -84,6 +84,6 @@ void NXObject::Release()
 {
 	for (auto script : m_scripts)
 	{
-		delete script;
+		SafeDelete(script);
 	}
 }

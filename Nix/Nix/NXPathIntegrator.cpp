@@ -58,7 +58,7 @@ Vector3 NXPathIntegrator::Radiance(const Ray& ray, NXScene* pScene, int depth)
 		NXBSDF::SampleEvents* sampleEvent = new NXBSDF::SampleEvents();
 		Vector3 f = hitInfo.BSDF->Sample(hitInfo.direction, nextDirection, pdf, sampleEvent);
 		isDeltaBSDF = *sampleEvent & NXBSDF::DELTA;
-		delete sampleEvent;
+		SafeDelete(sampleEvent);
 
 		if (f.IsZero()) break;
 

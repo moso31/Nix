@@ -34,8 +34,8 @@ void DirectResources::InitDevice()
 
 	NX::ThrowIfFailed(pDevice->QueryInterface(__uuidof(ID3D11Device5), reinterpret_cast<void**>(&g_pDevice)));
 	NX::ThrowIfFailed(pContext->QueryInterface(__uuidof(ID3D11DeviceContext4), reinterpret_cast<void**>(&g_pContext)));
-	pDevice->Release();
-	pContext->Release();
+	SafeReleaseCOM(pDevice);
+	SafeReleaseCOM(pContext);
 
 	OnResize(width, height);
 }
@@ -79,18 +79,18 @@ void DirectResources::OnResize(UINT width, UINT height)
 
 		IDXGIAdapter* pDxgiAdapter;
 		NX::ThrowIfFailed(pDxgiDevice->GetAdapter(&pDxgiAdapter));
-		pDxgiDevice->Release();
+		SafeReleaseCOM(pDxgiDevice);
 
 		IDXGIFactory5* pDxgiFactory;
 		NX::ThrowIfFailed(pDxgiAdapter->GetParent(IID_PPV_ARGS(&pDxgiFactory)));
-		pDxgiAdapter->Release();
+		SafeReleaseCOM(pDxgiAdapter);
 
 		IDXGISwapChain1* pSwapChain;
 		NX::ThrowIfFailed(pDxgiFactory->CreateSwapChainForHwnd(g_pDevice, g_hWnd, &sd, nullptr, nullptr, &pSwapChain));
-		pDxgiFactory->Release();
+		SafeReleaseCOM(pDxgiFactory);
 		
 		NX::ThrowIfFailed(pSwapChain->QueryInterface(__uuidof(IDXGISwapChain4), reinterpret_cast<void**>(&g_pSwapChain)));
-		pSwapChain->Release();
+		SafeReleaseCOM(pSwapChain);
 	}
 
 
@@ -98,7 +98,7 @@ void DirectResources::OnResize(UINT width, UINT height)
 	ID3D11Texture2D* pBackBuffer = nullptr;
 	NX::ThrowIfFailed(g_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer)));
 	NX::ThrowIfFailed(g_pDevice->CreateRenderTargetView(pBackBuffer, nullptr, &m_pRenderTargetView));
-	pBackBuffer->Release();
+	SafeReleaseCOM(pBackBuffer);
 
 	// 根据需要创建用于 3D 渲染的深度模具视图。
 	CD3D11_TEXTURE2D_DESC descDepth(
@@ -115,7 +115,7 @@ void DirectResources::OnResize(UINT width, UINT height)
 
 	CD3D11_DEPTH_STENCIL_VIEW_DESC descDepthStencilView(D3D11_DSV_DIMENSION_TEXTURE2D);
 	NX::ThrowIfFailed(g_pDevice->CreateDepthStencilView(pDepthStencil, &descDepthStencilView, &m_pDepthStencilView));
-	pDepthStencil->Release();
+	SafeReleaseCOM(pDepthStencil);
 
 	// Create Render Target
 	CD3D11_TEXTURE2D_DESC descOffScreen(
@@ -130,7 +130,7 @@ void DirectResources::OnResize(UINT width, UINT height)
 	g_pDevice->CreateTexture2D(&descOffScreen, nullptr, &pOffScreenBuffer);
 	NX::ThrowIfFailed(g_pDevice->CreateRenderTargetView(pOffScreenBuffer, nullptr, &m_pOffScreenRTV));
 	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(pOffScreenBuffer, nullptr, &m_pOffScreenSRV));
-	pOffScreenBuffer->Release();
+	SafeReleaseCOM(pOffScreenBuffer);
 
 	// Setup the viewport
 	m_viewSize = { (FLOAT)width, (FLOAT)height };
@@ -138,15 +138,16 @@ void DirectResources::OnResize(UINT width, UINT height)
 	g_pContext->RSSetViewports(1, &m_ViewPort);
 }
 
-void DirectResources::ClearDevices()
+void DirectResources::Release()
 {
-	if (g_pContext)				g_pContext->ClearState();
+	if (g_pContext)				
+		g_pContext->ClearState();
 
-	if (g_pSwapChain)			g_pSwapChain->Release();
-	if (g_pContext)				g_pContext->Release();
-	if (g_pDevice)				g_pDevice->Release();
-	if (m_pRenderTargetView)	m_pRenderTargetView->Release();
-	if (m_pDepthStencilView)	m_pDepthStencilView->Release();
+	SafeReleaseCOM(m_pRenderTargetView);
+	SafeReleaseCOM(m_pDepthStencilView);
+	SafeReleaseCOM(g_pSwapChain);
+	SafeReleaseCOM(g_pContext);
+	SafeReleaseCOM(g_pDevice);
 }
 
 Vector2 DirectResources::GetViewSize()

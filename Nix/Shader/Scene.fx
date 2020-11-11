@@ -164,7 +164,7 @@ float4 PS(PS_INPUT input) : SV_Target
 	float3 SpecularIBL = preFilteredColor * float3(kS * envBRDF.x + envBRDF.y);
 
 	float3 ambient = diffuseIBL + SpecularIBL; // * ao;
-	float3 color = Lo;// ambient + Lo;
+	float3 color = ambient + Lo;
 
 	// gamma.
 	color = color / (color + 1.0);

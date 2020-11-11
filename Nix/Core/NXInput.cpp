@@ -153,7 +153,7 @@ void NXInput::UpdateRawInput(LPARAM lParam)
 
 	//PrintMouseState();
 
-	delete[] lpb;
+	SafeDeleteArray(lpb);
 }
 
 void NXInput::PrintMouseState()

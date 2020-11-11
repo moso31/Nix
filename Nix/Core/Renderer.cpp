@@ -199,31 +199,19 @@ void Renderer::DrawScene()
 
 void Renderer::Release()
 {
-	if (m_pPassShadowMap)
-	{
-		m_pPassShadowMap->Release();
-		delete m_pPassShadowMap;
-	}
+	SafeRelease(m_pPassShadowMap);
 
-	if (m_pInputLayoutP)		m_pInputLayoutP->Release();
-	if (m_pInputLayoutPNT)		m_pInputLayoutPNT->Release();
-	if (m_pInputLayoutPNTT)		m_pInputLayoutPNTT->Release();
-	if (m_pVertexShader)		m_pVertexShader->Release();
-	if (m_pPixelShader)			m_pPixelShader->Release();
-	if (m_pSamplerLinearWrap)	m_pSamplerLinearWrap->Release();
-	if (m_pSamplerLinearClamp)	m_pSamplerLinearClamp->Release();
-	if (m_pSamplerShadowMapPCF)	m_pSamplerShadowMapPCF->Release();
+	SafeReleaseCOM(m_pInputLayoutP);
+	SafeReleaseCOM(m_pInputLayoutPNT);
+	SafeReleaseCOM(m_pInputLayoutPNTT);
+	SafeReleaseCOM(m_pVertexShader);
+	SafeReleaseCOM(m_pPixelShader);
+	SafeReleaseCOM(m_pSamplerLinearWrap);
+	SafeReleaseCOM(m_pSamplerLinearClamp);
+	SafeReleaseCOM(m_pSamplerShadowMapPCF);
 
-	if (m_scene)
-	{
-		m_scene->Release();
-		delete m_scene;
-	}
-	if (m_renderTarget)
-	{
-		m_renderTarget->Release();
-		delete m_renderTarget;
-	}
+	SafeRelease(m_scene);
+	SafeRelease(m_renderTarget);
 }
 
 void Renderer::DrawPrimitives()
