@@ -8,7 +8,6 @@
 NXCubeMap::NXCubeMap(NXScene* pScene) :
 	m_pScene(pScene),
 	m_pEnvironmentLight(nullptr),
-	m_pTexHDRMap(nullptr),
 	m_pSRVHDRMap(nullptr),
 	m_pTexCubeMap(nullptr),
 	m_pSRVCubeMap(nullptr),
@@ -31,12 +30,12 @@ NXCubeMap::NXCubeMap(NXScene* pScene) :
 			m_pRTVPreFilterMaps[i][j] = nullptr;
 }
 
-bool NXCubeMap::Init(std::wstring filePath)
+bool NXCubeMap::Init(const std::wstring filePath)
 {
-	m_image.reset(); 
-	m_image = std::make_unique<ScratchImage>();
+	m_pImage.reset(); 
+	m_pImage = std::make_unique<ScratchImage>();
 
-	TexMetadata metadata;
+	TexMetadata HDRInfo;
 	std::unique_ptr<ScratchImage> dcImage = std::make_unique<ScratchImage>();
 	HRESULT hr; 
 	std::wstring suffix = filePath.substr(filePath.rfind(L"."));
@@ -45,28 +44,26 @@ bool NXCubeMap::Init(std::wstring filePath)
 	// 需要使用初始格式创建，也就是说要在Decompress之前创建。
 	if (_wcsicmp(suffix.c_str(), L".dds") == 0)
 	{
-		hr = LoadFromDDSFile(filePath.c_str(), DDS_FLAGS_NONE, &metadata, *m_image);
-		CreateTextureEx(g_pDevice, m_image->GetImages(), m_image->GetImageCount(), metadata, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, (ID3D11Resource**)&m_pTexCubeMap);
-		CreateShaderResourceView(g_pDevice, m_image->GetImages(), m_image->GetImageCount(), metadata, &m_pSRVCubeMap);
+		m_cubeMapFilePath = filePath;
+		hr = LoadFromDDSFile(filePath.c_str(), DDS_FLAGS_NONE, &HDRInfo, *m_pImage);
+		m_format = HDRInfo.format;
+
+		CreateTextureEx(g_pDevice, m_pImage->GetImages(), m_pImage->GetImageCount(), HDRInfo, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, (ID3D11Resource**)&m_pTexCubeMap);
+		CreateShaderResourceView(g_pDevice, m_pImage->GetImages(), m_pImage->GetImageCount(), HDRInfo, &m_pSRVCubeMap);
 	}
 	else if (_wcsicmp(suffix.c_str(), L".hdr") == 0)
 	{
-		//filePath = L"D:\\1.bmp";
-		//hr = LoadFromWICFile(filePath.c_str(), WIC_FLAGS_NONE, &metadata, *m_image);
-		hr = LoadFromHDRFile(filePath.c_str(), &metadata, *m_image); 
+		auto pHDRImage = std::make_unique<ScratchImage>();
+		hr = LoadFromHDRFile(filePath.c_str(), &HDRInfo, *pHDRImage);
+		m_format = HDRInfo.format;
 
-		CD3D11_TEXTURE2D_DESC descTex(metadata.format, (UINT)metadata.width, (UINT)metadata.height, (UINT)metadata.arraySize, (UINT)metadata.mipLevels, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, (UINT)metadata.miscFlags);
-		auto img = m_image->GetImage(0, 0, 0);
-		D3D11_SUBRESOURCE_DATA initData;
-		initData.pSysMem = img->pixels;
-		initData.SysMemPitch = static_cast<DWORD>(img->rowPitch);
-		initData.SysMemSlicePitch = static_cast<DWORD>(img->slicePitch);
-		hr = g_pDevice->CreateTexture2D(&descTex, &initData, &m_pTexHDRMap);
-
-		CD3D11_SHADER_RESOURCE_VIEW_DESC descSRV(D3D11_SRV_DIMENSION_TEXTURE2D, metadata.format, 0, (UINT)metadata.mipLevels, 0, (UINT)metadata.arraySize);
-		g_pDevice->CreateShaderResourceView(m_pTexHDRMap, &descSRV, &m_pSRVHDRMap);
+		hr = CreateShaderResourceViewEx(g_pDevice, pHDRImage->GetImages(), pHDRImage->GetImageCount(), HDRInfo, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, (UINT)HDRInfo.miscFlags, false, &m_pSRVHDRMap);
 		
-		GenerateCubeMap();
+		GenerateCubeMap(filePath);
+
+		hr = LoadFromDDSFile(m_cubeMapFilePath.c_str(), DDS_FLAGS_NONE, &HDRInfo, *m_pImage);
+		CreateTextureEx(g_pDevice, m_pImage->GetImages(), m_pImage->GetImageCount(), HDRInfo, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, (ID3D11Resource**)&m_pTexCubeMap);
+		CreateShaderResourceView(g_pDevice, m_pImage->GetImages(), m_pImage->GetImageCount(), HDRInfo, &m_pSRVCubeMap);
 	}
 
 	if (FAILED(hr))
@@ -75,30 +72,30 @@ bool NXCubeMap::Init(std::wstring filePath)
 		return false;
 	}
 
-	if (IsCompressed(metadata.format))
+	if (IsCompressed(HDRInfo.format))
 	{
-		auto img = m_image->GetImage(0, 0, 0);
-		size_t nimg = m_image->GetImageCount();
+		auto img = m_pImage->GetImage(0, 0, 0);
+		size_t nimg = m_pImage->GetImageCount();
 
-		hr = Decompress(img, nimg, metadata, DXGI_FORMAT_UNKNOWN /* picks good default */, *dcImage);
+		hr = Decompress(img, nimg, HDRInfo, DXGI_FORMAT_UNKNOWN /* picks good default */, *dcImage);
 		if (FAILED(hr))
 		{
 			dcImage.reset();
 			return false;
 		}
 	}
-	if (dcImage) m_image.swap(dcImage);
+	if (dcImage) m_pImage.swap(dcImage);
 	dcImage.reset();
 
-	if (!m_image) return false;
+	if (!m_pImage) return false;
 
-	m_width = metadata.width;
-	m_height = metadata.height;
+	m_width = HDRInfo.width;
+	m_height = HDRInfo.height;
 
 	for (int item = 0; item < 6; item++)
 	{
-		auto faceImage = m_image->GetImage(0, item, 0);
-		m_faceData[item] = faceImage->pixels;
+		//auto faceImage = m_image->GetImage(0, item, 0);
+		//m_faceData[item] = faceImage->pixels;
 	}
 
 	// create vertex
@@ -159,7 +156,6 @@ void NXCubeMap::Render()
 
 void NXCubeMap::Release()
 {
-	SafeReleaseCOM(m_pTexHDRMap);
 	SafeReleaseCOM(m_pSRVHDRMap);
 	SafeReleaseCOM(m_pTexCubeMap);
 	SafeReleaseCOM(m_pSRVCubeMap);
@@ -181,7 +177,7 @@ void NXCubeMap::Release()
 	SafeReleaseCOM(m_pSRVBRDF2DLUT);
 	SafeReleaseCOM(m_pRTVBRDF2DLUT);
 
-	if (m_image) m_image.reset();
+	if (m_pImage) m_pImage.reset();
 	for (int i = 0; i < 6; i++)
 	{
 		SafeDeleteArray(m_faceData[i]);
@@ -189,22 +185,26 @@ void NXCubeMap::Release()
 	NXPrimitive::Release();
 }
 
-void NXCubeMap::GenerateCubeMap()
+void NXCubeMap::GenerateCubeMap(const std::wstring filePath)
 {
+	ID3D11Texture2D* pTexCubeMap;
+	ID3D11ShaderResourceView* pSRVCubeMap;
+	ID3D11RenderTargetView* pRTVCubeMaps[6];
+
 	const static float MapSize = 1024;
 	CD3D11_VIEWPORT vp(0.0f, 0.0f, MapSize, MapSize);
 	g_pContext->RSSetViewports(1, &vp);
 
-	CD3D11_TEXTURE2D_DESC descTex(DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)MapSize, (UINT)MapSize, 6, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, D3D11_RESOURCE_MISC_TEXTURECUBE);
-	g_pDevice->CreateTexture2D(&descTex, nullptr, &m_pTexCubeMap);
+	CD3D11_TEXTURE2D_DESC descTex(DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)MapSize, (UINT)MapSize, 6, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, D3D11_RESOURCE_MISC_TEXTURECUBE);
+	g_pDevice->CreateTexture2D(&descTex, nullptr, &pTexCubeMap);
 
 	CD3D11_SHADER_RESOURCE_VIEW_DESC descSRV(D3D11_SRV_DIMENSION_TEXTURECUBE, descTex.Format, 0, descTex.MipLevels, 0, descTex.ArraySize);
-	g_pDevice->CreateShaderResourceView(m_pTexCubeMap, &descSRV, &m_pSRVCubeMap);
+	g_pDevice->CreateShaderResourceView(pTexCubeMap, &descSRV, &pSRVCubeMap);
 
 	for (int i = 0; i < 6; i++)
 	{
 		CD3D11_RENDER_TARGET_VIEW_DESC descRTV(D3D11_RTV_DIMENSION_TEXTURE2DARRAY, descTex.Format, 0, i, 1);
-		g_pDevice->CreateRenderTargetView(m_pTexCubeMap, &descRTV, &m_pRTVCubeMaps[i]);
+		g_pDevice->CreateRenderTargetView(pTexCubeMap, &descRTV, &pRTVCubeMaps[i]);
 	}
 
 	std::vector<VertexP> vertices =
@@ -346,13 +346,76 @@ void NXCubeMap::GenerateCubeMap()
 
 	for (int i = 0; i < 6; i++)
 	{
-		g_pContext->ClearRenderTargetView(m_pRTVCubeMaps[i], Colors::WhiteSmoke);
-		g_pContext->OMSetRenderTargets(1, &m_pRTVCubeMaps[i], nullptr);
+		g_pContext->ClearRenderTargetView(pRTVCubeMaps[i], Colors::WhiteSmoke);
+		g_pContext->OMSetRenderTargets(1, &pRTVCubeMaps[i], nullptr);
 
 		cbData.view = mxCubeMapView[i].Transpose();
 		g_pContext->UpdateSubresource(cb, 0, nullptr, &cbData, 0, 0);
 		g_pContext->DrawIndexed((UINT)indices.size() / 6, i * 6, 0);
 	}
+
+	ComPtr<ID3D11Texture2D> pMappedTexture;
+	D3D11_MAPPED_SUBRESOURCE pMappedTextureInfo;
+	HRESULT hr = g_pContext->Map(pTexCubeMap, 0, D3D11_MAP_READ, 0, &pMappedTextureInfo);
+
+	// 如果Map失败并且hr标记为E_INVALIDARG，说明此时pTexCubeMap正在被占用中。
+	// 此时可创建一个STAGING资源，将GPU中的纹理资源（pTexCubeMap）从显存经设备上下文（g_pContext）映射（Map）到临时的STAGING纹理（pTexStaging），再进行CopyResource。
+	// 这样即使原资源（pTexCubeMap）被渲染管线占用，也能拿到对应的值。
+	// 该思路严格来说算是异步操作。参考自：https://www.zhihu.com/question/35068373
+	if (hr == E_INVALIDARG)
+	{
+		D3D11_TEXTURE2D_DESC descMappedTex;
+		descMappedTex.Width = descTex.Width;
+		descMappedTex.Height = descTex.Height;
+		descMappedTex.MipLevels = descTex.MipLevels;
+		descMappedTex.ArraySize = descTex.ArraySize;
+		descMappedTex.Format = descTex.Format;
+		descMappedTex.SampleDesc = descTex.SampleDesc;
+		descMappedTex.Usage = D3D11_USAGE_STAGING; // 仅CPU可访问。
+		descMappedTex.BindFlags = 0;
+		descMappedTex.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+		descMappedTex.MiscFlags = 0;
+
+		// 创建pTexStaging纹理，仅用于存储中间数据。
+		ComPtr<ID3D11Texture2D> pTexStaging;
+		hr = g_pDevice->CreateTexture2D(&descMappedTex, nullptr, &pTexStaging);
+
+		// 将DrawIndex绘制好的资源复制到pTexStaging。
+		g_pContext->CopyResource(pTexStaging.Get(), pTexCubeMap);
+
+		// 映射到pMappedTextureInfo
+		hr = g_pContext->Map(pTexStaging.Get(), 0, D3D11_MAP_READ, 0, &pMappedTextureInfo);
+
+		if (FAILED(hr))
+		{
+			throw(hr);
+		}
+
+		// copyRecourse后，将pTexStaging强制move给pMappedTexture。
+		// pMappedTexture鸠占鹊巢成为实际上管理纹理数据的指针。pTexStaging则被置nullptr，不再具备任何实际功能。
+		pMappedTexture = std::move(pTexStaging);
+	}
+	else
+	{
+		// 如果直接成功Map说明资源没有被占用。
+		// 那就没上面那么多事了……直接拿就行了。
+		pMappedTexture = pTexCubeMap;
+	}
+
+	g_pContext->Unmap(pMappedTexture.Get(), 0);
+
+	std::unique_ptr<ScratchImage> pMappedImage = std::make_unique<ScratchImage>();
+	hr = CaptureTexture(g_pDevice, g_pContext, pMappedTexture.Get(), *pMappedImage);
+	TexMetadata cubeDDSInfo = pMappedImage->GetMetadata();
+	cubeDDSInfo.miscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+
+	size_t pathLen = filePath.length();
+	size_t fileIndex = filePath.rfind(L"\\") + 1;
+	std::wstring fileNameAndSuffix = filePath.substr(fileIndex, pathLen - fileIndex);
+	size_t suffixIndex = fileNameAndSuffix.find(L".");
+	std::wstring fileName = fileNameAndSuffix.substr(0, suffixIndex);
+	m_cubeMapFilePath = L"D:\\" + fileName + L".dds";
+	hr = SaveToDDSFile(pMappedImage->GetImages(), pMappedImage->GetImageCount(), cubeDDSInfo, DDS_FLAGS_NONE, m_cubeMapFilePath.c_str());
 
 	SafeReleaseCOM(pVertexBuffer);
 	SafeReleaseCOM(pIndexBuffer);
@@ -360,6 +423,11 @@ void NXCubeMap::GenerateCubeMap()
 	SafeReleaseCOM(pPixelShader);
 	SafeReleaseCOM(pInputLayoutP);
 	SafeReleaseCOM(cb);
+
+	SafeReleaseCOM(pTexCubeMap);
+	SafeReleaseCOM(pSRVCubeMap);
+	for (int i = 0; i < 6; i++)
+		SafeReleaseCOM(m_pRTVCubeMaps[i]);
 }
 
 void NXCubeMap::GenerateIrradianceMap()
@@ -368,7 +436,7 @@ void NXCubeMap::GenerateIrradianceMap()
 	CD3D11_VIEWPORT vp(0.0f, 0.0f, MapSize, MapSize);
 	g_pContext->RSSetViewports(1, &vp);
 
-	CD3D11_TEXTURE2D_DESC descTex(DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)MapSize, (UINT)MapSize, 6, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, D3D11_RESOURCE_MISC_TEXTURECUBE);
+	CD3D11_TEXTURE2D_DESC descTex(m_format, (UINT)MapSize, (UINT)MapSize, 6, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, D3D11_RESOURCE_MISC_TEXTURECUBE);
 	g_pDevice->CreateTexture2D(&descTex, nullptr, &m_pTexIrradianceMap);
 
 	CD3D11_SHADER_RESOURCE_VIEW_DESC descSRV(D3D11_SRV_DIMENSION_TEXTURECUBE, descTex.Format, 0, descTex.MipLevels, 0, descTex.ArraySize);
@@ -538,7 +606,7 @@ void NXCubeMap::GenerateIrradianceMap()
 void NXCubeMap::GeneratePreFilterMap()
 {
 	const static float MapSize = 512.0f;
-	CD3D11_TEXTURE2D_DESC descTex(DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)MapSize, (UINT)MapSize, 6, 5, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, D3D11_RESOURCE_MISC_TEXTURECUBE);
+	CD3D11_TEXTURE2D_DESC descTex(m_format, (UINT)MapSize, (UINT)MapSize, 6, 5, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, D3D11_RESOURCE_MISC_TEXTURECUBE);
 	g_pDevice->CreateTexture2D(&descTex, nullptr, &m_pTexPreFilterMap);
 
 	CD3D11_SHADER_RESOURCE_VIEW_DESC descSRV(D3D11_SRV_DIMENSION_TEXTURECUBE, descTex.Format, 0, descTex.MipLevels, 0, descTex.ArraySize);
@@ -816,11 +884,9 @@ void NXCubeMap::GenerateBRDF2DLUT()
 	g_pContext->IASetVertexBuffers(0, 1, &pVertexBuffer, &stride, &offset);
 	g_pContext->IASetIndexBuffer(pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
-	{
-		g_pContext->ClearRenderTargetView(m_pRTVBRDF2DLUT, Colors::WhiteSmoke);
-		g_pContext->OMSetRenderTargets(1, &m_pRTVBRDF2DLUT, nullptr);
-		g_pContext->DrawIndexed((UINT)indices.size(), 0, 0);
-	}
+	g_pContext->ClearRenderTargetView(m_pRTVBRDF2DLUT, Colors::WhiteSmoke);
+	g_pContext->OMSetRenderTargets(1, &m_pRTVBRDF2DLUT, nullptr);
+	g_pContext->DrawIndexed((UINT)indices.size(), 0, 0);
 
 	SafeReleaseCOM(pVertexBuffer);
 	SafeReleaseCOM(pIndexBuffer);
@@ -875,6 +941,66 @@ void NXCubeMap::InitVertex()
 			currVertIdx += 4;
 		}
 	}
+
+	m_verticesCubeBox =
+	{
+		// +X
+		{ Vector3(+0.5f, +0.5f, -0.5f) },
+		{ Vector3(+0.5f, +0.5f, +0.5f) },
+		{ Vector3(+0.5f, -0.5f, +0.5f) },
+		{ Vector3(+0.5f, -0.5f, -0.5f) },
+
+		// -X
+		{ Vector3(-0.5f, +0.5f, +0.5f) },
+		{ Vector3(-0.5f, +0.5f, -0.5f) },
+		{ Vector3(-0.5f, -0.5f, -0.5f) },
+		{ Vector3(-0.5f, -0.5f, +0.5f) },
+
+		// +Y
+		{ Vector3(-0.5f, +0.5f, +0.5f) },
+		{ Vector3(+0.5f, +0.5f, +0.5f) },
+		{ Vector3(+0.5f, +0.5f, -0.5f) },
+		{ Vector3(-0.5f, +0.5f, -0.5f) },
+
+		// -Y
+		{ Vector3(-0.5f, -0.5f, -0.5f) },
+		{ Vector3(+0.5f, -0.5f, -0.5f) },
+		{ Vector3(+0.5f, -0.5f, +0.5f) },
+		{ Vector3(-0.5f, -0.5f, +0.5f) },
+
+		// +Z
+		{ Vector3(+0.5f, +0.5f, +0.5f) },
+		{ Vector3(-0.5f, +0.5f, +0.5f) },
+		{ Vector3(-0.5f, -0.5f, +0.5f) },
+		{ Vector3(+0.5f, -0.5f, +0.5f) },
+
+		// -Z
+		{ Vector3(-0.5f, +0.5f, -0.5f) },
+		{ Vector3(+0.5f, +0.5f, -0.5f) },
+		{ Vector3(+0.5f, -0.5f, -0.5f) },
+		{ Vector3(-0.5f, -0.5f, -0.5f) },
+	};
+
+	std::vector<USHORT> indices =
+	{
+		0,  2,	1,
+		0,  3,	2,
+
+		4,  6,	5,
+		4,  7,	6,
+
+		8,  10,	9,
+		8,  11,	10,
+
+		12, 14,	13,
+		12, 15,	14,
+
+		16, 18,	17,
+		16, 19,	18,
+
+		20, 22,	21,
+		20, 23,	22,
+	};
 
 	InitVertexIndexBuffer();
 }

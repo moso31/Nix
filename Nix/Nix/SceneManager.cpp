@@ -82,7 +82,7 @@ NXListener* SceneManager::AddEventListener(const NXEventType eventType, NXObject
 	return pListener;
 }
 
-NXBox* SceneManager::CreateBox(const std::string& name, const float width, const float height, const float length, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
+NXBox* SceneManager::CreateBox(const std::string name, const float width, const float height, const float length, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
 {
 	auto p = new NXBox();
 	p->SetName(name);
@@ -94,7 +94,7 @@ NXBox* SceneManager::CreateBox(const std::string& name, const float width, const
 	return p;
 }
 
-NXSphere* SceneManager::CreateSphere(const std::string& name, const float radius, const UINT segmentHorizontal, const UINT segmentVertical, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
+NXSphere* SceneManager::CreateSphere(const std::string name, const float radius, const UINT segmentHorizontal, const UINT segmentVertical, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
 {
 	auto p = new NXSphere();
 	p->SetName(name);
@@ -106,7 +106,7 @@ NXSphere* SceneManager::CreateSphere(const std::string& name, const float radius
 	return p;
 }
 
-NXCylinder* SceneManager::CreateCylinder(const std::string& name, const float radius, const float length, const UINT segmentCircle, const UINT segmentLength, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
+NXCylinder* SceneManager::CreateCylinder(const std::string name, const float radius, const float length, const UINT segmentCircle, const UINT segmentLength, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
 {
 	auto p = new NXCylinder();
 	p->SetName(name);
@@ -118,7 +118,7 @@ NXCylinder* SceneManager::CreateCylinder(const std::string& name, const float ra
 	return p;
 }
 
-NXPlane* SceneManager::CreatePlane(const std::string& name, const float width, const float height, const NXPlaneAxis axis, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
+NXPlane* SceneManager::CreatePlane(const std::string name, const float width, const float height, const NXPlaneAxis axis, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
 {
 	auto p = new NXPlane();
 	p->SetName(name);
@@ -130,7 +130,7 @@ NXPlane* SceneManager::CreatePlane(const std::string& name, const float width, c
 	return p;
 }
 
-bool SceneManager::CreateFBXMeshes(const std::string& filePath, NXPBRMaterial* pDefaultMaterial, std::vector<NXMesh*>& outMeshes, bool bAutoCalcTangents)
+bool SceneManager::CreateFBXMeshes(const std::string filePath, NXPBRMaterial* pDefaultMaterial, std::vector<NXMesh*>& outMeshes, bool bAutoCalcTangents)
 {
 	FBXMeshLoader::LoadFBXFile(filePath, m_pScene, outMeshes, bAutoCalcTangents);
 	for (auto it = outMeshes.begin(); it != outMeshes.end(); it++)
@@ -141,7 +141,7 @@ bool SceneManager::CreateFBXMeshes(const std::string& filePath, NXPBRMaterial* p
 	return true;
 }
 
-NXCamera* SceneManager::CreateCamera(const std::string& name, const float FovY, const float zNear, const float zFar, const Vector3& eye, const Vector3& at, const Vector3& up)
+NXCamera* SceneManager::CreateCamera(const std::string name, const float FovY, const float zNear, const float zFar, const Vector3& eye, const Vector3& at, const Vector3& up)
 {
 	auto p = new NXCamera();
 	p->Init(FovY, zNear, zFar, eye, at, up);
@@ -189,7 +189,7 @@ NXPBREnvironmentLight* SceneManager::CreatePBREnvironmentLight(NXCubeMap* pCubeM
 	return pLight;
 }
 
-NXCubeMap* SceneManager::CreateCubeMap(const std::string& name, const std::wstring& filePath)
+NXCubeMap* SceneManager::CreateCubeMap(const std::string name, const std::wstring filePath)
 {
 	auto pCubeMap = new NXCubeMap(m_pScene);
 	pCubeMap->SetName(name);

@@ -43,32 +43,32 @@ ConstantBufferMaterial NXPBRMaterial::GetConstantBuffer()
 	return cb;
 }
 
-void NXPBRMaterial::SetTexAlbedo(const std::wstring& TexFilePath)
+void NXPBRMaterial::SetTexAlbedo(const std::wstring TexFilePath)
 {
 	SetTex(TexFilePath, m_pTexAlbedo, m_pSRVAlbedo);
 }
 
-void NXPBRMaterial::SetTexNormal(const std::wstring& TexFilePath)
+void NXPBRMaterial::SetTexNormal(const std::wstring TexFilePath)
 {
 	SetTex(TexFilePath, m_pTexNormal, m_pSRVNormal);
 }
 
-void NXPBRMaterial::SetTexMetallic(const std::wstring& TexFilePath)
+void NXPBRMaterial::SetTexMetallic(const std::wstring TexFilePath)
 {
 	SetTex(TexFilePath, m_pTexMetallic, m_pSRVMetallic);
 }
 
-void NXPBRMaterial::SetTexRoughness(const std::wstring& TexFilePath)
+void NXPBRMaterial::SetTexRoughness(const std::wstring TexFilePath)
 {
 	SetTex(TexFilePath, m_pTexRoughness, m_pSRVRoughness);
 }
 
-void NXPBRMaterial::SetTexAO(const std::wstring& TexFilePath)
+void NXPBRMaterial::SetTexAO(const std::wstring TexFilePath)
 {
 	SetTex(TexFilePath, m_pTexAmbientOcclusion, m_pSRVAmbientOcclusion);
 }
 
-void NXPBRMaterial::SetTex(const std::wstring& texFilePath, ID3D11Texture2D*& pTex, ID3D11ShaderResourceView*& pSRV)
+void NXPBRMaterial::SetTex(const std::wstring texFilePath, ID3D11Texture2D*& pTex, ID3D11ShaderResourceView*& pSRV)
 {
 	TexMetadata info;
 	std::unique_ptr<ScratchImage> image = std::make_unique<ScratchImage>(); //(new (std::nothrow) ScratchImage);

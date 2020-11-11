@@ -239,8 +239,8 @@ void NXScene::Init()
 	//	pMeshes[1]->AddScript(pScript_test);
 	//}
 
-	m_sceneManager->CreateCubeMap("Sky", L"D:\\sunsetcube1024.dds");
-	//m_sceneManager->CreateCubeMap("Sky", L"D:\\Arches_E_PineTree_3k.hdr");
+	//m_sceneManager->CreateCubeMap("Sky", L"D:\\sunsetcube1024.dds");
+	m_sceneManager->CreateCubeMap("Sky", L"D:\\Arches_E_PineTree_3k.hdr");
 
 	// 更新AABB需要世界坐标，而Init阶段还没有拿到世界坐标，所以需要提前PrevUpdate一次。
 	UpdateTransform();

@@ -5,6 +5,7 @@
 
 // Windows 
 #include <windows.h>
+#include <wrl.h>
 
 // C 
 #if defined(DEBUG) | defined(_DEBUG)
@@ -46,6 +47,7 @@ using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
 
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
+using namespace Microsoft::WRL;
 
 #define SafeDeleteArray(x) { delete[] x; x = nullptr; }
 #define SafeDelete(x) { delete x; x = nullptr; }

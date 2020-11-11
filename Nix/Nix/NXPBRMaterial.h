@@ -29,12 +29,12 @@ public:
 	ID3D11ShaderResourceView* GetSRVRoughness() const { return m_pSRVRoughness; }
 	ID3D11ShaderResourceView* GetSRVAO() const { return m_pSRVAmbientOcclusion; }
 
-	void SetTexAlbedo(const std::wstring& TexFilePath);
-	void SetTexNormal(const std::wstring& TexFilePath);
-	void SetTexMetallic(const std::wstring& TexFilePath);
-	void SetTexRoughness(const std::wstring& TexFilePath);
-	void SetTexAO(const std::wstring& TexFilePath);
-	void SetTex(const std::wstring& TexFilePath, ID3D11Texture2D*& pTex, ID3D11ShaderResourceView*& pSRV);
+	void SetTexAlbedo(const std::wstring TexFilePath);
+	void SetTexNormal(const std::wstring TexFilePath);
+	void SetTexMetallic(const std::wstring TexFilePath);
+	void SetTexRoughness(const std::wstring TexFilePath);
+	void SetTexAO(const std::wstring TexFilePath);
+	void SetTex(const std::wstring TexFilePath, ID3D11Texture2D*& pTex, ID3D11ShaderResourceView*& pSRV);
 
 	void Release();
 

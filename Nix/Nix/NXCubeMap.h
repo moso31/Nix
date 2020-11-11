@@ -10,12 +10,12 @@ public:
 	NXCubeMap(NXScene* pScene);
 	~NXCubeMap() {}
 
-	bool Init(std::wstring filePath);
+	bool Init(const std::wstring filePath);
 	void Update() override;
 	void Render() override;
 	void Release() override;
 
-	void GenerateCubeMap();
+	void GenerateCubeMap(const std::wstring filePath);
 	void GenerateIrradianceMap();
 	void GeneratePreFilterMap();
 	void GenerateBRDF2DLUT();
@@ -24,7 +24,7 @@ public:
 	void SetEnvironmentLight(NXPBREnvironmentLight* pEnvironmentLight) { m_pEnvironmentLight = pEnvironmentLight; }
 	NXPBREnvironmentLight* GetEnvironmentLight() const { return m_pEnvironmentLight; }
 
-	ID3D11ShaderResourceView* GetSRVCubeMap() { return m_pSRVCubeMap; }
+	ID3D11ShaderResourceView* GetSRVCubeMap() { return m_pSRVCubeMap; } 
 	ID3D11ShaderResourceView* GetSRVIrradianceMap() { return m_pSRVIrradianceMap; }
 	ID3D11ShaderResourceView* GetSRVPreFilterMap() { return m_pSRVPreFilterMap; }
 	ID3D11ShaderResourceView* GetSRVBRDF2DLUT() { return m_pSRVBRDF2DLUT; }
@@ -34,7 +34,9 @@ private:
 	void InitVertexIndexBuffer() override;
 
 private:
-	std::unique_ptr<ScratchImage> m_image;
+	DXGI_FORMAT m_format;
+	std::wstring m_cubeMapFilePath;
+	std::unique_ptr<ScratchImage> m_pImage;
 	byte* m_faceData[6];
 	size_t m_width, m_height;
 
@@ -42,8 +44,11 @@ private:
 	NXPBREnvironmentLight* m_pEnvironmentLight;
 
 	std::vector<VertexP>		m_vertices;
+	std::vector<VertexP>		m_verticesCubeBox;
+	std::vector<USHORT>			m_indicesCubeBox;
+	ComPtr<ID3D11Buffer>		m_pVertexBufferCubeBox;
+	ComPtr<ID3D11Buffer>		m_pIndexBufferCubeBox;
 
-	ID3D11Texture2D*			m_pTexHDRMap;
 	ID3D11ShaderResourceView*	m_pSRVHDRMap;
 
 	ID3D11Texture2D*			m_pTexCubeMap;

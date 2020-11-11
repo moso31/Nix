@@ -27,19 +27,19 @@ public:
 	NXScript* CreateScript(const NXScriptType scriptType, NXObject* pObject);
 	NXListener*	AddEventListener(const NXEventType eventType, NXObject* pObject, const std::function<void(NXEventArg)>& pFunc);
 
-	NXBox* CreateBox(const std::string& name, const float width, const float height, const float length, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));
-	NXSphere* CreateSphere(const std::string& name, const float radius, const UINT segmentHorizontal, const UINT segmentVertical, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));
-	NXCylinder* CreateCylinder(const std::string& name, const float radius, const float length, const UINT segmentCircle, const UINT segmentLength, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));
-	NXPlane* CreatePlane(const std::string& name, const float width, const float height, const NXPlaneAxis axis, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));
-	bool CreateFBXMeshes(const std::string& filePath, NXPBRMaterial* pDefaultMaterial, std::vector<NXMesh*>& outMeshes, bool bAutoCalcTangents = true);
+	NXBox* CreateBox(const std::string name, const float width, const float height, const float length, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));
+	NXSphere* CreateSphere(const std::string name, const float radius, const UINT segmentHorizontal, const UINT segmentVertical, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));
+	NXCylinder* CreateCylinder(const std::string name, const float radius, const float length, const UINT segmentCircle, const UINT segmentLength, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));
+	NXPlane* CreatePlane(const std::string name, const float width, const float height, const NXPlaneAxis axis, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));
+	bool CreateFBXMeshes(const std::string filePath, NXPBRMaterial* pDefaultMaterial, std::vector<NXMesh*>& outMeshes, bool bAutoCalcTangents = true);
 
-	NXCamera* CreateCamera(const std::string& name, const float FovY, const float zNear, const float zFar, const Vector3& eye, const Vector3& at, const Vector3& up);
+	NXCamera* CreateCamera(const std::string name, const float FovY, const float zNear, const float zFar, const Vector3& eye, const Vector3& at, const Vector3& up);
 	NXPBRMaterial* CreatePBRMaterial(const Vector3& albedo, const float metallic, const float roughness, const float reflectivity, const float refractivity, const float IOR);
 	NXPBRPointLight* CreatePBRPointLight(const Vector3& position, const Vector3& intensity);
 	NXPBRDistantLight* CreatePBRDistantLight(const Vector3& direction, const Vector3& radiance);
 	NXPBRTangibleLight* CreatePBRTangibleLight(NXPrimitive* pPrimitive, const Vector3& radiance);
 	NXPBREnvironmentLight* CreatePBREnvironmentLight(NXCubeMap* pCubeMap, const Vector3& Intensity = Vector3(1.0f));
-	NXCubeMap* CreateCubeMap(const std::string& name, const std::wstring& filePath);
+	NXCubeMap* CreateCubeMap(const std::string name, const std::wstring filePath);
 
 	// 绑定Outline父子关系
 	bool BindParent(NXObject* pParent, NXObject* pChild);
