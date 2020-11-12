@@ -77,35 +77,6 @@ void Renderer::InitRenderer()
 	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShaderCubeMap));
 	pPSBlob->Release();
 
-	// Create Sampler
-	D3D11_SAMPLER_DESC sampDesc;
-	ZeroMemory(&sampDesc, sizeof(sampDesc));
-	sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-	sampDesc.MinLOD = 0;
-	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	NX::ThrowIfFailed(g_pDevice->CreateSamplerState(&sampDesc, &m_pSamplerLinearWrap));
-
-	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-	NX::ThrowIfFailed(g_pDevice->CreateSamplerState(&sampDesc, &m_pSamplerLinearClamp));
-
-	// shadow map 专用 PCF 滤波采样器。
-	D3D11_SAMPLER_DESC sampShadowMapPCFDesc;
-	ZeroMemory(&sampShadowMapPCFDesc, sizeof(sampShadowMapPCFDesc));
-	sampShadowMapPCFDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
-	sampShadowMapPCFDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;	// 采用边界寻址
-	sampShadowMapPCFDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
-	sampShadowMapPCFDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
-	for (int i = 0; i < 4; i++) 
-		sampShadowMapPCFDesc.BorderColor[i] = 0.0f;	// 超出边界部分为黑色
-	sampShadowMapPCFDesc.ComparisonFunc = D3D11_COMPARISON_LESS;
-	NX::ThrowIfFailed(g_pDevice->CreateSamplerState(&sampShadowMapPCFDesc, &m_pSamplerShadowMapPCF));
-
 	// Create RenderTarget
 	m_renderTarget = new NXRenderTarget();
 	m_renderTarget->Init();
@@ -116,7 +87,7 @@ void Renderer::InitRenderer()
 	g_pContext->RSSetState(nullptr);	// back culling
 	g_pContext->OMSetBlendState(nullptr, blendFactor, 0xffffffff);
 
-	g_pContext->PSSetSamplers(0, 1, m_pSamplerLinearWrap.GetAddressOf());
+	g_pContext->PSSetSamplers(0, 1, RenderStates::SamplerLinearWrap.GetAddressOf());
 }
 
 void Renderer::Preload()
@@ -145,7 +116,7 @@ void Renderer::DrawScene()
 	g_pContext->RSSetState(nullptr);
 
 	// 渲染主场景所用的Sampler
-	g_pContext->PSSetSamplers(0, 1, m_pSamplerLinearWrap.GetAddressOf());
+	g_pContext->PSSetSamplers(0, 1, RenderStates::SamplerLinearWrap.GetAddressOf());
 
 	// 设置两个RTV，一个用于绘制主场景，一个用于绘制显示区
 	auto pOffScreenRTV = g_dxResources->GetOffScreenRTV();
@@ -287,7 +258,7 @@ void Renderer::DrawShadowMap()
 {
 	g_pContext->VSSetShader(m_pVertexShaderShadowMap.Get(), nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShaderShadowMap.Get(), nullptr, 0);
-	g_pContext->PSSetSamplers(1, 1, m_pSamplerShadowMapPCF.GetAddressOf());
+	g_pContext->PSSetSamplers(1, 1, RenderStates::SamplerShadowMapPCF.GetAddressOf());
 
 	g_pContext->RSSetState(RenderStates::ShadowMapRS.Get());
 	m_pPassShadowMap->Load();

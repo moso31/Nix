@@ -32,10 +32,6 @@ private:
 	ComPtr<ID3D11PixelShader>			m_pPixelShaderOffScreen;
 	ComPtr<ID3D11PixelShader>			m_pPixelShaderShadowMap;
 
-	ComPtr<ID3D11SamplerState>			m_pSamplerLinearWrap;
-	ComPtr<ID3D11SamplerState>			m_pSamplerLinearClamp;
-	ComPtr<ID3D11SamplerState>			m_pSamplerShadowMapPCF;	// shadowMap PCF滤波采样，模糊阴影边缘
-
 	NXRenderTarget*				m_renderTarget;
 
 	NXScene*					m_scene;
