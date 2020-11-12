@@ -43,6 +43,9 @@ private:
 	NXScene* m_pScene;
 	NXPBREnvironmentLight* m_pEnvironmentLight;
 
+	Matrix m_mxCubeMapProj;
+	Matrix m_mxCubeMapView[6];
+
 	std::vector<VertexP>		m_vertices;
 	std::vector<VertexP>		m_verticesCubeBox;
 	std::vector<USHORT>			m_indicesCubeBox;
