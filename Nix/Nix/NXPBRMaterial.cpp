@@ -10,17 +10,7 @@ NXPBRMaterial::NXPBRMaterial(const Vector3& albedo, const float metallic, const 
 	m_roughness(roughness),
 	m_reflectivity(reflectivity),
 	m_refractivity(refractivity),
-	m_IOR(IOR),
-	m_pTexAlbedo(nullptr),
-	m_pTexNormal(nullptr),
-	m_pTexMetallic(nullptr),
-	m_pTexRoughness(nullptr),
-	m_pTexAmbientOcclusion(nullptr),
-	m_pSRVAlbedo(nullptr),
-	m_pSRVNormal(nullptr),
-	m_pSRVMetallic(nullptr),
-	m_pSRVRoughness(nullptr),
-	m_pSRVAmbientOcclusion(nullptr)
+	m_IOR(IOR)
 {
 	// F0: 入射角度为0度时的Fresnel反射率。
 	m_F0 = Vector3::Lerp(Vector3(0.04f), albedo, metallic); 
@@ -68,7 +58,7 @@ void NXPBRMaterial::SetTexAO(const std::wstring TexFilePath)
 	SetTex(TexFilePath, m_pTexAmbientOcclusion, m_pSRVAmbientOcclusion);
 }
 
-void NXPBRMaterial::SetTex(const std::wstring texFilePath, ID3D11Texture2D*& pTex, ID3D11ShaderResourceView*& pSRV)
+void NXPBRMaterial::SetTex(const std::wstring texFilePath, ComPtr<ID3D11Texture2D>& pTex, ComPtr<ID3D11ShaderResourceView>& pSRV)
 {
 	TexMetadata info;
 	std::unique_ptr<ScratchImage> image = std::make_unique<ScratchImage>(); //(new (std::nothrow) ScratchImage);
@@ -96,19 +86,9 @@ void NXPBRMaterial::SetTex(const std::wstring texFilePath, ID3D11Texture2D*& pTe
 	g_pDevice->CreateTexture2D(&descTex, &initData, &pTex);
 
 	CD3D11_SHADER_RESOURCE_VIEW_DESC descSRV(D3D11_SRV_DIMENSION_TEXTURE2D, info.format, 0, (UINT)info.mipLevels, 0, (UINT)info.arraySize);
-	g_pDevice->CreateShaderResourceView(pTex, &descSRV, &pSRV);
+	g_pDevice->CreateShaderResourceView(pTex.Get(), &descSRV, &pSRV);
 }
 
 void NXPBRMaterial::Release()
 {
-	SafeReleaseCOM(m_pTexAlbedo);
-	SafeReleaseCOM(m_pSRVAlbedo);
-	SafeReleaseCOM(m_pTexNormal);
-	SafeReleaseCOM(m_pSRVNormal);
-	SafeReleaseCOM(m_pTexMetallic);
-	SafeReleaseCOM(m_pSRVMetallic);
-	SafeReleaseCOM(m_pTexRoughness);
-	SafeReleaseCOM(m_pSRVRoughness);
-	SafeReleaseCOM(m_pTexAmbientOcclusion);
-	SafeReleaseCOM(m_pSRVAmbientOcclusion);
 }

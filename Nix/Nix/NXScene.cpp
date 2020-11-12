@@ -36,8 +36,7 @@
 // temp include.
 
 NXScene::NXScene() :
-	m_sceneManager(new SceneManager(this)),
-	m_cbLights(nullptr)
+	m_sceneManager(new SceneManager(this))
 {
 }
 
@@ -263,7 +262,7 @@ void NXScene::Init()
 		NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbLights));
 
 		m_cbDataLights.pointLight = pPointLight->GetConstantBuffer();
-		g_pContext->UpdateSubresource(m_cbLights, 0, nullptr, &m_cbDataLights.pointLight, 0, 0);
+		g_pContext->UpdateSubresource(m_cbLights.Get(), 0, nullptr, &m_cbDataLights.pointLight, 0, 0);
 	}
 
 	// …Ë÷√≥£¡øª∫¥Ê 
@@ -335,7 +334,6 @@ void NXScene::UpdateCamera()
 
 void NXScene::Release()
 {
-	SafeReleaseCOM(m_cbLights);
 	SafeRelease(m_sceneManager);
 }
 

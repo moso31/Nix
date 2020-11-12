@@ -1,14 +1,12 @@
 #include "RenderStates.h"
 #include "NXDXHelper.h"
 
-ID3D11RasterizerState2*		RenderStates::WireframeRS = nullptr;
-ID3D11RasterizerState2*		RenderStates::NoCullRS = nullptr;
-ID3D11RasterizerState2*		RenderStates::ShadowMapRS = nullptr;
-
-ID3D11BlendState1*			RenderStates::AlphaToCoverageBS = nullptr;
-ID3D11BlendState1*			RenderStates::TransparentBS = nullptr;
-
-ID3D11DepthStencilState*	RenderStates::CubeMapDSS = nullptr;
+ComPtr<ID3D11RasterizerState2>		RenderStates::WireframeRS = nullptr;
+ComPtr<ID3D11RasterizerState2>		RenderStates::NoCullRS = nullptr;
+ComPtr<ID3D11RasterizerState2>		RenderStates::ShadowMapRS = nullptr;
+ComPtr<ID3D11BlendState1>			RenderStates::AlphaToCoverageBS = nullptr;
+ComPtr<ID3D11BlendState1>			RenderStates::TransparentBS = nullptr;
+ComPtr<ID3D11DepthStencilState>		RenderStates::CubeMapDSS = nullptr;
 
 void RenderStates::Init()
 {
@@ -88,10 +86,4 @@ void RenderStates::Init()
 
 void RenderStates::Release()
 {
-	SafeReleaseCOM(WireframeRS);
-	SafeReleaseCOM(NoCullRS);
-	SafeReleaseCOM(AlphaToCoverageBS);
-	SafeReleaseCOM(TransparentBS);
-	SafeReleaseCOM(ShadowMapRS);
-	SafeReleaseCOM(CubeMapDSS);
 }

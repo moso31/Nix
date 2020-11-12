@@ -116,7 +116,7 @@ void Renderer::InitRenderer()
 	g_pContext->RSSetState(nullptr);	// back culling
 	g_pContext->OMSetBlendState(nullptr, blendFactor, 0xffffffff);
 
-	g_pContext->PSSetSamplers(0, 1, &m_pSamplerLinearWrap);
+	g_pContext->PSSetSamplers(0, 1, m_pSamplerLinearWrap.GetAddressOf());
 }
 
 void Renderer::Preload()
@@ -145,7 +145,7 @@ void Renderer::DrawScene()
 	g_pContext->RSSetState(nullptr);
 
 	// 渲染主场景所用的Sampler
-	g_pContext->PSSetSamplers(0, 1, &m_pSamplerLinearWrap);
+	g_pContext->PSSetSamplers(0, 1, m_pSamplerLinearWrap.GetAddressOf());
 
 	// 设置两个RTV，一个用于绘制主场景，一个用于绘制显示区
 	auto pOffScreenRTV = g_dxResources->GetOffScreenRTV();
@@ -165,13 +165,13 @@ void Renderer::DrawScene()
 	m_scene->UpdateCamera();
 
 	// 绘制CubeMap
-	g_pContext->IASetInputLayout(m_pInputLayoutP);
-	g_pContext->RSSetState(RenderStates::NoCullRS);
-	g_pContext->OMSetDepthStencilState(RenderStates::CubeMapDSS, 0);
+	g_pContext->IASetInputLayout(m_pInputLayoutP.Get());
+	g_pContext->RSSetState(RenderStates::NoCullRS.Get());
+	g_pContext->OMSetDepthStencilState(RenderStates::CubeMapDSS.Get(), 0);
 	DrawCubeMap();
 
 	// 绘制Primitives
-	g_pContext->IASetInputLayout(m_pInputLayoutPNTT);
+	g_pContext->IASetInputLayout(m_pInputLayoutPNTT.Get());
 	g_pContext->RSSetState(nullptr);
 	g_pContext->OMSetDepthStencilState(nullptr, 0);
 	DrawPrimitives();
@@ -182,9 +182,9 @@ void Renderer::DrawScene()
 	g_pContext->ClearRenderTargetView(pRenderTargetView, Colors::WhiteSmoke);
 	g_pContext->ClearDepthStencilView(pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-	g_pContext->IASetInputLayout(m_pInputLayoutPNT);
-	g_pContext->VSSetShader(m_pVertexShaderOffScreen, nullptr, 0);
-	g_pContext->PSSetShader(m_pPixelShaderOffScreen, nullptr, 0);
+	g_pContext->IASetInputLayout(m_pInputLayoutPNT.Get());
+	g_pContext->VSSetShader(m_pVertexShaderOffScreen.Get(), nullptr, 0);
+	g_pContext->PSSetShader(m_pPixelShaderOffScreen.Get(), nullptr, 0);
 
 	// 绘制主渲染屏幕RTV：
 	m_renderTarget->Render();
@@ -201,15 +201,6 @@ void Renderer::Release()
 {
 	SafeRelease(m_pPassShadowMap);
 
-	SafeReleaseCOM(m_pInputLayoutP);
-	SafeReleaseCOM(m_pInputLayoutPNT);
-	SafeReleaseCOM(m_pInputLayoutPNTT);
-	SafeReleaseCOM(m_pVertexShader);
-	SafeReleaseCOM(m_pPixelShader);
-	SafeReleaseCOM(m_pSamplerLinearWrap);
-	SafeReleaseCOM(m_pSamplerLinearClamp);
-	SafeReleaseCOM(m_pSamplerShadowMapPCF);
-
 	SafeRelease(m_scene);
 	SafeRelease(m_renderTarget);
 }
@@ -217,8 +208,8 @@ void Renderer::Release()
 void Renderer::DrawPrimitives()
 {
 	// 设置使用的VS和PS（这里是scene.fx）
-	g_pContext->VSSetShader(m_pVertexShader, nullptr, 0);
-	g_pContext->PSSetShader(m_pPixelShader, nullptr, 0);
+	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
+	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
 
 	// 填上渲染Buffer的Slot。其实总结成一句话就是：
 	// 将VS/PS的CB/SRV/Sampler的xxx号槽（Slot）填上数据xxx。
@@ -270,8 +261,8 @@ void Renderer::DrawPrimitives()
 
 void Renderer::DrawCubeMap()
 {
-	g_pContext->VSSetShader(m_pVertexShaderCubeMap, nullptr, 0);
-	g_pContext->PSSetShader(m_pPixelShaderCubeMap, nullptr, 0);
+	g_pContext->VSSetShader(m_pVertexShaderCubeMap.Get(), nullptr, 0);
+	g_pContext->PSSetShader(m_pPixelShaderCubeMap.Get(), nullptr, 0);
 
 	auto pCubeMap = m_scene->GetCubeMap();
 	if (pCubeMap)
@@ -294,11 +285,11 @@ void Renderer::DrawCubeMap()
 
 void Renderer::DrawShadowMap()
 {
-	g_pContext->VSSetShader(m_pVertexShaderShadowMap, nullptr, 0);
-	g_pContext->PSSetShader(m_pPixelShaderShadowMap, nullptr, 0);
-	g_pContext->PSSetSamplers(1, 1, &m_pSamplerShadowMapPCF);
+	g_pContext->VSSetShader(m_pVertexShaderShadowMap.Get(), nullptr, 0);
+	g_pContext->PSSetShader(m_pPixelShaderShadowMap.Get(), nullptr, 0);
+	g_pContext->PSSetSamplers(1, 1, m_pSamplerShadowMapPCF.GetAddressOf());
 
-	g_pContext->RSSetState(RenderStates::ShadowMapRS);
+	g_pContext->RSSetState(RenderStates::ShadowMapRS.Get());
 	m_pPassShadowMap->Load();
 	m_pPassShadowMap->UpdateConstantBuffer();
 	m_pPassShadowMap->Render();

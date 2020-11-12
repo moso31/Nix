@@ -32,14 +32,14 @@ void NXPassShadowMap::Init(UINT width, UINT height)
 		D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE
 	);
 
-	ID3D11Texture2D* pTexShadowMap;
+	ComPtr<ID3D11Texture2D> pTexShadowMap;
 	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&descTex, nullptr, &pTexShadowMap));
 
 	CD3D11_DEPTH_STENCIL_VIEW_DESC descDSV(
 		D3D11_DSV_DIMENSION_TEXTURE2D,
 		DXGI_FORMAT_D24_UNORM_S8_UINT
 	);
-	NX::ThrowIfFailed(g_pDevice->CreateDepthStencilView(pTexShadowMap, &descDSV, &m_pDepthDSV));
+	NX::ThrowIfFailed(g_pDevice->CreateDepthStencilView(pTexShadowMap.Get(), &descDSV, &m_pDepthDSV));
 
 	CD3D11_SHADER_RESOURCE_VIEW_DESC descSRV(
 		D3D11_SRV_DIMENSION_TEXTURE2D,
@@ -49,9 +49,7 @@ void NXPassShadowMap::Init(UINT width, UINT height)
 		0,
 		0
 	);
-	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(pTexShadowMap, &descSRV, &m_pDepthSRV));
-
-	SafeReleaseCOM(pTexShadowMap);
+	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(pTexShadowMap.Get(), &descSRV, &m_pDepthSRV));
 
 	D3D11_BUFFER_DESC bufferDesc;
 	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
@@ -71,20 +69,20 @@ void NXPassShadowMap::Load()
 
 	// 无需RenderTarget，只绘制DSV
 	ID3D11RenderTargetView* renderTargets[1] = { nullptr };
-	g_pContext->OMSetRenderTargets(1, renderTargets, m_pDepthDSV);
-	g_pContext->ClearDepthStencilView(m_pDepthDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	g_pContext->OMSetRenderTargets(1, renderTargets, m_pDepthDSV.Get());
+	g_pContext->ClearDepthStencilView(m_pDepthDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 }
 
 void NXPassShadowMap::UpdateConstantBuffer()
 {
 	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbObject, 0, nullptr, &NXGlobalBufferManager::m_cbDataObject, 0, 0);
-	g_pContext->UpdateSubresource(m_cbTransform, 0, nullptr, &m_cbDataTransform, 0, 0);
+	g_pContext->UpdateSubresource(m_cbTransform.Get(), 0, nullptr, &m_cbDataTransform, 0, 0);
 }
 
 void NXPassShadowMap::Render()
 {
-	//g_pContext->VSSetConstantBuffers(1, 1, &m_cbTransform);
-	//g_pContext->PSSetConstantBuffers(1, 1, &m_cbTransform);
+	//g_pContext->VSSetConstantBuffers(1, 1, m_cbTransform.GetAddressOf());
+	//g_pContext->PSSetConstantBuffers(1, 1, m_cbTransform.GetAddressOf());
 
 	//auto pPrims = m_pScene->GetPrimitives();
 	//for (auto it = pPrims.begin(); it != pPrims.end(); it++)
@@ -102,7 +100,4 @@ void NXPassShadowMap::Render()
 
 void NXPassShadowMap::Release()
 {
-	SafeReleaseCOM(m_pDepthDSV);
-	SafeReleaseCOM(m_pDepthSRV);
-	SafeReleaseCOM(m_cbTransform);
 }

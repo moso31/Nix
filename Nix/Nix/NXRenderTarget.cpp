@@ -33,8 +33,8 @@ void NXRenderTarget::Render()
 	// 不过这里InputLayout还是用的VertexPNT格式，实际上做一个专用的VertexQuad顶点格式更加优化。这里没做。
 	UINT stride = sizeof(VertexPNT);
 	UINT offset = 0;
-	g_pContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &stride, &offset);
-	g_pContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+	g_pContext->IASetVertexBuffers(0, 1, m_pVertexBuffer.GetAddressOf(), &stride, &offset);
+	g_pContext->IASetIndexBuffer(m_pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
 	auto pRenderTargetSRV = g_dxResources->GetOffScreenSRV();
 	g_pContext->PSSetShaderResources(0, 1, &pRenderTargetSRV);
 	g_pContext->DrawIndexed((UINT)m_indices.size(), 0, 0);

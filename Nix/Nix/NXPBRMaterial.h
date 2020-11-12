@@ -23,18 +23,18 @@ public:
 	// DirectX
 	ConstantBufferMaterial GetConstantBuffer();
 
-	ID3D11ShaderResourceView* GetSRVAlbedo() const { return m_pSRVAlbedo; }
-	ID3D11ShaderResourceView* GetSRVNormal() const { return m_pSRVNormal; }
-	ID3D11ShaderResourceView* GetSRVMetallic() const { return m_pSRVMetallic; }
-	ID3D11ShaderResourceView* GetSRVRoughness() const { return m_pSRVRoughness; }
-	ID3D11ShaderResourceView* GetSRVAO() const { return m_pSRVAmbientOcclusion; }
+	ID3D11ShaderResourceView* GetSRVAlbedo() const { return m_pSRVAlbedo.Get(); }
+	ID3D11ShaderResourceView* GetSRVNormal() const { return m_pSRVNormal.Get(); }
+	ID3D11ShaderResourceView* GetSRVMetallic() const { return m_pSRVMetallic.Get(); }
+	ID3D11ShaderResourceView* GetSRVRoughness() const { return m_pSRVRoughness.Get(); }
+	ID3D11ShaderResourceView* GetSRVAO() const { return m_pSRVAmbientOcclusion.Get(); }
 
 	void SetTexAlbedo(const std::wstring TexFilePath);
 	void SetTexNormal(const std::wstring TexFilePath);
 	void SetTexMetallic(const std::wstring TexFilePath);
 	void SetTexRoughness(const std::wstring TexFilePath);
 	void SetTexAO(const std::wstring TexFilePath);
-	void SetTex(const std::wstring TexFilePath, ID3D11Texture2D*& pTex, ID3D11ShaderResourceView*& pSRV);
+	void SetTex(const std::wstring TexFilePath, ComPtr<ID3D11Texture2D>& pTex, ComPtr<ID3D11ShaderResourceView>& pSRV);
 
 	void Release();
 
@@ -54,14 +54,14 @@ private:
 	Vector3 m_F0;
 
 private:
-	ID3D11Texture2D* m_pTexAlbedo;
-	ID3D11Texture2D* m_pTexNormal;
-	ID3D11Texture2D* m_pTexMetallic;
-	ID3D11Texture2D* m_pTexRoughness;
-	ID3D11Texture2D* m_pTexAmbientOcclusion;
-	ID3D11ShaderResourceView* m_pSRVAlbedo;
-	ID3D11ShaderResourceView* m_pSRVNormal;
-	ID3D11ShaderResourceView* m_pSRVMetallic;
-	ID3D11ShaderResourceView* m_pSRVRoughness;
-	ID3D11ShaderResourceView* m_pSRVAmbientOcclusion;
+	ComPtr<ID3D11Texture2D> m_pTexAlbedo;
+	ComPtr<ID3D11Texture2D> m_pTexNormal;
+	ComPtr<ID3D11Texture2D> m_pTexMetallic;
+	ComPtr<ID3D11Texture2D> m_pTexRoughness;
+	ComPtr<ID3D11Texture2D> m_pTexAmbientOcclusion;
+	ComPtr<ID3D11ShaderResourceView> m_pSRVAlbedo;
+	ComPtr<ID3D11ShaderResourceView> m_pSRVNormal;
+	ComPtr<ID3D11ShaderResourceView> m_pSRVMetallic;
+	ComPtr<ID3D11ShaderResourceView> m_pSRVRoughness;
+	ComPtr<ID3D11ShaderResourceView> m_pSRVAmbientOcclusion;
 };

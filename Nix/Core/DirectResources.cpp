@@ -21,8 +21,8 @@ void DirectResources::InitDevice()
 	};
 	D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_1;
 
-	ID3D11Device* pDevice = nullptr;
-	ID3D11DeviceContext* pContext = nullptr;
+	ComPtr<ID3D11Device> pDevice;
+	ComPtr<ID3D11DeviceContext> pContext;
 	HRESULT hr = D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, 0, createDeviceFlags,
 		featureLevels, ARRAYSIZE(featureLevels), D3D11_SDK_VERSION, &pDevice, &featureLevel, &pContext);
 
@@ -32,10 +32,8 @@ void DirectResources::InitDevice()
 			featureLevels, ARRAYSIZE(featureLevels), D3D11_SDK_VERSION, &pDevice, &featureLevel, &pContext));
 	}
 
-	NX::ThrowIfFailed(pDevice->QueryInterface(__uuidof(ID3D11Device5), reinterpret_cast<void**>(&g_pDevice)));
-	NX::ThrowIfFailed(pContext->QueryInterface(__uuidof(ID3D11DeviceContext4), reinterpret_cast<void**>(&g_pContext)));
-	SafeReleaseCOM(pDevice);
-	SafeReleaseCOM(pContext);
+	NX::ThrowIfFailed(pDevice.As(&g_pDevice));
+	NX::ThrowIfFailed(pContext.As(&g_pContext));
 
 	OnResize(width, height);
 }
@@ -74,31 +72,26 @@ void DirectResources::OnResize(UINT width, UINT height)
 		sd.Scaling = DXGI_SCALING_NONE;
 		sd.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
 
-		IDXGIDevice3* pDxgiDevice;
-		NX::ThrowIfFailed(g_pDevice->QueryInterface(__uuidof(IDXGIDevice3), reinterpret_cast<void**>(&pDxgiDevice)));
+		ComPtr<IDXGIDevice3> pDxgiDevice;
+		NX::ThrowIfFailed(g_pDevice.As(&pDxgiDevice));
 
-		IDXGIAdapter* pDxgiAdapter;
+		ComPtr<IDXGIAdapter> pDxgiAdapter;
 		NX::ThrowIfFailed(pDxgiDevice->GetAdapter(&pDxgiAdapter));
-		SafeReleaseCOM(pDxgiDevice);
 
-		IDXGIFactory5* pDxgiFactory;
+		ComPtr<IDXGIFactory5> pDxgiFactory;
 		NX::ThrowIfFailed(pDxgiAdapter->GetParent(IID_PPV_ARGS(&pDxgiFactory)));
-		SafeReleaseCOM(pDxgiAdapter);
 
-		IDXGISwapChain1* pSwapChain;
-		NX::ThrowIfFailed(pDxgiFactory->CreateSwapChainForHwnd(g_pDevice, g_hWnd, &sd, nullptr, nullptr, &pSwapChain));
-		SafeReleaseCOM(pDxgiFactory);
+		ComPtr<IDXGISwapChain1> pSwapChain;
+		NX::ThrowIfFailed(pDxgiFactory->CreateSwapChainForHwnd(g_pDevice.Get(), g_hWnd, &sd, nullptr, nullptr, &pSwapChain));
 		
-		NX::ThrowIfFailed(pSwapChain->QueryInterface(__uuidof(IDXGISwapChain4), reinterpret_cast<void**>(&g_pSwapChain)));
-		SafeReleaseCOM(pSwapChain);
+		NX::ThrowIfFailed(pSwapChain.As(&g_pSwapChain));
 	}
 
 
 	// 创建交换链后台缓冲区的渲染目标视图。
-	ID3D11Texture2D* pBackBuffer = nullptr;
+	ComPtr<ID3D11Texture2D> pBackBuffer = nullptr;
 	NX::ThrowIfFailed(g_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer)));
-	NX::ThrowIfFailed(g_pDevice->CreateRenderTargetView(pBackBuffer, nullptr, &m_pRenderTargetView));
-	SafeReleaseCOM(pBackBuffer);
+	NX::ThrowIfFailed(g_pDevice->CreateRenderTargetView(pBackBuffer.Get(), nullptr, &m_pRenderTargetView));
 
 	// 根据需要创建用于 3D 渲染的深度模具视图。
 	CD3D11_TEXTURE2D_DESC descDepth(
@@ -110,12 +103,11 @@ void DirectResources::OnResize(UINT width, UINT height)
 		D3D11_BIND_DEPTH_STENCIL
 	);
 
-	ID3D11Texture2D* pDepthStencil;
+	ComPtr<ID3D11Texture2D> pDepthStencil;
 	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&descDepth, nullptr, &pDepthStencil));
 
 	CD3D11_DEPTH_STENCIL_VIEW_DESC descDepthStencilView(D3D11_DSV_DIMENSION_TEXTURE2D);
-	NX::ThrowIfFailed(g_pDevice->CreateDepthStencilView(pDepthStencil, &descDepthStencilView, &m_pDepthStencilView));
-	SafeReleaseCOM(pDepthStencil);
+	NX::ThrowIfFailed(g_pDevice->CreateDepthStencilView(pDepthStencil.Get(), &descDepthStencilView, &m_pDepthStencilView));
 
 	// Create Render Target
 	CD3D11_TEXTURE2D_DESC descOffScreen(
@@ -126,11 +118,10 @@ void DirectResources::OnResize(UINT width, UINT height)
 		1,
 		D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS
 	);
-	ID3D11Texture2D* pOffScreenBuffer = nullptr;
+	ComPtr<ID3D11Texture2D> pOffScreenBuffer = nullptr;
 	g_pDevice->CreateTexture2D(&descOffScreen, nullptr, &pOffScreenBuffer);
-	NX::ThrowIfFailed(g_pDevice->CreateRenderTargetView(pOffScreenBuffer, nullptr, &m_pOffScreenRTV));
-	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(pOffScreenBuffer, nullptr, &m_pOffScreenSRV));
-	SafeReleaseCOM(pOffScreenBuffer);
+	NX::ThrowIfFailed(g_pDevice->CreateRenderTargetView(pOffScreenBuffer.Get(), nullptr, &m_pOffScreenRTV));
+	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(pOffScreenBuffer.Get(), nullptr, &m_pOffScreenSRV));
 
 	// Setup the viewport
 	m_viewSize = { (FLOAT)width, (FLOAT)height };
@@ -142,12 +133,6 @@ void DirectResources::Release()
 {
 	if (g_pContext)				
 		g_pContext->ClearState();
-
-	SafeReleaseCOM(m_pRenderTargetView);
-	SafeReleaseCOM(m_pDepthStencilView);
-	SafeReleaseCOM(g_pSwapChain);
-	SafeReleaseCOM(g_pContext);
-	SafeReleaseCOM(g_pDevice);
 }
 
 Vector2 DirectResources::GetViewSize()

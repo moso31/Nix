@@ -25,7 +25,9 @@ struct HBVHBucketInfo
 
 struct HBVHTreeNode
 {
-	HBVHTreeNode() 
+	HBVHTreeNode() : 
+		index(-1),
+		offset(-1)
 	{
 		child[0] = nullptr;
 		child[1] = nullptr;

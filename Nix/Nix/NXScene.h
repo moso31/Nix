@@ -35,7 +35,7 @@ public:
 	// 目前只对第一个光源创建Parallel ShadowMap。
 	void InitShadowMapTransformInfo(ConstantBufferShadowMapTransform& out_cb);
 
-	ID3D11Buffer* GetConstantBufferLights() const { return m_cbLights; }
+	ID3D11Buffer* GetConstantBufferLights() const { return m_cbLights.Get(); }
 
 	// 更新场景BVH树
 	void BuildBVHTrees(const HBVHSplitMode SplitMode);
@@ -45,7 +45,7 @@ private:
 private:
 	SceneManager* m_sceneManager;
 
-	ID3D11Buffer* m_cbLights;
+	ComPtr<ID3D11Buffer> m_cbLights;
 	ConstantBufferLight m_cbDataLights;
 
 	AABB m_aabb;

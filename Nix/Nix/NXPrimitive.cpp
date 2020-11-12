@@ -9,9 +9,6 @@
 using namespace SamplerMath;
 
 NXPrimitive::NXPrimitive() :
-	m_pVertexBuffer(nullptr),
-	m_pIndexBuffer(nullptr),
-	m_cbMaterial(nullptr),
 	m_pPBRMaterial(nullptr),
 	m_pTangibleLight(nullptr),
 	m_bEnableNormal(true),
@@ -31,7 +28,7 @@ void NXPrimitive::Update()
 
 	if (m_pPBRMaterial)
 	{
-		g_pContext->UpdateSubresource(m_cbMaterial, 0, nullptr, &m_cbDataMaterial, 0, 0);
+		g_pContext->UpdateSubresource(m_cbMaterial.Get(), 0, nullptr, &m_cbDataMaterial, 0, 0);
 	}
 }
 
@@ -39,16 +36,13 @@ void NXPrimitive::Render()
 {
 	UINT stride = sizeof(VertexPNTT);
 	UINT offset = 0;
-	g_pContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &stride, &offset);
-	g_pContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+	g_pContext->IASetVertexBuffers(0, 1, m_pVertexBuffer.GetAddressOf(), &stride, &offset);
+	g_pContext->IASetIndexBuffer(m_pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
 	g_pContext->DrawIndexed((UINT)m_indices.size(), 0, 0);
 }
 
 void NXPrimitive::Release()
 {
-	SafeReleaseCOM(m_pVertexBuffer);
-	SafeReleaseCOM(m_pIndexBuffer);
-	SafeReleaseCOM(m_cbMaterial);
 	NXObject::Release();
 }
 

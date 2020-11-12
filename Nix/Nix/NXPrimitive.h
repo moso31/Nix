@@ -31,7 +31,7 @@ public:
 	virtual void UpdateSurfaceAreaInfo();		// 更新此物体表面积相关的信息。
 	virtual float GetSurfaceArea();				// 计算表面积
 
-	ID3D11Buffer* GetMaterialBuffer() const { return m_cbMaterial; }
+	ID3D11Buffer* GetMaterialBuffer() const { return m_cbMaterial.Get(); }
 
 	void SetTangibleLight(NXPBRTangibleLight* pTangibleLight) { m_pTangibleLight = pTangibleLight; }
 	NXPBRTangibleLight* GetTangibleLight() const { return m_pTangibleLight; }
@@ -54,15 +54,15 @@ private:
 	NXTriangle SampleTriangle();		// 按面积的PDF采样任一三角形
 
 protected:
-	ID3D11Buffer*				m_pVertexBuffer;
-	ID3D11Buffer*				m_pIndexBuffer;
+	ComPtr<ID3D11Buffer>		m_pVertexBuffer;
+	ComPtr<ID3D11Buffer>		m_pIndexBuffer;
 
 	std::vector<VertexPNTT>		m_vertices;
 	std::vector<USHORT>			m_indices;
 	std::vector<Vector3>		m_points;	// vertices position 序列
 
 	ConstantBufferMaterial		m_cbDataMaterial;
-	ID3D11Buffer*				m_cbMaterial;
+	ComPtr<ID3D11Buffer>		m_cbMaterial;
 	NXPBRMaterial*				m_pPBRMaterial;
 
 	NXPBRTangibleLight*	m_pTangibleLight;	// 可以将Primitive设置为光源
