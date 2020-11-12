@@ -213,8 +213,8 @@ void Renderer::DrawPrimitives()
 
 	// 填上渲染Buffer的Slot。其实总结成一句话就是：
 	// 将VS/PS的CB/SRV/Sampler的xxx号槽（Slot）填上数据xxx。
-	g_pContext->VSSetConstantBuffers(1, 1, &NXGlobalBufferManager::m_cbCamera);
-	g_pContext->PSSetConstantBuffers(1, 1, &NXGlobalBufferManager::m_cbCamera);
+	g_pContext->VSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
+	g_pContext->PSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
 
 	auto pCbLights = m_scene->GetConstantBufferLights();
 	g_pContext->PSSetConstantBuffers(2, 1, &pCbLights);
@@ -232,7 +232,7 @@ void Renderer::DrawPrimitives()
 		// 其他几个CB/SRV的Slot都不变，但每个物体的World、Material、Tex信息都可能改变。
 		// 可以进一步优化，比如按Material绘制、按Tex绘制。
 		pPrim->Update();
-		g_pContext->VSSetConstantBuffers(0, 1, &NXGlobalBufferManager::m_cbObject);
+		g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 
 		auto pMat = pPrim->GetPBRMaterial();
 		if (pMat)
@@ -268,7 +268,7 @@ void Renderer::DrawCubeMap()
 	if (pCubeMap)
 	{
 		pCubeMap->Update();
-		g_pContext->VSSetConstantBuffers(0, 1, &NXGlobalBufferManager::m_cbObject);
+		g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 
 		auto pCubeMapSRV = pCubeMap->GetSRVCubeMap();
 		auto pIrradianceMapSRV = pCubeMap->GetSRVIrradianceMap();

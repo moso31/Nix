@@ -75,7 +75,7 @@ void NXPassShadowMap::Load()
 
 void NXPassShadowMap::UpdateConstantBuffer()
 {
-	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbObject, 0, nullptr, &NXGlobalBufferManager::m_cbDataObject, 0, 0);
+	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbObject.Get(), 0, nullptr, &NXGlobalBufferManager::m_cbDataObject, 0, 0);
 	g_pContext->UpdateSubresource(m_cbTransform.Get(), 0, nullptr, &m_cbDataTransform, 0, 0);
 }
 

@@ -24,7 +24,7 @@ void NXPrimitive::Update()
 	auto mxWorld = m_worldMatrix.Transpose();
 	NXGlobalBufferManager::m_cbDataObject.world = mxWorld;
 	NXGlobalBufferManager::m_cbDataObject.worldInverseTranspose = mxWorld.Invert().Transpose();
-	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbObject, 0, nullptr, &NXGlobalBufferManager::m_cbDataObject, 0, 0);
+	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbObject.Get(), 0, nullptr, &NXGlobalBufferManager::m_cbDataObject, 0, 0);
 
 	if (m_pPBRMaterial)
 	{
