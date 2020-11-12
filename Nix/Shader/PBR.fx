@@ -54,18 +54,17 @@ float GeometrySchlickGGX(float NdotV, float roughness)
 	float k = (a * a) / 2.0;
 
 	float nom = NdotV;
-	float denom = NdotV * (1.0 - k) + k;
+	float denom = NdotV * (1.0 - k) + max(k, 0.00001); // º”epsilon“‘∑¿÷π≥˝0
 
 	return nom / denom;
 }
 
 float GeometrySmith(float3 N, float3 V, float3 L, float roughness)
 {
-	float NdotV = max(dot(N, V), 0.0);
-	float NdotL = max(dot(N, L), 0.0);
+	float NdotV = saturate(dot(N, V));
+	float NdotL = saturate(dot(N, L));
 	float ggx2 = GeometrySchlickGGX(NdotV, roughness);
 	float ggx1 = GeometrySchlickGGX(NdotL, roughness);
-
 	return ggx1 * ggx2;
 }
 

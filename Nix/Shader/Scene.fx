@@ -124,7 +124,7 @@ float4 PS(PS_INPUT input) : SV_Target
 	F0 = lerp(F0, albedo, metallic);
 
     // reflectance equation
-    float3 Lo = 0.0;
+    float3 Lo = 0.0f;
     for (int i = 0; i < NUM_LIGHTS; i++)
     {
 		float3 lightPos = m_pointLight[i].position;
@@ -140,10 +140,10 @@ float4 PS(PS_INPUT input) : SV_Target
         // Î¢±íÃæ BRDF
 		float NDF = DistributionGGX(N, H, roughness);
 		float G = GeometrySmith(N, V, L, roughness);
-		float3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
+		float3 F = fresnelSchlick(saturate(dot(H, V)), F0);
 
         float3 numerator = NDF * G * F;
-        float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
+        float denominator = 4.0 * saturate(dot(N, V)) * saturate(dot(N, L));
         float3 specular = numerator / max(denominator, 0.001);
 
 		float3 kS = F;
@@ -153,7 +153,7 @@ float4 PS(PS_INPUT input) : SV_Target
         Lo += (kD * albedo / PI + specular) * radiance * NdotL;
     }
 
-	float3 kS = fresnelSchlick(max(dot(N, V), 0.0), F0);
+	float3 kS = fresnelSchlick(saturate(dot(N, V)), F0);
 	float3 kD = 1.0 - kS;
 	kD *= 1.0 - metallic;
 	float3 irradiance = txIrradianceMap.Sample(samLinear, N).xyz;

@@ -40,5 +40,6 @@ PS_INPUT VS(VS_INPUT input)
 
 float4 PS(PS_INPUT input) : SV_Target
 {
-	return txCubeMap.Sample(samTriLinearSam, input.posL);
+	float4 result = txCubeMap.Sample(samTriLinearSam, input.posL);
+	return result;
 }

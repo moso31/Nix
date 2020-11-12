@@ -177,8 +177,8 @@ void NXScene::Init()
 		auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 128, 128, Vector3(posX, 0.0f, 0.0f));
 		pSphere->SetMaterialPBR(pPBRMat[i]);
 
-		posX = ((float)i - 3.0f) * 2.0f;
-		//auto pPlane = m_sceneManager->CreatePlane("Wall", 2.0f, 2.0f, NXPlaneAxis(NEGATIVE_Z), Vector3(posX, 0.0f, 2.0f));
+		//posX = ((float)i - 3.0f) * 2.0f;
+		//auto pPlane = m_sceneManager->CreatePlane("Wall", 2.0f, 2.0f, NXPlaneAxis(POSITIVE_Y), Vector3(posX, 0.0f, 2.0f));
 		//pPlane->SetMaterialPBR(pPBRMat[i]);  
 	}
 
