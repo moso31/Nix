@@ -43,6 +43,11 @@ bool NXCubeMap::Init(const std::wstring filePath)
 		hr = LoadFromDDSFile(filePath.c_str(), DDS_FLAGS_NONE, &HDRInfo, *m_pImage);
 		m_format = HDRInfo.format;
 
+		std::unique_ptr<ScratchImage> pImageMip = std::make_unique<ScratchImage>();
+		hr = GenerateMipMaps(m_pImage->GetImages(), m_pImage->GetImageCount(), m_pImage->GetMetadata(), TEX_FILTER_DEFAULT, 0, *pImageMip);
+		HDRInfo.mipLevels = pImageMip->GetMetadata().mipLevels;
+		m_pImage.swap(pImageMip);
+
 		hr = CreateTextureEx(g_pDevice.Get(), m_pImage->GetImages(), m_pImage->GetImageCount(), HDRInfo, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, (ID3D11Resource**)m_pTexCubeMap.GetAddressOf());
 		hr = CreateShaderResourceView(g_pDevice.Get(), m_pImage->GetImages(), m_pImage->GetImageCount(), HDRInfo, &m_pSRVCubeMap);
 	}
@@ -55,8 +60,13 @@ bool NXCubeMap::Init(const std::wstring filePath)
 		hr = CreateShaderResourceViewEx(g_pDevice.Get(), pHDRImage->GetImages(), pHDRImage->GetImageCount(), HDRInfo, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, (UINT)HDRInfo.miscFlags, false, &m_pSRVHDRMap);
 		
 		GenerateCubeMap(filePath);
-
 		hr = LoadFromDDSFile(m_cubeMapFilePath.c_str(), DDS_FLAGS_NONE, &HDRInfo, *m_pImage);
+
+		std::unique_ptr<ScratchImage> pImageMip = std::make_unique<ScratchImage>();
+		hr = GenerateMipMaps(m_pImage->GetImages(), m_pImage->GetImageCount(), m_pImage->GetMetadata(), TEX_FILTER_DEFAULT, 0, *pImageMip);
+		HDRInfo.mipLevels = pImageMip->GetMetadata().mipLevels;
+		m_pImage.swap(pImageMip); 
+
 		hr = CreateTextureEx(g_pDevice.Get(), m_pImage->GetImages(), m_pImage->GetImageCount(), HDRInfo, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, (ID3D11Resource**)m_pTexCubeMap.GetAddressOf());
 		hr = CreateShaderResourceView(g_pDevice.Get(), m_pImage->GetImages(), m_pImage->GetImageCount(), HDRInfo, &m_pSRVCubeMap);
 	}
@@ -427,16 +437,13 @@ void NXCubeMap::GeneratePreFilterMap()
 	cbDataRoughness.Value = 0;
 
 	UINT uMapSize = (UINT)MapSize;
-	CD3D11_VIEWPORT vp[5];
-	for (int i = 0; i < 5; i++)
-	{
-		vp[i] = CD3D11_VIEWPORT(0.0f, 0.0f, (float)(uMapSize >> i), (float)(uMapSize >> i));
-	}
-
+	CD3D11_VIEWPORT vp;
 	for (int i = 0; i < 5; i++)
 	{
 		cbDataRoughness.Value = roughValues[i];
-		g_pContext->RSSetViewports(1, &vp[i]);
+
+		vp = CD3D11_VIEWPORT(0.0f, 0.0f, (float)(uMapSize >> i), (float)(uMapSize >> i));
+		g_pContext->RSSetViewports(1, &vp);
 		for (int j = 0; j < 6; j++)
 		{
 			cbDataCubeCamera.view = m_mxCubeMapView[j].Transpose();

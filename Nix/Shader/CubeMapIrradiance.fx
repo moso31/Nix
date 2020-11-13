@@ -25,10 +25,10 @@ float3 GetIrradiance(float3 wi)
 	wb = cross(wi, wt);
 	float3 irradiance = 0.0f;
 
-	float rTheta = 0.5f * PI;
-	float rPhi = 2.0f * PI;
-	float nTheta = rTheta * 0.05f;
-	float nPhi = rTheta * 0.05f;
+	float rTheta = NX_PIDIV2;
+	float rPhi = NX_2PI;
+	float nTheta = rTheta * 0.025f;
+	float nPhi = rTheta * 0.025f;
 	int nrSamples = 0;
 	for (float phi = 0.0f; phi < rPhi; phi += nTheta)
 	{
@@ -43,7 +43,7 @@ float3 GetIrradiance(float3 wi)
 			nrSamples++;
 		}
 	}
-	irradiance = PI * irradiance * (1.0f / float(nrSamples));
+	irradiance = NX_PI * irradiance * (1.0f / float(nrSamples));
 	return irradiance;
 }
 
@@ -71,6 +71,6 @@ PS_INPUT VS(VS_INPUT input)
 
 float4 PS(PS_INPUT input) : SV_Target
 {
-	float3 irradiance = GetIrradiance(input.posL);
+	float3 irradiance = GetIrradiance(normalize(input.posL));
 	return float4(irradiance, 1.0f);
 }
