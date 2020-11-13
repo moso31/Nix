@@ -48,7 +48,19 @@ float DistributionGGX(float3 N, float3 H, float roughness)
 	return num / denom;
 }
 
-float GeometrySchlickGGX(float NdotV, float roughness)
+float GeometrySchlickGGXDirect(float NdotV, float roughness)
+{
+	float a = roughness;
+	float a1 = a + 1;
+	float k = a1 * a1 * 0.125;
+
+	float nom = NdotV;
+	float denom = NdotV * (1.0 - k) + max(k, 0.00001); // º”epsilon“‘∑¿÷π≥˝0
+
+	return nom / denom;
+}
+
+float GeometrySchlickGGXIBL(float NdotV, float roughness)
 {
 	float a = roughness;
 	float k = (a * a) / 2.0;
@@ -59,12 +71,21 @@ float GeometrySchlickGGX(float NdotV, float roughness)
 	return nom / denom;
 }
 
-float GeometrySmith(float3 N, float3 V, float3 L, float roughness)
+float GeometrySmithDirect(float3 N, float3 V, float3 L, float roughness)
 {
 	float NdotV = saturate(dot(N, V));
 	float NdotL = saturate(dot(N, L));
-	float ggx2 = GeometrySchlickGGX(NdotV, roughness);
-	float ggx1 = GeometrySchlickGGX(NdotL, roughness);
+	float ggx2 = GeometrySchlickGGXDirect(NdotV, roughness);
+	float ggx1 = GeometrySchlickGGXDirect(NdotL, roughness);
+	return ggx1 * ggx2;
+}
+
+float GeometrySmithIBL(float3 N, float3 V, float3 L, float roughness)
+{
+	float NdotV = saturate(dot(N, V));
+	float NdotL = saturate(dot(N, L));
+	float ggx2 = GeometrySchlickGGXIBL(NdotV, roughness);
+	float ggx1 = GeometrySchlickGGXIBL(NdotL, roughness);
 	return ggx1 * ggx2;
 }
 

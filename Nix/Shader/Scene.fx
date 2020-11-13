@@ -139,7 +139,7 @@ float4 PS(PS_INPUT input) : SV_Target
 
         // Œ¢±Ì√Ê BRDF
 		float NDF = DistributionGGX(N, H, roughness);
-		float G = GeometrySmith(N, V, L, roughness);
+		float G = GeometrySmithDirect(N, V, L, roughness);
 		float3 F = fresnelSchlick(saturate(dot(H, V)), F0);
 
         float3 numerator = NDF * G * F;

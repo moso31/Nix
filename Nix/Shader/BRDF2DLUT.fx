@@ -29,7 +29,7 @@ float2 IntegrateBRDF(float roughness, float NoV)
 		float VoH = saturate(dot(V, H));
 		if (NoL > 0)
 		{
-			float G = GeometrySmith(N, V, L, roughness);
+			float G = GeometrySmithIBL(N, V, L, roughness);
 			float G_Vis = G * VoH / (NoH * NoV);
 			float Fc = pow(1 - VoH, 5.0f);
 			A += (1.0f - Fc) * G_Vis;
