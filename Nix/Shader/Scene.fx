@@ -150,7 +150,7 @@ float4 PS(PS_INPUT input) : SV_Target
 		float3 kD = 1.0 - kS;
 		kD *= 1.0 - metallic;
         float NdotL = max(dot(N, L), 0.0);
-        Lo += (kD * albedo / PI + specular) * radiance * NdotL;
+        Lo += (kD * albedo / NX_PI + specular) * radiance * NdotL;
     }
 
 	float3 kS = fresnelSchlick(saturate(dot(N, V)), F0);

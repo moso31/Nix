@@ -23,12 +23,14 @@ cbuffer ConstantBufferPreFilter : register(b1)
 	float m_roughness;
 }
 
-float3 GetPrefilter(float roughness, float3 R)
+// Educational: 更贴近基本理论的简单模型。
+// 纯采样，不扩展采样半向量H的立体角，不进行抗噪优化
+float3 GetPrefilterEducational(float roughness, float3 R)
 {
 	float3 N = R;
 	float3 V = R;
 	float3 result = 0;
-	const uint NumSamples = 512;
+	const uint NumSamples = 1024;
 	float TotalWeight = 0.0f;
 	for (uint i = 0; i < NumSamples; i++)
 	{
@@ -39,6 +41,39 @@ float3 GetPrefilter(float roughness, float3 R)
 		if (NoL > 0.0f)
 		{
 			result += txCubeMap.SampleLevel(samTriLinearSam, L, 0).rgb * NoL;
+			TotalWeight += NoL;
+		}
+	}
+	return result / TotalWeight;
+}
+
+float3 GetPrefilter(float roughness, float3 R)
+{
+	float3 N = R;
+	float3 V = R;
+	float3 result = 0;
+	const uint NumSamples = 1024;
+	float TotalWeight = 0.0;
+	for (uint i = 0; i < NumSamples; i++)
+	{
+		float2 Xi = Hammersley(i, NumSamples);
+		float3 H = ImportanceSampleGGX(Xi, roughness, N);
+		float3 L = reflect(-V, H);
+		float NoL = saturate(dot(N, L));
+		if (NoL > 0.0f)
+		{
+			float3 D = DistributionGGX(N, H, roughness);
+			float NdotH = saturate(dot(N, H));
+			float VdotH = saturate(dot(V, H));
+			float3 pdf = max(D * NdotH / (4.0 * VdotH), 0.0001);
+
+			float imgSize = 512.0f;
+			//float saPerH = 1.0f / (NumSamples * pdf);
+			//float saPerTexel = 4.0 * NX_PI / (6.0 * imgSize * imgSize);
+			float saFactor = 6.0 * imgSize * imgSize / (NX_4PI * (float)NumSamples * pdf);
+			float TargetMipLevel = roughness == 0.0f ? 0.0f : max(0.5 * log2(saFactor), 0.0);
+
+			result += txCubeMap.SampleLevel(samTriLinearSam, L, TargetMipLevel).rgb * NoL;
 			TotalWeight += NoL;
 		}
 	}

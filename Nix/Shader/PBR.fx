@@ -32,7 +32,10 @@ struct Material
 	float3 _0;
 };
 
-const static float PI = 3.1415926535897932384626;
+const static float NX_PIDIV2 = 1.5707963267948966192313216916398f;
+const static float NX_PI = 3.1415926535897932384626433832795f;
+const static float NX_2PI = 6.283185307179586476925286766559f;
+const static float NX_4PI = 12.566370614359172953850573533118f;
 
 float DistributionGGX(float3 N, float3 H, float roughness)
 {
@@ -43,7 +46,7 @@ float DistributionGGX(float3 N, float3 H, float roughness)
 
 	float num = a2;
 	float denom = (NdotH2 * (a2 - 1.0) + 1.0);
-	denom = PI * denom * denom;
+	denom = NX_PI * denom * denom;
 
 	return num / denom;
 }
@@ -97,7 +100,7 @@ float3 fresnelSchlick(float cosTheta, float3 F0)
 float3 ImportanceSampleGGX(float2 Xi, float roughness, float3 N)
 {
 	float a = roughness * roughness;
-	float Phi = 2 * PI * Xi.x;
+	float Phi = NX_2PI * Xi.x;
 	float CosTheta = sqrt((1 - Xi.y) / (1 + (a * a - 1) * Xi.y));
 	float SinTheta = sqrt(1 - CosTheta * CosTheta);
 	float3 H;

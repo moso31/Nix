@@ -177,9 +177,9 @@ void NXScene::Init()
 		auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 128, 128, Vector3(posX, 0.0f, 0.0f));
 		pSphere->SetMaterialPBR(pPBRMat[i]);
 
-		//posX = ((float)i - 3.0f) * 2.0f;
-		//auto pPlane = m_sceneManager->CreatePlane("Wall", 2.0f, 2.0f, NXPlaneAxis(POSITIVE_Y), Vector3(posX, 0.0f, 2.0f));
-		//pPlane->SetMaterialPBR(pPBRMat[i]);  
+		//float posX = ((float)i - 3.0f) * 2.0f;
+		auto pPlane = m_sceneManager->CreatePlane("Wall", 2.0f, 2.0f, NXPlaneAxis(POSITIVE_Y), Vector3(posX, 0.0f, 5.0f));
+		pPlane->SetMaterialPBR(pPBRMat[i]);  
 	}
 
 	//pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 16, 16, Vector3(-1.0f, 1.0f, 2.0f));
@@ -238,6 +238,7 @@ void NXScene::Init()
 	//	pMeshes[1]->AddScript(pScript_test);
 	//}
 
+	//m_sceneManager->CreateCubeMap("Sky", L"D:\\test.dds");
 	//m_sceneManager->CreateCubeMap("Sky", L"D:\\sunsetcube1024.dds");
 	m_sceneManager->CreateCubeMap("Sky", L"D:\\Arches_E_PineTree_3k.hdr");
 

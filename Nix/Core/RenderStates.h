@@ -10,7 +10,19 @@ public:
 	static ComPtr<ID3D11RasterizerState2>	WireframeRS;
 	static ComPtr<ID3D11RasterizerState2>	NoCullRS;
 	static ComPtr<ID3D11RasterizerState2>	ShadowMapRS;
+
 	static ComPtr<ID3D11BlendState1>		AlphaToCoverageBS;
 	static ComPtr<ID3D11BlendState1>		TransparentBS;
+
 	static ComPtr<ID3D11DepthStencilState>	CubeMapDSS;
+
+	static ComPtr<ID3D11SamplerState>		SamplerLinearWrap;
+	static ComPtr<ID3D11SamplerState>		SamplerLinearClamp;
+	static ComPtr<ID3D11SamplerState>		SamplerShadowMapPCF;	// shadowMap PCF滤波采样，模糊阴影边缘
+
+private:
+	static void InitRasterizerStates();
+	static void InitBlendStates();
+	static void InitDepthStencilStates();
+	static void InitSamplerStates();
 };
