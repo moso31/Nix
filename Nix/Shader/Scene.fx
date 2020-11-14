@@ -120,6 +120,10 @@ float4 PS(PS_INPUT input) : SV_Target
 	//float metallic = m_material.metallic;
 	float metallic = metallicMap;
 
+	float AOMap = txAmbientOcclusionMap.Sample(samLinear, input.tex).x;
+	//float metallic = m_material.metallic;
+	float ao = AOMap;
+
 	float3 F0 = 0.04;
 	F0 = lerp(F0, albedo, metallic);
 
@@ -163,7 +167,7 @@ float4 PS(PS_INPUT input) : SV_Target
 	float2 envBRDF = txBRDF2DLUT.Sample(samLinear, float2(saturate(dot(N, V)), roughness)).rg;
 	float3 SpecularIBL = preFilteredColor * float3(kS * envBRDF.x + envBRDF.y);
 
-	float3 ambient = diffuseIBL + SpecularIBL; // * ao;
+	float3 ambient = (diffuseIBL + SpecularIBL) * ao;
 	float3 color = ambient + Lo;
 
 	// gamma.

@@ -146,7 +146,7 @@ void NXCubeMap::Render()
 	UINT stride = sizeof(VertexP);
 	UINT offset = 0;
 	g_pContext->IASetVertexBuffers(0, 1, m_pVertexBuffer.GetAddressOf(), &stride, &offset);
-	g_pContext->IASetIndexBuffer(m_pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+	g_pContext->IASetIndexBuffer(m_pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 	g_pContext->DrawIndexed((UINT)m_indices.size(), 0, 0);
 }
 
@@ -217,7 +217,7 @@ void NXCubeMap::GenerateCubeMap(const std::wstring filePath)
 	UINT stride = sizeof(VertexP);
 	UINT offset = 0;
 	g_pContext->IASetVertexBuffers(0, 1, m_pVertexBufferCubeBox.GetAddressOf(), &stride, &offset);
-	g_pContext->IASetIndexBuffer(m_pIndexBufferCubeBox.Get(), DXGI_FORMAT_R16_UINT, 0);
+	g_pContext->IASetIndexBuffer(m_pIndexBufferCubeBox.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 	for (int i = 0; i < 6; i++)
 	{
@@ -351,7 +351,7 @@ void NXCubeMap::GenerateIrradianceMap()
 	UINT stride = sizeof(VertexP);
 	UINT offset = 0;
 	g_pContext->IASetVertexBuffers(0, 1, m_pVertexBufferCubeBox.GetAddressOf(), &stride, &offset);
-	g_pContext->IASetIndexBuffer(m_pIndexBufferCubeBox.Get(), DXGI_FORMAT_R16_UINT, 0);
+	g_pContext->IASetIndexBuffer(m_pIndexBufferCubeBox.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 	for (int i = 0; i < 6; i++)
 	{
@@ -430,7 +430,7 @@ void NXCubeMap::GeneratePreFilterMap()
 	UINT stride = sizeof(VertexP);
 	UINT offset = 0;
 	g_pContext->IASetVertexBuffers(0, 1, m_pVertexBufferCubeBox.GetAddressOf(), &stride, &offset);
-	g_pContext->IASetIndexBuffer(m_pIndexBufferCubeBox.Get(), DXGI_FORMAT_R16_UINT, 0);
+	g_pContext->IASetIndexBuffer(m_pIndexBufferCubeBox.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 	float roughValues[5] = { 0.0f, 0.25f, 0.5f, 0.75f, 1.0f };
 	ConstantBufferFloat cbDataRoughness;
@@ -483,7 +483,7 @@ void NXCubeMap::GenerateBRDF2DLUT()
 		{ Vector3(+1.0f, -1.0f, +1.0f), Vector2(0.0f, 1.0f) },
 	};
 	 
-	std::vector<USHORT> indices =
+	std::vector<UINT> indices =
 	{
 		0,  2,	1, 
 		0,  3,	2, 
@@ -503,7 +503,7 @@ void NXCubeMap::GenerateBRDF2DLUT()
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &pVertexBuffer));
 
 	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(USHORT) * (UINT)indices.size();
+	bufferDesc.ByteWidth = sizeof(UINT) * (UINT)indices.size();
 	bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
 	InitData.pSysMem = indices.data();
@@ -536,7 +536,7 @@ void NXCubeMap::GenerateBRDF2DLUT()
 	UINT stride = sizeof(VertexPT); 
 	UINT offset = 0;
 	g_pContext->IASetVertexBuffers(0, 1, pVertexBuffer.GetAddressOf(), &stride, &offset);
-	g_pContext->IASetIndexBuffer(pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+	g_pContext->IASetIndexBuffer(pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 	g_pContext->ClearRenderTargetView(m_pRTVBRDF2DLUT.Get(), Colors::WhiteSmoke);
 	g_pContext->OMSetRenderTargets(1, m_pRTVBRDF2DLUT.GetAddressOf(), nullptr);
@@ -672,14 +672,14 @@ void NXCubeMap::InitVertexIndexBuffer()
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &m_pVertexBufferCubeBox));
 
 	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(USHORT) * (UINT)m_indices.size();
+	bufferDesc.ByteWidth = sizeof(UINT) * (UINT)m_indices.size();
 	bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
 
 	InitData.pSysMem = m_indices.data();
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &m_pIndexBuffer));
 
-	bufferDesc.ByteWidth = sizeof(USHORT) * (UINT)m_indicesCubeBox.size();
+	bufferDesc.ByteWidth = sizeof(UINT) * (UINT)m_indicesCubeBox.size();
 	InitData.pSysMem = m_indicesCubeBox.data();
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &m_pIndexBufferCubeBox));
 }

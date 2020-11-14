@@ -48,7 +48,7 @@ private:
 
 	std::vector<VertexP>		m_vertices;
 	std::vector<VertexP>		m_verticesCubeBox;
-	std::vector<USHORT>			m_indicesCubeBox;
+	std::vector<UINT>			m_indicesCubeBox;
 	ComPtr<ID3D11Buffer>		m_pVertexBufferCubeBox;
 	ComPtr<ID3D11Buffer>		m_pIndexBufferCubeBox;
 

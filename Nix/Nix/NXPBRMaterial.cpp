@@ -61,8 +61,26 @@ void NXPBRMaterial::SetTexAO(const std::wstring TexFilePath)
 void NXPBRMaterial::SetTex(const std::wstring texFilePath, ComPtr<ID3D11Texture2D>& pTex, ComPtr<ID3D11ShaderResourceView>& pSRV)
 {
 	TexMetadata info;
-	std::unique_ptr<ScratchImage> image = std::make_unique<ScratchImage>(); //(new (std::nothrow) ScratchImage);
-	auto hr = LoadFromWICFile(texFilePath.c_str(), WIC_FLAGS_NONE, &info, *image);
+	std::unique_ptr<ScratchImage> image = std::make_unique<ScratchImage>(); 
+
+	HRESULT hr;
+	std::wstring suffix = texFilePath.substr(texFilePath.find(L"."));
+	if (_wcsicmp(suffix.c_str(), L".dds") == 0)
+	{
+		hr = LoadFromDDSFile(texFilePath.c_str(), DDS_FLAGS_NONE, &info, *image);
+	}
+	else if (_wcsicmp(suffix.c_str(), L".tga") == 0)
+	{
+		hr = LoadFromTGAFile(texFilePath.c_str(), &info, *image);
+	}
+	else if (_wcsicmp(suffix.c_str(), L".hdr") == 0)
+	{
+		hr = LoadFromHDRFile(texFilePath.c_str(), &info, *image);
+	}
+	else
+	{
+		hr = LoadFromWICFile(texFilePath.c_str(), WIC_FLAGS_NONE, &info, *image);
+	}
 
 	//std::wstring assetPath = L"D:\\NixAssets\\";
 	//size_t assetFolderIndex = texFilePath.find(assetPath) + assetPath.length();
