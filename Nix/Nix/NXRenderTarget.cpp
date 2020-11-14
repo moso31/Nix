@@ -34,7 +34,7 @@ void NXRenderTarget::Render()
 	UINT stride = sizeof(VertexPNT);
 	UINT offset = 0;
 	g_pContext->IASetVertexBuffers(0, 1, m_pVertexBuffer.GetAddressOf(), &stride, &offset);
-	g_pContext->IASetIndexBuffer(m_pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+	g_pContext->IASetIndexBuffer(m_pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 	auto pRenderTargetSRV = g_dxResources->GetOffScreenSRV();
 	g_pContext->PSSetShaderResources(0, 1, &pRenderTargetSRV);
 	g_pContext->DrawIndexed((UINT)m_indices.size(), 0, 0);
@@ -54,7 +54,7 @@ void NXRenderTarget::InitVertexIndexBuffer()
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &m_pVertexBuffer));
 
 	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(USHORT) * (UINT)m_indices.size();
+	bufferDesc.ByteWidth = sizeof(UINT) * (UINT)m_indices.size();
 	bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
 	InitData.pSysMem = m_indices.data();

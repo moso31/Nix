@@ -58,7 +58,7 @@ protected:
 	ComPtr<ID3D11Buffer>		m_pIndexBuffer;
 
 	std::vector<VertexPNTT>		m_vertices;
-	std::vector<USHORT>			m_indices;
+	std::vector<UINT>			m_indices;
 	std::vector<Vector3>		m_points;	// vertices position ађСа
 
 	ConstantBufferMaterial		m_cbDataMaterial;

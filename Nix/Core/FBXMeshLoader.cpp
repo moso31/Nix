@@ -36,7 +36,7 @@ void FBXMeshLoader::LoadContent(FbxNode* pNode, NXMesh* pEngineMesh, std::vector
 
 	pEngineMesh->SetName(pNode->GetName());
 
-	// 一定要在Init之前计算切线，不然值传不到VB/IB
+	// 如果开启了自动计算切线，则一定要在Init之前计算，不然值无法传到VB/IB
 	if (bAutoCalcTangents) 
 		pEngineMesh->CalculateTangents();
 
@@ -220,7 +220,9 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXMesh* pEngineMesh)
 					break;
 				}
 
-				vertex.tex = Vector2((float)texData[0], (float)texData[1]);
+				// 暂时默认所有来自fbx的UV全部是反转的。
+				bool bFlipUV = true;
+				vertex.tex = Vector2((float)texData[0], bFlipUV ? 1.0f - (float)texData[1] : (float)texData[1]);
 			}
 
 			for (l = 0; l < pMesh->GetElementNormalCount(); ++l)
@@ -297,11 +299,10 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXMesh* pEngineMesh)
 					}
 				}
 			}
-			vertexId++;
 
 			pEngineMesh->m_vertices.push_back(vertex);
-			int meshIdx = i * 3 + j;
-			pEngineMesh->m_indices.push_back(meshIdx);
+			pEngineMesh->m_indices.push_back(vertexId);
+			vertexId++;
 		} // for polygonSize
 	} // for polygonCount
 
