@@ -110,6 +110,7 @@ float4 PS(PS_INPUT input) : SV_Target
 
 	float3 albedoMap = txAlbedo.Sample(samLinear, input.tex).xyz;
 	float3 albedo = m_material.albedo * albedoMap;
+	albedo = pow(albedo, 2.2f);
 	//return float4(albedoMap, 1.0f);
 
 	float roughnessMap = txRoughnessMap.Sample(samLinear, input.tex).x;
