@@ -221,6 +221,7 @@
     <ClCompile Include="Core\ShaderComplier.cpp" />
     <ClCompile Include="Nix\HBVH.cpp" />
     <ClCompile Include="Nix\NXDirectIntegrator.cpp" />
+    <ClCompile Include="Nix\NXGBuffer.cpp" />
     <ClCompile Include="Nix\NXPhoton.cpp" />
     <ClCompile Include="Nix\NXPMSplitIntegrator.cpp" />
     <ClCompile Include="Nix\NXKdTree.cpp" />
@@ -275,6 +276,7 @@
     <ClInclude Include="Core\ShaderStructures.h" />
     <ClInclude Include="Nix\HBVH.h" />
     <ClInclude Include="Nix\NXDirectIntegrator.h" />
+    <ClInclude Include="Nix\NXGBuffer.h" />
     <ClInclude Include="Nix\NXPhoton.h" />
     <ClInclude Include="Nix\NXPMSplitIntegrator.h" />
     <ClInclude Include="Nix\NXKdTree.h" />
@@ -361,6 +363,32 @@
       <FileType>Document</FileType>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shader\GBuffer.fx">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shader\Math.fx">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shader\PBRLights.fx">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shader\PBRMaterials.fx">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <FileType>Document</FileType>
     </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

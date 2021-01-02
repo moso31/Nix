@@ -1,36 +1,5 @@
-struct DirectionalLight
-{
-	float3 position;
-	float _0;
-	float3 color;
-	float _1;
-};
-
-struct PointLight
-{
-	float3 position;
-	float _0;
-	float3 color;
-	float _1;
-};
-
-struct SpotLight
-{
-	float3 position;
-	float _0;
-	float3 direction;
-	float _1;
-	float3 color;
-	float _2;
-};
-
-struct Material
-{
-	float3 albedo;
-	float metallic;
-	float roughness;
-	float3 _0;
-};
+#include "PBRLights.fx"
+#include "PBRMaterials.fx"
 
 const static float NX_PIDIV2 = 1.5707963267948966192313216916398f;
 const static float NX_PI = 3.1415926535897932384626433832795f;

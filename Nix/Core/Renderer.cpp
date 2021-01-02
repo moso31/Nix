@@ -18,6 +18,10 @@ void Renderer::Init()
 	m_scene = new NXScene();
 	m_scene->Init();
 
+	m_pGBuffer = new NXGBuffer(m_scene);
+	m_pGBuffer->Init();
+	m_isDeferredShading = true;
+
 	m_pPassShadowMap = new NXPassShadowMap(m_scene);
 	m_pPassShadowMap->Init(2048, 2048);
 }
@@ -108,6 +112,9 @@ void Renderer::UpdateSceneData()
 
 	// 更新Transform
 	m_scene->UpdateTransform();
+
+	// 更新Camera的常量缓存数据（VP矩阵、眼睛位置）
+	m_scene->UpdateCamera();
 }
 
 void Renderer::DrawScene()
@@ -131,9 +138,6 @@ void Renderer::DrawScene()
 	g_pContext->OMSetRenderTargets(1, &pOffScreenRTV, pDepthStencilView);
 	g_pContext->ClearRenderTargetView(pOffScreenRTV, Colors::WhiteSmoke);
 	g_pContext->ClearDepthStencilView(pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
-
-	// 更新Camera的常量缓存数据（VP矩阵、眼睛位置）
-	m_scene->UpdateCamera();
 
 	// 绘制CubeMap
 	g_pContext->IASetInputLayout(m_pInputLayoutP.Get());
@@ -174,59 +178,70 @@ void Renderer::Release()
 
 	SafeRelease(m_scene);
 	SafeRelease(m_renderTarget);
+	SafeRelease(m_pGBuffer);
 }
 
 void Renderer::DrawPrimitives()
 {
-	// 设置使用的VS和PS（这里是scene.fx）
-	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
-	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
-
-	// 填上渲染Buffer的Slot。其实总结成一句话就是：
-	// 将VS/PS的CB/SRV/Sampler的xxx号槽（Slot）填上数据xxx。
-	g_pContext->VSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
-	g_pContext->PSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
-
-	auto pCbLights = m_scene->GetConstantBufferLights();
-	g_pContext->PSSetConstantBuffers(2, 1, &pCbLights);
-
-	// PBR大改。阴影贴图暂时停用。
-	//auto pShadowMapSRV = m_pPassShadowMap->GetSRV();
-	//g_pContext->PSSetShaderResources(10, 1, &pShadowMapSRV);
-
-	auto pShadowMapConstantBufferTransform = m_pPassShadowMap->GetConstantBufferTransform();
-	g_pContext->PSSetConstantBuffers(4, 1, &pShadowMapConstantBufferTransform);
-
-	for (auto pPrim : m_scene->GetPrimitives())
+	if (!m_isDeferredShading)
 	{
-		// 这里渲染场景中所有Mesh。
-		// 其他几个CB/SRV的Slot都不变，但每个物体的World、Material、Tex信息都可能改变。
-		// 可以进一步优化，比如按Material绘制、按Tex绘制。
-		pPrim->Update();
-		g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
+		// Forward shading
 
-		auto pMat = pPrim->GetPBRMaterial();
-		if (pMat)
+		// 设置使用的VS和PS（scene.fx）
+		g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
+		g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
+
+		// 填上渲染Buffer的Slot。其实总结成一句话就是：
+		// 将VS/PS的CB/SRV/Sampler的xxx号槽（Slot）填上数据xxx。
+		g_pContext->VSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
+		g_pContext->PSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
+
+		auto pCbLights = m_scene->GetConstantBufferLights();
+		g_pContext->PSSetConstantBuffers(2, 1, &pCbLights);
+
+		// PBR大改。阴影贴图暂时停用。
+		//auto pShadowMapSRV = m_pPassShadowMap->GetSRV();
+		//g_pContext->PSSetShaderResources(10, 1, &pShadowMapSRV);
+
+		auto pShadowMapConstantBufferTransform = m_pPassShadowMap->GetConstantBufferTransform();
+		g_pContext->PSSetConstantBuffers(4, 1, &pShadowMapConstantBufferTransform);
+
+		for (auto pPrim : m_scene->GetPrimitives())
 		{
-			auto pSRVAlbedo = pMat->GetSRVAlbedo();
-			g_pContext->PSSetShaderResources(1, 1, &pSRVAlbedo);
+			// 这里渲染场景中所有Mesh。
+			// 其他几个CB/SRV的Slot都不变，但每个物体的World、Material、Tex信息都可能改变。
+			// 【可以进一步优化】按Material绘制、按Tex绘制。
+			pPrim->Update();
+			g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 
-			auto pSRVNormal = pMat->GetSRVNormal();
-			g_pContext->PSSetShaderResources(2, 1, &pSRVNormal);
+			auto pMat = pPrim->GetPBRMaterial();
+			if (pMat)
+			{
+				auto pSRVAlbedo = pMat->GetSRVAlbedo();
+				g_pContext->PSSetShaderResources(1, 1, &pSRVAlbedo);
 
-			auto pSRVMetallic = pMat->GetSRVMetallic();
-			g_pContext->PSSetShaderResources(3, 1, &pSRVMetallic);
+				auto pSRVNormal = pMat->GetSRVNormal();
+				g_pContext->PSSetShaderResources(2, 1, &pSRVNormal);
 
-			auto pSRVRoughness = pMat->GetSRVRoughness();
-			g_pContext->PSSetShaderResources(4, 1, &pSRVRoughness);
+				auto pSRVMetallic = pMat->GetSRVMetallic();
+				g_pContext->PSSetShaderResources(3, 1, &pSRVMetallic);
 
-			auto pSRVAO = pMat->GetSRVAO();
-			g_pContext->PSSetShaderResources(5, 1, &pSRVAO);
+				auto pSRVRoughness = pMat->GetSRVRoughness();
+				g_pContext->PSSetShaderResources(4, 1, &pSRVRoughness);
 
-			auto pCBMaterial = pPrim->GetMaterialBuffer();
-			g_pContext->PSSetConstantBuffers(3, 1, &pCBMaterial);
+				auto pSRVAO = pMat->GetSRVAO();
+				g_pContext->PSSetShaderResources(5, 1, &pSRVAO);
+
+				auto pCBMaterial = pPrim->GetMaterialBuffer();
+				g_pContext->PSSetConstantBuffers(3, 1, &pCBMaterial);
+			}
+			pPrim->Render();
 		}
-		pPrim->Render();
+	}
+	else
+	{
+		// Deferred shading
+		m_pGBuffer->Render();
 	}
 }
 

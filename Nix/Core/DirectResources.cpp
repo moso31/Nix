@@ -34,6 +34,7 @@ void DirectResources::InitDevice()
 
 	NX::ThrowIfFailed(pDevice.As(&g_pDevice));
 	NX::ThrowIfFailed(pContext.As(&g_pContext));
+	NX::ThrowIfFailed(pContext.As(&g_pUDA));
 
 	OnResize(width, height);
 }
@@ -125,8 +126,8 @@ void DirectResources::OnResize(UINT width, UINT height)
 
 	// Setup the viewport
 	m_viewSize = { (FLOAT)width, (FLOAT)height };
-	m_ViewPort = CD3D11_VIEWPORT(0.0f, 0.0f, m_viewSize.x, m_viewSize.y);
-	g_pContext->RSSetViewports(1, &m_ViewPort);
+	m_viewPort = CD3D11_VIEWPORT(0.0f, 0.0f, m_viewSize.x, m_viewSize.y);
+	g_pContext->RSSetViewports(1, &m_viewPort);
 }
 
 void DirectResources::Release()
@@ -142,5 +143,5 @@ Vector2 DirectResources::GetViewSize()
 
 Vector2 DirectResources::GetViewPortSize()
 {
-	return Vector2(m_ViewPort.Width, m_ViewPort.Height);
+	return Vector2(m_viewPort.Width, m_viewPort.Height);
 }

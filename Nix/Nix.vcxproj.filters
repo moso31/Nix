@@ -96,6 +96,7 @@
     <None Include="Shader\Random.fx">
       <Filter>Shader</Filter>
     </None>
+    <None Include="Shader\HDRToCubeMap.fx" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">
@@ -250,6 +251,9 @@
     </ClCompile>
     <ClCompile Include="Nix\NXCubeMap.cpp">
       <Filter>Nix\Object\Transform\Primitive\Other</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXGBuffer.cpp">
+      <Filter>Nix\Effect</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -412,6 +416,9 @@
     <ClInclude Include="Nix\NXCubeMap.h">
       <Filter>Nix\Object\Transform\Primitive\Other</Filter>
     </ClInclude>
+    <ClInclude Include="Nix\NXGBuffer.h">
+      <Filter>Nix\Effect</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="场景添加物体说明.txt" />
@@ -419,7 +426,16 @@
     <Text Include="较严重问题（2级）.txt" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Shader\HDRToCubeMap.fx">
+    <FxCompile Include="Shader\GBuffer.fx">
+      <Filter>Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="Shader\Math.fx">
+      <Filter>Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="Shader\PBRLights.fx">
+      <Filter>Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="Shader\PBRMaterials.fx">
       <Filter>Shader</Filter>
     </FxCompile>
   </ItemGroup>

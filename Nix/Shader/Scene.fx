@@ -1,4 +1,5 @@
 #include "PBR.fx"
+#include "Math.fx"
 
 TextureCube txCubeMap : register(t0);
 Texture2D txAlbedo : register(t1);
@@ -74,25 +75,6 @@ PS_INPUT VS(VS_INPUT input)
 	//output.tangentW = input.tangent;
 	output.tangentW = mul(input.tangent, (float3x3)m_world).xyz;
 	return output;
-}
-
-float3 test(float3 V, float3 A, float3 B, float3 C)
-{
-	float x = V.x * A.x + V.y * B.x + V.z * C.x;
-	float y = V.x * A.y + V.y * B.y + V.z * C.y;
-	float z = V.x * A.z + V.y * B.z + V.z * C.z;
-	return float3(x, y, z);
-}
-
-float3 TangentSpaceToWorldSpace(float3 normalMapValue, float3 normalWorldSpace, float3 tangentWorldSpace, float2 uv)
-{
-	float3 normalTangentSpace = normalMapValue * 2.0f - 1.0f; // 从 [0, 1] 转换到 [-1, 1] 区间
-	float3 N = normalWorldSpace;
-	float3 T = normalize(tangentWorldSpace - dot(tangentWorldSpace, N) * N); 
-	float3 B = cross(N, T);
-	float3x3 mxTBN = float3x3(T, B, N);
-	float3 bumpedNormalWorldSpace = mul(normalTangentSpace, mxTBN);
-	return bumpedNormalWorldSpace;
 }
 
 float4 PS(PS_INPUT input) : SV_Target

@@ -157,6 +157,8 @@ void NXCubeMap::Release()
 
 void NXCubeMap::GenerateCubeMap(const std::wstring filePath)
 {
+	g_pUDA->BeginEvent(L"Generate Cube Map");
+
 	ComPtr<ID3D11Texture2D> pTexCubeMap;
 	ComPtr<ID3D11ShaderResourceView> pSRVCubeMap;
 	ComPtr<ID3D11RenderTargetView> pRTVCubeMaps[6];
@@ -278,6 +280,7 @@ void NXCubeMap::GenerateCubeMap(const std::wstring filePath)
 	}
 
 	g_pContext->Unmap(pMappedTexture.Get(), 0);
+	g_pUDA->EndEvent();
 
 	std::unique_ptr<ScratchImage> pMappedImage = std::make_unique<ScratchImage>();
 	hr = CaptureTexture(g_pDevice.Get(), g_pContext.Get(), pMappedTexture.Get(), *pMappedImage);
@@ -295,6 +298,8 @@ void NXCubeMap::GenerateCubeMap(const std::wstring filePath)
 
 void NXCubeMap::GenerateIrradianceMap()
 {
+	g_pUDA->BeginEvent(L"Generate Irradiance Map");
+
 	const static float MapSize = 32.0f;
 	CD3D11_VIEWPORT vp(0.0f, 0.0f, MapSize, MapSize);
 	g_pContext->RSSetViewports(1, &vp);
@@ -362,10 +367,14 @@ void NXCubeMap::GenerateIrradianceMap()
 		g_pContext->UpdateSubresource(cb.Get(), 0, nullptr, &cbData, 0, 0);
 		g_pContext->DrawIndexed((UINT)m_indicesCubeBox.size() / 6, i * 6, 0);
 	}
+
+	g_pUDA->EndEvent();
 }
 
 void NXCubeMap::GeneratePreFilterMap()
 {
+	g_pUDA->BeginEvent(L"Generate PreFilter Map");
+
 	// 计算之前，设置当前的采样器为SamplerLinearClamp。
 	g_pContext->PSSetSamplers(0, 1, RenderStates::SamplerLinearClamp.GetAddressOf());
 
@@ -457,10 +466,13 @@ void NXCubeMap::GeneratePreFilterMap()
 	}
 
 	g_pContext->PSSetSamplers(0, 1, RenderStates::SamplerLinearWrap.GetAddressOf());
+	g_pUDA->EndEvent();
 }
 
 void NXCubeMap::GenerateBRDF2DLUT()
 {
+	g_pUDA->BeginEvent(L"Generate BRDF 2D LUT");
+
 	const static float MapSize = 512.0f;
 	CD3D11_VIEWPORT vp(0.0f, 0.0f, MapSize, MapSize);
 	g_pContext->RSSetViewports(1, &vp);
@@ -541,6 +553,8 @@ void NXCubeMap::GenerateBRDF2DLUT()
 	g_pContext->ClearRenderTargetView(m_pRTVBRDF2DLUT.Get(), Colors::WhiteSmoke);
 	g_pContext->OMSetRenderTargets(1, m_pRTVBRDF2DLUT.GetAddressOf(), nullptr);
 	g_pContext->DrawIndexed((UINT)indices.size(), 0, 0);
+
+	g_pUDA->EndEvent();
 }
 
 void NXCubeMap::InitVertex()

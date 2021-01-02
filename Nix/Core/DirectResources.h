@@ -10,13 +10,14 @@ public:
 	Vector2	GetViewSize();
 
 	Vector2						GetViewPortSize();
+	D3D11_VIEWPORT				GetViewPort()			{ return m_viewPort; }
 	ID3D11ShaderResourceView*	GetOffScreenSRV()		{ return m_pOffScreenSRV.Get(); }
 	ID3D11RenderTargetView*		GetOffScreenRTV()		{ return m_pOffScreenRTV.Get(); }
 	ID3D11RenderTargetView*		GetRenderTargetView()	{ return m_pRenderTargetView.Get(); }
 	ID3D11DepthStencilView*		GetDepthStencilView()	{ return m_pDepthStencilView.Get(); }
 
 private:
-	D3D11_VIEWPORT				m_ViewPort;
+	D3D11_VIEWPORT				m_viewPort;
 	Vector2						m_viewSize;
 
 	ComPtr<ID3D11ShaderResourceView>	m_pOffScreenSRV;

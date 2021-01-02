@@ -1,6 +1,7 @@
 #pragma once
 #include "Header.h"
 #include "GlobalBufferManager.h"
+#include "NXGBuffer.h"
 
 class Renderer
 {
@@ -19,6 +20,7 @@ private:
 
 private:
 	ComPtr<ID3D11InputLayout>			m_pInputLayoutP;
+	ComPtr<ID3D11InputLayout>			m_pInputLayoutPT;
 	ComPtr<ID3D11InputLayout>			m_pInputLayoutPNT;
 	ComPtr<ID3D11InputLayout>			m_pInputLayoutPNTT;
 
@@ -36,4 +38,8 @@ private:
 
 	NXScene*					m_scene;
 	NXPassShadowMap*			m_pPassShadowMap; 
+	NXGBuffer*					m_pGBuffer;
+	
+	// 是否使用延迟着色
+	bool m_isDeferredShading;
 };
