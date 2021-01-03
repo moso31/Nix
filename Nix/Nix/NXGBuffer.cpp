@@ -36,40 +36,46 @@ void NXGBuffer::Init()
 
 	// 创建Tex+SRV+RTV
 	// 现行G-Buffer结构如下：
-	// RT0:		Position	R11G11B10
-	// RT1:		Normal		R11G11B10
-	// RT2:		Albedo		R11G11B10
-	// RT3:		Specular	R11G11B10
+	// RT0:		Position				R11G11B10_FLOAT
+	// RT1:		Normal					R11G11B10_FLOAT
+	// RT2:		Albedo					R11G11B10_FLOAT
+	// RT3:		Metallic+Roughness+AO	R10G10B10A2_UNORM
 	Vector2 sz = g_dxResources->GetViewSize();
 
 	// 创建Tex
-	CD3D11_TEXTURE2D_DESC descTex(DXGI_FORMAT_R11G11B10_FLOAT, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
-	g_pDevice->CreateTexture2D(&descTex, nullptr, &m_pTex[0]);
-	descTex.Format = DXGI_FORMAT_R11G11B10_FLOAT;
-	g_pDevice->CreateTexture2D(&descTex, nullptr, &m_pTex[1]);
-	descTex.Format = DXGI_FORMAT_R11G11B10_FLOAT;
-	g_pDevice->CreateTexture2D(&descTex, nullptr, &m_pTex[2]);
-	descTex.Format = DXGI_FORMAT_R11G11B10_FLOAT;
-	g_pDevice->CreateTexture2D(&descTex, nullptr, &m_pTex[3]);
+	CD3D11_TEXTURE2D_DESC descTex0(DXGI_FORMAT_R11G11B10_FLOAT, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
+	CD3D11_TEXTURE2D_DESC descTex1(DXGI_FORMAT_R11G11B10_FLOAT, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
+	CD3D11_TEXTURE2D_DESC descTex2(DXGI_FORMAT_R11G11B10_FLOAT, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
+	CD3D11_TEXTURE2D_DESC descTex3(DXGI_FORMAT_R10G10B10A2_UNORM, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
+	g_pDevice->CreateTexture2D(&descTex0, nullptr, &m_pTex[0]);
+	g_pDevice->CreateTexture2D(&descTex1, nullptr, &m_pTex[1]);
+	g_pDevice->CreateTexture2D(&descTex2, nullptr, &m_pTex[2]);
+	g_pDevice->CreateTexture2D(&descTex3, nullptr, &m_pTex[3]);
 
 	// 创建SRV
-	CD3D11_SHADER_RESOURCE_VIEW_DESC descSRV(D3D11_SRV_DIMENSION_TEXTURE2D, descTex.Format, 0, descTex.MipLevels, 0, descTex.ArraySize);
-	g_pDevice->CreateShaderResourceView(m_pTex[0].Get(), &descSRV, &m_pSRV[0]);
-	g_pDevice->CreateShaderResourceView(m_pTex[1].Get(), &descSRV, &m_pSRV[1]);
-	g_pDevice->CreateShaderResourceView(m_pTex[2].Get(), &descSRV, &m_pSRV[2]);
-	g_pDevice->CreateShaderResourceView(m_pTex[3].Get(), &descSRV, &m_pSRV[3]);
+	CD3D11_SHADER_RESOURCE_VIEW_DESC descSRV0(D3D11_SRV_DIMENSION_TEXTURE2D, descTex0.Format, 0, descTex0.MipLevels, 0, descTex0.ArraySize);
+	CD3D11_SHADER_RESOURCE_VIEW_DESC descSRV1(D3D11_SRV_DIMENSION_TEXTURE2D, descTex1.Format, 0, descTex1.MipLevels, 0, descTex1.ArraySize);
+	CD3D11_SHADER_RESOURCE_VIEW_DESC descSRV2(D3D11_SRV_DIMENSION_TEXTURE2D, descTex2.Format, 0, descTex2.MipLevels, 0, descTex2.ArraySize);
+	CD3D11_SHADER_RESOURCE_VIEW_DESC descSRV3(D3D11_SRV_DIMENSION_TEXTURE2D, descTex3.Format, 0, descTex3.MipLevels, 0, descTex3.ArraySize);
+	g_pDevice->CreateShaderResourceView(m_pTex[0].Get(), &descSRV0, &m_pSRV[0]);
+	g_pDevice->CreateShaderResourceView(m_pTex[1].Get(), &descSRV1, &m_pSRV[1]);
+	g_pDevice->CreateShaderResourceView(m_pTex[2].Get(), &descSRV2, &m_pSRV[2]);
+	g_pDevice->CreateShaderResourceView(m_pTex[3].Get(), &descSRV3, &m_pSRV[3]);
 
 	// 创建RTV
-	CD3D11_RENDER_TARGET_VIEW_DESC descRTV(D3D11_RTV_DIMENSION_TEXTURE2D, descTex.Format);
-	g_pDevice->CreateRenderTargetView(m_pTex[0].Get(), &descRTV, &m_pRTV[0]);
-	g_pDevice->CreateRenderTargetView(m_pTex[1].Get(), &descRTV, &m_pRTV[1]);
-	g_pDevice->CreateRenderTargetView(m_pTex[2].Get(), &descRTV, &m_pRTV[2]);
-	g_pDevice->CreateRenderTargetView(m_pTex[3].Get(), &descRTV, &m_pRTV[3]);
+	CD3D11_RENDER_TARGET_VIEW_DESC descRTV0(D3D11_RTV_DIMENSION_TEXTURE2D, descTex0.Format);
+	CD3D11_RENDER_TARGET_VIEW_DESC descRTV1(D3D11_RTV_DIMENSION_TEXTURE2D, descTex1.Format);
+	CD3D11_RENDER_TARGET_VIEW_DESC descRTV2(D3D11_RTV_DIMENSION_TEXTURE2D, descTex2.Format);
+	CD3D11_RENDER_TARGET_VIEW_DESC descRTV3(D3D11_RTV_DIMENSION_TEXTURE2D, descTex3.Format);
+	g_pDevice->CreateRenderTargetView(m_pTex[0].Get(), &descRTV0, &m_pRTV[0]);
+	g_pDevice->CreateRenderTargetView(m_pTex[1].Get(), &descRTV1, &m_pRTV[1]);
+	g_pDevice->CreateRenderTargetView(m_pTex[2].Get(), &descRTV2, &m_pRTV[2]);
+	g_pDevice->CreateRenderTargetView(m_pTex[3].Get(), &descRTV3, &m_pRTV[3]);
 
 	// 创建DSV
 	ComPtr<ID3D11Texture2D> pTexDepthStencil;
 	CD3D11_DEPTH_STENCIL_VIEW_DESC descDSV(D3D11_DSV_DIMENSION_TEXTURE2D);
-	CD3D11_TEXTURE2D_DESC descTexDepth(DXGI_FORMAT_D32_FLOAT, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_DEPTH_STENCIL);
+	CD3D11_TEXTURE2D_DESC descTexDepth(DXGI_FORMAT_D24_UNORM_S8_UINT, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_DEPTH_STENCIL);
 	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&descTexDepth, nullptr, &pTexDepthStencil));
 	g_pDevice->CreateDepthStencilView(pTexDepthStencil.Get(), &descDSV, &m_pDSV[0]); 
 	g_pDevice->CreateDepthStencilView(pTexDepthStencil.Get(), &descDSV, &m_pDSV[1]);

@@ -78,5 +78,17 @@ float4 PS_RT2(PS_INPUT input) : SV_Target
 
 float4 PS_RT3(PS_INPUT input) : SV_Target
 {
-	return float4(1.0f, 1.0f, 1.0f, 1.0f);
+	float roughnessMap = txRoughnessMap.Sample(samTriLinear, input.tex).x;
+	//float roughness = m_material.roughness;
+	float roughness = roughnessMap;
+
+	float metallicMap = txMetallicMap.Sample(samTriLinear, input.tex).x;
+	//float metallic = m_material.metallic;
+	float metallic = metallicMap;
+
+	float AOMap = txAmbientOcclusionMap.Sample(samTriLinear, input.tex).x;
+	//float metallic = m_material.metallic;
+	float ao = AOMap;
+
+	return float4(roughness, metallic, ao, 1.0f);
 }
