@@ -34,18 +34,19 @@ void NXGBuffer::Init()
 
 	InitVertexIndexBuffer();
 
-	// 创建Tex+SRV+RTV
 	// 现行G-Buffer结构如下：
-	// RT0:		Position				R11G11B10_FLOAT
-	// RT1:		Normal					R11G11B10_FLOAT
-	// RT2:		Albedo					R11G11B10_FLOAT
+	// RT0:		Position				R32G32B32A32_FLOAT
+	// RT1:		Normal					R32G32B32A32_FLOAT
+	// RT2:		Albedo					R10G10B10A2_UNORM
 	// RT3:		Metallic+Roughness+AO	R10G10B10A2_UNORM
+	// *注意：上述RT0、RT1现在用的是128位浮点数——这只是临时方案。RT2、RT3也有待商榷。
+
 	Vector2 sz = g_dxResources->GetViewSize();
 
 	// 创建Tex
-	CD3D11_TEXTURE2D_DESC descTex0(DXGI_FORMAT_R11G11B10_FLOAT, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
-	CD3D11_TEXTURE2D_DESC descTex1(DXGI_FORMAT_R11G11B10_FLOAT, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
-	CD3D11_TEXTURE2D_DESC descTex2(DXGI_FORMAT_R11G11B10_FLOAT, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
+	CD3D11_TEXTURE2D_DESC descTex0(DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
+	CD3D11_TEXTURE2D_DESC descTex1(DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
+	CD3D11_TEXTURE2D_DESC descTex2(DXGI_FORMAT_R10G10B10A2_UNORM, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
 	CD3D11_TEXTURE2D_DESC descTex3(DXGI_FORMAT_R10G10B10A2_UNORM, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
 	g_pDevice->CreateTexture2D(&descTex0, nullptr, &m_pTex[0]);
 	g_pDevice->CreateTexture2D(&descTex1, nullptr, &m_pTex[1]);
@@ -105,8 +106,16 @@ void NXGBuffer::Init()
 		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
 	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVertexShader[3]));
 
-	// RT0-RT3均使用LayoutPNTT顶点布局。
+	// 对RT0-RT3使用LayoutPNTT顶点布局。
 	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pInputLayoutGBuffer));
+
+	NX::MessageBoxIfFailed(
+		ShaderComplier::Compile(L"Shader\\DeferredRender.fx", "VS", "vs_5_0", &pVSBlob),
+		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
+	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVertexShaderRender));
+	
+	// 对最终渲染使用LayoutPT顶点布局。
+	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutPT, ARRAYSIZE(NXGlobalInputLayout::layoutPT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pInputLayoutRender));
 
 	NX::MessageBoxIfFailed(
 		ShaderComplier::Compile(L"Shader\\GBuffer.fx", "PS_RT0", "ps_5_0", &pPSBlob),
@@ -127,38 +136,36 @@ void NXGBuffer::Init()
 		ShaderComplier::Compile(L"Shader\\GBuffer.fx", "PS_RT3", "ps_5_0", &pPSBlob),
 		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
 	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShader[3]));
+
+	NX::MessageBoxIfFailed(
+		ShaderComplier::Compile(L"Shader\\DeferredRender.fx", "PS", "ps_5_0", &pPSBlob),
+		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
+	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShaderRender));
 }
 
-void NXGBuffer::Generate()
+void NXGBuffer::RenderGBuffer()
 {
-}
-
-void NXGBuffer::Render()
-{
-	g_pUDA->BeginEvent(L"GBuffer"); 
-
-	Vector2 sz = g_dxResources->GetViewSize();
-	g_pContext->RSSetViewports(1, &g_dxResources->GetViewPort());
 	g_pContext->IASetInputLayout(m_pInputLayoutGBuffer.Get());
 
+	g_pUDA->BeginEvent(L"GBuffer");
+	g_pContext->OMSetRenderTargets(1, m_pRTV[0].GetAddressOf(), m_pDSV[0].Get());
 	g_pContext->ClearRenderTargetView(m_pRTV[0].Get(), Colors::Black);
 	g_pContext->ClearDepthStencilView(m_pDSV[0].Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
-	g_pContext->OMSetRenderTargets(1, m_pRTV[0].GetAddressOf(), m_pDSV[0].Get());
 	RenderRT0();
 
+	g_pContext->OMSetRenderTargets(1, m_pRTV[1].GetAddressOf(), m_pDSV[1].Get());
 	g_pContext->ClearRenderTargetView(m_pRTV[1].Get(), Colors::Black);
 	g_pContext->ClearDepthStencilView(m_pDSV[1].Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
-	g_pContext->OMSetRenderTargets(1, m_pRTV[1].GetAddressOf(), m_pDSV[1].Get());
 	RenderRT1();
 
+	g_pContext->OMSetRenderTargets(1, m_pRTV[2].GetAddressOf(), m_pDSV[2].Get());
 	g_pContext->ClearRenderTargetView(m_pRTV[2].Get(), Colors::Black);
 	g_pContext->ClearDepthStencilView(m_pDSV[2].Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
-	g_pContext->OMSetRenderTargets(1, m_pRTV[2].GetAddressOf(), m_pDSV[2].Get());
 	RenderRT2();
 
+	g_pContext->OMSetRenderTargets(1, m_pRTV[3].GetAddressOf(), m_pDSV[3].Get());
 	g_pContext->ClearRenderTargetView(m_pRTV[3].Get(), Colors::Black);
 	g_pContext->ClearDepthStencilView(m_pDSV[3].Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
-	g_pContext->OMSetRenderTargets(1, m_pRTV[3].GetAddressOf(), m_pDSV[3].Get());
 	RenderRT3();
 
 	g_pUDA->EndEvent();
@@ -320,6 +327,38 @@ void NXGBuffer::RenderRT3()
 		}
 		pPrim->Render();
 	}
+
+	g_pUDA->EndEvent();
+}
+
+void NXGBuffer::Render()
+{
+	g_pContext->IASetInputLayout(m_pInputLayoutRender.Get());
+
+	g_pUDA->BeginEvent(L"Deferred rendering");
+	auto pOffScreenRTV = g_dxResources->GetOffScreenRTV();
+	auto pDepthStencilView = g_dxResources->GetDepthStencilView();
+
+	// 回到主RTV，但不要做 ClearRenderTargetView 和 ClearDepthStencilView，否则会擦除掉已经绘制上的 CubeMap。
+	// 直接在已有基础上继续绘制就行。
+	g_pContext->OMSetRenderTargets(1, &pOffScreenRTV, pDepthStencilView);
+	//g_pContext->ClearRenderTargetView(pOffScreenRTV, Colors::WhiteSmoke);
+	//g_pContext->ClearDepthStencilView(pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+	g_pContext->VSSetShader(m_pVertexShaderRender.Get(), nullptr, 0);
+	g_pContext->PSSetShader(m_pPixelShaderRender.Get(), nullptr, 0);
+
+	g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
+	g_pContext->PSSetShaderResources(0, 1, m_pSRV[0].GetAddressOf());
+	g_pContext->PSSetShaderResources(1, 1, m_pSRV[1].GetAddressOf());
+	g_pContext->PSSetShaderResources(2, 1, m_pSRV[2].GetAddressOf());
+	g_pContext->PSSetShaderResources(3, 1, m_pSRV[3].GetAddressOf());
+
+	UINT stride = sizeof(VertexPT);
+	UINT offset = 0;
+	g_pContext->IASetVertexBuffers(0, 1, m_pVertexBuffer.GetAddressOf(), &stride, &offset);
+	g_pContext->IASetIndexBuffer(m_pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+	g_pContext->DrawIndexed((UINT)m_indices.size(), 0, 0);
 
 	g_pUDA->EndEvent();
 }

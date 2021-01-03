@@ -140,13 +140,11 @@ void Renderer::DrawScene()
 	g_pContext->ClearDepthStencilView(pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	// 绘制CubeMap
-	g_pContext->IASetInputLayout(m_pInputLayoutP.Get());
 	g_pContext->RSSetState(RenderStates::NoCullRS.Get());
 	g_pContext->OMSetDepthStencilState(RenderStates::CubeMapDSS.Get(), 0);
 	DrawCubeMap();
 
 	// 绘制Primitives
-	g_pContext->IASetInputLayout(m_pInputLayoutPNTT.Get());
 	g_pContext->RSSetState(nullptr);
 	g_pContext->OMSetDepthStencilState(nullptr, 0);
 	DrawPrimitives();
@@ -157,12 +155,16 @@ void Renderer::DrawScene()
 	g_pContext->ClearRenderTargetView(pRenderTargetView, Colors::WhiteSmoke);
 	g_pContext->ClearDepthStencilView(pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-	g_pContext->IASetInputLayout(m_pInputLayoutPNT.Get());
-	g_pContext->VSSetShader(m_pVertexShaderOffScreen.Get(), nullptr, 0);
-	g_pContext->PSSetShader(m_pPixelShaderOffScreen.Get(), nullptr, 0);
+	g_pUDA->BeginEvent(L"Render Target");
+	{
+		g_pContext->IASetInputLayout(m_pInputLayoutPNT.Get());
+		g_pContext->VSSetShader(m_pVertexShaderOffScreen.Get(), nullptr, 0);
+		g_pContext->PSSetShader(m_pPixelShaderOffScreen.Get(), nullptr, 0);
 
-	// 绘制主渲染屏幕RTV：
-	m_renderTarget->Render();
+		// 绘制主渲染屏幕RTV：
+		m_renderTarget->Render();
+	}
+	g_pUDA->EndEvent();
 
 	// clear SRV.
 	ID3D11ShaderResourceView* const pNullSRV[2] = { nullptr };
@@ -186,6 +188,7 @@ void Renderer::DrawPrimitives()
 	if (!m_isDeferredShading)
 	{
 		// Forward shading
+		g_pContext->IASetInputLayout(m_pInputLayoutPNTT.Get());
 
 		// 设置使用的VS和PS（scene.fx）
 		g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
@@ -241,12 +244,35 @@ void Renderer::DrawPrimitives()
 	else
 	{
 		// Deferred shading
+		m_pGBuffer->RenderGBuffer();
+
+		g_pContext->VSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
+		g_pContext->PSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
+
+		auto pCbLights = m_scene->GetConstantBufferLights();
+		g_pContext->PSSetConstantBuffers(2, 1, &pCbLights); 
+
+		auto pCubeMap = m_scene->GetCubeMap();
+		if (pCubeMap)
+		{
+			auto pCubeMapSRV = pCubeMap->GetSRVCubeMap();
+			auto pIrradianceMapSRV = pCubeMap->GetSRVIrradianceMap();
+			auto pPreFilterMapSRV = pCubeMap->GetSRVPreFilterMap();
+			auto pBRDF2DLUT = pCubeMap->GetSRVBRDF2DLUT();
+			g_pContext->PSSetShaderResources(4, 1, &pCubeMapSRV);
+			g_pContext->PSSetShaderResources(5, 1, &pIrradianceMapSRV);
+			g_pContext->PSSetShaderResources(6, 1, &pPreFilterMapSRV);
+			g_pContext->PSSetShaderResources(7, 1, &pBRDF2DLUT); 
+		}
+
 		m_pGBuffer->Render();
 	}
 }
 
 void Renderer::DrawCubeMap()
 {
+	g_pUDA->BeginEvent(L"Cube Map");
+	g_pContext->IASetInputLayout(m_pInputLayoutP.Get());
 	g_pContext->VSSetShader(m_pVertexShaderCubeMap.Get(), nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShaderCubeMap.Get(), nullptr, 0);
 
@@ -267,6 +293,7 @@ void Renderer::DrawCubeMap()
 
 		pCubeMap->Render();
 	}
+	g_pUDA->EndEvent();
 }
 
 void Renderer::DrawShadowMap()

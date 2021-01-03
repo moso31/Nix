@@ -9,7 +9,7 @@ public:
 	~NXGBuffer();
 
 	void Init();
-	void Generate();
+	void RenderGBuffer();
 	void Render();
 	void RenderRT0();
 	void RenderRT1();
@@ -28,11 +28,20 @@ private:
 
 	std::vector<VertexPT>				m_vertices;
 	std::vector<UINT>					m_indices;
+
 	ComPtr<ID3D11InputLayout>			m_pInputLayoutGBuffer;
+	ComPtr<ID3D11InputLayout>			m_pInputLayoutRender;
+
 	ComPtr<ID3D11Buffer>				m_pVertexBuffer;
 	ComPtr<ID3D11Buffer>				m_pIndexBuffer;
-	ComPtr<ID3D11VertexShader>			m_pVertexShader[4];
+
+	// 渲染RT0-RT4时使用此组Shader
+	ComPtr<ID3D11VertexShader>			m_pVertexShader[4]; 
 	ComPtr<ID3D11PixelShader>			m_pPixelShader[4];
+
+	// 进行最终渲染时使用此组Shaders
+	ComPtr<ID3D11VertexShader>			m_pVertexShaderRender; 
+	ComPtr<ID3D11PixelShader>			m_pPixelShaderRender;
 
 	NXScene* m_pScene;
 };

@@ -1,27 +1,16 @@
 #include "PBR.fx"
 #include "Math.fx"
 
-TextureCube txCubeMap : register(t0);
-Texture2D txAlbedo : register(t1);
-Texture2D txNormalMap : register(t2);
-Texture2D txMetallicMap : register(t3);
-Texture2D txRoughnessMap : register(t4);
-Texture2D txAmbientOcclusionMap : register(t5);
-//Texture2D txHeightMap : register(t6);
-TextureCube txIrradianceMap : register(t7);
-TextureCube txPreFilterMap : register(t8);
-Texture2D txBRDF2DLUT : register(t9);
-//Texture2D txShadowMap : register(t10);
-SamplerState samTrilinear : register(s0);
-SamplerComparisonState samShadowMap : register(s1);
+Texture2D txRT0 : register(t0);
+Texture2D txRT1 : register(t1);
+Texture2D txRT2 : register(t2);
+Texture2D txRT3 : register(t3);
+TextureCube txCubeMap : register(t4);
+TextureCube txIrradianceMap : register(t5);
+TextureCube txPreFilterMap : register(t6);
+Texture2D txBRDF2DLUT : register(t7);
 
-cbuffer ConstantBufferObject : register(b0)
-{
-	matrix m_world;
-	matrix m_worldInverseTranspose;
-	matrix m_view;
-	matrix m_projection;
-}
+SamplerState samTrilinear : register(s0);
 
 cbuffer ConstantBufferCamera : register(b1)
 {
@@ -34,77 +23,50 @@ cbuffer ConstantBufferLight : register(b2)
 	PointLight m_pointLight[NUM_LIGHTS];
 }
 
-cbuffer ConstantBufferMaterial : register(b3)
-{
-	Material m_material;
-}
-
-cbuffer ConstantBufferShadowMapTransform : register(b4)
-{
-	matrix m_shadowMapView;
-	matrix m_shadowMapProjection;
-	matrix m_shadowMapTex;
-}
-
 struct VS_INPUT
 {
 	float4 pos : POSITION;
-	float3 norm : NORMAL;
 	float2 tex : TEXCOORD;
-	float3 tangent : TANGENT;
 };
 
 struct PS_INPUT
 {
 	float4 posH : SV_POSITION;
-	float4 posW : POSITION;
-	float3 normW : NORMAL;
 	float2 tex : TEXCOORD;
-	float3 tangentW : TANGENT;
 };
 
 PS_INPUT VS(VS_INPUT input)
 {
 	PS_INPUT output = (PS_INPUT)0;
-	output.posH = mul(input.pos, m_world);
-	output.posW = output.posH;
-	output.posH = mul(output.posH, m_view);
-	output.posH = mul(output.posH, m_projection);
-	output.normW = mul(float4(input.norm, 0.0), m_worldInverseTranspose).xyz;
+	output.posH = input.pos;
 	output.tex = input.tex;
-	//output.tangentW = input.tangent;
-	output.tangentW = mul(input.tangent, (float3x3)m_world).xyz;
 	return output;
 }
 
 float4 PS(PS_INPUT input) : SV_Target
 {
-	float3 normalMap = txNormalMap.Sample(samTrilinear, input.tex).xyz;
-	//return float4(input.tangentW, 1.0f);
+	float2 uv = input.tex;
 
-	float3 pos = input.posW.xyz;
-	//float3 N = normalize(input.normW);
-	float3 N = TangentSpaceToWorldSpace(normalMap, input.normW, input.tangentW, input.tex);
+	float3 pos = txRT0.Sample(samTrilinear, uv).xyz;
+	float3 N = txRT1.Sample(samTrilinear, uv).xyz;
 	float3 V = normalize(m_eyePos - pos);
 
 	//return float4(N, 1.0f);
 	//return txCubeMap.Sample(samTrilinear, N);
 	//return txCubeMap.Sample(samTrilinear, reflect(-V, N));	// perfect reflection test
 
-	float3 albedoMap = txAlbedo.Sample(samTrilinear, input.tex).xyz;
-	float3 albedo = m_material.albedo * albedoMap;
+	float3 albedo = txRT2.Sample(samTrilinear, uv).xyz;
 	albedo = pow(albedo, 2.2f);
-	//return float4(albedoMap, 1.0f);
 
-	float roughnessMap = txRoughnessMap.Sample(samTrilinear, input.tex).x;
+	float roughnessMap = txRT3.Sample(samTrilinear, uv).x;
 	//float roughness = m_material.roughness;
 	float roughness = roughnessMap;
 
-	float metallicMap = txMetallicMap.Sample(samTrilinear, input.tex).x;
+	float metallicMap = txRT3.Sample(samTrilinear, uv).y;
 	//float metallic = m_material.metallic;
 	float metallic = metallicMap;
 
-	float AOMap = txAmbientOcclusionMap.Sample(samTrilinear, input.tex).x;
+	float AOMap = txRT3.Sample(samTrilinear, uv).z;
 	//float metallic = m_material.metallic;
 	float ao = AOMap;
 

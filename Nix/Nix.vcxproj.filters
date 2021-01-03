@@ -96,7 +96,13 @@
     <None Include="Shader\Random.fx">
       <Filter>Shader</Filter>
     </None>
-    <None Include="Shader\HDRToCubeMap.fx" />
+    <None Include="Shader\GBuffer.fx" />
+    <None Include="Shader\Math.fx" />
+    <None Include="Shader\PBRLights.fx" />
+    <None Include="Shader\PBRMaterials.fx" />
+    <None Include="Shader\HDRToCubeMap.fx">
+      <Filter>Shader</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">
@@ -426,16 +432,7 @@
     <Text Include="较严重问题（2级）.txt" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Shader\GBuffer.fx">
-      <Filter>Shader</Filter>
-    </FxCompile>
-    <FxCompile Include="Shader\Math.fx">
-      <Filter>Shader</Filter>
-    </FxCompile>
-    <FxCompile Include="Shader\PBRLights.fx">
-      <Filter>Shader</Filter>
-    </FxCompile>
-    <FxCompile Include="Shader\PBRMaterials.fx">
+    <FxCompile Include="Shader\DeferredRender.fx">
       <Filter>Shader</Filter>
     </FxCompile>
   </ItemGroup>

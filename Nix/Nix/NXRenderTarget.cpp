@@ -29,8 +29,6 @@ void NXRenderTarget::Init()
 
 void NXRenderTarget::Render()
 {
-	g_pUDA->BeginEvent(L"Render Target");
-
 	// QuadRTV的绘制只需要提供一下四边形顶点信息、SRV并绘制就好。
 	// 不过这里InputLayout还是用的VertexPNT格式，实际上做一个专用的VertexQuad顶点格式更加优化。这里没做。
 	UINT stride = sizeof(VertexPNT);
@@ -40,8 +38,6 @@ void NXRenderTarget::Render()
 	auto pRenderTargetSRV = g_dxResources->GetOffScreenSRV();
 	g_pContext->PSSetShaderResources(0, 1, &pRenderTargetSRV);
 	g_pContext->DrawIndexed((UINT)m_indices.size(), 0, 0);
-
-	g_pUDA->EndEvent();
 }
 
 void NXRenderTarget::InitVertexIndexBuffer()
