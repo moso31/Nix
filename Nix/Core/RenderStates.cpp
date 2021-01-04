@@ -9,6 +9,7 @@ ComPtr<ID3D11BlendState1>			RenderStates::AlphaToCoverageBS = nullptr;
 ComPtr<ID3D11BlendState1>			RenderStates::TransparentBS = nullptr;
 
 ComPtr<ID3D11DepthStencilState>		RenderStates::CubeMapDSS = nullptr;
+ComPtr<ID3D11DepthStencilState>		RenderStates::DeferredRenderingDSS = nullptr;
 
 ComPtr<ID3D11SamplerState>			RenderStates::SamplerLinearWrap = nullptr;
 ComPtr<ID3D11SamplerState>			RenderStates::SamplerLinearClamp = nullptr;
@@ -91,10 +92,18 @@ void RenderStates::InitBlendStates()
 
 void RenderStates::InitDepthStencilStates()
 {
+	// DeferredRenderingDSS
+	// 启用深度缓存，但不写入深度缓存区。
+	D3D11_DEPTH_STENCIL_DESC deferredRenderingDesc = { 0 };
+	deferredRenderingDesc.DepthEnable = true;
+	deferredRenderingDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	deferredRenderingDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	NX::ThrowIfFailed(g_pDevice->CreateDepthStencilState(&deferredRenderingDesc, &DeferredRenderingDSS));
+
 	// CubemapDSS
 	D3D11_DEPTH_STENCIL_DESC cubeMapDesc = { 0 };
 	cubeMapDesc.DepthEnable = true;
-	cubeMapDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	cubeMapDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 	cubeMapDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
 	NX::ThrowIfFailed(g_pDevice->CreateDepthStencilState(&cubeMapDesc, &CubeMapDSS));
 }

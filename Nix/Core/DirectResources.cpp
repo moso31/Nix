@@ -9,7 +9,7 @@ void DirectResources::InitDevice()
 
 	UINT createDeviceFlags = D3D11_CREATE_DEVICE_DISABLE_GPU_TIMEOUT;
 #ifdef _DEBUG
-	//createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+	createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
 	D3D_FEATURE_LEVEL featureLevels[] =
@@ -44,7 +44,7 @@ void DirectResources::OnResize(UINT width, UINT height)
 	// 清除特定于上一窗口大小的上下文。
 	ID3D11RenderTargetView* nullViews[] = { nullptr };
 	g_pContext->OMSetRenderTargets(ARRAYSIZE(nullViews), nullViews, nullptr);
-	m_pOffScreenRTV = nullptr;
+	m_pRTVOffScreen = nullptr;
 	m_pRenderTargetView = nullptr;
 	m_pDepthStencilView = nullptr;
 	g_pContext->Flush1(D3D11_CONTEXT_TYPE_ALL, nullptr);
@@ -104,11 +104,10 @@ void DirectResources::OnResize(UINT width, UINT height)
 		D3D11_BIND_DEPTH_STENCIL
 	);
 
-	ComPtr<ID3D11Texture2D> pDepthStencil;
-	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&descDepth, nullptr, &pDepthStencil));
+	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&descDepth, nullptr, &m_pTexDepthStencil));
 
 	CD3D11_DEPTH_STENCIL_VIEW_DESC descDepthStencilView(D3D11_DSV_DIMENSION_TEXTURE2D);
-	NX::ThrowIfFailed(g_pDevice->CreateDepthStencilView(pDepthStencil.Get(), &descDepthStencilView, &m_pDepthStencilView));
+	NX::ThrowIfFailed(g_pDevice->CreateDepthStencilView(m_pTexDepthStencil.Get(), &descDepthStencilView, &m_pDepthStencilView));
 
 	// Create Render Target
 	CD3D11_TEXTURE2D_DESC descOffScreen(
@@ -119,10 +118,9 @@ void DirectResources::OnResize(UINT width, UINT height)
 		1,
 		D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS
 	);
-	ComPtr<ID3D11Texture2D> pOffScreenBuffer = nullptr;
-	g_pDevice->CreateTexture2D(&descOffScreen, nullptr, &pOffScreenBuffer);
-	NX::ThrowIfFailed(g_pDevice->CreateRenderTargetView(pOffScreenBuffer.Get(), nullptr, &m_pOffScreenRTV));
-	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(pOffScreenBuffer.Get(), nullptr, &m_pOffScreenSRV));
+	g_pDevice->CreateTexture2D(&descOffScreen, nullptr, &m_pTexOffScreen);
+	NX::ThrowIfFailed(g_pDevice->CreateRenderTargetView(m_pTexOffScreen.Get(), nullptr, &m_pRTVOffScreen));
+	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(m_pTexOffScreen.Get(), nullptr, &m_pSRVOffScreen));
 
 	// Setup the viewport
 	m_viewSize = { (FLOAT)width, (FLOAT)height };

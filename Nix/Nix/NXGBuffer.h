@@ -24,6 +24,8 @@ private:
 	ComPtr<ID3D11Texture2D>				m_pTex[4];
 	ComPtr<ID3D11ShaderResourceView>	m_pSRV[4];
 	ComPtr<ID3D11RenderTargetView>		m_pRTV[4];
+
+	ComPtr<ID3D11Texture2D>				m_pTexDepthStencilGBuffer[4];
 	ComPtr<ID3D11DepthStencilView>		m_pDSV[4];
 
 	std::vector<VertexPT>				m_vertices;

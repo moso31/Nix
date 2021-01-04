@@ -126,7 +126,7 @@ void Renderer::DrawScene()
 	g_pContext->PSSetSamplers(0, 1, RenderStates::SamplerLinearWrap.GetAddressOf());
 
 	// 设置两个RTV，一个用于绘制主场景，一个用于绘制显示区
-	auto pOffScreenRTV = g_dxResources->GetOffScreenRTV();
+	auto pOffScreenRTV = g_dxResources->GetRTVOffScreen();
 	auto pRenderTargetView = g_dxResources->GetRenderTargetView();
 	auto pDepthStencilView = g_dxResources->GetDepthStencilView();
 
@@ -268,6 +268,10 @@ void Renderer::DrawPrimitives()
 			g_pContext->PSSetShaderResources(7, 1, &pBRDF2DLUT); 
 		}
 
+		// 最终合成GBuffer时，使用已有的遮挡关系，但不写入新的遮挡。
+		// 因为下一次绘制马上就是绘制当前NXGBuffer的顶点数据本身。
+		// 该值对应的深度缓冲depZ=0，因此会导致全屏幕都被覆盖，进而使GBuffer阶段之后和主RT相关（比如CubeMap）的绘制工作全部失效。
+		g_pContext->OMSetDepthStencilState(RenderStates::DeferredRenderingDSS.Get(), 0);
 		m_pGBuffer->Render();
 	}
 }

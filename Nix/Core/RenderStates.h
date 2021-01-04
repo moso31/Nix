@@ -15,6 +15,7 @@ public:
 	static ComPtr<ID3D11BlendState1>		TransparentBS;
 
 	static ComPtr<ID3D11DepthStencilState>	CubeMapDSS;
+	static ComPtr<ID3D11DepthStencilState>	DeferredRenderingDSS;
 
 	static ComPtr<ID3D11SamplerState>		SamplerLinearWrap;
 	static ComPtr<ID3D11SamplerState>		SamplerLinearClamp;
