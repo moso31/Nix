@@ -11,7 +11,9 @@
 	参考Unity HDRP的SSAO实现方案
 	【公司任务】对 Unity HDRP SSAO 进行性能分析，并编写相关文档
 
-缺少GBuffer
+GBuffer
+	GBuffer现在是有了，但CubeMap完全消失了。
+	另外关于渲染循环的设计存在疑问：是应该对每个RT循环独立的Primitives（现行做法），还是应该对每个Primitives渲染四次RT？
 
 缺少ShadowMap
 缺少TAA

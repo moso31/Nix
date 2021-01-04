@@ -74,14 +74,17 @@ void NXGBuffer::Init()
 	g_pDevice->CreateRenderTargetView(m_pTex[3].Get(), &descRTV3, &m_pRTV[3]);
 
 	// 创建DSV
-	ComPtr<ID3D11Texture2D> pTexDepthStencil;
+	ComPtr<ID3D11Texture2D> pTexDepthStencil[4];
 	CD3D11_DEPTH_STENCIL_VIEW_DESC descDSV(D3D11_DSV_DIMENSION_TEXTURE2D);
 	CD3D11_TEXTURE2D_DESC descTexDepth(DXGI_FORMAT_D24_UNORM_S8_UINT, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_DEPTH_STENCIL);
-	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&descTexDepth, nullptr, &pTexDepthStencil));
-	g_pDevice->CreateDepthStencilView(pTexDepthStencil.Get(), &descDSV, &m_pDSV[0]); 
-	g_pDevice->CreateDepthStencilView(pTexDepthStencil.Get(), &descDSV, &m_pDSV[1]);
-	g_pDevice->CreateDepthStencilView(pTexDepthStencil.Get(), &descDSV, &m_pDSV[2]);
-	g_pDevice->CreateDepthStencilView(pTexDepthStencil.Get(), &descDSV, &m_pDSV[3]);
+	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&descTexDepth, nullptr, &pTexDepthStencil[0]));
+	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&descTexDepth, nullptr, &pTexDepthStencil[1]));
+	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&descTexDepth, nullptr, &pTexDepthStencil[2]));
+	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&descTexDepth, nullptr, &pTexDepthStencil[3]));
+	g_pDevice->CreateDepthStencilView(pTexDepthStencil[0].Get(), &descDSV, &m_pDSV[0]);
+	g_pDevice->CreateDepthStencilView(pTexDepthStencil[1].Get(), &descDSV, &m_pDSV[1]);
+	g_pDevice->CreateDepthStencilView(pTexDepthStencil[2].Get(), &descDSV, &m_pDSV[2]);
+	g_pDevice->CreateDepthStencilView(pTexDepthStencil[3].Get(), &descDSV, &m_pDSV[3]);
 
 	ComPtr<ID3DBlob> pVSBlob;
 	ComPtr<ID3DBlob> pPSBlob;
@@ -145,6 +148,8 @@ void NXGBuffer::Init()
 
 void NXGBuffer::RenderGBuffer()
 {
+	auto pDepthStencilView = g_dxResources->GetDepthStencilView();
+
 	g_pContext->IASetInputLayout(m_pInputLayoutGBuffer.Get());
 
 	g_pUDA->BeginEvent(L"GBuffer");
@@ -339,8 +344,6 @@ void NXGBuffer::Render()
 	auto pOffScreenRTV = g_dxResources->GetOffScreenRTV();
 	auto pDepthStencilView = g_dxResources->GetDepthStencilView();
 
-	// 回到主RTV，但不要做 ClearRenderTargetView 和 ClearDepthStencilView，否则会擦除掉已经绘制上的 CubeMap。
-	// 直接在已有基础上继续绘制就行。
 	g_pContext->OMSetRenderTargets(1, &pOffScreenRTV, pDepthStencilView);
 	//g_pContext->ClearRenderTargetView(pOffScreenRTV, Colors::WhiteSmoke);
 	//g_pContext->ClearDepthStencilView(pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);

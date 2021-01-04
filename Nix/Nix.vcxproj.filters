@@ -96,11 +96,22 @@
     <None Include="Shader\Random.fx">
       <Filter>Shader</Filter>
     </None>
-    <None Include="Shader\GBuffer.fx" />
-    <None Include="Shader\Math.fx" />
-    <None Include="Shader\PBRLights.fx" />
-    <None Include="Shader\PBRMaterials.fx" />
     <None Include="Shader\HDRToCubeMap.fx">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Shader\GBuffer.fx">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Shader\Math.fx">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Shader\PBRLights.fx">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Shader\PBRMaterials.fx">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Shader\DeferredRender.fx">
       <Filter>Shader</Filter>
     </None>
   </ItemGroup>
@@ -430,10 +441,5 @@
     <Text Include="场景添加物体说明.txt" />
     <Text Include="普通问题（3级）.txt" />
     <Text Include="较严重问题（2级）.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Shader\DeferredRender.fx">
-      <Filter>Shader</Filter>
-    </FxCompile>
   </ItemGroup>
 </Project>

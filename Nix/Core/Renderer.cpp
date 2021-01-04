@@ -139,15 +139,15 @@ void Renderer::DrawScene()
 	g_pContext->ClearRenderTargetView(pOffScreenRTV, Colors::WhiteSmoke);
 	g_pContext->ClearDepthStencilView(pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-	// 绘制CubeMap
-	g_pContext->RSSetState(RenderStates::NoCullRS.Get());
-	g_pContext->OMSetDepthStencilState(RenderStates::CubeMapDSS.Get(), 0);
-	DrawCubeMap();
-
 	// 绘制Primitives
 	g_pContext->RSSetState(nullptr);
 	g_pContext->OMSetDepthStencilState(nullptr, 0);
 	DrawPrimitives();
+
+	// 绘制CubeMap
+	g_pContext->RSSetState(RenderStates::NoCullRS.Get());
+	g_pContext->OMSetDepthStencilState(RenderStates::CubeMapDSS.Get(), 0);
+	DrawCubeMap();
 
 	// 以上操作全部都是在主RTV中进行的。
 	// 下面切换到QuadRTV，简单来说就是将主RTV绘制到这个RTV，然后作为一张四边形纹理进行最终输出。
@@ -157,6 +157,9 @@ void Renderer::DrawScene()
 
 	g_pUDA->BeginEvent(L"Render Target");
 	{
+		g_pContext->RSSetState(nullptr);
+		g_pContext->OMSetDepthStencilState(nullptr, 0);
+
 		g_pContext->IASetInputLayout(m_pInputLayoutPNT.Get());
 		g_pContext->VSSetShader(m_pVertexShaderOffScreen.Get(), nullptr, 0);
 		g_pContext->PSSetShader(m_pPixelShaderOffScreen.Get(), nullptr, 0);

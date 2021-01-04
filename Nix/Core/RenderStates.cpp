@@ -93,8 +93,9 @@ void RenderStates::InitDepthStencilStates()
 {
 	// CubemapDSS
 	D3D11_DEPTH_STENCIL_DESC cubeMapDesc = { 0 };
+	cubeMapDesc.DepthEnable = true;
+	cubeMapDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
 	cubeMapDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
-
 	NX::ThrowIfFailed(g_pDevice->CreateDepthStencilState(&cubeMapDesc, &CubeMapDSS));
 }
 
