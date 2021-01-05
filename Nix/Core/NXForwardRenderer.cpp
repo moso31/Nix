@@ -1,0 +1,92 @@
+#include "NXForwardRenderer.h"
+#include "DirectResources.h"
+#include "ShaderComplier.h"
+#include "RenderStates.h"
+
+#include "GlobalBufferManager.h"
+#include "NXScene.h"
+
+NXForwardRenderer::NXForwardRenderer(NXScene* pScene) :
+	m_pScene(pScene)
+{
+}
+
+NXForwardRenderer::~NXForwardRenderer()
+{
+}
+
+void NXForwardRenderer::Init()
+{
+	ComPtr<ID3DBlob> pVSBlob;
+	ComPtr<ID3DBlob> pPSBlob;
+
+	NX::MessageBoxIfFailed(
+		ShaderComplier::Compile(L"Shader\\Scene.fx", "VS", "vs_5_0", &pVSBlob),
+		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
+	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVertexShader));
+
+	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pInputLayout));
+
+	NX::MessageBoxIfFailed(
+		ShaderComplier::Compile(L"Shader\\Scene.fx", "PS", "ps_5_0", &pPSBlob),
+		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
+	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShader));
+}
+
+void NXForwardRenderer::Render()
+{
+	g_pUDA->BeginEvent(L"Forward rendering");
+
+	g_pContext->IASetInputLayout(m_pInputLayout.Get());
+
+	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
+	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
+
+	g_pContext->VSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
+	g_pContext->PSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
+
+	auto pCbLights = m_pScene->GetConstantBufferLights();
+	if (pCbLights)
+		g_pContext->PSSetConstantBuffers(2, 1, &pCbLights);
+
+	// PBR大改。阴影贴图暂时停用。
+	//auto pShadowMapSRV = m_pPassShadowMap->GetSRV();
+	//g_pContext->PSSetShaderResources(10, 1, &pShadowMapSRV);
+
+	//auto pShadowMapConstantBufferTransform = m_pPassShadowMap->GetConstantBufferTransform();
+	//g_pContext->PSSetConstantBuffers(4, 1, &pShadowMapConstantBufferTransform);
+
+	for (auto pPrim : m_pScene->GetPrimitives())
+	{
+		// 这里渲染场景中所有Mesh。
+		// 其他几个CB/SRV的Slot都不变，但每个物体的World、Material、Tex信息都可能改变。
+		// 【可以进一步优化】按Material绘制、按Tex绘制。
+		pPrim->Update();
+		g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
+
+		auto pMat = pPrim->GetPBRMaterial();
+		if (pMat)
+		{
+			auto pSRVAlbedo = pMat->GetSRVAlbedo();
+			g_pContext->PSSetShaderResources(1, 1, &pSRVAlbedo);
+
+			auto pSRVNormal = pMat->GetSRVNormal();
+			g_pContext->PSSetShaderResources(2, 1, &pSRVNormal);
+
+			auto pSRVMetallic = pMat->GetSRVMetallic();
+			g_pContext->PSSetShaderResources(3, 1, &pSRVMetallic);
+
+			auto pSRVRoughness = pMat->GetSRVRoughness();
+			g_pContext->PSSetShaderResources(4, 1, &pSRVRoughness);
+
+			auto pSRVAO = pMat->GetSRVAO();
+			g_pContext->PSSetShaderResources(5, 1, &pSRVAO);
+
+			auto pCBMaterial = pPrim->GetMaterialBuffer();
+			g_pContext->PSSetConstantBuffers(3, 1, &pCBMaterial);
+		}
+		pPrim->Render();
+	}
+
+	g_pUDA->EndEvent();
+}

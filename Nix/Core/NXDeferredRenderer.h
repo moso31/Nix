@@ -2,11 +2,11 @@
 #include "header.h"
 #include "ShaderStructures.h"
 
-class NXGBuffer
+class NXDeferredRenderer
 {
 public:
-	NXGBuffer(NXScene* pScene);
-	~NXGBuffer();
+	NXDeferredRenderer(NXScene* pScene);
+	~NXDeferredRenderer();
 
 	void Init();
 	void RenderGBuffer();
@@ -15,7 +15,6 @@ public:
 	void RenderRT1();
 	void RenderRT2();
 	void RenderRT3();
-	void Release();
 
 private:
 	void InitVertexIndexBuffer();
@@ -25,8 +24,8 @@ private:
 	ComPtr<ID3D11ShaderResourceView>	m_pSRV[4];
 	ComPtr<ID3D11RenderTargetView>		m_pRTV[4];
 
-	ComPtr<ID3D11Texture2D>				m_pTexDepthStencilGBuffer[4];
-	ComPtr<ID3D11DepthStencilView>		m_pDSV[4];
+	ComPtr<ID3D11Texture2D>				m_pTexDepth;
+	ComPtr<ID3D11DepthStencilView>		m_pDSVDepth;
 
 	std::vector<VertexPT>				m_vertices;
 	std::vector<UINT>					m_indices;

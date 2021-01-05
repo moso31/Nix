@@ -1,19 +1,21 @@
-#include "NXGBuffer.h"
-#include "GlobalBufferManager.h"
+#include "NXDeferredRenderer.h"
 #include "ShaderComplier.h"
 #include "DirectResources.h"
+
+#include "RenderStates.h"
+#include "GlobalBufferManager.h"
 #include "NXScene.h"
 
-NXGBuffer::NXGBuffer(NXScene* pScene) :
+NXDeferredRenderer::NXDeferredRenderer(NXScene* pScene) :
 	m_pScene(pScene)
 {
 }
 
-NXGBuffer::~NXGBuffer()
+NXDeferredRenderer::~NXDeferredRenderer()
 {
 }
 
-void NXGBuffer::Init()
+void NXDeferredRenderer::Init()
 {
 	float scale = 1.0f;
 	// Create vertex buffer
@@ -76,14 +78,8 @@ void NXGBuffer::Init()
 	// 创建DSV
 	CD3D11_DEPTH_STENCIL_VIEW_DESC descDSV(D3D11_DSV_DIMENSION_TEXTURE2D);
 	CD3D11_TEXTURE2D_DESC descTexDepth(DXGI_FORMAT_D24_UNORM_S8_UINT, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_DEPTH_STENCIL);
-	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&descTexDepth, nullptr, &m_pTexDepthStencilGBuffer[0]));
-	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&descTexDepth, nullptr, &m_pTexDepthStencilGBuffer[1]));
-	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&descTexDepth, nullptr, &m_pTexDepthStencilGBuffer[2]));
-	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&descTexDepth, nullptr, &m_pTexDepthStencilGBuffer[3]));
-	g_pDevice->CreateDepthStencilView(m_pTexDepthStencilGBuffer[0].Get(), &descDSV, &m_pDSV[0]);
-	g_pDevice->CreateDepthStencilView(m_pTexDepthStencilGBuffer[1].Get(), &descDSV, &m_pDSV[1]);
-	g_pDevice->CreateDepthStencilView(m_pTexDepthStencilGBuffer[2].Get(), &descDSV, &m_pDSV[2]);
-	g_pDevice->CreateDepthStencilView(m_pTexDepthStencilGBuffer[3].Get(), &descDSV, &m_pDSV[3]);
+	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&descTexDepth, nullptr, &m_pTexDepth));
+	g_pDevice->CreateDepthStencilView(m_pTexDepth.Get(), &descDSV, &m_pDSVDepth);
 
 	ComPtr<ID3DBlob> pVSBlob;
 	ComPtr<ID3DBlob> pPSBlob;
@@ -145,37 +141,37 @@ void NXGBuffer::Init()
 	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShaderRender));
 }
 
-void NXGBuffer::RenderGBuffer()
+void NXDeferredRenderer::RenderGBuffer()
 {
 	auto pDepthStencilView = g_dxResources->GetDepthStencilView();
 
 	g_pContext->IASetInputLayout(m_pInputLayoutGBuffer.Get());
 
 	g_pUDA->BeginEvent(L"GBuffer");
-	g_pContext->OMSetRenderTargets(1, m_pRTV[0].GetAddressOf(), m_pDSV[0].Get());
+	g_pContext->OMSetRenderTargets(1, m_pRTV[0].GetAddressOf(), m_pDSVDepth.Get());
 	g_pContext->ClearRenderTargetView(m_pRTV[0].Get(), Colors::Black);
-	g_pContext->ClearDepthStencilView(m_pDSV[0].Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+	g_pContext->ClearDepthStencilView(m_pDSVDepth.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 	RenderRT0();
 
-	g_pContext->OMSetRenderTargets(1, m_pRTV[1].GetAddressOf(), m_pDSV[1].Get());
+	g_pContext->OMSetRenderTargets(1, m_pRTV[1].GetAddressOf(), m_pDSVDepth.Get());
 	g_pContext->ClearRenderTargetView(m_pRTV[1].Get(), Colors::Black);
-	g_pContext->ClearDepthStencilView(m_pDSV[1].Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+	g_pContext->ClearDepthStencilView(m_pDSVDepth.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 	RenderRT1();
 
-	g_pContext->OMSetRenderTargets(1, m_pRTV[2].GetAddressOf(), m_pDSV[2].Get());
+	g_pContext->OMSetRenderTargets(1, m_pRTV[2].GetAddressOf(), m_pDSVDepth.Get());
 	g_pContext->ClearRenderTargetView(m_pRTV[2].Get(), Colors::Black);
-	g_pContext->ClearDepthStencilView(m_pDSV[2].Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+	g_pContext->ClearDepthStencilView(m_pDSVDepth.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 	RenderRT2();
 
-	g_pContext->OMSetRenderTargets(1, m_pRTV[3].GetAddressOf(), m_pDSV[3].Get());
+	g_pContext->OMSetRenderTargets(1, m_pRTV[3].GetAddressOf(), m_pDSVDepth.Get());
 	g_pContext->ClearRenderTargetView(m_pRTV[3].Get(), Colors::Black);
-	g_pContext->ClearDepthStencilView(m_pDSV[3].Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+	g_pContext->ClearDepthStencilView(m_pDSVDepth.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 	RenderRT3();
 
 	g_pUDA->EndEvent();
 }
 
-void NXGBuffer::RenderRT0()
+void NXDeferredRenderer::RenderRT0()
 {
 	g_pUDA->BeginEvent(L"Render RT0");
 
@@ -215,7 +211,7 @@ void NXGBuffer::RenderRT0()
 	g_pUDA->EndEvent();
 }
 
-void NXGBuffer::RenderRT1()
+void NXDeferredRenderer::RenderRT1()
 {
 	g_pUDA->BeginEvent(L"Render RT1");
 
@@ -255,7 +251,7 @@ void NXGBuffer::RenderRT1()
 	g_pUDA->EndEvent();
 }
 
-void NXGBuffer::RenderRT2()
+void NXDeferredRenderer::RenderRT2()
 {
 	g_pUDA->BeginEvent(L"Render RT2");
 
@@ -295,7 +291,7 @@ void NXGBuffer::RenderRT2()
 	g_pUDA->EndEvent();
 }
 
-void NXGBuffer::RenderRT3()
+void NXDeferredRenderer::RenderRT3()
 {
 	g_pUDA->BeginEvent(L"Render RT3");
 
@@ -335,11 +331,34 @@ void NXGBuffer::RenderRT3()
 	g_pUDA->EndEvent();
 }
 
-void NXGBuffer::Render()
+void NXDeferredRenderer::Render()
 {
+	g_pUDA->BeginEvent(L"Deferred rendering");
 	g_pContext->IASetInputLayout(m_pInputLayoutRender.Get());
 
-	g_pUDA->BeginEvent(L"Deferred rendering");
+	auto pCbLights = m_pScene->GetConstantBufferLights();
+	auto pCubeMap = m_pScene->GetCubeMap();
+
+	g_pContext->VSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
+	g_pContext->PSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
+
+	if (pCbLights)
+		g_pContext->PSSetConstantBuffers(2, 1, &pCbLights);
+
+	if (pCubeMap)
+	{
+		auto pCubeMapSRV = pCubeMap->GetSRVCubeMap();
+		auto pIrradianceMapSRV = pCubeMap->GetSRVIrradianceMap();
+		auto pPreFilterMapSRV = pCubeMap->GetSRVPreFilterMap();
+		auto pBRDF2DLUT = pCubeMap->GetSRVBRDF2DLUT();
+		g_pContext->PSSetShaderResources(4, 1, &pCubeMapSRV);
+		g_pContext->PSSetShaderResources(5, 1, &pIrradianceMapSRV);
+		g_pContext->PSSetShaderResources(6, 1, &pPreFilterMapSRV);
+		g_pContext->PSSetShaderResources(7, 1, &pBRDF2DLUT);
+	}
+
+	// 合成GBuffer时不写入新的遮挡。否则会导致全屏幕都被覆盖，进而使GBuffer阶段之后和主RT相关（比如CubeMap）的绘制工作全部失效。
+	g_pContext->OMSetDepthStencilState(RenderStates::DeferredRenderingDSS.Get(), 0);
 
 	auto pOffScreenRTV = g_dxResources->GetRTVOffScreen();
 	auto pDepthStencilView = g_dxResources->GetDepthStencilView();
@@ -360,17 +379,13 @@ void NXGBuffer::Render()
 	g_pContext->IASetIndexBuffer(m_pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 	g_pContext->DrawIndexed((UINT)m_indices.size(), 0, 0);
 
-	g_pUDA->EndEvent();
-
 	auto pTexDepthStencil = g_dxResources->GetTexDepthStencil();
-	g_pContext->CopyResource(pTexDepthStencil, m_pTexDepthStencilGBuffer->Get());
+	g_pContext->CopyResource(pTexDepthStencil, m_pTexDepth.Get());
+
+	g_pUDA->EndEvent();
 }
 
-void NXGBuffer::Release()
-{
-}
-
-void NXGBuffer::InitVertexIndexBuffer()
+void NXDeferredRenderer::InitVertexIndexBuffer()
 {
 	D3D11_BUFFER_DESC bufferDesc;
 	ZeroMemory(&bufferDesc, sizeof(bufferDesc));

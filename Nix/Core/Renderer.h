@@ -1,7 +1,8 @@
 #pragma once
 #include "Header.h"
 #include "GlobalBufferManager.h"
-#include "NXGBuffer.h"
+#include "NXDeferredRenderer.h"
+#include "NXForwardRenderer.h"
 
 class Renderer
 {
@@ -22,15 +23,12 @@ private:
 	ComPtr<ID3D11InputLayout>			m_pInputLayoutP;
 	ComPtr<ID3D11InputLayout>			m_pInputLayoutPT;
 	ComPtr<ID3D11InputLayout>			m_pInputLayoutPNT;
-	ComPtr<ID3D11InputLayout>			m_pInputLayoutPNTT;
 
-	ComPtr<ID3D11VertexShader>			m_pVertexShader;
 	ComPtr<ID3D11VertexShader>			m_pVertexShaderCubeMap;
+	ComPtr<ID3D11PixelShader>			m_pPixelShaderCubeMap;
 	ComPtr<ID3D11VertexShader>			m_pVertexShaderOffScreen;
 	ComPtr<ID3D11VertexShader>			m_pVertexShaderShadowMap;
 
-	ComPtr<ID3D11PixelShader>			m_pPixelShader;
-	ComPtr<ID3D11PixelShader>			m_pPixelShaderCubeMap;
 	ComPtr<ID3D11PixelShader>			m_pPixelShaderOffScreen;
 	ComPtr<ID3D11PixelShader>			m_pPixelShaderShadowMap;
 
@@ -38,7 +36,8 @@ private:
 
 	NXScene*					m_scene;
 	NXPassShadowMap*			m_pPassShadowMap; 
-	NXGBuffer*					m_pGBuffer;
+	NXForwardRenderer*			m_pForwardRenderer;
+	NXDeferredRenderer*			m_pDeferredRenderer;
 	
 	// 是否使用延迟着色
 	bool m_isDeferredShading;

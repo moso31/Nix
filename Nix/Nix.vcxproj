@@ -210,8 +210,10 @@
     <ClCompile Include="Core\GlobalBufferManager.cpp" />
     <ClCompile Include="Core\ImageGenerator.cpp" />
     <ClCompile Include="Core\Main.cpp" />
+    <ClCompile Include="Core\NXDeferredRenderer.cpp" />
     <ClCompile Include="Core\NXDXHelper.cpp" />
     <ClCompile Include="Core\NXEvent.cpp" />
+    <ClCompile Include="Core\NXForwardRenderer.cpp" />
     <ClCompile Include="Core\NXInput.cpp" />
     <ClCompile Include="Core\NXListener.cpp" />
     <ClCompile Include="Core\NXRandom.cpp" />
@@ -221,7 +223,6 @@
     <ClCompile Include="Core\ShaderComplier.cpp" />
     <ClCompile Include="Nix\HBVH.cpp" />
     <ClCompile Include="Nix\NXDirectIntegrator.cpp" />
-    <ClCompile Include="Nix\NXGBuffer.cpp" />
     <ClCompile Include="Nix\NXPhoton.cpp" />
     <ClCompile Include="Nix\NXPMSplitIntegrator.cpp" />
     <ClCompile Include="Nix\NXKdTree.cpp" />
@@ -263,8 +264,10 @@
     <ClInclude Include="Core\GlobalBufferManager.h" />
     <ClInclude Include="Core\Header.h" />
     <ClInclude Include="Core\ImageGenerator.h" />
+    <ClInclude Include="Core\NXDeferredRenderer.h" />
     <ClInclude Include="Core\NXDXHelper.h" />
     <ClInclude Include="Core\NXEvent.h" />
+    <ClInclude Include="Core\NXForwardRenderer.h" />
     <ClInclude Include="Core\NXInput.h" />
     <ClInclude Include="Core\NXInstance.h" />
     <ClInclude Include="Core\NXListener.h" />
@@ -276,7 +279,6 @@
     <ClInclude Include="Core\ShaderStructures.h" />
     <ClInclude Include="Nix\HBVH.h" />
     <ClInclude Include="Nix\NXDirectIntegrator.h" />
-    <ClInclude Include="Nix\NXGBuffer.h" />
     <ClInclude Include="Nix\NXPhoton.h" />
     <ClInclude Include="Nix\NXPMSplitIntegrator.h" />
     <ClInclude Include="Nix\NXKdTree.h" />

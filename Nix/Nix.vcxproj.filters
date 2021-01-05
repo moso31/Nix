@@ -67,6 +67,9 @@
     <Filter Include="Nix\RayTracer\IrradianceCache">
       <UniqueIdentifier>{37acfc55-a531-4610-ad88-9ac01112c20a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Core\DirectX\Renderer">
+      <UniqueIdentifier>{fce4c3cd-5a30-4a68-93d9-7df8246a1267}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\RenderTarget.fx">
@@ -145,9 +148,6 @@
     </ClCompile>
     <ClCompile Include="Core\NXDXHelper.cpp">
       <Filter>Core\Helper</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Renderer.cpp">
-      <Filter>Core\DirectX</Filter>
     </ClCompile>
     <ClCompile Include="Core\RenderStates.cpp">
       <Filter>Core\DirectX</Filter>
@@ -269,8 +269,14 @@
     <ClCompile Include="Nix\NXCubeMap.cpp">
       <Filter>Nix\Object\Transform\Primitive\Other</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\NXGBuffer.cpp">
-      <Filter>Nix\Effect</Filter>
+    <ClCompile Include="Core\NXDeferredRenderer.cpp">
+      <Filter>Core\DirectX\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Renderer.cpp">
+      <Filter>Core\DirectX\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXForwardRenderer.cpp">
+      <Filter>Core\DirectX\Renderer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -306,9 +312,6 @@
     </ClInclude>
     <ClInclude Include="Core\NXDXHelper.h">
       <Filter>Core\Helper</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Renderer.h">
-      <Filter>Core\DirectX</Filter>
     </ClInclude>
     <ClInclude Include="Core\RenderStates.h">
       <Filter>Core\DirectX</Filter>
@@ -433,8 +436,14 @@
     <ClInclude Include="Nix\NXCubeMap.h">
       <Filter>Nix\Object\Transform\Primitive\Other</Filter>
     </ClInclude>
-    <ClInclude Include="Nix\NXGBuffer.h">
-      <Filter>Nix\Effect</Filter>
+    <ClInclude Include="Core\NXDeferredRenderer.h">
+      <Filter>Core\DirectX\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Renderer.h">
+      <Filter>Core\DirectX\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXForwardRenderer.h">
+      <Filter>Core\DirectX\Renderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

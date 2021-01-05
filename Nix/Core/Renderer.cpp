@@ -18,9 +18,17 @@ void Renderer::Init()
 	m_scene = new NXScene();
 	m_scene->Init();
 
-	m_pGBuffer = new NXGBuffer(m_scene);
-	m_pGBuffer->Init();
-	m_isDeferredShading = true;
+	// forward or deferred renderer?
+	{
+		m_pForwardRenderer = new NXForwardRenderer(m_scene);
+		m_pForwardRenderer->Init();
+
+		m_pDeferredRenderer = new NXDeferredRenderer(m_scene);
+		m_pDeferredRenderer->Init();
+
+		// 这个bool将来做成Settings（配置文件）之类的结构。
+		m_isDeferredShading = true;
+	}
 
 	m_pPassShadowMap = new NXPassShadowMap(m_scene);
 	m_pPassShadowMap->Init(2048, 2048);
@@ -29,13 +37,8 @@ void Renderer::Init()
 void Renderer::InitRenderer()
 {
 	// create VS & IL
-	ID3DBlob* pVSBlob = nullptr;
-	NX::MessageBoxIfFailed(
-		ShaderComplier::Compile(L"Shader\\Scene.fx", "VS", "vs_5_0", &pVSBlob), 
-		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVertexShader));
-
-	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pInputLayoutPNTT));
+	ComPtr<ID3DBlob> pVSBlob;
+	ComPtr<ID3DBlob> pPSBlob;
 
 	NX::MessageBoxIfFailed(
 		ShaderComplier::Compile(L"Shader\\RenderTarget.fx", "VS", "vs_5_0", &pVSBlob),
@@ -48,7 +51,6 @@ void Renderer::InitRenderer()
 	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVertexShaderShadowMap));
 
 	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutPNT, ARRAYSIZE(NXGlobalInputLayout::layoutPNT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pInputLayoutPNT));
-	pVSBlob->Release();
 
 	NX::MessageBoxIfFailed(
 		ShaderComplier::Compile(L"Shader\\CubeMap.fx", "VS", "vs_5_0", &pVSBlob),
@@ -56,15 +58,8 @@ void Renderer::InitRenderer()
 	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVertexShaderCubeMap)); 
 
 	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutP, ARRAYSIZE(NXGlobalInputLayout::layoutP), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pInputLayoutP));
-	pVSBlob->Release();
 
 	// Create PS
-	ID3DBlob* pPSBlob = nullptr;
-	NX::MessageBoxIfFailed(
-		ShaderComplier::Compile(L"Shader\\Scene.fx", "PS", "ps_5_0", &pPSBlob),
-		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShader));
-
 	NX::MessageBoxIfFailed(
 		ShaderComplier::Compile(L"Shader\\RenderTarget.fx", "PS", "ps_5_0", &pPSBlob),
 		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
@@ -79,7 +74,6 @@ void Renderer::InitRenderer()
 		ShaderComplier::Compile(L"Shader\\CubeMap.fx", "PS", "ps_5_0", &pPSBlob),
 		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
 	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShaderCubeMap));
-	pPSBlob->Release();
 
 	// Create RenderTarget
 	m_renderTarget = new NXRenderTarget();
@@ -87,8 +81,10 @@ void Renderer::InitRenderer()
 
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	g_pContext->RSSetState(nullptr);	// back culling
+	g_pContext->OMSetDepthStencilState(nullptr, 0); 
+
+	float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	g_pContext->OMSetBlendState(nullptr, blendFactor, 0xffffffff);
 
 	g_pContext->PSSetSamplers(0, 1, RenderStates::SamplerLinearWrap.GetAddressOf());
@@ -119,8 +115,7 @@ void Renderer::UpdateSceneData()
 
 void Renderer::DrawScene()
 {
-	// 使用默认背向剔除（指针设为空就是默认的back culling）
-	g_pContext->RSSetState(nullptr);
+	g_pUDA->BeginEvent(L"Render Scene");
 
 	// 渲染主场景所用的Sampler
 	g_pContext->PSSetSamplers(0, 1, RenderStates::SamplerLinearWrap.GetAddressOf());
@@ -138,10 +133,6 @@ void Renderer::DrawScene()
 	g_pContext->OMSetRenderTargets(1, &pOffScreenRTV, pDepthStencilView);
 	g_pContext->ClearRenderTargetView(pOffScreenRTV, Colors::WhiteSmoke);
 	g_pContext->ClearDepthStencilView(pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
-
-	// 绘制Primitives
-	g_pContext->RSSetState(nullptr);
-	g_pContext->OMSetDepthStencilState(nullptr, 0);
 	DrawPrimitives();
 
 	// 绘制CubeMap
@@ -175,104 +166,32 @@ void Renderer::DrawScene()
 
 	DXGI_PRESENT_PARAMETERS parameters = { 0 };
 	NX::ThrowIfFailed(g_pSwapChain->Present1(1, 0, &parameters));
+
+	g_pUDA->EndEvent();
 }
 
 void Renderer::Release()
 {
 	SafeRelease(m_pPassShadowMap);
 
+	SafeDelete(m_pDeferredRenderer);
+	SafeDelete(m_pForwardRenderer);
+
 	SafeRelease(m_scene);
 	SafeRelease(m_renderTarget);
-	SafeRelease(m_pGBuffer);
 }
 
 void Renderer::DrawPrimitives()
 {
 	if (!m_isDeferredShading)
 	{
-		// Forward shading
-		g_pContext->IASetInputLayout(m_pInputLayoutPNTT.Get());
-
-		// 设置使用的VS和PS（scene.fx）
-		g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
-		g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
-
-		// 填上渲染Buffer的Slot。其实总结成一句话就是：
-		// 将VS/PS的CB/SRV/Sampler的xxx号槽（Slot）填上数据xxx。
-		g_pContext->VSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
-		g_pContext->PSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
-
-		auto pCbLights = m_scene->GetConstantBufferLights();
-		g_pContext->PSSetConstantBuffers(2, 1, &pCbLights);
-
-		// PBR大改。阴影贴图暂时停用。
-		//auto pShadowMapSRV = m_pPassShadowMap->GetSRV();
-		//g_pContext->PSSetShaderResources(10, 1, &pShadowMapSRV);
-
-		auto pShadowMapConstantBufferTransform = m_pPassShadowMap->GetConstantBufferTransform();
-		g_pContext->PSSetConstantBuffers(4, 1, &pShadowMapConstantBufferTransform);
-
-		for (auto pPrim : m_scene->GetPrimitives())
-		{
-			// 这里渲染场景中所有Mesh。
-			// 其他几个CB/SRV的Slot都不变，但每个物体的World、Material、Tex信息都可能改变。
-			// 【可以进一步优化】按Material绘制、按Tex绘制。
-			pPrim->Update();
-			g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
-
-			auto pMat = pPrim->GetPBRMaterial();
-			if (pMat)
-			{
-				auto pSRVAlbedo = pMat->GetSRVAlbedo();
-				g_pContext->PSSetShaderResources(1, 1, &pSRVAlbedo);
-
-				auto pSRVNormal = pMat->GetSRVNormal();
-				g_pContext->PSSetShaderResources(2, 1, &pSRVNormal);
-
-				auto pSRVMetallic = pMat->GetSRVMetallic();
-				g_pContext->PSSetShaderResources(3, 1, &pSRVMetallic);
-
-				auto pSRVRoughness = pMat->GetSRVRoughness();
-				g_pContext->PSSetShaderResources(4, 1, &pSRVRoughness);
-
-				auto pSRVAO = pMat->GetSRVAO();
-				g_pContext->PSSetShaderResources(5, 1, &pSRVAO);
-
-				auto pCBMaterial = pPrim->GetMaterialBuffer();
-				g_pContext->PSSetConstantBuffers(3, 1, &pCBMaterial);
-			}
-			pPrim->Render();
-		}
+		m_pForwardRenderer->Render();
 	}
 	else
 	{
 		// Deferred shading
-		m_pGBuffer->RenderGBuffer();
-
-		g_pContext->VSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
-		g_pContext->PSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
-
-		auto pCbLights = m_scene->GetConstantBufferLights();
-		g_pContext->PSSetConstantBuffers(2, 1, &pCbLights); 
-
-		auto pCubeMap = m_scene->GetCubeMap();
-		if (pCubeMap)
-		{
-			auto pCubeMapSRV = pCubeMap->GetSRVCubeMap();
-			auto pIrradianceMapSRV = pCubeMap->GetSRVIrradianceMap();
-			auto pPreFilterMapSRV = pCubeMap->GetSRVPreFilterMap();
-			auto pBRDF2DLUT = pCubeMap->GetSRVBRDF2DLUT();
-			g_pContext->PSSetShaderResources(4, 1, &pCubeMapSRV);
-			g_pContext->PSSetShaderResources(5, 1, &pIrradianceMapSRV);
-			g_pContext->PSSetShaderResources(6, 1, &pPreFilterMapSRV);
-			g_pContext->PSSetShaderResources(7, 1, &pBRDF2DLUT); 
-		}
-
-		// 最终合成GBuffer时，使用已有的遮挡关系，但不写入新的遮挡。
-		// 因为下一次绘制马上就是绘制当前NXGBuffer的顶点数据本身。
-		// 该值对应的深度缓冲depZ=0，因此会导致全屏幕都被覆盖，进而使GBuffer阶段之后和主RT相关（比如CubeMap）的绘制工作全部失效。
-		g_pContext->OMSetDepthStencilState(RenderStates::DeferredRenderingDSS.Get(), 0);
-		m_pGBuffer->Render();
+		m_pDeferredRenderer->RenderGBuffer();
+		m_pDeferredRenderer->Render();
 	}
 }
 
