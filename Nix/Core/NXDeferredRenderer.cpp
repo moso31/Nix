@@ -335,13 +335,14 @@ void NXDeferredRenderer::Render()
 {
 	g_pUDA->BeginEvent(L"Deferred rendering");
 	g_pContext->IASetInputLayout(m_pInputLayoutRender.Get());
-
-	auto pCbLights = m_pScene->GetConstantBufferLights();
-	auto pCubeMap = m_pScene->GetCubeMap();
+	g_pContext->VSSetShader(m_pVertexShaderRender.Get(), nullptr, 0);
+	g_pContext->PSSetShader(m_pPixelShaderRender.Get(), nullptr, 0);
 
 	g_pContext->VSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
 	g_pContext->PSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
 
+	auto pCbLights = m_pScene->GetConstantBufferLights();
+	auto pCubeMap = m_pScene->GetCubeMap();
 	if (pCbLights)
 		g_pContext->PSSetConstantBuffers(2, 1, &pCbLights);
 
@@ -363,9 +364,6 @@ void NXDeferredRenderer::Render()
 	auto pOffScreenRTV = g_dxResources->GetRTVOffScreen();
 	auto pDepthStencilView = g_dxResources->GetDepthStencilView();
 	g_pContext->OMSetRenderTargets(1, &pOffScreenRTV, pDepthStencilView);
-
-	g_pContext->VSSetShader(m_pVertexShaderRender.Get(), nullptr, 0);
-	g_pContext->PSSetShader(m_pPixelShaderRender.Get(), nullptr, 0);
 
 	g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 	g_pContext->PSSetShaderResources(0, 1, m_pSRV[0].GetAddressOf());

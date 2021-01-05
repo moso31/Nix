@@ -46,8 +46,21 @@ void NXForwardRenderer::Render()
 	g_pContext->PSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
 
 	auto pCbLights = m_pScene->GetConstantBufferLights();
+	auto pCubeMap = m_pScene->GetCubeMap();
 	if (pCbLights)
 		g_pContext->PSSetConstantBuffers(2, 1, &pCbLights);
+
+	if (pCubeMap)
+	{
+		auto pCubeMapSRV = pCubeMap->GetSRVCubeMap();
+		auto pIrradianceMapSRV = pCubeMap->GetSRVIrradianceMap();
+		auto pPreFilterMapSRV = pCubeMap->GetSRVPreFilterMap();
+		auto pBRDF2DLUT = pCubeMap->GetSRVBRDF2DLUT();
+		g_pContext->PSSetShaderResources(0, 1, &pCubeMapSRV);
+		g_pContext->PSSetShaderResources(7, 1, &pIrradianceMapSRV);
+		g_pContext->PSSetShaderResources(8, 1, &pPreFilterMapSRV);
+		g_pContext->PSSetShaderResources(9, 1, &pBRDF2DLUT);
+	}
 
 	// PBR大改。阴影贴图暂时停用。
 	//auto pShadowMapSRV = m_pPassShadowMap->GetSRV();
