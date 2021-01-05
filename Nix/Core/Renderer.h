@@ -25,11 +25,9 @@ private:
 	ComPtr<ID3D11InputLayout>			m_pInputLayoutPNT;
 
 	ComPtr<ID3D11VertexShader>			m_pVertexShaderCubeMap;
-	ComPtr<ID3D11PixelShader>			m_pPixelShaderCubeMap;
-	ComPtr<ID3D11VertexShader>			m_pVertexShaderOffScreen;
 	ComPtr<ID3D11VertexShader>			m_pVertexShaderShadowMap;
 
-	ComPtr<ID3D11PixelShader>			m_pPixelShaderOffScreen;
+	ComPtr<ID3D11PixelShader>			m_pPixelShaderCubeMap;
 	ComPtr<ID3D11PixelShader>			m_pPixelShaderShadowMap;
 
 	NXRenderTarget*				m_renderTarget;

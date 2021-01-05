@@ -27,7 +27,7 @@ void Renderer::Init()
 		m_pDeferredRenderer->Init();
 
 		// 这个bool将来做成Settings（配置文件）之类的结构。
-		m_isDeferredShading = false;
+		m_isDeferredShading = true;
 	}
 
 	m_pPassShadowMap = new NXPassShadowMap(m_scene);
@@ -38,13 +38,6 @@ void Renderer::InitRenderer()
 {
 	// create VS & IL
 	ComPtr<ID3DBlob> pVSBlob;
-	ComPtr<ID3DBlob> pPSBlob;
-
-	NX::MessageBoxIfFailed(
-		ShaderComplier::Compile(L"Shader\\RenderTarget.fx", "VS", "vs_5_0", &pVSBlob),
-		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVertexShaderOffScreen));
-
 	NX::MessageBoxIfFailed(
 		ShaderComplier::Compile(L"Shader\\ShadowMap.fx", "VS", "vs_5_0", &pVSBlob),
 		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
@@ -60,11 +53,7 @@ void Renderer::InitRenderer()
 	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutP, ARRAYSIZE(NXGlobalInputLayout::layoutP), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pInputLayoutP));
 
 	// Create PS
-	NX::MessageBoxIfFailed(
-		ShaderComplier::Compile(L"Shader\\RenderTarget.fx", "PS", "ps_5_0", &pPSBlob),
-		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShaderOffScreen));
-
+	ComPtr<ID3DBlob> pPSBlob;
 	NX::MessageBoxIfFailed(
 		ShaderComplier::Compile(L"Shader\\ShadowMap.fx", "PS", "ps_5_0", &pPSBlob),
 		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
@@ -146,19 +135,11 @@ void Renderer::DrawScene()
 	g_pContext->ClearRenderTargetView(pRenderTargetView, Colors::WhiteSmoke);
 	g_pContext->ClearDepthStencilView(pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-	g_pUDA->BeginEvent(L"Render Target");
-	{
-		g_pContext->RSSetState(nullptr);
-		g_pContext->OMSetDepthStencilState(nullptr, 0);
+	g_pContext->RSSetState(nullptr);
+	g_pContext->OMSetDepthStencilState(nullptr, 0);
 
-		g_pContext->IASetInputLayout(m_pInputLayoutPNT.Get());
-		g_pContext->VSSetShader(m_pVertexShaderOffScreen.Get(), nullptr, 0);
-		g_pContext->PSSetShader(m_pPixelShaderOffScreen.Get(), nullptr, 0);
-
-		// 绘制主渲染屏幕RTV：
-		m_renderTarget->Render();
-	}
-	g_pUDA->EndEvent();
+	// 绘制主渲染屏幕RTV：
+	m_renderTarget->Render();
 
 	// clear SRV.
 	ID3D11ShaderResourceView* const pNullSRV[2] = { nullptr };

@@ -1,5 +1,7 @@
 #include "NXRenderTarget.h"
 #include "DirectResources.h"
+#include "ShaderComplier.h"
+#include "GlobalBufferManager.h"
 
 NXRenderTarget::NXRenderTarget()
 {
@@ -12,10 +14,10 @@ void NXRenderTarget::Init()
 	m_vertices =
 	{
 		// -Z
-		{ Vector3(-scale, +scale, 0.0f), Vector3(0.0f, 0.0f, 0.0f), Vector2(0.0f, 0.0f) },
-		{ Vector3(+scale, +scale, 0.0f), Vector3(0.0f, 0.0f, 0.0f), Vector2(1.0f, 0.0f) },
-		{ Vector3(+scale, -scale, 0.0f), Vector3(0.0f, 0.0f, 0.0f), Vector2(1.0f, 1.0f) },
-		{ Vector3(-scale, -scale, 0.0f), Vector3(0.0f, 0.0f, 0.0f), Vector2(0.0f, 1.0f) },
+		{ Vector3(-scale, +scale, 0.0f), Vector2(0.0f, 0.0f) },
+		{ Vector3(+scale, +scale, 0.0f), Vector2(1.0f, 0.0f) },
+		{ Vector3(+scale, -scale, 0.0f), Vector2(1.0f, 1.0f) },
+		{ Vector3(-scale, -scale, 0.0f), Vector2(0.0f, 1.0f) },
 	};
 
 	m_indices =
@@ -24,20 +26,29 @@ void NXRenderTarget::Init()
 		0,  2,  3
 	};
 
+	InitRenderData();
 	InitVertexIndexBuffer();
 }
 
 void NXRenderTarget::Render()
 {
+	g_pUDA->BeginEvent(L"Render Target");
+
+	g_pContext->IASetInputLayout(m_pInputLayout.Get());
+	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
+	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
+
 	// QuadRTV的绘制只需要提供一下四边形顶点信息、SRV并绘制就好。
-	// 不过这里InputLayout还是用的VertexPNT格式，实际上做一个专用的VertexQuad顶点格式更加优化。这里没做。
-	UINT stride = sizeof(VertexPNT);
+	// 这里可以做一个专用的QuadShader，然后无视掉indices，用Draw直接绘制Vertex而非DrawIndexed，可以获得更好的优化。但暂时没做。
+	UINT stride = sizeof(VertexPT);
 	UINT offset = 0;
 	g_pContext->IASetVertexBuffers(0, 1, m_pVertexBuffer.GetAddressOf(), &stride, &offset);
 	g_pContext->IASetIndexBuffer(m_pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 	auto pRenderTargetSRV = g_dxResources->GetSRVOffScreen();
 	g_pContext->PSSetShaderResources(0, 1, &pRenderTargetSRV);
 	g_pContext->DrawIndexed((UINT)m_indices.size(), 0, 0);
+
+	g_pUDA->EndEvent();
 }
 
 void NXRenderTarget::InitVertexIndexBuffer()
@@ -45,7 +56,7 @@ void NXRenderTarget::InitVertexIndexBuffer()
 	D3D11_BUFFER_DESC bufferDesc;
 	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
 	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(VertexPNT) * (UINT)m_vertices.size();
+	bufferDesc.ByteWidth = sizeof(VertexPT) * (UINT)m_vertices.size();
 	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
 	D3D11_SUBRESOURCE_DATA InitData;
@@ -59,5 +70,23 @@ void NXRenderTarget::InitVertexIndexBuffer()
 	bufferDesc.CPUAccessFlags = 0;
 	InitData.pSysMem = m_indices.data();
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &m_pIndexBuffer));
+}
+
+void NXRenderTarget::InitRenderData()
+{
+	ComPtr<ID3DBlob> pVSBlob;
+	ComPtr<ID3DBlob> pPSBlob;
+
+	NX::MessageBoxIfFailed(
+		ShaderComplier::Compile(L"Shader\\RenderTarget.fx", "VS", "vs_5_0", &pVSBlob),
+		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
+	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVertexShader));
+
+	NX::MessageBoxIfFailed(
+		ShaderComplier::Compile(L"Shader\\RenderTarget.fx", "PS", "ps_5_0", &pPSBlob),
+		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
+	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShader));
+
+	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutPT, ARRAYSIZE(NXGlobalInputLayout::layoutPT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pInputLayout));
 }
 
