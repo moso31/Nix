@@ -38,7 +38,9 @@ struct VS_INPUT
 struct PS_INPUT
 {
 	float4 posH : SV_POSITION;
-	float4 posW : POSITION;
+	float4 posL : POSITION0;
+	float4 posW : POSITION1;
+	float4 posV : POSITION2;
 	float3 normW : NORMAL;
 	float2 tex : TEXCOORD;
 	float3 tangentW : TANGENT;
@@ -47,9 +49,11 @@ struct PS_INPUT
 PS_INPUT VS(VS_INPUT input)
 {
 	PS_INPUT output = (PS_INPUT)0;
+	output.posL = input.pos;
 	output.posH = mul(input.pos, m_world);
 	output.posW = output.posH;
 	output.posH = mul(output.posH, m_view);
+	output.posV = output.posH;
 	output.posH = mul(output.posH, m_projection);
 	output.normW = mul(float4(input.norm, 0.0), m_worldInverseTranspose).xyz;
 	output.tex = input.tex;
@@ -59,6 +63,7 @@ PS_INPUT VS(VS_INPUT input)
 
 float4 PS_RT0(PS_INPUT input) : SV_Target
 {
+	return float4(input.posV.zzz, 1.0f);
 	return float4(input.posW.xyz, 1.0f);
 }
 
