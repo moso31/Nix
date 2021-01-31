@@ -7,6 +7,12 @@
     <ClInclude Include="imstb_textedit.h" />
     <ClInclude Include="imstb_truetype.h" />
     <ClInclude Include="imconfig.h" />
+    <ClInclude Include="imgui_impl_dx11.h">
+      <Filter>impl</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui_impl_win32.h">
+      <Filter>impl</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="imgui_demo.cpp" />
@@ -14,5 +20,16 @@
     <ClCompile Include="imgui_tables.cpp" />
     <ClCompile Include="imgui_widgets.cpp" />
     <ClCompile Include="imgui.cpp" />
+    <ClCompile Include="imgui_impl_dx11.cpp">
+      <Filter>impl</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_impl_win32.cpp">
+      <Filter>impl</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="impl">
+      <UniqueIdentifier>{d13d3f93-6cb9-4a37-9c94-c6a96756e8f7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

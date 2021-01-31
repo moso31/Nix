@@ -70,8 +70,8 @@
     <Filter Include="Core\DirectX\Renderer">
       <UniqueIdentifier>{fce4c3cd-5a30-4a68-93d9-7df8246a1267}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\GUI">
-      <UniqueIdentifier>{6cf96bc9-cae2-48ed-80e7-f8e1be9dc276}</UniqueIdentifier>
+    <Filter Include="Core\UI">
+      <UniqueIdentifier>{de9ace55-c4c4-48d5-abfd-52abd2c8e492}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -282,7 +282,7 @@
       <Filter>Core\DirectX\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXGUI.cpp">
-      <Filter>Core\GUI</Filter>
+      <Filter>Core\UI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -452,7 +452,7 @@
       <Filter>Core\DirectX\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXGUI.h">
-      <Filter>Core\GUI</Filter>
+      <Filter>Core\UI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

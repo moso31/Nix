@@ -145,8 +145,8 @@ void Renderer::DrawScene()
 	ID3D11ShaderResourceView* const pNullSRV[2] = { nullptr };
 	g_pContext->PSSetShaderResources(0, 2, pNullSRV);
 
-	DXGI_PRESENT_PARAMETERS parameters = { 0 };
-	NX::ThrowIfFailed(g_pSwapChain->Present1(1, 0, &parameters));
+	//DXGI_PRESENT_PARAMETERS parameters = { 0 };
+	//NX::ThrowIfFailed(g_pSwapChain->Present1(1, 0, &parameters));
 
 	g_pUDA->EndEvent();
 }

@@ -2,6 +2,7 @@
 #include "App.h"
 #include "NXInput.h"
 #include "NXTimer.h"
+#include "NXGUI.h"
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
@@ -91,6 +92,9 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
+		return true;
+
 	PAINTSTRUCT ps;
 	HDC hdc;
 
