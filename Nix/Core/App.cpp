@@ -109,4 +109,8 @@ void App::Release()
 	NXEventMouseDown::GetInstance().Release();
 	NXEventMouseUp::GetInstance().Release();
 	NXEventMouseMove::GetInstance().Release();
+
+	ImGui_ImplDX11_Shutdown();
+	ImGui_ImplWin32_Shutdown();
+	ImGui::DestroyContext();
 }
