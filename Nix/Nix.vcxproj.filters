@@ -70,6 +70,9 @@
     <Filter Include="Core\DirectX\Renderer">
       <UniqueIdentifier>{fce4c3cd-5a30-4a68-93d9-7df8246a1267}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Core\GUI">
+      <UniqueIdentifier>{6cf96bc9-cae2-48ed-80e7-f8e1be9dc276}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\RenderTarget.fx">
@@ -278,6 +281,9 @@
     <ClCompile Include="Core\NXForwardRenderer.cpp">
       <Filter>Core\DirectX\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXGUI.cpp">
+      <Filter>Core\GUI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -444,6 +450,9 @@
     </ClInclude>
     <ClInclude Include="Core\NXForwardRenderer.h">
       <Filter>Core\DirectX\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXGUI.h">
+      <Filter>Core\GUI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
