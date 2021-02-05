@@ -8,10 +8,12 @@ class Renderer
 {
 public:
 	void Init();
+	void InitGUI();
 	void InitRenderer();
 	void Preload();
 	void UpdateSceneData();
 	void DrawScene();
+	void DrawGUI();
 	void Release();
 
 private:
