@@ -3,6 +3,7 @@
 #include "GlobalBufferManager.h"
 #include "NXDeferredRenderer.h"
 #include "NXForwardRenderer.h"
+#include "NXGUI.h"
 
 class Renderer
 {
@@ -38,7 +39,8 @@ private:
 	NXPassShadowMap*			m_pPassShadowMap; 
 	NXForwardRenderer*			m_pForwardRenderer;
 	NXDeferredRenderer*			m_pDeferredRenderer;
-	
+	NXGUI* m_pGUI;
+
 	// 是否使用延迟着色
 	bool m_isDeferredShading;
 };

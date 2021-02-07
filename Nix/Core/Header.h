@@ -36,6 +36,9 @@
 #include <DirectXColors.h>
 #include <d3dcompiler.h>
 
+// GUI
+#include "NXGUIImpl.h"
+
 // NX DirectX "helper"
 #include "NXDXHelper.h"
 
