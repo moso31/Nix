@@ -13,6 +13,7 @@
     <ClInclude Include="imgui_impl_win32.h">
       <Filter>impl</Filter>
     </ClInclude>
+    <ClInclude Include="imgui_stdlib.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="imgui_demo.cpp" />
@@ -26,6 +27,7 @@
     <ClCompile Include="imgui_impl_win32.cpp">
       <Filter>impl</Filter>
     </ClCompile>
+    <ClCompile Include="imgui_stdlib.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="impl">

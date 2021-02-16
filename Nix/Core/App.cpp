@@ -18,22 +18,29 @@ void App::Init()
 	RenderStates::Init();
 
 	m_pRenderer = new Renderer();
-	//m_pRenderer->Init();
+	m_pRenderer->Init();
 	m_pRenderer->InitGUI();
-	//m_pRenderer->Preload();
+	m_pRenderer->Preload();
 }
 
 void App::Update()
 {
 	// 更新场景数据
-	//m_pRenderer->UpdateSceneData();
+	m_pRenderer->UpdateSceneData();
 }
 
 void App::Draw()
 {
 	// 绘制主场景
-	//m_pRenderer->DrawScene();
+	m_pRenderer->DrawScene();
 	m_pRenderer->DrawGUI();
+
+	// clear SRV.
+	ID3D11ShaderResourceView* const pNullSRV[16] = { nullptr };
+	g_pContext->PSSetShaderResources(0, 16, pNullSRV);
+
+	DXGI_PRESENT_PARAMETERS parameters = { 0 };
+	NX::ThrowIfFailed(g_pSwapChain->Present1(1, 0, &parameters));
 }
 
 void App::Release()

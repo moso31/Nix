@@ -20,6 +20,10 @@ public:
 	void UpdateCamera();
 	void Release();
 
+	// UI Picking
+	void SetCurrentPickingObject(NXObject* pPickingObject = nullptr) { m_pPickingObject = pPickingObject; }
+	NXObject* GetCurrentPickingObject() { return m_pPickingObject; }
+
 	// RayCasts
 	HBVHTree* GetBVHTree() { return m_sceneManager->m_pBVHTree; }
 	bool RayCast(const Ray& ray, NXHit& out_hitInfo, float tMax = FLT_MAX);
@@ -50,4 +54,7 @@ private:
 
 	AABB m_aabb;
 	BoundingSphere m_boundingSphere;
+
+	// 指向当前选中物体的指针。
+	NXObject* m_pPickingObject;
 };

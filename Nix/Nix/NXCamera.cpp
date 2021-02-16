@@ -10,6 +10,7 @@ NXCamera::NXCamera() :
 	m_far(1000.0f)
 {
 	m_name = "Camera";
+	m_type = NXType::eCamera;
 }
 
 void NXCamera::SetTranslation(Vector3 value)

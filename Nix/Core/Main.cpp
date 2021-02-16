@@ -32,12 +32,12 @@ HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow)
 
 	// Create window
 	g_hInst = hInstance;
-	RECT rc = { 0, 0, 800, 600 };
+	RECT rc = { 0, 0, 1600, 900 };
 	//RECT rc = { 0, 0, 120, 90 };
 	AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
 	g_hWnd = CreateWindow(L"NixWindowClass", L"Nix",
 		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
-		100, 100, rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr, hInstance,
+		50, 50, rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr, hInstance,
 		nullptr);
 	if (!g_hWnd)
 		return E_FAIL;

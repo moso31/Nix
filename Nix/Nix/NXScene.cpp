@@ -38,6 +38,7 @@
 NXScene::NXScene() :
 	m_sceneManager(new SceneManager(this))
 {
+	m_type = NXType::eScene;
 }
 
 NXScene::~NXScene()
@@ -121,140 +122,32 @@ void NXScene::Init()
 		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), 0.0f, 1.0f, 0.0f, 0.0f, 0.0f),
 	};
 
-	pPBRMat[0]->SetTexAlbedo(L"D:\\NixAssets\\test\\albedo.png");
-	pPBRMat[0]->SetTexNormal(L"D:\\NixAssets\\test\\normal.png");
-	pPBRMat[0]->SetTexMetallic(L"D:\\NixAssets\\test\\metallic.png");
-	pPBRMat[0]->SetTexRoughness(L"D:\\NixAssets\\test\\roughness.png");
-	pPBRMat[0]->SetTexAO(L"D:\\NixAssets\\test\\ao.png");
+	pPBRMat[0]->SetTexAlbedo(L"D:\\NixAssets\\rustediron2\\albedo.png");
+	pPBRMat[0]->SetTexNormal(L"D:\\NixAssets\\rustediron2\\normal.png");
+	pPBRMat[0]->SetTexMetallic(L"D:\\NixAssets\\rustediron2\\metallic.png");
+	pPBRMat[0]->SetTexRoughness(L"D:\\NixAssets\\rustediron2\\roughness.png");
+	pPBRMat[0]->SetTexAO(L"D:\\NixAssets\\rustediron2\\ao.png");
 
-	pPBRMat[1]->SetTexAlbedo(L"D:\\NixAssets\\hex-stones1\\albedo.png");
-	pPBRMat[1]->SetTexNormal(L"D:\\NixAssets\\hex-stones1\\normal.png");
-	pPBRMat[1]->SetTexMetallic(L"D:\\NixAssets\\hex-stones1\\metallic.png");
-	pPBRMat[1]->SetTexRoughness(L"D:\\NixAssets\\hex-stones1\\roughness.png");
-	pPBRMat[1]->SetTexAO(L"D:\\NixAssets\\hex-stones1\\ao.png");
+	auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64);
+	pSphere->SetMaterialPBR(pPBRMat[0]);
 
-	pPBRMat[2]->SetTexAlbedo(L"D:\\NixAssets\\circle-textured-metal1\\albedo.png");
-	pPBRMat[2]->SetTexNormal(L"D:\\NixAssets\\circle-textured-metal1\\normal.png");
-	pPBRMat[2]->SetTexMetallic(L"D:\\NixAssets\\circle-textured-metal1\\metallic.png");
-	pPBRMat[2]->SetTexRoughness(L"D:\\NixAssets\\circle-textured-metal1\\roughness.png");
-	pPBRMat[2]->SetTexAO(L"D:\\NixAssets\\circle-textured-metal1\\ao.png");
-
-	pPBRMat[3]->SetTexAlbedo(L"D:\\NixAssets\\gray-granite-flecks\\albedo.png");
-	pPBRMat[3]->SetTexNormal(L"D:\\NixAssets\\gray-granite-flecks\\normal.png");
-	pPBRMat[3]->SetTexMetallic(L"D:\\NixAssets\\gray-granite-flecks\\metallic.png");
-	pPBRMat[3]->SetTexRoughness(L"D:\\NixAssets\\gray-granite-flecks\\roughness.png");
-	pPBRMat[3]->SetTexAO(L"D:\\NixAssets\\gray-granite-flecks\\ao.png");
-
-	pPBRMat[4]->SetTexAlbedo(L"D:\\NixAssets\\pirate-gold\\albedo.png");
-	pPBRMat[4]->SetTexNormal(L"D:\\NixAssets\\pirate-gold\\normal.png");
-	pPBRMat[4]->SetTexMetallic(L"D:\\NixAssets\\pirate-gold\\metallic.png");
-	pPBRMat[4]->SetTexRoughness(L"D:\\NixAssets\\pirate-gold\\roughness.png");
-	pPBRMat[4]->SetTexAO(L"D:\\NixAssets\\pirate-gold\\ao.png");
-
-	pPBRMat[5]->SetTexAlbedo(L"D:\\NixAssets\\rustediron2\\albedo.png");
-	pPBRMat[5]->SetTexNormal(L"D:\\NixAssets\\rustediron2\\normal.png");
-	pPBRMat[5]->SetTexMetallic(L"D:\\NixAssets\\rustediron2\\metallic.png");
-	pPBRMat[5]->SetTexRoughness(L"D:\\NixAssets\\rustediron2\\roughness.png");
-	pPBRMat[5]->SetTexAO(L"D:\\NixAssets\\rustediron2\\ao.png");
-
-	pPBRMat[6]->SetTexAlbedo(L"D:\\NixAssets\\guns\\Cerberus_A.tga");
-	pPBRMat[6]->SetTexNormal(L"D:\\NixAssets\\guns\\Cerberus_N.tga");
-	pPBRMat[6]->SetTexMetallic(L"D:\\NixAssets\\guns\\Cerberus_M.tga");
-	pPBRMat[6]->SetTexRoughness(L"D:\\NixAssets\\guns\\Cerberus_R.tga");
-	pPBRMat[6]->SetTexAO(L"D:\\NixAssets\\guns\\Cerberus_AO.tga");
-
-	//auto pPlane = m_sceneManager->CreatePlane("Ground", 8.0f, 12.0f, NXPlaneAxis(POSITIVE_Y), Vector3(0.0f));
-	//pPlane->SetMaterialPBR(pPBRMat[0]);
-
-	//pPlane = m_sceneManager->CreatePlane("Wall +Y", 8.0f, 12.0f, NXPlaneAxis(NEGATIVE_Y), Vector3(0.0f, 6.0f, 0.0f));
-	//pPlane->SetMaterialPBR(pPBRMat[0]);
-
-	//pPlane = m_sceneManager->CreatePlane("Wall -Z", 8.0f, 6.0f, NXPlaneAxis(POSITIVE_Z), Vector3(0.0f, 3.0f, -6.0f));
-	//pPlane->SetMaterialPBR(pPBRMat[0]);
-
-	//pPlane = m_sceneManager->CreatePlane("Wall +Z", 8.0f, 6.0f, NXPlaneAxis(NEGATIVE_Z), Vector3(0.0f, 3.0f, 6.0f));
-	//pPlane->SetMaterialPBR(pPBRMat[0]);
-
-	//pPlane = m_sceneManager->CreatePlane("Wall -X", 6.0f, 12.0f, NXPlaneAxis(POSITIVE_X), Vector3(-4.0f, 3.0f, 0.0f));
-	//pPlane->SetMaterialPBR(pPBRMat[0]);
-
-	//pPlane = m_sceneManager->CreatePlane("Wall +X", 6.0f, 12.0f, NXPlaneAxis(NEGATIVE_X), Vector3(4.0f, 3.0f, 0.0f));
-	//pPlane->SetMaterialPBR(pPBRMat[0]);
-
-	//auto pPlane = m_sceneManager->CreatePlane("Wall 1", 4.0f, 4.0f, NXPlaneAxis(NEGATIVE_Z), Vector3(0.0f, 0.0f, 4.0f));
-	//pPlane->SetMaterialPBR(pPBRMat[0]);
-
-	for (int i = 0; i < 6; i++)
-	{
-		float posX = ((float)i - 3.0f) * 2.0f;
-		auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 128, 128, Vector3(posX, 0.0f, 0.0f));
-		pSphere->SetMaterialPBR(pPBRMat[i]);
-
-		//float posX = ((float)i - 3.0f) * 2.0f;
-		auto pPlane = m_sceneManager->CreatePlane("Wall", 2.0f, 2.0f, NXPlaneAxis(POSITIVE_Y), Vector3(posX, 0.0f, 5.0f));
-		pPlane->SetMaterialPBR(pPBRMat[i]);  
-	}
-
-	//pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 16, 16, Vector3(-1.0f, 1.0f, 2.0f));
-	//pSphere->SetMaterialPBR(pPBRMat[3]);
-
-	//NXPlane* pLight = m_sceneManager->CreatePlane("Light", 2.0f, 2.0f, NXPlaneAxis(NEGATIVE_Y), Vector3(0.0f, 5.999f, 2.0f));
-	//pLight->SetMaterialPBR(pPBRMat[0]);
-
-	//float a[11] = { 0.001, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0 };
-	//Vector3 rBaseColor = Vector3(1.0, 0.782, 0.344);
-	//int sz = 11;
-	//for (int i = 0; i < sz; i++)
-	//{
-	//	float metallic = a[i];
-	//	for(int j = 0; j < sz; j++)
-	//	{
-	//		Vector2 randomPos(i, j);
-	//		auto pSphere = m_sceneManager->CreateSphere(
-	//			"Sphere",
-	//			0.5f, 16, 16,
-	//			Vector3(randomPos.x, 0.5f, randomPos.y) * 1.2f
-	//		);
-
-	//		float roughness = a[j];
-	//		auto m = m_sceneManager->CreatePBRMaterial(Vector3(1.0f, 0.782f, 0.344f), metallic, roughness, 0.0f, 0.0f, 0.0f);
-	//		pSphere->SetMaterialPBR(m);
-	//	}
-	//}
-
-	std::vector<NXMesh*> pMeshes;
-	bool pMesh = m_sceneManager->CreateFBXMeshes(
-		//"D:\\3.fbx", 
-		"D:\\NixAssets\\guns\\Cerberus_LP.FBX",
-		pPBRMat[6],
-		pMeshes
-	); 
-	pMeshes[0]->SetScale(Vector3(0.05f));
-
-	//pMeshes[0]->SetMaterialPBR(pPBRMat);
-	//pMeshes[1]->SetMaterialPBR(pPBRMat);
-
-	if (!pMeshes.empty())
 	{
 		//bool bBind = m_sceneManager->BindParent(pMeshes[1], pSphere);
 		auto pScript_test = new NSTest();
-		pMeshes[0]->AddScript(pScript_test);
+		pSphere->AddScript(pScript_test);
 	}
+
+	// 设置Picking Object（Demo用，临时）
+	SetCurrentPickingObject(pSphere);
 
 	auto pCamera = m_sceneManager->CreateCamera(
 		"Camera1",
 		70.0f, 0.01f, 1000.f,
-		//Vector3(0.0f, 1.0f, 0.0f),
-		//Vector3(0.0f, 0.0f, 0.0001f),
-		Vector3(0.0f, 3.0f, -5.0f),
-		Vector3(0.0f, 3.0f, 0.0f),
-		//Vector3(0.201792, 0.895896, -1.904944),
-		//Vector3(0.201792, 0.895896, -0.904944),
+		Vector3(0.0f, 0.0f, -2.0f),
+		Vector3(0.0f, 0.0f, 0.0f),
 		Vector3(0.0f, 1.0f, 0.0f)
 	);
 
-	//m_sceneManager->CreateCubeMap("Sky", L"D:\\test.dds");
-	//m_sceneManager->CreateCubeMap("Sky", L"D:\\sunsetcube1024.dds");
 	m_sceneManager->CreateCubeMap("Sky", L"D:\\Alexs_Apt_2k.hdr");
 
 	// 更新AABB需要世界坐标，而Init阶段还没有拿到世界坐标，所以需要提前PrevUpdate一次。
@@ -295,18 +188,14 @@ void NXScene::InitScripts()
 {
 	auto pMainCamera = GetMainCamera();
 
-	NSFirstPersonalCamera* pScript = dynamic_cast<NSFirstPersonalCamera*>(m_sceneManager->CreateScript(NXScriptType::NXSCRIPT_FIRST_PERSONAL_CAMERA, pMainCamera));
-	//{
-	//	NSFirstPersonalCamera* pScript2 = dynamic_cast<NSFirstPersonalCamera*>(new NSFirstPersonalCamera());
-	//	pMainCamera->AddScript(pScript2);
-	//}
+	//NSFirstPersonalCamera* pScript = dynamic_cast<NSFirstPersonalCamera*>(m_sceneManager->CreateScript(NXScriptType::NXSCRIPT_FIRST_PERSONAL_CAMERA, pMainCamera));
 
-	m_sceneManager->AddEventListener(NXEventType::NXEVENT_KEYDOWN, pMainCamera, std::bind(&NSFirstPersonalCamera::OnKeyDown, pScript, std::placeholders::_1));
-	m_sceneManager->AddEventListener(NXEventType::NXEVENT_KEYUP, pMainCamera, std::bind(&NSFirstPersonalCamera::OnKeyUp, pScript, std::placeholders::_1));
-	m_sceneManager->AddEventListener(NXEventType::NXEVENT_MOUSEUP, pMainCamera, std::bind(&NSFirstPersonalCamera::OnMouseMove, pScript, std::placeholders::_1));
+	//m_sceneManager->AddEventListener(NXEventType::NXEVENT_KEYDOWN, pMainCamera, std::bind(&NSFirstPersonalCamera::OnKeyDown, pScript, std::placeholders::_1));
+	//m_sceneManager->AddEventListener(NXEventType::NXEVENT_KEYUP, pMainCamera, std::bind(&NSFirstPersonalCamera::OnKeyUp, pScript, std::placeholders::_1));
+	//m_sceneManager->AddEventListener(NXEventType::NXEVENT_MOUSEUP, pMainCamera, std::bind(&NSFirstPersonalCamera::OnMouseMove, pScript, std::placeholders::_1));
 
-	m_sceneManager->AddEventListener(NXEventType::NXEVENT_MOUSEDOWN, this, std::bind(&NXScene::OnMouseDown, this, std::placeholders::_1));
-	m_sceneManager->AddEventListener(NXEventType::NXEVENT_KEYDOWN, this, std::bind(&NXScene::OnKeyDown, this, std::placeholders::_1));
+	//m_sceneManager->AddEventListener(NXEventType::NXEVENT_MOUSEDOWN, this, std::bind(&NXScene::OnMouseDown, this, std::placeholders::_1));
+	//m_sceneManager->AddEventListener(NXEventType::NXEVENT_KEYDOWN, this, std::bind(&NXScene::OnKeyDown, this, std::placeholders::_1));
 }
 
 void NXScene::UpdateTransform(NXObject* pObject)

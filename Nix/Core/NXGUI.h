@@ -1,5 +1,6 @@
 #pragma once
 #include "Header.h"
+#include "NXScene.h"
 
 class NXGUI
 {
@@ -11,6 +12,12 @@ public:
 	void Render();
 	void Release();
 
-private:
+	void SetCurrentPrimitive(NXScene* pScene) { m_pCurrentScene = pScene; }
 
+private:
+	void RenderMaterial();
+	void RenderTextureIcon(ImTextureID ImTexID);
+
+private:
+	NXScene* m_pCurrentScene;
 };

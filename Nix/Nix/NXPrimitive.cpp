@@ -15,6 +15,7 @@ NXPrimitive::NXPrimitive() :
 	m_bEnableTangent(false),
 	m_bEnableNormalDerivative(false)
 {
+	m_type = NXType::eCamera;
 }
 
 void NXPrimitive::Update()

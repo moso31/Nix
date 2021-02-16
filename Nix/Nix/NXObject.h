@@ -4,11 +4,25 @@
 class NXObject
 {
 public:
+	// 枚举类型。2021.2.16
+	// 用于建立NXObject类型到子类型的映射。
+	enum class NXType
+	{
+		eNone,
+
+		eScene,
+
+		ePrimitive,
+		eCamera,
+	};
+
 	NXObject();
 	virtual ~NXObject();
 
 	std::string GetName();
 	void SetName(std::string name);
+
+	NXType GetType() { return m_type; }
 
 	void AddScript(NXScript* script);
 	std::vector<NXScript*> GetScripts();
@@ -29,6 +43,7 @@ public:
 protected:
 	std::string m_name;
 	std::vector<NXScript*> m_scripts;
+	NXType m_type;
 	
 private:
 	NXObject* m_parent;

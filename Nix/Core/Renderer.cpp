@@ -28,7 +28,7 @@ void Renderer::Init()
 		m_pDeferredRenderer->Init();
 
 		// 这个bool将来做成Settings（配置文件）之类的结构。
-		m_isDeferredShading = true;
+		m_isDeferredShading = false;
 	}
 
 	m_pPassShadowMap = new NXPassShadowMap(m_scene);
@@ -39,6 +39,7 @@ void Renderer::InitGUI()
 {
 	m_pGUI = new NXGUI();
 	m_pGUI->Init();
+	m_pGUI->SetCurrentPrimitive(m_scene);
 }
 
 void Renderer::InitRenderer()
