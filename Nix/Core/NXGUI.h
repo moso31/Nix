@@ -20,4 +20,5 @@ private:
 
 private:
 	NXScene* m_pCurrentScene;
+	ImGui::FileBrowser m_fileBrowser;
 };

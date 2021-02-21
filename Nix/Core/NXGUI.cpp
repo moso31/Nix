@@ -12,7 +12,9 @@ NXGUI::~NXGUI()
 
 void NXGUI::Init()
 {
-	// UI
+	m_fileBrowser.SetTitle("File Browser");
+	m_fileBrowser.SetTypeFilters({ ".*", ".dds" });
+
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
