@@ -1,5 +1,9 @@
 #pragma once
 #include "NXScript.h"
+#include "NXEvent.h"
+#include "NXInput.h"
+#include "NXTimer.h"
+#include "NXCamera.h"
 
 #define POSITIVE_X 0
 #define POSITIVE_Y 1
@@ -20,10 +24,10 @@ public:
 
 	void Update();
 
-	void OnKeyDown(NXEventArg eArg);
-	void OnKeyUp(NXEventArg eArg);
-	void OnMouseDown(NXEventArg eArg);
-	void OnMouseMove(NXEventArg eArg);
+	void OnKeyDown(const NXKeyEventArgs& eArg);
+	void OnKeyUp(const NXKeyEventArgs& eArg);
+	void OnMouseDown(const NXMouseEventArgs& eArg);
+	void OnMouseMove(const NXMouseEventArgs& eArg);
 
 private:
 	NXCamera* m_pCamera;

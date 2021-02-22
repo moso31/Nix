@@ -10,8 +10,8 @@ public:
 	NXScene();
 	~NXScene();
 
-	void OnMouseDown(NXEventArg eArg);
-	void OnKeyDown(NXEventArg eArg);
+	void OnMouseDown(const NXEventArgs& eArg);
+	void OnKeyDown(const NXEventArgs& eArg);
 
 	void Init();
 	void InitScripts();

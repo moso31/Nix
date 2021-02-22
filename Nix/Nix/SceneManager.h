@@ -25,7 +25,7 @@ public:
 	void BuildBVHTrees(const HBVHSplitMode SplitMode);
 
 	NXScript* CreateScript(const NXScriptType scriptType, NXObject* pObject);
-	NXListener*	AddEventListener(const NXEventType eventType, NXObject* pObject, const std::function<void(NXEventArg)>& pFunc);
+	NXListener*	AddEventListener(const NXEventType eventType, NXObject* pObject, const std::function<void(NXEventArgs)>& pFunc);
 
 	NXBox* CreateBox(const std::string name, const float width, const float height, const float length, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));
 	NXSphere* CreateSphere(const std::string name, const float radius, const UINT segmentHorizontal, const UINT segmentVertical, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));

@@ -99,32 +99,32 @@ void NXInput::UpdateRawInput(LPARAM lParam)
 	if (GetRawInputData((HRAWINPUT)lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER)) != dwSize)
 		printf("注意：GetRawInputData返回的数据值和预计的长度不匹配！这可能会造成未知错误\n");
 
-	NXEventArg eArg;
-	XMINT2 cursor = MousePosition();
-	eArg.X = cursor.x;
-	eArg.Y = cursor.y;
-
 	RAWINPUT* raw = (RAWINPUT*)lpb;
 
 	if (raw->header.dwType == RIM_TYPEKEYBOARD)
 	{
 		//LOGMSG(raw->data.keyboard.MakeCode, raw->data.keyboard.Flags, raw->data.keyboard.Reserved, raw->data.keyboard.ExtraInformation, raw->data.keyboard.Message, raw->data.keyboard.VKey);
-		eArg.VKey = raw->data.keyboard.VKey;
+		NXKeyEventArgs eArgs;
+		eArgs.VKey = raw->data.keyboard.VKey;
 		bool bIsPressing = (raw->data.keyboard.Flags & 1) == 0;
 
-		m_keyState[eArg.VKey] = bIsPressing;
-		m_keyActivite[eArg.VKey] = true;
+		m_keyState[eArgs.VKey] = bIsPressing;
+		m_keyActivite[eArgs.VKey] = true;
 
-		if (bIsPressing) NXEventKeyDown::GetInstance().OnNotify(eArg);
-		else NXEventKeyUp::GetInstance().OnNotify(eArg);
+		if (bIsPressing) NXEventKeyDown::GetInstance().Notify(eArgs);
+		else NXEventKeyUp::GetInstance().Notify(eArgs);
 	}
 	else if (raw->header.dwType == RIM_TYPEMOUSE)
 	{
 		//LOGMSG(raw->data.mouse.usFlags, raw->data.mouse.ulButtons, raw->data.mouse.usButtonFlags, raw->data.mouse.usButtonData, raw->data.mouse.ulRawButtons, raw->data.mouse.lLastX, raw->data.mouse.lLastY, raw->data.mouse.ulExtraInformation);
 
-		eArg.VMouse = raw->data.mouse.usButtonFlags;
-		eArg.VWheel = raw->data.mouse.usButtonData;
-		int iMousePressing = eArg.VMouse;
+		NXMouseEventArgs eArgs;
+		XMINT2 cursor = MousePosition();
+		eArgs.X = cursor.x;
+		eArgs.Y = cursor.y;
+		eArgs.VMouse = raw->data.mouse.usButtonFlags;
+		eArgs.VWheel = raw->data.mouse.usButtonData;
+		int iMousePressing = eArgs.VMouse;
 		int count = 0;
 
 		bool bIsPressing = false;
@@ -139,16 +139,16 @@ void NXInput::UpdateRawInput(LPARAM lParam)
 			count++;
 		}
 
-		eArg.LastX = raw->data.mouse.lLastX;
-		eArg.LastY = raw->data.mouse.lLastY;
-		m_mouseMove.x = eArg.LastX;
-		m_mouseMove.y = eArg.LastY;
+		eArgs.LastX = raw->data.mouse.lLastX;
+		eArgs.LastY = raw->data.mouse.lLastY;
+		m_mouseMove.x = eArgs.LastX;
+		m_mouseMove.y = eArgs.LastY;
 
-		if (bIsPressing) NXEventMouseDown::GetInstance().OnNotify(eArg);
-		else NXEventMouseUp::GetInstance().OnNotify(eArg);
+		if (bIsPressing) NXEventMouseDown::GetInstance().Notify(eArgs);
+		else NXEventMouseUp::GetInstance().Notify(eArgs);
 
-		if (eArg.LastX || eArg.LastY)
-			NXEventMouseMove::GetInstance().OnNotify(eArg);
+		if (eArgs.LastX || eArgs.LastY)
+			NXEventMouseMove::GetInstance().Notify(eArgs);
 	}
 
 	//PrintMouseState();

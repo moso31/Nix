@@ -9,11 +9,11 @@ void NXEvent::AddListener(NXListener* pListener)
 	m_listeners.push_back(pListener);
 }
 
-void NXEvent::OnNotify(NXEventArg eArg)
+void NXEvent::Notify(const NXEventArgs& eArgs)
 {
 	for (auto listener : m_listeners)
 	{
-		listener->GetFunc()(eArg);
+		listener->Update(eArgs);
 	}
 }
 

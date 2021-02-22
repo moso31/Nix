@@ -457,6 +457,12 @@
     <ClInclude Include="Core\NXGUIImpl.h">
       <Filter>Core\UI</Filter>
     </ClInclude>
+    <ClInclude Include="Core\NXGUIFileBrowser.h">
+      <Filter>Core\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXEventArgs.h">
+      <Filter>Core\Input</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="场景添加物体说明.txt" />

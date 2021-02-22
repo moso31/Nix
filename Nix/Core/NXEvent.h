@@ -1,18 +1,7 @@
 #pragma once
 #include "NXListener.h"
 #include "NXInstance.h"
-
-struct NXEventArg
-{
-	USHORT X, Y;
-	union
-	{
-		USHORT VKey;
-		USHORT VMouse;
-	};
-	LONG LastX, LastY;
-	USHORT VWheel;
-};
+#include "NXEventArgs.h"
 
 enum NXEventType
 {
@@ -24,14 +13,18 @@ enum NXEventType
 	NXEVENT_MOUSEMOVE
 };
 
+// 监听器机制中的事件。
 class NXEvent
 {
 public:
 	NXEvent() : m_type(NXEVENT_NONE) {}
 	virtual ~NXEvent();
 
+	// 为当前事件（比如鼠标移动，键盘按下，按钮点击……）添加一个监听器。
 	virtual void AddListener(NXListener* pListener);
-	void OnNotify(NXEventArg eArg);
+
+	// 推送事件。
+	virtual void Notify(const NXEventArgs& eArgs);
 
 	NXEventType GetType() const { return m_type; }
 	void SetType(const NXEventType type) { m_type = type; }

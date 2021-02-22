@@ -268,8 +268,10 @@
     <ClInclude Include="Core\NXDeferredRenderer.h" />
     <ClInclude Include="Core\NXDXHelper.h" />
     <ClInclude Include="Core\NXEvent.h" />
+    <ClInclude Include="Core\NXEventArgs.h" />
     <ClInclude Include="Core\NXForwardRenderer.h" />
     <ClInclude Include="Core\NXGUI.h" />
+    <ClInclude Include="Core\NXGUIFileBrowser.h" />
     <ClInclude Include="Core\NXGUIImpl.h" />
     <ClInclude Include="Core\NXInput.h" />
     <ClInclude Include="Core\NXInstance.h" />

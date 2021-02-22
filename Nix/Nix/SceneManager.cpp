@@ -45,7 +45,7 @@ NXScript* SceneManager::CreateScript(const NXScriptType scriptType, NXObject* pO
 	}
 }
 
-NXListener* SceneManager::AddEventListener(const NXEventType eventType, NXObject* pObject, const std::function<void(NXEventArg)>& pFunc)
+NXListener* SceneManager::AddEventListener(const NXEventType eventType, NXObject* pObject, const std::function<void(NXEventArgs)>& pFunc)
 {
 	auto pListener = new NXListener(pObject, pFunc);
 	switch (eventType)
