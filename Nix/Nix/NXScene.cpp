@@ -4,7 +4,6 @@
 #include "GlobalBufferManager.h"
 #include "NXIntersection.h"
 #include "NXRandom.h"
-#include "NXEventArgs.h"
 //#include "HBVH.h"
 
 #include "NXMesh.h"
@@ -46,14 +45,14 @@ NXScene::~NXScene()
 {
 }
 
-void NXScene::OnMouseDown(const NXEventArgs& eArg)
+void NXScene::OnMouseDown(NXEventArgMouse eArg)
 {
 	auto ray = GetMainCamera()->GenerateRay(Vector2(eArg.X, eArg.Y));
 	//printf("cursor: %.3f, %.3f\n", (float)eArg.X, (float)eArg.Y);
 	//printf("pos: %.3f, %.3f, %.3f; dir: %.3f, %.3f, %.3f\n", ray.position.x, ray.position.y, ray.position.z, ray.direction.x, ray.direction.y, ray.direction.z);
 }
 
-void NXScene::OnKeyDown(const NXEventArgs& eArg)
+void NXScene::OnKeyDown(NXEventArgKey eArg)
 {
 	switch (eArg.VKey)
 	{
@@ -188,14 +187,15 @@ void NXScene::Init()
 void NXScene::InitScripts()
 {
 	auto pMainCamera = GetMainCamera();
+
 	NSFirstPersonalCamera* pScript = dynamic_cast<NSFirstPersonalCamera*>(m_sceneManager->CreateScript(NXScriptType::NXSCRIPT_FIRST_PERSONAL_CAMERA, pMainCamera));
 
-	m_sceneManager->AddEventListener(NXEventType::NXEVENT_KEYDOWN, pMainCamera, std::bind(&NSFirstPersonalCamera::OnKeyDown, pScript, std::placeholders::_1));
-	m_sceneManager->AddEventListener(NXEventType::NXEVENT_KEYUP, pMainCamera, std::bind(&NSFirstPersonalCamera::OnKeyUp, pScript, std::placeholders::_1));
-	m_sceneManager->AddEventListener(NXEventType::NXEVENT_MOUSEUP, pMainCamera, std::bind(&NSFirstPersonalCamera::OnMouseMove, pScript, std::placeholders::_1));
+	NXEventKeyDown::GetInstance().AddListener(std::bind(&NSFirstPersonalCamera::OnKeyDown, pScript, std::placeholders::_1));
+	NXEventKeyUp::GetInstance().AddListener(std::bind(&NSFirstPersonalCamera::OnKeyUp, pScript, std::placeholders::_1));
+	NXEventMouseMove::GetInstance().AddListener(std::bind(&NSFirstPersonalCamera::OnMouseMove, pScript, std::placeholders::_1));
 
-	m_sceneManager->AddEventListener(NXEventType::NXEVENT_MOUSEDOWN, this, std::bind(&NXScene::OnMouseDown, this, std::placeholders::_1));
-	m_sceneManager->AddEventListener(NXEventType::NXEVENT_KEYDOWN, this, std::bind(&NXScene::OnKeyDown, this, std::placeholders::_1));
+	NXEventKeyDown::GetInstance().AddListener(std::bind(&NXScene::OnKeyDown, this, std::placeholders::_1));
+	NXEventMouseDown::GetInstance().AddListener(std::bind(&NXScene::OnMouseDown, this, std::placeholders::_1));
 }
 
 void NXScene::UpdateTransform(NXObject* pObject)

@@ -1,8 +1,6 @@
 #pragma once
 #include "SceneManager.h"
-
-// temp include.
-#include "ShaderStructures.h"
+#include "NXEvent.h"
 
 class NXScene : public NXObject
 {
@@ -10,8 +8,8 @@ public:
 	NXScene();
 	~NXScene();
 
-	void OnMouseDown(const NXEventArgs& eArg);
-	void OnKeyDown(const NXEventArgs& eArg);
+	void OnMouseDown(NXEventArgMouse eArg);
+	void OnKeyDown(NXEventArgKey eArg);
 
 	void Init();
 	void InitScripts();

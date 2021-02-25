@@ -45,43 +45,6 @@ NXScript* SceneManager::CreateScript(const NXScriptType scriptType, NXObject* pO
 	}
 }
 
-NXListener* SceneManager::AddEventListener(const NXEventType eventType, NXObject* pObject, const std::function<void(NXEventArgs)>& pFunc)
-{
-	auto pListener = new NXListener(pObject, pFunc);
-	switch (eventType)
-	{
-	case NXEventType::NXEVENT_KEYDOWN:
-	{
-		NXEventKeyDown::GetInstance().AddListener(pListener);
-		break;
-	}
-	case NXEventType::NXEVENT_KEYUP:
-	{
-		NXEventKeyUp::GetInstance().AddListener(pListener);
-		break;
-	}
-	case NXEventType::NXEVENT_MOUSEDOWN:
-	{
-		NXEventMouseDown::GetInstance().AddListener(pListener);
-		break;
-	}
-	case NXEventType::NXEVENT_MOUSEUP:
-	{
-		NXEventMouseUp::GetInstance().AddListener(pListener);
-		break;
-	}
-	case NXEventType::NXEVENT_MOUSEMOVE:
-	{
-		NXEventMouseMove::GetInstance().AddListener(pListener);
-		break;
-	}
-	default:
-		delete pListener;
-		return nullptr;
-	}
-	return pListener;
-}
-
 NXBox* SceneManager::CreateBox(const std::string name, const float width, const float height, const float length, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
 {
 	auto p = new NXBox();

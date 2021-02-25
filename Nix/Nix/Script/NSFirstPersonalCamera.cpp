@@ -1,5 +1,10 @@
 #include "NSFirstPersonalCamera.h"
 
+#include "NXCamera.h"
+#include "NXEvent.h"
+#include "NXInput.h"
+#include "NXTimer.h"
+
 NSFirstPersonalCamera::NSFirstPersonalCamera() :
 	m_fMoveSpeed(3.0f),
 	m_fSensitivity(0.005f),
@@ -42,7 +47,7 @@ void NSFirstPersonalCamera::Update()
 	pCamera->SetTranslation(result);
 }
 
-void NSFirstPersonalCamera::OnKeyDown(const NXKeyEventArgs& eArg)
+void NSFirstPersonalCamera::OnKeyDown(NXEventArgKey eArg)
 {
 	if (eArg.VKey == 'W') m_bMoveState[POSITIVE_Z] = true;
 	if (eArg.VKey == 'S') m_bMoveState[NEGATIVE_Z] = true;
@@ -55,7 +60,7 @@ void NSFirstPersonalCamera::OnKeyDown(const NXKeyEventArgs& eArg)
 	if (eArg.VKey == NXKeyCode::LeftControl) m_bSpeedState = SPEED_LOW;
 }
 
-void NSFirstPersonalCamera::OnKeyUp(const NXKeyEventArgs& eArg)
+void NSFirstPersonalCamera::OnKeyUp(NXEventArgKey eArg)
 {
 	if (eArg.VKey == 'W') m_bMoveState[POSITIVE_Z] = false;
 	if (eArg.VKey == 'S') m_bMoveState[NEGATIVE_Z] = false;
@@ -68,11 +73,11 @@ void NSFirstPersonalCamera::OnKeyUp(const NXKeyEventArgs& eArg)
 	if (eArg.VKey == NXKeyCode::LeftControl) m_bSpeedState = SPEED_MID;
 }
 
-void NSFirstPersonalCamera::OnMouseDown(const NXMouseEventArgs& eArg)
+void NSFirstPersonalCamera::OnMouseDown(NXEventArgMouse eArg)
 {
 }
 
-void NSFirstPersonalCamera::OnMouseMove(const NXMouseEventArgs& eArg)
+void NSFirstPersonalCamera::OnMouseMove(NXEventArgMouse eArg)
 {
 	auto pCamera = dynamic_cast<NXCamera*>(m_pObject);
 
