@@ -39,7 +39,7 @@ void Renderer::InitGUI()
 {
 	m_pGUI = new NXGUI();
 	m_pGUI->Init();
-	m_pGUI->SetCurrentPrimitive(m_scene);
+	m_pGUI->SetCurrentScene(m_scene);
 }
 
 void Renderer::InitRenderer()

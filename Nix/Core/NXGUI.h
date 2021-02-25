@@ -1,7 +1,5 @@
 #pragma once
-#include "Header.h"
-#include "NXScene.h"
-#include "NXGUIFileBrowser.h"
+#include "NXGUIMaterial.h"
 
 class NXGUI
 {
@@ -9,11 +7,11 @@ public:
 	NXGUI();
 	~NXGUI();
 
-	void Init();
+	void Init(NXScene* pScene);
 	void Render();
 	void Release();
 
-	void SetCurrentPrimitive(NXScene* pScene) { m_pCurrentScene = pScene; }
+	void SetCurrentScene(NXScene* pScene) { m_pCurrentScene = pScene; }
 
 private:
 	void RenderMaterial();
@@ -21,5 +19,5 @@ private:
 
 private:
 	NXScene* m_pCurrentScene;
-	ImGui::FileBrowser m_fileBrowser;
+	NXGUIMaterial* m_pMaterialGUI;
 };

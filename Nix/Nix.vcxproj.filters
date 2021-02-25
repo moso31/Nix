@@ -281,6 +281,9 @@
     <ClCompile Include="Core\NXGUI.cpp">
       <Filter>Core\UI</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXGUIMaterial.cpp">
+      <Filter>Core\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -454,8 +457,8 @@
     <ClInclude Include="Core\NXGUIFileBrowser.h">
       <Filter>Core\UI</Filter>
     </ClInclude>
-    <ClInclude Include="Core\NXEventArgs.h">
-      <Filter>Core\Input</Filter>
+    <ClInclude Include="Core\NXGUIMaterial.h">
+      <Filter>Core\UI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

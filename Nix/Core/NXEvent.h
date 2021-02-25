@@ -14,6 +14,11 @@ struct NXEventArgMouse
 	USHORT VWheel;
 };
 
+struct NXEventArgGUIFileBrowser
+{
+	int temp_value;
+};
+
 template<typename... Args>
 class NXEvent
 {
@@ -46,3 +51,5 @@ class NXEventKeyDown : public NXEvent<NXEventArgKey>, public NXInstance<NXEventK
 class NXEventMouseUp : public NXEvent<NXEventArgMouse>, public NXInstance<NXEventMouseUp> {};
 class NXEventMouseDown : public NXEvent<NXEventArgMouse>, public NXInstance<NXEventMouseDown> {};
 class NXEventMouseMove : public NXEvent<NXEventArgMouse>, public NXInstance<NXEventMouseMove> {};
+
+class NXEventGUIFileBrowser : public NXEvent<NXEventArgGUIFileBrowser>, public NXInstance<NXEventGUIFileBrowser> {};

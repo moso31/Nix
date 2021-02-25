@@ -181,7 +181,7 @@ void NXScene::Init()
 		InitShadowMapTransformInfo(NXGlobalBufferManager::m_cbDataShadowMap);
 	}
 
-	InitScripts();
+	//InitScripts();
 }
 
 void NXScene::InitScripts()
