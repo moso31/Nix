@@ -99,29 +99,30 @@ void NXInput::UpdateRawInput(LPARAM lParam)
 	if (GetRawInputData((HRAWINPUT)lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER)) != dwSize)
 		printf("注意：GetRawInputData返回的数据值和预计的长度不匹配！这可能会造成未知错误\n");
 
-	NXEventArg eArg;
-	XMINT2 cursor = MousePosition();
-	eArg.X = cursor.x;
-	eArg.Y = cursor.y;
-
 	RAWINPUT* raw = (RAWINPUT*)lpb;
 
 	if (raw->header.dwType == RIM_TYPEKEYBOARD)
 	{
 		//LOGMSG(raw->data.keyboard.MakeCode, raw->data.keyboard.Flags, raw->data.keyboard.Reserved, raw->data.keyboard.ExtraInformation, raw->data.keyboard.Message, raw->data.keyboard.VKey);
+
+		NXEventArgKey eArg;
 		eArg.VKey = raw->data.keyboard.VKey;
 		bool bIsPressing = (raw->data.keyboard.Flags & 1) == 0;
 
 		m_keyState[eArg.VKey] = bIsPressing;
 		m_keyActivite[eArg.VKey] = true;
 
-		if (bIsPressing) NXEventKeyDown::GetInstance().OnNotify(eArg);
-		else NXEventKeyUp::GetInstance().OnNotify(eArg);
+		if (bIsPressing) NXEventKeyDown::GetInstance().Notify(eArg);
+		else NXEventKeyUp::GetInstance().Notify(eArg);
 	}
 	else if (raw->header.dwType == RIM_TYPEMOUSE)
 	{
 		//LOGMSG(raw->data.mouse.usFlags, raw->data.mouse.ulButtons, raw->data.mouse.usButtonFlags, raw->data.mouse.usButtonData, raw->data.mouse.ulRawButtons, raw->data.mouse.lLastX, raw->data.mouse.lLastY, raw->data.mouse.ulExtraInformation);
 
+		NXEventArgMouse eArg;
+		XMINT2 cursor = MousePosition();
+		eArg.X = cursor.x;
+		eArg.Y = cursor.y;
 		eArg.VMouse = raw->data.mouse.usButtonFlags;
 		eArg.VWheel = raw->data.mouse.usButtonData;
 		int iMousePressing = eArg.VMouse;
@@ -144,11 +145,11 @@ void NXInput::UpdateRawInput(LPARAM lParam)
 		m_mouseMove.x = eArg.LastX;
 		m_mouseMove.y = eArg.LastY;
 
-		if (bIsPressing) NXEventMouseDown::GetInstance().OnNotify(eArg);
-		else NXEventMouseUp::GetInstance().OnNotify(eArg);
+		if (bIsPressing) NXEventMouseDown::GetInstance().Notify(eArg);
+		else NXEventMouseUp::GetInstance().Notify(eArg);
 
 		if (eArg.LastX || eArg.LastY)
-			NXEventMouseMove::GetInstance().OnNotify(eArg);
+			NXEventMouseMove::GetInstance().Notify(eArg);
 	}
 
 	//PrintMouseState();

@@ -61,7 +61,6 @@ using namespace Microsoft::WRL;
 class App;
 class DirectResources;
 class NXInput;
-struct NXEventArg;
 class NXScript;
 class NXTimer;
 

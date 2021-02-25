@@ -2,78 +2,48 @@
 #include "NXListener.h"
 #include "NXInstance.h"
 
-struct NXEventArg
+struct NXEventArgKey
+{
+	USHORT VKey;
+};
+
+struct NXEventArgMouse
 {
 	USHORT X, Y;
-	union
-	{
-		USHORT VKey;
-		USHORT VMouse;
-	};
+	USHORT VMouse;
 	LONG LastX, LastY;
 	USHORT VWheel;
 };
 
-enum NXEventType
-{
-	NXEVENT_NONE,
-	NXEVENT_KEYDOWN,
-	NXEVENT_KEYUP,
-	NXEVENT_MOUSEDOWN,
-	NXEVENT_MOUSEUP,
-	NXEVENT_MOUSEMOVE
-};
-
+template<typename... Args>
 class NXEvent
 {
+	using NXEventCallbackFunc = std::function<void(Args...)>;
 public:
-	NXEvent() : m_type(NXEVENT_NONE) {}
-	virtual ~NXEvent();
+	NXEvent() {}
+	~NXEvent() {}
 
-	virtual void AddListener(NXListener* pListener);
-	void OnNotify(NXEventArg eArg);
+	void AddListener(NXEventCallbackFunc callbackFunc)
+	{
+		m_callbackFuncs.push_back(callbackFunc);
+	}
 
-	NXEventType GetType() const { return m_type; }
-	void SetType(const NXEventType type) { m_type = type; }
+	void Notify(Args... args)
+	{
+		for (auto callbackFunc : m_callbackFuncs)
+			callbackFunc(args...);
+	}
 
-	void Release();
+	void Release()
+	{
+	}
 
 protected:
-	std::vector<NXListener*> m_listeners;
-	NXEventType m_type;
+	std::vector<NXEventCallbackFunc> m_callbackFuncs;
 };
 
-class NXEventKeyDown : public NXEvent, public NXInstance<NXEventKeyDown>
-{
-public:
-	NXEventKeyDown() { m_type = NXEVENT_KEYDOWN; }
-	~NXEventKeyDown() {}
-};
-
-class NXEventKeyUp : public NXEvent, public NXInstance<NXEventKeyUp>
-{
-public:
-	NXEventKeyUp() { m_type = NXEVENT_KEYUP; }
-	~NXEventKeyUp() {}
-};
-
-class NXEventMouseDown : public NXEvent, public NXInstance<NXEventMouseDown>
-{
-public:
-	NXEventMouseDown() { m_type = NXEVENT_MOUSEDOWN; }
-	~NXEventMouseDown() {}
-};
-
-class NXEventMouseUp : public NXEvent, public NXInstance<NXEventMouseUp>
-{
-public:
-	NXEventMouseUp() { m_type = NXEVENT_MOUSEUP; }
-	~NXEventMouseUp() {}
-};
-
-class NXEventMouseMove : public NXEvent, public NXInstance<NXEventMouseMove>
-{
-public:
-	NXEventMouseMove() { m_type = NXEVENT_MOUSEMOVE; }
-	~NXEventMouseMove() {}
-};
+class NXEventKeyUp: public NXEvent<NXEventArgKey>, public NXInstance<NXEventKeyUp> {};
+class NXEventKeyDown : public NXEvent<NXEventArgKey>, public NXInstance<NXEventKeyDown> {};
+class NXEventMouseUp : public NXEvent<NXEventArgMouse>, public NXInstance<NXEventMouseUp> {};
+class NXEventMouseDown : public NXEvent<NXEventArgMouse>, public NXInstance<NXEventMouseDown> {};
+class NXEventMouseMove : public NXEvent<NXEventArgMouse>, public NXInstance<NXEventMouseMove> {};

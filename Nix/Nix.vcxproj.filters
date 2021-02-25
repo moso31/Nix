@@ -143,9 +143,6 @@
     <ClCompile Include="Core\NXInput.cpp">
       <Filter>Core\Input</Filter>
     </ClCompile>
-    <ClCompile Include="Core\NXListener.cpp">
-      <Filter>Core\Input</Filter>
-    </ClCompile>
     <ClCompile Include="Core\NXTimer.cpp">
       <Filter>Core\Helper</Filter>
     </ClCompile>
@@ -308,9 +305,6 @@
       <Filter>Core\Input</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXInput.h">
-      <Filter>Core\Input</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\NXListener.h">
       <Filter>Core\Input</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXTimer.h">
