@@ -6,13 +6,17 @@
 class NXGUIMaterial
 {
 public:
-	NXGUIMaterial();
+	NXGUIMaterial(NXScene* pScene = nullptr, ImGui::FileBrowser* pFileBrowser = nullptr);
 	~NXGUIMaterial() {}
 
 	void SetCurrentScene(NXScene* pScene) { m_pCurrentScene = pScene; }
 	void Render();
 
 private:
-	// Material GUI 所对应的场景
+	void RenderTextureIcon(ImTextureID ImTexID);
+
+private:
 	NXScene* m_pCurrentScene;
+
+	ImGui::FileBrowser* m_pFileBrowser;
 };

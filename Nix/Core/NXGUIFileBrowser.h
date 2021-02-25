@@ -13,8 +13,6 @@
 #   error "include imgui.h before this header"
 #endif
 
-#include "NXEvent.h"
-
 using ImGuiFileBrowserFlags = int;
 
 enum ImGuiFileBrowserFlags_
