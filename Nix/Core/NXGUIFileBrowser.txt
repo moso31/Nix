@@ -1,5 +1,4 @@
 #pragma once
-#pragma once
 #include "imfilebrowser.h"
 
 enum NXGUIFlagsFileBrowser
@@ -17,10 +16,15 @@ enum NXGUIFlagsFileBrowser
 class NXGUIFileBrowser : public ImGui::FileBrowser
 {
 public:
+	NXGUIFileBrowser();
+	~NXGUIFileBrowser();
+
     // pwd is set to current working directory by default
-    explicit NXGUIFileBrowser(NXGUIFlagsFileBrowser flags = (NXGUIFlagsFileBrowser)0);
+    explicit NXGUIFileBrowser(NXGUIFlagsFileBrowser flags = 0);
 
     NXGUIFileBrowser FileBrowser(const NXGUIFileBrowser& copyFrom);
+
+    NXGUIFileBrowser& operator=(const NXGUIFileBrowser& copyFrom);
 
     // set the window size (in pixels)
     // default is (700, 450)
@@ -75,82 +79,20 @@ public:
 private:
 };
 
-inline NXGUIFileBrowser::NXGUIFileBrowser(NXGUIFlagsFileBrowser flags)
+inline NXGUIFileBrowser::NXGUIFileBrowser()
 {
-    ImGui::FileBrowser((ImGuiFileBrowserFlags)flags);
+}
+
+inline NXGUIFileBrowser::~NXGUIFileBrowser()
+{
 }
 
 inline NXGUIFileBrowser NXGUIFileBrowser::FileBrowser(const NXGUIFileBrowser& copyFrom)
 {
-	ImGui::FileBrowser((ImGui::FileBrowser)copyFrom);
+	ImGui::FileBrowser(copyFrom);
 }
 
 inline void NXGUIFileBrowser::SetWindowSize(int width, int height) noexcept
 {
     ImGui::FileBrowser::SetWindowSize(width, height);
-}
-
-inline void NXGUIFileBrowser::SetTitle(std::string title)
-{
-    ImGui::FileBrowser::SetTitle(title);
-}
-
-inline void NXGUIFileBrowser::Open()
-{
-    ImGui::FileBrowser::Open();
-}
-
-inline void NXGUIFileBrowser::Close()
-{
-    ImGui::FileBrowser::Close();
-}
-
-inline bool NXGUIFileBrowser::IsOpened() const noexcept
-{
-    return ImGui::FileBrowser::IsOpened();
-}
-
-inline void NXGUIFileBrowser::Display()
-{
-    ImGui::FileBrowser::Display();
-}
-
-inline bool NXGUIFileBrowser::HasSelected() const noexcept
-{
-    return ImGui::FileBrowser::HasSelected();
-}
-
-inline bool NXGUIFileBrowser::SetPwd(const std::filesystem::path& pwd)
-{
-    return ImGui::FileBrowser::SetPwd(pwd);
-}
-
-inline const std::filesystem::path& NXGUIFileBrowser::GetPwd() const noexcept
-{
-    return ImGui::FileBrowser::GetPwd();
-}
-
-inline std::filesystem::path NXGUIFileBrowser::GetSelected() const
-{
-    return ImGui::FileBrowser::GetSelected();
-}
-
-inline std::vector<std::filesystem::path> NXGUIFileBrowser::GetMultiSelected() const
-{
-    return ImGui::FileBrowser::GetMultiSelected();
-}
-
-inline void NXGUIFileBrowser::ClearSelected()
-{
-    ImGui::FileBrowser::ClearSelected();
-}
-
-inline void NXGUIFileBrowser::SetTypeFilters(const std::vector<std::string>& typeFilters)
-{
-    ImGui::FileBrowser::SetTypeFilters(typeFilters);
-}
-
-inline void NXGUIFileBrowser::SetCurrentTypeFilterIndex(int index)
-{
-    ImGui::FileBrowser::SetCurrentTypeFilterIndex(index);
 }

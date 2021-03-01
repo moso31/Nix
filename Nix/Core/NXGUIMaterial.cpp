@@ -1,6 +1,6 @@
 #include "NXGUIMaterial.h"
 
-NXGUIMaterial::NXGUIMaterial(NXScene* pScene, ImGui::FileBrowser* pFileBrowser) :
+NXGUIMaterial::NXGUIMaterial(NXScene* pScene, NXGUIFileBrowser* pFileBrowser) :
 	m_pCurrentScene(pScene),
 	m_pFileBrowser(pFileBrowser)
 {

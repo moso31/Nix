@@ -16,5 +16,5 @@ private:
 	NXScene* m_pCurrentScene;
 
 	NXGUIMaterial* m_pGUIMaterial;
-	ImGui::FileBrowser* m_pFileBrowser;
+	NXGUIFileBrowser* m_pFileBrowser;
 };

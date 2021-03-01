@@ -14,7 +14,7 @@ NXGUI::~NXGUI()
 
 void NXGUI::Init()
 {
-	m_pFileBrowser = new ImGui::FileBrowser();
+	m_pFileBrowser = new NXGUIFileBrowser();
 	m_pFileBrowser->SetTitle("File Browser");
 	m_pFileBrowser->SetTypeFilters({ ".*", ".dds" });
 

@@ -454,10 +454,10 @@
     <ClInclude Include="Core\NXGUIImpl.h">
       <Filter>Core\UI</Filter>
     </ClInclude>
-    <ClInclude Include="Core\NXGUIFileBrowser.h">
+    <ClInclude Include="Core\NXGUIMaterial.h">
       <Filter>Core\UI</Filter>
     </ClInclude>
-    <ClInclude Include="Core\NXGUIMaterial.h">
+    <ClInclude Include="Core\NXGUIFileBrowser.h">
       <Filter>Core\UI</Filter>
     </ClInclude>
   </ItemGroup>

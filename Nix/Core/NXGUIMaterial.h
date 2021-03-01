@@ -6,7 +6,7 @@
 class NXGUIMaterial
 {
 public:
-	NXGUIMaterial(NXScene* pScene = nullptr, ImGui::FileBrowser* pFileBrowser = nullptr);
+	NXGUIMaterial(NXScene* pScene = nullptr, NXGUIFileBrowser* pFileBrowser = nullptr);
 	~NXGUIMaterial() {}
 
 	void SetCurrentScene(NXScene* pScene) { m_pCurrentScene = pScene; }
@@ -18,5 +18,5 @@ private:
 private:
 	NXScene* m_pCurrentScene;
 
-	ImGui::FileBrowser* m_pFileBrowser;
+	NXGUIFileBrowser* m_pFileBrowser;
 };

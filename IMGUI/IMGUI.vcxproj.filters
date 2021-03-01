@@ -14,6 +14,9 @@
       <Filter>impl</Filter>
     </ClInclude>
     <ClInclude Include="imgui_stdlib.h" />
+    <ClInclude Include="imfilebrowser.h">
+      <Filter>addons</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="imgui_demo.cpp" />
@@ -32,6 +35,9 @@
   <ItemGroup>
     <Filter Include="impl">
       <UniqueIdentifier>{d13d3f93-6cb9-4a37-9c94-c6a96756e8f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="addons">
+      <UniqueIdentifier>{6d0fbef8-fe9f-444c-b1ff-4ca6fcf5876b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
