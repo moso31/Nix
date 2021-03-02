@@ -17,39 +17,52 @@ void NXGUIMaterial::Render()
 	std::string strName = pPickingObject->GetName().c_str();
 	ImGui::InputText("Name", &strName);
 
-	XMVECTOR value = XMLoadFloat3(&pPickingObject->GetTranslation());
-	ImGui::DragFloat3("Translation", value.m128_f32);
+	float fDrugSpeed = 0.001f;
+	XMVECTOR vTrans = XMLoadFloat3(&pPickingObject->GetTranslation());
+	if (ImGui::DragFloat3("Translation", vTrans.m128_f32, fDrugSpeed))
+	{
+		pPickingObject->SetTranslation(vTrans);
+	}
 
-	value = XMLoadFloat3(&pPickingObject->GetRotation().EulerXYZ());
-	ImGui::DragFloat3("Rotation", value.m128_f32);
+	XMVECTOR vRot = XMLoadFloat3(&pPickingObject->GetRotation().EulerXYZ());
+	if (ImGui::DragFloat3("Rotation", vRot.m128_f32, fDrugSpeed))
+	{
+		Quaternion qRot(vRot);
+		pPickingObject->SetRotation(Quaternion(qRot));
+	}
 
-	value = XMLoadFloat3(&pPickingObject->GetScale());
-	ImGui::DragFloat3("Scale", value.m128_f32);
+	XMVECTOR vScal = XMLoadFloat3(&pPickingObject->GetScale());
+	if (ImGui::DragFloat3("Scale", vScal.m128_f32, fDrugSpeed))
+	{
+		pPickingObject->SetScale(vScal);
+	}
 
 	NXPBRMaterial* pPickingObjectMaterial = pPickingObject->GetPBRMaterial();
 	if (pPickingObjectMaterial)
 	{
-		static XMVECTOR value = { 1.0, 1.0, 1.0 };
-
 		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVAlbedo(), std::bind(&NXGUIMaterial::OnTexAlbedoChange, this, pPickingObjectMaterial));
 		ImGui::SameLine();
-		ImGui::ColorEdit3("Albedo", value.m128_f32);
+		XMVECTORF32 fAlbedo;
+		fAlbedo.v = pPickingObjectMaterial->m_albedo;
+		ImGui::ColorEdit3("Albedo", fAlbedo.f);
 
 		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVNormal(), std::bind(&NXGUIMaterial::OnTexNormalChange, this, pPickingObjectMaterial));
 		ImGui::SameLine();
-		ImGui::ColorEdit3("Normal", value.m128_f32);
+		XMVECTORF32 fNormal;
+		fNormal.v = pPickingObjectMaterial->m_normal;
+		ImGui::ColorEdit3("Normal", fNormal.f);
 
 		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVMetallic(), std::bind(&NXGUIMaterial::OnTexMetallicChange, this, pPickingObjectMaterial));
 		ImGui::SameLine();
-		ImGui::DragFloat("Metallic", value.m128_f32);
+		ImGui::DragFloat("Metallic", &pPickingObjectMaterial->m_metallic);
 
 		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVRoughness(), std::bind(&NXGUIMaterial::OnTexRoughnessChange, this, pPickingObjectMaterial));
 		ImGui::SameLine();
-		ImGui::DragFloat("Roughness", value.m128_f32);
+		ImGui::DragFloat("Roughness", &pPickingObjectMaterial->m_roughness);
 
 		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVAO(), std::bind(&NXGUIMaterial::OnTexAOChange, this, pPickingObjectMaterial));
 		ImGui::SameLine();
-		ImGui::DragFloat("AO", value.m128_f32);
+		ImGui::DragFloat("AO", &pPickingObjectMaterial->m_ao);
 	}
 
 	ImGui::End();

@@ -14,7 +14,7 @@ public:
 		float Refract;
 	};
 
-	NXPBRMaterial(const Vector3& albedo, const float metallic, const float roughness, const float reflectivity, const float refractivity, const float IOR);
+	NXPBRMaterial(const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float reflectivity, const float refractivity, const float IOR);
 	~NXPBRMaterial() {}
 
 	Vector3 GetF0() const { return m_F0; }
@@ -40,8 +40,10 @@ public:
 
 public:
 	Vector3 m_albedo;
+	Vector3 m_normal;
 	float m_metallic;
 	float m_roughness;
+	float m_ao;
 
 	float m_reflectivity; // 镜面反射比 R
 	float m_refractivity; // 镜面折射比 T

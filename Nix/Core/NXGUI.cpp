@@ -16,7 +16,7 @@ void NXGUI::Init()
 {
 	m_pFileBrowser = new NXGUIFileBrowser();
 	m_pFileBrowser->SetTitle("File Browser");
-	m_pFileBrowser->SetTypeFilters({ ".png", ".jpg", ".bmp", ".dds" });
+	m_pFileBrowser->SetTypeFilters({ ".png", ".jpg", ".bmp", ".dds", ".tga", ".tif", "tiff"});
 	m_pFileBrowser->SetPwd("D:\\NixAssets");
 
 	m_pGUIMaterial = new NXGUIMaterial(m_pCurrentScene, m_pFileBrowser);

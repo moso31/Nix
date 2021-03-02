@@ -33,7 +33,7 @@ public:
 	bool CreateFBXMeshes(const std::string filePath, NXPBRMaterial* pDefaultMaterial, std::vector<NXMesh*>& outMeshes, bool bAutoCalcTangents = true);
 
 	NXCamera* CreateCamera(const std::string name, const float FovY, const float zNear, const float zFar, const Vector3& eye, const Vector3& at, const Vector3& up);
-	NXPBRMaterial* CreatePBRMaterial(const Vector3& albedo, const float metallic, const float roughness, const float reflectivity, const float refractivity, const float IOR);
+	NXPBRMaterial* CreatePBRMaterial(const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float reflectivity, const float refractivity, const float IOR);
 	NXPBRPointLight* CreatePBRPointLight(const Vector3& position, const Vector3& intensity);
 	NXPBRDistantLight* CreatePBRDistantLight(const Vector3& direction, const Vector3& radiance);
 	NXPBRTangibleLight* CreatePBRTangibleLight(NXPrimitive* pPrimitive, const Vector3& radiance);

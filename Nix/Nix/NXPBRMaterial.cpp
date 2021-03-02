@@ -4,10 +4,12 @@
 #include "NXReflection.h"
 #include "DirectXTex.h"
 
-NXPBRMaterial::NXPBRMaterial(const Vector3& albedo, const float metallic, const float roughness, const float reflectivity, const float refractivity, const float IOR) :
+NXPBRMaterial::NXPBRMaterial(const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float reflectivity, const float refractivity, const float IOR) :
 	m_albedo(albedo),
+	m_normal(normal),
 	m_metallic(metallic),
 	m_roughness(roughness),
+	m_ao(ao),
 	m_reflectivity(reflectivity),
 	m_refractivity(refractivity),
 	m_IOR(IOR)
@@ -28,8 +30,10 @@ ConstantBufferMaterial NXPBRMaterial::GetConstantBuffer()
 {
 	ConstantBufferMaterial cb;
 	cb.albedo = m_albedo;
+	cb.normal = m_normal;
 	cb.metallic = m_metallic;
 	cb.roughness = m_roughness;
+	cb.ao = m_ao;
 	return cb;
 }
 
