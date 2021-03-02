@@ -31,23 +31,23 @@ void NXGUIMaterial::Render()
 	{
 		static XMVECTOR value = { 1.0, 1.0, 1.0 };
 
-		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVAlbedo());
+		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVAlbedo(), std::bind(&NXGUIMaterial::OnTexAlbedoChange, this, pPickingObjectMaterial));
 		ImGui::SameLine();
 		ImGui::ColorEdit3("Albedo", value.m128_f32);
 
-		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVNormal());
+		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVNormal(), std::bind(&NXGUIMaterial::OnTexNormalChange, this, pPickingObjectMaterial));
 		ImGui::SameLine();
 		ImGui::ColorEdit3("Normal", value.m128_f32);
 
-		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVMetallic());
+		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVMetallic(), std::bind(&NXGUIMaterial::OnTexMetallicChange, this, pPickingObjectMaterial));
 		ImGui::SameLine();
 		ImGui::DragFloat("Metallic", value.m128_f32);
 
-		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVRoughness());
+		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVRoughness(), std::bind(&NXGUIMaterial::OnTexRoughnessChange, this, pPickingObjectMaterial));
 		ImGui::SameLine();
 		ImGui::DragFloat("Roughness", value.m128_f32);
 
-		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVAO());
+		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVAO(), std::bind(&NXGUIMaterial::OnTexAOChange, this, pPickingObjectMaterial));
 		ImGui::SameLine();
 		ImGui::DragFloat("AO", value.m128_f32);
 	}
@@ -55,7 +55,32 @@ void NXGUIMaterial::Render()
 	ImGui::End();
 }
 
-void NXGUIMaterial::RenderTextureIcon(ImTextureID ImTexID)
+void NXGUIMaterial::OnTexAlbedoChange(NXPBRMaterial* pPickingObjectMaterial)
+{
+	pPickingObjectMaterial->SetTexAlbedo(m_pFileBrowser->GetSelected().c_str());
+}
+
+void NXGUIMaterial::OnTexNormalChange(NXPBRMaterial* pPickingObjectMaterial)
+{
+	pPickingObjectMaterial->SetTexNormal(m_pFileBrowser->GetSelected().c_str());
+}
+
+void NXGUIMaterial::OnTexMetallicChange(NXPBRMaterial* pPickingObjectMaterial)
+{
+	pPickingObjectMaterial->SetTexMetallic(m_pFileBrowser->GetSelected().c_str());
+}
+
+void NXGUIMaterial::OnTexRoughnessChange(NXPBRMaterial* pPickingObjectMaterial)
+{
+	pPickingObjectMaterial->SetTexRoughness(m_pFileBrowser->GetSelected().c_str());
+}
+
+void NXGUIMaterial::OnTexAOChange(NXPBRMaterial* pPickingObjectMaterial)
+{
+	pPickingObjectMaterial->SetTexAO(m_pFileBrowser->GetSelected().c_str());
+}
+
+void NXGUIMaterial::RenderTextureIcon(ImTextureID ImTexID, std::function<void()> onChange)
 {
 	float my_tex_w = (float)16;
 	float my_tex_h = (float)16;
@@ -97,6 +122,7 @@ void NXGUIMaterial::RenderTextureIcon(ImTextureID ImTexID)
 		if (ImGui::ImageButton(ImTexID, size, uv0, uv1, frame_padding, bg_col, tint_col))
 		{
 			m_pFileBrowser->Open();
+			m_pFileBrowser->SetOnDialogOK(onChange);
 		}
 	}
 }

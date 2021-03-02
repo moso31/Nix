@@ -13,7 +13,14 @@ public:
 	void Render();
 
 private:
-	void RenderTextureIcon(ImTextureID ImTexID);
+	void RenderTextureIcon(ImTextureID ImTexID, std::function<void()> onChange);
+
+private:
+	void OnTexAlbedoChange(NXPBRMaterial* pPickingObjectMaterial);
+	void OnTexNormalChange(NXPBRMaterial* pPickingObjectMaterial);
+	void OnTexMetallicChange(NXPBRMaterial* pPickingObjectMaterial);
+	void OnTexRoughnessChange(NXPBRMaterial* pPickingObjectMaterial);
+	void OnTexAOChange(NXPBRMaterial* pPickingObjectMaterial);
 
 private:
 	NXScene* m_pCurrentScene;

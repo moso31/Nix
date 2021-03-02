@@ -72,6 +72,10 @@ public:
     // default value is 0 (the first type filter)
     void SetCurrentTypeFilterIndex(int index);
 
+    void SetOnDialogOK(const std::function<void()>& func);
+    void SetOnDialogCancel(const std::function<void()>& func);
+    void SetOnItemDoubleClicked(const std::function<void()>& func);
+
 private:
 };
 
@@ -83,6 +87,9 @@ inline NXGUIFileBrowser::NXGUIFileBrowser(NXGUIFlagsFileBrowser flags)
 inline NXGUIFileBrowser NXGUIFileBrowser::FileBrowser(const NXGUIFileBrowser& copyFrom)
 {
 	ImGui::FileBrowser((ImGui::FileBrowser)copyFrom);
+
+    m_onOK = copyFrom.m_onOK;
+    m_onCancel = copyFrom.m_onCancel;
 }
 
 inline void NXGUIFileBrowser::SetWindowSize(int width, int height) noexcept
@@ -153,4 +160,14 @@ inline void NXGUIFileBrowser::SetTypeFilters(const std::vector<std::string>& typ
 inline void NXGUIFileBrowser::SetCurrentTypeFilterIndex(int index)
 {
     ImGui::FileBrowser::SetCurrentTypeFilterIndex(index);
+}
+
+inline void NXGUIFileBrowser::SetOnDialogOK(const std::function<void()>& func)
+{
+    m_onOK = func;
+}
+
+inline void NXGUIFileBrowser::SetOnDialogCancel(const std::function<void()>& func)
+{
+    m_onCancel = func;
 }

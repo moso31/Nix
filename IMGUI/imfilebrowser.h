@@ -8,6 +8,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <functional>
 
 #ifndef IMGUI_VERSION
 #   error "include imgui.h before this header"
@@ -89,6 +90,17 @@ namespace ImGui
         // set currently applied type filter
         // default value is 0 (the first type filter)
         void SetCurrentTypeFilterIndex(int index);
+
+        void SetOnOKClicked(const std::function<void()>& func);
+
+        void SetOnCancelClicked(const std::function<void()>& func);
+
+        void SetOnItemDoubleClicked(const std::function<void()>& func);
+
+    protected:
+        // functions
+        std::function<void()> m_onOK;
+        std::function<void()> m_onCancel;
 
     private:
     
@@ -493,6 +505,7 @@ inline void ImGui::FileBrowser::Display()
                 {
                     selectedFilenames_ = { rsc.name };
                     ok_ = true;
+                    m_onOK();
                     CloseCurrentPopup();
                 }
             }
@@ -522,6 +535,7 @@ inline void ImGui::FileBrowser::Display()
         if(Button(" ok ") && !selectedFilenames_.empty())
         {
             ok_ = true;
+            m_onOK();
             CloseCurrentPopup();
         }
     }
@@ -537,11 +551,14 @@ inline void ImGui::FileBrowser::Display()
     SameLine();
 
     int escIdx = GetIO().KeyMap[ImGuiKey_Escape];
-    if(Button("cancel") || closeFlag_ ||
+    if (Button("cancel") || closeFlag_ ||
         ((flags_ & ImGuiFileBrowserFlags_CloseOnEsc) &&
-         IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
-         escIdx >= 0 && IsKeyPressed(escIdx)))
+            IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
+            escIdx >= 0 && IsKeyPressed(escIdx)))
+    {
+        m_onCancel();
         CloseCurrentPopup();
+    }
 
     if(!statusStr_.empty() && !(flags_ & ImGuiFileBrowserFlags_NoStatusBar))
     {
