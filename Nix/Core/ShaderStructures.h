@@ -95,11 +95,12 @@ struct ConstantBufferShadowMapTransform
 struct ConstantBufferMaterial
 {
 	Vector3 albedo;
+	float _0;
 	Vector3 normal;
 	float metallic;
 	float roughness;
 	float ao;
-	Vector3 _0;
+	Vector2 _1;
 };
 
 struct ConstantBufferDistantLight

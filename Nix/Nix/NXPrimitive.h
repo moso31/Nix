@@ -48,6 +48,7 @@ public:
 
 protected:
 	virtual void InitVertexIndexBuffer();
+	void InitMaterialBuffer();
 	void InitAABB();
 
 private:

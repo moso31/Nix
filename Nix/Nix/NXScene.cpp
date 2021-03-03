@@ -113,7 +113,7 @@ void NXScene::Init()
 	NXVisibleTest::GetInstance().SetScene(this);
 
 	NXPBRMaterial* pPBRMat[] = {
-		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), Vector3(1.0f), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f),
+		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), Vector3(1.0f), 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f),
 	};
 
 	pPBRMat[0]->SetTexAlbedo(L"D:\\NixAssets\\rustediron2\\albedo.png");

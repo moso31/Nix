@@ -505,7 +505,7 @@ inline void ImGui::FileBrowser::Display()
                 {
                     selectedFilenames_ = { rsc.name };
                     ok_ = true;
-                    m_onOK();
+                    if (m_onOK) m_onOK();
                     CloseCurrentPopup();
                 }
             }
@@ -535,7 +535,7 @@ inline void ImGui::FileBrowser::Display()
         if(Button(" ok ") && !selectedFilenames_.empty())
         {
             ok_ = true;
-            m_onOK();
+            if (m_onOK) m_onOK();
             CloseCurrentPopup();
         }
     }
@@ -556,7 +556,7 @@ inline void ImGui::FileBrowser::Display()
             IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
             escIdx >= 0 && IsKeyPressed(escIdx)))
     {
-        m_onCancel();
+        if (m_onCancel) m_onCancel();
         CloseCurrentPopup();
     }
 

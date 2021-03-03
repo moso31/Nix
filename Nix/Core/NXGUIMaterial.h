@@ -14,6 +14,7 @@ public:
 
 private:
 	void RenderTextureIcon(ImTextureID ImTexID, std::function<void()> onChange);
+	void UpdateMaterial(NXPBRMaterial* pMaterial);
 
 private:
 	void OnTexAlbedoChange(NXPBRMaterial* pPickingObjectMaterial);
@@ -26,4 +27,8 @@ private:
 	NXScene* m_pCurrentScene;
 
 	NXGUIFileBrowser* m_pFileBrowser;
+
+	// 记录material数据是否有变更（dirty）。
+	// 如果有变更，帧末需要通过UpdateMaterial()，重新SetPBRMaterial。
+	bool m_bMaterialDirty;
 };

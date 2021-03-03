@@ -1,9 +1,10 @@
 struct Material
 {
 	float3 albedo;
+	float _0;
 	float3 normal;
 	float metallic;
 	float roughness;
 	float ao;
-	float3 _0;
+	float2 _1;
 };

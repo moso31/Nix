@@ -2,12 +2,15 @@
 
 NXGUIMaterial::NXGUIMaterial(NXScene* pScene, NXGUIFileBrowser* pFileBrowser) :
 	m_pCurrentScene(pScene),
-	m_pFileBrowser(pFileBrowser)
+	m_pFileBrowser(pFileBrowser),
+	m_bMaterialDirty(false)
 {
 }
 
 void NXGUIMaterial::Render()
 {
+	m_bMaterialDirty = false;
+
 	NXPrimitive* pPickingObject = static_cast<NXPrimitive*>(m_pCurrentScene->GetCurrentPickingObject());
 	if (!pPickingObject)
 		return;
@@ -17,22 +20,22 @@ void NXGUIMaterial::Render()
 	std::string strName = pPickingObject->GetName().c_str();
 	ImGui::InputText("Name", &strName);
 
-	float fDrugSpeed = 0.001f;
+	float fDrugSpeedTransform = 0.001f;
 	XMVECTOR vTrans = XMLoadFloat3(&pPickingObject->GetTranslation());
-	if (ImGui::DragFloat3("Translation", vTrans.m128_f32, fDrugSpeed))
+	if (ImGui::DragFloat3("Translation", vTrans.m128_f32, fDrugSpeedTransform))
 	{
 		pPickingObject->SetTranslation(vTrans);
 	}
 
 	XMVECTOR vRot = XMLoadFloat3(&pPickingObject->GetRotation().EulerXYZ());
-	if (ImGui::DragFloat3("Rotation", vRot.m128_f32, fDrugSpeed))
+	if (ImGui::DragFloat3("Rotation", vRot.m128_f32, fDrugSpeedTransform))
 	{
 		Quaternion qRot(vRot);
 		pPickingObject->SetRotation(Quaternion(qRot));
 	}
 
 	XMVECTOR vScal = XMLoadFloat3(&pPickingObject->GetScale());
-	if (ImGui::DragFloat3("Scale", vScal.m128_f32, fDrugSpeed))
+	if (ImGui::DragFloat3("Scale", vScal.m128_f32, fDrugSpeedTransform))
 	{
 		pPickingObject->SetScale(vScal);
 	}
@@ -44,25 +47,45 @@ void NXGUIMaterial::Render()
 		ImGui::SameLine();
 		XMVECTORF32 fAlbedo;
 		fAlbedo.v = pPickingObjectMaterial->m_albedo;
-		ImGui::ColorEdit3("Albedo", fAlbedo.f);
+		if (ImGui::ColorEdit3("Albedo", fAlbedo.f))
+		{
+			pPickingObjectMaterial->m_albedo = fAlbedo.v;
+			m_bMaterialDirty = true;
+		}
 
 		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVNormal(), std::bind(&NXGUIMaterial::OnTexNormalChange, this, pPickingObjectMaterial));
 		ImGui::SameLine();
 		XMVECTORF32 fNormal;
 		fNormal.v = pPickingObjectMaterial->m_normal;
-		ImGui::ColorEdit3("Normal", fNormal.f);
+		if (ImGui::ColorEdit3("Normal", fNormal.f))
+		{
+			pPickingObjectMaterial->m_normal = fNormal.v;
+			m_bMaterialDirty = true;
+		}
 
 		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVMetallic(), std::bind(&NXGUIMaterial::OnTexMetallicChange, this, pPickingObjectMaterial));
 		ImGui::SameLine();
-		ImGui::DragFloat("Metallic", &pPickingObjectMaterial->m_metallic);
+		if (ImGui::SliderFloat("Metallic", &pPickingObjectMaterial->m_metallic, 0.0f, 1.0f))
+		{
+			m_bMaterialDirty = true;
+		}
 
 		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVRoughness(), std::bind(&NXGUIMaterial::OnTexRoughnessChange, this, pPickingObjectMaterial));
 		ImGui::SameLine();
-		ImGui::DragFloat("Roughness", &pPickingObjectMaterial->m_roughness);
+		if (ImGui::SliderFloat("Roughness", &pPickingObjectMaterial->m_roughness, 0.0f, 1.0f))
+		{
+			m_bMaterialDirty = true;
+		}
 
 		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVAO(), std::bind(&NXGUIMaterial::OnTexAOChange, this, pPickingObjectMaterial));
 		ImGui::SameLine();
-		ImGui::DragFloat("AO", &pPickingObjectMaterial->m_ao);
+		if (ImGui::SliderFloat("AO", &pPickingObjectMaterial->m_ao, 0.0f, 1.0f))
+		{
+			m_bMaterialDirty = true;
+		}
+
+		if (m_bMaterialDirty)
+			UpdateMaterial(pPickingObjectMaterial);
 	}
 
 	ImGui::End();
@@ -136,6 +159,18 @@ void NXGUIMaterial::RenderTextureIcon(ImTextureID ImTexID, std::function<void()>
 		{
 			m_pFileBrowser->Open();
 			m_pFileBrowser->SetOnDialogOK(onChange);
+		}
+	}
+}
+
+void NXGUIMaterial::UpdateMaterial(NXPBRMaterial* pMaterial)
+{
+	if (m_bMaterialDirty)
+	{
+		auto pRefPrims = pMaterial->GetPrimitives();
+		for (auto pPrim : pRefPrims)
+		{
+			pPrim->SetMaterialPBR(pMaterial);
 		}
 	}
 }

@@ -80,11 +80,10 @@ PS_INPUT VS(VS_INPUT input)
 float4 PS(PS_INPUT input) : SV_Target
 {
 	float3 normalMap = txNormalMap.Sample(samTrilinear, input.tex).xyz;
-	//return float4(input.tangentW, 1.0f);
+	float3 normal = m_material.normal * normalMap;
 
 	float3 pos = input.posW.xyz;
-	//float3 N = normalize(input.normW);
-	float3 N = TangentSpaceToWorldSpace(normalMap, input.normW, input.tangentW, input.tex);
+	float3 N = TangentSpaceToWorldSpace(normal, input.normW, input.tangentW, input.tex);
 	float3 V = normalize(m_eyePos - pos);
 
 	//return float4(N, 1.0f);
@@ -94,19 +93,16 @@ float4 PS(PS_INPUT input) : SV_Target
 	float3 albedoMap = txAlbedo.Sample(samTrilinear, input.tex).xyz;
 	float3 albedo = m_material.albedo * albedoMap;
 	albedo = pow(albedo, 2.2f);
-	//return float4(albedoMap, 1.0f);
+	//return float4(albedoMap, 1.0f);	// albedo only test
 
 	float roughnessMap = txRoughnessMap.Sample(samTrilinear, input.tex).x;
-	//float roughness = m_material.roughness;
-	float roughness = roughnessMap;
+	float roughness = m_material.roughness * roughnessMap;
 
 	float metallicMap = txMetallicMap.Sample(samTrilinear, input.tex).x;
-	//float metallic = m_material.metallic;
-	float metallic = metallicMap;
+	float metallic = m_material.metallic * metallicMap;
 
 	float AOMap = txAmbientOcclusionMap.Sample(samTrilinear, input.tex).x;
-	//float metallic = m_material.metallic;
-	float ao = AOMap;
+	float ao = m_material.ao * AOMap;
 
 	float3 F0 = 0.04;
 	F0 = lerp(F0, albedo, metallic);
