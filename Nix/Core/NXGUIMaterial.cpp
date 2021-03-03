@@ -83,12 +83,12 @@ void NXGUIMaterial::Render()
 		{
 			m_bMaterialDirty = true;
 		}
-
-		if (m_bMaterialDirty)
-			UpdateMaterial(pPickingObjectMaterial);
 	}
 
 	ImGui::End();
+
+	if (m_bMaterialDirty)
+		UpdateMaterial(pPickingObjectMaterial);
 }
 
 void NXGUIMaterial::OnTexAlbedoChange(NXPBRMaterial* pPickingObjectMaterial)
@@ -160,6 +160,17 @@ void NXGUIMaterial::RenderTextureIcon(ImTextureID ImTexID, std::function<void()>
 			m_pFileBrowser->Open();
 			m_pFileBrowser->SetOnDialogOK(onChange);
 		}
+
+		ImGui::SameLine();
+		ImGui::PushID("RemoveTexButtons");
+		{
+			ImGui::PushID(ImTexID);
+			if (ImGui::Button("R"))
+			{
+			}
+			ImGui::PopID();
+		}
+		ImGui::PopID();
 	}
 }
 
