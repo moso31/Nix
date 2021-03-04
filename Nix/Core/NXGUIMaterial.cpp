@@ -3,7 +3,9 @@
 NXGUIMaterial::NXGUIMaterial(NXScene* pScene, NXGUIFileBrowser* pFileBrowser) :
 	m_pCurrentScene(pScene),
 	m_pFileBrowser(pFileBrowser),
-	m_bMaterialDirty(false)
+	m_bMaterialDirty(false),
+	m_whiteTexPath_test(L"D:\\NixAssets\\white1x1.png"),
+	m_normalTexPath_test(L"D:\\NixAssets\\normal1x1.png")
 {
 }
 
@@ -43,7 +45,7 @@ void NXGUIMaterial::Render()
 	NXPBRMaterial* pPickingObjectMaterial = pPickingObject->GetPBRMaterial();
 	if (pPickingObjectMaterial)
 	{
-		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVAlbedo(), std::bind(&NXGUIMaterial::OnTexAlbedoChange, this, pPickingObjectMaterial));
+		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVAlbedo(), std::bind(&NXGUIMaterial::OnTexAlbedoChange, this, pPickingObjectMaterial), std::bind(&NXGUIMaterial::OnTexAlbedoRemove, this, pPickingObjectMaterial));
 		ImGui::SameLine();
 		XMVECTORF32 fAlbedo;
 		fAlbedo.v = pPickingObjectMaterial->m_albedo;
@@ -53,7 +55,7 @@ void NXGUIMaterial::Render()
 			m_bMaterialDirty = true;
 		}
 
-		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVNormal(), std::bind(&NXGUIMaterial::OnTexNormalChange, this, pPickingObjectMaterial));
+		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVNormal(), std::bind(&NXGUIMaterial::OnTexNormalChange, this, pPickingObjectMaterial), std::bind(&NXGUIMaterial::OnTexNormalRemove, this, pPickingObjectMaterial));
 		ImGui::SameLine();
 		XMVECTORF32 fNormal;
 		fNormal.v = pPickingObjectMaterial->m_normal;
@@ -63,21 +65,21 @@ void NXGUIMaterial::Render()
 			m_bMaterialDirty = true;
 		}
 
-		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVMetallic(), std::bind(&NXGUIMaterial::OnTexMetallicChange, this, pPickingObjectMaterial));
+		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVMetallic(), std::bind(&NXGUIMaterial::OnTexMetallicChange, this, pPickingObjectMaterial), std::bind(&NXGUIMaterial::OnTexMetallicRemove, this, pPickingObjectMaterial));
 		ImGui::SameLine();
 		if (ImGui::SliderFloat("Metallic", &pPickingObjectMaterial->m_metallic, 0.0f, 1.0f))
 		{
 			m_bMaterialDirty = true;
 		}
 
-		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVRoughness(), std::bind(&NXGUIMaterial::OnTexRoughnessChange, this, pPickingObjectMaterial));
+		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVRoughness(), std::bind(&NXGUIMaterial::OnTexRoughnessChange, this, pPickingObjectMaterial), std::bind(&NXGUIMaterial::OnTexRoughnessRemove, this, pPickingObjectMaterial));
 		ImGui::SameLine();
 		if (ImGui::SliderFloat("Roughness", &pPickingObjectMaterial->m_roughness, 0.0f, 1.0f))
 		{
 			m_bMaterialDirty = true;
 		}
 
-		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVAO(), std::bind(&NXGUIMaterial::OnTexAOChange, this, pPickingObjectMaterial));
+		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVAO(), std::bind(&NXGUIMaterial::OnTexAOChange, this, pPickingObjectMaterial), std::bind(&NXGUIMaterial::OnTexAORemove, this, pPickingObjectMaterial));
 		ImGui::SameLine();
 		if (ImGui::SliderFloat("AO", &pPickingObjectMaterial->m_ao, 0.0f, 1.0f))
 		{
@@ -113,10 +115,35 @@ void NXGUIMaterial::OnTexRoughnessChange(NXPBRMaterial* pPickingObjectMaterial)
 
 void NXGUIMaterial::OnTexAOChange(NXPBRMaterial* pPickingObjectMaterial)
 {
-	pPickingObjectMaterial->SetTexAO(m_pFileBrowser->GetSelected().c_str());
+	pPickingObjectMaterial->SetTexAO(m_whiteTexPath_test);
 }
 
-void NXGUIMaterial::RenderTextureIcon(ImTextureID ImTexID, std::function<void()> onChange)
+void NXGUIMaterial::OnTexAlbedoRemove(NXPBRMaterial* pPickingObjectMaterial)
+{
+	pPickingObjectMaterial->SetTexAlbedo(m_whiteTexPath_test);
+}
+
+void NXGUIMaterial::OnTexNormalRemove(NXPBRMaterial* pPickingObjectMaterial)
+{
+	pPickingObjectMaterial->SetTexNormal(m_normalTexPath_test);
+}
+
+void NXGUIMaterial::OnTexMetallicRemove(NXPBRMaterial* pPickingObjectMaterial)
+{
+	pPickingObjectMaterial->SetTexMetallic(m_whiteTexPath_test);
+}
+
+void NXGUIMaterial::OnTexRoughnessRemove(NXPBRMaterial* pPickingObjectMaterial)
+{
+	pPickingObjectMaterial->SetTexRoughness(m_whiteTexPath_test);
+}
+
+void NXGUIMaterial::OnTexAORemove(NXPBRMaterial* pPickingObjectMaterial)
+{
+	pPickingObjectMaterial->SetTexAO(m_whiteTexPath_test);
+}
+
+void NXGUIMaterial::RenderTextureIcon(ImTextureID ImTexID, std::function<void()> onChange, std::function<void()> onRemove)
 {
 	float my_tex_w = (float)16;
 	float my_tex_h = (float)16;
@@ -167,6 +194,7 @@ void NXGUIMaterial::RenderTextureIcon(ImTextureID ImTexID, std::function<void()>
 			ImGui::PushID(ImTexID);
 			if (ImGui::Button("R"))
 			{
+				onRemove();
 			}
 			ImGui::PopID();
 		}
