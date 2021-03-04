@@ -70,7 +70,8 @@ float4 PS_RT0(PS_INPUT input) : SV_Target
 float4 PS_RT1(PS_INPUT input) : SV_Target
 {
 	float3 normalMap = txNormalMap.Sample(samTriLinear, input.tex).xyz;
-	float3 N = TangentSpaceToWorldSpace(normalMap, input.normW, input.tangentW, input.tex);
+	float3 normal = m_material.normal * normalMap;
+	float3 N = TangentSpaceToWorldSpace(normal, input.normW, input.tangentW, input.tex);
 	return float4(N, 1.0f);
 }
 
@@ -83,17 +84,14 @@ float4 PS_RT2(PS_INPUT input) : SV_Target
 
 float4 PS_RT3(PS_INPUT input) : SV_Target
 {
-	float roughnessMap = txRoughnessMap.Sample(samTriLinear, input.tex).x;
-	//float roughness = m_material.roughness;
-	float roughness = roughnessMap;
-
 	float metallicMap = txMetallicMap.Sample(samTriLinear, input.tex).x;
-	//float metallic = m_material.metallic;
-	float metallic = metallicMap;
+	float metallic = m_material.metallic * metallicMap;
+
+	float roughnessMap = txRoughnessMap.Sample(samTriLinear, input.tex).x;
+	float roughness = m_material.roughness * roughnessMap;
 
 	float AOMap = txAmbientOcclusionMap.Sample(samTriLinear, input.tex).x;
-	//float metallic = m_material.metallic;
-	float ao = AOMap;
+	float ao = m_material.ao * AOMap;
 
 	return float4(roughness, metallic, ao, 1.0f);
 }

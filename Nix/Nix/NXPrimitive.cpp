@@ -24,7 +24,8 @@ void NXPrimitive::Update()
 	// 回头看一下吧，我忘掉矩阵计算最早基于什么参考系了……
 	auto mxWorld = m_worldMatrix.Transpose();
 	NXGlobalBufferManager::m_cbDataObject.world = mxWorld;
-	NXGlobalBufferManager::m_cbDataObject.worldInverseTranspose = mxWorld.Invert().Transpose();
+	NXGlobalBufferManager::m_cbDataObject.worldInverseTranspose = m_worldMatrix.Invert(); // it actually = m_worldMatrix.Invert().Transpose().Transpose();
+	
 	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbObject.Get(), 0, nullptr, &NXGlobalBufferManager::m_cbDataObject, 0, 0);
 
 	if (m_pPBRMaterial)
