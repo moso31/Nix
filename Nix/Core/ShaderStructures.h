@@ -76,6 +76,7 @@ struct ConstantBufferObject
 	Matrix world;
 	Matrix worldInverseTranspose;
 	Matrix view;
+	Matrix worldViewInverseTranspose;
 	Matrix projection;
 };
 

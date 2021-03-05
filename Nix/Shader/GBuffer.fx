@@ -19,6 +19,7 @@ cbuffer ConstantBufferObject : register(b0)
 	matrix m_world;
 	matrix m_worldInverseTranspose;
 	matrix m_view;
+	matrix m_worldViewInverseTranspose;
 	matrix m_projection;
 }
 
@@ -55,15 +56,16 @@ PS_INPUT VS(VS_INPUT input)
 	output.posH = mul(output.posH, m_view);
 	output.posV = output.posH;
 	output.posH = mul(output.posH, m_projection);
-	output.normW = mul(float4(input.norm, 0.0), m_worldInverseTranspose).xyz;
+	output.normW = mul(float4(input.norm, 0.0), m_worldViewInverseTranspose).xyz;
 	output.tex = input.tex;
 	output.tangentW = mul(input.tangent, (float3x3)m_world).xyz;
+	output.tangentW = mul(output.tangentW, (float3x3)m_view).xyz;
 	return output;
 }
 
 float4 PS_RT0(PS_INPUT input) : SV_Target
 {
-	return float4(input.posV.zzz, 1.0f);
+	return float4(input.posV.xyz, 1.0f);
 	return float4(input.posW.xyz, 1.0f);
 }
 

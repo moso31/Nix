@@ -25,6 +25,9 @@ void NXPrimitive::Update()
 	auto mxWorld = m_worldMatrix.Transpose();
 	NXGlobalBufferManager::m_cbDataObject.world = mxWorld;
 	NXGlobalBufferManager::m_cbDataObject.worldInverseTranspose = m_worldMatrix.Invert(); // it actually = m_worldMatrix.Invert().Transpose().Transpose();
+
+	auto viewMatrix = NXGlobalBufferManager::m_cbDataObject.view.Transpose();
+	NXGlobalBufferManager::m_cbDataObject.worldViewInverseTranspose = (m_worldMatrix * viewMatrix).Invert();
 	
 	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbObject.Get(), 0, nullptr, &NXGlobalBufferManager::m_cbDataObject, 0, 0);
 
