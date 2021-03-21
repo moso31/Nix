@@ -8,7 +8,8 @@
 NSFirstPersonalCamera::NSFirstPersonalCamera() :
 	m_fMoveSpeed(3.0f),
 	m_fSensitivity(0.005f),
-	m_bSpeedState(SPEED_MID)
+	m_bSpeedState(SPEED_MID),
+	m_bMoveAble(false)
 {
 	memset(m_bMoveState, false, sizeof(m_bMoveState));
 }
@@ -19,6 +20,9 @@ NSFirstPersonalCamera::~NSFirstPersonalCamera()
 
 void NSFirstPersonalCamera::Update()
 {
+	if (!m_bMoveAble)
+		return;
+
 	auto pCamera = dynamic_cast<NXCamera*>(m_pObject);
 	Vector3 pos = pCamera->GetTranslation();
 	Vector3 fw = pCamera->GetForward();
@@ -45,6 +49,8 @@ void NSFirstPersonalCamera::Update()
 
 	Vector3 result = pos + moveCommandV * moveSpeed * timeDelta;
 	pCamera->SetTranslation(result);
+
+	pCamera->SetRotation(m_fRotation);
 }
 
 void NSFirstPersonalCamera::OnKeyDown(NXEventArgKey eArg)
@@ -75,6 +81,18 @@ void NSFirstPersonalCamera::OnKeyUp(NXEventArgKey eArg)
 
 void NSFirstPersonalCamera::OnMouseDown(NXEventArgMouse eArg)
 {
+	if (eArg.VMouse & 4)	// 4 = mouse right down
+	{
+		m_bMoveAble = true;
+	}
+}
+
+void NSFirstPersonalCamera::OnMouseUp(NXEventArgMouse eArg)
+{
+	if (eArg.VMouse & 8)	// 8 = mouse right up
+	{
+		m_bMoveAble = false;
+	}
 }
 
 void NSFirstPersonalCamera::OnMouseMove(NXEventArgMouse eArg)
@@ -92,7 +110,5 @@ void NSFirstPersonalCamera::OnMouseMove(NXEventArgMouse eArg)
 	Matrix mxNew = mxOld * mxRot;
 
 	Vector3 ignore;
-	Quaternion rotation;
-	mxNew.Decompose(ignore, rotation, ignore);
-	pCamera->SetRotation(rotation);
+	mxNew.Decompose(ignore, m_fRotation, ignore);
 }

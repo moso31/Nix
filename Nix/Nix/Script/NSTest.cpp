@@ -13,6 +13,8 @@ NSTest::~NSTest()
 
 void NSTest::Update()
 {
+	return;
+
 	auto timeDelta = g_timer->GetTimeDelta() / 1000000.0f;
 	m_rotValue += 0.001f;// timeDelta;
 

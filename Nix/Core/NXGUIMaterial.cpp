@@ -22,18 +22,25 @@ void NXGUIMaterial::Render()
 	std::string strName = pPickingObject->GetName().c_str();
 	ImGui::InputText("Name", &strName);
 
-	float fDrugSpeedTransform = 0.001f;
+	float fDrugSpeedTransform = 0.01f;
 	XMVECTOR vTrans = XMLoadFloat3(&pPickingObject->GetTranslation());
 	if (ImGui::DragFloat3("Translation", vTrans.m128_f32, fDrugSpeedTransform))
 	{
 		pPickingObject->SetTranslation(vTrans);
 	}
 
-	XMVECTOR vRot = XMLoadFloat3(&pPickingObject->GetRotation().EulerXYZ());
-	if (ImGui::DragFloat3("Rotation", vRot.m128_f32, fDrugSpeedTransform))
+	Quaternion qRot = pPickingObject->GetRotation();
+	Vector3 vRot = qRot.EulerXYZ();
+	float vRotArr[3] = { vRot.x, vRot.y, vRot.z };
+	if (ImGui::DragFloat3("Rotation", vRotArr, fDrugSpeedTransform))
 	{
-		Quaternion qRot(vRot);
-		pPickingObject->SetRotation(Quaternion(qRot));
+		pPickingObject->SetRotation(Vector3(vRotArr));
+		{
+			Vector3 value(0.2, 1.12, 2.31);
+			Quaternion _qRot = Quaternion::CreateFromYawPitchRoll(value.y, value.x, value.z);
+			Vector3 res = _qRot.EulerXYZ();
+			printf("%f %f %f\n", res.x, res.y, res.z);
+		}
 	}
 
 	XMVECTOR vScal = XMLoadFloat3(&pPickingObject->GetScale());

@@ -113,7 +113,7 @@ void NXScene::Init()
 	NXVisibleTest::GetInstance().SetScene(this);
 
 	NXPBRMaterial* pPBRMat[] = {
-		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), Vector3(1.0f), 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f),
+		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f),
 	};
 
 	pPBRMat[0]->SetTexAlbedo(L"D:\\NixAssets\\rustediron2\\albedo.png");
@@ -122,7 +122,7 @@ void NXScene::Init()
 	pPBRMat[0]->SetTexRoughness(L"D:\\NixAssets\\rustediron2\\roughness.png");
 	pPBRMat[0]->SetTexAO(L"D:\\NixAssets\\rustediron2\\ao.png");
 
-	auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64);
+	auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64); 
 	pSphere->SetMaterialPBR(pPBRMat[0]);
 
 	{
@@ -175,7 +175,7 @@ void NXScene::Init()
 		InitShadowMapTransformInfo(NXGlobalBufferManager::m_cbDataShadowMap);
 	}
 
-	//InitScripts();
+	InitScripts();
 }
 
 void NXScene::InitScripts()
@@ -187,6 +187,8 @@ void NXScene::InitScripts()
 	NXEventKeyDown::GetInstance().AddListener(std::bind(&NSFirstPersonalCamera::OnKeyDown, pScript, std::placeholders::_1));
 	NXEventKeyUp::GetInstance().AddListener(std::bind(&NSFirstPersonalCamera::OnKeyUp, pScript, std::placeholders::_1));
 	NXEventMouseMove::GetInstance().AddListener(std::bind(&NSFirstPersonalCamera::OnMouseMove, pScript, std::placeholders::_1));
+	NXEventMouseDown::GetInstance().AddListener(std::bind(&NSFirstPersonalCamera::OnMouseDown, pScript, std::placeholders::_1));
+	NXEventMouseUp::GetInstance().AddListener(std::bind(&NSFirstPersonalCamera::OnMouseUp, pScript, std::placeholders::_1));
 
 	NXEventKeyDown::GetInstance().AddListener(std::bind(&NXScene::OnKeyDown, this, std::placeholders::_1));
 	NXEventMouseDown::GetInstance().AddListener(std::bind(&NXScene::OnMouseDown, this, std::placeholders::_1));

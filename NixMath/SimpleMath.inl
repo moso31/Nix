@@ -2960,20 +2960,31 @@ inline float Quaternion::Dot( const Quaternion& q ) const
     return XMVectorGetX( XMQuaternionDot( q1, q2 ) );
 }
 
+// Ref: Convert quaternion to euler rotations, 
+// http://bediyap.com/programming/convert-quaternion-to-euler-rotations/
 inline Vector3 DirectX::SimpleMath::Quaternion::EulerXYZ() const
 {
-	float  xx = x * x;
-	float  yy = y * y;
-	float  zz = z * z;
-	float  ww = w * w;
+	//float xx = x * x;
+	//float yy = y * y;
+	//float zz = z * z;
+	//float ww = w * w;
 
-	float  z1 = x * y + w * z;
-	float  z2 = ww + xx - yy - zz;
-	float  y1 = -2.0f * (x * z - w * y);
-	float  x1 = 2.0f * (y * z + w * x);
-	float  x2 = ww - xx - yy + zz;
+	//float r11 = -2.0f * (y * z - w * x);
+	//float r12 = ww - xx - yy + zz;
+	//float r21 = 2.0f * (x * z + w * y);
+	//float r31 = -2.0f * (x * y - w * z);
+	//float r32 = ww + xx - yy - zz;
 
-	return Vector3(atan2f(x1, x2), asinf(y1), atan2f(z1, z2));
+    float r11 = 2.0f * (w * x + y * z);
+    float r12 = 1.0f - 2.0f * (x * x + y * y);
+
+	float r21 = 2.0f * (w * y - z * x);
+    if (r21 > 1.0f) r21 = 1.0f;
+    if (r21 < -1.0f) r21 = -1.0f;
+
+    float r31 = 2.0f * (w * z + x * y);
+    float r32 = 1.0f - 2.0f * (y * y + z * z);
+	return Vector3(atan2f(r11, r12), asinf(r21), atan2f(r31, r32));
 }
 
 //------------------------------------------------------------------------------
