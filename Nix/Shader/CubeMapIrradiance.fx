@@ -1,22 +1,7 @@
+#include "Common.fx"
 #include "PBR.fx"
 
 TextureCube txCubeMap : register(t0);
-
-SamplerState samTriLinearSam
-{
-	Filter = MIN_MAG_MIP_LINEAR;
-	AddressU = Wrap;
-	AddressV = Wrap;
-};
-
-cbuffer ConstantBufferObject : register(b0)
-{
-	matrix m_world;
-	matrix m_worldInverseTranspose;
-	matrix m_view;
-	matrix m_worldViewInverseTranspose;
-	matrix m_projection;
-}
 
 float3 GetIrradiance(float3 wi)
 {
@@ -40,7 +25,7 @@ float3 GetIrradiance(float3 wi)
 			// tangent space to world
 			float3 sampleVec = tangentSample.x * wt + tangentSample.y * wb + tangentSample.z * wi;
 
-			irradiance += txCubeMap.Sample(samTriLinearSam, sampleVec).rgb * cos(theta) * sin(theta);
+			irradiance += txCubeMap.Sample(SamplerStateTrilinear, sampleVec).rgb * cos(theta) * sin(theta);
 			nrSamples++;
 		}
 	}

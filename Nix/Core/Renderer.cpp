@@ -8,6 +8,7 @@
 #include "NXScene.h"
 #include "NXPassShadowMap.h"
 #include "NXCubeMap.h"
+#include "NXAmbientOcclusion.h"
 
 void Renderer::Init()
 {

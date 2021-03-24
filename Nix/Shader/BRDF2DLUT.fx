@@ -1,7 +1,7 @@
 #include "PBR.fx"
 #include "Random.fx"
 
-SamplerState samTriLinearSam
+SamplerState SamplerStateTrilinear
 {
 	Filter = MIN_MAG_MIP_LINEAR;
 	AddressU = Wrap;

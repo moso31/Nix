@@ -1,22 +1,7 @@
+#include "Common.fx"
 #include "PBR.fx"
 
 TextureCube txCubeMap : register(t0);
-
-SamplerState samTriLinearSam
-{
-	Filter = MIN_MAG_MIP_LINEAR;
-	AddressU = Wrap;
-	AddressV = Wrap;
-};
-
-cbuffer ConstantBufferObject : register(b0)
-{
-	matrix m_world;
-	matrix m_worldInverseTranspose;
-	matrix m_view;
-	matrix m_worldViewInverseTranspose;
-	matrix m_projection;
-}
 
 struct VS_INPUT
 {
@@ -41,6 +26,6 @@ PS_INPUT VS(VS_INPUT input)
 
 float4 PS(PS_INPUT input) : SV_Target
 {
-	float4 result = txCubeMap.Sample(samTriLinearSam, input.posL);
+	float4 result = txCubeMap.Sample(SamplerStateTrilinear, input.posL);
 	return result;
 }

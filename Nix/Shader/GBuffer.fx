@@ -1,27 +1,12 @@
+#include "Common.fx"
 #include "Math.fx"
 #include "PBRMaterials.fx"
-
-SamplerState samTriLinear
-{
-	Filter = MIN_MAG_MIP_LINEAR;
-	AddressU = Wrap;
-	AddressV = Wrap;
-};
 
 Texture2D txAlbedo : register(t1);
 Texture2D txNormalMap : register(t2);
 Texture2D txMetallicMap : register(t3);
 Texture2D txRoughnessMap : register(t4);
 Texture2D txAmbientOcclusionMap : register(t5);
-
-cbuffer ConstantBufferObject : register(b0)
-{
-	matrix m_world;
-	matrix m_worldInverseTranspose;
-	matrix m_view;
-	matrix m_worldViewInverseTranspose;
-	matrix m_projection;
-}
 
 cbuffer ConstantBufferMaterial : register(b3)
 {
@@ -71,7 +56,7 @@ float4 PS_RT0(PS_INPUT input) : SV_Target
 
 float4 PS_RT1(PS_INPUT input) : SV_Target
 {
-	float3 normalMap = txNormalMap.Sample(samTriLinear, input.tex).xyz;
+	float3 normalMap = txNormalMap.Sample(SamplerStateTrilinear, input.tex).xyz;
 	float3 normal = m_material.normal * normalMap;
 	float3 N = TangentSpaceToWorldSpace(normal, input.normW, input.tangentW, input.tex);
 	return float4(N, 1.0f);
@@ -79,20 +64,20 @@ float4 PS_RT1(PS_INPUT input) : SV_Target
 
 float4 PS_RT2(PS_INPUT input) : SV_Target
 {
-	float3 albedoMap = txAlbedo.Sample(samTriLinear, input.tex).xyz;
+	float3 albedoMap = txAlbedo.Sample(SamplerStateTrilinear, input.tex).xyz;
 	float3 albedo = m_material.albedo * albedoMap;
 	return float4(albedo, 1.0f);
 }
 
 float4 PS_RT3(PS_INPUT input) : SV_Target
 {
-	float metallicMap = txMetallicMap.Sample(samTriLinear, input.tex).x;
+	float metallicMap = txMetallicMap.Sample(SamplerStateTrilinear, input.tex).x;
 	float metallic = m_material.metallic * metallicMap;
 
-	float roughnessMap = txRoughnessMap.Sample(samTriLinear, input.tex).x;
+	float roughnessMap = txRoughnessMap.Sample(SamplerStateTrilinear, input.tex).x;
 	float roughness = m_material.roughness * roughnessMap;
 
-	float AOMap = txAmbientOcclusionMap.Sample(samTriLinear, input.tex).x;
+	float AOMap = txAmbientOcclusionMap.Sample(SamplerStateTrilinear, input.tex).x;
 	float ao = m_material.ao * AOMap;
 
 	return float4(roughness, metallic, ao, 1.0f);

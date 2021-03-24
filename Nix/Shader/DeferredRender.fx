@@ -10,9 +10,9 @@ TextureCube txIrradianceMap : register(t5);
 TextureCube txPreFilterMap : register(t6);
 Texture2D txBRDF2DLUT : register(t7);
 
-SamplerState samTrilinear : register(s0);
+SamplerState SamplerStateTrilinear : register(s0);
 
-cbuffer ConstantBufferCamera : register(b1)
+cbuffer ConstantBufferVector3 : register(b1)
 {
 	float3 m_eyePos;
 }
@@ -47,26 +47,26 @@ float4 PS(PS_INPUT input) : SV_Target
 {
 	float2 uv = input.tex;
 
-	float3 pos = txRT0.Sample(samTrilinear, uv).xyz;
-	float3 N = txRT1.Sample(samTrilinear, uv).xyz;
+	float3 pos = txRT0.Sample(SamplerStateTrilinear, uv).xyz;
+	float3 N = txRT1.Sample(SamplerStateTrilinear, uv).xyz;
 	float3 V = normalize(m_eyePos - pos);
 
 	//return float4(N, 1.0f);
-	//return txCubeMap.Sample(samTrilinear, N);
-	//return txCubeMap.Sample(samTrilinear, reflect(-V, N));	// perfect reflection test
+	//return txCubeMap.Sample(SamplerStateTrilinear, N);
+	//return txCubeMap.Sample(SamplerStateTrilinear, reflect(-V, N));	// perfect reflection test
 
-	float3 albedo = txRT2.Sample(samTrilinear, uv).xyz;
+	float3 albedo = txRT2.Sample(SamplerStateTrilinear, uv).xyz;
 	albedo = pow(albedo, 2.2f);
 
-	float roughnessMap = txRT3.Sample(samTrilinear, uv).x;
+	float roughnessMap = txRT3.Sample(SamplerStateTrilinear, uv).x;
 	//float roughness = m_material.roughness;
 	float roughness = roughnessMap;
 
-	float metallicMap = txRT3.Sample(samTrilinear, uv).y;
+	float metallicMap = txRT3.Sample(SamplerStateTrilinear, uv).y;
 	//float metallic = m_material.metallic;
 	float metallic = metallicMap;
 
-	float AOMap = txRT3.Sample(samTrilinear, uv).z;
+	float AOMap = txRT3.Sample(SamplerStateTrilinear, uv).z;
 	//float metallic = m_material.metallic;
 	float ao = AOMap;
 
@@ -106,11 +106,11 @@ float4 PS(PS_INPUT input) : SV_Target
 	float3 kS = fresnelSchlick(saturate(dot(N, V)), F0);
 	float3 kD = 1.0 - kS;
 	kD *= 1.0 - metallic;
-	float3 irradiance = txIrradianceMap.Sample(samTrilinear, N).xyz;
+	float3 irradiance = txIrradianceMap.Sample(SamplerStateTrilinear, N).xyz;
 	float3 diffuseIBL = kD * albedo * irradiance;
 
-	float3 preFilteredColor = txPreFilterMap.SampleLevel(samTrilinear, reflect(-V, N), roughness * 4.0f).rgb;
-	float2 envBRDF = txBRDF2DLUT.Sample(samTrilinear, float2(saturate(dot(N, V)), roughness)).rg;
+	float3 preFilteredColor = txPreFilterMap.SampleLevel(SamplerStateTrilinear, reflect(-V, N), roughness * 4.0f).rgb;
+	float2 envBRDF = txBRDF2DLUT.Sample(SamplerStateTrilinear, float2(saturate(dot(N, V)), roughness)).rg;
 	float3 SpecularIBL = preFilteredColor * float3(kS * envBRDF.x + envBRDF.y);
 
 	float3 ambient = (diffuseIBL + SpecularIBL) * ao;

@@ -235,6 +235,7 @@
     <ClCompile Include="Nix\NXPBRLight.cpp" />
     <ClCompile Include="Nix\NXPBRMaterial.cpp" />
     <ClCompile Include="Nix\NXDistribution.cpp" />
+    <ClCompile Include="Nix\NXAmbientOcclusion.cpp" />
     <ClCompile Include="Nix\Script\NSFirstPersonalCamera.cpp" />
     <ClCompile Include="Nix\Script\NSTest.cpp" />
     <ClCompile Include="Nix\NXBox.cpp" />
@@ -294,6 +295,7 @@
     <ClInclude Include="Nix\NXPBRLight.h" />
     <ClInclude Include="Nix\NXPBRMaterial.h" />
     <ClInclude Include="Nix\NXDistribution.h" />
+    <ClInclude Include="Nix\NXAmbientOcclusion.h" />
     <ClInclude Include="Nix\Script\NSFirstPersonalCamera.h" />
     <ClInclude Include="Nix\Script\NSTest.h" />
     <ClInclude Include="Nix\NXBox.h" />
@@ -402,6 +404,13 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
       <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shader\Common.fx">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <FileType>Document</FileType>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
     </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

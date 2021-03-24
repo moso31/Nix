@@ -1,3 +1,4 @@
+#include "Common.fx"
 #include "PBR.fx"
 #include "Math.fx"
 
@@ -12,19 +13,10 @@ TextureCube txIrradianceMap : register(t7);
 TextureCube txPreFilterMap : register(t8);
 Texture2D txBRDF2DLUT : register(t9);
 //Texture2D txShadowMap : register(t10);
-SamplerState samTrilinear : register(s0);
-SamplerComparisonState samShadowMap : register(s1);
 
-cbuffer ConstantBufferObject : register(b0)
-{
-	matrix m_world;
-	matrix m_worldInverseTranspose;
-	matrix m_view;
-	matrix m_worldViewInverseTranspose;
-	matrix m_projection;
-}
+SamplerComparisonState SamplerStateShadowMap : register(s1);
 
-cbuffer ConstantBufferCamera : register(b1)
+cbuffer ConstantBufferVector3 : register(b1)
 {
 	float3 m_eyePos;
 }
@@ -80,7 +72,7 @@ PS_INPUT VS(VS_INPUT input)
 
 float4 PS(PS_INPUT input) : SV_Target
 {
-	float3 normalMap = txNormalMap.Sample(samTrilinear, input.tex).xyz;
+	float3 normalMap = txNormalMap.Sample(SamplerStateTrilinear, input.tex).xyz;
 	float3 normal = m_material.normal * normalMap;
 
 	float3 pos = input.posW.xyz;
@@ -88,21 +80,21 @@ float4 PS(PS_INPUT input) : SV_Target
 	float3 V = normalize(m_eyePos - pos);
 
 	//return float4(N, 1.0f);
-	//return txCubeMap.Sample(samTrilinear, N);
-	//return txCubeMap.Sample(samTrilinear, reflect(-V, N));	// perfect reflection test
+	//return txCubeMap.Sample(SamplerStateTrilinear, N);
+	//return txCubeMap.Sample(SamplerStateTrilinear, reflect(-V, N));	// perfect reflection test
 
-	float3 albedoMap = txAlbedo.Sample(samTrilinear, input.tex).xyz;
+	float3 albedoMap = txAlbedo.Sample(SamplerStateTrilinear, input.tex).xyz;
 	float3 albedo = m_material.albedo * albedoMap;
 	albedo = pow(albedo, 2.2f);
 	//return float4(albedoMap, 1.0f);	// albedo only test
 
-	float roughnessMap = txRoughnessMap.Sample(samTrilinear, input.tex).x;
+	float roughnessMap = txRoughnessMap.Sample(SamplerStateTrilinear, input.tex).x;
 	float roughness = m_material.roughness * roughnessMap;
 
-	float metallicMap = txMetallicMap.Sample(samTrilinear, input.tex).x;
+	float metallicMap = txMetallicMap.Sample(SamplerStateTrilinear, input.tex).x;
 	float metallic = m_material.metallic * metallicMap;
 
-	float AOMap = txAmbientOcclusionMap.Sample(samTrilinear, input.tex).x;
+	float AOMap = txAmbientOcclusionMap.Sample(SamplerStateTrilinear, input.tex).x;
 	float ao = m_material.ao * AOMap;
 
 	float3 F0 = 0.04;
@@ -141,11 +133,11 @@ float4 PS(PS_INPUT input) : SV_Target
 	float3 kS = fresnelSchlick(saturate(dot(N, V)), F0);
 	float3 kD = 1.0 - kS;
 	kD *= 1.0 - metallic;
-	float3 irradiance = txIrradianceMap.Sample(samTrilinear, N).xyz;
+	float3 irradiance = txIrradianceMap.Sample(SamplerStateTrilinear, N).xyz;
 	float3 diffuseIBL = kD * albedo * irradiance;
 
-	float3 preFilteredColor = txPreFilterMap.SampleLevel(samTrilinear, reflect(-V, N), roughness * 4.0f).rgb;
-	float2 envBRDF = txBRDF2DLUT.Sample(samTrilinear, float2(saturate(dot(N, V)), roughness)).rg;
+	float3 preFilteredColor = txPreFilterMap.SampleLevel(SamplerStateTrilinear, reflect(-V, N), roughness * 4.0f).rgb;
+	float2 envBRDF = txBRDF2DLUT.Sample(SamplerStateTrilinear, float2(saturate(dot(N, V)), roughness)).rg;
 	float3 SpecularIBL = preFilteredColor * float3(kS * envBRDF.x + envBRDF.y);
 
 	float3 ambient = (diffuseIBL + SpecularIBL) * ao;

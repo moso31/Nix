@@ -120,6 +120,9 @@
     <None Include="Shader\DeferredRender.fx">
       <Filter>Shader</Filter>
     </None>
+    <None Include="Shader\Common.fx">
+      <Filter>Shader</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">
@@ -283,6 +286,9 @@
     </ClCompile>
     <ClCompile Include="Core\NXGUIMaterial.cpp">
       <Filter>Core\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXAmbientOcclusion.cpp">
+      <Filter>Nix\Effect</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -459,6 +465,9 @@
     </ClInclude>
     <ClInclude Include="Core\NXGUIFileBrowser.h">
       <Filter>Core\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXAmbientOcclusion.h">
+      <Filter>Nix\Effect</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

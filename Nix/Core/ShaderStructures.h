@@ -50,25 +50,25 @@ struct VertexPNTT
 
 struct ConstantBufferFloat
 {
-	float Value;
+	float value;
 	Vector3 _0;
 };
 
 struct ConstantBufferVector2
 {
-	Vector2 Value;
+	Vector2 value;
 	Vector2 _0;
 };
 
 struct ConstantBufferVector3
 {
+	Vector3 value;
 	float _0;
-	Vector3 Value;
 };
 
 struct ConstantBufferVector4
 {
-	Vector4 Value;
+	Vector4 value;
 };
 
 struct ConstantBufferObject
@@ -78,12 +78,6 @@ struct ConstantBufferObject
 	Matrix view;
 	Matrix worldViewInverseTranspose;
 	Matrix projection;
-};
-
-struct ConstantBufferCamera
-{
-	Vector3 eyePosition;
-	float _0;
 };
 
 struct ConstantBufferShadowMapTransform

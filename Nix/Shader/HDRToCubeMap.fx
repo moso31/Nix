@@ -1,20 +1,6 @@
+#include "Common.fx"
+
 Texture2D txHDRMap : register(t0);
-
-SamplerState samTriLinearSam
-{
-	Filter = MIN_MAG_MIP_LINEAR;
-	AddressU = Wrap;
-	AddressV = Wrap;
-};
-
-cbuffer ConstantBufferObject : register(b0)
-{
-	matrix m_world;
-	matrix m_worldInverseTranspose;
-	matrix m_view;
-	matrix m_worldViewInverseTranspose;
-	matrix m_projection;
-}
 
 static const float2 invAtan = float2(0.1591f, 0.3183f);
 float2 SampleSphericalMap(float3 v)
@@ -50,6 +36,6 @@ PS_INPUT VS(VS_INPUT input)
 float4 PS(PS_INPUT input) : SV_Target
 {
 	float2 uv = SampleSphericalMap(normalize(input.posL)); // make sure to normalize localPos
-	float3 color = txHDRMap.Sample(samTriLinearSam, uv).rgb;
+	float3 color = txHDRMap.Sample(SamplerStateTrilinear, uv).rgb;
 	return float4(color, 1.0);
 }

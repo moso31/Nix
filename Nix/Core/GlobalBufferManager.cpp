@@ -3,7 +3,7 @@
 ComPtr<ID3D11Buffer>				NXGlobalBufferManager::m_cbObject;
 ConstantBufferObject				NXGlobalBufferManager::m_cbDataObject;
 ComPtr<ID3D11Buffer>				NXGlobalBufferManager::m_cbCamera;
-ConstantBufferCamera				NXGlobalBufferManager::m_cbDataCamera;
+ConstantBufferVector3				NXGlobalBufferManager::m_cbDataCamera;
 ComPtr<ID3D11Buffer>				NXGlobalBufferManager::m_cbShadowMap;
 ConstantBufferShadowMapTransform	NXGlobalBufferManager::m_cbDataShadowMap;
 
@@ -17,7 +17,7 @@ void NXGlobalBufferManager::Init()
 	bufferDesc.CPUAccessFlags = 0;
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbObject));
 
-	bufferDesc.ByteWidth = sizeof(ConstantBufferCamera);
+	bufferDesc.ByteWidth = sizeof(ConstantBufferVector3);
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbCamera));
 }
 

@@ -443,13 +443,13 @@ void NXCubeMap::GeneratePreFilterMap()
 
 	float roughValues[5] = { 0.0f, 0.25f, 0.5f, 0.75f, 1.0f };
 	ConstantBufferFloat cbDataRoughness;
-	cbDataRoughness.Value = 0;
+	cbDataRoughness.value = 0;
 
 	UINT uMapSize = (UINT)MapSize;
 	CD3D11_VIEWPORT vp;
 	for (int i = 0; i < 5; i++)
 	{
-		cbDataRoughness.Value = roughValues[i];
+		cbDataRoughness.value = roughValues[i];
 
 		vp = CD3D11_VIEWPORT(0.0f, 0.0f, (float)(uMapSize >> i), (float)(uMapSize >> i));
 		g_pContext->RSSetViewports(1, &vp);

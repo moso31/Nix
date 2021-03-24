@@ -121,7 +121,7 @@ void NXCamera::Init(float fovY, float zNear, float zFar, Vector3 cameraPosition,
 	D3D11_BUFFER_DESC bufferDesc;
 	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
 	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(ConstantBufferCamera);
+	bufferDesc.ByteWidth = sizeof(ConstantBufferVector3);
 	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
 
@@ -144,7 +144,7 @@ void NXCamera::Update()
 	NXGlobalBufferManager::m_cbDataObject.projection = m_projection.Transpose();
 	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbObject.Get(), 0, nullptr, &NXGlobalBufferManager::m_cbDataObject, 0, 0);
 
-	NXGlobalBufferManager::m_cbDataCamera.eyePosition = m_translation;
+	NXGlobalBufferManager::m_cbDataCamera.value = m_translation;
 	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbCamera.Get(), 0, nullptr, &NXGlobalBufferManager::m_cbDataCamera, 0, 0);
 }
 

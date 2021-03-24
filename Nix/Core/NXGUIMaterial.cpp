@@ -35,12 +35,14 @@ void NXGUIMaterial::Render()
 	if (ImGui::DragFloat3("Rotation", vRotArr, fDrugSpeedTransform))
 	{
 		pPickingObject->SetRotation(Vector3(vRotArr));
-		{
-			Vector3 value(0.2, 1.12, 2.31);
-			Quaternion _qRot = Quaternion::CreateFromYawPitchRoll(value.y, value.x, value.z);
-			Vector3 res = _qRot.EulerXYZ();
-			printf("%f %f %f\n", res.x, res.y, res.z);
-		}
+
+		// 没什么意义的辣鸡测试……
+		//{
+		//	Vector3 value(0.2, 1.12, 2.31);
+		//	Quaternion _qRot = Quaternion::CreateFromYawPitchRoll(value.y, value.x, value.z);
+		//	Vector3 res = _qRot.EulerXYZ();
+		//	printf("%f %f %f\n", res.x, res.y, res.z);
+		//}
 	}
 
 	XMVECTOR vScal = XMLoadFloat3(&pPickingObject->GetScale());

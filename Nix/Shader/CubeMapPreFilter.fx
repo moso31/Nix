@@ -1,23 +1,8 @@
+#include "Common.fx"
 #include "PBR.fx"
 #include "Random.fx"
 
 TextureCube txCubeMap : register(t0);
-
-SamplerState samTriLinearSam
-{
-	Filter = MIN_MAG_MIP_LINEAR;
-	AddressU = Wrap;
-	AddressV = Wrap;
-};
-
-cbuffer ConstantBufferObject : register(b0)
-{
-	matrix m_world;
-	matrix m_worldInverseTranspose;
-	matrix m_view;
-	matrix m_worldViewInverseTranspose;
-	matrix m_projection;
-}
 
 cbuffer ConstantBufferPreFilter : register(b1)
 {
@@ -41,7 +26,7 @@ float3 GetPrefilterEducational(float roughness, float3 R)
 		float NoL = saturate(dot(N, L));
 		if (NoL > 0.0f)
 		{
-			result += txCubeMap.SampleLevel(samTriLinearSam, L, 0).rgb * NoL;
+			result += txCubeMap.SampleLevel(SamplerStateTrilinear, L, 0).rgb * NoL;
 			TotalWeight += NoL;
 		}
 	}
@@ -74,7 +59,7 @@ float3 GetPrefilter(float roughness, float3 R)
 			float saFactor = 6.0 * imgSize * imgSize / (NX_4PI * (float)NumSamples * pdf);
 			float TargetMipLevel = roughness == 0.0f ? 0.0f : max(0.5 * log2(saFactor), 0.0);
 
-			result += txCubeMap.SampleLevel(samTriLinearSam, L, TargetMipLevel).rgb * NoL;
+			result += txCubeMap.SampleLevel(SamplerStateTrilinear, L, TargetMipLevel).rgb * NoL;
 			TotalWeight += NoL;
 		}
 	}
