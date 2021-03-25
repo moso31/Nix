@@ -223,6 +223,7 @@
     <ClCompile Include="Core\RenderStates.cpp" />
     <ClCompile Include="Core\ShaderComplier.cpp" />
     <ClCompile Include="Nix\HBVH.cpp" />
+    <ClCompile Include="Nix\NXDepthPrepass.cpp" />
     <ClCompile Include="Nix\NXDirectIntegrator.cpp" />
     <ClCompile Include="Nix\NXPhoton.cpp" />
     <ClCompile Include="Nix\NXPMSplitIntegrator.cpp" />
@@ -235,7 +236,7 @@
     <ClCompile Include="Nix\NXPBRLight.cpp" />
     <ClCompile Include="Nix\NXPBRMaterial.cpp" />
     <ClCompile Include="Nix\NXDistribution.cpp" />
-    <ClCompile Include="Nix\NXAmbientOcclusion.cpp" />
+    <ClCompile Include="Nix\NXSimpleSSAO.cpp" />
     <ClCompile Include="Nix\Script\NSFirstPersonalCamera.cpp" />
     <ClCompile Include="Nix\Script\NSTest.cpp" />
     <ClCompile Include="Nix\NXBox.cpp" />
@@ -283,6 +284,7 @@
     <ClInclude Include="Core\ShaderComplier.h" />
     <ClInclude Include="Core\ShaderStructures.h" />
     <ClInclude Include="Nix\HBVH.h" />
+    <ClInclude Include="Nix\NXDepthPrepass.h" />
     <ClInclude Include="Nix\NXDirectIntegrator.h" />
     <ClInclude Include="Nix\NXPhoton.h" />
     <ClInclude Include="Nix\NXPMSplitIntegrator.h" />
@@ -295,7 +297,7 @@
     <ClInclude Include="Nix\NXPBRLight.h" />
     <ClInclude Include="Nix\NXPBRMaterial.h" />
     <ClInclude Include="Nix\NXDistribution.h" />
-    <ClInclude Include="Nix\NXAmbientOcclusion.h" />
+    <ClInclude Include="Nix\NXSimpleSSAO.h" />
     <ClInclude Include="Nix\Script\NSFirstPersonalCamera.h" />
     <ClInclude Include="Nix\Script\NSTest.h" />
     <ClInclude Include="Nix\NXBox.h" />
@@ -408,6 +410,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Common.fx">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <FileType>Document</FileType>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shader\DepthPrepass.fx">
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
       <FileType>Document</FileType>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>

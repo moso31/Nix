@@ -1,8 +1,11 @@
 #pragma once
 #include "Header.h"
 #include "GlobalBufferManager.h"
+
+#include "NXDepthPrepass.h"
 #include "NXDeferredRenderer.h"
 #include "NXForwardRenderer.h"
+#include "NXSimpleSSAO.h"
 #include "NXGUI.h"
 
 class Renderer
@@ -18,6 +21,7 @@ public:
 	void Release();
 
 private:
+	void DrawDepthPrepass();
 	void DrawPrimitives();
 	void DrawCubeMap();
 	void DrawShadowMap();
@@ -37,8 +41,10 @@ private:
 
 	NXScene*					m_scene;
 	NXPassShadowMap*			m_pPassShadowMap; 
+	NXDepthPrepass*				m_pDepthPrepass;
 	NXForwardRenderer*			m_pForwardRenderer;
 	NXDeferredRenderer*			m_pDeferredRenderer;
+	NXSimpleSSAO*				m_pSSAO;
 	NXGUI* m_pGUI;
 
 	// 是否使用延迟着色

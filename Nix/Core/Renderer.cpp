@@ -6,9 +6,10 @@
 
 #include "NXRenderTarget.h"
 #include "NXScene.h"
-#include "NXPassShadowMap.h"
 #include "NXCubeMap.h"
-#include "NXAmbientOcclusion.h"
+#include "NXDepthPrepass.h"
+#include "NXSimpleSSAO.h"
+#include "NXPassShadowMap.h"
 
 void Renderer::Init()
 {
@@ -19,6 +20,9 @@ void Renderer::Init()
 
 	m_scene = new NXScene();
 	m_scene->Init();
+
+	m_pDepthPrepass = new NXDepthPrepass(m_scene);
+	m_pDepthPrepass->Init();
 
 	// forward or deferred renderer?
 	{
@@ -125,7 +129,7 @@ void Renderer::DrawScene()
 	// 设置视口
 	auto vp = g_dxResources->GetViewPortSize();
 	g_pContext->RSSetViewports(1, &CD3D11_VIEWPORT(0.0f, 0.0f, vp.x, vp.y));
-	
+
 	// 切换到主RTV，并清空主RTV和DSV
 	g_pContext->OMSetRenderTargets(1, &pOffScreenRTV, pDepthStencilView);
 	g_pContext->ClearRenderTargetView(pOffScreenRTV, Colors::WhiteSmoke);
@@ -133,7 +137,6 @@ void Renderer::DrawScene()
 	DrawPrimitives();
 
 	// 绘制CubeMap
-	g_pContext->RSSetState(RenderStates::NoCullRS.Get());
 	g_pContext->OMSetDepthStencilState(RenderStates::CubeMapDSS.Get(), 0);
 	DrawCubeMap();
 
@@ -161,13 +164,20 @@ void Renderer::Release()
 {
 	SafeRelease(m_pGUI);
 
-	SafeRelease(m_pPassShadowMap);
+	SafeDelete(m_pPassShadowMap);
 
 	SafeDelete(m_pDeferredRenderer);
 	SafeDelete(m_pForwardRenderer);
 
+	SafeDelete(m_pDepthPrepass);
+
 	SafeRelease(m_scene);
 	SafeRelease(m_renderTarget);
+}
+
+void Renderer::DrawDepthPrepass()
+{
+	m_pDepthPrepass->Render();
 }
 
 void Renderer::DrawPrimitives()

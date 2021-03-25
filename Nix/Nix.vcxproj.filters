@@ -123,6 +123,9 @@
     <None Include="Shader\Common.fx">
       <Filter>Shader</Filter>
     </None>
+    <None Include="Shader\DepthPrepass.fx">
+      <Filter>Shader</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">
@@ -287,7 +290,10 @@
     <ClCompile Include="Core\NXGUIMaterial.cpp">
       <Filter>Core\UI</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\NXAmbientOcclusion.cpp">
+    <ClCompile Include="Nix\NXSimpleSSAO.cpp">
+      <Filter>Nix\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXDepthPrepass.cpp">
       <Filter>Nix\Effect</Filter>
     </ClCompile>
   </ItemGroup>
@@ -466,7 +472,10 @@
     <ClInclude Include="Core\NXGUIFileBrowser.h">
       <Filter>Core\UI</Filter>
     </ClInclude>
-    <ClInclude Include="Nix\NXAmbientOcclusion.h">
+    <ClInclude Include="Nix\NXSimpleSSAO.h">
+      <Filter>Nix\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXDepthPrepass.h">
       <Filter>Nix\Effect</Filter>
     </ClInclude>
   </ItemGroup>
