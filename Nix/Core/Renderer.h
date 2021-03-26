@@ -21,8 +21,8 @@ public:
 	void Release();
 
 private:
-	void DrawDepthPrepass();
-	void DrawPrimitives();
+	void DrawDepthPrepass(ID3D11DepthStencilView* pDSVDepth);
+	void DrawScene();
 	void DrawCubeMap();
 	void DrawShadowMap();
 

@@ -143,8 +143,6 @@ void NXDeferredRenderer::Init()
 
 void NXDeferredRenderer::RenderGBuffer()
 {
-	auto pDepthStencilView = g_dxResources->GetDepthStencilView();
-
 	g_pContext->IASetInputLayout(m_pInputLayoutGBuffer.Get());
 
 	g_pUDA->BeginEvent(L"GBuffer");
@@ -357,9 +355,6 @@ void NXDeferredRenderer::Render()
 		g_pContext->PSSetShaderResources(6, 1, &pPreFilterMapSRV);
 		g_pContext->PSSetShaderResources(7, 1, &pBRDF2DLUT);
 	}
-
-	// 合成GBuffer时不写入新的遮挡。否则会导致全屏幕都被覆盖，进而使GBuffer阶段之后和主RT相关（比如CubeMap）的绘制工作全部失效。
-	g_pContext->OMSetDepthStencilState(RenderStates::DeferredRenderingDSS.Get(), 0);
 
 	auto pOffScreenRTV = g_dxResources->GetRTVOffScreen();
 	auto pDepthStencilView = g_dxResources->GetDepthStencilView();

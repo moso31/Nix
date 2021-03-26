@@ -22,7 +22,7 @@ void Renderer::Init()
 	m_scene->Init();
 
 	m_pDepthPrepass = new NXDepthPrepass(m_scene);
-	m_pDepthPrepass->Init();
+	m_pDepthPrepass->Init(g_dxResources->GetViewSize());
 
 	// forward or deferred renderer?
 	{
@@ -33,7 +33,7 @@ void Renderer::Init()
 		m_pDeferredRenderer->Init();
 
 		// 这个bool将来做成Settings（配置文件）之类的结构。
-		m_isDeferredShading = false;
+		m_isDeferredShading = true;
 	}
 
 	m_pPassShadowMap = new NXPassShadowMap(m_scene);
@@ -130,14 +130,16 @@ void Renderer::DrawScene()
 	auto vp = g_dxResources->GetViewPortSize();
 	g_pContext->RSSetViewports(1, &CD3D11_VIEWPORT(0.0f, 0.0f, vp.x, vp.y));
 
-	// 切换到主RTV，并清空主RTV和DSV
+	g_pContext->ClearDepthStencilView(pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	DrawDepthPrepass(pDepthStencilView);
+
 	g_pContext->OMSetRenderTargets(1, &pOffScreenRTV, pDepthStencilView);
 	g_pContext->ClearRenderTargetView(pOffScreenRTV, Colors::WhiteSmoke);
-	g_pContext->ClearDepthStencilView(pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
-	DrawPrimitives();
+
+	DrawScene();
 
 	// 绘制CubeMap
-	g_pContext->OMSetDepthStencilState(RenderStates::CubeMapDSS.Get(), 0);
+	g_pContext->OMSetDepthStencilState(RenderStates::DSSCubeMap.Get(), 0);
 	DrawCubeMap();
 
 	// 以上操作全部都是在主RTV中进行的。
@@ -175,21 +177,24 @@ void Renderer::Release()
 	SafeRelease(m_renderTarget);
 }
 
-void Renderer::DrawDepthPrepass()
+void Renderer::DrawDepthPrepass(ID3D11DepthStencilView* pDSVDepth)
 {
-	m_pDepthPrepass->Render();
+	m_pDepthPrepass->Render(pDSVDepth);
 }
 
-void Renderer::DrawPrimitives()
+void Renderer::DrawScene()
 {
 	if (!m_isDeferredShading)
 	{
+		g_pContext->OMSetDepthStencilState(RenderStates::DSSForwardRendering.Get(), 0);
 		m_pForwardRenderer->Render();
 	}
 	else
 	{
 		// Deferred shading
+		g_pContext->OMSetDepthStencilState(nullptr, 0);
 		m_pDeferredRenderer->RenderGBuffer();
+		g_pContext->OMSetDepthStencilState(RenderStates::DSSDeferredRendering.Get(), 0);
 		m_pDeferredRenderer->Render();
 	}
 }

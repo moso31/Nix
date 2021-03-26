@@ -15,7 +15,7 @@ NXDepthPrepass::~NXDepthPrepass()
 {
 }
 
-void NXDepthPrepass::Init()
+void NXDepthPrepass::Init(const Vector2& DepthBufferSize)
 {
 	// create VS & IL
 	ComPtr<ID3DBlob> pVSBlob;
@@ -31,11 +31,18 @@ void NXDepthPrepass::Init()
 		ShaderComplier::Compile(L"Shader\\DepthPrepass.fx", "PS", "ps_5_0", &pPSBlob),
 		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
 	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShader));
+
+	// Create Render Target
+	CD3D11_TEXTURE2D_DESC desc(DXGI_FORMAT_R8G8B8A8_UNORM, lround(DepthBufferSize.x), lround(DepthBufferSize.y), 1, 1, D3D11_BIND_RENDER_TARGET);
+	g_pDevice->CreateTexture2D(&desc, nullptr, &m_pTexDepth);
+	NX::ThrowIfFailed(g_pDevice->CreateRenderTargetView(m_pTexDepth.Get(), nullptr, &m_pRTVDepth));
 }
 
-void NXDepthPrepass::Render()
+void NXDepthPrepass::Render(ID3D11DepthStencilView* pDSVDepth)
 {
 	g_pUDA->BeginEvent(L"Depth Prepass");
+
+	g_pContext->OMSetRenderTargets(1, m_pRTVDepth.GetAddressOf(), pDSVDepth);
 
 	g_pContext->IASetInputLayout(m_pInputLayout.Get());
 

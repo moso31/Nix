@@ -8,8 +8,9 @@ ComPtr<ID3D11RasterizerState2>		RenderStates::ShadowMapRS = nullptr;
 ComPtr<ID3D11BlendState1>			RenderStates::AlphaToCoverageBS = nullptr;
 ComPtr<ID3D11BlendState1>			RenderStates::TransparentBS = nullptr;
 
-ComPtr<ID3D11DepthStencilState>		RenderStates::CubeMapDSS = nullptr;
-ComPtr<ID3D11DepthStencilState>		RenderStates::DeferredRenderingDSS = nullptr;
+ComPtr<ID3D11DepthStencilState>		RenderStates::DSSCubeMap = nullptr;
+ComPtr<ID3D11DepthStencilState>		RenderStates::DSSForwardRendering = nullptr;
+ComPtr<ID3D11DepthStencilState>		RenderStates::DSSDeferredRendering = nullptr;
 
 ComPtr<ID3D11SamplerState>			RenderStates::SamplerLinearWrap = nullptr;
 ComPtr<ID3D11SamplerState>			RenderStates::SamplerLinearClamp = nullptr;
@@ -92,20 +93,19 @@ void RenderStates::InitBlendStates()
 
 void RenderStates::InitDepthStencilStates()
 {
-	// DeferredRenderingDSS
 	// 启用深度缓存，但不写入深度缓存区。
-	D3D11_DEPTH_STENCIL_DESC deferredRenderingDesc = { 0 };
-	deferredRenderingDesc.DepthEnable = true;
-	deferredRenderingDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-	deferredRenderingDesc.DepthFunc = D3D11_COMPARISON_LESS;
-	NX::ThrowIfFailed(g_pDevice->CreateDepthStencilState(&deferredRenderingDesc, &DeferredRenderingDSS));
+	D3D11_DEPTH_STENCIL_DESC desc = { 0 };
+	desc.DepthEnable = true;
+	desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	desc.DepthFunc = D3D11_COMPARISON_ALWAYS;
+	NX::ThrowIfFailed(g_pDevice->CreateDepthStencilState(&desc, &DSSDeferredRendering));
 
-	// CubemapDSS
-	D3D11_DEPTH_STENCIL_DESC cubeMapDesc = { 0 };
-	cubeMapDesc.DepthEnable = true;
-	cubeMapDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-	cubeMapDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
-	NX::ThrowIfFailed(g_pDevice->CreateDepthStencilState(&cubeMapDesc, &CubeMapDSS));
+	desc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	NX::ThrowIfFailed(g_pDevice->CreateDepthStencilState(&desc, &DSSForwardRendering));
+
+	desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	desc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	NX::ThrowIfFailed(g_pDevice->CreateDepthStencilState(&desc, &DSSCubeMap));
 }
 
 void RenderStates::InitSamplerStates()
