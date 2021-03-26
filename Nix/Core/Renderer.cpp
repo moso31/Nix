@@ -136,7 +136,23 @@ void Renderer::DrawScene()
 	g_pContext->OMSetRenderTargets(1, &pOffScreenRTV, pDepthStencilView);
 	g_pContext->ClearRenderTargetView(pOffScreenRTV, Colors::WhiteSmoke);
 
-	DrawScene();
+	if (!m_isDeferredShading)
+	{
+		m_pSSAO->Render();
+
+		g_pContext->OMSetDepthStencilState(RenderStates::DSSForwardRendering.Get(), 0);
+		m_pForwardRenderer->Render();
+	}
+	else
+	{
+		// Deferred shading
+		g_pContext->OMSetDepthStencilState(nullptr, 0);
+		m_pDeferredRenderer->RenderGBuffer();
+		g_pContext->OMSetDepthStencilState(RenderStates::DSSDeferredRendering.Get(), 0);
+		m_pDeferredRenderer->Render();
+
+		m_pSSAO->Render();
+	}
 
 	// »æÖÆCubeMap
 	g_pContext->OMSetDepthStencilState(RenderStates::DSSCubeMap.Get(), 0);
@@ -180,23 +196,6 @@ void Renderer::Release()
 void Renderer::DrawDepthPrepass(ID3D11DepthStencilView* pDSVDepth)
 {
 	m_pDepthPrepass->Render(pDSVDepth);
-}
-
-void Renderer::DrawScene()
-{
-	if (!m_isDeferredShading)
-	{
-		g_pContext->OMSetDepthStencilState(RenderStates::DSSForwardRendering.Get(), 0);
-		m_pForwardRenderer->Render();
-	}
-	else
-	{
-		// Deferred shading
-		g_pContext->OMSetDepthStencilState(nullptr, 0);
-		m_pDeferredRenderer->RenderGBuffer();
-		g_pContext->OMSetDepthStencilState(RenderStates::DSSDeferredRendering.Get(), 0);
-		m_pDeferredRenderer->Render();
-	}
 }
 
 void Renderer::DrawCubeMap()

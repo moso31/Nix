@@ -73,57 +73,69 @@
     <Filter Include="Core\UI">
       <UniqueIdentifier>{de9ace55-c4c4-48d5-abfd-52abd2c8e492}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shader\Renderer">
+      <UniqueIdentifier>{57202afe-2b24-4f5b-b5bd-9fcaa43502bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\CubeMap">
+      <UniqueIdentifier>{35af041d-5728-4024-9ce2-c638366bc61a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\Math">
+      <UniqueIdentifier>{a845cc5f-ef34-41d5-98b9-5095aa59ed3a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\RenderTarget.fx">
       <Filter>Shader</Filter>
     </None>
-    <None Include="Shader\ShadowMap.fx">
-      <Filter>Shader</Filter>
-    </None>
-    <None Include="Shader\Scene.fx">
-      <Filter>Shader</Filter>
-    </None>
-    <None Include="Shader\PBR.fx">
-      <Filter>Shader</Filter>
-    </None>
-    <None Include="Shader\CubeMap.fx">
-      <Filter>Shader</Filter>
-    </None>
-    <None Include="Shader\CubeMapIrradiance.fx">
-      <Filter>Shader</Filter>
-    </None>
-    <None Include="Shader\CubeMapPreFilter.fx">
-      <Filter>Shader</Filter>
-    </None>
-    <None Include="Shader\BRDF2DLUT.fx">
-      <Filter>Shader</Filter>
-    </None>
     <None Include="Shader\Random.fx">
-      <Filter>Shader</Filter>
-    </None>
-    <None Include="Shader\HDRToCubeMap.fx">
-      <Filter>Shader</Filter>
-    </None>
-    <None Include="Shader\GBuffer.fx">
-      <Filter>Shader</Filter>
-    </None>
-    <None Include="Shader\Math.fx">
-      <Filter>Shader</Filter>
-    </None>
-    <None Include="Shader\PBRLights.fx">
-      <Filter>Shader</Filter>
-    </None>
-    <None Include="Shader\PBRMaterials.fx">
-      <Filter>Shader</Filter>
-    </None>
-    <None Include="Shader\DeferredRender.fx">
       <Filter>Shader</Filter>
     </None>
     <None Include="Shader\Common.fx">
       <Filter>Shader</Filter>
     </None>
     <None Include="Shader\DepthPrepass.fx">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Shader\BRDF2DLUT.fx">
+      <Filter>Shader\Renderer</Filter>
+    </None>
+    <None Include="Shader\CubeMap.fx">
+      <Filter>Shader\CubeMap</Filter>
+    </None>
+    <None Include="Shader\CubeMapIrradiance.fx">
+      <Filter>Shader\CubeMap</Filter>
+    </None>
+    <None Include="Shader\CubeMapPreFilter.fx">
+      <Filter>Shader\CubeMap</Filter>
+    </None>
+    <None Include="Shader\HDRToCubeMap.fx">
+      <Filter>Shader\CubeMap</Filter>
+    </None>
+    <None Include="Shader\PBRMaterials.fx">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Shader\PBR.fx">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Shader\PBRLights.fx">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Shader\DeferredRender.fx">
+      <Filter>Shader\Renderer</Filter>
+    </None>
+    <None Include="Shader\Scene.fx">
+      <Filter>Shader\Renderer</Filter>
+    </None>
+    <None Include="Shader\GBuffer.fx">
+      <Filter>Shader\Renderer</Filter>
+    </None>
+    <None Include="Shader\Math.fx">
+      <Filter>Shader\Math</Filter>
+    </None>
+    <None Include="Shader\ShadowMap.fx">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Shader\SimpleSSAO.fx">
       <Filter>Shader</Filter>
     </None>
   </ItemGroup>
