@@ -151,7 +151,7 @@ void NXScene::Init()
 	// InitLights()
 	{
 		NXPBRPointLight* pPointLight;
-		pPointLight = m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 4.5f, 0.0f), Vector3(20.0f));
+		pPointLight = m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 4.5f, 0.0f), Vector3(0.0f));
 		//m_sceneManager->CreatePBRDistantLight(Vector3(-1.0f, 0.0f, 1.0f), Vector3(2.0f));
 		//m_sceneManager->CreatePBRTangibleLight(pLight,  Vector3(20.0f)); 
 		//m_sceneManager->CreatePBREnvironmentLight(m_pCubeMap, Vector3(1.0f));

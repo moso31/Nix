@@ -60,13 +60,12 @@ PS_INPUT VS(VS_INPUT input)
 {
 	PS_INPUT output = (PS_INPUT)0;
 	output.posH = mul(input.pos, m_world);
-	output.posW = output.posH;
 	output.posH = mul(output.posH, m_view);
+	output.posW = output.posH;
 	output.posH = mul(output.posH, m_projection);
-	output.normW = normalize(mul(input.norm, (float3x3)m_worldInverseTranspose));
+	output.normW = normalize(mul(input.norm, (float3x3)m_worldViewInverseTranspose));
 	output.tex = input.tex;
-	//output.tangentW = input.tangent;
-	output.tangentW = mul(input.tangent, (float3x3)m_world).xyz;
+	output.tangentW = mul(input.tangent, (float3x3)(m_world * m_view)).xyz;
 	return output;
 }
 
@@ -77,11 +76,11 @@ float4 PS(PS_INPUT input) : SV_Target
 
 	float3 pos = input.posW.xyz;
 	float3 N = TangentSpaceToWorldSpace(normal, input.normW, input.tangentW, input.tex);
-	float3 V = normalize(m_eyePos - pos);
+	float3 V = normalize(-pos);
 
 	//return float4(N, 1.0f);
 	//return txCubeMap.Sample(SamplerStateTrilinear, N);
-	//return txCubeMap.Sample(SamplerStateTrilinear, reflect(-V, N));	// perfect reflection test
+	return txCubeMap.Sample(SamplerStateTrilinear, reflect(-V, N));	// perfect reflection test
 
 	float3 albedoMap = txAlbedo.Sample(SamplerStateTrilinear, input.tex).xyz;
 	float3 albedo = m_material.albedo * albedoMap;
@@ -105,6 +104,7 @@ float4 PS(PS_INPUT input) : SV_Target
     for (int i = 0; i < NUM_LIGHTS; i++)
     {
 		float3 lightPos = m_pointLight[i].position;
+		lightPos = mul(lightPos, (float3x3)m_view);
 		float3 lightColor = m_pointLight[i].color;
 
         // 第i个光源的入射radiance

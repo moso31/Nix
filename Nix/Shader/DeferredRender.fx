@@ -46,10 +46,9 @@ PS_INPUT VS(VS_INPUT input)
 float4 PS(PS_INPUT input) : SV_Target
 {
 	float2 uv = input.tex;
-
 	float3 pos = txRT0.Sample(SamplerStateTrilinear, uv).xyz;
 	float3 N = txRT1.Sample(SamplerStateTrilinear, uv).xyz;
-	float3 V = normalize(m_eyePos - pos);
+	float3 V = normalize(-pos);
 
 	//return float4(N, 1.0f);
 	//return txCubeMap.Sample(SamplerStateTrilinear, N);
@@ -75,7 +74,7 @@ float4 PS(PS_INPUT input) : SV_Target
 
     // reflectance equation
     float3 Lo = 0.0f;
-    for (int i = 0; i < NUM_LIGHTS; i++)
+    for (int i = 0; i < 0; i++)
     {
 		float3 lightPos = m_pointLight[i].position;
 		float3 lightColor = m_pointLight[i].color;
