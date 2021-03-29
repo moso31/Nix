@@ -25,7 +25,7 @@ void NXDepthPrepass::Init(const Vector2& DepthBufferSize)
 		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
 	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVertexShader));
 
-	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutP, ARRAYSIZE(NXGlobalInputLayout::layoutP), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pInputLayout));
+	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pInputLayout));
 
 	NX::MessageBoxIfFailed(
 		ShaderComplier::Compile(L"Shader\\DepthPrepass.fx", "PS", "ps_5_0", &pPSBlob),
@@ -56,6 +56,18 @@ void NXDepthPrepass::Render(ID3D11DepthStencilView* pDSVDepth)
 	{
 		pPrim->Update();
 		g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
+
+		auto pMat = pPrim->GetPBRMaterial();
+		if (pMat)
+		{
+			auto pSRVNormal = pMat->GetSRVNormal();
+			g_pContext->PSSetShaderResources(0, 1, &pSRVNormal);
+		}
+
+		// TODO：实际上 DepthPrepass 不用传入所有材质，只需要传入normal就行了。回头改改这块。
+		auto pCBMaterial = pPrim->GetMaterialBuffer();
+		g_pContext->PSSetConstantBuffers(2, 1, &pCBMaterial);
+
 		pPrim->Render();
 	}
 
