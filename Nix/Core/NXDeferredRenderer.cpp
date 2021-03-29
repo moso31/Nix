@@ -301,6 +301,7 @@ void NXDeferredRenderer::RenderRT3()
 	{
 		pPrim->Update();
 		g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
+		g_pContext->PSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 
 		auto pMat = pPrim->GetPBRMaterial();
 		if (pMat)

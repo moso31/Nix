@@ -77,10 +77,10 @@ float4 PS(PS_INPUT input) : SV_Target
 	float3 pos = input.posW.xyz;
 	float3 N = TangentSpaceToWorldSpace(normal, input.normW, input.tangentW, input.tex);
 	float3 V = normalize(-pos);
+	float3 R = reflect(-V, N);
+	R = mul(R, (float3x3)m_viewTranspose);
 
-	//return float4(N, 1.0f);
-	//return txCubeMap.Sample(SamplerStateTrilinear, N);
-	return txCubeMap.Sample(SamplerStateTrilinear, reflect(-V, N));	// perfect reflection test
+	//return txCubeMap.Sample(SamplerStateTrilinear, R);	// perfect reflection test
 
 	float3 albedoMap = txAlbedo.Sample(SamplerStateTrilinear, input.tex).xyz;
 	float3 albedo = m_material.albedo * albedoMap;
@@ -136,7 +136,7 @@ float4 PS(PS_INPUT input) : SV_Target
 	float3 irradiance = txIrradianceMap.Sample(SamplerStateTrilinear, N).xyz;
 	float3 diffuseIBL = kD * albedo * irradiance;
 
-	float3 preFilteredColor = txPreFilterMap.SampleLevel(SamplerStateTrilinear, reflect(-V, N), roughness * 4.0f).rgb;
+	float3 preFilteredColor = txPreFilterMap.SampleLevel(SamplerStateTrilinear, R, roughness * 4.0f).rgb;
 	float2 envBRDF = txBRDF2DLUT.Sample(SamplerStateTrilinear, float2(saturate(dot(N, V)), roughness)).rg;
 	float3 SpecularIBL = preFilteredColor * float3(kS * envBRDF.x + envBRDF.y);
 

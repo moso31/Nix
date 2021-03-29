@@ -33,7 +33,7 @@ void Renderer::Init()
 		m_pDeferredRenderer->Init();
 
 		// 这个bool将来做成Settings（配置文件）之类的结构。
-		m_isDeferredShading = false;
+		m_isDeferredShading = true;
 	}
 
 	m_pPassShadowMap = new NXPassShadowMap(m_scene);
@@ -210,6 +210,7 @@ void Renderer::DrawCubeMap()
 	{
 		pCubeMap->Update();
 		g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
+		g_pContext->PSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 
 		auto pCubeMapSRV = pCubeMap->GetSRVCubeMap();
 		g_pContext->PSSetShaderResources(0, 1, &pCubeMapSRV);

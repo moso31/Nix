@@ -1,3 +1,4 @@
+#include "Common.fx"
 #include "PBR.fx"
 #include "Math.fx"
 
@@ -9,8 +10,6 @@ TextureCube txCubeMap : register(t4);
 TextureCube txIrradianceMap : register(t5);
 TextureCube txPreFilterMap : register(t6);
 Texture2D txBRDF2DLUT : register(t7);
-
-SamplerState SamplerStateTrilinear : register(s0);
 
 cbuffer ConstantBufferVector3 : register(b1)
 {
@@ -49,10 +48,10 @@ float4 PS(PS_INPUT input) : SV_Target
 	float3 pos = txRT0.Sample(SamplerStateTrilinear, uv).xyz;
 	float3 N = txRT1.Sample(SamplerStateTrilinear, uv).xyz;
 	float3 V = normalize(-pos);
+	float3 R = reflect(-V, N);
+	R = mul(R, (float3x3)m_viewTranspose);
 
-	//return float4(N, 1.0f);
-	//return txCubeMap.Sample(SamplerStateTrilinear, N);
-	//return txCubeMap.Sample(SamplerStateTrilinear, reflect(-V, N));	// perfect reflection test
+	//return txCubeMap.Sample(SamplerStateTrilinear, R);	// perfect reflection test
 
 	float3 albedo = txRT2.Sample(SamplerStateTrilinear, uv).xyz;
 	albedo = pow(albedo, 2.2f);
@@ -108,7 +107,7 @@ float4 PS(PS_INPUT input) : SV_Target
 	float3 irradiance = txIrradianceMap.Sample(SamplerStateTrilinear, N).xyz;
 	float3 diffuseIBL = kD * albedo * irradiance;
 
-	float3 preFilteredColor = txPreFilterMap.SampleLevel(SamplerStateTrilinear, reflect(-V, N), roughness * 4.0f).rgb;
+	float3 preFilteredColor = txPreFilterMap.SampleLevel(SamplerStateTrilinear, R, roughness * 4.0f).rgb;
 	float2 envBRDF = txBRDF2DLUT.Sample(SamplerStateTrilinear, float2(saturate(dot(N, V)), roughness)).rg;
 	float3 SpecularIBL = preFilteredColor * float3(kS * envBRDF.x + envBRDF.y);
 
