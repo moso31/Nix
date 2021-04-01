@@ -7,21 +7,21 @@ struct VS_INPUT
 
 struct PS_INPUT
 {
-	float4 posH : SV_POSITION;
-	float4 posW : POSITION;
+	float4 posSS : SV_POSITION;
+	float4 posWS : POSITION;
 };
 
 PS_INPUT VS(VS_INPUT input)
 {
 	PS_INPUT output = (PS_INPUT)0;
-	output.posH = mul(input.pos, m_world);
-	output.posW = output.posH;
-	output.posH = mul(output.posH, m_view);
-	output.posH = mul(output.posH, m_projection);
+	output.posSS = mul(input.pos, m_world);
+	output.posWS = output.posSS;
+	output.posSS = mul(output.posSS, m_view);
+	output.posSS = mul(output.posSS, m_projection);
 	return output;
 }
 
 float4 PS(PS_INPUT input) : SV_Target
 {
-	return input.posW;
+	return input.posWS;
 }

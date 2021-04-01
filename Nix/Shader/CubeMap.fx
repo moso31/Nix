@@ -10,22 +10,22 @@ struct VS_INPUT
 
 struct PS_INPUT
 {
-	float4 posH : SV_POSITION;
-	float3 posL : POSITION;
+	float4 posSS : SV_POSITION;
+	float3 posOS : POSITION;
 };
 
 PS_INPUT VS(VS_INPUT input)
 {
 	PS_INPUT output = (PS_INPUT)0;
-	output.posH = mul(float4(input.pos, 1.0f), m_world);
-	output.posH = mul(output.posH, m_view);
-	output.posH = mul(output.posH, m_projection).xyww;
-	output.posL = input.pos;
+	output.posSS = mul(float4(input.pos, 1.0f), m_world);
+	output.posSS = mul(output.posSS, m_view);
+	output.posSS = mul(output.posSS, m_projection).xyww;
+	output.posOS = input.pos;
 	return output;
 }
 
 float4 PS(PS_INPUT input) : SV_Target
 {
-	float4 result = txCubeMap.Sample(SamplerStateTrilinear, input.posL);
+	float4 result = txCubeMap.Sample(SamplerStateTrilinear, input.posOS);
 	return result;
 }

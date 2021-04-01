@@ -19,23 +19,23 @@ struct VS_INPUT
 
 struct PS_INPUT
 {
-	float4 posH : SV_POSITION;
-	float4 posW : POSITION;
-	float3 normW : NORMAL;
+	float4 posSS : SV_POSITION;
+	float4 posWS : POSITION;
+	float3 normVS : NORMAL;
 	float2 tex : TEXCOORD;
-	float3 tangentW : TANGENT;
+	float3 tangentVS : TANGENT;
 };
 
 PS_INPUT VS(VS_INPUT input)
 {
 	PS_INPUT output = (PS_INPUT)0;
-	output.posH = mul(input.pos, m_world);
-	output.posW = output.posH;
-	output.posH = mul(output.posH, m_view);
-	output.posH = mul(output.posH, m_projection);
-	output.normW = normalize(mul(input.norm, (float3x3)m_worldInverseTranspose));
+	output.posSS = mul(input.pos, m_world);
+	output.posWS = output.posSS;
+	output.posSS = mul(output.posSS, m_view);
+	output.posSS = mul(output.posSS, m_projection);
+	output.normVS = normalize(mul(input.norm, (float3x3)m_worldInverseTranspose));
 	output.tex = input.tex;
-	output.tangentW = mul(input.tangent, (float3x3)m_world).xyz;
+	output.tangentVS = mul(input.tangent, (float3x3)m_world).xyz;
 	return output;
 }
 
@@ -43,6 +43,6 @@ float4 PS(PS_INPUT input) : SV_Target
 {
 	float3 normalMap = txNormalMap.Sample(SamplerStateTrilinear, input.tex).xyz;
 	float3 normal = m_material.normal * normalMap;
-	float3 N = TangentSpaceToWorldSpace(normal, input.normW, input.tangentW, input.tex);
+	float3 N = TangentSpaceToViewSpace(normal, input.normVS, input.tangentVS);
 	return float4(N, 1.0f);
 }

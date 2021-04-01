@@ -18,24 +18,24 @@ struct VS_INPUT
 
 struct PS_INPUT
 {
-	float4 posH : SV_POSITION;
-	float3 posL : POSITION;
+	float4 posSS : SV_POSITION;
+	float3 posOS : POSITION;
 };
 
 PS_INPUT VS(VS_INPUT input)
 {
 	PS_INPUT output = (PS_INPUT)0;
-	output.posL = float4(input.pos, 1.0f);
-	output.posH = mul(float4(input.pos, 1.0f), m_world);
-	output.posH = mul(output.posH, m_view);
-	output.posH = mul(output.posH, m_projection);
+	output.posOS = float4(input.pos, 1.0f);
+	output.posSS = mul(float4(input.pos, 1.0f), m_world);
+	output.posSS = mul(output.posSS, m_view);
+	output.posSS = mul(output.posSS, m_projection);
 
 	return output;
 }
 
 float4 PS(PS_INPUT input) : SV_Target
 {
-	float2 uv = SampleSphericalMap(normalize(input.posL)); // make sure to normalize localPos
+	float2 uv = SampleSphericalMap(normalize(input.posOS)); // make sure to normalize localPos
 	float3 color = txHDRMap.Sample(SamplerStateTrilinear, uv).rgb;
 	return float4(color, 1.0);
 }
