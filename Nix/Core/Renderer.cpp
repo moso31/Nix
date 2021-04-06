@@ -121,10 +121,9 @@ void Renderer::DrawScene()
 	// 渲染主场景所用的Sampler
 	g_pContext->PSSetSamplers(0, 1, RenderStates::SamplerLinearWrap.GetAddressOf());
 
-	// 设置两个RTV，一个用于绘制主场景，一个用于绘制显示区
-	auto pOffScreenRTV = g_dxResources->GetRTVOffScreen();
-	auto pRenderTargetView = g_dxResources->GetRenderTargetView();
-	auto pDepthStencilView = g_dxResources->GetDepthStencilView();
+	auto pRTVMainScene = g_dxResources->GetRTVMainScene();		// 绘制主场景的RTV
+	auto pRTVFinalQuad = g_dxResources->GetRTVFinalQuad();	// 绘制最终渲染Quad的RTV
+	auto pDepthStencilView = g_dxResources->GetDSVDepthStencil();	
 
 	// 设置视口
 	auto vp = g_dxResources->GetViewPortSize();
@@ -133,8 +132,8 @@ void Renderer::DrawScene()
 	g_pContext->ClearDepthStencilView(pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 	DrawDepthPrepass(pDepthStencilView);
 
-	g_pContext->OMSetRenderTargets(1, &pOffScreenRTV, pDepthStencilView);
-	g_pContext->ClearRenderTargetView(pOffScreenRTV, Colors::WhiteSmoke);
+	g_pContext->OMSetRenderTargets(1, &pRTVMainScene, pDepthStencilView);
+	g_pContext->ClearRenderTargetView(pRTVMainScene, Colors::WhiteSmoke);
 
 	if (!m_isDeferredShading)
 	{
@@ -160,8 +159,8 @@ void Renderer::DrawScene()
 
 	// 以上操作全部都是在主RTV中进行的。
 	// 下面切换到QuadRTV，简单来说就是将主RTV绘制到这个RTV，然后作为一张四边形纹理进行最终输出。
-	g_pContext->OMSetRenderTargets(1, &pRenderTargetView, pDepthStencilView);
-	g_pContext->ClearRenderTargetView(pRenderTargetView, Colors::WhiteSmoke);
+	g_pContext->OMSetRenderTargets(1, &pRTVFinalQuad, pDepthStencilView);
+	g_pContext->ClearRenderTargetView(pRTVFinalQuad, Colors::WhiteSmoke);
 	g_pContext->ClearDepthStencilView(pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	g_pContext->RSSetState(nullptr);

@@ -12,12 +12,15 @@ public:
 	Vector2						GetViewPortSize();
 	D3D11_VIEWPORT				GetViewPort()			{ return m_viewPort; }
 	
-	ID3D11Texture2D*			GetTexOffScreen()		{ return m_pTexOffScreen.Get(); }
-	ID3D11ShaderResourceView*	GetSRVOffScreen()		{ return m_pSRVOffScreen.Get(); }
-	ID3D11RenderTargetView*		GetRTVOffScreen()		{ return m_pRTVOffScreen.Get(); }
+	ID3D11Texture2D*			GetTexMainScene()		{ return m_pTexMainScene.Get(); }
+	ID3D11ShaderResourceView*	GetSRVMainScene()		{ return m_pSRVMainScene.Get(); }
+	ID3D11RenderTargetView*		GetRTVMainScene()		{ return m_pRTVMainScene.Get(); }
 
-	ID3D11RenderTargetView*		GetRenderTargetView()	{ return m_pRenderTargetView.Get(); }
-	ID3D11DepthStencilView*		GetDepthStencilView()	{ return m_pDepthStencilView.Get(); }
+	ID3D11RenderTargetView*		GetRTVFinalQuad()		{ return m_pRTVFinalQuad.Get(); }
+
+	// 没法给这个资源进行明确命名（比如上面的MainScene/FinalQuad），
+	// 因为它是通用的：在绘制Scene和绘制RT时，都使用此Tex/DSV记录深度值。
+	ID3D11DepthStencilView*		GetDSVDepthStencil()	{ return m_pDSVDepthStencil.Get(); }
 	ID3D11Texture2D*			GetTexDepthStencil()	{ return m_pTexDepthStencil.Get(); }
 
 
@@ -25,12 +28,12 @@ private:
 	D3D11_VIEWPORT				m_viewPort;
 	Vector2						m_viewSize;
 
-	ComPtr<ID3D11Texture2D>				m_pTexOffScreen;
-	ComPtr<ID3D11ShaderResourceView>	m_pSRVOffScreen;
-	ComPtr<ID3D11RenderTargetView>		m_pRTVOffScreen;
+	ComPtr<ID3D11Texture2D>				m_pTexMainScene;
+	ComPtr<ID3D11ShaderResourceView>	m_pSRVMainScene;
+	ComPtr<ID3D11RenderTargetView>		m_pRTVMainScene;
 
-	ComPtr<ID3D11RenderTargetView>		m_pRenderTargetView;
+	ComPtr<ID3D11RenderTargetView>		m_pRTVFinalQuad;
 
 	ComPtr<ID3D11Texture2D>				m_pTexDepthStencil;
-	ComPtr<ID3D11DepthStencilView>		m_pDepthStencilView;
+	ComPtr<ID3D11DepthStencilView>		m_pDSVDepthStencil;
 };

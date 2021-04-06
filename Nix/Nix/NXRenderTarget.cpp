@@ -44,8 +44,9 @@ void NXRenderTarget::Render()
 	UINT offset = 0;
 	g_pContext->IASetVertexBuffers(0, 1, m_pVertexBuffer.GetAddressOf(), &stride, &offset);
 	g_pContext->IASetIndexBuffer(m_pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-	auto pRenderTargetSRV = g_dxResources->GetSRVOffScreen();
-	g_pContext->PSSetShaderResources(0, 1, &pRenderTargetSRV);
+
+	auto pSRVMainScene = g_dxResources->GetSRVMainScene();
+	g_pContext->PSSetShaderResources(0, 1, &pSRVMainScene);
 	g_pContext->DrawIndexed((UINT)m_indices.size(), 0, 0);
 
 	g_pUDA->EndEvent();

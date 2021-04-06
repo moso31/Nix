@@ -357,9 +357,9 @@ void NXDeferredRenderer::Render()
 		g_pContext->PSSetShaderResources(7, 1, &pBRDF2DLUT);
 	}
 
-	auto pOffScreenRTV = g_dxResources->GetRTVOffScreen();
-	auto pDepthStencilView = g_dxResources->GetDepthStencilView();
-	g_pContext->OMSetRenderTargets(1, &pOffScreenRTV, pDepthStencilView);
+	auto pRTVMainScene = g_dxResources->GetRTVMainScene();
+	auto pDepthStencilView = g_dxResources->GetDSVDepthStencil();
+	g_pContext->OMSetRenderTargets(1, &pRTVMainScene, pDepthStencilView);
 
 	g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 	g_pContext->PSSetShaderResources(0, 1, m_pSRV[0].GetAddressOf());
