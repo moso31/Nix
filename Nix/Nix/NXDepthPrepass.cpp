@@ -1,6 +1,7 @@
 #include "NXDepthPrepass.h"
 #include "ShaderComplier.h"
 #include "GlobalBufferManager.h"
+#include "DirectResources.h"
 #include "NXScene.h"
 
 NXDepthPrepass::NXDepthPrepass(NXScene* pScene) :
@@ -33,16 +34,24 @@ void NXDepthPrepass::Init(const Vector2& DepthBufferSize)
 	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShader));
 
 	// Create Render Target
-	CD3D11_TEXTURE2D_DESC desc(DXGI_FORMAT_R8G8B8A8_UNORM, lround(DepthBufferSize.x), lround(DepthBufferSize.y), 1, 1, D3D11_BIND_RENDER_TARGET);
-	g_pDevice->CreateTexture2D(&desc, nullptr, &m_pTexDepth);
-	NX::ThrowIfFailed(g_pDevice->CreateRenderTargetView(m_pTexDepth.Get(), nullptr, &m_pRTVDepth));
+	CD3D11_TEXTURE2D_DESC desc(
+		DXGI_FORMAT_R8G8B8A8_UNORM, 
+		lround(DepthBufferSize.x), 
+		lround(DepthBufferSize.y), 
+		1, 
+		1, 
+		D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE
+	);
+	g_pDevice->CreateTexture2D(&desc, nullptr, &m_pTexNormal);
+	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(m_pTexNormal.Get(), nullptr, &m_pSRVNormal));
 }
 
 void NXDepthPrepass::Render(ID3D11DepthStencilView* pDSVDepth)
 {
 	g_pUDA->BeginEvent(L"Depth Prepass");
 
-	g_pContext->OMSetRenderTargets(1, m_pRTVDepth.GetAddressOf(), pDSVDepth);
+	auto pRTVMainScene = g_dxResources->GetRTVMainScene();	// 绘制主场景的RTV
+	g_pContext->OMSetRenderTargets(1, &pRTVMainScene, pDSVDepth);
 
 	g_pContext->IASetInputLayout(m_pInputLayout.Get());
 

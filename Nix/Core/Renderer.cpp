@@ -121,23 +121,26 @@ void Renderer::DrawScene()
 	// 渲染主场景所用的Sampler
 	g_pContext->PSSetSamplers(0, 1, RenderStates::SamplerLinearWrap.GetAddressOf());
 
-	auto pRTVMainScene = g_dxResources->GetRTVMainScene();		// 绘制主场景的RTV
+	auto pRTVMainScene = g_dxResources->GetRTVMainScene();	// 绘制主场景的RTV
 	auto pRTVFinalQuad = g_dxResources->GetRTVFinalQuad();	// 绘制最终渲染Quad的RTV
-	auto pDepthStencilView = g_dxResources->GetDSVDepthStencil();	
+
+	auto pSRVDepthStencil = g_dxResources->GetSRVDepthStencil();
+	auto pDSVDepthStencil = g_dxResources->GetDSVDepthStencil();	
 
 	// 设置视口
 	auto vp = g_dxResources->GetViewPortSize();
 	g_pContext->RSSetViewports(1, &CD3D11_VIEWPORT(0.0f, 0.0f, vp.x, vp.y));
 
-	g_pContext->ClearDepthStencilView(pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
-	DrawDepthPrepass(pDepthStencilView);
+	g_pContext->ClearDepthStencilView(pDSVDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	DrawDepthPrepass(pDSVDepthStencil);
 
-	g_pContext->OMSetRenderTargets(1, &pRTVMainScene, pDepthStencilView);
+	g_pContext->OMSetRenderTargets(1, &pRTVMainScene, pDSVDepthStencil);
 	g_pContext->ClearRenderTargetView(pRTVMainScene, Colors::WhiteSmoke);
 
+	auto pSRVNormal = m_pDepthPrepass->GetSRVNormal();
 	if (!m_isDeferredShading)
 	{
-		m_pSSAO->Render();
+		m_pSSAO->Render(pSRVNormal, pSRVDepthStencil);
 
 		g_pContext->OMSetDepthStencilState(RenderStates::DSSForwardRendering.Get(), 0);
 		m_pForwardRenderer->Render();
@@ -150,7 +153,7 @@ void Renderer::DrawScene()
 		g_pContext->OMSetDepthStencilState(RenderStates::DSSDeferredRendering.Get(), 0);
 		m_pDeferredRenderer->Render();
 
-		m_pSSAO->Render();
+		m_pSSAO->Render(pSRVNormal, pSRVDepthStencil);
 	}
 
 	// 绘制CubeMap
@@ -159,9 +162,9 @@ void Renderer::DrawScene()
 
 	// 以上操作全部都是在主RTV中进行的。
 	// 下面切换到QuadRTV，简单来说就是将主RTV绘制到这个RTV，然后作为一张四边形纹理进行最终输出。
-	g_pContext->OMSetRenderTargets(1, &pRTVFinalQuad, pDepthStencilView);
+	g_pContext->OMSetRenderTargets(1, &pRTVFinalQuad, pDSVDepthStencil);
 	g_pContext->ClearRenderTargetView(pRTVFinalQuad, Colors::WhiteSmoke);
-	g_pContext->ClearDepthStencilView(pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	g_pContext->ClearDepthStencilView(pDSVDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	g_pContext->RSSetState(nullptr);
 	g_pContext->OMSetDepthStencilState(nullptr, 0);
