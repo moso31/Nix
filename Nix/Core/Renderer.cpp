@@ -24,6 +24,9 @@ void Renderer::Init()
 	m_pDepthPrepass = new NXDepthPrepass(m_scene);
 	m_pDepthPrepass->Init(g_dxResources->GetViewSize());
 
+	m_pSSAO = new NXSimpleSSAO();
+	m_pSSAO->Init(g_dxResources->GetViewSize());
+
 	// forward or deferred renderer?
 	{
 		m_pForwardRenderer = new NXForwardRenderer(m_scene);

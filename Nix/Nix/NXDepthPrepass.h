@@ -17,7 +17,6 @@ private:
 	ComPtr<ID3D11PixelShader>			m_pPixelShader;
 	ComPtr<ID3D11InputLayout>			m_pInputLayout;
 
-	ComPtr<ID3D11Texture2D>				m_pTexNormal;
 	ComPtr<ID3D11ShaderResourceView>	m_pSRVNormal;
 
 	NXScene* m_pScene;

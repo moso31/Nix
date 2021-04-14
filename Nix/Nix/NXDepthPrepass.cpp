@@ -33,17 +33,17 @@ void NXDepthPrepass::Init(const Vector2& DepthBufferSize)
 		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
 	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShader));
 
-	// Create Render Target
+	ComPtr<ID3D11Texture2D> pTexNormal;
 	CD3D11_TEXTURE2D_DESC desc(
 		DXGI_FORMAT_R8G8B8A8_UNORM, 
 		lround(DepthBufferSize.x), 
 		lround(DepthBufferSize.y), 
 		1, 
 		1, 
-		D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE
+		D3D11_BIND_SHADER_RESOURCE
 	);
-	g_pDevice->CreateTexture2D(&desc, nullptr, &m_pTexNormal);
-	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(m_pTexNormal.Get(), nullptr, &m_pSRVNormal));
+	g_pDevice->CreateTexture2D(&desc, nullptr, &pTexNormal);
+	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(pTexNormal.Get(), nullptr, &m_pSRVNormal));
 }
 
 void NXDepthPrepass::Render(ID3D11DepthStencilView* pDSVDepth)
