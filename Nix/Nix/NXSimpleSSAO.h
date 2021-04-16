@@ -8,7 +8,7 @@ public:
 	~NXSimpleSSAO();
 
 	void Init(const Vector2& AOBufferSize);
-	void Render(ID3D11ShaderResourceView* pSRVNormal, ID3D11ShaderResourceView* pSRVDepthStencil);
+	void Render(ID3D11ShaderResourceView* pSRVNormal, ID3D11ShaderResourceView* pSRVDepthPrepass);
 
 private:
 	ComPtr<ID3D11ComputeShader>			m_pComputeShader;

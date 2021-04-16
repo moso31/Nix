@@ -36,7 +36,7 @@ void Renderer::Init()
 		m_pDeferredRenderer->Init();
 
 		// 这个bool将来做成Settings（配置文件）之类的结构。
-		m_isDeferredShading = true;
+		m_isDeferredShading = 1;
 	}
 
 	m_pPassShadowMap = new NXPassShadowMap(m_scene);
@@ -128,38 +128,47 @@ void Renderer::DrawScene()
 	auto pRTVFinalQuad = g_dxResources->GetRTVFinalQuad();	// 绘制最终渲染Quad的RTV
 
 	auto pSRVDepthStencil = g_dxResources->GetSRVDepthStencil();
-	auto pDSVDepthStencil = g_dxResources->GetDSVDepthStencil();	
+	auto pDSVDepthStencil = g_dxResources->GetDSVDepthStencil();
+
+	auto pSRVNormal = m_pDepthPrepass->GetSRVNormal();
+	auto pSRVDepthPrepass = m_pDepthPrepass->GetSRVDepthPrepass();
+	auto pDSVDepthPrepass = m_pDepthPrepass->GetDSVDepthPrepass();
 
 	// 设置视口
 	auto vp = g_dxResources->GetViewPortSize();
 	g_pContext->RSSetViewports(1, &CD3D11_VIEWPORT(0.0f, 0.0f, vp.x, vp.y));
 
-	g_pContext->ClearDepthStencilView(pDSVDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
-	DrawDepthPrepass(pDSVDepthStencil);
+	// DepthPrepass
+	g_pContext->OMSetRenderTargets(1, &pRTVMainScene, pDSVDepthPrepass);
+	g_pContext->ClearDepthStencilView(pDSVDepthPrepass, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	m_pDepthPrepass->Render();
 
-	g_pContext->OMSetRenderTargets(1, &pRTVMainScene, pDSVDepthStencil);
-	g_pContext->ClearRenderTargetView(pRTVMainScene, Colors::WhiteSmoke);
-
-	auto pSRVNormal = m_pDepthPrepass->GetSRVNormal();
 	if (!m_isDeferredShading)
 	{
-		m_pSSAO->Render(pSRVNormal, pSRVDepthStencil);
+		// SSAO
+		g_pContext->OMSetRenderTargets(1, &pRTVMainScene, pDSVDepthStencil);
+		g_pContext->ClearDepthStencilView(pDSVDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
+		m_pSSAO->Render(pSRVNormal, pSRVDepthPrepass);
 
-		g_pContext->OMSetDepthStencilState(RenderStates::DSSForwardRendering.Get(), 0);
+		// Forward shading
 		m_pForwardRenderer->Render();
 	}
 	else
 	{
-		// Deferred shading
-		g_pContext->OMSetDepthStencilState(nullptr, 0);
+		// Deferred shading: RenderGBuffer
 		m_pDeferredRenderer->RenderGBuffer();
-		g_pContext->OMSetDepthStencilState(RenderStates::DSSDeferredRendering.Get(), 0);
+
+		// Deferred shading: Render
+		g_pContext->OMSetRenderTargets(1, &pRTVMainScene, pDSVDepthStencil);
+		g_pContext->ClearDepthStencilView(pDSVDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
 		m_pDeferredRenderer->Render();
 
-		m_pSSAO->Render(pSRVNormal, pSRVDepthStencil);
+		// SSAO
+		m_pSSAO->Render(pSRVNormal, pSRVDepthPrepass);
 	}
 
 	// 绘制CubeMap
+	g_pContext->OMSetRenderTargets(1, &pRTVMainScene, pDSVDepthStencil);
 	g_pContext->OMSetDepthStencilState(RenderStates::DSSCubeMap.Get(), 0);
 	DrawCubeMap();
 
@@ -188,6 +197,7 @@ void Renderer::Release()
 	SafeRelease(m_pGUI);
 
 	SafeDelete(m_pPassShadowMap);
+	SafeDelete(m_pSSAO);
 
 	SafeDelete(m_pDeferredRenderer);
 	SafeDelete(m_pForwardRenderer);
@@ -198,9 +208,8 @@ void Renderer::Release()
 	SafeRelease(m_renderTarget);
 }
 
-void Renderer::DrawDepthPrepass(ID3D11DepthStencilView* pDSVDepth)
+void Renderer::DrawDepthPrepass()
 {
-	m_pDepthPrepass->Render(pDSVDepth);
 }
 
 void Renderer::DrawCubeMap()

@@ -19,7 +19,7 @@ public:
 	ID3D11RenderTargetView*		GetRTVFinalQuad()		{ return m_pRTVFinalQuad.Get(); }
 
 	// 没法给这个资源进行明确命名（比如上面的MainScene/FinalQuad），
-	// 因为它是通用的：在绘制Scene和绘制RT时，都使用此Tex/DSV记录深度值。
+	// 因为它是通用的：在绘制Scene和绘制RT时，都使用此m_pXXXDepthStencil资源记录深度值。
 	ID3D11Texture2D*			GetTexDepthStencil()	{ return m_pTexDepthStencil.Get(); }
 	ID3D11ShaderResourceView*	GetSRVDepthStencil()	{ return m_pSRVDepthStencil.Get(); }
 	ID3D11DepthStencilView*		GetDSVDepthStencil()	{ return m_pDSVDepthStencil.Get(); }

@@ -35,23 +35,34 @@ void NXDepthPrepass::Init(const Vector2& DepthBufferSize)
 
 	ComPtr<ID3D11Texture2D> pTexNormal;
 	CD3D11_TEXTURE2D_DESC desc(
-		DXGI_FORMAT_R8G8B8A8_UNORM, 
-		lround(DepthBufferSize.x), 
-		lround(DepthBufferSize.y), 
-		1, 
-		1, 
+		DXGI_FORMAT_R8G8B8A8_UNORM,
+		lround(DepthBufferSize.x),
+		lround(DepthBufferSize.y),
+		1,
+		1,
 		D3D11_BIND_SHADER_RESOURCE
 	);
-	g_pDevice->CreateTexture2D(&desc, nullptr, &pTexNormal);
+	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&desc, nullptr, &pTexNormal));
 	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(pTexNormal.Get(), nullptr, &m_pSRVNormal));
+
+	CD3D11_TEXTURE2D_DESC descDepthPrepass(
+		DXGI_FORMAT_R24G8_TYPELESS, // 无法在Tex直接确定使用哪种format，因为SRV和DSV的格式不同。
+		lround(DepthBufferSize.x),
+		lround(DepthBufferSize.y),
+		1,
+		1,
+		D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_DEPTH_STENCIL
+	);
+	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&descDepthPrepass, nullptr, &m_pTexDepthPrepass));
+	CD3D11_SHADER_RESOURCE_VIEW_DESC descSRVDepthPrepass(m_pTexDepthPrepass.Get(), D3D11_SRV_DIMENSION_TEXTURE2D, DXGI_FORMAT_R24_UNORM_X8_TYPELESS);
+	CD3D11_DEPTH_STENCIL_VIEW_DESC descDSVDepthPrepass(m_pTexDepthPrepass.Get(), D3D11_DSV_DIMENSION_TEXTURE2D, DXGI_FORMAT_D24_UNORM_S8_UINT);
+	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(m_pTexDepthPrepass.Get(), &descSRVDepthPrepass, &m_pSRVDepthPrepass));
+	NX::ThrowIfFailed(g_pDevice->CreateDepthStencilView(m_pTexDepthPrepass.Get(), &descDSVDepthPrepass, &m_pDSVDepthPrepass));
 }
 
-void NXDepthPrepass::Render(ID3D11DepthStencilView* pDSVDepth)
+void NXDepthPrepass::Render()
 {
 	g_pUDA->BeginEvent(L"Depth Prepass");
-
-	auto pRTVMainScene = g_dxResources->GetRTVMainScene();	// 绘制主场景的RTV
-	g_pContext->OMSetRenderTargets(1, &pRTVMainScene, pDSVDepth);
 
 	g_pContext->IASetInputLayout(m_pInputLayout.Get());
 
@@ -73,7 +84,7 @@ void NXDepthPrepass::Render(ID3D11DepthStencilView* pDSVDepth)
 			g_pContext->PSSetShaderResources(0, 1, &pSRVNormal);
 		}
 
-		// TODO：实际上 DepthPrepass 不用传入所有材质，只需要传入normal就行了。回头改改这块。
+		// TODO：实际上 Shader中 处理DepthPrepass时 不用传入所有材质，只需要传入normal就行了。回头改改这块。
 		auto pCBMaterial = pPrim->GetMaterialBuffer();
 		g_pContext->PSSetConstantBuffers(2, 1, &pCBMaterial);
 
