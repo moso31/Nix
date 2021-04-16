@@ -35,15 +35,16 @@ void NXDepthPrepass::Init(const Vector2& DepthBufferSize)
 
 	ComPtr<ID3D11Texture2D> pTexNormal;
 	CD3D11_TEXTURE2D_DESC desc(
-		DXGI_FORMAT_R8G8B8A8_UNORM,
+		DXGI_FORMAT_R32G32B32A32_FLOAT,
 		lround(DepthBufferSize.x),
 		lround(DepthBufferSize.y),
 		1,
 		1,
-		D3D11_BIND_SHADER_RESOURCE
+		D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET
 	);
 	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&desc, nullptr, &pTexNormal));
 	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(pTexNormal.Get(), nullptr, &m_pSRVNormal));
+	NX::ThrowIfFailed(g_pDevice->CreateRenderTargetView(pTexNormal.Get(), nullptr, &m_pRTVNormal));
 
 	CD3D11_TEXTURE2D_DESC descDepthPrepass(
 		DXGI_FORMAT_R24G8_TYPELESS, // 无法在Tex直接确定使用哪种format，因为SRV和DSV的格式不同。
@@ -62,6 +63,10 @@ void NXDepthPrepass::Init(const Vector2& DepthBufferSize)
 
 void NXDepthPrepass::Render()
 {
+	g_pContext->OMSetRenderTargets(1, m_pRTVNormal.GetAddressOf(), m_pDSVDepthPrepass.Get());
+	g_pContext->ClearRenderTargetView(m_pRTVNormal.Get(), Colors::Black);
+	g_pContext->ClearDepthStencilView(m_pDSVDepthPrepass.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+
 	g_pUDA->BeginEvent(L"Depth Prepass");
 
 	g_pContext->IASetInputLayout(m_pInputLayout.Get());

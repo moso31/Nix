@@ -2,6 +2,7 @@
 #include "ShaderComplier.h"
 #include "GlobalBufferManager.h"
 #include "DirectResources.h"
+#include "RenderStates.h"
 #include "NXScene.h"
 
 NXSimpleSSAO::NXSimpleSSAO()
@@ -40,18 +41,19 @@ void NXSimpleSSAO::Render(ID3D11ShaderResourceView* pSRVNormal, ID3D11ShaderReso
 	g_pUDA->BeginEvent(L"Simple SSAO");
 	g_pContext->CSSetShader(m_pComputeShader.Get(), nullptr, 0);
 
-	g_pContext->CSSetShaderResources(0, 1, &pSRVNormal);
+	g_pContext->CSSetSamplers(0, 1, RenderStates::SamplerLinearClamp.GetAddressOf());
+	g_pContext->CSSetShaderResources(0, 1, &pSRVNormal); 
 	g_pContext->CSSetShaderResources(1, 1, &pSRVDepthPrepass);
-	g_pContext->CSSetUnorderedAccessViews(0, 1, &m_pUAVSSAO, nullptr);
+	g_pContext->CSSetUnorderedAccessViews(0, 1, m_pUAVSSAO.GetAddressOf(), nullptr);
 
 	Vector2 screenSize = g_dxResources->GetViewPortSize();
 	int threadCountX = ((int)screenSize.x + 7) / 8;
 	int threadCountY = ((int)screenSize.y + 7) / 8;
 	g_pContext->Dispatch(threadCountX, threadCountY, 1);
 
-	// 用完以后清空pSRVDepthStencil对应槽位的SRV，不然下一帧处理DepthPrepass时DSV绑不上。
-	ID3D11ShaderResourceView* pSRVNull = nullptr;
-	g_pContext->CSSetShaderResources(1, 1, &pSRVNull);
+	// 用完以后清空对应槽位的SRV，不然下一帧处理DepthPrepass时DSV绑不上。
+	ID3D11ShaderResourceView* pSRVNull[2] = { nullptr, nullptr };
+	g_pContext->CSSetShaderResources(0, 2, pSRVNull);
 
 	g_pUDA->EndEvent();
 }
