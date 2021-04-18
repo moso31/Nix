@@ -3,7 +3,7 @@
 ComPtr<ID3D11Buffer>				NXGlobalBufferManager::m_cbObject;
 ConstantBufferObject				NXGlobalBufferManager::m_cbDataObject;
 ComPtr<ID3D11Buffer>				NXGlobalBufferManager::m_cbCamera;
-ConstantBufferVector3				NXGlobalBufferManager::m_cbDataCamera;
+ConstantBufferCamera				NXGlobalBufferManager::m_cbDataCamera;
 ComPtr<ID3D11Buffer>				NXGlobalBufferManager::m_cbShadowMap;
 ConstantBufferShadowMapTransform	NXGlobalBufferManager::m_cbDataShadowMap;
 

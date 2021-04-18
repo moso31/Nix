@@ -20,3 +20,11 @@ float3 TangentSpaceToViewSpace(float3 normalMapValue, float3 normalVS, float3 ta
 	float3 normalTS = normalMapValue * 2.0f - 1.0f; // 从 [0, 1] 转换到 [-1, 1] 区间
 	return ChangeBasisVector(normalTS, normalVS, tangentVS);
 }
+
+float LinearDepth(float z, float n, float f)
+{
+	// z: 投影后的原生depth
+	// f: camera far
+	// n: camera near
+	return f * n / (f + (n - f) * z);
+}

@@ -130,3 +130,9 @@ struct ConstantBufferLight
 {
 	ConstantBufferPointLight pointLight;
 };
+
+struct ConstantBufferCamera
+{
+	Vector4 CameraParams0;	// position.xyz, empty
+	Vector4 CameraParams1;  // near, far
+};

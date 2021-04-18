@@ -11,7 +11,7 @@ public:
 	static ConstantBufferObject					m_cbDataObject;
 
 	static ComPtr<ID3D11Buffer>					m_cbCamera;
-	static ConstantBufferVector3				m_cbDataCamera;
+	static ConstantBufferCamera					m_cbDataCamera;
 
 	static ComPtr<ID3D11Buffer>					m_cbShadowMap;
 	static ConstantBufferShadowMapTransform		m_cbDataShadowMap;

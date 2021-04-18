@@ -11,9 +11,10 @@ TextureCube txIrradianceMap : register(t5);
 TextureCube txPreFilterMap : register(t6);
 Texture2D txBRDF2DLUT : register(t7);
 
-cbuffer ConstantBufferVector3 : register(b1)
+cbuffer ConstantBufferCamera : register(b1)
 {
-	float3 m_eyePos;
+	float4 cameraParams0;
+	float4 cameraParams1;
 }
 
 const static int NUM_LIGHTS = 1;

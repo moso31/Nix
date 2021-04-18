@@ -285,6 +285,7 @@ struct Vector4 : public XMFLOAT4
     Vector4() : XMFLOAT4(0.f, 0.f, 0.f, 0.f) {}
     explicit Vector4(float x) : XMFLOAT4( x, x, x, x ) {}
     Vector4(float _x, float _y, float _z, float _w) : XMFLOAT4(_x, _y, _z, _w) {}
+    Vector4(Vector3 xyz, float w) : XMFLOAT4(xyz.x, xyz.y, xyz.z, w) {}
     explicit Vector4(_In_reads_(4) const float *pArray) : XMFLOAT4(pArray) {}
     Vector4(FXMVECTOR V) { XMStoreFloat4( this, V ); }
 

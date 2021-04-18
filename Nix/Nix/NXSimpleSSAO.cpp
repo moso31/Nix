@@ -40,6 +40,8 @@ void NXSimpleSSAO::Render(ID3D11ShaderResourceView* pSRVNormal, ID3D11ShaderReso
 {
 	g_pUDA->BeginEvent(L"Simple SSAO");
 	g_pContext->CSSetShader(m_pComputeShader.Get(), nullptr, 0);
+	
+	g_pContext->CSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
 
 	g_pContext->CSSetSamplers(0, 1, RenderStates::SamplerLinearClamp.GetAddressOf());
 	g_pContext->CSSetShaderResources(0, 1, &pSRVNormal); 

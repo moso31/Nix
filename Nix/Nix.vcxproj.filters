@@ -82,6 +82,9 @@
     <Filter Include="Shader\Math">
       <UniqueIdentifier>{a845cc5f-ef34-41d5-98b9-5095aa59ed3a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shader\SSAO">
+      <UniqueIdentifier>{0c236b29-a3de-47ad-a773-e710c8934993}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\RenderTarget.fx">
@@ -136,7 +139,7 @@
       <Filter>Shader</Filter>
     </None>
     <None Include="Shader\SimpleSSAO.fx">
-      <Filter>Shader</Filter>
+      <Filter>Shader\SSAO</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

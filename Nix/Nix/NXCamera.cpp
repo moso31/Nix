@@ -121,11 +121,14 @@ void NXCamera::Init(float fovY, float zNear, float zFar, Vector3 cameraPosition,
 	D3D11_BUFFER_DESC bufferDesc;
 	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
 	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(ConstantBufferVector3);
+	bufferDesc.ByteWidth = sizeof(ConstantBufferCamera);
 	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
 
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &NXGlobalBufferManager::m_cbCamera));
+
+	float nInv = 1.0f / m_near;
+	NXGlobalBufferManager::m_cbDataCamera.CameraParams1 = { 1.0f - m_far * nInv, m_far * nInv, 1.0f / m_far - nInv, nInv }; 
 }
 
 void NXCamera::UpdateTransform()
@@ -146,7 +149,7 @@ void NXCamera::Update()
 	NXGlobalBufferManager::m_cbDataObject.projection = m_projection.Transpose();
 	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbObject.Get(), 0, nullptr, &NXGlobalBufferManager::m_cbDataObject, 0, 0);
 
-	NXGlobalBufferManager::m_cbDataCamera.value = m_translation;
+	NXGlobalBufferManager::m_cbDataCamera.CameraParams0 = Vector4(m_translation, 0.0f); 
 	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbCamera.Get(), 0, nullptr, &NXGlobalBufferManager::m_cbDataCamera, 0, 0);
 }
 
