@@ -23,6 +23,17 @@ float LinearDepth(float z)
 void CS(int3 DTid : SV_DispatchThreadID)
 {
 	float DepthZ = txDepthZ.Load(DTid).x;
-	float Normal = txNormal.Load(DTid).z;
-	txSimpleSSAO[DTid.xy] = LinearDepth(DepthZ);
+
+	// N为Z轴，TB随意的xyz坐标基
+	float3 N = txNormal.Load(DTid);
+	float3 T = cross(N, float3(1.0f, 0.0f, 0.0f));
+	if (!any(T))
+		T = cross(N, float3(0.0f, 1.0f, 0.0f));
+	float3 B = cross(N, T);
+	float3x3 TBN = float3x3(T, B, N);
+
+
+
+	txSimpleSSAO[DTid.xy] = InterleavedGradientNoise(DTid.xy);
+	//LinearDepth(DepthZ);
 }

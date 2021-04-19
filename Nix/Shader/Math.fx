@@ -21,10 +21,10 @@ float3 TangentSpaceToViewSpace(float3 normalMapValue, float3 normalVS, float3 ta
 	return ChangeBasisVector(normalTS, normalVS, tangentVS);
 }
 
-float LinearDepth(float z, float n, float f)
+// 生成范围[0, 1)的伪随机梯度噪声
+// http://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare
+float InterleavedGradientNoise(float2 value)
 {
-	// z: 投影后的原生depth
-	// f: camera far
-	// n: camera near
-	return f * n / (f + (n - f) * z);
+	const float3 magic = float3(0.06711056f, 0.00583715f, 52.9829189f);
+	return frac(magic.z * frac(dot(value, magic.xy)));
 }
