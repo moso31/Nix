@@ -1,14 +1,9 @@
-float RadicalInverse(uint bits) 
+// 伪随机梯度噪声，范围[0, 1)
+// http://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare
+float InterleavedGradientNoise(float2 value, int offset)
 {
-    bits = (bits << 16u) | (bits >> 16u);
-    bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
-    bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
-    bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
-    bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
-    return float(bits) * 2.3283064365386963e-10f;
-}
-
-float2 Hammersley(uint i, uint N) 
-{
-    return float2(float(i) / float(N), RadicalInverse(i));
+	const float3 magic = float3(0.06711056f, 0.00583715f, 52.9829189f);
+	float2 scale = float2(1.114514f, 2.1919810f);	// scale不要用const，不然offset=0的时候编译器优化不掉
+	value += offset * scale;
+	return frac(magic.z * frac(dot(value, magic.xy)));
 }

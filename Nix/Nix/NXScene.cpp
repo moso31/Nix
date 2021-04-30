@@ -122,7 +122,7 @@ void NXScene::Init()
 	pPBRMat[0]->SetTexRoughness(L"D:\\NixAssets\\rustediron2\\roughness.png");
 	pPBRMat[0]->SetTexAO(L"D:\\NixAssets\\rustediron2\\ao.png");
 
-	auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64); 
+	auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64);
 	pSphere->SetMaterialPBR(pPBRMat[0]);
 
 	{
@@ -134,10 +134,20 @@ void NXScene::Init()
 	// …Ë÷√Picking Object£®Demo”√£¨¡Ÿ ±£©
 	SetCurrentPickingObject(pSphere);
 
+	for (float i = -4.0f; i < 4.01f; i += 1.0f)
+	{
+		for (float j = -4.0f; j < 4.01f; j += 1.0f)
+		{
+			Vector3 pos(i, 0, j);
+			pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64, pos);
+			pSphere->SetMaterialPBR(pPBRMat[0]);
+		}
+	}
+
 	auto pCamera = m_sceneManager->CreateCamera(
 		"Camera1",
 		70.0f, 0.01f, 1000.f,
-		Vector3(0.0f, 0.0f, -2.0f),
+		Vector3(0.0f, 5.0f, 7.0f),
 		Vector3(0.0f, 0.0f, 0.0f),
 		Vector3(0.0f, 1.0f, 0.0f)
 	);

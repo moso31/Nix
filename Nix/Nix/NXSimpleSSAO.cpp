@@ -1,4 +1,5 @@
 #include "NXSimpleSSAO.h"
+#include "NXRandom.h"
 #include "ShaderComplier.h"
 #include "GlobalBufferManager.h"
 #include "DirectResources.h"
@@ -34,6 +35,9 @@ void NXSimpleSSAO::Init(const Vector2& AOBufferSize)
 	g_pDevice->CreateTexture2D(&desc, nullptr, &pTexSSAO);
 	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(pTexSSAO.Get(), nullptr, &m_pSRVSSAO));
 	NX::ThrowIfFailed(g_pDevice->CreateUnorderedAccessView(pTexSSAO.Get(), nullptr, &m_pUAVSSAO));
+
+	// 生成随机采样序列
+	//GenerateSamplePosition();
 }
 
 void NXSimpleSSAO::Render(ID3D11ShaderResourceView* pSRVNormal, ID3D11ShaderResourceView* pSRVDepthPrepass)
@@ -42,6 +46,7 @@ void NXSimpleSSAO::Render(ID3D11ShaderResourceView* pSRVNormal, ID3D11ShaderReso
 	g_pContext->CSSetShader(m_pComputeShader.Get(), nullptr, 0);
 	
 	g_pContext->CSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
+	//g_pContext->CSSetConstantBuffers(1, 1, m_pCBSamplePositions.GetAddressOf());
 
 	g_pContext->CSSetSamplers(0, 1, RenderStates::SamplerLinearClamp.GetAddressOf());
 	g_pContext->CSSetShaderResources(0, 1, &pSRVNormal); 
@@ -54,8 +59,32 @@ void NXSimpleSSAO::Render(ID3D11ShaderResourceView* pSRVNormal, ID3D11ShaderReso
 	g_pContext->Dispatch(threadCountX, threadCountY, 1);
 
 	// 用完以后清空对应槽位的SRV，不然下一帧处理DepthPrepass时DSV绑不上。
-	ID3D11ShaderResourceView* pSRVNull[2] = { nullptr, nullptr };
-	g_pContext->CSSetShaderResources(0, 2, pSRVNull);
+	ComPtr<ID3D11ShaderResourceView> pSRVNull[2] = { nullptr, nullptr };
+	g_pContext->CSSetShaderResources(0, 2, pSRVNull->GetAddressOf());
 
 	g_pUDA->EndEvent();
+}
+
+void NXSimpleSSAO::GenerateSamplePosition()
+{
+	//const static UINT SSAO_SAMPLE_COUNT = 64;
+	//m_samplePosition.resize(SSAO_SAMPLE_COUNT);
+	//for (int i = 0; i < SSAO_SAMPLE_COUNT; i++)
+	//{
+	//	Vector3 v = NXRandom::GetInstance().CreateVector3(0.0f, 1.0f);
+	//	v.x = v.x * 2.0f - 1.0f;
+	//	v.y = v.y * 2.0f - 1.0f;
+
+	//	m_samplePosition[i] = v;
+	//}
+
+	//D3D11_BUFFER_DESC bufferDesc;
+	//ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+	//bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	//bufferDesc.ByteWidth = sizeof(Vector3) * SSAO_SAMPLE_COUNT;
+	//bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	//bufferDesc.CPUAccessFlags = 0;
+	//NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_pCBSamplePositions));
+
+	//g_pContext->UpdateSubresource(m_pCBSamplePositions.Get(), 0, nullptr, m_samplePosition.data(), 0, 0);
 }

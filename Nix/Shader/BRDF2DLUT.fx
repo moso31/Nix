@@ -1,5 +1,5 @@
 #include "PBR.fx"
-#include "Random.fx"
+#include "MathSample.fx"
 
 SamplerState SamplerStateTrilinear
 {

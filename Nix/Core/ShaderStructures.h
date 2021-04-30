@@ -133,6 +133,7 @@ struct ConstantBufferLight
 
 struct ConstantBufferCamera
 {
-	Vector4 CameraParams0;	// position.xyz, empty
-	Vector4 CameraParams1;  // near, far
+	Vector4 Params0;	// position.xyz, -
+	Vector4 Params1;	// near, far, -, -
+	Vector4 Params2;	// projMatrix._11, projMatrix.22, -, -
 };

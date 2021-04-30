@@ -1,6 +1,6 @@
 #include "Common.fx"
 #include "PBR.fx"
-#include "Random.fx"
+#include "MathSample.fx"
 
 TextureCube txCubeMap : register(t0);
 

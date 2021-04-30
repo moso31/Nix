@@ -20,6 +20,7 @@ cbuffer ConstantBufferCamera : register(b1)
 {
 	float4 cameraParams0;
 	float4 cameraParams1;
+	float4 cameraParams2;
 }
 
 const static int NUM_LIGHTS = 1;
