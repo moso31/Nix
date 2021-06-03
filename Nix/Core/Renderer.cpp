@@ -130,6 +130,7 @@ void Renderer::DrawScene()
 	auto pSRVDepthStencil = g_dxResources->GetSRVDepthStencil();
 	auto pDSVDepthStencil = g_dxResources->GetDSVDepthStencil();
 
+	auto pSRVPosition = m_pDepthPrepass->GetSRVPosition();
 	auto pSRVNormal = m_pDepthPrepass->GetSRVNormal();
 	auto pSRVDepthPrepass = m_pDepthPrepass->GetSRVDepthPrepass();
 	auto pDSVDepthPrepass = m_pDepthPrepass->GetDSVDepthPrepass();
@@ -147,7 +148,7 @@ void Renderer::DrawScene()
 		g_pContext->OMSetRenderTargets(1, &pRTVMainScene, pDSVDepthStencil);
 		g_pContext->ClearRenderTargetView(pRTVMainScene, Colors::WhiteSmoke);
 		g_pContext->ClearDepthStencilView(pDSVDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
-		m_pSSAO->Render(pSRVNormal, pSRVDepthPrepass);
+		m_pSSAO->Render(pSRVNormal, pSRVPosition, pSRVDepthPrepass);
 
 		// Forward shading
 		m_pForwardRenderer->Render();
@@ -164,7 +165,7 @@ void Renderer::DrawScene()
 		m_pDeferredRenderer->Render();
 
 		// SSAO
-		m_pSSAO->Render(pSRVNormal, pSRVDepthPrepass);
+		m_pSSAO->Render(pSRVNormal, pSRVPosition, pSRVDepthPrepass);
 	}
 
 	// ªÊ÷∆CubeMap

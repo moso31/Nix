@@ -25,7 +25,8 @@ void NXSimpleSSAO::Init(const Vector2& AOBufferSize)
 
 	ComPtr<ID3D11Texture2D> pTexSSAO;
 	CD3D11_TEXTURE2D_DESC desc(
-		DXGI_FORMAT_R32_FLOAT,
+		//DXGI_FORMAT_R32_FLOAT,
+		DXGI_FORMAT_R32G32B32A32_FLOAT,
 		lround(AOBufferSize.x),
 		lround(AOBufferSize.y),
 		1,
@@ -40,7 +41,7 @@ void NXSimpleSSAO::Init(const Vector2& AOBufferSize)
 	//GenerateSamplePosition();
 }
 
-void NXSimpleSSAO::Render(ID3D11ShaderResourceView* pSRVNormal, ID3D11ShaderResourceView* pSRVDepthPrepass)
+void NXSimpleSSAO::Render(ID3D11ShaderResourceView* pSRVNormal, ID3D11ShaderResourceView* pSRVPosition, ID3D11ShaderResourceView* pSRVDepthPrepass)
 {
 	g_pUDA->BeginEvent(L"Simple SSAO");
 	g_pContext->CSSetShader(m_pComputeShader.Get(), nullptr, 0);
@@ -49,8 +50,9 @@ void NXSimpleSSAO::Render(ID3D11ShaderResourceView* pSRVNormal, ID3D11ShaderReso
 	//g_pContext->CSSetConstantBuffers(1, 1, m_pCBSamplePositions.GetAddressOf());
 
 	g_pContext->CSSetSamplers(0, 1, RenderStates::SamplerLinearClamp.GetAddressOf());
-	g_pContext->CSSetShaderResources(0, 1, &pSRVNormal); 
-	g_pContext->CSSetShaderResources(1, 1, &pSRVDepthPrepass);
+	g_pContext->CSSetShaderResources(0, 1, &pSRVNormal);
+	g_pContext->CSSetShaderResources(1, 1, &pSRVPosition);
+	g_pContext->CSSetShaderResources(2, 1, &pSRVDepthPrepass);
 	g_pContext->CSSetUnorderedAccessViews(0, 1, m_pUAVSSAO.GetAddressOf(), nullptr);
 
 	Vector2 screenSize = g_dxResources->GetViewPortSize();
@@ -59,8 +61,8 @@ void NXSimpleSSAO::Render(ID3D11ShaderResourceView* pSRVNormal, ID3D11ShaderReso
 	g_pContext->Dispatch(threadCountX, threadCountY, 1);
 
 	// 用完以后清空对应槽位的SRV，不然下一帧处理DepthPrepass时DSV绑不上。
-	ComPtr<ID3D11ShaderResourceView> pSRVNull[2] = { nullptr, nullptr };
-	g_pContext->CSSetShaderResources(0, 2, pSRVNull->GetAddressOf());
+	ComPtr<ID3D11ShaderResourceView> pSRVNull[3] = { nullptr, nullptr, nullptr };
+	g_pContext->CSSetShaderResources(0, 3, pSRVNull->GetAddressOf());
 
 	g_pUDA->EndEvent();
 }

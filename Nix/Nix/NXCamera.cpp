@@ -149,8 +149,11 @@ void NXCamera::Update()
 	NXGlobalBufferManager::m_cbDataObject.projection = m_projection.Transpose();
 	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbObject.Get(), 0, nullptr, &NXGlobalBufferManager::m_cbDataObject, 0, 0);
 
-	NXGlobalBufferManager::m_cbDataCamera.Params0 = Vector4(m_translation, 0.0f);
-	NXGlobalBufferManager::m_cbDataCamera.Params2 = Vector4(m_projection._11, m_projection._22, 0.0f, 0.0f);
+	// 【这两行临时的。buffersize不该和Camera放在一起。回头改】
+	Vector2 viewSize = g_dxResources->GetViewSize();
+	NXGlobalBufferManager::m_cbDataCamera.Params0 = Vector4(viewSize.x, viewSize.y, 1.0f / viewSize.x, 1.0f / viewSize.y);
+
+	NXGlobalBufferManager::m_cbDataCamera.Params2 = Vector4(m_projection._11, m_projection._22, 1.0f / m_projection._11, 1.0f / m_projection._22);
 	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbCamera.Get(), 0, nullptr, &NXGlobalBufferManager::m_cbDataCamera, 0, 0);
 }
 

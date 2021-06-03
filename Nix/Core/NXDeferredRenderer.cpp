@@ -84,6 +84,7 @@ void NXDeferredRenderer::Init()
 	ComPtr<ID3DBlob> pVSBlob;
 	ComPtr<ID3DBlob> pPSBlob;
 
+	// 【？】有必要弄4个VS吗，它们似乎完全一样
 	NX::MessageBoxIfFailed(
 		ShaderComplier::Compile(L"Shader\\GBuffer.fx", "VS", "vs_5_0", &pVSBlob),
 		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");

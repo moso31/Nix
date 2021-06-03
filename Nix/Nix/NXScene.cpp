@@ -134,9 +134,9 @@ void NXScene::Init()
 	// …Ë÷√Picking Object£®Demo”√£¨¡Ÿ ±£©
 	SetCurrentPickingObject(pSphere);
 
-	for (float i = -4.0f; i < 4.01f; i += 1.0f)
+	for (float i = -8.0f; i < 8.01f; i += 2.0f)
 	{
-		for (float j = -4.0f; j < 4.01f; j += 1.0f)
+		for (float j = -8.0f; j < 8.01f; j += 2.0f)
 		{
 			Vector3 pos(i, 0, j);
 			pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64, pos);
@@ -146,7 +146,7 @@ void NXScene::Init()
 
 	auto pCamera = m_sceneManager->CreateCamera(
 		"Camera1",
-		70.0f, 0.01f, 1000.f,
+		70.0f, 0.3f, 1000.f,
 		Vector3(0.0f, 5.0f, 7.0f),
 		Vector3(0.0f, 0.0f, 0.0f),
 		Vector3(0.0f, 1.0f, 0.0f)
