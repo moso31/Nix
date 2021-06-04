@@ -9,7 +9,7 @@ namespace DirectX
 
 namespace SamplerMath
 {
-	Vector3 UniformSampleHemisphere(const Vector2& u);
+	Vector3 UniformSampleHemisphere(const Vector2& u, const float radius = 1.0f);
 	float UniformSampleHemispherePdf();
 	Vector3 UniformSampleSphere(const Vector2& u);
 	float UniformSampleSpherePdf();

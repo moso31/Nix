@@ -1,11 +1,11 @@
 #include "SamplerMath.h"
 
-Vector3 SamplerMath::UniformSampleHemisphere(const Vector2& u)
+Vector3 SamplerMath::UniformSampleHemisphere(const Vector2& u, const float radius)
 {
 	// u = 两个[0, 1)之间的随机值。最终u会被映射到半球体表面。
-	float z = u.x;
+	float z = u.x * radius;
 	float phi = XM_2PI * u.y;
-	float r = sqrtf(fmaxf(0.0f, 1.0f - z * z));
+	float r = sqrtf(fmaxf(0.0f, 1.0f - z * z)) * radius;
 	float x = cosf(phi) * r;
 	float y = sinf(phi) * r;
 	return Vector3(x, y, z);

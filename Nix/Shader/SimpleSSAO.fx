@@ -1,6 +1,6 @@
 #include "Random.fx"
 
-#define SSAO_SAMPLE_COUNT 64
+#define SSAO_SAMPLE_COUNT 256
 
 SamplerState SamplerStateTrilinear : register(s0);
 
@@ -13,6 +13,11 @@ cbuffer ConstantBufferCamera : register(b0)
 
 	// proj._11, proj._22, 1 / proj._11, 1 / proj._22, 
 	float4 m_projParams;
+}
+
+cbuffer ConstantBufferRandomList : register(b1)
+{
+	float4 RandomPosition[SSAO_SAMPLE_COUNT];
 }
 
 Texture2D txNormal : register(t0);
@@ -42,14 +47,17 @@ void CS(int3 DTid : SV_DispatchThreadID)
 	float SumWeight = 0.0f;
 	for (int i = 0; i < SSAO_SAMPLE_COUNT; i++)
 	{
-		float3 SamplePos = float3(
-			InterleavedGradientNoise(DTid.xy, i * 3 + 0) * 2.0f - 1.0f,
-			InterleavedGradientNoise(DTid.xy, i * 3 + 1) * 2.0f - 1.0f,
-			InterleavedGradientNoise(DTid.xy, i * 3 + 2)
-		);
+		//float3 SamplePos = float3(
+		//	InterleavedGradientNoise(DTid.xy, i * 3 + 0) * 2.0f - 1.0f,
+		//	InterleavedGradientNoise(DTid.xy, i * 3 + 1) * 2.0f - 1.0f,
+		//	InterleavedGradientNoise(DTid.xy, i * 3 + 2)
+		//);
+		float3 SamplePos = RandomPosition[i].xyz;
 
-		float3 SampleVS = PositionVS + mul(SamplePos, TBN);
+		float3 SampleOffset = mul(SamplePos, TBN).xzy;
+		float3 SampleVS = PositionVS + SampleOffset;
 		float2 SampleNDC = SampleVS.xy * m_projParams.xy / SampleVS.z;
+		SampleNDC *= float2(1.0f, -1.0f);
 		float2 SampleUV = (SampleNDC + 1.0f) * 0.5f;
 
 		float SampleDepth = txDepthZ.SampleLevel(SamplerStateTrilinear, SampleUV, 0.0).x;
