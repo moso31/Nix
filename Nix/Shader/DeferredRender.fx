@@ -10,6 +10,7 @@ TextureCube txCubeMap : register(t4);
 TextureCube txIrradianceMap : register(t5);
 TextureCube txPreFilterMap : register(t6);
 Texture2D txBRDF2DLUT : register(t7);
+Texture2D txSSAO : register(t8);
 
 cbuffer ConstantBufferCamera : register(b1)
 {
@@ -59,16 +60,15 @@ float4 PS(PS_INPUT input) : SV_Target
 	albedo = pow(albedo, 2.2f);
 
 	float roughnessMap = txRT3.Sample(SamplerStateTrilinear, uv).x;
-	//float roughness = m_material.roughness;
 	float roughness = roughnessMap;
 
 	float metallicMap = txRT3.Sample(SamplerStateTrilinear, uv).y;
-	//float metallic = m_material.metallic;
 	float metallic = metallicMap;
 
 	float AOMap = txRT3.Sample(SamplerStateTrilinear, uv).z;
-	//float metallic = m_material.metallic;
-	float ao = AOMap;
+	float SSAOMap = txSSAO.Sample(SamplerStateTrilinear, input.tex).x;
+	float ssao = 1.0f - SSAOMap;
+	float ao = AOMap * ssao;
 
 	float3 F0 = 0.04;
 	F0 = lerp(F0, albedo, metallic);

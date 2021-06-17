@@ -10,7 +10,7 @@ public:
 
 	void Init();
 	void RenderGBuffer();
-	void Render();
+	void Render(ID3D11ShaderResourceView* pSRVSSAO);
 	void RenderRT0();
 	void RenderRT1();
 	void RenderRT2();

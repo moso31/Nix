@@ -33,7 +33,7 @@ void NXForwardRenderer::Init()
 	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShader));
 }
 
-void NXForwardRenderer::Render()
+void NXForwardRenderer::Render(ID3D11ShaderResourceView* pSRVSSAO)
 {
 	g_pUDA->BeginEvent(L"Forward rendering");
 
@@ -65,6 +65,11 @@ void NXForwardRenderer::Render()
 	// PBR大改。阴影贴图暂时停用。
 	//auto pShadowMapSRV = m_pPassShadowMap->GetSRV();
 	//g_pContext->PSSetShaderResources(10, 1, &pShadowMapSRV);
+
+	if (pSRVSSAO)
+	{
+		g_pContext->PSSetShaderResources(11, 1, &pSRVSSAO);
+	}
 
 	//auto pShadowMapConstantBufferTransform = m_pPassShadowMap->GetConstantBufferTransform();
 	//g_pContext->PSSetConstantBuffers(4, 1, &pShadowMapConstantBufferTransform);

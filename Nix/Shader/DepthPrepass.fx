@@ -33,9 +33,9 @@ PS_INPUT VS(VS_INPUT input)
 	output.posWS = mul(input.pos, m_world);
 	output.posVS = mul(output.posWS, m_view);
 	output.posSS = mul(output.posVS, m_projection);
-	output.normVS = normalize(mul(input.norm, (float3x3)m_worldInverseTranspose));
+	output.normVS = normalize(mul(input.norm, (float3x3)m_worldViewInverseTranspose));
 	output.tex = input.tex;
-	output.tangentVS = mul(input.tangent, (float3x3)m_world).xyz;
+	output.tangentVS = mul(input.tangent, (float3x3)m_worldView).xyz;
 	return output;
 }
 

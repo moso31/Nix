@@ -10,6 +10,8 @@ public:
 	void Init(const Vector2& AOBufferSize);
 	void Render(ID3D11ShaderResourceView* pSRVNormal, ID3D11ShaderResourceView* pSRVPosition, ID3D11ShaderResourceView* pSRVDepthPrepass);
 
+	ID3D11ShaderResourceView*	GetSRV()	{ return m_pSRVSSAO.Get(); }
+
 private:
 	void GenerateSamplePosition();
 

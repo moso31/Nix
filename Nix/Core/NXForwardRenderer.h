@@ -9,7 +9,7 @@ public:
 	~NXForwardRenderer();
 
 	void Init();
-	void Render();
+	void Render(ID3D11ShaderResourceView* pSRVSSAO);
 
 private:
 	ComPtr<ID3D11VertexShader>			m_pVertexShader;

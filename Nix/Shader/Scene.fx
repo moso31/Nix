@@ -13,6 +13,7 @@ TextureCube txIrradianceMap : register(t7);
 TextureCube txPreFilterMap : register(t8);
 Texture2D txBRDF2DLUT : register(t9);
 //Texture2D txShadowMap : register(t10);
+Texture2D txSSAO : register(t11);
 
 SamplerComparisonState SamplerStateShadowMap : register(s1);
 
@@ -67,7 +68,7 @@ PS_INPUT VS(VS_INPUT input)
 	output.posSS = mul(output.posSS, m_projection);
 	output.normVS = normalize(mul(input.norm, (float3x3)m_worldViewInverseTranspose));
 	output.tex = input.tex;
-	output.tangentVS = mul(input.tangent, (float3x3)(m_world * m_view)).xyz;
+	output.tangentVS = mul(input.tangent, (float3x3)m_worldView).xyz;
 	return output;
 }
 
@@ -96,7 +97,9 @@ float4 PS(PS_INPUT input) : SV_Target
 	float metallic = m_material.metallic * metallicMap;
 
 	float AOMap = txAmbientOcclusionMap.Sample(SamplerStateTrilinear, input.tex).x;
-	float ao = m_material.ao * AOMap;
+	float SSAOMap = txSSAO.Sample(SamplerStateTrilinear, input.tex).x;
+	float ssao = 1.0f - SSAOMap;
+	float ao = m_material.ao * AOMap * ssao;
 
 	float3 F0 = 0.04;
 	F0 = lerp(F0, albedo, metallic);

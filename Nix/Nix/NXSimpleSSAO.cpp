@@ -65,6 +65,9 @@ void NXSimpleSSAO::Render(ID3D11ShaderResourceView* pSRVNormal, ID3D11ShaderReso
 	ComPtr<ID3D11ShaderResourceView> pSRVNull[3] = { nullptr, nullptr, nullptr };
 	g_pContext->CSSetShaderResources(0, 3, pSRVNull->GetAddressOf());
 
+	ComPtr<ID3D11UnorderedAccessView> pUAVNull[1] = { nullptr };
+	g_pContext->CSSetUnorderedAccessViews(0, 1, pUAVNull->GetAddressOf(), nullptr);
+
 	g_pUDA->EndEvent();
 }
 

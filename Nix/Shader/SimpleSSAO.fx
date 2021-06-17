@@ -57,7 +57,10 @@ void CS(int3 DTid : SV_DispatchThreadID)
 		float3 SampleOffset = mul(SamplePos, TBN).xzy;
 		float3 SampleVS = PositionVS + SampleOffset;
 		float2 SampleNDC = SampleVS.xy * m_projParams.xy / SampleVS.z;
-		SampleNDC *= float2(1.0f, -1.0f);
+
+		// UV y flip
+		SampleNDC *= float2(1.0f, -1.0f);	
+
 		float2 SampleUV = (SampleNDC + 1.0f) * 0.5f;
 
 		float SampleDepth = txDepthZ.SampleLevel(SamplerStateTrilinear, SampleUV, 0.0).x;

@@ -331,7 +331,7 @@ void NXDeferredRenderer::RenderRT3()
 	g_pUDA->EndEvent();
 }
 
-void NXDeferredRenderer::Render()
+void NXDeferredRenderer::Render(ID3D11ShaderResourceView* pSRVSSAO)
 {
 	g_pUDA->BeginEvent(L"Deferred rendering");
 	g_pContext->IASetInputLayout(m_pInputLayoutRender.Get());
@@ -356,6 +356,11 @@ void NXDeferredRenderer::Render()
 		g_pContext->PSSetShaderResources(5, 1, &pIrradianceMapSRV);
 		g_pContext->PSSetShaderResources(6, 1, &pPreFilterMapSRV);
 		g_pContext->PSSetShaderResources(7, 1, &pBRDF2DLUT);
+	}
+
+	if (pSRVSSAO)
+	{
+		g_pContext->PSSetShaderResources(8, 1, &pSRVSSAO);
 	}
 
 	g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
