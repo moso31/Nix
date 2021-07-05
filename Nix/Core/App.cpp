@@ -19,8 +19,8 @@ void App::Init()
 
 	m_pRenderer = new Renderer();
 	m_pRenderer->Init();
+
 	m_pRenderer->InitGUI();
-	m_pRenderer->Preload();
 }
 
 void App::Update()

@@ -38,8 +38,16 @@ void NXSimpleSSAO::Init(const Vector2& AOBufferSize)
 	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(pTexSSAO.Get(), nullptr, &m_pSRVSSAO));
 	NX::ThrowIfFailed(g_pDevice->CreateUnorderedAccessView(pTexSSAO.Get(), nullptr, &m_pUAVSSAO));
 
+	// SSAO Params
+	InitSSAOParams();
+
 	// 生成随机采样序列
 	GenerateSamplePosition();
+}
+
+void NXSimpleSSAO::Update()
+{
+	g_pContext->UpdateSubresource(m_pCBSSAOParams.Get(), 0, nullptr, &m_ssaoParams, 0, 0);
 }
 
 void NXSimpleSSAO::Render(ID3D11ShaderResourceView* pSRVNormal, ID3D11ShaderResourceView* pSRVPosition, ID3D11ShaderResourceView* pSRVDepthPrepass)
@@ -49,6 +57,7 @@ void NXSimpleSSAO::Render(ID3D11ShaderResourceView* pSRVNormal, ID3D11ShaderReso
 	
 	g_pContext->CSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
 	g_pContext->CSSetConstantBuffers(1, 1, m_pCBSamplePositions.GetAddressOf());
+	g_pContext->CSSetConstantBuffers(2, 1, m_pCBSSAOParams.GetAddressOf());
 
 	g_pContext->CSSetSamplers(0, 1, RenderStates::SamplerLinearClamp.GetAddressOf());
 	g_pContext->CSSetShaderResources(0, 1, &pSRVNormal);
@@ -69,6 +78,17 @@ void NXSimpleSSAO::Render(ID3D11ShaderResourceView* pSRVNormal, ID3D11ShaderReso
 	g_pContext->CSSetUnorderedAccessViews(0, 1, pUAVNull->GetAddressOf(), nullptr);
 
 	g_pUDA->EndEvent();
+}
+
+void NXSimpleSSAO::InitSSAOParams()
+{
+	D3D11_BUFFER_DESC bufferDesc;
+	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = sizeof(ConstantBufferSSAOParams);
+	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_pCBSSAOParams));
 }
 
 void NXSimpleSSAO::GenerateSamplePosition()

@@ -76,6 +76,9 @@ class NXCubeMap;
 class NXPassShadowMap;
 class NXRenderTarget;
 
+// post processing
+class NXSimpleSSAO;
+
 // Global variables
 extern	HINSTANCE				g_hInst;
 extern	HWND					g_hWnd;

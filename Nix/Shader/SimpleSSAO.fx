@@ -20,6 +20,12 @@ cbuffer ConstantBufferRandomList : register(b1)
 	float4 RandomPosition[SSAO_SAMPLE_COUNT];
 }
 
+cbuffer cbSSAOParams : register(b2)
+{
+	// x: radius
+	float4 aoParams;
+}
+
 Texture2D txNormal : register(t0);
 Texture2D txPosition : register(t1);
 Texture2D txDepthZ : register(t2);
@@ -44,6 +50,8 @@ void CS(int3 DTid : SV_DispatchThreadID)
 	float3 B = cross(N, T);
 	float3x3 TBN = float3x3(T, B, N);
 	
+	float SampleRadius = aoParams.x;
+
 	float SumWeight = 0.0f;
 	for (int i = 0; i < SSAO_SAMPLE_COUNT; i++)
 	{
@@ -54,7 +62,7 @@ void CS(int3 DTid : SV_DispatchThreadID)
 		//);
 		float3 SamplePos = RandomPosition[i].xyz;
 
-		float3 SampleOffset = mul(SamplePos, TBN).xzy;
+		float3 SampleOffset = mul(SamplePos, TBN).xzy * SampleRadius;
 		float3 SampleVS = PositionVS + SampleOffset;
 		float2 SampleNDC = SampleVS.xy * m_projParams.xy / SampleVS.z;
 

@@ -21,6 +21,14 @@ void Renderer::Init()
 	m_scene = new NXScene();
 	m_scene->Init();
 
+	auto pCubeMap = m_scene->GetCubeMap();
+	if (pCubeMap)
+	{
+		pCubeMap->GenerateIrradianceMap();
+		pCubeMap->GeneratePreFilterMap();
+		pCubeMap->GenerateBRDF2DLUT();
+	}
+
 	m_pDepthPrepass = new NXDepthPrepass(m_scene);
 	m_pDepthPrepass->Init(g_dxResources->GetViewSize());
 
@@ -35,7 +43,7 @@ void Renderer::Init()
 		m_pDeferredRenderer = new NXDeferredRenderer(m_scene);
 		m_pDeferredRenderer->Init();
 
-		// 这个bool将来做成Settings（配置文件）之类的结构。
+		// 【待改】这个bool将来做成Settings（配置文件）之类的结构。
 		m_isDeferredShading = 1;
 	}
 
@@ -45,7 +53,7 @@ void Renderer::Init()
 
 void Renderer::InitGUI()
 {
-	m_pGUI = new NXGUI(m_scene);
+	m_pGUI = new NXGUI(m_scene, m_pSSAO);
 	m_pGUI->Init();
 }
 
@@ -94,17 +102,6 @@ void Renderer::InitRenderer()
 	g_pContext->PSSetSamplers(0, 1, RenderStates::SamplerLinearWrap.GetAddressOf());
 }
 
-void Renderer::Preload()
-{
-	auto pCubeMap = m_scene->GetCubeMap();
-	if (pCubeMap)
-	{
-		pCubeMap->GenerateIrradianceMap();
-		pCubeMap->GeneratePreFilterMap();
-		pCubeMap->GenerateBRDF2DLUT(); 
-	}
-}
-
 void Renderer::UpdateSceneData()
 {
 	// 更新场景Scripts。实际上是用Scripts控制指定物体的Transform。
@@ -115,6 +112,8 @@ void Renderer::UpdateSceneData()
 
 	// 更新Camera的常量缓存数据（VP矩阵、眼睛位置）
 	m_scene->UpdateCamera();
+
+	m_pSSAO->Update();
 }
 
 void Renderer::DrawScene()

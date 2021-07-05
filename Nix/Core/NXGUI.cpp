@@ -2,9 +2,12 @@
 #include "NXEvent.h"
 #include "DirectResources.h"
 
-NXGUI::NXGUI(NXScene* pScene) :
+NXGUI::NXGUI(NXScene* pScene, NXSimpleSSAO* pSSAO) :
 	m_pCurrentScene(pScene),
-	m_pGUIMaterial(nullptr)
+	m_pSSAO(pSSAO),
+	m_pFileBrowser(nullptr),
+	m_pGUIMaterial(nullptr),
+	m_pGUISSAO(nullptr)
 {
 }
 
@@ -20,6 +23,8 @@ void NXGUI::Init()
 	m_pFileBrowser->SetPwd("D:\\NixAssets");
 
 	m_pGUIMaterial = new NXGUIMaterial(m_pCurrentScene, m_pFileBrowser);
+
+	m_pGUISSAO = new NXGUISSAO(m_pSSAO);
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -37,6 +42,7 @@ void NXGUI::Render()
 	ImGui::NewFrame();
 
 	m_pGUIMaterial->Render();
+	m_pGUISSAO->Render();
 
 	static bool show_demo_window = true;
 	static bool show_another_window = false;
@@ -93,6 +99,7 @@ void NXGUI::Render()
 void NXGUI::Release()
 {
 	SafeDelete(m_pGUIMaterial);
+	SafeDelete(m_pGUISSAO);
 	SafeDelete(m_pFileBrowser);
 
 	ImGui_ImplDX11_Shutdown();

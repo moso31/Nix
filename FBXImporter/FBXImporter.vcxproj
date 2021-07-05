@@ -95,10 +95,11 @@
       <AdditionalDependencies>libfbxsdk.lib;</AdditionalDependencies>
     </Lib>
     <Lib>
-      <AdditionalLibraryDirectories>.\lib\vs2015\x64\$(configuration)\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>.\lib\vs2015\x64\$(configuration)\;.\lib\vs2017\x64\$(configuration)\</AdditionalLibraryDirectories>
     </Lib>
     <PostBuildEvent>
-      <Command>copy .\lib\vs2015\x64\$(configuration)\libfbxsdk.dll $(SolutionDir)$(platform)\$(configuration)\</Command>
+      <Command>copy .\lib\vs2015\x64\$(configuration)\libfbxsdk.dll $(SolutionDir)$(platform)\$(configuration)\
+copy .\lib\vs2017\x64\$(configuration)\libfbxsdk.dll $(SolutionDir)$(platform)\$(configuration)\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -144,7 +145,7 @@
       <AdditionalDependencies>libfbxsdk.lib;</AdditionalDependencies>
     </Lib>
     <Lib>
-      <AdditionalLibraryDirectories>.\lib\vs2015\x64\$(configuration)\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>.\lib\vs2015\x64\$(configuration)\;.\lib\vs2017\x64\$(configuration)\</AdditionalLibraryDirectories>
     </Lib>
     <PostBuildEvent>
       <Command>copy .\lib\vs2015\x64\$(configuration)\libfbxsdk.dll $(SolutionDir)$(platform)\$(configuration)\</Command>
