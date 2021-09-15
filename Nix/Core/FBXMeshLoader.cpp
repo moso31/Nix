@@ -88,7 +88,7 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXMesh* pEngineMesh)
 
 	//DisplayString("    Polygons");
 
-	int vertexId = 0;
+	int vertexId = 0, lastVertexId = 0;
 	for (i = 0; i < lPolygonCount; i++)
 	{
 		//DisplayInt("        Polygon ", i);
@@ -114,14 +114,16 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXMesh* pEngineMesh)
 			}
 		}
 
-		VertexPNTT vertex;
 		int lPolygonSize = pMesh->GetPolygonSize(i);
+		assert(lPolygonSize >= 3);
+
+		VertexPNTT* vertex = new VertexPNTT[lPolygonSize];
 
 		for (j = 0; j < lPolygonSize; j++)
 		{
 			int lControlPointIndex = pMesh->GetPolygonVertex(i, j);
 			FbxVector4 posData = lControlPoints[lControlPointIndex];
-			vertex.pos = Vector3((float)posData[0], (float)posData[1], (float)posData[2]);
+			vertex[j].pos = Vector3((float)posData[0], (float)posData[1], (float)posData[2]);
 
 			for (l = 0; l < pMesh->GetElementVertexColorCount(); l++)
 			{
@@ -227,7 +229,7 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXMesh* pEngineMesh)
 
 				// 暂时默认所有来自fbx的UV全部是反转的。
 				bool bFlipUV = true;
-				vertex.tex = Vector2((float)texData[0], bFlipUV ? 1.0f - (float)texData[1] : (float)texData[1]);
+				vertex[j].tex = Vector2((float)texData[0], bFlipUV ? 1.0f - (float)texData[1] : (float)texData[1]);
 			}
 
 			for (l = 0; l < pMesh->GetElementNormalCount(); ++l)
@@ -254,7 +256,7 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXMesh* pEngineMesh)
 					}
 				}
 
-				vertex.norm = Vector3((float)normData[0], (float)normData[1], (float)normData[2]);
+				vertex[j].norm = Vector3((float)normData[0], (float)normData[1], (float)normData[2]);
 			}
 			for (l = 0; l < pMesh->GetElementTangentCount(); ++l)
 			{
@@ -304,11 +306,22 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXMesh* pEngineMesh)
 					}
 				}
 			}
-
-			pEngineMesh->m_vertices.push_back(vertex);
-			pEngineMesh->m_indices.push_back(vertexId);
 			vertexId++;
 		} // for polygonSize
+
+
+		for (int j = 0; j < lPolygonSize - 2; j++)
+		{
+			pEngineMesh->m_vertices.push_back(vertex[0]);
+			pEngineMesh->m_vertices.push_back(vertex[1]);
+			pEngineMesh->m_vertices.push_back(vertex[2]);
+			pEngineMesh->m_indices.push_back(lastVertexId + 0);
+			pEngineMesh->m_indices.push_back(lastVertexId + 1);
+			pEngineMesh->m_indices.push_back(lastVertexId + 2);
+		}
+
+		lastVertexId = vertexId;
+		delete[] vertex;
 	} // for polygonCount
 
 	//check visibility for the edges of the mesh

@@ -125,6 +125,9 @@ void NXScene::Init()
 	auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64);
 	pSphere->SetMaterialPBR(pPBRMat[0]);
 
+	std::vector<NXMesh*> pMeshes;
+	m_sceneManager->CreateFBXMeshes("D:\\NixAssets\\UnityBall.fbx", pPBRMat[0], pMeshes);
+
 	{
 		//bool bBind = m_sceneManager->BindParent(pMeshes[1], pSphere);
 		auto pScript_test = new NSTest();
@@ -134,15 +137,32 @@ void NXScene::Init()
 	// …Ë÷√Picking Object£®Demo”√£¨¡Ÿ ±£©
 	SetCurrentPickingObject(pSphere);
 
-	for (float i = -8.0f; i < 8.01f; i += 2.0f)
-	{
-		for (float j = -8.0f; j < 8.01f; j += 2.0f)
-		{
-			Vector3 pos(i, 0, j);
-			pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64, pos);
-			pSphere->SetMaterialPBR(pPBRMat[0]);
-		}
-	}
+	//for (float i = -8.0f; i < 8.01f; i += 2.0f)
+	//{
+	//	for (float j = -8.0f; j < 8.01f; j += 2.0f)
+	//	{
+	//		Vector3 pos(i, 0, j);
+	//		pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64, pos);
+	//		pSphere->SetMaterialPBR(pPBRMat[0]);
+	//	}
+	//}
+
+	Vector3 scale(0.1f);
+	pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(-3.38865018, -6.97852612, 6.32853508));
+	pSphere->SetScale(Vector3(scale));
+	pSphere->SetMaterialPBR(pPBRMat[0]);
+	pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(-3.70538783, -6.91434097, 6.22053719));
+	pSphere->SetScale(Vector3(scale));
+	pSphere->SetMaterialPBR(pPBRMat[0]);
+	pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(-3.31883836, -7.29755974, 5.99700212));
+	pSphere->SetScale(Vector3(scale));
+	pSphere->SetMaterialPBR(pPBRMat[0]);
+	pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(-2.89583111, -7.34788990, 6.15270376));
+	pSphere->SetScale(Vector3(scale));
+	pSphere->SetMaterialPBR(pPBRMat[0]);
+	pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(-3.19251966, -7.07765436, 6.32042360));
+	pSphere->SetScale(Vector3(scale));
+	pSphere->SetMaterialPBR(pPBRMat[0]);
 
 	auto pCamera = m_sceneManager->CreateCamera(
 		"Camera1",
