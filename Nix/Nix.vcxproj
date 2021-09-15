@@ -75,12 +75,14 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <IntDir>$(SolutionDir)_Intermediate\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <IntDir>$(SolutionDir)_Intermediate\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -104,20 +106,21 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WINDOWS;FBXSDK_SHARED;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
-      <AdditionalIncludeDirectories>.\;..\;..\FBXImporter\common;..\FBXImporter\include;..\DirectxTex\DirectxTex\;..\NixMath\;..\IMGUI\;.\Core;.\Nix;.\Nix\Script;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\;..\DirectxTex\DirectxTex\;..\NixMath\;..\IMGUI\;..\NixTools\Include\FBXSDK\;.\Core;.\Nix;.\Nix\Script;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OpenMPSupport>true</OpenMPSupport>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxguid.lib;winmm.lib;comctl32.lib;FBXImporter.lib;NixMath.lib;DirectXTex.lib;IMGUI.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxguid.lib;winmm.lib;comctl32.lib;NixMath.lib;DirectXTex.lib;IMGUI.lib;libfbxsdk.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\NixMath\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\DirectXTex\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\IMGUI\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\FBXSDK\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
     <PostBuildEvent>
-      <Command>copy .\Shader ..\x64\Debug\Shader</Command>
+      <Command>copy .\Shader\ ..\x64\Debug\Shader\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -148,9 +151,9 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WINDOWS;FBXSDK_SHARED;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
-      <AdditionalIncludeDirectories>.\;..\;..\FBXImporter\common;..\FBXImporter\include;..\DirectxTex\DirectxTex\;..\NixMath\;..\IMGUI\;.\Core;.\Nix;.\Nix\Script;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\;..\DirectxTex\DirectxTex\;..\NixMath\;..\IMGUI\;..\NixTools\Include\FBXSDK\;.\Core;.\Nix;.\Nix\Script;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OpenMPSupport>true</OpenMPSupport>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
@@ -159,11 +162,12 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxguid.lib;winmm.lib;comctl32.lib;FBXImporter.lib;NixMath.lib;DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxguid.lib;winmm.lib;comctl32.lib;NixMath.lib;DirectXTex.lib;IMGUI.lib;libfbxsdk.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\NixMath\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\DirectXTex\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\IMGUI\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\FBXSDK\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
     <PostBuildEvent>
-      <Command>copy .\Shader ..\x64\Debug\Shader</Command>
+      <Command>copy .\Shader\ ..\x64\Debug\Shader\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

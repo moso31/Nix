@@ -4,8 +4,8 @@ NXGUIMaterial::NXGUIMaterial(NXScene* pScene, NXGUIFileBrowser* pFileBrowser) :
 	m_pCurrentScene(pScene),
 	m_pFileBrowser(pFileBrowser),
 	m_bMaterialDirty(false),
-	m_whiteTexPath_test(L"D:\\NixAssets\\white1x1.png"),
-	m_normalTexPath_test(L"D:\\NixAssets\\normal1x1.png")
+	m_whiteTexPath_test(L".\\Resource\\white1x1.png"),
+	m_normalTexPath_test(L".\\Resource\\normal1x1.png")
 {
 }
 

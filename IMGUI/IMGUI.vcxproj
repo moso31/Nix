@@ -78,11 +78,13 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)_Intermediate\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <OutDir>$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)_Intermediate\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <OutDir>$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

@@ -14,3 +14,7 @@
 /IMGUI/x64/Debug
 /IMGUI/x64/Release
 /FBXImporter/lib/vs2017
+/_Intermediate/x64
+*.lib
+*.pdb
+*.dll

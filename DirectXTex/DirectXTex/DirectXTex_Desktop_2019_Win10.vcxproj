@@ -129,8 +129,8 @@
     <GenerateManifest>true</GenerateManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|X64'">
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
+    <IntDir>$(SolutionDir)_Intermediate\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
     <TargetName>DirectXTex</TargetName>
     <GenerateManifest>true</GenerateManifest>
   </PropertyGroup>
@@ -147,8 +147,8 @@
     <GenerateManifest>true</GenerateManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|X64'">
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
+    <IntDir>$(SolutionDir)_Intermediate\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
     <TargetName>DirectXTex</TargetName>
     <GenerateManifest>true</GenerateManifest>
   </PropertyGroup>
@@ -165,8 +165,8 @@
     <GenerateManifest>true</GenerateManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Profile|X64'">
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
+    <IntDir>$(SolutionDir)_Intermediate\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
     <TargetName>DirectXTex</TargetName>
     <GenerateManifest>true</GenerateManifest>
   </PropertyGroup>
