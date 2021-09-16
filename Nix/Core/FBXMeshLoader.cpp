@@ -88,7 +88,7 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXMesh* pEngineMesh)
 
 	//DisplayString("    Polygons");
 
-	int vertexId = 0, lastVertexId = 0;
+	int vertexId = 0, indexId = 0;
 	for (i = 0; i < lPolygonCount; i++)
 	{
 		//DisplayInt("        Polygon ", i);
@@ -313,14 +313,13 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXMesh* pEngineMesh)
 		for (int j = 0; j < lPolygonSize - 2; j++)
 		{
 			pEngineMesh->m_vertices.push_back(vertex[0]);
-			pEngineMesh->m_vertices.push_back(vertex[1]);
-			pEngineMesh->m_vertices.push_back(vertex[2]);
-			pEngineMesh->m_indices.push_back(lastVertexId + 0);
-			pEngineMesh->m_indices.push_back(lastVertexId + 1);
-			pEngineMesh->m_indices.push_back(lastVertexId + 2);
+			pEngineMesh->m_vertices.push_back(vertex[j + 1]);
+			pEngineMesh->m_vertices.push_back(vertex[j + 2]);
+			pEngineMesh->m_indices.push_back(indexId++);
+			pEngineMesh->m_indices.push_back(indexId++);
+			pEngineMesh->m_indices.push_back(indexId++);
 		}
 
-		lastVertexId = vertexId;
 		delete[] vertex;
 	} // for polygonCount
 
