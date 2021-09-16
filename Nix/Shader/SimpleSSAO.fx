@@ -22,7 +22,7 @@ cbuffer ConstantBufferRandomList : register(b1)
 
 cbuffer cbSSAOParams : register(b2)
 {
-	// x: radius
+	// x: radius; y: bias; z: direct lighting strength
 	float4 aoParams;
 }
 
@@ -63,6 +63,7 @@ void CS(int3 DTid : SV_DispatchThreadID)
 		float3 SamplePos = RandomPosition[i].xyz;
 
 		float3 SampleOffset = mul(SamplePos, TBN).xzy * SampleRadius;
+		SampleOffset += N * aoParams.y;
 		float3 SampleVS = PositionVS + SampleOffset;
 		float2 SampleNDC = SampleVS.xy * m_projParams.xy / SampleVS.z;
 
@@ -79,5 +80,7 @@ void CS(int3 DTid : SV_DispatchThreadID)
 		}
 	}
 
-	txSimpleSSAO[DTid.xy] = SumWeight / (float)SSAO_SAMPLE_COUNT;
+	float FinalAO = SumWeight / (float)SSAO_SAMPLE_COUNT;
+	FinalAO *= aoParams.z;
+	txSimpleSSAO[DTid.xy] = FinalAO;
 }

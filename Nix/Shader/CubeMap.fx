@@ -27,5 +27,5 @@ PS_INPUT VS(VS_INPUT input)
 float4 PS(PS_INPUT input) : SV_Target
 {
 	float4 result = txCubeMap.Sample(SamplerStateTrilinear, input.posOS);
-	return result;
+	return pow(result, 0.45454545454545f);
 }
