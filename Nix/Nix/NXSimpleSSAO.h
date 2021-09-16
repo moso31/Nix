@@ -5,9 +5,11 @@ class NXSimpleSSAO
 {
 	struct ConstantBufferSSAOParams
 	{
-		ConstantBufferSSAOParams() : radius(1.0f) {}
+		ConstantBufferSSAOParams() : radius(1.0f), bias(0.15f), directLightingStrength(1.0f) {}
 		float radius;
-		Vector3 _0;
+		float bias;
+		float directLightingStrength;
+		float _0;
 	};
 
 public:
@@ -22,6 +24,12 @@ public:
 
 	float GetRadius() { return m_ssaoParams.radius; }
 	void SetRadius(float radius) { m_ssaoParams.radius = radius; }
+
+	float GetBias() { return m_ssaoParams.bias; }
+	void SetBias(float bias) { m_ssaoParams.bias = bias; }
+
+	float GetDirectLightingStrength() { return m_ssaoParams.directLightingStrength; }
+	void SetDirectLightingStrength(float strength) { m_ssaoParams.directLightingStrength = strength; }
 
 private:
 	void InitSSAOParams();
