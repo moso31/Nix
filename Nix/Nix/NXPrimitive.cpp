@@ -1,19 +1,10 @@
 #include "NXPrimitive.h"
+#include "GlobalBufferManager.h"
 #include "NXScene.h"
 #include "NXPBRMaterial.h"
-#include "NXIntersection.h"
-#include "GlobalBufferManager.h"
-#include "NXRandom.h"
-#include "SamplerMath.h"
-
-using namespace SamplerMath;
 
 NXPrimitive::NXPrimitive() :
-	m_pPBRMaterial(nullptr),
-	m_pTangibleLight(nullptr),
-	m_bEnableNormal(true),
-	m_bEnableTangent(false),
-	m_bEnableNormalDerivative(false)
+	m_pPBRMaterial(nullptr)
 {
 	m_type = NXType::ePrimitive;
 }
@@ -132,25 +123,6 @@ NXTriangle NXPrimitive::GetTriangle(int faceIndex)
 	return NXTriangle(this, faceIndex * 3);
 }
 
-void NXPrimitive::UpdateSurfaceAreaInfo()
-{
-	int faceCount = (int)m_indices.size() / 3;
-	m_triangleAreas.resize(faceCount);
-	for (int i = 0; i < faceCount; i++)
-	{
-		float lastArea = i ? m_triangleAreas[i - 1] : 0.0f;
-		m_triangleAreas[i] = lastArea + GetTriangle(i).Area();
-	}
-	m_fArea = m_triangleAreas[faceCount - 1];
-}
-
-float NXPrimitive::GetSurfaceArea()
-{
-	if (m_triangleAreas.empty() && !m_vertices.empty())
-		UpdateSurfaceAreaInfo();
-	return m_fArea;
-}
-
 bool NXPrimitive::RayCast(const Ray& worldRay, NXHit& outHitInfo, float& outDist)
 {
 	Ray localRay = worldRay.Transform(m_worldMatrixInv);
@@ -168,55 +140,6 @@ bool NXPrimitive::RayCast(const Ray& worldRay, NXHit& outHitInfo, float& outDist
 	}
 
 	return bSuccess;
-}
-
-void NXPrimitive::SampleForArea(Vector3& o_pos, Vector3& o_norm, float& o_pdfA)
-{
-	Vector2 r = NXRandom::GetInstance().CreateVector2();
-	Vector2 b = UniformTriangleSample(r);	// 重心坐标
-	NXTriangle tri = SampleTriangle();
-	VertexPNTT P0 = tri.GetVertex(0);
-	VertexPNTT P1 = tri.GetVertex(1);
-	VertexPNTT P2 = tri.GetVertex(2);
-	o_pos = b.x * P0.pos + b.y * P1.pos + (1 - b.x - b.y) * P2.pos;
-	o_norm = (P1.pos - P2.pos).Cross(P1.pos - P0.pos);
-	o_norm.Normalize();
-	if (m_bEnableNormal)
-	{
-		Vector3 ns = b.x * P0.norm + b.y * P1.norm + (1 - b.x - b.y) * P2.norm;
-		if (o_norm.Dot(ns) < 0)
-			o_norm = -o_norm;
-	}
-
-	o_pos = Vector3::Transform(o_pos, m_worldMatrix);
-	o_norm = Vector3::TransformNormal(o_norm, m_worldMatrix);
-	o_pdfA = 1.0f / GetSurfaceArea();
-}
-
-void NXPrimitive::SampleForSolidAngle(const NXHit& hitInfo, Vector3& o_pos, Vector3& o_norm, float& o_pdfW)
-{
-	float pdfA;
-	SampleForArea(o_pos, o_norm, pdfA);
-	Vector3 dirLight = hitInfo.position - o_pos;
-	float cosTheta = o_norm.Dot(dirLight);
-	float dist2 = dirLight.LengthSquared();
-	if (dist2 < 0.0f)
-		o_pdfW = 0.0f;
-	else
-	{
-		dirLight.Normalize();
-		o_pdfW = pdfA * dist2 / fabsf(o_norm.Dot(dirLight));
-	}
-}
-
-float NXPrimitive::GetPdfSolidAngle(const NXHit& hitInfo, const Vector3& posLight, const Vector3& normLight, const Vector3& dirLight)
-{
-	float pdfA = GetPdfArea();
-	float dist2 = Vector3::DistanceSquared(posLight, hitInfo.position);
-	if (dist2 < 0.0f)
-		return 0.0f;
-
-	return pdfA * dist2 / fabsf(normLight.Dot(dirLight));
 }
 
 void NXPrimitive::InitVertexIndexBuffer()
@@ -258,18 +181,6 @@ void NXPrimitive::InitAABB()
 		m_points.push_back(it->pos);
 	}
 	AABB::CreateFromPoints(m_aabb, m_points.size(), m_points.data(), sizeof(Vector3));
-}
-
-NXTriangle NXPrimitive::SampleTriangle()
-{
-	float randomArea = NXRandom::GetInstance().CreateFloat() * GetSurfaceArea();
-	int sampleId = 0;
-	for (sampleId = 0; sampleId < m_triangleAreas.size() - 1; sampleId++)
-	{
-		if (randomArea < m_triangleAreas[sampleId])
-			break;
-	}
-	return GetTriangle(sampleId);
 }
 
 NXTriangle::NXTriangle(NXPrimitive* pShape, int startIndex) :
@@ -427,86 +338,6 @@ bool NXTriangle::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist)
 		Vector2 uvHit = b0 * uv[0] + b1 * uv[1] + b2 * uv[2];
 
 		outHitInfo = NXHit(pShape, pHit, uvHit, -localRay.direction, dpdu, dpdv);
-
-		Vector3 ns, ss, ts;
-		Vector3 dndu, dndv;
-
-		if (pShape->m_bEnableNormal)
-		{
-			Vector3 n[3];
-			n[0] = data0.norm;
-			n[1] = data0.norm;
-			n[2] = data0.norm;
-
-			ns = b0 * n[0] + b1 * n[1] + b2 * n[2];
-			if (ns.LengthSquared() > 0)
-				ns.Normalize();
-			else
-				ns = outHitInfo.normal;
-
-			if (pShape->m_bEnableNormalDerivative)	// 暂不生成dndu，dndv。
-			{
-				// 如果有法线，进一步计算dndu dndv
-				// 和计算dpdu dpdv的方法完全相同，唯一的变化是将位置p替换为法线n
-				Vector3 dn02 = n[0] - n[2];
-				Vector3 dn12 = n[1] - n[2];
-				if (uvdet >= 1e-6)
-				{
-					dndu = (dn02 * dv12 - dn12 * dv02) * uvdetInv;
-					dndv = (dn12 * du02 - dn02 * du12) * uvdetInv;
-				}
-
-				if (uvdet < 1e-6 || dndu.Cross(dndv).LengthSquared() == 0.0f)
-				{
-					// 如果uv行列式结果=0，那么无法计算出有效dndu dndv。
-					// 这种情况下需要强行为切向量生成一个坐标系。
-					Vector3 nt = dn12.Cross(dn02);
-					if (nt.LengthSquared() == 0.0f)
-						return false;
-
-					nt.Normalize();
-					nt.GenerateCoordinateSpace(dndu, dndv);
-				}
-			}
-			else
-			{
-				dndu = Vector3(0.0f);
-				dndv = Vector3(0.0f);
-			}
-		}
-		else
-		{
-			ns = outHitInfo.normal;
-			dndu = Vector3(0.0f);
-			dndv = Vector3(0.0f);
-		}
-
-		if (pShape->m_bEnableTangent)		// 暂不考虑模型自带的切线数据
-		{
-#if _TODO_
-			Vector3 s[3];
-			s[0] = data0.tangent;
-			s[1] = data1.tangent;
-			s[2] = data2.tangent;
-
-			ss = b0 * s[0] + b1 * s[1] + b2 * s[2];
-			if (ss.LengthSquared() > 0)
-				ss.Normalize();
-			else
-				ss = outHitInfo.dpdu;
-#endif
-		}
-		else ss = outHitInfo.dpdu;
-		
-		ts = ss.Cross(ns);
-		if (ts.LengthSquared() > 0.f) {
-			ts.Normalize();
-			ss = ns.Cross(ts);
-		}
-		else
-			ns.GenerateCoordinateSpace(ss, ts);
-
-		outHitInfo.SetShadingGeometry(ss, ts);
 		outDist = t;
 	}
 

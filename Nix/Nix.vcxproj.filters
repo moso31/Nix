@@ -58,15 +58,6 @@
     <Filter Include="Nix\Scene">
       <UniqueIdentifier>{d197e267-4212-4de3-a89b-ab57b9ca0af8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Nix\RayTracer">
-      <UniqueIdentifier>{9cb355b4-fe1c-44d1-ad65-30c22ae78c2e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Nix\RayTracer\Integrator">
-      <UniqueIdentifier>{bdd7ed85-60a9-4355-9428-9b22321871eb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Nix\RayTracer\IrradianceCache">
-      <UniqueIdentifier>{37acfc55-a531-4610-ad88-9ac01112c20a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Core\DirectX\Renderer">
       <UniqueIdentifier>{fce4c3cd-5a30-4a68-93d9-7df8246a1267}</UniqueIdentifier>
     </Filter>
@@ -203,9 +194,6 @@
     <ClCompile Include="Nix\NXPlane.cpp">
       <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\NXIntersection.cpp">
-      <Filter>Nix\Accelerator</Filter>
-    </ClCompile>
     <ClCompile Include="Nix\NXRenderTarget.cpp">
       <Filter>Nix\Object\Transform\Primitive\Other</Filter>
     </ClCompile>
@@ -230,20 +218,8 @@
     <ClCompile Include="Nix\SceneManager.cpp">
       <Filter>Nix\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\NXRayTracer.cpp">
-      <Filter>Nix\RayTracer</Filter>
-    </ClCompile>
     <ClCompile Include="Core\NXRandom.cpp">
       <Filter>Core\Helper</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\NXFresnel.cpp">
-      <Filter>Nix\RayTracer</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\NXIntegrator.cpp">
-      <Filter>Nix\RayTracer\Integrator</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\NXBSDF.cpp">
-      <Filter>Nix\RayTracer</Filter>
     </ClCompile>
     <ClCompile Include="Nix\NXPBRMaterial.cpp">
       <Filter>Nix\Material</Filter>
@@ -254,38 +230,11 @@
     <ClCompile Include="Core\ImageGenerator.cpp">
       <Filter>Core\File</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\NXDistribution.cpp">
-      <Filter>Nix\RayTracer</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\NXPathIntegrator.cpp">
-      <Filter>Nix\RayTracer\Integrator</Filter>
-    </ClCompile>
     <ClCompile Include="Nix\NXKdTree.cpp">
       <Filter>Nix\Accelerator</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\NXReflection.inl">
-      <Filter>Nix\RayTracer</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\NXPMIntegrator.cpp">
-      <Filter>Nix\RayTracer\Integrator</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\NXPMSplitIntegrator.cpp">
-      <Filter>Nix\RayTracer\Integrator</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\NXDirectIntegrator.cpp">
-      <Filter>Nix\RayTracer\Integrator</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\NXIrradianceCache.cpp">
-      <Filter>Nix\RayTracer\IrradianceCache</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\NXPhoton.cpp">
-      <Filter>Nix\RayTracer</Filter>
-    </ClCompile>
     <ClCompile Include="Core\Main.cpp">
       <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\NXSPPMIntegrator.cpp">
-      <Filter>Nix\RayTracer\Integrator</Filter>
     </ClCompile>
     <ClCompile Include="Nix\NXCubeMap.cpp">
       <Filter>Nix\Object\Transform\Primitive\Other</Filter>
@@ -313,6 +262,9 @@
     </ClCompile>
     <ClCompile Include="Core\NXGUISSAO.cpp">
       <Filter>Core\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXIntersection.cpp">
+      <Filter>Nix\Accelerator</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -382,9 +334,6 @@
     <ClInclude Include="Nix\NXPlane.h">
       <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
     </ClInclude>
-    <ClInclude Include="Nix\NXIntersection.h">
-      <Filter>Nix\Accelerator</Filter>
-    </ClInclude>
     <ClInclude Include="Nix\NXRenderTarget.h">
       <Filter>Nix\Object\Transform\Primitive\Other</Filter>
     </ClInclude>
@@ -412,20 +361,8 @@
     <ClInclude Include="Nix\SceneManager.h">
       <Filter>Nix\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="Nix\NXRayTracer.h">
-      <Filter>Nix\RayTracer</Filter>
-    </ClInclude>
     <ClInclude Include="Core\NXRandom.h">
       <Filter>Core\Helper</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\NXFresnel.h">
-      <Filter>Nix\RayTracer</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\NXIntegrator.h">
-      <Filter>Nix\RayTracer\Integrator</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\NXBSDF.h">
-      <Filter>Nix\RayTracer</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXPBRMaterial.h">
       <Filter>Nix\Material</Filter>
@@ -436,35 +373,8 @@
     <ClInclude Include="Core\ImageGenerator.h">
       <Filter>Core\File</Filter>
     </ClInclude>
-    <ClInclude Include="Nix\NXDistribution.h">
-      <Filter>Nix\RayTracer</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\NXPathIntegrator.h">
-      <Filter>Nix\RayTracer\Integrator</Filter>
-    </ClInclude>
     <ClInclude Include="Nix\NXKdTree.h">
       <Filter>Nix\Accelerator</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\NXReflection.h">
-      <Filter>Nix\RayTracer</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\NXPMIntegrator.h">
-      <Filter>Nix\RayTracer\Integrator</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\NXPMSplitIntegrator.h">
-      <Filter>Nix\RayTracer\Integrator</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\NXDirectIntegrator.h">
-      <Filter>Nix\RayTracer\Integrator</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\NXIrradianceCache.h">
-      <Filter>Nix\RayTracer\IrradianceCache</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\NXPhoton.h">
-      <Filter>Nix\RayTracer</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\NXSPPMIntegrator.h">
-      <Filter>Nix\RayTracer\Integrator</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXCubeMap.h">
       <Filter>Nix\Object\Transform\Primitive\Other</Filter>
@@ -498,6 +408,9 @@
     </ClInclude>
     <ClInclude Include="Core\NXGUISSAO.h">
       <Filter>Core\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXIntersection.h">
+      <Filter>Nix\Accelerator</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

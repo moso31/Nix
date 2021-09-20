@@ -36,7 +36,6 @@ public:
 	NXPBRMaterial* CreatePBRMaterial(const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float reflectivity, const float refractivity, const float IOR);
 	NXPBRPointLight* CreatePBRPointLight(const Vector3& position, const Vector3& intensity);
 	NXPBRDistantLight* CreatePBRDistantLight(const Vector3& direction, const Vector3& radiance);
-	NXPBRTangibleLight* CreatePBRTangibleLight(NXPrimitive* pPrimitive, const Vector3& radiance);
 	NXPBREnvironmentLight* CreatePBREnvironmentLight(NXCubeMap* pCubeMap, const Vector3& Intensity = Vector3(1.0f));
 	NXCubeMap* CreateCubeMap(const std::string name, const std::wstring filePath);
 

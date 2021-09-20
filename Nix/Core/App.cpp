@@ -2,7 +2,6 @@
 #include "DirectResources.h"
 #include "RenderStates.h"
 #include "NXEvent.h"
-#include "NXRayTracer.h"
 
 App::App() :
 	m_pRenderer(nullptr)

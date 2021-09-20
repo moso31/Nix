@@ -11,35 +11,9 @@ NXHit::NXHit(NXPrimitive* pPrimitive, const Vector3& position, const Vector2& uv
 	dpdu(dpdu),
 	dpdv(dpdv),
 	normal(dpdv.Cross(dpdu)),
-	faceIndex(-1),
-	BSDF(nullptr)
+	faceIndex(-1)
 {
 	normal.Normalize();
-}
-
-NXHit::~NXHit()
-{
-	SafeRelease(BSDF);
-}
-
-void NXHit::GenerateBSDF(bool IsFromCamera)
-{
-	SafeRelease(BSDF);
-	NXPBRMaterial* pMat = pPrimitive->GetPBRMaterial();
-	BSDF = new NXBSDF(*this, pMat);
-}
-
-void NXHit::SetShadingGeometry(Vector3 shadingdpdu, Vector3 shadingdpdv)
-{
-	shading.dpdu = shadingdpdu;
-	shading.dpdv = shadingdpdv;
-	shading.normal = shadingdpdv.Cross(shadingdpdu);
-
-	// 按理说击中点处的主法向量和shading法向量应该始终处于同一方向
-	// 但由于主法向量一定是使用dpdu和dpdv的叉积计算的，而shading法向量则不一定（还可能使用mesh本身数据）
-	// 所以基于以mesh本身数据为准的原则，应该让主normal遵循shading.normal的朝向。
-	if (normal.Dot(shading.normal) < 0)
-		normal = -normal;
 }
 
 void NXHit::LocalToWorld()
@@ -50,13 +24,9 @@ void NXHit::LocalToWorld()
 	Vector3::TransformNormal(normal, mxWorld).Normalize(normal);
 	Vector3::TransformNormal(dpdu, mxWorld).Normalize(dpdu);
 	Vector3::TransformNormal(dpdv, mxWorld).Normalize(dpdv);
-	Vector3::TransformNormal(shading.normal, mxWorld).Normalize(shading.normal);
-	Vector3::TransformNormal(shading.dpdu, mxWorld).Normalize(shading.dpdu);
-	Vector3::TransformNormal(shading.dpdv, mxWorld).Normalize(shading.dpdv);
 }
 
 void NXHit::Reset()
 {
 	pPrimitive = nullptr;
-	SafeRelease(BSDF);
 }

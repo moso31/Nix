@@ -1,6 +1,7 @@
 #include "HBVH.h"
 #include "NXScene.h"
 #include "NXPrimitive.h"
+#include "NXIntersection.h"
 
 inline int LeftShift3(int x) {
 	if (x == (1 << 10)) --x;

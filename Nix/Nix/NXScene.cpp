@@ -13,18 +13,10 @@
 #include "NXPlane.h"
 #include "NXCamera.h"
 
-#include "NXRayTracer.h"
 #include "NXPBRLight.h"
 #include "NXPBRMaterial.h"
 
 #include "NXCubeMap.h"
-
-#include "NXPhoton.h"
-#include "NXDirectIntegrator.h"
-#include "NXPathIntegrator.h"
-#include "NXPMIntegrator.h"
-#include "NXPMSplitIntegrator.h"
-#include "NXSPPMIntegrator.h"
 
 //#include "NXShadowMap.h"
 #include "NXPassShadowMap.h"
@@ -56,21 +48,6 @@ void NXScene::OnKeyDown(NXEventArgKey eArg)
 {
 	switch (eArg.VKey)
 	{
-	case 'U':
-		NXRayTracer::GetInstance().RenderImage(this, NXRayTraceRenderMode::DirectLighting);
-		break;
-	case 'T':
-		NXRayTracer::GetInstance().RenderImage(this, NXRayTraceRenderMode::PathTracing);
-		break;
-	case 'Y':
-		NXRayTracer::GetInstance().RenderImage(this, NXRayTraceRenderMode::PhotonMapping);
-		break;
-	case 'J':
-		NXRayTracer::GetInstance().RenderImage(this, NXRayTraceRenderMode::IrradianceCache);
-		break;
-	case 'G':
-		NXRayTracer::GetInstance().RenderImage(this, NXRayTraceRenderMode::SPPM);
-		break;
 	default:
 		break;
 	}
@@ -89,7 +66,6 @@ void NXScene::OnKeyDown(NXEventArgKey eArg)
 		RayCast(rayWorld, hit);
 		if (hit.pPrimitive)
 		{
-			hit.GenerateBSDF(true);
 			RayCast(rayWorld, hit);
 		}
 
@@ -110,8 +86,6 @@ void NXScene::OnKeyDown(NXEventArgKey eArg)
 
 void NXScene::Init()
 {
-	NXVisibleTest::GetInstance().SetScene(this);
-
 	NXPBRMaterial* pPBRMat[] = {
 		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f),
 	};
@@ -346,7 +320,6 @@ void NXScene::InitBoundingStructures()
 	for (auto prim : GetPrimitives())
 	{
 		AABB::CreateMerged(m_aabb, m_aabb, prim->GetAABBWorld());
-		prim->UpdateSurfaceAreaInfo();
 	}
 
 	BoundingSphere::CreateFromBoundingBox(m_boundingSphere, m_aabb);

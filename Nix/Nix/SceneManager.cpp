@@ -135,14 +135,6 @@ NXPBRDistantLight* SceneManager::CreatePBRDistantLight(const Vector3& direction,
 	return pLight;
 }
 
-NXPBRTangibleLight* SceneManager::CreatePBRTangibleLight(NXPrimitive* pPrimitive, const Vector3& radiance)
-{
-	auto pLight = new NXPBRTangibleLight(pPrimitive, radiance);
-	pPrimitive->SetTangibleLight(pLight);
-	RegisterLight(pLight);
-	return pLight;
-}
-
 NXPBREnvironmentLight* SceneManager::CreatePBREnvironmentLight(NXCubeMap* pCubeMap, const Vector3& Intensity)
 {
 	auto bound = m_pScene->GetBoundingSphere();

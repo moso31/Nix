@@ -229,25 +229,17 @@
     <ClCompile Include="Core\ShaderComplier.cpp" />
     <ClCompile Include="Nix\HBVH.cpp" />
     <ClCompile Include="Nix\NXDepthPrepass.cpp" />
-    <ClCompile Include="Nix\NXDirectIntegrator.cpp" />
-    <ClCompile Include="Nix\NXPhoton.cpp" />
-    <ClCompile Include="Nix\NXPMSplitIntegrator.cpp" />
+    <ClCompile Include="Nix\NXIntersection.cpp" />
     <ClCompile Include="Nix\NXKdTree.cpp" />
-    <ClCompile Include="Nix\NXBSDF.cpp" />
     <ClCompile Include="Nix\NXCubeMap.cpp" />
-    <ClCompile Include="Nix\NXFresnel.cpp" />
-    <ClCompile Include="Nix\NXIntegrator.cpp" />
-    <ClCompile Include="Nix\NXPathIntegrator.cpp" />
     <ClCompile Include="Nix\NXPBRLight.cpp" />
     <ClCompile Include="Nix\NXPBRMaterial.cpp" />
-    <ClCompile Include="Nix\NXDistribution.cpp" />
     <ClCompile Include="Nix\NXSimpleSSAO.cpp" />
     <ClCompile Include="Nix\Script\NSFirstPersonalCamera.cpp" />
     <ClCompile Include="Nix\Script\NSTest.cpp" />
     <ClCompile Include="Nix\NXBox.cpp" />
     <ClCompile Include="Nix\NXCamera.cpp" />
     <ClCompile Include="Nix\NXCylinder.cpp" />
-    <ClCompile Include="Nix\NXIntersection.cpp" />
     <ClCompile Include="Nix\NXMesh.cpp" />
     <ClCompile Include="Nix\NXObject.cpp" />
     <ClCompile Include="Nix\NXPassShadowMap.cpp" />
@@ -259,11 +251,6 @@
     <ClCompile Include="Nix\NXSphere.cpp" />
     <ClCompile Include="Nix\NXTransform.cpp" />
     <ClCompile Include="Nix\SceneManager.cpp" />
-    <ClCompile Include="Nix\NXRayTracer.cpp" />
-    <ClCompile Include="Nix\NXReflection.inl" />
-    <ClCompile Include="Nix\NXPMIntegrator.cpp" />
-    <ClCompile Include="Nix\NXIrradianceCache.cpp" />
-    <ClCompile Include="Nix\NXSPPMIntegrator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h" />
@@ -291,25 +278,17 @@
     <ClInclude Include="Core\ShaderStructures.h" />
     <ClInclude Include="Nix\HBVH.h" />
     <ClInclude Include="Nix\NXDepthPrepass.h" />
-    <ClInclude Include="Nix\NXDirectIntegrator.h" />
-    <ClInclude Include="Nix\NXPhoton.h" />
-    <ClInclude Include="Nix\NXPMSplitIntegrator.h" />
+    <ClInclude Include="Nix\NXIntersection.h" />
     <ClInclude Include="Nix\NXKdTree.h" />
-    <ClInclude Include="Nix\NXBSDF.h" />
     <ClInclude Include="Nix\NXCubeMap.h" />
-    <ClInclude Include="Nix\NXFresnel.h" />
-    <ClInclude Include="Nix\NXIntegrator.h" />
-    <ClInclude Include="Nix\NXPathIntegrator.h" />
     <ClInclude Include="Nix\NXPBRLight.h" />
     <ClInclude Include="Nix\NXPBRMaterial.h" />
-    <ClInclude Include="Nix\NXDistribution.h" />
     <ClInclude Include="Nix\NXSimpleSSAO.h" />
     <ClInclude Include="Nix\Script\NSFirstPersonalCamera.h" />
     <ClInclude Include="Nix\Script\NSTest.h" />
     <ClInclude Include="Nix\NXBox.h" />
     <ClInclude Include="Nix\NXCamera.h" />
     <ClInclude Include="Nix\NXCylinder.h" />
-    <ClInclude Include="Nix\NXIntersection.h" />
     <ClInclude Include="Nix\NXMesh.h" />
     <ClInclude Include="Nix\NXObject.h" />
     <ClInclude Include="Nix\NXPassShadowMap.h" />
@@ -322,11 +301,6 @@
     <ClInclude Include="Nix\NXSphere.h" />
     <ClInclude Include="Nix\NXTransform.h" />
     <ClInclude Include="Nix\SceneManager.h" />
-    <ClInclude Include="Nix\NXRayTracer.h" />
-    <ClInclude Include="Nix\NXReflection.h" />
-    <ClInclude Include="Nix\NXPMIntegrator.h" />
-    <ClInclude Include="Nix\NXIrradianceCache.h" />
-    <ClInclude Include="Nix\NXSPPMIntegrator.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="场景添加物体说明.txt" />
