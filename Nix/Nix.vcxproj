@@ -235,6 +235,7 @@
     <ClCompile Include="Nix\NXPBRLight.cpp" />
     <ClCompile Include="Nix\NXPBRMaterial.cpp" />
     <ClCompile Include="Nix\NXSimpleSSAO.cpp" />
+    <ClCompile Include="Nix\NXSubMesh.cpp" />
     <ClCompile Include="Nix\Script\NSFirstPersonalCamera.cpp" />
     <ClCompile Include="Nix\Script\NSTest.cpp" />
     <ClCompile Include="Nix\NXBox.cpp" />
@@ -284,6 +285,7 @@
     <ClInclude Include="Nix\NXPBRLight.h" />
     <ClInclude Include="Nix\NXPBRMaterial.h" />
     <ClInclude Include="Nix\NXSimpleSSAO.h" />
+    <ClInclude Include="Nix\NXSubMesh.h" />
     <ClInclude Include="Nix\Script\NSFirstPersonalCamera.h" />
     <ClInclude Include="Nix\Script\NSTest.h" />
     <ClInclude Include="Nix\NXBox.h" />

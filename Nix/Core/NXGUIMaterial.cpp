@@ -51,7 +51,7 @@ void NXGUIMaterial::Render()
 		pPickingObject->SetScale(vScal);
 	}
 
-	NXPBRMaterial* pPickingObjectMaterial = pPickingObject->GetPBRMaterial();
+	NXPBRMaterial* pPickingObjectMaterial = pPickingObject->GetSubMesh(0)->GetPBRMaterial();
 	if (pPickingObjectMaterial)
 	{
 		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVAlbedo(), std::bind(&NXGUIMaterial::OnTexAlbedoChange, this, pPickingObjectMaterial), std::bind(&NXGUIMaterial::OnTexAlbedoRemove, this, pPickingObjectMaterial));
@@ -213,12 +213,5 @@ void NXGUIMaterial::RenderTextureIcon(ImTextureID ImTexID, std::function<void()>
 
 void NXGUIMaterial::UpdateMaterial(NXPBRMaterial* pMaterial)
 {
-	if (m_bMaterialDirty)
-	{
-		auto pRefPrims = pMaterial->GetPrimitives();
-		for (auto pPrim : pRefPrims)
-		{
-			pPrim->SetMaterialPBR(pMaterial);
-		}
-	}
+	// 2021.9.21 这个方法现在看来已经没用了 有空删掉 
 }

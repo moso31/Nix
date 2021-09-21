@@ -71,6 +71,7 @@ class NXObject;
 class NXPrimitive;
 class NXCamera;
 class NXCubeMap;
+class NXSubMesh;
 
 // effects
 class NXPassShadowMap;

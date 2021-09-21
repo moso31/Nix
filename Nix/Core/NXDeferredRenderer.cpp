@@ -180,12 +180,15 @@ void NXDeferredRenderer::RenderRT0()
 
 	for (auto pPrim : m_pScene->GetPrimitives()) 
 	{
-		pPrim->Update();
+		pPrim->UpdateViewParams();
 		g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 
-		auto pMat = pPrim->GetPBRMaterial();
-		if (pMat)
+		for (UINT i = 0; i < pPrim->GetSubMeshCount(); i++)
 		{
+			auto pSubMesh = pPrim->GetSubMesh(i);
+			pSubMesh->Update();
+
+			auto pMat = pSubMesh->GetPBRMaterial();
 			auto pSRVAlbedo = pMat->GetSRVAlbedo();
 			g_pContext->PSSetShaderResources(1, 1, &pSRVAlbedo);
 
@@ -201,10 +204,11 @@ void NXDeferredRenderer::RenderRT0()
 			auto pSRVAO = pMat->GetSRVAO();
 			g_pContext->PSSetShaderResources(5, 1, &pSRVAO);
 
-			auto pCBMaterial = pPrim->GetMaterialBuffer();
+			auto pCBMaterial = pSubMesh->GetMaterialBuffer();
 			g_pContext->PSSetConstantBuffers(3, 1, &pCBMaterial);
+
+			pSubMesh->Render();
 		}
-		pPrim->Render();
 	}
 
 	g_pUDA->EndEvent();
@@ -220,12 +224,15 @@ void NXDeferredRenderer::RenderRT1()
 
 	for (auto pPrim : m_pScene->GetPrimitives())
 	{
-		pPrim->Update();
+		pPrim->UpdateViewParams();
 		g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 
-		auto pMat = pPrim->GetPBRMaterial();
-		if (pMat)
+		for (UINT i = 0; i < pPrim->GetSubMeshCount(); i++)
 		{
+			auto pSubMesh = pPrim->GetSubMesh(i);
+			pSubMesh->Update();
+
+			auto pMat = pSubMesh->GetPBRMaterial();
 			auto pSRVAlbedo = pMat->GetSRVAlbedo();
 			g_pContext->PSSetShaderResources(1, 1, &pSRVAlbedo);
 
@@ -241,10 +248,11 @@ void NXDeferredRenderer::RenderRT1()
 			auto pSRVAO = pMat->GetSRVAO();
 			g_pContext->PSSetShaderResources(5, 1, &pSRVAO);
 
-			auto pCBMaterial = pPrim->GetMaterialBuffer();
+			auto pCBMaterial = pSubMesh->GetMaterialBuffer();
 			g_pContext->PSSetConstantBuffers(3, 1, &pCBMaterial);
+
+			pSubMesh->Render();
 		}
-		pPrim->Render();
 	}
 
 	g_pUDA->EndEvent();
@@ -260,12 +268,15 @@ void NXDeferredRenderer::RenderRT2()
 
 	for (auto pPrim : m_pScene->GetPrimitives())
 	{
-		pPrim->Update();
+		pPrim->UpdateViewParams();
 		g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 
-		auto pMat = pPrim->GetPBRMaterial();
-		if (pMat)
+		for (UINT i = 0; i < pPrim->GetSubMeshCount(); i++)
 		{
+			auto pSubMesh = pPrim->GetSubMesh(i);
+			pSubMesh->Update();
+
+			auto pMat = pSubMesh->GetPBRMaterial();
 			auto pSRVAlbedo = pMat->GetSRVAlbedo();
 			g_pContext->PSSetShaderResources(1, 1, &pSRVAlbedo);
 
@@ -281,10 +292,11 @@ void NXDeferredRenderer::RenderRT2()
 			auto pSRVAO = pMat->GetSRVAO();
 			g_pContext->PSSetShaderResources(5, 1, &pSRVAO);
 
-			auto pCBMaterial = pPrim->GetMaterialBuffer();
+			auto pCBMaterial = pSubMesh->GetMaterialBuffer();
 			g_pContext->PSSetConstantBuffers(3, 1, &pCBMaterial);
+
+			pSubMesh->Render();
 		}
-		pPrim->Render();
 	}
 
 	g_pUDA->EndEvent();
@@ -300,13 +312,16 @@ void NXDeferredRenderer::RenderRT3()
 
 	for (auto pPrim : m_pScene->GetPrimitives())
 	{
-		pPrim->Update();
+		pPrim->UpdateViewParams();
 		g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 		g_pContext->PSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 
-		auto pMat = pPrim->GetPBRMaterial();
-		if (pMat)
+		for (UINT i = 0; i < pPrim->GetSubMeshCount(); i++)
 		{
+			auto pSubMesh = pPrim->GetSubMesh(i);
+			pSubMesh->Update();
+
+			auto pMat = pSubMesh->GetPBRMaterial();
 			auto pSRVAlbedo = pMat->GetSRVAlbedo();
 			g_pContext->PSSetShaderResources(1, 1, &pSRVAlbedo);
 
@@ -322,10 +337,11 @@ void NXDeferredRenderer::RenderRT3()
 			auto pSRVAO = pMat->GetSRVAO();
 			g_pContext->PSSetShaderResources(5, 1, &pSRVAO);
 
-			auto pCBMaterial = pPrim->GetMaterialBuffer();
+			auto pCBMaterial = pSubMesh->GetMaterialBuffer();
 			g_pContext->PSSetConstantBuffers(3, 1, &pCBMaterial);
+
+			pSubMesh->Render();
 		}
-		pPrim->Render();
 	}
 
 	g_pUDA->EndEvent();

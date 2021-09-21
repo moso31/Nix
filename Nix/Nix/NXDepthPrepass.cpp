@@ -86,7 +86,7 @@ void NXDepthPrepass::Render()
 
 	for (auto pPrim : m_pScene->GetPrimitives())
 	{
-		pPrim->Update();
+		pPrim->UpdateViewParams();
 		g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 
 		auto pMat = pPrim->GetPBRMaterial();
@@ -111,7 +111,7 @@ void NXDepthPrepass::Render()
 
 	for (auto pPrim : m_pScene->GetPrimitives())
 	{
-		pPrim->Update();
+		pPrim->UpdateViewParams();
 		g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 		pPrim->Render();
 	}

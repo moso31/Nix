@@ -1,16 +1,6 @@
 #pragma once
 #include "NXPrimitive.h"
 
-enum NXPlaneAxis
-{
-	POSITIVE_X,
-	POSITIVE_Y,
-	POSITIVE_Z,
-	NEGATIVE_X,
-	NEGATIVE_Y,
-	NEGATIVE_Z,
-};
-
 class NXPlane : public NXPrimitive
 {
 public:

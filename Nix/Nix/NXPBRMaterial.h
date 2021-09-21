@@ -25,12 +25,6 @@ public:
 
 	void Release();
 
-	// 当有Primitive选用此材质时，调用此方法记录材质和Primitive的绑定关系。
-	void AddPrimitiveReference(NXPrimitive* pPrimitive) { m_pPrimitiveList.push_back(pPrimitive); }
-
-	// 获取正在使用当前材质的所有Primitive。
-	const std::list<NXPrimitive*> GetPrimitives() { return m_pPrimitiveList; }
-
 public:
 	Vector3 m_albedo;
 	Vector3 m_normal;
@@ -51,5 +45,5 @@ private:
 	ComPtr<ID3D11ShaderResourceView> m_pSRVAmbientOcclusion;
 
 	// 记录正在使用当前材质的所有Primivives。
-	std::list<NXPrimitive*> m_pPrimitiveList;
+	std::list<NXPrimitive*> m_pSubMeshList;
 };

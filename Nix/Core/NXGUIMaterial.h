@@ -14,6 +14,9 @@ public:
 
 private:
 	void RenderTextureIcon(ImTextureID ImTexID, std::function<void()> onChange, std::function<void()> onRemove);
+
+	// 查找所有正在使用pMaterial的材质
+	// 当使用GUI调整了某材质的参数时，可以用此方法更新场景中所有使用了此材质的SubMesh。
 	void UpdateMaterial(NXPBRMaterial* pMaterial);
 
 private:

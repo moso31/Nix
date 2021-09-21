@@ -266,6 +266,9 @@
     <ClCompile Include="Nix\NXIntersection.cpp">
       <Filter>Nix\Accelerator</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\NXSubMesh.cpp">
+      <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -349,9 +352,6 @@
     <ClInclude Include="Nix\NXTransform.h">
       <Filter>Nix\Object\Transform</Filter>
     </ClInclude>
-    <ClInclude Include="Nix\NXPassShadowMap.h">
-      <Filter>Nix\Effect</Filter>
-    </ClInclude>
     <ClInclude Include="Nix\NXScene.h">
       <Filter>Nix\Scene</Filter>
     </ClInclude>
@@ -411,6 +411,12 @@
     </ClInclude>
     <ClInclude Include="Nix\NXIntersection.h">
       <Filter>Nix\Accelerator</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXSubMesh.h">
+      <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXPassShadowMap.h">
+      <Filter>Nix\Effect</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -1,9 +1,6 @@
 #pragma once
-#include "ShaderStructures.h"
 #include "NXTransform.h"
-#include "NXIntersection.h"
-
-class NXPBRMaterial;
+#include "NXSubMesh.h"
 
 class NXPrimitive : public NXTransform
 {
@@ -11,57 +8,27 @@ public:
 	NXPrimitive();
 	~NXPrimitive() {}
 
-	friend class NXTriangle;
-
-	virtual void Update();
-	virtual void Render();
+	virtual void UpdateViewParams();
 	virtual void Release();
 
-	// 自动计算顶点的切线数据。
+	// 自动计算SubMesh下所有顶点的切线数据。
 	void CalculateTangents(bool bUpdateVertexIndexBuffer = false);
 
-	void SetMaterialPBR(NXPBRMaterial* mat);
-
-	NXPBRMaterial* GetPBRMaterial() const;
 	AABB GetAABBWorld();
 	AABB GetAABBLocal() const;
-	NXTriangle GetTriangle(int faceIndex);
-
-	ID3D11Buffer* GetMaterialBuffer() const { return m_cbMaterial.Get(); }
 
 	virtual bool RayCast(const Ray& worldRay, NXHit& outHitInfo, float& outDist);
 
+	UINT GetSubMeshCount() { return (UINT)m_pSubMeshes.size(); }
+	NXSubMesh* GetSubMesh(UINT index) { return m_pSubMeshes[index]; }
+
+	UINT GetFaceCount();
+
 protected:
-	virtual void InitVertexIndexBuffer();
-	void InitMaterialBuffer();
 	void InitAABB();
 
 protected:
-	ComPtr<ID3D11Buffer>		m_pVertexBuffer;
-	ComPtr<ID3D11Buffer>		m_pIndexBuffer;
-
-	std::vector<VertexPNTT>		m_vertices;
-	std::vector<UINT>			m_indices;
-	std::vector<Vector3>		m_points;	// vertices position 序列
-
-	ConstantBufferMaterial		m_cbDataMaterial;
-	ComPtr<ID3D11Buffer>		m_cbMaterial;
-	NXPBRMaterial*				m_pPBRMaterial;
-
+	std::vector<NXSubMesh*> m_pSubMeshes;
+	std::vector<Vector3> m_points;	// vertices position 序列
 	AABB m_aabb;
-};
-
-class NXTriangle
-{
-public:
-	NXTriangle(NXPrimitive* pShape, int startIndex);
-	~NXTriangle() {};
-
-	float Area() const;
-	VertexPNTT GetVertex(int VertexId) const;
-	bool RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist);
-
-private:
-	int startIndex;
-	NXPrimitive* pShape;
 };

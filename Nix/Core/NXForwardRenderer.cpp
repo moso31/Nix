@@ -79,12 +79,15 @@ void NXForwardRenderer::Render(ID3D11ShaderResourceView* pSRVSSAO)
 		// 这里渲染场景中所有Mesh。
 		// 其他几个CB/SRV的Slot都不变，但每个物体的World、Material、Tex信息都可能改变。
 		// 【可以进一步优化】按Material绘制、按Tex绘制。
-		pPrim->Update();
+		pPrim->UpdateViewParams();
 		g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 
-		auto pMat = pPrim->GetPBRMaterial();
-		if (pMat)
+		for (UINT i = 0; i < pPrim->GetSubMeshCount(); i++)
 		{
+			auto pSubMesh = pPrim->GetSubMesh(i);
+			pSubMesh->Update();
+
+			auto pMat = pSubMesh->GetPBRMaterial();
 			auto pSRVAlbedo = pMat->GetSRVAlbedo();
 			g_pContext->PSSetShaderResources(1, 1, &pSRVAlbedo);
 
@@ -100,10 +103,11 @@ void NXForwardRenderer::Render(ID3D11ShaderResourceView* pSRVSSAO)
 			auto pSRVAO = pMat->GetSRVAO();
 			g_pContext->PSSetShaderResources(5, 1, &pSRVAO);
 
-			auto pCBMaterial = pPrim->GetMaterialBuffer();
+			auto pCBMaterial = pSubMesh->GetMaterialBuffer();
 			g_pContext->PSSetConstantBuffers(3, 1, &pCBMaterial);
+
+			pSubMesh->Render();
 		}
-		pPrim->Render();
 	}
 
 	g_pUDA->EndEvent();
