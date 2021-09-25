@@ -236,20 +236,16 @@
     <ClCompile Include="Nix\NXPBRMaterial.cpp" />
     <ClCompile Include="Nix\NXSimpleSSAO.cpp" />
     <ClCompile Include="Nix\NXSubMesh.cpp" />
+    <ClCompile Include="Nix\NXSubMeshGeometryEditor.cpp" />
     <ClCompile Include="Nix\Script\NSFirstPersonalCamera.cpp" />
     <ClCompile Include="Nix\Script\NSTest.cpp" />
-    <ClCompile Include="Nix\NXBox.cpp" />
     <ClCompile Include="Nix\NXCamera.cpp" />
-    <ClCompile Include="Nix\NXCylinder.cpp" />
-    <ClCompile Include="Nix\NXMesh.cpp" />
     <ClCompile Include="Nix\NXObject.cpp" />
     <ClCompile Include="Nix\NXPassShadowMap.cpp" />
-    <ClCompile Include="Nix\NXPlane.cpp" />
     <ClCompile Include="Nix\NXPrimitive.cpp" />
     <ClCompile Include="Nix\NXRenderTarget.cpp" />
     <ClCompile Include="Nix\NXScene.cpp" />
     <ClCompile Include="Nix\Script\NXScript.cpp" />
-    <ClCompile Include="Nix\NXSphere.cpp" />
     <ClCompile Include="Nix\NXTransform.cpp" />
     <ClCompile Include="Nix\SceneManager.cpp" />
   </ItemGroup>
@@ -286,21 +282,17 @@
     <ClInclude Include="Nix\NXPBRMaterial.h" />
     <ClInclude Include="Nix\NXSimpleSSAO.h" />
     <ClInclude Include="Nix\NXSubMesh.h" />
+    <ClInclude Include="Nix\NXSubMeshGeometryEditor.h" />
     <ClInclude Include="Nix\Script\NSFirstPersonalCamera.h" />
     <ClInclude Include="Nix\Script\NSTest.h" />
-    <ClInclude Include="Nix\NXBox.h" />
     <ClInclude Include="Nix\NXCamera.h" />
-    <ClInclude Include="Nix\NXCylinder.h" />
-    <ClInclude Include="Nix\NXMesh.h" />
     <ClInclude Include="Nix\NXObject.h" />
     <ClInclude Include="Nix\NXPassShadowMap.h" />
-    <ClInclude Include="Nix\NXPlane.h" />
     <ClInclude Include="Nix\NXPrimitive.h" />
     <ClInclude Include="Nix\NXRenderTarget.h" />
     <ClInclude Include="Nix\NXScene.h" />
     <ClInclude Include="Nix\Script\NXScript.h" />
     <ClInclude Include="Nix\Script\NXScriptType.h" />
-    <ClInclude Include="Nix\NXSphere.h" />
     <ClInclude Include="Nix\NXTransform.h" />
     <ClInclude Include="Nix\SceneManager.h" />
   </ItemGroup>

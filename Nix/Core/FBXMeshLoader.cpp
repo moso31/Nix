@@ -1,13 +1,14 @@
 #include "FBXMeshLoader.h"
-#include "NXMesh.h"
+#include "NXPrimitive.h"
 #include "NXScene.h"
+#include "NXSubMeshGeometryEditor.h"
 
 #ifdef IOS_REF
 	#undef  IOS_REF
 	#define IOS_REF (*(pManager->GetIOSettings()))
 #endif
 
-void FBXMeshLoader::LoadContent(FbxNode* pNode, NXMesh* pEngineMesh, std::vector<NXMesh*>& outMeshes, bool bAutoCalcTangents)
+void FBXMeshLoader::LoadContent(FbxNode* pNode, NXPrimitive* pEngineMesh, std::vector<NXPrimitive*>& outMeshes, bool bAutoCalcTangents)
 {
 	FbxNodeAttribute::EType lAttributeType;
 	int i;
@@ -45,20 +46,18 @@ void FBXMeshLoader::LoadContent(FbxNode* pNode, NXMesh* pEngineMesh, std::vector
 	if (bAutoCalcTangents) 
 		pEngineMesh->CalculateTangents();
 
-	pEngineMesh->Init();
-
 	LoadNodeTransformInfo(pNode, pEngineMesh);
 	outMeshes.push_back(pEngineMesh);
 
 	for (i = 0; i < pNode->GetChildCount(); i++)
 	{
-		NXMesh* pChildMesh = new NXMesh();
+		NXPrimitive* pChildMesh = new NXPrimitive();
 		LoadContent(pNode->GetChild(i), pChildMesh, outMeshes, bAutoCalcTangents);
 		pChildMesh->SetParent(pEngineMesh);
 	}
 }
 
-void FBXMeshLoader::LoadNodeTransformInfo(FbxNode* pNode, NXMesh* pEngineMesh)
+void FBXMeshLoader::LoadNodeTransformInfo(FbxNode* pNode, NXPrimitive* pEngineMesh)
 {
 	FbxDouble3 fVec = pNode->LclTranslation.Get();
 	Vector3 vec = { (float)fVec[0], (float)fVec[1], (float)fVec[2] };
@@ -73,26 +72,84 @@ void FBXMeshLoader::LoadNodeTransformInfo(FbxNode* pNode, NXMesh* pEngineMesh)
 	pEngineMesh->SetScale(vec);
 }
 
-void FBXMeshLoader::LoadMesh(FbxNode* pNode, NXMesh* pEngineMesh)
+void FBXMeshLoader::LoadMesh(FbxNode* pNode, NXPrimitive* pEngineMesh)
 {
 	FbxMesh* lMesh = (FbxMesh*)pNode->GetNodeAttribute();
+	int lSubMeshCount = pNode->GetMaterialCount();
 
-	LoadPolygons(lMesh, pEngineMesh);
+	LoadPolygons(lMesh, pEngineMesh, lSubMeshCount);
 }
 
-void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXMesh* pEngineMesh)
+void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXPrimitive* pEngineMesh, int lSubMeshCount)
 {
 	int i, j, lPolygonCount = pMesh->GetPolygonCount();
 	FbxVector4* lControlPoints = pMesh->GetControlPoints();
 	char header[100];
 
-	//DisplayString("    Polygons");
+	// SubMesh数量已经有了，
+	// 接下来，先统计每个SubMesh的Polygon/Vertex/Index数量，再读取每个顶点的VertexPNTT数据。
+	UINT* pSubMeshPolygonsCounts = new UINT[lSubMeshCount];
+	UINT* pSubMeshVerticesCounts = new UINT[lSubMeshCount];
+	UINT* pSubMeshIndicesCounts = new UINT[lSubMeshCount];
+	for (i = 0; i < lPolygonCount; i++)
+	{
+		int l;
+		int lPolygonSize = pMesh->GetPolygonSize(i);
+		assert(lPolygonSize >= 3);
 
+		FbxGeometryElementMaterial* leMat = pMesh->GetElementMaterial(0);
+		assert(leMat);
+
+		switch (leMat->GetMappingMode())
+		{
+		case FbxGeometryElement::eByPolygon:
+			if (leMat->GetReferenceMode() == FbxGeometryElement::eIndex)
+			{
+				int leMatIndex = leMat->GetIndexArray().GetAt(i);
+				pSubMeshPolygonsCounts[leMatIndex]++;
+				pSubMeshVerticesCounts[leMatIndex] += (lPolygonSize - 2) * 3;
+				break;
+			}
+		}
+	}
+
+	for (int i = 0; i < lSubMeshCount; i++) pSubMeshIndicesCounts[i] = pSubMeshVerticesCounts[i];
+
+	// 分配Vertex/Index data内存空间
+	VertexPNTT** ppMeshVerticesData = new VertexPNTT*[lSubMeshCount];
+	UINT** ppMeshIndicesData = new UINT*[lSubMeshCount];
+	for (int i = 0; i < lSubMeshCount; i++)
+	{
+		ppMeshVerticesData[i] = new VertexPNTT[pSubMeshVerticesCounts[i]];
+		ppMeshIndicesData[i] = new UINT[pSubMeshIndicesCounts[i]];
+	}
+
+	// 递增id
+	UINT* ppSubMeshVertexId = new UINT[lSubMeshCount];
+	UINT* ppSubMeshIndexId = new UINT[lSubMeshCount];
+	memset(ppSubMeshVertexId, 0, sizeof(UINT) * lSubMeshCount);
+	memset(ppSubMeshIndexId, 0, sizeof(UINT) * lSubMeshCount);
+
+	// 读取所有多边形数据
 	int vertexId = 0, indexId = 0;
 	for (i = 0; i < lPolygonCount; i++)
 	{
-		//DisplayInt("        Polygon ", i);
 		int l;
+		int lSubMeshId = -1;
+		FbxGeometryElementMaterial* leMat = pMesh->GetElementMaterial(0);
+		assert(leMat);
+
+		switch (leMat->GetMappingMode())
+		{
+		case FbxGeometryElement::eByPolygon:
+			if (leMat->GetReferenceMode() == FbxGeometryElement::eIndex)
+			{
+				lSubMeshId = leMat->GetIndexArray().GetAt(i);
+				break;
+			}
+		}
+
+		assert(lSubMeshId != -1);
 
 		for (l = 0; l < pMesh->GetElementPolygonGroupCount(); l++)
 		{
@@ -104,26 +161,21 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXMesh* pEngineMesh)
 				{
 					FBXSDK_sprintf(header, 100, "        Assigned to group: ");
 					int polyGroupId = lePolgrp->GetIndexArray().GetAt(i);
-					//DisplayInt(header, polyGroupId);
 					break;
 				}
 			default:
-				// any other mapping modes don't make sense
-				//DisplayString("        \"unsupported group assignment\"");
 				break;
 			}
 		}
 
 		int lPolygonSize = pMesh->GetPolygonSize(i);
-		assert(lPolygonSize >= 3);
-
-		VertexPNTT* vertex = new VertexPNTT[lPolygonSize];
+		VertexPNTT* pPolygonVerticesData = new VertexPNTT[lPolygonSize];
 
 		for (j = 0; j < lPolygonSize; j++)
 		{
 			int lControlPointIndex = pMesh->GetPolygonVertex(i, j);
 			FbxVector4 posData = lControlPoints[lControlPointIndex];
-			vertex[j].pos = Vector3((float)posData[0], (float)posData[1], (float)posData[2]);
+			pPolygonVerticesData[j].pos = Vector3((float)posData[0], (float)posData[1], (float)posData[2]);
 
 			for (l = 0; l < pMesh->GetElementVertexColorCount(); l++)
 			{
@@ -229,7 +281,7 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXMesh* pEngineMesh)
 
 				// 暂时默认所有来自fbx的UV全部是反转的。
 				bool bFlipUV = true;
-				vertex[j].tex = Vector2((float)texData[0], bFlipUV ? 1.0f - (float)texData[1] : (float)texData[1]);
+				pPolygonVerticesData[j].tex = Vector2((float)texData[0], bFlipUV ? 1.0f - (float)texData[1] : (float)texData[1]);
 			}
 
 			for (l = 0; l < pMesh->GetElementNormalCount(); ++l)
@@ -256,7 +308,7 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXMesh* pEngineMesh)
 					}
 				}
 
-				vertex[j].norm = Vector3((float)normData[0], (float)normData[1], (float)normData[2]);
+				pPolygonVerticesData[j].norm = Vector3((float)normData[0], (float)normData[1], (float)normData[2]);
 			}
 			for (l = 0; l < pMesh->GetElementTangentCount(); ++l)
 			{
@@ -310,45 +362,28 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXMesh* pEngineMesh)
 		} // for polygonSize
 
 
+		// 一个Polygon读取完以后，根据此Polygon的SubMesh索引，将顶点和索引数据指定给对应的SubMesh
 		for (int j = 0; j < lPolygonSize - 2; j++)
 		{
-			pEngineMesh->m_vertices.push_back(vertex[0]);
-			pEngineMesh->m_vertices.push_back(vertex[j + 1]);
-			pEngineMesh->m_vertices.push_back(vertex[j + 2]);
-			pEngineMesh->m_indices.push_back(indexId++);
-			pEngineMesh->m_indices.push_back(indexId++);
-			pEngineMesh->m_indices.push_back(indexId++);
+			UINT lSubMeshVertexId = ppSubMeshVertexId[lSubMeshId];
+			UINT lSubMeshIndexId = ppSubMeshIndexId[lSubMeshId];
+
+			ppMeshVerticesData[lSubMeshId][lSubMeshVertexId++] = pPolygonVerticesData[0];
+			ppMeshVerticesData[lSubMeshId][lSubMeshVertexId++] = pPolygonVerticesData[j + 1];
+			ppMeshVerticesData[lSubMeshId][lSubMeshVertexId++] = pPolygonVerticesData[j + 2];
+
+			ppMeshIndicesData[lSubMeshId][lSubMeshIndexId] = lSubMeshIndexId++;
+			ppMeshIndicesData[lSubMeshId][lSubMeshIndexId] = lSubMeshIndexId++;
+			ppMeshIndicesData[lSubMeshId][lSubMeshIndexId] = lSubMeshIndexId++;
 		}
 
-		delete[] vertex;
+		delete[] pPolygonVerticesData;
 	} // for polygonCount
 
-	//check visibility for the edges of the mesh
-	for (int l = 0; l < pMesh->GetElementVisibilityCount(); ++l)
-	{
-		FbxGeometryElementVisibility* leVisibility = pMesh->GetElementVisibility(l);
-		//FBXSDK_sprintf(header, 100, "    Edge Visibility : ");
-		//DisplayString(header);
-		switch (leVisibility->GetMappingMode())
-		{
-		default:
-			break;
-			//should be eByEdge
-		case FbxGeometryElement::eByEdge:
-			//should be eDirect
-			for (j = 0; j != pMesh->GetMeshEdgeCount(); ++j)
-			{
-				//DisplayInt("        Edge ", j);
-				//DisplayBool("              Edge visibility: ", leVisibility->GetDirectArray().GetAt(j));
-			}
-
-			break;
-		}
-	}
-	//DisplayString("");
+	NXSubMeshGeometryEditor::CreateFBXMesh(pEngineMesh, lSubMeshCount, ppMeshVerticesData, pSubMeshVerticesCounts, ppMeshIndicesData, pSubMeshIndicesCounts);
 }
 
-void FBXMeshLoader::LoadFBXFile(std::string filepath, NXScene* pRenderScene, std::vector<NXMesh*>& outMeshes, bool bAutoCalcTangents)
+void FBXMeshLoader::LoadFBXFile(std::string filepath, NXScene* pRenderScene, std::vector<NXPrimitive*>& outMeshes, bool bAutoCalcTangents)
 {
 	FbxManager* lSdkManager = NULL;
 	FbxScene* lScene = NULL;
@@ -374,7 +409,7 @@ void FBXMeshLoader::LoadFBXFile(std::string filepath, NXScene* pRenderScene, std
 	{
 		for (int i = 0; i < lNode->GetChildCount(); i++)
 		{
-			auto pMesh = new NXMesh();
+			auto pMesh = new NXPrimitive();
 			LoadContent(lNode->GetChild(i), pMesh, outMeshes, bAutoCalcTangents);
 		}
 	}

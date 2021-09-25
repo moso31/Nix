@@ -20,15 +20,17 @@ public:
 	virtual bool RayCast(const Ray& worldRay, NXHit& outHitInfo, float& outDist);
 
 	UINT GetSubMeshCount() { return (UINT)m_pSubMeshes.size(); }
-	NXSubMesh* GetSubMesh(UINT index) { return m_pSubMeshes[index]; }
+	NXSubMesh* GetSubMesh(UINT index) { return m_pSubMeshes[index].get(); }
 
 	UINT GetFaceCount();
 
-protected:
+	void ClearSubMeshes();
+	void ReloadSubMesh(UINT index, NXSubMesh* pSubMesh);
+
 	void InitAABB();
 
 protected:
-	std::vector<NXSubMesh*> m_pSubMeshes;
+	std::vector<std::shared_ptr<NXSubMesh>> m_pSubMeshes;
 	std::vector<Vector3> m_points;	// vertices position ађСа
 	AABB m_aabb;
 };

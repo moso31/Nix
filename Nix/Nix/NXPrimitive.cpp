@@ -80,6 +80,21 @@ UINT NXPrimitive::GetFaceCount()
 	return result;
 }
 
+void NXPrimitive::ClearSubMeshes()
+{
+	for (int i = 0; i < m_pSubMeshes.size(); i++)
+	{
+		while (m_pSubMeshes[i].use_count())
+			m_pSubMeshes[i].reset();
+	}
+}
+
+void NXPrimitive::ReloadSubMesh(UINT index, NXSubMesh* pSubMesh)
+{
+	assert(index > m_pSubMeshes.size() - 1);
+	m_pSubMeshes[index].reset(pSubMesh);
+}
+
 void NXPrimitive::InitAABB()
 {
 	m_points.clear();

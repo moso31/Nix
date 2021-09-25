@@ -176,22 +176,10 @@
     <ClCompile Include="Nix\Script\NSTest.cpp">
       <Filter>Nix\Script</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\NXBox.cpp">
-      <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
-    </ClCompile>
     <ClCompile Include="Nix\NXCamera.cpp">
       <Filter>Nix\Object\Transform\Camera</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\NXCylinder.cpp">
-      <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\NXMesh.cpp">
-      <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
-    </ClCompile>
     <ClCompile Include="Nix\NXObject.cpp">
-      <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\NXPlane.cpp">
       <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
     </ClCompile>
     <ClCompile Include="Nix\NXRenderTarget.cpp">
@@ -211,9 +199,6 @@
     </ClCompile>
     <ClCompile Include="Nix\NXScene.cpp">
       <Filter>Nix\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\NXSphere.cpp">
-      <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
     </ClCompile>
     <ClCompile Include="Nix\SceneManager.cpp">
       <Filter>Nix\Scene</Filter>
@@ -269,6 +254,9 @@
     <ClCompile Include="Nix\NXSubMesh.cpp">
       <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\NXSubMeshGeometryEditor.cpp">
+      <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -319,22 +307,10 @@
     <ClInclude Include="Nix\Script\NSFirstPersonalCamera.h">
       <Filter>Nix\Script</Filter>
     </ClInclude>
-    <ClInclude Include="Nix\NXBox.h">
-      <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
-    </ClInclude>
     <ClInclude Include="Nix\NXCamera.h">
       <Filter>Nix\Object\Transform\Camera</Filter>
     </ClInclude>
-    <ClInclude Include="Nix\NXCylinder.h">
-      <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\NXMesh.h">
-      <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
-    </ClInclude>
     <ClInclude Include="Nix\NXObject.h">
-      <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\NXPlane.h">
       <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXRenderTarget.h">
@@ -354,9 +330,6 @@
     </ClInclude>
     <ClInclude Include="Nix\NXScene.h">
       <Filter>Nix\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\NXSphere.h">
-      <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
     </ClInclude>
     <ClInclude Include="Nix\SceneManager.h">
       <Filter>Nix\Scene</Filter>
@@ -417,6 +390,9 @@
     </ClInclude>
     <ClInclude Include="Nix\NXPassShadowMap.h">
       <Filter>Nix\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXSubMeshGeometryEditor.h">
+      <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -23,6 +23,7 @@ class NXSubMesh
 {
 public:
 	friend class NXTriangle;
+	friend class NXSubMeshGeometryEditor;
 
 public:
 	NXSubMesh(NXPrimitive* pPrimitive);

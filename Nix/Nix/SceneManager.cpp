@@ -1,6 +1,7 @@
 #include "SceneManager.h"
 #include "NXScene.h"
 #include "FBXMeshLoader.h"
+#include "NXSubMeshGeometryEditor.h"
 
 #include "NSFirstPersonalCamera.h"
 
@@ -45,11 +46,11 @@ NXScript* SceneManager::CreateScript(const NXScriptType scriptType, NXObject* pO
 	}
 }
 
-NXBox* SceneManager::CreateBox(const std::string name, const float width, const float height, const float length, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
+NXPrimitive* SceneManager::CreateBox(const std::string name, const float width, const float height, const float length, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
 {
-	auto p = new NXBox();
+	auto p = new NXPrimitive();
 	p->SetName(name);
-	p->Init(width, height, length);
+	NXSubMeshGeometryEditor::CreateBox(p, width, height, length);
 	p->SetTranslation(translation);
 	p->SetRotation(rotation);
 	p->SetScale(scale);
@@ -57,11 +58,11 @@ NXBox* SceneManager::CreateBox(const std::string name, const float width, const 
 	return p;
 }
 
-NXSphere* SceneManager::CreateSphere(const std::string name, const float radius, const UINT segmentHorizontal, const UINT segmentVertical, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
+NXPrimitive* SceneManager::CreateSphere(const std::string name, const float radius, const UINT segmentHorizontal, const UINT segmentVertical, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
 {
-	auto p = new NXSphere();
+	auto p = new NXPrimitive();
 	p->SetName(name);
-	p->Init(radius, segmentHorizontal, segmentVertical);
+	NXSubMeshGeometryEditor::CreateSphere(p, radius, segmentHorizontal, segmentVertical);
 	p->SetTranslation(translation);
 	p->SetRotation(rotation);
 	p->SetScale(scale);
@@ -69,11 +70,11 @@ NXSphere* SceneManager::CreateSphere(const std::string name, const float radius,
 	return p;
 }
 
-NXCylinder* SceneManager::CreateCylinder(const std::string name, const float radius, const float length, const UINT segmentCircle, const UINT segmentLength, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
+NXPrimitive* SceneManager::CreateCylinder(const std::string name, const float radius, const float length, const UINT segmentCircle, const UINT segmentLength, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
 {
-	auto p = new NXCylinder();
+	auto p = new NXPrimitive();
 	p->SetName(name);
-	p->Init(radius, length, segmentCircle, segmentLength);
+	NXSubMeshGeometryEditor::CreateCylinder(p, radius, length, segmentCircle, segmentLength);
 	p->SetTranslation(translation);
 	p->SetRotation(rotation);
 	p->SetScale(scale);
@@ -81,11 +82,11 @@ NXCylinder* SceneManager::CreateCylinder(const std::string name, const float rad
 	return p;
 }
 
-NXPlane* SceneManager::CreatePlane(const std::string name, const float width, const float height, const NXPlaneAxis axis, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
+NXPrimitive* SceneManager::CreatePlane(const std::string name, const float width, const float height, const NXPlaneAxis axis, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
 {
-	auto p = new NXPlane();
+	auto p = new NXPrimitive();
 	p->SetName(name);
-	p->Init(width, height, axis);
+	NXSubMeshGeometryEditor::CreatePlane(p, width, height, axis);
 	p->SetTranslation(translation);
 	p->SetRotation(rotation);
 	p->SetScale(scale);
@@ -93,12 +94,11 @@ NXPlane* SceneManager::CreatePlane(const std::string name, const float width, co
 	return p;
 }
 
-bool SceneManager::CreateFBXMeshes(const std::string filePath, NXPBRMaterial* pDefaultMaterial, std::vector<NXMesh*>& outMeshes, bool bAutoCalcTangents)
+bool SceneManager::CreateFBXMeshes(const std::string filePath, std::vector<NXPrimitive*>& outMeshes, bool bAutoCalcTangents)
 {
 	FBXMeshLoader::LoadFBXFile(filePath, m_pScene, outMeshes, bAutoCalcTangents);
 	for (auto it = outMeshes.begin(); it != outMeshes.end(); it++)
 	{
-		(*it)->SetMaterialPBR(pDefaultMaterial);
 		RegisterPrimitive(*it, (*it)->GetParent());
 	}
 	return true;

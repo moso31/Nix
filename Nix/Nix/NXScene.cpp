@@ -6,11 +6,6 @@
 #include "NXRandom.h"
 //#include "HBVH.h"
 
-#include "NXMesh.h"
-#include "NXBox.h"
-#include "NXSphere.h"
-#include "NXCylinder.h"
-#include "NXPlane.h"
 #include "NXCamera.h"
 
 #include "NXPBRLight.h"
