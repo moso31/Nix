@@ -73,6 +73,8 @@ class NXCamera;
 class NXCubeMap;
 class NXSubMesh;
 
+class NXPBRMaterial;
+
 // effects
 class NXPassShadowMap;
 class NXRenderTarget;

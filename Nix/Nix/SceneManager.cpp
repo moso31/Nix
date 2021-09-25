@@ -1,5 +1,6 @@
 #include "SceneManager.h"
 #include "NXScene.h"
+#include "NXPrimitive.h"
 #include "FBXMeshLoader.h"
 #include "NXSubMeshGeometryEditor.h"
 

@@ -1,4 +1,6 @@
 #include "NXGUIMaterial.h"
+#include "NXScene.h"
+#include "NXPrimitive.h"
 
 NXGUIMaterial::NXGUIMaterial(NXScene* pScene, NXGUIFileBrowser* pFileBrowser) :
 	m_pCurrentScene(pScene),
@@ -213,5 +215,17 @@ void NXGUIMaterial::RenderTextureIcon(ImTextureID ImTexID, std::function<void()>
 
 void NXGUIMaterial::UpdateMaterial(NXPBRMaterial* pMaterial)
 {
-	// 2021.9.21 这个方法现在看来已经没用了 有空删掉 
+	// 2021.9.21 这个方法现在看来已经没用了。
+	// 后续会将材质做成单例，通过调整材质单例的方法，改变所有使用此材质的SubMesh的视觉效果。
+	// 而不是像以前那样，在这里查找该材质的SubMesh引用列表，再一个一个去改。那样太浪费性能。
+	// 此方法先注释暂存。后续材质实例化实现后将删掉此方法。
+
+	//if (m_bMaterialDirty)
+	//{
+	//	auto pRefPrims = pMaterial->GetPrimitives();
+	//	for (auto pPrim : pRefPrims)
+	//	{
+	//		pPrim->SetMaterialPBR(pMaterial);
+	//	}
+	//}
 }

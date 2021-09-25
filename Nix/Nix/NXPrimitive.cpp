@@ -76,7 +76,8 @@ bool NXPrimitive::RayCast(const Ray& worldRay, NXHit& outHitInfo, float& outDist
 UINT NXPrimitive::GetFaceCount()
 {
 	UINT result = 0;
-	for (UINT i = 0; i < GetSubMeshCount(); i++) result += GetSubMesh(i)->GetFaceCount();
+	for (UINT i = 0; i < GetSubMeshCount(); i++) 
+		result += GetSubMesh(i)->GetFaceCount();
 	return result;
 }
 
@@ -84,14 +85,24 @@ void NXPrimitive::ClearSubMeshes()
 {
 	for (int i = 0; i < m_pSubMeshes.size(); i++)
 	{
-		while (m_pSubMeshes[i].use_count())
-			m_pSubMeshes[i].reset();
+		if (m_pSubMeshes[i]) m_pSubMeshes[i].reset();
 	}
+}
+
+void NXPrimitive::AddSubMesh(NXSubMesh* pSubMesh)
+{
+	auto p = std::shared_ptr<NXSubMesh>(pSubMesh);
+	m_pSubMeshes.push_back(p);
+}
+
+void NXPrimitive::ResizeSubMesh(UINT size)
+{
+	m_pSubMeshes.resize(size);
 }
 
 void NXPrimitive::ReloadSubMesh(UINT index, NXSubMesh* pSubMesh)
 {
-	assert(index > m_pSubMeshes.size() - 1);
+	assert(index >= 0 && index < m_pSubMeshes.size());
 	m_pSubMeshes[index].reset(pSubMesh);
 }
 

@@ -5,6 +5,7 @@
 #include "RenderStates.h"
 #include "GlobalBufferManager.h"
 #include "NXScene.h"
+#include "NXPrimitive.h"
 
 NXDeferredRenderer::NXDeferredRenderer(NXScene* pScene) :
 	m_pScene(pScene)

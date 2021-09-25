@@ -152,7 +152,7 @@ void NXCubeMap::Render()
 
 void NXCubeMap::Release()
 {
-	NXPrimitive::Release();
+	NXTransform::Release();
 }
 
 void NXCubeMap::GenerateCubeMap(const std::wstring filePath)

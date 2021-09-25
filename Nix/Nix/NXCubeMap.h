@@ -1,10 +1,11 @@
 #pragma once
-#include "NXPrimitive.h"
+#include "NXTransform.h"
 #include "DirectXTex.h"
+#include "ShaderStructures.h"
 
 class NXPBREnvironmentLight;
 
-class NXCubeMap : public NXPrimitive
+class NXCubeMap : public NXTransform
 {
 public:
 	NXCubeMap(NXScene* pScene);
@@ -12,7 +13,7 @@ public:
 
 	bool Init(const std::wstring filePath);
 	void Update() override;
-	void Render() override;
+	void Render();
 	void Release() override;
 
 	void GenerateCubeMap(const std::wstring filePath);
@@ -31,7 +32,7 @@ public:
 
 private:
 	void InitVertex();
-	void InitVertexIndexBuffer() override;
+	void InitVertexIndexBuffer();
 
 private:
 	DXGI_FORMAT m_format;
@@ -47,6 +48,10 @@ private:
 	Matrix m_mxCubeMapView[6];
 
 	std::vector<VertexP>		m_vertices;
+	std::vector<UINT>			m_indices;
+	ComPtr<ID3D11Buffer>		m_pVertexBuffer;
+	ComPtr<ID3D11Buffer>		m_pIndexBuffer;
+
 	std::vector<VertexP>		m_verticesCubeBox;
 	std::vector<UINT>			m_indicesCubeBox;
 	ComPtr<ID3D11Buffer>		m_pVertexBufferCubeBox;

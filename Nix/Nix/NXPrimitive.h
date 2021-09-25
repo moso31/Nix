@@ -25,6 +25,8 @@ public:
 	UINT GetFaceCount();
 
 	void ClearSubMeshes();
+	void AddSubMesh(NXSubMesh* pSubMesh);
+	void ResizeSubMesh(UINT size);
 	void ReloadSubMesh(UINT index, NXSubMesh* pSubMesh);
 
 	void InitAABB();

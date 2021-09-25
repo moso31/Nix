@@ -3,6 +3,7 @@
 #include "GlobalBufferManager.h"
 #include "DirectResources.h"
 #include "NXScene.h"
+#include "NXPrimitive.h"
 
 NXDepthPrepass::NXDepthPrepass(NXScene* pScene) :
 	m_pInputLayout(nullptr),
@@ -89,18 +90,20 @@ void NXDepthPrepass::Render()
 		pPrim->UpdateViewParams();
 		g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 
-		auto pMat = pPrim->GetPBRMaterial();
-		if (pMat)
+		for (UINT i = 0; i < pPrim->GetSubMeshCount(); i++)
 		{
+			auto pSubMesh = pPrim->GetSubMesh(i);
+			pSubMesh->Update();
+
+			auto pMat = pSubMesh->GetPBRMaterial();
 			auto pSRVNormal = pMat->GetSRVNormal();
 			g_pContext->PSSetShaderResources(0, 1, &pSRVNormal);
+
+			auto pCBMaterial = pSubMesh->GetMaterialBuffer();
+			g_pContext->PSSetConstantBuffers(2, 1, &pCBMaterial);
+
+			pSubMesh->Render();
 		}
-
-		// TODO：实际上 Shader中 处理DepthPrepass时 不用传入所有材质，只需要传入normal就行了。回头改改这块。
-		auto pCBMaterial = pPrim->GetMaterialBuffer();
-		g_pContext->PSSetConstantBuffers(2, 1, &pCBMaterial);
-
-		pPrim->Render();
 	}
 
 	g_pContext->OMSetRenderTargets(1, m_pRTVPosition.GetAddressOf(), m_pDSVDepthPrepass.Get());
@@ -113,7 +116,13 @@ void NXDepthPrepass::Render()
 	{
 		pPrim->UpdateViewParams();
 		g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
-		pPrim->Render();
+
+		for (UINT i = 0; i < pPrim->GetSubMeshCount(); i++)
+		{
+			auto pSubMesh = pPrim->GetSubMesh(i);
+			pSubMesh->Update();
+			pSubMesh->Render();
+		}
 	}
 
 	g_pUDA->EndEvent();

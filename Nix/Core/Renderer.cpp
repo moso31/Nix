@@ -43,7 +43,7 @@ void Renderer::Init()
 		m_pDeferredRenderer = new NXDeferredRenderer(m_scene);
 		m_pDeferredRenderer->Init();
 
-		// 【待改】这个bool将来做成Settings（配置文件）之类的结构。
+		// 【待改】这个bool将来做成Settings（ini配置文件）之类的。
 		m_isDeferredShading = 1;
 	}
 

@@ -91,9 +91,12 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXPrimitive* pEngineMesh, int l
 	UINT* pSubMeshPolygonsCounts = new UINT[lSubMeshCount];
 	UINT* pSubMeshVerticesCounts = new UINT[lSubMeshCount];
 	UINT* pSubMeshIndicesCounts = new UINT[lSubMeshCount];
+	memset(pSubMeshPolygonsCounts, 0, sizeof(UINT) * lSubMeshCount);
+	memset(pSubMeshVerticesCounts, 0, sizeof(UINT) * lSubMeshCount);
+	memset(pSubMeshIndicesCounts, 0, sizeof(UINT) * lSubMeshCount);
+
 	for (i = 0; i < lPolygonCount; i++)
 	{
-		int l;
 		int lPolygonSize = pMesh->GetPolygonSize(i);
 		assert(lPolygonSize >= 3);
 
@@ -103,9 +106,11 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXPrimitive* pEngineMesh, int l
 		switch (leMat->GetMappingMode())
 		{
 		case FbxGeometryElement::eByPolygon:
-			if (leMat->GetReferenceMode() == FbxGeometryElement::eIndex)
+			if (leMat->GetReferenceMode() == FbxGeometryElement::eIndexToDirect)
 			{
 				int leMatIndex = leMat->GetIndexArray().GetAt(i);
+				assert(leMatIndex != -1);
+
 				pSubMeshPolygonsCounts[leMatIndex]++;
 				pSubMeshVerticesCounts[leMatIndex] += (lPolygonSize - 2) * 3;
 				break;
@@ -122,6 +127,9 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXPrimitive* pEngineMesh, int l
 	{
 		ppMeshVerticesData[i] = new VertexPNTT[pSubMeshVerticesCounts[i]];
 		ppMeshIndicesData[i] = new UINT[pSubMeshIndicesCounts[i]];
+
+		memset(ppMeshVerticesData[i], 0, sizeof(UINT) * pSubMeshVerticesCounts[i]);
+		memset(ppMeshIndicesData[i], 0, sizeof(UINT) * pSubMeshIndicesCounts[i]);
 	}
 
 	// 递增id
@@ -136,20 +144,19 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXPrimitive* pEngineMesh, int l
 	{
 		int l;
 		int lSubMeshId = -1;
+
 		FbxGeometryElementMaterial* leMat = pMesh->GetElementMaterial(0);
-		assert(leMat);
 
 		switch (leMat->GetMappingMode())
 		{
 		case FbxGeometryElement::eByPolygon:
-			if (leMat->GetReferenceMode() == FbxGeometryElement::eIndex)
+			if (leMat->GetReferenceMode() == FbxGeometryElement::eIndexToDirect)
 			{
 				lSubMeshId = leMat->GetIndexArray().GetAt(i);
+				assert(lSubMeshId != -1);
 				break;
 			}
 		}
-
-		assert(lSubMeshId != -1);
 
 		for (l = 0; l < pMesh->GetElementPolygonGroupCount(); l++)
 		{
@@ -159,7 +166,6 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXPrimitive* pEngineMesh, int l
 			case FbxGeometryElement::eByPolygon:
 				if (lePolgrp->GetReferenceMode() == FbxGeometryElement::eIndex)
 				{
-					FBXSDK_sprintf(header, 100, "        Assigned to group: ");
 					int polyGroupId = lePolgrp->GetIndexArray().GetAt(i);
 					break;
 				}
@@ -180,7 +186,6 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXPrimitive* pEngineMesh, int l
 			for (l = 0; l < pMesh->GetElementVertexColorCount(); l++)
 			{
 				FbxGeometryElementVertexColor* leVtxc = pMesh->GetElementVertexColor(l);
-				FBXSDK_sprintf(header, 100, "            Color vertex: ");
 
 				switch (leVtxc->GetMappingMode())
 				{
@@ -231,7 +236,6 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXPrimitive* pEngineMesh, int l
 			for (l = 0; l < pMesh->GetElementUVCount(); ++l)
 			{
 				FbxGeometryElementUV* leUV = pMesh->GetElementUV(l);
-				FBXSDK_sprintf(header, 100, "            Texture UV: ");
 
 				FbxVector2 texData(0.0, 0.0);
 
@@ -287,7 +291,6 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXPrimitive* pEngineMesh, int l
 			for (l = 0; l < pMesh->GetElementNormalCount(); ++l)
 			{
 				FbxGeometryElementNormal* leNormal = pMesh->GetElementNormal(l);
-				FBXSDK_sprintf(header, 100, "            Normal: ");
 
 				FbxVector4 normData;
 				if (leNormal->GetMappingMode() == FbxGeometryElement::eByPolygonVertex)
@@ -313,19 +316,19 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXPrimitive* pEngineMesh, int l
 			for (l = 0; l < pMesh->GetElementTangentCount(); ++l)
 			{
 				FbxGeometryElementTangent* leTangent = pMesh->GetElementTangent(l);
-				FBXSDK_sprintf(header, 100, "            Tangent: ");
 
+				FbxVector4 tangentData;
 				if (leTangent->GetMappingMode() == FbxGeometryElement::eByPolygonVertex)
 				{
 					switch (leTangent->GetReferenceMode())
 					{
 					case FbxGeometryElement::eDirect:
-						//Display3DVector(header, leTangent->GetDirectArray().GetAt(vertexId));
+						tangentData = leTangent->GetDirectArray().GetAt(vertexId);
 						break;
 					case FbxGeometryElement::eIndexToDirect:
 					{
 						int id = leTangent->GetIndexArray().GetAt(vertexId);
-						//Display3DVector(header, leTangent->GetDirectArray().GetAt(id));
+						tangentData = leTangent->GetDirectArray().GetAt(id);
 					}
 					break;
 					default:
@@ -333,24 +336,23 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXPrimitive* pEngineMesh, int l
 					}
 				}
 
+				pPolygonVerticesData[j].tangent = Vector3((float)tangentData[0], (float)tangentData[1], (float)tangentData[2]);
 			}
 			for (l = 0; l < pMesh->GetElementBinormalCount(); ++l)
 			{
-
 				FbxGeometryElementBinormal* leBinormal = pMesh->GetElementBinormal(l);
-
-				FBXSDK_sprintf(header, 100, "            Binormal: ");
+				FbxVector4 binormalData;
 				if (leBinormal->GetMappingMode() == FbxGeometryElement::eByPolygonVertex)
 				{
 					switch (leBinormal->GetReferenceMode())
 					{
 					case FbxGeometryElement::eDirect:
-						//Display3DVector(header, leBinormal->GetDirectArray().GetAt(vertexId));
+						binormalData = leBinormal->GetDirectArray().GetAt(vertexId);
 						break;
 					case FbxGeometryElement::eIndexToDirect:
 					{
 						int id = leBinormal->GetIndexArray().GetAt(vertexId);
-						//Display3DVector(header, leBinormal->GetDirectArray().GetAt(id));
+						binormalData = leBinormal->GetDirectArray().GetAt(id);
 					}
 					break;
 					default:
@@ -365,22 +367,45 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXPrimitive* pEngineMesh, int l
 		// 一个Polygon读取完以后，根据此Polygon的SubMesh索引，将顶点和索引数据指定给对应的SubMesh
 		for (int j = 0; j < lPolygonSize - 2; j++)
 		{
-			UINT lSubMeshVertexId = ppSubMeshVertexId[lSubMeshId];
-			UINT lSubMeshIndexId = ppSubMeshIndexId[lSubMeshId];
+			UINT& lSubMeshVertexId = ppSubMeshVertexId[lSubMeshId];
+			UINT& lSubMeshIndexId = ppSubMeshIndexId[lSubMeshId];
 
 			ppMeshVerticesData[lSubMeshId][lSubMeshVertexId++] = pPolygonVerticesData[0];
 			ppMeshVerticesData[lSubMeshId][lSubMeshVertexId++] = pPolygonVerticesData[j + 1];
 			ppMeshVerticesData[lSubMeshId][lSubMeshVertexId++] = pPolygonVerticesData[j + 2];
 
-			ppMeshIndicesData[lSubMeshId][lSubMeshIndexId] = lSubMeshIndexId++;
-			ppMeshIndicesData[lSubMeshId][lSubMeshIndexId] = lSubMeshIndexId++;
-			ppMeshIndicesData[lSubMeshId][lSubMeshIndexId] = lSubMeshIndexId++;
+			ppMeshIndicesData[lSubMeshId][lSubMeshIndexId++] = lSubMeshIndexId;
+			ppMeshIndicesData[lSubMeshId][lSubMeshIndexId++] = lSubMeshIndexId;
+			ppMeshIndicesData[lSubMeshId][lSubMeshIndexId++] = lSubMeshIndexId;
+
+			auto ta1 = pPolygonVerticesData[0];
+			auto ta2 = pPolygonVerticesData[j + 1];
+			auto ta3 = pPolygonVerticesData[j + 2];
+
+			auto tb1 = ppMeshIndicesData[lSubMeshId][lSubMeshIndexId - 3];
+			auto tb2 = ppMeshIndicesData[lSubMeshId][lSubMeshIndexId - 2];
+			auto tb3 = ppMeshIndicesData[lSubMeshId][lSubMeshIndexId - 1];
+
+			int gg = 1;
 		}
 
 		delete[] pPolygonVerticesData;
 	} // for polygonCount
 
 	NXSubMeshGeometryEditor::CreateFBXMesh(pEngineMesh, lSubMeshCount, ppMeshVerticesData, pSubMeshVerticesCounts, ppMeshIndicesData, pSubMeshIndicesCounts);
+
+	delete[] ppSubMeshVertexId;
+	delete[] ppSubMeshIndexId;
+	for (int i = 0; i < lSubMeshCount; i++)
+	{
+		delete[] ppMeshVerticesData[i];
+		delete[] ppMeshIndicesData[i];
+	}
+	delete[] ppMeshVerticesData;
+	delete[] ppMeshIndicesData;
+	delete[] pSubMeshPolygonsCounts;
+	delete[] pSubMeshVerticesCounts;
+	delete[] pSubMeshIndicesCounts;
 }
 
 void FBXMeshLoader::LoadFBXFile(std::string filepath, NXScene* pRenderScene, std::vector<NXPrimitive*>& outMeshes, bool bAutoCalcTangents)

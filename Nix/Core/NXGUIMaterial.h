@@ -1,7 +1,6 @@
 #pragma once
 #include "Header.h"
 #include "NXGUIFileBrowser.h"
-#include "NXScene.h"
 
 class NXGUIMaterial
 {

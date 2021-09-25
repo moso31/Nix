@@ -6,6 +6,7 @@
 #include "NXRandom.h"
 //#include "HBVH.h"
 
+#include "NXPrimitive.h"
 #include "NXCamera.h"
 
 #include "NXPBRLight.h"
@@ -41,12 +42,6 @@ void NXScene::OnMouseDown(NXEventArgMouse eArg)
 
 void NXScene::OnKeyDown(NXEventArgKey eArg)
 {
-	switch (eArg.VKey)
-	{
-	default:
-		break;
-	}
-
 	if (eArg.VKey == 'H')
 	{
 		// 创建求交加速结构以增加渲染速度。
@@ -59,7 +54,7 @@ void NXScene::OnKeyDown(NXEventArgKey eArg)
 
 		NXHit hit;
 		RayCast(rayWorld, hit);
-		if (hit.pPrimitive)
+		if (hit.pSubMesh)
 		{
 			RayCast(rayWorld, hit);
 		}
@@ -83,6 +78,9 @@ void NXScene::Init()
 {
 	NXPBRMaterial* pPBRMat[] = {
 		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f),
+		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f),
+		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f),
+		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f),
 	};
 
 	pPBRMat[0]->SetTexAlbedo(L"D:\\NixAssets\\rustediron2\\albedo.png");
@@ -91,16 +89,38 @@ void NXScene::Init()
 	pPBRMat[0]->SetTexRoughness(L"D:\\NixAssets\\rustediron2\\roughness.png");
 	pPBRMat[0]->SetTexAO(L"D:\\NixAssets\\rustediron2\\ao.png");
 
-	auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64);
-	pSphere->SetMaterialPBR(pPBRMat[0]);
+	pPBRMat[1]->SetTexAlbedo(L"D:\\NixAssets\\hex-stones1\\albedo.png");
+	pPBRMat[1]->SetTexNormal(L"D:\\NixAssets\\hex-stones1\\normal.png");
+	pPBRMat[1]->SetTexMetallic(L"D:\\NixAssets\\hex-stones1\\metallic.png");
+	pPBRMat[1]->SetTexRoughness(L"D:\\NixAssets\\hex-stones1\\roughness.png");
+	pPBRMat[1]->SetTexAO(L"D:\\NixAssets\\hex-stones1\\ao.png");
 
-	std::vector<NXMesh*> pMeshes;
-	m_sceneManager->CreateFBXMeshes("D:\\NixAssets\\UnityBall.fbx", pPBRMat[0], pMeshes);
+	pPBRMat[2]->SetTexAlbedo(L"D:\\NixAssets\\pirate-gold\\albedo.png");
+	pPBRMat[2]->SetTexNormal(L"D:\\NixAssets\\pirate-gold\\normal.png");
+	pPBRMat[2]->SetTexMetallic(L"D:\\NixAssets\\pirate-gold\\metallic.png");
+	pPBRMat[2]->SetTexRoughness(L"D:\\NixAssets\\pirate-gold\\roughness.png");
+	pPBRMat[2]->SetTexAO(L"D:\\NixAssets\\pirate-gold\\ao.png");
+
+	pPBRMat[3]->SetTexAlbedo(L"D:\\NixAssets\\circle-textured-metal1\\albedo.png");
+	pPBRMat[3]->SetTexNormal(L"D:\\NixAssets\\circle-textured-metal1\\normal.png");
+	pPBRMat[3]->SetTexMetallic(L"D:\\NixAssets\\circle-textured-metal1\\metallic.png");
+	pPBRMat[3]->SetTexRoughness(L"D:\\NixAssets\\circle-textured-metal1\\roughness.png");
+	pPBRMat[3]->SetTexAO(L"D:\\NixAssets\\circle-textured-metal1\\ao.png");
+
+	auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64);
+	pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
+
+	std::vector<NXPrimitive*> pMeshes;
+	m_sceneManager->CreateFBXMeshes("D:\\NixAssets\\UnityBall.fbx", pMeshes);
+	pMeshes[0]->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
+	pMeshes[0]->GetSubMesh(1)->SetMaterialPBR(pPBRMat[1]);
+	pMeshes[0]->GetSubMesh(2)->SetMaterialPBR(pPBRMat[3]);
+	pMeshes[0]->GetSubMesh(3)->SetMaterialPBR(pPBRMat[3]);
 
 	{
 		//bool bBind = m_sceneManager->BindParent(pMeshes[1], pSphere);
 		auto pScript_test = new NSTest();
-		pSphere->AddScript(pScript_test);
+		pMeshes[0]->AddScript(pScript_test);
 	}
 
 	// 设置Picking Object（Demo用，临时）
@@ -112,26 +132,26 @@ void NXScene::Init()
 	//	{
 	//		Vector3 pos(i, 0, j);
 	//		pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64, pos);
-	//		pSphere->SetMaterialPBR(pPBRMat[0]);
+	//			pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
 	//	}
 	//}
 
 	Vector3 scale(0.1f);
 	pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(-3.38865018, -6.97852612, 6.32853508));
 	pSphere->SetScale(Vector3(scale));
-	pSphere->SetMaterialPBR(pPBRMat[0]);
+		pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
 	pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(-3.70538783, -6.91434097, 6.22053719));
 	pSphere->SetScale(Vector3(scale));
-	pSphere->SetMaterialPBR(pPBRMat[0]);
+		pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
 	pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(-3.31883836, -7.29755974, 5.99700212));
 	pSphere->SetScale(Vector3(scale));
-	pSphere->SetMaterialPBR(pPBRMat[0]);
+		pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
 	pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(-2.89583111, -7.34788990, 6.15270376));
 	pSphere->SetScale(Vector3(scale));
-	pSphere->SetMaterialPBR(pPBRMat[0]);
+		pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
 	pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(-3.19251966, -7.07765436, 6.32042360));
 	pSphere->SetScale(Vector3(scale));
-	pSphere->SetMaterialPBR(pPBRMat[0]);
+		pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
 
 	auto pCamera = m_sceneManager->CreateCamera(
 		"Camera1",
@@ -142,6 +162,7 @@ void NXScene::Init()
 	);
 
 	m_sceneManager->CreateCubeMap("Sky", L"D:\\Alexs_Apt_2k.hdr");
+	//m_sceneManager->CreateCubeMap("Sky", L"D:\\TexturesCom_JapanInariTempleH_1K_hdri_sphere.hdr");
 
 	// 更新AABB需要世界坐标，而Init阶段还没有拿到世界坐标，所以需要提前PrevUpdate一次。
 	UpdateTransform();
@@ -268,7 +289,7 @@ bool NXScene::RayCast(const Ray& ray, NXHit& outHitInfo, float tMax)
 		}
 	}
 	
-	if (!outHitInfo.pPrimitive)
+	if (!outHitInfo.pSubMesh)
 		return false;
 
 	outHitInfo.LocalToWorld();

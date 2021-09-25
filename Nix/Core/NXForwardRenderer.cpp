@@ -5,6 +5,7 @@
 
 #include "GlobalBufferManager.h"
 #include "NXScene.h"
+#include "NXPrimitive.h"
 
 NXForwardRenderer::NXForwardRenderer(NXScene* pScene) :
 	m_pScene(pScene)

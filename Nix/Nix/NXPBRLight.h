@@ -2,8 +2,6 @@
 #include "NXInstance.h"
 #include "ShaderStructures.h"
 
-class NXPrimitive;
-
 class NXPBRLight
 {
 public:

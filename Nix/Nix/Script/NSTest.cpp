@@ -13,11 +13,12 @@ NSTest::~NSTest()
 
 void NSTest::Update()
 {
-	return;
+	//return;
 
+	float speed = 0.6f;
 	auto timeDelta = g_timer->GetTimeDelta() / 1000000.0f;
-	m_rotValue += 0.001f;// timeDelta;
+	m_rotValue += timeDelta * speed;
 
 	auto pPrimitive = dynamic_cast<NXPrimitive*>(m_pObject);
-	pPrimitive->SetRotation(Vector3(m_rotValue, m_rotValue, 0.0f));
+	pPrimitive->SetRotation(Vector3(-0.8f, m_rotValue, 0.0f));
 }

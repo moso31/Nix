@@ -14,16 +14,18 @@ void NXSubMeshGeometryEditor::CreateFBXMesh(NXPrimitive* pMesh, UINT subMeshCoun
 {
 	pMesh->ClearSubMeshes();
 
+	pMesh->ResizeSubMesh(subMeshCount);
 	for (UINT i = 0; i < subMeshCount; i++)
 	{
 		NXSubMesh* pSubMesh = new NXSubMesh(pMesh);
 
 		pSubMesh->m_vertices.reserve(pSubMeshVerticesCounts[i]);
-		pSubMesh->m_vertices.assign(pSubMeshVertices[0], pSubMeshVertices[pSubMeshVerticesCounts[i]]);
+		pSubMesh->m_vertices.assign(pSubMeshVertices[i], pSubMeshVertices[i] + pSubMeshVerticesCounts[i]);
 
 		pSubMesh->m_indices.reserve(pSubMeshIndicesCounts[i]);
-		pSubMesh->m_indices.assign(pSubMeshIndices[0], pSubMeshIndices[pSubMeshIndicesCounts[i]]);
+		pSubMesh->m_indices.assign(pSubMeshIndices[i], pSubMeshIndices[i] + pSubMeshIndicesCounts[i]);
 
+		pSubMesh->InitVertexIndexBuffer();
 		pMesh->ReloadSubMesh(i, pSubMesh);
 	}
 
@@ -37,7 +39,6 @@ void NXSubMeshGeometryEditor::CreateBox(NXPrimitive* pMesh, float x, float y, fl
 	z *= 0.5f;
 
 	pMesh->ClearSubMeshes();
-	assert(pMesh->GetSubMeshCount());
 	NXSubMesh* pSubMesh = new NXSubMesh(pMesh);
 	pSubMesh->m_vertices =
 	{
@@ -101,14 +102,13 @@ void NXSubMeshGeometryEditor::CreateBox(NXPrimitive* pMesh, float x, float y, fl
 
 	pSubMesh->InitVertexIndexBuffer();
 
-	pMesh->ReloadSubMesh(0, pSubMesh); // 仅修改第一个SubMesh
+	pMesh->AddSubMesh(pSubMesh);
 	pMesh->InitAABB();
 }
 
 void NXSubMeshGeometryEditor::CreateCylinder(NXPrimitive* pMesh, float radius, float length, int segmentCircle, int segmentLength)
 {
 	pMesh->ClearSubMeshes();
-	assert(pMesh->GetSubMeshCount());
 	NXSubMesh* pSubMesh = new NXSubMesh(pMesh);
 
 	int currVertIdx = 0;
@@ -243,14 +243,13 @@ void NXSubMeshGeometryEditor::CreateCylinder(NXPrimitive* pMesh, float radius, f
 
 	pSubMesh->InitVertexIndexBuffer();
 
-	pMesh->ReloadSubMesh(0, pSubMesh); // 仅修改第一个SubMesh
+	pMesh->AddSubMesh(pSubMesh);
 	pMesh->InitAABB();
 }
 
 void NXSubMeshGeometryEditor::CreatePlane(NXPrimitive* pMesh, float width, float height, NXPlaneAxis Axis)
 {
 	pMesh->ClearSubMeshes();
-	assert(pMesh->GetSubMeshCount());
 	NXSubMesh* pSubMesh = new NXSubMesh(pMesh);
 
 	float w = width * 0.5f, h = height * 0.5f;
@@ -320,14 +319,13 @@ void NXSubMeshGeometryEditor::CreatePlane(NXPrimitive* pMesh, float width, float
 
 	pSubMesh->InitVertexIndexBuffer();
 
-	pMesh->ReloadSubMesh(0, pSubMesh); // 仅修改第一个SubMesh
+	pMesh->AddSubMesh(pSubMesh);
 	pMesh->InitAABB();
 }
 
 void NXSubMeshGeometryEditor::CreateSphere(NXPrimitive* pMesh, float radius, int segmentHorizontal, int segmentVertical)
 {
 	pMesh->ClearSubMeshes();
-	assert(pMesh->GetSubMeshCount());
 	NXSubMesh* pSubMesh = new NXSubMesh(pMesh);
 
 	Vector3 vTop(0.0f, 1.0f, 0.0f);
@@ -403,6 +401,6 @@ void NXSubMeshGeometryEditor::CreateSphere(NXPrimitive* pMesh, float radius, int
 
 	pSubMesh->InitVertexIndexBuffer();
 
-	pMesh->ReloadSubMesh(0, pSubMesh); // 仅修改第一个SubMesh
+	pMesh->AddSubMesh(pSubMesh);
 	pMesh->InitAABB();
 }
