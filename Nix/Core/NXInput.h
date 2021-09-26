@@ -13,7 +13,7 @@ enum NXKeyCode
 	LeftAlt = 18,
 };
 
-class NXInput : public NXInstance
+class NXInput : public NXInstance<NXInput>
 {
 public:
 	NXInput();

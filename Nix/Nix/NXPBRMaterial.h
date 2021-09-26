@@ -2,10 +2,9 @@
 #include "ShaderStructures.h"
 #include "NXInstance.h"
 
-class NXPBRMaterial : public NXInstance
+class NXPBRMaterial : public NXInstance<NXPBRMaterial>
 {
 public:
-	NXPBRMaterial() {}
 	NXPBRMaterial(const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao);
 	~NXPBRMaterial() {}
 
@@ -24,8 +23,6 @@ public:
 	void SetTexRoughness(const std::wstring TexFilePath);
 	void SetTexAO(const std::wstring TexFilePath);
 	void SetTex(const std::wstring TexFilePath, ComPtr<ID3D11Texture2D>& pTex, ComPtr<ID3D11ShaderResourceView>& pSRV);
-
-	void Release();
 
 public:
 	Vector3 m_albedo;

@@ -161,9 +161,9 @@ void NXScene::Init()
 		Vector3(0.0f, 1.0f, 0.0f)
 	);
 
-	//m_sceneManager->CreateCubeMap("Sky", L"D:\\Alexs_Apt_2k.hdr");
+	m_sceneManager->CreateCubeMap("Sky", L"D:\\Alexs_Apt_2k.hdr");
 	//m_sceneManager->CreateCubeMap("Sky", L"D:\\TexturesCom_JapanInariTempleH_1K_hdri_sphere.hdr");
-	m_sceneManager->CreateCubeMap("Sky", L"D:\\ballroom_4k.hdr");
+	//m_sceneManager->CreateCubeMap("Sky", L"D:\\ballroom_4k.hdr");
 	//m_sceneManager->CreateCubeMap("Sky", L"D:\\blue_grotto_4k.hdr");
 
 
@@ -206,17 +206,15 @@ void NXScene::InitScripts()
 	auto pMainCamera = GetMainCamera();
 
 	NSFirstPersonalCamera* pScript = dynamic_cast<NSFirstPersonalCamera*>(m_sceneManager->CreateScript(NXScriptType::NXSCRIPT_FIRST_PERSONAL_CAMERA, pMainCamera));
+	
+	NXEventKeyDown::GetInstance()->AddListener(std::bind(&NSFirstPersonalCamera::OnKeyDown, pScript, std::placeholders::_1));
+	NXEventKeyUp::GetInstance()->AddListener(std::bind(&NSFirstPersonalCamera::OnKeyUp, pScript, std::placeholders::_1));
+	NXEventMouseMove::GetInstance()->AddListener(std::bind(&NSFirstPersonalCamera::OnMouseMove, pScript, std::placeholders::_1));
+	NXEventMouseDown::GetInstance()->AddListener(std::bind(&NSFirstPersonalCamera::OnMouseDown, pScript, std::placeholders::_1));
+	NXEventMouseUp::GetInstance()->AddListener(std::bind(&NSFirstPersonalCamera::OnMouseUp, pScript, std::placeholders::_1));
 
-	NXEventManager* pEventManager = (NXEventManager*)NXEventManager::GetInstance();
-
-	pEventManager->m_EventKeyDown->AddListener(std::bind(&NSFirstPersonalCamera::OnKeyDown, pScript, std::placeholders::_1));
-	pEventManager->m_EventKeyUp->AddListener(std::bind(&NSFirstPersonalCamera::OnKeyUp, pScript, std::placeholders::_1));
-	pEventManager->m_EventMouseMove->AddListener(std::bind(&NSFirstPersonalCamera::OnMouseMove, pScript, std::placeholders::_1));
-	pEventManager->m_EventMouseDown->AddListener(std::bind(&NSFirstPersonalCamera::OnMouseDown, pScript, std::placeholders::_1));
-	pEventManager->m_EventMouseUp->AddListener(std::bind(&NSFirstPersonalCamera::OnMouseUp, pScript, std::placeholders::_1));
-
-	pEventManager->m_EventKeyDown->AddListener(std::bind(&NXScene::OnKeyDown, this, std::placeholders::_1));
-	pEventManager->m_EventMouseDown->AddListener(std::bind(&NXScene::OnMouseDown, this, std::placeholders::_1));
+	NXEventKeyDown::GetInstance()->AddListener(std::bind(&NXScene::OnKeyDown, this, std::placeholders::_1));
+	NXEventMouseDown::GetInstance()->AddListener(std::bind(&NXScene::OnMouseDown, this, std::placeholders::_1));
 }
 
 void NXScene::UpdateTransform(NXObject* pObject)

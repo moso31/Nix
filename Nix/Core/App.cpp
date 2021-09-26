@@ -2,7 +2,6 @@
 #include "DirectResources.h"
 #include "RenderStates.h"
 #include "NXEvent.h"
-#include "NXRandom.h"
 
 App::App() :
 	m_pRenderer(nullptr)
@@ -12,8 +11,6 @@ App::App() :
 
 void App::Init()
 {
-	m_pEventManager = new NXEventManager();
-
 	g_dxResources = new DirectResources();
 	g_dxResources->InitDevice();
 
@@ -52,7 +49,4 @@ void App::Release()
 	RenderStates::Release();
 
 	SafeRelease(g_dxResources);
-
-	SafeRelease(m_pEventManager);
-	delete NXRandom::GetInstance();
 }

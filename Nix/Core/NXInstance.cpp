@@ -1,3 +1,3 @@
 #include "NXInstance.h"
 
-NXInstance* NXInstance::pInstance = nullptr;
+//NXInstance* NXInstance::pInstance = nullptr;

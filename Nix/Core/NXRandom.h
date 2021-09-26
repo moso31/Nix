@@ -6,7 +6,7 @@
 using RandomFloatDistribution = std::uniform_real_distribution<float>;
 using RandomIntDistribution = std::uniform_int_distribution<int>;
 
-class NXRandom : public	NXInstance
+class NXRandom : public	NXInstance<NXRandom>
 {
 public:
 	NXRandom();

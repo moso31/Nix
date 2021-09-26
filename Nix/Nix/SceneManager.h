@@ -61,7 +61,7 @@ private:
 	//std::vector<NXScript*> m_scripts;
 
 	std::vector<NXPrimitive*> m_primitives;
-	std::set<NXPBRMaterial*> m_pbrMaterialInstances;
+	std::set<NXPBRMaterial*> m_pbrMaterials;
 	std::vector<NXPBRLight*> m_pbrLights;
 
 	NXCamera* m_pMainCamera;

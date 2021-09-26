@@ -96,7 +96,3 @@ void NXPBRMaterial::SetTex(const std::wstring texFilePath, ComPtr<ID3D11Texture2
 	CD3D11_SHADER_RESOURCE_VIEW_DESC descSRV(D3D11_SRV_DIMENSION_TEXTURE2D, info.format, 0, (UINT)info.mipLevels, 0, (UINT)info.arraySize);
 	g_pDevice->CreateShaderResourceView(pTex.Get(), &descSRV, &pSRV);
 }
-
-void NXPBRMaterial::Release()
-{
-}

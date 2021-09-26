@@ -166,7 +166,7 @@ bool SceneManager::BindParent(NXObject* pParent, NXObject* pChild)
 void SceneManager::Release()
 {
 	for (auto pLight : m_pbrLights) SafeDelete(pLight);
-	for (auto pMat : m_pbrMaterialInstances) SafeRelease(pMat);
+	for (auto pMat : m_pbrMaterials) SafeDelete(pMat);
 	SafeRelease(m_pBVHTree);
 	for (auto obj : m_objects) SafeRelease(obj);
 	SafeRelease(m_pRootObject);
@@ -200,8 +200,7 @@ void SceneManager::RegisterCamera(NXCamera* newCamera, bool isMainCamera, NXObje
 
 void SceneManager::RegisterMaterial(NXPBRMaterial* newMaterial)
 {
-	NXPBRMaterial* pMatIns = (NXPBRMaterial*)newMaterial->GetInstance();
-	m_pbrMaterialInstances.insert(pMatIns);
+	m_pbrMaterials.insert(newMaterial);
 }
 
 void SceneManager::RegisterLight(NXPBRLight* newLight, NXObject* pParent)

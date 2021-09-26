@@ -112,8 +112,8 @@ void NXInput::UpdateRawInput(LPARAM lParam)
 		m_keyState[eArg.VKey] = bIsPressing;
 		m_keyActivite[eArg.VKey] = true;
 
-		if (bIsPressing) ((NXEventManager*)NXEventManager::GetInstance())->m_EventKeyDown->Notify(eArg);
-		else ((NXEventManager*)NXEventManager::GetInstance())->m_EventKeyUp->Notify(eArg);
+		if (bIsPressing) NXEventKeyDown::GetInstance()->Notify(eArg);
+		else NXEventKeyUp::GetInstance()->Notify(eArg);
 	}
 	else if (raw->header.dwType == RIM_TYPEMOUSE)
 	{
@@ -145,11 +145,11 @@ void NXInput::UpdateRawInput(LPARAM lParam)
 		m_mouseMove.x = eArg.LastX;
 		m_mouseMove.y = eArg.LastY;
 
-		if (bIsPressing) ((NXEventManager*)NXEventManager::GetInstance())->m_EventMouseDown->Notify(eArg);
-		else ((NXEventManager*)NXEventManager::GetInstance())->m_EventMouseUp->Notify(eArg);
+		if (bIsPressing) NXEventMouseDown::GetInstance()->Notify(eArg);
+		else NXEventMouseUp::GetInstance()->Notify(eArg);
 
 		if (eArg.LastX || eArg.LastY)
-			((NXEventManager*)NXEventManager::GetInstance())->m_EventMouseMove->Notify(eArg);
+			NXEventMouseMove::GetInstance()->Notify(eArg);
 	}
 
 	//PrintMouseState();

@@ -1,17 +1,17 @@
 #pragma once
 #include "Header.h"
 
+template<class T>
 class NXInstance
 {
-public:
+protected:
 	NXInstance() {}
 	~NXInstance() {}
 
-	static NXInstance* GetInstance()
+public:
+	static T* GetInstance()
 	{
-		if (!pInstance) pInstance = new NXInstance();
-		return pInstance;
+		static T pInstance;
+		return &pInstance;
 	}
-
-	static NXInstance* pInstance;
 };

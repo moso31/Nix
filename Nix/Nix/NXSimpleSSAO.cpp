@@ -97,9 +97,8 @@ void NXSimpleSSAO::GenerateSamplePosition()
 	m_samplePosition.resize(SSAO_SAMPLE_COUNT);
 	for (int i = 0; i < SSAO_SAMPLE_COUNT; i++)
 	{
-		NXRandom* pRandIns = (NXRandom*)NXRandom::GetInstance();
-		Vector2 u = pRandIns->CreateVector2(0.0f, 1.0f);
-		float r = pRandIns->CreateFloat(0.0f, 1.0f);
+		Vector2 u = NXRandom::GetInstance()->CreateVector2(0.0f, 1.0f);
+		float r = NXRandom::GetInstance()->CreateFloat(0.0f, 1.0f);
 		Vector3 v = SamplerMath::UniformSampleHemisphere(u, r);
 
 		m_samplePosition[i] = Vector4(v, 0.0f);
