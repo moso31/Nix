@@ -1,17 +1,17 @@
 #pragma once
 #include "Header.h"
 
-template <typename T>
 class NXInstance
 {
 public:
 	NXInstance() {}
-	//NXInstance& operator=(const NXInstance&) = delete;
-	virtual ~NXInstance() {}
+	~NXInstance() {}
 
-	static T& GetInstance()
+	static NXInstance* GetInstance()
 	{
-		static T instance;
-		return instance;
+		if (!pInstance) pInstance = new NXInstance();
+		return pInstance;
 	}
+
+	static NXInstance* pInstance;
 };

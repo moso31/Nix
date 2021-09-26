@@ -257,6 +257,9 @@
     <ClCompile Include="Nix\NXSubMeshGeometryEditor.cpp">
       <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXInstance.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">

@@ -2,8 +2,6 @@
 #include "header.h"
 #include "NXInstance.h"
 
-#define NXII NXInput::GetInstance()
-
 #define MK_LEFT		0
 #define MK_MID		1
 #define MK_RIGHT	2
@@ -15,7 +13,7 @@ enum NXKeyCode
 	LeftAlt = 18,
 };
 
-class NXInput : public NXInstance<NXInput>
+class NXInput : public NXInstance
 {
 public:
 	NXInput();

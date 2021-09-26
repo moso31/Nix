@@ -84,7 +84,6 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXPrimitive* pEngineMesh, int l
 {
 	int i, j, lPolygonCount = pMesh->GetPolygonCount();
 	FbxVector4* lControlPoints = pMesh->GetControlPoints();
-	char header[100];
 
 	// SubMesh数量已经有了，
 	// 接下来，先统计每个SubMesh的Polygon/Vertex/Index数量，再读取每个顶点的VertexPNTT数据。

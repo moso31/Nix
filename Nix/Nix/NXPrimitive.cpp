@@ -1,7 +1,6 @@
 #include "NXPrimitive.h"
 #include "GlobalBufferManager.h"
 #include "NXScene.h"
-#include "NXPBRMaterial.h"
 
 NXPrimitive::NXPrimitive()
 {

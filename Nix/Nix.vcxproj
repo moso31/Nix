@@ -222,6 +222,7 @@
     <ClCompile Include="Core\NXGUIMaterial.cpp" />
     <ClCompile Include="Core\NXGUISSAO.cpp" />
     <ClCompile Include="Core\NXInput.cpp" />
+    <ClCompile Include="Core\NXInstance.cpp" />
     <ClCompile Include="Core\NXRandom.cpp" />
     <ClCompile Include="Core\NXTimer.cpp" />
     <ClCompile Include="Core\Renderer.cpp" />

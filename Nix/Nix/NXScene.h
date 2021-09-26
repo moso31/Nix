@@ -31,7 +31,6 @@ public:
 	NXCamera* GetMainCamera() { return m_sceneManager->m_pMainCamera; }
 	std::vector<NXPrimitive*> GetPrimitives() { return m_sceneManager->m_primitives; }
 	std::vector<NXPBRLight*> GetPBRLights() { return m_sceneManager->m_pbrLights; }
-	std::vector<NXPBRMaterial*>	GetPBRMaterials() { return m_sceneManager->m_pbrMaterials; }
 	NXCubeMap* GetCubeMap() { return m_sceneManager->m_pCubeMap; }
 
 	// 目前只对第一个光源创建Parallel ShadowMap。

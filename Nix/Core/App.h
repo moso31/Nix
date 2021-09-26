@@ -13,4 +13,5 @@ public:
 
 private:
 	Renderer* m_pRenderer;
+	NXEventManager* m_pEventManager;
 };

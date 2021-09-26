@@ -77,10 +77,10 @@ void NXScene::OnKeyDown(NXEventArgKey eArg)
 void NXScene::Init()
 {
 	NXPBRMaterial* pPBRMat[] = {
-		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f),
-		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f),
-		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f),
-		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f),
+		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f),
+		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f),
+		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f),
+		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f),
 	};
 
 	pPBRMat[0]->SetTexAlbedo(L"D:\\NixAssets\\rustediron2\\albedo.png");
@@ -161,8 +161,11 @@ void NXScene::Init()
 		Vector3(0.0f, 1.0f, 0.0f)
 	);
 
-	m_sceneManager->CreateCubeMap("Sky", L"D:\\Alexs_Apt_2k.hdr");
+	//m_sceneManager->CreateCubeMap("Sky", L"D:\\Alexs_Apt_2k.hdr");
 	//m_sceneManager->CreateCubeMap("Sky", L"D:\\TexturesCom_JapanInariTempleH_1K_hdri_sphere.hdr");
+	m_sceneManager->CreateCubeMap("Sky", L"D:\\ballroom_4k.hdr");
+	//m_sceneManager->CreateCubeMap("Sky", L"D:\\blue_grotto_4k.hdr");
+
 
 	// 更新AABB需要世界坐标，而Init阶段还没有拿到世界坐标，所以需要提前PrevUpdate一次。
 	UpdateTransform();
@@ -204,14 +207,16 @@ void NXScene::InitScripts()
 
 	NSFirstPersonalCamera* pScript = dynamic_cast<NSFirstPersonalCamera*>(m_sceneManager->CreateScript(NXScriptType::NXSCRIPT_FIRST_PERSONAL_CAMERA, pMainCamera));
 
-	NXEventKeyDown::GetInstance().AddListener(std::bind(&NSFirstPersonalCamera::OnKeyDown, pScript, std::placeholders::_1));
-	NXEventKeyUp::GetInstance().AddListener(std::bind(&NSFirstPersonalCamera::OnKeyUp, pScript, std::placeholders::_1));
-	NXEventMouseMove::GetInstance().AddListener(std::bind(&NSFirstPersonalCamera::OnMouseMove, pScript, std::placeholders::_1));
-	NXEventMouseDown::GetInstance().AddListener(std::bind(&NSFirstPersonalCamera::OnMouseDown, pScript, std::placeholders::_1));
-	NXEventMouseUp::GetInstance().AddListener(std::bind(&NSFirstPersonalCamera::OnMouseUp, pScript, std::placeholders::_1));
+	NXEventManager* pEventManager = (NXEventManager*)NXEventManager::GetInstance();
 
-	NXEventKeyDown::GetInstance().AddListener(std::bind(&NXScene::OnKeyDown, this, std::placeholders::_1));
-	NXEventMouseDown::GetInstance().AddListener(std::bind(&NXScene::OnMouseDown, this, std::placeholders::_1));
+	pEventManager->m_EventKeyDown->AddListener(std::bind(&NSFirstPersonalCamera::OnKeyDown, pScript, std::placeholders::_1));
+	pEventManager->m_EventKeyUp->AddListener(std::bind(&NSFirstPersonalCamera::OnKeyUp, pScript, std::placeholders::_1));
+	pEventManager->m_EventMouseMove->AddListener(std::bind(&NSFirstPersonalCamera::OnMouseMove, pScript, std::placeholders::_1));
+	pEventManager->m_EventMouseDown->AddListener(std::bind(&NSFirstPersonalCamera::OnMouseDown, pScript, std::placeholders::_1));
+	pEventManager->m_EventMouseUp->AddListener(std::bind(&NSFirstPersonalCamera::OnMouseUp, pScript, std::placeholders::_1));
+
+	pEventManager->m_EventKeyDown->AddListener(std::bind(&NXScene::OnKeyDown, this, std::placeholders::_1));
+	pEventManager->m_EventMouseDown->AddListener(std::bind(&NXScene::OnMouseDown, this, std::placeholders::_1));
 }
 
 void NXScene::UpdateTransform(NXObject* pObject)

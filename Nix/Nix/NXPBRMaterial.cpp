@@ -3,7 +3,7 @@
 #include <direct.h>
 #include "DirectXTex.h"
 
-NXPBRMaterial::NXPBRMaterial(const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float reflectivity, const float refractivity, const float IOR) :
+NXPBRMaterial::NXPBRMaterial(const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao) :
 	m_albedo(albedo),
 	m_normal(normal),
 	m_metallic(metallic),

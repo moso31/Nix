@@ -68,7 +68,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	MSG msg = { 0 };
 	while (WM_QUIT != msg.message)
 	{
-		NXII.Update();
+		((NXInput*)NXInput::GetInstance())->Update();
 
 		if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 		{
@@ -81,10 +81,11 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 			g_app->Update();
 			g_app->Draw();
 
-			NXII.RestoreData(); // 清空一次鼠标位置
+			((NXInput*)NXInput::GetInstance())->RestoreData(); // 清空一次鼠标位置
 		}
 	}
 
+	delete NXInput::GetInstance();
 	SafeDelete(g_timer);
 	SafeRelease(g_app);
 	return (int)msg.wParam;
@@ -110,9 +111,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 
 	case WM_INPUT:
-		NXII.UpdateRawInput(lParam);
+		((NXInput*)NXInput::GetInstance())->UpdateRawInput(lParam);
 
-		if (NXII.KeyDown(VK_ESCAPE))
+		if (((NXInput*)NXInput::GetInstance())->KeyDown(VK_ESCAPE))
 			PostQuitMessage(0);
 		break;
 

@@ -114,9 +114,9 @@ NXCamera* SceneManager::CreateCamera(const std::string name, const float FovY, c
 	return p;
 }
 
-NXPBRMaterial* SceneManager::CreatePBRMaterial(const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float reflectivity, const float refractivity, const float IOR)
+NXPBRMaterial* SceneManager::CreatePBRMaterial(const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao)
 {
-	auto pMat = new NXPBRMaterial(albedo, normal, metallic, roughness, ao, reflectivity, refractivity, IOR);
+	auto pMat = new NXPBRMaterial(albedo, normal, metallic, roughness, ao);
 	RegisterMaterial(pMat);
 	return pMat;
 }
@@ -166,7 +166,7 @@ bool SceneManager::BindParent(NXObject* pParent, NXObject* pChild)
 void SceneManager::Release()
 {
 	for (auto pLight : m_pbrLights) SafeDelete(pLight);
-	for (auto pMat : m_pbrMaterials) SafeRelease(pMat);
+	for (auto pMat : m_pbrMaterialInstances) SafeRelease(pMat);
 	SafeRelease(m_pBVHTree);
 	for (auto obj : m_objects) SafeRelease(obj);
 	SafeRelease(m_pRootObject);
@@ -200,7 +200,8 @@ void SceneManager::RegisterCamera(NXCamera* newCamera, bool isMainCamera, NXObje
 
 void SceneManager::RegisterMaterial(NXPBRMaterial* newMaterial)
 {
-	m_pbrMaterials.push_back(newMaterial);
+	NXPBRMaterial* pMatIns = (NXPBRMaterial*)newMaterial->GetInstance();
+	m_pbrMaterialInstances.insert(pMatIns);
 }
 
 void SceneManager::RegisterLight(NXPBRLight* newLight, NXObject* pParent)

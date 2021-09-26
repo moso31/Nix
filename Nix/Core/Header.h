@@ -27,6 +27,7 @@
 #include <vector>
 #include <list>
 #include <map>
+#include <set>
 #include <chrono>
 #include <algorithm>
 
@@ -61,6 +62,7 @@ using namespace Microsoft::WRL;
 class App;
 class DirectResources;
 class NXInput;
+class NXEventManager;
 class NXScript;
 class NXTimer;
 

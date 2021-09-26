@@ -14,13 +14,9 @@ struct NXEventArgMouse
 	USHORT VWheel;
 };
 
-struct NXEventArgGUIFileBrowser
-{
-	int temp_value;
-};
 
 template<typename... Args>
-class NXEvent
+class NXEvent : public NXInstance
 {
 	using NXEventCallbackFunc = std::function<void(Args...)>;
 public:
@@ -35,21 +31,45 @@ public:
 	void Notify(Args... args)
 	{
 		for (auto callbackFunc : m_callbackFuncs)
+		{
 			callbackFunc(args...);
-	}
-
-	void Release()
-	{
+		}
 	}
 
 protected:
 	std::vector<NXEventCallbackFunc> m_callbackFuncs;
 };
 
-class NXEventKeyUp: public NXEvent<NXEventArgKey>, public NXInstance<NXEventKeyUp> {};
-class NXEventKeyDown : public NXEvent<NXEventArgKey>, public NXInstance<NXEventKeyDown> {};
-class NXEventMouseUp : public NXEvent<NXEventArgMouse>, public NXInstance<NXEventMouseUp> {};
-class NXEventMouseDown : public NXEvent<NXEventArgMouse>, public NXInstance<NXEventMouseDown> {};
-class NXEventMouseMove : public NXEvent<NXEventArgMouse>, public NXInstance<NXEventMouseMove> {};
+//using NXEventKeyUp		= NXEvent<NXEventArgKey>;
+//using NXEventKeyDown	= NXEvent<NXEventArgKey>;
+//using NXEventMouseUp	= NXEvent<NXEventArgMouse>;
+//using NXEventMouseDown	= NXEvent<NXEventArgMouse>;
+//using NXEventMouseMove	= NXEvent<NXEventArgMouse>;
 
-class NXEventGUIFileBrowser : public NXEvent<NXEventArgGUIFileBrowser>, public NXInstance<NXEventGUIFileBrowser> {};
+class NXEventManager : public NXInstance
+{
+public:
+	NXEventManager() :
+		m_EventKeyUp(new NXEvent<NXEventArgKey>),
+		m_EventKeyDown(new NXEvent<NXEventArgKey>),
+		m_EventMouseUp(new NXEvent<NXEventArgMouse>),
+		m_EventMouseDown(new NXEvent<NXEventArgMouse>),
+		m_EventMouseMove(new NXEvent<NXEventArgMouse>)
+	{
+	}
+
+	void Release()
+	{
+		delete m_EventKeyUp->GetInstance();
+		delete m_EventKeyDown->GetInstance();
+		delete m_EventMouseUp->GetInstance();
+		delete m_EventMouseDown->GetInstance();
+		delete m_EventMouseMove->GetInstance();
+	}
+
+	NXEvent<NXEventArgKey>*		m_EventKeyUp;
+	NXEvent<NXEventArgKey>*		m_EventKeyDown;
+	NXEvent<NXEventArgMouse>*	m_EventMouseUp;
+	NXEvent<NXEventArgMouse>*	m_EventMouseDown;
+	NXEvent<NXEventArgMouse>*	m_EventMouseMove;
+};

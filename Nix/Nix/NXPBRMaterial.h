@@ -1,10 +1,12 @@
 #pragma once
 #include "ShaderStructures.h"
+#include "NXInstance.h"
 
-class NXPBRMaterial
+class NXPBRMaterial : public NXInstance
 {
 public:
-	NXPBRMaterial(const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float reflectivity, const float refractivity, const float IOR);
+	NXPBRMaterial() {}
+	NXPBRMaterial(const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao);
 	~NXPBRMaterial() {}
 
 	// DirectX
@@ -43,7 +45,4 @@ private:
 	ComPtr<ID3D11ShaderResourceView> m_pSRVMetallic;
 	ComPtr<ID3D11ShaderResourceView> m_pSRVRoughness;
 	ComPtr<ID3D11ShaderResourceView> m_pSRVAmbientOcclusion;
-
-	// 记录正在使用当前材质的所有Primivives。
-	std::list<NXPrimitive*> m_pSubMeshList;
 };
