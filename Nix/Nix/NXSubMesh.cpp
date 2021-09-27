@@ -175,10 +175,7 @@ void NXSubMesh::Update()
 {
 	if (m_pPBRMaterial)
 	{
-		// 2021.3.3 lazy模式：直到第一次需要计算Material的时候才加载MaterialBuffer。
-		// 目前这样做暂时没有问题。但将来如果要支持多材质，这里可能就需要改动了。
-		if (!m_cbMaterial) InitMaterialBuffer();
-		g_pContext->UpdateSubresource(m_cbMaterial.Get(), 0, nullptr, &m_cbDataMaterial, 0, 0);
+		m_pPBRMaterial->Update();
 	}
 }
 
@@ -199,7 +196,6 @@ NXPBRMaterial* NXSubMesh::GetPBRMaterial() const
 void NXSubMesh::SetMaterialPBR(NXPBRMaterial* mat)
 {
 	m_pPBRMaterial = mat;
-	m_cbDataMaterial = m_pPBRMaterial->GetConstantBuffer();
 }
 
 void NXSubMesh::CalculateTangents(bool bUpdateVertexIndexBuffer)
@@ -261,15 +257,4 @@ void NXSubMesh::InitVertexIndexBuffer()
 	bufferDesc.CPUAccessFlags = 0;
 	InitData.pSysMem = m_indices.data();
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &m_pIndexBuffer));
-}
-
-void NXSubMesh::InitMaterialBuffer()
-{
-	D3D11_BUFFER_DESC bufferDesc;
-	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(ConstantBufferMaterial);
-	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bufferDesc.CPUAccessFlags = 0;
-	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbMaterial));
 }

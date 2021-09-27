@@ -90,7 +90,7 @@ void NXPassShadowMap::Render()
 	//	auto p = *it;
 	//	p->Update();
 	//	auto pTexSRV = p->GetTextureSRV();
-	//	auto pMaterial = p->GetMaterialBuffer();
+	//	auto pMaterial = p->pMat->GetConstantBuffer();
 	//	g_pContext->VSSetConstantBuffers(0, 1, &NXGlobalBufferManager::m_cbObject);
 	//	g_pContext->PSSetShaderResources(0, 1, &pTexSRV);
 	//	g_pContext->PSSetConstantBuffers(3, 1, &pMaterial);

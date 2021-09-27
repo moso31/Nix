@@ -34,8 +34,6 @@ public:
 
 	NXPrimitive* GetPrimitive() { return m_parent; }
 
-	ID3D11Buffer* GetMaterialBuffer() const { return m_cbMaterial.Get(); }
-
 	NXPBRMaterial* GetPBRMaterial() const;
 	void SetMaterialPBR(NXPBRMaterial* mat);
 
@@ -51,7 +49,6 @@ public:
 
 private:
 	void InitVertexIndexBuffer();
-	void InitMaterialBuffer();
 
 private:
 	NXPrimitive* m_parent;
@@ -62,7 +59,5 @@ private:
 	std::vector<VertexPNTT>		m_vertices;
 	std::vector<UINT>			m_indices;
 
-	ConstantBufferMaterial		m_cbDataMaterial;
-	ComPtr<ID3D11Buffer>		m_cbMaterial;
 	NXPBRMaterial*				m_pPBRMaterial;
 };

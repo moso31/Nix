@@ -99,7 +99,7 @@ void NXDepthPrepass::Render()
 			auto pSRVNormal = pMat->GetSRVNormal();
 			g_pContext->PSSetShaderResources(0, 1, &pSRVNormal);
 
-			auto pCBMaterial = pSubMesh->GetMaterialBuffer();
+			auto pCBMaterial = pMat->GetConstantBuffer();
 			g_pContext->PSSetConstantBuffers(2, 1, &pCBMaterial);
 
 			pSubMesh->Render();

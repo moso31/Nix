@@ -90,17 +90,6 @@ struct ConstantBufferShadowMapTransform
 	Matrix texture;
 };
 
-struct ConstantBufferMaterial
-{
-	Vector3 albedo;
-	float _0;
-	Vector3 normal;
-	float metallic;
-	float roughness;
-	float ao;
-	Vector2 _1;
-};
-
 struct ConstantBufferDistantLight
 {
 	Vector3 direction;

@@ -4,23 +4,15 @@
 #include "DirectXTex.h"
 
 NXPBRMaterial::NXPBRMaterial(const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao) :
-	m_albedo(albedo),
-	m_normal(normal),
-	m_metallic(metallic),
-	m_roughness(roughness),
-	m_ao(ao)
+	m_cbData(albedo, normal, metallic, roughness, ao)
 {
+	InitMaterialBuffer();
 }
 
-ConstantBufferMaterial NXPBRMaterial::GetConstantBuffer()
+void NXPBRMaterial::Update()
 {
-	ConstantBufferMaterial cb;
-	cb.albedo = m_albedo;
-	cb.normal = m_normal;
-	cb.metallic = m_metallic;
-	cb.roughness = m_roughness;
-	cb.ao = m_ao;
-	return cb;
+	// 材质只需要把自己的数据提交给GPU就行了。
+	g_pContext->UpdateSubresource(m_cb.Get(), 0, nullptr, &m_cbData, 0, 0);
 }
 
 void NXPBRMaterial::SetTexAlbedo(const std::wstring TexFilePath)
@@ -95,4 +87,15 @@ void NXPBRMaterial::SetTex(const std::wstring texFilePath, ComPtr<ID3D11Texture2
 
 	CD3D11_SHADER_RESOURCE_VIEW_DESC descSRV(D3D11_SRV_DIMENSION_TEXTURE2D, info.format, 0, (UINT)info.mipLevels, 0, (UINT)info.arraySize);
 	g_pDevice->CreateShaderResourceView(pTex.Get(), &descSRV, &pSRV);
+}
+
+void NXPBRMaterial::InitMaterialBuffer()
+{
+	D3D11_BUFFER_DESC bufferDesc;
+	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = sizeof(ConstantBufferMaterial);
+	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cb));
 }

@@ -59,40 +59,40 @@ void NXGUIMaterial::Render()
 		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVAlbedo(), std::bind(&NXGUIMaterial::OnTexAlbedoChange, this, pPickingObjectMaterial), std::bind(&NXGUIMaterial::OnTexAlbedoRemove, this, pPickingObjectMaterial));
 		ImGui::SameLine();
 		XMVECTORF32 fAlbedo;
-		fAlbedo.v = pPickingObjectMaterial->m_albedo;
+		fAlbedo.v = pPickingObjectMaterial->GetAlbedo();
 		if (ImGui::ColorEdit3("Albedo", fAlbedo.f))
 		{
-			pPickingObjectMaterial->m_albedo = fAlbedo.v;
+			pPickingObjectMaterial->SetAlbedo(fAlbedo.v);
 			m_bMaterialDirty = true;
 		}
 
 		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVNormal(), std::bind(&NXGUIMaterial::OnTexNormalChange, this, pPickingObjectMaterial), std::bind(&NXGUIMaterial::OnTexNormalRemove, this, pPickingObjectMaterial));
 		ImGui::SameLine();
 		XMVECTORF32 fNormal;
-		fNormal.v = pPickingObjectMaterial->m_normal;
+		fNormal.v = pPickingObjectMaterial->GetNormal();
 		if (ImGui::ColorEdit3("Normal", fNormal.f))
 		{
-			pPickingObjectMaterial->m_normal = fNormal.v;
+			pPickingObjectMaterial->SetNormal(fNormal.v);
 			m_bMaterialDirty = true;
 		}
 
 		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVMetallic(), std::bind(&NXGUIMaterial::OnTexMetallicChange, this, pPickingObjectMaterial), std::bind(&NXGUIMaterial::OnTexMetallicRemove, this, pPickingObjectMaterial));
 		ImGui::SameLine();
-		if (ImGui::SliderFloat("Metallic", &pPickingObjectMaterial->m_metallic, 0.0f, 1.0f))
+		if (ImGui::SliderFloat("Metallic", pPickingObjectMaterial->GetMatallic(), 0.0f, 1.0f))
 		{
 			m_bMaterialDirty = true;
 		}
 
 		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVRoughness(), std::bind(&NXGUIMaterial::OnTexRoughnessChange, this, pPickingObjectMaterial), std::bind(&NXGUIMaterial::OnTexRoughnessRemove, this, pPickingObjectMaterial));
 		ImGui::SameLine();
-		if (ImGui::SliderFloat("Roughness", &pPickingObjectMaterial->m_roughness, 0.0f, 1.0f))
+		if (ImGui::SliderFloat("Roughness", pPickingObjectMaterial->GetRoughness(), 0.0f, 1.0f))
 		{
 			m_bMaterialDirty = true;
 		}
 
 		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVAO(), std::bind(&NXGUIMaterial::OnTexAOChange, this, pPickingObjectMaterial), std::bind(&NXGUIMaterial::OnTexAORemove, this, pPickingObjectMaterial));
 		ImGui::SameLine();
-		if (ImGui::SliderFloat("AO", &pPickingObjectMaterial->m_ao, 0.0f, 1.0f))
+		if (ImGui::SliderFloat("AO", pPickingObjectMaterial->GetAO(), 0.0f, 1.0f))
 		{
 			m_bMaterialDirty = true;
 		}

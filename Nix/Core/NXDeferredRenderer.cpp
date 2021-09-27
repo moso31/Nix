@@ -205,7 +205,7 @@ void NXDeferredRenderer::RenderRT0()
 			auto pSRVAO = pMat->GetSRVAO();
 			g_pContext->PSSetShaderResources(5, 1, &pSRVAO);
 
-			auto pCBMaterial = pSubMesh->GetMaterialBuffer();
+			auto pCBMaterial = pMat->GetConstantBuffer();
 			g_pContext->PSSetConstantBuffers(3, 1, &pCBMaterial);
 
 			pSubMesh->Render();
@@ -249,7 +249,7 @@ void NXDeferredRenderer::RenderRT1()
 			auto pSRVAO = pMat->GetSRVAO();
 			g_pContext->PSSetShaderResources(5, 1, &pSRVAO);
 
-			auto pCBMaterial = pSubMesh->GetMaterialBuffer();
+			auto pCBMaterial = pMat->GetConstantBuffer();
 			g_pContext->PSSetConstantBuffers(3, 1, &pCBMaterial);
 
 			pSubMesh->Render();
@@ -293,7 +293,7 @@ void NXDeferredRenderer::RenderRT2()
 			auto pSRVAO = pMat->GetSRVAO();
 			g_pContext->PSSetShaderResources(5, 1, &pSRVAO);
 
-			auto pCBMaterial = pSubMesh->GetMaterialBuffer();
+			auto pCBMaterial = pMat->GetConstantBuffer();
 			g_pContext->PSSetConstantBuffers(3, 1, &pCBMaterial);
 
 			pSubMesh->Render();
@@ -338,7 +338,7 @@ void NXDeferredRenderer::RenderRT3()
 			auto pSRVAO = pMat->GetSRVAO();
 			g_pContext->PSSetShaderResources(5, 1, &pSRVAO);
 
-			auto pCBMaterial = pSubMesh->GetMaterialBuffer();
+			auto pCBMaterial = pMat->GetConstantBuffer();
 			g_pContext->PSSetConstantBuffers(3, 1, &pCBMaterial);
 
 			pSubMesh->Render();
