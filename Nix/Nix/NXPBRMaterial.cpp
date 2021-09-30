@@ -3,8 +3,9 @@
 #include <direct.h>
 #include "DirectXTex.h"
 
-NXPBRMaterial::NXPBRMaterial(const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao) :
-	m_cbData(albedo, normal, metallic, roughness, ao)
+NXPBRMaterial::NXPBRMaterial(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao) :
+	m_cbData(albedo, normal, metallic, roughness, ao),
+	m_name(name)
 {
 	InitMaterialBuffer();
 }

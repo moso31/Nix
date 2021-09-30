@@ -19,8 +19,8 @@ public:
 	NXObject();
 	virtual ~NXObject();
 
-	std::string GetName();
-	void SetName(std::string name);
+	std::string GetName() { return m_name; }
+	void SetName(std::string name) { m_name = name; }
 
 	NXType GetType() { return m_type; }
 

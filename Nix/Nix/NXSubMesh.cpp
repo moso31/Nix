@@ -188,6 +188,22 @@ void NXSubMesh::Render()
 	g_pContext->DrawIndexed((UINT)m_indices.size(), 0, 0);
 }
 
+bool NXSubMesh::RayCastLocal(const Ray& localRay, NXHit& outHitInfo, float& outDist)
+{
+	bool bSuccess = false;
+
+	for (UINT i = 0; i < GetFaceCount(); i++)
+	{
+		NXTriangle face = GetFaceTriangle(i);
+		if (face.RayCast(localRay, outHitInfo, outDist))
+		{
+			outHitInfo.faceIndex = i;
+			bSuccess = true;
+		}
+	}
+	return bSuccess;
+}
+
 NXPBRMaterial* NXSubMesh::GetPBRMaterial() const
 {
 	return m_pPBRMaterial;

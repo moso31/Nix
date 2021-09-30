@@ -19,8 +19,8 @@ public:
 	void Release();
 
 	// UI Picking
-	void SetCurrentPickingObject(NXObject* pPickingObject = nullptr) { m_pPickingObject = pPickingObject; }
-	NXObject* GetCurrentPickingObject() { return m_pPickingObject; }
+	void SetCurrentPickingSubMesh(NXSubMesh* pPickingObject = nullptr) { m_pPickingObject = pPickingObject; }
+	NXSubMesh* GetCurrentPickingSubMesh() { return m_pPickingObject; }
 
 	// RayCasts
 	HBVHTree* GetBVHTree() { return m_sceneManager->m_pBVHTree; }
@@ -53,5 +53,5 @@ private:
 	BoundingSphere m_boundingSphere;
 
 	// 指向当前选中物体的指针。
-	NXObject* m_pPickingObject;
+	NXSubMesh* m_pPickingObject;
 };

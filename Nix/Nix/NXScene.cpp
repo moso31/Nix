@@ -35,9 +35,16 @@ NXScene::~NXScene()
 
 void NXScene::OnMouseDown(NXEventArgMouse eArg)
 {
-	auto ray = GetMainCamera()->GenerateRay(Vector2(eArg.X, eArg.Y));
+	auto ray = GetMainCamera()->GenerateRay(Vector2(eArg.X + 0.5f, eArg.Y + 0.5f));
 	//printf("cursor: %.3f, %.3f\n", (float)eArg.X, (float)eArg.Y);
 	//printf("pos: %.3f, %.3f, %.3f; dir: %.3f, %.3f, %.3f\n", ray.position.x, ray.position.y, ray.position.z, ray.direction.x, ray.direction.y, ray.direction.z);
+
+	NXHit hit;
+	RayCast(ray, hit);
+	if (hit.pSubMesh)
+	{
+		SetCurrentPickingSubMesh(hit.pSubMesh);
+	}
 }
 
 void NXScene::OnKeyDown(NXEventArgKey eArg)
@@ -77,10 +84,10 @@ void NXScene::OnKeyDown(NXEventArgKey eArg)
 void NXScene::Init()
 {
 	NXPBRMaterial* pPBRMat[] = {
-		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f),
-		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f),
-		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f),
-		m_sceneManager->CreatePBRMaterial(Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f),
+		m_sceneManager->CreatePBRMaterial("rustediron2", Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f),
+		m_sceneManager->CreatePBRMaterial("hex-stones1", Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f),
+		m_sceneManager->CreatePBRMaterial("pirate-gold", Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f),
+		m_sceneManager->CreatePBRMaterial("circle-textured-metal1", Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f),
 	};
 
 	pPBRMat[0]->SetTexAlbedo(L"D:\\NixAssets\\rustediron2\\albedo.png");
@@ -116,15 +123,16 @@ void NXScene::Init()
 	pMeshes[0]->GetSubMesh(1)->SetMaterialPBR(pPBRMat[1]);
 	pMeshes[0]->GetSubMesh(2)->SetMaterialPBR(pPBRMat[3]);
 	pMeshes[0]->GetSubMesh(3)->SetMaterialPBR(pPBRMat[3]);
+	pMeshes[0]->SetRotation(Vector3(-0.8f, 0.0f, 0.0f));
 
 	{
 		//bool bBind = m_sceneManager->BindParent(pMeshes[1], pSphere);
-		auto pScript_test = new NSTest();
-		pMeshes[0]->AddScript(pScript_test);
+		//auto pScript_test = new NSTest();
+		//pMeshes[0]->AddScript(pScript_test);
 	}
 
 	// ÉèÖÃPicking Object£¨DemoÓÃ£¬ÁÙÊ±£©
-	SetCurrentPickingObject(pSphere);
+	SetCurrentPickingSubMesh(pSphere->GetSubMesh(0));
 
 	//for (float i = -8.0f; i < 8.01f; i += 2.0f)
 	//{
@@ -276,9 +284,10 @@ bool NXScene::RayCast(const Ray& ray, NXHit& outHitInfo, float tMax)
 		for (auto prim : GetPrimitives())
 		{
 			// ray-aabb
-			float aabbDist;
-			if (ray.IntersectsFast(prim->GetAABBWorld(), aabbDist))
+			float aabbDist, aabbOutDist;
+			if (ray.IntersectsFast(prim->GetAABBWorld(), aabbOutDist))
 			{
+				aabbDist = aabbOutDist;
 				if (aabbDist < outDist)
 				{
 					// ray-triangle

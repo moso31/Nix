@@ -32,6 +32,8 @@ public:
 	void Update();
 	void Render();
 
+	bool RayCastLocal(const Ray& localRay, NXHit& outHitInfo, float& outDist);
+
 	NXPrimitive* GetPrimitive() { return m_parent; }
 
 	NXPBRMaterial* GetPBRMaterial() const;

@@ -10,16 +10,6 @@ NXObject::~NXObject()
 {
 }
 
-std::string NXObject::GetName()
-{
-	return m_name;
-}
-
-void NXObject::SetName(std::string name)
-{
-	m_name = name;
-}
-
 void NXObject::AddScript(NXScript* script)
 {
 	script->SetObject(this);

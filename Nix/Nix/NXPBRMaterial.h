@@ -18,8 +18,11 @@ struct ConstantBufferMaterial
 class NXPBRMaterial : public NXInstance<NXPBRMaterial>
 {
 public:
-	NXPBRMaterial(const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao);
+	NXPBRMaterial(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao);
 	~NXPBRMaterial() {}
+
+	std::string GetName() { return m_name; }
+	void SetName(std::string name) { m_name = name; }
 
 	void Update();
 
@@ -54,6 +57,8 @@ private:
 	void InitMaterialBuffer();
 
 private:
+	std::string m_name;
+
 	ComPtr<ID3D11Texture2D> m_pTexAlbedo;
 	ComPtr<ID3D11Texture2D> m_pTexNormal;
 	ComPtr<ID3D11Texture2D> m_pTexMetallic;

@@ -51,21 +51,22 @@ AABB NXPrimitive::GetAABBLocal() const
 
 bool NXPrimitive::RayCast(const Ray& worldRay, NXHit& outHitInfo, float& outDist)
 {
-	// 遍历所有三角形寻找最近交点。还可以进一步优化成BVH，但暂时没做。
+	// 本方法用于求Primitive和射线worldRay的交点。遍历所有三角形寻找最近交点。
+	// 还可以进一步优化成BVH，但暂时没做。
 	Ray localRay = worldRay.Transform(m_worldMatrixInv);
 	bool bSuccess = false;
+
+	float dist = outDist;
+	NXHit hitInfo;
 
 	for (UINT i = 0; i < GetSubMeshCount(); i++)
 	{
 		auto pSubMesh = GetSubMesh(i);
-		for (UINT j = 0; j < pSubMesh->GetFaceCount(); j++)
+		if (pSubMesh->RayCastLocal(localRay, hitInfo, dist) && dist < outDist)
 		{
-			NXTriangle face = pSubMesh->GetFaceTriangle(j);
-			if (face.RayCast(localRay, outHitInfo, outDist))
-			{
-				outHitInfo.faceIndex = i;
-				bSuccess = true;
-			}
+			outHitInfo = hitInfo;
+			outDist = dist;
+			bSuccess = true;
 		}
 	}
 

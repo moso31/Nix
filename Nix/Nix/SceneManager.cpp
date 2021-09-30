@@ -114,9 +114,9 @@ NXCamera* SceneManager::CreateCamera(const std::string name, const float FovY, c
 	return p;
 }
 
-NXPBRMaterial* SceneManager::CreatePBRMaterial(const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao)
+NXPBRMaterial* SceneManager::CreatePBRMaterial(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao)
 {
-	auto pMat = new NXPBRMaterial(albedo, normal, metallic, roughness, ao);
+	auto pMat = new NXPBRMaterial(name, albedo, normal, metallic, roughness, ao);
 	RegisterMaterial(pMat);
 	return pMat;
 }

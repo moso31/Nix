@@ -15,14 +15,20 @@ void NXGUIMaterial::Render()
 {
 	m_bMaterialDirty = false;
 
-	NXPrimitive* pPickingObject = static_cast<NXPrimitive*>(m_pCurrentScene->GetCurrentPickingObject());
-	if (!pPickingObject)
+	NXSubMesh* pPickingSubMesh = m_pCurrentScene->GetCurrentPickingSubMesh();
+	if (!pPickingSubMesh)
 		return;
+
+	NXPrimitive* pPickingObject = pPickingSubMesh->GetPrimitive();
+	NXPBRMaterial* pPickingObjectMaterial = pPickingSubMesh->GetPBRMaterial();
 
 	ImGui::Begin("Material");
 
 	std::string strName = pPickingObject->GetName().c_str();
 	ImGui::InputText("Name", &strName);
+
+	std::string strMatName = pPickingObjectMaterial->GetName().c_str();
+	ImGui::InputText("Material", &strMatName);
 
 	float fDrugSpeedTransform = 0.01f;
 	XMVECTOR vTrans = XMLoadFloat3(&pPickingObject->GetTranslation());
@@ -53,7 +59,6 @@ void NXGUIMaterial::Render()
 		pPickingObject->SetScale(vScal);
 	}
 
-	NXPBRMaterial* pPickingObjectMaterial = pPickingObject->GetSubMesh(0)->GetPBRMaterial();
 	if (pPickingObjectMaterial)
 	{
 		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVAlbedo(), std::bind(&NXGUIMaterial::OnTexAlbedoChange, this, pPickingObjectMaterial), std::bind(&NXGUIMaterial::OnTexAlbedoRemove, this, pPickingObjectMaterial));
