@@ -54,7 +54,7 @@ public:
 	void SetTex(const std::wstring TexFilePath, ComPtr<ID3D11Texture2D>& pTex, ComPtr<ID3D11ShaderResourceView>& pSRV);
 
 private:
-	void InitMaterialBuffer();
+	void InitConstantBuffer();
 
 private:
 	std::string m_name;

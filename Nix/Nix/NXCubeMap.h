@@ -3,6 +3,13 @@
 #include "DirectXTex.h"
 #include "ShaderStructures.h"
 
+struct ConstantBufferCubeMap
+{
+	ConstantBufferCubeMap() : intensity(1.0f) {}
+	float intensity;
+	Vector3 _0;
+};
+
 class NXPBREnvironmentLight;
 
 class NXCubeMap : public NXTransform
@@ -31,9 +38,14 @@ public:
 	ID3D11ShaderResourceView* GetSRVPreFilterMap() { return m_pSRVPreFilterMap.Get(); }
 	ID3D11ShaderResourceView* GetSRVBRDF2DLUT() { return m_pSRVBRDF2DLUT.Get(); }
 
+	ID3D11Buffer* GetConstantBufferParams() { return m_cb.Get(); }
+
+	float* GetIntensity() { return &m_cbData.intensity; }
+
 private:
 	void InitVertex();
 	void InitVertexIndexBuffer();
+	void InitConstantBuffer();
 
 private:
 	DXGI_FORMAT m_format;
@@ -76,4 +88,7 @@ private:
 	ComPtr<ID3D11Texture2D>				m_pTexBRDF2DLUT;
 	ComPtr<ID3D11ShaderResourceView>	m_pSRVBRDF2DLUT;
 	ComPtr<ID3D11RenderTargetView>		m_pRTVBRDF2DLUT;
+
+	ConstantBufferCubeMap	m_cbData;
+	ComPtr<ID3D11Buffer>	m_cb;
 };

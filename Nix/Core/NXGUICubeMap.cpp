@@ -16,6 +16,8 @@ void NXGUICubeMap::Render()
 
 	RenderTextureIcon((ImTextureID)pCubeMap->GetSRVCubeMapPreview2D(), std::bind(&NXGUICubeMap::OnCubeMapTexChange, this, pCubeMap), std::bind(&NXGUICubeMap::OnCubeMapTexRemove, this, pCubeMap));
 
+	ImGui::SliderFloat("Intensity", pCubeMap->GetIntensity(), 0.0f, 10.0f);
+
 	ImGui::End();
 }
 

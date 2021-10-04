@@ -3,6 +3,12 @@
 
 TextureCube txCubeMap : register(t0);
 
+cbuffer ConstantBufferCubeMap : register(b1)
+{
+	float m_cubeMapIntensity;
+	float3 _0;
+}
+
 struct VS_INPUT
 {
 	float3 pos : POSITION;
@@ -26,6 +32,7 @@ PS_INPUT VS(VS_INPUT input)
 
 float4 PS(PS_INPUT input) : SV_Target
 {
-	float4 result = txCubeMap.Sample(SamplerStateTrilinear, input.posOS);
-	return pow(result, 0.45454545454545f);
+	float4 intensity = txCubeMap.Sample(SamplerStateTrilinear, input.posOS);
+	intensity *= m_cubeMapIntensity;
+	return pow(intensity, 0.45454545454545f);
 }

@@ -25,6 +25,12 @@ cbuffer ConstantBufferLight : register(b2)
 	PointLight m_pointLight[NUM_LIGHTS];
 }
 
+cbuffer ConstantBufferCubeMap : register(b3)
+{
+	float m_cubeMapIntensity;
+	float3 _0;
+}
+
 struct VS_INPUT
 {
 	float4 pos : POSITION;
@@ -113,11 +119,13 @@ float4 PS(PS_INPUT input) : SV_Target
 	float2 envBRDF = txBRDF2DLUT.Sample(SamplerStateTrilinear, float2(saturate(dot(N, V)), roughness)).rg;
 	float3 SpecularIBL = preFilteredColor * float3(kS * envBRDF.x + envBRDF.y);
 
-	float3 ambient = (diffuseIBL + SpecularIBL) * ao;
+	float3 ambient = (diffuseIBL + SpecularIBL) * m_cubeMapIntensity * ao;
 	float3 color = ambient + Lo;
 
-	// gamma.
+	// fast tone-mapping.
 	color = color / (color + 1.0);
+
+	// gamma.
 	color = pow(color, 1.0 / 2.2);
 
 	return float4(color, 1.0f);

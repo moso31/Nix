@@ -13,6 +13,7 @@ NXCubeMap::NXCubeMap(NXScene* pScene) :
 	m_width(0),
 	m_pEnvironmentLight(nullptr)
 {
+	InitConstantBuffer();
 }
 
 bool NXCubeMap::Init(const std::wstring filePath)
@@ -145,6 +146,9 @@ void NXCubeMap::Update()
 	auto pCamera = m_pScene->GetMainCamera();
 	NXGlobalBufferManager::m_cbDataObject.world = Matrix::CreateTranslation(pCamera->GetTranslation()).Transpose();
 	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbObject.Get(), 0, nullptr, &NXGlobalBufferManager::m_cbDataObject, 0, 0);
+
+	// cubemap params
+	g_pContext->UpdateSubresource(m_cb.Get(), 0, nullptr, &m_cbData, 0, 0);
 }
 
 void NXCubeMap::Render()
@@ -702,4 +706,15 @@ void NXCubeMap::InitVertexIndexBuffer()
 	bufferDesc.ByteWidth = sizeof(UINT) * (UINT)m_indicesCubeBox.size();
 	InitData.pSysMem = m_indicesCubeBox.data();
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &m_pIndexBufferCubeBox));
+}
+
+void NXCubeMap::InitConstantBuffer()
+{
+	D3D11_BUFFER_DESC bufferDesc;
+	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = sizeof(ConstantBufferCubeMap);
+	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cb));
 }

@@ -7,7 +7,7 @@ NXPBRMaterial::NXPBRMaterial(const std::string name, const Vector3& albedo, cons
 	m_cbData(albedo, normal, metallic, roughness, ao),
 	m_name(name)
 {
-	InitMaterialBuffer();
+	InitConstantBuffer();
 }
 
 void NXPBRMaterial::Update()
@@ -90,7 +90,7 @@ void NXPBRMaterial::SetTex(const std::wstring texFilePath, ComPtr<ID3D11Texture2
 	g_pDevice->CreateShaderResourceView(pTex.Get(), &descSRV, &pSRV);
 }
 
-void NXPBRMaterial::InitMaterialBuffer()
+void NXPBRMaterial::InitConstantBuffer()
 {
 	D3D11_BUFFER_DESC bufferDesc;
 	ZeroMemory(&bufferDesc, sizeof(bufferDesc));

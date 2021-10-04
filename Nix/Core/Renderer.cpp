@@ -226,6 +226,9 @@ void Renderer::DrawCubeMap()
 		g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 		g_pContext->PSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 
+		auto pCBCubeMapParam = pCubeMap->GetConstantBufferParams();
+		g_pContext->PSSetConstantBuffers(1, 1, &pCBCubeMapParam);
+
 		auto pCubeMapSRV = pCubeMap->GetSRVCubeMap();
 		g_pContext->PSSetShaderResources(0, 1, &pCubeMapSRV);
 

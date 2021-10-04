@@ -4,7 +4,7 @@
 
 Texture2D txNormalMap : register(t0);
 
-cbuffer ConstantBufferMaterial : register(b3)
+cbuffer ConstantBufferMaterial : register(b2)
 {
 	Material m_material;
 }
