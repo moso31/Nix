@@ -219,6 +219,7 @@
     <ClCompile Include="Core\NXEvent.cpp" />
     <ClCompile Include="Core\NXForwardRenderer.cpp" />
     <ClCompile Include="Core\NXGUI.cpp" />
+    <ClCompile Include="Core\NXGUICubeMap.cpp" />
     <ClCompile Include="Core\NXGUIMaterial.cpp" />
     <ClCompile Include="Core\NXGUISSAO.cpp" />
     <ClCompile Include="Core\NXInput.cpp" />
@@ -262,6 +263,7 @@
     <ClInclude Include="Core\NXEvent.h" />
     <ClInclude Include="Core\NXForwardRenderer.h" />
     <ClInclude Include="Core\NXGUI.h" />
+    <ClInclude Include="Core\NXGUICubeMap.h" />
     <ClInclude Include="Core\NXGUIFileBrowser.h" />
     <ClInclude Include="Core\NXGUIImpl.h" />
     <ClInclude Include="Core\NXGUIMaterial.h" />

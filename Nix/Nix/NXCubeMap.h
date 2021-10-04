@@ -25,7 +25,8 @@ public:
 	void SetEnvironmentLight(NXPBREnvironmentLight* pEnvironmentLight) { m_pEnvironmentLight = pEnvironmentLight; }
 	NXPBREnvironmentLight* GetEnvironmentLight() const { return m_pEnvironmentLight; }
 
-	ID3D11ShaderResourceView* GetSRVCubeMap() { return m_pSRVCubeMap.Get(); } 
+	ID3D11ShaderResourceView* GetSRVCubeMap() { return m_pSRVCubeMap.Get(); }
+	ID3D11ShaderResourceView* GetSRVCubeMapPreview2D() { return m_pSRVCubeMapPreview2D.Get(); }
 	ID3D11ShaderResourceView* GetSRVIrradianceMap() { return m_pSRVIrradianceMap.Get(); }
 	ID3D11ShaderResourceView* GetSRVPreFilterMap() { return m_pSRVPreFilterMap.Get(); }
 	ID3D11ShaderResourceView* GetSRVBRDF2DLUT() { return m_pSRVBRDF2DLUT.Get(); }
@@ -61,6 +62,7 @@ private:
 
 	ComPtr<ID3D11Texture2D>				m_pTexCubeMap;
 	ComPtr<ID3D11ShaderResourceView>	m_pSRVCubeMap;
+	ComPtr<ID3D11ShaderResourceView>	m_pSRVCubeMapPreview2D;
 	ComPtr<ID3D11RenderTargetView>		m_pRTVCubeMaps[6];
 
 	ComPtr<ID3D11Texture2D>				m_pTexIrradianceMap;

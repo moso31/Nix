@@ -5,7 +5,6 @@
 NXGUIMaterial::NXGUIMaterial(NXScene* pScene, NXGUIFileBrowser* pFileBrowser) :
 	m_pCurrentScene(pScene),
 	m_pFileBrowser(pFileBrowser),
-	m_bMaterialDirty(false),
 	m_whiteTexPath_test(L".\\Resource\\white1x1.png"),
 	m_normalTexPath_test(L".\\Resource\\normal1x1.png")
 {
@@ -13,8 +12,6 @@ NXGUIMaterial::NXGUIMaterial(NXScene* pScene, NXGUIFileBrowser* pFileBrowser) :
 
 void NXGUIMaterial::Render()
 {
-	m_bMaterialDirty = false;
-
 	NXSubMesh* pPickingSubMesh = m_pCurrentScene->GetCurrentPickingSubMesh();
 	if (!pPickingSubMesh)
 		return;
@@ -68,7 +65,6 @@ void NXGUIMaterial::Render()
 		if (ImGui::ColorEdit3("Albedo", fAlbedo.f))
 		{
 			pPickingObjectMaterial->SetAlbedo(fAlbedo.v);
-			m_bMaterialDirty = true;
 		}
 
 		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVNormal(), std::bind(&NXGUIMaterial::OnTexNormalChange, this, pPickingObjectMaterial), std::bind(&NXGUIMaterial::OnTexNormalRemove, this, pPickingObjectMaterial));
@@ -78,35 +74,22 @@ void NXGUIMaterial::Render()
 		if (ImGui::ColorEdit3("Normal", fNormal.f))
 		{
 			pPickingObjectMaterial->SetNormal(fNormal.v);
-			m_bMaterialDirty = true;
 		}
 
 		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVMetallic(), std::bind(&NXGUIMaterial::OnTexMetallicChange, this, pPickingObjectMaterial), std::bind(&NXGUIMaterial::OnTexMetallicRemove, this, pPickingObjectMaterial));
 		ImGui::SameLine();
-		if (ImGui::SliderFloat("Metallic", pPickingObjectMaterial->GetMatallic(), 0.0f, 1.0f))
-		{
-			m_bMaterialDirty = true;
-		}
+		ImGui::SliderFloat("Metallic", pPickingObjectMaterial->GetMatallic(), 0.0f, 1.0f);
 
 		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVRoughness(), std::bind(&NXGUIMaterial::OnTexRoughnessChange, this, pPickingObjectMaterial), std::bind(&NXGUIMaterial::OnTexRoughnessRemove, this, pPickingObjectMaterial));
 		ImGui::SameLine();
-		if (ImGui::SliderFloat("Roughness", pPickingObjectMaterial->GetRoughness(), 0.0f, 1.0f))
-		{
-			m_bMaterialDirty = true;
-		}
+		ImGui::SliderFloat("Roughness", pPickingObjectMaterial->GetRoughness(), 0.0f, 1.0f);
 
 		RenderTextureIcon((ImTextureID)pPickingObjectMaterial->GetSRVAO(), std::bind(&NXGUIMaterial::OnTexAOChange, this, pPickingObjectMaterial), std::bind(&NXGUIMaterial::OnTexAORemove, this, pPickingObjectMaterial));
 		ImGui::SameLine();
-		if (ImGui::SliderFloat("AO", pPickingObjectMaterial->GetAO(), 0.0f, 1.0f))
-		{
-			m_bMaterialDirty = true;
-		}
+		ImGui::SliderFloat("AO", pPickingObjectMaterial->GetAO(), 0.0f, 1.0f);
 	}
 
 	ImGui::End();
-
-	if (m_bMaterialDirty)
-		UpdateMaterial(pPickingObjectMaterial);
 }
 
 void NXGUIMaterial::OnTexAlbedoChange(NXPBRMaterial* pPickingObjectMaterial)
@@ -159,6 +142,13 @@ void NXGUIMaterial::OnTexAORemove(NXPBRMaterial* pPickingObjectMaterial)
 	pPickingObjectMaterial->SetTexAO(m_whiteTexPath_test);
 }
 
+void NXGUIMaterial::UpdateFileBrowserParameters()
+{
+	m_pFileBrowser->SetTitle("Material");
+	m_pFileBrowser->SetTypeFilters({ ".png", ".jpg", ".bmp", ".dds", ".tga", ".tif", "tiff" });
+	m_pFileBrowser->SetPwd("D:\\NixAssets");
+}
+
 void NXGUIMaterial::RenderTextureIcon(ImTextureID ImTexID, std::function<void()> onChange, std::function<void()> onRemove)
 {
 	float my_tex_w = (float)16;
@@ -200,6 +190,7 @@ void NXGUIMaterial::RenderTextureIcon(ImTextureID ImTexID, std::function<void()>
 		ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);       // No tint
 		if (ImGui::ImageButton(ImTexID, size, uv0, uv1, frame_padding, bg_col, tint_col))
 		{
+			UpdateFileBrowserParameters();
 			m_pFileBrowser->Open();
 			m_pFileBrowser->SetOnDialogOK(onChange);
 		}
@@ -216,21 +207,4 @@ void NXGUIMaterial::RenderTextureIcon(ImTextureID ImTexID, std::function<void()>
 		}
 		ImGui::PopID();
 	}
-}
-
-void NXGUIMaterial::UpdateMaterial(NXPBRMaterial* pMaterial)
-{
-	// 2021.9.21 这个方法现在看来已经没用了。
-	// 后续会将材质做成单例，通过调整材质单例的方法，改变所有使用此材质的SubMesh的视觉效果。
-	// 而不是像以前那样，在这里查找该材质的SubMesh引用列表，再一个一个去改。那样太浪费性能。
-	// 此方法先注释暂存。后续材质实例化实现后将删掉此方法。
-
-	//if (m_bMaterialDirty)
-	//{
-	//	auto pRefPrims = pMaterial->GetPrimitives();
-	//	for (auto pPrim : pRefPrims)
-	//	{
-	//		pPrim->SetMaterialPBR(pMaterial);
-	//	}
-	//}
 }

@@ -260,6 +260,9 @@
     <ClCompile Include="Core\NXInstance.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXGUICubeMap.cpp">
+      <Filter>Core\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -396,6 +399,9 @@
     </ClInclude>
     <ClInclude Include="Nix\NXSubMeshGeometryEditor.h">
       <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXGUICubeMap.h">
+      <Filter>Core\UI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

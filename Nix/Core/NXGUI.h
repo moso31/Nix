@@ -1,7 +1,12 @@
 #pragma once
-#include "NXGUIMaterial.h"
-#include "NXGUIFileBrowser.h"
-#include "NXGUISSAO.h"
+
+class NXScene;
+class NXSimpleSSAO;
+
+class NXGUIMaterial;
+class NXGUIFileBrowser;
+class NXGUISSAO;
+class NXGUICubeMap;
 
 class NXGUI
 {
@@ -18,6 +23,7 @@ private:
 	NXSimpleSSAO* m_pSSAO;
 
 	NXGUIMaterial* m_pGUIMaterial;
+	NXGUICubeMap* m_pGUICubeMap;
 	NXGUIFileBrowser* m_pFileBrowser;
 	NXGUISSAO* m_pGUISSAO;
 };

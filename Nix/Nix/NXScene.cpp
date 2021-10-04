@@ -24,7 +24,8 @@
 // temp include.
 
 NXScene::NXScene() :
-	m_sceneManager(new SceneManager(this))
+	m_sceneManager(new SceneManager(this)),
+	m_pPickingObject(nullptr)
 {
 	m_type = NXType::eScene;
 }
@@ -114,8 +115,8 @@ void NXScene::Init()
 	pPBRMat[3]->SetTexRoughness(L"D:\\NixAssets\\circle-textured-metal1\\roughness.png");
 	pPBRMat[3]->SetTexAO(L"D:\\NixAssets\\circle-textured-metal1\\ao.png");
 
-	auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64);
-	pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
+	//auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64);
+	//pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
 
 	std::vector<NXPrimitive*> pMeshes;
 	m_sceneManager->CreateFBXMeshes("D:\\NixAssets\\UnityBall.fbx", pMeshes);
@@ -132,7 +133,7 @@ void NXScene::Init()
 	}
 
 	// ÉèÖÃPicking Object£¨DemoÓÃ£¬ÁÙÊ±£©
-	SetCurrentPickingSubMesh(pSphere->GetSubMesh(0));
+	//SetCurrentPickingSubMesh(pSphere->GetSubMesh(0));
 
 	//for (float i = -8.0f; i < 8.01f; i += 2.0f)
 	//{
@@ -144,23 +145,6 @@ void NXScene::Init()
 	//	}
 	//}
 
-	Vector3 scale(0.1f);
-	pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(-3.38865018, -6.97852612, 6.32853508));
-	pSphere->SetScale(Vector3(scale));
-		pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
-	pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(-3.70538783, -6.91434097, 6.22053719));
-	pSphere->SetScale(Vector3(scale));
-		pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
-	pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(-3.31883836, -7.29755974, 5.99700212));
-	pSphere->SetScale(Vector3(scale));
-		pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
-	pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(-2.89583111, -7.34788990, 6.15270376));
-	pSphere->SetScale(Vector3(scale));
-		pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
-	pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(-3.19251966, -7.07765436, 6.32042360));
-	pSphere->SetScale(Vector3(scale));
-		pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
-
 	auto pCamera = m_sceneManager->CreateCamera(
 		"Camera1",
 		70.0f, 0.3f, 1000.f,
@@ -169,9 +153,9 @@ void NXScene::Init()
 		Vector3(0.0f, 1.0f, 0.0f)
 	);
 
-	//m_sceneManager->CreateCubeMap("Sky", L"D:\\Alexs_Apt_2k.hdr");
+	m_sceneManager->CreateCubeMap("Sky", L"D:\\Alexs_Apt_2k.hdr");
 	//m_sceneManager->CreateCubeMap("Sky", L"D:\\TexturesCom_JapanInariTempleH_1K_hdri_sphere.hdr");
-	m_sceneManager->CreateCubeMap("Sky", L"D:\\ballroom_4k.hdr");
+	//m_sceneManager->CreateCubeMap("Sky", L"D:\\ballroom_4k.hdr");
 	//m_sceneManager->CreateCubeMap("Sky", L"D:\\blue_grotto_4k.hdr");
 
 

@@ -69,6 +69,12 @@ bool NXCubeMap::Init(const std::wstring filePath)
 
 		hr = CreateTextureEx(g_pDevice.Get(), m_pImage->GetImages(), m_pImage->GetImageCount(), HDRInfo, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, (ID3D11Resource**)m_pTexCubeMap.GetAddressOf());
 		hr = CreateShaderResourceView(g_pDevice.Get(), m_pImage->GetImages(), m_pImage->GetImageCount(), HDRInfo, &m_pSRVCubeMap);
+
+		auto HDRPreviewInfo = HDRInfo;
+		HDRPreviewInfo.arraySize = 1;
+		HDRPreviewInfo.mipLevels = 1;
+		HDRPreviewInfo.miscFlags = 0;
+		hr = CreateShaderResourceView(g_pDevice.Get(), m_pImage->GetImage(0, 0, 0), 1, HDRPreviewInfo, &m_pSRVCubeMapPreview2D);
 	}
 
 	if (IsCompressed(HDRInfo.format))

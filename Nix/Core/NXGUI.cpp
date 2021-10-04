@@ -2,11 +2,17 @@
 #include "NXEvent.h"
 #include "DirectResources.h"
 
+#include "NXGUIFileBrowser.h"
+#include "NXGUIMaterial.h"
+#include "NXGUICubeMap.h"
+#include "NXGUISSAO.h"
+
 NXGUI::NXGUI(NXScene* pScene, NXSimpleSSAO* pSSAO) :
 	m_pCurrentScene(pScene),
 	m_pSSAO(pSSAO),
 	m_pFileBrowser(nullptr),
 	m_pGUIMaterial(nullptr),
+	m_pGUICubeMap(nullptr),
 	m_pGUISSAO(nullptr)
 {
 }
@@ -19,10 +25,10 @@ void NXGUI::Init()
 {
 	m_pFileBrowser = new NXGUIFileBrowser();
 	m_pFileBrowser->SetTitle("File Browser");
-	m_pFileBrowser->SetTypeFilters({ ".png", ".jpg", ".bmp", ".dds", ".tga", ".tif", "tiff"});
 	m_pFileBrowser->SetPwd("D:\\NixAssets");
 
 	m_pGUIMaterial = new NXGUIMaterial(m_pCurrentScene, m_pFileBrowser);
+	m_pGUICubeMap = new NXGUICubeMap(m_pCurrentScene, m_pFileBrowser);
 
 	m_pGUISSAO = new NXGUISSAO(m_pSSAO);
 
@@ -41,6 +47,7 @@ void NXGUI::Render()
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
+	m_pGUICubeMap->Render();
 	m_pGUIMaterial->Render();
 	m_pGUISSAO->Render();
 
@@ -99,6 +106,7 @@ void NXGUI::Render()
 void NXGUI::Release()
 {
 	SafeDelete(m_pGUIMaterial);
+	SafeDelete(m_pGUICubeMap);
 	SafeDelete(m_pGUISSAO);
 	SafeDelete(m_pFileBrowser);
 

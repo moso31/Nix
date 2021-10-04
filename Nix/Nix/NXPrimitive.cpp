@@ -9,16 +9,14 @@ NXPrimitive::NXPrimitive()
 
 void NXPrimitive::UpdateViewParams()
 {
-	// 所以为什么要转置？龙书中没有这一步转置。
-	// 回头看一下吧，我忘掉矩阵计算最早基于什么参考系了……
 	auto mxWorld = m_worldMatrix.Transpose();
 	NXGlobalBufferManager::m_cbDataObject.world = mxWorld;
 	NXGlobalBufferManager::m_cbDataObject.worldInverseTranspose = m_worldMatrix.Invert(); // it actually = m_worldMatrix.Invert().Transpose().Transpose();
 
-	auto viewMatrix = NXGlobalBufferManager::m_cbDataObject.view.Transpose();
-	NXGlobalBufferManager::m_cbDataObject.worldViewInverseTranspose = (m_worldMatrix * viewMatrix).Invert();
+	auto mxView = NXGlobalBufferManager::m_cbDataObject.view.Transpose();
+	NXGlobalBufferManager::m_cbDataObject.worldViewInverseTranspose = (m_worldMatrix * mxView).Invert();
 
-	auto mxWorldView = (m_worldMatrix * viewMatrix).Transpose();
+	auto mxWorldView = (m_worldMatrix * mxView).Transpose();
 	NXGlobalBufferManager::m_cbDataObject.worldView = mxWorldView;
 
 	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbObject.Get(), 0, nullptr, &NXGlobalBufferManager::m_cbDataObject, 0, 0);
