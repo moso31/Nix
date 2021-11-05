@@ -113,6 +113,9 @@ void Renderer::UpdateSceneData()
 	// 更新Camera的常量缓存数据（VP矩阵、眼睛位置）
 	m_scene->UpdateCamera();
 
+	auto pCubeMap = m_scene->GetCubeMap();
+	if (pCubeMap) pCubeMap->Update();
+
 	m_pSSAO->Update();
 }
 
@@ -222,7 +225,7 @@ void Renderer::DrawCubeMap()
 	auto pCubeMap = m_scene->GetCubeMap();
 	if (pCubeMap)
 	{
-		pCubeMap->Update();
+		pCubeMap->UpdateViewParams();
 		g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 		g_pContext->PSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 

@@ -143,12 +143,15 @@ Vector3 NXCubeMap::BackgroundColorByDirection(const Vector3& v)
 
 void NXCubeMap::Update()
 {
+	// cubemap params
+	g_pContext->UpdateSubresource(m_cb.Get(), 0, nullptr, &m_cbData, 0, 0);
+}
+
+void NXCubeMap::UpdateViewParams()
+{
 	auto pCamera = m_pScene->GetMainCamera();
 	NXGlobalBufferManager::m_cbDataObject.world = Matrix::CreateTranslation(pCamera->GetTranslation()).Transpose();
 	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbObject.Get(), 0, nullptr, &NXGlobalBufferManager::m_cbDataObject, 0, 0);
-
-	// cubemap params
-	g_pContext->UpdateSubresource(m_cb.Get(), 0, nullptr, &m_cbData, 0, 0);
 }
 
 void NXCubeMap::Render()

@@ -20,6 +20,7 @@ public:
 
 	bool Init(const std::wstring filePath);
 	void Update() override;
+	void UpdateViewParams();
 	void Render();
 	void Release() override;
 
