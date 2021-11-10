@@ -20,8 +20,8 @@ public:
 	static void LoadContent(FbxNode* pNode, NXPrimitive* pEngineMesh, std::vector<NXPrimitive*>& outMeshes, bool bAutoCalcTangents);
 	static void LoadNodeTransformInfo(FbxNode* pNode, NXPrimitive* pEngineMesh);
 
-	static void LoadMesh(FbxNode* pNode, NXPrimitive* pEngineMesh);
-	static void LoadPolygons(FbxMesh* pMesh, NXPrimitive* pEngineMesh, int lSubMeshCount);
+	static void LoadMesh(FbxNode* pNode, NXPrimitive* pEngineMesh, bool bAutoCalcTangents);
+	static void LoadPolygons(FbxMesh* pMesh, NXPrimitive* pEngineMesh, int lSubMeshCount, bool bAutoCalcTangents);
 
 	static void LoadFBXFile(std::string filepath, NXScene* pRenderScene, std::vector<NXPrimitive*>& outMeshes, bool bAutoCalcTangents);
 

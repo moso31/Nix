@@ -10,7 +10,7 @@ NXSubMeshGeometryEditor::~NXSubMeshGeometryEditor()
 {
 }
 
-void NXSubMeshGeometryEditor::CreateFBXMesh(NXPrimitive* pMesh, UINT subMeshCount, VertexPNTT** pSubMeshVertices, UINT* pSubMeshVerticesCounts, UINT** pSubMeshIndices, UINT* pSubMeshIndicesCounts)
+void NXSubMeshGeometryEditor::CreateFBXMesh(NXPrimitive* pMesh, UINT subMeshCount, VertexPNTT** pSubMeshVertices, UINT* pSubMeshVerticesCounts, UINT** pSubMeshIndices, UINT* pSubMeshIndicesCounts, bool bAutoCalcTangents)
 {
 	pMesh->ClearSubMeshes();
 
@@ -24,6 +24,8 @@ void NXSubMeshGeometryEditor::CreateFBXMesh(NXPrimitive* pMesh, UINT subMeshCoun
 
 		pSubMesh->m_indices.reserve(pSubMeshIndicesCounts[i]);
 		pSubMesh->m_indices.assign(pSubMeshIndices[i], pSubMeshIndices[i] + pSubMeshIndicesCounts[i]);
+
+		if (bAutoCalcTangents) pSubMesh->CalculateTangents();
 
 		pSubMesh->InitVertexIndexBuffer();
 		pMesh->ReloadSubMesh(i, pSubMesh);

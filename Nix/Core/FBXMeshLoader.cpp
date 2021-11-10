@@ -20,40 +20,25 @@ void FBXMeshLoader::LoadContent(FbxNode* pNode, NXPrimitive* pEngineMesh, std::v
 	else
 	{
 		lAttributeType = (pNode->GetNodeAttribute()->GetAttributeType());
-
-		switch (lAttributeType)
+		if (lAttributeType == FbxNodeAttribute::eMesh)
 		{
-		default:
-			break;
+			LoadMesh(pNode, pEngineMesh, bAutoCalcTangents);
 
-		case FbxNodeAttribute::eMesh:
-			LoadMesh(pNode, pEngineMesh);
-			break;
+			if (pEngineMesh)
+			{
+				pEngineMesh->SetName(pNode->GetName());
 
-		case FbxNodeAttribute::eCamera:
-			//DisplayCamera(pNode);
-			break;
+				LoadNodeTransformInfo(pNode, pEngineMesh);
+				outMeshes.push_back(pEngineMesh);
 
-		case FbxNodeAttribute::eLight:
-			//DisplayLight(pNode);
-			break;
+				for (i = 0; i < pNode->GetChildCount(); i++)
+				{
+					NXPrimitive* pChildMesh = new NXPrimitive();
+					LoadContent(pNode->GetChild(i), pChildMesh, outMeshes, bAutoCalcTangents);
+					pChildMesh->SetParent(pEngineMesh);
+				}
+			}
 		}
-	}
-
-	pEngineMesh->SetName(pNode->GetName());
-
-	// 如果开启了自动计算切线，则一定要在Init之前计算，不然值无法传到VB/IB
-	if (bAutoCalcTangents) 
-		pEngineMesh->CalculateTangents();
-
-	LoadNodeTransformInfo(pNode, pEngineMesh);
-	outMeshes.push_back(pEngineMesh);
-
-	for (i = 0; i < pNode->GetChildCount(); i++)
-	{
-		NXPrimitive* pChildMesh = new NXPrimitive();
-		LoadContent(pNode->GetChild(i), pChildMesh, outMeshes, bAutoCalcTangents);
-		pChildMesh->SetParent(pEngineMesh);
 	}
 }
 
@@ -72,18 +57,23 @@ void FBXMeshLoader::LoadNodeTransformInfo(FbxNode* pNode, NXPrimitive* pEngineMe
 	pEngineMesh->SetScale(vec);
 }
 
-void FBXMeshLoader::LoadMesh(FbxNode* pNode, NXPrimitive* pEngineMesh)
+void FBXMeshLoader::LoadMesh(FbxNode* pNode, NXPrimitive* pEngineMesh, bool bAutoCalcTangents)
 {
 	FbxMesh* lMesh = (FbxMesh*)pNode->GetNodeAttribute();
 	int lSubMeshCount = pNode->GetMaterialCount();
 
-	LoadPolygons(lMesh, pEngineMesh, lSubMeshCount);
+	LoadPolygons(lMesh, pEngineMesh, lSubMeshCount, bAutoCalcTangents);
 }
 
-void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXPrimitive* pEngineMesh, int lSubMeshCount)
+void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXPrimitive* pEngineMesh, int lSubMeshCount, bool bAutoCalcTangents)
 {
 	int i, j, lPolygonCount = pMesh->GetPolygonCount();
 	FbxVector4* lControlPoints = pMesh->GetControlPoints();
+
+	// 在只有一个SubMesh的情况下fbx不会创建对应的ElementMaterial索引（在fbx sdk中SubMesh叫做ElementMaterial）
+	// 这种情况下需要Nix手动创建一个，所以在Nix中SubMesh至少有一个。
+	bool bSubMeshes = lSubMeshCount > 0;
+	lSubMeshCount = max(lSubMeshCount, 1);
 
 	// SubMesh数量已经有了，
 	// 接下来，先统计每个SubMesh的Polygon/Vertex/Index数量，再读取每个顶点的VertexPNTT数据。
@@ -94,27 +84,33 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXPrimitive* pEngineMesh, int l
 	memset(pSubMeshVerticesCounts, 0, sizeof(UINT) * lSubMeshCount);
 	memset(pSubMeshIndicesCounts, 0, sizeof(UINT) * lSubMeshCount);
 
-	for (i = 0; i < lPolygonCount; i++)
+	if (bSubMeshes)
 	{
-		int lPolygonSize = pMesh->GetPolygonSize(i);
-		assert(lPolygonSize >= 3);
-
-		FbxGeometryElementMaterial* leMat = pMesh->GetElementMaterial(0);
-		assert(leMat);
-
-		switch (leMat->GetMappingMode())
+		for (i = 0; i < lPolygonCount; i++)
 		{
-		case FbxGeometryElement::eByPolygon:
-			if (leMat->GetReferenceMode() == FbxGeometryElement::eIndexToDirect)
-			{
-				int leMatIndex = leMat->GetIndexArray().GetAt(i);
-				assert(leMatIndex != -1);
+			int lPolygonSize = pMesh->GetPolygonSize(i);
+			assert(lPolygonSize >= 3);
 
-				pSubMeshPolygonsCounts[leMatIndex]++;
-				pSubMeshVerticesCounts[leMatIndex] += (lPolygonSize - 2) * 3;
-				break;
-			}
+				FbxGeometryElementMaterial* leMat = pMesh->GetElementMaterial(0);
+				switch (leMat->GetMappingMode())
+				{
+				case FbxGeometryElement::eByPolygon:
+					if (leMat->GetReferenceMode() == FbxGeometryElement::eIndexToDirect)
+					{
+						int leMatIndex = leMat->GetIndexArray().GetAt(i);
+						assert(leMatIndex != -1);
+
+						pSubMeshPolygonsCounts[leMatIndex]++;
+						pSubMeshVerticesCounts[leMatIndex] += (lPolygonSize - 2) * 3;
+						break;
+					}
+				}
 		}
+	}
+	else
+	{
+		pSubMeshPolygonsCounts[0] = lPolygonCount;
+		pSubMeshVerticesCounts[0] = pMesh->GetPolygonVertexCount();
 	}
 
 	for (int i = 0; i < lSubMeshCount; i++) pSubMeshIndicesCounts[i] = pSubMeshVerticesCounts[i];
@@ -144,17 +140,23 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXPrimitive* pEngineMesh, int l
 		int l;
 		int lSubMeshId = -1;
 
-		FbxGeometryElementMaterial* leMat = pMesh->GetElementMaterial(0);
-
-		switch (leMat->GetMappingMode())
+		if (bSubMeshes)
 		{
-		case FbxGeometryElement::eByPolygon:
-			if (leMat->GetReferenceMode() == FbxGeometryElement::eIndexToDirect)
+			FbxGeometryElementMaterial* leMat = pMesh->GetElementMaterial(0);
+			switch (leMat->GetMappingMode())
 			{
-				lSubMeshId = leMat->GetIndexArray().GetAt(i);
-				assert(lSubMeshId != -1);
-				break;
+			case FbxGeometryElement::eByPolygon:
+				if (leMat->GetReferenceMode() == FbxGeometryElement::eIndexToDirect)
+				{
+					lSubMeshId = leMat->GetIndexArray().GetAt(i);
+					assert(lSubMeshId != -1);
+					break;
+				}
 			}
+		}
+		else
+		{
+			lSubMeshId = 0;
 		}
 
 		for (l = 0; l < pMesh->GetElementPolygonGroupCount(); l++)
@@ -391,7 +393,7 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXPrimitive* pEngineMesh, int l
 		delete[] pPolygonVerticesData;
 	} // for polygonCount
 
-	NXSubMeshGeometryEditor::CreateFBXMesh(pEngineMesh, lSubMeshCount, ppMeshVerticesData, pSubMeshVerticesCounts, ppMeshIndicesData, pSubMeshIndicesCounts);
+	NXSubMeshGeometryEditor::CreateFBXMesh(pEngineMesh, lSubMeshCount, ppMeshVerticesData, pSubMeshVerticesCounts, ppMeshIndicesData, pSubMeshIndicesCounts, bAutoCalcTangents);
 
 	delete[] ppSubMeshVertexId;
 	delete[] ppSubMeshIndexId;
@@ -428,10 +430,10 @@ void FBXMeshLoader::LoadFBXFile(std::string filepath, NXScene* pRenderScene, std
 		return;
 
 	FbxNode* lNode = lScene->GetRootNode();
-
+	int lChildCount = lNode->GetChildCount();
 	if (lNode)
 	{
-		for (int i = 0; i < lNode->GetChildCount(); i++)
+		for (int i = 0; i < lChildCount; i++)
 		{
 			auto pMesh = new NXPrimitive();
 			LoadContent(lNode->GetChild(i), pMesh, outMeshes, bAutoCalcTangents);

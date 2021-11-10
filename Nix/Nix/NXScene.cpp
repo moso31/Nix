@@ -126,6 +126,18 @@ void NXScene::Init()
 	pMeshes[0]->GetSubMesh(3)->SetMaterialPBR(pPBRMat[3]);
 	pMeshes[0]->SetRotation(Vector3(-0.8f, 0.0f, 0.0f));
 
+	//m_sceneManager->CreateFBXMeshes("D:\\NixAssets\\Cloth.fbx", pMeshes, true);
+	//pMeshes[0]->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
+	//pMeshes[1]->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
+	//pMeshes[2]->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
+	//pMeshes[3]->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
+	//pMeshes[4]->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
+	//pMeshes[0]->SetScale(Vector3(0.1f, 0.1f, 0.1f));
+	//pMeshes[1]->SetScale(Vector3(0.1f, 0.1f, 0.1f));
+	//pMeshes[2]->SetScale(Vector3(0.1f, 0.1f, 0.1f));
+	//pMeshes[3]->SetScale(Vector3(0.1f, 0.1f, 0.1f));
+	//pMeshes[4]->SetScale(Vector3(0.1f, 0.1f, 0.1f));
+
 	{
 		//bool bBind = m_sceneManager->BindParent(pMeshes[1], pSphere);
 		//auto pScript_test = new NSTest();
