@@ -91,26 +91,31 @@ void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXPrimitive* pEngineMesh, int l
 			int lPolygonSize = pMesh->GetPolygonSize(i);
 			assert(lPolygonSize >= 3);
 
-				FbxGeometryElementMaterial* leMat = pMesh->GetElementMaterial(0);
-				switch (leMat->GetMappingMode())
+			FbxGeometryElementMaterial* leMat = pMesh->GetElementMaterial(0);
+			switch (leMat->GetMappingMode())
+			{
+			case FbxGeometryElement::eByPolygon:
+				if (leMat->GetReferenceMode() == FbxGeometryElement::eIndexToDirect)
 				{
-				case FbxGeometryElement::eByPolygon:
-					if (leMat->GetReferenceMode() == FbxGeometryElement::eIndexToDirect)
-					{
-						int leMatIndex = leMat->GetIndexArray().GetAt(i);
-						assert(leMatIndex != -1);
+					int leMatIndex = leMat->GetIndexArray().GetAt(i);
+					assert(leMatIndex != -1);
 
-						pSubMeshPolygonsCounts[leMatIndex]++;
-						pSubMeshVerticesCounts[leMatIndex] += (lPolygonSize - 2) * 3;
-						break;
-					}
+					pSubMeshPolygonsCounts[leMatIndex]++;
+					pSubMeshVerticesCounts[leMatIndex] += (lPolygonSize - 2) * 3;
+					break;
 				}
+			}
 		}
 	}
 	else
 	{
-		pSubMeshPolygonsCounts[0] = lPolygonCount;
-		pSubMeshVerticesCounts[0] = pMesh->GetPolygonVertexCount();
+		for (i = 0; i < lPolygonCount; i++)
+		{
+			int lPolygonSize = pMesh->GetPolygonSize(i);
+			assert(lPolygonSize >= 3);
+			pSubMeshPolygonsCounts[0]++;
+			pSubMeshVerticesCounts[0] += (lPolygonSize - 2) * 3;
+		}
 	}
 
 	for (int i = 0; i < lSubMeshCount; i++) pSubMeshIndicesCounts[i] = pSubMeshVerticesCounts[i];

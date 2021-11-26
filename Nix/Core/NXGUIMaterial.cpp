@@ -145,7 +145,7 @@ void NXGUIMaterial::OnTexAORemove(NXPBRMaterial* pPickingObjectMaterial)
 void NXGUIMaterial::UpdateFileBrowserParameters()
 {
 	m_pFileBrowser->SetTitle("Material");
-	m_pFileBrowser->SetTypeFilters({ ".png", ".jpg", ".bmp", ".dds", ".tga", ".tif", "tiff" });
+	m_pFileBrowser->SetTypeFilters({ ".png", ".jpg", ".bmp", ".dds", ".tga", ".tif", ".tiff" });
 	m_pFileBrowser->SetPwd("D:\\NixAssets");
 }
 

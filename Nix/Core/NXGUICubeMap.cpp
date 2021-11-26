@@ -95,6 +95,6 @@ void NXGUICubeMap::OnCubeMapTexRemove(NXCubeMap* pCubeMap)
 void NXGUICubeMap::UpdateFileBrowserParameters()
 {
 	m_pFileBrowser->SetTitle("Material");
-	m_pFileBrowser->SetTypeFilters({ ".hdr" });
+	m_pFileBrowser->SetTypeFilters({ ".*", ".hdr" });
 	m_pFileBrowser->SetPwd("D:\\NixAssets");
 }

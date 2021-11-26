@@ -115,16 +115,16 @@ void NXScene::Init()
 	pPBRMat[3]->SetTexRoughness(L"D:\\NixAssets\\circle-textured-metal1\\roughness.png");
 	pPBRMat[3]->SetTexAO(L"D:\\NixAssets\\circle-textured-metal1\\ao.png");
 
-	//auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64);
-	//pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
+	auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64);
+	pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
 
 	std::vector<NXPrimitive*> pMeshes;
-	m_sceneManager->CreateFBXMeshes("D:\\NixAssets\\UnityBall.fbx", pMeshes);
+	m_sceneManager->CreateFBXMeshes("D:\\NixAssets\\Teapot.fbx", pMeshes);
 	pMeshes[0]->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
-	pMeshes[0]->GetSubMesh(1)->SetMaterialPBR(pPBRMat[1]);
-	pMeshes[0]->GetSubMesh(2)->SetMaterialPBR(pPBRMat[3]);
-	pMeshes[0]->GetSubMesh(3)->SetMaterialPBR(pPBRMat[3]);
-	pMeshes[0]->SetRotation(Vector3(-0.8f, 0.0f, 0.0f));
+	//pMeshes[0]->GetSubMesh(1)->SetMaterialPBR(pPBRMat[1]);
+	//pMeshes[0]->GetSubMesh(2)->SetMaterialPBR(pPBRMat[3]);
+	//pMeshes[0]->GetSubMesh(3)->SetMaterialPBR(pPBRMat[3]);
+	//pMeshes[0]->SetRotation(Vector3(-0.8f, 0.0f, 0.0f));
 
 	//m_sceneManager->CreateFBXMeshes("D:\\NixAssets\\Cloth.fbx", pMeshes, true);
 	//pMeshes[0]->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
