@@ -38,6 +38,12 @@ void NXForwardRenderer::Render(ID3D11ShaderResourceView* pSRVSSAO)
 {
 	g_pUDA->BeginEvent(L"Forward rendering");
 
+	auto pRTVMainScene = g_dxResources->GetRTVMainScene();
+	auto pDSVDepthStencil = g_dxResources->GetDSVDepthStencil();
+	g_pContext->OMSetRenderTargets(1, &pRTVMainScene, pDSVDepthStencil);
+	g_pContext->ClearRenderTargetView(pRTVMainScene, Colors::WhiteSmoke);
+	g_pContext->ClearDepthStencilView(pDSVDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
+
 	g_pContext->IASetInputLayout(m_pInputLayout.Get());
 
 	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);

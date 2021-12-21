@@ -89,22 +89,7 @@ void NXDeferredRenderer::Init()
 	NX::MessageBoxIfFailed(
 		ShaderComplier::Compile(L"Shader\\GBuffer.fx", "VS", "vs_5_0", &pVSBlob),
 		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVertexShader[0]));
-
-	NX::MessageBoxIfFailed(
-		ShaderComplier::Compile(L"Shader\\GBuffer.fx", "VS", "vs_5_0", &pVSBlob),
-		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVertexShader[1]));
-
-	NX::MessageBoxIfFailed(
-		ShaderComplier::Compile(L"Shader\\GBuffer.fx", "VS", "vs_5_0", &pVSBlob),
-		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVertexShader[2]));
-
-	NX::MessageBoxIfFailed(
-		ShaderComplier::Compile(L"Shader\\GBuffer.fx", "VS", "vs_5_0", &pVSBlob),
-		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVertexShader[3]));
+	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVertexShader));
 
 	// 对RT0-RT3使用LayoutPNTT顶点布局。
 	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pInputLayoutGBuffer));
@@ -118,24 +103,9 @@ void NXDeferredRenderer::Init()
 	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutPT, ARRAYSIZE(NXGlobalInputLayout::layoutPT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pInputLayoutRender));
 
 	NX::MessageBoxIfFailed(
-		ShaderComplier::Compile(L"Shader\\GBuffer.fx", "PS_RT0", "ps_5_0", &pPSBlob),
+		ShaderComplier::Compile(L"Shader\\GBuffer.fx", "PS", "ps_5_0", &pPSBlob),
 		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShader[0]));
-
-	NX::MessageBoxIfFailed(
-		ShaderComplier::Compile(L"Shader\\GBuffer.fx", "PS_RT1", "ps_5_0", &pPSBlob),
-		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShader[1]));
-
-	NX::MessageBoxIfFailed(
-		ShaderComplier::Compile(L"Shader\\GBuffer.fx", "PS_RT2", "ps_5_0", &pPSBlob),
-		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShader[2]));
-
-	NX::MessageBoxIfFailed(
-		ShaderComplier::Compile(L"Shader\\GBuffer.fx", "PS_RT3", "ps_5_0", &pPSBlob),
-		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShader[3]));
+	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShader2));
 
 	NX::MessageBoxIfFailed(
 		ShaderComplier::Compile(L"Shader\\DeferredRender.fx", "PS", "ps_5_0", &pPSBlob),
@@ -148,174 +118,19 @@ void NXDeferredRenderer::RenderGBuffer()
 	g_pContext->IASetInputLayout(m_pInputLayoutGBuffer.Get());
 
 	g_pUDA->BeginEvent(L"GBuffer");
-	g_pContext->OMSetRenderTargets(1, m_pRTV[0].GetAddressOf(), m_pDSVDepth.Get());
+
+	g_pContext->OMSetRenderTargets(4, m_pRTV->GetAddressOf(), m_pDSVDepth.Get());
 	g_pContext->ClearRenderTargetView(m_pRTV[0].Get(), Colors::Black);
 	g_pContext->ClearDepthStencilView(m_pDSVDepth.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
-	RenderRT0();
-
-	g_pContext->OMSetRenderTargets(1, m_pRTV[1].GetAddressOf(), m_pDSVDepth.Get());
-	g_pContext->ClearRenderTargetView(m_pRTV[1].Get(), Colors::Black);
-	g_pContext->ClearDepthStencilView(m_pDSVDepth.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
-	RenderRT1();
-
-	g_pContext->OMSetRenderTargets(1, m_pRTV[2].GetAddressOf(), m_pDSVDepth.Get());
-	g_pContext->ClearRenderTargetView(m_pRTV[2].Get(), Colors::Black);
-	g_pContext->ClearDepthStencilView(m_pDSVDepth.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
-	RenderRT2();
-
-	g_pContext->OMSetRenderTargets(1, m_pRTV[3].GetAddressOf(), m_pDSVDepth.Get());
-	g_pContext->ClearRenderTargetView(m_pRTV[3].Get(), Colors::Black);
-	g_pContext->ClearDepthStencilView(m_pDSVDepth.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
-	RenderRT3();
-
-	g_pUDA->EndEvent();
-}
-
-void NXDeferredRenderer::RenderRT0()
-{
-	g_pUDA->BeginEvent(L"Render RT0");
 
 	// 设置使用的VS和PS（scene.fx）
-	g_pContext->VSSetShader(m_pVertexShader[0].Get(), nullptr, 0);
-	g_pContext->PSSetShader(m_pPixelShader[0].Get(), nullptr, 0);
-
-	for (auto pPrim : m_pScene->GetPrimitives()) 
-	{
-		pPrim->UpdateViewParams();
-		g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
-
-		for (UINT i = 0; i < pPrim->GetSubMeshCount(); i++)
-		{
-			auto pSubMesh = pPrim->GetSubMesh(i);
-			pSubMesh->Update();
-
-			auto pMat = pSubMesh->GetPBRMaterial();
-			auto pSRVAlbedo = pMat->GetSRVAlbedo();
-			g_pContext->PSSetShaderResources(1, 1, &pSRVAlbedo);
-
-			auto pSRVNormal = pMat->GetSRVNormal();
-			g_pContext->PSSetShaderResources(2, 1, &pSRVNormal);
-
-			auto pSRVMetallic = pMat->GetSRVMetallic();
-			g_pContext->PSSetShaderResources(3, 1, &pSRVMetallic);
-
-			auto pSRVRoughness = pMat->GetSRVRoughness();
-			g_pContext->PSSetShaderResources(4, 1, &pSRVRoughness);
-
-			auto pSRVAO = pMat->GetSRVAO();
-			g_pContext->PSSetShaderResources(5, 1, &pSRVAO);
-
-			auto pCBMaterial = pMat->GetConstantBuffer();
-			g_pContext->PSSetConstantBuffers(3, 1, &pCBMaterial);
-
-			pSubMesh->Render();
-		}
-	}
-
-	g_pUDA->EndEvent();
-}
-
-void NXDeferredRenderer::RenderRT1()
-{
-	g_pUDA->BeginEvent(L"Render RT1");
-
-	// 设置使用的VS和PS（scene.fx）
-	g_pContext->VSSetShader(m_pVertexShader[1].Get(), nullptr, 0);
-	g_pContext->PSSetShader(m_pPixelShader[1].Get(), nullptr, 0);
+	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
+	g_pContext->PSSetShader(m_pPixelShader2.Get(), nullptr, 0);
 
 	for (auto pPrim : m_pScene->GetPrimitives())
 	{
 		pPrim->UpdateViewParams();
 		g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
-
-		for (UINT i = 0; i < pPrim->GetSubMeshCount(); i++)
-		{
-			auto pSubMesh = pPrim->GetSubMesh(i);
-			pSubMesh->Update();
-
-			auto pMat = pSubMesh->GetPBRMaterial();
-			auto pSRVAlbedo = pMat->GetSRVAlbedo();
-			g_pContext->PSSetShaderResources(1, 1, &pSRVAlbedo);
-
-			auto pSRVNormal = pMat->GetSRVNormal();
-			g_pContext->PSSetShaderResources(2, 1, &pSRVNormal);
-
-			auto pSRVMetallic = pMat->GetSRVMetallic();
-			g_pContext->PSSetShaderResources(3, 1, &pSRVMetallic);
-
-			auto pSRVRoughness = pMat->GetSRVRoughness();
-			g_pContext->PSSetShaderResources(4, 1, &pSRVRoughness);
-
-			auto pSRVAO = pMat->GetSRVAO();
-			g_pContext->PSSetShaderResources(5, 1, &pSRVAO);
-
-			auto pCBMaterial = pMat->GetConstantBuffer();
-			g_pContext->PSSetConstantBuffers(3, 1, &pCBMaterial);
-
-			pSubMesh->Render();
-		}
-	}
-
-	g_pUDA->EndEvent();
-}
-
-void NXDeferredRenderer::RenderRT2()
-{
-	g_pUDA->BeginEvent(L"Render RT2");
-
-	// 设置使用的VS和PS（scene.fx）
-	g_pContext->VSSetShader(m_pVertexShader[2].Get(), nullptr, 0);
-	g_pContext->PSSetShader(m_pPixelShader[2].Get(), nullptr, 0);
-
-	for (auto pPrim : m_pScene->GetPrimitives())
-	{
-		pPrim->UpdateViewParams();
-		g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
-
-		for (UINT i = 0; i < pPrim->GetSubMeshCount(); i++)
-		{
-			auto pSubMesh = pPrim->GetSubMesh(i);
-			pSubMesh->Update();
-
-			auto pMat = pSubMesh->GetPBRMaterial();
-			auto pSRVAlbedo = pMat->GetSRVAlbedo();
-			g_pContext->PSSetShaderResources(1, 1, &pSRVAlbedo);
-
-			auto pSRVNormal = pMat->GetSRVNormal();
-			g_pContext->PSSetShaderResources(2, 1, &pSRVNormal);
-
-			auto pSRVMetallic = pMat->GetSRVMetallic();
-			g_pContext->PSSetShaderResources(3, 1, &pSRVMetallic);
-
-			auto pSRVRoughness = pMat->GetSRVRoughness();
-			g_pContext->PSSetShaderResources(4, 1, &pSRVRoughness);
-
-			auto pSRVAO = pMat->GetSRVAO();
-			g_pContext->PSSetShaderResources(5, 1, &pSRVAO);
-
-			auto pCBMaterial = pMat->GetConstantBuffer();
-			g_pContext->PSSetConstantBuffers(3, 1, &pCBMaterial);
-
-			pSubMesh->Render();
-		}
-	}
-
-	g_pUDA->EndEvent();
-}
-
-void NXDeferredRenderer::RenderRT3()
-{
-	g_pUDA->BeginEvent(L"Render RT3");
-
-	// 设置使用的VS和PS（scene.fx）
-	g_pContext->VSSetShader(m_pVertexShader[3].Get(), nullptr, 0);
-	g_pContext->PSSetShader(m_pPixelShader[3].Get(), nullptr, 0);
-
-	for (auto pPrim : m_pScene->GetPrimitives())
-	{
-		pPrim->UpdateViewParams();
-		g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
-		g_pContext->PSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 
 		for (UINT i = 0; i < pPrim->GetSubMeshCount(); i++)
 		{
@@ -351,6 +166,13 @@ void NXDeferredRenderer::RenderRT3()
 void NXDeferredRenderer::Render(ID3D11ShaderResourceView* pSRVSSAO)
 {
 	g_pUDA->BeginEvent(L"Deferred rendering");
+
+	auto pRTVMainScene = g_dxResources->GetRTVMainScene();
+	auto pDSVDepthStencil = g_dxResources->GetDSVDepthStencil();
+	g_pContext->OMSetRenderTargets(1, &pRTVMainScene, pDSVDepthStencil);
+	g_pContext->ClearRenderTargetView(pRTVMainScene, Colors::WhiteSmoke);
+	g_pContext->ClearDepthStencilView(pDSVDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
+
 	g_pContext->IASetInputLayout(m_pInputLayoutRender.Get());
 	g_pContext->VSSetShader(m_pVertexShaderRender.Get(), nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShaderRender.Get(), nullptr, 0);

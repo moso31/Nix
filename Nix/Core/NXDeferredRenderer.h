@@ -37,8 +37,8 @@ private:
 	ComPtr<ID3D11Buffer>				m_pIndexBuffer;
 
 	// 渲染RT0-RT4时使用此组Shader
-	ComPtr<ID3D11VertexShader>			m_pVertexShader[4]; 
-	ComPtr<ID3D11PixelShader>			m_pPixelShader[4];
+	ComPtr<ID3D11VertexShader>			m_pVertexShader; 
+	ComPtr<ID3D11PixelShader>			m_pPixelShader2;
 
 	// 进行最终渲染时使用此组Shaders
 	ComPtr<ID3D11VertexShader>			m_pVertexShaderRender; 

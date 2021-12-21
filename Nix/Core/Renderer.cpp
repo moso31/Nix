@@ -147,9 +147,6 @@ void Renderer::DrawScene()
 	if (!m_isDeferredShading)
 	{
 		// SSAO
-		g_pContext->OMSetRenderTargets(1, &pRTVMainScene, pDSVDepthStencil);
-		g_pContext->ClearRenderTargetView(pRTVMainScene, Colors::WhiteSmoke);
-		g_pContext->ClearDepthStencilView(pDSVDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
 		m_pSSAO->Render(pSRVNormal, pSRVPosition, pSRVDepthPrepass);
 
 		// Forward shading
@@ -164,9 +161,6 @@ void Renderer::DrawScene()
 		m_pSSAO->Render(pSRVNormal, pSRVPosition, pSRVDepthPrepass);
 
 		// Deferred shading: Render
-		g_pContext->OMSetRenderTargets(1, &pRTVMainScene, pDSVDepthStencil);
-		g_pContext->ClearRenderTargetView(pRTVMainScene, Colors::WhiteSmoke);
-		g_pContext->ClearDepthStencilView(pDSVDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
 		m_pDeferredRenderer->Render(m_pSSAO->GetSRV());
 	}
 

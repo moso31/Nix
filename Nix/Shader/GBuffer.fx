@@ -32,6 +32,14 @@ struct PS_INPUT
 	float3 tangentVS : TANGENT;
 };
 
+struct PS_OUTPUT
+{
+	float4 GBufferA : SV_Target0;
+	float4 GBufferB : SV_Target1;
+	float4 GBufferC : SV_Target2;
+	float4 GBufferD : SV_Target3;
+};
+
 PS_INPUT VS(VS_INPUT input)
 {
 	PS_INPUT output = (PS_INPUT)0;
@@ -43,6 +51,33 @@ PS_INPUT VS(VS_INPUT input)
 	output.tex = input.tex;
 	output.tangentVS = mul(input.tangent, (float3x3)m_worldViewInverseTranspose).xyz;
 	return output;
+}
+
+void PS(PS_INPUT input, out PS_OUTPUT Output)
+{
+	Output.GBufferA = float4(input.posVS.xyz, 1.0f);
+
+	float3 normalMap = txNormalMap.Sample(SamplerStateTrilinear, input.tex).xyz;
+	float3 normal = m_material.normal * normalMap;
+	float3 N = TangentSpaceToViewSpace(normal, input.normVS, input.tangentVS);
+	Output.GBufferB = float4(N, 1.0f);
+
+	float3 albedoMap = txAlbedo.Sample(SamplerStateTrilinear, input.tex).xyz;
+	float3 albedo = m_material.albedo * albedoMap;
+	Output.GBufferC = float4(albedo, 1.0f);
+
+	float metallicMap = txMetallicMap.Sample(SamplerStateTrilinear, input.tex).x;
+	float metallic = m_material.metallic * metallicMap;
+
+	float roughnessMap = txRoughnessMap.Sample(SamplerStateTrilinear, input.tex).x;
+	float roughness = m_material.roughness * roughnessMap;
+
+	float AOMap = txAmbientOcclusionMap.Sample(SamplerStateTrilinear, input.tex).x;
+	float ao = m_material.ao * AOMap;
+
+	Output.GBufferD = float4(roughness, metallic, ao, 1.0f);
+
+	return;
 }
 
 float4 PS_RT0(PS_INPUT input) : SV_Target
