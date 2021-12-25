@@ -263,6 +263,9 @@
     <ClCompile Include="Core\NXGUICubeMap.cpp">
       <Filter>Core\UI</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXResourceManager.cpp">
+      <Filter>Core\DirectX</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -402,6 +405,9 @@
     </ClInclude>
     <ClInclude Include="Core\NXGUICubeMap.h">
       <Filter>Core\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXResourceManager.h">
+      <Filter>Core\DirectX</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

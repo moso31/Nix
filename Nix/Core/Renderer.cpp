@@ -1,6 +1,7 @@
 #include "Renderer.h"
 #include "DirectResources.h"
 #include "ShaderComplier.h"
+#include "NXResourceManager.h"
 #include "RenderStates.h"
 #include "NXGUI.h"
 
@@ -44,7 +45,7 @@ void Renderer::Init()
 		m_pDeferredRenderer->Init();
 
 		// 【待改】这个bool将来做成Settings（ini配置文件）之类的。
-		m_isDeferredShading = 1;
+		m_isDeferredShading = false;
 	}
 
 	m_pPassShadowMap = new NXPassShadowMap(m_scene);
@@ -59,6 +60,9 @@ void Renderer::InitGUI()
 
 void Renderer::InitRenderer()
 {
+	// 在这里初始化CommonRT。
+	NXResourceManager::GetInstance()->InitCommonRT();
+
 	// create VS & IL
 	ComPtr<ID3DBlob> pVSBlob;
 	NX::MessageBoxIfFailed(
@@ -132,10 +136,10 @@ void Renderer::DrawScene()
 	auto pSRVDepthStencil = g_dxResources->GetSRVDepthStencil();
 	auto pDSVDepthStencil = g_dxResources->GetDSVDepthStencil();
 
-	auto pSRVPosition = m_pDepthPrepass->GetSRVPosition();
-	auto pSRVNormal = m_pDepthPrepass->GetSRVNormal();
-	auto pSRVDepthPrepass = m_pDepthPrepass->GetSRVDepthPrepass();
-	auto pDSVDepthPrepass = m_pDepthPrepass->GetDSVDepthPrepass();
+	auto pSRVPosition = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_GBuffer0)->GetSRV();
+	auto pSRVNormal = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_GBuffer1)->GetSRV();
+	auto pDSVDepthPrepass = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_DepthZ)->GetDSV();
+	auto pSRVDepthPrepass = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_DepthZ)->GetSRV();
 
 	// 设置视口
 	auto vp = g_dxResources->GetViewPortSize();
@@ -196,7 +200,7 @@ void Renderer::Release()
 	SafeDelete(m_pPassShadowMap);
 	SafeDelete(m_pSSAO);
 
-	SafeDelete(m_pDeferredRenderer);
+	SafeRelease(m_pDeferredRenderer);
 	SafeDelete(m_pForwardRenderer);
 
 	SafeDelete(m_pDepthPrepass);

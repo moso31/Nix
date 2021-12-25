@@ -1,6 +1,7 @@
 #include "NXDeferredRenderer.h"
 #include "ShaderComplier.h"
 #include "DirectResources.h"
+#include "NXResourceManager.h"
 
 #include "RenderStates.h"
 #include "GlobalBufferManager.h"
@@ -37,55 +38,9 @@ void NXDeferredRenderer::Init()
 
 	InitVertexIndexBuffer();
 
-	// 现行G-Buffer结构如下：
-	// RT0:		Position				R32G32B32A32_FLOAT
-	// RT1:		Normal					R32G32B32A32_FLOAT
-	// RT2:		Albedo					R10G10B10A2_UNORM
-	// RT3:		Metallic+Roughness+AO	R10G10B10A2_UNORM
-	// *注意：上述RT0、RT1现在用的是128位浮点数——这只是临时方案。RT2、RT3也有待商榷。
-
-	Vector2 sz = g_dxResources->GetViewSize();
-
-	// 创建Tex
-	CD3D11_TEXTURE2D_DESC descTex0(DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
-	CD3D11_TEXTURE2D_DESC descTex1(DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
-	CD3D11_TEXTURE2D_DESC descTex2(DXGI_FORMAT_R10G10B10A2_UNORM, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
-	CD3D11_TEXTURE2D_DESC descTex3(DXGI_FORMAT_R10G10B10A2_UNORM, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
-	g_pDevice->CreateTexture2D(&descTex0, nullptr, &m_pTex[0]);
-	g_pDevice->CreateTexture2D(&descTex1, nullptr, &m_pTex[1]);
-	g_pDevice->CreateTexture2D(&descTex2, nullptr, &m_pTex[2]);
-	g_pDevice->CreateTexture2D(&descTex3, nullptr, &m_pTex[3]);
-
-	// 创建SRV
-	CD3D11_SHADER_RESOURCE_VIEW_DESC descSRV0(D3D11_SRV_DIMENSION_TEXTURE2D, descTex0.Format, 0, descTex0.MipLevels, 0, descTex0.ArraySize);
-	CD3D11_SHADER_RESOURCE_VIEW_DESC descSRV1(D3D11_SRV_DIMENSION_TEXTURE2D, descTex1.Format, 0, descTex1.MipLevels, 0, descTex1.ArraySize);
-	CD3D11_SHADER_RESOURCE_VIEW_DESC descSRV2(D3D11_SRV_DIMENSION_TEXTURE2D, descTex2.Format, 0, descTex2.MipLevels, 0, descTex2.ArraySize);
-	CD3D11_SHADER_RESOURCE_VIEW_DESC descSRV3(D3D11_SRV_DIMENSION_TEXTURE2D, descTex3.Format, 0, descTex3.MipLevels, 0, descTex3.ArraySize);
-	g_pDevice->CreateShaderResourceView(m_pTex[0].Get(), &descSRV0, &m_pSRV[0]);
-	g_pDevice->CreateShaderResourceView(m_pTex[1].Get(), &descSRV1, &m_pSRV[1]);
-	g_pDevice->CreateShaderResourceView(m_pTex[2].Get(), &descSRV2, &m_pSRV[2]);
-	g_pDevice->CreateShaderResourceView(m_pTex[3].Get(), &descSRV3, &m_pSRV[3]);
-
-	// 创建RTV
-	CD3D11_RENDER_TARGET_VIEW_DESC descRTV0(D3D11_RTV_DIMENSION_TEXTURE2D, descTex0.Format);
-	CD3D11_RENDER_TARGET_VIEW_DESC descRTV1(D3D11_RTV_DIMENSION_TEXTURE2D, descTex1.Format);
-	CD3D11_RENDER_TARGET_VIEW_DESC descRTV2(D3D11_RTV_DIMENSION_TEXTURE2D, descTex2.Format);
-	CD3D11_RENDER_TARGET_VIEW_DESC descRTV3(D3D11_RTV_DIMENSION_TEXTURE2D, descTex3.Format);
-	g_pDevice->CreateRenderTargetView(m_pTex[0].Get(), &descRTV0, &m_pRTV[0]);
-	g_pDevice->CreateRenderTargetView(m_pTex[1].Get(), &descRTV1, &m_pRTV[1]);
-	g_pDevice->CreateRenderTargetView(m_pTex[2].Get(), &descRTV2, &m_pRTV[2]);
-	g_pDevice->CreateRenderTargetView(m_pTex[3].Get(), &descRTV3, &m_pRTV[3]);
-
-	// 创建DSV
-	CD3D11_DEPTH_STENCIL_VIEW_DESC descDSV(D3D11_DSV_DIMENSION_TEXTURE2D);
-	CD3D11_TEXTURE2D_DESC descTexDepth(DXGI_FORMAT_D24_UNORM_S8_UINT, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_DEPTH_STENCIL);
-	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&descTexDepth, nullptr, &m_pTexDepth));
-	g_pDevice->CreateDepthStencilView(m_pTexDepth.Get(), &descDSV, &m_pDSVDepth);
-
 	ComPtr<ID3DBlob> pVSBlob;
 	ComPtr<ID3DBlob> pPSBlob;
 
-	// 【？】有必要弄4个VS吗，它们似乎完全一样
 	NX::MessageBoxIfFailed(
 		ShaderComplier::Compile(L"Shader\\GBuffer.fx", "VS", "vs_5_0", &pVSBlob),
 		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
@@ -105,7 +60,7 @@ void NXDeferredRenderer::Init()
 	NX::MessageBoxIfFailed(
 		ShaderComplier::Compile(L"Shader\\GBuffer.fx", "PS", "ps_5_0", &pPSBlob),
 		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShader2));
+	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShader));
 
 	NX::MessageBoxIfFailed(
 		ShaderComplier::Compile(L"Shader\\DeferredRender.fx", "PS", "ps_5_0", &pPSBlob),
@@ -119,13 +74,28 @@ void NXDeferredRenderer::RenderGBuffer()
 
 	g_pUDA->BeginEvent(L"GBuffer");
 
-	g_pContext->OMSetRenderTargets(4, m_pRTV->GetAddressOf(), m_pDSVDepth.Get());
-	g_pContext->ClearRenderTargetView(m_pRTV[0].Get(), Colors::Black);
-	g_pContext->ClearDepthStencilView(m_pDSVDepth.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+	NXTexture2D* pDepthZ = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_DepthZ);
+	NXTexture2D* pGBufferRTA = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_GBuffer0);
+	NXTexture2D* pGBufferRTB = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_GBuffer1);
+	NXTexture2D* pGBufferRTC = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_GBuffer2);
+	NXTexture2D* pGBufferRTD = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_GBuffer3);
+
+	ID3D11RenderTargetView* ppRTVs[4] = {
+		pGBufferRTA->GetRTV(),
+		pGBufferRTB->GetRTV(),
+		pGBufferRTC->GetRTV(),
+		pGBufferRTD->GetRTV(),
+	};
+
+	g_pContext->OMSetRenderTargets(4, ppRTVs, pDepthZ->GetDSV());
+
+	for (int i = 0; i < 4; i++)
+		g_pContext->ClearRenderTargetView(ppRTVs[i], Colors::Black);
+	g_pContext->ClearDepthStencilView(pDepthZ->GetDSV(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	// 设置使用的VS和PS（scene.fx）
 	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
-	g_pContext->PSSetShader(m_pPixelShader2.Get(), nullptr, 0);
+	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
 
 	for (auto pPrim : m_pScene->GetPrimitives())
 	{
@@ -159,6 +129,9 @@ void NXDeferredRenderer::RenderGBuffer()
 			pSubMesh->Render();
 		}
 	}
+
+	ID3D11RenderTargetView* nullViews[4] = { nullptr, nullptr, nullptr, nullptr };
+	g_pContext->OMSetRenderTargets(4, nullViews, nullptr);
 
 	g_pUDA->EndEvent();
 }
@@ -206,10 +179,24 @@ void NXDeferredRenderer::Render(ID3D11ShaderResourceView* pSRVSSAO)
 	}
 
 	g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
-	g_pContext->PSSetShaderResources(0, 1, m_pSRV[0].GetAddressOf());
-	g_pContext->PSSetShaderResources(1, 1, m_pSRV[1].GetAddressOf());
-	g_pContext->PSSetShaderResources(2, 1, m_pSRV[2].GetAddressOf());
-	g_pContext->PSSetShaderResources(3, 1, m_pSRV[3].GetAddressOf());
+
+	NXTexture2D* pDepthZ = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_DepthZ);
+	NXTexture2D* pGBufferRTA = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_GBuffer0);
+	NXTexture2D* pGBufferRTB = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_GBuffer1);
+	NXTexture2D* pGBufferRTC = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_GBuffer2);
+	NXTexture2D* pGBufferRTD = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_GBuffer3);
+
+	ID3D11ShaderResourceView* ppSRVs[4] = {
+		pGBufferRTA->GetSRV(),
+		pGBufferRTB->GetSRV(),
+		pGBufferRTC->GetSRV(),
+		pGBufferRTD->GetSRV(),
+	};
+
+	g_pContext->PSSetShaderResources(0, 1, &ppSRVs[0]);
+	g_pContext->PSSetShaderResources(1, 1, &ppSRVs[1]);
+	g_pContext->PSSetShaderResources(2, 1, &ppSRVs[2]);
+	g_pContext->PSSetShaderResources(3, 1, &ppSRVs[3]);
 
 	UINT stride = sizeof(VertexPT);
 	UINT offset = 0;
@@ -218,9 +205,13 @@ void NXDeferredRenderer::Render(ID3D11ShaderResourceView* pSRVSSAO)
 	g_pContext->DrawIndexed((UINT)m_indices.size(), 0, 0);
 
 	auto pTexDepthStencil = g_dxResources->GetTexDepthStencil();
-	g_pContext->CopyResource(pTexDepthStencil, m_pTexDepth.Get());
+	g_pContext->CopyResource(pTexDepthStencil, pDepthZ->GetTex());
 
 	g_pUDA->EndEvent();
+}
+
+void NXDeferredRenderer::Release()
+{
 }
 
 void NXDeferredRenderer::InitVertexIndexBuffer()

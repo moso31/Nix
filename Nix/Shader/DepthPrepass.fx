@@ -27,6 +27,12 @@ struct PS_INPUT
 	float3 tangentVS : TANGENT;
 };
 
+struct PS_OUTPUT
+{
+	float4 Normal : SV_Target0;
+	float4 Position: SV_Target1;
+};
+
 PS_INPUT VS(VS_INPUT input)
 {
 	PS_INPUT output = (PS_INPUT)0;
@@ -39,15 +45,12 @@ PS_INPUT VS(VS_INPUT input)
 	return output;
 }
 
-float4 PS0(PS_INPUT input) : SV_Target
+void PS(PS_INPUT input, out PS_OUTPUT Output)
 {
+	Output.Position = float4(input.posVS);
+
 	float3 normalMap = txNormalMap.Sample(SamplerStateTrilinear, input.tex).xyz;
 	float3 normal = m_material.normal * normalMap;
 	float3 N = TangentSpaceToViewSpace(normal, input.normVS, input.tangentVS);
-	return float4(N, 1.0f);
-}
-
-float4 PS1(PS_INPUT input) : SV_Target
-{
-	return float4(input.posVS);
+	Output.Normal = float4(N, 1.0f);
 }

@@ -79,38 +79,3 @@ void PS(PS_INPUT input, out PS_OUTPUT Output)
 
 	return;
 }
-
-float4 PS_RT0(PS_INPUT input) : SV_Target
-{
-	return float4(input.posVS.xyz, 1.0f);
-	return float4(input.posWS.xyz, 1.0f);
-}
-
-float4 PS_RT1(PS_INPUT input) : SV_Target
-{
-	float3 normalMap = txNormalMap.Sample(SamplerStateTrilinear, input.tex).xyz;
-	float3 normal = m_material.normal * normalMap;
-	float3 N = TangentSpaceToViewSpace(normal, input.normVS, input.tangentVS);
-	return float4(N, 1.0f);
-}
-
-float4 PS_RT2(PS_INPUT input) : SV_Target
-{
-	float3 albedoMap = txAlbedo.Sample(SamplerStateTrilinear, input.tex).xyz;
-	float3 albedo = m_material.albedo * albedoMap;
-	return float4(albedo, 1.0f);
-}
-
-float4 PS_RT3(PS_INPUT input) : SV_Target
-{
-	float metallicMap = txMetallicMap.Sample(SamplerStateTrilinear, input.tex).x;
-	float metallic = m_material.metallic * metallicMap;
-
-	float roughnessMap = txRoughnessMap.Sample(SamplerStateTrilinear, input.tex).x;
-	float roughness = m_material.roughness * roughnessMap;
-
-	float AOMap = txAmbientOcclusionMap.Sample(SamplerStateTrilinear, input.tex).x;
-	float ao = m_material.ao * AOMap;
-
-	return float4(roughness, metallic, ao, 1.0f);
-}

@@ -1,5 +1,6 @@
 #include "App.h"
 #include "DirectResources.h"
+#include "NXResourceManager.h"
 #include "RenderStates.h"
 #include "NXEvent.h"
 
@@ -56,8 +57,7 @@ void App::Draw()
 void App::Release()
 {
 	SafeRelease(m_pRenderer);
-
 	RenderStates::Release();
-
+	NXResourceManager::GetInstance()->Release();
 	SafeRelease(g_dxResources);
 }

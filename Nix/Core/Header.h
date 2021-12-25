@@ -66,6 +66,10 @@ class NXEventManager;
 class NXScript;
 class NXTimer;
 
+// resources
+class NXResourceManager;
+class NXTexture2D;
+
 class NXScene;
 class SceneManager;
 //class HBVHTree;	// 暂时先不用这个
