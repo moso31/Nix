@@ -12,7 +12,15 @@ NXResourceManager::~NXResourceManager()
 NXTexture2D* NXResourceManager::CreateTexture2D(std::string DebugName, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
 {
 	NXTexture2D* pTexture2D = new NXTexture2D();
-	pTexture2D->Create(DebugName, TexFormat, Width, Height, ArraySize, MipLevels, BindFlags, Usage, CpuAccessFlags, SampleCount, SampleQuality, MiscFlags);
+	pTexture2D->Create(DebugName, nullptr, TexFormat, Width, Height, ArraySize, MipLevels, BindFlags, Usage, CpuAccessFlags, SampleCount, SampleQuality, MiscFlags);
+
+	return pTexture2D;
+}
+
+NXTexture2D* NXResourceManager::CreateTexture2D(std::string DebugName, const D3D11_SUBRESOURCE_DATA* initData, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
+{
+	NXTexture2D* pTexture2D = new NXTexture2D();
+	pTexture2D->Create(DebugName, initData, TexFormat, Width, Height, ArraySize, MipLevels, BindFlags, Usage, CpuAccessFlags, SampleCount, SampleQuality, MiscFlags);
 
 	return pTexture2D;
 }
@@ -71,7 +79,7 @@ NXTexture2D::NXTexture2D() :
 {
 }
 
-void NXTexture2D::Create(std::string DebugName, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
+void NXTexture2D::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* initData, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
 {
 	this->DebugName = DebugName;
 	this->Width = Width;
@@ -93,7 +101,7 @@ void NXTexture2D::Create(std::string DebugName, DXGI_FORMAT TexFormat, UINT Widt
 	Desc.SampleDesc.Quality = SampleQuality;
 	Desc.MiscFlags = MiscFlags;
 
-	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&Desc, nullptr, &pTexture));
+	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&Desc, initData, &pTexture));
 	pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
 }
 
@@ -130,4 +138,15 @@ void NXTexture2D::CreateDSV()
 
 	std::string DSVDebugName = DebugName + " DSV";
 	pDSV->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DSVDebugName.size(), DSVDebugName.c_str());
+}
+
+void NXTexture2D::CreateUAV()
+{
+	DXGI_FORMAT UAVFormat = TexFormat;
+
+	CD3D11_UNORDERED_ACCESS_VIEW_DESC Desc(D3D11_UAV_DIMENSION_TEXTURE2D, UAVFormat);
+	NX::ThrowIfFailed(g_pDevice->CreateUnorderedAccessView(pTexture.Get(), &Desc, &pUAV));
+
+	std::string UAVDebugName = DebugName + " UAV";
+	pUAV->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)UAVDebugName.size(), UAVDebugName.c_str());
 }

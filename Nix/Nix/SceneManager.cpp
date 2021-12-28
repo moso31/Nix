@@ -166,7 +166,7 @@ bool SceneManager::BindParent(NXObject* pParent, NXObject* pChild)
 void SceneManager::Release()
 {
 	for (auto pLight : m_pbrLights) SafeDelete(pLight);
-	for (auto pMat : m_pbrMaterials) SafeDelete(pMat);
+	for (auto pMat : m_pbrMaterials) SafeRelease(pMat);
 	SafeRelease(m_pBVHTree);
 	for (auto obj : m_objects) SafeRelease(obj);
 	SafeRelease(m_pRootObject);

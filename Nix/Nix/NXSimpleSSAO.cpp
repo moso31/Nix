@@ -3,6 +3,7 @@
 #include "ShaderComplier.h"
 #include "GlobalBufferManager.h"
 #include "DirectResources.h"
+#include "NXResourceManager.h"
 #include "RenderStates.h"
 #include "NXScene.h"
 #include "SamplerMath.h"
@@ -24,19 +25,9 @@ void NXSimpleSSAO::Init(const Vector2& AOBufferSize)
 		L"[NXSimpleSSAO compile failed]. Please run this executable from the directory that contains the FX file.");
 	NX::ThrowIfFailed(g_pDevice->CreateComputeShader(pCSBlob->GetBufferPointer(), pCSBlob->GetBufferSize(), nullptr, &m_pComputeShader));
 
-	ComPtr<ID3D11Texture2D> pTexSSAO;
-	CD3D11_TEXTURE2D_DESC desc(
-		//DXGI_FORMAT_R32_FLOAT,
-		DXGI_FORMAT_R32G32B32A32_FLOAT,
-		lround(AOBufferSize.x),
-		lround(AOBufferSize.y),
-		1,
-		1,
-		D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS
-	);
-	g_pDevice->CreateTexture2D(&desc, nullptr, &pTexSSAO);
-	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(pTexSSAO.Get(), nullptr, &m_pSRVSSAO));
-	NX::ThrowIfFailed(g_pDevice->CreateUnorderedAccessView(pTexSSAO.Get(), nullptr, &m_pUAVSSAO));
+	m_pTexSSAO = NXResourceManager::GetInstance()->CreateTexture2D("Simple SSAO", DXGI_FORMAT_R32G32B32A32_FLOAT, lround(AOBufferSize.x), lround(AOBufferSize.y), 1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS);
+	m_pTexSSAO->CreateSRV();
+	m_pTexSSAO->CreateUAV();
 
 	// SSAO Params
 	InitSSAOParams();
@@ -63,7 +54,9 @@ void NXSimpleSSAO::Render(ID3D11ShaderResourceView* pSRVNormal, ID3D11ShaderReso
 	g_pContext->CSSetShaderResources(0, 1, &pSRVNormal);
 	g_pContext->CSSetShaderResources(1, 1, &pSRVPosition);
 	g_pContext->CSSetShaderResources(2, 1, &pSRVDepthPrepass);
-	g_pContext->CSSetUnorderedAccessViews(0, 1, m_pUAVSSAO.GetAddressOf(), nullptr);
+
+	auto pUAVSSAO = m_pTexSSAO->GetUAV();
+	g_pContext->CSSetUnorderedAccessViews(0, 1, &pUAVSSAO, nullptr);
 
 	Vector2 screenSize = g_dxResources->GetViewPortSize();
 	int threadCountX = ((int)screenSize.x + 7) / 8;
@@ -78,6 +71,16 @@ void NXSimpleSSAO::Render(ID3D11ShaderResourceView* pSRVNormal, ID3D11ShaderReso
 	g_pContext->CSSetUnorderedAccessViews(0, 1, pUAVNull->GetAddressOf(), nullptr);
 
 	g_pUDA->EndEvent();
+}
+
+ID3D11ShaderResourceView* NXSimpleSSAO::GetSRV()
+{
+	return m_pTexSSAO->GetSRV(); 
+}
+
+void NXSimpleSSAO::Release()
+{
+	SafeDelete(m_pTexSSAO);
 }
 
 void NXSimpleSSAO::InitSSAOParams()

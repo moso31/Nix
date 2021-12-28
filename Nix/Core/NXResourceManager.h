@@ -45,6 +45,20 @@ public:
         UINT SampleQuality = 0,
         UINT MiscFlags = 0);
 
+    NXTexture2D* CreateTexture2D(std::string DebugName,
+        const D3D11_SUBRESOURCE_DATA* initData,
+        DXGI_FORMAT TexFormat,
+        UINT Width,
+        UINT Height,
+        UINT ArraySize = 1,
+        UINT MipLevels = 0,
+        UINT BindFlags = D3D11_BIND_SHADER_RESOURCE,
+        D3D11_USAGE Usage = D3D11_USAGE_DEFAULT,
+        UINT CpuAccessFlags = 0,
+        UINT SampleCount = 1,
+        UINT SampleQuality = 0,
+        UINT MiscFlags = 0);
+
     void InitCommonRT();
     NXTexture2D* GetCommonRT(NXCommonRTEnum eRT);
 
@@ -61,6 +75,7 @@ public:
     ~NXTexture2D() {}
 
     void Create(std::string DebugName,
+        const D3D11_SUBRESOURCE_DATA* initData,
         DXGI_FORMAT TexFormat,
         UINT Width,
         UINT Height,
@@ -76,11 +91,13 @@ public:
     void CreateSRV();
     void CreateRTV();
     void CreateDSV();
+    void CreateUAV();
 
     ID3D11Texture2D*            GetTex() { return pTexture.Get(); }
     ID3D11RenderTargetView*     GetRTV() { return pRTV.Get(); }
     ID3D11ShaderResourceView*   GetSRV() { return pSRV.Get(); }
     ID3D11DepthStencilView*     GetDSV() { return pDSV.Get(); }
+    ID3D11UnorderedAccessView*  GetUAV() { return pUAV.Get(); }
 
 private:
     std::string DebugName;
@@ -89,6 +106,7 @@ private:
     ComPtr<ID3D11ShaderResourceView> pSRV;
     ComPtr<ID3D11RenderTargetView> pRTV;
     ComPtr<ID3D11DepthStencilView> pDSV;
+    ComPtr<ID3D11UnorderedAccessView> pUAV;
 
     DXGI_FORMAT TexFormat;
     UINT Width;

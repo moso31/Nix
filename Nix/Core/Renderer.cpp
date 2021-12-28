@@ -45,7 +45,7 @@ void Renderer::Init()
 		m_pDeferredRenderer->Init();
 
 		// 【待改】这个bool将来做成Settings（ini配置文件）之类的。
-		m_isDeferredShading = false;
+		m_isDeferredShading = true;
 	}
 
 	m_pPassShadowMap = new NXPassShadowMap(m_scene);
@@ -198,7 +198,7 @@ void Renderer::Release()
 	SafeRelease(m_pGUI);
 
 	SafeDelete(m_pPassShadowMap);
-	SafeDelete(m_pSSAO);
+	SafeRelease(m_pSSAO);
 
 	SafeRelease(m_pDeferredRenderer);
 	SafeDelete(m_pForwardRenderer);

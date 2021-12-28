@@ -1,6 +1,6 @@
 #pragma once
 #include "ShaderStructures.h"
-#include "NXInstance.h"
+#include "NXResourceManager.h"
 
 struct ConstantBufferMaterial
 {
@@ -40,35 +40,32 @@ public:
 	void	SetRoughness(const float roughness)		{ m_cbData.roughness = roughness; }
 	void	SetAO(const float ao)					{ m_cbData.ao = ao; }
 
-	ID3D11ShaderResourceView* GetSRVAlbedo()	const { return m_pSRVAlbedo.Get(); }
-	ID3D11ShaderResourceView* GetSRVNormal()	const { return m_pSRVNormal.Get(); }
-	ID3D11ShaderResourceView* GetSRVMetallic()	const { return m_pSRVMetallic.Get(); }
-	ID3D11ShaderResourceView* GetSRVRoughness() const { return m_pSRVRoughness.Get(); }
-	ID3D11ShaderResourceView* GetSRVAO()		const { return m_pSRVAmbientOcclusion.Get(); }
+	ID3D11ShaderResourceView* GetSRVAlbedo()	const { return m_pTexAlbedo->GetSRV(); }
+	ID3D11ShaderResourceView* GetSRVNormal()	const { return m_pTexNormal->GetSRV(); }
+	ID3D11ShaderResourceView* GetSRVMetallic()	const { return m_pTexMetallic->GetSRV(); }
+	ID3D11ShaderResourceView* GetSRVRoughness() const { return m_pTexRoughness->GetSRV(); }
+	ID3D11ShaderResourceView* GetSRVAO()		const { return m_pTexAmbientOcclusion->GetSRV(); }
 
 	void SetTexAlbedo(const std::wstring TexFilePath);
 	void SetTexNormal(const std::wstring TexFilePath);
 	void SetTexMetallic(const std::wstring TexFilePath);
 	void SetTexRoughness(const std::wstring TexFilePath);
 	void SetTexAO(const std::wstring TexFilePath);
-	void SetTex(const std::wstring TexFilePath, ComPtr<ID3D11Texture2D>& pTex, ComPtr<ID3D11ShaderResourceView>& pSRV);
+
+	void Release();
 
 private:
+	NXTexture2D* LoadFromTexFile(const std::wstring TexFilePath);
 	void InitConstantBuffer();
 
 private:
 	std::string m_name;
 
-	ComPtr<ID3D11Texture2D> m_pTexAlbedo;
-	ComPtr<ID3D11Texture2D> m_pTexNormal;
-	ComPtr<ID3D11Texture2D> m_pTexMetallic;
-	ComPtr<ID3D11Texture2D> m_pTexRoughness;
-	ComPtr<ID3D11Texture2D> m_pTexAmbientOcclusion;
-	ComPtr<ID3D11ShaderResourceView> m_pSRVAlbedo;
-	ComPtr<ID3D11ShaderResourceView> m_pSRVNormal;
-	ComPtr<ID3D11ShaderResourceView> m_pSRVMetallic;
-	ComPtr<ID3D11ShaderResourceView> m_pSRVRoughness;
-	ComPtr<ID3D11ShaderResourceView> m_pSRVAmbientOcclusion;
+	NXTexture2D* m_pTexAlbedo;
+	NXTexture2D* m_pTexNormal;
+	NXTexture2D* m_pTexMetallic;
+	NXTexture2D* m_pTexRoughness;
+	NXTexture2D* m_pTexAmbientOcclusion;
 
 	ConstantBufferMaterial	m_cbData;
 	ComPtr<ID3D11Buffer>	m_cb;

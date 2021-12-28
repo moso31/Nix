@@ -20,7 +20,7 @@ public:
 	void Update();
 	void Render(ID3D11ShaderResourceView* pSRVNormal, ID3D11ShaderResourceView* pSRVPosition, ID3D11ShaderResourceView* pSRVDepthPrepass);
 
-	ID3D11ShaderResourceView*	GetSRV()	{ return m_pSRVSSAO.Get(); }
+	ID3D11ShaderResourceView* GetSRV();
 
 	float GetRadius() { return m_ssaoParams.radius; }
 	void SetRadius(float radius) { m_ssaoParams.radius = radius; }
@@ -31,6 +31,8 @@ public:
 	float GetDirectLightingStrength() { return m_ssaoParams.directLightingStrength; }
 	void SetDirectLightingStrength(float strength) { m_ssaoParams.directLightingStrength = strength; }
 
+	void Release();
+
 private:
 	void InitSSAOParams();
 	void GenerateSamplePosition();
@@ -38,8 +40,7 @@ private:
 private:
 	ComPtr<ID3D11ComputeShader>			m_pComputeShader;
 
-	ComPtr<ID3D11ShaderResourceView>	m_pSRVSSAO;
-	ComPtr<ID3D11UnorderedAccessView>	m_pUAVSSAO;
+	NXTexture2D* m_pTexSSAO;
 
 	std::vector<Vector4>		m_samplePosition;
 	ComPtr<ID3D11Buffer> 		m_pCBSamplePositions;
