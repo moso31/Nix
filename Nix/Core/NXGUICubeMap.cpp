@@ -1,6 +1,7 @@
 #include "NXGUICubeMap.h"
 #include "NXScene.h"
 #include "NXCubeMap.h"
+#include "NXResourceReloader.h"
 
 NXGUICubeMap::NXGUICubeMap(NXScene* pScene, NXGUIFileBrowser* pFileBrowser) :
 	m_pCurrentScene(pScene),
@@ -83,9 +84,10 @@ void NXGUICubeMap::RenderTextureIcon(ImTextureID ImTexID, std::function<void()> 
 
 void NXGUICubeMap::OnCubeMapTexChange(NXCubeMap* pCubeMap)
 {
-	pCubeMap->Init(m_pFileBrowser->GetSelected().c_str());
-	pCubeMap->GenerateIrradianceMap();
-	pCubeMap->GeneratePreFilterMap();
+	NXResourceReloadCubeMapCommand* pCommand = new NXResourceReloadCubeMapCommand();
+	pCommand->pCubeMap = pCubeMap;
+	pCommand->strFilePath = m_pFileBrowser->GetSelected().c_str();
+	NXResourceReloader::GetInstance()->Push(pCommand);
 }
 
 void NXGUICubeMap::OnCubeMapTexRemove(NXCubeMap* pCubeMap)

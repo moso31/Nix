@@ -73,6 +73,9 @@
     <Filter Include="Shader\Math">
       <UniqueIdentifier>{a845cc5f-ef34-41d5-98b9-5095aa59ed3a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Core\DirectX\NXResources">
+      <UniqueIdentifier>{96100877-c259-41e1-b3d6-55542100aa12}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\RenderTarget.fx">
@@ -264,7 +267,10 @@
       <Filter>Core\UI</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXResourceManager.cpp">
-      <Filter>Core\DirectX</Filter>
+      <Filter>Core\DirectX\NXResources</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXResourceReloader.cpp">
+      <Filter>Core\DirectX\NXResources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -407,7 +413,10 @@
       <Filter>Core\UI</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXResourceManager.h">
-      <Filter>Core\DirectX</Filter>
+      <Filter>Core\DirectX\NXResources</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXResourceReloader.h">
+      <Filter>Core\DirectX\NXResources</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -226,6 +226,7 @@
     <ClCompile Include="Core\NXInstance.cpp" />
     <ClCompile Include="Core\NXRandom.cpp" />
     <ClCompile Include="Core\NXResourceManager.cpp" />
+    <ClCompile Include="Core\NXResourceReloader.cpp" />
     <ClCompile Include="Core\NXTimer.cpp" />
     <ClCompile Include="Core\Renderer.cpp" />
     <ClCompile Include="Core\RenderStates.cpp" />
@@ -273,6 +274,7 @@
     <ClInclude Include="Core\NXInstance.h" />
     <ClInclude Include="Core\NXRandom.h" />
     <ClInclude Include="Core\NXResourceManager.h" />
+    <ClInclude Include="Core\NXResourceReloader.h" />
     <ClInclude Include="Core\NXTimer.h" />
     <ClInclude Include="Core\Renderer.h" />
     <ClInclude Include="Core\RenderStates.h" />

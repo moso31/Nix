@@ -14,10 +14,19 @@ public:
 	void Init();
 	void InitGUI();
 	void InitRenderer();
-	void Preload();
+
+	// 资源重加载（如果上一帧修改了资源）
+	void ResourcesReloading();
+
+	// 更新 NXScene 场景
 	void UpdateSceneData();
-	void DrawScene();
-	void DrawGUI();
+
+	// 当前帧 渲染画面的绘制
+	void RenderFrame();
+
+	// GUI 的绘制
+	void RenderGUI();
+
 	void Release();
 
 private:

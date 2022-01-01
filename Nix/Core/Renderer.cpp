@@ -2,6 +2,7 @@
 #include "DirectResources.h"
 #include "ShaderComplier.h"
 #include "NXResourceManager.h"
+#include "NXResourceReloader.h"
 #include "RenderStates.h"
 #include "NXGUI.h"
 
@@ -106,6 +107,11 @@ void Renderer::InitRenderer()
 	g_pContext->PSSetSamplers(0, 1, RenderStates::SamplerLinearWrap.GetAddressOf());
 }
 
+void Renderer::ResourcesReloading()
+{
+	NXResourceReloader::GetInstance()->Update();
+}
+
 void Renderer::UpdateSceneData()
 {
 	// 更新场景Scripts。实际上是用Scripts控制指定物体的Transform。
@@ -118,12 +124,15 @@ void Renderer::UpdateSceneData()
 	m_scene->UpdateCamera();
 
 	auto pCubeMap = m_scene->GetCubeMap();
-	if (pCubeMap) pCubeMap->Update();
+	if (pCubeMap)
+	{
+		pCubeMap->Update();
+	}
 
 	m_pSSAO->Update();
 }
 
-void Renderer::DrawScene()
+void Renderer::RenderFrame()
 {
 	g_pUDA->BeginEvent(L"Render Scene");
 
@@ -188,7 +197,7 @@ void Renderer::DrawScene()
 	g_pUDA->EndEvent();
 }
 
-void Renderer::DrawGUI()
+void Renderer::RenderGUI()
 {
 	m_pGUI->Render();
 }

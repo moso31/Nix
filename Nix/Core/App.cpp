@@ -23,6 +23,11 @@ void App::Init()
 	m_pRenderer->InitGUI();
 }
 
+void App::Load()
+{
+	m_pRenderer->ResourcesReloading();
+}
+
 void App::Update()
 {
 	// 更新场景数据
@@ -31,9 +36,8 @@ void App::Update()
 
 void App::Draw()
 {
-	// 绘制主场景
-	m_pRenderer->DrawScene();
-	m_pRenderer->DrawGUI();
+	m_pRenderer->RenderFrame();
+	m_pRenderer->RenderGUI();
 
 	// clear SRV.
 	ID3D11ShaderResourceView* const pNullSRV[16] = { nullptr };
