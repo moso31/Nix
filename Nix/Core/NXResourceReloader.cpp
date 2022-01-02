@@ -20,8 +20,8 @@ void NXResourceReloader::Update()
 				pCubeMap->GeneratePreFilterMap();
 			}
 		}
-
-		SafeDelete(cmd);
+		
+		delete (NXResourceReloadCubeMapCommand*)cmd;
 	}
 	
 	m_resourceReloadCmdList.clear();
