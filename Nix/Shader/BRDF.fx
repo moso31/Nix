@@ -1,10 +1,6 @@
+#include "BRDFCommon.fx"
 #include "PBRLights.fx"
 #include "PBRMaterials.fx"
-
-const static float NX_PIDIV2 = 1.5707963267948966192313216916398f;
-const static float NX_PI = 3.1415926535897932384626433832795f;
-const static float NX_2PI = 6.283185307179586476925286766559f;
-const static float NX_4PI = 12.566370614359172953850573533118f;
 
 float DistributionGGX(float3 N, float3 H, float roughness)
 {
@@ -61,9 +57,18 @@ float GeometrySmithIBL(float3 N, float3 V, float3 L, float roughness)
 	return ggx1 * ggx2;
 }
 
-float3 fresnelSchlick(float cosTheta, float3 F0)
+float3 FresnelSchlick(float cosTheta, float3 F0)
 {
-	return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+	return F0 + (1.0 - F0) * Pow5(1.0 - cosTheta);
+}
+
+// [Burley 2012, "Physically-Based Shading at Disney"] 
+float3 DiffuseDisney(float3 DiffuseColor, float Roughness, float NoV, float NoL, float VoH)
+{
+	float FD90 = 0.5 + 2 * VoH * VoH * Roughness;
+	float FdV = 1 + (FD90 - 1) * Pow5(1 - NoV);
+	float FdL = 1 + (FD90 - 1) * Pow5(1 - NoL);
+	return DiffuseColor * ((1 / NX_PI) * FdV * FdL);
 }
 
 float3 ImportanceSampleGGX(float2 Xi, float roughness, float3 N)

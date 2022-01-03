@@ -1,5 +1,5 @@
 #include "Common.fx"
-#include "PBR.fx"
+#include "BRDF.fx"
 #include "MathSample.fx"
 
 TextureCube txCubeMap : register(t0);
@@ -38,7 +38,7 @@ float3 GetPrefilter(float roughness, float3 R)
 	float3 N = R;
 	float3 V = R;
 	float3 result = 0;
-	const uint NumSamples = 1024;
+	const uint NumSamples = 4096;
 	float TotalWeight = 0.0;
 	for (uint i = 0; i < NumSamples; i++)
 	{

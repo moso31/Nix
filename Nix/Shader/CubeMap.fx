@@ -1,5 +1,5 @@
 #include "Common.fx"
-#include "PBR.fx"
+#include "BRDF.fx"
 
 TextureCube txCubeMap : register(t0);
 

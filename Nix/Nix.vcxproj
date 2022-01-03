@@ -180,7 +180,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shader\PBR.fx">
+    <None Include="Shader\BRDF.fx">
       <FileType>Document</FileType>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
@@ -302,6 +302,11 @@
     <ClInclude Include="Nix\Script\NXScriptType.h" />
     <ClInclude Include="Nix\NXTransform.h" />
     <ClInclude Include="Nix\SceneManager.h" />
+    <None Include="Shader\BRDFCommon.fx">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <FileType>Document</FileType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="场景添加物体说明.txt" />

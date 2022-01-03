@@ -1,4 +1,4 @@
-#include "PBR.fx"
+#include "BRDF.fx"
 #include "MathSample.fx"
 
 SamplerState SamplerStateTrilinear

@@ -76,6 +76,9 @@
     <Filter Include="Core\DirectX\NXResources">
       <UniqueIdentifier>{96100877-c259-41e1-b3d6-55542100aa12}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shader\Renderer\BRDF">
+      <UniqueIdentifier>{a9b3cb21-76d7-4c6a-8270-539db5a9ae34}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\RenderTarget.fx">
@@ -100,9 +103,6 @@
       <Filter>Shader\CubeMap</Filter>
     </None>
     <None Include="Shader\PBRMaterials.fx">
-      <Filter>Shader</Filter>
-    </None>
-    <None Include="Shader\PBR.fx">
       <Filter>Shader</Filter>
     </None>
     <None Include="Shader\PBRLights.fx">
@@ -134,6 +134,12 @@
     </None>
     <None Include="Shader\DepthPrepass.fx">
       <Filter>Shader\Renderer</Filter>
+    </None>
+    <None Include="Shader\BRDF.fx">
+      <Filter>Shader\Renderer\BRDF</Filter>
+    </None>
+    <None Include="Shader\BRDFCommon.fx">
+      <Filter>Shader\Renderer\BRDF</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

@@ -1,5 +1,5 @@
 #include "Common.fx"
-#include "PBR.fx"
+#include "BRDF.fx"
 #include "Math.fx"
 
 TextureCube txCubeMap : register(t0);
@@ -122,7 +122,7 @@ float4 PS(PS_INPUT input) : SV_Target
         // Œ¢±Ì√Ê BRDF
 		float NDF = DistributionGGX(N, H, roughness);
 		float G = GeometrySmithDirect(N, V, L, roughness);
-		float3 F = fresnelSchlick(saturate(dot(H, V)), F0);
+		float3 F = FresnelSchlick(saturate(dot(H, V)), F0);
 
         float3 numerator = NDF * G * F;
         float denominator = 4.0 * saturate(dot(N, V)) * saturate(dot(N, L));
@@ -135,7 +135,7 @@ float4 PS(PS_INPUT input) : SV_Target
         Lo += (kD * albedo / NX_PI + specular) * radiance * NdotL;
     }
 
-	float3 kS = fresnelSchlick(saturate(dot(N, V)), F0);
+	float3 kS = FresnelSchlick(saturate(dot(N, V)), F0);
 	float3 kD = 1.0 - kS;
 	kD *= 1.0 - metallic;
 	float3 irradiance = txIrradianceMap.Sample(SamplerStateTrilinear, N).xyz;

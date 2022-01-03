@@ -1,5 +1,5 @@
 #include "Common.fx"
-#include "PBR.fx"
+#include "BRDF.fx"
 #include "Math.fx"
 
 Texture2D txRT0 : register(t0);
@@ -93,10 +93,14 @@ float4 PS(PS_INPUT input) : SV_Target
         float attenuation = 1.0 / (distance * distance);
         float3 radiance = lightColor * attenuation;
 
+		float NoV = max(dot(N, V), 0.0);
+		float NoL = max(dot(N, L), 0.0);
+		float VoH = max(dot(V, H), 0.0);
+
         // Œ¢±Ì√Ê BRDF
 		float NDF = DistributionGGX(N, H, roughness);
 		float G = GeometrySmithDirect(N, V, L, roughness);
-		float3 F = fresnelSchlick(saturate(dot(H, V)), F0);
+		float3 F = FresnelSchlick(saturate(dot(H, V)), F0);
 
         float3 numerator = NDF * G * F;
         float denominator = 4.0 * saturate(dot(N, V)) * saturate(dot(N, L));
@@ -105,14 +109,16 @@ float4 PS(PS_INPUT input) : SV_Target
 		float3 kS = F;
 		float3 kD = 1.0 - kS;
 		kD *= 1.0 - metallic;
-        float NdotL = max(dot(N, L), 0.0);
-        Lo += (kD * albedo / NX_PI + specular) * radiance * NdotL;
+
+		float3 diffuse = DiffuseDisney(albedo, roughness, NoV, NoL, VoH);
+        Lo += (kD * diffuse + specular) * radiance * NoL;
     }
 
-	float3 kS = fresnelSchlick(saturate(dot(N, V)), F0);
+	float3 kS = FresnelSchlick(saturate(dot(N, V)), F0);
 	float3 kD = 1.0 - kS;
 	kD *= 1.0 - metallic;
 	float3 irradiance = txIrradianceMap.Sample(SamplerStateTrilinear, N).xyz;
+	
 	float3 diffuseIBL = kD * albedo * irradiance;
 
 	float3 preFilteredColor = txPreFilterMap.SampleLevel(SamplerStateTrilinear, R, roughness * 4.0f).rgb;
