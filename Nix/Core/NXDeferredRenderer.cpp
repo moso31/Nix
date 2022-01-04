@@ -149,6 +149,8 @@ void NXDeferredRenderer::Render(ID3D11ShaderResourceView* pSRVSSAO)
 	g_pContext->IASetInputLayout(m_pInputLayoutRender.Get());
 	g_pContext->VSSetShader(m_pVertexShaderRender.Get(), nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShaderRender.Get(), nullptr, 0);
+	g_pContext->PSSetSamplers(0, 1, RenderStates::SamplerLinearWrap.GetAddressOf());
+	g_pContext->PSSetSamplers(1, 1, RenderStates::SamplerLinearClamp.GetAddressOf());
 
 	g_pContext->VSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
 	g_pContext->PSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());

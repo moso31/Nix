@@ -1,13 +1,6 @@
 #include "BRDF.fx"
 #include "MathSample.fx"
 
-SamplerState SamplerStateTrilinear
-{
-	Filter = MIN_MAG_MIP_LINEAR;
-	AddressU = Wrap;
-	AddressV = Wrap;
-};
-
 float2 IntegrateBRDF(float roughness, float NoV)
 {
 	float3 V;

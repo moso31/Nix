@@ -235,6 +235,7 @@ void Renderer::DrawCubeMap()
 		pCubeMap->UpdateViewParams();
 		g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 		g_pContext->PSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
+		g_pContext->PSSetSamplers(0, 1, RenderStates::SamplerLinearWrap.GetAddressOf());
 
 		auto pCBCubeMapParam = pCubeMap->GetConstantBufferParams();
 		g_pContext->PSSetConstantBuffers(1, 1, &pCBCubeMapParam);

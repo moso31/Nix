@@ -2,6 +2,8 @@
 
 Texture2D txHDRMap : register(t0);
 
+SamplerState ssLinearWrap : register(s0);
+
 static const float2 invAtan = float2(0.1591f, 0.3183f);
 float2 SampleSphericalMap(float3 v)
 {
@@ -36,6 +38,6 @@ PS_INPUT VS(VS_INPUT input)
 float4 PS(PS_INPUT input) : SV_Target
 {
 	float2 uv = SampleSphericalMap(normalize(input.posOS)); // make sure to normalize localPos
-	float3 color = txHDRMap.Sample(SamplerStateTrilinear, uv).rgb;
+	float3 color = txHDRMap.Sample(ssLinearWrap, uv).rgb;
 	return float4(color, 1.0);
 }

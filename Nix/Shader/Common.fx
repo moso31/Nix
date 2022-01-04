@@ -1,10 +1,3 @@
-SamplerState SamplerStateTrilinear
-{
-	Filter = MIN_MAG_MIP_LINEAR;
-	AddressU = Wrap;
-	AddressV = Wrap;
-};
-
 cbuffer ConstantBufferObject : register(b0)
 {
 	matrix m_world;

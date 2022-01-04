@@ -4,6 +4,8 @@
 
 Texture2D txNormalMap : register(t0);
 
+SamplerState ssLinearWrap : register(s0);
+
 cbuffer ConstantBufferMaterial : register(b2)
 {
 	Material m_material;
@@ -49,7 +51,7 @@ void PS(PS_INPUT input, out PS_OUTPUT Output)
 {
 	Output.Position = float4(input.posVS);
 
-	float3 normalMap = txNormalMap.Sample(SamplerStateTrilinear, input.tex).xyz;
+	float3 normalMap = txNormalMap.Sample(ssLinearWrap, input.tex).xyz;
 	float3 normal = m_material.normal * normalMap;
 	float3 N = TangentSpaceToViewSpace(normal, input.normVS, input.tangentVS);
 	Output.Normal = float4(N, 1.0f);

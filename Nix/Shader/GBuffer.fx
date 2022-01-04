@@ -8,6 +8,8 @@ Texture2D txMetallicMap : register(t3);
 Texture2D txRoughnessMap : register(t4);
 Texture2D txAmbientOcclusionMap : register(t5);
 
+SamplerState ssLinearWrap : register(s0);
+
 cbuffer ConstantBufferMaterial : register(b3)
 {
 	Material m_material;
@@ -57,22 +59,22 @@ void PS(PS_INPUT input, out PS_OUTPUT Output)
 {
 	Output.GBufferA = float4(input.posVS.xyz, 1.0f);
 
-	float3 normalMap = txNormalMap.Sample(SamplerStateTrilinear, input.tex).xyz;
+	float3 normalMap = txNormalMap.Sample(ssLinearWrap, input.tex).xyz;
 	float3 normal = m_material.normal * normalMap;
 	float3 N = TangentSpaceToViewSpace(normal, input.normVS, input.tangentVS);
 	Output.GBufferB = float4(N, 1.0f);
 
-	float3 albedoMap = txAlbedo.Sample(SamplerStateTrilinear, input.tex).xyz;
+	float3 albedoMap = txAlbedo.Sample(ssLinearWrap, input.tex).xyz;
 	float3 albedo = m_material.albedo * albedoMap;
 	Output.GBufferC = float4(albedo, 1.0f);
 
-	float metallicMap = txMetallicMap.Sample(SamplerStateTrilinear, input.tex).x;
+	float metallicMap = txMetallicMap.Sample(ssLinearWrap, input.tex).x;
 	float metallic = m_material.metallic * metallicMap;
 
-	float roughnessMap = txRoughnessMap.Sample(SamplerStateTrilinear, input.tex).x;
+	float roughnessMap = txRoughnessMap.Sample(ssLinearWrap, input.tex).x;
 	float roughness = m_material.roughness * roughnessMap;
 
-	float AOMap = txAmbientOcclusionMap.Sample(SamplerStateTrilinear, input.tex).x;
+	float AOMap = txAmbientOcclusionMap.Sample(ssLinearWrap, input.tex).x;
 	float ao = m_material.ao * AOMap;
 
 	Output.GBufferD = float4(roughness, metallic, ao, 1.0f);

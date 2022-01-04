@@ -2,7 +2,7 @@
 
 #define SSAO_SAMPLE_COUNT 256
 
-SamplerState SamplerStateTrilinear : register(s0);
+SamplerState ssLinearWrap : register(s0);
 
 //TODO:命名修改，所有ConstantBufferCamera改成cbCamera
 cbuffer ConstantBufferCamera : register(b0)
@@ -72,7 +72,7 @@ void CS(int3 DTid : SV_DispatchThreadID)
 
 		float2 SampleUV = (SampleNDC + 1.0f) * 0.5f;
 
-		float SampleDepth = txDepthZ.SampleLevel(SamplerStateTrilinear, SampleUV, 0.0).x;
+		float SampleDepth = txDepthZ.SampleLevel(ssLinearWrap, SampleUV, 0.0).x;
 		float SampleLinearDepth = LinearDepth(SampleDepth);
 		if (SampleVS.z > SampleLinearDepth)
 		{

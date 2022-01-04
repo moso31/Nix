@@ -1,5 +1,6 @@
 #include "NXDepthPrepass.h"
 #include "ShaderComplier.h"
+#include "RenderStates.h"
 #include "GlobalBufferManager.h"
 #include "DirectResources.h"
 #include "NXResourceManager.h"
@@ -59,6 +60,7 @@ void NXDepthPrepass::Render()
 
 	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
+	g_pContext->PSSetSamplers(0, 1, RenderStates::SamplerLinearWrap.GetAddressOf());
 
 	for (auto pPrim : m_pScene->GetPrimitives())
 	{

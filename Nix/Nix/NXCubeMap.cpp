@@ -224,6 +224,7 @@ void NXCubeMap::GenerateCubeMap(const std::wstring filePath)
 	g_pContext->PSSetShader(pPixelShader.Get(), nullptr, 0);
 	g_pContext->PSSetShaderResources(0, 1, m_pSRVHDRMap.GetAddressOf());
 	g_pContext->VSSetConstantBuffers(0, 1, cb.GetAddressOf());
+	g_pContext->PSSetSamplers(0, 1, RenderStates::SamplerLinearWrap.GetAddressOf());
 
 	ConstantBufferObject cbData;
 	cbData.world = Matrix::Identity();
@@ -361,6 +362,7 @@ void NXCubeMap::GenerateIrradianceMap()
 	g_pContext->PSSetShader(pPixelShader.Get(), nullptr, 0);
 	g_pContext->PSSetShaderResources(0, 1, m_pSRVCubeMap.GetAddressOf());
 	g_pContext->VSSetConstantBuffers(0, 1, cb.GetAddressOf());
+	g_pContext->PSSetSamplers(0, 1, RenderStates::SamplerLinearWrap.GetAddressOf());
 
 	ConstantBufferObject cbData;
 	cbData.world = Matrix::Identity();
@@ -387,9 +389,6 @@ void NXCubeMap::GenerateIrradianceMap()
 void NXCubeMap::GeneratePreFilterMap()
 {
 	g_pUDA->BeginEvent(L"Generate PreFilter Map");
-
-	// 计算之前，设置当前的采样器为SamplerLinearClamp。
-	g_pContext->PSSetSamplers(0, 1, RenderStates::SamplerLinearClamp.GetAddressOf());
 
 	const static float MapSize = 512.0f;
 	CD3D11_TEXTURE2D_DESC descTex(m_format, (UINT)MapSize, (UINT)MapSize, 6, 5, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, D3D11_RESOURCE_MISC_TEXTURECUBE);
@@ -444,6 +443,8 @@ void NXCubeMap::GeneratePreFilterMap()
 	g_pContext->PSSetShaderResources(0, 1, m_pSRVCubeMap.GetAddressOf());
 	g_pContext->VSSetConstantBuffers(0, 1, cbCubeCamera.GetAddressOf());
 	g_pContext->PSSetConstantBuffers(1, 1, cbRoughness.GetAddressOf());
+	//g_pContext->PSSetSamplers(0, 1, RenderStates::SamplerLinearClamp.GetAddressOf());
+	g_pContext->PSSetSamplers(0, 1, RenderStates::SamplerLinearWrap.GetAddressOf());
 
 	ConstantBufferObject cbDataCubeCamera;
 	cbDataCubeCamera.world = Matrix::Identity();
@@ -478,7 +479,6 @@ void NXCubeMap::GeneratePreFilterMap()
 		}
 	}
 
-	g_pContext->PSSetSamplers(0, 1, RenderStates::SamplerLinearWrap.GetAddressOf());
 	g_pUDA->EndEvent();
 }
 

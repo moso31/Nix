@@ -15,7 +15,8 @@ Texture2D txBRDF2DLUT : register(t9);
 //Texture2D txShadowMap : register(t10);
 Texture2D txSSAO : register(t11);
 
-SamplerComparisonState SamplerStateShadowMap : register(s1);
+SamplerState ssLinearWrap : register(s0);
+SamplerState ssLinearClamp : register(s1);
 
 cbuffer ConstantBufferCamera : register(b1)
 {
@@ -40,6 +41,12 @@ cbuffer ConstantBufferShadowMapTransform : register(b4)
 	matrix m_shadowMapView;
 	matrix m_shadowMapProjection;
 	matrix m_shadowMapTex;
+}
+
+cbuffer ConstantBufferCubeMap : register(b5)
+{
+	float m_cubeMapIntensity;
+	float3 _0;
 }
 
 struct VS_INPUT
@@ -74,7 +81,7 @@ PS_INPUT VS(VS_INPUT input)
 
 float4 PS(PS_INPUT input) : SV_Target
 {
-	float3 normalMap = txNormalMap.Sample(SamplerStateTrilinear, input.tex).xyz;
+	float3 normalMap = txNormalMap.Sample(ssLinearWrap, input.tex).xyz;
 	float3 normal = m_material.normal * normalMap;
 
 	float3 pos = input.posWS.xyz;
@@ -83,21 +90,22 @@ float4 PS(PS_INPUT input) : SV_Target
 	float3 R = reflect(-V, N);
 	R = mul(R, (float3x3)m_viewTranspose);
 
-	//return txCubeMap.Sample(SamplerStateTrilinear, R);	// perfect reflection test
+	//return txCubeMap.Sample(ssLinearWrap, R);	// perfect reflection test
 
-	float3 albedoMap = txAlbedo.Sample(SamplerStateTrilinear, input.tex).xyz;
+	float3 albedoMap = txAlbedo.Sample(ssLinearWrap, input.tex).xyz;
 	float3 albedo = m_material.albedo * albedoMap;
 	albedo = pow(albedo, 2.2f);
 	//return float4(albedoMap, 1.0f);	// albedo only test
 
-	float roughnessMap = txRoughnessMap.Sample(SamplerStateTrilinear, input.tex).x;
+	float roughnessMap = txRoughnessMap.Sample(ssLinearWrap, input.tex).x;
 	float roughness = m_material.roughness * roughnessMap;
+	roughness = roughness * roughness;
 
-	float metallicMap = txMetallicMap.Sample(SamplerStateTrilinear, input.tex).x;
+	float metallicMap = txMetallicMap.Sample(ssLinearWrap, input.tex).x;
 	float metallic = m_material.metallic * metallicMap;
 
-	float AOMap = txAmbientOcclusionMap.Sample(SamplerStateTrilinear, input.tex).x;
-	float SSAOMap = txSSAO.Sample(SamplerStateTrilinear, input.tex).x;
+	float AOMap = txAmbientOcclusionMap.Sample(ssLinearWrap, input.tex).x;
+	float SSAOMap = txSSAO.Sample(ssLinearWrap, input.tex).x;
 	float ssao = 1.0f - SSAOMap;
 	float ao = m_material.ao * AOMap * ssao;
 
@@ -138,14 +146,14 @@ float4 PS(PS_INPUT input) : SV_Target
 	float3 kS = FresnelSchlick(saturate(dot(N, V)), F0);
 	float3 kD = 1.0 - kS;
 	kD *= 1.0 - metallic;
-	float3 irradiance = txIrradianceMap.Sample(SamplerStateTrilinear, N).xyz;
+	float3 irradiance = txIrradianceMap.Sample(ssLinearWrap, N).xyz;
 	float3 diffuseIBL = kD * albedo * irradiance;
 
-	float3 preFilteredColor = txPreFilterMap.SampleLevel(SamplerStateTrilinear, R, roughness * 4.0f).rgb;
-	float2 envBRDF = txBRDF2DLUT.Sample(SamplerStateTrilinear, float2(saturate(dot(N, V)), roughness)).rg;
+	float3 preFilteredColor = txPreFilterMap.SampleLevel(ssLinearWrap, R, roughness * 4.0f).rgb;
+	float2 envBRDF = txBRDF2DLUT.Sample(ssLinearClamp, float2(saturate(dot(N, V)), roughness)).rg;
 	float3 SpecularIBL = preFilteredColor * float3(kS * envBRDF.x + envBRDF.y);
 
-	float3 ambient = (diffuseIBL + SpecularIBL) * ao;
+	float3 ambient = (diffuseIBL + SpecularIBL) * m_cubeMapIntensity * ao;
 	float3 color = ambient + Lo;
 
 	// gamma.

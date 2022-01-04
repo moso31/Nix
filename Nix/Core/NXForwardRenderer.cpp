@@ -48,6 +48,8 @@ void NXForwardRenderer::Render(ID3D11ShaderResourceView* pSRVSSAO)
 
 	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
+	g_pContext->PSSetSamplers(0, 1, RenderStates::SamplerLinearWrap.GetAddressOf());
+	g_pContext->PSSetSamplers(1, 1, RenderStates::SamplerLinearClamp.GetAddressOf());
 
 	g_pContext->VSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
 	g_pContext->PSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
@@ -67,6 +69,9 @@ void NXForwardRenderer::Render(ID3D11ShaderResourceView* pSRVSSAO)
 		g_pContext->PSSetShaderResources(7, 1, &pIrradianceMapSRV);
 		g_pContext->PSSetShaderResources(8, 1, &pPreFilterMapSRV);
 		g_pContext->PSSetShaderResources(9, 1, &pBRDF2DLUT);
+
+		auto pCBCubeMapParam = pCubeMap->GetConstantBufferParams();
+		g_pContext->PSSetConstantBuffers(5, 1, &pCBCubeMapParam);
 	}
 
 	// PBR大改。阴影贴图暂时停用。

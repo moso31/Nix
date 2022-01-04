@@ -4,6 +4,8 @@
 
 TextureCube txCubeMap : register(t0);
 
+SamplerState ssLinearWrap : register(s0);
+
 cbuffer ConstantBufferPreFilter : register(b1)
 {
 	float m_roughness;
@@ -26,7 +28,7 @@ float3 GetPrefilterEducational(float roughness, float3 R)
 		float NoL = saturate(dot(N, L));
 		if (NoL > 0.0f)
 		{
-			result += txCubeMap.SampleLevel(SamplerStateTrilinear, L, 0).rgb * NoL;
+			result += txCubeMap.SampleLevel(ssLinearWrap, L, 0).rgb * NoL;
 			TotalWeight += NoL;
 		}
 	}
@@ -59,7 +61,7 @@ float3 GetPrefilter(float roughness, float3 R)
 			float saFactor = 6.0 * imgSize * imgSize / (NX_4PI * (float)NumSamples * pdf);
 			float TargetMipLevel = roughness == 0.0f ? 0.0f : max(0.5 * log2(saFactor), 0.0);
 
-			result += txCubeMap.SampleLevel(SamplerStateTrilinear, L, TargetMipLevel).rgb * NoL;
+			result += txCubeMap.SampleLevel(ssLinearWrap, L, TargetMipLevel).rgb * NoL;
 			TotalWeight += NoL;
 		}
 	}

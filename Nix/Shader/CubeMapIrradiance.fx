@@ -3,6 +3,8 @@
 
 TextureCube txCubeMap : register(t0);
 
+SamplerState ssLinearWrap : register(s0);
+
 float3 GetIrradiance(float3 wi)
 {
 	// 形成wi, wt(tangent), wb(bitangent) 坐标系
@@ -25,7 +27,7 @@ float3 GetIrradiance(float3 wi)
 			// tangent space to world
 			float3 sampleVec = tangentSample.x * wt + tangentSample.y * wb + tangentSample.z * wi;
 
-			irradiance += txCubeMap.Sample(SamplerStateTrilinear, sampleVec).rgb * cos(theta) * sin(theta);
+			irradiance += txCubeMap.Sample(ssLinearWrap, sampleVec).rgb * cos(theta) * sin(theta);
 			nrSamples++;
 		}
 	}
