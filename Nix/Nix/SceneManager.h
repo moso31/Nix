@@ -31,11 +31,11 @@ public:
 
 	NXCamera* CreateCamera(const std::string name, const float FovY, const float zNear, const float zFar, const Vector3& eye, const Vector3& at, const Vector3& up);
 	NXPBRMaterial* CreatePBRMaterial(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, 
-		const std::wstring albedoTexFilePath = L"",
-		const std::wstring normalTexFilePath = L"",
-		const std::wstring metallicTexFilePath = L"",
-		const std::wstring roughnessTexFilePath = L"",
-		const std::wstring aoTexFilePath = L"");
+		const std::wstring albedoTexFilePath = L".\\Resource\\white1x1.png",
+		const std::wstring normalTexFilePath = L".\\Resource\\normal1x1.png",
+		const std::wstring metallicTexFilePath = L".\\Resource\\white1x1.png",
+		const std::wstring roughnessTexFilePath = L".\\Resource\\white1x1.png",
+		const std::wstring aoTexFilePath = L".\\Resource\\white1x1.png");
 	NXPBRPointLight* CreatePBRPointLight(const Vector3& position, const Vector3& intensity);
 	NXPBRDistantLight* CreatePBRDistantLight(const Vector3& direction, const Vector3& radiance);
 	NXPBREnvironmentLight* CreatePBREnvironmentLight(NXCubeMap* pCubeMap, const Vector3& Intensity = Vector3(1.0f));

@@ -115,28 +115,39 @@ void NXScene::Init()
 	pPBRMat[3]->SetTexRoughness(L"D:\\NixAssets\\circle-textured-metal1\\roughness.png");
 	pPBRMat[3]->SetTexAO(L"D:\\NixAssets\\circle-textured-metal1\\ao.png");
 
-	auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64);
-	pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
+	//auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64);
+	//pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
 
 	std::vector<NXPrimitive*> pMeshes;
-	m_sceneManager->CreateFBXMeshes("D:\\NixAssets\\UnityBall.fbx", pMeshes);
-	pMeshes[0]->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
-	pMeshes[0]->GetSubMesh(1)->SetMaterialPBR(pPBRMat[1]);
-	pMeshes[0]->GetSubMesh(2)->SetMaterialPBR(pPBRMat[3]);
-	pMeshes[0]->GetSubMesh(3)->SetMaterialPBR(pPBRMat[3]);
-	pMeshes[0]->SetRotation(Vector3(-0.8f, 0.0f, 0.0f));
-
-	//m_sceneManager->CreateFBXMeshes("D:\\NixAssets\\Cloth.fbx", pMeshes, true);
+	//m_sceneManager->CreateFBXMeshes("D:\\NixAssets\\UnityBall.fbx", pMeshes);
 	//pMeshes[0]->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
-	//pMeshes[1]->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
-	//pMeshes[2]->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
-	//pMeshes[3]->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
-	//pMeshes[4]->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
-	//pMeshes[0]->SetScale(Vector3(0.1f, 0.1f, 0.1f));
-	//pMeshes[1]->SetScale(Vector3(0.1f, 0.1f, 0.1f));
-	//pMeshes[2]->SetScale(Vector3(0.1f, 0.1f, 0.1f));
-	//pMeshes[3]->SetScale(Vector3(0.1f, 0.1f, 0.1f));
-	//pMeshes[4]->SetScale(Vector3(0.1f, 0.1f, 0.1f));
+	//pMeshes[0]->GetSubMesh(1)->SetMaterialPBR(pPBRMat[1]);
+	//pMeshes[0]->GetSubMesh(2)->SetMaterialPBR(pPBRMat[3]);
+	//pMeshes[0]->GetSubMesh(3)->SetMaterialPBR(pPBRMat[3]);
+	//pMeshes[0]->SetRotation(Vector3(-0.8f, 0.0f, 0.0f));
+
+	//for (int i = -5; i <= 5; i++)
+	//{
+	//	NXPBRMaterial* pPBRMat = m_sceneManager->CreatePBRMaterial("rustediron2", Vector3(1.0f), Vector3(1.0f), 1.0f, i * 0.1f + 0.5f, 1.0f);
+	//	auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(i * 2.0f, 0.0f, 0.0f));
+	//	pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat);
+
+	//	pPBRMat = m_sceneManager->CreatePBRMaterial("rustediron2", Vector3(1.0f), Vector3(1.0f), 0.0f, i * 0.1f + 0.5f, 1.0f);
+	//	pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(i * 2.0f, 2.0f, 0.0f));
+	//	pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat);
+	//}
+
+	m_sceneManager->CreateFBXMeshes("D:\\NixAssets\\Cloth.fbx", pMeshes, true);
+	pMeshes[0]->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
+	pMeshes[1]->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
+	pMeshes[2]->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
+	pMeshes[3]->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
+	pMeshes[4]->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
+	pMeshes[0]->SetScale(Vector3(0.1f, 0.1f, 0.1f));
+	pMeshes[1]->SetScale(Vector3(0.1f, 0.1f, 0.1f));
+	pMeshes[2]->SetScale(Vector3(0.1f, 0.1f, 0.1f));
+	pMeshes[3]->SetScale(Vector3(0.1f, 0.1f, 0.1f));
+	pMeshes[4]->SetScale(Vector3(0.1f, 0.1f, 0.1f));
 
 	{
 		//bool bBind = m_sceneManager->BindParent(pMeshes[1], pSphere);

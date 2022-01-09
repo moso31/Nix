@@ -150,15 +150,15 @@ float4 PS(PS_INPUT input) : SV_Target
 	float3 diffuseIBL = kD * albedo * irradiance;
 
 	float3 preFilteredColor = txPreFilterMap.SampleLevel(ssLinearWrap, R, roughness * 4.0f).rgb;
-	float2 envBRDF = txBRDF2DLUT.Sample(ssLinearClamp, float2(roughness, saturate(dot(N, V)))).rg;
+	float2 envBRDF = txBRDF2DLUT.Sample(ssLinearClamp, float2(saturate(dot(N, V)), roughness)).rg;
 	float3 SpecularIBL = preFilteredColor * float3(kS * envBRDF.x + envBRDF.y);
 
 	float3 ambient = (diffuseIBL + SpecularIBL) * m_cubeMapIntensity * ao;
 	float3 color = ambient + Lo;
 
-	// gamma.
-	color = color / (color + 1.0);
-	color = pow(color, 1.0 / 2.2);
+	//// gamma.
+	//color = color / (color + 1.0);
+	//color = pow(color, 1.0 / 2.2);
 
 	return float4(color, 1.0f);
 }
