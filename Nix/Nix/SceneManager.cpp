@@ -114,9 +114,20 @@ NXCamera* SceneManager::CreateCamera(const std::string name, const float FovY, c
 	return p;
 }
 
-NXPBRMaterial* SceneManager::CreatePBRMaterial(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao)
+NXPBRMaterial* SceneManager::CreatePBRMaterial(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao,
+	const std::wstring albedoTexFilePath,
+	const std::wstring normalTexFilePath,
+	const std::wstring metallicTexFilePath,
+	const std::wstring roughnessTexFilePath,
+	const std::wstring aoTexFilePath)
 {
 	auto pMat = new NXPBRMaterial(name, albedo, normal, metallic, roughness, ao);
+
+	if (albedoTexFilePath != L"")		pMat->SetTexAlbedo(albedoTexFilePath);
+	if (normalTexFilePath != L"")		pMat->SetTexNormal(normalTexFilePath);
+	if (metallicTexFilePath != L"")		pMat->SetTexMetallic(metallicTexFilePath);
+	if (roughnessTexFilePath != L"")	pMat->SetTexRoughness(roughnessTexFilePath);
+	if (aoTexFilePath != L"")			pMat->SetTexAO(aoTexFilePath);
 	RegisterMaterial(pMat);
 	return pMat;
 }

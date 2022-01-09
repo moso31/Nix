@@ -3473,8 +3473,30 @@ inline float AABB::GetSurfaceArea() const
 
 inline void DirectX::SimpleMath::AABB::Transform(AABB& aabb, const Matrix& m, AABB& result)
 {
-	result.Center = Vector3::Transform(aabb.Center, m);
-	result.Extents = Vector3::Abs(Vector3::TransformNormal(aabb.Extents, m));
+    Vector3 pMin = aabb.GetMin(); Vector3::Transform(aabb.GetMin(), m);
+    Vector3 pMax = aabb.GetMax(); Vector3::Transform(aabb.GetMax(), m);
+
+    Vector3 pCorner[8];
+    pCorner[0] = Vector3::Transform(Vector3(pMin.x, pMin.y, pMin.z), m);
+    pCorner[1] = Vector3::Transform(Vector3(pMin.x, pMin.y, pMax.z), m);
+    pCorner[2] = Vector3::Transform(Vector3(pMin.x, pMax.y, pMin.z), m);
+    pCorner[3] = Vector3::Transform(Vector3(pMin.x, pMax.y, pMax.z), m);
+    pCorner[4] = Vector3::Transform(Vector3(pMax.x, pMin.y, pMin.z), m);
+    pCorner[5] = Vector3::Transform(Vector3(pMax.x, pMin.y, pMax.z), m);
+    pCorner[6] = Vector3::Transform(Vector3(pMax.x, pMax.y, pMin.z), m);
+    pCorner[7] = Vector3::Transform(Vector3(pMax.x, pMax.y, pMax.z), m);
+
+    Vector3 rMin;
+    Vector3 rMax;
+
+    for (auto p : pCorner)
+    {
+        rMin = Vector3::Min(rMin, p);
+        rMax = Vector3::Max(rMax, p);
+    }
+
+	result.Center = (rMax + rMin) * 0.5;
+    result.Extents = (rMax - rMin) * 0.5;
 }
 
 

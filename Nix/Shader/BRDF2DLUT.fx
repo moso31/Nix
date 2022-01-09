@@ -3,6 +3,8 @@
 
 float2 IntegrateBRDF(float roughness, float NoV)
 {
+	roughness = 1.0f - roughness;
+
 	float3 V;
 	V.x = sqrt(1.0f - NoV * NoV); // sin
 	V.y = 0;
