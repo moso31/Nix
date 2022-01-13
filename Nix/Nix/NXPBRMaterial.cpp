@@ -24,26 +24,31 @@ void NXPBRMaterial::Update()
 
 void NXPBRMaterial::SetTexAlbedo(const std::wstring TexFilePath)
 {
+	if (m_pTexAlbedo) delete m_pTexAlbedo;
 	m_pTexAlbedo = LoadFromTexFile(TexFilePath);
 }
 
 void NXPBRMaterial::SetTexNormal(const std::wstring TexFilePath)
 {
+	if (m_pTexNormal) delete m_pTexNormal;
 	m_pTexNormal = LoadFromTexFile(TexFilePath);
 }
 
 void NXPBRMaterial::SetTexMetallic(const std::wstring TexFilePath)
 {
+	if (m_pTexMetallic) delete m_pTexMetallic;
 	m_pTexMetallic = LoadFromTexFile(TexFilePath);
 }
 
 void NXPBRMaterial::SetTexRoughness(const std::wstring TexFilePath)
 {
+	if (m_pTexRoughness) delete m_pTexRoughness;
 	m_pTexRoughness = LoadFromTexFile(TexFilePath);
 }
 
 void NXPBRMaterial::SetTexAO(const std::wstring TexFilePath)
 {
+	if (m_pTexAmbientOcclusion) delete m_pTexAmbientOcclusion;
 	m_pTexAmbientOcclusion = LoadFromTexFile(TexFilePath);
 }
 
