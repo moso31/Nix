@@ -46,16 +46,16 @@ public:
 	ID3D11ShaderResourceView* GetSRVRoughness() const { return m_pTexRoughness->GetSRV(); }
 	ID3D11ShaderResourceView* GetSRVAO()		const { return m_pTexAmbientOcclusion->GetSRV(); }
 
-	void SetTexAlbedo(const std::wstring TexFilePath);
-	void SetTexNormal(const std::wstring TexFilePath);
-	void SetTexMetallic(const std::wstring TexFilePath);
-	void SetTexRoughness(const std::wstring TexFilePath);
-	void SetTexAO(const std::wstring TexFilePath);
+	void SetTexAlbedo(const std::wstring TexFilePath, bool GenerateMipMap = false);
+	void SetTexNormal(const std::wstring TexFilePath, bool GenerateMipMap = false);
+	void SetTexMetallic(const std::wstring TexFilePath, bool GenerateMipMap = false);
+	void SetTexRoughness(const std::wstring TexFilePath, bool GenerateMipMap = false);
+	void SetTexAO(const std::wstring TexFilePath, bool GenerateMipMap = false);
 
 	void Release();
 
 private:
-	NXTexture2D* LoadFromTexFile(const std::wstring TexFilePath);
+	NXTexture2D* LoadFromTexFile(const std::wstring TexFilePath, bool GenerateMipMap = false);
 	void InitConstantBuffer();
 
 private:

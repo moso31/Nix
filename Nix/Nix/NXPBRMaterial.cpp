@@ -22,77 +22,74 @@ void NXPBRMaterial::Update()
 	g_pContext->UpdateSubresource(m_cb.Get(), 0, nullptr, &m_cbData, 0, 0);
 }
 
-void NXPBRMaterial::SetTexAlbedo(const std::wstring TexFilePath)
+void NXPBRMaterial::SetTexAlbedo(const std::wstring TexFilePath, bool GenerateMipMap)
 {
 	if (m_pTexAlbedo) delete m_pTexAlbedo;
-	m_pTexAlbedo = LoadFromTexFile(TexFilePath);
+	m_pTexAlbedo = LoadFromTexFile(TexFilePath, GenerateMipMap);
 }
 
-void NXPBRMaterial::SetTexNormal(const std::wstring TexFilePath)
+void NXPBRMaterial::SetTexNormal(const std::wstring TexFilePath, bool GenerateMipMap)
 {
 	if (m_pTexNormal) delete m_pTexNormal;
-	m_pTexNormal = LoadFromTexFile(TexFilePath);
+	m_pTexNormal = LoadFromTexFile(TexFilePath, GenerateMipMap);
 }
 
-void NXPBRMaterial::SetTexMetallic(const std::wstring TexFilePath)
+void NXPBRMaterial::SetTexMetallic(const std::wstring TexFilePath, bool GenerateMipMap)
 {
 	if (m_pTexMetallic) delete m_pTexMetallic;
-	m_pTexMetallic = LoadFromTexFile(TexFilePath);
+	m_pTexMetallic = LoadFromTexFile(TexFilePath, GenerateMipMap);
 }
 
-void NXPBRMaterial::SetTexRoughness(const std::wstring TexFilePath)
+void NXPBRMaterial::SetTexRoughness(const std::wstring TexFilePath, bool GenerateMipMap)
 {
 	if (m_pTexRoughness) delete m_pTexRoughness;
-	m_pTexRoughness = LoadFromTexFile(TexFilePath);
+	m_pTexRoughness = LoadFromTexFile(TexFilePath, GenerateMipMap);
 }
 
-void NXPBRMaterial::SetTexAO(const std::wstring TexFilePath)
+void NXPBRMaterial::SetTexAO(const std::wstring TexFilePath, bool GenerateMipMap)
 {
 	if (m_pTexAmbientOcclusion) delete m_pTexAmbientOcclusion;
-	m_pTexAmbientOcclusion = LoadFromTexFile(TexFilePath);
+	m_pTexAmbientOcclusion = LoadFromTexFile(TexFilePath, GenerateMipMap);
 }
 
-NXTexture2D* NXPBRMaterial::LoadFromTexFile(const std::wstring texFilePath)
+NXTexture2D* NXPBRMaterial::LoadFromTexFile(const std::wstring texFilePath, bool GenerateMipMap)
 {
 	TexMetadata info;
-	std::unique_ptr<ScratchImage> image = std::make_unique<ScratchImage>(); 
+	std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>(); 
 
 	HRESULT hr;
 	std::wstring suffix = texFilePath.substr(texFilePath.find(L"."));
 	if (_wcsicmp(suffix.c_str(), L".dds") == 0)
 	{
-		hr = LoadFromDDSFile(texFilePath.c_str(), DDS_FLAGS_NONE, &info, *image);
+		hr = LoadFromDDSFile(texFilePath.c_str(), DDS_FLAGS_NONE, &info, *pImage);
 	}
 	else if (_wcsicmp(suffix.c_str(), L".tga") == 0)
 	{
-		hr = LoadFromTGAFile(texFilePath.c_str(), &info, *image);
+		hr = LoadFromTGAFile(texFilePath.c_str(), &info, *pImage);
 	}
 	else if (_wcsicmp(suffix.c_str(), L".hdr") == 0)
 	{
-		hr = LoadFromHDRFile(texFilePath.c_str(), &info, *image);
+		hr = LoadFromHDRFile(texFilePath.c_str(), &info, *pImage);
 	}
 	else
 	{
-		hr = LoadFromWICFile(texFilePath.c_str(), WIC_FLAGS_NONE, &info, *image);
+		hr = LoadFromWICFile(texFilePath.c_str(), WIC_FLAGS_NONE, &info, *pImage);
 	}
 
-	//std::wstring assetPath = L"D:\\NixAssets\\";
-	//size_t assetFolderIndex = texFilePath.find(assetPath) + assetPath.length();
-	//std::wstring texFolderPath = texFilePath.substr(assetFolderIndex, texFilePath.rfind(L"\\") - assetFolderIndex);
-	////std::wstring texFolderPath = texFilePath.substr(assetFolderIndex, texFilePath.find(L".png") - assetFolderIndex);
-	//std::wstring ddsFolderPath = L"D:\\Caches\\" + texFolderPath + L"\\";
-	//std::wstring ddsFilePath = ddsFolderPath + L".dds";
-
-	//hr = CreateDirectory(ddsFolderPath.c_str(), nullptr);
-	//if (SUCCEEDED(hr))
-	//{
-	//	hr = SaveToDDSFile(image->GetImage(0, 0, 0), image->GetImageCount(), info, DDS_FLAGS_NONE, ddsFilePath.c_str());
-	//}
+	// 自动生成MipMap
+	if (GenerateMipMap && info.width >= 2 && info.height >= 2 && info.mipLevels == 1)
+	{
+		std::unique_ptr<ScratchImage> pImageMip = std::make_unique<ScratchImage>();
+		hr = GenerateMipMaps(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), TEX_FILTER_DEFAULT, 0, *pImageMip);
+		info.mipLevels = pImageMip->GetMetadata().mipLevels;
+		if (SUCCEEDED(hr))
+			pImage.swap(pImageMip);
+	}
 
 	D3D11_SUBRESOURCE_DATA* pImageData = new D3D11_SUBRESOURCE_DATA[info.mipLevels];
 	for (size_t i = 0; i < info.mipLevels; i++)
 	{
-		auto img = image->GetImage(i, 0, 0);
+		auto img = pImage->GetImage(i, 0, 0);
 		D3D11_SUBRESOURCE_DATA& pData = pImageData[i];
 		pData.pSysMem = img->pixels;
 		pData.SysMemPitch = static_cast<DWORD>(img->rowPitch);
