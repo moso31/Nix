@@ -120,6 +120,7 @@ void RenderStates::InitSamplerStates()
 	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 	sampDesc.MinLOD = 0;
 	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	sampDesc.MaxAnisotropy = 16;
 	NX::ThrowIfFailed(g_pDevice->CreateSamplerState(&sampDesc, &SamplerLinearWrap));
 
 	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;

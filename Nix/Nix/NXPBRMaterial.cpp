@@ -89,13 +89,20 @@ NXTexture2D* NXPBRMaterial::LoadFromTexFile(const std::wstring texFilePath)
 	//	hr = SaveToDDSFile(image->GetImage(0, 0, 0), image->GetImageCount(), info, DDS_FLAGS_NONE, ddsFilePath.c_str());
 	//}
 
-	auto img = image->GetImage(0, 0, 0);
-	D3D11_SUBRESOURCE_DATA initData;
-	initData.pSysMem = img->pixels;
-	initData.SysMemPitch = static_cast<DWORD>(img->rowPitch);
-	initData.SysMemSlicePitch = static_cast<DWORD>(img->slicePitch);
+	D3D11_SUBRESOURCE_DATA* pImageData = new D3D11_SUBRESOURCE_DATA[info.mipLevels];
+	for (size_t i = 0; i < info.mipLevels; i++)
+	{
+		auto img = image->GetImage(i, 0, 0);
+		D3D11_SUBRESOURCE_DATA& pData = pImageData[i];
+		pData.pSysMem = img->pixels;
+		pData.SysMemPitch = static_cast<DWORD>(img->rowPitch);
+		pData.SysMemSlicePitch = static_cast<DWORD>(img->slicePitch);
+	}
 
-	NXTexture2D* pOutTex = NXResourceManager::GetInstance()->CreateTexture2D(m_name.c_str(), &initData, info.format, (UINT)info.width, (UINT)info.height, (UINT)info.arraySize, (UINT)info.mipLevels, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, (UINT)info.miscFlags);
+	NXTexture2D* pOutTex = NXResourceManager::GetInstance()->CreateTexture2D(m_name.c_str(), pImageData, info.format, (UINT)info.width, (UINT)info.height, (UINT)info.arraySize, (UINT)info.mipLevels, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, (UINT)info.miscFlags);
+
+	delete[] pImageData;
+
 	pOutTex->CreateSRV();
 	return pOutTex;
 }
