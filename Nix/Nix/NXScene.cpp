@@ -186,11 +186,15 @@ void NXScene::Init()
 	UpdateTransform();
 	InitBoundingStructures();
 
-	// InitLights()
+	// Init Lighting
 	{
 		NXPBRPointLight* pPointLight;
 		pPointLight = m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 4.5f, 0.0f), Vector3(0.0f));
-		//m_sceneManager->CreatePBRDistantLight(Vector3(-1.0f, 0.0f, 1.0f), Vector3(2.0f));
+		m_cbDataLights.pointLight[0] = pPointLight->GetConstantBuffer();
+
+		NXPBRDistantLight* pDirLight;
+		pDirLight = m_sceneManager->CreatePBRDistantLight(Vector3(-1.0f, 0.0f, 1.0f), Vector3(1.0f), 2.0f);
+		m_cbDataLights.distantLight[0] = pDirLight->GetConstantBuffer();
 		//m_sceneManager->CreatePBRTangibleLight(pLight,  Vector3(20.0f)); 
 		//m_sceneManager->CreatePBREnvironmentLight(m_pCubeMap, Vector3(1.0f));
 
@@ -202,8 +206,7 @@ void NXScene::Init()
 		bufferDesc.CPUAccessFlags = 0;
 		NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbLights));
 
-		m_cbDataLights.pointLight = pPointLight->GetConstantBuffer();
-		g_pContext->UpdateSubresource(m_cbLights.Get(), 0, nullptr, &m_cbDataLights.pointLight, 0, 0);
+		g_pContext->UpdateSubresource(m_cbLights.Get(), 0, nullptr, &m_cbDataLights, 0, 0);
 	}
 
 	// ÉèÖÃ³£Á¿»º´æ 
@@ -269,6 +272,11 @@ void NXScene::UpdateScripts()
 void NXScene::UpdateCamera()
 {
 	GetMainCamera()->Update();
+}
+
+void NXScene::UpdateLightData()
+{
+	g_pContext->UpdateSubresource(m_cbLights.Get(), 0, nullptr, &m_cbDataLights, 0, 0);
 }
 
 void NXScene::Release()

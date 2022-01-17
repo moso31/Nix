@@ -1,4 +1,5 @@
 #include "Common.fx"
+#include "PBRLights.fx"
 #include "BRDF.fx"
 #include "Math.fx"
 

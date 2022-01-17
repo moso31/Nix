@@ -95,7 +95,7 @@ struct ConstantBufferDistantLight
 	Vector3 direction;
 	float _0;
 	Vector3 color;
-	float _1;
+	float illuminance;
 };
 
 struct ConstantBufferPointLight
@@ -118,7 +118,9 @@ struct ConstantBufferSpotLight
 
 struct ConstantBufferLight
 {
-	ConstantBufferPointLight pointLight;
+	ConstantBufferDistantLight distantLight[4];
+	ConstantBufferPointLight pointLight[16];
+	ConstantBufferSpotLight spotLight[16];
 };
 
 struct ConstantBufferCamera

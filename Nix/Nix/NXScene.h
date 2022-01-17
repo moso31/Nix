@@ -16,6 +16,7 @@ public:
 	void UpdateTransform(NXObject* pObject = nullptr);
 	void UpdateScripts();
 	void UpdateCamera();
+	void UpdateLightData();
 	void Release();
 
 	// UI Picking

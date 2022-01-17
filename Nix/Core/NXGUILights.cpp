@@ -38,6 +38,31 @@ void NXGUILights::Render()
         {
             m_pCurrentLight->SetName(strName);
         }
+
+        auto lightType = m_pCurrentLight->GetType();
+        if (lightType == NXLight_Distant)
+        {
+            NXPBRDistantLight* pDistantLight = (NXPBRDistantLight*)m_pCurrentLight;
+
+            float fDrugSpeedTransform = 0.01f;
+            XMVECTOR dir = pDistantLight->GetDirection();
+            if (ImGui::DragFloat3("Direction", dir.m128_f32, fDrugSpeedTransform))
+            {
+                pDistantLight->SetDirection(dir);
+            }
+
+            XMVECTOR color = pDistantLight->GetColor();
+            if (ImGui::ColorEdit3("Color", color.m128_f32))
+            {
+                pDistantLight->SetColor(color);
+            }
+
+            float illuminance = pDistantLight->GetIlluminance();
+            if (ImGui::DragFloat("Illuminance", &illuminance, fDrugSpeedTransform))
+            {
+                pDistantLight->SetIlluminance(illuminance);
+            }
+        }
     }
 
 	ImGui::End();

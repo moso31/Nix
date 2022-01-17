@@ -1,9 +1,9 @@
-struct DirectionalLight
+struct DistantLight
 {
-	float3 position;
+	float3 direction;
 	float _0;
 	float3 color;
-	float _1;
+	float illuminance;
 };
 
 struct PointLight

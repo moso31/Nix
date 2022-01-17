@@ -139,10 +139,9 @@ NXPBRPointLight* SceneManager::CreatePBRPointLight(const Vector3& position, cons
 	return pLight;
 }
 
-NXPBRDistantLight* SceneManager::CreatePBRDistantLight(const Vector3& direction, const Vector3& radiance)
+NXPBRDistantLight* SceneManager::CreatePBRDistantLight(const Vector3& direction, const Vector3& color, const float illuminance)
 {
-	auto bound = m_pScene->GetBoundingSphere();
-	auto pLight = new NXPBRDistantLight(direction, radiance, bound.Center, bound.Radius);
+	auto pLight = new NXPBRDistantLight(direction, color, illuminance);
 	RegisterLight(pLight);
 	return pLight;
 }

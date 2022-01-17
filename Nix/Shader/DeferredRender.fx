@@ -1,6 +1,11 @@
 #include "Common.fx"
+#include "PBRLights.fx"
 #include "BRDF.fx"
 #include "Math.fx"
+
+#define NUM_DISTANT_LIGHT 4
+#define NUM_POINT_LIGHT 16
+#define NUM_SPOT_LIGHT 16
 
 Texture2D txRT0 : register(t0);
 Texture2D txRT1 : register(t1);
@@ -22,10 +27,11 @@ cbuffer ConstantBufferCamera : register(b1)
 	float4 cameraParams2;
 }
 
-const static int NUM_LIGHTS = 1;
 cbuffer ConstantBufferLight : register(b2)
 {
-	PointLight m_pointLight[NUM_LIGHTS];
+	DistantLight m_dirLight[NUM_DISTANT_LIGHT];
+	PointLight m_pointLight[NUM_POINT_LIGHT];
+	SpotLight m_spotLight[NUM_SPOT_LIGHT];
 }
 
 cbuffer ConstantBufferCubeMap : register(b3)
@@ -83,8 +89,36 @@ float4 PS(PS_INPUT input) : SV_Target
 	float3 F0 = 0.04;
 	F0 = lerp(F0, albedo, metallic);
 
-    // reflectance equation
-    float3 Lo = 0.0f;
+	float3 Lo = 0.0f;
+	for (int i = 0; i < NUM_DISTANT_LIGHT; i++)
+	{
+		float3 L = normalize(-m_dirLight[i].direction);
+		float3 H = normalize(V + L);
+		float NoV = max(dot(N, V), 0.0);
+		float NoL = max(dot(N, L), 0.0);
+		float VoH = max(dot(V, H), 0.0);
+
+		float3 LightIlluminance = m_dirLight[i].color * m_dirLight[i].illuminance; // 方向光的Illuminace
+		float3 IncidentIlluminance = LightIlluminance * NoL;
+
+
+		// 微表面 BRDF
+		float NDF = DistributionGGX(N, H, roughness);
+		float G = GeometrySmithDirect(N, V, L, roughness);
+		float3 F = FresnelSchlick(saturate(dot(H, V)), F0);
+
+		float3 numerator = NDF * G * F;
+		float denominator = 4.0 * saturate(dot(N, V)) * saturate(dot(N, L));
+		float3 specular = numerator / max(denominator, 0.001);
+
+		float3 kS = F;
+		float3 kD = 1.0 - kS;
+		kD *= 1.0 - metallic;
+
+		float3 diffuse = DiffuseDisney(albedo, roughness, NoV, NoL, VoH);
+		Lo += (kD * diffuse + specular) * IncidentIlluminance; // Output radiance.
+	}
+
     for (int i = 0; i < 0; i++)
     {
 		float3 lightPos = m_pointLight[i].position;

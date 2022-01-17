@@ -1,5 +1,4 @@
 #include "BRDFCommon.fx"
-#include "PBRLights.fx"
 #include "PBRMaterials.fx"
 
 float DistributionGGX(float3 N, float3 H, float roughness)

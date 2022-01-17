@@ -12,6 +12,7 @@ NXPBRPointLight::NXPBRPointLight(const Vector3& position, const Vector3& intensi
 	m_intensity(intensity)
 {
 	m_name = "Point Light";
+	m_type = NXLight_Point;
 }
 
 ConstantBufferPointLight NXPBRPointLight::GetConstantBuffer()
@@ -24,21 +25,22 @@ ConstantBufferPointLight NXPBRPointLight::GetConstantBuffer()
 	return cb;
 }
 
-NXPBRDistantLight::NXPBRDistantLight(const Vector3& direction, const Vector3& radiance, Vector3 worldCenter, float worldRadius) :
+NXPBRDistantLight::NXPBRDistantLight(const Vector3& direction, const Vector3& color, const float illuminance) :
 	m_direction(direction), 
-	m_radiance(radiance),
-	m_worldCenter(worldCenter),
-	m_worldRadius(worldRadius)
+	m_color(color),
+	m_illuminance(illuminance)
 {
 	this->m_direction.Normalize();
 	m_name = "Distant Light";
+	m_type = NXLight_Distant;
 }
 
 ConstantBufferDistantLight NXPBRDistantLight::GetConstantBuffer()
 {
 	ConstantBufferDistantLight cb;
 	cb.direction = m_direction;
-	cb.color = m_radiance;
+	cb.color = m_color;
+	cb.illuminance = m_illuminance;
 	return cb;
 }
 
