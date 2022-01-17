@@ -12,20 +12,28 @@ NXGUIMaterial::NXGUIMaterial(NXScene* pScene, NXGUIFileBrowser* pFileBrowser) :
 
 void NXGUIMaterial::Render()
 {
+	ImGui::Begin("Material");
 	NXSubMesh* pPickingSubMesh = m_pCurrentScene->GetCurrentPickingSubMesh();
 	if (!pPickingSubMesh)
+	{
+		ImGui::End();
 		return;
+	}
 
 	NXPrimitive* pPickingObject = pPickingSubMesh->GetPrimitive();
 	NXPBRMaterial* pPickingObjectMaterial = pPickingSubMesh->GetPBRMaterial();
 
-	ImGui::Begin("Material");
-
 	std::string strName = pPickingObject->GetName().c_str();
-	ImGui::InputText("Name", &strName);
+	if (ImGui::InputText("Name", &strName))
+	{
+		pPickingObject->SetName(strName);
+	}
 
 	std::string strMatName = pPickingObjectMaterial->GetName().c_str();
-	ImGui::InputText("Material", &strMatName);
+	if (ImGui::InputText("Material", &strMatName))
+	{
+		pPickingObjectMaterial->SetName(strMatName);
+	}
 
 	float fDrugSpeedTransform = 0.01f;
 	XMVECTOR vTrans = XMLoadFloat3(&pPickingObject->GetTranslation());

@@ -4,6 +4,7 @@
 
 #include "NXGUIFileBrowser.h"
 #include "NXGUIMaterial.h"
+#include "NXGUILights.h"
 #include "NXGUICubeMap.h"
 #include "NXGUISSAO.h"
 
@@ -12,6 +13,7 @@ NXGUI::NXGUI(NXScene* pScene, NXSimpleSSAO* pSSAO) :
 	m_pSSAO(pSSAO),
 	m_pFileBrowser(nullptr),
 	m_pGUIMaterial(nullptr),
+	m_pGUILights(nullptr),
 	m_pGUICubeMap(nullptr),
 	m_pGUISSAO(nullptr)
 {
@@ -28,6 +30,7 @@ void NXGUI::Init()
 	m_pFileBrowser->SetPwd("D:\\NixAssets");
 
 	m_pGUIMaterial = new NXGUIMaterial(m_pCurrentScene, m_pFileBrowser);
+	m_pGUILights = new NXGUILights(m_pCurrentScene);
 	m_pGUICubeMap = new NXGUICubeMap(m_pCurrentScene, m_pFileBrowser);
 
 	m_pGUISSAO = new NXGUISSAO(m_pSSAO);
@@ -51,6 +54,7 @@ void NXGUI::Render()
 
 	m_pGUICubeMap->Render();
 	m_pGUIMaterial->Render();
+	m_pGUILights->Render();
 	m_pGUISSAO->Render();
 
 	static bool show_demo_window = true;
@@ -108,6 +112,7 @@ void NXGUI::Render()
 void NXGUI::Release()
 {
 	SafeDelete(m_pGUIMaterial);
+	SafeDelete(m_pGUILights);
 	SafeDelete(m_pGUICubeMap);
 	SafeDelete(m_pGUISSAO);
 	SafeDelete(m_pFileBrowser);

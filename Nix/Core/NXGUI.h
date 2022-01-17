@@ -7,6 +7,7 @@ class NXGUIMaterial;
 class NXGUIFileBrowser;
 class NXGUISSAO;
 class NXGUICubeMap;
+class NXGUILights;
 
 class NXGUI
 {
@@ -22,6 +23,7 @@ private:
 	NXScene* m_pCurrentScene;
 	NXSimpleSSAO* m_pSSAO;
 
+	NXGUILights* m_pGUILights;
 	NXGUIMaterial* m_pGUIMaterial;
 	NXGUICubeMap* m_pGUICubeMap;
 	NXGUIFileBrowser* m_pFileBrowser;

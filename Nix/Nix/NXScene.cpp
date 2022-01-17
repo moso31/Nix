@@ -115,16 +115,16 @@ void NXScene::Init()
 	pPBRMat[3]->SetTexRoughness(L"D:\\NixAssets\\circle-textured-metal1\\roughness.png", true);
 	pPBRMat[3]->SetTexAO(L"D:\\NixAssets\\circle-textured-metal1\\ao.png", true);
 
-	auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64);
-	pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
+	//auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64);
+	//pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
 
 	std::vector<NXPrimitive*> pMeshes;
-	//m_sceneManager->CreateFBXMeshes("D:\\NixAssets\\UnityBall.fbx", pMeshes);
-	//pMeshes[0]->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
-	//pMeshes[0]->GetSubMesh(1)->SetMaterialPBR(pPBRMat[1]);
-	//pMeshes[0]->GetSubMesh(2)->SetMaterialPBR(pPBRMat[3]);
-	//pMeshes[0]->GetSubMesh(3)->SetMaterialPBR(pPBRMat[3]);
-	//pMeshes[0]->SetRotation(Vector3(-0.8f, 0.0f, 0.0f));
+	m_sceneManager->CreateFBXMeshes("D:\\NixAssets\\UnityBall.fbx", pMeshes);
+	pMeshes[0]->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
+	pMeshes[0]->GetSubMesh(1)->SetMaterialPBR(pPBRMat[1]);
+	pMeshes[0]->GetSubMesh(2)->SetMaterialPBR(pPBRMat[3]);
+	pMeshes[0]->GetSubMesh(3)->SetMaterialPBR(pPBRMat[3]);
+	pMeshes[0]->SetRotation(Vector3(-0.8f, 0.0f, 0.0f));
 
 	//for (int i = -5; i <= 5; i++)
 	//{
@@ -317,36 +317,36 @@ bool NXScene::RayCast(const Ray& ray, NXHit& outHitInfo, float tMax)
 
 void NXScene::InitShadowMapTransformInfo(ConstantBufferShadowMapTransform& out_cb)
 {
-	auto lights = GetPBRLights();
-	if (lights.empty())
-		return;
+	//auto lights = GetPBRLights();
+	//if (lights.empty())
+	//	return;
 
-	NXPBRDistantLight* pDistantLight = nullptr;
-	for (auto pLight : lights)
-	{
-		pDistantLight = (NXPBRDistantLight*)(pLight);
-		if (pDistantLight) break;  // 目前仅对第一个平行光提供支持
-	}
+	//NXPBRDistantLight* pDistantLight = nullptr;
+	//for (auto pLight : lights)
+	//{
+	//	pDistantLight = (NXPBRDistantLight*)(pLight);
+	//	if (pDistantLight) break;  // 目前仅对第一个平行光提供支持
+	//}
 
-	Vector3 shadowMapAt = m_boundingSphere.Center;
-	Vector3 shadowMapEye = shadowMapAt - 2.0f * m_boundingSphere.Radius * pDistantLight->Direction;
-	Vector3 shadowMapUp(0.0f, 1.0f, 0.0f);
-	Matrix mxV = XMMatrixLookAtLH(shadowMapEye, shadowMapAt, shadowMapUp);
+	//Vector3 shadowMapAt = m_boundingSphere.Center;
+	//Vector3 shadowMapEye = shadowMapAt - 2.0f * m_boundingSphere.Radius * pDistantLight->m_direction;
+	//Vector3 shadowMapUp(0.0f, 1.0f, 0.0f);
+	//Matrix mxV = XMMatrixLookAtLH(shadowMapEye, shadowMapAt, shadowMapUp);
 
-	Vector3 shadowMapAtInViewSpace = Vector3::Transform(shadowMapAt, mxV);
-	Vector3 OrthoBoxRangeMin = shadowMapAtInViewSpace - Vector3(m_boundingSphere.Radius);
-	Vector3 OrthoBoxRangeMax = shadowMapAtInViewSpace + Vector3(m_boundingSphere.Radius);
-	Matrix mxP = XMMatrixOrthographicOffCenterLH(OrthoBoxRangeMin.x, OrthoBoxRangeMax.x, OrthoBoxRangeMin.y, OrthoBoxRangeMax.y, OrthoBoxRangeMin.z, OrthoBoxRangeMax.z);
+	//Vector3 shadowMapAtInViewSpace = Vector3::Transform(shadowMapAt, mxV);
+	//Vector3 OrthoBoxRangeMin = shadowMapAtInViewSpace - Vector3(m_boundingSphere.Radius);
+	//Vector3 OrthoBoxRangeMax = shadowMapAtInViewSpace + Vector3(m_boundingSphere.Radius);
+	//Matrix mxP = XMMatrixOrthographicOffCenterLH(OrthoBoxRangeMin.x, OrthoBoxRangeMax.x, OrthoBoxRangeMin.y, OrthoBoxRangeMax.y, OrthoBoxRangeMin.z, OrthoBoxRangeMax.z);
 
-	Matrix mxT(
-		0.5f, 0.0f, 0.0f, 0.0f,
-		0.0f, -0.5f, 0.0f, 0.0f,
-		0.0f, 0.0f, 1.0f, 0.0f,
-		0.5f, 0.5f, 0.0f, 1.0f);
+	//Matrix mxT(
+	//	0.5f, 0.0f, 0.0f, 0.0f,
+	//	0.0f, -0.5f, 0.0f, 0.0f,
+	//	0.0f, 0.0f, 1.0f, 0.0f,
+	//	0.5f, 0.5f, 0.0f, 1.0f);
 
-	out_cb.view = mxV.Transpose();
-	out_cb.projection = mxP.Transpose();
-	out_cb.texture = mxT.Transpose();
+	//out_cb.view = mxV.Transpose();
+	//out_cb.projection = mxP.Transpose();
+	//out_cb.texture = mxT.Transpose();
 }
 
 void NXScene::InitBoundingStructures()
