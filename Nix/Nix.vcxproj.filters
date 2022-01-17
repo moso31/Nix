@@ -141,6 +141,7 @@
     <None Include="Shader\BRDFCommon.fx">
       <Filter>Shader\Renderer\BRDF</Filter>
     </None>
+    <None Include="imgui.ini" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">
