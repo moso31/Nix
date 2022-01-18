@@ -1,5 +1,6 @@
 #include "NXScene.h"
 #include "SceneManager.h"
+#include "NXSubMeshGeometryEditor.h"
 #include "RenderStates.h"
 #include "GlobalBufferManager.h"
 #include "NXIntersection.h"
@@ -118,13 +119,16 @@ void NXScene::Init()
 	//auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64);
 	//pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
 
-	std::vector<NXPrimitive*> pMeshes;
-	m_sceneManager->CreateFBXMeshes("D:\\NixAssets\\UnityBall.fbx", pMeshes);
-	pMeshes[0]->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
-	pMeshes[0]->GetSubMesh(1)->SetMaterialPBR(pPBRMat[1]);
-	pMeshes[0]->GetSubMesh(2)->SetMaterialPBR(pPBRMat[3]);
-	pMeshes[0]->GetSubMesh(3)->SetMaterialPBR(pPBRMat[3]);
-	pMeshes[0]->SetRotation(Vector3(-0.8f, 0.0f, 0.0f));
+	auto p = m_sceneManager->CreatePlane("Sphere", 10.0f, 10.0f, NXPlaneAxis::POSITIVE_Y);
+	p->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
+	
+	//std::vector<NXPrimitive*> pMeshes;
+	//m_sceneManager->CreateFBXMeshes("D:\\NixAssets\\UnityBall.fbx", pMeshes);
+	//pMeshes[0]->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
+	//pMeshes[0]->GetSubMesh(1)->SetMaterialPBR(pPBRMat[1]);
+	//pMeshes[0]->GetSubMesh(2)->SetMaterialPBR(pPBRMat[3]);
+	//pMeshes[0]->GetSubMesh(3)->SetMaterialPBR(pPBRMat[3]);
+	//pMeshes[0]->SetRotation(Vector3(-0.8f, 0.0f, 0.0f));
 
 	//for (int i = -5; i <= 5; i++)
 	//{
@@ -176,6 +180,11 @@ void NXScene::Init()
 		Vector3(0.0f, 1.0f, 0.0f)
 	);
 
+
+	auto pMainCamera = GetMainCamera();
+	pMainCamera->SetTranslation(Vector3(0.0f, 1.0f, -5.0f));
+	pMainCamera->SetLookAt(Vector3(0.0f, 1.0f, -4.0f));
+
 	m_sceneManager->CreateCubeMap("Sky", L"D:\\Alexs_Apt_2k.hdr");
 	//m_sceneManager->CreateCubeMap("Sky", L"D:\\TexturesCom_JapanInariTempleH_1K_hdri_sphere.hdr");
 	//m_sceneManager->CreateCubeMap("Sky", L"D:\\ballroom_4k.hdr");
@@ -189,7 +198,7 @@ void NXScene::Init()
 	// Init Lighting
 	{
 		NXPBRPointLight* pPointLight;
-		pPointLight = m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 4.5f, 0.0f), Vector3(0.0f));
+		pPointLight = m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 4.5f, 0.0f), Vector3(1.0f), 1.0f);
 		m_cbDataLights.pointLight[0] = pPointLight->GetConstantBuffer();
 
 		NXPBRDistantLight* pDirLight;
@@ -276,6 +285,35 @@ void NXScene::UpdateCamera()
 
 void NXScene::UpdateLightData()
 {
+	NXPBRDistantLight* pDirLight = nullptr;
+	NXPBRPointLight* pPointLight = nullptr;
+	NXPBRSpotLight* pSpotLight = nullptr;
+
+	UINT dirIdx = 0;
+	UINT pointIdx = 0;
+	UINT spotIdx = 0;
+
+	for (auto pLight : GetPBRLights())
+	{
+		switch (pLight->GetType())
+		{
+		case NXLight_Distant:
+			pDirLight = (NXPBRDistantLight*)pLight;
+			m_cbDataLights.distantLight[dirIdx++] = pDirLight->GetConstantBuffer();
+			break;
+		case NXLight_Point:
+			pPointLight = (NXPBRPointLight*)pLight;
+			m_cbDataLights.pointLight[pointIdx++] = pPointLight->GetConstantBuffer();
+			break;
+		case NXLight_Spot:
+			pSpotLight = (NXPBRSpotLight*)pLight;
+			//m_cbDataLights.spotLight[spotIdx++] = pSpotLight->GetConstantBuffer();
+			break;
+		default:
+			break;
+		}
+	}
+
 	g_pContext->UpdateSubresource(m_cbLights.Get(), 0, nullptr, &m_cbDataLights, 0, 0);
 }
 

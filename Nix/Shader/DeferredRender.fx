@@ -63,9 +63,9 @@ PS_INPUT VS(VS_INPUT input)
 float4 PS(PS_INPUT input) : SV_Target
 {
 	float2 uv = input.tex;
-	float3 pos = txRT0.Sample(ssLinearWrap, uv).xyz;
+	float3 PositionVS = txRT0.Sample(ssLinearWrap, uv).xyz;
 	float3 N = txRT1.Sample(ssLinearWrap, uv).xyz;
-	float3 V = normalize(-pos);
+	float3 V = normalize(-PositionVS);
 	float3 R = reflect(-V, N);
 	R = mul(R, (float3x3)m_viewTranspose);
 
@@ -90,9 +90,13 @@ float4 PS(PS_INPUT input) : SV_Target
 	F0 = lerp(F0, albedo, metallic);
 
 	float3 Lo = 0.0f;
-	for (int i = 0; i < NUM_DISTANT_LIGHT; i++)
+	int i;
+	for (i = 0; i < NUM_DISTANT_LIGHT; i++)
 	{
-		float3 L = normalize(-m_dirLight[i].direction);
+		float3 LightDirWS = normalize(m_dirLight[i].direction);
+		float3 LightDirVS = normalize(mul(LightDirWS, (float3x3)m_worldViewInverseTranspose));
+
+		float3 L = -LightDirVS;
 		float3 H = normalize(V + L);
 		float NoV = max(dot(N, V), 0.0);
 		float NoL = max(dot(N, L), 0.0);
@@ -100,7 +104,6 @@ float4 PS(PS_INPUT input) : SV_Target
 
 		float3 LightIlluminance = m_dirLight[i].color * m_dirLight[i].illuminance; // 方向光的Illuminace
 		float3 IncidentIlluminance = LightIlluminance * NoL;
-
 
 		// 微表面 BRDF
 		float NDF = DistributionGGX(N, H, roughness);
@@ -119,37 +122,37 @@ float4 PS(PS_INPUT input) : SV_Target
 		Lo += (kD * diffuse + specular) * IncidentIlluminance; // Output radiance.
 	}
 
-    for (int i = 0; i < 0; i++)
+    for (i = 0; i < NUM_POINT_LIGHT; i++)
     {
-		float3 lightPos = m_pointLight[i].position;
-		float3 lightColor = m_pointLight[i].color;
+		float3 LightPosVS = mul(float4(m_pointLight[i].position, 1.0f), m_worldView).xyz;
+		float3 LightIntensity = m_pointLight[i].color * m_pointLight[i].intensity;
+		float3 LightDirVS = LightPosVS - PositionVS;
 
-        // 第i个光源的入射radiance
-        float3 L = normalize(lightPos - pos);
-        float3 H = normalize(V + L);
-        float distance = length(lightPos - pos);
-        float attenuation = 1.0 / (distance * distance);
-        float3 radiance = lightColor * attenuation;
-
+        float3 L = normalize(LightDirVS);
+		float3 H = normalize(V + L);
 		float NoV = max(dot(N, V), 0.0);
 		float NoL = max(dot(N, L), 0.0);
 		float VoH = max(dot(V, H), 0.0);
 
-        // 微表面 BRDF
+		float d2 = dot(LightDirVS, LightDirVS);
+		float3 LightIlluminance = LightIntensity / (NX_4PI * d2);
+		float3 IncidentIlluminance = LightIlluminance * NoL;
+
+		// 微表面 BRDF
 		float NDF = DistributionGGX(N, H, roughness);
 		float G = GeometrySmithDirect(N, V, L, roughness);
 		float3 F = FresnelSchlick(saturate(dot(H, V)), F0);
 
-        float3 numerator = NDF * G * F;
-        float denominator = 4.0 * saturate(dot(N, V)) * saturate(dot(N, L));
-        float3 specular = numerator / max(denominator, 0.001);
+		float3 numerator = NDF * G * F;
+		float denominator = 4.0 * saturate(dot(N, V)) * saturate(dot(N, L));
+		float3 specular = numerator / max(denominator, 0.001);
 
 		float3 kS = F;
 		float3 kD = 1.0 - kS;
 		kD *= 1.0 - metallic;
 
 		float3 diffuse = DiffuseDisney(albedo, roughness, NoV, NoL, VoH);
-        Lo += (kD * diffuse + specular) * radiance * NoL;
+		Lo += (kD * diffuse + specular) * IncidentIlluminance; // Output radiance.
     }
 
 	float3 kS = FresnelSchlick(saturate(dot(N, V)), F0);

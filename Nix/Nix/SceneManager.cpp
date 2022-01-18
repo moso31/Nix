@@ -132,9 +132,9 @@ NXPBRMaterial* SceneManager::CreatePBRMaterial(const std::string name, const Vec
 	return pMat;
 }
 
-NXPBRPointLight* SceneManager::CreatePBRPointLight(const Vector3& position, const Vector3& intensity)
+NXPBRPointLight* SceneManager::CreatePBRPointLight(const Vector3& position, const Vector3& color, const float intensity)
 {
-	auto pLight = new NXPBRPointLight(position, intensity);
+	auto pLight = new NXPBRPointLight(position, color, intensity);
 	RegisterLight(pLight);
 	return pLight;
 }

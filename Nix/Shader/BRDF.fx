@@ -70,6 +70,11 @@ float3 DiffuseDisney(float3 DiffuseColor, float Roughness, float NoV, float NoL,
 	return DiffuseColor * ((1 / NX_PI) * FdV * FdL);
 }
 
+float3 DiffuseLambert(float3 DiffuseColor)
+{
+	return DiffuseColor / NX_PI;
+}
+
 float3 ImportanceSampleGGX(float2 Xi, float roughness, float3 N)
 {
 	float a = roughness * roughness;

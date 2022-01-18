@@ -2,17 +2,6 @@
 #include "NXScript.h"
 #include "NXEvent.h"
 
-#define POSITIVE_X 0
-#define POSITIVE_Y 1
-#define POSITIVE_Z 2
-#define NEGATIVE_X 3
-#define NEGATIVE_Y 4
-#define NEGATIVE_Z 5
-
-#define SPEED_LOW -1
-#define SPEED_MID 0
-#define SPEED_HIGH 1
-
 class NSFirstPersonalCamera : public NXScript
 {
 public:

@@ -11,7 +11,7 @@ struct PointLight
 	float3 position;
 	float _0;
 	float3 color;
-	float _1;
+	float intensity;
 };
 
 struct SpotLight

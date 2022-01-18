@@ -7,8 +7,9 @@
 
 using namespace SamplerMath;
 
-NXPBRPointLight::NXPBRPointLight(const Vector3& position, const Vector3& intensity) :
+NXPBRPointLight::NXPBRPointLight(const Vector3& position, const Vector3& color, const float intensity) :
 	m_position(position), 
+	m_color(color),
 	m_intensity(intensity)
 {
 	m_name = "Point Light";
@@ -20,8 +21,8 @@ ConstantBufferPointLight NXPBRPointLight::GetConstantBuffer()
 	ConstantBufferPointLight cb;
 	cb.position = m_position;
 	cb._0 = 0;
-	cb.color = m_intensity;
-	cb._1 = 0;
+	cb.color = m_color;
+	cb.intensity = m_intensity;
 	return cb;
 }
 

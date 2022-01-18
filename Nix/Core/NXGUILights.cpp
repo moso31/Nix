@@ -44,9 +44,8 @@ void NXGUILights::Render()
         {
             NXPBRDistantLight* pDistantLight = (NXPBRDistantLight*)m_pCurrentLight;
 
-            float fDrugSpeedTransform = 0.01f;
             XMVECTOR dir = pDistantLight->GetDirection();
-            if (ImGui::DragFloat3("Direction", dir.m128_f32, fDrugSpeedTransform))
+            if (ImGui::DragFloat3("Direction", dir.m128_f32, 0.01f))
             {
                 pDistantLight->SetDirection(dir);
             }
@@ -58,9 +57,32 @@ void NXGUILights::Render()
             }
 
             float illuminance = pDistantLight->GetIlluminance();
-            if (ImGui::DragFloat("Illuminance", &illuminance, fDrugSpeedTransform))
+            if (ImGui::DragFloat("Illuminance", &illuminance, 0.01f))
             {
                 pDistantLight->SetIlluminance(illuminance);
+            }
+        }
+
+        if (lightType == NXLight_Point)
+        {
+            NXPBRPointLight* pPointLight = (NXPBRPointLight*)m_pCurrentLight;
+
+            XMVECTOR dir = pPointLight->GetPosition();
+            if (ImGui::DragFloat3("position", dir.m128_f32, 0.01f))
+            {
+                pPointLight->SetPosition(dir);
+            }
+
+            XMVECTOR color = pPointLight->GetColor();
+            if (ImGui::ColorEdit3("Color", color.m128_f32))
+            {
+                pPointLight->SetColor(color);
+            }
+
+            float intensity = pPointLight->GetIntensity();
+            if (ImGui::DragFloat("Intensity", &intensity, 0.01f))
+            {
+                pPointLight->SetIntensity(intensity);
             }
         }
     }
