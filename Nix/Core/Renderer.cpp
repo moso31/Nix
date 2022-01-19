@@ -46,7 +46,7 @@ void Renderer::Init()
 		m_pDeferredRenderer->Init();
 
 		// 【待改】这个bool将来做成Settings（ini配置文件）之类的。
-		m_isDeferredShading = true;
+		m_isDeferredShading = false;
 	}
 
 	m_pPassShadowMap = new NXPassShadowMap(m_scene);

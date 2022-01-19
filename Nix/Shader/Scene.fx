@@ -26,10 +26,11 @@ cbuffer ConstantBufferCamera : register(b1)
 	float4 cameraParams2;
 }
 
-const static int NUM_LIGHTS = 1;
 cbuffer ConstantBufferLight : register(b2)
 {
-	PointLight m_pointLight[NUM_LIGHTS];
+	DistantLight m_dirLight[NUM_DISTANT_LIGHT];
+	PointLight m_pointLight[NUM_POINT_LIGHT];
+	SpotLight m_spotLight[NUM_SPOT_LIGHT];
 }
 
 cbuffer ConstantBufferMaterial : register(b3)
@@ -61,7 +62,7 @@ struct VS_INPUT
 struct PS_INPUT
 {
 	float4 posSS : SV_POSITION;
-	float4 posWS : POSITION;
+	float4 posVS : POSITION;
 	float3 normVS : NORMAL;
 	float2 tex : TEXCOORD;
 	float3 tangentVS : TANGENT;
@@ -72,7 +73,7 @@ PS_INPUT VS(VS_INPUT input)
 	PS_INPUT output = (PS_INPUT)0;
 	output.posSS = mul(input.pos, m_world);
 	output.posSS = mul(output.posSS, m_view);
-	output.posWS = output.posSS;
+	output.posVS = output.posSS;
 	output.posSS = mul(output.posSS, m_projection);
 	output.normVS = normalize(mul(input.norm, (float3x3)m_worldViewInverseTranspose));
 	output.tex = input.tex;
@@ -85,9 +86,10 @@ float4 PS(PS_INPUT input) : SV_Target
 	float3 normalMap = txNormalMap.Sample(ssLinearWrap, input.tex).xyz;
 	float3 normal = m_material.normal * normalMap;
 
-	float3 pos = input.posWS.xyz;
+	float3 PositionVS = input.posVS.xyz;
 	float3 N = TangentSpaceToViewSpace(normal, input.normVS, input.tangentVS);
-	float3 V = normalize(-pos);
+	float3 V = normalize(-PositionVS);
+	float NoV = max(dot(N, V), 0.0);
 	float3 R = reflect(-V, N);
 	R = mul(R, (float3x3)m_viewTranspose);
 
@@ -115,51 +117,89 @@ float4 PS(PS_INPUT input) : SV_Target
 
     // reflectance equation
     float3 Lo = 0.0f;
-    for (int i = 0; i < NUM_LIGHTS; i++)
-    {
-		float3 lightPos = m_pointLight[i].position;
-		lightPos = mul(lightPos, (float3x3)m_view);
-		float3 lightColor = m_pointLight[i].color;
+	int i;
+	for (i = 0; i < NUM_DISTANT_LIGHT; i++)
+	{
+		float3 LightDirWS = normalize(m_dirLight[i].direction);
+		float3 LightDirVS = normalize(mul(LightDirWS, (float3x3)m_worldViewInverseTranspose));
 
-        // 第i个光源的入射radiance
-        float3 L = normalize(lightPos - pos);
-        float3 H = normalize(V + L);
-        float distance = length(lightPos - pos);
-        float attenuation = 1.0 / (distance * distance);
-        float3 radiance = lightColor * attenuation;
+		float3 L = -LightDirVS;
+		float3 H = normalize(V + L);
+		float NoL = max(dot(N, L), 0.0);
+		float NoH = max(dot(N, H), 0.0);
+		float VoH = max(dot(V, H), 0.0);
 
-        // 微表面 BRDF
-		float NDF = DistributionGGX(N, H, roughness);
-		float G = GeometrySmithDirect(N, V, L, roughness);
+		float3 LightIlluminance = m_dirLight[i].color * m_dirLight[i].illuminance; // 方向光的Illuminace
+		float3 IncidentIlluminance = LightIlluminance * NoL;
+
+		// 微表面 BRDF
+		float NDF = DistributionGGX(NoH, roughness);
+		float G = GeometrySmithDirect(NoV, NoL, roughness);
 		float3 F = FresnelSchlick(saturate(dot(H, V)), F0);
 
-        float3 numerator = NDF * G * F;
-        float denominator = 4.0 * saturate(dot(N, V)) * saturate(dot(N, L));
-        float3 specular = numerator / max(denominator, 0.001);
+		float3 numerator = NDF * G * F;
+		float denominator = 4.0 * saturate(dot(N, V)) * saturate(dot(N, L));
+		float3 specular = numerator / max(denominator, 0.001);
 
 		float3 kS = F;
 		float3 kD = 1.0 - kS;
 		kD *= 1.0 - metallic;
-        float NdotL = max(dot(N, L), 0.0);
-        Lo += (kD * albedo / NX_PI + specular) * radiance * NdotL;
-    }
 
-	float3 kS = FresnelSchlick(saturate(dot(N, V)), F0);
+		float3 diffuse = DiffuseDisney(albedo, roughness, NoV, NoL, VoH);
+		Lo += (kD * diffuse + specular) * IncidentIlluminance; // Output radiance.
+	}
+
+	for (i = 0; i < NUM_POINT_LIGHT; i++)
+	{
+		float3 LightPosVS = mul(float4(m_pointLight[i].position, 1.0f), m_worldView).xyz;
+		float3 LightIntensity = m_pointLight[i].color * m_pointLight[i].intensity;
+		float3 LightDirVS = LightPosVS - PositionVS;
+
+		float3 L = normalize(LightDirVS);
+		float3 H = normalize(V + L);
+		float NoL = max(dot(N, L), 0.0);
+		float NoH = max(dot(N, H), 0.0);
+		float VoH = max(dot(V, H), 0.0);
+
+		float d2 = dot(LightDirVS, LightDirVS);
+		float3 LightIlluminance = LightIntensity / (NX_4PI * d2);
+		float3 IncidentIlluminance = LightIlluminance * NoL;
+
+		// 微表面 BRDF
+		float NDF = DistributionGGX(NoH, roughness);
+		float G = GeometrySmithDirect(NoV, NoL, roughness);
+		float3 F = FresnelSchlick(VoH, F0);
+
+		float3 numerator = NDF * G * F;
+		float denominator = 4.0 * NoV * NoL;
+		float3 specular = numerator / max(denominator, 0.001);
+
+		float3 kS = F;
+		float3 kD = 1.0 - kS;
+		kD *= 1.0 - metallic;
+
+		float3 diffuse = DiffuseDisney(albedo, roughness, NoV, NoL, VoH);
+		Lo += (kD * diffuse + specular) * IncidentIlluminance; // Output radiance.
+	}
+
+	float3 kS = FresnelSchlick(NoV, F0);
 	float3 kD = 1.0 - kS;
 	kD *= 1.0 - metallic;
 	float3 irradiance = txIrradianceMap.Sample(ssLinearWrap, N).xyz;
 	float3 diffuseIBL = kD * albedo * irradiance;
 
 	float3 preFilteredColor = txPreFilterMap.SampleLevel(ssLinearWrap, R, roughness * 4.0f).rgb;
-	float2 envBRDF = txBRDF2DLUT.Sample(ssLinearClamp, float2(saturate(dot(N, V)), roughness)).rg;
+	float2 envBRDF = txBRDF2DLUT.Sample(ssLinearClamp, float2(NoV, roughness)).rg;
 	float3 SpecularIBL = preFilteredColor * float3(kS * envBRDF.x + envBRDF.y);
 
 	float3 ambient = (diffuseIBL + SpecularIBL) * m_cubeMapIntensity * ao;
 	float3 color = ambient + Lo;
 
-	//// gamma.
-	//color = color / (color + 1.0);
-	//color = pow(color, 1.0 / 2.2);
+	// fast tone-mapping.
+	color = color / (color + 1.0);
+
+	// gamma.
+	color = pow(color, 1.0 / 2.2);
 
 	return float4(color, 1.0f);
 }

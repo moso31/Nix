@@ -1,3 +1,7 @@
+#define NUM_DISTANT_LIGHT 4
+#define NUM_POINT_LIGHT 16
+#define NUM_SPOT_LIGHT 16
+
 struct DistantLight
 {
 	float3 direction;

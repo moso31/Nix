@@ -50,10 +50,10 @@ float3 GetPrefilter(float roughness, float3 R)
 		float NoL = saturate(dot(N, L));
 		if (NoL > 0.0f)
 		{
-			float3 D = DistributionGGX(N, H, roughness);
-			float NdotH = saturate(dot(N, H));
-			float VdotH = saturate(dot(V, H));
-			float3 pdf = max(D * NdotH / (4.0 * VdotH), 0.0001);
+			float NoH = saturate(dot(N, H));
+			float VoH = saturate(dot(V, H));
+			float3 D = DistributionGGX(NoH, roughness);
+			float3 pdf = max(D * NoH / (4.0 * VoH), 0.0001);
 
 			float imgSize = 512.0f;
 			//float saPerH = 1.0f / (NumSamples * pdf);

@@ -1,58 +1,52 @@
 #include "BRDFCommon.fx"
 #include "PBRMaterials.fx"
 
-float DistributionGGX(float3 N, float3 H, float roughness)
+float DistributionGGX(float NoH, float roughness)
 {
 	float a = roughness * roughness;
 	float a2 = a * a;
-	float NdotH = max(dot(N, H), 0.0);
-	float NdotH2 = NdotH * NdotH;
 
 	float num = a2;
-	float denom = (NdotH2 * (a2 - 1.0) + 1.0);
+	float denom = (NoH * NoH * (a2 - 1.0) + 1.0);
 	denom = NX_PI * denom * denom;
 
 	return num / denom;
 }
 
-float GeometrySchlickGGXDirect(float NdotV, float roughness)
+float GeometrySchlickGGXDirect(float NoV, float roughness)
 {
 	float a = roughness;
 	float a1 = a + 1;
 	float k = a1 * a1 * 0.125;
 
-	float nom = NdotV;
-	float denom = NdotV * (1.0 - k) + max(k, 0.00001); // 加epsilon以防止除0
+	float nom = NoV;
+	float denom = NoV * (1.0 - k) + max(k, 0.00001); // 加epsilon以防止除0
 
 	return nom / denom;
 }
 
-float GeometrySchlickGGXIBL(float NdotV, float roughness)
+float GeometrySchlickGGXIBL(float NoV, float roughness)
 {
 	float a = roughness;
 	float k = (a * a) / 2.0;
 
-	float nom = NdotV;
-	float denom = NdotV * (1.0 - k) + max(k, 0.00001); // 加epsilon以防止除0
+	float nom = NoV;
+	float denom = NoV * (1.0 - k) + max(k, 0.00001); // 加epsilon以防止除0
 
 	return nom / denom;
 }
 
-float GeometrySmithDirect(float3 N, float3 V, float3 L, float roughness)
+float GeometrySmithDirect(float NoV, float NoL, float roughness)
 {
-	float NdotV = saturate(dot(N, V));
-	float NdotL = saturate(dot(N, L));
-	float ggx2 = GeometrySchlickGGXDirect(NdotV, roughness);
-	float ggx1 = GeometrySchlickGGXDirect(NdotL, roughness);
+	float ggx2 = GeometrySchlickGGXDirect(NoV, roughness);
+	float ggx1 = GeometrySchlickGGXDirect(NoL, roughness);
 	return ggx1 * ggx2;
 }
 
-float GeometrySmithIBL(float3 N, float3 V, float3 L, float roughness)
+float GeometrySmithIBL(float NoV, float NoL, float roughness)
 {
-	float NdotV = saturate(dot(N, V));
-	float NdotL = saturate(dot(N, L));
-	float ggx2 = GeometrySchlickGGXIBL(NdotV, roughness);
-	float ggx1 = GeometrySchlickGGXIBL(NdotL, roughness);
+	float ggx2 = GeometrySchlickGGXIBL(NoV, roughness);
+	float ggx1 = GeometrySchlickGGXIBL(NoL, roughness);
 	return ggx1 * ggx2;
 }
 

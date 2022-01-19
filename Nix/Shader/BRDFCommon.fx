@@ -1,3 +1,9 @@
+struct BSDFValue
+{
+	float3 Diffuse;
+	float3 Specular;
+};
+
 const static float NX_PIDIV2 = 1.5707963267948966192313216916398f;
 const static float NX_PI = 3.1415926535897932384626433832795f;
 const static float NX_2PI = 6.283185307179586476925286766559f;
