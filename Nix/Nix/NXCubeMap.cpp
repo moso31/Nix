@@ -10,8 +10,7 @@ NXCubeMap::NXCubeMap(NXScene* pScene) :
 	m_pScene(pScene),
 	m_format(DXGI_FORMAT_UNKNOWN),
 	m_height(0),
-	m_width(0),
-	m_pEnvironmentLight(nullptr)
+	m_width(0)
 {
 	InitConstantBuffer();
 }

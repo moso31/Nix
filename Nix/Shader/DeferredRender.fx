@@ -154,6 +154,9 @@ float4 PS(PS_INPUT input) : SV_Target
 		float3 LightIlluminance = LightIntensity / (NX_4PI * d2);
 		float3 IncidentIlluminance = LightIlluminance * NoL;
 
+		float Factor = d2 / (m_pointLight[i].influenceRadius * m_pointLight[i].influenceRadius);
+		float FalloffFactor = max(1.0f - Factor * Factor, 0.0f);
+
 		// 微表面 BRDF
 		float NDF = DistributionGGX(NoH, roughness);
 		float G = GeometrySmithDirect(NoV, NoL, roughness);
@@ -168,8 +171,52 @@ float4 PS(PS_INPUT input) : SV_Target
 		kD *= 1.0 - metallic;
 
 		float3 diffuse = DiffuseDisney(albedo, roughness, NoV, NoL, VoH);
-		Lo += (kD * diffuse + specular) * IncidentIlluminance; // Output radiance.
+		Lo += (kD * diffuse + specular) * IncidentIlluminance * FalloffFactor; // Output radiance.
     }
+
+	for (i = 0; i < NUM_SPOT_LIGHT; i++)
+	{
+		float3 LightPosVS = mul(float4(m_spotLight[i].position, 1.0f), m_worldView).xyz;
+		float3 LightIntensity = m_spotLight[i].color * m_spotLight[i].intensity;
+		float3 LightDirVS = LightPosVS - PositionVS;
+
+		float3 L = normalize(LightDirVS);
+		float3 H = normalize(V + L);
+		float NoL = max(dot(N, L), 0.0);
+		float NoH = max(dot(N, H), 0.0);
+		float VoH = max(dot(V, H), 0.0);
+
+		float d2 = dot(LightDirVS, LightDirVS);
+		float3 LightIlluminance = LightIntensity / (NX_PI * d2);
+		float3 IncidentIlluminance = LightIlluminance * NoL;
+
+		float CosInner = cos(m_spotLight[i].innerAngle * NX_DEGTORED);
+		float CosOuter = cos(m_spotLight[i].outerAngle * NX_DEGTORED);
+		float3 SpotDirWS = normalize(m_spotLight[i].direction);
+		float3 SpotDirVS = normalize(mul(SpotDirWS, (float3x3)m_worldViewInverseTranspose));
+		float FalloffFactor = (dot(-SpotDirVS, L) - CosOuter) / max(CosInner - CosOuter, 1e-4f);
+		FalloffFactor = saturate(FalloffFactor);
+		FalloffFactor = FalloffFactor * FalloffFactor;
+
+		float Factor = d2 / (m_spotLight[i].influenceRadius * m_spotLight[i].influenceRadius);
+		FalloffFactor *= max(1.0f - Factor * Factor, 0.0f);
+
+		// 微表面 BRDF
+		float NDF = DistributionGGX(NoH, roughness);
+		float G = GeometrySmithDirect(NoV, NoL, roughness);
+		float3 F = FresnelSchlick(VoH, F0);
+
+		float3 numerator = NDF * G * F;
+		float denominator = 4.0 * NoV * NoL;
+		float3 specular = numerator / max(denominator, 0.001);
+
+		float3 kS = F;
+		float3 kD = 1.0 - kS;
+		kD *= 1.0 - metallic;
+
+		float3 diffuse = DiffuseDisney(albedo, roughness, NoV, NoL, VoH);
+		Lo += (kD * diffuse + specular) * IncidentIlluminance * FalloffFactor; // Output radiance.
+	}
 
 	float3 kS = FresnelSchlick(NoV, F0);
 	float3 kD = 1.0 - kS;

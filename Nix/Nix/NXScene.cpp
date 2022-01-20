@@ -198,7 +198,7 @@ void NXScene::Init()
 	// Init Lighting
 	{
 		NXPBRPointLight* pPointLight;
-		pPointLight = m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 4.5f, 0.0f), Vector3(1.0f), 1.0f);
+		pPointLight = m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 4.5f, 0.0f), Vector3(1.0f), 1.0f, 100.0f);
 		m_cbDataLights.pointLight[0] = pPointLight->GetConstantBuffer();
 
 		NXPBRDistantLight* pDirLight;
@@ -206,7 +206,7 @@ void NXScene::Init()
 		m_cbDataLights.distantLight[0] = pDirLight->GetConstantBuffer();
 
 		NXPBRSpotLight* pSpotLight;
-		pSpotLight = m_sceneManager->CreatePBRSpotLight(Vector3(0.0f, 2.0f, 0.0f), Vector3(0.0f, -1.0f, 0.0f), Vector3(1.0f), 1.0f, 30.0f, 50.0f);
+		pSpotLight = m_sceneManager->CreatePBRSpotLight(Vector3(0.0f, 2.0f, 0.0f), Vector3(0.0f, -1.0f, 0.0f), Vector3(1.0f), 1.0f, 30.0f, 50.0f, 100.0f);
 		m_cbDataLights.spotLight[0] = pSpotLight->GetConstantBuffer();
 
 		D3D11_BUFFER_DESC bufferDesc;

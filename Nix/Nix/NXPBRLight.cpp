@@ -7,27 +7,8 @@
 
 using namespace SamplerMath;
 
-NXPBRPointLight::NXPBRPointLight(const Vector3& position, const Vector3& color, const float intensity) :
-	m_position(position), 
-	m_color(color),
-	m_intensity(intensity)
-{
-	m_name = "Point Light";
-	m_type = NXLight_Point;
-}
-
-ConstantBufferPointLight NXPBRPointLight::GetConstantBuffer()
-{
-	ConstantBufferPointLight cb;
-	cb.position = m_position;
-	cb._0 = 0;
-	cb.color = m_color;
-	cb.intensity = m_intensity;
-	return cb;
-}
-
 NXPBRDistantLight::NXPBRDistantLight(const Vector3& direction, const Vector3& color, const float illuminance) :
-	m_direction(direction), 
+	m_direction(direction),
 	m_color(color),
 	m_illuminance(illuminance)
 {
@@ -45,13 +26,34 @@ ConstantBufferDistantLight NXPBRDistantLight::GetConstantBuffer()
 	return cb;
 }
 
-NXPBRSpotLight::NXPBRSpotLight(const Vector3& position, const Vector3& direction, const Vector3& color, const float intensity, const float innerAngle, const float outerAngle) :
+NXPBRPointLight::NXPBRPointLight(const Vector3& position, const Vector3& color, const float intensity, const float influenceRadius) :
+	m_position(position), 
+	m_color(color),
+	m_intensity(intensity),
+	m_influenceRadius(influenceRadius)
+{
+	m_name = "Point Light";
+	m_type = NXLight_Point;
+}
+
+ConstantBufferPointLight NXPBRPointLight::GetConstantBuffer()
+{
+	ConstantBufferPointLight cb;
+	cb.position = m_position;
+	cb.influenceRadius = m_influenceRadius;
+	cb.color = m_color;
+	cb.intensity = m_intensity;
+	return cb;
+}
+
+NXPBRSpotLight::NXPBRSpotLight(const Vector3& position, const Vector3& direction, const Vector3& color, const float intensity, const float innerAngle, const float outerAngle, const float influenceRadius) :
 	m_position(position),
 	m_direction(direction),
 	m_color(color),
 	m_intensity(intensity),
 	m_innerAngle(innerAngle),
-	m_outerAngle(outerAngle)
+	m_outerAngle(outerAngle),
+	m_influenceRadius(influenceRadius)
 {
 	m_name = "Spot Light";
 	m_type = NXLight_Spot;
@@ -66,14 +68,6 @@ ConstantBufferSpotLight NXPBRSpotLight::GetConstantBuffer()
 	cb.intensity = m_intensity;
 	cb.innerAngle = m_innerAngle;
 	cb.outerAngle = m_outerAngle;
+	cb.influenceRadius = m_influenceRadius;
 	return cb;
-}
-
-NXPBREnvironmentLight::NXPBREnvironmentLight(NXCubeMap* pCubeMap, const Vector3& radiance, Vector3 worldCenter, float worldRadius) :
-	m_pCubeMap(pCubeMap),
-	m_radiance(radiance),
-	m_worldCenter(worldCenter),
-	m_worldRadius(worldRadius)
-{
-	m_name = "Environment Light";
 }

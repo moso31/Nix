@@ -84,6 +84,12 @@ void NXGUILights::Render()
             {
                 pPointLight->SetIntensity(intensity);
             }
+
+            float influenceRadius = pPointLight->GetInfluenceradius();
+            if (ImGui::DragFloat("Influence Radius", &influenceRadius, 0.1f, 0.0f, FLT_MAX))
+            {
+                pPointLight->SetInfluenceRadius(influenceRadius);
+            }
         }
 
         if (lightType == NXLight_Spot)
@@ -124,6 +130,12 @@ void NXGUILights::Render()
             if (ImGui::DragFloat("Outer Angle", &outerAngle, 1.0f, innerAngle, 180.0f))
             {
                 pSpotLight->SetOuterAngle(outerAngle);
+            }
+
+            float influenceRadius = pSpotLight->GetInfluenceradius();
+            if (ImGui::DragFloat("Influence Radius", &influenceRadius, 0.1f, 0.0f, FLT_MAX))
+            {
+                pSpotLight->SetInfluenceRadius(influenceRadius);
             }
         }
     }

@@ -132,13 +132,6 @@ NXPBRMaterial* SceneManager::CreatePBRMaterial(const std::string name, const Vec
 	return pMat;
 }
 
-NXPBRPointLight* SceneManager::CreatePBRPointLight(const Vector3& position, const Vector3& color, const float intensity)
-{
-	auto pLight = new NXPBRPointLight(position, color, intensity);
-	RegisterLight(pLight);
-	return pLight;
-}
-
 NXPBRDistantLight* SceneManager::CreatePBRDistantLight(const Vector3& direction, const Vector3& color, const float illuminance)
 {
 	auto pLight = new NXPBRDistantLight(direction, color, illuminance);
@@ -146,18 +139,16 @@ NXPBRDistantLight* SceneManager::CreatePBRDistantLight(const Vector3& direction,
 	return pLight;
 }
 
-NXPBRSpotLight* SceneManager::CreatePBRSpotLight(const Vector3& position, const Vector3& direction, const Vector3& color, const float intensity, const float innerAngle, const float outerAngle)
+NXPBRPointLight* SceneManager::CreatePBRPointLight(const Vector3& position, const Vector3& color, const float intensity, const float influenceRadius)
 {
-	auto pLight = new NXPBRSpotLight(position, direction, color, intensity, innerAngle, outerAngle);
+	auto pLight = new NXPBRPointLight(position, color, intensity, influenceRadius);
 	RegisterLight(pLight);
 	return pLight;
 }
 
-NXPBREnvironmentLight* SceneManager::CreatePBREnvironmentLight(NXCubeMap* pCubeMap, const Vector3& Intensity)
+NXPBRSpotLight* SceneManager::CreatePBRSpotLight(const Vector3& position, const Vector3& direction, const Vector3& color, const float intensity, const float innerAngle, const float outerAngle, const float influenceRadius)
 {
-	auto bound = m_pScene->GetBoundingSphere();
-	auto pLight = new NXPBREnvironmentLight(pCubeMap, Intensity, bound.Center, bound.Radius);
-	pCubeMap->SetEnvironmentLight(pLight);
+	auto pLight = new NXPBRSpotLight(position, direction, color, intensity, innerAngle, outerAngle, influenceRadius);
 	RegisterLight(pLight);
 	return pLight;
 }

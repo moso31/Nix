@@ -13,7 +13,7 @@ struct DistantLight
 struct PointLight
 {
 	float3 position;
-	float _0;
+	float influenceRadius;
 	float3 color;
 	float intensity;
 };
@@ -26,4 +26,6 @@ struct SpotLight
 	float outerAngle;
 	float3 color;
 	float intensity;
+	float influenceRadius;
+	float3 _0;
 };

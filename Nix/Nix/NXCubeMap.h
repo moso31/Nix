@@ -10,7 +10,6 @@ struct ConstantBufferCubeMap
 	Vector3 _0;
 };
 
-class NXPBREnvironmentLight;
 
 class NXCubeMap : public NXTransform
 {
@@ -30,8 +29,6 @@ public:
 	void GenerateBRDF2DLUT();
 
 	Vector3 BackgroundColorByDirection(const Vector3& v);
-	void SetEnvironmentLight(NXPBREnvironmentLight* pEnvironmentLight) { m_pEnvironmentLight = pEnvironmentLight; }
-	NXPBREnvironmentLight* GetEnvironmentLight() const { return m_pEnvironmentLight; }
 
 	ID3D11ShaderResourceView* GetSRVCubeMap() { return m_pSRVCubeMap.Get(); }
 	ID3D11ShaderResourceView* GetSRVCubeMapPreview2D() { return m_pSRVCubeMapPreview2D.Get(); }
@@ -56,7 +53,6 @@ private:
 	size_t m_width, m_height;
 
 	NXScene* m_pScene;
-	NXPBREnvironmentLight* m_pEnvironmentLight;
 
 	Matrix m_mxCubeMapProj;
 	Matrix m_mxCubeMapView[6];
