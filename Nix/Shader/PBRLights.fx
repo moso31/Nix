@@ -21,9 +21,9 @@ struct PointLight
 struct SpotLight
 {
 	float3 position;
-	float _0;
+	float innerAngle;
 	float3 direction;
-	float _1;
+	float outerAngle;
 	float3 color;
-	float _2;
+	float intensity;
 };

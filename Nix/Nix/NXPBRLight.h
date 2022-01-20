@@ -10,14 +10,6 @@ enum NXLightTypeEnum
 	NXLight_Spot,
 };
 
-//const char* NXLightTypeEnumStr[] =
-//{
-//	"NXLight_Unknown",
-//	"NXLight_Distant",
-//	"NXLight_Point",
-//	"NXLight_Spot"
-//};
-
 class NXPBRLight
 {
 public:
@@ -84,7 +76,10 @@ private:
 class NXPBRSpotLight : public NXPBRLight
 {
 public:
-	NXPBRSpotLight() {}
+	NXPBRSpotLight(const Vector3& position, const Vector3& direction, const Vector3& color, const float intensity, const float innerAngle, const float outerAngle);
+
+	// DirectX
+	ConstantBufferSpotLight GetConstantBuffer();
 
 	Vector3		GetPosition()		{ return m_position; }
 	Vector3		GetDirection()		{ return m_direction; }

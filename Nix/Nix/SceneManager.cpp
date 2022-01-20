@@ -146,6 +146,13 @@ NXPBRDistantLight* SceneManager::CreatePBRDistantLight(const Vector3& direction,
 	return pLight;
 }
 
+NXPBRSpotLight* SceneManager::CreatePBRSpotLight(const Vector3& position, const Vector3& direction, const Vector3& color, const float intensity, const float innerAngle, const float outerAngle)
+{
+	auto pLight = new NXPBRSpotLight(position, direction, color, intensity, innerAngle, outerAngle);
+	RegisterLight(pLight);
+	return pLight;
+}
+
 NXPBREnvironmentLight* SceneManager::CreatePBREnvironmentLight(NXCubeMap* pCubeMap, const Vector3& Intensity)
 {
 	auto bound = m_pScene->GetBoundingSphere();

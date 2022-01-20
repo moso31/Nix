@@ -204,8 +204,10 @@ void NXScene::Init()
 		NXPBRDistantLight* pDirLight;
 		pDirLight = m_sceneManager->CreatePBRDistantLight(Vector3(-1.0f, 0.0f, 1.0f), Vector3(1.0f), 2.0f);
 		m_cbDataLights.distantLight[0] = pDirLight->GetConstantBuffer();
-		//m_sceneManager->CreatePBRTangibleLight(pLight,  Vector3(20.0f)); 
-		//m_sceneManager->CreatePBREnvironmentLight(m_pCubeMap, Vector3(1.0f));
+
+		NXPBRSpotLight* pSpotLight;
+		pSpotLight = m_sceneManager->CreatePBRSpotLight(Vector3(0.0f, 2.0f, 0.0f), Vector3(0.0f, -1.0f, 0.0f), Vector3(1.0f), 1.0f, 30.0f, 50.0f);
+		m_cbDataLights.spotLight[0] = pSpotLight->GetConstantBuffer();
 
 		D3D11_BUFFER_DESC bufferDesc;
 		ZeroMemory(&bufferDesc, sizeof(bufferDesc));
@@ -307,7 +309,7 @@ void NXScene::UpdateLightData()
 			break;
 		case NXLight_Spot:
 			pSpotLight = (NXPBRSpotLight*)pLight;
-			//m_cbDataLights.spotLight[spotIdx++] = pSpotLight->GetConstantBuffer();
+			m_cbDataLights.spotLight[spotIdx++] = pSpotLight->GetConstantBuffer();
 			break;
 		default:
 			break;

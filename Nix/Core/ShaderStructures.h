@@ -109,11 +109,11 @@ struct ConstantBufferPointLight
 struct ConstantBufferSpotLight
 {
 	Vector3 position;
-	float _0;
+	float innerAngle;
 	Vector3 direction;
-	float _1;
+	float outerAngle;
 	Vector3 color;
-	float _2;
+	float intensity;
 };
 
 struct ConstantBufferLight

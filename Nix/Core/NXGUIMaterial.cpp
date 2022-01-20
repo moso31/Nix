@@ -42,8 +42,7 @@ void NXGUIMaterial::Render()
 		pPickingObject->SetTranslation(vTrans);
 	}
 
-	Quaternion qRot = pPickingObject->GetRotation();
-	Vector3 vRot = qRot.EulerXYZ();
+	Vector3 vRot = pPickingObject->GetRotation();
 	float vRotArr[3] = { vRot.x, vRot.y, vRot.z };
 	if (ImGui::DragFloat3("Rotation", vRotArr, fDrugSpeedTransform))
 	{

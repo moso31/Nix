@@ -116,7 +116,7 @@ void NSFirstPersonalCamera::OnMouseMove(NXEventArgMouse eArg)
 	Vector3 vUp = pCamera->GetUp();
 	Vector3 vRight = pCamera->GetRight();
 
-	Matrix mxOld = Matrix::CreateFromQuaternion(pCamera->GetRotation());
+	Matrix mxOld = Matrix::CreateFromQuaternion(pCamera->GetQuaternion());
 	Matrix mxRot = Matrix::CreateFromAxisAngle(vRight, fPitch) * Matrix::CreateFromAxisAngle(vUp, fYaw);
 	Matrix mxNew = mxOld * mxRot;
 

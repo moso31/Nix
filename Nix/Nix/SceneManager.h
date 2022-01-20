@@ -38,6 +38,7 @@ public:
 		const std::wstring aoTexFilePath = L".\\Resource\\white1x1.png");
 	NXPBRPointLight* CreatePBRPointLight(const Vector3& position, const Vector3& color, const float intensity);
 	NXPBRDistantLight* CreatePBRDistantLight(const Vector3& direction, const Vector3& color, const float illuminance);
+	NXPBRSpotLight* CreatePBRSpotLight(const Vector3& position, const Vector3& direction, const Vector3& color, const float intensity, const float innerAngle, const float outerAngle);
 	NXPBREnvironmentLight* CreatePBREnvironmentLight(NXCubeMap* pCubeMap, const Vector3& Intensity = Vector3(1.0f));
 	NXCubeMap* CreateCubeMap(const std::string name, const std::wstring filePath);
 

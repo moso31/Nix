@@ -9,6 +9,8 @@ const static float NX_PI = 3.1415926535897932384626433832795f;
 const static float NX_2PI = 6.283185307179586476925286766559f;
 const static float NX_4PI = 12.566370614359172953850573533118f;
 const static float NX_INVPI = 0.31830988618379067153776752674503;
+const static float NX_DEGTORED = NX_PI / 180.0f;
+const static float NX_REDTODEG = 180.0f / NX_PI;
 
 float Pow5(float x)
 {

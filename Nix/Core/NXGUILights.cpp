@@ -67,10 +67,10 @@ void NXGUILights::Render()
         {
             NXPBRPointLight* pPointLight = (NXPBRPointLight*)m_pCurrentLight;
 
-            XMVECTOR dir = pPointLight->GetPosition();
-            if (ImGui::DragFloat3("position", dir.m128_f32, 0.01f))
+            XMVECTOR pos = pPointLight->GetPosition();
+            if (ImGui::DragFloat3("position", pos.m128_f32, 0.01f))
             {
-                pPointLight->SetPosition(dir);
+                pPointLight->SetPosition(pos);
             }
 
             XMVECTOR color = pPointLight->GetColor();
@@ -83,6 +83,47 @@ void NXGUILights::Render()
             if (ImGui::DragFloat("Intensity", &intensity, 0.01f))
             {
                 pPointLight->SetIntensity(intensity);
+            }
+        }
+
+        if (lightType == NXLight_Spot)
+        {
+            NXPBRSpotLight* pSpotLight = (NXPBRSpotLight*)m_pCurrentLight;
+
+            XMVECTOR pos = pSpotLight->GetPosition();
+            if (ImGui::DragFloat3("position", pos.m128_f32, 0.01f))
+            {
+                pSpotLight->SetPosition(pos);
+            }
+
+            XMVECTOR dir = pSpotLight->GetDirection();
+            if (ImGui::DragFloat3("Direction", dir.m128_f32, 0.01f))
+            {
+                pSpotLight->SetDirection(dir);
+            }
+
+            XMVECTOR color = pSpotLight->GetColor();
+            if (ImGui::ColorEdit3("Color", color.m128_f32))
+            {
+                pSpotLight->SetColor(color);
+            }
+
+            float illuminance = pSpotLight->GetIntensity();
+            if (ImGui::DragFloat("Intensity", &illuminance, 0.01f))
+            {
+                pSpotLight->SetIntensity(illuminance);
+            }
+
+            float innerAngle = pSpotLight->GetInnerAngle();
+            float outerAngle = pSpotLight->GetOuterAngle();
+            if (ImGui::DragFloat("Inner Angle", &innerAngle, 1.0f, 0.0f, outerAngle))
+            {
+                pSpotLight->SetInnerAngle(innerAngle);
+            }
+
+            if (ImGui::DragFloat("Outer Angle", &outerAngle, 1.0f, innerAngle, 180.0f))
+            {
+                pSpotLight->SetOuterAngle(outerAngle);
             }
         }
     }
