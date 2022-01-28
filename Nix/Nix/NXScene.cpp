@@ -119,8 +119,18 @@ void NXScene::Init()
 	//auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64);
 	//pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
 
-	auto p = m_sceneManager->CreatePlane("Sphere", 10.0f, 10.0f, NXPlaneAxis::POSITIVE_Y);
-	p->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
+	for (int l = 0; l < 4; l++)
+	{
+		for (int m = -l; m <= l; m++)
+		{
+			Vector3 objPos(m * 2.0f, l * 2.0f, 0.0f);
+			auto pSH = m_sceneManager->CreateSHSphere("shTest", l, m, 1.0f, 64, 64, objPos);
+			pSH->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
+		}
+	}
+
+	//auto p = m_sceneManager->CreatePlane("Sphere", 10.0f, 10.0f, NXPlaneAxis::POSITIVE_Y);
+	//p->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
 	
 	//std::vector<NXPrimitive*> pMeshes;
 	//m_sceneManager->CreateFBXMeshes("D:\\NixAssets\\UnityBall.fbx", pMeshes);
@@ -185,9 +195,9 @@ void NXScene::Init()
 	pMainCamera->SetTranslation(Vector3(0.0f, 1.0f, -5.0f));
 	pMainCamera->SetLookAt(Vector3(0.0f, 1.0f, -4.0f));
 
-	m_sceneManager->CreateCubeMap("Sky", L"D:\\Alexs_Apt_2k.hdr");
+	//m_sceneManager->CreateCubeMap("Sky", L"D:\\Alexs_Apt_2k.hdr");
 	//m_sceneManager->CreateCubeMap("Sky", L"D:\\TexturesCom_JapanInariTempleH_1K_hdri_sphere.hdr");
-	//m_sceneManager->CreateCubeMap("Sky", L"D:\\ballroom_4k.hdr");
+	m_sceneManager->CreateCubeMap("Sky", L"D:\\ballroom_4k.hdr");
 	//m_sceneManager->CreateCubeMap("Sky", L"D:\\blue_grotto_4k.hdr");
 
 

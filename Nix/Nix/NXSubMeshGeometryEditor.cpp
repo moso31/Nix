@@ -1,6 +1,7 @@
 #include "NXSubMeshGeometryEditor.h"
 #include "NXPrimitive.h"
 #include "FBXMeshLoader.h"
+#include "SphereHarmonics.h"
 
 NXSubMeshGeometryEditor::NXSubMeshGeometryEditor()
 {
@@ -371,6 +372,104 @@ void NXSubMeshGeometryEditor::CreateSphere(NXPrimitive* pMesh, float radius, int
 			nNextUp = pNextUp * invRadius;
 			nNowDown = pNowDown * invRadius;
 			nNextDown = pNextDown * invRadius;
+
+			// 计算切线
+			Vector3 vNow = { xNow, 0.0f, zNow };
+			Vector3 vNext = { xNext, 0.0f, zNext };
+
+			Vector3 tNowUp = vNow.Cross(vTop);
+			Vector3 tNextUp = vNext.Cross(vTop);
+			Vector3 tNowDown = vNow.Cross(vTop);
+			Vector3 tNextDown = vNext.Cross(vTop);
+			tNowUp.Normalize();
+			tNextUp.Normalize();
+			tNowDown.Normalize();
+			tNextDown.Normalize();
+
+			pSubMesh->m_vertices.push_back({ pNowUp,	nNowUp,		uvNowUp,	tNowUp });
+			pSubMesh->m_vertices.push_back({ pNextUp,	nNextUp,	uvNextUp,	tNextUp });
+			pSubMesh->m_vertices.push_back({ pNextDown,	nNextDown,	uvNextDown, tNextDown });
+			pSubMesh->m_vertices.push_back({ pNowDown,	nNowDown,	uvNowDown,	tNowDown });
+
+			pSubMesh->m_indices.push_back(currVertIdx);
+			pSubMesh->m_indices.push_back(currVertIdx + 1);
+			pSubMesh->m_indices.push_back(currVertIdx + 2);
+			pSubMesh->m_indices.push_back(currVertIdx);
+			pSubMesh->m_indices.push_back(currVertIdx + 2);
+			pSubMesh->m_indices.push_back(currVertIdx + 3);
+
+			currVertIdx += 4;
+		}
+	}
+
+	pSubMesh->InitVertexIndexBuffer();
+
+	pMesh->AddSubMesh(pSubMesh);
+	pMesh->InitAABB();
+}
+
+void NXSubMeshGeometryEditor::CreateSHSphere(NXPrimitive* pMesh, int basis_l, int basis_m, float radius, int segmentHorizontal, int segmentVertical)
+{
+	pMesh->ClearSubMeshes();
+	NXSubMesh* pSubMesh = new NXSubMesh(pMesh);
+
+	Vector3 vTop(0.0f, 1.0f, 0.0f);
+	Vector3 vBottom(0.0f, -1.0f, 0.0f);
+
+	int currVertIdx = 0;
+	for (int i = 0; i < segmentVertical; i++)
+	{
+		float segDown = (float)i / (float)segmentVertical;
+		float segUp = (float)(i + 1) / (float)segmentVertical;
+		float angleDown = segDown * XM_PI - XM_PIDIV2;
+		float angleUp = segUp * XM_PI - XM_PIDIV2;
+
+		float yDown = sinf(angleDown) * radius;
+		float yUp = sinf(angleUp) * radius;
+		float radiusDown = sqrtf(radius * radius - yDown * yDown);
+		float radiusUp = sqrtf(radius * radius - yUp * yUp);
+
+		float yUVUp = 1.0f - Clamp(yUp * 0.5f + 0.5f, 0.0f, 1.0f);
+		float yUVDown = 1.0f - Clamp(yDown * 0.5f + 0.5f, 0.0f, 1.0f);
+
+		for (int j = 0; j < segmentHorizontal; j++)
+		{
+			float segNow = (float)j / (float)segmentHorizontal;
+			float segNext = (float)(j + 1) / (float)segmentHorizontal;
+			float angleNow = segNow * XM_2PI;
+			float angleNext = segNext * XM_2PI;
+			float xNow = cosf(angleNow);
+			float zNow = sinf(angleNow);
+			float xNext = cosf(angleNext);
+			float zNext = sinf(angleNext);
+
+			float shNowUp =		DirectX::SimpleMath::SH::SHBasis(basis_l, basis_m, 2.0f * angleUp, 2.0f * angleNow);
+			float shNextUp =	DirectX::SimpleMath::SH::SHBasis(basis_l, basis_m, 2.0f * angleUp, 2.0f * angleNext);
+			float shNowDown =	DirectX::SimpleMath::SH::SHBasis(basis_l, basis_m, 2.0f * angleDown, 2.0f * angleNow);
+			float shNextDown =	DirectX::SimpleMath::SH::SHBasis(basis_l, basis_m, 2.0f * angleDown, 2.0f * angleNext);
+
+			Vector3 pNowUp = { xNow * radiusUp, yUp, zNow * radiusUp };
+			Vector3 pNextUp = { xNext * radiusUp, yUp, zNext * radiusUp };
+			Vector3 pNowDown = { xNow * radiusDown, yDown, zNow * radiusDown };
+			Vector3 pNextDown = { xNext * radiusDown, yDown, zNext * radiusDown };
+			pNowUp *= shNowUp;
+			pNextUp *= shNextUp;
+			pNowDown *= shNowDown;
+			pNextDown *= shNextDown;
+
+			Vector2 uvNowUp = { segNow, yUVUp };
+			Vector2 uvNextUp = { segNext, yUVUp };
+			Vector2 uvNowDown = { segNow, yUVDown };
+			Vector2 uvNextDown = { segNext, yUVDown };
+
+			Vector3 nNowUp = pNowUp;
+			Vector3 nNextUp = pNextUp;
+			Vector3 nNowDown = pNowDown;
+			Vector3 nNextDown = pNextDown;
+			nNowUp.Normalize();
+			nNextUp.Normalize();
+			nNowDown.Normalize();
+			nNextDown.Normalize();
 
 			// 计算切线
 			Vector3 vNow = { xNow, 0.0f, zNow };

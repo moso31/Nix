@@ -71,6 +71,18 @@ NXPrimitive* SceneManager::CreateSphere(const std::string name, const float radi
 	return p;
 }
 
+NXPrimitive* SceneManager::CreateSHSphere(const std::string name, const int l, const int m, const float radius, const UINT segmentHorizontal, const UINT segmentVertical, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
+{
+	auto p = new NXPrimitive();
+	p->SetName(name);
+	NXSubMeshGeometryEditor::CreateSHSphere(p, l, m, radius, segmentHorizontal, segmentVertical);
+	p->SetTranslation(translation);
+	p->SetRotation(rotation);
+	p->SetScale(scale);
+	RegisterPrimitive(p);
+	return p;
+}
+
 NXPrimitive* SceneManager::CreateCylinder(const std::string name, const float radius, const float length, const UINT segmentCircle, const UINT segmentLength, const Vector3& translation, const Vector3& rotation, const Vector3& scale)
 {
 	auto p = new NXPrimitive();

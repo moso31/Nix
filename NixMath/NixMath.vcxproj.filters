@@ -6,8 +6,10 @@
   <ItemGroup>
     <ClInclude Include="SimpleMath.h" />
     <ClInclude Include="SamplerMath.h" />
+    <ClInclude Include="SphereHarmonics.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SamplerMath.cpp" />
+    <ClCompile Include="SphereHarmonics.cpp" />
   </ItemGroup>
 </Project>

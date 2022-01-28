@@ -24,9 +24,11 @@
   <ItemGroup>
     <ClInclude Include="SamplerMath.h" />
     <ClInclude Include="SimpleMath.h" />
+    <ClInclude Include="SphereHarmonics.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SamplerMath.cpp" />
+    <ClCompile Include="SphereHarmonics.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

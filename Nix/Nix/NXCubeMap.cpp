@@ -1,10 +1,13 @@
 #include "NXCubeMap.h"
+#include "SphereHarmonics.h"
 #include "GlobalBufferManager.h"
 #include "RenderStates.h"
 #include "NXScene.h"
 #include "NXCamera.h"
 #include "ShaderComplier.h"
 #include "DirectResources.h"
+
+using namespace DirectX::SimpleMath::SH;
 
 NXCubeMap::NXCubeMap(NXScene* pScene) :
 	m_pScene(pScene),
@@ -61,6 +64,45 @@ bool NXCubeMap::Init(const std::wstring filePath)
 		
 		GenerateCubeMap(filePath);
 		hr = LoadFromDDSFile(m_cubeMapFilePath.c_str(), DDS_FLAGS_NONE, &HDRInfo, *m_pImage);
+
+		auto pData = reinterpret_cast<float*>(pHDRImage->GetImage(0, 0, 0)->pixels);
+
+		size_t imgWidth = pHDRImage->GetMetadata().width;
+		size_t imgHeight = pHDRImage->GetMetadata().height;
+		double solidAngle = 0.0;
+		double test = 0.0;
+
+		// note : 必须使用 double 不然会导致精度丢失
+		for (size_t i = 0, idx = 0; i < pHDRImage->GetPixelsSize(); i += 16, idx++)
+		{
+			double u = (double(idx % imgWidth) + 0.5f) / imgWidth;
+			double v = (double(idx / imgWidth) + 0.5f) / imgHeight;
+			double phi = u * XM_2PI - XM_PI;
+			double theta = v * -XM_PI + XM_PIDIV2;
+			Vector3 dir(sinf(phi) * cosf(theta), sinf(theta), cosf(theta) * cosf(phi));
+
+			// Phi 是个常量，没必要算
+			//double scaleX = 0.5f / imgWidth;
+			double scaleY = 0.5f / imgHeight;
+
+			//double phiL = (u - scaleX) * XM_2PI - XM_PI;
+			//double phiR = (u + scaleX) * XM_2PI - XM_PI;
+			double thetaU = (v - scaleY) * -XM_PI + XM_PIDIV2;
+			double thetaD = (v + scaleY) * -XM_PI + XM_PIDIV2;
+
+			double dPhi = XM_2PI / imgWidth;
+			double dTheta = sinf(thetaU) - sinf(thetaD);
+			solidAngle += dPhi * dTheta;
+			test += dPhi;
+
+			//printf("[%f %f], dPhi:%f, dTheta: %f  test: %f   now: %f\tall: %f\n", u, v, dPhi, dTheta, test, dPhi * dTheta, solidAngle);
+
+			//printf("[%f,\t%f,\t%f]: %f, %f, %f, %f\n", dir.x, dir.y, dir.z, pData[0], pData[1], pData[2], pData[3]);
+
+			pData += 4;
+		}
+
+		printf("%f\n", solidAngle);
 
 		std::unique_ptr<ScratchImage> pImageMip = std::make_unique<ScratchImage>();
 		hr = GenerateMipMaps(m_pImage->GetImages(), m_pImage->GetImageCount(), m_pImage->GetMetadata(), TEX_FILTER_DEFAULT, 0, *pImageMip);
