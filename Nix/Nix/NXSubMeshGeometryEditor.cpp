@@ -443,19 +443,19 @@ void NXSubMeshGeometryEditor::CreateSHSphere(NXPrimitive* pMesh, int basis_l, in
 			float xNext = cosf(angleNext);
 			float zNext = sinf(angleNext);
 
-			float shNowUp =		DirectX::SimpleMath::SH::SHBasis(basis_l, basis_m, 2.0f * angleUp, 2.0f * angleNow);
-			float shNextUp =	DirectX::SimpleMath::SH::SHBasis(basis_l, basis_m, 2.0f * angleUp, 2.0f * angleNext);
-			float shNowDown =	DirectX::SimpleMath::SH::SHBasis(basis_l, basis_m, 2.0f * angleDown, 2.0f * angleNow);
-			float shNextDown =	DirectX::SimpleMath::SH::SHBasis(basis_l, basis_m, 2.0f * angleDown, 2.0f * angleNext);
+			float shNowUp =		DirectX::SimpleMath::SH::SHBasis(basis_l, basis_m, XM_PIDIV2 + angleUp, angleNow);
+			float shNextUp =	DirectX::SimpleMath::SH::SHBasis(basis_l, basis_m, XM_PIDIV2 + angleUp, angleNext);
+			float shNowDown =	DirectX::SimpleMath::SH::SHBasis(basis_l, basis_m, XM_PIDIV2 + angleDown, angleNow);
+			float shNextDown =	DirectX::SimpleMath::SH::SHBasis(basis_l, basis_m, XM_PIDIV2 + angleDown, angleNext);
 
 			Vector3 pNowUp = { xNow * radiusUp, yUp, zNow * radiusUp };
 			Vector3 pNextUp = { xNext * radiusUp, yUp, zNext * radiusUp };
 			Vector3 pNowDown = { xNow * radiusDown, yDown, zNow * radiusDown };
 			Vector3 pNextDown = { xNext * radiusDown, yDown, zNext * radiusDown };
-			pNowUp *= shNowUp;
-			pNextUp *= shNextUp;
-			pNowDown *= shNowDown;
-			pNextDown *= shNextDown;
+			pNowUp *= abs(shNowUp);
+			pNextUp *= abs(shNextUp);
+			pNowDown *= abs(shNowDown);
+			pNextDown *= abs(shNextDown);
 
 			Vector2 uvNowUp = { segNow, yUVUp };
 			Vector2 uvNextUp = { segNext, yUVUp };

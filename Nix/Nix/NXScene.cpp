@@ -119,13 +119,14 @@ void NXScene::Init()
 	//auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64);
 	//pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
 
-	for (int l = 0; l < 4; l++)
+	for (int l = 0; l < 6; l++)
 	{
 		for (int m = -l; m <= l; m++)
 		{
-			Vector3 objPos(m * 2.0f, l * 2.0f, 0.0f);
+			Vector3 objPos(m * 1.5f, -l * 1.5f, 0.0f);
 			auto pSH = m_sceneManager->CreateSHSphere("shTest", l, m, 1.0f, 64, 64, objPos);
 			pSH->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
+			pSH->AddScript(new NSTest());
 		}
 	}
 

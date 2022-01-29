@@ -9,8 +9,8 @@ namespace SimpleMath
 namespace SH
 {
 	// 预存储10以内的 阶乘 和 双阶乘，仅用于SH球谐函数部分的计算
-	constexpr static float factorial[] = { 1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800 }; 
-	constexpr static float doubleFactorial[] = { 1, 1, 2, 3, 8, 15, 48, 105, 384, 945, 3840 };
+	constexpr static float factorial[] = { 1.0, 1.0, 2.0, 6.0, 24.0, 120.0, 720.0, 5040.0, 40320.0, 362880.0, 3628800.0 };
+	constexpr static float doubleFactorial[] = { 1.0, 1.0, 2.0, 3.0, 8.0, 15.0, 48.0, 105.0, 384.0, 945.0, 3840.0 };
 
 	inline float Factorial(int x)
 	{
