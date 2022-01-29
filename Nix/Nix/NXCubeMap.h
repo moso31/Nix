@@ -6,8 +6,14 @@
 struct ConstantBufferCubeMap
 {
 	ConstantBufferCubeMap() : intensity(1.0f) {}
+	Vector4 irradSH0123x;
+	Vector4 irradSH4567x;
+	Vector4 irradSH0123y;
+	Vector4 irradSH4567y;
+	Vector4 irradSH0123z;
+	Vector4 irradSH4567z;
+	Vector3 irradSH8xyz;
 	float intensity;
-	Vector3 _0;
 };
 
 
@@ -45,6 +51,8 @@ private:
 	void InitVertexIndexBuffer();
 	void InitConstantBuffer();
 
+	void EncodeSHIrradMapBuffer();
+
 private:
 	DXGI_FORMAT m_format;
 	std::wstring m_cubeMapFilePath;
@@ -77,6 +85,8 @@ private:
 	ComPtr<ID3D11Texture2D>				m_pTexIrradianceMap;
 	ComPtr<ID3D11ShaderResourceView>	m_pSRVIrradianceMap;
 	ComPtr<ID3D11RenderTargetView>		m_pRTVIrradianceMaps[6];
+
+	Vector3 m_shIrradianceMap[9];
 
 	ComPtr<ID3D11Texture2D>				m_pTexPreFilterMap;
 	ComPtr<ID3D11ShaderResourceView>	m_pSRVPreFilterMap;

@@ -119,7 +119,7 @@ void NXScene::Init()
 	//auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64);
 	//pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
 
-	for (int l = 0; l < 6; l++)
+	for (int l = 0; l < 4; l++)
 	{
 		for (int m = -l; m <= l; m++)
 		{

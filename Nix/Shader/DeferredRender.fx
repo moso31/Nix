@@ -32,7 +32,14 @@ cbuffer ConstantBufferLight : register(b2)
 
 cbuffer ConstantBufferCubeMap : register(b3)
 {
-	float m_cubeMapIntensity;
+	float4 m_irradSH0123x;
+	float4 m_irradSH4567x;
+	float4 m_irradSH0123y;
+	float4 m_irradSH4567y;
+	float4 m_irradSH0123z;
+	float4 m_irradSH4567z;
+	float3 m_irradSH8xyz;
+	float  m_cubeMapIntensity;
 	float3 _0;
 }
 

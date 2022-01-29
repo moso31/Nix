@@ -69,8 +69,10 @@ bool NXCubeMap::Init(const std::wstring filePath)
 
 		size_t imgWidth = pHDRImage->GetMetadata().width;
 		size_t imgHeight = pHDRImage->GetMetadata().height;
-		double solidAngle = 0.0;
+		double solidAnglePdf = 0.0;
 		double test = 0.0;
+
+		memset(m_shIrradianceMap, 0, sizeof(m_shIrradianceMap));
 
 		// note : 必须使用 double 不然会导致精度丢失
 		for (size_t i = 0, idx = 0; i < pHDRImage->GetPixelsSize(); i += 16, idx++)
@@ -92,17 +94,22 @@ bool NXCubeMap::Init(const std::wstring filePath)
 
 			double dPhi = XM_2PI / imgWidth;
 			double dTheta = sinf(thetaU) - sinf(thetaD);
-			solidAngle += dPhi * dTheta;
-			test += dPhi;
+			solidAnglePdf = dPhi * dTheta * XM_PIDIV4;
 
-			//printf("[%f %f], dPhi:%f, dTheta: %f  test: %f   now: %f\tall: %f\n", u, v, dPhi, dTheta, test, dPhi * dTheta, solidAngle);
+			Vector3 PixelColor = Vector3(pData);
 
-			//printf("[%f,\t%f,\t%f]: %f, %f, %f, %f\n", dir.x, dir.y, dir.z, pData[0], pData[1], pData[2], pData[3]);
+			for (int l = 0, k = 0; l < 3; l++, k++)
+			{
+				for (int m = -l; m <= l; m++, k++)
+				{
+					m_shIrradianceMap[k] += PixelColor * SHBasis(l, m, theta, phi) * solidAnglePdf;
+				}
+			}
 
 			pData += 4;
 		}
 
-		printf("%f\n", solidAngle);
+		EncodeSHIrradMapBuffer();
 
 		std::unique_ptr<ScratchImage> pImageMip = std::make_unique<ScratchImage>();
 		hr = GenerateMipMaps(m_pImage->GetImages(), m_pImage->GetImageCount(), m_pImage->GetMetadata(), TEX_FILTER_DEFAULT, 0, *pImageMip);
@@ -761,4 +768,15 @@ void NXCubeMap::InitConstantBuffer()
 	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cb));
+}
+
+void NXCubeMap::EncodeSHIrradMapBuffer()
+{
+	m_cbData.irradSH0123x = { m_shIrradianceMap[0].x, m_shIrradianceMap[1].x, m_shIrradianceMap[2].x, m_shIrradianceMap[3].x };
+	m_cbData.irradSH0123y = { m_shIrradianceMap[0].y, m_shIrradianceMap[1].y, m_shIrradianceMap[2].y, m_shIrradianceMap[3].y };
+	m_cbData.irradSH0123z = { m_shIrradianceMap[0].z, m_shIrradianceMap[1].z, m_shIrradianceMap[2].z, m_shIrradianceMap[3].z };
+	m_cbData.irradSH4567x = { m_shIrradianceMap[4].x, m_shIrradianceMap[5].x, m_shIrradianceMap[6].x, m_shIrradianceMap[7].x };
+	m_cbData.irradSH4567y = { m_shIrradianceMap[4].y, m_shIrradianceMap[5].y, m_shIrradianceMap[6].y, m_shIrradianceMap[7].y };
+	m_cbData.irradSH4567z = { m_shIrradianceMap[4].z, m_shIrradianceMap[5].z, m_shIrradianceMap[6].z, m_shIrradianceMap[7].z };
+	m_cbData.irradSH8xyz = m_shIrradianceMap[8];
 }
