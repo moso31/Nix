@@ -79,8 +79,8 @@ bool NXCubeMap::Init(const std::wstring filePath)
 		{
 			double u = (double(idx % imgWidth) + 0.5f) / imgWidth;
 			double v = (double(idx / imgWidth) + 0.5f) / imgHeight;
-			double phi = u * XM_2PI - XM_PI;
-			double theta = v * -XM_PI + XM_PIDIV2;
+			double phi = u * XM_2PI - XM_PI;	// -pi..pi
+			double theta = v * -XM_PI + XM_PIDIV2; // 0.5pi..-0.5pi
 			Vector3 dir(sinf(phi) * cosf(theta), sinf(theta), cosf(theta) * cosf(phi));
 
 			// Phi 是个常量，没必要算
@@ -94,19 +94,32 @@ bool NXCubeMap::Init(const std::wstring filePath)
 
 			double dPhi = XM_2PI / imgWidth;
 			double dTheta = sinf(thetaU) - sinf(thetaD);
-			solidAnglePdf = dPhi * dTheta * XM_PIDIV4;
+			solidAnglePdf = dPhi * dTheta;
+			test += dPhi * dTheta * XM_1DIV4PI;
 
 			Vector3 PixelColor = Vector3(pData);
 
-			for (int l = 0, k = 0; l < 3; l++, k++)
+			int k = 0;
+			for (int l = 0; l < 3; l++)
 			{
-				for (int m = -l; m <= l; m++, k++)
+				for (int m = -l; m <= l; m++)
 				{
-					m_shIrradianceMap[k] += PixelColor * SHBasis(l, m, theta, phi) * solidAnglePdf;
+					float sh = SHBasis(l, m, XM_PIDIV2 - theta, -phi + XM_PIDIV2);
+					m_shIrradianceMap[k++] += PixelColor * sh * solidAnglePdf;
 				}
 			}
 
 			pData += 4;
+		}
+
+		const float A[5] = { 0.88623f, 1.02333f, 0.49542f, 0.0f, -0.11078f };
+		int k = 0;
+		for (int l = 0; l < 3; l++)
+		{
+			for (int m = -l; m <= l; m++)
+			{
+				m_shIrradianceMap[k++] *= sqrt(XM_4PI / (2.0f * l + 1.0f)) * A[l] * XM_1DIVPI;
+			}
 		}
 
 		EncodeSHIrradMapBuffer();
