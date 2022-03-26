@@ -14,13 +14,13 @@ namespace SH
 
 	inline float Factorial(int x)
 	{
-		assert(x >= 0 && x < 10);
+		assert(x >= 0 && x < 11);
 		return factorial[x];
 	}
 
 	inline float DoubleFactorial(int x)
 	{
-		assert(x >= 0 && x < 10);
+		assert(x >= 0 && x < 11);
 		return doubleFactorial[x];
 	}
 

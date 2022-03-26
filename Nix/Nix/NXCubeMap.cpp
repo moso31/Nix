@@ -65,60 +65,66 @@ bool NXCubeMap::Init(const std::wstring filePath)
 		GenerateCubeMap(filePath);
 		hr = LoadFromDDSFile(m_cubeMapFilePath.c_str(), DDS_FLAGS_NONE, &HDRInfo, *m_pImage);
 
+		// HDRI 纹理加载
 		auto pData = reinterpret_cast<float*>(pHDRImage->GetImage(0, 0, 0)->pixels);
-
 		size_t imgWidth = pHDRImage->GetMetadata().width;
 		size_t imgHeight = pHDRImage->GetMetadata().height;
 		double solidAnglePdf = 0.0;
 		double test = 0.0;
 
-		memset(m_shIrradianceMap, 0, sizeof(m_shIrradianceMap));
+		memset(m_shIrradianceMap, 0, sizeof(m_shIrradianceMap)); 
 
-		// note : 必须使用 double 不然会导致精度丢失
-		for (size_t i = 0, idx = 0; i < pHDRImage->GetPixelsSize(); i += 16, idx++)
+		// 像素个数
+		size_t pixelCount = pHDRImage->GetPixelsSize() >> 4;
+
+		size_t threadCount = imgHeight;
+		for (int threadIdx = 0; threadIdx < (int)threadCount; threadIdx++)
 		{
-			double u = (double(idx % imgWidth) + 0.5f) / imgWidth;
-			double v = (double(idx / imgWidth) + 0.5f) / imgHeight;
-			double phi = u * XM_2PI - XM_PI;	// -pi..pi
-			double theta = v * -XM_PI + XM_PIDIV2; // 0.5pi..-0.5pi
-			Vector3 dir(sinf(phi) * cosf(theta), sinf(theta), cosf(theta) * cosf(phi));
-
-			// Phi 是个常量，没必要算
-			//double scaleX = 0.5f / imgWidth;
-			double scaleY = 0.5f / imgHeight;
-
-			//double phiL = (u - scaleX) * XM_2PI - XM_PI;
-			//double phiR = (u + scaleX) * XM_2PI - XM_PI;
-			double thetaU = (v - scaleY) * -XM_PI + XM_PIDIV2;
-			double thetaD = (v + scaleY) * -XM_PI + XM_PIDIV2;
-
-			double dPhi = XM_2PI / imgWidth;
-			double dTheta = sinf(thetaU) - sinf(thetaD);
-			solidAnglePdf = dPhi * dTheta;
-			test += dPhi * dTheta * XM_1DIV4PI;
-
-			Vector3 PixelColor = Vector3(pData);
-
-			int k = 0;
-			for (int l = 0; l < 3; l++)
+			int threadSize = pixelCount / threadCount;
+			for (int i = 0; i < threadSize; i++)
 			{
-				for (int m = -l; m <= l; m++)
+				size_t idx = threadIdx * threadSize + i;
+
+				double u = (double(idx % imgWidth) + 0.5) / imgWidth;
+				double v = (double(idx / imgWidth) + 0.5) / imgHeight;
+
+				double scaleY = 0.5 / imgHeight;
+				double thetaU = (v - scaleY) * XM_PI;
+				double thetaD = (v + scaleY) * XM_PI;
+
+				double dPhi = XM_2PI / imgWidth;	// dPhi 是个常量
+				double dTheta = cos(thetaU) - cos(thetaD);
+				solidAnglePdf = dPhi * dTheta;
+
+				// get L(Rs).
+				size_t offset = idx << 2;
+				Vector3 incidentRadiance(pData + offset);
+
+				for (int l = 0; l < 3; l++)
 				{
-					float sh = SHBasis(l, m, XM_PIDIV2 - theta, -phi + XM_PIDIV2);
-					m_shIrradianceMap[k++] += PixelColor * sh * solidAnglePdf;
+					for (int m = -l; m <= l; m++)
+					{
+						float sh = SHBasis(l, m, v * XM_PI, XM_3PIDIV2 - u * XM_2PI);  // HDRI纹理角度矫正
+
+						// sh = y_l^m(Rs)
+						// m_shIrradianceMap[k++] = L_l^m
+						Vector3 Llm = incidentRadiance * sh * solidAnglePdf;
+						{
+							m_shIrradianceMap[l * l + l + m] += Llm;
+						}
+					}
 				}
 			}
-
-			pData += 4;
 		}
 
-		const float A[5] = { 0.88623f, 1.02333f, 0.49542f, 0.0f, -0.11078f };
+		const float T[5] = { 0.886226925452757f, 1.023326707946489f, 0.495415912200751f, 0.0f, -0.110778365681594f };
 		int k = 0;
 		for (int l = 0; l < 3; l++)
 		{
 			for (int m = -l; m <= l; m++)
 			{
-				m_shIrradianceMap[k++] *= sqrt(XM_4PI / (2.0f * l + 1.0f)) * A[l] * XM_1DIVPI;
+				// 求 E_l^m
+				m_shIrradianceMap[k++] *= sqrt(XM_4PI / (2.0f * l + 1.0f)) * T[l] * XM_1DIVPI;
 			}
 		}
 
@@ -285,7 +291,7 @@ void NXCubeMap::GenerateCubeMap(const std::wstring filePath)
 	g_pContext->PSSetShader(pPixelShader.Get(), nullptr, 0);
 	g_pContext->PSSetShaderResources(0, 1, m_pSRVHDRMap.GetAddressOf());
 	g_pContext->VSSetConstantBuffers(0, 1, cb.GetAddressOf());
-	g_pContext->PSSetSamplers(0, 1, RenderStates::SamplerLinearWrap.GetAddressOf());
+	g_pContext->PSSetSamplers(0, 1, RenderStates::SamplerLinearClamp.GetAddressOf());
 
 	ConstantBufferObject cbData;
 	cbData.world = Matrix::Identity();
