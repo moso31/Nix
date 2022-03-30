@@ -40,7 +40,7 @@ void CS(int2 DTid : SV_DispatchThreadID,
 	int GroupIndex : SV_GroupIndex)
 {
 	int inputPixelIndex = DTid.y * currImgSize.x + DTid.x;
-	bool isOffScreen = inputPixelIndex > currImgSize.x * currImgSize.y;
+	bool isOffScreen = DTid.x >= currImgSize.x || DTid.y >= currImgSize.y;
 	if (isOffScreen)
 	{
 		for (int i = 0; i < 9; i++) g_shCache[GroupIndex].irradSH[i] = 0.0f;

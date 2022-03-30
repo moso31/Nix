@@ -78,7 +78,7 @@ void CS(int2 DTid : SV_DispatchThreadID,
 
 	for (int i = 0; i < 9; i++)
 	{
-		float4 accumulatedSHBasis = isOffScreen ? 0.0f : g_shCache[0].irradSH[i];
-		outIrradanceSHCoeffcient[outputPixelIndex].irradSH[i] = accumulatedSHBasis;
+		//float4 accumulatedSHBasis = isOffScreen ? 0.0f : g_shCache[0].irradSH[i];
+		outIrradanceSHCoeffcient[outputPixelIndex].irradSH[i] = g_shCache[0].irradSH[i];
 	}
 }
