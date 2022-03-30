@@ -3,6 +3,18 @@
 #include "DirectXTex.h"
 #include "ShaderStructures.h"
 
+struct ConstantBufferImageData
+{
+	Vector4 currImgSize; // xy: size zw: sizeInv
+	Vector4 nextImgSize; // xy: size zw: sizeInv
+};
+
+struct ConstantBufferIrradSH
+{
+	ConstantBufferIrradSH() {}
+	Vector4 irradSH[9];
+};
+
 struct ConstantBufferCubeMap
 {
 	ConstantBufferCubeMap() : intensity(1.0f) {}
@@ -30,6 +42,7 @@ public:
 	void Release() override;
 
 	void GenerateCubeMap(const std::wstring filePath);
+	void GenerateIrradianceSH(size_t imgWidth, size_t imgHeight);
 	void GenerateIrradianceMap();
 	void GeneratePreFilterMap();
 	void GenerateBRDF2DLUT();
@@ -42,6 +55,8 @@ public:
 	ID3D11ShaderResourceView* GetSRVPreFilterMap() { return m_pSRVPreFilterMap.Get(); }
 	ID3D11ShaderResourceView* GetSRVBRDF2DLUT() { return m_pSRVBRDF2DLUT.Get(); }
 
+	ID3D11ShaderResourceView* GetSRVIrradianceSH() { return m_pSRVIrradianceSH.Get(); }
+
 	ID3D11Buffer* GetConstantBufferParams() { return m_cb.Get(); }
 
 	float* GetIntensity() { return &m_cbData.intensity; }
@@ -50,8 +65,6 @@ private:
 	void InitVertex();
 	void InitVertexIndexBuffer();
 	void InitConstantBuffer();
-
-	void EncodeSHIrradMapBuffer();
 
 private:
 	DXGI_FORMAT m_format;
@@ -86,6 +99,7 @@ private:
 	ComPtr<ID3D11ShaderResourceView>	m_pSRVIrradianceMap;
 	ComPtr<ID3D11RenderTargetView>		m_pRTVIrradianceMaps[6];
 
+	ComPtr<ID3D11ShaderResourceView>	m_pSRVIrradianceSH;
 	Vector3 m_shIrradianceMap[9];
 
 	ComPtr<ID3D11Texture2D>				m_pTexPreFilterMap;

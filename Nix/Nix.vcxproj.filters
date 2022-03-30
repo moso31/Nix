@@ -145,6 +145,10 @@
     <None Include="Shader\SphereHarmonic.fx">
       <Filter>Shader\CubeMap</Filter>
     </None>
+    <None Include="Shader\MathUnits.fx" />
+    <None Include="Shader\CubeMapIrradianceSHFirst.fx" />
+    <None Include="Shader\CubeMapIrradianceSHLast.fx" />
+    <None Include="Shader\CubeMapIrradianceSHMiddle.fx" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">

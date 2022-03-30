@@ -171,6 +171,9 @@ void NXDeferredRenderer::Render(ID3D11ShaderResourceView* pSRVSSAO)
 		g_pContext->PSSetShaderResources(6, 1, &pPreFilterMapSRV);
 		g_pContext->PSSetShaderResources(7, 1, &pBRDF2DLUT);
 
+		auto pIrradianceSHSRV = pCubeMap->GetSRVIrradianceSH();
+		g_pContext->PSSetShaderResources(9, 1, &pIrradianceSHSRV);
+
 		auto pCBCubeMapParam = pCubeMap->GetConstantBufferParams();
 		g_pContext->PSSetConstantBuffers(3, 1, &pCBCubeMapParam);
 	}

@@ -14,6 +14,13 @@ TextureCube txPreFilterMap : register(t6);
 Texture2D txBRDF2DLUT : register(t7);
 Texture2D txSSAO : register(t8);
 
+struct ConstantBufferIrradSH
+{
+	float4 irradSH[9];
+};
+
+StructuredBuffer<ConstantBufferIrradSH> cbIrradianceSH : register(t9);
+
 SamplerState ssLinearWrap : register(s0);
 SamplerState ssLinearClamp : register(s1);
 
@@ -86,37 +93,37 @@ float3 GetIndirectIrradiance(float3 v)
 {
 	float3 irradiance;
 	irradiance.x =
-		g_SHFactor[0] * m_irradSH0123x.x +
-		g_SHFactor[1] * m_irradSH0123x.y * v.x +
-		g_SHFactor[2] * m_irradSH0123x.z * v.y +
-		g_SHFactor[3] * m_irradSH0123x.w * v.z +
-		g_SHFactor[4] * m_irradSH4567x.x * v.x * v.z +
-		g_SHFactor[5] * m_irradSH4567x.y * v.x * v.y +
-		g_SHFactor[6] * m_irradSH4567x.z * (2.0 * v.y * v.y - v.z * v.z - v.x * v.x) +
-		g_SHFactor[7] * m_irradSH4567x.w * v.y * v.z +
-		g_SHFactor[8] * m_irradSH8xyz.x * (v.z * v.z - v.x * v.x);
+		g_SHFactor[0] * cbIrradianceSH[0].irradSH[0].x +
+		g_SHFactor[1] * cbIrradianceSH[0].irradSH[1].x * v.x +
+		g_SHFactor[2] * cbIrradianceSH[0].irradSH[2].x * v.y +
+		g_SHFactor[3] * cbIrradianceSH[0].irradSH[3].x * v.z +
+		g_SHFactor[4] * cbIrradianceSH[0].irradSH[4].x * v.x * v.z +
+		g_SHFactor[5] * cbIrradianceSH[0].irradSH[5].x * v.x * v.y +
+		g_SHFactor[6] * cbIrradianceSH[0].irradSH[6].x * (2.0 * v.y * v.y - v.z * v.z - v.x * v.x) +
+		g_SHFactor[7] * cbIrradianceSH[0].irradSH[7].x * v.y * v.z +
+		g_SHFactor[8] * cbIrradianceSH[0].irradSH[8].x * (v.z * v.z - v.x * v.x);
 
 	irradiance.y =
-		g_SHFactor[0] * m_irradSH0123y.x +
-		g_SHFactor[1] * m_irradSH0123y.y * v.x +
-		g_SHFactor[2] * m_irradSH0123y.z * v.y +
-		g_SHFactor[3] * m_irradSH0123y.w * v.z +
-		g_SHFactor[4] * m_irradSH4567y.x * v.x * v.z +
-		g_SHFactor[5] * m_irradSH4567y.y * v.x * v.y +
-		g_SHFactor[6] * m_irradSH4567y.z * (2.0 * v.y * v.y - v.z * v.z - v.x * v.x) +
-		g_SHFactor[7] * m_irradSH4567y.w * v.y * v.z +
-		g_SHFactor[8] * m_irradSH8xyz.y * (v.z * v.z - v.x * v.x);
+		g_SHFactor[0] * cbIrradianceSH[0].irradSH[0].y +
+		g_SHFactor[1] * cbIrradianceSH[0].irradSH[1].y * v.x +
+		g_SHFactor[2] * cbIrradianceSH[0].irradSH[2].y * v.y +
+		g_SHFactor[3] * cbIrradianceSH[0].irradSH[3].y * v.z +
+		g_SHFactor[4] * cbIrradianceSH[0].irradSH[4].y * v.x * v.z +
+		g_SHFactor[5] * cbIrradianceSH[0].irradSH[5].y * v.x * v.y +
+		g_SHFactor[6] * cbIrradianceSH[0].irradSH[6].y * (2.0 * v.y * v.y - v.z * v.z - v.x * v.x) +
+		g_SHFactor[7] * cbIrradianceSH[0].irradSH[7].y * v.y * v.z +
+		g_SHFactor[8] * cbIrradianceSH[0].irradSH[8].y * (v.z * v.z - v.x * v.x);
 
 	irradiance.z =
-		g_SHFactor[0] * m_irradSH0123z.x +
-		g_SHFactor[1] * m_irradSH0123z.y * v.x +
-		g_SHFactor[2] * m_irradSH0123z.z * v.y +
-		g_SHFactor[3] * m_irradSH0123z.w * v.z +
-		g_SHFactor[4] * m_irradSH4567z.x * v.x * v.z +
-		g_SHFactor[5] * m_irradSH4567z.y * v.x * v.y +
-		g_SHFactor[6] * m_irradSH4567z.z * (2.0 * v.y * v.y - v.z * v.z - v.x * v.x) +
-		g_SHFactor[7] * m_irradSH4567z.w * v.y * v.z +
-		g_SHFactor[8] * m_irradSH8xyz.z * (v.z * v.z - v.x * v.x);
+		g_SHFactor[0] * cbIrradianceSH[0].irradSH[0].z +
+		g_SHFactor[1] * cbIrradianceSH[0].irradSH[1].z * v.x +
+		g_SHFactor[2] * cbIrradianceSH[0].irradSH[2].z * v.y +
+		g_SHFactor[3] * cbIrradianceSH[0].irradSH[3].z * v.z +
+		g_SHFactor[4] * cbIrradianceSH[0].irradSH[4].z * v.x * v.z +
+		g_SHFactor[5] * cbIrradianceSH[0].irradSH[5].z * v.x * v.y +
+		g_SHFactor[6] * cbIrradianceSH[0].irradSH[6].z * (2.0 * v.y * v.y - v.z * v.z - v.x * v.x) +
+		g_SHFactor[7] * cbIrradianceSH[0].irradSH[7].z * v.y * v.z +
+		g_SHFactor[8] * cbIrradianceSH[0].irradSH[8].z * (v.z * v.z - v.x * v.x);
 
 	return irradiance;
 }

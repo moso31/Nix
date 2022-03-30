@@ -196,11 +196,11 @@ void NXScene::Init()
 	pMainCamera->SetTranslation(Vector3(0.0f, 1.0f, -5.0f));
 	pMainCamera->SetLookAt(Vector3(0.0f, 1.0f, -4.0f));
 
-	m_sceneManager->CreateCubeMap("Sky", L"D:\\Alexs_Apt_2k.hdr");
+	//m_sceneManager->CreateCubeMap("Sky", L"D:\\Alexs_Apt_2k.hdr");
 	//m_sceneManager->CreateCubeMap("Sky", L"D:\\TexturesCom_JapanInariTempleH_1K_hdri_sphere.hdr");
-	//m_sceneManager->CreateCubeMap("Sky", L"D:\\ballroom_4k.hdr");
+	m_sceneManager->CreateCubeMap("Sky", L"D:\\ballroom_4k.hdr");
 	//m_sceneManager->CreateCubeMap("Sky", L"D:\\blue_grotto_4k.hdr");
-	//m_sceneManager->CreateCubeMap("Sky", L"D:\\HDRTest2.hdr");
+	//m_sceneManager->CreateCubeMap("Sky", L"D:\\HDRGPUTest_128.hdr");
 
 
 	// 更新AABB需要世界坐标，而Init阶段还没有拿到世界坐标，所以需要提前PrevUpdate一次。

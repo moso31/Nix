@@ -7,6 +7,7 @@
 #include "ShaderComplier.h"
 #include "DirectResources.h"
 
+
 using namespace DirectX::SimpleMath::SH;
 
 NXCubeMap::NXCubeMap(NXScene* pScene) :
@@ -65,70 +66,73 @@ bool NXCubeMap::Init(const std::wstring filePath)
 		GenerateCubeMap(filePath);
 		hr = LoadFromDDSFile(m_cubeMapFilePath.c_str(), DDS_FLAGS_NONE, &HDRInfo, *m_pImage);
 
-		// HDRI 纹理加载
-		auto pData = reinterpret_cast<float*>(pHDRImage->GetImage(0, 0, 0)->pixels);
 		size_t imgWidth = pHDRImage->GetMetadata().width;
 		size_t imgHeight = pHDRImage->GetMetadata().height;
-		double solidAnglePdf = 0.0;
-		double test = 0.0;
+		GenerateIrradianceSH(imgWidth, imgHeight);
 
-		memset(m_shIrradianceMap, 0, sizeof(m_shIrradianceMap)); 
+		//// HDRI 纹理加载
+		//auto pData = reinterpret_cast<float*>(pHDRImage->GetImage(0, 0, 0)->pixels);
+		//double solidAnglePdf = 0.0;
+		//double test = 0.0;
 
-		// 像素个数
-		size_t pixelCount = pHDRImage->GetPixelsSize() >> 4;
+		//memset(m_shIrradianceMap, 0, sizeof(m_shIrradianceMap));
 
-		size_t threadCount = imgHeight;
-		for (int threadIdx = 0; threadIdx < (int)threadCount; threadIdx++)
-		{
-			int threadSize = pixelCount / threadCount;
-			for (int i = 0; i < threadSize; i++)
-			{
-				size_t idx = threadIdx * threadSize + i;
+		//// 像素个数
+		//size_t pixelCount = pHDRImage->GetPixelsSize() >> 4;
 
-				double u = (double(idx % imgWidth) + 0.5) / imgWidth;
-				double v = (double(idx / imgWidth) + 0.5) / imgHeight;
+		//size_t threadCount = imgHeight;
+		//for (int threadIdx = 0; threadIdx < (int)threadCount; threadIdx++)
+		//{
+		//	int threadSize = pixelCount / threadCount;
+		//	for (int i = 0; i < threadSize; i++)
+		//	{
+		//		size_t idx = threadIdx * threadSize + i;
 
-				double scaleY = 0.5 / imgHeight;
-				double thetaU = (v - scaleY) * XM_PI;
-				double thetaD = (v + scaleY) * XM_PI;
+		//		double u = (double(idx % imgWidth) + 0.5) / imgWidth;
+		//		double v = (double(idx / imgWidth) + 0.5) / imgHeight;
 
-				double dPhi = XM_2PI / imgWidth;	// dPhi 是个常量
-				double dTheta = cos(thetaU) - cos(thetaD);
-				solidAnglePdf = dPhi * dTheta;
+		//		double scaleY = 0.5 / imgHeight;
+		//		double thetaU = (v - scaleY) * XM_PI;
+		//		double thetaD = (v + scaleY) * XM_PI;
 
-				// get L(Rs).
-				size_t offset = idx << 2;
-				Vector3 incidentRadiance(pData + offset);
+		//		double dPhi = XM_2PI / imgWidth;	// dPhi 是个常量
+		//		double dTheta = cos(thetaU) - cos(thetaD);
+		//		solidAnglePdf = dPhi * dTheta;
 
-				for (int l = 0; l < 3; l++)
-				{
-					for (int m = -l; m <= l; m++)
-					{
-						float sh = SHBasis(l, m, v * XM_PI, XM_3PIDIV2 - u * XM_2PI);  // HDRI纹理角度矫正
+		//		// get L(Rs).
+		//		size_t offset = idx << 2;
+		//		Vector3 incidentRadiance(pData + offset);
 
-						// sh = y_l^m(Rs)
-						// m_shIrradianceMap[k++] = L_l^m
-						Vector3 Llm = incidentRadiance * sh * solidAnglePdf;
-						{
-							m_shIrradianceMap[l * l + l + m] += Llm;
-						}
-					}
-				}
-			}
-		}
+		//		for (int l = 0; l < 3; l++)
+		//		{
+		//			for (int m = -l; m <= l; m++)
+		//			{
+		//				float sh = SHBasis(l, m, v * XM_PI, XM_3PIDIV2 - u * XM_2PI);  // HDRI纹理角度矫正
 
-		const float T[5] = { 0.886226925452757f, 1.023326707946489f, 0.495415912200751f, 0.0f, -0.110778365681594f };
-		int k = 0;
-		for (int l = 0; l < 3; l++)
-		{
-			for (int m = -l; m <= l; m++)
-			{
-				// 求 E_l^m
-				m_shIrradianceMap[k++] *= sqrt(XM_4PI / (2.0f * l + 1.0f)) * T[l] * XM_1DIVPI;
-			}
-		}
+		//				// sh = y_l^m(Rs)
+		//				// m_shIrradianceMap[k++] = L_l^m
+		//				Vector3 Llm = incidentRadiance * sh * solidAnglePdf;
+		//				printf("%d | %d, %d | %f, %f, %f\n", idx, l, m, Llm.x, Llm.y, Llm.z);
+		//				{
+		//					m_shIrradianceMap[l * l + l + m] += Llm;
+		//				}
+		//			}
+		//		}
 
-		EncodeSHIrradMapBuffer();
+		//		printf("\n");
+		//	}
+		//}
+
+		//const float T[5] = { 0.886226925452757f, 1.023326707946489f, 0.495415912200751f, 0.0f, -0.110778365681594f };
+		//int k = 0;
+		//for (int l = 0; l < 3; l++)
+		//{
+		//	for (int m = -l; m <= l; m++)
+		//	{
+		//		// 求 E_l^m
+		//		m_shIrradianceMap[k++] *= sqrt(XM_4PI / (2.0f * l + 1.0f)) * T[l] * XM_1DIVPI;
+		//	}
+		//}
 
 		std::unique_ptr<ScratchImage> pImageMip = std::make_unique<ScratchImage>();
 		hr = GenerateMipMaps(m_pImage->GetImages(), m_pImage->GetImageCount(), m_pImage->GetMetadata(), TEX_FILTER_DEFAULT, 0, *pImageMip);
@@ -375,6 +379,137 @@ void NXCubeMap::GenerateCubeMap(const std::wstring filePath)
 	std::wstring fileName = fileNameAndSuffix.substr(0, suffixIndex);
 	m_cubeMapFilePath = L"D:\\" + fileName + L".dds";
 	hr = SaveToDDSFile(pMappedImage->GetImages(), pMappedImage->GetImageCount(), cubeDDSInfo, DDS_FLAGS_NONE, m_cubeMapFilePath.c_str());
+}
+
+void NXCubeMap::GenerateIrradianceSH(size_t imgWidth, size_t imgHeight)
+{
+	g_pUDA->BeginEvent(L"Generate Irradiance Map SH");
+
+	ComPtr<ID3D11Buffer> cbImageSize;
+	D3D11_BUFFER_DESC bufferDesc;
+	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = sizeof(ConstantBufferImageData);
+	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &cbImageSize));
+
+	UINT tempWidth = imgWidth;
+	UINT tempHeight = imgHeight;
+	UINT SHIrradPassCount = 0;
+	while (tempWidth != 1 || tempHeight != 1)
+	{
+		tempWidth = max((tempWidth + 7) / 8, 1);
+		tempHeight = max((tempHeight + 7) / 8, 1);
+		SHIrradPassCount++;
+	}
+
+	tempWidth = imgWidth;
+	tempHeight = imgHeight;
+	std::vector<ComPtr<ID3D11ShaderResourceView>> pSRVIrradSHs;
+	pSRVIrradSHs.reserve(SHIrradPassCount);
+	for (UINT passId = 0; passId < SHIrradPassCount; passId++)
+	{
+		std::wstring eventName = L"SH Irradiance Gather" + std::to_wstring(passId);
+		g_pUDA->BeginEvent(eventName.c_str());
+
+		UINT currWidth = tempWidth;
+		UINT currHeight = tempHeight;
+
+		tempWidth = max((tempWidth + 7) / 8, 1);
+		tempHeight = max((tempHeight + 7) / 8, 1);
+
+		ConstantBufferImageData cbImageSizeData;
+		cbImageSizeData.currImgSize = Vector4((float)currWidth, (float)currHeight, 1.0f / (float)currWidth, 1.0f / (float)currHeight);
+		cbImageSizeData.nextImgSize = Vector4((float)tempWidth, (float)tempHeight, 1.0f / (float)tempWidth, 1.0f / (float)tempHeight);
+
+		g_pContext->UpdateSubresource(cbImageSize.Get(), 0, nullptr, &cbImageSizeData, 0, 0);
+		g_pContext->CSSetConstantBuffers(0, 1, cbImageSize.GetAddressOf());
+
+		size_t irradianceBufferElements = tempWidth * tempHeight;
+		size_t irradianceBufferSize = sizeof(ConstantBufferIrradSH) * irradianceBufferElements;
+
+		D3D11_BUFFER_DESC bufferDesc;
+		ComPtr<ID3D11Buffer> cbIrradianceSH;
+		ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+		bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+		bufferDesc.ByteWidth = irradianceBufferSize;
+		bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+		bufferDesc.CPUAccessFlags = 0;
+		bufferDesc.StructureByteStride = sizeof(ConstantBufferIrradSH);
+		bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+		NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &cbIrradianceSH));
+
+		ComPtr<ID3D11ComputeShader> pComputeShader;
+		std::wstring strCSPath = L"";
+		ComPtr<ID3DBlob> pCSBlob;
+
+		// 设置 CubeMapIrradianceSH.fx 使用哪个入口点函数
+		if (passId == 0)
+		{
+			// 如果是第一次pass
+			strCSPath = L"Shader\\CubeMapIrradianceSHFirst.fx";
+		}
+		else if (passId > 0 && passId < SHIrradPassCount - 1)
+		{
+			// 如果是中间pass
+			strCSPath = L"Shader\\CubeMapIrradianceSHMiddle.fx";
+		}
+		else
+		{
+			// 如果是最后一次pass
+			strCSPath = L"Shader\\CubeMapIrradianceSHLast.fx";
+		}
+
+		NX::MessageBoxIfFailed(
+			ShaderComplier::Compile(strCSPath, "CS", "cs_5_0", &pCSBlob),
+			L"[CubeMapIrradianceSH compile failed]. Please run this executable from the directory that contains the FX file.");
+		NX::ThrowIfFailed(g_pDevice->CreateComputeShader(pCSBlob->GetBufferPointer(), pCSBlob->GetBufferSize(), nullptr, &pComputeShader));
+
+		ComPtr<ID3D11UnorderedAccessView> pUAVIrradSH;
+		CD3D11_UNORDERED_ACCESS_VIEW_DESC UAVDesc(D3D11_UAV_DIMENSION_BUFFER, DXGI_FORMAT_UNKNOWN, 0, irradianceBufferElements);
+		NX::ThrowIfFailed(g_pDevice->CreateUnorderedAccessView(cbIrradianceSH.Get(), &UAVDesc, pUAVIrradSH.GetAddressOf()));
+
+		ComPtr<ID3D11ShaderResourceView> pSRVIrradSH;
+		CD3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc(D3D11_SRV_DIMENSION_BUFFER, DXGI_FORMAT_UNKNOWN, 0, irradianceBufferElements);
+		NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(cbIrradianceSH.Get(), &SRVDesc, pSRVIrradSH.GetAddressOf()));
+
+		std::string UAVDebugName = "SHIrrad Buffer UAV" + std::to_string(passId);
+		pUAVIrradSH->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)UAVDebugName.size(), UAVDebugName.c_str());
+
+		std::string SRVDebugName = "SHIrrad Buffer SRV" + std::to_string(passId);
+		pSRVIrradSH->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)SRVDebugName.size(), SRVDebugName.c_str());
+		pSRVIrradSHs.push_back(pSRVIrradSH);
+		if (passId == SHIrradPassCount - 1) 
+			m_pSRVIrradianceSH = pSRVIrradSH;
+
+		g_pContext->CSSetUnorderedAccessViews(0, 1, pUAVIrradSH.GetAddressOf(), nullptr);
+
+		if (passId == 0)
+		{
+			g_pContext->CSSetShaderResources(0, 1, m_pSRVHDRMap.GetAddressOf());
+		}
+		else
+		{
+			g_pContext->CSSetShaderResources(0, 1, pSRVIrradSHs[passId - 1].GetAddressOf());
+		}
+
+		g_pContext->CSSetSamplers(0, 1, RenderStates::SamplerLinearClamp.GetAddressOf());
+		g_pContext->CSSetShader(pComputeShader.Get(), nullptr, 0);
+
+		g_pContext->Dispatch(tempWidth, tempHeight, 1);
+
+		// 用完以后清空对应槽位的SRV UAV，避免后续pass资源绑不上（可能有优化空间）
+		ComPtr<ID3D11ShaderResourceView> pSRVNull[1] = { nullptr };
+		g_pContext->CSSetShaderResources(0, 1, pSRVNull->GetAddressOf());
+
+		ComPtr<ID3D11UnorderedAccessView> pUAVNull[1] = { nullptr };
+		g_pContext->CSSetUnorderedAccessViews(0, 1, pUAVNull->GetAddressOf(), nullptr);
+
+		g_pUDA->EndEvent();
+	}
+
+	g_pUDA->EndEvent();
 }
 
 void NXCubeMap::GenerateIrradianceMap()
@@ -787,15 +922,4 @@ void NXCubeMap::InitConstantBuffer()
 	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cb));
-}
-
-void NXCubeMap::EncodeSHIrradMapBuffer()
-{
-	m_cbData.irradSH0123x = { m_shIrradianceMap[0].x, m_shIrradianceMap[1].x, m_shIrradianceMap[2].x, m_shIrradianceMap[3].x };
-	m_cbData.irradSH0123y = { m_shIrradianceMap[0].y, m_shIrradianceMap[1].y, m_shIrradianceMap[2].y, m_shIrradianceMap[3].y };
-	m_cbData.irradSH0123z = { m_shIrradianceMap[0].z, m_shIrradianceMap[1].z, m_shIrradianceMap[2].z, m_shIrradianceMap[3].z };
-	m_cbData.irradSH4567x = { m_shIrradianceMap[4].x, m_shIrradianceMap[5].x, m_shIrradianceMap[6].x, m_shIrradianceMap[7].x };
-	m_cbData.irradSH4567y = { m_shIrradianceMap[4].y, m_shIrradianceMap[5].y, m_shIrradianceMap[6].y, m_shIrradianceMap[7].y };
-	m_cbData.irradSH4567z = { m_shIrradianceMap[4].z, m_shIrradianceMap[5].z, m_shIrradianceMap[6].z, m_shIrradianceMap[7].z };
-	m_cbData.irradSH8xyz = m_shIrradianceMap[8];
 }
