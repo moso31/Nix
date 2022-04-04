@@ -403,6 +403,7 @@ void NXCubeMap::GenerateIrradianceSH(size_t imgWidth, size_t imgHeight)
 		tempHeight = max((tempHeight + 7) / 8, 1);
 		SHIrradPassCount++;
 	}
+	SHIrradPassCount = max(SHIrradPassCount, 2);
 
 	tempWidth = imgWidth;
 	tempHeight = imgHeight;

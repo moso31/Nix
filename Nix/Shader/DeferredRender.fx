@@ -237,10 +237,13 @@ float4 PS(PS_INPUT input) : SV_Target
 	float3 kS = FresnelSchlick(NoV, F0);
 	float3 kD = 1.0 - kS;
 	kD *= 1.0 - metallic;
-	
-	float3 IndirectIrradiance1 = txIrradianceMap.Sample(ssLinearWrap, N).xyz;
-	float3 IndirectIrradiance2 = GetIndirectIrradiance(N);
-	float3 IndirectIrradiance = lerp(IndirectIrradiance1, IndirectIrradiance2, m_cubeMapIntensity * 0.1f);
+
+	// test: SH Irrad.
+	//float3 IndirectIrradiance1 = txIrradianceMap.Sample(ssLinearWrap, N).xyz;
+	//float3 IndirectIrradiance2 = GetIndirectIrradiance(N);
+	//float3 IndirectIrradiance = lerp(IndirectIrradiance1, IndirectIrradiance2, m_cubeMapIntensity * 0.1f);
+
+	float3 IndirectIrradiance = txIrradianceMap.Sample(ssLinearWrap, N).xyz;
 	
 	float3 diffuseIBL = kD * albedo * IndirectIrradiance;
 
@@ -248,7 +251,7 @@ float4 PS(PS_INPUT input) : SV_Target
 	float2 envBRDF = txBRDF2DLUT.Sample(ssLinearClamp, float2(NoV, roughness)).rg;
 	float3 SpecularIBL = preFilteredColor * float3(kS * envBRDF.x + envBRDF.y);
 
-	float3 ambient = (diffuseIBL + SpecularIBL) * ao;
+	float3 ambient = (diffuseIBL + SpecularIBL) * m_cubeMapIntensity * ao;
 	float3 color = ambient + Lo;
 
 	// fast tone-mapping.

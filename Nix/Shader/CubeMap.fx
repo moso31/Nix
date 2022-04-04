@@ -47,11 +47,8 @@ PS_INPUT VS(VS_INPUT input)
 	return output;
 }
 
-float4 PS(PS_INPUT input) : SV_Target
+float4 GetSHIrradianceTest(float3 v)
 {
-	float4 wtf = txCubeMap.Sample(ssLinearWrap, input.posOS);
-
-	float3 v = normalize(input.posOS); // view direction
 	float4 intensity = 0.0f;
 	intensity.x =
 		g_SHFactor[0] * cbIrradianceSH[0].irradSH[0].x +
@@ -87,10 +84,15 @@ float4 PS(PS_INPUT input) : SV_Target
 		g_SHFactor[8] * cbIrradianceSH[0].irradSH[8].z * (v.z * v.z - v.x * v.x);
 
 	intensity.w = 1.0f;
+}
 
-	//intensity *= 0.5f;
-	//intensity *= m_cubeMapIntensity;
-	intensity = lerp(wtf, intensity, m_cubeMapIntensity * 0.1f);
-	return pow(intensity, 1.0f);
+float4 PS(PS_INPUT input) : SV_Target
+{
+	float4 intensity = txCubeMap.Sample(ssLinearWrap, input.posOS);
+
+	// test: Show SH irradiance only
+	//intensity = GetSHIrradianceTest(input.posOS); 
+
+	intensity *= m_cubeMapIntensity;
 	return pow(intensity, 0.45454545454545f);
 }

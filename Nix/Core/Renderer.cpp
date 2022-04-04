@@ -242,7 +242,7 @@ void Renderer::DrawCubeMap()
 		auto pCBCubeMapParam = pCubeMap->GetConstantBufferParams();
 		g_pContext->PSSetConstantBuffers(1, 1, &pCBCubeMapParam);
 
-		auto pCubeMapSRV = pCubeMap->GetSRVIrradianceMap();
+		auto pCubeMapSRV = pCubeMap->GetSRVCubeMap();
 		g_pContext->PSSetShaderResources(0, 1, &pCubeMapSRV); 
 
 		auto pSRVIrradSH = pCubeMap->GetSRVIrradianceSH();
