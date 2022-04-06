@@ -254,11 +254,11 @@ float4 PS(PS_INPUT input) : SV_Target
 	float3 ambient = (diffuseIBL + SpecularIBL) * m_cubeMapIntensity * ao;
 	float3 color = ambient + Lo;
 
-	// fast tone-mapping.
-	color = color / (color + 1.0);
+	//// fast tone-mapping.
+	//color = color / (color + 1.0);
 
-	// gamma.
-	color = pow(color, 1.0 / 2.2);
+	//// gamma.
+	//color = pow(color, 1.0 / 2.2);
 
 	return float4(color, 1.0f);
 }

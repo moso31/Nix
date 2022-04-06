@@ -119,20 +119,20 @@ void NXScene::Init()
 	//auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64);
 	//pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
 
-	for (int l = 0; l < 4; l++)
-	{
-		for (int m = -l; m <= l; m++)
-		{
-			Vector3 objPos(m * 1.5f, -l * 1.5f, 0.0f);
-			auto pSH = m_sceneManager->CreateSHSphere("shTest", l, m, 1.0f, 64, 64, objPos);
-			pSH->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
-			pSH->AddScript(new NSTest());
-		}
-	}
+	//for (int l = 0; l < 4; l++)
+	//{
+	//	for (int m = -l; m <= l; m++)
+	//	{
+	//		Vector3 objPos(m * 1.5f, -l * 1.5f, 0.0f);
+	//		auto pSH = m_sceneManager->CreateSHSphere("shTest", l, m, 1.0f, 64, 64, objPos);
+	//		pSH->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
+	//		pSH->AddScript(new NSTest());
+	//	}
+	//}
 
 	//auto p = m_sceneManager->CreatePlane("Sphere", 10.0f, 10.0f, NXPlaneAxis::POSITIVE_Y);
 	//p->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
-	
+
 	//std::vector<NXPrimitive*> pMeshes;
 	//m_sceneManager->CreateFBXMeshes("D:\\NixAssets\\UnityBall.fbx", pMeshes);
 	//pMeshes[0]->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
@@ -141,16 +141,16 @@ void NXScene::Init()
 	//pMeshes[0]->GetSubMesh(3)->SetMaterialPBR(pPBRMat[3]);
 	//pMeshes[0]->SetRotation(Vector3(-0.8f, 0.0f, 0.0f));
 
-	//for (int i = -5; i <= 5; i++)
-	//{
-	//	NXPBRMaterial* pPBRMat = m_sceneManager->CreatePBRMaterial("rustediron2", Vector3(1.0f), Vector3(1.0f), 1.0f, i * 0.1f + 0.5f, 1.0f);
-	//	auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(i * 2.0f, 0.0f, 0.0f));
-	//	pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat);
+	for (int i = -5; i <= 5; i++)
+	{
+		NXPBRMaterial* pPBRMat = m_sceneManager->CreatePBRMaterial("rustediron2", Vector3(1.0f), Vector3(1.0f), 1.0f, i * 0.1f + 0.5f, 1.0f);
+		auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(i * 2.0f, 0.0f, 0.0f));
+		pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat);
 
-	//	pPBRMat = m_sceneManager->CreatePBRMaterial("rustediron2", Vector3(1.0f), Vector3(1.0f), 0.0f, i * 0.1f + 0.5f, 1.0f);
-	//	pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(i * 2.0f, 2.0f, 0.0f));
-	//	pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat);
-	//}
+		pPBRMat = m_sceneManager->CreatePBRMaterial("rustediron2", Vector3(1.0f), Vector3(1.0f), 0.0f, i * 0.1f + 0.5f, 1.0f);
+		pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(i * 2.0f, 2.0f, 0.0f));
+		pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat);
+	}
 
 	//m_sceneManager->CreateFBXMeshes("D:\\NixAssets\\Cloth.fbx", pMeshes, true);
 	//pMeshes[0]->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
@@ -196,11 +196,12 @@ void NXScene::Init()
 	pMainCamera->SetTranslation(Vector3(0.0f, 1.0f, -5.0f));
 	pMainCamera->SetLookAt(Vector3(0.0f, 1.0f, -4.0f));
 
-	m_sceneManager->CreateCubeMap("Sky", L"D:\\Alexs_Apt_2k.hdr");
+	//m_sceneManager->CreateCubeMap("Sky", L"D:\\Alexs_Apt_2k.hdr");
 	//m_sceneManager->CreateCubeMap("Sky", L"D:\\TexturesCom_JapanInariTempleH_1K_hdri_sphere.hdr");
 	//m_sceneManager->CreateCubeMap("Sky", L"D:\\ballroom_4k.hdr");
 	//m_sceneManager->CreateCubeMap("Sky", L"D:\\blue_grotto_4k.hdr");
 	//m_sceneManager->CreateCubeMap("Sky", L"D:\\HDRGPUTest.hdr");
+	m_sceneManager->CreateCubeMap("Sky", L"D:\\WhiteHDRI.hdr");
 
 
 	// 更新AABB需要世界坐标，而Init阶段还没有拿到世界坐标，所以需要提前PrevUpdate一次。
@@ -210,16 +211,16 @@ void NXScene::Init()
 	// Init Lighting
 	{
 		NXPBRPointLight* pPointLight;
-		pPointLight = m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 4.5f, 0.0f), Vector3(1.0f), 1.0f, 100.0f);
-		m_cbDataLights.pointLight[0] = pPointLight->GetConstantBuffer();
+		//pPointLight = m_sceneManager->CreatePBRPointLight(Vector3(0.0f, 4.5f, 0.0f), Vector3(1.0f), 1.0f, 100.0f);
+		//m_cbDataLights.pointLight[0] = pPointLight->GetConstantBuffer();
 
 		NXPBRDistantLight* pDirLight;
-		pDirLight = m_sceneManager->CreatePBRDistantLight(Vector3(-1.0f, 0.0f, 1.0f), Vector3(1.0f), 2.0f);
-		m_cbDataLights.distantLight[0] = pDirLight->GetConstantBuffer();
+		//pDirLight = m_sceneManager->CreatePBRDistantLight(Vector3(-1.0f, 0.0f, 1.0f), Vector3(1.0f), 2.0f);
+		//m_cbDataLights.distantLight[0] = pDirLight->GetConstantBuffer();
 
 		NXPBRSpotLight* pSpotLight;
-		pSpotLight = m_sceneManager->CreatePBRSpotLight(Vector3(0.0f, 2.0f, 0.0f), Vector3(0.0f, -1.0f, 0.0f), Vector3(1.0f), 1.0f, 30.0f, 50.0f, 100.0f);
-		m_cbDataLights.spotLight[0] = pSpotLight->GetConstantBuffer();
+		//pSpotLight = m_sceneManager->CreatePBRSpotLight(Vector3(0.0f, 2.0f, 0.0f), Vector3(0.0f, -1.0f, 0.0f), Vector3(1.0f), 1.0f, 30.0f, 50.0f, 100.0f);
+		//m_cbDataLights.spotLight[0] = pSpotLight->GetConstantBuffer();
 
 		D3D11_BUFFER_DESC bufferDesc;
 		ZeroMemory(&bufferDesc, sizeof(bufferDesc));
@@ -239,7 +240,7 @@ void NXScene::Init()
 		InitShadowMapTransformInfo(NXGlobalBufferManager::m_cbDataShadowMap);
 	}
 
-	InitScripts(); 
+	InitScripts();
 }
 
 void NXScene::InitScripts()
@@ -247,7 +248,7 @@ void NXScene::InitScripts()
 	auto pMainCamera = GetMainCamera();
 
 	NSFirstPersonalCamera* pScript = dynamic_cast<NSFirstPersonalCamera*>(m_sceneManager->CreateScript(NXScriptType::NXSCRIPT_FIRST_PERSONAL_CAMERA, pMainCamera));
-	
+
 	NXEventKeyDown::GetInstance()->AddListener(std::bind(&NSFirstPersonalCamera::OnKeyDown, pScript, std::placeholders::_1));
 	NXEventKeyUp::GetInstance()->AddListener(std::bind(&NSFirstPersonalCamera::OnKeyUp, pScript, std::placeholders::_1));
 	NXEventMouseMove::GetInstance()->AddListener(std::bind(&NSFirstPersonalCamera::OnMouseMove, pScript, std::placeholders::_1));
@@ -367,7 +368,7 @@ bool NXScene::RayCast(const Ray& ray, NXHit& outHitInfo, float tMax)
 			}
 		}
 	}
-	
+
 	if (!outHitInfo.pSubMesh)
 		return false;
 

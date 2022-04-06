@@ -94,5 +94,6 @@ float4 PS(PS_INPUT input) : SV_Target
 	//intensity = GetSHIrradianceTest(input.posOS); 
 
 	intensity *= m_cubeMapIntensity;
-	return pow(intensity, 0.45454545454545f);
+	return pow(intensity, 1.0f);
+	//return pow(intensity, 0.45454545454545f);
 }
