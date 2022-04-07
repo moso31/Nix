@@ -247,12 +247,12 @@ float4 PS(PS_INPUT input) : SV_Target
 	
 	float3 diffuseIBL = kD * albedo * IndirectIrradiance;
 
-	float3 preFilteredColor = txPreFilterMap.SampleLevel(ssLinearWrap, R, roughness * 4.0f).rgb;
+	float3 preFilteredColor = txPreFilterMap.SampleLevel(ssLinearWrap, R, roughness * 4.0f).rgb; // 4.0 = prefilter mip count - 1.
 	float2 envBRDF = txBRDF2DLUT.Sample(ssLinearClamp, float2(NoV, roughness)).rg;
 	float3 SpecularIBL = preFilteredColor * float3(kS * envBRDF.x + envBRDF.y);
 
-	float3 ambient = (diffuseIBL + SpecularIBL) * m_cubeMapIntensity * ao;
-	float3 color = ambient + Lo;
+	float3 Libl = (diffuseIBL + SpecularIBL) * m_cubeMapIntensity * ao;
+	float3 color = Libl + Lo;
 
 	//// fast tone-mapping.
 	//color = color / (color + 1.0);

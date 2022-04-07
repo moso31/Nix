@@ -42,6 +42,7 @@ float3 GetPrefilter(float roughness, float3 R)
 	float3 result = 0;
 	const uint NumSamples = 4096;
 	float TotalWeight = 0.0;
+	const float invLog4 = 1.6609640474436811739351597147447f;
 	for (uint i = 0; i < NumSamples; i++)
 	{
 		float2 Xi = Hammersley(i, NumSamples);
@@ -56,10 +57,8 @@ float3 GetPrefilter(float roughness, float3 R)
 			float3 pdf = max(D * NoH / (4.0 * VoH), 0.0001);
 
 			float imgSize = 512.0f;
-			//float saPerH = 1.0f / (NumSamples * pdf);
-			//float saPerTexel = 4.0 * NX_PI / (6.0 * imgSize * imgSize);
-			float saFactor = 6.0 * imgSize * imgSize / (NX_4PI * (float)NumSamples * pdf);
-			float TargetMipLevel = roughness == 0.0f ? 0.0f : max(0.5 * log2(saFactor), 0.0);
+			float saFactor = 4.0 * 6.0 * imgSize * imgSize / (NX_4PI * (float)NumSamples * pdf);
+			float TargetMipLevel = roughness == 0.0f ? 0.0f : max(log(saFactor) * invLog4, 0.0);
 
 			result += txCubeMap.SampleLevel(ssLinearWrap, L, TargetMipLevel).rgb * NoL;
 			TotalWeight += NoL;

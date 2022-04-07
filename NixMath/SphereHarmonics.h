@@ -25,7 +25,7 @@ namespace SH
 	}
 
 	// º∆À„ K_l^m
-	float NormalizationFactor(float l, float m);
+	float NormalizationFactor(int l, int m);
 
 	// º∆À„ P_l^m(x)
 	float Legendre(int l, int m, float x);

@@ -4,7 +4,7 @@ using namespace DirectX;
 using namespace DirectX::SimpleMath;
 using namespace DirectX::SimpleMath::SH;
 
-float DirectX::SimpleMath::SH::NormalizationFactor(float l, float m)
+float DirectX::SimpleMath::SH::NormalizationFactor(int l, int m)
 {
 	return sqrt(
 		(2.0f * l + 1.0f) * Factorial(l - abs(m)) /
