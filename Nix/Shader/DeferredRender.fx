@@ -249,7 +249,10 @@ float4 PS(PS_INPUT input) : SV_Target
 
 	float3 preFilteredColor = txPreFilterMap.SampleLevel(ssLinearWrap, R, roughness * 4.0f).rgb; // 4.0 = prefilter mip count - 1.
 	float2 envBRDF = txBRDF2DLUT.Sample(ssLinearClamp, float2(NoV, roughness)).rg;
-	float3 SpecularIBL = preFilteredColor * float3(kS * envBRDF.x + envBRDF.y);
+	float3 SpecularIBL = preFilteredColor * lerp(envBRDF.xxx, envBRDF.yyy, F0);
+
+	float3 energyCompensation = 1.0f + F0 * (1.0f / envBRDF.yyy - 1.0f);
+	SpecularIBL *= energyCompensation;
 
 	float3 Libl = (diffuseIBL + SpecularIBL) * m_cubeMapIntensity * ao;
 	float3 color = Libl + Lo;
