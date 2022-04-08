@@ -14,10 +14,18 @@ cbuffer cbImageSizeData : register(b0)
 	float4 nextImgSize;
 }
 
+#if CUBEMAP_IRRADSH_LAST
+const static float T[5] = { 0.886226925452757f, 1.023326707946489f, 0.495415912200751f, 0.0f, -0.110778365681594f };
+#endif
+
+#if CUBEMAP_IRRADSH_FIRST
 Texture2D txHDRMap : register(t0);
 SamplerState ssLinearWrap : register(s0);
-RWStructuredBuffer<ConstantBufferIrradSH> outIrradanceSHCoeffcient : register(u0);
+#else
+StructuredBuffer<ConstantBufferIrradSH> cbSHIrradIn : register(t0);
+#endif
 
+RWStructuredBuffer<ConstantBufferIrradSH> outIrradanceSHCoeffcient : register(u0);
 groupshared ConstantBufferIrradSH g_shCache[NUM_THREAD_COUNT];
 
 void ParallelSumOfGroupData(int GroupIndex)
@@ -38,8 +46,8 @@ void CS(int2 DTid : SV_DispatchThreadID,
 	int2 GroupId : SV_GroupID, 
 	int GroupIndex : SV_GroupIndex)
 {
+#if CUBEMAP_IRRADSH_FIRST
 	float2 uv = ((float2)DTid + 0.5f) * currImgSize.zw;
-	int outputPixelIndex = GroupId.y * nextImgSize.x + GroupId.x;
 
 	bool isOffScreen = uv.x > 1.0f || uv.y > 1.0f;
 	if (isOffScreen)
@@ -72,13 +80,34 @@ void CS(int2 DTid : SV_DispatchThreadID,
 			}
 		}
 	}
+#else
+	int inputPixelIndex = DTid.y * currImgSize.x + DTid.x;
+	bool isOffScreen = DTid.x >= currImgSize.x || DTid.y >= currImgSize.y;
+	if (isOffScreen)
+	{
+		for (int i = 0; i < 9; i++) g_shCache[GroupIndex].irradSH[i] = 0.0f;
+	}
+	else
+	{
+		for (int i = 0; i < 9; i++) g_shCache[GroupIndex].irradSH[i] = cbSHIrradIn[inputPixelIndex].irradSH[i];
+	}
+#endif
 
 	GroupMemoryBarrierWithGroupSync();
 	ParallelSumOfGroupData(GroupIndex);
 
-	for (int i = 0; i < 9; i++)
+	int outputPixelIndex = GroupId.y * nextImgSize.x + GroupId.x;
+
+	for (int l = 0; l < 3; l++)
 	{
-		//float4 accumulatedSHBasis = isOffScreen ? 0.0f : g_shCache[0].irradSH[i];
-		outIrradanceSHCoeffcient[outputPixelIndex].irradSH[i] = g_shCache[0].irradSH[i];
+		for (int m = -l; m <= l; m++)
+		{
+			int index = l * l + l + m;
+			float4 accumulatedIrradianceSH = g_shCache[0].irradSH[index];
+#if CUBEMAP_IRRADSH_LAST
+			accumulatedIrradianceSH *= sqrt(NX_4PI / (2.0f * l + 1.0f)) * T[l] * NX_1DIVPI;
+#endif
+			outIrradanceSHCoeffcient[outputPixelIndex].irradSH[index] = accumulatedIrradianceSH;
+		}
 	}
 }

@@ -56,6 +56,12 @@ HRESULT NXShaderComplier::CompileVSIL(std::wstring shaderFilePath, std::string m
 	ComPtr<ID3DBlob> pBlob;
 	HRESULT hr = S_OK;
 
+	if (!m_defineMacros.empty())
+	{
+		// 补一个空 shader macro, 否则会报错
+		m_defineMacros.push_back(CD3D_SHADER_MACRO(nullptr, nullptr));
+	}
+
 	ID3DBlob* pErrorBlob = nullptr;
 	hr = D3DCompileFromFile(shaderFilePath.c_str(), m_defineMacros.data(), m_pd3dInclude, mainFuncEntryPoint.c_str(), s_smVersionVS.c_str(),
 		m_shaderFlags, m_shaderFlags2, &pBlob, &pErrorBlob);
@@ -87,6 +93,12 @@ HRESULT NXShaderComplier::CompilePS(std::wstring shaderFilePath, std::string mai
 	ComPtr<ID3DBlob> pBlob;
 	HRESULT hr = S_OK;
 
+	if (!m_defineMacros.empty())
+	{
+		// 补一个空 shader macro, 否则会报错
+		m_defineMacros.push_back(CD3D_SHADER_MACRO(nullptr, nullptr));
+	}
+
 	ID3DBlob* pErrorBlob = nullptr;
 	hr = D3DCompileFromFile(shaderFilePath.c_str(), m_defineMacros.data(), m_pd3dInclude, mainFuncEntryPoint.c_str(), s_smVersionPS.c_str(),
 		m_shaderFlags, m_shaderFlags2, &pBlob, &pErrorBlob);
@@ -116,6 +128,12 @@ HRESULT NXShaderComplier::CompileCS(std::wstring shaderFilePath, std::string mai
 	ComPtr<ID3DBlob> pBlob;
 	HRESULT hr = S_OK;
 
+	if (!m_defineMacros.empty()) 
+	{ 
+		// 补一个空 shader macro, 否则会报错
+		m_defineMacros.push_back(CD3D_SHADER_MACRO(nullptr, nullptr)); 
+	}
+
 	ID3DBlob* pErrorBlob = nullptr;
 	hr = D3DCompileFromFile(shaderFilePath.c_str(), m_defineMacros.data(), m_pd3dInclude, mainFuncEntryPoint.c_str(), s_smVersionCS.c_str(),
 		m_shaderFlags, m_shaderFlags2, &pBlob, &pErrorBlob);
@@ -140,7 +158,7 @@ HRESULT NXShaderComplier::CompileCS(std::wstring shaderFilePath, std::string mai
 	return S_OK;
 }
 
-void NXShaderComplier::AddMacro(const D3D_SHADER_MACRO& macro)
+void NXShaderComplier::AddMacro(const CD3D_SHADER_MACRO& macro)
 {
 	m_defineMacros.push_back(macro);
 }

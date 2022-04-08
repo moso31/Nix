@@ -436,21 +436,21 @@ void NXCubeMap::GenerateIrradianceSH(size_t imgWidth, size_t imgHeight)
 		// 设置 CubeMapIrradianceSH.fx 使用哪个入口点函数
 		if (passId == 0)
 		{
-			// 如果是第一次pass
-			strCSPath = L"Shader\\CubeMapIrradianceSHFirst.fx";
+			CD3D_SHADER_MACRO macro("CUBEMAP_IRRADSH_FIRST", "1");
+			NXShaderComplier::GetInstance()->AddMacro(macro);
 		}
 		else if (passId > 0 && passId < SHIrradPassCount - 1)
 		{
-			// 如果是中间pass
-			strCSPath = L"Shader\\CubeMapIrradianceSHMiddle.fx";
+			CD3D_SHADER_MACRO macro("CUBEMAP_IRRADSH_MIDDLE", "1");
+			NXShaderComplier::GetInstance()->AddMacro(macro);
 		}
 		else
 		{
-			// 如果是最后一次pass
-			strCSPath = L"Shader\\CubeMapIrradianceSHLast.fx";
+			CD3D_SHADER_MACRO macro("CUBEMAP_IRRADSH_LAST", "1");
+			NXShaderComplier::GetInstance()->AddMacro(macro);
 		}
 
-		NXShaderComplier::GetInstance()->CompileCS(strCSPath, "CS", &pComputeShader);
+		NXShaderComplier::GetInstance()->CompileCS(L"Shader\\CubeMapIrradianceSH.fx", "CS", &pComputeShader);
 
 		ComPtr<ID3D11UnorderedAccessView> pUAVIrradSH;
 		CD3D11_UNORDERED_ACCESS_VIEW_DESC UAVDesc(D3D11_UAV_DIMENSION_BUFFER, DXGI_FORMAT_UNKNOWN, 0, irradianceBufferElements);
