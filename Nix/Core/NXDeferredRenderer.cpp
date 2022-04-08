@@ -38,40 +38,15 @@ void NXDeferredRenderer::Init()
 
 	InitVertexIndexBuffer();
 
-	ComPtr<ID3DBlob> pVSBlob;
-	ComPtr<ID3DBlob> pPSBlob;
+	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\GBuffer.fx", "VS", &m_pVertexShader, NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), &m_pInputLayoutGBuffer);
+	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\GBuffer.fx", "PS", &m_pPixelShader);
 
-	NX::MessageBoxIfFailed(
-		ShaderComplier::Compile(L"Shader\\GBuffer.fx", "VS", "vs_5_0", &pVSBlob),
-		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVertexShader));
-
-	// 对RT0-RT3使用LayoutPNTT顶点布局。
-	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pInputLayoutGBuffer));
-
-	NX::MessageBoxIfFailed(
-		ShaderComplier::Compile(L"Shader\\DeferredRender.fx", "VS", "vs_5_0", &pVSBlob),
-		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVertexShaderRender));
-	
-	// 对最终渲染使用LayoutPT顶点布局。
-	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutPT, ARRAYSIZE(NXGlobalInputLayout::layoutPT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pInputLayoutRender));
-
-	NX::MessageBoxIfFailed(
-		ShaderComplier::Compile(L"Shader\\GBuffer.fx", "PS", "ps_5_0", &pPSBlob),
-		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShader));
-
-	NX::MessageBoxIfFailed(
-		ShaderComplier::Compile(L"Shader\\DeferredRender.fx", "PS", "ps_5_0", &pPSBlob),
-		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShaderRender));
+	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\DeferredRender.fx", "VS", &m_pVertexShaderRender, NXGlobalInputLayout::layoutPT, ARRAYSIZE(NXGlobalInputLayout::layoutPT), &m_pInputLayoutRender);
+	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\DeferredRender.fx", "PS", &m_pPixelShaderRender);
 }
 
 void NXDeferredRenderer::RenderGBuffer()
 {
-	g_pContext->IASetInputLayout(m_pInputLayoutGBuffer.Get());
-
 	g_pUDA->BeginEvent(L"GBuffer");
 
 	NXTexture2D* pDepthZ = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_DepthZ);
@@ -96,6 +71,7 @@ void NXDeferredRenderer::RenderGBuffer()
 	// 设置使用的VS和PS（scene.fx）
 	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
+	g_pContext->IASetInputLayout(m_pInputLayoutGBuffer.Get());
 
 	for (auto pPrim : m_pScene->GetPrimitives())
 	{
@@ -146,9 +122,10 @@ void NXDeferredRenderer::Render(ID3D11ShaderResourceView* pSRVSSAO)
 	g_pContext->ClearRenderTargetView(pRTVMainScene, Colors::WhiteSmoke);
 	g_pContext->ClearDepthStencilView(pDSVDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-	g_pContext->IASetInputLayout(m_pInputLayoutRender.Get());
 	g_pContext->VSSetShader(m_pVertexShaderRender.Get(), nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShaderRender.Get(), nullptr, 0);
+	g_pContext->IASetInputLayout(m_pInputLayoutRender.Get());
+
 	g_pContext->PSSetSamplers(0, 1, RenderStates::SamplerLinearWrap.GetAddressOf());
 	g_pContext->PSSetSamplers(1, 1, RenderStates::SamplerLinearClamp.GetAddressOf());
 

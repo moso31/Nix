@@ -18,13 +18,7 @@ NXSimpleSSAO::~NXSimpleSSAO()
 
 void NXSimpleSSAO::Init(const Vector2& AOBufferSize)
 {
-	// create VS & IL
-	ComPtr<ID3DBlob> pCSBlob;
-	NX::MessageBoxIfFailed(
-		ShaderComplier::Compile(L"Shader\\SimpleSSAO.fx", "CS", "cs_5_0", &pCSBlob),
-		L"[NXSimpleSSAO compile failed]. Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreateComputeShader(pCSBlob->GetBufferPointer(), pCSBlob->GetBufferSize(), nullptr, &m_pComputeShader));
-
+	NXShaderComplier::GetInstance()->CompileCS(L"Shader\\SimpleSSAO.fx", "CS", &m_pComputeShader);
 	m_pTexSSAO = NXResourceManager::GetInstance()->CreateTexture2D("Simple SSAO", DXGI_FORMAT_R32G32B32A32_FLOAT, lround(AOBufferSize.x), lround(AOBufferSize.y), 1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS);
 	m_pTexSSAO->CreateSRV();
 	m_pTexSSAO->CreateUAV();
