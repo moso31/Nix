@@ -146,15 +146,6 @@
       <Filter>Shader\CubeMap</Filter>
     </None>
     <None Include="Shader\MathUnits.fx" />
-    <None Include="Shader\CubeMapIrradianceSHFirst.fx">
-      <Filter>Shader\Renderer</Filter>
-    </None>
-    <None Include="Shader\CubeMapIrradianceSHLast.fx">
-      <Filter>Shader\Renderer</Filter>
-    </None>
-    <None Include="Shader\CubeMapIrradianceSHMiddle.fx">
-      <Filter>Shader\Renderer</Filter>
-    </None>
     <None Include="Shader\CubeMapIrradianceSH.fx">
       <Filter>Shader\Renderer</Filter>
     </None>
