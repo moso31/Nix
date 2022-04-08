@@ -64,33 +64,11 @@ void Renderer::InitRenderer()
 	// 在这里初始化CommonRT。
 	NXResourceManager::GetInstance()->InitCommonRT();
 
-	// create VS & IL
-	ComPtr<ID3DBlob> pVSBlob;
-	NX::MessageBoxIfFailed(
-		ShaderComplier::Compile(L"Shader\\ShadowMap.fx", "VS", "vs_5_0", &pVSBlob),
-		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVertexShaderShadowMap));
+	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\ShadowMap.fx", "VS", &m_pVertexShaderShadowMap, NXGlobalInputLayout::layoutPNT, ARRAYSIZE(NXGlobalInputLayout::layoutPNT), &m_pInputLayoutPNT);
+	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\ShadowMap.fx", "PS", &m_pPixelShaderShadowMap);
 
-	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutPNT, ARRAYSIZE(NXGlobalInputLayout::layoutPNT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pInputLayoutPNT));
-
-	NX::MessageBoxIfFailed(
-		ShaderComplier::Compile(L"Shader\\CubeMap.fx", "VS", "vs_5_0", &pVSBlob),
-		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVertexShaderCubeMap)); 
-
-	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutP, ARRAYSIZE(NXGlobalInputLayout::layoutP), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pInputLayoutP));
-
-	// Create PS
-	ComPtr<ID3DBlob> pPSBlob;
-	NX::MessageBoxIfFailed(
-		ShaderComplier::Compile(L"Shader\\ShadowMap.fx", "PS", "ps_5_0", &pPSBlob),
-		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShaderShadowMap));
-
-	NX::MessageBoxIfFailed(
-		ShaderComplier::Compile(L"Shader\\CubeMap.fx", "PS", "ps_5_0", &pPSBlob),
-		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShaderCubeMap));
+	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\CubeMap.fx", "VS", &m_pVertexShaderCubeMap, NXGlobalInputLayout::layoutP, ARRAYSIZE(NXGlobalInputLayout::layoutP), &m_pInputLayoutP);
+	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\CubeMap.fx", "PS", &m_pPixelShaderCubeMap);
 
 	// Create RenderTarget
 	m_renderTarget = new NXRenderTarget();

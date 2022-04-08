@@ -18,20 +18,8 @@ NXForwardRenderer::~NXForwardRenderer()
 
 void NXForwardRenderer::Init()
 {
-	ComPtr<ID3DBlob> pVSBlob;
-	ComPtr<ID3DBlob> pPSBlob;
-
-	NX::MessageBoxIfFailed(
-		ShaderComplier::Compile(L"Shader\\Scene.fx", "VS", "vs_5_0", &pVSBlob),
-		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVertexShader));
-
-	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pInputLayout));
-
-	NX::MessageBoxIfFailed(
-		ShaderComplier::Compile(L"Shader\\Scene.fx", "PS", "ps_5_0", &pPSBlob),
-		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShader));
+	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\Scene.fx", "VS", &m_pVertexShader, NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), &m_pInputLayout);
+	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\Scene.fx", "PS", &m_pPixelShader);
 }
 
 void NXForwardRenderer::Render(ID3D11ShaderResourceView* pSRVSSAO)

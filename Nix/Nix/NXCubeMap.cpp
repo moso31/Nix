@@ -266,21 +266,12 @@ void NXCubeMap::GenerateCubeMap(const std::wstring filePath)
 	ComPtr<ID3D11InputLayout> pInputLayoutP;
 	ComPtr<ID3D11VertexShader> pVertexShader;
 	ComPtr<ID3D11PixelShader> pPixelShader;
-	ComPtr<ID3DBlob> pVSBlob;
-	ComPtr<ID3DBlob> pPSBlob;
 
-	NX::MessageBoxIfFailed(
-		ShaderComplier::Compile(L"Shader\\HDRToCubeMap.fx", "VS", "vs_5_0", &pVSBlob),
-		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &pVertexShader));
-
-	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutP, ARRAYSIZE(NXGlobalInputLayout::layoutP), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &pInputLayoutP));
+	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\HDRToCubeMap.fx", "VS", &pVertexShader, NXGlobalInputLayout::layoutP, ARRAYSIZE(NXGlobalInputLayout::layoutP), &pInputLayoutP);
+	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\HDRToCubeMap.fx", "PS", &pPixelShader);
+	g_pContext->VSSetShader(pVertexShader.Get(), nullptr, 0);
+	g_pContext->PSSetShader(pPixelShader.Get(), nullptr, 0);
 	g_pContext->IASetInputLayout(pInputLayoutP.Get());
-
-	NX::MessageBoxIfFailed(
-		ShaderComplier::Compile(L"Shader\\HDRToCubeMap.fx", "PS", "ps_5_0", &pPSBlob),
-		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &pPixelShader));
 
 	D3D11_BUFFER_DESC bufferDesc;
 	ComPtr<ID3D11Buffer> cb;
@@ -291,8 +282,6 @@ void NXCubeMap::GenerateCubeMap(const std::wstring filePath)
 	bufferDesc.CPUAccessFlags = 0;
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &cb));
 
-	g_pContext->VSSetShader(pVertexShader.Get(), nullptr, 0);
-	g_pContext->PSSetShader(pPixelShader.Get(), nullptr, 0);
 	g_pContext->PSSetShaderResources(0, 1, m_pSRVHDRMap.GetAddressOf());
 	g_pContext->VSSetConstantBuffers(0, 1, cb.GetAddressOf());
 	g_pContext->PSSetSamplers(0, 1, RenderStates::SamplerLinearClamp.GetAddressOf());
@@ -443,7 +432,6 @@ void NXCubeMap::GenerateIrradianceSH(size_t imgWidth, size_t imgHeight)
 
 		ComPtr<ID3D11ComputeShader> pComputeShader;
 		std::wstring strCSPath = L"";
-		ComPtr<ID3DBlob> pCSBlob;
 
 		// 设置 CubeMapIrradianceSH.fx 使用哪个入口点函数
 		if (passId == 0)
@@ -462,10 +450,7 @@ void NXCubeMap::GenerateIrradianceSH(size_t imgWidth, size_t imgHeight)
 			strCSPath = L"Shader\\CubeMapIrradianceSHLast.fx";
 		}
 
-		NX::MessageBoxIfFailed(
-			ShaderComplier::Compile(strCSPath, "CS", "cs_5_0", &pCSBlob),
-			L"[CubeMapIrradianceSH compile failed]. Please run this executable from the directory that contains the FX file.");
-		NX::ThrowIfFailed(g_pDevice->CreateComputeShader(pCSBlob->GetBufferPointer(), pCSBlob->GetBufferSize(), nullptr, &pComputeShader));
+		NXShaderComplier::GetInstance()->CompileCS(strCSPath, "CS", &pComputeShader);
 
 		ComPtr<ID3D11UnorderedAccessView> pUAVIrradSH;
 		CD3D11_UNORDERED_ACCESS_VIEW_DESC UAVDesc(D3D11_UAV_DIMENSION_BUFFER, DXGI_FORMAT_UNKNOWN, 0, irradianceBufferElements);
@@ -536,21 +521,12 @@ void NXCubeMap::GenerateIrradianceMap()
 	ComPtr<ID3D11InputLayout> pInputLayoutP;
 	ComPtr<ID3D11VertexShader> pVertexShader;
 	ComPtr<ID3D11PixelShader> pPixelShader;
-	ComPtr<ID3DBlob> pVSBlob;
-	ComPtr<ID3DBlob> pPSBlob;
 
-	NX::MessageBoxIfFailed(
-		ShaderComplier::Compile(L"Shader\\CubeMapIrradiance.fx", "VS", "vs_5_0", &pVSBlob),
-		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &pVertexShader));
-
-	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutPNT, ARRAYSIZE(NXGlobalInputLayout::layoutPNT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &pInputLayoutP));
+	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\CubeMapIrradiance.fx", "VS", &pVertexShader, NXGlobalInputLayout::layoutPNT, ARRAYSIZE(NXGlobalInputLayout::layoutPNT), &pInputLayoutP);
+	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\CubeMapIrradiance.fx", "PS", &pPixelShader);
+	g_pContext->VSSetShader(pVertexShader.Get(), nullptr, 0);
+	g_pContext->PSSetShader(pPixelShader.Get(), nullptr, 0);
 	g_pContext->IASetInputLayout(pInputLayoutP.Get());
-
-	NX::MessageBoxIfFailed(
-		ShaderComplier::Compile(L"Shader\\CubeMapIrradiance.fx", "PS", "ps_5_0", &pPSBlob),
-		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &pPixelShader));
 
 	ComPtr<ID3D11Buffer> cb;
 	D3D11_BUFFER_DESC bufferDesc;
@@ -561,8 +537,6 @@ void NXCubeMap::GenerateIrradianceMap()
 	bufferDesc.CPUAccessFlags = 0;
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &cb));
 
-	g_pContext->VSSetShader(pVertexShader.Get(), nullptr, 0);
-	g_pContext->PSSetShader(pPixelShader.Get(), nullptr, 0);
 	g_pContext->PSSetShaderResources(0, 1, m_pSRVCubeMap.GetAddressOf());
 	g_pContext->VSSetConstantBuffers(0, 1, cb.GetAddressOf());
 	g_pContext->PSSetSamplers(0, 1, RenderStates::SamplerLinearWrap.GetAddressOf());
@@ -612,21 +586,12 @@ void NXCubeMap::GeneratePreFilterMap()
 	ComPtr<ID3D11InputLayout> pInputLayoutP;
 	ComPtr<ID3D11VertexShader> pVertexShader;
 	ComPtr<ID3D11PixelShader> pPixelShader;
-	ComPtr<ID3DBlob> pVSBlob;
-	ComPtr<ID3DBlob> pPSBlob;
 
-	NX::MessageBoxIfFailed(
-		ShaderComplier::Compile(L"Shader\\CubeMapPreFilter.fx", "VS", "vs_5_0", &pVSBlob),
-		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &pVertexShader));
-
-	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutPNT, ARRAYSIZE(NXGlobalInputLayout::layoutPNT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &pInputLayoutP));
+	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\CubeMapPreFilter.fx", "VS", &pVertexShader, NXGlobalInputLayout::layoutPNT, ARRAYSIZE(NXGlobalInputLayout::layoutPNT), &pInputLayoutP);
+	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\CubeMapPreFilter.fx", "PS", &pPixelShader);
+	g_pContext->VSSetShader(pVertexShader.Get(), nullptr, 0);
+	g_pContext->PSSetShader(pPixelShader.Get(), nullptr, 0);
 	g_pContext->IASetInputLayout(pInputLayoutP.Get());
-
-	NX::MessageBoxIfFailed(
-		ShaderComplier::Compile(L"Shader\\CubeMapPreFilter.fx", "PS", "ps_5_0", &pPSBlob),
-		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &pPixelShader));
 
 	D3D11_BUFFER_DESC bufferDesc;
 	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
@@ -641,8 +606,6 @@ void NXCubeMap::GeneratePreFilterMap()
 	bufferDesc.ByteWidth = sizeof(ConstantBufferObject);
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &cbRoughness));
 
-	g_pContext->VSSetShader(pVertexShader.Get(), nullptr, 0);
-	g_pContext->PSSetShader(pPixelShader.Get(), nullptr, 0);
 	g_pContext->PSSetShaderResources(0, 1, m_pSRVCubeMap.GetAddressOf());
 	g_pContext->VSSetConstantBuffers(0, 1, cbCubeCamera.GetAddressOf());
 	g_pContext->PSSetConstantBuffers(1, 1, cbRoughness.GetAddressOf());
@@ -742,24 +705,12 @@ void NXCubeMap::GenerateBRDF2DLUT()
 	ComPtr<ID3D11InputLayout> pInputLayoutPT;
 	ComPtr<ID3D11VertexShader> pVertexShader;
 	ComPtr<ID3D11PixelShader> pPixelShader;
-	ComPtr<ID3DBlob> pVSBlob;
-	ComPtr<ID3DBlob> pPSBlob;
 
-	NX::MessageBoxIfFailed( 
-		ShaderComplier::Compile(L"Shader\\BRDF2DLUT.fx", "VS", "vs_5_0", &pVSBlob),
-		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &pVertexShader));
-
-	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(NXGlobalInputLayout::layoutPT, ARRAYSIZE(NXGlobalInputLayout::layoutPT), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &pInputLayoutPT));
-	g_pContext->IASetInputLayout(pInputLayoutPT.Get());
-
-	NX::MessageBoxIfFailed(
-		ShaderComplier::Compile(L"Shader\\BRDF2DLUT.fx", "PS", "ps_5_0", &pPSBlob),
-		L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.");
-	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &pPixelShader));
-
+	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\BRDF2DLUT.fx", "VS", &pVertexShader, NXGlobalInputLayout::layoutPT, ARRAYSIZE(NXGlobalInputLayout::layoutPT), &pInputLayoutPT);
+	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\BRDF2DLUT.fx", "PS", &pPixelShader);
 	g_pContext->VSSetShader(pVertexShader.Get(), nullptr, 0);
 	g_pContext->PSSetShader(pPixelShader.Get(), nullptr, 0);
+	g_pContext->IASetInputLayout(pInputLayoutPT.Get());
 
 	UINT stride = sizeof(VertexPT); 
 	UINT offset = 0;
