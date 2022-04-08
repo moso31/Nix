@@ -25,18 +25,18 @@ bool NXCubeMap::Init(const std::wstring filePath)
 	InitVertex();
 
 	m_mxCubeMapProj = XMMatrixPerspectiveFovLH(XMConvertToRadians(90.0f), 1.0f, 0.1f, 10.0f);
-	m_mxCubeMapView[0] = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(1.0f, 0.0f, 0.0f), Vector3(0.0f, 1.0f, 0.0f));
-	m_mxCubeMapView[1] = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(-1.0f, 0.0f, 0.0f), Vector3(0.0f, 1.0f, 0.0f));
-	m_mxCubeMapView[2] = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 1.0f, 0.0f), Vector3(0.0f, 0.0f, -1.0f));
-	m_mxCubeMapView[3] = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, -1.0f, 0.0f), Vector3(0.0f, 0.0f, 1.0f));
-	m_mxCubeMapView[4] = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 1.0f), Vector3(0.0f, 1.0f, 0.0f));
-	m_mxCubeMapView[5] = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, -1.0f), Vector3(0.0f, 1.0f, 0.0f));
+	m_mxCubeMapView[0] = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3( 1.0f,  0.0f,  0.0f), Vector3(0.0f,  1.0f,  0.0f));
+	m_mxCubeMapView[1] = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(-1.0f,  0.0f,  0.0f), Vector3(0.0f,  1.0f,  0.0f));
+	m_mxCubeMapView[2] = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3( 0.0f,  1.0f,  0.0f), Vector3(0.0f,  0.0f, -1.0f));
+	m_mxCubeMapView[3] = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3( 0.0f, -1.0f,  0.0f), Vector3(0.0f,  0.0f,  1.0f));
+	m_mxCubeMapView[4] = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3( 0.0f,  0.0f,  1.0f), Vector3(0.0f,  1.0f,  0.0f));
+	m_mxCubeMapView[5] = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3( 0.0f,  0.0f, -1.0f), Vector3(0.0f,  1.0f,  0.0f));
 
-	m_pImage.reset();
+	m_pImage.reset(); 
 	m_pImage = std::make_unique<ScratchImage>();
 
 	TexMetadata HDRInfo;
-	HRESULT hr;
+	HRESULT hr; 
 	std::wstring suffix = filePath.substr(filePath.rfind(L"."));
 
 	// 创建CubeMap SRV。
@@ -62,7 +62,7 @@ bool NXCubeMap::Init(const std::wstring filePath)
 		m_format = HDRInfo.format;
 
 		hr = CreateShaderResourceViewEx(g_pDevice.Get(), pHDRImage->GetImages(), pHDRImage->GetImageCount(), HDRInfo, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, (UINT)HDRInfo.miscFlags, false, &m_pSRVHDRMap);
-
+		
 		GenerateCubeMap(filePath);
 		hr = LoadFromDDSFile(m_cubeMapFilePath.c_str(), DDS_FLAGS_NONE, &HDRInfo, *m_pImage);
 
@@ -137,7 +137,7 @@ bool NXCubeMap::Init(const std::wstring filePath)
 		std::unique_ptr<ScratchImage> pImageMip = std::make_unique<ScratchImage>();
 		hr = GenerateMipMaps(m_pImage->GetImages(), m_pImage->GetImageCount(), m_pImage->GetMetadata(), TEX_FILTER_DEFAULT, 0, *pImageMip);
 		HDRInfo.mipLevels = pImageMip->GetMetadata().mipLevels;
-		m_pImage.swap(pImageMip);
+		m_pImage.swap(pImageMip); 
 
 		hr = CreateTextureEx(g_pDevice.Get(), m_pImage->GetImages(), m_pImage->GetImageCount(), HDRInfo, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, (ID3D11Resource**)m_pTexCubeMap.GetAddressOf());
 		hr = CreateShaderResourceView(g_pDevice.Get(), m_pImage->GetImages(), m_pImage->GetImageCount(), HDRInfo, &m_pSRVCubeMap);
@@ -191,7 +191,7 @@ Vector3 NXCubeMap::BackgroundColorByDirection(const Vector3& v)
 	assert(dim >= 0 && dim < 3);
 	Vector2 uvHit;
 
-	int faceId = dim * 2 + !(v[dim] > 0);
+	int faceId = dim * 2 + !(v[dim] > 0);	
 	switch (faceId)
 	{
 	case 0:		uvHit = Vector2(1.0f - touchCube.z, 1.0f - touchCube.y);	break;		// +X
@@ -436,21 +436,21 @@ void NXCubeMap::GenerateIrradianceSH(size_t imgWidth, size_t imgHeight)
 		// 设置 CubeMapIrradianceSH.fx 使用哪个入口点函数
 		if (passId == 0)
 		{
-			// 如果是第一次pass
-			strCSPath = L"Shader\\CubeMapIrradianceSHFirst.fx";
+			CD3D_SHADER_MACRO macro("CUBEMAP_IRRADSH_FIRST", "1");
+			NXShaderComplier::GetInstance()->AddMacro(macro);
 		}
 		else if (passId > 0 && passId < SHIrradPassCount - 1)
 		{
-			// 如果是中间pass
-			strCSPath = L"Shader\\CubeMapIrradianceSHMiddle.fx";
+			CD3D_SHADER_MACRO macro("CUBEMAP_IRRADSH_MIDDLE", "1");
+			NXShaderComplier::GetInstance()->AddMacro(macro);
 		}
 		else
 		{
-			// 如果是最后一次pass
-			strCSPath = L"Shader\\CubeMapIrradianceSHLast.fx";
+			CD3D_SHADER_MACRO macro("CUBEMAP_IRRADSH_LAST", "1");
+			NXShaderComplier::GetInstance()->AddMacro(macro);
 		}
 
-		NXShaderComplier::GetInstance()->CompileCS(strCSPath, "CS", &pComputeShader);
+		NXShaderComplier::GetInstance()->CompileCS(L"Shader\\CubeMapIrradianceSH.fx", "CS", &pComputeShader);
 
 		ComPtr<ID3D11UnorderedAccessView> pUAVIrradSH;
 		CD3D11_UNORDERED_ACCESS_VIEW_DESC UAVDesc(D3D11_UAV_DIMENSION_BUFFER, DXGI_FORMAT_UNKNOWN, 0, irradianceBufferElements);
@@ -466,7 +466,7 @@ void NXCubeMap::GenerateIrradianceSH(size_t imgWidth, size_t imgHeight)
 		std::string SRVDebugName = "SHIrrad Buffer SRV" + std::to_string(passId);
 		pSRVIrradSH->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)SRVDebugName.size(), SRVDebugName.c_str());
 		pSRVIrradSHs.push_back(pSRVIrradSH);
-		if (passId == SHIrradPassCount - 1)
+		if (passId == SHIrradPassCount - 1) 
 			m_pSRVIrradianceSH = pSRVIrradSH;
 
 		g_pContext->CSSetUnorderedAccessViews(0, 1, pUAVIrradSH.GetAddressOf(), nullptr);
@@ -673,11 +673,11 @@ void NXCubeMap::GenerateBRDF2DLUT()
 		{ Vector3(-1.0f, -1.0f, +1.0f), Vector2(0.0f, 0.0f) },
 		{ Vector3(+1.0f, -1.0f, +1.0f), Vector2(0.0f, 1.0f) },
 	};
-
+	 
 	std::vector<UINT> indices =
 	{
-		0,  2,	1,
-		0,  3,	2,
+		0,  2,	1, 
+		0,  3,	2, 
 	};
 
 	D3D11_BUFFER_DESC bufferDesc;
@@ -712,7 +712,7 @@ void NXCubeMap::GenerateBRDF2DLUT()
 	g_pContext->PSSetShader(pPixelShader.Get(), nullptr, 0);
 	g_pContext->IASetInputLayout(pInputLayoutPT.Get());
 
-	UINT stride = sizeof(VertexPT);
+	UINT stride = sizeof(VertexPT); 
 	UINT offset = 0;
 	g_pContext->IASetVertexBuffers(0, 1, pVertexBuffer.GetAddressOf(), &stride, &offset);
 	g_pContext->IASetIndexBuffer(pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);

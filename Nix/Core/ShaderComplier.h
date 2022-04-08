@@ -2,6 +2,19 @@
 #include "Header.h"
 #include "NXInstance.h"
 
+struct CD3D_SHADER_MACRO : public D3D_SHADER_MACRO
+{
+	CD3D_SHADER_MACRO() = default;
+	explicit CD3D_SHADER_MACRO(const D3D_SHADER_MACRO& macro) : D3D_SHADER_MACRO(macro) {}
+	explicit CD3D_SHADER_MACRO(const LPCSTR name, const LPCSTR definition)
+	{
+		Name = name;
+		Definition = definition;
+	}
+	~CD3D_SHADER_MACRO() {}
+	operator const D3D_SHADER_MACRO& () const { return *this; }
+};
+
 class NXShaderComplier : public NXInstance<NXShaderComplier>
 {
 public:
@@ -13,11 +26,11 @@ public:
 	HRESULT CompilePS(std::wstring shaderFilePath, std::string mainFuncEntryPoint, ID3D11PixelShader** ppOutPS, bool clearDefineMacros = true);
 	HRESULT CompileCS(std::wstring shaderFilePath, std::string mainFuncEntryPoint, ID3D11ComputeShader** ppOutCS, bool clearDefineMacros = true);
 
-	void AddMacro(const D3D_SHADER_MACRO& macro);
+	void AddMacro(const CD3D_SHADER_MACRO& macro);
 	void ClearMacros();
 
 private:
-	std::vector<D3D_SHADER_MACRO> m_defineMacros;
+	std::vector<CD3D_SHADER_MACRO> m_defineMacros;
 
 	ID3DInclude* m_pd3dInclude;
 	DWORD m_shaderFlags;
