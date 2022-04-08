@@ -234,7 +234,7 @@ float4 PS(PS_INPUT input) : SV_Target
 		Lo += bsdf * IncidentIlluminance * FalloffFactor; // Output radiance.
 	}
 
-	float3 kS = FresnelSchlick(NoV, F0);
+	float3 kS = fresnelSchlickRoughness(NoV, F0, roughness);
 	float3 kD = 1.0 - kS;
 	kD *= 1.0 - metallic;
 

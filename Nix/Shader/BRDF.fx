@@ -55,6 +55,11 @@ float3 FresnelSchlick(float cosTheta, float3 F0)
 	return F0 + (1.0 - F0) * Pow5(1.0 - cosTheta);
 }
 
+float3 fresnelSchlickRoughness(float cosTheta, float3 F0, float roughness)
+{
+	return F0 + (max(float3(1.0 - roughness, 1.0 - roughness, 1.0 - roughness), F0) - F0) * Pow5(1.0 - cosTheta);
+}
+
 // [Burley 2012, "Physically-Based Shading at Disney"] 
 float3 DiffuseDisney(float3 DiffuseColor, float Roughness, float NoV, float NoL, float VoH)
 {
