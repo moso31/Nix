@@ -42,9 +42,9 @@ float3 DiffuseLambert(float3 DiffuseColor)
 	return DiffuseColor / NX_PI;
 }
 
-float3 ImportanceSampleGGX(float2 Xi, float perceptualRoughness, float3 N)
+float3 ImportanceSampleGGX(float2 Xi, float Roughness, float3 N)
 {
-	float a2 = perceptualRoughness * perceptualRoughness;
+	float a2 = Roughness * Roughness;
 	float Phi = NX_2PI * Xi.x;
 	float CosTheta = sqrt((1 - Xi.y) / (1 + (a2 - 1) * Xi.y));
 	float SinTheta = sqrt(1 - CosTheta * CosTheta);
