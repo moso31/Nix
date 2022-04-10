@@ -114,6 +114,7 @@ float4 PS(PS_INPUT input) : SV_Target
 
 	float3 F0 = 0.04;
 	F0 = lerp(F0, albedo, metallic);
+	albedo *= 1.0f - metallic;
 
     // reflectance equation
     float3 Lo = 0.0f;
@@ -133,20 +134,13 @@ float4 PS(PS_INPUT input) : SV_Target
 		float3 IncidentIlluminance = LightIlluminance * NoL;
 
 		// 微表面 BRDF
-		float NDF = DistributionGGX(NoH, roughness);
-		float G = GeometrySmithDirect(NoV, NoL, roughness);
-		float3 F = FresnelSchlick(saturate(dot(H, V)), F0);
-
-		float3 numerator = NDF * G * F;
-		float denominator = 4.0 * saturate(dot(N, V)) * saturate(dot(N, L));
-		float3 specular = numerator / max(denominator, 0.001);
-
-		float3 kS = F;
-		float3 kD = 1.0 - kS;
-		kD *= 1.0 - metallic;
+		float D = D_GGX(NoH, roughness);
+		float G = G_GGX_SmithJoint(NoV, NoL, roughness);
+		float3 F = F_Schlick(VoH, F0);
+		float3 specular = D * G * F;
 
 		float3 diffuse = DiffuseDisney(albedo, roughness, NoV, NoL, VoH);
-		Lo += (kD * diffuse + specular) * IncidentIlluminance; // Output radiance.
+		Lo += (diffuse + specular) * IncidentIlluminance; // Output radiance.
 	}
 
 	for (i = 0; i < NUM_POINT_LIGHT; i++)
@@ -166,20 +160,13 @@ float4 PS(PS_INPUT input) : SV_Target
 		float3 IncidentIlluminance = LightIlluminance * NoL;
 
 		// 微表面 BRDF
-		float NDF = DistributionGGX(NoH, roughness);
-		float G = GeometrySmithDirect(NoV, NoL, roughness);
-		float3 F = FresnelSchlick(VoH, F0);
-
-		float3 numerator = NDF * G * F;
-		float denominator = 4.0 * NoV * NoL;
-		float3 specular = numerator / max(denominator, 0.001);
-
-		float3 kS = F;
-		float3 kD = 1.0 - kS;
-		kD *= 1.0 - metallic;
+		float D = D_GGX(NoH, roughness);
+		float G = G_GGX_SmithJoint(NoV, NoL, roughness);
+		float3 F = F_Schlick(VoH, F0);
+		float3 specular = D * G * F;
 
 		float3 diffuse = DiffuseDisney(albedo, roughness, NoV, NoL, VoH);
-		Lo += (kD * diffuse + specular) * IncidentIlluminance; // Output radiance.
+		Lo += (diffuse + specular) * IncidentIlluminance; // Output radiance.
 	}
 
 	for (i = 0; i < NUM_SPOT_LIGHT; i++)
@@ -207,34 +194,27 @@ float4 PS(PS_INPUT input) : SV_Target
 		SpotLambda = SpotLambda * SpotLambda;
 
 		// 微表面 BRDF
-		float NDF = DistributionGGX(NoH, roughness);
-		float G = GeometrySmithDirect(NoV, NoL, roughness);
-		float3 F = FresnelSchlick(VoH, F0);
-
-		float3 numerator = NDF * G * F;
-		float denominator = 4.0 * NoV * NoL;
-		float3 specular = numerator / max(denominator, 0.001);
-
-		float3 kS = F;
-		float3 kD = 1.0 - kS;
-		kD *= 1.0 - metallic;
+		float D = D_GGX(NoH, roughness);
+		float G = G_GGX_SmithJoint(NoV, NoL, roughness);
+		float3 F = F_Schlick(VoH, F0);
+		float3 specular = D * G * F;
 
 		float3 diffuse = DiffuseDisney(albedo, roughness, NoV, NoL, VoH);
-		Lo += (kD * diffuse + specular) * IncidentIlluminance * SpotLambda; // Output radiance.
+		Lo += (diffuse + specular) * IncidentIlluminance * SpotLambda; // Output radiance.
 	}
 
-	float3 kS = FresnelSchlick(NoV, F0);
-	float3 kD = 1.0 - kS;
-	kD *= 1.0 - metallic;
 	float3 irradiance = txIrradianceMap.Sample(ssLinearWrap, N).xyz;
-	float3 diffuseIBL = kD * albedo * irradiance;
+	float3 diffuseIBL = albedo * irradiance;
 
 	float3 preFilteredColor = txPreFilterMap.SampleLevel(ssLinearWrap, R, roughness * 4.0f).rgb;
 	float2 envBRDF = txBRDF2DLUT.Sample(ssLinearClamp, float2(NoV, roughness)).rg;
-	float3 SpecularIBL = preFilteredColor * float3(kS * envBRDF.x + envBRDF.y);
+	float3 SpecularIBL = preFilteredColor * lerp(envBRDF.xxx, envBRDF.yyy, F0);
 
-	float3 ambient = (diffuseIBL + SpecularIBL) * m_cubeMapIntensity * ao;
-	float3 color = ambient + Lo;
+	float3 energyCompensation = 1.0f + F0 * (1.0f / envBRDF.yyy - 1.0f);
+	SpecularIBL *= energyCompensation;
+
+	float3 Libl = (diffuseIBL + SpecularIBL) * m_cubeMapIntensity * ao;
+	float3 color = Libl + Lo;
 
 	// fast tone-mapping.
 	color = color / (color + 1.0);

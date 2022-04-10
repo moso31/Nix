@@ -1,9 +1,11 @@
 #include "BRDF.fx"
 #include "MathSample.fx"
 
-float2 IntegrateBRDF(float roughness, float NoV)
+float2 IntegrateBRDF(float2 uv)
 {
-	roughness = 1.0f - roughness;
+	float perceptualRoughness = uv.x;
+	float NoV = uv.y;
+	perceptualRoughness = 1.0f - perceptualRoughness;
 
 	float3 V;
 	V.x = sqrt(1.0f - NoV * NoV); // sin
@@ -17,14 +19,14 @@ float2 IntegrateBRDF(float roughness, float NoV)
 	for (uint i = 0; i < NumSamples; i++)
 	{
 		float2 Xi = Hammersley(i, NumSamples);
-		float3 H = ImportanceSampleGGX(Xi, roughness, N);
+		float3 H = ImportanceSampleGGX(Xi, perceptualRoughness, N);
 		float3 L = reflect(-V, H);
 		float NoL = saturate(L.z);
 		float NoH = saturate(H.z);
 		float VoH = saturate(dot(V, H));
 		if (NoL > 0)
 		{
-			float G = GeometrySmithIBL(NoV, NoL, roughness);
+			float G = G_GGX_SmithJoint(NoV, NoL, perceptualRoughness);
 			float G_Vis = G * VoH / (NoH * NoV);
 			float Fc = pow(1 - VoH, 5.0f);
 			A += Fc * G_Vis;
@@ -56,5 +58,5 @@ PS_INPUT VS(VS_INPUT input)
 
 float4 PS(PS_INPUT input) : SV_Target
 {
-	return float4(IntegrateBRDF(input.tex.x, input.tex.y), 0.0f, 1.0f);
+	return float4(IntegrateBRDF(input.tex), 0.0f, 1.0f);
 }
