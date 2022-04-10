@@ -200,7 +200,7 @@ void NXScene::Init()
 	//m_sceneManager->CreateCubeMap("Sky", L"D:\\TexturesCom_JapanInariTempleH_1K_hdri_sphere.hdr");
 	//m_sceneManager->CreateCubeMap("Sky", L"D:\\ballroom_4k.hdr");
 	//m_sceneManager->CreateCubeMap("Sky", L"D:\\blue_grotto_4k.hdr");
-	m_sceneManager->CreateCubeMap("Sky", L"D:\\HDRTest2.hdr");
+	m_sceneManager->CreateCubeMap("Sky", L"D:\\HDRGPUTest.hdr");
 	//m_sceneManager->CreateCubeMap("Sky", L"D:\\WhiteHDRI.hdr");
 
 

@@ -229,13 +229,9 @@ float4 PS(PS_INPUT input) : SV_Target
 		Lo += bsdf * IncidentIlluminance * FalloffFactor; // Output radiance.
 	}
 
-	// test: SH Irrad.
-	//float3 IndirectIrradiance1 = txIrradianceMap.Sample(ssLinearWrap, N).xyz;
-	//float3 IndirectIrradiance2 = GetIndirectIrradiance(N);
-	//float3 IndirectIrradiance = lerp(IndirectIrradiance1, IndirectIrradiance2, m_cubeMapIntensity * 0.1f);
-
-	//float3 IndirectIrradiance = txIrradianceMap.Sample(ssLinearWrap, N).xyz;
-	float3 IndirectIrradiance = GetIndirectIrradiance(N);
+	float3 NormalWS = mul(N, (float3x3)m_viewTranspose);
+	//float3 IndirectIrradiance = txIrradianceMap.Sample(ssLinearWrap, NormalWS).xyz;
+	float3 IndirectIrradiance = GetIndirectIrradiance(NormalWS);
 	
 	float3 diffuseIBL = albedo * IndirectIrradiance;
 

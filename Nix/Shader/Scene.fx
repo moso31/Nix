@@ -203,7 +203,7 @@ float4 PS(PS_INPUT input) : SV_Target
 		Lo += (diffuse + specular) * IncidentIlluminance * SpotLambda; // Output radiance.
 	}
 
-	float3 irradiance = txIrradianceMap.Sample(ssLinearWrap, N).xyz;
+	float3 irradiance = txIrradianceMap.Sample(ssLinearWrap, NormalWS).xyz;
 	float3 diffuseIBL = albedo * irradiance;
 
 	float3 preFilteredColor = txPreFilterMap.SampleLevel(ssLinearWrap, R, roughness * 4.0f).rgb;
