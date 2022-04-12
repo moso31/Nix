@@ -202,7 +202,8 @@ float4 PS(PS_INPUT input) : SV_Target
 		float3 diffuse = DiffuseDisney(albedo, roughness, NoV, NoL, VoH);
 		Lo += (diffuse + specular) * IncidentIlluminance * SpotLambda; // Output radiance.
 	}
-
+	
+	float3 NormalWS = mul(N, (float3x3)m_viewTranspose);
 	float3 irradiance = txIrradianceMap.Sample(ssLinearWrap, NormalWS).xyz;
 	float3 diffuseIBL = albedo * irradiance;
 

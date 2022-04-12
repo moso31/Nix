@@ -1,7 +1,7 @@
 #include "Common.fx"
 #include "BRDF.fx"
 
-#include "SphereHarmonic.fx"
+#include "SHIrradianceCommon.fx"
 
 struct ConstantBufferIrradSH
 {

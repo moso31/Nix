@@ -629,7 +629,7 @@ void NXCubeMap::GeneratePreFilterMap()
 	CD3D11_VIEWPORT vp;
 	for (int i = 0; i < 5; i++)
 	{
-		cbDataRoughness.value = roughValues[i];
+		cbDataRoughness.value = roughValues[i] * roughValues[i];
 
 		vp = CD3D11_VIEWPORT(0.0f, 0.0f, (float)(uMapSize >> i), (float)(uMapSize >> i));
 		g_pContext->RSSetViewports(1, &vp);

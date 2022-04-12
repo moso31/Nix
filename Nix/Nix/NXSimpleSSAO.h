@@ -5,7 +5,7 @@ class NXSimpleSSAO
 {
 	struct ConstantBufferSSAOParams
 	{
-		ConstantBufferSSAOParams() : radius(1.0f), bias(0.15f), directLightingStrength(1.0f) {}
+		ConstantBufferSSAOParams() : radius(1.0f), bias(0.15f), directLightingStrength(0.0f) {}
 		float radius;
 		float bias;
 		float directLightingStrength;

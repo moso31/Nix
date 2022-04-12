@@ -2,7 +2,7 @@
 #include "PBRLights.fx"
 #include "BRDF.fx"
 #include "Math.fx"
-#include "SphereHarmonic.fx"
+#include "SHIrradianceCommon.fx"
 
 Texture2D txRT0 : register(t0);
 Texture2D txRT1 : register(t1);
@@ -232,10 +232,9 @@ float4 PS(PS_INPUT input) : SV_Target
 	float3 NormalWS = mul(N, (float3x3)m_viewTranspose);
 	//float3 IndirectIrradiance = txIrradianceMap.Sample(ssLinearWrap, NormalWS).xyz;
 	float3 IndirectIrradiance = GetIndirectIrradiance(NormalWS);
-	
 	float3 diffuseIBL = albedo * IndirectIrradiance;
 
-	float3 preFilteredColor = txPreFilterMap.SampleLevel(ssLinearWrap, R, roughness * 4.0f).rgb; // 4.0 = prefilter mip count - 1.
+	float3 preFilteredColor = txPreFilterMap.SampleLevel(ssLinearWrap, R, perceptualRoughness * 4.0f).rgb; // 4.0 = prefilter mip count - 1.
 	float2 envBRDF = txBRDF2DLUT.Sample(ssLinearClamp, float2(NoV, roughness)).rg;
 	float3 SpecularIBL = preFilteredColor * lerp(envBRDF.xxx, envBRDF.yyy, F0);
 

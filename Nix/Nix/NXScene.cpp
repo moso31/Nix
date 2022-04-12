@@ -133,7 +133,7 @@ void NXScene::Init()
 	//auto p = m_sceneManager->CreatePlane("Sphere", 10.0f, 10.0f, NXPlaneAxis::POSITIVE_Y);
 	//p->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
 
-	//std::vector<NXPrimitive*> pMeshes;
+	std::vector<NXPrimitive*> pMeshes;
 	//m_sceneManager->CreateFBXMeshes("D:\\NixAssets\\UnityBall.fbx", pMeshes);
 	//pMeshes[0]->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
 	//pMeshes[0]->GetSubMesh(1)->SetMaterialPBR(pPBRMat[1]);
@@ -141,16 +141,16 @@ void NXScene::Init()
 	//pMeshes[0]->GetSubMesh(3)->SetMaterialPBR(pPBRMat[3]);
 	//pMeshes[0]->SetRotation(Vector3(-0.8f, 0.0f, 0.0f));
 
-	for (int i = -5; i <= 5; i++)
-	{
-		NXPBRMaterial* pPBRMat = m_sceneManager->CreatePBRMaterial("rustediron2", Vector3(1.0f), Vector3(1.0f), 1.0f, i * 0.1f + 0.5f, 1.0f);
-		auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(i * 2.0f, 0.0f, 0.0f));
-		pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat);
+	//for (int i = -5; i <= 5; i++)
+	//{
+	//	NXPBRMaterial* pPBRMat = m_sceneManager->CreatePBRMaterial("rustediron2", Vector3(1.0f), Vector3(1.0f), 1.0f, i * 0.1f + 0.5f, 1.0f);
+	//	auto pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(i * 2.0f, 0.0f, 0.0f));
+	//	pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat);
 
-		pPBRMat = m_sceneManager->CreatePBRMaterial("rustediron2", Vector3(1.0f), Vector3(1.0f), 0.0f, i * 0.1f + 0.5f, 1.0f);
-		pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(i * 2.0f, 2.0f, 0.0f));
-		pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat);
-	}
+	//	pPBRMat = m_sceneManager->CreatePBRMaterial("rustediron2", Vector3(1.0f), Vector3(1.0f), 0.0f, i * 0.1f + 0.5f, 1.0f);
+	//	pSphere = m_sceneManager->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(i * 2.0f, 2.0f, 0.0f));
+	//	pSphere->GetSubMesh(0)->SetMaterialPBR(pPBRMat);
+	//}
 
 	//m_sceneManager->CreateFBXMeshes("D:\\NixAssets\\Cloth.fbx", pMeshes, true);
 	//pMeshes[0]->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
@@ -164,6 +164,8 @@ void NXScene::Init()
 	//pMeshes[3]->SetScale(Vector3(0.1f, 0.1f, 0.1f));
 	//pMeshes[4]->SetScale(Vector3(0.1f, 0.1f, 0.1f));
 
+	m_sceneManager->CreateFBXMeshes("D:\\NixAssets\\Teapot.fbx", pMeshes, true);
+	pMeshes[0]->GetSubMesh(0)->SetMaterialPBR(pPBRMat[0]);
 	{
 		//bool bBind = m_sceneManager->BindParent(pMeshes[1], pSphere);
 		//auto pScript_test = new NSTest();
@@ -198,9 +200,9 @@ void NXScene::Init()
 
 	//m_sceneManager->CreateCubeMap("Sky", L"D:\\Alexs_Apt_2k.hdr");
 	//m_sceneManager->CreateCubeMap("Sky", L"D:\\TexturesCom_JapanInariTempleH_1K_hdri_sphere.hdr");
-	//m_sceneManager->CreateCubeMap("Sky", L"D:\\ballroom_4k.hdr");
+	m_sceneManager->CreateCubeMap("Sky", L"D:\\ballroom_4k.hdr");
 	//m_sceneManager->CreateCubeMap("Sky", L"D:\\blue_grotto_4k.hdr");
-	m_sceneManager->CreateCubeMap("Sky", L"D:\\HDRGPUTest.hdr");
+	//m_sceneManager->CreateCubeMap("Sky", L"D:\\HDRGPUTest.hdr");
 	//m_sceneManager->CreateCubeMap("Sky", L"D:\\WhiteHDRI.hdr");
 
 

@@ -3,9 +3,8 @@
 
 float2 IntegrateBRDF(float2 uv)
 {
-	float roughness = uv.x;
+	float roughness = 1.0f - uv.x;
 	float NoV = uv.y;
-	roughness = 1.0f - roughness;
 
 	float3 V;
 	V.x = sqrt(1.0f - NoV * NoV); // sin
@@ -27,7 +26,7 @@ float2 IntegrateBRDF(float2 uv)
 		if (NoL > 0)
 		{
 			float G = G_GGX_SmithJoint(NoV, NoL, roughness);
-			float G_Vis = G * VoH / (NoH * NoV);
+			float G_Vis = 4.0f * G * VoH * NoL / NoH;
 			float Fc = pow(1 - VoH, 5.0f);
 			A += Fc * G_Vis;
 			B += G_Vis;

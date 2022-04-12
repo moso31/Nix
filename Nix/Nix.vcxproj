@@ -443,6 +443,13 @@
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DeploymentContent>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Shader\SHIrradianceCommon.fx">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DeploymentContent>
+      <FileType>Document</FileType>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DeploymentContent>
+    </None>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
