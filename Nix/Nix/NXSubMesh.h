@@ -36,8 +36,8 @@ public:
 
 	NXPrimitive* GetPrimitive() { return m_parent; }
 
-	NXPBRMaterialStandard* GetPBRMaterial() const;
-	void SetMaterialPBR(NXPBRMaterialStandard* mat);
+	NXMaterial* GetMaterial() const;
+	void SetMaterial(NXMaterial* mat);
 
 	// 自动计算顶点的切线数据。
 	void CalculateTangents(bool bUpdateVertexIndexBuffer = false);
@@ -61,5 +61,5 @@ private:
 	std::vector<VertexPNTT>		m_vertices;
 	std::vector<UINT>			m_indices;
 
-	NXPBRMaterialStandard*				m_pPBRMaterial;
+	NXMaterial*					m_pMaterial;
 };

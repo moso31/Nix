@@ -162,7 +162,7 @@ bool NXTriangle::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist)
 }
 
 NXSubMesh::NXSubMesh(NXPrimitive* pPrimitive) :
-	m_pPBRMaterial(nullptr),
+	m_pMaterial(nullptr),
 	m_parent(pPrimitive)
 {
 }
@@ -173,9 +173,9 @@ NXSubMesh::~NXSubMesh()
 
 void NXSubMesh::Update()
 {
-	if (m_pPBRMaterial)
+	if (m_pMaterial)
 	{
-		m_pPBRMaterial->Update();
+		m_pMaterial->Update();
 	}
 }
 
@@ -204,14 +204,14 @@ bool NXSubMesh::RayCastLocal(const Ray& localRay, NXHit& outHitInfo, float& outD
 	return bSuccess;
 }
 
-NXPBRMaterialStandard* NXSubMesh::GetPBRMaterial() const
+NXMaterial* NXSubMesh::GetMaterial() const
 {
-	return m_pPBRMaterial;
+	return m_pMaterial;
 }
 
-void NXSubMesh::SetMaterialPBR(NXPBRMaterialStandard* mat)
+void NXSubMesh::SetMaterial(NXMaterial* mat)
 {
-	m_pPBRMaterial = mat;
+	m_pMaterial = mat;
 }
 
 void NXSubMesh::CalculateTangents(bool bUpdateVertexIndexBuffer)

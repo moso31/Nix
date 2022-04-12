@@ -60,9 +60,14 @@ void NXDepthPrepass::Render()
 			auto pSubMesh = pPrim->GetSubMesh(i);
 			pSubMesh->Update();
 
-			auto pMat = pSubMesh->GetPBRMaterial();
-			auto pSRVNormal = pMat->GetSRVNormal();
-			g_pContext->PSSetShaderResources(0, 1, &pSRVNormal);
+			auto pMat = pSubMesh->GetMaterial();
+			if (pMat->IsPBRType())
+			{
+				NXPBRMaterialBase* pMat = static_cast<NXPBRMaterialBase*>(pSubMesh->GetMaterial());
+
+				auto pSRVNormal = pMat->GetSRVNormal();
+				g_pContext->PSSetShaderResources(0, 1, &pSRVNormal);
+			}
 
 			auto pCBMaterial = pMat->GetConstantBuffer();
 			g_pContext->PSSetConstantBuffers(2, 1, &pCBMaterial);

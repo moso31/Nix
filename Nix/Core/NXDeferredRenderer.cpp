@@ -83,21 +83,26 @@ void NXDeferredRenderer::RenderGBuffer()
 			auto pSubMesh = pPrim->GetSubMesh(i);
 			pSubMesh->Update();
 
-			auto pMat = pSubMesh->GetPBRMaterial();
-			auto pSRVAlbedo = pMat->GetSRVAlbedo();
-			g_pContext->PSSetShaderResources(1, 1, &pSRVAlbedo);
+			auto pMat = pSubMesh->GetMaterial();
+			if (pMat->IsPBRType())
+			{
+				NXPBRMaterialBase* pMat = static_cast<NXPBRMaterialBase*>(pSubMesh->GetMaterial());
 
-			auto pSRVNormal = pMat->GetSRVNormal();
-			g_pContext->PSSetShaderResources(2, 1, &pSRVNormal);
+				auto pSRVAlbedo = pMat->GetSRVAlbedo();
+				g_pContext->PSSetShaderResources(1, 1, &pSRVAlbedo);
 
-			auto pSRVMetallic = pMat->GetSRVMetallic();
-			g_pContext->PSSetShaderResources(3, 1, &pSRVMetallic);
+				auto pSRVNormal = pMat->GetSRVNormal();
+				g_pContext->PSSetShaderResources(2, 1, &pSRVNormal);
 
-			auto pSRVRoughness = pMat->GetSRVRoughness();
-			g_pContext->PSSetShaderResources(4, 1, &pSRVRoughness);
+				auto pSRVMetallic = pMat->GetSRVMetallic();
+				g_pContext->PSSetShaderResources(3, 1, &pSRVMetallic);
 
-			auto pSRVAO = pMat->GetSRVAO();
-			g_pContext->PSSetShaderResources(5, 1, &pSRVAO);
+				auto pSRVRoughness = pMat->GetSRVRoughness();
+				g_pContext->PSSetShaderResources(4, 1, &pSRVRoughness);
+
+				auto pSRVAO = pMat->GetSRVAO();
+				g_pContext->PSSetShaderResources(5, 1, &pSRVAO);
+			}
 
 			auto pCBMaterial = pMat->GetConstantBuffer();
 			g_pContext->PSSetConstantBuffers(3, 1, &pCBMaterial);

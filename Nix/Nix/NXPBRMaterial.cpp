@@ -4,9 +4,15 @@
 #include "DirectXTex.h"
 #include "NXResourceManager.h"
 
-NXMaterial::NXMaterial(const std::string name) :
-	m_name(name)
+NXMaterial::NXMaterial(const std::string name, const NXMaterialType type) :
+	m_name(name),
+	m_type(type)
 {
+}
+
+bool NXMaterial::IsPBRType()
+{
+	return m_type == NXMaterialType::PBR_STANDARD || m_type == NXMaterialType::PBR_TRANSLUCENT;
 }
 
 void NXMaterial::Update()
@@ -15,52 +21,10 @@ void NXMaterial::Update()
 	g_pContext->UpdateSubresource(m_cb.Get(), 0, nullptr, m_cbData.get(), 0, 0);
 }
 
-NXPBRMaterialStandard::NXPBRMaterialStandard(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao) :
-	NXMaterial(name),
-	m_pTexAlbedo(nullptr),
-	m_pTexNormal(nullptr),
-	m_pTexMetallic(nullptr),
-	m_pTexRoughness(nullptr),
-	m_pTexAmbientOcclusion(nullptr)
-{
-	m_cbData = std::make_unique<CBufferMaterialStandard>(albedo, normal, metallic, roughness, ao);
-	InitConstantBuffer();
-}
-
-void NXPBRMaterialStandard::SetTexAlbedo(const std::wstring TexFilePath, bool GenerateMipMap)
-{
-	if (m_pTexAlbedo) delete m_pTexAlbedo;
-	m_pTexAlbedo = LoadFromTexFile(TexFilePath, GenerateMipMap);
-}
-
-void NXPBRMaterialStandard::SetTexNormal(const std::wstring TexFilePath, bool GenerateMipMap)
-{
-	if (m_pTexNormal) delete m_pTexNormal;
-	m_pTexNormal = LoadFromTexFile(TexFilePath, GenerateMipMap);
-}
-
-void NXPBRMaterialStandard::SetTexMetallic(const std::wstring TexFilePath, bool GenerateMipMap)
-{
-	if (m_pTexMetallic) delete m_pTexMetallic;
-	m_pTexMetallic = LoadFromTexFile(TexFilePath, GenerateMipMap);
-}
-
-void NXPBRMaterialStandard::SetTexRoughness(const std::wstring TexFilePath, bool GenerateMipMap)
-{
-	if (m_pTexRoughness) delete m_pTexRoughness;
-	m_pTexRoughness = LoadFromTexFile(TexFilePath, GenerateMipMap);
-}
-
-void NXPBRMaterialStandard::SetTexAO(const std::wstring TexFilePath, bool GenerateMipMap)
-{
-	if (m_pTexAmbientOcclusion) delete m_pTexAmbientOcclusion;
-	m_pTexAmbientOcclusion = LoadFromTexFile(TexFilePath, GenerateMipMap);
-}
-
-NXTexture2D* NXPBRMaterialStandard::LoadFromTexFile(const std::wstring texFilePath, bool GenerateMipMap)
+NXTexture2D* NXMaterial::LoadFromTexFile(const std::wstring texFilePath, bool GenerateMipMap)
 {
 	TexMetadata info;
-	std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>(); 
+	std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>();
 
 	HRESULT hr;
 	std::wstring suffix = texFilePath.substr(texFilePath.find(L"."));
@@ -109,13 +73,60 @@ NXTexture2D* NXPBRMaterialStandard::LoadFromTexFile(const std::wstring texFilePa
 	return pOutTex;
 }
 
-void NXPBRMaterialStandard::Release()
+NXPBRMaterialBase::NXPBRMaterialBase(const std::string name, const NXMaterialType type) :
+	NXMaterial(name, type),
+	m_pTexAlbedo(nullptr),
+	m_pTexNormal(nullptr),
+	m_pTexMetallic(nullptr),
+	m_pTexRoughness(nullptr),
+	m_pTexAmbientOcclusion(nullptr)
+{
+}
+
+void NXPBRMaterialBase::SetTexAlbedo(const std::wstring TexFilePath, bool GenerateMipMap)
+{
+	if (m_pTexAlbedo) delete m_pTexAlbedo;
+	m_pTexAlbedo = LoadFromTexFile(TexFilePath, GenerateMipMap);
+}
+
+void NXPBRMaterialBase::SetTexNormal(const std::wstring TexFilePath, bool GenerateMipMap)
+{
+	if (m_pTexNormal) delete m_pTexNormal;
+	m_pTexNormal = LoadFromTexFile(TexFilePath, GenerateMipMap);
+}
+
+void NXPBRMaterialBase::SetTexMetallic(const std::wstring TexFilePath, bool GenerateMipMap)
+{
+	if (m_pTexMetallic) delete m_pTexMetallic;
+	m_pTexMetallic = LoadFromTexFile(TexFilePath, GenerateMipMap);
+}
+
+void NXPBRMaterialBase::SetTexRoughness(const std::wstring TexFilePath, bool GenerateMipMap)
+{
+	if (m_pTexRoughness) delete m_pTexRoughness;
+	m_pTexRoughness = LoadFromTexFile(TexFilePath, GenerateMipMap);
+}
+
+void NXPBRMaterialBase::SetTexAO(const std::wstring TexFilePath, bool GenerateMipMap)
+{
+	if (m_pTexAmbientOcclusion) delete m_pTexAmbientOcclusion;
+	m_pTexAmbientOcclusion = LoadFromTexFile(TexFilePath, GenerateMipMap);
+}
+
+void NXPBRMaterialBase::Release()
 {
 	SafeDelete(m_pTexAlbedo);
 	SafeDelete(m_pTexNormal);
 	SafeDelete(m_pTexMetallic);
 	SafeDelete(m_pTexRoughness);
 	SafeDelete(m_pTexAmbientOcclusion);
+}
+
+NXPBRMaterialStandard::NXPBRMaterialStandard(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao) :
+	NXPBRMaterialBase(name, NXMaterialType::PBR_STANDARD)
+{
+	m_cbData = std::make_unique<CBufferMaterialStandard>(albedo, normal, metallic, roughness, ao);
+	InitConstantBuffer();
 }
 
 void NXPBRMaterialStandard::InitConstantBuffer()
@@ -130,7 +141,19 @@ void NXPBRMaterialStandard::InitConstantBuffer()
 }
 
 NXPBRMaterialTranslucent::NXPBRMaterialTranslucent(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float opacity) :
-	NXPBRMaterialStandard(name, albedo, normal, metallic, roughness, ao)
+	NXPBRMaterialBase(name, NXMaterialType::PBR_TRANSLUCENT)
 {
-	//SetOpacity(opacity);
+	m_cbData = std::make_unique<CBufferMaterialTranslucent>(albedo, normal, metallic, roughness, ao, opacity);
+	InitConstantBuffer();
+}
+
+void NXPBRMaterialTranslucent::InitConstantBuffer()
+{
+	D3D11_BUFFER_DESC bufferDesc;
+	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = sizeof(CBufferMaterialTranslucent);
+	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cb));
 }
