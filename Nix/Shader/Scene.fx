@@ -33,7 +33,7 @@ cbuffer ConstantBufferLight : register(b2)
 	SpotLight m_spotLight[NUM_SPOT_LIGHT];
 }
 
-cbuffer ConstantBufferMaterial : register(b3)
+cbuffer CBufferMaterialStandard : register(b3)
 {
 	Material m_material;
 }

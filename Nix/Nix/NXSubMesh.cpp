@@ -204,12 +204,12 @@ bool NXSubMesh::RayCastLocal(const Ray& localRay, NXHit& outHitInfo, float& outD
 	return bSuccess;
 }
 
-NXPBRMaterial* NXSubMesh::GetPBRMaterial() const
+NXPBRMaterialStandard* NXSubMesh::GetPBRMaterial() const
 {
 	return m_pPBRMaterial;
 }
 
-void NXSubMesh::SetMaterialPBR(NXPBRMaterial* mat)
+void NXSubMesh::SetMaterialPBR(NXPBRMaterialStandard* mat)
 {
 	m_pPBRMaterial = mat;
 }

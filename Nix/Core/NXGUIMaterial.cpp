@@ -21,7 +21,7 @@ void NXGUIMaterial::Render()
 	}
 
 	NXPrimitive* pPickingObject = pPickingSubMesh->GetPrimitive();
-	NXPBRMaterial* pPickingObjectMaterial = pPickingSubMesh->GetPBRMaterial();
+	NXPBRMaterialStandard* pPickingObjectMaterial = pPickingSubMesh->GetPBRMaterial();
 
 	std::string strName = pPickingObject->GetName().c_str();
 	if (ImGui::InputText("Name", &strName))
@@ -99,52 +99,52 @@ void NXGUIMaterial::Render()
 	ImGui::End();
 }
 
-void NXGUIMaterial::OnTexAlbedoChange(NXPBRMaterial* pPickingObjectMaterial)
+void NXGUIMaterial::OnTexAlbedoChange(NXPBRMaterialStandard* pPickingObjectMaterial)
 {
 	pPickingObjectMaterial->SetTexAlbedo(m_pFileBrowser->GetSelected().c_str());
 }
 
-void NXGUIMaterial::OnTexNormalChange(NXPBRMaterial* pPickingObjectMaterial)
+void NXGUIMaterial::OnTexNormalChange(NXPBRMaterialStandard* pPickingObjectMaterial)
 {
 	pPickingObjectMaterial->SetTexNormal(m_pFileBrowser->GetSelected().c_str());
 }
 
-void NXGUIMaterial::OnTexMetallicChange(NXPBRMaterial* pPickingObjectMaterial)
+void NXGUIMaterial::OnTexMetallicChange(NXPBRMaterialStandard* pPickingObjectMaterial)
 {
 	pPickingObjectMaterial->SetTexMetallic(m_pFileBrowser->GetSelected().c_str());
 }
 
-void NXGUIMaterial::OnTexRoughnessChange(NXPBRMaterial* pPickingObjectMaterial)
+void NXGUIMaterial::OnTexRoughnessChange(NXPBRMaterialStandard* pPickingObjectMaterial)
 {
 	pPickingObjectMaterial->SetTexRoughness(m_pFileBrowser->GetSelected().c_str());
 }
 
-void NXGUIMaterial::OnTexAOChange(NXPBRMaterial* pPickingObjectMaterial)
+void NXGUIMaterial::OnTexAOChange(NXPBRMaterialStandard* pPickingObjectMaterial)
 {
 	pPickingObjectMaterial->SetTexAO(m_whiteTexPath_test);
 }
 
-void NXGUIMaterial::OnTexAlbedoRemove(NXPBRMaterial* pPickingObjectMaterial)
+void NXGUIMaterial::OnTexAlbedoRemove(NXPBRMaterialStandard* pPickingObjectMaterial)
 {
 	pPickingObjectMaterial->SetTexAlbedo(m_whiteTexPath_test);
 }
 
-void NXGUIMaterial::OnTexNormalRemove(NXPBRMaterial* pPickingObjectMaterial)
+void NXGUIMaterial::OnTexNormalRemove(NXPBRMaterialStandard* pPickingObjectMaterial)
 {
 	pPickingObjectMaterial->SetTexNormal(m_normalTexPath_test);
 }
 
-void NXGUIMaterial::OnTexMetallicRemove(NXPBRMaterial* pPickingObjectMaterial)
+void NXGUIMaterial::OnTexMetallicRemove(NXPBRMaterialStandard* pPickingObjectMaterial)
 {
 	pPickingObjectMaterial->SetTexMetallic(m_whiteTexPath_test);
 }
 
-void NXGUIMaterial::OnTexRoughnessRemove(NXPBRMaterial* pPickingObjectMaterial)
+void NXGUIMaterial::OnTexRoughnessRemove(NXPBRMaterialStandard* pPickingObjectMaterial)
 {
 	pPickingObjectMaterial->SetTexRoughness(m_whiteTexPath_test);
 }
 
-void NXGUIMaterial::OnTexAORemove(NXPBRMaterial* pPickingObjectMaterial)
+void NXGUIMaterial::OnTexAORemove(NXPBRMaterialStandard* pPickingObjectMaterial)
 {
 	pPickingObjectMaterial->SetTexAO(m_whiteTexPath_test);
 }

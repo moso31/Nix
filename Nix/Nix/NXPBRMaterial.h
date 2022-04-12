@@ -2,9 +2,13 @@
 #include "ShaderStructures.h"
 #include "NXResourceManager.h"
 
-struct ConstantBufferMaterial
+struct CBufferMaterial 
 {
-	ConstantBufferMaterial(const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao) :
+};
+
+struct CBufferMaterialStandard : public CBufferMaterial
+{
+	CBufferMaterialStandard(const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao) :
 		albedo(albedo), normal(normal), metallic(metallic), roughness(roughness), ao(ao) {}
 	Vector3 albedo;
 	float _0;
@@ -15,30 +19,61 @@ struct ConstantBufferMaterial
 	Vector2 _1;
 };
 
-class NXPBRMaterial : public NXInstance<NXPBRMaterial>
+struct CBufferMaterialTranslucent : public CBufferMaterial
 {
-public:
-	NXPBRMaterial(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao);
-	~NXPBRMaterial() {}
+	CBufferMaterialTranslucent(const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float opacity) :
+		albedo(albedo), normal(normal), metallic(metallic), roughness(roughness), ao(ao), opacity(opacity) {}
+	Vector3 albedo;
+	float opacity;
+	Vector3 normal;
+	float metallic;
+	float roughness;
+	float ao;
+	Vector2 _1;
+};
 
+class NXMaterial
+{
+protected:
+	explicit NXMaterial() = default;
+	NXMaterial(const std::string name);
+	~NXMaterial() {}
+
+public:
 	std::string GetName() { return m_name; }
 	void SetName(std::string name) { m_name = name; }
 
-	void Update();
-
 	ID3D11Buffer* GetConstantBuffer() const { return m_cb.Get(); }
 
-	Vector3 	GetAlbedo()		{ return m_cbData.albedo; }
-	Vector3 	GetNormal()		{ return m_cbData.normal; }
-	float*		GetMatallic()	{ return &m_cbData.metallic; }
-	float*		GetRoughness()	{ return &m_cbData.roughness; }
-	float*		GetAO()			{ return &m_cbData.ao; }
+	void Update();
 
-	void	SetAlbedo(const Vector3& albedo)		{ m_cbData.albedo = albedo; }
-	void	SetNormal(const Vector3& normal)		{ m_cbData.normal = normal; }
-	void	SetMetallic(const float metallic)		{ m_cbData.metallic = metallic; }
-	void	SetRoughness(const float roughness)		{ m_cbData.roughness = roughness; }
-	void	SetAO(const float ao)					{ m_cbData.ao = ao; }
+protected:
+	std::string m_name;
+
+	std::unique_ptr<CBufferMaterial>	m_cbData;
+	ComPtr<ID3D11Buffer>				m_cb;
+};
+
+class NXPBRMaterialStandard : public NXMaterial
+{
+public:
+	explicit NXPBRMaterialStandard() = default;
+	NXPBRMaterialStandard(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao);
+	~NXPBRMaterialStandard() {}
+
+	CBufferMaterialStandard* GetCBData() { return static_cast<CBufferMaterialStandard*>(m_cbData.get()); }
+
+	Vector3 	GetAlbedo()		{ return GetCBData()->albedo; }
+	Vector3 	GetNormal()		{ return GetCBData()->normal; }
+	float*		GetMatallic()	{ return &(GetCBData()->metallic); }
+	float*		GetRoughness()	{ return &(GetCBData()->roughness); }
+	float*		GetAO()			{ return &(GetCBData()->ao); }
+
+	void	SetAlbedo(const Vector3& albedo)		{ GetCBData()->albedo = albedo; }
+	void	SetNormal(const Vector3& normal)		{ GetCBData()->normal = normal; }
+	void	SetMetallic(const float metallic)		{ GetCBData()->metallic = metallic; }
+	void	SetRoughness(const float roughness)		{ GetCBData()->roughness = roughness; }
+	void	SetAO(const float ao)					{ GetCBData()->ao = ao; }
 
 	ID3D11ShaderResourceView* GetSRVAlbedo()	const { return m_pTexAlbedo->GetSRV(); }
 	ID3D11ShaderResourceView* GetSRVNormal()	const { return m_pTexNormal->GetSRV(); }
@@ -59,14 +94,17 @@ private:
 	void InitConstantBuffer();
 
 private:
-	std::string m_name;
-
 	NXTexture2D* m_pTexAlbedo;
 	NXTexture2D* m_pTexNormal;
 	NXTexture2D* m_pTexMetallic;
 	NXTexture2D* m_pTexRoughness;
 	NXTexture2D* m_pTexAmbientOcclusion;
+};
 
-	ConstantBufferMaterial	m_cbData;
-	ComPtr<ID3D11Buffer>	m_cb;
+class NXPBRMaterialTranslucent : public NXPBRMaterialStandard
+{
+public:
+	explicit NXPBRMaterialTranslucent() = default;
+	NXPBRMaterialTranslucent(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float opacity);
+	~NXPBRMaterialTranslucent() {}
 };

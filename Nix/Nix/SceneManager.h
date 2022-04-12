@@ -31,7 +31,7 @@ public:
 	bool CreateFBXMeshes(const std::string filePath, std::vector<NXPrimitive*>& outMeshes, bool bAutoCalcTangents = true);
 
 	NXCamera* CreateCamera(const std::string name, const float FovY, const float zNear, const float zFar, const Vector3& eye, const Vector3& at, const Vector3& up);
-	NXPBRMaterial* CreatePBRMaterial(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, 
+	NXPBRMaterialStandard* CreatePBRMaterial(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, 
 		const std::wstring albedoTexFilePath = L".\\Resource\\white1x1.png",
 		const std::wstring normalTexFilePath = L".\\Resource\\normal1x1.png",
 		const std::wstring metallicTexFilePath = L".\\Resource\\white1x1.png",
@@ -51,7 +51,7 @@ private:
 	void RegisterCubeMap(NXCubeMap* newCubeMap);
 	void RegisterPrimitive(NXPrimitive* newPrimitive, NXObject* pParent = nullptr);
 	void RegisterCamera(NXCamera* newCamera, bool isMainCamera, NXObject* pParent = nullptr);
-	void RegisterMaterial(NXPBRMaterial* newMaterial);
+	void RegisterMaterial(NXPBRMaterialStandard* newMaterial);
 	void RegisterLight(NXPBRLight* newLight, NXObject* pParent = nullptr);
 
 private:
@@ -67,7 +67,7 @@ private:
 	//std::vector<NXScript*> m_scripts;
 
 	std::vector<NXPrimitive*> m_primitives;
-	std::set<NXPBRMaterial*> m_pbrMaterials;
+	std::set<NXPBRMaterialStandard*> m_pbrMaterials;
 	std::vector<NXPBRLight*> m_pbrLights;
 
 	NXCamera* m_pMainCamera;

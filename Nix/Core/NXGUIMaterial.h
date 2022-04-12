@@ -15,17 +15,17 @@ private:
 	void RenderTextureIcon(ImTextureID ImTexID, std::function<void()> onChange, std::function<void()> onRemove);
 
 private:
-	void OnTexAlbedoChange(NXPBRMaterial* pPickingObjectMaterial);
-	void OnTexNormalChange(NXPBRMaterial* pPickingObjectMaterial);
-	void OnTexMetallicChange(NXPBRMaterial* pPickingObjectMaterial);
-	void OnTexRoughnessChange(NXPBRMaterial* pPickingObjectMaterial);
-	void OnTexAOChange(NXPBRMaterial* pPickingObjectMaterial);
+	void OnTexAlbedoChange(NXPBRMaterialStandard* pPickingObjectMaterial);
+	void OnTexNormalChange(NXPBRMaterialStandard* pPickingObjectMaterial);
+	void OnTexMetallicChange(NXPBRMaterialStandard* pPickingObjectMaterial);
+	void OnTexRoughnessChange(NXPBRMaterialStandard* pPickingObjectMaterial);
+	void OnTexAOChange(NXPBRMaterialStandard* pPickingObjectMaterial);
 
-	void OnTexAlbedoRemove(NXPBRMaterial* pPickingObjectMaterial);
-	void OnTexNormalRemove(NXPBRMaterial* pPickingObjectMaterial);
-	void OnTexMetallicRemove(NXPBRMaterial* pPickingObjectMaterial);
-	void OnTexRoughnessRemove(NXPBRMaterial* pPickingObjectMaterial);
-	void OnTexAORemove(NXPBRMaterial* pPickingObjectMaterial);
+	void OnTexAlbedoRemove(NXPBRMaterialStandard* pPickingObjectMaterial);
+	void OnTexNormalRemove(NXPBRMaterialStandard* pPickingObjectMaterial);
+	void OnTexMetallicRemove(NXPBRMaterialStandard* pPickingObjectMaterial);
+	void OnTexRoughnessRemove(NXPBRMaterialStandard* pPickingObjectMaterial);
+	void OnTexAORemove(NXPBRMaterialStandard* pPickingObjectMaterial);
 
 	void UpdateFileBrowserParameters();
 

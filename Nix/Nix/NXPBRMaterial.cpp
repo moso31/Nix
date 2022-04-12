@@ -4,55 +4,60 @@
 #include "DirectXTex.h"
 #include "NXResourceManager.h"
 
-NXPBRMaterial::NXPBRMaterial(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao) :
-	m_cbData(albedo, normal, metallic, roughness, ao),
-	m_name(name),
+NXMaterial::NXMaterial(const std::string name) :
+	m_name(name)
+{
+}
+
+void NXMaterial::Update()
+{
+	// 材质只需要把自己的数据提交给GPU就行了。
+	g_pContext->UpdateSubresource(m_cb.Get(), 0, nullptr, m_cbData.get(), 0, 0);
+}
+
+NXPBRMaterialStandard::NXPBRMaterialStandard(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao) :
+	NXMaterial(name),
 	m_pTexAlbedo(nullptr),
 	m_pTexNormal(nullptr),
 	m_pTexMetallic(nullptr),
 	m_pTexRoughness(nullptr),
 	m_pTexAmbientOcclusion(nullptr)
 {
+	m_cbData = std::make_unique<CBufferMaterialStandard>(albedo, normal, metallic, roughness, ao);
 	InitConstantBuffer();
 }
 
-void NXPBRMaterial::Update()
-{
-	// 材质只需要把自己的数据提交给GPU就行了。
-	g_pContext->UpdateSubresource(m_cb.Get(), 0, nullptr, &m_cbData, 0, 0);
-}
-
-void NXPBRMaterial::SetTexAlbedo(const std::wstring TexFilePath, bool GenerateMipMap)
+void NXPBRMaterialStandard::SetTexAlbedo(const std::wstring TexFilePath, bool GenerateMipMap)
 {
 	if (m_pTexAlbedo) delete m_pTexAlbedo;
 	m_pTexAlbedo = LoadFromTexFile(TexFilePath, GenerateMipMap);
 }
 
-void NXPBRMaterial::SetTexNormal(const std::wstring TexFilePath, bool GenerateMipMap)
+void NXPBRMaterialStandard::SetTexNormal(const std::wstring TexFilePath, bool GenerateMipMap)
 {
 	if (m_pTexNormal) delete m_pTexNormal;
 	m_pTexNormal = LoadFromTexFile(TexFilePath, GenerateMipMap);
 }
 
-void NXPBRMaterial::SetTexMetallic(const std::wstring TexFilePath, bool GenerateMipMap)
+void NXPBRMaterialStandard::SetTexMetallic(const std::wstring TexFilePath, bool GenerateMipMap)
 {
 	if (m_pTexMetallic) delete m_pTexMetallic;
 	m_pTexMetallic = LoadFromTexFile(TexFilePath, GenerateMipMap);
 }
 
-void NXPBRMaterial::SetTexRoughness(const std::wstring TexFilePath, bool GenerateMipMap)
+void NXPBRMaterialStandard::SetTexRoughness(const std::wstring TexFilePath, bool GenerateMipMap)
 {
 	if (m_pTexRoughness) delete m_pTexRoughness;
 	m_pTexRoughness = LoadFromTexFile(TexFilePath, GenerateMipMap);
 }
 
-void NXPBRMaterial::SetTexAO(const std::wstring TexFilePath, bool GenerateMipMap)
+void NXPBRMaterialStandard::SetTexAO(const std::wstring TexFilePath, bool GenerateMipMap)
 {
 	if (m_pTexAmbientOcclusion) delete m_pTexAmbientOcclusion;
 	m_pTexAmbientOcclusion = LoadFromTexFile(TexFilePath, GenerateMipMap);
 }
 
-NXTexture2D* NXPBRMaterial::LoadFromTexFile(const std::wstring texFilePath, bool GenerateMipMap)
+NXTexture2D* NXPBRMaterialStandard::LoadFromTexFile(const std::wstring texFilePath, bool GenerateMipMap)
 {
 	TexMetadata info;
 	std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>(); 
@@ -104,7 +109,7 @@ NXTexture2D* NXPBRMaterial::LoadFromTexFile(const std::wstring texFilePath, bool
 	return pOutTex;
 }
 
-void NXPBRMaterial::Release()
+void NXPBRMaterialStandard::Release()
 {
 	SafeDelete(m_pTexAlbedo);
 	SafeDelete(m_pTexNormal);
@@ -113,13 +118,19 @@ void NXPBRMaterial::Release()
 	SafeDelete(m_pTexAmbientOcclusion);
 }
 
-void NXPBRMaterial::InitConstantBuffer()
+void NXPBRMaterialStandard::InitConstantBuffer()
 {
 	D3D11_BUFFER_DESC bufferDesc;
 	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
 	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(ConstantBufferMaterial);
+	bufferDesc.ByteWidth = sizeof(CBufferMaterialStandard);
 	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cb));
+}
+
+NXPBRMaterialTranslucent::NXPBRMaterialTranslucent(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float opacity) :
+	NXPBRMaterialStandard(name, albedo, normal, metallic, roughness, ao)
+{
+	//SetOpacity(opacity);
 }
