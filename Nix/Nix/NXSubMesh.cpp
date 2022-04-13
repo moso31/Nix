@@ -1,4 +1,5 @@
 #include "NXSubMesh.h"
+#include "NXPrimitive.h"
 
 NXTriangle::NXTriangle(NXSubMesh* pSubMesh, int startIndex) :
 	pSubMesh(pSubMesh),
@@ -169,6 +170,11 @@ NXSubMesh::NXSubMesh(NXPrimitive* pPrimitive) :
 
 NXSubMesh::~NXSubMesh()
 {
+}
+
+void NXSubMesh::UpdateViewParams()
+{
+	return m_parent->UpdateViewParams();
 }
 
 void NXSubMesh::Update()

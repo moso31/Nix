@@ -8,6 +8,7 @@
 
 #include "NXRenderTarget.h"
 #include "NXScene.h"
+#include "SceneManager.h"
 #include "NXCubeMap.h"
 #include "NXDepthPrepass.h"
 #include "NXSimpleSSAO.h"
@@ -21,6 +22,7 @@ void Renderer::Init()
 	InitRenderer();
 
 	m_scene = new NXScene();
+	SceneManager::GetInstance()->SetWorkingScene(m_scene);
 	m_scene->Init();
 
 	auto pCubeMap = m_scene->GetCubeMap();
@@ -135,17 +137,17 @@ void Renderer::RenderFrame()
 	g_pContext->RSSetViewports(1, &CD3D11_VIEWPORT(0.0f, 0.0f, vp.x, vp.y));
 
 	// DepthPrepass
-	m_pDepthPrepass->Render();
+	//m_pDepthPrepass->Render();
 
-	if (!m_isDeferredShading)
-	{
-		// SSAO
-		m_pSSAO->Render(pSRVNormal, pSRVPosition, pSRVDepthPrepass);
+	//if (!m_isDeferredShading)
+	//{
+	//	// SSAO
+	//	m_pSSAO->Render(pSRVNormal, pSRVPosition, pSRVDepthPrepass);
 
-		// Forward shading
-		m_pForwardRenderer->Render(m_pSSAO->GetSRV());
-	}
-	else
+	//	// Forward shading
+	//	m_pForwardRenderer->Render(m_pSSAO->GetSRV());
+	//}
+	//else
 	{
 		// Deferred shading: RenderGBuffer
 		m_pDeferredRenderer->RenderGBuffer();

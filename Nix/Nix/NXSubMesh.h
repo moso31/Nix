@@ -21,13 +21,14 @@ private:
 class NXPrimitive;
 class NXSubMesh
 {
-public:
 	friend class NXTriangle;
 	friend class NXSubMeshGeometryEditor;
 
 public:
 	NXSubMesh(NXPrimitive* pPrimitive);
 	~NXSubMesh();
+
+	void UpdateViewParams();
 
 	void Update();
 	void Render();

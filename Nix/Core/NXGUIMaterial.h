@@ -40,4 +40,6 @@ private:
 
 	std::wstring m_whiteTexPath_test;
 	std::wstring m_normalTexPath_test;
+
+	int m_currentMaterialTypeIndex;
 };

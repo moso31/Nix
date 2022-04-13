@@ -44,9 +44,10 @@ class NXMaterial
 protected:
 	explicit NXMaterial() = default;
 	NXMaterial(const std::string name, const NXMaterialType type = NXMaterialType::UNKNOWN);
-	~NXMaterial() {}
 
 public:
+	~NXMaterial() {}
+
 	std::string GetName() { return m_name; }
 	void SetName(std::string name) { m_name = name; }
 
@@ -59,8 +60,15 @@ public:
 
 	void Update();
 
+	virtual void Release() = 0;
+
 public:
 	NXTexture2D* LoadFromTexFile(const std::wstring TexFilePath, bool GenerateMipMap = false);
+
+	std::vector<NXSubMesh*> GetRefSubMeshes() { return m_pRefSubMeshes; }
+	void CleanUpRefSubMeshes();
+	void RemoveSubMesh(NXSubMesh* pRemoveSubmesh);
+	void AddSubMesh(NXSubMesh* pSubMesh);
 
 protected:
 	std::string m_name;
@@ -68,6 +76,11 @@ protected:
 
 	std::unique_ptr<CBufferMaterial>	m_cbData;
 	ComPtr<ID3D11Buffer>				m_cb;
+
+private:
+	// 映射表，记录哪些Submesh使用了这个材质
+	std::vector<NXSubMesh*> m_pRefSubMeshes;
+	UINT m_RefSubMeshesCleanUpCount;
 };
 
 class NXPBRMaterialBase : public NXMaterial
@@ -90,7 +103,7 @@ public:
 	void SetTexRoughness(const std::wstring TexFilePath, bool GenerateMipMap = false);
 	void SetTexAO(const std::wstring TexFilePath, bool GenerateMipMap = false);
 
-	void Release();
+	virtual void Release();
 
 private:
 	NXTexture2D* m_pTexAlbedo;

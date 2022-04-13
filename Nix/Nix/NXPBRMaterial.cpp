@@ -3,10 +3,12 @@
 #include <direct.h>
 #include "DirectXTex.h"
 #include "NXResourceManager.h"
+#include "NXSubMesh.h"
 
 NXMaterial::NXMaterial(const std::string name, const NXMaterialType type) :
 	m_name(name),
-	m_type(type)
+	m_type(type),
+	m_RefSubMeshesCleanUpCount(0)
 {
 }
 
@@ -71,6 +73,40 @@ NXTexture2D* NXMaterial::LoadFromTexFile(const std::wstring texFilePath, bool Ge
 
 	pOutTex->CreateSRV();
 	return pOutTex;
+}
+
+void NXMaterial::CleanUpRefSubMeshes()
+{
+	// 把 nullptr 的 Submesh 全部清掉
+	m_pRefSubMeshes.erase(
+		std::remove_if(m_pRefSubMeshes.begin(), m_pRefSubMeshes.end(),
+		[](const NXSubMesh* pRefSubMesh) {
+			return pRefSubMesh;
+		})
+	);
+}
+
+void NXMaterial::RemoveSubMesh(NXSubMesh* pRemoveSubmesh)
+{
+	for (auto pRefSubMesh: m_pRefSubMeshes)
+	{
+		if (pRefSubMesh == pRemoveSubmesh)
+		{
+			pRefSubMesh = nullptr;
+			m_RefSubMeshesCleanUpCount++;
+			
+			// 每10次Remove，就CleanUp一次。
+			if (m_RefSubMeshesCleanUpCount > 10)
+			{
+				CleanUpRefSubMeshes();
+			}
+		}
+	}
+}
+
+void NXMaterial::AddSubMesh(NXSubMesh* pSubMesh)
+{
+	m_pRefSubMeshes.push_back(pSubMesh);
 }
 
 NXPBRMaterialBase::NXPBRMaterialBase(const std::string name, const NXMaterialType type) :

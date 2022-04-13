@@ -1,12 +1,14 @@
 #include "NXGUIMaterial.h"
 #include "NXScene.h"
 #include "NXPrimitive.h"
+#include "SceneManager.h"
 
 NXGUIMaterial::NXGUIMaterial(NXScene* pScene, NXGUIFileBrowser* pFileBrowser) :
 	m_pCurrentScene(pScene),
 	m_pFileBrowser(pFileBrowser),
 	m_whiteTexPath_test(L".\\Resource\\white1x1.png"),
-	m_normalTexPath_test(L".\\Resource\\normal1x1.png")
+	m_normalTexPath_test(L".\\Resource\\normal1x1.png"),
+	m_currentMaterialTypeIndex(0)
 {
 }
 
@@ -57,6 +59,8 @@ void NXGUIMaterial::Render()
 		pObject->SetScale(vScal);
 	}
 
+	ImGui::Separator();
+
 	if (pMaterial)
 	{
 		std::string strMatName = pMaterial->GetName().c_str();
@@ -66,8 +70,13 @@ void NXGUIMaterial::Render()
 		}
 
 		NXMaterialType matType = pMaterial->GetType();
-		std::string strMatType = "UNKNOWN";
-		switch (matType)
+		m_currentMaterialTypeIndex = matType - 1;
+
+		static const char* items[] = { "Standard", "Translucent" };
+		ImGui::Combo("Material Type", &m_currentMaterialTypeIndex, items, IM_ARRAYSIZE(items));
+
+		NXMaterialType newMatType = NXMaterialType(m_currentMaterialTypeIndex + 1);
+		switch (newMatType)
 		{
 		case UNKNOWN:
 			break;
@@ -80,6 +89,9 @@ void NXGUIMaterial::Render()
 		default:
 			break;
 		}
+
+		if (matType != newMatType)
+			SceneManager::GetInstance()->ReTypeMaterial(pMaterial, newMatType);
 	}
 
 	ImGui::End();

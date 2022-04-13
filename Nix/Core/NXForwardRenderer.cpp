@@ -6,6 +6,7 @@
 #include "GlobalBufferManager.h"
 #include "NXScene.h"
 #include "NXPrimitive.h"
+#include "NXCubeMap.h"
 
 NXForwardRenderer::NXForwardRenderer(NXScene* pScene) :
 	m_pScene(pScene)
@@ -73,45 +74,42 @@ void NXForwardRenderer::Render(ID3D11ShaderResourceView* pSRVSSAO)
 
 	//auto pShadowMapConstantBufferTransform = m_pPassShadowMap->GetConstantBufferTransform();
 	//g_pContext->PSSetConstantBuffers(4, 1, &pShadowMapConstantBufferTransform);
-
-	for (auto pPrim : m_pScene->GetPrimitives())
+	
+	for (auto pMat : m_pScene->GetMaterials())
 	{
-		// 这里渲染场景中所有Mesh。
-		// 其他几个CB/SRV的Slot都不变，但每个物体的World、Material、Tex信息都可能改变。
-		// 【可以进一步优化】按Material绘制、按Tex绘制。
-		pPrim->UpdateViewParams();
-		g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
-
-		for (UINT i = 0; i < pPrim->GetSubMeshCount(); i++)
+		if (pMat->IsPBRType())
 		{
-			auto pSubMesh = pPrim->GetSubMesh(i);
-			pSubMesh->Update();
+			NXPBRMaterialBase* pPBRMat = static_cast<NXPBRMaterialBase*>(pMat);
 
-			auto pMat = pSubMesh->GetMaterial();
-			if (pMat->IsPBRType())
-			{
-				NXPBRMaterialBase* pMat = static_cast<NXPBRMaterialBase*>(pSubMesh->GetMaterial());
+			auto pSRVAlbedo = pPBRMat->GetSRVAlbedo();
+			g_pContext->PSSetShaderResources(1, 1, &pSRVAlbedo);
 
-				auto pSRVAlbedo = pMat->GetSRVAlbedo();
-				g_pContext->PSSetShaderResources(1, 1, &pSRVAlbedo);
+			auto pSRVNormal = pPBRMat->GetSRVNormal();
+			g_pContext->PSSetShaderResources(2, 1, &pSRVNormal);
 
-				auto pSRVNormal = pMat->GetSRVNormal();
-				g_pContext->PSSetShaderResources(2, 1, &pSRVNormal);
+			auto pSRVMetallic = pPBRMat->GetSRVMetallic();
+			g_pContext->PSSetShaderResources(3, 1, &pSRVMetallic);
 
-				auto pSRVMetallic = pMat->GetSRVMetallic();
-				g_pContext->PSSetShaderResources(3, 1, &pSRVMetallic);
+			auto pSRVRoughness = pPBRMat->GetSRVRoughness();
+			g_pContext->PSSetShaderResources(4, 1, &pSRVRoughness);
 
-				auto pSRVRoughness = pMat->GetSRVRoughness();
-				g_pContext->PSSetShaderResources(4, 1, &pSRVRoughness);
+			auto pSRVAO = pPBRMat->GetSRVAO();
+			g_pContext->PSSetShaderResources(5, 1, &pSRVAO);
 
-				auto pSRVAO = pMat->GetSRVAO();
-				g_pContext->PSSetShaderResources(5, 1, &pSRVAO);
-			}
-
-			auto pCBMaterial = pMat->GetConstantBuffer();
+			auto pCBMaterial = pPBRMat->GetConstantBuffer();
 			g_pContext->PSSetConstantBuffers(3, 1, &pCBMaterial);
 
-			pSubMesh->Render();
+			for (auto pSubMesh : pPBRMat->GetRefSubMeshes())
+			{
+				if (pSubMesh)
+				{
+					pSubMesh->UpdateViewParams();
+					g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
+
+					pSubMesh->Update();
+					pSubMesh->Render();
+				}
+			}
 		}
 	}
 
