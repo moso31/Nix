@@ -3,6 +3,7 @@
 #include "NXPrimitive.h"
 #include "FBXMeshLoader.h"
 #include "NXSubMeshGeometryEditor.h"
+#include "NXResourceReloader.h"
 
 #include "NSFirstPersonalCamera.h"
 
@@ -214,7 +215,7 @@ void SceneManager::ReTypeMaterial(NXMaterial* srcMaterial, NXMaterialType destMa
 		auto& sceneMats = s_pWorkingScene->m_materials;
 		std::replace(sceneMats.begin(), sceneMats.end(), srcMaterial, destMaterial);
 
-		SafeRelease(srcMaterial);
+		NXResourceReloader::GetInstance()->MarkUnusedMaterial(srcMaterial);
 	}
 }
 
