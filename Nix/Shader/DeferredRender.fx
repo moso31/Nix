@@ -12,7 +12,6 @@ TextureCube txCubeMap : register(t4);
 TextureCube txIrradianceMap : register(t5);
 TextureCube txPreFilterMap : register(t6);
 Texture2D txBRDF2DLUT : register(t7);
-Texture2D txSSAO : register(t8);
 
 struct ConstantBufferIrradSH
 {
@@ -147,9 +146,7 @@ float4 PS(PS_INPUT input) : SV_Target
 	float metallic = metallicMap;
 
 	float AOMap = txRT3.Sample(ssLinearWrap, uv).z;
-	float SSAOMap = txSSAO.Sample(ssLinearWrap, input.tex).x;
-	float ssao = 1.0f - SSAOMap;
-	float ao = AOMap * ssao;
+	float ao = AOMap;
 
 	float3 F0 = 0.04;
 	F0 = lerp(F0, albedo, metallic);

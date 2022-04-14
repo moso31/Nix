@@ -1,7 +1,6 @@
 #include "NXScene.h"
 #include "SceneManager.h"
 #include "NXSubMeshGeometryEditor.h"
-#include "RenderStates.h"
 #include "GlobalBufferManager.h"
 #include "NXIntersection.h"
 #include "NXRandom.h"

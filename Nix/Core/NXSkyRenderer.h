@@ -2,16 +2,16 @@
 #include "header.h"
 #include "ShaderStructures.h"
 
-class NXForwardRenderer
+class NXSkyRenderer
 {
 public:
-	NXForwardRenderer(NXScene* pScene);
-	~NXForwardRenderer();
+	NXSkyRenderer(NXScene* pScene);
+	~NXSkyRenderer();
 
 	void Init();
 	void Render();
 
-	void Release() {};
+	void Release() {}
 
 private:
 	ComPtr<ID3D11VertexShader>			m_pVertexShader;
@@ -23,7 +23,6 @@ private:
 	ComPtr<ID3D11BlendState>			m_pBlendState;
 
 	ComPtr<ID3D11SamplerState>			m_pSamplerLinearWrap;
-	ComPtr<ID3D11SamplerState>			m_pSamplerLinearClamp;
 
 	NXScene* m_pScene;
 };

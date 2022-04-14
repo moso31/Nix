@@ -5,6 +5,7 @@
 #include "NXDepthPrepass.h"
 #include "NXDeferredRenderer.h"
 #include "NXForwardRenderer.h"
+#include "NXSkyRenderer.h"
 #include "NXSimpleSSAO.h"
 #include "NXGUI.h"
 
@@ -31,7 +32,6 @@ public:
 
 private:
 	void DrawDepthPrepass();
-	void DrawCubeMap();
 	void DrawShadowMap();
 
 private:
@@ -39,10 +39,7 @@ private:
 	ComPtr<ID3D11InputLayout>			m_pInputLayoutPT;
 	ComPtr<ID3D11InputLayout>			m_pInputLayoutPNT;
 
-	ComPtr<ID3D11VertexShader>			m_pVertexShaderCubeMap;
 	ComPtr<ID3D11VertexShader>			m_pVertexShaderShadowMap;
-
-	ComPtr<ID3D11PixelShader>			m_pPixelShaderCubeMap;
 	ComPtr<ID3D11PixelShader>			m_pPixelShaderShadowMap;
 
 	NXRenderTarget*				m_renderTarget;
@@ -52,9 +49,7 @@ private:
 	NXDepthPrepass*				m_pDepthPrepass;
 	NXForwardRenderer*			m_pForwardRenderer;
 	NXDeferredRenderer*			m_pDeferredRenderer;
+	NXSkyRenderer*				m_pSkyRenderer;
 	NXSimpleSSAO*				m_pSSAO;
 	NXGUI* m_pGUI;
-
-	// 是否使用延迟着色
-	bool m_isDeferredShading;
 };

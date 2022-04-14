@@ -210,16 +210,6 @@ bool NXSubMesh::RayCastLocal(const Ray& localRay, NXHit& outHitInfo, float& outD
 	return bSuccess;
 }
 
-NXMaterial* NXSubMesh::GetMaterial() const
-{
-	return m_pMaterial;
-}
-
-void NXSubMesh::SetMaterial(NXMaterial* mat)
-{
-	m_pMaterial = mat;
-}
-
 void NXSubMesh::CalculateTangents(bool bUpdateVertexIndexBuffer)
 {
 	int faceCount = (int)m_indices.size() / 3;

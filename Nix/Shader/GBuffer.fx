@@ -12,7 +12,7 @@ SamplerState ssLinearWrap : register(s0);
 
 cbuffer CBufferMaterialStandard : register(b3)
 {
-	Material m_material;
+	PBRMaterialStandard m_material;
 }
 
 struct VS_INPUT

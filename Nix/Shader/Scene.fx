@@ -14,7 +14,6 @@ TextureCube txIrradianceMap : register(t7);
 TextureCube txPreFilterMap : register(t8);
 Texture2D txBRDF2DLUT : register(t9);
 //Texture2D txShadowMap : register(t10);
-Texture2D txSSAO : register(t11);
 
 SamplerState ssLinearWrap : register(s0);
 SamplerState ssLinearClamp : register(s1);
@@ -35,7 +34,7 @@ cbuffer ConstantBufferLight : register(b2)
 
 cbuffer CBufferMaterialStandard : register(b3)
 {
-	Material m_material;
+	PBRMaterialTranslucent m_material;
 }
 
 cbuffer ConstantBufferShadowMapTransform : register(b4)
@@ -100,6 +99,9 @@ float4 PS(PS_INPUT input) : SV_Target
 	albedo = pow(albedo, 2.2f);
 	//return float4(albedoMap, 1.0f);	// albedo only test
 
+	float opacityMap = txAlbedo.Sample(ssLinearWrap, input.tex).w;
+	float opacity = m_material.opacity * opacityMap;
+
 	float roughnessMap = txRoughnessMap.Sample(ssLinearWrap, input.tex).x;
 	float roughness = m_material.roughness * roughnessMap;
 	roughness = roughness * roughness;
@@ -108,9 +110,7 @@ float4 PS(PS_INPUT input) : SV_Target
 	float metallic = m_material.metallic * metallicMap;
 
 	float AOMap = txAmbientOcclusionMap.Sample(ssLinearWrap, input.tex).x;
-	float SSAOMap = txSSAO.Sample(ssLinearWrap, input.tex).x;
-	float ssao = 1.0f - SSAOMap;
-	float ao = m_material.ao * AOMap * ssao;
+	float ao = m_material.ao * AOMap;
 
 	float3 F0 = 0.04;
 	F0 = lerp(F0, albedo, metallic);
@@ -217,11 +217,5 @@ float4 PS(PS_INPUT input) : SV_Target
 	float3 Libl = (diffuseIBL + SpecularIBL) * m_cubeMapIntensity * ao;
 	float3 color = Libl + Lo;
 
-	// fast tone-mapping.
-	color = color / (color + 1.0);
-
-	// gamma.
-	color = pow(color, 1.0 / 2.2);
-
-	return float4(color, 1.0f);
+	return float4(color, opacity);
 }

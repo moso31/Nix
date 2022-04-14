@@ -1,7 +1,7 @@
 #include "NXForwardRenderer.h"
 #include "DirectResources.h"
 #include "ShaderComplier.h"
-#include "RenderStates.h"
+#include "NXRenderStates.h"
 
 #include "GlobalBufferManager.h"
 #include "NXScene.h"
@@ -21,24 +21,33 @@ void NXForwardRenderer::Init()
 {
 	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\Scene.fx", "VS", &m_pVertexShader, NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), &m_pInputLayout);
 	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\Scene.fx", "PS", &m_pPixelShader);
+
+	m_pDepthStencilState = NXDepthStencilState<>::Create();
+	m_pRasterizerState = NXRasterizerState<D3D11_FILL_SOLID, D3D11_CULL_NONE>::Create();
+	m_pBlendState = NXBlendState<false, false, true, D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA>::Create();
+
+	m_pSamplerLinearWrap.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP>::Create());
+	m_pSamplerLinearClamp.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP>::Create());
 }
 
-void NXForwardRenderer::Render(ID3D11ShaderResourceView* pSRVSSAO)
+void NXForwardRenderer::Render()
 {
 	g_pUDA->BeginEvent(L"Forward rendering");
 
-	auto pRTVMainScene = g_dxResources->GetRTVMainScene();
-	auto pDSVDepthStencil = g_dxResources->GetDSVDepthStencil();
-	g_pContext->OMSetRenderTargets(1, &pRTVMainScene, pDSVDepthStencil);
-	g_pContext->ClearRenderTargetView(pRTVMainScene, Colors::WhiteSmoke);
-	g_pContext->ClearDepthStencilView(pDSVDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	g_pContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 0);
+	g_pContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xffffffff);
+	g_pContext->RSSetState(m_pRasterizerState.Get());
+
+	auto pRTVScene = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_MainScene)->GetRTV();
+	auto pDSVSceneDepth = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_DepthZ)->GetDSV();
+	g_pContext->OMSetRenderTargets(1, &pRTVScene, pDSVSceneDepth);
 
 	g_pContext->IASetInputLayout(m_pInputLayout.Get());
 
 	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
-	g_pContext->PSSetSamplers(0, 1, RenderStates::SamplerLinearWrap.GetAddressOf());
-	g_pContext->PSSetSamplers(1, 1, RenderStates::SamplerLinearClamp.GetAddressOf());
+	g_pContext->PSSetSamplers(0, 1, m_pSamplerLinearWrap.GetAddressOf());
+	g_pContext->PSSetSamplers(1, 1, m_pSamplerLinearClamp.GetAddressOf());
 
 	g_pContext->VSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
 	g_pContext->PSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
@@ -67,17 +76,13 @@ void NXForwardRenderer::Render(ID3D11ShaderResourceView* pSRVSSAO)
 	//auto pShadowMapSRV = m_pPassShadowMap->GetSRV();
 	//g_pContext->PSSetShaderResources(10, 1, &pShadowMapSRV);
 
-	if (pSRVSSAO)
-	{
-		g_pContext->PSSetShaderResources(11, 1, &pSRVSSAO);
-	}
-
 	//auto pShadowMapConstantBufferTransform = m_pPassShadowMap->GetConstantBufferTransform();
 	//g_pContext->PSSetConstantBuffers(4, 1, &pShadowMapConstantBufferTransform);
-	
+
+	// 2022.4.14 Ö»äÖÈ¾ Transparent ÎïÌå
 	for (auto pMat : m_pScene->GetMaterials())
 	{
-		if (pMat->IsPBRType())
+		if (pMat->GetType() == NXMaterialType::PBR_TRANSLUCENT)
 		{
 			NXPBRMaterialBase* pPBRMat = static_cast<NXPBRMaterialBase*>(pMat);
 

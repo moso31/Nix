@@ -186,9 +186,6 @@
     <ClCompile Include="Core\NXDXHelper.cpp">
       <Filter>Core\Helper</Filter>
     </ClCompile>
-    <ClCompile Include="Core\RenderStates.cpp">
-      <Filter>Core\DirectX</Filter>
-    </ClCompile>
     <ClCompile Include="Core\ShaderComplier.cpp">
       <Filter>Core\DirectX</Filter>
     </ClCompile>
@@ -297,6 +294,9 @@
     <ClCompile Include="Core\NXGUILights.cpp">
       <Filter>Core\UI</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXSkyRenderer.cpp">
+      <Filter>Core\DirectX\Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -328,9 +328,6 @@
     </ClInclude>
     <ClInclude Include="Core\NXDXHelper.h">
       <Filter>Core\Helper</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\RenderStates.h">
-      <Filter>Core\DirectX</Filter>
     </ClInclude>
     <ClInclude Include="Core\ShaderComplier.h">
       <Filter>Core\DirectX</Filter>
@@ -445,6 +442,12 @@
     </ClInclude>
     <ClInclude Include="Core\NXGUILights.h">
       <Filter>Core\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXRenderStates.h">
+      <Filter>Core\DirectX</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXSkyRenderer.h">
+      <Filter>Core\DirectX\Renderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -40,6 +40,8 @@ private:
 private:
 	ComPtr<ID3D11ComputeShader>			m_pComputeShader;
 
+	ComPtr<ID3D11SamplerState>			m_pSamplerLinearClamp;
+
 	NXTexture2D* m_pTexSSAO;
 
 	std::vector<Vector4>		m_samplePosition;

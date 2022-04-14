@@ -23,6 +23,7 @@ class NXSubMesh
 {
 	friend class NXTriangle;
 	friend class NXSubMeshGeometryEditor;
+	friend class SceneManager;
 
 public:
 	NXSubMesh(NXPrimitive* pPrimitive);
@@ -37,8 +38,7 @@ public:
 
 	NXPrimitive* GetPrimitive() { return m_parent; }
 
-	NXMaterial* GetMaterial() const;
-	void SetMaterial(NXMaterial* mat);
+	NXMaterial* GetMaterial() const { return m_pMaterial; }
 
 	// 自动计算顶点的切线数据。
 	void CalculateTangents(bool bUpdateVertexIndexBuffer = false);
@@ -49,6 +49,9 @@ public:
 
 	NXTriangle GetFaceTriangle(UINT faceIndex);
 	const VertexPNTT* GetVertexData() { return m_vertices.data(); }
+
+private:
+	void SetMaterial(NXMaterial* mat) { m_pMaterial = mat; }
 
 private:
 	void InitVertexIndexBuffer();

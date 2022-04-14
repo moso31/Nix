@@ -75,17 +75,6 @@ NXTexture2D* NXMaterial::LoadFromTexFile(const std::wstring texFilePath, bool Ge
 	return pOutTex;
 }
 
-void NXMaterial::CleanUpRefSubMeshes()
-{
-	// 把 nullptr 的 Submesh 全部清掉
-	m_pRefSubMeshes.erase(
-		std::remove_if(m_pRefSubMeshes.begin(), m_pRefSubMeshes.end(),
-		[](const NXSubMesh* pRefSubMesh) {
-			return pRefSubMesh;
-		})
-	);
-}
-
 void NXMaterial::RemoveSubMesh(NXSubMesh* pRemoveSubmesh)
 {
 	for (auto pRefSubMesh: m_pRefSubMeshes)
@@ -93,13 +82,7 @@ void NXMaterial::RemoveSubMesh(NXSubMesh* pRemoveSubmesh)
 		if (pRefSubMesh == pRemoveSubmesh)
 		{
 			pRefSubMesh = nullptr;
-			m_RefSubMeshesCleanUpCount++;
-			
-			// 每10次Remove，就CleanUp一次。
-			if (m_RefSubMeshesCleanUpCount > 10)
-			{
-				CleanUpRefSubMeshes();
-			}
+			std::remove(m_pRefSubMeshes.begin(), m_pRefSubMeshes.end(), pRefSubMesh);
 		}
 	}
 }

@@ -66,7 +66,6 @@ public:
 	NXTexture2D* LoadFromTexFile(const std::wstring TexFilePath, bool GenerateMipMap = false);
 
 	std::vector<NXSubMesh*> GetRefSubMeshes() { return m_pRefSubMeshes; }
-	void CleanUpRefSubMeshes();
 	void RemoveSubMesh(NXSubMesh* pRemoveSubmesh);
 	void AddSubMesh(NXSubMesh* pSubMesh);
 
@@ -157,7 +156,8 @@ public:
 	float*		GetAO()			{ return &(GetCBData()->ao); }
 
 	void	SetAlbedo(const Vector3& albedo)		{ GetCBData()->albedo = albedo; }
-	void	SetAlbedo(const float opacity)			{ GetCBData()->opacity = opacity; }
+	void	SetOpacity(const float opacity)			{ GetCBData()->opacity = opacity; }
+	void	SetColor(const Vector4& color)			{ GetCBData()->albedo = Vector3(color); GetCBData()->opacity = color.w; }
 	void	SetNormal(const Vector3& normal)		{ GetCBData()->normal = normal; }
 	void	SetMetallic(const float metallic)		{ GetCBData()->metallic = metallic; }
 	void	SetRoughness(const float roughness)		{ GetCBData()->roughness = roughness; }

@@ -6,6 +6,7 @@ class NXTexture2D;
 enum NXCommonRTEnum
 {
     NXCommonRT_DepthZ,
+    NXCommonRT_MainScene,
 
     // 现行G-Buffer结构如下：
     // RT0:		Position				R32G32B32A32_FLOAT

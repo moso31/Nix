@@ -197,6 +197,7 @@ void NXGUIMaterial::RenderMaterialUI_Translucent(NXPBRMaterialTranslucent* pMate
 	if (ImGui::ColorEdit4("Albedo", fAlbedo.f))
 	{
 		pMaterial->SetAlbedo(fAlbedo.v);
+		pMaterial->SetOpacity(fAlbedo.f[3]);
 	}
 
 	RenderTextureIcon((ImTextureID)pMaterial->GetSRVNormal(), std::bind(&NXGUIMaterial::OnTexNormalChange, this, pMaterial), std::bind(&NXGUIMaterial::OnTexNormalRemove, this, pMaterial));
