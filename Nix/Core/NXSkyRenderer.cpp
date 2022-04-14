@@ -31,7 +31,7 @@ void NXSkyRenderer::Init()
 
 void NXSkyRenderer::Render()
 {
-	g_pUDA->BeginEvent(L"Cube Map");
+	g_pUDA->BeginEvent(L"Sky (CubeMap IBL)");
 	g_pContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 0);
 	g_pContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xffffffff);
 	g_pContext->RSSetState(m_pRasterizerState.Get());

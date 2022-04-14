@@ -123,11 +123,11 @@ void Renderer::RenderFrame()
 	// Deferred shading: Render
 	m_pDeferredRenderer->Render();
 
-	// Forward shading
-	m_pForwardRenderer->Render();
-
 	// »æÖÆCubeMap
 	m_pSkyRenderer->Render();
+
+	// Forward shading
+	m_pForwardRenderer->Render();
 
 	//// SSAO
 	//m_pSSAO->Render(pSRVNormal, pSRVPosition, pSRVDepthPrepass);
