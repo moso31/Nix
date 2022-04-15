@@ -61,6 +61,10 @@ void NXResourceManager::InitCommonRT()
 	m_pCommonRT[NXCommonRT_GBuffer3] = NXResourceManager::GetInstance()->CreateTexture2D("GBuffer RT3", DXGI_FORMAT_R10G10B10A2_UNORM, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
 	m_pCommonRT[NXCommonRT_GBuffer3]->CreateRTV();
 	m_pCommonRT[NXCommonRT_GBuffer3]->CreateSRV();
+
+	m_pCommonRT[NXCommonRT_PostProcessing] = NXResourceManager::GetInstance()->CreateTexture2D("Post Processing", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
+	m_pCommonRT[NXCommonRT_PostProcessing]->CreateRTV();
+	m_pCommonRT[NXCommonRT_PostProcessing]->CreateSRV();
 }
 
 NXTexture2D* NXResourceManager::GetCommonRT(NXCommonRTEnum eRT)

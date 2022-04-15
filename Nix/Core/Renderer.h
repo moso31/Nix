@@ -6,6 +6,8 @@
 #include "NXDeferredRenderer.h"
 #include "NXForwardRenderer.h"
 #include "NXSkyRenderer.h"
+#include "NXColorMappingRenderer.h"
+#include "NXFinalRenderer.h"
 #include "NXSimpleSSAO.h"
 #include "NXGUI.h"
 
@@ -42,14 +44,14 @@ private:
 	ComPtr<ID3D11VertexShader>			m_pVertexShaderShadowMap;
 	ComPtr<ID3D11PixelShader>			m_pPixelShaderShadowMap;
 
-	NXRenderTarget*				m_renderTarget;
-
 	NXScene*					m_scene;
 	NXPassShadowMap*			m_pPassShadowMap; 
 	NXDepthPrepass*				m_pDepthPrepass;
 	NXForwardRenderer*			m_pForwardRenderer;
 	NXDeferredRenderer*			m_pDeferredRenderer;
 	NXSkyRenderer*				m_pSkyRenderer;
+	NXColorMappingRenderer*		m_pColorMappingRenderer;
+	NXFinalRenderer*			m_pFinalRenderer;
 	NXSimpleSSAO*				m_pSSAO;
 	NXGUI* m_pGUI;
 };

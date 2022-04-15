@@ -190,7 +190,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shader\RenderTarget.fx">
+    <None Include="Shader\FinalQuad.fx">
       <FileType>Document</FileType>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
@@ -215,9 +215,11 @@
     <ClCompile Include="Core\GlobalBufferManager.cpp" />
     <ClCompile Include="Core\ImageGenerator.cpp" />
     <ClCompile Include="Core\Main.cpp" />
+    <ClCompile Include="Core\NXColorMappingRenderer.cpp" />
     <ClCompile Include="Core\NXDeferredRenderer.cpp" />
     <ClCompile Include="Core\NXDXHelper.cpp" />
     <ClCompile Include="Core\NXEvent.cpp" />
+    <ClCompile Include="Core\NXFinalRenderer.cpp" />
     <ClCompile Include="Core\NXForwardRenderer.cpp" />
     <ClCompile Include="Core\NXGUI.cpp" />
     <ClCompile Include="Core\NXGUICubeMap.cpp" />
@@ -262,9 +264,11 @@
     <ClInclude Include="Core\GlobalBufferManager.h" />
     <ClInclude Include="Core\Header.h" />
     <ClInclude Include="Core\ImageGenerator.h" />
+    <ClInclude Include="Core\NXColorMappingRenderer.h" />
     <ClInclude Include="Core\NXDeferredRenderer.h" />
     <ClInclude Include="Core\NXDXHelper.h" />
     <ClInclude Include="Core\NXEvent.h" />
+    <ClInclude Include="Core\NXFinalRenderer.h" />
     <ClInclude Include="Core\NXForwardRenderer.h" />
     <ClInclude Include="Core\NXGUI.h" />
     <ClInclude Include="Core\NXGUICubeMap.h" />
@@ -446,6 +450,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\SHIrradianceCommon.fx">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DeploymentContent>
+      <FileType>Document</FileType>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DeploymentContent>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shader\ColorMapping.fx">
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DeploymentContent>
       <FileType>Document</FileType>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DeploymentContent>

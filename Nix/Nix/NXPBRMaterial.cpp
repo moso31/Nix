@@ -77,14 +77,9 @@ NXTexture2D* NXMaterial::LoadFromTexFile(const std::wstring texFilePath, bool Ge
 
 void NXMaterial::RemoveSubMesh(NXSubMesh* pRemoveSubmesh)
 {
-	for (auto pRefSubMesh: m_pRefSubMeshes)
-	{
-		if (pRefSubMesh == pRemoveSubmesh)
-		{
-			pRefSubMesh = nullptr;
-			std::remove(m_pRefSubMeshes.begin(), m_pRefSubMeshes.end(), pRefSubMesh);
-		}
-	}
+	m_pRefSubMeshes.erase(
+		std::remove(m_pRefSubMeshes.begin(), m_pRefSubMeshes.end(), pRemoveSubmesh)
+	);
 }
 
 void NXMaterial::AddSubMesh(NXSubMesh* pSubMesh)

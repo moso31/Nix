@@ -82,11 +82,11 @@
     <Filter Include="Shader\Renderer\IBL\CubeMap">
       <UniqueIdentifier>{35af041d-5728-4024-9ce2-c638366bc61a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shader\PostProcessing">
+      <UniqueIdentifier>{e346dbef-9f51-4885-a786-245d7320d017}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shader\RenderTarget.fx">
-      <Filter>Shader</Filter>
-    </None>
     <None Include="Shader\Common.fx">
       <Filter>Shader</Filter>
     </None>
@@ -156,6 +156,12 @@
     </None>
     <None Include="Shader\SHIrradianceCommon.fx">
       <Filter>Shader\Renderer\IBL</Filter>
+    </None>
+    <None Include="Shader\FinalQuad.fx">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Shader\ColorMapping.fx">
+      <Filter>Shader\PostProcessing</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -295,6 +301,12 @@
       <Filter>Core\UI</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXSkyRenderer.cpp">
+      <Filter>Core\DirectX\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXFinalRenderer.cpp">
+      <Filter>Core\DirectX\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXColorMappingRenderer.cpp">
       <Filter>Core\DirectX\Renderer</Filter>
     </ClCompile>
   </ItemGroup>
@@ -447,6 +459,12 @@
       <Filter>Core\DirectX</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXSkyRenderer.h">
+      <Filter>Core\DirectX\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXFinalRenderer.h">
+      <Filter>Core\DirectX\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXColorMappingRenderer.h">
       <Filter>Core\DirectX\Renderer</Filter>
     </ClInclude>
   </ItemGroup>

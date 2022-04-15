@@ -13,7 +13,6 @@ public:
 
 private:
 	void InitVertexIndexBuffer();
-	void InitRenderData();
 
 private:
 	std::vector<VertexPT>		m_vertices;

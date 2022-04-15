@@ -50,6 +50,12 @@ void Renderer::Init()
 
 	m_pPassShadowMap = new NXPassShadowMap(m_scene);
 	m_pPassShadowMap->Init(2048, 2048);
+
+	m_pColorMappingRenderer = new NXColorMappingRenderer();
+	m_pColorMappingRenderer->Init();
+
+	m_pFinalRenderer = new NXFinalRenderer();
+	m_pFinalRenderer->Init();
 }
 
 void Renderer::InitGUI()
@@ -65,10 +71,6 @@ void Renderer::InitRenderer()
 
 	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\ShadowMap.fx", "VS", &m_pVertexShaderShadowMap, NXGlobalInputLayout::layoutPNT, ARRAYSIZE(NXGlobalInputLayout::layoutPNT), &m_pInputLayoutPNT);
 	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\ShadowMap.fx", "PS", &m_pPixelShaderShadowMap);
-
-	// Create RenderTarget
-	m_renderTarget = new NXRenderTarget();
-	m_renderTarget->Init();
 
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -132,8 +134,12 @@ void Renderer::RenderFrame()
 	//// SSAO
 	//m_pSSAO->Render(pSRVNormal, pSRVPosition, pSRVDepthPrepass);
 
+	g_pUDA->BeginEvent(L"Post Processing");
+	m_pColorMappingRenderer->Render();
+	g_pUDA->EndEvent();
+
 	// »æÖÆÖ÷äÖÈ¾ÆÁÄ»RTV£º
-	m_renderTarget->Render();
+	m_pFinalRenderer->Render();
 
 	g_pUDA->EndEvent();
 }
@@ -147,17 +153,17 @@ void Renderer::Release()
 {
 	SafeRelease(m_pGUI);
 
-	SafeDelete(m_pPassShadowMap);
 	SafeRelease(m_pSSAO);
+	SafeDelete(m_pDepthPrepass);
+	SafeDelete(m_pPassShadowMap);
 
 	SafeRelease(m_pDeferredRenderer);
 	SafeRelease(m_pForwardRenderer);
 	SafeRelease(m_pSkyRenderer);
-
-	SafeDelete(m_pDepthPrepass);
+	SafeRelease(m_pColorMappingRenderer);
+	SafeRelease(m_pFinalRenderer);
 
 	SafeRelease(m_scene);
-	SafeRelease(m_renderTarget);
 }
 
 void Renderer::DrawDepthPrepass()

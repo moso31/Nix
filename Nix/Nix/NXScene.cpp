@@ -199,9 +199,9 @@ void NXScene::Init()
 	pMainCamera->SetTranslation(Vector3(0.0f, 1.0f, -5.0f));
 	pMainCamera->SetLookAt(Vector3(0.0f, 1.0f, -4.0f));
 
-	SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\Alexs_Apt_2k.hdr");
+	//SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\Alexs_Apt_2k.hdr");
 	//SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\TexturesCom_JapanInariTempleH_1K_hdri_sphere.hdr");
-	//SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\ballroom_4k.hdr");
+	SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\ballroom_4k.hdr");
 	//SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\blue_grotto_4k.hdr");
 	//SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\HDRGPUTest.hdr");
 	//SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\WhiteHDRI.hdr");

@@ -19,6 +19,8 @@ enum NXCommonRTEnum
     NXCommonRT_GBuffer2,
     NXCommonRT_GBuffer3,
 
+    NXCommonRT_PostProcessing,
+
     NXCommonRT_SIZE,
 };
 
