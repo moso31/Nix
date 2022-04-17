@@ -144,13 +144,13 @@ void NXScene::Init()
 
 	for (int i = -5; i <= 5; i++)
 	{
-		NXPBRMaterialStandard* pPBRMat = SceneManager::GetInstance()->CreatePBRMaterialStandard("rustediron2", Vector3(1.0f), Vector3(1.0f), 1.0f, i * 0.1f + 0.5f, 1.0f);
+		auto pPBRMat = SceneManager::GetInstance()->CreatePBRMaterialTranslucent("rustediron2", Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f, 0.2f);
 		auto pSphere = SceneManager::GetInstance()->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(i * 2.0f, 0.0f, 0.0f));
 		SceneManager::GetInstance()->BindMaterial(pSphere->GetSubMesh(0), pPBRMat);
 
-		pPBRMat = SceneManager::GetInstance()->CreatePBRMaterialStandard("rustediron2", Vector3(1.0f), Vector3(1.0f), 0.0f, i * 0.1f + 0.5f, 1.0f);
+		auto pPBRMatS = SceneManager::GetInstance()->CreatePBRMaterialStandard("rustediron2", Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f);
 		pSphere = SceneManager::GetInstance()->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(i * 2.0f, 2.0f, 0.0f));
-		SceneManager::GetInstance()->BindMaterial(pSphere->GetSubMesh(0), pPBRMat);
+		SceneManager::GetInstance()->BindMaterial(pSphere->GetSubMesh(0), pPBRMatS);
 	}
 
 	//SceneManager::GetInstance()->CreateFBXMeshes("D:\\NixAssets\\Cloth.fbx", pMeshes, true);

@@ -217,6 +217,7 @@
     <ClCompile Include="Core\Main.cpp" />
     <ClCompile Include="Core\NXColorMappingRenderer.cpp" />
     <ClCompile Include="Core\NXDeferredRenderer.cpp" />
+    <ClCompile Include="Core\NXDepthPeelingRenderer.cpp" />
     <ClCompile Include="Core\NXDXHelper.cpp" />
     <ClCompile Include="Core\NXEvent.cpp" />
     <ClCompile Include="Core\NXFinalRenderer.cpp" />
@@ -266,6 +267,7 @@
     <ClInclude Include="Core\ImageGenerator.h" />
     <ClInclude Include="Core\NXColorMappingRenderer.h" />
     <ClInclude Include="Core\NXDeferredRenderer.h" />
+    <ClInclude Include="Core\NXDepthPeelingRenderer.h" />
     <ClInclude Include="Core\NXDXHelper.h" />
     <ClInclude Include="Core\NXEvent.h" />
     <ClInclude Include="Core\NXFinalRenderer.h" />
@@ -457,6 +459,20 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\ColorMapping.fx">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DeploymentContent>
+      <FileType>Document</FileType>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DeploymentContent>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shader\Scene2.fx">
+      <FileType>Document</FileType>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shader\DepthPeelingCombine.fx">
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DeploymentContent>
       <FileType>Document</FileType>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DeploymentContent>

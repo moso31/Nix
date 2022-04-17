@@ -85,6 +85,9 @@
     <Filter Include="Shader\PostProcessing">
       <UniqueIdentifier>{e346dbef-9f51-4885-a786-245d7320d017}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shader\Renderer\DepthPeeling">
+      <UniqueIdentifier>{6f7950de-ac8c-442a-a2dc-47f43ee9abd9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Common.fx">
@@ -162,6 +165,12 @@
     </None>
     <None Include="Shader\ColorMapping.fx">
       <Filter>Shader\PostProcessing</Filter>
+    </None>
+    <None Include="Shader\Scene2.fx">
+      <Filter>Shader\Renderer</Filter>
+    </None>
+    <None Include="Shader\DepthPeelingCombine.fx">
+      <Filter>Shader\Renderer\DepthPeeling</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -307,6 +316,9 @@
       <Filter>Core\DirectX\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXColorMappingRenderer.cpp">
+      <Filter>Core\DirectX\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXDepthPeelingRenderer.cpp">
       <Filter>Core\DirectX\Renderer</Filter>
     </ClCompile>
   </ItemGroup>
@@ -465,6 +477,9 @@
       <Filter>Core\DirectX\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXColorMappingRenderer.h">
+      <Filter>Core\DirectX\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXDepthPeelingRenderer.h">
       <Filter>Core\DirectX\Renderer</Filter>
     </ClInclude>
   </ItemGroup>

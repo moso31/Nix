@@ -5,6 +5,7 @@
 #include "NXDepthPrepass.h"
 #include "NXDeferredRenderer.h"
 #include "NXForwardRenderer.h"
+#include "NXDepthPeelingRenderer.h"
 #include "NXSkyRenderer.h"
 #include "NXColorMappingRenderer.h"
 #include "NXFinalRenderer.h"
@@ -47,8 +48,9 @@ private:
 	NXScene*					m_scene;
 	NXPassShadowMap*			m_pPassShadowMap; 
 	NXDepthPrepass*				m_pDepthPrepass;
-	NXForwardRenderer*			m_pForwardRenderer;
 	NXDeferredRenderer*			m_pDeferredRenderer;
+	NXForwardRenderer*			m_pForwardRenderer;
+	NXDepthPeelingRenderer*		m_pDepthPeelingRenderer;
 	NXSkyRenderer*				m_pSkyRenderer;
 	NXColorMappingRenderer*		m_pColorMappingRenderer;
 	NXFinalRenderer*			m_pFinalRenderer;

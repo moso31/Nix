@@ -6,7 +6,6 @@
 #include "NXRenderStates.h"
 #include "NXGUI.h"
 
-#include "NXRenderTarget.h"
 #include "NXScene.h"
 #include "SceneManager.h"
 #include "NXCubeMap.h"
@@ -44,6 +43,9 @@ void Renderer::Init()
 
 	m_pForwardRenderer = new NXForwardRenderer(m_scene);
 	m_pForwardRenderer->Init();
+
+	m_pDepthPeelingRenderer = new NXDepthPeelingRenderer(m_scene);
+	m_pDepthPeelingRenderer->Init();
 
 	m_pSkyRenderer = new NXSkyRenderer(m_scene);
 	m_pSkyRenderer->Init();
@@ -129,7 +131,8 @@ void Renderer::RenderFrame()
 	m_pSkyRenderer->Render();
 
 	// Forward shading
-	m_pForwardRenderer->Render();
+	//m_pForwardRenderer->Render();
+	m_pDepthPeelingRenderer->Render();
 
 	//// SSAO
 	//m_pSSAO->Render(pSRVNormal, pSRVPosition, pSRVDepthPrepass);
@@ -159,6 +162,7 @@ void Renderer::Release()
 
 	SafeRelease(m_pDeferredRenderer);
 	SafeRelease(m_pForwardRenderer);
+	SafeRelease(m_pDepthPeelingRenderer);
 	SafeRelease(m_pSkyRenderer);
 	SafeRelease(m_pColorMappingRenderer);
 	SafeRelease(m_pFinalRenderer);
