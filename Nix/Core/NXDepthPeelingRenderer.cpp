@@ -8,6 +8,7 @@
 #include "NXPrimitive.h"
 #include "NXCubeMap.h"
 #include "NXRenderTarget.h"
+#include "NXCamera.h"
 
 NXDepthPeelingRenderer::NXDepthPeelingRenderer(NXScene* pScene) :
 	m_pScene(pScene),
@@ -32,7 +33,7 @@ void NXDepthPeelingRenderer::Init()
 	m_pSceneDepth[1]->CreateSRV();
 
 	m_pSceneRT.resize(m_peelingLayerCount);
-	for (int i = 0; i < m_peelingLayerCount; i++)
+	for (UINT i = 0; i < m_peelingLayerCount; i++)
 	{
 		m_pSceneRT[i] = NXResourceManager::GetInstance()->CreateTexture2D("Depth Peeling Scene RT " + std::to_string(i), DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE);
 		m_pSceneRT[i]->CreateRTV();
@@ -42,23 +43,29 @@ void NXDepthPeelingRenderer::Init()
 	m_pCombineRTData = new NXRenderTarget();
 	m_pCombineRTData->Init();
 
-	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\Scene.fx", "VS", &m_pVertexShader, NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), &m_pInputLayout);
-	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\Scene.fx", "PS", &m_pPixelShader);
+	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\ForwardTranslucent.fx", "VS", &m_pVertexShader, NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), &m_pInputLayout);
+	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\ForwardTranslucent.fx", "PS", &m_pPixelShader);
 
-	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\Scene2.fx", "VS", &m_pVertexShader2, NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), &m_pInputLayout);
-	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\Scene2.fx", "PS", &m_pPixelShader2);
+	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\ForwardTranslucent.fx", "VS", &m_pVertexShaderDepthPeeling, NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), &m_pInputLayout);
+
+	NXShaderComplier::GetInstance()->AddMacro(CD3D_SHADER_MACRO("ENABLE_DEPTH_PEELING", "1"));
+	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\ForwardTranslucent.fx", "PS", &m_pPixelShaderDepthPeeling);
 
 	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\DepthPeelingCombine.fx", "VS", &m_pVertexShaderCombine, NXGlobalInputLayout::layoutPT, ARRAYSIZE(NXGlobalInputLayout::layoutPT), &m_pInputLayoutCombine);
+
 	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\DepthPeelingCombine.fx", "PS", &m_pPixelShaderCombine);
 
 	m_pDepthStencilState = NXDepthStencilState<>::Create();
-	m_pRasterizerState = NXRasterizerState<>::Create();
+	m_pRasterizerStateFront = NXRasterizerState<D3D11_FILL_SOLID, D3D11_CULL_BACK>::Create();
+	m_pRasterizerStateBack = NXRasterizerState<D3D11_FILL_SOLID, D3D11_CULL_FRONT>::Create();
 	m_pBlendState = NXBlendState<false, false, true, D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA>::Create();
 	m_pBlendStateOpaque = NXBlendState<>::Create();
 
 	m_pSamplerLinearWrap.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP>::Create());
 	m_pSamplerLinearClamp.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP>::Create());
 	m_pSamplerPointClamp.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP>::Create());
+
+	InitConstantBuffer();
 }
 
 void NXDepthPeelingRenderer::Render()
@@ -72,9 +79,9 @@ void NXDepthPeelingRenderer::Render()
 
 	g_pContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 0);
 	g_pContext->OMSetBlendState(m_pBlendStateOpaque.Get(), nullptr, 0xffffffff);
-	g_pContext->RSSetState(m_pRasterizerState.Get());
+	g_pContext->RSSetState(m_pRasterizerStateFront.Get());
 
-	for (int i = 0; i < m_peelingLayerCount; i++)
+	for (UINT i = 0; i < m_peelingLayerCount; i++)
 	{
 		g_pUDA->BeginEvent(L"Layer");
 
@@ -96,8 +103,8 @@ void NXDepthPeelingRenderer::Render()
 		}
 		else
 		{
-			g_pContext->VSSetShader(m_pVertexShader2.Get(), nullptr, 0);
-			g_pContext->PSSetShader(m_pPixelShader2.Get(), nullptr, 0);
+			g_pContext->VSSetShader(m_pVertexShaderDepthPeeling.Get(), nullptr, 0);
+			g_pContext->PSSetShader(m_pPixelShaderDepthPeeling.Get(), nullptr, 0);
 		}
 
 		g_pContext->IASetInputLayout(m_pInputLayout.Get());
@@ -149,7 +156,7 @@ void NXDepthPeelingRenderer::Render()
 
 		g_pContext->PSSetShaderResources(11, 1, &pSRVSceneDepth[(i + 1) % 2]);
 
-		RenderLayer(i, m_peelingLayerCount);
+		RenderLayer();
 
 		ID3D11ShaderResourceView* const pNullSRV[1] = { nullptr };
 		g_pContext->PSSetShaderResources(11, 1, pNullSRV);
@@ -157,12 +164,17 @@ void NXDepthPeelingRenderer::Render()
 		g_pUDA->EndEvent();
 	}
 
-	// Combine Layer
+	// Combine Layers
 	g_pUDA->BeginEvent(L"Combine");
+
+	// 传 cb params
+	{
+		g_pContext->PSSetConstantBuffers(4, 1, m_cbDepthPeelingParams.GetAddressOf());
+	}
 
 	g_pContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 0);
 	g_pContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xffffffff);
-	g_pContext->RSSetState(m_pRasterizerState.Get());
+	g_pContext->RSSetState(m_pRasterizerStateFront.Get());
 
 	g_pContext->VSSetShader(m_pVertexShaderCombine.Get(), nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShaderCombine.Get(), nullptr, 0);
@@ -174,10 +186,17 @@ void NXDepthPeelingRenderer::Render()
 	auto pRTVMainScene = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_MainScene)->GetRTV();
 	g_pContext->OMSetRenderTargets(1, &pRTVMainScene, nullptr);
 
-	for (int i = 0; i < m_peelingLayerCount; i++)
+	for (UINT i = 0; i < m_peelingLayerCount; i++)
 	{
 		auto pSRVScene = m_pSceneRT[i]->GetSRV();
 		g_pContext->PSSetShaderResources(i, 1, &pSRVScene);
+	}
+
+	// 【我TM要疯了这个NullSRV到底要怎么处理啊啊啊啊啊啊啊啊】
+	for (UINT i = m_peelingLayerCount; i < 11; i++)
+	{
+		ID3D11ShaderResourceView* const pNullSRV[16] = { nullptr };
+		g_pContext->PSSetShaderResources(i, 1, pNullSRV);
 	}
 
 	m_pCombineRTData->Render();
@@ -199,8 +218,27 @@ void NXDepthPeelingRenderer::Release()
 	SafeDelete(m_pCombineRTData);
 }
 
-void NXDepthPeelingRenderer::RenderLayer(UINT layerIndex, UINT layerCount)
+void NXDepthPeelingRenderer::InitConstantBuffer()
 {
+	m_cbDepthPeelingParamsData.depthLayer = m_peelingLayerCount;
+	m_cbDepthPeelingParamsData._0 = Vector3(0.0f);
+
+	D3D11_BUFFER_DESC bufferDesc;
+	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = sizeof(CBufferDepthPeelingParams);
+	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbDepthPeelingParams));
+
+	g_pContext->UpdateSubresource(m_cbDepthPeelingParams.Get(), 0, nullptr, &m_cbDepthPeelingParamsData, 0, 0);
+}
+
+void NXDepthPeelingRenderer::RenderLayer()
+{
+	auto pMainCamera = m_pScene->GetMainCamera();
+	Vector3 cameraPos = pMainCamera ? Vector3(0.0f) : pMainCamera->GetTranslation();
+
 	// 2022.4.14 只渲染 Transparent 物体
 	for (auto pMat : m_pScene->GetMaterials())
 	{
@@ -226,7 +264,18 @@ void NXDepthPeelingRenderer::RenderLayer(UINT layerIndex, UINT layerCount)
 			auto pCBMaterial = pPBRMat->GetConstantBuffer();
 			g_pContext->PSSetConstantBuffers(3, 1, &pCBMaterial);
 
-			for (auto pSubMesh : pPBRMat->GetRefSubMeshes())
+			// 2022.4.18 
+			// 单个材质由远及近排序，尽量避免半透渲染透视关系错误的问题但作用有限。主要还是得靠OIT。
+			auto& subMeshes = pPBRMat->GetRefSubMeshes();
+			std::sort(subMeshes.begin(), subMeshes.end(), [cameraPos](NXSubMesh* meshA, NXSubMesh* meshB) { 
+				Vector3 posA = meshA->GetPrimitive()->GetTranslation();
+				Vector3 posB = meshB->GetPrimitive()->GetTranslation();
+				float distA = Vector3::Distance(posA, cameraPos);
+				float distB = Vector3::Distance(posB, cameraPos);
+				return distA > distB;
+			});
+
+			for (auto pSubMesh : subMeshes)
 			{
 				if (pSubMesh)
 				{
@@ -234,6 +283,11 @@ void NXDepthPeelingRenderer::RenderLayer(UINT layerIndex, UINT layerCount)
 					g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 
 					pSubMesh->Update();
+
+					// 渲染两遍，先远后近
+					g_pContext->RSSetState(m_pRasterizerStateBack.Get());
+					pSubMesh->Render();
+					g_pContext->RSSetState(m_pRasterizerStateFront.Get());
 					pSubMesh->Render();
 				}
 			}

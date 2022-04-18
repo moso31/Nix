@@ -2,6 +2,12 @@
 #include "header.h"
 #include "ShaderStructures.h"
 
+struct CBufferDepthPeelingParams
+{
+	int depthLayer;
+	Vector3 _0;
+};
+
 class NXDepthPeelingRenderer
 {
 public:
@@ -14,8 +20,8 @@ public:
 	void Release();
 
 private:
-	void RenderLayer(UINT layerIndex, UINT layerCount);
-	void CombineLayer(UINT layerIndex, UINT layerCount);
+	void InitConstantBuffer();
+	void RenderLayer();
 
 private:
 	ComPtr<ID3D11VertexShader>			m_pVertexShader;
@@ -23,7 +29,8 @@ private:
 	ComPtr<ID3D11InputLayout>			m_pInputLayout;
 
 	ComPtr<ID3D11DepthStencilState>		m_pDepthStencilState;
-	ComPtr<ID3D11RasterizerState>		m_pRasterizerState;
+	ComPtr<ID3D11RasterizerState>		m_pRasterizerStateFront;
+	ComPtr<ID3D11RasterizerState>		m_pRasterizerStateBack;
 	ComPtr<ID3D11BlendState>			m_pBlendState;
 	ComPtr<ID3D11BlendState>			m_pBlendStateOpaque;
 
@@ -36,12 +43,15 @@ private:
 	NXTexture2D*						m_pSceneCombineRT;
 	NXRenderTarget*						m_pCombineRTData;
 
-	ComPtr<ID3D11VertexShader>			m_pVertexShader2;
-	ComPtr<ID3D11PixelShader>			m_pPixelShader2;
+	ComPtr<ID3D11VertexShader>			m_pVertexShaderDepthPeeling;
+	ComPtr<ID3D11PixelShader>			m_pPixelShaderDepthPeeling;
 
 	ComPtr<ID3D11VertexShader>			m_pVertexShaderCombine;
 	ComPtr<ID3D11PixelShader>			m_pPixelShaderCombine;
 	ComPtr<ID3D11InputLayout>			m_pInputLayoutCombine;
+
+	ComPtr<ID3D11Buffer>				m_cbDepthPeelingParams;
+	CBufferDepthPeelingParams			m_cbDepthPeelingParamsData;
 
 	NXScene* m_pScene;
 

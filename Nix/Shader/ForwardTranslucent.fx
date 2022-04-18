@@ -18,7 +18,9 @@ Texture2D txDepthPeeling : register(t11);
 
 SamplerState ssLinearWrap : register(s0);
 SamplerState ssLinearClamp : register(s1);
+#if ENABLE_DEPTH_PEELING
 SamplerState ssPointClamp : register(s2);
+#endif
 
 cbuffer ConstantBufferCamera : register(b1)
 {
@@ -90,13 +92,14 @@ PS_INPUT VS(VS_INPUT input)
 
 float4 PS(PS_INPUT input) : SV_Target
 {
-	float2 uv = input.posSS / float2(1600.0f, 900.0f);
-
+#if ENABLE_DEPTH_PEELING
+	float2 uv = input.posSS.xy / float2(1600.0f, 900.0f);
 	float depthPeelingPos = txDepthPeeling.Sample(ssPointClamp, uv).x;
 
 	float4 pos = mul(input.posVS, m_projection);
-	float g = pos.z / pos.w;
-	clip(g - depthPeelingPos - 1e-5f);
+	float currentPos = pos.z / pos.w;
+	clip(currentPos - depthPeelingPos - 1e-5f);
+#endif
 
 	float3 normalMap = txNormalMap.Sample(ssLinearWrap, input.tex).xyz;
 	float3 normal = m_material.normal * normalMap;
