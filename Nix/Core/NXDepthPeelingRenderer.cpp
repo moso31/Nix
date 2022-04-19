@@ -12,7 +12,7 @@
 
 NXDepthPeelingRenderer::NXDepthPeelingRenderer(NXScene* pScene) :
 	m_pScene(pScene),
-	m_peelingLayerCount(11)
+	m_peelingLayerCount(3)
 {
 }
 
@@ -193,15 +193,11 @@ void NXDepthPeelingRenderer::Render()
 	}
 
 	// 【我TM要疯了这个NullSRV到底要怎么处理啊啊啊啊啊啊啊啊】
-	for (UINT i = m_peelingLayerCount; i < 11; i++)
-	{
-		ID3D11ShaderResourceView* const pNullSRV[16] = { nullptr };
-		g_pContext->PSSetShaderResources(i, 1, pNullSRV);
-	}
+	ID3D11ShaderResourceView* const pNullSRV[16] = { nullptr };
+	g_pContext->PSSetShaderResources(m_peelingLayerCount, 16 - m_peelingLayerCount, pNullSRV);
 
 	m_pCombineRTData->Render();
 
-	ID3D11ShaderResourceView* const pNullSRV[16] = { nullptr };
 	g_pContext->PSSetShaderResources(0, m_peelingLayerCount, pNullSRV);
 
 	g_pUDA->EndEvent();
@@ -285,8 +281,8 @@ void NXDepthPeelingRenderer::RenderLayer()
 					pSubMesh->Update();
 
 					// 渲染两遍，先远后近
-					g_pContext->RSSetState(m_pRasterizerStateBack.Get());
-					pSubMesh->Render();
+					//g_pContext->RSSetState(m_pRasterizerStateBack.Get());
+					//pSubMesh->Render();
 					g_pContext->RSSetState(m_pRasterizerStateFront.Get());
 					pSubMesh->Render();
 				}

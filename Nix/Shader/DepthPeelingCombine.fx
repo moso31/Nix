@@ -54,8 +54,8 @@ float4 PS(PS_INPUT input) : SV_Target
 	SceneColorLayer[9] = txSceneLayer9.Sample(ssPointClamp, input.tex);
 	SceneColorLayer[10] = txSceneLayer10.Sample(ssPointClamp, input.tex);
 
-	float4 SceneColor;
-	for (int i = m_depthLayer - 1; i >= 0; i--)
+	float4 SceneColor = SceneColorLayer[m_depthLayer - 1];
+	for (int i = m_depthLayer - 2; i >= 0; i--)
 	{
 		SceneColor = lerp(SceneColor, SceneColorLayer[i], SceneColorLayer[i].w);
 	}
