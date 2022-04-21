@@ -5,7 +5,7 @@
 #include "DirectResources.h"
 #include "NXResourceManager.h"
 #include "NXScene.h"
-#include "NXPrimitive.h"
+#include "NXPrefab.h"
 
 NXDepthPrepass::NXDepthPrepass(NXScene* pScene) :
 	m_pInputLayout(nullptr),
@@ -52,30 +52,34 @@ void NXDepthPrepass::Render()
 	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
 	g_pContext->PSSetSamplers(0, 1, m_pSamplerLinearWrap.GetAddressOf());
 
-	for (auto pPrim : m_pScene->GetPrimitives())
+	for (auto pRenderObj : m_pScene->GetRenderableObjects())
 	{
-		pPrim->UpdateViewParams();
-		g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
+		//if (pRenderObj->GetType() == NXType::ePrimitive)
+		//{
+		//	auto pPrim = static_cast<NXPrimitive*>(pRenderObj);
+		//	pPrim->UpdateViewParams();
+		//	g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 
-		for (UINT i = 0; i < pPrim->GetSubMeshCount(); i++)
-		{
-			auto pSubMesh = pPrim->GetSubMesh(i);
-			pSubMesh->Update();
+		//	for (UINT i = 0; i < pPrim->GetSubMeshCount(); i++)
+		//	{
+		//		auto pSubMesh = pPrim->GetSubMesh(i);
+		//		pSubMesh->Update();
 
-			auto pMat = pSubMesh->GetMaterial();
-			if (pMat->IsPBRType())
-			{
-				NXPBRMaterialBase* pMat = static_cast<NXPBRMaterialBase*>(pSubMesh->GetMaterial());
+		//		auto pMat = pSubMesh->GetMaterial();
+		//		if (pMat->IsPBRType())
+		//		{
+		//			NXPBRMaterialBase* pMat = static_cast<NXPBRMaterialBase*>(pSubMesh->GetMaterial());
 
-				auto pSRVNormal = pMat->GetSRVNormal();
-				g_pContext->PSSetShaderResources(0, 1, &pSRVNormal);
-			}
+		//			auto pSRVNormal = pMat->GetSRVNormal();
+		//			g_pContext->PSSetShaderResources(0, 1, &pSRVNormal);
+		//		}
 
-			auto pCBMaterial = pMat->GetConstantBuffer();
-			g_pContext->PSSetConstantBuffers(2, 1, &pCBMaterial);
+		//		auto pCBMaterial = pMat->GetConstantBuffer();
+		//		g_pContext->PSSetConstantBuffers(2, 1, &pCBMaterial);
 
-			pSubMesh->Render();
-		}
+		//		pSubMesh->Render();
+		//	}
+		//}
 	}
 
 	ID3D11RenderTargetView* nullViews[2] = { nullptr, nullptr };

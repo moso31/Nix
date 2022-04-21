@@ -22,29 +22,12 @@ void NXPrimitive::UpdateViewParams()
 	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbObject.Get(), 0, nullptr, &NXGlobalBufferManager::m_cbDataObject, 0, 0);
 }
 
-void NXPrimitive::Release()
-{
-	NXObject::Release();
-}
-
 void NXPrimitive::CalculateTangents(bool bUpdateVertexIndexBuffer)
 {
 	for (UINT i = 0; i < GetSubMeshCount(); i++)
 	{
 		GetSubMesh(i)->CalculateTangents(bUpdateVertexIndexBuffer);
 	}
-}
-
-AABB NXPrimitive::GetAABBWorld()
-{
-	AABB worldAABB;
-	AABB::Transform(m_aabb, m_worldMatrix, worldAABB);
-	return worldAABB;
-}
-
-AABB NXPrimitive::GetAABBLocal() const
-{
-	return m_aabb;
 }
 
 bool NXPrimitive::RayCast(const Ray& worldRay, NXHit& outHitInfo, float& outDist)

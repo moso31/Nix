@@ -1,5 +1,6 @@
 #include "SceneManager.h"
 #include "NXScene.h"
+#include "NXPrefab.h"
 #include "NXPrimitive.h"
 #include "FBXMeshLoader.h"
 #include "NXSubMeshGeometryEditor.h"
@@ -18,7 +19,7 @@ void SceneManager::BuildBVHTrees(const HBVHSplitMode SplitMode)
 {
 	SafeRelease(s_pWorkingScene->m_pBVHTree);
 
-	s_pWorkingScene->m_pBVHTree = new HBVHTree(s_pWorkingScene, s_pWorkingScene->m_primitives);
+	s_pWorkingScene->m_pBVHTree = new HBVHTree(s_pWorkingScene);
 	s_pWorkingScene->m_pBVHTree->BuildTreesWithScene(SplitMode);
 }
 
@@ -98,7 +99,7 @@ NXPrimitive* SceneManager::CreatePlane(const std::string name, const float width
 	return p;
 }
 
-bool SceneManager::CreateFBXMeshes(const std::string filePath, std::vector<NXPrimitive*>& outMeshes, bool bAutoCalcTangents)
+bool SceneManager::CreateFBXMeshes(const std::string filePath, NXPrefab* pOutPrefab, bool bAutoCalcTangents)
 {
 	FBXMeshLoader::LoadFBXFile(filePath, s_pWorkingScene, outMeshes, bAutoCalcTangents);
 	for (auto it = outMeshes.begin(); it != outMeshes.end(); it++)
@@ -275,10 +276,18 @@ void SceneManager::RegisterCubeMap(NXCubeMap* newCubeMap)
 
 void SceneManager::RegisterPrimitive(NXPrimitive* newPrimitive, NXObject* pParent)
 {
-	s_pWorkingScene->m_primitives.push_back(newPrimitive);
+	s_pWorkingScene->m_renderableObjects.push_back(newPrimitive);
 	s_pWorkingScene->m_objects.push_back(newPrimitive);
 
 	newPrimitive->SetParent(pParent ? pParent : s_pWorkingScene->m_pRootObject);
+}
+
+void SceneManager::RegisterPrefab(NXPrefab* newPrefab, NXObject* pParent)
+{
+	s_pWorkingScene->m_renderableObjects.push_back(newPrefab);
+	s_pWorkingScene->m_objects.push_back(newPrefab);
+
+	newPrefab->SetParent(pParent ? pParent : s_pWorkingScene->m_pRootObject);
 }
 
 void SceneManager::RegisterCamera(NXCamera* newCamera, bool isMainCamera, NXObject* pParent)

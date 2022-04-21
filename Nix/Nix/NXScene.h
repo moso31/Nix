@@ -34,7 +34,7 @@ public:
 	AABB GetAABB() { return m_aabb; }
 
 	NXCamera* GetMainCamera() { return m_pMainCamera; }
-	std::vector<NXPrimitive*> GetPrimitives() { return m_primitives; }
+	std::vector<NXRenderableObject*> GetRenderableObjects() { return m_renderableObjects; }
 	std::vector<NXMaterial*> GetMaterials() { return m_materials; }
 	std::vector<NXPBRLight*> GetPBRLights() { return m_pbrLights; }
 	NXCubeMap* GetCubeMap() { return m_pCubeMap; }
@@ -67,9 +67,8 @@ private:
 	// Òþ²ØµÄ¸ùobject
 	NXObject* m_pRootObject;
 	std::vector<NXObject*> m_objects;
-	//std::vector<NXScript*> m_scripts;
 
-	std::vector<NXPrimitive*> m_primitives;
+	std::vector<NXRenderableObject*> m_renderableObjects;
 	std::vector<NXMaterial*> m_materials;
 	std::vector<NXPBRLight*> m_pbrLights;
 

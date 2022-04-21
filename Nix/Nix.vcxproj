@@ -243,6 +243,8 @@
     <ClCompile Include="Nix\NXCubeMap.cpp" />
     <ClCompile Include="Nix\NXPBRLight.cpp" />
     <ClCompile Include="Nix\NXPBRMaterial.cpp" />
+    <ClCompile Include="Nix\NXPrefab.cpp" />
+    <ClCompile Include="Nix\NXRenderableObject.cpp" />
     <ClCompile Include="Nix\NXSimpleSSAO.cpp" />
     <ClCompile Include="Nix\NXSubMesh.cpp" />
     <ClCompile Include="Nix\NXSubMeshGeometryEditor.cpp" />
@@ -297,6 +299,8 @@
     <ClInclude Include="Nix\NXCubeMap.h" />
     <ClInclude Include="Nix\NXPBRLight.h" />
     <ClInclude Include="Nix\NXPBRMaterial.h" />
+    <ClInclude Include="Nix\NXPrefab.h" />
+    <ClInclude Include="Nix\NXRenderableObject.h" />
     <ClInclude Include="Nix\NXSimpleSSAO.h" />
     <ClInclude Include="Nix\NXSubMesh.h" />
     <ClInclude Include="Nix\NXSubMeshGeometryEditor.h" />

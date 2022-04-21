@@ -16,9 +16,8 @@ inline int EncodeMorton3(const XMINT3 &v) {
 	return (LeftShift3(v.z) << 2) | (LeftShift3(v.y) << 1) | LeftShift3(v.x);
 }
 
-HBVHTree::HBVHTree(NXScene* scene, const std::vector<NXPrimitive*>& pPrimitives) :
+HBVHTree::HBVHTree(NXScene* scene) :
 	m_pScene(scene),
-	m_primitives(scene->GetPrimitives()),
 	root(nullptr)
 {
 }
@@ -36,8 +35,8 @@ void HBVHTree::BuildTreesWithScene(HBVHSplitMode mode)
 	auto time_st = GetTickCount64();
 
 	m_buildMode = mode;
-	m_primitives = m_pScene->GetPrimitives();
-	if (m_primitives.empty())
+	auto pRenderableObjects = m_pScene->GetRenderableObjects();
+	if (pRenderableObjects.empty())
 	{
 		return;
 	}
@@ -47,7 +46,7 @@ void HBVHTree::BuildTreesWithScene(HBVHSplitMode mode)
 	int skipCount = 0;	// 跳过的primitive总数（诸如line之类不可能相交计算的primitive都会被跳过）。
 	if (mode != HLBVH)
 	{
-		for (auto it = m_primitives.begin(); it < m_primitives.end(); it++)
+		for (auto it = pRenderableObjects.begin(); it < pRenderableObjects.end(); it++)
 		{
 			//if ((*it)->GetRenderType() == eRenderType::Shape)
 			{
@@ -68,7 +67,7 @@ void HBVHTree::BuildTreesWithScene(HBVHSplitMode mode)
 	else
 	{
 		// 遍历所有primitive
-		for (auto it = m_primitives.begin(); it < m_primitives.end(); it++)
+		for (auto it = pRenderableObjects.begin(); it < pRenderableObjects.end(); it++)
 		{
 			HBVHMortonPrimitiveInfo primitiveInfo;
 			primitiveInfo.index = count++;
@@ -298,6 +297,8 @@ void HBVHTree::BuildTree(HBVHTreeNode * node, int stIndex, int edIndex, HBVHSpli
 
 void HBVHTree::RecursiveIntersect(HBVHTreeNode* node, const Ray& worldRay, NXHit& outHitInfo, float& out_tHit)
 {
+	auto pRenderableObjects = m_pScene->GetRenderableObjects();
+
 	float t0, t1;
 	auto v1 = node->aabb.GetMax();
 	auto v2 = node->aabb.GetMin();
@@ -319,13 +320,13 @@ void HBVHTree::RecursiveIntersect(HBVHTreeNode* node, const Ray& worldRay, NXHit
 					{
 						int idx = m_treeletInfo[i].startIndex + j;
 
-						//if (pPrimitives[m_mortonPrimitiveInfo[idx].index]->GetRenderType() == eRenderType::Shape)
+						//if (pRenderableObjects[m_mortonPrimitiveInfo[idx].index]->GetRenderType() == eRenderType::Shape)
 						{
-							//auto str = pPrimitives[m_mortonPrimitiveInfo[idx].index]->GetName();
+							//auto str = pRenderableObjects[m_mortonPrimitiveInfo[idx].index]->GetName();
 
 							if (worldRay.IntersectsFast(m_mortonPrimitiveInfo[idx].aabb, t0, t1))
 							{
-								auto pPrim = m_primitives[m_mortonPrimitiveInfo[idx].index];
+								auto pPrim = pRenderableObjects[m_mortonPrimitiveInfo[idx].index];
 
 								float tHit = FLT_MAX;
 								NXHit hitInfo;
@@ -347,13 +348,13 @@ void HBVHTree::RecursiveIntersect(HBVHTreeNode* node, const Ray& worldRay, NXHit
 				// leaf
 				for (int i = node->index; i < node->index + node->offset; i++)
 				{
-					auto str = m_primitives[m_primitiveInfo[i].index]->GetName();
+					auto str = pRenderableObjects[m_primitiveInfo[i].index]->GetName();
 
-					//if (pPrimitives[m_primitiveInfo[i].index]->GetRenderType() == eRenderType::Shape)
+					//if (pRenderableObjects[m_primitiveInfo[i].index]->GetRenderType() == eRenderType::Shape)
 					{
 						if (worldRay.IntersectsFast(m_primitiveInfo[i].aabb, t0, t1))
 						{
-							auto pPrim = m_primitives[m_primitiveInfo[i].index];
+							auto pPrim = pRenderableObjects[m_primitiveInfo[i].index];
 
 							float tHit = FLT_MAX;
 							NXHit hitInfo;
@@ -381,6 +382,8 @@ void HBVHTree::RecursiveIntersect(HBVHTreeNode* node, const Ray& worldRay, NXHit
 
 HBVHTreeNode* HBVHTree::BuildTreelet(int stIndex, int edIndex, int bitIndex)
 {
+	auto pRenderableObjects = m_pScene->GetRenderableObjects();
+
 	// 如果已经没有递归位分割，直接创建一个包括stIndex到edIndex所有primitive的子节点，并停止分割
 	// 一般分到这么细（十亿分之一）基本上不会剩下什么重复的东西了，对性能的影响不大。
 	if (bitIndex == -1)
@@ -388,8 +391,8 @@ HBVHTreeNode* HBVHTree::BuildTreelet(int stIndex, int edIndex, int bitIndex)
 		HBVHTreeNode* result = new HBVHTreeNode();
 		for (int i = stIndex; i < edIndex; i++)
 		{
-			auto tt = m_primitives[m_mortonPrimitiveInfo[i].index]->GetAABBWorld();
-			AABB::CreateMerged(result->aabb, result->aabb, m_primitives[m_mortonPrimitiveInfo[i].index]->GetAABBWorld());
+			auto tt = pRenderableObjects[m_mortonPrimitiveInfo[i].index]->GetAABBWorld();
+			AABB::CreateMerged(result->aabb, result->aabb, pRenderableObjects[m_mortonPrimitiveInfo[i].index]->GetAABBWorld());
 		}
 		result->index = stIndex;
 		result->offset = edIndex - stIndex;
@@ -419,7 +422,7 @@ HBVHTreeNode* HBVHTree::BuildTreelet(int stIndex, int edIndex, int bitIndex)
 	HBVHTreeNode* result = new HBVHTreeNode();
 	for (int i = stIndex; i < edIndex; i++)
 	{
-		AABB::CreateMerged(result->aabb, result->aabb, m_primitives[m_mortonPrimitiveInfo[i].index]->GetAABBWorld());
+		AABB::CreateMerged(result->aabb, result->aabb, pRenderableObjects[m_mortonPrimitiveInfo[i].index]->GetAABBWorld());
 	}
 	result->index = stIndex;
 	result->offset = edIndex - stIndex;

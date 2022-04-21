@@ -5,6 +5,7 @@
 #include "NXIntersection.h"
 #include "NXRandom.h"
 
+#include "NXPrefab.h"
 #include "NXPrimitive.h"
 #include "NXCamera.h"
 
@@ -52,36 +53,36 @@ void NXScene::OnMouseDown(NXEventArgMouse eArg)
 
 void NXScene::OnKeyDown(NXEventArgKey eArg)
 {
-	if (eArg.VKey == 'H')
-	{
-		// 创建求交加速结构以增加渲染速度。
-		printf("Generating BVH Structure...");
-		BuildBVHTrees(HBVHSplitMode::HLBVH);
-		printf("done.\n");
+	//if (eArg.VKey == 'H')
+	//{
+	//	// 创建求交加速结构以增加渲染速度。
+	//	printf("Generating BVH Structure...");
+	//	BuildBVHTrees(HBVHSplitMode::HLBVH);
+	//	printf("done.\n");
 
-		Vector2 sampleCoord = Vector2((float)200 * 0.5f, (float)150 * 0.5f);
-		Ray rayWorld = GetMainCamera()->GenerateRay(sampleCoord, Vector2((float)200, (float)150));
+	//	Vector2 sampleCoord = Vector2((float)200 * 0.5f, (float)150 * 0.5f);
+	//	Ray rayWorld = GetMainCamera()->GenerateRay(sampleCoord, Vector2((float)200, (float)150));
 
-		NXHit hit;
-		RayCast(rayWorld, hit);
-		if (hit.pSubMesh)
-		{
-			RayCast(rayWorld, hit);
-		}
+	//	NXHit hit;
+	//	RayCast(rayWorld, hit);
+	//	if (hit.pSubMesh)
+	//	{
+	//		RayCast(rayWorld, hit);
+	//	}
 
-		if (!GetPrimitives().empty())
-		{
-			auto pMainCamera = GetMainCamera();
-			printf("camera: pos %f, %f, %f, at %f, %f, %f\n",
-				pMainCamera->GetTranslation().x,
-				pMainCamera->GetTranslation().y,
-				pMainCamera->GetTranslation().z,
-				pMainCamera->GetAt().x,
-				pMainCamera->GetAt().y,
-				pMainCamera->GetAt().z);
-			printf("done.\n");
-		}
-	}
+	//	if (!GetPrimitives().empty())
+	//	{
+	//		auto pMainCamera = GetMainCamera();
+	//		printf("camera: pos %f, %f, %f, at %f, %f, %f\n",
+	//			pMainCamera->GetTranslation().x,
+	//			pMainCamera->GetTranslation().y,
+	//			pMainCamera->GetTranslation().z,
+	//			pMainCamera->GetAt().x,
+	//			pMainCamera->GetAt().y,
+	//			pMainCamera->GetAt().z);
+	//		printf("done.\n");
+	//	}
+	//}
 }
 
 void NXScene::Init()
@@ -356,17 +357,17 @@ bool NXScene::RayCast(const Ray& ray, NXHit& outHitInfo, float tMax)
 	}
 	else
 	{
-		for (auto prim : GetPrimitives())
+		for (auto pMesh : m_renderableObjects)
 		{
 			// ray-aabb
 			float aabbDist, aabbOutDist;
-			if (ray.IntersectsFast(prim->GetAABBWorld(), aabbOutDist))
+			if (ray.IntersectsFast(pMesh->GetAABBWorld(), aabbOutDist))
 			{
 				aabbDist = aabbOutDist;
 				if (aabbDist < outDist)
 				{
 					// ray-triangle
-					if (prim->RayCast(ray, outHitInfo, outDist))
+					if (pMesh->RayCast(ray, outHitInfo, outDist))
 					{
 						// 得到了更近的相交结果。
 						// 保留当前outHitInfo和outDist。
@@ -420,9 +421,9 @@ bool NXScene::RayCast(const Ray& ray, NXHit& outHitInfo, float tMax)
 void NXScene::InitBoundingStructures()
 {
 	// construct AABB for scene.
-	for (auto prim : GetPrimitives())
+	for (auto pMesh : m_renderableObjects)
 	{
-		AABB::CreateMerged(m_aabb, m_aabb, prim->GetAABBWorld());
+		AABB::CreateMerged(m_aabb, m_aabb, pMesh->GetAABBWorld());
 	}
 
 	BoundingSphere::CreateFromBoundingBox(m_boundingSphere, m_aabb);

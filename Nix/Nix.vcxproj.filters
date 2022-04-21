@@ -318,6 +318,12 @@
     <ClCompile Include="Core\NXDepthPeelingRenderer.cpp">
       <Filter>Core\DirectX\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\NXPrefab.cpp">
+      <Filter>Nix\Object\Transform\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXRenderableObject.cpp">
+      <Filter>Nix\Object\Transform\Primitive</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -478,6 +484,12 @@
     </ClInclude>
     <ClInclude Include="Core\NXDepthPeelingRenderer.h">
       <Filter>Core\DirectX\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXPrefab.h">
+      <Filter>Nix\Object\Transform\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXRenderableObject.h">
+      <Filter>Nix\Object\Transform\Primitive</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

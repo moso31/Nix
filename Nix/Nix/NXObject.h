@@ -1,21 +1,22 @@
 #pragma once
 #include "Header.h"
 
+// 枚举类型。2021.2.16
+// 用于建立NXObject类型到子类型的映射。
+enum NXType
+{
+	eNone,
+
+	eScene,
+
+	ePrimitive,
+	ePrefab,
+	eCamera,
+};
+
 class NXObject
 {
 public:
-	// 枚举类型。2021.2.16
-	// 用于建立NXObject类型到子类型的映射。
-	enum class NXType
-	{
-		eNone,
-
-		eScene,
-
-		ePrimitive,
-		eCamera,
-	};
-
 	NXObject();
 	virtual ~NXObject();
 
