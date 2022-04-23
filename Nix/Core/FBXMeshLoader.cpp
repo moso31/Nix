@@ -1,5 +1,6 @@
 #include "FBXMeshLoader.h"
 #include "NXPrimitive.h"
+#include "NXPrefab.h"
 #include "NXScene.h"
 #include "NXSubMeshGeometryEditor.h"
 
@@ -8,413 +9,7 @@
 	#define IOS_REF (*(pManager->GetIOSettings()))
 #endif
 
-void FBXMeshLoader::LoadContent(FbxNode* pNode, NXPrimitive* pEngineMesh, std::vector<NXPrimitive*>& outMeshes, bool bAutoCalcTangents)
-{
-	FbxNodeAttribute::EType lAttributeType;
-	int i;
-
-	if (pNode->GetNodeAttribute() == NULL)
-	{
-		FBXSDK_printf("NULL Node Attribute\n\n");
-	}
-	else
-	{
-		lAttributeType = (pNode->GetNodeAttribute()->GetAttributeType());
-		if (lAttributeType == FbxNodeAttribute::eMesh)
-		{
-			LoadMesh(pNode, pEngineMesh, bAutoCalcTangents);
-
-			if (pEngineMesh)
-			{
-				pEngineMesh->SetName(pNode->GetName());
-
-				LoadNodeTransformInfo(pNode, pEngineMesh);
-				outMeshes.push_back(pEngineMesh);
-
-				for (i = 0; i < pNode->GetChildCount(); i++)
-				{
-					NXPrimitive* pChildMesh = new NXPrimitive();
-					LoadContent(pNode->GetChild(i), pChildMesh, outMeshes, bAutoCalcTangents);
-					pChildMesh->SetParent(pEngineMesh);
-				}
-			}
-		}
-	}
-}
-
-void FBXMeshLoader::LoadNodeTransformInfo(FbxNode* pNode, NXPrimitive* pEngineMesh)
-{
-	FbxDouble3 fVec = pNode->LclTranslation.Get();
-	Vector3 vec = { (float)fVec[0], (float)fVec[1], (float)fVec[2] };
-	pEngineMesh->SetTranslation(vec);
-
-	fVec = pNode->LclRotation.Get();
-	vec = { (float)fVec[0], (float)fVec[1], (float)fVec[2] };
-	pEngineMesh->SetRotation(vec);
-
-	fVec = pNode->LclScaling.Get();
-	vec = { (float)fVec[0], (float)fVec[1], (float)fVec[2] };
-	pEngineMesh->SetScale(vec);
-}
-
-void FBXMeshLoader::LoadMesh(FbxNode* pNode, NXPrimitive* pEngineMesh, bool bAutoCalcTangents)
-{
-	FbxMesh* lMesh = (FbxMesh*)pNode->GetNodeAttribute();
-	int lSubMeshCount = pNode->GetMaterialCount();
-
-	LoadPolygons(lMesh, pEngineMesh, lSubMeshCount, bAutoCalcTangents);
-}
-
-void FBXMeshLoader::LoadPolygons(FbxMesh* pMesh, NXPrimitive* pEngineMesh, int lSubMeshCount, bool bAutoCalcTangents)
-{
-	int i, j, lPolygonCount = pMesh->GetPolygonCount();
-	FbxVector4* lControlPoints = pMesh->GetControlPoints();
-
-	// 在只有一个SubMesh的情况下fbx不会创建对应的ElementMaterial索引（在fbx sdk中SubMesh叫做ElementMaterial）
-	// 这种情况下需要Nix手动创建一个，所以在Nix中SubMesh至少有一个。
-	bool bSubMeshes = lSubMeshCount > 0;
-	lSubMeshCount = max(lSubMeshCount, 1);
-
-	// SubMesh数量已经有了，
-	// 接下来，先统计每个SubMesh的Polygon/Vertex/Index数量，再读取每个顶点的VertexPNTT数据。
-	UINT* pSubMeshPolygonsCounts = new UINT[lSubMeshCount];
-	UINT* pSubMeshVerticesCounts = new UINT[lSubMeshCount];
-	UINT* pSubMeshIndicesCounts = new UINT[lSubMeshCount];
-	memset(pSubMeshPolygonsCounts, 0, sizeof(UINT) * lSubMeshCount);
-	memset(pSubMeshVerticesCounts, 0, sizeof(UINT) * lSubMeshCount);
-	memset(pSubMeshIndicesCounts, 0, sizeof(UINT) * lSubMeshCount);
-
-	if (bSubMeshes)
-	{
-		for (i = 0; i < lPolygonCount; i++)
-		{
-			int lPolygonSize = pMesh->GetPolygonSize(i);
-			assert(lPolygonSize >= 3);
-
-			FbxGeometryElementMaterial* leMat = pMesh->GetElementMaterial(0);
-			switch (leMat->GetMappingMode())
-			{
-			case FbxGeometryElement::eByPolygon:
-				if (leMat->GetReferenceMode() == FbxGeometryElement::eIndexToDirect)
-				{
-					int leMatIndex = leMat->GetIndexArray().GetAt(i);
-					assert(leMatIndex != -1);
-
-					pSubMeshPolygonsCounts[leMatIndex]++;
-					pSubMeshVerticesCounts[leMatIndex] += (lPolygonSize - 2) * 3;
-					break;
-				}
-			}
-		}
-	}
-	else
-	{
-		for (i = 0; i < lPolygonCount; i++)
-		{
-			int lPolygonSize = pMesh->GetPolygonSize(i);
-			assert(lPolygonSize >= 3);
-			pSubMeshPolygonsCounts[0]++;
-			pSubMeshVerticesCounts[0] += (lPolygonSize - 2) * 3;
-		}
-	}
-
-	for (int i = 0; i < lSubMeshCount; i++) pSubMeshIndicesCounts[i] = pSubMeshVerticesCounts[i];
-
-	// 分配Vertex/Index data内存空间
-	VertexPNTT** ppMeshVerticesData = new VertexPNTT*[lSubMeshCount];
-	UINT** ppMeshIndicesData = new UINT*[lSubMeshCount];
-	for (int i = 0; i < lSubMeshCount; i++)
-	{
-		ppMeshVerticesData[i] = new VertexPNTT[pSubMeshVerticesCounts[i]];
-		ppMeshIndicesData[i] = new UINT[pSubMeshIndicesCounts[i]];
-
-		memset(ppMeshVerticesData[i], 0, sizeof(UINT) * pSubMeshVerticesCounts[i]);
-		memset(ppMeshIndicesData[i], 0, sizeof(UINT) * pSubMeshIndicesCounts[i]);
-	}
-
-	// 递增id
-	UINT* ppSubMeshVertexId = new UINT[lSubMeshCount];
-	UINT* ppSubMeshIndexId = new UINT[lSubMeshCount];
-	memset(ppSubMeshVertexId, 0, sizeof(UINT) * lSubMeshCount);
-	memset(ppSubMeshIndexId, 0, sizeof(UINT) * lSubMeshCount);
-
-	// 读取所有多边形数据
-	int vertexId = 0, indexId = 0;
-	for (i = 0; i < lPolygonCount; i++)
-	{
-		int l;
-		int lSubMeshId = -1;
-
-		if (bSubMeshes)
-		{
-			FbxGeometryElementMaterial* leMat = pMesh->GetElementMaterial(0);
-			switch (leMat->GetMappingMode())
-			{
-			case FbxGeometryElement::eByPolygon:
-				if (leMat->GetReferenceMode() == FbxGeometryElement::eIndexToDirect)
-				{
-					lSubMeshId = leMat->GetIndexArray().GetAt(i);
-					assert(lSubMeshId != -1);
-					break;
-				}
-			}
-		}
-		else
-		{
-			lSubMeshId = 0;
-		}
-
-		for (l = 0; l < pMesh->GetElementPolygonGroupCount(); l++)
-		{
-			FbxGeometryElementPolygonGroup* lePolgrp = pMesh->GetElementPolygonGroup(l);
-			switch (lePolgrp->GetMappingMode())
-			{
-			case FbxGeometryElement::eByPolygon:
-				if (lePolgrp->GetReferenceMode() == FbxGeometryElement::eIndex)
-				{
-					int polyGroupId = lePolgrp->GetIndexArray().GetAt(i);
-					break;
-				}
-			default:
-				break;
-			}
-		}
-
-		int lPolygonSize = pMesh->GetPolygonSize(i);
-		VertexPNTT* pPolygonVerticesData = new VertexPNTT[lPolygonSize];
-
-		for (j = 0; j < lPolygonSize; j++)
-		{
-			int lControlPointIndex = pMesh->GetPolygonVertex(i, j);
-			FbxVector4 posData = lControlPoints[lControlPointIndex];
-			pPolygonVerticesData[j].pos = Vector3((float)posData[0], (float)posData[1], (float)posData[2]);
-
-			for (l = 0; l < pMesh->GetElementVertexColorCount(); l++)
-			{
-				FbxGeometryElementVertexColor* leVtxc = pMesh->GetElementVertexColor(l);
-
-				switch (leVtxc->GetMappingMode())
-				{
-				default:
-					break;
-				case FbxGeometryElement::eByControlPoint:
-					switch (leVtxc->GetReferenceMode())
-					{
-					case FbxGeometryElement::eDirect:
-						//DisplayColor(header, leVtxc->GetDirectArray().GetAt(lControlPointIndex));
-						break;
-					case FbxGeometryElement::eIndexToDirect:
-					{
-						int id = leVtxc->GetIndexArray().GetAt(lControlPointIndex);
-						//DisplayColor(header, leVtxc->GetDirectArray().GetAt(id));
-					}
-					break;
-					default:
-						break; // other reference modes not shown here!
-					}
-					break;
-
-				case FbxGeometryElement::eByPolygonVertex:
-				{
-					switch (leVtxc->GetReferenceMode())
-					{
-					case FbxGeometryElement::eDirect:
-						//DisplayColor(header, leVtxc->GetDirectArray().GetAt(vertexId));
-						break;
-					case FbxGeometryElement::eIndexToDirect:
-					{
-						int id = leVtxc->GetIndexArray().GetAt(vertexId);
-						//DisplayColor(header, leVtxc->GetDirectArray().GetAt(id));
-					}
-					break;
-					default:
-						break; // other reference modes not shown here!
-					}
-				}
-				break;
-
-				case FbxGeometryElement::eByPolygon: // doesn't make much sense for UVs
-				case FbxGeometryElement::eAllSame:   // doesn't make much sense for UVs
-				case FbxGeometryElement::eNone:       // doesn't make much sense for UVs
-					break;
-				}
-			}
-			for (l = 0; l < pMesh->GetElementUVCount(); ++l)
-			{
-				FbxGeometryElementUV* leUV = pMesh->GetElementUV(l);
-
-				FbxVector2 texData(0.0, 0.0);
-
-				switch (leUV->GetMappingMode())
-				{
-				default:
-					break;
-				case FbxGeometryElement::eByControlPoint:
-					switch (leUV->GetReferenceMode())
-					{
-					case FbxGeometryElement::eDirect:
-						texData = leUV->GetDirectArray().GetAt(lControlPointIndex);
-						break;
-					case FbxGeometryElement::eIndexToDirect:
-					{
-						int id = leUV->GetIndexArray().GetAt(lControlPointIndex);
-						texData = leUV->GetDirectArray().GetAt(id);
-					}
-					break;
-					default:
-						break; // other reference modes not shown here!
-					}
-					break;
-
-				case FbxGeometryElement::eByPolygonVertex:
-				{
-					int lTextureUVIndex = pMesh->GetTextureUVIndex(i, j);
-					switch (leUV->GetReferenceMode())
-					{
-					case FbxGeometryElement::eDirect:
-					case FbxGeometryElement::eIndexToDirect:
-					{
-						texData = leUV->GetDirectArray().GetAt(lTextureUVIndex);
-					}
-					break;
-					default:
-						break; // other reference modes not shown here!
-					}
-				}
-				break;
-
-				case FbxGeometryElement::eByPolygon: // doesn't make much sense for UVs
-				case FbxGeometryElement::eAllSame:   // doesn't make much sense for UVs
-				case FbxGeometryElement::eNone:       // doesn't make much sense for UVs
-					break;
-				}
-
-				// 暂时默认所有来自fbx的UV全部是反转的。
-				bool bFlipUV = true;
-				pPolygonVerticesData[j].tex = Vector2((float)texData[0], bFlipUV ? 1.0f - (float)texData[1] : (float)texData[1]);
-			}
-
-			for (l = 0; l < pMesh->GetElementNormalCount(); ++l)
-			{
-				FbxGeometryElementNormal* leNormal = pMesh->GetElementNormal(l);
-
-				FbxVector4 normData;
-				if (leNormal->GetMappingMode() == FbxGeometryElement::eByPolygonVertex)
-				{
-					switch (leNormal->GetReferenceMode())
-					{
-					case FbxGeometryElement::eDirect:
-						normData = leNormal->GetDirectArray().GetAt(vertexId);
-						break;
-					case FbxGeometryElement::eIndexToDirect:
-					{
-						int id = leNormal->GetIndexArray().GetAt(vertexId);
-						normData = leNormal->GetDirectArray().GetAt(id);
-					}
-					break;
-					default:
-						break; // other reference modes not shown here!
-					}
-				}
-
-				pPolygonVerticesData[j].norm = Vector3((float)normData[0], (float)normData[1], (float)normData[2]);
-			}
-			for (l = 0; l < pMesh->GetElementTangentCount(); ++l)
-			{
-				FbxGeometryElementTangent* leTangent = pMesh->GetElementTangent(l);
-
-				FbxVector4 tangentData;
-				if (leTangent->GetMappingMode() == FbxGeometryElement::eByPolygonVertex)
-				{
-					switch (leTangent->GetReferenceMode())
-					{
-					case FbxGeometryElement::eDirect:
-						tangentData = leTangent->GetDirectArray().GetAt(vertexId);
-						break;
-					case FbxGeometryElement::eIndexToDirect:
-					{
-						int id = leTangent->GetIndexArray().GetAt(vertexId);
-						tangentData = leTangent->GetDirectArray().GetAt(id);
-					}
-					break;
-					default:
-						break; // other reference modes not shown here!
-					}
-				}
-
-				pPolygonVerticesData[j].tangent = Vector3((float)tangentData[0], (float)tangentData[1], (float)tangentData[2]);
-			}
-			for (l = 0; l < pMesh->GetElementBinormalCount(); ++l)
-			{
-				FbxGeometryElementBinormal* leBinormal = pMesh->GetElementBinormal(l);
-				FbxVector4 binormalData;
-				if (leBinormal->GetMappingMode() == FbxGeometryElement::eByPolygonVertex)
-				{
-					switch (leBinormal->GetReferenceMode())
-					{
-					case FbxGeometryElement::eDirect:
-						binormalData = leBinormal->GetDirectArray().GetAt(vertexId);
-						break;
-					case FbxGeometryElement::eIndexToDirect:
-					{
-						int id = leBinormal->GetIndexArray().GetAt(vertexId);
-						binormalData = leBinormal->GetDirectArray().GetAt(id);
-					}
-					break;
-					default:
-						break; // other reference modes not shown here!
-					}
-				}
-			}
-			vertexId++;
-		} // for polygonSize
-
-
-		// 一个Polygon读取完以后，根据此Polygon的SubMesh索引，将顶点和索引数据指定给对应的SubMesh
-		for (int j = 0; j < lPolygonSize - 2; j++)
-		{
-			UINT& lSubMeshVertexId = ppSubMeshVertexId[lSubMeshId];
-			UINT& lSubMeshIndexId = ppSubMeshIndexId[lSubMeshId];
-
-			ppMeshVerticesData[lSubMeshId][lSubMeshVertexId++] = pPolygonVerticesData[0];
-			ppMeshVerticesData[lSubMeshId][lSubMeshVertexId++] = pPolygonVerticesData[j + 1];
-			ppMeshVerticesData[lSubMeshId][lSubMeshVertexId++] = pPolygonVerticesData[j + 2];
-
-			ppMeshIndicesData[lSubMeshId][lSubMeshIndexId++] = lSubMeshIndexId;
-			ppMeshIndicesData[lSubMeshId][lSubMeshIndexId++] = lSubMeshIndexId;
-			ppMeshIndicesData[lSubMeshId][lSubMeshIndexId++] = lSubMeshIndexId;
-
-			auto ta1 = pPolygonVerticesData[0];
-			auto ta2 = pPolygonVerticesData[j + 1];
-			auto ta3 = pPolygonVerticesData[j + 2];
-
-			auto tb1 = ppMeshIndicesData[lSubMeshId][lSubMeshIndexId - 3];
-			auto tb2 = ppMeshIndicesData[lSubMeshId][lSubMeshIndexId - 2];
-			auto tb3 = ppMeshIndicesData[lSubMeshId][lSubMeshIndexId - 1];
-
-			int gg = 1;
-		}
-
-		delete[] pPolygonVerticesData;
-	} // for polygonCount
-
-	NXSubMeshGeometryEditor::CreateFBXMesh(pEngineMesh, lSubMeshCount, ppMeshVerticesData, pSubMeshVerticesCounts, ppMeshIndicesData, pSubMeshIndicesCounts, bAutoCalcTangents);
-
-	delete[] ppSubMeshVertexId;
-	delete[] ppSubMeshIndexId;
-	for (int i = 0; i < lSubMeshCount; i++)
-	{
-		delete[] ppMeshVerticesData[i];
-		delete[] ppMeshIndicesData[i];
-	}
-	delete[] ppMeshVerticesData;
-	delete[] ppMeshIndicesData;
-	delete[] pSubMeshPolygonsCounts;
-	delete[] pSubMeshVerticesCounts;
-	delete[] pSubMeshIndicesCounts;
-}
-
-void FBXMeshLoader::LoadFBXFile(std::string filepath, NXScene* pRenderScene, std::vector<NXPrimitive*>& outMeshes, bool bAutoCalcTangents)
+void FBXMeshLoader::LoadFBXFile(std::string filepath, NXPrefab* pOutPrefab, bool bAutoCalcTangents)
 {
 	FbxManager* lSdkManager = NULL;
 	FbxScene* lScene = NULL;
@@ -435,15 +30,402 @@ void FBXMeshLoader::LoadFBXFile(std::string filepath, NXScene* pRenderScene, std
 		return;
 
 	FbxNode* lNode = lScene->GetRootNode();
-	int lChildCount = lNode->GetChildCount();
 	if (lNode)
 	{
+		pOutPrefab = new NXPrefab();
+		int lChildCount = lNode->GetChildCount();
 		for (int i = 0; i < lChildCount; i++)
 		{
-			auto pMesh = new NXPrimitive();
-			LoadContent(lNode->GetChild(i), pMesh, outMeshes, bAutoCalcTangents);
+			FbxNode* pChildNode = lNode->GetChild(i);
+			LoadRenderableObjects(pChildNode, pOutPrefab, bAutoCalcTangents);
 		}
 	}
+}
+
+void FBXMeshLoader::LoadRenderableObjects(FbxNode* pNode, NXRenderableObject* pParentMesh, bool bAutoCalcTangents)
+{
+	NXRenderableObject* pRenderableObject = nullptr;
+	if (pNode->GetNodeAttribute() == NULL)
+	{
+	}
+	else
+	{
+		FbxNodeAttribute::EType nodeType = pNode->GetNodeAttribute()->GetAttributeType();
+		switch (nodeType)
+		{
+		case FbxNodeAttribute::eMesh:
+		{
+			pRenderableObject = new NXPrimitive();
+			pRenderableObject->SetParent(pParentMesh);
+			EncodePrimitiveData(pNode, (NXPrimitive*)pRenderableObject, bAutoCalcTangents);
+			break;
+		}
+		default:
+		{
+			pRenderableObject = new NXPrefab();
+			pRenderableObject->SetParent(pParentMesh);
+			break;
+		}
+		}
+	}
+
+	int lChildCount = pNode->GetChildCount();
+	for (int i = 0; i < lChildCount; i++)
+	{
+		FbxNode* pChildNode = pNode->GetChild(i);
+		LoadRenderableObjects(pChildNode, pRenderableObject, bAutoCalcTangents);
+	}
+}
+
+void FBXMeshLoader::EncodePrimitiveData(FbxNode* pNode, NXPrimitive* pPrimitive, bool bAutoCalcTangents)
+{
+	FbxMesh* pMesh = (FbxMesh*)pNode->GetNodeAttribute();
+	FbxVector4* pControlPoints = pMesh->GetControlPoints();
+	if (pMesh)
+	{
+		int vertexId = 0;
+		int materialCount = -1;
+
+		// 2022.4.23
+		// 需要先确认有几个SubMesh，然后分两种情况：
+		// 1. 当前 Primitive 有 1 个 SubMesh
+		// 2. 当前 Primitive 有 n 个 SubMesh
+		// 情况 1. 使用专门方案加载，可以提高一些速度（国内建模班出身的可能更多会使用情况 1.）
+		// 情况 2. Unity Ball 样例使用了这种方法 可能出 Demo 比较方便。
+
+		// 确定 SubMesh 个数
+		FbxNode* pNode = pMesh->GetNode();
+		if (pNode)
+			materialCount = pNode->GetMaterialCount();
+
+		std::vector<NXSubMesh*> pSubMeshes;
+		pSubMeshes.reserve(materialCount);
+		for (int i = 0; i < materialCount; i++) pSubMeshes.push_back(new NXSubMesh(pPrimitive));
+
+		if (materialCount == 1)
+		{
+			int polygonCount = pMesh->GetPolygonCount();
+			for (int polygonIndex = 0; polygonIndex < polygonCount; polygonIndex++)
+			{
+				EncodePolygonData(pMesh, pSubMeshes[0], polygonIndex, vertexId);
+			}
+		}
+		else
+		{
+
+			int polygonCount = pMesh->GetPolygonCount();
+			for (int polygonIndex = 0; polygonIndex < polygonCount; polygonIndex++)
+			{
+				for (int elementMaterialIndex = 0; elementMaterialIndex < pMesh->GetElementMaterialCount(); elementMaterialIndex++)
+				{
+					// 拿材质id
+					FbxGeometryElementMaterial* lMaterialElement = pMesh->GetElementMaterial(elementMaterialIndex);
+					int lMatId = lMaterialElement->GetIndexArray().GetAt(polygonIndex);
+
+					// 2022.4.23
+					// 这里还能拿到材质的具体纹理信息，不过现在暂时还用不上
+					// 将来如果想要对 fbx材质 做导入的话 可以考虑用下面的部分
+					//FbxSurfaceMaterial* lMaterial = NULL;
+					//lMaterial = pMesh->GetNode()->GetMaterial(lMaterialElement->GetIndexArray().GetAt(polygonIndex));
+					//if (lMatId >= 0)
+					//{
+					//	DisplayMaterialTextureConnections(lMaterial, header, lMatId, elementMaterialIndex);
+					//}
+
+					EncodePolygonData(pMesh, pSubMeshes[lMatId], polygonIndex, vertexId);
+				}
+			}
+		}
+
+		// 将 submesh 录入到 primitive
+		pPrimitive->ResizeSubMesh(materialCount);
+		for (int i = 0; i < materialCount; i++)
+			pPrimitive->ReloadSubMesh(i, pSubMeshes[i]);
+
+		// 重新计算切线
+		if (bAutoCalcTangents) pPrimitive->CalculateTangents();
+
+		// 按 SubMesh 生成 VB/IB
+		UINT subMeshCount = pPrimitive->GetSubMeshCount();
+		for (UINT i = 0; i < subMeshCount; i++)
+		{
+			NXSubMesh* pSubMesh = pPrimitive->GetSubMesh(i);
+			pSubMesh->InitVertexIndexBuffer();
+		}
+	}
+}
+
+void FBXMeshLoader::EncodePolygonData(FbxMesh* pMesh, NXSubMesh* pSubMesh, int polygonIndex, int& vertexId)
+{
+	int polygonSize = pMesh->GetPolygonSize(polygonIndex);
+
+	std::vector<VertexPNTT> vertexDataArray;
+	vertexDataArray.reserve(polygonSize);
+
+	std::vector<UINT> indexDataArray;
+	indexDataArray.reserve(polygonSize);
+
+	FbxVector4* controlPoints = pMesh->GetControlPoints();
+	for (int polygonVertexIndex = 0; polygonVertexIndex < polygonSize; polygonVertexIndex++)
+	{
+		int controlPointIndex = pMesh->GetPolygonVertex(polygonIndex, polygonVertexIndex);
+
+		VertexPNTT vertexData;
+		FBXMeshVertexData fbxMeshVertexData;
+
+		EncodeVertexPosition(fbxMeshVertexData, pMesh, controlPoints, controlPointIndex);
+		EncodeVertexColors(fbxMeshVertexData, pMesh, controlPointIndex, vertexId);
+		EncodeVertexUVs(fbxMeshVertexData, pMesh, polygonIndex, polygonVertexIndex, controlPointIndex, vertexId);
+		EncodeVertexNormals(fbxMeshVertexData, pMesh, vertexId);
+		EncodeVertexTangents(fbxMeshVertexData, pMesh, vertexId);
+		EncodeVertexBiTangents(fbxMeshVertexData, pMesh, vertexId);
+
+		ConvertVertexFormat(fbxMeshVertexData, vertexData);
+		vertexDataArray.push_back(vertexData);
+		indexDataArray.push_back((UINT)controlPointIndex);
+
+		vertexId++;
+	}
+
+	// 将多边形拆分成若干三角形
+	// polygonSize = vertexDataArray.size()
+	for (int i = 1; i < polygonSize - 1; i++)
+	{
+		pSubMesh->m_vertices.push_back(vertexDataArray[0]);
+		pSubMesh->m_vertices.push_back(vertexDataArray[i]);
+		pSubMesh->m_vertices.push_back(vertexDataArray[i + 1]);
+
+		pSubMesh->m_indices.push_back(indexDataArray[0]);
+		pSubMesh->m_indices.push_back(indexDataArray[i]);
+		pSubMesh->m_indices.push_back(indexDataArray[i + 1]);
+	}
+}
+
+void FBXMeshLoader::EncodeVertexPosition(FBXMeshVertexData& inoutVertexData, FbxMesh* pMesh, FbxVector4* pControlPoints, int controlPointIndex)
+{
+	FbxVector4 position = pControlPoints[controlPointIndex];
+	inoutVertexData.Position = Vector3((float)position[0], (float)position[1], (float)position[2]);
+}
+
+void FBXMeshLoader::EncodeVertexColors(FBXMeshVertexData& inoutVertexData, FbxMesh* pMesh, int controlPointIndex, int vertexId)
+{
+	int elementVertexColorCount = pMesh->GetElementVertexColorCount();
+	inoutVertexData.VertexColors.resize(elementVertexColorCount);
+
+	for (int l = 0; l < elementVertexColorCount; l++)
+	{
+		FbxColor color;
+		FbxGeometryElementVertexColor* leVtxc = pMesh->GetElementVertexColor(l);
+
+		switch (leVtxc->GetMappingMode())
+		{
+		default:
+			break;
+		case FbxGeometryElement::eByControlPoint:
+			switch (leVtxc->GetReferenceMode())
+			{
+			case FbxGeometryElement::eDirect:
+				color = leVtxc->GetDirectArray().GetAt(controlPointIndex);
+				break;
+			case FbxGeometryElement::eIndexToDirect:
+			{
+				int id = leVtxc->GetIndexArray().GetAt(controlPointIndex);
+				color = leVtxc->GetDirectArray().GetAt(id);
+			}
+			break;
+			default:
+				break; // other reference modes not shown here!
+			}
+			break;
+
+		case FbxGeometryElement::eByPolygonVertex:
+		{
+			switch (leVtxc->GetReferenceMode())
+			{
+			case FbxGeometryElement::eDirect:
+				color = leVtxc->GetDirectArray().GetAt(vertexId);
+				break;
+			case FbxGeometryElement::eIndexToDirect:
+			{
+				int id = leVtxc->GetIndexArray().GetAt(vertexId);
+				color = leVtxc->GetDirectArray().GetAt(id);
+			}
+			break;
+			default:
+				break; // other reference modes not shown here!
+			}
+		}
+		break;
+
+		case FbxGeometryElement::eByPolygon: // doesn't make much sense for UVs
+		case FbxGeometryElement::eAllSame:   // doesn't make much sense for UVs
+		case FbxGeometryElement::eNone:       // doesn't make much sense for UVs
+			break;
+		}
+
+		inoutVertexData.VertexColors[l] = Vector4((float)color.mRed, (float)color.mGreen, (float)color.mBlue, (float)color.mAlpha);
+	}
+}
+
+void FBXMeshLoader::EncodeVertexUVs(FBXMeshVertexData& inoutVertexData, FbxMesh* pMesh, int polygonIndex, int polygonVertexIndex, int controlPointIndex, int vertexId)
+{
+	int elementUVCount = pMesh->GetElementUVCount();
+	inoutVertexData.UVs.resize(elementUVCount);
+
+	for (int l = 0; l < elementUVCount; ++l)
+	{
+		FbxGeometryElementUV* leUV = pMesh->GetElementUV(l);
+		FbxVector2 uv;
+
+		switch (leUV->GetMappingMode())
+		{
+		default:
+			break;
+		case FbxGeometryElement::eByControlPoint:
+			switch (leUV->GetReferenceMode())
+			{
+			case FbxGeometryElement::eDirect:
+				uv = leUV->GetDirectArray().GetAt(controlPointIndex);
+				break;
+			case FbxGeometryElement::eIndexToDirect:
+			{
+				int id = leUV->GetIndexArray().GetAt(controlPointIndex);
+				uv = leUV->GetDirectArray().GetAt(id);
+			}
+			break;
+			default:
+				break; // other reference modes not shown here!
+			}
+			break;
+
+		case FbxGeometryElement::eByPolygonVertex:
+		{
+			int lTextureUVIndex = pMesh->GetTextureUVIndex(polygonIndex, polygonVertexIndex);
+			switch (leUV->GetReferenceMode())
+			{
+			case FbxGeometryElement::eDirect:
+			case FbxGeometryElement::eIndexToDirect:
+			{
+				uv = leUV->GetDirectArray().GetAt(lTextureUVIndex);
+			}
+			break;
+			default:
+				break; // other reference modes not shown here!
+			}
+		}
+		break;
+
+		case FbxGeometryElement::eByPolygon: // doesn't make much sense for UVs
+		case FbxGeometryElement::eAllSame:   // doesn't make much sense for UVs
+		case FbxGeometryElement::eNone:       // doesn't make much sense for UVs
+			break;
+		}
+
+		inoutVertexData.UVs[l] = Vector2((float)uv[0], (float)uv[1]);
+	}
+}
+
+void FBXMeshLoader::EncodeVertexNormals(FBXMeshVertexData& inoutVertexData, FbxMesh* pMesh, int vertexId)
+{
+	int elementNormalCount = pMesh->GetElementNormalCount();
+	inoutVertexData.Normals.resize(elementNormalCount);
+
+	for (int l = 0; l < elementNormalCount; ++l)
+	{
+		FbxGeometryElementNormal* leNormal = pMesh->GetElementNormal(l);
+		FbxVector4 normal;
+
+		if (leNormal->GetMappingMode() == FbxGeometryElement::eByPolygonVertex)
+		{
+			switch (leNormal->GetReferenceMode())
+			{
+			case FbxGeometryElement::eDirect:
+				normal = leNormal->GetDirectArray().GetAt(vertexId);
+				break;
+			case FbxGeometryElement::eIndexToDirect:
+			{
+				int id = leNormal->GetIndexArray().GetAt(vertexId);
+				normal = leNormal->GetDirectArray().GetAt(id);
+			}
+			break;
+			default:
+				break; // other reference modes not shown here!
+			}
+		}
+
+		inoutVertexData.Normals[l] = Vector3((float)normal[0], (float)normal[1], (float)normal[2]);
+	}
+}
+
+void FBXMeshLoader::EncodeVertexTangents(FBXMeshVertexData& inoutVertexData, FbxMesh* pMesh, int vertexId)
+{
+	int elementTangentCount = pMesh->GetElementTangentCount();
+	inoutVertexData.Tangents.resize(elementTangentCount);
+
+	for (int l = 0; l < elementTangentCount; ++l)
+	{
+		FbxGeometryElementTangent* leTangent = pMesh->GetElementTangent(l);
+		FbxVector4 tangent;
+
+		if (leTangent->GetMappingMode() == FbxGeometryElement::eByPolygonVertex)
+		{
+			switch (leTangent->GetReferenceMode())
+			{
+			case FbxGeometryElement::eDirect:
+				tangent = leTangent->GetDirectArray().GetAt(vertexId);
+				break;
+			case FbxGeometryElement::eIndexToDirect:
+			{
+				int id = leTangent->GetIndexArray().GetAt(vertexId);
+				tangent = leTangent->GetDirectArray().GetAt(id);
+			}
+			break;
+			default:
+				break; // other reference modes not shown here!
+			}
+		}
+
+		inoutVertexData.Tangents[l] = Vector3((float)tangent[0], (float)tangent[1], (float)tangent[2]);
+	}
+}
+
+void FBXMeshLoader::EncodeVertexBiTangents(FBXMeshVertexData& inoutVertexData, FbxMesh* pMesh, int vertexId)
+{
+	int elementBiTangentCount = pMesh->GetElementBinormalCount();
+	inoutVertexData.BiTangents.resize(elementBiTangentCount);
+	for (int l = 0; l < elementBiTangentCount; ++l)
+	{
+		FbxGeometryElementBinormal* leBinormal = pMesh->GetElementBinormal(l);
+		FbxVector4 bitangent;
+
+		if (leBinormal->GetMappingMode() == FbxGeometryElement::eByPolygonVertex)
+		{
+			switch (leBinormal->GetReferenceMode())
+			{
+			case FbxGeometryElement::eDirect:
+				bitangent = leBinormal->GetDirectArray().GetAt(vertexId);
+				break;
+			case FbxGeometryElement::eIndexToDirect:
+			{
+				int id = leBinormal->GetIndexArray().GetAt(vertexId);
+				bitangent = leBinormal->GetDirectArray().GetAt(id);
+			}
+			break;
+			default:
+				break; // other reference modes not shown here!
+			}
+		}
+
+		inoutVertexData.BiTangents[l] = Vector3((float)bitangent[0], (float)bitangent[1], (float)bitangent[2]);
+	}
+}
+
+void FBXMeshLoader::ConvertVertexFormat(FBXMeshVertexData inVertexData, VertexPNTT& outVertexData)
+{
+	outVertexData.pos = inVertexData.Position;
+	outVertexData.tex = inVertexData.UVs[0];
+	outVertexData.norm = inVertexData.Normals[0];
+	outVertexData.tangent = inVertexData.Tangents[0];
 }
 
 void FBXMeshLoader::InitializeSdkObjects(FbxManager*& pManager, FbxScene*& pScene)

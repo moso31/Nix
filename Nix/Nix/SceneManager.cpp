@@ -99,14 +99,13 @@ NXPrimitive* SceneManager::CreatePlane(const std::string name, const float width
 	return p;
 }
 
-bool SceneManager::CreateFBXMeshes(const std::string filePath, NXPrefab* pOutPrefab, bool bAutoCalcTangents)
+NXPrefab* SceneManager::CreateFBXPrefab(const std::string name, const std::string filePath, bool bAutoCalcTangents)
 {
-	FBXMeshLoader::LoadFBXFile(filePath, s_pWorkingScene, outMeshes, bAutoCalcTangents);
-	for (auto it = outMeshes.begin(); it != outMeshes.end(); it++)
-	{
-		RegisterPrimitive(*it, (*it)->GetParent());
-	}
-	return true;
+	auto p = new NXPrefab();
+	p->SetName(name);
+	NXSubMeshGeometryEditor::CreateFBXPrefab(p, filePath, bAutoCalcTangents);
+	RegisterPrefab(p);
+	return p;
 }
 
 NXCamera* SceneManager::CreateCamera(const std::string name, const float FovY, const float zNear, const float zFar, const Vector3& eye, const Vector3& at, const Vector3& up)
@@ -147,6 +146,28 @@ NXPBRMaterialTranslucent* SceneManager::CreatePBRMaterialTranslucent(const std::
 	pMat->SetTexAO(aoTexFilePath);
 	RegisterMaterial(pMat);
 	return pMat;
+}
+
+void SceneManager::BindMaterial(NXRenderableObject* pPrefab, NXMaterial* pMaterial)
+{
+	for (auto pChild : pPrefab->GetChilds())
+	{
+		if (pChild->GetType() == NXType::ePrimitive || pChild->GetType() == NXType::ePrefab)
+		{
+			if (pChild->GetType() == NXType::ePrimitive)
+			{
+				NXPrimitive* pChildPrimitive = static_cast<NXPrimitive*>(pChild);
+				for (UINT i = 0; i < pChildPrimitive->GetSubMeshCount(); i++)
+				{
+					NXSubMesh* pSubMesh = pChildPrimitive->GetSubMesh(i);
+					BindMaterial(pSubMesh, pMaterial);
+				}
+			}
+
+			NXRenderableObject* pChildObj = static_cast<NXRenderableObject*>(pChild);
+			BindMaterial(pChildObj, pMaterial);
+		}
+	}
 }
 
 void SceneManager::BindMaterial(NXSubMesh* pSubMesh, NXMaterial* pMaterial)

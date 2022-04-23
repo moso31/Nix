@@ -23,6 +23,7 @@ class NXSubMesh
 {
 	friend class NXTriangle;
 	friend class NXSubMeshGeometryEditor;
+	friend class FBXMeshLoader;
 	friend class SceneManager;
 
 public:

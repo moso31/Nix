@@ -29,7 +29,7 @@ public:
 	static NXPrimitive* CreateSHSphere(const std::string name, const int l, const int m, const float radius, const UINT segmentHorizontal, const UINT segmentVertical, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));
 	static NXPrimitive* CreateCylinder(const std::string name, const float radius, const float length, const UINT segmentCircle, const UINT segmentLength, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));
 	static NXPrimitive* CreatePlane(const std::string name, const float width, const float height, const NXPlaneAxis axis, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));
-	static bool CreateFBXMeshes(const std::string filePath, NXPrefab* pOutPrefab, bool bAutoCalcTangents = true);
+	static NXPrefab* CreateFBXPrefab(const std::string name, const std::string filePath, bool bAutoCalcTangents = true);
 
 	static NXCamera* CreateCamera(const std::string name, const float FovY, const float zNear, const float zFar, const Vector3& eye, const Vector3& at, const Vector3& up);
 
@@ -46,6 +46,7 @@ public:
 		const std::wstring roughnessTexFilePath = L".\\Resource\\white1x1.png",
 		const std::wstring aoTexFilePath = L".\\Resource\\white1x1.png");
 
+	static void BindMaterial(NXRenderableObject* pPrefab, NXMaterial* pMaterial);
 	static void BindMaterial(NXSubMesh* pSubMesh, NXMaterial* pMaterial);
 
 	// 根据类型重新创建某个材质。

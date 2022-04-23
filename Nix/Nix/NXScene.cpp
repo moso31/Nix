@@ -87,18 +87,18 @@ void NXScene::OnKeyDown(NXEventArgKey eArg)
 
 void NXScene::Init()
 {
-	//NXPBRMaterialStandard* pPBRMat[] = {
-	//	SceneManager::GetInstance()->CreatePBRMaterialStandard("rustediron2", Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f),
-	//	SceneManager::GetInstance()->CreatePBRMaterialStandard("hex-stones1", Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f),
-	//	SceneManager::GetInstance()->CreatePBRMaterialStandard("pirate-gold", Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f),
-	//	SceneManager::GetInstance()->CreatePBRMaterialStandard("circle-textured-metal1", Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f),
-	//};
+	NXPBRMaterialStandard* pPBRMat[] = {
+		SceneManager::GetInstance()->CreatePBRMaterialStandard("rustediron2", Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f),
+		SceneManager::GetInstance()->CreatePBRMaterialStandard("hex-stones1", Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f),
+		SceneManager::GetInstance()->CreatePBRMaterialStandard("pirate-gold", Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f),
+		SceneManager::GetInstance()->CreatePBRMaterialStandard("circle-textured-metal1", Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f),
+	};
 
-	//pPBRMat[0]->SetTexAlbedo(L"D:\\NixAssets\\rustediron2\\albedo.png", true);
-	//pPBRMat[0]->SetTexNormal(L"D:\\NixAssets\\rustediron2\\normal.png", true);
-	//pPBRMat[0]->SetTexMetallic(L"D:\\NixAssets\\rustediron2\\metallic.png", true);
-	//pPBRMat[0]->SetTexRoughness(L"D:\\NixAssets\\rustediron2\\roughness.png", true);
-	//pPBRMat[0]->SetTexAO(L"D:\\NixAssets\\rustediron2\\ao.png", true);
+	pPBRMat[0]->SetTexAlbedo(L"D:\\NixAssets\\rustediron2\\albedo.png", true);
+	pPBRMat[0]->SetTexNormal(L"D:\\NixAssets\\rustediron2\\normal.png", true);
+	pPBRMat[0]->SetTexMetallic(L"D:\\NixAssets\\rustediron2\\metallic.png", true);
+	pPBRMat[0]->SetTexRoughness(L"D:\\NixAssets\\rustediron2\\roughness.png", true);
+	pPBRMat[0]->SetTexAO(L"D:\\NixAssets\\rustediron2\\ao.png", true);
 
 	//pPBRMat[1]->SetTexAlbedo(L"D:\\NixAssets\\hex-stones1\\albedo.png", true);
 	//pPBRMat[1]->SetTexNormal(L"D:\\NixAssets\\hex-stones1\\normal.png", true);
@@ -143,16 +143,16 @@ void NXScene::Init()
 	//SceneManager::GetInstance()->BindMaterial(pMeshes[0]->GetSubMesh(3), pPBRMat[3]);
 	//pMeshes[0]->SetRotation(Vector3(-0.8f, 0.0f, 0.0f));
 
-	for (int i = -5; i <= 5; i++)
-	{
-		auto pPBRMat = SceneManager::GetInstance()->CreatePBRMaterialTranslucent("rustediron2", Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f, 0.2f);
-		auto pSphere = SceneManager::GetInstance()->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(i * 2.0f, 0.0f, 0.0f));
-		SceneManager::GetInstance()->BindMaterial(pSphere->GetSubMesh(0), pPBRMat);
+	//for (int i = -5; i <= 5; i++)
+	//{
+	//	auto pPBRMat = SceneManager::GetInstance()->CreatePBRMaterialTranslucent("rustediron2", Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f, 0.2f);
+	//	auto pSphere = SceneManager::GetInstance()->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(i * 2.0f, 0.0f, 0.0f));
+	//	SceneManager::GetInstance()->BindMaterial(pSphere->GetSubMesh(0), pPBRMat);
 
-		auto pPBRMatS = SceneManager::GetInstance()->CreatePBRMaterialStandard("rustediron2", Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f);
-		pSphere = SceneManager::GetInstance()->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(i * 2.0f, 2.0f, 0.0f));
-		SceneManager::GetInstance()->BindMaterial(pSphere->GetSubMesh(0), pPBRMatS);
-	}
+	//	auto pPBRMatS = SceneManager::GetInstance()->CreatePBRMaterialStandard("rustediron2", Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f);
+	//	pSphere = SceneManager::GetInstance()->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(i * 2.0f, 2.0f, 0.0f));
+	//	SceneManager::GetInstance()->BindMaterial(pSphere->GetSubMesh(0), pPBRMatS);
+	//}
 
 	//SceneManager::GetInstance()->CreateFBXMeshes("D:\\NixAssets\\Cloth.fbx", pMeshes, true);
 	//SceneManager::GetInstance()->BindMaterial(pMeshes[0]->GetSubMesh(0), pPBRMat[0]);
@@ -166,8 +166,8 @@ void NXScene::Init()
 	//pMeshes[3]->SetScale(Vector3(0.1f, 0.1f, 0.1f));
 	//pMeshes[4]->SetScale(Vector3(0.1f, 0.1f, 0.1f));
 
-	//SceneManager::GetInstance()->CreateFBXMeshes("D:\\NixAssets\\Teapot.fbx", pMeshes, true);
-	//SceneManager::GetInstance()->BindMaterial(pMeshes[0]->GetSubMesh(0), pPBRMat[0]);
+	NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\arnia.fbx", false);
+	SceneManager::GetInstance()->BindMaterial(p, pPBRMat[0]);
 	{
 		//bool bBind = SceneManager::GetInstance()->BindParent(pMeshes[1], pSphere);
 		//auto pScript_test = new NSTest();

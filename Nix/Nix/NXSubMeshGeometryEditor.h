@@ -17,7 +17,7 @@ public:
 	NXSubMeshGeometryEditor();
 	~NXSubMeshGeometryEditor();
 
-	static void CreateFBXMesh(NXPrimitive* pMesh, UINT subMeshCount, VertexPNTT** pSubMeshVertices, UINT* pSubMeshVerticesCounts, UINT** pSubMeshIndices, UINT* pSubMeshIndicesCounts, bool bAutoCalcTangents);
+	static void CreateFBXPrefab(NXPrefab* pPrefab, std::string filePath, bool bAutoCalcTangents);
 
 	static void CreateBox(NXPrimitive* pMesh, float x = 1.0f, float y = 1.0f, float z = 1.0f);
 	static void CreateCylinder(NXPrimitive* pMesh, float radius = 1.0f, float length = 3.0f, int segmentCircle = 16, int segmentLength = 4);

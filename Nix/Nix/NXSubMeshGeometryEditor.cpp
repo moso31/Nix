@@ -1,5 +1,6 @@
 #include "NXSubMeshGeometryEditor.h"
 #include "NXPrimitive.h"
+#include "NXPrefab.h"
 #include "FBXMeshLoader.h"
 #include "SphereHarmonics.h"
 
@@ -11,28 +12,10 @@ NXSubMeshGeometryEditor::~NXSubMeshGeometryEditor()
 {
 }
 
-void NXSubMeshGeometryEditor::CreateFBXMesh(NXPrimitive* pMesh, UINT subMeshCount, VertexPNTT** pSubMeshVertices, UINT* pSubMeshVerticesCounts, UINT** pSubMeshIndices, UINT* pSubMeshIndicesCounts, bool bAutoCalcTangents)
+void NXSubMeshGeometryEditor::CreateFBXPrefab(NXPrefab* pPrefab, std::string filePath, bool bAutoCalcTangents)
 {
-	pMesh->ClearSubMeshes();
-
-	pMesh->ResizeSubMesh(subMeshCount);
-	for (UINT i = 0; i < subMeshCount; i++)
-	{
-		NXSubMesh* pSubMesh = new NXSubMesh(pMesh);
-
-		pSubMesh->m_vertices.reserve(pSubMeshVerticesCounts[i]);
-		pSubMesh->m_vertices.assign(pSubMeshVertices[i], pSubMeshVertices[i] + pSubMeshVerticesCounts[i]);
-
-		pSubMesh->m_indices.reserve(pSubMeshIndicesCounts[i]);
-		pSubMesh->m_indices.assign(pSubMeshIndices[i], pSubMeshIndices[i] + pSubMeshIndicesCounts[i]);
-
-		if (bAutoCalcTangents) pSubMesh->CalculateTangents();
-
-		pSubMesh->InitVertexIndexBuffer();
-		pMesh->ReloadSubMesh(i, pSubMesh);
-	}
-
-	pMesh->InitAABB();
+	FBXMeshLoader::LoadFBXFile(filePath, pPrefab, bAutoCalcTangents);
+	pPrefab->InitAABB();
 }
 
 void NXSubMeshGeometryEditor::CreateBox(NXPrimitive* pMesh, float x, float y, float z)
