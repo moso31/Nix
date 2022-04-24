@@ -76,4 +76,9 @@ void NXObject::Release()
 	{
 		SafeDelete(script);
 	}
+
+	for (auto pChild : m_childs)
+	{
+		SafeRelease(pChild);
+	}
 }

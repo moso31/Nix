@@ -156,17 +156,10 @@ void NXScene::Init()
 
 	//SceneManager::GetInstance()->CreateFBXMeshes("D:\\NixAssets\\Cloth.fbx", pMeshes, true);
 	//SceneManager::GetInstance()->BindMaterial(pMeshes[0]->GetSubMesh(0), pPBRMat[0]);
-	//SceneManager::GetInstance()->BindMaterial(pMeshes[0]->GetSubMesh(1), pPBRMat[0]);
-	//SceneManager::GetInstance()->BindMaterial(pMeshes[0]->GetSubMesh(2), pPBRMat[0]);
-	//SceneManager::GetInstance()->BindMaterial(pMeshes[0]->GetSubMesh(3), pPBRMat[0]);
-	//SceneManager::GetInstance()->BindMaterial(pMeshes[0]->GetSubMesh(4), pPBRMat[0]);
-	//pMeshes[0]->SetScale(Vector3(0.1f, 0.1f, 0.1f));
-	//pMeshes[1]->SetScale(Vector3(0.1f, 0.1f, 0.1f));
-	//pMeshes[2]->SetScale(Vector3(0.1f, 0.1f, 0.1f));
-	//pMeshes[3]->SetScale(Vector3(0.1f, 0.1f, 0.1f));
-	//pMeshes[4]->SetScale(Vector3(0.1f, 0.1f, 0.1f));
 
-	NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\arnia.fbx", false);
+	NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\arnia.fbx", true);
+	p->SetScale(Vector3(0.05f));
+	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\Teapot.fbx", false);
 	SceneManager::GetInstance()->BindMaterial(p, pPBRMat[0]);
 	{
 		//bool bBind = SceneManager::GetInstance()->BindParent(pMeshes[1], pSphere);
@@ -341,7 +334,6 @@ void NXScene::Release()
 	for (auto pLight : m_pbrLights) SafeDelete(pLight);
 	for (auto pMat : m_materials) SafeRelease(pMat);
 	SafeRelease(m_pBVHTree);
-	for (auto obj : m_objects) SafeRelease(obj);
 	SafeRelease(m_pRootObject);
 }
 

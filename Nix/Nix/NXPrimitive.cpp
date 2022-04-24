@@ -90,7 +90,7 @@ void NXPrimitive::ReloadSubMesh(UINT index, NXSubMesh* pSubMesh)
 void NXPrimitive::InitAABB()
 {
 	m_points.clear();
-	m_points.reserve(GetFaceCount());
+	m_points.reserve(GetFaceCount() * 3);
 	for (UINT i = 0; i < GetSubMeshCount(); i++)
 	{
 		auto pSubMesh = GetSubMesh(i);

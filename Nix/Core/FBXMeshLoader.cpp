@@ -32,7 +32,6 @@ void FBXMeshLoader::LoadFBXFile(std::string filepath, NXPrefab* pOutPrefab, bool
 	FbxNode* lNode = lScene->GetRootNode();
 	if (lNode)
 	{
-		pOutPrefab = new NXPrefab();
 		int lChildCount = lNode->GetChildCount();
 		for (int i = 0; i < lChildCount; i++)
 		{
@@ -95,8 +94,7 @@ void FBXMeshLoader::EncodePrimitiveData(FbxNode* pNode, NXPrimitive* pPrimitive,
 
 		// 确定 SubMesh 个数
 		FbxNode* pNode = pMesh->GetNode();
-		if (pNode)
-			materialCount = pNode->GetMaterialCount();
+		if (pNode) materialCount = max(pNode->GetMaterialCount(), 1);	// 有时候3ds中没有指定材质，这种情况下填充一个默认submesh（至少保证有一个submesh）。
 
 		std::vector<NXSubMesh*> pSubMeshes;
 		pSubMeshes.reserve(materialCount);
@@ -160,9 +158,9 @@ void FBXMeshLoader::EncodePolygonData(FbxMesh* pMesh, NXSubMesh* pSubMesh, int p
 	int polygonSize = pMesh->GetPolygonSize(polygonIndex);
 
 	std::vector<VertexPNTT> vertexDataArray;
-	vertexDataArray.reserve(polygonSize);
-
 	std::vector<UINT> indexDataArray;
+
+	vertexDataArray.reserve(polygonSize);
 	indexDataArray.reserve(polygonSize);
 
 	FbxVector4* controlPoints = pMesh->GetControlPoints();
@@ -195,9 +193,10 @@ void FBXMeshLoader::EncodePolygonData(FbxMesh* pMesh, NXSubMesh* pSubMesh, int p
 		pSubMesh->m_vertices.push_back(vertexDataArray[i]);
 		pSubMesh->m_vertices.push_back(vertexDataArray[i + 1]);
 
-		pSubMesh->m_indices.push_back(indexDataArray[0]);
-		pSubMesh->m_indices.push_back(indexDataArray[i]);
-		pSubMesh->m_indices.push_back(indexDataArray[i + 1]);
+		UINT lastIndex = pSubMesh->m_indices.size();
+		pSubMesh->m_indices.push_back(lastIndex);
+		pSubMesh->m_indices.push_back(lastIndex + i);
+		pSubMesh->m_indices.push_back(lastIndex + i + 1);
 	}
 }
 
