@@ -36,6 +36,8 @@ public:
 	static void LoadRenderableObjects(FbxNode* pNode, NXRenderableObject* pParentMesh, bool bAutoCalcTangents);
 
 private:
+	static void SetGeometricTransform(FbxNode* pNode, NXRenderableObject* pRenderableObject);
+
 	static void EncodePrimitiveData(FbxNode* pNode, NXPrimitive* pPrimitive, bool bAutoCalcTangents);
 	static void EncodePolygonData(FbxMesh* pMesh, NXSubMesh* pSubMesh, int polygonIndex, int& vertexId);
 	static void EncodeVertexPosition(FBXMeshVertexData& inoutVertexData, FbxMesh* pMesh, FbxVector4* pControlPoints, int controlPointIndex);

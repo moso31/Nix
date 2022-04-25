@@ -28,7 +28,7 @@ private:
 	bool m_bMoveState[6]; 
 	int m_bSpeedState;
 
-	Quaternion m_fRotation;
+	Vector3 m_fRotation;
 
 	TimePoint m_lastTime;
 	TimePoint m_currTime;

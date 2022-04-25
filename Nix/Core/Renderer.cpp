@@ -121,25 +121,24 @@ void Renderer::RenderFrame()
 
 	//m_pDepthPrepass->Render();
 
-	// Deferred shading: RenderGBuffer
+	// GBuffer
 	m_pDeferredRenderer->RenderGBuffer();
 
-	// Deferred shading: Render
+	// Deferred opaque shading
 	m_pDeferredRenderer->Render();
 
-	// »æÖÆCubeMap
+	// CubeMap
 	m_pSkyRenderer->Render();
 
-	// Forward shading
+	// Forward translucent shading
 	//m_pForwardRenderer->Render();
 	m_pDepthPeelingRenderer->Render();
 
 	//// SSAO
 	//m_pSSAO->Render(pSRVNormal, pSRVPosition, pSRVDepthPrepass);
 
-	g_pUDA->BeginEvent(L"Post Processing");
+	// post processing
 	m_pColorMappingRenderer->Render();
-	g_pUDA->EndEvent();
 
 	// »æÖÆÖ÷äÖÈ¾ÆÁÄ»RTV£º
 	m_pFinalRenderer->Render();

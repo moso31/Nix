@@ -8,8 +8,9 @@ public:
 	NXCamera();
 	~NXCamera() {}
 
-	void SetTranslation(Vector3 value);
-	void SetRotation(Quaternion value);
+	void SetTranslation(const Vector3& value) override;
+	void SetRotation(const Vector3& value) override;
+
 	void SetLookAt(Vector3 value);
 
 	Vector3 GetForward();

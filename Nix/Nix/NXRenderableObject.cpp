@@ -2,7 +2,11 @@
 #include "GlobalBufferManager.h"
 #include "NXScene.h"
 
-NXRenderableObject::NXRenderableObject()
+NXRenderableObject::NXRenderableObject() :
+	m_geoTranslation(Vector3(0.0f)),
+	m_geoRotation(Vector3(0.0f)),
+	m_geoScale(Vector3(1.0f)),
+	NXTransform()
 {
 	m_type = NXType::ePrefab;
 }
@@ -22,4 +26,33 @@ AABB NXRenderableObject::GetAABBWorld()
 AABB NXRenderableObject::GetAABBLocal()
 {
 	return m_aabb;
+}
+
+void NXRenderableObject::UpdateTransform()
+{
+	Matrix geoMatrix = Matrix::CreateScale(m_geoScale)*
+		Matrix::CreateFromRollPitchYaw(m_geoRotation)*
+		Matrix::CreateTranslation(m_geoTranslation);
+
+	Matrix result = geoMatrix *
+		Matrix::CreateScale(m_scale) *
+		Matrix::CreateFromRollPitchYaw(m_eulerAngle) *
+		Matrix::CreateTranslation(m_translation);
+
+	m_localMatrix = result;
+
+	auto pParent = GetParent();
+	while (pParent)
+	{
+		NXTransform* pTransform = dynamic_cast<NXTransform*>(pParent);
+		if (pTransform)
+		{
+			pTransform->UpdateTransform();
+			result *= pTransform->GetLocalMatrix();
+		}
+		pParent = pParent->GetParent();
+	}
+
+	m_worldMatrix = result;
+	m_worldMatrixInv = result.Invert();
 }

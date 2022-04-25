@@ -18,6 +18,16 @@ public:
 
 	virtual void InitAABB() = 0;
 
+	void SetGeoTranslation(const Vector3& value) { m_geoTranslation = value; }
+	void SetGeoRotation(const Vector3& value) { m_geoRotation = value; }
+	void SetGeoScale(const Vector3& value) { m_geoScale = value; }
+
+	void UpdateTransform() override;
+
 protected:
 	AABB m_aabb;
+	Vector3 m_geoTranslation;
+	// 当前对象的欧拉角。旋转顺序：X-Y-Z
+	Vector3 m_geoRotation;
+	Vector3 m_geoScale;
 };

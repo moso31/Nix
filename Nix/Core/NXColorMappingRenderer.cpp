@@ -32,6 +32,8 @@ void NXColorMappingRenderer::Init()
 
 void NXColorMappingRenderer::Render()
 {
+	g_pUDA->BeginEvent(L"Post Processing");
+
 	g_pUDA->BeginEvent(L"Color Mapping");
 
 	ID3D11ShaderResourceView* pSRVMainScene = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_MainScene)->GetSRV();
@@ -50,6 +52,8 @@ void NXColorMappingRenderer::Render()
 	g_pContext->PSSetShaderResources(0, 1, &pSRVMainScene);
 
 	m_pFinalRT->Render();
+
+	g_pUDA->EndEvent();
 
 	g_pUDA->EndEvent();
 }

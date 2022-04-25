@@ -9,11 +9,9 @@ public:
 
 	virtual Vector3 GetTranslation();
 	virtual Vector3 GetRotation();
-	virtual Quaternion GetQuaternion();
 	virtual Vector3 GetScale();
 
 	virtual void SetTranslation(const Vector3& value);
-	virtual void SetQuaternion(const Quaternion& value);
 	virtual void SetRotation(const Vector3& value);
 	virtual void SetScale(const Vector3& value);
 
@@ -25,8 +23,8 @@ public:
 
 protected:
 	Vector3 m_translation;
+	// 当前对象的欧拉角。旋转顺序：X-Y-Z
 	Vector3 m_eulerAngle;
-	Quaternion m_rotation;
 	Vector3 m_scale;
 
 	Matrix m_localMatrix;

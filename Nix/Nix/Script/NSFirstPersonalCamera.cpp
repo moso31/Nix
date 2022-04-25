@@ -116,10 +116,10 @@ void NSFirstPersonalCamera::OnMouseMove(NXEventArgMouse eArg)
 	Vector3 vUp = pCamera->GetUp();
 	Vector3 vRight = pCamera->GetRight();
 
-	Matrix mxOld = Matrix::CreateFromQuaternion(pCamera->GetQuaternion());
+	Matrix mxOld = Matrix::CreateFromRollPitchYaw(pCamera->GetRotation());
 	Matrix mxRot = Matrix::CreateFromAxisAngle(vRight, fPitch) * Matrix::CreateFromAxisAngle(vUp, fYaw);
 	Matrix mxNew = mxOld * mxRot;
 
-	Vector3 ignore;
-	mxNew.Decompose(ignore, m_fRotation, ignore);
+	m_fRotation = mxNew.EulerRollPitchYaw();
+	//printf("OnMouseMove: %f, %f, %f\n", m_fRotation.x, m_fRotation.y, m_fRotation.z);
 }

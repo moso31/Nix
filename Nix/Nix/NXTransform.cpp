@@ -1,10 +1,8 @@
 #include "NXTransform.h"
 
-
 NXTransform::NXTransform() :
 	m_translation(0.0f),
 	m_eulerAngle(0.0f),
-	m_rotation(Quaternion()),
 	m_scale(1.0f),
 	m_worldMatrix(Matrix::Identity()),
 	m_worldMatrixInv(Matrix::Identity())
@@ -21,11 +19,6 @@ Vector3 NXTransform::GetRotation()
 	return m_eulerAngle;
 }
 
-Quaternion NXTransform::GetQuaternion()
-{
-	return m_rotation;
-}
-
 Vector3 NXTransform::GetScale()
 {
 	return m_scale;
@@ -34,23 +27,19 @@ Vector3 NXTransform::GetScale()
 void NXTransform::SetTranslation(const Vector3 &value)
 {
 	m_translation = value;
-}
-
-void NXTransform::SetQuaternion(const Quaternion &value)
-{
-	m_eulerAngle = value.EulerXYZ();
-	m_rotation = value;
+	printf("name: %s        Translation: %f %f %f\n", m_name.c_str(), m_translation.x, m_translation.y, m_translation.z);
 }
 
 void NXTransform::SetRotation(const Vector3& value)
 {
 	m_eulerAngle = value;
-	m_rotation = Quaternion::CreateFromYawPitchRoll(value.y, value.x, value.z);
+	printf("name: %s        Rotation:    %f %f %f\n", m_name.c_str(), m_eulerAngle.x, m_eulerAngle.y, m_eulerAngle.z);
 }
 
 void NXTransform::SetScale(const Vector3 &value)
 {
 	m_scale = value;
+	printf("name: %s        Scaling:     %f %f %f\n", m_name.c_str(), m_scale.x, m_scale.y, m_scale.z);
 }
 
 Matrix NXTransform::GetLocalMatrix()
@@ -72,7 +61,7 @@ void NXTransform::UpdateTransform()
 {
 	Matrix result =
 		Matrix::CreateScale(m_scale) *
-		Matrix::CreateFromXYZ(m_eulerAngle) *
+		Matrix::CreateFromRollPitchYaw(m_eulerAngle) *
 		Matrix::CreateTranslation(m_translation);
 
 	m_localMatrix = result;

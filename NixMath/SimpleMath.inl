@@ -2257,7 +2257,7 @@ inline bool Matrix::Decompose( Vector3& scale, Quaternion& rotation, Vector3& tr
     return true;
 }
 
-inline Vector3 DirectX::SimpleMath::Matrix::EulerXYZ()
+inline Vector3 Matrix::EulerXYZ()
 {
 	Vector3 result;
 	if (_13 < 1.0f)
@@ -2282,6 +2282,29 @@ inline Vector3 DirectX::SimpleMath::Matrix::EulerXYZ()
 		result.z = 0.0f;
 	}
 	return result;
+}
+
+inline Vector3 Matrix::EulerRollPitchYaw()
+{
+    float EPSILON = 1e-4f;
+    Vector3 result;
+    if (_32 < 1.0f - EPSILON)
+    {
+        if (_32 > -1.0f + EPSILON)
+        {
+            result = -Vector3(asinf(_32), atan2f(-_31, _33), atan2f(-_12, _22));
+        }
+        else
+        {
+            result = -Vector3(-XM_PIDIV2, 0.0f, -atan2f(_13, _11));
+        }
+    }
+    else
+    {
+        result = -Vector3(XM_PIDIV2, 0.0f, atan2f(_13, _11));
+    }
+
+    return result;
 }
 
 inline Matrix Matrix::Transpose() const
@@ -2488,30 +2511,30 @@ inline Matrix Matrix::CreateFromQuaternion( const Quaternion& rotation )
     XMStoreFloat4x4( &R, XMMatrixRotationQuaternion( quatv ) );
     return R;
 }
+//
+//inline Matrix DirectX::SimpleMath::Matrix::CreateFromXYZ(const Vector3& rotation)
+//{
+//	float cx = cosf(rotation.x);
+//	float cy = cosf(rotation.y);
+//	float cz = cosf(rotation.z);
+//	float sx = sinf(rotation.x);
+//	float sy = sinf(rotation.y);
+//	float sz = sinf(rotation.z);
+//	float cxcz = cx * cz;
+//	float sxsz = sx * sz;
+//	float sxcz = sx * cz;
+//	return Matrix(
+//		cy * cz, cx * sz + sxcz * sy, sxsz - cxcz * sy, 0.0f,
+//		-cy * sz, cxcz - sxsz * sy, sxcz + cx * sy * sz, 0.0f,
+//		sy, -sx * cy, cx * cy, 0.0f,
+//		0.0f, 0.0f, 0.0f, 1.0f);
+//}
 
-inline Matrix DirectX::SimpleMath::Matrix::CreateFromXYZ(Vector3 rotation)
-{
-	float cx = cosf(rotation.x);
-	float cy = cosf(rotation.y);
-	float cz = cosf(rotation.z);
-	float sx = sinf(rotation.x);
-	float sy = sinf(rotation.y);
-	float sz = sinf(rotation.z);
-	float cxcz = cx * cz;
-	float sxsz = sx * sz;
-	float sxcz = sx * cz;
-	return Matrix(
-		cy * cz, cx * sz + sxcz * sy, sxsz - cxcz * sy, 0.0f,
-		-cy * sz, cxcz - sxsz * sy, sxcz + cx * sy * sz, 0.0f,
-		sy, -sx * cy, cx * cy, 0.0f,
-		0.0f, 0.0f, 0.0f, 1.0f);
-}
-
-inline Matrix Matrix::CreateFromYawPitchRoll( float yaw, float pitch, float roll )
+inline Matrix Matrix::CreateFromRollPitchYaw(const Vector3& rotation)
 {
     using namespace DirectX;
     Matrix R;
-    XMStoreFloat4x4( &R, XMMatrixRotationRollPitchYaw( pitch, yaw, roll ) );
+    XMStoreFloat4x4(&R, XMMatrixRotationRollPitchYaw(rotation.x, rotation.y, rotation.z));  // x = pitch, y = yaw, z = roll ---- you can check parameters of XMMath API.
     return R;
 }
 
@@ -2962,7 +2985,7 @@ inline float Quaternion::Dot( const Quaternion& q ) const
 
 // Ref: Convert quaternion to euler rotations, 
 // http://bediyap.com/programming/convert-quaternion-to-euler-rotations/
-inline Vector3 DirectX::SimpleMath::Quaternion::EulerXYZ() const
+inline Vector3 Quaternion::EulerXYZ() const
 {
 	//float xx = x * x;
 	//float yy = y * y;

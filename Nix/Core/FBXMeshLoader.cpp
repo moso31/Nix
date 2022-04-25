@@ -68,12 +68,81 @@ void FBXMeshLoader::LoadRenderableObjects(FbxNode* pNode, NXRenderableObject* pP
 		}
 	}
 
+	if (pRenderableObject)
+	{
+		pRenderableObject->SetName((char*)pNode->GetName());
+
+		EFbxRotationOrder lRotationOrder;
+		pNode->GetRotationOrder(FbxNode::eSourcePivot, lRotationOrder);
+
+		switch (lRotationOrder)
+		{
+		case eEulerXYZ:
+			FBXSDK_printf("Euler XYZ\n");
+			break;
+		case eEulerXZY:
+			FBXSDK_printf("Euler XZY\n");
+			break;
+		case eEulerYZX:
+			FBXSDK_printf("Euler YZX\n");
+			break;
+		case eEulerYXZ:
+			FBXSDK_printf("Euler YXZ\n");
+			break;
+		case eEulerZXY:
+			FBXSDK_printf("Euler ZXY\n");
+			break;
+		case eEulerZYX:
+			FBXSDK_printf("Euler ZYX\n");
+			break;
+		case eSphericXYZ:
+			FBXSDK_printf("Spheric XYZ\n");
+			break;
+		default:
+			FBXSDK_printf("NONE\n");
+			break;
+		}
+
+		SetGeometricTransform(pNode, pRenderableObject);
+	}
+
 	int lChildCount = pNode->GetChildCount();
 	for (int i = 0; i < lChildCount; i++)
 	{
 		FbxNode* pChildNode = pNode->GetChild(i);
 		LoadRenderableObjects(pChildNode, pRenderableObject, bAutoCalcTangents);
 	}
+}
+
+void FBXMeshLoader::SetGeometricTransform(FbxNode* pNode, NXRenderableObject* pRenderableObject)
+{
+	FbxVector4 lTmpVector;
+
+	lTmpVector = pNode->EvaluateLocalTranslation();
+	Vector3 translation((float)lTmpVector[0], (float)lTmpVector[1], (float)lTmpVector[2]);
+
+	lTmpVector = pNode->EvaluateLocalRotation();
+	Vector3 rotation((float)lTmpVector[0], (float)lTmpVector[1], (float)lTmpVector[2]);
+	
+	lTmpVector = pNode->EvaluateLocalScaling();
+	Vector3 scale((float)lTmpVector[0], (float)lTmpVector[1], (float)lTmpVector[2]);
+
+	pRenderableObject->SetTranslation(translation);
+	pRenderableObject->SetRotation(rotation);
+	pRenderableObject->SetScale(scale);
+
+	lTmpVector = pNode->GetGeometricTranslation(FbxNode::eSourcePivot);
+	translation = Vector3((float)lTmpVector[0], (float)lTmpVector[1], (float)lTmpVector[2]);
+
+	lTmpVector = pNode->GetGeometricRotation(FbxNode::eSourcePivot);
+	rotation = Vector3((float)lTmpVector[0], (float)lTmpVector[1], (float)lTmpVector[2]);
+
+	lTmpVector = pNode->GetGeometricScaling(FbxNode::eSourcePivot);
+	scale = Vector3((float)lTmpVector[0], (float)lTmpVector[1], (float)lTmpVector[2]);
+
+	pRenderableObject->SetGeoTranslation(translation);
+	pRenderableObject->SetGeoRotation(rotation);
+	pRenderableObject->SetGeoScale(scale);
 }
 
 void FBXMeshLoader::EncodePrimitiveData(FbxNode* pNode, NXPrimitive* pPrimitive, bool bAutoCalcTangents)
@@ -193,7 +262,7 @@ void FBXMeshLoader::EncodePolygonData(FbxMesh* pMesh, NXSubMesh* pSubMesh, int p
 		pSubMesh->m_vertices.push_back(vertexDataArray[i]);
 		pSubMesh->m_vertices.push_back(vertexDataArray[i + 1]);
 
-		UINT lastIndex = pSubMesh->m_indices.size();
+		UINT lastIndex = (UINT)pSubMesh->m_indices.size();
 		pSubMesh->m_indices.push_back(lastIndex);
 		pSubMesh->m_indices.push_back(lastIndex + i);
 		pSubMesh->m_indices.push_back(lastIndex + i + 1);
@@ -352,7 +421,10 @@ void FBXMeshLoader::EncodeVertexNormals(FBXMeshVertexData& inoutVertexData, FbxM
 			}
 		}
 
-		inoutVertexData.Normals[l] = Vector3((float)normal[0], (float)normal[1], (float)normal[2]);
+		normal.Normalize();
+		bool isNaN = normal.SquareLength() < 1e-5f;
+		inoutVertexData.Normals[l] = isNaN ? Vector3(0.0f, 0.0f, 1.0f) : 
+			Vector3((float)normal[0], (float)normal[1], (float)normal[2]);
 	}
 }
 
@@ -384,7 +456,10 @@ void FBXMeshLoader::EncodeVertexTangents(FBXMeshVertexData& inoutVertexData, Fbx
 			}
 		}
 
-		inoutVertexData.Tangents[l] = Vector3((float)tangent[0], (float)tangent[1], (float)tangent[2]);
+		tangent.Normalize();
+		bool isNaN = tangent.SquareLength() < 1e-5f;
+		inoutVertexData.Tangents[l] = isNaN ? Vector3(1.0f, 0.0f, 0.0f) :
+			Vector3((float)tangent[0], (float)tangent[1], (float)tangent[2]);
 	}
 }
 
@@ -415,7 +490,10 @@ void FBXMeshLoader::EncodeVertexBiTangents(FBXMeshVertexData& inoutVertexData, F
 			}
 		}
 
-		inoutVertexData.BiTangents[l] = Vector3((float)bitangent[0], (float)bitangent[1], (float)bitangent[2]);
+		bitangent.Normalize();
+		bool isNaN = bitangent.SquareLength() < 1e-5f;
+		inoutVertexData.BiTangents[l] = isNaN ? Vector3(0.0f, 1.0f, 0.0f) :
+			Vector3((float)bitangent[0], (float)bitangent[1], (float)bitangent[2]);
 	}
 }
 
