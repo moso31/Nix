@@ -490,8 +490,14 @@ struct Matrix : public XMFLOAT4X4
     //// rot order: pitch-yaw-roll
 	//static Matrix CreateFromXYZ(const Vector3& rotation);
 
-    // rot order: roll-pitch-yaw
+    // rot order: roll-pitch-yaw. in Nix it means Z-X-Y.
     static Matrix CreateFromRollPitchYaw(const Vector3& rotation);
+
+    // rot order: pitch-yaw-roll. in Nix it means X-Y-Z.
+    static Matrix CreateFromPitchYawRoll(const Vector3& rotation);
+
+    // rot order: pitch-roll-yaw. in Nix it means X-Z-Y.
+    static Matrix CreateFromPitchRollYaw(const Vector3& rotation);
 
     static Matrix CreateShadow( const Vector3& lightDir, const Plane& plane );
 

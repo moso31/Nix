@@ -4,6 +4,7 @@ NXTransform::NXTransform() :
 	m_translation(0.0f),
 	m_eulerAngle(0.0f),
 	m_scale(1.0f),
+	m_rotation(Quaternion()),
 	m_worldMatrix(Matrix::Identity()),
 	m_worldMatrixInv(Matrix::Identity())
 {
@@ -33,7 +34,13 @@ void NXTransform::SetTranslation(const Vector3 &value)
 void NXTransform::SetRotation(const Vector3& value)
 {
 	m_eulerAngle = value;
-	printf("name: %s        Rotation:    %f %f %f\n", m_name.c_str(), m_eulerAngle.x, m_eulerAngle.y, m_eulerAngle.z);
+	Vector3 k = value * 180.0f / XM_PI;
+	printf("name: %s        Rotation:    %f %f %f\n", m_name.c_str(), k.x, k.y, k.z);
+}
+
+void NXTransform::SetRotation(const Quaternion& value)
+{
+	m_rotation = value;
 }
 
 void NXTransform::SetScale(const Vector3 &value)

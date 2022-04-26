@@ -20,7 +20,8 @@ NSFirstPersonalCamera::NSFirstPersonalCamera() :
 	m_fMoveSpeed(3.0f),
 	m_fSensitivity(0.005f),
 	m_bSpeedState(SPEED_MID),
-	m_bMoveAble(false)
+	m_bMoveAble(false),
+	m_bLastMoveAble(false)
 {
 	memset(m_bMoveState, false, sizeof(m_bMoveState));
 }
@@ -51,9 +52,9 @@ void NSFirstPersonalCamera::Update()
 	float moveSpeed = 3.0f;
 	switch (m_bSpeedState)
 	{
-	case SPEED_LOW: moveSpeed = 1.0f; break;
-	case SPEED_MID: moveSpeed = 3.0f; break;
-	case SPEED_HIGH: moveSpeed = 9.0f; break;
+	case SPEED_LOW: moveSpeed *= 1.0f; break;
+	case SPEED_MID: moveSpeed *= 3.0f; break;
+	case SPEED_HIGH: moveSpeed *= 9.0f; break;
 	}
 
 	auto timeDelta = g_timer->GetTimeDelta() / 1000000.0f;
@@ -95,6 +96,7 @@ void NSFirstPersonalCamera::OnMouseDown(NXEventArgMouse eArg)
 	if (eArg.VMouse & 4)	// 4 = mouse right down
 	{
 		m_bMoveAble = true;
+		m_bLastMoveAble = false;
 	}
 }
 
@@ -103,23 +105,34 @@ void NSFirstPersonalCamera::OnMouseUp(NXEventArgMouse eArg)
 	if (eArg.VMouse & 8)	// 8 = mouse right up
 	{
 		m_bMoveAble = false;
+		m_bLastMoveAble = false;
 	}
 }
 
 void NSFirstPersonalCamera::OnMouseMove(NXEventArgMouse eArg)
 {
-	auto pCamera = dynamic_cast<NXCamera*>(m_pObject);
+	if (m_bLastMoveAble && m_bMoveAble)
+	{
+		auto pCamera = dynamic_cast<NXCamera*>(m_pObject);
 
-	float fYaw = (float)eArg.LastX * m_fSensitivity;
-	float fPitch = (float)eArg.LastY * m_fSensitivity;
+		float fYaw = (float)eArg.LastX * m_fSensitivity;
+		float fPitch = (float)eArg.LastY * m_fSensitivity;
 
-	Vector3 vUp = pCamera->GetUp();
-	Vector3 vRight = pCamera->GetRight();
+		//Vector3 vUp = pCamera->GetUp();
+		//Vector3 vRight = pCamera->GetRight();
 
-	Matrix mxOld = Matrix::CreateFromRollPitchYaw(pCamera->GetRotation());
-	Matrix mxRot = Matrix::CreateFromAxisAngle(vRight, fPitch) * Matrix::CreateFromAxisAngle(vUp, fYaw);
-	Matrix mxNew = mxOld * mxRot;
+		//Matrix mxOld = Matrix::CreateFromRollPitchYaw(pCamera->GetRotation());
+		//Matrix mxRot = Matrix::CreateFromAxisAngle(vRight, fPitch) * Matrix::CreateFromAxisAngle(vUp, fYaw);
+		//Matrix mxNew = mxOld * mxRot;
 
-	m_fRotation = mxNew.EulerRollPitchYaw();
-	//printf("OnMouseMove: %f, %f, %f\n", m_fRotation.x, m_fRotation.y, m_fRotation.z);
+		//m_fRotation = mxNew.EulerRollPitchYaw();
+		//printf("OnMouseMove: %f, %f, %f\n", m_fRotation.x, m_fRotation.y, m_fRotation.z);
+
+		float pitchBorder = XM_PIDIV2 - 0.01f;
+		float nextPitch = m_fRotation.x + fPitch;
+		m_fRotation.x = Clamp(nextPitch, -pitchBorder, pitchBorder);
+		m_fRotation.y += fYaw;
+	}
+
+	m_bLastMoveAble = m_bMoveAble;
 }

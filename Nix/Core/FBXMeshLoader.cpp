@@ -56,7 +56,12 @@ void FBXMeshLoader::LoadRenderableObjects(FbxNode* pNode, NXRenderableObject* pP
 		{
 			pRenderableObject = new NXPrimitive();
 			pRenderableObject->SetParent(pParentMesh);
-			EncodePrimitiveData(pNode, (NXPrimitive*)pRenderableObject, bAutoCalcTangents);
+
+			// 如果 Mesh 的 scale 存在奇数个(1个 或 3个)负值，则需要反转polygon，否则生成的Mesh会朝向相反的方向。 
+			FbxVector4 lTmpVector = pNode->EvaluateLocalScaling() * pNode->GetGeometricScaling(FbxNode::eSourcePivot);
+			bool bFlipPolygon = ((int)(lTmpVector[0] < 0.0f) + (int)(lTmpVector[1] < 0.0f) + (int)(lTmpVector[2] < 0.0f)) % 2;
+
+			EncodePrimitiveData(pNode, (NXPrimitive*)pRenderableObject, bAutoCalcTangents, bFlipPolygon);
 			break;
 		}
 		default:
@@ -117,12 +122,17 @@ void FBXMeshLoader::LoadRenderableObjects(FbxNode* pNode, NXRenderableObject* pP
 void FBXMeshLoader::SetGeometricTransform(FbxNode* pNode, NXRenderableObject* pRenderableObject)
 {
 	FbxVector4 lTmpVector;
+	pNode->SetRotationOrder(FbxNode::eDestinationPivot, FbxEuler::eOrderZXY);
 
 	lTmpVector = pNode->EvaluateLocalTranslation();
-	Vector3 translation((float)lTmpVector[0], (float)lTmpVector[1], (float)lTmpVector[2]);
+	Vector3 translation((float)lTmpVector[0], (float)lTmpVector[1], -(float)lTmpVector[2]);
 
 	lTmpVector = pNode->EvaluateLocalRotation();
 	Vector3 rotation((float)lTmpVector[0], (float)lTmpVector[1], (float)lTmpVector[2]);
+	rotation *= XM_PI / 180.0f;
+	//Matrix m = Matrix::CreateFromPitchRollYaw(rotation);
+	//rotation = m.EulerRollPitchYaw();
+	//rotation = Vector3(rotation.x, -rotation.y, rotation.z);
 	
 	lTmpVector = pNode->EvaluateLocalScaling();
 	Vector3 scale((float)lTmpVector[0], (float)lTmpVector[1], (float)lTmpVector[2]);
@@ -136,16 +146,23 @@ void FBXMeshLoader::SetGeometricTransform(FbxNode* pNode, NXRenderableObject* pR
 
 	lTmpVector = pNode->GetGeometricRotation(FbxNode::eSourcePivot);
 	rotation = Vector3((float)lTmpVector[0], (float)lTmpVector[1], (float)lTmpVector[2]);
+	rotation *= XM_PI / 180.0f;
+	//printf("        geoRotation(before convert): %f %f %f\n", rotation.x, rotation.y, rotation.z);
+	//rotation = Matrix::CreateFromPitchRollYaw(rotation).EulerRollPitchYaw();
+	//printf("        geoRotation(after convert): %f %f %f\n", rotation.x, rotation.y, rotation.z);
 
 	lTmpVector = pNode->GetGeometricScaling(FbxNode::eSourcePivot);
 	scale = Vector3((float)lTmpVector[0], (float)lTmpVector[1], (float)lTmpVector[2]);
 
+	printf("        geoTranslation: %f %f %f\n", translation.x, translation.y, translation.z);
+	printf("        geoRotation: %f %f %f\n", rotation.x, rotation.y, rotation.z);
+	printf("        geoScale: %f %f %f\n", scale.x, scale.y, scale.z);
 	pRenderableObject->SetGeoTranslation(translation);
 	pRenderableObject->SetGeoRotation(rotation);
 	pRenderableObject->SetGeoScale(scale);
 }
 
-void FBXMeshLoader::EncodePrimitiveData(FbxNode* pNode, NXPrimitive* pPrimitive, bool bAutoCalcTangents)
+void FBXMeshLoader::EncodePrimitiveData(FbxNode* pNode, NXPrimitive* pPrimitive, bool bAutoCalcTangents, bool bFlipPolygon)
 {
 	FbxMesh* pMesh = (FbxMesh*)pNode->GetNodeAttribute();
 	FbxVector4* pControlPoints = pMesh->GetControlPoints();
@@ -174,7 +191,7 @@ void FBXMeshLoader::EncodePrimitiveData(FbxNode* pNode, NXPrimitive* pPrimitive,
 			int polygonCount = pMesh->GetPolygonCount();
 			for (int polygonIndex = 0; polygonIndex < polygonCount; polygonIndex++)
 			{
-				EncodePolygonData(pMesh, pSubMeshes[0], polygonIndex, vertexId);
+				EncodePolygonData(pMesh, pSubMeshes[0], polygonIndex, vertexId, bFlipPolygon);
 			}
 		}
 		else
@@ -199,7 +216,7 @@ void FBXMeshLoader::EncodePrimitiveData(FbxNode* pNode, NXPrimitive* pPrimitive,
 					//	DisplayMaterialTextureConnections(lMaterial, header, lMatId, elementMaterialIndex);
 					//}
 
-					EncodePolygonData(pMesh, pSubMeshes[lMatId], polygonIndex, vertexId);
+					EncodePolygonData(pMesh, pSubMeshes[lMatId], polygonIndex, vertexId, bFlipPolygon);
 				}
 			}
 		}
@@ -222,7 +239,7 @@ void FBXMeshLoader::EncodePrimitiveData(FbxNode* pNode, NXPrimitive* pPrimitive,
 	}
 }
 
-void FBXMeshLoader::EncodePolygonData(FbxMesh* pMesh, NXSubMesh* pSubMesh, int polygonIndex, int& vertexId)
+void FBXMeshLoader::EncodePolygonData(FbxMesh* pMesh, NXSubMesh* pSubMesh, int polygonIndex, int& vertexId, bool bFlipPolygon)
 {
 	int polygonSize = pMesh->GetPolygonSize(polygonIndex);
 
@@ -264,8 +281,16 @@ void FBXMeshLoader::EncodePolygonData(FbxMesh* pMesh, NXSubMesh* pSubMesh, int p
 
 		UINT lastIndex = (UINT)pSubMesh->m_indices.size();
 		pSubMesh->m_indices.push_back(lastIndex);
-		pSubMesh->m_indices.push_back(lastIndex + i);
-		pSubMesh->m_indices.push_back(lastIndex + i + 1);
+		if (bFlipPolygon)
+		{
+			pSubMesh->m_indices.push_back(lastIndex + i);
+			pSubMesh->m_indices.push_back(lastIndex + i + 1);
+		}
+		else
+		{
+			pSubMesh->m_indices.push_back(lastIndex + i + 1);
+			pSubMesh->m_indices.push_back(lastIndex + i);
+		}
 	}
 }
 
@@ -499,10 +524,15 @@ void FBXMeshLoader::EncodeVertexBiTangents(FBXMeshVertexData& inoutVertexData, F
 
 void FBXMeshLoader::ConvertVertexFormat(FBXMeshVertexData inVertexData, VertexPNTT& outVertexData)
 {
-	outVertexData.pos = inVertexData.Position;
-	outVertexData.tex = inVertexData.UVs[0];
-	outVertexData.norm = inVertexData.Normals[0];
-	outVertexData.tangent = inVertexData.Tangents[0];
+	outVertexData.pos		= VectorPermute3DSToNix(inVertexData.Position);
+	outVertexData.tex		= inVertexData.UVs[0];
+	outVertexData.norm		= VectorPermute3DSToNix(inVertexData.Normals[0]);
+	outVertexData.tangent	= VectorPermute3DSToNix(inVertexData.Tangents[0]);
+}
+
+Vector3 FBXMeshLoader::VectorPermute3DSToNix(const Vector3 value)
+{
+	return Vector3(value.x, value.z, value.y);
 }
 
 void FBXMeshLoader::InitializeSdkObjects(FbxManager*& pManager, FbxScene*& pScene)

@@ -30,12 +30,11 @@ AABB NXRenderableObject::GetAABBLocal()
 
 void NXRenderableObject::UpdateTransform()
 {
-	Matrix geoMatrix = Matrix::CreateScale(m_geoScale)*
-		Matrix::CreateFromRollPitchYaw(m_geoRotation)*
+	Matrix geoMatrix = Matrix::CreateScale(m_geoScale) *
+		Matrix::CreateFromRollPitchYaw(m_geoRotation) *
 		Matrix::CreateTranslation(m_geoTranslation);
 
-	Matrix result = geoMatrix *
-		Matrix::CreateScale(m_scale) *
+	Matrix result = Matrix::CreateScale(m_scale) *
 		Matrix::CreateFromRollPitchYaw(m_eulerAngle) *
 		Matrix::CreateTranslation(m_translation);
 
@@ -53,6 +52,6 @@ void NXRenderableObject::UpdateTransform()
 		pParent = pParent->GetParent();
 	}
 
-	m_worldMatrix = result;
+	m_worldMatrix = geoMatrix * result;
 	m_worldMatrixInv = result.Invert();
 }
