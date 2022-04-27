@@ -284,13 +284,13 @@ void FBXMeshLoader::EncodePolygonData(FbxMesh* pMesh, NXSubMesh* pSubMesh, int p
 		pSubMesh->m_indices.push_back(lastIndex);
 		if (bFlipPolygon)
 		{
-			pSubMesh->m_indices.push_back(lastIndex + i);
-			pSubMesh->m_indices.push_back(lastIndex + i + 1);
+			pSubMesh->m_indices.push_back(lastIndex + 1);
+			pSubMesh->m_indices.push_back(lastIndex + 2);
 		}
 		else
 		{
-			pSubMesh->m_indices.push_back(lastIndex + i + 1);
-			pSubMesh->m_indices.push_back(lastIndex + i);
+			pSubMesh->m_indices.push_back(lastIndex + 2);
+			pSubMesh->m_indices.push_back(lastIndex + 1);
 		}
 	}
 }
@@ -527,8 +527,8 @@ void FBXMeshLoader::ConvertVertexFormat(FBXMeshVertexData inVertexData, VertexPN
 {
 	outVertexData.pos		= VectorPermute3DSToNix(inVertexData.Position);
 	outVertexData.tex		= inVertexData.UVs.empty() ? Vector2(0.0f, 0.0f) : inVertexData.UVs[0];
-	outVertexData.norm		= inVertexData.Normals.empty() ? Vector3(0.0f, 0.0f, 1.0f) : inVertexData.Normals[0];
-	outVertexData.tangent	= inVertexData.Tangents.empty() ? Vector3(1.0f, 0.0f, 0.0f) : inVertexData.Tangents[0];
+	outVertexData.norm		= inVertexData.Normals.empty() ? Vector3(0.0f, 0.0f, 1.0f) : VectorPermute3DSToNix(inVertexData.Normals[0]);
+	outVertexData.tangent	= inVertexData.Tangents.empty() ? Vector3(1.0f, 0.0f, 0.0f) : VectorPermute3DSToNix(inVertexData.Tangents[0]);
 }
 
 Vector3 FBXMeshLoader::VectorPermute3DSToNix(const Vector3 value)
@@ -599,40 +599,40 @@ bool FBXMeshLoader::LoadScene(FbxManager* pManager, FbxDocument* pScene, const c
 		return false;
 	}
 
-	FBXSDK_printf("FBX file format version for this FBX SDK is %d.%d.%d\n", lSDKMajor, lSDKMinor, lSDKRevision);
+	//FBXSDK_printf("FBX file format version for this FBX SDK is %d.%d.%d\n", lSDKMajor, lSDKMinor, lSDKRevision);
 
 	if (lImporter->IsFBX())
 	{
-		FBXSDK_printf("FBX file format version for file '%s' is %d.%d.%d\n\n", pFilename, lFileMajor, lFileMinor, lFileRevision);
+		//FBXSDK_printf("FBX file format version for file '%s' is %d.%d.%d\n\n", pFilename, lFileMajor, lFileMinor, lFileRevision);
 
-		// From this point, it is possible to access animation stack information without
-		// the expense of loading the entire file.
+		//// From this point, it is possible to access animation stack information without
+		//// the expense of loading the entire file.
 
-		FBXSDK_printf("Animation Stack Information\n");
+		//FBXSDK_printf("Animation Stack Information\n");
 
-		lAnimStackCount = lImporter->GetAnimStackCount();
+		//lAnimStackCount = lImporter->GetAnimStackCount();
 
-		FBXSDK_printf("    Number of Animation Stacks: %d\n", lAnimStackCount);
-		FBXSDK_printf("    Current Animation Stack: \"%s\"\n", lImporter->GetActiveAnimStackName().Buffer());
-		FBXSDK_printf("\n");
+		//FBXSDK_printf("    Number of Animation Stacks: %d\n", lAnimStackCount);
+		//FBXSDK_printf("    Current Animation Stack: \"%s\"\n", lImporter->GetActiveAnimStackName().Buffer());
+		//FBXSDK_printf("\n");
 
-		for (int i = 0; i < lAnimStackCount; i++)
-		{
-			FbxTakeInfo* lTakeInfo = lImporter->GetTakeInfo(i);
+		//for (int i = 0; i < lAnimStackCount; i++)
+		//{
+		//	FbxTakeInfo* lTakeInfo = lImporter->GetTakeInfo(i);
 
-			FBXSDK_printf("    Animation Stack %d\n", i);
-			FBXSDK_printf("         Name: \"%s\"\n", lTakeInfo->mName.Buffer());
-			FBXSDK_printf("         Description: \"%s\"\n", lTakeInfo->mDescription.Buffer());
+		//	FBXSDK_printf("    Animation Stack %d\n", i);
+		//	FBXSDK_printf("         Name: \"%s\"\n", lTakeInfo->mName.Buffer());
+		//	FBXSDK_printf("         Description: \"%s\"\n", lTakeInfo->mDescription.Buffer());
 
-			// Change the value of the import name if the animation stack should be imported 
-			// under a different name.
-			FBXSDK_printf("         Import Name: \"%s\"\n", lTakeInfo->mImportName.Buffer());
+		//	// Change the value of the import name if the animation stack should be imported 
+		//	// under a different name.
+		//	FBXSDK_printf("         Import Name: \"%s\"\n", lTakeInfo->mImportName.Buffer());
 
-			// Set the value of the import state to false if the animation stack should be not
-			// be imported. 
-			FBXSDK_printf("         Import State: %s\n", lTakeInfo->mSelect ? "true" : "false");
-			FBXSDK_printf("\n");
-		}
+		//	// Set the value of the import state to false if the animation stack should be not
+		//	// be imported. 
+		//	FBXSDK_printf("         Import State: %s\n", lTakeInfo->mSelect ? "true" : "false");
+		//	FBXSDK_printf("\n");
+		//}
 
 		// Set the import states. By default, the import states are always set to 
 		// true. The code below shows how to change these states.
@@ -647,62 +647,6 @@ bool FBXMeshLoader::LoadScene(FbxManager* pManager, FbxDocument* pScene, const c
 
 	// Import the scene.
 	lStatus = lImporter->Import(pScene);
-	if (lStatus == true)
-	{
-		// Check the scene integrity!
-		FbxStatus status;
-		FbxArray< FbxString*> details;
-		FbxSceneCheckUtility sceneCheck(FbxCast<FbxScene>(pScene), &status, &details);
-		lStatus = sceneCheck.Validate(FbxSceneCheckUtility::eCkeckData);
-		bool lNotify = (!lStatus && details.GetCount() > 0) || (lImporter->GetStatus().GetCode() != FbxStatus::eSuccess);
-		if (lNotify)
-		{
-			FBXSDK_printf("\n");
-			FBXSDK_printf("********************************************************************************\n");
-			if (details.GetCount())
-			{
-				FBXSDK_printf("Scene integrity verification failed with the following errors:\n");
-				for (int i = 0; i < details.GetCount(); i++)
-					FBXSDK_printf("   %s\n", details[i]->Buffer());
-
-				FbxArrayDelete<FbxString*>(details);
-			}
-
-			if (lImporter->GetStatus().GetCode() != FbxStatus::eSuccess)
-			{
-				FBXSDK_printf("\n");
-				FBXSDK_printf("WARNING:\n");
-				FBXSDK_printf("   The importer was able to read the file but with errors.\n");
-				FBXSDK_printf("   Loaded scene may be incomplete.\n\n");
-				FBXSDK_printf("   Last error message:'%s'\n", lImporter->GetStatus().GetErrorString());
-			}
-			FBXSDK_printf("********************************************************************************\n");
-			FBXSDK_printf("\n");
-		}
-	}
-
-	if (lStatus == false && lImporter->GetStatus().GetCode() == FbxStatus::ePasswordError)
-	{
-		FBXSDK_printf("Please enter password: ");
-
-		lPassword[0] = '\0';
-
-		FBXSDK_CRT_SECURE_NO_WARNING_BEGIN
-			scanf("%s", lPassword);
-		FBXSDK_CRT_SECURE_NO_WARNING_END
-
-			FbxString lString(lPassword);
-
-		IOS_REF.SetStringProp(IMP_FBX_PASSWORD, lString);
-		IOS_REF.SetBoolProp(IMP_FBX_PASSWORD_ENABLE, true);
-
-		lStatus = lImporter->Import(pScene);
-
-		if (lStatus == false && lImporter->GetStatus().GetCode() == FbxStatus::ePasswordError)
-		{
-			FBXSDK_printf("\nPassword is wrong, import aborted.\n");
-		}
-	}
 
 	// Destroy the importer.
 	lImporter->Destroy();
