@@ -68,7 +68,7 @@ void NXTransform::UpdateTransform()
 {
 	Matrix result =
 		Matrix::CreateScale(m_scale) *
-		Matrix::CreateFromRollPitchYaw(m_eulerAngle) *
+		Matrix::CreateFromZXY(m_eulerAngle) *
 		Matrix::CreateTranslation(m_translation);
 
 	m_localMatrix = result;

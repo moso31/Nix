@@ -2530,7 +2530,7 @@ inline Matrix Matrix::CreateFromQuaternion( const Quaternion& rotation )
 //		0.0f, 0.0f, 0.0f, 1.0f);
 //}
 
-inline Matrix Matrix::CreateFromRollPitchYaw(const Vector3& rotation)
+inline Matrix Matrix::CreateFromZXY(const Vector3& rotation)
 {
     //using namespace DirectX;
     //Matrix R;
@@ -2551,7 +2551,7 @@ inline Matrix Matrix::CreateFromRollPitchYaw(const Vector3& rotation)
         0.0f, 0.0f, 0.0f, 1.0f);
 }
 
-inline Matrix Matrix::CreateFromPitchYawRoll(const Vector3& rotation)
+inline Matrix Matrix::CreateFromXYZ(const Vector3& rotation)
 {
     XMVECTOR cv, sv;
     XMVectorSinCos(&sv, &cv, -rotation);
@@ -2567,7 +2567,7 @@ inline Matrix Matrix::CreateFromPitchYawRoll(const Vector3& rotation)
         0.0f, 0.0f, 0.0f, 1.0f);
 }
 
-inline Matrix Matrix::CreateFromPitchRollYaw(const Vector3& rotation)
+inline Matrix Matrix::CreateFromXZY(const Vector3& rotation)
 {
     XMVECTOR cv, sv;
     XMVectorSinCos(&sv, &cv, -rotation);
@@ -2580,6 +2580,54 @@ inline Matrix Matrix::CreateFromPitchRollYaw(const Vector3& rotation)
         c.y * c.z, -s.z, c.z * s.y, 0.0f,
         s.x * s.y + c.x * c.y * s.z, c.x * c.z, -c.y * s.x + c.x * s.y * s.z, 0.0f,
         -c.x * s.y + c.y * s.x * s.z, c.z * s.x, c.x * c.y + s.x * s.y * s.z, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f);
+}
+
+inline Matrix Matrix::CreateFromYXZ(const Vector3& rotation)
+{
+    XMVECTOR cv, sv;
+    XMVectorSinCos(&sv, &cv, -rotation);
+
+    Vector4 c, s;
+    XMStoreFloat4(&c, cv);
+    XMStoreFloat4(&s, sv);
+
+    return Matrix(
+        c.y * c.z + s.x * s.y * s.z, c.z * s.x * s.y - c.y * s.z, c.x * s.y, 0.0f,
+        c.x * s.z, c.x * c.z, -s.x, 0.0f,
+        -c.z * s.y + c.y * s.x * s.z, c.y * c.z * s.x + s.y * s.z, c.x * c.y, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f);
+}
+
+inline Matrix Matrix::CreateFromZYX(const Vector3& rotation)
+{
+    XMVECTOR cv, sv;
+    XMVectorSinCos(&sv, &cv, -rotation);
+
+    Vector4 c, s;
+    XMStoreFloat4(&c, cv);
+    XMStoreFloat4(&s, sv);
+
+    return Matrix(
+        c.y * c.z, c.z * s.x * s.y - c.x * s.z, c.x * c.z * s.y + s.x * s.z, 0.0f,
+        c.y * s.z, c.x * c.z + s.x * s.y * s.z, -c.z * s.x + c.x * s.y * s.z, 0.0f,
+        -s.y, c.y * s.z, c.x * c.y, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f);
+}
+
+inline Matrix Matrix::CreateFromYZX(const Vector3& rotation)
+{
+    XMVECTOR cv, sv;
+    XMVectorSinCos(&sv, &cv, -rotation);
+
+    Vector4 c, s;
+    XMStoreFloat4(&c, cv);
+    XMStoreFloat4(&s, sv);
+
+    return Matrix(
+        c.y * c.z, s.x * s.y - c.x * c.y * s.z, c.x * s.y + c.y * s.x * s.z, 0.0f,
+        s.z, c.x * c.z, -c.z * s.x, 0.0f,
+        -c.z * s.y, c.y * s.x + c.x * s.y * s.z, c.x * c.y - s.x * s.y * s.z, 0.0f,
         0.0f, 0.0f, 0.0f, 1.0f);
 }
 

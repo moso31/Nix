@@ -157,9 +157,9 @@ void NXScene::Init()
 	//SceneManager::GetInstance()->CreateFBXMeshes("D:\\NixAssets\\Cloth.fbx", pMeshes, true);
 	//SceneManager::GetInstance()->BindMaterial(pMeshes[0]->GetSubMesh(0), pPBRMat[0]);
 
-	NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\arnia3.fbx", false);
+	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\arnia.fbx", false);
+	NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\mxn.fbx", false);
 	p->SetScale(Vector3(1.0f));
-	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\Teapot.fbx", false);
 	SceneManager::GetInstance()->BindMaterial(p, pPBRMat[0]);
 	{
 		//bool bBind = SceneManager::GetInstance()->BindParent(pMeshes[1], pSphere);

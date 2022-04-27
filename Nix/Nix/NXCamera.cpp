@@ -16,7 +16,7 @@ NXCamera::NXCamera() :
 void NXCamera::SetTranslation(const Vector3& value)
 {
 	m_translation = value;
-	Vector3 dir = Vector3::TransformNormal(Vector3(0.0f, 0.0f, 1.0f), Matrix::CreateFromRollPitchYaw(m_eulerAngle));
+	Vector3 dir = Vector3::TransformNormal(Vector3(0.0f, 0.0f, 1.0f), Matrix::CreateFromZXY(m_eulerAngle));
 
 	m_at = m_translation + dir;
 	m_up = { 0.0f, 1.0f, 0.0f };
@@ -25,7 +25,7 @@ void NXCamera::SetTranslation(const Vector3& value)
 void NXCamera::SetRotation(const Vector3& value)
 {
 	m_eulerAngle = value;
-	Vector3 dir = Vector3::TransformNormal(Vector3(0.0f, 0.0f, 1.0f), Matrix::CreateFromRollPitchYaw(m_eulerAngle));
+	Vector3 dir = Vector3::TransformNormal(Vector3(0.0f, 0.0f, 1.0f), Matrix::CreateFromZXY(m_eulerAngle));
 
 	m_at = m_translation + dir;
 	m_up = { 0.0f, 1.0f, 0.0f };

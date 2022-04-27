@@ -125,34 +125,35 @@ void FBXMeshLoader::SetGeometricTransform(FbxNode* pNode, NXRenderableObject* pR
 	pNode->SetRotationOrder(FbxNode::eDestinationPivot, FbxEuler::eOrderZXY);
 
 	lTmpVector = pNode->EvaluateLocalTranslation();
-	Vector3 translation((float)lTmpVector[0], (float)lTmpVector[1], -(float)lTmpVector[2]);
+	Vector3 translation((float)lTmpVector[0], (float)lTmpVector[2], (float)lTmpVector[1]);
 
 	lTmpVector = pNode->EvaluateLocalRotation();
-	Vector3 rotation((float)lTmpVector[0], (float)lTmpVector[1], (float)lTmpVector[2]);
+	Vector3 rotation((float)lTmpVector[0], (float)lTmpVector[2], (float)lTmpVector[1]);
 	rotation *= XM_PI / 180.0f;
-	//Matrix m = Matrix::CreateFromPitchRollYaw(rotation);
-	//rotation = m.EulerRollPitchYaw();
-	//rotation = Vector3(rotation.x, -rotation.y, rotation.z);
+	Matrix m = Matrix::CreateFromXZY(-rotation);
+	//pRenderableObject->SetRotationMatrix(m);
+	rotation = m.EulerRollPitchYaw();
+	rotation = -rotation;
 	
 	lTmpVector = pNode->EvaluateLocalScaling();
-	Vector3 scale((float)lTmpVector[0], (float)lTmpVector[1], (float)lTmpVector[2]);
+	Vector3 scale((float)lTmpVector[0], (float)lTmpVector[2], (float)lTmpVector[1]);
 
 	pRenderableObject->SetTranslation(translation);
 	pRenderableObject->SetRotation(rotation);
 	pRenderableObject->SetScale(scale);
 
 	lTmpVector = pNode->GetGeometricTranslation(FbxNode::eSourcePivot);
-	translation = Vector3((float)lTmpVector[0], (float)lTmpVector[1], (float)lTmpVector[2]);
+	translation = Vector3((float)lTmpVector[0], (float)lTmpVector[2], (float)lTmpVector[1]);
 
 	lTmpVector = pNode->GetGeometricRotation(FbxNode::eSourcePivot);
-	rotation = Vector3((float)lTmpVector[0], (float)lTmpVector[1], (float)lTmpVector[2]);
+	rotation = Vector3((float)lTmpVector[0], (float)lTmpVector[2], (float)lTmpVector[1]);
 	rotation *= XM_PI / 180.0f;
-	//printf("        geoRotation(before convert): %f %f %f\n", rotation.x, rotation.y, rotation.z);
-	//rotation = Matrix::CreateFromPitchRollYaw(rotation).EulerRollPitchYaw();
-	//printf("        geoRotation(after convert): %f %f %f\n", rotation.x, rotation.y, rotation.z);
+	m = Matrix::CreateFromXZY(-rotation);
+	rotation = m.EulerRollPitchYaw();
+	rotation = -rotation;
 
 	lTmpVector = pNode->GetGeometricScaling(FbxNode::eSourcePivot);
-	scale = Vector3((float)lTmpVector[0], (float)lTmpVector[1], (float)lTmpVector[2]);
+	scale = Vector3((float)lTmpVector[0], (float)lTmpVector[2], (float)lTmpVector[1]);
 
 	printf("        geoTranslation: %f %f %f\n", translation.x, translation.y, translation.z);
 	printf("        geoRotation: %f %f %f\n", rotation.x, rotation.y, rotation.z);
@@ -525,9 +526,9 @@ void FBXMeshLoader::EncodeVertexBiTangents(FBXMeshVertexData& inoutVertexData, F
 void FBXMeshLoader::ConvertVertexFormat(FBXMeshVertexData inVertexData, VertexPNTT& outVertexData)
 {
 	outVertexData.pos		= VectorPermute3DSToNix(inVertexData.Position);
-	outVertexData.tex		= inVertexData.UVs[0];
-	outVertexData.norm		= VectorPermute3DSToNix(inVertexData.Normals[0]);
-	outVertexData.tangent	= VectorPermute3DSToNix(inVertexData.Tangents[0]);
+	outVertexData.tex		= inVertexData.UVs.empty() ? Vector2(0.0f, 0.0f) : inVertexData.UVs[0];
+	outVertexData.norm		= inVertexData.Normals.empty() ? Vector3(0.0f, 0.0f, 1.0f) : inVertexData.Normals[0];
+	outVertexData.tangent	= inVertexData.Tangents.empty() ? Vector3(1.0f, 0.0f, 0.0f) : inVertexData.Tangents[0];
 }
 
 Vector3 FBXMeshLoader::VectorPermute3DSToNix(const Vector3 value)

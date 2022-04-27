@@ -22,6 +22,8 @@ public:
 	void SetGeoRotation(const Vector3& value) { m_geoRotation = value; }
 	void SetGeoScale(const Vector3& value) { m_geoScale = value; }
 
+	void SetRotationMatrix(const Matrix& m) { m_rotMatrix = m; }
+
 	void UpdateTransform() override;
 
 protected:
@@ -30,4 +32,6 @@ protected:
 	// 当前对象的欧拉角。旋转顺序：X-Y-Z
 	Vector3 m_geoRotation;
 	Vector3 m_geoScale;
+
+	Matrix m_rotMatrix;
 };

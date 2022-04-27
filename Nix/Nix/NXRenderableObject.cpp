@@ -6,6 +6,7 @@ NXRenderableObject::NXRenderableObject() :
 	m_geoTranslation(Vector3(0.0f)),
 	m_geoRotation(Vector3(0.0f)),
 	m_geoScale(Vector3(1.0f)),
+	m_rotMatrix(Matrix::Identity()),
 	NXTransform()
 {
 	m_type = NXType::ePrefab;
@@ -31,11 +32,11 @@ AABB NXRenderableObject::GetAABBLocal()
 void NXRenderableObject::UpdateTransform()
 {
 	Matrix geoMatrix = Matrix::CreateScale(m_geoScale) *
-		Matrix::CreateFromRollPitchYaw(m_geoRotation) *
+		Matrix::CreateFromZXY(m_geoRotation) *
 		Matrix::CreateTranslation(m_geoTranslation);
 
 	Matrix result = Matrix::CreateScale(m_scale) *
-		Matrix::CreateFromRollPitchYaw(m_eulerAngle) *
+		Matrix::CreateFromZXY(m_eulerAngle) *
 		Matrix::CreateTranslation(m_translation);
 
 	m_localMatrix = result;
