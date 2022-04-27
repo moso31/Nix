@@ -22,8 +22,6 @@ public:
 	void SetGeoRotation(const Vector3& value) { m_geoRotation = value; }
 	void SetGeoScale(const Vector3& value) { m_geoScale = value; }
 
-	void SetRotationMatrix(const Matrix& m) { m_rotMatrix = m; }
-
 	void UpdateTransform() override;
 
 protected:
@@ -33,5 +31,6 @@ protected:
 	Vector3 m_geoRotation;
 	Vector3 m_geoScale;
 
-	Matrix m_rotMatrix;
+	Matrix m_updateWorldMatrix;
+	Matrix m_updateWorldMatrixInv;
 };

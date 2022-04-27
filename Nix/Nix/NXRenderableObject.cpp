@@ -6,7 +6,8 @@ NXRenderableObject::NXRenderableObject() :
 	m_geoTranslation(Vector3(0.0f)),
 	m_geoRotation(Vector3(0.0f)),
 	m_geoScale(Vector3(1.0f)),
-	m_rotMatrix(Matrix::Identity()),
+	m_updateWorldMatrix(Matrix::Identity()),
+	m_updateWorldMatrixInv(Matrix::Identity()),
 	NXTransform()
 {
 	m_type = NXType::ePrefab;
@@ -41,18 +42,19 @@ void NXRenderableObject::UpdateTransform()
 
 	m_localMatrix = result;
 
-	auto pParent = GetParent();
-	while (pParent)
+	NXTransform* pTransform = dynamic_cast<NXTransform*>(GetParent());
+	if (pTransform)
 	{
-		NXTransform* pTransform = dynamic_cast<NXTransform*>(pParent);
-		if (pTransform)
-		{
-			pTransform->UpdateTransform();
-			result *= pTransform->GetLocalMatrix();
-		}
-		pParent = pParent->GetParent();
+		NXRenderableObject* pRenObj = dynamic_cast<NXRenderableObject*>(pTransform);
+		if (pRenObj)
+			result *= pRenObj->m_updateWorldMatrix;
+		else
+			result *= pTransform->GetWorldMatrix();
 	}
 
+	m_updateWorldMatrix = result;
+	m_updateWorldMatrixInv = m_updateWorldMatrix.Invert();
+
 	m_worldMatrix = geoMatrix * result;
-	m_worldMatrixInv = result.Invert();
+	m_worldMatrixInv = m_worldMatrix.Invert();
 }

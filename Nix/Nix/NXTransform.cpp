@@ -72,18 +72,10 @@ void NXTransform::UpdateTransform()
 		Matrix::CreateTranslation(m_translation);
 
 	m_localMatrix = result;
-	
-	auto pParent = GetParent();
-	while (pParent)
-	{
-		NXTransform* pTransform = dynamic_cast<NXTransform*>(pParent);
-		if (pTransform)
-		{
-			pTransform->UpdateTransform();
-			result *= pTransform->GetLocalMatrix();
-		}
-		pParent = pParent->GetParent();
-	}
+
+	NXTransform* pTransform = dynamic_cast<NXTransform*>(GetParent());
+	if (pTransform)
+		result *= pTransform->GetWorldMatrix();
 	
 	m_worldMatrix = result;
 	m_worldMatrixInv = result.Invert();

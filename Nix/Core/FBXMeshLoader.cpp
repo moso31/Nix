@@ -570,9 +570,9 @@ bool FBXMeshLoader::LoadScene(FbxManager* pManager, FbxDocument* pScene, const c
 	int lFileMajor, lFileMinor, lFileRevision;
 	int lSDKMajor, lSDKMinor, lSDKRevision;
 	//int lFileFormat = -1;
-	int lAnimStackCount;
+	//int lAnimStackCount;
 	bool lStatus;
-	char lPassword[1024];
+	//char lPassword[1024];
 
 	// Get the file version number generate by the FBX SDK.
 	FbxManager::GetFileFormatVersion(lSDKMajor, lSDKMinor, lSDKRevision);
