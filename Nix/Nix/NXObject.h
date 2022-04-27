@@ -12,6 +12,9 @@ enum NXType
 	ePrimitive,
 	ePrefab,
 	eCamera,
+	eCubeMap,
+
+	eMax
 };
 
 class NXObject
@@ -24,6 +27,7 @@ public:
 	void SetName(std::string name) { m_name = name; }
 
 	NXType GetType() { return m_type; }
+	bool IsTransformType();
 
 	void AddScript(NXScript* script);
 	std::vector<NXScript*> GetScripts();

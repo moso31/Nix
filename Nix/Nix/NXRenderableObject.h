@@ -31,6 +31,6 @@ protected:
 	Vector3 m_geoRotation;
 	Vector3 m_geoScale;
 
-	Matrix m_updateWorldMatrix;
-	Matrix m_updateWorldMatrixInv;
+	Matrix m_transformWorldMatrix;
+	Matrix m_transformWorldMatrixInv;
 };

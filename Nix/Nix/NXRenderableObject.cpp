@@ -6,8 +6,8 @@ NXRenderableObject::NXRenderableObject() :
 	m_geoTranslation(Vector3(0.0f)),
 	m_geoRotation(Vector3(0.0f)),
 	m_geoScale(Vector3(1.0f)),
-	m_updateWorldMatrix(Matrix::Identity()),
-	m_updateWorldMatrixInv(Matrix::Identity()),
+	m_transformWorldMatrix(Matrix::Identity()),
+	m_transformWorldMatrixInv(Matrix::Identity()),
 	NXTransform()
 {
 	m_type = NXType::ePrefab;
@@ -42,19 +42,25 @@ void NXRenderableObject::UpdateTransform()
 
 	m_localMatrix = result;
 
-	NXTransform* pTransform = dynamic_cast<NXTransform*>(GetParent());
-	if (pTransform)
+	m_transformWorldMatrix = result;
+
+	auto pParent = GetParent();
+	if (pParent->IsTransformType())
 	{
-		NXRenderableObject* pRenObj = dynamic_cast<NXRenderableObject*>(pTransform);
-		if (pRenObj)
-			result *= pRenObj->m_updateWorldMatrix;
+		if (pParent->GetType() == NXType::ePrimitive || pParent->GetType() == NXType::ePrefab)
+		{
+			NXRenderableObject* pRenObj = static_cast<NXRenderableObject*>(pParent);
+			m_transformWorldMatrix *= pRenObj->m_transformWorldMatrix;
+		}
 		else
-			result *= pTransform->GetWorldMatrix();
+		{
+			NXTransform* pTransform = static_cast<NXTransform*>(pParent);
+			m_transformWorldMatrix *= pTransform->GetWorldMatrix();
+		}
 	}
 
-	m_updateWorldMatrix = result;
-	m_updateWorldMatrixInv = m_updateWorldMatrix.Invert();
+	m_transformWorldMatrixInv = m_transformWorldMatrix.Invert();
 
-	m_worldMatrix = geoMatrix * result;
+	m_worldMatrix = geoMatrix * m_transformWorldMatrix;
 	m_worldMatrixInv = m_worldMatrix.Invert();
 }
