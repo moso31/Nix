@@ -1,6 +1,9 @@
 #include "NXRenderableObject.h"
 #include "GlobalBufferManager.h"
 #include "NXScene.h"
+#include "NXIntersection.h"
+#include "NXPrefab.h"
+#include "NXPrimitive.h"
 
 NXRenderableObject::NXRenderableObject() :
 	m_geoTranslation(Vector3(0.0f)),
@@ -20,14 +23,57 @@ void NXRenderableObject::Release()
 
 AABB NXRenderableObject::GetAABBWorld()
 {
-	AABB worldAABB;
-	AABB::Transform(m_aabb, m_worldMatrix, worldAABB);
-	return worldAABB;
+	return m_aabb;
 }
 
 AABB NXRenderableObject::GetAABBLocal()
 {
-	return m_aabb;
+	AABB localAABB;
+	AABB::Transform(m_aabb, m_worldMatrixInv, localAABB);
+	return localAABB;
+}
+
+bool NXRenderableObject::RayCast(const Ray& worldRay, NXHit& outHitInfo, float& outDist)
+{
+	Ray localRay = worldRay.Transform(m_worldMatrixInv);
+	bool bSuccess = false;
+
+	float dist = outDist;
+	NXHit hitInfo;
+
+	for (auto pChild : GetChilds())
+	{
+		auto pChildRenderObj = pChild->IsRenderableObject();
+		if (pChildRenderObj)
+		{
+			if (pChildRenderObj->RayCast(worldRay, hitInfo, dist) && dist < outDist)
+			{
+				outHitInfo = hitInfo;
+				outDist = dist;
+				bSuccess = true;
+			}
+		}
+	}
+
+	return bSuccess;
+}
+
+void NXRenderableObject::InitAABB()
+{
+	AABB worldAABB = GetAABBWorld();
+	for (auto pChild : GetChilds())
+	{
+		auto pChildRenderableObj = pChild->IsRenderableObject();
+		if (pChildRenderableObj)
+		{
+			pChildRenderableObj->InitAABB();
+			AABB childWorldAABB = pChildRenderableObj->GetAABBWorld();
+
+			AABB::CreateMerged(worldAABB, worldAABB, childWorldAABB);
+		}
+	}
+
+	m_aabb = worldAABB;
 }
 
 void NXRenderableObject::UpdateTransform()
@@ -45,9 +91,9 @@ void NXRenderableObject::UpdateTransform()
 	m_transformWorldMatrix = result;
 
 	auto pParent = GetParent();
-	if (pParent->IsTransformType())
+	if (pParent->IsTransform())
 	{
-		if (pParent->GetType() == NXType::ePrimitive || pParent->GetType() == NXType::ePrefab)
+		if (pParent->IsRenderableObject())
 		{
 			NXRenderableObject* pRenObj = static_cast<NXRenderableObject*>(pParent);
 			m_transformWorldMatrix *= pRenObj->m_transformWorldMatrix;

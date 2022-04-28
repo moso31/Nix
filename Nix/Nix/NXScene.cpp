@@ -200,9 +200,6 @@ void NXScene::Init()
 	//SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\HDRGPUTest.hdr");
 	//SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\WhiteHDRI.hdr");
 
-
-	// 更新AABB需要世界坐标，而Init阶段还没有拿到世界坐标，所以需要提前PrevUpdate一次。
-	UpdateTransform();
 	InitBoundingStructures();
 
 	// Init Lighting
@@ -412,9 +409,16 @@ bool NXScene::RayCast(const Ray& ray, NXHit& outHitInfo, float tMax)
 
 void NXScene::InitBoundingStructures()
 {
+	// 要计算所有物体的AABB，就需要确保所有物体的 Transform 是正确的
+	// 所以这里需要做一次 UpdateTransform
+	UpdateTransform();
+
 	// construct AABB for scene.
+	// 遍历 renderableObjects，只对一级 Hierarchy 节点 InitAABB
+	// 子Object 的 AABB 会递归生成。
 	for (auto pMesh : m_renderableObjects)
 	{
+		pMesh->InitAABB();
 		AABB::CreateMerged(m_aabb, m_aabb, pMesh->GetAABBWorld());
 	}
 

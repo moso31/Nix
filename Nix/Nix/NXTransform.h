@@ -7,6 +7,8 @@ public:
 	NXTransform();
 	~NXTransform() {}
 
+	virtual NXTransform* IsTransform() override { return this; }
+
 	virtual Vector3 GetTranslation();
 	virtual Vector3 GetRotation();
 	virtual Vector3 GetScale();

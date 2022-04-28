@@ -152,9 +152,9 @@ void SceneManager::BindMaterial(NXRenderableObject* pPrefab, NXMaterial* pMateri
 {
 	for (auto pChild : pPrefab->GetChilds())
 	{
-		if (pChild->GetType() == NXType::ePrimitive || pChild->GetType() == NXType::ePrefab)
+		if (pChild->IsRenderableObject())
 		{
-			if (pChild->GetType() == NXType::ePrimitive)
+			if (pChild->IsPrimitive())
 			{
 				NXPrimitive* pChildPrimitive = static_cast<NXPrimitive*>(pChild);
 				for (UINT i = 0; i < pChildPrimitive->GetSubMeshCount(); i++)

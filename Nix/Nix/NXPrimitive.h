@@ -8,6 +8,8 @@ public:
 	NXPrimitive();
 	~NXPrimitive() {}
 
+	virtual NXPrimitive* IsPrimitive() override { return this; }
+
 	virtual void UpdateViewParams();
 
 	// 自动计算SubMesh下所有顶点的切线数据。
@@ -25,7 +27,7 @@ public:
 	void ResizeSubMesh(UINT size);
 	void ReloadSubMesh(UINT index, NXSubMesh* pSubMesh);
 
-	void InitAABB();
+	void InitAABB() override;
 
 protected:
 	std::vector<std::shared_ptr<NXSubMesh>> m_pSubMeshes;

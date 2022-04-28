@@ -47,6 +47,8 @@ public:
 	// 更新场景BVH树
 	void BuildBVHTrees(const HBVHSplitMode SplitMode);
 private:
+
+	// 计算场景下所有物体的 AABB。
 	void InitBoundingStructures();
 
 private:
@@ -58,7 +60,7 @@ private:
 	AABB m_aabb;
 	BoundingSphere m_boundingSphere;
 
-	// 指向当前选中物体的指针。
+	// 当前选中的SubMesh。
 	NXSubMesh* m_pPickingObject;
 
 	// 求交加速结构（用于NXRayTracer的射线检测）

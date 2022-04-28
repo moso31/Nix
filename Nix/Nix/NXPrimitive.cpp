@@ -51,7 +51,9 @@ bool NXPrimitive::RayCast(const Ray& worldRay, NXHit& outHitInfo, float& outDist
 		}
 	}
 
-	return bSuccess;
+	bool bSuccessChilds = NXRenderableObject::RayCast(worldRay, outHitInfo, outDist);
+
+	return bSuccess || bSuccessChilds;
 }
 
 UINT NXPrimitive::GetFaceCount()
@@ -101,5 +103,9 @@ void NXPrimitive::InitAABB()
 			m_points.push_back(pVertexData[j].pos);
 		}
 	}
-	AABB::CreateFromPoints(m_aabb, m_points.size(), m_points.data(), sizeof(Vector3));
+
+	AABB::CreateFromPoints(m_aabb, m_points.size(), m_points.data(), sizeof(Vector3)); // local AABB
+	AABB::Transform(m_aabb, m_worldMatrix, m_aabb);	// transform local AABB to world space.
+
+	NXRenderableObject::InitAABB();
 }

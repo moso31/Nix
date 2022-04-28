@@ -11,14 +11,6 @@ NXObject::~NXObject()
 {
 }
 
-bool NXObject::IsTransformType()
-{
-	return m_type == NXType::eCamera ||
-		m_type == NXType::ePrefab ||
-		m_type == NXType::ePrimitive ||
-		m_type == NXType::eCubeMap;
-}
-
 void NXObject::AddScript(NXScript* script)
 {
 	script->SetObject(this);

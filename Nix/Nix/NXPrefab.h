@@ -7,9 +7,7 @@ public:
 	NXPrefab();
 	~NXPrefab() {}
 
-	virtual bool RayCast(const Ray& worldRay, NXHit& outHitInfo, float& outDist);
-
-	void InitAABB();
+	virtual NXPrefab* IsPrefab() override { return this; }
 
 protected:
 };

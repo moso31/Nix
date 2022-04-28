@@ -27,7 +27,11 @@ public:
 	void SetName(std::string name) { m_name = name; }
 
 	NXType GetType() { return m_type; }
-	bool IsTransformType();
+
+	virtual NXTransform* IsTransform() { return nullptr; }
+	virtual NXRenderableObject* IsRenderableObject() { return nullptr; }
+	virtual NXPrimitive* IsPrimitive() { return nullptr; }
+	virtual NXPrefab* IsPrefab() { return nullptr; }
 
 	void AddScript(NXScript* script);
 	std::vector<NXScript*> GetScripts();
