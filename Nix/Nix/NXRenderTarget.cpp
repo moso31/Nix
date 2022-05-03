@@ -2,6 +2,7 @@
 #include "DirectResources.h"
 #include "ShaderComplier.h"
 #include "GlobalBufferManager.h"
+#include "NXResourceManager.h"
 
 NXRenderTarget::NXRenderTarget()
 {
@@ -26,30 +27,17 @@ void NXRenderTarget::Init()
 		0,  2,  3
 	};
 
-	InitRenderData();
 	InitVertexIndexBuffer();
 }
 
 void NXRenderTarget::Render()
 {
-	g_pUDA->BeginEvent(L"Render Target");
-
-	g_pContext->IASetInputLayout(m_pInputLayout.Get());
-	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
-	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
-
-	// QuadRTV的绘制只需要提供一下四边形顶点信息、SRV并绘制就好。
-	// 这里可以做一个专用的QuadShader，然后无视掉indices，用Draw直接绘制Vertex而非DrawIndexed，可以获得更好的优化。但暂时没做。
 	UINT stride = sizeof(VertexPT);
 	UINT offset = 0;
 	g_pContext->IASetVertexBuffers(0, 1, m_pVertexBuffer.GetAddressOf(), &stride, &offset);
 	g_pContext->IASetIndexBuffer(m_pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
-	auto pSRVMainScene = g_dxResources->GetSRVMainScene();
-	g_pContext->PSSetShaderResources(0, 1, &pSRVMainScene);
 	g_pContext->DrawIndexed((UINT)m_indices.size(), 0, 0);
-
-	g_pUDA->EndEvent();
 }
 
 void NXRenderTarget::InitVertexIndexBuffer()
@@ -72,10 +60,3 @@ void NXRenderTarget::InitVertexIndexBuffer()
 	InitData.pSysMem = m_indices.data();
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &m_pIndexBuffer));
 }
-
-void NXRenderTarget::InitRenderData()
-{
-	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\RenderTarget.fx", "VS", &m_pVertexShader, NXGlobalInputLayout::layoutPT, ARRAYSIZE(NXGlobalInputLayout::layoutPT), &m_pInputLayout);
-	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\RenderTarget.fx", "PS", &m_pPixelShader);
-}
-

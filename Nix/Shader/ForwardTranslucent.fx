@@ -14,10 +14,13 @@ TextureCube txIrradianceMap : register(t7);
 TextureCube txPreFilterMap : register(t8);
 Texture2D txBRDF2DLUT : register(t9);
 //Texture2D txShadowMap : register(t10);
-Texture2D txSSAO : register(t11);
+Texture2D txDepthPeeling : register(t11);
 
 SamplerState ssLinearWrap : register(s0);
 SamplerState ssLinearClamp : register(s1);
+#if ENABLE_DEPTH_PEELING
+SamplerState ssPointClamp : register(s2);
+#endif
 
 cbuffer ConstantBufferCamera : register(b1)
 {
@@ -33,9 +36,9 @@ cbuffer ConstantBufferLight : register(b2)
 	SpotLight m_spotLight[NUM_SPOT_LIGHT];
 }
 
-cbuffer ConstantBufferMaterial : register(b3)
+cbuffer CBufferMaterialStandard : register(b3)
 {
-	Material m_material;
+	PBRMaterialTranslucent m_material;
 }
 
 cbuffer ConstantBufferShadowMapTransform : register(b4)
@@ -47,8 +50,14 @@ cbuffer ConstantBufferShadowMapTransform : register(b4)
 
 cbuffer ConstantBufferCubeMap : register(b5)
 {
-	float m_cubeMapIntensity;
-	float3 _0;
+	float4 m_irradSH0123x;
+	float4 m_irradSH4567x;
+	float4 m_irradSH0123y;
+	float4 m_irradSH4567y;
+	float4 m_irradSH0123z;
+	float4 m_irradSH4567z;
+	float3 m_irradSH8xyz;
+	float  m_cubeMapIntensity;
 }
 
 struct VS_INPUT
@@ -83,6 +92,15 @@ PS_INPUT VS(VS_INPUT input)
 
 float4 PS(PS_INPUT input) : SV_Target
 {
+#if ENABLE_DEPTH_PEELING
+	float2 uv = input.posSS.xy / float2(1600.0f, 900.0f);
+	float depthPeelingPos = txDepthPeeling.Sample(ssPointClamp, uv).x;
+
+	float4 pos = mul(input.posVS, m_projection);
+	float currentPos = pos.z / pos.w;
+	clip(currentPos - depthPeelingPos - 1e-5f);
+#endif
+
 	float3 normalMap = txNormalMap.Sample(ssLinearWrap, input.tex).xyz;
 	float3 normal = m_material.normal * normalMap;
 
@@ -100,6 +118,9 @@ float4 PS(PS_INPUT input) : SV_Target
 	albedo = pow(albedo, 2.2f);
 	//return float4(albedoMap, 1.0f);	// albedo only test
 
+	float opacityMap = txAlbedo.Sample(ssLinearWrap, input.tex).w;
+	float opacity = m_material.opacity * opacityMap;
+
 	float roughnessMap = txRoughnessMap.Sample(ssLinearWrap, input.tex).x;
 	float roughness = m_material.roughness * roughnessMap;
 	roughness = roughness * roughness;
@@ -108,12 +129,11 @@ float4 PS(PS_INPUT input) : SV_Target
 	float metallic = m_material.metallic * metallicMap;
 
 	float AOMap = txAmbientOcclusionMap.Sample(ssLinearWrap, input.tex).x;
-	float SSAOMap = txSSAO.Sample(ssLinearWrap, input.tex).x;
-	float ssao = 1.0f - SSAOMap;
-	float ao = m_material.ao * AOMap * ssao;
+	float ao = m_material.ao * AOMap;
 
 	float3 F0 = 0.04;
 	F0 = lerp(F0, albedo, metallic);
+	albedo *= 1.0f - metallic;
 
     // reflectance equation
     float3 Lo = 0.0f;
@@ -133,20 +153,13 @@ float4 PS(PS_INPUT input) : SV_Target
 		float3 IncidentIlluminance = LightIlluminance * NoL;
 
 		// 微表面 BRDF
-		float NDF = DistributionGGX(NoH, roughness);
-		float G = GeometrySmithDirect(NoV, NoL, roughness);
-		float3 F = FresnelSchlick(saturate(dot(H, V)), F0);
-
-		float3 numerator = NDF * G * F;
-		float denominator = 4.0 * saturate(dot(N, V)) * saturate(dot(N, L));
-		float3 specular = numerator / max(denominator, 0.001);
-
-		float3 kS = F;
-		float3 kD = 1.0 - kS;
-		kD *= 1.0 - metallic;
+		float D = D_GGX(NoH, roughness);
+		float G = G_GGX_SmithJoint(NoV, NoL, roughness);
+		float3 F = F_Schlick(VoH, F0);
+		float3 specular = D * G * F;
 
 		float3 diffuse = DiffuseDisney(albedo, roughness, NoV, NoL, VoH);
-		Lo += (kD * diffuse + specular) * IncidentIlluminance; // Output radiance.
+		Lo += (diffuse + specular) * IncidentIlluminance; // Output radiance.
 	}
 
 	for (i = 0; i < NUM_POINT_LIGHT; i++)
@@ -166,20 +179,13 @@ float4 PS(PS_INPUT input) : SV_Target
 		float3 IncidentIlluminance = LightIlluminance * NoL;
 
 		// 微表面 BRDF
-		float NDF = DistributionGGX(NoH, roughness);
-		float G = GeometrySmithDirect(NoV, NoL, roughness);
-		float3 F = FresnelSchlick(VoH, F0);
-
-		float3 numerator = NDF * G * F;
-		float denominator = 4.0 * NoV * NoL;
-		float3 specular = numerator / max(denominator, 0.001);
-
-		float3 kS = F;
-		float3 kD = 1.0 - kS;
-		kD *= 1.0 - metallic;
+		float D = D_GGX(NoH, roughness);
+		float G = G_GGX_SmithJoint(NoV, NoL, roughness);
+		float3 F = F_Schlick(VoH, F0);
+		float3 specular = D * G * F;
 
 		float3 diffuse = DiffuseDisney(albedo, roughness, NoV, NoL, VoH);
-		Lo += (kD * diffuse + specular) * IncidentIlluminance; // Output radiance.
+		Lo += (diffuse + specular) * IncidentIlluminance; // Output radiance.
 	}
 
 	for (i = 0; i < NUM_SPOT_LIGHT; i++)
@@ -207,40 +213,28 @@ float4 PS(PS_INPUT input) : SV_Target
 		SpotLambda = SpotLambda * SpotLambda;
 
 		// 微表面 BRDF
-		float NDF = DistributionGGX(NoH, roughness);
-		float G = GeometrySmithDirect(NoV, NoL, roughness);
-		float3 F = FresnelSchlick(VoH, F0);
-
-		float3 numerator = NDF * G * F;
-		float denominator = 4.0 * NoV * NoL;
-		float3 specular = numerator / max(denominator, 0.001);
-
-		float3 kS = F;
-		float3 kD = 1.0 - kS;
-		kD *= 1.0 - metallic;
+		float D = D_GGX(NoH, roughness);
+		float G = G_GGX_SmithJoint(NoV, NoL, roughness);
+		float3 F = F_Schlick(VoH, F0);
+		float3 specular = D * G * F;
 
 		float3 diffuse = DiffuseDisney(albedo, roughness, NoV, NoL, VoH);
-		Lo += (kD * diffuse + specular) * IncidentIlluminance * SpotLambda; // Output radiance.
+		Lo += (diffuse + specular) * IncidentIlluminance * SpotLambda; // Output radiance.
 	}
-
-	float3 kS = FresnelSchlick(NoV, F0);
-	float3 kD = 1.0 - kS;
-	kD *= 1.0 - metallic;
-	float3 irradiance = txIrradianceMap.Sample(ssLinearWrap, N).xyz;
-	float3 diffuseIBL = kD * albedo * irradiance;
+	
+	float3 NormalWS = mul(N, (float3x3)m_viewTranspose);
+	float3 irradiance = txIrradianceMap.Sample(ssLinearWrap, NormalWS).xyz;
+	float3 diffuseIBL = albedo * irradiance;
 
 	float3 preFilteredColor = txPreFilterMap.SampleLevel(ssLinearWrap, R, roughness * 4.0f).rgb;
 	float2 envBRDF = txBRDF2DLUT.Sample(ssLinearClamp, float2(NoV, roughness)).rg;
-	float3 SpecularIBL = preFilteredColor * float3(kS * envBRDF.x + envBRDF.y);
+	float3 SpecularIBL = preFilteredColor * lerp(envBRDF.xxx, envBRDF.yyy, F0);
 
-	float3 ambient = (diffuseIBL + SpecularIBL) * m_cubeMapIntensity * ao;
-	float3 color = ambient + Lo;
+	float3 energyCompensation = 1.0f + F0 * (1.0f / envBRDF.yyy - 1.0f);
+	SpecularIBL *= energyCompensation;
 
-	// fast tone-mapping.
-	color = color / (color + 1.0);
+	float3 Libl = (diffuseIBL + SpecularIBL) * m_cubeMapIntensity * ao;
+	float3 color = Libl + Lo;
 
-	// gamma.
-	color = pow(color, 1.0 / 2.2);
-
-	return float4(color, 1.0f);
+	return float4(color, opacity);
 }

@@ -172,7 +172,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="imgui.ini" />
-    <None Include="Shader\Scene.fx">
+    <None Include="Shader\ForwardTranslucent.fx">
       <FileType>Document</FileType>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
@@ -190,7 +190,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shader\RenderTarget.fx">
+    <None Include="Shader\FinalQuad.fx">
       <FileType>Document</FileType>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
@@ -215,9 +215,12 @@
     <ClCompile Include="Core\GlobalBufferManager.cpp" />
     <ClCompile Include="Core\ImageGenerator.cpp" />
     <ClCompile Include="Core\Main.cpp" />
+    <ClCompile Include="Core\NXColorMappingRenderer.cpp" />
     <ClCompile Include="Core\NXDeferredRenderer.cpp" />
+    <ClCompile Include="Core\NXDepthPeelingRenderer.cpp" />
     <ClCompile Include="Core\NXDXHelper.cpp" />
     <ClCompile Include="Core\NXEvent.cpp" />
+    <ClCompile Include="Core\NXFinalRenderer.cpp" />
     <ClCompile Include="Core\NXForwardRenderer.cpp" />
     <ClCompile Include="Core\NXGUI.cpp" />
     <ClCompile Include="Core\NXGUICubeMap.cpp" />
@@ -229,9 +232,9 @@
     <ClCompile Include="Core\NXRandom.cpp" />
     <ClCompile Include="Core\NXResourceManager.cpp" />
     <ClCompile Include="Core\NXResourceReloader.cpp" />
+    <ClCompile Include="Core\NXSkyRenderer.cpp" />
     <ClCompile Include="Core\NXTimer.cpp" />
     <ClCompile Include="Core\Renderer.cpp" />
-    <ClCompile Include="Core\RenderStates.cpp" />
     <ClCompile Include="Core\ShaderComplier.cpp" />
     <ClCompile Include="Nix\HBVH.cpp" />
     <ClCompile Include="Nix\NXDepthPrepass.cpp" />
@@ -240,6 +243,8 @@
     <ClCompile Include="Nix\NXCubeMap.cpp" />
     <ClCompile Include="Nix\NXPBRLight.cpp" />
     <ClCompile Include="Nix\NXPBRMaterial.cpp" />
+    <ClCompile Include="Nix\NXPrefab.cpp" />
+    <ClCompile Include="Nix\NXRenderableObject.cpp" />
     <ClCompile Include="Nix\NXSimpleSSAO.cpp" />
     <ClCompile Include="Nix\NXSubMesh.cpp" />
     <ClCompile Include="Nix\NXSubMeshGeometryEditor.cpp" />
@@ -262,9 +267,12 @@
     <ClInclude Include="Core\GlobalBufferManager.h" />
     <ClInclude Include="Core\Header.h" />
     <ClInclude Include="Core\ImageGenerator.h" />
+    <ClInclude Include="Core\NXColorMappingRenderer.h" />
     <ClInclude Include="Core\NXDeferredRenderer.h" />
+    <ClInclude Include="Core\NXDepthPeelingRenderer.h" />
     <ClInclude Include="Core\NXDXHelper.h" />
     <ClInclude Include="Core\NXEvent.h" />
+    <ClInclude Include="Core\NXFinalRenderer.h" />
     <ClInclude Include="Core\NXForwardRenderer.h" />
     <ClInclude Include="Core\NXGUI.h" />
     <ClInclude Include="Core\NXGUICubeMap.h" />
@@ -276,11 +284,12 @@
     <ClInclude Include="Core\NXInput.h" />
     <ClInclude Include="Core\NXInstance.h" />
     <ClInclude Include="Core\NXRandom.h" />
+    <ClInclude Include="Core\NXRenderStates.h" />
     <ClInclude Include="Core\NXResourceManager.h" />
     <ClInclude Include="Core\NXResourceReloader.h" />
+    <ClInclude Include="Core\NXSkyRenderer.h" />
     <ClInclude Include="Core\NXTimer.h" />
     <ClInclude Include="Core\Renderer.h" />
-    <ClInclude Include="Core\RenderStates.h" />
     <ClInclude Include="Core\ShaderComplier.h" />
     <ClInclude Include="Core\ShaderStructures.h" />
     <ClInclude Include="Nix\HBVH.h" />
@@ -290,6 +299,8 @@
     <ClInclude Include="Nix\NXCubeMap.h" />
     <ClInclude Include="Nix\NXPBRLight.h" />
     <ClInclude Include="Nix\NXPBRMaterial.h" />
+    <ClInclude Include="Nix\NXPrefab.h" />
+    <ClInclude Include="Nix\NXRenderableObject.h" />
     <ClInclude Include="Nix\NXSimpleSSAO.h" />
     <ClInclude Include="Nix\NXSubMesh.h" />
     <ClInclude Include="Nix\NXSubMeshGeometryEditor.h" />
@@ -438,6 +449,27 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\CubeMapIrradianceSH.fx">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DeploymentContent>
+      <FileType>Document</FileType>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DeploymentContent>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shader\SHIrradianceCommon.fx">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DeploymentContent>
+      <FileType>Document</FileType>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DeploymentContent>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shader\ColorMapping.fx">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DeploymentContent>
+      <FileType>Document</FileType>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DeploymentContent>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shader\DepthPeelingCombine.fx">
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DeploymentContent>
       <FileType>Document</FileType>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DeploymentContent>

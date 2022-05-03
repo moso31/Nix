@@ -1,21 +1,25 @@
 #pragma once
 #include "Header.h"
 
+// 枚举类型。2021.2.16
+// 用于建立NXObject类型到子类型的映射。
+enum NXType
+{
+	eNone,
+
+	eScene,
+
+	ePrimitive,
+	ePrefab,
+	eCamera,
+	eCubeMap,
+
+	eMax
+};
+
 class NXObject
 {
 public:
-	// 枚举类型。2021.2.16
-	// 用于建立NXObject类型到子类型的映射。
-	enum class NXType
-	{
-		eNone,
-
-		eScene,
-
-		ePrimitive,
-		eCamera,
-	};
-
 	NXObject();
 	virtual ~NXObject();
 
@@ -23,6 +27,11 @@ public:
 	void SetName(std::string name) { m_name = name; }
 
 	NXType GetType() { return m_type; }
+
+	virtual NXTransform* IsTransform() { return nullptr; }
+	virtual NXRenderableObject* IsRenderableObject() { return nullptr; }
+	virtual NXPrimitive* IsPrimitive() { return nullptr; }
+	virtual NXPrefab* IsPrefab() { return nullptr; }
 
 	void AddScript(NXScript* script);
 	std::vector<NXScript*> GetScripts();

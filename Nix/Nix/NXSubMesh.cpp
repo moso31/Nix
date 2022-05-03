@@ -1,4 +1,5 @@
 #include "NXSubMesh.h"
+#include "NXPrimitive.h"
 
 NXTriangle::NXTriangle(NXSubMesh* pSubMesh, int startIndex) :
 	pSubMesh(pSubMesh),
@@ -162,7 +163,7 @@ bool NXTriangle::RayCast(const Ray& localRay, NXHit& outHitInfo, float& outDist)
 }
 
 NXSubMesh::NXSubMesh(NXPrimitive* pPrimitive) :
-	m_pPBRMaterial(nullptr),
+	m_pMaterial(nullptr),
 	m_parent(pPrimitive)
 {
 }
@@ -171,11 +172,16 @@ NXSubMesh::~NXSubMesh()
 {
 }
 
+void NXSubMesh::UpdateViewParams()
+{
+	return m_parent->UpdateViewParams();
+}
+
 void NXSubMesh::Update()
 {
-	if (m_pPBRMaterial)
+	if (m_pMaterial)
 	{
-		m_pPBRMaterial->Update();
+		m_pMaterial->Update();
 	}
 }
 
@@ -202,16 +208,6 @@ bool NXSubMesh::RayCastLocal(const Ray& localRay, NXHit& outHitInfo, float& outD
 		}
 	}
 	return bSuccess;
-}
-
-NXPBRMaterial* NXSubMesh::GetPBRMaterial() const
-{
-	return m_pPBRMaterial;
-}
-
-void NXSubMesh::SetMaterialPBR(NXPBRMaterial* mat)
-{
-	m_pPBRMaterial = mat;
 }
 
 void NXSubMesh::CalculateTangents(bool bUpdateVertexIndexBuffer)

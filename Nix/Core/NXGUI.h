@@ -1,6 +1,7 @@
 #pragma once
 
 class NXScene;
+class NXSceneManager;
 class NXSimpleSSAO;
 
 class NXGUIMaterial;
@@ -20,12 +21,12 @@ public:
 	void Release();
 
 private:
-	NXScene* m_pCurrentScene;
-	NXSimpleSSAO* m_pSSAO;
+	NXScene*			m_pCurrentScene;
+	NXSimpleSSAO*		m_pSSAO;
 
-	NXGUILights* m_pGUILights;
-	NXGUIMaterial* m_pGUIMaterial;
-	NXGUICubeMap* m_pGUICubeMap;
-	NXGUIFileBrowser* m_pFileBrowser;
-	NXGUISSAO* m_pGUISSAO;
+	NXGUILights*		m_pGUILights;
+	NXGUIMaterial*		m_pGUIMaterial;
+	NXGUICubeMap*		m_pGUICubeMap;
+	NXGUIFileBrowser*	m_pFileBrowser;
+	NXGUISSAO*			m_pGUISSAO;
 };

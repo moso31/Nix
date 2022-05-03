@@ -13,16 +13,11 @@ public:
 
 private:
 	void InitVertexIndexBuffer();
-	void InitRenderData();
 
 private:
 	std::vector<VertexPT>		m_vertices;
 	std::vector<UINT>			m_indices;
 	ComPtr<ID3D11Buffer>		m_pVertexBuffer;
 	ComPtr<ID3D11Buffer>		m_pIndexBuffer;
-
-	ComPtr<ID3D11VertexShader>	m_pVertexShader;
-	ComPtr<ID3D11PixelShader>	m_pPixelShader;
-	ComPtr<ID3D11InputLayout>	m_pInputLayout;
 };
 

@@ -15,5 +15,7 @@ private:
 	ComPtr<ID3D11VertexShader>			m_pVertexShader;
 	ComPtr<ID3D11PixelShader>			m_pPixelShader;
 
+	ComPtr<ID3D11SamplerState>			m_pSamplerLinearWrap;
+
 	NXScene* m_pScene;
 };

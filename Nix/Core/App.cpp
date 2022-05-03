@@ -1,7 +1,6 @@
 #include "App.h"
 #include "DirectResources.h"
 #include "NXResourceManager.h"
-#include "RenderStates.h"
 #include "NXEvent.h"
 
 App::App() :
@@ -14,8 +13,6 @@ void App::Init()
 {
 	g_dxResources = new DirectResources();
 	g_dxResources->InitDevice();
-
-	RenderStates::Init();
 
 	m_pRenderer = new Renderer();
 	m_pRenderer->Init();
@@ -61,7 +58,6 @@ void App::Draw()
 void App::Release()
 {
 	SafeRelease(m_pRenderer);
-	RenderStates::Release();
 	NXResourceManager::GetInstance()->Release();
 	SafeRelease(g_dxResources);
 }

@@ -5,6 +5,10 @@
 #include "NXDepthPrepass.h"
 #include "NXDeferredRenderer.h"
 #include "NXForwardRenderer.h"
+#include "NXDepthPeelingRenderer.h"
+#include "NXSkyRenderer.h"
+#include "NXColorMappingRenderer.h"
+#include "NXFinalRenderer.h"
 #include "NXSimpleSSAO.h"
 #include "NXGUI.h"
 
@@ -31,7 +35,6 @@ public:
 
 private:
 	void DrawDepthPrepass();
-	void DrawCubeMap();
 	void DrawShadowMap();
 
 private:
@@ -39,22 +42,18 @@ private:
 	ComPtr<ID3D11InputLayout>			m_pInputLayoutPT;
 	ComPtr<ID3D11InputLayout>			m_pInputLayoutPNT;
 
-	ComPtr<ID3D11VertexShader>			m_pVertexShaderCubeMap;
 	ComPtr<ID3D11VertexShader>			m_pVertexShaderShadowMap;
-
-	ComPtr<ID3D11PixelShader>			m_pPixelShaderCubeMap;
 	ComPtr<ID3D11PixelShader>			m_pPixelShaderShadowMap;
-
-	NXRenderTarget*				m_renderTarget;
 
 	NXScene*					m_scene;
 	NXPassShadowMap*			m_pPassShadowMap; 
 	NXDepthPrepass*				m_pDepthPrepass;
-	NXForwardRenderer*			m_pForwardRenderer;
 	NXDeferredRenderer*			m_pDeferredRenderer;
+	NXForwardRenderer*			m_pForwardRenderer;
+	NXDepthPeelingRenderer*		m_pDepthPeelingRenderer;
+	NXSkyRenderer*				m_pSkyRenderer;
+	NXColorMappingRenderer*		m_pColorMappingRenderer;
+	NXFinalRenderer*			m_pFinalRenderer;
 	NXSimpleSSAO*				m_pSSAO;
 	NXGUI* m_pGUI;
-
-	// 是否使用延迟着色
-	bool m_isDeferredShading;
 };

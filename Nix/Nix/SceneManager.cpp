@@ -1,34 +1,26 @@
 #include "SceneManager.h"
 #include "NXScene.h"
+#include "NXPrefab.h"
 #include "NXPrimitive.h"
 #include "FBXMeshLoader.h"
 #include "NXSubMeshGeometryEditor.h"
+#include "NXResourceReloader.h"
 
 #include "NSFirstPersonalCamera.h"
 
-SceneManager::SceneManager()
-{
-}
+NXScene* SceneManager::s_pWorkingScene = nullptr;
 
-SceneManager::SceneManager(NXScene* pScene) :
-	m_pScene(pScene), 
-	m_pRootObject(new NXObject()),
-	m_pBVHTree(nullptr),
-	m_pCubeMap(nullptr),
-	m_pMainCamera(nullptr)
+void SceneManager::SetWorkingScene(NXScene* pScene)
 {
-}
-
-SceneManager::~SceneManager()
-{
+	s_pWorkingScene = pScene;
 }
 
 void SceneManager::BuildBVHTrees(const HBVHSplitMode SplitMode)
 {
-	SafeRelease(m_pBVHTree);
+	SafeRelease(s_pWorkingScene->m_pBVHTree);
 
-	m_pBVHTree = new HBVHTree(m_pScene, m_primitives);
-	m_pBVHTree->BuildTreesWithScene(SplitMode);
+	s_pWorkingScene->m_pBVHTree = new HBVHTree(s_pWorkingScene);
+	s_pWorkingScene->m_pBVHTree->BuildTreesWithScene(SplitMode);
 }
 
 NXScript* SceneManager::CreateScript(const NXScriptType scriptType, NXObject* pObject)
@@ -107,14 +99,13 @@ NXPrimitive* SceneManager::CreatePlane(const std::string name, const float width
 	return p;
 }
 
-bool SceneManager::CreateFBXMeshes(const std::string filePath, std::vector<NXPrimitive*>& outMeshes, bool bAutoCalcTangents)
+NXPrefab* SceneManager::CreateFBXPrefab(const std::string name, const std::string filePath, bool bAutoCalcTangents)
 {
-	FBXMeshLoader::LoadFBXFile(filePath, m_pScene, outMeshes, bAutoCalcTangents);
-	for (auto it = outMeshes.begin(); it != outMeshes.end(); it++)
-	{
-		RegisterPrimitive(*it, (*it)->GetParent());
-	}
-	return true;
+	auto p = new NXPrefab();
+	p->SetName(name);
+	NXSubMeshGeometryEditor::CreateFBXPrefab(p, filePath, bAutoCalcTangents);
+	RegisterPrefab(p);
+	return p;
 }
 
 NXCamera* SceneManager::CreateCamera(const std::string name, const float FovY, const float zNear, const float zFar, const Vector3& eye, const Vector3& at, const Vector3& up)
@@ -126,14 +117,14 @@ NXCamera* SceneManager::CreateCamera(const std::string name, const float FovY, c
 	return p;
 }
 
-NXPBRMaterial* SceneManager::CreatePBRMaterial(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao,
+NXPBRMaterialStandard* SceneManager::CreatePBRMaterialStandard(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao,
 	const std::wstring albedoTexFilePath,
 	const std::wstring normalTexFilePath,
 	const std::wstring metallicTexFilePath,
 	const std::wstring roughnessTexFilePath,
 	const std::wstring aoTexFilePath)
 {
-	auto pMat = new NXPBRMaterial(name, albedo, normal, metallic, roughness, ao);
+	auto pMat = new NXPBRMaterialStandard(name, albedo, normal, metallic, roughness, ao);
 
 	pMat->SetTexAlbedo(albedoTexFilePath);
 	pMat->SetTexNormal(normalTexFilePath);
@@ -142,6 +133,112 @@ NXPBRMaterial* SceneManager::CreatePBRMaterial(const std::string name, const Vec
 	pMat->SetTexAO(aoTexFilePath);
 	RegisterMaterial(pMat);
 	return pMat;
+}
+
+NXPBRMaterialTranslucent* SceneManager::CreatePBRMaterialTranslucent(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float opacity, const std::wstring albedoTexFilePath, const std::wstring normalTexFilePath, const std::wstring metallicTexFilePath, const std::wstring roughnessTexFilePath, const std::wstring aoTexFilePath)
+{
+	auto pMat = new NXPBRMaterialTranslucent(name, albedo, normal, metallic, roughness, ao, opacity);
+
+	pMat->SetTexAlbedo(albedoTexFilePath);
+	pMat->SetTexNormal(normalTexFilePath);
+	pMat->SetTexMetallic(metallicTexFilePath);
+	pMat->SetTexRoughness(roughnessTexFilePath);
+	pMat->SetTexAO(aoTexFilePath);
+	RegisterMaterial(pMat);
+	return pMat;
+}
+
+void SceneManager::BindMaterial(NXRenderableObject* pPrefab, NXMaterial* pMaterial)
+{
+	for (auto pChild : pPrefab->GetChilds())
+	{
+		if (pChild->IsRenderableObject())
+		{
+			if (pChild->IsPrimitive())
+			{
+				NXPrimitive* pChildPrimitive = static_cast<NXPrimitive*>(pChild);
+				for (UINT i = 0; i < pChildPrimitive->GetSubMeshCount(); i++)
+				{
+					NXSubMesh* pSubMesh = pChildPrimitive->GetSubMesh(i);
+					BindMaterial(pSubMesh, pMaterial);
+				}
+			}
+
+			NXRenderableObject* pChildObj = static_cast<NXRenderableObject*>(pChild);
+			BindMaterial(pChildObj, pMaterial);
+		}
+	}
+}
+
+void SceneManager::BindMaterial(NXSubMesh* pSubMesh, NXMaterial* pMaterial)
+{
+	auto pOldMat = pSubMesh->GetMaterial();
+	if (pOldMat)
+		pOldMat->RemoveSubMesh(pSubMesh);
+
+	pSubMesh->SetMaterial(pMaterial);
+	pMaterial->AddSubMesh(pSubMesh);
+}
+
+void SceneManager::ReTypeMaterial(NXMaterial* srcMaterial, NXMaterialType destMaterialType)
+{
+	if (srcMaterial->GetType() == destMaterialType)
+		return;
+
+	const std::wstring albedoTexFilePath = L".\\Resource\\white1x1.png";
+	const std::wstring normalTexFilePath = L".\\Resource\\normal1x1.png";
+	const std::wstring metallicTexFilePath = L".\\Resource\\white1x1.png";
+	const std::wstring roughnessTexFilePath = L".\\Resource\\white1x1.png";
+	const std::wstring aoTexFilePath = L".\\Resource\\white1x1.png";
+
+	NXMaterial* destMaterial;
+	switch (destMaterialType)
+	{
+	case PBR_STANDARD:
+	{
+		auto newMaterial = new NXPBRMaterialStandard(srcMaterial->GetName(), Vector3(1.0f), Vector3(1.0f), 1.0f, 1.0f, 1.0f);
+		newMaterial->SetTexAlbedo(albedoTexFilePath);
+		newMaterial->SetTexNormal(normalTexFilePath);
+		newMaterial->SetTexMetallic(metallicTexFilePath);
+		newMaterial->SetTexRoughness(roughnessTexFilePath);
+		newMaterial->SetTexAO(aoTexFilePath);
+
+		destMaterial = newMaterial;
+		break;
+	}
+	case PBR_TRANSLUCENT:
+	{
+		auto newMaterial = new NXPBRMaterialTranslucent(srcMaterial->GetName(), Vector3(1.0f), Vector3(1.0f), 1.0f, 1.0f, 1.0f, 1.0f);
+		newMaterial->SetTexAlbedo(albedoTexFilePath);
+		newMaterial->SetTexNormal(normalTexFilePath);
+		newMaterial->SetTexMetallic(metallicTexFilePath);
+		newMaterial->SetTexRoughness(roughnessTexFilePath);
+		newMaterial->SetTexAO(aoTexFilePath);
+
+		destMaterial = newMaterial;
+		break;
+	}
+	default:
+		destMaterial = nullptr;
+		break;
+	}
+
+	if (destMaterial)
+	{
+		for (auto pSubMesh : srcMaterial->GetRefSubMeshes())
+		{
+			if (pSubMesh)
+			{
+				pSubMesh->SetMaterial(destMaterial);
+				destMaterial->AddSubMesh(pSubMesh);
+			}
+		}
+
+		auto& sceneMats = s_pWorkingScene->m_materials;
+		std::replace(sceneMats.begin(), sceneMats.end(), srcMaterial, destMaterial);
+
+		NXResourceReloader::GetInstance()->MarkUnusedMaterial(srcMaterial);
+	}
 }
 
 NXPBRDistantLight* SceneManager::CreatePBRDistantLight(const Vector3& direction, const Vector3& color, const float illuminance)
@@ -167,7 +264,7 @@ NXPBRSpotLight* SceneManager::CreatePBRSpotLight(const Vector3& position, const 
 
 NXCubeMap* SceneManager::CreateCubeMap(const std::string name, const std::wstring filePath)
 {
-	auto pCubeMap = new NXCubeMap(m_pScene);
+	auto pCubeMap = new NXCubeMap(s_pWorkingScene);
 	pCubeMap->SetName(name);
 	pCubeMap->Init(filePath);
 	RegisterCubeMap(pCubeMap);
@@ -185,45 +282,48 @@ bool SceneManager::BindParent(NXObject* pParent, NXObject* pChild)
 
 void SceneManager::Release()
 {
-	for (auto pLight : m_pbrLights) SafeDelete(pLight);
-	for (auto pMat : m_pbrMaterials) SafeRelease(pMat);
-	SafeRelease(m_pBVHTree);
-	for (auto obj : m_objects) SafeRelease(obj);
-	SafeRelease(m_pRootObject);
 }
 
 void SceneManager::RegisterCubeMap(NXCubeMap* newCubeMap)
 {
-	if (m_pCubeMap)
+	if (s_pWorkingScene->m_pCubeMap)
 	{
 		printf("Warning: cubemap has been set already! strightly cover cubemap maybe will make some problem.\n");
 	}
-	m_pCubeMap = newCubeMap;
-	m_objects.push_back(newCubeMap);
-	newCubeMap->SetParent(m_pRootObject);
+	s_pWorkingScene->m_pCubeMap = newCubeMap;
+	s_pWorkingScene->m_objects.push_back(newCubeMap);
+	newCubeMap->SetParent(s_pWorkingScene->m_pRootObject);
 }
 
 void SceneManager::RegisterPrimitive(NXPrimitive* newPrimitive, NXObject* pParent)
 {
-	m_primitives.push_back(newPrimitive);
-	m_objects.push_back(newPrimitive);
+	s_pWorkingScene->m_renderableObjects.push_back(newPrimitive);
+	s_pWorkingScene->m_objects.push_back(newPrimitive);
 
-	newPrimitive->SetParent(pParent ? pParent : m_pRootObject);
+	newPrimitive->SetParent(pParent ? pParent : s_pWorkingScene->m_pRootObject);
+}
+
+void SceneManager::RegisterPrefab(NXPrefab* newPrefab, NXObject* pParent)
+{
+	s_pWorkingScene->m_renderableObjects.push_back(newPrefab);
+	s_pWorkingScene->m_objects.push_back(newPrefab);
+
+	newPrefab->SetParent(pParent ? pParent : s_pWorkingScene->m_pRootObject);
 }
 
 void SceneManager::RegisterCamera(NXCamera* newCamera, bool isMainCamera, NXObject* pParent)
 {
-	if (isMainCamera) m_pMainCamera = newCamera;
-	m_objects.push_back(newCamera);
-	newCamera->SetParent(pParent ? pParent : m_pRootObject);
+	if (isMainCamera) s_pWorkingScene->m_pMainCamera = newCamera;
+	s_pWorkingScene->m_objects.push_back(newCamera);
+	newCamera->SetParent(pParent ? pParent : s_pWorkingScene->m_pRootObject);
 }
 
-void SceneManager::RegisterMaterial(NXPBRMaterial* newMaterial)
+void SceneManager::RegisterMaterial(NXMaterial* newMaterial)
 {
-	m_pbrMaterials.insert(newMaterial);
+	s_pWorkingScene->m_materials.push_back(newMaterial);
 }
 
 void SceneManager::RegisterLight(NXPBRLight* newLight, NXObject* pParent)
 {
-	m_pbrLights.push_back(newLight);
+	s_pWorkingScene->m_pbrLights.push_back(newLight);
 }

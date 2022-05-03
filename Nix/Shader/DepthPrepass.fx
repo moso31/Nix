@@ -6,9 +6,9 @@ Texture2D txNormalMap : register(t0);
 
 SamplerState ssLinearWrap : register(s0);
 
-cbuffer ConstantBufferMaterial : register(b2)
+cbuffer CBufferMaterialStandard : register(b2)
 {
-	Material m_material;
+	PBRMaterialStandard m_material;
 }
 
 struct VS_INPUT

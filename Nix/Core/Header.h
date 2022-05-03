@@ -72,14 +72,21 @@ class NXTexture2D;
 
 class NXScene;
 class SceneManager;
-//class HBVHTree;	// 暂时先不用这个
 class NXObject;
+class NXTransform;
+class NXRenderableObject;
 class NXPrimitive;
+class NXPrefab;
 class NXCamera;
 class NXCubeMap;
 class NXSubMesh;
 
-class NXPBRMaterial;
+class NXMaterial;
+class NXPBRMaterialBase;
+class NXPBRMaterialStandard;
+class NXPBRMaterialTranslucent;
+
+class NXPBRLight;
 
 // effects
 class NXPassShadowMap;

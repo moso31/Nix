@@ -31,10 +31,13 @@ void NXResourceManager::InitCommonRT()
 
 	m_pCommonRT.resize(NXCommonRT_SIZE);
 
-	// 创建DSV
 	m_pCommonRT[NXCommonRT_DepthZ] = NXResourceManager::GetInstance()->CreateTexture2D("Scene DepthZ RT0", DXGI_FORMAT_R24G8_TYPELESS, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE);
 	m_pCommonRT[NXCommonRT_DepthZ]->CreateDSV();
 	m_pCommonRT[NXCommonRT_DepthZ]->CreateSRV();
+
+	m_pCommonRT[NXCommonRT_MainScene] = NXResourceManager::GetInstance()->CreateTexture2D("Scene RT0", DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE);
+	m_pCommonRT[NXCommonRT_MainScene]->CreateRTV();
+	m_pCommonRT[NXCommonRT_MainScene]->CreateSRV();
 
 	// 现行G-Buffer结构如下：
 	// RT0:		Position				R32G32B32A32_FLOAT
@@ -58,6 +61,10 @@ void NXResourceManager::InitCommonRT()
 	m_pCommonRT[NXCommonRT_GBuffer3] = NXResourceManager::GetInstance()->CreateTexture2D("GBuffer RT3", DXGI_FORMAT_R10G10B10A2_UNORM, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
 	m_pCommonRT[NXCommonRT_GBuffer3]->CreateRTV();
 	m_pCommonRT[NXCommonRT_GBuffer3]->CreateSRV();
+
+	m_pCommonRT[NXCommonRT_PostProcessing] = NXResourceManager::GetInstance()->CreateTexture2D("Post Processing", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
+	m_pCommonRT[NXCommonRT_PostProcessing]->CreateRTV();
+	m_pCommonRT[NXCommonRT_PostProcessing]->CreateSRV();
 }
 
 NXTexture2D* NXResourceManager::GetCommonRT(NXCommonRTEnum eRT)

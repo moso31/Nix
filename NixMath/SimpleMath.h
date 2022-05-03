@@ -450,6 +450,7 @@ struct Matrix : public XMFLOAT4X4
     bool Decompose( Vector3& scale, Quaternion& rotation, Vector3& translation );
 
 	Vector3 EulerXYZ();
+    Vector3 EulerRollPitchYaw();
 
     Matrix Transpose() const;
     void Transpose( Matrix& result ) const;
@@ -486,8 +487,16 @@ struct Matrix : public XMFLOAT4X4
 
     static Matrix CreateFromQuaternion( const Quaternion& quat );
 
-	static Matrix CreateFromXYZ(Vector3 rotation);
-    static Matrix CreateFromYawPitchRoll( float yaw, float pitch, float roll );
+    //// rot order: pitch-yaw-roll
+	//static Matrix CreateFromXYZ(const Vector3& rotation);
+
+    static Matrix CreateFromZXY(const Vector3& rotation);
+    static Matrix CreateFromXYZ(const Vector3& rotation);
+    static Matrix CreateFromXZY(const Vector3& rotation);
+
+    static Matrix CreateFromYXZ(const Vector3& rotation);
+    static Matrix CreateFromZYX(const Vector3& rotation);
+    static Matrix CreateFromYZX(const Vector3& rotation);
 
     static Matrix CreateShadow( const Vector3& lightDir, const Plane& plane );
 

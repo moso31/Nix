@@ -21,13 +21,16 @@ private:
 class NXPrimitive;
 class NXSubMesh
 {
-public:
 	friend class NXTriangle;
 	friend class NXSubMeshGeometryEditor;
+	friend class FBXMeshLoader;
+	friend class SceneManager;
 
 public:
 	NXSubMesh(NXPrimitive* pPrimitive);
 	~NXSubMesh();
+
+	void UpdateViewParams();
 
 	void Update();
 	void Render();
@@ -36,8 +39,7 @@ public:
 
 	NXPrimitive* GetPrimitive() { return m_parent; }
 
-	NXPBRMaterial* GetPBRMaterial() const;
-	void SetMaterialPBR(NXPBRMaterial* mat);
+	NXMaterial* GetMaterial() const { return m_pMaterial; }
 
 	// 自动计算顶点的切线数据。
 	void CalculateTangents(bool bUpdateVertexIndexBuffer = false);
@@ -48,6 +50,9 @@ public:
 
 	NXTriangle GetFaceTriangle(UINT faceIndex);
 	const VertexPNTT* GetVertexData() { return m_vertices.data(); }
+
+private:
+	void SetMaterial(NXMaterial* mat) { m_pMaterial = mat; }
 
 private:
 	void InitVertexIndexBuffer();
@@ -61,5 +66,5 @@ private:
 	std::vector<VertexPNTT>		m_vertices;
 	std::vector<UINT>			m_indices;
 
-	NXPBRMaterial*				m_pPBRMaterial;
+	NXMaterial*					m_pMaterial;
 };

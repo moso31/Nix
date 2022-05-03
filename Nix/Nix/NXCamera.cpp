@@ -13,19 +13,19 @@ NXCamera::NXCamera() :
 	m_type = NXType::eCamera;
 }
 
-void NXCamera::SetTranslation(Vector3 value)
+void NXCamera::SetTranslation(const Vector3& value)
 {
 	m_translation = value;
-	Vector3 dir = Vector3::TransformNormal(Vector3(0.0f, 0.0f, 1.0f), Matrix::CreateFromQuaternion(m_rotation));
+	Vector3 dir = Vector3::TransformNormal(Vector3(0.0f, 0.0f, 1.0f), Matrix::CreateFromZXY(m_eulerAngle));
 
 	m_at = m_translation + dir;
 	m_up = { 0.0f, 1.0f, 0.0f };
 }
 
-void NXCamera::SetRotation(Quaternion value)
+void NXCamera::SetRotation(const Vector3& value)
 {
-	m_rotation = value;
-	Vector3 dir = Vector3::TransformNormal(Vector3(0.0f, 0.0f, 1.0f), Matrix::CreateFromQuaternion(m_rotation));
+	m_eulerAngle = value;
+	Vector3 dir = Vector3::TransformNormal(Vector3(0.0f, 0.0f, 1.0f), Matrix::CreateFromZXY(m_eulerAngle));
 
 	m_at = m_translation + dir;
 	m_up = { 0.0f, 1.0f, 0.0f };
@@ -43,13 +43,17 @@ void NXCamera::SetLookAt(Vector3 value)
 	vAxis.Normalize();
 
 	float fAngle = Vector3::AngleNormalize(vForward, Vector3(0.0f, 0.0f, 1.0f));
-	m_rotation = Quaternion::CreateFromAxisAngle(vAxis, fAngle);
+	Matrix mxAxisAngle = Matrix::CreateFromAxisAngle(vAxis, fAngle);
+
+	m_eulerAngle = mxAxisAngle.EulerRollPitchYaw();
 }
 
 Vector3 NXCamera::GetForward()
 {
 	Vector3 result = (m_at - m_translation);
 	result.Normalize();
+	if (result.IsZero())
+		result = Vector3(0.0f, 0.0f, 1.0f);
 	return result;
 }
 
@@ -57,6 +61,8 @@ Vector3 NXCamera::GetLeft()
 {
 	Vector3 result = (m_at - m_translation).Cross(m_up);
 	result.Normalize();
+	if (result.IsZero())
+		result = Vector3(-1.0f, 0.0f, 0.0f);
 	return result;
 }
 
@@ -64,6 +70,8 @@ Vector3 NXCamera::GetRight()
 {
 	Vector3 result = (m_translation - m_at).Cross(m_up);
 	result.Normalize();
+	if (result.IsZero())
+		result = Vector3(1.0f, 0.0f, 0.0f);
 	return result;
 }
 

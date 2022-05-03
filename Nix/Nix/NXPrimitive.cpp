@@ -22,29 +22,12 @@ void NXPrimitive::UpdateViewParams()
 	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbObject.Get(), 0, nullptr, &NXGlobalBufferManager::m_cbDataObject, 0, 0);
 }
 
-void NXPrimitive::Release()
-{
-	NXObject::Release();
-}
-
 void NXPrimitive::CalculateTangents(bool bUpdateVertexIndexBuffer)
 {
 	for (UINT i = 0; i < GetSubMeshCount(); i++)
 	{
 		GetSubMesh(i)->CalculateTangents(bUpdateVertexIndexBuffer);
 	}
-}
-
-AABB NXPrimitive::GetAABBWorld()
-{
-	AABB worldAABB;
-	AABB::Transform(m_aabb, m_worldMatrix, worldAABB);
-	return worldAABB;
-}
-
-AABB NXPrimitive::GetAABBLocal() const
-{
-	return m_aabb;
 }
 
 bool NXPrimitive::RayCast(const Ray& worldRay, NXHit& outHitInfo, float& outDist)
@@ -68,7 +51,9 @@ bool NXPrimitive::RayCast(const Ray& worldRay, NXHit& outHitInfo, float& outDist
 		}
 	}
 
-	return bSuccess;
+	bool bSuccessChilds = NXRenderableObject::RayCast(worldRay, outHitInfo, outDist);
+
+	return bSuccess || bSuccessChilds;
 }
 
 UINT NXPrimitive::GetFaceCount()
@@ -107,7 +92,7 @@ void NXPrimitive::ReloadSubMesh(UINT index, NXSubMesh* pSubMesh)
 void NXPrimitive::InitAABB()
 {
 	m_points.clear();
-	m_points.reserve(GetFaceCount());
+	m_points.reserve(GetFaceCount() * 3);
 	for (UINT i = 0; i < GetSubMeshCount(); i++)
 	{
 		auto pSubMesh = GetSubMesh(i);
@@ -118,5 +103,9 @@ void NXPrimitive::InitAABB()
 			m_points.push_back(pVertexData[j].pos);
 		}
 	}
-	AABB::CreateFromPoints(m_aabb, m_points.size(), m_points.data(), sizeof(Vector3));
+
+	AABB::CreateFromPoints(m_aabb, m_points.size(), m_points.data(), sizeof(Vector3)); // local AABB
+	AABB::Transform(m_aabb, m_worldMatrix, m_aabb);	// transform local AABB to world space.
+
+	NXRenderableObject::InitAABB();
 }

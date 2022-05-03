@@ -1,5 +1,6 @@
 #include "NXSubMeshGeometryEditor.h"
 #include "NXPrimitive.h"
+#include "NXPrefab.h"
 #include "FBXMeshLoader.h"
 #include "SphereHarmonics.h"
 
@@ -11,28 +12,9 @@ NXSubMeshGeometryEditor::~NXSubMeshGeometryEditor()
 {
 }
 
-void NXSubMeshGeometryEditor::CreateFBXMesh(NXPrimitive* pMesh, UINT subMeshCount, VertexPNTT** pSubMeshVertices, UINT* pSubMeshVerticesCounts, UINT** pSubMeshIndices, UINT* pSubMeshIndicesCounts, bool bAutoCalcTangents)
+void NXSubMeshGeometryEditor::CreateFBXPrefab(NXPrefab* pPrefab, std::string filePath, bool bAutoCalcTangents)
 {
-	pMesh->ClearSubMeshes();
-
-	pMesh->ResizeSubMesh(subMeshCount);
-	for (UINT i = 0; i < subMeshCount; i++)
-	{
-		NXSubMesh* pSubMesh = new NXSubMesh(pMesh);
-
-		pSubMesh->m_vertices.reserve(pSubMeshVerticesCounts[i]);
-		pSubMesh->m_vertices.assign(pSubMeshVertices[i], pSubMeshVertices[i] + pSubMeshVerticesCounts[i]);
-
-		pSubMesh->m_indices.reserve(pSubMeshIndicesCounts[i]);
-		pSubMesh->m_indices.assign(pSubMeshIndices[i], pSubMeshIndices[i] + pSubMeshIndicesCounts[i]);
-
-		if (bAutoCalcTangents) pSubMesh->CalculateTangents();
-
-		pSubMesh->InitVertexIndexBuffer();
-		pMesh->ReloadSubMesh(i, pSubMesh);
-	}
-
-	pMesh->InitAABB();
+	FBXMeshLoader::LoadFBXFile(filePath, pPrefab, bAutoCalcTangents);
 }
 
 void NXSubMeshGeometryEditor::CreateBox(NXPrimitive* pMesh, float x, float y, float z)
@@ -106,7 +88,6 @@ void NXSubMeshGeometryEditor::CreateBox(NXPrimitive* pMesh, float x, float y, fl
 	pSubMesh->InitVertexIndexBuffer();
 
 	pMesh->AddSubMesh(pSubMesh);
-	pMesh->InitAABB();
 }
 
 void NXSubMeshGeometryEditor::CreateCylinder(NXPrimitive* pMesh, float radius, float length, int segmentCircle, int segmentLength)
@@ -247,7 +228,6 @@ void NXSubMeshGeometryEditor::CreateCylinder(NXPrimitive* pMesh, float radius, f
 	pSubMesh->InitVertexIndexBuffer();
 
 	pMesh->AddSubMesh(pSubMesh);
-	pMesh->InitAABB();
 }
 
 void NXSubMeshGeometryEditor::CreatePlane(NXPrimitive* pMesh, float width, float height, NXPlaneAxis Axis)
@@ -323,7 +303,6 @@ void NXSubMeshGeometryEditor::CreatePlane(NXPrimitive* pMesh, float width, float
 	pSubMesh->InitVertexIndexBuffer();
 
 	pMesh->AddSubMesh(pSubMesh);
-	pMesh->InitAABB();
 }
 
 void NXSubMeshGeometryEditor::CreateSphere(NXPrimitive* pMesh, float radius, int segmentHorizontal, int segmentVertical)
@@ -405,7 +384,6 @@ void NXSubMeshGeometryEditor::CreateSphere(NXPrimitive* pMesh, float radius, int
 	pSubMesh->InitVertexIndexBuffer();
 
 	pMesh->AddSubMesh(pSubMesh);
-	pMesh->InitAABB();
 }
 
 void NXSubMeshGeometryEditor::CreateSHSphere(NXPrimitive* pMesh, int basis_l, int basis_m, float radius, int segmentHorizontal, int segmentVertical)
@@ -503,5 +481,4 @@ void NXSubMeshGeometryEditor::CreateSHSphere(NXPrimitive* pMesh, int basis_l, in
 	pSubMesh->InitVertexIndexBuffer();
 
 	pMesh->AddSubMesh(pSubMesh);
-	pMesh->InitAABB();
 }

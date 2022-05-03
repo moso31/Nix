@@ -10,7 +10,7 @@ public:
 
 	void Init();
 	void RenderGBuffer();
-	void Render(ID3D11ShaderResourceView* pSRVSSAO);
+	void Render();
 
 	void Release();
 
@@ -34,6 +34,17 @@ private:
 	// 进行最终渲染时使用此组Shaders
 	ComPtr<ID3D11VertexShader>			m_pVertexShaderRender; 
 	ComPtr<ID3D11PixelShader>			m_pPixelShaderRender;
+
+	ComPtr<ID3D11DepthStencilState>		m_pDepthStencilStateGBuffer;
+	ComPtr<ID3D11RasterizerState>		m_pRasterizerStateGBuffer;
+	ComPtr<ID3D11BlendState>			m_pBlendStateGBuffer;
+
+	ComPtr<ID3D11DepthStencilState>		m_pDepthStencilStateLighting;
+	ComPtr<ID3D11RasterizerState>		m_pRasterizerStateLighting;
+	ComPtr<ID3D11BlendState>			m_pBlendStateLighting;
+
+	ComPtr<ID3D11SamplerState>			m_pSamplerLinearWrap;
+	ComPtr<ID3D11SamplerState>			m_pSamplerLinearClamp;
 
 	NXScene* m_pScene;
 };

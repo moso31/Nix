@@ -2,7 +2,7 @@
 #include "PBRLights.fx"
 #include "BRDF.fx"
 #include "Math.fx"
-#include "SphereHarmonic.fx"
+#include "SHIrradianceCommon.fx"
 
 Texture2D txRT0 : register(t0);
 Texture2D txRT1 : register(t1);
@@ -12,7 +12,6 @@ TextureCube txCubeMap : register(t4);
 TextureCube txIrradianceMap : register(t5);
 TextureCube txPreFilterMap : register(t6);
 Texture2D txBRDF2DLUT : register(t7);
-Texture2D txSSAO : register(t8);
 
 struct ConstantBufferIrradSH
 {
@@ -72,21 +71,15 @@ PS_INPUT VS(VS_INPUT input)
 
 float3 CalcBSDF(float NoV, float NoL, float NoH, float VoH, float roughness, float metallic, float3 albedo, float3 F0)
 {
-	// 微表面 BRDF
-	float NDF = DistributionGGX(NoH, roughness);
-	float G = GeometrySmithDirect(NoV, NoL, roughness);
-	float3 F = FresnelSchlick(saturate(VoH), F0);
-
-	float3 numerator = NDF * G * F;
-	float denominator = 4.0 * saturate(NoV) * saturate(NoL);
-	float3 specular = numerator / max(denominator, 0.001);
-
-	float3 kS = F;
-	float3 kD = 1.0 - kS;
-	kD *= 1.0 - metallic;
-
 	float3 diffuse = DiffuseDisney(albedo, roughness, NoV, NoL, VoH);
-	return kD * diffuse + specular;
+
+	// 微表面 BRDF
+	float D = D_GGX(NoH, roughness);
+	float G = G_GGX_SmithJoint(NoV, NoL, roughness);
+	float3 F = F_Schlick(saturate(VoH), F0);
+	float3 specular = D * G * F;
+
+	return diffuse + specular;
 }
 
 float3 GetIndirectIrradiance(float3 v)
@@ -147,18 +140,17 @@ float4 PS(PS_INPUT input) : SV_Target
 
 	float roughnessMap = txRT3.Sample(ssLinearWrap, uv).x;
 	float roughness = roughnessMap;
-	roughness = roughness * roughness;
+	float perceptualRoughness = roughness * roughness;
 
 	float metallicMap = txRT3.Sample(ssLinearWrap, uv).y;
 	float metallic = metallicMap;
 
 	float AOMap = txRT3.Sample(ssLinearWrap, uv).z;
-	float SSAOMap = txSSAO.Sample(ssLinearWrap, input.tex).x;
-	float ssao = 1.0f - SSAOMap;
-	float ao = AOMap * ssao;
+	float ao = AOMap;
 
 	float3 F0 = 0.04;
 	F0 = lerp(F0, albedo, metallic);
+	albedo *= 1.0f - metallic;
 
 	float3 Lo = 0.0f;
 	int i;
@@ -176,7 +168,7 @@ float4 PS(PS_INPUT input) : SV_Target
 		float3 LightIlluminance = m_dirLight[i].color * m_dirLight[i].illuminance; // 方向光的Illuminace
 		float3 IncidentIlluminance = LightIlluminance * NoL;
 
-		float3 bsdf = CalcBSDF(NoV, NoL, NoH, VoH, roughness, metallic, albedo, F0);
+		float3 bsdf = CalcBSDF(NoV, NoL, NoH, VoH, perceptualRoughness, metallic, albedo, F0);
 		Lo += bsdf * IncidentIlluminance; // Output radiance.
 	}
 
@@ -199,7 +191,7 @@ float4 PS(PS_INPUT input) : SV_Target
 		float Factor = d2 / (m_pointLight[i].influenceRadius * m_pointLight[i].influenceRadius);
 		float FalloffFactor = max(1.0f - Factor * Factor, 0.0f);
 
-		float3 bsdf = CalcBSDF(NoV, NoL, NoH, VoH, roughness, metallic, albedo, F0);
+		float3 bsdf = CalcBSDF(NoV, NoL, NoH, VoH, perceptualRoughness, metallic, albedo, F0);
 		Lo += bsdf * IncidentIlluminance * FalloffFactor; // Output radiance.
     }
 
@@ -230,24 +222,16 @@ float4 PS(PS_INPUT input) : SV_Target
 		float Factor = d2 / (m_spotLight[i].influenceRadius * m_spotLight[i].influenceRadius);
 		FalloffFactor *= max(1.0f - Factor * Factor, 0.0f);
 
-		float3 bsdf = CalcBSDF(NoV, NoL, NoH, VoH, roughness, metallic, albedo, F0);
+		float3 bsdf = CalcBSDF(NoV, NoL, NoH, VoH, perceptualRoughness, metallic, albedo, F0);
 		Lo += bsdf * IncidentIlluminance * FalloffFactor; // Output radiance.
 	}
 
-	float3 kS = fresnelSchlickRoughness(NoV, F0, roughness);
-	float3 kD = 1.0 - kS;
-	kD *= 1.0 - metallic;
+	float3 NormalWS = mul(N, (float3x3)m_viewTranspose);
+	//float3 IndirectIrradiance = txIrradianceMap.Sample(ssLinearWrap, NormalWS).xyz;
+	float3 IndirectIrradiance = GetIndirectIrradiance(NormalWS);
+	float3 diffuseIBL = albedo * IndirectIrradiance;
 
-	// test: SH Irrad.
-	//float3 IndirectIrradiance1 = txIrradianceMap.Sample(ssLinearWrap, N).xyz;
-	//float3 IndirectIrradiance2 = GetIndirectIrradiance(N);
-	//float3 IndirectIrradiance = lerp(IndirectIrradiance1, IndirectIrradiance2, m_cubeMapIntensity * 0.1f);
-
-	float3 IndirectIrradiance = txIrradianceMap.Sample(ssLinearWrap, N).xyz;
-	
-	float3 diffuseIBL = kD * albedo * IndirectIrradiance;
-
-	float3 preFilteredColor = txPreFilterMap.SampleLevel(ssLinearWrap, R, roughness * 4.0f).rgb; // 4.0 = prefilter mip count - 1.
+	float3 preFilteredColor = txPreFilterMap.SampleLevel(ssLinearWrap, R, perceptualRoughness * 4.0f).rgb; // 4.0 = prefilter mip count - 1.
 	float2 envBRDF = txBRDF2DLUT.Sample(ssLinearClamp, float2(NoV, roughness)).rg;
 	float3 SpecularIBL = preFilteredColor * lerp(envBRDF.xxx, envBRDF.yyy, F0);
 

@@ -4,7 +4,7 @@
 #include "GlobalBufferManager.h"
 #include "DirectResources.h"
 #include "NXResourceManager.h"
-#include "RenderStates.h"
+#include "NXRenderStates.h"
 #include "NXScene.h"
 #include "SamplerMath.h"
 
@@ -28,6 +28,8 @@ void NXSimpleSSAO::Init(const Vector2& AOBufferSize)
 
 	// 生成随机采样序列
 	GenerateSamplePosition();
+
+	m_pSamplerLinearClamp.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP>::Create());
 }
 
 void NXSimpleSSAO::Update()
@@ -44,7 +46,7 @@ void NXSimpleSSAO::Render(ID3D11ShaderResourceView* pSRVNormal, ID3D11ShaderReso
 	g_pContext->CSSetConstantBuffers(1, 1, m_pCBSamplePositions.GetAddressOf());
 	g_pContext->CSSetConstantBuffers(2, 1, m_pCBSSAOParams.GetAddressOf());
 
-	g_pContext->CSSetSamplers(0, 1, RenderStates::SamplerLinearClamp.GetAddressOf());
+	g_pContext->CSSetSamplers(0, 1, m_pSamplerLinearClamp.GetAddressOf());
 	g_pContext->CSSetShaderResources(0, 1, &pSRVNormal);
 	g_pContext->CSSetShaderResources(1, 1, &pSRVPosition);
 	g_pContext->CSSetShaderResources(2, 1, &pSRVDepthPrepass);

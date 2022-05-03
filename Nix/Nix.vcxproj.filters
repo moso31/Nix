@@ -67,9 +67,6 @@
     <Filter Include="Shader\Renderer">
       <UniqueIdentifier>{57202afe-2b24-4f5b-b5bd-9fcaa43502bb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shader\CubeMap">
-      <UniqueIdentifier>{35af041d-5728-4024-9ce2-c638366bc61a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shader\Math">
       <UniqueIdentifier>{a845cc5f-ef34-41d5-98b9-5095aa59ed3a}</UniqueIdentifier>
     </Filter>
@@ -79,28 +76,34 @@
     <Filter Include="Shader\Renderer\BRDF">
       <UniqueIdentifier>{a9b3cb21-76d7-4c6a-8270-539db5a9ae34}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shader\Renderer\IBL">
+      <UniqueIdentifier>{fc20adf2-e48f-4eaf-9afb-14278497202b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\Renderer\IBL\CubeMap">
+      <UniqueIdentifier>{35af041d-5728-4024-9ce2-c638366bc61a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\PostProcessing">
+      <UniqueIdentifier>{e346dbef-9f51-4885-a786-245d7320d017}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\Renderer\Translucent">
+      <UniqueIdentifier>{6f7950de-ac8c-442a-a2dc-47f43ee9abd9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shader\RenderTarget.fx">
-      <Filter>Shader</Filter>
-    </None>
     <None Include="Shader\Common.fx">
       <Filter>Shader</Filter>
     </None>
-    <None Include="Shader\BRDF2DLUT.fx">
-      <Filter>Shader\Renderer</Filter>
-    </None>
     <None Include="Shader\CubeMap.fx">
-      <Filter>Shader\CubeMap</Filter>
+      <Filter>Shader\Renderer\IBL\CubeMap</Filter>
     </None>
     <None Include="Shader\CubeMapIrradiance.fx">
-      <Filter>Shader\CubeMap</Filter>
+      <Filter>Shader\Renderer\IBL\CubeMap</Filter>
     </None>
     <None Include="Shader\CubeMapPreFilter.fx">
-      <Filter>Shader\CubeMap</Filter>
+      <Filter>Shader\Renderer\IBL\CubeMap</Filter>
     </None>
     <None Include="Shader\HDRToCubeMap.fx">
-      <Filter>Shader\CubeMap</Filter>
+      <Filter>Shader\Renderer\IBL\CubeMap</Filter>
     </None>
     <None Include="Shader\PBRMaterials.fx">
       <Filter>Shader</Filter>
@@ -109,9 +112,6 @@
       <Filter>Shader</Filter>
     </None>
     <None Include="Shader\DeferredRender.fx">
-      <Filter>Shader\Renderer</Filter>
-    </None>
-    <None Include="Shader\Scene.fx">
       <Filter>Shader\Renderer</Filter>
     </None>
     <None Include="Shader\GBuffer.fx">
@@ -142,12 +142,32 @@
       <Filter>Shader\Renderer\BRDF</Filter>
     </None>
     <None Include="imgui.ini" />
-    <None Include="Shader\SphereHarmonic.fx">
-      <Filter>Shader\CubeMap</Filter>
+    <None Include="Shader\BRDF2DLUT.fx">
+      <Filter>Shader\Renderer\IBL</Filter>
     </None>
-    <None Include="Shader\MathUnits.fx" />
     <None Include="Shader\CubeMapIrradianceSH.fx">
-      <Filter>Shader\Renderer</Filter>
+      <Filter>Shader\Renderer\IBL</Filter>
+    </None>
+    <None Include="Shader\SphereHarmonic.fx">
+      <Filter>Shader\Math</Filter>
+    </None>
+    <None Include="Shader\MathUnits.fx">
+      <Filter>Shader\Math</Filter>
+    </None>
+    <None Include="Shader\SHIrradianceCommon.fx">
+      <Filter>Shader\Renderer\IBL</Filter>
+    </None>
+    <None Include="Shader\FinalQuad.fx">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Shader\ColorMapping.fx">
+      <Filter>Shader\PostProcessing</Filter>
+    </None>
+    <None Include="Shader\DepthPeelingCombine.fx">
+      <Filter>Shader\Renderer\Translucent</Filter>
+    </None>
+    <None Include="Shader\ForwardTranslucent.fx">
+      <Filter>Shader\Renderer\Translucent</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -177,9 +197,6 @@
     </ClCompile>
     <ClCompile Include="Core\NXDXHelper.cpp">
       <Filter>Core\Helper</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\RenderStates.cpp">
-      <Filter>Core\DirectX</Filter>
     </ClCompile>
     <ClCompile Include="Core\ShaderComplier.cpp">
       <Filter>Core\DirectX</Filter>
@@ -289,6 +306,24 @@
     <ClCompile Include="Core\NXGUILights.cpp">
       <Filter>Core\UI</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXSkyRenderer.cpp">
+      <Filter>Core\DirectX\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXFinalRenderer.cpp">
+      <Filter>Core\DirectX\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXColorMappingRenderer.cpp">
+      <Filter>Core\DirectX\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXDepthPeelingRenderer.cpp">
+      <Filter>Core\DirectX\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXPrefab.cpp">
+      <Filter>Nix\Object\Transform\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXRenderableObject.cpp">
+      <Filter>Nix\Object\Transform\Primitive</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -320,9 +355,6 @@
     </ClInclude>
     <ClInclude Include="Core\NXDXHelper.h">
       <Filter>Core\Helper</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\RenderStates.h">
-      <Filter>Core\DirectX</Filter>
     </ClInclude>
     <ClInclude Include="Core\ShaderComplier.h">
       <Filter>Core\DirectX</Filter>
@@ -437,6 +469,27 @@
     </ClInclude>
     <ClInclude Include="Core\NXGUILights.h">
       <Filter>Core\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXRenderStates.h">
+      <Filter>Core\DirectX</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXSkyRenderer.h">
+      <Filter>Core\DirectX\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXFinalRenderer.h">
+      <Filter>Core\DirectX\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXColorMappingRenderer.h">
+      <Filter>Core\DirectX\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXDepthPeelingRenderer.h">
+      <Filter>Core\DirectX\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXPrefab.h">
+      <Filter>Nix\Object\Transform\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXRenderableObject.h">
+      <Filter>Nix\Object\Transform\Primitive</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

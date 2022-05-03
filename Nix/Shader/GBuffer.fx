@@ -10,9 +10,9 @@ Texture2D txAmbientOcclusionMap : register(t5);
 
 SamplerState ssLinearWrap : register(s0);
 
-cbuffer ConstantBufferMaterial : register(b3)
+cbuffer CBufferMaterialStandard : register(b3)
 {
-	Material m_material;
+	PBRMaterialStandard m_material;
 }
 
 struct VS_INPUT

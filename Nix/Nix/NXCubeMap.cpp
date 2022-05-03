@@ -1,11 +1,11 @@
 #include "NXCubeMap.h"
 #include "SphereHarmonics.h"
 #include "GlobalBufferManager.h"
-#include "RenderStates.h"
 #include "NXScene.h"
 #include "NXCamera.h"
 #include "ShaderComplier.h"
 #include "DirectResources.h"
+#include "NXRenderStates.h"
 
 
 using namespace DirectX::SimpleMath::SH;
@@ -243,6 +243,10 @@ void NXCubeMap::GenerateCubeMap(const std::wstring filePath)
 {
 	g_pUDA->BeginEvent(L"Generate Cube Map");
 
+	ComPtr<ID3D11SamplerState> pSamplerState;
+	pSamplerState.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP>::Create());
+	g_pContext->PSSetSamplers(0, 1, pSamplerState.GetAddressOf());
+
 	ComPtr<ID3D11Texture2D> pTexCubeMap;
 	ComPtr<ID3D11ShaderResourceView> pSRVCubeMap;
 	ComPtr<ID3D11RenderTargetView> pRTVCubeMaps[6];
@@ -284,7 +288,6 @@ void NXCubeMap::GenerateCubeMap(const std::wstring filePath)
 
 	g_pContext->PSSetShaderResources(0, 1, m_pSRVHDRMap.GetAddressOf());
 	g_pContext->VSSetConstantBuffers(0, 1, cb.GetAddressOf());
-	g_pContext->PSSetSamplers(0, 1, RenderStates::SamplerLinearClamp.GetAddressOf());
 
 	ConstantBufferObject cbData;
 	cbData.world = Matrix::Identity();
@@ -373,6 +376,10 @@ void NXCubeMap::GenerateCubeMap(const std::wstring filePath)
 void NXCubeMap::GenerateIrradianceSH(size_t imgWidth, size_t imgHeight)
 {
 	g_pUDA->BeginEvent(L"Generate Irradiance Map SH");
+
+	ComPtr<ID3D11SamplerState> pSamplerState;
+	pSamplerState.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP>::Create());
+	g_pContext->CSSetSamplers(0, 1, pSamplerState.GetAddressOf());
 
 	ComPtr<ID3D11Buffer> cbImageSize;
 	D3D11_BUFFER_DESC bufferDesc;
@@ -480,7 +487,6 @@ void NXCubeMap::GenerateIrradianceSH(size_t imgWidth, size_t imgHeight)
 			g_pContext->CSSetShaderResources(0, 1, pSRVIrradSHs[passId - 1].GetAddressOf());
 		}
 
-		g_pContext->CSSetSamplers(0, 1, RenderStates::SamplerLinearClamp.GetAddressOf());
 		g_pContext->CSSetShader(pComputeShader.Get(), nullptr, 0);
 
 		g_pContext->Dispatch(tempWidth, tempHeight, 1);
@@ -501,6 +507,10 @@ void NXCubeMap::GenerateIrradianceSH(size_t imgWidth, size_t imgHeight)
 void NXCubeMap::GenerateIrradianceMap()
 {
 	g_pUDA->BeginEvent(L"Generate Irradiance Map");
+
+	ComPtr<ID3D11SamplerState> pSamplerState;
+	pSamplerState.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP>::Create());
+	g_pContext->PSSetSamplers(0, 1, pSamplerState.GetAddressOf());
 
 	const static float MapSize = 32.0f;
 	CD3D11_VIEWPORT vp(0.0f, 0.0f, MapSize, MapSize);
@@ -539,7 +549,6 @@ void NXCubeMap::GenerateIrradianceMap()
 
 	g_pContext->PSSetShaderResources(0, 1, m_pSRVCubeMap.GetAddressOf());
 	g_pContext->VSSetConstantBuffers(0, 1, cb.GetAddressOf());
-	g_pContext->PSSetSamplers(0, 1, RenderStates::SamplerLinearWrap.GetAddressOf());
 
 	ConstantBufferObject cbData;
 	cbData.world = Matrix::Identity();
@@ -566,6 +575,10 @@ void NXCubeMap::GenerateIrradianceMap()
 void NXCubeMap::GeneratePreFilterMap()
 {
 	g_pUDA->BeginEvent(L"Generate PreFilter Map");
+
+	ComPtr<ID3D11SamplerState> pSamplerState;
+	pSamplerState.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP>::Create());
+	g_pContext->PSSetSamplers(0, 1, pSamplerState.GetAddressOf());
 
 	const static float MapSize = 512.0f;
 	CD3D11_TEXTURE2D_DESC descTex(m_format, (UINT)MapSize, (UINT)MapSize, 6, 5, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, D3D11_RESOURCE_MISC_TEXTURECUBE);
@@ -609,8 +622,6 @@ void NXCubeMap::GeneratePreFilterMap()
 	g_pContext->PSSetShaderResources(0, 1, m_pSRVCubeMap.GetAddressOf());
 	g_pContext->VSSetConstantBuffers(0, 1, cbCubeCamera.GetAddressOf());
 	g_pContext->PSSetConstantBuffers(1, 1, cbRoughness.GetAddressOf());
-	//g_pContext->PSSetSamplers(0, 1, RenderStates::SamplerLinearClamp.GetAddressOf());
-	g_pContext->PSSetSamplers(0, 1, RenderStates::SamplerLinearWrap.GetAddressOf());
 
 	ConstantBufferObject cbDataCubeCamera;
 	cbDataCubeCamera.world = Matrix::Identity();
@@ -629,7 +640,7 @@ void NXCubeMap::GeneratePreFilterMap()
 	CD3D11_VIEWPORT vp;
 	for (int i = 0; i < 5; i++)
 	{
-		cbDataRoughness.value = roughValues[i];
+		cbDataRoughness.value = roughValues[i] * roughValues[i];
 
 		vp = CD3D11_VIEWPORT(0.0f, 0.0f, (float)(uMapSize >> i), (float)(uMapSize >> i));
 		g_pContext->RSSetViewports(1, &vp);
@@ -651,6 +662,8 @@ void NXCubeMap::GeneratePreFilterMap()
 void NXCubeMap::GenerateBRDF2DLUT()
 {
 	g_pUDA->BeginEvent(L"Generate BRDF 2D LUT");
+
+	NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP>::Create();
 
 	const static float MapSize = 512.0f;
 	CD3D11_VIEWPORT vp(0.0f, 0.0f, MapSize, MapSize);

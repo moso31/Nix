@@ -2,6 +2,7 @@
 #include "NXScript.h"
 
 NXObject::NXObject() :
+	m_type(NXType::eNone),
 	m_parent(nullptr)
 {
 }
@@ -75,5 +76,10 @@ void NXObject::Release()
 	for (auto script : m_scripts)
 	{
 		SafeDelete(script);
+	}
+
+	for (auto pChild : m_childs)
+	{
+		SafeRelease(pChild);
 	}
 }
