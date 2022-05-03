@@ -1,6 +1,0 @@
-NXBSDF.cpp
-	没有对IsFromCamera进行调整，目前强制设为true。
-
-所有ray在计算相交距离的时候，都没有对offset值进行补偿。
-
-在使用直接照明积分器的时候，使用UniformSampleAll*单个样本，效果明显比使用UniformSampleOne*N个样本的效果好。原因不明。
