@@ -12,3 +12,11 @@
 - [x] Depth Peeling
 
 - [ ] Shadow Map （折腾中...）
+
+在计划中，但还没开始做的：
+- 渲染
+  - TAA
+  - SSAO 升级
+  - SSR
+- UI
+  - 材质界面增加 "Unique"（或者detach更贴切?）
