@@ -36,7 +36,7 @@ void NXFinalRenderer::Render()
 	g_pUDA->BeginEvent(L"Render Target");
 
 	ID3D11RenderTargetView* pRTVFinalQuad = g_dxResources->GetRTVFinalQuad();
-	ID3D11ShaderResourceView* pSRVPostProcessing = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_PostProcessing)->GetSRV();
+	ID3D11ShaderResourceView* pSRVInput = m_pInputTexture->GetSRV();
 
 	g_pContext->OMSetRenderTargets(1, &pRTVFinalQuad, nullptr);
 	g_pContext->ClearRenderTargetView(pRTVFinalQuad, Colors::Black);
@@ -49,7 +49,7 @@ void NXFinalRenderer::Render()
 	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
 
-	g_pContext->PSSetShaderResources(0, 1, &pSRVPostProcessing);
+	g_pContext->PSSetShaderResources(0, 1, &pSRVInput);
 
 	m_pFinalRT->Render();
 
@@ -59,4 +59,9 @@ void NXFinalRenderer::Render()
 void NXFinalRenderer::Release()
 {
 	SafeRelease(m_pFinalRT);
+}
+
+void NXFinalRenderer::SetInputTexture(NXTexture2D* pInputTexture)
+{
+	m_pInputTexture = pInputTexture;
 }

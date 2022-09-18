@@ -2,11 +2,13 @@
 #include "header.h"
 #include "ShaderStructures.h"
 
-class NXDeferredRenderer
+class NXGBufferRenderer
 {
+private:
+	explicit NXGBufferRenderer() = default;
 public:
-	NXDeferredRenderer(NXScene* pScene);
-	~NXDeferredRenderer();
+	NXGBufferRenderer(NXScene* pScene);
+	~NXGBufferRenderer();
 
 	void Init();
 	void Render();
@@ -14,8 +16,7 @@ public:
 	void Release();
 
 private:
-	// 进行最终渲染时使用此组Shaders
-	ComPtr<ID3D11VertexShader>			m_pVertexShader; 
+	ComPtr<ID3D11VertexShader>			m_pVertexShader;
 	ComPtr<ID3D11PixelShader>			m_pPixelShader;
 	ComPtr<ID3D11InputLayout>			m_pInputLayout;
 
@@ -27,6 +28,4 @@ private:
 	ComPtr<ID3D11SamplerState>			m_pSamplerLinearClamp;
 
 	NXScene* m_pScene;
-
-	NXRenderTarget* m_pResultRT;
 };

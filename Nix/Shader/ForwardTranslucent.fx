@@ -43,9 +43,9 @@ cbuffer CBufferMaterialStandard : register(b3)
 
 cbuffer ConstantBufferShadowMapTransform : register(b4)
 {
+	matrix m_shadowMapWorld;
 	matrix m_shadowMapView;
-	matrix m_shadowMapProjection;
-	matrix m_shadowMapTex;
+	matrix m_shadowMapProj;
 }
 
 cbuffer ConstantBufferCubeMap : register(b5)
@@ -86,7 +86,7 @@ PS_INPUT VS(VS_INPUT input)
 	output.posSS = mul(output.posSS, m_projection);
 	output.normVS = normalize(mul(input.norm, (float3x3)m_worldViewInverseTranspose));
 	output.tex = input.tex;
-	output.tangentVS = mul(input.tangent, (float3x3)m_worldViewInverseTranspose).xyz;
+	output.tangentVS = normalize(mul(input.tangent, (float3x3)m_worldViewInverseTranspose));
 	return output;
 }
 
@@ -141,7 +141,7 @@ float4 PS(PS_INPUT input) : SV_Target
 	for (i = 0; i < NUM_DISTANT_LIGHT; i++)
 	{
 		float3 LightDirWS = normalize(m_dirLight[i].direction);
-		float3 LightDirVS = normalize(mul(LightDirWS, (float3x3)m_worldViewInverseTranspose));
+		float3 LightDirVS = normalize(mul(LightDirWS, (float3x3)m_viewInverseTranspose));
 
 		float3 L = -LightDirVS;
 		float3 H = normalize(V + L);
@@ -164,7 +164,7 @@ float4 PS(PS_INPUT input) : SV_Target
 
 	for (i = 0; i < NUM_POINT_LIGHT; i++)
 	{
-		float3 LightPosVS = mul(float4(m_pointLight[i].position, 1.0f), m_worldView).xyz;
+		float3 LightPosVS = mul(float4(m_pointLight[i].position, 1.0f), m_view).xyz;
 		float3 LightIntensity = m_pointLight[i].color * m_pointLight[i].intensity;
 		float3 LightDirVS = LightPosVS - PositionVS;
 
@@ -190,7 +190,7 @@ float4 PS(PS_INPUT input) : SV_Target
 
 	for (i = 0; i < NUM_SPOT_LIGHT; i++)
 	{
-		float3 LightPosVS = mul(float4(m_spotLight[i].position, 1.0f), m_worldView).xyz;
+		float3 LightPosVS = mul(float4(m_spotLight[i].position, 1.0f), m_view).xyz;
 		float3 LightIntensity = m_spotLight[i].color * m_spotLight[i].intensity;
 		float3 LightDirVS = LightPosVS - PositionVS;
 
@@ -207,7 +207,7 @@ float4 PS(PS_INPUT input) : SV_Target
 		float CosInner = cos(m_spotLight[i].innerAngle * NX_DEGTORED);
 		float CosOuter = cos(m_spotLight[i].outerAngle * NX_DEGTORED);
 		float3 SpotDirWS = normalize(m_spotLight[i].direction);
-		float3 SpotDirVS = normalize(mul(SpotDirWS, (float3x3)m_worldViewInverseTranspose));
+		float3 SpotDirVS = normalize(mul(SpotDirWS, (float3x3)m_viewInverseTranspose));
 		float SpotLambda = (dot(-SpotDirVS, L) - CosOuter) / max(CosInner - CosOuter, 1e-4f);
 		SpotLambda = saturate(SpotLambda);
 		SpotLambda = SpotLambda * SpotLambda;

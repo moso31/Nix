@@ -25,19 +25,19 @@ void NXDepthPeelingRenderer::Init()
 	auto sz = g_dxResources->GetViewSize();
 
 	m_pSceneDepth[0] = NXResourceManager::GetInstance()->CreateTexture2D("Depth Peeling Scene Depth 0", DXGI_FORMAT_R24G8_TYPELESS, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE);
-	m_pSceneDepth[0]->CreateDSV();
-	m_pSceneDepth[0]->CreateSRV();
+	m_pSceneDepth[0]->AddDSV();
+	m_pSceneDepth[0]->AddSRV();
 
 	m_pSceneDepth[1] = NXResourceManager::GetInstance()->CreateTexture2D("Depth Peeling Scene Depth 1", DXGI_FORMAT_R24G8_TYPELESS, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE);
-	m_pSceneDepth[1]->CreateDSV();
-	m_pSceneDepth[1]->CreateSRV();
+	m_pSceneDepth[1]->AddDSV();
+	m_pSceneDepth[1]->AddSRV();
 
 	m_pSceneRT.resize(m_peelingLayerCount);
 	for (UINT i = 0; i < m_peelingLayerCount; i++)
 	{
 		m_pSceneRT[i] = NXResourceManager::GetInstance()->CreateTexture2D("Depth Peeling Scene RT " + std::to_string(i), DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE);
-		m_pSceneRT[i]->CreateRTV();
-		m_pSceneRT[i]->CreateSRV();
+		m_pSceneRT[i]->AddRTV();
+		m_pSceneRT[i]->AddSRV();
 	}
 
 	m_pCombineRTData = new NXRenderTarget();

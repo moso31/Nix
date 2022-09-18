@@ -13,6 +13,8 @@ public:
 
 	void Release();
 
+	void SetInputTexture(NXTexture2D* pInputTexture);
+
 private:
 	ComPtr<ID3D11VertexShader>			m_pVertexShader;
 	ComPtr<ID3D11PixelShader>			m_pPixelShader;
@@ -25,4 +27,6 @@ private:
 	ComPtr<ID3D11SamplerState>			m_pSamplerLinearClamp;
 
 	NXRenderTarget* m_pFinalRT;
+
+	NXTexture2D* m_pInputTexture;
 };

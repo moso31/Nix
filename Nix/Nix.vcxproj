@@ -216,22 +216,28 @@
     <ClCompile Include="Core\ImageGenerator.cpp" />
     <ClCompile Include="Core\Main.cpp" />
     <ClCompile Include="Core\NXColorMappingRenderer.cpp" />
+    <ClCompile Include="Core\NXDebugLayerRenderer.cpp" />
     <ClCompile Include="Core\NXDeferredRenderer.cpp" />
     <ClCompile Include="Core\NXDepthPeelingRenderer.cpp" />
     <ClCompile Include="Core\NXDXHelper.cpp" />
     <ClCompile Include="Core\NXEvent.cpp" />
     <ClCompile Include="Core\NXFinalRenderer.cpp" />
     <ClCompile Include="Core\NXForwardRenderer.cpp" />
+    <ClCompile Include="Core\NXGBufferRenderer.cpp" />
     <ClCompile Include="Core\NXGUI.cpp" />
     <ClCompile Include="Core\NXGUICubeMap.cpp" />
+    <ClCompile Include="Core\NXGUIDebugLayer.cpp" />
     <ClCompile Include="Core\NXGUILights.cpp" />
     <ClCompile Include="Core\NXGUIMaterial.cpp" />
+    <ClCompile Include="Core\NXGUIShadows.cpp" />
     <ClCompile Include="Core\NXGUISSAO.cpp" />
     <ClCompile Include="Core\NXInput.cpp" />
     <ClCompile Include="Core\NXInstance.cpp" />
     <ClCompile Include="Core\NXRandom.cpp" />
     <ClCompile Include="Core\NXResourceManager.cpp" />
     <ClCompile Include="Core\NXResourceReloader.cpp" />
+    <ClCompile Include="Core\NXShadowMapRenderer.cpp" />
+    <ClCompile Include="Core\NXShadowTestRenderer.cpp" />
     <ClCompile Include="Core\NXSkyRenderer.cpp" />
     <ClCompile Include="Core\NXTimer.cpp" />
     <ClCompile Include="Core\Renderer.cpp" />
@@ -252,7 +258,6 @@
     <ClCompile Include="Nix\Script\NSTest.cpp" />
     <ClCompile Include="Nix\NXCamera.cpp" />
     <ClCompile Include="Nix\NXObject.cpp" />
-    <ClCompile Include="Nix\NXPassShadowMap.cpp" />
     <ClCompile Include="Nix\NXPrimitive.cpp" />
     <ClCompile Include="Nix\NXRenderTarget.cpp" />
     <ClCompile Include="Nix\NXScene.cpp" />
@@ -268,18 +273,22 @@
     <ClInclude Include="Core\Header.h" />
     <ClInclude Include="Core\ImageGenerator.h" />
     <ClInclude Include="Core\NXColorMappingRenderer.h" />
+    <ClInclude Include="Core\NXDebugLayerRenderer.h" />
     <ClInclude Include="Core\NXDeferredRenderer.h" />
     <ClInclude Include="Core\NXDepthPeelingRenderer.h" />
     <ClInclude Include="Core\NXDXHelper.h" />
     <ClInclude Include="Core\NXEvent.h" />
     <ClInclude Include="Core\NXFinalRenderer.h" />
     <ClInclude Include="Core\NXForwardRenderer.h" />
+    <ClInclude Include="Core\NXGBufferRenderer.h" />
     <ClInclude Include="Core\NXGUI.h" />
     <ClInclude Include="Core\NXGUICubeMap.h" />
+    <ClInclude Include="Core\NXGUIDebugLayer.h" />
     <ClInclude Include="Core\NXGUIFileBrowser.h" />
     <ClInclude Include="Core\NXGUIImpl.h" />
     <ClInclude Include="Core\NXGUILights.h" />
     <ClInclude Include="Core\NXGUIMaterial.h" />
+    <ClInclude Include="Core\NXGUIShadows.h" />
     <ClInclude Include="Core\NXGUISSAO.h" />
     <ClInclude Include="Core\NXInput.h" />
     <ClInclude Include="Core\NXInstance.h" />
@@ -287,6 +296,8 @@
     <ClInclude Include="Core\NXRenderStates.h" />
     <ClInclude Include="Core\NXResourceManager.h" />
     <ClInclude Include="Core\NXResourceReloader.h" />
+    <ClInclude Include="Core\NXShadowMapRenderer.h" />
+    <ClInclude Include="Core\NXShadowTestRenderer.h" />
     <ClInclude Include="Core\NXSkyRenderer.h" />
     <ClInclude Include="Core\NXTimer.h" />
     <ClInclude Include="Core\Renderer.h" />
@@ -308,7 +319,6 @@
     <ClInclude Include="Nix\Script\NSTest.h" />
     <ClInclude Include="Nix\NXCamera.h" />
     <ClInclude Include="Nix\NXObject.h" />
-    <ClInclude Include="Nix\NXPassShadowMap.h" />
     <ClInclude Include="Nix\NXPrimitive.h" />
     <ClInclude Include="Nix\NXRenderTarget.h" />
     <ClInclude Include="Nix\NXScene.h" />
@@ -324,8 +334,8 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="场景添加物体说明.txt" />
-    <Text Include="较严重问题（2级）.txt" />
-    <Text Include="普通问题（3级）.txt" />
+    <Text Include="八字无撇的待办事项.txt" />
+    <Text Include="杂七杂八的编码规范.txt" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\CubeMap.fx">
@@ -473,6 +483,18 @@
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DeploymentContent>
       <FileType>Document</FileType>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DeploymentContent>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shader\ShadowTest.fx">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DeploymentContent>
+      <FileType>Document</FileType>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DeploymentContent>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shader\DebugLayer.fx">
+      <FileType>Document</FileType>
     </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -148,22 +148,22 @@ NXPBRMaterialTranslucent* SceneManager::CreatePBRMaterialTranslucent(const std::
 	return pMat;
 }
 
-void SceneManager::BindMaterial(NXRenderableObject* pPrefab, NXMaterial* pMaterial)
+void SceneManager::BindMaterial(NXRenderableObject* pRenderableObj, NXMaterial* pMaterial)
 {
-	for (auto pChild : pPrefab->GetChilds())
+	NXPrimitive* pPrimitive = pRenderableObj->IsPrimitive();
+	if (pPrimitive)
+	{
+		for (UINT i = 0; i < pPrimitive->GetSubMeshCount(); i++)
+		{
+			NXSubMesh* pSubMesh = pPrimitive->GetSubMesh(i);
+			BindMaterial(pSubMesh, pMaterial);
+		}
+	}
+
+	for (auto pChild : pRenderableObj->GetChilds())
 	{
 		if (pChild->IsRenderableObject())
 		{
-			if (pChild->IsPrimitive())
-			{
-				NXPrimitive* pChildPrimitive = static_cast<NXPrimitive*>(pChild);
-				for (UINT i = 0; i < pChildPrimitive->GetSubMeshCount(); i++)
-				{
-					NXSubMesh* pSubMesh = pChildPrimitive->GetSubMesh(i);
-					BindMaterial(pSubMesh, pMaterial);
-				}
-			}
-
 			NXRenderableObject* pChildObj = static_cast<NXRenderableObject*>(pChild);
 			BindMaterial(pChildObj, pMaterial);
 		}

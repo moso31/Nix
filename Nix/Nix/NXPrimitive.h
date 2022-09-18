@@ -15,7 +15,7 @@ public:
 	// 自动计算SubMesh下所有顶点的切线数据。
 	void CalculateTangents(bool bUpdateVertexIndexBuffer = false);
 
-	virtual bool RayCast(const Ray& worldRay, NXHit& outHitInfo, float& outDist);
+	bool RayCastPrimitive(const Ray& worldRay, NXHit& outHitInfo, float& outDist);
 
 	UINT GetSubMeshCount() { return (UINT)m_pSubMeshes.size(); }
 	NXSubMesh* GetSubMesh(UINT index) { return m_pSubMeshes[index].get(); }

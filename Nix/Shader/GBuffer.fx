@@ -51,7 +51,7 @@ PS_INPUT VS(VS_INPUT input)
 	output.posSS = mul(output.posVS, m_projection);
 	output.normVS = normalize(mul(input.norm, (float3x3)m_worldViewInverseTranspose));
 	output.tex = input.tex;
-	output.tangentVS = mul(input.tangent, (float3x3)m_worldViewInverseTranspose).xyz;
+	output.tangentVS = normalize(mul(input.tangent, (float3x3)m_worldViewInverseTranspose));
 	return output;
 }
 
@@ -65,6 +65,11 @@ void PS(PS_INPUT input, out PS_OUTPUT Output)
 	Output.GBufferB = float4(N, 1.0f);
 
 	float3 albedoMap = txAlbedo.Sample(ssLinearWrap, input.tex).xyz;
+	//float2 uv = (0.0625f, 0.06f);
+	//float t1 = txAlbedo.GatherRed(ssLinearWrap, uv).w;
+	//float t2 = txAlbedo.GatherGreen(ssLinearWrap, uv).w;
+	//float t3 = txAlbedo.GatherBlue(ssLinearWrap, uv).w;
+	//albedoMap = float3(t1, t2, t3);
 	float3 albedo = m_material.albedo * albedoMap;
 	Output.GBufferC = float4(albedo, 1.0f);
 

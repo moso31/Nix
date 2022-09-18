@@ -1,21 +1,26 @@
 #include "NXGUI.h"
 #include "NXEvent.h"
 #include "DirectResources.h"
+#include "Renderer.h"
 
 #include "NXGUIFileBrowser.h"
 #include "NXGUIMaterial.h"
 #include "NXGUILights.h"
 #include "NXGUICubeMap.h"
 #include "NXGUISSAO.h"
+#include "NXGUIShadows.h"
+#include "NXGUIDebugLayer.h"
 
-NXGUI::NXGUI(NXScene* pScene, NXSimpleSSAO* pSSAO) :
+NXGUI::NXGUI(NXScene* pScene, Renderer* pRenderer) :
 	m_pCurrentScene(pScene),
-	m_pSSAO(pSSAO),
+	m_pRenderer(pRenderer),
 	m_pFileBrowser(nullptr),
 	m_pGUIMaterial(nullptr),
 	m_pGUILights(nullptr),
 	m_pGUICubeMap(nullptr),
-	m_pGUISSAO(nullptr)
+	m_pGUISSAO(nullptr),
+	m_pGUIShadows(nullptr),
+	m_pGUIDebugLayer(nullptr)
 {
 }
 
@@ -33,7 +38,9 @@ void NXGUI::Init()
 	m_pGUILights = new NXGUILights(m_pCurrentScene);
 	m_pGUICubeMap = new NXGUICubeMap(m_pCurrentScene, m_pFileBrowser);
 
-	m_pGUISSAO = new NXGUISSAO(m_pSSAO);
+	m_pGUISSAO = new NXGUISSAO(m_pRenderer->GetSSAORenderer());
+	m_pGUIShadows = new NXGUIShadows(m_pRenderer->GetShadowMapRenderer());
+	m_pGUIDebugLayer = new NXGUIDebugLayer(m_pRenderer->GetDebugLayerRenderer());
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -56,6 +63,8 @@ void NXGUI::Render()
 	m_pGUIMaterial->Render();
 	m_pGUILights->Render();
 	m_pGUISSAO->Render();
+	m_pGUIShadows->Render();
+	m_pGUIDebugLayer->Render();
 
 	static bool show_demo_window = true;
 	static bool show_another_window = false;
@@ -115,7 +124,9 @@ void NXGUI::Release()
 	SafeDelete(m_pGUILights);
 	SafeDelete(m_pGUICubeMap);
 	SafeDelete(m_pGUISSAO);
+	SafeDelete(m_pGUIShadows);
 	SafeDelete(m_pFileBrowser);
+	SafeDelete(m_pGUIDebugLayer);
 
 	ImGui_ImplDX11_Shutdown();
 	ImGui_ImplWin32_Shutdown();

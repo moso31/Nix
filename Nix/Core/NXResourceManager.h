@@ -1,12 +1,13 @@
 #pragma once
 #include "NXInstance.h"
 
-class NXTexture2D;
-
 enum NXCommonRTEnum
 {
     NXCommonRT_DepthZ,
     NXCommonRT_MainScene,
+
+    // 屏幕空间阴影
+    NXCommonRT_ShadowTest,
 
     // 现行G-Buffer结构如下：
     // RT0:		Position				R32G32B32A32_FLOAT
@@ -62,6 +63,19 @@ public:
         UINT SampleQuality = 0,
         UINT MiscFlags = 0);
 
+    NXTexture2DArray* CreateTexture2DArray(std::string DebugName,
+        DXGI_FORMAT TexFormat,
+        UINT Width,
+        UINT Height,
+        UINT ArraySize = 1,
+        UINT MipLevels = 0,
+        UINT BindFlags = D3D11_BIND_SHADER_RESOURCE,
+        D3D11_USAGE Usage = D3D11_USAGE_DEFAULT,
+        UINT CpuAccessFlags = 0,
+        UINT SampleCount = 1,
+        UINT SampleQuality = 0,
+        UINT MiscFlags = 0);
+
     void InitCommonRT();
     NXTexture2D* GetCommonRT(NXCommonRTEnum eRT);
 
@@ -71,10 +85,38 @@ private:
     std::vector<NXTexture2D*> m_pCommonRT;
 };
 
-class NXTexture2D
+class NXTexture
 {
 public:
-    NXTexture2D();
+    NXTexture() : m_width(-1), m_height(-1), m_arraySize(-1), m_texFormat(DXGI_FORMAT_UNKNOWN), m_mipLevels(-1) {}
+    ~NXTexture() {};
+
+    ID3D11Texture2D* GetTex() { return m_pTexture.Get(); }
+    ID3D11ShaderResourceView*   GetSRV(UINT index = 0) { return m_pSRVs.empty() ? nullptr : m_pSRVs[index].Get(); }
+    ID3D11RenderTargetView*     GetRTV(UINT index = 0) { return m_pRTVs.empty() ? nullptr : m_pRTVs[index].Get(); }
+    ID3D11DepthStencilView*     GetDSV(UINT index = 0) { return m_pDSVs.empty() ? nullptr : m_pDSVs[index].Get(); }
+    ID3D11UnorderedAccessView*  GetUAV(UINT index = 0) { return m_pUAVs.empty() ? nullptr : m_pUAVs[index].Get(); }
+
+protected:
+    std::string m_debugName;
+    ComPtr<ID3D11Texture2D> m_pTexture;
+
+    std::vector<ComPtr<ID3D11ShaderResourceView>> m_pSRVs;
+    std::vector<ComPtr<ID3D11RenderTargetView>> m_pRTVs;
+    std::vector<ComPtr<ID3D11DepthStencilView>> m_pDSVs;
+    std::vector<ComPtr<ID3D11UnorderedAccessView>> m_pUAVs;
+
+    DXGI_FORMAT m_texFormat;
+    UINT m_width;
+    UINT m_height;
+    UINT m_arraySize;
+    UINT m_mipLevels;
+};
+
+class NXTexture2D : public NXTexture
+{
+public:
+    NXTexture2D() : NXTexture() {}
     ~NXTexture2D() {}
 
     void Create(std::string DebugName,
@@ -91,29 +133,34 @@ public:
         UINT SampleQuality,
         UINT MiscFlags);
 
-    void CreateSRV();
-    void CreateRTV();
-    void CreateDSV();
-    void CreateUAV();
+    void AddSRV();
+    void AddRTV();
+    void AddDSV();
+    void AddUAV();
+};
 
-    ID3D11Texture2D*            GetTex() { return pTexture.Get(); }
-    ID3D11RenderTargetView*     GetRTV() { return pRTV.Get(); }
-    ID3D11ShaderResourceView*   GetSRV() { return pSRV.Get(); }
-    ID3D11DepthStencilView*     GetDSV() { return pDSV.Get(); }
-    ID3D11UnorderedAccessView*  GetUAV() { return pUAV.Get(); }
+class NXTexture2DArray : public NXTexture
+{
+public:
+    NXTexture2DArray() : NXTexture() {}
+    ~NXTexture2DArray() {}
 
-private:
-    std::string DebugName;
-    ComPtr<ID3D11Texture2D> pTexture;
+    void Create(std::string DebugName,
+        const D3D11_SUBRESOURCE_DATA* initData,
+        DXGI_FORMAT TexFormat,
+        UINT Width,
+        UINT Height,
+        UINT ArraySize,
+        UINT MipLevels,
+        UINT BindFlags,
+        D3D11_USAGE Usage,
+        UINT CpuAccessFlags,
+        UINT SampleCount,
+        UINT SampleQuality,
+        UINT MiscFlags);
 
-    ComPtr<ID3D11ShaderResourceView> pSRV;
-    ComPtr<ID3D11RenderTargetView> pRTV;
-    ComPtr<ID3D11DepthStencilView> pDSV;
-    ComPtr<ID3D11UnorderedAccessView> pUAV;
-
-    DXGI_FORMAT TexFormat;
-    UINT Width;
-    UINT Height;
-    UINT ArraySize;
-    UINT MipLevels;
+    void AddSRV(UINT firstArraySlice = 0, UINT arraySize = -1);
+    void AddRTV(UINT firstArraySlice = 0, UINT arraySize = -1);
+    void AddDSV(UINT firstArraySlice = 0, UINT arraySize = -1);
+    void AddUAV(UINT firstArraySlice = 0, UINT arraySize = -1);
 };

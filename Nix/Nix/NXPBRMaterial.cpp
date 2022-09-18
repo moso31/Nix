@@ -71,7 +71,7 @@ NXTexture2D* NXMaterial::LoadFromTexFile(const std::wstring texFilePath, bool Ge
 
 	delete[] pImageData;
 
-	pOutTex->CreateSRV();
+	pOutTex->AddSRV();
 	return pOutTex;
 }
 

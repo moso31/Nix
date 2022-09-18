@@ -415,7 +415,8 @@ void FBXMeshLoader::EncodeVertexUVs(FBXMeshVertexData& inoutVertexData, FbxMesh*
 			break;
 		}
 
-		inoutVertexData.UVs[l] = Vector2((float)uv[0], (float)uv[1]);
+		// uv flip Y axis(for directX)
+		inoutVertexData.UVs[l] = Vector2((float)uv[0], 1.0f - (float)uv[1]);
 	}
 }
 

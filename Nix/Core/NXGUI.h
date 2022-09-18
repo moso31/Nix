@@ -2,18 +2,20 @@
 
 class NXScene;
 class NXSceneManager;
-class NXSimpleSSAO;
+class Renderer;
 
 class NXGUIMaterial;
 class NXGUIFileBrowser;
 class NXGUISSAO;
 class NXGUICubeMap;
 class NXGUILights;
+class NXGUIShadows;
+class NXGUIDebugLayer;
 
 class NXGUI
 {
 public:
-	NXGUI(NXScene* pScene, NXSimpleSSAO* pSSAO);
+	NXGUI(NXScene* pScene, Renderer* pRenderer);
 	~NXGUI();
 
 	void Init();
@@ -21,12 +23,15 @@ public:
 	void Release();
 
 private:
-	NXScene*			m_pCurrentScene;
-	NXSimpleSSAO*		m_pSSAO;
+	NXScene*				m_pCurrentScene;
+	Renderer*				m_pRenderer;
 
 	NXGUILights*		m_pGUILights;
 	NXGUIMaterial*		m_pGUIMaterial;
 	NXGUICubeMap*		m_pGUICubeMap;
 	NXGUIFileBrowser*	m_pFileBrowser;
 	NXGUISSAO*			m_pGUISSAO;
+	NXGUIShadows*		m_pGUIShadows;
+
+	NXGUIDebugLayer*	m_pGUIDebugLayer;
 };

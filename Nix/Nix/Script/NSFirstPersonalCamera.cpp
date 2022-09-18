@@ -49,7 +49,7 @@ void NSFirstPersonalCamera::Update()
 	if (m_bMoveState[POSITIVE_Y]) moveCommandV += up;
 	if (m_bMoveState[NEGATIVE_Y]) moveCommandV -= up;
 
-	float moveSpeed = 3.0f;
+	float moveSpeed = 13.0f;
 	switch (m_bSpeedState)
 	{
 	case SPEED_LOW: moveSpeed *= 1.0f; break;

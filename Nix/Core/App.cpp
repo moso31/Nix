@@ -23,6 +23,8 @@ void App::Init()
 void App::Load()
 {
 	m_pRenderer->ResourcesReloading();
+
+	m_pRenderer->PipelineReloading();
 }
 
 void App::Update()

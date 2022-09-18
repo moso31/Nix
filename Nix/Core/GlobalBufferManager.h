@@ -13,8 +13,8 @@ public:
 	static ComPtr<ID3D11Buffer>					m_cbCamera;
 	static ConstantBufferCamera					m_cbDataCamera;
 
-	static ComPtr<ID3D11Buffer>					m_cbShadowMap;
-	static ConstantBufferShadowMapTransform		m_cbDataShadowMap;
+	static ComPtr<ID3D11Buffer>					m_cbShadowTest;
+	static ConstantBufferShadowTest				m_cbDataShadowTest;
 };
 
 class NXGlobalInputLayout

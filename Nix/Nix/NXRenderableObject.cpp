@@ -35,22 +35,43 @@ AABB NXRenderableObject::GetAABBLocal()
 
 bool NXRenderableObject::RayCast(const Ray& worldRay, NXHit& outHitInfo, float& outDist)
 {
-	Ray localRay = worldRay.Transform(m_worldMatrixInv);
 	bool bSuccess = false;
 
-	float dist = outDist;
-	NXHit hitInfo;
-
-	for (auto pChild : GetChilds())
+	// ray-aabb
+	float outAABBDist;
+	if (worldRay.IntersectsFast(m_aabb, outAABBDist))
 	{
-		auto pChildRenderObj = pChild->IsRenderableObject();
-		if (pChildRenderObj)
+		bool isInAABB = outAABBDist < 0;
+		bool isNearestMaybe = (!isInAABB && outAABBDist < outDist) || isInAABB;
+
+		if (isNearestMaybe)
 		{
-			if (pChildRenderObj->RayCast(worldRay, hitInfo, dist) && dist < outDist)
+			float dist = outDist;
+			NXHit hitInfo;
+
+			auto pPrim = this->IsPrimitive();
+			if (pPrim)
 			{
-				outHitInfo = hitInfo;
-				outDist = dist;
-				bSuccess = true;
+				if (pPrim->RayCastPrimitive(worldRay, hitInfo, dist) && dist < outDist)
+				{
+					outHitInfo = hitInfo;
+					outDist = dist;
+					bSuccess = true;
+				}
+			}
+
+			for (auto pChild : GetChilds())
+			{
+				auto pChildRenderObj = pChild->IsRenderableObject();
+				if (pChildRenderObj)
+				{
+					if (pChildRenderObj->RayCast(worldRay, hitInfo, dist) && dist < outDist)
+					{
+						outHitInfo = hitInfo;
+						outDist = dist;
+						bSuccess = true;
+					}
+				}
 			}
 		}
 	}

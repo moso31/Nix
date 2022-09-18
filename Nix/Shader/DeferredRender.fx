@@ -12,6 +12,7 @@ TextureCube txCubeMap : register(t4);
 TextureCube txIrradianceMap : register(t5);
 TextureCube txPreFilterMap : register(t6);
 Texture2D txBRDF2DLUT : register(t7);
+Texture2D txShadowTest : register(t8);
 
 struct ConstantBufferIrradSH
 {
@@ -148,6 +149,8 @@ float4 PS(PS_INPUT input) : SV_Target
 	float AOMap = txRT3.Sample(ssLinearWrap, uv).z;
 	float ao = AOMap;
 
+	float3 ShadowTest = txShadowTest.Sample(ssLinearClamp, uv).xyz;
+
 	float3 F0 = 0.04;
 	F0 = lerp(F0, albedo, metallic);
 	albedo *= 1.0f - metallic;
@@ -156,10 +159,10 @@ float4 PS(PS_INPUT input) : SV_Target
 	int i;
 	for (i = 0; i < NUM_DISTANT_LIGHT; i++)
 	{
-		float3 LightDirWS = normalize(m_dirLight[i].direction);
-		float3 LightDirVS = normalize(mul(LightDirWS, (float3x3)m_worldViewInverseTranspose));
+		float3 LightDirWS = normalize(-m_dirLight[i].direction);
+		float3 LightDirVS = normalize(mul(LightDirWS, (float3x3)m_viewInverseTranspose));
 
-		float3 L = -LightDirVS;
+		float3 L = LightDirVS;
 		float3 H = normalize(V + L);
 		float NoL = max(dot(N, L), 0.0);
 		float NoH = max(dot(N, H), 0.0);
@@ -174,7 +177,7 @@ float4 PS(PS_INPUT input) : SV_Target
 
     for (i = 0; i < NUM_POINT_LIGHT; i++)
     {
-		float3 LightPosVS = mul(float4(m_pointLight[i].position, 1.0f), m_worldView).xyz;
+		float3 LightPosVS = mul(float4(m_pointLight[i].position, 1.0f), m_view).xyz;
 		float3 LightIntensity = m_pointLight[i].color * m_pointLight[i].intensity;
 		float3 LightDirVS = LightPosVS - PositionVS;
 
@@ -197,7 +200,7 @@ float4 PS(PS_INPUT input) : SV_Target
 
 	for (i = 0; i < NUM_SPOT_LIGHT; i++)
 	{
-		float3 LightPosVS = mul(float4(m_spotLight[i].position, 1.0f), m_worldView).xyz;
+		float3 LightPosVS = mul(float4(m_spotLight[i].position, 1.0f), m_view).xyz;
 		float3 LightIntensity = m_spotLight[i].color * m_spotLight[i].intensity;
 		float3 LightDirVS = LightPosVS - PositionVS;
 
@@ -214,7 +217,7 @@ float4 PS(PS_INPUT input) : SV_Target
 		float CosInner = cos(m_spotLight[i].innerAngle * NX_DEGTORED);
 		float CosOuter = cos(m_spotLight[i].outerAngle * NX_DEGTORED);
 		float3 SpotDirWS = normalize(m_spotLight[i].direction);
-		float3 SpotDirVS = normalize(mul(SpotDirWS, (float3x3)m_worldViewInverseTranspose));
+		float3 SpotDirVS = normalize(mul(SpotDirWS, (float3x3)m_viewInverseTranspose));
 		float FalloffFactor = (dot(-SpotDirVS, L) - CosOuter) / max(CosInner - CosOuter, 1e-4f);
 		FalloffFactor = saturate(FalloffFactor);
 		FalloffFactor = FalloffFactor * FalloffFactor;
@@ -239,7 +242,7 @@ float4 PS(PS_INPUT input) : SV_Target
 	SpecularIBL *= energyCompensation;
 
 	float3 Libl = (diffuseIBL + SpecularIBL) * m_cubeMapIntensity * ao;
-	float3 color = Libl + Lo;
+	float3 color = Libl + Lo * (1.0f - ShadowTest);
 
 	//// fast tone-mapping.
 	//color = color / (color + 1.0);

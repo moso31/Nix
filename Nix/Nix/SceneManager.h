@@ -46,7 +46,7 @@ public:
 		const std::wstring roughnessTexFilePath = L".\\Resource\\white1x1.png",
 		const std::wstring aoTexFilePath = L".\\Resource\\white1x1.png");
 
-	static void BindMaterial(NXRenderableObject* pPrefab, NXMaterial* pMaterial);
+	static void BindMaterial(NXRenderableObject* pRenderableObj, NXMaterial* pMaterial);
 	static void BindMaterial(NXSubMesh* pSubMesh, NXMaterial* pMaterial);
 
 	// 根据类型重新创建某个材质。

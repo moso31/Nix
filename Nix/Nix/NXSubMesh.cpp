@@ -174,7 +174,7 @@ NXSubMesh::~NXSubMesh()
 
 void NXSubMesh::UpdateViewParams()
 {
-	return m_parent->UpdateViewParams();
+	return m_parent->UpdateViewParams(); 
 }
 
 void NXSubMesh::Update()

@@ -14,9 +14,6 @@
 
 #include "NXCubeMap.h"
 
-//#include "NXShadowMap.h"
-#include "NXPassShadowMap.h"
-
 #include "NXScript.h"
 #include "NSFirstPersonalCamera.h"
 #include "NSTest.h"
@@ -154,12 +151,16 @@ void NXScene::Init()
 	//	SceneManager::GetInstance()->BindMaterial(pSphere->GetSubMesh(0), pPBRMatS);
 	//}
 
+	//auto* pPlane = SceneManager::GetInstance()->CreatePlane("G", 1000.0f, 1000.0f, NXPlaneAxis::POSITIVE_Y);
+	//SceneManager::GetInstance()->BindMaterial(pPlane, pPBRMat[0]);
+
 	//SceneManager::GetInstance()->CreateFBXMeshes("D:\\NixAssets\\Cloth.fbx", pMeshes, true);
 	//SceneManager::GetInstance()->BindMaterial(pMeshes[0]->GetSubMesh(0), pPBRMat[0]);
 
-	NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\arnia3.fbx", false);
+	NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\boxes.fbx", false);
+	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\shadowMapTest.fbx", false);
 	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\testScene.fbx", false);
-	p->SetScale(Vector3(1.0f));
+	p->SetScale(Vector3(0.1f));
 	SceneManager::GetInstance()->BindMaterial(p, pPBRMat[0]);
 	{
 		//bool bBind = SceneManager::GetInstance()->BindParent(pMeshes[1], pSphere);
@@ -183,15 +184,10 @@ void NXScene::Init()
 	auto pCamera = SceneManager::GetInstance()->CreateCamera(
 		"Camera1",
 		70.0f, 0.3f, 1000.f,
-		Vector3(0.0f, 5.0f, 7.0f),
+		Vector3(0.0f, 0.0f, -10.0f),
 		Vector3(0.0f, 0.0f, 0.0f),
 		Vector3(0.0f, 1.0f, 0.0f)
 	);
-
-
-	auto pMainCamera = GetMainCamera();
-	pMainCamera->SetTranslation(Vector3(0.0f, 1.0f, -5.0f));
-	pMainCamera->SetLookAt(Vector3(0.0f, 1.0f, -4.0f));
 
 	SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\Alexs_Apt_2k.hdr");
 	//SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\TexturesCom_JapanInariTempleH_1K_hdri_sphere.hdr");
@@ -209,8 +205,8 @@ void NXScene::Init()
 		//m_cbDataLights.pointLight[0] = pPointLight->GetConstantBuffer();
 
 		NXPBRDistantLight* pDirLight;
-		//pDirLight = SceneManager::GetInstance()->CreatePBRDistantLight(Vector3(-1.0f, 0.0f, 1.0f), Vector3(1.0f), 2.0f);
-		//m_cbDataLights.distantLight[0] = pDirLight->GetConstantBuffer();
+		pDirLight = SceneManager::GetInstance()->CreatePBRDistantLight(Vector3(-1.0f, -1.30f, 1.0f), Vector3(1.0f), 2.0f);
+		m_cbDataLights.distantLight[0] = pDirLight->GetConstantBuffer();
 
 		NXPBRSpotLight* pSpotLight;
 		//pSpotLight = SceneManager::GetInstance()->CreatePBRSpotLight(Vector3(0.0f, 2.0f, 0.0f), Vector3(0.0f, -1.0f, 0.0f), Vector3(1.0f), 1.0f, 30.0f, 50.0f, 100.0f);
@@ -348,20 +344,9 @@ bool NXScene::RayCast(const Ray& ray, NXHit& outHitInfo, float tMax)
 	{
 		for (auto pMesh : m_renderableObjects)
 		{
-			// ray-aabb
-			float aabbDist, aabbOutDist;
-			if (ray.IntersectsFast(pMesh->GetAABBWorld(), aabbOutDist))
+			if (pMesh->RayCast(ray, outHitInfo, outDist))
 			{
-				aabbDist = aabbOutDist;
-				if (aabbDist < outDist)
-				{
-					// ray-triangle
-					if (pMesh->RayCast(ray, outHitInfo, outDist))
-					{
-						// 得到了更近的相交结果。
-						// 保留当前outHitInfo和outDist。
-					}
-				}
+				// hit.
 			}
 		}
 	}

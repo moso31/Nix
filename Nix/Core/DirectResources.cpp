@@ -36,6 +36,32 @@ void DirectResources::InitDevice()
 	NX::ThrowIfFailed(pContext.As(&g_pContext));
 	NX::ThrowIfFailed(pContext.As(&g_pUDA));
 
+	ComPtr<ID3D11Debug> pDebug;
+	if (SUCCEEDED(pDevice.As(&pDebug)))
+	{
+		ComPtr<ID3D11InfoQueue> d3dInfoQueue;
+		if (SUCCEEDED(pDebug.As(&d3dInfoQueue)))
+		{
+#ifdef _DEBUG
+			d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_CORRUPTION, true);
+			d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, true);
+#endif
+			D3D11_MESSAGE_ID hide[] =
+			{
+				D3D11_MESSAGE_ID_SETPRIVATEDATA_CHANGINGPARAMS,
+
+				// 在此添加想要禁用的 D3D11_MESSAGE_ID
+				// Add more message IDs here as needed
+				D3D11_MESSAGE_ID_DEVICE_DRAW_RENDERTARGETVIEW_NOT_SET,
+			};
+
+			D3D11_INFO_QUEUE_FILTER filter = {};
+			filter.DenyList.NumIDs = _countof(hide);
+			filter.DenyList.pIDList = hide;
+			d3dInfoQueue->AddStorageFilterEntries(&filter);
+		}
+	}
+
 	OnResize(width, height);
 }
 

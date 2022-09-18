@@ -19,8 +19,15 @@ public:
 	Vector3 GetAt();
 	Vector3 GetUp();
 
+	const float GetZNear() { return m_near; }
+	const float GetZFar() { return m_far; }
+
 	const Matrix& GetViewMatrix();
+	const Matrix& GetViewInverseMatrix();
 	const Matrix& GetProjectionMatrix();
+	const Matrix& GetProjectionInverseMatrix();
+	const Matrix& GetViewProjectionMatrix();
+	const Matrix& GetViewProjectionInverseMatrix();
 
 	Ray GenerateRay(const Vector2& cursorPosition);
 	Ray GenerateRay(const Vector2& cursor, const Vector2& imageSize);
@@ -37,6 +44,11 @@ private:
 	Vector3 m_at;
 	Vector3 m_up;
 
-	Matrix m_view;
-	Matrix m_projection;
+	Matrix m_mxView;
+	Matrix m_mxViewInv;
+	Matrix m_mxProjection;
+	Matrix m_mxProjectionInv;
+
+	Matrix m_mxViewProjection;
+	Matrix m_mxViewProjectionInv;
 };

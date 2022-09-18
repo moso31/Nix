@@ -88,6 +88,15 @@
     <Filter Include="Shader\Renderer\Translucent">
       <UniqueIdentifier>{6f7950de-ac8c-442a-a2dc-47f43ee9abd9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shader\ShadowMap">
+      <UniqueIdentifier>{99beefa9-cd57-4c00-b07f-0c1583014683}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\DirectX\Renderer\DebugLayer">
+      <UniqueIdentifier>{37cd9fa6-55b5-456c-b161-f79e2ca26fa6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\Debug">
+      <UniqueIdentifier>{9f836377-c7eb-4493-ab8f-e266a33144cc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Common.fx">
@@ -119,9 +128,6 @@
     </None>
     <None Include="Shader\Math.fx">
       <Filter>Shader\Math</Filter>
-    </None>
-    <None Include="Shader\ShadowMap.fx">
-      <Filter>Shader</Filter>
     </None>
     <None Include="Shader\SimpleSSAO.fx">
       <Filter>Shader</Filter>
@@ -169,6 +175,13 @@
     <None Include="Shader\ForwardTranslucent.fx">
       <Filter>Shader\Renderer\Translucent</Filter>
     </None>
+    <None Include="Shader\ShadowMap.fx">
+      <Filter>Shader\ShadowMap</Filter>
+    </None>
+    <None Include="Shader\ShadowTest.fx">
+      <Filter>Shader\ShadowMap</Filter>
+    </None>
+    <None Include="Shader\DebugLayer.fx" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">
@@ -227,9 +240,6 @@
     </ClCompile>
     <ClCompile Include="Nix\NXTransform.cpp">
       <Filter>Nix\Object\Transform</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\NXPassShadowMap.cpp">
-      <Filter>Nix\Effect</Filter>
     </ClCompile>
     <ClCompile Include="Nix\NXScene.cpp">
       <Filter>Nix\Scene</Filter>
@@ -323,6 +333,24 @@
     </ClCompile>
     <ClCompile Include="Nix\NXRenderableObject.cpp">
       <Filter>Nix\Object\Transform\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXShadowMapRenderer.cpp">
+      <Filter>Core\DirectX\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXGBufferRenderer.cpp">
+      <Filter>Core\DirectX\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXShadowTestRenderer.cpp">
+      <Filter>Core\DirectX\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXGUIShadows.cpp">
+      <Filter>Core\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXDebugLayerRenderer.cpp">
+      <Filter>Core\DirectX\Renderer\DebugLayer</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXGUIDebugLayer.cpp">
+      <Filter>Core\UI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -452,9 +480,6 @@
     <ClInclude Include="Nix\NXSubMesh.h">
       <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
     </ClInclude>
-    <ClInclude Include="Nix\NXPassShadowMap.h">
-      <Filter>Nix\Effect</Filter>
-    </ClInclude>
     <ClInclude Include="Nix\NXSubMeshGeometryEditor.h">
       <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
     </ClInclude>
@@ -491,10 +516,28 @@
     <ClInclude Include="Nix\NXRenderableObject.h">
       <Filter>Nix\Object\Transform\Primitive</Filter>
     </ClInclude>
+    <ClInclude Include="Core\NXShadowMapRenderer.h">
+      <Filter>Core\DirectX\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXGBufferRenderer.h">
+      <Filter>Core\DirectX\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXShadowTestRenderer.h">
+      <Filter>Core\DirectX\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXGUIShadows.h">
+      <Filter>Core\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXDebugLayerRenderer.h">
+      <Filter>Core\DirectX\Renderer\DebugLayer</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXGUIDebugLayer.h">
+      <Filter>Core\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="场景添加物体说明.txt" />
-    <Text Include="普通问题（3级）.txt" />
-    <Text Include="较严重问题（2级）.txt" />
+    <Text Include="杂七杂八的编码规范.txt" />
+    <Text Include="八字无撇的待办事项.txt" />
   </ItemGroup>
 </Project>

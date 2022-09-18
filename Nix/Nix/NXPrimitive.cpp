@@ -30,30 +30,36 @@ void NXPrimitive::CalculateTangents(bool bUpdateVertexIndexBuffer)
 	}
 }
 
-bool NXPrimitive::RayCast(const Ray& worldRay, NXHit& outHitInfo, float& outDist)
+bool NXPrimitive::RayCastPrimitive(const Ray& worldRay, NXHit& outHitInfo, float& outDist)
 {
 	// 本方法用于求Primitive和射线worldRay的交点。遍历所有三角形寻找最近交点。
 	// 还可以进一步优化成BVH，但暂时没做。
 	Ray localRay = worldRay.Transform(m_worldMatrixInv);
 	bool bSuccess = false;
 
-	float dist = outDist;
 	NXHit hitInfo;
-
+	NXHit localHitInfo;
+	float localDistance = FLT_MAX;
 	for (UINT i = 0; i < GetSubMeshCount(); i++)
 	{
 		auto pSubMesh = GetSubMesh(i);
-		if (pSubMesh->RayCastLocal(localRay, hitInfo, dist) && dist < outDist)
+		if (pSubMesh->RayCastLocal(localRay, localHitInfo, localDistance))
 		{
-			outHitInfo = hitInfo;
-			outDist = dist;
-			bSuccess = true;
+			hitInfo = localHitInfo;
+			hitInfo.LocalToWorld();
+
+			float dist = Vector3::Distance(worldRay.position, hitInfo.position);
+			if (outDist > dist)
+			{
+				outDist = dist;
+				outHitInfo = hitInfo;
+
+				bSuccess = true;
+			}
 		}
 	}
 
-	bool bSuccessChilds = NXRenderableObject::RayCast(worldRay, outHitInfo, outDist);
-
-	return bSuccess || bSuccessChilds;
+	return bSuccess;
 }
 
 UINT NXPrimitive::GetFaceCount()

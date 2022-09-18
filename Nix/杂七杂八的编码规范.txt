@@ -1,0 +1,11 @@
+2022.7.3
+关于NX****Renderer::Init() 的初始化顺序规范：
+	1. 标的常量（如RTSize）、其他关联资源指针
+	2. VS+IL
+	3. PS
+	4. RenderState
+	5. Sampler
+	6. Resource
+		1. Texture
+		2. Buffer(VBIB)
+		3. Buffer(Params)

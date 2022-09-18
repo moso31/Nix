@@ -16,7 +16,7 @@ public:
 	virtual AABB GetAABBWorld();
 	virtual AABB GetAABBLocal();
 
-	virtual bool RayCast(const Ray& worldRay, NXHit& outHitInfo, float& outDist);
+	bool RayCast(const Ray& worldRay, NXHit& outHitInfo, float& outDist);
 
 	virtual void InitAABB();
 

@@ -87,12 +87,32 @@ Vector3 NXCamera::GetUp()
 
 const Matrix& NXCamera::GetViewMatrix()
 {
-	return m_view;
+	return m_mxView;
+}
+
+const Matrix& NXCamera::GetViewInverseMatrix()
+{
+	return m_mxViewInv;
 }
 
 const Matrix& NXCamera::GetProjectionMatrix()
 {
-	return m_projection;
+	return m_mxProjection;
+}
+
+const Matrix& NXCamera::GetProjectionInverseMatrix()
+{
+	return m_mxProjectionInv;
+}
+
+const Matrix& NXCamera::GetViewProjectionMatrix()
+{
+	return m_mxViewProjection;
+}
+
+const Matrix& NXCamera::GetViewProjectionInverseMatrix()
+{
+	return m_mxViewProjectionInv;
 }
 
 Ray NXCamera::GenerateRay(const Vector2& cursorPosition)
@@ -102,16 +122,15 @@ Ray NXCamera::GenerateRay(const Vector2& cursorPosition)
 
 Ray NXCamera::GenerateRay(const Vector2& cursor, const Vector2& imageSize)
 {
-	float x = (2.0f * cursor.x / imageSize.x - 1.0f) / m_projection._11;
-	float y = (1.0f - 2.0f * cursor.y / imageSize.y) / m_projection._22;
+	float x = (2.0f * cursor.x / imageSize.x - 1.0f) / m_mxProjection._11;
+	float y = (1.0f - 2.0f * cursor.y / imageSize.y) / m_mxProjection._22;
 
 	Vector3 vOrig(0.0f);
 	Vector3 vDir = Vector3(x, y, 1.0f);
 	vDir.Normalize();
 
-	Matrix viewInv = m_view.Invert();
-	Vector3 vOrigWorld = Vector3::Transform(vOrig, viewInv);
-	Vector3 vDirWorld = Vector3::TransformNormal(vDir, viewInv);
+	Vector3 vOrigWorld = Vector3::Transform(vOrig, m_mxViewInv);
+	Vector3 vDirWorld = Vector3::TransformNormal(vDir, m_mxViewInv);
 
 	return Ray(vOrigWorld, vDirWorld);
 }
@@ -143,25 +162,31 @@ void NXCamera::UpdateTransform()
 {
 	Vector2 vpsz = g_dxResources->GetViewPortSize();
 	float aspectRatio = vpsz.x / vpsz.y;
-	m_view = XMMatrixLookAtLH(m_translation, m_at, m_up);
-	m_projection = XMMatrixPerspectiveFovLH(m_fovY * XM_PI / 180.0f, aspectRatio, m_near, m_far);
+	m_mxView = XMMatrixLookAtLH(m_translation, m_at, m_up);
+	m_mxViewInv = m_mxView.Invert();
+	m_mxProjection = XMMatrixPerspectiveFovLH(m_fovY * XM_PI / 180.0f, aspectRatio, m_near, m_far);
+	m_mxProjectionInv = m_mxProjection.Invert();
+
+	m_mxViewProjection = m_mxView * m_mxProjection;
+	m_mxViewProjectionInv = m_mxViewProjection.Invert();
 
 	NXTransform::UpdateTransform();
 }
 
 void NXCamera::Update()
 {
-	NXGlobalBufferManager::m_cbDataObject.view = m_view.Transpose();
-	NXGlobalBufferManager::m_cbDataObject.viewInverse = m_view.Invert().Transpose(); 
-	NXGlobalBufferManager::m_cbDataObject.viewTranspose = m_view;
-	NXGlobalBufferManager::m_cbDataObject.projection = m_projection.Transpose();
+	// 【2022.5.10 m_mxViewProjection 完全可以传给GPU，我就是懒得做……有空补上吧。】
+	NXGlobalBufferManager::m_cbDataObject.view = m_mxView.Transpose();
+	NXGlobalBufferManager::m_cbDataObject.viewInverse = m_mxViewInv.Transpose();
+	NXGlobalBufferManager::m_cbDataObject.viewInverseTranspose = m_mxViewInv;
+	NXGlobalBufferManager::m_cbDataObject.viewTranspose = m_mxView;
+	NXGlobalBufferManager::m_cbDataObject.projection = m_mxProjection.Transpose();
 	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbObject.Get(), 0, nullptr, &NXGlobalBufferManager::m_cbDataObject, 0, 0);
 
-	// 【这两行临时的。buffersize不该和Camera放在一起。回头改】
 	Vector2 viewSize = g_dxResources->GetViewSize();
 	NXGlobalBufferManager::m_cbDataCamera.Params0 = Vector4(viewSize.x, viewSize.y, 1.0f / viewSize.x, 1.0f / viewSize.y);
 
-	NXGlobalBufferManager::m_cbDataCamera.Params2 = Vector4(m_projection._11, m_projection._22, 1.0f / m_projection._11, 1.0f / m_projection._22);
+	NXGlobalBufferManager::m_cbDataCamera.Params2 = Vector4(m_mxProjection._11, m_mxProjection._22, 1.0f / m_mxProjection._11, 1.0f / m_mxProjection._22);
 	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbCamera.Get(), 0, nullptr, &NXGlobalBufferManager::m_cbDataCamera, 0, 0);
 }
 

@@ -78,16 +78,28 @@ struct ConstantBufferObject
 	Matrix view;
 	Matrix viewInverse;
 	Matrix viewTranspose;
+	Matrix viewInverseTranspose;
+
 	Matrix worldView;
 	Matrix worldViewInverseTranspose;
 	Matrix projection;
 };
 
-struct ConstantBufferShadowMapTransform
+struct ConstantBufferShadowTest
 {
-	Matrix view;
-	Matrix projection;
-	Matrix texture;
+	Matrix view[8];
+	Matrix projection[8];
+
+	// 记录 CSM 各级 用于计算Transition的过渡 的信息。
+	Vector4 frustumParams[8]; // x: frustum far; y : transition length
+
+	float cascadeCount;
+	float shadowDistance;
+	float cascadeTransitionScale;
+	int depthBias;
+
+	float test_transition;
+	Vector3 _0;
 };
 
 struct ConstantBufferDistantLight
