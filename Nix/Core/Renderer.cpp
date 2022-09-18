@@ -11,7 +11,6 @@
 #include "NXCubeMap.h"
 #include "NXDepthPrepass.h"
 #include "NXSimpleSSAO.h"
-#include "NXPassShadowMap.h"
 
 void Renderer::Init()
 {
@@ -35,8 +34,17 @@ void Renderer::Init()
 	m_pDepthPrepass = new NXDepthPrepass(m_scene);
 	m_pDepthPrepass->Init(g_dxResources->GetViewSize());
 
+	m_pGBufferRenderer = new NXGBufferRenderer(m_scene);
+	m_pGBufferRenderer->Init();
+
 	m_pSSAO = new NXSimpleSSAO();
 	m_pSSAO->Init(g_dxResources->GetViewSize());
+
+	m_pShadowMapRenderer = new NXShadowMapRenderer(m_scene);
+	m_pShadowMapRenderer->Init();
+
+	m_pShadowTestRenderer = new NXShadowTestRenderer();
+	m_pShadowTestRenderer->Init();
 
 	m_pDeferredRenderer = new NXDeferredRenderer(m_scene);
 	m_pDeferredRenderer->Init();
@@ -50,11 +58,11 @@ void Renderer::Init()
 	m_pSkyRenderer = new NXSkyRenderer(m_scene);
 	m_pSkyRenderer->Init();
 
-	m_pPassShadowMap = new NXPassShadowMap(m_scene);
-	m_pPassShadowMap->Init(2048, 2048);
-
 	m_pColorMappingRenderer = new NXColorMappingRenderer();
 	m_pColorMappingRenderer->Init();
+
+	m_pDebugLayerRenderer = new NXDebugLayerRenderer(m_pShadowMapRenderer);
+	m_pDebugLayerRenderer->Init();
 
 	m_pFinalRenderer = new NXFinalRenderer();
 	m_pFinalRenderer->Init();
@@ -62,7 +70,7 @@ void Renderer::Init()
 
 void Renderer::InitGUI()
 {
-	m_pGUI = new NXGUI(m_scene, m_pSSAO);
+	m_pGUI = new NXGUI(m_scene, this);
 	m_pGUI->Init();
 }
 
@@ -70,9 +78,6 @@ void Renderer::InitRenderer()
 {
 	// 在这里初始化CommonRT。
 	NXResourceManager::GetInstance()->InitCommonRT();
-
-	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\ShadowMap.fx", "VS", &m_pVertexShaderShadowMap, NXGlobalInputLayout::layoutPNT, ARRAYSIZE(NXGlobalInputLayout::layoutPNT), &m_pInputLayoutPNT);
-	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\ShadowMap.fx", "PS", &m_pPixelShaderShadowMap);
 
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -84,6 +89,19 @@ void Renderer::InitRenderer()
 void Renderer::ResourcesReloading()
 {
 	NXResourceReloader::GetInstance()->Update();
+}
+
+void Renderer::PipelineReloading()
+{
+	// 【2022.7.3 should I use a "bDirty" to control this method?】
+
+	// 判断 FinalRenderer 使用哪张纹理RT 作为 Input
+	bool bEnableDebugLayer = m_pDebugLayerRenderer->GetEnableDebugLayer();
+
+	m_pFinalRenderer->SetInputTexture(bEnableDebugLayer ?
+		m_pDebugLayerRenderer->GetDebugLayerTex() :
+		NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_PostProcessing)
+	);
 }
 
 void Renderer::UpdateSceneData()
@@ -122,7 +140,13 @@ void Renderer::RenderFrame()
 	//m_pDepthPrepass->Render();
 
 	// GBuffer
-	m_pDeferredRenderer->RenderGBuffer();
+	m_pGBufferRenderer->Render();
+
+	// Shadow Map
+	g_pContext->RSSetViewports(1, &CD3D11_VIEWPORT(0.0f, 0.0f, 2048, 2048));
+	m_pShadowMapRenderer->Render();
+	g_pContext->RSSetViewports(1, &CD3D11_VIEWPORT(0.0f, 0.0f, vp.x, vp.y));
+	m_pShadowTestRenderer->Render(m_pShadowMapRenderer->GetShadowMapDepthTex());
 
 	// Deferred opaque shading
 	m_pDeferredRenderer->Render();
@@ -140,6 +164,9 @@ void Renderer::RenderFrame()
 	// post processing
 	m_pColorMappingRenderer->Render();
 
+	// 绘制调试信息层（如果有的话）
+	m_pDebugLayerRenderer->Render();
+
 	// 绘制主渲染屏幕RTV：
 	m_pFinalRenderer->Render();
 
@@ -153,12 +180,15 @@ void Renderer::RenderGUI()
 
 void Renderer::Release()
 {
+	SafeRelease(m_pDebugLayerRenderer);
 	SafeRelease(m_pGUI);
 
 	SafeRelease(m_pSSAO);
 	SafeDelete(m_pDepthPrepass);
-	SafeDelete(m_pPassShadowMap);
 
+	SafeRelease(m_pGBufferRenderer);
+	SafeRelease(m_pShadowMapRenderer);
+	SafeRelease(m_pShadowTestRenderer);
 	SafeRelease(m_pDeferredRenderer);
 	SafeRelease(m_pForwardRenderer);
 	SafeRelease(m_pDepthPeelingRenderer);
@@ -171,16 +201,4 @@ void Renderer::Release()
 
 void Renderer::DrawDepthPrepass()
 {
-}
-
-void Renderer::DrawShadowMap()
-{
-	//g_pContext->VSSetShader(m_pVertexShaderShadowMap.Get(), nullptr, 0);
-	//g_pContext->PSSetShader(m_pPixelShaderShadowMap.Get(), nullptr, 0);
-	//g_pContext->PSSetSamplers(1, 1, RenderStates::SamplerShadowMapPCF.GetAddressOf());
-
-	//g_pContext->RSSetState(RenderStates::ShadowMapRS.Get());
-	//m_pPassShadowMap->Load();
-	//m_pPassShadowMap->UpdateConstantBuffer();
-	//m_pPassShadowMap->Render();
 }

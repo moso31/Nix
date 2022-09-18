@@ -69,6 +69,7 @@ class NXTimer;
 // resources
 class NXResourceManager;
 class NXTexture2D;
+class NXTexture2DArray;
 
 class NXScene;
 class SceneManager;
@@ -87,9 +88,11 @@ class NXPBRMaterialStandard;
 class NXPBRMaterialTranslucent;
 
 class NXPBRLight;
+class NXPBRDistantLight;
+class NXPBRPointLight;
+class NXPBRSpotLight;
 
 // effects
-class NXPassShadowMap;
 class NXRenderTarget;
 
 // post processing

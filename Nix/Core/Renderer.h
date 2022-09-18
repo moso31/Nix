@@ -3,6 +3,9 @@
 #include "GlobalBufferManager.h"
 
 #include "NXDepthPrepass.h"
+#include "NXGBufferRenderer.h"
+#include "NXShadowMapRenderer.h"
+#include "NXShadowTestRenderer.h"
 #include "NXDeferredRenderer.h"
 #include "NXForwardRenderer.h"
 #include "NXDepthPeelingRenderer.h"
@@ -11,6 +14,7 @@
 #include "NXFinalRenderer.h"
 #include "NXSimpleSSAO.h"
 #include "NXGUI.h"
+#include "NXDebugLayerRenderer.h"
 
 class Renderer
 {
@@ -21,6 +25,9 @@ public:
 
 	// 资源重加载（如果上一帧修改了资源）
 	void ResourcesReloading();
+
+	// 渲染管线重加载
+	void PipelineReloading();
 
 	// 更新 NXScene 场景
 	void UpdateSceneData();
@@ -33,27 +40,32 @@ public:
 
 	void Release();
 
+public:
+	NXSimpleSSAO*			GetSSAORenderer()			{ return m_pSSAO; }
+	NXShadowMapRenderer*	GetShadowMapRenderer()		{ return m_pShadowMapRenderer; }
+	NXDebugLayerRenderer*	GetDebugLayerRenderer()		{ return m_pDebugLayerRenderer; }
+
 private:
 	void DrawDepthPrepass();
-	void DrawShadowMap();
 
 private:
 	ComPtr<ID3D11InputLayout>			m_pInputLayoutP;
 	ComPtr<ID3D11InputLayout>			m_pInputLayoutPT;
 	ComPtr<ID3D11InputLayout>			m_pInputLayoutPNT;
 
-	ComPtr<ID3D11VertexShader>			m_pVertexShaderShadowMap;
-	ComPtr<ID3D11PixelShader>			m_pPixelShaderShadowMap;
+	NXScene*							m_scene;
+	NXDepthPrepass*						m_pDepthPrepass;
+	NXGBufferRenderer*					m_pGBufferRenderer;
+	NXShadowMapRenderer*				m_pShadowMapRenderer;
+	NXShadowTestRenderer*				m_pShadowTestRenderer;
+	NXDeferredRenderer*					m_pDeferredRenderer;
+	NXForwardRenderer*					m_pForwardRenderer;
+	NXDepthPeelingRenderer*				m_pDepthPeelingRenderer;
+	NXSkyRenderer*						m_pSkyRenderer;
+	NXColorMappingRenderer*				m_pColorMappingRenderer;
+	NXFinalRenderer*					m_pFinalRenderer;
+	NXSimpleSSAO*						m_pSSAO;
+	NXDebugLayerRenderer*				m_pDebugLayerRenderer;
 
-	NXScene*					m_scene;
-	NXPassShadowMap*			m_pPassShadowMap; 
-	NXDepthPrepass*				m_pDepthPrepass;
-	NXDeferredRenderer*			m_pDeferredRenderer;
-	NXForwardRenderer*			m_pForwardRenderer;
-	NXDepthPeelingRenderer*		m_pDepthPeelingRenderer;
-	NXSkyRenderer*				m_pSkyRenderer;
-	NXColorMappingRenderer*		m_pColorMappingRenderer;
-	NXFinalRenderer*			m_pFinalRenderer;
-	NXSimpleSSAO*				m_pSSAO;
-	NXGUI* m_pGUI;
+	NXGUI*								m_pGUI;
 };
