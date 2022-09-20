@@ -100,6 +100,9 @@
     <Filter Include="Core\DirectX\Renderer\EditorObjectLayer">
       <UniqueIdentifier>{47ca16b0-e59c-4ebd-b48b-d55afdebabf5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shader\Editor">
+      <UniqueIdentifier>{dae66a33-828d-4c6a-8267-ae37c226987f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Common.fx">
@@ -184,11 +187,11 @@
     <None Include="Shader\ShadowTest.fx">
       <Filter>Shader\ShadowMap</Filter>
     </None>
-    <None Include="Shader\EditorObjects.fx">
-      <Filter>Shader</Filter>
-    </None>
     <None Include="Shader\DebugLayer.fx">
-      <Filter>Shader</Filter>
+      <Filter>Shader\Debug</Filter>
+    </None>
+    <None Include="Shader\EditorObjects.fx">
+      <Filter>Shader\Editor</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
