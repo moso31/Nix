@@ -3,7 +3,6 @@
 #include "NXRenderStates.h"
 #include "GlobalBufferManager.h"
 #include "NXResourceManager.h"
-
 #include "NXRenderTarget.h"
 
 NXColorMappingRenderer::NXColorMappingRenderer() :

@@ -25,5 +25,8 @@ public:
 	static void CreateSphere(NXPrimitive* pMesh, float radius = 1.0f, int segmentHorizontal = 16, int segmentVertical = 16);
 	static void CreateSHSphere(NXPrimitive* pMesh, int basis_l, int basis_m, float radius = 1.0f, int segmentHorizontal = 64, int segmentVertical = 64);
 
+	// Editor objects
+	static void CreateSelectionArrows(NXPrimitive* pMesh);
+
 private:
 };

@@ -97,6 +97,9 @@
     <Filter Include="Shader\Debug">
       <UniqueIdentifier>{9f836377-c7eb-4493-ab8f-e266a33144cc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Core\DirectX\Renderer\EditorObjectLayer">
+      <UniqueIdentifier>{47ca16b0-e59c-4ebd-b48b-d55afdebabf5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Common.fx">
@@ -352,6 +355,9 @@
     <ClCompile Include="Core\NXGUIDebugLayer.cpp">
       <Filter>Core\UI</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXEditorObjectRenderer.cpp">
+      <Filter>Core\DirectX\Renderer\EditorObjectLayer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -533,6 +539,9 @@
     </ClInclude>
     <ClInclude Include="Core\NXGUIDebugLayer.h">
       <Filter>Core\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXEditorObjectRenderer.h">
+      <Filter>Core\DirectX\Renderer\EditorObjectLayer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

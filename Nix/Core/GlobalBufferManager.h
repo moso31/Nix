@@ -26,4 +26,5 @@ public:
 	static D3D11_INPUT_ELEMENT_DESC layoutPT[2];
 	static D3D11_INPUT_ELEMENT_DESC layoutPNT[3];
 	static D3D11_INPUT_ELEMENT_DESC layoutPNTT[4];
+	static D3D11_INPUT_ELEMENT_DESC	layoutEditorObject[2];
 };

@@ -220,6 +220,7 @@
     <ClCompile Include="Core\NXDeferredRenderer.cpp" />
     <ClCompile Include="Core\NXDepthPeelingRenderer.cpp" />
     <ClCompile Include="Core\NXDXHelper.cpp" />
+    <ClCompile Include="Core\NXEditorObjectRenderer.cpp" />
     <ClCompile Include="Core\NXEvent.cpp" />
     <ClCompile Include="Core\NXFinalRenderer.cpp" />
     <ClCompile Include="Core\NXForwardRenderer.cpp" />
@@ -277,6 +278,7 @@
     <ClInclude Include="Core\NXDeferredRenderer.h" />
     <ClInclude Include="Core\NXDepthPeelingRenderer.h" />
     <ClInclude Include="Core\NXDXHelper.h" />
+    <ClInclude Include="Core\NXEditorObjectRenderer.h" />
     <ClInclude Include="Core\NXEvent.h" />
     <ClInclude Include="Core\NXFinalRenderer.h" />
     <ClInclude Include="Core\NXForwardRenderer.h" />

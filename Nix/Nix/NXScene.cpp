@@ -84,6 +84,8 @@ void NXScene::OnKeyDown(NXEventArgKey eArg)
 
 void NXScene::Init()
 {
+	InitEditorObjects();
+
 	NXPBRMaterialStandard* pPBRMat[] = {
 		SceneManager::GetInstance()->CreatePBRMaterialStandard("rustediron2", Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f),
 		SceneManager::GetInstance()->CreatePBRMaterialStandard("hex-stones1", Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f),
@@ -223,13 +225,6 @@ void NXScene::Init()
 		g_pContext->UpdateSubresource(m_cbLights.Get(), 0, nullptr, &m_cbDataLights, 0, 0);
 	}
 
-	// 设置常量缓存 
-	bool bEnableShadowMap = false;
-	if (bEnableShadowMap)
-	{
-		//InitShadowMapTransformInfo(NXGlobalBufferManager::m_cbDataShadowMap);
-	}
-
 	InitScripts();
 }
 
@@ -328,6 +323,9 @@ void NXScene::Release()
 	for (auto pMat : m_materials) SafeRelease(pMat);
 	SafeRelease(m_pBVHTree);
 	SafeRelease(m_pRootObject);
+
+	// 2022.9.20：editorObjs 和 m_objects 区分开的，使用独立的std::vector控制资源 加载/释放。（暂定这么做）。
+	for (auto pEditorObj : m_editorObjs) SafeRelease(pEditorObj);
 }
 
 bool NXScene::RayCast(const Ray& ray, NXHit& outHitInfo, float tMax)
@@ -357,40 +355,6 @@ bool NXScene::RayCast(const Ray& ray, NXHit& outHitInfo, float tMax)
 	outHitInfo.LocalToWorld();
 	return true;
 }
-//
-//void NXScene::InitShadowMapTransformInfo(ConstantBufferShadowMapTransform& out_cb)
-//{
-	//auto lights = GetPBRLights();
-	//if (lights.empty())
-	//	return;
-
-	//NXPBRDistantLight* pDistantLight = nullptr;
-	//for (auto pLight : lights)
-	//{
-	//	pDistantLight = (NXPBRDistantLight*)(pLight);
-	//	if (pDistantLight) break;  // 目前仅对第一个平行光提供支持
-	//}
-
-	//Vector3 shadowMapAt = m_boundingSphere.Center;
-	//Vector3 shadowMapEye = shadowMapAt - 2.0f * m_boundingSphere.Radius * pDistantLight->m_direction;
-	//Vector3 shadowMapUp(0.0f, 1.0f, 0.0f);
-	//Matrix mxV = XMMatrixLookAtLH(shadowMapEye, shadowMapAt, shadowMapUp);
-
-	//Vector3 shadowMapAtInViewSpace = Vector3::Transform(shadowMapAt, mxV);
-	//Vector3 OrthoBoxRangeMin = shadowMapAtInViewSpace - Vector3(m_boundingSphere.Radius);
-	//Vector3 OrthoBoxRangeMax = shadowMapAtInViewSpace + Vector3(m_boundingSphere.Radius);
-	//Matrix mxP = XMMatrixOrthographicOffCenterLH(OrthoBoxRangeMin.x, OrthoBoxRangeMax.x, OrthoBoxRangeMin.y, OrthoBoxRangeMax.y, OrthoBoxRangeMin.z, OrthoBoxRangeMax.z);
-
-	//Matrix mxT(
-	//	0.5f, 0.0f, 0.0f, 0.0f,
-	//	0.0f, -0.5f, 0.0f, 0.0f,
-	//	0.0f, 0.0f, 1.0f, 0.0f,
-	//	0.5f, 0.5f, 0.0f, 1.0f);
-
-	//out_cb.view = mxV.Transpose();
-	//out_cb.projection = mxP.Transpose();
-	//out_cb.texture = mxT.Transpose();
-//}
 
 void NXScene::InitBoundingStructures()
 {
@@ -413,4 +377,13 @@ void NXScene::InitBoundingStructures()
 void NXScene::BuildBVHTrees(const HBVHSplitMode SplitMode)
 {
 	SceneManager::GetInstance()->BuildBVHTrees(SplitMode);
+}
+
+void NXScene::InitEditorObjects()
+{
+	NXPrimitive* pObj = new NXPrimitive();
+	pObj->SetName("game_selection_arrows");
+	NXSubMeshGeometryEditor::CreateSelectionArrows(pObj);
+
+	m_editorObjs.push_back(pObj);
 }

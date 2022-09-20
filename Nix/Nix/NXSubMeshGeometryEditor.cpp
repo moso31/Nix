@@ -482,3 +482,28 @@ void NXSubMeshGeometryEditor::CreateSHSphere(NXPrimitive* pMesh, int basis_l, in
 
 	pMesh->AddSubMesh(pSubMesh);
 }
+
+void NXSubMeshGeometryEditor::CreateSelectionArrows(NXPrimitive* pMesh)
+{
+	NXSubMesh* pSubMesh = new NXSubMesh(pMesh);
+
+	float w = 1.0f;
+	float h = 1.0f;
+	pSubMesh->m_vertices =
+	{
+		{ Vector3(+0.0f, -w, -h), Vector3(1.0f, 0.0f, 0.0f), Vector2(0.0f, 1.0f), Vector3(0.0f, 0.0f, 1.0f) },
+		{ Vector3(+0.0f, +w, -h), Vector3(1.0f, 0.0f, 0.0f), Vector2(0.0f, 0.0f), Vector3(0.0f, 0.0f, 1.0f) },
+		{ Vector3(+0.0f, +w, +h), Vector3(1.0f, 0.0f, 0.0f), Vector2(1.0f, 0.0f), Vector3(0.0f, 0.0f, 1.0f) },
+		{ Vector3(+0.0f, -w, +h), Vector3(1.0f, 0.0f, 0.0f), Vector2(1.0f, 1.0f), Vector3(0.0f, 0.0f, 1.0f) },
+	};
+
+	pSubMesh->m_indices =
+	{
+		0,  1,  2,
+		0,  2,  3
+	};
+
+	pSubMesh->InitVertexIndexBuffer();
+
+	pMesh->AddSubMesh(pSubMesh);
+}

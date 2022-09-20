@@ -47,6 +47,8 @@ public:
 	// 更新场景BVH树
 	void BuildBVHTrees(const HBVHSplitMode SplitMode);
 private:
+	// 生成编辑器对象（SelectionArrows等玩意）
+	void InitEditorObjects();
 
 	// 计算场景下所有物体的 AABB。
 	void InitBoundingStructures();
@@ -73,6 +75,9 @@ private:
 	std::vector<NXRenderableObject*> m_renderableObjects;
 	std::vector<NXMaterial*> m_materials;
 	std::vector<NXPBRLight*> m_pbrLights;
+
+	// 编辑器物体（=移动箭头，旋转轴 这类物体的Mesh）
+	std::vector<NXPrimitive*> m_editorObjs;
 
 	NXCamera* m_pMainCamera;
 	NXCubeMap* m_pCubeMap;
