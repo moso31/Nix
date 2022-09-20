@@ -184,8 +184,10 @@
     <None Include="Shader\ShadowTest.fx">
       <Filter>Shader\ShadowMap</Filter>
     </None>
-    <None Include="Shader\DebugLayer.fx" />
     <None Include="Shader\EditorObjects.fx">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Shader\DebugLayer.fx">
       <Filter>Shader</Filter>
     </None>
   </ItemGroup>

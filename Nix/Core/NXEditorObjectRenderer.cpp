@@ -24,7 +24,7 @@ void NXEditorObjectRenderer::Init()
 	m_pRTQuad->Init();
 
 	Vector2 sz = g_dxResources->GetViewSize();
-	m_pPassOutTex = NXResourceManager::GetInstance()->CreateTexture2D("Editor objects Out RT", DXGI_FORMAT_R11G11B10_FLOAT, sz.x, sz.y, 1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET);
+	m_pPassOutTex = NXResourceManager::GetInstance()->CreateTexture2D("Editor objects Out RT", DXGI_FORMAT_R8G8B8A8_UNORM, sz.x, sz.y, 1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET);
 	m_pPassOutTex->AddRTV();
 	m_pPassOutTex->AddSRV();
 
@@ -44,16 +44,15 @@ void NXEditorObjectRenderer::Render()
 	g_pContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xffffffff);
 	g_pContext->RSSetState(m_pRasterizerState.Get());
 
-	NXTexture2D* pSceneInputTex = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_PostProcessing);
-	auto pSRVRenderResult = pSceneInputTex->GetSRV();
-	g_pContext->PSSetShaderResources(0, 1, &pSRVRenderResult);
-
-	auto pRTVOutput = m_pPassOutTex->GetRTV();
+	auto pRTVOutput = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_PostProcessing)->GetRTV();
 	g_pContext->OMSetRenderTargets(1, &pRTVOutput, nullptr);
 
 	g_pContext->IASetInputLayout(m_pInputLayout.Get());
 	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
+
+	g_pContext->VSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
+	g_pContext->PSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
 
 	for (auto pEditObj : m_pScene->GetEditableObjects())
 	{
