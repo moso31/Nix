@@ -15,6 +15,7 @@
 #include "NXSimpleSSAO.h"
 #include "NXGUI.h"
 #include "NXDebugLayerRenderer.h"
+#include "NXEditorObjectRenderer.h"
 
 class Renderer
 {
@@ -66,6 +67,7 @@ private:
 	NXFinalRenderer*					m_pFinalRenderer;
 	NXSimpleSSAO*						m_pSSAO;
 	NXDebugLayerRenderer*				m_pDebugLayerRenderer;
+	NXEditorObjectRenderer*				m_pEditorObjectRenderer;
 
 	NXGUI*								m_pGUI;
 };

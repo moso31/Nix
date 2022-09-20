@@ -108,11 +108,15 @@ void NXForwardRenderer::Render()
 			{
 				if (pSubMesh)
 				{
-					pSubMesh->UpdateViewParams();
-					g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
+					bool bIsVisible = pSubMesh->GetPrimitive()->GetVisible();
+					if (bIsVisible)
+					{
+						pSubMesh->UpdateViewParams();
+						g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 
-					pSubMesh->Update();
-					pSubMesh->Render();
+						pSubMesh->Update();
+						pSubMesh->Render();
+					}
 				}
 			}
 		}

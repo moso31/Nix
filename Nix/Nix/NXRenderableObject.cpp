@@ -11,6 +11,7 @@ NXRenderableObject::NXRenderableObject() :
 	m_geoScale(Vector3(1.0f)),
 	m_transformWorldMatrix(Matrix::Identity()),
 	m_transformWorldMatrixInv(Matrix::Identity()),
+	m_bIsVisible(true),
 	NXTransform()
 {
 	m_type = NXType::ePrefab;

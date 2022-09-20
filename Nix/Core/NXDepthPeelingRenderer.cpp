@@ -275,16 +275,20 @@ void NXDepthPeelingRenderer::RenderLayer()
 			{
 				if (pSubMesh)
 				{
-					pSubMesh->UpdateViewParams();
-					g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
+					bool bIsVisible = pSubMesh->GetPrimitive()->GetVisible();
+					if (bIsVisible)
+					{
+						pSubMesh->UpdateViewParams();
+						g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 
-					pSubMesh->Update();
+						pSubMesh->Update();
 
-					// 渲染两遍，先远后近
-					//g_pContext->RSSetState(m_pRasterizerStateBack.Get());
-					//pSubMesh->Render();
-					g_pContext->RSSetState(m_pRasterizerStateFront.Get());
-					pSubMesh->Render();
+						// 渲染两遍，先远后近
+						//g_pContext->RSSetState(m_pRasterizerStateBack.Get());
+						//pSubMesh->Render();
+						g_pContext->RSSetState(m_pRasterizerStateFront.Get());
+						pSubMesh->Render();
+					}
 				}
 			}
 		}

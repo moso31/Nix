@@ -39,6 +39,8 @@ public:
 	std::vector<NXPBRLight*> GetPBRLights() { return m_pbrLights; }
 	NXCubeMap* GetCubeMap() { return m_pCubeMap; }
 
+	std::vector<NXPrimitive*> GetEditableObjects() { return m_editorObjs; }
+
 	// 目前只对第一个光源创建Parallel ShadowMap。
 	//void InitShadowMapTransformInfo(ConstantBufferShadowMapTransform& out_cb);
 

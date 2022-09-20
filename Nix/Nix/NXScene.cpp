@@ -159,8 +159,8 @@ void NXScene::Init()
 	//SceneManager::GetInstance()->CreateFBXMeshes("D:\\NixAssets\\Cloth.fbx", pMeshes, true);
 	//SceneManager::GetInstance()->BindMaterial(pMeshes[0]->GetSubMesh(0), pPBRMat[0]);
 
-	NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\boxes.fbx", false);
-	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\shadowMapTest.fbx", false);
+	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\boxes.fbx", false);
+	NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\shadowMapTest.fbx", false);
 	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\testScene.fbx", false);
 	p->SetScale(Vector3(0.1f));
 	SceneManager::GetInstance()->BindMaterial(p, pPBRMat[0]);
@@ -324,7 +324,7 @@ void NXScene::Release()
 	SafeRelease(m_pBVHTree);
 	SafeRelease(m_pRootObject);
 
-	// 2022.9.20：editorObjs 和 m_objects 区分开的，使用独立的std::vector控制资源 加载/释放。（暂定这么做）。
+	// 【2022.9.20：editorObjs 和 m_objects 区分开的，使用独立的std::vector控制资源 加载/释放。暂定这么做】
 	for (auto pEditorObj : m_editorObjs) SafeRelease(pEditorObj);
 }
 
@@ -383,6 +383,7 @@ void NXScene::InitEditorObjects()
 {
 	NXPrimitive* pObj = new NXPrimitive();
 	pObj->SetName("game_selection_arrows");
+	//pObj->SetVisible(false);	// SelectionArrows 默认不可见
 	NXSubMeshGeometryEditor::CreateSelectionArrows(pObj);
 
 	m_editorObjs.push_back(pObj);

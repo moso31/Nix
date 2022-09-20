@@ -26,6 +26,9 @@ public:
 
 	void UpdateTransform() override;
 
+	bool GetVisible() { return m_bIsVisible; }
+	void SetVisible(bool value) { m_bIsVisible = value; }
+
 protected:
 	AABB m_aabb;
 
@@ -36,4 +39,6 @@ protected:
 
 	Matrix m_transformWorldMatrix;
 	Matrix m_transformWorldMatrixInv;
+
+	bool m_bIsVisible;
 };

@@ -66,6 +66,9 @@ void Renderer::Init()
 
 	m_pFinalRenderer = new NXFinalRenderer();
 	m_pFinalRenderer->Init();
+
+	m_pEditorObjectRenderer = new NXEditorObjectRenderer(m_scene);
+	m_pEditorObjectRenderer->Init();
 }
 
 void Renderer::InitGUI()
@@ -164,6 +167,9 @@ void Renderer::RenderFrame()
 	// post processing
 	m_pColorMappingRenderer->Render();
 
+	// 绘制编辑器对象
+	m_pEditorObjectRenderer->Render();
+
 	// 绘制调试信息层（如果有的话）
 	m_pDebugLayerRenderer->Render();
 
@@ -180,6 +186,7 @@ void Renderer::RenderGUI()
 
 void Renderer::Release()
 {
+	SafeRelease(m_pEditorObjectRenderer);
 	SafeRelease(m_pDebugLayerRenderer);
 	SafeRelease(m_pGUI);
 

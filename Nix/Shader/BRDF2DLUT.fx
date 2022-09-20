@@ -38,13 +38,13 @@ float2 IntegrateBRDF(float2 uv)
 struct VS_INPUT 
 {
 	float3 pos : POSITION;
-	float2 tex : TEXCOORD;
+	float2 tex : TEXCOORD0;
 };
 
 struct PS_INPUT
 {
 	float4 pos : SV_POSITION;
-	float2 tex : TEXCOORD;
+	float2 tex : TEXCOORD0;
 };
 
 PS_INPUT VS(VS_INPUT input)
