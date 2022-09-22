@@ -19,7 +19,28 @@ private:
 };
 
 class NXPrimitive;
-class NXSubMesh
+
+class NXSubMeshBase
+{
+public:
+	NXSubMeshBase(NXPrimitive* pParent) : m_pParent(pParent), m_pMaterial(nullptr) {}
+	~NXSubMeshBase() {}
+
+	void UpdateViewParams();
+
+	void Update();
+	void Render();
+
+	NXMaterial* GetMaterial() const { return m_pMaterial; }
+	void SetMaterial(NXMaterial* mat) { m_pMaterial = mat; }
+
+protected:
+	NXPrimitive* m_pParent;
+	NXMaterial* m_pMaterial;
+};
+
+template<class VertexType>
+class NXSubMesh : public NXSubMeshBase
 {
 	friend class NXTriangle;
 	friend class NXSubMeshGeometryEditor;
@@ -58,13 +79,9 @@ private:
 	void InitVertexIndexBuffer();
 
 private:
-	NXPrimitive* m_parent;
-
 	ComPtr<ID3D11Buffer>		m_pVertexBuffer;
 	ComPtr<ID3D11Buffer>		m_pIndexBuffer;
 
 	std::vector<VertexPNTT>		m_vertices;
 	std::vector<UINT>			m_indices;
-
-	NXMaterial*					m_pMaterial;
 };

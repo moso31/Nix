@@ -1,6 +1,28 @@
 #include "NXSubMesh.h"
 #include "NXPrimitive.h"
 
+void NXSubMeshBase::UpdateViewParams()
+{
+	return m_pParent->UpdateViewParams();
+}
+
+void NXSubMeshBase::Update()
+{
+	if (m_pMaterial)
+	{
+		m_pMaterial->Update();
+	}
+}
+
+void NXSubMeshBase::Render()
+{
+	UINT stride = sizeof(VertexPNTT);
+	UINT offset = 0;
+	g_pContext->IASetVertexBuffers(0, 1, m_pVertexBuffer.GetAddressOf(), &stride, &offset);
+	g_pContext->IASetIndexBuffer(m_pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+	g_pContext->DrawIndexed((UINT)m_indices.size(), 0, 0);
+}
+
 NXTriangle::NXTriangle(NXSubMesh* pSubMesh, int startIndex) :
 	pSubMesh(pSubMesh),
 	startIndex(startIndex)
@@ -270,3 +292,4 @@ void NXSubMesh::InitVertexIndexBuffer()
 	InitData.pSysMem = m_indices.data();
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &m_pIndexBuffer));
 }
+
