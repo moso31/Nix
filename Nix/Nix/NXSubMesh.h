@@ -8,7 +8,7 @@ class NXSubMeshBase
 {
 public:
 	NXSubMeshBase(NXPrimitive* pPrimitive) : m_pPrimitive(pPrimitive), m_pMaterial(nullptr) {}
-	~NXSubMeshBase() {}
+	virtual ~NXSubMeshBase() {}
 
 	void UpdateViewParams();
 
@@ -48,13 +48,10 @@ public:
 	void Render() override;
 
 	bool RayCastLocal(const Ray& localRay, NXHit& outHitInfo, float& outDist);
-
 	void CalculateTangents(bool bUpdateVBIB = false);
 
 	UINT GetIndexCount()	{ return (UINT)m_indices.size(); }
 	UINT GetVertexCount()	{ return (UINT)m_vertices.size(); }
-
-	const TVertex* GetVertexData() { return m_vertices.data(); }
 
 	void CalcLocalAABB() override;
 
