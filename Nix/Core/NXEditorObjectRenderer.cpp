@@ -24,7 +24,7 @@ void NXEditorObjectRenderer::Init()
 	m_pRTQuad->Init();
 
 	Vector2 sz = g_dxResources->GetViewSize();
-	m_pPassOutTex = NXResourceManager::GetInstance()->CreateTexture2D("Editor objects Out RT", DXGI_FORMAT_R8G8B8A8_UNORM, sz.x, sz.y, 1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET);
+	m_pPassOutTex = NXResourceManager::GetInstance()->CreateTexture2D("Editor objects Out RT", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET);
 	m_pPassOutTex->AddRTV();
 	m_pPassOutTex->AddSRV();
 
@@ -32,7 +32,7 @@ void NXEditorObjectRenderer::Init()
 	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\EditorObjects.fx", "PS", &m_pPixelShader);
 
 	m_pDepthStencilState = NXDepthStencilState<false, false, D3D11_COMPARISON_ALWAYS>::Create();
-	m_pRasterizerState = NXRasterizerState<>::Create();
+	m_pRasterizerState = NXRasterizerState<D3D11_FILL_SOLID, D3D11_CULL_NONE>::Create();
 	m_pBlendState = NXBlendState<false, false, true, D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA>::Create();
 }
 

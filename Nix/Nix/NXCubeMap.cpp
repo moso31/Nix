@@ -390,8 +390,8 @@ void NXCubeMap::GenerateIrradianceSH(size_t imgWidth, size_t imgHeight)
 	bufferDesc.CPUAccessFlags = 0;
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &cbImageSize));
 
-	UINT tempWidth = imgWidth;
-	UINT tempHeight = imgHeight;
+	UINT tempWidth = (UINT)imgWidth;
+	UINT tempHeight = (UINT)imgHeight;
 	UINT SHIrradPassCount = 0;
 	while (tempWidth != 1 || tempHeight != 1)
 	{
@@ -401,8 +401,8 @@ void NXCubeMap::GenerateIrradianceSH(size_t imgWidth, size_t imgHeight)
 	}
 	SHIrradPassCount = max(SHIrradPassCount, 2);
 
-	tempWidth = imgWidth;
-	tempHeight = imgHeight;
+	tempWidth = (UINT)imgWidth;
+	tempHeight = (UINT)imgHeight;
 	std::vector<ComPtr<ID3D11ShaderResourceView>> pSRVIrradSHs;
 	pSRVIrradSHs.reserve(SHIrradPassCount);
 	for (UINT passId = 0; passId < SHIrradPassCount; passId++)
@@ -430,7 +430,7 @@ void NXCubeMap::GenerateIrradianceSH(size_t imgWidth, size_t imgHeight)
 		ComPtr<ID3D11Buffer> cbIrradianceSH;
 		ZeroMemory(&bufferDesc, sizeof(bufferDesc));
 		bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-		bufferDesc.ByteWidth = irradianceBufferSize;
+		bufferDesc.ByteWidth = (UINT)irradianceBufferSize;
 		bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
 		bufferDesc.CPUAccessFlags = 0;
 		bufferDesc.StructureByteStride = sizeof(ConstantBufferIrradSH);
@@ -460,11 +460,11 @@ void NXCubeMap::GenerateIrradianceSH(size_t imgWidth, size_t imgHeight)
 		NXShaderComplier::GetInstance()->CompileCS(L"Shader\\CubeMapIrradianceSH.fx", "CS", &pComputeShader);
 
 		ComPtr<ID3D11UnorderedAccessView> pUAVIrradSH;
-		CD3D11_UNORDERED_ACCESS_VIEW_DESC UAVDesc(D3D11_UAV_DIMENSION_BUFFER, DXGI_FORMAT_UNKNOWN, 0, irradianceBufferElements);
+		CD3D11_UNORDERED_ACCESS_VIEW_DESC UAVDesc(D3D11_UAV_DIMENSION_BUFFER, DXGI_FORMAT_UNKNOWN, 0, (UINT)irradianceBufferElements);
 		NX::ThrowIfFailed(g_pDevice->CreateUnorderedAccessView(cbIrradianceSH.Get(), &UAVDesc, pUAVIrradSH.GetAddressOf()));
 
 		ComPtr<ID3D11ShaderResourceView> pSRVIrradSH;
-		CD3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc(D3D11_SRV_DIMENSION_BUFFER, DXGI_FORMAT_UNKNOWN, 0, irradianceBufferElements);
+		CD3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc(D3D11_SRV_DIMENSION_BUFFER, DXGI_FORMAT_UNKNOWN, 0, (UINT)irradianceBufferElements);
 		NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(cbIrradianceSH.Get(), &SRVDesc, pSRVIrradSH.GetAddressOf()));
 
 		std::string UAVDebugName = "SHIrrad Buffer UAV" + std::to_string(passId);

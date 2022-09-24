@@ -2,6 +2,7 @@
 #include "NXPrimitive.h"
 
 template class NXSubMesh<VertexPNTT>;
+template class NXSubMesh<VertexEditorObjects>;
 
 void NXSubMeshBase::UpdateViewParams() 
 {
@@ -33,42 +34,6 @@ bool NXSubMesh<TVertex>::RayCastLocal(const Ray& localRay, NXHit& outHitInfo, fl
 	}
 
 	return bSuccess;
-}
-
-template<class TVertex>
-void NXSubMesh<TVertex>::CalculateTangents(bool bUpdateVBIB)
-{
-	int faceCount = (int)m_indices.size() / 3;
-	for (int i = 0; i < m_indices.size(); i += 3)
-	{
-		auto& P0 = m_vertices[m_indices[i + 0]];
-		auto& P1 = m_vertices[m_indices[i + 1]];
-		auto& P2 = m_vertices[m_indices[i + 2]];
-
-		auto e0 = P1.pos - P0.pos;
-		auto e1 = P2.pos - P0.pos;
-
-		auto uv0 = P1.tex - P0.tex;
-		auto uv1 = P2.tex - P0.tex;
-
-		float u0 = uv0.x;
-		float v0 = uv0.y;
-		float u1 = uv1.x;
-		float v1 = uv1.y;
-
-		float detInvUV = 1.0f / (u0 * v1 - v0 * u1);
-
-		Vector3 dpdu = v1 * e0 - v0 * e1;
-		dpdu.Normalize();
-		P0.tangent = dpdu;
-		P1.tangent = dpdu;
-		P2.tangent = dpdu;
-	}
-
-	if (bUpdateVBIB)
-	{
-		UpdateVBIB();
-	}
 }
 
 template<class TVertex>
@@ -106,4 +71,39 @@ void NXSubMesh<TVertex>::UpdateVBIB()
 	bufferDesc.CPUAccessFlags = 0;
 	InitData.pSysMem = m_indices.data();
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &m_pIndexBuffer));
+}
+
+void NXSubMeshStandard::CalculateTangents(bool bUpdateVBIB)
+{
+	int faceCount = (int)m_indices.size() / 3;
+	for (int i = 0; i < m_indices.size(); i += 3)
+	{
+		auto& P0 = m_vertices[m_indices[i + 0]];
+		auto& P1 = m_vertices[m_indices[i + 1]];
+		auto& P2 = m_vertices[m_indices[i + 2]];
+
+		auto e0 = P1.pos - P0.pos;
+		auto e1 = P2.pos - P0.pos;
+
+		auto uv0 = P1.tex - P0.tex;
+		auto uv1 = P2.tex - P0.tex;
+
+		float u0 = uv0.x;
+		float v0 = uv0.y;
+		float u1 = uv1.x;
+		float v1 = uv1.y;
+
+		float detInvUV = 1.0f / (u0 * v1 - v0 * u1);
+
+		Vector3 dpdu = v1 * e0 - v0 * e1;
+		dpdu.Normalize();
+		P0.tangent = dpdu;
+		P1.tangent = dpdu;
+		P2.tangent = dpdu;
+	}
+
+	if (bUpdateVBIB)
+	{
+		UpdateVBIB();
+	}
 }

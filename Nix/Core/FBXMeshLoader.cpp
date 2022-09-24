@@ -185,7 +185,7 @@ void FBXMeshLoader::EncodePrimitiveData(FbxNode* pNode, NXPrimitive* pPrimitive,
 
 		std::vector<NXSubMeshBase*> pSubMeshes;
 		pSubMeshes.reserve(materialCount);
-		for (int i = 0; i < materialCount; i++) pSubMeshes.push_back(new NXSubMesh<VertexPNTT>(pPrimitive));
+		for (int i = 0; i < materialCount; i++) pSubMeshes.push_back(new NXSubMeshStandard(pPrimitive));
 
 		if (materialCount == 1)
 		{
@@ -242,7 +242,7 @@ void FBXMeshLoader::EncodePrimitiveData(FbxNode* pNode, NXPrimitive* pPrimitive,
 
 void FBXMeshLoader::EncodePolygonData(FbxMesh* pMesh, NXSubMeshBase* pSubMesh, int polygonIndex, int& vertexId, bool bFlipPolygon)
 {
-	NXSubMesh<VertexPNTT>* pSubMeshFBX = dynamic_cast<NXSubMesh<VertexPNTT>*>(pSubMesh);
+	NXSubMeshStandard* pSubMeshFBX = dynamic_cast<NXSubMeshStandard*>(pSubMesh);
 	if (!pSubMeshFBX)
 		return;
 

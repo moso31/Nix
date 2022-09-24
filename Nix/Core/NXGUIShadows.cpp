@@ -29,10 +29,10 @@ void NXGUIShadows::Render()
 		m_pShadowMap->m_test_transition = t;
 	}
 
-	float depthBias = m_pShadowMap->GetDepthBias();
+	float depthBias = (float)m_pShadowMap->GetDepthBias();
 	if (ImGui::DragFloat("Depth Bias", &depthBias, 1.0f, -100000.0f, 100000.0f))
 	{
-		m_pShadowMap->SetDepthBias(depthBias);
+		m_pShadowMap->SetDepthBias((int)depthBias);
 	}
 
 	ImGui::End();

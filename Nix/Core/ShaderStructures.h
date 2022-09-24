@@ -48,6 +48,15 @@ struct VertexPNTT
 	Vector3 tangent;
 };
 
+struct VertexEditorObjects
+{
+	VertexEditorObjects() = default;
+	VertexEditorObjects(const Vector3& pos, const Vector4& color) :
+		pos(pos), color(color) {}
+	Vector3 pos;
+	Vector4 color;
+};
+
 struct ConstantBufferFloat
 {
 	float value;

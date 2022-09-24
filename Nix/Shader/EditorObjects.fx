@@ -3,7 +3,7 @@
 struct VS_INPUT
 {
 	float4 pos : POSITION;
-	float2 color : COLOR0;
+	float4 color : COLOR0;
 };
 
 struct PS_INPUT
@@ -12,7 +12,7 @@ struct PS_INPUT
 	float4 posOS : POSITION0;
 	float4 posWS : POSITION1;
 	float4 posVS : POSITION2;
-	float2 color : COLOR0;
+	float4 color : COLOR0;
 };
 
 PS_INPUT VS(VS_INPUT input)
@@ -28,5 +28,5 @@ PS_INPUT VS(VS_INPUT input)
 
 float4 PS(PS_INPUT input) : SV_Target
 {
-	return float4(1.0f, 0.0f, 0.0f, 0.5f);
+	return input.color;
 }

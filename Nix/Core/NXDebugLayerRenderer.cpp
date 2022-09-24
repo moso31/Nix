@@ -29,7 +29,7 @@ void NXDebugLayerRenderer::Init()
 
 	m_pSamplerPointClamp.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_POINT>::Create());
 
-	m_pDebugLayerTex = NXResourceManager::GetInstance()->CreateTexture2D("Debug Layer Out RT", DXGI_FORMAT_R11G11B10_FLOAT, sz.x, sz.y, 1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET);
+	m_pDebugLayerTex = NXResourceManager::GetInstance()->CreateTexture2D("Debug Layer Out RT", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET);
 	m_pDebugLayerTex->AddRTV();
 	m_pDebugLayerTex->AddSRV();
 
