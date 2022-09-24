@@ -487,12 +487,12 @@ void NXSubMeshGeometryEditor::CreateSelectionArrows(NXPrimitive* pMesh)
 {
 	NXSubMeshEditorObjects* pSubMesh = new NXSubMeshEditorObjects(pMesh);
 
-	Vector4 colorX(1.0f, 0.0f, 0.0f, 0.3f);
-	Vector4 colorY(0.0f, 1.0f, 0.0f, 0.3f);
-	Vector4 colorZ(0.0f, 0.0f, 1.0f, 0.3f);
+	Vector4 colorX(1.0f, 0.0f, 0.0f, 1.0f);
+	Vector4 colorY(0.0f, 1.0f, 0.0f, 1.0f);
+	Vector4 colorZ(0.0f, 0.0f, 1.0f, 1.0f);
 
 	float fSegmentCircleInv = 1.0f / 16.0f;
-	float fRadius = 0.2f;
+	float fRadius = 0.01f;
 	float fCylinderLo = -fRadius;
 	float fCylinderHi = 1.0f;
 
@@ -549,9 +549,9 @@ void NXSubMeshGeometryEditor::CreateSelectionArrows(NXPrimitive* pMesh)
 		}
 	}
 
-	float fConeRadius = 0.5f;
-	float fConeLo = 1.0f;
-	float fConeHi = 1.5f;
+	float fConeRadius = 0.05f;
+	float fConeLo = fCylinderHi;
+	float fConeHi = fCylinderHi + 0.2f;
 	for (int i = 0; i < 3; i++)
 	{
 		for (int segIdx = 0; segIdx < 16; segIdx++)
@@ -597,27 +597,50 @@ void NXSubMeshGeometryEditor::CreateSelectionArrows(NXPrimitive* pMesh)
 		}
 	}
 
-	//float w = 1.0f;
-	//float h = 1.0f;
-	//pSubMesh->m_vertices =
-	//{
-	//	{ Vector3(+0.0f, -w, -h), Vector4(1.0f, 0.0f, 0.0f, 0.3f) },
-	//	{ Vector3(+0.0f, +w, -h), Vector4(1.0f, 0.0f, 0.0f, 0.3f) },
-	//	{ Vector3(+0.0f, +w, +h), Vector4(1.0f, 0.0f, 0.0f, 0.3f) },
-	//	{ Vector3(+0.0f, -w, +h), Vector4(1.0f, 0.0f, 0.0f, 0.3f) },
-	//	{ Vector3(-w, +0.0f, +h), Vector4(0.0f, 1.0f, 0.0f, 0.3f) },
-	//	{ Vector3(+w, +0.0f, +h), Vector4(0.0f, 1.0f, 0.0f, 0.3f) },
-	//	{ Vector3(+w, +0.0f, -h), Vector4(0.0f, 1.0f, 0.0f, 0.3f) },
-	//	{ Vector3(-w, +0.0f, -h), Vector4(0.0f, 1.0f, 0.0f, 0.3f) },
-	//};
 
-	//pSubMesh->m_indices =
-	//{
-	//	0,  1,  2,
-	//	0,  2,  3,
-	//	4,  5,  6,
-	//	4,  6,  7
-	//};
+	float A = 0.25f;
+	float B = 0.7f;
+
+	for (int i = 0; i < 3; i++)
+	{
+		Vector4 color(0.8f, 0.8f, 0.7f, 0.5f);
+		Vector3 p0, p1, p2, p3;
+		if (i == 0)
+		{
+			p0 = Vector3(A, A, 0.0f);
+			p1 = Vector3(A, B, 0.0f);
+			p2 = Vector3(B, A, 0.0f);
+			p3 = Vector3(B, B, 0.0f);
+		}
+		else if (i == 1)
+		{
+			p0 = Vector3(A, 0.0f, A);
+			p1 = Vector3(A, 0.0f, B);
+			p2 = Vector3(B, 0.0f, A);
+			p3 = Vector3(B, 0.0f, B);
+		}
+		else // i == 2
+		{
+			p0 = Vector3(0.0f, A, A);
+			p1 = Vector3(0.0f, A, B);
+			p2 = Vector3(0.0f, B, A);
+			p3 = Vector3(0.0f, B, B);
+		}
+
+		pSubMesh->m_vertices.push_back({ p0, color });
+		pSubMesh->m_vertices.push_back({ p1, color });
+		pSubMesh->m_vertices.push_back({ p2, color });
+		pSubMesh->m_vertices.push_back({ p3, color });
+
+		pSubMesh->m_indices.push_back(currVertIdx);
+		pSubMesh->m_indices.push_back(currVertIdx + 2);
+		pSubMesh->m_indices.push_back(currVertIdx + 1);
+		pSubMesh->m_indices.push_back(currVertIdx + 1);
+		pSubMesh->m_indices.push_back(currVertIdx + 2);
+		pSubMesh->m_indices.push_back(currVertIdx + 3);
+
+		currVertIdx += 4;
+	}
 
 	pSubMesh->UpdateVBIB();
 

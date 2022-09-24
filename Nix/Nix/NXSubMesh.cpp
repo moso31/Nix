@@ -28,6 +28,7 @@ bool NXSubMesh<TVertex>::RayCastLocal(const Ray& localRay, NXHit& outHitInfo, fl
 		Triangle face(m_vertices[m_indices[i + 0]].pos, m_vertices[m_indices[i + 1]].pos, m_vertices[m_indices[i + 2]].pos);
 		if (face.Intersects(localRay, outHitInfo.position, outDist))
 		{
+			outHitInfo.pSubMesh = this;
 			outHitInfo.faceIndex = faceId;
 			bSuccess = true;
 		}
