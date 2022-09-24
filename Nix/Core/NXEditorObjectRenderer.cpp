@@ -31,9 +31,9 @@ void NXEditorObjectRenderer::Init()
 	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\EditorObjects.fx", "VS", &m_pVertexShader, NXGlobalInputLayout::layoutEditorObject, ARRAYSIZE(NXGlobalInputLayout::layoutEditorObject), &m_pInputLayout);
 	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\EditorObjects.fx", "PS", &m_pPixelShader);
 
-	m_pDepthStencilState = NXDepthStencilState<false, false, D3D11_COMPARISON_ALWAYS>::Create();
+	m_pDepthStencilState = NXDepthStencilState<false, false, D3D11_COMPARISON_LESS>::Create();
 	m_pRasterizerState = NXRasterizerState<D3D11_FILL_SOLID, D3D11_CULL_NONE>::Create();
-	m_pBlendState = NXBlendState<false, false, true, D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA>::Create();
+	m_pBlendState = NXBlendState<false, false, true, D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA, D3D11_BLEND_OP_ADD, D3D11_BLEND_ONE, D3D11_BLEND_ONE, D3D11_BLEND_OP_MAX>::Create();
 }
 
 void NXEditorObjectRenderer::Render()

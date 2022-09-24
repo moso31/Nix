@@ -487,27 +487,137 @@ void NXSubMeshGeometryEditor::CreateSelectionArrows(NXPrimitive* pMesh)
 {
 	NXSubMeshEditorObjects* pSubMesh = new NXSubMeshEditorObjects(pMesh);
 
-	float w = 1.0f;
-	float h = 1.0f;
-	pSubMesh->m_vertices =
-	{
-		{ Vector3(+0.0f, -w, -h), Vector4(1.0f, 0.0f, 0.0f, 0.3f) },
-		{ Vector3(+0.0f, +w, -h), Vector4(1.0f, 0.0f, 0.0f, 0.3f) },
-		{ Vector3(+0.0f, +w, +h), Vector4(1.0f, 0.0f, 0.0f, 0.3f) },
-		{ Vector3(+0.0f, -w, +h), Vector4(1.0f, 0.0f, 0.0f, 0.3f) },
-		{ Vector3(-w, +0.0f, +h), Vector4(0.0f, 1.0f, 0.0f, 0.3f) },
-		{ Vector3(+w, +0.0f, +h), Vector4(0.0f, 1.0f, 0.0f, 0.3f) },
-		{ Vector3(+w, +0.0f, -h), Vector4(0.0f, 1.0f, 0.0f, 0.3f) },
-		{ Vector3(-w, +0.0f, -h), Vector4(0.0f, 1.0f, 0.0f, 0.3f) },
-	};
+	Vector4 colorX(1.0f, 0.0f, 0.0f, 0.3f);
+	Vector4 colorY(0.0f, 1.0f, 0.0f, 0.3f);
+	Vector4 colorZ(0.0f, 0.0f, 1.0f, 0.3f);
 
-	pSubMesh->m_indices =
+	float fSegmentCircleInv = 1.0f / 16.0f;
+	float fRadius = 0.2f;
+	float fCylinderLo = -fRadius;
+	float fCylinderHi = 1.0f;
+
+	UINT currVertIdx = 0;
+	for (int i = 0; i < 3; i++)
 	{
-		0,  1,  2,
-		0,  2,  3,
-		4,  5,  6,
-		4,  6,  7
-	};
+		for (int segIdx = 0; segIdx < 16; segIdx++)
+		{
+			float angleCurr = (float)(segIdx + 0) * fSegmentCircleInv * XM_2PI;
+			float angleNext = (float)(segIdx + 1) * fSegmentCircleInv * XM_2PI;
+
+			float sinCurr = sinf(angleCurr);
+			float cosCurr = cosf(angleCurr);
+			float sinNext = sinf(angleNext);
+			float cosNext = cosf(angleNext);
+
+			Vector3 p00, p01, p10, p11;
+			if (i == 0)
+			{
+				p00 = Vector3(fCylinderLo, sinCurr * fRadius, cosCurr * fRadius);
+				p01 = Vector3(fCylinderLo, sinNext * fRadius, cosNext * fRadius);
+				p10 = Vector3(fCylinderHi, sinCurr * fRadius, cosCurr * fRadius);
+				p11 = Vector3(fCylinderHi, sinNext * fRadius, cosNext * fRadius);
+			}
+			else if (i == 1)
+			{
+				p00 = Vector3(sinCurr * fRadius, fCylinderLo, cosCurr * fRadius);
+				p01 = Vector3(sinNext * fRadius, fCylinderLo, cosNext * fRadius);
+				p10 = Vector3(sinCurr * fRadius, fCylinderHi, cosCurr * fRadius);
+				p11 = Vector3(sinNext * fRadius, fCylinderHi, cosNext * fRadius);
+			}
+			else // i == 2
+			{
+				p00 = Vector3(sinCurr * fRadius, cosCurr * fRadius, fCylinderLo);
+				p01 = Vector3(sinNext * fRadius, cosNext * fRadius, fCylinderLo);
+				p10 = Vector3(sinCurr * fRadius, cosCurr * fRadius, fCylinderHi);
+				p11 = Vector3(sinNext * fRadius, cosNext * fRadius, fCylinderHi);
+			}
+
+			Vector4 color = (i == 0 ? colorX : i == 1 ? colorY : colorZ);
+			pSubMesh->m_vertices.push_back({ p00, color });
+			pSubMesh->m_vertices.push_back({ p01, color });
+			pSubMesh->m_vertices.push_back({ p10, color });
+			pSubMesh->m_vertices.push_back({ p11, color });
+
+			pSubMesh->m_indices.push_back(currVertIdx);
+			pSubMesh->m_indices.push_back(currVertIdx + 2);
+			pSubMesh->m_indices.push_back(currVertIdx + 1);
+			pSubMesh->m_indices.push_back(currVertIdx + 1);
+			pSubMesh->m_indices.push_back(currVertIdx + 2);
+			pSubMesh->m_indices.push_back(currVertIdx + 3);
+
+			currVertIdx += 4;
+		}
+	}
+
+	float fConeRadius = 0.5f;
+	float fConeLo = 1.0f;
+	float fConeHi = 1.5f;
+	for (int i = 0; i < 3; i++)
+	{
+		for (int segIdx = 0; segIdx < 16; segIdx++)
+		{
+			float angleCurr = (float)(segIdx + 0) * fSegmentCircleInv * XM_2PI;
+			float angleNext = (float)(segIdx + 1) * fSegmentCircleInv * XM_2PI;
+
+			float sinCurr = sinf(angleCurr);
+			float cosCurr = cosf(angleCurr);
+			float sinNext = sinf(angleNext);
+			float cosNext = cosf(angleNext);
+
+			Vector3 p0, p1, p2;
+			if (i == 0)
+			{
+				p0 = Vector3(fConeLo, sinCurr * fConeRadius, cosCurr * fConeRadius);
+				p1 = Vector3(fConeLo, sinNext * fConeRadius, cosNext * fConeRadius);
+				p2 = Vector3(fConeHi, 0.0f, 0.0f);
+			}
+			else if (i == 1)
+			{
+				p0 = Vector3(sinCurr * fConeRadius, fConeLo, cosCurr * fConeRadius);
+				p1 = Vector3(sinNext * fConeRadius, fConeLo, cosNext * fConeRadius);
+				p2 = Vector3(0.0f, fConeHi, 0.0f);
+			}
+			else // i == 2
+			{
+				p0 = Vector3(sinCurr * fConeRadius, cosCurr * fConeRadius, fConeLo);
+				p1 = Vector3(sinNext * fConeRadius, cosNext * fConeRadius, fConeLo);
+				p2 = Vector3(0.0f, 0.0f, fConeHi);
+			}
+
+			Vector4 color = (i == 0 ? colorX : i == 1 ? colorY : colorZ);
+			pSubMesh->m_vertices.push_back({ p0, color });
+			pSubMesh->m_vertices.push_back({ p1, color });
+			pSubMesh->m_vertices.push_back({ p2, color });
+
+			pSubMesh->m_indices.push_back(currVertIdx);
+			pSubMesh->m_indices.push_back(currVertIdx + 2);
+			pSubMesh->m_indices.push_back(currVertIdx + 1);
+
+			currVertIdx += 3;
+		}
+	}
+
+	//float w = 1.0f;
+	//float h = 1.0f;
+	//pSubMesh->m_vertices =
+	//{
+	//	{ Vector3(+0.0f, -w, -h), Vector4(1.0f, 0.0f, 0.0f, 0.3f) },
+	//	{ Vector3(+0.0f, +w, -h), Vector4(1.0f, 0.0f, 0.0f, 0.3f) },
+	//	{ Vector3(+0.0f, +w, +h), Vector4(1.0f, 0.0f, 0.0f, 0.3f) },
+	//	{ Vector3(+0.0f, -w, +h), Vector4(1.0f, 0.0f, 0.0f, 0.3f) },
+	//	{ Vector3(-w, +0.0f, +h), Vector4(0.0f, 1.0f, 0.0f, 0.3f) },
+	//	{ Vector3(+w, +0.0f, +h), Vector4(0.0f, 1.0f, 0.0f, 0.3f) },
+	//	{ Vector3(+w, +0.0f, -h), Vector4(0.0f, 1.0f, 0.0f, 0.3f) },
+	//	{ Vector3(-w, +0.0f, -h), Vector4(0.0f, 1.0f, 0.0f, 0.3f) },
+	//};
+
+	//pSubMesh->m_indices =
+	//{
+	//	0,  1,  2,
+	//	0,  2,  3,
+	//	4,  5,  6,
+	//	4,  6,  7
+	//};
 
 	pSubMesh->UpdateVBIB();
 
