@@ -27,7 +27,7 @@ void NXRenderTarget::Init()
 		0,  2,  3
 	};
 
-	InitVertexIndexBuffer();
+	UpdateVBIB();
 }
 
 void NXRenderTarget::Render()
@@ -40,7 +40,7 @@ void NXRenderTarget::Render()
 	g_pContext->DrawIndexed((UINT)m_indices.size(), 0, 0);
 }
 
-void NXRenderTarget::InitVertexIndexBuffer()
+void NXRenderTarget::UpdateVBIB()
 {
 	D3D11_BUFFER_DESC bufferDesc;
 	ZeroMemory(&bufferDesc, sizeof(bufferDesc));

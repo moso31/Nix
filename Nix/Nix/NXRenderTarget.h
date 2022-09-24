@@ -12,7 +12,7 @@ public:
 	void Render();
 
 private:
-	void InitVertexIndexBuffer();
+	void UpdateVBIB();
 
 private:
 	std::vector<VertexPT>		m_vertices;

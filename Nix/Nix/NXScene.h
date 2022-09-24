@@ -24,8 +24,8 @@ public:
 	void Release();
 
 	// UI Picking
-	void SetCurrentPickingSubMesh(NXSubMesh* pPickingObject = nullptr) { m_pPickingObject = pPickingObject; }
-	NXSubMesh* GetCurrentPickingSubMesh() { return m_pPickingObject; }
+	void SetCurrentPickingSubMesh(NXSubMeshBase* pPickingObject = nullptr) { m_pPickingObject = pPickingObject; }
+	NXSubMeshBase* GetCurrentPickingSubMesh() { return m_pPickingObject; }
 
 	// RayCasts
 	HBVHTree* GetBVHTree() { return m_pBVHTree; }
@@ -65,7 +65,7 @@ private:
 	BoundingSphere m_boundingSphere;
 
 	// 当前选中的SubMesh。
-	NXSubMesh* m_pPickingObject;
+	NXSubMeshBase* m_pPickingObject;
 
 	// 求交加速结构（用于NXRayTracer的射线检测）
 	HBVHTree* m_pBVHTree;

@@ -844,10 +844,10 @@ void NXCubeMap::InitVertex()
 		20, 23,	22,
 	};
 
-	InitVertexIndexBuffer();
+	UpdateVBIB();
 }
 
-void NXCubeMap::InitVertexIndexBuffer()
+void NXCubeMap::UpdateVBIB()
 {
 	D3D11_BUFFER_DESC bufferDesc;
 	ZeroMemory(&bufferDesc, sizeof(bufferDesc));

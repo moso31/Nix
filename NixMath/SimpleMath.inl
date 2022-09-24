@@ -3539,6 +3539,12 @@ inline AABB::AABB()
 	Center = Extents = Vector3(0.0f);
 }
 
+inline AABB::AABB(const Vector3& min, const Vector3& max)
+{
+    Center = (max + min) * 0.5f;
+    Extents = (max - min) * 0.5f;
+}
+
 inline Vector3 AABB::GetCenter() const
 {
 	return Center;
@@ -3743,4 +3749,28 @@ inline Ray Ray::Transform(const Matrix& M) const
 inline Ray Ray::Transform(const Ray& ray, const Matrix& M) const
 {
 	return ray.Transform(M);
+}
+
+inline bool Triangle::Intersects(const Ray& ray, _Out_ Vector3& Position, _Out_ float& Dist) const
+{
+    Vector3 O = ray.position;
+    Vector3 D = ray.direction;
+    Vector3 T = O - A;
+    Vector3 E = B - A;
+    Vector3 F = C - A;
+    Vector3 P = T.Cross(E);
+    Vector3 Q = D.Cross(F);
+
+    float u = Q.Dot(T);
+    float v = P.Dot(D);
+    float denom = Q.Dot(E);
+
+    if (u < 0.0f || v < 0.0f || u + v >= denom)
+        return false; // not hit.
+
+    float denomInv = 1.0f / denom;
+    Dist = P.Dot(F) * denomInv;
+
+    Position = O + D * Dist;
+    return true;
 }

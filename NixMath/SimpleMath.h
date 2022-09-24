@@ -727,6 +727,7 @@ Color operator* (float S, const Color& C);
 struct AABB : public BoundingBox
 {
 	AABB();
+    AABB(const Vector3& min, const Vector3& max);
 
 	Vector3 GetCenter() const;
 	Vector3 GetMin() const;
@@ -764,6 +765,18 @@ public:
 	Ray Transform(const Matrix& M) const;
 	Ray Transform(const Ray& ray, const Matrix& M) const;
 };
+
+class Triangle
+{
+public:
+    Vector3 A, B, C;
+
+    Triangle() : A(0.0f), B(0.0f), C(0.0f) {}
+    Triangle(const Vector3& A, const Vector3& B, const Vector3& C) : A(A), B(B), C(C) {}
+
+    bool Intersects(const Ray& ray, _Out_ Vector3& Position, _Out_ float& Dist) const;
+};
+
 
 #include "SimpleMath.inl"
 

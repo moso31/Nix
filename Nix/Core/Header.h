@@ -80,7 +80,7 @@ class NXPrimitive;
 class NXPrefab;
 class NXCamera;
 class NXCubeMap;
-class NXSubMesh;
+class NXSubMeshBase;
 
 class NXMaterial;
 class NXPBRMaterialBase;

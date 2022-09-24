@@ -39,7 +39,7 @@ private:
 	static void SetGeometricTransform(FbxNode* pNode, NXRenderableObject* pRenderableObject);
 
 	static void EncodePrimitiveData(FbxNode* pNode, NXPrimitive* pPrimitive, bool bAutoCalcTangents, bool bFlipPolygon);
-	static void EncodePolygonData(FbxMesh* pMesh, NXSubMesh* pSubMesh, int polygonIndex, int& vertexId, bool bFlipPolygon);
+	static void EncodePolygonData(FbxMesh* pMesh, NXSubMeshBase* pSubMesh, int polygonIndex, int& vertexId, bool bFlipPolygon);
 	static void EncodeVertexPosition(FBXMeshVertexData& inoutVertexData, FbxMesh* pMesh, FbxVector4* pControlPoints, int controlPointIndex);
 	static void EncodeVertexColors(FBXMeshVertexData& inoutVertexData, FbxMesh* pMesh, int controlPointIndex, int vertexId);
 	static void EncodeVertexUVs(FBXMeshVertexData& inoutVertexData, FbxMesh* pMesh, int polygonIndex, int polygonVertexIndex, int controlPointIndex, int vertexId);

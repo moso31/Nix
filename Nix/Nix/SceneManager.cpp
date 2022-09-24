@@ -43,7 +43,7 @@ NXPrimitive* SceneManager::CreateBox(const std::string name, const float width, 
 {
 	auto p = new NXPrimitive();
 	p->SetName(name);
-	NXSubMeshGeometryEditor::CreateBox(p, width, height, length);
+	NXSubMeshGeometryEditor::GetInstance()->CreateBox(p, width, height, length);
 	p->SetTranslation(translation);
 	p->SetRotation(rotation);
 	p->SetScale(scale);
@@ -55,7 +55,7 @@ NXPrimitive* SceneManager::CreateSphere(const std::string name, const float radi
 {
 	auto p = new NXPrimitive();
 	p->SetName(name);
-	NXSubMeshGeometryEditor::CreateSphere(p, radius, segmentHorizontal, segmentVertical);
+	NXSubMeshGeometryEditor::GetInstance()->CreateSphere(p, radius, segmentHorizontal, segmentVertical);
 	p->SetTranslation(translation);
 	p->SetRotation(rotation);
 	p->SetScale(scale);
@@ -67,7 +67,7 @@ NXPrimitive* SceneManager::CreateSHSphere(const std::string name, const int l, c
 {
 	auto p = new NXPrimitive();
 	p->SetName(name);
-	NXSubMeshGeometryEditor::CreateSHSphere(p, l, m, radius, segmentHorizontal, segmentVertical);
+	NXSubMeshGeometryEditor::GetInstance()->CreateSHSphere(p, l, m, radius, segmentHorizontal, segmentVertical);
 	p->SetTranslation(translation);
 	p->SetRotation(rotation);
 	p->SetScale(scale);
@@ -79,7 +79,7 @@ NXPrimitive* SceneManager::CreateCylinder(const std::string name, const float ra
 {
 	auto p = new NXPrimitive();
 	p->SetName(name);
-	NXSubMeshGeometryEditor::CreateCylinder(p, radius, length, segmentCircle, segmentLength);
+	NXSubMeshGeometryEditor::GetInstance()->CreateCylinder(p, radius, length, segmentCircle, segmentLength);
 	p->SetTranslation(translation);
 	p->SetRotation(rotation);
 	p->SetScale(scale);
@@ -91,7 +91,7 @@ NXPrimitive* SceneManager::CreatePlane(const std::string name, const float width
 {
 	auto p = new NXPrimitive();
 	p->SetName(name);
-	NXSubMeshGeometryEditor::CreatePlane(p, width, height, axis);
+	NXSubMeshGeometryEditor::GetInstance()->CreatePlane(p, width, height, axis);
 	p->SetTranslation(translation);
 	p->SetRotation(rotation);
 	p->SetScale(scale);
@@ -103,7 +103,7 @@ NXPrefab* SceneManager::CreateFBXPrefab(const std::string name, const std::strin
 {
 	auto p = new NXPrefab();
 	p->SetName(name);
-	NXSubMeshGeometryEditor::CreateFBXPrefab(p, filePath, bAutoCalcTangents);
+	NXSubMeshGeometryEditor::GetInstance()->CreateFBXPrefab(p, filePath, bAutoCalcTangents);
 	RegisterPrefab(p);
 	return p;
 }
@@ -155,7 +155,7 @@ void SceneManager::BindMaterial(NXRenderableObject* pRenderableObj, NXMaterial* 
 	{
 		for (UINT i = 0; i < pPrimitive->GetSubMeshCount(); i++)
 		{
-			NXSubMesh* pSubMesh = pPrimitive->GetSubMesh(i);
+			NXSubMeshBase* pSubMesh = pPrimitive->GetSubMesh(i);
 			BindMaterial(pSubMesh, pMaterial);
 		}
 	}
@@ -170,7 +170,7 @@ void SceneManager::BindMaterial(NXRenderableObject* pRenderableObj, NXMaterial* 
 	}
 }
 
-void SceneManager::BindMaterial(NXSubMesh* pSubMesh, NXMaterial* pMaterial)
+void SceneManager::BindMaterial(NXSubMeshBase* pSubMesh, NXMaterial* pMaterial)
 {
 	auto pOldMat = pSubMesh->GetMaterial();
 	if (pOldMat)

@@ -24,7 +24,7 @@ void NXSubMeshGeometryEditor::CreateBox(NXPrimitive* pMesh, float x, float y, fl
 	z *= 0.5f;
 
 	pMesh->ClearSubMeshes();
-	NXSubMesh* pSubMesh = new NXSubMesh(pMesh);
+	NXSubMesh<VertexPNTT>* pSubMesh = new NXSubMesh<VertexPNTT>(pMesh);
 	pSubMesh->m_vertices =
 	{
 		// -X
@@ -85,7 +85,7 @@ void NXSubMeshGeometryEditor::CreateBox(NXPrimitive* pMesh, float x, float y, fl
 		20, 22, 23
 	};
 
-	pSubMesh->InitVertexIndexBuffer();
+	pSubMesh->UpdateVBIB();
 
 	pMesh->AddSubMesh(pSubMesh);
 }
@@ -93,7 +93,7 @@ void NXSubMeshGeometryEditor::CreateBox(NXPrimitive* pMesh, float x, float y, fl
 void NXSubMeshGeometryEditor::CreateCylinder(NXPrimitive* pMesh, float radius, float length, int segmentCircle, int segmentLength)
 {
 	pMesh->ClearSubMeshes();
-	NXSubMesh* pSubMesh = new NXSubMesh(pMesh);
+	NXSubMesh<VertexPNTT>* pSubMesh = new NXSubMesh<VertexPNTT>(pMesh);
 
 	int currVertIdx = 0;
 
@@ -225,7 +225,7 @@ void NXSubMeshGeometryEditor::CreateCylinder(NXPrimitive* pMesh, float radius, f
 		currVertIdx += 2;
 	}
 
-	pSubMesh->InitVertexIndexBuffer();
+	pSubMesh->UpdateVBIB();
 
 	pMesh->AddSubMesh(pSubMesh);
 }
@@ -233,7 +233,7 @@ void NXSubMeshGeometryEditor::CreateCylinder(NXPrimitive* pMesh, float radius, f
 void NXSubMeshGeometryEditor::CreatePlane(NXPrimitive* pMesh, float width, float height, NXPlaneAxis Axis)
 {
 	pMesh->ClearSubMeshes();
-	NXSubMesh* pSubMesh = new NXSubMesh(pMesh);
+	NXSubMesh<VertexPNTT>* pSubMesh = new NXSubMesh<VertexPNTT>(pMesh);
 
 	float w = width * 0.5f, h = height * 0.5f;
 	switch (Axis)
@@ -300,7 +300,7 @@ void NXSubMeshGeometryEditor::CreatePlane(NXPrimitive* pMesh, float width, float
 		0,  2,  3
 	};
 
-	pSubMesh->InitVertexIndexBuffer();
+	pSubMesh->UpdateVBIB();
 
 	pMesh->AddSubMesh(pSubMesh);
 }
@@ -308,7 +308,7 @@ void NXSubMeshGeometryEditor::CreatePlane(NXPrimitive* pMesh, float width, float
 void NXSubMeshGeometryEditor::CreateSphere(NXPrimitive* pMesh, float radius, int segmentHorizontal, int segmentVertical)
 {
 	pMesh->ClearSubMeshes();
-	NXSubMesh* pSubMesh = new NXSubMesh(pMesh);
+	NXSubMesh<VertexPNTT>* pSubMesh = new NXSubMesh<VertexPNTT>(pMesh);
 
 	Vector3 vTop(0.0f, 1.0f, 0.0f);
 	Vector3 vBottom(0.0f, -1.0f, 0.0f);
@@ -381,7 +381,7 @@ void NXSubMeshGeometryEditor::CreateSphere(NXPrimitive* pMesh, float radius, int
 		}
 	}
 
-	pSubMesh->InitVertexIndexBuffer();
+	pSubMesh->UpdateVBIB();
 
 	pMesh->AddSubMesh(pSubMesh);
 }
@@ -389,7 +389,7 @@ void NXSubMeshGeometryEditor::CreateSphere(NXPrimitive* pMesh, float radius, int
 void NXSubMeshGeometryEditor::CreateSHSphere(NXPrimitive* pMesh, int basis_l, int basis_m, float radius, int segmentHorizontal, int segmentVertical)
 {
 	pMesh->ClearSubMeshes();
-	NXSubMesh* pSubMesh = new NXSubMesh(pMesh);
+	NXSubMesh<VertexPNTT>* pSubMesh = new NXSubMesh<VertexPNTT>(pMesh);
 
 	Vector3 vTop(0.0f, 1.0f, 0.0f);
 	Vector3 vBottom(0.0f, -1.0f, 0.0f);
@@ -478,14 +478,14 @@ void NXSubMeshGeometryEditor::CreateSHSphere(NXPrimitive* pMesh, int basis_l, in
 		}
 	}
 
-	pSubMesh->InitVertexIndexBuffer();
+	pSubMesh->UpdateVBIB();
 
 	pMesh->AddSubMesh(pSubMesh);
 }
 
 void NXSubMeshGeometryEditor::CreateSelectionArrows(NXPrimitive* pMesh)
 {
-	NXSubMesh* pSubMesh = new NXSubMesh(pMesh);
+	NXSubMesh<VertexPNTT>* pSubMesh = new NXSubMesh<VertexPNTT>(pMesh);
 
 	float w = 1.0f;
 	float h = 1.0f;
@@ -503,7 +503,7 @@ void NXSubMeshGeometryEditor::CreateSelectionArrows(NXPrimitive* pMesh)
 		0,  2,  3
 	};
 
-	pSubMesh->InitVertexIndexBuffer();
+	pSubMesh->UpdateVBIB();
 
 	pMesh->AddSubMesh(pSubMesh);
 }

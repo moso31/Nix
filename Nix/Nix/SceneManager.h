@@ -47,7 +47,7 @@ public:
 		const std::wstring aoTexFilePath = L".\\Resource\\white1x1.png");
 
 	static void BindMaterial(NXRenderableObject* pRenderableObj, NXMaterial* pMaterial);
-	static void BindMaterial(NXSubMesh* pSubMesh, NXMaterial* pMaterial);
+	static void BindMaterial(NXSubMeshBase* pSubMesh, NXMaterial* pMaterial);
 
 	// 根据类型重新创建某个材质。
 	// GUI中更改材质类型时，会使用此逻辑。

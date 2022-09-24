@@ -63,7 +63,7 @@ public:
 
 private:
 	void InitVertex();
-	void InitVertexIndexBuffer();
+	void UpdateVBIB();
 	void InitConstantBuffer();
 
 private:

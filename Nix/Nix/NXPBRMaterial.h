@@ -65,9 +65,9 @@ public:
 public:
 	NXTexture2D* LoadFromTexFile(const std::wstring TexFilePath, bool GenerateMipMap = false);
 
-	std::vector<NXSubMesh*> GetRefSubMeshes() { return m_pRefSubMeshes; }
-	void RemoveSubMesh(NXSubMesh* pRemoveSubmesh);
-	void AddSubMesh(NXSubMesh* pSubMesh);
+	std::vector<NXSubMeshBase*> GetRefSubMeshes() { return m_pRefSubMeshes; }
+	void RemoveSubMesh(NXSubMeshBase* pRemoveSubmesh);
+	void AddSubMesh(NXSubMeshBase* pSubMesh);
 
 protected:
 	std::string m_name;
@@ -78,7 +78,7 @@ protected:
 
 private:
 	// 映射表，记录哪些Submesh使用了这个材质
-	std::vector<NXSubMesh*> m_pRefSubMeshes;
+	std::vector<NXSubMeshBase*> m_pRefSubMeshes;
 	UINT m_RefSubMeshesCleanUpCount;
 };
 

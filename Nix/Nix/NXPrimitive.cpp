@@ -22,11 +22,11 @@ void NXPrimitive::UpdateViewParams()
 	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbObject.Get(), 0, nullptr, &NXGlobalBufferManager::m_cbDataObject, 0, 0);
 }
 
-void NXPrimitive::CalculateTangents(bool bUpdateVertexIndexBuffer)
+void NXPrimitive::CalculateTangents(bool bUpdateVBIB)
 {
 	for (UINT i = 0; i < GetSubMeshCount(); i++)
 	{
-		GetSubMesh(i)->CalculateTangents(bUpdateVertexIndexBuffer);
+		GetSubMesh(i)->CalculateTangents(bUpdateVBIB);
 	}
 }
 
@@ -62,14 +62,6 @@ bool NXPrimitive::RayCastPrimitive(const Ray& worldRay, NXHit& outHitInfo, float
 	return bSuccess;
 }
 
-UINT NXPrimitive::GetFaceCount()
-{
-	UINT result = 0;
-	for (UINT i = 0; i < GetSubMeshCount(); i++) 
-		result += GetSubMesh(i)->GetFaceCount();
-	return result;
-}
-
 void NXPrimitive::ClearSubMeshes()
 {
 	for (int i = 0; i < m_pSubMeshes.size(); i++)
@@ -78,9 +70,9 @@ void NXPrimitive::ClearSubMeshes()
 	}
 }
 
-void NXPrimitive::AddSubMesh(NXSubMesh* pSubMesh)
+void NXPrimitive::AddSubMesh(NXSubMeshBase* pSubMesh)
 {
-	auto p = std::shared_ptr<NXSubMesh>(pSubMesh);
+	auto p = std::shared_ptr<NXSubMeshBase>(pSubMesh);
 	m_pSubMeshes.push_back(p);
 }
 
@@ -89,7 +81,7 @@ void NXPrimitive::ResizeSubMesh(UINT size)
 	m_pSubMeshes.resize(size);
 }
 
-void NXPrimitive::ReloadSubMesh(UINT index, NXSubMesh* pSubMesh)
+void NXPrimitive::ReloadSubMesh(UINT index, NXSubMeshBase* pSubMesh)
 {
 	assert(index >= 0 && index < m_pSubMeshes.size());
 	m_pSubMeshes[index].reset(pSubMesh);
@@ -97,21 +89,14 @@ void NXPrimitive::ReloadSubMesh(UINT index, NXSubMesh* pSubMesh)
 
 void NXPrimitive::InitAABB()
 {
-	m_points.clear();
-	m_points.reserve(GetFaceCount() * 3);
 	for (UINT i = 0; i < GetSubMeshCount(); i++)
 	{
 		auto pSubMesh = GetSubMesh(i);
-		const VertexPNTT* pVertexData = pSubMesh->GetVertexData();
-
-		for (UINT j = 0; j < pSubMesh->GetVertexCount(); j++)
-		{
-			m_points.push_back(pVertexData[j].pos);
-		}
+		pSubMesh->CalcLocalAABB();
+		
+		AABB::CreateMerged(m_aabb, m_aabb, pSubMesh->GetLocalAABB());
 	}
 
-	AABB::CreateFromPoints(m_aabb, m_points.size(), m_points.data(), sizeof(Vector3)); // local AABB
 	AABB::Transform(m_aabb, m_worldMatrix, m_aabb);	// transform local AABB to world space.
-
 	NXRenderableObject::InitAABB();
 }

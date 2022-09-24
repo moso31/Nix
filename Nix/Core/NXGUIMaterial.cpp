@@ -15,7 +15,7 @@ NXGUIMaterial::NXGUIMaterial(NXScene* pScene, NXGUIFileBrowser* pFileBrowser) :
 void NXGUIMaterial::Render()
 {
 	ImGui::Begin("Material");
-	NXSubMesh* pPickingSubMesh = m_pCurrentScene->GetCurrentPickingSubMesh();
+	NXSubMeshBase* pPickingSubMesh = m_pCurrentScene->GetCurrentPickingSubMesh();
 	if (!pPickingSubMesh)
 	{
 		ImGui::End();

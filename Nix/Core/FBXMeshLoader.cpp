@@ -183,9 +183,9 @@ void FBXMeshLoader::EncodePrimitiveData(FbxNode* pNode, NXPrimitive* pPrimitive,
 		FbxNode* pNode = pMesh->GetNode();
 		if (pNode) materialCount = max(pNode->GetMaterialCount(), 1);	// 有时候3ds中没有指定材质，这种情况下填充一个默认submesh（至少保证有一个submesh）。
 
-		std::vector<NXSubMesh*> pSubMeshes;
+		std::vector<NXSubMeshBase*> pSubMeshes;
 		pSubMeshes.reserve(materialCount);
-		for (int i = 0; i < materialCount; i++) pSubMeshes.push_back(new NXSubMesh(pPrimitive));
+		for (int i = 0; i < materialCount; i++) pSubMeshes.push_back(new NXSubMesh<VertexPNTT>(pPrimitive));
 
 		if (materialCount == 1)
 		{
@@ -234,14 +234,18 @@ void FBXMeshLoader::EncodePrimitiveData(FbxNode* pNode, NXPrimitive* pPrimitive,
 		UINT subMeshCount = pPrimitive->GetSubMeshCount();
 		for (UINT i = 0; i < subMeshCount; i++)
 		{
-			NXSubMesh* pSubMesh = pPrimitive->GetSubMesh(i);
-			pSubMesh->InitVertexIndexBuffer();
+			NXSubMeshBase* pSubMesh = pPrimitive->GetSubMesh(i);
+			pSubMesh->UpdateVBIB();
 		}
 	}
 }
 
-void FBXMeshLoader::EncodePolygonData(FbxMesh* pMesh, NXSubMesh* pSubMesh, int polygonIndex, int& vertexId, bool bFlipPolygon)
+void FBXMeshLoader::EncodePolygonData(FbxMesh* pMesh, NXSubMeshBase* pSubMesh, int polygonIndex, int& vertexId, bool bFlipPolygon)
 {
+	NXSubMesh<VertexPNTT>* pSubMeshFBX = dynamic_cast<NXSubMesh<VertexPNTT>*>(pSubMesh);
+	if (!pSubMeshFBX)
+		return;
+
 	int polygonSize = pMesh->GetPolygonSize(polygonIndex);
 
 	std::vector<VertexPNTT> vertexDataArray;
@@ -276,21 +280,21 @@ void FBXMeshLoader::EncodePolygonData(FbxMesh* pMesh, NXSubMesh* pSubMesh, int p
 	// polygonSize = vertexDataArray.size()
 	for (int i = 1; i < polygonSize - 1; i++)
 	{
-		pSubMesh->m_vertices.push_back(vertexDataArray[0]);
-		pSubMesh->m_vertices.push_back(vertexDataArray[i]);
-		pSubMesh->m_vertices.push_back(vertexDataArray[i + 1]);
+		pSubMeshFBX->m_vertices.push_back(vertexDataArray[0]);
+		pSubMeshFBX->m_vertices.push_back(vertexDataArray[i]);
+		pSubMeshFBX->m_vertices.push_back(vertexDataArray[i + 1]);
 
-		UINT lastIndex = (UINT)pSubMesh->m_indices.size();
-		pSubMesh->m_indices.push_back(lastIndex);
+		UINT lastIndex = (UINT)pSubMeshFBX->m_indices.size();
+		pSubMeshFBX->m_indices.push_back(lastIndex);
 		if (bFlipPolygon)
 		{
-			pSubMesh->m_indices.push_back(lastIndex + 1);
-			pSubMesh->m_indices.push_back(lastIndex + 2);
+			pSubMeshFBX->m_indices.push_back(lastIndex + 1);
+			pSubMeshFBX->m_indices.push_back(lastIndex + 2);
 		}
 		else
 		{
-			pSubMesh->m_indices.push_back(lastIndex + 2);
-			pSubMesh->m_indices.push_back(lastIndex + 1);
+			pSubMeshFBX->m_indices.push_back(lastIndex + 2);
+			pSubMeshFBX->m_indices.push_back(lastIndex + 1);
 		}
 	}
 }

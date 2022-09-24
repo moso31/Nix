@@ -18,18 +18,17 @@ public:
 	bool RayCastPrimitive(const Ray& worldRay, NXHit& outHitInfo, float& outDist);
 
 	UINT GetSubMeshCount() { return (UINT)m_pSubMeshes.size(); }
-	NXSubMesh* GetSubMesh(UINT index) { return m_pSubMeshes[index].get(); }
+	NXSubMeshBase* GetSubMesh(UINT index) { return m_pSubMeshes[index].get(); }
 
 	UINT GetFaceCount();
 
 	void ClearSubMeshes();
-	void AddSubMesh(NXSubMesh* pSubMesh);
+	void AddSubMesh(NXSubMeshBase* pSubMesh);
 	void ResizeSubMesh(UINT size);
-	void ReloadSubMesh(UINT index, NXSubMesh* pSubMesh);
+	void ReloadSubMesh(UINT index, NXSubMeshBase* pSubMesh);
 
 	void InitAABB() override;
 
 protected:
-	std::vector<std::shared_ptr<NXSubMesh>> m_pSubMeshes;
-	std::vector<Vector3> m_points;	// vertices position ађСа
+	std::vector<std::shared_ptr<NXSubMeshBase>> m_pSubMeshes;
 };

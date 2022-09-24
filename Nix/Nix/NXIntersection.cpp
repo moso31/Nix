@@ -2,7 +2,7 @@
 #include "NXScene.h"
 #include "NXPrimitive.h"
 
-NXHit::NXHit(NXSubMesh* pSubMesh, const Vector3& position, const Vector2& uv, const Vector3& direction, const Vector3& dpdu, const Vector3& dpdv) :
+NXHit::NXHit(NXSubMeshBase* pSubMesh, const Vector3& position, const Vector2& uv, const Vector3& direction, const Vector3& dpdu, const Vector3& dpdv) :
 	pSubMesh(pSubMesh),
 	position(position),
 	uv(uv),

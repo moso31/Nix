@@ -16,7 +16,7 @@ NXShadowMapRenderer::NXShadowMapRenderer(NXScene* pScene) :
 	m_shadowDistance(300.0f),
 	m_cascadeExponentScale(2.0f),
 	m_cascadeTransitionScale(0.1f),
-	m_depthBias(100.0f)
+	m_depthBias(100)
 {
 }
 
@@ -94,7 +94,7 @@ void NXShadowMapRenderer::RenderSingleObject(NXRenderableObject* pRenderableObje
 
 		for (UINT i = 0; i < pPrimitive->GetSubMeshCount(); i++)
 		{
-			NXSubMesh* pSubmesh = pPrimitive->GetSubMesh(i);
+			NXSubMeshBase* pSubmesh = pPrimitive->GetSubMesh(i);
 			pSubmesh->Render();
 		}
 	}
@@ -115,7 +115,7 @@ void NXShadowMapRenderer::Release()
 void NXShadowMapRenderer::SetCascadeCount(UINT value)
 {
 	m_cascadeCount = value;
-	NXGlobalBufferManager::m_cbDataShadowTest.cascadeCount = m_cascadeCount;
+	NXGlobalBufferManager::m_cbDataShadowTest.cascadeCount = (float)m_cascadeCount;
 }
 
 void NXShadowMapRenderer::SetDepthBias(int value)

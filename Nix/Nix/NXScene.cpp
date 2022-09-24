@@ -384,7 +384,7 @@ void NXScene::InitEditorObjects()
 	NXPrimitive* pObj = new NXPrimitive();
 	pObj->SetName("game_selection_arrows");
 	//pObj->SetVisible(false);	// SelectionArrows 默认不可见
-	NXSubMeshGeometryEditor::CreateSelectionArrows(pObj);
+	NXSubMeshGeometryEditor::GetInstance()->CreateSelectionArrows(pObj);
 
 	m_editorObjs.push_back(pObj);
 }
