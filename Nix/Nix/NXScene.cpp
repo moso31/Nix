@@ -36,15 +36,27 @@ NXScene::~NXScene()
 
 void NXScene::OnMouseDown(NXEventArgMouse eArg)
 {
-	auto ray = GetMainCamera()->GenerateRay(Vector2(eArg.X + 0.5f, eArg.Y + 0.5f));
-	//printf("cursor: %.3f, %.3f\n", (float)eArg.X, (float)eArg.Y);
-	//printf("pos: %.3f, %.3f, %.3f; dir: %.3f, %.3f, %.3f\n", ray.position.x, ray.position.y, ray.position.z, ray.direction.x, ray.direction.y, ray.direction.z);
-
-	NXHit hit;
-	RayCast(ray, hit);
-	if (hit.pSubMesh)
+	if (eArg.VMouse & 1) // 鼠标左键
 	{
-		SetCurrentPickingSubMesh(hit.pSubMesh);
+		auto ray = GetMainCamera()->GenerateRay(Vector2(eArg.X + 0.5f, eArg.Y + 0.5f));
+		//printf("cursor: %.3f, %.3f\n", (float)eArg.X, (float)eArg.Y);
+		//printf("pos: %.3f, %.3f, %.3f; dir: %.3f, %.3f, %.3f\n", ray.position.x, ray.position.y, ray.position.z, ray.direction.x, ray.direction.y, ray.direction.z);
+		
+		NXHit editObjHit;
+		RayCastOfEditorObjects(ray, editObjHit);
+		if (editObjHit.pSubMesh)
+		{
+			int x = 0;
+		}
+		else
+		{
+			NXHit hit;
+			RayCast(ray, hit);
+			if (hit.pSubMesh)
+			{
+				SetCurrentPickingSubMesh(hit.pSubMesh);
+			}
+		}
 	}
 }
 
@@ -373,6 +385,26 @@ bool NXScene::RayCast(const Ray& ray, NXHit& outHitInfo, float tMax)
 	return true;
 }
 
+bool NXScene::RayCastOfEditorObjects(const Ray& ray, NXHit& outHitInfo, float tMax)
+{
+	outHitInfo.Reset();
+	float outDist = tMax;
+
+	for (auto pMesh : m_editorObjs)
+	{
+		if (pMesh->RayCast(ray, outHitInfo, outDist))
+		{
+			// hit.
+		}
+	}
+
+	if (!outHitInfo.pSubMesh)
+		return false;
+
+	outHitInfo.LocalToWorld();
+	return true;
+}
+
 void NXScene::InitBoundingStructures()
 {
 	// 要计算所有物体的AABB，就需要确保所有物体的 Transform 是正确的
@@ -383,6 +415,13 @@ void NXScene::InitBoundingStructures()
 	// 遍历 renderableObjects，只对一级 Hierarchy 节点 InitAABB
 	// 子Object 的 AABB 会递归生成。
 	for (auto pMesh : m_renderableObjects)
+	{
+		pMesh->InitAABB();
+		AABB::CreateMerged(m_aabb, m_aabb, pMesh->GetAABBWorld());
+	}
+
+	// Editor Objects AABB
+	for (auto pMesh : m_editorObjs)
 	{
 		pMesh->InitAABB();
 		AABB::CreateMerged(m_aabb, m_aabb, pMesh->GetAABBWorld());

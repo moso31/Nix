@@ -2,10 +2,6 @@
 #include "header.h"
 #include "NXInstance.h"
 
-#define MK_LEFT		0
-#define MK_MID		1
-#define MK_RIGHT	2
-
 enum NXKeyCode
 {
 	LeftShift = 16,

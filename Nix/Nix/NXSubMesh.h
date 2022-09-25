@@ -45,7 +45,7 @@ public:
 
 	void Render() override;
 
-	bool RayCastLocal(const Ray& localRay, NXHit& outHitInfo, float& outDist);
+	virtual bool RayCastLocal(const Ray& localRay, NXHit& outHitInfo, float& outDist);
 
 	virtual void CalculateTangents(bool bUpdateVBIB = false) = 0;
 	void UpdateVBIB() override;
@@ -83,4 +83,5 @@ public:
 	virtual ~NXSubMeshEditorObjects() {}
 
 	void CalculateTangents(bool bUpdateVBIB = false) override {}
+	bool RayCastLocal(const Ray& localRay, NXHit& outHitInfo, float& outDist) override;
 };

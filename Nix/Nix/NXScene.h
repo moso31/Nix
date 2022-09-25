@@ -31,6 +31,7 @@ public:
 	// RayCasts
 	HBVHTree* GetBVHTree() { return m_pBVHTree; }
 	bool RayCast(const Ray& ray, NXHit& out_hitInfo, float tMax = FLT_MAX);
+	bool RayCastOfEditorObjects(const Ray& ray, NXHit& out_hitInfo, float tMax = FLT_MAX);
 	BoundingSphere	GetBoundingSphere() { return m_boundingSphere; }
 	AABB GetAABB() { return m_aabb; }
 

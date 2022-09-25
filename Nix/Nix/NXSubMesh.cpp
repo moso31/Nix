@@ -108,3 +108,22 @@ void NXSubMeshStandard::CalculateTangents(bool bUpdateVBIB)
 		UpdateVBIB();
 	}
 }
+
+bool NXSubMeshEditorObjects::RayCastLocal(const Ray& localRay, NXHit& outHitInfo, float& outDist)
+{
+	// Editor Objects Ê¹ÓÃË«Ãæ ray-tri isect¡£
+	bool bSuccess = false;
+	for (UINT i = 0, faceId = 0; i < m_indices.size(); i += 3, faceId++)
+	{
+		Triangle faceFront(m_vertices[m_indices[i + 0]].pos, m_vertices[m_indices[i + 1]].pos, m_vertices[m_indices[i + 2]].pos);
+		Triangle faceBack (m_vertices[m_indices[i + 0]].pos, m_vertices[m_indices[i + 2]].pos, m_vertices[m_indices[i + 1]].pos);
+		if (faceFront.Intersects(localRay, outHitInfo.position, outDist) || faceBack.Intersects(localRay, outHitInfo.position, outDist))
+		{
+			outHitInfo.pSubMesh = this;
+			outHitInfo.faceIndex = faceId;
+			bSuccess = true;
+		}
+	}
+
+	return bSuccess;
+}
