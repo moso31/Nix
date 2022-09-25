@@ -18,13 +18,14 @@ public:
 	void Init();
 	void InitScripts();
 	void UpdateTransform(NXObject* pObject = nullptr);
+	void UpdateTransformOfEditorObjects();
 	void UpdateScripts();
 	void UpdateCamera();
 	void UpdateLightData();
 	void Release();
 
 	// UI Picking
-	void SetCurrentPickingSubMesh(NXSubMeshBase* pPickingObject = nullptr) { m_pPickingObject = pPickingObject; }
+	void SetCurrentPickingSubMesh(NXSubMeshBase* pPickingObject = nullptr);
 	NXSubMeshBase* GetCurrentPickingSubMesh() { return m_pPickingObject; }
 
 	// RayCasts

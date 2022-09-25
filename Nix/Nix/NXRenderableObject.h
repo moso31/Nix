@@ -30,7 +30,7 @@ public:
 	void SetVisible(bool value) { m_bIsVisible = value; }
 
 protected:
-	AABB m_aabb;
+	AABB m_localAABB;
 
 	Vector3 m_geoTranslation;
 	// 当前对象的欧拉角。旋转顺序：X-Y-Z

@@ -24,14 +24,14 @@ void NXRenderableObject::Release()
 
 AABB NXRenderableObject::GetAABBWorld()
 {
-	return m_aabb;
+	AABB worldAABB;
+	AABB::Transform(m_localAABB, m_worldMatrix, worldAABB);
+	return worldAABB;
 }
 
 AABB NXRenderableObject::GetAABBLocal()
 {
-	AABB localAABB;
-	AABB::Transform(m_aabb, m_worldMatrixInv, localAABB);
-	return localAABB;
+	return m_localAABB;
 }
 
 bool NXRenderableObject::RayCast(const Ray& worldRay, NXHit& outHitInfo, float& outDist)
@@ -40,7 +40,7 @@ bool NXRenderableObject::RayCast(const Ray& worldRay, NXHit& outHitInfo, float& 
 
 	// ray-aabb
 	float outAABBDist;
-	if (worldRay.IntersectsFast(m_aabb, outAABBDist))
+	if (worldRay.IntersectsFast(GetAABBWorld(), outAABBDist))
 	{
 		bool isInAABB = outAABBDist < 0;
 		bool isNearestMaybe = (!isInAABB && outAABBDist < outDist) || isInAABB;
@@ -95,7 +95,7 @@ void NXRenderableObject::InitAABB()
 		}
 	}
 
-	m_aabb = worldAABB;
+	AABB::Transform(worldAABB, m_worldMatrixInv, m_localAABB);
 }
 
 void NXRenderableObject::UpdateTransform()
@@ -113,7 +113,7 @@ void NXRenderableObject::UpdateTransform()
 	m_transformWorldMatrix = result;
 
 	auto pParent = GetParent();
-	if (pParent->IsTransform())
+	if (pParent && pParent->IsTransform())
 	{
 		if (pParent->IsRenderableObject())
 		{

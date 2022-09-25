@@ -3595,8 +3595,8 @@ inline float AABB::GetSurfaceArea() const
 
 inline void DirectX::SimpleMath::AABB::Transform(AABB& aabb, const Matrix& m, AABB& result)
 {
-    Vector3 pMin = aabb.GetMin(); Vector3::Transform(aabb.GetMin(), m);
-    Vector3 pMax = aabb.GetMax(); Vector3::Transform(aabb.GetMax(), m);
+    Vector3 pMin = aabb.GetMin(); 
+    Vector3 pMax = aabb.GetMax(); 
 
     Vector3 pCorner[8];
     pCorner[0] = Vector3::Transform(Vector3(pMin.x, pMin.y, pMin.z), m);
@@ -3608,8 +3608,8 @@ inline void DirectX::SimpleMath::AABB::Transform(AABB& aabb, const Matrix& m, AA
     pCorner[6] = Vector3::Transform(Vector3(pMax.x, pMax.y, pMin.z), m);
     pCorner[7] = Vector3::Transform(Vector3(pMax.x, pMax.y, pMax.z), m);
 
-    Vector3 rMin;
-    Vector3 rMax;
+    Vector3 rMin(+FLT_MAX);
+    Vector3 rMax(-FLT_MAX);
 
     for (auto p : pCorner)
     {

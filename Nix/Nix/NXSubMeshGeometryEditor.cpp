@@ -485,8 +485,6 @@ void NXSubMeshGeometryEditor::CreateSHSphere(NXPrimitive* pMesh, int basis_l, in
 
 void NXSubMeshGeometryEditor::CreateSelectionArrows(NXPrimitive* pMesh)
 {
-	NXSubMeshEditorObjects* pSubMesh = new NXSubMeshEditorObjects(pMesh);
-
 	Vector4 colorX(1.0f, 0.0f, 0.0f, 1.0f);
 	Vector4 colorY(0.0f, 1.0f, 0.0f, 1.0f);
 	Vector4 colorZ(0.0f, 0.0f, 1.0f, 1.0f);
@@ -496,9 +494,10 @@ void NXSubMeshGeometryEditor::CreateSelectionArrows(NXPrimitive* pMesh)
 	float fCylinderLo = -fRadius;
 	float fCylinderHi = 1.0f;
 
-	UINT currVertIdx = 0;
 	for (int i = 0; i < 3; i++)
 	{
+		UINT currVertIdx = 0;
+		NXSubMeshEditorObjects* pSubMesh = new NXSubMeshEditorObjects(pMesh);
 		for (int segIdx = 0; segIdx < 16; segIdx++)
 		{
 			float angleCurr = (float)(segIdx + 0) * fSegmentCircleInv * XM_2PI;
@@ -547,6 +546,9 @@ void NXSubMeshGeometryEditor::CreateSelectionArrows(NXPrimitive* pMesh)
 
 			currVertIdx += 4;
 		}
+
+		pSubMesh->UpdateVBIB();
+		pMesh->AddSubMesh(pSubMesh);
 	}
 
 	float fConeRadius = 0.05f;
@@ -554,6 +556,8 @@ void NXSubMeshGeometryEditor::CreateSelectionArrows(NXPrimitive* pMesh)
 	float fConeHi = fCylinderHi + 0.2f;
 	for (int i = 0; i < 3; i++)
 	{
+		UINT currVertIdx = 0;
+		NXSubMeshEditorObjects* pSubMesh = new NXSubMeshEditorObjects(pMesh);
 		for (int segIdx = 0; segIdx < 16; segIdx++)
 		{
 			float angleCurr = (float)(segIdx + 0) * fSegmentCircleInv * XM_2PI;
@@ -595,6 +599,9 @@ void NXSubMeshGeometryEditor::CreateSelectionArrows(NXPrimitive* pMesh)
 
 			currVertIdx += 3;
 		}
+
+		pSubMesh->UpdateVBIB();
+		pMesh->AddSubMesh(pSubMesh);
 	}
 
 
@@ -603,6 +610,9 @@ void NXSubMeshGeometryEditor::CreateSelectionArrows(NXPrimitive* pMesh)
 
 	for (int i = 0; i < 3; i++)
 	{
+		UINT currVertIdx = 0;
+		NXSubMeshEditorObjects* pSubMesh = new NXSubMeshEditorObjects(pMesh);
+
 		Vector4 color(0.8f, 0.8f, 0.7f, 0.5f);
 		Vector3 p0, p1, p2, p3;
 		if (i == 0)
@@ -640,9 +650,8 @@ void NXSubMeshGeometryEditor::CreateSelectionArrows(NXPrimitive* pMesh)
 		pSubMesh->m_indices.push_back(currVertIdx + 3);
 
 		currVertIdx += 4;
+
+		pSubMesh->UpdateVBIB();
+		pMesh->AddSubMesh(pSubMesh);
 	}
-
-	pSubMesh->UpdateVBIB();
-
-	pMesh->AddSubMesh(pSubMesh);
 }

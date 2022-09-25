@@ -28,25 +28,26 @@ Vector3 NXTransform::GetScale()
 void NXTransform::SetTranslation(const Vector3 &value)
 {
 	m_translation = value;
-	printf("name: %s        Translation: %f %f %f\n", m_name.c_str(), m_translation.x, m_translation.y, m_translation.z);
+	UpdateTransform();
 }
 
 void NXTransform::SetRotation(const Vector3& value)
 {
 	m_eulerAngle = value;
 	Vector3 k = value * 180.0f / XM_PI;
-	printf("name: %s        Rotation:    %f %f %f\n", m_name.c_str(), k.x, k.y, k.z);
+	UpdateTransform();
 }
 
 void NXTransform::SetRotation(const Quaternion& value)
 {
 	m_rotation = value;
+	UpdateTransform();
 }
 
 void NXTransform::SetScale(const Vector3 &value)
 {
 	m_scale = value;
-	printf("name: %s        Scaling:     %f %f %f\n", m_name.c_str(), m_scale.x, m_scale.y, m_scale.z);
+	UpdateTransform();
 }
 
 Matrix NXTransform::GetLocalMatrix()

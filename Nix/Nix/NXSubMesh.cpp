@@ -40,8 +40,8 @@ bool NXSubMesh<TVertex>::RayCastLocal(const Ray& localRay, NXHit& outHitInfo, fl
 template<class TVertex>
 void NXSubMesh<TVertex>::CalcLocalAABB()
 {
-	Vector3 vMin(FLT_MAX);
-	Vector3 vMax(FLT_MIN);
+	Vector3 vMin(+FLT_MAX);
+	Vector3 vMax(-FLT_MAX);
 
 	for (int i = 0; i < m_vertices.size(); i++)
 	{

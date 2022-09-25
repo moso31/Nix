@@ -114,6 +114,7 @@ void Renderer::UpdateSceneData()
 
 	// 更新Transform
 	m_scene->UpdateTransform();
+	m_scene->UpdateTransformOfEditorObjects();
 
 	// 更新Camera的常量缓存数据（VP矩阵、眼睛位置）
 	m_scene->UpdateCamera();

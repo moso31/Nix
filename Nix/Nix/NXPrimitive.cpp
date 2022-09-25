@@ -94,9 +94,8 @@ void NXPrimitive::InitAABB()
 		auto pSubMesh = GetSubMesh(i);
 		pSubMesh->CalcLocalAABB();
 		
-		AABB::CreateMerged(m_aabb, m_aabb, pSubMesh->GetLocalAABB());
+		AABB::CreateMerged(m_localAABB, m_localAABB, pSubMesh->GetLocalAABB());
 	}
 
-	AABB::Transform(m_aabb, m_worldMatrix, m_aabb);	// transform local AABB to world space.
 	NXRenderableObject::InitAABB();
 }

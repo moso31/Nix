@@ -162,7 +162,7 @@ void NXScene::Init()
 	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\boxes.fbx", false);
 	NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\shadowMapTest.fbx", false);
 	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\testScene.fbx", false);
-	p->SetScale(Vector3(0.1f));
+	//p->SetScale(Vector3(0.1f));
 	SceneManager::GetInstance()->BindMaterial(p, pPBRMat[0]);
 	{
 		//bool bBind = SceneManager::GetInstance()->BindParent(pMeshes[1], pSphere);
@@ -265,6 +265,14 @@ void NXScene::UpdateTransform(NXObject* pObject)
 	}
 }
 
+void NXScene::UpdateTransformOfEditorObjects()
+{
+	for (auto pObj : m_editorObjs)
+	{
+		pObj->UpdateTransform();
+	}
+}
+
 void NXScene::UpdateScripts()
 {
 	for (auto it = m_objects.begin(); it != m_objects.end(); it++)
@@ -326,6 +334,15 @@ void NXScene::Release()
 
 	// 【2022.9.20：editorObjs 和 m_objects 区分开的，使用独立的std::vector控制资源 加载/释放。暂定这么做】
 	for (auto pEditorObj : m_editorObjs) SafeRelease(pEditorObj);
+}
+
+void NXScene::SetCurrentPickingSubMesh(NXSubMeshBase* pPickingObject)
+{
+	m_pPickingObject = pPickingObject;
+
+	NXPrimitive* pPickingPrimitive = pPickingObject->GetPrimitive();
+	if (pPickingPrimitive)
+		m_editorObjs[0]->SetTranslation(pPickingPrimitive->GetAABBWorld().Center);
 }
 
 bool NXScene::RayCast(const Ray& ray, NXHit& outHitInfo, float tMax)
