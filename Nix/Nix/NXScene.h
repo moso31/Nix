@@ -21,6 +21,7 @@ public:
 	void UpdateTransformOfEditorObjects();
 	void UpdateScripts();
 	void UpdateCamera();
+	void UpdateEditorObjects();
 	void UpdateLightData();
 	void Release();
 

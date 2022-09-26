@@ -303,6 +303,12 @@ void NXScene::UpdateCamera()
 	GetMainCamera()->Update();
 }
 
+void NXScene::UpdateEditorObjects()
+{
+	float dist = Vector3::Distance(GetMainCamera()->GetTranslation(), m_editorObjs[0]->GetTranslation());
+	m_editorObjs[0]->SetScale(Vector3(dist * 0.1f));
+}
+
 void NXScene::UpdateLightData()
 {
 	NXPBRDistantLight* pDirLight = nullptr;
