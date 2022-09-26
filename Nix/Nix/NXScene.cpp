@@ -53,6 +53,8 @@ void NXScene::OnMouseDown(NXEventArgMouse eArg)
 		}
 		else
 		{
+			m_selectedObjects.clear();
+
 			NXHit hit;
 			RayCast(ray, hit);
 			if (hit.pSubMesh)
@@ -71,7 +73,22 @@ void NXScene::OnMouseMove(NXEventArgMouse eArg)
 		// SelectionArrow/RotateRing/Scale ÍÏ¶¯ÖÐ
 
 		auto ray = GetMainCamera()->GenerateRay(Vector2(eArg.X + 0.5f, eArg.Y + 0.5f));
-		printf("%d", m_bEditorSelectID);
+		//printf("%d", m_bEditorSelectID);
+
+		switch (m_bEditorSelectID)
+		{
+		case NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_X:
+			for (auto pSelectObjs : m_selectedObjects)
+			{
+				Vector3 pos = pSelectObjs->GetTranslation();
+				pos.x += (eArg.LastX + eArg.LastY) * 0.001f;
+				pSelectObjs->SetTranslation(pos);
+				m_pEditorObjManager->MoveTranslatorTo(pSelectObjs->GetAABBWorld().Center);
+			}
+			break;
+		default:
+			break;
+		}
 	}
 }
 
@@ -374,7 +391,11 @@ void NXScene::SetCurrentPickingSubMesh(NXSubMeshBase* pPickingObject)
 
 	NXPrimitive* pPickingPrimitive = pPickingObject->GetPrimitive();
 	if (pPickingPrimitive)
+	{
 		m_pEditorObjManager->MoveTranslatorTo(pPickingPrimitive->GetAABBWorld().Center);
+
+		m_selectedObjects.push_back(m_pPickingObject->GetPrimitive());
+	}
 }
 
 bool NXScene::RayCast(const Ray& ray, NXHit& outHitInfo, float tMax)
@@ -394,12 +415,6 @@ bool NXScene::RayCast(const Ray& ray, NXHit& outHitInfo, float tMax)
 			if (pMesh->RayCast(ray, outHitInfo, outDist))
 			{
 				// success hit.
-				NXPrimitive* pHitMesh = pMesh->IsPrimitive();
-				if (pHitMesh)
-				{
-					m_selectedObjects.clear();
-					m_selectedObjects.push_back(pHitMesh);
-				}
 			}
 		}
 	}
