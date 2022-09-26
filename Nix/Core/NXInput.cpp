@@ -128,14 +128,15 @@ void NXInput::UpdateRawInput(LPARAM lParam)
 		int iMousePressing = eArg.VMouse;
 		int count = 0;
 
-		bool bIsPressing = false;
+		bool bIsMouseDown = false;
+		bool bIsMouseUp = false;
 		while (iMousePressing)
 		{
 			m_mouseState[count] = (iMousePressing & 3) == 1;
 			m_mouseActivite[count] = iMousePressing & 3;
 
-			if (m_mouseState[count])
-				bIsPressing = true;
+			if (m_mouseState[count]) bIsMouseDown = true;
+			if (!m_mouseState[count] && m_mouseActivite[count]) bIsMouseUp = true;
 			iMousePressing >>= 2;
 			count++;
 		}
@@ -145,8 +146,8 @@ void NXInput::UpdateRawInput(LPARAM lParam)
 		m_mouseMove.x = eArg.LastX;
 		m_mouseMove.y = eArg.LastY;
 
-		if (bIsPressing) NXEventMouseDown::GetInstance()->Notify(eArg);
-		else NXEventMouseUp::GetInstance()->Notify(eArg);
+		if (bIsMouseDown) NXEventMouseDown::GetInstance()->Notify(eArg);
+		if (bIsMouseUp) NXEventMouseUp::GetInstance()->Notify(eArg);
 
 		if (eArg.LastX || eArg.LastY)
 			NXEventMouseMove::GetInstance()->Notify(eArg);

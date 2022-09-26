@@ -77,7 +77,7 @@ void NXScene::OnMouseMove(NXEventArgMouse eArg)
 
 void NXScene::OnMouseUp(NXEventArgMouse eArg)
 {
-	if (eArg.VMouse & 1) // ЪѓБъзѓМќ
+	if (eArg.VMouse & 2) // ЪѓБъзѓМќ
 	{
 		m_bEditorSelectID = NXSubMeshEditorObjects::EditorObjectID::NONE;
 	}
