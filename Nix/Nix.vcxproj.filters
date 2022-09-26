@@ -366,6 +366,9 @@
     <ClCompile Include="Core\NXEditorObjectRenderer.cpp">
       <Filter>Core\DirectX\Renderer\EditorObjectLayer</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\NXEditorObjectManager.cpp">
+      <Filter>Nix\Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -550,6 +553,9 @@
     </ClInclude>
     <ClInclude Include="Core\NXEditorObjectRenderer.h">
       <Filter>Core\DirectX\Renderer\EditorObjectLayer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXEditorObjectManager.h">
+      <Filter>Nix\Scene</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

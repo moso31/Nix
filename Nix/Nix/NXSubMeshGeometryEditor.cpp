@@ -3,6 +3,7 @@
 #include "NXPrefab.h"
 #include "FBXMeshLoader.h"
 #include "SphereHarmonics.h"
+#include "NXSubMesh.h" // include this .h for EditorObjectID only.
 
 NXSubMeshGeometryEditor::NXSubMeshGeometryEditor()
 {
@@ -497,7 +498,9 @@ void NXSubMeshGeometryEditor::CreateSelectionArrows(NXPrimitive* pMesh)
 	for (int i = 0; i < 3; i++)
 	{
 		UINT currVertIdx = 0;
-		NXSubMeshEditorObjects* pSubMesh = new NXSubMeshEditorObjects(pMesh);
+
+		NXSubMeshEditorObjects::EditorObjectID objId = i == 0 ? NXSubMeshEditorObjects::TRANSLATE_X : i == 1 ? NXSubMeshEditorObjects::TRANSLATE_Y : NXSubMeshEditorObjects::TRANSLATE_Z;
+		NXSubMeshEditorObjects* pSubMesh = new NXSubMeshEditorObjects(pMesh, objId);
 		for (int segIdx = 0; segIdx < 16; segIdx++)
 		{
 			float angleCurr = (float)(segIdx + 0) * fSegmentCircleInv * XM_2PI;
@@ -557,7 +560,8 @@ void NXSubMeshGeometryEditor::CreateSelectionArrows(NXPrimitive* pMesh)
 	for (int i = 0; i < 3; i++)
 	{
 		UINT currVertIdx = 0;
-		NXSubMeshEditorObjects* pSubMesh = new NXSubMeshEditorObjects(pMesh);
+		NXSubMeshEditorObjects::EditorObjectID objId = i == 0 ? NXSubMeshEditorObjects::TRANSLATE_X : i == 1 ? NXSubMeshEditorObjects::TRANSLATE_Y : NXSubMeshEditorObjects::TRANSLATE_Z;
+		NXSubMeshEditorObjects* pSubMesh = new NXSubMeshEditorObjects(pMesh, objId);
 		for (int segIdx = 0; segIdx < 16; segIdx++)
 		{
 			float angleCurr = (float)(segIdx + 0) * fSegmentCircleInv * XM_2PI;
@@ -611,7 +615,8 @@ void NXSubMeshGeometryEditor::CreateSelectionArrows(NXPrimitive* pMesh)
 	for (int i = 0; i < 3; i++)
 	{
 		UINT currVertIdx = 0;
-		NXSubMeshEditorObjects* pSubMesh = new NXSubMeshEditorObjects(pMesh);
+		NXSubMeshEditorObjects::EditorObjectID objId = i == 0 ? NXSubMeshEditorObjects::TRANSLATE_XY : i == 1 ? NXSubMeshEditorObjects::TRANSLATE_XZ : NXSubMeshEditorObjects::TRANSLATE_YZ;
+		NXSubMeshEditorObjects* pSubMesh = new NXSubMeshEditorObjects(pMesh, objId);
 
 		Vector4 color(0.8f, 0.8f, 0.7f, 0.5f);
 		Vector3 p0, p1, p2, p3;

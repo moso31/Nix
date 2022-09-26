@@ -1,5 +1,6 @@
 #include "NXScene.h"
 #include "SceneManager.h"
+#include "NXEditorObjectManager.h"
 #include "NXSubMeshGeometryEditor.h"
 #include "GlobalBufferManager.h"
 #include "NXIntersection.h"
@@ -43,10 +44,11 @@ void NXScene::OnMouseDown(NXEventArgMouse eArg)
 		//printf("pos: %.3f, %.3f, %.3f; dir: %.3f, %.3f, %.3f\n", ray.position.x, ray.position.y, ray.position.z, ray.direction.x, ray.direction.y, ray.direction.z);
 		
 		NXHit editObjHit;
-		RayCastOfEditorObjects(ray, editObjHit);
+		m_pEditorObjManager->RayCast(ray, editObjHit);
 		if (editObjHit.pSubMesh)
 		{
-			int x = 0;
+			NXSubMeshEditorObjects* pHitSubmesh = (NXSubMeshEditorObjects*)editObjHit.pSubMesh;
+			NXSubMeshEditorObjects::EditorObjectID eSelectID = pHitSubmesh->GetEditorObjectID();
 		}
 		else
 		{
@@ -279,10 +281,7 @@ void NXScene::UpdateTransform(NXObject* pObject)
 
 void NXScene::UpdateTransformOfEditorObjects()
 {
-	for (auto pObj : m_editorObjs)
-	{
-		pObj->UpdateTransform();
-	}
+	m_pEditorObjManager->UpdateTransform();
 }
 
 void NXScene::UpdateScripts()
@@ -301,12 +300,6 @@ void NXScene::UpdateScripts()
 void NXScene::UpdateCamera()
 {
 	GetMainCamera()->Update();
-}
-
-void NXScene::UpdateEditorObjects()
-{
-	float dist = Vector3::Distance(GetMainCamera()->GetTranslation(), m_editorObjs[0]->GetTranslation());
-	m_editorObjs[0]->SetScale(Vector3(dist * 0.1f));
 }
 
 void NXScene::UpdateLightData()
@@ -345,13 +338,11 @@ void NXScene::UpdateLightData()
 
 void NXScene::Release()
 {
+	SafeRelease(m_pEditorObjManager);
 	for (auto pLight : m_pbrLights) SafeDelete(pLight);
 	for (auto pMat : m_materials) SafeRelease(pMat);
 	SafeRelease(m_pBVHTree);
 	SafeRelease(m_pRootObject);
-
-	// 【2022.9.20：editorObjs 和 m_objects 区分开的，使用独立的std::vector控制资源 加载/释放。暂定这么做】
-	for (auto pEditorObj : m_editorObjs) SafeRelease(pEditorObj);
 }
 
 void NXScene::SetCurrentPickingSubMesh(NXSubMeshBase* pPickingObject)
@@ -360,7 +351,7 @@ void NXScene::SetCurrentPickingSubMesh(NXSubMeshBase* pPickingObject)
 
 	NXPrimitive* pPickingPrimitive = pPickingObject->GetPrimitive();
 	if (pPickingPrimitive)
-		m_editorObjs[0]->SetTranslation(pPickingPrimitive->GetAABBWorld().Center);
+		m_pEditorObjManager->MoveTranslatorTo(pPickingPrimitive->GetAABBWorld().Center);
 }
 
 bool NXScene::RayCast(const Ray& ray, NXHit& outHitInfo, float tMax)
@@ -379,28 +370,14 @@ bool NXScene::RayCast(const Ray& ray, NXHit& outHitInfo, float tMax)
 		{
 			if (pMesh->RayCast(ray, outHitInfo, outDist))
 			{
-				// hit.
+				// success hit.
+				NXPrimitive* pHitMesh = pMesh->IsPrimitive();
+				if (pHitMesh)
+				{
+					m_selectedObjects.clear();
+					m_selectedObjects.push_back(pHitMesh);
+				}
 			}
-		}
-	}
-
-	if (!outHitInfo.pSubMesh)
-		return false;
-
-	outHitInfo.LocalToWorld();
-	return true;
-}
-
-bool NXScene::RayCastOfEditorObjects(const Ray& ray, NXHit& outHitInfo, float tMax)
-{
-	outHitInfo.Reset();
-	float outDist = tMax;
-
-	for (auto pMesh : m_editorObjs)
-	{
-		if (pMesh->RayCast(ray, outHitInfo, outDist))
-		{
-			// hit.
 		}
 	}
 
@@ -426,14 +403,12 @@ void NXScene::InitBoundingStructures()
 		AABB::CreateMerged(m_aabb, m_aabb, pMesh->GetAABBWorld());
 	}
 
-	// Editor Objects AABB
-	for (auto pMesh : m_editorObjs)
-	{
-		pMesh->InitAABB();
-		AABB::CreateMerged(m_aabb, m_aabb, pMesh->GetAABBWorld());
-	}
-
 	BoundingSphere::CreateFromBoundingBox(m_boundingSphere, m_aabb);
+}
+
+std::vector<NXPrimitive*> NXScene::GetEditableObjects()
+{
+	return m_pEditorObjManager->GetEditableObjects();
 }
 
 void NXScene::BuildBVHTrees(const HBVHSplitMode SplitMode)
@@ -443,10 +418,6 @@ void NXScene::BuildBVHTrees(const HBVHSplitMode SplitMode)
 
 void NXScene::InitEditorObjects()
 {
-	NXPrimitive* pObj = new NXPrimitive();
-	pObj->SetName("game_selection_arrows");
-	//pObj->SetVisible(false);	// SelectionArrows 默认不可见
-	NXSubMeshGeometryEditor::GetInstance()->CreateSelectionArrows(pObj);
-
-	m_editorObjs.push_back(pObj);
+	m_pEditorObjManager = new NXEditorObjectManager(this);
+	m_pEditorObjManager->Init();
 }

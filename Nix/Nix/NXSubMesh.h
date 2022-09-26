@@ -78,10 +78,26 @@ public:
 class NXSubMeshEditorObjects : public NXSubMesh<VertexEditorObjects>
 {
 	friend class NXSubMeshGeometryEditor;
+
 public:
-	NXSubMeshEditorObjects(NXPrimitive* pPrimitive) : NXSubMesh<VertexEditorObjects>(pPrimitive) {}
+	enum EditorObjectID
+	{
+		TRANSLATE_X,
+		TRANSLATE_Y,
+		TRANSLATE_Z,
+		TRANSLATE_XY,
+		TRANSLATE_XZ,
+		TRANSLATE_YZ
+	};
+
+	NXSubMeshEditorObjects(NXPrimitive* pPrimitive, EditorObjectID id) : NXSubMesh<VertexEditorObjects>(pPrimitive), m_editorObjID(id) {}
 	virtual ~NXSubMeshEditorObjects() {}
+
+	EditorObjectID GetEditorObjectID() { return m_editorObjID; }
 
 	void CalculateTangents(bool bUpdateVBIB = false) override {}
 	bool RayCastLocal(const Ray& localRay, NXHit& outHitInfo, float& outDist) override;
+
+private:
+	EditorObjectID m_editorObjID;
 };

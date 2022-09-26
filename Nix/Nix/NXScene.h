@@ -21,7 +21,6 @@ public:
 	void UpdateTransformOfEditorObjects();
 	void UpdateScripts();
 	void UpdateCamera();
-	void UpdateEditorObjects();
 	void UpdateLightData();
 	void Release();
 
@@ -32,7 +31,6 @@ public:
 	// RayCasts
 	HBVHTree* GetBVHTree() { return m_pBVHTree; }
 	bool RayCast(const Ray& ray, NXHit& out_hitInfo, float tMax = FLT_MAX);
-	bool RayCastOfEditorObjects(const Ray& ray, NXHit& out_hitInfo, float tMax = FLT_MAX);
 	BoundingSphere	GetBoundingSphere() { return m_boundingSphere; }
 	AABB GetAABB() { return m_aabb; }
 
@@ -42,7 +40,7 @@ public:
 	std::vector<NXPBRLight*> GetPBRLights() { return m_pbrLights; }
 	NXCubeMap* GetCubeMap() { return m_pCubeMap; }
 
-	std::vector<NXPrimitive*> GetEditableObjects() { return m_editorObjs; }
+	std::vector<NXPrimitive*> GetEditableObjects();
 
 	// 目前只对第一个光源创建Parallel ShadowMap。
 	//void InitShadowMapTransformInfo(ConstantBufferShadowMapTransform& out_cb);
@@ -81,8 +79,10 @@ private:
 	std::vector<NXMaterial*> m_materials;
 	std::vector<NXPBRLight*> m_pbrLights;
 
-	// 编辑器物体（=移动箭头，旋转轴 这类物体的Mesh）
-	std::vector<NXPrimitive*> m_editorObjs;
+	// 选中对象（2022.9.26 目前只支持单选！）
+	std::vector<NXPrimitive*> m_selectedObjects;
+
+	NXEditorObjectManager* m_pEditorObjManager;
 
 	NXCamera* m_pMainCamera;
 	NXCubeMap* m_pCubeMap;

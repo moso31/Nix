@@ -118,7 +118,6 @@ void Renderer::UpdateSceneData()
 
 	// 更新Camera的常量缓存数据（VP矩阵、眼睛位置）
 	m_scene->UpdateCamera();
-	m_scene->UpdateEditorObjects();
 
 	m_scene->UpdateLightData();
 

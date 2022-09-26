@@ -245,6 +245,7 @@
     <ClCompile Include="Core\ShaderComplier.cpp" />
     <ClCompile Include="Nix\HBVH.cpp" />
     <ClCompile Include="Nix\NXDepthPrepass.cpp" />
+    <ClCompile Include="Nix\NXEditorObjectManager.cpp" />
     <ClCompile Include="Nix\NXIntersection.cpp" />
     <ClCompile Include="Nix\NXKdTree.cpp" />
     <ClCompile Include="Nix\NXCubeMap.cpp" />
@@ -307,6 +308,7 @@
     <ClInclude Include="Core\ShaderStructures.h" />
     <ClInclude Include="Nix\HBVH.h" />
     <ClInclude Include="Nix\NXDepthPrepass.h" />
+    <ClInclude Include="Nix\NXEditorObjectManager.h" />
     <ClInclude Include="Nix\NXIntersection.h" />
     <ClInclude Include="Nix\NXKdTree.h" />
     <ClInclude Include="Nix\NXCubeMap.h" />

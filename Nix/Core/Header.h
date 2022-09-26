@@ -71,8 +71,12 @@ class NXResourceManager;
 class NXTexture2D;
 class NXTexture2DArray;
 
+// scene
 class NXScene;
 class SceneManager;
+class NXEditorObjectManager;
+
+// objects, submeshes
 class NXObject;
 class NXTransform;
 class NXRenderableObject;
