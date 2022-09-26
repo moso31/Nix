@@ -13,7 +13,14 @@ public:
 	~NXScene();
 
 	void OnMouseDown(NXEventArgMouse eArg);
+	void OnMouseMove(NXEventArgMouse eArg);
+	void OnMouseUp(NXEventArgMouse eArg);
 	void OnKeyDown(NXEventArgKey eArg);
+
+private:
+	UINT m_bEditorSelectID;
+
+public:
 
 	void Init();
 	void InitScripts();

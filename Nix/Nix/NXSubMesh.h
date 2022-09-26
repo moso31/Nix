@@ -82,12 +82,14 @@ class NXSubMeshEditorObjects : public NXSubMesh<VertexEditorObjects>
 public:
 	enum EditorObjectID
 	{
+		NONE,
 		TRANSLATE_X,
 		TRANSLATE_Y,
 		TRANSLATE_Z,
 		TRANSLATE_XY,
 		TRANSLATE_XZ,
-		TRANSLATE_YZ
+		TRANSLATE_YZ,
+		MAX
 	};
 
 	NXSubMeshEditorObjects(NXPrimitive* pPrimitive, EditorObjectID id) : NXSubMesh<VertexEditorObjects>(pPrimitive), m_editorObjID(id) {}

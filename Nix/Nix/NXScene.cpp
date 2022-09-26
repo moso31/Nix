@@ -26,7 +26,8 @@ NXScene::NXScene() :
 	m_pRootObject(new NXObject()),
 	m_pBVHTree(nullptr),
 	m_pCubeMap(nullptr),
-	m_pMainCamera(nullptr)
+	m_pMainCamera(nullptr),
+	m_bEditorSelectID(0)
 {
 	m_type = NXType::eScene;
 }
@@ -48,7 +49,7 @@ void NXScene::OnMouseDown(NXEventArgMouse eArg)
 		if (editObjHit.pSubMesh)
 		{
 			NXSubMeshEditorObjects* pHitSubmesh = (NXSubMeshEditorObjects*)editObjHit.pSubMesh;
-			NXSubMeshEditorObjects::EditorObjectID eSelectID = pHitSubmesh->GetEditorObjectID();
+			m_bEditorSelectID = pHitSubmesh->GetEditorObjectID();
 		}
 		else
 		{
@@ -59,6 +60,26 @@ void NXScene::OnMouseDown(NXEventArgMouse eArg)
 				SetCurrentPickingSubMesh(hit.pSubMesh);
 			}
 		}
+	}
+}
+
+void NXScene::OnMouseMove(NXEventArgMouse eArg)
+{
+	if (m_bEditorSelectID > NXSubMeshEditorObjects::EditorObjectID::NONE && 
+		m_bEditorSelectID < NXSubMeshEditorObjects::EditorObjectID::MAX) 
+	{
+		// SelectionArrow/RotateRing/Scale ÍÏ¶¯ÖÐ
+
+		auto ray = GetMainCamera()->GenerateRay(Vector2(eArg.X + 0.5f, eArg.Y + 0.5f));
+		printf("%d", m_bEditorSelectID);
+	}
+}
+
+void NXScene::OnMouseUp(NXEventArgMouse eArg)
+{
+	if (eArg.VMouse & 1) // Êó±ê×ó¼ü
+	{
+		m_bEditorSelectID = NXSubMeshEditorObjects::EditorObjectID::NONE;
 	}
 }
 
@@ -255,7 +276,9 @@ void NXScene::InitScripts()
 	NXEventMouseUp::GetInstance()->AddListener(std::bind(&NSFirstPersonalCamera::OnMouseUp, pScript, std::placeholders::_1));
 
 	NXEventKeyDown::GetInstance()->AddListener(std::bind(&NXScene::OnKeyDown, this, std::placeholders::_1));
+	NXEventMouseMove::GetInstance()->AddListener(std::bind(&NXScene::OnMouseMove, this, std::placeholders::_1));
 	NXEventMouseDown::GetInstance()->AddListener(std::bind(&NXScene::OnMouseDown, this, std::placeholders::_1));
+	NXEventMouseUp::GetInstance()->AddListener(std::bind(&NXScene::OnMouseUp, this, std::placeholders::_1));
 }
 
 void NXScene::UpdateTransform(NXObject* pObject)
