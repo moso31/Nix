@@ -70,20 +70,38 @@ void NXScene::OnMouseMove(NXEventArgMouse eArg)
 	if (m_bEditorSelectID > NXSubMeshEditorObjects::EditorObjectID::NONE && 
 		m_bEditorSelectID < NXSubMeshEditorObjects::EditorObjectID::MAX) 
 	{
-		// SelectionArrow/RotateRing/Scale 拖动中
-
+		// 进入这里说明正在拖动 SelectionArrow/RotateRing/ScaleBoxes
 		auto ray = GetMainCamera()->GenerateRay(Vector2(eArg.X + 0.5f, eArg.Y + 0.5f));
-		//printf("%d", m_bEditorSelectID);
-
 		switch (m_bEditorSelectID)
 		{
 		case NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_X:
+		case NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_Y:
+		case NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_Z:
 			for (auto pSelectObjs : m_selectedObjects)
 			{
-				Vector3 pos = pSelectObjs->GetTranslation();
-				pos.x += (eArg.LastX + eArg.LastY) * 0.001f;
-				pSelectObjs->SetTranslation(pos);
+				Vector3 worldAxis = m_bEditorSelectID == NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_X ? Vector3(1.0f, 0.0f, 0.0f) :
+					m_bEditorSelectID == NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_Y ? Vector3(0.0f, 1.0f, 0.0f) : Vector3(0.0f, 0.0f, 1.0f);
+				Ray line(pSelectObjs->GetTranslation(), worldAxis);
+				Vector3 castPos = CastRayToEditorLine(ray, line);
+				pSelectObjs->SetTranslation(castPos);
 				m_pEditorObjManager->MoveTranslatorTo(pSelectObjs->GetAABBWorld().Center);
+			}
+			break;
+		case NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_XY:
+		case NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_XZ:
+		case NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_YZ:
+			for (auto pSelectObjs : m_selectedObjects)
+			{
+				Vector3 worldNormal = m_bEditorSelectID == NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_YZ ? Vector3(1.0f, 0.0f, 0.0f) :
+					m_bEditorSelectID == NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_XZ ? Vector3(0.0f, 1.0f, 0.0f) : Vector3(0.0f, 0.0f, 1.0f);
+				Plane plane(pSelectObjs->GetTranslation(), worldNormal);
+				float dist;
+				if (ray.Intersects(plane, dist))
+				{
+					Vector3 castPos = ray.position + ray.direction * dist;
+					pSelectObjs->SetTranslation(castPos);
+					m_pEditorObjManager->MoveTranslatorTo(pSelectObjs->GetAABBWorld().Center);
+				}
 			}
 			break;
 		default:
@@ -132,6 +150,42 @@ void NXScene::OnKeyDown(NXEventArgKey eArg)
 	//		printf("done.\n");
 	//	}
 	//}
+}
+
+Vector3 NXScene::CastRayToEditorLine(const Ray& ray, const Ray& line) const
+{
+	// 求当前直线line离射线的最近点。
+	// 思路是让射线和直线叉积，然后利用 射线+叉积向量=直线上最近点的思路，列出三个向量（射线、叉积向量、直线），再高斯消元求解。
+	Vector3 p1 = ray.position;
+	Vector3 d1 = ray.direction;
+	Vector3 p2 = line.position;
+	Vector3 d2 = line.direction;
+	Vector3 d3 = d1.Cross(d2);
+	Vector3 v = p2 - p1;
+
+	// 此时有
+	// [ d1.x -d2.x d3.x ] [ a ] [ p2.x - p1.x ]
+	// [ d1.y -d2.y d3.y ] [ b ] [ p2.y - p1.y ]
+	// [ d1.z -d2.z d3.z ] [ c ] [ p2.z - p1.z ]
+	// 可记作增广矩阵 (这里把 b行 移到了下面)
+	// [ d1.x d3.x -d2.x | v.x ]
+	// [ d1.y d3.y -d2.y | v.y ]
+	// [ d1.z d3.z -d2.z | v.z ]
+	Vector4 f1(d1.x, d3.x, -d2.x, v.x);
+	Vector4 f2(d1.y, d3.y, -d2.y, v.y);
+	Vector4 f3(d1.z, d3.z, -d2.z, v.z);
+	// 然后高斯消元把上面这个矩阵撅了就行（悲）
+	// 第一轮消元
+	float invf1x = 1.0f / f1.x;
+	f2 -= f1 * (f2.x * invf1x);
+	f3 -= f1 * (f3.x * invf1x);
+	// 第二轮消元
+	f3 -= f2 * (f3.y / f2.y);
+
+	// 于是 f3.w / f3.z = b
+	// p2 + b * d2 即为直线(p2d2)离射线的最近点。
+	Vector3 nearestPoint = p2 + d2 * (f3.w / f3.z);
+	return nearestPoint;
 }
 
 void NXScene::Init()

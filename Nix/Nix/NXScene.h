@@ -18,6 +18,7 @@ public:
 	void OnKeyDown(NXEventArgKey eArg);
 
 private:
+	Vector3 CastRayToEditorLine(const Ray& ray, const Ray& line) const;
 	UINT m_bEditorSelectID;
 
 public:
