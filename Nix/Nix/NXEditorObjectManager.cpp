@@ -49,14 +49,14 @@ void NXEditorObjectManager::Release()
 	for (auto pEditorObj : m_editorObjs) SafeRelease(pEditorObj);
 }
 
-bool NXEditorObjectManager::RayCast(const Ray& ray, NXHit& outHitInfo, float tMax)
+bool NXEditorObjectManager::RayCast(const Ray& worldRay, NXHit& outHitInfo, float tMax)
 {
 	outHitInfo.Reset();
 	float outDist = tMax;
 
 	for (auto pMesh : m_editorObjs)
 	{
-		if (pMesh->RayCast(ray, outHitInfo, outDist))
+		if (pMesh->RayCast(worldRay, outHitInfo, outDist))
 		{
 			// hit.
 		}
@@ -65,7 +65,7 @@ bool NXEditorObjectManager::RayCast(const Ray& ray, NXHit& outHitInfo, float tMa
 	if (!outHitInfo.pSubMesh)
 		return false;
 
-	outHitInfo.LocalToWorld();
+	//outHitInfo.LocalToWorld();
 	return true;
 }
 

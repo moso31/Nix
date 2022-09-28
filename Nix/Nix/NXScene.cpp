@@ -27,7 +27,8 @@ NXScene::NXScene() :
 	m_pBVHTree(nullptr),
 	m_pCubeMap(nullptr),
 	m_pMainCamera(nullptr),
-	m_bEditorSelectID(0)
+	m_bEditorSelectID(0),
+	m_editorHitOffset(0.0f)
 {
 	m_type = NXType::eScene;
 }
@@ -50,6 +51,42 @@ void NXScene::OnMouseDown(NXEventArgMouse eArg)
 		{
 			NXSubMeshEditorObjects* pHitSubmesh = (NXSubMeshEditorObjects*)editObjHit.pSubMesh;
 			m_bEditorSelectID = pHitSubmesh->GetEditorObjectID();
+			
+			if (!m_selectedObjects.empty())
+			{
+				if (m_bEditorSelectID >= NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_X &&
+					m_bEditorSelectID <= NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_Z)
+				{
+					for (auto pSelectObjs : m_selectedObjects)
+					{
+						Vector3 worldAxis = m_bEditorSelectID == NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_X ? Vector3(1.0f, 0.0f, 0.0f) :
+							m_bEditorSelectID == NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_Y ? Vector3(0.0f, 1.0f, 0.0f) : Vector3(0.0f, 0.0f, 1.0f);
+						Ray line(pSelectObjs->GetTranslation(), worldAxis);
+						Vector3 castPos = CastRayToEditorLine(ray, line);
+
+						Vector3 g = m_selectedObjects[0]->GetWorldTranslation();
+						m_editorHitOffset = castPos - g;
+					}
+				}
+				else if (m_bEditorSelectID >= NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_XY &&
+					m_bEditorSelectID <= NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_YZ)
+				{
+					for (auto pSelectObjs : m_selectedObjects)
+					{
+						Vector3 worldNormal = m_bEditorSelectID == NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_YZ ? Vector3(1.0f, 0.0f, 0.0f) :
+							m_bEditorSelectID == NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_XZ ? Vector3(0.0f, 1.0f, 0.0f) : Vector3(0.0f, 0.0f, 1.0f);
+						Plane plane(pSelectObjs->GetTranslation(), worldNormal);
+						float dist;
+						if (ray.Intersects(plane, dist))
+						{
+							Vector3 castPos = ray.position + ray.direction * dist;
+
+							Vector3 g = m_selectedObjects[0]->GetWorldTranslation();
+							m_editorHitOffset = castPos - g;
+						}
+					}
+				}
+			}
 		}
 		else
 		{
@@ -83,7 +120,7 @@ void NXScene::OnMouseMove(NXEventArgMouse eArg)
 					m_bEditorSelectID == NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_Y ? Vector3(0.0f, 1.0f, 0.0f) : Vector3(0.0f, 0.0f, 1.0f);
 				Ray line(pSelectObjs->GetTranslation(), worldAxis);
 				Vector3 castPos = CastRayToEditorLine(ray, line);
-				pSelectObjs->SetTranslation(castPos);
+				pSelectObjs->SetTranslation(castPos - m_editorHitOffset);
 				m_pEditorObjManager->MoveTranslatorTo(pSelectObjs->GetAABBWorld().Center);
 			}
 			break;
@@ -99,7 +136,7 @@ void NXScene::OnMouseMove(NXEventArgMouse eArg)
 				if (ray.Intersects(plane, dist))
 				{
 					Vector3 castPos = ray.position + ray.direction * dist;
-					pSelectObjs->SetTranslation(castPos);
+					pSelectObjs->SetTranslation(castPos - m_editorHitOffset);
 					m_pEditorObjManager->MoveTranslatorTo(pSelectObjs->GetAABBWorld().Center);
 				}
 			}

@@ -20,6 +20,7 @@ public:
 private:
 	Vector3 CastRayToEditorLine(const Ray& ray, const Ray& line) const;
 	UINT m_bEditorSelectID;
+	Vector3 m_editorHitOffset;
 
 public:
 

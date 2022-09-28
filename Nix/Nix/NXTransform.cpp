@@ -81,3 +81,8 @@ void NXTransform::UpdateTransform()
 	m_worldMatrix = result;
 	m_worldMatrixInv = result.Invert();
 }
+
+Vector3 NXTransform::GetWorldTranslation()
+{
+	return Vector3(m_worldMatrix._41, m_worldMatrix._42, m_worldMatrix._43); 
+}
