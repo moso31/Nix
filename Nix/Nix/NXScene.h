@@ -18,6 +18,8 @@ public:
 	void OnKeyDown(NXEventArgKey eArg);
 
 private:
+	// 计算射线和EditorObject上的锚点。平移、旋转、缩放等操作都依赖这个锚点。
+	Vector3 GetAnchorPosOfEditorObject(const Ray& worldRay);
 	Vector3 CastRayToEditorLine(const Ray& ray, const Ray& line) const;
 	UINT m_bEditorSelectID;
 	Vector3 m_editorHitOffset;
