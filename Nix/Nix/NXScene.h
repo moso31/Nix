@@ -19,8 +19,9 @@ public:
 
 private:
 	// 计算射线和EditorObject上的锚点。平移、旋转、缩放等操作都依赖这个锚点。
-	Vector3 GetAnchorPosOfEditorObject(const Ray& worldRay);
-	Vector3 CastRayToEditorLine(const Ray& ray, const Ray& line) const;
+	Vector3 GetAnchorOfEditorObject(const Ray& worldRay);
+	Vector3 GetAnchorOfEditorTranslatorLine(const Ray& ray, const Ray& line) const;
+	Vector3 GetAnchorOfEditorTranslatorPlane(const Ray& ray, const Plane& plane) const;
 	UINT m_bEditorSelectID;
 	Vector3 m_editorHitOffset;
 

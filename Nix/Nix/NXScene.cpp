@@ -52,8 +52,11 @@ void NXScene::OnMouseDown(NXEventArgMouse eArg)
 			NXSubMeshEditorObjects* pHitSubmesh = (NXSubMeshEditorObjects*)editObjHit.pSubMesh;
 			m_bEditorSelectID = pHitSubmesh->GetEditorObjectID();
 
-			Vector3 castPos = GetAnchorPosOfEditorObject(ray);
-			m_editorHitOffset = castPos - m_selectedObjects[0]->GetWorldTranslation();
+			if (!m_selectedObjects.empty())
+			{
+				Vector3 castPos = GetAnchorOfEditorObject(ray);
+				m_editorHitOffset = castPos - m_selectedObjects[0]->GetWorldTranslation();
+			}
 		}
 		else
 		{
@@ -75,15 +78,18 @@ void NXScene::OnMouseMove(NXEventArgMouse eArg)
 		m_bEditorSelectID < NXSubMeshEditorObjects::EditorObjectID::MAX) 
 	{
 		// 进入这里说明正在拖动 SelectionArrow/RotateRing/ScaleBoxes
-		auto ray = GetMainCamera()->GenerateRay(Vector2(eArg.X + 0.5f, eArg.Y + 0.5f));
+		auto worldRay = GetMainCamera()->GenerateRay(Vector2(eArg.X + 0.5f, eArg.Y + 0.5f));
 
-		Vector3 anchorPos = GetAnchorPosOfEditorObject(ray);
+		Vector3 anchorPos = GetAnchorOfEditorObject(worldRay);
 
 		// 【2022.9.28 目前只支持单选。将来改】
-		auto pSelectObjs = m_selectedObjects[0];
+		if (!m_selectedObjects.empty())
+		{
+			auto pSelectObjs = m_selectedObjects[0];
 
-		pSelectObjs->SetTranslation(anchorPos - m_editorHitOffset);
-		m_pEditorObjManager->MoveTranslatorTo(pSelectObjs->GetAABBWorld().Center);
+			pSelectObjs->SetTranslation(anchorPos - m_editorHitOffset);
+			m_pEditorObjManager->MoveTranslatorTo(pSelectObjs->GetAABBWorld().Center);
+		}
 	}
 }
 
@@ -129,7 +135,7 @@ void NXScene::OnKeyDown(NXEventArgKey eArg)
 	//}
 }
 
-Vector3 NXScene::GetAnchorPosOfEditorObject(const Ray& worldRay)
+Vector3 NXScene::GetAnchorOfEditorObject(const Ray& worldRay)
 {
 	if (m_selectedObjects.empty()) 
 		return Vector3(0.0f);
@@ -142,8 +148,8 @@ Vector3 NXScene::GetAnchorPosOfEditorObject(const Ray& worldRay)
 	{
 		Vector3 worldAxis = m_bEditorSelectID == NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_X ? Vector3(1.0f, 0.0f, 0.0f) :
 			m_bEditorSelectID == NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_Y ? Vector3(0.0f, 1.0f, 0.0f) : Vector3(0.0f, 0.0f, 1.0f);
-		Ray line(pSelectObjs->GetTranslation(), worldAxis);
-		return CastRayToEditorLine(worldRay, line);
+		Ray line(pSelectObjs->GetWorldTranslation(), worldAxis);
+		return GetAnchorOfEditorTranslatorLine(worldRay, line);
 	}
 
 	if (m_bEditorSelectID >= NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_XY &&
@@ -151,16 +157,14 @@ Vector3 NXScene::GetAnchorPosOfEditorObject(const Ray& worldRay)
 	{
 		Vector3 worldNormal = m_bEditorSelectID == NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_YZ ? Vector3(1.0f, 0.0f, 0.0f) :
 			m_bEditorSelectID == NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_XZ ? Vector3(0.0f, 1.0f, 0.0f) : Vector3(0.0f, 0.0f, 1.0f);
-		Plane plane(pSelectObjs->GetTranslation(), worldNormal);
-		float dist;
-		if (worldRay.Intersects(plane, dist))
-			return worldRay.position + worldRay.direction * dist;
+		Plane plane(pSelectObjs->GetWorldTranslation(), worldNormal);
+		return GetAnchorOfEditorTranslatorPlane(worldRay, plane);
 	}
 
 	return Vector3(0.0f);
 }
 
-Vector3 NXScene::CastRayToEditorLine(const Ray& ray, const Ray& line) const
+Vector3 NXScene::GetAnchorOfEditorTranslatorLine(const Ray& ray, const Ray& line) const
 {
 	// 求当前直线line离射线的最近点。
 	// 思路是让射线和直线叉积，然后利用 射线+叉积向量=直线上最近点的思路，列出三个向量（射线、叉积向量、直线），再高斯消元求解。
@@ -194,6 +198,14 @@ Vector3 NXScene::CastRayToEditorLine(const Ray& ray, const Ray& line) const
 	// p2 + b * d2 即为直线(p2d2)离射线的最近点。
 	Vector3 nearestPoint = p2 + d2 * (f3.w / f3.z);
 	return nearestPoint;
+}
+
+Vector3 NXScene::GetAnchorOfEditorTranslatorPlane(const Ray& ray, const Plane& plane) const
+{
+	float dist;
+	if (ray.Intersects(plane, dist))
+		return ray.position + ray.direction * dist;
+	return Vector3();
 }
 
 void NXScene::Init()
@@ -274,7 +286,8 @@ void NXScene::Init()
 	//SceneManager::GetInstance()->BindMaterial(pMeshes[0]->GetSubMesh(0), pPBRMat[0]);
 
 	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\boxes.fbx", false);
-	NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\shadowMapTest.fbx", false);
+	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\shadowMapTest.fbx", false);
+	NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\EditorObjTest.fbx", false);
 	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\testScene.fbx", false);
 	//p->SetScale(Vector3(0.1f));
 	SceneManager::GetInstance()->BindMaterial(p, pPBRMat[0]);
