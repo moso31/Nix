@@ -100,35 +100,46 @@ void NXRenderableObject::InitAABB()
 
 void NXRenderableObject::UpdateTransform()
 {
-	Matrix geoMatrix = Matrix::CreateScale(m_geoScale) *
+	m_geoMatrix = Matrix::CreateScale(m_geoScale) *
 		Matrix::CreateFromZXY(m_geoRotation) *
 		Matrix::CreateTranslation(m_geoTranslation);
 
-	Matrix result = Matrix::CreateScale(m_scale) *
+	m_localMatrix = Matrix::CreateScale(m_scale) *
 		Matrix::CreateFromZXY(m_eulerAngle) *
 		Matrix::CreateTranslation(m_translation);
 
-	m_localMatrix = result;
-
-	m_transformWorldMatrix = result;
-
-	auto pParent = GetParent();
-	if (pParent && pParent->IsTransform())
-	{
-		if (pParent->IsRenderableObject())
-		{
-			NXRenderableObject* pRenObj = static_cast<NXRenderableObject*>(pParent);
-			m_transformWorldMatrix *= pRenObj->m_transformWorldMatrix;
-		}
-		else
-		{
-			NXTransform* pTransform = static_cast<NXTransform*>(pParent);
-			m_transformWorldMatrix *= pTransform->GetWorldMatrix();
-		}
-	}
-
+	m_transformWorldMatrix = m_localMatrix * GetParentTransformWorldMatrix();
 	m_transformWorldMatrixInv = m_transformWorldMatrix.Invert();
 
-	m_worldMatrix = geoMatrix * m_transformWorldMatrix;
+	m_worldMatrix = m_geoMatrix * m_transformWorldMatrix;
 	m_worldMatrixInv = m_worldMatrix.Invert();
+}
+
+void NXRenderableObject::SetWorldTranslation(const Vector3& value)
+{
+	m_worldMatrix._41 = value.x;
+	m_worldMatrix._42 = value.y;
+	m_worldMatrix._43 = value.z;
+
+	m_worldMatrixInv = m_worldMatrix.Invert();
+
+	NXTransform* pParent = GetParent()->IsTransform();
+	m_localMatrix = pParent ? m_worldMatrix * pParent->GetWorldMatrixInv() : m_worldMatrix;
+
+	m_transformWorldMatrix = m_localMatrix * GetParentTransformWorldMatrix();
+
+	m_translation = Vector3((m_geoMatrix.Invert() * m_localMatrix).m[3]);
+}
+
+Matrix NXRenderableObject::GetParentTransformWorldMatrix() 
+{
+	auto pParent = GetParent();
+	if (pParent)
+	{
+		if (pParent->IsRenderableObject())
+			return pParent->IsRenderableObject()->m_transformWorldMatrix;
+		if (pParent->IsTransform())
+			return pParent->IsTransform()->GetWorldMatrix();
+	}
+	return Matrix();
 }

@@ -74,15 +74,27 @@ void NXTransform::UpdateTransform()
 
 	m_localMatrix = result;
 
-	NXTransform* pTransform = dynamic_cast<NXTransform*>(GetParent());
+	NXTransform* pTransform = GetParent()->IsTransform();
 	if (pTransform)
 		result *= pTransform->GetWorldMatrix();
 	
 	m_worldMatrix = result;
-	m_worldMatrixInv = result.Invert();
+	m_worldMatrixInv = m_worldMatrix.Invert();
 }
 
 Vector3 NXTransform::GetWorldTranslation()
 {
 	return Vector3(m_worldMatrix._41, m_worldMatrix._42, m_worldMatrix._43); 
+}
+
+void NXTransform::SetWorldTranslation(const Vector3& value)
+{
+	m_worldMatrix._41 = value.x;
+	m_worldMatrix._42 = value.y;
+	m_worldMatrix._43 = value.z;
+
+	m_worldMatrixInv = m_worldMatrix.Invert();
+
+	NXTransform* pParent = GetParent()->IsTransform();
+	m_localMatrix = pParent ? m_worldMatrix * pParent->GetWorldMatrixInv() : m_worldMatrix;
 }

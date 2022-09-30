@@ -54,8 +54,8 @@ void NXScene::OnMouseDown(NXEventArgMouse eArg)
 
 			if (!m_selectedObjects.empty())
 			{
-				Vector3 castPos = GetAnchorOfEditorObject(ray);
-				m_editorHitOffset = castPos - m_selectedObjects[0]->GetWorldTranslation();
+				Vector3 anchorPos = GetAnchorOfEditorObject(ray);
+				m_editorHitOffset = anchorPos - m_selectedObjects[0]->GetWorldTranslation();
 			}
 		}
 		else
@@ -87,7 +87,8 @@ void NXScene::OnMouseMove(NXEventArgMouse eArg)
 		{
 			auto pSelectObjs = m_selectedObjects[0];
 
-			pSelectObjs->SetTranslation(anchorPos - m_editorHitOffset);
+			Vector3 targetPosWS = anchorPos - m_editorHitOffset;
+			pSelectObjs->SetWorldTranslation(targetPosWS);
 			m_pEditorObjManager->MoveTranslatorTo(pSelectObjs->GetAABBWorld().Center);
 		}
 	}
@@ -288,6 +289,7 @@ void NXScene::Init()
 	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\boxes.fbx", false);
 	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\shadowMapTest.fbx", false);
 	NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\EditorObjTest.fbx", false);
+	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\textbox3.fbx", false);
 	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\testScene.fbx", false);
 	//p->SetScale(Vector3(0.1f));
 	SceneManager::GetInstance()->BindMaterial(p, pPBRMat[0]);
@@ -383,7 +385,7 @@ void NXScene::UpdateTransform(NXObject* pObject)
 	}
 	else
 	{
-		NXTransform* pT = dynamic_cast<NXTransform*>(pObject);
+		NXTransform* pT = pObject->IsTransform();
 		if (pT) pT->UpdateTransform();
 
 		auto ch = pObject->GetChilds();

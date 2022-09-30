@@ -10,6 +10,8 @@ public:
 	virtual NXTransform* IsTransform() override { return this; }
 
 	virtual Vector3 GetWorldTranslation();
+	virtual void SetWorldTranslation(const Vector3& value);
+
 	virtual Vector3 GetTranslation();
 	virtual Vector3 GetRotation();
 	virtual Vector3 GetScale();
