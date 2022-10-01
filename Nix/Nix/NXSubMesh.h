@@ -3,6 +3,18 @@
 #include "NXPBRMaterial.h"
 #include "NXIntersection.h"
 
+enum EditorObjectID
+{
+	NONE,
+	TRANSLATE_X,
+	TRANSLATE_Y,
+	TRANSLATE_Z,
+	TRANSLATE_XY,
+	TRANSLATE_XZ,
+	TRANSLATE_YZ,
+	MAX
+};
+
 class NXPrimitive;
 class NXSubMeshBase
 {
@@ -28,6 +40,9 @@ public:
 
 	virtual void CalcLocalAABB() = 0;
 	AABB GetLocalAABB() { return m_localAABB; }
+
+	virtual bool IsSubMeshStandard()		{ return false; }
+	virtual bool IsSubMeshEditorObject()	{ return false; }
 
 protected:
 	NXPrimitive* m_pPrimitive;
@@ -72,6 +87,8 @@ public:
 	NXSubMeshStandard(NXPrimitive* pPrimitive) : NXSubMesh<VertexPNTT>(pPrimitive) {}
 	virtual ~NXSubMeshStandard() {}
 
+	virtual bool IsSubMeshStandard()	 override { return true; }
+
 	void CalculateTangents(bool bUpdateVBIB = false) override;
 };
 
@@ -80,20 +97,10 @@ class NXSubMeshEditorObjects : public NXSubMesh<VertexEditorObjects>
 	friend class NXSubMeshGeometryEditor;
 
 public:
-	enum EditorObjectID
-	{
-		NONE,
-		TRANSLATE_X,
-		TRANSLATE_Y,
-		TRANSLATE_Z,
-		TRANSLATE_XY,
-		TRANSLATE_XZ,
-		TRANSLATE_YZ,
-		MAX
-	};
-
 	NXSubMeshEditorObjects(NXPrimitive* pPrimitive, EditorObjectID id) : NXSubMesh<VertexEditorObjects>(pPrimitive), m_editorObjID(id) {}
 	virtual ~NXSubMeshEditorObjects() {}
+
+	virtual bool IsSubMeshEditorObject() override { return true; }
 
 	EditorObjectID GetEditorObjectID() { return m_editorObjID; }
 

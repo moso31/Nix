@@ -1,5 +1,12 @@
 #include "Common.fx"
 
+cbuffer CBufferParams : register(b1)
+{
+	float4 param0;
+}
+
+#define EditorObject_IsHighLight param0.x
+
 struct VS_INPUT
 {
 	float4 pos : POSITION;
@@ -28,5 +35,6 @@ PS_INPUT VS(VS_INPUT input)
 
 float4 PS(PS_INPUT input) : SV_Target
 {
+	if (EditorObject_IsHighLight) return float4(1.0f, 1.0f, 0.3f, 0.8f);
 	return input.color;
 }

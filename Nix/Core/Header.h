@@ -76,7 +76,7 @@ class NXScene;
 class SceneManager;
 class NXEditorObjectManager;
 
-// objects, submeshes
+// objects
 class NXObject;
 class NXTransform;
 class NXRenderableObject;
@@ -84,7 +84,9 @@ class NXPrimitive;
 class NXPrefab;
 class NXCamera;
 class NXCubeMap;
+// submeshes
 class NXSubMeshBase;
+enum EditorObjectID;
 
 class NXMaterial;
 class NXPBRMaterialBase;

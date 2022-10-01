@@ -6,6 +6,11 @@ class NXColorMappingRenderer;
 
 class NXEditorObjectRenderer
 {
+	struct CBufferParams_Internal
+	{
+		Vector4 params; // x : selected. 
+	};
+
 public:
 	NXEditorObjectRenderer(NXScene* pScene);
 	~NXEditorObjectRenderer();
@@ -29,6 +34,9 @@ private:
 	ComPtr<ID3D11DepthStencilState>		m_pDepthStencilState;
 	ComPtr<ID3D11RasterizerState>		m_pRasterizerState;
 	ComPtr<ID3D11BlendState>			m_pBlendState;
+
+	ComPtr<ID3D11Buffer>				m_cbParams;
+	CBufferParams_Internal				m_cbDataParams;
 
 	NXScene*							m_pScene;
 	NXRenderTarget*						m_pRTQuad;

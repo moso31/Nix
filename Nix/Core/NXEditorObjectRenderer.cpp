@@ -7,6 +7,7 @@
 #include "NXResourceManager.h"
 #include "DirectResources.h"
 #include "NXPrimitive.h"
+#include "NXEditorObjectManager.h"
 
 NXEditorObjectRenderer::NXEditorObjectRenderer(NXScene* pScene) :
 	m_pScene(pScene),
@@ -34,6 +35,14 @@ void NXEditorObjectRenderer::Init()
 	m_pDepthStencilState = NXDepthStencilState<false, false, D3D11_COMPARISON_LESS>::Create();
 	m_pRasterizerState = NXRasterizerState<D3D11_FILL_SOLID, D3D11_CULL_NONE>::Create();
 	m_pBlendState = NXBlendState<false, false, true, D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA, D3D11_BLEND_OP_ADD>::Create();
+
+	D3D11_BUFFER_DESC bufferDesc;
+	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = sizeof(CBufferParams_Internal);
+	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbParams));
 }
 
 void NXEditorObjectRenderer::Render()
@@ -52,20 +61,33 @@ void NXEditorObjectRenderer::Render()
 	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
 
 	g_pContext->VSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
-	g_pContext->PSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
 
-	for (auto pEditObj : m_pScene->GetEditableObjects())
+	NXEditorObjectManager* pEditorObjManager = m_pScene->GetEditorObjManager();
+	for (auto pEditObj : pEditorObjManager->GetEditableObjects())
 	{
 		if (pEditObj->GetVisible()) // if bIsVisible
 		{
 			for (UINT i = 0; i < pEditObj->GetSubMeshCount(); i++)
 			{
 				auto pSubMesh = pEditObj->GetSubMesh(i);
-				pSubMesh->UpdateViewParams();
-				g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
+				if (pSubMesh->IsSubMeshEditorObject())
+				{
+					NXSubMeshEditorObjects* pSubMeshEditorObj = (NXSubMeshEditorObjects*)pSubMesh;
 
-				pSubMesh->Update();
-				pSubMesh->Render();
+					// 判断当前SubMesh是否高亮显示
+					{
+						bool bIsHighLight = pSubMeshEditorObj->GetEditorObjectID() == m_pScene->GetEditorObjManager()->GetHighLightID();
+						m_cbDataParams.params.x = bIsHighLight ? 1.0f : 0.0f;
+						g_pContext->UpdateSubresource(m_cbParams.Get(), 0, nullptr, &m_cbDataParams, 0, 0);
+						g_pContext->PSSetConstantBuffers(1, 1, m_cbParams.GetAddressOf());
+					}
+
+					pSubMeshEditorObj->UpdateViewParams();
+					g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
+
+					pSubMeshEditorObj->Update();
+					pSubMeshEditorObj->Render();
+				}
 			}
 		}
 	}

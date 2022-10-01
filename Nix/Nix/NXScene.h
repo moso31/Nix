@@ -22,7 +22,7 @@ private:
 	Vector3 GetAnchorOfEditorObject(const Ray& worldRay);
 	Vector3 GetAnchorOfEditorTranslatorLine(const Ray& ray, const Ray& line) const;
 	Vector3 GetAnchorOfEditorTranslatorPlane(const Ray& ray, const Plane& plane) const;
-	UINT m_bEditorSelectID;
+	EditorObjectID m_bEditorSelectID;
 	Vector3 m_editorHitOffset;
 
 public:
@@ -52,7 +52,7 @@ public:
 	std::vector<NXPBRLight*> GetPBRLights() { return m_pbrLights; }
 	NXCubeMap* GetCubeMap() { return m_pCubeMap; }
 
-	std::vector<NXPrimitive*> GetEditableObjects();
+	NXEditorObjectManager* GetEditorObjManager() { return m_pEditorObjManager; }
 
 	// 目前只对第一个光源创建Parallel ShadowMap。
 	//void InitShadowMapTransformInfo(ConstantBufferShadowMapTransform& out_cb);
@@ -63,7 +63,7 @@ public:
 	void BuildBVHTrees(const HBVHSplitMode SplitMode);
 private:
 	// 生成编辑器对象（SelectionArrows等玩意）
-	void InitEditorObjects();
+	void InitEditorObjectsManager();
 
 	// 计算场景下所有物体的 AABB。
 	void InitBoundingStructures();

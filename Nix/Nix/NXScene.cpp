@@ -27,7 +27,7 @@ NXScene::NXScene() :
 	m_pBVHTree(nullptr),
 	m_pCubeMap(nullptr),
 	m_pMainCamera(nullptr),
-	m_bEditorSelectID(0),
+	m_bEditorSelectID(EditorObjectID::NONE),
 	m_editorHitOffset(0.0f)
 {
 	m_type = NXType::eScene;
@@ -74,11 +74,12 @@ void NXScene::OnMouseDown(NXEventArgMouse eArg)
 
 void NXScene::OnMouseMove(NXEventArgMouse eArg)
 {
-	if (m_bEditorSelectID > NXSubMeshEditorObjects::EditorObjectID::NONE && 
-		m_bEditorSelectID < NXSubMeshEditorObjects::EditorObjectID::MAX) 
+	auto worldRay = GetMainCamera()->GenerateRay(Vector2(eArg.X + 0.5f, eArg.Y + 0.5f));
+
+	if (m_bEditorSelectID > EditorObjectID::NONE &&
+		m_bEditorSelectID < EditorObjectID::MAX)
 	{
 		// 进入这里说明正在拖动 SelectionArrow/RotateRing/ScaleBoxes
-		auto worldRay = GetMainCamera()->GenerateRay(Vector2(eArg.X + 0.5f, eArg.Y + 0.5f));
 
 		Vector3 anchorPos = GetAnchorOfEditorObject(worldRay);
 
@@ -92,13 +93,23 @@ void NXScene::OnMouseMove(NXEventArgMouse eArg)
 			m_pEditorObjManager->MoveTranslatorTo(pSelectObjs->GetAABBWorld().Center);
 		}
 	}
+
+	NXHit editObjHit;
+	m_pEditorObjManager->SetHighLightID(EditorObjectID::NONE);
+	m_pEditorObjManager->RayCast(worldRay, editObjHit);
+	if (editObjHit.pSubMesh)
+	{
+		// 鼠标移动到了EditorObject上方（触发EditorObject高亮逻辑）
+		NXSubMeshEditorObjects* pHitSubmesh = (NXSubMeshEditorObjects*)editObjHit.pSubMesh;
+		m_pEditorObjManager->SetHighLightID(pHitSubmesh->GetEditorObjectID());
+	}
 }
 
 void NXScene::OnMouseUp(NXEventArgMouse eArg)
 {
 	if (eArg.VMouse & 2) // 鼠标左键
 	{
-		m_bEditorSelectID = NXSubMeshEditorObjects::EditorObjectID::NONE;
+		m_bEditorSelectID = EditorObjectID::NONE;
 	}
 }
 
@@ -144,20 +155,20 @@ Vector3 NXScene::GetAnchorOfEditorObject(const Ray& worldRay)
 	// 【2022.9.28 目前只支持单选。将来改】
 	auto pSelectObjs = m_selectedObjects[0];
 
-	if (m_bEditorSelectID >= NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_X &&
-		m_bEditorSelectID <= NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_Z)
+	if (m_bEditorSelectID >= EditorObjectID::TRANSLATE_X &&
+		m_bEditorSelectID <= EditorObjectID::TRANSLATE_Z)
 	{
-		Vector3 worldAxis = m_bEditorSelectID == NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_X ? Vector3(1.0f, 0.0f, 0.0f) :
-			m_bEditorSelectID == NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_Y ? Vector3(0.0f, 1.0f, 0.0f) : Vector3(0.0f, 0.0f, 1.0f);
+		Vector3 worldAxis = m_bEditorSelectID == EditorObjectID::TRANSLATE_X ? Vector3(1.0f, 0.0f, 0.0f) :
+			m_bEditorSelectID == EditorObjectID::TRANSLATE_Y ? Vector3(0.0f, 1.0f, 0.0f) : Vector3(0.0f, 0.0f, 1.0f);
 		Ray line(pSelectObjs->GetWorldTranslation(), worldAxis);
 		return GetAnchorOfEditorTranslatorLine(worldRay, line);
 	}
 
-	if (m_bEditorSelectID >= NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_XY &&
-		m_bEditorSelectID <= NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_YZ)
+	if (m_bEditorSelectID >= EditorObjectID::TRANSLATE_XY &&
+		m_bEditorSelectID <= EditorObjectID::TRANSLATE_YZ)
 	{
-		Vector3 worldNormal = m_bEditorSelectID == NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_YZ ? Vector3(1.0f, 0.0f, 0.0f) :
-			m_bEditorSelectID == NXSubMeshEditorObjects::EditorObjectID::TRANSLATE_XZ ? Vector3(0.0f, 1.0f, 0.0f) : Vector3(0.0f, 0.0f, 1.0f);
+		Vector3 worldNormal = m_bEditorSelectID == EditorObjectID::TRANSLATE_YZ ? Vector3(1.0f, 0.0f, 0.0f) :
+			m_bEditorSelectID == EditorObjectID::TRANSLATE_XZ ? Vector3(0.0f, 1.0f, 0.0f) : Vector3(0.0f, 0.0f, 1.0f);
 		Plane plane(pSelectObjs->GetWorldTranslation(), worldNormal);
 		return GetAnchorOfEditorTranslatorPlane(worldRay, plane);
 	}
@@ -211,7 +222,7 @@ Vector3 NXScene::GetAnchorOfEditorTranslatorPlane(const Ray& ray, const Plane& p
 
 void NXScene::Init()
 {
-	InitEditorObjects();
+	InitEditorObjectsManager();
 
 	NXPBRMaterialStandard* pPBRMat[] = {
 		SceneManager::GetInstance()->CreatePBRMaterialStandard("rustediron2", Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f),
@@ -521,17 +532,12 @@ void NXScene::InitBoundingStructures()
 	BoundingSphere::CreateFromBoundingBox(m_boundingSphere, m_aabb);
 }
 
-std::vector<NXPrimitive*> NXScene::GetEditableObjects()
-{
-	return m_pEditorObjManager->GetEditableObjects();
-}
-
 void NXScene::BuildBVHTrees(const HBVHSplitMode SplitMode)
 {
 	SceneManager::GetInstance()->BuildBVHTrees(SplitMode);
 }
 
-void NXScene::InitEditorObjects()
+void NXScene::InitEditorObjectsManager()
 {
 	m_pEditorObjManager = new NXEditorObjectManager(this);
 	m_pEditorObjManager->Init();

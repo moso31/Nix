@@ -499,7 +499,7 @@ void NXSubMeshGeometryEditor::CreateSelectionArrows(NXPrimitive* pMesh)
 	{
 		UINT currVertIdx = 0;
 
-		NXSubMeshEditorObjects::EditorObjectID objId = i == 0 ? NXSubMeshEditorObjects::TRANSLATE_X : i == 1 ? NXSubMeshEditorObjects::TRANSLATE_Y : NXSubMeshEditorObjects::TRANSLATE_Z;
+		EditorObjectID objId = i == 0 ? EditorObjectID::TRANSLATE_X : i == 1 ? EditorObjectID::TRANSLATE_Y : EditorObjectID::TRANSLATE_Z;
 		NXSubMeshEditorObjects* pSubMesh = new NXSubMeshEditorObjects(pMesh, objId);
 		for (int segIdx = 0; segIdx < 16; segIdx++)
 		{
@@ -560,7 +560,7 @@ void NXSubMeshGeometryEditor::CreateSelectionArrows(NXPrimitive* pMesh)
 	for (int i = 0; i < 3; i++)
 	{
 		UINT currVertIdx = 0;
-		NXSubMeshEditorObjects::EditorObjectID objId = i == 0 ? NXSubMeshEditorObjects::TRANSLATE_X : i == 1 ? NXSubMeshEditorObjects::TRANSLATE_Y : NXSubMeshEditorObjects::TRANSLATE_Z;
+		EditorObjectID objId = i == 0 ? EditorObjectID::TRANSLATE_X : i == 1 ? EditorObjectID::TRANSLATE_Y : EditorObjectID::TRANSLATE_Z;
 		NXSubMeshEditorObjects* pSubMesh = new NXSubMeshEditorObjects(pMesh, objId);
 		for (int segIdx = 0; segIdx < 16; segIdx++)
 		{
@@ -615,7 +615,7 @@ void NXSubMeshGeometryEditor::CreateSelectionArrows(NXPrimitive* pMesh)
 	for (int i = 0; i < 3; i++)
 	{
 		UINT currVertIdx = 0;
-		NXSubMeshEditorObjects::EditorObjectID objId = i == 0 ? NXSubMeshEditorObjects::TRANSLATE_XY : i == 1 ? NXSubMeshEditorObjects::TRANSLATE_XZ : NXSubMeshEditorObjects::TRANSLATE_YZ;
+		EditorObjectID objId = i == 0 ? EditorObjectID::TRANSLATE_XY : i == 1 ? EditorObjectID::TRANSLATE_XZ : EditorObjectID::TRANSLATE_YZ;
 		NXSubMeshEditorObjects* pSubMesh = new NXSubMeshEditorObjects(pMesh, objId);
 
 		Vector4 color(0.8f, 0.8f, 0.7f, 0.5f);

@@ -18,9 +18,14 @@ public:
 
 	bool RayCast(const Ray& ray, NXHit& outHitInfo, float tMax = FLT_MAX);
 
-	void MoveTranslatorTo(const Vector3& position);
+	EditorObjectID	GetHighLightID() { return m_uHighLightID; }
+	void			SetHighLightID(EditorObjectID value) { m_uHighLightID = value; }
+	void			MoveTranslatorTo(const Vector3& position);
 
 private:
 	NXScene* m_pScene;
 	std::vector<NXPrimitive*> m_editorObjs;
+
+	// 用于控制EditorObject-SubMesh-是否高亮
+	EditorObjectID m_uHighLightID;
 };
