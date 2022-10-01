@@ -6,9 +6,6 @@
 #include "NXPrimitive.h"
 
 NXRenderableObject::NXRenderableObject() :
-	m_geoTranslation(Vector3(0.0f)),
-	m_geoRotation(Vector3(0.0f)),
-	m_geoScale(Vector3(1.0f)),
 	m_transformWorldMatrix(Matrix::Identity()),
 	m_transformWorldMatrixInv(Matrix::Identity()),
 	m_bIsVisible(true),
@@ -98,17 +95,21 @@ void NXRenderableObject::InitAABB()
 	AABB::Transform(worldAABB, m_worldMatrixInv, m_localAABB);
 }
 
+void NXRenderableObject::SetGeoTransform(const Matrix& mxGeometry)
+{
+	m_geoMatrix = mxGeometry;
+	m_geoMatrixInv = m_geoMatrix.Invert();
+}
+
 void NXRenderableObject::UpdateTransform()
 {
-	m_geoMatrix = Matrix::CreateScale(m_geoScale) *
-		Matrix::CreateFromZXY(m_geoRotation) *
-		Matrix::CreateTranslation(m_geoTranslation);
-
 	m_localMatrix = Matrix::CreateScale(m_scale) *
 		Matrix::CreateFromZXY(m_eulerAngle) *
 		Matrix::CreateTranslation(m_translation);
 
-	m_transformWorldMatrix = m_localMatrix * GetParentTransformWorldMatrix();
+	m_transformWorldMatrix = m_localMatrix;
+	if (m_parent && m_parent->IsTransform())
+		m_transformWorldMatrix *= m_parent->IsTransform()->GetTransformWorldMatrix();
 	m_transformWorldMatrixInv = m_transformWorldMatrix.Invert();
 
 	m_worldMatrix = m_geoMatrix * m_transformWorldMatrix;
@@ -122,24 +123,9 @@ void NXRenderableObject::SetWorldTranslation(const Vector3& value)
 	m_worldMatrix._43 = value.z;
 
 	m_worldMatrixInv = m_worldMatrix.Invert();
+	m_transformWorldMatrix = m_geoMatrixInv * m_worldMatrix;
 
 	NXTransform* pParent = GetParent()->IsTransform();
-	m_localMatrix = pParent ? m_worldMatrix * pParent->GetWorldMatrixInv() : m_worldMatrix;
-
-	m_transformWorldMatrix = m_localMatrix * GetParentTransformWorldMatrix();
-
-	m_translation = Vector3((m_geoMatrix.Invert() * m_localMatrix).m[3]);
-}
-
-Matrix NXRenderableObject::GetParentTransformWorldMatrix() 
-{
-	auto pParent = GetParent();
-	if (pParent)
-	{
-		if (pParent->IsRenderableObject())
-			return pParent->IsRenderableObject()->m_transformWorldMatrix;
-		if (pParent->IsTransform())
-			return pParent->IsTransform()->GetWorldMatrix();
-	}
-	return Matrix();
+	m_localMatrix = m_transformWorldMatrix * pParent->GetTransformWorldMatrixInv();
+	m_translation = Vector3(m_localMatrix.m[3]);
 }

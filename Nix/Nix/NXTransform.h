@@ -27,6 +27,11 @@ public:
 
 	virtual void UpdateTransform();
 
+	// 对 NXRenderableObject 派生类的补充。
+	// 在 NXTransform 中也可以用此方法拿 m_transformWorldMatrix，但会直接返回 m_worldMatrix。
+	virtual Matrix GetTransformWorldMatrix()	{ return m_worldMatrix; }
+	virtual Matrix GetTransformWorldMatrixInv() { return m_worldMatrixInv; }
+
 protected:
 	Vector3 m_translation;
 	// 当前对象的欧拉角。旋转顺序：X-Y-Z

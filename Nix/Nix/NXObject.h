@@ -54,7 +54,6 @@ protected:
 	std::vector<NXScript*> m_scripts;
 	NXType m_type;
 	
-private:
 	NXObject* m_parent;
 	std::list<NXObject*> m_childs;
 };

@@ -158,9 +158,12 @@ void FBXMeshLoader::SetGeometricTransform(FbxNode* pNode, NXRenderableObject* pR
 	printf("        geoTranslation: %f %f %f\n", translation.x, translation.y, translation.z);
 	printf("        geoRotation: %f %f %f\n", rotation.x, rotation.y, rotation.z);
 	printf("        geoScale: %f %f %f\n", scale.x, scale.y, scale.z);
-	pRenderableObject->SetGeoTranslation(translation);
-	pRenderableObject->SetGeoRotation(rotation);
-	pRenderableObject->SetGeoScale(scale);
+	
+	// geoMatrix = geoS * geoR * geoT
+	pRenderableObject->SetGeoTransform(
+		Matrix::CreateScale(scale) *
+		Matrix::CreateFromZXY(rotation) *
+		Matrix::CreateTranslation(translation));
 }
 
 void FBXMeshLoader::EncodePrimitiveData(FbxNode* pNode, NXPrimitive* pPrimitive, bool bAutoCalcTangents, bool bFlipPolygon)
