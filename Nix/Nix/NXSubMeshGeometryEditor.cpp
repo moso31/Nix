@@ -491,7 +491,7 @@ void NXSubMeshGeometryEditor::CreateSelectionArrows(NXPrimitive* pMesh)
 	Vector4 colorZ(0.0f, 0.0f, 1.0f, 1.0f);
 
 	float fSegmentCircleInv = 1.0f / 16.0f;
-	float fRadius = 0.01f;
+	float fRadius = 0.025f;
 	float fCylinderLo = -fRadius;
 	float fCylinderHi = 1.0f;
 
@@ -554,9 +554,9 @@ void NXSubMeshGeometryEditor::CreateSelectionArrows(NXPrimitive* pMesh)
 		pMesh->AddSubMesh(pSubMesh);
 	}
 
-	float fConeRadius = 0.05f;
+	float fConeRadius = 0.1f;
 	float fConeLo = fCylinderHi;
-	float fConeHi = fCylinderHi + 0.2f;
+	float fConeHi = fCylinderHi + 0.4f;
 	for (int i = 0; i < 3; i++)
 	{
 		UINT currVertIdx = 0;
@@ -610,7 +610,7 @@ void NXSubMeshGeometryEditor::CreateSelectionArrows(NXPrimitive* pMesh)
 
 
 	float A = 0.25f;
-	float B = 0.7f;
+	float B = 0.75f;
 
 	for (int i = 0; i < 3; i++)
 	{
