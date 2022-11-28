@@ -18,7 +18,7 @@
 
 NSFirstPersonalCamera::NSFirstPersonalCamera() :
 	m_fMoveSpeed(3.0f),
-	m_fSensitivity(0.005f),
+	m_fSensitivity(5.0f),
 	m_bSpeedState(SPEED_MID),
 	m_bMoveAble(false),
 	m_bLastMoveAble(false)
@@ -49,7 +49,7 @@ void NSFirstPersonalCamera::Update()
 	if (m_bMoveState[POSITIVE_Y]) moveCommandV += up;
 	if (m_bMoveState[NEGATIVE_Y]) moveCommandV -= up;
 
-	float moveSpeed = 13.0f;
+	float moveSpeed = m_fMoveSpeed;
 	switch (m_bSpeedState)
 	{
 	case SPEED_LOW: moveSpeed *= 1.0f; break;
@@ -115,8 +115,9 @@ void NSFirstPersonalCamera::OnMouseMove(NXEventArgMouse eArg)
 	{
 		auto pCamera = dynamic_cast<NXCamera*>(m_pObject);
 
-		float fYaw = (float)eArg.LastX * m_fSensitivity;
-		float fPitch = (float)eArg.LastY * m_fSensitivity;
+		const float fSensitivityFactor = 0.001f;
+		float fYaw = (float)eArg.LastX * m_fSensitivity * fSensitivityFactor;
+		float fPitch = (float)eArg.LastY * m_fSensitivity * fSensitivityFactor;
 
 		//Vector3 vUp = pCamera->GetUp();
 		//Vector3 vRight = pCamera->GetRight();

@@ -373,6 +373,7 @@ void NXScene::InitScripts()
 	auto pMainCamera = GetMainCamera();
 
 	NSFirstPersonalCamera* pScript = dynamic_cast<NSFirstPersonalCamera*>(SceneManager::GetInstance()->CreateScript(NXScriptType::NXSCRIPT_FIRST_PERSONAL_CAMERA, pMainCamera));
+	pMainCamera->SetFirstPersonalController(pScript);
 
 	NXEventKeyDown::GetInstance()->AddListener(std::bind(&NSFirstPersonalCamera::OnKeyDown, pScript, std::placeholders::_1));
 	NXEventKeyUp::GetInstance()->AddListener(std::bind(&NSFirstPersonalCamera::OnKeyUp, pScript, std::placeholders::_1));

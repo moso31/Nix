@@ -9,6 +9,7 @@ class NXGUIFileBrowser;
 class NXGUISSAO;
 class NXGUICubeMap;
 class NXGUILights;
+class NXGUICamera;
 class NXGUIShadows;
 class NXGUIDebugLayer;
 
@@ -27,6 +28,7 @@ private:
 	Renderer*				m_pRenderer;
 
 	NXGUILights*		m_pGUILights;
+	NXGUICamera*		m_pGUICamera;
 	NXGUIMaterial*		m_pGUIMaterial;
 	NXGUICubeMap*		m_pGUICubeMap;
 	NXGUIFileBrowser*	m_pFileBrowser;

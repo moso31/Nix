@@ -2,6 +2,8 @@
 #include "ShaderStructures.h"
 #include "NXTransform.h"
 
+class NSFirstPersonalCamera;
+
 class NXCamera : public NXTransform
 {
 public:
@@ -38,6 +40,9 @@ public:
 	void Render();
 	void Release();
 
+	NSFirstPersonalCamera* GetFirstPersonalController();
+	void SetFirstPersonalController(NSFirstPersonalCamera* pScript);
+
 private:
 	float m_fovY;
 	float m_near, m_far;
@@ -51,4 +56,7 @@ private:
 
 	Matrix m_mxViewProjection;
 	Matrix m_mxViewProjectionInv;
+
+	// 编辑器使用的 第一人称控制(FPC)脚本指针
+	NSFirstPersonalCamera* m_pEditorFPCScript;
 };

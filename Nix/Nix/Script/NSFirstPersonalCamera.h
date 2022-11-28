@@ -10,6 +10,11 @@ public:
 
 	void Update();
 
+	float GetMoveSpeed() { return m_fMoveSpeed; }
+	float GetSensitivity() { return m_fSensitivity; }
+	void SetMoveSpeed(const float value) { m_fMoveSpeed = value; }
+	void SetSensitivity(const float value) { m_fSensitivity = value; }
+
 	void OnKeyDown(NXEventArgKey eArg);
 	void OnKeyUp(NXEventArgKey eArg);
 	void OnMouseDown(NXEventArgMouse eArg);

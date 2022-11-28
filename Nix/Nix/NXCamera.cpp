@@ -1,6 +1,7 @@
 #include "NXCamera.h"
 #include "DirectResources.h"
 #include "GlobalBufferManager.h"
+#include "NSFirstPersonalCamera.h"
 
 NXCamera::NXCamera() :
 	NXTransform(),
@@ -197,4 +198,14 @@ void NXCamera::Render()
 void NXCamera::Release()
 {
 	NXObject::Release();
+}
+
+NSFirstPersonalCamera* NXCamera::GetFirstPersonalController()
+{
+	return m_pEditorFPCScript;
+}
+
+void NXCamera::SetFirstPersonalController(NSFirstPersonalCamera* pScript)
+{
+	m_pEditorFPCScript = pScript;
 }
