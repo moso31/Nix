@@ -165,6 +165,8 @@ void NXCamera::UpdateTransform()
 	float aspectRatio = vpsz.x / vpsz.y;
 	m_mxView = XMMatrixLookAtLH(m_translation, m_at, m_up);
 	m_mxViewInv = m_mxView.Invert();
+
+	m_fovY = Clamp(m_fovY, 0.001f, 179.999f);
 	m_mxProjection = XMMatrixPerspectiveFovLH(m_fovY * XM_PI / 180.0f, aspectRatio, m_near, m_far);
 	m_mxProjectionInv = m_mxProjection.Invert();
 

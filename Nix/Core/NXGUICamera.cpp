@@ -38,6 +38,12 @@ void NXGUICamera::Render()
                 pFirstPersonalController->SetSensitivity(value);
             }
         }
+
+        float fFovY = m_pCurrentCamera->GetFovY();
+        if (ImGui::DragFloat("fFov", &fFovY, 0.1f, 0.0f, 180.0f))
+        {
+            m_pCurrentCamera->SetFovY(fFovY);
+        }
     }
 
 	ImGui::End();

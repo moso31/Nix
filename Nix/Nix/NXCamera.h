@@ -24,6 +24,9 @@ public:
 	const float GetZNear() { return m_near; }
 	const float GetZFar() { return m_far; }
 
+	const float GetFovY() { return m_fovY; }
+	void SetFovY(const float value) { m_fovY = value; }
+
 	const Matrix& GetViewMatrix();
 	const Matrix& GetViewInverseMatrix();
 	const Matrix& GetProjectionMatrix();
