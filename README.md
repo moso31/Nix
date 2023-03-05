@@ -1,22 +1,25 @@
 # Nix
 
-自己写的 DX11 渲染器。
+Selfmade DX11 renderer.
 
-目前支持的功能：
-
-- [x] FBX 模型导入（目前仅支持静态模型，而且可能有点问题）
+## What it can do
+- [x] FBX import（For static models only and still have many bugs fot now）
 - [x] PBR
-- [x] IBL光照
-  - [x] Diffuse IBL：三阶SH近似
+- [x] IBL lighting
+  - [x] Diffuse IBL (Spherical Harmonics)
   - [x] Specular IBL：PreFilter Map
 - [x] Depth Peeling
+- [x] Shadow Map (PCF only)
+- [x] A very simple Tone-Mapping
 
-- [ ] Shadow Map （折腾中...）
+## Intending...
+- [ ] SSS
+  - [ ] Screen-Space SSSS
+  - [ ] Separable SSS
+  - [ ] Burley SSS
+  - [ ] PreIntegrated SSS
 
-在计划中，但还没开始做的：
-- 渲染
-  - TAA
-  - SSAO 升级
-  - SSR
-- UI
-  - 材质界面增加 "Unique"（或者detach更贴切?）
+- [ ] Anti-Aliasing(TAA SMAA FXAA...)
+- [ ] Screen Space Ambient Occlusion(HBAO GTAO...)
+- [ ] SSR
+- [ ] Post-Processing
