@@ -227,6 +227,7 @@
     <ClCompile Include="Core\NXGBufferRenderer.cpp" />
     <ClCompile Include="Core\NXGUI.cpp" />
     <ClCompile Include="Core\NXGUICamera.cpp" />
+    <ClCompile Include="Core\NXGUIContentExplorer.cpp" />
     <ClCompile Include="Core\NXGUICubeMap.cpp" />
     <ClCompile Include="Core\NXGUIDebugLayer.cpp" />
     <ClCompile Include="Core\NXGUILights.cpp" />
@@ -287,6 +288,7 @@
     <ClInclude Include="Core\NXGBufferRenderer.h" />
     <ClInclude Include="Core\NXGUI.h" />
     <ClInclude Include="Core\NXGUICamera.h" />
+    <ClInclude Include="Core\NXGUIContentExplorer.h" />
     <ClInclude Include="Core\NXGUICubeMap.h" />
     <ClInclude Include="Core\NXGUIDebugLayer.h" />
     <ClInclude Include="Core\NXGUIFileBrowser.h" />

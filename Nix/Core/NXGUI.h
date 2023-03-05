@@ -6,6 +6,7 @@ class Renderer;
 
 class NXGUIMaterial;
 class NXGUIFileBrowser;
+class NXGUIContentExplorer;
 class NXGUISSAO;
 class NXGUICubeMap;
 class NXGUILights;
@@ -27,13 +28,15 @@ private:
 	NXScene*				m_pCurrentScene;
 	Renderer*				m_pRenderer;
 
-	NXGUILights*		m_pGUILights;
-	NXGUICamera*		m_pGUICamera;
-	NXGUIMaterial*		m_pGUIMaterial;
-	NXGUICubeMap*		m_pGUICubeMap;
-	NXGUIFileBrowser*	m_pFileBrowser;
-	NXGUISSAO*			m_pGUISSAO;
-	NXGUIShadows*		m_pGUIShadows;
+	NXGUIContentExplorer*	m_pGUIContentExplorer;
 
-	NXGUIDebugLayer*	m_pGUIDebugLayer;
+	NXGUILights*			m_pGUILights;
+	NXGUICamera*			m_pGUICamera;
+	NXGUIMaterial*			m_pGUIMaterial;
+	NXGUICubeMap*			m_pGUICubeMap;
+	NXGUIFileBrowser*		m_pFileBrowser;
+	NXGUISSAO*				m_pGUISSAO;
+	NXGUIShadows*			m_pGUIShadows;
+
+	NXGUIDebugLayer*		m_pGUIDebugLayer;
 };

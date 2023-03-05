@@ -11,6 +11,7 @@
 #include "NXGUISSAO.h"
 #include "NXGUIShadows.h"
 #include "NXGUIDebugLayer.h"
+#include "NXGUIContentExplorer.h"
 
 NXGUI::NXGUI(NXScene* pScene, Renderer* pRenderer) :
 	m_pCurrentScene(pScene),
@@ -22,7 +23,8 @@ NXGUI::NXGUI(NXScene* pScene, Renderer* pRenderer) :
 	m_pGUICubeMap(nullptr),
 	m_pGUISSAO(nullptr),
 	m_pGUIShadows(nullptr),
-	m_pGUIDebugLayer(nullptr)
+	m_pGUIDebugLayer(nullptr),
+	m_pGUIContentExplorer(nullptr)
 {
 }
 
@@ -35,6 +37,8 @@ void NXGUI::Init()
 	m_pFileBrowser = new NXGUIFileBrowser();
 	m_pFileBrowser->SetTitle("File Browser");
 	m_pFileBrowser->SetPwd("D:\\NixAssets");
+
+	m_pGUIContentExplorer = new NXGUIContentExplorer();
 
 	m_pGUICamera = new NXGUICamera(m_pCurrentScene);
 	m_pGUIMaterial = new NXGUIMaterial(m_pCurrentScene, m_pFileBrowser);
@@ -62,6 +66,7 @@ void NXGUI::Render()
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
+	m_pGUIContentExplorer->Render();
 	m_pGUICubeMap->Render();
 	m_pGUIMaterial->Render();
 	m_pGUILights->Render();
@@ -132,6 +137,7 @@ void NXGUI::Release()
 	SafeDelete(m_pGUIShadows);
 	SafeDelete(m_pFileBrowser);
 	SafeDelete(m_pGUIDebugLayer);
+	SafeDelete(m_pGUIContentExplorer);
 
 	ImGui_ImplDX11_Shutdown();
 	ImGui_ImplWin32_Shutdown();

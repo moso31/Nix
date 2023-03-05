@@ -372,6 +372,9 @@
     <ClCompile Include="Core\NXGUICamera.cpp">
       <Filter>Core\UI</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXGUIContentExplorer.cpp">
+      <Filter>Core\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -561,6 +564,9 @@
       <Filter>Nix\Scene</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXGUICamera.h">
+      <Filter>Core\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXGUIContentExplorer.h">
       <Filter>Core\UI</Filter>
     </ClInclude>
   </ItemGroup>
