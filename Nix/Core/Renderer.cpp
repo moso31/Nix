@@ -1,6 +1,7 @@
 #include "Renderer.h"
 #include "DirectResources.h"
 #include "ShaderComplier.h"
+#include "NXEvent.h"
 #include "NXResourceManager.h"
 #include "NXResourceReloader.h"
 #include "NXRenderStates.h"
@@ -12,8 +13,15 @@
 #include "NXDepthPrepass.h"
 #include "NXSimpleSSAO.h"
 
+Renderer::Renderer() : 
+	m_bRenderGUI(true)
+{
+}
+
 void Renderer::Init()
 {
+	InitEvents();
+
 	NXGlobalInputLayout::Init();
 	NXGlobalBufferManager::Init();
 
@@ -87,6 +95,11 @@ void Renderer::InitRenderer()
 	g_pContext->OMSetDepthStencilState(nullptr, 0); 
 	g_pContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
 	g_pContext->RSSetState(nullptr);	// back culling
+}
+
+void Renderer::InitEvents()
+{
+	NXEventKeyDown::GetInstance()->AddListener(std::bind(&Renderer::OnKeyDown, this, std::placeholders::_1));
 }
 
 void Renderer::ResourcesReloading()
@@ -182,7 +195,7 @@ void Renderer::RenderFrame()
 
 void Renderer::RenderGUI()
 {
-	m_pGUI->Render();
+	if (m_bRenderGUI) m_pGUI->Render();
 }
 
 void Renderer::Release()
@@ -209,4 +222,12 @@ void Renderer::Release()
 
 void Renderer::DrawDepthPrepass()
 {
+}
+
+void Renderer::OnKeyDown(NXEventArgKey eArg)
+{
+	if (eArg.VKey == 'H')
+	{
+		m_bRenderGUI = !m_bRenderGUI;
+	}
 }

@@ -17,12 +17,16 @@
 #include "NXDebugLayerRenderer.h"
 #include "NXEditorObjectRenderer.h"
 
+struct NXEventArgKey;
 class Renderer
 {
 public:
+	Renderer();
+
 	void Init();
 	void InitGUI();
 	void InitRenderer();
+	void InitEvents();
 
 	// 资源重加载（如果上一帧修改了资源）
 	void ResourcesReloading();
@@ -48,6 +52,7 @@ public:
 
 private:
 	void DrawDepthPrepass();
+	void OnKeyDown(NXEventArgKey eArg);
 
 private:
 	ComPtr<ID3D11InputLayout>			m_pInputLayoutP;
@@ -70,4 +75,6 @@ private:
 	NXEditorObjectRenderer*				m_pEditorObjectRenderer;
 
 	NXGUI*								m_pGUI;
+
+	bool								m_bRenderGUI;
 };

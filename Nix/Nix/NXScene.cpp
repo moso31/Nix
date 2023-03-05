@@ -115,36 +115,6 @@ void NXScene::OnMouseUp(NXEventArgMouse eArg)
 
 void NXScene::OnKeyDown(NXEventArgKey eArg)
 {
-	//if (eArg.VKey == 'H')
-	//{
-	//	// 创建求交加速结构以增加渲染速度。
-	//	printf("Generating BVH Structure...");
-	//	BuildBVHTrees(HBVHSplitMode::HLBVH);
-	//	printf("done.\n");
-
-	//	Vector2 sampleCoord = Vector2((float)200 * 0.5f, (float)150 * 0.5f);
-	//	Ray rayWorld = GetMainCamera()->GenerateRay(sampleCoord, Vector2((float)200, (float)150));
-
-	//	NXHit hit;
-	//	RayCast(rayWorld, hit);
-	//	if (hit.pSubMesh)
-	//	{
-	//		RayCast(rayWorld, hit);
-	//	}
-
-	//	if (!GetPrimitives().empty())
-	//	{
-	//		auto pMainCamera = GetMainCamera();
-	//		printf("camera: pos %f, %f, %f, at %f, %f, %f\n",
-	//			pMainCamera->GetTranslation().x,
-	//			pMainCamera->GetTranslation().y,
-	//			pMainCamera->GetTranslation().z,
-	//			pMainCamera->GetAt().x,
-	//			pMainCamera->GetAt().y,
-	//			pMainCamera->GetAt().z);
-	//		printf("done.\n");
-	//	}
-	//}
 }
 
 Vector3 NXScene::GetAnchorOfEditorObject(const Ray& worldRay)
@@ -300,7 +270,7 @@ void NXScene::Init()
 	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\boxes.fbx", false);
 	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\shadowMapTest.fbx", false);
 	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\EditorObjTest.fbx", false);
-	NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\textbox3.fbx", false);
+	NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\lury.fbx", false);
 	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\testScene.fbx", false);
 	//p->SetScale(Vector3(0.1f));
 	SceneManager::GetInstance()->BindMaterial(p, pPBRMat[0]);
