@@ -8,6 +8,7 @@ public:
 	~NXGUIContentExplorer() {}
 
 	void Render();
+	void ShowExampleMenuFile();
 
 private:
 };
