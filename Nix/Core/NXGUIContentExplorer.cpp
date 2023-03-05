@@ -9,11 +9,14 @@ void NXGUIContentExplorer::Render()
 {
 	ImGui::Begin("Content Explorer");
 
+    static float fElementSize = 120.0f;
+    ImGui::PushItemWidth(200.0f);
+    ImGui::SliderFloat("", &fElementSize, 30.0f, 120.0f, "Icon size");
+
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
     ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
     ImGui::BeginChild("ChildR", ImVec2(0, 0), true, window_flags);
 
-    float fElementSize = 120.0f;
     float fAllElementsWidth = ImGui::GetColumnWidth();
     int iColumns = max(fAllElementsWidth / fElementSize, 1);
     int fActualSize = fAllElementsWidth / (float)iColumns;
@@ -25,6 +28,13 @@ void NXGUIContentExplorer::Render()
             sprintf_s(buf, "%03d", i);
             ImGui::TableNextColumn();
             ImGui::Button(buf, ImVec2(fActualSize, fActualSize));
+
+            auto textStr = "TestFileName";
+            float textWidth = ImGui::CalcTextSize(textStr).x;
+            float posX = ImGui::GetCursorPosX();
+            float textOffset = max(0.0f, (fActualSize - textWidth) * 0.5f);
+            ImGui::SetCursorPosX(posX + textOffset);
+            ImGui::Text(textStr);
         }
         ImGui::EndTable();
     }
