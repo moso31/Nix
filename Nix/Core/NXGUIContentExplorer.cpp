@@ -9,37 +9,73 @@ void NXGUIContentExplorer::Render()
 {
 	ImGui::Begin("Content Explorer");
 
-    static float fElementSize = 120.0f;
-    ImGui::PushItemWidth(200.0f);
-    ImGui::SliderFloat("", &fElementSize, 30.0f, 120.0f, "Icon size");
-
-    ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
-    ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
-    ImGui::BeginChild("ChildR", ImVec2(0, 0), true, window_flags);
-
-    float fAllElementsWidth = ImGui::GetColumnWidth();
-    int iColumns = max(fAllElementsWidth / fElementSize, 1);
-    int fActualSize = fAllElementsWidth / (float)iColumns;
-    if (ImGui::BeginTable("wtf1213213", iColumns, ImGuiTableFlags_Resizable | ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_NoBordersInBody))
+    if (ImGui::BeginTable("##table_content_explorer", 2, ImGuiTableFlags_Resizable, ImVec2(0, 0), 0.0f))
     {
-        for (int i = 0; i < 100; i++)
-        {
-            char buf[32];
-            sprintf_s(buf, "%03d", i);
-            ImGui::TableNextColumn();
-            ImGui::Button(buf, ImVec2(fActualSize, fActualSize));
+        ImGui::TableSetupColumn("##content_list", ImGuiTableColumnFlags_NoHide);
+        ImGui::TableSetupColumn("##content_preview", ImGuiTableColumnFlags_NoHide);
 
-            auto textStr = "TestFileName";
-            float textWidth = ImGui::CalcTextSize(textStr).x;
-            float posX = ImGui::GetCursorPosX();
-            float textOffset = max(0.0f, (fActualSize - textWidth) * 0.5f);
-            ImGui::SetCursorPosX(posX + textOffset);
-            ImGui::Text(textStr);
-        }
-        ImGui::EndTable();
+		float fRowMinHeight = 0.0f;
+		ImGui::TableNextRow(ImGuiTableRowFlags_None, fRowMinHeight);
+		if (ImGui::TableSetColumnIndex(0))
+		{
+			ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
+			ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
+            if (ImGui::BeginChild("##content_list_div", ImVec2(0, 0), true, window_flags))
+            {
+                if (ImGui::TreeNode("LHBLHBLHBLHB"))
+                {
+                    for (int i = 0; i < 100; i++)
+                    {
+                        if (ImGui::TreeNode((void*)(intptr_t)i, "NIXNIXpath%d", i))
+                        {
+                            ImGui::TreePop();
+                        }
+                    }
+                    ImGui::TreePop();
+                }
+            }
+            ImGui::EndChild();
+            ImGui::PopStyleVar();
+		}
+
+		if (ImGui::TableSetColumnIndex(1))
+		{
+			static float fElementSize = 120.0f;
+			ImGui::PushItemWidth(200.0f);
+			ImGui::SliderFloat("##", &fElementSize, 30.0f, 120.0f, "Icon size");
+
+			ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
+			ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
+            if (ImGui::BeginChild("##content_preview_div", ImVec2(0, 0), true, window_flags))
+            {
+                float fAllElementsWidth = ImGui::GetColumnWidth();
+                int iColumns = max(fAllElementsWidth / fElementSize, 1);
+                int fActualSize = fAllElementsWidth / (float)iColumns;
+                if (ImGui::BeginTable("##content_preview_table", iColumns, ImGuiTableFlags_Resizable | ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_NoBordersInBody))
+                {
+                    for (int i = 0; i < 100; i++)
+                    {
+                        char buf[32];
+                        sprintf_s(buf, "%03d", i);
+                        ImGui::TableNextColumn();
+                        ImGui::Button(buf, ImVec2(fActualSize, fActualSize));
+
+                        auto textStr = "TestFileName";
+                        float textWidth = ImGui::CalcTextSize(textStr).x;
+                        float posX = ImGui::GetCursorPosX();
+                        float textOffset = max(0.0f, (fActualSize - textWidth) * 0.5f);
+                        ImGui::SetCursorPosX(posX + textOffset);
+                        ImGui::Text(textStr);
+                    }
+                    ImGui::EndTable();
+                }
+            }
+			ImGui::EndChild();
+            ImGui::PopStyleVar();
+		}
+
+		ImGui::EndTable();
     }
-    ImGui::EndChild();
-    ImGui::PopStyleVar();
 
 	ImGui::End();
 }
