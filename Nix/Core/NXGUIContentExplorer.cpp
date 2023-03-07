@@ -2,8 +2,7 @@
 #include "NXScene.h"
 
 NXGUIContentExplorer::NXGUIContentExplorer() :
-    m_contentFilePath("D:\\NixAssets"),
-    m_contentListTreeNodeFlags(ImGuiTreeNodeFlags_OpenOnDoubleClick)
+    m_contentFilePath("D:\\NixAssets")
 {
 }
 
@@ -20,15 +19,10 @@ void NXGUIContentExplorer::Render()
 		ImGui::TableNextRow(ImGuiTableRowFlags_None, fRowMinHeight);
 		if (ImGui::TableSetColumnIndex(0))
 		{
-			ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.f, 0.f));
             if (ImGui::BeginChild("##content_list_div", ImVec2(0, 0), true, ImGuiWindowFlags_None))
             {
-                std::string strAssets = "Assets(" + m_contentFilePath.u8string() + ")";
-                if (ImGui::TreeNode(strAssets.c_str()))
-                {
-                    RenderContentListFolder(m_contentFilePath, strAssets);
-                    ImGui::TreePop();
-                }
+                RenderContentFolder(m_contentFilePath);
             }
             ImGui::EndChild();
             ImGui::PopStyleVar();
@@ -75,18 +69,34 @@ void NXGUIContentExplorer::Render()
 	ImGui::End();
 }
 
-void NXGUIContentExplorer::RenderContentListFolder(const std::filesystem::path& FolderPath, const std::string& strForceName)
+void NXGUIContentExplorer::RenderContentFolder(const std::filesystem::path& FolderPath)
+{
+    const std::string strFolderName = FolderPath.stem().u8string();
+    size_t nHashFilePath = std::filesystem::hash_value(FolderPath);
+
+    ImGuiTreeNodeFlags eTreeNodeFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding;
+    if (m_bSelectionMask[nHashFilePath])
+        eTreeNodeFlags |= ImGuiTreeNodeFlags_Selected;
+
+    bool bOpen = ImGui::TreeNodeEx(strFolderName.c_str(), eTreeNodeFlags);
+    bool bClicked = ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen();
+    if (bOpen)
+    {
+        RenderContentFolderList(FolderPath);
+        ImGui::TreePop();
+    }
+
+    if (bClicked)
+    {
+        if (!ImGui::GetIO().KeyCtrl)
+            for (auto& [_, x] : m_bSelectionMask) x = false;
+
+        m_bSelectionMask[nHashFilePath] = !m_bSelectionMask[nHashFilePath];
+    }
+}
+
+void NXGUIContentExplorer::RenderContentFolderList(const std::filesystem::path& FolderPath)
 {
     for (auto const& p : std::filesystem::directory_iterator(FolderPath))
-    {
-        const std::string strFileName = p.path().stem().u8string();
-        if (p.is_directory())
-        {
-            if (ImGui::TreeNode(strFileName.c_str()))
-            {
-                RenderContentListFolder(p.path(), "");
-                ImGui::TreePop();
-            }
-        }
-    }
+        if (p.is_directory()) RenderContentFolder(p.path());
 }
