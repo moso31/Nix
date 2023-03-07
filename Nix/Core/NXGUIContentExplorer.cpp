@@ -1,5 +1,6 @@
 #include "NXGUIContentExplorer.h"
 #include "NXScene.h"
+#include <algorithm>
 
 NXGUIContentExplorer::NXGUIContentExplorer() :
     m_contentFilePath("D:\\NixAssets")
@@ -42,20 +43,39 @@ void NXGUIContentExplorer::Render()
                 int fActualSize = fAllElementsWidth / (float)iColumns;
                 if (ImGui::BeginTable("##content_preview_table", iColumns, ImGuiTableFlags_Resizable | ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_NoBordersInBody))
                 {
-                    for (int i = 0; i < 100; i++)
+                    for (auto const& [_, elem] : m_selectionInfo)
                     {
-                        char buf[32];
-                        sprintf_s(buf, "%03d", i);
-                        ImGui::TableNextColumn();
-                        ImGui::Button(buf, ImVec2(fActualSize, fActualSize));
+                        // 遍历所有树形结构中选中的Folder...
+                        if (elem.bSelectedMask)
+                        {
+                            // ...下的所有子文件。
+                            for (auto const& subElem : std::filesystem::directory_iterator(elem.filePath))
+                            {
+                                std::string strTypeText = "[unknown]";
+                                if (subElem.is_directory()) 
+                                    strTypeText = "folder";
+                                else if (subElem.path().has_extension())
+                                    strTypeText = subElem.path().extension().u8string().c_str();
 
-                        auto textStr = "TestFileName";
-                        float textWidth = ImGui::CalcTextSize(textStr).x;
-                        float posX = ImGui::GetCursorPosX();
-                        float textOffset = max(0.0f, (fActualSize - textWidth) * 0.5f);
-                        ImGui::SetCursorPosX(posX + textOffset);
-                        ImGui::Text(textStr);
+                                // 字符串转小写
+                                std::transform(strTypeText.begin(), strTypeText.end(), strTypeText.begin(), [](UCHAR c) { return std::tolower(c); }); 
+
+                                ImGui::TableNextColumn();
+
+                                // 文件夹/图标按钮本体
+                                ImGui::Button(strTypeText.c_str(), ImVec2(fActualSize, fActualSize));
+
+                                // 文件名
+                                std::string subElemFileName = subElem.path().stem().u8string().c_str();
+                                float textWidth = ImGui::CalcTextSize(subElemFileName.c_str()).x;
+                                float posX = ImGui::GetCursorPosX();
+                                float textOffset = max(0.0f, (fActualSize - textWidth) * 0.5f);
+                                ImGui::SetCursorPosX(posX + textOffset);
+                                ImGui::Text(subElemFileName.c_str());
+                            }
+                        }
                     }
+
                     ImGui::EndTable();
                 }
             }
@@ -69,29 +89,30 @@ void NXGUIContentExplorer::Render()
 	ImGui::End();
 }
 
-void NXGUIContentExplorer::RenderContentFolder(const std::filesystem::path& FolderPath)
+void NXGUIContentExplorer::RenderContentFolder(const std::filesystem::path& folderPath)
 {
-    const std::string strFolderName = FolderPath.stem().u8string();
-    size_t nHashFilePath = std::filesystem::hash_value(FolderPath);
+    const std::string strFolderName = folderPath.stem().u8string();
+    size_t nHashFilePath = std::filesystem::hash_value(folderPath);
 
     ImGuiTreeNodeFlags eTreeNodeFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding;
-    if (m_bSelectionMask[nHashFilePath])
+    if (m_selectionInfo[nHashFilePath].bSelectedMask)
         eTreeNodeFlags |= ImGuiTreeNodeFlags_Selected;
 
     bool bOpen = ImGui::TreeNodeEx(strFolderName.c_str(), eTreeNodeFlags);
     bool bClicked = ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen();
     if (bOpen)
     {
-        RenderContentFolderList(FolderPath);
+        RenderContentFolderList(folderPath);
         ImGui::TreePop();
     }
 
     if (bClicked)
     {
         if (!ImGui::GetIO().KeyCtrl)
-            for (auto& [_, x] : m_bSelectionMask) x = false;
+            for (auto& [_, elem] : m_selectionInfo) elem.bSelectedMask = false;
 
-        m_bSelectionMask[nHashFilePath] = !m_bSelectionMask[nHashFilePath];
+        m_selectionInfo[nHashFilePath].bSelectedMask = !m_selectionInfo[nHashFilePath].bSelectedMask;
+        m_selectionInfo[nHashFilePath].filePath = folderPath;
     }
 }
 

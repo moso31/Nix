@@ -2,6 +2,13 @@
 #include "Header.h"
 #include <filesystem>
 
+struct NXGUIContentExplorerSelectionInfo 
+{
+	NXGUIContentExplorerSelectionInfo() : bSelectedMask(false) {}
+	bool bSelectedMask;
+	std::filesystem::path filePath;
+};
+
 class NXGUIContentExplorer
 {
 public:
@@ -19,5 +26,5 @@ public:
 private:
 	std::filesystem::path m_contentFilePath;
 
-	std::unordered_map<size_t, bool> m_bSelectionMask;
+	std::unordered_map<size_t, NXGUIContentExplorerSelectionInfo> m_selectionInfo;
 };
