@@ -326,5 +326,5 @@ bool NXGUIMaterial::DropDataIsImage(NXGUIContentExplorerButtonDrugData* pDropDat
 	std::string strExtension = pDropData->srcPath.extension().u8string();
 	std::transform(strExtension.begin(), strExtension.end(), strExtension.begin(), [](UCHAR c) { return std::tolower(c); });
 
-	return strExtension == ".png" || strExtension == ".jpg" || strExtension == ".tga" || strExtension == ".bmp";
+	return strExtension == ".dds" || strExtension == ".png" || strExtension == ".jpg" || strExtension == ".tga" || strExtension == ".bmp";
 }

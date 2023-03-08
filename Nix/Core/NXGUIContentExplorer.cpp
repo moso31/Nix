@@ -66,7 +66,6 @@ void NXGUIContentExplorer::Render()
                                     strTypeText = strExtension;
                                 }
 
-
                                 ImGui::TableNextColumn();
 
                                 // 文件夹/图标按钮本体
