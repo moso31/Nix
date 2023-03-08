@@ -64,6 +64,14 @@ void NXGUIMaterial::Render()
 
 	if (pMaterial)
 	{
+		float fBtnSize = 45.0f;
+		ImGui::BeginChild("##material_iconbtn", ImVec2(fBtnSize, max(ImGui::GetContentRegionAvail().y * 0.1, fBtnSize)));
+		ImGui::Button(".nmat##iconbtn", ImVec2(fBtnSize, fBtnSize));
+		ImGui::EndChild();
+
+		ImGui::SameLine();
+
+		ImGui::BeginChild("##material_description", ImVec2(ImGui::GetContentRegionAvail().x, max(ImGui::GetContentRegionAvail().y * 0.1, fBtnSize)));
 		std::string strMatName = pMaterial->GetName().c_str();
 		if (ImGui::InputText("Material", &strMatName))
 		{
@@ -75,6 +83,7 @@ void NXGUIMaterial::Render()
 
 		static const char* items[] = { "Standard", "Translucent" };
 		ImGui::Combo("Material Type", &m_currentMaterialTypeIndex, items, IM_ARRAYSIZE(items));
+		ImGui::EndChild();
 
 		NXMaterialType newMatType = NXMaterialType(m_currentMaterialTypeIndex + 1);
 		switch (newMatType)

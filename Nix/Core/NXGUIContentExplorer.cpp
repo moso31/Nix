@@ -35,7 +35,22 @@ void NXGUIContentExplorer::Render()
 		{
 			static float fElementSize = 120.0f;
 			ImGui::PushItemWidth(200.0f);
-			ImGui::SliderFloat("##", &fElementSize, 30.0f, 120.0f, "Icon size");
+			ImGui::SliderFloat("##content_preview_slider_iconsize", &fElementSize, 30.0f, 120.0f, "Icon size");
+            ImGui::SameLine();
+
+            if (ImGui::Button("add...##content_preview_add"))
+            {
+                ImGui::OpenPopup("##content_preview_add_popup");
+            }
+
+            if (ImGui::BeginPopup("##content_preview_add_popup"))
+            {
+                if (ImGui::Selectable("Material", false, ImGuiSelectableFlags_Disabled))
+                {
+                    // TODO: Ìí¼Ó²ÄÖÊ
+                }
+                ImGui::EndPopup();
+            }
 
 			ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
             if (ImGui::BeginChild("##content_preview_div", ImVec2(0, 0), true, ImGuiWindowFlags_None))
