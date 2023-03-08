@@ -2,9 +2,14 @@
 #include "Header.h"
 #include <filesystem>
 
-struct NXGUIContentExplorerSelectionInfo 
+struct NXGUIContentExplorerButtonDrugData
 {
-	NXGUIContentExplorerSelectionInfo() : bSelectedMask(false) {}
+	std::filesystem::path srcPath;
+};
+
+struct NXGUIContentExplorerListSelectionInfo 
+{
+	NXGUIContentExplorerListSelectionInfo() : bSelectedMask(false) {}
 	bool bSelectedMask;
 	std::filesystem::path filePath;
 };
@@ -26,5 +31,7 @@ public:
 private:
 	std::filesystem::path m_contentFilePath;
 
-	std::unordered_map<size_t, NXGUIContentExplorerSelectionInfo> m_selectionInfo;
+	std::unordered_map<size_t, NXGUIContentExplorerListSelectionInfo> m_selectionInfo;
+
+	NXGUIContentExplorerButtonDrugData m_btnDrugData;
 };

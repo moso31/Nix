@@ -261,19 +261,19 @@ void NXScene::Init()
 	//	SceneManager::GetInstance()->BindMaterial(pSphere->GetSubMesh(0), pPBRMatS);
 	//}
 
-	//auto* pPlane = SceneManager::GetInstance()->CreatePlane("G", 1000.0f, 1000.0f, NXPlaneAxis::POSITIVE_Y);
-	//SceneManager::GetInstance()->BindMaterial(pPlane, pPBRMat[0]);
+	auto* pPlane = SceneManager::GetInstance()->CreatePlane("G", 1000.0f, 1000.0f, NXPlaneAxis::POSITIVE_Y);
+	SceneManager::GetInstance()->BindMaterial(pPlane, pPBRMat[0]);
 
 	//SceneManager::GetInstance()->CreateFBXMeshes("D:\\NixAssets\\Cloth.fbx", pMeshes, true);
 	//SceneManager::GetInstance()->BindMaterial(pMeshes[0]->GetSubMesh(0), pPBRMat[0]);
 
-	NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\boxes.fbx", false);
+	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\boxes.fbx", false);
 	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\shadowMapTest.fbx", false);
 	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\EditorObjTest.fbx", false);
 	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\lury.fbx", false);
 	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\testScene.fbx", false);
 	//p->SetScale(Vector3(0.1f));
-	SceneManager::GetInstance()->BindMaterial(p, pPBRMat[0]);
+	//SceneManager::GetInstance()->BindMaterial(p, pPBRMat[0]);
 	{
 		//bool bBind = SceneManager::GetInstance()->BindParent(pMeshes[1], pSphere);
 		//auto pScript_test = new NSTest();
@@ -301,23 +301,25 @@ void NXScene::Init()
 		Vector3(0.0f, 1.0f, 0.0f)
 	);
 
+	NXCubeMap* pSky =
 	SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\Alexs_Apt_2k.hdr");
 	//SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\TexturesCom_JapanInariTempleH_1K_hdri_sphere.hdr");
 	//SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\ballroom_4k.hdr");
 	//SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\blue_grotto_4k.hdr");
 	//SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\HDRGPUTest.hdr");
 	//SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\WhiteHDRI.hdr");
+	pSky->SetIntensity(0.0f);
 
 	InitBoundingStructures();
 
 	// Init Lighting
 	{
 		NXPBRPointLight* pPointLight;
-		//pPointLight = SceneManager::GetInstance()->CreatePBRPointLight(Vector3(0.0f, 4.5f, 0.0f), Vector3(1.0f), 1.0f, 100.0f);
-		//m_cbDataLights.pointLight[0] = pPointLight->GetConstantBuffer();
+		pPointLight = SceneManager::GetInstance()->CreatePBRPointLight(Vector3(0.0f, 0.25f, 0.0f), Vector3(1.0f), 100.0f, 100.0f);
+		m_cbDataLights.pointLight[0] = pPointLight->GetConstantBuffer();
 
 		NXPBRDistantLight* pDirLight;
-		pDirLight = SceneManager::GetInstance()->CreatePBRDistantLight(Vector3(-1.0f, -1.30f, 1.0f), Vector3(1.0f), 2.0f);
+		pDirLight = SceneManager::GetInstance()->CreatePBRDistantLight(Vector3(-1.0f, -1.30f, 1.0f), Vector3(1.0f), 0.0f);
 		m_cbDataLights.distantLight[0] = pDirLight->GetConstantBuffer();
 
 		NXPBRSpotLight* pSpotLight;

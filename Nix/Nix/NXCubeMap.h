@@ -59,6 +59,7 @@ public:
 
 	ID3D11Buffer* GetConstantBufferParams() { return m_cb.Get(); }
 
+	void SetIntensity(float val) { m_cbData.intensity = val; }
 	float* GetIntensity() { return &m_cbData.intensity; }
 
 private:

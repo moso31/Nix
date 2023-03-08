@@ -126,6 +126,6 @@ void NXRenderableObject::SetWorldTranslation(const Vector3& value)
 	m_transformWorldMatrix = m_geoMatrixInv * m_worldMatrix;
 
 	NXTransform* pParent = GetParent()->IsTransform();
-	m_localMatrix = m_transformWorldMatrix * pParent->GetTransformWorldMatrixInv();
+	m_localMatrix = m_transformWorldMatrix * (pParent ? pParent->GetTransformWorldMatrixInv() : Matrix::Identity());
 	m_translation = Vector3(m_localMatrix.m[3]);
 }

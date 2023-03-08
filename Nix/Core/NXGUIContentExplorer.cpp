@@ -1,6 +1,8 @@
-#include "NXGUIContentExplorer.h"
-#include "NXScene.h"
 #include <algorithm>
+
+#include "NXGUIContentExplorer.h"
+#include "NXGUI.h"
+#include "NXScene.h"
 
 NXGUIContentExplorer::NXGUIContentExplorer() :
     m_contentFilePath("D:\\NixAssets")
@@ -51,19 +53,49 @@ void NXGUIContentExplorer::Render()
                             // ...下的所有子文件。
                             for (auto const& subElem : std::filesystem::directory_iterator(elem.filePath))
                             {
+                                std::string strExtension = "";
                                 std::string strTypeText = "[unknown]";
-                                if (subElem.is_directory()) 
-                                    strTypeText = "folder";
+                                if (subElem.is_directory())
+                                    continue; // strTypeText = "folder"; // 2023.3.8 暂不支持文件夹，够用就行了
                                 else if (subElem.path().has_extension())
-                                    strTypeText = subElem.path().extension().u8string().c_str();
+                                {
+                                    // 获取扩展名并转换成小写
+                                    strExtension = subElem.path().extension().u8string().c_str();
+                                    std::transform(strExtension.begin(), strExtension.end(), strExtension.begin(), [](UCHAR c) { return std::tolower(c); });
 
-                                // 字符串转小写
-                                std::transform(strTypeText.begin(), strTypeText.end(), strTypeText.begin(), [](UCHAR c) { return std::tolower(c); }); 
+                                    strTypeText = strExtension;
+                                }
+
 
                                 ImGui::TableNextColumn();
 
                                 // 文件夹/图标按钮本体
-                                ImGui::Button(strTypeText.c_str(), ImVec2(fActualSize, fActualSize));
+                                if (ImGui::Button((strTypeText + "##" + subElem.path().u8string()).c_str(), ImVec2(fActualSize, fActualSize)))
+                                {
+                                    printf("%s\n", strTypeText.c_str());
+                                }
+
+                                if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+                                {
+                                    m_btnDrugData.srcPath = subElem.path();
+
+                                    ImGui::SetDragDropPayload("CONTENT_EXPLORER_BUTTON_DRUGING", &m_btnDrugData, sizeof(NXGUIContentExplorerButtonDrugData));
+                                    ImGui::Text("(o_o)...");
+                                    ImGui::EndDragDropSource();
+                                }
+
+                                //// 文件夹/图标按钮 双击事件
+                                //if (ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+                                //{
+                                //    if (subElem.is_directory()) {} // 2023.3.8 暂不支持文件夹，够用就行了
+                                //    else if (subElem.path().has_extension())
+                                //    {
+                                //        if (strExtension == ".fbx")
+                                //        {
+                                //            // 2022.3.8 TODO: 双击.fbx btn时向场景添加模型
+                                //        }
+                                //    }
+                                //}
 
                                 // 文件名
                                 std::string subElemFileName = subElem.path().stem().u8string().c_str();
