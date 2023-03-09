@@ -22,10 +22,11 @@ void UpdateMaterialFile(NXMaterial* pMaterial)
 {
     std::ofstream ofs(pMaterial->GetFilePath(), std::ios::binary);
 
-    ofs << pMaterial->GetName() << std::endl << pMaterial->GetType(); // 材质名称，材质类型
+    ofs << pMaterial->GetName() << std::endl; // 材质名称，材质类型
 
     if (pMaterial->GetType() == NXMaterialType::PBR_STANDARD)
     {
+        ofs << "Standard" << std::endl;
         NXPBRMaterialStandard* p = (NXPBRMaterialStandard*)pMaterial;
 
         const Vector3& albedo = p->GetAlbedo();
@@ -37,13 +38,16 @@ void UpdateMaterialFile(NXMaterial* pMaterial)
         ofs << normalTexPath << std::endl << normal.x << ' ' << normal.y << ' ' << normal.z << std::endl; // normal
 
         const std::string metallicTexPath = p->GetMetallicTexFilePath();
-        ofs << metallicTexPath << std::endl << p->GetMetallic() << std::endl; // metallic
+        float metallic = *p->GetMetallic();
+        ofs << metallicTexPath << std::endl << metallic << std::endl; // metallic
 
         const std::string roughnessTexPath = p->GetRoughnessTexFilePath();
-        ofs << roughnessTexPath << std::endl << p->GetRoughness() << std::endl; // roughness
+        float roughness = *p->GetRoughness();
+        ofs << roughnessTexPath << std::endl << roughness << std::endl; // roughness
 
         const std::string aoTexPath = p->GetAOTexFilePath();
-        ofs << aoTexPath << std::endl << p->GetAO() << std::endl; // AO
+        float ao = *p->GetAO();
+        ofs << aoTexPath << std::endl << ao << std::endl; // AO
     }
 
     ofs.close();
