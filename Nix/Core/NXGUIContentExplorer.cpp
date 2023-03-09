@@ -195,28 +195,38 @@ void NXGUIContentExplorer::RenderContentFolderList(const std::filesystem::path& 
 
 void NXGUIContentExplorer::GenerateMaterialResourceFile(const std::filesystem::path& FolderPath)
 {
-    std::filesystem::path newPath = FolderPath / "NewMat 1.nmat";
+    // 判断一下当前Folder下的所有nmat文件，如果开头是 "NewMat " + [任意数字] 的形式，就将数字记录下来
+    // 如果没有这样的材质，就计数为0
+    std::string strJudge = "NewMat ";
+    int nOffset = strJudge.length();
+    int nMaxValue = 0;
+    for (auto const& p : std::filesystem::directory_iterator(FolderPath))
+        if (p.path().extension().string() == ".nmat")
+        {
+            std::string strStem = p.path().stem().string();
+            if (strStem.length() <= nOffset)
+                continue;
 
-    // 默认创建一个StandardPBR材质
+            std::string strFirst7 = strStem.substr(0, nOffset);
+            std::string strLast = strStem.substr(nOffset, strStem.length() - nOffset);
+            if (strFirst7 == strJudge)
+            {
+                if (std::all_of(strLast.begin(), strLast.end(), ::isdigit))
+                nMaxValue = max(nMaxValue, std::stoi(strLast));
+            }
+        }
+
+    // 最后生成的名字是 "NewMat " + [任意数字 + 1]，确保材质命名一定不会重复。
+    std::string strNewName = "NewMat " + std::to_string(nMaxValue + 1) + ".nmat";
+    std::filesystem::path newPath = FolderPath / strNewName;
+
+    // 默认新建一个StandardPBR材质
     std::ofstream ofs(newPath, std::ios::binary);
-
-    // 材质名称，材质类型
-	ofs << "NewMat\n" << "Standard\n";
-
-    // albedo
-	ofs << "?\n" << 1.0f << ' ' << 1.0f << ' ' << 1.0f << ' ' << 1.0f << ' ' << std::endl;
-
-    // normal
-	ofs << "?\n" << 1.0f << ' ' << 1.0f << ' ' << 1.0f << ' ' << 1.0f << ' ' << std::endl;
-
-    // metallic
-	ofs << "?\n" << 1.0f << std::endl;
-
-    // roughness
-    ofs << "?\n" << 1.0f << std::endl;
-
-    // AO
-    ofs << "?\n" << 1.0f << std::endl;
-
+	ofs << "NewMat\n" << "Standard\n"; // 材质名称，材质类型
+	ofs << "?\n" << 1.0f << ' ' << 1.0f << ' ' << 1.0f << ' ' << 1.0f << ' ' << std::endl; // albedo
+	ofs << "?\n" << 1.0f << ' ' << 1.0f << ' ' << 1.0f << ' ' << 1.0f << ' ' << std::endl; // normal
+	ofs << "?\n" << 1.0f << std::endl; // metallic
+    ofs << "?\n" << 1.0f << std::endl; // roughness
+    ofs << "?\n" << 1.0f << std::endl; // AO
     ofs.close();
 }

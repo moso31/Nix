@@ -83,6 +83,8 @@ private:
 	static void RegisterLight(NXPBRLight* newLight, NXObject* pParent = nullptr);
 
 	static NXMaterial* FindMaterial(size_t matPathHash);
+	static NXMaterial* LoadStandardPBRMaterialFromFile(std::ifstream& ifs, const std::string& name);
+	static NXMaterial* LoadTranslucentPBRMaterialFromFile(std::ifstream& ifs, const std::string& name);
 
 private:
 	static void getline_safe(std::ifstream& ifs, std::string& s);

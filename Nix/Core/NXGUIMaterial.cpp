@@ -75,8 +75,10 @@ void NXGUIMaterial::Render()
 				auto pDropData = (NXGUIContentExplorerButtonDrugData*)(payload->Data);
 				if (DropDataIsMaterial(pDropData))
 				{
-					// 将 content explorer 的材质拖动到这里（材质属性面板）
+					// 生成新材质
 					auto pNewMaterial = SceneManager::GetInstance()->LoadFromNmatFile(pDropData->srcPath);
+
+					// 替换物体原来的材质
 					SceneManager::GetInstance()->BindMaterial(pPickingSubMesh, pNewMaterial);
 				}
 			}
