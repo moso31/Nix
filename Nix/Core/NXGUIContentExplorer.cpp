@@ -1,10 +1,13 @@
 #include <algorithm>
+#include <fstream>
 
 #include "NXGUIContentExplorer.h"
 #include "NXGUI.h"
 #include "NXScene.h"
+#include "SceneManager.h"
 
-NXGUIContentExplorer::NXGUIContentExplorer() :
+NXGUIContentExplorer::NXGUIContentExplorer(NXScene* pScene) :
+    m_pCurrentScene(pScene),
     m_contentFilePath("D:\\NixAssets")
 {
 }
@@ -38,16 +41,38 @@ void NXGUIContentExplorer::Render()
 			ImGui::SliderFloat("##content_preview_slider_iconsize", &fElementSize, 30.0f, 120.0f, "Icon size");
             ImGui::SameLine();
 
-            if (ImGui::Button("add...##content_preview_add"))
+            std::filesystem::path singleSelectFolderPath;
+            int nSelect = 0;
+            for (auto const& [_, elem] : m_selectionInfo) 
             {
+                if (elem.bSelectedMask)
+                {
+                    if (!nSelect) singleSelectFolderPath = elem.filePath; // 记录单选Folder路径
+                    nSelect++;
+                }
+            }
+
+            // 只有单选才能进行添加操作
+            if (nSelect != 1)
+            {
+                ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 0.5f));
+            }
+
+            if (ImGui::Button("add...##content_preview_add"))
                 ImGui::OpenPopup("##content_preview_add_popup");
+
+            if (nSelect != 1)
+            {
+                ImGui::PopStyleColor();
+                ImGui::PopItemFlag();
             }
 
             if (ImGui::BeginPopup("##content_preview_add_popup"))
             {
-                if (ImGui::Selectable("Material", false, ImGuiSelectableFlags_Disabled))
+                if (ImGui::Selectable("Material", false))
                 {
-                    // TODO: 添加材质
+                    GenerateMaterialResourceFile(singleSelectFolderPath);
                 }
                 ImGui::EndPopup();
             }
@@ -166,4 +191,32 @@ void NXGUIContentExplorer::RenderContentFolderList(const std::filesystem::path& 
 {
     for (auto const& p : std::filesystem::directory_iterator(FolderPath))
         if (p.is_directory()) RenderContentFolder(p.path());
+}
+
+void NXGUIContentExplorer::GenerateMaterialResourceFile(const std::filesystem::path& FolderPath)
+{
+    std::filesystem::path newPath = FolderPath / "NewMat 1.nmat";
+
+    // 默认创建一个StandardPBR材质
+    std::ofstream ofs(newPath, std::ios::binary);
+
+    // 材质名称，材质类型
+	ofs << "NewMat\n" << "Standard\n";
+
+    // albedo
+	ofs << "?\n" << 1.0f << ' ' << 1.0f << ' ' << 1.0f << ' ' << 1.0f << ' ' << std::endl;
+
+    // normal
+	ofs << "?\n" << 1.0f << ' ' << 1.0f << ' ' << 1.0f << ' ' << 1.0f << ' ' << std::endl;
+
+    // metallic
+	ofs << "?\n" << 1.0f << std::endl;
+
+    // roughness
+    ofs << "?\n" << 1.0f << std::endl;
+
+    // AO
+    ofs << "?\n" << 1.0f << std::endl;
+
+    ofs.close();
 }

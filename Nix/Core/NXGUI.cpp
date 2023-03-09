@@ -38,7 +38,7 @@ void NXGUI::Init()
 	m_pFileBrowser->SetTitle("File Browser");
 	m_pFileBrowser->SetPwd("D:\\NixAssets");
 
-	m_pGUIContentExplorer = new NXGUIContentExplorer();
+	m_pGUIContentExplorer = new NXGUIContentExplorer(m_pCurrentScene);
 
 	m_pGUICamera = new NXGUICamera(m_pCurrentScene);
 	m_pGUIMaterial = new NXGUIMaterial(m_pCurrentScene, m_pFileBrowser);

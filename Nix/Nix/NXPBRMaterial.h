@@ -43,7 +43,7 @@ class NXMaterial
 {
 protected:
 	explicit NXMaterial() = default;
-	NXMaterial(const std::string name, const NXMaterialType type = NXMaterialType::UNKNOWN);
+	NXMaterial(const std::string name, const NXMaterialType type = NXMaterialType::UNKNOWN, const size_t pathHash = 0);
 
 public:
 	~NXMaterial() {}
@@ -53,6 +53,8 @@ public:
 
 	NXMaterialType GetType() { return m_type; }
 	void SetType(NXMaterialType type) { m_type = type; }
+
+	size_t GetPathHash() { return m_pathHash; }
 
 	bool IsPBRType();
 
@@ -80,13 +82,16 @@ private:
 	// 映射表，记录哪些Submesh使用了这个材质
 	std::vector<NXSubMeshBase*> m_pRefSubMeshes;
 	UINT m_RefSubMeshesCleanUpCount;
+
+	// 路径哈希
+	size_t m_pathHash;
 };
 
 class NXPBRMaterialBase : public NXMaterial
 {
 protected:
 	explicit NXPBRMaterialBase() = default;
-	explicit NXPBRMaterialBase(const std::string name, const NXMaterialType type = NXMaterialType::UNKNOWN);
+	explicit NXPBRMaterialBase(const std::string name, const NXMaterialType type = NXMaterialType::UNKNOWN, const size_t matFilePathHash = 0);
 	~NXPBRMaterialBase() {}
 
 public:
@@ -116,7 +121,7 @@ class NXPBRMaterialStandard : public NXPBRMaterialBase
 {
 public:
 	explicit NXPBRMaterialStandard() = default;
-	NXPBRMaterialStandard(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao);
+	NXPBRMaterialStandard(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const size_t matFilePathHash);
 	~NXPBRMaterialStandard() {}
 
 	CBufferMaterialStandard* GetCBData() { return static_cast<CBufferMaterialStandard*>(m_cbData.get()); }
@@ -143,7 +148,7 @@ class NXPBRMaterialTranslucent : public NXPBRMaterialBase
 {
 public:
 	explicit NXPBRMaterialTranslucent() = default;
-	NXPBRMaterialTranslucent(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float opacity);
+	NXPBRMaterialTranslucent(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float opacity, const size_t matFilePathHash);
 	~NXPBRMaterialTranslucent() {}
 
 	CBufferMaterialTranslucent* GetCBData() { return static_cast<CBufferMaterialTranslucent*>(m_cbData.get()); }

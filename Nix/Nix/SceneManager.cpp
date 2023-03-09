@@ -1,4 +1,6 @@
 #include "SceneManager.h"
+#include <fstream>
+
 #include "NXScene.h"
 #include "NXPrefab.h"
 #include "NXPrimitive.h"
@@ -117,14 +119,90 @@ NXCamera* SceneManager::CreateCamera(const std::string name, const float FovY, c
 	return p;
 }
 
+NXMaterial* SceneManager::LoadFromNmatFile(const std::filesystem::path& matFilePath)
+{
+	size_t pathHash = std::filesystem::hash_value(matFilePath);
+
+	// 如果已经在内存里直接拿就行了
+	NXMaterial* pMat = FindMaterial(pathHash);
+	if (pMat) return pMat;
+
+	// 否则需要读路径文件创建新材质
+	std::ifstream ifs(matFilePath.string().c_str(), std::ios::binary);
+
+	if (!ifs.is_open())
+		return nullptr;
+
+	// 材质名称，材质类型
+	std::string strName, strType;
+	getline_safe(ifs, strName);
+	getline_safe(ifs, strType);
+
+	std::string strToNext;
+	if (strType == "Standard")
+	{
+		std::string strAlbedoTexPath;
+		getline_safe(ifs, strAlbedoTexPath);
+		if (IsDefaultPath(strAlbedoTexPath)) 
+			strAlbedoTexPath = g_defaultTex_white_str;
+
+		Vector3 albedo;
+		ifs >> albedo.x >> albedo.y >> albedo.z;
+		std::getline(ifs, strToNext);
+
+		std::string strNormalTexPath;
+		getline_safe(ifs, strNormalTexPath);
+		if (IsDefaultPath(strNormalTexPath))
+			strNormalTexPath = g_defaultTex_normal_str;
+
+		Vector3 normal;
+		ifs >> normal.x >> normal.y >> normal.z;
+		std::getline(ifs, strToNext);
+
+		std::string strMetallicTexPath;
+		getline_safe(ifs, strMetallicTexPath);
+		if (IsDefaultPath(strMetallicTexPath))
+			strMetallicTexPath = g_defaultTex_white_str;
+
+		float metallic;
+		ifs >> metallic;
+		std::getline(ifs, strToNext);
+
+		std::string strRoughnessTexPath;
+		getline_safe(ifs, strRoughnessTexPath);
+		if (IsDefaultPath(strRoughnessTexPath))
+			strRoughnessTexPath = g_defaultTex_white_str;
+
+		float roughness;
+		ifs >> roughness;
+		std::getline(ifs, strToNext);
+
+		std::string strAOTexPath;
+		getline_safe(ifs, strAOTexPath);
+		if (IsDefaultPath(strAOTexPath))
+			strAOTexPath = g_defaultTex_white_str;
+
+		float ao;
+		ifs >> ao;
+		std::getline(ifs, strToNext);
+
+		int x = 0;
+
+		SceneManager::GetInstance()->CreatePBRMaterialStandard(strName, albedo, normal, metallic, roughness, ao, ToWStr(strAlbedoTexPath), ToWStr(strNormalTexPath), ToWStr(strMetallicTexPath), ToWStr(strRoughnessTexPath), ToWStr(strAOTexPath));
+	}
+
+	return nullptr;
+}
+
 NXPBRMaterialStandard* SceneManager::CreatePBRMaterialStandard(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao,
 	const std::wstring albedoTexFilePath,
 	const std::wstring normalTexFilePath,
 	const std::wstring metallicTexFilePath,
 	const std::wstring roughnessTexFilePath,
-	const std::wstring aoTexFilePath)
+	const std::wstring aoTexFilePath,
+	size_t matFilePathHash)
 {
-	auto pMat = new NXPBRMaterialStandard(name, albedo, normal, metallic, roughness, ao);
+	auto pMat = new NXPBRMaterialStandard(name, albedo, normal, metallic, roughness, ao, matFilePathHash);
 
 	pMat->SetTexAlbedo(albedoTexFilePath);
 	pMat->SetTexNormal(normalTexFilePath);
@@ -135,9 +213,9 @@ NXPBRMaterialStandard* SceneManager::CreatePBRMaterialStandard(const std::string
 	return pMat;
 }
 
-NXPBRMaterialTranslucent* SceneManager::CreatePBRMaterialTranslucent(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float opacity, const std::wstring albedoTexFilePath, const std::wstring normalTexFilePath, const std::wstring metallicTexFilePath, const std::wstring roughnessTexFilePath, const std::wstring aoTexFilePath)
+NXPBRMaterialTranslucent* SceneManager::CreatePBRMaterialTranslucent(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float opacity, const std::wstring albedoTexFilePath, const std::wstring normalTexFilePath, const std::wstring metallicTexFilePath, const std::wstring roughnessTexFilePath, const std::wstring aoTexFilePath, size_t matFilePathHash)
 {
-	auto pMat = new NXPBRMaterialTranslucent(name, albedo, normal, metallic, roughness, ao, opacity);
+	auto pMat = new NXPBRMaterialTranslucent(name, albedo, normal, metallic, roughness, ao, opacity, matFilePathHash);
 
 	pMat->SetTexAlbedo(albedoTexFilePath);
 	pMat->SetTexNormal(normalTexFilePath);
@@ -185,18 +263,18 @@ void SceneManager::ReTypeMaterial(NXMaterial* srcMaterial, NXMaterialType destMa
 	if (srcMaterial->GetType() == destMaterialType)
 		return;
 
-	const std::wstring albedoTexFilePath = L".\\Resource\\white1x1.png";
-	const std::wstring normalTexFilePath = L".\\Resource\\normal1x1.png";
-	const std::wstring metallicTexFilePath = L".\\Resource\\white1x1.png";
-	const std::wstring roughnessTexFilePath = L".\\Resource\\white1x1.png";
-	const std::wstring aoTexFilePath = L".\\Resource\\white1x1.png";
+	const std::wstring albedoTexFilePath = g_defaultTex_white_wstr;
+	const std::wstring normalTexFilePath = g_defaultTex_normal_wstr;
+	const std::wstring metallicTexFilePath = g_defaultTex_white_wstr;
+	const std::wstring roughnessTexFilePath = g_defaultTex_white_wstr;
+	const std::wstring aoTexFilePath = g_defaultTex_white_wstr;
 
 	NXMaterial* destMaterial;
 	switch (destMaterialType)
 	{
 	case PBR_STANDARD:
 	{
-		auto newMaterial = new NXPBRMaterialStandard(srcMaterial->GetName(), Vector3(1.0f), Vector3(1.0f), 1.0f, 1.0f, 1.0f);
+		auto newMaterial = new NXPBRMaterialStandard(srcMaterial->GetName(), Vector3(1.0f), Vector3(1.0f), 1.0f, 1.0f, 1.0f, srcMaterial->GetPathHash());
 		newMaterial->SetTexAlbedo(albedoTexFilePath);
 		newMaterial->SetTexNormal(normalTexFilePath);
 		newMaterial->SetTexMetallic(metallicTexFilePath);
@@ -208,7 +286,7 @@ void SceneManager::ReTypeMaterial(NXMaterial* srcMaterial, NXMaterialType destMa
 	}
 	case PBR_TRANSLUCENT:
 	{
-		auto newMaterial = new NXPBRMaterialTranslucent(srcMaterial->GetName(), Vector3(1.0f), Vector3(1.0f), 1.0f, 1.0f, 1.0f, 1.0f);
+		auto newMaterial = new NXPBRMaterialTranslucent(srcMaterial->GetName(), Vector3(1.0f), Vector3(1.0f), 1.0f, 1.0f, 1.0f, 1.0f, srcMaterial->GetPathHash());
 		newMaterial->SetTexAlbedo(albedoTexFilePath);
 		newMaterial->SetTexNormal(normalTexFilePath);
 		newMaterial->SetTexMetallic(metallicTexFilePath);
@@ -326,4 +404,29 @@ void SceneManager::RegisterMaterial(NXMaterial* newMaterial)
 void SceneManager::RegisterLight(NXPBRLight* newLight, NXObject* pParent)
 {
 	s_pWorkingScene->m_pbrLights.push_back(newLight);
+}
+
+NXMaterial* SceneManager::FindMaterial(size_t matPathHash)
+{
+	for (auto pMat : s_pWorkingScene->m_materials)
+		if (pMat->GetPathHash() == matPathHash) return pMat;
+
+	return nullptr;
+}
+
+void SceneManager::getline_safe(std::ifstream& ifs, std::string& s)
+{
+	std::getline(ifs, s);
+	s.erase(std::remove(s.begin(), s.end(), '\r'), s.end());
+	s.erase(std::remove(s.begin(), s.end(), '\n'), s.end());
+}
+
+std::wstring SceneManager::ToWStr(const std::string& s)
+{
+	return std::wstring(s.begin(), s.end());
+}
+
+bool SceneManager::IsDefaultPath(const std::string& s)
+{
+	return s == "?";
 }

@@ -20,6 +20,7 @@ private:
 private:
 	void RenderTextureIcon(ImTextureID ImTexID, std::function<void()> onChange, std::function<void()> onRemove, std::function<void(const std::wstring&)> onDrop);
 	bool DropDataIsImage(NXGUIContentExplorerButtonDrugData* pDropData);
+	bool DropDataIsMaterial(NXGUIContentExplorerButtonDrugData* pDropData);
 
 private:
 	void OnTexAlbedoChange(NXPBRMaterialBase* pPickingObjectMaterial);

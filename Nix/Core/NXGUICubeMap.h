@@ -2,7 +2,7 @@
 #include "Header.h"
 #include "NXGUIFileBrowser.h"
 
-class NXGUIContentExplorerButtonDrugData;
+struct NXGUIContentExplorerButtonDrugData;
 class NXGUICubeMap
 {
 public:

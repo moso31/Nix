@@ -1,4 +1,6 @@
 #pragma once
+#include <filesystem>
+
 #include "NXInstance.h"
 #include "NXScriptType.h"
 
@@ -8,6 +10,11 @@
 #include "NXPBRLight.h"
 #include "NXCubeMap.h"
 #include "NXPBRMaterial.h"
+
+const std::string g_defaultTex_white_str = ".\\Resource\\white1x1.png";
+const std::string g_defaultTex_normal_str = ".\\Resource\\normal1x1.png";
+const std::wstring g_defaultTex_white_wstr = L".\\Resource\\white1x1.png";
+const std::wstring g_defaultTex_normal_wstr = L".\\Resource\\normal1x1.png";
 
 enum NXPlaneAxis;
 
@@ -33,18 +40,22 @@ public:
 
 	static NXCamera* CreateCamera(const std::string name, const float FovY, const float zNear, const float zFar, const Vector3& eye, const Vector3& at, const Vector3& up);
 
+	static NXMaterial* LoadFromNmatFile(const std::filesystem::path& matFilePath);
+
 	static NXPBRMaterialStandard* CreatePBRMaterialStandard(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao,
-		const std::wstring albedoTexFilePath = L".\\Resource\\white1x1.png",
-		const std::wstring normalTexFilePath = L".\\Resource\\normal1x1.png",
-		const std::wstring metallicTexFilePath = L".\\Resource\\white1x1.png",
-		const std::wstring roughnessTexFilePath = L".\\Resource\\white1x1.png",
-		const std::wstring aoTexFilePath = L".\\Resource\\white1x1.png");
+		const std::wstring albedoTexFilePath = g_defaultTex_white_wstr,
+		const std::wstring normalTexFilePath = g_defaultTex_normal_wstr,
+		const std::wstring metallicTexFilePath = g_defaultTex_white_wstr,
+		const std::wstring roughnessTexFilePath = g_defaultTex_white_wstr,
+		const std::wstring aoTexFilePath = g_defaultTex_white_wstr, 
+		size_t matFilePathHash = 0);
 	static NXPBRMaterialTranslucent* CreatePBRMaterialTranslucent(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float opacity,
-		const std::wstring albedoTexFilePath = L".\\Resource\\white1x1.png",
-		const std::wstring normalTexFilePath = L".\\Resource\\normal1x1.png",
-		const std::wstring metallicTexFilePath = L".\\Resource\\white1x1.png",
-		const std::wstring roughnessTexFilePath = L".\\Resource\\white1x1.png",
-		const std::wstring aoTexFilePath = L".\\Resource\\white1x1.png");
+		const std::wstring albedoTexFilePath = g_defaultTex_white_wstr,
+		const std::wstring normalTexFilePath = g_defaultTex_normal_wstr,
+		const std::wstring metallicTexFilePath = g_defaultTex_white_wstr,
+		const std::wstring roughnessTexFilePath = g_defaultTex_white_wstr,
+		const std::wstring aoTexFilePath = g_defaultTex_white_wstr, 
+		size_t matFilePathHash = 0);
 
 	static void BindMaterial(NXRenderableObject* pRenderableObj, NXMaterial* pMaterial);
 	static void BindMaterial(NXSubMeshBase* pSubMesh, NXMaterial* pMaterial);
@@ -70,6 +81,13 @@ private:
 	static void RegisterCamera(NXCamera* newCamera, bool isMainCamera, NXObject* pParent = nullptr);
 	static void RegisterMaterial(NXMaterial* newMaterial);
 	static void RegisterLight(NXPBRLight* newLight, NXObject* pParent = nullptr);
+
+	static NXMaterial* FindMaterial(size_t matPathHash);
+
+private:
+	static void getline_safe(std::ifstream& ifs, std::string& s);
+	static std::wstring ToWStr(const std::string& s);
+	static bool IsDefaultPath(const std::string& s);
 
 private:
 	static NXScene* s_pWorkingScene;

@@ -67,6 +67,22 @@ void NXGUIMaterial::Render()
 		float fBtnSize = 45.0f;
 		ImGui::BeginChild("##material_iconbtn", ImVec2(fBtnSize, max(ImGui::GetContentRegionAvail().y * 0.1, fBtnSize)));
 		ImGui::Button(".nmat##iconbtn", ImVec2(fBtnSize, fBtnSize));
+
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_EXPLORER_BUTTON_DRUGING"))
+			{
+				auto pDropData = (NXGUIContentExplorerButtonDrugData*)(payload->Data);
+				if (DropDataIsMaterial(pDropData))
+				{
+					auto pNewMaterial = SceneManager::GetInstance()->LoadFromNmatFile(pDropData->srcPath);
+					//SceneManager::GetInstance()->BindMaterial(pPickingSubMesh, pMaterial);
+					printf("wocao!!!o_O\n");
+				}
+			}
+			ImGui::EndDragDropTarget();
+		}
+
 		ImGui::EndChild();
 
 		ImGui::SameLine();
@@ -334,6 +350,13 @@ bool NXGUIMaterial::DropDataIsImage(NXGUIContentExplorerButtonDrugData* pDropDat
 {
 	std::string strExtension = pDropData->srcPath.extension().u8string();
 	std::transform(strExtension.begin(), strExtension.end(), strExtension.begin(), [](UCHAR c) { return std::tolower(c); });
-
 	return strExtension == ".dds" || strExtension == ".png" || strExtension == ".jpg" || strExtension == ".tga" || strExtension == ".bmp";
+}
+
+
+bool NXGUIMaterial::DropDataIsMaterial(NXGUIContentExplorerButtonDrugData* pDropData)
+{
+	std::string strExtension = pDropData->srcPath.extension().u8string();
+	std::transform(strExtension.begin(), strExtension.end(), strExtension.begin(), [](UCHAR c) { return std::tolower(c); });
+	return strExtension == ".nmat";
 }
