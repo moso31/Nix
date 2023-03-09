@@ -1,4 +1,5 @@
 #pragma once
+#include <filesystem>
 #include "ShaderStructures.h"
 #include "NXResourceManager.h"
 
@@ -43,7 +44,7 @@ class NXMaterial
 {
 protected:
 	explicit NXMaterial() = default;
-	NXMaterial(const std::string name, const NXMaterialType type = NXMaterialType::UNKNOWN, const size_t pathHash = 0);
+	NXMaterial(const std::string name, const NXMaterialType type = NXMaterialType::UNKNOWN, const std::filesystem::path& filePath = "");
 
 public:
 	~NXMaterial() {}
@@ -54,7 +55,8 @@ public:
 	NXMaterialType GetType() { return m_type; }
 	void SetType(NXMaterialType type) { m_type = type; }
 
-	size_t GetPathHash() { return m_pathHash; }
+	std::filesystem::path GetFilePath() { return m_filePath; }
+	size_t GetFilePathHash() { return std::filesystem::hash_value(m_filePath); }
 
 	bool IsPBRType();
 
@@ -83,7 +85,8 @@ private:
 	std::vector<NXSubMeshBase*> m_pRefSubMeshes;
 	UINT m_RefSubMeshesCleanUpCount;
 
-	// 路径哈希
+	// 材质文件路径、哈希
+	std::filesystem::path m_filePath;
 	size_t m_pathHash;
 };
 
@@ -91,7 +94,7 @@ class NXPBRMaterialBase : public NXMaterial
 {
 protected:
 	explicit NXPBRMaterialBase() = default;
-	explicit NXPBRMaterialBase(const std::string name, const NXMaterialType type = NXMaterialType::UNKNOWN, const size_t matFilePathHash = 0);
+	explicit NXPBRMaterialBase(const std::string name, const NXMaterialType type = NXMaterialType::UNKNOWN, const std::filesystem::path& filePath = "");
 	~NXPBRMaterialBase() {}
 
 public:
@@ -121,7 +124,7 @@ class NXPBRMaterialStandard : public NXPBRMaterialBase
 {
 public:
 	explicit NXPBRMaterialStandard() = default;
-	NXPBRMaterialStandard(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const size_t matFilePathHash);
+	NXPBRMaterialStandard(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const std::filesystem::path& filePath);
 	~NXPBRMaterialStandard() {}
 
 	CBufferMaterialStandard* GetCBData() { return static_cast<CBufferMaterialStandard*>(m_cbData.get()); }
@@ -148,7 +151,7 @@ class NXPBRMaterialTranslucent : public NXPBRMaterialBase
 {
 public:
 	explicit NXPBRMaterialTranslucent() = default;
-	NXPBRMaterialTranslucent(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float opacity, const size_t matFilePathHash);
+	NXPBRMaterialTranslucent(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float opacity, const std::filesystem::path& filePath);
 	~NXPBRMaterialTranslucent() {}
 
 	CBufferMaterialTranslucent* GetCBData() { return static_cast<CBufferMaterialTranslucent*>(m_cbData.get()); }

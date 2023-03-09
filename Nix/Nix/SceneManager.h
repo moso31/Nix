@@ -48,14 +48,14 @@ public:
 		const std::wstring metallicTexFilePath = g_defaultTex_white_wstr,
 		const std::wstring roughnessTexFilePath = g_defaultTex_white_wstr,
 		const std::wstring aoTexFilePath = g_defaultTex_white_wstr, 
-		size_t matFilePathHash = 0);
+		const std::filesystem::path& folderPath = "");
 	static NXPBRMaterialTranslucent* CreatePBRMaterialTranslucent(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float opacity,
 		const std::wstring albedoTexFilePath = g_defaultTex_white_wstr,
 		const std::wstring normalTexFilePath = g_defaultTex_normal_wstr,
 		const std::wstring metallicTexFilePath = g_defaultTex_white_wstr,
 		const std::wstring roughnessTexFilePath = g_defaultTex_white_wstr,
 		const std::wstring aoTexFilePath = g_defaultTex_white_wstr, 
-		size_t matFilePathHash = 0);
+		const std::filesystem::path& folderPath = "");
 
 	static void BindMaterial(NXRenderableObject* pRenderableObj, NXMaterial* pMaterial);
 	static void BindMaterial(NXSubMeshBase* pSubMesh, NXMaterial* pMaterial);

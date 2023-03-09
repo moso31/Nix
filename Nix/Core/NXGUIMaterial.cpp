@@ -122,6 +122,11 @@ void NXGUIMaterial::Render()
 			SceneManager::GetInstance()->ReTypeMaterial(pMaterial, newMatType);
 	}
 
+	// 保存当前材质
+	if (ImGui::Button("Save##material"))
+	{
+	}
+
 	ImGui::End();
 }
 
