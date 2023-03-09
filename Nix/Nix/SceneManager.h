@@ -48,14 +48,14 @@ public:
 		const std::wstring metallicTexFilePath = g_defaultTex_white_wstr,
 		const std::wstring roughnessTexFilePath = g_defaultTex_white_wstr,
 		const std::wstring aoTexFilePath = g_defaultTex_white_wstr, 
-		const std::filesystem::path& folderPath = "");
+		const std::string& folderPath = "");
 	static NXPBRMaterialTranslucent* CreatePBRMaterialTranslucent(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float opacity,
 		const std::wstring albedoTexFilePath = g_defaultTex_white_wstr,
 		const std::wstring normalTexFilePath = g_defaultTex_normal_wstr,
 		const std::wstring metallicTexFilePath = g_defaultTex_white_wstr,
 		const std::wstring roughnessTexFilePath = g_defaultTex_white_wstr,
 		const std::wstring aoTexFilePath = g_defaultTex_white_wstr, 
-		const std::filesystem::path& folderPath = "");
+		const std::string& folderPath = "");
 
 	static void BindMaterial(NXRenderableObject* pRenderableObj, NXMaterial* pMaterial);
 	static void BindMaterial(NXSubMeshBase* pSubMesh, NXMaterial* pMaterial);
@@ -83,12 +83,13 @@ private:
 	static void RegisterLight(NXPBRLight* newLight, NXObject* pParent = nullptr);
 
 	static NXMaterial* FindMaterial(size_t matPathHash);
-	static NXMaterial* LoadStandardPBRMaterialFromFile(std::ifstream& ifs, const std::string& name);
-	static NXMaterial* LoadTranslucentPBRMaterialFromFile(std::ifstream& ifs, const std::string& name);
+	static NXMaterial* LoadStandardPBRMaterialFromFile(std::ifstream& ifs, const std::string& matName, const std::string& matFilePath);
+	static NXMaterial* LoadTranslucentPBRMaterialFromFile(std::ifstream& ifs, const std::string& matName, const std::string& matFilePath);
 
 private:
 	static void getline_safe(std::ifstream& ifs, std::string& s);
 	static std::wstring ToWStr(const std::string& s);
+	static std::string ToStr(const std::wstring& ws);
 	static bool IsDefaultPath(const std::string& s);
 
 private:

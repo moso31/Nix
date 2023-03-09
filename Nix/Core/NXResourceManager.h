@@ -88,7 +88,7 @@ private:
 class NXTexture
 {
 public:
-    NXTexture() : m_width(-1), m_height(-1), m_arraySize(-1), m_texFormat(DXGI_FORMAT_UNKNOWN), m_mipLevels(-1) {}
+    NXTexture() : m_width(-1), m_height(-1), m_arraySize(-1), m_texFormat(DXGI_FORMAT_UNKNOWN), m_mipLevels(-1), m_texFilePath("") {}
     ~NXTexture() {};
 
     ID3D11Texture2D* GetTex() { return m_pTexture.Get(); }
@@ -97,9 +97,14 @@ public:
     ID3D11DepthStencilView*     GetDSV(UINT index = 0) { return m_pDSVs.empty() ? nullptr : m_pDSVs[index].Get(); }
     ID3D11UnorderedAccessView*  GetUAV(UINT index = 0) { return m_pUAVs.empty() ? nullptr : m_pUAVs[index].Get(); }
 
+    std::string GetFilePath() { return m_texFilePath; }
+    void SetFilePath(const std::string& path) { m_texFilePath = path; }
+
 protected:
     std::string m_debugName;
     ComPtr<ID3D11Texture2D> m_pTexture;
+
+    std::string m_texFilePath;
 
     std::vector<ComPtr<ID3D11ShaderResourceView>> m_pSRVs;
     std::vector<ComPtr<ID3D11RenderTargetView>> m_pRTVs;

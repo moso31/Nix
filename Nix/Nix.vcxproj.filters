@@ -375,6 +375,9 @@
     <ClCompile Include="Core\NXGUIContentExplorer.cpp">
       <Filter>Core\UI</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXGUICommon.cpp">
+      <Filter>Core\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -567,6 +570,9 @@
       <Filter>Core\UI</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXGUIContentExplorer.h">
+      <Filter>Core\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXGUICommon.h">
       <Filter>Core\UI</Filter>
     </ClInclude>
   </ItemGroup>

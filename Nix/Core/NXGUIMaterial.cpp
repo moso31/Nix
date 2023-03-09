@@ -1,4 +1,5 @@
 #include "NXGUIMaterial.h"
+#include "NXGUICommon.h"
 #include "NXScene.h"
 #include "NXPrimitive.h"
 #include "SceneManager.h"
@@ -125,6 +126,9 @@ void NXGUIMaterial::Render()
 	// 保存当前材质
 	if (ImGui::Button("Save##material"))
 	{
+		pMaterial->GetFilePath();
+
+		NXGUICommon::UpdateMaterialFile(pMaterial);
 	}
 
 	ImGui::End();
@@ -234,7 +238,7 @@ void NXGUIMaterial::RenderMaterialUI_Standard(NXPBRMaterialStandard* pMaterial)
 
 	RenderTextureIcon((ImTextureID)pMaterial->GetSRVMetallic(), std::bind(&NXGUIMaterial::OnTexMetallicChange, this, pMaterial), std::bind(&NXGUIMaterial::OnTexMetallicRemove, this, pMaterial), std::bind(&NXGUIMaterial::OnTexMetallicDrop, this, pMaterial, std::placeholders::_1));
 	ImGui::SameLine();
-	ImGui::SliderFloat("Metallic", pMaterial->GetMatallic(), 0.0f, 1.0f);
+	ImGui::SliderFloat("Metallic", pMaterial->GetMetallic(), 0.0f, 1.0f);
 
 	RenderTextureIcon((ImTextureID)pMaterial->GetSRVRoughness(), std::bind(&NXGUIMaterial::OnTexRoughnessChange, this, pMaterial), std::bind(&NXGUIMaterial::OnTexRoughnessRemove, this, pMaterial), std::bind(&NXGUIMaterial::OnTexRoughnessDrop, this, pMaterial, std::placeholders::_1));
 	ImGui::SameLine();
@@ -269,7 +273,7 @@ void NXGUIMaterial::RenderMaterialUI_Translucent(NXPBRMaterialTranslucent* pMate
 
 	RenderTextureIcon((ImTextureID)pMaterial->GetSRVMetallic(), std::bind(&NXGUIMaterial::OnTexMetallicChange, this, pMaterial), std::bind(&NXGUIMaterial::OnTexMetallicRemove, this, pMaterial), std::bind(&NXGUIMaterial::OnTexMetallicDrop, this, pMaterial, std::placeholders::_1));
 	ImGui::SameLine();
-	ImGui::SliderFloat("Metallic", pMaterial->GetMatallic(), 0.0f, 1.0f);
+	ImGui::SliderFloat("Metallic", pMaterial->GetMetallic(), 0.0f, 1.0f);
 
 	RenderTextureIcon((ImTextureID)pMaterial->GetSRVRoughness(), std::bind(&NXGUIMaterial::OnTexRoughnessChange, this, pMaterial), std::bind(&NXGUIMaterial::OnTexRoughnessRemove, this, pMaterial), std::bind(&NXGUIMaterial::OnTexRoughnessDrop, this, pMaterial, std::placeholders::_1));
 	ImGui::SameLine();

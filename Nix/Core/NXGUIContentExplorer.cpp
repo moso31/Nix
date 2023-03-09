@@ -2,6 +2,7 @@
 #include <fstream>
 
 #include "NXGUIContentExplorer.h"
+#include "NXGUICommon.h"
 #include "NXGUI.h"
 #include "NXScene.h"
 #include "SceneManager.h"
@@ -217,16 +218,10 @@ void NXGUIContentExplorer::GenerateMaterialResourceFile(const std::filesystem::p
         }
 
     // 最后生成的名字是 "NewMat " + [任意数字 + 1]，确保材质命名一定不会重复。
-    std::string strNewName = "NewMat " + std::to_string(nMaxValue + 1) + ".nmat";
-    std::filesystem::path newPath = FolderPath / strNewName;
+    std::string strNewName = "NewMat " + std::to_string(nMaxValue + 1);
+    std::string strNewPath = strNewName + ".nmat";
+    std::filesystem::path newPath = FolderPath / strNewPath;
 
     // 默认新建一个StandardPBR材质
-    std::ofstream ofs(newPath, std::ios::binary);
-	ofs << "NewMat\n" << "Standard\n"; // 材质名称，材质类型
-	ofs << "?\n" << 1.0f << ' ' << 1.0f << ' ' << 1.0f << ' ' << 1.0f << ' ' << std::endl; // albedo
-	ofs << "?\n" << 1.0f << ' ' << 1.0f << ' ' << 1.0f << ' ' << 1.0f << ' ' << std::endl; // normal
-	ofs << "?\n" << 1.0f << std::endl; // metallic
-    ofs << "?\n" << 1.0f << std::endl; // roughness
-    ofs << "?\n" << 1.0f << std::endl; // AO
-    ofs.close();
+    NXGUICommon::CreateDefaultMaterialFile(newPath, strNewName);
 }

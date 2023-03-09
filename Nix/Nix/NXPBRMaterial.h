@@ -44,7 +44,7 @@ class NXMaterial
 {
 protected:
 	explicit NXMaterial() = default;
-	NXMaterial(const std::string name, const NXMaterialType type = NXMaterialType::UNKNOWN, const std::filesystem::path& filePath = "");
+	NXMaterial(const std::string name, const NXMaterialType type = NXMaterialType::UNKNOWN, const std::string& filePath = "");
 
 public:
 	~NXMaterial() {}
@@ -55,7 +55,7 @@ public:
 	NXMaterialType GetType() { return m_type; }
 	void SetType(NXMaterialType type) { m_type = type; }
 
-	std::filesystem::path GetFilePath() { return m_filePath; }
+	std::string GetFilePath() { return m_filePath; }
 	size_t GetFilePathHash() { return std::filesystem::hash_value(m_filePath); }
 
 	bool IsPBRType();
@@ -86,7 +86,7 @@ private:
 	UINT m_RefSubMeshesCleanUpCount;
 
 	// 材质文件路径、哈希
-	std::filesystem::path m_filePath;
+	std::string m_filePath;
 	size_t m_pathHash;
 };
 
@@ -94,7 +94,7 @@ class NXPBRMaterialBase : public NXMaterial
 {
 protected:
 	explicit NXPBRMaterialBase() = default;
-	explicit NXPBRMaterialBase(const std::string name, const NXMaterialType type = NXMaterialType::UNKNOWN, const std::filesystem::path& filePath = "");
+	explicit NXPBRMaterialBase(const std::string name, const NXMaterialType type = NXMaterialType::UNKNOWN, const std::string& filePath = "");
 	~NXPBRMaterialBase() {}
 
 public:
@@ -110,6 +110,12 @@ public:
 	void SetTexRoughness(const std::wstring TexFilePath, bool GenerateMipMap = false);
 	void SetTexAO(const std::wstring TexFilePath, bool GenerateMipMap = false);
 
+	std::string GetAlbedoTexFilePath()		{ return m_pTexAlbedo->GetFilePath(); }
+	std::string GetNormalTexFilePath()		{ return m_pTexNormal->GetFilePath(); }
+	std::string GetMetallicTexFilePath()	{ return m_pTexMetallic->GetFilePath(); }
+	std::string GetRoughnessTexFilePath()	{ return m_pTexRoughness->GetFilePath(); }
+	std::string GetAOTexFilePath()			{ return m_pTexAmbientOcclusion->GetFilePath(); }
+
 	virtual void Release();
 
 private:
@@ -124,14 +130,14 @@ class NXPBRMaterialStandard : public NXPBRMaterialBase
 {
 public:
 	explicit NXPBRMaterialStandard() = default;
-	NXPBRMaterialStandard(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const std::filesystem::path& filePath);
+	NXPBRMaterialStandard(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const std::string& filePath);
 	~NXPBRMaterialStandard() {}
 
 	CBufferMaterialStandard* GetCBData() { return static_cast<CBufferMaterialStandard*>(m_cbData.get()); }
 	
 	Vector3 	GetAlbedo()		{ return GetCBData()->albedo; }
 	Vector3 	GetNormal()		{ return GetCBData()->normal; }
-	float*		GetMatallic()	{ return &(GetCBData()->metallic); }
+	float*		GetMetallic()	{ return &(GetCBData()->metallic); }
 	float*		GetRoughness()	{ return &(GetCBData()->roughness); }
 	float*		GetAO()			{ return &(GetCBData()->ao); }
 
@@ -151,7 +157,7 @@ class NXPBRMaterialTranslucent : public NXPBRMaterialBase
 {
 public:
 	explicit NXPBRMaterialTranslucent() = default;
-	NXPBRMaterialTranslucent(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float opacity, const std::filesystem::path& filePath);
+	NXPBRMaterialTranslucent(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float opacity, const std::string& filePath);
 	~NXPBRMaterialTranslucent() {}
 
 	CBufferMaterialTranslucent* GetCBData() { return static_cast<CBufferMaterialTranslucent*>(m_cbData.get()); }
@@ -159,7 +165,7 @@ public:
 	Vector3 	GetAlbedo()		{ return GetCBData()->albedo; }
 	float*		GetOpacity()	{ return &(GetCBData()->opacity); }
 	Vector3 	GetNormal()		{ return GetCBData()->normal; }
-	float*		GetMatallic()	{ return &(GetCBData()->metallic); }
+	float*		GetMetallic()	{ return &(GetCBData()->metallic); }
 	float*		GetRoughness()	{ return &(GetCBData()->roughness); }
 	float*		GetAO()			{ return &(GetCBData()->ao); }
 

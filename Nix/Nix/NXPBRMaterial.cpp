@@ -5,7 +5,7 @@
 #include "NXResourceManager.h"
 #include "NXSubMesh.h"
 
-NXMaterial::NXMaterial(const std::string name, const NXMaterialType type, const std::filesystem::path& filePath) :
+NXMaterial::NXMaterial(const std::string name, const NXMaterialType type, const std::string& filePath) :
 	m_name(name),
 	m_type(type),
 	m_filePath(filePath),
@@ -70,6 +70,9 @@ NXTexture2D* NXMaterial::LoadFromTexFile(const std::wstring texFilePath, bool Ge
 	}
 
 	NXTexture2D* pOutTex = NXResourceManager::GetInstance()->CreateTexture2D(m_name.c_str(), pImageData, info.format, (UINT)info.width, (UINT)info.height, (UINT)info.arraySize, (UINT)info.mipLevels, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, (UINT)info.miscFlags);
+	
+	std::string strFilePath(texFilePath.begin(), texFilePath.end());
+	pOutTex->SetFilePath(strFilePath);
 
 	delete[] pImageData;
 
@@ -89,7 +92,7 @@ void NXMaterial::AddSubMesh(NXSubMeshBase* pSubMesh)
 	m_pRefSubMeshes.push_back(pSubMesh);
 }
 
-NXPBRMaterialBase::NXPBRMaterialBase(const std::string name, const NXMaterialType type, const std::filesystem::path& filePath) :
+NXPBRMaterialBase::NXPBRMaterialBase(const std::string name, const NXMaterialType type, const std::string& filePath) :
 	NXMaterial(name, type, filePath),
 	m_pTexAlbedo(nullptr),
 	m_pTexNormal(nullptr),
@@ -138,7 +141,7 @@ void NXPBRMaterialBase::Release()
 	SafeDelete(m_pTexAmbientOcclusion);
 }
 
-NXPBRMaterialStandard::NXPBRMaterialStandard(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const std::filesystem::path& filePath) :
+NXPBRMaterialStandard::NXPBRMaterialStandard(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const std::string& filePath) :
 	NXPBRMaterialBase(name, NXMaterialType::PBR_STANDARD, filePath)
 {
 	m_cbData = std::make_unique<CBufferMaterialStandard>(albedo, normal, metallic, roughness, ao);
@@ -156,7 +159,7 @@ void NXPBRMaterialStandard::InitConstantBuffer()
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cb));
 }
 
-NXPBRMaterialTranslucent::NXPBRMaterialTranslucent(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float opacity, const std::filesystem::path& filePath) :
+NXPBRMaterialTranslucent::NXPBRMaterialTranslucent(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float opacity, const std::string& filePath) :
 	NXPBRMaterialBase(name, NXMaterialType::PBR_TRANSLUCENT, filePath)
 {
 	m_cbData = std::make_unique<CBufferMaterialTranslucent>(albedo, normal, metallic, roughness, ao, opacity);
