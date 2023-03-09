@@ -124,8 +124,8 @@ NXMaterial* SceneManager::LoadFromNmatFile(const std::filesystem::path& matFileP
 	size_t pathHash = std::filesystem::hash_value(matFilePath);
 
 	// 如果已经在内存里直接拿就行了
-	NXMaterial* pMat = FindMaterial(pathHash);
-	if (pMat) return pMat;
+	NXMaterial* pNewMat = FindMaterial(pathHash);
+	if (pNewMat) return pNewMat;
 
 	// 否则需要读路径文件创建新材质
 	std::ifstream ifs(matFilePath.string().c_str(), std::ios::binary);
@@ -186,12 +186,10 @@ NXMaterial* SceneManager::LoadFromNmatFile(const std::filesystem::path& matFileP
 		ifs >> ao;
 		std::getline(ifs, strToNext);
 
-		int x = 0;
-
-		SceneManager::GetInstance()->CreatePBRMaterialStandard(strName, albedo, normal, metallic, roughness, ao, ToWStr(strAlbedoTexPath), ToWStr(strNormalTexPath), ToWStr(strMetallicTexPath), ToWStr(strRoughnessTexPath), ToWStr(strAOTexPath));
+		pNewMat = SceneManager::GetInstance()->CreatePBRMaterialStandard(strName, albedo, normal, metallic, roughness, ao, ToWStr(strAlbedoTexPath), ToWStr(strNormalTexPath), ToWStr(strMetallicTexPath), ToWStr(strRoughnessTexPath), ToWStr(strAOTexPath));
 	}
 
-	return nullptr;
+	return pNewMat;
 }
 
 NXPBRMaterialStandard* SceneManager::CreatePBRMaterialStandard(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao,

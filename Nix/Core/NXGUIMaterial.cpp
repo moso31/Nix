@@ -75,9 +75,9 @@ void NXGUIMaterial::Render()
 				auto pDropData = (NXGUIContentExplorerButtonDrugData*)(payload->Data);
 				if (DropDataIsMaterial(pDropData))
 				{
+					// 将 content explorer 的材质拖动到这里（材质属性面板）
 					auto pNewMaterial = SceneManager::GetInstance()->LoadFromNmatFile(pDropData->srcPath);
-					//SceneManager::GetInstance()->BindMaterial(pPickingSubMesh, pMaterial);
-					printf("wocao!!!o_O\n");
+					SceneManager::GetInstance()->BindMaterial(pPickingSubMesh, pNewMaterial);
 				}
 			}
 			ImGui::EndDragDropTarget();
