@@ -82,8 +82,8 @@ void NXGUIContentExplorer::Render()
             if (ImGui::BeginChild("##content_preview_div", ImVec2(0, 0), true, ImGuiWindowFlags_None))
             {
                 float fAllElementsWidth = ImGui::GetColumnWidth();
-                int iColumns = max(fAllElementsWidth / fElementSize, 1);
-                int fActualSize = fAllElementsWidth / (float)iColumns;
+                int iColumns = max((int)(fAllElementsWidth / fElementSize), 1);
+                float fActualSize = fAllElementsWidth / (float)iColumns;
                 if (ImGui::BeginTable("##content_preview_table", iColumns, ImGuiTableFlags_Resizable | ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_NoBordersInBody))
                 {
                     for (auto const& [_, elem] : m_selectionInfo)
@@ -199,7 +199,7 @@ void NXGUIContentExplorer::GenerateMaterialResourceFile(const std::filesystem::p
     // 判断一下当前Folder下的所有nmat文件，如果开头是 "NewMat " + [任意数字] 的形式，就将数字记录下来
     // 如果没有这样的材质，就计数为0
     std::string strJudge = "NewMat ";
-    int nOffset = strJudge.length();
+    size_t nOffset = strJudge.length();
     int nMaxValue = 0;
     for (auto const& p : std::filesystem::directory_iterator(FolderPath))
         if (p.path().extension().string() == ".nmat")
