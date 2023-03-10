@@ -11,6 +11,7 @@
 #include "NXGUISSAO.h"
 #include "NXGUIShadows.h"
 #include "NXGUIDebugLayer.h"
+#include "NXGUIPostProcessing.h"
 #include "NXGUIContentExplorer.h"
 
 NXGUI::NXGUI(NXScene* pScene, Renderer* pRenderer) :
@@ -23,6 +24,7 @@ NXGUI::NXGUI(NXScene* pScene, Renderer* pRenderer) :
 	m_pGUICubeMap(nullptr),
 	m_pGUISSAO(nullptr),
 	m_pGUIShadows(nullptr),
+	m_pGUIPostProcessing(nullptr),
 	m_pGUIDebugLayer(nullptr),
 	m_pGUIContentExplorer(nullptr)
 {
@@ -47,6 +49,7 @@ void NXGUI::Init()
 
 	m_pGUISSAO = new NXGUISSAO(m_pRenderer->GetSSAORenderer());
 	m_pGUIShadows = new NXGUIShadows(m_pRenderer->GetShadowMapRenderer());
+	m_pGUIPostProcessing = new NXGUIPostProcessing(m_pRenderer->GetColorMappingRenderer());
 	m_pGUIDebugLayer = new NXGUIDebugLayer(m_pRenderer->GetDebugLayerRenderer());
 
 	IMGUI_CHECKVERSION();
@@ -73,6 +76,7 @@ void NXGUI::Render()
 	m_pGUICamera->Render();
 	m_pGUISSAO->Render();
 	m_pGUIShadows->Render();
+	m_pGUIPostProcessing->Render();
 	m_pGUIDebugLayer->Render();
 
 	static bool show_demo_window = true;
@@ -136,6 +140,7 @@ void NXGUI::Release()
 	SafeDelete(m_pGUISSAO);
 	SafeDelete(m_pGUIShadows);
 	SafeDelete(m_pFileBrowser);
+	SafeDelete(m_pGUIPostProcessing);
 	SafeDelete(m_pGUIDebugLayer);
 	SafeDelete(m_pGUIContentExplorer);
 

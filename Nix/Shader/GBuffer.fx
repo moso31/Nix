@@ -60,6 +60,7 @@ void PS(PS_INPUT input, out PS_OUTPUT Output)
 	Output.GBufferA = float4(input.posVS.xyz, 1.0f);
 
 	float3 normalMap = txNormalMap.Sample(ssLinearWrap, input.tex).xyz;
+	normalMap.y = 1.0f - normalMap.y;
 	float3 normal = m_material.normal * normalMap;
 	float3 N = TangentSpaceToViewSpace(normal, input.normVS, input.tangentVS);
 	Output.GBufferB = float4(N, 1.0f);

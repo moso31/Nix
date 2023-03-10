@@ -40,9 +40,21 @@ void NXGUICamera::Render()
         }
 
         float fFovY = m_pCurrentCamera->GetFovY();
-        if (ImGui::DragFloat("fFov", &fFovY, 0.1f, 0.0f, 180.0f))
+        if (ImGui::DragFloat("Fov", &fFovY, 0.1f, 0.0f, 180.0f))
         {
             m_pCurrentCamera->SetFovY(fFovY);
+        }
+
+        float fNear = m_pCurrentCamera->GetZNear();
+        float fFar = m_pCurrentCamera->GetZFar();
+        if (ImGui::DragFloat("ZNear", &fNear, 0.01f, 0.01f, fFar))
+        {
+            m_pCurrentCamera->SetZNear(fNear);
+        }
+
+        if (ImGui::DragFloat("ZFar", &fFar, 0.01f, fNear, 10000.0f))
+        {
+            m_pCurrentCamera->SetZFar(fNear);
         }
     }
 

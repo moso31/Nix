@@ -12,6 +12,7 @@ class NXGUICubeMap;
 class NXGUILights;
 class NXGUICamera;
 class NXGUIShadows;
+class NXGUIPostProcessing;
 class NXGUIDebugLayer;
 
 class NXGUI
@@ -37,6 +38,7 @@ private:
 	NXGUIFileBrowser*		m_pFileBrowser;
 	NXGUISSAO*				m_pGUISSAO;
 	NXGUIShadows*			m_pGUIShadows;
+	NXGUIPostProcessing*	m_pGUIPostProcessing;
 
 	NXGUIDebugLayer*		m_pGUIDebugLayer;
 };

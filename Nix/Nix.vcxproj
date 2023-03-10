@@ -233,6 +233,7 @@
     <ClCompile Include="Core\NXGUIDebugLayer.cpp" />
     <ClCompile Include="Core\NXGUILights.cpp" />
     <ClCompile Include="Core\NXGUIMaterial.cpp" />
+    <ClCompile Include="Core\NXGUIPostProcessing.cpp" />
     <ClCompile Include="Core\NXGUIShadows.cpp" />
     <ClCompile Include="Core\NXGUISSAO.cpp" />
     <ClCompile Include="Core\NXInput.cpp" />
@@ -297,6 +298,7 @@
     <ClInclude Include="Core\NXGUIImpl.h" />
     <ClInclude Include="Core\NXGUILights.h" />
     <ClInclude Include="Core\NXGUIMaterial.h" />
+    <ClInclude Include="Core\NXGUIPostProcessing.h" />
     <ClInclude Include="Core\NXGUIShadows.h" />
     <ClInclude Include="Core\NXGUISSAO.h" />
     <ClInclude Include="Core\NXInput.h" />

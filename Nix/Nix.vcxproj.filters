@@ -378,6 +378,9 @@
     <ClCompile Include="Core\NXGUICommon.cpp">
       <Filter>Core\UI</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXGUIPostProcessing.cpp">
+      <Filter>Core\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -573,6 +576,9 @@
       <Filter>Core\UI</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXGUICommon.h">
+      <Filter>Core\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXGUIPostProcessing.h">
       <Filter>Core\UI</Filter>
     </ClInclude>
   </ItemGroup>

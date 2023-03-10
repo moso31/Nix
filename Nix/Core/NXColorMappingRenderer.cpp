@@ -6,6 +6,7 @@
 #include "NXRenderTarget.h"
 
 NXColorMappingRenderer::NXColorMappingRenderer() :
+	m_bEnablePostProcessing(true),
 	m_pFinalRT(nullptr)
 {
 }
@@ -27,11 +28,21 @@ void NXColorMappingRenderer::Init()
 	m_pBlendState = NXBlendState<>::Create();
 
 	m_pSamplerLinearClamp.Swap(NXSamplerState<>::Create());
+
+	D3D11_BUFFER_DESC bufferDesc;
+	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = sizeof(CBufferColorMapping);
+	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbParams));
 }
 
 void NXColorMappingRenderer::Render()
 {
 	g_pUDA->BeginEvent(L"Post Processing");
+
+	m_cbDataParams.param0.x = m_bEnablePostProcessing ? 1.0f : 0.0f;
 
 	g_pUDA->BeginEvent(L"Color Mapping");
 
@@ -44,9 +55,12 @@ void NXColorMappingRenderer::Render()
 
 	g_pContext->OMSetRenderTargets(1, &pRTVPostProcessing, nullptr);
 
+	g_pContext->UpdateSubresource(m_cbParams.Get(), 0, nullptr, &m_cbDataParams, 0, 0);
+
 	g_pContext->IASetInputLayout(m_pInputLayout.Get());
 	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
+	g_pContext->PSSetConstantBuffers(1, 1, m_cbParams.GetAddressOf());
 
 	g_pContext->PSSetShaderResources(0, 1, &pSRVMainScene);
 

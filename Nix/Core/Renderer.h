@@ -48,6 +48,8 @@ public:
 public:
 	NXSimpleSSAO*			GetSSAORenderer()			{ return m_pSSAO; }
 	NXShadowMapRenderer*	GetShadowMapRenderer()		{ return m_pShadowMapRenderer; }
+	// 2023.3.10 目前 PostProcessing 只有 ColorMapping…… 所以这两个暂时算是同义词。
+	NXColorMappingRenderer* GetColorMappingRenderer()   { return m_pColorMappingRenderer; }
 	NXDebugLayerRenderer*	GetDebugLayerRenderer()		{ return m_pDebugLayerRenderer; }
 
 private:
