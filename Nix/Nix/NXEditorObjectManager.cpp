@@ -16,9 +16,9 @@ NXEditorObjectManager::~NXEditorObjectManager()
 void NXEditorObjectManager::Init()
 {
 	NXPrimitive* pObj = new NXPrimitive();
-	pObj->SetName("game_selection_arrows");
-	//pObj->SetVisible(false);	// SelectionArrows 默认不可见
-	NXSubMeshGeometryEditor::GetInstance()->CreateSelectionArrows(pObj);
+	pObj->SetName("game_move_arrows");
+	//pObj->SetVisible(false);	// MoveArrows 默认不可见
+	NXSubMeshGeometryEditor::GetInstance()->CreateMoveArrows(pObj);
 
 	m_editorObjs.push_back(pObj);
 

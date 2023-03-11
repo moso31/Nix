@@ -21,6 +21,7 @@ public:
 	EditorObjectID	GetHighLightID() { return m_uHighLightID; }
 	void			SetHighLightID(EditorObjectID value) { m_uHighLightID = value; }
 	void			MoveTranslatorTo(const Vector3& position);
+	NXPrimitive*	GetMoveArrow() { return m_editorObjs[0]; }
 
 private:
 	NXScene* m_pScene;

@@ -64,7 +64,7 @@ public:
 	// 更新场景BVH树
 	void BuildBVHTrees(const HBVHSplitMode SplitMode);
 private:
-	// 生成编辑器对象（SelectionArrows等玩意）
+	// 生成编辑器对象（MoveArrows等玩意）
 	void InitEditorObjectsManager();
 
 	// 计算场景下所有物体的 AABB。

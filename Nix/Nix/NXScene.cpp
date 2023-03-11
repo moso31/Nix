@@ -27,8 +27,7 @@ NXScene::NXScene() :
 	m_pBVHTree(nullptr),
 	m_pCubeMap(nullptr),
 	m_pMainCamera(nullptr),
-	m_bEditorSelectID(EditorObjectID::NONE),
-	m_selectObjHitOffset(0.0f)
+	m_bEditorSelectID(EditorObjectID::NONE)
 {
 	m_type = NXType::eScene;
 }
@@ -87,9 +86,9 @@ void NXScene::OnMouseMove(NXEventArgMouse eArg)
 	if (m_bEditorSelectID > EditorObjectID::NONE &&
 		m_bEditorSelectID < EditorObjectID::MAX)
 	{
-		// 进入这里说明正在拖动 SelectionArrow/RotateRing/ScaleBoxes
+		// 进入这里说明正在拖动 MoveArrow/RotateRing/ScaleBoxes
 		
-		// 获取拖动后位置在SelectionArrow的轴/平面上的投影坐标
+		// 获取拖动后位置在MoveArrow的轴/平面上的投影坐标
 		Vector3 anchorPos = GetAnchorOfEditorObject(worldRay);
 
 		// 移动所有选中的物体
@@ -101,7 +100,7 @@ void NXScene::OnMouseMove(NXEventArgMouse eArg)
 
 		if (!m_pSelectedObjects.empty())
 		{
-			// SelectionArrow 也跟着移动位置
+			// MoveArrow 也跟着移动位置
 			// 2023.3.11 暂时使用第一个选中的Primitive的Translation计算移动量
 			NXPrimitive* pFirstSelectedPrimitive = m_pSelectedObjects[0];
 			m_pEditorObjManager->MoveTranslatorTo(pFirstSelectedPrimitive->GetAABBWorld().Center);
@@ -148,8 +147,7 @@ Vector3 NXScene::GetAnchorOfEditorObject(const Ray& worldRay)
 	if (m_pSelectedObjects.empty())
 		return Vector3(0.0f);
 
-	// 【2023.3.11 目前只支持单选。将来改】
-	auto pSelectObjs = m_pSelectedObjects[0];
+	auto pSelectObjs = m_pEditorObjManager->GetMoveArrow();
 
 	if (m_bEditorSelectID >= EditorObjectID::TRANSLATE_X &&
 		m_bEditorSelectID <= EditorObjectID::TRANSLATE_Z)
