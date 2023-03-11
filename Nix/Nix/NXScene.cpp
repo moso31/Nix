@@ -71,10 +71,10 @@ void NXScene::OnMouseDown(NXEventArgMouse eArg)
 
 			NXHit hit;
 			RayCast(ray, hit);
-			if (hit.pSubMesh)
-			{
-				AddPickingSubMesh(hit.pSubMesh);
-			}
+			if (hit.pSubMesh) AddPickingSubMesh(hit.pSubMesh);
+
+			// 若没有picking对象，隐藏EditorObjects
+			m_pEditorObjManager->SetVisible(!m_pSelectedObjects.empty());
 		}
 	}
 }
