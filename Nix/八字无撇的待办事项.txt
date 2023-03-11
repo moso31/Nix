@@ -53,7 +53,8 @@ SSAO可以升级成GTAO或者HBAO
 4. GenerateMipMap
 5. 纹理界面化，控制纹理法线强度
 6. WStr相关函数整理 做成通用类?
-9. 鼠标在IMGUI上的指令 和 ViewPort上的指令 如何区分？
+9. 鼠标在IMGUI上的指令 和 ViewPort上的指令 如何区分？[DONE]（新增了强制事件）
 
 较大的长期模块：
-resizeable viewport+全屏化UI
+12. resizeable viewport+全屏化UI
+13. 场景文件化，可保存、加载

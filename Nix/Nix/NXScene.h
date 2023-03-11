@@ -17,6 +17,7 @@ public:
 	void OnMouseUp(NXEventArgMouse eArg);
 	void OnKeyDown(NXEventArgKey eArg);
 	void OnKeyUp(NXEventArgKey eArg);
+	void OnKeyUpForce(NXEventArgKey eArg);
 
 private:
 	// 计算射线和EditorObject上的锚点。平移、旋转、缩放等操作都依赖这个锚点。

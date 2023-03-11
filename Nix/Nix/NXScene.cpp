@@ -136,6 +136,10 @@ void NXScene::OnKeyDown(NXEventArgKey eArg)
 
 void NXScene::OnKeyUp(NXEventArgKey eArg)
 {
+}
+
+void NXScene::OnKeyUpForce(NXEventArgKey eArg)
+{
 	if (eArg.VKey == NXKeyCode::LeftControl)
 	{
 		m_bMultiSelectKeyHolding = false;
@@ -382,6 +386,7 @@ void NXScene::InitScripts()
 	NXEventMouseMove::GetInstance()->AddListener(std::bind(&NXScene::OnMouseMove, this, std::placeholders::_1));
 	NXEventMouseDown::GetInstance()->AddListener(std::bind(&NXScene::OnMouseDown, this, std::placeholders::_1));
 	NXEventMouseUp::GetInstance()->AddListener(std::bind(&NXScene::OnMouseUp, this, std::placeholders::_1));
+	NXEventKeyUpForce::GetInstance()->AddListener(std::bind(&NXScene::OnKeyUpForce, this, std::placeholders::_1));
 }
 
 void NXScene::UpdateTransform(NXObject* pObject)
