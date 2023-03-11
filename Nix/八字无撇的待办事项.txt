@@ -41,4 +41,19 @@ SSAO可以升级成GTAO或者HBAO
 
 ************************ 功能杂项 ************************
 
-缺少String-Int类型的相互转换。
+考虑要做的功能：
+1. ctrl左键点击ViewPort：多选材质[DONE]
+	8. 多选编辑器移动[DONE]
+	10. MoveArrows 增加不可见状态[DONE]
+2. Translucent类型材质保存[DONE]
+
+3. 新材质类型：SubSurface
+7. Hierarchy 场景大纲
+
+4. GenerateMipMap
+5. 纹理界面化，控制纹理法线强度
+6. WStr相关函数整理 做成通用类?
+9. 鼠标在IMGUI上的指令 和 ViewPort上的指令 如何区分？
+
+较大的长期模块：
+resizeable viewport+全屏化UI
