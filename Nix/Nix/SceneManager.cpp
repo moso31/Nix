@@ -142,7 +142,7 @@ NXMaterial* SceneManager::LoadFromNmatFile(const std::filesystem::path& matFileP
 	if (strType == "Standard") 
 		pNewMat = LoadStandardPBRMaterialFromFile(ifs, strName, strMatFilePath);
 	if (strType == "Translucent") 
-		pNewMat = LoadStandardPBRMaterialFromFile(ifs, strName, strMatFilePath);
+		pNewMat = LoadTranslucentPBRMaterialFromFile(ifs, strName, strMatFilePath);
 
 	ifs.close();
 
@@ -210,8 +210,9 @@ NXMaterial* SceneManager::LoadTranslucentPBRMaterialFromFile(std::ifstream& ifs,
 	if (IsDefaultPath(strAlbedoTexPath))
 		strAlbedoTexPath = g_defaultTex_white_str;
 
-	Vector4 albedo;
-	ifs >> albedo.x >> albedo.y >> albedo.z >> albedo.w;
+	Vector3 albedo;
+	float opacity;
+	ifs >> albedo.x >> albedo.y >> albedo.z >> opacity;
 	std::getline(ifs, strToNext);
 
 	std::string strNormalTexPath;
@@ -250,7 +251,7 @@ NXMaterial* SceneManager::LoadTranslucentPBRMaterialFromFile(std::ifstream& ifs,
 	ifs >> ao;
 	std::getline(ifs, strToNext);
 
-	return SceneManager::GetInstance()->CreatePBRMaterialStandard(matName, albedo, normal, metallic, roughness, ao, ToWStr(strAlbedoTexPath), ToWStr(strNormalTexPath), ToWStr(strMetallicTexPath), ToWStr(strRoughnessTexPath), ToWStr(strAOTexPath), matFilePath);
+	return SceneManager::GetInstance()->CreatePBRMaterialTranslucent(matName, albedo, normal, metallic, roughness, ao, opacity, ToWStr(strAlbedoTexPath), ToWStr(strNormalTexPath), ToWStr(strMetallicTexPath), ToWStr(strRoughnessTexPath), ToWStr(strAOTexPath), matFilePath);
 }
 
 NXPBRMaterialStandard* SceneManager::CreatePBRMaterialStandard(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao,
