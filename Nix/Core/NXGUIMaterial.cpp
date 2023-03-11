@@ -25,26 +25,27 @@ void NXGUIMaterial::Render()
 		return;
 	}
 
-	if (pPickingSubMeshes.size() == 1)
+	bool bIsReadOnly = pPickingSubMeshes.size() != 1;
+	if (bIsReadOnly) ImGui::BeginDisabled();
 	{
-		// 如果是单选
 		NXPrimitive* pObject = pPickingSubMeshes[0]->GetPrimitive();
 		NXMaterial* pMaterial = pPickingSubMeshes[0]->GetMaterial();
 
-		std::string strName = pObject->GetName().c_str();
+		std::string strName = bIsReadOnly ? "-" : pObject->GetName().c_str();
 		if (ImGui::InputText("Name", &strName))
 		{
 			pObject->SetName(strName);
 		}
 
 		float fDrugSpeedTransform = 0.01f;
-		XMVECTOR vTrans = XMLoadFloat3(&pObject->GetTranslation());
-		if (ImGui::DragFloat3("Translation", vTrans.m128_f32, fDrugSpeedTransform))
+		Vector3 vTrans = bIsReadOnly ? Vector3(0.0f) : pObject->GetTranslation();
+		float vTransArr[3] = { vTrans.x, vTrans.y, vTrans.z };
+		if (ImGui::DragFloat3("Translation", vTransArr, fDrugSpeedTransform))
 		{
 			pObject->SetTranslation(vTrans);
 		}
 
-		Vector3 vRot = pObject->GetRotation();
+		Vector3 vRot = bIsReadOnly ? Vector3(0.0f) : pObject->GetRotation();
 		float vRotArr[3] = { vRot.x, vRot.y, vRot.z };
 		if (ImGui::DragFloat3("Rotation", vRotArr, fDrugSpeedTransform))
 		{
@@ -59,14 +60,16 @@ void NXGUIMaterial::Render()
 			//}
 		}
 
-		XMVECTOR vScal = XMLoadFloat3(&pObject->GetScale());
-		if (ImGui::DragFloat3("Scale", vScal.m128_f32, fDrugSpeedTransform))
+		Vector3 vScal = bIsReadOnly ? Vector3(0.0f) : pObject->GetScale();
+		float vScalArr[3] = { vScal.x, vScal.y, vScal.z };
+		if (ImGui::DragFloat3("Scale", vScalArr, fDrugSpeedTransform))
 		{
 			pObject->SetScale(vScal);
 		}
 
 		ImGui::Separator();
 	}
+	if (bIsReadOnly) ImGui::EndDisabled();
 
 	// 统计选中的所有Meshes里面有多少材质
 	std::unordered_set<NXMaterial*> pUniqueMats;
@@ -103,7 +106,7 @@ void NXGUIMaterial::Render()
 
 	if (!pCommonMaterial)
 	{
-		ImGui::Text("%d Materials", pPickingSubMeshes.size());
+		ImGui::Text("%d Materials, %d Submeshes", pUniqueMats.size(), pPickingSubMeshes.size());
 	}
 	else
 	{
