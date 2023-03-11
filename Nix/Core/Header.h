@@ -58,6 +58,13 @@ using namespace Microsoft::WRL;
 #define SafeReleaseCOM(x) { if (x) { x->Release(); x = nullptr; } }
 #define SafeRelease(x) { if (x) { x->Release(); SafeDelete(x); } }
 
+enum NXKeyCode
+{
+	LeftShift = 16,
+	LeftControl = 17,
+	LeftAlt = 18,
+};
+
 // class preload
 class App;
 class DirectResources;

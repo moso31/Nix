@@ -1,4 +1,5 @@
 #include "NXGUIMaterial.h"
+#include <unordered_set>
 #include "NXGUICommon.h"
 #include "NXScene.h"
 #include "NXPrimitive.h"
@@ -17,87 +18,105 @@ NXGUIMaterial::NXGUIMaterial(NXScene* pScene, NXGUIFileBrowser* pFileBrowser) :
 void NXGUIMaterial::Render()
 {
 	ImGui::Begin("Material");
-	NXSubMeshBase* pPickingSubMesh = m_pCurrentScene->GetCurrentPickingSubMesh();
-	if (!pPickingSubMesh)
+	std::vector<NXSubMeshBase*> pPickingSubMeshes = m_pCurrentScene->GetPickingSubMeshes();
+	if (pPickingSubMeshes.empty())
 	{
 		ImGui::End();
 		return;
 	}
 
-	NXPrimitive* pObject = pPickingSubMesh->GetPrimitive();
-	NXMaterial* pMaterial = pPickingSubMesh->GetMaterial();
-
-	std::string strName = pObject->GetName().c_str();
-	if (ImGui::InputText("Name", &strName))
+	if (pPickingSubMeshes.size() == 1)
 	{
-		pObject->SetName(strName);
-	}
+		// 如果是单选
+		NXPrimitive* pObject = pPickingSubMeshes[0]->GetPrimitive();
+		NXMaterial* pMaterial = pPickingSubMeshes[0]->GetMaterial();
 
-	float fDrugSpeedTransform = 0.01f;
-	XMVECTOR vTrans = XMLoadFloat3(&pObject->GetTranslation());
-	if (ImGui::DragFloat3("Translation", vTrans.m128_f32, fDrugSpeedTransform))
-	{
-		pObject->SetTranslation(vTrans);
-	}
-
-	Vector3 vRot = pObject->GetRotation();
-	float vRotArr[3] = { vRot.x, vRot.y, vRot.z };
-	if (ImGui::DragFloat3("Rotation", vRotArr, fDrugSpeedTransform))
-	{
-		pObject->SetRotation(Vector3(vRotArr));
-
-		// 没什么意义的辣鸡测试……
-		//{
-		//	Vector3 value(0.2, 1.12, 2.31);
-		//	Quaternion _qRot = Quaternion::CreateFromYawPitchRoll(value.y, value.x, value.z);
-		//	Vector3 res = _qRot.EulerXYZ();
-		//	printf("%f %f %f\n", res.x, res.y, res.z);
-		//}
-	}
-
-	XMVECTOR vScal = XMLoadFloat3(&pObject->GetScale());
-	if (ImGui::DragFloat3("Scale", vScal.m128_f32, fDrugSpeedTransform))
-	{
-		pObject->SetScale(vScal);
-	}
-
-	ImGui::Separator();
-
-	if (pMaterial)
-	{
-		float fBtnSize = 45.0f;
-		ImGui::BeginChild("##material_iconbtn", ImVec2(fBtnSize, max(ImGui::GetContentRegionAvail().y * 0.1f, fBtnSize)));
-		ImGui::Button(".nmat##iconbtn", ImVec2(fBtnSize, fBtnSize));
-
-		if (ImGui::BeginDragDropTarget())
+		std::string strName = pObject->GetName().c_str();
+		if (ImGui::InputText("Name", &strName))
 		{
-			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_EXPLORER_BUTTON_DRUGING"))
-			{
-				auto pDropData = (NXGUIContentExplorerButtonDrugData*)(payload->Data);
-				if (DropDataIsMaterial(pDropData))
-				{
-					// 生成新材质
-					auto pNewMaterial = SceneManager::GetInstance()->LoadFromNmatFile(pDropData->srcPath);
-
-					// 替换物体原来的材质
-					SceneManager::GetInstance()->BindMaterial(pPickingSubMesh, pNewMaterial);
-				}
-			}
-			ImGui::EndDragDropTarget();
+			pObject->SetName(strName);
 		}
 
-		ImGui::EndChild();
+		float fDrugSpeedTransform = 0.01f;
+		XMVECTOR vTrans = XMLoadFloat3(&pObject->GetTranslation());
+		if (ImGui::DragFloat3("Translation", vTrans.m128_f32, fDrugSpeedTransform))
+		{
+			pObject->SetTranslation(vTrans);
+		}
 
+		Vector3 vRot = pObject->GetRotation();
+		float vRotArr[3] = { vRot.x, vRot.y, vRot.z };
+		if (ImGui::DragFloat3("Rotation", vRotArr, fDrugSpeedTransform))
+		{
+			pObject->SetRotation(Vector3(vRotArr));
+
+			// 没什么意义的辣鸡测试……
+			//{
+			//	Vector3 value(0.2, 1.12, 2.31);
+			//	Quaternion _qRot = Quaternion::CreateFromYawPitchRoll(value.y, value.x, value.z);
+			//	Vector3 res = _qRot.EulerXYZ();
+			//	printf("%f %f %f\n", res.x, res.y, res.z);
+			//}
+		}
+
+		XMVECTOR vScal = XMLoadFloat3(&pObject->GetScale());
+		if (ImGui::DragFloat3("Scale", vScal.m128_f32, fDrugSpeedTransform))
+		{
+			pObject->SetScale(vScal);
+		}
+
+		ImGui::Separator();
+	}
+
+	// 统计选中的所有Meshes里面有多少材质
+	std::unordered_set<NXMaterial*> pUniqueMats;
+	for (auto pSubMesh : pPickingSubMeshes)
+		pUniqueMats.insert(pSubMesh->GetMaterial());
+
+	NXMaterial* pCommonMaterial = pUniqueMats.size() == 1 ? *pUniqueMats.begin() : nullptr;
+
+	float fBtnSize = 45.0f;
+	ImGui::BeginChild("##material_iconbtn", ImVec2(fBtnSize, max(ImGui::GetContentRegionAvail().y * 0.1f, fBtnSize)));
+	ImGui::Button(".nmat##iconbtn", ImVec2(fBtnSize, fBtnSize));
+
+	if (ImGui::BeginDragDropTarget())
+	{
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_EXPLORER_BUTTON_DRUGING"))
+		{
+			auto pDropData = (NXGUIContentExplorerButtonDrugData*)(payload->Data);
+			if (DropDataIsMaterial(pDropData))
+			{
+				// 生成新材质
+				auto pNewMaterial = SceneManager::GetInstance()->LoadFromNmatFile(pDropData->srcPath);
+
+				// 替换物体原来的材质
+				for (auto pSubMesh : pPickingSubMeshes)
+				{
+					SceneManager::GetInstance()->BindMaterial(pSubMesh, pNewMaterial);
+				}
+			}
+		}
+		ImGui::EndDragDropTarget();
+	}
+
+	ImGui::EndChild();
+
+	if (!pCommonMaterial)
+	{
+		ImGui::Text("%d Materials", pPickingSubMeshes.size());
+	}
+	else
+	{
 		ImGui::SameLine();
 
 		ImGui::BeginChild("##material_description", ImVec2(ImGui::GetContentRegionAvail().x, max(ImGui::GetContentRegionAvail().y * 0.1f, fBtnSize)));
-		std::string strMatName = pMaterial->GetName().c_str();
+		std::string strMatName = pCommonMaterial->GetName().c_str();
 		if (ImGui::InputText("Material", &strMatName))
 		{
-			pMaterial->SetName(strMatName);
+			pCommonMaterial->SetName(strMatName);
 		}
 
-		NXMaterialType matType = pMaterial->GetType();
+		NXMaterialType matType = pCommonMaterial->GetType();
 		m_currentMaterialTypeIndex = matType - 1;
 
 		static const char* items[] = { "Standard", "Translucent" };
@@ -110,27 +129,26 @@ void NXGUIMaterial::Render()
 		case UNKNOWN:
 			break;
 		case PBR_STANDARD:
-			RenderMaterialUI_Standard(static_cast<NXPBRMaterialStandard*>(pMaterial));
+			RenderMaterialUI_Standard(static_cast<NXPBRMaterialStandard*>(pCommonMaterial));
 			break;
 		case PBR_TRANSLUCENT:
-			RenderMaterialUI_Translucent(static_cast<NXPBRMaterialTranslucent*>(pMaterial));
+			RenderMaterialUI_Translucent(static_cast<NXPBRMaterialTranslucent*>(pCommonMaterial));
 			break;
 		default:
 			break;
 		}
 
 		if (matType != newMatType)
-			SceneManager::GetInstance()->ReTypeMaterial(pMaterial, newMatType);
+			SceneManager::GetInstance()->ReTypeMaterial(pCommonMaterial, newMatType);
+
+		// 保存当前材质
+		if (ImGui::Button("Save##material"))
+		{
+			pCommonMaterial->GetFilePath();
+
+			NXGUICommon::SaveMaterialFile(pCommonMaterial);
+		}
 	}
-
-	// 保存当前材质
-	if (ImGui::Button("Save##material"))
-	{
-		pMaterial->GetFilePath();
-
-		NXGUICommon::SaveMaterialFile(pMaterial);
-	}
-
 	ImGui::End();
 }
 

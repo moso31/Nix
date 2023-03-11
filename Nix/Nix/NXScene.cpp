@@ -22,13 +22,13 @@
 // temp include.
 
 NXScene::NXScene() :
-	m_pPickingObject(nullptr),
+	m_bMultiSelectKeyHolding(false),
 	m_pRootObject(new NXObject()),
 	m_pBVHTree(nullptr),
 	m_pCubeMap(nullptr),
 	m_pMainCamera(nullptr),
 	m_bEditorSelectID(EditorObjectID::NONE),
-	m_editorHitOffset(0.0f)
+	m_selectObjHitOffset(0.0f)
 {
 	m_type = NXType::eScene;
 }
@@ -42,9 +42,9 @@ void NXScene::OnMouseDown(NXEventArgMouse eArg)
 	if (eArg.VMouse & 1) // 鼠标左键
 	{
 		auto ray = GetMainCamera()->GenerateRay(Vector2(eArg.X + 0.5f, eArg.Y + 0.5f));
-		//printf("cursor: %.3f, %.3f\n", (float)eArg.X, (float)eArg.Y);
-		//printf("pos: %.3f, %.3f, %.3f; dir: %.3f, %.3f, %.3f\n", ray.position.x, ray.position.y, ray.position.z, ray.direction.x, ray.direction.y, ray.direction.z);
 		
+		// 检测是否点击编辑器对象（移动箭头，旋转环，缩放轴）
+		// （不过目前实际上只有移动箭头hhhhh）
 		NXHit editObjHit;
 		m_pEditorObjManager->RayCast(ray, editObjHit);
 		if (editObjHit.pSubMesh)
@@ -52,21 +52,29 @@ void NXScene::OnMouseDown(NXEventArgMouse eArg)
 			NXSubMeshEditorObjects* pHitSubmesh = (NXSubMeshEditorObjects*)editObjHit.pSubMesh;
 			m_bEditorSelectID = pHitSubmesh->GetEditorObjectID();
 
-			if (!m_selectedObjects.empty())
+			Vector3 anchorPos = GetAnchorOfEditorObject(ray);
+			for (int i = 0; i < m_pSelectedObjects.size(); i++)
 			{
-				Vector3 anchorPos = GetAnchorOfEditorObject(ray);
-				m_editorHitOffset = anchorPos - m_selectedObjects[0]->GetWorldTranslation();
+				auto pSelectObjs = m_pSelectedObjects[i];
+				m_selectObjHitOffset[i] = anchorPos - pSelectObjs->GetWorldTranslation();
 			}
 		}
 		else
 		{
-			m_selectedObjects.clear();
+			// 按住LCtrl时多选
+			if (!m_bMultiSelectKeyHolding)
+			{
+				m_pSelectedSubMeshes.clear();
+				m_pSelectedObjects.clear();
+
+				m_selectObjHitOffset.clear();
+			}
 
 			NXHit hit;
 			RayCast(ray, hit);
 			if (hit.pSubMesh)
 			{
-				SetCurrentPickingSubMesh(hit.pSubMesh);
+				AddPickingSubMesh(hit.pSubMesh);
 			}
 		}
 	}
@@ -80,17 +88,23 @@ void NXScene::OnMouseMove(NXEventArgMouse eArg)
 		m_bEditorSelectID < EditorObjectID::MAX)
 	{
 		// 进入这里说明正在拖动 SelectionArrow/RotateRing/ScaleBoxes
-
+		
+		// 获取拖动后位置在SelectionArrow的轴/平面上的投影坐标
 		Vector3 anchorPos = GetAnchorOfEditorObject(worldRay);
 
-		// 【2022.9.28 目前只支持单选。将来改】
-		if (!m_selectedObjects.empty())
+		// 移动所有选中的物体
+		for (int i = 0; i < m_pSelectedObjects.size(); i++)
 		{
-			auto pSelectObjs = m_selectedObjects[0];
+			auto pSelectObjs = m_pSelectedObjects[i];
+			pSelectObjs->SetWorldTranslation(anchorPos - m_selectObjHitOffset[i]);
+		}
 
-			Vector3 targetPosWS = anchorPos - m_editorHitOffset;
-			pSelectObjs->SetWorldTranslation(targetPosWS);
-			m_pEditorObjManager->MoveTranslatorTo(pSelectObjs->GetAABBWorld().Center);
+		if (!m_pSelectedObjects.empty())
+		{
+			// SelectionArrow 也跟着移动位置
+			// 2023.3.11 暂时使用第一个选中的Primitive的Translation计算移动量
+			NXPrimitive* pFirstSelectedPrimitive = m_pSelectedObjects[0];
+			m_pEditorObjManager->MoveTranslatorTo(pFirstSelectedPrimitive->GetAABBWorld().Center);
 		}
 	}
 
@@ -115,15 +129,27 @@ void NXScene::OnMouseUp(NXEventArgMouse eArg)
 
 void NXScene::OnKeyDown(NXEventArgKey eArg)
 {
+	if (eArg.VKey == NXKeyCode::LeftControl)
+	{
+		m_bMultiSelectKeyHolding = true;
+	}
+}
+
+void NXScene::OnKeyUp(NXEventArgKey eArg)
+{
+	if (eArg.VKey == NXKeyCode::LeftControl)
+	{
+		m_bMultiSelectKeyHolding = false;
+	}
 }
 
 Vector3 NXScene::GetAnchorOfEditorObject(const Ray& worldRay)
 {
-	if (m_selectedObjects.empty()) 
+	if (m_pSelectedObjects.empty())
 		return Vector3(0.0f);
 
-	// 【2022.9.28 目前只支持单选。将来改】
-	auto pSelectObjs = m_selectedObjects[0];
+	// 【2023.3.11 目前只支持单选。将来改】
+	auto pSelectObjs = m_pSelectedObjects[0];
 
 	if (m_bEditorSelectID >= EditorObjectID::TRANSLATE_X &&
 		m_bEditorSelectID <= EditorObjectID::TRANSLATE_Z)
@@ -267,10 +293,10 @@ void NXScene::Init()
 	//SceneManager::GetInstance()->CreateFBXMeshes("D:\\NixAssets\\Cloth.fbx", pMeshes, true);
 	//SceneManager::GetInstance()->BindMaterial(pMeshes[0]->GetSubMesh(0), pPBRMat[0]);
 
-	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\boxes.fbx", false);
+	NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\boxes.fbx", false);
 	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\shadowMapTest.fbx", false);
 	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\EditorObjTest.fbx", false);
-	NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\lury.fbx", false);
+	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\lury.fbx", false);
 	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\testScene.fbx", false);
 	p->SetScale(Vector3(0.1f));
 	SceneManager::GetInstance()->BindMaterial(p, pPBRMat[0]);
@@ -354,6 +380,7 @@ void NXScene::InitScripts()
 	NXEventMouseUp::GetInstance()->AddListener(std::bind(&NSFirstPersonalCamera::OnMouseUp, pScript, std::placeholders::_1));
 
 	NXEventKeyDown::GetInstance()->AddListener(std::bind(&NXScene::OnKeyDown, this, std::placeholders::_1));
+	NXEventKeyUp::GetInstance()->AddListener(std::bind(&NXScene::OnKeyUp, this, std::placeholders::_1));
 	NXEventMouseMove::GetInstance()->AddListener(std::bind(&NXScene::OnMouseMove, this, std::placeholders::_1));
 	NXEventMouseDown::GetInstance()->AddListener(std::bind(&NXScene::OnMouseDown, this, std::placeholders::_1));
 	NXEventMouseUp::GetInstance()->AddListener(std::bind(&NXScene::OnMouseUp, this, std::placeholders::_1));
@@ -446,17 +473,23 @@ void NXScene::Release()
 	SafeRelease(m_pRootObject);
 }
 
-void NXScene::SetCurrentPickingSubMesh(NXSubMeshBase* pPickingObject)
+void NXScene::AddPickingSubMesh(NXSubMeshBase* pPickingSubMesh)
 {
-	m_pPickingObject = pPickingObject;
-
-	NXPrimitive* pPickingPrimitive = pPickingObject->GetPrimitive();
-	if (pPickingPrimitive)
+	NXPrimitive* pPickingObj = pPickingSubMesh->GetPrimitive();
+	if (m_pSelectedObjects.empty() || std::find(m_pSelectedObjects.begin(), m_pSelectedObjects.end(), pPickingObj) == m_pSelectedObjects.end())
 	{
-		m_pEditorObjManager->MoveTranslatorTo(pPickingPrimitive->GetAABBWorld().Center);
-
-		m_selectedObjects.push_back(m_pPickingObject->GetPrimitive());
+		m_pSelectedObjects.push_back(pPickingObj);
+		m_selectObjHitOffset.push_back(Vector3(0.0f));
 	}
+		
+	if (m_pSelectedSubMeshes.empty() || std::find(m_pSelectedSubMeshes.begin(), m_pSelectedSubMeshes.end(), pPickingSubMesh) == m_pSelectedSubMeshes.end())
+	{
+		m_pSelectedSubMeshes.push_back(pPickingSubMesh);
+	}
+
+	// 2023.3.11 暂时使用第一个选中的Primitive的Translation计算移动量
+	NXPrimitive* pFirstSelectedPrimitive = m_pSelectedSubMeshes[0]->GetPrimitive();
+	m_pEditorObjManager->MoveTranslatorTo(pFirstSelectedPrimitive->GetAABBWorld().Center);
 }
 
 bool NXScene::RayCast(const Ray& ray, NXHit& outHitInfo, float tMax)
