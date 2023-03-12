@@ -46,6 +46,7 @@ SSAO可以升级成GTAO或者HBAO
 	8. 多选编辑器移动[DONE]
 	10. MoveArrows 增加不可见状态[DONE]
 2. Translucent类型材质保存[DONE]
+6. WStr相关函数整理 做成通用类? [DONE] (namespace NXConvert)
 9. 鼠标在IMGUI上的指令 和 ViewPort上的指令 如何区分？[DONE]（*新增了强制事件）
 
 3. 新材质类型：SubSurface
@@ -59,7 +60,6 @@ SSAO可以升级成GTAO或者HBAO
 //		是否启用mipmap，是否flipY，加载到内存的实际分辨率，是否是法线，如果不是法线纹理，是否加载成sRGB
 //		Wrap模式，Filter模式，AnisoLevel（这三项可以暂缓）
 
-6. WStr相关函数整理 做成通用类?
 
 较大的长期模块：
 12. resizeable viewport+全屏化UI
