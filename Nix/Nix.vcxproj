@@ -345,7 +345,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="场景添加物体说明.txt" />
+    <Text Include="行将废弃的加载说明.txt" />
     <Text Include="八字无撇的待办事项.txt" />
     <Text Include="杂七杂八的编码规范.txt" />
   </ItemGroup>

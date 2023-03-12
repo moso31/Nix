@@ -46,15 +46,25 @@ SSAO可以升级成GTAO或者HBAO
 	8. 多选编辑器移动[DONE]
 	10. MoveArrows 增加不可见状态[DONE]
 2. Translucent类型材质保存[DONE]
+9. 鼠标在IMGUI上的指令 和 ViewPort上的指令 如何区分？[DONE]（*新增了强制事件）
 
 3. 新材质类型：SubSurface
 7. Hierarchy 场景大纲
 
-4. GenerateMipMap
-5. 纹理界面化，控制纹理法线强度
+4. 法线参数修正（现版本的三轴缩放是个什么鬼……）
+
+5. 纹理界面化
+// 思路：做一个Texture界面，并且还要给每个纹理文件配套单独的一个asset描述
+// asset描述包括：
+//		是否启用mipmap，是否flipY，加载到内存的实际分辨率，是否是法线，如果不是法线纹理，是否加载成sRGB
+//		Wrap模式，Filter模式，AnisoLevel（这三项可以暂缓）
+
 6. WStr相关函数整理 做成通用类?
-9. 鼠标在IMGUI上的指令 和 ViewPort上的指令 如何区分？[DONE]（新增了强制事件）
 
 较大的长期模块：
 12. resizeable viewport+全屏化UI
 13. 场景文件化，可保存、加载
+
+bug：
+translucent材质 IBL 亮度拉高的时候有bug，
+	并且opacity=1的时候和standard的着色结果有微弱差异。(半透的光照很可能有问题)

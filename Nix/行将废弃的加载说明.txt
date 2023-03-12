@@ -1,3 +1,5 @@
+p.s.行将用来表示也许现阶段还有那么一点点卵用 即将=完全之上=行将之下
+
 设置光源
 	auto pDirLight = m_sceneManager->CreateDirectionalLight(
 		"DirLight1",
