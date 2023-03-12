@@ -4,6 +4,7 @@ class NXScene;
 class NXSceneManager;
 class Renderer;
 
+class NXGUITexture;
 class NXGUIMaterial;
 class NXGUIFileBrowser;
 class NXGUIContentExplorer;
@@ -30,6 +31,7 @@ private:
 	Renderer*				m_pRenderer;
 
 	NXGUIContentExplorer*	m_pGUIContentExplorer;
+	NXGUITexture*			m_pGUITexture;
 
 	NXGUILights*			m_pGUILights;
 	NXGUICamera*			m_pGUICamera;

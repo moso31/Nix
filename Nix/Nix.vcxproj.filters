@@ -384,6 +384,9 @@
     <ClCompile Include="Core\NXConverter.cpp">
       <Filter>Core\Helper</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXGUITexture.cpp">
+      <Filter>Core\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -586,6 +589,9 @@
     </ClInclude>
     <ClInclude Include="Core\NXConverter.h">
       <Filter>Core\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXGUITexture.h">
+      <Filter>Core\UI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

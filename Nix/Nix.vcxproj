@@ -237,6 +237,7 @@
     <ClCompile Include="Core\NXGUIPostProcessing.cpp" />
     <ClCompile Include="Core\NXGUIShadows.cpp" />
     <ClCompile Include="Core\NXGUISSAO.cpp" />
+    <ClCompile Include="Core\NXGUITexture.cpp" />
     <ClCompile Include="Core\NXInput.cpp" />
     <ClCompile Include="Core\NXInstance.cpp" />
     <ClCompile Include="Core\NXRandom.cpp" />
@@ -303,6 +304,7 @@
     <ClInclude Include="Core\NXGUIPostProcessing.h" />
     <ClInclude Include="Core\NXGUIShadows.h" />
     <ClInclude Include="Core\NXGUISSAO.h" />
+    <ClInclude Include="Core\NXGUITexture.h" />
     <ClInclude Include="Core\NXInput.h" />
     <ClInclude Include="Core\NXInstance.h" />
     <ClInclude Include="Core\NXRandom.h" />
