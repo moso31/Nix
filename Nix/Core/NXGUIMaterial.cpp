@@ -25,58 +25,61 @@ void NXGUIMaterial::Render()
 		return;
 	}
 
-	bool bIsReadOnly = pPickingSubMeshes.size() != 1;
-	if (bIsReadOnly) ImGui::BeginDisabled();
-	{
-		NXPrimitive* pObject = pPickingSubMeshes[0]->GetPrimitive();
-		NXMaterial* pMaterial = pPickingSubMeshes[0]->GetMaterial();
-
-		std::string strName = bIsReadOnly ? "-" : pObject->GetName().c_str();
-		if (ImGui::InputText("Name", &strName))
-		{
-			pObject->SetName(strName);
-		}
-
-		float fDrugSpeedTransform = 0.01f;
-		Vector3 vTrans = bIsReadOnly ? Vector3(0.0f) : pObject->GetTranslation();
-		float vTransArr[3] = { vTrans.x, vTrans.y, vTrans.z };
-		if (ImGui::DragFloat3("Translation", vTransArr, fDrugSpeedTransform))
-		{
-			pObject->SetTranslation(vTrans);
-		}
-
-		Vector3 vRot = bIsReadOnly ? Vector3(0.0f) : pObject->GetRotation();
-		float vRotArr[3] = { vRot.x, vRot.y, vRot.z };
-		if (ImGui::DragFloat3("Rotation", vRotArr, fDrugSpeedTransform))
-		{
-			pObject->SetRotation(Vector3(vRotArr));
-
-			// 没什么意义的辣鸡测试……
-			//{
-			//	Vector3 value(0.2, 1.12, 2.31);
-			//	Quaternion _qRot = Quaternion::CreateFromYawPitchRoll(value.y, value.x, value.z);
-			//	Vector3 res = _qRot.EulerXYZ();
-			//	printf("%f %f %f\n", res.x, res.y, res.z);
-			//}
-		}
-
-		Vector3 vScal = bIsReadOnly ? Vector3(0.0f) : pObject->GetScale();
-		float vScalArr[3] = { vScal.x, vScal.y, vScal.z };
-		if (ImGui::DragFloat3("Scale", vScalArr, fDrugSpeedTransform))
-		{
-			pObject->SetScale(vScal);
-		}
-
-		ImGui::Separator();
-	}
-	if (bIsReadOnly) ImGui::EndDisabled();
-
 	// 统计选中的所有Meshes里面有多少材质
 	std::unordered_set<NXMaterial*> pUniqueMats;
 	for (auto pSubMesh : pPickingSubMeshes)
 		pUniqueMats.insert(pSubMesh->GetMaterial());
 
-	NXMaterial* pCommonMaterial = pUniqueMats.size() == 1 ? *pUniqueMats.begin() : nullptr;
+	// 如果选中的所有SubMesh都只有一个材质，将此材质记作pCommonMaterial
+	bool bIsReadOnlyMaterial = pUniqueMats.size() != 1;
+	NXMaterial* pCommonMaterial = bIsReadOnlyMaterial ? nullptr : *pUniqueMats.begin();
+
+	bool bIsReadOnlyTransform = pPickingSubMeshes.size() != 1;
+	if (bIsReadOnlyTransform) ImGui::BeginDisabled();
+
+	NXPrimitive* pObject = pPickingSubMeshes[0]->GetPrimitive();
+	NXMaterial* pMaterial = pPickingSubMeshes[0]->GetMaterial();
+
+	std::string strName = bIsReadOnlyTransform ? "-" : pObject->GetName().c_str();
+	if (ImGui::InputText("Name", &strName))
+	{
+		pObject->SetName(strName);
+	}
+
+	float fDrugSpeedTransform = 0.01f;
+	Vector3 vTrans = bIsReadOnlyTransform ? Vector3(0.0f) : pObject->GetTranslation();
+	float vTransArr[3] = { vTrans.x, vTrans.y, vTrans.z };
+	if (ImGui::DragFloat3("Translation", vTransArr, fDrugSpeedTransform))
+	{
+		pObject->SetTranslation(vTrans);
+	}
+
+	Vector3 vRot = bIsReadOnlyTransform ? Vector3(0.0f) : pObject->GetRotation();
+	float vRotArr[3] = { vRot.x, vRot.y, vRot.z };
+	if (ImGui::DragFloat3("Rotation", vRotArr, fDrugSpeedTransform))
+	{
+		pObject->SetRotation(Vector3(vRotArr));
+
+		// 没什么意义的辣鸡测试……
+		//{
+		//	Vector3 value(0.2, 1.12, 2.31);
+		//	Quaternion _qRot = Quaternion::CreateFromYawPitchRoll(value.y, value.x, value.z);
+		//	Vector3 res = _qRot.EulerXYZ();
+		//	printf("%f %f %f\n", res.x, res.y, res.z);
+		//}
+	}
+
+	Vector3 vScal = bIsReadOnlyTransform ? Vector3(0.0f) : pObject->GetScale();
+	float vScalArr[3] = { vScal.x, vScal.y, vScal.z };
+	if (ImGui::DragFloat3("Scale", vScalArr, fDrugSpeedTransform))
+	{
+		pObject->SetScale(vScal);
+	}
+
+	if (bIsReadOnlyTransform) ImGui::EndDisabled();
+
+	ImGui::Text("%d Materials, %d Submeshes", pUniqueMats.size(), pPickingSubMeshes.size());
+	ImGui::Separator();
 
 	float fBtnSize = 45.0f;
 	ImGui::BeginChild("##material_iconbtn", ImVec2(fBtnSize, max(ImGui::GetContentRegionAvail().y * 0.1f, fBtnSize)));
@@ -104,14 +107,10 @@ void NXGUIMaterial::Render()
 
 	ImGui::EndChild();
 
-	if (!pCommonMaterial)
-	{
-		ImGui::Text("%d Materials, %d Submeshes", pUniqueMats.size(), pPickingSubMeshes.size());
-	}
-	else
-	{
-		ImGui::SameLine();
+	ImGui::SameLine();
 
+	if (pCommonMaterial)
+	{
 		ImGui::BeginChild("##material_description", ImVec2(ImGui::GetContentRegionAvail().x, max(ImGui::GetContentRegionAvail().y * 0.1f, fBtnSize)));
 		std::string strMatName = pCommonMaterial->GetName().c_str();
 		if (ImGui::InputText("Material", &strMatName))
@@ -152,6 +151,7 @@ void NXGUIMaterial::Render()
 			NXGUICommon::SaveMaterialFile(pCommonMaterial);
 		}
 	}
+
 	ImGui::End();
 }
 
