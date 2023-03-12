@@ -2,6 +2,7 @@
 #include "NXEvent.h"
 #include "DirectResources.h"
 #include "Renderer.h"
+#include "NXConverter.h"
 
 #include "NXGUIFileBrowser.h"
 #include "NXGUIMaterial.h"
@@ -62,6 +63,8 @@ void NXGUI::Init()
 
 	ImGui_ImplWin32_Init(g_hWnd);
 	ImGui_ImplDX11_Init(g_pDevice.Get(), g_pContext.Get());
+
+	ImGui::LoadIniSettingsFromDisk(NXConvert::GetPathOfImguiIni().c_str());
 }
 
 void NXGUI::Render()
@@ -102,6 +105,8 @@ void NXGUI::Render()
 
 void NXGUI::Release()
 {
+	ImGui::SaveIniSettingsToDisk(NXConvert::GetPathOfImguiIni().c_str());
+
 	SafeDelete(m_pGUIMaterial);
 	SafeDelete(m_pGUILights);
 	SafeDelete(m_pGUICamera);

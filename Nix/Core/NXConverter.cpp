@@ -25,4 +25,15 @@ std::string s2lower(std::string s)
 	return s;
 }
 
+std::string GetPathOfImguiIni()
+{
+	char* buf = nullptr;
+	size_t sz;
+	_dupenv_s(&buf, &sz, "APPDATA");
+
+	std::string s(buf); 
+	free(buf);
+	return s + "\\Nix\\imgui.ini";
+}
+
 }
