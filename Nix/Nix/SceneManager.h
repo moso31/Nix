@@ -88,8 +88,6 @@ private:
 
 private:
 	static void getline_safe(std::ifstream& ifs, std::string& s);
-	static std::wstring ToWStr(const std::string& s);
-	static std::string ToStr(const std::wstring& ws);
 	static bool IsDefaultPath(const std::string& s);
 
 private:

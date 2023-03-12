@@ -2,6 +2,7 @@
 #include <memory>
 #include <direct.h>
 #include "DirectXTex.h"
+#include "NXConverter.h"
 #include "NXResourceManager.h"
 #include "NXSubMesh.h"
 
@@ -71,10 +72,7 @@ NXTexture2D* NXMaterial::LoadFromTexFile(const std::wstring texFilePath, bool Ge
 
 	NXTexture2D* pOutTex = NXResourceManager::GetInstance()->CreateTexture2D(m_name.c_str(), pImageData, info.format, (UINT)info.width, (UINT)info.height, (UINT)info.arraySize, (UINT)info.mipLevels, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, (UINT)info.miscFlags);
 	
-	std::string strFilePath;
-	size_t size;
-	strFilePath.resize(texFilePath.length());
-	wcstombs_s(&size, &strFilePath[0], strFilePath.size() + 1, texFilePath.c_str(), texFilePath.size());
+	std::string strFilePath = NXConvert::ws2s(texFilePath);
 	pOutTex->SetFilePath(strFilePath);
 
 	delete[] pImageData;

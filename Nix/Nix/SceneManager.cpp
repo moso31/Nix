@@ -1,5 +1,6 @@
 #include "SceneManager.h"
 #include <fstream>
+#include "NXConverter.h"
 
 #include "NXScene.h"
 #include "NXPrefab.h"
@@ -198,7 +199,7 @@ NXMaterial* SceneManager::LoadStandardPBRMaterialFromFile(std::ifstream& ifs, co
 	ifs >> ao;
 	std::getline(ifs, strToNext);
 
-	return SceneManager::GetInstance()->CreatePBRMaterialStandard(matName, albedo, normal, metallic, roughness, ao, ToWStr(strAlbedoTexPath), ToWStr(strNormalTexPath), ToWStr(strMetallicTexPath), ToWStr(strRoughnessTexPath), ToWStr(strAOTexPath), matFilePath);
+	return SceneManager::GetInstance()->CreatePBRMaterialStandard(matName, albedo, normal, metallic, roughness, ao, NXConvert::s2ws(strAlbedoTexPath), NXConvert::s2ws(strNormalTexPath), NXConvert::s2ws(strMetallicTexPath), NXConvert::s2ws(strRoughnessTexPath), NXConvert::s2ws(strAOTexPath), matFilePath);
 }
 
 NXMaterial* SceneManager::LoadTranslucentPBRMaterialFromFile(std::ifstream& ifs, const std::string& matName, const std::string& matFilePath)
@@ -251,7 +252,7 @@ NXMaterial* SceneManager::LoadTranslucentPBRMaterialFromFile(std::ifstream& ifs,
 	ifs >> ao;
 	std::getline(ifs, strToNext);
 
-	return SceneManager::GetInstance()->CreatePBRMaterialTranslucent(matName, albedo, normal, metallic, roughness, ao, opacity, ToWStr(strAlbedoTexPath), ToWStr(strNormalTexPath), ToWStr(strMetallicTexPath), ToWStr(strRoughnessTexPath), ToWStr(strAOTexPath), matFilePath);
+	return SceneManager::GetInstance()->CreatePBRMaterialTranslucent(matName, albedo, normal, metallic, roughness, ao, opacity, NXConvert::s2ws(strAlbedoTexPath), NXConvert::s2ws(strNormalTexPath), NXConvert::s2ws(strMetallicTexPath), NXConvert::s2ws(strRoughnessTexPath), NXConvert::s2ws(strAOTexPath), matFilePath);
 }
 
 NXPBRMaterialStandard* SceneManager::CreatePBRMaterialStandard(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao,
@@ -485,16 +486,6 @@ void SceneManager::getline_safe(std::ifstream& ifs, std::string& s)
 	std::getline(ifs, s);
 	s.erase(std::remove(s.begin(), s.end(), '\r'), s.end());
 	s.erase(std::remove(s.begin(), s.end(), '\n'), s.end());
-}
-
-std::wstring SceneManager::ToWStr(const std::string& s)
-{
-	return std::wstring(s.begin(), s.end());
-}
-
-std::string SceneManager::ToStr(const std::wstring& ws)
-{
-	return std::string(ws.begin(), ws.end());
 }
 
 bool SceneManager::IsDefaultPath(const std::string& s)

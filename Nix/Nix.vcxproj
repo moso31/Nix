@@ -216,6 +216,7 @@
     <ClCompile Include="Core\ImageGenerator.cpp" />
     <ClCompile Include="Core\Main.cpp" />
     <ClCompile Include="Core\NXColorMappingRenderer.cpp" />
+    <ClCompile Include="Core\NXConverter.cpp" />
     <ClCompile Include="Core\NXDebugLayerRenderer.cpp" />
     <ClCompile Include="Core\NXDeferredRenderer.cpp" />
     <ClCompile Include="Core\NXDepthPeelingRenderer.cpp" />
@@ -279,6 +280,7 @@
     <ClInclude Include="Core\Header.h" />
     <ClInclude Include="Core\ImageGenerator.h" />
     <ClInclude Include="Core\NXColorMappingRenderer.h" />
+    <ClInclude Include="Core\NXConverter.h" />
     <ClInclude Include="Core\NXDebugLayerRenderer.h" />
     <ClInclude Include="Core\NXDeferredRenderer.h" />
     <ClInclude Include="Core\NXDepthPeelingRenderer.h" />
