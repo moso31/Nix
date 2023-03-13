@@ -213,6 +213,11 @@ Vector3 NXCubeMap::BackgroundColorByDirection(const Vector3& v)
 	return Vector3(r, g, b);
 }
 
+ID3D11ShaderResourceView* NXCubeMap::GetSRVIrradianceMap()
+{
+	return m_pTexIrradianceMap->GetSRV();
+}
+
 void NXCubeMap::Update()
 {
 	// cubemap params
@@ -508,17 +513,10 @@ void NXCubeMap::GenerateIrradianceMap()
 	CD3D11_VIEWPORT vp(0.0f, 0.0f, MapSize, MapSize);
 	g_pContext->RSSetViewports(1, &vp);
 
-	CD3D11_TEXTURE2D_DESC descTex(m_format, (UINT)MapSize, (UINT)MapSize, 6, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, D3D11_RESOURCE_MISC_TEXTURECUBE);
-	g_pDevice->CreateTexture2D(&descTex, nullptr, &m_pTexIrradianceMap);
-
-	CD3D11_SHADER_RESOURCE_VIEW_DESC descSRV(D3D11_SRV_DIMENSION_TEXTURECUBE, descTex.Format, 0, descTex.MipLevels, 0, descTex.ArraySize);
-	g_pDevice->CreateShaderResourceView(m_pTexIrradianceMap.Get(), &descSRV, &m_pSRVIrradianceMap);
-
+	m_pTexIrradianceMap = NXResourceManager::GetInstance()->CreateTextureCube("Irradiance IBL Tex", m_format, (UINT)MapSize, (UINT)MapSize, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, D3D11_RESOURCE_MISC_TEXTURECUBE);
+	m_pTexIrradianceMap->AddSRV();
 	for (int i = 0; i < 6; i++)
-	{
-		CD3D11_RENDER_TARGET_VIEW_DESC descRTV(D3D11_RTV_DIMENSION_TEXTURE2DARRAY, descTex.Format, 0, i, 1);
-		g_pDevice->CreateRenderTargetView(m_pTexIrradianceMap.Get(), &descRTV, &m_pRTVIrradianceMaps[i]);
-	}
+		m_pTexIrradianceMap->AddRTV(0, i, 1);
 
 	ComPtr<ID3D11InputLayout> pInputLayoutP;
 	ComPtr<ID3D11VertexShader> pVertexShader;
@@ -553,8 +551,9 @@ void NXCubeMap::GenerateIrradianceMap()
 
 	for (int i = 0; i < 6; i++)
 	{
-		g_pContext->ClearRenderTargetView(m_pRTVIrradianceMaps[i].Get(), Colors::WhiteSmoke);
-		g_pContext->OMSetRenderTargets(1, m_pRTVIrradianceMaps[i].GetAddressOf(), nullptr);
+		auto pRTV = m_pTexIrradianceMap->GetRTV(i);
+		g_pContext->ClearRenderTargetView(pRTV, Colors::WhiteSmoke);
+		g_pContext->OMSetRenderTargets(1, &pRTV, nullptr);
 
 		cbData.view = m_mxCubeMapView[i].Transpose();
 		g_pContext->UpdateSubresource(cb.Get(), 0, nullptr, &cbData, 0, 0);
@@ -575,6 +574,7 @@ void NXCubeMap::GeneratePreFilterMap()
 	const static float MapSize = 512.0f;
 	CD3D11_TEXTURE2D_DESC descTex(m_format, (UINT)MapSize, (UINT)MapSize, 6, 5, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, D3D11_RESOURCE_MISC_TEXTURECUBE);
 	g_pDevice->CreateTexture2D(&descTex, nullptr, &m_pTexPreFilterMap);
+	//m_pTexPreFilterMap = NXResourceManager::GetInstance()->CreateTextureCube("PreFilter Map", m_format, (UINT)MapSize, (UINT)MapSize, 5, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, D3D11_RESOURCE_MISC_TEXTURECUBE);
 
 	CD3D11_SHADER_RESOURCE_VIEW_DESC descSRV(D3D11_SRV_DIMENSION_TEXTURECUBE, descTex.Format, 0, descTex.MipLevels, 0, descTex.ArraySize);
 	g_pDevice->CreateShaderResourceView(m_pTexPreFilterMap.Get(), &descSRV, &m_pSRVPreFilterMap);

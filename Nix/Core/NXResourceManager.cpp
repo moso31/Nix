@@ -250,12 +250,24 @@ void NXTextureCube::AddRTV(UINT mipSlice, UINT firstArraySlice, UINT arraySize)
 	m_pRTVs.push_back(pRTV);
 }
 
-void NXTextureCube::AddDSV()
+void NXTextureCube::AddDSV(UINT mipSlice, UINT firstArraySlice, UINT arraySize)
 {
+	D3D11_DEPTH_STENCIL_VIEW_DESC Desc;
+	Desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+	Desc.Format = m_texFormat;
+	Desc.Texture2DArray.MipSlice = mipSlice;
+	Desc.Texture2DArray.FirstArraySlice = firstArraySlice;
+	Desc.Texture2DArray.ArraySize = arraySize;
 }
 
-void NXTextureCube::AddUAV()
+void NXTextureCube::AddUAV(UINT mipSlice, UINT firstArraySlice, UINT arraySize)
 {
+	D3D11_UNORDERED_ACCESS_VIEW_DESC Desc;
+	Desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
+	Desc.Format = m_texFormat;
+	Desc.Texture2DArray.MipSlice = mipSlice;
+	Desc.Texture2DArray.FirstArraySlice = firstArraySlice;
+	Desc.Texture2DArray.ArraySize = arraySize;
 }
 
 

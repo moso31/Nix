@@ -38,33 +38,32 @@ SSAO可以升级成GTAO或者HBAO
 
 ************************ 功能杂项 ************************
 
-考虑要做的功能：
+【暂时搁置的功能】
+14. 不同终端的imgui.ini布局同步（在Imgui完全成型之前 感觉不太好做）
+
+【考虑要做的功能】
+3. 新材质类型：SubSurface
+7. Hierarchy 场景大纲
+4. 法线参数修正（现版本的三轴缩放是个什么鬼……）
+16. CubeMap预加载优化（现在每次打开都会读一遍dds文件）
+
+5. 纹理界面化
+
+【较大的长期模块】
+12. resizeable viewport+全屏化UI
+13. 场景文件化，可保存、加载
+15. NXCubeMap！内存可能无法释放干净（无法释放 pTexCubeMap，此时还在被GPU占用中）
+	a. 所有资源统一使用NXResourceManager进行内存管理
+	b. 也许可以做成每5s检查一下资源是否正在使用，如果使用计数为0就释放掉。
+
+【渲染bug】
+17. translucent材质 IBL 亮度拉高的时候有bug，
+	并且opacity=1的时候和standard的着色结果有微弱差异。(半透的光照很可能有问题)
+
+已完成的：
 1. ctrl左键点击ViewPort：多选材质[DONE]
 	8. 多选编辑器移动[DONE]
 	10. MoveArrows 增加不可见状态[DONE]
 2. Translucent类型材质保存[DONE]
 6. WStr相关函数整理 做成通用类? [DONE] (namespace NXConvert)
-9. 鼠标在IMGUI上的指令 和 ViewPort上的指令 如何区分？[DONE]（*新增了强制事件）
-
-14. 不同终端的imgui.ini布局同步[XXXX]
-
-3. 新材质类型：SubSurface
-7. Hierarchy 场景大纲
-
-4. 法线参数修正（现版本的三轴缩放是个什么鬼……）
-
-5. 纹理界面化
-// 思路：做一个Texture界面，并且还要给每个纹理文件配套单独的一个asset描述
-// asset描述包括：
-//		是否启用mipmap，是否flipY，加载到内存的实际分辨率，是否是法线，如果不是法线纹理，是否加载成sRGB
-//		Wrap模式，Filter模式，AnisoLevel（这三项可以暂缓）
-
-
-较大的长期模块：
-12. resizeable viewport+全屏化UI
-13. 场景文件化，可保存、加载
-15. NXCubeMap！内存可能无法释放干净（无法释放 pTexCubeMap，此时还在被GPU占用中）
-
-bug：
-translucent材质 IBL 亮度拉高的时候有bug，
-	并且opacity=1的时候和standard的着色结果有微弱差异。(半透的光照很可能有问题)
+9. 鼠标在IMGUI上的指令 和 ViewPort上的指令 如何区分？[DONE]（*新增了NXForceEvent，强制事件）

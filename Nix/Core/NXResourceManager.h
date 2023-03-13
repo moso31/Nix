@@ -105,8 +105,8 @@ public:
 
     void AddSRV();
     void AddRTV(UINT mipSlice = -1, UINT firstArraySlice = 0, UINT arraySize = -1);
-    void AddDSV();
-    void AddUAV();
+    void AddDSV(UINT mipSlice = -1, UINT firstArraySlice = 0, UINT arraySize = -1);
+    void AddUAV(UINT mipSlice = -1, UINT firstArraySlice = 0, UINT arraySize = -1);
 };
 
 class NXTexture2DArray : public NXTexture
