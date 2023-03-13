@@ -51,8 +51,8 @@ public:
 	ID3D11ShaderResourceView* GetSRVCubeMap() { return m_pSRVCubeMap.Get(); }
 	ID3D11ShaderResourceView* GetSRVCubeMapPreview2D() { return m_pSRVCubeMapPreview2D.Get(); }
 	ID3D11ShaderResourceView* GetSRVIrradianceMap();
-	ID3D11ShaderResourceView* GetSRVPreFilterMap() { return m_pSRVPreFilterMap.Get(); }
-	ID3D11ShaderResourceView* GetSRVBRDF2DLUT() { return m_pSRVBRDF2DLUT.Get(); }
+	ID3D11ShaderResourceView* GetSRVPreFilterMap();
+	ID3D11ShaderResourceView* GetSRVBRDF2DLUT();
 
 	ID3D11ShaderResourceView* GetSRVIrradianceSH() { return m_pSRVIrradianceSH.Get(); }
 
@@ -90,24 +90,19 @@ private:
 
 	ComPtr<ID3D11ShaderResourceView>	m_pSRVHDRMap;
 
+	//NXTexture2D*						m_pTexCubeMap;
 	ComPtr<ID3D11Texture2D>				m_pTexCubeMap;
 	ComPtr<ID3D11ShaderResourceView>	m_pSRVCubeMap;
 	ComPtr<ID3D11ShaderResourceView>	m_pSRVCubeMapPreview2D;
 	ComPtr<ID3D11RenderTargetView>		m_pRTVCubeMaps[6];
 
 	NXTextureCube*						m_pTexIrradianceMap;
+	NXTextureCube*						m_pTexPreFilterMap;
+	NXTexture2D*						m_pTexBRDF2DLUT;
 
 	ComPtr<ID3D11ShaderResourceView>	m_pSRVIrradianceSH;
 	Vector3 m_shIrradianceMap[9];
 
-	//NXTextureCube*						m_pTexPreFilterMap;
-	ComPtr<ID3D11Texture2D>				m_pTexPreFilterMap;
-	ComPtr<ID3D11ShaderResourceView>	m_pSRVPreFilterMap;
-	ComPtr<ID3D11RenderTargetView>		m_pRTVPreFilterMaps[5][6];
-
-	ComPtr<ID3D11Texture2D>				m_pTexBRDF2DLUT;
-	ComPtr<ID3D11ShaderResourceView>	m_pSRVBRDF2DLUT;
-	ComPtr<ID3D11RenderTargetView>		m_pRTVBRDF2DLUT;
 
 	ConstantBufferCubeMap	m_cbData;
 	ComPtr<ID3D11Buffer>	m_cb;

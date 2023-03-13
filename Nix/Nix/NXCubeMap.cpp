@@ -218,6 +218,16 @@ ID3D11ShaderResourceView* NXCubeMap::GetSRVIrradianceMap()
 	return m_pTexIrradianceMap->GetSRV();
 }
 
+ID3D11ShaderResourceView* NXCubeMap::GetSRVPreFilterMap()
+{
+	return m_pTexPreFilterMap->GetSRV();
+}
+
+ID3D11ShaderResourceView* NXCubeMap::GetSRVBRDF2DLUT()
+{
+	return m_pTexBRDF2DLUT->GetSRV();
+}
+
 void NXCubeMap::Update()
 {
 	// cubemap params
@@ -242,6 +252,9 @@ void NXCubeMap::Render()
 
 void NXCubeMap::Release()
 {
+	SafeDelete(m_pTexIrradianceMap);
+	SafeDelete(m_pTexPreFilterMap);
+	SafeDelete(m_pTexBRDF2DLUT);
 	NXTransform::Release();
 }
 
@@ -572,19 +585,15 @@ void NXCubeMap::GeneratePreFilterMap()
 	g_pContext->PSSetSamplers(0, 1, pSamplerState.GetAddressOf());
 
 	const static float MapSize = 512.0f;
-	CD3D11_TEXTURE2D_DESC descTex(m_format, (UINT)MapSize, (UINT)MapSize, 6, 5, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, D3D11_RESOURCE_MISC_TEXTURECUBE);
-	g_pDevice->CreateTexture2D(&descTex, nullptr, &m_pTexPreFilterMap);
-	//m_pTexPreFilterMap = NXResourceManager::GetInstance()->CreateTextureCube("PreFilter Map", m_format, (UINT)MapSize, (UINT)MapSize, 5, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, D3D11_RESOURCE_MISC_TEXTURECUBE);
-
-	CD3D11_SHADER_RESOURCE_VIEW_DESC descSRV(D3D11_SRV_DIMENSION_TEXTURECUBE, descTex.Format, 0, descTex.MipLevels, 0, descTex.ArraySize);
-	g_pDevice->CreateShaderResourceView(m_pTexPreFilterMap.Get(), &descSRV, &m_pSRVPreFilterMap);
+	m_pTexPreFilterMap = NXResourceManager::GetInstance()->CreateTextureCube("PreFilter Map", m_format, (UINT)MapSize, (UINT)MapSize, 5, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, D3D11_RESOURCE_MISC_TEXTURECUBE);
+	m_pTexPreFilterMap->AddSRV();
 
 	for (int i = 0; i < 5; i++)
 	{
 		for (int j = 0; j < 6; j++)
 		{
-			CD3D11_RENDER_TARGET_VIEW_DESC descRTV(D3D11_RTV_DIMENSION_TEXTURE2DARRAY, descTex.Format, i, j, 1);
-			g_pDevice->CreateRenderTargetView(m_pTexPreFilterMap.Get(), &descRTV, &m_pRTVPreFilterMaps[i][j]);
+			// mip = i, firstarray = j, arraysize = 1
+			m_pTexPreFilterMap->AddRTV(i, j, 1);
 		}
 	}
 
@@ -639,8 +648,9 @@ void NXCubeMap::GeneratePreFilterMap()
 		for (int j = 0; j < 6; j++)
 		{
 			cbDataCubeCamera.view = m_mxCubeMapView[j].Transpose();
-			g_pContext->ClearRenderTargetView(m_pRTVPreFilterMaps[i][j].Get(), Colors::WhiteSmoke);
-			g_pContext->OMSetRenderTargets(1, m_pRTVPreFilterMaps[i][j].GetAddressOf(), nullptr);
+			auto pRTV = m_pTexPreFilterMap->GetRTV(i * 6 + j);
+			g_pContext->ClearRenderTargetView(pRTV, Colors::WhiteSmoke);
+			g_pContext->OMSetRenderTargets(1, &pRTV, nullptr);
 
 			g_pContext->UpdateSubresource(cbCubeCamera.Get(), 0, nullptr, &cbDataCubeCamera, 0, 0);
 			g_pContext->UpdateSubresource(cbRoughness.Get(), 0, nullptr, &cbDataRoughness, 0, 0);
@@ -661,14 +671,9 @@ void NXCubeMap::GenerateBRDF2DLUT()
 	CD3D11_VIEWPORT vp(0.0f, 0.0f, MapSize, MapSize);
 	g_pContext->RSSetViewports(1, &vp);
 
-	CD3D11_TEXTURE2D_DESC descTex(DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)MapSize, (UINT)MapSize, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, 0);
-	g_pDevice->CreateTexture2D(&descTex, nullptr, &m_pTexBRDF2DLUT);
-
-	CD3D11_SHADER_RESOURCE_VIEW_DESC descSRV(D3D11_SRV_DIMENSION_TEXTURE2D, descTex.Format, 0, descTex.MipLevels, 0, descTex.ArraySize);
-	g_pDevice->CreateShaderResourceView(m_pTexBRDF2DLUT.Get(), &descSRV, &m_pSRVBRDF2DLUT);
-
-	CD3D11_RENDER_TARGET_VIEW_DESC descRTV(D3D11_RTV_DIMENSION_TEXTURE2D, descTex.Format);
-	g_pDevice->CreateRenderTargetView(m_pTexBRDF2DLUT.Get(), &descRTV, &m_pRTVBRDF2DLUT);
+	m_pTexBRDF2DLUT = NXResourceManager::GetInstance()->CreateTexture2D("BRDF LUT", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)MapSize, (UINT)MapSize, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, 0);
+	m_pTexBRDF2DLUT->AddSRV();
+	m_pTexBRDF2DLUT->AddRTV();
 
 	std::vector<VertexPT> vertices =
 	{
@@ -722,8 +727,9 @@ void NXCubeMap::GenerateBRDF2DLUT()
 	g_pContext->IASetVertexBuffers(0, 1, pVertexBuffer.GetAddressOf(), &stride, &offset);
 	g_pContext->IASetIndexBuffer(pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
-	g_pContext->ClearRenderTargetView(m_pRTVBRDF2DLUT.Get(), Colors::WhiteSmoke);
-	g_pContext->OMSetRenderTargets(1, m_pRTVBRDF2DLUT.GetAddressOf(), nullptr);
+	auto pRTV = m_pTexBRDF2DLUT->GetRTV();
+	g_pContext->ClearRenderTargetView(pRTV, Colors::WhiteSmoke);
+	g_pContext->OMSetRenderTargets(1, &pRTV, nullptr);
 	g_pContext->DrawIndexed((UINT)indices.size(), 0, 0);
 
 	g_pUDA->EndEvent();
