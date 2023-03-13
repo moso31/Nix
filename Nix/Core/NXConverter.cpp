@@ -36,4 +36,16 @@ std::string GetPathOfImguiIni()
 	return s + "\\Nix\\imgui.ini";
 }
 
+bool IsImageFileExtension(const std::string& strExtension)
+{
+	std::string s = s2lower(strExtension);
+	return s == ".dds" || s == ".png" || s == ".jpg" || s == ".tga" || s == ".bmp";
+}
+
+bool IsMaterialFileExtension(const std::string& strExtension)
+{
+	std::string s = s2lower(strExtension);
+	return s == ".nmat";
+}
+
 }

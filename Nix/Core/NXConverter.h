@@ -15,4 +15,8 @@ std::string s2lower(std::string s);
 
 std::string GetPathOfImguiIni();
 
+bool IsImageFileExtension(const std::string& strFilePath);
+
+bool IsMaterialFileExtension(const std::string& strFilePath);
+
 }

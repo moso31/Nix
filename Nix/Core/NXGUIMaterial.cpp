@@ -1,6 +1,7 @@
 #include "NXGUIMaterial.h"
 #include <unordered_set>
 #include "NXGUICommon.h"
+#include "NXConverter.h"
 #include "NXScene.h"
 #include "NXPrimitive.h"
 #include "SceneManager.h"
@@ -90,7 +91,7 @@ void NXGUIMaterial::Render()
 		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_EXPLORER_BUTTON_DRUGING"))
 		{
 			auto pDropData = (NXGUIContentExplorerButtonDrugData*)(payload->Data);
-			if (DropDataIsMaterial(pDropData))
+			if (NXConvert::IsMaterialFileExtension(pDropData->srcPath.extension().u8string()))
 			{
 				// 生成新材质
 				auto pNewMaterial = SceneManager::GetInstance()->LoadFromNmatFile(pDropData->srcPath);
@@ -356,7 +357,7 @@ void NXGUIMaterial::RenderTextureIcon(ImTextureID ImTexID, std::function<void()>
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_EXPLORER_BUTTON_DRUGING"))
 			{
 				auto pDropData = (NXGUIContentExplorerButtonDrugData*)(payload->Data);
-				if (DropDataIsImage(pDropData))
+				if (NXConvert::IsImageFileExtension(pDropData->srcPath.extension().u8string()))
 				{
 					onDrop(pDropData->srcPath.wstring());
 				}
@@ -376,19 +377,4 @@ void NXGUIMaterial::RenderTextureIcon(ImTextureID ImTexID, std::function<void()>
 		}
 		ImGui::PopID();
 	}
-}
-
-bool NXGUIMaterial::DropDataIsImage(NXGUIContentExplorerButtonDrugData* pDropData)
-{
-	std::string strExtension = pDropData->srcPath.extension().u8string();
-	std::transform(strExtension.begin(), strExtension.end(), strExtension.begin(), [](UCHAR c) { return std::tolower(c); });
-	return strExtension == ".dds" || strExtension == ".png" || strExtension == ".jpg" || strExtension == ".tga" || strExtension == ".bmp";
-}
-
-
-bool NXGUIMaterial::DropDataIsMaterial(NXGUIContentExplorerButtonDrugData* pDropData)
-{
-	std::string strExtension = pDropData->srcPath.extension().u8string();
-	std::transform(strExtension.begin(), strExtension.end(), strExtension.begin(), [](UCHAR c) { return std::tolower(c); });
-	return strExtension == ".nmat";
 }

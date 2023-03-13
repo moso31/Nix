@@ -10,9 +10,9 @@ public:
 	void Render();
 
 private:
-	// get preview image.
-	NXTexture2D* GetImage(const std::string& strTexPath);
+	// set preview image.
+	void SetImage(const std::string& strImgPath) { m_strImgPath = strImgPath; }
 
 private:
-	NXTexture2D* m_pImage;
+	std::string m_strImgPath;
 };

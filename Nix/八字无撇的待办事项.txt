@@ -46,6 +46,8 @@ SSAO可以升级成GTAO或者HBAO
 6. WStr相关函数整理 做成通用类? [DONE] (namespace NXConvert)
 9. 鼠标在IMGUI上的指令 和 ViewPort上的指令 如何区分？[DONE]（*新增了强制事件）
 
+14. 不同终端的imgui.ini布局同步[XXXX]
+
 3. 新材质类型：SubSurface
 7. Hierarchy 场景大纲
 
@@ -57,12 +59,11 @@ SSAO可以升级成GTAO或者HBAO
 //		是否启用mipmap，是否flipY，加载到内存的实际分辨率，是否是法线，如果不是法线纹理，是否加载成sRGB
 //		Wrap模式，Filter模式，AnisoLevel（这三项可以暂缓）
 
-14. 不同终端的imgui.ini布局同步
-
 
 较大的长期模块：
 12. resizeable viewport+全屏化UI
 13. 场景文件化，可保存、加载
+15. NXCubeMap！内存可能无法释放干净（无法释放 pTexCubeMap，此时还在被GPU占用中）
 
 bug：
 translucent材质 IBL 亮度拉高的时候有bug，

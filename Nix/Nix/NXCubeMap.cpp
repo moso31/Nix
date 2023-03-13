@@ -6,6 +6,7 @@
 #include "ShaderComplier.h"
 #include "DirectResources.h"
 #include "NXRenderStates.h"
+#include "NXResourceManager.h"
 
 
 using namespace DirectX::SimpleMath::SH;
@@ -243,29 +244,21 @@ void NXCubeMap::GenerateCubeMap(const std::wstring filePath)
 {
 	g_pUDA->BeginEvent(L"Generate Cube Map");
 
+	// 先离屏渲染CubeMap
 	ComPtr<ID3D11SamplerState> pSamplerState;
 	pSamplerState.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP>::Create());
 	g_pContext->PSSetSamplers(0, 1, pSamplerState.GetAddressOf());
-
-	ComPtr<ID3D11Texture2D> pTexCubeMap;
-	ComPtr<ID3D11ShaderResourceView> pSRVCubeMap;
-	ComPtr<ID3D11RenderTargetView> pRTVCubeMaps[6];
 
 	const static float MapSize = 1024;
 	CD3D11_VIEWPORT vp(0.0f, 0.0f, MapSize, MapSize);
 	g_pContext->RSSetViewports(1, &vp);
 
 	CD3D11_TEXTURE2D_DESC descTex(DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)MapSize, (UINT)MapSize, 6, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, D3D11_RESOURCE_MISC_TEXTURECUBE);
-	g_pDevice->CreateTexture2D(&descTex, nullptr, &pTexCubeMap);
 
-	CD3D11_SHADER_RESOURCE_VIEW_DESC descSRV(D3D11_SRV_DIMENSION_TEXTURECUBE, descTex.Format, 0, descTex.MipLevels, 0, descTex.ArraySize);
-	g_pDevice->CreateShaderResourceView(pTexCubeMap.Get(), &descSRV, &pSRVCubeMap);
-
+	NXTextureCube* pTexCubeMap = NXResourceManager::GetInstance()->CreateTextureCube("Main cubemap", descTex.Format, descTex.Width, descTex.Height, descTex.MipLevels, descTex.BindFlags, descTex.Usage, descTex.CPUAccessFlags, descTex.SampleDesc.Count, descTex.SampleDesc.Quality, descTex.MiscFlags);
+	pTexCubeMap->AddSRV();
 	for (int i = 0; i < 6; i++)
-	{
-		CD3D11_RENDER_TARGET_VIEW_DESC descRTV(D3D11_RTV_DIMENSION_TEXTURE2DARRAY, descTex.Format, 0, i, 1);
-		g_pDevice->CreateRenderTargetView(pTexCubeMap.Get(), &descRTV, &pRTVCubeMaps[i]);
-	}
+		pTexCubeMap->AddRTV(0, i, 1);
 
 	ComPtr<ID3D11InputLayout> pInputLayoutP;
 	ComPtr<ID3D11VertexShader> pVertexShader;
@@ -300,54 +293,51 @@ void NXCubeMap::GenerateCubeMap(const std::wstring filePath)
 
 	for (int i = 0; i < 6; i++)
 	{
-		g_pContext->ClearRenderTargetView(pRTVCubeMaps[i].Get(), Colors::WhiteSmoke);
-		g_pContext->OMSetRenderTargets(1, pRTVCubeMaps[i].GetAddressOf(), nullptr);
+		auto pRTV = pTexCubeMap->GetRTV(i);
+		g_pContext->ClearRenderTargetView(pRTV, Colors::WhiteSmoke);
+		g_pContext->OMSetRenderTargets(1, &pRTV, nullptr);
 
 		cbData.view = m_mxCubeMapView[i].Transpose();
 		g_pContext->UpdateSubresource(cb.Get(), 0, nullptr, &cbData, 0, 0);
 		g_pContext->DrawIndexed((UINT)m_indicesCubeBox.size() / 6, i * 6, 0);
 	}
 
-	ComPtr<ID3D11Texture2D> pMappedTexture;
-	D3D11_MAPPED_SUBRESOURCE pMappedTextureInfo;
-	HRESULT hr = g_pContext->Map(pTexCubeMap.Get(), 0, D3D11_MAP_READ, 0, &pMappedTextureInfo);
+	// 离屏渲染完成以后，需要将CubeMap输出为一张dds纹理文件+保存在本地。
+	// 首先调用Map()，获取pTexCubeMap，然后禁止GPU对其的访问，但实际上不一定成功...
+	HRESULT hr = g_pContext->Map(pTexCubeMap->GetTex(), 0, D3D11_MAP_READ, 0, nullptr);
+	NXTextureCube* pMappedTexture;
 
-	// 如果Map失败并且hr标记为E_INVALIDARG，说明此时pTexCubeMap正在被占用中。
-	// 此时可创建一个STAGING资源，将GPU中的纹理资源（pTexCubeMap）从显存经设备上下文（g_pContext）映射（Map）到临时的STAGING纹理（pTexStaging），再进行CopyResource。
-	// 这样即使原资源（pTexCubeMap）被渲染管线占用，也能拿到对应的值。
-	// 该思路严格来说算是异步操作。参考自：https://www.zhihu.com/question/35068373
+	// ...因为若此时pTexCubeMap正在被占用中，Map方法会失败，并且hr标记为E_INVALIDARG。
 	if (hr == E_INVALIDARG)
 	{
-		D3D11_TEXTURE2D_DESC descMappedTex;
-		descMappedTex.Width = descTex.Width;
-		descMappedTex.Height = descTex.Height;
-		descMappedTex.MipLevels = descTex.MipLevels;
-		descMappedTex.ArraySize = descTex.ArraySize;
-		descMappedTex.Format = descTex.Format;
-		descMappedTex.SampleDesc = descTex.SampleDesc;
-		descMappedTex.Usage = D3D11_USAGE_STAGING; // 仅CPU可访问。
-		descMappedTex.BindFlags = 0;
-		descMappedTex.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
-		descMappedTex.MiscFlags = 0;
+		// 如果出现这种情况，就创建一个仅允许CPU访问的STAGING纹理（pTexStaging），然后
+		//	1. 将GPU占用的纹理（pTexCubeMap）复制一份，存到 pTexStaging
+		//	2. 再对复制体pTexStaging调用Map()
+		// 这样即使原资源（pTexCubeMap）被渲染管线占用，也能拿到对应的值。
+		// 该思路严格来说算是异步操作。参考自：https://www.zhihu.com/question/35068373
 
-		// 创建pTexStaging纹理，仅用于存储中间数据。
-		ComPtr<ID3D11Texture2D> pTexStaging;
-		hr = g_pDevice->CreateTexture2D(&descMappedTex, nullptr, &pTexStaging);
+		// 创建纹理
+		NXTextureCube* pTexStaging = NXResourceManager::GetInstance()->CreateTextureCube("Cubemap staging tex", descTex.Format, descTex.Width, descTex.Height, descTex.MipLevels, descTex.BindFlags, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ, descTex.SampleDesc.Count, descTex.SampleDesc.Quality, descTex.MiscFlags);
 
-		// 将DrawIndex绘制好的资源复制到pTexStaging。
-		g_pContext->CopyResource(pTexStaging.Get(), pTexCubeMap.Get());
+		// 1.
+		g_pContext->CopyResource(pTexStaging->GetTex(), pTexCubeMap->GetTex()); 
 
-		// 映射到pMappedTextureInfo
-		hr = g_pContext->Map(pTexStaging.Get(), 0, D3D11_MAP_READ, 0, &pMappedTextureInfo);
+		// 2.
+		hr = g_pContext->Map(pTexStaging->GetTex(), 0, D3D11_MAP_READ, 0, nullptr); 
 
 		if (FAILED(hr))
 		{
+			// 如果这样都搞不定就没招了，摆烂吧……
 			throw(hr);
 		}
 
-		// copyRecourse后，将pTexStaging强制move给pMappedTexture。
-		// pMappedTexture鸠占鹊巢成为实际上管理纹理数据的指针。pTexStaging则被置nullptr，不再具备任何实际功能。
 		pMappedTexture = std::move(pTexStaging);
+
+		SafeDelete(pTexStaging);
+
+		// [ERROR][ERROR][ERROR] ！！！！！！2023.3.13
+		// 如果走这里的逻辑，那内存可能没有释放干净（无法释放 pTexCubeMap，此时还在被GPU占用中）
+		// 将来会使用资源管理器解决这个问题！
 	}
 	else
 	{
@@ -356,11 +346,11 @@ void NXCubeMap::GenerateCubeMap(const std::wstring filePath)
 		pMappedTexture = pTexCubeMap;
 	}
 
-	g_pContext->Unmap(pMappedTexture.Get(), 0);
+	g_pContext->Unmap(pMappedTexture->GetTex(), 0);
 	g_pUDA->EndEvent();
 
 	std::unique_ptr<ScratchImage> pMappedImage = std::make_unique<ScratchImage>();
-	hr = CaptureTexture(g_pDevice.Get(), g_pContext.Get(), pMappedTexture.Get(), *pMappedImage);
+	hr = CaptureTexture(g_pDevice.Get(), g_pContext.Get(), pMappedTexture->GetTex(), *pMappedImage);
 	TexMetadata cubeDDSInfo = pMappedImage->GetMetadata();
 	cubeDDSInfo.miscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
@@ -371,6 +361,8 @@ void NXCubeMap::GenerateCubeMap(const std::wstring filePath)
 	std::wstring fileName = fileNameAndSuffix.substr(0, suffixIndex);
 	m_cubeMapFilePath = L"D:\\" + fileName + L".dds";
 	hr = SaveToDDSFile(pMappedImage->GetImages(), pMappedImage->GetImageCount(), cubeDDSInfo, DDS_FLAGS_NONE, m_cubeMapFilePath.c_str());
+
+	SafeDelete(pMappedTexture);
 }
 
 void NXCubeMap::GenerateIrradianceSH(size_t imgWidth, size_t imgHeight)

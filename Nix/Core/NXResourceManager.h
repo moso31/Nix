@@ -25,66 +25,6 @@ enum NXCommonRTEnum
     NXCommonRT_SIZE,
 };
 
-// by Moso31 2021.12.25
-// NX Resource 纹理/缓存 资源管理类。
-// 主要职责：
-// 1. 创建一般纹理。
-// 2. 创建并管理 渲染中多个pass重复使用的CommonRT。
-class NXResourceManager : public NXInstance<NXResourceManager>
-{
-public:
-    NXResourceManager();
-	~NXResourceManager();
-
-    NXTexture2D* CreateTexture2D(std::string DebugName,
-        DXGI_FORMAT TexFormat,
-        UINT Width,
-        UINT Height,
-        UINT ArraySize = 1,
-        UINT MipLevels = 0,
-        UINT BindFlags = D3D11_BIND_SHADER_RESOURCE,
-        D3D11_USAGE Usage = D3D11_USAGE_DEFAULT,
-        UINT CpuAccessFlags = 0,
-        UINT SampleCount = 1,
-        UINT SampleQuality = 0,
-        UINT MiscFlags = 0);
-
-    NXTexture2D* CreateTexture2D(std::string DebugName,
-        const D3D11_SUBRESOURCE_DATA* initData,
-        DXGI_FORMAT TexFormat,
-        UINT Width,
-        UINT Height,
-        UINT ArraySize = 1,
-        UINT MipLevels = 0,
-        UINT BindFlags = D3D11_BIND_SHADER_RESOURCE,
-        D3D11_USAGE Usage = D3D11_USAGE_DEFAULT,
-        UINT CpuAccessFlags = 0,
-        UINT SampleCount = 1,
-        UINT SampleQuality = 0,
-        UINT MiscFlags = 0);
-
-    NXTexture2DArray* CreateTexture2DArray(std::string DebugName,
-        DXGI_FORMAT TexFormat,
-        UINT Width,
-        UINT Height,
-        UINT ArraySize = 1,
-        UINT MipLevels = 0,
-        UINT BindFlags = D3D11_BIND_SHADER_RESOURCE,
-        D3D11_USAGE Usage = D3D11_USAGE_DEFAULT,
-        UINT CpuAccessFlags = 0,
-        UINT SampleCount = 1,
-        UINT SampleQuality = 0,
-        UINT MiscFlags = 0);
-
-    void InitCommonRT();
-    NXTexture2D* GetCommonRT(NXCommonRTEnum eRT);
-
-    void Release();
-
-private:
-    std::vector<NXTexture2D*> m_pCommonRT;
-};
-
 class NXTexture
 {
 public:
@@ -144,6 +84,31 @@ public:
     void AddUAV();
 };
 
+class NXTextureCube : public NXTexture
+{
+public:
+    NXTextureCube() : NXTexture() {}
+    ~NXTextureCube() {}
+
+    void Create(std::string DebugName,
+        const D3D11_SUBRESOURCE_DATA* initData,
+        DXGI_FORMAT TexFormat,
+        UINT Width,
+        UINT Height,
+        UINT MipLevels,
+        UINT BindFlags,
+        D3D11_USAGE Usage,
+        UINT CpuAccessFlags,
+        UINT SampleCount,
+        UINT SampleQuality,
+        UINT MiscFlags);
+
+    void AddSRV();
+    void AddRTV(UINT mipSlice = -1, UINT firstArraySlice = 0, UINT arraySize = -1);
+    void AddDSV();
+    void AddUAV();
+};
+
 class NXTexture2DArray : public NXTexture
 {
 public:
@@ -168,4 +133,78 @@ public:
     void AddRTV(UINT firstArraySlice = 0, UINT arraySize = -1);
     void AddDSV(UINT firstArraySlice = 0, UINT arraySize = -1);
     void AddUAV(UINT firstArraySlice = 0, UINT arraySize = -1);
+};
+
+// by Moso31 2021.12.25
+// NX Resource 纹理/缓存 资源管理类。
+// 主要职责：
+// 1. 创建一般纹理。
+// 2. 创建并管理 渲染中多个pass重复使用的CommonRT。
+class NXResourceManager : public NXInstance<NXResourceManager>
+{
+public:
+    NXResourceManager();
+    ~NXResourceManager();
+
+    NXTexture2D* CreateTexture2D(std::string DebugName,
+        DXGI_FORMAT TexFormat,
+        UINT Width,
+        UINT Height,
+        UINT ArraySize = 1,
+        UINT MipLevels = 0,
+        UINT BindFlags = D3D11_BIND_SHADER_RESOURCE,
+        D3D11_USAGE Usage = D3D11_USAGE_DEFAULT,
+        UINT CpuAccessFlags = 0,
+        UINT SampleCount = 1,
+        UINT SampleQuality = 0,
+        UINT MiscFlags = 0);
+
+    NXTexture2D* CreateTexture2D(std::string DebugName,
+        const D3D11_SUBRESOURCE_DATA* initData,
+        DXGI_FORMAT TexFormat,
+        UINT Width,
+        UINT Height,
+        UINT ArraySize = 1,
+        UINT MipLevels = 0,
+        UINT BindFlags = D3D11_BIND_SHADER_RESOURCE,
+        D3D11_USAGE Usage = D3D11_USAGE_DEFAULT,
+        UINT CpuAccessFlags = 0,
+        UINT SampleCount = 1,
+        UINT SampleQuality = 0,
+        UINT MiscFlags = 0);
+
+    NXTextureCube* CreateTextureCube(std::string DebugName,
+        DXGI_FORMAT TexFormat,
+        UINT Width,
+        UINT Height,
+        UINT MipLevels = 0,
+        UINT BindFlags = D3D11_BIND_SHADER_RESOURCE,
+        D3D11_USAGE Usage = D3D11_USAGE_DEFAULT,
+        UINT CpuAccessFlags = 0,
+        UINT SampleCount = 1,
+        UINT SampleQuality = 0,
+        UINT MiscFlags = 0);
+
+    NXTexture2DArray* CreateTexture2DArray(std::string DebugName,
+        DXGI_FORMAT TexFormat,
+        UINT Width,
+        UINT Height,
+        UINT ArraySize = 1,
+        UINT MipLevels = 0,
+        UINT BindFlags = D3D11_BIND_SHADER_RESOURCE,
+        D3D11_USAGE Usage = D3D11_USAGE_DEFAULT,
+        UINT CpuAccessFlags = 0,
+        UINT SampleCount = 1,
+        UINT SampleQuality = 0,
+        UINT MiscFlags = 0);
+
+    void InitCommonRT();
+    NXTexture2D* GetCommonRT(NXCommonRTEnum eRT);
+
+    void Release();
+
+private:
+    std::vector<NXTexture2D*> m_pCommonRT;
+
+    std::vector<NXTexture*> m_pTextureArray;
 };

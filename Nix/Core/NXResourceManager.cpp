@@ -25,6 +25,14 @@ NXTexture2D* NXResourceManager::CreateTexture2D(std::string DebugName, const D3D
 	return pTexture2D;
 }
 
+NXTextureCube* NXResourceManager::CreateTextureCube(std::string DebugName, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
+{
+	NXTextureCube* pTextureCube = new NXTextureCube();
+	pTextureCube->Create(DebugName, nullptr, TexFormat, Width, Height, MipLevels, BindFlags, Usage, CpuAccessFlags, SampleCount, SampleQuality, MiscFlags);
+
+	return pTextureCube;
+}
+
 NXTexture2DArray* NXResourceManager::CreateTexture2DArray(std::string DebugName, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
 {
 	NXTexture2DArray* pTexture2DARray = new NXTexture2DArray();
@@ -176,6 +184,80 @@ void NXTexture2D::AddUAV()
 
 	m_pUAVs.push_back(pUAV);
 }
+
+void NXTextureCube::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* initData, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
+{
+	UINT ArraySize = 6;	// textureCube must be 6.
+
+	this->m_debugName = DebugName;
+	this->m_width = Width;
+	this->m_height = Height;
+	this->m_arraySize = ArraySize; 
+	this->m_texFormat = TexFormat;
+	this->m_mipLevels = MipLevels;
+
+	D3D11_TEXTURE2D_DESC Desc;
+	Desc.Format = TexFormat;
+	Desc.Width = Width;
+	Desc.Height = Height;
+	Desc.ArraySize = ArraySize;
+	Desc.MipLevels = MipLevels;
+	Desc.BindFlags = BindFlags;
+	Desc.Usage = Usage;
+	Desc.CPUAccessFlags = CpuAccessFlags;
+	Desc.SampleDesc.Count = SampleCount;
+	Desc.SampleDesc.Quality = SampleQuality;
+	Desc.MiscFlags = MiscFlags | D3D11_RESOURCE_MISC_TEXTURECUBE; // textureCube must be hold the D3D11_RESOURCE_MISC_TEXTURECUBE flag.
+
+	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&Desc, initData, &m_pTexture));
+	m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
+}
+
+void NXTextureCube::AddSRV()
+{
+	ID3D11ShaderResourceView* pSRV = nullptr;
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC Desc;
+	Desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+	Desc.Format = m_texFormat;
+	Desc.TextureCube.MostDetailedMip = 0;
+	Desc.TextureCube.MipLevels = m_mipLevels;
+
+	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(m_pTexture.Get(), &Desc, &pSRV));
+
+	std::string SRVDebugName = m_debugName + " SRV";
+	pSRV->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)SRVDebugName.size(), SRVDebugName.c_str());
+
+	m_pSRVs.push_back(pSRV);
+}
+
+void NXTextureCube::AddRTV(UINT mipSlice, UINT firstArraySlice, UINT arraySize)
+{
+	ID3D11RenderTargetView* pRTV = nullptr;
+
+	D3D11_RENDER_TARGET_VIEW_DESC Desc;
+	Desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
+	Desc.Format = m_texFormat;
+	Desc.Texture2DArray.MipSlice = mipSlice;
+	Desc.Texture2DArray.FirstArraySlice = firstArraySlice;
+	Desc.Texture2DArray.ArraySize = arraySize;
+
+	NX::ThrowIfFailed(g_pDevice->CreateRenderTargetView(m_pTexture.Get(), &Desc, &pRTV));
+
+	std::string RTVDebugName = m_debugName + " RTV";
+	pRTV->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)RTVDebugName.size(), RTVDebugName.c_str());
+
+	m_pRTVs.push_back(pRTV);
+}
+
+void NXTextureCube::AddDSV()
+{
+}
+
+void NXTextureCube::AddUAV()
+{
+}
+
 
 void NXTexture2DArray::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* initData, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
 {

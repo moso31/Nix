@@ -2,6 +2,7 @@
 #include <fstream>
 
 #include "NXGUIContentExplorer.h"
+#include "NXConverter.h"
 #include "NXGUICommon.h"
 #include "NXGUI.h"
 #include "NXScene.h"
@@ -95,26 +96,26 @@ void NXGUIContentExplorer::Render()
                             for (auto const& subElem : std::filesystem::directory_iterator(elem.filePath))
                             {
                                 std::string strExtension = "";
-                                std::string strTypeText = "[unknown]";
+                                std::string strExtensionText = "[unknown]";
                                 if (subElem.is_directory())
                                     continue; // strTypeText = "folder"; // 2023.3.8 暂不支持文件夹，够用就行了
                                 else if (subElem.path().has_extension())
                                 {
                                     // 获取扩展名并转换成小写
                                     strExtension = subElem.path().extension().u8string().c_str();
-                                    std::transform(strExtension.begin(), strExtension.end(), strExtension.begin(), [](UCHAR c) { return std::tolower(c); });
-
-                                    strTypeText = strExtension;
+                                    strExtension = NXConvert::s2lower(strExtension);
+                                    strExtensionText = strExtension;
                                 }
 
                                 ImGui::TableNextColumn();
 
                                 // 文件夹/图标按钮本体
-                                if (ImGui::Button((strTypeText + "##" + subElem.path().u8string()).c_str(), ImVec2(fActualSize, fActualSize)))
+                                if (ImGui::Button((strExtensionText + "##" + subElem.path().u8string()).c_str(), ImVec2(fActualSize, fActualSize)))
                                 {
-                                    printf("%s\n", strTypeText.c_str());
+                                    printf("%s\n", strExtensionText.c_str());
                                 }
 
+                                // 文件夹/图标按钮 拖动事件
                                 if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
                                 {
                                     m_btnDrugData.srcPath = subElem.path();
@@ -122,6 +123,20 @@ void NXGUIContentExplorer::Render()
                                     ImGui::SetDragDropPayload("CONTENT_EXPLORER_BUTTON_DRUGING", &m_btnDrugData, sizeof(NXGUIContentExplorerButtonDrugData));
                                     ImGui::Text("(o_o)...");
                                     ImGui::EndDragDropSource();
+                                }
+
+                                // 文件夹/图标按钮 单击事件
+                                if (ImGui::IsItemClicked() && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+                                {
+                                    if (subElem.is_directory()) {} 
+                                    else if (subElem.path().has_extension())
+                                    {
+                                        // 如果点选了图片，就需要 NXGUITexture 显示此图的相关信息
+                                        if (NXConvert::IsImageFileExtension(subElem.path().extension().string()))
+                                        {
+                                            //NXGUITexture
+                                        }
+                                    }
                                 }
 
                                 //// 文件夹/图标按钮 双击事件
