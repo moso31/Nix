@@ -40,16 +40,15 @@ public:
 	void Render();
 	void Release() override;
 
-	void GenerateCubeMap(const std::wstring filePath);
-	void GenerateIrradianceSH(size_t imgWidth, size_t imgHeight);
+	void GenerateCubeMap(NXTexture2D* pTexHDR, const std::wstring filePath);
+	void GenerateIrradianceSH_CPU(size_t imgWidth, size_t imgHeight);
+	void GenerateIrradianceSH(NXTexture2D* pTexHDR);
 	void GenerateIrradianceMap();
 	void GeneratePreFilterMap();
 	void GenerateBRDF2DLUT();
 
-	Vector3 BackgroundColorByDirection(const Vector3& v);
-
-	ID3D11ShaderResourceView* GetSRVCubeMap() { return m_pSRVCubeMap.Get(); }
-	ID3D11ShaderResourceView* GetSRVCubeMapPreview2D() { return m_pSRVCubeMapPreview2D.Get(); }
+	ID3D11ShaderResourceView* GetSRVCubeMap();
+	ID3D11ShaderResourceView* GetSRVCubeMapPreview2D();
 	ID3D11ShaderResourceView* GetSRVIrradianceMap();
 	ID3D11ShaderResourceView* GetSRVPreFilterMap();
 	ID3D11ShaderResourceView* GetSRVBRDF2DLUT();
@@ -70,8 +69,6 @@ private:
 	DXGI_FORMAT m_format;
 	std::wstring m_cubeMapFilePath;
 	std::unique_ptr<ScratchImage> m_pImage;
-	std::vector<byte*> m_faceData;
-	size_t m_width, m_height;
 
 	NXScene* m_pScene;
 
@@ -88,14 +85,7 @@ private:
 	ComPtr<ID3D11Buffer>		m_pVertexBufferCubeBox;
 	ComPtr<ID3D11Buffer>		m_pIndexBufferCubeBox;
 
-	ComPtr<ID3D11ShaderResourceView>	m_pSRVHDRMap;
-
-	//NXTexture2D*						m_pTexCubeMap;
-	ComPtr<ID3D11Texture2D>				m_pTexCubeMap;
-	ComPtr<ID3D11ShaderResourceView>	m_pSRVCubeMap;
-	ComPtr<ID3D11ShaderResourceView>	m_pSRVCubeMapPreview2D;
-	ComPtr<ID3D11RenderTargetView>		m_pRTVCubeMaps[6];
-
+	NXTextureCube*						m_pTexCubeMap;
 	NXTextureCube*						m_pTexIrradianceMap;
 	NXTextureCube*						m_pTexPreFilterMap;
 	NXTexture2D*						m_pTexBRDF2DLUT;

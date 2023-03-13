@@ -1,5 +1,7 @@
 #include "NXResourceManager.h"
 #include "DirectResources.h"
+#include "NXConverter.h"
+#include "DirectXTex.h"
 
 NXResourceManager::NXResourceManager()
 {
@@ -25,10 +27,26 @@ NXTexture2D* NXResourceManager::CreateTexture2D(std::string DebugName, const D3D
 	return pTexture2D;
 }
 
+NXTexture2D* NXResourceManager::CreateTexture2D(const std::string& DebugName, const std::wstring& FilePath)
+{
+	NXTexture2D* pTexture2D = new NXTexture2D();
+	pTexture2D->Create(DebugName, FilePath);
+
+	return pTexture2D;
+}
+
 NXTextureCube* NXResourceManager::CreateTextureCube(std::string DebugName, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
 {
 	NXTextureCube* pTextureCube = new NXTextureCube();
 	pTextureCube->Create(DebugName, nullptr, TexFormat, Width, Height, MipLevels, BindFlags, Usage, CpuAccessFlags, SampleCount, SampleQuality, MiscFlags);
+
+	return pTextureCube;
+}
+
+NXTextureCube* NXResourceManager::CreateTextureCube(const std::string& DebugName, const std::wstring& strFilePath)
+{
+	NXTextureCube* pTextureCube = new NXTextureCube();
+	pTextureCube->Create(DebugName, strFilePath);
 
 	return pTextureCube;
 }
@@ -123,6 +141,44 @@ void NXTexture2D::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* in
 	m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
 }
 
+void NXTexture2D::Create(const std::string& DebugName, const std::wstring& FilePath)
+{
+	TexMetadata metadata;
+	std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>();
+
+	std::wstring strExtension = NXConvert::s2lower(FilePath.substr(FilePath.rfind(L".")));
+	if (strExtension == L".hdr") 
+		LoadFromHDRFile(FilePath.c_str(), &metadata, *pImage);
+	else if (strExtension == L".dds") 
+		LoadFromDDSFile(FilePath.c_str(), DDS_FLAGS_NONE, &metadata, *pImage);
+	else if (strExtension == L".tga")
+		LoadFromTGAFile(FilePath.c_str(), &metadata, *pImage);
+	else 
+		LoadFromWICFile(FilePath.c_str(), WIC_FLAGS_NONE, &metadata, *pImage);
+
+	bool bGenerateMipMap = false; 
+	if (bGenerateMipMap && metadata.width >= 2 && metadata.height >= 2 && metadata.mipLevels == 1)
+	{
+		std::unique_ptr<ScratchImage> pImageMip = std::make_unique<ScratchImage>();
+		HRESULT hr = GenerateMipMaps(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), TEX_FILTER_DEFAULT, 0, *pImageMip);
+		metadata.mipLevels = pImageMip->GetMetadata().mipLevels;
+		if (SUCCEEDED(hr))
+			pImage.swap(pImageMip);
+	}
+
+	D3D11_SUBRESOURCE_DATA* pImageData = new D3D11_SUBRESOURCE_DATA[metadata.mipLevels];
+	for (size_t i = 0; i < metadata.mipLevels; i++)
+	{
+		auto img = pImage->GetImage(i, 0, 0);
+		D3D11_SUBRESOURCE_DATA& pData = pImageData[i];
+		pData.pSysMem = img->pixels;
+		pData.SysMemPitch = static_cast<DWORD>(img->rowPitch);
+		pData.SysMemSlicePitch = static_cast<DWORD>(img->slicePitch);
+	}
+
+	Create(DebugName, pImageData, metadata.format, (UINT)metadata.width, (UINT)metadata.height, (UINT)metadata.arraySize, (UINT)metadata.mipLevels, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, (UINT)metadata.miscFlags);
+}
+
 void NXTexture2D::AddSRV()
 {
 	ID3D11ShaderResourceView* pSRV;
@@ -207,10 +263,57 @@ void NXTextureCube::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* 
 	Desc.CPUAccessFlags = CpuAccessFlags;
 	Desc.SampleDesc.Count = SampleCount;
 	Desc.SampleDesc.Quality = SampleQuality;
-	Desc.MiscFlags = MiscFlags | D3D11_RESOURCE_MISC_TEXTURECUBE; // textureCube must be hold the D3D11_RESOURCE_MISC_TEXTURECUBE flag.
+	Desc.MiscFlags = MiscFlags | D3D11_RESOURCE_MISC_TEXTURECUBE; // textureCube must keep D3D11_RESOURCE_MISC_TEXTURECUBE flag.
 
 	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&Desc, initData, &m_pTexture));
 	m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
+}
+
+void NXTextureCube::Create(const std::string& DebugName, const std::wstring& FilePath)
+{
+	TexMetadata metadata;
+	std::unique_ptr<ScratchImage> pImage;
+	LoadFromDDSFile(FilePath.c_str(), DDS_FLAGS_NONE, &metadata, *pImage);
+
+	std::unique_ptr<ScratchImage> pImageMip = std::make_unique<ScratchImage>();
+	GenerateMipMaps(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), TEX_FILTER_DEFAULT, 0, *pImageMip);
+	metadata.mipLevels = pImageMip->GetMetadata().mipLevels;
+	pImage.swap(pImageMip);
+
+	if (IsCompressed(metadata.format))
+	{
+		auto img = pImage->GetImage(0, 0, 0);
+		size_t nimg = pImage->GetImageCount();
+
+		std::unique_ptr<ScratchImage> dcImage = std::make_unique<ScratchImage>();
+		HRESULT hr = Decompress(img, nimg, metadata, DXGI_FORMAT_UNKNOWN /* picks good default */, *dcImage);
+		if (SUCCEEDED(hr))
+		{
+			if (dcImage && dcImage->GetPixels())
+				pImage.swap(dcImage);
+		}
+	}
+
+	D3D11_SUBRESOURCE_DATA* pImageData = new D3D11_SUBRESOURCE_DATA[metadata.mipLevels];
+	for (size_t i = 0; i < metadata.mipLevels; i++)
+	{
+		auto img = pImage->GetImage(i, 0, 0);
+		D3D11_SUBRESOURCE_DATA& pData = pImageData[i];
+		pData.pSysMem = img->pixels;
+		pData.SysMemPitch = static_cast<DWORD>(img->rowPitch);
+		pData.SysMemSlicePitch = static_cast<DWORD>(img->slicePitch);
+	}
+
+	Create(DebugName, pImageData, metadata.format, (UINT)metadata.width, (UINT)metadata.height, (UINT)metadata.mipLevels, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, (UINT)metadata.miscFlags);
+
+	//DirectX::CreateTextureEx(g_pDevice.Get(), pImage->GetImages(), pImage->GetImageCount(), metadata, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, (ID3D11Resource**)m_pTexture.GetAddressOf());
+	//m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
+
+	auto HDRPreviewInfo = metadata;
+	HDRPreviewInfo.arraySize = 1;
+	HDRPreviewInfo.mipLevels = 1;
+	HDRPreviewInfo.miscFlags = 0;
+	CreateShaderResourceView(g_pDevice.Get(), pImage->GetImage(0, 0, 0), 1, HDRPreviewInfo, &m_pSRVPreview2D);
 }
 
 void NXTextureCube::AddSRV()

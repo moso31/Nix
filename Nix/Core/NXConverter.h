@@ -12,6 +12,7 @@ std::wstring s2ws(const std::string& s);
 
 // string תСд
 std::string s2lower(std::string s);
+std::wstring s2lower(std::wstring s);
 
 std::string GetPathOfImguiIni();
 

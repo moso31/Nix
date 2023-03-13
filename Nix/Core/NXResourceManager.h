@@ -40,6 +40,9 @@ public:
     std::string GetFilePath() { return m_texFilePath; }
     void SetFilePath(const std::string& path) { m_texFilePath = path; }
 
+    UINT GetWidth()     { return m_width; }
+    UINT GetHeight()    { return m_height; }
+
 protected:
     std::string m_debugName;
     ComPtr<ID3D11Texture2D> m_pTexture;
@@ -78,6 +81,8 @@ public:
         UINT SampleQuality,
         UINT MiscFlags);
 
+    void Create(const std::string& DebugName, const std::wstring& FilePath);
+
     void AddSRV();
     void AddRTV();
     void AddDSV();
@@ -103,10 +108,17 @@ public:
         UINT SampleQuality,
         UINT MiscFlags);
 
+    void Create(const std::string& DebugName, const std::wstring& FilePath);
+
     void AddSRV();
     void AddRTV(UINT mipSlice = -1, UINT firstArraySlice = 0, UINT arraySize = -1);
     void AddDSV(UINT mipSlice = -1, UINT firstArraySlice = 0, UINT arraySize = -1);
     void AddUAV(UINT mipSlice = -1, UINT firstArraySlice = 0, UINT arraySize = -1);
+
+    ID3D11ShaderResourceView*   GetSRVPreview2D()     { return m_pSRVPreview2D.Get(); }
+
+private:
+    ComPtr<ID3D11ShaderResourceView> m_pSRVPreview2D;
 };
 
 class NXTexture2DArray : public NXTexture
@@ -173,6 +185,9 @@ public:
         UINT SampleQuality = 0,
         UINT MiscFlags = 0);
 
+    NXTexture2D* CreateTexture2D(const std::string& DebugName,
+        const std::wstring& FilePath);
+
     NXTextureCube* CreateTextureCube(std::string DebugName,
         DXGI_FORMAT TexFormat,
         UINT Width,
@@ -184,6 +199,9 @@ public:
         UINT SampleCount = 1,
         UINT SampleQuality = 0,
         UINT MiscFlags = 0);
+
+    NXTextureCube* CreateTextureCube(const std::string& DebugName,
+        const std::wstring& FilePath);
 
     NXTexture2DArray* CreateTexture2DArray(std::string DebugName,
         DXGI_FORMAT TexFormat,

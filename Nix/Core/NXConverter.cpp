@@ -1,4 +1,5 @@
 #include "NXConverter.h"
+#include <cwctype>
 
 namespace NXConvert
 {
@@ -21,7 +22,13 @@ std::wstring s2ws(const std::string& s)
 
 std::string s2lower(std::string s)
 {
-	std::transform(s.begin(), s.end(), s.begin(), [](UCHAR c) { return std::tolower(c); });
+	std::transform(s.begin(), s.end(), s.begin(), std::tolower);
+	return s;
+}
+
+std::wstring s2lower(std::wstring s)
+{
+	std::transform(s.begin(), s.end(), s.begin(), std::towlower);
 	return s;
 }
 

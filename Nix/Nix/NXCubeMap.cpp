@@ -7,15 +7,14 @@
 #include "DirectResources.h"
 #include "NXRenderStates.h"
 #include "NXResourceManager.h"
+#include "DirectXTex.h"
 
 
 using namespace DirectX::SimpleMath::SH;
 
 NXCubeMap::NXCubeMap(NXScene* pScene) :
 	m_pScene(pScene),
-	m_format(DXGI_FORMAT_UNKNOWN),
-	m_height(0),
-	m_width(0)
+	m_format(DXGI_FORMAT_UNKNOWN)
 {
 	InitConstantBuffer();
 }
@@ -36,8 +35,8 @@ bool NXCubeMap::Init(const std::wstring filePath)
 	m_pImage.reset(); 
 	m_pImage = std::make_unique<ScratchImage>();
 
-	TexMetadata HDRInfo;
-	HRESULT hr; 
+	//TexMetadata HDRInfo;
+	//HRESULT hr; 
 	std::wstring suffix = filePath.substr(filePath.rfind(L"."));
 
 	// 创建CubeMap SRV。
@@ -45,172 +44,85 @@ bool NXCubeMap::Init(const std::wstring filePath)
 	if (_wcsicmp(suffix.c_str(), L".dds") == 0)
 	{
 		m_cubeMapFilePath = filePath;
-		hr = LoadFromDDSFile(filePath.c_str(), DDS_FLAGS_NONE, &HDRInfo, *m_pImage);
-		m_format = HDRInfo.format;
 
-		std::unique_ptr<ScratchImage> pImageMip = std::make_unique<ScratchImage>();
-		hr = GenerateMipMaps(m_pImage->GetImages(), m_pImage->GetImageCount(), m_pImage->GetMetadata(), TEX_FILTER_DEFAULT, 0, *pImageMip);
-		HDRInfo.mipLevels = pImageMip->GetMetadata().mipLevels;
-		m_pImage.swap(pImageMip);
+		//hr = LoadFromDDSFile(filePath.c_str(), DDS_FLAGS_NONE, &HDRInfo, *m_pImage);
+		//m_format = HDRInfo.format;
 
-		hr = CreateTextureEx(g_pDevice.Get(), m_pImage->GetImages(), m_pImage->GetImageCount(), HDRInfo, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, (ID3D11Resource**)m_pTexCubeMap.GetAddressOf());
-		hr = CreateShaderResourceView(g_pDevice.Get(), m_pImage->GetImages(), m_pImage->GetImageCount(), HDRInfo, &m_pSRVCubeMap);
+		//std::unique_ptr<ScratchImage> pImageMip = std::make_unique<ScratchImage>();
+		//hr = GenerateMipMaps(m_pImage->GetImages(), m_pImage->GetImageCount(), m_pImage->GetMetadata(), TEX_FILTER_DEFAULT, 0, *pImageMip);
+		//HDRInfo.mipLevels = pImageMip->GetMetadata().mipLevels;
+		//m_pImage.swap(pImageMip);
+
+		//hr = CreateTextureEx(g_pDevice.Get(), m_pImage->GetImages(), m_pImage->GetImageCount(), HDRInfo, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, (ID3D11Resource**)m_pTexCubeMap.GetAddressOf());
+		//hr = CreateShaderResourceView(g_pDevice.Get(), m_pImage->GetImages(), m_pImage->GetImageCount(), HDRInfo, &m_pSRVCubeMap);
+
+		m_pTexCubeMap = NXResourceManager::GetInstance()->CreateTextureCube("CubeMap Texture", filePath);
+		m_pTexCubeMap->AddSRV();
 	}
 	else if (_wcsicmp(suffix.c_str(), L".hdr") == 0)
 	{
-		auto pHDRImage = std::make_unique<ScratchImage>();
-		hr = LoadFromHDRFile(filePath.c_str(), &HDRInfo, *pHDRImage);
-		m_format = HDRInfo.format;
+		// 1. HDR纹理
+		// 2. 计算IrradianceSH系数
+		// 3. 生成CubeMap
+		// 4. 创建用于预览CubeMap的SRV
 
-		hr = CreateShaderResourceViewEx(g_pDevice.Get(), pHDRImage->GetImages(), pHDRImage->GetImageCount(), HDRInfo, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, (UINT)HDRInfo.miscFlags, false, &m_pSRVHDRMap);
-		
-		GenerateCubeMap(filePath);
-		hr = LoadFromDDSFile(m_cubeMapFilePath.c_str(), DDS_FLAGS_NONE, &HDRInfo, *m_pImage);
+		// 1.
+		NXTexture2D* pTexHDR = NXResourceManager::GetInstance()->CreateTexture2D("HDR Temp Texture", filePath);
+		pTexHDR->AddSRV();
 
-		size_t imgWidth = pHDRImage->GetMetadata().width;
-		size_t imgHeight = pHDRImage->GetMetadata().height;
-		GenerateIrradianceSH(imgWidth, imgHeight);
+		// 2.
+		GenerateIrradianceSH(pTexHDR);
+		//GenerateIrradianceSH_CPU(imgWidth, imgHeight);
 
-		//// HDRI 纹理加载
-		//auto pData = reinterpret_cast<float*>(pHDRImage->GetImage(0, 0, 0)->pixels);
-		//double solidAnglePdf = 0.0;
-		//double test = 0.0;
+		// 3.
+		GenerateCubeMap(pTexHDR, filePath);
+		m_pTexCubeMap = NXResourceManager::GetInstance()->CreateTextureCube("CubeMap Texture", m_cubeMapFilePath);
+		m_pTexCubeMap->AddSRV();
 
-		//memset(m_shIrradianceMap, 0, sizeof(m_shIrradianceMap));
+		//hr = LoadFromDDSFile(m_cubeMapFilePath.c_str(), DDS_FLAGS_NONE, &HDRInfo, *m_pImage);
 
-		//// 像素个数
-		//size_t pixelCount = pHDRImage->GetPixelsSize() >> 4;
+		//std::unique_ptr<ScratchImage> pImageMip = std::make_unique<ScratchImage>();
+		//hr = GenerateMipMaps(m_pImage->GetImages(), m_pImage->GetImageCount(), m_pImage->GetMetadata(), TEX_FILTER_DEFAULT, 0, *pImageMip);
+		//HDRInfo.mipLevels = pImageMip->GetMetadata().mipLevels;
+		//m_pImage.swap(pImageMip); 
 
-		//size_t threadCount = imgHeight;
-		//for (int threadIdx = 0; threadIdx < (int)threadCount; threadIdx++)
-		//{
-		//	int threadSize = pixelCount / threadCount;
-		//	for (int i = 0; i < threadSize; i++)
-		//	{
-		//		size_t idx = threadIdx * threadSize + i;
+		//hr = CreateTextureEx(g_pDevice.Get(), m_pImage->GetImages(), m_pImage->GetImageCount(), HDRInfo, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, (ID3D11Resource**)m_pTexCubeMap.GetAddressOf());
+		//hr = CreateShaderResourceView(g_pDevice.Get(), m_pImage->GetImages(), m_pImage->GetImageCount(), HDRInfo, &m_pSRVCubeMap);
 
-		//		double u = (double(idx % imgWidth) + 0.5) / imgWidth;
-		//		double v = (double(idx / imgWidth) + 0.5) / imgHeight;
-
-		//		double scaleY = 0.5 / imgHeight;
-		//		double thetaU = (v - scaleY) * XM_PI;
-		//		double thetaD = (v + scaleY) * XM_PI;
-
-		//		double dPhi = XM_2PI / imgWidth;	// dPhi 是个常量
-		//		double dTheta = cos(thetaU) - cos(thetaD);
-		//		solidAnglePdf = dPhi * dTheta;
-
-		//		// get L(Rs).
-		//		size_t offset = idx << 2;
-		//		Vector3 incidentRadiance(pData + offset);
-
-		//		for (int l = 0; l < 3; l++)
-		//		{
-		//			for (int m = -l; m <= l; m++)
-		//			{
-		//				float sh = SHBasis(l, m, v * XM_PI, XM_3PIDIV2 - u * XM_2PI);  // HDRI纹理角度矫正
-
-		//				// sh = y_l^m(Rs)
-		//				// m_shIrradianceMap[k++] = L_l^m
-		//				Vector3 Llm = incidentRadiance * sh * solidAnglePdf;
-		//				printf("%d | %d, %d | %f, %f, %f\n", idx, l, m, Llm.x, Llm.y, Llm.z);
-		//				{
-		//					m_shIrradianceMap[l * l + l + m] += Llm;
-		//				}
-		//			}
-		//		}
-
-		//		printf("\n");
-		//	}
-		//}
-
-		//const float T[5] = { 0.886226925452757f, 1.023326707946489f, 0.495415912200751f, 0.0f, -0.110778365681594f };
-		//int k = 0;
-		//for (int l = 0; l < 3; l++)
-		//{
-		//	for (int m = -l; m <= l; m++)
-		//	{
-		//		// 求 E_l^m
-		//		m_shIrradianceMap[k++] *= sqrt(XM_4PI / (2.0f * l + 1.0f)) * T[l] * XM_1DIVPI;
-		//	}
-		//}
-
-		std::unique_ptr<ScratchImage> pImageMip = std::make_unique<ScratchImage>();
-		hr = GenerateMipMaps(m_pImage->GetImages(), m_pImage->GetImageCount(), m_pImage->GetMetadata(), TEX_FILTER_DEFAULT, 0, *pImageMip);
-		HDRInfo.mipLevels = pImageMip->GetMetadata().mipLevels;
-		m_pImage.swap(pImageMip); 
-
-		hr = CreateTextureEx(g_pDevice.Get(), m_pImage->GetImages(), m_pImage->GetImageCount(), HDRInfo, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, (ID3D11Resource**)m_pTexCubeMap.GetAddressOf());
-		hr = CreateShaderResourceView(g_pDevice.Get(), m_pImage->GetImages(), m_pImage->GetImageCount(), HDRInfo, &m_pSRVCubeMap);
-
-		auto HDRPreviewInfo = HDRInfo;
-		HDRPreviewInfo.arraySize = 1;
-		HDRPreviewInfo.mipLevels = 1;
-		HDRPreviewInfo.miscFlags = 0;
-		hr = CreateShaderResourceView(g_pDevice.Get(), m_pImage->GetImage(0, 0, 0), 1, HDRPreviewInfo, &m_pSRVCubeMapPreview2D);
+		//auto HDRPreviewInfo = HDRInfo;
+		//HDRPreviewInfo.arraySize = 1;
+		//HDRPreviewInfo.mipLevels = 1;
+		//HDRPreviewInfo.miscFlags = 0;
+		//hr = CreateShaderResourceView(g_pDevice.Get(), m_pImage->GetImage(0, 0, 0), 1, HDRPreviewInfo, &m_pSRVCubeMapPreview2D);
 	}
 
-	if (IsCompressed(HDRInfo.format))
-	{
-		auto img = m_pImage->GetImage(0, 0, 0);
-		size_t nimg = m_pImage->GetImageCount();
+	//if (IsCompressed(HDRInfo.format))
+	//{
+	//	auto img = m_pImage->GetImage(0, 0, 0);
+	//	size_t nimg = m_pImage->GetImageCount();
 
-		std::unique_ptr<ScratchImage> dcImage = std::make_unique<ScratchImage>();
-		hr = Decompress(img, nimg, HDRInfo, DXGI_FORMAT_UNKNOWN /* picks good default */, *dcImage);
-		if (SUCCEEDED(hr))
-		{
-			if (dcImage && dcImage->GetPixels())
-				m_pImage.swap(dcImage);
-		}
-	}
+	//	std::unique_ptr<ScratchImage> dcImage = std::make_unique<ScratchImage>();
+	//	hr = Decompress(img, nimg, HDRInfo, DXGI_FORMAT_UNKNOWN /* picks good default */, *dcImage);
+	//	if (SUCCEEDED(hr))
+	//	{
+	//		if (dcImage && dcImage->GetPixels())
+	//			m_pImage.swap(dcImage);
+	//	}
+	//}
 
 	if (!m_pImage) return false;
-
-	m_width = HDRInfo.width;
-	m_height = HDRInfo.height;
-
-	m_faceData.resize(6);
-	for (int item = 0; item < 6; item++)
-	{
-		auto faceImage = m_pImage->GetImage(0, item, 0);
-		m_faceData[item] = faceImage->pixels;
-	}
 
 	return true;
 }
 
-Vector3 NXCubeMap::BackgroundColorByDirection(const Vector3& v)
+ID3D11ShaderResourceView* NXCubeMap::GetSRVCubeMap()
 {
-	assert(v.LengthSquared() != 0);
+	return m_pTexCubeMap->GetSRV();
+}
 
-	Vector3 vAbs = Vector3::Abs(v);
-	int dim = vAbs.MaxDimension();
-	float scale = 1.0f / vAbs[dim];
-	Vector3 touchCube = v * scale;	// 将v延长到能摸到单位Cube。此时dim轴即被选中的CubeMap的面，剩下的两个轴即=该面的uv。
-	touchCube = (touchCube + Vector3(1.0f)) * 0.5f; //将坐标从([-1, 1]^3)映射到([0, 1]^3)
-
-	assert(dim >= 0 && dim < 3);
-	Vector2 uvHit;
-
-	int faceId = dim * 2 + !(v[dim] > 0);	
-	switch (faceId)
-	{
-	case 0:		uvHit = Vector2(1.0f - touchCube.z, 1.0f - touchCube.y);	break;		// +X
-	case 1:		uvHit = Vector2(touchCube.z, 1.0f - touchCube.y);	break;		// -X
-	case 2:		uvHit = Vector2(touchCube.x, touchCube.z);	break;		// +Y
-	case 3:		uvHit = Vector2(touchCube.z, touchCube.x);	break;		// -Y
-	case 4:		uvHit = Vector2(touchCube.x, 1.0f - touchCube.y);	break;		// +Z
-	case 5:		uvHit = Vector2(1.0f - touchCube.x, 1.0f - touchCube.y);	break;		// -Z
-	}
-
-	int offset = ((int)floorf(uvHit.y * (float)m_height) * (int)m_width + (int)floorf(uvHit.x * (float)m_width)) * 4;
-	byte* c = m_faceData[faceId] + offset;
-
-	float fInv = 1.0f / 255.0f;
-	float r = *(c + 0) * fInv;
-	float g = *(c + 1) * fInv;
-	float b = *(c + 2) * fInv;
-	return Vector3(r, g, b);
+ID3D11ShaderResourceView* NXCubeMap::GetSRVCubeMapPreview2D()
+{ 
+	return m_pTexCubeMap->GetSRVPreview2D();
 }
 
 ID3D11ShaderResourceView* NXCubeMap::GetSRVIrradianceMap()
@@ -258,7 +170,7 @@ void NXCubeMap::Release()
 	NXTransform::Release();
 }
 
-void NXCubeMap::GenerateCubeMap(const std::wstring filePath)
+void NXCubeMap::GenerateCubeMap(NXTexture2D* pTexHDR, const std::wstring filePath)
 {
 	g_pUDA->BeginEvent(L"Generate Cube Map");
 
@@ -297,7 +209,8 @@ void NXCubeMap::GenerateCubeMap(const std::wstring filePath)
 	bufferDesc.CPUAccessFlags = 0;
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &cb));
 
-	g_pContext->PSSetShaderResources(0, 1, m_pSRVHDRMap.GetAddressOf());
+	auto pSRVHDRMap = pTexHDR->GetSRV();
+	g_pContext->PSSetShaderResources(0, 1, &pSRVHDRMap);
 	g_pContext->VSSetConstantBuffers(0, 1, cb.GetAddressOf());
 
 	ConstantBufferObject cbData;
@@ -383,7 +296,74 @@ void NXCubeMap::GenerateCubeMap(const std::wstring filePath)
 	SafeDelete(pMappedTexture);
 }
 
-void NXCubeMap::GenerateIrradianceSH(size_t imgWidth, size_t imgHeight)
+void NXCubeMap::GenerateIrradianceSH_CPU(size_t imgWidth, size_t imgHeight)
+{
+	//// HDRI 纹理加载
+	//auto pData = reinterpret_cast<float*>(pHDRImage->GetImage(0, 0, 0)->pixels);
+	//double solidAnglePdf = 0.0;
+	//double test = 0.0;
+
+	//memset(m_shIrradianceMap, 0, sizeof(m_shIrradianceMap));
+
+	//// 像素个数
+	//size_t pixelCount = pHDRImage->GetPixelsSize() >> 4;
+
+	//size_t threadCount = imgHeight;
+	//for (int threadIdx = 0; threadIdx < (int)threadCount; threadIdx++)
+	//{
+	//	int threadSize = pixelCount / threadCount;
+	//	for (int i = 0; i < threadSize; i++)
+	//	{
+	//		size_t idx = threadIdx * threadSize + i;
+
+	//		double u = (double(idx % imgWidth) + 0.5) / imgWidth;
+	//		double v = (double(idx / imgWidth) + 0.5) / imgHeight;
+
+	//		double scaleY = 0.5 / imgHeight;
+	//		double thetaU = (v - scaleY) * XM_PI;
+	//		double thetaD = (v + scaleY) * XM_PI;
+
+	//		double dPhi = XM_2PI / imgWidth;	// dPhi 是个常量
+	//		double dTheta = cos(thetaU) - cos(thetaD);
+	//		solidAnglePdf = dPhi * dTheta;
+
+	//		// get L(Rs).
+	//		size_t offset = idx << 2;
+	//		Vector3 incidentRadiance(pData + offset);
+
+	//		for (int l = 0; l < 3; l++)
+	//		{
+	//			for (int m = -l; m <= l; m++)
+	//			{
+	//				float sh = SHBasis(l, m, v * XM_PI, XM_3PIDIV2 - u * XM_2PI);  // HDRI纹理角度矫正
+
+	//				// sh = y_l^m(Rs)
+	//				// m_shIrradianceMap[k++] = L_l^m
+	//				Vector3 Llm = incidentRadiance * sh * solidAnglePdf;
+	//				printf("%d | %d, %d | %f, %f, %f\n", idx, l, m, Llm.x, Llm.y, Llm.z);
+	//				{
+	//					m_shIrradianceMap[l * l + l + m] += Llm;
+	//				}
+	//			}
+	//		}
+
+	//		printf("\n");
+	//	}
+	//}
+
+	//const float T[5] = { 0.886226925452757f, 1.023326707946489f, 0.495415912200751f, 0.0f, -0.110778365681594f };
+	//int k = 0;
+	//for (int l = 0; l < 3; l++)
+	//{
+	//	for (int m = -l; m <= l; m++)
+	//	{
+	//		// 求 E_l^m
+	//		m_shIrradianceMap[k++] *= sqrt(XM_4PI / (2.0f * l + 1.0f)) * T[l] * XM_1DIVPI;
+	//	}
+	//}
+}
+
+void NXCubeMap::GenerateIrradianceSH(NXTexture2D* pTexHDR)
 {
 	g_pUDA->BeginEvent(L"Generate Irradiance Map SH");
 
@@ -400,8 +380,8 @@ void NXCubeMap::GenerateIrradianceSH(size_t imgWidth, size_t imgHeight)
 	bufferDesc.CPUAccessFlags = 0;
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &cbImageSize));
 
-	UINT tempWidth = (UINT)imgWidth;
-	UINT tempHeight = (UINT)imgHeight;
+	UINT tempWidth = pTexHDR->GetWidth();
+	UINT tempHeight = pTexHDR->GetHeight();
 	UINT SHIrradPassCount = 0;
 	while (tempWidth != 1 || tempHeight != 1)
 	{
@@ -411,8 +391,8 @@ void NXCubeMap::GenerateIrradianceSH(size_t imgWidth, size_t imgHeight)
 	}
 	SHIrradPassCount = max(SHIrradPassCount, 2);
 
-	tempWidth = (UINT)imgWidth;
-	tempHeight = (UINT)imgHeight;
+	tempWidth = pTexHDR->GetWidth();
+	tempHeight = pTexHDR->GetHeight();
 	std::vector<ComPtr<ID3D11ShaderResourceView>> pSRVIrradSHs;
 	pSRVIrradSHs.reserve(SHIrradPassCount);
 	for (UINT passId = 0; passId < SHIrradPassCount; passId++)
@@ -490,7 +470,8 @@ void NXCubeMap::GenerateIrradianceSH(size_t imgWidth, size_t imgHeight)
 
 		if (passId == 0)
 		{
-			g_pContext->CSSetShaderResources(0, 1, m_pSRVHDRMap.GetAddressOf());
+			auto pSRV = pTexHDR->GetSRV();
+			g_pContext->CSSetShaderResources(0, 1, &pSRV);
 		}
 		else
 		{
@@ -550,7 +531,8 @@ void NXCubeMap::GenerateIrradianceMap()
 	bufferDesc.CPUAccessFlags = 0;
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &cb));
 
-	g_pContext->PSSetShaderResources(0, 1, m_pSRVCubeMap.GetAddressOf());
+	auto pSRVCubeMap = m_pTexCubeMap->GetSRV();
+	g_pContext->PSSetShaderResources(0, 1, &pSRVCubeMap);
 	g_pContext->VSSetConstantBuffers(0, 1, cb.GetAddressOf());
 
 	ConstantBufferObject cbData;
@@ -620,7 +602,8 @@ void NXCubeMap::GeneratePreFilterMap()
 	bufferDesc.ByteWidth = sizeof(ConstantBufferObject);
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &cbRoughness));
 
-	g_pContext->PSSetShaderResources(0, 1, m_pSRVCubeMap.GetAddressOf());
+	auto pSRVCubeMap = m_pTexCubeMap->GetSRV();
+	g_pContext->PSSetShaderResources(0, 1, &pSRVCubeMap);
 	g_pContext->VSSetConstantBuffers(0, 1, cbCubeCamera.GetAddressOf());
 	g_pContext->PSSetConstantBuffers(1, 1, cbRoughness.GetAddressOf());
 
