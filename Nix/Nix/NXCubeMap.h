@@ -66,7 +66,6 @@ private:
 	void InitConstantBuffer();
 
 private:
-	DXGI_FORMAT m_format;
 	std::wstring m_cubeMapFilePath;
 	std::unique_ptr<ScratchImage> m_pImage;
 

@@ -177,6 +177,8 @@ void NXTexture2D::Create(const std::string& DebugName, const std::wstring& FileP
 	}
 
 	Create(DebugName, pImageData, metadata.format, (UINT)metadata.width, (UINT)metadata.height, (UINT)metadata.arraySize, (UINT)metadata.mipLevels, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, (UINT)metadata.miscFlags);
+
+	delete[] pImageData;
 }
 
 void NXTexture2D::AddSRV()
@@ -272,7 +274,7 @@ void NXTextureCube::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* 
 void NXTextureCube::Create(const std::string& DebugName, const std::wstring& FilePath)
 {
 	TexMetadata metadata;
-	std::unique_ptr<ScratchImage> pImage;
+	std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>();
 	LoadFromDDSFile(FilePath.c_str(), DDS_FLAGS_NONE, &metadata, *pImage);
 
 	std::unique_ptr<ScratchImage> pImageMip = std::make_unique<ScratchImage>();
@@ -294,20 +296,25 @@ void NXTextureCube::Create(const std::string& DebugName, const std::wstring& Fil
 		}
 	}
 
-	D3D11_SUBRESOURCE_DATA* pImageData = new D3D11_SUBRESOURCE_DATA[metadata.mipLevels];
-	for (size_t i = 0; i < metadata.mipLevels; i++)
-	{
-		auto img = pImage->GetImage(i, 0, 0);
-		D3D11_SUBRESOURCE_DATA& pData = pImageData[i];
-		pData.pSysMem = img->pixels;
-		pData.SysMemPitch = static_cast<DWORD>(img->rowPitch);
-		pData.SysMemSlicePitch = static_cast<DWORD>(img->slicePitch);
-	}
+	//D3D11_SUBRESOURCE_DATA* pImageData = new D3D11_SUBRESOURCE_DATA[metadata.mipLevels];
+	//for (size_t i = 0; i < metadata.mipLevels; i++)
+	//{
+	//	auto img = pImage->GetImage(i, 0, 0);
+	//	D3D11_SUBRESOURCE_DATA& pData = pImageData[i];
+	//	pData.pSysMem = img->pixels;
+	//	pData.SysMemPitch = static_cast<DWORD>(img->rowPitch);
+	//	pData.SysMemSlicePitch = static_cast<DWORD>(img->slicePitch);
+	//}
 
-	Create(DebugName, pImageData, metadata.format, (UINT)metadata.width, (UINT)metadata.height, (UINT)metadata.mipLevels, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, (UINT)metadata.miscFlags);
+	this->m_debugName = DebugName;
+	this->m_width = (UINT)metadata.width;
+	this->m_height = (UINT)metadata.height;
+	this->m_arraySize = (UINT)metadata.arraySize;
+	this->m_texFormat = metadata.format;
+	this->m_mipLevels = (UINT)metadata.mipLevels;
 
-	//DirectX::CreateTextureEx(g_pDevice.Get(), pImage->GetImages(), pImage->GetImageCount(), metadata, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, (ID3D11Resource**)m_pTexture.GetAddressOf());
-	//m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
+	DirectX::CreateTextureEx(g_pDevice.Get(), pImage->GetImages(), pImage->GetImageCount(), metadata, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, (ID3D11Resource**)m_pTexture.GetAddressOf());
+	m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
 
 	auto HDRPreviewInfo = metadata;
 	HDRPreviewInfo.arraySize = 1;

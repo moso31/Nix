@@ -14,7 +14,10 @@ using namespace DirectX::SimpleMath::SH;
 
 NXCubeMap::NXCubeMap(NXScene* pScene) :
 	m_pScene(pScene),
-	m_format(DXGI_FORMAT_UNKNOWN)
+	m_pTexCubeMap(nullptr),
+	m_pTexIrradianceMap(nullptr),
+	m_pTexPreFilterMap(nullptr),
+	m_pTexBRDF2DLUT(nullptr)
 {
 	InitConstantBuffer();
 }
@@ -32,8 +35,8 @@ bool NXCubeMap::Init(const std::wstring filePath)
 	m_mxCubeMapView[4] = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3( 0.0f,  0.0f,  1.0f), Vector3(0.0f,  1.0f,  0.0f));
 	m_mxCubeMapView[5] = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3( 0.0f,  0.0f, -1.0f), Vector3(0.0f,  1.0f,  0.0f));
 
-	m_pImage.reset(); 
-	m_pImage = std::make_unique<ScratchImage>();
+	//m_pImage.reset(); 
+	//m_pImage = std::make_unique<ScratchImage>();
 
 	//TexMetadata HDRInfo;
 	//HRESULT hr; 
@@ -56,6 +59,7 @@ bool NXCubeMap::Init(const std::wstring filePath)
 		//hr = CreateTextureEx(g_pDevice.Get(), m_pImage->GetImages(), m_pImage->GetImageCount(), HDRInfo, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, (ID3D11Resource**)m_pTexCubeMap.GetAddressOf());
 		//hr = CreateShaderResourceView(g_pDevice.Get(), m_pImage->GetImages(), m_pImage->GetImageCount(), HDRInfo, &m_pSRVCubeMap);
 
+		SafeDelete(m_pTexCubeMap);
 		m_pTexCubeMap = NXResourceManager::GetInstance()->CreateTextureCube("CubeMap Texture", filePath);
 		m_pTexCubeMap->AddSRV();
 	}
@@ -76,8 +80,12 @@ bool NXCubeMap::Init(const std::wstring filePath)
 
 		// 3.
 		GenerateCubeMap(pTexHDR, filePath);
+
+		SafeDelete(m_pTexCubeMap);
 		m_pTexCubeMap = NXResourceManager::GetInstance()->CreateTextureCube("CubeMap Texture", m_cubeMapFilePath);
 		m_pTexCubeMap->AddSRV();
+
+		SafeDelete(pTexHDR);
 
 		//hr = LoadFromDDSFile(m_cubeMapFilePath.c_str(), DDS_FLAGS_NONE, &HDRInfo, *m_pImage);
 
@@ -164,6 +172,7 @@ void NXCubeMap::Render()
 
 void NXCubeMap::Release()
 {
+	SafeDelete(m_pTexCubeMap);
 	SafeDelete(m_pTexIrradianceMap);
 	SafeDelete(m_pTexPreFilterMap);
 	SafeDelete(m_pTexBRDF2DLUT);
@@ -507,7 +516,8 @@ void NXCubeMap::GenerateIrradianceMap()
 	CD3D11_VIEWPORT vp(0.0f, 0.0f, MapSize, MapSize);
 	g_pContext->RSSetViewports(1, &vp);
 
-	m_pTexIrradianceMap = NXResourceManager::GetInstance()->CreateTextureCube("Irradiance IBL Tex", m_format, (UINT)MapSize, (UINT)MapSize, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, D3D11_RESOURCE_MISC_TEXTURECUBE);
+	SafeDelete(m_pTexIrradianceMap);
+	m_pTexIrradianceMap = NXResourceManager::GetInstance()->CreateTextureCube("Irradiance IBL Tex", m_pTexCubeMap->GetFormat(), (UINT)MapSize, (UINT)MapSize, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, D3D11_RESOURCE_MISC_TEXTURECUBE);
 	m_pTexIrradianceMap->AddSRV();
 	for (int i = 0; i < 6; i++)
 		m_pTexIrradianceMap->AddRTV(0, i, 1);
@@ -567,7 +577,8 @@ void NXCubeMap::GeneratePreFilterMap()
 	g_pContext->PSSetSamplers(0, 1, pSamplerState.GetAddressOf());
 
 	const static float MapSize = 512.0f;
-	m_pTexPreFilterMap = NXResourceManager::GetInstance()->CreateTextureCube("PreFilter Map", m_format, (UINT)MapSize, (UINT)MapSize, 5, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, D3D11_RESOURCE_MISC_TEXTURECUBE);
+	SafeDelete(m_pTexPreFilterMap);
+	m_pTexPreFilterMap = NXResourceManager::GetInstance()->CreateTextureCube("PreFilter Map", m_pTexCubeMap->GetFormat(), (UINT)MapSize, (UINT)MapSize, 5, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, D3D11_RESOURCE_MISC_TEXTURECUBE);
 	m_pTexPreFilterMap->AddSRV();
 
 	for (int i = 0; i < 5; i++)
@@ -654,6 +665,7 @@ void NXCubeMap::GenerateBRDF2DLUT()
 	CD3D11_VIEWPORT vp(0.0f, 0.0f, MapSize, MapSize);
 	g_pContext->RSSetViewports(1, &vp);
 
+	SafeDelete(m_pTexBRDF2DLUT);
 	m_pTexBRDF2DLUT = NXResourceManager::GetInstance()->CreateTexture2D("BRDF LUT", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)MapSize, (UINT)MapSize, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, 0);
 	m_pTexBRDF2DLUT->AddSRV();
 	m_pTexBRDF2DLUT->AddRTV();

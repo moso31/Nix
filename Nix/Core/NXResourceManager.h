@@ -40,8 +40,9 @@ public:
     std::string GetFilePath() { return m_texFilePath; }
     void SetFilePath(const std::string& path) { m_texFilePath = path; }
 
-    UINT GetWidth()     { return m_width; }
-    UINT GetHeight()    { return m_height; }
+    UINT            GetWidth()      { return m_width; }
+    UINT            GetHeight()     { return m_height; }
+    DXGI_FORMAT     GetFormat()     { return m_texFormat; }
 
 protected:
     std::string m_debugName;
