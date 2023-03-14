@@ -67,7 +67,7 @@ public:
 	static NXPBRDistantLight* CreatePBRDistantLight(const Vector3& direction, const Vector3& color, const float illuminance);
 	static NXPBRPointLight* CreatePBRPointLight(const Vector3& position, const Vector3& color, const float intensity, const float influenceRadius);
 	static NXPBRSpotLight* CreatePBRSpotLight(const Vector3& position, const Vector3& direction, const Vector3& color, const float intensity, const float innerAngle, const float outerAngle, const float influenceRadius);
-	static NXCubeMap* CreateCubeMap(const std::string name, const std::wstring filePath);
+	static NXCubeMap* CreateCubeMap(const std::string name, const std::filesystem::path& filePath);
 
 	// 绑定Outline父子关系
 	static bool BindParent(NXObject* pParent, NXObject* pChild);

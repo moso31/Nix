@@ -2,6 +2,7 @@
 #include "NXTransform.h"
 #include "DirectXTex.h"
 #include "ShaderStructures.h"
+#include <filesystem>
 
 struct ConstantBufferImageData
 {
@@ -34,13 +35,13 @@ public:
 	NXCubeMap(NXScene* pScene);
 	~NXCubeMap() {}
 
-	bool Init(const std::wstring filePath);
+	bool Init(const std::filesystem::path& filePath);
 	void Update() override;
 	void UpdateViewParams();
 	void Render();
 	void Release() override;
 
-	void GenerateCubeMap(NXTexture2D* pTexHDR, const std::wstring filePath);
+	NXTextureCube* GenerateCubeMap(NXTexture2D* pTexHDR);
 	void GenerateIrradianceSH_CPU(size_t imgWidth, size_t imgHeight);
 	void GenerateIrradianceSH(NXTexture2D* pTexHDR);
 	void GenerateIrradianceMap();
@@ -60,14 +61,16 @@ public:
 	void SetIntensity(float val) { m_cbData.intensity = val; }
 	float* GetIntensity() { return &m_cbData.intensity; }
 
+	void SaveHDRAsDDS(NXTextureCube* pTexture, const std::filesystem::path& filePath);
+	void LoadDDS(const std::filesystem::path& filePath);
+
 private:
 	void InitVertex();
 	void UpdateVBIB();
 	void InitConstantBuffer();
 
 private:
-	std::wstring m_cubeMapFilePath;
-
+	std::filesystem::path m_path;
 	NXScene* m_pScene;
 
 	Matrix m_mxCubeMapProj;

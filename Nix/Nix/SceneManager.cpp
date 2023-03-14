@@ -407,7 +407,7 @@ NXPBRSpotLight* SceneManager::CreatePBRSpotLight(const Vector3& position, const 
 	return pLight;
 }
 
-NXCubeMap* SceneManager::CreateCubeMap(const std::string name, const std::wstring filePath)
+NXCubeMap* SceneManager::CreateCubeMap(const std::string name, const std::filesystem::path& filePath)
 {
 	auto pCubeMap = new NXCubeMap(s_pWorkingScene);
 	pCubeMap->SetName(name);
