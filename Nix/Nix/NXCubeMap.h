@@ -67,7 +67,6 @@ private:
 
 private:
 	std::wstring m_cubeMapFilePath;
-	std::unique_ptr<ScratchImage> m_pImage;
 
 	NXScene* m_pScene;
 
