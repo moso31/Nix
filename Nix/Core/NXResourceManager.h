@@ -1,5 +1,6 @@
 #pragma once
 #include "NXInstance.h"
+#include <filesystem>
 
 enum NXCommonRTEnum
 {
@@ -37,8 +38,7 @@ public:
     ID3D11DepthStencilView*     GetDSV(UINT index = 0) { return m_pDSVs.empty() ? nullptr : m_pDSVs[index].Get(); }
     ID3D11UnorderedAccessView*  GetUAV(UINT index = 0) { return m_pUAVs.empty() ? nullptr : m_pUAVs[index].Get(); }
 
-    std::string GetFilePath() { return m_texFilePath; }
-    void SetFilePath(const std::string& path) { m_texFilePath = path; }
+    std::filesystem::path const GetFilePath() { return m_texFilePath; }
 
     UINT            GetWidth()      { return m_width; }
     UINT            GetHeight()     { return m_height; }
@@ -48,7 +48,7 @@ protected:
     std::string m_debugName;
     ComPtr<ID3D11Texture2D> m_pTexture;
 
-    std::string m_texFilePath;
+    std::filesystem::path m_texFilePath;
 
     std::vector<ComPtr<ID3D11ShaderResourceView>> m_pSRVs;
     std::vector<ComPtr<ID3D11RenderTargetView>> m_pRTVs;
@@ -109,7 +109,7 @@ public:
         UINT SampleQuality,
         UINT MiscFlags);
 
-    void Create(const std::string& DebugName, const std::wstring& FilePath);
+    void Create(const std::string& DebugName, const std::wstring& FilePath, size_t width = 0, size_t height = 0);
 
     void AddSRV();
     void AddRTV(UINT mipSlice = -1, UINT firstArraySlice = 0, UINT arraySize = -1);
@@ -202,7 +202,9 @@ public:
         UINT MiscFlags = 0);
 
     NXTextureCube* CreateTextureCube(const std::string& DebugName,
-        const std::wstring& FilePath);
+        const std::wstring& FilePath,
+        UINT Width = 0,
+        UINT Height = 0);
 
     NXTexture2DArray* CreateTexture2DArray(std::string DebugName,
         DXGI_FORMAT TexFormat,

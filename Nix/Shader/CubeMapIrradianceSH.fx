@@ -1,7 +1,7 @@
 #include "SphereHarmonic.fx"
 
 #define NUM_THREADS 8
-#define NUM_THREAD_COUNT 64
+#define NUM_THREAD_COUNT NUM_THREADS * NUM_THREADS
 
 struct ConstantBufferIrradSH
 {

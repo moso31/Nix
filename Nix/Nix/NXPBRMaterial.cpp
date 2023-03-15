@@ -28,55 +28,7 @@ void NXMaterial::Update()
 
 NXTexture2D* NXMaterial::LoadFromTexFile(const std::wstring texFilePath, bool GenerateMipMap)
 {
-	TexMetadata info;
-	std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>();
-
-	HRESULT hr;
-	std::wstring suffix = texFilePath.substr(texFilePath.find(L"."));
-	if (_wcsicmp(suffix.c_str(), L".dds") == 0)
-	{
-		hr = LoadFromDDSFile(texFilePath.c_str(), DDS_FLAGS_NONE, &info, *pImage);
-	}
-	else if (_wcsicmp(suffix.c_str(), L".tga") == 0)
-	{
-		hr = LoadFromTGAFile(texFilePath.c_str(), &info, *pImage);
-	}
-	else if (_wcsicmp(suffix.c_str(), L".hdr") == 0)
-	{
-		hr = LoadFromHDRFile(texFilePath.c_str(), &info, *pImage);
-	}
-	else
-	{
-		hr = LoadFromWICFile(texFilePath.c_str(), WIC_FLAGS_NONE, &info, *pImage);
-	}
-
-	// 自动生成MipMap
-	if (GenerateMipMap && info.width >= 2 && info.height >= 2 && info.mipLevels == 1)
-	{
-		std::unique_ptr<ScratchImage> pImageMip = std::make_unique<ScratchImage>();
-		hr = GenerateMipMaps(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), TEX_FILTER_DEFAULT, 0, *pImageMip);
-		info.mipLevels = pImageMip->GetMetadata().mipLevels;
-		if (SUCCEEDED(hr))
-			pImage.swap(pImageMip);
-	}
-
-	D3D11_SUBRESOURCE_DATA* pImageData = new D3D11_SUBRESOURCE_DATA[info.mipLevels];
-	for (size_t i = 0; i < info.mipLevels; i++)
-	{
-		auto img = pImage->GetImage(i, 0, 0);
-		D3D11_SUBRESOURCE_DATA& pData = pImageData[i];
-		pData.pSysMem = img->pixels;
-		pData.SysMemPitch = static_cast<DWORD>(img->rowPitch);
-		pData.SysMemSlicePitch = static_cast<DWORD>(img->slicePitch);
-	}
-
-	NXTexture2D* pOutTex = NXResourceManager::GetInstance()->CreateTexture2D(m_name.c_str(), pImageData, info.format, (UINT)info.width, (UINT)info.height, (UINT)info.arraySize, (UINT)info.mipLevels, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, (UINT)info.miscFlags);
-	
-	std::string strFilePath = NXConvert::ws2s(texFilePath);
-	pOutTex->SetFilePath(strFilePath);
-
-	delete[] pImageData;
-
+	NXTexture2D* pOutTex = NXResourceManager::GetInstance()->CreateTexture2D(m_name, texFilePath);
 	pOutTex->AddSRV();
 	return pOutTex;
 }

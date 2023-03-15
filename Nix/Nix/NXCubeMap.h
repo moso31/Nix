@@ -44,6 +44,7 @@ public:
 	NXTextureCube* GenerateCubeMap(NXTexture2D* pTexHDR);
 	void GenerateIrradianceSH_CPU(size_t imgWidth, size_t imgHeight);
 	void GenerateIrradianceSH(NXTexture2D* pTexHDR);
+	void GenerateIrradianceSH_CubeMap();
 	void GenerateIrradianceMap();
 	void GeneratePreFilterMap();
 	void GenerateBRDF2DLUT();
@@ -70,7 +71,6 @@ private:
 	void InitConstantBuffer();
 
 private:
-	std::filesystem::path m_path;
 	NXScene* m_pScene;
 
 	Matrix m_mxCubeMapProj;

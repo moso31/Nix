@@ -34,6 +34,7 @@ void Renderer::Init()
 	auto pCubeMap = m_scene->GetCubeMap();
 	if (pCubeMap)
 	{
+		pCubeMap->GenerateIrradianceSH_CubeMap();
 		pCubeMap->GenerateIrradianceMap();
 		pCubeMap->GeneratePreFilterMap();
 		pCubeMap->GenerateBRDF2DLUT();

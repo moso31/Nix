@@ -110,11 +110,11 @@ public:
 	void SetTexRoughness(const std::wstring TexFilePath, bool GenerateMipMap = false);
 	void SetTexAO(const std::wstring TexFilePath, bool GenerateMipMap = false);
 
-	std::string GetAlbedoTexFilePath()		{ return m_pTexAlbedo->GetFilePath(); }
-	std::string GetNormalTexFilePath()		{ return m_pTexNormal->GetFilePath(); }
-	std::string GetMetallicTexFilePath()	{ return m_pTexMetallic->GetFilePath(); }
-	std::string GetRoughnessTexFilePath()	{ return m_pTexRoughness->GetFilePath(); }
-	std::string GetAOTexFilePath()			{ return m_pTexAmbientOcclusion->GetFilePath(); }
+	std::string GetAlbedoTexFilePath()		{ return m_pTexAlbedo->GetFilePath().string(); }
+	std::string GetNormalTexFilePath()		{ return m_pTexNormal->GetFilePath().string(); }
+	std::string GetMetallicTexFilePath()	{ return m_pTexMetallic->GetFilePath().string(); }
+	std::string GetRoughnessTexFilePath()	{ return m_pTexRoughness->GetFilePath().string(); }
+	std::string GetAOTexFilePath()			{ return m_pTexAmbientOcclusion->GetFilePath().string(); }
 
 	virtual void Release();
 

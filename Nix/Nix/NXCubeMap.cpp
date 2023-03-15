@@ -275,13 +275,14 @@ void NXCubeMap::GenerateIrradianceSH(NXTexture2D* pTexHDR)
 	bufferDesc.CPUAccessFlags = 0;
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &cbImageSize));
 
+	UINT nThreadSize = 8;
 	UINT tempWidth = pTexHDR->GetWidth();
 	UINT tempHeight = pTexHDR->GetHeight();
 	UINT SHIrradPassCount = 0;
 	while (tempWidth != 1 || tempHeight != 1)
 	{
-		tempWidth = max((tempWidth + 7) / 8, 1);
-		tempHeight = max((tempHeight + 7) / 8, 1);
+		tempWidth = max((tempWidth + nThreadSize - 1) / nThreadSize, 1);
+		tempHeight = max((tempHeight + nThreadSize - 1) / nThreadSize, 1);
 		SHIrradPassCount++;
 	}
 	SHIrradPassCount = max(SHIrradPassCount, 2);
@@ -298,8 +299,8 @@ void NXCubeMap::GenerateIrradianceSH(NXTexture2D* pTexHDR)
 		UINT currWidth = tempWidth;
 		UINT currHeight = tempHeight;
 
-		tempWidth = max((tempWidth + 7) / 8, 1);
-		tempHeight = max((tempHeight + 7) / 8, 1);
+		tempWidth = max((tempWidth + nThreadSize - 1) / nThreadSize, 1);
+		tempHeight = max((tempHeight + nThreadSize - 1) / nThreadSize, 1);
 
 		ConstantBufferImageData cbImageSizeData;
 		cbImageSizeData.currImgSize = Vector4((float)currWidth, (float)currHeight, 1.0f / (float)currWidth, 1.0f / (float)currHeight);
@@ -388,6 +389,11 @@ void NXCubeMap::GenerateIrradianceSH(NXTexture2D* pTexHDR)
 	}
 
 	g_pUDA->EndEvent();
+}
+
+void NXCubeMap::GenerateIrradianceSH_CubeMap()
+{
+	//NXTextureCube* pCubeMap128 = NXResourceManager::GetInstance()->CreateTextureCube("CubeMap 128x128", m_pTexCubeMap->GetFilePath(), 128, 128);
 }
 
 void NXCubeMap::GenerateIrradianceMap()

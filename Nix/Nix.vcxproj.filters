@@ -193,6 +193,9 @@
     <None Include="Shader\EditorObjects.fx">
       <Filter>Shader\Editor</Filter>
     </None>
+    <None Include="Shader\CubeMapIrradianceSHdds.fx">
+      <Filter>Shader\Renderer\IBL</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">

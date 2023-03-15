@@ -48,6 +48,7 @@ SSAO可以升级成GTAO或者HBAO
 16. CubeMap预加载优化（现在每次打开都会读一遍dds文件）
 
 5. 纹理界面化
+18. NXTexture的FilePath，目前存的std::wstring 考虑下用path储存是否更合理一点
 
 【较大的长期模块】
 12. resizeable viewport+全屏化UI

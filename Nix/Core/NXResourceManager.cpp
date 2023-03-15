@@ -43,10 +43,10 @@ NXTextureCube* NXResourceManager::CreateTextureCube(std::string DebugName, DXGI_
 	return pTextureCube;
 }
 
-NXTextureCube* NXResourceManager::CreateTextureCube(const std::string& DebugName, const std::wstring& strFilePath)
+NXTextureCube* NXResourceManager::CreateTextureCube(const std::string& DebugName, const std::wstring& strFilePath, UINT width, UINT height)
 {
 	NXTextureCube* pTextureCube = new NXTextureCube();
-	pTextureCube->Create(DebugName, strFilePath);
+	pTextureCube->Create(DebugName, strFilePath, width, height);
 
 	return pTextureCube;
 }
@@ -156,7 +156,7 @@ void NXTexture2D::Create(const std::string& DebugName, const std::wstring& FileP
 	else 
 		LoadFromWICFile(FilePath.c_str(), WIC_FLAGS_NONE, &metadata, *pImage);
 
-	bool bGenerateMipMap = false; 
+	bool bGenerateMipMap = true; 
 	if (bGenerateMipMap && metadata.width >= 2 && metadata.height >= 2 && metadata.mipLevels == 1)
 	{
 		std::unique_ptr<ScratchImage> pImageMip = std::make_unique<ScratchImage>();
@@ -176,6 +176,7 @@ void NXTexture2D::Create(const std::string& DebugName, const std::wstring& FileP
 		pData.SysMemSlicePitch = static_cast<DWORD>(img->slicePitch);
 	}
 
+	this->m_texFilePath = FilePath;
 	Create(DebugName, pImageData, metadata.format, (UINT)metadata.width, (UINT)metadata.height, (UINT)metadata.arraySize, (UINT)metadata.mipLevels, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, (UINT)metadata.miscFlags);
 
 	delete[] pImageData;
@@ -271,16 +272,11 @@ void NXTextureCube::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* 
 	m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
 }
 
-void NXTextureCube::Create(const std::string& DebugName, const std::wstring& FilePath)
+void NXTextureCube::Create(const std::string& DebugName, const std::wstring& FilePath, size_t width, size_t height)
 {
 	TexMetadata metadata;
 	std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>();
 	LoadFromDDSFile(FilePath.c_str(), DDS_FLAGS_NONE, &metadata, *pImage);
-
-	std::unique_ptr<ScratchImage> pImageMip = std::make_unique<ScratchImage>();
-	GenerateMipMaps(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), TEX_FILTER_DEFAULT, 0, *pImageMip);
-	metadata.mipLevels = pImageMip->GetMetadata().mipLevels;
-	pImage.swap(pImageMip);
 
 	if (IsCompressed(metadata.format))
 	{
@@ -294,18 +290,50 @@ void NXTextureCube::Create(const std::string& DebugName, const std::wstring& Fil
 			if (dcImage && dcImage->GetPixels())
 				pImage.swap(dcImage);
 		}
+		else
+		{
+			printf("Warning: [Decompress] failure when loading NXTextureCube file: %ws\n", FilePath.c_str());
+		}
 	}
 
-	//D3D11_SUBRESOURCE_DATA* pImageData = new D3D11_SUBRESOURCE_DATA[metadata.mipLevels];
-	//for (size_t i = 0; i < metadata.mipLevels; i++)
-	//{
-	//	auto img = pImage->GetImage(i, 0, 0);
-	//	D3D11_SUBRESOURCE_DATA& pData = pImageData[i];
-	//	pData.pSysMem = img->pixels;
-	//	pData.SysMemPitch = static_cast<DWORD>(img->rowPitch);
-	//	pData.SysMemSlicePitch = static_cast<DWORD>(img->slicePitch);
-	//}
+	bool bResize = width && height && width != metadata.width && height != metadata.height;
+	if (bResize)
+	{
+		std::unique_ptr<ScratchImage> timage = std::make_unique<ScratchImage>();
+		HRESULT hr = Resize(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), width, height, TEX_FILTER_DEFAULT, *timage);
+		if (SUCCEEDED(hr))
+		{
+			auto& tinfo = timage->GetMetadata();
 
+			metadata.width = tinfo.width;
+			metadata.height = tinfo.height;
+			metadata.mipLevels = 1;
+
+			pImage.swap(timage);
+		}
+		else
+		{
+			printf("Warning: [Resize] failure when loading NXTextureCube file: %ws\n", FilePath.c_str());
+		}
+	}
+
+	bool bGenerateMipMap = false;
+	if (bGenerateMipMap)
+	{
+		std::unique_ptr<ScratchImage> pImageMip = std::make_unique<ScratchImage>();
+		HRESULT hr = GenerateMipMaps(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), TEX_FILTER_DEFAULT, 0, *pImageMip);
+		if (SUCCEEDED(hr))
+		{
+			metadata.mipLevels = pImageMip->GetMetadata().mipLevels;
+			pImage.swap(pImageMip);
+		}
+		else
+		{
+			printf("Warning: [GenerateMipMaps] failure when loading NXTextureCube file: %ws\n", FilePath.c_str());
+		}
+	}
+
+	this->m_texFilePath = FilePath.c_str();
 	this->m_debugName = DebugName;
 	this->m_width = (UINT)metadata.width;
 	this->m_height = (UINT)metadata.height;
