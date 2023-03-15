@@ -455,8 +455,20 @@ void NXCubeMap::GenerateIrradianceSH_CubeMap()
 			{
 				UINT idx = i * (UINT)nIrradTexSize + j;
 
-				float u = (float)(i + 0.5f) / (float)nIrradTexSize;
-				float v = (float)(j + 0.5f) / (float)nIrradTexSize;
+				// note: u, v = (-1 .. 1)
+				float u = (float)(i + 0.5f) / (float)nIrradTexSize * 2.0f - 1.0f;
+				float v = (float)(j + 0.5f) / (float)nIrradTexSize * 2.0f - 1.0f;
+
+				Vector3 dir;
+				if (iFace == 0) dir = Vector3(1.0f, -u, v); 
+				if (iFace == 1) dir = Vector3(-1.0f, -u, -v); 
+				if (iFace == 2) dir = Vector3(v, 1.0f, -u);
+				if (iFace == 3) dir = Vector3(v, 1.0f, u);
+				if (iFace == 4) dir = Vector3(u, v, 1.0f);
+				if (iFace == 5) dir = Vector3(-u, v, 1.0f);
+
+				float phi = atan2f(dir.y, dir.x);
+				float theta = asinf(dir.z);
 				
 				// 4byte = 32bit. 
 				// a R32G32B32A32 pixel = 16byte = 128bit.
@@ -471,7 +483,8 @@ void NXCubeMap::GenerateIrradianceSH_CubeMap()
 				{
 					for (int m = -l; m <= l; m++)
 					{
-						float sh = SHBasis(l, m, v * XM_PI, XM_3PIDIV2 - u * XM_2PI);  // HDRI纹理角度矫正
+						//v* XM_PI, XM_3PIDIV2 - u * XM_2PI
+						float sh = SHBasis(l, m, theta, -phi);  // HDRI纹理角度矫正
 
 						// sh = y_l^m(Rs)
 						// m_shIrradianceMap[k++] = L_l^m
@@ -498,15 +511,6 @@ void NXCubeMap::GenerateIrradianceSH_CubeMap()
 	}
 
 	int x = 0;
-
-	def get_theta_phi(_x, _y, _z) :
-		dv = math.sqrt(_x * _x + _y * _y + _z * _z)
-		x = _x / dv
-		y = _y / dv
-		z = _z / dv
-		theta = math.atan2(y, x)
-		phi = math.asin(z)
-		return theta, phi
 }
 
 void NXCubeMap::GenerateIrradianceMap()
