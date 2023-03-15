@@ -37,8 +37,6 @@ bool NXCubeMap::Init(const std::filesystem::path& filePath)
 
 	std::string strExtension = NXConvert::s2lower(filePath.extension().string().c_str());
 
-	// 创建CubeMap SRV。
-	// 需要使用初始格式创建，也就是说要在Decompress之前创建。
 	if (strExtension == ".dds")
 	{
 		LoadDDS(filePath);
@@ -626,16 +624,18 @@ void NXCubeMap::SaveHDRAsDDS(NXTextureCube* pTexCubeMap, const std::filesystem::
 	TexMetadata cubeDDSInfo = pMappedImage->GetMetadata();
 	cubeDDSInfo.miscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
-	std::wstring strPath = filePath.parent_path().replace_extension(".dds");
-	hr = SaveToDDSFile(pMappedImage->GetImages(), pMappedImage->GetImageCount(), cubeDDSInfo, DDS_FLAGS_NONE, strPath.c_str());
+	std::filesystem::path strPath = filePath;
+	strPath.replace_extension(".dds");
+	hr = SaveToDDSFile(pMappedImage->GetImages(), pMappedImage->GetImageCount(), cubeDDSInfo, DDS_FLAGS_NONE, strPath.wstring().c_str());
 }
 
 void NXCubeMap::LoadDDS(const std::filesystem::path& filePath)
 {
-	std::wstring strPath = filePath.parent_path().replace_extension(".dds");
+	std::filesystem::path strPath = filePath;
+	strPath.replace_extension(".dds");
 
 	SafeDelete(m_pTexCubeMap);
-	m_pTexCubeMap = NXResourceManager::GetInstance()->CreateTextureCube("CubeMap Texture", strPath);
+	m_pTexCubeMap = NXResourceManager::GetInstance()->CreateTextureCube("CubeMap Texture", strPath.wstring());
 	m_pTexCubeMap->AddSRV();
 }
 
