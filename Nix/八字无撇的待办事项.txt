@@ -49,6 +49,7 @@ SSAO可以升级成GTAO或者HBAO
 
 5. 纹理界面化
 18. NXTexture的FilePath，目前存的std::wstring 考虑下用path储存是否更合理一点
+19. 对选中物体做XZ拖动的时候，Y值会莫名其妙的改变
 
 【较大的长期模块】
 12. resizeable viewport+全屏化UI

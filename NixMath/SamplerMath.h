@@ -20,6 +20,9 @@ namespace SamplerMath
 	float PowerHeuristicWeightPdf(int nf, float fPdf, int ng, float gPdf);
 
 	float EpanechnikovKernel(const float t);
+
+	float CubeMapAreaToOrigin(float x, float y);
+	float CubeMapSolidAngleOfPixel(size_t x, size_t y, size_t texSize);
 } // namespace SamplerMath
 
 } // namespace DirectX

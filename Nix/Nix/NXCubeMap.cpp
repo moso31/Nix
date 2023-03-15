@@ -9,7 +9,9 @@
 #include "NXResourceManager.h"
 #include "DirectXTex.h"
 #include "NXConverter.h"
+#include "SamplerMath.h"
 
+using namespace DirectX::SamplerMath;
 using namespace DirectX::SimpleMath::SH;
 
 NXCubeMap::NXCubeMap(NXScene* pScene) :
@@ -393,7 +395,118 @@ void NXCubeMap::GenerateIrradianceSH(NXTexture2D* pTexHDR)
 
 void NXCubeMap::GenerateIrradianceSH_CubeMap()
 {
-	//NXTextureCube* pCubeMap128 = NXResourceManager::GetInstance()->CreateTextureCube("CubeMap 128x128", m_pTexCubeMap->GetFilePath(), 128, 128);
+	// 2023.3.15 按现阶段对NXResourceManager的设计，是没办法拿到具体每个纹理像素的值的
+	// 所以暂时先手动控制Irradiance的加载逻辑
+	size_t nIrradTexSize = 128;
+	const std::wstring& strFilePath = m_pTexCubeMap->GetFilePath();
+	TexMetadata metadata;
+	std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>();
+
+	LoadFromDDSFile(strFilePath.c_str(), DDS_FLAGS_NONE, &metadata, *pImage);
+
+	if (IsCompressed(metadata.format))
+	{
+		auto img = pImage->GetImage(0, 0, 0);
+		size_t nimg = pImage->GetImageCount();
+
+		std::unique_ptr<ScratchImage> dcImage = std::make_unique<ScratchImage>();
+		HRESULT hr = Decompress(img, nimg, metadata, DXGI_FORMAT_UNKNOWN /* picks good default */, *dcImage);
+		if (SUCCEEDED(hr))
+		{
+			if (dcImage && dcImage->GetPixels())
+				pImage.swap(dcImage);
+		}
+		else
+		{
+			printf("Warning: [Decompress] failure when loading NXTextureCube file: %ws\n", strFilePath.c_str());
+		}
+	}
+
+	bool bResize = nIrradTexSize < metadata.width && nIrradTexSize < metadata.height;
+	if (bResize)
+	{
+		std::unique_ptr<ScratchImage> timage = std::make_unique<ScratchImage>();
+		HRESULT hr = Resize(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), nIrradTexSize, nIrradTexSize, TEX_FILTER_DEFAULT, *timage);
+		if (SUCCEEDED(hr))
+		{
+			auto& tinfo = timage->GetMetadata();
+
+			metadata.width = tinfo.width;
+			metadata.height = tinfo.height;
+			metadata.mipLevels = 1;
+
+			pImage.swap(timage);
+		}
+		else
+		{
+			printf("Warning: [Resize] failure when loading NXTextureCube file: %ws\n", strFilePath.c_str());
+		}
+	}
+
+	memset(m_shIrradianceMap, 0, sizeof(m_shIrradianceMap));
+	double test = 0.0;
+	double solidAnglePdf = 0.0;
+	for (UINT iFace = 0; iFace < 6; iFace++)
+	{
+		auto pData = reinterpret_cast<float*>(pImage->GetImage(0, iFace, 0)->pixels);
+		for (UINT i = 0; i < nIrradTexSize; i++)
+		{
+			for (UINT j = 0; j < nIrradTexSize; j++)
+			{
+				UINT idx = i * (UINT)nIrradTexSize + j;
+
+				float u = (float)(i + 0.5f) / (float)nIrradTexSize;
+				float v = (float)(j + 0.5f) / (float)nIrradTexSize;
+				
+				// 4byte = 32bit. 
+				// a R32G32B32A32 pixel = 16byte = 128bit.
+				size_t offset = idx << 2;
+
+				// get L(Rs).
+				Vector3 pixel(pData + offset);	
+
+				float solidAnglePdf = CubeMapSolidAngleOfPixel(i, j, nIrradTexSize);
+
+				for (int l = 0; l < 3; l++)
+				{
+					for (int m = -l; m <= l; m++)
+					{
+						float sh = SHBasis(l, m, v * XM_PI, XM_3PIDIV2 - u * XM_2PI);  // HDRI纹理角度矫正
+
+						// sh = y_l^m(Rs)
+						// m_shIrradianceMap[k++] = L_l^m
+						Vector3 Llm = pixel * sh * solidAnglePdf;
+						//printf("%d | %d, %d | %f, %f, %f\n", idx, l, m, Llm.x, Llm.y, Llm.z);
+						{
+							m_shIrradianceMap[l * l + l + m] += Llm;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	const float T[5] = { 0.886226925452757f, 1.023326707946489f, 0.495415912200751f, 0.0f, -0.110778365681594f };
+	int k = 0;
+	for (int l = 0; l < 3; l++)
+	{
+		for (int m = -l; m <= l; m++)
+		{
+			// 求 E_l^m
+			m_shIrradianceMap[k++] *= sqrt(XM_4PI / (2.0f * l + 1.0f)) * T[l] * XM_1DIVPI;
+		}
+	}
+
+	int x = 0;
+
+	def get_theta_phi(_x, _y, _z) :
+		dv = math.sqrt(_x * _x + _y * _y + _z * _z)
+		x = _x / dv
+		y = _y / dv
+		z = _z / dv
+		theta = math.atan2(y, x)
+		phi = math.asin(z)
+		return theta, phi
 }
 
 void NXCubeMap::GenerateIrradianceMap()

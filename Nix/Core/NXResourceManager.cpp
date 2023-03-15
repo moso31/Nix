@@ -277,7 +277,6 @@ void NXTextureCube::Create(const std::string& DebugName, const std::wstring& Fil
 	TexMetadata metadata;
 	std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>();
 	LoadFromDDSFile(FilePath.c_str(), DDS_FLAGS_NONE, &metadata, *pImage);
-
 	if (IsCompressed(metadata.format))
 	{
 		auto img = pImage->GetImage(0, 0, 0);
