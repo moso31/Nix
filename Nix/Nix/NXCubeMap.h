@@ -18,7 +18,7 @@ struct ConstantBufferIrradSH
 
 struct ConstantBufferCubeMap
 {
-	ConstantBufferCubeMap() : intensity(1.0f) {}
+	ConstantBufferCubeMap() : intensity(1.0f), irradMode(0.0f) {}
 	Vector4 irradSH0123x;
 	Vector4 irradSH4567x;
 	Vector4 irradSH0123y;
@@ -27,6 +27,7 @@ struct ConstantBufferCubeMap
 	Vector4 irradSH4567z;
 	Vector3 irradSH8xyz;
 	float intensity;
+	Vector4 irradMode;
 };
 
 class NXCubeMap : public NXTransform
@@ -42,7 +43,7 @@ public:
 	void Release() override;
 
 	NXTextureCube* GenerateCubeMap(NXTexture2D* pTexHDR);
-	void GenerateIrradianceSH_CPU(size_t imgWidth, size_t imgHeight);
+	void GenerateIrradianceSH_CPU(NXTexture2D* pTexHDR);
 	void GenerateIrradianceSH(NXTexture2D* pTexHDR);
 	void GenerateIrradianceSH_CubeMap();
 	void GenerateIrradianceMap();
@@ -61,6 +62,8 @@ public:
 
 	void SetIntensity(float val) { m_cbData.intensity = val; }
 	float* GetIntensity() { return &m_cbData.intensity; }
+
+	void SetIrradMode(int val) { m_cbData.irradMode = Vector4((float)val); };
 
 	void SaveHDRAsDDS(NXTextureCube* pTexture, const std::filesystem::path& filePath);
 	void LoadDDS(const std::filesystem::path& filePath);
@@ -93,8 +96,11 @@ private:
 
 	ComPtr<ID3D11ShaderResourceView>	m_pSRVIrradianceSH;
 	Vector3 m_shIrradianceMap[9];
+	Vector3 m_shIrradianceMap_CPU[9];
 
 
 	ConstantBufferCubeMap	m_cbData;
 	ComPtr<ID3D11Buffer>	m_cb;
+
+	Vector3 a[128][256];
 };

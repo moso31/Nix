@@ -48,15 +48,12 @@ SSAO可以升级成GTAO或者HBAO
 16. CubeMap预加载优化（现在每次打开都会读一遍dds文件）
 
 5. 纹理界面化
-18. NXTexture的FilePath，目前存的std::wstring 考虑下用path储存是否更合理一点
 19. 对选中物体做XZ拖动的时候，Y值会莫名其妙的改变
+20. 纹理加载内存优化
 
 【较大的长期模块】
 12. resizeable viewport+全屏化UI
 13. 场景文件化，可保存、加载
-15. NXCubeMap！内存可能无法释放干净（无法释放 pTexCubeMap，此时还在被GPU占用中）
-	a. 所有资源统一使用NXResourceManager进行内存管理
-	b. 也许可以做成每5s检查一下资源是否正在使用，如果使用计数为0就释放掉。
 
 【渲染bug】
 17. translucent材质 IBL 亮度拉高的时候有bug，

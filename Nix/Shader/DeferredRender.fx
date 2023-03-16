@@ -48,6 +48,7 @@ cbuffer ConstantBufferCubeMap : register(b3)
 	float4 m_irradSH4567z;
 	float3 m_irradSH8xyz;
 	float  m_cubeMapIntensity;
+	float4 m_cubeMapIrradMode;
 }
 
 struct VS_INPUT

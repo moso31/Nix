@@ -70,7 +70,7 @@ void CS(int2 DTid : SV_DispatchThreadID,
 		{
 			for (int m = -l; m <= l; m++)
 			{
-				float sh = SHBasis(l, m, uv.y * NX_PI, NX_3PIDIV2 - uv.x * NX_2PI);  // HDRI纹理角度矫正
+				float sh = SHBasis(l, m, uv.y * NX_PI, (uv.x - 0.25) * NX_2PI);  // HDRI纹理角度矫正
 
 				// sh = y_l^m(Rs)
 				// m_shIrradianceMap[k++] = L_l^m

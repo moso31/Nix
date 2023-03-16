@@ -11,6 +11,8 @@
 #include "NXConverter.h"
 #include "SamplerMath.h"
 
+#include <fstream>
+
 using namespace DirectX::SamplerMath;
 using namespace DirectX::SimpleMath::SH;
 
@@ -51,7 +53,7 @@ bool NXCubeMap::Init(const std::filesystem::path& filePath)
 
 		// 2. 计算IrradianceSH系数
 		GenerateIrradianceSH(pTexHDR);
-		//GenerateIrradianceSH_CPU(imgWidth, imgHeight);
+		GenerateIrradianceSH_CPU(pTexHDR);
 
 		// 3. 先使用HDR->DDS，然后将DDS保存为本地文件，再读取DDS本地文件作为实际CubeMap。
 		// 直接用HDR->DDS然后作为CubeMap的话，不知道什么原因GPU队列会严重阻塞，导致加载速度大幅减慢。
@@ -60,6 +62,7 @@ bool NXCubeMap::Init(const std::filesystem::path& filePath)
 		SafeDelete(pTexCubeMap);
 		LoadDDS(filePath);
 
+		GenerateIrradianceSH_CubeMap();
 		SafeDelete(pTexHDR);
 	}
 
@@ -193,71 +196,110 @@ NXTextureCube* NXCubeMap::GenerateCubeMap(NXTexture2D* pTexHDR)
 	return pTexCubeMap;
 }
 
-void NXCubeMap::GenerateIrradianceSH_CPU(size_t imgWidth, size_t imgHeight)
+void NXCubeMap::GenerateIrradianceSH_CPU(NXTexture2D* pTexHDR)
 {
-	//// HDRI 纹理加载
-	//auto pData = reinterpret_cast<float*>(pHDRImage->GetImage(0, 0, 0)->pixels);
-	//double solidAnglePdf = 0.0;
-	//double test = 0.0;
+	TexMetadata metadata;
+	const std::wstring& strFilePath = pTexHDR->GetFilePath();
+	std::unique_ptr<ScratchImage> pHDRImage = std::make_unique<ScratchImage>();
 
-	//memset(m_shIrradianceMap, 0, sizeof(m_shIrradianceMap));
+	LoadFromHDRFile(strFilePath.c_str(), &metadata, *pHDRImage);
 
-	//// 像素个数
-	//size_t pixelCount = pHDRImage->GetPixelsSize() >> 4;
+	bool bResize = true;
+	if (bResize)
+	{
+		std::unique_ptr<ScratchImage> timage = std::make_unique<ScratchImage>();
+		HRESULT hr = Resize(pHDRImage->GetImages(), pHDRImage->GetImageCount(), pHDRImage->GetMetadata(), 256, 128, TEX_FILTER_DEFAULT, *timage);
+		if (SUCCEEDED(hr))
+		{
+			auto& tinfo = timage->GetMetadata();
 
-	//size_t threadCount = imgHeight;
-	//for (int threadIdx = 0; threadIdx < (int)threadCount; threadIdx++)
-	//{
-	//	int threadSize = pixelCount / threadCount;
-	//	for (int i = 0; i < threadSize; i++)
-	//	{
-	//		size_t idx = threadIdx * threadSize + i;
+			metadata.width = tinfo.width;
+			metadata.height = tinfo.height;
+			metadata.mipLevels = 1;
 
-	//		double u = (double(idx % imgWidth) + 0.5) / imgWidth;
-	//		double v = (double(idx / imgWidth) + 0.5) / imgHeight;
+			pHDRImage.swap(timage);
+		}
+		else
+		{
+			printf("Warning: [Resize] failure when loading NXTextureCube file: %ws\n", strFilePath.c_str());
+		}
+	}
 
-	//		double scaleY = 0.5 / imgHeight;
-	//		double thetaU = (v - scaleY) * XM_PI;
-	//		double thetaD = (v + scaleY) * XM_PI;
+	size_t imgWidth = metadata.width;
+	size_t imgHeight = metadata.height;
 
-	//		double dPhi = XM_2PI / imgWidth;	// dPhi 是个常量
-	//		double dTheta = cos(thetaU) - cos(thetaD);
-	//		solidAnglePdf = dPhi * dTheta;
+	// HDRI 纹理加载
+	auto pData = reinterpret_cast<float*>(pHDRImage->GetImage(0, 0, 0)->pixels);
+	double solidAnglePdf = 0.0;
+	double test = 0.0;
 
-	//		// get L(Rs).
-	//		size_t offset = idx << 2;
-	//		Vector3 incidentRadiance(pData + offset);
+	memset(m_shIrradianceMap_CPU, 0, sizeof(m_shIrradianceMap_CPU));
 
-	//		for (int l = 0; l < 3; l++)
-	//		{
-	//			for (int m = -l; m <= l; m++)
-	//			{
-	//				float sh = SHBasis(l, m, v * XM_PI, XM_3PIDIV2 - u * XM_2PI);  // HDRI纹理角度矫正
+	// 像素个数
+	size_t pixelCount = pHDRImage->GetPixelsSize() >> 4;
 
-	//				// sh = y_l^m(Rs)
-	//				// m_shIrradianceMap[k++] = L_l^m
-	//				Vector3 Llm = incidentRadiance * sh * solidAnglePdf;
-	//				printf("%d | %d, %d | %f, %f, %f\n", idx, l, m, Llm.x, Llm.y, Llm.z);
-	//				{
-	//					m_shIrradianceMap[l * l + l + m] += Llm;
-	//				}
-	//			}
-	//		}
+	size_t threadCount = imgHeight;
+	for (int threadIdx = 0; threadIdx < (int)threadCount; threadIdx++)
+	{
+		int threadSize = pixelCount / threadCount;
+		for (int i = 0; i < threadSize; i++)
+		{
+			size_t idx = threadIdx * threadSize + i;
 
-	//		printf("\n");
-	//	}
-	//}
+			double u = (double(idx % imgWidth) + 0.5) / imgWidth;
+			double v = (double(idx / imgWidth) + 0.5) / imgHeight;
 
-	//const float T[5] = { 0.886226925452757f, 1.023326707946489f, 0.495415912200751f, 0.0f, -0.110778365681594f };
-	//int k = 0;
-	//for (int l = 0; l < 3; l++)
-	//{
-	//	for (int m = -l; m <= l; m++)
-	//	{
-	//		// 求 E_l^m
-	//		m_shIrradianceMap[k++] *= sqrt(XM_4PI / (2.0f * l + 1.0f)) * T[l] * XM_1DIVPI;
-	//	}
-	//}
+			double scaleY = 0.5 / imgHeight;
+			double thetaU = (v - scaleY) * XM_PI;
+			double thetaD = (v + scaleY) * XM_PI;
+
+			double dPhi = XM_2PI / imgWidth;	// dPhi 是个常量
+			double dTheta = cos(thetaU) - cos(thetaD);
+			solidAnglePdf = dPhi * dTheta;
+
+			auto theta = v * XM_PI;
+			auto phi = (u - 0.25) * XM_2PI;
+
+			// get L(Rs).
+			size_t offset = idx << 2;
+			Vector3 pixel(pData + offset);
+			test += solidAnglePdf;
+
+			a[threadIdx][i] = pixel;
+
+			for (int l = 0; l < 3; l++)
+			{
+				for (int m = -l; m <= l; m++)
+				{
+					float sh = SHBasis(l, m, theta, phi);  // HDRI纹理角度矫正
+
+					// sh = y_l^m(Rs)
+					// m_shIrradianceMap[k++] = L_l^m
+					Vector3 Llm = pixel * sh * solidAnglePdf;
+
+					//printf("%d | %d, %d | %f, %f, %f\n", idx, l, m, Llm.x, Llm.y, Llm.z);
+					{
+						m_shIrradianceMap_CPU[l * l + l + m] += Llm;
+					}
+				}
+			}
+
+			//printf("\n");
+		}
+	}
+
+	const float T[5] = { 0.886226925452757f, 1.023326707946489f, 0.495415912200751f, 0.0f, -0.110778365681594f };
+	int k = 0;
+	for (int l = 0; l < 3; l++)
+	{
+		for (int m = -l; m <= l; m++)
+		{
+			// 求 E_l^m
+			m_shIrradianceMap_CPU[k++] *= sqrt(XM_4PI / (2.0f * l + 1.0f)) * T[l] * XM_1DIVPI;
+		}
+	}
+
+	int x;
 }
 
 void NXCubeMap::GenerateIrradianceSH(NXTexture2D* pTexHDR)
@@ -443,9 +485,33 @@ void NXCubeMap::GenerateIrradianceSH_CubeMap()
 		}
 	}
 
+	Vector3 dir(-1.0, 0.0, 0.0);
+	float theta = acosf(dir.y);
+	float phi = atan2f(dir.z, dir.x);
+	phi = XM_PIDIV2 - phi;
+	printf("theta %f phi %f\n", theta / 3.1415926, phi / 3.1415926);
+
+	dir = Vector3(0.0, 0.0, -1.0);
+	theta = acosf(dir.y);
+	phi = atan2f(dir.z, dir.x);
+	phi = XM_PIDIV2 - phi;
+	printf("theta %f phi %f\n", theta / 3.1415926, phi / 3.1415926);
+
+	dir = Vector3(1.0, 0.0, 0.0);
+	theta = acosf(dir.y);
+	phi = atan2f(dir.z, dir.x);
+	phi = XM_PIDIV2 - phi;
+	printf("theta %f phi %f\n", theta / 3.1415926, phi / 3.1415926);
+
+	dir = Vector3(0.0, 0.0, 1.0);
+	theta = acosf(dir.y);
+	phi = atan2f(dir.z, dir.x);
+	phi = XM_PIDIV2 - phi;
+	printf("theta %f phi %f\n", theta / 3.1415926, phi / 3.1415926);
+
 	memset(m_shIrradianceMap, 0, sizeof(m_shIrradianceMap));
 	double test = 0.0;
-	double solidAnglePdf = 0.0;
+	double solidAnglePdfsum = 0.0;
 	for (UINT iFace = 0; iFace < 6; iFace++)
 	{
 		auto pData = reinterpret_cast<float*>(pImage->GetImage(0, iFace, 0)->pixels);
@@ -456,40 +522,51 @@ void NXCubeMap::GenerateIrradianceSH_CubeMap()
 				UINT idx = i * (UINT)nIrradTexSize + j;
 
 				// note: u, v = (-1 .. 1)
-				float u = (float)(i + 0.5f) / (float)nIrradTexSize * 2.0f - 1.0f;
-				float v = (float)(j + 0.5f) / (float)nIrradTexSize * 2.0f - 1.0f;
+				float u = (float)(j + 0.5f) / (float)nIrradTexSize * 2.0f - 1.0f;
+				float v = (float)(i + 0.5f) / (float)nIrradTexSize * 2.0f - 1.0f;
 
 				Vector3 dir;
-				if (iFace == 0) dir = Vector3(1.0f, -u, v); 
-				if (iFace == 1) dir = Vector3(-1.0f, -u, -v); 
-				if (iFace == 2) dir = Vector3(v, 1.0f, -u);
-				if (iFace == 3) dir = Vector3(v, 1.0f, u);
-				if (iFace == 4) dir = Vector3(u, v, 1.0f);
-				if (iFace == 5) dir = Vector3(-u, v, 1.0f);
+				if (iFace == 0) dir = Vector3(1.0f, -v, -u); 
+				if (iFace == 1) dir = Vector3(-1.0f, -v, u); 
+				if (iFace == 2) dir = Vector3(u, 1.0f, v);
+				if (iFace == 3) dir = Vector3(u, -1.0f, -v);
+				if (iFace == 4) dir = Vector3(u, -v, 1.0f);
+				if (iFace == 5) dir = Vector3(-u, -v, -1.0f);
+				dir.Normalize();
 
-				float phi = atan2f(dir.y, dir.x);
-				float theta = asinf(dir.z);
-				
+				float theta = acosf(dir.y);
+				auto k = atan2f(dir.z, dir.x);
+				float phi = XM_PIDIV2 - atan2f(dir.z, dir.x);
+
 				// 4byte = 32bit. 
 				// a R32G32B32A32 pixel = 16byte = 128bit.
 				size_t offset = idx << 2;
 
 				// get L(Rs).
-				Vector3 pixel(pData + offset);	
+				Vector3 pixel(pData + offset);
+
+				int _u = 128.0 * theta / XM_PI;
+				int _v = 256.0 * (phi + XM_PIDIV2) / XM_2PI;
+				Vector3 xxx = a[_u][_v] - pixel;
+				if (Vector3::Abs(xxx).MaxComponent() > 0.1f)
+				{
+					int x = 0;
+				}
 
 				float solidAnglePdf = CubeMapSolidAngleOfPixel(i, j, nIrradTexSize);
+				solidAnglePdfsum += solidAnglePdf;
 
 				for (int l = 0; l < 3; l++)
 				{
 					for (int m = -l; m <= l; m++)
 					{
-						//v* XM_PI, XM_3PIDIV2 - u * XM_2PI
-						float sh = SHBasis(l, m, theta, -phi);  // HDRI纹理角度矫正
+						float sh = SHBasis(l, m, theta, phi);  // HDRI纹理角度矫正
 
 						// sh = y_l^m(Rs)
 						// m_shIrradianceMap[k++] = L_l^m
 						Vector3 Llm = pixel * sh * solidAnglePdf;
 						//printf("%d | %d, %d | %f, %f, %f\n", idx, l, m, Llm.x, Llm.y, Llm.z);
+
 						{
 							m_shIrradianceMap[l * l + l + m] += Llm;
 						}
@@ -510,6 +587,13 @@ void NXCubeMap::GenerateIrradianceSH_CubeMap()
 		}
 	}
 
+	m_cbData.irradSH0123x = Vector4(m_shIrradianceMap[0].x, m_shIrradianceMap[1].x, m_shIrradianceMap[2].x, m_shIrradianceMap[3].x);
+	m_cbData.irradSH0123y = Vector4(m_shIrradianceMap[0].y, m_shIrradianceMap[1].y, m_shIrradianceMap[2].y, m_shIrradianceMap[3].y);
+	m_cbData.irradSH0123z = Vector4(m_shIrradianceMap[0].z, m_shIrradianceMap[1].z, m_shIrradianceMap[2].z, m_shIrradianceMap[3].z);
+	m_cbData.irradSH4567x = Vector4(m_shIrradianceMap[4].x, m_shIrradianceMap[5].x, m_shIrradianceMap[6].x, m_shIrradianceMap[7].x);
+	m_cbData.irradSH4567y = Vector4(m_shIrradianceMap[4].y, m_shIrradianceMap[5].y, m_shIrradianceMap[6].y, m_shIrradianceMap[7].y);
+	m_cbData.irradSH4567z = Vector4(m_shIrradianceMap[4].z, m_shIrradianceMap[5].z, m_shIrradianceMap[6].z, m_shIrradianceMap[7].z);
+	m_cbData.irradSH8xyz = m_shIrradianceMap[8];
 	int x = 0;
 }
 
