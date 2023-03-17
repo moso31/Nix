@@ -48,17 +48,18 @@ SSAO可以升级成GTAO或者HBAO
 16. CubeMap预加载优化（现在每次打开都会读一遍dds文件）
 
 5. 纹理界面化
-19. 对选中物体做XZ拖动的时候，Y值会莫名其妙的改变
-20. 纹理加载内存优化
 21. Depth peeling UI参数可控
+22. Context Explorer 增加浏览类型（比如只显示图片/CubeMap/Nmat/FBX/……）
 
 【较大的长期模块】
 12. resizeable viewport+全屏化UI
 13. 场景文件化，可保存、加载
+20. 纹理加载内存优化
 
-【渲染bug】
+【bugs】
 17. translucent材质 IBL 亮度拉高的时候有bug，
 	并且opacity=1的时候和standard的着色结果有微弱差异。(半透的光照很可能有问题)
+19. 对选中物体做XZ拖动的时候，Y值会莫名其妙的改变
 
 已完成的：
 1. ctrl左键点击ViewPort：多选材质[DONE]

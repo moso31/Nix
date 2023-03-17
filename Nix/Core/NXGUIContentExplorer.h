@@ -14,10 +14,11 @@ struct NXGUIContentExplorerListSelectionInfo
 	std::filesystem::path filePath;
 };
 
+class NXGUITexture;
 class NXGUIContentExplorer
 {
 public:
-	NXGUIContentExplorer(NXScene* pScene);
+	NXGUIContentExplorer(NXScene* pScene, NXGUITexture* pTexture);
 	~NXGUIContentExplorer() {}
 
 	void Render();
@@ -37,6 +38,7 @@ private:
 	std::filesystem::path m_contentFilePath;
 
 	std::unordered_map<size_t, NXGUIContentExplorerListSelectionInfo> m_selectionInfo;
-
 	NXGUIContentExplorerButtonDrugData m_btnDrugData;
+
+	NXGUITexture* m_pGUITexture;
 };

@@ -2,6 +2,12 @@
 #include "NXInstance.h"
 #include <filesystem>
 
+enum NXTextureType
+{
+    Default,
+    NormalMap
+};
+
 enum NXCommonRTEnum
 {
     NXCommonRT_DepthZ,
@@ -82,7 +88,7 @@ public:
         UINT SampleQuality,
         UINT MiscFlags);
 
-    void Create(const std::string& DebugName, const std::wstring& FilePath);
+    void Create(const std::string& DebugName, const std::wstring& FilePath, bool bGenerateMipMap, bool bInvertNormalY, NXTextureType nTexType);
 
     void AddSRV();
     void AddRTV();
@@ -187,7 +193,10 @@ public:
         UINT MiscFlags = 0);
 
     NXTexture2D* CreateTexture2D(const std::string& DebugName,
-        const std::wstring& FilePath);
+        const std::wstring& FilePath,
+        bool bGenerateMipMap,
+        bool bInvertNormalY,
+        NXTextureType nTexType);
 
     NXTextureCube* CreateTextureCube(std::string DebugName,
         DXGI_FORMAT TexFormat,

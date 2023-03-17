@@ -27,10 +27,10 @@ NXTexture2D* NXResourceManager::CreateTexture2D(std::string DebugName, const D3D
 	return pTexture2D;
 }
 
-NXTexture2D* NXResourceManager::CreateTexture2D(const std::string& DebugName, const std::wstring& FilePath)
+NXTexture2D* NXResourceManager::CreateTexture2D(const std::string& DebugName, const std::wstring& FilePath, bool bGenerateMipMap, bool bInvertNormalY, NXTextureType nTexType)
 {
 	NXTexture2D* pTexture2D = new NXTexture2D();
-	pTexture2D->Create(DebugName, FilePath);
+	pTexture2D->Create(DebugName, FilePath, bGenerateMipMap, bInvertNormalY, nTexType);
 
 	return pTexture2D;
 }
@@ -141,7 +141,7 @@ void NXTexture2D::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* in
 	m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
 }
 
-void NXTexture2D::Create(const std::string& DebugName, const std::wstring& FilePath)
+void NXTexture2D::Create(const std::string& DebugName, const std::wstring& FilePath, bool bGenerateMipMap, bool bInvertNormalY, NXTextureType nTexType)
 {
 	TexMetadata metadata;
 	std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>();
@@ -156,7 +156,33 @@ void NXTexture2D::Create(const std::string& DebugName, const std::wstring& FileP
 	else 
 		LoadFromWICFile(FilePath.c_str(), WIC_FLAGS_NONE, &metadata, *pImage);
 
-	bool bGenerateMipMap = true; 
+	// --- Invert Y Channel --------------------------------------------------------
+	if (bInvertNormalY)
+	{
+		std::unique_ptr<ScratchImage> timage(new ScratchImage);
+
+		HRESULT hr = TransformImage(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(),
+			[&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t w, size_t y)
+			{
+				static const XMVECTORU32 s_selecty = { { { XM_SELECT_0, XM_SELECT_1, XM_SELECT_0, XM_SELECT_0 } } };
+				UNREFERENCED_PARAMETER(y);
+
+				for (size_t j = 0; j < w; ++j)
+				{
+					const XMVECTOR value = inPixels[j];
+					const XMVECTOR inverty = XMVectorSubtract(g_XMOne, value);
+					outPixels[j] = XMVectorSelect(value, inverty, s_selecty);
+				}
+			}, *timage);
+
+		if (FAILED(hr))
+		{
+			printf("Warning: [inverty] failed when loading NXTextureCube file: %ws\n", FilePath.c_str());
+		}
+
+		pImage.swap(timage);
+	}
+
 	if (bGenerateMipMap && metadata.width >= 2 && metadata.height >= 2 && metadata.mipLevels == 1)
 	{
 		std::unique_ptr<ScratchImage> pImageMip = std::make_unique<ScratchImage>();

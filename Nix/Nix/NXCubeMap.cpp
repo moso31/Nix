@@ -47,7 +47,7 @@ bool NXCubeMap::Init(const std::filesystem::path& filePath)
 	else if (strExtension == ".hdr")
 	{
 		// 1. HDR纹理
-		NXTexture2D* pTexHDR = NXResourceManager::GetInstance()->CreateTexture2D("HDR Temp Texture", filePath);
+		NXTexture2D* pTexHDR = NXResourceManager::GetInstance()->CreateTexture2D("HDR Temp Texture", filePath, false, false, NXTextureType(0));
 		pTexHDR->AddSRV();
 
 		// 2. 先使用HDR->DDS，然后将DDS保存为本地文件，再读取DDS本地文件作为实际CubeMap。
@@ -221,9 +221,7 @@ void NXCubeMap::GenerateIrradianceSHFromHDRI(NXTexture2D* pTexHDR)
 
 	// HDRI 纹理加载
 	auto pData = reinterpret_cast<float*>(pHDRImage->GetImage(0, 0, 0)->pixels);
-	double solidAnglePdf = 0.0;
-	double test = 0.0;
-
+	float solidAnglePdf = 0.0;
 	memset(m_shIrradianceMap_CPU, 0, sizeof(m_shIrradianceMap_CPU));
 
 	// 像素个数
@@ -232,29 +230,28 @@ void NXCubeMap::GenerateIrradianceSHFromHDRI(NXTexture2D* pTexHDR)
 	size_t threadCount = imgHeight;
 	for (int threadIdx = 0; threadIdx < (int)threadCount; threadIdx++)
 	{
-		int threadSize = pixelCount / threadCount;
+		size_t threadSize = pixelCount / threadCount;
 		for (int i = 0; i < threadSize; i++)
 		{
 			size_t idx = threadIdx * threadSize + i;
 
-			double u = (double(idx % imgWidth) + 0.5) / imgWidth;
-			double v = (double(idx / imgWidth) + 0.5) / imgHeight;
+			float u = (float(idx % imgWidth) + 0.5f) / imgWidth;
+			float v = (float(idx / imgWidth) + 0.5f) / imgHeight;
 
-			double scaleY = 0.5 / imgHeight;
-			double thetaU = (v - scaleY) * XM_PI;
-			double thetaD = (v + scaleY) * XM_PI;
+			float scaleY = 0.5f / imgHeight;
+			float thetaU = (v - scaleY) * XM_PI;
+			float thetaD = (v + scaleY) * XM_PI;
 
-			double dPhi = XM_2PI / imgWidth;	// dPhi 是个常量
-			double dTheta = cos(thetaU) - cos(thetaD);
+			float dPhi = XM_2PI / imgWidth;	// dPhi 是个常量
+			float dTheta = cos(thetaU) - cos(thetaD);
 			solidAnglePdf = dPhi * dTheta;
 
 			auto theta = v * XM_PI;
-			auto phi = (u - 0.25) * XM_2PI;
+			auto phi = (u - 0.25f) * XM_2PI;
 
 			// get L(Rs).
 			size_t offset = idx << 2;
 			Vector3 pixel(pData + offset);
-			test += solidAnglePdf;
 
 			for (int l = 0; l < 3; l++)
 			{
@@ -287,8 +284,6 @@ void NXCubeMap::GenerateIrradianceSHFromHDRI(NXTexture2D* pTexHDR)
 			m_shIrradianceMap_CPU[k++] *= sqrt(XM_4PI / (2.0f * l + 1.0f)) * T[l] * XM_1DIVPI;
 		}
 	}
-
-	int x;
 }
 
 void NXCubeMap::GenerateIrradianceSHFromCubeMap()

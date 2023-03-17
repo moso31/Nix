@@ -21,7 +21,7 @@ void NXGUICubeMap::Render()
 	ImGui::SliderFloat("Intensity", pCubeMap->GetIntensity(), 0.0f, 10.0f);
 
 	static int x = 0;
-	static const char* items[] = { "Cube Map", "Irradiance Map", "Irradiance SH GPU", "Irradiance SH CPU"};
+	static const char* items[] = { "Cube Map", "Irradiance Map"};
 	ImGui::Combo("Material Type", &x, items, IM_ARRAYSIZE(items));
 	pCubeMap->SetIrradMode(x);
 

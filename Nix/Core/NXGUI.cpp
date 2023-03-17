@@ -43,8 +43,8 @@ void NXGUI::Init()
 	m_pFileBrowser->SetTitle("File Browser");
 	m_pFileBrowser->SetPwd("D:\\NixAssets");
 
-	m_pGUIContentExplorer = new NXGUIContentExplorer(m_pCurrentScene);
 	m_pGUITexture = new NXGUITexture();
+	m_pGUIContentExplorer = new NXGUIContentExplorer(m_pCurrentScene, m_pGUITexture);
 
 	m_pGUICamera = new NXGUICamera(m_pCurrentScene);
 	m_pGUIMaterial = new NXGUIMaterial(m_pCurrentScene, m_pFileBrowser);
@@ -116,7 +116,7 @@ void NXGUI::Release()
 	SafeDelete(m_pFileBrowser);
 	SafeDelete(m_pGUIPostProcessing);
 	SafeDelete(m_pGUIDebugLayer);
-	SafeDelete(m_pGUITexture);
+	SafeRelease(m_pGUITexture);
 	SafeDelete(m_pGUIContentExplorer);
 
 	ImGui_ImplDX11_Shutdown();

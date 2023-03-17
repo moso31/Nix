@@ -2,14 +2,16 @@
 #include <fstream>
 
 #include "NXGUIContentExplorer.h"
+#include "NXGUITexture.h"
 #include "NXConverter.h"
 #include "NXGUICommon.h"
 #include "NXGUI.h"
 #include "NXScene.h"
 #include "SceneManager.h"
 
-NXGUIContentExplorer::NXGUIContentExplorer(NXScene* pScene) :
+NXGUIContentExplorer::NXGUIContentExplorer(NXScene* pScene, NXGUITexture* pGUITexture) :
     m_pCurrentScene(pScene),
+    m_pGUITexture(pGUITexture),
     m_contentFilePath("D:\\NixAssets")
 {
 }
@@ -38,7 +40,7 @@ void NXGUIContentExplorer::Render()
 
 		if (ImGui::TableSetColumnIndex(1))
 		{
-			static float fElementSize = 120.0f;
+			static float fElementSize = 90.0f;
 			ImGui::PushItemWidth(200.0f);
 			ImGui::SliderFloat("##content_preview_slider_iconsize", &fElementSize, 30.0f, 120.0f, "Icon size");
             ImGui::SameLine();
@@ -112,7 +114,7 @@ void NXGUIContentExplorer::Render()
                                 // 文件夹/图标按钮本体
                                 if (ImGui::Button((strExtensionText + "##" + subElem.path().u8string()).c_str(), ImVec2(fActualSize, fActualSize)))
                                 {
-                                    printf("%s\n", strExtensionText.c_str());
+                                    //printf("%s\n", strExtensionText.c_str());
                                 }
 
                                 // 文件夹/图标按钮 拖动事件
@@ -134,7 +136,7 @@ void NXGUIContentExplorer::Render()
                                         // 如果点选了图片，就需要 NXGUITexture 显示此图的相关信息
                                         if (NXConvert::IsImageFileExtension(subElem.path().extension().string()))
                                         {
-                                            //NXGUITexture
+                                            m_pGUITexture->SetImage(subElem.path());
                                         }
                                     }
                                 }

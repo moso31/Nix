@@ -1,5 +1,6 @@
 #pragma once
 #include "Header.h"
+#include <filesystem>
 
 class NXGUITexture
 {
@@ -8,11 +9,16 @@ public:
 	~NXGUITexture() {}
 
 	void Render();
+	void Release();
 
-private:
 	// set preview image.
-	void SetImage(const std::string& strImgPath) { m_strImgPath = strImgPath; }
+	void SetImage(const std::filesystem::path& strImgPath);
 
 private:
-	std::string m_strImgPath;
+	std::filesystem::path m_strImgPath;
+	NXTexture2D* m_pTexImage;
+
+	bool m_bGenerateMipMap;
+	bool m_bInvertNormalY;
+	int m_nTexType;
 };

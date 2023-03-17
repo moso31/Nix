@@ -28,7 +28,7 @@ void NXMaterial::Update()
 
 NXTexture2D* NXMaterial::LoadFromTexFile(const std::wstring texFilePath, bool GenerateMipMap)
 {
-	NXTexture2D* pOutTex = NXResourceManager::GetInstance()->CreateTexture2D(m_name, texFilePath);
+	NXTexture2D* pOutTex = NXResourceManager::GetInstance()->CreateTexture2D(m_name, texFilePath, true, false, NXTextureType(0));
 	pOutTex->AddSRV();
 	return pOutTex;
 }
