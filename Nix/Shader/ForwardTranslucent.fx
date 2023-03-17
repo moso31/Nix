@@ -2,6 +2,7 @@
 #include "PBRLights.fx"
 #include "BRDF.fx"
 #include "Math.fx"
+#include "SHIrradianceCommon.fx"
 
 TextureCube txCubeMap : register(t0);
 Texture2D txAlbedo : register(t1);
@@ -10,7 +11,7 @@ Texture2D txMetallicMap : register(t3);
 Texture2D txRoughnessMap : register(t4);
 Texture2D txAmbientOcclusionMap : register(t5);
 //Texture2D txHeightMap : register(t6);
-TextureCube txIrradianceMap : register(t7);
+//TextureCube txIrradianceMap : register(t7);
 TextureCube txPreFilterMap : register(t8);
 Texture2D txBRDF2DLUT : register(t9);
 //Texture2D txShadowMap : register(t10);
@@ -59,6 +60,12 @@ cbuffer ConstantBufferCubeMap : register(b5)
 	float3 m_irradSH8xyz;
 	float  m_cubeMapIntensity;
 	float4 m_cubeMapIrradMode;
+}
+
+float3 GetIndirectIrradiance(float3 v)
+{
+	float3 irradiance = GetIrradiance(v, m_irradSH0123x, m_irradSH4567x, m_irradSH0123y, m_irradSH4567y, m_irradSH0123z, m_irradSH4567z, m_irradSH8xyz);
+	return irradiance;
 }
 
 struct VS_INPUT
@@ -224,7 +231,7 @@ float4 PS(PS_INPUT input) : SV_Target
 	}
 	
 	float3 NormalWS = mul(N, (float3x3)m_viewTranspose);
-	float3 irradiance = txIrradianceMap.Sample(ssLinearWrap, NormalWS).xyz;
+	float3 irradiance = GetIndirectIrradiance(NormalWS);
 	float3 diffuseIBL = albedo * irradiance;
 
 	float3 preFilteredColor = txPreFilterMap.SampleLevel(ssLinearWrap, R, roughness * 4.0f).rgb;

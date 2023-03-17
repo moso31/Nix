@@ -5,7 +5,7 @@
 class NXDeferredRenderer
 {
 public:
-	NXDeferredRenderer(NXScene* pScene);
+	NXDeferredRenderer(NXScene* pScene, NXBRDFLut* pBRDFLut);
 	~NXDeferredRenderer();
 
 	void Init();
@@ -26,6 +26,7 @@ private:
 	ComPtr<ID3D11SamplerState>			m_pSamplerLinearWrap;
 	ComPtr<ID3D11SamplerState>			m_pSamplerLinearClamp;
 
+	NXBRDFLut* m_pBRDFLut;
 	NXScene* m_pScene;
 
 	NXRenderTarget* m_pResultRT;

@@ -1,6 +1,7 @@
 #pragma once
 #include "Header.h"
 #include "GlobalBufferManager.h"
+#include "NXBRDFlut.h"
 
 #include "NXDepthPrepass.h"
 #include "NXGBufferRenderer.h"
@@ -60,6 +61,8 @@ private:
 	ComPtr<ID3D11InputLayout>			m_pInputLayoutP;
 	ComPtr<ID3D11InputLayout>			m_pInputLayoutPT;
 	ComPtr<ID3D11InputLayout>			m_pInputLayoutPNT;
+
+	NXBRDFLut*							m_pBRDFLut;
 
 	NXScene*							m_scene;
 	NXDepthPrepass*						m_pDepthPrepass;

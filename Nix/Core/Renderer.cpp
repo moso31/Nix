@@ -32,12 +32,9 @@ void Renderer::Init()
 	m_scene->Init();
 
 	auto pCubeMap = m_scene->GetCubeMap();
-	if (pCubeMap)
-	{
-		pCubeMap->GenerateIrradianceMap();
-		pCubeMap->GeneratePreFilterMap();
-		pCubeMap->GenerateBRDF2DLUT();
-	}
+
+	m_pBRDFLut = new NXBRDFLut();
+	m_pBRDFLut->GenerateBRDFLUT();
 
 	m_pDepthPrepass = new NXDepthPrepass(m_scene);
 	m_pDepthPrepass->Init(g_dxResources->GetViewSize());
@@ -54,13 +51,13 @@ void Renderer::Init()
 	m_pShadowTestRenderer = new NXShadowTestRenderer();
 	m_pShadowTestRenderer->Init();
 
-	m_pDeferredRenderer = new NXDeferredRenderer(m_scene);
+	m_pDeferredRenderer = new NXDeferredRenderer(m_scene, m_pBRDFLut);
 	m_pDeferredRenderer->Init();
 
-	m_pForwardRenderer = new NXForwardRenderer(m_scene);
+	m_pForwardRenderer = new NXForwardRenderer(m_scene, m_pBRDFLut);
 	m_pForwardRenderer->Init();
 
-	m_pDepthPeelingRenderer = new NXDepthPeelingRenderer(m_scene);
+	m_pDepthPeelingRenderer = new NXDepthPeelingRenderer(m_scene, m_pBRDFLut);
 	m_pDepthPeelingRenderer->Init();
 
 	m_pSkyRenderer = new NXSkyRenderer(m_scene);
@@ -217,6 +214,7 @@ void Renderer::Release()
 	SafeRelease(m_pColorMappingRenderer);
 	SafeRelease(m_pFinalRenderer);
 
+	SafeRelease(m_pBRDFLut);
 	SafeRelease(m_scene);
 }
 

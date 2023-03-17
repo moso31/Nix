@@ -3,12 +3,14 @@
 #include "ShaderComplier.h"
 #include "NXRenderStates.h"
 
+#include "NXBRDFlut.h"
 #include "GlobalBufferManager.h"
 #include "NXScene.h"
 #include "NXPrimitive.h"
 #include "NXCubeMap.h"
 
-NXForwardRenderer::NXForwardRenderer(NXScene* pScene) :
+NXForwardRenderer::NXForwardRenderer(NXScene* pScene, NXBRDFLut* pBRDFLut) :
+	m_pBRDFLut(pBRDFLut),
 	m_pScene(pScene)
 {
 }
@@ -60,11 +62,9 @@ void NXForwardRenderer::Render()
 	if (pCubeMap)
 	{
 		auto pCubeMapSRV = pCubeMap->GetSRVCubeMap();
-		auto pIrradianceMapSRV = pCubeMap->GetSRVIrradianceMap();
 		auto pPreFilterMapSRV = pCubeMap->GetSRVPreFilterMap();
-		auto pBRDF2DLUT = pCubeMap->GetSRVBRDF2DLUT();
+		auto pBRDF2DLUT = m_pBRDFLut->GetSRV();
 		g_pContext->PSSetShaderResources(0, 1, &pCubeMapSRV);
-		g_pContext->PSSetShaderResources(7, 1, &pIrradianceMapSRV);
 		g_pContext->PSSetShaderResources(8, 1, &pPreFilterMapSRV);
 		g_pContext->PSSetShaderResources(9, 1, &pBRDF2DLUT);
 

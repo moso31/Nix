@@ -390,6 +390,9 @@
     <ClCompile Include="Core\NXGUITexture.cpp">
       <Filter>Core\UI</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXBRDFlut.cpp">
+      <Filter>Core\DirectX\Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -595,6 +598,9 @@
     </ClInclude>
     <ClInclude Include="Core\NXGUITexture.h">
       <Filter>Core\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXBRDFlut.h">
+      <Filter>Core\DirectX\Renderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -20,8 +20,7 @@ NXCubeMap::NXCubeMap(NXScene* pScene) :
 	m_pScene(pScene),
 	m_pTexCubeMap(nullptr),
 	m_pTexIrradianceMap(nullptr),
-	m_pTexPreFilterMap(nullptr),
-	m_pTexBRDF2DLUT(nullptr)
+	m_pTexPreFilterMap(nullptr)
 {
 	InitConstantBuffer();
 }
@@ -51,20 +50,18 @@ bool NXCubeMap::Init(const std::filesystem::path& filePath)
 		NXTexture2D* pTexHDR = NXResourceManager::GetInstance()->CreateTexture2D("HDR Temp Texture", filePath);
 		pTexHDR->AddSRV();
 
-		// 2. 计算IrradianceSH系数
-		GenerateIrradianceSH(pTexHDR);
-		GenerateIrradianceSH_CPU(pTexHDR);
-
-		// 3. 先使用HDR->DDS，然后将DDS保存为本地文件，再读取DDS本地文件作为实际CubeMap。
+		// 2. 先使用HDR->DDS，然后将DDS保存为本地文件，再读取DDS本地文件作为实际CubeMap。
 		// 直接用HDR->DDS然后作为CubeMap的话，不知道什么原因GPU队列会严重阻塞，导致加载速度大幅减慢。
 		NXTextureCube* pTexCubeMap = GenerateCubeMap(pTexHDR);
 		SaveHDRAsDDS(pTexCubeMap, filePath);
-		SafeDelete(pTexCubeMap);
 		LoadDDS(filePath);
 
-		GenerateIrradianceSH_CubeMap();
+		SafeDelete(pTexCubeMap);
 		SafeDelete(pTexHDR);
 	}
+
+	GenerateIrradianceSHFromCubeMap();
+	GeneratePreFilterMap();
 
 	return true;
 }
@@ -87,11 +84,6 @@ ID3D11ShaderResourceView* NXCubeMap::GetSRVIrradianceMap()
 ID3D11ShaderResourceView* NXCubeMap::GetSRVPreFilterMap()
 {
 	return m_pTexPreFilterMap->GetSRV();
-}
-
-ID3D11ShaderResourceView* NXCubeMap::GetSRVBRDF2DLUT()
-{
-	return m_pTexBRDF2DLUT->GetSRV();
 }
 
 void NXCubeMap::Update()
@@ -121,7 +113,6 @@ void NXCubeMap::Release()
 	SafeDelete(m_pTexCubeMap);
 	SafeDelete(m_pTexIrradianceMap);
 	SafeDelete(m_pTexPreFilterMap);
-	SafeDelete(m_pTexBRDF2DLUT);
 	NXTransform::Release();
 }
 
@@ -196,7 +187,7 @@ NXTextureCube* NXCubeMap::GenerateCubeMap(NXTexture2D* pTexHDR)
 	return pTexCubeMap;
 }
 
-void NXCubeMap::GenerateIrradianceSH_CPU(NXTexture2D* pTexHDR)
+void NXCubeMap::GenerateIrradianceSHFromHDRI(NXTexture2D* pTexHDR)
 {
 	TexMetadata metadata;
 	const std::wstring& strFilePath = pTexHDR->GetFilePath();
@@ -265,8 +256,6 @@ void NXCubeMap::GenerateIrradianceSH_CPU(NXTexture2D* pTexHDR)
 			Vector3 pixel(pData + offset);
 			test += solidAnglePdf;
 
-			a[threadIdx][i] = pixel;
-
 			for (int l = 0; l < 3; l++)
 			{
 				for (int m = -l; m <= l; m++)
@@ -302,140 +291,7 @@ void NXCubeMap::GenerateIrradianceSH_CPU(NXTexture2D* pTexHDR)
 	int x;
 }
 
-void NXCubeMap::GenerateIrradianceSH(NXTexture2D* pTexHDR)
-{
-	g_pUDA->BeginEvent(L"Generate Irradiance Map SH");
-
-	ComPtr<ID3D11SamplerState> pSamplerState;
-	pSamplerState.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP>::Create());
-	g_pContext->CSSetSamplers(0, 1, pSamplerState.GetAddressOf());
-
-	ComPtr<ID3D11Buffer> cbImageSize;
-	D3D11_BUFFER_DESC bufferDesc;
-	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(ConstantBufferImageData);
-	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bufferDesc.CPUAccessFlags = 0;
-	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &cbImageSize));
-
-	UINT nThreadSize = 8;
-	UINT tempWidth = pTexHDR->GetWidth();
-	UINT tempHeight = pTexHDR->GetHeight();
-	UINT SHIrradPassCount = 0;
-	while (tempWidth != 1 || tempHeight != 1)
-	{
-		tempWidth = max((tempWidth + nThreadSize - 1) / nThreadSize, 1);
-		tempHeight = max((tempHeight + nThreadSize - 1) / nThreadSize, 1);
-		SHIrradPassCount++;
-	}
-	SHIrradPassCount = max(SHIrradPassCount, 2);
-
-	tempWidth = pTexHDR->GetWidth();
-	tempHeight = pTexHDR->GetHeight();
-	std::vector<ComPtr<ID3D11ShaderResourceView>> pSRVIrradSHs;
-	pSRVIrradSHs.reserve(SHIrradPassCount);
-	for (UINT passId = 0; passId < SHIrradPassCount; passId++)
-	{
-		std::wstring eventName = L"SH Irradiance Gather" + std::to_wstring(passId);
-		g_pUDA->BeginEvent(eventName.c_str());
-
-		UINT currWidth = tempWidth;
-		UINT currHeight = tempHeight;
-
-		tempWidth = max((tempWidth + nThreadSize - 1) / nThreadSize, 1);
-		tempHeight = max((tempHeight + nThreadSize - 1) / nThreadSize, 1);
-
-		ConstantBufferImageData cbImageSizeData;
-		cbImageSizeData.currImgSize = Vector4((float)currWidth, (float)currHeight, 1.0f / (float)currWidth, 1.0f / (float)currHeight);
-		cbImageSizeData.nextImgSize = Vector4((float)tempWidth, (float)tempHeight, 1.0f / (float)tempWidth, 1.0f / (float)tempHeight);
-
-		g_pContext->UpdateSubresource(cbImageSize.Get(), 0, nullptr, &cbImageSizeData, 0, 0);
-		g_pContext->CSSetConstantBuffers(0, 1, cbImageSize.GetAddressOf());
-
-		size_t irradianceBufferElements = tempWidth * tempHeight;
-		size_t irradianceBufferSize = sizeof(ConstantBufferIrradSH) * irradianceBufferElements;
-
-		D3D11_BUFFER_DESC bufferDesc;
-		ComPtr<ID3D11Buffer> cbIrradianceSH;
-		ZeroMemory(&bufferDesc, sizeof(bufferDesc));
-		bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-		bufferDesc.ByteWidth = (UINT)irradianceBufferSize;
-		bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
-		bufferDesc.CPUAccessFlags = 0;
-		bufferDesc.StructureByteStride = sizeof(ConstantBufferIrradSH);
-		bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-		NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &cbIrradianceSH));
-
-		ComPtr<ID3D11ComputeShader> pComputeShader;
-		std::wstring strCSPath = L"";
-
-		// 设置 CubeMapIrradianceSH.fx 使用哪个入口点函数
-		if (passId == 0)
-		{
-			CD3D_SHADER_MACRO macro("CUBEMAP_IRRADSH_FIRST", "1");
-			NXShaderComplier::GetInstance()->AddMacro(macro);
-		}
-		else if (passId > 0 && passId < SHIrradPassCount - 1)
-		{
-			CD3D_SHADER_MACRO macro("CUBEMAP_IRRADSH_MIDDLE", "1");
-			NXShaderComplier::GetInstance()->AddMacro(macro);
-		}
-		else
-		{
-			CD3D_SHADER_MACRO macro("CUBEMAP_IRRADSH_LAST", "1");
-			NXShaderComplier::GetInstance()->AddMacro(macro);
-		}
-
-		NXShaderComplier::GetInstance()->CompileCS(L"Shader\\CubeMapIrradianceSH.fx", "CS", &pComputeShader);
-
-		ComPtr<ID3D11UnorderedAccessView> pUAVIrradSH;
-		CD3D11_UNORDERED_ACCESS_VIEW_DESC UAVDesc(D3D11_UAV_DIMENSION_BUFFER, DXGI_FORMAT_UNKNOWN, 0, (UINT)irradianceBufferElements);
-		NX::ThrowIfFailed(g_pDevice->CreateUnorderedAccessView(cbIrradianceSH.Get(), &UAVDesc, pUAVIrradSH.GetAddressOf()));
-
-		ComPtr<ID3D11ShaderResourceView> pSRVIrradSH;
-		CD3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc(D3D11_SRV_DIMENSION_BUFFER, DXGI_FORMAT_UNKNOWN, 0, (UINT)irradianceBufferElements);
-		NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(cbIrradianceSH.Get(), &SRVDesc, pSRVIrradSH.GetAddressOf()));
-
-		std::string UAVDebugName = "SHIrrad Buffer UAV" + std::to_string(passId);
-		pUAVIrradSH->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)UAVDebugName.size(), UAVDebugName.c_str());
-
-		std::string SRVDebugName = "SHIrrad Buffer SRV" + std::to_string(passId);
-		pSRVIrradSH->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)SRVDebugName.size(), SRVDebugName.c_str());
-		pSRVIrradSHs.push_back(pSRVIrradSH);
-		if (passId == SHIrradPassCount - 1) 
-			m_pSRVIrradianceSH = pSRVIrradSH;
-
-		g_pContext->CSSetUnorderedAccessViews(0, 1, pUAVIrradSH.GetAddressOf(), nullptr);
-
-		if (passId == 0)
-		{
-			auto pSRV = pTexHDR->GetSRV();
-			g_pContext->CSSetShaderResources(0, 1, &pSRV);
-		}
-		else
-		{
-			g_pContext->CSSetShaderResources(0, 1, pSRVIrradSHs[passId - 1].GetAddressOf());
-		}
-
-		g_pContext->CSSetShader(pComputeShader.Get(), nullptr, 0);
-
-		g_pContext->Dispatch(tempWidth, tempHeight, 1);
-
-		// 用完以后清空对应槽位的SRV UAV，避免后续pass资源绑不上（可能有优化空间）
-		ComPtr<ID3D11ShaderResourceView> pSRVNull[1] = { nullptr };
-		g_pContext->CSSetShaderResources(0, 1, pSRVNull->GetAddressOf());
-
-		ComPtr<ID3D11UnorderedAccessView> pUAVNull[1] = { nullptr };
-		g_pContext->CSSetUnorderedAccessViews(0, 1, pUAVNull->GetAddressOf(), nullptr);
-
-		g_pUDA->EndEvent();
-	}
-
-	g_pUDA->EndEvent();
-}
-
-void NXCubeMap::GenerateIrradianceSH_CubeMap()
+void NXCubeMap::GenerateIrradianceSHFromCubeMap()
 {
 	// 2023.3.15 按现阶段对NXResourceManager的设计，是没办法拿到具体每个纹理像素的值的
 	// 所以暂时先手动控制Irradiance的加载逻辑
@@ -485,30 +341,6 @@ void NXCubeMap::GenerateIrradianceSH_CubeMap()
 		}
 	}
 
-	Vector3 dir(-1.0, 0.0, 0.0);
-	float theta = acosf(dir.y);
-	float phi = atan2f(dir.z, dir.x);
-	phi = XM_PIDIV2 - phi;
-	printf("theta %f phi %f\n", theta / 3.1415926, phi / 3.1415926);
-
-	dir = Vector3(0.0, 0.0, -1.0);
-	theta = acosf(dir.y);
-	phi = atan2f(dir.z, dir.x);
-	phi = XM_PIDIV2 - phi;
-	printf("theta %f phi %f\n", theta / 3.1415926, phi / 3.1415926);
-
-	dir = Vector3(1.0, 0.0, 0.0);
-	theta = acosf(dir.y);
-	phi = atan2f(dir.z, dir.x);
-	phi = XM_PIDIV2 - phi;
-	printf("theta %f phi %f\n", theta / 3.1415926, phi / 3.1415926);
-
-	dir = Vector3(0.0, 0.0, 1.0);
-	theta = acosf(dir.y);
-	phi = atan2f(dir.z, dir.x);
-	phi = XM_PIDIV2 - phi;
-	printf("theta %f phi %f\n", theta / 3.1415926, phi / 3.1415926);
-
 	memset(m_shIrradianceMap, 0, sizeof(m_shIrradianceMap));
 	double test = 0.0;
 	double solidAnglePdfsum = 0.0;
@@ -544,14 +376,6 @@ void NXCubeMap::GenerateIrradianceSH_CubeMap()
 
 				// get L(Rs).
 				Vector3 pixel(pData + offset);
-
-				int _u = 128.0 * theta / XM_PI;
-				int _v = 256.0 * (phi + XM_PIDIV2) / XM_2PI;
-				Vector3 xxx = a[_u][_v] - pixel;
-				if (Vector3::Abs(xxx).MaxComponent() > 0.1f)
-				{
-					int x = 0;
-				}
 
 				float solidAnglePdf = CubeMapSolidAngleOfPixel(i, j, nIrradTexSize);
 				solidAnglePdfsum += solidAnglePdf;
@@ -748,81 +572,6 @@ void NXCubeMap::GeneratePreFilterMap()
 	g_pUDA->EndEvent();
 }
 
-void NXCubeMap::GenerateBRDF2DLUT()
-{
-	g_pUDA->BeginEvent(L"Generate BRDF 2D LUT");
-
-	NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP>::Create();
-
-	const static float MapSize = 512.0f;
-	CD3D11_VIEWPORT vp(0.0f, 0.0f, MapSize, MapSize);
-	g_pContext->RSSetViewports(1, &vp);
-
-	SafeDelete(m_pTexBRDF2DLUT);
-	m_pTexBRDF2DLUT = NXResourceManager::GetInstance()->CreateTexture2D("BRDF LUT", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)MapSize, (UINT)MapSize, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, 0);
-	m_pTexBRDF2DLUT->AddSRV();
-	m_pTexBRDF2DLUT->AddRTV();
-
-	std::vector<VertexPT> vertices =
-	{
-		// +Z
-		{ Vector3(+1.0f, +1.0f, +1.0f), Vector2(1.0f, 1.0f) },
-		{ Vector3(-1.0f, +1.0f, +1.0f), Vector2(1.0f, 0.0f) },
-		{ Vector3(-1.0f, -1.0f, +1.0f), Vector2(0.0f, 0.0f) },
-		{ Vector3(+1.0f, -1.0f, +1.0f), Vector2(0.0f, 1.0f) },
-	};
-	 
-	std::vector<UINT> indices =
-	{
-		0,  2,	1, 
-		0,  3,	2, 
-	};
-
-	D3D11_BUFFER_DESC bufferDesc;
-	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(VertexPT) * (UINT)vertices.size();
-	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bufferDesc.CPUAccessFlags = 0;
-	D3D11_SUBRESOURCE_DATA InitData;
-	ZeroMemory(&InitData, sizeof(InitData));
-	InitData.pSysMem = vertices.data();
-
-	ComPtr<ID3D11Buffer> pVertexBuffer;
-	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &pVertexBuffer));
-
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(UINT) * (UINT)indices.size();
-	bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	bufferDesc.CPUAccessFlags = 0;
-	InitData.pSysMem = indices.data();
-
-	ComPtr<ID3D11Buffer> pIndexBuffer;
-	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &pIndexBuffer));
-
-	ComPtr<ID3D11InputLayout> pInputLayoutPT;
-	ComPtr<ID3D11VertexShader> pVertexShader;
-	ComPtr<ID3D11PixelShader> pPixelShader;
-
-	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\BRDF2DLUT.fx", "VS", &pVertexShader, NXGlobalInputLayout::layoutPT, ARRAYSIZE(NXGlobalInputLayout::layoutPT), &pInputLayoutPT);
-	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\BRDF2DLUT.fx", "PS", &pPixelShader);
-	g_pContext->VSSetShader(pVertexShader.Get(), nullptr, 0);
-	g_pContext->PSSetShader(pPixelShader.Get(), nullptr, 0);
-	g_pContext->IASetInputLayout(pInputLayoutPT.Get());
-
-	UINT stride = sizeof(VertexPT); 
-	UINT offset = 0;
-	g_pContext->IASetVertexBuffers(0, 1, pVertexBuffer.GetAddressOf(), &stride, &offset);
-	g_pContext->IASetIndexBuffer(pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-
-	auto pRTV = m_pTexBRDF2DLUT->GetRTV();
-	g_pContext->ClearRenderTargetView(pRTV, Colors::WhiteSmoke);
-	g_pContext->OMSetRenderTargets(1, &pRTV, nullptr);
-	g_pContext->DrawIndexed((UINT)indices.size(), 0, 0);
-
-	g_pUDA->EndEvent();
-}
-
 void NXCubeMap::SaveHDRAsDDS(NXTextureCube* pTexCubeMap, const std::filesystem::path& filePath)
 {
 	// Save as *.dds texture file.
@@ -996,4 +745,141 @@ void NXCubeMap::InitConstantBuffer()
 	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cb));
+}
+
+////////////////////////////////////////////////////////////////////////////
+//// Deprecated functions...
+////////////////////////////////////////////////////////////////////////////
+
+void NXCubeMap::GenerateIrradianceSHFromHDRI_Deprecated(NXTexture2D* pTexHDR)
+{
+	g_pUDA->BeginEvent(L"Generate Irradiance Map SH");
+
+	ComPtr<ID3D11SamplerState> pSamplerState;
+	pSamplerState.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP>::Create());
+	g_pContext->CSSetSamplers(0, 1, pSamplerState.GetAddressOf());
+
+	ComPtr<ID3D11Buffer> cbImageSize;
+	D3D11_BUFFER_DESC bufferDesc;
+	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = sizeof(ConstantBufferImageData);
+	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &cbImageSize));
+
+	UINT nThreadSize = 8;
+	UINT tempWidth = pTexHDR->GetWidth();
+	UINT tempHeight = pTexHDR->GetHeight();
+	UINT SHIrradPassCount = 0;
+	while (tempWidth != 1 || tempHeight != 1)
+	{
+		tempWidth = max((tempWidth + nThreadSize - 1) / nThreadSize, 1);
+		tempHeight = max((tempHeight + nThreadSize - 1) / nThreadSize, 1);
+		SHIrradPassCount++;
+	}
+	SHIrradPassCount = max(SHIrradPassCount, 2);
+
+	tempWidth = pTexHDR->GetWidth();
+	tempHeight = pTexHDR->GetHeight();
+	std::vector<ComPtr<ID3D11ShaderResourceView>> pSRVIrradSHs;
+	pSRVIrradSHs.reserve(SHIrradPassCount);
+	for (UINT passId = 0; passId < SHIrradPassCount; passId++)
+	{
+		std::wstring eventName = L"SH Irradiance Gather" + std::to_wstring(passId);
+		g_pUDA->BeginEvent(eventName.c_str());
+
+		UINT currWidth = tempWidth;
+		UINT currHeight = tempHeight;
+
+		tempWidth = max((tempWidth + nThreadSize - 1) / nThreadSize, 1);
+		tempHeight = max((tempHeight + nThreadSize - 1) / nThreadSize, 1);
+
+		ConstantBufferImageData cbImageSizeData;
+		cbImageSizeData.currImgSize = Vector4((float)currWidth, (float)currHeight, 1.0f / (float)currWidth, 1.0f / (float)currHeight);
+		cbImageSizeData.nextImgSize = Vector4((float)tempWidth, (float)tempHeight, 1.0f / (float)tempWidth, 1.0f / (float)tempHeight);
+
+		g_pContext->UpdateSubresource(cbImageSize.Get(), 0, nullptr, &cbImageSizeData, 0, 0);
+		g_pContext->CSSetConstantBuffers(0, 1, cbImageSize.GetAddressOf());
+
+		size_t irradianceBufferElements = tempWidth * tempHeight;
+		size_t irradianceBufferSize = sizeof(ConstantBufferIrradSH) * irradianceBufferElements;
+
+		D3D11_BUFFER_DESC bufferDesc;
+		ComPtr<ID3D11Buffer> cbIrradianceSH;
+		ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+		bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+		bufferDesc.ByteWidth = (UINT)irradianceBufferSize;
+		bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+		bufferDesc.CPUAccessFlags = 0;
+		bufferDesc.StructureByteStride = sizeof(ConstantBufferIrradSH);
+		bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+		NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &cbIrradianceSH));
+
+		ComPtr<ID3D11ComputeShader> pComputeShader;
+		std::wstring strCSPath = L"";
+
+		// 设置 CubeMapIrradianceSH.fx 使用哪个入口点函数
+		if (passId == 0)
+		{
+			CD3D_SHADER_MACRO macro("CUBEMAP_IRRADSH_FIRST", "1");
+			NXShaderComplier::GetInstance()->AddMacro(macro);
+		}
+		else if (passId > 0 && passId < SHIrradPassCount - 1)
+		{
+			CD3D_SHADER_MACRO macro("CUBEMAP_IRRADSH_MIDDLE", "1");
+			NXShaderComplier::GetInstance()->AddMacro(macro);
+		}
+		else
+		{
+			CD3D_SHADER_MACRO macro("CUBEMAP_IRRADSH_LAST", "1");
+			NXShaderComplier::GetInstance()->AddMacro(macro);
+		}
+
+		NXShaderComplier::GetInstance()->CompileCS(L"Shader\\CubeMapIrradianceSH.fx", "CS", &pComputeShader);
+
+		ComPtr<ID3D11UnorderedAccessView> pUAVIrradSH;
+		CD3D11_UNORDERED_ACCESS_VIEW_DESC UAVDesc(D3D11_UAV_DIMENSION_BUFFER, DXGI_FORMAT_UNKNOWN, 0, (UINT)irradianceBufferElements);
+		NX::ThrowIfFailed(g_pDevice->CreateUnorderedAccessView(cbIrradianceSH.Get(), &UAVDesc, pUAVIrradSH.GetAddressOf()));
+
+		ComPtr<ID3D11ShaderResourceView> pSRVIrradSH;
+		CD3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc(D3D11_SRV_DIMENSION_BUFFER, DXGI_FORMAT_UNKNOWN, 0, (UINT)irradianceBufferElements);
+		NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(cbIrradianceSH.Get(), &SRVDesc, pSRVIrradSH.GetAddressOf()));
+
+		std::string UAVDebugName = "SHIrrad Buffer UAV" + std::to_string(passId);
+		pUAVIrradSH->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)UAVDebugName.size(), UAVDebugName.c_str());
+
+		std::string SRVDebugName = "SHIrrad Buffer SRV" + std::to_string(passId);
+		pSRVIrradSH->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)SRVDebugName.size(), SRVDebugName.c_str());
+		pSRVIrradSHs.push_back(pSRVIrradSH);
+		if (passId == SHIrradPassCount - 1)
+			m_pSRVIrradianceSH = pSRVIrradSH;
+
+		g_pContext->CSSetUnorderedAccessViews(0, 1, pUAVIrradSH.GetAddressOf(), nullptr);
+
+		if (passId == 0)
+		{
+			auto pSRV = pTexHDR->GetSRV();
+			g_pContext->CSSetShaderResources(0, 1, &pSRV);
+		}
+		else
+		{
+			g_pContext->CSSetShaderResources(0, 1, pSRVIrradSHs[passId - 1].GetAddressOf());
+		}
+
+		g_pContext->CSSetShader(pComputeShader.Get(), nullptr, 0);
+
+		g_pContext->Dispatch(tempWidth, tempHeight, 1);
+
+		// 用完以后清空对应槽位的SRV UAV，避免后续pass资源绑不上（可能有优化空间）
+		ComPtr<ID3D11ShaderResourceView> pSRVNull[1] = { nullptr };
+		g_pContext->CSSetShaderResources(0, 1, pSRVNull->GetAddressOf());
+
+		ComPtr<ID3D11UnorderedAccessView> pUAVNull[1] = { nullptr };
+		g_pContext->CSSetUnorderedAccessViews(0, 1, pUAVNull->GetAddressOf(), nullptr);
+
+		g_pUDA->EndEvent();
+	}
+
+	g_pUDA->EndEvent();
 }

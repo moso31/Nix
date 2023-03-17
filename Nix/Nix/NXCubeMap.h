@@ -43,20 +43,16 @@ public:
 	void Release() override;
 
 	NXTextureCube* GenerateCubeMap(NXTexture2D* pTexHDR);
-	void GenerateIrradianceSH_CPU(NXTexture2D* pTexHDR);
-	void GenerateIrradianceSH(NXTexture2D* pTexHDR);
-	void GenerateIrradianceSH_CubeMap();
+	void GenerateIrradianceSHFromHDRI(NXTexture2D* pTexHDR);
+	void GenerateIrradianceSHFromCubeMap();
+
 	void GenerateIrradianceMap();
 	void GeneratePreFilterMap();
-	void GenerateBRDF2DLUT();
 
 	ID3D11ShaderResourceView* GetSRVCubeMap();
 	ID3D11ShaderResourceView* GetSRVCubeMapPreview2D();
 	ID3D11ShaderResourceView* GetSRVIrradianceMap();
 	ID3D11ShaderResourceView* GetSRVPreFilterMap();
-	ID3D11ShaderResourceView* GetSRVBRDF2DLUT();
-
-	ID3D11ShaderResourceView* GetSRVIrradianceSH() { return m_pSRVIrradianceSH.Get(); }
 
 	ID3D11Buffer* GetConstantBufferParams() { return m_cb.Get(); }
 
@@ -92,9 +88,7 @@ private:
 	NXTextureCube*						m_pTexCubeMap;
 	NXTextureCube*						m_pTexIrradianceMap;
 	NXTextureCube*						m_pTexPreFilterMap;
-	NXTexture2D*						m_pTexBRDF2DLUT;
 
-	ComPtr<ID3D11ShaderResourceView>	m_pSRVIrradianceSH;
 	Vector3 m_shIrradianceMap[9];
 	Vector3 m_shIrradianceMap_CPU[9];
 
@@ -102,5 +96,15 @@ private:
 	ConstantBufferCubeMap	m_cbData;
 	ComPtr<ID3D11Buffer>	m_cb;
 
-	Vector3 a[128][256];
+////////////////////////////////////////////////////////////////////////////
+//// Deprecated functions...
+////////////////////////////////////////////////////////////////////////////
+
+
+public:
+	void GenerateIrradianceSHFromHDRI_Deprecated(NXTexture2D* pTexHDR);
+	ID3D11ShaderResourceView* GetSRVIrradianceSH() { return m_pSRVIrradianceSH.Get(); }
+
+private:
+	ComPtr<ID3D11ShaderResourceView>	m_pSRVIrradianceSH;
 };

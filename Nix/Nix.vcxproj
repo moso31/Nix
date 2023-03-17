@@ -215,6 +215,7 @@
     <ClCompile Include="Core\GlobalBufferManager.cpp" />
     <ClCompile Include="Core\ImageGenerator.cpp" />
     <ClCompile Include="Core\Main.cpp" />
+    <ClCompile Include="Core\NXBRDFlut.cpp" />
     <ClCompile Include="Core\NXColorMappingRenderer.cpp" />
     <ClCompile Include="Core\NXConverter.cpp" />
     <ClCompile Include="Core\NXDebugLayerRenderer.cpp" />
@@ -280,6 +281,7 @@
     <ClInclude Include="Core\GlobalBufferManager.h" />
     <ClInclude Include="Core\Header.h" />
     <ClInclude Include="Core\ImageGenerator.h" />
+    <ClInclude Include="Core\NXBRDFlut.h" />
     <ClInclude Include="Core\NXColorMappingRenderer.h" />
     <ClInclude Include="Core\NXConverter.h" />
     <ClInclude Include="Core\NXDebugLayerRenderer.h" />

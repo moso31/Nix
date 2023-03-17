@@ -78,6 +78,7 @@ class NXResourceManager;
 class NXTexture2D;
 class NXTextureCube;
 class NXTexture2DArray;
+class NXBRDFLut;
 
 // scene
 class NXScene;
