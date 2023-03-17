@@ -48,6 +48,8 @@ public:
 
     UINT            GetWidth()      { return m_width; }
     UINT            GetHeight()     { return m_height; }
+    UINT            GetArraySize()  { return m_arraySize; }
+    UINT            GetMipLevels()  { return m_mipLevels; }
     DXGI_FORMAT     GetFormat()     { return m_texFormat; }
 
 protected:

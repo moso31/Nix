@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <fstream>
 
 #include "NXGUIContentExplorer.h"
 #include "NXGUITexture.h"
@@ -106,6 +105,11 @@ void NXGUIContentExplorer::Render()
                                     // 获取扩展名并转换成小写
                                     strExtension = subElem.path().extension().u8string().c_str();
                                     strExtension = NXConvert::s2lower(strExtension);
+
+                                    // *.nxInfo 是纹理描述文件，不加载
+                                    if (strExtension == ".nxinfo")
+                                        continue;
+
                                     strExtensionText = strExtension;
                                 }
 
@@ -136,7 +140,8 @@ void NXGUIContentExplorer::Render()
                                         // 如果点选了图片，就需要 NXGUITexture 显示此图的相关信息
                                         if (NXConvert::IsImageFileExtension(subElem.path().extension().string()))
                                         {
-                                            m_pGUITexture->SetImage(subElem.path());
+                                            NXTextureInfoData texInfoData = NXGUICommon::LoadTextureInfoFile(subElem.path().string());
+                                            m_pGUITexture->SetImage(subElem.path(), texInfoData);
                                         }
                                     }
                                 }

@@ -1,5 +1,6 @@
 #include "NXGUITexture.h"
 #include <filesystem>
+#include "NXGUICommon.h"
 #include "NXResourceManager.h"
 
 NXGUITexture::NXGUITexture() :
@@ -38,7 +39,15 @@ void NXGUITexture::Render()
 
 	if (ImGui::Button("Apply##Texture"))
 	{
-		SetImage(m_strImgPath);
+		NXTextureInfoData info;
+		info.eTexType = (NXTextureType)m_nTexType;
+		info.bGenerateMipMap = m_bGenerateMipMap;
+		info.bInvertNormalY = m_bInvertNormalY;
+		info.bCubeMap = false;
+		info.bSRGB = false;
+
+		SetImage(m_strImgPath, info);
+		NXGUICommon::SaveTextureInfoFile(m_pTexImage, info);
 	}
 
 	ImGui::End();
@@ -49,11 +58,15 @@ void NXGUITexture::Release()
 	SafeDelete(m_pTexImage);
 }
 
-void NXGUITexture::SetImage(const std::filesystem::path& strImgPath)
+void NXGUITexture::SetImage(const std::filesystem::path& path, const NXTextureInfoData& texInfoData)
 {
-	m_strImgPath = strImgPath;
+	m_strImgPath = path;
 
 	SafeDelete(m_pTexImage);
-	m_pTexImage = NXResourceManager::GetInstance()->CreateTexture2D("NXGUITexture Preview Image", strImgPath, m_bGenerateMipMap, m_bInvertNormalY, (NXTextureType)m_nTexType);
+	m_pTexImage = NXResourceManager::GetInstance()->CreateTexture2D("NXGUITexture Preview Image", path, texInfoData.bGenerateMipMap, texInfoData.bInvertNormalY, (NXTextureType)texInfoData.eTexType);
 	m_pTexImage->AddSRV();
+
+	m_bGenerateMipMap = texInfoData.bGenerateMipMap;
+	m_bInvertNormalY = texInfoData.bInvertNormalY;
+	m_nTexType = texInfoData.eTexType;
 }

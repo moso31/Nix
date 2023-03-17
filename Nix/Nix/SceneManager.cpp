@@ -137,8 +137,8 @@ NXMaterial* SceneManager::LoadFromNmatFile(const std::filesystem::path& matFileP
 
 	// 材质名称，材质类型
 	std::string strName, strType;
-	getline_safe(ifs, strName);
-	getline_safe(ifs, strType);
+	NXConvert::getline_safe(ifs, strName);
+	NXConvert::getline_safe(ifs, strType);
 
 	if (strType == "Standard") 
 		pNewMat = LoadStandardPBRMaterialFromFile(ifs, strName, strMatFilePath);
@@ -155,8 +155,8 @@ NXMaterial* SceneManager::LoadStandardPBRMaterialFromFile(std::ifstream& ifs, co
 	std::string strToNext;
 
 	std::string strAlbedoTexPath;
-	getline_safe(ifs, strAlbedoTexPath);
-	if (IsDefaultPath(strAlbedoTexPath))
+	NXConvert::getline_safe(ifs, strAlbedoTexPath);
+	if (NXConvert::IsMaterialDefaultPath(strAlbedoTexPath))
 		strAlbedoTexPath = g_defaultTex_white_str;
 
 	Vector3 albedo;
@@ -164,8 +164,8 @@ NXMaterial* SceneManager::LoadStandardPBRMaterialFromFile(std::ifstream& ifs, co
 	std::getline(ifs, strToNext);
 
 	std::string strNormalTexPath;
-	getline_safe(ifs, strNormalTexPath);
-	if (IsDefaultPath(strNormalTexPath))
+	NXConvert::getline_safe(ifs, strNormalTexPath);
+	if (NXConvert::IsMaterialDefaultPath(strNormalTexPath))
 		strNormalTexPath = g_defaultTex_normal_str;
 
 	Vector3 normal;
@@ -173,8 +173,8 @@ NXMaterial* SceneManager::LoadStandardPBRMaterialFromFile(std::ifstream& ifs, co
 	std::getline(ifs, strToNext);
 
 	std::string strMetallicTexPath;
-	getline_safe(ifs, strMetallicTexPath);
-	if (IsDefaultPath(strMetallicTexPath))
+	NXConvert::getline_safe(ifs, strMetallicTexPath);
+	if (NXConvert::IsMaterialDefaultPath(strMetallicTexPath))
 		strMetallicTexPath = g_defaultTex_white_str;
 
 	float metallic;
@@ -182,8 +182,8 @@ NXMaterial* SceneManager::LoadStandardPBRMaterialFromFile(std::ifstream& ifs, co
 	std::getline(ifs, strToNext);
 
 	std::string strRoughnessTexPath;
-	getline_safe(ifs, strRoughnessTexPath);
-	if (IsDefaultPath(strRoughnessTexPath))
+	NXConvert::getline_safe(ifs, strRoughnessTexPath);
+	if (NXConvert::IsMaterialDefaultPath(strRoughnessTexPath))
 		strRoughnessTexPath = g_defaultTex_white_str;
 
 	float roughness;
@@ -191,8 +191,8 @@ NXMaterial* SceneManager::LoadStandardPBRMaterialFromFile(std::ifstream& ifs, co
 	std::getline(ifs, strToNext);
 
 	std::string strAOTexPath;
-	getline_safe(ifs, strAOTexPath);
-	if (IsDefaultPath(strAOTexPath))
+	NXConvert::getline_safe(ifs, strAOTexPath);
+	if (NXConvert::IsMaterialDefaultPath(strAOTexPath))
 		strAOTexPath = g_defaultTex_white_str;
 
 	float ao;
@@ -207,8 +207,8 @@ NXMaterial* SceneManager::LoadTranslucentPBRMaterialFromFile(std::ifstream& ifs,
 	std::string strToNext;
 
 	std::string strAlbedoTexPath;
-	getline_safe(ifs, strAlbedoTexPath);
-	if (IsDefaultPath(strAlbedoTexPath))
+	NXConvert::getline_safe(ifs, strAlbedoTexPath);
+	if (NXConvert::IsMaterialDefaultPath(strAlbedoTexPath))
 		strAlbedoTexPath = g_defaultTex_white_str;
 
 	Vector3 albedo;
@@ -217,8 +217,8 @@ NXMaterial* SceneManager::LoadTranslucentPBRMaterialFromFile(std::ifstream& ifs,
 	std::getline(ifs, strToNext);
 
 	std::string strNormalTexPath;
-	getline_safe(ifs, strNormalTexPath);
-	if (IsDefaultPath(strNormalTexPath))
+	NXConvert::getline_safe(ifs, strNormalTexPath);
+	if (NXConvert::IsMaterialDefaultPath(strNormalTexPath))
 		strNormalTexPath = g_defaultTex_normal_str;
 
 	Vector3 normal;
@@ -226,8 +226,8 @@ NXMaterial* SceneManager::LoadTranslucentPBRMaterialFromFile(std::ifstream& ifs,
 	std::getline(ifs, strToNext);
 
 	std::string strMetallicTexPath;
-	getline_safe(ifs, strMetallicTexPath);
-	if (IsDefaultPath(strMetallicTexPath))
+	NXConvert::getline_safe(ifs, strMetallicTexPath);
+	if (NXConvert::IsMaterialDefaultPath(strMetallicTexPath))
 		strMetallicTexPath = g_defaultTex_white_str;
 
 	float metallic;
@@ -235,8 +235,8 @@ NXMaterial* SceneManager::LoadTranslucentPBRMaterialFromFile(std::ifstream& ifs,
 	std::getline(ifs, strToNext);
 
 	std::string strRoughnessTexPath;
-	getline_safe(ifs, strRoughnessTexPath);
-	if (IsDefaultPath(strRoughnessTexPath))
+	NXConvert::getline_safe(ifs, strRoughnessTexPath);
+	if (NXConvert::IsMaterialDefaultPath(strRoughnessTexPath))
 		strRoughnessTexPath = g_defaultTex_white_str;
 
 	float roughness;
@@ -244,8 +244,8 @@ NXMaterial* SceneManager::LoadTranslucentPBRMaterialFromFile(std::ifstream& ifs,
 	std::getline(ifs, strToNext);
 
 	std::string strAOTexPath;
-	getline_safe(ifs, strAOTexPath);
-	if (IsDefaultPath(strAOTexPath))
+	NXConvert::getline_safe(ifs, strAOTexPath);
+	if (NXConvert::IsMaterialDefaultPath(strAOTexPath))
 		strAOTexPath = g_defaultTex_white_str;
 
 	float ao;
@@ -479,16 +479,4 @@ NXMaterial* SceneManager::FindMaterial(size_t matPathHash)
 		if (pMat->GetFilePathHash() == matPathHash) return pMat;
 
 	return nullptr;
-}
-
-void SceneManager::getline_safe(std::ifstream& ifs, std::string& s)
-{
-	std::getline(ifs, s);
-	s.erase(std::remove(s.begin(), s.end(), '\r'), s.end());
-	s.erase(std::remove(s.begin(), s.end(), '\n'), s.end());
-}
-
-bool SceneManager::IsDefaultPath(const std::string& s)
-{
-	return s == "?";
 }

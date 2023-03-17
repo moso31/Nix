@@ -88,7 +88,7 @@ private:
 
 private:
 	static void getline_safe(std::ifstream& ifs, std::string& s);
-	static bool IsDefaultPath(const std::string& s);
+	static bool IsMaterialDefaultPath(const std::string& s);
 
 private:
 	static NXScene* s_pWorkingScene;

@@ -1,5 +1,6 @@
 #include "NXConverter.h"
 #include <cwctype>
+#include <fstream>
 
 namespace NXConvert
 {
@@ -53,6 +54,18 @@ bool IsMaterialFileExtension(const std::string& strExtension)
 {
 	std::string s = s2lower(strExtension);
 	return s == ".nmat";
+}
+
+void getline_safe(std::ifstream& ifs, std::string& s)
+{
+	std::getline(ifs, s);
+	s.erase(std::remove(s.begin(), s.end(), '\r'), s.end());
+	s.erase(std::remove(s.begin(), s.end(), '\n'), s.end());
+}
+
+bool IsMaterialDefaultPath(const std::string& s)
+{
+	return s == "?";
 }
 
 }

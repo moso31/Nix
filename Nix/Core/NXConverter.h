@@ -20,4 +20,8 @@ bool IsImageFileExtension(const std::string& strFilePath);
 
 bool IsMaterialFileExtension(const std::string& strFilePath);
 
+void getline_safe(std::ifstream& ifs, std::string& s);
+
+bool IsMaterialDefaultPath(const std::string& s);
+
 }

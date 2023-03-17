@@ -1,6 +1,17 @@
 #include "NXGUICommon.h"
 #include <fstream>
+#include "NXConverter.h"
 #include "NXPBRMaterial.h"
+#include "NXResourceManager.h"
+
+NXTextureInfoData::NXTextureInfoData() :
+    eTexType(NXTextureType::Default),
+    bSRGB(false),
+    bInvertNormalY(false),
+    bGenerateMipMap(true),
+    bCubeMap(false)
+{
+}
 
 namespace NXGUICommon
 {
@@ -76,6 +87,60 @@ void SaveMaterialFile(NXMaterial* pMaterial)
         float ao = *p->GetAO();
         ofs << aoTexPath << std::endl << ao << std::endl; // AO
     }
+
+    ofs.close();
+}
+
+NXTextureInfoData LoadTextureInfoFile(const std::filesystem::path& path)
+{
+    NXTextureInfoData result;
+
+    std::string strTexInfoPath = path.string() + ".nxInfo";
+    std::ifstream ifs(strTexInfoPath, std::ios::binary);
+
+    // nxInfo 路径如果没打开，就返回一个所有值都给默认值的 InfoData
+    if (!ifs.is_open())
+        return result;
+
+    std::string strIgnore;
+
+    size_t nHashFile;
+    ifs >> nHashFile;
+    std::getline(ifs, strIgnore);
+
+    // 如果读取路径和文件内的路径Hash对不上，也返回默认 InfoData
+    size_t nHashPath = std::filesystem::hash_value(path);
+    if (nHashFile != nHashPath)
+        return result;
+
+    ifs.close();
+
+    return result;
+}
+
+void SaveTextureInfoFile(NXTexture* pTexture, const NXTextureInfoData& info)
+{
+    if (!pTexture)
+        return;
+
+    auto path = pTexture->GetFilePath();
+    if (path.empty())
+        return;
+
+    std::string strPath = path.string().c_str();
+    std::string strPathInfo = strPath + ".nxInfo";
+
+    std::ofstream ofs(strPathInfo, std::ios::binary);
+
+    // 文件格式：
+    // 纹理文件路径的哈希
+    // (int)TexFormat, Width, Height, Arraysize, Miplevel
+    // (int)TextureType, (int)IsSRGB, (int)IsInvertNormalY, (int)IsGenerateCubeMap, (int)IsCubeMap
+
+    size_t pathHashValue = std::filesystem::hash_value(pTexture->GetFilePath());
+    ofs << pathHashValue << std::endl;
+    ofs << (int)pTexture->GetFormat() << ' ' << pTexture->GetWidth() << ' ' << pTexture->GetHeight() << ' ' << pTexture->GetArraySize() << ' ' << pTexture->GetMipLevels() << std::endl;
+    ofs << (int)info.eTexType << ' ' << (int)info.bSRGB << ' ' << (int)info.bInvertNormalY << ' ' << (int)info.bGenerateMipMap << ' ' << (int)info.bCubeMap << std::endl;
 
     ofs.close();
 }

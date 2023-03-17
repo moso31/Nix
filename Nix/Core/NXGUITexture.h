@@ -2,6 +2,7 @@
 #include "Header.h"
 #include <filesystem>
 
+struct NXTextureInfoData;
 class NXGUITexture
 {
 public:
@@ -12,7 +13,7 @@ public:
 	void Release();
 
 	// set preview image.
-	void SetImage(const std::filesystem::path& strImgPath);
+	void SetImage(const std::filesystem::path& path, const NXTextureInfoData& texInfoData);
 
 private:
 	std::filesystem::path m_strImgPath;
