@@ -187,7 +187,7 @@ TextureNXInfo* NXTexture::LoadTextureNXInfo(const std::filesystem::path& filePat
 	size_t nHashPath = std::filesystem::hash_value(filePath);
 	if (nHashFile != nHashPath)
 	{
-		printf("Warning: TextureInfoData of %s has founded, but couldn't be open. Consider delete that file.", filePath.string().c_str());
+		printf("Warning: TextureInfoData of %s has founded, but couldn't be open. Consider delete that file.\n", filePath.string().c_str());
 		return nullptr;
 	}
 
