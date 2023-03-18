@@ -76,7 +76,7 @@ ID3D11ShaderResourceView* NXSimpleSSAO::GetSRV()
 
 void NXSimpleSSAO::Release()
 {
-	SafeDelete(m_pTexSSAO);
+	m_pTexSSAO->RemoveRef();
 }
 
 void NXSimpleSSAO::InitSSAOParams()

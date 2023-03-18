@@ -38,6 +38,8 @@ SSAO可以升级成GTAO或者HBAO
 
 ************************ 功能杂项 ************************
 
+Last Issue ID : 23
+
 【暂时搁置的功能】
 14. 不同终端的imgui.ini布局同步（在Imgui完全成型之前 感觉不太好做）
 
@@ -50,11 +52,13 @@ SSAO可以升级成GTAO或者HBAO
 5. 纹理界面化
 21. Depth peeling UI参数可控
 22. Context Explorer 增加浏览类型（比如只显示图片/CubeMap/Nmat/FBX/……）
+20. 纹理加载内存优化: 每帧检查一次有没有nRefCount=0的纹理，有的话就释放掉。
+23. 现在改纹理，Apply以后纹理是变，但是使用了这些纹理的材质不变。
+	要做时稍花精力想一下，感觉这块涉及的东西可能会比较杂。
 
 【较大的长期模块】
 12. resizeable viewport+全屏化UI
 13. 场景文件化，可保存、加载
-20. 纹理加载内存优化
 
 【bugs】
 17. translucent材质 IBL 亮度拉高的时候有bug，

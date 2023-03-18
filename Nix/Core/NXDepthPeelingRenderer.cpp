@@ -207,9 +207,9 @@ void NXDepthPeelingRenderer::Render()
 
 void NXDepthPeelingRenderer::Release()
 {
-	for(auto pRT : m_pSceneRT) SafeDelete(pRT);
-	SafeDelete(m_pSceneDepth[0]);
-	SafeDelete(m_pSceneDepth[1]);
+	for(auto pRT : m_pSceneRT) pRT->RemoveRef();
+	m_pSceneDepth[0]->RemoveRef();
+	m_pSceneDepth[1]->RemoveRef();
 
 	SafeDelete(m_pCombineRTData);
 }

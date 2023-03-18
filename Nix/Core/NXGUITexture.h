@@ -2,7 +2,6 @@
 #include "Header.h"
 #include <filesystem>
 
-struct NXTextureInfoData;
 class NXGUITexture
 {
 public:
@@ -13,13 +12,14 @@ public:
 	void Release();
 
 	// set preview image.
-	void SetImage(const std::filesystem::path& path, const NXTextureInfoData& texInfoData);
+	void SetImage(const std::filesystem::path& path);
+
+	void SaveTextureNXInfo();
 
 private:
 	std::filesystem::path m_strImgPath;
 	NXTexture2D* m_pTexImage;
 
-	bool m_bGenerateMipMap;
-	bool m_bInvertNormalY;
-	int m_nTexType;
+	// 用于显示当前选中纹理的信息
+	TextureNXInfo* m_pTexNXInfo;
 };

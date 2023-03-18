@@ -75,6 +75,7 @@ class NXTimer;
 
 // resources
 class NXResourceManager;
+struct TextureNXInfo;
 class NXTexture2D;
 class NXTextureCube;
 class NXTexture2DArray;

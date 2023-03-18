@@ -89,7 +89,7 @@ void NXDebugLayerRenderer::Render()
 
 void NXDebugLayerRenderer::Release()
 {
-	SafeDelete(m_pDebugLayerTex);
+	m_pDebugLayerTex->RemoveRef();
 	SafeRelease(m_pRTQuad);
 }
 

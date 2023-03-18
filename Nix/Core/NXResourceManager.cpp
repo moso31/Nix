@@ -2,6 +2,44 @@
 #include "DirectResources.h"
 #include "NXConverter.h"
 #include "DirectXTex.h"
+#include <fstream>
+
+TextureNXInfo::TextureNXInfo(const TextureNXInfo& info) :
+	nTexType(info.nTexType),
+	TexFormat(info.TexFormat),
+	Width(info.Width),
+	Height(info.Height),
+	bSRGB(info.bSRGB),
+	bInvertNormalY(info.bInvertNormalY),
+	bGenerateMipMap(info.bGenerateMipMap),
+	bCubeMap(info.bCubeMap)
+{
+}
+//
+//TextureNXInfo::TextureNXInfo(const TextureNXInfo&& info) noexcept :
+//	nTexType(info.nTexType),
+//	TexFormat(info.TexFormat),
+//	Width(info.Width),
+//	Height(info.Height),
+//	bSRGB(info.bSRGB),
+//	bInvertNormalY(info.bInvertNormalY),
+//	bGenerateMipMap(info.bGenerateMipMap),
+//	bCubeMap(info.bCubeMap)
+//{
+//}
+//
+//TextureNXInfo& TextureNXInfo::operator=(TextureNXInfo&& info)
+//{
+//	nTexType = info.nTexType;
+//	TexFormat = info.TexFormat;
+//	Width = info.Width;
+//	Height = info.Height;
+//	bSRGB = info.bSRGB;
+//	bInvertNormalY = info.bInvertNormalY;
+//	bGenerateMipMap = info.bGenerateMipMap;
+//	bCubeMap = info.bCubeMap;
+//	return *this;
+//}
 
 NXResourceManager::NXResourceManager()
 {
@@ -15,7 +53,8 @@ NXTexture2D* NXResourceManager::CreateTexture2D(std::string DebugName, DXGI_FORM
 {
 	NXTexture2D* pTexture2D = new NXTexture2D();
 	pTexture2D->Create(DebugName, nullptr, TexFormat, Width, Height, ArraySize, MipLevels, BindFlags, Usage, CpuAccessFlags, SampleCount, SampleQuality, MiscFlags);
-
+	
+	m_pTextureArray.push_back(pTexture2D);
 	return pTexture2D;
 }
 
@@ -24,14 +63,16 @@ NXTexture2D* NXResourceManager::CreateTexture2D(std::string DebugName, const D3D
 	NXTexture2D* pTexture2D = new NXTexture2D();
 	pTexture2D->Create(DebugName, initData, TexFormat, Width, Height, ArraySize, MipLevels, BindFlags, Usage, CpuAccessFlags, SampleCount, SampleQuality, MiscFlags);
 
+	m_pTextureArray.push_back(pTexture2D);
 	return pTexture2D;
 }
 
-NXTexture2D* NXResourceManager::CreateTexture2D(const std::string& DebugName, const std::wstring& FilePath, bool bGenerateMipMap, bool bInvertNormalY, NXTextureType nTexType)
+NXTexture2D* NXResourceManager::CreateTexture2D(const std::string& DebugName, const std::filesystem::path& FilePath)
 {
 	NXTexture2D* pTexture2D = new NXTexture2D();
-	pTexture2D->Create(DebugName, FilePath, bGenerateMipMap, bInvertNormalY, nTexType);
+	pTexture2D->Create(DebugName, FilePath);
 
+	m_pTextureArray.push_back(pTexture2D);
 	return pTexture2D;
 }
 
@@ -40,6 +81,7 @@ NXTextureCube* NXResourceManager::CreateTextureCube(std::string DebugName, DXGI_
 	NXTextureCube* pTextureCube = new NXTextureCube();
 	pTextureCube->Create(DebugName, nullptr, TexFormat, Width, Height, MipLevels, BindFlags, Usage, CpuAccessFlags, SampleCount, SampleQuality, MiscFlags);
 
+	m_pTextureArray.push_back(pTextureCube);
 	return pTextureCube;
 }
 
@@ -48,15 +90,17 @@ NXTextureCube* NXResourceManager::CreateTextureCube(const std::string& DebugName
 	NXTextureCube* pTextureCube = new NXTextureCube();
 	pTextureCube->Create(DebugName, strFilePath, width, height);
 
+	m_pTextureArray.push_back(pTextureCube);
 	return pTextureCube;
 }
 
 NXTexture2DArray* NXResourceManager::CreateTexture2DArray(std::string DebugName, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
 {
-	NXTexture2DArray* pTexture2DARray = new NXTexture2DArray();
-	pTexture2DARray->Create(DebugName, nullptr, TexFormat, Width, Height, ArraySize, MipLevels, BindFlags, Usage, CpuAccessFlags, SampleCount, SampleQuality, MiscFlags);
+	NXTexture2DArray* pTexture2DArray = new NXTexture2DArray();
+	pTexture2DArray->Create(DebugName, nullptr, TexFormat, Width, Height, ArraySize, MipLevels, BindFlags, Usage, CpuAccessFlags, SampleCount, SampleQuality, MiscFlags);
 
-	return pTexture2DARray;
+	m_pTextureArray.push_back(pTexture2DArray);
+	return pTexture2DArray;
 }
 
 void NXResourceManager::InitCommonRT()
@@ -112,7 +156,62 @@ NXTexture2D* NXResourceManager::GetCommonRT(NXCommonRTEnum eRT)
 
 void NXResourceManager::Release()
 {
-	for (auto pRT : m_pCommonRT) SafeDelete(pRT);
+	for (auto pTex : m_pTextureArray) SafeRelease(pTex);
+}
+
+TextureNXInfo* NXTexture::LoadTextureNXInfo(const std::filesystem::path& filePath)
+{
+	if (filePath.empty())
+		return nullptr;
+
+	std::string strPath = filePath.string().c_str();
+	std::string strNXInfoPath = strPath + ".nxInfo";
+
+	std::ifstream ifs(strNXInfoPath, std::ios::binary);
+
+	// nxInfo 路径如果没打开，就返回一个所有值都给默认值的 InfoData
+	// 2023.3.18（不算读取失败，很多纹理没有nxInfo文件。）
+	if (!ifs.is_open())
+	{
+		return nullptr;
+	}
+
+	std::string strIgnore;
+
+	size_t nHashFile;
+	ifs >> nHashFile;
+	std::getline(ifs, strIgnore);
+
+	// 如果 纹理所存的文件路径的哈希nHashPath 和 nxInfo存储的路径哈希nHashFile
+	// 对不上，则读取失败，返回默认 InfoData
+	size_t nHashPath = std::filesystem::hash_value(filePath);
+	if (nHashFile != nHashPath)
+	{
+		printf("Warning: TextureInfoData of %s has founded, but couldn't be open. Consider delete that file.", filePath.string().c_str());
+		return nullptr;
+	}
+
+	TextureNXInfo* pNXInfo = new TextureNXInfo();
+	ifs >> pNXInfo->TexFormat >> pNXInfo->Width >> pNXInfo->Height;
+	std::getline(ifs, strIgnore);
+
+	ifs >> pNXInfo->nTexType >> pNXInfo->bSRGB >> pNXInfo->bInvertNormalY >> pNXInfo->bGenerateMipMap >> pNXInfo->bCubeMap;
+	std::getline(ifs, strIgnore);
+
+	ifs.close();
+
+	return pNXInfo;
+}
+
+void NXTexture::RemoveRef()
+{
+	m_nRefCount--; 
+	if (!m_nRefCount) Release();
+}
+
+void NXTexture::Release()
+{
+	SafeDelete(m_pTexNXInfo);
 }
 
 void NXTexture2D::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* initData, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
@@ -139,25 +238,34 @@ void NXTexture2D::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* in
 
 	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&Desc, initData, &m_pTexture));
 	m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
+
+	AddRef();
 }
 
-void NXTexture2D::Create(const std::string& DebugName, const std::wstring& FilePath, bool bGenerateMipMap, bool bInvertNormalY, NXTextureType nTexType)
+void NXTexture2D::Create(const std::string& DebugName, const std::filesystem::path& filePath)
 {
+	m_texFilePath = filePath;
+
+	SafeDelete(m_pTexNXInfo)
+	m_pTexNXInfo = LoadTextureNXInfo(filePath);
+	if (!m_pTexNXInfo)
+		m_pTexNXInfo = new TextureNXInfo();
+
 	TexMetadata metadata;
 	std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>();
 
-	std::wstring strExtension = NXConvert::s2lower(FilePath.substr(FilePath.rfind(L".")));
-	if (strExtension == L".hdr") 
-		LoadFromHDRFile(FilePath.c_str(), &metadata, *pImage);
-	else if (strExtension == L".dds") 
-		LoadFromDDSFile(FilePath.c_str(), DDS_FLAGS_NONE, &metadata, *pImage);
-	else if (strExtension == L".tga")
-		LoadFromTGAFile(FilePath.c_str(), &metadata, *pImage);
+	std::string strExtension = NXConvert::s2lower(filePath.extension().string());
+	if (strExtension == ".hdr") 
+		LoadFromHDRFile(filePath.c_str(), &metadata, *pImage);
+	else if (strExtension == ".dds") 
+		LoadFromDDSFile(filePath.c_str(), DDS_FLAGS_NONE, &metadata, *pImage);
+	else if (strExtension == ".tga")
+		LoadFromTGAFile(filePath.c_str(), &metadata, *pImage);
 	else 
-		LoadFromWICFile(FilePath.c_str(), WIC_FLAGS_NONE, &metadata, *pImage);
+		LoadFromWICFile(filePath.c_str(), WIC_FLAGS_NONE, &metadata, *pImage);
 
 	// --- Invert Y Channel --------------------------------------------------------
-	if (bInvertNormalY)
+	if (m_pTexNXInfo->bInvertNormalY)
 	{
 		std::unique_ptr<ScratchImage> timage(new ScratchImage);
 
@@ -177,13 +285,13 @@ void NXTexture2D::Create(const std::string& DebugName, const std::wstring& FileP
 
 		if (FAILED(hr))
 		{
-			printf("Warning: [inverty] failed when loading NXTextureCube file: %ws\n", FilePath.c_str());
+			printf("Warning: [inverty] failed when loading NXTextureCube file: %ws\n", filePath.c_str());
 		}
 
 		pImage.swap(timage);
 	}
 
-	if (bGenerateMipMap && metadata.width >= 2 && metadata.height >= 2 && metadata.mipLevels == 1)
+	if (m_pTexNXInfo->bGenerateMipMap && metadata.width >= 2 && metadata.height >= 2 && metadata.mipLevels == 1)
 	{
 		std::unique_ptr<ScratchImage> pImageMip = std::make_unique<ScratchImage>();
 		HRESULT hr = GenerateMipMaps(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), TEX_FILTER_DEFAULT, 0, *pImageMip);
@@ -202,7 +310,6 @@ void NXTexture2D::Create(const std::string& DebugName, const std::wstring& FileP
 		pData.SysMemSlicePitch = static_cast<DWORD>(img->slicePitch);
 	}
 
-	this->m_texFilePath = FilePath;
 	Create(DebugName, pImageData, metadata.format, (UINT)metadata.width, (UINT)metadata.height, (UINT)metadata.arraySize, (UINT)metadata.mipLevels, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, (UINT)metadata.miscFlags);
 
 	delete[] pImageData;
@@ -296,6 +403,8 @@ void NXTextureCube::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* 
 
 	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&Desc, initData, &m_pTexture));
 	m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
+
+	AddRef();
 }
 
 void NXTextureCube::Create(const std::string& DebugName, const std::wstring& FilePath, size_t width, size_t height)
@@ -374,6 +483,8 @@ void NXTextureCube::Create(const std::string& DebugName, const std::wstring& Fil
 	HDRPreviewInfo.mipLevels = 1;
 	HDRPreviewInfo.miscFlags = 0;
 	CreateShaderResourceView(g_pDevice.Get(), pImage->GetImage(0, 0, 0), 1, HDRPreviewInfo, &m_pSRVPreview2D);
+
+	AddRef();
 }
 
 void NXTextureCube::AddSRV()
@@ -458,6 +569,8 @@ void NXTexture2DArray::Create(std::string DebugName, const D3D11_SUBRESOURCE_DAT
 
 	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&Desc, initData, &m_pTexture));
 	m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
+
+	AddRef();
 }
 
 void NXTexture2DArray::AddSRV(UINT firstArraySlice, UINT arraySize)

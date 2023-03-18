@@ -109,7 +109,7 @@ void NXShadowMapRenderer::RenderSingleObject(NXRenderableObject* pRenderableObje
 
 void NXShadowMapRenderer::Release()
 {
-	SafeDelete(m_pShadowMapDepth);
+	m_pShadowMapDepth->RemoveRef();
 }
 
 void NXShadowMapRenderer::SetCascadeCount(UINT value)

@@ -140,8 +140,7 @@ void NXGUIContentExplorer::Render()
                                         // 如果点选了图片，就需要 NXGUITexture 显示此图的相关信息
                                         if (NXConvert::IsImageFileExtension(subElem.path().extension().string()))
                                         {
-                                            NXTextureInfoData texInfoData = NXGUICommon::LoadTextureInfoFile(subElem.path().string());
-                                            m_pGUITexture->SetImage(subElem.path(), texInfoData);
+                                            m_pGUITexture->SetImage(subElem.path());
                                         }
                                     }
                                 }

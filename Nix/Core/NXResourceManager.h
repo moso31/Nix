@@ -2,6 +2,24 @@
 #include "NXInstance.h"
 #include <filesystem>
 
+struct TextureNXInfo
+{
+    TextureNXInfo() = default;
+    TextureNXInfo(const TextureNXInfo& info);
+    //TextureNXInfo(const TextureNXInfo&& info) noexcept;
+
+    //TextureNXInfo& operator=(TextureNXInfo&& info);
+
+    int nTexType = 0;
+    int TexFormat = 0;
+    int Width = 0;
+    int Height = 0;
+    bool bSRGB = false;
+    bool bInvertNormalY = false;
+    bool bGenerateMipMap = true;
+    bool bCubeMap = false;
+};
+
 enum NXTextureType
 {
     Default,
@@ -35,7 +53,7 @@ enum NXCommonRTEnum
 class NXTexture
 {
 public:
-    NXTexture() : m_width(-1), m_height(-1), m_arraySize(-1), m_texFormat(DXGI_FORMAT_UNKNOWN), m_mipLevels(-1), m_texFilePath("") {}
+    NXTexture() : m_nRefCount(0), m_width(-1), m_height(-1), m_arraySize(-1), m_texFormat(DXGI_FORMAT_UNKNOWN), m_mipLevels(-1), m_texFilePath(""), m_pTexNXInfo(nullptr) {}
     ~NXTexture() {};
 
     ID3D11Texture2D* GetTex() { return m_pTexture.Get(); }
@@ -45,6 +63,7 @@ public:
     ID3D11UnorderedAccessView*  GetUAV(UINT index = 0) { return m_pUAVs.empty() ? nullptr : m_pUAVs[index].Get(); }
 
     std::filesystem::path const GetFilePath() { return m_texFilePath; }
+    TextureNXInfo* LoadTextureNXInfo(const std::filesystem::path& filePath);
 
     UINT            GetWidth()      { return m_width; }
     UINT            GetHeight()     { return m_height; }
@@ -52,9 +71,14 @@ public:
     UINT            GetMipLevels()  { return m_mipLevels; }
     DXGI_FORMAT     GetFormat()     { return m_texFormat; }
 
+    void AddRef() { m_nRefCount++; }
+    void RemoveRef();
+    void Release();
+
 protected:
     std::string m_debugName;
     ComPtr<ID3D11Texture2D> m_pTexture;
+    TextureNXInfo* m_pTexNXInfo;
 
     std::filesystem::path m_texFilePath;
 
@@ -68,6 +92,8 @@ protected:
     UINT m_height;
     UINT m_arraySize;
     UINT m_mipLevels;
+
+    int m_nRefCount;
 };
 
 class NXTexture2D : public NXTexture
@@ -90,7 +116,7 @@ public:
         UINT SampleQuality,
         UINT MiscFlags);
 
-    void Create(const std::string& DebugName, const std::wstring& FilePath, bool bGenerateMipMap, bool bInvertNormalY, NXTextureType nTexType);
+    void Create(const std::string& DebugName, const std::filesystem::path& FilePath);
 
     void AddSRV();
     void AddRTV();
@@ -194,11 +220,7 @@ public:
         UINT SampleQuality = 0,
         UINT MiscFlags = 0);
 
-    NXTexture2D* CreateTexture2D(const std::string& DebugName,
-        const std::wstring& FilePath,
-        bool bGenerateMipMap,
-        bool bInvertNormalY,
-        NXTextureType nTexType);
+    NXTexture2D* CreateTexture2D(const std::string& DebugName, const std::filesystem::path& FilePath);
 
     NXTextureCube* CreateTextureCube(std::string DebugName,
         DXGI_FORMAT TexFormat,
