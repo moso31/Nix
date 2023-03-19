@@ -75,7 +75,7 @@ DXGI_FORMAT ForceSRGB(DXGI_FORMAT fmt)
 	}
 }
 
-DXGI_FORMAT ForceNoSRGB(DXGI_FORMAT fmt)
+DXGI_FORMAT ForceLinear(DXGI_FORMAT fmt)
 {
 	switch (fmt)
 	{

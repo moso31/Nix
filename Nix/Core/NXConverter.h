@@ -16,7 +16,7 @@ std::wstring s2lower(std::wstring s);
 std::string GetPathOfImguiIni();
 
 DXGI_FORMAT ForceSRGB(DXGI_FORMAT fmt);
-DXGI_FORMAT ForceNoSRGB(DXGI_FORMAT fmt);
+DXGI_FORMAT ForceLinear(DXGI_FORMAT fmt);
 
 bool IsImageFileExtension(const std::string& strFilePath);
 

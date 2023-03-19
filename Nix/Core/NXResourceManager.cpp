@@ -282,7 +282,7 @@ void NXTexture2D::Create(const std::string& DebugName, const std::filesystem::pa
 	{
 		std::unique_ptr<ScratchImage> timage(new ScratchImage);
 
-		DXGI_FORMAT tFormat = m_pTexNXInfo->bSRGB ? NXConvert::ForceSRGB(metadata.format) : NXConvert::ForceNoSRGB(metadata.format);
+		DXGI_FORMAT tFormat = m_pTexNXInfo->bSRGB ? NXConvert::ForceSRGB(metadata.format) : NXConvert::ForceLinear(metadata.format);
 		TEX_FILTER_FLAGS texFlags = m_pTexNXInfo->bSRGB ? TEX_FILTER_SRGB_IN : TEX_FILTER_DEFAULT;
 		hr = Convert(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), tFormat, texFlags, TEX_THRESHOLD_DEFAULT, *timage);
 		if (SUCCEEDED(hr))
