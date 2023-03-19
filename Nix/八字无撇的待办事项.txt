@@ -55,6 +55,7 @@ Last Issue ID : 23
 20. 纹理加载内存优化: 每帧检查一次有没有nRefCount=0的纹理，有的话就释放掉。
 23. 现在改纹理，Apply以后纹理是变，但是使用了这些纹理的材质不变。
 	要做时稍花精力想一下，感觉这块涉及的东西可能会比较杂。
+24. contentExplorer，点cubemap类型的dds纹理，会崩溃
 
 【较大的长期模块】
 12. resizeable viewport+全屏化UI

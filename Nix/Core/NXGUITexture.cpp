@@ -67,13 +67,17 @@ void NXGUITexture::SetImage(const std::filesystem::path& path)
 	m_strImgPath = path;
 
 	if (m_pTexImage) m_pTexImage->RemoveRef();
-	m_pTexImage = NXResourceManager::GetInstance()->CreateTexture2D("NXGUITexture Preview Image", path);
-	m_pTexImage->AddSRV();
-
 	SafeDelete(m_pTexNXInfo);
-	m_pTexNXInfo = m_pTexImage->LoadTextureNXInfo(path);
-	if (!m_pTexNXInfo) 
-		m_pTexNXInfo = new TextureNXInfo();
+
+	m_pTexImage = NXResourceManager::GetInstance()->CreateTexture2D("NXGUITexture Preview Image", path);
+	if (m_pTexImage)
+	{
+		m_pTexImage->AddSRV();
+
+		m_pTexNXInfo = m_pTexImage->LoadTextureNXInfo(path);
+		if (!m_pTexNXInfo)
+			m_pTexNXInfo = new TextureNXInfo();
+	}
 }
 
 void NXGUITexture::SaveTextureNXInfo()

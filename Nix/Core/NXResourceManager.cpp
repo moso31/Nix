@@ -244,25 +244,38 @@ void NXTexture2D::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* in
 
 void NXTexture2D::Create(const std::string& DebugName, const std::filesystem::path& filePath)
 {
-	m_texFilePath = filePath;
-
-	SafeDelete(m_pTexNXInfo)
-	m_pTexNXInfo = LoadTextureNXInfo(filePath);
-	if (!m_pTexNXInfo)
-		m_pTexNXInfo = new TextureNXInfo();
-
 	TexMetadata metadata;
 	std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>();
 
+	HRESULT hr;
 	std::string strExtension = NXConvert::s2lower(filePath.extension().string());
 	if (strExtension == ".hdr") 
-		LoadFromHDRFile(filePath.c_str(), &metadata, *pImage);
+		hr = LoadFromHDRFile(filePath.c_str(), &metadata, *pImage);
 	else if (strExtension == ".dds") 
-		LoadFromDDSFile(filePath.c_str(), DDS_FLAGS_NONE, &metadata, *pImage);
+		hr = LoadFromDDSFile(filePath.c_str(), DDS_FLAGS_NONE, &metadata, *pImage);
 	else if (strExtension == ".tga")
-		LoadFromTGAFile(filePath.c_str(), &metadata, *pImage);
+		hr = LoadFromTGAFile(filePath.c_str(), &metadata, *pImage);
 	else 
-		LoadFromWICFile(filePath.c_str(), WIC_FLAGS_NONE, &metadata, *pImage);
+		hr = LoadFromWICFile(filePath.c_str(), WIC_FLAGS_NONE, &metadata, *pImage);
+
+	if (FAILED(hr))
+		return;
+
+	m_texFilePath = filePath;
+
+	SafeDelete(m_pTexNXInfo)
+		m_pTexNXInfo = LoadTextureNXInfo(filePath);
+	if (!m_pTexNXInfo)
+		m_pTexNXInfo = new TextureNXInfo();
+
+	// 如果读取的是arraySize/TextureCube，就只读取ArraySize[0]/X+面。
+	if (metadata.arraySize > 1)
+	{
+		std::unique_ptr<ScratchImage> timage(new ScratchImage);
+		timage->InitializeFromImage(*pImage->GetImage(0, 0, 0));
+		metadata = timage->GetMetadata();
+		pImage.swap(timage);
+	}
 
 	// --- Invert Y Channel --------------------------------------------------------
 	if (m_pTexNXInfo->bInvertNormalY)
@@ -285,7 +298,7 @@ void NXTexture2D::Create(const std::string& DebugName, const std::filesystem::pa
 
 		if (FAILED(hr))
 		{
-			printf("Warning: [inverty] failed when loading NXTextureCube file: %ws\n", filePath.c_str());
+			printf("Warning: [InvertNormalY] failed when loading NXTextureCube file: %ws\n", filePath.c_str());
 		}
 
 		pImage.swap(timage);
@@ -295,24 +308,22 @@ void NXTexture2D::Create(const std::string& DebugName, const std::filesystem::pa
 	{
 		std::unique_ptr<ScratchImage> pImageMip = std::make_unique<ScratchImage>();
 		HRESULT hr = GenerateMipMaps(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), TEX_FILTER_DEFAULT, 0, *pImageMip);
-		metadata.mipLevels = pImageMip->GetMetadata().mipLevels;
 		if (SUCCEEDED(hr))
+		{
+			metadata.mipLevels = pImageMip->GetMetadata().mipLevels;
 			pImage.swap(pImageMip);
+		}
+		else
+		{
+			printf("Warning: [GenerateMipMap] failed when loading NXTextureCube file: %ws\n", filePath.c_str());
+		}
 	}
 
-	D3D11_SUBRESOURCE_DATA* pImageData = new D3D11_SUBRESOURCE_DATA[metadata.mipLevels];
-	for (size_t i = 0; i < metadata.mipLevels; i++)
-	{
-		auto img = pImage->GetImage(i, 0, 0);
-		D3D11_SUBRESOURCE_DATA& pData = pImageData[i];
-		pData.pSysMem = img->pixels;
-		pData.SysMemPitch = static_cast<DWORD>(img->rowPitch);
-		pData.SysMemSlicePitch = static_cast<DWORD>(img->slicePitch);
-	}
+	bool bForceSRGB = false;
+	DirectX::CreateTextureEx(g_pDevice.Get(), pImage->GetImage(0, 0, 0), pImage->GetImageCount(), metadata, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, bForceSRGB, false, (ID3D11Resource**)m_pTexture.GetAddressOf());
+	m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
 
-	Create(DebugName, pImageData, metadata.format, (UINT)metadata.width, (UINT)metadata.height, (UINT)metadata.arraySize, (UINT)metadata.mipLevels, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, (UINT)metadata.miscFlags);
-
-	delete[] pImageData;
+	AddRef();
 }
 
 void NXTexture2D::AddSRV()
