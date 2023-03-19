@@ -97,7 +97,6 @@ float4 PS(PS_INPUT input) : SV_Target
 	//return txCubeMap.Sample(ssLinearWrap, R);	// perfect reflection test
 
 	float3 albedo = txRT2.Sample(ssLinearWrap, uv).xyz;
-	albedo = pow(albedo, 2.2f);
 
 	float roughnessMap = txRT3.Sample(ssLinearWrap, uv).x;
 	float roughness = roughnessMap;

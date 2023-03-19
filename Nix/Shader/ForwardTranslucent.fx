@@ -123,8 +123,6 @@ float4 PS(PS_INPUT input) : SV_Target
 
 	float3 albedoMap = txAlbedo.Sample(ssLinearWrap, input.tex).xyz;
 	float3 albedo = m_material.albedo * albedoMap;
-	albedo = pow(albedo, 2.2f);
-	//return float4(albedoMap, 1.0f);	// albedo only test
 
 	float opacityMap = txAlbedo.Sample(ssLinearWrap, input.tex).w;
 	float opacity = m_material.opacity * opacityMap;

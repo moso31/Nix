@@ -277,6 +277,25 @@ void NXTexture2D::Create(const std::string& DebugName, const std::filesystem::pa
 		pImage.swap(timage);
 	}
 
+	// --- Convert -----------------------------------------------------------------
+	if (IsSRGB(metadata.format) != m_pTexNXInfo->bSRGB)
+	{
+		std::unique_ptr<ScratchImage> timage(new ScratchImage);
+
+		DXGI_FORMAT tFormat = m_pTexNXInfo->bSRGB ? NXConvert::ForceSRGB(metadata.format) : NXConvert::ForceNoSRGB(metadata.format);
+		TEX_FILTER_FLAGS texFlags = m_pTexNXInfo->bSRGB ? TEX_FILTER_SRGB_IN : TEX_FILTER_DEFAULT;
+		hr = Convert(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), tFormat, texFlags, TEX_THRESHOLD_DEFAULT, *timage);
+		if (SUCCEEDED(hr))
+		{
+			metadata.format = tFormat;
+		}
+		else
+		{
+			printf("Warning: [Convert] failed when loading NXTextureCube file: %ws\n", filePath.c_str());
+		}
+		pImage.swap(timage);
+	}
+
 	// --- Invert Y Channel --------------------------------------------------------
 	if (m_pTexNXInfo->bInvertNormalY)
 	{
@@ -319,8 +338,15 @@ void NXTexture2D::Create(const std::string& DebugName, const std::filesystem::pa
 		}
 	}
 
-	bool bForceSRGB = false;
-	DirectX::CreateTextureEx(g_pDevice.Get(), pImage->GetImage(0, 0, 0), pImage->GetImageCount(), metadata, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, bForceSRGB, false, (ID3D11Resource**)m_pTexture.GetAddressOf());
+	this->m_texFilePath = filePath.c_str();
+	this->m_debugName = DebugName;
+	this->m_width = (UINT)metadata.width;
+	this->m_height = (UINT)metadata.height;
+	this->m_arraySize = (UINT)metadata.arraySize;
+	this->m_mipLevels = (UINT)metadata.mipLevels;
+	this->m_texFormat = metadata.format;
+
+	DirectX::CreateTextureEx(g_pDevice.Get(), pImage->GetImage(0, 0, 0), pImage->GetImageCount(), metadata, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, false, false, (ID3D11Resource**)m_pTexture.GetAddressOf());
 	m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
 
 	AddRef();

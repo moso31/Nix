@@ -41,10 +41,13 @@ void NXGUITexture::Render()
 		m_pTexNXInfo->nTexType = nTexType;
 	}
 
-	if (m_pTexNXInfo->nTexType == 1)
+	if (m_pTexNXInfo->nTexType == 0)
 	{
-		bool x = 0;
-		ImGui::Checkbox("sRGB##Texture", &x);
+		bool bSRGB = m_pTexNXInfo->bSRGB;
+		if (ImGui::Checkbox("sRGB##Texture", &bSRGB))
+		{
+			m_pTexNXInfo->bSRGB = bSRGB;
+		}
 	}
 
 	if (ImGui::Button("Apply##Texture"))
