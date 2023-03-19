@@ -346,7 +346,7 @@ void NXTexture2D::Create(const std::string& DebugName, const std::filesystem::pa
 	this->m_mipLevels = (UINT)metadata.mipLevels;
 	this->m_texFormat = metadata.format;
 
-	DirectX::CreateTextureEx(g_pDevice.Get(), pImage->GetImage(0, 0, 0), pImage->GetImageCount(), metadata, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, false, false, (ID3D11Resource**)m_pTexture.GetAddressOf());
+	DirectX::CreateTextureEx(g_pDevice.Get(), pImage->GetImage(0, 0, 0), pImage->GetImageCount(), metadata, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, false, CREATETEX_DEFAULT, (ID3D11Resource**)m_pTexture.GetAddressOf());
 	m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
 
 	AddRef();
@@ -512,7 +512,7 @@ void NXTextureCube::Create(const std::string& DebugName, const std::wstring& Fil
 	this->m_texFormat = metadata.format;
 	this->m_mipLevels = (UINT)metadata.mipLevels;
 
-	DirectX::CreateTextureEx(g_pDevice.Get(), pImage->GetImages(), pImage->GetImageCount(), metadata, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, (ID3D11Resource**)m_pTexture.GetAddressOf());
+	DirectX::CreateTextureEx(g_pDevice.Get(), pImage->GetImages(), pImage->GetImageCount(), metadata, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, CREATETEX_DEFAULT, (ID3D11Resource**)m_pTexture.GetAddressOf());
 	m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
 
 	auto HDRPreviewInfo = metadata;

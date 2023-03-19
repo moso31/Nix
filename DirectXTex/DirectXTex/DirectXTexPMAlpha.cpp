@@ -1,9 +1,9 @@
 //-------------------------------------------------------------------------------------
 // DirectXTexPMAlpha.cpp
-//  
+//
 // DirectX Texture Library - Premultiplied alpha operations
 //
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 //
 // http://go.microsoft.com/fwlink/?LinkId=248926
@@ -12,10 +12,11 @@
 #include "DirectXTexP.h"
 
 using namespace DirectX;
+using namespace DirectX::Internal;
 
 namespace
 {
-    inline TEX_FILTER_FLAGS GetSRGBFlags(_In_ TEX_PMALPHA_FLAGS compress) noexcept
+    constexpr TEX_FILTER_FLAGS GetSRGBFlags(_In_ TEX_PMALPHA_FLAGS compress) noexcept
     {
         static_assert(TEX_FILTER_SRGB_IN == 0x1000000, "TEX_FILTER_SRGB flag values don't match TEX_FILTER_SRGB_MASK");
         static_assert(static_cast<int>(TEX_PMALPHA_SRGB_IN) == static_cast<int>(TEX_FILTER_SRGB_IN), "TEX_PMALPHA_SRGB* should match TEX_FILTER_SRGB*");
@@ -31,7 +32,7 @@ namespace
         assert(srcImage.width == destImage.width);
         assert(srcImage.height == destImage.height);
 
-        ScopedAlignedArrayXMVECTOR scanline(static_cast<XMVECTOR*>(_aligned_malloc((sizeof(XMVECTOR)*srcImage.width), 16)));
+        auto scanline = make_AlignedArrayXMVECTOR(srcImage.width);
         if (!scanline)
             return E_OUTOFMEMORY;
 
@@ -42,19 +43,19 @@ namespace
 
         for (size_t h = 0; h < srcImage.height; ++h)
         {
-            if (!_LoadScanline(scanline.get(), srcImage.width, pSrc, srcImage.rowPitch, srcImage.format))
+            if (!LoadScanline(scanline.get(), srcImage.width, pSrc, srcImage.rowPitch, srcImage.format))
                 return E_FAIL;
 
             XMVECTOR* ptr = scanline.get();
             for (size_t w = 0; w < srcImage.width; ++w)
             {
-                XMVECTOR v = *ptr;
+                const XMVECTOR v = *ptr;
                 XMVECTOR alpha = XMVectorSplatW(*ptr);
                 alpha = XMVectorMultiply(v, alpha);
                 *(ptr++) = XMVectorSelect(v, alpha, g_XMSelect1110);
             }
 
-            if (!_StoreScanline(pDest, destImage.rowPitch, destImage.format, scanline.get(), srcImage.width))
+            if (!StoreScanline(pDest, destImage.rowPitch, destImage.format, scanline.get(), srcImage.width))
                 return E_FAIL;
 
             pSrc += srcImage.rowPitch;
@@ -74,7 +75,7 @@ namespace
         static_assert(static_cast<int>(TEX_PMALPHA_SRGB) == static_cast<int>(TEX_FILTER_SRGB), "TEX_PMALHPA_SRGB* should match TEX_FILTER_SRGB*");
         flags &= TEX_PMALPHA_SRGB;
 
-        ScopedAlignedArrayXMVECTOR scanline(static_cast<XMVECTOR*>(_aligned_malloc((sizeof(XMVECTOR)*srcImage.width), 16)));
+        auto scanline = make_AlignedArrayXMVECTOR(srcImage.width);
         if (!scanline)
             return E_OUTOFMEMORY;
 
@@ -83,23 +84,23 @@ namespace
         if (!pSrc || !pDest)
             return E_POINTER;
 
-        TEX_FILTER_FLAGS filter = GetSRGBFlags(flags);
+        const TEX_FILTER_FLAGS filter = GetSRGBFlags(flags);
 
         for (size_t h = 0; h < srcImage.height; ++h)
         {
-            if (!_LoadScanlineLinear(scanline.get(), srcImage.width, pSrc, srcImage.rowPitch, srcImage.format, filter))
+            if (!LoadScanlineLinear(scanline.get(), srcImage.width, pSrc, srcImage.rowPitch, srcImage.format, filter))
                 return E_FAIL;
 
             XMVECTOR* ptr = scanline.get();
             for (size_t w = 0; w < srcImage.width; ++w)
             {
-                XMVECTOR v = *ptr;
+                const XMVECTOR v = *ptr;
                 XMVECTOR alpha = XMVectorSplatW(*ptr);
                 alpha = XMVectorMultiply(v, alpha);
                 *(ptr++) = XMVectorSelect(v, alpha, g_XMSelect1110);
             }
 
-            if (!_StoreScanlineLinear(pDest, destImage.rowPitch, destImage.format, scanline.get(), srcImage.width, filter))
+            if (!StoreScanlineLinear(pDest, destImage.rowPitch, destImage.format, scanline.get(), srcImage.width, filter))
                 return E_FAIL;
 
             pSrc += srcImage.rowPitch;
@@ -116,7 +117,7 @@ namespace
         assert(srcImage.width == destImage.width);
         assert(srcImage.height == destImage.height);
 
-        ScopedAlignedArrayXMVECTOR scanline(static_cast<XMVECTOR*>(_aligned_malloc((sizeof(XMVECTOR)*srcImage.width), 16)));
+        auto scanline = make_AlignedArrayXMVECTOR(srcImage.width);
         if (!scanline)
             return E_OUTOFMEMORY;
 
@@ -127,13 +128,13 @@ namespace
 
         for (size_t h = 0; h < srcImage.height; ++h)
         {
-            if (!_LoadScanline(scanline.get(), srcImage.width, pSrc, srcImage.rowPitch, srcImage.format))
+            if (!LoadScanline(scanline.get(), srcImage.width, pSrc, srcImage.rowPitch, srcImage.format))
                 return E_FAIL;
 
             XMVECTOR* ptr = scanline.get();
             for (size_t w = 0; w < srcImage.width; ++w)
             {
-                XMVECTOR v = *ptr;
+                const XMVECTOR v = *ptr;
                 XMVECTOR alpha = XMVectorSplatW(*ptr);
                 if (XMVectorGetX(alpha) > 0)
                 {
@@ -142,7 +143,7 @@ namespace
                 *(ptr++) = XMVectorSelect(v, alpha, g_XMSelect1110);
             }
 
-            if (!_StoreScanline(pDest, destImage.rowPitch, destImage.format, scanline.get(), srcImage.width))
+            if (!StoreScanline(pDest, destImage.rowPitch, destImage.format, scanline.get(), srcImage.width))
                 return E_FAIL;
 
             pSrc += srcImage.rowPitch;
@@ -162,7 +163,7 @@ namespace
         static_assert(static_cast<int>(TEX_PMALPHA_SRGB) == static_cast<int>(TEX_FILTER_SRGB), "TEX_PMALPHA_SRGB* should match TEX_FILTER_SRGB*");
         flags &= TEX_PMALPHA_SRGB;
 
-        ScopedAlignedArrayXMVECTOR scanline(static_cast<XMVECTOR*>(_aligned_malloc((sizeof(XMVECTOR)*srcImage.width), 16)));
+        auto scanline = make_AlignedArrayXMVECTOR(srcImage.width);
         if (!scanline)
             return E_OUTOFMEMORY;
 
@@ -171,17 +172,17 @@ namespace
         if (!pSrc || !pDest)
             return E_POINTER;
 
-        TEX_FILTER_FLAGS filter = GetSRGBFlags(flags);
+        const TEX_FILTER_FLAGS filter = GetSRGBFlags(flags);
 
         for (size_t h = 0; h < srcImage.height; ++h)
         {
-            if (!_LoadScanlineLinear(scanline.get(), srcImage.width, pSrc, srcImage.rowPitch, srcImage.format, filter))
+            if (!LoadScanlineLinear(scanline.get(), srcImage.width, pSrc, srcImage.rowPitch, srcImage.format, filter))
                 return E_FAIL;
 
             XMVECTOR* ptr = scanline.get();
             for (size_t w = 0; w < srcImage.width; ++w)
             {
-                XMVECTOR v = *ptr;
+                const XMVECTOR v = *ptr;
                 XMVECTOR alpha = XMVectorSplatW(*ptr);
                 if (XMVectorGetX(alpha) > 0)
                 {
@@ -190,7 +191,7 @@ namespace
                 *(ptr++) = XMVectorSelect(v, alpha, g_XMSelect1110);
             }
 
-            if (!_StoreScanlineLinear(pDest, destImage.rowPitch, destImage.format, scanline.get(), srcImage.width, filter))
+            if (!StoreScanlineLinear(pDest, destImage.rowPitch, destImage.format, scanline.get(), srcImage.width, filter))
                 return E_FAIL;
 
             pSrc += srcImage.rowPitch;
@@ -223,7 +224,7 @@ HRESULT DirectX::PremultiplyAlpha(
         || IsPalettized(srcImage.format)
         || IsTypeless(srcImage.format)
         || !HasAlpha(srcImage.format))
-        return HRESULT_FROM_WIN32(ERROR_NOT_SUPPORTED);
+        return HRESULT_E_NOT_SUPPORTED;
 
     if ((srcImage.width > UINT32_MAX) || (srcImage.height > UINT32_MAX))
         return E_INVALIDARG;
@@ -276,7 +277,7 @@ HRESULT DirectX::PremultiplyAlpha(
         || IsPalettized(metadata.format)
         || IsTypeless(metadata.format)
         || !HasAlpha(metadata.format))
-        return HRESULT_FROM_WIN32(ERROR_NOT_SUPPORTED);
+        return HRESULT_E_NOT_SUPPORTED;
 
     if ((metadata.width > UINT32_MAX) || (metadata.height > UINT32_MAX))
         return E_INVALIDARG;
