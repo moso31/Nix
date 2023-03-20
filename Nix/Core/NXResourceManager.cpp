@@ -3,6 +3,7 @@
 #include "NXConverter.h"
 #include "DirectXTex.h"
 #include <fstream>
+#include "NXPBRMaterial.h"
 
 TextureNXInfo::TextureNXInfo(const TextureNXInfo& info) :
 	nTexType(info.nTexType),
@@ -72,6 +73,9 @@ NXTexture2D* NXResourceManager::CreateTexture2D(const std::string& DebugName, co
 	// 先在已加载纹理里面找当前纹理，有的话就不用Create了
 	for (auto pTexture : m_pTextureArray)
 	{
+		if (pTexture->IsDirty())
+			continue;
+
 		auto pTex2D = pTexture->Is2D();
 		if (pTex2D && !filePath.empty() && std::filesystem::hash_value(filePath) == std::filesystem::hash_value(pTexture->GetFilePath()))
 		{
@@ -82,6 +86,7 @@ NXTexture2D* NXResourceManager::CreateTexture2D(const std::string& DebugName, co
 
 	NXTexture2D* pTexture2D = new NXTexture2D();
 	pTexture2D->Create(DebugName, filePath);
+	pTexture2D->AddSRV();
 
 	m_pTextureArray.insert(pTexture2D);
 	return pTexture2D;
@@ -101,6 +106,9 @@ NXTextureCube* NXResourceManager::CreateTextureCube(const std::string& DebugName
 	// 先在已加载纹理里面找当前纹理，有的话就不用Create了
 	for (auto pTexture : m_pTextureArray)
 	{
+		if (pTexture->IsDirty())
+			continue;
+
 		auto pTexCube = pTexture->IsCubeMap();
 		if (pTexCube && !filePath.empty() && std::filesystem::hash_value(filePath) == std::filesystem::hash_value(pTexture->GetFilePath()))
 		{
@@ -239,6 +247,13 @@ void NXTexture::Release()
 	SafeDelete(m_pTexNXInfo);
 }
 
+void NXTexture::RemoveMaterial(NXMaterial* pMat)
+{
+	auto it = m_pRefMaterials.find(pMat);
+	if (it != m_pRefMaterials.end())
+		m_pRefMaterials.erase(it);
+}
+
 void NXTexture2D::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* initData, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
 {
 	this->m_debugName = DebugName;
@@ -288,8 +303,7 @@ NXTexture2D* NXTexture2D::Create(const std::string& DebugName, const std::filesy
 
 	m_texFilePath = filePath;
 
-	SafeDelete(m_pTexNXInfo)
-		m_pTexNXInfo = LoadTextureNXInfo(filePath);
+	m_pTexNXInfo = LoadTextureNXInfo(filePath);
 	if (!m_pTexNXInfo)
 		m_pTexNXInfo = new TextureNXInfo();
 

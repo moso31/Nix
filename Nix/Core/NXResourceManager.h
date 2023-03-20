@@ -56,7 +56,7 @@ class NXTexture2DArray;
 class NXTexture
 {
 public:
-    NXTexture() : m_nRefCount(0), m_width(-1), m_height(-1), m_arraySize(-1), m_texFormat(DXGI_FORMAT_UNKNOWN), m_mipLevels(-1), m_texFilePath(""), m_pTexNXInfo(nullptr) {}
+    NXTexture() : m_nRefCount(0), m_bIsDirty(false), m_width(-1), m_height(-1), m_arraySize(-1), m_texFormat(DXGI_FORMAT_UNKNOWN), m_mipLevels(-1), m_texFilePath(""), m_pTexNXInfo(nullptr) {}
     ~NXTexture() {};
 
     virtual NXTexture2D*        Is2D()          { return nullptr; }
@@ -82,6 +82,13 @@ public:
     void RemoveRef();
     void Release();
 
+    std::unordered_set<NXMaterial*> GetRefMaterials() { return m_pRefMaterials; }
+    void AddMaterial(NXMaterial* pMat) { m_pRefMaterials.insert(pMat); }
+    void RemoveMaterial(NXMaterial* pMat);
+
+    void MakeDirty() { m_bIsDirty = true; }
+    bool IsDirty() { return m_bIsDirty; }
+
 protected:
     std::string m_debugName;
     ComPtr<ID3D11Texture2D> m_pTexture;
@@ -100,8 +107,18 @@ protected:
     UINT m_arraySize;
     UINT m_mipLevels;
 
+private:
     // 引用计数
     int m_nRefCount;
+
+    // 是否是脏纹理
+    // 2023.3.20：脏纹理是一个单向tag，仅允许被改为true。
+    //      一个纹理一旦标记为脏纹理后，引用计数不允许再增加。
+    //      目前仅在改变*.nxInfo时会将纹理标记为脏纹理。
+    bool m_bIsDirty;
+
+    // 记录所有使用此纹理的材质
+    std::unordered_set<NXMaterial*> m_pRefMaterials;
 };
 
 class NXTexture2D : public NXTexture

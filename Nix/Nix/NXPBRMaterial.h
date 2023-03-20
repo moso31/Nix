@@ -66,8 +66,10 @@ public:
 
 	virtual void Release() = 0;
 
+	virtual void ReloadTextures() = 0;
+
 public:
-	NXTexture2D* LoadFromTexFile(const std::wstring TexFilePath, bool GenerateMipMap = false);
+	NXTexture2D* LoadFromTexFile(const std::wstring& TexFilePath);
 
 	std::vector<NXSubMeshBase*> GetRefSubMeshes() { return m_pRefSubMeshes; }
 	void RemoveSubMesh(NXSubMeshBase* pRemoveSubmesh);
@@ -104,11 +106,11 @@ public:
 	ID3D11ShaderResourceView* GetSRVRoughness() const { return m_pTexRoughness->GetSRV(); }
 	ID3D11ShaderResourceView* GetSRVAO()		const { return m_pTexAmbientOcclusion->GetSRV(); }
 
-	void SetTexAlbedo(const std::wstring TexFilePath, bool GenerateMipMap = false);
-	void SetTexNormal(const std::wstring TexFilePath, bool GenerateMipMap = false);
-	void SetTexMetallic(const std::wstring TexFilePath, bool GenerateMipMap = false);
-	void SetTexRoughness(const std::wstring TexFilePath, bool GenerateMipMap = false);
-	void SetTexAO(const std::wstring TexFilePath, bool GenerateMipMap = false);
+	void SetTexAlbedo(const std::wstring& TexFilePath);
+	void SetTexNormal(const std::wstring& TexFilePath);
+	void SetTexMetallic(const std::wstring& TexFilePath);
+	void SetTexRoughness(const std::wstring& TexFilePath);
+	void SetTexAO(const std::wstring& TexFilePath);
 
 	std::string GetAlbedoTexFilePath()		{ return m_pTexAlbedo->GetFilePath().string(); }
 	std::string GetNormalTexFilePath()		{ return m_pTexNormal->GetFilePath().string(); }
@@ -117,6 +119,7 @@ public:
 	std::string GetAOTexFilePath()			{ return m_pTexAmbientOcclusion->GetFilePath().string(); }
 
 	virtual void Release();
+	virtual void ReloadTextures();
 
 private:
 	NXTexture2D* m_pTexAlbedo;

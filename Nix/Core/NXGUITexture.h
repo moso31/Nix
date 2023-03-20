@@ -14,7 +14,11 @@ public:
 	// set preview image.
 	void SetImage(const std::filesystem::path& path);
 
+	// 保存TextureNXInfo信息
 	void SaveTextureNXInfo();
+
+	// 重新加载纹理
+	void ReloadTexture();
 
 private:
 	std::filesystem::path m_strImgPath;

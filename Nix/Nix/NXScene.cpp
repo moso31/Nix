@@ -229,29 +229,29 @@ void NXScene::Init()
 		SceneManager::GetInstance()->CreatePBRMaterialStandard("circle-textured-metal1", Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f),
 	};
 
-	pPBRMat[0]->SetTexAlbedo(L"D:\\NixAssets\\rustediron2\\albedo.png", true);
-	pPBRMat[0]->SetTexNormal(L"D:\\NixAssets\\rustediron2\\normal.png", true);
-	pPBRMat[0]->SetTexMetallic(L"D:\\NixAssets\\rustediron2\\metallic.png", true);
-	pPBRMat[0]->SetTexRoughness(L"D:\\NixAssets\\rustediron2\\roughness.png", true);
-	pPBRMat[0]->SetTexAO(L"D:\\NixAssets\\rustediron2\\ao.png", true);
+	pPBRMat[0]->SetTexAlbedo(L"D:\\NixAssets\\rustediron2\\albedo.png");
+	pPBRMat[0]->SetTexNormal(L"D:\\NixAssets\\rustediron2\\normal.png");
+	pPBRMat[0]->SetTexMetallic(L"D:\\NixAssets\\rustediron2\\metallic.png");
+	pPBRMat[0]->SetTexRoughness(L"D:\\NixAssets\\rustediron2\\roughness.png");
+	pPBRMat[0]->SetTexAO(L"D:\\NixAssets\\rustediron2\\ao.png");
 
-	//pPBRMat[1]->SetTexAlbedo(L"D:\\NixAssets\\hex-stones1\\albedo.png", true);
-	//pPBRMat[1]->SetTexNormal(L"D:\\NixAssets\\hex-stones1\\normal.png", true);
-	//pPBRMat[1]->SetTexMetallic(L"D:\\NixAssets\\hex-stones1\\metallic.png", true);
-	//pPBRMat[1]->SetTexRoughness(L"D:\\NixAssets\\hex-stones1\\roughness.png", true);
-	//pPBRMat[1]->SetTexAO(L"D:\\NixAssets\\hex-stones1\\ao.png", true);
+	//pPBRMat[1]->SetTexAlbedo(L"D:\\NixAssets\\hex-stones1\\albedo.png");
+	//pPBRMat[1]->SetTexNormal(L"D:\\NixAssets\\hex-stones1\\normal.png");
+	//pPBRMat[1]->SetTexMetallic(L"D:\\NixAssets\\hex-stones1\\metallic.png");
+	//pPBRMat[1]->SetTexRoughness(L"D:\\NixAssets\\hex-stones1\\roughness.png");
+	//pPBRMat[1]->SetTexAO(L"D:\\NixAssets\\hex-stones1\\ao.png");
 
-	//pPBRMat[2]->SetTexAlbedo(L"D:\\NixAssets\\pirate-gold\\albedo.png", true);
-	//pPBRMat[2]->SetTexNormal(L"D:\\NixAssets\\pirate-gold\\normal.png", true);
-	//pPBRMat[2]->SetTexMetallic(L"D:\\NixAssets\\pirate-gold\\metallic.png", true);
-	//pPBRMat[2]->SetTexRoughness(L"D:\\NixAssets\\pirate-gold\\roughness.png", true);
-	//pPBRMat[2]->SetTexAO(L"D:\\NixAssets\\pirate-gold\\ao.png", true);
+	//pPBRMat[2]->SetTexAlbedo(L"D:\\NixAssets\\pirate-gold\\albedo.png");
+	//pPBRMat[2]->SetTexNormal(L"D:\\NixAssets\\pirate-gold\\normal.png");
+	//pPBRMat[2]->SetTexMetallic(L"D:\\NixAssets\\pirate-gold\\metallic.png");
+	//pPBRMat[2]->SetTexRoughness(L"D:\\NixAssets\\pirate-gold\\roughness.png");
+	//pPBRMat[2]->SetTexAO(L"D:\\NixAssets\\pirate-gold\\ao.png");
 
-	//pPBRMat[3]->SetTexAlbedo(L"D:\\NixAssets\\circle-textured-metal1\\albedo.png", true);
-	//pPBRMat[3]->SetTexNormal(L"D:\\NixAssets\\circle-textured-metal1\\normal.png", true);
-	//pPBRMat[3]->SetTexMetallic(L"D:\\NixAssets\\circle-textured-metal1\\metallic.png", true);
-	//pPBRMat[3]->SetTexRoughness(L"D:\\NixAssets\\circle-textured-metal1\\roughness.png", true);
-	//pPBRMat[3]->SetTexAO(L"D:\\NixAssets\\circle-textured-metal1\\ao.png", true);
+	//pPBRMat[3]->SetTexAlbedo(L"D:\\NixAssets\\circle-textured-metal1\\albedo.png");
+	//pPBRMat[3]->SetTexNormal(L"D:\\NixAssets\\circle-textured-metal1\\normal.png");
+	//pPBRMat[3]->SetTexMetallic(L"D:\\NixAssets\\circle-textured-metal1\\metallic.png");
+	//pPBRMat[3]->SetTexRoughness(L"D:\\NixAssets\\circle-textured-metal1\\roughness.png");
+	//pPBRMat[3]->SetTexAO(L"D:\\NixAssets\\circle-textured-metal1\\ao.png");
 
 	//auto pSphere = SceneManager::GetInstance()->CreateSphere("Sphere", 1.0f, 64, 64);
 	//SceneManager::GetInstance()->BindMaterial(pSphere->GetSubMesh(0), pPBRMat[0]);

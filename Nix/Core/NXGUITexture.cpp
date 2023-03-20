@@ -3,6 +3,7 @@
 #include <fstream>
 #include "NXGUICommon.h"
 #include "NXResourceManager.h"
+#include "NXPBRMaterial.h"
 
 NXGUITexture::NXGUITexture() :
 	m_pTexNXInfo(nullptr),
@@ -53,6 +54,9 @@ void NXGUITexture::Render()
 	if (ImGui::Button("Apply##Texture"))
 	{
 		SaveTextureNXInfo(); // ±£´æNXInfoÎÄ¼þ
+
+		ReloadTexture();
+
 		SetImage(m_strImgPath);
 	}
 
@@ -62,21 +66,18 @@ void NXGUITexture::Render()
 void NXGUITexture::Release()
 {
 	if (m_pTexImage) m_pTexImage->RemoveRef();
-	SafeDelete(m_pTexNXInfo);
 }
 
 void NXGUITexture::SetImage(const std::filesystem::path& path)
 {
 	m_strImgPath = path;
 
-	if (m_pTexImage) m_pTexImage->RemoveRef();
-	SafeDelete(m_pTexNXInfo);
+	NXTexture2D* pOldImage = m_pTexImage;
+	if (pOldImage) pOldImage->RemoveRef();
 
 	m_pTexImage = NXResourceManager::GetInstance()->CreateTexture2D("NXGUITexture Preview Image", path);
 	if (m_pTexImage)
 	{
-		m_pTexImage->AddSRV();
-
 		m_pTexNXInfo = m_pTexImage->LoadTextureNXInfo(path);
 		if (!m_pTexNXInfo)
 			m_pTexNXInfo = new TextureNXInfo();
@@ -106,7 +107,18 @@ void NXGUITexture::SaveTextureNXInfo()
 	m_pTexNXInfo->Height = m_pTexImage->GetHeight();
 
 	ofs << m_pTexNXInfo->TexFormat << ' ' << m_pTexNXInfo->Width << ' ' << m_pTexNXInfo->Height << std::endl;
-	ofs << m_pTexNXInfo->nTexType << ' ' << m_pTexNXInfo->bSRGB << ' ' << m_pTexNXInfo->bInvertNormalY << ' ' << m_pTexNXInfo->bGenerateMipMap << ' ' << m_pTexNXInfo->bCubeMap << std::endl;
+	ofs << m_pTexNXInfo->nTexType << ' ' << (int)m_pTexNXInfo->bSRGB << ' ' << (int)m_pTexNXInfo->bInvertNormalY << ' ' << (int)m_pTexNXInfo->bGenerateMipMap << ' ' << (int)m_pTexNXInfo->bCubeMap << std::endl;
 
 	ofs.close();
+}
+
+void NXGUITexture::ReloadTexture()
+{
+	if (m_pTexImage)
+		m_pTexImage->MakeDirty();
+
+	for (auto pMat : m_pTexImage->GetRefMaterials())
+	{
+		pMat->ReloadTextures();
+	}
 }
