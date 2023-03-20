@@ -100,6 +100,11 @@ void NXGUITexture::SaveTextureNXInfo()
 
 	size_t pathHashValue = std::filesystem::hash_value(path);
 	ofs << pathHashValue << std::endl;
+
+	m_pTexNXInfo->TexFormat = m_pTexImage->GetFormat();
+	m_pTexNXInfo->Width = m_pTexImage->GetWidth();
+	m_pTexNXInfo->Height = m_pTexImage->GetHeight();
+
 	ofs << m_pTexNXInfo->TexFormat << ' ' << m_pTexNXInfo->Width << ' ' << m_pTexNXInfo->Height << std::endl;
 	ofs << m_pTexNXInfo->nTexType << ' ' << m_pTexNXInfo->bSRGB << ' ' << m_pTexNXInfo->bInvertNormalY << ' ' << m_pTexNXInfo->bGenerateMipMap << ' ' << m_pTexNXInfo->bCubeMap << std::endl;
 

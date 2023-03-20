@@ -50,11 +50,18 @@ enum NXCommonRTEnum
     NXCommonRT_SIZE,
 };
 
+class NXTexture2D;
+class NXTextureCube;
+class NXTexture2DArray;
 class NXTexture
 {
 public:
     NXTexture() : m_nRefCount(0), m_width(-1), m_height(-1), m_arraySize(-1), m_texFormat(DXGI_FORMAT_UNKNOWN), m_mipLevels(-1), m_texFilePath(""), m_pTexNXInfo(nullptr) {}
     ~NXTexture() {};
+
+    virtual NXTexture2D*        Is2D()          { return nullptr; }
+    virtual NXTexture2DArray*   Is2DArray()     { return nullptr; }
+    virtual NXTextureCube*      IsCubeMap()     { return nullptr; }
 
     ID3D11Texture2D* GetTex() { return m_pTexture.Get(); }
     ID3D11ShaderResourceView*   GetSRV(UINT index = 0) { return m_pSRVs.empty() ? nullptr : m_pSRVs[index].Get(); }
@@ -93,6 +100,7 @@ protected:
     UINT m_arraySize;
     UINT m_mipLevels;
 
+    // 引用计数
     int m_nRefCount;
 };
 
@@ -101,6 +109,8 @@ class NXTexture2D : public NXTexture
 public:
     NXTexture2D() : NXTexture() {}
     ~NXTexture2D() {}
+
+    NXTexture2D* Is2D() override { return this; }
 
     void Create(std::string DebugName,
         const D3D11_SUBRESOURCE_DATA* initData,
@@ -116,7 +126,7 @@ public:
         UINT SampleQuality,
         UINT MiscFlags);
 
-    void Create(const std::string& DebugName, const std::filesystem::path& FilePath);
+    NXTexture2D* Create(const std::string& DebugName, const std::filesystem::path& FilePath);
 
     void AddSRV();
     void AddRTV();
@@ -129,6 +139,8 @@ class NXTextureCube : public NXTexture
 public:
     NXTextureCube() : NXTexture() {}
     ~NXTextureCube() {}
+
+    NXTextureCube* IsCubeMap() override { return this; }
 
     void Create(std::string DebugName,
         const D3D11_SUBRESOURCE_DATA* initData,
@@ -161,6 +173,8 @@ class NXTexture2DArray : public NXTexture
 public:
     NXTexture2DArray() : NXTexture() {}
     ~NXTexture2DArray() {}
+
+    NXTexture2DArray* Is2DArray() override { return this; }
 
     void Create(std::string DebugName,
         const D3D11_SUBRESOURCE_DATA* initData,
@@ -260,5 +274,5 @@ public:
 private:
     std::vector<NXTexture2D*> m_pCommonRT;
 
-    std::vector<NXTexture*> m_pTextureArray;
+    std::unordered_set<NXTexture*> m_pTextureArray;
 };

@@ -54,7 +54,7 @@ NXTexture2D* NXResourceManager::CreateTexture2D(std::string DebugName, DXGI_FORM
 	NXTexture2D* pTexture2D = new NXTexture2D();
 	pTexture2D->Create(DebugName, nullptr, TexFormat, Width, Height, ArraySize, MipLevels, BindFlags, Usage, CpuAccessFlags, SampleCount, SampleQuality, MiscFlags);
 	
-	m_pTextureArray.push_back(pTexture2D);
+	m_pTextureArray.insert(pTexture2D);
 	return pTexture2D;
 }
 
@@ -63,16 +63,27 @@ NXTexture2D* NXResourceManager::CreateTexture2D(std::string DebugName, const D3D
 	NXTexture2D* pTexture2D = new NXTexture2D();
 	pTexture2D->Create(DebugName, initData, TexFormat, Width, Height, ArraySize, MipLevels, BindFlags, Usage, CpuAccessFlags, SampleCount, SampleQuality, MiscFlags);
 
-	m_pTextureArray.push_back(pTexture2D);
+	m_pTextureArray.insert(pTexture2D);
 	return pTexture2D;
 }
 
-NXTexture2D* NXResourceManager::CreateTexture2D(const std::string& DebugName, const std::filesystem::path& FilePath)
+NXTexture2D* NXResourceManager::CreateTexture2D(const std::string& DebugName, const std::filesystem::path& filePath)
 {
-	NXTexture2D* pTexture2D = new NXTexture2D();
-	pTexture2D->Create(DebugName, FilePath);
+	// 先在已加载纹理里面找当前纹理，有的话就不用Create了
+	for (auto pTexture : m_pTextureArray)
+	{
+		auto pTex2D = pTexture->Is2D();
+		if (pTex2D && !filePath.empty() && std::filesystem::hash_value(filePath) == std::filesystem::hash_value(pTexture->GetFilePath()))
+		{
+			pTex2D->AddRef();
+			return pTex2D;
+		}
+	}
 
-	m_pTextureArray.push_back(pTexture2D);
+	NXTexture2D* pTexture2D = new NXTexture2D();
+	pTexture2D->Create(DebugName, filePath);
+
+	m_pTextureArray.insert(pTexture2D);
 	return pTexture2D;
 }
 
@@ -81,16 +92,27 @@ NXTextureCube* NXResourceManager::CreateTextureCube(std::string DebugName, DXGI_
 	NXTextureCube* pTextureCube = new NXTextureCube();
 	pTextureCube->Create(DebugName, nullptr, TexFormat, Width, Height, MipLevels, BindFlags, Usage, CpuAccessFlags, SampleCount, SampleQuality, MiscFlags);
 
-	m_pTextureArray.push_back(pTextureCube);
+	m_pTextureArray.insert(pTextureCube);
 	return pTextureCube;
 }
 
-NXTextureCube* NXResourceManager::CreateTextureCube(const std::string& DebugName, const std::wstring& strFilePath, UINT width, UINT height)
+NXTextureCube* NXResourceManager::CreateTextureCube(const std::string& DebugName, const std::wstring& filePath, UINT width, UINT height)
 {
-	NXTextureCube* pTextureCube = new NXTextureCube();
-	pTextureCube->Create(DebugName, strFilePath, width, height);
+	// 先在已加载纹理里面找当前纹理，有的话就不用Create了
+	for (auto pTexture : m_pTextureArray)
+	{
+		auto pTexCube = pTexture->IsCubeMap();
+		if (pTexCube && !filePath.empty() && std::filesystem::hash_value(filePath) == std::filesystem::hash_value(pTexture->GetFilePath()))
+		{
+			pTexCube->AddRef();
+			return pTexCube;
+		}
+	}
 
-	m_pTextureArray.push_back(pTextureCube);
+	NXTextureCube* pTextureCube = new NXTextureCube();
+	pTextureCube->Create(DebugName, filePath, width, height);
+
+	m_pTextureArray.insert(pTextureCube);
 	return pTextureCube;
 }
 
@@ -99,7 +121,7 @@ NXTexture2DArray* NXResourceManager::CreateTexture2DArray(std::string DebugName,
 	NXTexture2DArray* pTexture2DArray = new NXTexture2DArray();
 	pTexture2DArray->Create(DebugName, nullptr, TexFormat, Width, Height, ArraySize, MipLevels, BindFlags, Usage, CpuAccessFlags, SampleCount, SampleQuality, MiscFlags);
 
-	m_pTextureArray.push_back(pTexture2DArray);
+	m_pTextureArray.insert(pTexture2DArray);
 	return pTexture2DArray;
 }
 
@@ -161,6 +183,9 @@ void NXResourceManager::Release()
 
 TextureNXInfo* NXTexture::LoadTextureNXInfo(const std::filesystem::path& filePath)
 {
+	if (m_pTexNXInfo)
+		return m_pTexNXInfo;
+
 	if (filePath.empty())
 		return nullptr;
 
@@ -242,7 +267,7 @@ void NXTexture2D::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* in
 	AddRef();
 }
 
-void NXTexture2D::Create(const std::string& DebugName, const std::filesystem::path& filePath)
+NXTexture2D* NXTexture2D::Create(const std::string& DebugName, const std::filesystem::path& filePath)
 {
 	TexMetadata metadata;
 	std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>();
@@ -259,7 +284,7 @@ void NXTexture2D::Create(const std::string& DebugName, const std::filesystem::pa
 		hr = LoadFromWICFile(filePath.c_str(), WIC_FLAGS_NONE, &metadata, *pImage);
 
 	if (FAILED(hr))
-		return;
+		return nullptr;
 
 	m_texFilePath = filePath;
 
@@ -350,6 +375,8 @@ void NXTexture2D::Create(const std::string& DebugName, const std::filesystem::pa
 	m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
 
 	AddRef();
+
+	return this;
 }
 
 void NXTexture2D::AddSRV()
