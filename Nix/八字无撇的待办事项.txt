@@ -42,19 +42,18 @@ Last Issue ID : 25
 3. 新材质类型：SubSurface
 7. Hierarchy 场景大纲
 4. 法线参数修正（现版本的三轴缩放是个什么鬼……）
+	（note：需要专门的法线插值，单纯的缩放不能解决问题。）
 16. CubeMap预加载优化（现在每次打开都会读一遍dds文件）
 
-5. 纹理界面化
+5. 纹理界面化[DONE]
 21. Depth peeling UI参数可控
 22. Context Explorer 增加浏览类型（比如只显示图片/CubeMap/Nmat/FBX/……）
-20. 纹理加载内存优化: 每帧检查一次有没有nRefCount=0的纹理，有的话就释放掉。
-23. 现在改纹理，Apply以后纹理是变，但是使用了这些纹理的材质没有改变。
-	这个要稍花精力想一下，目前纹理和材质还没有建立联系。
 25. ForceSRGB/ForceLinear纹理支持的格式还不全。导入SRGB纹理的时候可能会引起崩溃
 
 【较大的长期模块】
 12. resizeable viewport+全屏化UI
 13. 场景文件化，可保存、加载
+14. 自定义材质
 
 【bugs】
 17. translucent材质 IBL 亮度拉高的时候有bug，
@@ -68,4 +67,7 @@ Last Issue ID : 25
 2. Translucent类型材质保存[DONE]
 6. WStr相关函数整理 做成通用类? [DONE] (namespace NXConvert)
 9. 鼠标在IMGUI上的指令 和 ViewPort上的指令 如何区分？[DONE]（*新增了NXForceEvent，强制事件）
-24. contentExplorer，点cubemap类型的dds纹理，会崩溃[done]
+20. 纹理加载内存优化: 每帧检查一次有没有nRefCount=0的纹理，有的话就释放掉。[DONE]
+23. 现在改纹理，Apply以后纹理是变，但是使用了这些纹理的材质没有改变。
+	这个要稍花精力想一下，目前纹理和材质还没有建立联系。[DONE]
+24. contentExplorer，点cubemap类型的dds纹理，会崩溃[DONE]

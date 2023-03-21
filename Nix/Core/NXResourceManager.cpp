@@ -264,6 +264,7 @@ void NXTexture::RemoveRef()
 
 void NXTexture::Release()
 {
+	MarkDirty();
 	SafeDelete(m_pInfo);
 }
 

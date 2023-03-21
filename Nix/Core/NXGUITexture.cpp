@@ -77,8 +77,8 @@ void NXGUITexture::SetImage(const std::filesystem::path& path)
 
 	NXTexture2D* pOldImage = m_pTexImage;
 	if (pOldImage) pOldImage->RemoveRef();
-
 	m_pTexInfo = nullptr;
+
 	m_pTexImage = NXResourceManager::GetInstance()->CreateTexture2D("NXGUITexture Preview Image", path);
 	if (m_pTexImage)
 	{
