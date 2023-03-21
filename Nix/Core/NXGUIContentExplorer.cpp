@@ -103,7 +103,7 @@ void NXGUIContentExplorer::Render()
                                 else if (subElem.path().has_extension())
                                 {
                                     // 获取扩展名并转换成小写
-                                    strExtension = subElem.path().extension().u8string().c_str();
+                                    strExtension = subElem.path().extension().string().c_str();
                                     strExtension = NXConvert::s2lower(strExtension);
 
                                     // *.nxInfo 是纹理描述文件，不加载
@@ -116,7 +116,7 @@ void NXGUIContentExplorer::Render()
                                 ImGui::TableNextColumn();
 
                                 // 文件夹/图标按钮本体
-                                if (ImGui::Button((strExtensionText + "##" + subElem.path().u8string()).c_str(), ImVec2(fActualSize, fActualSize)))
+                                if (ImGui::Button((strExtensionText + "##" + subElem.path().string()).c_str(), ImVec2(fActualSize, fActualSize)))
                                 {
                                     //printf("%s\n", strExtensionText.c_str());
                                 }
@@ -159,7 +159,7 @@ void NXGUIContentExplorer::Render()
                                 //}
 
                                 // 文件名
-                                std::string subElemFileName = subElem.path().stem().u8string().c_str();
+                                std::string subElemFileName = subElem.path().stem().string().c_str();
                                 float textWidth = ImGui::CalcTextSize(subElemFileName.c_str()).x;
                                 float posX = ImGui::GetCursorPosX();
                                 float textOffset = max(0.0f, (fActualSize - textWidth) * 0.5f);
@@ -184,7 +184,7 @@ void NXGUIContentExplorer::Render()
 
 void NXGUIContentExplorer::RenderContentFolder(const std::filesystem::path& folderPath)
 {
-    const std::string strFolderName = folderPath.stem().u8string();
+    const std::string strFolderName = folderPath.stem().string();
     size_t nHashFilePath = std::filesystem::hash_value(folderPath);
 
     ImGuiTreeNodeFlags eTreeNodeFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding;

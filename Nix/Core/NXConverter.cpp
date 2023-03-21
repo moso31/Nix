@@ -21,16 +21,18 @@ std::wstring s2ws(const std::string& s)
 	return std::wstring(s.begin(), s.end());
 }
 
-std::string s2lower(std::string s)
+std::string s2lower(const std::string& s)
 {
-	std::transform(s.begin(), s.end(), s.begin(), std::tolower);
-	return s;
+	std::string result;
+	std::transform(s.begin(), s.end(), std::back_inserter(result), ::tolower);
+	return result;
 }
 
-std::wstring s2lower(std::wstring s)
+std::wstring s2lower(const std::wstring& s)
 {
-	std::transform(s.begin(), s.end(), s.begin(), std::towlower);
-	return s;
+	std::wstring result;
+	std::transform(s.begin(), s.end(), std::back_inserter(result), ::towlower);
+	return result;
 }
 
 std::string GetPathOfImguiIni()

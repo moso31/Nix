@@ -146,7 +146,8 @@ void Renderer::RenderFrame()
 
 	// ÉèÖÃÊÓ¿Ú
 	auto vp = g_dxResources->GetViewPortSize();
-	g_pContext->RSSetViewports(1, &CD3D11_VIEWPORT(0.0f, 0.0f, vp.x, vp.y));
+	CD3D11_VIEWPORT vpCamera(0.0f, 0.0f, vp.x, vp.y);
+	g_pContext->RSSetViewports(1, &vpCamera);
 
 	NXTexture2D* pSceneRT = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_MainScene);
 	g_pContext->ClearRenderTargetView(pSceneRT->GetRTV(), Colors::Black);
@@ -157,9 +158,10 @@ void Renderer::RenderFrame()
 	m_pGBufferRenderer->Render();
 
 	// Shadow Map
-	g_pContext->RSSetViewports(1, &CD3D11_VIEWPORT(0.0f, 0.0f, 2048, 2048));
+	CD3D11_VIEWPORT vpShadow(0.0f, 0.0f, 2048, 2048);
+	g_pContext->RSSetViewports(1, &vpShadow);
 	m_pShadowMapRenderer->Render();
-	g_pContext->RSSetViewports(1, &CD3D11_VIEWPORT(0.0f, 0.0f, vp.x, vp.y));
+	g_pContext->RSSetViewports(1, &vpCamera);
 	m_pShadowTestRenderer->Render(m_pShadowMapRenderer->GetShadowMapDepthTex());
 
 	// Deferred opaque shading

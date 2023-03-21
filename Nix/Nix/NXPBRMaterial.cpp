@@ -26,12 +26,6 @@ void NXMaterial::Update()
 	g_pContext->UpdateSubresource(m_cb.Get(), 0, nullptr, m_cbData.get(), 0, 0);
 }
 
-NXTexture2D* NXMaterial::LoadFromTexFile(const std::wstring& texFilePath)
-{
-	NXTexture2D* pOutTex = NXResourceManager::GetInstance()->CreateTexture2D(m_name, texFilePath);
-	return pOutTex;
-}
-
 void NXMaterial::RemoveSubMesh(NXSubMeshBase* pRemoveSubmesh)
 {
 	m_pRefSubMeshes.erase(
@@ -44,6 +38,15 @@ void NXMaterial::AddSubMesh(NXSubMeshBase* pSubMesh)
 	m_pRefSubMeshes.push_back(pSubMesh);
 }
 
+void NXMaterial::SetTex2D(NXTexture2D*& pTex2D, const std::wstring& texFilePath)
+{
+	if (pTex2D) 
+		pTex2D->RemoveRef();
+
+	pTex2D = NXResourceManager::GetInstance()->CreateTexture2D(m_name, texFilePath);
+	pTex2D->AddMaterial(this);
+}
+
 NXPBRMaterialBase::NXPBRMaterialBase(const std::string name, const NXMaterialType type, const std::string& filePath) :
 	NXMaterial(name, type, filePath),
 	m_pTexAlbedo(nullptr),
@@ -54,59 +57,29 @@ NXPBRMaterialBase::NXPBRMaterialBase(const std::string name, const NXMaterialTyp
 {
 }
 
-void NXPBRMaterialBase::SetTexAlbedo(const std::wstring& TexFilePath)
+void NXPBRMaterialBase::SetTexAlbedo(const std::wstring& texFilePath)
 {
-	if (m_pTexAlbedo)
-	{
-		m_pTexAlbedo->RemoveMaterial(this);
-		m_pTexAlbedo->RemoveRef();
-	}
-	m_pTexAlbedo = LoadFromTexFile(TexFilePath);
-	m_pTexAlbedo->AddMaterial(this);
+	SetTex2D(m_pTexAlbedo, texFilePath);
 }
 
-void NXPBRMaterialBase::SetTexNormal(const std::wstring& TexFilePath)
+void NXPBRMaterialBase::SetTexNormal(const std::wstring& texFilePath)
 {
-	if (m_pTexNormal)
-	{
-		m_pTexNormal->RemoveMaterial(this);
-		m_pTexNormal->RemoveRef();
-	}
-	m_pTexNormal = LoadFromTexFile(TexFilePath);
-	m_pTexNormal->AddMaterial(this);
+	SetTex2D(m_pTexNormal, texFilePath);
 }
 
-void NXPBRMaterialBase::SetTexMetallic(const std::wstring& TexFilePath)
+void NXPBRMaterialBase::SetTexMetallic(const std::wstring& texFilePath)
 {
-	if (m_pTexMetallic)
-	{
-		m_pTexMetallic->RemoveMaterial(this);
-		m_pTexMetallic->RemoveRef();
-	}
-	m_pTexMetallic = LoadFromTexFile(TexFilePath);
-	m_pTexMetallic->AddMaterial(this);
+	SetTex2D(m_pTexMetallic, texFilePath);
 }
 
-void NXPBRMaterialBase::SetTexRoughness(const std::wstring& TexFilePath)
+void NXPBRMaterialBase::SetTexRoughness(const std::wstring& texFilePath)
 {
-	if (m_pTexRoughness)
-	{
-		m_pTexRoughness->RemoveMaterial(this);
-		m_pTexRoughness->RemoveRef();
-	}
-	m_pTexRoughness = LoadFromTexFile(TexFilePath);
-	m_pTexRoughness->AddMaterial(this);
+	SetTex2D(m_pTexRoughness, texFilePath);
 }
 
-void NXPBRMaterialBase::SetTexAO(const std::wstring& TexFilePath)
+void NXPBRMaterialBase::SetTexAO(const std::wstring& texFilePath)
 {
-	if (m_pTexAmbientOcclusion)
-	{
-		m_pTexAmbientOcclusion->RemoveMaterial(this);
-		m_pTexAmbientOcclusion->RemoveRef();
-	}
-	m_pTexAmbientOcclusion = LoadFromTexFile(TexFilePath);
-	m_pTexAmbientOcclusion->AddMaterial(this);
+	SetTex2D(m_pTexAmbientOcclusion, texFilePath);
 }
 
 void NXPBRMaterialBase::Release()

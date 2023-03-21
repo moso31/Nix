@@ -262,7 +262,7 @@ void NXDepthPeelingRenderer::RenderLayer()
 
 			// 2022.4.18 
 			// 单个材质由远及近排序，尽量避免半透渲染透视关系错误的问题但作用有限。主要还是得靠OIT。
-			auto& subMeshes = pPBRMat->GetRefSubMeshes();
+			auto subMeshes = pPBRMat->GetRefSubMeshes();
 			std::sort(subMeshes.begin(), subMeshes.end(), [cameraPos](NXSubMeshBase* meshA, NXSubMeshBase* meshB) { 
 				Vector3 posA = meshA->GetPrimitive()->GetTranslation();
 				Vector3 posB = meshB->GetPrimitive()->GetTranslation();

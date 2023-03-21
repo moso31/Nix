@@ -91,7 +91,7 @@ void NXGUIMaterial::Render()
 		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_EXPLORER_BUTTON_DRUGING"))
 		{
 			auto pDropData = (NXGUIContentExplorerButtonDrugData*)(payload->Data);
-			if (NXConvert::IsMaterialFileExtension(pDropData->srcPath.extension().u8string()))
+			if (NXConvert::IsMaterialFileExtension(pDropData->srcPath.extension().string()))
 			{
 				// 生成新材质
 				auto pNewMaterial = SceneManager::GetInstance()->LoadFromNmatFile(pDropData->srcPath);
@@ -357,7 +357,7 @@ void NXGUIMaterial::RenderTextureIcon(ImTextureID ImTexID, std::function<void()>
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_EXPLORER_BUTTON_DRUGING"))
 			{
 				auto pDropData = (NXGUIContentExplorerButtonDrugData*)(payload->Data);
-				if (NXConvert::IsImageFileExtension(pDropData->srcPath.extension().u8string()))
+				if (NXConvert::IsImageFileExtension(pDropData->srcPath.extension().string()))
 				{
 					onDrop(pDropData->srcPath.wstring());
 				}

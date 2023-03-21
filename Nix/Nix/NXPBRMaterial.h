@@ -69,11 +69,12 @@ public:
 	virtual void ReloadTextures() = 0;
 
 public:
-	NXTexture2D* LoadFromTexFile(const std::wstring& TexFilePath);
-
 	std::vector<NXSubMeshBase*> GetRefSubMeshes() { return m_pRefSubMeshes; }
 	void RemoveSubMesh(NXSubMeshBase* pRemoveSubmesh);
 	void AddSubMesh(NXSubMeshBase* pSubMesh);
+
+protected:
+	void SetTex2D(NXTexture2D*& pTex2D, const std::wstring& texFilePath);
 
 protected:
 	std::string m_name;

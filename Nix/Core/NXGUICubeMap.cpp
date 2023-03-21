@@ -127,7 +127,7 @@ void NXGUICubeMap::UpdateFileBrowserParameters()
 
 bool NXGUICubeMap::DropDataIsCubeMapImage(NXGUIContentExplorerButtonDrugData* pDropData)
 {
-	std::string strExtension = pDropData->srcPath.extension().u8string();
+	std::string strExtension = pDropData->srcPath.extension().string();
 	std::transform(strExtension.begin(), strExtension.end(), strExtension.begin(), [](UCHAR c) { return std::tolower(c); });
 
 	return strExtension == ".hdr" || strExtension == ".dds";

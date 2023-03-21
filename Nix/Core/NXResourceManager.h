@@ -11,9 +11,9 @@ struct TextureNXInfo
     //TextureNXInfo& operator=(TextureNXInfo&& info);
 
     int nTexType = 0;
-    int TexFormat = 0;
-    int Width = 0;
-    int Height = 0;
+    //int TexFormat = 0;
+    //int Width = 0;
+    //int Height = 0;
     bool bSRGB = false;
     bool bInvertNormalY = false;
     bool bGenerateMipMap = true;
@@ -56,7 +56,7 @@ class NXTexture2DArray;
 class NXTexture
 {
 public:
-    NXTexture() : m_nRefCount(0), m_bIsDirty(false), m_width(-1), m_height(-1), m_arraySize(-1), m_texFormat(DXGI_FORMAT_UNKNOWN), m_mipLevels(-1), m_texFilePath(""), m_pTexNXInfo(nullptr) {}
+    NXTexture() : m_nRefCount(0), m_bIsDirty(false), m_width(-1), m_height(-1), m_arraySize(-1), m_texFormat(DXGI_FORMAT_UNKNOWN), m_mipLevels(-1), m_texFilePath(""), m_pInfo(nullptr) {}
     ~NXTexture() {};
 
     virtual NXTexture2D*        Is2D()          { return nullptr; }
@@ -70,7 +70,10 @@ public:
     ID3D11UnorderedAccessView*  GetUAV(UINT index = 0) { return m_pUAVs.empty() ? nullptr : m_pUAVs[index].Get(); }
 
     std::filesystem::path const GetFilePath() { return m_texFilePath; }
-    TextureNXInfo* LoadTextureNXInfo(const std::filesystem::path& filePath);
+    void LoadTextureNXInfo(const std::filesystem::path& filePath);
+    void SaveTextureNXInfo();
+    TextureNXInfo* GetTextureNXInfo() { return m_pInfo; }
+
 
     UINT            GetWidth()      { return m_width; }
     UINT            GetHeight()     { return m_height; }
@@ -78,21 +81,22 @@ public:
     UINT            GetMipLevels()  { return m_mipLevels; }
     DXGI_FORMAT     GetFormat()     { return m_texFormat; }
 
-    void AddRef() { m_nRefCount++; }
+    void AddRef();
     void RemoveRef();
     void Release();
 
     std::unordered_set<NXMaterial*> GetRefMaterials() { return m_pRefMaterials; }
     void AddMaterial(NXMaterial* pMat) { m_pRefMaterials.insert(pMat); }
-    void RemoveMaterial(NXMaterial* pMat);
 
-    void MakeDirty() { m_bIsDirty = true; }
+    void MarkDirty() { m_bIsDirty = true; }
     bool IsDirty() { return m_bIsDirty; }
+
+    void Reload();
 
 protected:
     std::string m_debugName;
     ComPtr<ID3D11Texture2D> m_pTexture;
-    TextureNXInfo* m_pTexNXInfo;
+    TextureNXInfo* m_pInfo;
 
     std::filesystem::path m_texFilePath;
 
@@ -119,6 +123,7 @@ private:
 
     // 记录所有使用此纹理的材质
     std::unordered_set<NXMaterial*> m_pRefMaterials;
+    std::unordered_set<NXMaterial*> m_pRemovingMaterials;
 };
 
 class NXTexture2D : public NXTexture

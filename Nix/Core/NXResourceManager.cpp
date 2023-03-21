@@ -7,9 +7,9 @@
 
 TextureNXInfo::TextureNXInfo(const TextureNXInfo& info) :
 	nTexType(info.nTexType),
-	TexFormat(info.TexFormat),
-	Width(info.Width),
-	Height(info.Height),
+	//TexFormat(info.TexFormat),
+	//Width(info.Width),
+	//Height(info.Height),
 	bSRGB(info.bSRGB),
 	bInvertNormalY(info.bInvertNormalY),
 	bGenerateMipMap(info.bGenerateMipMap),
@@ -189,25 +189,22 @@ void NXResourceManager::Release()
 	for (auto pTex : m_pTextureArray) SafeRelease(pTex);
 }
 
-TextureNXInfo* NXTexture::LoadTextureNXInfo(const std::filesystem::path& filePath)
+void NXTexture::LoadTextureNXInfo(const std::filesystem::path& filePath)
 {
-	if (m_pTexNXInfo)
-		return m_pTexNXInfo;
+	// 如果已经有了NXInfo，就不用再加载了。
+	if (m_pInfo) return;
 
-	if (filePath.empty())
-		return nullptr;
+	// 如果没找到纹理文件，逻辑一定是有问题的
+	assert(!filePath.empty());
 
 	std::string strPath = filePath.string().c_str();
 	std::string strNXInfoPath = strPath + ".nxInfo";
 
 	std::ifstream ifs(strNXInfoPath, std::ios::binary);
 
-	// nxInfo 路径如果没打开，就返回一个所有值都给默认值的 InfoData
-	// 2023.3.18（不算读取失败，很多纹理没有nxInfo文件。）
-	if (!ifs.is_open())
-	{
-		return nullptr;
-	}
+	// nxInfo 路径如果没打开，就返回一个所有值都给默认值的 info
+	m_pInfo = new TextureNXInfo();
+	if (!ifs.is_open()) return;
 
 	std::string strIgnore;
 
@@ -215,25 +212,48 @@ TextureNXInfo* NXTexture::LoadTextureNXInfo(const std::filesystem::path& filePat
 	ifs >> nHashFile;
 	std::getline(ifs, strIgnore);
 
-	// 如果 纹理所存的文件路径的哈希nHashPath 和 nxInfo存储的路径哈希nHashFile
-	// 对不上，则读取失败，返回默认 InfoData
+	// 如果纹理文件和nxInfo文件的路径哈希不匹配，也使用默认 info
 	size_t nHashPath = std::filesystem::hash_value(filePath);
 	if (nHashFile != nHashPath)
 	{
 		printf("Warning: TextureInfoData of %s has founded, but couldn't be open. Consider delete that file.\n", filePath.string().c_str());
-		return nullptr;
+		return;
 	}
 
-	TextureNXInfo* pNXInfo = new TextureNXInfo();
-	ifs >> pNXInfo->TexFormat >> pNXInfo->Width >> pNXInfo->Height;
-	std::getline(ifs, strIgnore);
-
-	ifs >> pNXInfo->nTexType >> pNXInfo->bSRGB >> pNXInfo->bInvertNormalY >> pNXInfo->bGenerateMipMap >> pNXInfo->bCubeMap;
+	// 能通过以上条件才使用nxInfo本身存储的数据
+	ifs >> m_pInfo->nTexType >> m_pInfo->bSRGB >> m_pInfo->bInvertNormalY >> m_pInfo->bGenerateMipMap >> m_pInfo->bCubeMap;
 	std::getline(ifs, strIgnore);
 
 	ifs.close();
+}
 
-	return pNXInfo;
+void NXTexture::SaveTextureNXInfo()
+{
+	if (m_texFilePath.empty())
+		return;
+
+	std::string strPathInfo = m_texFilePath.string() + ".nxInfo";
+
+	std::ofstream ofs(strPathInfo, std::ios::binary);
+
+	// 文件格式：
+	// 纹理文件路径的哈希
+	// (int)TexFormat, Width, Height, Arraysize, Miplevel
+	// (int)TextureType, (int)IsSRGB, (int)IsInvertNormalY, (int)IsGenerateCubeMap, (int)IsCubeMap
+
+	size_t pathHashValue = std::filesystem::hash_value(m_texFilePath);
+	ofs << pathHashValue << std::endl;
+
+	ofs << m_pInfo->nTexType << ' ' << (int)m_pInfo->bSRGB << ' ' << (int)m_pInfo->bInvertNormalY << ' ' << (int)m_pInfo->bGenerateMipMap << ' ' << (int)m_pInfo->bCubeMap << std::endl;
+
+	ofs.close();
+}
+
+void NXTexture::AddRef()
+{
+	// 2023.3.20 一个纹理一旦标记为脏纹理后，引用计数不允许再增加。
+	assert(!m_bIsDirty);
+	m_nRefCount++;
 }
 
 void NXTexture::RemoveRef()
@@ -244,14 +264,21 @@ void NXTexture::RemoveRef()
 
 void NXTexture::Release()
 {
-	SafeDelete(m_pTexNXInfo);
+	SafeDelete(m_pInfo);
 }
 
-void NXTexture::RemoveMaterial(NXMaterial* pMat)
+void NXTexture::Reload()
 {
-	auto it = m_pRefMaterials.find(pMat);
-	if (it != m_pRefMaterials.end())
-		m_pRefMaterials.erase(it);
+	// 2023.3.20
+	// 标记自身为Dirty，然后重新加载引用了当前纹理的材质。
+	// 由于不允许引用脏纹理，所以这些纹理一定会重新加载，从而实现Reload。
+	MarkDirty();
+
+	if (!m_pRefMaterials.empty())
+		for (auto pMat : m_pRefMaterials)
+			pMat->ReloadTextures();
+
+	m_pRefMaterials.clear();
 }
 
 void NXTexture2D::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* initData, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
@@ -303,9 +330,7 @@ NXTexture2D* NXTexture2D::Create(const std::string& DebugName, const std::filesy
 
 	m_texFilePath = filePath;
 
-	m_pTexNXInfo = LoadTextureNXInfo(filePath);
-	if (!m_pTexNXInfo)
-		m_pTexNXInfo = new TextureNXInfo();
+	LoadTextureNXInfo(filePath);
 
 	// 如果读取的是arraySize/TextureCube，就只读取ArraySize[0]/X+面。
 	if (metadata.arraySize > 1)
@@ -317,12 +342,12 @@ NXTexture2D* NXTexture2D::Create(const std::string& DebugName, const std::filesy
 	}
 
 	// --- Convert -----------------------------------------------------------------
-	if (IsSRGB(metadata.format) != m_pTexNXInfo->bSRGB)
+	if (IsSRGB(metadata.format) != m_pInfo->bSRGB)
 	{
 		std::unique_ptr<ScratchImage> timage(new ScratchImage);
 
-		DXGI_FORMAT tFormat = m_pTexNXInfo->bSRGB ? NXConvert::ForceSRGB(metadata.format) : NXConvert::ForceLinear(metadata.format);
-		TEX_FILTER_FLAGS texFlags = m_pTexNXInfo->bSRGB ? TEX_FILTER_SRGB_IN : TEX_FILTER_DEFAULT;
+		DXGI_FORMAT tFormat = m_pInfo->bSRGB ? NXConvert::ForceSRGB(metadata.format) : NXConvert::ForceLinear(metadata.format);
+		TEX_FILTER_FLAGS texFlags = m_pInfo->bSRGB ? TEX_FILTER_SRGB_IN : TEX_FILTER_DEFAULT;
 		hr = Convert(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), tFormat, texFlags, TEX_THRESHOLD_DEFAULT, *timage);
 		if (SUCCEEDED(hr))
 		{
@@ -336,7 +361,7 @@ NXTexture2D* NXTexture2D::Create(const std::string& DebugName, const std::filesy
 	}
 
 	// --- Invert Y Channel --------------------------------------------------------
-	if (m_pTexNXInfo->bInvertNormalY)
+	if (m_pInfo->bInvertNormalY)
 	{
 		std::unique_ptr<ScratchImage> timage(new ScratchImage);
 
@@ -362,7 +387,7 @@ NXTexture2D* NXTexture2D::Create(const std::string& DebugName, const std::filesy
 		pImage.swap(timage);
 	}
 
-	if (m_pTexNXInfo->bGenerateMipMap && metadata.width >= 2 && metadata.height >= 2 && metadata.mipLevels == 1)
+	if (m_pInfo->bGenerateMipMap && metadata.width >= 2 && metadata.height >= 2 && metadata.mipLevels == 1)
 	{
 		std::unique_ptr<ScratchImage> pImageMip = std::make_unique<ScratchImage>();
 		HRESULT hr = GenerateMipMaps(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), TEX_FILTER_DEFAULT, 0, *pImageMip);
