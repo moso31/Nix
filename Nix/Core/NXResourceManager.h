@@ -70,8 +70,6 @@ public:
     ID3D11UnorderedAccessView*  GetUAV(UINT index = 0) { return m_pUAVs.empty() ? nullptr : m_pUAVs[index].Get(); }
 
     std::filesystem::path const GetFilePath() { return m_texFilePath; }
-    void LoadTextureNXInfo(const std::filesystem::path& filePath);
-    void SaveTextureNXInfo();
     TextureNXInfo* GetTextureNXInfo() { return m_pInfo; }
 
 
@@ -290,6 +288,11 @@ public:
 
     void InitCommonRT();
     NXTexture2D* GetCommonRT(NXCommonRTEnum eRT);
+
+    // 加载纹理资源元文件（TextureNXInfo）
+    // 如果没找到对应的元文件，则将返回一个所有参数都为默认值的元文件。
+    TextureNXInfo* LoadTextureInfo(const std::filesystem::path& texFilePath);
+    void SaveTextureInfo(const TextureNXInfo* pInfo, const std::filesystem::path& texFilePath);
 
     void Release();
 

@@ -184,27 +184,18 @@ NXTexture2D* NXResourceManager::GetCommonRT(NXCommonRTEnum eRT)
 	return m_pCommonRT[eRT];
 }
 
-void NXResourceManager::Release()
+TextureNXInfo* NXResourceManager::LoadTextureInfo(const std::filesystem::path& texFilePath)
 {
-	for (auto pTex : m_pTextureArray) SafeRelease(pTex);
-}
+	auto pResult = new TextureNXInfo();
 
-void NXTexture::LoadTextureNXInfo(const std::filesystem::path& filePath)
-{
-	// 如果已经有了NXInfo，就不用再加载了。
-	if (m_pInfo) return;
-
-	// 如果没找到纹理文件，逻辑一定是有问题的
-	assert(!filePath.empty());
-
-	std::string strPath = filePath.string().c_str();
+	std::string strPath = texFilePath.string().c_str();
 	std::string strNXInfoPath = strPath + ".nxInfo";
 
 	std::ifstream ifs(strNXInfoPath, std::ios::binary);
 
 	// nxInfo 路径如果没打开，就返回一个所有值都给默认值的 info
-	m_pInfo = new TextureNXInfo();
-	if (!ifs.is_open()) return;
+	if (!ifs.is_open()) 
+		return pResult;
 
 	std::string strIgnore;
 
@@ -212,41 +203,51 @@ void NXTexture::LoadTextureNXInfo(const std::filesystem::path& filePath)
 	ifs >> nHashFile;
 	std::getline(ifs, strIgnore);
 
-	// 如果纹理文件和nxInfo文件的路径哈希不匹配，也使用默认 info
-	size_t nHashPath = std::filesystem::hash_value(filePath);
+	// 如果打开了元文件，但发现路径哈希和纹理资源本身并不匹配，则这个元文件是失效的。返回默认元文件。
+	size_t nHashPath = std::filesystem::hash_value(texFilePath);
 	if (nHashFile != nHashPath)
 	{
-		printf("Warning: TextureInfoData of %s has founded, but couldn't be open. Consider delete that file.\n", filePath.string().c_str());
-		return;
+		printf("Warning: TextureInfoData of %s has founded, but couldn't be open. Consider delete that file.\n", strPath.c_str());
+		return pResult;
 	}
 
-	// 能通过以上条件才使用nxInfo本身存储的数据
-	ifs >> m_pInfo->nTexType >> m_pInfo->bSRGB >> m_pInfo->bInvertNormalY >> m_pInfo->bGenerateMipMap >> m_pInfo->bCubeMap;
+	// 能通过以上全部条件，才使用元文件存储的数据
+	ifs >> pResult->nTexType >> pResult->bSRGB >> pResult->bInvertNormalY >> pResult->bGenerateMipMap >> pResult->bCubeMap;
 	std::getline(ifs, strIgnore);
 
 	ifs.close();
+
+	return pResult;
 }
 
-void NXTexture::SaveTextureNXInfo()
+void NXResourceManager::SaveTextureInfo(const TextureNXInfo* pInfo, const std::filesystem::path& texFilePath)
 {
-	if (m_texFilePath.empty())
+	if (texFilePath.empty())
+	{
+		printf("Warning: can't save TextureNXInfo for %s, path does not exist.\n", texFilePath.string().c_str());
 		return;
+	}
 
-	std::string strPathInfo = m_texFilePath.string() + ".nxInfo";
+	std::string strPathInfo = texFilePath.string() + ".nxInfo";
 
 	std::ofstream ofs(strPathInfo, std::ios::binary);
 
-	// 文件格式：
-	// 纹理文件路径的哈希
-	// (int)TexFormat, Width, Height, Arraysize, Miplevel
-	// (int)TextureType, (int)IsSRGB, (int)IsInvertNormalY, (int)IsGenerateCubeMap, (int)IsCubeMap
+	// 2023.3.22
+	// 纹理资源的元文件（*.nxInfo）存储：
+	// 1. 纹理文件路径的哈希
+	// 2. (int)TextureType, (int)IsSRGB, (int)IsInvertNormalY, (int)IsGenerateCubeMap, (int)IsCubeMap
 
-	size_t pathHashValue = std::filesystem::hash_value(m_texFilePath);
+	size_t pathHashValue = std::filesystem::hash_value(texFilePath);
 	ofs << pathHashValue << std::endl;
 
-	ofs << m_pInfo->nTexType << ' ' << (int)m_pInfo->bSRGB << ' ' << (int)m_pInfo->bInvertNormalY << ' ' << (int)m_pInfo->bGenerateMipMap << ' ' << (int)m_pInfo->bCubeMap << std::endl;
+	ofs << pInfo->nTexType << ' ' << (int)pInfo->bSRGB << ' ' << (int)pInfo->bInvertNormalY << ' ' << (int)pInfo->bGenerateMipMap << ' ' << (int)pInfo->bCubeMap << std::endl;
 
 	ofs.close();
+}
+
+void NXResourceManager::Release()
+{
+	for (auto pTex : m_pTextureArray) SafeRelease(pTex);
 }
 
 void NXTexture::AddRef()
@@ -330,8 +331,7 @@ NXTexture2D* NXTexture2D::Create(const std::string& DebugName, const std::filesy
 		return nullptr;
 
 	m_texFilePath = filePath;
-
-	LoadTextureNXInfo(filePath);
+	m_pInfo = NXResourceManager::GetInstance()->LoadTextureInfo(filePath);
 
 	// 如果读取的是arraySize/TextureCube，就只读取ArraySize[0]/X+面。
 	if (metadata.arraySize > 1)

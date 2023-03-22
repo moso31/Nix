@@ -52,15 +52,15 @@ void NXGUITexture::Render()
 				m_pTexInfo->bSRGB = bSRGB;
 			}
 		}
-	}
 
-	if (ImGui::Button("Apply##Texture"))
-	{
-		// 保存NXInfo文件
-		m_pTexImage->SaveTextureNXInfo();
-		m_pTexImage->Reload();
+		if (ImGui::Button("Apply##Texture"))
+		{
+			// 保存NXInfo文件
+			NXResourceManager::GetInstance()->SaveTextureInfo(m_pTexInfo, m_pTexImage->GetFilePath());
+			m_pTexImage->Reload();
 
-		SetImage(m_strImgPath);
+			SetImage(m_pTexImage->GetFilePath());
+		}
 	}
 
 	ImGui::End();
@@ -73,11 +73,12 @@ void NXGUITexture::Release()
 
 void NXGUITexture::SetImage(const std::filesystem::path& path)
 {
-	m_strImgPath = path;
-
 	NXTexture2D* pOldImage = m_pTexImage;
 	if (pOldImage) pOldImage->RemoveRef();
 	m_pTexInfo = nullptr;
+
+	if (path.empty())
+		return;
 
 	m_pTexImage = NXResourceManager::GetInstance()->CreateTexture2D("NXGUITexture Preview Image", path);
 	if (m_pTexImage)
