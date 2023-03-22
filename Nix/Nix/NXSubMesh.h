@@ -18,6 +18,7 @@ enum EditorObjectID
 class NXPrimitive;
 class NXSubMeshBase
 {
+	friend class SceneManager;
 public:
 	NXSubMeshBase(NXPrimitive* pPrimitive) : m_pPrimitive(pPrimitive), m_pMaterial(nullptr) {}
 	virtual ~NXSubMeshBase() {}
@@ -36,13 +37,17 @@ public:
 
 	NXPrimitive* GetPrimitive() { return m_pPrimitive; }
 	NXMaterial* GetMaterial() const { return m_pMaterial; }
-	void SetMaterial(NXMaterial* mat) { m_pMaterial = mat; }
 
 	virtual void CalcLocalAABB() = 0;
 	AABB GetLocalAABB() { return m_localAABB; }
 
 	virtual bool IsSubMeshStandard()		{ return false; }
 	virtual bool IsSubMeshEditorObject()	{ return false; }
+
+private:
+	// [Warning!] 不允许直接设置材质！
+	// 需要使用 SceneManager::GetInstance()->BindMaterial() 为场景物体绑定材质
+	void SetMaterial(NXMaterial* mat) { m_pMaterial = mat; }
 
 protected:
 	NXPrimitive* m_pPrimitive;

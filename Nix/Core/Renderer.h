@@ -1,6 +1,7 @@
 #pragma once
 #include "Header.h"
 #include "GlobalBufferManager.h"
+#include "NXBRDFlut.h"
 
 #include "NXDepthPrepass.h"
 #include "NXGBufferRenderer.h"
@@ -17,12 +18,16 @@
 #include "NXDebugLayerRenderer.h"
 #include "NXEditorObjectRenderer.h"
 
+struct NXEventArgKey;
 class Renderer
 {
 public:
+	Renderer();
+
 	void Init();
 	void InitGUI();
 	void InitRenderer();
+	void InitEvents();
 
 	// 资源重加载（如果上一帧修改了资源）
 	void ResourcesReloading();
@@ -44,15 +49,20 @@ public:
 public:
 	NXSimpleSSAO*			GetSSAORenderer()			{ return m_pSSAO; }
 	NXShadowMapRenderer*	GetShadowMapRenderer()		{ return m_pShadowMapRenderer; }
+	// 2023.3.10 目前 PostProcessing 只有 ColorMapping…… 所以这两个暂时算是同义词。
+	NXColorMappingRenderer* GetColorMappingRenderer()   { return m_pColorMappingRenderer; }
 	NXDebugLayerRenderer*	GetDebugLayerRenderer()		{ return m_pDebugLayerRenderer; }
 
 private:
 	void DrawDepthPrepass();
+	void OnKeyDown(NXEventArgKey eArg);
 
 private:
 	ComPtr<ID3D11InputLayout>			m_pInputLayoutP;
 	ComPtr<ID3D11InputLayout>			m_pInputLayoutPT;
 	ComPtr<ID3D11InputLayout>			m_pInputLayoutPNT;
+
+	NXBRDFLut*							m_pBRDFLut;
 
 	NXScene*							m_scene;
 	NXDepthPrepass*						m_pDepthPrepass;
@@ -70,4 +80,6 @@ private:
 	NXEditorObjectRenderer*				m_pEditorObjectRenderer;
 
 	NXGUI*								m_pGUI;
+
+	bool								m_bRenderGUI;
 };

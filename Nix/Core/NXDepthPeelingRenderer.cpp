@@ -3,6 +3,7 @@
 #include "ShaderComplier.h"
 #include "NXRenderStates.h"
 
+#include "NXBRDFlut.h"
 #include "GlobalBufferManager.h"
 #include "NXScene.h"
 #include "NXPrimitive.h"
@@ -10,7 +11,8 @@
 #include "NXRenderTarget.h"
 #include "NXCamera.h"
 
-NXDepthPeelingRenderer::NXDepthPeelingRenderer(NXScene* pScene) :
+NXDepthPeelingRenderer::NXDepthPeelingRenderer(NXScene* pScene, NXBRDFLut* pBRDFLut) :
+	m_pBRDFLut(pBRDFLut),
 	m_pScene(pScene),
 	m_peelingLayerCount(3)
 {
@@ -124,11 +126,9 @@ void NXDepthPeelingRenderer::Render()
 		if (pCubeMap)
 		{
 			auto pCubeMapSRV = pCubeMap->GetSRVCubeMap();
-			auto pIrradianceMapSRV = pCubeMap->GetSRVIrradianceMap();
 			auto pPreFilterMapSRV = pCubeMap->GetSRVPreFilterMap();
-			auto pBRDF2DLUT = pCubeMap->GetSRVBRDF2DLUT();
+			auto pBRDF2DLUT = m_pBRDFLut->GetSRV();
 			g_pContext->PSSetShaderResources(0, 1, &pCubeMapSRV);
-			g_pContext->PSSetShaderResources(7, 1, &pIrradianceMapSRV);
 			g_pContext->PSSetShaderResources(8, 1, &pPreFilterMapSRV);
 			g_pContext->PSSetShaderResources(9, 1, &pBRDF2DLUT);
 
@@ -207,9 +207,9 @@ void NXDepthPeelingRenderer::Render()
 
 void NXDepthPeelingRenderer::Release()
 {
-	for(auto pRT : m_pSceneRT) SafeDelete(pRT);
-	SafeDelete(m_pSceneDepth[0]);
-	SafeDelete(m_pSceneDepth[1]);
+	for(auto pRT : m_pSceneRT) pRT->RemoveRef();
+	m_pSceneDepth[0]->RemoveRef();
+	m_pSceneDepth[1]->RemoveRef();
 
 	SafeDelete(m_pCombineRTData);
 }
@@ -262,7 +262,7 @@ void NXDepthPeelingRenderer::RenderLayer()
 
 			// 2022.4.18 
 			// 单个材质由远及近排序，尽量避免半透渲染透视关系错误的问题但作用有限。主要还是得靠OIT。
-			auto& subMeshes = pPBRMat->GetRefSubMeshes();
+			auto subMeshes = pPBRMat->GetRefSubMeshes();
 			std::sort(subMeshes.begin(), subMeshes.end(), [cameraPos](NXSubMeshBase* meshA, NXSubMeshBase* meshB) { 
 				Vector3 posA = meshA->GetPrimitive()->GetTranslation();
 				Vector3 posB = meshB->GetPrimitive()->GetTranslation();

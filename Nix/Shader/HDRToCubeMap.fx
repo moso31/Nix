@@ -38,6 +38,6 @@ PS_INPUT VS(VS_INPUT input)
 float4 PS(PS_INPUT input) : SV_Target
 {
 	float2 uv = SampleSphericalMap(normalize(input.posOS)); // make sure to normalize localPos
-	float3 color = txHDRMap.Sample(ssLinearWrap, uv).rgb;
+	float3 color = txHDRMap.Sample(ssLinearWrap, float2(1.0 - uv.x, uv.y)).rgb;
 	return float4(color, 1.0);
 }

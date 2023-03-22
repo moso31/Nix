@@ -16,6 +16,8 @@ public:
 	void OnMouseMove(NXEventArgMouse eArg);
 	void OnMouseUp(NXEventArgMouse eArg);
 	void OnKeyDown(NXEventArgKey eArg);
+	void OnKeyUp(NXEventArgKey eArg);
+	void OnKeyUpForce(NXEventArgKey eArg);
 
 private:
 	// 计算射线和EditorObject上的锚点。平移、旋转、缩放等操作都依赖这个锚点。
@@ -23,7 +25,8 @@ private:
 	Vector3 GetAnchorOfEditorTranslatorLine(const Ray& ray, const Ray& line) const;
 	Vector3 GetAnchorOfEditorTranslatorPlane(const Ray& ray, const Plane& plane) const;
 	EditorObjectID m_bEditorSelectID;
-	Vector3 m_editorHitOffset;
+	// 记录拖动EditorObject并MouseDown时，所有选中物体的位置信息（实际储存的是这些位置距离Anchor的偏移量）
+	std::vector<Vector3> m_selectObjHitOffset;
 
 public:
 
@@ -37,8 +40,8 @@ public:
 	void Release();
 
 	// UI Picking
-	void SetCurrentPickingSubMesh(NXSubMeshBase* pPickingObject = nullptr);
-	NXSubMeshBase* GetCurrentPickingSubMesh() { return m_pPickingObject; }
+	void AddPickingSubMesh(NXSubMeshBase* pPickingObject = nullptr);
+	std::vector<NXSubMeshBase*> GetPickingSubMeshes() const { return m_pSelectedSubMeshes; }
 
 	// RayCasts
 	HBVHTree* GetBVHTree() { return m_pBVHTree; }
@@ -62,7 +65,7 @@ public:
 	// 更新场景BVH树
 	void BuildBVHTrees(const HBVHSplitMode SplitMode);
 private:
-	// 生成编辑器对象（SelectionArrows等玩意）
+	// 生成编辑器对象（MoveArrows等玩意）
 	void InitEditorObjectsManager();
 
 	// 计算场景下所有物体的 AABB。
@@ -77,9 +80,6 @@ private:
 	AABB m_aabb;
 	BoundingSphere m_boundingSphere;
 
-	// 当前选中的SubMesh。
-	NXSubMeshBase* m_pPickingObject;
-
 	// 求交加速结构（用于NXRayTracer的射线检测）
 	HBVHTree* m_pBVHTree;
 
@@ -91,8 +91,10 @@ private:
 	std::vector<NXMaterial*> m_materials;
 	std::vector<NXPBRLight*> m_pbrLights;
 
-	// 选中对象（2022.9.26 目前只支持单选！）
-	std::vector<NXPrimitive*> m_selectedObjects;
+	// 当前选中的SubMesh和对应的Objects
+	std::vector<NXSubMeshBase*> m_pSelectedSubMeshes;
+	std::vector<NXPrimitive*> m_pSelectedObjects; 
+	bool m_bMultiSelectKeyHolding; // 是否处于多选状态(LCtrl)
 
 	NXEditorObjectManager* m_pEditorObjManager;
 

@@ -12,6 +12,7 @@
 #include "imgui_stdlib.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
+#include "imgui_internal.h"
 
 #if defined(DEBUG) | defined(_DEBUG)
     #define DEBUG_NEW new( _NORMAL_BLOCK, __FILE__, __LINE__)

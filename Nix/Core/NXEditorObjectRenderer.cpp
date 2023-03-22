@@ -97,6 +97,6 @@ void NXEditorObjectRenderer::Render()
 
 void NXEditorObjectRenderer::Release()
 {
-	SafeDelete(m_pPassOutTex);
+	m_pPassOutTex->RemoveRef();
 	SafeRelease(m_pRTQuad);
 }

@@ -1,6 +1,7 @@
 #include "Renderer.h"
 #include "DirectResources.h"
 #include "ShaderComplier.h"
+#include "NXEvent.h"
 #include "NXResourceManager.h"
 #include "NXResourceReloader.h"
 #include "NXRenderStates.h"
@@ -12,8 +13,15 @@
 #include "NXDepthPrepass.h"
 #include "NXSimpleSSAO.h"
 
+Renderer::Renderer() : 
+	m_bRenderGUI(true)
+{
+}
+
 void Renderer::Init()
 {
+	InitEvents();
+
 	NXGlobalInputLayout::Init();
 	NXGlobalBufferManager::Init();
 
@@ -24,12 +32,9 @@ void Renderer::Init()
 	m_scene->Init();
 
 	auto pCubeMap = m_scene->GetCubeMap();
-	if (pCubeMap)
-	{
-		pCubeMap->GenerateIrradianceMap();
-		pCubeMap->GeneratePreFilterMap();
-		pCubeMap->GenerateBRDF2DLUT();
-	}
+
+	m_pBRDFLut = new NXBRDFLut();
+	m_pBRDFLut->GenerateBRDFLUT();
 
 	m_pDepthPrepass = new NXDepthPrepass(m_scene);
 	m_pDepthPrepass->Init(g_dxResources->GetViewSize());
@@ -46,13 +51,13 @@ void Renderer::Init()
 	m_pShadowTestRenderer = new NXShadowTestRenderer();
 	m_pShadowTestRenderer->Init();
 
-	m_pDeferredRenderer = new NXDeferredRenderer(m_scene);
+	m_pDeferredRenderer = new NXDeferredRenderer(m_scene, m_pBRDFLut);
 	m_pDeferredRenderer->Init();
 
-	m_pForwardRenderer = new NXForwardRenderer(m_scene);
+	m_pForwardRenderer = new NXForwardRenderer(m_scene, m_pBRDFLut);
 	m_pForwardRenderer->Init();
 
-	m_pDepthPeelingRenderer = new NXDepthPeelingRenderer(m_scene);
+	m_pDepthPeelingRenderer = new NXDepthPeelingRenderer(m_scene, m_pBRDFLut);
 	m_pDepthPeelingRenderer->Init();
 
 	m_pSkyRenderer = new NXSkyRenderer(m_scene);
@@ -87,6 +92,11 @@ void Renderer::InitRenderer()
 	g_pContext->OMSetDepthStencilState(nullptr, 0); 
 	g_pContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
 	g_pContext->RSSetState(nullptr);	// back culling
+}
+
+void Renderer::InitEvents()
+{
+	NXEventKeyDown::GetInstance()->AddListener(std::bind(&Renderer::OnKeyDown, this, std::placeholders::_1));
 }
 
 void Renderer::ResourcesReloading()
@@ -136,7 +146,8 @@ void Renderer::RenderFrame()
 
 	// ÉèÖÃÊÓ¿Ú
 	auto vp = g_dxResources->GetViewPortSize();
-	g_pContext->RSSetViewports(1, &CD3D11_VIEWPORT(0.0f, 0.0f, vp.x, vp.y));
+	CD3D11_VIEWPORT vpCamera(0.0f, 0.0f, vp.x, vp.y);
+	g_pContext->RSSetViewports(1, &vpCamera);
 
 	NXTexture2D* pSceneRT = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_MainScene);
 	g_pContext->ClearRenderTargetView(pSceneRT->GetRTV(), Colors::Black);
@@ -147,9 +158,10 @@ void Renderer::RenderFrame()
 	m_pGBufferRenderer->Render();
 
 	// Shadow Map
-	g_pContext->RSSetViewports(1, &CD3D11_VIEWPORT(0.0f, 0.0f, 2048, 2048));
+	CD3D11_VIEWPORT vpShadow(0.0f, 0.0f, 2048, 2048);
+	g_pContext->RSSetViewports(1, &vpShadow);
 	m_pShadowMapRenderer->Render();
-	g_pContext->RSSetViewports(1, &CD3D11_VIEWPORT(0.0f, 0.0f, vp.x, vp.y));
+	g_pContext->RSSetViewports(1, &vpCamera);
 	m_pShadowTestRenderer->Render(m_pShadowMapRenderer->GetShadowMapDepthTex());
 
 	// Deferred opaque shading
@@ -182,7 +194,7 @@ void Renderer::RenderFrame()
 
 void Renderer::RenderGUI()
 {
-	m_pGUI->Render();
+	if (m_bRenderGUI) m_pGUI->Render();
 }
 
 void Renderer::Release()
@@ -204,9 +216,18 @@ void Renderer::Release()
 	SafeRelease(m_pColorMappingRenderer);
 	SafeRelease(m_pFinalRenderer);
 
+	SafeRelease(m_pBRDFLut);
 	SafeRelease(m_scene);
 }
 
 void Renderer::DrawDepthPrepass()
 {
+}
+
+void Renderer::OnKeyDown(NXEventArgKey eArg)
+{
+	if (eArg.VKey == 'H')
+	{
+		m_bRenderGUI = !m_bRenderGUI;
+	}
 }

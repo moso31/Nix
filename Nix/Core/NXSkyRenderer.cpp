@@ -58,9 +58,6 @@ void NXSkyRenderer::Render()
 		auto pCubeMapSRV = pCubeMap->GetSRVCubeMap();
 		g_pContext->PSSetShaderResources(0, 1, &pCubeMapSRV);
 
-		auto pSRVIrradSH = pCubeMap->GetSRVIrradianceSH();
-		g_pContext->PSSetShaderResources(1, 1, &pSRVIrradSH);
-
 		pCubeMap->Render();
 	}
 

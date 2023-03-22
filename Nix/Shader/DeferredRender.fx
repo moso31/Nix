@@ -9,17 +9,9 @@ Texture2D txRT1 : register(t1);
 Texture2D txRT2 : register(t2);
 Texture2D txRT3 : register(t3);
 TextureCube txCubeMap : register(t4);
-TextureCube txIrradianceMap : register(t5);
 TextureCube txPreFilterMap : register(t6);
 Texture2D txBRDF2DLUT : register(t7);
 Texture2D txShadowTest : register(t8);
-
-struct ConstantBufferIrradSH
-{
-	float4 irradSH[9];
-};
-
-StructuredBuffer<ConstantBufferIrradSH> cbIrradianceSH : register(t9);
 
 SamplerState ssLinearWrap : register(s0);
 SamplerState ssLinearClamp : register(s1);
@@ -48,6 +40,7 @@ cbuffer ConstantBufferCubeMap : register(b3)
 	float4 m_irradSH4567z;
 	float3 m_irradSH8xyz;
 	float  m_cubeMapIntensity;
+	float4 m_cubeMapIrradMode;
 }
 
 struct VS_INPUT
@@ -85,40 +78,7 @@ float3 CalcBSDF(float NoV, float NoL, float NoH, float VoH, float roughness, flo
 
 float3 GetIndirectIrradiance(float3 v)
 {
-	float3 irradiance;
-	irradiance.x =
-		g_SHFactor[0] * cbIrradianceSH[0].irradSH[0].x +
-		g_SHFactor[1] * cbIrradianceSH[0].irradSH[1].x * v.x +
-		g_SHFactor[2] * cbIrradianceSH[0].irradSH[2].x * v.y +
-		g_SHFactor[3] * cbIrradianceSH[0].irradSH[3].x * v.z +
-		g_SHFactor[4] * cbIrradianceSH[0].irradSH[4].x * v.x * v.z +
-		g_SHFactor[5] * cbIrradianceSH[0].irradSH[5].x * v.x * v.y +
-		g_SHFactor[6] * cbIrradianceSH[0].irradSH[6].x * (2.0 * v.y * v.y - v.z * v.z - v.x * v.x) +
-		g_SHFactor[7] * cbIrradianceSH[0].irradSH[7].x * v.y * v.z +
-		g_SHFactor[8] * cbIrradianceSH[0].irradSH[8].x * (v.z * v.z - v.x * v.x);
-
-	irradiance.y =
-		g_SHFactor[0] * cbIrradianceSH[0].irradSH[0].y +
-		g_SHFactor[1] * cbIrradianceSH[0].irradSH[1].y * v.x +
-		g_SHFactor[2] * cbIrradianceSH[0].irradSH[2].y * v.y +
-		g_SHFactor[3] * cbIrradianceSH[0].irradSH[3].y * v.z +
-		g_SHFactor[4] * cbIrradianceSH[0].irradSH[4].y * v.x * v.z +
-		g_SHFactor[5] * cbIrradianceSH[0].irradSH[5].y * v.x * v.y +
-		g_SHFactor[6] * cbIrradianceSH[0].irradSH[6].y * (2.0 * v.y * v.y - v.z * v.z - v.x * v.x) +
-		g_SHFactor[7] * cbIrradianceSH[0].irradSH[7].y * v.y * v.z +
-		g_SHFactor[8] * cbIrradianceSH[0].irradSH[8].y * (v.z * v.z - v.x * v.x);
-
-	irradiance.z =
-		g_SHFactor[0] * cbIrradianceSH[0].irradSH[0].z +
-		g_SHFactor[1] * cbIrradianceSH[0].irradSH[1].z * v.x +
-		g_SHFactor[2] * cbIrradianceSH[0].irradSH[2].z * v.y +
-		g_SHFactor[3] * cbIrradianceSH[0].irradSH[3].z * v.z +
-		g_SHFactor[4] * cbIrradianceSH[0].irradSH[4].z * v.x * v.z +
-		g_SHFactor[5] * cbIrradianceSH[0].irradSH[5].z * v.x * v.y +
-		g_SHFactor[6] * cbIrradianceSH[0].irradSH[6].z * (2.0 * v.y * v.y - v.z * v.z - v.x * v.x) +
-		g_SHFactor[7] * cbIrradianceSH[0].irradSH[7].z * v.y * v.z +
-		g_SHFactor[8] * cbIrradianceSH[0].irradSH[8].z * (v.z * v.z - v.x * v.x);
-
+	float3 irradiance = GetIrradiance(v, m_irradSH0123x, m_irradSH4567x, m_irradSH0123y, m_irradSH4567y, m_irradSH0123z, m_irradSH4567z, m_irradSH8xyz);
 	return irradiance;
 }
 
@@ -137,7 +97,6 @@ float4 PS(PS_INPUT input) : SV_Target
 	//return txCubeMap.Sample(ssLinearWrap, R);	// perfect reflection test
 
 	float3 albedo = txRT2.Sample(ssLinearWrap, uv).xyz;
-	albedo = pow(albedo, 2.2f);
 
 	float roughnessMap = txRT3.Sample(ssLinearWrap, uv).x;
 	float roughness = roughnessMap;
@@ -243,12 +202,6 @@ float4 PS(PS_INPUT input) : SV_Target
 
 	float3 Libl = (diffuseIBL + SpecularIBL) * m_cubeMapIntensity * ao;
 	float3 color = Libl + Lo * (1.0f - ShadowTest);
-
-	//// fast tone-mapping.
-	//color = color / (color + 1.0);
-
-	//// gamma.
-	//color = pow(color, 1.0 / 2.2);
 
 	return float4(color, 1.0f);
 }

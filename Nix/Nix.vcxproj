@@ -110,7 +110,7 @@
       <ConformanceMode>false</ConformanceMode>
       <AdditionalIncludeDirectories>.\;..\;..\DirectxTex\DirectxTex\;..\NixMath\;..\IMGUI\;..\NixTools\Include\FBXSDK\;.\Core;.\Nix;.\Nix\Script;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OpenMPSupport>true</OpenMPSupport>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -215,7 +215,9 @@
     <ClCompile Include="Core\GlobalBufferManager.cpp" />
     <ClCompile Include="Core\ImageGenerator.cpp" />
     <ClCompile Include="Core\Main.cpp" />
+    <ClCompile Include="Core\NXBRDFlut.cpp" />
     <ClCompile Include="Core\NXColorMappingRenderer.cpp" />
+    <ClCompile Include="Core\NXConverter.cpp" />
     <ClCompile Include="Core\NXDebugLayerRenderer.cpp" />
     <ClCompile Include="Core\NXDeferredRenderer.cpp" />
     <ClCompile Include="Core\NXDepthPeelingRenderer.cpp" />
@@ -227,12 +229,16 @@
     <ClCompile Include="Core\NXGBufferRenderer.cpp" />
     <ClCompile Include="Core\NXGUI.cpp" />
     <ClCompile Include="Core\NXGUICamera.cpp" />
+    <ClCompile Include="Core\NXGUICommon.cpp" />
+    <ClCompile Include="Core\NXGUIContentExplorer.cpp" />
     <ClCompile Include="Core\NXGUICubeMap.cpp" />
     <ClCompile Include="Core\NXGUIDebugLayer.cpp" />
     <ClCompile Include="Core\NXGUILights.cpp" />
     <ClCompile Include="Core\NXGUIMaterial.cpp" />
+    <ClCompile Include="Core\NXGUIPostProcessing.cpp" />
     <ClCompile Include="Core\NXGUIShadows.cpp" />
     <ClCompile Include="Core\NXGUISSAO.cpp" />
+    <ClCompile Include="Core\NXGUITexture.cpp" />
     <ClCompile Include="Core\NXInput.cpp" />
     <ClCompile Include="Core\NXInstance.cpp" />
     <ClCompile Include="Core\NXRandom.cpp" />
@@ -275,7 +281,9 @@
     <ClInclude Include="Core\GlobalBufferManager.h" />
     <ClInclude Include="Core\Header.h" />
     <ClInclude Include="Core\ImageGenerator.h" />
+    <ClInclude Include="Core\NXBRDFlut.h" />
     <ClInclude Include="Core\NXColorMappingRenderer.h" />
+    <ClInclude Include="Core\NXConverter.h" />
     <ClInclude Include="Core\NXDebugLayerRenderer.h" />
     <ClInclude Include="Core\NXDeferredRenderer.h" />
     <ClInclude Include="Core\NXDepthPeelingRenderer.h" />
@@ -287,14 +295,18 @@
     <ClInclude Include="Core\NXGBufferRenderer.h" />
     <ClInclude Include="Core\NXGUI.h" />
     <ClInclude Include="Core\NXGUICamera.h" />
+    <ClInclude Include="Core\NXGUICommon.h" />
+    <ClInclude Include="Core\NXGUIContentExplorer.h" />
     <ClInclude Include="Core\NXGUICubeMap.h" />
     <ClInclude Include="Core\NXGUIDebugLayer.h" />
     <ClInclude Include="Core\NXGUIFileBrowser.h" />
     <ClInclude Include="Core\NXGUIImpl.h" />
     <ClInclude Include="Core\NXGUILights.h" />
     <ClInclude Include="Core\NXGUIMaterial.h" />
+    <ClInclude Include="Core\NXGUIPostProcessing.h" />
     <ClInclude Include="Core\NXGUIShadows.h" />
     <ClInclude Include="Core\NXGUISSAO.h" />
+    <ClInclude Include="Core\NXGUITexture.h" />
     <ClInclude Include="Core\NXInput.h" />
     <ClInclude Include="Core\NXInstance.h" />
     <ClInclude Include="Core\NXRandom.h" />
@@ -339,7 +351,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="场景添加物体说明.txt" />
+    <Text Include="行将废弃的加载说明.txt" />
     <Text Include="八字无撇的待办事项.txt" />
     <Text Include="杂七杂八的编码规范.txt" />
   </ItemGroup>
@@ -508,6 +520,11 @@
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DeploymentContent>
       <FileType>Document</FileType>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DeploymentContent>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shader\CubeMapIrradianceSHdds.fx">
+      <FileType>Document</FileType>
     </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

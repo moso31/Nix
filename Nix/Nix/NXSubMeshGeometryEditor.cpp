@@ -484,7 +484,7 @@ void NXSubMeshGeometryEditor::CreateSHSphere(NXPrimitive* pMesh, int basis_l, in
 	pMesh->AddSubMesh(pSubMesh);
 }
 
-void NXSubMeshGeometryEditor::CreateSelectionArrows(NXPrimitive* pMesh)
+void NXSubMeshGeometryEditor::CreateMoveArrows(NXPrimitive* pMesh)
 {
 	Vector4 colorX(1.0f, 0.0f, 0.0f, 1.0f);
 	Vector4 colorY(0.0f, 1.0f, 0.0f, 1.0f);

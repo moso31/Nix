@@ -16,13 +16,15 @@ NXEditorObjectManager::~NXEditorObjectManager()
 void NXEditorObjectManager::Init()
 {
 	NXPrimitive* pObj = new NXPrimitive();
-	pObj->SetName("game_selection_arrows");
-	//pObj->SetVisible(false);	// SelectionArrows 默认不可见
-	NXSubMeshGeometryEditor::GetInstance()->CreateSelectionArrows(pObj);
+	pObj->SetName("game_move_arrows");
+	NXSubMeshGeometryEditor::GetInstance()->CreateMoveArrows(pObj);
 
 	m_editorObjs.push_back(pObj);
 
 	InitBoundingStructures();
+
+	// EditorObjects默认不可见
+	SetVisible(false);
 }
 
 void NXEditorObjectManager::InitBoundingStructures()
@@ -72,4 +74,9 @@ bool NXEditorObjectManager::RayCast(const Ray& worldRay, NXHit& outHitInfo, floa
 void NXEditorObjectManager::MoveTranslatorTo(const Vector3& position)
 {
 	m_editorObjs[0]->SetTranslation(position);
+}
+
+void NXEditorObjectManager::SetVisible(bool val)
+{
+	for (auto p : m_editorObjs) p->SetVisible(val);
 }

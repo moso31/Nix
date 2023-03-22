@@ -5,7 +5,7 @@
 class NXForwardRenderer
 {
 public:
-	NXForwardRenderer(NXScene* pScene);
+	NXForwardRenderer(NXScene* pScene, NXBRDFLut* pBRDFLut);
 	~NXForwardRenderer();
 
 	void Init();
@@ -25,5 +25,6 @@ private:
 	ComPtr<ID3D11SamplerState>			m_pSamplerLinearWrap;
 	ComPtr<ID3D11SamplerState>			m_pSamplerLinearClamp;
 
+	NXBRDFLut* m_pBRDFLut;
 	NXScene* m_pScene;
 };

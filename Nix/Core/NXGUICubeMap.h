@@ -2,6 +2,7 @@
 #include "Header.h"
 #include "NXGUIFileBrowser.h"
 
+struct NXGUIContentExplorerButtonDrugData;
 class NXGUICubeMap
 {
 public:
@@ -12,13 +13,14 @@ public:
 	void Render();
 
 private:
-	void RenderTextureIcon(ImTextureID ImTexID, std::function<void()> onChange, std::function<void()> onRemove);
+	void RenderTextureIcon(ImTextureID ImTexID, std::function<void()> onChange, std::function<void(const std::wstring&)> onDrop);
 
 private:
 	void OnCubeMapTexChange(NXCubeMap* pCubeMap);
-	void OnCubeMapTexRemove(NXCubeMap* pCubeMap);
+	void OnCubeMapTexDrop(NXCubeMap* pCubeMap, const std::wstring& filePath);
 
 	void UpdateFileBrowserParameters();
+	bool DropDataIsCubeMapImage(NXGUIContentExplorerButtonDrugData* pDrugData);
 
 private:
 	NXScene* m_pCurrentScene;

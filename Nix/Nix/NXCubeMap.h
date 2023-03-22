@@ -2,6 +2,7 @@
 #include "NXTransform.h"
 #include "DirectXTex.h"
 #include "ShaderStructures.h"
+#include <filesystem>
 
 struct ConstantBufferImageData
 {
@@ -17,7 +18,7 @@ struct ConstantBufferIrradSH
 
 struct ConstantBufferCubeMap
 {
-	ConstantBufferCubeMap() : intensity(1.0f) {}
+	ConstantBufferCubeMap() : intensity(1.0f), irradMode(0.0f) {}
 	Vector4 irradSH0123x;
 	Vector4 irradSH4567x;
 	Vector4 irradSH0123y;
@@ -26,8 +27,8 @@ struct ConstantBufferCubeMap
 	Vector4 irradSH4567z;
 	Vector3 irradSH8xyz;
 	float intensity;
+	Vector4 irradMode;
 };
-
 
 class NXCubeMap : public NXTransform
 {
@@ -35,31 +36,33 @@ public:
 	NXCubeMap(NXScene* pScene);
 	~NXCubeMap() {}
 
-	bool Init(const std::wstring filePath);
+	bool Init(const std::filesystem::path& filePath);
 	void Update() override;
 	void UpdateViewParams();
 	void Render();
 	void Release() override;
 
-	void GenerateCubeMap(const std::wstring filePath);
-	void GenerateIrradianceSH(size_t imgWidth, size_t imgHeight);
+	NXTextureCube* GenerateCubeMap(NXTexture2D* pTexHDR);
+	void GenerateIrradianceSHFromHDRI(NXTexture2D* pTexHDR);
+	void GenerateIrradianceSHFromCubeMap();
+
 	void GenerateIrradianceMap();
 	void GeneratePreFilterMap();
-	void GenerateBRDF2DLUT();
 
-	Vector3 BackgroundColorByDirection(const Vector3& v);
-
-	ID3D11ShaderResourceView* GetSRVCubeMap() { return m_pSRVCubeMap.Get(); }
-	ID3D11ShaderResourceView* GetSRVCubeMapPreview2D() { return m_pSRVCubeMapPreview2D.Get(); }
-	ID3D11ShaderResourceView* GetSRVIrradianceMap() { return m_pSRVIrradianceMap.Get(); }
-	ID3D11ShaderResourceView* GetSRVPreFilterMap() { return m_pSRVPreFilterMap.Get(); }
-	ID3D11ShaderResourceView* GetSRVBRDF2DLUT() { return m_pSRVBRDF2DLUT.Get(); }
-
-	ID3D11ShaderResourceView* GetSRVIrradianceSH() { return m_pSRVIrradianceSH.Get(); }
+	ID3D11ShaderResourceView* GetSRVCubeMap();
+	ID3D11ShaderResourceView* GetSRVCubeMapPreview2D();
+	ID3D11ShaderResourceView* GetSRVIrradianceMap();
+	ID3D11ShaderResourceView* GetSRVPreFilterMap();
 
 	ID3D11Buffer* GetConstantBufferParams() { return m_cb.Get(); }
 
+	void SetIntensity(float val) { m_cbData.intensity = val; }
 	float* GetIntensity() { return &m_cbData.intensity; }
+
+	void SetIrradMode(int val) { m_cbData.irradMode = Vector4((float)val); };
+
+	void SaveHDRAsDDS(NXTextureCube* pTexture, const std::filesystem::path& filePath);
+	void LoadDDS(const std::filesystem::path& filePath);
 
 private:
 	void InitVertex();
@@ -67,12 +70,6 @@ private:
 	void InitConstantBuffer();
 
 private:
-	DXGI_FORMAT m_format;
-	std::wstring m_cubeMapFilePath;
-	std::unique_ptr<ScratchImage> m_pImage;
-	std::vector<byte*> m_faceData;
-	size_t m_width, m_height;
-
 	NXScene* m_pScene;
 
 	Matrix m_mxCubeMapProj;
@@ -88,28 +85,26 @@ private:
 	ComPtr<ID3D11Buffer>		m_pVertexBufferCubeBox;
 	ComPtr<ID3D11Buffer>		m_pIndexBufferCubeBox;
 
-	ComPtr<ID3D11ShaderResourceView>	m_pSRVHDRMap;
+	NXTextureCube*						m_pTexCubeMap;
+	NXTextureCube*						m_pTexIrradianceMap;
+	NXTextureCube*						m_pTexPreFilterMap;
 
-	ComPtr<ID3D11Texture2D>				m_pTexCubeMap;
-	ComPtr<ID3D11ShaderResourceView>	m_pSRVCubeMap;
-	ComPtr<ID3D11ShaderResourceView>	m_pSRVCubeMapPreview2D;
-	ComPtr<ID3D11RenderTargetView>		m_pRTVCubeMaps[6];
-
-	ComPtr<ID3D11Texture2D>				m_pTexIrradianceMap;
-	ComPtr<ID3D11ShaderResourceView>	m_pSRVIrradianceMap;
-	ComPtr<ID3D11RenderTargetView>		m_pRTVIrradianceMaps[6];
-
-	ComPtr<ID3D11ShaderResourceView>	m_pSRVIrradianceSH;
 	Vector3 m_shIrradianceMap[9];
+	Vector3 m_shIrradianceMap_CPU[9];
 
-	ComPtr<ID3D11Texture2D>				m_pTexPreFilterMap;
-	ComPtr<ID3D11ShaderResourceView>	m_pSRVPreFilterMap;
-	ComPtr<ID3D11RenderTargetView>		m_pRTVPreFilterMaps[5][6];
-
-	ComPtr<ID3D11Texture2D>				m_pTexBRDF2DLUT;
-	ComPtr<ID3D11ShaderResourceView>	m_pSRVBRDF2DLUT;
-	ComPtr<ID3D11RenderTargetView>		m_pRTVBRDF2DLUT;
 
 	ConstantBufferCubeMap	m_cbData;
 	ComPtr<ID3D11Buffer>	m_cb;
+
+////////////////////////////////////////////////////////////////////////////
+//// Deprecated functions...
+////////////////////////////////////////////////////////////////////////////
+
+
+public:
+	void GenerateIrradianceSHFromHDRI_Deprecated(NXTexture2D* pTexHDR);
+	ID3D11ShaderResourceView* GetSRVIrradianceSH() { return m_pSRVIrradianceSH.Get(); }
+
+private:
+	ComPtr<ID3D11ShaderResourceView>	m_pSRVIrradianceSH;
 };

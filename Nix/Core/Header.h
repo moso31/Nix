@@ -28,6 +28,7 @@
 #include <list>
 #include <map>
 #include <set>
+#include <unordered_set>
 #include <chrono>
 #include <algorithm>
 
@@ -58,6 +59,13 @@ using namespace Microsoft::WRL;
 #define SafeReleaseCOM(x) { if (x) { x->Release(); x = nullptr; } }
 #define SafeRelease(x) { if (x) { x->Release(); SafeDelete(x); } }
 
+enum NXKeyCode
+{
+	LeftShift = 16,
+	LeftControl = 17,
+	LeftAlt = 18,
+};
+
 // class preload
 class App;
 class DirectResources;
@@ -68,8 +76,11 @@ class NXTimer;
 
 // resources
 class NXResourceManager;
+struct TextureNXInfo;
 class NXTexture2D;
+class NXTextureCube;
 class NXTexture2DArray;
+class NXBRDFLut;
 
 // scene
 class NXScene;

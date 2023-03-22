@@ -20,7 +20,12 @@ public:
 
 	EditorObjectID	GetHighLightID() { return m_uHighLightID; }
 	void			SetHighLightID(EditorObjectID value) { m_uHighLightID = value; }
+
+	// "MoveArrow" , "Translator" is same meaning.
+	NXPrimitive*	GetMoveArrow() { return m_editorObjs[0]; }
 	void			MoveTranslatorTo(const Vector3& position);
+
+	void			SetVisible(bool val);
 
 private:
 	NXScene* m_pScene;

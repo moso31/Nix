@@ -3,6 +3,7 @@
 #include "DirectResources.h"
 #include "NXResourceManager.h"
 
+#include "NXBRDFlut.h"
 #include "NXRenderStates.h"
 #include "GlobalBufferManager.h"
 #include "NXScene.h"
@@ -10,7 +11,8 @@
 #include "NXCubeMap.h"
 #include "NXRenderTarget.h"
 
-NXDeferredRenderer::NXDeferredRenderer(NXScene* pScene) :
+NXDeferredRenderer::NXDeferredRenderer(NXScene* pScene, NXBRDFLut* pBRDFLut) :
+	m_pBRDFLut(pBRDFLut),
 	m_pScene(pScene)
 {
 }
@@ -65,16 +67,11 @@ void NXDeferredRenderer::Render()
 	if (pCubeMap)
 	{
 		auto pCubeMapSRV = pCubeMap->GetSRVCubeMap();
-		auto pIrradianceMapSRV = pCubeMap->GetSRVIrradianceMap();
 		auto pPreFilterMapSRV = pCubeMap->GetSRVPreFilterMap();
-		auto pBRDF2DLUT = pCubeMap->GetSRVBRDF2DLUT();
+		auto pBRDF2DLUT = m_pBRDFLut->GetSRV();
 		g_pContext->PSSetShaderResources(4, 1, &pCubeMapSRV);
-		g_pContext->PSSetShaderResources(5, 1, &pIrradianceMapSRV);
 		g_pContext->PSSetShaderResources(6, 1, &pPreFilterMapSRV);
 		g_pContext->PSSetShaderResources(7, 1, &pBRDF2DLUT);
-
-		auto pIrradianceSHSRV = pCubeMap->GetSRVIrradianceSH();
-		g_pContext->PSSetShaderResources(9, 1, &pIrradianceSHSRV);
 
 		auto pCBCubeMapParam = pCubeMap->GetConstantBufferParams();
 		g_pContext->PSSetConstantBuffers(3, 1, &pCBCubeMapParam);

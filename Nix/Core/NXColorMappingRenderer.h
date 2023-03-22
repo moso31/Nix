@@ -2,6 +2,11 @@
 #include "header.h"
 #include "ShaderStructures.h"
 
+struct CBufferColorMapping
+{
+	Vector4 param0; // x: enable
+};
+
 class NXColorMappingRenderer
 {
 public:
@@ -10,6 +15,9 @@ public:
 
 	void Init();
 	void Render();
+
+	bool GetEnable() const { return m_bEnablePostProcessing; }
+	void SetEnable(bool value) { m_bEnablePostProcessing = value; }
 
 	void Release();
 
@@ -25,4 +33,10 @@ private:
 	ComPtr<ID3D11SamplerState>			m_pSamplerLinearClamp;
 
 	NXRenderTarget* m_pFinalRT;
+
+private:
+	bool m_bEnablePostProcessing;
+
+	ComPtr<ID3D11Buffer>				m_cbParams;
+	CBufferColorMapping					m_cbDataParams;
 };

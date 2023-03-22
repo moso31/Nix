@@ -2,6 +2,7 @@
 #include "NXEvent.h"
 #include "DirectResources.h"
 #include "Renderer.h"
+#include "NXConverter.h"
 
 #include "NXGUIFileBrowser.h"
 #include "NXGUIMaterial.h"
@@ -11,6 +12,9 @@
 #include "NXGUISSAO.h"
 #include "NXGUIShadows.h"
 #include "NXGUIDebugLayer.h"
+#include "NXGUIPostProcessing.h"
+#include "NXGUIContentExplorer.h"
+#include "NXGUITexture.h"
 
 NXGUI::NXGUI(NXScene* pScene, Renderer* pRenderer) :
 	m_pCurrentScene(pScene),
@@ -22,7 +26,10 @@ NXGUI::NXGUI(NXScene* pScene, Renderer* pRenderer) :
 	m_pGUICubeMap(nullptr),
 	m_pGUISSAO(nullptr),
 	m_pGUIShadows(nullptr),
-	m_pGUIDebugLayer(nullptr)
+	m_pGUIPostProcessing(nullptr),
+	m_pGUIDebugLayer(nullptr),
+	m_pGUIContentExplorer(nullptr),
+	m_pGUITexture(nullptr)
 {
 }
 
@@ -36,6 +43,9 @@ void NXGUI::Init()
 	m_pFileBrowser->SetTitle("File Browser");
 	m_pFileBrowser->SetPwd("D:\\NixAssets");
 
+	m_pGUITexture = new NXGUITexture();
+	m_pGUIContentExplorer = new NXGUIContentExplorer(m_pCurrentScene, m_pGUITexture);
+
 	m_pGUICamera = new NXGUICamera(m_pCurrentScene);
 	m_pGUIMaterial = new NXGUIMaterial(m_pCurrentScene, m_pFileBrowser);
 	m_pGUILights = new NXGUILights(m_pCurrentScene);
@@ -43,6 +53,7 @@ void NXGUI::Init()
 
 	m_pGUISSAO = new NXGUISSAO(m_pRenderer->GetSSAORenderer());
 	m_pGUIShadows = new NXGUIShadows(m_pRenderer->GetShadowMapRenderer());
+	m_pGUIPostProcessing = new NXGUIPostProcessing(m_pRenderer->GetColorMappingRenderer());
 	m_pGUIDebugLayer = new NXGUIDebugLayer(m_pRenderer->GetDebugLayerRenderer());
 
 	IMGUI_CHECKVERSION();
@@ -52,6 +63,8 @@ void NXGUI::Init()
 
 	ImGui_ImplWin32_Init(g_hWnd);
 	ImGui_ImplDX11_Init(g_pDevice.Get(), g_pContext.Get());
+
+	//ImGui::LoadIniSettingsFromDisk(NXConvert::GetPathOfImguiIni().c_str());
 }
 
 void NXGUI::Render()
@@ -62,12 +75,15 @@ void NXGUI::Render()
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
+	m_pGUIContentExplorer->Render();
+	m_pGUITexture->Render();
 	m_pGUICubeMap->Render();
 	m_pGUIMaterial->Render();
 	m_pGUILights->Render();
 	m_pGUICamera->Render();
 	m_pGUISSAO->Render();
 	m_pGUIShadows->Render();
+	m_pGUIPostProcessing->Render();
 	m_pGUIDebugLayer->Render();
 
 	static bool show_demo_window = true;
@@ -78,45 +94,10 @@ void NXGUI::Render()
 	if (show_demo_window)
 		ImGui::ShowDemoWindow(&show_demo_window);
 
-	//// 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
-	//{
-	//	static float f = 0.0f;
-	//	static int counter = 0;
-
-	//	ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-	//	ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-	//	ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-	//	ImGui::Checkbox("Another Window", &show_another_window);
-
-	//	ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-	//	ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-	//	if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-	//		counter++;
-	//	ImGui::SameLine();
-	//	ImGui::Text("counter = %d", counter);
-
-	//	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-	//	ImGui::End();
-	//}
-
-	//// 3. Show another simple window.
-	//if (show_another_window)
-	//{
-	//	ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-	//	ImGui::Text("Hello from another window!");
-	//	if (ImGui::Button("Close Me"))
-	//		show_another_window = false;
-	//	ImGui::End();
-	//}
-
 	m_pFileBrowser->Display();
 
 	// Rendering
 	ImGui::Render();
-	//g_pd3dDeviceContext->OMSetRenderTargets(1, &g_mainRenderTargetView, NULL);
-	//g_pd3dDeviceContext->ClearRenderTargetView(g_mainRenderTargetView, (float*)&clear_color);
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
 	g_pUDA->EndEvent();
@@ -124,6 +105,8 @@ void NXGUI::Render()
 
 void NXGUI::Release()
 {
+	//ImGui::SaveIniSettingsToDisk(NXConvert::GetPathOfImguiIni().c_str());
+
 	SafeDelete(m_pGUIMaterial);
 	SafeDelete(m_pGUILights);
 	SafeDelete(m_pGUICamera);
@@ -131,7 +114,10 @@ void NXGUI::Release()
 	SafeDelete(m_pGUISSAO);
 	SafeDelete(m_pGUIShadows);
 	SafeDelete(m_pFileBrowser);
+	SafeDelete(m_pGUIPostProcessing);
 	SafeDelete(m_pGUIDebugLayer);
+	SafeRelease(m_pGUITexture);
+	SafeDelete(m_pGUIContentExplorer);
 
 	ImGui_ImplDX11_Shutdown();
 	ImGui_ImplWin32_Shutdown();

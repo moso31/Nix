@@ -193,6 +193,9 @@
     <None Include="Shader\EditorObjects.fx">
       <Filter>Shader\Editor</Filter>
     </None>
+    <None Include="Shader\CubeMapIrradianceSHdds.fx">
+      <Filter>Shader\Renderer\IBL</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">
@@ -371,6 +374,24 @@
     </ClCompile>
     <ClCompile Include="Core\NXGUICamera.cpp">
       <Filter>Core\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXGUIContentExplorer.cpp">
+      <Filter>Core\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXGUICommon.cpp">
+      <Filter>Core\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXGUIPostProcessing.cpp">
+      <Filter>Core\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXConverter.cpp">
+      <Filter>Core\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXGUITexture.cpp">
+      <Filter>Core\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXBRDFlut.cpp">
+      <Filter>Core\DirectX\Renderer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -563,10 +584,28 @@
     <ClInclude Include="Core\NXGUICamera.h">
       <Filter>Core\UI</Filter>
     </ClInclude>
+    <ClInclude Include="Core\NXGUIContentExplorer.h">
+      <Filter>Core\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXGUICommon.h">
+      <Filter>Core\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXGUIPostProcessing.h">
+      <Filter>Core\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXConverter.h">
+      <Filter>Core\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXGUITexture.h">
+      <Filter>Core\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXBRDFlut.h">
+      <Filter>Core\DirectX\Renderer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="场景添加物体说明.txt" />
     <Text Include="杂七杂八的编码规范.txt" />
     <Text Include="八字无撇的待办事项.txt" />
+    <Text Include="行将废弃的加载说明.txt" />
   </ItemGroup>
 </Project>

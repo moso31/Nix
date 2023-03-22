@@ -72,3 +72,29 @@ float DirectX::SamplerMath::EpanechnikovKernel(const float t)
 {
 	return fmaxf(0.0f, 0.75f * (1.0f - t * t));
 }
+
+// CUBEMAP TEXEL SOLID ANGLE
+// https://www.rorydriscoll.com/2012/01/15/cubemap-texel-solid-angle/
+float DirectX::SamplerMath::CubeMapAreaToOrigin(float x, float y)
+{
+	return atan2f(x * y, sqrtf(x * x + y * y + 1.0f));
+}
+
+float DirectX::SamplerMath::CubeMapSolidAngleOfPixel(size_t x, size_t y, size_t texSize)
+{
+	//scale up to [-1, 1] range (inclusive), offset by 0.5 to point to texel center.
+	float U = (2.0f * ((float)x + 0.5f) / (float)texSize) - 1.0f;
+	float V = (2.0f * ((float)y + 0.5f) / (float)texSize) - 1.0f;
+
+	float InvResolution = 1.0f / texSize;
+
+	// U and V are the -1..1 texture coordinate on the current face.
+	// Get projected area for this texel
+	float x0 = U - InvResolution;
+	float y0 = V - InvResolution;
+	float x1 = U + InvResolution;
+	float y1 = V + InvResolution;
+	float SolidAngle = CubeMapAreaToOrigin(x0, y0) - CubeMapAreaToOrigin(x0, y1) - CubeMapAreaToOrigin(x1, y0) + CubeMapAreaToOrigin(x1, y1);
+
+	return SolidAngle;
+}

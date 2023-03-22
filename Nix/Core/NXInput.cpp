@@ -112,8 +112,16 @@ void NXInput::UpdateRawInput(LPARAM lParam)
 		m_keyState[eArg.VKey] = bIsPressing;
 		m_keyActivite[eArg.VKey] = true;
 
-		if (bIsPressing) NXEventKeyDown::GetInstance()->Notify(eArg);
-		else NXEventKeyUp::GetInstance()->Notify(eArg);
+		if (bIsPressing)
+		{
+			NXEventKeyDown::GetInstance()->Notify(eArg);
+			NXEventKeyDownForce::GetInstance()->Notify(eArg);
+		}
+		else
+		{
+			NXEventKeyUp::GetInstance()->Notify(eArg);
+			NXEventKeyUpForce::GetInstance()->Notify(eArg);
+		}
 	}
 	else if (raw->header.dwType == RIM_TYPEMOUSE)
 	{
@@ -146,11 +154,21 @@ void NXInput::UpdateRawInput(LPARAM lParam)
 		m_mouseMove.x = eArg.LastX;
 		m_mouseMove.y = eArg.LastY;
 
-		if (bIsMouseDown) NXEventMouseDown::GetInstance()->Notify(eArg);
-		if (bIsMouseUp) NXEventMouseUp::GetInstance()->Notify(eArg);
-
+		if (bIsMouseDown)
+		{
+			NXEventMouseDown::GetInstance()->Notify(eArg);
+			NXEventMouseDownForce::GetInstance()->Notify(eArg);
+		}
+		if (bIsMouseUp)
+		{
+			NXEventMouseUp::GetInstance()->Notify(eArg);
+			NXEventMouseUpForce::GetInstance()->Notify(eArg);
+		}
 		if (eArg.LastX || eArg.LastY)
+		{
 			NXEventMouseMove::GetInstance()->Notify(eArg);
+			NXEventMouseMoveForce::GetInstance()->Notify(eArg);
+		}
 	}
 
 	//PrintMouseState();

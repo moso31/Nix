@@ -22,13 +22,12 @@
 // temp include.
 
 NXScene::NXScene() :
-	m_pPickingObject(nullptr),
+	m_bMultiSelectKeyHolding(false),
 	m_pRootObject(new NXObject()),
 	m_pBVHTree(nullptr),
 	m_pCubeMap(nullptr),
 	m_pMainCamera(nullptr),
-	m_bEditorSelectID(EditorObjectID::NONE),
-	m_editorHitOffset(0.0f)
+	m_bEditorSelectID(EditorObjectID::NONE)
 {
 	m_type = NXType::eScene;
 }
@@ -42,9 +41,9 @@ void NXScene::OnMouseDown(NXEventArgMouse eArg)
 	if (eArg.VMouse & 1) // 鼠标左键
 	{
 		auto ray = GetMainCamera()->GenerateRay(Vector2(eArg.X + 0.5f, eArg.Y + 0.5f));
-		//printf("cursor: %.3f, %.3f\n", (float)eArg.X, (float)eArg.Y);
-		//printf("pos: %.3f, %.3f, %.3f; dir: %.3f, %.3f, %.3f\n", ray.position.x, ray.position.y, ray.position.z, ray.direction.x, ray.direction.y, ray.direction.z);
 		
+		// 检测是否点击编辑器对象（移动箭头，旋转环，缩放轴）
+		// （不过目前实际上只有移动箭头hhhhh）
 		NXHit editObjHit;
 		m_pEditorObjManager->RayCast(ray, editObjHit);
 		if (editObjHit.pSubMesh)
@@ -52,22 +51,30 @@ void NXScene::OnMouseDown(NXEventArgMouse eArg)
 			NXSubMeshEditorObjects* pHitSubmesh = (NXSubMeshEditorObjects*)editObjHit.pSubMesh;
 			m_bEditorSelectID = pHitSubmesh->GetEditorObjectID();
 
-			if (!m_selectedObjects.empty())
+			Vector3 anchorPos = GetAnchorOfEditorObject(ray);
+			for (int i = 0; i < m_pSelectedObjects.size(); i++)
 			{
-				Vector3 anchorPos = GetAnchorOfEditorObject(ray);
-				m_editorHitOffset = anchorPos - m_selectedObjects[0]->GetWorldTranslation();
+				auto pSelectObjs = m_pSelectedObjects[i];
+				m_selectObjHitOffset[i] = anchorPos - pSelectObjs->GetWorldTranslation();
 			}
 		}
 		else
 		{
-			m_selectedObjects.clear();
+			// 按住LCtrl时多选
+			if (!m_bMultiSelectKeyHolding)
+			{
+				m_pSelectedSubMeshes.clear();
+				m_pSelectedObjects.clear();
+
+				m_selectObjHitOffset.clear();
+			}
 
 			NXHit hit;
 			RayCast(ray, hit);
-			if (hit.pSubMesh)
-			{
-				SetCurrentPickingSubMesh(hit.pSubMesh);
-			}
+			if (hit.pSubMesh) AddPickingSubMesh(hit.pSubMesh);
+
+			// 若没有picking对象，隐藏EditorObjects
+			m_pEditorObjManager->SetVisible(!m_pSelectedObjects.empty());
 		}
 	}
 }
@@ -79,18 +86,24 @@ void NXScene::OnMouseMove(NXEventArgMouse eArg)
 	if (m_bEditorSelectID > EditorObjectID::NONE &&
 		m_bEditorSelectID < EditorObjectID::MAX)
 	{
-		// 进入这里说明正在拖动 SelectionArrow/RotateRing/ScaleBoxes
-
+		// 进入这里说明正在拖动 MoveArrow/RotateRing/ScaleBoxes
+		
+		// 获取拖动后位置在MoveArrow的轴/平面上的投影坐标
 		Vector3 anchorPos = GetAnchorOfEditorObject(worldRay);
 
-		// 【2022.9.28 目前只支持单选。将来改】
-		if (!m_selectedObjects.empty())
+		// 移动所有选中的物体
+		for (int i = 0; i < m_pSelectedObjects.size(); i++)
 		{
-			auto pSelectObjs = m_selectedObjects[0];
+			auto pSelectObjs = m_pSelectedObjects[i];
+			pSelectObjs->SetWorldTranslation(anchorPos - m_selectObjHitOffset[i]);
+		}
 
-			Vector3 targetPosWS = anchorPos - m_editorHitOffset;
-			pSelectObjs->SetWorldTranslation(targetPosWS);
-			m_pEditorObjManager->MoveTranslatorTo(pSelectObjs->GetAABBWorld().Center);
+		if (!m_pSelectedObjects.empty())
+		{
+			// MoveArrow 也跟着移动位置
+			// 2023.3.11 暂时使用第一个选中的Primitive的Translation计算移动量
+			NXPrimitive* pFirstSelectedPrimitive = m_pSelectedObjects[0];
+			m_pEditorObjManager->MoveTranslatorTo(pFirstSelectedPrimitive->GetAABBWorld().Center);
 		}
 	}
 
@@ -115,45 +128,30 @@ void NXScene::OnMouseUp(NXEventArgMouse eArg)
 
 void NXScene::OnKeyDown(NXEventArgKey eArg)
 {
-	//if (eArg.VKey == 'H')
-	//{
-	//	// 创建求交加速结构以增加渲染速度。
-	//	printf("Generating BVH Structure...");
-	//	BuildBVHTrees(HBVHSplitMode::HLBVH);
-	//	printf("done.\n");
+	if (eArg.VKey == NXKeyCode::LeftControl)
+	{
+		m_bMultiSelectKeyHolding = true;
+	}
+}
 
-	//	Vector2 sampleCoord = Vector2((float)200 * 0.5f, (float)150 * 0.5f);
-	//	Ray rayWorld = GetMainCamera()->GenerateRay(sampleCoord, Vector2((float)200, (float)150));
+void NXScene::OnKeyUp(NXEventArgKey eArg)
+{
+}
 
-	//	NXHit hit;
-	//	RayCast(rayWorld, hit);
-	//	if (hit.pSubMesh)
-	//	{
-	//		RayCast(rayWorld, hit);
-	//	}
-
-	//	if (!GetPrimitives().empty())
-	//	{
-	//		auto pMainCamera = GetMainCamera();
-	//		printf("camera: pos %f, %f, %f, at %f, %f, %f\n",
-	//			pMainCamera->GetTranslation().x,
-	//			pMainCamera->GetTranslation().y,
-	//			pMainCamera->GetTranslation().z,
-	//			pMainCamera->GetAt().x,
-	//			pMainCamera->GetAt().y,
-	//			pMainCamera->GetAt().z);
-	//		printf("done.\n");
-	//	}
-	//}
+void NXScene::OnKeyUpForce(NXEventArgKey eArg)
+{
+	if (eArg.VKey == NXKeyCode::LeftControl)
+	{
+		m_bMultiSelectKeyHolding = false;
+	}
 }
 
 Vector3 NXScene::GetAnchorOfEditorObject(const Ray& worldRay)
 {
-	if (m_selectedObjects.empty()) 
+	if (m_pSelectedObjects.empty())
 		return Vector3(0.0f);
 
-	// 【2022.9.28 目前只支持单选。将来改】
-	auto pSelectObjs = m_selectedObjects[0];
+	auto pSelectObjs = m_pEditorObjManager->GetMoveArrow();
 
 	if (m_bEditorSelectID >= EditorObjectID::TRANSLATE_X &&
 		m_bEditorSelectID <= EditorObjectID::TRANSLATE_Z)
@@ -231,29 +229,29 @@ void NXScene::Init()
 		SceneManager::GetInstance()->CreatePBRMaterialStandard("circle-textured-metal1", Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f),
 	};
 
-	pPBRMat[0]->SetTexAlbedo(L"D:\\NixAssets\\rustediron2\\albedo.png", true);
-	pPBRMat[0]->SetTexNormal(L"D:\\NixAssets\\rustediron2\\normal.png", true);
-	pPBRMat[0]->SetTexMetallic(L"D:\\NixAssets\\rustediron2\\metallic.png", true);
-	pPBRMat[0]->SetTexRoughness(L"D:\\NixAssets\\rustediron2\\roughness.png", true);
-	pPBRMat[0]->SetTexAO(L"D:\\NixAssets\\rustediron2\\ao.png", true);
+	pPBRMat[0]->SetTexAlbedo(L"D:\\NixAssets\\rustediron2\\albedo.png");
+	pPBRMat[0]->SetTexNormal(L"D:\\NixAssets\\rustediron2\\normal.png");
+	pPBRMat[0]->SetTexMetallic(L"D:\\NixAssets\\rustediron2\\metallic.png");
+	pPBRMat[0]->SetTexRoughness(L"D:\\NixAssets\\rustediron2\\roughness.png");
+	pPBRMat[0]->SetTexAO(L"D:\\NixAssets\\rustediron2\\ao.png");
 
-	//pPBRMat[1]->SetTexAlbedo(L"D:\\NixAssets\\hex-stones1\\albedo.png", true);
-	//pPBRMat[1]->SetTexNormal(L"D:\\NixAssets\\hex-stones1\\normal.png", true);
-	//pPBRMat[1]->SetTexMetallic(L"D:\\NixAssets\\hex-stones1\\metallic.png", true);
-	//pPBRMat[1]->SetTexRoughness(L"D:\\NixAssets\\hex-stones1\\roughness.png", true);
-	//pPBRMat[1]->SetTexAO(L"D:\\NixAssets\\hex-stones1\\ao.png", true);
+	//pPBRMat[1]->SetTexAlbedo(L"D:\\NixAssets\\hex-stones1\\albedo.png");
+	//pPBRMat[1]->SetTexNormal(L"D:\\NixAssets\\hex-stones1\\normal.png");
+	//pPBRMat[1]->SetTexMetallic(L"D:\\NixAssets\\hex-stones1\\metallic.png");
+	//pPBRMat[1]->SetTexRoughness(L"D:\\NixAssets\\hex-stones1\\roughness.png");
+	//pPBRMat[1]->SetTexAO(L"D:\\NixAssets\\hex-stones1\\ao.png");
 
-	//pPBRMat[2]->SetTexAlbedo(L"D:\\NixAssets\\pirate-gold\\albedo.png", true);
-	//pPBRMat[2]->SetTexNormal(L"D:\\NixAssets\\pirate-gold\\normal.png", true);
-	//pPBRMat[2]->SetTexMetallic(L"D:\\NixAssets\\pirate-gold\\metallic.png", true);
-	//pPBRMat[2]->SetTexRoughness(L"D:\\NixAssets\\pirate-gold\\roughness.png", true);
-	//pPBRMat[2]->SetTexAO(L"D:\\NixAssets\\pirate-gold\\ao.png", true);
+	//pPBRMat[2]->SetTexAlbedo(L"D:\\NixAssets\\pirate-gold\\albedo.png");
+	//pPBRMat[2]->SetTexNormal(L"D:\\NixAssets\\pirate-gold\\normal.png");
+	//pPBRMat[2]->SetTexMetallic(L"D:\\NixAssets\\pirate-gold\\metallic.png");
+	//pPBRMat[2]->SetTexRoughness(L"D:\\NixAssets\\pirate-gold\\roughness.png");
+	//pPBRMat[2]->SetTexAO(L"D:\\NixAssets\\pirate-gold\\ao.png");
 
-	//pPBRMat[3]->SetTexAlbedo(L"D:\\NixAssets\\circle-textured-metal1\\albedo.png", true);
-	//pPBRMat[3]->SetTexNormal(L"D:\\NixAssets\\circle-textured-metal1\\normal.png", true);
-	//pPBRMat[3]->SetTexMetallic(L"D:\\NixAssets\\circle-textured-metal1\\metallic.png", true);
-	//pPBRMat[3]->SetTexRoughness(L"D:\\NixAssets\\circle-textured-metal1\\roughness.png", true);
-	//pPBRMat[3]->SetTexAO(L"D:\\NixAssets\\circle-textured-metal1\\ao.png", true);
+	//pPBRMat[3]->SetTexAlbedo(L"D:\\NixAssets\\circle-textured-metal1\\albedo.png");
+	//pPBRMat[3]->SetTexNormal(L"D:\\NixAssets\\circle-textured-metal1\\normal.png");
+	//pPBRMat[3]->SetTexMetallic(L"D:\\NixAssets\\circle-textured-metal1\\metallic.png");
+	//pPBRMat[3]->SetTexRoughness(L"D:\\NixAssets\\circle-textured-metal1\\roughness.png");
+	//pPBRMat[3]->SetTexAO(L"D:\\NixAssets\\circle-textured-metal1\\ao.png");
 
 	//auto pSphere = SceneManager::GetInstance()->CreateSphere("Sphere", 1.0f, 64, 64);
 	//SceneManager::GetInstance()->BindMaterial(pSphere->GetSubMesh(0), pPBRMat[0]);
@@ -297,12 +295,12 @@ void NXScene::Init()
 	//SceneManager::GetInstance()->CreateFBXMeshes("D:\\NixAssets\\Cloth.fbx", pMeshes, true);
 	//SceneManager::GetInstance()->BindMaterial(pMeshes[0]->GetSubMesh(0), pPBRMat[0]);
 
-	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\boxes.fbx", false);
+	NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\boxes.fbx", false);
 	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\shadowMapTest.fbx", false);
 	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\EditorObjTest.fbx", false);
-	NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\textbox3.fbx", false);
+	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\lury.fbx", false);
 	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\testScene.fbx", false);
-	//p->SetScale(Vector3(0.1f));
+	p->SetScale(Vector3(0.1f));
 	SceneManager::GetInstance()->BindMaterial(p, pPBRMat[0]);
 	{
 		//bool bBind = SceneManager::GetInstance()->BindParent(pMeshes[1], pSphere);
@@ -331,23 +329,25 @@ void NXScene::Init()
 		Vector3(0.0f, 1.0f, 0.0f)
 	);
 
-	SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\Alexs_Apt_2k.hdr");
-	//SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\TexturesCom_JapanInariTempleH_1K_hdri_sphere.hdr");
-	//SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\ballroom_4k.hdr");
-	//SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\blue_grotto_4k.hdr");
-	//SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\HDRGPUTest.hdr");
-	//SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\WhiteHDRI.hdr");
+	NXCubeMap* pSky =
+	SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\Alexs_Apt_2k.hdr");
+	//SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\TexturesCom_JapanInariTempleH_1K_hdri_sphere.hdr");
+	//SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\ballroom_4k.hdr");
+	//SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\blue_grotto_4k.hdr");
+	//SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\HDRGPUTest.hdr");
+	//SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\WhiteHDRI.hdr");
+	pSky->SetIntensity(0.0f);
 
 	InitBoundingStructures();
 
 	// Init Lighting
 	{
 		NXPBRPointLight* pPointLight;
-		//pPointLight = SceneManager::GetInstance()->CreatePBRPointLight(Vector3(0.0f, 4.5f, 0.0f), Vector3(1.0f), 1.0f, 100.0f);
-		//m_cbDataLights.pointLight[0] = pPointLight->GetConstantBuffer();
+		pPointLight = SceneManager::GetInstance()->CreatePBRPointLight(Vector3(0.0f, 0.25f, 0.0f), Vector3(1.0f), 100.0f, 100.0f);
+		m_cbDataLights.pointLight[0] = pPointLight->GetConstantBuffer();
 
 		NXPBRDistantLight* pDirLight;
-		pDirLight = SceneManager::GetInstance()->CreatePBRDistantLight(Vector3(-1.0f, -1.30f, 1.0f), Vector3(1.0f), 2.0f);
+		pDirLight = SceneManager::GetInstance()->CreatePBRDistantLight(Vector3(-1.0f, -1.30f, 1.0f), Vector3(1.0f), 0.0f);
 		m_cbDataLights.distantLight[0] = pDirLight->GetConstantBuffer();
 
 		NXPBRSpotLight* pSpotLight;
@@ -382,9 +382,11 @@ void NXScene::InitScripts()
 	NXEventMouseUp::GetInstance()->AddListener(std::bind(&NSFirstPersonalCamera::OnMouseUp, pScript, std::placeholders::_1));
 
 	NXEventKeyDown::GetInstance()->AddListener(std::bind(&NXScene::OnKeyDown, this, std::placeholders::_1));
+	NXEventKeyUp::GetInstance()->AddListener(std::bind(&NXScene::OnKeyUp, this, std::placeholders::_1));
 	NXEventMouseMove::GetInstance()->AddListener(std::bind(&NXScene::OnMouseMove, this, std::placeholders::_1));
 	NXEventMouseDown::GetInstance()->AddListener(std::bind(&NXScene::OnMouseDown, this, std::placeholders::_1));
 	NXEventMouseUp::GetInstance()->AddListener(std::bind(&NXScene::OnMouseUp, this, std::placeholders::_1));
+	NXEventKeyUpForce::GetInstance()->AddListener(std::bind(&NXScene::OnKeyUpForce, this, std::placeholders::_1));
 }
 
 void NXScene::UpdateTransform(NXObject* pObject)
@@ -474,17 +476,23 @@ void NXScene::Release()
 	SafeRelease(m_pRootObject);
 }
 
-void NXScene::SetCurrentPickingSubMesh(NXSubMeshBase* pPickingObject)
+void NXScene::AddPickingSubMesh(NXSubMeshBase* pPickingSubMesh)
 {
-	m_pPickingObject = pPickingObject;
-
-	NXPrimitive* pPickingPrimitive = pPickingObject->GetPrimitive();
-	if (pPickingPrimitive)
+	NXPrimitive* pPickingObj = pPickingSubMesh->GetPrimitive();
+	if (m_pSelectedObjects.empty() || std::find(m_pSelectedObjects.begin(), m_pSelectedObjects.end(), pPickingObj) == m_pSelectedObjects.end())
 	{
-		m_pEditorObjManager->MoveTranslatorTo(pPickingPrimitive->GetAABBWorld().Center);
-
-		m_selectedObjects.push_back(m_pPickingObject->GetPrimitive());
+		m_pSelectedObjects.push_back(pPickingObj);
+		m_selectObjHitOffset.push_back(Vector3(0.0f));
 	}
+		
+	if (m_pSelectedSubMeshes.empty() || std::find(m_pSelectedSubMeshes.begin(), m_pSelectedSubMeshes.end(), pPickingSubMesh) == m_pSelectedSubMeshes.end())
+	{
+		m_pSelectedSubMeshes.push_back(pPickingSubMesh);
+	}
+
+	// 2023.3.11 暂时使用第一个选中的Primitive的Translation计算移动量
+	NXPrimitive* pFirstSelectedPrimitive = m_pSelectedSubMeshes[0]->GetPrimitive();
+	m_pEditorObjManager->MoveTranslatorTo(pFirstSelectedPrimitive->GetAABBWorld().Center);
 }
 
 bool NXScene::RayCast(const Ray& ray, NXHit& outHitInfo, float tMax)

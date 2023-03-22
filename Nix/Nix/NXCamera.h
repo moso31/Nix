@@ -22,7 +22,10 @@ public:
 	Vector3 GetUp();
 
 	const float GetZNear() { return m_near; }
+	void SetZNear(const float value) { m_near = value; }
+
 	const float GetZFar() { return m_far; }
+	void SetZFar(const float value) { m_far = value; }
 
 	const float GetFovY() { return m_fovY; }
 	void SetFovY(const float value) { m_fovY = value; }

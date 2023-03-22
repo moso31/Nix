@@ -11,7 +11,7 @@ struct CBufferDepthPeelingParams
 class NXDepthPeelingRenderer
 {
 public:
-	NXDepthPeelingRenderer(NXScene* pScene);
+	NXDepthPeelingRenderer(NXScene* pScene, NXBRDFLut* pBRDFLut);
 	~NXDepthPeelingRenderer();
 
 	void Init();
@@ -53,6 +53,7 @@ private:
 	ComPtr<ID3D11Buffer>				m_cbDepthPeelingParams;
 	CBufferDepthPeelingParams			m_cbDepthPeelingParamsData;
 
+	NXBRDFLut* m_pBRDFLut;
 	NXScene* m_pScene;
 
 	UINT m_peelingLayerCount;

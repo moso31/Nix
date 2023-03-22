@@ -2,6 +2,7 @@
 #include "NXScene.h"
 #include "NXCubeMap.h"
 #include "NXResourceReloader.h"
+#include "NXGUIContentExplorer.h"
 
 NXGUICubeMap::NXGUICubeMap(NXScene* pScene, NXGUIFileBrowser* pFileBrowser) :
 	m_pCurrentScene(pScene),
@@ -15,14 +16,20 @@ void NXGUICubeMap::Render()
 
 	ImGui::Begin("CubeMap");
 
-	RenderTextureIcon((ImTextureID)pCubeMap->GetSRVCubeMapPreview2D(), std::bind(&NXGUICubeMap::OnCubeMapTexChange, this, pCubeMap), std::bind(&NXGUICubeMap::OnCubeMapTexRemove, this, pCubeMap));
+	RenderTextureIcon((ImTextureID)pCubeMap->GetSRVCubeMapPreview2D(), std::bind(&NXGUICubeMap::OnCubeMapTexChange, this, pCubeMap), std::bind(&NXGUICubeMap::OnCubeMapTexDrop, this, pCubeMap, std::placeholders::_1));
 
 	ImGui::SliderFloat("Intensity", pCubeMap->GetIntensity(), 0.0f, 10.0f);
+
+	static int x = 0;
+	static const char* items[] = { "Cube Map", "Irradiance Map"};
+	ImGui::Combo("Material Type", &x, items, IM_ARRAYSIZE(items));
+	pCubeMap->SetIrradMode(x);
+
 
 	ImGui::End();
 }
 
-void NXGUICubeMap::RenderTextureIcon(ImTextureID ImTexID, std::function<void()> onChange, std::function<void()> onRemove)
+void NXGUICubeMap::RenderTextureIcon(ImTextureID ImTexID, std::function<void()> onChange, std::function<void(const std::wstring&)> onDrop)
 {
 	float my_tex_w = (float)16;
 	float my_tex_h = (float)16;
@@ -68,17 +75,30 @@ void NXGUICubeMap::RenderTextureIcon(ImTextureID ImTexID, std::function<void()> 
 			m_pFileBrowser->SetOnDialogOK(onChange);
 		}
 
-		ImGui::SameLine();
-		ImGui::PushID("RemoveTexButtons");
+		if (ImGui::BeginDragDropTarget())
 		{
-			ImGui::PushID(ImTexID);
-			if (ImGui::Button("R"))
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_EXPLORER_BUTTON_DRUGING"))
 			{
-				onRemove();
+				auto pDropData = (NXGUIContentExplorerButtonDrugData*)(payload->Data);
+				if (DropDataIsCubeMapImage(pDropData))
+				{
+					onDrop(pDropData->srcPath.wstring());
+				}
 			}
-			ImGui::PopID();
+			ImGui::EndDragDropTarget();
 		}
-		ImGui::PopID();
+
+		//ImGui::SameLine();
+		//ImGui::PushID("RemoveTexButtons");
+		//{
+		//	ImGui::PushID(ImTexID);
+		//	if (ImGui::Button("R"))
+		//	{
+		//		onRemove();
+		//	}
+		//	ImGui::PopID();
+		//}
+		//ImGui::PopID();
 	}
 }
 
@@ -90,8 +110,12 @@ void NXGUICubeMap::OnCubeMapTexChange(NXCubeMap* pCubeMap)
 	NXResourceReloader::GetInstance()->Push(pCommand);
 }
 
-void NXGUICubeMap::OnCubeMapTexRemove(NXCubeMap* pCubeMap)
+void NXGUICubeMap::OnCubeMapTexDrop(NXCubeMap* pCubeMap, const std::wstring& filePath)
 {
+	NXResourceReloadCubeMapCommand* pCommand = new NXResourceReloadCubeMapCommand();
+	pCommand->pCubeMap = pCubeMap;
+	pCommand->strFilePath = filePath.c_str();
+	NXResourceReloader::GetInstance()->Push(pCommand);
 }
 
 void NXGUICubeMap::UpdateFileBrowserParameters()
@@ -99,4 +123,12 @@ void NXGUICubeMap::UpdateFileBrowserParameters()
 	m_pFileBrowser->SetTitle("Material");
 	m_pFileBrowser->SetTypeFilters({ ".*", ".hdr" });
 	m_pFileBrowser->SetPwd("D:\\NixAssets");
+}
+
+bool NXGUICubeMap::DropDataIsCubeMapImage(NXGUIContentExplorerButtonDrugData* pDropData)
+{
+	std::string strExtension = pDropData->srcPath.extension().string();
+	std::transform(strExtension.begin(), strExtension.end(), strExtension.begin(), [](UCHAR c) { return std::tolower(c); });
+
+	return strExtension == ".hdr" || strExtension == ".dds";
 }

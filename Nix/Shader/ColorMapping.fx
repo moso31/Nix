@@ -1,6 +1,11 @@
 Texture2D txRenderTarget : register(t0);
 SamplerState samLinear : register(s0);
 
+cbuffer CBufferParams : register(b1)
+{
+	float4 param0; // x : enable;
+}
+
 struct VS_INPUT
 {
 	float4 pos : POSITION;
@@ -44,6 +49,9 @@ float3 LinearToSRGB(float3 c)
 float4 PS(PS_INPUT input) : SV_Target
 {
 	float3 color = txRenderTarget.Sample(samLinear, input.tex).xyz;
+
+	if (param0.x < 0.5f)
+		return float4(color, 1.0f);
 
 	color = ACESFilm(color);
 

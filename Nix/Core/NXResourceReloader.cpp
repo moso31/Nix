@@ -22,8 +22,6 @@ void NXResourceReloader::Update()
 			if (pCubeMap)
 			{
 				pCubeMap->Init(((NXResourceReloadCubeMapCommand*)cmd)->strFilePath);
-				pCubeMap->GenerateIrradianceMap();
-				pCubeMap->GeneratePreFilterMap();
 			}
 		}
 		

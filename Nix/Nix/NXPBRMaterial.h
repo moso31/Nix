@@ -1,4 +1,5 @@
 #pragma once
+#include <filesystem>
 #include "ShaderStructures.h"
 #include "NXResourceManager.h"
 
@@ -43,7 +44,7 @@ class NXMaterial
 {
 protected:
 	explicit NXMaterial() = default;
-	NXMaterial(const std::string name, const NXMaterialType type = NXMaterialType::UNKNOWN);
+	NXMaterial(const std::string name, const NXMaterialType type = NXMaterialType::UNKNOWN, const std::string& filePath = "");
 
 public:
 	~NXMaterial() {}
@@ -54,6 +55,9 @@ public:
 	NXMaterialType GetType() { return m_type; }
 	void SetType(NXMaterialType type) { m_type = type; }
 
+	std::string GetFilePath() { return m_filePath; }
+	size_t GetFilePathHash() { return std::filesystem::hash_value(m_filePath); }
+
 	bool IsPBRType();
 
 	ID3D11Buffer* GetConstantBuffer() const { return m_cb.Get(); }
@@ -62,12 +66,15 @@ public:
 
 	virtual void Release() = 0;
 
-public:
-	NXTexture2D* LoadFromTexFile(const std::wstring TexFilePath, bool GenerateMipMap = false);
+	virtual void ReloadTextures() = 0;
 
+public:
 	std::vector<NXSubMeshBase*> GetRefSubMeshes() { return m_pRefSubMeshes; }
 	void RemoveSubMesh(NXSubMeshBase* pRemoveSubmesh);
 	void AddSubMesh(NXSubMeshBase* pSubMesh);
+
+protected:
+	void SetTex2D(NXTexture2D*& pTex2D, const std::wstring& texFilePath);
 
 protected:
 	std::string m_name;
@@ -80,13 +87,17 @@ private:
 	// 映射表，记录哪些Submesh使用了这个材质
 	std::vector<NXSubMeshBase*> m_pRefSubMeshes;
 	UINT m_RefSubMeshesCleanUpCount;
+
+	// 材质文件路径、哈希
+	std::string m_filePath;
+	size_t m_pathHash;
 };
 
 class NXPBRMaterialBase : public NXMaterial
 {
 protected:
 	explicit NXPBRMaterialBase() = default;
-	explicit NXPBRMaterialBase(const std::string name, const NXMaterialType type = NXMaterialType::UNKNOWN);
+	explicit NXPBRMaterialBase(const std::string name, const NXMaterialType type = NXMaterialType::UNKNOWN, const std::string& filePath = "");
 	~NXPBRMaterialBase() {}
 
 public:
@@ -96,13 +107,20 @@ public:
 	ID3D11ShaderResourceView* GetSRVRoughness() const { return m_pTexRoughness->GetSRV(); }
 	ID3D11ShaderResourceView* GetSRVAO()		const { return m_pTexAmbientOcclusion->GetSRV(); }
 
-	void SetTexAlbedo(const std::wstring TexFilePath, bool GenerateMipMap = false);
-	void SetTexNormal(const std::wstring TexFilePath, bool GenerateMipMap = false);
-	void SetTexMetallic(const std::wstring TexFilePath, bool GenerateMipMap = false);
-	void SetTexRoughness(const std::wstring TexFilePath, bool GenerateMipMap = false);
-	void SetTexAO(const std::wstring TexFilePath, bool GenerateMipMap = false);
+	void SetTexAlbedo(const std::wstring& TexFilePath);
+	void SetTexNormal(const std::wstring& TexFilePath);
+	void SetTexMetallic(const std::wstring& TexFilePath);
+	void SetTexRoughness(const std::wstring& TexFilePath);
+	void SetTexAO(const std::wstring& TexFilePath);
+
+	std::string GetAlbedoTexFilePath()		{ return m_pTexAlbedo->GetFilePath().string(); }
+	std::string GetNormalTexFilePath()		{ return m_pTexNormal->GetFilePath().string(); }
+	std::string GetMetallicTexFilePath()	{ return m_pTexMetallic->GetFilePath().string(); }
+	std::string GetRoughnessTexFilePath()	{ return m_pTexRoughness->GetFilePath().string(); }
+	std::string GetAOTexFilePath()			{ return m_pTexAmbientOcclusion->GetFilePath().string(); }
 
 	virtual void Release();
+	virtual void ReloadTextures();
 
 private:
 	NXTexture2D* m_pTexAlbedo;
@@ -116,14 +134,14 @@ class NXPBRMaterialStandard : public NXPBRMaterialBase
 {
 public:
 	explicit NXPBRMaterialStandard() = default;
-	NXPBRMaterialStandard(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao);
+	NXPBRMaterialStandard(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const std::string& filePath);
 	~NXPBRMaterialStandard() {}
 
 	CBufferMaterialStandard* GetCBData() { return static_cast<CBufferMaterialStandard*>(m_cbData.get()); }
 	
 	Vector3 	GetAlbedo()		{ return GetCBData()->albedo; }
 	Vector3 	GetNormal()		{ return GetCBData()->normal; }
-	float*		GetMatallic()	{ return &(GetCBData()->metallic); }
+	float*		GetMetallic()	{ return &(GetCBData()->metallic); }
 	float*		GetRoughness()	{ return &(GetCBData()->roughness); }
 	float*		GetAO()			{ return &(GetCBData()->ao); }
 
@@ -143,7 +161,7 @@ class NXPBRMaterialTranslucent : public NXPBRMaterialBase
 {
 public:
 	explicit NXPBRMaterialTranslucent() = default;
-	NXPBRMaterialTranslucent(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float opacity);
+	NXPBRMaterialTranslucent(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float opacity, const std::string& filePath);
 	~NXPBRMaterialTranslucent() {}
 
 	CBufferMaterialTranslucent* GetCBData() { return static_cast<CBufferMaterialTranslucent*>(m_cbData.get()); }
@@ -151,7 +169,7 @@ public:
 	Vector3 	GetAlbedo()		{ return GetCBData()->albedo; }
 	float*		GetOpacity()	{ return &(GetCBData()->opacity); }
 	Vector3 	GetNormal()		{ return GetCBData()->normal; }
-	float*		GetMatallic()	{ return &(GetCBData()->metallic); }
+	float*		GetMetallic()	{ return &(GetCBData()->metallic); }
 	float*		GetRoughness()	{ return &(GetCBData()->roughness); }
 	float*		GetAO()			{ return &(GetCBData()->ao); }
 
