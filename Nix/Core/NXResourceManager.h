@@ -56,7 +56,7 @@ class NXTexture2DArray;
 class NXTexture
 {
 public:
-    NXTexture() : m_nRefCount(0), m_bIsDirty(false), m_width(-1), m_height(-1), m_arraySize(-1), m_texFormat(DXGI_FORMAT_UNKNOWN), m_mipLevels(-1), m_texFilePath(""), m_pInfo(nullptr) {}
+    NXTexture() : m_nRefCount(0), m_bReloading(false), m_bIsDirty(false), m_width(-1), m_height(-1), m_arraySize(-1), m_texFormat(DXGI_FORMAT_UNKNOWN), m_mipLevels(-1), m_texFilePath(""), m_pInfo(nullptr) {}
     ~NXTexture() {};
 
     virtual NXTexture2D*        Is2D()          { return nullptr; }
@@ -122,6 +122,8 @@ private:
     // 记录所有使用此纹理的材质
     std::unordered_set<NXMaterial*> m_pRefMaterials;
     std::unordered_set<NXMaterial*> m_pRemovingMaterials;
+
+    bool m_bReloading;
 };
 
 class NXTexture2D : public NXTexture

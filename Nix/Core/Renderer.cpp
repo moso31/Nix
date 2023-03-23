@@ -20,11 +20,16 @@ Renderer::Renderer() :
 
 void Renderer::Init()
 {
+	// 加载并存储默认纹理（default_white, default_normal）
+	InitDefaultTextures();
+
+	// 输入事件
 	InitEvents();
 
 	NXGlobalInputLayout::Init();
 	NXGlobalBufferManager::Init();
 
+	// 渲染器
 	InitRenderer();
 
 	m_scene = new NXScene();
@@ -92,6 +97,12 @@ void Renderer::InitRenderer()
 	g_pContext->OMSetDepthStencilState(nullptr, 0); 
 	g_pContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
 	g_pContext->RSSetState(nullptr);	// back culling
+}
+
+void Renderer::InitDefaultTextures()
+{
+	NXTexture2D* pDefaultWhiteTex = NXResourceManager::GetInstance()->CreateTexture2D("DefaultTex_White", g_defaultTex_white_wstr);
+	NXTexture2D* pDefaultNormalTex = NXResourceManager::GetInstance()->CreateTexture2D("DefaultTex_Normal", g_defaultTex_normal_wstr);
 }
 
 void Renderer::InitEvents()

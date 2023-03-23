@@ -127,3 +127,9 @@ extern	ComPtr<ID3DUserDefinedAnnotation>	g_pUDA;
 extern	App*					g_app;
 extern	DirectResources*		g_dxResources;
 extern	NXTimer*				g_timer;
+
+// default texture file path
+const std::string	g_defaultTex_white_str = ".\\Resource\\white1x1.png";
+const std::string	g_defaultTex_normal_str = ".\\Resource\\normal1x1.png";
+const std::wstring	g_defaultTex_white_wstr = L".\\Resource\\white1x1.png";
+const std::wstring	g_defaultTex_normal_wstr = L".\\Resource\\normal1x1.png";

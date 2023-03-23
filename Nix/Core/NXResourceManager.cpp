@@ -281,6 +281,10 @@ void NXTexture::Reload()
 			pMat->ReloadTextures();
 
 	m_pRefMaterials.clear();
+
+	// 2023.3.23
+	// 在此处将m_pTexture换成临时纹理。
+	m_bReloading = true;
 }
 
 void NXTexture2D::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* initData, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
