@@ -1,5 +1,4 @@
 #include "NXResourceManager.h"
-#include <fstream>
 #include "DirectResources.h"
 #include "NXResourceReloader.h"
 #include "NXConverter.h"
@@ -69,16 +68,19 @@ NXTexture2D* NXResourceManager::CreateTexture2D(std::string DebugName, const D3D
 	return pTexture2D;
 }
 
-NXTexture2D* NXResourceManager::CreateTexture2D(const std::string& DebugName, const std::filesystem::path& filePath)
+NXTexture2D* NXResourceManager::CreateTexture2D(const std::string& DebugName, const std::filesystem::path& filePath, bool bForce)
 {
-	// 先在已加载纹理里面找当前纹理，有的话就不用Create了
-	for (auto pTexture : m_pTextureArray)
+	if (!bForce)
 	{
-		auto pTex2D = pTexture->Is2D();
-		if (pTex2D && !filePath.empty() && std::filesystem::hash_value(filePath) == std::filesystem::hash_value(pTexture->GetFilePath()))
+		// 先在已加载纹理里面找当前纹理，有的话就不用Create了
+		for (auto pTexture : m_pTextureArray)
 		{
-			pTex2D->AddRef();
-			return pTex2D;
+			auto pTex2D = pTexture->Is2D();
+			if (pTex2D && !filePath.empty() && std::filesystem::hash_value(filePath) == std::filesystem::hash_value(pTexture->GetFilePath()))
+			{
+				pTex2D->AddRef();
+				return pTex2D;
+			}
 		}
 	}
 
@@ -266,7 +268,19 @@ void NXResourceManager::OnReload()
 		if (pTex->GetReloadingState() == NXTextureReloadingState::Texture_StartReload)
 		{
 			pTex->SwapToReloadingTexture();
+			pTex->SetReloadingState(NXTextureReloadingState::Texture_Reloading);
+
+			auto LoadTextureAsyncTask = pTex->LoadTextureAsync(); // 异步加载纹理。
+			LoadTextureAsyncTask.m_handle.promise().m_callbackFunc = [pTex]() { pTex->OnReloadFinish(); };
+
+			continue;
+		}
+
+		if (pTex->GetReloadingState() == NXTextureReloadingState::Texture_FinishReload)
+		{
+			pTex->SwapToReloadingTexture();
 			pTex->SetReloadingState(NXTextureReloadingState::Texture_None);
+			continue;
 		}
 	}
 }
@@ -278,12 +292,20 @@ void NXResourceManager::Release()
 
 void NXTexture::SwapToReloadingTexture()
 {
-	m_pTexture.Swap(m_pReloadingTexture->GetTex());
+	m_pTexture = m_pReloadingTexture->m_pTexture;
 
 	auto& pReloadSRVs = m_pReloadingTexture->m_pSRVs;
 	m_pSRVs.resize(pReloadSRVs.size());
 
-	for (size_t i = 0; i < pReloadSRVs.size(); i++) m_pSRVs[i].Swap(pReloadSRVs[i]);
+	for (size_t i = 0; i < pReloadSRVs.size(); i++) m_pSRVs[i] = pReloadSRVs[i];
+}
+
+NXTextureReloadTask NXTexture::LoadTextureAsync()
+{
+	co_await NXTextureAwaiter();
+
+	// 从这里开始异步加载...
+	m_pReloadingTexture = NXResourceManager::GetInstance()->CreateTexture2D(m_debugName, m_texFilePath, true); // 将最后的参数设为true，以强制读取硬盘纹理
 }
 
 void NXTexture::AddRef()
@@ -302,10 +324,19 @@ void NXTexture::Release()
 	SafeDelete(m_pInfo);
 }
 
-void NXTexture::Reload(NXCommonTexEnum eReloadingTexture)
+void NXTexture::OnReload()
 {
-	m_reloadingState = NXTextureReloadingState::Texture_StartReload;
-	m_pReloadingTexture = NXResourceManager::GetInstance()->GetCommonTextures(eReloadingTexture);
+	if (m_reloadingState == NXTextureReloadingState::Texture_None)
+	{
+		m_reloadingState = NXTextureReloadingState::Texture_StartReload;
+		m_pReloadingTexture = NXResourceManager::GetInstance()->GetCommonTextures(NXCommonTex_White);
+		return;
+	}
+}
+
+void NXTexture::OnReloadFinish()
+{
+	m_reloadingState = NXTextureReloadingState::Texture_FinishReload;
 }
 
 void NXTexture2D::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* initData, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)

@@ -247,6 +247,7 @@
     <ClCompile Include="Core\NXShadowMapRenderer.cpp" />
     <ClCompile Include="Core\NXShadowTestRenderer.cpp" />
     <ClCompile Include="Core\NXSkyRenderer.cpp" />
+    <ClCompile Include="Core\NXTextureReloadTesk.cpp" />
     <ClCompile Include="Core\NXTimer.cpp" />
     <ClCompile Include="Core\Renderer.cpp" />
     <ClCompile Include="Core\ShaderComplier.cpp" />
@@ -316,6 +317,7 @@
     <ClInclude Include="Core\NXShadowMapRenderer.h" />
     <ClInclude Include="Core\NXShadowTestRenderer.h" />
     <ClInclude Include="Core\NXSkyRenderer.h" />
+    <ClInclude Include="Core\NXTextureReloadTesk.h" />
     <ClInclude Include="Core\NXTimer.h" />
     <ClInclude Include="Core\Renderer.h" />
     <ClInclude Include="Core\ShaderComplier.h" />

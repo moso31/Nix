@@ -1,12 +1,14 @@
 #pragma once
 #include "NXInstance.h"
 #include <filesystem>
+#include "NXTextureReloadTesk.h"
 
 enum NXTextureReloadingState
 {
     Texture_None, // 正常状态
     Texture_StartReload, // A->Default 状态
-	Texture_Reloading,  // Default->B 状态
+    Texture_Reloading,  // Default->B 状态
+    Texture_FinishReload,  // B 状态
 };;
 
 struct TextureNXInfo
@@ -102,6 +104,8 @@ public:
     std::filesystem::path const GetFilePath() { return m_texFilePath; }
     TextureNXInfo* GetTextureNXInfo() { return m_pInfo; }
 
+    NXTextureReloadTask LoadTextureAsync();
+
     UINT            GetWidth()      { return m_width; }
     UINT            GetHeight()     { return m_height; }
     UINT            GetArraySize()  { return m_arraySize; }
@@ -112,7 +116,9 @@ public:
     void RemoveRef();
     void Release();
 
-    void Reload(NXCommonTexEnum eReloadingTexture = (NXCommonTexEnum)0);
+    // 当出现需要重新加载m_pTexture纹理的事件时（比如纹理属性Apply、Mesh材质变更）会触发这里的逻辑。
+    void OnReload();
+    void OnReloadFinish();
 
 protected:
     std::string m_debugName;
@@ -270,7 +276,7 @@ public:
         UINT SampleQuality = 0,
         UINT MiscFlags = 0);
 
-    NXTexture2D* CreateTexture2D(const std::string& DebugName, const std::filesystem::path& FilePath);
+    NXTexture2D* CreateTexture2D(const std::string& DebugName, const std::filesystem::path& FilePath, bool bForce = false);
 
     NXTextureCube* CreateTextureCube(std::string DebugName,
         DXGI_FORMAT TexFormat,
@@ -325,15 +331,4 @@ private:
     std::vector<NXTexture2D*> m_pCommonTex;
 
     std::unordered_set<NXTexture*> m_pTextureArray;
-};
-
-
-class NXTextureGuard
-{
-public:
-    NXTextureGuard(NXTexture* pTex) : m_pTex(pTex) {}
-    ~NXTextureGuard() { SafeRelease(m_pTex); }
-
-private:
-    NXTexture* m_pTex;
 };

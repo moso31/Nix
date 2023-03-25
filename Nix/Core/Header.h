@@ -21,7 +21,7 @@
 #include <memory.h>
 #include <tchar.h>
 
-// C++/STL/11 
+// C++/STL/
 #include <memory>
 #include <string>
 #include <vector>
@@ -31,6 +31,8 @@
 #include <unordered_set>
 #include <chrono>
 #include <algorithm>
+#include <coroutine>
+#include <fstream>
 
 // DirectX
 #include <d3d11_4.h>

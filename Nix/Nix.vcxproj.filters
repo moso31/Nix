@@ -393,6 +393,9 @@
     <ClCompile Include="Core\NXBRDFlut.cpp">
       <Filter>Core\DirectX\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXTextureReloadTesk.cpp">
+      <Filter>Core\DirectX\NXResources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -601,6 +604,9 @@
     </ClInclude>
     <ClInclude Include="Core\NXBRDFlut.h">
       <Filter>Core\DirectX\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXTextureReloadTesk.h">
+      <Filter>Core\DirectX\NXResources</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

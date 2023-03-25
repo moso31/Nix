@@ -1,6 +1,4 @@
 #include "NXGUITexture.h"
-#include <filesystem>
-#include <fstream>
 #include "NXGUICommon.h"
 #include "NXResourceManager.h"
 #include "NXPBRMaterial.h"
@@ -57,7 +55,7 @@ void NXGUITexture::Render()
 		{
 			// ±£´æNXInfoÎÄ¼þ
 			NXResourceManager::GetInstance()->SaveTextureInfo(m_pTexInfo, m_pTexImage->GetFilePath());
-			m_pTexImage->Reload();
+			m_pTexImage->OnReload();
 
 			SetImage(m_pTexImage->GetFilePath());
 		}

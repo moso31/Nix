@@ -1,5 +1,4 @@
 #include "SceneManager.h"
-#include <fstream>
 #include "NXConverter.h"
 
 #include "NXScene.h"

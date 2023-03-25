@@ -11,8 +11,6 @@
 #include "NXConverter.h"
 #include "SamplerMath.h"
 
-#include <fstream>
-
 using namespace DirectX::SamplerMath;
 using namespace DirectX::SimpleMath::SH;
 
