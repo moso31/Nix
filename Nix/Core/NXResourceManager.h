@@ -75,6 +75,7 @@ public:
     NXTexture() : 
         m_nRefCount(0), 
         m_reloadingState(Texture_None),
+        m_pReloadingTexture(nullptr),
         m_width(-1),
         m_height(-1),
         m_arraySize(-1),
