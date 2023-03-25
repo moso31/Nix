@@ -2,6 +2,13 @@
 #include "NXInstance.h"
 #include <filesystem>
 
+enum NXTextureReloadingState
+{
+    Texture_None, // 正常状态
+    Texture_StartReload, // A->Default 状态
+	Texture_Reloading,  // Default->B 状态
+};;
+
 struct TextureNXInfo
 {
     TextureNXInfo() = default;
@@ -50,14 +57,31 @@ enum NXCommonRTEnum
     NXCommonRT_SIZE,
 };
 
+enum NXCommonTexEnum
+{
+    NXCommonTex_White,
+    NXCommonTex_Normal,
+    NXCommonTex_SIZE,
+};
+
 class NXTexture2D;
 class NXTextureCube;
 class NXTexture2DArray;
 class NXTexture
 {
 public:
-    NXTexture() : m_nRefCount(0), m_bReloading(false), m_bIsDirty(false), m_width(-1), m_height(-1), m_arraySize(-1), m_texFormat(DXGI_FORMAT_UNKNOWN), m_mipLevels(-1), m_texFilePath(""), m_pInfo(nullptr) {}
-    ~NXTexture() {};
+    NXTexture() : 
+        m_nRefCount(0), 
+        m_reloadingState(Texture_None),
+        m_width(-1),
+        m_height(-1),
+        m_arraySize(-1),
+        m_texFormat(DXGI_FORMAT_UNKNOWN),
+        m_mipLevels(-1),
+        m_texFilePath(""),
+        m_pInfo(nullptr) 
+    {}
+    virtual ~NXTexture() {};
 
     virtual NXTexture2D*        Is2D()          { return nullptr; }
     virtual NXTexture2DArray*   Is2DArray()     { return nullptr; }
@@ -69,9 +93,14 @@ public:
     ID3D11DepthStencilView*     GetDSV(UINT index = 0) { return m_pDSVs.empty() ? nullptr : m_pDSVs[index].Get(); }
     ID3D11UnorderedAccessView*  GetUAV(UINT index = 0) { return m_pUAVs.empty() ? nullptr : m_pUAVs[index].Get(); }
 
+    NXTextureReloadingState GetReloadingState()             { return m_reloadingState; }
+    void SetReloadingState(NXTextureReloadingState state)   { m_reloadingState = state; }
+
+    NXTexture* GetReloadingTexture() { return m_pReloadingTexture; }
+    void SwapToReloadingTexture();
+
     std::filesystem::path const GetFilePath() { return m_texFilePath; }
     TextureNXInfo* GetTextureNXInfo() { return m_pInfo; }
-
 
     UINT            GetWidth()      { return m_width; }
     UINT            GetHeight()     { return m_height; }
@@ -83,13 +112,7 @@ public:
     void RemoveRef();
     void Release();
 
-    std::unordered_set<NXMaterial*> GetRefMaterials() { return m_pRefMaterials; }
-    void AddMaterial(NXMaterial* pMat) { m_pRefMaterials.insert(pMat); }
-
-    void MarkDirty() { m_bIsDirty = true; }
-    bool IsDirty() { return m_bIsDirty; }
-
-    void Reload();
+    void Reload(NXCommonTexEnum eReloadingTexture = (NXCommonTexEnum)0);
 
 protected:
     std::string m_debugName;
@@ -113,17 +136,8 @@ private:
     // 引用计数
     int m_nRefCount;
 
-    // 是否是脏纹理
-    // 2023.3.21：脏纹理是一个单向tag，仅允许被改为true。
-    //      一个纹理一旦标记为脏纹理后，引用计数不允许再增加。
-    //      在 1. 改变*.nxInfo时；2. 资源被释放时；会将纹理标记为脏纹理
-    bool m_bIsDirty;
-
-    // 记录所有使用此纹理的材质
-    std::unordered_set<NXMaterial*> m_pRefMaterials;
-    std::unordered_set<NXMaterial*> m_pRemovingMaterials;
-
-    bool m_bReloading;
+    NXTextureReloadingState m_reloadingState;
+    NXTexture* m_pReloadingTexture;
 };
 
 class NXTexture2D : public NXTexture
@@ -291,15 +305,35 @@ public:
     void InitCommonRT();
     NXTexture2D* GetCommonRT(NXCommonRTEnum eRT);
 
+    void InitCommonTextures();
+    NXTexture2D* GetCommonTextures(NXCommonTexEnum eTex); 
+
     // 加载纹理资源元文件（TextureNXInfo）
     // 如果没找到对应的元文件，则将返回一个所有参数都为默认值的元文件。
     TextureNXInfo* LoadTextureInfo(const std::filesystem::path& texFilePath);
     void SaveTextureInfo(const TextureNXInfo* pInfo, const std::filesystem::path& texFilePath);
 
+    // 2023.3.24
+    // 当要替换某张纹理时，由于GPU可能正使用此纹理，所以不太可能即时替换。
+    // 所以需要在GPU不可能使用此资源的时候（也就是这里的 OnReload），进行替换操作。
+    void OnReload();
+
     void Release();
 
 private:
     std::vector<NXTexture2D*> m_pCommonRT;
+    std::vector<NXTexture2D*> m_pCommonTex;
 
     std::unordered_set<NXTexture*> m_pTextureArray;
+};
+
+
+class NXTextureGuard
+{
+public:
+    NXTextureGuard(NXTexture* pTex) : m_pTex(pTex) {}
+    ~NXTextureGuard() { SafeRelease(m_pTex); }
+
+private:
+    NXTexture* m_pTex;
 };

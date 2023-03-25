@@ -20,7 +20,7 @@ void App::Init()
 	m_pRenderer->InitGUI();
 }
 
-void App::Load()
+void App::Reload()
 {
 	m_pRenderer->ResourcesReloading();
 

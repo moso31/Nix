@@ -20,9 +20,6 @@ Renderer::Renderer() :
 
 void Renderer::Init()
 {
-	// 加载并存储默认纹理（default_white, default_normal）
-	InitDefaultTextures();
-
 	// 输入事件
 	InitEvents();
 
@@ -89,20 +86,15 @@ void Renderer::InitGUI()
 
 void Renderer::InitRenderer()
 {
-	// 在这里初始化CommonRT。
+	// 在这里初始化CommonRT和通用纹理。
 	NXResourceManager::GetInstance()->InitCommonRT();
+	NXResourceManager::GetInstance()->InitCommonTextures();
 
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	g_pContext->OMSetDepthStencilState(nullptr, 0); 
 	g_pContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
 	g_pContext->RSSetState(nullptr);	// back culling
-}
-
-void Renderer::InitDefaultTextures()
-{
-	NXTexture2D* pDefaultWhiteTex = NXResourceManager::GetInstance()->CreateTexture2D("DefaultTex_White", g_defaultTex_white_wstr);
-	NXTexture2D* pDefaultNormalTex = NXResourceManager::GetInstance()->CreateTexture2D("DefaultTex_Normal", g_defaultTex_normal_wstr);
 }
 
 void Renderer::InitEvents()
@@ -112,6 +104,7 @@ void Renderer::InitEvents()
 
 void Renderer::ResourcesReloading()
 {
+	NXResourceManager::GetInstance()->OnReload();
 	NXResourceReloader::GetInstance()->Update();
 }
 

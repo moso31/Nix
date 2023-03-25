@@ -27,7 +27,6 @@ public:
 	void Init();
 	void InitGUI();
 	void InitRenderer();
-	void InitDefaultTextures();
 	void InitEvents();
 
 	// 资源重加载（如果上一帧修改了资源）

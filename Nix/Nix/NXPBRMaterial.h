@@ -157,46 +157,6 @@ private:
 private:
 };
 
-class NXPBRMaterialAnisotropy : public NXPBRMaterialBase
-{
-public:
-	explicit NXPBRMaterialAnisotropy() = default;
-	NXPBRMaterialAnisotropy(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float anisotropy, const float anisotropyRotation, const std::string& filePath);
-	~NXPBRMaterialAnisotropy() {}
-
-	CBufferMaterialAnisotropy* GetCBData() { return static_cast<CBufferMaterialAnisotropy*>(m_cbData.get()); }
-	
-	Vector3 	GetAlbedo()				{ return GetCBData()->albedo; }
-	Vector3 	GetNormal()				{ return GetCBData()->normal; }
-	float*		GetMetallic()			{ return &(GetCBData()->metallic); }
-	float*		GetRoughness()			{ return &(GetCBData()->roughness); }
-	float*		GetAO()					{ return &(GetCBData()->ao); }
-	float*		GetAnisotropy()			{ return &(GetCBData()->anisotropy); }
-	float*		GetAnisotropyRotation()	{ return &(GetCBData()->anisotropyRotation); }
-
-	void	SetAlbedo(const Vector3& albedo)				{ GetCBData()->albedo = albedo; }
-	void	SetNormal(const Vector3& normal)				{ GetCBData()->normal = normal; }
-	void	SetMetallic(const float metallic)			{ GetCBData()->metallic = metallic; }
-	void	SetRoughness(const float roughness)			{ GetCBData()->roughness = roughness; }
-	void	SetAO(const float ao)						{ GetCBData()->ao = ao; }
-	void	SetAnisotropy(const float anisotropy)		{ GetCBData()->anisotropy = anisotropy; }
-	void	SetAnisotropyRotation(const float rotation)	{ GetCBData()->anisotropyRotation = rotation; }
-};
-
-class NXPBRMaterialUnlit : public NXPBRMaterialBase
-{
-public:
-	explicit NXPBRMaterialUnlit() = default;
-	NXPBRMaterialUnlit(const std::string name, const Vector3& albedo, const std::string& filePath);
-	~NXPBRMaterialUnlit() {}
-
-	CBufferMaterialUnlit* GetCBData() { return static_cast<CBufferMaterialUnlit*>(m_cbData.get()); }
-	
-	Vector3 	GetAlbedo()		{ return GetCBData()->albedo; }
-
-	void	SetAlbedo(const Vector3& albedo)		{ GetCBData()->albedo = albedo; }
-};
-
 class NXPBRMaterialTranslucent : public NXPBRMaterialBase
 {
 public:

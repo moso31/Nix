@@ -52,6 +52,7 @@ bool NXCubeMap::Init(const std::filesystem::path& filePath)
 
 		// 2. 先使用HDR->DDS，然后将DDS保存为本地文件，再读取DDS本地文件作为实际CubeMap。
 		// 直接用HDR->DDS然后作为CubeMap的话，不知道什么原因GPU队列会严重阻塞，导致加载速度大幅减慢。
+
 		NXTextureCube* pTexCubeMap = GenerateCubeMap(pTexHDR);
 		SaveHDRAsDDS(pTexCubeMap, filePath);
 		LoadDDS(filePath);

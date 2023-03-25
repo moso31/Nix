@@ -1,8 +1,9 @@
 #include "NXResourceManager.h"
+#include <fstream>
 #include "DirectResources.h"
+#include "NXResourceReloader.h"
 #include "NXConverter.h"
 #include "DirectXTex.h"
-#include <fstream>
 #include "NXPBRMaterial.h"
 
 TextureNXInfo::TextureNXInfo(const TextureNXInfo& info) :
@@ -73,9 +74,6 @@ NXTexture2D* NXResourceManager::CreateTexture2D(const std::string& DebugName, co
 	// 先在已加载纹理里面找当前纹理，有的话就不用Create了
 	for (auto pTexture : m_pTextureArray)
 	{
-		if (pTexture->IsDirty())
-			continue;
-
 		auto pTex2D = pTexture->Is2D();
 		if (pTex2D && !filePath.empty() && std::filesystem::hash_value(filePath) == std::filesystem::hash_value(pTexture->GetFilePath()))
 		{
@@ -106,9 +104,6 @@ NXTextureCube* NXResourceManager::CreateTextureCube(const std::string& DebugName
 	// 先在已加载纹理里面找当前纹理，有的话就不用Create了
 	for (auto pTexture : m_pTextureArray)
 	{
-		if (pTexture->IsDirty())
-			continue;
-
 		auto pTexCube = pTexture->IsCubeMap();
 		if (pTexCube && !filePath.empty() && std::filesystem::hash_value(filePath) == std::filesystem::hash_value(pTexture->GetFilePath()))
 		{
@@ -184,6 +179,20 @@ NXTexture2D* NXResourceManager::GetCommonRT(NXCommonRTEnum eRT)
 	return m_pCommonRT[eRT];
 }
 
+void NXResourceManager::InitCommonTextures()
+{
+	m_pCommonTex.resize(NXCommonTex_SIZE);
+
+	// 初始化常用贴图
+	m_pCommonTex[NXCommonTex_White] = NXResourceManager::GetInstance()->CreateTexture2D("White Texture", g_defaultTex_white_wstr);
+	m_pCommonTex[NXCommonTex_Normal] = NXResourceManager::GetInstance()->CreateTexture2D("Normal Texture", g_defaultTex_normal_wstr);
+}
+
+NXTexture2D* NXResourceManager::GetCommonTextures(NXCommonTexEnum eTex)
+{
+	return m_pCommonTex[eTex];
+}
+
 TextureNXInfo* NXResourceManager::LoadTextureInfo(const std::filesystem::path& texFilePath)
 {
 	auto pResult = new TextureNXInfo();
@@ -245,15 +254,40 @@ void NXResourceManager::SaveTextureInfo(const TextureNXInfo* pInfo, const std::f
 	ofs.close();
 }
 
+void NXResourceManager::OnReload()
+{
+	for (auto pTex : m_pTextureArray)
+	{
+		if (!pTex) continue;
+
+		// 2023.3.25 目前仅支持 Texture2D 的 Reload
+		if (!pTex->Is2D()) continue;
+
+		if (pTex->GetReloadingState() == NXTextureReloadingState::Texture_StartReload)
+		{
+			pTex->SwapToReloadingTexture();
+			pTex->SetReloadingState(NXTextureReloadingState::Texture_None);
+		}
+	}
+}
+
 void NXResourceManager::Release()
 {
 	for (auto pTex : m_pTextureArray) SafeRelease(pTex);
 }
 
+void NXTexture::SwapToReloadingTexture()
+{
+	m_pTexture.Swap(m_pReloadingTexture->GetTex());
+
+	auto& pReloadSRVs = m_pReloadingTexture->m_pSRVs;
+	m_pSRVs.resize(pReloadSRVs.size());
+
+	for (size_t i = 0; i < pReloadSRVs.size(); i++) m_pSRVs[i].Swap(pReloadSRVs[i]);
+}
+
 void NXTexture::AddRef()
 {
-	// 2023.3.20 一个纹理一旦标记为脏纹理后，引用计数不允许再增加。
-	assert(!m_bIsDirty);
 	m_nRefCount++;
 }
 
@@ -265,26 +299,13 @@ void NXTexture::RemoveRef()
 
 void NXTexture::Release()
 {
-	MarkDirty();
 	SafeDelete(m_pInfo);
 }
 
-void NXTexture::Reload()
+void NXTexture::Reload(NXCommonTexEnum eReloadingTexture)
 {
-	// 2023.3.20
-	// 标记自身为Dirty，然后重新加载引用了当前纹理的材质。
-	// 由于不允许引用脏纹理，所以这些纹理一定会重新加载，从而实现Reload。
-	MarkDirty();
-
-	if (!m_pRefMaterials.empty())
-		for (auto pMat : m_pRefMaterials)
-			pMat->ReloadTextures();
-
-	m_pRefMaterials.clear();
-
-	// 2023.3.23
-	// 在此处将m_pTexture换成临时纹理。
-	m_bReloading = true;
+	m_reloadingState = NXTextureReloadingState::Texture_StartReload;
+	m_pReloadingTexture = NXResourceManager::GetInstance()->GetCommonTextures(eReloadingTexture);
 }
 
 void NXTexture2D::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* initData, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
