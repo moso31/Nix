@@ -74,16 +74,10 @@ private:
 	static void RegisterPrimitive(NXPrimitive* newPrimitive, NXObject* pParent = nullptr);
 	static void RegisterPrefab(NXPrefab* newPrefab, NXObject* pParent = nullptr);
 	static void RegisterCamera(NXCamera* newCamera, bool isMainCamera, NXObject* pParent = nullptr);
-	static void RegisterMaterial(NXMaterial* newMaterial);
 	static void RegisterLight(NXPBRLight* newLight, NXObject* pParent = nullptr);
 
-	static NXMaterial* FindMaterial(size_t matPathHash);
 	static NXMaterial* LoadStandardPBRMaterialFromFile(std::ifstream& ifs, const std::string& matName, const std::string& matFilePath);
 	static NXMaterial* LoadTranslucentPBRMaterialFromFile(std::ifstream& ifs, const std::string& matName, const std::string& matFilePath);
-
-private:
-	static void getline_safe(std::ifstream& ifs, std::string& s);
-	static bool IsMaterialDefaultPath(const std::string& s);
 
 private:
 	static NXScene* s_pWorkingScene;

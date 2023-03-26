@@ -320,6 +320,25 @@ public:
     void InitCommonTextures();
     NXTexture2D* GetCommonTextures(NXCommonTexEnum eTex); 
 
+    void InitCommonMaterial();
+
+    // 获取默认材质
+    NXMaterial* GetDefaultMaterial() { return m_pDefaultMaterial; }
+
+    // 获取材质数组
+    const std::vector<NXMaterial*>& GetMaterials() { return m_pMaterialArray; }
+
+    // 注册一个新材质newMaterial。
+    void RegisterMaterial(NXMaterial* newMaterial);
+
+    // 通过材质文件路径查找材质，如果没找到则返回nullptr。
+    NXMaterial* FindMaterial(const std::filesystem::path& path);
+
+    // 移除一个旧材质oldMaterial，换上一个新材质newMaterial。
+    // 在变更 材质编辑器中的材质类型 时会调用此方法。
+    // 2023.3.26 这里只负责材质数组的增删操作。材质和其他资源的关联会在外部实现，见ReTypeMaterial。
+    void ReplaceMaterial(NXMaterial* oldMaterial, NXMaterial* newMaterial);
+
     // 加载纹理资源元文件（TextureNXInfo）
     // 如果没找到对应的元文件，则将返回一个所有参数都为默认值的元文件。
     TextureNXInfo* LoadTextureInfo(const std::filesystem::path& texFilePath);
@@ -338,6 +357,8 @@ public:
 private:
     std::vector<NXTexture2D*> m_pCommonRT;
     std::vector<NXTexture2D*> m_pCommonTex;
-
     std::unordered_set<NXTexture*> m_pTextureArray;
+
+    NXMaterial* m_pDefaultMaterial = nullptr; 
+    std::vector<NXMaterial*> m_pMaterialArray;
 };

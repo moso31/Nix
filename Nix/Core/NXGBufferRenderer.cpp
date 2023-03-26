@@ -63,7 +63,7 @@ void NXGBufferRenderer::Render()
 	g_pContext->PSSetSamplers(0, 1, m_pSamplerLinearWrap.GetAddressOf());
 
 	// 2022.4.14 Ö»äÖÈ¾ Opaque ÎïÌå
-	for (auto pMat : m_pScene->GetMaterials())
+	for (auto pMat : NXResourceManager::GetInstance()->GetMaterials())
 	{
 		if (pMat->GetType() == NXMaterialType::PBR_STANDARD)
 		{

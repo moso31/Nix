@@ -80,7 +80,7 @@ void NXForwardRenderer::Render()
 	//g_pContext->PSSetConstantBuffers(4, 1, &pShadowMapConstantBufferTransform);
 
 	// 2022.4.14 Ö»äÖÈ¾ Transparent ÎïÌå
-	for (auto pMat : m_pScene->GetMaterials())
+	for (auto pMat : NXResourceManager::GetInstance()->GetMaterials())
 	{
 		if (pMat->GetType() == NXMaterialType::PBR_TRANSLUCENT)
 		{

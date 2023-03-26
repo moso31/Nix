@@ -236,7 +236,7 @@ void NXDepthPeelingRenderer::RenderLayer()
 	Vector3 cameraPos = pMainCamera ? Vector3(0.0f) : pMainCamera->GetTranslation();
 
 	// 2022.4.14 Ö»äÖÈ¾ Transparent ÎïÌå
-	for (auto pMat : m_pScene->GetMaterials())
+	for (auto pMat : NXResourceManager::GetInstance()->GetMaterials())
 	{
 		if (pMat->GetType() == NXMaterialType::PBR_TRANSLUCENT)
 		{

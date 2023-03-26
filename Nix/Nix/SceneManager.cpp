@@ -122,10 +122,9 @@ NXCamera* SceneManager::CreateCamera(const std::string name, const float FovY, c
 NXMaterial* SceneManager::LoadFromNmatFile(const std::filesystem::path& matFilePath)
 {
 	std::string strMatFilePath = matFilePath.string().c_str();
-	size_t pathHash = std::filesystem::hash_value(strMatFilePath);
 
 	// 如果已经在内存里直接拿就行了
-	NXMaterial* pNewMat = FindMaterial(pathHash);
+	NXMaterial* pNewMat = NXResourceManager::GetInstance()->FindMaterial(matFilePath);
 	if (pNewMat) return pNewMat;
 
 	// 否则需要读路径文件创建新材质
@@ -269,7 +268,7 @@ NXPBRMaterialStandard* SceneManager::CreatePBRMaterialStandard(const std::string
 	pMat->SetTexMetallic(metallicTexFilePath);
 	pMat->SetTexRoughness(roughnessTexFilePath);
 	pMat->SetTexAO(aoTexFilePath);
-	RegisterMaterial(pMat);
+	NXResourceManager::GetInstance()->RegisterMaterial(pMat);
 	return pMat;
 }
 
@@ -288,7 +287,7 @@ NXPBRMaterialTranslucent* SceneManager::CreatePBRMaterialTranslucent(const std::
 	pMat->SetTexMetallic(metallicTexFilePath);
 	pMat->SetTexRoughness(roughnessTexFilePath);
 	pMat->SetTexAO(aoTexFilePath);
-	RegisterMaterial(pMat);
+	NXResourceManager::GetInstance()->RegisterMaterial(pMat);
 	return pMat;
 }
 
@@ -378,8 +377,7 @@ void SceneManager::ReTypeMaterial(NXMaterial* srcMaterial, NXMaterialType destMa
 			}
 		}
 
-		auto& sceneMats = s_pWorkingScene->m_materials;
-		std::replace(sceneMats.begin(), sceneMats.end(), srcMaterial, destMaterial);
+		NXResourceManager::GetInstance()->ReplaceMaterial(srcMaterial, destMaterial);
 
 		NXResourceReloader::GetInstance()->MarkUnusedMaterial(srcMaterial);
 	}
@@ -462,20 +460,7 @@ void SceneManager::RegisterCamera(NXCamera* newCamera, bool isMainCamera, NXObje
 	newCamera->SetParent(pParent ? pParent : s_pWorkingScene->m_pRootObject);
 }
 
-void SceneManager::RegisterMaterial(NXMaterial* newMaterial)
-{
-	s_pWorkingScene->m_materials.push_back(newMaterial);
-}
-
 void SceneManager::RegisterLight(NXPBRLight* newLight, NXObject* pParent)
 {
 	s_pWorkingScene->m_pbrLights.push_back(newLight);
-}
-
-NXMaterial* SceneManager::FindMaterial(size_t matPathHash)
-{
-	for (auto pMat : s_pWorkingScene->m_materials)
-		if (pMat->GetFilePathHash() == matPathHash) return pMat;
-
-	return nullptr;
 }

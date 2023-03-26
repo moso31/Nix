@@ -471,7 +471,6 @@ void NXScene::Release()
 {
 	SafeRelease(m_pEditorObjManager);
 	for (auto pLight : m_pbrLights) SafeDelete(pLight);
-	for (auto pMat : m_materials) SafeRelease(pMat);
 	SafeRelease(m_pBVHTree);
 	SafeRelease(m_pRootObject);
 }

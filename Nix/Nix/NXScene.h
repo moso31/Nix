@@ -50,8 +50,7 @@ public:
 	AABB GetAABB() { return m_aabb; }
 
 	NXCamera* GetMainCamera() { return m_pMainCamera; }
-	std::vector<NXRenderableObject*> GetRenderableObjects() { return m_renderableObjects; }
-	std::vector<NXMaterial*> GetMaterials() { return m_materials; }
+	std::vector<NXRenderableObject*> GetRenderableObjects() { return m_renderableObjects; }	
 	std::vector<NXPBRLight*> GetPBRLights() { return m_pbrLights; }
 	NXCubeMap* GetCubeMap() { return m_pCubeMap; }
 
@@ -88,7 +87,6 @@ private:
 	std::vector<NXObject*> m_objects;
 
 	std::vector<NXRenderableObject*> m_renderableObjects;
-	std::vector<NXMaterial*> m_materials;
 	std::vector<NXPBRLight*> m_pbrLights;
 
 	// 当前选中的SubMesh和对应的Objects
@@ -101,3 +99,5 @@ private:
 	NXCamera* m_pMainCamera;
 	NXCubeMap* m_pCubeMap;
 };
+
+// 2023.3.26：随时间推移，会将SceneManager中的资源类内容逐步转移到ResourceManager。
