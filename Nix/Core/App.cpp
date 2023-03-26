@@ -57,6 +57,11 @@ void App::Draw()
 	NX::ThrowIfFailed(g_pSwapChain->Present1(0, 0, &parameters));
 }
 
+void App::ReleaseUnusedTextures()
+{
+	NXResourceManager::GetInstance()->ReleaseUnusedTextures();
+}
+
 void App::Release()
 {
 	SafeRelease(m_pRenderer);

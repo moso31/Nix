@@ -82,6 +82,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 			g_app->Update();
 			g_app->Draw();
 
+			g_app->ReleaseUnusedTextures();
 			NXInput::GetInstance()->RestoreData(); // 清空一次鼠标位置
 		}
 	}

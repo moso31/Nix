@@ -76,6 +76,7 @@ NXTexture2D* NXResourceManager::CreateTexture2D(const std::string& DebugName, co
 		for (auto pTexture : m_pTextureArray)
 		{
 			auto pTex2D = pTexture->Is2D();
+
 			if (pTex2D && !filePath.empty() && std::filesystem::hash_value(filePath) == std::filesystem::hash_value(pTexture->GetFilePath()))
 			{
 				pTex2D->AddRef();
@@ -88,7 +89,8 @@ NXTexture2D* NXResourceManager::CreateTexture2D(const std::string& DebugName, co
 	pTexture2D->Create(DebugName, filePath);
 	pTexture2D->AddSRV();
 
-	m_pTextureArray.insert(pTexture2D);
+	if (!bForce)
+		m_pTextureArray.insert(pTexture2D); // 2023.3.26 如果是强制加载，就不应加入到资源数组里面
 	return pTexture2D;
 }
 
@@ -270,8 +272,17 @@ void NXResourceManager::OnReload()
 			pTex->SwapToReloadingTexture();
 			pTex->SetReloadingState(NXTextureReloadingState::Texture_Reloading);
 
-			auto LoadTextureAsyncTask = pTex->LoadTextureAsync(); // 异步加载纹理。
-			LoadTextureAsyncTask.m_handle.promise().m_callbackFunc = [pTex]() { pTex->OnReloadFinish(); };
+			bool bAsync = true;
+			if (bAsync)
+			{
+				auto LoadTextureAsyncTask = pTex->LoadTextureAsync(); // 异步加载纹理。
+				LoadTextureAsyncTask.m_handle.promise().m_callbackFunc = [pTex]() { pTex->OnReloadFinish(); };
+			}
+			else
+			{
+				pTex->LoadTextureSync();
+				pTex->OnReloadFinish();
+			}
 
 			continue;
 		}
@@ -285,6 +296,19 @@ void NXResourceManager::OnReload()
 	}
 }
 
+void NXResourceManager::ReleaseUnusedTextures()
+{
+	// 移除所有引用计数为0的纹理，并释放它们。
+	std::erase_if(m_pTextureArray, [&](NXTexture* pTex) { 
+		if (pTex->GetRef() == 0)
+		{
+			SafeRelease(pTex);
+			return true;
+		}
+		return false;
+	});
+}
+
 void NXResourceManager::Release()
 {
 	for (auto pTex : m_pTextureArray) SafeRelease(pTex);
@@ -292,12 +316,38 @@ void NXResourceManager::Release()
 
 void NXTexture::SwapToReloadingTexture()
 {
-	m_pTexture = m_pReloadingTexture->m_pTexture;
+	if (m_reloadingState == NXTextureReloadingState::Texture_StartReload)
+	{
+		InternalReload(NXResourceManager::GetInstance()->GetCommonTextures(NXCommonTex_White));
+	}
 
-	auto& pReloadSRVs = m_pReloadingTexture->m_pSRVs;
+	if (m_reloadingState == NXTextureReloadingState::Texture_FinishReload)
+	{
+		InternalReload(m_pReloadingTexture);
+		SafeRelease(m_pReloadingTexture);
+	}
+}
+
+void NXTexture::InternalReload(NXTexture* pReloadTexture)
+{
+	m_pTexture = pReloadTexture->m_pTexture;
+
+	auto& pReloadSRVs = pReloadTexture->m_pSRVs;
 	m_pSRVs.resize(pReloadSRVs.size());
 
+	auto& pReloadDSVs = pReloadTexture->m_pDSVs;
+	m_pDSVs.resize(pReloadDSVs.size());
+
+	auto& pReloadRTVs = pReloadTexture->m_pRTVs;
+	m_pRTVs.resize(pReloadRTVs.size());
+
+	auto& pReloadUAVs = pReloadTexture->m_pUAVs;
+	m_pUAVs.resize(pReloadUAVs.size());
+
 	for (size_t i = 0; i < pReloadSRVs.size(); i++) m_pSRVs[i] = pReloadSRVs[i];
+	for (size_t i = 0; i < pReloadDSVs.size(); i++) m_pDSVs[i] = pReloadDSVs[i];
+	for (size_t i = 0; i < pReloadRTVs.size(); i++) m_pRTVs[i] = pReloadRTVs[i];
+	for (size_t i = 0; i < pReloadUAVs.size(); i++) m_pUAVs[i] = pReloadUAVs[i];
 }
 
 NXTextureReloadTask NXTexture::LoadTextureAsync()
@@ -305,6 +355,11 @@ NXTextureReloadTask NXTexture::LoadTextureAsync()
 	co_await NXTextureAwaiter();
 
 	// 从这里开始异步加载...
+	LoadTextureSync();
+}
+
+void NXTexture::LoadTextureSync()
+{
 	m_pReloadingTexture = NXResourceManager::GetInstance()->CreateTexture2D(m_debugName, m_texFilePath, true); // 将最后的参数设为true，以强制读取硬盘纹理
 }
 
@@ -329,7 +384,6 @@ void NXTexture::OnReload()
 	if (m_reloadingState == NXTextureReloadingState::Texture_None)
 	{
 		m_reloadingState = NXTextureReloadingState::Texture_StartReload;
-		m_pReloadingTexture = NXResourceManager::GetInstance()->GetCommonTextures(NXCommonTex_White);
 		return;
 	}
 }
@@ -384,7 +438,10 @@ NXTexture2D* NXTexture2D::Create(const std::string& DebugName, const std::filesy
 		hr = LoadFromWICFile(filePath.c_str(), WIC_FLAGS_NONE, &metadata, *pImage);
 
 	if (FAILED(hr))
+	{
+		pImage.reset();
 		return nullptr;
+	}
 
 	m_texFilePath = filePath;
 	m_pInfo = NXResourceManager::GetInstance()->LoadTextureInfo(filePath);
@@ -472,6 +529,7 @@ NXTexture2D* NXTexture2D::Create(const std::string& DebugName, const std::filesy
 
 	AddRef();
 
+	pImage.reset();
 	return this;
 }
 

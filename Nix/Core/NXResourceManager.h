@@ -106,6 +106,7 @@ public:
     TextureNXInfo* GetTextureNXInfo() { return m_pInfo; }
 
     NXTextureReloadTask LoadTextureAsync();
+    void LoadTextureSync();
 
     UINT            GetWidth()      { return m_width; }
     UINT            GetHeight()     { return m_height; }
@@ -114,12 +115,16 @@ public:
     DXGI_FORMAT     GetFormat()     { return m_texFormat; }
 
     void AddRef();
+    int GetRef() { return m_nRefCount; }
     void RemoveRef();
     void Release();
 
     // 当出现需要重新加载m_pTexture纹理的事件时（比如纹理属性Apply、Mesh材质变更）会触发这里的逻辑。
     void OnReload();
     void OnReloadFinish();
+
+private:
+    void InternalReload(NXTexture* pReloadTexture);
 
 protected:
     std::string m_debugName;
@@ -324,6 +329,9 @@ public:
     // 当要替换某张纹理时，由于GPU可能正使用此纹理，所以不太可能即时替换。
     // 所以需要在GPU不可能使用此资源的时候（也就是这里的 OnReload），进行替换操作。
     void OnReload();
+
+    // 移除 m_pTextureArray 中所有 引用计数=0 的纹理。
+    void ReleaseUnusedTextures();
 
     void Release();
 

@@ -10,6 +10,8 @@ public:
 	void Reload();
 	void Update();
 	void Draw();
+	void ReleaseUnusedTextures();
+
 	void Release();
 
 private:
