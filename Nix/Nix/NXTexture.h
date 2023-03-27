@@ -85,7 +85,7 @@ public:
     void Release();
 
     // 当出现需要重新加载m_pTexture纹理的事件时（比如纹理属性Apply、Mesh材质变更）会触发这里的逻辑。
-    void OnReload();
+    void MarkReload();
     void OnReloadFinish();
 
 private:

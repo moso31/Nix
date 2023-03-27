@@ -3,16 +3,12 @@
 #include "NXPBRMaterial.h"
 #include "NXIntersection.h"
 
-enum EditorObjectID
+enum NXMaterialReloadingState
 {
-	NONE,
-	TRANSLATE_X,
-	TRANSLATE_Y,
-	TRANSLATE_Z,
-	TRANSLATE_XY,
-	TRANSLATE_XZ,
-	TRANSLATE_YZ,
-	MAX
+	Material_None, // 正常状态
+	Material_StartReload, // A->Default 状态
+	Material_Reloading,  // Default->B 状态
+	Material_FinishReload,  // B 状态
 };
 
 class NXPrimitive;
@@ -43,6 +39,8 @@ public:
 
 	virtual bool IsSubMeshStandard()		{ return false; }
 	virtual bool IsSubMeshEditorObject()	{ return false; }
+
+	void MarkReplacing();
 
 private:
 	// [Warning!] 不允许直接设置材质！
@@ -95,6 +93,22 @@ public:
 	virtual bool IsSubMeshStandard()	 override { return true; }
 
 	void CalculateTangents(bool bUpdateVBIB = false) override;
+};
+
+/////////////////////////////////////////////////////////////////////////////
+// Editor Objects
+/////////////////////////////////////////////////////////////////////////////
+
+enum EditorObjectID
+{
+	NONE,
+	TRANSLATE_X,
+	TRANSLATE_Y,
+	TRANSLATE_Z,
+	TRANSLATE_XY,
+	TRANSLATE_XZ,
+	TRANSLATE_YZ,
+	MAX
 };
 
 class NXSubMeshEditorObjects : public NXSubMesh<VertexEditorObjects>

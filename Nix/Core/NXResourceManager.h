@@ -1,14 +1,6 @@
 #pragma once
 #include "NXInstance.h"
 
-enum NXMaterialReloadingState
-{
-    Material_None, // ����״̬
-    Material_StartReload, // A->Default ״̬
-    Material_Reloading,  // Default->B ״̬
-    Material_FinishReload,  // B ״̬
-};
-
 enum NXCommonRTEnum
 {
     NXCommonRT_DepthZ,

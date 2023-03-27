@@ -293,6 +293,15 @@ void NXResourceManager::OnReload()
 			continue;
 		}
 	}
+
+	for (NXMaterial* pMat : m_pMaterialArray)
+	{
+		if (!pMat) continue;
+		if (pMat->GetReloadingState() == NXMaterialReloadingState::Material_StartReload)
+		{
+			//pMat->();
+		}
+	}
 }
 
 void NXResourceManager::ReleaseUnusedTextures()

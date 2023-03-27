@@ -55,7 +55,7 @@ void NXGUITexture::Render()
 		{
 			// ±£´æNXInfoÎÄ¼þ
 			NXResourceManager::GetInstance()->SaveTextureInfo(m_pTexInfo, m_pTexImage->GetFilePath());
-			m_pTexImage->OnReload();
+			m_pTexImage->MarkReload();
 
 			SetImage(m_pTexImage->GetFilePath());
 		}

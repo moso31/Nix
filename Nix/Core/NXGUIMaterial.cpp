@@ -93,6 +93,10 @@ void NXGUIMaterial::Render()
 			auto pDropData = (NXGUIContentExplorerButtonDrugData*)(payload->Data);
 			if (NXConvert::IsMaterialFileExtension(pDropData->srcPath.extension().string()))
 			{
+				// TODO : 异步替换材质... 2023.3.27
+				//for (NXSubMeshBase* pSubMesh : pPickingSubMeshes) pSubMesh->MarkReplacing();
+
+
 				// 生成新材质
 				auto pNewMaterial = SceneManager::GetInstance()->LoadFromNmatFile(pDropData->srcPath);
 

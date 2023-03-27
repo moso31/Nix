@@ -3,6 +3,14 @@
 #include "NXResourceManager.h"
 #include "NXTexture.h"
 
+enum NXMaterialReloadingState
+{
+	Material_None, // Õý³£×´Ì¬
+	Material_StartReload, // A->Default ×´Ì¬
+	Material_Reloading,  // Default->B ×´Ì¬
+	Material_FinishReload,  // B ×´Ì¬
+};
+
 enum NXMaterialType
 {
 	UNKNOWN,
@@ -68,6 +76,10 @@ public:
 
 	virtual void ReloadTextures() = 0;
 
+	void MarkReplacing();
+	NXMaterialReloadingState GetReloadingState() { return m_nMatReloadingState; }
+	void SetReloadingState(NXMaterialReloadingState state) { m_nMatReloadingState = state; }
+
 public:
 	std::vector<NXSubMeshBase*> GetRefSubMeshes() { return m_pRefSubMeshes; }
 	void RemoveSubMesh(NXSubMeshBase* pRemoveSubmesh);
@@ -91,6 +103,8 @@ private:
 	// ²ÄÖÊÎÄ¼þÂ·¾¶¡¢¹þÏ£
 	std::string m_filePath;
 	size_t m_pathHash;
+
+	NXMaterialReloadingState m_nMatReloadingState;
 };
 
 class NXPBRMaterialBase : public NXMaterial

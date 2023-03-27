@@ -106,7 +106,7 @@ void NXTexture::Release()
 	SafeDelete(m_pInfo);
 }
 
-void NXTexture::OnReload()
+void NXTexture::MarkReload()
 {
 	if (m_reloadingState == NXTextureReloadingState::Texture_None)
 	{

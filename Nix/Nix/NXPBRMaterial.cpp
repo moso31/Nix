@@ -11,7 +11,8 @@ NXMaterial::NXMaterial(const std::string name, const NXMaterialType type, const 
 	m_type(type),
 	m_filePath(filePath),
 	m_pathHash(std::filesystem::hash_value(filePath)),
-	m_RefSubMeshesCleanUpCount(0)
+	m_RefSubMeshesCleanUpCount(0),
+	m_nMatReloadingState(NXMaterialReloadingState::Material_None)
 {
 }
 
@@ -31,6 +32,12 @@ void NXMaterial::RemoveSubMesh(NXSubMeshBase* pRemoveSubmesh)
 	m_pRefSubMeshes.erase(
 		std::remove(m_pRefSubMeshes.begin(), m_pRefSubMeshes.end(), pRemoveSubmesh)
 	);
+}
+
+void NXMaterial::MarkReplacing()
+{
+	//if (m_nMatReloadingState == NXMaterialReloadingState::Material_None)
+	//	m_nMatReloadingState = NXMaterialReloadingState::Material_StartReload;
 }
 
 void NXMaterial::AddSubMesh(NXSubMeshBase* pSubMesh)
