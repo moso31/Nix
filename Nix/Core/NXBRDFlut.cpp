@@ -4,6 +4,7 @@
 #include "ShaderStructures.h"
 #include "ShaderComplier.h"
 #include "GlobalBufferManager.h"
+#include "NXTexture.h"
 
 NXBRDFLut::NXBRDFLut() :
 	m_pTexBRDFLUT(nullptr)

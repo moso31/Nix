@@ -6,6 +6,7 @@
 #include "GlobalBufferManager.h"
 #include "NXResourceManager.h"
 #include "DirectResources.h"
+#include "NXTexture.h"
 
 NXDebugLayerRenderer::NXDebugLayerRenderer(NXShadowMapRenderer* pShadowMapRenderer) :
 	m_pDebugLayerTex(nullptr),

@@ -7,6 +7,7 @@
 #include "NXRenderStates.h"
 #include "NXScene.h"
 #include "SamplerMath.h"
+#include "NXTexture.h"
 
 NXSimpleSSAO::NXSimpleSSAO()
 {

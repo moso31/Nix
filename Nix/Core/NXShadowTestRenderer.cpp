@@ -4,6 +4,7 @@
 #include "NXRenderStates.h"
 #include "NXResourceManager.h"
 #include "NXRenderTarget.h"
+#include "NXTexture.h"
 
 NXShadowTestRenderer::~NXShadowTestRenderer()
 {

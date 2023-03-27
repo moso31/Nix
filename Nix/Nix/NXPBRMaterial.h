@@ -1,7 +1,7 @@
 #pragma once
-#include <filesystem>
 #include "ShaderStructures.h"
 #include "NXResourceManager.h"
+#include "NXTexture.h"
 
 enum NXMaterialType
 {

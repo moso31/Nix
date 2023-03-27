@@ -4,8 +4,8 @@
 #include "GlobalBufferManager.h"
 #include "DirectResources.h"
 #include "NXResourceManager.h"
-
 #include "NXRenderTarget.h"
+#include "NXTexture.h"
 
 NXFinalRenderer::NXFinalRenderer() :
 	m_pFinalRT(nullptr)

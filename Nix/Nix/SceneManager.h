@@ -1,6 +1,4 @@
 #pragma once
-#include <filesystem>
-
 #include "NXInstance.h"
 #include "NXScriptType.h"
 

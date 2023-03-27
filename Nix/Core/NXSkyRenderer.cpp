@@ -4,6 +4,7 @@
 #include "NXRenderStates.h"
 #include "DirectResources.h"
 #include "NXResourceManager.h"
+#include "NXTexture.h"
 
 #include "NXScene.h"
 #include "NXCubeMap.h"

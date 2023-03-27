@@ -33,6 +33,7 @@
 #include <algorithm>
 #include <coroutine>
 #include <fstream>
+#include <filesystem>
 
 // DirectX
 #include <d3d11_4.h>
@@ -79,6 +80,7 @@ class NXTimer;
 // resources
 class NXResourceManager;
 struct TextureNXInfo;
+class NXTexture;
 class NXTexture2D;
 class NXTextureCube;
 class NXTexture2DArray;

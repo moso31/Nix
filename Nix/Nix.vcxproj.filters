@@ -103,6 +103,9 @@
     <Filter Include="Shader\Editor">
       <UniqueIdentifier>{dae66a33-828d-4c6a-8267-ae37c226987f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Nix\Texture">
+      <UniqueIdentifier>{d5d9ef4c-09ae-4295-aecb-257ddc7dbfba}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Common.fx">
@@ -396,6 +399,9 @@
     <ClCompile Include="Core\NXTextureReloadTesk.cpp">
       <Filter>Core\DirectX\NXResources</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\NXTexture.cpp">
+      <Filter>Nix\Texture</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -607,6 +613,9 @@
     </ClInclude>
     <ClInclude Include="Core\NXTextureReloadTesk.h">
       <Filter>Core\DirectX\NXResources</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXTexture.h">
+      <Filter>Nix\Texture</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

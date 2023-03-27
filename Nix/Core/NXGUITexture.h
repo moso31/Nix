@@ -1,6 +1,5 @@
 #pragma once
 #include "Header.h"
-#include <filesystem>
 
 class NXGUITexture
 {

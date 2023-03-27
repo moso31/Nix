@@ -4,6 +4,7 @@
 #include "GlobalBufferManager.h"
 #include "NXResourceManager.h"
 #include "NXRenderTarget.h"
+#include "NXTexture.h"
 
 NXColorMappingRenderer::NXColorMappingRenderer() :
 	m_bEnablePostProcessing(true),
