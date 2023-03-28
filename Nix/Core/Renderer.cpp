@@ -6,9 +6,8 @@
 #include "NXResourceReloader.h"
 #include "NXRenderStates.h"
 #include "NXGUI.h"
-
+#include "NXTexture.h"
 #include "NXScene.h"
-#include "SceneManager.h"
 #include "NXCubeMap.h"
 #include "NXDepthPrepass.h"
 #include "NXSimpleSSAO.h"
@@ -30,7 +29,11 @@ void Renderer::Init()
 	InitRenderer();
 
 	m_scene = new NXScene();
-	SceneManager::GetInstance()->SetWorkingScene(m_scene);
+
+	NXResourceManager::GetInstance()->GetMeshManager()->SetWorkingScene(m_scene);
+	NXResourceManager::GetInstance()->GetCameraManager()->SetWorkingScene(m_scene);
+	NXResourceManager::GetInstance()->GetLightManager()->SetWorkingScene(m_scene);
+
 	m_scene->Init();
 
 	auto pCubeMap = m_scene->GetCubeMap();

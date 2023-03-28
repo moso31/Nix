@@ -6,10 +6,10 @@
 class NXPrimitive;
 class NXSubMeshBase
 {
-	friend class SceneManager;
+	friend class NXMeshResourceManager;
 	friend class NXMaterialResourceManager;
 public:
-	NXSubMeshBase(NXPrimitive* pPrimitive) : m_pPrimitive(pPrimitive), m_pMaterial(nullptr) {}
+	NXSubMeshBase(NXPrimitive* pPrimitive) : m_pPrimitive(pPrimitive), m_pMaterial(nullptr), m_nMatReloadingState(NXMaterialReloadingState::Material_None) {}
 	virtual ~NXSubMeshBase() {}
 
 	void UpdateViewParams();
@@ -35,9 +35,12 @@ public:
 
 	void MarkReplacing();
 
+	NXMaterialReloadingState GetReloadingState() { return m_nMatReloadingState; }
+	void SetReloadingState(NXMaterialReloadingState state) { m_nMatReloadingState = state; }
+
 private:
 	// [Warning!] 不允许直接设置材质！
-	// 需要使用 SceneManager::GetInstance()->BindMaterial() 为场景物体绑定材质
+	// 需使用 BindMaterial() 为场景物体绑定材质
 	void SetMaterial(NXMaterial* mat) { m_pMaterial = mat; }
 
 protected:
@@ -45,6 +48,8 @@ protected:
 	NXMaterial* m_pMaterial;
 
 	AABB m_localAABB;
+
+	NXMaterialReloadingState m_nMatReloadingState;
 };
 
 template<class TVertex>

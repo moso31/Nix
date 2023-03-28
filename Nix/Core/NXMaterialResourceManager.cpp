@@ -273,14 +273,14 @@ void NXMaterialResourceManager::ReTypeMaterial(NXMaterial* srcMaterial, NXMateri
 
 void NXMaterialResourceManager::OnReload()
 {
-	for (NXMaterial* pMat : m_pMaterialArray)
-	{
-		if (!pMat) continue;
-		if (pMat->GetReloadingState() == NXMaterialReloadingState::Material_StartReload)
-		{
-			//pMat->();
-		}
-	}
+	//for (NXMaterial* pMat : m_pMaterialArray)
+	//{
+	//	if (!pMat) continue;
+	//	if (pMat->GetReloadingState() == NXMaterialReloadingState::Material_StartReload)
+	//	{
+	//		//pMat->();
+	//	}
+	//}
 
 	for (auto mat : m_pUnusedMaterials)
 	{

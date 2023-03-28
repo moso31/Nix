@@ -1,7 +1,6 @@
 #pragma once
 
 class NXScene;
-class NXSceneManager;
 class Renderer;
 
 class NXGUITexture;

@@ -63,6 +63,13 @@ public:
 
 	// 更新场景BVH树
 	void BuildBVHTrees(const HBVHSplitMode SplitMode);
+
+	void RegisterCubeMap(NXCubeMap* newCubeMap);
+	void RegisterPrimitive(NXPrimitive* newPrimitive, NXObject* pParent = nullptr);
+	void RegisterPrefab(NXPrefab* newPrefab, NXObject* pParent = nullptr);
+	void RegisterCamera(NXCamera* newCamera, bool isMainCamera, NXObject* pParent = nullptr);
+	void RegisterLight(NXPBRLight* newLight, NXObject* pParent = nullptr);
+
 private:
 	// 生成编辑器对象（MoveArrows等玩意）
 	void InitEditorObjectsManager();
@@ -71,8 +78,6 @@ private:
 	void InitBoundingStructures();
 
 private:
-	friend class SceneManager;
-
 	ComPtr<ID3D11Buffer> m_cbLights;
 	ConstantBufferLight m_cbDataLights;
 
@@ -100,4 +105,3 @@ private:
 	NXCubeMap* m_pCubeMap;
 };
 
-// 2023.3.26：随时间推移，会将SceneManager中的资源类内容逐步转移到ResourceManager。

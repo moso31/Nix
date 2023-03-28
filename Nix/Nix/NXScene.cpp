@@ -1,5 +1,4 @@
 #include "NXScene.h"
-#include "SceneManager.h"
 #include "NXEditorObjectManager.h"
 #include "NXSubMeshGeometryEditor.h"
 #include "GlobalBufferManager.h"
@@ -16,6 +15,7 @@
 #include "NXCubeMap.h"
 
 #include "NXScript.h"
+#include "NXScriptType.h"
 #include "NSFirstPersonalCamera.h"
 #include "NSTest.h"
 
@@ -253,57 +253,46 @@ void NXScene::Init()
 	//pPBRMat[3]->SetTexRoughness(L"D:\\NixAssets\\circle-textured-metal1\\roughness.png");
 	//pPBRMat[3]->SetTexAO(L"D:\\NixAssets\\circle-textured-metal1\\ao.png");
 
-	//auto pSphere = SceneManager::GetInstance()->CreateSphere("Sphere", 1.0f, 64, 64);
-	//SceneManager::GetInstance()->BindMaterial(pSphere->GetSubMesh(0), pPBRMat[0]);
+	//auto pSphere = NXResourceManager::GetInstance()->GetMeshManager()->CreateSphere("Sphere", 1.0f, 64, 64);
+	//NXResourceManager::GetInstance()->GetMaterialManager()->BindMaterial(pSphere->GetSubMesh(0), pPBRMat[0]);
 
 	//for (int l = 0; l < 4; l++)
 	//{
 	//	for (int m = -l; m <= l; m++)
 	//	{
 	//		Vector3 objPos(m * 1.5f, -l * 1.5f, 0.0f);
-	//		auto pSH = SceneManager::GetInstance()->CreateSHSphere("shTest", l, m, 1.0f, 64, 64, objPos);
-	//		SceneManager::GetInstance()->BindMaterial(pSH->GetSubMesh(0), pPBRMat[0]);
+	//		auto pSH = NXResourceManager::GetInstance()->GetMeshManager()->CreateSHSphere("shTest", l, m, 1.0f, 64, 64, objPos);
+	//		NXResourceManager::GetInstance()->GetMaterialManager()->BindMaterial(pSH->GetSubMesh(0), pPBRMat[0]);
 	//		pSH->AddScript(new NSTest());
 	//	}
 	//}
 
-	//auto p = SceneManager::GetInstance()->CreatePlane("Sphere", 10.0f, 10.0f, NXPlaneAxis::POSITIVE_Y);
-	//SceneManager::GetInstance()->BindMaterial(p->GetSubMesh(0), pPBRMat[0]);
+	//auto p = NXResourceManager::GetInstance()->GetMeshManager()->CreatePlane("Sphere", 10.0f, 10.0f, NXPlaneAxis::POSITIVE_Y);
+	//NXResourceManager::GetInstance()->GetMaterialManager()->BindMaterial(p->GetSubMesh(0), pPBRMat[0]);
 
 	std::vector<NXPrimitive*> pMeshes;
-	//SceneManager::GetInstance()->CreateFBXMeshes("D:\\NixAssets\\UnityBall.fbx", pMeshes);
-	//SceneManager::GetInstance()->BindMaterial(pMeshes[0]->GetSubMesh(0), pPBRMat[0]);
-	//SceneManager::GetInstance()->BindMaterial(pMeshes[0]->GetSubMesh(1), pPBRMat[1]);
-	//SceneManager::GetInstance()->BindMaterial(pMeshes[0]->GetSubMesh(2), pPBRMat[3]);
-	//SceneManager::GetInstance()->BindMaterial(pMeshes[0]->GetSubMesh(3), pPBRMat[3]);
+	//NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("D:\\NixAssets\\UnityBall.fbx", pMeshes);
+	//NXResourceManager::GetInstance()->GetMaterialManager()->BindMaterial(pMeshes[0]->GetSubMesh(0), pPBRMat[0]);
+	//NXResourceManager::GetInstance()->GetMaterialManager()->BindMaterial(pMeshes[0]->GetSubMesh(1), pPBRMat[1]);
+	//NXResourceManager::GetInstance()->GetMaterialManager()->BindMaterial(pMeshes[0]->GetSubMesh(2), pPBRMat[3]);
+	//NXResourceManager::GetInstance()->GetMaterialManager()->BindMaterial(pMeshes[0]->GetSubMesh(3), pPBRMat[3]);
 	//pMeshes[0]->SetRotation(Vector3(-0.8f, 0.0f, 0.0f));
 
-	//for (int i = -5; i <= 5; i++)
-	//{
-	//	auto pPBRMat = SceneManager::GetInstance()->CreatePBRMaterialTranslucent("rustediron2", Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f, 0.2f);
-	//	auto pSphere = SceneManager::GetInstance()->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(i * 2.0f, 0.0f, 0.0f));
-	//	SceneManager::GetInstance()->BindMaterial(pSphere->GetSubMesh(0), pPBRMat);
+	//auto* pPlane = NXResourceManager::GetInstance()->GetMeshManager()->CreatePlane("G", 1000.0f, 1000.0f, NXPlaneAxis::POSITIVE_Y);
+	//NXResourceManager::GetInstance()->GetMaterialManager()->BindMaterial(pPlane, pPBRMat[0]);
 
-	//	auto pPBRMatS = SceneManager::GetInstance()->CreatePBRMaterialStandard("rustediron2", Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f);
-	//	pSphere = SceneManager::GetInstance()->CreateSphere("Sphere", 1.0f, 64, 64, Vector3(i * 2.0f, 2.0f, 0.0f));
-	//	SceneManager::GetInstance()->BindMaterial(pSphere->GetSubMesh(0), pPBRMatS);
-	//}
+	//NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("D:\\NixAssets\\Cloth.fbx", pMeshes, true);
+	//NXResourceManager::GetInstance()->GetMaterialManager()->BindMaterial(pMeshes[0]->GetSubMesh(0), pPBRMat[0]);
 
-	//auto* pPlane = SceneManager::GetInstance()->CreatePlane("G", 1000.0f, 1000.0f, NXPlaneAxis::POSITIVE_Y);
-	//SceneManager::GetInstance()->BindMaterial(pPlane, pPBRMat[0]);
-
-	//SceneManager::GetInstance()->CreateFBXMeshes("D:\\NixAssets\\Cloth.fbx", pMeshes, true);
-	//SceneManager::GetInstance()->BindMaterial(pMeshes[0]->GetSubMesh(0), pPBRMat[0]);
-
-	NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\boxes.fbx", false);
-	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\shadowMapTest.fbx", false);
-	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\EditorObjTest.fbx", false);
-	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\lury.fbx", false);
-	//NXPrefab* p = SceneManager::GetInstance()->CreateFBXPrefab("arnia", "D:\\NixAssets\\testScene.fbx", false);
+	NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\boxes.fbx", false);
+	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\shadowMapTest.fbx", false);
+	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\EditorObjTest.fbx", false);
+	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\lury.fbx", false);
+	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\testScene.fbx", false);
 	p->SetScale(Vector3(0.1f));
-	SceneManager::GetInstance()->BindMaterial(p, pPBRMat[0]);
+	NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(p, pPBRMat[0]);
 	{
-		//bool bBind = SceneManager::GetInstance()->BindParent(pMeshes[1], pSphere);
+		//bool bBind = NXResourceManager::GetInstance()->BindParent(pMeshes[1], pSphere);
 		//auto pScript_test = new NSTest();
 		//pMeshes[0]->AddScript(pScript_test);
 	}
@@ -316,12 +305,12 @@ void NXScene::Init()
 	//	for (float j = -8.0f; j < 8.01f; j += 2.0f)
 	//	{
 	//		Vector3 pos(i, 0, j);
-	//		pSphere = SceneManager::GetInstance()->CreateSphere("Sphere", 1.0f, 64, 64, pos);
-	//			SceneManager::GetInstance()->BindMaterial(pSphere->GetSubMesh(0), pPBRMat[0]);
+	//		pSphere = NXResourceManager::GetInstance()->GetMeshManager()->CreateSphere("Sphere", 1.0f, 64, 64, pos);
+	//			NXResourceManager::GetInstance()->GetMaterialManager()->BindMaterial(pSphere->GetSubMesh(0), pPBRMat[0]);
 	//	}
 	//}
 
-	auto pCamera = SceneManager::GetInstance()->CreateCamera(
+	auto pCamera = NXResourceManager::GetInstance()->GetCameraManager()->CreateCamera(
 		"Camera1",
 		70.0f, 0.3f, 1000.f,
 		Vector3(0.0f, 0.0f, -10.0f),
@@ -330,12 +319,12 @@ void NXScene::Init()
 	);
 
 	NXCubeMap* pSky =
-	SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\Alexs_Apt_2k.hdr");
-	//SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\TexturesCom_JapanInariTempleH_1K_hdri_sphere.hdr");
-	//SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\ballroom_4k.hdr");
-	//SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\blue_grotto_4k.hdr");
-	//SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\HDRGPUTest.hdr");
-	//SceneManager::GetInstance()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\WhiteHDRI.hdr");
+	NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\Alexs_Apt_2k.hdr");
+	//NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\TexturesCom_JapanInariTempleH_1K_hdri_sphere.hdr");
+	//NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\ballroom_4k.hdr");
+	//NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\blue_grotto_4k.hdr");
+	//NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\HDRGPUTest.hdr");
+	//NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\WhiteHDRI.hdr");
 	pSky->SetIntensity(0.0f);
 
 	InitBoundingStructures();
@@ -343,15 +332,15 @@ void NXScene::Init()
 	// Init Lighting
 	{
 		NXPBRPointLight* pPointLight;
-		pPointLight = SceneManager::GetInstance()->CreatePBRPointLight(Vector3(0.0f, 0.25f, 0.0f), Vector3(1.0f), 100.0f, 100.0f);
+		pPointLight = NXResourceManager::GetInstance()->GetLightManager()->CreatePBRPointLight(Vector3(0.0f, 0.25f, 0.0f), Vector3(1.0f), 100.0f, 100.0f);
 		m_cbDataLights.pointLight[0] = pPointLight->GetConstantBuffer();
 
 		NXPBRDistantLight* pDirLight;
-		pDirLight = SceneManager::GetInstance()->CreatePBRDistantLight(Vector3(-1.0f, -1.30f, 1.0f), Vector3(1.0f), 0.0f);
+		pDirLight = NXResourceManager::GetInstance()->GetLightManager()->CreatePBRDistantLight(Vector3(-1.0f, -1.30f, 1.0f), Vector3(1.0f), 0.0f);
 		m_cbDataLights.distantLight[0] = pDirLight->GetConstantBuffer();
 
 		NXPBRSpotLight* pSpotLight;
-		//pSpotLight = SceneManager::GetInstance()->CreatePBRSpotLight(Vector3(0.0f, 2.0f, 0.0f), Vector3(0.0f, -1.0f, 0.0f), Vector3(1.0f), 1.0f, 30.0f, 50.0f, 100.0f);
+		//pSpotLight = NXResourceManager::GetInstance()->GetLightManager()->CreatePBRSpotLight(Vector3(0.0f, 2.0f, 0.0f), Vector3(0.0f, -1.0f, 0.0f), Vector3(1.0f), 1.0f, 30.0f, 50.0f, 100.0f);
 		//m_cbDataLights.spotLight[0] = pSpotLight->GetConstantBuffer();
 
 		D3D11_BUFFER_DESC bufferDesc;
@@ -372,7 +361,7 @@ void NXScene::InitScripts()
 {
 	auto pMainCamera = GetMainCamera();
 
-	NSFirstPersonalCamera* pScript = dynamic_cast<NSFirstPersonalCamera*>(SceneManager::GetInstance()->CreateScript(NXScriptType::NXSCRIPT_FIRST_PERSONAL_CAMERA, pMainCamera));
+	NSFirstPersonalCamera* pScript = dynamic_cast<NSFirstPersonalCamera*>(NXResourceManager::GetInstance()->GetScriptManager()->CreateScript(NXScriptType::NXSCRIPT_FIRST_PERSONAL_CAMERA, pMainCamera));
 	pMainCamera->SetFirstPersonalController(pScript);
 
 	NXEventKeyDown::GetInstance()->AddListener(std::bind(&NSFirstPersonalCamera::OnKeyDown, pScript, std::placeholders::_1));
@@ -542,8 +531,51 @@ void NXScene::InitBoundingStructures()
 
 void NXScene::BuildBVHTrees(const HBVHSplitMode SplitMode)
 {
-	SceneManager::GetInstance()->BuildBVHTrees(SplitMode);
+	SafeRelease(m_pBVHTree);
+
+	m_pBVHTree = new HBVHTree(this);
+	m_pBVHTree->BuildTreesWithScene(SplitMode);
 }
+
+void NXScene::RegisterCubeMap(NXCubeMap* newCubeMap)
+{
+	if (m_pCubeMap)
+	{
+		printf("Warning: cubemap has been set already! strightly cover cubemap maybe will make some problem.\n");
+	}
+	m_pCubeMap = newCubeMap;
+	m_objects.push_back(newCubeMap);
+	newCubeMap->SetParent(m_pRootObject);
+}
+
+void NXScene::RegisterPrimitive(NXPrimitive* newPrimitive, NXObject* pParent)
+{
+	m_renderableObjects.push_back(newPrimitive);
+	m_objects.push_back(newPrimitive);
+
+	newPrimitive->SetParent(pParent ? pParent : m_pRootObject);
+}
+
+void NXScene::RegisterPrefab(NXPrefab* newPrefab, NXObject* pParent)
+{
+	m_renderableObjects.push_back(newPrefab);
+	m_objects.push_back(newPrefab);
+
+	newPrefab->SetParent(pParent ? pParent : m_pRootObject);
+}
+
+void NXScene::RegisterCamera(NXCamera* newCamera, bool isMainCamera, NXObject* pParent)
+{
+	if (isMainCamera) m_pMainCamera = newCamera;
+	m_objects.push_back(newCamera);
+	newCamera->SetParent(pParent ? pParent : m_pRootObject);
+}
+
+void NXScene::RegisterLight(NXPBRLight* newLight, NXObject* pParent)
+{
+	m_pbrLights.push_back(newLight);
+}
+
 
 void NXScene::InitEditorObjectsManager()
 {

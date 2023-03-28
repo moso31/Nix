@@ -77,8 +77,16 @@ class NXEventManager;
 class NXScript;
 class NXTimer;
 
-// resources
+// resource managers.
 class NXResourceManager;
+class NXCameraResourceManager;
+class NXLightResourceManager;
+class NXMaterialResourceManager;
+class NXMeshResourceManager;
+class NXScriptResourceManager;
+class NXTextureResourceManager;
+
+// resources
 struct TextureNXInfo;
 class NXTexture;
 class NXTexture2D;
@@ -88,7 +96,6 @@ class NXBRDFLut;
 
 // scene
 class NXScene;
-class SceneManager;
 class NXEditorObjectManager;
 
 // objects

@@ -49,8 +49,6 @@ Last Issue ID : 26
 21. Depth peeling UI参数可控
 22. Context Explorer 增加浏览类型（比如只显示图片/CubeMap/Nmat/FBX/……）
 25. ForceSRGB/ForceLinear纹理支持的格式还不全。导入SRGB纹理的时候可能会引起崩溃
-26. 将SceneManager的Material相关转移到ResourceManager。
-	已经转移了一半，剩下的都是体力活，暂时不太想搞……
 
 【较大的长期模块】
 12. resizeable viewport+全屏化UI
@@ -73,3 +71,4 @@ Last Issue ID : 26
 23. 现在改纹理，Apply以后纹理是变，但是使用了这些纹理的材质没有改变。
 	这个要稍花精力想一下，目前纹理和材质还没有建立联系。[DONE]
 24. contentExplorer，点cubemap类型的dds纹理，会崩溃[DONE]
+26. 将SceneManager的Material相关转移到ResourceManager。[DONE]

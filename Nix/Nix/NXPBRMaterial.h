@@ -76,10 +76,6 @@ public:
 
 	virtual void ReloadTextures() = 0;
 
-	void MarkReplacing();
-	NXMaterialReloadingState GetReloadingState() { return m_nMatReloadingState; }
-	void SetReloadingState(NXMaterialReloadingState state) { m_nMatReloadingState = state; }
-
 public:
 	std::vector<NXSubMeshBase*> GetRefSubMeshes() { return m_pRefSubMeshes; }
 	void RemoveSubMesh(NXSubMeshBase* pRemoveSubmesh);
@@ -103,8 +99,6 @@ private:
 	// 材质文件路径、哈希
 	std::string m_filePath;
 	size_t m_pathHash;
-
-	NXMaterialReloadingState m_nMatReloadingState;
 };
 
 class NXPBRMaterialBase : public NXMaterial

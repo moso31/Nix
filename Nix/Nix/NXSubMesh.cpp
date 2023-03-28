@@ -9,6 +9,12 @@ void NXSubMeshBase::UpdateViewParams()
 	m_pPrimitive->UpdateViewParams(); 
 }
 
+void NXSubMeshBase::MarkReplacing()
+{
+	//if (m_nMatReloadingState == NXMaterialReloadingState::Material_None)
+	//	m_nMatReloadingState = NXMaterialReloadingState::Material_StartReload;
+}
+
 template<class TVertex>
 void NXSubMesh<TVertex>::Render()
 {

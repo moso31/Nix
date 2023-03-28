@@ -4,7 +4,6 @@
 #include "NXConverter.h"
 #include "NXScene.h"
 #include "NXPrimitive.h"
-#include "SceneManager.h"
 #include "NXGUIContentExplorer.h"
 
 NXGUIMaterial::NXGUIMaterial(NXScene* pScene, NXGUIFileBrowser* pFileBrowser) :
@@ -94,7 +93,8 @@ void NXGUIMaterial::Render()
 			if (NXConvert::IsMaterialFileExtension(pDropData->srcPath.extension().string()))
 			{
 				// TODO : 异步替换材质... 2023.3.27
-				//for (NXSubMeshBase* pSubMesh : pPickingSubMeshes) pSubMesh->MarkReplacing();
+				for (NXSubMeshBase* pSubMesh : pPickingSubMeshes) 
+					pSubMesh->MarkReplacing();
 
 
 				// 生成新材质
@@ -103,7 +103,7 @@ void NXGUIMaterial::Render()
 				// 替换物体原来的材质
 				for (auto pSubMesh : pPickingSubMeshes)
 				{
-					SceneManager::GetInstance()->BindMaterial(pSubMesh, pNewMaterial);
+					NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(pSubMesh, pNewMaterial);
 				}
 			}
 		}
