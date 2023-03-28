@@ -7,6 +7,7 @@ class NXPrimitive;
 class NXSubMeshBase
 {
 	friend class SceneManager;
+	friend class NXMaterialResourceManager;
 public:
 	NXSubMeshBase(NXPrimitive* pPrimitive) : m_pPrimitive(pPrimitive), m_pMaterial(nullptr) {}
 	virtual ~NXSubMeshBase() {}

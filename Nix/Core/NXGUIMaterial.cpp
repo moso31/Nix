@@ -98,7 +98,7 @@ void NXGUIMaterial::Render()
 
 
 				// 生成新材质
-				auto pNewMaterial = SceneManager::GetInstance()->LoadFromNmatFile(pDropData->srcPath);
+				auto pNewMaterial = NXResourceManager::GetInstance()->GetMaterialManager()->LoadFromNmatFile(pDropData->srcPath);
 
 				// 替换物体原来的材质
 				for (auto pSubMesh : pPickingSubMeshes)
@@ -146,7 +146,7 @@ void NXGUIMaterial::Render()
 		}
 
 		if (matType != newMatType)
-			SceneManager::GetInstance()->ReTypeMaterial(pCommonMaterial, newMatType);
+			NXResourceManager::GetInstance()->GetMaterialManager()->ReTypeMaterial(pCommonMaterial, newMatType);
 
 		// 保存当前材质
 		if (ImGui::Button("Save##material"))

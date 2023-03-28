@@ -33,29 +33,8 @@ public:
 
 	static NXCamera* CreateCamera(const std::string name, const float FovY, const float zNear, const float zFar, const Vector3& eye, const Vector3& at, const Vector3& up);
 
-	static NXMaterial* LoadFromNmatFile(const std::filesystem::path& matFilePath);
-
-	static NXPBRMaterialStandard* CreatePBRMaterialStandard(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao,
-		const std::wstring albedoTexFilePath = g_defaultTex_white_wstr,
-		const std::wstring normalTexFilePath = g_defaultTex_normal_wstr,
-		const std::wstring metallicTexFilePath = g_defaultTex_white_wstr,
-		const std::wstring roughnessTexFilePath = g_defaultTex_white_wstr,
-		const std::wstring aoTexFilePath = g_defaultTex_white_wstr, 
-		const std::string& folderPath = "");
-	static NXPBRMaterialTranslucent* CreatePBRMaterialTranslucent(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float opacity,
-		const std::wstring albedoTexFilePath = g_defaultTex_white_wstr,
-		const std::wstring normalTexFilePath = g_defaultTex_normal_wstr,
-		const std::wstring metallicTexFilePath = g_defaultTex_white_wstr,
-		const std::wstring roughnessTexFilePath = g_defaultTex_white_wstr,
-		const std::wstring aoTexFilePath = g_defaultTex_white_wstr, 
-		const std::string& folderPath = "");
-
 	static void BindMaterial(NXRenderableObject* pRenderableObj, NXMaterial* pMaterial);
 	static void BindMaterial(NXSubMeshBase* pSubMesh, NXMaterial* pMaterial);
-
-	// 根据类型重新创建某个材质。
-	// GUI中更改材质类型时，会使用此逻辑。
-	static void ReTypeMaterial(NXMaterial* pSrcMaterial, NXMaterialType destMaterialType);
 
 	static NXPBRDistantLight* CreatePBRDistantLight(const Vector3& direction, const Vector3& color, const float illuminance);
 	static NXPBRPointLight* CreatePBRPointLight(const Vector3& position, const Vector3& color, const float intensity, const float influenceRadius);
@@ -73,9 +52,6 @@ private:
 	static void RegisterPrefab(NXPrefab* newPrefab, NXObject* pParent = nullptr);
 	static void RegisterCamera(NXCamera* newCamera, bool isMainCamera, NXObject* pParent = nullptr);
 	static void RegisterLight(NXPBRLight* newLight, NXObject* pParent = nullptr);
-
-	static NXMaterial* LoadStandardPBRMaterialFromFile(std::ifstream& ifs, const std::string& matName, const std::string& matFilePath);
-	static NXMaterial* LoadTranslucentPBRMaterialFromFile(std::ifstream& ifs, const std::string& matName, const std::string& matFilePath);
 
 private:
 	static NXScene* s_pWorkingScene;

@@ -16,7 +16,6 @@ public:
 	~NXResourceReloader() {}
 
 	void Push(NXResourceReloadCommand* pCommand);
-	void MarkUnusedMaterial(NXMaterial* pMaterial);
 
 	void Update();
 
@@ -24,6 +23,4 @@ private:
 
 private:
 	std::vector<NXResourceReloadCommand*> m_resourceReloadCmdList;
-
-	std::vector<NXMaterial*> m_pUnusedMaterialList;
 };
