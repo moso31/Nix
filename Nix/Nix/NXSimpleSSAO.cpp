@@ -20,7 +20,7 @@ NXSimpleSSAO::~NXSimpleSSAO()
 void NXSimpleSSAO::Init(const Vector2& AOBufferSize)
 {
 	NXShaderComplier::GetInstance()->CompileCS(L"Shader\\SimpleSSAO.fx", "CS", &m_pComputeShader);
-	m_pTexSSAO = NXResourceManager::GetInstance()->CreateTexture2D("Simple SSAO", DXGI_FORMAT_R32G32B32A32_FLOAT, lround(AOBufferSize.x), lround(AOBufferSize.y), 1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS);
+	m_pTexSSAO = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("Simple SSAO", DXGI_FORMAT_R32G32B32A32_FLOAT, lround(AOBufferSize.x), lround(AOBufferSize.y), 1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS);
 	m_pTexSSAO->AddSRV();
 	m_pTexSSAO->AddUAV();
 

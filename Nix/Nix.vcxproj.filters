@@ -402,6 +402,15 @@
     <ClCompile Include="Nix\NXTexture.cpp">
       <Filter>Nix\Texture</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXResourceManagerBase.cpp">
+      <Filter>Core\DirectX\NXResources</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXTextureResourceManager.cpp">
+      <Filter>Core\DirectX\NXResources</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXMaterialResourceManager.cpp">
+      <Filter>Core\DirectX\NXResources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -616,6 +625,15 @@
     </ClInclude>
     <ClInclude Include="Nix\NXTexture.h">
       <Filter>Nix\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXResourceManagerBase.h">
+      <Filter>Core\DirectX\NXResources</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXTextureResourceManager.h">
+      <Filter>Core\DirectX\NXResources</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXMaterialResourceManager.h">
+      <Filter>Core\DirectX\NXResources</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

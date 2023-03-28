@@ -46,7 +46,7 @@ bool NXCubeMap::Init(const std::filesystem::path& filePath)
 	else if (strExtension == ".hdr")
 	{
 		// 1. HDR纹理
-		NXTexture2D* pTexHDR = NXResourceManager::GetInstance()->CreateTexture2D("HDR Temp Texture", filePath);
+		NXTexture2D* pTexHDR = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("HDR Temp Texture", filePath);
 		pTexHDR->AddSRV();
 
 		// 2. 先使用HDR->DDS，然后将DDS保存为本地文件，再读取DDS本地文件作为实际CubeMap。
@@ -131,7 +131,7 @@ NXTextureCube* NXCubeMap::GenerateCubeMap(NXTexture2D* pTexHDR)
 	// 2023.3.14 关于pTexCubeMap：
 	// 其实理论上可以直接用 m_pTexCubeMap。
 	// 但实际这样试了下，发现后续生成IrradianceMap和PreFilterMap时，会出现非常严重的GPU线程阻塞。
-	NXTextureCube* pTexCubeMap = NXResourceManager::GetInstance()->CreateTextureCube("Main cubemap", descTex.Format, descTex.Width, descTex.Height, descTex.MipLevels, descTex.BindFlags, descTex.Usage, descTex.CPUAccessFlags, descTex.SampleDesc.Count, descTex.SampleDesc.Quality, descTex.MiscFlags);
+	NXTextureCube* pTexCubeMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTextureCube("Main cubemap", descTex.Format, descTex.Width, descTex.Height, descTex.MipLevels, descTex.BindFlags, descTex.Usage, descTex.CPUAccessFlags, descTex.SampleDesc.Count, descTex.SampleDesc.Quality, descTex.MiscFlags);
 	pTexCubeMap->AddSRV();
 	for (int i = 0; i < 6; i++)
 		pTexCubeMap->AddRTV(0, i, 1);
@@ -426,7 +426,7 @@ void NXCubeMap::GenerateIrradianceMap()
 	g_pContext->RSSetViewports(1, &vp);
 
 	if (m_pTexIrradianceMap) m_pTexIrradianceMap->RemoveRef();
-	m_pTexIrradianceMap = NXResourceManager::GetInstance()->CreateTextureCube("Irradiance IBL Tex", m_pTexCubeMap->GetFormat(), (UINT)MapSize, (UINT)MapSize, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, D3D11_RESOURCE_MISC_TEXTURECUBE);
+	m_pTexIrradianceMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTextureCube("Irradiance IBL Tex", m_pTexCubeMap->GetFormat(), (UINT)MapSize, (UINT)MapSize, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, D3D11_RESOURCE_MISC_TEXTURECUBE);
 	m_pTexIrradianceMap->AddSRV();
 	for (int i = 0; i < 6; i++)
 		m_pTexIrradianceMap->AddRTV(0, i, 1);
@@ -487,7 +487,7 @@ void NXCubeMap::GeneratePreFilterMap()
 
 	const static float MapSize = 512.0f;
 	if (m_pTexPreFilterMap) m_pTexPreFilterMap->RemoveRef();
-	m_pTexPreFilterMap = NXResourceManager::GetInstance()->CreateTextureCube("PreFilter Map", m_pTexCubeMap->GetFormat(), (UINT)MapSize, (UINT)MapSize, 5, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, D3D11_RESOURCE_MISC_TEXTURECUBE);
+	m_pTexPreFilterMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTextureCube("PreFilter Map", m_pTexCubeMap->GetFormat(), (UINT)MapSize, (UINT)MapSize, 5, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, D3D11_RESOURCE_MISC_TEXTURECUBE);
 	m_pTexPreFilterMap->AddSRV();
 
 	for (int i = 0; i < 5; i++)
@@ -583,7 +583,7 @@ void NXCubeMap::LoadDDS(const std::filesystem::path& filePath)
 	strPath.replace_extension(".dds");
 
 	if (m_pTexCubeMap) m_pTexCubeMap->RemoveRef();
-	m_pTexCubeMap = NXResourceManager::GetInstance()->CreateTextureCube("CubeMap Texture", strPath.wstring());
+	m_pTexCubeMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTextureCube("CubeMap Texture", strPath.wstring());
 	m_pTexCubeMap->AddSRV();
 }
 

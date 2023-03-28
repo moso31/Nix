@@ -3,14 +3,6 @@
 #include "NXPBRMaterial.h"
 #include "NXIntersection.h"
 
-enum NXMaterialReloadingState
-{
-	Material_None, // ����״̬
-	Material_StartReload, // A->Default ״̬
-	Material_Reloading,  // Default->B ״̬
-	Material_FinishReload,  // B ״̬
-};
-
 class NXPrimitive;
 class NXSubMeshBase
 {

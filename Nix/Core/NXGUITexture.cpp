@@ -54,7 +54,7 @@ void NXGUITexture::Render()
 		if (ImGui::Button("Apply##Texture"))
 		{
 			// 保存NXInfo文件
-			NXResourceManager::GetInstance()->SaveTextureInfo(m_pTexInfo, m_pTexImage->GetFilePath());
+			NXResourceManager::GetInstance()->GetTextureManager()->SaveTextureInfo(m_pTexInfo, m_pTexImage->GetFilePath());
 			m_pTexImage->MarkReload();
 
 			SetImage(m_pTexImage->GetFilePath());
@@ -93,7 +93,7 @@ void NXGUITexture::SetImage(const std::filesystem::path& path)
 	}
 
 	// 如果和之前的路径不同，就加载新的纹理
-	m_pTexImage = NXResourceManager::GetInstance()->CreateTexture2D("NXGUITexture Preview Image", path);
+	m_pTexImage = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("NXGUITexture Preview Image", path);
 	if (m_pTexImage)
 		m_pTexInfo = m_pTexImage->GetTextureNXInfo();
 }

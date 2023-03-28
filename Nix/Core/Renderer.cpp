@@ -87,8 +87,8 @@ void Renderer::InitGUI()
 void Renderer::InitRenderer()
 {
 	// 在这里初始化CommonRT和通用纹理。
-	NXResourceManager::GetInstance()->InitCommonRT();
-	NXResourceManager::GetInstance()->InitCommonTextures();
+	NXResourceManager::GetInstance()->GetTextureManager()->InitCommonRT();
+	NXResourceManager::GetInstance()->GetTextureManager()->InitCommonTextures();
 
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -117,7 +117,7 @@ void Renderer::PipelineReloading()
 
 	m_pFinalRenderer->SetInputTexture(bEnableDebugLayer ?
 		m_pDebugLayerRenderer->GetDebugLayerTex() :
-		NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_PostProcessing)
+		NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_PostProcessing)
 	);
 }
 
@@ -153,7 +153,7 @@ void Renderer::RenderFrame()
 	CD3D11_VIEWPORT vpCamera(0.0f, 0.0f, vp.x, vp.y);
 	g_pContext->RSSetViewports(1, &vpCamera);
 
-	NXTexture2D* pSceneRT = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_MainScene);
+	NXTexture2D* pSceneRT = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_MainScene);
 	g_pContext->ClearRenderTargetView(pSceneRT->GetRTV(), Colors::Black);
 
 	//m_pDepthPrepass->Render();

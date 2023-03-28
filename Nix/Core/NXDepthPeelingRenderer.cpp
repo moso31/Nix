@@ -26,18 +26,18 @@ void NXDepthPeelingRenderer::Init()
 {
 	auto sz = g_dxResources->GetViewSize();
 
-	m_pSceneDepth[0] = NXResourceManager::GetInstance()->CreateTexture2D("Depth Peeling Scene Depth 0", DXGI_FORMAT_R24G8_TYPELESS, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE);
+	m_pSceneDepth[0] = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("Depth Peeling Scene Depth 0", DXGI_FORMAT_R24G8_TYPELESS, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE);
 	m_pSceneDepth[0]->AddDSV();
 	m_pSceneDepth[0]->AddSRV();
 
-	m_pSceneDepth[1] = NXResourceManager::GetInstance()->CreateTexture2D("Depth Peeling Scene Depth 1", DXGI_FORMAT_R24G8_TYPELESS, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE);
+	m_pSceneDepth[1] = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("Depth Peeling Scene Depth 1", DXGI_FORMAT_R24G8_TYPELESS, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE);
 	m_pSceneDepth[1]->AddDSV();
 	m_pSceneDepth[1]->AddSRV();
 
 	m_pSceneRT.resize(m_peelingLayerCount);
 	for (UINT i = 0; i < m_peelingLayerCount; i++)
 	{
-		m_pSceneRT[i] = NXResourceManager::GetInstance()->CreateTexture2D("Depth Peeling Scene RT " + std::to_string(i), DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE);
+		m_pSceneRT[i] = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("Depth Peeling Scene RT " + std::to_string(i), DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE);
 		m_pSceneRT[i]->AddRTV();
 		m_pSceneRT[i]->AddSRV();
 	}
@@ -145,8 +145,8 @@ void NXDepthPeelingRenderer::Render()
 
 		g_pContext->ClearDepthStencilView(pDSVSceneDepth[i % 2], D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-		auto pMainScene = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_MainScene);
-		auto pDepthZ = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_DepthZ);
+		auto pMainScene = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_MainScene);
+		auto pDepthZ = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
 		g_pContext->CopyResource(m_pSceneRT[i]->GetTex(), pMainScene->GetTex());
 		g_pContext->CopyResource(m_pSceneDepth[i % 2]->GetTex(), pDepthZ->GetTex());
 
@@ -183,7 +183,7 @@ void NXDepthPeelingRenderer::Render()
 
 	g_pContext->PSSetSamplers(0, 1, m_pSamplerPointClamp.GetAddressOf());
 
-	auto pRTVMainScene = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_MainScene)->GetRTV();
+	auto pRTVMainScene = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_MainScene)->GetRTV();
 	g_pContext->OMSetRenderTargets(1, &pRTVMainScene, nullptr);
 
 	for (UINT i = 0; i < m_peelingLayerCount; i++)
@@ -236,7 +236,7 @@ void NXDepthPeelingRenderer::RenderLayer()
 	Vector3 cameraPos = pMainCamera ? Vector3(0.0f) : pMainCamera->GetTranslation();
 
 	// 2022.4.14 Ö»äÖÈ¾ Transparent ÎïÌå
-	for (auto pMat : NXResourceManager::GetInstance()->GetMaterials())
+	for (auto pMat : NXResourceManager::GetInstance()->GetMaterialManager()->GetMaterials())
 	{
 		if (pMat->GetType() == NXMaterialType::PBR_TRANSLUCENT)
 		{

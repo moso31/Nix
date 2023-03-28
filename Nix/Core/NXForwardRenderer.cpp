@@ -40,8 +40,8 @@ void NXForwardRenderer::Render()
 	g_pContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xffffffff);
 	g_pContext->RSSetState(m_pRasterizerState.Get());
 
-	auto pRTVScene = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_MainScene)->GetRTV();
-	auto pDSVSceneDepth = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_DepthZ)->GetDSV();
+	auto pRTVScene = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_MainScene)->GetRTV();
+	auto pDSVSceneDepth = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ)->GetDSV();
 	g_pContext->OMSetRenderTargets(1, &pRTVScene, pDSVSceneDepth);
 
 	g_pContext->IASetInputLayout(m_pInputLayout.Get());
@@ -80,7 +80,7 @@ void NXForwardRenderer::Render()
 	//g_pContext->PSSetConstantBuffers(4, 1, &pShadowMapConstantBufferTransform);
 
 	// 2022.4.14 Ö»äÖÈ¾ Transparent ÎïÌå
-	for (auto pMat : NXResourceManager::GetInstance()->GetMaterials())
+	for (auto pMat : NXResourceManager::GetInstance()->GetMaterialManager()->GetMaterials())
 	{
 		if (pMat->GetType() == NXMaterialType::PBR_TRANSLUCENT)
 		{

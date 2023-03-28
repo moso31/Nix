@@ -59,7 +59,7 @@ void App::Draw()
 
 void App::ReleaseUnusedTextures()
 {
-	NXResourceManager::GetInstance()->ReleaseUnusedTextures();
+	NXResourceManager::GetInstance()->GetTextureManager()->ReleaseUnusedTextures();
 }
 
 void App::Release()

@@ -124,7 +124,7 @@ NXMaterial* SceneManager::LoadFromNmatFile(const std::filesystem::path& matFileP
 	std::string strMatFilePath = matFilePath.string().c_str();
 
 	// 如果已经在内存里直接拿就行了
-	NXMaterial* pNewMat = NXResourceManager::GetInstance()->FindMaterial(matFilePath);
+	NXMaterial* pNewMat = NXResourceManager::GetInstance()->GetMaterialManager()->FindMaterial(matFilePath);
 	if (pNewMat) return pNewMat;
 
 	// 否则需要读路径文件创建新材质
@@ -268,7 +268,7 @@ NXPBRMaterialStandard* SceneManager::CreatePBRMaterialStandard(const std::string
 	pMat->SetTexMetallic(metallicTexFilePath);
 	pMat->SetTexRoughness(roughnessTexFilePath);
 	pMat->SetTexAO(aoTexFilePath);
-	NXResourceManager::GetInstance()->RegisterMaterial(pMat);
+	NXResourceManager::GetInstance()->GetMaterialManager()->RegisterMaterial(pMat);
 	return pMat;
 }
 
@@ -287,7 +287,7 @@ NXPBRMaterialTranslucent* SceneManager::CreatePBRMaterialTranslucent(const std::
 	pMat->SetTexMetallic(metallicTexFilePath);
 	pMat->SetTexRoughness(roughnessTexFilePath);
 	pMat->SetTexAO(aoTexFilePath);
-	NXResourceManager::GetInstance()->RegisterMaterial(pMat);
+	NXResourceManager::GetInstance()->GetMaterialManager()->RegisterMaterial(pMat);
 	return pMat;
 }
 
@@ -377,7 +377,7 @@ void SceneManager::ReTypeMaterial(NXMaterial* srcMaterial, NXMaterialType destMa
 			}
 		}
 
-		NXResourceManager::GetInstance()->ReplaceMaterial(srcMaterial, destMaterial);
+		NXResourceManager::GetInstance()->GetMaterialManager()->ReplaceMaterial(srcMaterial, destMaterial);
 
 		NXResourceReloader::GetInstance()->MarkUnusedMaterial(srcMaterial);
 	}

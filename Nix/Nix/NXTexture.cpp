@@ -45,7 +45,7 @@ void NXTexture::SwapToReloadingTexture()
 {
 	if (m_reloadingState == NXTextureReloadingState::Texture_StartReload)
 	{
-		InternalReload(NXResourceManager::GetInstance()->GetCommonTextures(NXCommonTex_White));
+		InternalReload(NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_White));
 	}
 
 	if (m_reloadingState == NXTextureReloadingState::Texture_FinishReload)
@@ -87,7 +87,7 @@ NXTextureReloadTask NXTexture::LoadTextureAsync()
 
 void NXTexture::LoadTextureSync()
 {
-	m_pReloadingTexture = NXResourceManager::GetInstance()->CreateTexture2D(m_debugName, m_texFilePath, true); // 将最后的参数设为true，以强制读取硬盘纹理
+	m_pReloadingTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(m_debugName, m_texFilePath, true); // 将最后的参数设为true，以强制读取硬盘纹理
 }
 
 void NXTexture::AddRef()
@@ -171,7 +171,7 @@ NXTexture2D* NXTexture2D::Create(const std::string& DebugName, const std::filesy
 	}
 
 	m_texFilePath = filePath;
-	m_pInfo = NXResourceManager::GetInstance()->LoadTextureInfo(filePath);
+	m_pInfo = NXResourceManager::GetInstance()->GetTextureManager()->LoadTextureInfo(filePath);
 
 	// 如果读取的是arraySize/TextureCube，就只读取ArraySize[0]/X+面。
 	if (metadata.arraySize > 1)

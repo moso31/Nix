@@ -45,8 +45,8 @@ void NXDeferredRenderer::Render()
 	g_pContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xffffffff);
 	g_pContext->RSSetState(m_pRasterizerState.Get());
 
-	auto pRTVScene = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_MainScene)->GetRTV();
-	auto pDSVSceneDepth = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_DepthZ)->GetDSV();
+	auto pRTVScene = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_MainScene)->GetRTV();
+	auto pDSVSceneDepth = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ)->GetDSV();
 	g_pContext->OMSetRenderTargets(1, &pRTVScene, pDSVSceneDepth);
 
 	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
@@ -79,11 +79,11 @@ void NXDeferredRenderer::Render()
 
 	g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 
-	NXTexture2D* pDepthZ = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_DepthZ);
-	NXTexture2D* pGBufferRTA = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_GBuffer0);
-	NXTexture2D* pGBufferRTB = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_GBuffer1);
-	NXTexture2D* pGBufferRTC = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_GBuffer2);
-	NXTexture2D* pGBufferRTD = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_GBuffer3);
+	NXTexture2D* pDepthZ = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
+	NXTexture2D* pGBufferRTA = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer0);
+	NXTexture2D* pGBufferRTB = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer1);
+	NXTexture2D* pGBufferRTC = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer2);
+	NXTexture2D* pGBufferRTD = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer3);
 
 	ID3D11ShaderResourceView* ppSRVs[4] = {
 		pGBufferRTA->GetSRV(),
@@ -97,7 +97,7 @@ void NXDeferredRenderer::Render()
 	g_pContext->PSSetShaderResources(2, 1, &ppSRVs[2]);
 	g_pContext->PSSetShaderResources(3, 1, &ppSRVs[3]);
 
-	auto pSRVShadowTest = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_ShadowTest)->GetSRV();
+	auto pSRVShadowTest = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_ShadowTest)->GetSRV();
 	g_pContext->PSSetShaderResources(8, 1, &pSRVShadowTest);
 
 	m_pResultRT->Render();
