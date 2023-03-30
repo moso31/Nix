@@ -1,6 +1,13 @@
 #pragma once
 #include "NXResourceManagerBase.h"
 
+struct NXSubMeshReloadTaskPackage
+{
+	void	Push(NXSubMeshBase* pSubMesh) { submits.push_back(pSubMesh); }
+	bool	IsEmpty()	{ return submits.empty(); }
+	std::vector<NXSubMeshBase*> submits; // 本次异步提交的SubMesh
+};
+
 enum NXPlaneAxis;
 class NXSubMeshBase;
 class NXTextureReloadTask;
@@ -27,8 +34,9 @@ public:
 
 	void AddReplacingSubMesh(NXSubMeshBase* pSubMesh) { m_replacingSubMeshes.push_back(pSubMesh); }
 
-	NXTextureReloadTask LoadMaterialAsync(const std::vector<NXSubMeshBase*>& pReplaceSubMeshes);
-	void LoadMaterialSync(const std::vector<NXSubMeshBase*>& pReplaceSubMeshes);
+	NXTextureReloadTask LoadMaterialAsync(const NXSubMeshReloadTaskPackage* pTaskData);
+	void LoadMaterialSync(const NXSubMeshReloadTaskPackage* pTaskData);
+	void OnLoadMaterialFinish(const NXSubMeshReloadTaskPackage* pTaskData);
 
 private:
 	NXScene* m_pWorkingScene;

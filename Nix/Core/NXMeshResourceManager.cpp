@@ -113,8 +113,7 @@ void NXMeshResourceManager::BindMaterial(NXSubMeshBase* pSubMesh, NXMaterial* pM
 
 void NXMeshResourceManager::OnReload()
 {
-	std::vector<NXSubMeshBase*> submitedSubMeshes; // 本次异步提交的SubMesh
-
+	NXSubMeshReloadTaskPackage* pTaskData = new NXSubMeshReloadTaskPackage();
 	for (auto pSubMesh : m_replacingSubMeshes) 
 	{
 		if (pSubMesh->GetReloadingState() == NXSubMeshReloadState::Start)
@@ -122,7 +121,7 @@ void NXMeshResourceManager::OnReload()
 			pSubMesh->SwitchToLoadingMaterial();
 			pSubMesh->SetReloadingState(NXSubMeshReloadState::Replacing);
 
-			submitedSubMeshes.push_back(pSubMesh);
+			pTaskData->Push(pSubMesh);
 		}
 
 		if (pSubMesh->GetReloadingState() == NXSubMeshReloadState::Finish)
@@ -133,43 +132,60 @@ void NXMeshResourceManager::OnReload()
 		}
 	}
 
-	bool bAsync = false;
-	if (bAsync)
+	if (pTaskData->IsEmpty())
 	{
-		//auto LoadTextureAsyncTask = pSubMesh->LoadMaterialAsync(); // 异步加载纹理。
-		//LoadTextureAsyncTask.m_handle.promise().m_callbackFunc = [pSubMesh]() { pSubMesh->OnReplaceFinish(); };
-	}
-	else
-	{
-		LoadMaterialSync(submitedSubMeshes);
-		for(auto pSubMesh : submitedSubMeshes)
-			pSubMesh->OnReplaceFinish();
+		SafeDelete(pTaskData);
+		return;
 	}
 
-	// 使用C++20的std::erase和std::remove_if移除重合部分
+	// 使用C++20的std::erase和std::remove_if，
+	// 从替换队列中，移除pTaskData正在异步处理的内容
 	m_replacingSubMeshes.erase(
 		std::remove_if(m_replacingSubMeshes.begin(), m_replacingSubMeshes.end(),
 			[&](NXSubMeshBase* subMesh) {
-				return std::find(submitedSubMeshes.begin(), submitedSubMeshes.end(), subMesh) != submitedSubMeshes.end();
+				return std::find(pTaskData->submits.begin(), pTaskData->submits.end(), subMesh) != pTaskData->submits.end();
 			}),
 		m_replacingSubMeshes.end());
+
+	// 异步加载纹理
+	bool bAsync = true;
+	if (bAsync)
+	{
+		auto LoadTextureAsyncTask = LoadMaterialAsync(pTaskData);
+		LoadTextureAsyncTask.m_handle.promise().m_callbackFunc = [this, pTaskData]() mutable {
+			OnLoadMaterialFinish(pTaskData);
+		};
+	}
+	else
+	{
+		LoadMaterialSync(pTaskData);
+		OnLoadMaterialFinish(std::move(pTaskData));
+	}
 }
 
 void NXMeshResourceManager::Release()
 {
 }
 
-NXTextureReloadTask NXMeshResourceManager::LoadMaterialAsync(const std::vector<NXSubMeshBase*>& pReplaceSubMeshes)
+NXTextureReloadTask NXMeshResourceManager::LoadMaterialAsync(const NXSubMeshReloadTaskPackage* pTaskData)
 {
 	co_await NXTextureAwaiter();
-	LoadMaterialSync(pReplaceSubMeshes);
+	LoadMaterialSync(pTaskData);
 }
 
-void NXMeshResourceManager::LoadMaterialSync(const std::vector<NXSubMeshBase*>& pReplaceSubMeshes)
+void NXMeshResourceManager::LoadMaterialSync(const NXSubMeshReloadTaskPackage* pTaskData)
 {
 	// 生成新材质
-	for (auto pSubMesh : pReplaceSubMeshes)
+	for (auto pSubMesh : pTaskData->submits)
 	{
 		pSubMesh->m_pReplacingMaterial = NXResourceManager::GetInstance()->GetMaterialManager()->LoadFromNmatFile(pSubMesh->m_strReplacingPath);
 	}
+}
+
+void NXMeshResourceManager::OnLoadMaterialFinish(const NXSubMeshReloadTaskPackage* pTaskData)
+{
+	for (auto pSubMesh : pTaskData->submits) 
+		pSubMesh->OnReplaceFinish();
+
+	SafeDelete(pTaskData);
 }
