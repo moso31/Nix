@@ -112,7 +112,7 @@ void NXMeshResourceManager::BindMaterial(NXSubMeshBase* pSubMesh, NXMaterial* pM
 
 void NXMeshResourceManager::OnReload()
 {
-	std::vector<NXSubMeshBase*> removeSubMeshes;
+	std::vector<NXSubMeshBase*> submitedSubMeshes; // 本次异步提交的SubMesh
 
 	for (auto pSubMesh : m_replacingSubMeshes) 
 	{
@@ -141,14 +141,14 @@ void NXMeshResourceManager::OnReload()
 			continue;
 		}
 
-		removeSubMeshes.push_back(pSubMesh);
+		submitedSubMeshes.push_back(pSubMesh);
 	}
 
 	// 使用C++20的std::erase和std::remove_if移除重合部分
 	m_replacingSubMeshes.erase(
 		std::remove_if(m_replacingSubMeshes.begin(), m_replacingSubMeshes.end(),
 			[&](NXSubMeshBase* subMesh) {
-				return std::find(removeSubMeshes.begin(), removeSubMeshes.end(), subMesh) != removeSubMeshes.end();
+				return std::find(submitedSubMeshes.begin(), submitedSubMeshes.end(), subMesh) != submitedSubMeshes.end();
 			}),
 		m_replacingSubMeshes.end());
 }
