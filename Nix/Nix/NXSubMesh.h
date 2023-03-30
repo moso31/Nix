@@ -46,9 +46,6 @@ public:
 	void SwitchToReplacingMaterial();
 	void OnReplaceFinish();
 
-	NXTextureReloadTask LoadMaterialAsync();
-	void LoadMaterialSync();
-
 	NXSubMeshReloadState GetReloadingState() { return m_nMatReloadingState; }
 	void SetReloadingState(NXSubMeshReloadState state) { m_nMatReloadingState = state; }
 

@@ -3,6 +3,7 @@
 #include "NXSubMeshGeometryEditor.h"
 #include "NXPrimitive.h"
 #include "NXPrefab.h"
+#include "NXTextureReloadTesk.h"
 
 void NXMeshResourceManager::SetWorkingScene(NXScene* pScene)
 {
@@ -121,17 +122,7 @@ void NXMeshResourceManager::OnReload()
 			pSubMesh->SwitchToLoadingMaterial();
 			pSubMesh->SetReloadingState(NXSubMeshReloadState::Replacing);
 
-			bool bAsync = true;
-			if (bAsync)
-			{
-				auto LoadTextureAsyncTask = pSubMesh->LoadMaterialAsync(); // 异步加载纹理。
-				LoadTextureAsyncTask.m_handle.promise().m_callbackFunc = [pSubMesh]() { pSubMesh->OnReplaceFinish(); };
-			}
-			else
-			{
-				pSubMesh->LoadMaterialSync();
-				pSubMesh->OnReplaceFinish();
-			}
+			submitedSubMeshes.push_back(pSubMesh);
 		}
 
 		if (pSubMesh->GetReloadingState() == NXSubMeshReloadState::Finish)
@@ -140,8 +131,19 @@ void NXMeshResourceManager::OnReload()
 			pSubMesh->SetReloadingState(NXSubMeshReloadState::None);
 			continue;
 		}
+	}
 
-		submitedSubMeshes.push_back(pSubMesh);
+	bool bAsync = false;
+	if (bAsync)
+	{
+		//auto LoadTextureAsyncTask = pSubMesh->LoadMaterialAsync(); // 异步加载纹理。
+		//LoadTextureAsyncTask.m_handle.promise().m_callbackFunc = [pSubMesh]() { pSubMesh->OnReplaceFinish(); };
+	}
+	else
+	{
+		LoadMaterialSync(submitedSubMeshes);
+		for(auto pSubMesh : submitedSubMeshes)
+			pSubMesh->OnReplaceFinish();
 	}
 
 	// 使用C++20的std::erase和std::remove_if移除重合部分
@@ -155,4 +157,19 @@ void NXMeshResourceManager::OnReload()
 
 void NXMeshResourceManager::Release()
 {
+}
+
+NXTextureReloadTask NXMeshResourceManager::LoadMaterialAsync(const std::vector<NXSubMeshBase*>& pReplaceSubMeshes)
+{
+	co_await NXTextureAwaiter();
+	LoadMaterialSync(pReplaceSubMeshes);
+}
+
+void NXMeshResourceManager::LoadMaterialSync(const std::vector<NXSubMeshBase*>& pReplaceSubMeshes)
+{
+	// 生成新材质
+	for (auto pSubMesh : pReplaceSubMeshes)
+	{
+		pSubMesh->m_pReplacingMaterial = NXResourceManager::GetInstance()->GetMaterialManager()->LoadFromNmatFile(pSubMesh->m_strReplacingPath);
+	}
 }

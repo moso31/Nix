@@ -38,18 +38,6 @@ void NXSubMeshBase::OnReplaceFinish()
 	NXResourceManager::GetInstance()->GetMeshManager()->AddReplacingSubMesh(this);
 }
 
-NXTextureReloadTask NXSubMeshBase::LoadMaterialAsync()
-{
-	co_await NXTextureAwaiter();
-	LoadMaterialSync();
-}
-
-void NXSubMeshBase::LoadMaterialSync()
-{
-	// 生成新材质
-	m_pReplacingMaterial = NXResourceManager::GetInstance()->GetMaterialManager()->LoadFromNmatFile(m_strReplacingPath);
-}
-
 template<class TVertex>
 void NXSubMesh<TVertex>::Render()
 {

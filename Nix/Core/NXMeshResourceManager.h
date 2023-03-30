@@ -2,6 +2,8 @@
 #include "NXResourceManagerBase.h"
 
 enum NXPlaneAxis;
+class NXSubMeshBase;
+class NXTextureReloadTask;
 class NXMeshResourceManager : public NXResourceManagerBase
 {
 public:
@@ -24,6 +26,9 @@ public:
 	void Release() override;
 
 	void AddReplacingSubMesh(NXSubMeshBase* pSubMesh) { m_replacingSubMeshes.push_back(pSubMesh); }
+
+	NXTextureReloadTask LoadMaterialAsync(const std::vector<NXSubMeshBase*>& pReplaceSubMeshes);
+	void LoadMaterialSync(const std::vector<NXSubMeshBase*>& pReplaceSubMeshes);
 
 private:
 	NXScene* m_pWorkingScene;
