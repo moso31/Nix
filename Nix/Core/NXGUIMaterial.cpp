@@ -94,17 +94,17 @@ void NXGUIMaterial::Render()
 			{
 				// TODO : 异步替换材质... 2023.3.27
 				for (NXSubMeshBase* pSubMesh : pPickingSubMeshes) 
-					pSubMesh->MarkReplacing();
+					pSubMesh->MarkReplacing(pDropData->srcPath);
 
 
-				// 生成新材质
-				auto pNewMaterial = NXResourceManager::GetInstance()->GetMaterialManager()->LoadFromNmatFile(pDropData->srcPath);
+				//// 生成新材质
+				//auto pNewMaterial = NXResourceManager::GetInstance()->GetMaterialManager()->LoadFromNmatFile(pDropData->srcPath);
 
-				// 替换物体原来的材质
-				for (auto pSubMesh : pPickingSubMeshes)
-				{
-					NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(pSubMesh, pNewMaterial);
-				}
+				//// 替换物体原来的材质
+				//for (auto pSubMesh : pPickingSubMeshes)
+				//{
+				//	NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(pSubMesh, pNewMaterial);
+				//}
 			}
 		}
 		ImGui::EndDragDropTarget();

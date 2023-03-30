@@ -23,6 +23,10 @@ public:
 	void OnReload() override;
 	void Release() override;
 
+	void AddReplacingSubMesh(NXSubMeshBase* pSubMesh) { m_replacingSubMeshes.push_back(pSubMesh); }
+
 private:
 	NXScene* m_pWorkingScene;
+
+	std::vector<NXSubMeshBase*> m_replacingSubMeshes;
 };

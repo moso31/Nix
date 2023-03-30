@@ -12,8 +12,10 @@ void NXMaterialResourceManager::InitCommonMaterial()
 	pDefaultMat->SetTexMetallic(g_defaultTex_white_wstr);
 	pDefaultMat->SetTexRoughness(g_defaultTex_white_wstr);
 	pDefaultMat->SetTexAO(g_defaultTex_white_wstr);
-
 	RegisterMaterial(pDefaultMat);
+
+	SafeRelease(m_pDefaultMaterial);
+	m_pDefaultMaterial = pDefaultMat;
 }
 
 void NXMaterialResourceManager::RegisterMaterial(NXMaterial* newMaterial)

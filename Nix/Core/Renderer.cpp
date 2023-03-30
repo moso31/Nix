@@ -30,6 +30,8 @@ void Renderer::Init()
 
 	m_scene = new NXScene();
 
+	NXResourceManager::GetInstance()->GetMaterialManager()->InitCommonMaterial();
+
 	NXResourceManager::GetInstance()->GetMeshManager()->SetWorkingScene(m_scene);
 	NXResourceManager::GetInstance()->GetCameraManager()->SetWorkingScene(m_scene);
 	NXResourceManager::GetInstance()->GetLightManager()->SetWorkingScene(m_scene);

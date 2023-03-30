@@ -3,14 +3,6 @@
 #include "NXResourceManager.h"
 #include "NXTexture.h"
 
-enum NXMaterialReloadingState
-{
-	Material_None, // ����״̬
-	Material_StartReload, // A->Default ״̬
-	Material_Reloading,  // Default->B ״̬
-	Material_FinishReload,  // B ״̬
-};
-
 enum NXMaterialType
 {
 	UNKNOWN,

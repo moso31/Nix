@@ -112,6 +112,45 @@ void NXMeshResourceManager::BindMaterial(NXSubMeshBase* pSubMesh, NXMaterial* pM
 
 void NXMeshResourceManager::OnReload()
 {
+	std::vector<NXSubMeshBase*> removeSubMeshes;
+
+	for (auto pSubMesh : m_replacingSubMeshes) 
+	{
+		if (pSubMesh->GetReloadingState() == NXSubMeshReloadState::Start)
+		{
+			pSubMesh->SwitchToLoadingMaterial();
+			pSubMesh->SetReloadingState(NXSubMeshReloadState::Replacing);
+
+			bool bAsync = true;
+			if (bAsync)
+			{
+				auto LoadTextureAsyncTask = pSubMesh->LoadMaterialAsync(); // 异步加载纹理。
+				LoadTextureAsyncTask.m_handle.promise().m_callbackFunc = [pSubMesh]() { pSubMesh->OnReplaceFinish(); };
+			}
+			else
+			{
+				pSubMesh->LoadMaterialSync();
+				pSubMesh->OnReplaceFinish();
+			}
+		}
+
+		if (pSubMesh->GetReloadingState() == NXSubMeshReloadState::Finish)
+		{
+			pSubMesh->SwitchToReplacingMaterial();
+			pSubMesh->SetReloadingState(NXSubMeshReloadState::None);
+			continue;
+		}
+
+		removeSubMeshes.push_back(pSubMesh);
+	}
+
+	// 使用C++20的std::erase和std::remove_if移除重合部分
+	m_replacingSubMeshes.erase(
+		std::remove_if(m_replacingSubMeshes.begin(), m_replacingSubMeshes.end(),
+			[&](NXSubMeshBase* subMesh) {
+				return std::find(removeSubMeshes.begin(), removeSubMeshes.end(), subMesh) != removeSubMeshes.end();
+			}),
+		m_replacingSubMeshes.end());
 }
 
 void NXMeshResourceManager::Release()
