@@ -20,8 +20,6 @@ public:
 	UINT GetSubMeshCount() { return (UINT)m_pSubMeshes.size(); }
 	NXSubMeshBase* GetSubMesh(UINT index) { return m_pSubMeshes[index].get(); }
 
-	UINT GetFaceCount();
-
 	void ClearSubMeshes();
 	void AddSubMesh(NXSubMeshBase* pSubMesh);
 	void ResizeSubMesh(UINT size);
