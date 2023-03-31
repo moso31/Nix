@@ -4,7 +4,6 @@
 #include "NXConverter.h"
 #include "NXScene.h"
 #include "NXPrimitive.h"
-#include "SceneManager.h"
 #include "NXGUIContentExplorer.h"
 
 NXGUIMaterial::NXGUIMaterial(NXScene* pScene, NXGUIFileBrowser* pFileBrowser) :
@@ -93,14 +92,8 @@ void NXGUIMaterial::Render()
 			auto pDropData = (NXGUIContentExplorerButtonDrugData*)(payload->Data);
 			if (NXConvert::IsMaterialFileExtension(pDropData->srcPath.extension().string()))
 			{
-				// 生成新材质
-				auto pNewMaterial = SceneManager::GetInstance()->LoadFromNmatFile(pDropData->srcPath);
-
-				// 替换物体原来的材质
-				for (auto pSubMesh : pPickingSubMeshes)
-				{
-					SceneManager::GetInstance()->BindMaterial(pSubMesh, pNewMaterial);
-				}
+				for (NXSubMeshBase* pSubMesh : pPickingSubMeshes) 
+					pSubMesh->MarkReplacing(pDropData->srcPath);
 			}
 		}
 		ImGui::EndDragDropTarget();
@@ -142,7 +135,7 @@ void NXGUIMaterial::Render()
 		}
 
 		if (matType != newMatType)
-			SceneManager::GetInstance()->ReTypeMaterial(pCommonMaterial, newMatType);
+			NXResourceManager::GetInstance()->GetMaterialManager()->ReTypeMaterial(pCommonMaterial, newMatType);
 
 		// 保存当前材质
 		if (ImGui::Button("Save##material"))

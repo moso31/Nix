@@ -2,7 +2,6 @@
 #include "NXTransform.h"
 #include "DirectXTex.h"
 #include "ShaderStructures.h"
-#include <filesystem>
 
 struct ConstantBufferImageData
 {

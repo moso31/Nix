@@ -6,9 +6,8 @@
 #include "NXResourceReloader.h"
 #include "NXRenderStates.h"
 #include "NXGUI.h"
-
+#include "NXTexture.h"
 #include "NXScene.h"
-#include "SceneManager.h"
 #include "NXCubeMap.h"
 #include "NXDepthPrepass.h"
 #include "NXSimpleSSAO.h"
@@ -20,15 +19,23 @@ Renderer::Renderer() :
 
 void Renderer::Init()
 {
+	// 输入事件
 	InitEvents();
 
 	NXGlobalInputLayout::Init();
 	NXGlobalBufferManager::Init();
 
+	// 渲染器
 	InitRenderer();
 
 	m_scene = new NXScene();
-	SceneManager::GetInstance()->SetWorkingScene(m_scene);
+
+	NXResourceManager::GetInstance()->GetMaterialManager()->InitCommonMaterial();
+
+	NXResourceManager::GetInstance()->GetMeshManager()->SetWorkingScene(m_scene);
+	NXResourceManager::GetInstance()->GetCameraManager()->SetWorkingScene(m_scene);
+	NXResourceManager::GetInstance()->GetLightManager()->SetWorkingScene(m_scene);
+
 	m_scene->Init();
 
 	auto pCubeMap = m_scene->GetCubeMap();
@@ -84,8 +91,9 @@ void Renderer::InitGUI()
 
 void Renderer::InitRenderer()
 {
-	// 在这里初始化CommonRT。
-	NXResourceManager::GetInstance()->InitCommonRT();
+	// 在这里初始化CommonRT和通用纹理。
+	NXResourceManager::GetInstance()->GetTextureManager()->InitCommonRT();
+	NXResourceManager::GetInstance()->GetTextureManager()->InitCommonTextures();
 
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -101,6 +109,7 @@ void Renderer::InitEvents()
 
 void Renderer::ResourcesReloading()
 {
+	NXResourceManager::GetInstance()->OnReload();
 	NXResourceReloader::GetInstance()->Update();
 }
 
@@ -113,7 +122,7 @@ void Renderer::PipelineReloading()
 
 	m_pFinalRenderer->SetInputTexture(bEnableDebugLayer ?
 		m_pDebugLayerRenderer->GetDebugLayerTex() :
-		NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_PostProcessing)
+		NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_PostProcessing)
 	);
 }
 
@@ -149,7 +158,7 @@ void Renderer::RenderFrame()
 	CD3D11_VIEWPORT vpCamera(0.0f, 0.0f, vp.x, vp.y);
 	g_pContext->RSSetViewports(1, &vpCamera);
 
-	NXTexture2D* pSceneRT = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_MainScene);
+	NXTexture2D* pSceneRT = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_MainScene);
 	g_pContext->ClearRenderTargetView(pSceneRT->GetRTV(), Colors::Black);
 
 	//m_pDepthPrepass->Render();

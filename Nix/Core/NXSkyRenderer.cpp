@@ -4,6 +4,7 @@
 #include "NXRenderStates.h"
 #include "DirectResources.h"
 #include "NXResourceManager.h"
+#include "NXTexture.h"
 
 #include "NXScene.h"
 #include "NXCubeMap.h"
@@ -36,8 +37,8 @@ void NXSkyRenderer::Render()
 	g_pContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xffffffff);
 	g_pContext->RSSetState(m_pRasterizerState.Get());
 
-	auto pRTVScene = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_MainScene)->GetRTV();
-	auto pDSVSceneDepth = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_DepthZ)->GetDSV();
+	auto pRTVScene = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_MainScene)->GetRTV();
+	auto pDSVSceneDepth = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ)->GetDSV();
 	g_pContext->OMSetRenderTargets(1, &pRTVScene, pDSVSceneDepth);
 
 	g_pContext->IASetInputLayout(m_pInputLayout.Get());

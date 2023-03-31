@@ -20,7 +20,7 @@ void App::Init()
 	m_pRenderer->InitGUI();
 }
 
-void App::Load()
+void App::Reload()
 {
 	m_pRenderer->ResourcesReloading();
 
@@ -55,6 +55,11 @@ void App::Draw()
 
 	DXGI_PRESENT_PARAMETERS parameters = { 0 };
 	NX::ThrowIfFailed(g_pSwapChain->Present1(0, 0, &parameters));
+}
+
+void App::ReleaseUnusedTextures()
+{
+	NXResourceManager::GetInstance()->GetTextureManager()->ReleaseUnusedTextures();
 }
 
 void App::Release()

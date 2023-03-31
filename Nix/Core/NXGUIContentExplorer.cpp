@@ -6,7 +6,6 @@
 #include "NXGUICommon.h"
 #include "NXGUI.h"
 #include "NXScene.h"
-#include "SceneManager.h"
 
 NXGUIContentExplorer::NXGUIContentExplorer(NXScene* pScene, NXGUITexture* pGUITexture) :
     m_pCurrentScene(pScene),

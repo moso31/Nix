@@ -3,24 +3,21 @@
 #include "NXPBRMaterial.h"
 #include "NXIntersection.h"
 
-enum EditorObjectID
+enum NXSubMeshReloadState
 {
-	NONE,
-	TRANSLATE_X,
-	TRANSLATE_Y,
-	TRANSLATE_Z,
-	TRANSLATE_XY,
-	TRANSLATE_XZ,
-	TRANSLATE_YZ,
-	MAX
+	None,		// 正常状态
+	Start,		// A->Default 状态
+	Replacing,  // Default->B 状态
+	Finish,		// B 状态
 };
 
 class NXPrimitive;
 class NXSubMeshBase
 {
-	friend class SceneManager;
+	friend class NXMeshResourceManager;
+	friend class NXMaterialResourceManager;
 public:
-	NXSubMeshBase(NXPrimitive* pPrimitive) : m_pPrimitive(pPrimitive), m_pMaterial(nullptr) {}
+	NXSubMeshBase(NXPrimitive* pPrimitive) : m_pPrimitive(pPrimitive), m_pMaterial(nullptr), m_pReplacingMaterial(nullptr), m_nMatReloadingState(NXSubMeshReloadState::None) {}
 	virtual ~NXSubMeshBase() {}
 
 	void UpdateViewParams();
@@ -44,9 +41,17 @@ public:
 	virtual bool IsSubMeshStandard()		{ return false; }
 	virtual bool IsSubMeshEditorObject()	{ return false; }
 
+	void MarkReplacing(const std::filesystem::path& replaceMaterialPath);
+	void SwitchToLoadingMaterial();
+	void SwitchToReplacingMaterial();
+	void OnReplaceFinish();
+
+	NXSubMeshReloadState GetReloadingState() { return m_nMatReloadingState; }
+	void SetReloadingState(NXSubMeshReloadState state) { m_nMatReloadingState = state; }
+
 private:
 	// [Warning!] 不允许直接设置材质！
-	// 需要使用 SceneManager::GetInstance()->BindMaterial() 为场景物体绑定材质
+	// 需使用 BindMaterial() 为场景物体绑定材质
 	void SetMaterial(NXMaterial* mat) { m_pMaterial = mat; }
 
 protected:
@@ -54,6 +59,10 @@ protected:
 	NXMaterial* m_pMaterial;
 
 	AABB m_localAABB;
+
+	NXSubMeshReloadState m_nMatReloadingState;
+	std::filesystem::path m_strReplacingPath;
+	NXMaterial* m_pReplacingMaterial;
 };
 
 template<class TVertex>
@@ -95,6 +104,22 @@ public:
 	virtual bool IsSubMeshStandard()	 override { return true; }
 
 	void CalculateTangents(bool bUpdateVBIB = false) override;
+};
+
+/////////////////////////////////////////////////////////////////////////////
+// Editor Objects
+/////////////////////////////////////////////////////////////////////////////
+
+enum EditorObjectID
+{
+	NONE,
+	TRANSLATE_X,
+	TRANSLATE_Y,
+	TRANSLATE_Z,
+	TRANSLATE_XY,
+	TRANSLATE_XZ,
+	TRANSLATE_YZ,
+	MAX
 };
 
 class NXSubMeshEditorObjects : public NXSubMesh<VertexEditorObjects>

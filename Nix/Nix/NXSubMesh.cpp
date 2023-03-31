@@ -9,6 +9,35 @@ void NXSubMeshBase::UpdateViewParams()
 	m_pPrimitive->UpdateViewParams(); 
 }
 
+void NXSubMeshBase::MarkReplacing(const std::filesystem::path& replaceMaterialPath)
+{
+	if (m_nMatReloadingState == NXSubMeshReloadState::None)
+	{
+		m_nMatReloadingState = NXSubMeshReloadState::Start;
+		NXResourceManager::GetInstance()->GetMeshManager()->AddReplacingSubMesh(this);
+		m_strReplacingPath = replaceMaterialPath;
+	}
+}
+
+void NXSubMeshBase::SwitchToLoadingMaterial()
+{
+	auto pDefaultMaterial = NXResourceManager::GetInstance()->GetMaterialManager()->GetDefaultMaterial();
+	if (pDefaultMaterial)
+		NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(this, pDefaultMaterial);
+}
+
+void NXSubMeshBase::SwitchToReplacingMaterial()
+{
+	if (m_pReplacingMaterial)
+		NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(this, m_pReplacingMaterial);
+}
+
+void NXSubMeshBase::OnReplaceFinish()
+{
+	m_nMatReloadingState = NXSubMeshReloadState::Finish;
+	NXResourceManager::GetInstance()->GetMeshManager()->AddReplacingSubMesh(this);
+}
+
 template<class TVertex>
 void NXSubMesh<TVertex>::Render()
 {

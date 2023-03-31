@@ -42,7 +42,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -216,6 +216,7 @@
     <ClCompile Include="Core\ImageGenerator.cpp" />
     <ClCompile Include="Core\Main.cpp" />
     <ClCompile Include="Core\NXBRDFlut.cpp" />
+    <ClCompile Include="Core\NXCameraResourceManager.cpp" />
     <ClCompile Include="Core\NXColorMappingRenderer.cpp" />
     <ClCompile Include="Core\NXConverter.cpp" />
     <ClCompile Include="Core\NXDebugLayerRenderer.cpp" />
@@ -241,12 +242,19 @@
     <ClCompile Include="Core\NXGUITexture.cpp" />
     <ClCompile Include="Core\NXInput.cpp" />
     <ClCompile Include="Core\NXInstance.cpp" />
+    <ClCompile Include="Core\NXLightResourceManager.cpp" />
+    <ClCompile Include="Core\NXMaterialResourceManager.cpp" />
+    <ClCompile Include="Core\NXMeshResourceManager.cpp" />
     <ClCompile Include="Core\NXRandom.cpp" />
     <ClCompile Include="Core\NXResourceManager.cpp" />
+    <ClCompile Include="Core\NXResourceManagerBase.cpp" />
     <ClCompile Include="Core\NXResourceReloader.cpp" />
+    <ClCompile Include="Core\NXScriptResourceManager.cpp" />
     <ClCompile Include="Core\NXShadowMapRenderer.cpp" />
     <ClCompile Include="Core\NXShadowTestRenderer.cpp" />
     <ClCompile Include="Core\NXSkyRenderer.cpp" />
+    <ClCompile Include="Core\NXTextureReloadTesk.cpp" />
+    <ClCompile Include="Core\NXTextureResourceManager.cpp" />
     <ClCompile Include="Core\NXTimer.cpp" />
     <ClCompile Include="Core\Renderer.cpp" />
     <ClCompile Include="Core\ShaderComplier.cpp" />
@@ -263,6 +271,7 @@
     <ClCompile Include="Nix\NXSimpleSSAO.cpp" />
     <ClCompile Include="Nix\NXSubMesh.cpp" />
     <ClCompile Include="Nix\NXSubMeshGeometryEditor.cpp" />
+    <ClCompile Include="Nix\NXTexture.cpp" />
     <ClCompile Include="Nix\Script\NSFirstPersonalCamera.cpp" />
     <ClCompile Include="Nix\Script\NSTest.cpp" />
     <ClCompile Include="Nix\NXCamera.cpp" />
@@ -272,7 +281,6 @@
     <ClCompile Include="Nix\NXScene.cpp" />
     <ClCompile Include="Nix\Script\NXScript.cpp" />
     <ClCompile Include="Nix\NXTransform.cpp" />
-    <ClCompile Include="Nix\SceneManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h" />
@@ -282,6 +290,7 @@
     <ClInclude Include="Core\Header.h" />
     <ClInclude Include="Core\ImageGenerator.h" />
     <ClInclude Include="Core\NXBRDFlut.h" />
+    <ClInclude Include="Core\NXCameraResourceManager.h" />
     <ClInclude Include="Core\NXColorMappingRenderer.h" />
     <ClInclude Include="Core\NXConverter.h" />
     <ClInclude Include="Core\NXDebugLayerRenderer.h" />
@@ -309,13 +318,20 @@
     <ClInclude Include="Core\NXGUITexture.h" />
     <ClInclude Include="Core\NXInput.h" />
     <ClInclude Include="Core\NXInstance.h" />
+    <ClInclude Include="Core\NXLightResourceManager.h" />
+    <ClInclude Include="Core\NXMaterialResourceManager.h" />
+    <ClInclude Include="Core\NXMeshResourceManager.h" />
     <ClInclude Include="Core\NXRandom.h" />
     <ClInclude Include="Core\NXRenderStates.h" />
     <ClInclude Include="Core\NXResourceManager.h" />
+    <ClInclude Include="Core\NXResourceManagerBase.h" />
     <ClInclude Include="Core\NXResourceReloader.h" />
+    <ClInclude Include="Core\NXScriptResourceManager.h" />
     <ClInclude Include="Core\NXShadowMapRenderer.h" />
     <ClInclude Include="Core\NXShadowTestRenderer.h" />
     <ClInclude Include="Core\NXSkyRenderer.h" />
+    <ClInclude Include="Core\NXTextureReloadTesk.h" />
+    <ClInclude Include="Core\NXTextureResourceManager.h" />
     <ClInclude Include="Core\NXTimer.h" />
     <ClInclude Include="Core\Renderer.h" />
     <ClInclude Include="Core\ShaderComplier.h" />
@@ -333,6 +349,7 @@
     <ClInclude Include="Nix\NXSimpleSSAO.h" />
     <ClInclude Include="Nix\NXSubMesh.h" />
     <ClInclude Include="Nix\NXSubMeshGeometryEditor.h" />
+    <ClInclude Include="Nix\NXTexture.h" />
     <ClInclude Include="Nix\Script\NSFirstPersonalCamera.h" />
     <ClInclude Include="Nix\Script\NSTest.h" />
     <ClInclude Include="Nix\NXCamera.h" />
@@ -343,7 +360,6 @@
     <ClInclude Include="Nix\Script\NXScript.h" />
     <ClInclude Include="Nix\Script\NXScriptType.h" />
     <ClInclude Include="Nix\NXTransform.h" />
-    <ClInclude Include="Nix\SceneManager.h" />
     <None Include="Shader\BRDFCommon.fx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
@@ -351,7 +367,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="行将废弃的加载说明.txt" />
     <Text Include="八字无撇的待办事项.txt" />
     <Text Include="杂七杂八的编码规范.txt" />
   </ItemGroup>

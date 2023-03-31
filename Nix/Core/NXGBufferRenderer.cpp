@@ -38,11 +38,11 @@ void NXGBufferRenderer::Render()
 	g_pContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xffffffff);
 	g_pContext->RSSetState(m_pRasterizerState.Get());
 
-	NXTexture2D* pDepthZ = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_DepthZ);
-	NXTexture2D* pGBufferRTA = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_GBuffer0);
-	NXTexture2D* pGBufferRTB = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_GBuffer1);
-	NXTexture2D* pGBufferRTC = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_GBuffer2);
-	NXTexture2D* pGBufferRTD = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_GBuffer3);
+	NXTexture2D* pDepthZ = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
+	NXTexture2D* pGBufferRTA = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer0);
+	NXTexture2D* pGBufferRTB = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer1);
+	NXTexture2D* pGBufferRTC = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer2);
+	NXTexture2D* pGBufferRTD = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer3);
 
 	ID3D11RenderTargetView* ppRTVs[4] = {
 		pGBufferRTA->GetRTV(),
@@ -63,7 +63,7 @@ void NXGBufferRenderer::Render()
 	g_pContext->PSSetSamplers(0, 1, m_pSamplerLinearWrap.GetAddressOf());
 
 	// 2022.4.14 Ö»äÖÈ¾ Opaque ÎïÌå
-	for (auto pMat : m_pScene->GetMaterials())
+	for (auto pMat : NXResourceManager::GetInstance()->GetMaterialManager()->GetMaterials())
 	{
 		if (pMat->GetType() == NXMaterialType::PBR_STANDARD)
 		{

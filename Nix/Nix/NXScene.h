@@ -50,8 +50,7 @@ public:
 	AABB GetAABB() { return m_aabb; }
 
 	NXCamera* GetMainCamera() { return m_pMainCamera; }
-	std::vector<NXRenderableObject*> GetRenderableObjects() { return m_renderableObjects; }
-	std::vector<NXMaterial*> GetMaterials() { return m_materials; }
+	std::vector<NXRenderableObject*> GetRenderableObjects() { return m_renderableObjects; }	
 	std::vector<NXPBRLight*> GetPBRLights() { return m_pbrLights; }
 	NXCubeMap* GetCubeMap() { return m_pCubeMap; }
 
@@ -64,6 +63,13 @@ public:
 
 	// 更新场景BVH树
 	void BuildBVHTrees(const HBVHSplitMode SplitMode);
+
+	void RegisterCubeMap(NXCubeMap* newCubeMap);
+	void RegisterPrimitive(NXPrimitive* newPrimitive, NXObject* pParent = nullptr);
+	void RegisterPrefab(NXPrefab* newPrefab, NXObject* pParent = nullptr);
+	void RegisterCamera(NXCamera* newCamera, bool isMainCamera, NXObject* pParent = nullptr);
+	void RegisterLight(NXPBRLight* newLight, NXObject* pParent = nullptr);
+
 private:
 	// 生成编辑器对象（MoveArrows等玩意）
 	void InitEditorObjectsManager();
@@ -72,8 +78,6 @@ private:
 	void InitBoundingStructures();
 
 private:
-	friend class SceneManager;
-
 	ComPtr<ID3D11Buffer> m_cbLights;
 	ConstantBufferLight m_cbDataLights;
 
@@ -88,7 +92,6 @@ private:
 	std::vector<NXObject*> m_objects;
 
 	std::vector<NXRenderableObject*> m_renderableObjects;
-	std::vector<NXMaterial*> m_materials;
 	std::vector<NXPBRLight*> m_pbrLights;
 
 	// 当前选中的SubMesh和对应的Objects
@@ -101,3 +104,4 @@ private:
 	NXCamera* m_pMainCamera;
 	NXCubeMap* m_pCubeMap;
 };
+

@@ -21,7 +21,7 @@
 #include <memory.h>
 #include <tchar.h>
 
-// C++/STL/11 
+// C++/STL/
 #include <memory>
 #include <string>
 #include <vector>
@@ -31,6 +31,9 @@
 #include <unordered_set>
 #include <chrono>
 #include <algorithm>
+#include <coroutine>
+#include <fstream>
+#include <filesystem>
 
 // DirectX
 #include <d3d11_4.h>
@@ -74,9 +77,18 @@ class NXEventManager;
 class NXScript;
 class NXTimer;
 
-// resources
+// resource managers.
 class NXResourceManager;
+class NXCameraResourceManager;
+class NXLightResourceManager;
+class NXMaterialResourceManager;
+class NXMeshResourceManager;
+class NXScriptResourceManager;
+class NXTextureResourceManager;
+
+// resources
 struct TextureNXInfo;
+class NXTexture;
 class NXTexture2D;
 class NXTextureCube;
 class NXTexture2DArray;
@@ -84,7 +96,6 @@ class NXBRDFLut;
 
 // scene
 class NXScene;
-class SceneManager;
 class NXEditorObjectManager;
 
 // objects
@@ -127,3 +138,9 @@ extern	ComPtr<ID3DUserDefinedAnnotation>	g_pUDA;
 extern	App*					g_app;
 extern	DirectResources*		g_dxResources;
 extern	NXTimer*				g_timer;
+
+// default texture file path
+const std::string	g_defaultTex_white_str = ".\\Resource\\white1x1.png";
+const std::string	g_defaultTex_normal_str = ".\\Resource\\normal1x1.png";
+const std::wstring	g_defaultTex_white_wstr = L".\\Resource\\white1x1.png";
+const std::wstring	g_defaultTex_normal_wstr = L".\\Resource\\normal1x1.png";

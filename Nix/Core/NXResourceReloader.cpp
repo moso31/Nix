@@ -7,11 +7,6 @@ void NXResourceReloader::Push(NXResourceReloadCommand* pCommand)
 	m_resourceReloadCmdList.push_back(pCommand);
 }
 
-void NXResourceReloader::MarkUnusedMaterial(NXMaterial* pMaterial)
-{
-	m_pUnusedMaterialList.push_back(pMaterial);
-}
-
 void NXResourceReloader::Update()
 {
 	for (auto cmd : m_resourceReloadCmdList)
@@ -28,10 +23,4 @@ void NXResourceReloader::Update()
 		delete (NXResourceReloadCubeMapCommand*)cmd;
 	}
 	m_resourceReloadCmdList.clear();
-
-	for (auto mat : m_pUnusedMaterialList)
-	{
-		SafeRelease(mat);
-	}
-	m_pUnusedMaterialList.clear();
 }

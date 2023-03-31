@@ -103,6 +103,9 @@
     <Filter Include="Shader\Editor">
       <UniqueIdentifier>{dae66a33-828d-4c6a-8267-ae37c226987f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Nix\Texture">
+      <UniqueIdentifier>{d5d9ef4c-09ae-4295-aecb-257ddc7dbfba}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Common.fx">
@@ -258,9 +261,6 @@
     <ClCompile Include="Nix\NXScene.cpp">
       <Filter>Nix\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\SceneManager.cpp">
-      <Filter>Nix\Scene</Filter>
-    </ClCompile>
     <ClCompile Include="Core\NXRandom.cpp">
       <Filter>Core\Helper</Filter>
     </ClCompile>
@@ -393,6 +393,33 @@
     <ClCompile Include="Core\NXBRDFlut.cpp">
       <Filter>Core\DirectX\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXTextureReloadTesk.cpp">
+      <Filter>Core\DirectX\NXResources</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXTexture.cpp">
+      <Filter>Nix\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXResourceManagerBase.cpp">
+      <Filter>Core\DirectX\NXResources</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXTextureResourceManager.cpp">
+      <Filter>Core\DirectX\NXResources</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXMaterialResourceManager.cpp">
+      <Filter>Core\DirectX\NXResources</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXMeshResourceManager.cpp">
+      <Filter>Core\DirectX\NXResources</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXLightResourceManager.cpp">
+      <Filter>Core\DirectX\NXResources</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXCameraResourceManager.cpp">
+      <Filter>Core\DirectX\NXResources</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXScriptResourceManager.cpp">
+      <Filter>Core\DirectX\NXResources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -462,9 +489,6 @@
       <Filter>Nix\Object\Transform</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXScene.h">
-      <Filter>Nix\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\SceneManager.h">
       <Filter>Nix\Scene</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXRandom.h">
@@ -602,10 +626,36 @@
     <ClInclude Include="Core\NXBRDFlut.h">
       <Filter>Core\DirectX\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="Core\NXTextureReloadTesk.h">
+      <Filter>Core\DirectX\NXResources</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXTexture.h">
+      <Filter>Nix\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXResourceManagerBase.h">
+      <Filter>Core\DirectX\NXResources</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXTextureResourceManager.h">
+      <Filter>Core\DirectX\NXResources</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXMaterialResourceManager.h">
+      <Filter>Core\DirectX\NXResources</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXMeshResourceManager.h">
+      <Filter>Core\DirectX\NXResources</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXLightResourceManager.h">
+      <Filter>Core\DirectX\NXResources</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXCameraResourceManager.h">
+      <Filter>Core\DirectX\NXResources</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXScriptResourceManager.h">
+      <Filter>Core\DirectX\NXResources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="杂七杂八的编码规范.txt" />
     <Text Include="八字无撇的待办事项.txt" />
-    <Text Include="行将废弃的加载说明.txt" />
   </ItemGroup>
 </Project>

@@ -43,8 +43,7 @@ void NXMaterial::SetTex2D(NXTexture2D*& pTex2D, const std::wstring& texFilePath)
 	if (pTex2D) 
 		pTex2D->RemoveRef();
 
-	pTex2D = NXResourceManager::GetInstance()->CreateTexture2D(m_name, texFilePath);
-	pTex2D->AddMaterial(this);
+	pTex2D = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(m_name, texFilePath);
 }
 
 NXPBRMaterialBase::NXPBRMaterialBase(const std::string name, const NXMaterialType type, const std::string& filePath) :

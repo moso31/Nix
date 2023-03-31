@@ -1,6 +1,4 @@
 #include "NXGUITexture.h"
-#include <filesystem>
-#include <fstream>
 #include "NXGUICommon.h"
 #include "NXResourceManager.h"
 #include "NXPBRMaterial.h"
@@ -52,15 +50,15 @@ void NXGUITexture::Render()
 				m_pTexInfo->bSRGB = bSRGB;
 			}
 		}
-	}
 
-	if (ImGui::Button("Apply##Texture"))
-	{
-		// 保存NXInfo文件
-		m_pTexImage->SaveTextureNXInfo();
-		m_pTexImage->Reload();
+		if (ImGui::Button("Apply##Texture"))
+		{
+			// 保存NXInfo文件
+			NXResourceManager::GetInstance()->GetTextureManager()->SaveTextureInfo(m_pTexInfo, m_pTexImage->GetFilePath());
+			m_pTexImage->MarkReload();
 
-		SetImage(m_strImgPath);
+			SetImage(m_pTexImage->GetFilePath());
+		}
 	}
 
 	ImGui::End();
@@ -73,15 +71,29 @@ void NXGUITexture::Release()
 
 void NXGUITexture::SetImage(const std::filesystem::path& path)
 {
-	m_strImgPath = path;
+	// 如果路径不合法，不显示纹理信息
+	if (path.empty())
+	{
+		m_pTexInfo = nullptr;
+		return;
+	}
 
-	NXTexture2D* pOldImage = m_pTexImage;
-	if (pOldImage) pOldImage->RemoveRef();
-	m_pTexInfo = nullptr;
-
-	m_pTexImage = NXResourceManager::GetInstance()->CreateTexture2D("NXGUITexture Preview Image", path);
 	if (m_pTexImage)
 	{
-		m_pTexInfo = m_pTexImage->GetTextureNXInfo();
+		// 如果路径相同，无需重新加载
+		if (path == m_pTexImage->GetFilePath())
+		{
+			m_pTexInfo = m_pTexImage->GetTextureNXInfo();
+			return;
+		}
+
+		// 路径不同，释放旧的纹理，并且不显示纹理信息
+		m_pTexImage->RemoveRef();
+		m_pTexInfo = nullptr;
 	}
+
+	// 如果和之前的路径不同，就加载新的纹理
+	m_pTexImage = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("NXGUITexture Preview Image", path);
+	if (m_pTexImage)
+		m_pTexInfo = m_pTexImage->GetTextureNXInfo();
 }

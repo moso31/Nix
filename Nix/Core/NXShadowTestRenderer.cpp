@@ -4,6 +4,7 @@
 #include "NXRenderStates.h"
 #include "NXResourceManager.h"
 #include "NXRenderTarget.h"
+#include "NXTexture.h"
 
 NXShadowTestRenderer::~NXShadowTestRenderer()
 {
@@ -32,10 +33,10 @@ void NXShadowTestRenderer::Render(NXTexture2DArray* pShadowMapDepthTex)
 	g_pContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xffffffff);
 	g_pContext->RSSetState(m_pRasterizerState.Get());
 
-	auto pSRVSceneDepth = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_DepthZ)->GetSRV();
+	auto pSRVSceneDepth = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ)->GetSRV();
 	auto pSRVShadowDepth = pShadowMapDepthTex->GetSRV();
-	auto pSRVScenePosition = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_GBuffer0)->GetSRV();
-	auto pRTVShadowTest = NXResourceManager::GetInstance()->GetCommonRT(NXCommonRT_ShadowTest)->GetRTV();
+	auto pSRVScenePosition = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer0)->GetSRV();
+	auto pRTVShadowTest = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_ShadowTest)->GetRTV();
 	g_pContext->ClearRenderTargetView(pRTVShadowTest, Colors::Black);
 	g_pContext->OMSetRenderTargets(1, &pRTVShadowTest, nullptr);
 

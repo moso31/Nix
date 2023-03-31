@@ -1,5 +1,4 @@
 #include "NXGUICommon.h"
-#include <fstream>
 #include "NXConverter.h"
 #include "NXPBRMaterial.h"
 #include "NXResourceManager.h"

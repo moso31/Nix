@@ -1,6 +1,5 @@
 #include "NXConverter.h"
 #include <cwctype>
-#include <fstream>
 
 namespace NXConvert
 {
