@@ -59,8 +59,6 @@ Last Issue ID : 28
 17. translucent材质 IBL 亮度拉高的时候有bug，
 	并且opacity=1的时候和standard的着色结果有微弱差异。(半透的光照很可能有问题)
 19. 对选中物体做XZ拖动的时候，Y值会莫名其妙的改变
-27. 切换材质的时候可能会崩溃
-28. 多选同一材质时，GUI材质可能将其视作多个材质，不提供面板显示
 
 已完成的：
 1. ctrl左键点击ViewPort：多选材质[DONE]
@@ -74,3 +72,5 @@ Last Issue ID : 28
 	这个要稍花精力想一下，目前纹理和材质还没有建立联系。[DONE]
 24. contentExplorer，点cubemap类型的dds纹理，会崩溃[DONE]
 26. 将SceneManager的Material相关转移到ResourceManager。[DONE]
+27. 切换材质的时候可能会崩溃[DONE]
+28. 多选同一材质时，GUI材质可能将其视作多个材质，不提供面板显示[DONE]
