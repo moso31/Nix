@@ -54,6 +54,8 @@ Last Issue ID : 28
 12. resizeable viewport+全屏化UI
 13. 场景文件化，可保存、加载
 14. 自定义材质
+29. 更灵活的灯光系统+即时编译Shader
+30. Deferred Lighting
 
 【bugs】
 17. translucent材质 IBL 亮度拉高的时候有bug，

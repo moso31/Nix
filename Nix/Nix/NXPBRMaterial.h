@@ -7,7 +7,8 @@ enum NXMaterialType
 {
 	UNKNOWN,
 	PBR_STANDARD,
-	PBR_TRANSLUCENT
+	PBR_TRANSLUCENT,
+	PBR_SUBSURFACE
 };
 
 struct CBufferMaterial 
@@ -38,6 +39,21 @@ struct CBufferMaterialTranslucent : public CBufferMaterial
 	float roughness;
 	float ao;
 	Vector2 _1;
+};
+
+struct CBufferMaterialSubsurface : public CBufferMaterial
+{
+	CBufferMaterialSubsurface(const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float opacity, const Vector3& SubsurfaceColor) :
+		albedo(albedo), normal(normal), metallic(metallic), roughness(roughness), ao(ao), opacity(opacity), SubsurfaceColor(SubsurfaceColor) {}
+	Vector3 albedo;
+	float opacity;
+	Vector3 normal;
+	float metallic;
+	float roughness;
+	float ao;
+	Vector2 _1;
+	Vector3 SubsurfaceColor;
+	float _2;
 };
 
 class NXMaterial
@@ -141,9 +157,9 @@ public:
 	
 	Vector3 	GetAlbedo()		{ return GetCBData()->albedo; }
 	Vector3 	GetNormal()		{ return GetCBData()->normal; }
-	float*		GetMetallic()	{ return &(GetCBData()->metallic); }
-	float*		GetRoughness()	{ return &(GetCBData()->roughness); }
-	float*		GetAO()			{ return &(GetCBData()->ao); }
+	float		GetMetallic()	{ return GetCBData()->metallic; }
+	float		GetRoughness()	{ return GetCBData()->roughness; }
+	float		GetAO()			{ return GetCBData()->ao; }
 
 	void	SetAlbedo(const Vector3& albedo)		{ GetCBData()->albedo = albedo; }
 	void	SetNormal(const Vector3& normal)		{ GetCBData()->normal = normal; }
@@ -167,11 +183,11 @@ public:
 	CBufferMaterialTranslucent* GetCBData() { return static_cast<CBufferMaterialTranslucent*>(m_cbData.get()); }
 	
 	Vector3 	GetAlbedo()		{ return GetCBData()->albedo; }
-	float*		GetOpacity()	{ return &(GetCBData()->opacity); }
+	float		GetOpacity()	{ return GetCBData()->opacity; }
 	Vector3 	GetNormal()		{ return GetCBData()->normal; }
-	float*		GetMetallic()	{ return &(GetCBData()->metallic); }
-	float*		GetRoughness()	{ return &(GetCBData()->roughness); }
-	float*		GetAO()			{ return &(GetCBData()->ao); }
+	float		GetMetallic()	{ return GetCBData()->metallic; }
+	float		GetRoughness()	{ return GetCBData()->roughness; }
+	float		GetAO()			{ return GetCBData()->ao; }
 
 	void	SetAlbedo(const Vector3& albedo)		{ GetCBData()->albedo = albedo; }
 	void	SetOpacity(const float opacity)			{ GetCBData()->opacity = opacity; }
@@ -180,6 +196,35 @@ public:
 	void	SetMetallic(const float metallic)		{ GetCBData()->metallic = metallic; }
 	void	SetRoughness(const float roughness)		{ GetCBData()->roughness = roughness; }
 	void	SetAO(const float ao)					{ GetCBData()->ao = ao; }
+
+private:
+	void InitConstantBuffer();
+};
+
+class NXPBRMaterialSubsurface : public NXPBRMaterialBase
+{
+public:
+	explicit NXPBRMaterialSubsurface() = default;
+	NXPBRMaterialSubsurface(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float opacity, const float Subsurface, const std::string& filePath);
+	~NXPBRMaterialSubsurface() {}
+	CBufferMaterialSubsurface* GetCBData() { return static_cast<CBufferMaterialSubsurface*>(m_cbData.get()); }
+	
+	Vector3 	GetAlbedo()		{ return GetCBData()->albedo; }
+	float		GetOpacity()	{ return GetCBData()->opacity; }
+	Vector3 	GetNormal()		{ return GetCBData()->normal; }
+	float		GetMetallic()	{ return GetCBData()->metallic; }
+	float		GetRoughness()	{ return GetCBData()->roughness; }
+	float		GetAO()			{ return GetCBData()->ao; }
+	Vector3		GetSubsurface()	{ return GetCBData()->SubsurfaceColor; }
+
+	void	SetAlbedo(const Vector3& albedo)				{ GetCBData()->albedo = albedo; }
+	void	SetOpacity(const float opacity)					{ GetCBData()->opacity = opacity; }
+	void	SetColor(const Vector4& color)					{ GetCBData()->albedo = Vector3(color); GetCBData()->opacity = color.w; }
+	void	SetNormal(const Vector3& normal)				{ GetCBData()->normal = normal; }
+	void	SetMetallic(const float metallic)				{ GetCBData()->metallic = metallic; }
+	void	SetRoughness(const float roughness)				{ GetCBData()->roughness = roughness; }
+	void	SetAO(const float ao)							{ GetCBData()->ao = ao; }
+	void	SetSubsurface(const Vector3& SubsurfaceColor)	{ GetCBData()->SubsurfaceColor = SubsurfaceColor; }
 
 private:
 	void InitConstantBuffer();

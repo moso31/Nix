@@ -115,7 +115,7 @@ void NXGUIMaterial::Render()
 		NXMaterialType matType = pCommonMaterial->GetType();
 		m_currentMaterialTypeIndex = matType - 1;
 
-		static const char* items[] = { "Standard", "Translucent" };
+		static const char* items[] = { "Standard", "Translucent", "Subsurface"};
 		ImGui::Combo("Material Type", &m_currentMaterialTypeIndex, items, IM_ARRAYSIZE(items));
 		ImGui::EndChild();
 
@@ -235,68 +235,141 @@ void NXGUIMaterial::RenderMaterialUI_Standard(NXPBRMaterialStandard* pMaterial)
 {
 	RenderTextureIcon((ImTextureID)pMaterial->GetSRVAlbedo(), std::bind(&NXGUIMaterial::OnTexAlbedoChange, this, pMaterial), std::bind(&NXGUIMaterial::OnTexAlbedoRemove, this, pMaterial), std::bind(&NXGUIMaterial::OnTexAlbedoDrop, this, pMaterial, std::placeholders::_1));
 	ImGui::SameLine();
-	XMVECTORF32 fAlbedo;
-	fAlbedo.v = pMaterial->GetAlbedo();
-	if (ImGui::ColorEdit3("Albedo", fAlbedo.f))
+	Vector3 albedo = pMaterial->GetAlbedo();
+	float vAlbedo[3] = { albedo.x, albedo.y, albedo.z };
+	if (ImGui::ColorEdit3("Albedo", vAlbedo))
 	{
-		pMaterial->SetAlbedo(fAlbedo.v);
+		pMaterial->SetAlbedo(Vector3(vAlbedo));
 	}
 
 	RenderTextureIcon((ImTextureID)pMaterial->GetSRVNormal(), std::bind(&NXGUIMaterial::OnTexNormalChange, this, pMaterial), std::bind(&NXGUIMaterial::OnTexNormalRemove, this, pMaterial), std::bind(&NXGUIMaterial::OnTexNormalDrop, this, pMaterial, std::placeholders::_1));
 	ImGui::SameLine();
-	XMVECTORF32 fNormal;
-	fNormal.v = pMaterial->GetNormal();
-	if (ImGui::ColorEdit3("Normal", fNormal.f))
+	Vector3 normal = pMaterial->GetNormal();
+	float vNormal[3] = {normal.x, normal.y, normal.z};
+	if (ImGui::ColorEdit3("Normal", vNormal))
 	{
-		pMaterial->SetNormal(fNormal.v);
+		pMaterial->SetNormal(Vector3(vNormal));
 	}
 
 	RenderTextureIcon((ImTextureID)pMaterial->GetSRVMetallic(), std::bind(&NXGUIMaterial::OnTexMetallicChange, this, pMaterial), std::bind(&NXGUIMaterial::OnTexMetallicRemove, this, pMaterial), std::bind(&NXGUIMaterial::OnTexMetallicDrop, this, pMaterial, std::placeholders::_1));
 	ImGui::SameLine();
-	ImGui::SliderFloat("Metallic", pMaterial->GetMetallic(), 0.0f, 1.0f);
+	float metallic = pMaterial->GetMetallic();
+	if (ImGui::SliderFloat("Metallic", &metallic, 0.0f, 1.0f))
+	{
+		pMaterial->SetMetallic(metallic);
+	}
 
 	RenderTextureIcon((ImTextureID)pMaterial->GetSRVRoughness(), std::bind(&NXGUIMaterial::OnTexRoughnessChange, this, pMaterial), std::bind(&NXGUIMaterial::OnTexRoughnessRemove, this, pMaterial), std::bind(&NXGUIMaterial::OnTexRoughnessDrop, this, pMaterial, std::placeholders::_1));
 	ImGui::SameLine();
-	ImGui::SliderFloat("Roughness", pMaterial->GetRoughness(), 0.0f, 1.0f);
+	float roughness = pMaterial->GetRoughness();
+	if (ImGui::SliderFloat("Roughness", &roughness, 0.0f, 1.0f))
+	{
+		pMaterial->SetRoughness(roughness);
+	}
 
 	RenderTextureIcon((ImTextureID)pMaterial->GetSRVAO(), std::bind(&NXGUIMaterial::OnTexAOChange, this, pMaterial), std::bind(&NXGUIMaterial::OnTexAORemove, this, pMaterial), std::bind(&NXGUIMaterial::OnTexAODrop, this, pMaterial, std::placeholders::_1));
 	ImGui::SameLine();
-	ImGui::SliderFloat("AO", pMaterial->GetAO(), 0.0f, 1.0f);
+	float ao = pMaterial->GetAO();
+	if (ImGui::SliderFloat("AO", &ao, 0.0f, 1.0f))
+	{
+		pMaterial->SetAO(ao);
+	}
 }
 
 void NXGUIMaterial::RenderMaterialUI_Translucent(NXPBRMaterialTranslucent* pMaterial)
 {
 	RenderTextureIcon((ImTextureID)pMaterial->GetSRVAlbedo(), std::bind(&NXGUIMaterial::OnTexAlbedoChange, this, pMaterial), std::bind(&NXGUIMaterial::OnTexAlbedoRemove, this, pMaterial), std::bind(&NXGUIMaterial::OnTexAlbedoDrop, this, pMaterial, std::placeholders::_1));
 	ImGui::SameLine();
-	XMVECTORF32 fAlbedo;
-	fAlbedo.v = pMaterial->GetAlbedo();
-	fAlbedo.f[3] = *pMaterial->GetOpacity();
-	if (ImGui::ColorEdit4("Albedo", fAlbedo.f))
+
+	Vector3 albedo = pMaterial->GetAlbedo();
+	float opacity = pMaterial->GetOpacity();
+	float v[4] = { albedo.x, albedo.y, albedo.z, opacity };
+	if (ImGui::ColorEdit4("Albedo", v))
 	{
-		pMaterial->SetAlbedo(fAlbedo.v);
-		pMaterial->SetOpacity(fAlbedo.f[3]);
+		pMaterial->SetAlbedo(Vector3(v));
+		pMaterial->SetOpacity(v[3]);
 	}
 
 	RenderTextureIcon((ImTextureID)pMaterial->GetSRVNormal(), std::bind(&NXGUIMaterial::OnTexNormalChange, this, pMaterial), std::bind(&NXGUIMaterial::OnTexNormalRemove, this, pMaterial), std::bind(&NXGUIMaterial::OnTexNormalDrop, this, pMaterial, std::placeholders::_1));
 	ImGui::SameLine();
-	XMVECTORF32 fNormal;
-	fNormal.v = pMaterial->GetNormal();
-	if (ImGui::ColorEdit3("Normal", fNormal.f))
+	Vector3 normal = pMaterial->GetNormal();
+	float vNormal[3] = { normal.x, normal.y, normal.z };
+	if (ImGui::ColorEdit3("Normal", vNormal))
 	{
-		pMaterial->SetNormal(fNormal.v);
+		pMaterial->SetNormal(Vector3(vNormal));
 	}
 
 	RenderTextureIcon((ImTextureID)pMaterial->GetSRVMetallic(), std::bind(&NXGUIMaterial::OnTexMetallicChange, this, pMaterial), std::bind(&NXGUIMaterial::OnTexMetallicRemove, this, pMaterial), std::bind(&NXGUIMaterial::OnTexMetallicDrop, this, pMaterial, std::placeholders::_1));
 	ImGui::SameLine();
-	ImGui::SliderFloat("Metallic", pMaterial->GetMetallic(), 0.0f, 1.0f);
+	float metallic = pMaterial->GetMetallic();
+	if (ImGui::SliderFloat("Metallic", &metallic, 0.0f, 1.0f))
+	{
+		pMaterial->SetMetallic(metallic);
+	}
 
 	RenderTextureIcon((ImTextureID)pMaterial->GetSRVRoughness(), std::bind(&NXGUIMaterial::OnTexRoughnessChange, this, pMaterial), std::bind(&NXGUIMaterial::OnTexRoughnessRemove, this, pMaterial), std::bind(&NXGUIMaterial::OnTexRoughnessDrop, this, pMaterial, std::placeholders::_1));
 	ImGui::SameLine();
-	ImGui::SliderFloat("Roughness", pMaterial->GetRoughness(), 0.0f, 1.0f);
+	float roughness = pMaterial->GetRoughness();
+	if (ImGui::SliderFloat("Roughness", &roughness, 0.0f, 1.0f))
+	{
+		pMaterial->SetRoughness(roughness);
+	}
 
 	RenderTextureIcon((ImTextureID)pMaterial->GetSRVAO(), std::bind(&NXGUIMaterial::OnTexAOChange, this, pMaterial), std::bind(&NXGUIMaterial::OnTexAORemove, this, pMaterial), std::bind(&NXGUIMaterial::OnTexAODrop, this, pMaterial, std::placeholders::_1));
 	ImGui::SameLine();
-	ImGui::SliderFloat("AO", pMaterial->GetAO(), 0.0f, 1.0f);
+	float ao = pMaterial->GetAO();
+	if (ImGui::SliderFloat("AO", &ao, 0.0f, 1.0f))
+	{
+		pMaterial->SetAO(ao);
+	}
+}
+
+void NXGUIMaterial::RenderMaterialUI_Subsurface(NXPBRMaterialSubsurface* pMaterial)
+{
+	RenderTextureIcon((ImTextureID)pMaterial->GetSRVAlbedo(), std::bind(&NXGUIMaterial::OnTexAlbedoChange, this, pMaterial), std::bind(&NXGUIMaterial::OnTexAlbedoRemove, this, pMaterial), std::bind(&NXGUIMaterial::OnTexAlbedoDrop, this, pMaterial, std::placeholders::_1));
+	ImGui::SameLine();
+
+	Vector3 albedo = pMaterial->GetAlbedo();
+	float opacity = pMaterial->GetOpacity();
+	float v[4] = { albedo.x, albedo.y, albedo.z, opacity };
+	if (ImGui::ColorEdit4("Albedo", v))
+	{
+		pMaterial->SetAlbedo(Vector3(v));
+		pMaterial->SetOpacity(v[3]);
+	}
+
+	RenderTextureIcon((ImTextureID)pMaterial->GetSRVNormal(), std::bind(&NXGUIMaterial::OnTexNormalChange, this, pMaterial), std::bind(&NXGUIMaterial::OnTexNormalRemove, this, pMaterial), std::bind(&NXGUIMaterial::OnTexNormalDrop, this, pMaterial, std::placeholders::_1));
+	ImGui::SameLine();
+	Vector3 normal = pMaterial->GetNormal();
+	float vNormal[3] = { normal.x, normal.y, normal.z };
+	if (ImGui::ColorEdit3("Normal", vNormal))
+	{
+		pMaterial->SetNormal(Vector3(vNormal));
+	}
+
+	RenderTextureIcon((ImTextureID)pMaterial->GetSRVMetallic(), std::bind(&NXGUIMaterial::OnTexMetallicChange, this, pMaterial), std::bind(&NXGUIMaterial::OnTexMetallicRemove, this, pMaterial), std::bind(&NXGUIMaterial::OnTexMetallicDrop, this, pMaterial, std::placeholders::_1));
+	ImGui::SameLine();
+	float metallic = pMaterial->GetMetallic();
+	if (ImGui::SliderFloat("Metallic", &metallic, 0.0f, 1.0f))
+	{
+		pMaterial->SetMetallic(metallic);
+	}
+
+	RenderTextureIcon((ImTextureID)pMaterial->GetSRVRoughness(), std::bind(&NXGUIMaterial::OnTexRoughnessChange, this, pMaterial), std::bind(&NXGUIMaterial::OnTexRoughnessRemove, this, pMaterial), std::bind(&NXGUIMaterial::OnTexRoughnessDrop, this, pMaterial, std::placeholders::_1));
+	ImGui::SameLine();
+	float roughness = pMaterial->GetRoughness();
+	if (ImGui::SliderFloat("Roughness", &roughness, 0.0f, 1.0f))
+	{
+		pMaterial->SetRoughness(roughness);
+	}
+
+	RenderTextureIcon((ImTextureID)pMaterial->GetSRVAO(), std::bind(&NXGUIMaterial::OnTexAOChange, this, pMaterial), std::bind(&NXGUIMaterial::OnTexAORemove, this, pMaterial), std::bind(&NXGUIMaterial::OnTexAODrop, this, pMaterial, std::placeholders::_1));
+	ImGui::SameLine();
+	float ao = pMaterial->GetAO();
+	if (ImGui::SliderFloat("AO", &ao, 0.0f, 1.0f))
+	{
+		pMaterial->SetAO(ao);
+	}
 }
 
 void NXGUIMaterial::RenderTextureIcon(ImTextureID ImTexID, std::function<void()> onChange, std::function<void()> onRemove, std::function<void(const std::wstring&)> onDrop)

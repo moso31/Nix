@@ -114,6 +114,7 @@ class NXMaterial;
 class NXPBRMaterialBase;
 class NXPBRMaterialStandard;
 class NXPBRMaterialTranslucent;
+class NXPBRMaterialSubsurface;
 
 class NXPBRLight;
 class NXPBRDistantLight;

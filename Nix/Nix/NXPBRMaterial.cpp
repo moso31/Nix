@@ -134,3 +134,21 @@ void NXPBRMaterialTranslucent::InitConstantBuffer()
 	bufferDesc.CPUAccessFlags = 0;
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cb));
 }
+
+NXPBRMaterialSubsurface::NXPBRMaterialSubsurface(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float opacity, const float Subsurface, const std::string& filePath) :
+	NXPBRMaterialBase(name, NXMaterialType::PBR_SUBSURFACE, filePath)
+{
+	m_cbData = std::make_unique<CBufferMaterialSubsurface>(albedo, normal, metallic, roughness, ao, opacity, Subsurface);
+	InitConstantBuffer();
+}
+
+void NXPBRMaterialSubsurface::InitConstantBuffer()
+{
+	D3D11_BUFFER_DESC bufferDesc;
+	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = sizeof(CBufferMaterialSubsurface);
+	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cb));
+}
