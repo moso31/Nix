@@ -39,15 +39,15 @@ void SaveMaterialFile(NXMaterial* pMaterial)
         ofs << normalTexPath << std::endl << normal.x << ' ' << normal.y << ' ' << normal.z << std::endl; // normal
 
         const std::string metallicTexPath = p->GetMetallicTexFilePath();
-        float metallic = *p->GetMetallic();
+        float metallic = p->GetMetallic();
         ofs << metallicTexPath << std::endl << metallic << std::endl; // metallic
 
         const std::string roughnessTexPath = p->GetRoughnessTexFilePath();
-        float roughness = *p->GetRoughness();
+        float roughness = p->GetRoughness();
         ofs << roughnessTexPath << std::endl << roughness << std::endl; // roughness
 
         const std::string aoTexPath = p->GetAOTexFilePath();
-        float ao = *p->GetAO();
+        float ao = p->GetAO();
         ofs << aoTexPath << std::endl << ao << std::endl; // AO
     }
 
@@ -57,7 +57,7 @@ void SaveMaterialFile(NXMaterial* pMaterial)
         NXPBRMaterialTranslucent* p = (NXPBRMaterialTranslucent*)pMaterial;
 
         const Vector3& albedo = p->GetAlbedo();
-        float opacity = *p->GetOpacity();
+        float opacity = p->GetOpacity();
         const std::string albedoTexPath = p->GetAlbedoTexFilePath();
         ofs << albedoTexPath << std::endl << albedo.x << ' ' << albedo.y << ' ' << albedo.z << ' ' << opacity << std::endl; // albedo & opacity
 
@@ -66,15 +66,15 @@ void SaveMaterialFile(NXMaterial* pMaterial)
         ofs << normalTexPath << std::endl << normal.x << ' ' << normal.y << ' ' << normal.z << std::endl; // normal
 
         const std::string metallicTexPath = p->GetMetallicTexFilePath();
-        float metallic = *p->GetMetallic();
+        float metallic = p->GetMetallic();
         ofs << metallicTexPath << std::endl << metallic << std::endl; // metallic
 
         const std::string roughnessTexPath = p->GetRoughnessTexFilePath();
-        float roughness = *p->GetRoughness();
+        float roughness = p->GetRoughness();
         ofs << roughnessTexPath << std::endl << roughness << std::endl; // roughness
 
         const std::string aoTexPath = p->GetAOTexFilePath();
-        float ao = *p->GetAO();
+        float ao = p->GetAO();
         ofs << aoTexPath << std::endl << ao << std::endl; // AO
     }
 

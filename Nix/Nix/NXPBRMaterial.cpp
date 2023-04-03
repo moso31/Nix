@@ -6,7 +6,7 @@
 #include "NXResourceManager.h"
 #include "NXSubMesh.h"
 
-NXMaterial::NXMaterial(const std::string name, const NXMaterialType type, const std::string& filePath) :
+NXMaterial::NXMaterial(const std::string& name, const NXMaterialType type, const std::string& filePath) :
 	m_name(name),
 	m_type(type),
 	m_filePath(filePath),
@@ -46,7 +46,7 @@ void NXMaterial::SetTex2D(NXTexture2D*& pTex2D, const std::wstring& texFilePath)
 	pTex2D = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(m_name, texFilePath);
 }
 
-NXPBRMaterialBase::NXPBRMaterialBase(const std::string name, const NXMaterialType type, const std::string& filePath) :
+NXPBRMaterialBase::NXPBRMaterialBase(const std::string& name, const NXMaterialType type, const std::string& filePath) :
 	NXMaterial(name, type, filePath),
 	m_pTexAlbedo(nullptr),
 	m_pTexNormal(nullptr),
@@ -99,7 +99,7 @@ void NXPBRMaterialBase::ReloadTextures()
 	SetTexAO(m_pTexAmbientOcclusion->GetFilePath());
 }
 
-NXPBRMaterialStandard::NXPBRMaterialStandard(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const std::string& filePath) :
+NXPBRMaterialStandard::NXPBRMaterialStandard(const std::string& name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const std::string& filePath) :
 	NXPBRMaterialBase(name, NXMaterialType::PBR_STANDARD, filePath)
 {
 	m_cbData = std::make_unique<CBufferMaterialStandard>(albedo, normal, metallic, roughness, ao);
@@ -117,7 +117,7 @@ void NXPBRMaterialStandard::InitConstantBuffer()
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cb));
 }
 
-NXPBRMaterialTranslucent::NXPBRMaterialTranslucent(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float opacity, const std::string& filePath) :
+NXPBRMaterialTranslucent::NXPBRMaterialTranslucent(const std::string& name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float opacity, const std::string& filePath) :
 	NXPBRMaterialBase(name, NXMaterialType::PBR_TRANSLUCENT, filePath)
 {
 	m_cbData = std::make_unique<CBufferMaterialTranslucent>(albedo, normal, metallic, roughness, ao, opacity);
@@ -135,7 +135,7 @@ void NXPBRMaterialTranslucent::InitConstantBuffer()
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cb));
 }
 
-NXPBRMaterialSubsurface::NXPBRMaterialSubsurface(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float opacity, const float Subsurface, const std::string& filePath) :
+NXPBRMaterialSubsurface::NXPBRMaterialSubsurface(const std::string& name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float opacity, const Vector3& Subsurface, const std::string& filePath) :
 	NXPBRMaterialBase(name, NXMaterialType::PBR_SUBSURFACE, filePath)
 {
 	m_cbData = std::make_unique<CBufferMaterialSubsurface>(albedo, normal, metallic, roughness, ao, opacity, Subsurface);
