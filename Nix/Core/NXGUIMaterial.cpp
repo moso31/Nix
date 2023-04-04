@@ -130,6 +130,9 @@ void NXGUIMaterial::Render()
 		case PBR_TRANSLUCENT:
 			RenderMaterialUI_Translucent(static_cast<NXPBRMaterialTranslucent*>(pCommonMaterial));
 			break;
+		case PBR_SUBSURFACE:
+			RenderMaterialUI_Subsurface(static_cast<NXPBRMaterialSubsurface*>(pCommonMaterial));
+			break;
 		default:
 			break;
 		}

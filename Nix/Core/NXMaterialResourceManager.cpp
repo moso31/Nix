@@ -251,6 +251,18 @@ void NXMaterialResourceManager::ReTypeMaterial(NXMaterial* srcMaterial, NXMateri
 		destMaterial = newMaterial;
 		break;
 	}
+	case PBR_SUBSURFACE:
+	{
+		auto newMaterial = new NXPBRMaterialSubsurface(srcMaterial->GetName(), Vector3(1.0f), Vector3(1.0f), 1.0f, 1.0f, 1.0f, 1.0f, Vector3(1.0f), srcMaterial->GetFilePath());
+		newMaterial->SetTexAlbedo(albedoTexFilePath);
+		newMaterial->SetTexNormal(normalTexFilePath);
+		newMaterial->SetTexMetallic(metallicTexFilePath);
+		newMaterial->SetTexRoughness(roughnessTexFilePath);
+		newMaterial->SetTexAO(aoTexFilePath);
+
+		destMaterial = newMaterial;
+		break;
+	}
 	default:
 		destMaterial = nullptr;
 		break;

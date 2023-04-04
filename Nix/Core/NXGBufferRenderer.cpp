@@ -24,6 +24,7 @@ void NXGBufferRenderer::Init()
 	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\GBuffer.fx", "PS", &m_pPixelShader);
 
 	m_pDepthStencilState = NXDepthStencilState<>::Create();
+	m_pDepthStencilStateSSS = NXDepthStencilState<true, true, D3D11_COMPARISON_LESS, true, 0xff, 0xff, D3D11_STENCIL_OP_REPLACE, D3D11_STENCIL_OP_REPLACE, D3D11_STENCIL_OP_REPLACE, D3D11_COMPARISON_ALWAYS, D3D11_STENCIL_OP_REPLACE, D3D11_STENCIL_OP_REPLACE, D3D11_STENCIL_OP_REPLACE, D3D11_COMPARISON_ALWAYS>::Create();
 	m_pRasterizerState = NXRasterizerState<>::Create();
 	m_pBlendState = NXBlendState<>::Create();
 
@@ -51,7 +52,7 @@ void NXGBufferRenderer::Render()
 		pGBufferRTD->GetRTV(),
 	};
 
-	g_pContext->ClearDepthStencilView(pDepthZ->GetDSV(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+	g_pContext->ClearDepthStencilView(pDepthZ->GetDSV(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 	for (int i = 0; i < 4; i++) g_pContext->ClearRenderTargetView(ppRTVs[i], Colors::Black);
 
 	g_pContext->OMSetRenderTargets(4, ppRTVs, pDepthZ->GetDSV());
@@ -62,31 +63,75 @@ void NXGBufferRenderer::Render()
 
 	g_pContext->PSSetSamplers(0, 1, m_pSamplerLinearWrap.GetAddressOf());
 
-	// 2022.4.14 只渲染 Opaque 物体
+	// 2022.4.14 渲染 Opaque 物体
 	for (auto pMat : NXResourceManager::GetInstance()->GetMaterialManager()->GetMaterials())
 	{
-		auto pPBRMat = pMat->IsPBRMat();
-		if (pPBRMat)
+		auto pStandardMat = pMat->IsStandardMat();
+		if (pStandardMat)
 		{
-			auto pSRVAlbedo = pPBRMat->GetSRVAlbedo();
+			auto pSRVAlbedo = pStandardMat->GetSRVAlbedo();
 			g_pContext->PSSetShaderResources(1, 1, &pSRVAlbedo);
 
-			auto pSRVNormal = pPBRMat->GetSRVNormal();
+			auto pSRVNormal = pStandardMat->GetSRVNormal();
 			g_pContext->PSSetShaderResources(2, 1, &pSRVNormal);
 
-			auto pSRVMetallic = pPBRMat->GetSRVMetallic();
+			auto pSRVMetallic = pStandardMat->GetSRVMetallic();
 			g_pContext->PSSetShaderResources(3, 1, &pSRVMetallic);
 
-			auto pSRVRoughness = pPBRMat->GetSRVRoughness();
+			auto pSRVRoughness = pStandardMat->GetSRVRoughness();
 			g_pContext->PSSetShaderResources(4, 1, &pSRVRoughness);
 
-			auto pSRVAO = pPBRMat->GetSRVAO();
+			auto pSRVAO = pStandardMat->GetSRVAO();
 			g_pContext->PSSetShaderResources(5, 1, &pSRVAO);
 
-			auto pCBMaterial = pPBRMat->GetConstantBuffer();
+			auto pCBMaterial = pStandardMat->GetConstantBuffer();
 			g_pContext->PSSetConstantBuffers(3, 1, &pCBMaterial);
 
-			for (auto pSubMesh : pPBRMat->GetRefSubMeshes())
+			for (auto pSubMesh : pStandardMat->GetRefSubMeshes())
+			{
+				if (pSubMesh)
+				{
+					bool bIsVisible = pSubMesh->GetPrimitive()->GetVisible();
+					if (bIsVisible)
+					{
+						pSubMesh->UpdateViewParams();
+						g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
+
+						pSubMesh->Update();
+						pSubMesh->Render();
+					}
+				}
+			}
+		}
+	}
+
+	// 2023.4.4 渲染3S材质
+	g_pContext->OMSetDepthStencilState(m_pDepthStencilStateSSS.Get(), 0x25);
+
+	for (auto pMat : NXResourceManager::GetInstance()->GetMaterialManager()->GetMaterials())
+	{
+		auto pSubsurfaceMat = pMat->IsSubsurfaceMat();
+		if (pSubsurfaceMat)
+		{
+			auto pSRVAlbedo = pSubsurfaceMat->GetSRVAlbedo();
+			g_pContext->PSSetShaderResources(1, 1, &pSRVAlbedo);
+
+			auto pSRVNormal = pSubsurfaceMat->GetSRVNormal();
+			g_pContext->PSSetShaderResources(2, 1, &pSRVNormal);
+
+			auto pSRVMetallic = pSubsurfaceMat->GetSRVMetallic();
+			g_pContext->PSSetShaderResources(3, 1, &pSRVMetallic);
+
+			auto pSRVRoughness = pSubsurfaceMat->GetSRVRoughness();
+			g_pContext->PSSetShaderResources(4, 1, &pSRVRoughness);
+
+			auto pSRVAO = pSubsurfaceMat->GetSRVAO();
+			g_pContext->PSSetShaderResources(5, 1, &pSRVAO);
+
+			auto pCBMaterial = pSubsurfaceMat->GetConstantBuffer();
+			g_pContext->PSSetConstantBuffers(3, 1, &pCBMaterial);
+
+			for (auto pSubMesh : pSubsurfaceMat->GetRefSubMeshes())
 			{
 				if (pSubMesh)
 				{
