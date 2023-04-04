@@ -60,17 +60,11 @@ void PS(PS_INPUT input, out PS_OUTPUT Output)
 	Output.GBufferA = float4(input.posVS.xyz, 1.0f);
 
 	float3 normalMap = txNormalMap.Sample(ssLinearWrap, input.tex).xyz;
-	normalMap.y = 1.0f - normalMap.y;
 	float3 normal = m_material.normal * normalMap;
 	float3 N = TangentSpaceToViewSpace(normal, input.normVS, input.tangentVS);
 	Output.GBufferB = float4(N, 1.0f);
 
 	float3 albedoMap = txAlbedo.Sample(ssLinearWrap, input.tex).xyz;
-	//float2 uv = (0.0625f, 0.06f);
-	//float t1 = txAlbedo.GatherRed(ssLinearWrap, uv).w;
-	//float t2 = txAlbedo.GatherGreen(ssLinearWrap, uv).w;
-	//float t3 = txAlbedo.GatherBlue(ssLinearWrap, uv).w;
-	//albedoMap = float3(t1, t2, t3);
 	float3 albedo = m_material.albedo * albedoMap;
 	Output.GBufferC = float4(albedo, 1.0f);
 

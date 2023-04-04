@@ -33,42 +33,46 @@ SSAO可以升级成GTAO或者HBAO
 
 ************************ 功能杂项 ************************
 
-Last Issue ID : 28
+Last Issue ID : 35
 
 【暂时搁置的功能】
 14. 不同终端的imgui.ini布局同步（在Imgui完全成型之前 感觉不太好做）
 
 【考虑要做的功能】
 3. 新材质类型：SubSurface
-7. Hierarchy 场景大纲
 4. 法线参数修正（现版本的三轴缩放是个什么鬼……）
 	（note：需要专门的法线插值，单纯的缩放不能解决问题。）
+7. Hierarchy 场景大纲
 16. CubeMap预加载优化（现在每次打开都会读一遍dds文件）
 
-5. 纹理界面化[DONE]
 21. Depth peeling UI参数可控
 22. Context Explorer 增加浏览类型（比如只显示图片/CubeMap/Nmat/FBX/……）
 25. ForceSRGB/ForceLinear纹理支持的格式还不全。导入SRGB纹理的时候可能会引起崩溃
+
+30. Deferred Lighting
+31. GBuffer.Normal 压缩、精度提升
+32. 优化掉 GBuffer.Position
+33. 可开关的 DepthPeeling pass（现在始终保持开启太伤）
 
 【较大的长期模块】
 12. resizeable viewport+全屏化UI
 13. 场景文件化，可保存、加载
 14. 自定义材质
-29. 更灵活的灯光系统+即时编译Shader
-30. Deferred Lighting
+29. 更灵活的灯光系统
+34. 即时编译Shader
+35. 类似GfxDeviceWorker的渲染队列处理器
 
 【bugs】
 17. translucent材质 IBL 亮度拉高的时候有bug，
 	并且opacity=1的时候和standard的着色结果有微弱差异。(半透的光照很可能有问题)
 19. 对选中物体做XZ拖动的时候，Y值会莫名其妙的改变
-27. 切换材质的时候可能会崩溃
-28. 多选同一材质时，GUI材质可能将其视作多个材质，不提供面板显示
 
 已完成的：
 1. ctrl左键点击ViewPort：多选材质[DONE]
 	8. 多选编辑器移动[DONE]
 	10. MoveArrows 增加不可见状态[DONE]
 2. Translucent类型材质保存[DONE]
+5. 纹理界面化[DONE]
 6. WStr相关函数整理 做成通用类? [DONE] (namespace NXConvert)
 9. 鼠标在IMGUI上的指令 和 ViewPort上的指令 如何区分？[DONE]（*新增了NXForceEvent，强制事件）
 20. 纹理加载内存优化: 每帧检查一次有没有nRefCount=0的纹理，有的话就释放掉。[DONE]
@@ -76,3 +80,5 @@ Last Issue ID : 28
 	这个要稍花精力想一下，目前纹理和材质还没有建立联系。[DONE]
 24. contentExplorer，点cubemap类型的dds纹理，会崩溃[DONE]
 26. 将SceneManager的Material相关转移到ResourceManager。[DONE]
+27. 切换材质的时候可能会崩溃[DONE]
+28. 多选同一材质时，GUI材质可能将其视作多个材质，不提供面板显示[DONE]

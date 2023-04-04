@@ -74,14 +74,16 @@ public:
 	std::string GetFilePath() { return m_filePath; }
 	size_t GetFilePathHash() { return std::filesystem::hash_value(m_filePath); }
 
-	bool IsPBRType();
-
 	ID3D11Buffer* GetConstantBuffer() const { return m_cb.Get(); }
 
 	void Update();
 
-	virtual void Release() = 0;
+	virtual NXPBRMaterialBase*			IsPBRMat()			{ return nullptr; }
+	virtual NXPBRMaterialStandard*		IsStandardMat()		{ return nullptr; }
+	virtual NXPBRMaterialTranslucent*	IsTranslucentMat()	{ return nullptr; }
+	virtual NXPBRMaterialSubsurface*	IsSubsurfaceMat()	{ return nullptr; }
 
+	virtual void Release() = 0;
 	virtual void ReloadTextures() = 0;
 
 public:
@@ -135,8 +137,10 @@ public:
 	std::string GetRoughnessTexFilePath()	{ return m_pTexRoughness->GetFilePath().string(); }
 	std::string GetAOTexFilePath()			{ return m_pTexAmbientOcclusion->GetFilePath().string(); }
 
-	virtual void Release();
-	virtual void ReloadTextures();
+	virtual NXPBRMaterialBase* IsPBRMat() override { return this; }
+
+	virtual void Release() override;
+	virtual void ReloadTextures() override;
 
 private:
 	NXTexture2D* m_pTexAlbedo;
@@ -166,6 +170,8 @@ public:
 	void	SetMetallic(const float metallic)		{ GetCBData()->metallic = metallic; }
 	void	SetRoughness(const float roughness)		{ GetCBData()->roughness = roughness; }
 	void	SetAO(const float ao)					{ GetCBData()->ao = ao; }
+
+	virtual NXPBRMaterialStandard* IsStandardMat() override { return this; }
 
 private:
 	void InitConstantBuffer();
@@ -197,6 +203,8 @@ public:
 	void	SetRoughness(const float roughness)		{ GetCBData()->roughness = roughness; }
 	void	SetAO(const float ao)					{ GetCBData()->ao = ao; }
 
+	virtual NXPBRMaterialTranslucent* IsTranslucentMat() override { return this; }
+
 private:
 	void InitConstantBuffer();
 };
@@ -225,6 +233,8 @@ public:
 	void	SetRoughness(const float roughness)				{ GetCBData()->roughness = roughness; }
 	void	SetAO(const float ao)							{ GetCBData()->ao = ao; }
 	void	SetSubsurface(const Vector3& SubsurfaceColor)	{ GetCBData()->SubsurfaceColor = SubsurfaceColor; }
+
+	virtual NXPBRMaterialSubsurface* IsSubsurfaceMat() override { return this; }
 
 private:
 	void InitConstantBuffer();

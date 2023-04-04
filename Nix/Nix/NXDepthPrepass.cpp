@@ -67,7 +67,7 @@ void NXDepthPrepass::Render()
 		//		pSubMesh->Update();
 
 		//		auto pMat = pSubMesh->GetMaterial();
-		//		if (pMat->IsPBRType())
+		//		if (pMat->IsPBR())
 		//		{
 		//			NXPBRMaterialBase* pMat = static_cast<NXPBRMaterialBase*>(pSubMesh->GetMaterial());
 

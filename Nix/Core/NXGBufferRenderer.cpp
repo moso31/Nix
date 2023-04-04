@@ -65,10 +65,9 @@ void NXGBufferRenderer::Render()
 	// 2022.4.14 Ö»äÖÈ¾ Opaque ÎïÌå
 	for (auto pMat : NXResourceManager::GetInstance()->GetMaterialManager()->GetMaterials())
 	{
-		if (pMat->GetType() == NXMaterialType::PBR_STANDARD)
+		auto pPBRMat = pMat->IsPBRMat();
+		if (pPBRMat)
 		{
-			NXPBRMaterialBase* pPBRMat = static_cast<NXPBRMaterialBase*>(pMat);
-
 			auto pSRVAlbedo = pPBRMat->GetSRVAlbedo();
 			g_pContext->PSSetShaderResources(1, 1, &pSRVAlbedo);
 

@@ -15,11 +15,6 @@ NXMaterial::NXMaterial(const std::string& name, const NXMaterialType type, const
 {
 }
 
-bool NXMaterial::IsPBRType()
-{
-	return m_type == NXMaterialType::PBR_STANDARD || m_type == NXMaterialType::PBR_TRANSLUCENT;
-}
-
 void NXMaterial::Update()
 {
 	// 材质只需要把自己的数据提交给GPU就行了。
