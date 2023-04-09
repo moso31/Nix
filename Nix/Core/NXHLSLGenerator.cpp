@@ -54,7 +54,6 @@ void NXHLSLGenerator::EncodeToGBufferShader(const std::string& strHLSLParam, con
 {
     auto strInclude = R"(#include "Common.fx"
 #include "Math.fx"
-#include "PBRMaterials.fx"
 
 )";
 
@@ -136,6 +135,7 @@ std::string NXHLSLGenerator::ConvertShaderParam(const std::filesystem::path& sha
 
     std::string line;
 
+    int cbIndex = 0;
     bool inParam = false;
     bool inParamBrace = false;
     while (std::getline(in, line))
@@ -181,12 +181,11 @@ std::string NXHLSLGenerator::ConvertShaderParam(const std::filesystem::path& sha
             if (type == "CBuffer")
             {
                 std::ostringstream strMatName;
-                strMatName << "Mat_" << matHashVal;
+                strMatName << "Mat_" << matHashVal << "_" << cbIndex++;
 
                 std::ostringstream strMatStruct;
                 strMatStruct << "struct " << strMatName.str();
                 strMatStruct << "\n{\n";
-                // CBuffer
                 ConvertShaderCBufferParam(matHashVal, nslParams, in, strMatStruct);
                 strMatStruct << "};\n";
 
@@ -198,7 +197,7 @@ std::string NXHLSLGenerator::ConvertShaderParam(const std::filesystem::path& sha
             }
             else
             {
-                // 2023.4.9 Texture和SamplerState 之后应该会有WrapMode之类的需求。
+                // 2023.4.9 Texture和SamplerState 之后应该会有WrapMode, CullMode之类的需求。
                 // 暂时还没想好怎么写，先空着
                 out << typeToPrefix[type] << " " << name << " : register(" << typeToRegisterPrefix[type] << typeToRegisterIndex[type]++ << ")";
                 out << ";\n";
@@ -235,7 +234,7 @@ void NXHLSLGenerator::ConvertShaderCBufferParam(const size_t hashVal, const std:
         if (type == "}")
         {
             inParamBrace = false;
-            continue;
+            return;
         }
 
         // 给 CBuffer 填充变量
