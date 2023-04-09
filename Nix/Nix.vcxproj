@@ -213,6 +213,7 @@
     <ClCompile Include="Core\FBXMeshLoader.cpp" />
     <ClCompile Include="Core\Global.cpp" />
     <ClCompile Include="Core\GlobalBufferManager.cpp" />
+    <ClCompile Include="Core\NXHLSLGenerator.cpp" />
     <ClCompile Include="Core\ImageGenerator.cpp" />
     <ClCompile Include="Core\Main.cpp" />
     <ClCompile Include="Core\NXBRDFlut.cpp" />
@@ -288,6 +289,7 @@
     <ClInclude Include="Core\FBXMeshLoader.h" />
     <ClInclude Include="Core\GlobalBufferManager.h" />
     <ClInclude Include="Core\Header.h" />
+    <ClInclude Include="Core\NXHLSLGenerator.h" />
     <ClInclude Include="Core\ImageGenerator.h" />
     <ClInclude Include="Core\NXBRDFlut.h" />
     <ClInclude Include="Core\NXCameraResourceManager.h" />
@@ -327,6 +329,7 @@
     <ClInclude Include="Core\NXResourceManagerBase.h" />
     <ClInclude Include="Core\NXResourceReloader.h" />
     <ClInclude Include="Core\NXScriptResourceManager.h" />
+    <ClInclude Include="Core\NXShaderIncluder.h" />
     <ClInclude Include="Core\NXShadowMapRenderer.h" />
     <ClInclude Include="Core\NXShadowTestRenderer.h" />
     <ClInclude Include="Core\NXSkyRenderer.h" />
@@ -539,6 +542,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\CubeMapIrradianceSHdds.fx">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shader\GBufferEx_Test.nsl">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

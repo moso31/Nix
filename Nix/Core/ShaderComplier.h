@@ -23,7 +23,9 @@ public:
 
 	HRESULT CompileVS(std::wstring shaderFilePath, std::string mainFuncEntryPoint, ID3D11VertexShader** ppOutVS, bool clearDefineMacros = true);
 	HRESULT CompileVSIL(std::wstring shaderFilePath, std::string mainFuncEntryPoint, ID3D11VertexShader** ppOutVS, const D3D11_INPUT_ELEMENT_DESC* pILDescs, UINT numElementsOfIL, ID3D11InputLayout** ppOutIL, bool clearDefineMacros = true);
+	HRESULT CompileVSILByCode(const std::string& shaderCode, std::string mainFuncEntryPoint, ID3D11VertexShader** ppOutVS, const D3D11_INPUT_ELEMENT_DESC* pILDescs, UINT numElementsOfIL, ID3D11InputLayout** ppOutIL, bool clearDefineMacros = true);
 	HRESULT CompilePS(std::wstring shaderFilePath, std::string mainFuncEntryPoint, ID3D11PixelShader** ppOutPS, bool clearDefineMacros = true);
+	HRESULT CompilePSByCode(const std::string& shaderCode, std::string mainFuncEntryPoint, ID3D11PixelShader** ppOutPS, bool clearDefineMacros = true);
 	HRESULT CompileCS(std::wstring shaderFilePath, std::string mainFuncEntryPoint, ID3D11ComputeShader** ppOutCS, bool clearDefineMacros = true);
 
 	void AddMacro(const CD3D_SHADER_MACRO& macro);

@@ -106,6 +106,9 @@
     <Filter Include="Nix\Texture">
       <UniqueIdentifier>{d5d9ef4c-09ae-4295-aecb-257ddc7dbfba}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Core\DirectX\Compile">
+      <UniqueIdentifier>{bab74a59-0b89-4335-9c36-8cfcc6df66f2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Common.fx">
@@ -199,6 +202,9 @@
     <None Include="Shader\CubeMapIrradianceSHdds.fx">
       <Filter>Shader\Renderer\IBL</Filter>
     </None>
+    <None Include="Shader\GBufferEx_Test.nsl">
+      <Filter>Shader\Renderer</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">
@@ -227,9 +233,6 @@
     </ClCompile>
     <ClCompile Include="Core\NXDXHelper.cpp">
       <Filter>Core\Helper</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\ShaderComplier.cpp">
-      <Filter>Core\DirectX</Filter>
     </ClCompile>
     <ClCompile Include="Nix\HBVH.cpp">
       <Filter>Nix\Accelerator</Filter>
@@ -420,6 +423,12 @@
     <ClCompile Include="Core\NXScriptResourceManager.cpp">
       <Filter>Core\DirectX\NXResources</Filter>
     </ClCompile>
+    <ClCompile Include="Core\ShaderComplier.cpp">
+      <Filter>Core\DirectX\Compile</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXHLSLGenerator.cpp">
+      <Filter>Core\DirectX\Compile</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -451,9 +460,6 @@
     </ClInclude>
     <ClInclude Include="Core\NXDXHelper.h">
       <Filter>Core\Helper</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\ShaderComplier.h">
-      <Filter>Core\DirectX</Filter>
     </ClInclude>
     <ClInclude Include="Core\ShaderStructures.h">
       <Filter>Core\DirectX</Filter>
@@ -652,6 +658,15 @@
     </ClInclude>
     <ClInclude Include="Core\NXScriptResourceManager.h">
       <Filter>Core\DirectX\NXResources</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ShaderComplier.h">
+      <Filter>Core\DirectX\Compile</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXHLSLGenerator.h">
+      <Filter>Core\DirectX\Compile</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXShaderIncluder.h">
+      <Filter>Core\DirectX\Compile</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
