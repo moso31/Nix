@@ -24,9 +24,10 @@ void NXGBufferRenderer::Init()
 	//NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\GBuffer.fx", "VS", &m_pVertexShader, NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), &m_pInputLayout);
 	//NXShaderComplier::GetInstance()->CompilePS(L"Shader\\GBuffer.fx", "PS", &m_pPixelShader);
 
+	NXShaderResourceInfoArray srInfoArray;
 	std::string strShader, strShaderParam, strShaderCode;
 	NXHLSLGenerator::GetInstance()->LoadShaderFromFile("Shader\\GBufferEx_Test.nsl", strShader);
-	NXHLSLGenerator::GetInstance()->ConvertShaderToHLSL("Shader\\GBufferEx_Test.nsl", strShader, strShaderParam, strShaderCode);
+	NXHLSLGenerator::GetInstance()->ConvertShaderToHLSL("Shader\\GBufferEx_Test.nsl", strShader, strShaderParam, strShaderCode, srInfoArray);
 	NXHLSLGenerator::GetInstance()->EncodeToGBufferShader(strShaderParam, strShaderCode, strShader);
 
 	NXShaderComplier::GetInstance()->CompileVSILByCode(strShader, "VS", &m_pVertexShader, NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), &m_pInputLayout);

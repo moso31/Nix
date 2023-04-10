@@ -41,11 +41,11 @@ void NXHLSLGenerator::ExtractShaderData(const std::string& shader, std::string& 
     nslCode = shader.substr(codeStart, codeEnd - codeStart);
 }
 
-bool NXHLSLGenerator::ConvertShaderToHLSL(const std::filesystem::path& shaderPath, const std::string& shader, std::string& oHLSLCodeHead, std::string& oHLSLCodeBody)
+bool NXHLSLGenerator::ConvertShaderToHLSL(const std::filesystem::path& shaderPath, const std::string& shader, std::string& oHLSLCodeHead, std::string& oHLSLCodeBody, NXShaderResourceInfoArray& oSRInfoArray)
 {
     std::string nslParams, nslCode;
     ExtractShaderData(shader, nslParams, nslCode);
-    oHLSLCodeHead = ConvertShaderParam(shaderPath, nslParams);
+    oHLSLCodeHead = ConvertShaderParam(shaderPath, nslParams, oSRInfoArray);
     oHLSLCodeBody = ConvertShaderCode(nslCode);
 	return false;
 }
@@ -107,7 +107,7 @@ void PS(PS_INPUT input, out PS_OUTPUT Output)
     oHLSLFinal = strInclude + strHLSLParam + strOther + strHLSLBody + strEnd;
 }
 
-std::string NXHLSLGenerator::ConvertShaderParam(const std::filesystem::path& shaderPath, const std::string& nslParams)
+std::string NXHLSLGenerator::ConvertShaderParam(const std::filesystem::path& shaderPath, const std::string& nslParams, NXShaderResourceInfoArray& oSRInfoArray)
 {
     std::map<std::string, std::string> typeToPrefix
     {
@@ -177,9 +177,14 @@ std::string NXHLSLGenerator::ConvertShaderParam(const std::filesystem::path& sha
         if (typeToPrefix.find(type) != typeToPrefix.end())
         {
             auto matHashVal = std::filesystem::hash_value(shaderPath);
+            NXShaderResourceInfo srInfo;
 
             if (type == "CBuffer")
             {
+                srInfo.name = name;
+                srInfo.type = NXShaderInputType::CBuffer;
+                srInfo.registerIndex = typeToRegisterIndex[type];
+
                 std::ostringstream strMatName;
                 strMatName << "Mat_" << matHashVal << "_" << cbIndex++;
 
@@ -195,13 +200,26 @@ std::string NXHLSLGenerator::ConvertShaderParam(const std::filesystem::path& sha
                 out << "\t" << strMatName.str() << " " << name << ";\n";
                 out << "}\n";
             }
-            else
+            else if (type == "Tex2D")
             {
-                // 2023.4.9 Texture和SamplerState 之后应该会有WrapMode, CullMode之类的需求。
-                // 暂时还没想好怎么写，先空着
+                srInfo.name = name;
+                srInfo.type = NXShaderInputType::Texture;
+                srInfo.registerIndex = typeToRegisterIndex[type];
+
                 out << typeToPrefix[type] << " " << name << " : register(" << typeToRegisterPrefix[type] << typeToRegisterIndex[type]++ << ")";
                 out << ";\n";
             }
+            else if (type == "SamplerState")
+            {
+                srInfo.name = name;
+                srInfo.type = NXShaderInputType::Sampler;
+                srInfo.registerIndex = typeToRegisterIndex[type];
+
+                out << typeToPrefix[type] << " " << name << " : register(" << typeToRegisterPrefix[type] << typeToRegisterIndex[type]++ << ")";
+                out << ";\n";
+            }
+
+            oSRInfoArray.push_back(srInfo);
             continue;
         }
     }
