@@ -147,3 +147,30 @@ void NXPBRMaterialSubsurface::InitConstantBuffer()
 	bufferDesc.CPUAccessFlags = 0;
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cb));
 }
+
+void NXCustomMaterial::Render()
+{
+	for (auto param : m_texParams)
+	{
+		UINT paramSlot = ;// ...???
+		auto pSRV = GetTexture2DParamSRV(param.first);
+		if (pSRV)
+			g_pContext->PSSetShaderResources(paramSlot, 1, &pSRV);
+	}
+
+	for (auto param : m_ssParams)
+	{
+		UINT paramSlot = ;// ...???
+		auto pSampler = GetSamplerParam(param.first);
+		if (pSampler)
+			g_pContext->PSSetSamplers(paramSlot, 1, &pSampler);
+	}
+
+	for (auto param : m_cbParams)
+	{
+		UINT paramSlot = ;// ...???
+		auto pCB = GetConstantBufferParam(param.first);
+		if (pCB)
+			g_pContext->PSSetConstantBuffers(paramSlot, 1, &pCB);
+	}
+}

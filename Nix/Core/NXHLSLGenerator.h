@@ -21,7 +21,6 @@ using NXShaderResourceInfoArray = std::vector<NXShaderResourceInfo>;
 
 class NXHLSLGenerator : public NXInstance<NXHLSLGenerator>
 {
-
 public:
 	NXHLSLGenerator();
 	~NXHLSLGenerator();

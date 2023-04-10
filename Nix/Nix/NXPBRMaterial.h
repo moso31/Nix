@@ -82,6 +82,7 @@ public:
 	virtual NXPBRMaterialStandard*		IsStandardMat()		{ return nullptr; }
 	virtual NXPBRMaterialTranslucent*	IsTranslucentMat()	{ return nullptr; }
 	virtual NXPBRMaterialSubsurface*	IsSubsurfaceMat()	{ return nullptr; }
+	virtual NXCustomMaterial*			IsCustomMat()		{ return nullptr; }
 
 	virtual void Release() = 0;
 	virtual void ReloadTextures() = 0;
@@ -238,4 +239,55 @@ public:
 
 private:
 	void InitConstantBuffer();
+};
+
+struct NXMaterialTextureParam
+{
+	std::string name;
+	NXTexture2D* pTexture;
+};
+
+struct NXMaterialSamplerParam
+{
+	std::string name;
+	ID3D11SamplerState* pSampler;
+};
+
+struct NXMaterialConstantBufferParam
+{
+	std::string name;
+	ID3D11Buffer* pCB;
+};
+
+class NXCustomMaterial : public NXMaterial
+{
+	template <typename NXMatParam>
+	using ResourceMap = std::unordered_map<std::string, NXMatParam>;
+
+public:
+	explicit NXCustomMaterial() = default;
+	//explicit NXCustomMaterial(const std::string& name, const NXMaterialType type = NXMaterialType::UNKNOWN, const std::string& filePath = "");
+	~NXCustomMaterial() {}
+
+	void AddTexture2DParam(const std::string& name, NXTexture2D* param)				{ m_texParams[name] = { name, param }; }
+	void AddSamplerStateParam(const std::string& name, ID3D11SamplerState* param)	{ m_ssParams[name] = { name, param }; }
+	void AddConstantBufferParam(const std::string& name, ID3D11Buffer* param)		{ m_cbParams[name] = { name, param }; }
+
+	ID3D11ShaderResourceView*	GetTexture2DParamSRV(const std::string& name)		{ return m_texParams[name].pTexture->GetSRV(); }
+	ID3D11SamplerState*			GetSamplerParam(const std::string& name)			{ return m_ssParams[name].pSampler; }
+	ID3D11Buffer*				GetConstantBufferParam(const std::string& name)		{ return m_cbParams[name].pCB; }
+
+	//ResourceMap<NXMaterialTextureParam>			GetTextureParams()			const	{ return m_texParams; }
+	//ResourceMap<NXMaterialSamplerParam>			GetSamplerParams()			const	{ return m_ssParams; }
+	//ResourceMap<NXMaterialConstantBufferParam>	GetConstantBufferParams()	const	{ return m_cbParams; }
+
+	// Ìî³äËùÓÐµÄTex2D£¬SS£¬CB
+	void Render();
+
+	virtual NXCustomMaterial* IsCustomMat() override { return this; }
+
+private:
+	ResourceMap<NXMaterialTextureParam> m_texParams;
+	ResourceMap<NXMaterialSamplerParam> m_ssParams;
+	ResourceMap<NXMaterialConstantBufferParam> m_cbParams;
 };

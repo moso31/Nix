@@ -31,6 +31,8 @@ public:
 	void AddMacro(const CD3D_SHADER_MACRO& macro);
 	void ClearMacros();
 
+	void Release();
+
 private:
 	std::vector<CD3D_SHADER_MACRO> m_defineMacros;
 

@@ -115,6 +115,32 @@ void NXGBufferRenderer::Render()
 		}
 	}
 
+	// 2023.4.10 自定义材质（临时）
+	for (auto pMat : NXResourceManager::GetInstance()->GetMaterialManager()->GetMaterials())
+	{
+		auto pCustomMat = pMat->IsCustomMat();
+		if (pCustomMat)
+		{
+			pCustomMat->Render();
+
+			for (auto pSubMesh : pCustomMat->GetRefSubMeshes())
+			{
+				if (pSubMesh)
+				{
+					bool bIsVisible = pSubMesh->GetPrimitive()->GetVisible();
+					if (bIsVisible)
+					{
+						pSubMesh->UpdateViewParams();
+						g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
+
+						pSubMesh->Update();
+						pSubMesh->Render();
+					}
+				}
+			}
+		}
+	}
+
 	// 2023.4.4 渲染3S材质
 	g_pContext->OMSetDepthStencilState(m_pDepthStencilStateSSS.Get(), 0x25);
 

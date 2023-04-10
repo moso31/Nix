@@ -233,3 +233,8 @@ void NXShaderComplier::ClearMacros()
 {
 	m_defineMacros.clear();
 }
+
+void NXShaderComplier::Release()
+{
+	SafeDelete(m_pd3dInclude);
+}

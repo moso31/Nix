@@ -1,6 +1,7 @@
 #include "App.h"
 #include "DirectResources.h"
 #include "NXResourceManager.h"
+#include "ShaderComplier.h"
 #include "NXEvent.h"
 
 App::App() :
@@ -66,5 +67,6 @@ void App::Release()
 {
 	SafeRelease(m_pRenderer);
 	NXResourceManager::GetInstance()->Release();
+	NXShaderComplier::GetInstance()->Release();
 	SafeRelease(g_dxResources);
 }
