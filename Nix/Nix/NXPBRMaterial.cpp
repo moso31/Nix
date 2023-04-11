@@ -5,6 +5,7 @@
 #include "NXConverter.h"
 #include "NXResourceManager.h"
 #include "NXSubMesh.h"
+#include "NXHLSLGenerator.h"
 
 NXMaterial::NXMaterial(const std::string& name, const NXMaterialType type, const std::string& filePath) :
 	m_name(name),
@@ -146,6 +147,27 @@ void NXPBRMaterialSubsurface::InitConstantBuffer()
 	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cb));
+}
+
+void NXCustomMaterial::SetShaderFilePath(const std::filesystem::path& path)
+{
+	m_nslFilePath = path;
+}
+
+void NXCustomMaterial::LoadShaderCode()
+{
+	std::string strShader;
+	NXHLSLGenerator::GetInstance()->LoadShaderFromFile(m_nslFilePath, strShader);
+	NXHLSLGenerator::GetInstance()->ConvertShaderToHLSL(m_nslFilePath, strShader, m_nslParams, m_nslCode, m_srInfoArray);
+}
+
+void NXCustomMaterial::Compile()
+{
+	std::string strGBufferShader;
+	NXHLSLGenerator::GetInstance()->EncodeToGBufferShader(m_nslParams, m_nslCode, strGBufferShader);
+
+	NXShaderComplier::GetInstance()->CompileVSILByCode(strGBufferShader, "VS", &m_pVertexShader, NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), &m_pInputLayout);
+	NXShaderComplier::GetInstance()->CompilePSByCode(strGBufferShader, "PS", &m_pPixelShader);
 }
 
 void NXCustomMaterial::Render()

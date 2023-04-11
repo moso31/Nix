@@ -15,6 +15,24 @@ cbuffer CBufferMaterialStandard : register(b3)
 	PBRMaterialStandard m_material;
 }
 
+struct PSInputData
+{
+	float3 positionVS;
+	float3 normalVS;
+	float2 texcoord;
+	float3 tangentVS;
+};
+
+struct PSOutputData
+{
+	float3 position;
+	float3 normal;
+	float3 albedo;
+	float metallic;
+	float roughness;
+	float ao;
+};
+
 struct VS_INPUT
 {
 	float4 pos : POSITION;
@@ -55,8 +73,42 @@ PS_INPUT VS(VS_INPUT input)
 	return output;
 }
 
+void BuildPixelShaderInputData(PS_INPUT input, out PSInputData data)
+{
+	data.positionVS = input.posVS.xyz;
+	data.normalVS = input.normVS;
+	data.texcoord = input.tex;
+	data.tangentVS = input.tangentVS;
+}
+
+PSOutputData EvaluateMaterial(PSInputData input)
+{
+	PSOutputData result;
+	result.position = input.positionVS;
+	result.normal = input.normalVS;
+	result.albedo = txAlbedo.Sample(ssLinearWrap, input.texcoord).rgb;
+	result.metallic = txMetallicMap.Sample(ssLinearWrap, input.texcoord).r;
+	result.roughness = txRoughnessMap.Sample(ssLinearWrap, input.texcoord).r;
+	result.ao = txAmbientOcclusionMap.Sample(ssLinearWrap, input.texcoord).r;
+}
+
+void EncodeGBuffer(float3 Position, float3 normal, float3 albedo, float metallic, float roughness, float ao, out PS_OUTPUT output)
+{
+	output.GBufferA = float4(Position, 1.0f);
+	output.GBufferB = float4(normal, 1.0f);
+	output.GBufferC = float4(albedo, 1.0f);
+	output.GBufferD = float4(metallic, roughness, ao, 1.0f);
+}
+
 void PS(PS_INPUT input, out PS_OUTPUT Output)
 {
+	PSInputData psDataIn;
+	BuildPixelShaderInputData(input, psDataIn);
+	//psDataOut = EvaluateMaterial(psDataIn); // 这句话每个材质都不一样
+
+	EncodeGBuffer(position, normal, albedo, metallic, roughness, ao);
+	return;
+
 	Output.GBufferA = float4(input.posVS.xyz, 1.0f);
 
 	float3 normalMap = txNormalMap.Sample(ssLinearWrap, input.tex).xyz;

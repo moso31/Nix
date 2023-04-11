@@ -269,6 +269,10 @@ public:
 	//explicit NXCustomMaterial(const std::string& name, const NXMaterialType type = NXMaterialType::UNKNOWN, const std::string& filePath = "");
 	~NXCustomMaterial() {}
 
+	void SetShaderFilePath(const std::filesystem::path& path);
+	void LoadShaderCode();
+	void Compile();
+
 	void AddTexture2DParam(const std::string& name, NXTexture2D* param)				{ m_texParams[name] = { name, param }; }
 	void AddSamplerStateParam(const std::string& name, ID3D11SamplerState* param)	{ m_ssParams[name] = { name, param }; }
 	void AddConstantBufferParam(const std::string& name, ID3D11Buffer* param)		{ m_cbParams[name] = { name, param }; }
@@ -290,4 +294,9 @@ private:
 	ResourceMap<NXMaterialTextureParam> m_texParams;
 	ResourceMap<NXMaterialSamplerParam> m_ssParams;
 	ResourceMap<NXMaterialConstantBufferParam> m_cbParams;
+
+	NXShaderResourceInfoArray	m_srInfoArray;
+	std::filesystem::path		m_nslFilePath;
+	std::string					m_nslParams;
+	std::string					m_nslCode;
 };
