@@ -10,6 +10,8 @@
 #include "NXPrimitive.h"
 #include "NXCubeMap.h"
 
+#include "NXPBRMaterial.h"
+
 NXGBufferRenderer::NXGBufferRenderer(NXScene* pScene) :
 	m_pScene(pScene)
 {
@@ -141,49 +143,49 @@ void NXGBufferRenderer::Render()
 		}
 	}
 
-	// 2023.4.4 äÖÈ¾3S²ÄÖÊ
-	g_pContext->OMSetDepthStencilState(m_pDepthStencilStateSSS.Get(), 0x25);
+	//// 2023.4.4 äÖÈ¾3S²ÄÖÊ
+	//g_pContext->OMSetDepthStencilState(m_pDepthStencilStateSSS.Get(), 0x25);
 
-	for (auto pMat : NXResourceManager::GetInstance()->GetMaterialManager()->GetMaterials())
-	{
-		auto pSubsurfaceMat = pMat->IsSubsurfaceMat();
-		if (pSubsurfaceMat)
-		{
-			auto pSRVAlbedo = pSubsurfaceMat->GetSRVAlbedo();
-			g_pContext->PSSetShaderResources(1, 1, &pSRVAlbedo);
+	//for (auto pMat : NXResourceManager::GetInstance()->GetMaterialManager()->GetMaterials())
+	//{
+	//	auto pSubsurfaceMat = pMat->IsSubsurfaceMat();
+	//	if (pSubsurfaceMat)
+	//	{
+	//		auto pSRVAlbedo = pSubsurfaceMat->GetSRVAlbedo();
+	//		g_pContext->PSSetShaderResources(1, 1, &pSRVAlbedo);
 
-			auto pSRVNormal = pSubsurfaceMat->GetSRVNormal();
-			g_pContext->PSSetShaderResources(2, 1, &pSRVNormal);
+	//		auto pSRVNormal = pSubsurfaceMat->GetSRVNormal();
+	//		g_pContext->PSSetShaderResources(2, 1, &pSRVNormal);
 
-			auto pSRVMetallic = pSubsurfaceMat->GetSRVMetallic();
-			g_pContext->PSSetShaderResources(3, 1, &pSRVMetallic);
+	//		auto pSRVMetallic = pSubsurfaceMat->GetSRVMetallic();
+	//		g_pContext->PSSetShaderResources(3, 1, &pSRVMetallic);
 
-			auto pSRVRoughness = pSubsurfaceMat->GetSRVRoughness();
-			g_pContext->PSSetShaderResources(4, 1, &pSRVRoughness);
+	//		auto pSRVRoughness = pSubsurfaceMat->GetSRVRoughness();
+	//		g_pContext->PSSetShaderResources(4, 1, &pSRVRoughness);
 
-			auto pSRVAO = pSubsurfaceMat->GetSRVAO();
-			g_pContext->PSSetShaderResources(5, 1, &pSRVAO);
+	//		auto pSRVAO = pSubsurfaceMat->GetSRVAO();
+	//		g_pContext->PSSetShaderResources(5, 1, &pSRVAO);
 
-			auto pCBMaterial = pSubsurfaceMat->GetConstantBuffer();
-			g_pContext->PSSetConstantBuffers(3, 1, &pCBMaterial);
+	//		auto pCBMaterial = pSubsurfaceMat->GetConstantBuffer();
+	//		g_pContext->PSSetConstantBuffers(3, 1, &pCBMaterial);
 
-			for (auto pSubMesh : pSubsurfaceMat->GetRefSubMeshes())
-			{
-				if (pSubMesh)
-				{
-					bool bIsVisible = pSubMesh->GetPrimitive()->GetVisible();
-					if (bIsVisible)
-					{
-						pSubMesh->UpdateViewParams();
-						g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
+	//		for (auto pSubMesh : pSubsurfaceMat->GetRefSubMeshes())
+	//		{
+	//			if (pSubMesh)
+	//			{
+	//				bool bIsVisible = pSubMesh->GetPrimitive()->GetVisible();
+	//				if (bIsVisible)
+	//				{
+	//					pSubMesh->UpdateViewParams();
+	//					g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 
-						pSubMesh->Update();
-						pSubMesh->Render();
-					}
-				}
-			}
-		}
-	}
+	//					pSubMesh->Update();
+	//					pSubMesh->Render();
+	//				}
+	//			}
+	//		}
+	//	}
+	//}
 
 	g_pUDA->EndEvent();
 }

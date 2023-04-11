@@ -2,6 +2,7 @@
 #include "ShaderStructures.h"
 #include "NXResourceManager.h"
 #include "NXTexture.h"
+#include "NXHLSLGenerator.h"
 
 enum NXMaterialType
 {
@@ -259,14 +260,18 @@ struct NXMaterialConstantBufferParam
 	ID3D11Buffer* pCB;
 };
 
+struct NXCustomMaterialCBData
+{
+
+};
+
 class NXCustomMaterial : public NXMaterial
 {
 	template <typename NXMatParam>
 	using ResourceMap = std::unordered_map<std::string, NXMatParam>;
 
 public:
-	explicit NXCustomMaterial() = default;
-	//explicit NXCustomMaterial(const std::string& name, const NXMaterialType type = NXMaterialType::UNKNOWN, const std::string& filePath = "");
+	NXCustomMaterial() = default;
 	~NXCustomMaterial() {}
 
 	void SetShaderFilePath(const std::filesystem::path& path);
@@ -290,6 +295,10 @@ public:
 
 	virtual NXCustomMaterial* IsCustomMat() override { return this; }
 
+	virtual void Release() override;
+	virtual void ReloadTextures() override;
+
+
 private:
 	ResourceMap<NXMaterialTextureParam> m_texParams;
 	ResourceMap<NXMaterialSamplerParam> m_ssParams;
@@ -299,4 +308,8 @@ private:
 	std::filesystem::path		m_nslFilePath;
 	std::string					m_nslParams;
 	std::string					m_nslCode;
+
+	ComPtr<ID3D11VertexShader>			m_pVertexShader;
+	ComPtr<ID3D11PixelShader>			m_pPixelShader;
+	ComPtr<ID3D11InputLayout>			m_pInputLayout;
 };

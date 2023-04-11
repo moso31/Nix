@@ -12,12 +12,11 @@ enum NXShaderInputType
 
 struct NXShaderResourceInfo
 {
-    std::string name;
     NXShaderInputType type;
     UINT registerIndex;
 };
 
-using NXShaderResourceInfoArray = std::vector<NXShaderResourceInfo>;
+using NXShaderResourceInfoArray = std::unordered_map<std::string, NXShaderResourceInfo>;
 
 class NXHLSLGenerator : public NXInstance<NXHLSLGenerator>
 {

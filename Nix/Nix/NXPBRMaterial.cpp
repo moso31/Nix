@@ -5,7 +5,9 @@
 #include "NXConverter.h"
 #include "NXResourceManager.h"
 #include "NXSubMesh.h"
-#include "NXHLSLGenerator.h"
+
+#include "ShaderComplier.h"
+#include "GlobalBufferManager.h"
 
 NXMaterial::NXMaterial(const std::string& name, const NXMaterialType type, const std::string& filePath) :
 	m_name(name),
@@ -172,9 +174,13 @@ void NXCustomMaterial::Compile()
 
 void NXCustomMaterial::Render()
 {
+	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
+	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
+	g_pContext->IASetInputLayout(m_pInputLayout.Get());
+
 	for (auto param : m_texParams)
 	{
-		UINT paramSlot = ;// ...???
+		UINT paramSlot = m_srInfoArray[param.first].registerIndex;
 		auto pSRV = GetTexture2DParamSRV(param.first);
 		if (pSRV)
 			g_pContext->PSSetShaderResources(paramSlot, 1, &pSRV);
@@ -182,7 +188,7 @@ void NXCustomMaterial::Render()
 
 	for (auto param : m_ssParams)
 	{
-		UINT paramSlot = ;// ...???
+		UINT paramSlot = m_srInfoArray[param.first].registerIndex;
 		auto pSampler = GetSamplerParam(param.first);
 		if (pSampler)
 			g_pContext->PSSetSamplers(paramSlot, 1, &pSampler);
@@ -190,9 +196,17 @@ void NXCustomMaterial::Render()
 
 	for (auto param : m_cbParams)
 	{
-		UINT paramSlot = ;// ...???
+		UINT paramSlot = m_srInfoArray[param.first].registerIndex;
 		auto pCB = GetConstantBufferParam(param.first);
 		if (pCB)
 			g_pContext->PSSetConstantBuffers(paramSlot, 1, &pCB);
 	}
+}
+
+void NXCustomMaterial::Release()
+{
+}
+
+void NXCustomMaterial::ReloadTextures()
+{
 }

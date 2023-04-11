@@ -46,6 +46,7 @@ public:
 		const std::wstring roughnessTexFilePath = g_defaultTex_white_wstr,
 		const std::wstring aoTexFilePath = g_defaultTex_white_wstr,
 		const std::string& folderPath = "");
+	NXCustomMaterial* CreateCustomMaterial(const std::string& name, const std::string& nslFilePath);
 
 	// 根据类型重新创建某个材质。
 	// GUI中更改材质类型时，会使用此逻辑。

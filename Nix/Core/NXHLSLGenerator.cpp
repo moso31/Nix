@@ -181,7 +181,6 @@ std::string NXHLSLGenerator::ConvertShaderParam(const std::filesystem::path& sha
 
             if (type == "CBuffer")
             {
-                srInfo.name = name;
                 srInfo.type = NXShaderInputType::CBuffer;
                 srInfo.registerIndex = typeToRegisterIndex[type];
 
@@ -202,7 +201,6 @@ std::string NXHLSLGenerator::ConvertShaderParam(const std::filesystem::path& sha
             }
             else if (type == "Tex2D")
             {
-                srInfo.name = name;
                 srInfo.type = NXShaderInputType::Texture;
                 srInfo.registerIndex = typeToRegisterIndex[type];
 
@@ -211,7 +209,6 @@ std::string NXHLSLGenerator::ConvertShaderParam(const std::filesystem::path& sha
             }
             else if (type == "SamplerState")
             {
-                srInfo.name = name;
                 srInfo.type = NXShaderInputType::Sampler;
                 srInfo.registerIndex = typeToRegisterIndex[type];
 
@@ -219,7 +216,7 @@ std::string NXHLSLGenerator::ConvertShaderParam(const std::filesystem::path& sha
                 out << ";\n";
             }
 
-            oSRInfoArray.push_back(srInfo);
+            oSRInfoArray[name] = std::move(srInfo);
             continue;
         }
     }

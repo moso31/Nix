@@ -222,6 +222,19 @@ void NXScene::Init()
 {
 	InitEditorObjectsManager();
 
+	m_pTestCustomMat = NXResourceManager::GetInstance()->GetMaterialManager()->CreateCustomMaterial("TestCustomMat", "./shader/GBufferEx_Test.nsl");
+	NXTexture2D* pTexAlbedo = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("TestCustomTex_albedo", L"D:\\NixAssets\\rustediron2\\albedo.png");
+	NXTexture2D* pTexNormal = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("TestCustomTex_normal", L"D:\\NixAssets\\rustediron2\\normal.png");
+	NXTexture2D* pTexMetallic = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("TestCustomTex_metallic", L"D:\\NixAssets\\rustediron2\\metallic.png");
+	NXTexture2D* pTexRoughness = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("TestCustomTex_roughness", L"D:\\NixAssets\\rustediron2\\roughness.png");
+	NXTexture2D* pTexAO = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("TestCustomTex_ao", L"D:\\NixAssets\\rustediron2\\ao.png");
+	m_pTestCustomMat->AddTexture2DParam("albedo", pTexAlbedo);
+	m_pTestCustomMat->AddTexture2DParam("normal", pTexNormal);
+	m_pTestCustomMat->AddTexture2DParam("metallic", pTexMetallic);
+	m_pTestCustomMat->AddTexture2DParam("roughness", pTexRoughness);
+	m_pTestCustomMat->AddTexture2DParam("ao", pTexAO);
+	//m_pTestCustomMat->AddConstantBufferParam("cbuffer", );
+
 	NXPBRMaterialStandard* pPBRMat[] = {
 		NXResourceManager::GetInstance()->GetMaterialManager()->CreatePBRMaterialStandard("rustediron2", Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f),
 		NXResourceManager::GetInstance()->GetMaterialManager()->CreatePBRMaterialStandard("hex-stones1", Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f),
@@ -290,7 +303,7 @@ void NXScene::Init()
 	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\lury.fbx", false);
 	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\testScene.fbx", false);
 	p->SetScale(Vector3(0.1f));
-	NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(p, pPBRMat[0]);
+	NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(p, m_pTestCustomMat);
 	{
 		//bool bBind = NXResourceManager::GetInstance()->BindParent(pMeshes[1], pSphere);
 		//auto pScript_test = new NSTest();
@@ -325,7 +338,7 @@ void NXScene::Init()
 	//NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\blue_grotto_4k.hdr");
 	//NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\HDRGPUTest.hdr");
 	//NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\WhiteHDRI.hdr");
-	pSky->SetIntensity(0.0f);
+	pSky->SetIntensity(1.0f);
 
 	InitBoundingStructures();
 
@@ -458,6 +471,8 @@ void NXScene::UpdateLightData()
 
 void NXScene::Release()
 {
+	SafeRelease(m_pTestCustomMat);
+
 	SafeRelease(m_pEditorObjManager);
 	for (auto pLight : m_pbrLights) SafeDelete(pLight);
 	SafeRelease(m_pBVHTree);

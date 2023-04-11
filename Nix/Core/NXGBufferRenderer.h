@@ -29,4 +29,5 @@ private:
 	ComPtr<ID3D11SamplerState>			m_pSamplerLinearClamp;
 
 	NXScene* m_pScene;
+	NXCustomMaterial* m_pTestCustomMat;
 };

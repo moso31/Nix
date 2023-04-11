@@ -103,5 +103,7 @@ private:
 
 	NXCamera* m_pMainCamera;
 	NXCubeMap* m_pCubeMap;
+
+	NXCustomMaterial* m_pTestCustomMat;
 };
 

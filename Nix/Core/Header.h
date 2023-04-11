@@ -111,6 +111,7 @@ class NXSubMeshBase;
 enum EditorObjectID;
 
 class NXMaterial;
+class NXCustomMaterial;
 class NXPBRMaterialBase;
 class NXPBRMaterialStandard;
 class NXPBRMaterialTranslucent;
