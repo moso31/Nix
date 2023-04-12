@@ -223,17 +223,6 @@ void NXScene::Init()
 	InitEditorObjectsManager();
 
 	m_pTestCustomMat = NXResourceManager::GetInstance()->GetMaterialManager()->CreateCustomMaterial("TestCustomMat", "./shader/GBufferEx_Test.nsl");
-	NXTexture2D* pTexAlbedo = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("TestCustomTex_albedo", L"D:\\NixAssets\\rustediron2\\albedo.png");
-	NXTexture2D* pTexNormal = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("TestCustomTex_normal", L"D:\\NixAssets\\rustediron2\\normal.png");
-	NXTexture2D* pTexMetallic = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("TestCustomTex_metallic", L"D:\\NixAssets\\rustediron2\\metallic.png");
-	NXTexture2D* pTexRoughness = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("TestCustomTex_roughness", L"D:\\NixAssets\\rustediron2\\roughness.png");
-	NXTexture2D* pTexAO = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("TestCustomTex_ao", L"D:\\NixAssets\\rustediron2\\ao.png");
-	m_pTestCustomMat->AddTexture2DParam("albedo", pTexAlbedo);
-	m_pTestCustomMat->AddTexture2DParam("normal", pTexNormal);
-	m_pTestCustomMat->AddTexture2DParam("metallic", pTexMetallic);
-	m_pTestCustomMat->AddTexture2DParam("roughness", pTexRoughness);
-	m_pTestCustomMat->AddTexture2DParam("ao", pTexAO);
-	//m_pTestCustomMat->AddConstantBufferParam("cbuffer", );
 
 	NXPBRMaterialStandard* pPBRMat[] = {
 		NXResourceManager::GetInstance()->GetMaterialManager()->CreatePBRMaterialStandard("rustediron2", Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f),

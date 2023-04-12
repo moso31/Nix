@@ -10,13 +10,30 @@ enum NXShaderInputType
     Sampler,
 };
 
+enum NXCBufferInputType
+{
+	Float,
+	Float2,
+	Float3,
+	Float4,
+	Float4x4,
+};
+
+struct NXCBufferInfo
+{
+    NXCBufferInputType type;
+    std::variant<float, Vector2, Vector3, Vector4, Matrix> data;
+};
+
 struct NXShaderResourceInfo
 {
     NXShaderInputType type;
     UINT registerIndex;
+    NXCBufferInfoArray cbInfos;
 };
 
 using NXShaderResourceInfoArray = std::unordered_map<std::string, NXShaderResourceInfo>;
+using NXCBufferInfoArray = std::unordered_map<std::string, NXCBufferInfo>;
 
 class NXHLSLGenerator : public NXInstance<NXHLSLGenerator>
 {
@@ -31,7 +48,7 @@ public:
 
 private:
 	std::string ConvertShaderParam(const std::filesystem::path& shaderPath, const std::string& nslCode, NXShaderResourceInfoArray& oSRInfoArray);
-	void        ConvertShaderCBufferParam(const size_t hashVal, const std::string& nslCode, std::istringstream& in, std::ostringstream& out);
+	void        ConvertShaderCBufferParam(const size_t hashVal, const std::string& nslCode, std::istringstream& in, std::ostringstream& out, NXCBufferInfoArray& oCBInfoArray);
     std::string ConvertShaderCode(const std::string& nslCode);
 
 private:

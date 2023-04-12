@@ -190,7 +190,7 @@ std::string NXHLSLGenerator::ConvertShaderParam(const std::filesystem::path& sha
                 std::ostringstream strMatStruct;
                 strMatStruct << "struct " << strMatName.str();
                 strMatStruct << "\n{\n";
-                ConvertShaderCBufferParam(matHashVal, nslParams, in, strMatStruct);
+                ConvertShaderCBufferParam(matHashVal, nslParams, in, strMatStruct, srInfo.cbInfos);
                 strMatStruct << "};\n";
 
                 out << strMatStruct.str();
@@ -224,7 +224,7 @@ std::string NXHLSLGenerator::ConvertShaderParam(const std::filesystem::path& sha
     return out.str();
 }
 
-void NXHLSLGenerator::ConvertShaderCBufferParam(const size_t hashVal, const std::string& nslCode, std::istringstream& in, std::ostringstream& out)
+void NXHLSLGenerator::ConvertShaderCBufferParam(const size_t hashVal, const std::string& nslCode, std::istringstream& in, std::ostringstream& out, NXCBufferInfoArray& oCBInfoArray)
 {
     std::string line;
     bool inParamBrace = false;
@@ -251,6 +251,12 @@ void NXHLSLGenerator::ConvertShaderCBufferParam(const size_t hashVal, const std:
             inParamBrace = false;
             return;
         }
+
+        if (type == "float")    oCBInfoArray[name] = { Float, float(0.0f) };
+        if (type == "float2")   oCBInfoArray[name] = { Float2, Vector2(0.0f) };
+        if (type == "float3")   oCBInfoArray[name] = { Float3, Vector3(0.0f) };
+        if (type == "float4")   oCBInfoArray[name] = { Float4, Vector4(0.0f) };
+        if (type == "float4x4") oCBInfoArray[name] = { Float4x4, Matrix() };
 
         // ¸ø CBuffer Ìî³ä±äÁ¿
         out << "\t" << type << " " << name << ";\n";

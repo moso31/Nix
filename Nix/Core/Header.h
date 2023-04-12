@@ -31,6 +31,7 @@
 #include <unordered_set>
 #include <chrono>
 #include <algorithm>
+#include <variant>
 #include <coroutine>
 #include <fstream>
 #include <filesystem>

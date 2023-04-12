@@ -163,13 +163,83 @@ void NXCustomMaterial::LoadShaderCode()
 	NXHLSLGenerator::GetInstance()->ConvertShaderToHLSL(m_nslFilePath, strShader, m_nslParams, m_nslCode, m_srInfoArray);
 }
 
-void NXCustomMaterial::Compile()
+void NXCustomMaterial::CompileShaders()
 {
 	std::string strGBufferShader;
 	NXHLSLGenerator::GetInstance()->EncodeToGBufferShader(m_nslParams, m_nslCode, strGBufferShader);
 
 	NXShaderComplier::GetInstance()->CompileVSILByCode(strGBufferShader, "VS", &m_pVertexShader, NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), &m_pInputLayout);
 	NXShaderComplier::GetInstance()->CompilePSByCode(strGBufferShader, "PS", &m_pPixelShader);
+}
+
+void NXCustomMaterial::BuildShaderParams()
+{
+	for (auto srInfo : m_srInfoArray)
+	{
+		std::string name = srInfo.first;
+		if (srInfo.second.type == NXShaderInputType::Texture)
+		{
+			NXTexture2D* pDefaultTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(name, g_defaultTex_white_str);
+			AddTexture2DParam(name, pDefaultTex);
+			continue;
+		}
+
+		if (srInfo.second.type == NXShaderInputType::Sampler)
+		{
+			//AddSamplerStateParam(name, ???);
+			continue;
+		}
+
+		if (srInfo.second.type == NXShaderInputType::CBuffer)
+		{
+			// 遍历 cbInfoArray，从中读取自定义struct的结构，并使用该结构，构建ID3D11Buffer。
+			auto cbInfoArray = srInfo.second.cbInfos;
+
+			//for (auto cbInfo : cbInfoArray)
+			//{
+			//	std::string cbName = cbInfo.first;
+
+			//	switch (cbInfo.second.type)
+			//	{
+
+			//	case NXCBufferInputType::Float:
+			//	{
+			//	}
+
+			//	default:
+			//		break;
+			//	}
+			//}
+
+            // 1. 计算出cbuffer的大小
+			size_t cbSize = 0;
+			for (auto cbInfo : cbInfoArray)
+			{
+				cbSize += cbInfo.size;
+			}
+
+			// 2. 根据cbuffer的大小，创建ID3D11Buffer
+			D3D11_BUFFER_DESC bufferDesc;
+			ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+			bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+			bufferDesc.ByteWidth = cbSize;
+			bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+			bufferDesc.CPUAccessFlags = 0;
+			NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cb));
+
+			// 3. 将ID3D11Buffer添加到m_paramBuffers
+			m_paramBuffers[name] = m_cb;
+
+			// 4. 将cbuffer的每个变量的偏移量，添加到m_cbParamOffsets
+			size_t offset = 0;
+			for (auto cbInfo : cbInfoArray)
+			{
+				m_cbParamOffsets[cbInfo.name] = offset;
+				offset += cbInfo.size;
+			}
+			continue;
+		}
+	}
 }
 
 void NXCustomMaterial::Render()
@@ -201,6 +271,10 @@ void NXCustomMaterial::Render()
 		if (pCB)
 			g_pContext->PSSetConstantBuffers(paramSlot, 1, &pCB);
 	}
+}
+
+void NXCustomMaterial::Update()
+{
 }
 
 void NXCustomMaterial::Release()

@@ -218,7 +218,8 @@ NXCustomMaterial* NXMaterialResourceManager::CreateCustomMaterial(const std::str
 	auto pMat = new NXCustomMaterial();
 	pMat->SetShaderFilePath("./shader/GBufferEx_Test.nsl");
 	pMat->LoadShaderCode();
-	pMat->Compile();
+	pMat->CompileShaders();
+	pMat->BuildShaderParams();
 	NXResourceManager::GetInstance()->GetMaterialManager()->RegisterMaterial(pMat);
 	return pMat;
 }

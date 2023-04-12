@@ -77,7 +77,7 @@ public:
 
 	ID3D11Buffer* GetConstantBuffer() const { return m_cb.Get(); }
 
-	void Update();
+	virtual void Update();
 
 	virtual NXPBRMaterialBase*			IsPBRMat()			{ return nullptr; }
 	virtual NXPBRMaterialStandard*		IsStandardMat()		{ return nullptr; }
@@ -260,11 +260,6 @@ struct NXMaterialConstantBufferParam
 	ID3D11Buffer* pCB;
 };
 
-struct NXCustomMaterialCBData
-{
-
-};
-
 class NXCustomMaterial : public NXMaterial
 {
 	template <typename NXMatParam>
@@ -276,7 +271,8 @@ public:
 
 	void SetShaderFilePath(const std::filesystem::path& path);
 	void LoadShaderCode();
-	void Compile();
+	void CompileShaders();
+	void BuildShaderParams();
 
 	void AddTexture2DParam(const std::string& name, NXTexture2D* param)				{ m_texParams[name] = { name, param }; }
 	void AddSamplerStateParam(const std::string& name, ID3D11SamplerState* param)	{ m_ssParams[name] = { name, param }; }
@@ -290,7 +286,8 @@ public:
 	//ResourceMap<NXMaterialSamplerParam>			GetSamplerParams()			const	{ return m_ssParams; }
 	//ResourceMap<NXMaterialConstantBufferParam>	GetConstantBufferParams()	const	{ return m_cbParams; }
 
-	// Ìî³äËùÓÐµÄTex2D£¬SS£¬CB
+	virtual void Update() override;
+
 	void Render();
 
 	virtual NXCustomMaterial* IsCustomMat() override { return this; }
