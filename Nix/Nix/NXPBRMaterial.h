@@ -295,6 +295,7 @@ public:
 	virtual void Release() override;
 	virtual void ReloadTextures() override;
 
+	UINT GetCBufferByteWidth(const NXCBufferInfoArray& cbInfos);
 
 private:
 	ResourceMap<NXMaterialTextureParam> m_texParams;
@@ -309,4 +310,8 @@ private:
 	ComPtr<ID3D11VertexShader>			m_pVertexShader;
 	ComPtr<ID3D11PixelShader>			m_pPixelShader;
 	ComPtr<ID3D11InputLayout>			m_pInputLayout;
+
+	std::unordered_map<std::string, ComPtr<ID3D11SamplerState>>			m_pSamplerStates;
+	std::unordered_map<std::string, std::unique_ptr<CBufferMaterial>>	m_cbufferDatas;
+	std::unordered_map<std::string, ComPtr<ID3D11Buffer>>				m_cbuffers;
 };

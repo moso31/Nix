@@ -25,6 +25,8 @@ struct NXCBufferInfo
     std::variant<float, Vector2, Vector3, Vector4, Matrix> data;
 };
 
+using NXCBufferInfoArray = std::unordered_map<std::string, NXCBufferInfo>;
+
 struct NXShaderResourceInfo
 {
     NXShaderInputType type;
@@ -33,7 +35,6 @@ struct NXShaderResourceInfo
 };
 
 using NXShaderResourceInfoArray = std::unordered_map<std::string, NXShaderResourceInfo>;
-using NXCBufferInfoArray = std::unordered_map<std::string, NXCBufferInfo>;
 
 class NXHLSLGenerator : public NXInstance<NXHLSLGenerator>
 {

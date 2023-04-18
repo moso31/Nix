@@ -8,6 +8,7 @@
 
 #include "ShaderComplier.h"
 #include "GlobalBufferManager.h"
+#include "NXRenderStates.h"
 
 NXMaterial::NXMaterial(const std::string& name, const NXMaterialType type, const std::string& filePath) :
 	m_name(name),
@@ -186,7 +187,8 @@ void NXCustomMaterial::BuildShaderParams()
 
 		if (srInfo.second.type == NXShaderInputType::Sampler)
 		{
-			//AddSamplerStateParam(name, ???);
+			m_pSamplerStates[name].Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP>::Create());
+			AddSamplerStateParam(name, m_pSamplerStates[name].Get());
 			continue;
 		}
 
@@ -195,49 +197,17 @@ void NXCustomMaterial::BuildShaderParams()
 			// 遍历 cbInfoArray，从中读取自定义struct的结构，并使用该结构，构建ID3D11Buffer。
 			auto cbInfoArray = srInfo.second.cbInfos;
 
-			//for (auto cbInfo : cbInfoArray)
-			//{
-			//	std::string cbName = cbInfo.first;
+			UINT byteWidth = GetCBufferByteWidth(cbInfoArray);
 
-			//	switch (cbInfo.second.type)
-			//	{
-
-			//	case NXCBufferInputType::Float:
-			//	{
-			//	}
-
-			//	default:
-			//		break;
-			//	}
-			//}
-
-            // 1. 计算出cbuffer的大小
-			size_t cbSize = 0;
-			for (auto cbInfo : cbInfoArray)
-			{
-				cbSize += cbInfo.size;
-			}
-
-			// 2. 根据cbuffer的大小，创建ID3D11Buffer
 			D3D11_BUFFER_DESC bufferDesc;
 			ZeroMemory(&bufferDesc, sizeof(bufferDesc));
 			bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-			bufferDesc.ByteWidth = cbSize;
+			bufferDesc.ByteWidth = byteWidth;
 			bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 			bufferDesc.CPUAccessFlags = 0;
-			NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cb));
+			NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbuffers[name]));
 
-			// 3. 将ID3D11Buffer添加到m_paramBuffers
-			m_paramBuffers[name] = m_cb;
-
-			// 4. 将cbuffer的每个变量的偏移量，添加到m_cbParamOffsets
-			size_t offset = 0;
-			for (auto cbInfo : cbInfoArray)
-			{
-				m_cbParamOffsets[cbInfo.name] = offset;
-				offset += cbInfo.size;
-			}
-			continue;
+			AddConstantBufferParam(name, m_cbuffers[name].Get());
 		}
 	}
 }
@@ -283,4 +253,33 @@ void NXCustomMaterial::Release()
 
 void NXCustomMaterial::ReloadTextures()
 {
+}
+
+UINT NXCustomMaterial::GetCBufferByteWidth(const NXCBufferInfoArray& cbInfos)
+{
+	UINT byteWidth = 0;
+	for (auto cb : cbInfos)
+	{
+        switch (cb.second.type)
+		{
+		case NXCBufferInputType::Float:
+			byteWidth += sizeof(float);
+			break;
+		case NXCBufferInputType::Float2:
+			byteWidth += sizeof(Vector2);
+			break;
+        case NXCBufferInputType::Float3:
+			byteWidth += sizeof(Vector3);
+			break;
+		case NXCBufferInputType::Float4:
+			byteWidth += sizeof(Vector4);
+			break;
+		case NXCBufferInputType::Float4x4:
+			byteWidth += sizeof(Matrix);
+			break;
+		default:
+			break;
+		}
+	}
+	return byteWidth;
 }
