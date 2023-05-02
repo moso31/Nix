@@ -260,6 +260,22 @@ struct NXMaterialConstantBufferParam
 	ID3D11Buffer* pCB;
 };
 
+struct NXCustomCBuffer
+{
+	// CBufferData，用一个 float 数组表示，每个元素的起始索引在 ElementIndex 中
+	float* Data;
+	std::vector<UINT> ElementIndex;
+
+	// 实际的 float Data数组大小
+	UINT DataSize;	
+
+	// CBuffer 的大小，以字节为单位
+	UINT ByteSize;
+
+	// 记录 cbSlot 插槽索引
+	UINT CBSlotIndex;
+};
+
 class NXCustomMaterial : public NXMaterial
 {
 	template <typename NXMatParam>
@@ -295,7 +311,7 @@ public:
 	virtual void Release() override;
 	virtual void ReloadTextures() override;
 
-	UINT GetCBufferByteWidth(const NXCBufferInfoArray& cbInfos);
+	void GenerateCBufferDatas(const NXCBufferInfoArray& cbInfos);
 
 private:
 	ResourceMap<NXMaterialTextureParam> m_texParams;
@@ -312,6 +328,6 @@ private:
 	ComPtr<ID3D11InputLayout>			m_pInputLayout;
 
 	std::unordered_map<std::string, ComPtr<ID3D11SamplerState>>			m_pSamplerStates;
-	std::unordered_map<std::string, std::unique_ptr<CBufferMaterial>>	m_cbufferDatas;
 	std::unordered_map<std::string, ComPtr<ID3D11Buffer>>				m_cbuffers;
+	std::vector<NXCustomCBuffer>		m_CBufferDatas;
 };

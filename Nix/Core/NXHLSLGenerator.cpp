@@ -185,12 +185,17 @@ std::string NXHLSLGenerator::ConvertShaderParam(const std::filesystem::path& sha
                 srInfo.registerIndex = typeToRegisterIndex[type];
 
                 std::ostringstream strMatName;
-                strMatName << "Mat_" << matHashVal << "_" << cbIndex++;
+                strMatName << "Mat_" << matHashVal << "_" << cbIndex;
+
+                auto& outCBInfo = srInfo.cbInfos[name];
+                outCBInfo.cbSlotIndex = cbIndex;
+
+                cbIndex++;
 
                 std::ostringstream strMatStruct;
                 strMatStruct << "struct " << strMatName.str();
                 strMatStruct << "\n{\n";
-                ConvertShaderCBufferParam(matHashVal, nslParams, in, strMatStruct, srInfo.cbInfos);
+                ConvertShaderCBufferParam(matHashVal, nslParams, in, strMatStruct, outCBInfo);
                 strMatStruct << "};\n";
 
                 out << strMatStruct.str();
@@ -224,8 +229,10 @@ std::string NXHLSLGenerator::ConvertShaderParam(const std::filesystem::path& sha
     return out.str();
 }
 
-void NXHLSLGenerator::ConvertShaderCBufferParam(const size_t hashVal, const std::string& nslCode, std::istringstream& in, std::ostringstream& out, NXCBufferInfoArray& oCBInfoArray)
+void NXHLSLGenerator::ConvertShaderCBufferParam(const size_t hashVal, const std::string& nslCode, std::istringstream& in, std::ostringstream& out, NXCBufferInfo& oCBInfo)
 {
+    auto& oElems = oCBInfo.elems;
+
     std::string line;
     bool inParamBrace = false;
     while (std::getline(in, line))
@@ -252,11 +259,12 @@ void NXHLSLGenerator::ConvertShaderCBufferParam(const size_t hashVal, const std:
             return;
         }
 
-        if (type == "float")    oCBInfoArray[name] = { Float, float(0.0f) };
-        if (type == "float2")   oCBInfoArray[name] = { Float2, Vector2(0.0f) };
-        if (type == "float3")   oCBInfoArray[name] = { Float3, Vector3(0.0f) };
-        if (type == "float4")   oCBInfoArray[name] = { Float4, Vector4(0.0f) };
-        if (type == "float4x4") oCBInfoArray[name] = { Float4x4, Matrix() };
+        if (type == "float")        oElems.push_back({ Float, float(0.0f) });
+        if (type == "float2")       oElems.push_back({ Float2, Vector2(0.0f)});
+        if (type == "float3")       oElems.push_back({ Float3, Vector3(0.0f)});
+        if (type == "float4")       oElems.push_back({ Float4, Vector4(0.0f)});
+        if (type == "float4x4")     oElems.push_back({ Float4x4, Matrix()});
+        if (type == "matrix")       oElems.push_back({ Float4x4, Matrix()});
 
         // ¸ø CBuffer Ìî³ä±äÁ¿
         out << "\t" << type << " " << name << ";\n";

@@ -197,17 +197,18 @@ void NXCustomMaterial::BuildShaderParams()
 			// 遍历 cbInfoArray，从中读取自定义struct的结构，并使用该结构，构建ID3D11Buffer。
 			auto cbInfoArray = srInfo.second.cbInfos;
 
-			UINT byteWidth = GetCBufferByteWidth(cbInfoArray);
+			//UINT byteWidth = 
+			GenerateCBufferDatas(cbInfoArray);
 
-			D3D11_BUFFER_DESC bufferDesc;
-			ZeroMemory(&bufferDesc, sizeof(bufferDesc));
-			bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-			bufferDesc.ByteWidth = byteWidth;
-			bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-			bufferDesc.CPUAccessFlags = 0;
-			NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbuffers[name]));
+			//D3D11_BUFFER_DESC bufferDesc;
+			//ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+			//bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+			//bufferDesc.ByteWidth = byteWidth;
+			//bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+			//bufferDesc.CPUAccessFlags = 0;
+			//NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbuffers[name]));
 
-			AddConstantBufferParam(name, m_cbuffers[name].Get());
+			//AddConstantBufferParam(name, m_cbuffers[name].Get());
 		}
 	}
 }
@@ -245,6 +246,14 @@ void NXCustomMaterial::Render()
 
 void NXCustomMaterial::Update()
 {
+	for (auto param : m_cbParams)
+	{
+		auto pCBData = GetConstantBufferParam(param.first);
+		auto pCB = m_cbuffers[param.first].Get();
+
+		if (pCBData && pCB)
+			g_pContext->UpdateSubresource(pCB, 0, nullptr, pCBData, 0, 0);
+	}
 }
 
 void NXCustomMaterial::Release()
@@ -255,31 +264,69 @@ void NXCustomMaterial::ReloadTextures()
 {
 }
 
-UINT NXCustomMaterial::GetCBufferByteWidth(const NXCBufferInfoArray& cbInfos)
+void NXCustomMaterial::GenerateCBufferDatas(const NXCBufferInfoArray& cbInfos)
 {
-	UINT byteWidth = 0;
+	static const UINT ALIGN_SIZE = 16;
+
+	UINT cbDataIndex = 0;
+	m_CBufferDatas.resize(cbInfos.size());
+	
+	// 材质可能有 n 组 cb，遍历它们
 	for (auto cb : cbInfos)
 	{
-        switch (cb.second.type)
+		NXCBufferInfo& cbInfo = cb.second;
+
+		NXCustomCBuffer& oCBData = m_CBufferDatas[cbDataIndex++];
+		oCBData.CBSlotIndex = cbInfo.cbSlotIndex;
+
+		UINT AlignByteSize = 0;
+
+		// 一个 cb 由 一堆 elems 组成
+		for (NXCBufferElem cbElem : cbInfo.elems)
 		{
-		case NXCBufferInputType::Float:
-			byteWidth += sizeof(float);
-			break;
-		case NXCBufferInputType::Float2:
-			byteWidth += sizeof(Vector2);
-			break;
-        case NXCBufferInputType::Float3:
-			byteWidth += sizeof(Vector3);
-			break;
-		case NXCBufferInputType::Float4:
-			byteWidth += sizeof(Vector4);
-			break;
-		case NXCBufferInputType::Float4x4:
-			byteWidth += sizeof(Matrix);
-			break;
-		default:
-			break;
+			oCBData.ElementIndex.push_back(oCBData.DataSize);
+			UINT ElemByteSize = 0;
+			switch (cbElem.type)
+			{
+			case NXCBufferInputType::Float:
+				ElemByteSize = sizeof(float);
+				break;
+			case NXCBufferInputType::Float2:
+				ElemByteSize = sizeof(Vector2);
+				break;
+			case NXCBufferInputType::Float3:
+				ElemByteSize = sizeof(Vector3);
+				break;
+			case NXCBufferInputType::Float4:
+				ElemByteSize = sizeof(Vector4);
+				break;
+			case NXCBufferInputType::Float4x4:
+				ElemByteSize = sizeof(Matrix);
+				break;
+			default:
+				break;
+			}
+
+			if (AlignByteSize + ElemByteSize <= ALIGN_SIZE)
+			{
+				AlignByteSize += ElemByteSize;
+			}
+			else
+			{
+				AlignByteSize = ElemByteSize;
+				oCBData.ByteSize += ALIGN_SIZE;
+			}
+
+			if (ElemByteSize == sizeof(Matrix))
+			{
+				oCBData.ByteSize += ALIGN_SIZE * 4;
+				AlignByteSize = 0;
+			}
+		}
+
+		if (AlignByteSize != 0)
+		{
+			oCBData.ByteSize += ALIGN_SIZE;
 		}
 	}
-	return byteWidth;
 }

@@ -19,10 +19,16 @@ enum NXCBufferInputType
 	Float4x4,
 };
 
-struct NXCBufferInfo
+struct NXCBufferElem
 {
     NXCBufferInputType type;
     std::variant<float, Vector2, Vector3, Vector4, Matrix> data;
+};
+
+struct NXCBufferInfo
+{
+    std::vector<NXCBufferElem> elems;
+    UINT cbSlotIndex;
 };
 
 using NXCBufferInfoArray = std::unordered_map<std::string, NXCBufferInfo>;
@@ -49,7 +55,7 @@ public:
 
 private:
 	std::string ConvertShaderParam(const std::filesystem::path& shaderPath, const std::string& nslCode, NXShaderResourceInfoArray& oSRInfoArray);
-	void        ConvertShaderCBufferParam(const size_t hashVal, const std::string& nslCode, std::istringstream& in, std::ostringstream& out, NXCBufferInfoArray& oCBInfoArray);
+	void        ConvertShaderCBufferParam(const size_t hashVal, const std::string& nslCode, std::istringstream& in, std::ostringstream& out, NXCBufferInfo& oCBInfo);
     std::string ConvertShaderCode(const std::string& nslCode);
 
 private:
