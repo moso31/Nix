@@ -133,6 +133,9 @@ void NXGUIMaterial::Render()
 		case PBR_SUBSURFACE:
 			RenderMaterialUI_Subsurface(static_cast<NXPBRMaterialSubsurface*>(pCommonMaterial));
 			break;
+		case CUSTOM:
+			RenderMaterialUI_Custom(static_cast<NXCustomMaterial*>(pCommonMaterial));
+			break;
 		default:
 			break;
 		}
@@ -373,6 +376,11 @@ void NXGUIMaterial::RenderMaterialUI_Subsurface(NXPBRMaterialSubsurface* pMateri
 	{
 		pMaterial->SetAO(ao);
 	}
+}
+
+void NXGUIMaterial::RenderMaterialUI_Custom(NXCustomMaterial* pMaterial)
+{
+
 }
 
 void NXGUIMaterial::RenderTextureIcon(ImTextureID ImTexID, std::function<void()> onChange, std::function<void()> onRemove, std::function<void(const std::wstring&)> onDrop)

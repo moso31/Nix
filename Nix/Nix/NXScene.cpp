@@ -460,8 +460,6 @@ void NXScene::UpdateLightData()
 
 void NXScene::Release()
 {
-	SafeRelease(m_pTestCustomMat);
-
 	SafeRelease(m_pEditorObjManager);
 	for (auto pLight : m_pbrLights) SafeDelete(pLight);
 	SafeRelease(m_pBVHTree);

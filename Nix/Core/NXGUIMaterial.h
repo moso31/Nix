@@ -17,6 +17,7 @@ private:
 	void RenderMaterialUI_Standard(NXPBRMaterialStandard* pMaterial);
 	void RenderMaterialUI_Translucent(NXPBRMaterialTranslucent* pMaterial);
 	void RenderMaterialUI_Subsurface(NXPBRMaterialSubsurface* pMaterial);
+	void RenderMaterialUI_Custom(NXCustomMaterial* pMaterial);
 
 private:
 	void RenderTextureIcon(ImTextureID ImTexID, std::function<void()> onChange, std::function<void()> onRemove, std::function<void(const std::wstring&)> onDrop);

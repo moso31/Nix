@@ -9,7 +9,8 @@ enum NXMaterialType
 	UNKNOWN,
 	PBR_STANDARD,
 	PBR_TRANSLUCENT,
-	PBR_SUBSURFACE
+	PBR_SUBSURFACE,
+	CUSTOM,
 };
 
 struct CBufferMaterial 
@@ -282,7 +283,8 @@ class NXCustomMaterial : public NXMaterial
 	using ResourceMap = std::unordered_map<std::string, NXMatParam>;
 
 public:
-	NXCustomMaterial() = default;
+	explicit NXCustomMaterial();
+	NXCustomMaterial(const std::string& name);
 	~NXCustomMaterial() {}
 
 	void SetShaderFilePath(const std::filesystem::path& path);

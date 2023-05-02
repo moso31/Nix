@@ -213,6 +213,11 @@ void NXCustomMaterial::BuildShaderParams()
 	}
 }
 
+NXCustomMaterial::NXCustomMaterial(const std::string& name) :
+	NXMaterial(name, NXMaterialType::CUSTOM, "")
+{
+}
+
 void NXCustomMaterial::Render()
 {
 	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
