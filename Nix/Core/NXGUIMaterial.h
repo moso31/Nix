@@ -1,8 +1,25 @@
 #pragma once
 #include "Header.h"
 #include "NXGUIFileBrowser.h"
+#include "NXShaderDefinitions.h"
 
 struct NXGUIContentExplorerButtonDrugData;
+
+enum NXGUICustomMatParamStyle
+{
+	eValue,
+	eSlider,
+	eColor,
+	eHDRColor,
+	eTexture
+};
+
+struct NXGUICustomMatParamInfo
+{
+	std::string name;
+	NXCBufferInputType type;
+	NXGUICustomMatParamStyle uiStyle;
+};
 
 class NXGUIMaterial
 {
@@ -52,4 +69,6 @@ private:
 	std::wstring m_normalTexPath_test;
 
 	int m_currentMaterialTypeIndex;
+
+	std::vector<NXGUICustomMatParamInfo> m_customParamInfos;
 };

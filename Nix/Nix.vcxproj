@@ -329,6 +329,7 @@
     <ClInclude Include="Core\NXResourceManagerBase.h" />
     <ClInclude Include="Core\NXResourceReloader.h" />
     <ClInclude Include="Core\NXScriptResourceManager.h" />
+    <ClInclude Include="Core\NXShaderDefinitions.h" />
     <ClInclude Include="Core\NXShaderIncluder.h" />
     <ClInclude Include="Core\NXShadowMapRenderer.h" />
     <ClInclude Include="Core\NXShadowTestRenderer.h" />

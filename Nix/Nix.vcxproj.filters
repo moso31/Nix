@@ -668,6 +668,9 @@
     <ClInclude Include="Core\NXShaderIncluder.h">
       <Filter>Core\DirectX\Compile</Filter>
     </ClInclude>
+    <ClInclude Include="Core\NXShaderDefinitions.h">
+      <Filter>Core\DirectX</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="杂七杂八的编码规范.txt" />

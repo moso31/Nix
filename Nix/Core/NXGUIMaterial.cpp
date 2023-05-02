@@ -115,7 +115,7 @@ void NXGUIMaterial::Render()
 		NXMaterialType matType = pCommonMaterial->GetType();
 		m_currentMaterialTypeIndex = matType - 1;
 
-		static const char* items[] = { "Standard", "Translucent", "Subsurface"};
+		static const char* items[] = { "Standard", "Translucent", "Subsurface", "Custom"};
 		ImGui::Combo("Material Type", &m_currentMaterialTypeIndex, items, IM_ARRAYSIZE(items));
 		ImGui::EndChild();
 
@@ -380,7 +380,82 @@ void NXGUIMaterial::RenderMaterialUI_Subsurface(NXPBRMaterialSubsurface* pMateri
 
 void NXGUIMaterial::RenderMaterialUI_Custom(NXCustomMaterial* pMaterial)
 {
+	ImGui::BeginChild("##material_custom", ImVec2(ImGui::GetContentRegionAvail().x, 250.0f));
+	{
+		ImGui::Text("Parameters");
+		ImGui::SameLine();
+		if (ImGui::SmallButton("+"))
+		{
+			// Ìí¼Ó²ÎÊý
+			m_customParamInfos.push_back({ "gg", NXCBufferInputType::Float, NXGUICustomMatParamStyle::eValue });
+		}
 
+		ImGui::BeginChild("##material_custom_child", ImGui::GetContentRegionAvail(), true);
+		{
+			int paramCnt = 0;
+			if (ImGui::BeginTable("##material_custom_child_table", 3, ImGuiTableFlags_Resizable, ImVec2(0, 0), 0.0f))
+			{
+				ImGui::TableSetupColumn("Name##material_custom_child_table_name", ImGuiTableColumnFlags_NoHide);
+				ImGui::TableSetupColumn("Type##material_custom_child_table_type", ImGuiTableColumnFlags_NoHide);
+				ImGui::TableSetupColumn("UIStyle##material_custom_child_table_uistyle", ImGuiTableColumnFlags_NoHide);
+				ImGui::TableHeadersRow();
+
+				for (auto& paramInfo : m_customParamInfos)
+				{
+					ImGui::TableNextRow();
+
+					if (ImGui::TableSetColumnIndex(0))
+					{
+						ImGui::PushItemWidth(-1);
+						std::string btnName = paramInfo.name;
+						ImGui::Button(btnName.c_str());
+						ImGui::PopItemWidth();
+					}
+
+					if (ImGui::TableSetColumnIndex(1))
+					{
+						ImGui::PushItemWidth(-1);
+						const static char* typeInfos[] = { "float", "float2", "float3", "float4", "float4x4" };
+						std::string labelTypeId = "##material_custom_child_combo_type_" + std::to_string(paramCnt++);
+						if (ImGui::BeginCombo(labelTypeId.c_str(), typeInfos[paramInfo.type]))
+						{
+							for (int item = 0; item < IM_ARRAYSIZE(typeInfos); item++)
+							{
+								if (ImGui::Selectable(typeInfos[item]))
+								{
+									paramInfo.type = NXCBufferInputType(item);
+								}
+							}
+							ImGui::EndCombo();
+						}
+						ImGui::PopItemWidth();
+					}
+
+					if (ImGui::TableSetColumnIndex(2))
+					{
+						ImGui::PushItemWidth(-1);
+						const static char* styleInfos[] = { "Value", "Slider", "Color", "HDRColor", "Texture" };
+						std::string labelStyleId = "##material_custom_child_combo_style_" + std::to_string(paramCnt++);
+						if (ImGui::BeginCombo(labelStyleId.c_str(), styleInfos[paramInfo.uiStyle]))
+						{
+							for (int item = 0; item < IM_ARRAYSIZE(styleInfos); item++)
+							{
+								if (ImGui::Selectable(styleInfos[item]))
+								{
+									paramInfo.uiStyle = NXGUICustomMatParamStyle(item);
+								}
+							}
+							ImGui::EndCombo();
+						}
+						ImGui::PopItemWidth();
+					}
+				}
+				ImGui::EndTable();
+			}
+			ImGui::EndChild();
+		}
+	}
+	ImGui::EndChild();
 }
 
 void NXGUIMaterial::RenderTextureIcon(ImTextureID ImTexID, std::function<void()> onChange, std::function<void()> onRemove, std::function<void(const std::wstring&)> onDrop)

@@ -2,7 +2,7 @@
 #include "ShaderStructures.h"
 #include "NXResourceManager.h"
 #include "NXTexture.h"
-#include "NXHLSLGenerator.h"
+#include "NXShaderDefinitions.h"
 
 enum NXMaterialType
 {

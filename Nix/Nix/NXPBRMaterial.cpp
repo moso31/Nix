@@ -7,6 +7,7 @@
 #include "NXSubMesh.h"
 
 #include "ShaderComplier.h"
+#include "NXHLSLGenerator.h"
 #include "GlobalBufferManager.h"
 #include "NXRenderStates.h"
 
