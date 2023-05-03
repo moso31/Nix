@@ -384,19 +384,19 @@ void NXGUIMaterial::RenderMaterialUI_Custom(NXCustomMaterial* pMaterial)
 	{
 		// 禁用树节点首行缩进
 		ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 0.0f);
-		RenderMaterialUI_Custom_Parameters();
-		RenderMaterialUI_Custom_ParamViews();
+		RenderMaterialUI_Custom_Parameters(pMaterial);
+		RenderMaterialUI_Custom_ParamViews(pMaterial);
+		RenderMaterialUI_Custom_Codes(pMaterial);
 		ImGui::PopStyleVar(); // ImGuiStyleVar_IndentSpacing
 		ImGui::EndChild();
 	}
 }
 
-void NXGUIMaterial::RenderMaterialUI_Custom_Parameters()
+void NXGUIMaterial::RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMaterial)
 {
 	if (ImGui::TreeNode("Parameters##material_custom_parameters"))
 	{
-		ImGui::SameLine();
-		if (ImGui::SmallButton("+"))
+		if (ImGui::Button("Add param##material_custom_parameters_add", ImVec2(ImGui::GetContentRegionAvail().x, 20.0f)))
 		{
 			// 添加参数
 			m_customParamInfos.push_back({ "gg", NXCBufferInputType::Float, NXGUICustomMatParamStyle::eValue });
@@ -470,7 +470,7 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters()
 	}
 }
 
-void NXGUIMaterial::RenderMaterialUI_Custom_ParamViews()
+void NXGUIMaterial::RenderMaterialUI_Custom_ParamViews(NXCustomMaterial* pMaterial)
 {
 	if (ImGui::TreeNode("Param Views##material_custom_param_view"))
 	{
@@ -507,7 +507,7 @@ void NXGUIMaterial::RenderMaterialUI_Custom_ParamViews()
 	}
 }
 
-void NXGUIMaterial::RenderMaterialUI_Custom_Codes()
+void NXGUIMaterial::RenderMaterialUI_Custom_Codes(NXCustomMaterial* pMaterial)
 {
 	if (ImGui::TreeNode("Codes"))
 	{

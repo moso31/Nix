@@ -33,7 +33,7 @@ SSAO可以升级成GTAO或者HBAO
 
 ************************ 功能杂项 ************************
 
-Last Issue ID : 35
+Last Issue ID : 36
 
 【暂时搁置的功能】
 14. 不同终端的imgui.ini布局同步（在Imgui完全成型之前 感觉不太好做）
@@ -54,10 +54,12 @@ Last Issue ID : 35
 32. 优化掉 GBuffer.Position
 33. 可开关的 DepthPeeling pass（现在始终保持开启太伤）
 
+36. 自定义材质
+	（注意：应该先确保代码逻辑层的逻辑是能正常使用的，然后再完善UI）
+
 【较大的长期模块】
 12. resizeable viewport+全屏化UI
 13. 场景文件化，可保存、加载
-14. 自定义材质
 29. 更灵活的灯光系统
 34. 即时编译Shader
 35. 类似GfxDeviceWorker的渲染队列处理器
