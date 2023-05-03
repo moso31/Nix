@@ -380,9 +380,21 @@ void NXGUIMaterial::RenderMaterialUI_Subsurface(NXPBRMaterialSubsurface* pMateri
 
 void NXGUIMaterial::RenderMaterialUI_Custom(NXCustomMaterial* pMaterial)
 {
-	ImGui::BeginChild("##material_custom", ImVec2(ImGui::GetContentRegionAvail().x, 250.0f));
+	ImGui::BeginChild("##material_custom", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y * 0.6f));
 	{
-		ImGui::Text("Parameters");
+		// 禁用树节点首行缩进
+		ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 0.0f);
+		RenderMaterialUI_Custom_Parameters();
+		RenderMaterialUI_Custom_ParamViews();
+		ImGui::PopStyleVar(); // ImGuiStyleVar_IndentSpacing
+		ImGui::EndChild();
+	}
+}
+
+void NXGUIMaterial::RenderMaterialUI_Custom_Parameters()
+{
+	if (ImGui::TreeNode("Parameters##material_custom_parameters"))
+	{
 		ImGui::SameLine();
 		if (ImGui::SmallButton("+"))
 		{
@@ -390,7 +402,7 @@ void NXGUIMaterial::RenderMaterialUI_Custom(NXCustomMaterial* pMaterial)
 			m_customParamInfos.push_back({ "gg", NXCBufferInputType::Float, NXGUICustomMatParamStyle::eValue });
 		}
 
-		ImGui::BeginChild("##material_custom_child", ImGui::GetContentRegionAvail(), true);
+		ImGui::BeginChild("##material_custom_child");
 		{
 			int paramCnt = 0;
 			if (ImGui::BeginTable("##material_custom_child_table", 3, ImGuiTableFlags_Resizable, ImVec2(0, 0), 0.0f))
@@ -454,8 +466,69 @@ void NXGUIMaterial::RenderMaterialUI_Custom(NXCustomMaterial* pMaterial)
 			}
 			ImGui::EndChild();
 		}
+		ImGui::TreePop();
 	}
-	ImGui::EndChild();
+}
+
+void NXGUIMaterial::RenderMaterialUI_Custom_ParamViews()
+{
+	if (ImGui::TreeNode("Param Views##material_custom_param_view"))
+	{
+		for (auto& paramInfo : m_customParamInfos)
+		{
+			ImGui::Text(paramInfo.name.c_str());
+			ImGui::SameLine();
+
+			static float testVal = 0.233333f;
+			static float testCol[3] = { 0.0f, 0.0f, 0.0f };
+			switch (paramInfo.uiStyle)
+			{
+			case NXGUICustomMatParamStyle::eValue:
+				ImGui::DragScalar("##material_custom_param_view_1", ImGuiDataType_Float, &testVal);
+				break;
+			case NXGUICustomMatParamStyle::eSlider:
+				ImGui::SliderFloat("##material_custom_param_view_2", &testVal, 0.0f, 1.0f);
+				break;
+			case NXGUICustomMatParamStyle::eColor:
+				ImGui::ColorEdit3("##material_custom_param_view_3", testCol);
+				break;
+			case NXGUICustomMatParamStyle::eHDRColor:
+				ImGui::ColorEdit3("##material_custom_param_view_4", testCol);
+				break;
+			case NXGUICustomMatParamStyle::eTexture:
+				ImGui::ColorEdit3("##material_custom_param_view_5", testCol);
+				break;
+			default:
+				break;
+			}
+		}
+
+		ImGui::TreePop();
+	}
+}
+
+void NXGUIMaterial::RenderMaterialUI_Custom_Codes()
+{
+	if (ImGui::TreeNode("Codes"))
+	{
+		static char text[1024 * 16] =
+			"/*\n"
+			" The Pentium F00F bug, shorthand for F0 0F C7 C8,\n"
+			" the hexadecimal encoding of one offending instruction,\n"
+			" more formally, the invalid operand with locked CMPXCHG8B\n"
+			" instruction bug, is a design flaw in the majority of\n"
+			" Intel Pentium, Pentium MMX, and Pentium OverDrive\n"
+			" processors (all in the P5 microarchitecture).\n"
+			"*/\n\n"
+			"label:\n"
+			"\tlock cmpxchg8b eax\n";
+
+		static ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput;
+
+		ImGui::InputTextMultiline("##material_custom_paramview_text", text, IM_ARRAYSIZE(text), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 16), flags);
+
+		ImGui::TreePop();
+	}
 }
 
 void NXGUIMaterial::RenderTextureIcon(ImTextureID ImTexID, std::function<void()> onChange, std::function<void()> onRemove, std::function<void(const std::wstring&)> onDrop)
