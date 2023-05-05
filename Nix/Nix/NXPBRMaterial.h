@@ -65,7 +65,7 @@ protected:
 	NXMaterial(const std::string& name, const NXMaterialType type = NXMaterialType::UNKNOWN, const std::string& filePath = "");
 
 public:
-	~NXMaterial() {}
+	virtual ~NXMaterial() {}
 
 	std::string GetName() { return m_name; }
 	void SetName(std::string name) { m_name = name; }
