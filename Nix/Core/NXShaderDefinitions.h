@@ -19,23 +19,25 @@ enum NXCBufferInputType
 
 struct NXCBufferElem
 {
+    std::string name;
     NXCBufferInputType type;
-    std::variant<float, Vector2, Vector3, Vector4, Matrix> data;
+    int memoryIndex;
 };
 
-struct NXCBufferInfo
+struct NXMaterialCBufferInfo
 {
     std::vector<NXCBufferElem> elems;
-    UINT cbSlotIndex;
+    UINT slotIndex;
 };
 
-using NXCBufferInfoArray = std::unordered_map<std::string, NXCBufferInfo>;
-
-struct NXShaderResourceInfo
+struct NXMaterialTextureInfo
 {
-    NXShaderInputType type;
-    UINT registerIndex;
-    NXCBufferInfoArray cbInfos;
+    NXTexture2D* pTexture;
+    UINT slotIndex;
 };
 
-using NXShaderResourceInfoArray = std::unordered_map<std::string, NXShaderResourceInfo>;
+struct NXMaterialSamplerInfo
+{
+    ComPtr<ID3D11SamplerState> pSampler;
+    UINT slotIndex;
+};

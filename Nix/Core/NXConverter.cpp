@@ -34,6 +34,15 @@ std::wstring s2lower(const std::wstring& s)
 	return result;
 }
 
+std::string Trim(std::string& str)
+{
+	// 去掉 str 中的所有空格和tab
+	const auto begin = str.find_first_not_of(" \t");
+	if (begin == std::string::npos) return "";
+	const auto end = str.find_last_not_of(" \t");
+	return str.substr(begin, end - begin + 1);
+}
+
 std::string GetPathOfImguiIni()
 {
 	char* buf = nullptr;

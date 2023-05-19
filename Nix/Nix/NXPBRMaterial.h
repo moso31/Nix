@@ -243,66 +243,22 @@ private:
 	void InitConstantBuffer();
 };
 
-struct NXMaterialTextureParam
-{
-	std::string name;
-	NXTexture2D* pTexture;
-};
-
-struct NXMaterialSamplerParam
-{
-	std::string name;
-	ID3D11SamplerState* pSampler;
-};
-
-struct NXMaterialConstantBufferParam
-{
-	std::string name;
-	ID3D11Buffer* pCB;
-};
-
-struct NXCustomCBuffer
-{
-	// CBufferData，用一个 float 数组表示，每个元素的起始索引在 ElementIndex 中
-	float* Data;
-	std::vector<UINT> ElementIndex;
-
-	// 实际的 float Data数组大小
-	UINT DataSize;	
-
-	// CBuffer 的大小，以字节为单位
-	UINT ByteSize;
-
-	// 记录 cbSlot 插槽索引
-	UINT CBSlotIndex;
-};
-
 class NXCustomMaterial : public NXMaterial
 {
 	template <typename NXMatParam>
 	using ResourceMap = std::unordered_map<std::string, NXMatParam>;
 
 public:
-	explicit NXCustomMaterial();
+	explicit NXCustomMaterial() = default;
 	NXCustomMaterial(const std::string& name);
 	~NXCustomMaterial() {}
 
 	void SetShaderFilePath(const std::filesystem::path& path);
 	void LoadShaderCode();
-	void CompileShaders();
-	void BuildShaderParams();
 
-	void AddTexture2DParam(const std::string& name, NXTexture2D* param)				{ m_texParams[name] = { name, param }; }
-	void AddSamplerStateParam(const std::string& name, ID3D11SamplerState* param)	{ m_ssParams[name] = { name, param }; }
-	void AddConstantBufferParam(const std::string& name, ID3D11Buffer* param)		{ m_cbParams[name] = { name, param }; }
-
-	ID3D11ShaderResourceView*	GetTexture2DParamSRV(const std::string& name)		{ return m_texParams[name].pTexture->GetSRV(); }
-	ID3D11SamplerState*			GetSamplerParam(const std::string& name)			{ return m_ssParams[name].pSampler; }
-	ID3D11Buffer*				GetConstantBufferParam(const std::string& name)		{ return m_cbParams[name].pCB; }
-
-	//ResourceMap<NXMaterialTextureParam>			GetTextureParams()			const	{ return m_texParams; }
-	//ResourceMap<NXMaterialSamplerParam>			GetSamplerParams()			const	{ return m_ssParams; }
-	//ResourceMap<NXMaterialConstantBufferParam>	GetConstantBufferParams()	const	{ return m_cbParams; }
+	// 初始化所有着色器资源，包括 cb, tex, sampler
+	void InitShaderResources();
+	void UpdateCBData();
 
 	virtual void Update() override;
 
@@ -313,14 +269,23 @@ public:
 	virtual void Release() override;
 	virtual void ReloadTextures() override;
 
-	void GenerateCBufferDatas(const NXCBufferInfoArray& cbInfos);
+	void SortShaderCBufferParam();
 
 private:
-	ResourceMap<NXMaterialTextureParam> m_texParams;
-	ResourceMap<NXMaterialSamplerParam> m_ssParams;
-	ResourceMap<NXMaterialConstantBufferParam> m_cbParams;
+	// 读取 nsl 文件，获取 nsl shader.
+	bool LoadShaderStringFromFile(std::string& shaderContent);
+	// 将 nsl shader 拆成 params 和 code 两部分
+	void ExtractShaderData(const std::string& shader, std::string& nslParams, std::string& nslCode);
 
-	NXShaderResourceInfoArray	m_srInfoArray;
+	// 将 nsl params 转换成 DX 可以编译的 hlsl 代码，
+	// 同时对其进行分拣，将 cb 储存到 m_cbInfo，纹理储存到 m_texInfoMap，采样器储存到 m_ssInfoMap
+	void ProcessShaderParameters(const std::string& nslParams, std::string& oHLSLHeadCode);
+	void ProcessShaderCBufferParam(std::istringstream& in, std::ostringstream& out);
+
+	// 将 nsl code 转换成 DX 可以编译的 hlsl 代码，
+	void ProcessShaderCode(const std::string& nslCode, std::string& oHLSLBodyCode);
+
+private:
 	std::filesystem::path		m_nslFilePath;
 	std::string					m_nslParams;
 	std::string					m_nslCode;
@@ -329,7 +294,11 @@ private:
 	ComPtr<ID3D11PixelShader>			m_pPixelShader;
 	ComPtr<ID3D11InputLayout>			m_pInputLayout;
 
-	std::unordered_map<std::string, ComPtr<ID3D11SamplerState>>			m_pSamplerStates;
-	std::unordered_map<std::string, ComPtr<ID3D11Buffer>>				m_cbuffers;
-	std::vector<NXCustomCBuffer>		m_CBufferDatas;
+	std::unordered_map<std::string, NXMaterialSamplerInfo>	m_samplerInfos;
+	std::unordered_map<std::string, NXMaterialTextureInfo>	m_texInfos;
+	NXMaterialCBufferInfo				m_cbInfo;
+	std::vector<float>					m_cbInfoMemory;
+	std::vector<int>					m_cbSortedIndex;
+
+	std::vector<float>					m_cbufferData;
 };

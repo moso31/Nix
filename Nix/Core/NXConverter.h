@@ -13,6 +13,8 @@ std::wstring s2ws(const std::string& s);
 std::string s2lower(const std::string& s);
 std::wstring s2lower(const std::wstring& s);
 
+std::string Trim(std::string& str);
+
 std::string GetPathOfImguiIni();
 
 DXGI_FORMAT ForceSRGB(DXGI_FORMAT fmt);
