@@ -271,6 +271,11 @@ public:
 
 	void SortShaderCBufferParam();
 
+	UINT GetCBufferElemCount() { return UINT(m_cbInfo.elems.size()); }
+	const NXCBufferElem& GetCBufferElem(UINT index) { return m_cbInfo.elems[index]; }
+
+	const float* GetCBInfoMemoryData(UINT memoryIndex) { return m_cbInfoMemory.data() + memoryIndex; }
+
 private:
 	// 读取 nsl 文件，获取 nsl shader.
 	bool LoadShaderStringFromFile(std::string& shaderContent);

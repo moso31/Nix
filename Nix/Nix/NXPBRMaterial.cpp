@@ -208,15 +208,7 @@ void NXCustomMaterial::UpdateCBData()
 	for (int i = 0; i < cbElems.size(); i++)
 	{
 		auto& cb = cbElems[m_cbSortedIndex[i]];
-		switch (cb.type)
-		{
-		case NXCBufferInputType::Float: cbArraySize += 1; break;
-		case NXCBufferInputType::Float2: cbArraySize += 2; break;
-		case NXCBufferInputType::Float3: cbArraySize += 3; break;
-		case NXCBufferInputType::Float4: cbArraySize += 4; break;
-		case NXCBufferInputType::Float4x4: cbArraySize += 16; break;
-		default: break;
-		}
+		cbArraySize += (int)cb.type;
 	}
 	cbArraySize += (4 - cbArraySize % 4) % 4;	// 16 bytes align
 
@@ -249,15 +241,6 @@ void NXCustomMaterial::UpdateCBData()
 			m_cbufferData.push_back(m_cbInfoMemory[cb.memoryIndex + 1]);
 			m_cbufferData.push_back(m_cbInfoMemory[cb.memoryIndex + 2]);
 			m_cbufferData.push_back(m_cbInfoMemory[cb.memoryIndex + 3]);
-			break;
-		}
-		case NXCBufferInputType::Float4x4:
-		{
-			for (int j = 0; j < 4; j++)
-			{
-				for (int k = 0; k < 4; k++)
-					m_cbufferData.push_back(m_cbInfoMemory[cb.memoryIndex + j * 4 + k]);
-			}
 			break;
 		}
 		default:
@@ -509,8 +492,6 @@ void NXCustomMaterial::ProcessShaderCBufferParam(std::istringstream& in, std::os
 		else if (type == "float2") { cbElemCount++; cbFloatCount += 2; }
 		else if (type == "float3") { cbElemCount++; cbFloatCount += 3; }
 		else if (type == "float4") { cbElemCount++; cbFloatCount += 4; }
-		else if (type == "float4x4") { cbElemCount++; cbFloatCount += 16; }
-		else if (type == "matrix") { cbElemCount++; cbFloatCount += 16; }
 	}
 
 	cbElems.clear();
@@ -569,14 +550,6 @@ void NXCustomMaterial::ProcessShaderCBufferParam(std::istringstream& in, std::os
 			cbElems.push_back({ name, NXCBufferInputType::Float4, pOffset });
 			pOffset += 4;
 		}
-		else if (type == "float4x4" || type == "matrix")
-		{
-			for (int i = 0; i < 4; i++)
-				for (int j = 0; j < 4; j++)
-					m_cbInfoMemory.push_back(i == j ? 1.0f : 0.0f);
-			cbElems.push_back({ name, NXCBufferInputType::Float4x4, pOffset });
-			pOffset += 16;
-		}
 	}
 
 	SortShaderCBufferParam();
@@ -587,13 +560,13 @@ void NXCustomMaterial::ProcessShaderCBufferParam(std::istringstream& in, std::os
 		auto cb = cbElems[m_cbSortedIndex[i]];
 		switch (cb.type)
 		{
-		case NXCBufferInputType::Float:    out << "\tfloat " << cb.name << ";\n"; break;
-		case NXCBufferInputType::Float2:   out << "\tfloat2 " << cb.name << ";\n"; break;
-		case NXCBufferInputType::Float3:   out << "\tfloat3 " << cb.name << ";\n"; break;
-		case NXCBufferInputType::Float4:   out << "\tfloat4 " << cb.name << ";\n"; break;
-		case NXCBufferInputType::Float4x4: out << "\tmatrix " << cb.name << ";\n"; break;
+		case NXCBufferInputType::Float:    out << "\tfloat "; break;
+		case NXCBufferInputType::Float2:   out << "\tfloat2 "; break;
+		case NXCBufferInputType::Float3:   out << "\tfloat3 "; break;
+		case NXCBufferInputType::Float4:   out << "\tfloat4 "; break;
 		default: break;
 		}
+		out << cb.name << ";\n";
 	}
 }
 
@@ -679,7 +652,7 @@ void NXCustomMaterial::SortShaderCBufferParam()
 	};
 
 	// 2023.5.14
-	// 采用三轮遍历的方法，第一轮填充float3/float4/float4x4, 第二轮填充float2, 第三轮填充float。
+	// 采用三轮遍历的方法，第一轮填充float3/float4, 第二轮填充float2, 第三轮填充float。
 
 	// 第一轮遍历
 	std::vector<int> float3Indices; // 记录一下 float3 的索引，第三轮遍历要用。

@@ -1,9 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Shader">
-      <UniqueIdentifier>{d99dfb08-f23b-4a25-8f50-c19ef8d7e01a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Core">
       <UniqueIdentifier>{09d76e45-341d-4fc6-b5ac-235f2eb3a219}</UniqueIdentifier>
     </Filter>
@@ -64,14 +61,26 @@
     <Filter Include="Core\UI">
       <UniqueIdentifier>{de9ace55-c4c4-48d5-abfd-52abd2c8e492}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shader\Renderer">
-      <UniqueIdentifier>{57202afe-2b24-4f5b-b5bd-9fcaa43502bb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shader\Math">
-      <UniqueIdentifier>{a845cc5f-ef34-41d5-98b9-5095aa59ed3a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Core\DirectX\NXResources">
       <UniqueIdentifier>{96100877-c259-41e1-b3d6-55542100aa12}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\DirectX\Renderer\DebugLayer">
+      <UniqueIdentifier>{37cd9fa6-55b5-456c-b161-f79e2ca26fa6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\DirectX\Renderer\EditorObjectLayer">
+      <UniqueIdentifier>{47ca16b0-e59c-4ebd-b48b-d55afdebabf5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Nix\Texture">
+      <UniqueIdentifier>{d5d9ef4c-09ae-4295-aecb-257ddc7dbfba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\DirectX\Compile">
+      <UniqueIdentifier>{bab74a59-0b89-4335-9c36-8cfcc6df66f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader">
+      <UniqueIdentifier>{d99dfb08-f23b-4a25-8f50-c19ef8d7e01a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\Renderer">
+      <UniqueIdentifier>{57202afe-2b24-4f5b-b5bd-9fcaa43502bb}</UniqueIdentifier>
     </Filter>
     <Filter Include="Shader\Renderer\BRDF">
       <UniqueIdentifier>{a9b3cb21-76d7-4c6a-8270-539db5a9ae34}</UniqueIdentifier>
@@ -82,32 +91,23 @@
     <Filter Include="Shader\Renderer\IBL\CubeMap">
       <UniqueIdentifier>{35af041d-5728-4024-9ce2-c638366bc61a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shader\PostProcessing">
-      <UniqueIdentifier>{e346dbef-9f51-4885-a786-245d7320d017}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shader\Renderer\Translucent">
       <UniqueIdentifier>{6f7950de-ac8c-442a-a2dc-47f43ee9abd9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\Math">
+      <UniqueIdentifier>{a845cc5f-ef34-41d5-98b9-5095aa59ed3a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\PostProcessing">
+      <UniqueIdentifier>{e346dbef-9f51-4885-a786-245d7320d017}</UniqueIdentifier>
     </Filter>
     <Filter Include="Shader\ShadowMap">
       <UniqueIdentifier>{99beefa9-cd57-4c00-b07f-0c1583014683}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\DirectX\Renderer\DebugLayer">
-      <UniqueIdentifier>{37cd9fa6-55b5-456c-b161-f79e2ca26fa6}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shader\Debug">
       <UniqueIdentifier>{9f836377-c7eb-4493-ab8f-e266a33144cc}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\DirectX\Renderer\EditorObjectLayer">
-      <UniqueIdentifier>{47ca16b0-e59c-4ebd-b48b-d55afdebabf5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shader\Editor">
       <UniqueIdentifier>{dae66a33-828d-4c6a-8267-ae37c226987f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Nix\Texture">
-      <UniqueIdentifier>{d5d9ef4c-09ae-4295-aecb-257ddc7dbfba}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\DirectX\Compile">
-      <UniqueIdentifier>{bab74a59-0b89-4335-9c36-8cfcc6df66f2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

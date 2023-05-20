@@ -10,11 +10,10 @@ enum NXShaderInputType
 
 enum NXCBufferInputType
 {
-    Float,
-    Float2,
-    Float3,
-    Float4,
-    Float4x4,
+    Float = 1,
+    Float2 = 2,
+    Float3 = 3,
+    Float4 = 4,
 };
 
 struct NXCBufferElem

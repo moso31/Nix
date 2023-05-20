@@ -3,26 +3,42 @@
 #include "NXGUIFileBrowser.h"
 #include "NXShaderDefinitions.h"
 
+// 在 GUI 中的显示 Style
+enum class NXGUICBufferStyle
+{
+	Value,
+	Value2,
+	Value3,
+	Value4,
+	Slider,
+	Slider2,
+	Slider3,
+	Slider4,
+	Color3,
+	Color4,
+};
+
+struct NXGUICBufferData
+{
+	// 指向原 CB 的 name 的字符串引用
+	const std::string& name;
+
+	// 记录 CB值，但每个数据都使用最大的 Vec4 储存。
+	// 这么做是为了避免 GUI 改变数据格式产生额外的内存分配。
+	Vector4 data; 
+
+	// CB 在 GUI 中如何显示
+	NXGUICBufferStyle guiStyle; 
+
+	// CB 在 GUI 中的辅助参数，比如用来控制GUI的drugSpeed, sliderMin/Max等等。
+	Vector2 params;
+};
+
 struct NXGUIContentExplorerButtonDrugData;
-
-enum NXGUICustomMatParamStyle
-{
-	eValue,
-	eSlider,
-	eColor,
-	eHDRColor,
-	eTexture
-};
-
-struct NXGUICustomMatParamInfo
-{
-	std::string name;
-	NXCBufferInputType type;
-	NXGUICustomMatParamStyle uiStyle;
-};
-
 class NXGUIMaterial
 {
+	static const char* s_strCBufferGUIStyle[];
+
 public:
 	NXGUIMaterial(NXScene* pScene = nullptr, NXGUIFileBrowser* pFileBrowser = nullptr);
 	~NXGUIMaterial() {}
@@ -36,6 +52,7 @@ private:
 	void RenderMaterialUI_Subsurface(NXPBRMaterialSubsurface* pMaterial);
 	void RenderMaterialUI_Custom(NXCustomMaterial* pMaterial);
 	void RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMaterial);
+	void RenderMaterialUI_Custom_Parameters_CBufferItem(NXGUICBufferData& cbDisplay);
 	void RenderMaterialUI_Custom_ParamViews(NXCustomMaterial* pMaterial);
 	void RenderMaterialUI_Custom_Codes(NXCustomMaterial* pMaterial);
 
@@ -61,7 +78,15 @@ private:
 	void OnTexRoughnessDrop(NXPBRMaterialBase* pPickingObjectMaterial, const std::wstring& filePath);
 	void OnTexAODrop(NXPBRMaterialBase* pPickingObjectMaterial, const std::wstring& filePath);
 
+	void OnBtnAddParamClicked(NXCustomMaterial* pMaterial);
+
 	void UpdateFileBrowserParameters();
+
+	void SyncMaterialData(NXCustomMaterial* pMaterial);
+
+	NXGUICBufferStyle GetGUIStyleFromString(const std::string& strTypeString);
+	NXGUICBufferStyle GetDefaultGUIStyleFromCBufferType(NXCBufferInputType eCBElemType);
+	UINT GetValueNumOfGUIStyle(NXGUICBufferStyle eGuiStyle);
 
 private:
 	NXScene* m_pCurrentScene;
@@ -73,5 +98,7 @@ private:
 
 	int m_currentMaterialTypeIndex;
 
-	std::vector<NXGUICustomMatParamInfo> m_customParamInfos;
+	// 记录 cb参数 用于显示 GUI。
+	std::vector<NXGUICBufferData> m_cbInfosDisplay;
+	NXCustomMaterial* m_pLastMaterial;
 };

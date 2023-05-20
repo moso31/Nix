@@ -6,12 +6,15 @@
 #include "NXPrimitive.h"
 #include "NXGUIContentExplorer.h"
 
+const char* NXGUIMaterial::s_strCBufferGUIStyle[] = { "Value", "Value2", "Value3", "Value4", "Slider", "Slider2", "Slider3", "Slider4", "Color3", "Color4" };
+
 NXGUIMaterial::NXGUIMaterial(NXScene* pScene, NXGUIFileBrowser* pFileBrowser) :
 	m_pCurrentScene(pScene),
 	m_pFileBrowser(pFileBrowser),
 	m_whiteTexPath_test(L".\\Resource\\white1x1.png"),
 	m_normalTexPath_test(L".\\Resource\\normal1x1.png"),
-	m_currentMaterialTypeIndex(0)
+	m_currentMaterialTypeIndex(0),
+	m_pLastMaterial(nullptr)
 {
 }
 
@@ -230,11 +233,88 @@ void NXGUIMaterial::OnTexAODrop(NXPBRMaterialBase* pMaterial, const std::wstring
 	pMaterial->SetTexAO(filePath.c_str());
 }
 
+void NXGUIMaterial::OnBtnAddParamClicked(NXCustomMaterial* pMaterial)
+{
+	//m_customParamInfos.push_back({ "gg", NXCBufferInputType::Float, NXGUICustomMatParamStyle::eValue });
+}
+
 void NXGUIMaterial::UpdateFileBrowserParameters()
 {
 	m_pFileBrowser->SetTitle("Material");
 	m_pFileBrowser->SetTypeFilters({ ".png", ".jpg", ".bmp", ".dds", ".tga", ".tif", ".tiff" });
 	m_pFileBrowser->SetPwd("D:\\NixAssets");
+}
+
+void NXGUIMaterial::SyncMaterialData(NXCustomMaterial* pMaterial)
+{
+	m_cbInfosDisplay.clear();
+	m_cbInfosDisplay.reserve(pMaterial->GetCBufferElemCount());
+	for (UINT i = 0; i < pMaterial->GetCBufferElemCount(); i++)
+	{
+		auto& cbElem = pMaterial->GetCBufferElem(i);
+		const float* cbElemData = pMaterial->GetCBInfoMemoryData(cbElem.memoryIndex);
+		Vector4 cbDataDisplay(cbElemData);
+
+		// 将cbElem.type 强转成 NXGUICBufferStyle，对应 GUIStyle 中的 Value/2/3/4
+		// 换句话说 Float/2/3/4 默认使用 Value/2/3/4 GUI Style。
+		NXGUICBufferStyle guiStyle = GetDefaultGUIStyleFromCBufferType(cbElem.type);
+		m_cbInfosDisplay.push_back({ cbElem.name, cbDataDisplay, guiStyle });
+	}
+
+	m_pLastMaterial = pMaterial;
+}
+
+NXGUICBufferStyle NXGUIMaterial::GetGUIStyleFromString(const std::string& strTypeString)
+{
+	if (strTypeString == "Value") return NXGUICBufferStyle::Value;
+	else if (strTypeString == "Value2") return NXGUICBufferStyle::Value2;
+	else if (strTypeString == "Value3") return NXGUICBufferStyle::Value3;
+	else if (strTypeString == "Value4") return NXGUICBufferStyle::Value4;
+	else if (strTypeString == "Slider") return NXGUICBufferStyle::Slider;
+	else if (strTypeString == "Slider2") return NXGUICBufferStyle::Slider2;
+	else if (strTypeString == "Slider3") return NXGUICBufferStyle::Slider3;
+	else if (strTypeString == "Slider4") return NXGUICBufferStyle::Slider4;
+	else if (strTypeString == "Color3") return NXGUICBufferStyle::Color3;
+	else if (strTypeString == "Color4") return NXGUICBufferStyle::Color4;
+	else throw std::runtime_error("Invalid GUI style string: " + strTypeString);
+}
+
+NXGUICBufferStyle NXGUIMaterial::GetDefaultGUIStyleFromCBufferType(NXCBufferInputType eCBElemType)
+{
+	switch (eCBElemType)
+	{
+	case NXCBufferInputType::Float: 
+		return NXGUICBufferStyle::Value;
+	case NXCBufferInputType::Float2: 
+		return NXGUICBufferStyle::Value2;
+	case NXCBufferInputType::Float3: 
+		return NXGUICBufferStyle::Value3;
+	case NXCBufferInputType::Float4: 
+	default:
+		return NXGUICBufferStyle::Value4;
+	}
+}
+
+UINT NXGUIMaterial::GetValueNumOfGUIStyle(NXGUICBufferStyle eGuiStyle)
+{
+	switch (eGuiStyle)
+	{
+	case NXGUICBufferStyle::Value:
+	case NXGUICBufferStyle::Slider:
+		return 1;
+	case NXGUICBufferStyle::Value2:
+	case NXGUICBufferStyle::Slider2:
+		return 2;
+	case NXGUICBufferStyle::Value3:
+	case NXGUICBufferStyle::Slider3:
+	case NXGUICBufferStyle::Color3:
+		return 3;
+	case NXGUICBufferStyle::Value4:
+	case NXGUICBufferStyle::Slider4:
+	case NXGUICBufferStyle::Color4:
+	default:
+		return 4;
+	}
 }
 
 void NXGUIMaterial::RenderMaterialUI_Standard(NXPBRMaterialStandard* pMaterial)
@@ -380,6 +460,11 @@ void NXGUIMaterial::RenderMaterialUI_Subsurface(NXPBRMaterialSubsurface* pMateri
 
 void NXGUIMaterial::RenderMaterialUI_Custom(NXCustomMaterial* pMaterial)
 {
+	if (m_pLastMaterial != pMaterial)
+	{
+		SyncMaterialData(pMaterial);
+	}
+
 	ImGui::BeginChild("##material_custom", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y * 0.6f));
 	{
 		// 禁用树节点首行缩进
@@ -399,27 +484,26 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMateri
 		if (ImGui::Button("Add param##material_custom_parameters_add", ImVec2(ImGui::GetContentRegionAvail().x, 20.0f)))
 		{
 			// 添加参数
-			m_customParamInfos.push_back({ "gg", NXCBufferInputType::Float, NXGUICustomMatParamStyle::eValue });
+			OnBtnAddParamClicked(pMaterial);
 		}
 
 		ImGui::BeginChild("##material_custom_child");
 		{
 			int paramCnt = 0;
-			if (ImGui::BeginTable("##material_custom_child_table", 3, ImGuiTableFlags_Resizable, ImVec2(0, 0), 0.0f))
+			if (ImGui::BeginTable("##material_custom_child_table", 2, ImGuiTableFlags_Resizable, ImVec2(0, 0), 0.0f))
 			{
 				ImGui::TableSetupColumn("Name##material_custom_child_table_name", ImGuiTableColumnFlags_NoHide);
-				ImGui::TableSetupColumn("Type##material_custom_child_table_type", ImGuiTableColumnFlags_NoHide);
-				ImGui::TableSetupColumn("UIStyle##material_custom_child_table_uistyle", ImGuiTableColumnFlags_NoHide);
+				ImGui::TableSetupColumn("Value##material_custom_child_table_type", ImGuiTableColumnFlags_NoHide);
 				ImGui::TableHeadersRow();
 
-				for (auto& paramInfo : m_customParamInfos)
+				for (auto& cbDisplay : m_cbInfosDisplay)
 				{
 					ImGui::TableNextRow();
 
 					if (ImGui::TableSetColumnIndex(0))
 					{
 						ImGui::PushItemWidth(-1);
-						std::string btnName = paramInfo.name;
+						std::string btnName = cbDisplay.name;
 						ImGui::Button(btnName.c_str());
 						ImGui::PopItemWidth();
 					}
@@ -427,15 +511,37 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMateri
 					if (ImGui::TableSetColumnIndex(1))
 					{
 						ImGui::PushItemWidth(-1);
-						const static char* typeInfos[] = { "float", "float2", "float3", "float4", "float4x4" };
 						std::string labelTypeId = "##material_custom_child_combo_type_" + std::to_string(paramCnt++);
-						if (ImGui::BeginCombo(labelTypeId.c_str(), typeInfos[paramInfo.type]))
+						if (ImGui::BeginCombo(labelTypeId.c_str(), s_strCBufferGUIStyle[(int)cbDisplay.guiStyle]))
 						{
-							for (int item = 0; item < IM_ARRAYSIZE(typeInfos); item++)
+							for (int item = 0; item < IM_ARRAYSIZE(s_strCBufferGUIStyle); item++)
 							{
-								if (ImGui::Selectable(typeInfos[item]))
+								if (ImGui::Selectable(s_strCBufferGUIStyle[item]) && item != (int)cbDisplay.guiStyle)
 								{
-									paramInfo.type = NXCBufferInputType(item);
+									// 设置 GUI Style
+									cbDisplay.guiStyle = GetGUIStyleFromString(s_strCBufferGUIStyle[item]);
+
+									// 根据 GUI Style 设置GUI的拖动速度或最大最小值
+									switch (cbDisplay.guiStyle)
+									{
+									case NXGUICBufferStyle::Value:
+									case NXGUICBufferStyle::Value2:
+									case NXGUICBufferStyle::Value3:
+									case NXGUICBufferStyle::Value4:
+										cbDisplay.params = { 0.01f, 0.0f }; // speed, ---
+										break;
+									case NXGUICBufferStyle::Slider:
+									case NXGUICBufferStyle::Slider2:
+									case NXGUICBufferStyle::Slider3:
+									case NXGUICBufferStyle::Slider4:
+									case NXGUICBufferStyle::Color3:
+									case NXGUICBufferStyle::Color4:
+										cbDisplay.params = { 0.0f, 1.0f }; // min, max
+										break;
+									default:
+										break;
+									}
+									break;
 								}
 							}
 							ImGui::EndCombo();
@@ -443,23 +549,12 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMateri
 						ImGui::PopItemWidth();
 					}
 
-					if (ImGui::TableSetColumnIndex(2))
+					ImGui::TableNextRow();
+
+					if (ImGui::TableSetColumnIndex(0)) {}
+					if (ImGui::TableSetColumnIndex(1))
 					{
-						ImGui::PushItemWidth(-1);
-						const static char* styleInfos[] = { "Value", "Slider", "Color", "HDRColor", "Texture" };
-						std::string labelStyleId = "##material_custom_child_combo_style_" + std::to_string(paramCnt++);
-						if (ImGui::BeginCombo(labelStyleId.c_str(), styleInfos[paramInfo.uiStyle]))
-						{
-							for (int item = 0; item < IM_ARRAYSIZE(styleInfos); item++)
-							{
-								if (ImGui::Selectable(styleInfos[item]))
-								{
-									paramInfo.uiStyle = NXGUICustomMatParamStyle(item);
-								}
-							}
-							ImGui::EndCombo();
-						}
-						ImGui::PopItemWidth();
+						RenderMaterialUI_Custom_Parameters_CBufferItem(cbDisplay);
 					}
 				}
 				ImGui::EndTable();
@@ -470,38 +565,65 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMateri
 	}
 }
 
+void NXGUIMaterial::RenderMaterialUI_Custom_Parameters_CBufferItem(NXGUICBufferData& cbDisplay)
+{
+	UINT N = GetValueNumOfGUIStyle(cbDisplay.guiStyle);
+	switch (cbDisplay.guiStyle)
+	{
+	case NXGUICBufferStyle::Value:
+	case NXGUICBufferStyle::Value2:
+	case NXGUICBufferStyle::Value3:
+	case NXGUICBufferStyle::Value4:
+	default:
+		ImGui::DragScalarN(cbDisplay.name.data(), ImGuiDataType_Float, cbDisplay.data, N, cbDisplay.params[0]);
+		break;
+	case NXGUICBufferStyle::Slider:
+	case NXGUICBufferStyle::Slider2:
+	case NXGUICBufferStyle::Slider3:
+	case NXGUICBufferStyle::Slider4:
+		ImGui::SliderScalarN(cbDisplay.name.data(), ImGuiDataType_Float, cbDisplay.data, N, &cbDisplay.params[0], &cbDisplay.params[1]);
+		break;
+	case NXGUICBufferStyle::Color3:
+		ImGui::ColorEdit3(cbDisplay.name.data(), cbDisplay.data);
+		break;
+	case NXGUICBufferStyle::Color4:
+		ImGui::ColorEdit4(cbDisplay.name.data(), cbDisplay.data);
+		break;
+	}
+}
+
 void NXGUIMaterial::RenderMaterialUI_Custom_ParamViews(NXCustomMaterial* pMaterial)
 {
 	if (ImGui::TreeNode("Param Views##material_custom_param_view"))
 	{
-		for (auto& paramInfo : m_customParamInfos)
-		{
-			ImGui::Text(paramInfo.name.c_str());
-			ImGui::SameLine();
+		//for (auto& paramInfo : m_customParamInfos)
+		//{
+		//	ImGui::Text(paramInfo.name.c_str());
+		//	ImGui::SameLine();
 
-			static float testVal = 0.233333f;
-			static float testCol[3] = { 0.0f, 0.0f, 0.0f };
-			switch (paramInfo.uiStyle)
-			{
-			case NXGUICustomMatParamStyle::eValue:
-				ImGui::DragScalar("##material_custom_param_view_1", ImGuiDataType_Float, &testVal);
-				break;
-			case NXGUICustomMatParamStyle::eSlider:
-				ImGui::SliderFloat("##material_custom_param_view_2", &testVal, 0.0f, 1.0f);
-				break;
-			case NXGUICustomMatParamStyle::eColor:
-				ImGui::ColorEdit3("##material_custom_param_view_3", testCol);
-				break;
-			case NXGUICustomMatParamStyle::eHDRColor:
-				ImGui::ColorEdit3("##material_custom_param_view_4", testCol);
-				break;
-			case NXGUICustomMatParamStyle::eTexture:
-				ImGui::ColorEdit3("##material_custom_param_view_5", testCol);
-				break;
-			default:
-				break;
-			}
-		}
+		//	static float testVal = 0.233333f;
+		//	static float testCol[3] = { 0.0f, 0.0f, 0.0f };
+		//	switch (paramInfo.uiStyle)
+		//	{
+		//	case NXGUICustomMatParamStyle::eValue:
+		//		ImGui::DragScalar("##material_custom_param_view_1", ImGuiDataType_Float, &testVal);
+		//		break;
+		//	case NXGUICustomMatParamStyle::eSlider:
+		//		ImGui::SliderFloat("##material_custom_param_view_2", &testVal, 0.0f, 1.0f);
+		//		break;
+		//	case NXGUICustomMatParamStyle::eColor:
+		//		ImGui::ColorEdit3("##material_custom_param_view_3", testCol);
+		//		break;
+		//	case NXGUICustomMatParamStyle::eHDRColor:
+		//		ImGui::ColorEdit3("##material_custom_param_view_4", testCol);
+		//		break;
+		//	case NXGUICustomMatParamStyle::eTexture:
+		//		ImGui::ColorEdit3("##material_custom_param_view_5", testCol);
+		//		break;
+		//	default:
+		//		break;
+		//	}
+		//}
 
 		ImGui::TreePop();
 	}
