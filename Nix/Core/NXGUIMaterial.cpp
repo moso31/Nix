@@ -153,6 +153,14 @@ void NXGUIMaterial::Render()
 
 			NXGUICommon::SaveMaterialFile(pCommonMaterial);
 		}
+
+		if (pCommonMaterial->IsCustomMat())
+		{
+			if (ImGui::Button("Compile##Material_Compile"))
+			{
+				OnBtnCompileClicked(static_cast<NXCustomMaterial*>(pCommonMaterial));
+			}
+		}
 	}
 
 	ImGui::End();
@@ -238,6 +246,10 @@ void NXGUIMaterial::OnBtnAddParamClicked(NXCustomMaterial* pMaterial)
 	//m_customParamInfos.push_back({ "gg", NXCBufferInputType::Float, NXGUICustomMatParamStyle::eValue });
 }
 
+void NXGUIMaterial::OnBtnCompileClicked(NXCustomMaterial* pMaterial)
+{
+}
+
 void NXGUIMaterial::UpdateFileBrowserParameters()
 {
 	m_pFileBrowser->SetTitle("Material");
@@ -253,12 +265,24 @@ void NXGUIMaterial::SyncMaterialData(NXCustomMaterial* pMaterial)
 	{
 		auto& cbElem = pMaterial->GetCBufferElem(i);
 		const float* cbElemData = pMaterial->GetCBInfoMemoryData(cbElem.memoryIndex);
+
 		Vector4 cbDataDisplay(cbElemData);
+		switch (cbElem.type)
+		{
+		case NXCBufferInputType::Float: cbDataDisplay = { cbDataDisplay.x, 0.0f, 0.0f, 0.0f }; break;
+		case NXCBufferInputType::Float2: cbDataDisplay = { cbDataDisplay.x, cbDataDisplay.y, 0.0f, 0.0f }; break;
+		case NXCBufferInputType::Float3: cbDataDisplay = { cbDataDisplay.x, cbDataDisplay.y, cbDataDisplay.z, 0.0f }; break;
+		default: break;
+		}
 
 		// 将cbElem.type 强转成 NXGUICBufferStyle，对应 GUIStyle 中的 Value/2/3/4
 		// 换句话说 Float/2/3/4 默认使用 Value/2/3/4 GUI Style。
 		NXGUICBufferStyle guiStyle = GetDefaultGUIStyleFromCBufferType(cbElem.type);
-		m_cbInfosDisplay.push_back({ cbElem.name, cbDataDisplay, guiStyle });
+
+		// 根据 GUI Style 设置GUI的拖动速度或最大最小值
+		Vector2 guiParams = GetGUIParamsDefaultValue(guiStyle);
+
+		m_cbInfosDisplay.push_back({ cbElem.name, cbDataDisplay, guiStyle, guiParams, cbElem.memoryIndex });
 	}
 
 	m_pLastMaterial = pMaterial;
@@ -293,6 +317,29 @@ NXGUICBufferStyle NXGUIMaterial::GetDefaultGUIStyleFromCBufferType(NXCBufferInpu
 	default:
 		return NXGUICBufferStyle::Value4;
 	}
+}
+
+Vector2 NXGUIMaterial::GetGUIParamsDefaultValue(NXGUICBufferStyle eGUIStyle)
+{
+	switch (eGUIStyle)
+	{
+	case NXGUICBufferStyle::Value:
+	case NXGUICBufferStyle::Value2:
+	case NXGUICBufferStyle::Value3:
+	case NXGUICBufferStyle::Value4:
+	default:
+		return { 0.01f, 0.0f }; // speed, ---
+
+	case NXGUICBufferStyle::Slider:
+	case NXGUICBufferStyle::Slider2:
+	case NXGUICBufferStyle::Slider3:
+	case NXGUICBufferStyle::Slider4:
+	case NXGUICBufferStyle::Color3:
+	case NXGUICBufferStyle::Color4:
+		return { 0.0f, 1.0f }; // min, max
+	}
+
+	return { 0.01f, 0.0f }; // speed, ---
 }
 
 UINT NXGUIMaterial::GetValueNumOfGUIStyle(NXGUICBufferStyle eGuiStyle)
@@ -470,7 +517,6 @@ void NXGUIMaterial::RenderMaterialUI_Custom(NXCustomMaterial* pMaterial)
 		// 禁用树节点首行缩进
 		ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 0.0f);
 		RenderMaterialUI_Custom_Parameters(pMaterial);
-		RenderMaterialUI_Custom_ParamViews(pMaterial);
 		RenderMaterialUI_Custom_Codes(pMaterial);
 		ImGui::PopStyleVar(); // ImGuiStyleVar_IndentSpacing
 		ImGui::EndChild();
@@ -490,74 +536,27 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMateri
 		ImGui::BeginChild("##material_custom_child");
 		{
 			int paramCnt = 0;
-			if (ImGui::BeginTable("##material_custom_child_table", 2, ImGuiTableFlags_Resizable, ImVec2(0, 0), 0.0f))
+			for (auto& cbDisplay : m_cbInfosDisplay)
 			{
-				ImGui::TableSetupColumn("Name##material_custom_child_table_name", ImGuiTableColumnFlags_NoHide);
-				ImGui::TableSetupColumn("Value##material_custom_child_table_type", ImGuiTableColumnFlags_NoHide);
-				ImGui::TableHeadersRow();
-
-				for (auto& cbDisplay : m_cbInfosDisplay)
+				std::string labelTypeId = "##material_custom_child_combo_type_" + std::to_string(paramCnt++);
+				if (ImGui::BeginCombo(labelTypeId.c_str(), s_strCBufferGUIStyle[(int)cbDisplay.guiStyle]))
 				{
-					ImGui::TableNextRow();
-
-					if (ImGui::TableSetColumnIndex(0))
+					for (int item = 0; item < IM_ARRAYSIZE(s_strCBufferGUIStyle); item++)
 					{
-						ImGui::PushItemWidth(-1);
-						std::string btnName = cbDisplay.name;
-						ImGui::Button(btnName.c_str());
-						ImGui::PopItemWidth();
-					}
-
-					if (ImGui::TableSetColumnIndex(1))
-					{
-						ImGui::PushItemWidth(-1);
-						std::string labelTypeId = "##material_custom_child_combo_type_" + std::to_string(paramCnt++);
-						if (ImGui::BeginCombo(labelTypeId.c_str(), s_strCBufferGUIStyle[(int)cbDisplay.guiStyle]))
+						if (ImGui::Selectable(s_strCBufferGUIStyle[item]) && item != (int)cbDisplay.guiStyle)
 						{
-							for (int item = 0; item < IM_ARRAYSIZE(s_strCBufferGUIStyle); item++)
-							{
-								if (ImGui::Selectable(s_strCBufferGUIStyle[item]) && item != (int)cbDisplay.guiStyle)
-								{
-									// 设置 GUI Style
-									cbDisplay.guiStyle = GetGUIStyleFromString(s_strCBufferGUIStyle[item]);
+							// 设置 GUI Style
+							cbDisplay.guiStyle = GetGUIStyleFromString(s_strCBufferGUIStyle[item]);
 
-									// 根据 GUI Style 设置GUI的拖动速度或最大最小值
-									switch (cbDisplay.guiStyle)
-									{
-									case NXGUICBufferStyle::Value:
-									case NXGUICBufferStyle::Value2:
-									case NXGUICBufferStyle::Value3:
-									case NXGUICBufferStyle::Value4:
-										cbDisplay.params = { 0.01f, 0.0f }; // speed, ---
-										break;
-									case NXGUICBufferStyle::Slider:
-									case NXGUICBufferStyle::Slider2:
-									case NXGUICBufferStyle::Slider3:
-									case NXGUICBufferStyle::Slider4:
-									case NXGUICBufferStyle::Color3:
-									case NXGUICBufferStyle::Color4:
-										cbDisplay.params = { 0.0f, 1.0f }; // min, max
-										break;
-									default:
-										break;
-									}
-									break;
-								}
-							}
-							ImGui::EndCombo();
+							// 根据 GUI Style 设置GUI的拖动速度或最大最小值
+							cbDisplay.params = GetGUIParamsDefaultValue(cbDisplay.guiStyle);
+							break;
 						}
-						ImGui::PopItemWidth();
 					}
-
-					ImGui::TableNextRow();
-
-					if (ImGui::TableSetColumnIndex(0)) {}
-					if (ImGui::TableSetColumnIndex(1))
-					{
-						RenderMaterialUI_Custom_Parameters_CBufferItem(cbDisplay);
-					}
+					ImGui::EndCombo();
 				}
-				ImGui::EndTable();
+
+				RenderMaterialUI_Custom_Parameters_CBufferItem(pMaterial, cbDisplay);
 			}
 			ImGui::EndChild();
 		}
@@ -565,8 +564,10 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMateri
 	}
 }
 
-void NXGUIMaterial::RenderMaterialUI_Custom_Parameters_CBufferItem(NXGUICBufferData& cbDisplay)
+void NXGUIMaterial::RenderMaterialUI_Custom_Parameters_CBufferItem(NXCustomMaterial* pMaterial, NXGUICBufferData& cbDisplay)
 {
+	bool bDraged = false;
+
 	UINT N = GetValueNumOfGUIStyle(cbDisplay.guiStyle);
 	switch (cbDisplay.guiStyle)
 	{
@@ -575,57 +576,27 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters_CBufferItem(NXGUICBufferD
 	case NXGUICBufferStyle::Value3:
 	case NXGUICBufferStyle::Value4:
 	default:
-		ImGui::DragScalarN(cbDisplay.name.data(), ImGuiDataType_Float, cbDisplay.data, N, cbDisplay.params[0]);
+		bDraged |= ImGui::DragScalarN(cbDisplay.name.data(), ImGuiDataType_Float, cbDisplay.data, N, cbDisplay.params[0]);
 		break;
 	case NXGUICBufferStyle::Slider:
 	case NXGUICBufferStyle::Slider2:
 	case NXGUICBufferStyle::Slider3:
 	case NXGUICBufferStyle::Slider4:
-		ImGui::SliderScalarN(cbDisplay.name.data(), ImGuiDataType_Float, cbDisplay.data, N, &cbDisplay.params[0], &cbDisplay.params[1]);
+		bDraged |= ImGui::SliderScalarN(cbDisplay.name.data(), ImGuiDataType_Float, cbDisplay.data, N, &cbDisplay.params[0], &cbDisplay.params[1]);
 		break;
 	case NXGUICBufferStyle::Color3:
-		ImGui::ColorEdit3(cbDisplay.name.data(), cbDisplay.data);
+		bDraged |= ImGui::ColorEdit3(cbDisplay.name.data(), cbDisplay.data);
 		break;
 	case NXGUICBufferStyle::Color4:
-		ImGui::ColorEdit4(cbDisplay.name.data(), cbDisplay.data);
+		bDraged |= ImGui::ColorEdit4(cbDisplay.name.data(), cbDisplay.data);
 		break;
 	}
-}
 
-void NXGUIMaterial::RenderMaterialUI_Custom_ParamViews(NXCustomMaterial* pMaterial)
-{
-	if (ImGui::TreeNode("Param Views##material_custom_param_view"))
+	// 上面所有GUI的拖动事件都可以表示成下面的方法
+	if (bDraged)
 	{
-		//for (auto& paramInfo : m_customParamInfos)
-		//{
-		//	ImGui::Text(paramInfo.name.c_str());
-		//	ImGui::SameLine();
-
-		//	static float testVal = 0.233333f;
-		//	static float testCol[3] = { 0.0f, 0.0f, 0.0f };
-		//	switch (paramInfo.uiStyle)
-		//	{
-		//	case NXGUICustomMatParamStyle::eValue:
-		//		ImGui::DragScalar("##material_custom_param_view_1", ImGuiDataType_Float, &testVal);
-		//		break;
-		//	case NXGUICustomMatParamStyle::eSlider:
-		//		ImGui::SliderFloat("##material_custom_param_view_2", &testVal, 0.0f, 1.0f);
-		//		break;
-		//	case NXGUICustomMatParamStyle::eColor:
-		//		ImGui::ColorEdit3("##material_custom_param_view_3", testCol);
-		//		break;
-		//	case NXGUICustomMatParamStyle::eHDRColor:
-		//		ImGui::ColorEdit3("##material_custom_param_view_4", testCol);
-		//		break;
-		//	case NXGUICustomMatParamStyle::eTexture:
-		//		ImGui::ColorEdit3("##material_custom_param_view_5", testCol);
-		//		break;
-		//	default:
-		//		break;
-		//	}
-		//}
-
-		ImGui::TreePop();
+		pMaterial->SetCBInfoMemoryData(cbDisplay.memoryIndex, N, cbDisplay.data);
+		pMaterial->UpdateCBData();
 	}
 }
 
@@ -633,22 +604,9 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Codes(NXCustomMaterial* pMaterial)
 {
 	if (ImGui::TreeNode("Codes"))
 	{
-		static char text[1024 * 16] =
-			"/*\n"
-			" The Pentium F00F bug, shorthand for F0 0F C7 C8,\n"
-			" the hexadecimal encoding of one offending instruction,\n"
-			" more formally, the invalid operand with locked CMPXCHG8B\n"
-			" instruction bug, is a design flaw in the majority of\n"
-			" Intel Pentium, Pentium MMX, and Pentium OverDrive\n"
-			" processors (all in the P5 microarchitecture).\n"
-			"*/\n\n"
-			"label:\n"
-			"\tlock cmpxchg8b eax\n";
-
+		auto strCode = pMaterial->GetNSLCode();
 		static ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput;
-
-		ImGui::InputTextMultiline("##material_custom_paramview_text", text, IM_ARRAYSIZE(text), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 16), flags);
-
+		ImGui::InputTextMultiline("##material_custom_paramview_text", &strCode, ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 16), flags);
 		ImGui::TreePop();
 	}
 }

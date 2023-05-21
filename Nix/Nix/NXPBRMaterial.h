@@ -269,12 +269,19 @@ public:
 	virtual void Release() override;
 	virtual void ReloadTextures() override;
 
+	const std::string& GetNSLCode() { return m_nslCode; }
+	void SetNSLCode(const std::string& nslCode) { m_nslCode = nslCode; }
+
 	void SortShaderCBufferParam();
 
 	UINT GetCBufferElemCount() { return UINT(m_cbInfo.elems.size()); }
 	const NXCBufferElem& GetCBufferElem(UINT index) { return m_cbInfo.elems[index]; }
 
 	const float* GetCBInfoMemoryData(UINT memoryIndex) { return m_cbInfoMemory.data() + memoryIndex; }
+	void SetCBInfoMemoryData(UINT memoryIndex, UINT count, const float* newData) 
+	{
+		std::copy(newData, newData + count, m_cbInfoMemory.begin() + memoryIndex);
+	}
 
 private:
 	// 读取 nsl 文件，获取 nsl shader.

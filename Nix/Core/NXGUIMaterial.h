@@ -20,7 +20,6 @@ enum class NXGUICBufferStyle
 
 struct NXGUICBufferData
 {
-	// 指向原 CB 的 name 的字符串引用
 	const std::string& name;
 
 	// 记录 CB值，但每个数据都使用最大的 Vec4 储存。
@@ -32,6 +31,10 @@ struct NXGUICBufferData
 
 	// CB 在 GUI 中的辅助参数，比如用来控制GUI的drugSpeed, sliderMin/Max等等。
 	Vector2 params;
+
+	// 记录 原CB 的 memoryIndex
+	// 当 GUI 值变更的时候，使用此索引就能追溯材质中的源数据指针。
+	int memoryIndex;
 };
 
 struct NXGUIContentExplorerButtonDrugData;
@@ -52,8 +55,7 @@ private:
 	void RenderMaterialUI_Subsurface(NXPBRMaterialSubsurface* pMaterial);
 	void RenderMaterialUI_Custom(NXCustomMaterial* pMaterial);
 	void RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMaterial);
-	void RenderMaterialUI_Custom_Parameters_CBufferItem(NXGUICBufferData& cbDisplay);
-	void RenderMaterialUI_Custom_ParamViews(NXCustomMaterial* pMaterial);
+	void RenderMaterialUI_Custom_Parameters_CBufferItem(NXCustomMaterial* pMaterial, NXGUICBufferData& cbDisplay);
 	void RenderMaterialUI_Custom_Codes(NXCustomMaterial* pMaterial);
 
 private:
@@ -79,7 +81,7 @@ private:
 	void OnTexAODrop(NXPBRMaterialBase* pPickingObjectMaterial, const std::wstring& filePath);
 
 	void OnBtnAddParamClicked(NXCustomMaterial* pMaterial);
-
+	void OnBtnCompileClicked(NXCustomMaterial* pMaterial);
 	void UpdateFileBrowserParameters();
 
 	void SyncMaterialData(NXCustomMaterial* pMaterial);
@@ -87,6 +89,7 @@ private:
 	NXGUICBufferStyle GetGUIStyleFromString(const std::string& strTypeString);
 	NXGUICBufferStyle GetDefaultGUIStyleFromCBufferType(NXCBufferInputType eCBElemType);
 	UINT GetValueNumOfGUIStyle(NXGUICBufferStyle eGuiStyle);
+	Vector2 GetGUIParamsDefaultValue(NXGUICBufferStyle eGUIStyle);
 
 private:
 	NXScene* m_pCurrentScene;
