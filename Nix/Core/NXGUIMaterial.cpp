@@ -282,7 +282,7 @@ void NXGUIMaterial::SyncMaterialData(NXCustomMaterial* pMaterial)
 		// 根据 GUI Style 设置GUI的拖动速度或最大最小值
 		Vector2 guiParams = GetGUIParamsDefaultValue(guiStyle);
 
-		m_cbInfosDisplay.push_back({ cbElem.name, cbDataDisplay, guiStyle, guiParams, cbElem.memoryIndex });
+		m_cbInfosDisplay.push_back({ cbElem.name, cbElem.type, cbDataDisplay, guiStyle, guiParams, cbElem.memoryIndex });
 	}
 
 	m_pLastMaterial = pMaterial;
@@ -592,10 +592,12 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters_CBufferItem(NXCustomMater
 		break;
 	}
 
-	// 上面所有GUI的拖动事件都可以表示成下面的方法
+	// 上面所有GUI的拖动事件
 	if (bDraged)
 	{
-		pMaterial->SetCBInfoMemoryData(cbDisplay.memoryIndex, N, cbDisplay.data);
+		// 实际上要拷贝的字节量是 cbDisplay 初始读取的字节数量 actualN，而不是更改 GUIStyle 以后的参数数量 N
+		UINT actualN = cbDisplay.readType;
+		pMaterial->SetCBInfoMemoryData(cbDisplay.memoryIndex, actualN, cbDisplay.data);
 		pMaterial->UpdateCBData();
 	}
 }

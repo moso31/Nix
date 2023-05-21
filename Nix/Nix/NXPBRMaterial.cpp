@@ -307,6 +307,12 @@ void NXCustomMaterial::ReloadTextures()
 {
 }
 
+void NXCustomMaterial::SetCBInfoMemoryData(UINT memoryIndex, UINT count, const float* newData)
+{
+	count = min(count, (UINT)m_cbInfoMemory.size() - memoryIndex);
+	std::copy(newData, newData + count, m_cbInfoMemory.begin() + memoryIndex);
+}
+
 bool NXCustomMaterial::LoadShaderStringFromFile(std::string& oShader)
 {
 	if (!std::filesystem::exists(m_nslFilePath))

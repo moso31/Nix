@@ -22,6 +22,10 @@ struct NXGUICBufferData
 {
 	const std::string& name;
 
+	// 读取 CB 时的初始Type值
+	// 当 Param 的 Type 变化的时候，可以避免 copy 过多，导致指针偏移。
+	NXCBufferInputType readType;
+
 	// 记录 CB值，但每个数据都使用最大的 Vec4 储存。
 	// 这么做是为了避免 GUI 改变数据格式产生额外的内存分配。
 	Vector4 data; 

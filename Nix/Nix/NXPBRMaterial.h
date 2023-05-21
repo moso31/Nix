@@ -278,10 +278,7 @@ public:
 	const NXCBufferElem& GetCBufferElem(UINT index) { return m_cbInfo.elems[index]; }
 
 	const float* GetCBInfoMemoryData(UINT memoryIndex) { return m_cbInfoMemory.data() + memoryIndex; }
-	void SetCBInfoMemoryData(UINT memoryIndex, UINT count, const float* newData) 
-	{
-		std::copy(newData, newData + count, m_cbInfoMemory.begin() + memoryIndex);
-	}
+	void SetCBInfoMemoryData(UINT memoryIndex, UINT count, const float* newData);
 
 private:
 	// 读取 nsl 文件，获取 nsl shader.
