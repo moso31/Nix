@@ -94,7 +94,6 @@ public:
 	void RemoveSubMesh(NXSubMeshBase* pRemoveSubmesh);
 	void AddSubMesh(NXSubMeshBase* pSubMesh);
 
-protected:
 	void SetTex2D(NXTexture2D*& pTex2D, const std::wstring& texFilePath);
 
 protected:
@@ -255,6 +254,7 @@ public:
 
 	void SetShaderFilePath(const std::filesystem::path& path);
 	void LoadShaderCode();
+	void CompileShader();
 
 	// 初始化所有着色器资源，包括 cb, tex, sampler
 	void InitShaderResources();
@@ -271,11 +271,20 @@ public:
 
 	const std::string& GetNSLCode() { return m_nslCode; }
 	void SetNSLCode(const std::string& nslCode) { m_nslCode = nslCode; }
+	void SetNSLParam(const std::string& nslParams) { m_nslParams = nslParams; }
 
 	void SortShaderCBufferParam();
 
 	UINT GetCBufferElemCount() { return UINT(m_cbInfo.elems.size()); }
 	const NXCBufferElem& GetCBufferElem(UINT index) { return m_cbInfo.elems[index]; }
+
+	UINT GetTextureCount() { return UINT(m_texInfos.size()); }
+	NXTexture2D* GetTexture(UINT index) { return m_texInfos[index].pTexture; }
+	const std::string& GetTextureName(UINT index) { return m_texInfos[index].name; }
+
+	UINT GetSamplerCount() { return UINT(m_samplerInfos.size()); }
+	const ComPtr<ID3D11SamplerState>& GetSampler(UINT index) { return m_samplerInfos[index].pSampler; }
+	const std::string& GetSamplerName(UINT index) { return m_samplerInfos[index].name; }
 
 	const float* GetCBInfoMemoryData(UINT memoryIndex) { return m_cbInfoMemory.data() + memoryIndex; }
 	void SetCBInfoMemoryData(UINT memoryIndex, UINT count, const float* newData);
@@ -303,8 +312,8 @@ private:
 	ComPtr<ID3D11PixelShader>			m_pPixelShader;
 	ComPtr<ID3D11InputLayout>			m_pInputLayout;
 
-	std::unordered_map<std::string, NXMaterialSamplerInfo>	m_samplerInfos;
-	std::unordered_map<std::string, NXMaterialTextureInfo>	m_texInfos;
+	std::vector<NXMaterialSamplerInfo>	m_samplerInfos;
+	std::vector<NXMaterialTextureInfo>	m_texInfos;
 	NXMaterialCBufferInfo				m_cbInfo;
 	std::vector<float>					m_cbInfoMemory;
 	std::vector<int>					m_cbSortedIndex;

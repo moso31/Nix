@@ -14,7 +14,8 @@ NXGUIMaterial::NXGUIMaterial(NXScene* pScene, NXGUIFileBrowser* pFileBrowser) :
 	m_whiteTexPath_test(L".\\Resource\\white1x1.png"),
 	m_normalTexPath_test(L".\\Resource\\normal1x1.png"),
 	m_currentMaterialTypeIndex(0),
-	m_pLastMaterial(nullptr)
+	m_pLastMaterial(nullptr),
+	m_bIsDirty(false)
 {
 }
 
@@ -156,7 +157,7 @@ void NXGUIMaterial::Render()
 
 		if (pCommonMaterial->IsCustomMat())
 		{
-			if (ImGui::Button("Compile##Material_Compile"))
+			if (ImGui::Button("Compile##material_compile"))
 			{
 				OnBtnCompileClicked(static_cast<NXCustomMaterial*>(pCommonMaterial));
 			}
@@ -241,13 +242,29 @@ void NXGUIMaterial::OnTexAODrop(NXPBRMaterialBase* pMaterial, const std::wstring
 	pMaterial->SetTexAO(filePath.c_str());
 }
 
-void NXGUIMaterial::OnBtnAddParamClicked(NXCustomMaterial* pMaterial)
+void NXGUIMaterial::OnBtnAddParamClicked(NXCustomMaterial* pMaterial, NXGUICBufferStyle eGUIStyle)
 {
-	//m_customParamInfos.push_back({ "gg", NXCBufferInputType::Float, NXGUICustomMatParamStyle::eValue });
+	m_cbInfosDisplay.push_back({ "newParam", NXCBufferInputType::Float4, Vector4(0.0f), eGUIStyle, GetGUIParamsDefaultValue(eGUIStyle), -1 });
 }
 
 void NXGUIMaterial::OnBtnCompileClicked(NXCustomMaterial* pMaterial)
 {
+	// 构建 NSLParam 代码
+	std::string nslParams = BuildNSLParamString();
+	pMaterial->SetNSLParam(nslParams);
+	pMaterial->SetNSLCode(m_nslCodeDisplay);
+	pMaterial->CompileShader();
+
+	m_bIsDirty = true;
+}
+
+void NXGUIMaterial::OnComboGUIStyleChanged(int selectIndex, NXGUICBufferData& cbDataDisplay)
+{
+	// 设置 GUI Style
+	cbDataDisplay.guiStyle = GetGUIStyleFromString(s_strCBufferGUIStyle[selectIndex]);
+
+	// 根据 GUI Style 设置GUI的拖动速度或最大最小值
+	cbDataDisplay.params = GetGUIParamsDefaultValue(cbDataDisplay.guiStyle);
 }
 
 void NXGUIMaterial::UpdateFileBrowserParameters()
@@ -285,21 +302,96 @@ void NXGUIMaterial::SyncMaterialData(NXCustomMaterial* pMaterial)
 		m_cbInfosDisplay.push_back({ cbElem.name, cbElem.type, cbDataDisplay, guiStyle, guiParams, cbElem.memoryIndex });
 	}
 
+	m_texInfosDisplay.clear();
+	m_texInfosDisplay.reserve(pMaterial->GetTextureCount());
+	for (UINT i = 0; i < pMaterial->GetTextureCount(); i++)
+		m_texInfosDisplay.push_back({ pMaterial->GetTextureName(i), pMaterial->GetTexture(i) });
+
+	m_ssInfosDisplay.clear();
+	m_ssInfosDisplay.reserve(pMaterial->GetSamplerCount());
+	for (UINT i = 0; i < pMaterial->GetSamplerCount(); i++)
+		m_ssInfosDisplay.push_back({ pMaterial->GetSamplerName(i), pMaterial->GetSampler(i) });
+
+	m_nslCodeDisplay = pMaterial->GetNSLCode();
+
 	m_pLastMaterial = pMaterial;
+	m_bIsDirty = false;
+}
+
+std::string NXGUIMaterial::BuildNSLParamString()
+{
+	std::string strNSLParamBegin = "Params\n{\n";
+	std::string strNSLParamEnd = "}\n";
+
+	std::string strNSLParam;
+	for (auto& texDisplay : m_texInfosDisplay)
+	{
+		strNSLParam += "\t";
+		strNSLParam += "Tex2D";
+		strNSLParam += " : ";
+		strNSLParam += texDisplay.name;
+		strNSLParam += "\n";
+	}
+
+	for (auto& ssDisplay : m_ssInfosDisplay)
+	{
+		strNSLParam += "\t";
+		strNSLParam += "SamplerState";
+		strNSLParam += " : ";
+		strNSLParam += ssDisplay.name;
+		strNSLParam += "\n";
+	}
+
+	strNSLParam += "\t";
+	strNSLParam += "CBuffer : m_material\n\t{\n";
+	for (auto& cbDisplay : m_cbInfosDisplay)
+	{
+		std::string strCBType;
+		switch (cbDisplay.guiStyle)
+		{
+		case NXGUICBufferStyle::Value:
+		case NXGUICBufferStyle::Slider:
+			strCBType = "float"; 
+			break;
+		case NXGUICBufferStyle::Value2:
+		case NXGUICBufferStyle::Slider2:
+			strCBType = "float2"; 
+			break;
+		case NXGUICBufferStyle::Value3:
+		case NXGUICBufferStyle::Slider3:
+		case NXGUICBufferStyle::Color3:
+			strCBType = "float3";
+			break;
+		case NXGUICBufferStyle::Value4:
+		case NXGUICBufferStyle::Slider4:
+		case NXGUICBufferStyle::Color4:
+			strCBType = "float4";
+			break;
+		default: continue; 
+		}
+
+		strNSLParam += "\t\t";
+		strNSLParam += strCBType;
+		strNSLParam += " : ";
+		strNSLParam += cbDisplay.name;
+		strNSLParam += "\n";
+	}
+	strNSLParam += "\t}\n";
+	return strNSLParamBegin + strNSLParam + strNSLParamEnd;
 }
 
 NXGUICBufferStyle NXGUIMaterial::GetGUIStyleFromString(const std::string& strTypeString)
 {
-	if (strTypeString == "Value") return NXGUICBufferStyle::Value;
-	else if (strTypeString == "Value2") return NXGUICBufferStyle::Value2;
-	else if (strTypeString == "Value3") return NXGUICBufferStyle::Value3;
-	else if (strTypeString == "Value4") return NXGUICBufferStyle::Value4;
-	else if (strTypeString == "Slider") return NXGUICBufferStyle::Slider;
-	else if (strTypeString == "Slider2") return NXGUICBufferStyle::Slider2;
-	else if (strTypeString == "Slider3") return NXGUICBufferStyle::Slider3;
-	else if (strTypeString == "Slider4") return NXGUICBufferStyle::Slider4;
-	else if (strTypeString == "Color3") return NXGUICBufferStyle::Color3;
-	else if (strTypeString == "Color4") return NXGUICBufferStyle::Color4;
+	if		(strTypeString == "Value")		return NXGUICBufferStyle::Value;
+	else if (strTypeString == "Value2")		return NXGUICBufferStyle::Value2;
+	else if (strTypeString == "Value3")		return NXGUICBufferStyle::Value3;
+	else if (strTypeString == "Value4")		return NXGUICBufferStyle::Value4;
+	else if (strTypeString == "Slider")		return NXGUICBufferStyle::Slider;
+	else if (strTypeString == "Slider2")	return NXGUICBufferStyle::Slider2;
+	else if (strTypeString == "Slider3")	return NXGUICBufferStyle::Slider3;
+	else if (strTypeString == "Slider4")	return NXGUICBufferStyle::Slider4;
+	else if (strTypeString == "Color3")		return NXGUICBufferStyle::Color3;
+	else if (strTypeString == "Color4")		return NXGUICBufferStyle::Color4;
 	else throw std::runtime_error("Invalid GUI style string: " + strTypeString);
 }
 
@@ -507,7 +599,14 @@ void NXGUIMaterial::RenderMaterialUI_Subsurface(NXPBRMaterialSubsurface* pMateri
 
 void NXGUIMaterial::RenderMaterialUI_Custom(NXCustomMaterial* pMaterial)
 {
+	// TODO: 感觉 m_pLastMaterial 写在这里不太合适，写在类似 Update 之类的地方会更好
+	// 但现在懒得做 GUI Update 的实现 所以先这么放着了……
 	if (m_pLastMaterial != pMaterial)
+	{
+		m_bIsDirty = true;
+	}
+
+	if (m_bIsDirty)
 	{
 		SyncMaterialData(pMaterial);
 	}
@@ -529,8 +628,21 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMateri
 	{
 		if (ImGui::Button("Add param##material_custom_parameters_add", ImVec2(ImGui::GetContentRegionAvail().x, 20.0f)))
 		{
+			ImGui::OpenPopup("##material_add_param_popup");
+		}
+
+		if (ImGui::BeginPopup("##material_add_param_popup"))
+		{
 			// 添加参数
-			OnBtnAddParamClicked(pMaterial);
+			for (int item = 0; item < IM_ARRAYSIZE(s_strCBufferGUIStyle); item++)
+			{
+				if (ImGui::Selectable(s_strCBufferGUIStyle[item], false))
+				{
+					NXGUICBufferStyle guiStyle = GetGUIStyleFromString(s_strCBufferGUIStyle[item]);
+					OnBtnAddParamClicked(pMaterial, guiStyle);
+				}
+			}
+			ImGui::EndPopup();
 		}
 
 		ImGui::BeginChild("##material_custom_child");
@@ -538,35 +650,68 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMateri
 			int paramCnt = 0;
 			for (auto& cbDisplay : m_cbInfosDisplay)
 			{
-				std::string labelTypeId = "##material_custom_child_combo_type_" + std::to_string(paramCnt++);
-				if (ImGui::BeginCombo(labelTypeId.c_str(), s_strCBufferGUIStyle[(int)cbDisplay.guiStyle]))
+				std::string strId = "##material_custom_child_cbuffer_" + std::to_string(paramCnt++);
+				if (ImGui::BeginCombo(strId.c_str(), s_strCBufferGUIStyle[(int)cbDisplay.guiStyle]))
 				{
 					for (int item = 0; item < IM_ARRAYSIZE(s_strCBufferGUIStyle); item++)
 					{
 						if (ImGui::Selectable(s_strCBufferGUIStyle[item]) && item != (int)cbDisplay.guiStyle)
 						{
-							// 设置 GUI Style
-							cbDisplay.guiStyle = GetGUIStyleFromString(s_strCBufferGUIStyle[item]);
-
-							// 根据 GUI Style 设置GUI的拖动速度或最大最小值
-							cbDisplay.params = GetGUIParamsDefaultValue(cbDisplay.guiStyle);
+							OnComboGUIStyleChanged(item, cbDisplay);
 							break;
 						}
 					}
 					ImGui::EndCombo();
 				}
 
-				RenderMaterialUI_Custom_Parameters_CBufferItem(pMaterial, cbDisplay);
+				RenderMaterialUI_Custom_Parameters_CBufferItem(strId, pMaterial, cbDisplay);
 			}
+
+			for (auto& texDisplay : m_texInfosDisplay)
+			{
+				std::string strId = "##material_custom_child_texture_" + std::to_string(paramCnt++);
+
+				auto pTex = texDisplay.pTexture;
+				if (!pTex) continue;
+
+				auto onTexChange = [pMaterial, &pTex, this]()
+				{
+					pMaterial->SetTex2D(pTex, m_pFileBrowser->GetSelected().c_str());
+				};
+
+				auto onTexRemove = [pMaterial, &pTex, this]()
+				{
+					pMaterial->SetTex2D(pTex, m_pFileBrowser->GetSelected().c_str());
+				};
+
+				auto onTexDrop = [pMaterial, &pTex, this](const std::wstring& dragPath)
+				{
+					pMaterial->SetTex2D(pTex, dragPath);
+				};
+
+				RenderTextureIcon(pTex->GetSRV(), onTexChange, onTexRemove, onTexDrop);
+
+				ImGui::SameLine();
+				ImGui::Text(texDisplay.name.data());
+			}
+
+			// 【Sampler 的部分暂时还没想好，先空着】
+			for (auto& ssDisplay : m_ssInfosDisplay)
+			{
+				std::string strId = "##material_custom_child_sampler_" + std::to_string(paramCnt++);
+				ImGui::Text(ssDisplay.name.data());
+			}
+
 			ImGui::EndChild();
 		}
 		ImGui::TreePop();
 	}
 }
 
-void NXGUIMaterial::RenderMaterialUI_Custom_Parameters_CBufferItem(NXCustomMaterial* pMaterial, NXGUICBufferData& cbDisplay)
+void NXGUIMaterial::RenderMaterialUI_Custom_Parameters_CBufferItem(const std::string& strId, NXCustomMaterial* pMaterial, NXGUICBufferData& cbDisplay)
 {
 	bool bDraged = false;
+	std::string strName = strId + cbDisplay.name;
 
 	UINT N = GetValueNumOfGUIStyle(cbDisplay.guiStyle);
 	switch (cbDisplay.guiStyle)
@@ -576,25 +721,25 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters_CBufferItem(NXCustomMater
 	case NXGUICBufferStyle::Value3:
 	case NXGUICBufferStyle::Value4:
 	default:
-		bDraged |= ImGui::DragScalarN(cbDisplay.name.data(), ImGuiDataType_Float, cbDisplay.data, N, cbDisplay.params[0]);
+		bDraged |= ImGui::DragScalarN(strName.data(), ImGuiDataType_Float, cbDisplay.data, N, cbDisplay.params[0]);
 		break;
 	case NXGUICBufferStyle::Slider:
 	case NXGUICBufferStyle::Slider2:
 	case NXGUICBufferStyle::Slider3:
 	case NXGUICBufferStyle::Slider4:
-		bDraged |= ImGui::SliderScalarN(cbDisplay.name.data(), ImGuiDataType_Float, cbDisplay.data, N, &cbDisplay.params[0], &cbDisplay.params[1]);
+		bDraged |= ImGui::SliderScalarN(strName.data(), ImGuiDataType_Float, cbDisplay.data, N, &cbDisplay.params[0], &cbDisplay.params[1]);
 		break;
 	case NXGUICBufferStyle::Color3:
-		bDraged |= ImGui::ColorEdit3(cbDisplay.name.data(), cbDisplay.data);
+		bDraged |= ImGui::ColorEdit3(strName.data(), cbDisplay.data);
 		break;
 	case NXGUICBufferStyle::Color4:
-		bDraged |= ImGui::ColorEdit4(cbDisplay.name.data(), cbDisplay.data);
+		bDraged |= ImGui::ColorEdit4(strName.data(), cbDisplay.data);
 		break;
 	}
 
-	// 上面所有GUI的拖动事件
-	if (bDraged)
+	if (bDraged && cbDisplay.memoryIndex != -1) // 新加的 AddParam 在点编译按钮之前不应该传给参数
 	{
+		// 在这里将 GUI 修改过的参数传回给材质 CBuffer，实现视觉上的变化。
 		// 实际上要拷贝的字节量是 cbDisplay 初始读取的字节数量 actualN，而不是更改 GUIStyle 以后的参数数量 N
 		UINT actualN = cbDisplay.readType;
 		pMaterial->SetCBInfoMemoryData(cbDisplay.memoryIndex, actualN, cbDisplay.data);
@@ -606,9 +751,8 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Codes(NXCustomMaterial* pMaterial)
 {
 	if (ImGui::TreeNode("Codes"))
 	{
-		auto strCode = pMaterial->GetNSLCode();
 		static ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput;
-		ImGui::InputTextMultiline("##material_custom_paramview_text", &strCode, ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 16), flags);
+		ImGui::InputTextMultiline("##material_custom_paramview_text", &m_nslCodeDisplay, ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 16), flags);
 		ImGui::TreePop();
 	}
 }

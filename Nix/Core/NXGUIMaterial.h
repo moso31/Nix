@@ -20,7 +20,7 @@ enum class NXGUICBufferStyle
 
 struct NXGUICBufferData
 {
-	const std::string& name;
+	std::string name;
 
 	// 读取 CB 时的初始Type值
 	// 当 Param 的 Type 变化的时候，可以避免 copy 过多，导致指针偏移。
@@ -41,6 +41,18 @@ struct NXGUICBufferData
 	int memoryIndex;
 };
 
+struct NXGUITextureData
+{
+	std::string name;
+	NXTexture2D* pTexture;
+};
+
+struct NXGUISamplerData
+{
+	std::string name;
+	ComPtr<ID3D11SamplerState> pSampler;
+};
+
 struct NXGUIContentExplorerButtonDrugData;
 class NXGUIMaterial
 {
@@ -59,7 +71,7 @@ private:
 	void RenderMaterialUI_Subsurface(NXPBRMaterialSubsurface* pMaterial);
 	void RenderMaterialUI_Custom(NXCustomMaterial* pMaterial);
 	void RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMaterial);
-	void RenderMaterialUI_Custom_Parameters_CBufferItem(NXCustomMaterial* pMaterial, NXGUICBufferData& cbDisplay);
+	void RenderMaterialUI_Custom_Parameters_CBufferItem(const std::string& strId, NXCustomMaterial* pMaterial, NXGUICBufferData& cbDisplay);
 	void RenderMaterialUI_Custom_Codes(NXCustomMaterial* pMaterial);
 
 private:
@@ -84,16 +96,18 @@ private:
 	void OnTexRoughnessDrop(NXPBRMaterialBase* pPickingObjectMaterial, const std::wstring& filePath);
 	void OnTexAODrop(NXPBRMaterialBase* pPickingObjectMaterial, const std::wstring& filePath);
 
-	void OnBtnAddParamClicked(NXCustomMaterial* pMaterial);
+	void OnBtnAddParamClicked(NXCustomMaterial* pMaterial, NXGUICBufferStyle eGUIStyle);
 	void OnBtnCompileClicked(NXCustomMaterial* pMaterial);
+	void OnComboGUIStyleChanged(int selectIndex, NXGUICBufferData& cbDisplayData);
 	void UpdateFileBrowserParameters();
 
 	void SyncMaterialData(NXCustomMaterial* pMaterial);
+	std::string BuildNSLParamString();
 
-	NXGUICBufferStyle GetGUIStyleFromString(const std::string& strTypeString);
-	NXGUICBufferStyle GetDefaultGUIStyleFromCBufferType(NXCBufferInputType eCBElemType);
-	UINT GetValueNumOfGUIStyle(NXGUICBufferStyle eGuiStyle);
-	Vector2 GetGUIParamsDefaultValue(NXGUICBufferStyle eGUIStyle);
+	NXGUICBufferStyle	GetGUIStyleFromString(const std::string& strTypeString);
+	NXGUICBufferStyle	GetDefaultGUIStyleFromCBufferType(NXCBufferInputType eCBElemType);
+	UINT				GetValueNumOfGUIStyle(NXGUICBufferStyle eGuiStyle);
+	Vector2				GetGUIParamsDefaultValue(NXGUICBufferStyle eGUIStyle);
 
 private:
 	NXScene* m_pCurrentScene;
@@ -105,7 +119,13 @@ private:
 
 	int m_currentMaterialTypeIndex;
 
-	// 记录 cb参数 用于显示 GUI。
+	// 记录 cb, tex, ss参数 用于显示 GUI。
 	std::vector<NXGUICBufferData> m_cbInfosDisplay;
+	std::vector<NXGUITextureData> m_texInfosDisplay;
+	std::vector<NXGUISamplerData> m_ssInfosDisplay;
+
+	std::string m_nslCodeDisplay;
+
 	NXCustomMaterial* m_pLastMaterial;
+	bool m_bIsDirty;
 };

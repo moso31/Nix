@@ -167,7 +167,10 @@ void NXCustomMaterial::LoadShaderCode()
 
 	// 将 nsl shader 拆成 params 和 code 两部分
 	ExtractShaderData(strShader, m_nslParams, m_nslCode);
+}
 
+void NXCustomMaterial::CompileShader()
+{
 	// 将 nsl params 转换成 DX 可以编译的 hlsl 代码，
 	// 同时对其进行分拣，将 cb 储存到 m_cbInfo，纹理储存到 m_texInfoMap，采样器储存到 m_ssInfoMap
 	std::string strHLSLHead, strHLSLBody;
@@ -185,14 +188,14 @@ void NXCustomMaterial::LoadShaderCode()
 
 void NXCustomMaterial::InitShaderResources()
 {
-	for (auto& [texName, texInfo] : m_texInfos)
+	for (auto& texInfo : m_texInfos)
 	{
 		if (texInfo.pTexture)
 			texInfo.pTexture->RemoveRef();
-		texInfo.pTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(texName, g_defaultTex_white_str);
+		texInfo.pTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(texInfo.name, g_defaultTex_white_str);
 	}
 
-	for (auto& [ssName, ssInfo] : m_samplerInfos)
+	for (auto& ssInfo : m_samplerInfos)
 	{
 		ssInfo.pSampler = NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP>::Create();
 	}
@@ -272,7 +275,7 @@ void NXCustomMaterial::Render()
 	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
 	g_pContext->IASetInputLayout(m_pInputLayout.Get());
 
-	for (auto& [texName, texInfo] : m_texInfos)
+	for (auto& texInfo : m_texInfos)
 	{
 		if (texInfo.pTexture)
 		{
@@ -281,7 +284,7 @@ void NXCustomMaterial::Render()
 		}
 	}
 
-	for (auto& [ssName, ssInfo] : m_samplerInfos)
+	for (auto& ssInfo : m_samplerInfos)
 	{
 		if (ssInfo.slotIndex)
 		{
@@ -349,6 +352,10 @@ void NXCustomMaterial::ExtractShaderData(const std::string& shader, std::string&
 void NXCustomMaterial::ProcessShaderParameters(const std::string& nslParams, std::string& oHLSLHeadCode)
 {
 	using namespace NXConvert;
+
+	m_cbInfo.elems.clear();
+	m_texInfos.clear();
+	m_samplerInfos.clear();
 
 	std::map<std::string, std::string> typeToPrefix
 	{
@@ -439,14 +446,14 @@ void NXCustomMaterial::ProcessShaderParameters(const std::string& nslParams, std
 			}
 			else if (type == "Tex2D")
 			{
-				m_texInfos[name] = { nullptr, typeToRegisterIndex[type] };
+				m_texInfos.push_back({ name, nullptr, typeToRegisterIndex[type] });
 
 				out << typeToPrefix[type] << " " << name << " : register(" << typeToRegisterPrefix[type] << typeToRegisterIndex[type]++ << ")";
 				out << ";\n";
 			}
 			else if (type == "SamplerState")
 			{
-				m_samplerInfos[name] = { nullptr, typeToRegisterIndex[type] };
+				m_samplerInfos.push_back({ name, nullptr, typeToRegisterIndex[type] });
 
 				out << typeToPrefix[type] << " " << name << " : register(" << typeToRegisterPrefix[type] << typeToRegisterIndex[type]++ << ")";
 				out << ";\n";

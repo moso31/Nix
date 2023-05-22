@@ -31,12 +31,14 @@ struct NXMaterialCBufferInfo
 
 struct NXMaterialTextureInfo
 {
+    std::string name;
     NXTexture2D* pTexture;
     UINT slotIndex;
 };
 
 struct NXMaterialSamplerInfo
 {
+    std::string name;
     ComPtr<ID3D11SamplerState> pSampler;
     UINT slotIndex;
 };
