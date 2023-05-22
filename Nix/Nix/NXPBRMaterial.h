@@ -242,6 +242,9 @@ private:
 	void InitConstantBuffer();
 };
 
+struct NXGUICBufferData;
+struct NXGUITextureData;
+struct NXGUISamplerData;
 class NXCustomMaterial : public NXMaterial
 {
 	template <typename NXMatParam>
@@ -254,7 +257,11 @@ public:
 
 	void SetShaderFilePath(const std::filesystem::path& path);
 	void LoadShaderCode();
-	void CompileShader();
+	// 将 NSL 转换为 HLSL。
+	// 如果是GUI点击Compile，则使用GUI传进来的值和纹理；否则使用默认的初始化值和纹理。
+	void ConvertNSLToHLSL(std::string& oHLSLHead, std::string& oHLSLBody);
+	void ConvertGUIDataToHLSL(std::string& oHLSLHead, std::string& oHLSLBody, const std::vector<NXGUICBufferData>& cbDataGUI, const std::vector<NXGUITextureData>& texDataGUI, const std::vector<NXGUISamplerData>& samplerDataGUI);
+	void CompileShader(const std::string& strHLSLHead, const std::string& strHLSLBody, std::string& oErrorMessageVS, std::string& oErrorMessagePS);
 
 	// 初始化所有着色器资源，包括 cb, tex, sampler
 	void InitShaderResources();

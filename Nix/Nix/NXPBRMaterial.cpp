@@ -169,21 +169,44 @@ void NXCustomMaterial::LoadShaderCode()
 	ExtractShaderData(strShader, m_nslParams, m_nslCode);
 }
 
-void NXCustomMaterial::CompileShader()
+void NXCustomMaterial::ConvertNSLToHLSL(std::string& oHLSLHead, std::string& oHLSLBody)
 {
 	// 将 nsl params 转换成 DX 可以编译的 hlsl 代码，
 	// 同时对其进行分拣，将 cb 储存到 m_cbInfo，纹理储存到 m_texInfoMap，采样器储存到 m_ssInfoMap
-	std::string strHLSLHead, strHLSLBody;
-	ProcessShaderParameters(m_nslParams, strHLSLHead);
+	ProcessShaderParameters(m_nslParams, oHLSLHead);
 
 	// 将 nsl code 转换成 DX 可以编译的 hlsl 代码
-	ProcessShaderCode(m_nslCode, strHLSLBody);
+	ProcessShaderCode(m_nslCode, oHLSLBody);
+}
 
+void NXCustomMaterial::ConvertGUIDataToHLSL(std::string& oHLSLHead, std::string& oHLSLBody, const std::vector<NXGUICBufferData>& cbDataGUI, const std::vector<NXGUITextureData>& texDataGUI, const std::vector<NXGUISamplerData>& samplerDataGUI)
+{
+	// 将 nsl params 转换成 DX 可以编译的 hlsl 代码，
+	// 同时对其进行分拣，将 cb 储存到 m_cbInfo，纹理储存到 m_texInfoMap，采样器储存到 m_ssInfoMap
+	ProcessShaderParameters(m_nslParams, oHLSLHead);
+
+	// 将 nsl code 转换成 DX 可以编译的 hlsl 代码
+	ProcessShaderCode(m_nslCode, oHLSLBody);
+}
+
+void NXCustomMaterial::CompileShader(const std::string& strHLSLHead, const std::string& strHLSLBody, std::string& oErrorMessageVS, std::string& oErrorMessagePS)
+{
 	std::string strGBufferShader;
 	NXHLSLGenerator::GetInstance()->EncodeToGBufferShader(strHLSLHead, strHLSLBody, strGBufferShader);
 
-	NXShaderComplier::GetInstance()->CompileVSILByCode(strGBufferShader, "VS", &m_pVertexShader, NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), &m_pInputLayout);
-	NXShaderComplier::GetInstance()->CompilePSByCode(strGBufferShader, "PS", &m_pPixelShader);
+	ComPtr<ID3D11VertexShader> pNewVS;
+	ComPtr<ID3D11PixelShader>  pNewPS;
+	ComPtr<ID3D11InputLayout>  pNewIL;
+
+	HRESULT hrVS = NXShaderComplier::GetInstance()->CompileVSILByCode(strGBufferShader, "VS", &pNewVS, NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), &pNewIL, oErrorMessageVS);
+	HRESULT hrPS = NXShaderComplier::GetInstance()->CompilePSByCode(strGBufferShader, "PS", &pNewPS, oErrorMessagePS);
+
+	if (SUCCEEDED(hrVS) && SUCCEEDED(hrPS))
+	{
+		m_pVertexShader = pNewVS;
+		m_pInputLayout = pNewIL;
+		m_pPixelShader = pNewPS;
+	}
 }
 
 void NXCustomMaterial::InitShaderResources()
@@ -431,7 +454,7 @@ void NXCustomMaterial::ProcessShaderParameters(const std::string& nslParams, std
 				std::ostringstream strMatName;
 				strMatName << "Mat_" << std::filesystem::hash_value(m_nslFilePath);
 
-				// 处理 CBuffer。需要按照 packing rules 的建议对 CBuffer 进行排序。
+				// 处理 CBuffer。内部需要按照 packing rules 的建议对 CBuffer 进行排序。
 				std::ostringstream strMatStruct;
 				strMatStruct << "struct " << strMatName.str();
 				strMatStruct << "\n{\n";
@@ -501,7 +524,7 @@ void NXCustomMaterial::ProcessShaderCBufferParam(std::istringstream& in, std::os
 			break;
 		}
 
-		if (type == "float") { cbElemCount++; cbFloatCount++; }
+		if		(type == "float")  { cbElemCount++; cbFloatCount++; }
 		else if (type == "float2") { cbElemCount++; cbFloatCount += 2; }
 		else if (type == "float3") { cbElemCount++; cbFloatCount += 3; }
 		else if (type == "float4") { cbElemCount++; cbFloatCount += 4; }

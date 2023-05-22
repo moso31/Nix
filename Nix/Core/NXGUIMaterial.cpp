@@ -253,7 +253,10 @@ void NXGUIMaterial::OnBtnCompileClicked(NXCustomMaterial* pMaterial)
 	std::string nslParams = BuildNSLParamString();
 	pMaterial->SetNSLParam(nslParams);
 	pMaterial->SetNSLCode(m_nslCodeDisplay);
-	pMaterial->CompileShader();
+
+	std::string strHLSLHead, strHLSLBody;
+	pMaterial->ConvertNSLToHLSL(strHLSLHead, strHLSLBody);
+	pMaterial->CompileShader(strHLSLHead, strHLSLBody, m_strCompileErrorVS, m_strCompileErrorPS);
 
 	m_bIsDirty = true;
 }

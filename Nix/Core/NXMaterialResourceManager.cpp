@@ -216,9 +216,14 @@ NXPBRMaterialTranslucent* NXMaterialResourceManager::CreatePBRMaterialTranslucen
 NXCustomMaterial* NXMaterialResourceManager::CreateCustomMaterial(const std::string& name, const std::string& nslFilePath)
 {
 	auto pMat = new NXCustomMaterial(name);
+
+	std::string strHLSLHead, strHLSLBody;
+	std::string strErrMsgVS, strErrMsgPS;
+
 	pMat->SetShaderFilePath("./shader/GBufferEx_Test.nsl");
 	pMat->LoadShaderCode();
-	pMat->CompileShader();
+	pMat->ConvertNSLToHLSL(strHLSLHead, strHLSLBody);
+	pMat->CompileShader(strHLSLHead, strHLSLBody, strErrMsgVS, strErrMsgPS);
 	pMat->InitShaderResources();
 	NXResourceManager::GetInstance()->GetMaterialManager()->RegisterMaterial(pMat);
 	return pMat;

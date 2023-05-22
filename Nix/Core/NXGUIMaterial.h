@@ -119,6 +119,10 @@ private:
 
 	int m_currentMaterialTypeIndex;
 
+	// 编译HLSL时如果Shader出错，记录到下面的字符串中。字符串最终将会用于在GUI上的错误信息显示。
+	std::string m_strCompileErrorVS;
+	std::string m_strCompileErrorPS;
+
 	// 记录 cb, tex, ss参数 用于显示 GUI。
 	std::vector<NXGUICBufferData> m_cbInfosDisplay;
 	std::vector<NXGUITextureData> m_texInfosDisplay;
