@@ -307,6 +307,9 @@ struct Vector4 : public XMFLOAT4
     Vector4& operator*= (float S);
     Vector4& operator/= (float S);
 
+    float& operator[] (size_t i) { return (&x)[i]; }
+    const float& operator[] (size_t i) const { return (&x)[i]; }
+
     // Urnary operators
     Vector4 operator+ () const { return *this; }
     Vector4 operator- () const;

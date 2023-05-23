@@ -10,6 +10,7 @@
 #include "NXHLSLGenerator.h"
 #include "GlobalBufferManager.h"
 #include "NXRenderStates.h"
+#include "NXGUIMaterial.h"
 
 NXMaterial::NXMaterial(const std::string& name, const NXMaterialType type, const std::string& filePath) :
 	m_name(name),
@@ -179,11 +180,11 @@ void NXCustomMaterial::ConvertNSLToHLSL(std::string& oHLSLHead, std::string& oHL
 	ProcessShaderCode(m_nslCode, oHLSLBody);
 }
 
-void NXCustomMaterial::ConvertGUIDataToHLSL(std::string& oHLSLHead, std::string& oHLSLBody, const std::vector<NXGUICBufferData>& cbDataGUI, const std::vector<NXGUITextureData>& texDataGUI, const std::vector<NXGUISamplerData>& samplerDataGUI)
+void NXCustomMaterial::ConvertGUIDataToHLSL(std::string& oHLSLHead, std::string& oHLSLBody, const std::vector<NXGUICBufferData>& cbDefaultValues, const std::vector<NXGUITextureData>& texDefaultValues, const std::vector<NXGUISamplerData>& samplerDefaultValues)
 {
 	// 将 nsl params 转换成 DX 可以编译的 hlsl 代码，
 	// 同时对其进行分拣，将 cb 储存到 m_cbInfo，纹理储存到 m_texInfoMap，采样器储存到 m_ssInfoMap
-	ProcessShaderParameters(m_nslParams, oHLSLHead);
+	ProcessShaderParameters(m_nslParams, oHLSLHead, cbDefaultValues, texDefaultValues, samplerDefaultValues);
 
 	// 将 nsl code 转换成 DX 可以编译的 hlsl 代码
 	ProcessShaderCode(m_nslCode, oHLSLBody);
@@ -422,7 +423,7 @@ void NXCustomMaterial::ExtractShaderData(const std::string& shader, std::string&
 	nslCode = shader.substr(codeStart, codeEnd - codeStart);
 }
 
-void NXCustomMaterial::ProcessShaderParameters(const std::string& nslParams, std::string& oHLSLHeadCode)
+void NXCustomMaterial::ProcessShaderParameters(const std::string& nslParams, std::string& oHLSLHeadCode, const std::vector<NXGUICBufferData>& cbDefaultValues, const std::vector<NXGUITextureData>& texDefaultValues, const std::vector<NXGUISamplerData>& samplerDefaultValues)
 {
 	using namespace NXConvert;
 
@@ -508,7 +509,7 @@ void NXCustomMaterial::ProcessShaderParameters(const std::string& nslParams, std
 				std::ostringstream strMatStruct;
 				strMatStruct << "struct " << strMatName.str();
 				strMatStruct << "\n{\n";
-				ProcessShaderCBufferParam(in, strMatStruct);
+				ProcessShaderCBufferParam(in, strMatStruct, cbDefaultValues);
 				strMatStruct << "};\n";
 
 				out << strMatStruct.str();
@@ -519,13 +520,30 @@ void NXCustomMaterial::ProcessShaderParameters(const std::string& nslParams, std
 			}
 			else if (type == "Tex2D")
 			{
-				m_texInfos.push_back({ name, nullptr, typeToRegisterIndex[type] });
+				// 如果默认值vector中存储的纹理信息不是空的，就优先在vector中匹配同名的NXTexture指针
+				NXTexture2D* pTexValue = nullptr;
+				if (!texDefaultValues.empty())
+				{
+					auto it = std::find_if(texDefaultValues.begin(), texDefaultValues.end(),
+						[&name, this](const NXGUITextureData& texDisplay) { return texDisplay.name == name; }
+					);
+
+					// 若能匹配某个 NXTexture*，使用该 NXTexture* 作为新 Shader 的默认值；否则使用 nullptr
+					if (it != texDefaultValues.end())
+					{
+						if (it->pTexture)
+							pTexValue = it->pTexture;
+					}
+				}
+
+				m_texInfos.push_back({ name, pTexValue, typeToRegisterIndex[type] });
 
 				out << typeToPrefix[type] << " " << name << " : register(" << typeToRegisterPrefix[type] << typeToRegisterIndex[type]++ << ")";
 				out << ";\n";
 			}
 			else if (type == "SamplerState")
 			{
+				// 【TODO：Sampler 的部分暂未实现，先指个 nullptr 凑合下】
 				m_samplerInfos.push_back({ name, nullptr, typeToRegisterIndex[type] });
 
 				out << typeToPrefix[type] << " " << name << " : register(" << typeToRegisterPrefix[type] << typeToRegisterIndex[type]++ << ")";
@@ -539,7 +557,7 @@ void NXCustomMaterial::ProcessShaderParameters(const std::string& nslParams, std
 	oHLSLHeadCode = std::move(out.str());
 }
 
-void NXCustomMaterial::ProcessShaderCBufferParam(std::istringstream& in, std::ostringstream& out)
+void NXCustomMaterial::ProcessShaderCBufferParam(std::istringstream& in, std::ostringstream& out, const std::vector<NXGUICBufferData>& cbDefaultValues)
 {
 	using namespace NXConvert;
 
@@ -612,27 +630,39 @@ void NXCustomMaterial::ProcessShaderCBufferParam(std::istringstream& in, std::os
 			break;
 		}
 
+		Vector4 cbValue(0.0f);
+		if (!cbDefaultValues.empty())
+		{
+			// 如果是从GUI传过来的，则尽可能使用GUI中的值（否则使用默认值0.0f）
+			auto it = std::find_if(cbDefaultValues.begin(), cbDefaultValues.end(),
+				[&name, this](const NXGUICBufferData& cbDisplay) { return cbDisplay.name == name; }
+			);
+
+			if (it != cbDefaultValues.end())
+				cbValue = it->data;
+		}
+
 		if (type == "float")
 		{
 			cbElems.push_back({ name, NXCBufferInputType::Float, pOffset });
-			m_cbInfoMemory.push_back(0.0f);
+			m_cbInfoMemory.push_back(cbValue.x);
 			pOffset++;
 		}
 		else if (type == "float2")
 		{
-			for (int i = 0; i < 2; i++) m_cbInfoMemory.push_back(0.0f);
+			for (int i = 0; i < 2; i++) m_cbInfoMemory.push_back(cbValue[i]);
 			cbElems.push_back({ name, NXCBufferInputType::Float2, pOffset });
 			pOffset += 2;
 		}
 		else if (type == "float3")
 		{
-			for (int i = 0; i < 3; i++) m_cbInfoMemory.push_back(0.0f);
+			for (int i = 0; i < 3; i++) m_cbInfoMemory.push_back(cbValue[i]);
 			cbElems.push_back({ name, NXCBufferInputType::Float3, pOffset });
 			pOffset += 3;
 		}
 		else if (type == "float4")
 		{
-			for (int i = 0; i < 4; i++) m_cbInfoMemory.push_back(0.0f);
+			for (int i = 0; i < 4; i++) m_cbInfoMemory.push_back(cbValue[i]);
 			cbElems.push_back({ name, NXCBufferInputType::Float4, pOffset });
 			pOffset += 4;
 		}

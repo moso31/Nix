@@ -262,7 +262,7 @@ void NXGUIMaterial::OnBtnCompileClicked(NXCustomMaterial* pMaterial)
 	// 将 NSL 转换成 HLSL
 	// 【2023.5.23 这个过程现在会重置初始化参数，需要修改】
 	std::string strHLSLHead, strHLSLBody;
-	pMaterial->ConvertNSLToHLSL(strHLSLHead, strHLSLBody);
+	pMaterial->ConvertGUIDataToHLSL(strHLSLHead, strHLSLBody, m_cbInfosDisplay, m_texInfosDisplay, m_ssInfosDisplay);
 
 	// 编译 HLSL
 	bool bCompileSuccess = pMaterial->CompileShader(strHLSLHead, strHLSLBody, m_strCompileErrorVS, m_strCompileErrorPS);

@@ -242,9 +242,6 @@ private:
 	void InitConstantBuffer();
 };
 
-struct NXGUICBufferData;
-struct NXGUITextureData;
-struct NXGUISamplerData;
 class NXCustomMaterial : public NXMaterial
 {
 	template <typename NXMatParam>
@@ -258,8 +255,8 @@ public:
 	void SetShaderFilePath(const std::filesystem::path& path);
 	void LoadShaderCode();
 	// 将 NSL 转换为 HLSL。
-	// 如果是GUI点击Compile，则使用GUI传进来的值和纹理；否则使用默认的初始化值和纹理。
 	void ConvertNSLToHLSL(std::string& oHLSLHead, std::string& oHLSLBody);
+	// 将 NSL 转换为 HLSL。另外将 GUI 修改后的参数也传了进来，这些 GUI 参数将作为新编译后的 Shader 的默认值。
 	void ConvertGUIDataToHLSL(std::string& oHLSLHead, std::string& oHLSLBody, const std::vector<NXGUICBufferData>& cbDataGUI, const std::vector<NXGUITextureData>& texDataGUI, const std::vector<NXGUISamplerData>& samplerDataGUI);
 	bool CompileShader(const std::string& strHLSLHead, const std::string& strHLSLBody, std::string& oErrorMessageVS, std::string& oErrorMessagePS);
 
@@ -307,8 +304,15 @@ private:
 
 	// 将 nsl params 转换成 DX 可以编译的 hlsl 代码，
 	// 同时对其进行分拣，将 cb 储存到 m_cbInfo，纹理储存到 m_texInfoMap，采样器储存到 m_ssInfoMap
-	void ProcessShaderParameters(const std::string& nslParams, std::string& oHLSLHeadCode);
-	void ProcessShaderCBufferParam(std::istringstream& in, std::ostringstream& out);
+	void ProcessShaderParameters(
+		const std::string& nslParams,
+		std::string& oHLSLHeadCode,
+		const std::vector<NXGUICBufferData>& cbDefaultValues = {},
+		const std::vector<NXGUITextureData>& texDefaultValues = {},
+		const std::vector<NXGUISamplerData>& samplerDefaultValues = {}
+	);
+
+	void ProcessShaderCBufferParam(std::istringstream& in, std::ostringstream& out, const std::vector<NXGUICBufferData>& cbDefaultValues = {});
 
 	// 将 nsl code 转换成 DX 可以编译的 hlsl 代码，
 	void ProcessShaderCode(const std::string& nslCode, std::string& oHLSLBodyCode);
