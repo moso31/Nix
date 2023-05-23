@@ -261,7 +261,7 @@ public:
 	// 如果是GUI点击Compile，则使用GUI传进来的值和纹理；否则使用默认的初始化值和纹理。
 	void ConvertNSLToHLSL(std::string& oHLSLHead, std::string& oHLSLBody);
 	void ConvertGUIDataToHLSL(std::string& oHLSLHead, std::string& oHLSLBody, const std::vector<NXGUICBufferData>& cbDataGUI, const std::vector<NXGUITextureData>& texDataGUI, const std::vector<NXGUISamplerData>& samplerDataGUI);
-	void CompileShader(const std::string& strHLSLHead, const std::string& strHLSLBody, std::string& oErrorMessageVS, std::string& oErrorMessagePS);
+	bool CompileShader(const std::string& strHLSLHead, const std::string& strHLSLBody, std::string& oErrorMessageVS, std::string& oErrorMessagePS);
 
 	// 初始化所有着色器资源，包括 cb, tex, sampler
 	void InitShaderResources();
@@ -296,6 +296,9 @@ public:
 	const float* GetCBInfoMemoryData(UINT memoryIndex) { return m_cbInfoMemory.data() + memoryIndex; }
 	void SetCBInfoMemoryData(UINT memoryIndex, UINT count, const float* newData);
 
+	void GenerateInfoBackup();
+	void RecoverInfosBackup();
+
 private:
 	// 读取 nsl 文件，获取 nsl shader.
 	bool LoadShaderStringFromFile(std::string& shaderContent);
@@ -324,6 +327,12 @@ private:
 	NXMaterialCBufferInfo				m_cbInfo;
 	std::vector<float>					m_cbInfoMemory;
 	std::vector<int>					m_cbSortedIndex;
+
+	std::vector<NXMaterialSamplerInfo>	m_samplerInfosBackup;
+	std::vector<NXMaterialTextureInfo>	m_texInfosBackup;
+	NXMaterialCBufferInfo				m_cbInfoBackup;
+	std::vector<float>					m_cbInfoMemoryBackup;
+	std::vector<int>					m_cbSortedIndexBackup;
 
 	std::vector<float>					m_cbufferData;
 };

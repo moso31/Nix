@@ -189,7 +189,7 @@ void NXCustomMaterial::ConvertGUIDataToHLSL(std::string& oHLSLHead, std::string&
 	ProcessShaderCode(m_nslCode, oHLSLBody);
 }
 
-void NXCustomMaterial::CompileShader(const std::string& strHLSLHead, const std::string& strHLSLBody, std::string& oErrorMessageVS, std::string& oErrorMessagePS)
+bool NXCustomMaterial::CompileShader(const std::string& strHLSLHead, const std::string& strHLSLBody, std::string& oErrorMessageVS, std::string& oErrorMessagePS)
 {
 	std::string strGBufferShader;
 	NXHLSLGenerator::GetInstance()->EncodeToGBufferShader(strHLSLHead, strHLSLBody, strGBufferShader);
@@ -201,12 +201,13 @@ void NXCustomMaterial::CompileShader(const std::string& strHLSLHead, const std::
 	HRESULT hrVS = NXShaderComplier::GetInstance()->CompileVSILByCode(strGBufferShader, "VS", &pNewVS, NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), &pNewIL, oErrorMessageVS);
 	HRESULT hrPS = NXShaderComplier::GetInstance()->CompilePSByCode(strGBufferShader, "PS", &pNewPS, oErrorMessagePS);
 
-	if (SUCCEEDED(hrVS) && SUCCEEDED(hrPS))
-	{
-		m_pVertexShader = pNewVS;
-		m_pInputLayout = pNewIL;
-		m_pPixelShader = pNewPS;
-	}
+	if (FAILED(hrVS) || FAILED(hrPS))
+		return false;
+
+	m_pVertexShader = pNewVS;
+	m_pPixelShader = pNewPS;
+	m_pInputLayout = pNewIL;
+	return true;
 }
 
 void NXCustomMaterial::InitShaderResources()
@@ -337,6 +338,55 @@ void NXCustomMaterial::SetCBInfoMemoryData(UINT memoryIndex, UINT count, const f
 {
 	count = min(count, (UINT)m_cbInfoMemory.size() - memoryIndex);
 	std::copy(newData, newData + count, m_cbInfoMemory.begin() + memoryIndex);
+}
+
+void NXCustomMaterial::GenerateInfoBackup()
+{
+#if 0
+	m_cbInfoBackup = m_cbInfo;
+	m_cbInfoMemoryBackup = m_cbInfoMemory;
+	m_cbSortedIndexBackup = m_cbSortedIndex;
+	m_texInfosBackup = m_texInfos;
+	m_samplerInfosBackup = m_samplerInfos;
+#else
+	m_cbInfoBackup.elems.clear();
+	m_cbInfoBackup.elems.reserve(m_cbInfo.elems.size());
+	std::copy(m_cbInfo.elems.begin(), m_cbInfo.elems.end(), std::back_inserter(m_cbInfoBackup.elems));
+	m_cbInfoBackup.slotIndex = m_cbInfo.slotIndex;
+
+	m_cbInfoMemoryBackup.clear();
+	m_cbInfoMemoryBackup.reserve(m_cbInfoMemory.size());
+	std::copy(m_cbInfoMemory.begin(), m_cbInfoMemory.end(), std::back_inserter(m_cbInfoMemoryBackup));
+
+	m_cbSortedIndexBackup.clear();
+	m_cbSortedIndexBackup.reserve(m_cbSortedIndex.size());
+	std::copy(m_cbSortedIndex.begin(), m_cbSortedIndex.end(), std::back_inserter(m_cbSortedIndexBackup));
+
+	m_texInfosBackup.clear();
+	m_texInfosBackup.reserve(m_texInfos.size());
+	std::copy(m_texInfos.begin(), m_texInfos.end(), std::back_inserter(m_texInfosBackup));
+
+	m_samplerInfosBackup.clear();
+	m_samplerInfosBackup.reserve(m_samplerInfos.size());
+	std::copy(m_samplerInfos.begin(), m_samplerInfos.end(), std::back_inserter(m_samplerInfosBackup));
+#endif
+}
+
+void NXCustomMaterial::RecoverInfosBackup()
+{
+	std::swap(m_cbInfo.slotIndex, m_cbInfoBackup.slotIndex);
+	m_cbInfo.elems.swap(m_cbInfoBackup.elems);
+	m_cbInfoMemory.swap(m_cbInfoMemoryBackup);
+	m_cbSortedIndex.swap(m_cbSortedIndexBackup);
+	m_texInfos.swap(m_texInfosBackup);
+	m_samplerInfos.swap(m_samplerInfosBackup);
+
+	// 清空上述所有vector
+	m_cbInfoBackup.elems.clear();
+	m_cbInfoMemoryBackup.clear();
+	m_cbSortedIndexBackup.clear();
+	m_texInfosBackup.clear();
+	m_samplerInfosBackup.clear();
 }
 
 bool NXCustomMaterial::LoadShaderStringFromFile(std::string& oShader)

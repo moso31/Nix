@@ -252,12 +252,26 @@ void NXGUIMaterial::OnBtnCompileClicked(NXCustomMaterial* pMaterial)
 	// 构建 NSLParam 代码
 	std::string nslParams = BuildNSLParamString();
 	pMaterial->SetNSLParam(nslParams);
-	pMaterial->SetNSLCode(m_nslCodeDisplay);
 
+	// 更新 NSLCode
+	pMaterial->SetNSLCode(m_nslCodeDisplay);
+	
+	// 为材质记录 backup 信息
+	pMaterial->GenerateInfoBackup();
+
+	// 将 NSL 转换成 HLSL
+	// 【2023.5.23 这个过程现在会重置初始化参数，需要修改】
 	std::string strHLSLHead, strHLSLBody;
 	pMaterial->ConvertNSLToHLSL(strHLSLHead, strHLSLBody);
-	pMaterial->CompileShader(strHLSLHead, strHLSLBody, m_strCompileErrorVS, m_strCompileErrorPS);
 
+	// 编译 HLSL
+	bool bCompileSuccess = pMaterial->CompileShader(strHLSLHead, strHLSLBody, m_strCompileErrorVS, m_strCompileErrorPS);
+
+	// 如果编译失败，则用备份数据恢复材质
+	if (!bCompileSuccess)
+		pMaterial->RecoverInfosBackup();
+
+	// 无论编译是否成功，都将 dirty 设为 true
 	m_bIsDirty = true;
 }
 
