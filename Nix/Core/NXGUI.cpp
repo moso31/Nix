@@ -107,7 +107,7 @@ void NXGUI::Release()
 {
 	//ImGui::SaveIniSettingsToDisk(NXConvert::GetPathOfImguiIni().c_str());
 
-	SafeDelete(m_pGUIMaterial);
+	SafeRelease(m_pGUIMaterial);
 	SafeDelete(m_pGUILights);
 	SafeDelete(m_pGUICamera);
 	SafeDelete(m_pGUICubeMap);

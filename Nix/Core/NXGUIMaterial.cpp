@@ -8,6 +8,32 @@
 
 const char* NXGUIMaterial::s_strCBufferGUIStyle[] = { "Value", "Value2", "Value3", "Value4", "Slider", "Slider2", "Slider3", "Slider4", "Color3", "Color4" };
 
+NXGUIMaterialShaderEditor::NXGUIMaterialShaderEditor(NXGUIMaterial* pGUIMaterial) :
+	m_pGUIMaterial(pGUIMaterial),
+	m_bShowWindow(false)
+{
+}
+
+void NXGUIMaterialShaderEditor::Render(NXCustomMaterial* pMaterial)
+{
+	if (!m_bShowWindow) return;
+
+	if (ImGui::Begin("Material Editor##material_shader_editor", &m_bShowWindow))
+	{
+		if (ImGui::BeginTable("##material_shader_editor_table", 2, ImGuiTableFlags_Resizable))
+		{
+			ImGui::TableNextColumn();
+			static ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput;
+			ImGui::InputTextMultiline("##material_shader_editor_paramview_text", &m_pGUIMaterial->m_nslCodeDisplay, ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 16), flags);
+
+			ImGui::TableNextColumn();
+
+			ImGui::EndTable();
+		}
+		ImGui::End();
+	}
+}
+
 NXGUIMaterial::NXGUIMaterial(NXScene* pScene, NXGUIFileBrowser* pFileBrowser) :
 	m_pCurrentScene(pScene),
 	m_pFileBrowser(pFileBrowser),
@@ -15,7 +41,8 @@ NXGUIMaterial::NXGUIMaterial(NXScene* pScene, NXGUIFileBrowser* pFileBrowser) :
 	m_normalTexPath_test(L".\\Resource\\normal1x1.png"),
 	m_currentMaterialTypeIndex(0),
 	m_pLastMaterial(nullptr),
-	m_bIsDirty(false)
+	m_bIsDirty(false),
+	m_pGUIMaterialShaderEditor(nullptr)
 {
 }
 
@@ -157,6 +184,13 @@ void NXGUIMaterial::Render()
 
 		if (pCommonMaterial->IsCustomMat())
 		{
+			ImGui::SameLine();
+			if (ImGui::Button("Edit Shader...##material_custom_editshader"))
+			{
+				OnBtnEditShaderClicked(static_cast<NXCustomMaterial*>(pCommonMaterial));
+			}
+
+			ImGui::SameLine();
 			if (ImGui::Button("Compile##material_compile"))
 			{
 				OnBtnCompileClicked(static_cast<NXCustomMaterial*>(pCommonMaterial));
@@ -165,6 +199,18 @@ void NXGUIMaterial::Render()
 	}
 
 	ImGui::End();
+
+	// 渲染 Shader Editor GUI
+	if (pCommonMaterial && pCommonMaterial->IsCustomMat())
+	{
+		if (m_pGUIMaterialShaderEditor)
+			m_pGUIMaterialShaderEditor->Render(static_cast<NXCustomMaterial*>(pCommonMaterial));
+	}
+}
+
+void NXGUIMaterial::Release()
+{
+	SafeDelete(m_pGUIMaterialShaderEditor);
 }
 
 void NXGUIMaterial::OnTexAlbedoChange(NXPBRMaterialBase* pMaterial)
@@ -273,6 +319,14 @@ void NXGUIMaterial::OnBtnCompileClicked(NXCustomMaterial* pMaterial)
 
 	// 无论编译是否成功，都将 dirty 设为 true
 	m_bIsDirty = true;
+}
+
+void NXGUIMaterial::OnBtnEditShaderClicked(NXCustomMaterial* pMaterial)
+{
+	if (!m_pGUIMaterialShaderEditor)
+		m_pGUIMaterialShaderEditor = new NXGUIMaterialShaderEditor(this);
+
+	m_pGUIMaterialShaderEditor->Show();
 }
 
 void NXGUIMaterial::OnComboGUIStyleChanged(int selectIndex, NXGUICBufferData& cbDataDisplay)
@@ -628,20 +682,20 @@ void NXGUIMaterial::RenderMaterialUI_Custom(NXCustomMaterial* pMaterial)
 		SyncMaterialData(pMaterial);
 	}
 
-	ImGui::BeginChild("##material_custom", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y * 0.6f));
+	//ImGui::BeginChild("##material_custom", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y * 0.6f));
 	{
 		// 禁用树节点首行缩进
 		ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 0.0f);
 		RenderMaterialUI_Custom_Parameters(pMaterial);
 		RenderMaterialUI_Custom_Codes(pMaterial);
 		ImGui::PopStyleVar(); // ImGuiStyleVar_IndentSpacing
-		ImGui::EndChild();
+		//ImGui::EndChild();
 	}
 }
 
 void NXGUIMaterial::RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMaterial)
 {
-	if (ImGui::TreeNode("Parameters##material_custom_parameters"))
+	if (ImGui::TreeNodeEx("Parameters##material_custom_parameters", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		if (ImGui::Button("Add param##material_custom_parameters_add", ImVec2(ImGui::GetContentRegionAvail().x, 20.0f)))
 		{
@@ -728,7 +782,7 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMateri
 void NXGUIMaterial::RenderMaterialUI_Custom_Parameters_CBufferItem(const std::string& strId, NXCustomMaterial* pMaterial, NXGUICBufferData& cbDisplay)
 {
 	bool bDraged = false;
-	std::string strName = strId + cbDisplay.name;
+	std::string strName = cbDisplay.name + strId;
 
 	UINT N = GetValueNumOfGUIStyle(cbDisplay.guiStyle);
 	switch (cbDisplay.guiStyle)
@@ -766,7 +820,7 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters_CBufferItem(const std::st
 
 void NXGUIMaterial::RenderMaterialUI_Custom_Codes(NXCustomMaterial* pMaterial)
 {
-	if (ImGui::TreeNode("Codes"))
+	if (ImGui::TreeNodeEx("Codes##material_custom_codes", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		static ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput;
 		ImGui::InputTextMultiline("##material_custom_paramview_text", &m_nslCodeDisplay, ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 16), flags);

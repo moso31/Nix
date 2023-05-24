@@ -3,17 +3,35 @@
 #include "NXGUIFileBrowser.h"
 #include "NXShaderDefinitions.h"
 
+class NXGUIMaterial;
+class NXGUIMaterialShaderEditor
+{
+public:
+	NXGUIMaterialShaderEditor(NXGUIMaterial* pGUIMaterial);
+	~NXGUIMaterialShaderEditor() {}
+
+	void Render(NXCustomMaterial* pMaterial);
+
+	void Show() { m_bShowWindow = true; }
+
+private:
+	bool m_bShowWindow;
+	NXGUIMaterial* m_pGUIMaterial;
+};
+
 struct NXGUIContentExplorerButtonDrugData;
 class NXGUIMaterial
 {
 	static const char* s_strCBufferGUIStyle[];
 
+	friend class NXGUIMaterialShaderEditor;
 public:
 	NXGUIMaterial(NXScene* pScene = nullptr, NXGUIFileBrowser* pFileBrowser = nullptr);
 	~NXGUIMaterial() {}
 
 	void SetCurrentScene(NXScene* pScene) { m_pCurrentScene = pScene; }
 	void Render();
+	void Release();
 
 private:
 	void RenderMaterialUI_Standard(NXPBRMaterialStandard* pMaterial);
@@ -48,6 +66,7 @@ private:
 
 	void OnBtnAddParamClicked(NXCustomMaterial* pMaterial, NXGUICBufferStyle eGUIStyle);
 	void OnBtnCompileClicked(NXCustomMaterial* pMaterial);
+	void OnBtnEditShaderClicked(NXCustomMaterial* pMaterial);
 	void OnComboGUIStyleChanged(int selectIndex, NXGUICBufferData& cbDisplayData);
 	void UpdateFileBrowserParameters();
 
@@ -82,4 +101,6 @@ private:
 
 	NXCustomMaterial* m_pLastMaterial;
 	bool m_bIsDirty;
+	
+	NXGUIMaterialShaderEditor* m_pGUIMaterialShaderEditor;
 };
