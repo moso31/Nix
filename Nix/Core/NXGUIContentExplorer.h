@@ -1,10 +1,6 @@
 #pragma once
 #include "Header.h"
-
-struct NXGUIContentExplorerButtonDrugData
-{
-	std::filesystem::path srcPath;
-};
+#include "NXGUICommon.h"
 
 struct NXGUIContentExplorerListSelectionInfo 
 {
@@ -37,7 +33,7 @@ private:
 	std::filesystem::path m_contentFilePath;
 
 	std::unordered_map<size_t, NXGUIContentExplorerListSelectionInfo> m_selectionInfo;
-	NXGUIContentExplorerButtonDrugData m_btnDrugData;
+	NXGUIAssetDragData m_btnDrugData;
 
 	NXGUITexture* m_pGUITexture;
 };

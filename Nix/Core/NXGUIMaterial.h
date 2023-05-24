@@ -3,28 +3,12 @@
 #include "NXGUIFileBrowser.h"
 #include "NXShaderDefinitions.h"
 
-class NXGUIMaterial;
-class NXGUIMaterialShaderEditor
-{
-public:
-	NXGUIMaterialShaderEditor(NXGUIMaterial* pGUIMaterial);
-	~NXGUIMaterialShaderEditor() {}
-
-	void Render(NXCustomMaterial* pMaterial);
-
-	void Show() { m_bShowWindow = true; }
-
-private:
-	bool m_bShowWindow;
-	NXGUIMaterial* m_pGUIMaterial;
-};
-
-struct NXGUIContentExplorerButtonDrugData;
+struct NXGUIAssetDragData;
 class NXGUIMaterial
 {
-	static const char* s_strCBufferGUIStyle[];
-
+public:
 	friend class NXGUIMaterialShaderEditor;
+
 public:
 	NXGUIMaterial(NXScene* pScene = nullptr, NXGUIFileBrowser* pFileBrowser = nullptr);
 	~NXGUIMaterial() {}
@@ -41,9 +25,6 @@ private:
 	void RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMaterial);
 	void RenderMaterialUI_Custom_Parameters_CBufferItem(const std::string& strId, NXCustomMaterial* pMaterial, NXGUICBufferData& cbDisplay);
 	void RenderMaterialUI_Custom_Codes(NXCustomMaterial* pMaterial);
-
-private:
-	void RenderTextureIcon(ImTextureID ImTexID, std::function<void()> onChange, std::function<void()> onRemove, std::function<void(const std::wstring&)> onDrop);
 
 private:
 	void OnTexAlbedoChange(NXPBRMaterialBase* pPickingObjectMaterial);
@@ -64,7 +45,6 @@ private:
 	void OnTexRoughnessDrop(NXPBRMaterialBase* pPickingObjectMaterial, const std::wstring& filePath);
 	void OnTexAODrop(NXPBRMaterialBase* pPickingObjectMaterial, const std::wstring& filePath);
 
-	void OnBtnAddParamClicked(NXCustomMaterial* pMaterial, NXGUICBufferStyle eGUIStyle);
 	void OnBtnCompileClicked(NXCustomMaterial* pMaterial);
 	void OnBtnEditShaderClicked(NXCustomMaterial* pMaterial);
 	void OnComboGUIStyleChanged(int selectIndex, NXGUICBufferData& cbDisplayData);
@@ -72,11 +52,6 @@ private:
 
 	void SyncMaterialData(NXCustomMaterial* pMaterial);
 	std::string BuildNSLParamString();
-
-	NXGUICBufferStyle	GetGUIStyleFromString(const std::string& strTypeString);
-	NXGUICBufferStyle	GetDefaultGUIStyleFromCBufferType(NXCBufferInputType eCBElemType);
-	UINT				GetValueNumOfGUIStyle(NXGUICBufferStyle eGuiStyle);
-	Vector2				GetGUIParamsDefaultValue(NXGUICBufferStyle eGUIStyle);
 
 private:
 	NXScene* m_pCurrentScene;

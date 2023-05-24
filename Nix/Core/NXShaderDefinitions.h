@@ -1,4 +1,5 @@
 #pragma once
+#include "Header.h"
 
 enum NXShaderInputType
 {
@@ -42,8 +43,6 @@ struct NXMaterialSamplerInfo
     ComPtr<ID3D11SamplerState> pSampler;
     UINT slotIndex;
 };
-
-
 
 // 在 GUI 中的显示 Style
 enum class NXGUICBufferStyle
@@ -94,3 +93,6 @@ struct NXGUISamplerData
 	std::string name;
 	ComPtr<ID3D11SamplerState> pSampler;
 };
+
+extern const char* g_strCBufferGUIStyle[];
+extern const int g_strCBufferGUIStyleCount;

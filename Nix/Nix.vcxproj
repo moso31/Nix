@@ -213,6 +213,7 @@
     <ClCompile Include="Core\FBXMeshLoader.cpp" />
     <ClCompile Include="Core\Global.cpp" />
     <ClCompile Include="Core\GlobalBufferManager.cpp" />
+    <ClCompile Include="Core\NXGUIMaterialShaderEditor.cpp" />
     <ClCompile Include="Core\NXHLSLGenerator.cpp" />
     <ClCompile Include="Core\ImageGenerator.cpp" />
     <ClCompile Include="Core\Main.cpp" />
@@ -251,6 +252,7 @@
     <ClCompile Include="Core\NXResourceManagerBase.cpp" />
     <ClCompile Include="Core\NXResourceReloader.cpp" />
     <ClCompile Include="Core\NXScriptResourceManager.cpp" />
+    <ClCompile Include="Core\NXShaderDefinitions.cpp" />
     <ClCompile Include="Core\NXShadowMapRenderer.cpp" />
     <ClCompile Include="Core\NXShadowTestRenderer.cpp" />
     <ClCompile Include="Core\NXSkyRenderer.cpp" />
@@ -289,6 +291,7 @@
     <ClInclude Include="Core\FBXMeshLoader.h" />
     <ClInclude Include="Core\GlobalBufferManager.h" />
     <ClInclude Include="Core\Header.h" />
+    <ClInclude Include="Core\NXGUIMaterialShaderEditor.h" />
     <ClInclude Include="Core\NXHLSLGenerator.h" />
     <ClInclude Include="Core\ImageGenerator.h" />
     <ClInclude Include="Core\NXBRDFlut.h" />
