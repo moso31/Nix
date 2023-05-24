@@ -13,8 +13,9 @@ Selfmade DX11 renderer.
 - [x] A very simple Tone-Mapping
 
 ## Intending...
+- [ ] Customable material **\[IN PROGRESS\]**
 - [ ] SSS
-  - [ ] Screen-Space SSSS
+  - [ ] Screen-Space SSSS **\[IN PROGRESS\]**
   - [ ] Separable SSS
   - [ ] Burley SSS
   - [ ] PreIntegrated SSS
