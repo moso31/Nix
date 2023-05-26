@@ -263,7 +263,6 @@ public:
 
 	// 初始化所有着色器资源，包括 cb, tex, sampler
 	void InitShaderResources();
-	void UpdateCBData();
 
 	virtual void Update() override;
 
@@ -297,6 +296,8 @@ public:
 	void GenerateInfoBackup();
 	void RecoverInfosBackup();
 
+	void RequestUpdateCBufferData() { m_bIsDirty = true; }
+
 private:
 	// 读取 nsl 文件，获取 nsl shader.
 	bool LoadShaderStringFromFile(std::string& shaderContent);
@@ -317,6 +318,8 @@ private:
 
 	// 将 nsl code 转换成 DX 可以编译的 hlsl 代码，
 	void ProcessShaderCode(const std::string& nslCode, std::string& oHLSLBodyCode);
+
+	void UpdateCBData();
 
 private:
 	std::filesystem::path		m_nslFilePath;
@@ -340,4 +343,6 @@ private:
 	std::vector<int>					m_cbSortedIndexBackup;
 
 	std::vector<float>					m_cbufferData;
+
+	bool m_bIsDirty;
 };

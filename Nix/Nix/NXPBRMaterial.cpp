@@ -251,7 +251,7 @@ void NXCustomMaterial::InitShaderResources()
 		ssInfo.pSampler = NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP>::Create();
 	}
 
-	UpdateCBData();
+	RequestUpdateCBufferData();
 }
 
 void NXCustomMaterial::UpdateCBData()
@@ -349,6 +349,12 @@ void NXCustomMaterial::Render()
 
 void NXCustomMaterial::Update()
 {
+	if (m_bIsDirty)
+	{
+		UpdateCBData();
+		m_bIsDirty = false;
+	}
+
 	if (m_cb)
 		g_pContext->UpdateSubresource(m_cb.Get(), 0, nullptr, m_cbufferData.data(), 0, 0);
 }
@@ -365,6 +371,8 @@ void NXCustomMaterial::SetCBInfoMemoryData(UINT memoryIndex, UINT count, const f
 {
 	count = min(count, (UINT)m_cbInfoMemory.size() - memoryIndex);
 	std::copy(newData, newData + count, m_cbInfoMemory.begin() + memoryIndex);
+
+	RequestUpdateCBufferData();
 }
 
 void NXCustomMaterial::GenerateInfoBackup()

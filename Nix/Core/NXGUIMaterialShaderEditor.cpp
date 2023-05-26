@@ -2,6 +2,7 @@
 #include "NXGUIMaterial.h"
 #include "NXGUICommon.h"
 #include "NXPBRMaterial.h"
+#include <regex>
 
 void NXGUIMaterialShaderEditor::Render(NXCustomMaterial* pMaterial)
 {
@@ -48,6 +49,12 @@ void NXGUIMaterialShaderEditor::PrepareShaderResourceData(const std::vector<NXGU
 	m_ssInfosDisplay.assign(ssInfosDisplay.begin(), ssInfosDisplay.end());
 }
 
+void NXGUIMaterialShaderEditor::ClearShaderErrorMessages()
+{
+	for (int i = 0; i < NXGUI_ERROR_MESSAGE_MAXLIMIT; i++)
+		m_shaderErrMsgs[i] = { std::string(), -1, -1, -1 };
+}
+
 void NXGUIMaterialShaderEditor::UpdateShaderErrorMessages(const std::string& strCompileErrorVS, const std::string& strCompileErrorPS)
 {
 	std::istringstream iss(strCompileErrorPS);
@@ -56,7 +63,29 @@ void NXGUIMaterialShaderEditor::UpdateShaderErrorMessages(const std::string& str
 	for (int i = 0; i < NXGUI_ERROR_MESSAGE_MAXLIMIT; i++)
 	{
 		auto& errMsg = m_shaderErrMsgs[i];
+		auto& strMsg = errMsg.data;
 		std::getline(iss, errMsg.data);
+
+		// 创建一个正则表达式对象，用于匹配括号中的行列号
+		std::regex re("\\((\\d+),(\\d+)-(\\d+)\\)");
+
+		std::smatch match;
+		if (std::regex_search(strMsg, match, re) && match.size() > 1) 
+		{
+			std::string row_number_str = match.str(1);
+			std::string start_col_number_str = match.str(2);
+			std::string end_col_number_str = match.str(3);
+
+			errMsg.row  = std::stoi(row_number_str);
+			errMsg.col0 = std::stoi(start_col_number_str);
+			errMsg.col1 = std::stoi(end_col_number_str);
+		}
+		else
+		{
+			errMsg.row = -1;
+			errMsg.col0 = -1;
+			errMsg.col1 = -1;
+		}
 	}
 }
 
@@ -78,10 +107,12 @@ void NXGUIMaterialShaderEditor::OnBtnCompileClicked(NXCustomMaterial* pMaterial)
 
 	// 无论编译是否成功，都让GUI材质类请求同步材质数据，以更新GUIMaterial
 	m_pGUIMaterial->RequestSyncMaterialData();
+	
+	// 如果编译失败，将错误信息同步到 ShaderEditor
+	bCompile ? ClearShaderErrorMessages() : UpdateShaderErrorMessages(strErrVS, strErrPS);
 
-	// 如果编译失败，将 Shader编译信息同步到 ShaderEditor
-	if (!bCompile)
-		UpdateShaderErrorMessages(strErrVS, strErrPS);
+	// 原始材质申请更新一次CBuffer。
+	pMaterial->RequestUpdateCBufferData();
 }
 
 void NXGUIMaterialShaderEditor::OnComboGUIStyleChanged(int selectIndex, NXGUICBufferData& cbDataDisplay)
@@ -233,12 +264,16 @@ void NXGUIMaterialShaderEditor::Render_Params_CBufferItem(const std::string& str
 		// 在这里将 GUI 修改过的参数传回给材质 CBuffer，实现视觉上的变化
 		UINT actualN = cbDisplay.readType; // 实际上要拷贝的字节量是 cbDisplay 初始读取的字节数量 actualN，而不是更改 GUIStyle 以后的参数数量 N
 		pMaterial->SetCBInfoMemoryData(cbDisplay.memoryIndex, actualN, cbDisplay.data);
-		pMaterial->UpdateCBData();
 	}
 }
 
 void NXGUIMaterialShaderEditor::Render_ErrorMessages()
 {
+	auto dl = ImGui::GetWindowDrawList();
+	dl->AddCircle(ImVec2(300.0f, 300.0f), 100, -1);
+	dl->AddRectFilled(ImVec2(0.0f, 0.0f), ImVec2(220.0f, 420.0f), 0xffffffff);
+	dl->AddRect(ImVec2(0.0f, 0.0f), ImVec2(220.0f, 420.0f), 0xffffffff);
+
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.f, 0.f));
 	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
 
@@ -248,9 +283,10 @@ void NXGUIMaterialShaderEditor::Render_ErrorMessages()
 		{
 			ImGui::TableNextColumn();
 
-			auto& shaderErrMsg = m_shaderErrMsgs[i];
-			if (ImGui::SmallButton(shaderErrMsg.data.c_str()))
+			auto& errMsg = m_shaderErrMsgs[i];
+			if (ImGui::SmallButton(errMsg.data.c_str()))
 			{
+				errMsg.data;
 			}
 		}
 		ImGui::EndTable();

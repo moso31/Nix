@@ -605,7 +605,6 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters_CBufferItem(const std::st
 		// 实际上要拷贝的字节量是 cbDisplay 初始读取的字节数量 actualN，而不是更改 GUIStyle 以后的参数数量 N
 		UINT actualN = cbDisplay.readType;
 		pMaterial->SetCBInfoMemoryData(cbDisplay.memoryIndex, actualN, cbDisplay.data);
-		pMaterial->UpdateCBData();
 	}
 }
 
