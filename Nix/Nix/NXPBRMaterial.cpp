@@ -211,6 +211,32 @@ bool NXCustomMaterial::CompileShader(const std::string& strHLSLHead, const std::
 	return true;
 }
 
+bool NXCustomMaterial::Recompile(const std::string& nslParams, const std::string& nslCode, const std::vector<NXGUICBufferData>& cbDefaultValues, const std::vector<NXGUITextureData>& texDefaultValues, const std::vector<NXGUISamplerData>& samplerDefaultValues, std::string& oErrorMessageVS, std::string& oErrorMessagePS)
+{
+	// 构建 NSLParam 代码
+	SetNSLParam(nslParams);
+
+	// 更新 NSLCode
+	SetNSLCode(nslCode);
+
+	// 为材质记录 backup 信息
+	GenerateInfoBackup();
+
+	// 将 NSL 转换成 HLSL
+	// 【2023.5.23 这个过程现在会重置初始化参数，需要修改】
+	std::string strHLSLHead, strHLSLBody;
+	ConvertGUIDataToHLSL(strHLSLHead, strHLSLBody, cbDefaultValues, texDefaultValues, samplerDefaultValues);
+
+	// 编译 HLSL
+	bool bCompileSuccess = CompileShader(strHLSLHead, strHLSLBody, oErrorMessageVS, oErrorMessagePS);
+
+	// 如果编译失败，则用备份数据恢复材质
+	if (!bCompileSuccess)
+		RecoverInfosBackup();
+
+	return bCompileSuccess;
+}
+
 void NXCustomMaterial::InitShaderResources()
 {
 	for (auto& texInfo : m_texInfos)
@@ -343,34 +369,21 @@ void NXCustomMaterial::SetCBInfoMemoryData(UINT memoryIndex, UINT count, const f
 
 void NXCustomMaterial::GenerateInfoBackup()
 {
-#if 0
-	m_cbInfoBackup = m_cbInfo;
-	m_cbInfoMemoryBackup = m_cbInfoMemory;
-	m_cbSortedIndexBackup = m_cbSortedIndex;
-	m_texInfosBackup = m_texInfos;
-	m_samplerInfosBackup = m_samplerInfos;
-#else
-	m_cbInfoBackup.elems.clear();
 	m_cbInfoBackup.elems.reserve(m_cbInfo.elems.size());
-	std::copy(m_cbInfo.elems.begin(), m_cbInfo.elems.end(), std::back_inserter(m_cbInfoBackup.elems));
+	m_cbInfoBackup.elems.assign(m_cbInfo.elems.begin(), m_cbInfo.elems.end());
 	m_cbInfoBackup.slotIndex = m_cbInfo.slotIndex;
 
-	m_cbInfoMemoryBackup.clear();
 	m_cbInfoMemoryBackup.reserve(m_cbInfoMemory.size());
-	std::copy(m_cbInfoMemory.begin(), m_cbInfoMemory.end(), std::back_inserter(m_cbInfoMemoryBackup));
+	m_cbInfoMemoryBackup.assign(m_cbInfoMemory.begin(), m_cbInfoMemory.end());
 
-	m_cbSortedIndexBackup.clear();
 	m_cbSortedIndexBackup.reserve(m_cbSortedIndex.size());
-	std::copy(m_cbSortedIndex.begin(), m_cbSortedIndex.end(), std::back_inserter(m_cbSortedIndexBackup));
+	m_cbSortedIndexBackup.assign(m_cbSortedIndex.begin(), m_cbSortedIndex.end());
 
-	m_texInfosBackup.clear();
 	m_texInfosBackup.reserve(m_texInfos.size());
-	std::copy(m_texInfos.begin(), m_texInfos.end(), std::back_inserter(m_texInfosBackup));
+	m_texInfosBackup.assign(m_texInfos.begin(), m_texInfos.end());
 
-	m_samplerInfosBackup.clear();
 	m_samplerInfosBackup.reserve(m_samplerInfos.size());
-	std::copy(m_samplerInfos.begin(), m_samplerInfos.end(), std::back_inserter(m_samplerInfosBackup));
-#endif
+	m_samplerInfosBackup.assign(m_samplerInfos.begin(), m_samplerInfos.end());
 }
 
 void NXCustomMaterial::RecoverInfosBackup()

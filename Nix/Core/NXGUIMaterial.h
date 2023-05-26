@@ -4,11 +4,9 @@
 #include "NXShaderDefinitions.h"
 
 struct NXGUIAssetDragData;
+class NXGUIMaterialShaderEditor;
 class NXGUIMaterial
 {
-public:
-	friend class NXGUIMaterialShaderEditor;
-
 public:
 	NXGUIMaterial(NXScene* pScene = nullptr, NXGUIFileBrowser* pFileBrowser = nullptr);
 	~NXGUIMaterial() {}
@@ -16,6 +14,8 @@ public:
 	void SetCurrentScene(NXScene* pScene) { m_pCurrentScene = pScene; }
 	void Render();
 	void Release();
+
+	void RequestSyncMaterialData() { m_bIsDirty = true; }
 
 private:
 	void RenderMaterialUI_Standard(NXPBRMaterialStandard* pMaterial);
@@ -45,13 +45,13 @@ private:
 	void OnTexRoughnessDrop(NXPBRMaterialBase* pPickingObjectMaterial, const std::wstring& filePath);
 	void OnTexAODrop(NXPBRMaterialBase* pPickingObjectMaterial, const std::wstring& filePath);
 
-	void OnBtnCompileClicked(NXCustomMaterial* pMaterial);
 	void OnBtnEditShaderClicked(NXCustomMaterial* pMaterial);
 	void OnComboGUIStyleChanged(int selectIndex, NXGUICBufferData& cbDisplayData);
 	void UpdateFileBrowserParameters();
 
 	void SyncMaterialData(NXCustomMaterial* pMaterial);
-	std::string BuildNSLParamString();
+
+	NXGUIMaterialShaderEditor* GetShaderEditor();
 
 private:
 	NXScene* m_pCurrentScene;
@@ -63,10 +63,6 @@ private:
 
 	int m_currentMaterialTypeIndex;
 
-	// 编译HLSL时如果Shader出错，记录到下面的字符串中。字符串最终将会用于在GUI上的错误信息显示。
-	std::string m_strCompileErrorVS;
-	std::string m_strCompileErrorPS;
-
 	// 记录 cb, tex, ss参数 用于显示 GUI。
 	std::vector<NXGUICBufferData> m_cbInfosDisplay;
 	std::vector<NXGUITextureData> m_texInfosDisplay;
@@ -76,6 +72,4 @@ private:
 
 	NXCustomMaterial* m_pLastMaterial;
 	bool m_bIsDirty;
-	
-	NXGUIMaterialShaderEditor* m_pGUIMaterialShaderEditor;
 };

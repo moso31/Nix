@@ -3,55 +3,54 @@
 #include "NXGUICommon.h"
 #include "NXPBRMaterial.h"
 
-NXGUIMaterialShaderEditor::NXGUIMaterialShaderEditor(NXGUIMaterial* pGUIMaterial) :
-	m_pGUIMaterial(pGUIMaterial),
-	m_bShowWindow(false)
-{
-}
-
 void NXGUIMaterialShaderEditor::Render(NXCustomMaterial* pMaterial)
 {
 	if (!m_bShowWindow) return;
 
-	ImGui::Begin("Material Editor##material_shader_editor", &m_bShowWindow);
+	bool k = ImGui::Begin("Material Editor##material_shader_editor", &m_bShowWindow);
 
 	ImVec2 childWindowFullSize(ImGui::GetContentRegionAvail());
 	ImVec2 childWindowTableSize(childWindowFullSize.x, min(childWindowFullSize.x * 0.6667f, childWindowFullSize.y - 200.0f));
-	if (ImGui::BeginChild("##material_shader_editor_table_div", childWindowTableSize))
+	ImGui::BeginChild("##material_shader_editor_table_div", childWindowTableSize);
+	if (ImGui::BeginTable("##material_shader_editor_table", 2, ImGuiTableFlags_Resizable))
 	{
-		if (ImGui::BeginTable("##material_shader_editor_table", 2, ImGuiTableFlags_Resizable))
-		{
-			ImGui::TableNextColumn();
-			Render_Code();
+		ImGui::TableNextColumn();
+		Render_Code();
 
-			ImGui::TableNextColumn();
-			Render_Params(pMaterial);
+		ImGui::TableNextColumn();
+		Render_Params(pMaterial);
 
-			ImGui::EndTable();
-		}
-		ImGui::EndChild();
+		ImGui::EndTable(); // ##material_shader_editor_table
 	}
+	ImGui::EndChild(); // ##material_shader_editor_table_div
 
 	ImVec2 childErrMsgWindowSize(childWindowFullSize.x, childWindowFullSize.y - childWindowTableSize.y);
-	if (ImGui::BeginChild("##material_shader_editor_errmsg", childErrMsgWindowSize))
-	{
-		if (ImGui::Button("Compile##material_shader_editor_compile"))
-		{
-			OnBtnCompileClicked(pMaterial);
-			UpdateShaderErrorMessages();
-		}
+	ImGui::BeginChild("##material_shader_editor_errmsg", childErrMsgWindowSize);
+	if (ImGui::Button("Compile##material_shader_editor_compile"))
+		OnBtnCompileClicked(pMaterial);
 
-		Render_ErrorMessages();
-		ImGui::EndChild();
-	}
+	Render_ErrorMessages();
+
+	ImGui::EndChild(); // ##material_shader_editor_compile
 
 	ImGui::End();
 }
 
-void NXGUIMaterialShaderEditor::UpdateShaderErrorMessages()
+void NXGUIMaterialShaderEditor::PrepareShaderResourceData(const std::vector<NXGUICBufferData>& cbInfosDisplay, const std::vector<NXGUITextureData>& texInfosDisplay, const std::vector<NXGUISamplerData>& ssInfosDisplay)
 {
-	std::string& strErrPS = m_pGUIMaterial->m_strCompileErrorPS;
-	std::istringstream iss(strErrPS);
+	m_cbInfosDisplay.reserve(cbInfosDisplay.size());
+	m_cbInfosDisplay.assign(cbInfosDisplay.begin(), cbInfosDisplay.end());
+
+	m_texInfosDisplay.reserve(texInfosDisplay.size());
+	m_texInfosDisplay.assign(texInfosDisplay.begin(), texInfosDisplay.end());
+
+	m_ssInfosDisplay.reserve(ssInfosDisplay.size());
+	m_ssInfosDisplay.assign(ssInfosDisplay.begin(), ssInfosDisplay.end());
+}
+
+void NXGUIMaterialShaderEditor::UpdateShaderErrorMessages(const std::string& strCompileErrorVS, const std::string& strCompileErrorPS)
+{
+	std::istringstream iss(strCompileErrorPS);
 	int lineCount = 0;
 
 	for (int i = 0; i < NXGUI_ERROR_MESSAGE_MAXLIMIT; i++)
@@ -64,48 +63,55 @@ void NXGUIMaterialShaderEditor::UpdateShaderErrorMessages()
 void NXGUIMaterialShaderEditor::OnBtnAddParamClicked(NXCustomMaterial* pMaterial, NXGUICBufferStyle eGUIStyle)
 {
 	using namespace NXGUICommon;
-	m_pGUIMaterial->m_cbInfosDisplay.push_back({ "newParam", NXCBufferInputType::Float4, Vector4(0.0f), eGUIStyle, GetGUIParamsDefaultValue(eGUIStyle), -1 });
+	m_cbInfosDisplay.push_back({ "newParam", NXCBufferInputType::Float4, Vector4(0.0f), eGUIStyle, GetGUIParamsDefaultValue(eGUIStyle), -1 });
 }
 
 void NXGUIMaterialShaderEditor::OnBtnCompileClicked(NXCustomMaterial* pMaterial)
 {
+	using namespace NXGUICommon;
+
 	// 构建 NSLParam 代码
-	std::string nslParams = m_pGUIMaterial->BuildNSLParamString();
-	pMaterial->SetNSLParam(nslParams);
+	std::string nslParams = ConvertShaderResourceDataToNSLParam(m_cbInfosDisplay, m_texInfosDisplay, m_ssInfosDisplay);
 
-	// 更新 NSLCode
-	pMaterial->SetNSLCode(m_pGUIMaterial->m_nslCodeDisplay);
+	std::string strErrVS, strErrPS;	// 若编译Shader出错，将错误信息记录到此字符串中。
+	bool bCompile = pMaterial->Recompile(nslParams, m_nslCode, m_cbInfosDisplay, m_texInfosDisplay, m_ssInfosDisplay, strErrVS, strErrPS);
 
-	// 为材质记录 backup 信息
-	pMaterial->GenerateInfoBackup();
+	// 无论编译是否成功，都让GUI材质类请求同步材质数据，以更新GUIMaterial
+	m_pGUIMaterial->RequestSyncMaterialData();
 
-	// 将 NSL 转换成 HLSL
-	// 【2023.5.23 这个过程现在会重置初始化参数，需要修改】
-	std::string strHLSLHead, strHLSLBody;
-	pMaterial->ConvertGUIDataToHLSL(strHLSLHead, strHLSLBody, m_pGUIMaterial->m_cbInfosDisplay, m_pGUIMaterial->m_texInfosDisplay, m_pGUIMaterial->m_ssInfosDisplay);
-
-	// 编译 HLSL
-	bool bCompileSuccess = pMaterial->CompileShader(strHLSLHead, strHLSLBody, m_pGUIMaterial->m_strCompileErrorVS, m_pGUIMaterial->m_strCompileErrorPS);
-
-	// 如果编译失败，则用备份数据恢复材质
-	if (!bCompileSuccess)
-		pMaterial->RecoverInfosBackup();
-
-	// 无论编译是否成功，都将 dirty 设为 true
-	m_pGUIMaterial->m_bIsDirty = true;
+	// 如果编译失败，将 Shader编译信息同步到 ShaderEditor
+	if (!bCompile)
+		UpdateShaderErrorMessages(strErrVS, strErrPS);
 }
 
-void NXGUIMaterialShaderEditor::OnComboGUIStyleChanged(int selectIndex, NXGUICBufferData& cbDisplayData)
+void NXGUIMaterialShaderEditor::OnComboGUIStyleChanged(int selectIndex, NXGUICBufferData& cbDataDisplay)
 {
+	using namespace NXGUICommon;
+
+	// 设置 GUI Style
+	cbDataDisplay.guiStyle = GetGUIStyleFromString(g_strCBufferGUIStyle[selectIndex]);
+
+	// 根据 GUI Style 设置GUI的拖动速度或最大最小值
+	cbDataDisplay.params = GetGUIParamsDefaultValue(cbDataDisplay.guiStyle);
+}
+
+void NXGUIMaterialShaderEditor::SetGUIMaterial(NXGUIMaterial* pGUIMaterial)
+{
+	m_pGUIMaterial = pGUIMaterial;
+}
+
+void NXGUIMaterialShaderEditor::SetGUIFileBrowser(NXGUIFileBrowser* pGUIFileBrowser)
+{
+	m_pFileBrowser = pGUIFileBrowser;
 }
 
 void NXGUIMaterialShaderEditor::Render_Code()
 {
 	float fEachTextLineHeight = ImGui::GetTextLineHeight();
 	static ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput;
-	// 规定 UI 至少留出 10 行代码的高度，但最多
+	// 规定 UI 至少留出 10 行代码的高度
 	float fTextEditorHeight = max(10.0f, ImGui::GetContentRegionAvail().y / fEachTextLineHeight) * fEachTextLineHeight;
-	ImGui::InputTextMultiline("##material_shader_editor_paramview_text", &m_pGUIMaterial->m_nslCodeDisplay, ImVec2(-FLT_MIN, fTextEditorHeight), flags);
+	ImGui::InputTextMultiline("##material_shader_editor_paramview_text", &m_nslCode, ImVec2(-FLT_MIN, fTextEditorHeight), flags);
 }
 
 void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
@@ -131,10 +137,10 @@ void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
 		ImGui::EndPopup();
 	}
 
-	if (ImGui::BeginChild("##material_shader_editor_custom_child"))
+	(ImGui::BeginChild("##material_shader_editor_custom_child"));
 	{
 		int paramCnt = 0;
-		for (auto& cbDisplay : m_pGUIMaterial->m_cbInfosDisplay)
+		for (auto& cbDisplay : m_cbInfosDisplay)
 		{
 			std::string strId = "##material_shader_editor_custom_child_cbuffer_" + std::to_string(paramCnt++);
 			if (ImGui::BeginCombo(strId.c_str(), g_strCBufferGUIStyle[(int)cbDisplay.guiStyle]))
@@ -153,44 +159,42 @@ void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
 			Render_Params_CBufferItem(strId, pMaterial, cbDisplay);
 		}
 
-		for (auto& texDisplay : m_pGUIMaterial->m_texInfosDisplay)
+		for (auto& texDisplay : m_texInfosDisplay)
 		{
 			std::string strId = "##material_shader_editor_custom_child_texture_" + std::to_string(paramCnt++);
 
 			auto pTex = texDisplay.pTexture;
 			if (!pTex) continue;
 
-			auto& pFileBrowser = m_pGUIMaterial->m_pFileBrowser;
-			auto onTexChange = [pMaterial, &pTex, pFileBrowser]()
+			auto onTexChange = [pMaterial, &pTex, this]()
 			{
-				pMaterial->SetTex2D(pTex, pFileBrowser->GetSelected().c_str());
+				pMaterial->SetTex2D(pTex, m_pFileBrowser->GetSelected().c_str());
 			};
 
-			auto onTexRemove = [pMaterial, &pTex, pFileBrowser]()
+			auto onTexRemove = [pMaterial, &pTex, this]()
 			{
-				pMaterial->SetTex2D(pTex, pFileBrowser->GetSelected().c_str());
+				pMaterial->SetTex2D(pTex, m_pFileBrowser->GetSelected().c_str());
 			};
 
-			auto onTexDrop = [pMaterial, &pTex, pFileBrowser](const std::wstring& dragPath)
+			auto onTexDrop = [pMaterial, &pTex, this](const std::wstring& dragPath)
 			{
 				pMaterial->SetTex2D(pTex, dragPath);
 			};
 
-			RenderTextureIcon(pTex->GetSRV(), pFileBrowser, onTexChange, onTexRemove, onTexDrop);
+			RenderTextureIcon(pTex->GetSRV(), m_pFileBrowser, onTexChange, onTexRemove, onTexDrop);
 
 			ImGui::SameLine();
 			ImGui::Text(texDisplay.name.data());
 		}
 
 		// 【Sampler 的部分暂时还没想好，先空着】
-		for (auto& ssDisplay : m_pGUIMaterial->m_ssInfosDisplay)
+		for (auto& ssDisplay : m_ssInfosDisplay)
 		{
 			std::string strId = "##material_shader_editor_custom_child_sampler_" + std::to_string(paramCnt++);
 			ImGui::Text(ssDisplay.name.data());
 		}
-
-		ImGui::EndChild();
 	}
+	ImGui::EndChild();
 }
 
 void NXGUIMaterialShaderEditor::Render_Params_CBufferItem(const std::string& strId, NXCustomMaterial* pMaterial, NXGUICBufferData& cbDisplay)
@@ -226,9 +230,8 @@ void NXGUIMaterialShaderEditor::Render_Params_CBufferItem(const std::string& str
 
 	if (bDraged && cbDisplay.memoryIndex != -1) // 新加的 AddParam 在点编译按钮之前不应该传给参数
 	{
-		// 在这里将 GUI 修改过的参数传回给材质 CBuffer，实现视觉上的变化。
-		// 实际上要拷贝的字节量是 cbDisplay 初始读取的字节数量 actualN，而不是更改 GUIStyle 以后的参数数量 N
-		UINT actualN = cbDisplay.readType;
+		// 在这里将 GUI 修改过的参数传回给材质 CBuffer，实现视觉上的变化
+		UINT actualN = cbDisplay.readType; // 实际上要拷贝的字节量是 cbDisplay 初始读取的字节数量 actualN，而不是更改 GUIStyle 以后的参数数量 N
 		pMaterial->SetCBInfoMemoryData(cbDisplay.memoryIndex, actualN, cbDisplay.data);
 		pMaterial->UpdateCBData();
 	}
@@ -250,8 +253,8 @@ void NXGUIMaterialShaderEditor::Render_ErrorMessages()
 			{
 			}
 		}
+		ImGui::EndTable();
 	}
-	ImGui::EndTable();
 
 	ImGui::PopStyleColor();
 	ImGui::PopStyleVar();
