@@ -162,11 +162,10 @@ void NXGUIMaterial::Render()
 				OnBtnEditShaderClicked(static_cast<NXCustomMaterial*>(pCommonMaterial));
 			}
 
-			ImGui::SameLine();
-			if (ImGui::Button("Compile##material_compile"))
-			{
-				OnBtnCompileClicked(static_cast<NXCustomMaterial*>(pCommonMaterial));
-			}
+			//if (ImGui::Button("Compile##material_compile"))
+			//{
+			//	OnBtnCompileClicked(static_cast<NXCustomMaterial*>(pCommonMaterial));
+			//}
 		}
 	}
 
@@ -588,7 +587,7 @@ void NXGUIMaterial::RenderMaterialUI_Custom(NXCustomMaterial* pMaterial)
 		// 禁用树节点首行缩进
 		ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 0.0f);
 		RenderMaterialUI_Custom_Parameters(pMaterial);
-		RenderMaterialUI_Custom_Codes(pMaterial);
+		//RenderMaterialUI_Custom_Codes(pMaterial);
 		ImGui::PopStyleVar(); // ImGuiStyleVar_IndentSpacing
 		//ImGui::EndChild();
 	}
