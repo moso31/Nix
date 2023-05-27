@@ -254,6 +254,7 @@ void NXGUIMaterial::OnTexAODrop(NXPBRMaterialBase* pMaterial, const std::wstring
 void NXGUIMaterial::OnBtnEditShaderClicked(NXCustomMaterial* pMaterial)
 {
 	GetShaderEditor()->SetGUIMaterial(this);
+	GetShaderEditor()->SetGUIFileBrowser(m_pFileBrowser);
 
 	// 将参数和nsl代码从 当前GUI材质类 中同步到 ShaderEditor
 	GetShaderEditor()->PrepareShaderResourceData(m_cbInfosDisplay, m_texInfosDisplay, m_ssInfosDisplay);
@@ -300,9 +301,13 @@ void NXGUIMaterial::SyncMaterialData(NXCustomMaterial* pMaterial)
 		default: break;
 		}
 
-		// 将cbElem.type 强转成 NXGUICBufferStyle，对应 GUIStyle 中的 Value/2/3/4
-		// 换句话说 Float/2/3/4 默认使用 Value/2/3/4 GUI Style。
-		NXGUICBufferStyle guiStyle = GetDefaultGUIStyleFromCBufferType(cbElem.type);
+		// 如果之前 ShaderEditor 中有数据，并且能和 NXGUIMaterial 的材质名称对应上，就保留 ShaderEditor 的 GUIStyle
+		NXGUICBufferStyle guiStyle;
+		if (!GetShaderEditor()->FindCBStyle(cbElem.name, guiStyle))
+		{
+			// 如果 ShaderEditor 中没有对应的值，就读取材质原数据，根据 cbElem.type 的值生成对应的 NXGUICBufferStyle
+			guiStyle = GetDefaultGUIStyleFromCBufferType(cbElem.type);
+		}
 
 		// 根据 GUI Style 设置GUI的拖动速度或最大最小值
 		Vector2 guiParams = GetGUIParamsDefaultValue(guiStyle);
@@ -485,8 +490,12 @@ void NXGUIMaterial::RenderMaterialUI_Custom(NXCustomMaterial* pMaterial)
 	if (m_pLastMaterial != pMaterial)
 		m_bIsDirty = true;
 
-	// 将材质数据同步到 GUI 类
-	if (m_bIsDirty) SyncMaterialData(pMaterial);
+	// 将材质数据同步到 GUI材质类 和 ShaderEditor
+	if (m_bIsDirty)
+	{
+		SyncMaterialData(pMaterial);
+		GetShaderEditor()->PrepareShaderResourceData(m_cbInfosDisplay, m_texInfosDisplay, m_ssInfosDisplay);
+	}
 
 	//ImGui::BeginChild("##material_custom", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y * 0.6f));
 	{
@@ -511,25 +520,12 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMateri
 			for (auto& cbDisplay : m_cbInfosDisplay)
 			{
 				std::string strId = "##material_custom_child_cbuffer_" + std::to_string(paramCnt++);
-				//if (ImGui::BeginCombo(strId.c_str(), g_strCBufferGUIStyle[(int)cbDisplay.guiStyle]))
-				//{
-				//	for (int item = 0; item < g_strCBufferGUIStyleCount; item++)
-				//	{
-				//		if (ImGui::Selectable(g_strCBufferGUIStyle[item]) && item != (int)cbDisplay.guiStyle)
-				//		{
-				//			OnComboGUIStyleChanged(item, cbDisplay);
-				//			break;
-				//		}
-				//	}
-				//	ImGui::EndCombo();
-				//}
-
 				RenderMaterialUI_Custom_Parameters_CBufferItem(strId, pMaterial, cbDisplay);
 			}
 
 			for (auto& texDisplay : m_texInfosDisplay)
 			{
-				std::string strId = "##material_custom_child_texture_" + std::to_string(paramCnt++);
+				std::string strId = "##material_custom_child_texture_" + std::to_string(paramCnt);
 
 				auto pTex = texDisplay.pTexture;
 				if (!pTex) continue;
@@ -549,10 +545,14 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMateri
 					pMaterial->SetTex2D(pTex, dragPath);
 				};
 
+				ImGui::PushID(paramCnt);
 				RenderTextureIcon(pTex->GetSRV(), m_pFileBrowser, onTexChange, onTexRemove, onTexDrop);
+				ImGui::PopID();
 
 				ImGui::SameLine();
 				ImGui::Text(texDisplay.name.data());
+
+				paramCnt++;
 			}
 
 			// 【Sampler 的部分暂时还没想好，先空着】

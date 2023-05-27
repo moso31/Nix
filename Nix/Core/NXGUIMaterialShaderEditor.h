@@ -12,6 +12,7 @@ struct NXGUIShaderErrorMessage
 	std::string data;
 
 	// 出错的行号，列号左起，列号右至
+	// p.s. 暂时没用上，本来是打算做标记代码的，但ImGui::MultiText坑太多了，就没实现
 	int row;
 	int col0;
 	int col1;
@@ -53,6 +54,8 @@ public:
 
 	void SetGUIMaterial(NXGUIMaterial* pGUIMaterial);
 	void SetGUIFileBrowser(NXGUIFileBrowser* pGUIFileBrowser);
+
+	bool FindCBStyle(const std::string& cbName, NXGUICBufferStyle& oGUIStyle);
 
 private:
 	void Render_Code();

@@ -219,11 +219,10 @@ bool NXCustomMaterial::Recompile(const std::string& nslParams, const std::string
 	// 更新 NSLCode
 	SetNSLCode(nslCode);
 
-	// 为材质记录 backup 信息
+	// 备份材质信息，方便编译失败时还原数据
 	GenerateInfoBackup();
 
 	// 将 NSL 转换成 HLSL
-	// 【2023.5.23 这个过程现在会重置初始化参数，需要修改】
 	std::string strHLSLHead, strHLSLBody;
 	ConvertGUIDataToHLSL(strHLSLHead, strHLSLBody, cbDefaultValues, texDefaultValues, samplerDefaultValues);
 

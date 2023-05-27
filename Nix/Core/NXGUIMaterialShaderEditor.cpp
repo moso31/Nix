@@ -136,6 +136,21 @@ void NXGUIMaterialShaderEditor::SetGUIFileBrowser(NXGUIFileBrowser* pGUIFileBrow
 	m_pFileBrowser = pGUIFileBrowser;
 }
 
+bool NXGUIMaterialShaderEditor::FindCBStyle(const std::string& cbName, NXGUICBufferStyle& oGUIStyle)
+{
+	auto& it = std::find_if(m_cbInfosDisplay.begin(), m_cbInfosDisplay.end(), [&](const NXGUICBufferData& cbData) {
+		return cbData.name == cbName;
+	});
+
+	if (it != m_cbInfosDisplay.end())
+	{
+		oGUIStyle = it->guiStyle;
+		return true;
+	}
+
+	return false;
+}
+
 void NXGUIMaterialShaderEditor::Render_Code()
 {
 	float fEachTextLineHeight = ImGui::GetTextLineHeight();
@@ -192,7 +207,7 @@ void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
 
 		for (auto& texDisplay : m_texInfosDisplay)
 		{
-			std::string strId = "##material_shader_editor_custom_child_texture_" + std::to_string(paramCnt++);
+			std::string strId = "##material_shader_editor_custom_child_texture_" + std::to_string(paramCnt);
 
 			auto pTex = texDisplay.pTexture;
 			if (!pTex) continue;
@@ -212,10 +227,14 @@ void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
 				pMaterial->SetTex2D(pTex, dragPath);
 			};
 
+			ImGui::PushID(paramCnt);
 			RenderTextureIcon(pTex->GetSRV(), m_pFileBrowser, onTexChange, onTexRemove, onTexDrop);
+			ImGui::PopID();
 
 			ImGui::SameLine();
 			ImGui::Text(texDisplay.name.data());
+
+			paramCnt++;
 		}
 
 		// 【Sampler 的部分暂时还没想好，先空着】
@@ -269,11 +288,6 @@ void NXGUIMaterialShaderEditor::Render_Params_CBufferItem(const std::string& str
 
 void NXGUIMaterialShaderEditor::Render_ErrorMessages()
 {
-	auto dl = ImGui::GetWindowDrawList();
-	dl->AddCircle(ImVec2(300.0f, 300.0f), 100, -1);
-	dl->AddRectFilled(ImVec2(0.0f, 0.0f), ImVec2(220.0f, 420.0f), 0xffffffff);
-	dl->AddRect(ImVec2(0.0f, 0.0f), ImVec2(220.0f, 420.0f), 0xffffffff);
-
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.f, 0.f));
 	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
 
