@@ -57,6 +57,7 @@ enum class NXGUICBufferStyle
 	Slider4,
 	Color3,
 	Color4,
+	Unknown
 };
 
 struct NXGUICBufferData

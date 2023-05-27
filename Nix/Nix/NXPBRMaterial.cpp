@@ -621,6 +621,9 @@ void NXCustomMaterial::ProcessShaderCBufferParam(std::istringstream& in, std::os
 	cbElems.clear();
 	cbElems.reserve(cbElemCount);
 
+	m_cbInfoGUIStyles.clear();
+	m_cbInfoGUIStyles.reserve(cbElemCount);
+
 	m_cbInfoMemory.clear();
 	m_cbInfoMemory.reserve(cbFloatCount);
 	int pOffset = 0;
@@ -651,16 +654,22 @@ void NXCustomMaterial::ProcessShaderCBufferParam(std::istringstream& in, std::os
 		}
 
 		Vector4 cbValue(0.0f);
+		NXGUICBufferStyle cbGUIStyle = NXGUICBufferStyle::Unknown;
 		if (!cbDefaultValues.empty())
 		{
-			// 如果是从GUI传过来的，则尽可能使用GUI中的值（否则使用默认值0.0f）
+			// 如果是从GUI传过来的，则使用GUI中的值
 			auto it = std::find_if(cbDefaultValues.begin(), cbDefaultValues.end(),
 				[&name, this](const NXGUICBufferData& cbDisplay) { return cbDisplay.name == name; }
 			);
 
 			if (it != cbDefaultValues.end())
+			{
 				cbValue = it->data;
+				cbGUIStyle = it->guiStyle;
+			}
 		}
+
+		m_cbInfoGUIStyles.push_back(cbGUIStyle);
 
 		if (type == "float")
 		{

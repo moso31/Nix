@@ -257,8 +257,7 @@ void NXGUIMaterial::OnBtnEditShaderClicked(NXCustomMaterial* pMaterial)
 	GetShaderEditor()->SetGUIFileBrowser(m_pFileBrowser);
 
 	// 将参数和nsl代码从 当前GUI材质类 中同步到 ShaderEditor
-	GetShaderEditor()->PrepareShaderResourceData(m_cbInfosDisplay, m_texInfosDisplay, m_ssInfosDisplay);
-	GetShaderEditor()->PrepareNSLCode(m_nslCodeDisplay);
+	GetShaderEditor()->RequestSyncMaterialData();
 
 	GetShaderEditor()->Show();
 }
@@ -301,15 +300,15 @@ void NXGUIMaterial::SyncMaterialData(NXCustomMaterial* pMaterial)
 		default: break;
 		}
 
-		// 如果之前 ShaderEditor 中有数据，并且能和 NXGUIMaterial 的材质名称对应上，就保留 ShaderEditor 的 GUIStyle
-		NXGUICBufferStyle guiStyle;
-		if (!GetShaderEditor()->FindCBStyle(cbElem.name, guiStyle))
+		// 如果cb中存了 GUIStyle，优先使用 GUIStyle 显示 cb
+		NXGUICBufferStyle guiStyle = pMaterial->GetCBGUIStyles(i);
+		if (guiStyle == NXGUICBufferStyle::Unknown)
 		{
-			// 如果 ShaderEditor 中没有对应的值，就读取材质原数据，根据 cbElem.type 的值生成对应的 NXGUICBufferStyle
+			// 否则基于 cbElem 的类型自动生成 GUIStyle
 			guiStyle = GetDefaultGUIStyleFromCBufferType(cbElem.type);
 		}
 
-		// 根据 GUI Style 设置GUI的拖动速度或最大最小值
+		// 设置 GUI Style 的拖动速度或最大最小值
 		Vector2 guiParams = GetGUIParamsDefaultValue(guiStyle);
 
 		m_cbInfosDisplay.push_back({ cbElem.name, cbElem.type, cbDataDisplay, guiStyle, guiParams, cbElem.memoryIndex });
@@ -328,7 +327,6 @@ void NXGUIMaterial::SyncMaterialData(NXCustomMaterial* pMaterial)
 	m_nslCodeDisplay = pMaterial->GetNSLCode();
 
 	m_pLastMaterial = pMaterial;
-	m_bIsDirty = false;
 }
 
 NXGUIMaterialShaderEditor* NXGUIMaterial::GetShaderEditor()
@@ -490,11 +488,11 @@ void NXGUIMaterial::RenderMaterialUI_Custom(NXCustomMaterial* pMaterial)
 	if (m_pLastMaterial != pMaterial)
 		m_bIsDirty = true;
 
-	// 将材质数据同步到 GUI材质类 和 ShaderEditor
+	// 将材质数据同步到 GUI材质类
 	if (m_bIsDirty)
 	{
 		SyncMaterialData(pMaterial);
-		GetShaderEditor()->PrepareShaderResourceData(m_cbInfosDisplay, m_texInfosDisplay, m_ssInfosDisplay);
+		m_bIsDirty = false;
 	}
 
 	//ImGui::BeginChild("##material_custom", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y * 0.6f));

@@ -8,6 +8,12 @@ void NXGUIMaterialShaderEditor::Render(NXCustomMaterial* pMaterial)
 {
 	if (!m_bShowWindow) return;
 
+	if (m_bIsDirty)
+	{
+		SyncMaterialData(pMaterial);
+		m_bIsDirty = false;
+	}
+
 	bool k = ImGui::Begin("Material Editor##material_shader_editor", &m_bShowWindow);
 
 	ImVec2 childWindowFullSize(ImGui::GetContentRegionAvail());
@@ -35,18 +41,6 @@ void NXGUIMaterialShaderEditor::Render(NXCustomMaterial* pMaterial)
 	ImGui::EndChild(); // ##material_shader_editor_compile
 
 	ImGui::End();
-}
-
-void NXGUIMaterialShaderEditor::PrepareShaderResourceData(const std::vector<NXGUICBufferData>& cbInfosDisplay, const std::vector<NXGUITextureData>& texInfosDisplay, const std::vector<NXGUISamplerData>& ssInfosDisplay)
-{
-	m_cbInfosDisplay.reserve(cbInfosDisplay.size());
-	m_cbInfosDisplay.assign(cbInfosDisplay.begin(), cbInfosDisplay.end());
-
-	m_texInfosDisplay.reserve(texInfosDisplay.size());
-	m_texInfosDisplay.assign(texInfosDisplay.begin(), texInfosDisplay.end());
-
-	m_ssInfosDisplay.reserve(ssInfosDisplay.size());
-	m_ssInfosDisplay.assign(ssInfosDisplay.begin(), ssInfosDisplay.end());
 }
 
 void NXGUIMaterialShaderEditor::ClearShaderErrorMessages()
@@ -104,15 +98,15 @@ void NXGUIMaterialShaderEditor::OnBtnCompileClicked(NXCustomMaterial* pMaterial)
 
 	std::string strErrVS, strErrPS;	// 若编译Shader出错，将错误信息记录到此字符串中。
 	bool bCompile = pMaterial->Recompile(nslParams, m_nslCode, m_cbInfosDisplay, m_texInfosDisplay, m_ssInfosDisplay, strErrVS, strErrPS);
-
-	// 无论编译是否成功，都让GUI材质类请求同步材质数据，以更新GUIMaterial
-	m_pGUIMaterial->RequestSyncMaterialData();
 	
 	// 如果编译失败，将错误信息同步到 ShaderEditor
 	bCompile ? ClearShaderErrorMessages() : UpdateShaderErrorMessages(strErrVS, strErrPS);
 
-	// 原始材质申请更新一次CBuffer。
+	// 无论编译是否成功，对 GUI材质类、GUI ShaderEditor、材质类 都 MakeDirty，
+	// 确保下一帧一定会更新一次材质数据。
 	pMaterial->RequestUpdateCBufferData();
+	m_pGUIMaterial->RequestSyncMaterialData();
+	RequestSyncMaterialData();
 }
 
 void NXGUIMaterialShaderEditor::OnComboGUIStyleChanged(int selectIndex, NXGUICBufferData& cbDataDisplay)
@@ -136,19 +130,9 @@ void NXGUIMaterialShaderEditor::SetGUIFileBrowser(NXGUIFileBrowser* pGUIFileBrow
 	m_pFileBrowser = pGUIFileBrowser;
 }
 
-bool NXGUIMaterialShaderEditor::FindCBStyle(const std::string& cbName, NXGUICBufferStyle& oGUIStyle)
+void NXGUIMaterialShaderEditor::RequestSyncMaterialData()
 {
-	auto& it = std::find_if(m_cbInfosDisplay.begin(), m_cbInfosDisplay.end(), [&](const NXGUICBufferData& cbData) {
-		return cbData.name == cbName;
-	});
-
-	if (it != m_cbInfosDisplay.end())
-	{
-		oGUIStyle = it->guiStyle;
-		return true;
-	}
-
-	return false;
+	m_bIsDirty = true;
 }
 
 void NXGUIMaterialShaderEditor::Render_Code()
@@ -308,4 +292,51 @@ void NXGUIMaterialShaderEditor::Render_ErrorMessages()
 
 	ImGui::PopStyleColor();
 	ImGui::PopStyleVar();
+}
+
+void NXGUIMaterialShaderEditor::SyncMaterialData(NXCustomMaterial* pMaterial)
+{
+	using namespace NXGUICommon;
+
+	m_cbInfosDisplay.clear();
+	m_cbInfosDisplay.reserve(pMaterial->GetCBufferElemCount());
+	for (UINT i = 0; i < pMaterial->GetCBufferElemCount(); i++)
+	{
+		auto& cbElem = pMaterial->GetCBufferElem(i);
+		const float* cbElemData = pMaterial->GetCBInfoMemoryData(cbElem.memoryIndex);
+
+		Vector4 cbDataDisplay(cbElemData);
+		switch (cbElem.type)
+		{
+		case NXCBufferInputType::Float: cbDataDisplay = { cbDataDisplay.x, 0.0f, 0.0f, 0.0f }; break;
+		case NXCBufferInputType::Float2: cbDataDisplay = { cbDataDisplay.x, cbDataDisplay.y, 0.0f, 0.0f }; break;
+		case NXCBufferInputType::Float3: cbDataDisplay = { cbDataDisplay.x, cbDataDisplay.y, cbDataDisplay.z, 0.0f }; break;
+		default: break;
+		}
+
+		// 如果cb中存了 GUIStyle，优先使用 GUIStyle 显示 cb
+		NXGUICBufferStyle guiStyle = pMaterial->GetCBGUIStyles(i);
+		if (guiStyle == NXGUICBufferStyle::Unknown)
+		{
+			// 否则基于 cbElem 的类型自动生成 GUIStyle
+			guiStyle = GetDefaultGUIStyleFromCBufferType(cbElem.type);
+		}
+
+		// 设置 GUI Style 的拖动速度或最大最小值
+		Vector2 guiParams = GetGUIParamsDefaultValue(guiStyle);
+
+		m_cbInfosDisplay.push_back({ cbElem.name, cbElem.type, cbDataDisplay, guiStyle, guiParams, cbElem.memoryIndex });
+	}
+
+	m_texInfosDisplay.clear();
+	m_texInfosDisplay.reserve(pMaterial->GetTextureCount());
+	for (UINT i = 0; i < pMaterial->GetTextureCount(); i++)
+		m_texInfosDisplay.push_back({ pMaterial->GetTextureName(i), pMaterial->GetTexture(i) });
+
+	m_ssInfosDisplay.clear();
+	m_ssInfosDisplay.reserve(pMaterial->GetSamplerCount());
+	for (UINT i = 0; i < pMaterial->GetSamplerCount(); i++)
+		m_ssInfosDisplay.push_back({ pMaterial->GetSamplerName(i), pMaterial->GetSampler(i) });
+
+	m_nslCode = pMaterial->GetNSLCode();
 }

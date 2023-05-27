@@ -293,6 +293,8 @@ public:
 	const float* GetCBInfoMemoryData(UINT memoryIndex) { return m_cbInfoMemory.data() + memoryIndex; }
 	void SetCBInfoMemoryData(UINT memoryIndex, UINT count, const float* newData);
 
+	NXGUICBufferStyle GetCBGUIStyles(UINT index) { return m_cbInfoGUIStyles[index]; }
+
 	void GenerateInfoBackup();
 	void RecoverInfosBackup();
 
@@ -344,5 +346,6 @@ private:
 
 	std::vector<float>					m_cbufferData;
 
+	std::vector<NXGUICBufferStyle>		m_cbInfoGUIStyles;
 	bool m_bIsDirty;
 };

@@ -31,6 +31,7 @@ public:
 			pInstance->m_bShowWindow = false; 
 			pInstance->m_pGUIMaterial = nullptr; 
 			pInstance->m_pFileBrowser = nullptr; 
+			pInstance->m_bIsDirty = false;
 			});
 		return pInstance;
 	}
@@ -38,9 +39,6 @@ public:
 public:
 	void Render(NXCustomMaterial* pMaterial);
 	void Show() { m_bShowWindow = true; }
-
-	void PrepareShaderResourceData(const std::vector<NXGUICBufferData>& cbInfosDisplay, const std::vector<NXGUITextureData>& texInfosDisplay, const std::vector<NXGUISamplerData>& ssInfosDisplay);
-	void PrepareNSLCode(const std::string& nslCode) { m_nslCode = nslCode; }
 
 	// 更新Shader编译错误信息（编译材质出错时触发）
 	void ClearShaderErrorMessages();
@@ -55,13 +53,15 @@ public:
 	void SetGUIMaterial(NXGUIMaterial* pGUIMaterial);
 	void SetGUIFileBrowser(NXGUIFileBrowser* pGUIFileBrowser);
 
-	bool FindCBStyle(const std::string& cbName, NXGUICBufferStyle& oGUIStyle);
+	void RequestSyncMaterialData();
 
 private:
 	void Render_Code();
 	void Render_Params(NXCustomMaterial* pMaterial);
 	void Render_Params_CBufferItem(const std::string& strId, NXCustomMaterial* pMaterial, NXGUICBufferData& cbDisplay);
 	void Render_ErrorMessages();
+
+	void SyncMaterialData(NXCustomMaterial* pMaterial);
 
 private:
 	std::once_flag m_onceFlag; // 用于单例初始化
@@ -79,4 +79,6 @@ private:
 
 	// 显示Shader的错误信息
 	NXGUIShaderErrorMessage m_shaderErrMsgs[NXGUI_ERROR_MESSAGE_MAXLIMIT];
+
+	bool m_bIsDirty;
 };
