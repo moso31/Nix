@@ -47,6 +47,12 @@ public:
 	void UpdateShaderErrorMessages(const std::string& strCompileErrorVS, const std::string& strCompileErrorPS);
 
 	void OnBtnAddParamClicked(NXCustomMaterial* pMaterial, NXGUICBufferStyle guiStyle);
+	void OnBtnRevertClicked();
+	void OnBtnRemoveParamClicked(const std::string& name);
+	void OnBtnMoveParamToPrevClicked(const std::string& name);
+	void OnBtnMoveParamToNextClicked(const std::string& name);
+	void OnBtnMoveParamToFirstClicked(const std::string& name);
+	void OnBtnMoveParamToLastClicked(const std::string& name);
 	void OnBtnCompileClicked(NXCustomMaterial* pMaterial);
 	void OnComboGUIStyleChanged(int selectIndex, NXGUICBufferData& cbDisplayData);
 
@@ -60,8 +66,9 @@ private:
 	void Render_Params(NXCustomMaterial* pMaterial);
 	void Render_Params_CBufferItem(const std::string& strId, NXCustomMaterial* pMaterial, NXGUICBufferData& cbDisplay);
 	void Render_ErrorMessages();
-
 	void SyncMaterialData(NXCustomMaterial* pMaterial);
+
+	bool FindCBGUIData(const std::string& name, std::vector<NXGUICBufferData>::iterator& oIterator);
 
 private:
 	std::once_flag m_onceFlag; // 用于单例初始化

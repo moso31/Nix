@@ -391,6 +391,11 @@ void NXCustomMaterial::GenerateInfoBackup()
 
 	m_samplerInfosBackup.reserve(m_samplerInfos.size());
 	m_samplerInfosBackup.assign(m_samplerInfos.begin(), m_samplerInfos.end());
+
+	m_cbInfoGUIStylesBackup.reserve(m_cbInfoGUIStyles.size());
+	m_cbInfoGUIStylesBackup.assign(m_cbInfoGUIStyles.begin(), m_cbInfoGUIStyles.end());
+
+	m_nslCodeBackup = m_nslCode;
 }
 
 void NXCustomMaterial::RecoverInfosBackup()
@@ -401,6 +406,8 @@ void NXCustomMaterial::RecoverInfosBackup()
 	m_cbSortedIndex.swap(m_cbSortedIndexBackup);
 	m_texInfos.swap(m_texInfosBackup);
 	m_samplerInfos.swap(m_samplerInfosBackup);
+	m_cbInfoGUIStyles.swap(m_cbInfoGUIStylesBackup);
+	m_nslCode.swap(m_nslCodeBackup);
 
 	// 清空上述所有vector
 	m_cbInfoBackup.elems.clear();
@@ -408,6 +415,7 @@ void NXCustomMaterial::RecoverInfosBackup()
 	m_cbSortedIndexBackup.clear();
 	m_texInfosBackup.clear();
 	m_samplerInfosBackup.clear();
+	m_cbInfoGUIStylesBackup.clear();
 }
 
 bool NXCustomMaterial::LoadShaderStringFromFile(std::string& oShader)

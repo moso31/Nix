@@ -338,14 +338,17 @@ private:
 	std::vector<float>					m_cbInfoMemory;
 	std::vector<int>					m_cbSortedIndex;
 
+	std::vector<NXGUICBufferStyle>		m_cbInfoGUIStyles;
+
+	std::vector<float>					m_cbufferData;
+	bool m_bIsDirty;
+
+	// backup datas
 	std::vector<NXMaterialSamplerInfo>	m_samplerInfosBackup;
 	std::vector<NXMaterialTextureInfo>	m_texInfosBackup;
 	NXMaterialCBufferInfo				m_cbInfoBackup;
 	std::vector<float>					m_cbInfoMemoryBackup;
 	std::vector<int>					m_cbSortedIndexBackup;
-
-	std::vector<float>					m_cbufferData;
-
-	std::vector<NXGUICBufferStyle>		m_cbInfoGUIStyles;
-	bool m_bIsDirty;
+	std::vector<NXGUICBufferStyle>		m_cbInfoGUIStylesBackup;
+	std::string m_nslCodeBackup;
 };
