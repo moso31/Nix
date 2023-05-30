@@ -3,6 +3,8 @@
 #include "NXResourceManager.h"
 #include "NXConverter.h"
 
+#include "rapidjson/writer.h"
+
 const char* g_NXTextureType[] = { "Default", "Linear Color", "Normal Map" };
 
 TextureNXInfo::TextureNXInfo(const TextureNXInfo& info) :
@@ -94,10 +96,42 @@ void NXTexture::OnReloadFinish()
 
 void NXTexture::Serialize()
 {
+	using namespace rapidjson;
+
+	if (m_texFilePath.empty())
+	{
+		printf("Warning, %s couldn't be serialized, cause path %s does not exist.\n", m_texFilePath.string().c_str(), m_texFilePath.string().c_str());
+		return;
+	}
+
+	std::string nxInfoPath = m_texFilePath.string() + ".nxInfo";
+
+	// 2023.5.30 纹理资源的序列化: 
+	NXSerializer serializer;
+	serializer.StartObject();
+	serializer.String("NXInfoPath", nxInfoPath);	// 元文件路径
+	serializer.Uint64("PathHashValue", std::filesystem::hash_value(m_texFilePath)); // 纹理文件路径 hash value
+	serializer.Int("TextureType", (int)m_pInfo->eType); // 纹理类型
+	serializer.Bool("IsInvertNormalY", m_pInfo->bInvertNormalY); // 是否FlipY法线
+	serializer.Bool("IsGenerateMipMap", m_pInfo->bGenerateMipMap); // 是否生成mipmap
+	serializer.Bool("IsCubeMap", m_pInfo->bCubeMap); // 是否是立方体贴图
+	serializer.EndObject();
+
+	serializer.SaveToFile(nxInfoPath.c_str());
 }
 
 void NXTexture::Deserialize()
 {
+	using namespace rapidjson;
+	std::string nxInfoPath = m_texFilePath.string() + ".nxInfo";
+	NXDeserializer deserializer;
+	deserializer.LoadFromFile(nxInfoPath.c_str());
+	std::string strPathInfo;
+	strPathInfo = deserializer.String("NXInfoPath");
+	m_pInfo->eType = (NXTextureType)deserializer.Int("TextureType");
+	m_pInfo->bInvertNormalY = deserializer.Bool("IsInvertNormalY");
+	m_pInfo->bGenerateMipMap = deserializer.Bool("IsGenerateMipMap");
+	m_pInfo->bCubeMap = deserializer.Bool("IsCubeMap");
 }
 
 void NXTexture2D::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* initData, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
