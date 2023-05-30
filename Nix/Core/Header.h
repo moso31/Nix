@@ -87,6 +87,9 @@ class NXMeshResourceManager;
 class NXScriptResourceManager;
 class NXTextureResourceManager;
 
+// serialization
+class NXSerializable;
+
 // resources
 struct TextureNXInfo;
 class NXTexture;

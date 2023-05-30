@@ -1,12 +1,17 @@
 #pragma once
 #include "Header.h"
+#include "NXSerializable.h"
 #include "NXTextureReloadTesk.h"
 
-enum NXTextureType
+enum class NXTextureType
 {
-    Default,
-    NormalMap
+    Default,        // 默认颜色纹理，开启sRGB
+    LinearColor,    // 线性颜色纹理
+    NormalMap,      // 法线贴图,
+    Count
 };
+
+extern const char* g_NXTextureType[];
 
 enum NXTextureReloadingState
 {
@@ -20,22 +25,17 @@ struct TextureNXInfo
 {
     TextureNXInfo() = default;
     TextureNXInfo(const TextureNXInfo& info);
-    //TextureNXInfo(const TextureNXInfo&& info) noexcept;
 
-    //TextureNXInfo& operator=(TextureNXInfo&& info);
-
-    int nTexType = 0;
-    //int TexFormat = 0;
-    //int Width = 0;
-    //int Height = 0;
-    bool bSRGB = false;
+    NXTextureType eType = NXTextureType::Default;
     bool bInvertNormalY = false;
     bool bGenerateMipMap = true;
     bool bCubeMap = false;
 };
 
-class NXTexture
+class NXTexture : public NXSerializable
 {
+    NXSERIALIZABLE_DERIVED();
+
 public:
     NXTexture() :
         m_nRefCount(0),

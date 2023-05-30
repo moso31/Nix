@@ -252,6 +252,7 @@
     <ClCompile Include="Core\NXResourceManagerBase.cpp" />
     <ClCompile Include="Core\NXResourceReloader.cpp" />
     <ClCompile Include="Core\NXScriptResourceManager.cpp" />
+    <ClCompile Include="Core\NXSerializable.cpp" />
     <ClCompile Include="Core\NXShaderDefinitions.cpp" />
     <ClCompile Include="Core\NXShadowMapRenderer.cpp" />
     <ClCompile Include="Core\NXShadowTestRenderer.cpp" />
@@ -332,6 +333,7 @@
     <ClInclude Include="Core\NXResourceManagerBase.h" />
     <ClInclude Include="Core\NXResourceReloader.h" />
     <ClInclude Include="Core\NXScriptResourceManager.h" />
+    <ClInclude Include="Core\NXSerializable.h" />
     <ClInclude Include="Core\NXShaderDefinitions.h" />
     <ClInclude Include="Core\NXShaderIncluder.h" />
     <ClInclude Include="Core\NXShadowMapRenderer.h" />

@@ -3,43 +3,15 @@
 #include "NXResourceManager.h"
 #include "NXConverter.h"
 
+const char* g_NXTextureType[] = { "Default", "Linear Color", "Normal Map" };
+
 TextureNXInfo::TextureNXInfo(const TextureNXInfo& info) :
-	nTexType(info.nTexType),
-	//TexFormat(info.TexFormat),
-	//Width(info.Width),
-	//Height(info.Height),
-	bSRGB(info.bSRGB),
+	eType(info.eType),
 	bInvertNormalY(info.bInvertNormalY),
 	bGenerateMipMap(info.bGenerateMipMap),
 	bCubeMap(info.bCubeMap)
 {
 }
-//
-//TextureNXInfo::TextureNXInfo(const TextureNXInfo&& info) noexcept :
-//	nTexType(info.nTexType),
-//	TexFormat(info.TexFormat),
-//	Width(info.Width),
-//	Height(info.Height),
-//	bSRGB(info.bSRGB),
-//	bInvertNormalY(info.bInvertNormalY),
-//	bGenerateMipMap(info.bGenerateMipMap),
-//	bCubeMap(info.bCubeMap)
-//{
-//}
-//
-//TextureNXInfo& TextureNXInfo::operator=(TextureNXInfo&& info)
-//{
-//	nTexType = info.nTexType;
-//	TexFormat = info.TexFormat;
-//	Width = info.Width;
-//	Height = info.Height;
-//	bSRGB = info.bSRGB;
-//	bInvertNormalY = info.bInvertNormalY;
-//	bGenerateMipMap = info.bGenerateMipMap;
-//	bCubeMap = info.bCubeMap;
-//	return *this;
-//}
-
 
 void NXTexture::SwapToReloadingTexture()
 {
@@ -120,6 +92,14 @@ void NXTexture::OnReloadFinish()
 	m_reloadingState = NXTextureReloadingState::Texture_FinishReload;
 }
 
+void NXTexture::Serialize()
+{
+}
+
+void NXTexture::Deserialize()
+{
+}
+
 void NXTexture2D::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* initData, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
 {
 	this->m_debugName = DebugName;
@@ -183,12 +163,13 @@ NXTexture2D* NXTexture2D::Create(const std::string& DebugName, const std::filesy
 	}
 
 	// --- Convert -----------------------------------------------------------------
-	if (IsSRGB(metadata.format) != m_pInfo->bSRGB)
+	bool bIsSRGB = m_pInfo->eType == NXTextureType::Default;
+	if (IsSRGB(metadata.format) != bIsSRGB)
 	{
 		std::unique_ptr<ScratchImage> timage(new ScratchImage);
 
-		DXGI_FORMAT tFormat = m_pInfo->bSRGB ? NXConvert::ForceSRGB(metadata.format) : NXConvert::ForceLinear(metadata.format);
-		TEX_FILTER_FLAGS texFlags = m_pInfo->bSRGB ? TEX_FILTER_SRGB_IN : TEX_FILTER_DEFAULT;
+		DXGI_FORMAT tFormat = bIsSRGB ? NXConvert::ForceSRGB(metadata.format) : NXConvert::ForceLinear(metadata.format);
+		TEX_FILTER_FLAGS texFlags = bIsSRGB ? TEX_FILTER_SRGB_IN : TEX_FILTER_DEFAULT;
 		hr = Convert(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), tFormat, texFlags, TEX_THRESHOLD_DEFAULT, *timage);
 		if (SUCCEEDED(hr))
 		{

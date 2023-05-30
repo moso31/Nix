@@ -203,15 +203,34 @@ void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
 {
 	using namespace NXGUICommon;
 
-	if (ImGui::Button("Compile##material_shader_editor_compile"))
+	int errCnt = 0;
+	for (errCnt = 0; errCnt < NXGUI_ERROR_MESSAGE_MAXLIMIT; errCnt++)
+		if (m_shaderErrMsgs[errCnt].data.empty()) break;
+
+	ImVec2 btnSize(80.0f, 40.0f);
+
+	ImVec4 btnCompileSuccessColor(0.5f, 0.8f, 0.5f, 0.7f);
+	ImVec4 btnCompileErrorColor(1.0f, 0.3f, 0.3f, 0.7f);
+	ImVec4 btnText(1.0f, 1.0f, 1.0f, 1.0f);
+	ImVec4 btnCompileErrorText(0.7f, 0.7f, 0.7f, 1.0f);
+
+	ImGui::PushStyleColor(ImGuiCol_Button, errCnt ? btnCompileErrorColor : btnCompileSuccessColor);
+	ImGui::PushStyleColor(ImGuiCol_Text, errCnt ? btnCompileErrorText : btnText);
+
+	if (ImGui::Button("Compile##material_shader_editor_compile", btnSize))
+	{
 		OnBtnCompileClicked(pMaterial);
+	}
+
+	ImGui::PopStyleColor(); // btnCompile
+	ImGui::PopStyleColor(); // btnCompile
 
 	ImGui::SameLine();
-	if (ImGui::Button("Revert##material_shader_editor_parameters_add"))
+	if (ImGui::Button("Revert##material_shader_editor_parameters_add", btnSize))
 		OnBtnRevertClicked();
 
 	ImGui::SameLine();
-	if (ImGui::Button("Add param##material_shader_editor_parameters_add"))
+	if (ImGui::Button("Add param##material_shader_editor_parameters_add", btnSize))
 		ImGui::OpenPopup("##material_shader_editor_add_param_popup");
 
 	if (ImGui::BeginPopup("##material_shader_editor_add_param_popup"))
@@ -293,7 +312,7 @@ void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
 				ImGui::TableNextColumn();
 				std::string strId = "##material_shader_editor_custom_child_texture_" + std::to_string(paramCnt);
 
-				auto pTex = texDisplay.pTexture;
+				auto& pTex = texDisplay.pTexture;
 				if (!pTex) continue;
 
 				auto onTexChange = [pMaterial, &pTex, this]()

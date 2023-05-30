@@ -77,6 +77,9 @@ public:
     TextureNXInfo* LoadTextureInfo(const std::filesystem::path& texFilePath);
     void SaveTextureInfo(const TextureNXInfo* pInfo, const std::filesystem::path& texFilePath);
 
+    void Serialize();
+    void Deserialize();
+
     // 移除 m_pTextureArray 中所有 引用计数=0 的纹理。
     void ReleaseUnusedTextures();
 

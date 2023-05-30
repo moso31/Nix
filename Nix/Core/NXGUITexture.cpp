@@ -2,6 +2,7 @@
 #include "NXGUICommon.h"
 #include "NXResourceManager.h"
 #include "NXPBRMaterial.h"
+#include "NXTexture.h"
 
 NXGUITexture::NXGUITexture() :
 	m_pTexInfo(nullptr),
@@ -35,20 +36,11 @@ void NXGUITexture::Render()
 			m_pTexInfo->bInvertNormalY = bInvertNormalY;
 		}
 
-		int nTexType = m_pTexInfo->nTexType;
-		static const char* items[] = { "Default", "Normal map" };
-		if (ImGui::Combo("Texture type##Texture", &nTexType, items, IM_ARRAYSIZE(items)))
+		
+		int nTexType = (int)m_pTexInfo->eType;
+		if (ImGui::Combo("Texture type##Texture", &nTexType, g_NXTextureType, (int)NXTextureType::Count))
 		{
-			m_pTexInfo->nTexType = nTexType;
-		}
-
-		if (m_pTexInfo->nTexType == 0)
-		{
-			bool bSRGB = m_pTexInfo->bSRGB;
-			if (ImGui::Checkbox("sRGB##Texture", &bSRGB))
-			{
-				m_pTexInfo->bSRGB = bSRGB;
-			}
+			m_pTexInfo->eType = (NXTextureType)nTexType;
 		}
 
 		if (ImGui::Button("Apply##Texture"))
