@@ -1,5 +1,6 @@
 #pragma once
 #include "Header.h"
+#include "NXTextureDefinitions.h"
 
 class NXGUITexture
 {
@@ -15,4 +16,5 @@ public:
 
 private:
 	NXTexture* m_pTexImage;
+	NXTextureSerializationData m_texData;
 };

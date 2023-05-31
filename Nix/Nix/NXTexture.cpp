@@ -5,8 +5,6 @@
 
 #include "rapidjson/writer.h"
 
-const char* g_strNXTextureType[] = { "Raw", "sRGB", "Linear", "Normal Map"};
-
 void NXTexture::SwapToReloadingTexture()
 {
 	if (m_reloadingState == NXTextureReloadingState::Texture_StartReload)
@@ -102,10 +100,10 @@ void NXTexture::Serialize()
 	serializer.StartObject();
 	serializer.String("NXInfoPath", nxInfoPath);	// 元文件路径
 	serializer.Uint64("PathHashValue", std::filesystem::hash_value(m_texFilePath)); // 纹理文件路径 hash value
-	serializer.Int("TextureType", (int)m_textureType); // 纹理类型
-	serializer.Bool("IsInvertNormalY", m_bInvertNormalY); // 是否FlipY法线
-	serializer.Bool("IsGenerateMipMap", m_bGenerateMipMap); // 是否生成mipmap
-	serializer.Bool("IsCubeMap", m_bCubeMap); // 是否是立方体贴图
+	serializer.Int("TextureType", (int)m_serializationData.m_textureType); // 纹理类型
+	serializer.Bool("IsInvertNormalY", m_serializationData.m_bInvertNormalY); // 是否FlipY法线
+	serializer.Bool("IsGenerateMipMap", m_serializationData.m_bGenerateMipMap); // 是否生成mipmap
+	serializer.Bool("IsCubeMap", m_serializationData.m_bCubeMap); // 是否是立方体贴图
 	serializer.EndObject();
 
 	serializer.SaveToFile(nxInfoPath.c_str());
@@ -121,10 +119,10 @@ void NXTexture::Deserialize()
 	{
 		//std::string strPathInfo;
 		//strPathInfo = deserializer.String("NXInfoPath");
-		m_textureType = (NXTextureType)deserializer.Int("TextureType");
-		m_bInvertNormalY = deserializer.Bool("IsInvertNormalY");
-		m_bGenerateMipMap = deserializer.Bool("IsGenerateMipMap");
-		m_bCubeMap = deserializer.Bool("IsCubeMap");
+		m_serializationData.m_textureType = (NXTextureType)deserializer.Int("TextureType");
+		m_serializationData.m_bInvertNormalY = deserializer.Bool("IsInvertNormalY");
+		m_serializationData.m_bGenerateMipMap = deserializer.Bool("IsGenerateMipMap");
+		m_serializationData.m_bCubeMap = deserializer.Bool("IsCubeMap");
 
 		m_bDeserialized = true;
 	}
@@ -180,9 +178,9 @@ NXTexture2D* NXTexture2D::Create(const std::string& DebugName, const std::filesy
 		return nullptr;
 	}
 
-	Deserialize();
-
 	m_texFilePath = filePath;
+
+	Deserialize();
 
 	// 如果读取的是arraySize/TextureCube，就只读取ArraySize[0]/X+面。
 	if (metadata.arraySize > 1)
@@ -213,27 +211,30 @@ NXTexture2D* NXTexture2D::Create(const std::string& DebugName, const std::filesy
 	}
 
 	// 如果序列化的文件里记录了sRGB/Linear类型，就做对应的转换
-	if (m_textureType == NXTextureType::sRGB || m_textureType == NXTextureType::Linear)
+	if (m_serializationData.m_textureType == NXTextureType::sRGB || m_serializationData.m_textureType == NXTextureType::Linear)
 	{
-		bool bIsSRGB = m_textureType == NXTextureType::sRGB;
-		std::unique_ptr<ScratchImage> timage(new ScratchImage);
-
+		bool bIsSRGB = m_serializationData.m_textureType == NXTextureType::sRGB;
 		DXGI_FORMAT tFormat = bIsSRGB ? NXConvert::ForceSRGB(metadata.format) : NXConvert::ForceLinear(metadata.format);
-		TEX_FILTER_FLAGS texFlags = bIsSRGB ? TEX_FILTER_SRGB_IN : TEX_FILTER_DEFAULT;
-		hr = Convert(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), tFormat, texFlags, TEX_THRESHOLD_DEFAULT, *timage);
-		if (SUCCEEDED(hr))
+		if (metadata.format != tFormat)
 		{
-			metadata.format = tFormat;
+			std::unique_ptr<ScratchImage> timage(new ScratchImage);
+
+			TEX_FILTER_FLAGS texFlags = bIsSRGB ? TEX_FILTER_SRGB_IN : TEX_FILTER_DEFAULT;
+			hr = Convert(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), tFormat, texFlags, TEX_THRESHOLD_DEFAULT, *timage);
+			if (SUCCEEDED(hr))
+			{
+				metadata.format = tFormat;
+			}
+			else
+			{
+				printf("Warning: [Convert] failed when loading NXTexture2D: %s\n", filePath.string().c_str());
+			}
+			pImage.swap(timage);
 		}
-		else
-		{
-			printf("Warning: [Convert] failed when loading NXTexture2D: %s\n", filePath.string().c_str());
-		}
-		pImage.swap(timage);
 	}
 
 	// --- Invert Y Channel --------------------------------------------------------
-	if (m_bInvertNormalY)
+	if (m_serializationData.m_bInvertNormalY)
 	{
 		std::unique_ptr<ScratchImage> timage(new ScratchImage);
 
@@ -259,7 +260,7 @@ NXTexture2D* NXTexture2D::Create(const std::string& DebugName, const std::filesy
 		pImage.swap(timage);
 	}
 
-	if (m_bGenerateMipMap && metadata.width >= 2 && metadata.height >= 2 && metadata.mipLevels == 1)
+	if (m_serializationData.m_bGenerateMipMap && metadata.width >= 2 && metadata.height >= 2 && metadata.mipLevels == 1)
 	{
 		std::unique_ptr<ScratchImage> pImageMip = std::make_unique<ScratchImage>();
 		HRESULT hr = GenerateMipMaps(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), TEX_FILTER_DEFAULT, 0, *pImageMip);

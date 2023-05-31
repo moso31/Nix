@@ -686,6 +686,9 @@
     <ClInclude Include="Core\NXSerializable.h">
       <Filter>Core\DirectX</Filter>
     </ClInclude>
+    <ClInclude Include="Nix\NXTextureDefinitions.h">
+      <Filter>Nix\Texture</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="杂七杂八的编码规范.txt" />

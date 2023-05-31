@@ -355,6 +355,7 @@
     <ClInclude Include="Nix\NXPBRMaterial.h" />
     <ClInclude Include="Nix\NXPrefab.h" />
     <ClInclude Include="Nix\NXRenderableObject.h" />
+    <ClInclude Include="Nix\NXTextureDefinitions.h" />
     <ClInclude Include="Nix\NXSimpleSSAO.h" />
     <ClInclude Include="Nix\NXSubMesh.h" />
     <ClInclude Include="Nix\NXSubMeshGeometryEditor.h" />

@@ -1,18 +1,8 @@
 #pragma once
 #include "Header.h"
 #include "NXSerializable.h"
+#include "NXTextureDefinitions.h"
 #include "NXTextureReloadTesk.h"
-
-enum class NXTextureType
-{
-    Raw,			// 使用原生格式
-    sRGB,           // sRGB颜色纹理
-    Linear,         // 线性颜色纹理
-    NormalMap,      // 法线贴图,
-    Count
-};
-
-extern const char* g_strNXTextureType[];
 
 enum NXTextureReloadingState
 {
@@ -77,20 +67,10 @@ public:
 
     // 序列化和反序列化
 	virtual void Serialize() override; 
-	virtual void Deserialize() override; 
+	virtual void Deserialize() override;
 
-    NXTextureType GetTextureType() { return m_textureType; }
-    void SetTextureType(NXTextureType type) { m_textureType = type; }
-    void SetTextureType(int type) { m_textureType = (NXTextureType)type; }
-
-    bool GetIsInvertNormalY() { return m_bInvertNormalY; }
-    void SetIsInvertNormalY(bool bInvert) { m_bInvertNormalY = bInvert; }
-
-    bool GetIsGenerateMipMap() { return m_bGenerateMipMap; }
-    void SetIsGenerateMipMap(bool bGenerate) { m_bGenerateMipMap = bGenerate; }
-
-    bool GetIsCubeMap() { return m_bCubeMap; }
-    void SetIsCubeMap(bool bCubeMap) { m_bCubeMap = bCubeMap; }
+    const NXTextureSerializationData& GetSerializationData() { return m_serializationData; }
+    void SetSerializationData(const NXTextureSerializationData& data) { m_serializationData = data; }
 
 private:
     void InternalReload(NXTexture* pReloadTexture);
@@ -112,17 +92,8 @@ protected:
     UINT m_arraySize;
     UINT m_mipLevels;
 
-    // 纹理类型
-    NXTextureType m_textureType = NXTextureType::Raw;
-
-    // 是否反转法线Y轴
-    bool m_bInvertNormalY = false;
-
-    // 是否生成mipmap
-    bool m_bGenerateMipMap = true;
-
-    // 是否是立方体贴图
-    bool m_bCubeMap = false;
+    // 序列化数据
+    NXTextureSerializationData m_serializationData;
 
     // 是否已经被正确反序列化
     bool m_bDeserialized;

@@ -14,34 +14,28 @@ void NXGUITexture::Render()
 	ImGui::Begin("Texture");
 
 	if (!m_pTexImage)
-	{
+	{ 
 		ImGui::End();
 		return;
 	}
 
-	float fTexSize = ImGui::GetContentRegionAvail().x - 50.0f;
+	float fTexSize = ImGui::GetContentRegionAvail().x * 0.7f;
 	ImGui::Image(ImTextureID(m_pTexImage->GetSRV()), ImVec2(fTexSize, fTexSize));
 
-	bool bGenerateMipMap = m_pTexImage->GetIsGenerateMipMap();
-	if (ImGui::Checkbox("Generate mip map##Texture", &bGenerateMipMap))
-	{
-		m_pTexImage->SetIsGenerateMipMap(bGenerateMipMap);
-	}
+	ImGui::Checkbox("Generate mip map##Texture", &m_texData.m_bGenerateMipMap);
+	ImGui::Checkbox("Invert normal Y##Texture", &m_texData.m_bInvertNormalY);
 
-	bool bInvertNormalY = m_pTexImage->GetIsInvertNormalY();
-	if (ImGui::Checkbox("Invert normal Y##Texture", &bInvertNormalY))
+	const char* strTextureTypes[] = { "Raw", "sRGB", "Linear", "Normal Map" };
+	int nTexType = (int)m_texData.m_textureType;
+	if (ImGui::Combo("Texture type##Texture", &nTexType, strTextureTypes, IM_ARRAYSIZE(strTextureTypes)))
 	{
-		m_pTexImage->SetIsInvertNormalY(bInvertNormalY);
-	}
-
-	int nTexType = (int)m_pTexImage->GetTextureType();
-	if (ImGui::Combo("Texture type##Texture", &nTexType, g_strNXTextureType + 1, (int)NXTextureType::Count - 1))
-	{
-		m_pTexImage->SetTextureType(nTexType);
+		m_texData.m_textureType = (NXTextureType)(nTexType);
 	}
 
 	if (ImGui::Button("Apply##Texture"))
 	{
+		m_pTexImage->SetSerializationData(m_texData);
+
 		// 保存NXInfo文件
 		m_pTexImage->Serialize();
 		m_pTexImage->MarkReload();
@@ -74,4 +68,5 @@ void NXGUITexture::SetImage(const std::filesystem::path& path)
 
 	// 如果和之前的路径不同，就加载新的纹理
 	m_pTexImage = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("NXGUITexture Preview Image", path);
+	m_texData = m_pTexImage->GetSerializationData();
 }
