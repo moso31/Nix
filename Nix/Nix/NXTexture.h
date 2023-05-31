@@ -5,13 +5,14 @@
 
 enum class NXTextureType
 {
-    Default,        // 默认颜色纹理，开启sRGB
-    LinearColor,    // 线性颜色纹理
+    Raw,			// 使用原生格式
+    sRGB,           // sRGB颜色纹理
+    Linear,         // 线性颜色纹理
     NormalMap,      // 法线贴图,
     Count
 };
 
-extern const char* g_NXTextureType[];
+extern const char* g_strNXTextureType[];
 
 enum NXTextureReloadingState
 {
@@ -21,21 +22,8 @@ enum NXTextureReloadingState
     Texture_FinishReload,  // B 状态
 };
 
-struct TextureNXInfo
-{
-    TextureNXInfo() = default;
-    TextureNXInfo(const TextureNXInfo& info);
-
-    NXTextureType eType = NXTextureType::Default;
-    bool bInvertNormalY = false;
-    bool bGenerateMipMap = true;
-    bool bCubeMap = false;
-};
-
 class NXTexture : public NXSerializable
 {
-    NXSERIALIZABLE_DERIVED();
-
 public:
     NXTexture() :
         m_nRefCount(0),
@@ -47,7 +35,7 @@ public:
         m_texFormat(DXGI_FORMAT_UNKNOWN),
         m_mipLevels(-1),
         m_texFilePath(""),
-        m_pInfo(nullptr)
+        m_bDeserialized(false)
     {}
     virtual ~NXTexture() {};
 
@@ -68,7 +56,6 @@ public:
     void SwapToReloadingTexture();
 
     std::filesystem::path const GetFilePath() { return m_texFilePath; }
-    TextureNXInfo* GetTextureNXInfo() { return m_pInfo; }
 
     NXTextureReloadTask LoadTextureAsync();
     void LoadTextureSync();
@@ -88,13 +75,29 @@ public:
     void MarkReload();
     void OnReloadFinish();
 
+    // 序列化和反序列化
+	virtual void Serialize() override; 
+	virtual void Deserialize() override; 
+
+    NXTextureType GetTextureType() { return m_textureType; }
+    void SetTextureType(NXTextureType type) { m_textureType = type; }
+    void SetTextureType(int type) { m_textureType = (NXTextureType)type; }
+
+    bool GetIsInvertNormalY() { return m_bInvertNormalY; }
+    void SetIsInvertNormalY(bool bInvert) { m_bInvertNormalY = bInvert; }
+
+    bool GetIsGenerateMipMap() { return m_bGenerateMipMap; }
+    void SetIsGenerateMipMap(bool bGenerate) { m_bGenerateMipMap = bGenerate; }
+
+    bool GetIsCubeMap() { return m_bCubeMap; }
+    void SetIsCubeMap(bool bCubeMap) { m_bCubeMap = bCubeMap; }
+
 private:
     void InternalReload(NXTexture* pReloadTexture);
 
 protected:
     std::string m_debugName;
     ComPtr<ID3D11Texture2D> m_pTexture;
-    TextureNXInfo* m_pInfo;
 
     std::filesystem::path m_texFilePath;
 
@@ -108,6 +111,21 @@ protected:
     UINT m_height;
     UINT m_arraySize;
     UINT m_mipLevels;
+
+    // 纹理类型
+    NXTextureType m_textureType = NXTextureType::Raw;
+
+    // 是否反转法线Y轴
+    bool m_bInvertNormalY = false;
+
+    // 是否生成mipmap
+    bool m_bGenerateMipMap = true;
+
+    // 是否是立方体贴图
+    bool m_bCubeMap = false;
+
+    // 是否已经被正确反序列化
+    bool m_bDeserialized;
 
 private:
     // 引用计数

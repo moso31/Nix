@@ -4,13 +4,19 @@
 
 #include <filesystem>
 #include <fstream>
+
+#if defined(DEBUG) | defined(_DEBUG)
+#undef DEBUG_NEW
+#undef new
+#endif
+
 #include "rapidjson/writer.h"
 #include "rapidjson/document.h"
 
-#define NXSERIALIZABLE_DERIVED() \
-public: \
-	virtual void Serialize() override; \
-	virtual void Deserialize() override; \
+#if defined(DEBUG) | defined(_DEBUG)
+#define DEBUG_NEW new( _NORMAL_BLOCK, __FILE__, __LINE__)
+#define new DEBUG_NEW 
+#endif
 
 using namespace rapidjson;
 
@@ -48,8 +54,8 @@ private:
 class NXDeserializer
 {
 public:
-	NXDeserializer() = default;
-	~NXDeserializer() = default;
+	NXDeserializer() {};
+	~NXDeserializer() {};
 
 	// string
 	std::string String(const std::string& key);
@@ -64,7 +70,7 @@ public:
 	int Int(const std::string& key);
 
 	// 从本地文件读取 Json
-	void LoadFromFile(const std::filesystem::path& path);
+	bool LoadFromFile(const std::filesystem::path& path);
 
 private:
 	Document m_reader;

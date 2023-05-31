@@ -5,15 +5,7 @@
 
 #include "rapidjson/writer.h"
 
-const char* g_NXTextureType[] = { "Default", "Linear Color", "Normal Map" };
-
-TextureNXInfo::TextureNXInfo(const TextureNXInfo& info) :
-	eType(info.eType),
-	bInvertNormalY(info.bInvertNormalY),
-	bGenerateMipMap(info.bGenerateMipMap),
-	bCubeMap(info.bCubeMap)
-{
-}
+const char* g_strNXTextureType[] = { "Raw", "sRGB", "Linear", "Normal Map"};
 
 void NXTexture::SwapToReloadingTexture()
 {
@@ -77,7 +69,6 @@ void NXTexture::RemoveRef()
 
 void NXTexture::Release()
 {
-	SafeDelete(m_pInfo);
 }
 
 void NXTexture::MarkReload()
@@ -111,10 +102,10 @@ void NXTexture::Serialize()
 	serializer.StartObject();
 	serializer.String("NXInfoPath", nxInfoPath);	// 元文件路径
 	serializer.Uint64("PathHashValue", std::filesystem::hash_value(m_texFilePath)); // 纹理文件路径 hash value
-	serializer.Int("TextureType", (int)m_pInfo->eType); // 纹理类型
-	serializer.Bool("IsInvertNormalY", m_pInfo->bInvertNormalY); // 是否FlipY法线
-	serializer.Bool("IsGenerateMipMap", m_pInfo->bGenerateMipMap); // 是否生成mipmap
-	serializer.Bool("IsCubeMap", m_pInfo->bCubeMap); // 是否是立方体贴图
+	serializer.Int("TextureType", (int)m_textureType); // 纹理类型
+	serializer.Bool("IsInvertNormalY", m_bInvertNormalY); // 是否FlipY法线
+	serializer.Bool("IsGenerateMipMap", m_bGenerateMipMap); // 是否生成mipmap
+	serializer.Bool("IsCubeMap", m_bCubeMap); // 是否是立方体贴图
 	serializer.EndObject();
 
 	serializer.SaveToFile(nxInfoPath.c_str());
@@ -125,13 +116,18 @@ void NXTexture::Deserialize()
 	using namespace rapidjson;
 	std::string nxInfoPath = m_texFilePath.string() + ".nxInfo";
 	NXDeserializer deserializer;
-	deserializer.LoadFromFile(nxInfoPath.c_str());
-	std::string strPathInfo;
-	strPathInfo = deserializer.String("NXInfoPath");
-	m_pInfo->eType = (NXTextureType)deserializer.Int("TextureType");
-	m_pInfo->bInvertNormalY = deserializer.Bool("IsInvertNormalY");
-	m_pInfo->bGenerateMipMap = deserializer.Bool("IsGenerateMipMap");
-	m_pInfo->bCubeMap = deserializer.Bool("IsCubeMap");
+	bool bJsonExist = deserializer.LoadFromFile(nxInfoPath.c_str());
+	if (bJsonExist)
+	{
+		//std::string strPathInfo;
+		//strPathInfo = deserializer.String("NXInfoPath");
+		m_textureType = (NXTextureType)deserializer.Int("TextureType");
+		m_bInvertNormalY = deserializer.Bool("IsInvertNormalY");
+		m_bGenerateMipMap = deserializer.Bool("IsGenerateMipMap");
+		m_bCubeMap = deserializer.Bool("IsCubeMap");
+
+		m_bDeserialized = true;
+	}
 }
 
 void NXTexture2D::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* initData, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
@@ -184,8 +180,9 @@ NXTexture2D* NXTexture2D::Create(const std::string& DebugName, const std::filesy
 		return nullptr;
 	}
 
+	Deserialize();
+
 	m_texFilePath = filePath;
-	m_pInfo = NXResourceManager::GetInstance()->GetTextureManager()->LoadTextureInfo(filePath);
 
 	// 如果读取的是arraySize/TextureCube，就只读取ArraySize[0]/X+面。
 	if (metadata.arraySize > 1)
@@ -196,10 +193,29 @@ NXTexture2D* NXTexture2D::Create(const std::string& DebugName, const std::filesy
 		pImage.swap(timage);
 	}
 
-	// --- Convert -----------------------------------------------------------------
-	bool bIsSRGB = m_pInfo->eType == NXTextureType::Default;
-	if (IsSRGB(metadata.format) != bIsSRGB)
+	if (NXConvert::IsUnormFormat(metadata.format))
 	{
+		DXGI_FORMAT safeFormat = NXConvert::SafeDXGIFormat(metadata.format);
+		if (metadata.format != safeFormat)
+		{
+			std::unique_ptr<ScratchImage> timage(new ScratchImage);
+			hr = Convert(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), safeFormat, TEX_FILTER_DEFAULT, TEX_THRESHOLD_DEFAULT, *timage);
+			if (SUCCEEDED(hr))
+			{
+				metadata.format = safeFormat;
+			}
+			else
+			{
+				printf("Warning: [Convert] failed when loading NXTexture2D: %s.\n", filePath.string().c_str());
+			}
+			pImage.swap(timage);
+		}
+	}
+
+	// 如果序列化的文件里记录了sRGB/Linear类型，就做对应的转换
+	if (m_textureType == NXTextureType::sRGB || m_textureType == NXTextureType::Linear)
+	{
+		bool bIsSRGB = m_textureType == NXTextureType::sRGB;
 		std::unique_ptr<ScratchImage> timage(new ScratchImage);
 
 		DXGI_FORMAT tFormat = bIsSRGB ? NXConvert::ForceSRGB(metadata.format) : NXConvert::ForceLinear(metadata.format);
@@ -211,13 +227,13 @@ NXTexture2D* NXTexture2D::Create(const std::string& DebugName, const std::filesy
 		}
 		else
 		{
-			printf("Warning: [Convert] failed when loading NXTextureCube file: %ws\n", filePath.c_str());
+			printf("Warning: [Convert] failed when loading NXTexture2D: %s\n", filePath.string().c_str());
 		}
 		pImage.swap(timage);
 	}
 
 	// --- Invert Y Channel --------------------------------------------------------
-	if (m_pInfo->bInvertNormalY)
+	if (m_bInvertNormalY)
 	{
 		std::unique_ptr<ScratchImage> timage(new ScratchImage);
 
@@ -237,13 +253,13 @@ NXTexture2D* NXTexture2D::Create(const std::string& DebugName, const std::filesy
 
 		if (FAILED(hr))
 		{
-			printf("Warning: [InvertNormalY] failed when loading NXTextureCube file: %ws\n", filePath.c_str());
+			printf("Warning: [InvertNormalY] failed when loading NXTexture2D: %s\n", filePath.string().c_str());
 		}
 
 		pImage.swap(timage);
 	}
 
-	if (m_pInfo->bGenerateMipMap && metadata.width >= 2 && metadata.height >= 2 && metadata.mipLevels == 1)
+	if (m_bGenerateMipMap && metadata.width >= 2 && metadata.height >= 2 && metadata.mipLevels == 1)
 	{
 		std::unique_ptr<ScratchImage> pImageMip = std::make_unique<ScratchImage>();
 		HRESULT hr = GenerateMipMaps(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), TEX_FILTER_DEFAULT, 0, *pImageMip);
@@ -254,11 +270,11 @@ NXTexture2D* NXTexture2D::Create(const std::string& DebugName, const std::filesy
 		}
 		else
 		{
-			printf("Warning: [GenerateMipMap] failed when loading NXTextureCube file: %ws\n", filePath.c_str());
+			printf("Warning: [GenerateMipMap] failed when loading NXTexture2D: %s\n", filePath.string().c_str());
 		}
 	}
 
-	this->m_texFilePath = filePath.c_str();
+	this->m_texFilePath = filePath;
 	this->m_debugName = DebugName;
 	this->m_width = (UINT)metadata.width;
 	this->m_height = (UINT)metadata.height;

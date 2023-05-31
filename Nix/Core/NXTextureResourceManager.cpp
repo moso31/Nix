@@ -151,67 +151,6 @@ NXTexture2D* NXTextureResourceManager::GetCommonTextures(NXCommonTexEnum eTex)
 	return m_pCommonTex[eTex];
 }
 
-TextureNXInfo* NXTextureResourceManager::LoadTextureInfo(const std::filesystem::path& texFilePath)
-{
-	auto pResult = new TextureNXInfo();
-
-	std::string strPath = texFilePath.string().c_str();
-	std::string strNXInfoPath = strPath + ".nxInfo";
-
-	std::ifstream ifs(strNXInfoPath, std::ios::binary);
-
-	// nxInfo 路径如果没打开，就返回一个所有值都给默认值的 info
-	if (!ifs.is_open())
-		return pResult;
-
-	std::string strIgnore;
-
-	size_t nHashFile;
-	ifs >> nHashFile;
-	std::getline(ifs, strIgnore);
-
-	// 如果打开了元文件，但发现路径哈希和纹理资源本身并不匹配，则这个元文件是失效的。返回默认元文件。
-	size_t nHashPath = std::filesystem::hash_value(texFilePath);
-	if (nHashFile != nHashPath)
-	{
-		printf("Warning: TextureInfoData of %s has founded, but couldn't be open. Consider delete that file.\n", strPath.c_str());
-		return pResult;
-	}
-
-	// 能通过以上全部条件，才使用元文件存储的数据
-	ifs >> pResult->nTexType >> pResult->bSRGB >> pResult->bInvertNormalY >> pResult->bGenerateMipMap >> pResult->bCubeMap;
-	std::getline(ifs, strIgnore);
-
-	ifs.close();
-
-	return pResult;
-}
-
-void NXTextureResourceManager::SaveTextureInfo(const TextureNXInfo* pInfo, const std::filesystem::path& texFilePath)
-{
-	if (texFilePath.empty())
-	{
-		printf("Warning: can't save TextureNXInfo for %s, path does not exist.\n", texFilePath.string().c_str());
-		return;
-	}
-
-	std::string strPathInfo = texFilePath.string() + ".nxInfo";
-
-	std::ofstream ofs(strPathInfo, std::ios::binary);
-
-	// 2023.3.22
-	// 纹理资源的元文件（*.nxInfo）存储：
-	// 1. 纹理文件路径的哈希
-	// 2. (int)TextureType, (int)IsSRGB, (int)IsInvertNormalY, (int)IsGenerateCubeMap, (int)IsCubeMap
-
-	size_t pathHashValue = std::filesystem::hash_value(texFilePath);
-	ofs << pathHashValue << std::endl;
-
-	ofs << pInfo->nTexType << ' ' << (int)pInfo->bSRGB << ' ' << (int)pInfo->bInvertNormalY << ' ' << (int)pInfo->bGenerateMipMap << ' ' << (int)pInfo->bCubeMap << std::endl;
-
-	ofs.close();
-}
-
 void NXTextureResourceManager::ReleaseUnusedTextures()
 {
 	// 移除所有引用计数为0的纹理，并释放它们。

@@ -63,11 +63,13 @@ int NXDeserializer::Int(const std::string& key)
 	return m_reader[key.c_str()].GetInt();
 }
 
-void NXDeserializer::LoadFromFile(const std::filesystem::path& path)
+bool NXDeserializer::LoadFromFile(const std::filesystem::path& path)
 {
 	std::ifstream ifs(path);
 	std::string json((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
 	ifs.close();
 
 	m_reader.Parse(json.c_str());
+
+	return !json.empty();
 }

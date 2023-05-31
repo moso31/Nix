@@ -17,6 +17,19 @@ std::string Trim(std::string& str);
 
 std::string GetPathOfImguiIni();
 
+// 2023.5.31
+// 检测是否是 UNORM 格式的纹理
+bool IsUnormFormat(DXGI_FORMAT fmt);
+
+// 2023.5.31
+// 对读入的 UNORM 格式的纹理，进行安全化格式转换。
+// UNORM 类型的纹理需要遵照以下规则进行处理：
+// 1. 对R, RG, RGB格式的UNORM纹理，转成8位的RGBA_UNORM;
+// 2. 对非8位的UNORM纹理，转成8位的RGBA_UNORM;
+// 3. 保留SRGB尾缀
+// 其它类型纹理暂时不需要进行处理
+DXGI_FORMAT SafeDXGIFormat(DXGI_FORMAT fmt);
+
 DXGI_FORMAT ForceSRGB(DXGI_FORMAT fmt);
 DXGI_FORMAT ForceLinear(DXGI_FORMAT fmt);
 
