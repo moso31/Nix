@@ -66,16 +66,12 @@ public:
         UINT SampleQuality = 0,
         UINT MiscFlags = 0);
 
-    void InitCommonRT();
+    void InitCommonRT(const Vector2& rtSize);
+    void ResizeCommonRT(const Vector2& rtSize);
     NXTexture2D* GetCommonRT(NXCommonRTEnum eRT);
 
     void InitCommonTextures();
     NXTexture2D* GetCommonTextures(NXCommonTexEnum eTex);
-
-    // 加载纹理资源元文件（TextureNXInfo）
-    // 如果没找到对应的元文件，则将返回一个所有参数都为默认值的元文件。
-    TextureNXInfo* LoadTextureInfo(const std::filesystem::path& texFilePath);
-    void SaveTextureInfo(const TextureNXInfo* pInfo, const std::filesystem::path& texFilePath);
 
     // 移除 m_pTextureArray 中所有 引用计数=0 的纹理。
     void ReleaseUnusedTextures();

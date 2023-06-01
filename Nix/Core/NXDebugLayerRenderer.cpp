@@ -17,10 +17,8 @@ NXDebugLayerRenderer::NXDebugLayerRenderer(NXShadowMapRenderer* pShadowMapRender
 {
 }
 
-void NXDebugLayerRenderer::Init()
+void NXDebugLayerRenderer::Init(const Vector2& rtSize)
 {
-	Vector2 sz = g_dxResources->GetViewSize();
-
 	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\DebugLayer.fx", "VS", &m_pVertexShader, NXGlobalInputLayout::layoutPT, ARRAYSIZE(NXGlobalInputLayout::layoutPT), &m_pInputLayout);
 	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\DebugLayer.fx", "PS", &m_pPixelShader);
 
@@ -29,10 +27,6 @@ void NXDebugLayerRenderer::Init()
 	m_pBlendState = NXBlendState<>::Create();
 
 	m_pSamplerPointClamp.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_POINT>::Create());
-
-	m_pDebugLayerTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("Debug Layer Out RT", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET);
-	m_pDebugLayerTex->AddRTV();
-	m_pDebugLayerTex->AddSRV();
 
 	m_pRTQuad = new NXRenderTarget();
 	m_pRTQuad->Init();
@@ -45,7 +39,16 @@ void NXDebugLayerRenderer::Init()
 	bufferDesc.CPUAccessFlags = 0;
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbParams));
 
-	m_cbDataParams.RTSize = Vector4(sz.x, sz.y, 1.0f / sz.x, 1.0f / sz.y);
+	OnResize(rtSize);
+}
+
+void NXDebugLayerRenderer::OnResize(const Vector2& rtSize)
+{
+	m_pDebugLayerTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("Debug Layer Out RT", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET);
+	m_pDebugLayerTex->AddRTV();
+	m_pDebugLayerTex->AddSRV();
+
+	m_cbDataParams.RTSize = Vector4(rtSize.x, rtSize.y, 1.0f / rtSize.x, 1.0f / rtSize.y);
 	m_cbDataParams.LayerParam0 = Vector4(1.0f, 0.0f, 0.0f, 0.0f);
 }
 

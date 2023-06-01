@@ -5,15 +5,17 @@
 class NXFinalRenderer
 {
 public:
-	NXFinalRenderer();
+	NXFinalRenderer(ID3D11RenderTargetView* pRTVFinalQuad);
 	~NXFinalRenderer();
 
 	void Init();
+	void OnResize(ID3D11RenderTargetView* pRTVFinalQuad);
 	void Render();
 
 	void Release();
 
 	void SetInputTexture(NXTexture2D* pInputTexture);
+	NXTexture2D* GetInputTexture() { return m_pInputTexture; }
 
 private:
 	ComPtr<ID3D11VertexShader>			m_pVertexShader;
@@ -25,6 +27,9 @@ private:
 	ComPtr<ID3D11BlendState>			m_pBlendState;
 
 	ComPtr<ID3D11SamplerState>			m_pSamplerLinearClamp;
+
+	// 最终渲染的FinalRT临时用一张原生RTV存储
+	ID3D11RenderTargetView* m_pRTVFinalQuad;
 
 	NXRenderTarget* m_pFinalRT;
 

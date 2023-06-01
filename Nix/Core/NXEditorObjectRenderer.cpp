@@ -19,15 +19,12 @@ NXEditorObjectRenderer::~NXEditorObjectRenderer()
 {
 }
 
-void NXEditorObjectRenderer::Init()
+void NXEditorObjectRenderer::Init(const Vector2& rtSize)
 {
+	OnResize(rtSize);
+
 	m_pRTQuad = new NXRenderTarget();
 	m_pRTQuad->Init();
-
-	Vector2 sz = g_dxResources->GetViewSize();
-	m_pPassOutTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("Editor objects Out RT", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET);
-	m_pPassOutTex->AddRTV();
-	m_pPassOutTex->AddSRV();
 
 	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\EditorObjects.fx", "VS", &m_pVertexShader, NXGlobalInputLayout::layoutEditorObject, ARRAYSIZE(NXGlobalInputLayout::layoutEditorObject), &m_pInputLayout);
 	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\EditorObjects.fx", "PS", &m_pPixelShader);
@@ -43,6 +40,13 @@ void NXEditorObjectRenderer::Init()
 	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbParams));
+}
+
+void NXEditorObjectRenderer::OnResize(const Vector2& rtSize)
+{
+	m_pPassOutTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("Editor objects Out RT", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET);
+	m_pPassOutTex->AddRTV();
+	m_pPassOutTex->AddSRV();
 }
 
 void NXEditorObjectRenderer::Render()

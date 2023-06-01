@@ -27,16 +27,19 @@ public:
 
 	void AddListener(NXEventCallbackFunc callbackFunc)
 	{
-		m_callbackFuncs.push_back(callbackFunc);
+		m_callbackFuncs.emplace_back(std::move(callbackFunc));
 	}
 
 	void Notify(Args... args)
 	{
 		const ImGuiIO& io = ImGui::GetIO();
 		if (io.WantCaptureMouse || io.WantCaptureKeyboard)
-			return;
+		{
+			if (!g_bGuiOnViewportHover)
+				return; // ImGui占用鼠标/键盘，除非是view窗口导致的，否则禁止推送事件。
+		}
 
-		for (auto callbackFunc : m_callbackFuncs)
+		for (const auto& callbackFunc : m_callbackFuncs)
 		{
 			callbackFunc(args...);
 		}
@@ -59,12 +62,12 @@ public:
 
 	void AddListener(NXEventCallbackFunc callbackFunc)
 	{
-		m_callbackFuncs.push_back(callbackFunc);
+		m_callbackFuncs.emplace_back(std::move(callbackFunc));
 	}
 
 	void Notify(Args... args)
 	{
-		for (auto callbackFunc : m_callbackFuncs)
+		for (const auto& callbackFunc : m_callbackFuncs)
 		{
 			callbackFunc(args...);
 		}
@@ -89,3 +92,6 @@ class NXEventKeyDownForce : public NXForceEvent<NXEventArgKey>, public NXInstanc
 class NXEventMouseUpForce : public NXForceEvent<NXEventArgMouse>, public NXInstance<NXEventMouseUpForce> {};
 class NXEventMouseDownForce : public NXForceEvent<NXEventArgMouse>, public NXInstance<NXEventMouseDownForce> {};
 class NXEventMouseMoveForce : public NXForceEvent<NXEventArgMouse>, public NXInstance<NXEventMouseMoveForce> {};
+
+// 检测鼠标是否在视口（"view"）上悬停
+extern  bool	g_bGuiOnViewportHover;

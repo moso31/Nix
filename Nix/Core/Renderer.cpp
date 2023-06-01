@@ -12,7 +12,8 @@
 #include "NXDepthPrepass.h"
 #include "NXSimpleSSAO.h"
 
-Renderer::Renderer() : 
+Renderer::Renderer(DirectResources* pDXResources) :
+	m_pDXResources(pDXResources),
 	m_bRenderGUI(true)
 {
 }
@@ -36,7 +37,7 @@ void Renderer::Init()
 	NXResourceManager::GetInstance()->GetCameraManager()->SetWorkingScene(m_scene);
 	NXResourceManager::GetInstance()->GetLightManager()->SetWorkingScene(m_scene);
 
-	m_scene->Init();
+	m_scene->Init(m_pDXResources->GetViewSize());
 
 	auto pCubeMap = m_scene->GetCubeMap();
 
@@ -44,13 +45,13 @@ void Renderer::Init()
 	m_pBRDFLut->GenerateBRDFLUT();
 
 	m_pDepthPrepass = new NXDepthPrepass(m_scene);
-	m_pDepthPrepass->Init(g_dxResources->GetViewSize());
+	m_pDepthPrepass->Init();
 
 	m_pGBufferRenderer = new NXGBufferRenderer(m_scene);
 	m_pGBufferRenderer->Init();
 
 	m_pSSAO = new NXSimpleSSAO();
-	m_pSSAO->Init(g_dxResources->GetViewSize());
+	m_pSSAO->Init(m_pDXResources->GetViewSize());
 
 	m_pShadowMapRenderer = new NXShadowMapRenderer(m_scene);
 	m_pShadowMapRenderer->Init();
@@ -65,7 +66,7 @@ void Renderer::Init()
 	m_pForwardRenderer->Init();
 
 	m_pDepthPeelingRenderer = new NXDepthPeelingRenderer(m_scene, m_pBRDFLut);
-	m_pDepthPeelingRenderer->Init();
+	m_pDepthPeelingRenderer->Init(m_pDXResources->GetViewSize());
 
 	m_pSkyRenderer = new NXSkyRenderer(m_scene);
 	m_pSkyRenderer->Init();
@@ -74,13 +75,28 @@ void Renderer::Init()
 	m_pColorMappingRenderer->Init();
 
 	m_pDebugLayerRenderer = new NXDebugLayerRenderer(m_pShadowMapRenderer);
-	m_pDebugLayerRenderer->Init();
+	m_pDebugLayerRenderer->Init(m_pDXResources->GetViewSize());
 
-	m_pFinalRenderer = new NXFinalRenderer();
+	m_pFinalRenderer = new NXFinalRenderer(m_pDXResources->GetRTVFinalQuad());
 	m_pFinalRenderer->Init();
 
 	m_pEditorObjectRenderer = new NXEditorObjectRenderer(m_scene);
-	m_pEditorObjectRenderer->Init();
+	m_pEditorObjectRenderer->Init(m_pDXResources->GetViewSize());
+}
+
+void Renderer::OnResize(const Vector2& rtSize)
+{
+	NXResourceManager::GetInstance()->GetTextureManager()->ResizeCommonRT(m_pDXResources->GetViewSize());
+	m_pDepthPrepass->OnResize(m_pDXResources->GetViewSize());
+	m_pSSAO->OnResize(m_pDXResources->GetViewSize());
+	m_pDepthPeelingRenderer->OnResize(m_pDXResources->GetViewSize());
+	m_pDebugLayerRenderer->OnResize(m_pDXResources->GetViewSize());
+	m_pEditorObjectRenderer->OnResize(m_pDXResources->GetViewSize());
+
+	// 2023.6.1
+	// 上面的都传了rtSize，但m_pFinalRenderer的输出需要直接交由设备上下文并作为最终呈现结果输出
+	// 所以传的是个RTV。这一做法可能不太合理，有待后续观察
+	m_pFinalRenderer->OnResize(m_pDXResources->GetRTVFinalQuad());
 }
 
 void Renderer::InitGUI()
@@ -92,8 +108,8 @@ void Renderer::InitGUI()
 void Renderer::InitRenderer()
 {
 	// 在这里初始化CommonRT和通用纹理。
-	NXResourceManager::GetInstance()->GetTextureManager()->InitCommonRT();
 	NXResourceManager::GetInstance()->GetTextureManager()->InitCommonTextures();
+	NXResourceManager::GetInstance()->GetTextureManager()->InitCommonRT(m_pDXResources->GetViewSize());
 
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -154,7 +170,7 @@ void Renderer::RenderFrame()
 	g_pUDA->BeginEvent(L"Render Scene");
 
 	// 设置视口
-	auto vp = g_dxResources->GetViewPortSize();
+	auto vp = m_pDXResources->GetViewPortSize();
 	CD3D11_VIEWPORT vpCamera(0.0f, 0.0f, vp.x, vp.y);
 	g_pContext->RSSetViewports(1, &vpCamera);
 

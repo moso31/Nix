@@ -15,7 +15,8 @@ public:
 	NXEditorObjectRenderer(NXScene* pScene);
 	~NXEditorObjectRenderer();
 
-	void Init();
+	void Init(const Vector2& rtSize);
+	void OnResize(const Vector2& rtSize);
 	void Render();
 
 	void Release();

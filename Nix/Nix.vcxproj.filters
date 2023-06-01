@@ -438,6 +438,9 @@
     <ClCompile Include="Core\NXSerializable.cpp">
       <Filter>Core\DirectX</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXGUIView.cpp">
+      <Filter>Core\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -688,6 +691,9 @@
     </ClInclude>
     <ClInclude Include="Nix\NXTextureDefinitions.h">
       <Filter>Nix\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXGUIView.h">
+      <Filter>Core\UI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

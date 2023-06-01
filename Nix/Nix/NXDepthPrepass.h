@@ -7,7 +7,8 @@ public:
 	NXDepthPrepass(NXScene* pScene);
 	~NXDepthPrepass();
 
-	void Init(const Vector2& DepthBufferSize);
+	void Init();
+	void OnResize(const Vector2& rtSize);
 	void Render();
 
 private:

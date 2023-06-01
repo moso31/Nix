@@ -16,7 +16,8 @@ public:
 	NXSimpleSSAO();
 	~NXSimpleSSAO();
 
-	void Init(const Vector2& AOBufferSize);
+	void Init(const Vector2& rtSize);
+	void OnResize(const Vector2& rtSize);
 	void Update();
 	void Render(ID3D11ShaderResourceView* pSRVNormal, ID3D11ShaderResourceView* pSRVPosition, ID3D11ShaderResourceView* pSRVDepthPrepass);
 
@@ -49,4 +50,6 @@ private:
 
 	ConstantBufferSSAOParams	m_ssaoParams;
 	ComPtr<ID3D11Buffer>		m_pCBSSAOParams;
+
+	Vector2 m_rtSize;
 };

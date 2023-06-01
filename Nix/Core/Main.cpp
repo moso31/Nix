@@ -34,13 +34,24 @@ HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow)
 	g_hInst = hInstance;
 	RECT rc = { 0, 0, 1600, 900 };
 	//RECT rc = { 0, 0, 120, 90 };
+
 	AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
 	g_hWnd = CreateWindow(L"NixWindowClass", L"Nix",
-		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
+		WS_OVERLAPPEDWINDOW,
 		0 + 50, 50, rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr, hInstance,
 		nullptr);
-	if (!g_hWnd)
-		return E_FAIL;
+
+	//int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+	//int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+	//DWORD windowStyle = WS_POPUP | WS_VISIBLE;
+
+	//g_hWnd = CreateWindow(L"NixWindowClass", L"Nix",
+	//	windowStyle,
+	//	0, 0, screenWidth, screenHeight, nullptr, nullptr, hInstance,
+	//	nullptr);
+
+	//if (!g_hWnd)
+	//	return E_FAIL;
 
 	ShowWindow(g_hWnd, nCmdShow);
 
@@ -107,6 +118,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		EndPaint(hWnd, &ps);
 		break;
 
+	case WM_SIZE:
+		if (g_app) g_app->OnResize(LOWORD(lParam), HIWORD(lParam));
+		break;
+
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
@@ -117,9 +132,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		if (NXInput::GetInstance()->KeyDown(VK_ESCAPE))
 			PostQuitMessage(0);
 		break;
-
-		// Note that this tutorial does not handle resizing (WM_SIZE) requests,
-		// so we created the window without the resize border.
 
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);

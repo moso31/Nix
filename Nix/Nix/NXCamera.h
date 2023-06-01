@@ -37,10 +37,10 @@ public:
 	const Matrix& GetViewProjectionMatrix();
 	const Matrix& GetViewProjectionInverseMatrix();
 
-	Ray GenerateRay(const Vector2& cursorPosition);
-	Ray GenerateRay(const Vector2& cursor, const Vector2& imageSize);
+	Ray GenerateRay(const Vector2& cursor, const Vector2& rectSize);
 
-	void Init(float fovY, float zNear, float zFar, Vector3 cameraPosition, Vector3 cameraLookAt, Vector3 cameraLookUp);
+	void Init(float fovY, float zNear, float zFar, Vector3 cameraPosition, Vector3 cameraLookAt, Vector3 cameraLookUp, const Vector2& rtSize);
+	void OnResize(const Vector2& rtSize);
 	void UpdateTransform();
 	void Update();
 	void Render();
@@ -65,4 +65,7 @@ private:
 
 	// 编辑器使用的 第一人称控制(FPC)脚本指针
 	NSFirstPersonalCamera* m_pEditorFPCScript;
+
+	float m_aspectRatio;
+	Vector2 m_rtSize;
 };

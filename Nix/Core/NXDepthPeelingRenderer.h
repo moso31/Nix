@@ -14,7 +14,8 @@ public:
 	NXDepthPeelingRenderer(NXScene* pScene, NXBRDFLut* pBRDFLut);
 	~NXDepthPeelingRenderer();
 
-	void Init();
+	void Init(const Vector2& rtSize);
+	void OnResize(const Vector2& rtSize);
 	void Render();
 
 	void Release();

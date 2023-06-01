@@ -18,12 +18,16 @@ NXDepthPrepass::~NXDepthPrepass()
 {
 }
 
-void NXDepthPrepass::Init(const Vector2& DepthBufferSize)
+void NXDepthPrepass::Init()
 {
 	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\DepthPrepass.fx", "VS", &m_pVertexShader, NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), &m_pInputLayout);
 	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\DepthPrepass.fx", "PS", &m_pPixelShader);
 
 	m_pSamplerLinearWrap.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP>::Create());
+}
+
+void NXDepthPrepass::OnResize(const Vector2& rtSize)
+{
 }
 
 void NXDepthPrepass::Render()

@@ -22,9 +22,10 @@ struct NXEventArgKey;
 class Renderer
 {
 public:
-	Renderer();
+	Renderer(DirectResources* pDXResources);
 
 	void Init();
+	void OnResize(const Vector2& rtSize);
 	void InitGUI();
 	void InitRenderer();
 	void InitEvents();
@@ -52,12 +53,15 @@ public:
 	// 2023.3.10 目前 PostProcessing 只有 ColorMapping…… 所以这两个暂时算是同义词。
 	NXColorMappingRenderer* GetColorMappingRenderer()   { return m_pColorMappingRenderer; }
 	NXDebugLayerRenderer*	GetDebugLayerRenderer()		{ return m_pDebugLayerRenderer; }
+	NXFinalRenderer*		GetFinalRenderer() 			{ return m_pFinalRenderer; }
 
 private:
 	void DrawDepthPrepass();
 	void OnKeyDown(NXEventArgKey eArg);
 
 private:
+	DirectResources* m_pDXResources;
+
 	ComPtr<ID3D11InputLayout>			m_pInputLayoutP;
 	ComPtr<ID3D11InputLayout>			m_pInputLayoutPT;
 	ComPtr<ID3D11InputLayout>			m_pInputLayoutPNT;

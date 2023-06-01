@@ -7,7 +7,8 @@
 #include "NXRenderTarget.h"
 #include "NXTexture.h"
 
-NXFinalRenderer::NXFinalRenderer() :
+NXFinalRenderer::NXFinalRenderer(ID3D11RenderTargetView* pRTVFinalQuad) :
+	m_pRTVFinalQuad(pRTVFinalQuad),
 	m_pFinalRT(nullptr)
 {
 }
@@ -31,15 +32,19 @@ void NXFinalRenderer::Init()
 	m_pSamplerLinearClamp.Swap(NXSamplerState<>::Create());
 }
 
+void NXFinalRenderer::OnResize(ID3D11RenderTargetView* pRTVFinalQuad)
+{
+	m_pRTVFinalQuad = pRTVFinalQuad;
+}
+
 void NXFinalRenderer::Render()
 {
 	g_pUDA->BeginEvent(L"Render Target");
 
-	ID3D11RenderTargetView* pRTVFinalQuad = g_dxResources->GetRTVFinalQuad();
 	ID3D11ShaderResourceView* pSRVInput = m_pInputTexture->GetSRV();
 
-	g_pContext->OMSetRenderTargets(1, &pRTVFinalQuad, nullptr);
-	g_pContext->ClearRenderTargetView(pRTVFinalQuad, Colors::Black);
+	g_pContext->OMSetRenderTargets(1, &m_pRTVFinalQuad, nullptr);
+	g_pContext->ClearRenderTargetView(m_pRTVFinalQuad, Colors::Black);
 
 	g_pContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 0);
 	g_pContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xffffffff);

@@ -12,13 +12,19 @@ App::App() :
 
 void App::Init()
 {
-	g_dxResources = new DirectResources();
-	g_dxResources->InitDevice();
+	m_pDXResources = new DirectResources();
+	m_pDXResources->InitDevice();
 
-	m_pRenderer = new Renderer();
+	m_pRenderer = new Renderer(m_pDXResources);
 	m_pRenderer->Init();
 
 	m_pRenderer->InitGUI();
+}
+
+void App::OnResize(UINT width, UINT height)
+{
+	m_pDXResources->OnResize(width, height);
+	m_pRenderer->OnResize(Vector2((float)width, (float)height));
 }
 
 void App::Reload()
@@ -68,5 +74,5 @@ void App::Release()
 	SafeRelease(m_pRenderer);
 	NXResourceManager::GetInstance()->Release();
 	NXShaderComplier::GetInstance()->Release();
-	SafeRelease(g_dxResources);
+	SafeRelease(m_pDXResources);
 }

@@ -40,7 +40,7 @@ void NXScene::OnMouseDown(NXEventArgMouse eArg)
 {
 	if (eArg.VMouse & 1) // 鼠标左键
 	{
-		auto ray = GetMainCamera()->GenerateRay(Vector2(eArg.X + 0.5f, eArg.Y + 0.5f));
+		auto ray = GetMainCamera()->GenerateRay(Vector2(eArg.X + 0.5f, eArg.Y + 0.5f), m_rtSize);
 		
 		// 检测是否点击编辑器对象（移动箭头，旋转环，缩放轴）
 		// （不过目前实际上只有移动箭头hhhhh）
@@ -81,7 +81,7 @@ void NXScene::OnMouseDown(NXEventArgMouse eArg)
 
 void NXScene::OnMouseMove(NXEventArgMouse eArg)
 {
-	auto worldRay = GetMainCamera()->GenerateRay(Vector2(eArg.X + 0.5f, eArg.Y + 0.5f));
+	auto worldRay = GetMainCamera()->GenerateRay(Vector2(eArg.X + 0.5f, eArg.Y + 0.5f), m_rtSize);
 
 	if (m_bEditorSelectID > EditorObjectID::NONE &&
 		m_bEditorSelectID < EditorObjectID::MAX)
@@ -218,8 +218,10 @@ Vector3 NXScene::GetAnchorOfEditorTranslatorPlane(const Ray& ray, const Plane& p
 	return Vector3();
 }
 
-void NXScene::Init()
+void NXScene::Init(const Vector2& rtSize)
 {
+	OnResize(rtSize);
+
 	InitEditorObjectsManager();
 
 	m_pTestCustomMat = NXResourceManager::GetInstance()->GetMaterialManager()->CreateCustomMaterial("TestCustomMat", "./shader/GBufferEx_Test.nsl");
@@ -317,7 +319,8 @@ void NXScene::Init()
 		70.0f, 0.3f, 1000.f,
 		Vector3(0.0f, 0.0f, -10.0f),
 		Vector3(0.0f, 0.0f, 0.0f),
-		Vector3(0.0f, 1.0f, 0.0f)
+		Vector3(0.0f, 1.0f, 0.0f),
+		m_rtSize
 	);
 
 	NXCubeMap* pSky =
@@ -357,6 +360,14 @@ void NXScene::Init()
 	}
 
 	InitScripts();
+}
+
+void NXScene::OnResize(const Vector2& rtSize)
+{
+	m_rtSize = rtSize;
+
+	auto pCamera = GetMainCamera();
+	if (pCamera) pCamera->OnResize(rtSize);
 }
 
 void NXScene::InitScripts()

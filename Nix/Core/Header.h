@@ -142,7 +142,6 @@ extern	ComPtr<IDXGISwapChain4>				g_pSwapChain;
 extern	ComPtr<ID3DUserDefinedAnnotation>	g_pUDA;
 
 extern	App*					g_app;
-extern	DirectResources*		g_dxResources;
 extern	NXTimer*				g_timer;
 
 // default texture file path

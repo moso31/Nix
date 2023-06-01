@@ -14,6 +14,7 @@ class NXGUICamera;
 class NXGUIShadows;
 class NXGUIPostProcessing;
 class NXGUIDebugLayer;
+class NXGUIView;
 
 class NXGUI
 {
@@ -40,6 +41,7 @@ private:
 	NXGUISSAO*				m_pGUISSAO;
 	NXGUIShadows*			m_pGUIShadows;
 	NXGUIPostProcessing*	m_pGUIPostProcessing;
+	NXGUIView*				m_pGUIView;
 
 	NXGUIDebugLayer*		m_pGUIDebugLayer;
 };

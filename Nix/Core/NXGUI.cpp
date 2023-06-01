@@ -2,6 +2,7 @@
 #include "NXEvent.h"
 #include "DirectResources.h"
 #include "Renderer.h"
+#include "NXScene.h"
 #include "NXConverter.h"
 
 #include "NXGUIFileBrowser.h"
@@ -15,6 +16,7 @@
 #include "NXGUIPostProcessing.h"
 #include "NXGUIContentExplorer.h"
 #include "NXGUITexture.h"
+#include "NXGUIView.h"
 
 NXGUI::NXGUI(NXScene* pScene, Renderer* pRenderer) :
 	m_pCurrentScene(pScene),
@@ -29,7 +31,8 @@ NXGUI::NXGUI(NXScene* pScene, Renderer* pRenderer) :
 	m_pGUIPostProcessing(nullptr),
 	m_pGUIDebugLayer(nullptr),
 	m_pGUIContentExplorer(nullptr),
-	m_pGUITexture(nullptr)
+	m_pGUITexture(nullptr),
+	m_pGUIView(nullptr)
 {
 }
 
@@ -55,6 +58,8 @@ void NXGUI::Init()
 	m_pGUIShadows = new NXGUIShadows(m_pRenderer->GetShadowMapRenderer());
 	m_pGUIPostProcessing = new NXGUIPostProcessing(m_pRenderer->GetColorMappingRenderer());
 	m_pGUIDebugLayer = new NXGUIDebugLayer(m_pRenderer->GetDebugLayerRenderer());
+
+	m_pGUIView = new NXGUIView(m_pRenderer->GetFinalRenderer());
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -85,6 +90,7 @@ void NXGUI::Render()
 	m_pGUIShadows->Render();
 	m_pGUIPostProcessing->Render();
 	m_pGUIDebugLayer->Render();
+	m_pGUIView->Render();
 
 	static bool show_demo_window = true;
 	static bool show_another_window = false;
@@ -107,6 +113,7 @@ void NXGUI::Release()
 {
 	//ImGui::SaveIniSettingsToDisk(NXConvert::GetPathOfImguiIni().c_str());
 
+	SafeDelete(m_pGUIView);
 	SafeRelease(m_pGUIMaterial);
 	SafeDelete(m_pGUILights);
 	SafeDelete(m_pGUICamera);
