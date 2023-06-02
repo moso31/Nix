@@ -66,6 +66,9 @@ void NXGUI::Init()
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
 
+	// ÉèÖÃ×ÖÌå
+	io.Fonts->AddFontFromFileTTF("./Resource/fonts/JetBrainsMono-Bold.ttf", 16);
+
 	ImGui_ImplWin32_Init(g_hWnd);
 	ImGui_ImplDX11_Init(g_pDevice.Get(), g_pContext.Get());
 

@@ -42,8 +42,8 @@ DWORD WINAPI SplashScreenThread(LPVOID lpParam)
 	// 预加载笔刷
 	HBRUSH hBrushes[] = {
 		CreateSolidBrush(RGB(0, 128, 255)),
-		CreateSolidBrush(RGB(128, 255, 0)),
-		CreateSolidBrush(RGB(255, 0, 128)),
+		CreateSolidBrush(RGB(128, 220, 0)),
+		CreateSolidBrush(RGB(220, 0, 128)),
 		CreateSolidBrush(RGB(255, 255, 255)),
 	};
 	UINT nBrushesSize = ARRAYSIZE(hBrushes);
@@ -283,7 +283,7 @@ LRESULT CALLBACK SplashWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 		HDC hdc = BeginPaint(hWnd, &ps);
 		RECT rect;
 		GetClientRect(hWnd, &rect);
-		HBRUSH hBrush = CreateSolidBrush(RGB(0, 0, 0));
+		HBRUSH hBrush = CreateSolidBrush(RGB(220, 220, 220));
 		FillRect(hdc, &rect, hBrush);
 		DeleteObject(hBrush);
 		EndPaint(hWnd, &ps);
