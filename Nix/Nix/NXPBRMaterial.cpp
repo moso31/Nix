@@ -164,7 +164,8 @@ void NXCustomMaterial::LoadShaderCode()
 	std::string strShader;
 
 	// 读取 nsl 文件，获取 nsl shader.
-	assert(LoadShaderStringFromFile(strShader));
+	bool bLoadSuccess = LoadShaderStringFromFile(strShader);
+	assert(bLoadSuccess);
 
 	// 将 nsl shader 拆成 params 和 code 两部分
 	ExtractShaderData(strShader, m_nslParams, m_nslCode);
