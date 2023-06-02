@@ -9,6 +9,7 @@ void NXGUIView::Init()
 
 void NXGUIView::Render()
 {
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1, 1));
 	ImGui::Begin("View");
 
 	if (m_pFinalRenderer && m_pFinalRenderer->GetInputTexture())
@@ -20,4 +21,5 @@ void NXGUIView::Render()
 		//g_bGuiOnViewportHover ? printf("Hovered\n") : printf("Not Hovered\n");
 	}
 	ImGui::End();
+	ImGui::PopStyleVar();
 }
