@@ -7,8 +7,7 @@
 #include "NXRenderTarget.h"
 #include "NXTexture.h"
 
-NXFinalRenderer::NXFinalRenderer(ID3D11RenderTargetView* pRTVFinalQuad) :
-	m_pRTVFinalQuad(pRTVFinalQuad),
+NXFinalRenderer::NXFinalRenderer() :
 	m_pFinalRT(nullptr)
 {
 }
@@ -32,9 +31,8 @@ void NXFinalRenderer::Init()
 	m_pSamplerLinearClamp.Swap(NXSamplerState<>::Create());
 }
 
-void NXFinalRenderer::OnResize(ID3D11RenderTargetView* pRTVFinalQuad)
+void NXFinalRenderer::OnResize()
 {
-	m_pRTVFinalQuad = pRTVFinalQuad;
 }
 
 void NXFinalRenderer::Render()
@@ -43,20 +41,17 @@ void NXFinalRenderer::Render()
 
 	ID3D11ShaderResourceView* pSRVInput = m_pInputTexture->GetSRV();
 
-	g_pContext->OMSetRenderTargets(1, &m_pRTVFinalQuad, nullptr);
-	g_pContext->ClearRenderTargetView(m_pRTVFinalQuad, Colors::Black);
+	//g_pContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 0);
+	//g_pContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xffffffff);
+	//g_pContext->RSSetState(m_pRasterizerState.Get());
 
-	g_pContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 0);
-	g_pContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xffffffff);
-	g_pContext->RSSetState(m_pRasterizerState.Get());
+	//g_pContext->IASetInputLayout(m_pInputLayout.Get());
+	//g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
+	//g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
 
-	g_pContext->IASetInputLayout(m_pInputLayout.Get());
-	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
-	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
+	//g_pContext->PSSetShaderResources(0, 1, &pSRVInput);
 
-	g_pContext->PSSetShaderResources(0, 1, &pSRVInput);
-
-	m_pFinalRT->Render();
+	//m_pFinalRT->Render();
 
 	g_pUDA->EndEvent();
 }

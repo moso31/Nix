@@ -17,6 +17,7 @@
 #include "NXGUIContentExplorer.h"
 #include "NXGUITexture.h"
 #include "NXGUIView.h"
+#include "NXGUIWorkspace.h"
 
 NXGUI::NXGUI(NXScene* pScene, Renderer* pRenderer) :
 	m_pCurrentScene(pScene),
@@ -32,7 +33,8 @@ NXGUI::NXGUI(NXScene* pScene, Renderer* pRenderer) :
 	m_pGUIDebugLayer(nullptr),
 	m_pGUIContentExplorer(nullptr),
 	m_pGUITexture(nullptr),
-	m_pGUIView(nullptr)
+	m_pGUIView(nullptr),
+	m_pGUIWorkspace(nullptr)
 {
 }
 
@@ -59,7 +61,10 @@ void NXGUI::Init()
 	m_pGUIPostProcessing = new NXGUIPostProcessing(m_pRenderer->GetColorMappingRenderer());
 	m_pGUIDebugLayer = new NXGUIDebugLayer(m_pRenderer->GetDebugLayerRenderer());
 
-	m_pGUIView = new NXGUIView(m_pRenderer->GetFinalRenderer());
+	m_pGUIView = new NXGUIView();
+
+	m_pGUIWorkspace = new NXGUIWorkspace();
+	m_pGUIWorkspace->Init();
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -75,13 +80,19 @@ void NXGUI::Init()
 	//ImGui::LoadIniSettingsFromDisk(NXConvert::GetPathOfImguiIni().c_str());
 }
 
-void NXGUI::Render()
+void NXGUI::Render(NXTexture2D* pGUIViewRT)
 {
 	g_pUDA->BeginEvent(L"GUI");
 
 	ImGui_ImplDX11_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
+
+	// 参考 imgui_demo.cpp 的注释：
+	// ImGui::DockSpace 绘制顺序必须尽可能的早，
+	// 在 DockSpace 之前绘制的 UI 无法吸附到 DockSpace 上。
+	// 所以这里写在所有 UI 最前面。
+	m_pGUIWorkspace->Render();
 
 	m_pGUIContentExplorer->Render();
 	m_pGUITexture->Render();
@@ -93,6 +104,9 @@ void NXGUI::Render()
 	m_pGUIShadows->Render();
 	m_pGUIPostProcessing->Render();
 	m_pGUIDebugLayer->Render();
+
+	if (m_pGUIView->GetViewRT() != pGUIViewRT)
+		m_pGUIView->SetViewRT(pGUIViewRT);
 	m_pGUIView->Render();
 
 	static bool show_demo_window = true;
@@ -117,6 +131,7 @@ void NXGUI::Release()
 	//ImGui::SaveIniSettingsToDisk(NXConvert::GetPathOfImguiIni().c_str());
 
 	SafeDelete(m_pGUIView);
+	SafeDelete(m_pGUIWorkspace);
 	SafeRelease(m_pGUIMaterial);
 	SafeDelete(m_pGUILights);
 	SafeDelete(m_pGUICamera);

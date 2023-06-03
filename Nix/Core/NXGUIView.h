@@ -1,19 +1,18 @@
 #pragma once
 #include "Header.h"
 
-extern bool g_isMouseHoverOnView;
-
-class NXFinalRenderer;
 // 2023.6.1 用于渲染视口RT
 class NXGUIView
 {
 public:
-	NXGUIView(NXFinalRenderer* pFinalRenderer) : m_pFinalRenderer(pFinalRenderer) {} 
+	NXGUIView() : m_pViewRT(nullptr) {}
 	~NXGUIView() {}
 
-	void Init();
+	void SetViewRT(NXTexture2D* pTexture2D);
+	NXTexture2D* GetViewRT() { return m_pViewRT; }
+
 	void Render();
 
 private:
-	NXFinalRenderer* m_pFinalRenderer;
+	NXTexture2D* m_pViewRT;
 };

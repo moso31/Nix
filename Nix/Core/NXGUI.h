@@ -2,6 +2,7 @@
 
 class NXScene;
 class Renderer;
+class NXTexture2D;
 
 class NXGUITexture;
 class NXGUIMaterial;
@@ -15,6 +16,7 @@ class NXGUIShadows;
 class NXGUIPostProcessing;
 class NXGUIDebugLayer;
 class NXGUIView;
+class NXGUIWorkspace;
 
 class NXGUI
 {
@@ -23,7 +25,7 @@ public:
 	~NXGUI();
 
 	void Init();
-	void Render();
+	void Render(NXTexture2D* pGUIViewRT);
 	void Release();
 
 private:
@@ -42,6 +44,7 @@ private:
 	NXGUIShadows*			m_pGUIShadows;
 	NXGUIPostProcessing*	m_pGUIPostProcessing;
 	NXGUIView*				m_pGUIView;
+	NXGUIWorkspace*			m_pGUIWorkspace;
 
 	NXGUIDebugLayer*		m_pGUIDebugLayer;
 };

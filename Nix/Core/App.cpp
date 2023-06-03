@@ -23,15 +23,16 @@ void App::Init()
 
 void App::OnResize(UINT width, UINT height)
 {
-	m_pDXResources->OnResize(width, height);
-	m_pRenderer->OnResize(Vector2((float)width, (float)height));
+	if (width & height)
+	{
+		m_pDXResources->OnResize(width, height);
+		m_pRenderer->OnResize(Vector2((float)width, (float)height));
+	}
 }
 
 void App::Reload()
 {
 	m_pRenderer->ResourcesReloading();
-
-	m_pRenderer->PipelineReloading();
 }
 
 void App::Update()
@@ -43,6 +44,8 @@ void App::Update()
 void App::Draw()
 {
 	m_pRenderer->RenderFrame();
+
+	m_pDXResources->PrepareToRenderGUI();
 	m_pRenderer->RenderGUI();
 
 	// clear SRV.

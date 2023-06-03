@@ -1,10 +1,10 @@
 #include "NXGUIView.h"
 #include "NXTexture.h"
-#include "NXFinalRenderer.h"
 #include "NXInput.h"
 
-void NXGUIView::Init()
+void NXGUIView::SetViewRT(NXTexture2D* pTex)
 {
+	m_pViewRT = pTex;
 }
 
 void NXGUIView::Render()
@@ -12,15 +12,12 @@ void NXGUIView::Render()
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1, 1));
 	ImGui::Begin("View");
 
-	if (m_pFinalRenderer && m_pFinalRenderer->GetInputTexture())
+	if (m_pViewRT && m_pViewRT->GetSRV())
 	{
-		ImGui::Image((void*)m_pFinalRenderer->GetInputTexture()->GetSRV(), ImGui::GetContentRegionAvail());
+		ImGui::Image((void*)m_pViewRT->GetSRV(), ImGui::GetContentRegionAvail());
 		const auto& rectMin = ImGui::GetItemRectMin();
 		const auto& rectMax = ImGui::GetItemRectMax();
 		NXInput::GetInstance()->UpdateViewPortInput(ImGui::IsItemHovered(), Vector4(rectMin.x, rectMin.y, rectMax.x, rectMax.y));
-
-		// Hover≤‚ ‘
-		//g_bGuiOnViewportHover ? printf("Hovered\n") : printf("Not Hovered\n");
 	}
 	ImGui::End();
 	ImGui::PopStyleVar();

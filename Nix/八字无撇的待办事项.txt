@@ -61,8 +61,6 @@ Last Issue ID : 37
 
 38. 材质参数的序列化
 40. 更工业化的UI布局，比如属性统一用Inspector显示，增加菜单栏等等
-41. 增加视口以后，Picking功能已经全部乱套了，需要修正一下
-	需要同时解决UI可拖动的问题，现在左键点ViewPort上一个手滑直接拉飞了。。。
 
 【较大的长期模块】
 13. 场景文件化，可保存、加载
@@ -89,6 +87,9 @@ Last Issue ID : 37
 26. 将SceneManager的Material相关转移到ResourceManager。[DONE]
 27. 切换材质的时候可能会崩溃[DONE]
 28. 多选同一材质时，GUI材质可能将其视作多个材质，不提供面板显示[DONE]
+41. 增加视口以后，Picking功能已经全部乱套了，需要修正一下[DONE 2023.6.3]
+	需要同时解决UI可拖动的问题，现在左键点ViewPort上一个手滑直接拉飞了。。。[DONE 2023.6.3]
+里程碑：
 34. 即时编译Shader[DONE 2023.5.24]
-12. resizeable viewport+全屏化UI[DONE 2023.6.1 22:27]
+12. resize+全屏化UI[DONE 2023.6.1 22:27]
 39. 闪屏界面[DONE 2023.6.2 13:36]

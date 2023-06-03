@@ -441,6 +441,9 @@
     <ClCompile Include="Core\NXGUIView.cpp">
       <Filter>Core\UI</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXGUIWorkspace.cpp">
+      <Filter>Core\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -693,6 +696,9 @@
       <Filter>Nix\Texture</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXGUIView.h">
+      <Filter>Core\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXGUIWorkspace.h">
       <Filter>Core\UI</Filter>
     </ClInclude>
   </ItemGroup>

@@ -14,6 +14,7 @@
 
 Renderer::Renderer(DirectResources* pDXResources) :
 	m_pDXResources(pDXResources),
+	m_pFinalRT(nullptr),
 	m_bRenderGUI(true)
 {
 }
@@ -77,9 +78,6 @@ void Renderer::Init()
 	m_pDebugLayerRenderer = new NXDebugLayerRenderer(m_pShadowMapRenderer);
 	m_pDebugLayerRenderer->Init(m_pDXResources->GetViewSize());
 
-	m_pFinalRenderer = new NXFinalRenderer(m_pDXResources->GetRTVFinalQuad());
-	m_pFinalRenderer->Init();
-
 	m_pEditorObjectRenderer = new NXEditorObjectRenderer(m_scene);
 	m_pEditorObjectRenderer->Init(m_pDXResources->GetViewSize());
 }
@@ -92,11 +90,6 @@ void Renderer::OnResize(const Vector2& rtSize)
 	m_pDepthPeelingRenderer->OnResize(m_pDXResources->GetViewSize());
 	m_pDebugLayerRenderer->OnResize(m_pDXResources->GetViewSize());
 	m_pEditorObjectRenderer->OnResize(m_pDXResources->GetViewSize());
-
-	// 2023.6.1
-	// 上面的都传了rtSize，但m_pFinalRenderer的输出需要直接交由设备上下文并作为最终呈现结果输出
-	// 所以传的是个RTV。这一做法可能不太合理，有待后续观察
-	m_pFinalRenderer->OnResize(m_pDXResources->GetRTVFinalQuad());
 }
 
 void Renderer::InitGUI()
@@ -127,19 +120,6 @@ void Renderer::ResourcesReloading()
 {
 	NXResourceManager::GetInstance()->OnReload();
 	NXResourceReloader::GetInstance()->Update();
-}
-
-void Renderer::PipelineReloading()
-{
-	// 【2022.7.3 should I use a "bDirty" to control this method?】
-
-	// 判断 FinalRenderer 使用哪张纹理RT 作为 Input
-	bool bEnableDebugLayer = m_pDebugLayerRenderer->GetEnableDebugLayer();
-
-	m_pFinalRenderer->SetInputTexture(bEnableDebugLayer ?
-		m_pDebugLayerRenderer->GetDebugLayerTex() :
-		NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_PostProcessing)
-	);
 }
 
 void Renderer::UpdateSceneData()
@@ -211,15 +191,17 @@ void Renderer::RenderFrame()
 	// 绘制调试信息层（如果有的话）
 	m_pDebugLayerRenderer->Render();
 
-	// 绘制主渲染屏幕RTV：
-	m_pFinalRenderer->Render();
+	// 判断 GUIView 使用哪张纹理RT 作为 Input
+	bool bEnableDebugLayer = m_pDebugLayerRenderer->GetEnableDebugLayer();
+	m_pFinalRT = bEnableDebugLayer ? m_pDebugLayerRenderer->GetDebugLayerTex() :
+		NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_PostProcessing);
 
 	g_pUDA->EndEvent();
 }
 
 void Renderer::RenderGUI()
 {
-	if (m_bRenderGUI) m_pGUI->Render();
+	if (m_bRenderGUI) m_pGUI->Render(m_pFinalRT);
 }
 
 void Renderer::Release()
@@ -239,7 +221,6 @@ void Renderer::Release()
 	SafeRelease(m_pDepthPeelingRenderer);
 	SafeRelease(m_pSkyRenderer);
 	SafeRelease(m_pColorMappingRenderer);
-	SafeRelease(m_pFinalRenderer);
 
 	SafeRelease(m_pBRDFLut);
 	SafeRelease(m_scene);
@@ -251,8 +232,8 @@ void Renderer::DrawDepthPrepass()
 
 void Renderer::OnKeyDown(NXEventArgKey eArg)
 {
-	if (eArg.VKey == 'H')
-	{
-		m_bRenderGUI = !m_bRenderGUI;
-	}
+	//if (eArg.VKey == 'H')
+	//{
+	//	m_bRenderGUI = !m_bRenderGUI;
+	//}
 }

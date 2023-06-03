@@ -157,15 +157,16 @@ HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow)
 
 	// Create window
 	g_hInst = hInstance;
-	RECT rc = { 0, 0, 1600, 900 };
+	LONG offset = 50;
+	RECT rc = { 0 + offset, 0 + offset, 1600 + offset, 900 + offset };
 	//RECT rc = { 0, 0, 120, 90 };
 
-	AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
 	g_hWnd = CreateWindow(L"NixWindowClass", L"Nix",
 		WS_OVERLAPPEDWINDOW,
-		0 + 50, 50, rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr, hInstance,
+		0, 0, rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr, hInstance,
 		nullptr);
 
+	//SetWindowLong(g_hWnd, GWL_STYLE, 5);
 	ShowWindow(g_hWnd, SW_HIDE);
 
 	return S_OK;

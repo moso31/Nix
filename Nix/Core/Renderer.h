@@ -33,9 +33,6 @@ public:
 	// 资源重加载（如果上一帧修改了资源）
 	void ResourcesReloading();
 
-	// 渲染管线重加载
-	void PipelineReloading();
-
 	// 更新 NXScene 场景
 	void UpdateSceneData();
 
@@ -53,7 +50,6 @@ public:
 	// 2023.3.10 目前 PostProcessing 只有 ColorMapping…… 所以这两个暂时算是同义词。
 	NXColorMappingRenderer* GetColorMappingRenderer()   { return m_pColorMappingRenderer; }
 	NXDebugLayerRenderer*	GetDebugLayerRenderer()		{ return m_pDebugLayerRenderer; }
-	NXFinalRenderer*		GetFinalRenderer() 			{ return m_pFinalRenderer; }
 
 private:
 	void DrawDepthPrepass();
@@ -78,12 +74,13 @@ private:
 	NXDepthPeelingRenderer*				m_pDepthPeelingRenderer;
 	NXSkyRenderer*						m_pSkyRenderer;
 	NXColorMappingRenderer*				m_pColorMappingRenderer;
-	NXFinalRenderer*					m_pFinalRenderer;
 	NXSimpleSSAO*						m_pSSAO;
 	NXDebugLayerRenderer*				m_pDebugLayerRenderer;
 	NXEditorObjectRenderer*				m_pEditorObjectRenderer;
 
 	NXGUI*								m_pGUI;
+
+	NXTexture2D*						m_pFinalRT;
 
 	bool								m_bRenderGUI;
 };

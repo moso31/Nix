@@ -7763,8 +7763,12 @@ void ShowExampleAppDockSpace(bool* p_open)
         ShowDockingDisabledMessage();
     }
 
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10.0f, 10.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10.0f, 10.0f));
     if (ImGui::BeginMenuBar())
     {
+        ImGui::PopStyleVar(); // ImGuiStyleVar_ItemSpacing
+        ImGui::PopStyleVar(); // ImGuiStyleVar_FramePadding
         if (ImGui::BeginMenu("Options"))
         {
             // Disabling fullscreen would allow the window to be moved to the front of other windows,

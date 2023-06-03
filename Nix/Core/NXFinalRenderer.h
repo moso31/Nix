@@ -5,11 +5,11 @@
 class NXFinalRenderer
 {
 public:
-	NXFinalRenderer(ID3D11RenderTargetView* pRTVFinalQuad);
+	NXFinalRenderer();
 	~NXFinalRenderer();
 
 	void Init();
-	void OnResize(ID3D11RenderTargetView* pRTVFinalQuad);
+	void OnResize();
 	void Render();
 
 	void Release();
@@ -27,9 +27,6 @@ private:
 	ComPtr<ID3D11BlendState>			m_pBlendState;
 
 	ComPtr<ID3D11SamplerState>			m_pSamplerLinearClamp;
-
-	// 最终渲染的FinalRT临时用一张原生RTV存储
-	ID3D11RenderTargetView* m_pRTVFinalQuad;
 
 	NXRenderTarget* m_pFinalRT;
 
