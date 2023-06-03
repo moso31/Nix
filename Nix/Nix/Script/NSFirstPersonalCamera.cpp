@@ -65,7 +65,7 @@ void NSFirstPersonalCamera::Update()
 	pCamera->SetRotation(m_fRotation);
 }
 
-void NSFirstPersonalCamera::OnKeyDown(NXEventArgKey eArg)
+void NSFirstPersonalCamera::OnKeyDown(const NXEventArgKey& eArg)
 {
 	if (eArg.VKey == 'W') m_bMoveState[POSITIVE_Z] = true;
 	if (eArg.VKey == 'S') m_bMoveState[NEGATIVE_Z] = true;
@@ -78,7 +78,7 @@ void NSFirstPersonalCamera::OnKeyDown(NXEventArgKey eArg)
 	if (eArg.VKey == NXKeyCode::LeftControl) m_bSpeedState = SPEED_LOW;
 }
 
-void NSFirstPersonalCamera::OnKeyUp(NXEventArgKey eArg)
+void NSFirstPersonalCamera::OnKeyUp(const NXEventArgKey& eArg)
 {
 	if (eArg.VKey == 'W') m_bMoveState[POSITIVE_Z] = false;
 	if (eArg.VKey == 'S') m_bMoveState[NEGATIVE_Z] = false;
@@ -91,7 +91,7 @@ void NSFirstPersonalCamera::OnKeyUp(NXEventArgKey eArg)
 	if (eArg.VKey == NXKeyCode::LeftControl) m_bSpeedState = SPEED_MID;
 }
 
-void NSFirstPersonalCamera::OnMouseDown(NXEventArgMouse eArg)
+void NSFirstPersonalCamera::OnMouseDown(const NXEventArgMouse& eArg)
 {
 	if (eArg.VMouse & 4)	// 4 = mouse right down
 	{
@@ -100,7 +100,7 @@ void NSFirstPersonalCamera::OnMouseDown(NXEventArgMouse eArg)
 	}
 }
 
-void NSFirstPersonalCamera::OnMouseUp(NXEventArgMouse eArg)
+void NSFirstPersonalCamera::OnMouseUp(const NXEventArgMouse& eArg)
 {
 	if (eArg.VMouse & 8)	// 8 = mouse right up
 	{
@@ -109,7 +109,7 @@ void NSFirstPersonalCamera::OnMouseUp(NXEventArgMouse eArg)
 	}
 }
 
-void NSFirstPersonalCamera::OnMouseMove(NXEventArgMouse eArg)
+void NSFirstPersonalCamera::OnMouseMove(const NXEventArgMouse& eArg)
 {
 	if (m_bLastMoveAble && m_bMoveAble)
 	{

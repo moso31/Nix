@@ -15,11 +15,11 @@ public:
 	void SetMoveSpeed(const float value) { m_fMoveSpeed = value; }
 	void SetSensitivity(const float value) { m_fSensitivity = value; }
 
-	void OnKeyDown(NXEventArgKey eArg);
-	void OnKeyUp(NXEventArgKey eArg);
-	void OnMouseDown(NXEventArgMouse eArg);
-	void OnMouseUp(NXEventArgMouse eArg);
-	void OnMouseMove(NXEventArgMouse eArg);
+	void OnKeyDown(const NXEventArgKey& eArg);
+	void OnKeyUp(const NXEventArgKey& eArg);
+	void OnMouseDown(const NXEventArgMouse& eArg);
+	void OnMouseUp(const NXEventArgMouse& eArg);
+	void OnMouseMove(const NXEventArgMouse& eArg);
 
 private:
 	NXCamera* m_pCamera;

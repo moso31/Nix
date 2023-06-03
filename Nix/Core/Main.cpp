@@ -225,7 +225,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 			g_app->Draw();
 
 			g_app->ReleaseUnusedTextures();
-			NXInput::GetInstance()->RestoreData(); // 清空一次鼠标位置
+			NXInput::GetInstance()->RestoreData(); // 清空鼠标/键盘的激活状态
 		}
 	}
 
@@ -261,9 +261,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_INPUT:
 		NXInput::GetInstance()->UpdateRawInput(lParam);
-
-		if (NXInput::GetInstance()->KeyDown(VK_ESCAPE))
-			PostQuitMessage(0);
 		break;
 
 	default:

@@ -1,9 +1,9 @@
 #include "NXInput.h"
 #include "NXEvent.h"
 
-NXInput::NXInput()
+NXInput::NXInput() :
+	m_isMouseHoverOnView(false)
 {
-	m_mouseMove = XMINT2(0, 0);
 	::ZeroMemory(m_keyState, sizeof(m_keyState));
 	::ZeroMemory(m_keyActivite, sizeof(m_keyActivite));
 	::ZeroMemory(m_mouseState, sizeof(m_mouseState));
@@ -33,41 +33,6 @@ NXInput::~NXInput()
 {
 }
 
-bool NXInput::KeyDown(int key)
-{
-	return m_keyState[key] && m_keyActivite[key];
-}
-
-bool NXInput::Key(int key)
-{
-	return m_keyState[key];
-}
-
-bool NXInput::KeyUp(int key)
-{
-	return !m_keyState[key] && m_keyActivite[key];
-}
-
-bool NXInput::MouseDown(int key)
-{
-	return m_mouseState[key] && m_mouseActivite[key];
-}
-
-bool NXInput::MousePressing(int key)
-{
-	return m_mouseState[key];
-}
-
-bool NXInput::MouseUp(int key)
-{
-	return !m_mouseState[key] && m_mouseActivite[key];
-}
-
-XMINT2 NXInput::MouseMove()
-{
-	return m_mouseMove;
-}
-
 XMINT2 NXInput::MousePosition()
 {
 	POINT p;
@@ -78,7 +43,6 @@ XMINT2 NXInput::MousePosition()
 
 void NXInput::RestoreData()
 {
-	m_mouseMove = XMINT2(0, 0);
 	::ZeroMemory(m_keyActivite, sizeof(m_keyActivite));
 	::ZeroMemory(m_mouseActivite, sizeof(m_mouseActivite));
 }
@@ -151,29 +115,48 @@ void NXInput::UpdateRawInput(LPARAM lParam)
 
 		eArg.LastX = raw->data.mouse.lLastX;
 		eArg.LastY = raw->data.mouse.lLastY;
-		m_mouseMove.x = eArg.LastX;
-		m_mouseMove.y = eArg.LastY;
+
+		eArg.ViewPortSize = Vector2(&m_viewPortRect.z) - Vector2(&m_viewPortRect.x);
+		eArg.ViewPortPos = {
+			(float)eArg.X + 0.5f - m_viewPortRect.x,
+			(float)eArg.Y + 0.5f - m_viewPortRect.y
+		};
 
 		if (bIsMouseDown)
 		{
 			NXEventMouseDown::GetInstance()->Notify(eArg);
 			NXEventMouseDownForce::GetInstance()->Notify(eArg);
+
+			if (m_isMouseHoverOnView)
+				NXEventMouseDownViewport::GetInstance()->Notify(eArg);
 		}
 		if (bIsMouseUp)
 		{
 			NXEventMouseUp::GetInstance()->Notify(eArg);
 			NXEventMouseUpForce::GetInstance()->Notify(eArg);
+
+			// 2023.6.3 键盘/鼠标弹起类事件无需if约束。
+			NXEventMouseUpViewport::GetInstance()->Notify(eArg);
 		}
 		if (eArg.LastX || eArg.LastY)
 		{
 			NXEventMouseMove::GetInstance()->Notify(eArg);
 			NXEventMouseMoveForce::GetInstance()->Notify(eArg);
+
+			if (m_isMouseHoverOnView)
+				NXEventMouseMoveViewport::GetInstance()->Notify(eArg);
 		}
 	}
 
 	//PrintMouseState();
 
 	SafeDeleteArray(lpb);
+}
+
+void NXInput::UpdateViewPortInput(bool isMouseHovering, const Vector4& vpRect)
+{
+	m_isMouseHoverOnView = isMouseHovering;
+	m_viewPortRect = vpRect;
 }
 
 void NXInput::PrintMouseState()

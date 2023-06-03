@@ -40,7 +40,7 @@ void NXScene::OnMouseDown(NXEventArgMouse eArg)
 {
 	if (eArg.VMouse & 1) // 鼠标左键
 	{
-		auto ray = GetMainCamera()->GenerateRay(Vector2(eArg.X + 0.5f, eArg.Y + 0.5f), m_rtSize);
+		auto ray = GetMainCamera()->GenerateRay(eArg.ViewPortPos, eArg.ViewPortSize);
 		
 		// 检测是否点击编辑器对象（移动箭头，旋转环，缩放轴）
 		// （不过目前实际上只有移动箭头hhhhh）
@@ -81,7 +81,7 @@ void NXScene::OnMouseDown(NXEventArgMouse eArg)
 
 void NXScene::OnMouseMove(NXEventArgMouse eArg)
 {
-	auto worldRay = GetMainCamera()->GenerateRay(Vector2(eArg.X + 0.5f, eArg.Y + 0.5f), m_rtSize);
+	auto worldRay = GetMainCamera()->GenerateRay(eArg.ViewPortPos, eArg.ViewPortSize);
 
 	if (m_bEditorSelectID > EditorObjectID::NONE &&
 		m_bEditorSelectID < EditorObjectID::MAX)
@@ -379,16 +379,16 @@ void NXScene::InitScripts()
 
 	NXEventKeyDown::GetInstance()->AddListener(std::bind(&NSFirstPersonalCamera::OnKeyDown, pScript, std::placeholders::_1));
 	NXEventKeyUp::GetInstance()->AddListener(std::bind(&NSFirstPersonalCamera::OnKeyUp, pScript, std::placeholders::_1));
-	NXEventMouseMove::GetInstance()->AddListener(std::bind(&NSFirstPersonalCamera::OnMouseMove, pScript, std::placeholders::_1));
-	NXEventMouseDown::GetInstance()->AddListener(std::bind(&NSFirstPersonalCamera::OnMouseDown, pScript, std::placeholders::_1));
-	NXEventMouseUp::GetInstance()->AddListener(std::bind(&NSFirstPersonalCamera::OnMouseUp, pScript, std::placeholders::_1));
+	NXEventMouseMoveViewport::GetInstance()->AddListener(std::bind(&NSFirstPersonalCamera::OnMouseMove, pScript, std::placeholders::_1));
+	NXEventMouseDownViewport::GetInstance()->AddListener(std::bind(&NSFirstPersonalCamera::OnMouseDown, pScript, std::placeholders::_1));
+	NXEventMouseUpViewport::GetInstance()->AddListener(std::bind(&NSFirstPersonalCamera::OnMouseUp, pScript, std::placeholders::_1));
 
 	NXEventKeyDown::GetInstance()->AddListener(std::bind(&NXScene::OnKeyDown, this, std::placeholders::_1));
 	NXEventKeyUp::GetInstance()->AddListener(std::bind(&NXScene::OnKeyUp, this, std::placeholders::_1));
-	NXEventMouseMove::GetInstance()->AddListener(std::bind(&NXScene::OnMouseMove, this, std::placeholders::_1));
-	NXEventMouseDown::GetInstance()->AddListener(std::bind(&NXScene::OnMouseDown, this, std::placeholders::_1));
-	NXEventMouseUp::GetInstance()->AddListener(std::bind(&NXScene::OnMouseUp, this, std::placeholders::_1));
 	NXEventKeyUpForce::GetInstance()->AddListener(std::bind(&NXScene::OnKeyUpForce, this, std::placeholders::_1));
+	NXEventMouseMoveViewport::GetInstance()->AddListener(std::bind(&NXScene::OnMouseMove, this, std::placeholders::_1));
+	NXEventMouseDownViewport::GetInstance()->AddListener(std::bind(&NXScene::OnMouseDown, this, std::placeholders::_1));
+	NXEventMouseUpViewport::GetInstance()->AddListener(std::bind(&NXScene::OnMouseUp, this, std::placeholders::_1));
 }
 
 void NXScene::UpdateTransform(NXObject* pObject)

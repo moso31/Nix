@@ -1,7 +1,7 @@
 #include "NXGUIView.h"
 #include "NXTexture.h"
 #include "NXFinalRenderer.h"
-#include "NXEvent.h"
+#include "NXInput.h"
 
 void NXGUIView::Init()
 {
@@ -15,7 +15,9 @@ void NXGUIView::Render()
 	if (m_pFinalRenderer && m_pFinalRenderer->GetInputTexture())
 	{
 		ImGui::Image((void*)m_pFinalRenderer->GetInputTexture()->GetSRV(), ImGui::GetContentRegionAvail());
-		g_bGuiOnViewportHover = ImGui::IsItemHovered();
+		const auto& rectMin = ImGui::GetItemRectMin();
+		const auto& rectMax = ImGui::GetItemRectMax();
+		NXInput::GetInstance()->UpdateViewPortInput(ImGui::IsItemHovered(), Vector4(rectMin.x, rectMin.y, rectMax.x, rectMax.y));
 
 		// Hover≤‚ ‘
 		//g_bGuiOnViewportHover ? printf("Hovered\n") : printf("Not Hovered\n");
