@@ -170,17 +170,15 @@ bool NXCustomMaterial::Recompile(const std::string& nslParams, const std::string
 
 void NXCustomMaterial::InitShaderResources()
 {
-	for (auto& texInfo : m_texInfos)
-	{
-		if (texInfo.pTexture)
-			texInfo.pTexture->RemoveRef();
-		texInfo.pTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(texInfo.name, g_defaultTex_white_str);
-	}
-
+	// 2023.6.4 Sampler 暂时不参与反序列化，相关逻辑还没想清楚
+	// TODO：让Sampler也参与反序列化
 	for (auto& ssInfo : m_samplerInfos)
 	{
 		ssInfo.pSampler = NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP>::Create();
 	}
+
+	// 反序列化
+	Deserialize();
 
 	RequestUpdateCBufferData();
 }
@@ -412,27 +410,36 @@ void NXCustomMaterial::Deserialize()
 			{
 				auto objName = tex.GetObj().FindMember("name")->value.GetString();
 				auto objPath = tex.GetObj().FindMember("path")->value.GetString();
-				auto itTexInfo = std::find_if(m_texInfos.begin(), m_texInfos.end(), [objName](const NXMaterialTextureInfo& texInfo) { return texInfo.name == objName; });
-				auto& pTex = itTexInfo->pTexture;
-				if (pTex)
-				{
-					SetTex2D(pTex, objPath);
-				}
+				auto texInfo = std::find_if(m_texInfos.begin(), m_texInfos.end(), [objName](const NXMaterialTextureInfo& texInfo) { return texInfo.name == objName; });
+				SetTex2D(texInfo->pTexture, objPath);
 			}
 
 			// TODO
-			// samplers
+			// samplers...
 
 			// cbuffer
 			auto cbArray = deserializer.Array("cbuffer");
 			for (auto& cb : cbArray)
 			{
 				auto objName = cb.GetObj().FindMember("name")->value.GetString();
-				auto objType = cb.GetObj().FindMember("type")->value.GetInt();
-				auto objGUIStyle = cb.GetObj().FindMember("guiStyle")->value.GetInt();
-				auto objValues = cb.GetObj().FindMember("values")->value.GetArray();
 
-				int x = 0;
+				for (int i = 0; i < m_cbInfo.elems.size(); i++)
+				{
+					auto& cbElem = m_cbInfo.elems[i];
+					if (cbElem.name == objName)
+					{
+						auto objType = cb.GetObj().FindMember("type")->value.GetInt();
+						if (cbElem.type == objType)
+						{
+							auto objGUIStyle = cb.GetObj().FindMember("guiStyle")->value.GetInt();
+							auto objValues = cb.GetObj().FindMember("values")->value.GetArray();
+
+							m_cbInfoGUIStyles[i] = (NXGUICBufferStyle)objGUIStyle;
+							for (int j = 0; j < (int)cbElem.type; j++)
+								m_cbInfoMemory[cbElem.memoryIndex + j] = objValues[j].GetFloat();
+						}
+					}
+				}
 			}
 		}
 	}

@@ -62,8 +62,8 @@ public:
 	bool Bool(const std::string& key);
 	size_t Uint64(const std::string& key);
 	int Int(const std::string& key);
-	const GenericObject<false, Value>& Object(const std::string& key);
-	const GenericArray<false, Value>& Array(const std::string& key);
+	const GenericObject<false, Value> Object(const std::string& key);
+	const GenericArray<false, Value> Array(const std::string& key);
 
 	// 从本地文件读取 Json
 	bool LoadFromFile(const std::filesystem::path& path);

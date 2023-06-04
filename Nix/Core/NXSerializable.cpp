@@ -90,12 +90,12 @@ int NXDeserializer::Int(const std::string& key)
 	return m_reader[key.c_str()].GetInt();
 }
 
-const GenericObject<false, Value>& NXDeserializer::Object(const std::string& key)
+const GenericObject<false, Value> NXDeserializer::Object(const std::string& key)
 {
 	return m_reader[key.c_str()].GetObject();
 }
 
-const GenericArray<false, Value>& NXDeserializer::Array(const std::string& key)
+const GenericArray<false, Value> NXDeserializer::Array(const std::string& key)
 {
 	return m_reader[key.c_str()].GetArray();
 }

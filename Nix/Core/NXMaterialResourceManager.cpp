@@ -79,9 +79,6 @@ NXCustomMaterial* NXMaterialResourceManager::CreateCustomMaterial(const std::str
 
 	pMat->InitShaderResources();
 
-	// ·´ĞòÁĞ»¯
-	pMat->Deserialize();
-
 	NXResourceManager::GetInstance()->GetMaterialManager()->RegisterMaterial(pMat);
 	return pMat;
 }
