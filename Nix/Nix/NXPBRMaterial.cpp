@@ -12,19 +12,11 @@
 #include "NXRenderStates.h"
 #include "NXGUIMaterial.h"
 
-NXMaterial::NXMaterial(const std::string& name, const NXMaterialType type, const std::string& filePath) :
+NXMaterial::NXMaterial(const std::string& name, const std::filesystem::path& filePath) :
 	m_name(name),
-	m_type(type),
 	m_filePath(filePath),
-	m_pathHash(std::filesystem::hash_value(filePath)),
 	m_RefSubMeshesCleanUpCount(0)
 {
-}
-
-void NXMaterial::Update()
-{
-	// 材质只需要把自己的数据提交给GPU就行了。
-	g_pContext->UpdateSubresource(m_cb.Get(), 0, nullptr, m_cbData.get(), 0, 0);
 }
 
 void NXMaterial::RemoveSubMesh(NXSubMeshBase* pRemoveSubmesh)
@@ -47,111 +39,54 @@ void NXMaterial::SetTex2D(NXTexture2D*& pTex2D, const std::wstring& texFilePath)
 	pTex2D = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(m_name, texFilePath);
 }
 
-NXPBRMaterialBase::NXPBRMaterialBase(const std::string& name, const NXMaterialType type, const std::string& filePath) :
-	NXMaterial(name, type, filePath),
-	m_pTexAlbedo(nullptr),
-	m_pTexNormal(nullptr),
-	m_pTexMetallic(nullptr),
-	m_pTexRoughness(nullptr),
-	m_pTexAmbientOcclusion(nullptr)
+NXEasyMaterial::NXEasyMaterial(const std::string& name, const std::filesystem::path& filePath) :
+	NXMaterial(name, filePath),
+	m_pTexture(nullptr)
 {
+	Init();
+
+	SetTex2D(m_pTexture, filePath);
 }
 
-void NXPBRMaterialBase::SetTexAlbedo(const std::wstring& texFilePath)
+void NXEasyMaterial::Init()
 {
-	SetTex2D(m_pTexAlbedo, texFilePath);
-}
+	NXShaderComplier::GetInstance()->CompileVSILByCode("Shader\\GBuffer_EasyMaterial.fx", "VS", &m_pVertexShader, NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), &m_pInputLayout);
+	NXShaderComplier::GetInstance()->CompilePSByCode("Shader\\GBuffer_EasyMaterial.fx", "PS", &m_pPixelShader);
 
-void NXPBRMaterialBase::SetTexNormal(const std::wstring& texFilePath)
-{
-	SetTex2D(m_pTexNormal, texFilePath);
-}
+	m_pSamplerLinearWrap = NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP>::Create();
 
-void NXPBRMaterialBase::SetTexMetallic(const std::wstring& texFilePath)
-{
-	SetTex2D(m_pTexMetallic, texFilePath);
-}
-
-void NXPBRMaterialBase::SetTexRoughness(const std::wstring& texFilePath)
-{
-	SetTex2D(m_pTexRoughness, texFilePath);
-}
-
-void NXPBRMaterialBase::SetTexAO(const std::wstring& texFilePath)
-{
-	SetTex2D(m_pTexAmbientOcclusion, texFilePath);
-}
-
-void NXPBRMaterialBase::Release()
-{
-	if (m_pTexAlbedo)			m_pTexAlbedo->RemoveRef();
-	if (m_pTexNormal)			m_pTexNormal->RemoveRef();
-	if (m_pTexMetallic)			m_pTexMetallic->RemoveRef();
-	if (m_pTexRoughness)		m_pTexRoughness->RemoveRef();
-	if (m_pTexAmbientOcclusion) m_pTexAmbientOcclusion->RemoveRef();
-}
-
-void NXPBRMaterialBase::ReloadTextures()
-{
-	SetTexAlbedo(m_pTexAlbedo->GetFilePath());
-	SetTexNormal(m_pTexNormal->GetFilePath());
-	SetTexMetallic(m_pTexMetallic->GetFilePath());
-	SetTexRoughness(m_pTexRoughness->GetFilePath());
-	SetTexAO(m_pTexAmbientOcclusion->GetFilePath());
-}
-
-NXPBRMaterialStandard::NXPBRMaterialStandard(const std::string& name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const std::string& filePath) :
-	NXPBRMaterialBase(name, NXMaterialType::PBR_STANDARD, filePath)
-{
-	m_cbData = std::make_unique<CBufferMaterialStandard>(albedo, normal, metallic, roughness, ao);
 	InitConstantBuffer();
 }
 
-void NXPBRMaterialStandard::InitConstantBuffer()
+void NXEasyMaterial::InitConstantBuffer()
 {
 	D3D11_BUFFER_DESC bufferDesc;
 	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
 	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(CBufferMaterialStandard);
+	bufferDesc.ByteWidth = sizeof(CBufferData);
 	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cb));
 }
 
-NXPBRMaterialTranslucent::NXPBRMaterialTranslucent(const std::string& name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float opacity, const std::string& filePath) :
-	NXPBRMaterialBase(name, NXMaterialType::PBR_TRANSLUCENT, filePath)
+void NXEasyMaterial::Update()
 {
-	m_cbData = std::make_unique<CBufferMaterialTranslucent>(albedo, normal, metallic, roughness, ao, opacity);
-	InitConstantBuffer();
+	g_pContext->UpdateSubresource(m_cb.Get(), 0, nullptr, &m_cbData, 0, 0);
 }
 
-void NXPBRMaterialTranslucent::InitConstantBuffer()
+void NXEasyMaterial::Render()
 {
-	D3D11_BUFFER_DESC bufferDesc;
-	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(CBufferMaterialTranslucent);
-	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bufferDesc.CPUAccessFlags = 0;
-	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cb));
-}
+	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
+	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
+	g_pContext->IASetInputLayout(m_pInputLayout.Get());
 
-NXPBRMaterialSubsurface::NXPBRMaterialSubsurface(const std::string& name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float opacity, const Vector3& Subsurface, const std::string& filePath) :
-	NXPBRMaterialBase(name, NXMaterialType::PBR_SUBSURFACE, filePath)
-{
-	m_cbData = std::make_unique<CBufferMaterialSubsurface>(albedo, normal, metallic, roughness, ao, opacity, Subsurface);
-	InitConstantBuffer();
-}
+	ID3D11ShaderResourceView* pSRV = m_pTexture->GetSRV();
+	if (pSRV) g_pContext->PSSetShaderResources(1, 1, &pSRV);
 
-void NXPBRMaterialSubsurface::InitConstantBuffer()
-{
-	D3D11_BUFFER_DESC bufferDesc;
-	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(CBufferMaterialSubsurface);
-	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bufferDesc.CPUAccessFlags = 0;
-	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cb));
+	ID3D11SamplerState* pSampler = m_pSamplerLinearWrap.Get();
+	if (pSampler) g_pContext->PSSetSamplers(0, 1, &pSampler);
+
+	g_pContext->PSSetConstantBuffers(3, 1, m_cb.GetAddressOf());
 }
 
 void NXCustomMaterial::SetShaderFilePath(const std::filesystem::path& path)
@@ -266,35 +201,35 @@ void NXCustomMaterial::UpdateCBData()
 	}
 	cbArraySize += (4 - cbArraySize % 4) % 4;	// 16 bytes align
 
-	m_cbufferData.clear();
-	m_cbufferData.reserve(cbArraySize);
+	m_cbData.clear();
+	m_cbData.reserve(cbArraySize);
 	for (int i = 0; i < cbElems.size(); i++)
 	{
 		auto& cb = cbElems[m_cbSortedIndex[i]];
 		switch (cb.type)
 		{
 		case NXCBufferInputType::Float:
-			m_cbufferData.push_back(m_cbInfoMemory[cb.memoryIndex + 0]);
+			m_cbData.push_back(m_cbInfoMemory[cb.memoryIndex + 0]);
 			break;
 		case NXCBufferInputType::Float2:
 		{
-			m_cbufferData.push_back(m_cbInfoMemory[cb.memoryIndex + 0]);
-			m_cbufferData.push_back(m_cbInfoMemory[cb.memoryIndex + 1]);
+			m_cbData.push_back(m_cbInfoMemory[cb.memoryIndex + 0]);
+			m_cbData.push_back(m_cbInfoMemory[cb.memoryIndex + 1]);
 			break;
 		}
 		case NXCBufferInputType::Float3:
 		{
-			m_cbufferData.push_back(m_cbInfoMemory[cb.memoryIndex + 0]);
-			m_cbufferData.push_back(m_cbInfoMemory[cb.memoryIndex + 1]);
-			m_cbufferData.push_back(m_cbInfoMemory[cb.memoryIndex + 2]);
+			m_cbData.push_back(m_cbInfoMemory[cb.memoryIndex + 0]);
+			m_cbData.push_back(m_cbInfoMemory[cb.memoryIndex + 1]);
+			m_cbData.push_back(m_cbInfoMemory[cb.memoryIndex + 2]);
 			break;
 		}
 		case NXCBufferInputType::Float4:
 		{
-			m_cbufferData.push_back(m_cbInfoMemory[cb.memoryIndex + 0]);
-			m_cbufferData.push_back(m_cbInfoMemory[cb.memoryIndex + 1]);
-			m_cbufferData.push_back(m_cbInfoMemory[cb.memoryIndex + 2]);
-			m_cbufferData.push_back(m_cbInfoMemory[cb.memoryIndex + 3]);
+			m_cbData.push_back(m_cbInfoMemory[cb.memoryIndex + 0]);
+			m_cbData.push_back(m_cbInfoMemory[cb.memoryIndex + 1]);
+			m_cbData.push_back(m_cbInfoMemory[cb.memoryIndex + 2]);
+			m_cbData.push_back(m_cbInfoMemory[cb.memoryIndex + 3]);
 			break;
 		}
 		default:
@@ -302,7 +237,7 @@ void NXCustomMaterial::UpdateCBData()
 		}
 	}
 
-	// 基于 m_cbufferData 创建常量缓冲区
+	// 基于 m_cbData 创建常量缓冲区
 	D3D11_BUFFER_DESC bufferDesc;
 	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
 	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -310,13 +245,13 @@ void NXCustomMaterial::UpdateCBData()
 	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
 	D3D11_SUBRESOURCE_DATA InitData = {};
-	InitData.pSysMem = m_cbufferData.data();
+	InitData.pSysMem = m_cbData.data();
 
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &m_cb));
 }
 
 NXCustomMaterial::NXCustomMaterial(const std::string& name) :
-	NXMaterial(name, NXMaterialType::CUSTOM, "")
+	NXMaterial(name, "")
 {
 }
 
@@ -356,15 +291,7 @@ void NXCustomMaterial::Update()
 	}
 
 	if (m_cb)
-		g_pContext->UpdateSubresource(m_cb.Get(), 0, nullptr, m_cbufferData.data(), 0, 0);
-}
-
-void NXCustomMaterial::Release()
-{
-}
-
-void NXCustomMaterial::ReloadTextures()
-{
+		g_pContext->UpdateSubresource(m_cb.Get(), 0, nullptr, m_cbData.data(), 0, 0);
 }
 
 void NXCustomMaterial::SetCBInfoMemoryData(UINT memoryIndex, UINT count, const float* newData)
@@ -417,6 +344,29 @@ void NXCustomMaterial::RecoverInfosBackup()
 	m_texInfosBackup.clear();
 	m_samplerInfosBackup.clear();
 	m_cbInfoGUIStylesBackup.clear();
+}
+
+void NXCustomMaterial::Serialize()
+{
+}
+
+void NXCustomMaterial::Deserialize()
+{
+	//using namespace rapidjson;
+	//std::string nxInfoPath = m_texFilePath.string() + ".nxInfo";
+	//NXDeserializer deserializer;
+	//bool bJsonExist = deserializer.LoadFromFile(nxInfoPath.c_str());
+	//if (bJsonExist)
+	//{
+	//	//std::string strPathInfo;
+	//	//strPathInfo = deserializer.String("NXInfoPath");
+	//	m_serializationData.m_textureType = (NXTextureType)deserializer.Int("TextureType");
+	//	m_serializationData.m_bInvertNormalY = deserializer.Bool("IsInvertNormalY");
+	//	m_serializationData.m_bGenerateMipMap = deserializer.Bool("IsGenerateMipMap");
+	//	m_serializationData.m_bCubeMap = deserializer.Bool("IsCubeMap");
+
+	//	m_bDeserialized = true;
+	//}
 }
 
 bool NXCustomMaterial::LoadShaderStringFromFile(std::string& oShader)
@@ -848,4 +798,3 @@ void NXCustomMaterial::SortShaderCBufferParam()
 		}
 	}
 }
-

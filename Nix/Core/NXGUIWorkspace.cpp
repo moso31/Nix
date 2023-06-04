@@ -81,10 +81,10 @@ void NXGUIWorkspace::Render()
         }
 
         // 样式：右对齐
-        //ImGui::SetCursorPosX(fMenuBarWidth - ImGui::CalcTextSize(std::string(m_strVersion + m_strMode).c_str()).x - ImGui::GetScrollX() - 2 * ImGui::GetStyle().ItemSpacing.x);
+        ImGui::SetCursorPosX(fMenuBarWidth - ImGui::CalcTextSize(std::string(m_strVersion + m_strMode).c_str()).x - ImGui::GetScrollX() - 2 * ImGui::GetStyle().ItemSpacing.x);
 
         // 样式：右移一小段
-        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 50.0f);
+        //ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 50.0f);
 
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.0f, 0.6f));
         ImGui::Text(m_strVersion.c_str());

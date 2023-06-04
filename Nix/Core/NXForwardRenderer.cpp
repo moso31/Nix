@@ -82,44 +82,7 @@ void NXForwardRenderer::Render()
 	// 2022.4.14 Ö»äÖÈ¾ Transparent ÎïÌå
 	for (auto pMat : NXResourceManager::GetInstance()->GetMaterialManager()->GetMaterials())
 	{
-		if (pMat->GetType() == NXMaterialType::PBR_TRANSLUCENT)
-		{
-			NXPBRMaterialBase* pPBRMat = static_cast<NXPBRMaterialBase*>(pMat);
-
-			auto pSRVAlbedo = pPBRMat->GetSRVAlbedo();
-			g_pContext->PSSetShaderResources(1, 1, &pSRVAlbedo);
-
-			auto pSRVNormal = pPBRMat->GetSRVNormal();
-			g_pContext->PSSetShaderResources(2, 1, &pSRVNormal);
-
-			auto pSRVMetallic = pPBRMat->GetSRVMetallic();
-			g_pContext->PSSetShaderResources(3, 1, &pSRVMetallic);
-
-			auto pSRVRoughness = pPBRMat->GetSRVRoughness();
-			g_pContext->PSSetShaderResources(4, 1, &pSRVRoughness);
-
-			auto pSRVAO = pPBRMat->GetSRVAO();
-			g_pContext->PSSetShaderResources(5, 1, &pSRVAO);
-
-			auto pCBMaterial = pPBRMat->GetConstantBuffer();
-			g_pContext->PSSetConstantBuffers(3, 1, &pCBMaterial);
-
-			for (auto pSubMesh : pPBRMat->GetRefSubMeshes())
-			{
-				if (pSubMesh)
-				{
-					bool bIsVisible = pSubMesh->GetPrimitive()->GetVisible();
-					if (bIsVisible)
-					{
-						pSubMesh->UpdateViewParams();
-						g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
-
-						pSubMesh->Update();
-						pSubMesh->Render();
-					}
-				}
-			}
-		}
+		// TODO
 	}
 
 	g_pUDA->EndEvent();

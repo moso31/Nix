@@ -1,6 +1,5 @@
 #include "Common.fx"
 #include "Math.fx"
-#include "PBRMaterials.fx"
 
 Texture2D txNormalMap : register(t0);
 

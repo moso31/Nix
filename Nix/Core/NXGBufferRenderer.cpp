@@ -23,25 +23,9 @@ NXGBufferRenderer::~NXGBufferRenderer()
 
 void NXGBufferRenderer::Init()
 {
-	//NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\GBuffer.fx", "VS", &m_pVertexShader, NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), &m_pInputLayout);
-	//NXShaderComplier::GetInstance()->CompilePS(L"Shader\\GBuffer.fx", "PS", &m_pPixelShader);
-
-	//NXShaderResourceInfoArray srInfoArray;
-	//std::string strShader, strShaderParam, strShaderCode;
-	//NXHLSLGenerator::GetInstance()->LoadShaderFromFile("Shader\\GBufferEx_Test.nsl", strShader);
-	//NXHLSLGenerator::GetInstance()->ConvertShaderToHLSL("Shader\\GBufferEx_Test.nsl", strShader, strShaderParam, strShaderCode, srInfoArray);
-	//NXHLSLGenerator::GetInstance()->EncodeToGBufferShader(strShaderParam, strShaderCode, strShader);
-
-	//NXShaderComplier::GetInstance()->CompileVSILByCode(strShader, "VS", &m_pVertexShader, NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), &m_pInputLayout);
-	//NXShaderComplier::GetInstance()->CompilePSByCode(strShader, "PS", &m_pPixelShader);
-
 	m_pDepthStencilState = NXDepthStencilState<>::Create();
-	m_pDepthStencilStateSSS = NXDepthStencilState<true, true, D3D11_COMPARISON_LESS, true, 0xff, 0xff, D3D11_STENCIL_OP_REPLACE, D3D11_STENCIL_OP_REPLACE, D3D11_STENCIL_OP_REPLACE, D3D11_COMPARISON_ALWAYS, D3D11_STENCIL_OP_REPLACE, D3D11_STENCIL_OP_REPLACE, D3D11_STENCIL_OP_REPLACE, D3D11_COMPARISON_ALWAYS>::Create();
 	m_pRasterizerState = NXRasterizerState<>::Create();
 	m_pBlendState = NXBlendState<>::Create();
-
-	m_pSamplerLinearWrap.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP>::Create());
-	m_pSamplerLinearClamp.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP>::Create());
 }
 
 void NXGBufferRenderer::Render()
@@ -69,37 +53,14 @@ void NXGBufferRenderer::Render()
 
 	g_pContext->OMSetRenderTargets(4, ppRTVs, pDepthZ->GetDSV());
 
-	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
-	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
-	g_pContext->IASetInputLayout(m_pInputLayout.Get());
-
-	g_pContext->PSSetSamplers(0, 1, m_pSamplerLinearWrap.GetAddressOf());
-
-	// 2022.4.14 渲染 Opaque 物体
+	// 2023.4.10 过渡材质(EasyMat)
 	for (auto pMat : NXResourceManager::GetInstance()->GetMaterialManager()->GetMaterials())
 	{
-		auto pStandardMat = pMat->IsStandardMat();
-		if (pStandardMat)
+		auto pEasyMat = pMat->IsEasyMat();
+		if (pEasyMat)
 		{
-			auto pSRVAlbedo = pStandardMat->GetSRVAlbedo();
-			g_pContext->PSSetShaderResources(1, 1, &pSRVAlbedo);
-
-			auto pSRVNormal = pStandardMat->GetSRVNormal();
-			g_pContext->PSSetShaderResources(2, 1, &pSRVNormal);
-
-			auto pSRVMetallic = pStandardMat->GetSRVMetallic();
-			g_pContext->PSSetShaderResources(3, 1, &pSRVMetallic);
-
-			auto pSRVRoughness = pStandardMat->GetSRVRoughness();
-			g_pContext->PSSetShaderResources(4, 1, &pSRVRoughness);
-
-			auto pSRVAO = pStandardMat->GetSRVAO();
-			g_pContext->PSSetShaderResources(5, 1, &pSRVAO);
-
-			auto pCBMaterial = pStandardMat->GetConstantBuffer();
-			g_pContext->PSSetConstantBuffers(3, 1, &pCBMaterial);
-
-			for (auto pSubMesh : pStandardMat->GetRefSubMeshes())
+			pEasyMat->Render();
+			for (auto pSubMesh : pEasyMat->GetRefSubMeshes())
 			{
 				if (pSubMesh)
 				{
@@ -108,7 +69,6 @@ void NXGBufferRenderer::Render()
 					{
 						pSubMesh->UpdateViewParams();
 						g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
-
 						pSubMesh->Update();
 						pSubMesh->Render();
 					}
@@ -117,7 +77,7 @@ void NXGBufferRenderer::Render()
 		}
 	}
 
-	// 2023.4.10 自定义材质（临时）
+	// 2023.4.10 自定义材质
 	for (auto pMat : NXResourceManager::GetInstance()->GetMaterialManager()->GetMaterials())
 	{
 		auto pCustomMat = pMat->IsCustomMat();
@@ -142,50 +102,6 @@ void NXGBufferRenderer::Render()
 			}
 		}
 	}
-
-	//// 2023.4.4 渲染3S材质
-	//g_pContext->OMSetDepthStencilState(m_pDepthStencilStateSSS.Get(), 0x25);
-
-	//for (auto pMat : NXResourceManager::GetInstance()->GetMaterialManager()->GetMaterials())
-	//{
-	//	auto pSubsurfaceMat = pMat->IsSubsurfaceMat();
-	//	if (pSubsurfaceMat)
-	//	{
-	//		auto pSRVAlbedo = pSubsurfaceMat->GetSRVAlbedo();
-	//		g_pContext->PSSetShaderResources(1, 1, &pSRVAlbedo);
-
-	//		auto pSRVNormal = pSubsurfaceMat->GetSRVNormal();
-	//		g_pContext->PSSetShaderResources(2, 1, &pSRVNormal);
-
-	//		auto pSRVMetallic = pSubsurfaceMat->GetSRVMetallic();
-	//		g_pContext->PSSetShaderResources(3, 1, &pSRVMetallic);
-
-	//		auto pSRVRoughness = pSubsurfaceMat->GetSRVRoughness();
-	//		g_pContext->PSSetShaderResources(4, 1, &pSRVRoughness);
-
-	//		auto pSRVAO = pSubsurfaceMat->GetSRVAO();
-	//		g_pContext->PSSetShaderResources(5, 1, &pSRVAO);
-
-	//		auto pCBMaterial = pSubsurfaceMat->GetConstantBuffer();
-	//		g_pContext->PSSetConstantBuffers(3, 1, &pCBMaterial);
-
-	//		for (auto pSubMesh : pSubsurfaceMat->GetRefSubMeshes())
-	//		{
-	//			if (pSubMesh)
-	//			{
-	//				bool bIsVisible = pSubMesh->GetPrimitive()->GetVisible();
-	//				if (bIsVisible)
-	//				{
-	//					pSubMesh->UpdateViewParams();
-	//					g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
-
-	//					pSubMesh->Update();
-	//					pSubMesh->Render();
-	//				}
-	//			}
-	//		}
-	//	}
-	//}
 
 	g_pUDA->EndEvent();
 }

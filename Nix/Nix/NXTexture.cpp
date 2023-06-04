@@ -3,8 +3,6 @@
 #include "NXResourceManager.h"
 #include "NXConverter.h"
 
-#include "rapidjson/writer.h"
-
 void NXTexture::SwapToReloadingTexture()
 {
 	if (m_reloadingState == NXTextureReloadingState::Texture_StartReload)

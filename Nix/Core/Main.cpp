@@ -220,7 +220,10 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 			g_app->Reload();
 
 			if (!IsWindowVisible(g_hWnd))
+			{
 				ShowWindow(g_hWnd, SW_SHOWMAXIMIZED);
+				SetForegroundWindow(g_hWnd);
+			}
 
 			g_app->Update();
 			g_app->Draw();

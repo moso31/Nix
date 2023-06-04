@@ -22,64 +22,6 @@ void CreateDefaultMaterialFile(const std::filesystem::path& path, const std::str
 
 void SaveMaterialFile(NXMaterial* pMaterial)
 {
-    std::ofstream ofs(pMaterial->GetFilePath(), std::ios::binary);
-
-    ofs << pMaterial->GetName() << std::endl; // 材质名称，材质类型
-
-    if (pMaterial->GetType() == NXMaterialType::PBR_STANDARD)
-    {
-        ofs << "Standard" << std::endl;
-        NXPBRMaterialStandard* p = (NXPBRMaterialStandard*)pMaterial;
-
-        const Vector3& albedo = p->GetAlbedo();
-        const std::string albedoTexPath = p->GetAlbedoTexFilePath();
-        ofs << albedoTexPath << std::endl << albedo.x << ' ' << albedo.y << ' ' << albedo.z << std::endl; // albedo
-
-        const Vector3& normal = p->GetNormal();
-        const std::string normalTexPath = p->GetNormalTexFilePath();
-        ofs << normalTexPath << std::endl << normal.x << ' ' << normal.y << ' ' << normal.z << std::endl; // normal
-
-        const std::string metallicTexPath = p->GetMetallicTexFilePath();
-        float metallic = p->GetMetallic();
-        ofs << metallicTexPath << std::endl << metallic << std::endl; // metallic
-
-        const std::string roughnessTexPath = p->GetRoughnessTexFilePath();
-        float roughness = p->GetRoughness();
-        ofs << roughnessTexPath << std::endl << roughness << std::endl; // roughness
-
-        const std::string aoTexPath = p->GetAOTexFilePath();
-        float ao = p->GetAO();
-        ofs << aoTexPath << std::endl << ao << std::endl; // AO
-    }
-
-    if (pMaterial->GetType() == NXMaterialType::PBR_TRANSLUCENT)
-    {
-        ofs << "Translucent" << std::endl;
-        NXPBRMaterialTranslucent* p = (NXPBRMaterialTranslucent*)pMaterial;
-
-        const Vector3& albedo = p->GetAlbedo();
-        float opacity = p->GetOpacity();
-        const std::string albedoTexPath = p->GetAlbedoTexFilePath();
-        ofs << albedoTexPath << std::endl << albedo.x << ' ' << albedo.y << ' ' << albedo.z << ' ' << opacity << std::endl; // albedo & opacity
-
-        const Vector3& normal = p->GetNormal();
-        const std::string normalTexPath = p->GetNormalTexFilePath();
-        ofs << normalTexPath << std::endl << normal.x << ' ' << normal.y << ' ' << normal.z << std::endl; // normal
-
-        const std::string metallicTexPath = p->GetMetallicTexFilePath();
-        float metallic = p->GetMetallic();
-        ofs << metallicTexPath << std::endl << metallic << std::endl; // metallic
-
-        const std::string roughnessTexPath = p->GetRoughnessTexFilePath();
-        float roughness = p->GetRoughness();
-        ofs << roughnessTexPath << std::endl << roughness << std::endl; // roughness
-
-        const std::string aoTexPath = p->GetAOTexFilePath();
-        float ao = p->GetAO();
-        ofs << aoTexPath << std::endl << ao << std::endl; // AO
-    }
-
-    ofs.close();
 }
 
 void RenderTextureIcon(ImTextureID ImTexID, NXGUIFileBrowser* pFileBrowser, std::function<void()> onChange, std::function<void()> onRemove, std::function<void(const std::wstring&)> onDrop)

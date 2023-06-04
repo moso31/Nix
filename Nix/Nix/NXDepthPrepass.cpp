@@ -57,34 +57,10 @@ void NXDepthPrepass::Render()
 	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
 	g_pContext->PSSetSamplers(0, 1, m_pSamplerLinearWrap.GetAddressOf());
 
+	// »æÖÆ DepthPrepass
+	// 2023.6.4: ÔÝÊ±Í£ÓÃ
 	for (auto pRenderObj : m_pScene->GetRenderableObjects())
 	{
-		//if (pRenderObj->GetType() == NXType::ePrimitive)
-		//{
-		//	auto pPrim = static_cast<NXPrimitive*>(pRenderObj);
-		//	pPrim->UpdateViewParams();
-		//	g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
-
-		//	for (UINT i = 0; i < pPrim->GetSubMeshCount(); i++)
-		//	{
-		//		auto pSubMesh = pPrim->GetSubMesh(i);
-		//		pSubMesh->Update();
-
-		//		auto pMat = pSubMesh->GetMaterial();
-		//		if (pMat->IsPBR())
-		//		{
-		//			NXPBRMaterialBase* pMat = static_cast<NXPBRMaterialBase*>(pSubMesh->GetMaterial());
-
-		//			auto pSRVNormal = pMat->GetSRVNormal();
-		//			g_pContext->PSSetShaderResources(0, 1, &pSRVNormal);
-		//		}
-
-		//		auto pCBMaterial = pMat->GetConstantBuffer();
-		//		g_pContext->PSSetConstantBuffers(2, 1, &pCBMaterial);
-
-		//		pSubMesh->Render();
-		//	}
-		//}
 	}
 
 	ID3D11RenderTargetView* nullViews[2] = { nullptr, nullptr };

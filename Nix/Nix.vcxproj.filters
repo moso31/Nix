@@ -126,16 +126,13 @@
     <None Include="Shader\HDRToCubeMap.fx">
       <Filter>Shader\Renderer\IBL\CubeMap</Filter>
     </None>
-    <None Include="Shader\PBRMaterials.fx">
-      <Filter>Shader</Filter>
-    </None>
     <None Include="Shader\PBRLights.fx">
       <Filter>Shader</Filter>
     </None>
     <None Include="Shader\DeferredRender.fx">
       <Filter>Shader\Renderer</Filter>
     </None>
-    <None Include="Shader\GBuffer.fx">
+    <None Include="Shader\GBuffer_EasyMaterial.fx">
       <Filter>Shader\Renderer</Filter>
     </None>
     <None Include="Shader\Math.fx">

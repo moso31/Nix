@@ -241,59 +241,6 @@ void NXDepthPeelingRenderer::RenderLayer()
 	// 2022.4.14 只渲染 Transparent 物体
 	for (auto pMat : NXResourceManager::GetInstance()->GetMaterialManager()->GetMaterials())
 	{
-		if (pMat->GetType() == NXMaterialType::PBR_TRANSLUCENT)
-		{
-			NXPBRMaterialBase* pPBRMat = static_cast<NXPBRMaterialBase*>(pMat);
-
-			auto pSRVAlbedo = pPBRMat->GetSRVAlbedo();
-			g_pContext->PSSetShaderResources(1, 1, &pSRVAlbedo);
-
-			auto pSRVNormal = pPBRMat->GetSRVNormal();
-			g_pContext->PSSetShaderResources(2, 1, &pSRVNormal);
-
-			auto pSRVMetallic = pPBRMat->GetSRVMetallic();
-			g_pContext->PSSetShaderResources(3, 1, &pSRVMetallic);
-
-			auto pSRVRoughness = pPBRMat->GetSRVRoughness();
-			g_pContext->PSSetShaderResources(4, 1, &pSRVRoughness);
-
-			auto pSRVAO = pPBRMat->GetSRVAO();
-			g_pContext->PSSetShaderResources(5, 1, &pSRVAO);
-
-			auto pCBMaterial = pPBRMat->GetConstantBuffer();
-			g_pContext->PSSetConstantBuffers(3, 1, &pCBMaterial);
-
-			// 2022.4.18 
-			// 单个材质由远及近排序，尽量避免半透渲染透视关系错误的问题但作用有限。主要还是得靠OIT。
-			auto subMeshes = pPBRMat->GetRefSubMeshes();
-			std::sort(subMeshes.begin(), subMeshes.end(), [cameraPos](NXSubMeshBase* meshA, NXSubMeshBase* meshB) { 
-				Vector3 posA = meshA->GetPrimitive()->GetTranslation();
-				Vector3 posB = meshB->GetPrimitive()->GetTranslation();
-				float distA = Vector3::Distance(posA, cameraPos);
-				float distB = Vector3::Distance(posB, cameraPos);
-				return distA > distB;
-			});
-
-			for (auto pSubMesh : subMeshes)
-			{
-				if (pSubMesh)
-				{
-					bool bIsVisible = pSubMesh->GetPrimitive()->GetVisible();
-					if (bIsVisible)
-					{
-						pSubMesh->UpdateViewParams();
-						g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
-
-						pSubMesh->Update();
-
-						// 渲染两遍，先远后近
-						//g_pContext->RSSetState(m_pRasterizerStateBack.Get());
-						//pSubMesh->Render();
-						g_pContext->RSSetState(m_pRasterizerStateFront.Get());
-						pSubMesh->Render();
-					}
-				}
-			}
-		}
+		// TODO
 	}
 }
