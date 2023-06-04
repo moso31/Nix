@@ -11,6 +11,7 @@
 #include "GlobalBufferManager.h"
 #include "NXRenderStates.h"
 #include "NXGUIMaterial.h"
+#include "NXGUICommon.h"
 
 NXMaterial::NXMaterial(const std::string& name, const std::filesystem::path& filePath) :
 	m_name(name),
@@ -31,7 +32,7 @@ void NXMaterial::AddSubMesh(NXSubMeshBase* pSubMesh)
 	m_pRefSubMeshes.push_back(pSubMesh);
 }
 
-void NXMaterial::SetTex2D(NXTexture2D*& pTex2D, const std::wstring& texFilePath)
+void NXMaterial::SetTex2D(NXTexture2D*& pTex2D, const std::filesystem::path& texFilePath)
 {
 	if (pTex2D) 
 		pTex2D->RemoveRef();
@@ -50,8 +51,8 @@ NXEasyMaterial::NXEasyMaterial(const std::string& name, const std::filesystem::p
 
 void NXEasyMaterial::Init()
 {
-	NXShaderComplier::GetInstance()->CompileVSILByCode("Shader\\GBuffer_EasyMaterial.fx", "VS", &m_pVertexShader, NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), &m_pInputLayout);
-	NXShaderComplier::GetInstance()->CompilePSByCode("Shader\\GBuffer_EasyMaterial.fx", "PS", &m_pPixelShader);
+	NXShaderComplier::GetInstance()->CompileVSIL(".\\Shader\\GBufferEasy.fx", "VS", &m_pVertexShader, NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), &m_pInputLayout);
+	NXShaderComplier::GetInstance()->CompilePS(".\\Shader\\GBufferEasy.fx", "PS", &m_pPixelShader);
 
 	m_pSamplerLinearWrap = NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP>::Create();
 
@@ -87,11 +88,6 @@ void NXEasyMaterial::Render()
 	if (pSampler) g_pContext->PSSetSamplers(0, 1, &pSampler);
 
 	g_pContext->PSSetConstantBuffers(3, 1, m_cb.GetAddressOf());
-}
-
-void NXCustomMaterial::SetShaderFilePath(const std::filesystem::path& path)
-{
-	m_nslFilePath = path;
 }
 
 void NXCustomMaterial::LoadShaderCode()
@@ -250,8 +246,8 @@ void NXCustomMaterial::UpdateCBData()
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &m_cb));
 }
 
-NXCustomMaterial::NXCustomMaterial(const std::string& name) :
-	NXMaterial(name, "")
+NXCustomMaterial::NXCustomMaterial(const std::string& name, const std::filesystem::path& path) :
+	NXMaterial(name, path)
 {
 }
 
@@ -348,39 +344,112 @@ void NXCustomMaterial::RecoverInfosBackup()
 
 void NXCustomMaterial::Serialize()
 {
+	using namespace rapidjson;
+	std::string n0Path = m_filePath.string() + ".n0";
+	NXSerializer serializer;
+	serializer.StartObject();
+
+	serializer.String("n0Path", n0Path);
+
+	serializer.StartArray("textures");
+	for (auto& texInfo : m_texInfos)
+	{
+		serializer.StartObject();
+		serializer.String("name", texInfo.name);
+		serializer.String("path", texInfo.pTexture->GetFilePath().string());
+		serializer.Uint("slotIndex", texInfo.slotIndex);
+		serializer.EndObject();
+	}
+	serializer.EndArray();
+
+	serializer.StartArray("samplers");
+	for (auto& ssInfo : m_samplerInfos)
+	{
+		serializer.StartObject();
+		serializer.String("name", ssInfo.name);
+		serializer.Uint("slotIndex", ssInfo.slotIndex);
+		serializer.EndObject();
+	}
+	serializer.EndArray();
+
+	serializer.StartArray("cbuffer");
+	for (int i = 0; i < m_cbInfo.elems.size(); i++)
+	{
+		auto& cbInfo = m_cbInfo.elems[i];
+		serializer.StartObject();
+		serializer.String("name", cbInfo.name);
+		serializer.Int("type", (int)cbInfo.type);
+		serializer.Int("guiStyle", (int)m_cbInfoGUIStyles[i]);
+
+		serializer.StartArray("values");
+		for (int j = 0; j < (int)cbInfo.type; j++)
+			serializer.PushFloat(m_cbInfoMemory[cbInfo.memoryIndex + j]);
+		serializer.EndArray();
+
+		serializer.EndObject();
+	}
+	serializer.EndArray();
+
+	serializer.EndObject();
+
+	serializer.SaveToFile(n0Path.c_str());
 }
 
 void NXCustomMaterial::Deserialize()
 {
-	//using namespace rapidjson;
-	//std::string nxInfoPath = m_texFilePath.string() + ".nxInfo";
-	//NXDeserializer deserializer;
-	//bool bJsonExist = deserializer.LoadFromFile(nxInfoPath.c_str());
-	//if (bJsonExist)
-	//{
-	//	//std::string strPathInfo;
-	//	//strPathInfo = deserializer.String("NXInfoPath");
-	//	m_serializationData.m_textureType = (NXTextureType)deserializer.Int("TextureType");
-	//	m_serializationData.m_bInvertNormalY = deserializer.Bool("IsInvertNormalY");
-	//	m_serializationData.m_bGenerateMipMap = deserializer.Bool("IsGenerateMipMap");
-	//	m_serializationData.m_bCubeMap = deserializer.Bool("IsCubeMap");
+	using namespace rapidjson;
+	std::string nxInfoPath = m_filePath.string() + ".n0";
+	NXDeserializer deserializer;
+	bool bJsonExist = deserializer.LoadFromFile(nxInfoPath.c_str());
+	if (bJsonExist)
+	{
+		auto strInfoPath = deserializer.String("n0Path");
+		if (strInfoPath == nxInfoPath)
+		{
+			// textures
+			auto texArray = deserializer.Array("textures");
+			for (auto& tex : texArray)
+			{
+				auto objName = tex.GetObj().FindMember("name")->value.GetString();
+				auto objPath = tex.GetObj().FindMember("path")->value.GetString();
+				auto itTexInfo = std::find_if(m_texInfos.begin(), m_texInfos.end(), [objName](const NXMaterialTextureInfo& texInfo) { return texInfo.name == objName; });
+				auto& pTex = itTexInfo->pTexture;
+				if (pTex)
+				{
+					SetTex2D(pTex, objPath);
+				}
+			}
 
-	//	m_bDeserialized = true;
-	//}
+			// TODO
+			// samplers
+
+			// cbuffer
+			auto cbArray = deserializer.Array("cbuffer");
+			for (auto& cb : cbArray)
+			{
+				auto objName = cb.GetObj().FindMember("name")->value.GetString();
+				auto objType = cb.GetObj().FindMember("type")->value.GetInt();
+				auto objGUIStyle = cb.GetObj().FindMember("guiStyle")->value.GetInt();
+				auto objValues = cb.GetObj().FindMember("values")->value.GetArray();
+
+				int x = 0;
+			}
+		}
+	}
 }
 
 bool NXCustomMaterial::LoadShaderStringFromFile(std::string& oShader)
 {
-	if (!std::filesystem::exists(m_nslFilePath))
+	if (!std::filesystem::exists(m_filePath))
 	{
-		printf("Error: Shader file not found: %s\n", m_nslFilePath.string().c_str());
+		printf("Error: Shader file not found: %s\n", m_filePath.string().c_str());
 		return false;
 	}
 
-	std::ifstream shaderFile(m_nslFilePath);
+	std::ifstream shaderFile(m_filePath);
 	if (!shaderFile.is_open())
 	{
-		printf("Error: Unable to open shader file: %s\n", m_nslFilePath.string().c_str());
+		printf("Error: Unable to open shader file: %s\n", m_filePath.string().c_str());
 		return false;
 	}
 
@@ -482,7 +551,7 @@ void NXCustomMaterial::ProcessShaderParameters(const std::string& nslParams, std
 				m_cbInfo.slotIndex = typeToRegisterIndex[type];
 
 				std::ostringstream strMatName;
-				strMatName << "Mat_" << std::filesystem::hash_value(m_nslFilePath);
+				strMatName << "Mat_" << std::filesystem::hash_value(m_filePath);
 
 				// 处理 CBuffer。内部需要按照 packing rules 的建议对 CBuffer 进行排序。
 				std::ostringstream strMatStruct;

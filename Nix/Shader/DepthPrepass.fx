@@ -5,6 +5,12 @@ Texture2D txNormalMap : register(t0);
 
 SamplerState ssLinearWrap : register(s0);
 
+struct PBRMaterialStandard
+{
+	float3 normal;
+	float _0;
+};
+
 cbuffer CBufferMaterialStandard : register(b2)
 {
 	PBRMaterialStandard m_material;

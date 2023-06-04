@@ -102,8 +102,8 @@ void NXGUIContentExplorer::Render()
                                     strExtension = subElem.path().extension().string().c_str();
                                     strExtension = NXConvert::s2lower(strExtension);
 
-                                    // *.nxInfo 是纹理描述文件，不加载
-                                    if (strExtension == ".nxinfo")
+                                    // *.n0 （存储序列化信息的元文件）不加载
+                                    if (strExtension == ".n0")
                                         continue;
 
                                     strExtensionText = strExtension;

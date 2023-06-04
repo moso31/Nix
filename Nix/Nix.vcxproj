@@ -433,7 +433,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shader\GBuffer_EasyMaterial.fx">
+    <None Include="Shader\GBufferEasy.fx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
       <FileType>Document</FileType>
@@ -548,11 +548,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\CubeMapIrradianceSHdds.fx">
-      <FileType>Document</FileType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Shader\GBufferEx_Test.nsl">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

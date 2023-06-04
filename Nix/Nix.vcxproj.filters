@@ -132,7 +132,7 @@
     <None Include="Shader\DeferredRender.fx">
       <Filter>Shader\Renderer</Filter>
     </None>
-    <None Include="Shader\GBuffer_EasyMaterial.fx">
+    <None Include="Shader\GBufferEasy.fx">
       <Filter>Shader\Renderer</Filter>
     </None>
     <None Include="Shader\Math.fx">
@@ -198,9 +198,6 @@
     </None>
     <None Include="Shader\CubeMapIrradianceSHdds.fx">
       <Filter>Shader\Renderer\IBL</Filter>
-    </None>
-    <None Include="Shader\GBufferEx_Test.nsl">
-      <Filter>Shader\Renderer</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

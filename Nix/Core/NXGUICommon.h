@@ -12,7 +12,6 @@ class NXGUIFileBrowser;
 namespace NXGUICommon
 {
 	void CreateDefaultMaterialFile(const std::filesystem::path& path, const std::string& matName);
-	void SaveMaterialFile(NXMaterial* pMaterial);
 
 	void RenderTextureIcon(ImTextureID ImTexID, NXGUIFileBrowser* pFileBrowser, std::function<void()> onChange, std::function<void()> onRemove, std::function<void(const std::wstring&)> onDrop);
 

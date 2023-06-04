@@ -20,10 +20,6 @@ void CreateDefaultMaterialFile(const std::filesystem::path& path, const std::str
     ofs.close();
 }
 
-void SaveMaterialFile(NXMaterial* pMaterial)
-{
-}
-
 void RenderTextureIcon(ImTextureID ImTexID, NXGUIFileBrowser* pFileBrowser, std::function<void()> onChange, std::function<void()> onRemove, std::function<void(const std::wstring&)> onDrop)
 {
 	float my_tex_w = (float)16;

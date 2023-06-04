@@ -12,6 +12,27 @@ void NXSerializer::EndObject()
 	m_writer.EndObject();
 }
 
+void NXSerializer::StartArray(const std::string& key)
+{
+	m_writer.Key(key.c_str());
+	m_writer.StartArray();
+}
+
+void NXSerializer::EndArray()
+{
+	m_writer.EndArray();
+}
+
+void NXSerializer::PushInt(int value)
+{
+	m_writer.Int(value);
+}
+
+void NXSerializer::PushFloat(float value)
+{
+	m_writer.Double((double)value);
+}
+
 void NXSerializer::String(const std::string& key, const std::string& value)
 {
 	m_writer.Key(key.c_str());
@@ -28,6 +49,12 @@ void NXSerializer::Uint64(const std::string& key, size_t value)
 {
 	m_writer.Key(key.c_str());
 	m_writer.Uint64(value);
+}
+
+void NXSerializer::Uint(const std::string& key, unsigned int value)
+{
+	m_writer.Key(key.c_str());
+	m_writer.Uint(value);
 }
 
 void NXSerializer::Int(const std::string& key, int value)
@@ -61,6 +88,16 @@ size_t NXDeserializer::Uint64(const std::string& key)
 int NXDeserializer::Int(const std::string& key)
 {
 	return m_reader[key.c_str()].GetInt();
+}
+
+const GenericObject<false, Value>& NXDeserializer::Object(const std::string& key)
+{
+	return m_reader[key.c_str()].GetObject();
+}
+
+const GenericArray<false, Value>& NXDeserializer::Array(const std::string& key)
+{
+	return m_reader[key.c_str()].GetArray();
 }
 
 bool NXDeserializer::LoadFromFile(const std::filesystem::path& path)

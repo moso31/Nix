@@ -37,19 +37,19 @@ public:
 	void RemoveSubMesh(NXSubMeshBase* pRemoveSubmesh);
 	void AddSubMesh(NXSubMeshBase* pSubMesh);
 
-	void SetTex2D(NXTexture2D*& pTex2D, const std::wstring& texFilePath);
+	void SetTex2D(NXTexture2D*& pTex2D, const std::filesystem::path& texFilePath);
 
 protected:
 	std::string m_name;
 	ComPtr<ID3D11Buffer> m_cb;
 
+	// 材质文件路径
+	std::filesystem::path m_filePath;
+
 private:
 	// 映射表，记录哪些Submesh使用了这个材质
 	std::vector<NXSubMeshBase*> m_pRefSubMeshes;
 	UINT m_RefSubMeshesCleanUpCount;
-
-	// 材质文件路径
-	std::filesystem::path m_filePath;
 };
 
 // 2023.6.4
@@ -91,11 +91,10 @@ class NXCustomMaterial : public NXMaterial
 
 public:
 	explicit NXCustomMaterial() = default;
-	NXCustomMaterial(const std::string& name);
+	NXCustomMaterial(const std::string& name, const std::filesystem::path& path);
 	~NXCustomMaterial() {}
 	NXCustomMaterial* IsCustomMat() override { return this; }
 
-	void SetShaderFilePath(const std::filesystem::path& path);
 	void LoadShaderCode();
 	// 将 NSL 转换为 HLSL。
 	void ConvertNSLToHLSL(std::string& oHLSLHead, std::string& oHLSLBody);
@@ -167,7 +166,6 @@ private:
 	void UpdateCBData();
 
 private:
-	std::filesystem::path		m_nslFilePath;
 	std::string					m_nslParams;
 	std::string					m_nslCode;
 

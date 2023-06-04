@@ -28,7 +28,7 @@ public:
 
     NXMaterial* LoadFromNmatFile(const std::filesystem::path& matFilePath);
 
-	NXCustomMaterial* CreateCustomMaterial(const std::string& name, const std::string& nslFilePath);
+	NXCustomMaterial* CreateCustomMaterial(const std::string& name, const std::filesystem::path& nslFilePath);
 
 	void OnReload() override;
 	void Release() override;

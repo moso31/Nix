@@ -91,7 +91,7 @@ void NXTexture::Serialize()
 		return;
 	}
 
-	std::string nxInfoPath = m_texFilePath.string() + ".nxInfo";
+	std::string nxInfoPath = m_texFilePath.string() + ".n0";
 
 	// 2023.5.30 纹理资源的序列化: 
 	NXSerializer serializer;
@@ -110,7 +110,7 @@ void NXTexture::Serialize()
 void NXTexture::Deserialize()
 {
 	using namespace rapidjson;
-	std::string nxInfoPath = m_texFilePath.string() + ".nxInfo";
+	std::string nxInfoPath = m_texFilePath.string() + ".n0";
 	NXDeserializer deserializer;
 	bool bJsonExist = deserializer.LoadFromFile(nxInfoPath.c_str());
 	if (bJsonExist)
@@ -121,8 +121,6 @@ void NXTexture::Deserialize()
 		m_serializationData.m_bInvertNormalY = deserializer.Bool("IsInvertNormalY");
 		m_serializationData.m_bGenerateMipMap = deserializer.Bool("IsGenerateMipMap");
 		m_serializationData.m_bCubeMap = deserializer.Bool("IsCubeMap");
-
-		m_bDeserialized = true;
 	}
 }
 

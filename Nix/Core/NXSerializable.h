@@ -10,6 +10,7 @@
 #undef new
 #endif
 
+#include "rapidjson/prettywriter.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/document.h"
 
@@ -29,16 +30,15 @@ public:
 	void StartObject();
 	void EndObject();
 
-	// string
+	void StartArray(const std::string& key);
+	void EndArray();
+	void PushInt(int value);
+	void PushFloat(float value);
+
 	void String(const std::string& key, const std::string& value);
-
-	// bool
 	void Bool(const std::string& key, bool value);
-
-	// uint64
 	void Uint64(const std::string& key, size_t value);
-
-	// int
+	void Uint(const std::string& key, unsigned int value);
 	void Int(const std::string& key, int value);
 
 	std::string Json() const { return m_stringBuffer.GetString(); }
@@ -48,7 +48,8 @@ public:
 
 private:
 	StringBuffer m_stringBuffer;
-	rapidjson::Writer<StringBuffer> m_writer;
+	//rapidjson::Writer<StringBuffer> m_writer;
+	rapidjson::PrettyWriter<StringBuffer> m_writer;
 };
 
 class NXDeserializer
@@ -57,17 +58,12 @@ public:
 	NXDeserializer() {};
 	~NXDeserializer() {};
 
-	// string
 	std::string String(const std::string& key);
-
-	// bool
 	bool Bool(const std::string& key);
-
-	// uint64
 	size_t Uint64(const std::string& key);
-
-	// int
 	int Int(const std::string& key);
+	const GenericObject<false, Value>& Object(const std::string& key);
+	const GenericArray<false, Value>& Array(const std::string& key);
 
 	// 从本地文件读取 Json
 	bool LoadFromFile(const std::filesystem::path& path);

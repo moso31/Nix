@@ -66,18 +66,22 @@ NXMaterial* NXMaterialResourceManager::LoadFromNmatFile(const std::filesystem::p
 	return pNewMat;
 }
 
-NXCustomMaterial* NXMaterialResourceManager::CreateCustomMaterial(const std::string& name, const std::string& nslFilePath)
+NXCustomMaterial* NXMaterialResourceManager::CreateCustomMaterial(const std::string& name, const std::filesystem::path& nslFilePath)
 {
-	auto pMat = new NXCustomMaterial(name);
+	auto pMat = new NXCustomMaterial(name, nslFilePath);
+	pMat->LoadShaderCode();
 
 	std::string strHLSLHead, strHLSLBody;
-	std::string strErrMsgVS, strErrMsgPS;
-
-	pMat->SetShaderFilePath("./shader/GBufferEx_Test.nsl");
-	pMat->LoadShaderCode();
 	pMat->ConvertNSLToHLSL(strHLSLHead, strHLSLBody);
+
+	std::string strErrMsgVS, strErrMsgPS;
 	pMat->CompileShader(strHLSLHead, strHLSLBody, strErrMsgVS, strErrMsgPS);
+
 	pMat->InitShaderResources();
+
+	// ·´ĞòÁĞ»¯
+	pMat->Deserialize();
+
 	NXResourceManager::GetInstance()->GetMaterialManager()->RegisterMaterial(pMat);
 	return pMat;
 }

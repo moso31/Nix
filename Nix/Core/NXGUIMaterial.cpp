@@ -117,9 +117,7 @@ void NXGUIMaterial::Render()
 		// 保存当前材质
 		if (ImGui::Button("Save##material"))
 		{
-			pCommonMaterial->GetFilePath();
-
-			NXGUICommon::SaveMaterialFile(pCommonMaterial);
+			pCommonMaterial->Serialize();
 		}
 
 		if (pCommonMaterial->IsCustomMat())

@@ -24,8 +24,7 @@ public:
         m_arraySize(-1),
         m_texFormat(DXGI_FORMAT_UNKNOWN),
         m_mipLevels(-1),
-        m_texFilePath(""),
-        m_bDeserialized(false)
+        m_texFilePath("")
     {}
     virtual ~NXTexture() {};
 
@@ -94,9 +93,6 @@ protected:
 
     // 序列化数据
     NXTextureSerializationData m_serializationData;
-
-    // 是否已经被正确反序列化
-    bool m_bDeserialized;
 
 private:
     // 引用计数

@@ -10,15 +10,15 @@ struct CBufferLoading
 Texture2D txLoading : register(t1);
 SamplerState ssLinearWrap : register(s0);
 
+struct TriplanarUV
+{
+	float2 x, y, z;
+};
+
 cbuffer CBuffer : register(b3)
 {
 	CBufferLoading m_material;
 }
-
-struct TriplanarUV 
-{
-	float2 x, y, z;
-};
 
 TriplanarUV GetTriplanarUV(float3 position) 
 {
@@ -66,13 +66,13 @@ PS_INPUT VS(VS_INPUT input)
 	output.posVS = mul(output.posWS, m_view);
 	output.posSS = mul(output.posVS, m_projection);
 	output.normOS = normalize(input.norm);
-	output.normVS = mul(output.normOS, (float3x3)m_worldViewInverseTranspose));
+	output.normVS = mul(output.normOS, (float3x3)m_worldViewInverseTranspose);
 	output.tex = input.tex;
 	output.tangentVS = normalize(mul(input.tangent, (float3x3)m_worldViewInverseTranspose));
 	return output;
 }
 
-void PS(PS_INPUT input, out PS_OUTPUT Output)
+void PS(PS_INPUT input, out PS_OUTPUT output)
 {
 	float3 posOS = input.posOS.xyz;
 	TriplanarUV triUV = GetTriplanarUV(posOS);
@@ -86,6 +86,4 @@ void PS(PS_INPUT input, out PS_OUTPUT Output)
 	output.GBufferB = float4(0.5f, 0.5f, 1.0f, 1.0f); // xyz = vector(0, 0, 1)
 	output.GBufferC = float4(albedo, 1.0f); // use txLoading as albedo.
 	output.GBufferD = float4(0.0f, 1.0f, 1.0f, 1.0f);
-
-	return;
 }
