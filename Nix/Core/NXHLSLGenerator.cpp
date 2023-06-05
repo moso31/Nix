@@ -8,14 +8,13 @@ NXHLSLGenerator::~NXHLSLGenerator()
 {
 }
 
-void NXHLSLGenerator::EncodeToGBufferShader(const std::string& strHLSLParam, const std::string& strHLSLBody, std::string& oHLSLFinal)
+void NXHLSLGenerator::EncodeToGBufferShader(const std::string& strHLSLParam, const std::string& strHLSLFuncs, const std::string& strHLSLBody, std::string& oHLSLFinal)
 {
     auto strInclude = R"(#include "Common.fx"
 #include "Math.fx"
-
 )";
 
-    auto strOther = R"(struct VS_INPUT
+	auto strIOStruct = R"(struct VS_INPUT
 {
 	float4 pos : POSITION;
 	float3 norm : NORMAL;
@@ -54,13 +53,15 @@ PS_INPUT VS(VS_INPUT input)
 	output.tangentVS = normalize(mul(input.tangent, (float3x3)m_worldViewInverseTranspose));
 	return output;
 }
+)";
 
-void PS(PS_INPUT input, out PS_OUTPUT Output)
+	auto strPSBegin = R"(void PS(PS_INPUT input, out PS_OUTPUT Output)
 {
 )";
-    auto strEnd = R"(
+    auto strPSEnd = R"(
 }
 )";
 
-    oHLSLFinal = strInclude + strHLSLParam + strOther + strHLSLBody + strEnd;
+    oHLSLFinal = strInclude + strHLSLParam + strHLSLFuncs + strIOStruct + 
+		strPSBegin + strHLSLBody + strPSEnd;
 }

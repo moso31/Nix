@@ -71,11 +71,11 @@ NXCustomMaterial* NXMaterialResourceManager::CreateCustomMaterial(const std::str
 	auto pMat = new NXCustomMaterial(name, nslFilePath);
 	pMat->LoadShaderCode();
 
-	std::string strHLSLHead, strHLSLBody;
-	pMat->ConvertNSLToHLSL(strHLSLHead, strHLSLBody);
+	std::string strHLSLHead, strHLSLFunc, strHLSLBody;
+	pMat->ConvertNSLToHLSL(strHLSLHead, strHLSLFunc, strHLSLBody);
 
 	std::string strErrMsgVS, strErrMsgPS;
-	pMat->CompileShader(strHLSLHead, strHLSLBody, strErrMsgVS, strErrMsgPS);
+	pMat->CompileShader(strHLSLHead, strHLSLFunc, strHLSLBody, strErrMsgVS, strErrMsgPS);
 
 	pMat->InitShaderResources();
 
