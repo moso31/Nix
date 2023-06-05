@@ -1,4 +1,5 @@
 #include "Renderer.h"
+#include "NXTimer.h"
 #include "DirectResources.h"
 #include "ShaderComplier.h"
 #include "NXEvent.h"
@@ -124,6 +125,8 @@ void Renderer::ResourcesReloading()
 
 void Renderer::UpdateSceneData()
 {
+	UpdateTime();
+
 	// 更新场景Scripts。实际上是用Scripts控制指定物体的Transform。
 	m_scene->UpdateScripts();
 
@@ -143,6 +146,15 @@ void Renderer::UpdateSceneData()
 	}
 
 	m_pSSAO->Update();
+}
+
+void Renderer::UpdateTime()
+{
+	//g_timer
+	size_t globalTime = g_timer->GetGlobalTime();
+	float fGlobalTime = globalTime / 1000.0f;
+
+	NXGlobalBufferManager::m_cbDataObject.globalData.time = fGlobalTime;
 }
 
 void Renderer::RenderFrame()

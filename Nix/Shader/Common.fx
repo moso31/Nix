@@ -1,3 +1,9 @@
+struct NXCBGlobalData
+{
+	float Time;
+	float3 _0;
+};
+
 cbuffer ConstantBufferObject : register(b0)
 {
 	matrix m_world;
@@ -9,4 +15,5 @@ cbuffer ConstantBufferObject : register(b0)
 	matrix m_worldView;
 	matrix m_worldViewInverseTranspose;
 	matrix m_projection;
+	NXCBGlobalData g;
 }

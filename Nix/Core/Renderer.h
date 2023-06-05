@@ -36,6 +36,8 @@ public:
 	// 更新 NXScene 场景
 	void UpdateSceneData();
 
+	void UpdateTime();
+
 	// 当前帧 渲染画面的绘制
 	void RenderFrame();
 

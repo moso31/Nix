@@ -57,7 +57,7 @@ void NSFirstPersonalCamera::Update()
 	case SPEED_HIGH: moveSpeed *= 9.0f; break;
 	}
 
-	auto timeDelta = g_timer->GetTimeDelta() / 1000000.0f;
+	auto timeDelta = g_timer->GetTimeDelta() / 1000.0f;
 
 	Vector3 result = pos + moveCommandV * moveSpeed * timeDelta;
 	pCamera->SetTranslation(result);
