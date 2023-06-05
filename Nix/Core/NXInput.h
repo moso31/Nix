@@ -11,7 +11,7 @@ public:
 	XMINT2 MousePosition();	// 获取鼠标在当前客户端的位置（左上角0,0）
 	void RestoreData();
 
-	void Update();
+	void UpdateMousePosInfo();
 	void UpdateRawInput(LPARAM lParam);
 	void UpdateViewPortInput(bool isMouseHovering, const Vector4& vpRect);
 
@@ -31,6 +31,9 @@ private:
 	bool m_keyActivite[256];	// 键盘是否激活（当前帧被按下/弹起）
 	bool m_mouseState[256];		// 鼠标是否按下
 	bool m_mouseActivite[256];	// 鼠标是否激活（当前帧被按下/弹起）
+
+	Vector2 m_mouseAbsolutePos;	// 鼠标屏幕全局坐标
+	Vector2 m_mouseWindowPos;	// 鼠标相对Win32窗口坐标
 
 	// 记录GUIView的数据
 	bool m_isMouseHoverOnView;	// 检测鼠标是否在视口（"view"）上悬停

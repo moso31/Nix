@@ -18,6 +18,9 @@ void NXGUIView::Render()
 		const auto& rectMin = ImGui::GetItemRectMin();
 		const auto& rectMax = ImGui::GetItemRectMax();
 		NXInput::GetInstance()->UpdateViewPortInput(ImGui::IsItemHovered(), Vector4(rectMin.x, rectMin.y, rectMax.x, rectMax.y));
+
+		// test: show rect
+		//ImGui::GetWindowDrawList()->AddRect(rectMin, rectMax, IM_COL32(255, 0, 0, 255));
 	}
 	ImGui::End();
 	ImGui::PopStyleVar();

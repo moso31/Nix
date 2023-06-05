@@ -73,6 +73,8 @@ DWORD WINAPI SplashScreenThread(LPVOID lpParam)
 
 	// 显示闪屏
 	ShowWindow(hWnd, SW_SHOWDEFAULT);
+	//ShowWindow(hWnd, SW_HIDE);
+
 	UpdateWindow(hWnd);
 
 	int count = 0;
@@ -207,7 +209,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	MSG msg = { 0 };
 	while (WM_QUIT != msg.message)
 	{
-		NXInput::GetInstance()->Update();
+		//NXInput::GetInstance()->Update();
 
 		if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 		{

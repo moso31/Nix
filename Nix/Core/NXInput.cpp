@@ -47,13 +47,20 @@ void NXInput::RestoreData()
 	::ZeroMemory(m_mouseActivite, sizeof(m_mouseActivite));
 }
 
-void NXInput::Update()
+void NXInput::UpdateMousePosInfo()
 {
+	POINT p;
+	GetCursorPos(&p);
+	m_mouseAbsolutePos = Vector2((float)p.x, (float)p.y);
+	ScreenToClient(g_hWnd, &p);
+	m_mouseWindowPos = Vector2((float)p.x, (float)p.y);
 }
 
 #define REGISTER_MKMOUSESTATE(RI_MOUSE_CODE, MK_CODE, bValue) if ((raw->data.mouse.usButtonFlags & RI_MOUSE_CODE) != 0) m_mouseKey[MK_CODE] = bValue;
 void NXInput::UpdateRawInput(LPARAM lParam)
 {
+	UpdateMousePosInfo();
+
 	UINT dwSize;
 	GetRawInputData((HRAWINPUT)lParam, RID_INPUT, nullptr, &dwSize, sizeof(RAWINPUTHEADER));
 	LPBYTE lpb = new BYTE[dwSize];
@@ -118,9 +125,12 @@ void NXInput::UpdateRawInput(LPARAM lParam)
 
 		eArg.ViewPortSize = Vector2(&m_viewPortRect.z) - Vector2(&m_viewPortRect.x);
 		eArg.ViewPortPos = {
-			(float)eArg.X + 0.5f - m_viewPortRect.x,
-			(float)eArg.Y + 0.5f - m_viewPortRect.y
+			m_mouseAbsolutePos.x + 0.5f - m_viewPortRect.x,
+			m_mouseAbsolutePos.y + 0.5f - m_viewPortRect.y
 		};
+
+		// print test
+		//printf("%.1f, %.1f, %.1f, %.1f, %.1f, %.1f, %.1f, %.1f\n", m_mouseAbsolutePos.x, m_mouseAbsolutePos.y, m_mouseWindowPos.x, m_mouseWindowPos.y, m_viewPortRect.x, m_viewPortRect.y, eArg.ViewPortSize.x, eArg.ViewPortSize.y);
 
 		if (bIsMouseDown)
 		{
