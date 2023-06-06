@@ -78,6 +78,8 @@ private:
 	NXGUIFileBrowser* m_pFileBrowser;
 
 	std::string m_nslCode;
+	std::vector<std::string> m_nslFuncs;
+	std::vector<std::string> m_nslFuncsDisplay;
 
 	// ShaderEditor 中复制一份 原始GUI类的 cb, tex, ss参数。
 	std::vector<NXGUICBufferData> m_cbInfosDisplay;

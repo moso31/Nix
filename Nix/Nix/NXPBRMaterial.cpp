@@ -99,33 +99,39 @@ void NXCustomMaterial::LoadShaderCode()
 	assert(bLoadSuccess);
 
 	// 将 nsl shader 拆成 params 和 code 两部分
-	ExtractShaderData(strShader, m_nslParams, m_nslCode);
+	ExtractShaderData(strShader, m_nslParams, m_nslCode, m_nslFuncs);
 }
 
-void NXCustomMaterial::ConvertNSLToHLSL(std::string& oHLSLHead, std::string& oHLSLBody)
+void NXCustomMaterial::ConvertNSLToHLSL(std::string& oHLSLHead, std::string& oHLSLFunc, std::string& oHLSLBody)
 {
 	// 将 nsl params 转换成 DX 可以编译的 hlsl 代码，
 	// 同时对其进行分拣，将 cb 储存到 m_cbInfo，纹理储存到 m_texInfoMap，采样器储存到 m_ssInfoMap
 	ProcessShaderParameters(m_nslParams, oHLSLHead);
 
+	// 将 nsl funcs 转换成 DX 可以编译的 hlsl 代码
+	ProcessShaderFunctions(m_nslFuncs, oHLSLFunc);
+
 	// 将 nsl code 转换成 DX 可以编译的 hlsl 代码
 	ProcessShaderCode(m_nslCode, oHLSLBody);
 }
 
-void NXCustomMaterial::ConvertGUIDataToHLSL(std::string& oHLSLHead, std::string& oHLSLBody, const std::vector<NXGUICBufferData>& cbDefaultValues, const std::vector<NXGUITextureData>& texDefaultValues, const std::vector<NXGUISamplerData>& samplerDefaultValues)
+void NXCustomMaterial::ConvertGUIDataToHLSL(std::string& oHLSLHead, std::string& oHLSLFunc, std::string& oHLSLBody, const std::vector<NXGUICBufferData>& cbDefaultValues, const std::vector<NXGUITextureData>& texDefaultValues, const std::vector<NXGUISamplerData>& samplerDefaultValues)
 {
 	// 将 nsl params 转换成 DX 可以编译的 hlsl 代码，
 	// 同时对其进行分拣，将 cb 储存到 m_cbInfo，纹理储存到 m_texInfoMap，采样器储存到 m_ssInfoMap
 	ProcessShaderParameters(m_nslParams, oHLSLHead, cbDefaultValues, texDefaultValues, samplerDefaultValues);
 
+	// 将 nsl funcs 转换成 DX 可以编译的 hlsl 代码
+	ProcessShaderFunctions(m_nslFuncs, oHLSLFunc);
+
 	// 将 nsl code 转换成 DX 可以编译的 hlsl 代码
 	ProcessShaderCode(m_nslCode, oHLSLBody);
 }
 
-bool NXCustomMaterial::CompileShader(const std::string& strHLSLHead, const std::string& strHLSLBody, std::string& oErrorMessageVS, std::string& oErrorMessagePS)
+bool NXCustomMaterial::CompileShader(const std::string& strHLSLHead, const std::string& strHLSLFunc, const std::string& strHLSLBody, std::string& oErrorMessageVS, std::string& oErrorMessagePS)
 {
 	std::string strGBufferShader;
-	NXHLSLGenerator::GetInstance()->EncodeToGBufferShader(strHLSLHead, strHLSLBody, strGBufferShader);
+	NXHLSLGenerator::GetInstance()->EncodeToGBufferShader(strHLSLHead, strHLSLFunc, strHLSLBody, strGBufferShader);
 
 	ComPtr<ID3D11VertexShader> pNewVS;
 	ComPtr<ID3D11PixelShader>  pNewPS;
@@ -143,23 +149,26 @@ bool NXCustomMaterial::CompileShader(const std::string& strHLSLHead, const std::
 	return true;
 }
 
-bool NXCustomMaterial::Recompile(const std::string& nslParams, const std::string& nslCode, const std::vector<NXGUICBufferData>& cbDefaultValues, const std::vector<NXGUITextureData>& texDefaultValues, const std::vector<NXGUISamplerData>& samplerDefaultValues, std::string& oErrorMessageVS, std::string& oErrorMessagePS)
+bool NXCustomMaterial::Recompile(const std::string& nslParams, const std::vector<std::string>& nslFuncs, const std::string& nslCode, const std::vector<NXGUICBufferData>& cbDefaultValues, const std::vector<NXGUITextureData>& texDefaultValues, const std::vector<NXGUISamplerData>& samplerDefaultValues, std::string& oErrorMessageVS, std::string& oErrorMessagePS)
 {
 	// 构建 NSLParam 代码
-	SetNSLParam(nslParams);
+	m_nslParams = nslParams;
+
+	// 构建 NSLFunc 代码
+	m_nslFuncs.assign(nslFuncs.begin(), nslFuncs.end());
 
 	// 更新 NSLCode
-	SetNSLCode(nslCode);
+	m_nslCode = nslCode;
 
 	// 备份材质信息，方便编译失败时还原数据
 	GenerateInfoBackup();
 
 	// 将 NSL 转换成 HLSL
-	std::string strHLSLHead, strHLSLBody;
-	ConvertGUIDataToHLSL(strHLSLHead, strHLSLBody, cbDefaultValues, texDefaultValues, samplerDefaultValues);
+	std::string strHLSLHead, strHLSLFunc, strHLSLBody;
+	ConvertGUIDataToHLSL(strHLSLHead, strHLSLFunc, strHLSLBody, cbDefaultValues, texDefaultValues, samplerDefaultValues);
 
 	// 编译 HLSL
-	bool bCompileSuccess = CompileShader(strHLSLHead, strHLSLBody, oErrorMessageVS, oErrorMessagePS);
+	bool bCompileSuccess = CompileShader(strHLSLHead, strHLSLFunc, strHLSLBody, oErrorMessageVS, oErrorMessagePS);
 
 	// 如果编译失败，则用备份数据恢复材质
 	if (!bCompileSuccess)
@@ -298,26 +307,16 @@ void NXCustomMaterial::SetCBInfoMemoryData(UINT memoryIndex, UINT count, const f
 
 void NXCustomMaterial::GenerateInfoBackup()
 {
-	m_cbInfoBackup.elems.reserve(m_cbInfo.elems.size());
 	m_cbInfoBackup.elems.assign(m_cbInfo.elems.begin(), m_cbInfo.elems.end());
 	m_cbInfoBackup.slotIndex = m_cbInfo.slotIndex;
-
-	m_cbInfoMemoryBackup.reserve(m_cbInfoMemory.size());
 	m_cbInfoMemoryBackup.assign(m_cbInfoMemory.begin(), m_cbInfoMemory.end());
-
-	m_cbSortedIndexBackup.reserve(m_cbSortedIndex.size());
 	m_cbSortedIndexBackup.assign(m_cbSortedIndex.begin(), m_cbSortedIndex.end());
-
-	m_texInfosBackup.reserve(m_texInfos.size());
 	m_texInfosBackup.assign(m_texInfos.begin(), m_texInfos.end());
-
-	m_samplerInfosBackup.reserve(m_samplerInfos.size());
 	m_samplerInfosBackup.assign(m_samplerInfos.begin(), m_samplerInfos.end());
-
-	m_cbInfoGUIStylesBackup.reserve(m_cbInfoGUIStyles.size());
 	m_cbInfoGUIStylesBackup.assign(m_cbInfoGUIStyles.begin(), m_cbInfoGUIStyles.end());
 
 	m_nslCodeBackup = m_nslCode;
+	m_nslFuncsBackup.assign(m_nslFuncs.begin(), m_nslFuncs.end());
 }
 
 void NXCustomMaterial::RecoverInfosBackup()
@@ -465,7 +464,7 @@ bool NXCustomMaterial::LoadShaderStringFromFile(std::string& oShader)
 	return true;
 }
 
-void NXCustomMaterial::ExtractShaderData(const std::string& shader, std::string& nslParams, std::string& nslCode)
+void NXCustomMaterial::ExtractShaderData(const std::string& shader, std::string& nslParams, std::string& nslCode, std::vector<std::string>& nslFuncs)
 {
 	// 查找 Params 和 Code 块的开始和结束位置
 	const auto paramsStart = shader.find("Params");
@@ -476,6 +475,38 @@ void NXCustomMaterial::ExtractShaderData(const std::string& shader, std::string&
 	// 提取 Params 和 Code 块
 	nslParams = shader.substr(paramsStart, paramsEnd - paramsStart);
 	nslCode = shader.substr(codeStart, codeEnd - codeStart);
+
+	// 查找 Func 块
+	size_t funcStart = shader.find("Func:");
+	while (funcStart != std::string::npos)
+	{
+		size_t openBraceCount = 0;
+		size_t closeBraceCount = 0;
+		size_t endPos = funcStart;
+
+		for (; endPos < shader.size(); ++endPos)
+		{
+			if (shader[endPos] == '{')
+			{
+				++openBraceCount;
+			}
+			else if (shader[endPos] == '}')
+			{
+				++closeBraceCount;
+
+				if (openBraceCount == closeBraceCount)
+				{
+					break;
+				}
+			}
+		}
+
+		// 提取 Func 块
+		nslFuncs.push_back(shader.substr(funcStart, endPos - funcStart + 1));
+
+		// 查找下一个 Func 块
+		funcStart = shader.find("Func:", endPos + 1);
+	}
 }
 
 void NXCustomMaterial::ProcessShaderParameters(const std::string& nslParams, std::string& oHLSLHeadCode, const std::vector<NXGUICBufferData>& cbDefaultValues, const std::vector<NXGUITextureData>& texDefaultValues, const std::vector<NXGUISamplerData>& samplerDefaultValues)
@@ -750,6 +781,28 @@ void NXCustomMaterial::ProcessShaderCBufferParam(std::istringstream& in, std::os
 	}
 }
 
+void NXCustomMaterial::ProcessShaderFunctions(const std::vector<std::string>& nslFuncs, std::string& oHLSLBodyCode)
+{
+	for (const auto& func : nslFuncs)
+	{
+		// 查找 "Func:" 的位置
+		const auto funcStart = func.find("Func:");
+
+		// 移除 "Func:"
+		std::string hlslFunc = func.substr(funcStart + 5); // 5 是 "Func:" 的长度
+
+		// 删除开头的空白字符
+		size_t firstNonSpace = 0;
+		while (firstNonSpace < hlslFunc.size() && std::isspace(hlslFunc[firstNonSpace])) 
+			++firstNonSpace;
+		hlslFunc = hlslFunc.substr(firstNonSpace);
+
+		// 将 HLSL 函数追加到输出字符串中
+		oHLSLBodyCode += hlslFunc;
+		oHLSLBodyCode += "\n";
+	}
+}
+
 void NXCustomMaterial::ProcessShaderCode(const std::string& nslCode, std::string& oHLSLBodyCode)
 {
 	using namespace NXConvert;
@@ -800,7 +853,7 @@ void NXCustomMaterial::ProcessShaderCode(const std::string& nslCode, std::string
 		out << line << "\n";
 	}
 
-	oHLSLBodyCode = std::move(out.str());
+	oHLSLBodyCode += std::move(out.str());
 }
 
 void NXCustomMaterial::SortShaderCBufferParam()

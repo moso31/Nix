@@ -9,5 +9,5 @@ public:
 	NXHLSLGenerator();
 	~NXHLSLGenerator();
 
-    void EncodeToGBufferShader(const std::string& strHLSLParam, const std::string& strHLSLBody, std::string& oHLSLFinal);
+    void EncodeToGBufferShader(const std::string& strHLSLParam, const std::string& strHLSLFuncs, const std::string& strHLSLBody, std::string& oHLSLFinal);
 };

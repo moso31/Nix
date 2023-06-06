@@ -144,7 +144,7 @@ void NXGUIMaterialShaderEditor::OnBtnCompileClicked(NXCustomMaterial* pMaterial)
 	std::string nslParams = ConvertShaderResourceDataToNSLParam(m_cbInfosDisplay, m_texInfosDisplay, m_ssInfosDisplay);
 
 	std::string strErrVS, strErrPS;	// 若编译Shader出错，将错误信息记录到此字符串中。
-	bool bCompile = pMaterial->Recompile(nslParams, m_nslCode, m_cbInfosDisplay, m_texInfosDisplay, m_ssInfosDisplay, strErrVS, strErrPS);
+	bool bCompile = pMaterial->Recompile(nslParams, m_nslFuncs, m_nslCode, m_cbInfosDisplay, m_texInfosDisplay, m_ssInfosDisplay, strErrVS, strErrPS);
 	
 	if (bCompile)
 	{
@@ -192,6 +192,17 @@ void NXGUIMaterialShaderEditor::RequestSyncMaterialData()
 
 void NXGUIMaterialShaderEditor::Render_Code()
 {
+	static size_t item_func = 0;
+	if (ImGui::BeginCombo("Function", m_nslFuncsDisplay[item_func].c_str()))
+	{
+		for (int item = 0; item < m_nslFuncsDisplay.size(); item++)
+		{
+			if (ImGui::Selectable(m_nslFuncsDisplay[item].c_str()))
+				item_func = item;
+		}
+		ImGui::EndCombo();
+	}
+
 	float fEachTextLineHeight = ImGui::GetTextLineHeight();
 	static ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput;
 	// 规定 UI 至少留出 10 行代码的高度
@@ -469,6 +480,22 @@ void NXGUIMaterialShaderEditor::SyncMaterialData(NXCustomMaterial* pMaterial)
 		m_ssInfosDisplay.push_back({ pMaterial->GetSamplerName(i), pMaterial->GetSampler(i) });
 
 	m_nslCode = pMaterial->GetNSLCode();
+	m_nslFuncs = pMaterial->GetNSLFuncs();
+
+	// m_nslFuncsDisplay 负责在 Func Combo 中显示所有函数的名称和变量
+	m_nslFuncsDisplay.clear();
+	m_nslFuncsDisplay.reserve(m_nslFuncs.size() + 1); // 还有入口主函数，所以+1
+	m_nslFuncsDisplay.push_back("main()");
+	for (auto strFunc : m_nslFuncs)
+	{
+		std::size_t line_start = strFunc.find_first_not_of("\n\r\t ", 5);
+		std::size_t line_end = strFunc.find_first_of("\n\r", line_start);
+		if (line_start == std::string::npos || line_end == std::string::npos)
+			continue;
+
+		strFunc = strFunc.substr(line_start, line_end - line_start);
+		m_nslFuncsDisplay.push_back(strFunc.data());
+	}
 }
 
 bool NXGUIMaterialShaderEditor::FindCBGUIData(const std::string& name, std::vector<NXGUICBufferData>::iterator& oIterator)
