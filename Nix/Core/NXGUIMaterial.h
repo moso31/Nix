@@ -17,6 +17,8 @@ public:
 
 	void RequestSyncMaterialData() { m_bIsDirty = true; }
 
+	void SaveMaterialFile(NXCustomMaterial* pMaterial);
+
 private:
 	void RenderMaterialUI_Custom(NXCustomMaterial* pMaterial);
 	void RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMaterial);

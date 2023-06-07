@@ -141,6 +141,10 @@ public:
 
 	void RequestUpdateCBufferData() { m_bIsDirty = true; }
 
+	// 将当前的 param, code, funcs[] 重新整合成 nsl 文件，
+	// 一般在保存时调用此方法。
+	void SaveToNSLFile();
+
 	void Serialize() override;
 	void Deserialize() override;
 

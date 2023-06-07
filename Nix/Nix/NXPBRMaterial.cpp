@@ -347,6 +347,32 @@ void NXCustomMaterial::RecoverInfosBackup()
 	}
 }
 
+void NXCustomMaterial::SaveToNSLFile()
+{
+	// 保存到文件
+	std::ofstream outputFile(m_filePath);
+
+	if (!outputFile.is_open())
+	{
+		outputFile.close();
+		return;
+	}
+
+	// 拼接字符串
+	std::string content;
+	content += m_nslParams;
+
+	for (const auto& func : m_nslFuncs) {
+		content += "Func:\n";
+		content += func;
+		content += "\n";
+	}
+
+	content += m_nslCode;
+	outputFile << content;
+	outputFile.close();
+}
+
 void NXCustomMaterial::Serialize()
 {
 	using namespace rapidjson;

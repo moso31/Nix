@@ -112,20 +112,25 @@ void NXGUIMaterial::Render()
 		}
 		ImGui::EndChild();
 
-		RenderMaterialUI_Custom(static_cast<NXCustomMaterial*>(pCommonMaterial));
-
-		// 保存当前材质
-		if (ImGui::Button("Save##material"))
+		auto pCustomMat = pCommonMaterial->IsCustomMat();
+		if (pCustomMat)
 		{
-			pCommonMaterial->Serialize();
-		}
+			RenderMaterialUI_Custom(pCustomMat);
 
-		if (pCommonMaterial->IsCustomMat())
-		{
-			ImGui::SameLine();
-			if (ImGui::Button("Edit Shader...##material_custom_editshader"))
+			// 保存当前材质
+			if (ImGui::Button("Save##material"))
 			{
-				OnBtnEditShaderClicked(static_cast<NXCustomMaterial*>(pCommonMaterial));
+				SaveMaterialFile(pCustomMat);
+				pCommonMaterial->Serialize();
+			}
+
+			if (pCommonMaterial->IsCustomMat())
+			{
+				ImGui::SameLine();
+				if (ImGui::Button("Edit Shader...##material_custom_editshader"))
+				{
+					OnBtnEditShaderClicked(pCustomMat);
+				}
 			}
 		}
 	}
@@ -141,6 +146,11 @@ void NXGUIMaterial::Render()
 
 void NXGUIMaterial::Release()
 {
+}
+
+void NXGUIMaterial::SaveMaterialFile(NXCustomMaterial* pMaterial)
+{
+	pMaterial->SaveToNSLFile();
 }
 
 void NXGUIMaterial::OnBtnEditShaderClicked(NXCustomMaterial* pMaterial)
@@ -245,7 +255,8 @@ void NXGUIMaterial::RenderMaterialUI_Custom(NXCustomMaterial* pMaterial)
 		// 禁用树节点首行缩进
 		ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 0.0f);
 		RenderMaterialUI_Custom_Parameters(pMaterial);
-		RenderMaterialUI_Custom_Codes(pMaterial);
+
+		//RenderMaterialUI_Custom_Codes(pMaterial); // 2023.6.7 可能要取消Codes了，一直没啥用……先注掉观察一段时间
 		ImGui::PopStyleVar(); // ImGuiStyleVar_IndentSpacing
 		//ImGui::EndChild();
 	}
@@ -257,7 +268,7 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMateri
 
 	if (ImGui::TreeNodeEx("Parameters##material_custom_parameters", ImGuiTreeNodeFlags_DefaultOpen))
 	{
-		ImGui::BeginChild("##material_custom_child");
+		ImGui::BeginChild("##material_custom_child", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y - 40.0f));
 		{
 			int paramCnt = 0;
 			for (auto& cbDisplay : m_cbInfosDisplay)
