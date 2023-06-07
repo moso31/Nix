@@ -63,6 +63,8 @@ Last Issue ID : 42
 40. 更工业化的UI布局，比如属性统一用Inspector显示，增加菜单栏等等
 42. View，加个鼠标滚轮移动的逻辑
 43. nsl Shader增加对函数功能的支持
+44. ContentExplorer 纹理、材质、模型可预览
+45. Cache加载，提速
 
 【较大的长期模块】
 13. 场景文件化，可保存、加载

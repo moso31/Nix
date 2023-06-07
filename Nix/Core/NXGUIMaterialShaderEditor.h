@@ -18,6 +18,12 @@ struct NXGUIShaderErrorMessage
 	int col1;
 };
 
+struct NXGUIFuncItem
+{
+	std::string data;
+	int strId;
+};
+
 class NXGUIMaterial;
 class NXGUIFileBrowser;
 class NXGUIMaterialShaderEditor : public NXInstance<NXGUIMaterialShaderEditor>
@@ -46,6 +52,15 @@ public:
 	// 更新Shader编译错误信息（编译材质出错时触发）
 	void UpdateShaderErrorMessages(const std::string& strCompileErrorVS, const std::string& strCompileErrorPS);
 
+	void SetGUIMaterial(NXGUIMaterial* pGUIMaterial);
+	void SetGUIFileBrowser(NXGUIFileBrowser* pGUIFileBrowser);
+
+	void RequestSyncMaterialData();
+
+private:
+	void OnBtnNewFunctionClicked(NXCustomMaterial* pMaterial);
+	void OnBtnRemoveFunctionClicked(NXCustomMaterial* pMaterial, UINT index);
+
 	void OnBtnAddParamClicked(NXCustomMaterial* pMaterial, NXGUICBufferStyle guiStyle);
 	void OnBtnRevertClicked();
 	void OnBtnRemoveParamClicked(const std::string& name);
@@ -56,17 +71,13 @@ public:
 	void OnBtnCompileClicked(NXCustomMaterial* pMaterial);
 	void OnComboGUIStyleChanged(int selectIndex, NXGUICBufferData& cbDisplayData);
 
-	void SetGUIMaterial(NXGUIMaterial* pGUIMaterial);
-	void SetGUIFileBrowser(NXGUIFileBrowser* pGUIFileBrowser);
-
-	void RequestSyncMaterialData();
-
-private:
-	void Render_Code();
+	void Render_Code(NXCustomMaterial* pMaterial);
 	void Render_Params(NXCustomMaterial* pMaterial);
 	void Render_Params_CBufferItem(const std::string& strId, NXCustomMaterial* pMaterial, NXGUICBufferData& cbDisplay);
 	void Render_ErrorMessages();
+
 	void SyncMaterialData(NXCustomMaterial* pMaterial);
+	void UpdateNSLFunctionsDisplay();
 
 	bool FindCBGUIData(const std::string& name, std::vector<NXGUICBufferData>::iterator& oIterator);
 
@@ -79,7 +90,7 @@ private:
 
 	std::string m_nslCode;
 	std::vector<std::string> m_nslFuncs;
-	std::vector<std::string> m_nslFuncsDisplay;
+	std::vector<NXGUIFuncItem> m_nslFuncsDisplay;
 
 	// ShaderEditor 中复制一份 原始GUI类的 cb, tex, ss参数。
 	std::vector<NXGUICBufferData> m_cbInfosDisplay;

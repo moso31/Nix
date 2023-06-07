@@ -72,9 +72,7 @@ DWORD WINAPI SplashScreenThread(LPVOID lpParam)
 	}
 
 	// 显示闪屏
-	ShowWindow(hWnd, SW_SHOWDEFAULT);
-	//ShowWindow(hWnd, SW_HIDE);
-
+	ShowWindow(hWnd, SW_SHOWDEFAULT);  // 摸鱼时记得将 SW_SHOWDEFAULT 换成 SW_HIDE (._.!!!)
 	UpdateWindow(hWnd);
 
 	int count = 0;
@@ -98,7 +96,7 @@ DWORD WINAPI SplashScreenThread(LPVOID lpParam)
 		PaintNixLogo(hWnd, count++, hBrushes, nBrushesSize);
 
 		// 限制闪屏线程的CPU占用
-		Sleep(100);
+		Sleep(60);
 	}
 
 	// 销毁闪屏窗口

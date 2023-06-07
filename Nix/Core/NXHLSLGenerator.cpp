@@ -8,7 +8,14 @@ NXHLSLGenerator::~NXHLSLGenerator()
 {
 }
 
-void NXHLSLGenerator::EncodeToGBufferShader(const std::string& strHLSLParam, const std::string& strHLSLFuncs, const std::string& strHLSLBody, std::string& oHLSLFinal)
+int NXHLSLGenerator::GetLineCount(const std::string& str) 
+{
+	int lines = 1; // 从1开始计数，因为即使没有换行符，也至少有一行
+	lines += (int)std::count(str.begin(), str.end(), '\n');
+	return lines;
+}
+
+void NXHLSLGenerator::EncodeToGBufferShader(const std::string& strHLSLParam, const std::vector<std::string>& strHLSLFuncs, const std::string& strHLSLBody, std::string& oHLSLFinal)
 {
     auto strInclude = R"(#include "Common.fx"
 #include "Math.fx"
@@ -62,6 +69,12 @@ PS_INPUT VS(VS_INPUT input)
 }
 )";
 
-    oHLSLFinal = strInclude + strHLSLParam + strHLSLFuncs + strIOStruct + 
-		strPSBegin + strHLSLBody + strPSEnd;
+	oHLSLFinal = strInclude + strHLSLParam;
+
+	for (auto& strHLSLFunc : strHLSLFuncs)
+	{
+		oHLSLFinal = oHLSLFinal + strHLSLFunc;
+	}
+
+	oHLSLFinal = oHLSLFinal + strIOStruct + strPSBegin + strHLSLBody + strPSEnd;
 }

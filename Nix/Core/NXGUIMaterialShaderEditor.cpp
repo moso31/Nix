@@ -23,7 +23,7 @@ void NXGUIMaterialShaderEditor::Render(NXCustomMaterial* pMaterial)
 	if (ImGui::BeginTable("##material_shader_editor_table", 2, ImGuiTableFlags_Resizable))
 	{
 		ImGui::TableNextColumn();
-		Render_Code();
+		Render_Code(pMaterial);
 
 		ImGui::TableNextColumn();
 		Render_Params(pMaterial);
@@ -190,24 +190,76 @@ void NXGUIMaterialShaderEditor::RequestSyncMaterialData()
 	m_bIsDirty = true;
 }
 
-void NXGUIMaterialShaderEditor::Render_Code()
+void NXGUIMaterialShaderEditor::OnBtnNewFunctionClicked(NXCustomMaterial* pMaterial)
 {
-	static size_t item_func = 0;
-	if (ImGui::BeginCombo("Function", m_nslFuncsDisplay[item_func].c_str()))
+	m_nslFuncs.push_back("void funcs()\n{\n\t\n}");
+	UpdateNSLFunctionsDisplay();
+}
+
+void NXGUIMaterialShaderEditor::OnBtnRemoveFunctionClicked(NXCustomMaterial* pMaterial, UINT index)
+{
+	m_nslFuncs.erase(m_nslFuncs.begin() + index);
+	UpdateNSLFunctionsDisplay();
+}
+
+void NXGUIMaterialShaderEditor::Render_Code(NXCustomMaterial* pMaterial)
+{
+	static UINT item_func = 0;
+	ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.6f);
+	if (ImGui::BeginCombo("##material_shader_editor_combo_func", m_nslFuncsDisplay[item_func].data.c_str()))
 	{
 		for (int item = 0; item < m_nslFuncsDisplay.size(); item++)
 		{
-			if (ImGui::Selectable(m_nslFuncsDisplay[item].c_str()))
+			ImGui::PushID(m_nslFuncsDisplay[item].strId);
+			if (ImGui::Selectable(m_nslFuncsDisplay[item].data.c_str()))
+			{
 				item_func = item;
+			}
+			ImGui::PopID();
 		}
 		ImGui::EndCombo();
 	}
+	ImGui::PopItemWidth();
+
+	ImGui::SameLine();
+	if (ImGui::Button("New Function##material_shader_editor_btn_newfunction"))
+	{
+		OnBtnNewFunctionClicked(pMaterial);
+	}
+
+	ImGui::SameLine();
+
+	// 第一位是 main() 函数，不能删除
+	if (!item_func)	
+	{
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 0.5f));
+		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+	}
+
+	bool bBtnClicked = false;
+	if (ImGui::ButtonEx("Remove Function##material_shader_editor_btn_removefunction"))
+	{
+		OnBtnRemoveFunctionClicked(pMaterial, item_func - 1);
+		bBtnClicked = true;
+	}
+
+	if (!item_func)
+	{
+		ImGui::PopStyleColor();
+		ImGui::PopItemFlag();
+	}
+
+	if (bBtnClicked) item_func--;
+	
+	// 设置需要显示的代码
+	item_func = Clamp<UINT>(item_func, 0, (UINT)m_nslFuncsDisplay.size());
+	std::string& strEditorText = item_func == 0 ? m_nslCode : m_nslFuncs[item_func - 1];
 
 	float fEachTextLineHeight = ImGui::GetTextLineHeight();
 	static ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput;
 	// 规定 UI 至少留出 10 行代码的高度
 	float fTextEditorHeight = max(10.0f, ImGui::GetContentRegionAvail().y / fEachTextLineHeight) * fEachTextLineHeight;
-	ImGui::InputTextMultiline("##material_shader_editor_paramview_text", &m_nslCode, ImVec2(-FLT_MIN, fTextEditorHeight), flags);
+	ImGui::InputTextMultiline("##material_shader_editor_paramview_text", &strEditorText, ImVec2(-FLT_MIN, fTextEditorHeight), flags);
 }
 
 void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
@@ -258,7 +310,7 @@ void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
 		ImGui::EndPopup();
 	}
 
-	(ImGui::BeginChild("##material_shader_editor_custom_child"));
+	ImGui::BeginChild("##material_shader_editor_custom_child");
 	{
 		if (ImGui::BeginTable("##material_shader_editor_params_table", 2, ImGuiTableFlags_Resizable))
 		{
@@ -482,19 +534,26 @@ void NXGUIMaterialShaderEditor::SyncMaterialData(NXCustomMaterial* pMaterial)
 	m_nslCode = pMaterial->GetNSLCode();
 	m_nslFuncs = pMaterial->GetNSLFuncs();
 
+	UpdateNSLFunctionsDisplay();
+}
+
+void NXGUIMaterialShaderEditor::UpdateNSLFunctionsDisplay()
+{
 	// m_nslFuncsDisplay 负责在 Func Combo 中显示所有函数的名称和变量
 	m_nslFuncsDisplay.clear();
 	m_nslFuncsDisplay.reserve(m_nslFuncs.size() + 1); // 还有入口主函数，所以+1
-	m_nslFuncsDisplay.push_back("main()");
-	for (auto strFunc : m_nslFuncs)
+	m_nslFuncsDisplay.push_back({ "main()", 0 });
+	for (int i = 0; i < m_nslFuncs.size(); i++)
 	{
-		std::size_t line_start = strFunc.find_first_not_of("\n\r\t ", 5);
-		std::size_t line_end = strFunc.find_first_of("\n\r", line_start);
-		if (line_start == std::string::npos || line_end == std::string::npos)
+		auto strFunc = m_nslFuncs[i]; // ps: 这里不能用 auto&，别手欠...
+
+		// 将每个func的第一行提取出来并保存到 m_nslFuncsDisplay
+		std::size_t line_end = strFunc.find_first_of("\n\r", 0);
+		if (line_end == std::string::npos)
 			continue;
 
-		strFunc = strFunc.substr(line_start, line_end - line_start);
-		m_nslFuncsDisplay.push_back(strFunc.data());
+		strFunc = strFunc.substr(0, line_end);
+		m_nslFuncsDisplay.push_back({ strFunc.data(), i + 1 });
 	}
 }
 
