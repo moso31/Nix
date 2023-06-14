@@ -26,6 +26,7 @@ public:
 	~NXGUI();
 
 	void Init();
+	void PreRender();
 	void Render(NXTexture2D* pGUIViewRT);
 	void Release();
 

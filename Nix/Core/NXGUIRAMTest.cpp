@@ -16,6 +16,12 @@ void NXGUIRAMTest::Init()
 {
 }
 
+void NXGUIRAMTest::PreRender()
+{
+	g_pContext->ClearState();
+	g_pContext->Flush();
+}
+
 void NXGUIRAMTest::Render()
 {
 	static int texId = 0;
@@ -91,11 +97,11 @@ void NXGUIRAMTest::CreateBoxes(bool isFront, const float fOffset, const float fA
 	float fStepHeight = fArea / (float)nHeight;
 
 	int n = 0;
-	for (int i = 0; i < nWidth; i++, n++)
+	for (int i = 0; i < nWidth; i++)
 	{
-		for (int j = 0; j < nHeight; j++, n++)
+		for (int j = 0; j < nHeight; j++)
 		{
-			if (n == nAmount)
+			if (n++ == nAmount) 
 				break;
 
 			auto pTexture2D = m_pTextures.emplace_back(new NXTexture2D());
@@ -127,5 +133,7 @@ void NXGUIRAMTest::ClearBoxes()
 
 	for (auto pTex : m_pTextures) SafeRelease(pTex);
 	m_pTextures.clear();
+
+	m_bForceFlush = true;
 }
 

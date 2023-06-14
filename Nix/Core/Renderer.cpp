@@ -121,6 +121,8 @@ void Renderer::ResourcesReloading()
 {
 	NXResourceManager::GetInstance()->OnReload();
 	NXResourceReloader::GetInstance()->Update();
+
+	m_pGUI->PreRender();
 }
 
 void Renderer::UpdateSceneData()

@@ -43,6 +43,12 @@ void App::Update()
 
 void App::Draw()
 {
+	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	g_pContext->OMSetDepthStencilState(nullptr, 0);
+	g_pContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+	g_pContext->RSSetState(nullptr);	// back culling
+
 	m_pRenderer->RenderFrame();
 
 	m_pDXResources->PrepareToRenderGUI();

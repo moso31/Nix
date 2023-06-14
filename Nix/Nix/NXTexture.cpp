@@ -65,6 +65,11 @@ void NXTexture::RemoveRef()
 
 void NXTexture::Release()
 {
+	m_pTexture.Reset();
+	for (auto& srv : m_pSRVs) srv.Reset();
+	for (auto& dsv : m_pDSVs) dsv.Reset();
+	for (auto& rtv : m_pRTVs) rtv.Reset();
+	for (auto& uav : m_pUAVs) uav.Reset();
 }
 
 void NXTexture::MarkReload()

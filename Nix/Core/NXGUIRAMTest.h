@@ -9,6 +9,7 @@ public:
 	~NXGUIRAMTest() {}
 
 	void Init();
+	void PreRender();
 	void Render();
 
 	void Release();
@@ -20,4 +21,6 @@ private:
 	NXScene* m_pScene;
 	std::vector<NXTexture2D*> m_pTextures;
 	std::vector<NXPrimitive*> m_pBoxes;
+
+	bool m_bForceFlush = false;
 };
