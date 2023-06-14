@@ -8,8 +8,7 @@
 #include "GlobalBufferManager.h"
 
 NXGUIRAMTest::NXGUIRAMTest(NXScene* pScene):
-	m_pScene(pScene),
-	m_pTestMat(nullptr)
+	m_pScene(pScene)
 {
 }
 
@@ -17,14 +16,8 @@ void NXGUIRAMTest::Init()
 {
 }
 
-void NXGUIRAMTest::RenderBoxes()
-{
-}
-
 void NXGUIRAMTest::Render()
 {
-	RenderBoxes();
-
 	static int texId = 0;
 
 	static int onceCreate = 10;
@@ -61,72 +54,25 @@ void NXGUIRAMTest::Render()
 		break;
 	}
 
-	static float fPositiveOffset = 0.0f;
-	ImGui::DragFloat("FrontOffset", &fPositiveOffset);
+	static float fPositiveOffset = 10.0f;
+	ImGui::DragFloat("Offset", &fPositiveOffset);
 
 	static float fPositiveArea = 100.0f;
-	ImGui::DragFloat("FrontArea", &fPositiveArea);
+	ImGui::DragFloat("Area", &fPositiveArea);
 
-	if (ImGui::ButtonEx("Create Texture2D", ImVec2(200, 50)))
+	if (ImGui::ButtonEx("Create at Front"))
 	{
-		for (int i = 0; i < onceCreate; i++)
-		{
-			auto pTexture2D = m_pTextures.emplace_back(new NXTexture2D());
-			pTexture2D->CreateRaw("D:\\NixAssets\\hex-stones1\\albedo.png", usage, cpuAccessFlag, bindFlag);
-			pTexture2D->AddSRV();
-		}
+		CreateBoxes(true, fPositiveOffset, fPositiveArea, onceCreate, usage, cpuAccessFlag, bindFlag);
 	}
-
 	ImGui::SameLine();
-	if (ImGui::ButtonEx("Remove Textures", ImVec2(200, 50)))
+	if (ImGui::ButtonEx("Create at Back"))
 	{
-		for (auto pTex : m_pTextures)
-		{
-			SafeRelease(pTex);
-		}
-
-		m_pTextures.clear();
+		CreateBoxes(false, fPositiveOffset, fPositiveArea, onceCreate, usage, cpuAccessFlag, bindFlag);
 	}
 
-	if (ImGui::ButtonEx("Create Boxes", ImVec2(200, 50)))
+	if (ImGui::ButtonEx("Clear"))
 	{
-		auto pBox = NXResourceManager::GetInstance()->GetMeshManager()->CreateBox("Box", 1.0f, 1.0f, 1.0f, Vector3(0.0f, 0.0f, 10.0f));
-
-		if (pBox)
-		{
-			auto pDefaultMaterial = NXResourceManager::GetInstance()->GetMaterialManager()->GetDefaultMaterial();
-			NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(pBox, pDefaultMaterial);
-
-			m_pTestBoxes.push_back(pBox);
-		}
-	}
-
-	ImGui::SameLine();
-	if (ImGui::ButtonEx("Delete Boxes", ImVec2(200, 50)))
-	{
-		for (auto pBox : m_pTestBoxes)
-		{
-			NXResourceManager::GetInstance()->GetMeshManager()->RemoveRenderableObject(pBox);
-		}
-		m_pTestBoxes.clear();
-	}
-
-	if (ImGui::ButtonEx("Generate Materials", ImVec2(200, 50)))
-	{
-		m_pTestMat = NXResourceManager::GetInstance()->GetMaterialManager()->CreateTestMaterial("hello");
-		auto pWhiteTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_White);
-		for (int i = 0; i < 100; i++)
-		{
-			m_pTestMat->SetTexture(i, i < m_pTextures.size() ? m_pTextures[i] : pWhiteTex);
-		}
-
-		if (m_pTestMat)
-		{
-			for (auto& pBox : m_pTestBoxes)
-			{
-				NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(pBox, m_pTestMat);
-			}
-		}
+		ClearBoxes();
 	}
 }
 
@@ -134,5 +80,52 @@ void NXGUIRAMTest::Release()
 {
 	for (auto pTex : m_pTextures)
 		SafeRelease(pTex);
+}
+
+void NXGUIRAMTest::CreateBoxes(bool isFront, const float fOffset, const float fArea, const int nAmount, D3D11_USAGE usage, D3D11_CPU_ACCESS_FLAG cpuAccessFlag, D3D11_BIND_FLAG bindFlag)
+{
+	int nHeight = (int)sqrtf((float)nAmount);
+	int nWidth = (nAmount + nHeight - 1) / nHeight;
+
+	float fStepWidth = fArea / (float)nWidth;
+	float fStepHeight = fArea / (float)nHeight;
+
+	int n = 0;
+	for (int i = 0; i < nWidth; i++, n++)
+	{
+		for (int j = 0; j < nHeight; j++, n++)
+		{
+			if (n == nAmount)
+				break;
+
+			auto pTexture2D = m_pTextures.emplace_back(new NXTexture2D());
+			pTexture2D->CreateRaw("D:\\NixAssets\\hex-stones1\\albedo.png", usage, cpuAccessFlag, bindFlag);
+			pTexture2D->AddSRV();
+
+			Vector3 Pos(-fArea * 0.5f + fStepWidth * i, -fArea * 0.5f + fStepHeight * j, isFront ? fOffset : -fOffset);
+			auto pBox = NXResourceManager::GetInstance()->GetMeshManager()->CreateBox("Box", 1.0f, 1.0f, 1.0f, Pos);
+			if (pBox)
+			{
+				auto pMat = NXResourceManager::GetInstance()->GetMaterialManager()->CreateTestMaterial(pTexture2D);
+				if (pMat)
+				{
+					NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(pBox, pMat);
+
+					m_pBoxes.push_back(pBox);
+				}
+			}
+		}
+	}
+}
+
+void NXGUIRAMTest::ClearBoxes()
+{
+	for (auto pBox : m_pBoxes) NXResourceManager::GetInstance()->GetMeshManager()->RemoveRenderableObject(pBox);
+	m_pBoxes.clear();
+
+	NXResourceManager::GetInstance()->GetMaterialManager()->RemoveTestMaterials();
+
+	for (auto pTex : m_pTextures) SafeRelease(pTex);
+	m_pTextures.clear();
 }
 

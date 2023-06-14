@@ -29,7 +29,8 @@ public:
     NXMaterial* LoadFromNmatFile(const std::filesystem::path& matFilePath);
 
 	NXCustomMaterial* CreateCustomMaterial(const std::string& name, const std::filesystem::path& nslFilePath);
-    NXTestMaterial* CreateTestMaterial(const std::string& name);
+    NXTestMaterial* CreateTestMaterial(NXTexture2D* pTexture);
+    void RemoveTestMaterials();
 
 	void OnReload() override;
 	void Release() override;

@@ -211,26 +211,19 @@ private:
 class NXTestMaterial : public NXMaterial
 {
 public:
-	struct CBufferData
-	{
-		Vector2 uvScale;
-		Vector2 uvOffset;
-	};
+	NXTestMaterial() = delete;
+	NXTestMaterial(const NXTestMaterial& other) = delete;
+	NXTestMaterial(NXTexture2D* pTexture);
+	~NXTestMaterial() {}
 
-public:
-	NXTestMaterial(const std::string& name);
-
-	void SetTexture(int index, NXTexture2D* pTexture);
+	void SetTexture(NXTexture2D* pTexture);
 
 	NXTestMaterial* IsTestMat() override { return this; }
 
 	void Init();
 	void Update() override;
 	void Render() override;
-	void Release() override {}
-
-private:
-	void InitConstantBuffer();
+	void Release() override;
 
 private:
 	ComPtr<ID3D11VertexShader>			m_pVertexShader;
@@ -238,6 +231,5 @@ private:
 	ComPtr<ID3D11InputLayout>			m_pInputLayout;
 	ComPtr<ID3D11SamplerState>			m_pSamplerLinearWrap;
 
-	NXTexture2D* m_pTexture[100];
-	CBufferData m_cbData;
+	NXTexture2D* m_pTexture;
 };

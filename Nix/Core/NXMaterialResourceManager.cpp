@@ -84,12 +84,27 @@ NXCustomMaterial* NXMaterialResourceManager::CreateCustomMaterial(const std::str
 	return pMat;
 }
 
-NXTestMaterial* NXMaterialResourceManager::CreateTestMaterial(const std::string& name)
+NXTestMaterial* NXMaterialResourceManager::CreateTestMaterial(NXTexture2D* pTexture)
 {
-	auto pMat = new NXTestMaterial(name);
-
+	auto pMat = new NXTestMaterial(pTexture);
 	RegisterMaterial(pMat);
 	return pMat;
+}
+
+void NXMaterialResourceManager::RemoveTestMaterials()
+{
+	// É¾³ýËùÓÐNXTestMaterial
+	m_pMaterialArray.erase(
+		std::remove_if(m_pMaterialArray.begin(), m_pMaterialArray.end(),
+			[&](auto pMat) {
+				bool isTestMat = pMat->IsTestMat();
+				if (isTestMat)
+				{
+					m_pUnusedMaterials.push_back(pMat);
+				}
+				return isTestMat;
+			}),
+		m_pMaterialArray.end());
 }
 
 void NXMaterialResourceManager::OnReload()

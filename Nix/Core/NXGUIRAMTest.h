@@ -9,14 +9,15 @@ public:
 	~NXGUIRAMTest() {}
 
 	void Init();
-	void RenderBoxes();
 	void Render();
 
 	void Release();
 
 private:
-	std::vector<NXTexture2D*> m_pTextures;
+	void CreateBoxes(bool isFront, const float fOffset, const float fArea, const int nAmount, D3D11_USAGE usage, D3D11_CPU_ACCESS_FLAG cpuAccessFlag, D3D11_BIND_FLAG bindFlag);
+	void ClearBoxes();
+
 	NXScene* m_pScene;
-	NXTestMaterial* m_pTestMat;
-	std::vector<NXPrimitive*> m_pTestBoxes;
+	std::vector<NXTexture2D*> m_pTextures;
+	std::vector<NXPrimitive*> m_pBoxes;
 };

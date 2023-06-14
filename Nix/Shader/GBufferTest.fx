@@ -9,7 +9,7 @@ struct CBufferLoading
 
 SamplerState ssLinearWrap : register(s0);
 
-Texture2D tx[10][10] : register(t1);
+Texture2D tx : register(t1);
 
 cbuffer CBuffer : register(b3)
 {
@@ -60,18 +60,8 @@ PS_INPUT VS(VS_INPUT input)
 
 void PS(PS_INPUT input, out PS_OUTPUT output)
 {
-	float3 albedo = float3(0.0f, 0.0f, 0.0f);
-
-	float2 uvScale = 1.0f;
-	for (float i = 0.0f; i < 9.9f; i += 1.0f)
-	{
-		for (float j = 0.0f; j < 9.9f; j += 1.0f)
-		{
-			float2 uvOffset = float2(i, j) * 0.1f;
-			float2 uv = input.tex * uvScale + uvOffset;
-			albedo += tx[i][j].Sample(ssLinearWrap, uv).xyz * 0.01;
-		}
-	}
+	float2 uv = input.tex;
+	float3 albedo = tx.Sample(ssLinearWrap, uv).xyz;
 
 	output.GBufferA = float4(input.posVS.xyz, 1.0f);
 	output.GBufferB = float4(0.5f, 0.5f, 1.0f, 1.0f); // xyz = vector(0, 0, 1)
