@@ -199,6 +199,9 @@
     <None Include="Shader\CubeMapIrradianceSHdds.fx">
       <Filter>Shader\Renderer\IBL</Filter>
     </None>
+    <None Include="Shader\GBufferTest.fx">
+      <Filter>Shader\Renderer</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">
@@ -436,6 +439,9 @@
       <Filter>Core\UI</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXGUIWorkspace.cpp">
+      <Filter>Core\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXGUIRAMTest.cpp">
       <Filter>Core\UI</Filter>
     </ClCompile>
   </ItemGroup>
@@ -693,6 +699,9 @@
       <Filter>Core\UI</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXGUIWorkspace.h">
+      <Filter>Core\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXGUIRAMTest.h">
       <Filter>Core\UI</Filter>
     </ClInclude>
   </ItemGroup>

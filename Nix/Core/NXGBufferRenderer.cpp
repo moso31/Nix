@@ -77,6 +77,30 @@ void NXGBufferRenderer::Render()
 		}
 	}
 
+	// 2023.6.14 RAMTest材质(TestMat)
+	for (auto pMat : NXResourceManager::GetInstance()->GetMaterialManager()->GetMaterials())
+	{
+		auto pTestMat = pMat->IsTestMat();
+		if (pTestMat)
+		{
+			pTestMat->Render();
+			for (auto pSubMesh : pTestMat->GetRefSubMeshes())
+			{
+				if (pSubMesh)
+				{
+					bool bIsVisible = pSubMesh->GetPrimitive()->GetVisible();
+					if (bIsVisible)
+					{
+						pSubMesh->UpdateViewParams();
+						g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
+						pSubMesh->Update();
+						pSubMesh->Render();
+					}
+				}
+			}
+		}
+	}
+
 	// 2023.4.10 自定义材质
 	for (auto pMat : NXResourceManager::GetInstance()->GetMaterialManager()->GetMaterials())
 	{

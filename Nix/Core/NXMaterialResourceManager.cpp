@@ -80,7 +80,15 @@ NXCustomMaterial* NXMaterialResourceManager::CreateCustomMaterial(const std::str
 
 	pMat->InitShaderResources();
 
-	NXResourceManager::GetInstance()->GetMaterialManager()->RegisterMaterial(pMat);
+	RegisterMaterial(pMat);
+	return pMat;
+}
+
+NXTestMaterial* NXMaterialResourceManager::CreateTestMaterial(const std::string& name)
+{
+	auto pMat = new NXTestMaterial(name);
+
+	RegisterMaterial(pMat);
 	return pMat;
 }
 

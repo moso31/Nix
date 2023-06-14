@@ -6,6 +6,7 @@
 
 class NXEasyMaterial;
 class NXCustomMaterial;
+class NXTestMaterial;
 class NXMaterial : public NXSerializable
 {
 protected:
@@ -16,6 +17,7 @@ public:
 	virtual ~NXMaterial() {}
 	virtual NXCustomMaterial* IsCustomMat() { return nullptr; }
 	virtual NXEasyMaterial* IsEasyMat() { return nullptr; }
+	virtual NXTestMaterial* IsTestMat() { return nullptr; }
 
 	std::string GetName() { return m_name; }
 	void SetName(std::string name) { m_name = name; }
@@ -69,7 +71,7 @@ public:
 	void Init();
 	void Update() override;
 	void Render() override;
-	void Release() override {}
+	void Release() override {} 
 
 private:
 	void InitConstantBuffer();
@@ -203,4 +205,39 @@ private:
 	std::vector<NXGUICBufferStyle>		m_cbInfoGUIStylesBackup;
 	std::string							m_nslCodeBackup;
 	std::vector<std::string>			m_nslFuncsBackup;
+};
+
+
+class NXTestMaterial : public NXMaterial
+{
+public:
+	struct CBufferData
+	{
+		Vector2 uvScale;
+		Vector2 uvOffset;
+	};
+
+public:
+	NXTestMaterial(const std::string& name);
+
+	void SetTexture(int index, NXTexture2D* pTexture);
+
+	NXTestMaterial* IsTestMat() override { return this; }
+
+	void Init();
+	void Update() override;
+	void Render() override;
+	void Release() override {}
+
+private:
+	void InitConstantBuffer();
+
+private:
+	ComPtr<ID3D11VertexShader>			m_pVertexShader;
+	ComPtr<ID3D11PixelShader>			m_pPixelShader;
+	ComPtr<ID3D11InputLayout>			m_pInputLayout;
+	ComPtr<ID3D11SamplerState>			m_pSamplerLinearWrap;
+
+	NXTexture2D* m_pTexture[100];
+	CBufferData m_cbData;
 };

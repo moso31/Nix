@@ -18,6 +18,7 @@
 #include "NXGUITexture.h"
 #include "NXGUIView.h"
 #include "NXGUIWorkspace.h"
+#include "NXGUIRAMTest.h"
 
 NXGUI::NXGUI(NXScene* pScene, Renderer* pRenderer) :
 	m_pCurrentScene(pScene),
@@ -31,6 +32,7 @@ NXGUI::NXGUI(NXScene* pScene, Renderer* pRenderer) :
 	m_pGUIShadows(nullptr),
 	m_pGUIPostProcessing(nullptr),
 	m_pGUIDebugLayer(nullptr),
+	m_pGUIRAMTest(nullptr),
 	m_pGUIContentExplorer(nullptr),
 	m_pGUITexture(nullptr),
 	m_pGUIView(nullptr),
@@ -60,6 +62,9 @@ void NXGUI::Init()
 	m_pGUIShadows = new NXGUIShadows(m_pRenderer->GetShadowMapRenderer());
 	m_pGUIPostProcessing = new NXGUIPostProcessing(m_pRenderer->GetColorMappingRenderer());
 	m_pGUIDebugLayer = new NXGUIDebugLayer(m_pRenderer->GetDebugLayerRenderer());
+
+	m_pGUIRAMTest = new NXGUIRAMTest(m_pCurrentScene);
+	m_pGUIRAMTest->Init();
 
 	m_pGUIView = new NXGUIView();
 
@@ -105,6 +110,7 @@ void NXGUI::Render(NXTexture2D* pGUIViewRT)
 	m_pGUIShadows->Render();
 	m_pGUIPostProcessing->Render();
 	m_pGUIDebugLayer->Render();
+	m_pGUIRAMTest->Render();
 
 	if (m_pGUIView->GetViewRT() != pGUIViewRT)
 		m_pGUIView->SetViewRT(pGUIViewRT);
@@ -149,6 +155,7 @@ void NXGUI::Release()
 	SafeDelete(m_pFileBrowser);
 	SafeDelete(m_pGUIPostProcessing);
 	SafeDelete(m_pGUIDebugLayer);
+	SafeRelease(m_pGUIRAMTest);
 	SafeRelease(m_pGUITexture);
 	SafeDelete(m_pGUIContentExplorer);
 

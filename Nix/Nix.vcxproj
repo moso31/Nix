@@ -213,6 +213,7 @@
     <ClCompile Include="Core\FBXMeshLoader.cpp" />
     <ClCompile Include="Core\Global.cpp" />
     <ClCompile Include="Core\GlobalBufferManager.cpp" />
+    <ClCompile Include="Core\NXGUIRAMTest.cpp" />
     <ClCompile Include="Core\NXGUIMaterialShaderEditor.cpp" />
     <ClCompile Include="Core\NXGUIView.cpp" />
     <ClCompile Include="Core\NXGUIWorkspace.cpp" />
@@ -294,6 +295,7 @@
     <ClInclude Include="Core\FBXMeshLoader.h" />
     <ClInclude Include="Core\GlobalBufferManager.h" />
     <ClInclude Include="Core\Header.h" />
+    <ClInclude Include="Core\NXGUIRAMTest.h" />
     <ClInclude Include="Core\NXGUIMaterialShaderEditor.h" />
     <ClInclude Include="Core\NXGUIView.h" />
     <ClInclude Include="Core\NXGUIWorkspace.h" />
@@ -549,6 +551,13 @@
   <ItemGroup>
     <None Include="Shader\CubeMapIrradianceSHdds.fx">
       <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shader\GBufferTest.fx">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DeploymentContent>
+      <FileType>Document</FileType>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DeploymentContent>
     </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -26,6 +26,8 @@ public:
 	NXPrimitive* CreatePlane(const std::string name, const float width, const float height, const NXPlaneAxis axis, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));
 	NXPrefab* CreateFBXPrefab(const std::string name, const std::string filePath, bool bAutoCalcTangents = true);
 
+	void RemoveRenderableObject(NXRenderableObject* pRenderableObj);
+
 	void BindMaterial(NXRenderableObject* pRenderableObj, NXMaterial* pMaterial);
 	void BindMaterial(NXSubMeshBase* pSubMesh, NXMaterial* pMaterial);
 

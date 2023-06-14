@@ -71,6 +71,8 @@ public:
 	void RegisterCamera(NXCamera* newCamera, bool isMainCamera, NXObject* pParent = nullptr);
 	void RegisterLight(NXPBRLight* newLight, NXObject* pParent = nullptr);
 
+	void RemoveRenderableObj(NXRenderableObject* pObject);
+
 private:
 	// 生成编辑器对象（MoveArrows等玩意）
 	void InitEditorObjectsManager();

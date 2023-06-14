@@ -125,6 +125,7 @@ public:
         UINT MiscFlags);
 
     NXTexture2D* Create(const std::string& DebugName, const std::filesystem::path& FilePath);
+    NXTexture2D* CreateRaw(const std::filesystem::path& FilePath, D3D11_USAGE usage, D3D11_CPU_ACCESS_FLAG cpuAccessFlag, D3D11_BIND_FLAG bindFlag);
 
     void AddSRV();
     void AddRTV();

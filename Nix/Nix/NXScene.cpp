@@ -226,13 +226,13 @@ void NXScene::Init(const Vector2& rtSize)
 
 	m_pTestCustomMat = NXResourceManager::GetInstance()->GetMaterialManager()->CreateCustomMaterial("TestCustomMat", "D:\\NixAssets\\Materials\\mat.nsl");
 
-	NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\boxes.fbx", false);
+	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\boxes.fbx", false);
 	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\shadowMapTest.fbx", false);
 	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\EditorObjTest.fbx", false);
 	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\lury.fbx", false);
 	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\testScene.fbx", false);
-	p->SetScale(Vector3(0.1f));
-	NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(p, m_pTestCustomMat);
+	//p->SetScale(Vector3(0.1f));
+	//NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(p, m_pTestCustomMat);
 
 	std::vector<NXPrimitive*> pMeshes;
 	{
@@ -509,6 +509,21 @@ void NXScene::RegisterCamera(NXCamera* newCamera, bool isMainCamera, NXObject* p
 void NXScene::RegisterLight(NXPBRLight* newLight, NXObject* pParent)
 {
 	m_pbrLights.push_back(newLight);
+}
+
+void NXScene::RemoveRenderableObj(NXRenderableObject* pObject)
+{
+	auto it = std::find(m_renderableObjects.begin(), m_renderableObjects.end(), pObject);
+	if (it != m_renderableObjects.end())
+	{
+		m_renderableObjects.erase(it);
+	}
+
+	auto itObj = std::find(m_objects.begin(), m_objects.end(), pObject);
+	if (itObj != m_objects.end())
+	{
+		m_objects.erase(itObj);
+	}
 }
 
 

@@ -79,6 +79,38 @@ NXPrefab* NXMeshResourceManager::CreateFBXPrefab(const std::string name, const s
 	return p;
 }
 
+void NXMeshResourceManager::RemoveRenderableObject(NXRenderableObject* pRenderableObj)
+{
+	m_pWorkingScene->RemoveRenderableObj(pRenderableObj);
+
+	NXPrimitive* pPrimitive = pRenderableObj->IsPrimitive();
+	if (pPrimitive)
+	{
+		for (UINT i = 0; i < pPrimitive->GetSubMeshCount(); i++)
+		{
+			NXSubMeshBase* pSubMesh = pPrimitive->GetSubMesh(i);
+			auto pMaterial = pSubMesh->GetMaterial();
+			if (pMaterial) 
+				pMaterial->RemoveSubMesh(pSubMesh);
+		}
+	}
+
+	NXPrefab* pPrefab = pRenderableObj->IsPrefab();
+	if (pPrefab)
+	{
+		// do nothing.
+	}
+
+	for (auto pChild : pRenderableObj->GetChilds())
+	{
+		if (pChild->IsRenderableObject())
+		{
+			NXRenderableObject* pChildObj = static_cast<NXRenderableObject*>(pChild);
+			RemoveRenderableObject(pChildObj);
+		}
+	}
+}
+
 void NXMeshResourceManager::BindMaterial(NXRenderableObject* pRenderableObj, NXMaterial* pMaterial)
 {
 	NXPrimitive* pPrimitive = pRenderableObj->IsPrimitive();

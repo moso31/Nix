@@ -124,6 +124,46 @@ void NXTexture::Deserialize()
 	}
 }
 
+NXTexture2D* NXTexture2D::CreateRaw(const std::filesystem::path& filePath, D3D11_USAGE usage, D3D11_CPU_ACCESS_FLAG cpuAccessFlag, D3D11_BIND_FLAG bindFlag)
+{
+	TexMetadata metadata;
+	std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>();
+
+	HRESULT hr;
+	std::string strExtension = NXConvert::s2lower(filePath.extension().string());
+	if (strExtension == ".hdr")
+		hr = LoadFromHDRFile(filePath.c_str(), &metadata, *pImage);
+	else if (strExtension == ".dds")
+		hr = LoadFromDDSFile(filePath.c_str(), DDS_FLAGS_NONE, &metadata, *pImage);
+	else if (strExtension == ".tga")
+		hr = LoadFromTGAFile(filePath.c_str(), &metadata, *pImage);
+	else
+		hr = LoadFromWICFile(filePath.c_str(), WIC_FLAGS_NONE, &metadata, *pImage);
+
+	if (FAILED(hr))
+	{
+		pImage.reset();
+		return nullptr;
+	}
+
+	this->m_texFilePath = filePath;
+	this->m_debugName = "";
+	this->m_width = (UINT)metadata.width;
+	this->m_height = (UINT)metadata.height;
+	this->m_arraySize = (UINT)metadata.arraySize;
+	this->m_mipLevels = (UINT)metadata.mipLevels;
+	this->m_texFormat = metadata.format;
+
+	DirectX::CreateTextureEx(g_pDevice.Get(), pImage->GetImage(0, 0, 0), pImage->GetImageCount(), metadata, usage, bindFlag, cpuAccessFlag, false, CREATETEX_DEFAULT, (ID3D11Resource**)m_pTexture.GetAddressOf());
+
+	AddRef();
+
+	pImage.reset();
+	return this;
+
+	return nullptr;
+}
+
 void NXTexture2D::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* initData, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
 {
 	this->m_debugName = DebugName;

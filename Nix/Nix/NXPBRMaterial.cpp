@@ -952,3 +952,64 @@ void NXCustomMaterial::SortShaderCBufferParam()
 		}
 	}
 }
+
+NXTestMaterial::NXTestMaterial(const std::string& name) :
+	NXMaterial(name)
+{
+	Init();
+}
+
+void NXTestMaterial::SetTexture(int index, NXTexture2D* pTexture)
+{
+	m_pTexture[index] = pTexture;
+}
+
+void NXTestMaterial::Init()
+{
+	NXShaderComplier::GetInstance()->CompileVSIL(".\\Shader\\GBufferTest.fx", "VS", &m_pVertexShader, NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), &m_pInputLayout);
+	NXShaderComplier::GetInstance()->CompilePS(".\\Shader\\GBufferTest.fx", "PS", &m_pPixelShader);
+
+	m_pSamplerLinearWrap = NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP>::Create();
+
+	InitConstantBuffer();
+}
+
+void NXTestMaterial::Update()
+{
+}
+
+void NXTestMaterial::Render()
+{
+	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
+	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
+	g_pContext->IASetInputLayout(m_pInputLayout.Get());
+
+	for (int i = 0; i < ARRAYSIZE(m_pTexture); i++)
+	{
+		if (!m_pTexture[i])
+			continue;
+
+		ID3D11ShaderResourceView* pSRV = m_pTexture[i]->GetSRV();
+		if (pSRV) g_pContext->PSSetShaderResources(i + 1, 1, &pSRV);
+	}
+
+	ID3D11SamplerState* pSampler = m_pSamplerLinearWrap.Get();
+	if (pSampler) g_pContext->PSSetSamplers(0, 1, &pSampler);
+
+	g_pContext->PSSetConstantBuffers(3, 1, m_cb.GetAddressOf());
+}
+
+void NXTestMaterial::InitConstantBuffer()
+{
+	D3D11_BUFFER_DESC bufferDesc;
+	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = sizeof(CBufferData);
+	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cb));
+
+	// cb data
+	m_cbData.uvScale = Vector2(1.0f, 1.0f);
+	m_cbData.uvOffset = Vector2(0.01f, 0.01f);
+}

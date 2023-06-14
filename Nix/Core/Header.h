@@ -115,7 +115,9 @@ class NXSubMeshBase;
 enum EditorObjectID;
 
 class NXMaterial;
+class NXEasyMaterial;
 class NXCustomMaterial;
+class NXTestMaterial;
 
 class NXPBRLight;
 class NXPBRDistantLight;
