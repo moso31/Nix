@@ -290,7 +290,7 @@ NXTexture2D* NXTexture2D::Create(const std::string& DebugName, const std::filesy
 
 void NXTexture2D::AddSRV()
 {
-	ID3D11ShaderResourceView* pSRV;
+	ComPtr<ID3D11ShaderResourceView> pSRV;
 
 	DXGI_FORMAT SRVFormat = m_texFormat;
 	if (m_texFormat == DXGI_FORMAT_R24G8_TYPELESS)
@@ -307,7 +307,7 @@ void NXTexture2D::AddSRV()
 
 void NXTexture2D::AddRTV()
 {
-	ID3D11RenderTargetView* pRTV;
+	ComPtr<ID3D11RenderTargetView> pRTV;
 
 	CD3D11_RENDER_TARGET_VIEW_DESC Desc(D3D11_RTV_DIMENSION_TEXTURE2D, m_texFormat);
 	NX::ThrowIfFailed(g_pDevice->CreateRenderTargetView(m_pTexture.Get(), &Desc, &pRTV));
@@ -320,7 +320,7 @@ void NXTexture2D::AddRTV()
 
 void NXTexture2D::AddDSV()
 {
-	ID3D11DepthStencilView* pDSV;
+	ComPtr<ID3D11DepthStencilView> pDSV;
 
 	DXGI_FORMAT DSVFormat = m_texFormat;
 	if (m_texFormat == DXGI_FORMAT_R24G8_TYPELESS)
@@ -337,7 +337,7 @@ void NXTexture2D::AddDSV()
 
 void NXTexture2D::AddUAV()
 {
-	ID3D11UnorderedAccessView* pUAV;
+	ComPtr<ID3D11UnorderedAccessView> pUAV;
 
 	DXGI_FORMAT UAVFormat = m_texFormat;
 
@@ -462,7 +462,7 @@ void NXTextureCube::Create(const std::string& DebugName, const std::wstring& Fil
 
 void NXTextureCube::AddSRV()
 {
-	ID3D11ShaderResourceView* pSRV = nullptr;
+	ComPtr<ID3D11ShaderResourceView> pSRV;
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC Desc;
 	Desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
@@ -480,7 +480,7 @@ void NXTextureCube::AddSRV()
 
 void NXTextureCube::AddRTV(UINT mipSlice, UINT firstArraySlice, UINT arraySize)
 {
-	ID3D11RenderTargetView* pRTV = nullptr;
+	ComPtr<ID3D11RenderTargetView> pRTV;
 
 	D3D11_RENDER_TARGET_VIEW_DESC Desc;
 	Desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
@@ -548,7 +548,7 @@ void NXTexture2DArray::Create(std::string DebugName, const D3D11_SUBRESOURCE_DAT
 
 void NXTexture2DArray::AddSRV(UINT firstArraySlice, UINT arraySize)
 {
-	ID3D11ShaderResourceView* pSRV = nullptr;
+	ComPtr<ID3D11ShaderResourceView> pSRV;
 
 	DXGI_FORMAT SRVFormat = m_texFormat;
 	if (m_texFormat == DXGI_FORMAT_R24G8_TYPELESS)
@@ -574,7 +574,7 @@ void NXTexture2DArray::AddSRV(UINT firstArraySlice, UINT arraySize)
 
 void NXTexture2DArray::AddRTV(UINT firstArraySlice, UINT arraySize)
 {
-	ID3D11RenderTargetView* pRTV = nullptr;
+	ComPtr<ID3D11RenderTargetView> pRTV;
 
 	D3D11_RENDER_TARGET_VIEW_DESC Desc;
 	Desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
@@ -593,7 +593,7 @@ void NXTexture2DArray::AddRTV(UINT firstArraySlice, UINT arraySize)
 
 void NXTexture2DArray::AddDSV(UINT firstArraySlice, UINT arraySize)
 {
-	ID3D11DepthStencilView* pDSV = nullptr;
+	ComPtr<ID3D11DepthStencilView> pDSV;
 
 	DXGI_FORMAT DSVFormat = m_texFormat;
 	if (m_texFormat == DXGI_FORMAT_R24G8_TYPELESS)
@@ -619,7 +619,7 @@ void NXTexture2DArray::AddDSV(UINT firstArraySlice, UINT arraySize)
 
 void NXTexture2DArray::AddUAV(UINT firstArraySlice, UINT arraySize)
 {
-	ID3D11UnorderedAccessView* pUAV = nullptr;
+	ComPtr<ID3D11UnorderedAccessView> pUAV;
 
 	DXGI_FORMAT UAVFormat = m_texFormat;
 
