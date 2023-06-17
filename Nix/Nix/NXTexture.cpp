@@ -335,7 +335,7 @@ NXTexture2D* NXTexture2D::Create(const std::string& DebugName, const std::filesy
 
 void NXTexture2D::AddSRV()
 {
-	ID3D11ShaderResourceView* pSRV;
+	ComPtr<ID3D11ShaderResourceView> pSRV;
 
 	DXGI_FORMAT SRVFormat = m_texFormat;
 	if (m_texFormat == DXGI_FORMAT_R24G8_TYPELESS)
@@ -507,7 +507,7 @@ void NXTextureCube::Create(const std::string& DebugName, const std::wstring& Fil
 
 void NXTextureCube::AddSRV()
 {
-	ID3D11ShaderResourceView* pSRV = nullptr;
+	ComPtr<ID3D11ShaderResourceView> pSRV;
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC Desc;
 	Desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
@@ -593,7 +593,7 @@ void NXTexture2DArray::Create(std::string DebugName, const D3D11_SUBRESOURCE_DAT
 
 void NXTexture2DArray::AddSRV(UINT firstArraySlice, UINT arraySize)
 {
-	ID3D11ShaderResourceView* pSRV = nullptr;
+	ComPtr<ID3D11ShaderResourceView> pSRV;
 
 	DXGI_FORMAT SRVFormat = m_texFormat;
 	if (m_texFormat == DXGI_FORMAT_R24G8_TYPELESS)

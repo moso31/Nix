@@ -953,9 +953,10 @@ void NXCustomMaterial::SortShaderCBufferParam()
 	}
 }
 
-NXTestMaterial::NXTestMaterial(NXTexture2D* pTexture) :
+NXTestMaterial::NXTestMaterial(NXTexture2D* pTexture, bool isFront) :
 	NXMaterial(""),
-	m_pTexture(pTexture)
+	m_pTexture(pTexture),
+	m_isFront(isFront)
 {
 	Init();
 }

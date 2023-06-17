@@ -213,12 +213,11 @@ class NXTestMaterial : public NXMaterial
 public:
 	NXTestMaterial() = delete;
 	NXTestMaterial(const NXTestMaterial& other) = delete;
-	NXTestMaterial(NXTexture2D* pTexture);
+	NXTestMaterial(NXTexture2D* pTexture, bool isFront);
 	~NXTestMaterial() {}
 
-	void SetTexture(NXTexture2D* pTexture);
-
 	NXTestMaterial* IsTestMat() override { return this; }
+	bool IsFront() { return m_isFront; }
 
 	void Init();
 	void Update() override;
@@ -232,4 +231,5 @@ private:
 	ComPtr<ID3D11SamplerState>			m_pSamplerLinearWrap;
 
 	NXTexture2D* m_pTexture;
+	bool m_isFront;
 };

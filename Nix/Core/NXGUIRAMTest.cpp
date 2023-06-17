@@ -76,15 +76,22 @@ void NXGUIRAMTest::Render()
 		CreateBoxes(false, fPositiveOffset, fPositiveArea, onceCreate, usage, cpuAccessFlag, bindFlag);
 	}
 
-	if (ImGui::ButtonEx("Clear"))
+	if (ImGui::ButtonEx("Clear Front"))
 	{
-		ClearBoxes();
+		ClearBoxes(true);
+	}
+
+	if (ImGui::ButtonEx("Clear Back"))
+	{
+		ClearBoxes(false);
 	}
 }
 
 void NXGUIRAMTest::Release()
 {
 	for (auto pTex : m_pTextures)
+		SafeRelease(pTex);
+	for (auto pTex : m_pTexturesBack)
 		SafeRelease(pTex);
 }
 
@@ -104,7 +111,7 @@ void NXGUIRAMTest::CreateBoxes(bool isFront, const float fOffset, const float fA
 			if (n++ == nAmount) 
 				break;
 
-			auto pTexture2D = m_pTextures.emplace_back(new NXTexture2D());
+			auto pTexture2D = isFront ? m_pTextures.emplace_back(new NXTexture2D()) : m_pTexturesBack.emplace_back(new NXTexture2D());
 			pTexture2D->CreateRaw("D:\\NixAssets\\hex-stones1\\albedo.png", usage, cpuAccessFlag, bindFlag);
 			pTexture2D->AddSRV();
 
@@ -112,27 +119,43 @@ void NXGUIRAMTest::CreateBoxes(bool isFront, const float fOffset, const float fA
 			auto pBox = NXResourceManager::GetInstance()->GetMeshManager()->CreateBox("Box", 1.0f, 1.0f, 1.0f, Pos);
 			if (pBox)
 			{
-				auto pMat = NXResourceManager::GetInstance()->GetMaterialManager()->CreateTestMaterial(pTexture2D);
+				auto pMat = NXResourceManager::GetInstance()->GetMaterialManager()->CreateTestMaterial(pTexture2D, isFront);
 				if (pMat)
 				{
 					NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(pBox, pMat);
 
-					m_pBoxes.push_back(pBox);
+					isFront ? m_pBoxes.push_back(pBox) : m_pBoxesBack.push_back(pBox);
 				}
 			}
 		}
 	}
 }
 
-void NXGUIRAMTest::ClearBoxes()
+void NXGUIRAMTest::ClearBoxes(bool isFront)
 {
-	for (auto pBox : m_pBoxes) NXResourceManager::GetInstance()->GetMeshManager()->RemoveRenderableObject(pBox);
-	m_pBoxes.clear();
+	if (isFront)
+	{
+		for (auto pBox : m_pBoxes) NXResourceManager::GetInstance()->GetMeshManager()->RemoveRenderableObject(pBox);
+		m_pBoxes.clear();
+	}
+	else
+	{
+		for (auto pBox : m_pBoxesBack) NXResourceManager::GetInstance()->GetMeshManager()->RemoveRenderableObject(pBox);
+		m_pBoxesBack.clear();
+	}
 
-	NXResourceManager::GetInstance()->GetMaterialManager()->RemoveTestMaterials();
+	NXResourceManager::GetInstance()->GetMaterialManager()->RemoveTestMaterials(isFront);
 
-	for (auto pTex : m_pTextures) SafeRelease(pTex);
-	m_pTextures.clear();
+	if (isFront)
+	{
+		for (auto pTex : m_pTextures) SafeRelease(pTex);
+		m_pTextures.clear();
+	}
+	else
+	{
+		for (auto pTex : m_pTexturesBack) SafeRelease(pTex);
+		m_pTexturesBack.clear();
+	}
 
 	m_bForceFlush = true;
 }
