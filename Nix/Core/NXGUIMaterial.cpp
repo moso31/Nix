@@ -216,10 +216,19 @@ void NXGUIMaterial::SyncMaterialData(NXCustomMaterial* pMaterial)
 		m_cbInfosDisplay.push_back({ cbElem.name, cbElem.type, cbDataDisplay, guiStyle, guiParams, cbElem.memoryIndex });
 	}
 
+	for (auto& texDisplay : m_texInfosDisplay)
+	{
+		if (texDisplay.pTexture)
+			texDisplay.pTexture->RemoveRef();
+	}
 	m_texInfosDisplay.clear();
 	m_texInfosDisplay.reserve(pMaterial->GetTextureCount());
 	for (UINT i = 0; i < pMaterial->GetTextureCount(); i++)
-		m_texInfosDisplay.push_back({ pMaterial->GetTextureName(i), pMaterial->GetTexture(i) });
+	{
+		NXTexture* pTex = pMaterial->GetTexture(i);
+		pTex->AddRef();
+		m_texInfosDisplay.push_back({ pMaterial->GetTextureName(i), pTex });
+	}
 
 	m_ssInfosDisplay.clear();
 	m_ssInfosDisplay.reserve(pMaterial->GetSamplerCount());
@@ -281,22 +290,25 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMateri
 			{
 				std::string strId = "##material_custom_child_texture_" + std::to_string(paramCnt);
 
-				auto pTex = texDisplay.pTexture;
+				auto& pTex = texDisplay.pTexture;
 				if (!pTex) continue;
 
 				auto onTexChange = [pMaterial, &pTex, this]()
 				{
-					pMaterial->SetTex2D(pTex, m_pFileBrowser->GetSelected().c_str());
+					pMaterial->SetTexture(pTex, m_pFileBrowser->GetSelected());
+					RequestSyncMaterialData();
 				};
 
 				auto onTexRemove = [pMaterial, &pTex, this]()
 				{
-					pMaterial->SetTex2D(pTex, m_pFileBrowser->GetSelected().c_str());
+					pMaterial->RemoveTexture(pTex);
+					RequestSyncMaterialData();
 				};
 
 				auto onTexDrop = [pMaterial, &pTex, this](const std::wstring& dragPath)
 				{
-					pMaterial->SetTex2D(pTex, dragPath);
+					pMaterial->SetTexture(pTex, dragPath);
+					RequestSyncMaterialData();
 				};
 
 				ImGui::PushID(paramCnt);

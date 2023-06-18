@@ -15,7 +15,7 @@ enum NXTextureReloadingState
 class NXTexture : public NXSerializable
 {
 public:
-    NXTexture() :
+    NXTexture(bool bIsCommonTex = false) :
         m_nRefCount(0),
         m_reloadingState(Texture_None),
         m_pReloadingTexture(nullptr),
@@ -24,8 +24,10 @@ public:
         m_arraySize(-1),
         m_texFormat(DXGI_FORMAT_UNKNOWN),
         m_mipLevels(-1),
-        m_texFilePath("")
+        m_texFilePath(""),
+        m_bIsCommonTex(bIsCommonTex)
     {}
+
     virtual ~NXTexture() {};
 
     virtual NXTexture2D* Is2D() { return nullptr; }
@@ -54,6 +56,8 @@ public:
     UINT            GetArraySize() { return m_arraySize; }
     UINT            GetMipLevels() { return m_mipLevels; }
     DXGI_FORMAT     GetFormat() { return m_texFormat; }
+
+    const std::string& GetDebugName() { return m_debugName; }
 
     void AddRef();
     int GetRef() { return m_nRefCount; }
@@ -98,6 +102,9 @@ private:
     // 引用计数
     int m_nRefCount;
 
+    // 是否是公共纹理，如果是，运行时不释放（不使用引用计数）
+    bool m_bIsCommonTex;
+
     NXTextureReloadingState m_reloadingState;
     NXTexture* m_pReloadingTexture;
 };
@@ -105,7 +112,8 @@ private:
 class NXTexture2D : public NXTexture
 {
 public:
-    NXTexture2D() : NXTexture() {}
+    NXTexture2D(bool isCommonTex = false) : NXTexture(isCommonTex) {}
+    NXTexture2D(const NXTexture2D& other) = delete;
     ~NXTexture2D() {}
 
     NXTexture2D* Is2D() override { return this; }

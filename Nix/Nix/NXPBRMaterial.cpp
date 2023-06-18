@@ -32,21 +32,12 @@ void NXMaterial::AddSubMesh(NXSubMeshBase* pSubMesh)
 	m_pRefSubMeshes.push_back(pSubMesh);
 }
 
-void NXMaterial::SetTex2D(NXTexture2D*& pTex2D, const std::filesystem::path& texFilePath)
-{
-	if (pTex2D) 
-		pTex2D->RemoveRef();
-
-	pTex2D = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(m_name, texFilePath);
-}
-
 NXEasyMaterial::NXEasyMaterial(const std::string& name, const std::filesystem::path& filePath) :
-	NXMaterial(name, filePath),
-	m_pTexture(nullptr)
+	NXMaterial(name, filePath)
 {
 	Init();
 
-	SetTex2D(m_pTexture, filePath);
+	m_pTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(m_name, filePath);
 }
 
 void NXEasyMaterial::Init()
@@ -298,6 +289,36 @@ void NXCustomMaterial::Update()
 		g_pContext->UpdateSubresource(m_cb.Get(), 0, nullptr, m_cbData.data(), 0, 0);
 }
 
+void NXCustomMaterial::SetTexture(NXTexture* pTexture, const std::filesystem::path& texFilePath)
+{
+	auto it = std::find_if(m_texInfos.begin(), m_texInfos.end(), [pTexture](const NXMaterialTextureInfo& texInfo) { return texInfo.pTexture == pTexture; });
+	if (it != m_texInfos.end())
+	{
+		auto& pTex = it->pTexture;
+		if (pTex)
+			pTex->RemoveRef();
+
+		pTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(m_name, texFilePath);
+	}
+}
+
+void NXCustomMaterial::RemoveTexture(NXTexture* pTexture)
+{
+	auto it = std::find_if(m_texInfos.begin(), m_texInfos.end(), [pTexture](const NXMaterialTextureInfo& texInfo) { return texInfo.pTexture == pTexture; });
+	if (it != m_texInfos.end())
+	{
+		auto& pTex = it->pTexture;
+		if (pTex)
+			pTex->RemoveRef();
+
+		// Get tex by NXTextureType
+		if (pTex->GetSerializationData().m_textureType == NXTextureType::NormalMap)
+			pTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_Normal);
+		else
+			pTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_White);
+	}
+}
+
 void NXCustomMaterial::SetCBInfoMemoryData(UINT memoryIndex, UINT count, const float* newData)
 {
 	count = min(count, (UINT)m_cbInfoMemory.size() - memoryIndex);
@@ -444,7 +465,7 @@ void NXCustomMaterial::Deserialize()
 				auto objName = tex.GetObj().FindMember("name")->value.GetString();
 				auto objPath = tex.GetObj().FindMember("path")->value.GetString();
 				auto texInfo = std::find_if(m_texInfos.begin(), m_texInfos.end(), [objName](const NXMaterialTextureInfo& texInfo) { return texInfo.name == objName; });
-				SetTex2D(texInfo->pTexture, objPath);
+				SetTexture(texInfo->pTexture, objPath);
 			}
 
 			// TODO
@@ -645,7 +666,7 @@ void NXCustomMaterial::ProcessShaderParameters(const std::string& nslParams, std
 			else if (type == "Tex2D")
 			{
 				// 如果默认值vector中存储的纹理信息不是空的，就优先在vector中匹配同名的NXTexture指针
-				NXTexture2D* pTexValue = nullptr;
+				NXTexture* pTexValue = nullptr;
 				if (!texDefaultValues.empty())
 				{
 					auto it = std::find_if(texDefaultValues.begin(), texDefaultValues.end(),

@@ -146,8 +146,14 @@ void NXTextureResourceManager::InitCommonTextures()
 	m_pCommonTex.resize(NXCommonTex_SIZE);
 
 	// 初始化常用贴图
-	m_pCommonTex[NXCommonTex_White] = CreateTexture2D("White Texture", g_defaultTex_white_wstr);
-	m_pCommonTex[NXCommonTex_Normal] = CreateTexture2D("Normal Texture", g_defaultTex_normal_wstr);
+	bool bIsCommonTexture = true;
+	m_pCommonTex[NXCommonTex_White] = new NXTexture2D(bIsCommonTexture);
+	m_pCommonTex[NXCommonTex_White]->Create("White Texture", g_defaultTex_white_wstr);
+	m_pCommonTex[NXCommonTex_White]->AddSRV();
+
+	m_pCommonTex[NXCommonTex_Normal] = new NXTexture2D(bIsCommonTexture);
+	m_pCommonTex[NXCommonTex_Normal]->Create("Normal Texture", g_defaultTex_normal_wstr);
+	m_pCommonTex[NXCommonTex_Normal]->AddSRV();
 }
 
 NXTexture2D* NXTextureResourceManager::GetCommonTextures(NXCommonTexEnum eTex)
@@ -209,4 +215,5 @@ void NXTextureResourceManager::OnReload()
 void NXTextureResourceManager::Release()
 {
 	for (auto pTex : m_pTextureArray) SafeRelease(pTex);
+	for (auto pTex : m_pCommonTex) SafeRelease(pTex);
 }

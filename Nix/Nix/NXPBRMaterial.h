@@ -37,8 +37,6 @@ public:
 	void RemoveSubMesh(NXSubMeshBase* pRemoveSubmesh);
 	void AddSubMesh(NXSubMeshBase* pSubMesh);
 
-	void SetTex2D(NXTexture2D*& pTex2D, const std::filesystem::path& texFilePath);
-
 protected:
 	std::string m_name;
 	ComPtr<ID3D11Buffer> m_cb;
@@ -107,9 +105,7 @@ public:
 	void InitShaderResources();
 
 	virtual void Update() override;
-
 	void Render();
-
 	void Release() override {}
 
 	const std::string& GetNSLCode() { return m_nslCode; }
@@ -124,8 +120,11 @@ public:
 	const NXCBufferElem& GetCBufferElem(UINT index) { return m_cbInfo.elems[index]; }
 
 	UINT GetTextureCount() { return UINT(m_texInfos.size()); }
-	NXTexture2D* GetTexture(UINT index) { return m_texInfos[index].pTexture; }
+	NXTexture* GetTexture(UINT index) { return m_texInfos[index].pTexture; }
 	const std::string& GetTextureName(UINT index) { return m_texInfos[index].name; }
+
+	void SetTexture(NXTexture* pTexture, const std::filesystem::path& texFilePath);
+	void RemoveTexture(NXTexture* pTexture);
 
 	UINT GetSamplerCount() { return UINT(m_samplerInfos.size()); }
 	const ComPtr<ID3D11SamplerState>& GetSampler(UINT index) { return m_samplerInfos[index].pSampler; }

@@ -74,6 +74,7 @@ private:
 	void Render_Code(NXCustomMaterial* pMaterial);
 	void Render_Params(NXCustomMaterial* pMaterial);
 	void Render_Params_CBufferItem(const std::string& strId, NXCustomMaterial* pMaterial, NXGUICBufferData& cbDisplay);
+	void Render_Params_TextureItem(const int strId, NXCustomMaterial* pMaterial, NXGUITextureData& texDisplay);
 	void Render_ErrorMessages();
 
 	void SyncMaterialData(NXCustomMaterial* pMaterial);

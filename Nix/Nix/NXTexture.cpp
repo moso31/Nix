@@ -54,11 +54,15 @@ void NXTexture::LoadTextureSync()
 
 void NXTexture::AddRef()
 {
+	if (m_bIsCommonTex) return;
+
 	m_nRefCount++;
 }
 
 void NXTexture::RemoveRef()
 {
+	if (m_bIsCommonTex) return;
+
 	m_nRefCount--;
 	if (!m_nRefCount) Release();
 }

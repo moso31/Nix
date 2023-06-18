@@ -2,6 +2,7 @@
 #include "NXGUIMaterial.h"
 #include "NXGUICommon.h"
 #include "NXPBRMaterial.h"
+#include "NXConverter.h"
 #include <regex>
 
 void NXGUIMaterialShaderEditor::Render(NXCustomMaterial* pMaterial)
@@ -373,32 +374,7 @@ void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
 				ImGui::Text(texDisplay.name.c_str());
 
 				ImGui::TableNextColumn();
-				std::string strId = "##material_shader_editor_custom_child_texture_" + std::to_string(paramCnt);
-
-				auto& pTex = texDisplay.pTexture;
-				if (!pTex) continue;
-
-				auto onTexChange = [pMaterial, &pTex, this]()
-				{
-					pMaterial->SetTex2D(pTex, m_pFileBrowser->GetSelected().c_str());
-				};
-
-				auto onTexRemove = [pMaterial, &pTex, this]()
-				{
-					pMaterial->SetTex2D(pTex, m_pFileBrowser->GetSelected().c_str());
-				};
-
-				auto onTexDrop = [pMaterial, &pTex, this](const std::wstring& dragPath)
-				{
-					pMaterial->SetTex2D(pTex, dragPath);
-				};
-
-				ImGui::PushID(paramCnt);
-				RenderTextureIcon(pTex->GetSRV(), m_pFileBrowser, onTexChange, onTexRemove, onTexDrop);
-				ImGui::PopID();
-
-				ImGui::SameLine();
-				ImGui::Text(texDisplay.name.data());
+				Render_Params_TextureItem(paramCnt, pMaterial, texDisplay);
 
 				paramCnt++;
 			}
@@ -457,6 +433,80 @@ void NXGUIMaterialShaderEditor::Render_Params_CBufferItem(const std::string& str
 		UINT actualN = cbDisplay.readType; // 实际上要拷贝的字节量是 cbDisplay 初始读取的字节数量 actualN，而不是更改 GUIStyle 以后的参数数量 N
 		pMaterial->SetCBInfoMemoryData(cbDisplay.memoryIndex, actualN, cbDisplay.data);
 	}
+}
+
+void NXGUIMaterialShaderEditor::Render_Params_TextureItem(const int texParamId, NXCustomMaterial* pMaterial, NXGUITextureData& texDisplay)
+{
+	using namespace NXGUICommon;
+
+	auto& pTex = texDisplay.pTexture;
+	if (!pTex) return;
+
+	ImGui::PushID(texParamId);
+	float texSize = (float)40;
+
+	ImGuiIO& io = ImGui::GetIO();
+	{
+		int frame_padding = 2;									// -1 == uses default padding (style.FramePadding)
+		ImVec2 size = ImVec2(texSize, texSize);                     // Size of the image we want to make visible
+		ImVec2 uv0 = ImVec2(0.0f, 0.0f);
+		ImVec2 uv1 = ImVec2(1.0f, 1.0f);
+		ImVec4 bg_col = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);         // Black background
+		ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);       // No tint
+
+		auto ImTexID = pTex->GetSRV();
+
+		if (ImGui::ImageButton(ImTexID, size, uv0, uv1, frame_padding, bg_col, tint_col))
+		{
+			m_pFileBrowser->SetTitle("Material");
+			m_pFileBrowser->SetTypeFilters({ ".png", ".jpg", ".bmp", ".dds", ".tga", ".tif", ".tiff" });
+			m_pFileBrowser->SetPwd("D:\\NixAssets");
+
+			auto onTexChange = [pMaterial, &pTex, this]()
+			{
+				pTex->RemoveRef();
+				pTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(pTex->GetDebugName().c_str(), m_pFileBrowser->GetSelected());
+			};
+			m_pFileBrowser->Open();
+			m_pFileBrowser->SetOnDialogOK(onTexChange);
+		}
+
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_EXPLORER_BUTTON_DRUGING"))
+			{
+				auto pDropData = (NXGUIAssetDragData*)(payload->Data);
+				if (NXConvert::IsImageFileExtension(pDropData->srcPath.extension().string()))
+				{
+					pTex->RemoveRef();
+					pTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(pTex->GetDebugName().c_str(), pDropData->srcPath);
+				}
+			}
+			ImGui::EndDragDropTarget();
+		}
+		ImGui::SameLine();
+
+		ImGui::PushID("RemoveTexButtons");
+		{
+			ImGui::PushID(ImTexID);
+			if (ImGui::Button("R"))
+			{
+				pTex->RemoveRef();
+
+				// Get tex by NXTextureType
+				if (pTex->GetSerializationData().m_textureType == NXTextureType::NormalMap)
+					pTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_Normal);
+				else
+					pTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_White);
+			}
+			ImGui::PopID();
+		}
+		ImGui::PopID();
+	}
+	ImGui::PopID();
+
+	ImGui::SameLine();
+	ImGui::Text(texDisplay.name.data());
 }
 
 void NXGUIMaterialShaderEditor::Render_ErrorMessages()
@@ -521,10 +571,19 @@ void NXGUIMaterialShaderEditor::SyncMaterialData(NXCustomMaterial* pMaterial)
 		m_cbInfosDisplay.push_back({ cbElem.name, cbElem.type, cbDataDisplay, guiStyle, guiParams, cbElem.memoryIndex });
 	}
 
+	for (auto& texDisplay : m_texInfosDisplay)
+	{
+		if (texDisplay.pTexture)
+			texDisplay.pTexture->RemoveRef();
+	}
 	m_texInfosDisplay.clear();
 	m_texInfosDisplay.reserve(pMaterial->GetTextureCount());
 	for (UINT i = 0; i < pMaterial->GetTextureCount(); i++)
-		m_texInfosDisplay.push_back({ pMaterial->GetTextureName(i), pMaterial->GetTexture(i) });
+	{
+		NXTexture* pTex = pMaterial->GetTexture(i);
+		pTex->AddRef();
+		m_texInfosDisplay.push_back({ pMaterial->GetTextureName(i), pTex });
+	}
 
 	m_ssInfosDisplay.clear();
 	m_ssInfosDisplay.reserve(pMaterial->GetSamplerCount());

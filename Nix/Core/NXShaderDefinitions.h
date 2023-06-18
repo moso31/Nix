@@ -33,7 +33,7 @@ struct NXMaterialCBufferInfo
 struct NXMaterialTextureInfo
 {
     std::string name;
-    NXTexture2D* pTexture;
+    NXTexture* pTexture;
     UINT slotIndex;
 };
 
@@ -86,7 +86,7 @@ struct NXGUICBufferData
 struct NXGUITextureData
 {
 	std::string name;
-	NXTexture2D* pTexture;
+	NXTexture* pTexture;
 };
 
 struct NXGUISamplerData
