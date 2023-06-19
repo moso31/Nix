@@ -20,15 +20,14 @@ void CreateDefaultMaterialFile(const std::filesystem::path& path, const std::str
     ofs.close();
 }
 
-void RenderTextureIcon(ImTextureID ImTexID, NXGUIFileBrowser* pFileBrowser, std::function<void()> onChange, std::function<void()> onRemove, std::function<void(const std::wstring&)> onDrop)
+void RenderSmallTextureIcon(ImTextureID ImTexID, NXGUIFileBrowser* pFileBrowser, std::function<void()> onChange, std::function<void()> onRemove, std::function<void(const std::wstring&)> onDrop)
 {
-	float my_tex_w = (float)16;
-	float my_tex_h = (float)16;
+	float texSize = (float)20;
 
 	ImGuiIO& io = ImGui::GetIO();
 	{
 		int frame_padding = 2;									// -1 == uses default padding (style.FramePadding)
-		ImVec2 size = ImVec2(16.0f, 16.0f);                     // Size of the image we want to make visible
+		ImVec2 size = ImVec2(texSize - frame_padding, texSize - frame_padding);                     // Size of the image we want to make visible
 		ImVec2 uv0 = ImVec2(0.0f, 0.0f);
 		ImVec2 uv1 = ImVec2(1.0f, 1.0f);
 		ImVec4 bg_col = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);         // Black background
@@ -63,7 +62,7 @@ void RenderTextureIcon(ImTextureID ImTexID, NXGUIFileBrowser* pFileBrowser, std:
             ImGui::PushID("RemoveTexButtons");
             {
                 ImGui::PushID(ImTexID);
-                if (ImGui::Button("R"))
+                if (ImGui::Button("Reset"))
                 {
                     onRemove();
                 }
@@ -153,7 +152,7 @@ std::string ConvertShaderResourceDataToNSLParam(const std::vector<NXGUICBufferDa
 	}
 
 	strNSLParam += "\t";
-	strNSLParam += "CBuffer : m_material\n\t{\n";
+	strNSLParam += "CBuffer\n\t{\n";
 	for (auto& cbDisplay : cbInfosDisplay)
 	{
 		std::string strCBType;

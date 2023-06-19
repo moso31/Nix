@@ -660,7 +660,7 @@ void NXCustomMaterial::ProcessShaderParameters(const std::string& nslParams, std
 				out << strMatStruct.str();
 				out << typeToPrefix[type] << " CBuffer_" << strMatName.str() << " : register(" << typeToRegisterPrefix[type] << typeToRegisterIndex[type]++ << ")";
 				out << "\n{\n";
-				out << "\t" << strMatName.str() << " " << name << ";\n";
+				out << "\t" << strMatName.str() << " " << "m" << ";\n";
 				out << "}\n";
 			}
 			else if (type == "Tex2D")

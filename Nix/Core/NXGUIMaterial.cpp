@@ -227,7 +227,8 @@ void NXGUIMaterial::SyncMaterialData(NXCustomMaterial* pMaterial)
 	{
 		NXTexture* pTex = pMaterial->GetTexture(i);
 		pTex->AddRef();
-		m_texInfosDisplay.push_back({ pMaterial->GetTextureName(i), pTex });
+		NXGUITextureType texType = pTex->GetSerializationData().m_textureType == NXTextureType::NormalMap ? NXGUITextureType::Normal : NXGUITextureType::Default;
+		m_texInfosDisplay.push_back({ pMaterial->GetTextureName(i), texType, pTex });
 	}
 
 	m_ssInfosDisplay.clear();
@@ -312,7 +313,7 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMateri
 				};
 
 				ImGui::PushID(paramCnt);
-				RenderTextureIcon(pTex->GetSRV(), m_pFileBrowser, onTexChange, onTexRemove, onTexDrop);
+				RenderSmallTextureIcon(pTex->GetSRV(), m_pFileBrowser, onTexChange, onTexRemove, onTexDrop);
 				ImGui::PopID();
 
 				ImGui::SameLine();

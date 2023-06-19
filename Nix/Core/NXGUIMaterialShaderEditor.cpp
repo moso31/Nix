@@ -443,12 +443,12 @@ void NXGUIMaterialShaderEditor::Render_Params_TextureItem(const int texParamId, 
 	if (!pTex) return;
 
 	ImGui::PushID(texParamId);
-	float texSize = (float)40;
+	float texSize = (float)48;
 
 	ImGuiIO& io = ImGui::GetIO();
 	{
 		int frame_padding = 2;									// -1 == uses default padding (style.FramePadding)
-		ImVec2 size = ImVec2(texSize, texSize);                     // Size of the image we want to make visible
+		ImVec2 size = ImVec2(texSize, texSize);                 // Size of the image we want to make visible
 		ImVec2 uv0 = ImVec2(0.0f, 0.0f);
 		ImVec2 uv1 = ImVec2(1.0f, 1.0f);
 		ImVec4 bg_col = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);         // Black background
@@ -486,27 +486,33 @@ void NXGUIMaterialShaderEditor::Render_Params_TextureItem(const int texParamId, 
 		}
 		ImGui::SameLine();
 
-		ImGui::PushID("RemoveTexButtons");
+		std::string strChildId = "##material_shader_editor_imgbtn_rightside" + std::to_string(texParamId);
+		ImGui::BeginChild(strChildId.c_str(), ImVec2(200.0f, texSize));
+		ImGui::PushID(ImTexID);
+		if (ImGui::Button("Reset"))
 		{
-			ImGui::PushID(ImTexID);
-			if (ImGui::Button("R"))
-			{
-				pTex->RemoveRef();
-
-				// Get tex by NXTextureType
-				if (pTex->GetSerializationData().m_textureType == NXTextureType::NormalMap)
-					pTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_Normal);
-				else
-					pTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_White);
-			}
-			ImGui::PopID();
+			pTex->RemoveRef();
+			pTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(texDisplay.texType == NXGUITextureType::Default ? NXCommonTex_White : NXCommonTex_Normal);
 		}
 		ImGui::PopID();
+
+		const static char* textureTypes[] = { "Default", "Normal" };
+		if (ImGui::BeginCombo("Type", textureTypes[(int)texDisplay.texType]))
+		{
+			for (int item = 0; item < IM_ARRAYSIZE(textureTypes); item++)
+			{
+				if (ImGui::Selectable(textureTypes[item]))
+				{
+					texDisplay.texType = (NXGUITextureType)item;
+					break;
+				}
+			}
+			ImGui::EndCombo();
+		}
+
+		ImGui::EndChild();
 	}
 	ImGui::PopID();
-
-	ImGui::SameLine();
-	ImGui::Text(texDisplay.name.data());
 }
 
 void NXGUIMaterialShaderEditor::Render_ErrorMessages()
@@ -582,7 +588,8 @@ void NXGUIMaterialShaderEditor::SyncMaterialData(NXCustomMaterial* pMaterial)
 	{
 		NXTexture* pTex = pMaterial->GetTexture(i);
 		pTex->AddRef();
-		m_texInfosDisplay.push_back({ pMaterial->GetTextureName(i), pTex });
+		NXGUITextureType texType = pTex->GetSerializationData().m_textureType == NXTextureType::NormalMap ? NXGUITextureType::Normal : NXGUITextureType::Default;
+		m_texInfosDisplay.push_back({ pMaterial->GetTextureName(i), texType, pTex });
 	}
 
 	m_ssInfosDisplay.clear();

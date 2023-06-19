@@ -83,9 +83,17 @@ struct NXGUICBufferData
 	int memoryIndex;
 };
 
+// 专门用于在材质编辑器下显示纹理类型的枚举，只有 Default 和 Normal 两种选项
+enum class NXGUITextureType
+{
+	Default,
+	Normal
+};
+
 struct NXGUITextureData
 {
 	std::string name;
+	NXGUITextureType texType;
 	NXTexture* pTexture;
 };
 

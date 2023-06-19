@@ -13,7 +13,7 @@ namespace NXGUICommon
 {
 	void CreateDefaultMaterialFile(const std::filesystem::path& path, const std::string& matName);
 
-	void RenderTextureIcon(ImTextureID ImTexID, NXGUIFileBrowser* pFileBrowser, std::function<void()> onChange, std::function<void()> onRemove, std::function<void(const std::wstring&)> onDrop);
+	void RenderSmallTextureIcon(ImTextureID ImTexID, NXGUIFileBrowser* pFileBrowser, std::function<void()> onChange, std::function<void()> onRemove, std::function<void(const std::wstring&)> onDrop);
 
 	// ½«×Ö·û´®×ª»»³ÉGUIStyle
 	NXGUICBufferStyle	GetGUIStyleFromString(const std::string& strTypeString);
