@@ -62,6 +62,7 @@ private:
 	void OnBtnRemoveFunctionClicked(NXCustomMaterial* pMaterial, UINT index);
 
 	void OnBtnAddParamClicked(NXCustomMaterial* pMaterial, NXGUICBufferStyle guiStyle);
+	void OnBtnAddTextureClicked(NXCustomMaterial* pMaterial);
 	void OnBtnRevertClicked();
 	void OnBtnRemoveParamClicked(const std::string& name);
 	void OnBtnMoveParamToPrevClicked(const std::string& name);

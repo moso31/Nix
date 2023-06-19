@@ -88,6 +88,13 @@ void NXGUIMaterialShaderEditor::OnBtnAddParamClicked(NXCustomMaterial* pMaterial
 	m_cbInfosDisplay.push_back({ "newParam", NXCBufferInputType::Float4, Vector4(0.0f), eGUIStyle, GetGUIParamsDefaultValue(eGUIStyle), -1 });
 }
 
+void NXGUIMaterialShaderEditor::OnBtnAddTextureClicked(NXCustomMaterial* pMaterial)
+{
+	auto pTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_White);
+	pTex->AddRef();
+	m_texInfosDisplay.push_back({ "newTexture", NXGUITextureType::Default, pTex });
+}
+
 void NXGUIMaterialShaderEditor::OnBtnRevertClicked()
 {
 	RequestSyncMaterialData();
@@ -299,15 +306,25 @@ void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
 
 	if (ImGui::BeginPopup("##material_shader_editor_add_param_popup"))
 	{
-		// 添加参数
-		for (int item = 0; item < g_strCBufferGUIStyleCount; item++)
+		if (ImGui::BeginMenu("Value##material_shader_editor_add_param_popup_value"))
 		{
-			if (ImGui::Selectable(g_strCBufferGUIStyle[item], false))
+			// 添加参数
+			for (int item = 0; item < g_strCBufferGUIStyleCount; item++)
 			{
-				NXGUICBufferStyle guiStyle = GetGUIStyleFromString(g_strCBufferGUIStyle[item]);
-				OnBtnAddParamClicked(pMaterial, guiStyle);
+				if (ImGui::Selectable(g_strCBufferGUIStyle[item], false))
+				{
+					NXGUICBufferStyle guiStyle = GetGUIStyleFromString(g_strCBufferGUIStyle[item]);
+					OnBtnAddParamClicked(pMaterial, guiStyle);
+				}
 			}
+			ImGui::EndMenu();
 		}
+
+		if (ImGui::MenuItem("Texture##material_shader_editor_add_param_popup_texture"))
+		{
+			OnBtnAddTextureClicked(pMaterial);
+		}
+
 		ImGui::EndPopup();
 	}
 
