@@ -28,6 +28,9 @@ class NXGUIMaterial;
 class NXGUIFileBrowser;
 class NXGUIMaterialShaderEditor : public NXInstance<NXGUIMaterialShaderEditor>
 {
+private:
+	enum class BtnParamType { CBuffer, Texture, Sampler };
+
 public:
 	// 重载 GetInstance()，因为有成员需要初始化
 	static NXGUIMaterialShaderEditor* GetInstance()
@@ -64,16 +67,17 @@ private:
 	void OnBtnAddParamClicked(NXCustomMaterial* pMaterial, NXGUICBufferStyle guiStyle);
 	void OnBtnAddTextureClicked(NXCustomMaterial* pMaterial);
 	void OnBtnRevertClicked();
-	void OnBtnRemoveParamClicked(const std::string& name);
-	void OnBtnMoveParamToPrevClicked(const std::string& name);
-	void OnBtnMoveParamToNextClicked(const std::string& name);
-	void OnBtnMoveParamToFirstClicked(const std::string& name);
-	void OnBtnMoveParamToLastClicked(const std::string& name);
+	void OnBtnRemoveParamClicked(BtnParamType btnParamType, int index);
+	void OnBtnMoveParamToPrevClicked(BtnParamType btnParamType, int index);
+	void OnBtnMoveParamToNextClicked(BtnParamType btnParamType, int index);
+	void OnBtnMoveParamToFirstClicked(BtnParamType btnParamType, int index);
+	void OnBtnMoveParamToLastClicked(BtnParamType btnParamType, int index);
 	void OnBtnCompileClicked(NXCustomMaterial* pMaterial);
 	void OnComboGUIStyleChanged(int selectIndex, NXGUICBufferData& cbDisplayData);
 
 	void Render_Code(NXCustomMaterial* pMaterial);
 	void Render_Params(NXCustomMaterial* pMaterial);
+	void Render_Params_ResourceOps(const std::string& strNameId, BtnParamType btnParamType, int cbIndex);
 	void Render_Params_CBufferItem(const std::string& strId, NXCustomMaterial* pMaterial, NXGUICBufferData& cbDisplay);
 	void Render_Params_TextureItem(const int strId, NXCustomMaterial* pMaterial, NXGUITextureData& texDisplay);
 	void Render_ErrorMessages();

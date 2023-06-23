@@ -100,47 +100,53 @@ void NXGUIMaterialShaderEditor::OnBtnRevertClicked()
 	RequestSyncMaterialData();
 }
 
-void NXGUIMaterialShaderEditor::OnBtnRemoveParamClicked(const std::string& name)
+void NXGUIMaterialShaderEditor::OnBtnRemoveParamClicked(BtnParamType btnParamType, int index)
 {
-	std::vector<NXGUICBufferData>::iterator it;
-	if (FindCBGUIData(name, it)) m_cbInfosDisplay.erase(it);
-}
-
-void NXGUIMaterialShaderEditor::OnBtnMoveParamToPrevClicked(const std::string& name)
-{
-	std::vector<NXGUICBufferData>::iterator it;
-	if (FindCBGUIData(name, it))
+	switch (btnParamType)
 	{
-		if (it != m_cbInfosDisplay.begin()) 
-			std::iter_swap(it, it - 1);
+		case BtnParamType::CBuffer: m_cbInfosDisplay.erase(m_cbInfosDisplay.begin() + index); break;
+		case BtnParamType::Texture: m_texInfosDisplay.erase(m_texInfosDisplay.begin() + index); break;
+		case BtnParamType::Sampler: m_ssInfosDisplay.erase(m_ssInfosDisplay.begin() + index); break;
 	}
 }
 
-void NXGUIMaterialShaderEditor::OnBtnMoveParamToNextClicked(const std::string& name)
+void NXGUIMaterialShaderEditor::OnBtnMoveParamToPrevClicked(BtnParamType btnParamType, int index)
 {
-	std::vector<NXGUICBufferData>::iterator it;
-	if (FindCBGUIData(name, it))
+	switch (btnParamType)
 	{
-		if (it != m_cbInfosDisplay.end() - 1) 
-			std::iter_swap(it, it + 1);
+		case BtnParamType::CBuffer: if (index != 0) std::iter_swap(m_cbInfosDisplay.begin()  + index, m_cbInfosDisplay.begin()  + index - 1); break;
+		case BtnParamType::Texture: if (index != 0) std::iter_swap(m_texInfosDisplay.begin() + index, m_texInfosDisplay.begin() + index - 1); break;
+		case BtnParamType::Sampler: if (index != 0) std::iter_swap(m_ssInfosDisplay.begin()  + index, m_ssInfosDisplay.begin()  + index - 1); break;
 	}
 }
 
-void NXGUIMaterialShaderEditor::OnBtnMoveParamToFirstClicked(const std::string& name)
+void NXGUIMaterialShaderEditor::OnBtnMoveParamToNextClicked(BtnParamType btnParamType, int index)
 {
-	std::vector<NXGUICBufferData>::iterator it;
-	if (FindCBGUIData(name, it))
+	switch (btnParamType)
 	{
-		std::rotate(m_cbInfosDisplay.begin(), it, it + 1);
+		case BtnParamType::CBuffer: if (index != m_cbInfosDisplay.size()  - 1) std::iter_swap(m_cbInfosDisplay.begin()  + index, m_cbInfosDisplay.begin()  + index + 1); break;
+		case BtnParamType::Texture: if (index != m_texInfosDisplay.size() - 1) std::iter_swap(m_texInfosDisplay.begin() + index, m_texInfosDisplay.begin() + index + 1); break;
+		case BtnParamType::Sampler: if (index != m_ssInfosDisplay.size()  - 1) std::iter_swap(m_ssInfosDisplay.begin()  + index, m_ssInfosDisplay.begin()  + index + 1); break;
 	}
 }
 
-void NXGUIMaterialShaderEditor::OnBtnMoveParamToLastClicked(const std::string& name)
+void NXGUIMaterialShaderEditor::OnBtnMoveParamToFirstClicked(BtnParamType btnParamType, int index)
 {
-	std::vector<NXGUICBufferData>::iterator it;
-	if (FindCBGUIData(name, it))
+	switch (btnParamType)
 	{
-		std::rotate(it, it + 1, m_cbInfosDisplay.end());
+		case BtnParamType::CBuffer: if (index != 0) std::rotate(m_cbInfosDisplay.begin()  , m_cbInfosDisplay.begin()  + index, m_cbInfosDisplay.begin()  + index + 1); break;
+		case BtnParamType::Texture: if (index != 0) std::rotate(m_texInfosDisplay.begin() , m_texInfosDisplay.begin() + index, m_texInfosDisplay.begin() + index + 1); break;
+		case BtnParamType::Sampler: if (index != 0) std::rotate(m_ssInfosDisplay.begin()  , m_ssInfosDisplay.begin()  + index, m_ssInfosDisplay.begin()  + index + 1); break;
+	}
+}
+
+void NXGUIMaterialShaderEditor::OnBtnMoveParamToLastClicked(BtnParamType btnParamType, int index)
+{
+	switch (btnParamType)
+	{
+		case BtnParamType::CBuffer: if (index != m_cbInfosDisplay.size()  - 1) std::rotate(m_cbInfosDisplay.begin()  + index, m_cbInfosDisplay.begin()  + index + 1, m_cbInfosDisplay.end()); break;
+		case BtnParamType::Texture: if (index != m_texInfosDisplay.size() - 1) std::rotate(m_texInfosDisplay.begin() + index, m_texInfosDisplay.begin() + index + 1, m_texInfosDisplay.end()); break;
+		case BtnParamType::Sampler: if (index != m_ssInfosDisplay.size()  - 1) std::rotate(m_ssInfosDisplay.begin()  + index, m_ssInfosDisplay.begin()  + index + 1, m_ssInfosDisplay.end()); break;
 	}
 }
 
@@ -333,36 +339,14 @@ void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
 		if (ImGui::BeginTable("##material_shader_editor_params_table", 2, ImGuiTableFlags_Resizable))
 		{
 			int paramCnt = 0;
-			for (auto& cbDisplay : m_cbInfosDisplay)
+			for (int i = 0; i < m_cbInfosDisplay.size(); i++)
 			{
+				auto& cbDisplay = m_cbInfosDisplay[i];
+
 				std::string strId = "##material_shader_editor_custom_child_cbuffer_" + std::to_string(paramCnt);
 				ImGui::TableNextColumn();
-				std::string strNameId = strId + "_name";
-				ImGui::PushItemWidth(-1);
 
-				ImGui::InputText(strNameId.c_str(), &cbDisplay.name);
-
-				std::string strNameIdRemove = "-" + strNameId + "_remove";
-				if (ImGui::Button(strNameIdRemove.c_str(), ImVec2(20.0f, 20.0f))) { OnBtnRemoveParamClicked(cbDisplay.name); }
-				ImGui::SameLine();
-
-				std::string strNameIdMoveToFirst = "|<" + strNameId + "_move_to_first";
-				if (ImGui::Button(strNameIdMoveToFirst.c_str(), ImVec2(20.0f, 20.0f))) { OnBtnMoveParamToFirstClicked(cbDisplay.name); }
-				ImGui::SameLine();
-
-				std::string strNameIdMoveToPrev = "<" + strNameId + "_move_to_prev";
-				if (ImGui::Button(strNameIdMoveToPrev.c_str(), ImVec2(20.0f, 20.0f))) { OnBtnMoveParamToPrevClicked(cbDisplay.name); }
-				ImGui::SameLine();
-
-				std::string strNameIdMoveToNext = ">" + strNameId + "_move_to_next";
-				if (ImGui::Button(strNameIdMoveToNext.c_str(), ImVec2(20.0f, 20.0f))) { OnBtnMoveParamToNextClicked(cbDisplay.name); }
-				ImGui::SameLine();
-
-				std::string strNameIdMoveToLast = ">|" + strNameId + "_move_to_last";
-				if (ImGui::Button(strNameIdMoveToLast.c_str(), ImVec2(20.0f, 20.0f))) { OnBtnMoveParamToLastClicked(cbDisplay.name); }
-				ImGui::SameLine();
-
-				ImGui::PopItemWidth();
+				Render_Params_ResourceOps(strId, BtnParamType::CBuffer, i);
 
 				ImGui::TableNextColumn();
 				ImGui::PushItemWidth(-1);
@@ -385,10 +369,14 @@ void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
 				paramCnt++;
 			}
 
-			for (auto& texDisplay : m_texInfosDisplay)
+			for (int i = 0; i < m_texInfosDisplay.size(); i++)
 			{
+				auto& texDisplay = m_texInfosDisplay[i];
+
 				ImGui::TableNextColumn();
-				ImGui::Text(texDisplay.name.c_str());
+
+				std::string strId = "##material_shader_editor_custom_child_texture_" + std::to_string(paramCnt);
+				Render_Params_ResourceOps(strId, BtnParamType::Texture, i);
 
 				ImGui::TableNextColumn();
 				Render_Params_TextureItem(paramCnt, pMaterial, texDisplay);
@@ -397,20 +385,64 @@ void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
 			}
 
 			// 【Sampler 的部分暂时还没想好，先空着】
-			for (auto& ssDisplay : m_ssInfosDisplay)
+			for (int i = 0; i < m_ssInfosDisplay.size(); i++)
 			{
-				ImGui::TableNextColumn();
-				ImGui::Text(ssDisplay.name.c_str());
+				auto& ssDisplay = m_ssInfosDisplay[i];
 
 				ImGui::TableNextColumn();
-				std::string strId = "##material_shader_editor_custom_child_sampler_" + std::to_string(paramCnt++);
+				std::string strId = "##material_shader_editor_custom_child_sampler_" + std::to_string(paramCnt);
+				Render_Params_ResourceOps(strId, BtnParamType::Sampler, i);
+
+				ImGui::TableNextColumn();
 				ImGui::Text(ssDisplay.name.data());
+
+				paramCnt++;
 			}
 
 			ImGui::EndTable();
 		}
 	}
 	ImGui::EndChild();
+}
+
+void NXGUIMaterialShaderEditor::Render_Params_ResourceOps(const std::string& strId, BtnParamType btnParamType, int index)
+{
+	std::string strNameId = strId + "_name";
+
+	ImGui::PushItemWidth(-1);
+	switch (btnParamType)
+	{
+	case BtnParamType::CBuffer:
+		ImGui::InputText(strNameId.c_str(), &m_cbInfosDisplay[index].name);
+		break;
+	case BtnParamType::Texture:
+		ImGui::InputText(strNameId.c_str(), &m_texInfosDisplay[index].name);
+		break;
+	case BtnParamType::Sampler:
+		ImGui::InputText(strNameId.c_str(), &m_ssInfosDisplay[index].name);
+		break;
+	}
+	ImGui::PopItemWidth();
+
+	std::string strNameIdRemove = "-" + strNameId + "_remove";
+	if (ImGui::Button(strNameIdRemove.c_str(), ImVec2(20.0f, 20.0f))) { OnBtnRemoveParamClicked(btnParamType, index); }
+	ImGui::SameLine();
+
+	std::string strNameIdMoveToFirst = "|<" + strNameId + "_move_to_first";
+	if (ImGui::Button(strNameIdMoveToFirst.c_str(), ImVec2(20.0f, 20.0f))) { OnBtnMoveParamToFirstClicked(btnParamType, index); }
+	ImGui::SameLine();
+
+	std::string strNameIdMoveToPrev = "<" + strNameId + "_move_to_prev";
+	if (ImGui::Button(strNameIdMoveToPrev.c_str(), ImVec2(20.0f, 20.0f))) { OnBtnMoveParamToPrevClicked(btnParamType, index); }
+	ImGui::SameLine();
+
+	std::string strNameIdMoveToNext = ">" + strNameId + "_move_to_next";
+	if (ImGui::Button(strNameIdMoveToNext.c_str(), ImVec2(20.0f, 20.0f))) { OnBtnMoveParamToNextClicked(btnParamType, index); }
+	ImGui::SameLine();
+
+	std::string strNameIdMoveToLast = ">|" + strNameId + "_move_to_last";
+	if (ImGui::Button(strNameIdMoveToLast.c_str(), ImVec2(20.0f, 20.0f))) { OnBtnMoveParamToLastClicked(btnParamType, index); }
+	ImGui::SameLine();
 }
 
 void NXGUIMaterialShaderEditor::Render_Params_CBufferItem(const std::string& strId, NXCustomMaterial* pMaterial, NXGUICBufferData& cbDisplay)
