@@ -22,7 +22,7 @@ struct NXEventArgKey;
 class Renderer
 {
 public:
-	Renderer(DirectResources* pDXResources);
+	Renderer();
 
 	void Init();
 	void OnResize(const Vector2& rtSize);
@@ -58,11 +58,11 @@ private:
 	void OnKeyDown(NXEventArgKey eArg);
 
 private:
-	DirectResources* m_pDXResources;
-
 	ComPtr<ID3D11InputLayout>			m_pInputLayoutP;
 	ComPtr<ID3D11InputLayout>			m_pInputLayoutPT;
 	ComPtr<ID3D11InputLayout>			m_pInputLayoutPNT;
+
+	Vector2								m_viewRTSize;
 
 	NXBRDFLut*							m_pBRDFLut;
 

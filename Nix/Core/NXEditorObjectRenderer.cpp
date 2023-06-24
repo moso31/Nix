@@ -11,7 +11,8 @@
 
 NXEditorObjectRenderer::NXEditorObjectRenderer(NXScene* pScene) :
 	m_pScene(pScene),
-	m_pRTQuad(nullptr)
+	m_pRTQuad(nullptr),
+	m_pPassOutTex(nullptr)
 {
 }
 
@@ -19,10 +20,8 @@ NXEditorObjectRenderer::~NXEditorObjectRenderer()
 {
 }
 
-void NXEditorObjectRenderer::Init(const Vector2& rtSize)
+void NXEditorObjectRenderer::Init()
 {
-	OnResize(rtSize);
-
 	m_pRTQuad = new NXRenderTarget();
 	m_pRTQuad->Init();
 
@@ -44,6 +43,9 @@ void NXEditorObjectRenderer::Init(const Vector2& rtSize)
 
 void NXEditorObjectRenderer::OnResize(const Vector2& rtSize)
 {
+	if (m_pPassOutTex)
+		m_pPassOutTex->RemoveRef();
+
 	m_pPassOutTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("Editor objects Out RT", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET);
 	m_pPassOutTex->AddRTV();
 	m_pPassOutTex->AddSRV();
@@ -101,6 +103,6 @@ void NXEditorObjectRenderer::Render()
 
 void NXEditorObjectRenderer::Release()
 {
-	m_pPassOutTex->RemoveRef();
+	if (m_pPassOutTex) m_pPassOutTex->RemoveRef();
 	SafeRelease(m_pRTQuad);
 }

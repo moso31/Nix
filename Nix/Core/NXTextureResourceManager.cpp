@@ -93,6 +93,9 @@ void NXTextureResourceManager::InitCommonRT(const Vector2& rtSize)
 
 void NXTextureResourceManager::ResizeCommonRT(const Vector2& rtSize)
 {
+	for (auto& pRT : m_pCommonRT)
+		if (pRT) pRT->RemoveRef();
+
 	m_pCommonRT.clear();
 	m_pCommonRT.resize(NXCommonRT_SIZE);
 
@@ -138,7 +141,7 @@ void NXTextureResourceManager::ResizeCommonRT(const Vector2& rtSize)
 
 NXTexture2D* NXTextureResourceManager::GetCommonRT(NXCommonRTEnum eRT)
 {
-	return m_pCommonRT[eRT];
+	return m_pCommonRT.empty() ? nullptr : m_pCommonRT[eRT];
 }
 
 void NXTextureResourceManager::InitCommonTextures()

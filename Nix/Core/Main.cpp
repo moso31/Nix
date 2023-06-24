@@ -217,6 +217,9 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 		else
 		{
 			g_timer->Tick();
+
+			g_app->ResizeCheck();
+
 			g_app->Reload();
 
 			if (!IsWindowVisible(g_hWnd))
@@ -256,7 +259,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 
 	case WM_SIZE:
-		if (g_app) g_app->OnResize(LOWORD(lParam), HIWORD(lParam));
+		if (g_app) g_app->OnWindowResize(LOWORD(lParam), HIWORD(lParam));
 		break;
 
 	case WM_DESTROY:

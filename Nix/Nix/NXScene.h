@@ -30,7 +30,7 @@ private:
 
 public:
 
-	void Init(const Vector2& rtSize);
+	void Init();
 	void OnResize(const Vector2& rtSize);
 	void InitScripts();
 	void UpdateTransform(NXObject* pObject = nullptr);

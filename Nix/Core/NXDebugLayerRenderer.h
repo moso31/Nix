@@ -16,7 +16,7 @@ class NXDebugLayerRenderer
 public:
 	NXDebugLayerRenderer(NXShadowMapRenderer* m_pShadowMapRenderer);
 
-	void Init(const Vector2& rtSize);
+	void Init();
 	void OnResize(const Vector2& rtSize);
 	void Render();
 

@@ -16,7 +16,7 @@ public:
 	NXSimpleSSAO();
 	~NXSimpleSSAO();
 
-	void Init(const Vector2& rtSize);
+	void Init();
 	void OnResize(const Vector2& rtSize);
 	void Update();
 	void Render(ID3D11ShaderResourceView* pSRVNormal, ID3D11ShaderResourceView* pSRVPosition, ID3D11ShaderResourceView* pSRVDepthPrepass);

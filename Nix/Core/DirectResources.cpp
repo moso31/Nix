@@ -117,11 +117,6 @@ void DirectResources::OnResize(UINT width, UINT height)
 	ComPtr<ID3D11Texture2D> pBackBuffer = nullptr;
 	NX::ThrowIfFailed(g_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer)));
 	NX::ThrowIfFailed(g_pDevice->CreateRenderTargetView(pBackBuffer.Get(), nullptr, &m_pRTVSwapChainBuffer));
-
-	// Setup the viewport
-	m_viewSize = { (FLOAT)width, (FLOAT)height };
-	m_viewPort = CD3D11_VIEWPORT(0.0f, 0.0f, m_viewSize.x, m_viewSize.y);
-	g_pContext->RSSetViewports(1, &m_viewPort);
 }
 
 void DirectResources::PrepareToRenderGUI()
@@ -140,14 +135,4 @@ void DirectResources::Release()
 {
 	if (g_pContext)				
 		g_pContext->ClearState();
-}
-
-Vector2 DirectResources::GetViewSize()
-{
-	return m_viewSize;
-}
-
-Vector2 DirectResources::GetViewPortSize()
-{
-	return Vector2(m_viewPort.Width, m_viewPort.Height);
 }

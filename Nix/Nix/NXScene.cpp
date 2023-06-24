@@ -218,10 +218,8 @@ Vector3 NXScene::GetAnchorOfEditorTranslatorPlane(const Ray& ray, const Plane& p
 	return Vector3();
 }
 
-void NXScene::Init(const Vector2& rtSize)
+void NXScene::Init()
 {
-	OnResize(rtSize);
-
 	InitEditorObjectsManager();
 
 	m_pTestCustomMat = NXResourceManager::GetInstance()->GetMaterialManager()->CreateCustomMaterial("TestCustomMat", "D:\\NixAssets\\Materials\\mat.nsl");

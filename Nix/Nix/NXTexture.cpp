@@ -63,8 +63,7 @@ void NXTexture::RemoveRef()
 {
 	if (m_bIsCommonTex) return;
 
-	m_nRefCount--;
-	if (!m_nRefCount) Release();
+	m_nRefCount--; // 2023.6.24 具体的资源回收放在 ReleaseUnusedTextures() 做
 }
 
 void NXTexture::Release()
