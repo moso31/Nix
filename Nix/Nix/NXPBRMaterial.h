@@ -133,7 +133,8 @@ public:
 	const float* GetCBInfoMemoryData(UINT memoryIndex) { return m_cbInfoMemory.data() + memoryIndex; }
 	void SetCBInfoMemoryData(UINT memoryIndex, UINT count, const float* newData);
 
-	NXGUICBufferStyle GetCBGUIStyles(UINT index) { return m_cbInfoGUIStyles[index]; }
+	NXGUICBufferStyle GetCBGUIStyles(UINT index) { return m_cbInfo.elems[index].style; }
+	NXGUITextureType GetTextureGUIType(UINT index) { return m_texInfos[index].guiType; }
 
 	void GenerateInfoBackup();
 	void RecoverInfosBackup();
@@ -188,8 +189,6 @@ private:
 	std::vector<float>					m_cbInfoMemory;
 	std::vector<int>					m_cbSortedIndex;
 
-	std::vector<NXGUICBufferStyle>		m_cbInfoGUIStyles;
-
 	std::vector<float>					m_cbData;
 	bool m_bIsDirty;
 
@@ -199,7 +198,6 @@ private:
 	NXMaterialCBufferInfo				m_cbInfoBackup;
 	std::vector<float>					m_cbInfoMemoryBackup;
 	std::vector<int>					m_cbSortedIndexBackup;
-	std::vector<NXGUICBufferStyle>		m_cbInfoGUIStylesBackup;
 	std::string							m_nslCodeBackup;
 	std::vector<std::string>			m_nslFuncsBackup;
 };

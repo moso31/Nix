@@ -335,7 +335,6 @@ void NXCustomMaterial::GenerateInfoBackup()
 	m_cbSortedIndexBackup.assign(m_cbSortedIndex.begin(), m_cbSortedIndex.end());
 	m_texInfosBackup.assign(m_texInfos.begin(), m_texInfos.end());
 	m_samplerInfosBackup.assign(m_samplerInfos.begin(), m_samplerInfos.end());
-	m_cbInfoGUIStylesBackup.assign(m_cbInfoGUIStyles.begin(), m_cbInfoGUIStyles.end());
 
 	m_nslCodeBackup = m_nslCode;
 	m_nslFuncsBackup.assign(m_nslFuncs.begin(), m_nslFuncs.end());
@@ -349,7 +348,6 @@ void NXCustomMaterial::RecoverInfosBackup()
 	m_cbSortedIndex.swap(m_cbSortedIndexBackup);
 	m_texInfos.swap(m_texInfosBackup);
 	m_samplerInfos.swap(m_samplerInfosBackup);
-	m_cbInfoGUIStyles.swap(m_cbInfoGUIStylesBackup);
 	m_nslCode.swap(m_nslCodeBackup);
 	m_nslFuncs.swap(m_nslFuncsBackup);
 
@@ -362,7 +360,6 @@ void NXCustomMaterial::RecoverInfosBackup()
 		m_cbSortedIndexBackup.clear();
 		m_texInfosBackup.clear();
 		m_samplerInfosBackup.clear();
-		m_cbInfoGUIStylesBackup.clear();
 		m_nslCodeBackup.clear();
 		m_nslFuncsBackup.clear();
 	}
@@ -410,6 +407,7 @@ void NXCustomMaterial::Serialize()
 		serializer.String("name", texInfo.name);
 		serializer.String("path", texInfo.pTexture->GetFilePath().string());
 		serializer.Uint("slotIndex", texInfo.slotIndex);
+		serializer.Int("guiType", (int)texInfo.guiType);
 		serializer.EndObject();
 	}
 	serializer.EndArray();
@@ -431,7 +429,7 @@ void NXCustomMaterial::Serialize()
 		serializer.StartObject();
 		serializer.String("name", cbInfo.name);
 		serializer.Int("type", (int)cbInfo.type);
-		serializer.Int("guiStyle", (int)m_cbInfoGUIStyles[i]);
+		serializer.Int("guiStyle", (int)cbInfo.style);
 
 		serializer.StartArray("values");
 		for (int j = 0; j < (int)cbInfo.type; j++)
@@ -465,6 +463,12 @@ void NXCustomMaterial::Deserialize()
 				auto objName = tex.GetObj().FindMember("name")->value.GetString();
 				auto objPath = tex.GetObj().FindMember("path")->value.GetString();
 				auto texInfo = std::find_if(m_texInfos.begin(), m_texInfos.end(), [objName](const NXMaterialTextureInfo& texInfo) { return texInfo.name == objName; });
+
+				if (tex.GetObj().HasMember("guiType"))
+					texInfo->guiType = (NXGUITextureType)tex.GetObj().FindMember("guiType")->value.GetInt();
+				else
+					texInfo->guiType = NXGUITextureType::Unknown;
+
 				SetTexture(texInfo->pTexture, objPath);
 			}
 
@@ -488,7 +492,7 @@ void NXCustomMaterial::Deserialize()
 							auto objGUIStyle = cb.GetObj().FindMember("guiStyle")->value.GetInt();
 							auto objValues = cb.GetObj().FindMember("values")->value.GetArray();
 
-							m_cbInfoGUIStyles[i] = (NXGUICBufferStyle)objGUIStyle;
+							cbElem.style = (NXGUICBufferStyle)objGUIStyle;
 							for (int j = 0; j < (int)cbElem.type; j++)
 								m_cbInfoMemory[cbElem.memoryIndex + j] = objValues[j].GetFloat();
 						}
@@ -667,6 +671,7 @@ void NXCustomMaterial::ProcessShaderParameters(const std::string& nslParams, std
 			{
 				// 如果默认值vector中存储的纹理信息不是空的，就优先在vector中匹配同名的NXTexture指针
 				NXTexture* pTexValue = nullptr;
+				NXGUITextureType guiType = NXGUITextureType::Unknown;
 				if (!texDefaultValues.empty())
 				{
 					auto it = std::find_if(texDefaultValues.begin(), texDefaultValues.end(),
@@ -677,11 +682,14 @@ void NXCustomMaterial::ProcessShaderParameters(const std::string& nslParams, std
 					if (it != texDefaultValues.end())
 					{
 						if (it->pTexture)
+						{
 							pTexValue = it->pTexture;
+							guiType = it->texType;
+						}
 					}
 				}
 
-				m_texInfos.push_back({ name, pTexValue, typeToRegisterIndex[type] });
+				m_texInfos.push_back({ name, pTexValue, typeToRegisterIndex[type], guiType });
 
 				out << typeToPrefix[type] << " " << name << " : register(" << typeToRegisterPrefix[type] << typeToRegisterIndex[type]++ << ")";
 				out << ";\n";
@@ -746,9 +754,6 @@ void NXCustomMaterial::ProcessShaderCBufferParam(std::istringstream& in, std::os
 	cbElems.clear();
 	cbElems.reserve(cbElemCount);
 
-	m_cbInfoGUIStyles.clear();
-	m_cbInfoGUIStyles.reserve(cbElemCount);
-
 	m_cbInfoMemory.clear();
 	m_cbInfoMemory.reserve(cbFloatCount);
 	int pOffset = 0;
@@ -794,30 +799,28 @@ void NXCustomMaterial::ProcessShaderCBufferParam(std::istringstream& in, std::os
 			}
 		}
 
-		m_cbInfoGUIStyles.push_back(cbGUIStyle);
-
 		if (type == "float")
 		{
-			cbElems.push_back({ name, NXCBufferInputType::Float, pOffset });
+			cbElems.push_back({ name, NXCBufferInputType::Float, pOffset, cbGUIStyle });
 			m_cbInfoMemory.push_back(cbValue.x);
 			pOffset++;
 		}
 		else if (type == "float2")
 		{
 			for (int i = 0; i < 2; i++) m_cbInfoMemory.push_back(cbValue[i]);
-			cbElems.push_back({ name, NXCBufferInputType::Float2, pOffset });
+			cbElems.push_back({ name, NXCBufferInputType::Float2, pOffset, cbGUIStyle });
 			pOffset += 2;
 		}
 		else if (type == "float3")
 		{
 			for (int i = 0; i < 3; i++) m_cbInfoMemory.push_back(cbValue[i]);
-			cbElems.push_back({ name, NXCBufferInputType::Float3, pOffset });
+			cbElems.push_back({ name, NXCBufferInputType::Float3, pOffset, cbGUIStyle });
 			pOffset += 3;
 		}
 		else if (type == "float4")
 		{
 			for (int i = 0; i < 4; i++) m_cbInfoMemory.push_back(cbValue[i]);
-			cbElems.push_back({ name, NXCBufferInputType::Float4, pOffset });
+			cbElems.push_back({ name, NXCBufferInputType::Float4, pOffset, cbGUIStyle });
 			pOffset += 4;
 		}
 	}

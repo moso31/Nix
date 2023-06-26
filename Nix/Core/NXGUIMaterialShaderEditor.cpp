@@ -379,7 +379,7 @@ void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
 				Render_Params_ResourceOps(strId, BtnParamType::Texture, i);
 
 				ImGui::TableNextColumn();
-				Render_Params_TextureItem(paramCnt, pMaterial, texDisplay);
+				Render_Params_TextureItem(paramCnt, pMaterial, texDisplay, i);
 
 				paramCnt++;
 			}
@@ -484,7 +484,7 @@ void NXGUIMaterialShaderEditor::Render_Params_CBufferItem(const std::string& str
 	}
 }
 
-void NXGUIMaterialShaderEditor::Render_Params_TextureItem(const int texParamId, NXCustomMaterial* pMaterial, NXGUITextureData& texDisplay)
+void NXGUIMaterialShaderEditor::Render_Params_TextureItem(const int texParamId, NXCustomMaterial* pMaterial, NXGUITextureData& texDisplay, int texIndex)
 {
 	using namespace NXGUICommon;
 
@@ -511,10 +511,14 @@ void NXGUIMaterialShaderEditor::Render_Params_TextureItem(const int texParamId, 
 			m_pFileBrowser->SetTypeFilters({ ".png", ".jpg", ".bmp", ".dds", ".tga", ".tif", ".tiff" });
 			m_pFileBrowser->SetPwd("D:\\NixAssets");
 
-			auto onTexChange = [pMaterial, &pTex, this]()
+			auto onTexChange = [pMaterial, &texDisplay, &pTex, texIndex, this]()
 			{
 				pTex->RemoveRef();
 				pTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(pTex->GetDebugName().c_str(), m_pFileBrowser->GetSelected());
+
+				texDisplay.texType = pMaterial->GetTextureGUIType(texIndex);
+				if (texDisplay.texType == NXGUITextureType::Unknown)
+					texDisplay.texType = pTex->GetSerializationData().m_textureType == NXTextureType::NormalMap ? NXGUITextureType::Normal : NXGUITextureType::Default;
 			};
 			m_pFileBrowser->Open();
 			m_pFileBrowser->SetOnDialogOK(onTexChange);
@@ -529,6 +533,10 @@ void NXGUIMaterialShaderEditor::Render_Params_TextureItem(const int texParamId, 
 				{
 					pTex->RemoveRef();
 					pTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(pTex->GetDebugName().c_str(), pDropData->srcPath);
+
+					texDisplay.texType = pMaterial->GetTextureGUIType(texIndex);
+					if (texDisplay.texType == NXGUITextureType::Unknown)
+						texDisplay.texType = pTex->GetSerializationData().m_textureType == NXTextureType::NormalMap ? NXGUITextureType::Normal : NXGUITextureType::Default;
 				}
 			}
 			ImGui::EndDragDropTarget();
@@ -541,7 +549,7 @@ void NXGUIMaterialShaderEditor::Render_Params_TextureItem(const int texParamId, 
 		if (ImGui::Button("Reset"))
 		{
 			pTex->RemoveRef();
-			pTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(texDisplay.texType == NXGUITextureType::Default ? NXCommonTex_White : NXCommonTex_Normal);
+			pTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(texDisplay.texType == NXGUITextureType::Normal ? NXCommonTex_Normal : NXCommonTex_White);
 		}
 		ImGui::PopID();
 
@@ -637,7 +645,11 @@ void NXGUIMaterialShaderEditor::SyncMaterialData(NXCustomMaterial* pMaterial)
 	{
 		NXTexture* pTex = pMaterial->GetTexture(i);
 		pTex->AddRef();
-		NXGUITextureType texType = pTex->GetSerializationData().m_textureType == NXTextureType::NormalMap ? NXGUITextureType::Normal : NXGUITextureType::Default;
+
+		NXGUITextureType texType = pMaterial->GetTextureGUIType(i);
+		if (texType == NXGUITextureType::Unknown)
+			texType = pTex->GetSerializationData().m_textureType == NXTextureType::NormalMap ? NXGUITextureType::Normal : NXGUITextureType::Default;
+
 		m_texInfosDisplay.push_back({ pMaterial->GetTextureName(i), texType, pTex });
 	}
 

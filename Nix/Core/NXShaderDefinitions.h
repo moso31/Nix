@@ -17,33 +17,6 @@ enum NXCBufferInputType
     Float4 = 4,
 };
 
-struct NXCBufferElem
-{
-    std::string name;
-    NXCBufferInputType type;
-    int memoryIndex;
-};
-
-struct NXMaterialCBufferInfo
-{
-    std::vector<NXCBufferElem> elems;
-    UINT slotIndex;
-};
-
-struct NXMaterialTextureInfo
-{
-    std::string name;
-    NXTexture* pTexture;
-    UINT slotIndex;
-};
-
-struct NXMaterialSamplerInfo
-{
-    std::string name;
-    ComPtr<ID3D11SamplerState> pSampler;
-    UINT slotIndex;
-};
-
 // 在 GUI 中的显示 Style
 enum class NXGUICBufferStyle
 {
@@ -58,6 +31,43 @@ enum class NXGUICBufferStyle
 	Color3,
 	Color4,
 	Unknown
+};
+
+// 专门用于在材质编辑器下显示纹理类型的枚举，只有 Default 和 Normal 两种选项
+enum class NXGUITextureType
+{
+	Default,
+	Normal,
+	Unknown
+};
+
+struct NXCBufferElem
+{
+    std::string name;
+    NXCBufferInputType type;
+    int memoryIndex;
+	NXGUICBufferStyle style;
+};
+
+struct NXMaterialCBufferInfo
+{
+    std::vector<NXCBufferElem> elems;
+    UINT slotIndex;
+};
+
+struct NXMaterialTextureInfo
+{
+    std::string name;
+    NXTexture* pTexture;
+    UINT slotIndex;
+	NXGUITextureType guiType;
+};
+
+struct NXMaterialSamplerInfo
+{
+    std::string name;
+    ComPtr<ID3D11SamplerState> pSampler;
+    UINT slotIndex;
 };
 
 struct NXGUICBufferData
@@ -81,13 +91,6 @@ struct NXGUICBufferData
 	// 记录 原CB 的 memoryIndex
 	// 当 GUI 值变更的时候，使用此索引就能追溯材质中的源数据指针。
 	int memoryIndex;
-};
-
-// 专门用于在材质编辑器下显示纹理类型的枚举，只有 Default 和 Normal 两种选项
-enum class NXGUITextureType
-{
-	Default,
-	Normal
 };
 
 struct NXGUITextureData
