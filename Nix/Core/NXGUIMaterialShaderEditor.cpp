@@ -384,7 +384,6 @@ void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
 				paramCnt++;
 			}
 
-			// 【Sampler 的部分暂时还没想好，先空着】
 			for (int i = 0; i < m_ssInfosDisplay.size(); i++)
 			{
 				auto& ssDisplay = m_ssInfosDisplay[i];
@@ -395,6 +394,7 @@ void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
 
 				ImGui::TableNextColumn();
 				ImGui::Text(ssDisplay.name.data());
+				Render_Params_SamplerItem(paramCnt, pMaterial, ssDisplay, i);
 
 				paramCnt++;
 			}
@@ -554,7 +554,7 @@ void NXGUIMaterialShaderEditor::Render_Params_TextureItem(const int texParamId, 
 		ImGui::PopID();
 
 		const static char* textureTypes[] = { "Default", "Normal" };
-		if (ImGui::BeginCombo("Type", textureTypes[(int)texDisplay.texType]))
+		if (ImGui::BeginCombo("Type##material_shader_editor_texture_combo", textureTypes[(int)texDisplay.texType]))
 		{
 			for (int item = 0; item < IM_ARRAYSIZE(textureTypes); item++)
 			{
@@ -568,6 +568,42 @@ void NXGUIMaterialShaderEditor::Render_Params_TextureItem(const int texParamId, 
 		}
 
 		ImGui::EndChild();
+	}
+	ImGui::PopID();
+}
+
+void NXGUIMaterialShaderEditor::Render_Params_SamplerItem(const int strId, NXCustomMaterial* pMaterial, NXGUISamplerData& ssDisplay, int ssIndex)
+{
+	using namespace NXGUICommon;
+	ImGui::PushID(strId);
+	{
+		const static char* filterTypes[] = { "Point", "Linear", "Anisotropic" };
+		if (ImGui::BeginCombo("Filter##material_shader_editor_sampler_combo", filterTypes[(int)ssDisplay.filterType]))
+		{
+			for (int item = 0; item < IM_ARRAYSIZE(filterTypes); item++)
+			{
+				if (ImGui::Selectable(filterTypes[item]))
+				{
+					ssDisplay.filterType = (NXGUIFilterType)item;
+					break;
+				}
+			}
+			ImGui::EndCombo();
+		}
+
+		const static char* addressModes[] = { "Wrap", "Mirror", "Clamp" };
+		if (ImGui::BeginCombo("Address Mode##material_shader_editor_sampler_combo", addressModes[(int)ssDisplay.addressModeType]))
+		{
+			for (int item = 0; item < IM_ARRAYSIZE(addressModes); item++)
+			{
+				if (ImGui::Selectable(addressModes[item]))
+				{
+					ssDisplay.addressModeType = (NXGUIAddressModeType)item;
+					break;
+				}
+			}
+			ImGui::EndCombo();
+		}
 	}
 	ImGui::PopID();
 }
@@ -656,7 +692,10 @@ void NXGUIMaterialShaderEditor::SyncMaterialData(NXCustomMaterial* pMaterial)
 	m_ssInfosDisplay.clear();
 	m_ssInfosDisplay.reserve(pMaterial->GetSamplerCount());
 	for (UINT i = 0; i < pMaterial->GetSamplerCount(); i++)
-		m_ssInfosDisplay.push_back({ pMaterial->GetSamplerName(i), pMaterial->GetSampler(i) });
+	{
+		NXGUISamplerType ssType = NXGUISamplerType::Linear;
+		m_ssInfosDisplay.push_back({ pMaterial->GetSamplerName(i), ssType, pMaterial->GetSampler(i) });
+	}
 
 	m_nslCode = pMaterial->GetNSLCode();
 	m_nslFuncs = pMaterial->GetNSLFuncs();

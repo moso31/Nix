@@ -438,6 +438,9 @@
     <ClCompile Include="Core\NXGUIWorkspace.cpp">
       <Filter>Core\UI</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXGlobalSamplerStates.cpp">
+      <Filter>Core\DirectX</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -694,6 +697,9 @@
     </ClInclude>
     <ClInclude Include="Core\NXGUIWorkspace.h">
       <Filter>Core\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXGlobalSamplerStates.h">
+      <Filter>Core\DirectX</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

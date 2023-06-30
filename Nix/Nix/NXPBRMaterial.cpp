@@ -9,7 +9,7 @@
 #include "ShaderComplier.h"
 #include "NXHLSLGenerator.h"
 #include "GlobalBufferManager.h"
-#include "NXRenderStates.h"
+#include "NXGlobalSamplerStates.h"
 #include "NXGUIMaterial.h"
 #include "NXGUICommon.h"
 
@@ -45,8 +45,6 @@ void NXEasyMaterial::Init()
 	NXShaderComplier::GetInstance()->CompileVSIL(".\\Shader\\GBufferEasy.fx", "VS", &m_pVertexShader, NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), &m_pInputLayout);
 	NXShaderComplier::GetInstance()->CompilePS(".\\Shader\\GBufferEasy.fx", "PS", &m_pPixelShader);
 
-	m_pSamplerLinearWrap = NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP>::Create();
-
 	InitConstantBuffer();
 }
 
@@ -75,7 +73,7 @@ void NXEasyMaterial::Render()
 	ID3D11ShaderResourceView* pSRV = m_pTexture->GetSRV();
 	if (pSRV) g_pContext->PSSetShaderResources(1, 1, &pSRV);
 
-	ID3D11SamplerState* pSampler = m_pSamplerLinearWrap.Get();
+	ID3D11SamplerState* pSampler = NXGlobalSamplerStates::LinearWrap();
 	if (pSampler) g_pContext->PSSetSamplers(0, 1, &pSampler);
 
 	g_pContext->PSSetConstantBuffers(3, 1, m_cb.GetAddressOf());
@@ -171,15 +169,44 @@ bool NXCustomMaterial::Recompile(const std::string& nslParams, const std::vector
 
 void NXCustomMaterial::InitShaderResources()
 {
-	// 2023.6.4 Sampler 暂时不参与反序列化，相关逻辑还没想清楚
-	// TODO：让Sampler也参与反序列化
-	for (auto& ssInfo : m_samplerInfos)
-	{
-		ssInfo.pSampler = NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP>::Create();
-	}
-
 	// 反序列化
 	Deserialize();
+
+	for (auto& ssInfo : m_samplerInfos)
+	{
+		if (ssInfo.filterType == NXGUIFilterType::Point)
+		{
+			switch (ssInfo.addressModeType)
+			{
+			case NXGUIAddressModeType::Wrap: ssInfo.pSampler = NXGlobalSamplerStates::PointWrap(); break;
+			case NXGUIAddressModeType::Mirror: ssInfo.pSampler = NXGlobalSamplerStates::PointMirror(); break;
+			case NXGUIAddressModeType::Clamp: ssInfo.pSampler = NXGlobalSamplerStates::PointClamp(); break;
+			default: ssInfo.pSampler = nullptr; break;
+			}
+		}
+
+		if (ssInfo.filterType == NXGUIFilterType::Linear)
+		{
+			switch (ssInfo.addressModeType)
+			{
+			case NXGUIAddressModeType::Wrap: ssInfo.pSampler = NXGlobalSamplerStates::LinearWrap(); break;
+			case NXGUIAddressModeType::Mirror: ssInfo.pSampler = NXGlobalSamplerStates::LinearMirror(); break;
+			case NXGUIAddressModeType::Clamp: ssInfo.pSampler = NXGlobalSamplerStates::LinearClamp(); break;
+			default: ssInfo.pSampler = nullptr; break;
+			}
+		}
+
+		if (ssInfo.filterType == NXGUIFilterType::Anisotropic)
+		{
+			switch (ssInfo.addressModeType)
+			{
+			case NXGUIAddressModeType::Wrap: ssInfo.pSampler = NXGlobalSamplerStates::AnisoWrap(); break;
+			case NXGUIAddressModeType::Mirror: ssInfo.pSampler = NXGlobalSamplerStates::AnisoMirror(); break;
+			case NXGUIAddressModeType::Clamp: ssInfo.pSampler = NXGlobalSamplerStates::AnisoClamp(); break;
+			default: ssInfo.pSampler = nullptr; break;
+			}
+		}
+	}
 
 	RequestUpdateCBufferData();
 }
@@ -269,8 +296,8 @@ void NXCustomMaterial::Render()
 	{
 		if (ssInfo.slotIndex)
 		{
-			ID3D11SamplerState* pSampler = ssInfo.pSampler.Get();
-			if (pSampler) g_pContext->PSSetSamplers(ssInfo.slotIndex, 1, &pSampler);
+			if (ssInfo.pSampler) 
+				g_pContext->PSSetSamplers(ssInfo.slotIndex, 1, &ssInfo.pSampler);
 		}
 	}
 
@@ -418,6 +445,8 @@ void NXCustomMaterial::Serialize()
 		serializer.StartObject();
 		serializer.String("name", ssInfo.name);
 		serializer.Uint("slotIndex", ssInfo.slotIndex);
+		serializer.Int("filter", (int)ssInfo.filterType);
+		serializer.Int("address", (int)ssInfo.addressModeType);
 		serializer.EndObject();
 	}
 	serializer.EndArray();
@@ -472,8 +501,20 @@ void NXCustomMaterial::Deserialize()
 				SetTexture(texInfo->pTexture, objPath);
 			}
 
-			// TODO
-			// samplers...
+			// samplers
+			auto ssArray = deserializer.Array("samplers");
+			for (auto& ss : ssArray)
+			{
+				auto objName = ss.GetObj().FindMember("name")->value.GetString();
+
+				int filter = -1;
+				if (ss.GetObj().HasMember("filter"))
+					filter = ss.GetObj().FindMember("filter")->value.GetInt();
+
+				int address = -1;
+				if (ss.GetObj().HasMember("addressMode"))
+					address = ss.GetObj().FindMember("addressMode")->value.GetInt();
+			}
 
 			// cbuffer
 			auto cbArray = deserializer.Array("cbuffer");

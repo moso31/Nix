@@ -231,11 +231,6 @@ void NXGUIMaterial::SyncMaterialData(NXCustomMaterial* pMaterial)
 		m_texInfosDisplay.push_back({ pMaterial->GetTextureName(i), texType, pTex });
 	}
 
-	m_ssInfosDisplay.clear();
-	m_ssInfosDisplay.reserve(pMaterial->GetSamplerCount());
-	for (UINT i = 0; i < pMaterial->GetSamplerCount(); i++)
-		m_ssInfosDisplay.push_back({ pMaterial->GetSamplerName(i), pMaterial->GetSampler(i) });
-
 	m_nslCodeDisplay = pMaterial->GetNSLCode();
 
 	m_pLastMaterial = pMaterial;
@@ -320,13 +315,6 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMateri
 				ImGui::Text(texDisplay.name.data());
 
 				paramCnt++;
-			}
-
-			// 【Sampler 的部分暂时还没想好，先空着】
-			for (auto& ssDisplay : m_ssInfosDisplay)
-			{
-				std::string strId = "##material_custom_child_sampler_" + std::to_string(paramCnt++);
-				ImGui::Text(ssDisplay.name.data());
 			}
 
 			ImGui::EndChild();

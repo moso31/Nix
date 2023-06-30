@@ -39,10 +39,9 @@ private:
 
 	NXGUIFileBrowser* m_pFileBrowser;
 
-	// 记录 cb, tex, ss参数 用于显示 GUI。
+	// 材质 Inspector 面板不需要显示 Sampler
 	std::vector<NXGUICBufferData> m_cbInfosDisplay;
 	std::vector<NXGUITextureData> m_texInfosDisplay;
-	std::vector<NXGUISamplerData> m_ssInfosDisplay;
 
 	std::string m_nslCodeDisplay;
 

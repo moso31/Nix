@@ -80,6 +80,7 @@ private:
 	void Render_Params_ResourceOps(const std::string& strNameId, BtnParamType btnParamType, int cbIndex);
 	void Render_Params_CBufferItem(const std::string& strId, NXCustomMaterial* pMaterial, NXGUICBufferData& cbDisplay);
 	void Render_Params_TextureItem(const int strId, NXCustomMaterial* pMaterial, NXGUITextureData& texDisplay, int texIndex);
+	void Render_Params_SamplerItem(const int strId, NXCustomMaterial* pMaterial, NXGUISamplerData& ssDisplay, int ssIndex);
 	void Render_ErrorMessages();
 
 	void SyncMaterialData(NXCustomMaterial* pMaterial);

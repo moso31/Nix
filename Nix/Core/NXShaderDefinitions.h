@@ -41,6 +41,22 @@ enum class NXGUITextureType
 	Unknown
 };
 
+enum class NXGUIFilterType
+{
+	Point,
+	Linear,
+	Anisotropic,
+	Unknown
+};
+
+enum class NXGUIAddressModeType
+{
+	Wrap,
+	Mirror,
+	Clamp,
+	Unknown
+};
+
 struct NXCBufferElem
 {
     std::string name;
@@ -66,8 +82,10 @@ struct NXMaterialTextureInfo
 struct NXMaterialSamplerInfo
 {
     std::string name;
-    ComPtr<ID3D11SamplerState> pSampler;
+    ID3D11SamplerState* pSampler;
     UINT slotIndex;
+	NXGUIFilterType filterType;
+	NXGUIAddressModeType addressModeType;
 };
 
 struct NXGUICBufferData
@@ -103,6 +121,8 @@ struct NXGUITextureData
 struct NXGUISamplerData
 {
 	std::string name;
+	NXGUIFilterType filterType;
+	NXGUIAddressModeType addressModeType;
 	ComPtr<ID3D11SamplerState> pSampler;
 };
 
