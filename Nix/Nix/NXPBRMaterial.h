@@ -126,8 +126,9 @@ public:
 	void RemoveTexture(NXTexture* pTexture);
 
 	UINT GetSamplerCount() { return UINT(m_samplerInfos.size()); }
-	const ComPtr<ID3D11SamplerState>& GetSampler(UINT index) { return m_samplerInfos[index].pSampler; }
 	const std::string& GetSamplerName(UINT index) { return m_samplerInfos[index].name; }
+	NXSamplerFilter GetSamplerFilter(UINT index) { return m_samplerInfos[index].filter; }
+	NXSamplerAddressMode GetSamplerAddressMode(UINT index, UINT uvwIndex) { return uvwIndex ? uvwIndex == 1 ? m_samplerInfos[index].addressV : m_samplerInfos[index].addressW : m_samplerInfos[index].addressU; }
 
 	const float* GetCBInfoMemoryData(UINT memoryIndex) { return m_cbInfoMemory.data() + memoryIndex; }
 	void SetCBInfoMemoryData(UINT memoryIndex, UINT count, const float* newData);

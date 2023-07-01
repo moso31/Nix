@@ -2,6 +2,7 @@
 #include "DirectResources.h"
 #include "ShaderComplier.h"
 #include "NXRenderStates.h"
+#include "NXSamplerStates.h"
 
 #include "NXBRDFlut.h"
 #include "GlobalBufferManager.h"
@@ -27,9 +28,6 @@ void NXForwardRenderer::Init()
 	m_pDepthStencilState = NXDepthStencilState<>::Create();
 	m_pRasterizerState = NXRasterizerState<>::Create();
 	m_pBlendState = NXBlendState<false, false, true, D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA>::Create();
-
-	m_pSamplerLinearWrap.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP>::Create());
-	m_pSamplerLinearClamp.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP>::Create());
 }
 
 void NXForwardRenderer::Render()
@@ -48,8 +46,11 @@ void NXForwardRenderer::Render()
 
 	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
-	g_pContext->PSSetSamplers(0, 1, m_pSamplerLinearWrap.GetAddressOf());
-	g_pContext->PSSetSamplers(1, 1, m_pSamplerLinearClamp.GetAddressOf());
+
+	auto pSampler = NXSamplerManager::Get(NXSamplerFilter::Linear, NXSamplerAddressMode::Wrap);
+	g_pContext->PSSetSamplers(0, 1, &pSampler);
+	pSampler = NXSamplerManager::Get(NXSamplerFilter::Linear, NXSamplerAddressMode::Clamp);
+	g_pContext->PSSetSamplers(1, 1, &pSampler);
 
 	g_pContext->VSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
 	g_pContext->PSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());

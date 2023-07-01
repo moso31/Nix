@@ -12,7 +12,6 @@
 #include "NXDepthPeelingRenderer.h"
 #include "NXSkyRenderer.h"
 #include "NXColorMappingRenderer.h"
-#include "NXFinalRenderer.h"
 #include "NXSimpleSSAO.h"
 #include "NXGUI.h"
 #include "NXDebugLayerRenderer.h"

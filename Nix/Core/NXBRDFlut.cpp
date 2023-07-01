@@ -1,5 +1,5 @@
 #include "NXBRDFlut.h"
-#include "NXRenderStates.h"
+#include "NXSamplerStates.h"
 #include "NXResourceManager.h"
 #include "ShaderStructures.h"
 #include "ShaderComplier.h"
@@ -14,8 +14,6 @@ NXBRDFLut::NXBRDFLut() :
 void NXBRDFLut::GenerateBRDFLUT()
 {
 	g_pUDA->BeginEvent(L"Generate BRDF 2D LUT");
-
-	NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP>::Create();
 
 	const static float MapSize = 512.0f;
 	CD3D11_VIEWPORT vp(0.0f, 0.0f, MapSize, MapSize);

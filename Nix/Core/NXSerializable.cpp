@@ -70,24 +70,84 @@ void NXSerializer::SaveToFile(const std::filesystem::path& path)
 	ofs.close();
 }
 
-std::string NXDeserializer::String(const std::string& key)
+std::string NXDeserializer::String(const std::string& key, const std::string& defaultValue)
 {
-	return m_reader[key.c_str()].GetString();
+	if (m_reader.HasMember(key.c_str()))
+	{
+		auto& val = m_reader[key.c_str()];
+		if (val.IsString()) return val.GetString();	
+	}
+	return defaultValue;
 }
 
-bool NXDeserializer::Bool(const std::string& key)
+bool NXDeserializer::Bool(const std::string& key, const bool defaultValue)
 {
-	return m_reader[key.c_str()].GetBool();
+	if (m_reader.HasMember(key.c_str()))
+	{
+		auto& val = m_reader[key.c_str()];
+		if (val.IsBool()) return val.GetBool();
+	}
+	return defaultValue;
 }
 
-size_t NXDeserializer::Uint64(const std::string& key)
+size_t NXDeserializer::Uint64(const std::string& key, const size_t defaultValue)
 {
-	return m_reader[key.c_str()].GetUint64();
+	if (m_reader.HasMember(key.c_str()))
+	{
+		auto& val = m_reader[key.c_str()];
+		if (val.IsUint64()) return val.GetUint64();
+	}
+	return defaultValue;
 }
 
-int NXDeserializer::Int(const std::string& key)
+int NXDeserializer::Int(const std::string& key, const int defaultValue)
 {
-	return m_reader[key.c_str()].GetInt();
+	if (m_reader.HasMember(key.c_str()))
+	{
+		auto& val = m_reader[key.c_str()];
+		if (val.IsInt()) return val.GetInt();
+	}
+	return defaultValue;
+}
+
+std::string NXDeserializer::String(const rapidjson::Value& parent, const std::string& key, const std::string& defaultValue)
+{
+	if (parent.HasMember(key.c_str()))
+	{
+		auto& val = parent[key.c_str()];
+		if (val.IsString()) return val.GetString();
+	}
+	return defaultValue;
+}
+
+bool NXDeserializer::Bool(const rapidjson::Value& parent, const std::string& key, const bool defaultValue)
+{
+	if (parent.HasMember(key.c_str()))
+	{
+		auto& val = parent[key.c_str()];
+		if (val.IsBool()) return val.GetBool();
+	}
+	return defaultValue;
+}
+
+size_t NXDeserializer::Uint64(const rapidjson::Value& parent, const std::string& key, const size_t defaultValue)
+{
+	if (parent.HasMember(key.c_str()))
+	{
+		auto& val = parent[key.c_str()];
+		if (val.IsUint64()) return val.GetUint64();
+	}
+	return defaultValue;
+}
+
+int NXDeserializer::Int(const rapidjson::Value& parent, const std::string& key, const int defaultValue)
+{
+	if (parent.HasMember(key.c_str()))
+	{
+		auto& val = parent[key.c_str()];
+		if (val.IsInt()) return val.GetInt();
+	}
+	return defaultValue;
 }
 
 const GenericObject<false, Value> NXDeserializer::Object(const std::string& key)
@@ -98,6 +158,30 @@ const GenericObject<false, Value> NXDeserializer::Object(const std::string& key)
 const GenericArray<false, Value> NXDeserializer::Array(const std::string& key)
 {
 	return m_reader[key.c_str()].GetArray();
+}
+
+const GenericObject<true, Value> NXDeserializer::Object(const rapidjson::Value& parent, const std::string& key)
+{
+	if (parent.HasMember(key.c_str()))
+	{
+		auto& val = parent[key.c_str()];
+		if (val.IsObject()) return val.GetObject();
+	}
+
+	static const Value emptyObject(rapidjson::kObjectType);
+	return emptyObject.GetObject();
+}
+
+const GenericArray<true, Value> NXDeserializer::Array(const rapidjson::Value& parent, const std::string& key)
+{
+	if (parent.HasMember(key.c_str()))
+	{
+		auto& val = parent[key.c_str()];
+		if (val.IsArray()) return val.GetArray();
+	}
+	
+	static const Value emptyArray(rapidjson::kArrayType);
+	return emptyArray.GetArray();
 }
 
 bool NXDeserializer::LoadFromFile(const std::filesystem::path& path)

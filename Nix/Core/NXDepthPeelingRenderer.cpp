@@ -2,6 +2,7 @@
 #include "DirectResources.h"
 #include "ShaderComplier.h"
 #include "NXRenderStates.h"
+#include "NXSamplerStates.h"
 
 #include "NXBRDFlut.h"
 #include "GlobalBufferManager.h"
@@ -46,10 +47,6 @@ void NXDepthPeelingRenderer::Init()
 	m_pRasterizerStateBack = NXRasterizerState<D3D11_FILL_SOLID, D3D11_CULL_FRONT>::Create();
 	m_pBlendState = NXBlendState<false, false, true, D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA>::Create();
 	m_pBlendStateOpaque = NXBlendState<>::Create();
-
-	m_pSamplerLinearWrap.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP>::Create());
-	m_pSamplerLinearClamp.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP>::Create());
-	m_pSamplerPointClamp.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP>::Create());
 
 	InitConstantBuffer();
 }
@@ -119,9 +116,12 @@ void NXDepthPeelingRenderer::Render()
 
 		g_pContext->IASetInputLayout(m_pInputLayout.Get());
 
-		g_pContext->PSSetSamplers(0, 1, m_pSamplerLinearWrap.GetAddressOf());
-		g_pContext->PSSetSamplers(1, 1, m_pSamplerLinearClamp.GetAddressOf());
-		g_pContext->PSSetSamplers(2, 1, m_pSamplerPointClamp.GetAddressOf());
+		auto pSampler = NXSamplerManager::Get(NXSamplerFilter::Linear, NXSamplerAddressMode::Wrap);
+		g_pContext->PSSetSamplers(0, 1, &pSampler);
+		pSampler = NXSamplerManager::Get(NXSamplerFilter::Linear, NXSamplerAddressMode::Clamp);
+		g_pContext->PSSetSamplers(1, 1, &pSampler);
+		pSampler = NXSamplerManager::Get(NXSamplerFilter::Point, NXSamplerAddressMode::Clamp);
+		g_pContext->PSSetSamplers(2, 1, &pSampler);
 
 		g_pContext->VSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
 		g_pContext->PSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
@@ -189,7 +189,8 @@ void NXDepthPeelingRenderer::Render()
 
 	g_pContext->IASetInputLayout(m_pInputLayoutCombine.Get());
 
-	g_pContext->PSSetSamplers(0, 1, m_pSamplerPointClamp.GetAddressOf());
+	auto pSampler = NXSamplerManager::Get(NXSamplerFilter::Point, NXSamplerAddressMode::Clamp);
+	g_pContext->PSSetSamplers(0, 1, &pSampler);
 
 	auto pRTVMainScene = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_MainScene)->GetRTV();
 	g_pContext->OMSetRenderTargets(1, &pRTVMainScene, nullptr);

@@ -1,4 +1,5 @@
 #include "NXGUIWorkspace.h"
+#include "NXFileSystemHelper.h"
 
 void NXGUIWorkspace::Init()
 {

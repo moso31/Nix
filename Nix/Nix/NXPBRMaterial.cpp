@@ -9,7 +9,7 @@
 #include "ShaderComplier.h"
 #include "NXHLSLGenerator.h"
 #include "GlobalBufferManager.h"
-#include "NXGlobalSamplerStates.h"
+#include "NXSamplerStates.h"
 #include "NXGUIMaterial.h"
 #include "NXGUICommon.h"
 
@@ -73,7 +73,7 @@ void NXEasyMaterial::Render()
 	ID3D11ShaderResourceView* pSRV = m_pTexture->GetSRV();
 	if (pSRV) g_pContext->PSSetShaderResources(1, 1, &pSRV);
 
-	ID3D11SamplerState* pSampler = NXGlobalSamplerStates::LinearWrap();
+	ID3D11SamplerState* pSampler = NXSamplerManager::Get(NXSamplerFilter::Linear, NXSamplerAddressMode::Wrap);
 	if (pSampler) g_pContext->PSSetSamplers(0, 1, &pSampler);
 
 	g_pContext->PSSetConstantBuffers(3, 1, m_cb.GetAddressOf());
@@ -172,42 +172,7 @@ void NXCustomMaterial::InitShaderResources()
 	// 反序列化
 	Deserialize();
 
-	for (auto& ssInfo : m_samplerInfos)
-	{
-		if (ssInfo.filterType == NXGUIFilterType::Point)
-		{
-			switch (ssInfo.addressModeType)
-			{
-			case NXGUIAddressModeType::Wrap: ssInfo.pSampler = NXGlobalSamplerStates::PointWrap(); break;
-			case NXGUIAddressModeType::Mirror: ssInfo.pSampler = NXGlobalSamplerStates::PointMirror(); break;
-			case NXGUIAddressModeType::Clamp: ssInfo.pSampler = NXGlobalSamplerStates::PointClamp(); break;
-			default: ssInfo.pSampler = nullptr; break;
-			}
-		}
-
-		if (ssInfo.filterType == NXGUIFilterType::Linear)
-		{
-			switch (ssInfo.addressModeType)
-			{
-			case NXGUIAddressModeType::Wrap: ssInfo.pSampler = NXGlobalSamplerStates::LinearWrap(); break;
-			case NXGUIAddressModeType::Mirror: ssInfo.pSampler = NXGlobalSamplerStates::LinearMirror(); break;
-			case NXGUIAddressModeType::Clamp: ssInfo.pSampler = NXGlobalSamplerStates::LinearClamp(); break;
-			default: ssInfo.pSampler = nullptr; break;
-			}
-		}
-
-		if (ssInfo.filterType == NXGUIFilterType::Anisotropic)
-		{
-			switch (ssInfo.addressModeType)
-			{
-			case NXGUIAddressModeType::Wrap: ssInfo.pSampler = NXGlobalSamplerStates::AnisoWrap(); break;
-			case NXGUIAddressModeType::Mirror: ssInfo.pSampler = NXGlobalSamplerStates::AnisoMirror(); break;
-			case NXGUIAddressModeType::Clamp: ssInfo.pSampler = NXGlobalSamplerStates::AnisoClamp(); break;
-			default: ssInfo.pSampler = nullptr; break;
-			}
-		}
-	}
-
+	// 请求更新一次CBufferData
 	RequestUpdateCBufferData();
 }
 
@@ -294,11 +259,8 @@ void NXCustomMaterial::Render()
 
 	for (auto& ssInfo : m_samplerInfos)
 	{
-		if (ssInfo.slotIndex)
-		{
-			if (ssInfo.pSampler) 
-				g_pContext->PSSetSamplers(ssInfo.slotIndex, 1, &ssInfo.pSampler);
-		}
+		auto pSampler = NXSamplerManager::Get(ssInfo.filter, ssInfo.addressU, ssInfo.addressV, ssInfo.addressW);
+		g_pContext->PSSetSamplers(ssInfo.slotIndex, 1, &pSampler);
 	}
 
 	g_pContext->PSSetConstantBuffers(m_cbInfo.slotIndex, 1, m_cb.GetAddressOf());
@@ -445,8 +407,10 @@ void NXCustomMaterial::Serialize()
 		serializer.StartObject();
 		serializer.String("name", ssInfo.name);
 		serializer.Uint("slotIndex", ssInfo.slotIndex);
-		serializer.Int("filter", (int)ssInfo.filterType);
-		serializer.Int("address", (int)ssInfo.addressModeType);
+		serializer.Int("filter", (int)ssInfo.filter);
+		serializer.Int("addressU", (int)ssInfo.addressU);
+		serializer.Int("addressV", (int)ssInfo.addressV);
+		serializer.Int("addressW", (int)ssInfo.addressW);
 		serializer.EndObject();
 	}
 	serializer.EndArray();
@@ -489,15 +453,13 @@ void NXCustomMaterial::Deserialize()
 			auto texArray = deserializer.Array("textures");
 			for (auto& tex : texArray)
 			{
-				auto objName = tex.GetObj().FindMember("name")->value.GetString();
-				auto objPath = tex.GetObj().FindMember("path")->value.GetString();
+				auto objName = deserializer.String(tex, "name");
+				auto objPath = deserializer.String(tex, "path");
+
 				auto texInfo = std::find_if(m_texInfos.begin(), m_texInfos.end(), [objName](const NXMaterialTextureInfo& texInfo) { return texInfo.name == objName; });
+				if (texInfo == m_texInfos.end()) continue;
 
-				if (tex.GetObj().HasMember("guiType"))
-					texInfo->guiType = (NXGUITextureType)tex.GetObj().FindMember("guiType")->value.GetInt();
-				else
-					texInfo->guiType = NXGUITextureType::Unknown;
-
+				texInfo->guiType = (NXGUITextureType)deserializer.Int(tex, "guiType", (int)NXGUITextureType::Unknown);
 				SetTexture(texInfo->pTexture, objPath);
 			}
 
@@ -505,33 +467,26 @@ void NXCustomMaterial::Deserialize()
 			auto ssArray = deserializer.Array("samplers");
 			for (auto& ss : ssArray)
 			{
-				auto objName = ss.GetObj().FindMember("name")->value.GetString();
-
-				int filter = -1;
-				if (ss.GetObj().HasMember("filter"))
-					filter = ss.GetObj().FindMember("filter")->value.GetInt();
-
-				int address = -1;
-				if (ss.GetObj().HasMember("addressMode"))
-					address = ss.GetObj().FindMember("addressMode")->value.GetInt();
+				auto objName = deserializer.String(ss, "name");
 			}
 
 			// cbuffer
 			auto cbArray = deserializer.Array("cbuffer");
 			for (auto& cb : cbArray)
 			{
-				auto objName = cb.GetObj().FindMember("name")->value.GetString();
+				auto objName = deserializer.String(cb, "name");
 
 				for (int i = 0; i < m_cbInfo.elems.size(); i++)
 				{
 					auto& cbElem = m_cbInfo.elems[i];
 					if (cbElem.name == objName)
 					{
-						auto objType = cb.GetObj().FindMember("type")->value.GetInt();
+						auto objType = deserializer.Int(cb, "type", (int)NXCBufferInputType::Float);
 						if (cbElem.type == objType)
 						{
-							auto objGUIStyle = cb.GetObj().FindMember("guiStyle")->value.GetInt();
-							auto objValues = cb.GetObj().FindMember("values")->value.GetArray();
+							auto objGUIStyle = deserializer.Int(cb, "guiStyle", (int)NXGUICBufferStyle::Unknown);
+							auto objValues = deserializer.Array(cb, "values");
+							if (objValues.Empty()) continue;
 
 							cbElem.style = (NXGUICBufferStyle)objGUIStyle;
 							for (int j = 0; j < (int)cbElem.type; j++)
@@ -737,8 +692,25 @@ void NXCustomMaterial::ProcessShaderParameters(const std::string& nslParams, std
 			}
 			else if (type == "SamplerState")
 			{
-				// 【TODO：Sampler 的部分暂未实现，先指个 nullptr 凑合下】
-				m_samplerInfos.push_back({ name, nullptr, typeToRegisterIndex[type] });
+				NXSamplerFilter filter = NXSamplerFilter::Linear;
+				NXSamplerAddressMode addressU = NXSamplerAddressMode::Wrap;
+				NXSamplerAddressMode addressV = NXSamplerAddressMode::Wrap;
+				NXSamplerAddressMode addressW = NXSamplerAddressMode::Wrap;
+				if (!samplerDefaultValues.empty())
+				{
+					auto it = std::find_if(samplerDefaultValues.begin(), samplerDefaultValues.end(),
+						[&name, this](const NXGUISamplerData& samplerDisplay) { return samplerDisplay.name == name; }
+					);
+
+					if (it != samplerDefaultValues.end())
+					{
+						filter = it->filter;
+						addressU = it->addressU;
+						addressV = it->addressV;
+						addressW = it->addressW;
+					}
+				}
+				m_samplerInfos.push_back({ name, typeToRegisterIndex[type], filter, addressU, addressV, addressW });
 
 				out << typeToPrefix[type] << " " << name << " : register(" << typeToRegisterPrefix[type] << typeToRegisterIndex[type]++ << ")";
 				out << ";\n";

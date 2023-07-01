@@ -12,6 +12,7 @@
 #include "NXCubeMap.h"
 #include "NXDepthPrepass.h"
 #include "NXSimpleSSAO.h"
+#include "NXSamplerStates.h"
 
 Renderer::Renderer() :
 	m_pFinalRT(nullptr),
@@ -26,6 +27,7 @@ void Renderer::Init()
 
 	NXGlobalInputLayout::Init();
 	NXGlobalBufferManager::Init();
+	NXSamplerManager::Init();
 
 	// äÖÈ¾Æ÷
 	InitRenderer();

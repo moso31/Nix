@@ -6,6 +6,7 @@
 #include "ShaderComplier.h"
 #include "DirectResources.h"
 #include "NXRenderStates.h"
+#include "NXSamplerStates.h"
 #include "NXResourceManager.h"
 #include "DirectXTex.h"
 #include "NXConverter.h"
@@ -117,10 +118,8 @@ NXTextureCube* NXCubeMap::GenerateCubeMap(NXTexture2D* pTexHDR)
 {
 	g_pUDA->BeginEvent(L"Generate Cube Map");
 
-	// œ»¿Î∆¡‰÷»æCubeMap
-	ComPtr<ID3D11SamplerState> pSamplerState;
-	pSamplerState.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP>::Create());
-	g_pContext->PSSetSamplers(0, 1, pSamplerState.GetAddressOf());
+	auto pSampler = NXSamplerManager::Get(NXSamplerFilter::Linear, NXSamplerAddressMode::Clamp);
+	g_pContext->PSSetSamplers(0, 1, &pSampler);
 
 	const static float MapSize = 1024;
 	CD3D11_VIEWPORT vp(0.0f, 0.0f, MapSize, MapSize);
@@ -417,9 +416,8 @@ void NXCubeMap::GenerateIrradianceMap()
 {
 	g_pUDA->BeginEvent(L"Generate Irradiance Map");
 
-	ComPtr<ID3D11SamplerState> pSamplerState;
-	pSamplerState.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP>::Create());
-	g_pContext->PSSetSamplers(0, 1, pSamplerState.GetAddressOf());
+	auto pSampler = NXSamplerManager::Get(NXSamplerFilter::Linear, NXSamplerAddressMode::Wrap);
+	g_pContext->PSSetSamplers(0, 1, &pSampler);
 
 	const static float MapSize = 32.0f;
 	CD3D11_VIEWPORT vp(0.0f, 0.0f, MapSize, MapSize);
@@ -481,9 +479,8 @@ void NXCubeMap::GeneratePreFilterMap()
 {
 	g_pUDA->BeginEvent(L"Generate PreFilter Map");
 
-	ComPtr<ID3D11SamplerState> pSamplerState;
-	pSamplerState.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP>::Create());
-	g_pContext->PSSetSamplers(0, 1, pSamplerState.GetAddressOf());
+	auto pSampler = NXSamplerManager::Get(NXSamplerFilter::Linear, NXSamplerAddressMode::Wrap);
+	g_pContext->PSSetSamplers(0, 1, &pSampler);
 
 	const static float MapSize = 512.0f;
 	if (m_pTexPreFilterMap) m_pTexPreFilterMap->RemoveRef();
@@ -747,9 +744,8 @@ void NXCubeMap::GenerateIrradianceSHFromHDRI_Deprecated(NXTexture2D* pTexHDR)
 {
 	g_pUDA->BeginEvent(L"Generate Irradiance Map SH");
 
-	ComPtr<ID3D11SamplerState> pSamplerState;
-	pSamplerState.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP>::Create());
-	g_pContext->CSSetSamplers(0, 1, pSamplerState.GetAddressOf());
+	auto pSampler = NXSamplerManager::Get(NXSamplerFilter::Linear, NXSamplerAddressMode::Clamp);
+	g_pContext->CSSetSamplers(0, 1, &pSampler);
 
 	ComPtr<ID3D11Buffer> cbImageSize;
 	D3D11_BUFFER_DESC bufferDesc;

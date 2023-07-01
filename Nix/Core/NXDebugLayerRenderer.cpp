@@ -3,6 +3,7 @@
 #include "NXRenderTarget.h"
 #include "ShaderComplier.h"
 #include "NXRenderStates.h"
+#include "NXSamplerStates.h"
 #include "GlobalBufferManager.h"
 #include "NXResourceManager.h"
 #include "DirectResources.h"
@@ -25,8 +26,6 @@ void NXDebugLayerRenderer::Init()
 	m_pDepthStencilState = NXDepthStencilState<true, false, D3D11_COMPARISON_ALWAYS>::Create();
 	m_pRasterizerState = NXRasterizerState<>::Create();
 	m_pBlendState = NXBlendState<>::Create();
-
-	m_pSamplerPointClamp.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_POINT>::Create());
 
 	m_pRTQuad = new NXRenderTarget();
 	m_pRTQuad->Init();
@@ -77,7 +76,8 @@ void NXDebugLayerRenderer::Render()
 	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
 
-	g_pContext->PSSetSamplers(0, 1, m_pSamplerPointClamp.GetAddressOf());
+	auto pSampler = NXSamplerManager::Get(NXSamplerFilter::Point, NXSamplerAddressMode::Clamp);
+	g_pContext->PSSetSamplers(0, 1, &pSampler);
 	g_pContext->PSSetConstantBuffers(1, 1, m_cbParams.GetAddressOf());
 
 	NXTexture2D* pSceneInputTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_PostProcessing);

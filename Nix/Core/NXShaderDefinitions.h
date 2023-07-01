@@ -41,7 +41,7 @@ enum class NXGUITextureType
 	Unknown
 };
 
-enum class NXGUIFilterType
+enum class NXSamplerFilter
 {
 	Point,
 	Linear,
@@ -49,11 +49,13 @@ enum class NXGUIFilterType
 	Unknown
 };
 
-enum class NXGUIAddressModeType
+enum class NXSamplerAddressMode
 {
 	Wrap,
 	Mirror,
 	Clamp,
+	Border,
+	MirrorOnce,
 	Unknown
 };
 
@@ -82,10 +84,11 @@ struct NXMaterialTextureInfo
 struct NXMaterialSamplerInfo
 {
     std::string name;
-    ID3D11SamplerState* pSampler;
     UINT slotIndex;
-	NXGUIFilterType filterType;
-	NXGUIAddressModeType addressModeType;
+	NXSamplerFilter filter;
+	NXSamplerAddressMode addressU;
+	NXSamplerAddressMode addressV;
+	NXSamplerAddressMode addressW;
 };
 
 struct NXGUICBufferData
@@ -121,9 +124,10 @@ struct NXGUITextureData
 struct NXGUISamplerData
 {
 	std::string name;
-	NXGUIFilterType filterType;
-	NXGUIAddressModeType addressModeType;
-	ComPtr<ID3D11SamplerState> pSampler;
+	NXSamplerFilter filter;
+	NXSamplerAddressMode addressU;
+	NXSamplerAddressMode addressV;
+	NXSamplerAddressMode addressW;
 };
 
 extern const char* g_strCBufferGUIStyle[];

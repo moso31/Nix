@@ -211,9 +211,10 @@
     <ClCompile Include="Core\App.cpp" />
     <ClCompile Include="Core\DirectResources.cpp" />
     <ClCompile Include="Core\FBXMeshLoader.cpp" />
+    <ClCompile Include="Core\NXFileSystemHelper.cpp" />
     <ClCompile Include="Core\Global.cpp" />
     <ClCompile Include="Core\GlobalBufferManager.cpp" />
-    <ClCompile Include="Core\NXGlobalSamplerStates.cpp" />
+    <ClCompile Include="Core\NXSamplerStates.cpp" />
     <ClCompile Include="Core\NXGUIMaterialShaderEditor.cpp" />
     <ClCompile Include="Core\NXGUIView.cpp" />
     <ClCompile Include="Core\NXGUIWorkspace.cpp" />
@@ -230,7 +231,6 @@
     <ClCompile Include="Core\NXDXHelper.cpp" />
     <ClCompile Include="Core\NXEditorObjectRenderer.cpp" />
     <ClCompile Include="Core\NXEvent.cpp" />
-    <ClCompile Include="Core\NXFinalRenderer.cpp" />
     <ClCompile Include="Core\NXForwardRenderer.cpp" />
     <ClCompile Include="Core\NXGBufferRenderer.cpp" />
     <ClCompile Include="Core\NXGUI.cpp" />
@@ -293,9 +293,10 @@
     <ClInclude Include="Core\App.h" />
     <ClInclude Include="Core\DirectResources.h" />
     <ClInclude Include="Core\FBXMeshLoader.h" />
+    <ClInclude Include="Core\NXFileSystemHelper.h" />
     <ClInclude Include="Core\GlobalBufferManager.h" />
     <ClInclude Include="Core\Header.h" />
-    <ClInclude Include="Core\NXGlobalSamplerStates.h" />
+    <ClInclude Include="Core\NXSamplerStates.h" />
     <ClInclude Include="Core\NXGUIMaterialShaderEditor.h" />
     <ClInclude Include="Core\NXGUIView.h" />
     <ClInclude Include="Core\NXGUIWorkspace.h" />
@@ -311,7 +312,6 @@
     <ClInclude Include="Core\NXDXHelper.h" />
     <ClInclude Include="Core\NXEditorObjectRenderer.h" />
     <ClInclude Include="Core\NXEvent.h" />
-    <ClInclude Include="Core\NXFinalRenderer.h" />
     <ClInclude Include="Core\NXForwardRenderer.h" />
     <ClInclude Include="Core\NXGBufferRenderer.h" />
     <ClInclude Include="Core\NXGUI.h" />

@@ -1,6 +1,7 @@
 #include "NXDepthPrepass.h"
 #include "ShaderComplier.h"
 #include "NXRenderStates.h"
+#include "NXSamplerStates.h"
 #include "GlobalBufferManager.h"
 #include "DirectResources.h"
 #include "NXResourceManager.h"
@@ -22,8 +23,6 @@ void NXDepthPrepass::Init()
 {
 	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\DepthPrepass.fx", "VS", &m_pVertexShader, NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), &m_pInputLayout);
 	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\DepthPrepass.fx", "PS", &m_pPixelShader);
-
-	m_pSamplerLinearWrap.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP>::Create());
 }
 
 void NXDepthPrepass::OnResize(const Vector2& rtSize)
@@ -55,7 +54,9 @@ void NXDepthPrepass::Render()
 
 	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
-	g_pContext->PSSetSamplers(0, 1, m_pSamplerLinearWrap.GetAddressOf());
+
+	auto pSampler = NXSamplerManager::Get(NXSamplerFilter::Linear, NXSamplerAddressMode::Clamp);
+	g_pContext->PSSetSamplers(0, 1, &pSampler);
 
 	// ªÊ÷∆ DepthPrepass
 	// 2023.6.4: ‘› ±Õ£”√

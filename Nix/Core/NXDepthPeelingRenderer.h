@@ -35,10 +35,6 @@ private:
 	ComPtr<ID3D11BlendState>			m_pBlendState;
 	ComPtr<ID3D11BlendState>			m_pBlendStateOpaque;
 
-	ComPtr<ID3D11SamplerState>			m_pSamplerLinearWrap;
-	ComPtr<ID3D11SamplerState>			m_pSamplerLinearClamp;
-	ComPtr<ID3D11SamplerState>			m_pSamplerPointClamp;
-
 	NXTexture2D*						m_pSceneDepth[2];
 	std::vector<NXTexture2D*>			m_pSceneRT;
 	NXTexture2D*						m_pSceneCombineRT;

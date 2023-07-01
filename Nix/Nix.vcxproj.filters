@@ -330,9 +330,6 @@
     <ClCompile Include="Core\NXSkyRenderer.cpp">
       <Filter>Core\DirectX\Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="Core\NXFinalRenderer.cpp">
-      <Filter>Core\DirectX\Renderer</Filter>
-    </ClCompile>
     <ClCompile Include="Core\NXColorMappingRenderer.cpp">
       <Filter>Core\DirectX\Renderer</Filter>
     </ClCompile>
@@ -438,8 +435,11 @@
     <ClCompile Include="Core\NXGUIWorkspace.cpp">
       <Filter>Core\UI</Filter>
     </ClCompile>
-    <ClCompile Include="Core\NXGlobalSamplerStates.cpp">
+    <ClCompile Include="Core\NXSamplerStates.cpp">
       <Filter>Core\DirectX</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXFileSystemHelper.cpp">
+      <Filter>Core\Helper</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -584,9 +584,6 @@
     <ClInclude Include="Core\NXSkyRenderer.h">
       <Filter>Core\DirectX\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="Core\NXFinalRenderer.h">
-      <Filter>Core\DirectX\Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="Core\NXColorMappingRenderer.h">
       <Filter>Core\DirectX\Renderer</Filter>
     </ClInclude>
@@ -698,8 +695,11 @@
     <ClInclude Include="Core\NXGUIWorkspace.h">
       <Filter>Core\UI</Filter>
     </ClInclude>
-    <ClInclude Include="Core\NXGlobalSamplerStates.h">
+    <ClInclude Include="Core\NXSamplerStates.h">
       <Filter>Core\DirectX</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXFileSystemHelper.h">
+      <Filter>Core\Helper</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
