@@ -576,7 +576,7 @@ void NXGUIMaterialShaderEditor::Render_Params_SamplerItem(const int strId, NXCus
 	using namespace NXGUICommon;
 	ImGui::PushID(strId);
 	{
-		ImGui::PushItemWidth(200.0f);
+		ImGui::PushItemWidth(100.0f);
 		const static char* filterTypes[] = { "Point", "Linear", "Anisotropic" };
 		if (ImGui::BeginCombo("Filter##material_shader_editor_sampler_combo", filterTypes[(int)ssDisplay.filter]))
 		{
@@ -592,7 +592,7 @@ void NXGUIMaterialShaderEditor::Render_Params_SamplerItem(const int strId, NXCus
 		}
 		ImGui::PopItemWidth();
 
-		std::string strBtn = GetAddressModeText("x", "x", "x") + "##material_shader_editor_sampler_btn_addrmode";
+		std::string strBtn = GetAddressModeText(ssDisplay.addressU, ssDisplay.addressV, ssDisplay.addressW) + "##material_shader_editor_sampler_btn_addrmode";
 		if (ImGui::Button(strBtn.c_str()))
 		{
 			ImGui::OpenPopup("##material_shader_editor_sampler_btn_addrmode_popup");
@@ -600,7 +600,18 @@ void NXGUIMaterialShaderEditor::Render_Params_SamplerItem(const int strId, NXCus
 
 		if (ImGui::BeginPopup("##material_shader_editor_sampler_btn_addrmode_popup"))
 		{
+			ImGui::PushItemWidth(80.0f);
+
 			const static char* addressModes[] = { "Wrap", "Mirror", "Clamp" };
+			if (ImGui::Button("Switch Address Mode##material_shader_editor_sampler_btn_switch"))
+			{
+				static int addressMode = 0;
+				addressMode = (addressMode + 1) % 3;
+				ssDisplay.addressU = (NXSamplerAddressMode)addressMode;
+				ssDisplay.addressV = (NXSamplerAddressMode)addressMode;
+				ssDisplay.addressW = (NXSamplerAddressMode)addressMode;
+			}
+
 			if (ImGui::BeginCombo("Address U##material_shader_editor_sampler_combo_u", addressModes[(int)ssDisplay.addressU]))
 			{
 				for (int item = 0; item < IM_ARRAYSIZE(addressModes); item++)
@@ -639,13 +650,9 @@ void NXGUIMaterialShaderEditor::Render_Params_SamplerItem(const int strId, NXCus
 				}
 				ImGui::EndCombo();
 			}
-
-			if (ImGui::Button("Switch##material_shader_editor_sampler_btn_switch"))
-			{
-
-			}
-
 			ImGui::EndPopup();
+
+			ImGui::PopItemWidth();
 		}
 	}
 	ImGui::PopID();
@@ -775,17 +782,17 @@ bool NXGUIMaterialShaderEditor::FindCBGUIData(const std::string& name, std::vect
 	return oIterator != m_cbInfosDisplay.end();
 }
 
-std::string NXGUIMaterialShaderEditor::GetAddressModeText(const std::string& strU, const std::string& strV, const std::string& strW)
+std::string NXGUIMaterialShaderEditor::GetAddressModeText(const NXSamplerAddressMode addrU, const NXSamplerAddressMode addrV, const NXSamplerAddressMode addrW)
 {
 	std::string strAddressMode = "Address mode: ";
 
-	if (strU == "Wrap" && strV == "Wrap" && strW == "Wrap")
+	if (addrU == NXSamplerAddressMode::Wrap && addrV == NXSamplerAddressMode::Wrap && addrW == NXSamplerAddressMode::Wrap)
 		strAddressMode += "Wrap";
-	else if (strU == "Clamp" && strV == "Clamp" && strW == "Clamp")
+	else if (addrU == NXSamplerAddressMode::Clamp && addrV == NXSamplerAddressMode::Clamp && addrW == NXSamplerAddressMode::Clamp)
 		strAddressMode += "Clamp";
-	else if (strU == "Mirror" && strV == "Mirror" && strW == "Mirror")
+	else if (addrU == NXSamplerAddressMode::Mirror && addrV == NXSamplerAddressMode::Mirror && addrW == NXSamplerAddressMode::Mirror)
 		strAddressMode += "Mirror";
-	else if (strU == "Border" && strV == "Border" && strW == "Border")
+	else if (addrU == NXSamplerAddressMode::Border && addrV == NXSamplerAddressMode::Border && addrW == NXSamplerAddressMode::Border)
 		strAddressMode += "Border";
 	else
 		strAddressMode += "Mixed";

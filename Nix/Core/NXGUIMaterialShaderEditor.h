@@ -87,7 +87,7 @@ private:
 	void UpdateNSLFunctionsDisplay();
 
 	bool FindCBGUIData(const std::string& name, std::vector<NXGUICBufferData>::iterator& oIterator);
-	std::string GetAddressModeText(const std::string& strU, const std::string& strV, const std::string& strW);
+	std::string GetAddressModeText(const NXSamplerAddressMode addrU, const NXSamplerAddressMode addrV, const NXSamplerAddressMode addrW);
 
 private:
 	std::once_flag m_onceFlag; // 用于单例初始化
