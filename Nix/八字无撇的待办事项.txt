@@ -68,13 +68,16 @@ Last Issue ID : 46
 
 46. MaterialShaderEditor迭代更新(v1.0.0->v1.1.0)：
 	1. Revert无法重置常量的值。
-		1+. 取消Revert的逻辑，改成不保存，关闭MSE重新打开，就会Revert。
-	2. Save按钮也应该加入MSE。
-	3. 将cb部分的Value值转换成Value2，然后重新编译nsl，DX会报错（疑似对齐算法有问题）
+		1+. Revert进一步细分，每个参数都有一个独立的Revert。
+	2. Save按钮从Material移动到MSE。
+	3. 将cb部分的Value值转换成Value2，然后重新编译nsl，DX会报错（疑似对齐算法有问题）[未复现]
 	4. Sampler还没实现。目前看加一个Type选项，并跟上配套内容就足够。[done]
 	5. 在Add Param的右侧增加搜索，运行按类型搜索、按名称搜索。
 	6. 代码文本显示部分认怂，换成使用第三方TextEditor。
 	7. 解决nsl编译错误的行/列号显示不准的问题
+	8. Add Param增加Sampler选项。
+	9. NXGUICBufferData.params 相关的控制逻辑一直就没加，需要增加UI逻辑。
+	10. (未确定) "|< < > >|" 合并成一个拖动的逻辑？
 
 【较大的长期模块、探索】
 13. 场景文件化，可保存、加载

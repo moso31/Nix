@@ -161,6 +161,9 @@ void NXGUIMaterial::OnBtnEditShaderClicked(NXCustomMaterial* pMaterial)
 	// 将参数和nsl代码从 当前GUI材质类 中同步到 ShaderEditor
 	GetShaderEditor()->RequestSyncMaterialData();
 
+	// 并进行参数备份（revert功能要用）
+	GetShaderEditor()->RequestGenerateBackup();
+
 	GetShaderEditor()->Show();
 }
 

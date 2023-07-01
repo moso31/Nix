@@ -112,6 +112,10 @@ struct NXGUICBufferData
 	// 记录 原CB 的 memoryIndex
 	// 当 GUI 值变更的时候，使用此索引就能追溯材质中的源数据指针。
 	int memoryIndex;
+
+	// 记录 backup 的 index
+	// GUI Revert 时使用此值回复
+	int backupIndex = -1;
 };
 
 struct NXGUITextureData
@@ -119,6 +123,8 @@ struct NXGUITextureData
 	std::string name;
 	NXGUITextureType texType;
 	NXTexture* pTexture;
+
+	int backupIndex = -1;
 };
 
 struct NXGUISamplerData
@@ -128,6 +134,8 @@ struct NXGUISamplerData
 	NXSamplerAddressMode addressU;
 	NXSamplerAddressMode addressV;
 	NXSamplerAddressMode addressW;
+
+	int backupIndex = -1;
 };
 
 extern const char* g_strCBufferGUIStyle[];

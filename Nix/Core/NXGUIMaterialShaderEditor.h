@@ -41,6 +41,7 @@ public:
 			pInstance->m_pGUIMaterial = nullptr; 
 			pInstance->m_pFileBrowser = nullptr; 
 			pInstance->m_bIsDirty = false;
+			pInstance->m_bNeedBackup = false;
 			});
 		return pInstance;
 	}
@@ -59,6 +60,7 @@ public:
 	void SetGUIFileBrowser(NXGUIFileBrowser* pGUIFileBrowser);
 
 	void RequestSyncMaterialData();
+	void RequestGenerateBackup();
 
 private:
 	void OnBtnNewFunctionClicked(NXCustomMaterial* pMaterial);
@@ -66,18 +68,19 @@ private:
 
 	void OnBtnAddParamClicked(NXCustomMaterial* pMaterial, NXGUICBufferStyle guiStyle);
 	void OnBtnAddTextureClicked(NXCustomMaterial* pMaterial);
-	void OnBtnRevertClicked();
+	void OnBtnRevertClicked(NXCustomMaterial* pMaterial);
 	void OnBtnRemoveParamClicked(BtnParamType btnParamType, int index);
 	void OnBtnMoveParamToPrevClicked(BtnParamType btnParamType, int index);
 	void OnBtnMoveParamToNextClicked(BtnParamType btnParamType, int index);
 	void OnBtnMoveParamToFirstClicked(BtnParamType btnParamType, int index);
 	void OnBtnMoveParamToLastClicked(BtnParamType btnParamType, int index);
+	void OnBtnRevertParamClicked(NXCustomMaterial* pMaterial, BtnParamType btnParamType, int index);
 	void OnBtnCompileClicked(NXCustomMaterial* pMaterial);
 	void OnComboGUIStyleChanged(int selectIndex, NXGUICBufferData& cbDisplayData);
 
 	void Render_Code(NXCustomMaterial* pMaterial);
 	void Render_Params(NXCustomMaterial* pMaterial);
-	void Render_Params_ResourceOps(const std::string& strNameId, BtnParamType btnParamType, int cbIndex);
+	void Render_Params_ResourceOps(const std::string& strNameId, NXCustomMaterial* pMaterial, BtnParamType btnParamType, int cbIndex);
 	void Render_Params_CBufferItem(const std::string& strId, NXCustomMaterial* pMaterial, NXGUICBufferData& cbDisplay);
 	void Render_Params_TextureItem(const int strId, NXCustomMaterial* pMaterial, NXGUITextureData& texDisplay, int texIndex);
 	void Render_Params_SamplerItem(const int strId, NXCustomMaterial* pMaterial, NXGUISamplerData& ssDisplay, int ssIndex);
@@ -88,6 +91,8 @@ private:
 
 	bool FindCBGUIData(const std::string& name, std::vector<NXGUICBufferData>::iterator& oIterator);
 	std::string GetAddressModeText(const NXSamplerAddressMode addrU, const NXSamplerAddressMode addrV, const NXSamplerAddressMode addrW);
+
+	void GenerateBackupData();
 
 private:
 	std::once_flag m_onceFlag; // 用于单例初始化
@@ -105,8 +110,13 @@ private:
 	std::vector<NXGUITextureData> m_texInfosDisplay;
 	std::vector<NXGUISamplerData> m_ssInfosDisplay;
 
+	std::vector<NXGUICBufferData> m_cbInfosDisplayBackup;
+	std::vector<NXGUITextureData> m_texInfosDisplayBackup;
+	std::vector<NXGUISamplerData> m_ssInfosDisplayBackup;
+
 	// 显示Shader的错误信息
 	NXGUIShaderErrorMessage m_shaderErrMsgs[NXGUI_ERROR_MESSAGE_MAXLIMIT];
 
 	bool m_bIsDirty;
+	bool m_bNeedBackup;
 };
