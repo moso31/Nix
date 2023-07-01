@@ -9,7 +9,14 @@ void NXGUIWorkspace::Init()
     m_strMode = "(Release Mode)";
 #endif
 
-    m_strVersion = "Nix Rendering Frame, version 2023.06.03";
+    using namespace std::chrono;
+    year_month_day latestTime(year(2023), month(6), day(3));
+    year_month_day lastFileModifiedTime = NXFilesystemHelper::GetLatestFileModifiedTime(".\\");
+    const year_month_day& versionTime(lastFileModifiedTime > latestTime ? lastFileModifiedTime : latestTime);
+
+    m_strVersion = "Nix Rendering Frame, version " + 
+        std::to_string((int)versionTime.year()) + "." + std::to_string((unsigned)versionTime.month()) + "." + std::to_string((unsigned)versionTime.day());
+
 }
 
 void NXGUIWorkspace::Render()

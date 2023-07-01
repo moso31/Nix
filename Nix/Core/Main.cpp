@@ -172,6 +172,7 @@ HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow)
 	return S_OK;
 }
 
+#include "NXFileSystemHelper.h"
 int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 {
 #if defined(DEBUG) | defined(_DEBUG)
@@ -184,7 +185,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	// 加载应用程序的核心组件和资源
 	if (FAILED(InitWindow(hInstance, nCmdShow)))
 		return 0;
-
+	auto t = NXFilesystemHelper::GetLatestFileModifiedTime(".\\");
 	// 创建一个事件，用于通知闪屏线程退出
 	HANDLE exitEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr);
 

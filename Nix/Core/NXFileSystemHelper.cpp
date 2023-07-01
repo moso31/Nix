@@ -1,26 +1,28 @@
 #include "NXFilesystemHelper.h"
-#include <filesystem>
 
-std::chrono::system_clock::time_point NXFilesystemHelper::get_latest_file_modification_time(const std::filesystem::path& dir_path)
+std::chrono::year_month_day NXFilesystemHelper::GetLatestFileModifiedTime(const std::filesystem::path& directoryPath)
 {
-    //namespace fs = std::filesystem;
+    namespace fs = std::filesystem;
+    using namespace std::chrono;
 
-    //if (!fs::exists(dir_path) || !fs::is_directory(dir_path)) 
-    //    throw std::runtime_error("Error: Not a valid directory.");
+    if (!fs::exists(directoryPath) || !fs::is_directory(directoryPath))
+        throw std::runtime_error("Error: Not a valid directory.");
 
-    //std::chrono::system_clock::time_point latest_modification_time;
-    //for (const auto& entry : fs::directory_iterator(dir_path)) 
-    //{
-    //    if (fs::is_regular_file(entry.path())) 
-    //    {
-    //        auto current_modification_time = fs::last_write_time(entry);
-    //        auto current_modification_time_system_clock = std::chrono::time_point_cast<std::chrono::system_clock::duration>(current_modification_time);
+    // 获取最后写入时间，文件夹下所有文件取最新
+    std::filesystem::file_time_type lastModifyTime;
+    for (const auto& entry : fs::directory_iterator(directoryPath))
+    {
+        if (fs::is_regular_file(entry.path())) 
+        {
+            auto lastWriteTime = fs::last_write_time(entry.path());
+            if (lastWriteTime > lastModifyTime)
+				lastModifyTime = lastWriteTime;
+        }
+    }
 
-    //        if (current_modification_time_system_clock > latest_modification_time) {
-    //            latest_modification_time = current_modification_time_system_clock;
-    //        }
-    //    }
-    //}
+    // 转换为std::chrono::system_clock::time_point
+    auto sys_time = time_point_cast<system_clock::duration>(lastModifyTime - std::filesystem::file_time_type::clock::now() + system_clock::now());
 
-    return latest_modification_time;
+    // 转换为std::chrono::year_month_day
+    return year_month_day(floor<days>(sys_time));
 }
