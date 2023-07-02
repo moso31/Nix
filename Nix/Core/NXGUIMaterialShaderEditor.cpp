@@ -103,9 +103,10 @@ void NXGUIMaterialShaderEditor::OnBtnAddTextureClicked(NXCustomMaterial* pMateri
 	RequestGenerateBackup();
 }
 
-void NXGUIMaterialShaderEditor::OnBtnRevertClicked(NXCustomMaterial* pMaterial)
+void NXGUIMaterialShaderEditor::OnBtnAddSamplerClicked(NXCustomMaterial* pMaterial)
 {
-	RequestSyncMaterialData();
+	m_ssInfosDisplay.push_back({ "newSampler", NXSamplerFilter::Linear, NXSamplerAddressMode::Wrap, NXSamplerAddressMode::Wrap, NXSamplerAddressMode::Wrap });
+	RequestGenerateBackup();
 }
 
 void NXGUIMaterialShaderEditor::OnBtnRemoveParamClicked(BtnParamType btnParamType, int index)
@@ -164,7 +165,21 @@ void NXGUIMaterialShaderEditor::OnBtnRevertParamClicked(NXCustomMaterial* pMater
 	{
 		int cbBackupIdx = m_cbInfosDisplay[index].backupIndex;
 		if (cbBackupIdx != -1)
+		{
 			m_cbInfosDisplay[index] = m_cbInfosDisplayBackup[cbBackupIdx];
+
+			// 如果是 cb参数 revert，则还会实时更新材质的渲染状态
+			auto& cbDisplay = m_cbInfosDisplay[index];
+			if (cbDisplay.memoryIndex != -1) // 新加的 AddParam 在点编译按钮之前不应该传给参数
+			{
+				// 在这里将 GUI 修改过的参数传回给材质 CBuffer，实现视觉上的变化
+				UINT actualByteCount = cbDisplay.readType;
+				pMaterial->SetCBInfoMemoryData(cbDisplay.memoryIndex, actualByteCount, cbDisplay.data);
+
+				// 通知材质下一帧更新 CBuffer
+				pMaterial->RequestUpdateCBufferData();
+			}
+		}
 	}
 	else if (btnParamType == BtnParamType::Texture)
 	{
@@ -179,8 +194,6 @@ void NXGUIMaterialShaderEditor::OnBtnRevertParamClicked(NXCustomMaterial* pMater
 			m_ssInfosDisplay[index] = m_ssInfosDisplayBackup[ssBackupIdx];
 	}
 	else return;
-
-	pMaterial->RequestUpdateCBufferData();
 }
 
 void NXGUIMaterialShaderEditor::OnBtnCompileClicked(NXCustomMaterial* pMaterial)
@@ -203,6 +216,9 @@ void NXGUIMaterialShaderEditor::OnBtnCompileClicked(NXCustomMaterial* pMaterial)
 		pMaterial->RequestUpdateCBufferData();
 		m_pGUIMaterial->RequestSyncMaterialData();
 		RequestSyncMaterialData();
+
+		// 重新生成数据备份以用于Revert
+		RequestGenerateBackup();
 	}
 	else
 	{
@@ -341,10 +357,6 @@ void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
 	ImGui::PopStyleColor(); // btnCompile
 
 	ImGui::SameLine();
-	if (ImGui::Button("Revert##material_shader_editor_parameters_add", btnSize))
-		OnBtnRevertClicked(pMaterial);
-
-	ImGui::SameLine();
 	if (ImGui::Button("Add param##material_shader_editor_parameters_add", btnSize))
 		ImGui::OpenPopup("##material_shader_editor_add_param_popup");
 
@@ -367,6 +379,11 @@ void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
 		if (ImGui::MenuItem("Texture##material_shader_editor_add_param_popup_texture"))
 		{
 			OnBtnAddTextureClicked(pMaterial);
+		}
+
+		if (ImGui::MenuItem("Sampler##material_shader_editor_add_param_popup_sampler"))
+		{
+			OnBtnAddSamplerClicked(pMaterial);
 		}
 
 		ImGui::EndPopup();
@@ -485,6 +502,7 @@ void NXGUIMaterialShaderEditor::Render_Params_ResourceOps(const std::string& str
 	if (ImGui::Button(strNameIdRevert.c_str(), ImVec2(20.0f, 20.0f))) 
 	{
 		OnBtnRevertParamClicked(pMaterial, btnParamType, index);
+		pMaterial->RequestUpdateCBufferData();
 	}
 	ImGui::SameLine();
 }
@@ -651,10 +669,13 @@ void NXGUIMaterialShaderEditor::Render_Params_SamplerItem(const int strId, NXCus
 			if (ImGui::Button("Switch Address Mode##material_shader_editor_sampler_btn_switch"))
 			{
 				static int addressMode = 0;
-				addressMode = (addressMode + 1) % 3;
+				if ((int)ssDisplay.addressU == addressMode && (int)ssDisplay.addressV == addressMode && (int)ssDisplay.addressW == addressMode) 
+					addressMode++;
+
 				ssDisplay.addressU = (NXSamplerAddressMode)addressMode;
 				ssDisplay.addressV = (NXSamplerAddressMode)addressMode;
 				ssDisplay.addressW = (NXSamplerAddressMode)addressMode;
+				addressMode = (addressMode + 1) % 3;
 			}
 
 			if (ImGui::BeginCombo("Address U##material_shader_editor_sampler_combo_u", addressModes[(int)ssDisplay.addressU]))

@@ -68,7 +68,8 @@ private:
 
 	void OnBtnAddParamClicked(NXCustomMaterial* pMaterial, NXGUICBufferStyle guiStyle);
 	void OnBtnAddTextureClicked(NXCustomMaterial* pMaterial);
-	void OnBtnRevertClicked(NXCustomMaterial* pMaterial);
+	void OnBtnAddSamplerClicked(NXCustomMaterial* pMaterial);
+
 	void OnBtnRemoveParamClicked(BtnParamType btnParamType, int index);
 	void OnBtnMoveParamToPrevClicked(BtnParamType btnParamType, int index);
 	void OnBtnMoveParamToNextClicked(BtnParamType btnParamType, int index);
