@@ -1,6 +1,7 @@
 #include "NXGUIMaterialShaderEditor.h"
 #include "NXGUIMaterial.h"
 #include "NXGUICommon.h"
+#include "NXGUICodeEditor.h"
 #include "NXPBRMaterial.h"
 #include "NXConverter.h"
 #include <regex>
@@ -259,6 +260,11 @@ void NXGUIMaterialShaderEditor::SetGUIMaterial(NXGUIMaterial* pGUIMaterial)
 void NXGUIMaterialShaderEditor::SetGUIFileBrowser(NXGUIFileBrowser* pGUIFileBrowser)
 {
 	m_pFileBrowser = pGUIFileBrowser;
+}
+
+void NXGUIMaterialShaderEditor::SetGUICodeEditor(NXGUICodeEditor* pGUICodeEditor)
+{
+	m_pGUICodeEditor = pGUICodeEditor;
 }
 
 void NXGUIMaterialShaderEditor::RequestSyncMaterialData()

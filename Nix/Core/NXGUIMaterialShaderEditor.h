@@ -26,6 +26,7 @@ struct NXGUIFuncItem
 
 class NXGUIMaterial;
 class NXGUIFileBrowser;
+class NXGUICodeEditor;
 class NXGUIMaterialShaderEditor : public NXInstance<NXGUIMaterialShaderEditor>
 {
 private:
@@ -43,6 +44,7 @@ public:
 
 	void SetGUIMaterial(NXGUIMaterial* pGUIMaterial);
 	void SetGUIFileBrowser(NXGUIFileBrowser* pGUIFileBrowser);
+	void SetGUICodeEditor(NXGUICodeEditor* pGUICodeEditor);
 
 	void RequestSyncMaterialData();
 	void RequestGenerateBackup();
@@ -85,6 +87,7 @@ private:
 	bool m_bShowWindow = false;
 	NXGUIMaterial* m_pGUIMaterial = nullptr;
 	NXGUIFileBrowser* m_pFileBrowser = nullptr;
+	NXGUICodeEditor* m_pGUICodeEditor = nullptr;
 
 	std::string m_nslCode;
 	std::vector<std::string> m_nslFuncs;
