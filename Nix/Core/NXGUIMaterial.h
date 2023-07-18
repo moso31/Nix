@@ -3,12 +3,13 @@
 #include "NXGUIFileBrowser.h"
 #include "NXShaderDefinitions.h"
 
+class NXGUICodeEditor;
 struct NXGUIAssetDragData;
 class NXGUIMaterialShaderEditor;
 class NXGUIMaterial
 {
 public:
-	NXGUIMaterial(NXScene* pScene = nullptr, NXGUIFileBrowser* pFileBrowser = nullptr);
+	NXGUIMaterial(NXScene* pScene = nullptr, NXGUIFileBrowser* pFileBrowser = nullptr, NXGUICodeEditor* pCodeEditor = nullptr);
 	~NXGUIMaterial() {}
 
 	void SetCurrentScene(NXScene* pScene) { m_pCurrentScene = pScene; }
@@ -38,6 +39,7 @@ private:
 	NXScene* m_pCurrentScene;
 
 	NXGUIFileBrowser* m_pFileBrowser;
+	NXGUICodeEditor* m_pCodeEditor;
 
 	// 材质 Inspector 面板不需要显示 Sampler
 	std::vector<NXGUICBufferData> m_cbInfosDisplay;

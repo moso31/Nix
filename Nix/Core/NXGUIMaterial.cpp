@@ -6,9 +6,10 @@
 #include "NXGUIContentExplorer.h"
 #include "NXGUIMaterialShaderEditor.h"
 
-NXGUIMaterial::NXGUIMaterial(NXScene* pScene, NXGUIFileBrowser* pFileBrowser) :
+NXGUIMaterial::NXGUIMaterial(NXScene* pScene, NXGUIFileBrowser* pFileBrowser, NXGUICodeEditor* pCodeEditor) :
 	m_pCurrentScene(pScene),
 	m_pFileBrowser(pFileBrowser),
+	m_pCodeEditor(pCodeEditor),
 	m_pLastMaterial(nullptr),
 	m_bIsDirty(false)
 {
@@ -157,6 +158,7 @@ void NXGUIMaterial::OnBtnEditShaderClicked(NXCustomMaterial* pMaterial)
 {
 	GetShaderEditor()->SetGUIMaterial(this);
 	GetShaderEditor()->SetGUIFileBrowser(m_pFileBrowser);
+	GetShaderEditor()->SetGUICodeEditor(m_pCodeEditor);
 
 	// 将参数和nsl代码从 当前GUI材质类 中同步到 ShaderEditor
 	GetShaderEditor()->RequestSyncMaterialData();

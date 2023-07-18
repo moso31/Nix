@@ -1,5 +1,6 @@
 #pragma once
 #include "Header.h"
+#include "NXGUICodeEditor.h"
 #include "NXShaderDefinitions.h"
 #include "NXInstance.h"
 
@@ -40,6 +41,7 @@ public:
 			pInstance->m_bShowWindow = false; 
 			pInstance->m_pGUIMaterial = nullptr; 
 			pInstance->m_pFileBrowser = nullptr; 
+			pInstance->m_pGUICodeEditor = nullptr;
 			pInstance->m_bIsDirty = false;
 			pInstance->m_bNeedBackup = false;
 			});
@@ -58,6 +60,7 @@ public:
 
 	void SetGUIMaterial(NXGUIMaterial* pGUIMaterial);
 	void SetGUIFileBrowser(NXGUIFileBrowser* pGUIFileBrowser);
+	void SetGUICodeEditor(NXGUICodeEditor* pGUICodeEditor) { m_pGUICodeEditor = pGUICodeEditor; }
 
 	void RequestSyncMaterialData();
 	void RequestGenerateBackup();
@@ -101,6 +104,7 @@ private:
 	bool m_bShowWindow;
 	NXGUIMaterial* m_pGUIMaterial;
 	NXGUIFileBrowser* m_pFileBrowser;
+	NXGUICodeEditor* m_pGUICodeEditor;
 
 	std::string m_nslCode;
 	std::vector<std::string> m_nslFuncs;

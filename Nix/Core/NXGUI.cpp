@@ -6,6 +6,7 @@
 #include "NXConverter.h"
 
 #include "NXGUIFileBrowser.h"
+#include "NXGUICodeEditor.h"
 #include "NXGUIMaterial.h"
 #include "NXGUILights.h"
 #include "NXGUICamera.h"
@@ -23,6 +24,7 @@ NXGUI::NXGUI(NXScene* pScene, Renderer* pRenderer) :
 	m_pCurrentScene(pScene),
 	m_pRenderer(pRenderer),
 	m_pFileBrowser(nullptr),
+	m_pGUICodeEditor(nullptr),
 	m_pGUIMaterial(nullptr),
 	m_pGUILights(nullptr),
 	m_pGUICamera(nullptr),
@@ -44,15 +46,30 @@ NXGUI::~NXGUI()
 
 void NXGUI::Init()
 {
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
+	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
+
+	// 设置字体
+	io.Fonts->AddFontFromFileTTF("./Resource/fonts/JetBrainsMono-Bold.ttf", 16);
+
+	ImFontConfig configData;
+	configData.GlyphMinAdvanceX = configData.GlyphMaxAdvanceX = 7.0f;
+	auto pCodeEditorFont = io.Fonts->AddFontFromFileTTF("./Resource/fonts/JetBrainsMono-Bold.ttf", 16, &configData);
+
 	m_pFileBrowser = new NXGUIFileBrowser();
 	m_pFileBrowser->SetTitle("File Browser");
 	m_pFileBrowser->SetPwd("D:\\NixAssets");
+
+	m_pGUICodeEditor = new NXGUICodeEditor(pCodeEditorFont);
 
 	m_pGUITexture = new NXGUITexture();
 	m_pGUIContentExplorer = new NXGUIContentExplorer(m_pCurrentScene, m_pGUITexture);
 
 	m_pGUICamera = new NXGUICamera(m_pCurrentScene);
-	m_pGUIMaterial = new NXGUIMaterial(m_pCurrentScene, m_pFileBrowser);
+	m_pGUIMaterial = new NXGUIMaterial(m_pCurrentScene, m_pFileBrowser, m_pGUICodeEditor);
 	m_pGUILights = new NXGUILights(m_pCurrentScene);
 	m_pGUICubeMap = new NXGUICubeMap(m_pCurrentScene, m_pFileBrowser);
 
@@ -65,15 +82,6 @@ void NXGUI::Init()
 
 	m_pGUIWorkspace = new NXGUIWorkspace();
 	m_pGUIWorkspace->Init();
-
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
-	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
-
-	// 设置字体
-	io.Fonts->AddFontFromFileTTF("./Resource/fonts/JetBrainsMono-Bold.ttf", 16);
 
 	ImGui_ImplWin32_Init(g_hWnd);
 	ImGui_ImplDX11_Init(g_pDevice.Get(), g_pContext.Get());

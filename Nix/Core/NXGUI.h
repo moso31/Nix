@@ -8,6 +8,7 @@ class NXGUITexture;
 class NXGUIMaterial;
 class NXGUIFileBrowser;
 class NXGUIContentExplorer;
+class NXGUICodeEditor;
 class NXGUISSAO;
 class NXGUICubeMap;
 class NXGUILights;
@@ -32,6 +33,7 @@ private:
 	NXScene*				m_pCurrentScene;
 	Renderer*				m_pRenderer;
 
+	NXGUICodeEditor*		m_pGUICodeEditor;
 	NXGUIContentExplorer*	m_pGUIContentExplorer;
 	NXGUITexture*			m_pGUITexture;
 

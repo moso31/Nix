@@ -441,6 +441,9 @@
     <ClCompile Include="Core\NXFileSystemHelper.cpp">
       <Filter>Core\Helper</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXGUICodeEditor.cpp">
+      <Filter>Core\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -700,6 +703,9 @@
     </ClInclude>
     <ClInclude Include="Core\NXFileSystemHelper.h">
       <Filter>Core\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXGUICodeEditor.h">
+      <Filter>Core\UI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

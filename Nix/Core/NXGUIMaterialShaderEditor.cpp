@@ -322,12 +322,14 @@ void NXGUIMaterialShaderEditor::Render_Code(NXCustomMaterial* pMaterial)
 	// 设置需要显示的代码
 	item_func = Clamp<UINT>(item_func, 0, (UINT)m_nslFuncsDisplay.size());
 	std::string& strEditorText = item_func == 0 ? m_nslCode : m_nslFuncs[item_func - 1];
+	m_pGUICodeEditor->Load(strEditorText);
 
 	float fEachTextLineHeight = ImGui::GetTextLineHeight();
 	static ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput;
 	// 规定 UI 至少留出 10 行代码的高度
 	float fTextEditorHeight = max(10.0f, ImGui::GetContentRegionAvail().y / fEachTextLineHeight) * fEachTextLineHeight;
-	ImGui::InputTextMultiline("##material_shader_editor_paramview_text", &strEditorText, ImVec2(-FLT_MIN, fTextEditorHeight), flags);
+	//ImGui::InputTextMultiline("##material_shader_editor_paramview_text", &strEditorText, ImVec2(-FLT_MIN, fTextEditorHeight), flags);
+	m_pGUICodeEditor->Render();
 }
 
 void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
