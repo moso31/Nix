@@ -1,6 +1,5 @@
 #pragma once
 #include "Header.h"
-#include "NXGUICodeEditor.h"
 #include "NXShaderDefinitions.h"
 #include "NXInstance.h"
 
@@ -33,22 +32,6 @@ private:
 	enum class BtnParamType { CBuffer, Texture, Sampler };
 
 public:
-	// 重载 GetInstance()，因为有成员需要初始化
-	static NXGUIMaterialShaderEditor* GetInstance()
-	{
-		NXGUIMaterialShaderEditor* pInstance = NXInstance<NXGUIMaterialShaderEditor>::GetInstance();
-		std::call_once(pInstance->m_onceFlag, [&]() { 
-			pInstance->m_bShowWindow = false; 
-			pInstance->m_pGUIMaterial = nullptr; 
-			pInstance->m_pFileBrowser = nullptr; 
-			pInstance->m_pGUICodeEditor = nullptr;
-			pInstance->m_bIsDirty = false;
-			pInstance->m_bNeedBackup = false;
-			});
-		return pInstance;
-	}
-
-public:
 	void Render(NXCustomMaterial* pMaterial);
 	void Show() { m_bShowWindow = true; }
 
@@ -60,7 +43,6 @@ public:
 
 	void SetGUIMaterial(NXGUIMaterial* pGUIMaterial);
 	void SetGUIFileBrowser(NXGUIFileBrowser* pGUIFileBrowser);
-	void SetGUICodeEditor(NXGUICodeEditor* pGUICodeEditor) { m_pGUICodeEditor = pGUICodeEditor; }
 
 	void RequestSyncMaterialData();
 	void RequestGenerateBackup();
@@ -79,7 +61,8 @@ private:
 	void OnBtnMoveParamToFirstClicked(BtnParamType btnParamType, int index);
 	void OnBtnMoveParamToLastClicked(BtnParamType btnParamType, int index);
 	void OnBtnRevertParamClicked(NXCustomMaterial* pMaterial, BtnParamType btnParamType, int index);
-	void OnBtnCompileClicked(NXCustomMaterial* pMaterial);
+	bool OnBtnCompileClicked(NXCustomMaterial* pMaterial);
+	void OnBtnSaveClicked(NXCustomMaterial* pMaterial);
 	void OnComboGUIStyleChanged(int selectIndex, NXGUICBufferData& cbDisplayData);
 
 	void Render_Code(NXCustomMaterial* pMaterial);
@@ -99,12 +82,9 @@ private:
 	void GenerateBackupData();
 
 private:
-	std::once_flag m_onceFlag; // 用于单例初始化
-
-	bool m_bShowWindow;
-	NXGUIMaterial* m_pGUIMaterial;
-	NXGUIFileBrowser* m_pFileBrowser;
-	NXGUICodeEditor* m_pGUICodeEditor;
+	bool m_bShowWindow = false;
+	NXGUIMaterial* m_pGUIMaterial = nullptr;
+	NXGUIFileBrowser* m_pFileBrowser = nullptr;
 
 	std::string m_nslCode;
 	std::vector<std::string> m_nslFuncs;
@@ -122,6 +102,9 @@ private:
 	// 显示Shader的错误信息
 	NXGUIShaderErrorMessage m_shaderErrMsgs[NXGUI_ERROR_MESSAGE_MAXLIMIT];
 
-	bool m_bIsDirty;
-	bool m_bNeedBackup;
+	// 搜索栏相关
+	std::string m_strQuery = "t";
+
+	bool m_bIsDirty = false;
+	bool m_bNeedBackup = false;
 };

@@ -118,16 +118,16 @@ void NXGUIMaterial::Render()
 		{
 			RenderMaterialUI_Custom(pCustomMat);
 
-			// 保存当前材质
-			if (ImGui::Button("Save##material"))
-			{
-				SaveMaterialFile(pCustomMat);
-				pCommonMaterial->Serialize();
-			}
+			//// 保存当前材质
+			//if (ImGui::Button("Save##material"))
+			//{
+			//	SaveMaterialFile(pCustomMat);
+			//	pCommonMaterial->Serialize();
+			//}
+			//ImGui::SameLine();
 
 			if (pCommonMaterial->IsCustomMat())
 			{
-				ImGui::SameLine();
 				if (ImGui::Button("Edit Shader...##material_custom_editshader"))
 				{
 					OnBtnEditShaderClicked(pCustomMat);

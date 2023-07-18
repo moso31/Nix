@@ -110,6 +110,16 @@ int NXDeserializer::Int(const std::string& key, const int defaultValue)
 	return defaultValue;
 }
 
+float NXDeserializer::Float(const std::string& key, const float defaultValue)
+{
+	if (m_reader.HasMember(key.c_str()))
+	{
+		auto& val = m_reader[key.c_str()];
+		if (val.IsFloat()) return val.GetFloat();
+	}
+	return defaultValue;
+}
+
 std::string NXDeserializer::String(const rapidjson::Value& parent, const std::string& key, const std::string& defaultValue)
 {
 	if (parent.HasMember(key.c_str()))
@@ -146,6 +156,16 @@ int NXDeserializer::Int(const rapidjson::Value& parent, const std::string& key, 
 	{
 		auto& val = parent[key.c_str()];
 		if (val.IsInt()) return val.GetInt();
+	}
+	return defaultValue;
+}
+
+float NXDeserializer::Float(const rapidjson::Value& parent, const std::string& key, const float defaultValue)
+{
+	if (parent.HasMember(key.c_str()))
+	{
+		auto& val = parent[key.c_str()];
+		if (val.IsFloat()) return val.GetFloat();
 	}
 	return defaultValue;
 }

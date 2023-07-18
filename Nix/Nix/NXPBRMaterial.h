@@ -134,6 +134,7 @@ public:
 	void SetCBInfoMemoryData(UINT memoryIndex, UINT count, const float* newData);
 
 	NXGUICBufferStyle GetCBGUIStyles(UINT index) { return m_cbInfo.elems[index].style; }
+	Vector2 GetCBGUIParams(UINT index) { return m_cbInfo.elems[index].guiParams; }
 	NXGUITextureType GetTextureGUIType(UINT index) { return m_texInfos[index].guiType; }
 
 	void GenerateInfoBackup();

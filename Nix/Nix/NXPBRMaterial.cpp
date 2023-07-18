@@ -424,6 +424,11 @@ void NXCustomMaterial::Serialize()
 		serializer.Int("type", (int)cbInfo.type);
 		serializer.Int("guiStyle", (int)cbInfo.style);
 
+		serializer.StartArray("guiParams");
+		serializer.PushFloat(cbInfo.guiParams[0]);
+		serializer.PushFloat(cbInfo.guiParams[1]);
+		serializer.EndArray();
+
 		serializer.StartArray("values");
 		for (int j = 0; j < (int)cbInfo.type; j++)
 			serializer.PushFloat(m_cbInfoMemory[cbInfo.memoryIndex + j]);
@@ -485,12 +490,21 @@ void NXCustomMaterial::Deserialize()
 						if (cbElem.type == objType)
 						{
 							auto objGUIStyle = deserializer.Int(cb, "guiStyle", (int)NXGUICBufferStyle::Unknown);
-							auto objValues = deserializer.Array(cb, "values");
-							if (objValues.Empty()) continue;
-
 							cbElem.style = (NXGUICBufferStyle)objGUIStyle;
-							for (int j = 0; j < (int)cbElem.type; j++)
-								m_cbInfoMemory[cbElem.memoryIndex + j] = objValues[j].GetFloat();
+
+							auto objValues = deserializer.Array(cb, "values");
+							if (!objValues.Empty())
+							{
+								for (int j = 0; j < (int)cbElem.type; j++)
+									m_cbInfoMemory[cbElem.memoryIndex + j] = objValues[j].GetFloat();
+							}
+
+							auto objParams = deserializer.Array(cb, "guiParams");
+							if (!objParams.Empty())
+							{
+								cbElem.guiParams[0] = objParams[0].GetFloat();
+								cbElem.guiParams[1] = objParams[1].GetFloat();
+							}
 						}
 					}
 				}
@@ -798,6 +812,7 @@ void NXCustomMaterial::ProcessShaderCBufferParam(std::istringstream& in, std::os
 
 		Vector4 cbValue(0.0f);
 		NXGUICBufferStyle cbGUIStyle = NXGUICBufferStyle::Unknown;
+		Vector2 cbGUIParams;
 		if (!cbDefaultValues.empty())
 		{
 			// 如果是从GUI传过来的，则使用GUI中的值
@@ -809,31 +824,32 @@ void NXCustomMaterial::ProcessShaderCBufferParam(std::istringstream& in, std::os
 			{
 				cbValue = it->data;
 				cbGUIStyle = it->guiStyle;
+				cbGUIParams = it->params;
 			}
 		}
 
 		if (type == "float")
 		{
-			cbElems.push_back({ name, NXCBufferInputType::Float, pOffset, cbGUIStyle });
+			cbElems.push_back({ name, NXCBufferInputType::Float, pOffset, cbGUIStyle, cbGUIParams });
 			m_cbInfoMemory.push_back(cbValue.x);
 			pOffset++;
 		}
 		else if (type == "float2")
 		{
 			for (int i = 0; i < 2; i++) m_cbInfoMemory.push_back(cbValue[i]);
-			cbElems.push_back({ name, NXCBufferInputType::Float2, pOffset, cbGUIStyle });
+			cbElems.push_back({ name, NXCBufferInputType::Float2, pOffset, cbGUIStyle, cbGUIParams });
 			pOffset += 2;
 		}
 		else if (type == "float3")
 		{
 			for (int i = 0; i < 3; i++) m_cbInfoMemory.push_back(cbValue[i]);
-			cbElems.push_back({ name, NXCBufferInputType::Float3, pOffset, cbGUIStyle });
+			cbElems.push_back({ name, NXCBufferInputType::Float3, pOffset, cbGUIStyle, cbGUIParams });
 			pOffset += 3;
 		}
 		else if (type == "float4")
 		{
 			for (int i = 0; i < 4; i++) m_cbInfoMemory.push_back(cbValue[i]);
-			cbElems.push_back({ name, NXCBufferInputType::Float4, pOffset, cbGUIStyle });
+			cbElems.push_back({ name, NXCBufferInputType::Float4, pOffset, cbGUIStyle, cbGUIParams });
 			pOffset += 4;
 		}
 	}

@@ -57,19 +57,19 @@ void RenderSmallTextureIcon(ImTextureID ImTexID, NXGUIFileBrowser* pFileBrowser,
 		}
 		ImGui::SameLine();
 
-        if (onRemove)
-        {
-            ImGui::PushID("RemoveTexButtons");
-            {
-                ImGui::PushID(ImTexID);
-                if (ImGui::Button("Reset"))
-                {
-                    onRemove();
-                }
-                ImGui::PopID();
-            }
-            ImGui::PopID();
-        }
+        //if (onRemove)
+        //{
+        //    ImGui::PushID("RemoveTexButtons");
+        //    {
+        //        ImGui::PushID(ImTexID);
+        //        if (ImGui::Button("Reset"))
+        //        {
+        //            onRemove();
+        //        }
+        //        ImGui::PopID();
+        //    }
+        //    ImGui::PopID();
+        //}
 	}
 }
 

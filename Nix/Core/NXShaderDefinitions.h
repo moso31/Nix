@@ -65,6 +65,7 @@ struct NXCBufferElem
     NXCBufferInputType type;
     int memoryIndex;
 	NXGUICBufferStyle style;
+	Vector2 guiParams; // gui拖动参数附加属性，drugspeed, sliderMin/Max
 };
 
 struct NXMaterialCBufferInfo

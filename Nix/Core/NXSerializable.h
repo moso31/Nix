@@ -62,11 +62,13 @@ public:
 	bool Bool(const std::string& key, const bool defaultValue = false);
 	size_t Uint64(const std::string& key, const size_t defaultValue = 0);
 	int Int(const std::string& key, const int defaultValue = 0);
+	float Float(const std::string& key, const float defaultValue = 0.0f);
 
 	std::string String(const rapidjson::Value& parent, const std::string& key, const std::string& defaultValue = "");
 	bool Bool(const rapidjson::Value& parent, const std::string& key, const bool defaultValue = false);
 	size_t Uint64(const rapidjson::Value& parent, const std::string& key, const size_t defaultValue = 0);
 	int Int(const rapidjson::Value& parent, const std::string& key, const int defaultValue = 0);
+	float Float(const rapidjson::Value& parent, const std::string& key, const float defaultValue = 0.0f);
 
 	const GenericObject<false, Value> Object(const std::string& key);
 	const GenericArray<false, Value> Array(const std::string& key);
