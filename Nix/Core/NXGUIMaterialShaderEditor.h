@@ -66,6 +66,7 @@ private:
 	bool OnBtnCompileClicked(NXCustomMaterial* pMaterial);
 	void OnBtnSaveClicked(NXCustomMaterial* pMaterial);
 	void OnComboGUIStyleChanged(int selectIndex, NXGUICBufferData& cbDisplayData);
+	void OnShowFuncIndexChanged(int showFuncIndex);
 
 	void Render_Code(NXCustomMaterial* pMaterial);
 	void Render_Params(NXCustomMaterial* pMaterial);
@@ -110,4 +111,7 @@ private:
 
 	bool m_bIsDirty = false;
 	bool m_bNeedBackup = false;
+
+	// 用于显示的函数索引
+	int m_showFuncIndex = 0;
 };

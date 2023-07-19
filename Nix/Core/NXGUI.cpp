@@ -52,12 +52,17 @@ void NXGUI::Init()
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
 	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
 
+	ImGui_ImplWin32_Init(g_hWnd);
+	ImGui_ImplDX11_Init(g_pDevice.Get(), g_pContext.Get());
+
 	// ÉèÖÃ×ÖÌå
 	io.Fonts->AddFontFromFileTTF("./Resource/fonts/JetBrainsMono-Bold.ttf", 16);
 
 	ImFontConfig configData;
 	configData.GlyphMinAdvanceX = configData.GlyphMaxAdvanceX = 7.0f;
 	auto pCodeEditorFont = io.Fonts->AddFontFromFileTTF("./Resource/fonts/JetBrainsMono-Bold.ttf", 16, &configData);
+
+	ImGui_ImplDX11_CreateDeviceObjects();
 
 	m_pFileBrowser = new NXGUIFileBrowser();
 	m_pFileBrowser->SetTitle("File Browser");
@@ -82,9 +87,6 @@ void NXGUI::Init()
 
 	m_pGUIWorkspace = new NXGUIWorkspace();
 	m_pGUIWorkspace->Init();
-
-	ImGui_ImplWin32_Init(g_hWnd);
-	ImGui_ImplDX11_Init(g_pDevice.Get(), g_pContext.Get());
 
 	//ImGui::LoadIniSettingsFromDisk(NXConvert::GetPathOfImguiIni().c_str());
 }

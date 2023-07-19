@@ -252,7 +252,7 @@ private:
     std::vector<TextKeyword> ExtractKeywords(const TextString& text);
 
 private:
-    std::vector<TextString> m_lines;
+    std::vector<TextString> m_lines = { TextString("") };
 
 private:
     // 记录行号文本能达到的最大宽度
