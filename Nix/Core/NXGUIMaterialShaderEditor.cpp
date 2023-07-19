@@ -255,6 +255,7 @@ void NXGUIMaterialShaderEditor::OnComboGUIStyleChanged(int selectIndex, NXGUICBu
 void NXGUIMaterialShaderEditor::OnShowFuncIndexChanged(int showFuncIndex)
 {
 	m_showFuncIndex = showFuncIndex;
+	m_bShowFuncChanged = true;
 }
 
 void NXGUIMaterialShaderEditor::SetGUIMaterial(NXGUIMaterial* pGUIMaterial)
@@ -303,10 +304,7 @@ void NXGUIMaterialShaderEditor::Render_Code(NXCustomMaterial* pMaterial)
 		{
 			ImGui::PushID(m_nslFuncsDisplay[item].strId);
 			if (ImGui::Selectable(m_nslFuncsDisplay[item].data.c_str()))
-			{
-				//m_showFuncIndex = item;
 				OnShowFuncIndexChanged(item);
-			}
 			ImGui::PopID();
 		}
 		ImGui::EndCombo();
@@ -317,7 +315,6 @@ void NXGUIMaterialShaderEditor::Render_Code(NXCustomMaterial* pMaterial)
 	if (ImGui::Button("New Function##material_shader_editor_btn_newfunction"))
 	{
 		OnBtnNewFunctionClicked(pMaterial);
-		//m_showFuncIndex = m_nslFuncs.size();
 		OnShowFuncIndexChanged((int)m_nslFuncs.size());
 	}
 
@@ -334,7 +331,6 @@ void NXGUIMaterialShaderEditor::Render_Code(NXCustomMaterial* pMaterial)
 	if (ImGui::ButtonEx("Remove Function##material_shader_editor_btn_removefunction"))
 	{
 		OnBtnRemoveFunctionClicked(pMaterial, m_showFuncIndex - 1);
-		//m_showFuncIndex--;
 		OnShowFuncIndexChanged(m_showFuncIndex - 1);
 	}
 
@@ -344,16 +340,20 @@ void NXGUIMaterialShaderEditor::Render_Code(NXCustomMaterial* pMaterial)
 		ImGui::PopItemFlag();
 	}
 	
-	// 设置需要显示的代码
-	std::string& strEditorText = m_showFuncIndex == 0 ? m_nslCode : m_nslFuncs[m_showFuncIndex - 1];
-	//m_pGUICodeEditor->Load(strEditorText);
+	// 当showFunc相关逻辑触发（比如index值改变，或重新打开材质编辑器）时，设置需要显示的代码
+	if (m_bShowFuncChanged)
+	{
+		std::string& strEditorText = m_showFuncIndex == 0 ? m_nslCode : m_nslFuncs[m_showFuncIndex - 1];
+		m_pGUICodeEditor->Load(strEditorText);
+
+		m_bShowFuncChanged = false;
+	}
 
 	float fEachTextLineHeight = ImGui::GetTextLineHeight();
 	static ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput;
 	// 规定 UI 至少留出 10 行代码的高度
 	float fTextEditorHeight = max(10.0f, ImGui::GetContentRegionAvail().y / fEachTextLineHeight) * fEachTextLineHeight;
-	ImGui::InputTextMultiline("##material_shader_editor_paramview_text", &strEditorText, ImVec2(-FLT_MIN, fTextEditorHeight), flags);
-	//m_pGUICodeEditor->Render();
+	m_pGUICodeEditor->Render();
 }
 
 void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
@@ -906,7 +906,9 @@ void NXGUIMaterialShaderEditor::SyncMaterialData(NXCustomMaterial* pMaterial)
 
 	m_nslCode = pMaterial->GetNSLCode();
 	m_nslFuncs = pMaterial->GetNSLFuncs();
-	m_showFuncIndex = 0;
+
+	// 让 CodeEditor 也刷新一次
+	OnShowFuncIndexChanged(0);
 
 	UpdateNSLFunctionsDisplay();
 }

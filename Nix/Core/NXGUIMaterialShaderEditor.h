@@ -113,5 +113,10 @@ private:
 	bool m_bNeedBackup = false;
 
 	// 用于显示的函数索引
+	// 当 m_showFuncIndex = 0 时 显示 m_nslCode 函数（Main() 函数）；
+	// 当 m_showFuncIndex = i(>0)时，显示 m_nslFuncs[i - 1] 对应的函数
 	int m_showFuncIndex = 0;
+
+	// 记录当前帧是否修改了 showFuncIndex。每帧重置。
+	bool m_bShowFuncChanged = false;
 };
