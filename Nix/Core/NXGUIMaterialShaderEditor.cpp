@@ -1,4 +1,4 @@
-#include "NXGUIMaterialShaderEditor.h"
+ï»¿#include "NXGUIMaterialShaderEditor.h"
 #include "NXGUIMaterial.h"
 #include "NXGUICommon.h"
 #include "NXGUICodeEditor.h"
@@ -66,7 +66,7 @@ void NXGUIMaterialShaderEditor::UpdateShaderErrorMessages(const std::string& str
 		auto& strMsg = errMsg.data;
 		std::getline(iss, errMsg.data);
 
-		// ´´½¨Ò»¸öÕıÔò±í´ïÊ½¶ÔÏó£¬ÓÃÓÚÆ¥ÅäÀ¨ºÅÖĞµÄĞĞÁĞºÅ
+		// åˆ›å»ºä¸€ä¸ªæ­£åˆ™è¡¨è¾¾å¼å¯¹è±¡ï¼Œç”¨äºåŒ¹é…æ‹¬å·ä¸­çš„è¡Œåˆ—å·
 		std::regex re("\\((\\d+),(\\d+)-(\\d+)\\)");
 
 		std::smatch match;
@@ -169,15 +169,15 @@ void NXGUIMaterialShaderEditor::OnBtnRevertParamClicked(NXCustomMaterial* pMater
 		{
 			m_cbInfosDisplay[index] = m_cbInfosDisplayBackup[cbBackupIdx];
 
-			// Èç¹ûÊÇ cb²ÎÊı revert£¬Ôò»¹»áÊµÊ±¸üĞÂ²ÄÖÊµÄäÖÈ¾×´Ì¬
+			// å¦‚æœæ˜¯ cbå‚æ•° revertï¼Œåˆ™è¿˜ä¼šå®æ—¶æ›´æ–°æè´¨çš„æ¸²æŸ“çŠ¶æ€
 			auto& cbDisplay = m_cbInfosDisplay[index];
-			if (cbDisplay.memoryIndex != -1) // ĞÂ¼ÓµÄ AddParam ÔÚµã±àÒë°´Å¥Ö®Ç°²»Ó¦¸Ã´«¸ø²ÎÊı
+			if (cbDisplay.memoryIndex != -1) // æ–°åŠ çš„ AddParam åœ¨ç‚¹ç¼–è¯‘æŒ‰é’®ä¹‹å‰ä¸åº”è¯¥ä¼ ç»™å‚æ•°
 			{
-				// ÔÚÕâÀï½« GUI ĞŞ¸Ä¹ıµÄ²ÎÊı´«»Ø¸ø²ÄÖÊ CBuffer£¬ÊµÏÖÊÓ¾õÉÏµÄ±ä»¯
+				// åœ¨è¿™é‡Œå°† GUI ä¿®æ”¹è¿‡çš„å‚æ•°ä¼ å›ç»™æè´¨ CBufferï¼Œå®ç°è§†è§‰ä¸Šçš„å˜åŒ–
 				UINT actualByteCount = cbDisplay.readType;
 				pMaterial->SetCBInfoMemoryData(cbDisplay.memoryIndex, actualByteCount, cbDisplay.data);
 
-				// Í¨Öª²ÄÖÊÏÂÒ»Ö¡¸üĞÂ CBuffer
+				// é€šçŸ¥æè´¨ä¸‹ä¸€å¸§æ›´æ–° CBuffer
 				pMaterial->RequestUpdateCBufferData();
 			}
 		}
@@ -201,29 +201,29 @@ bool NXGUIMaterialShaderEditor::OnBtnCompileClicked(NXCustomMaterial* pMaterial)
 {
 	using namespace NXGUICommon;
 
-	// ¹¹½¨ NSLParam ´úÂë
+	// æ„å»º NSLParam ä»£ç 
 	std::string nslParams = ConvertShaderResourceDataToNSLParam(m_cbInfosDisplay, m_texInfosDisplay, m_ssInfosDisplay);
 
-	std::string strErrVS, strErrPS;	// Èô±àÒëShader³ö´í£¬½«´íÎóĞÅÏ¢¼ÇÂ¼µ½´Ë×Ö·û´®ÖĞ¡£
+	std::string strErrVS, strErrPS;	// è‹¥ç¼–è¯‘Shaderå‡ºé”™ï¼Œå°†é”™è¯¯ä¿¡æ¯è®°å½•åˆ°æ­¤å­—ç¬¦ä¸²ä¸­ã€‚
 	bool bCompile = pMaterial->Recompile(nslParams, m_nslFuncs, m_nslCode, m_cbInfosDisplay, m_texInfosDisplay, m_ssInfosDisplay, strErrVS, strErrPS);
 	
 	if (bCompile)
 	{
-		// Èô±àÒë³É¹¦£¬½«´íÎóĞÅÏ¢Çå¿Õ
+		// è‹¥ç¼–è¯‘æˆåŠŸï¼Œå°†é”™è¯¯ä¿¡æ¯æ¸…ç©º
 		ClearShaderErrorMessages();
 
-		// Èô±àÒë³É¹¦£¬¶Ô GUI²ÄÖÊÀà¡¢GUI ShaderEditor¡¢²ÄÖÊÀà ¶¼ MakeDirty£¬
-		// È·±£ÏÂÒ»Ö¡Ò»¶¨»á¸üĞÂÒ»´Î²ÄÖÊÊı¾İ¡£
+		// è‹¥ç¼–è¯‘æˆåŠŸï¼Œå¯¹ GUIæè´¨ç±»ã€GUI ShaderEditorã€æè´¨ç±» éƒ½ MakeDirtyï¼Œ
+		// ç¡®ä¿ä¸‹ä¸€å¸§ä¸€å®šä¼šæ›´æ–°ä¸€æ¬¡æè´¨æ•°æ®ã€‚
 		pMaterial->RequestUpdateCBufferData();
 		m_pGUIMaterial->RequestSyncMaterialData();
 		RequestSyncMaterialData();
 
-		// ÖØĞÂÉú³ÉÊı¾İ±¸·İÒÔÓÃÓÚRevert
+		// é‡æ–°ç”Ÿæˆæ•°æ®å¤‡ä»½ä»¥ç”¨äºRevert
 		RequestGenerateBackup();
 	}
 	else
 	{
-		// Èç¹û±àÒëÊ§°Ü£¬½«´íÎóĞÅÏ¢Í¬²½µ½ ShaderEditor
+		// å¦‚æœç¼–è¯‘å¤±è´¥ï¼Œå°†é”™è¯¯ä¿¡æ¯åŒæ­¥åˆ° ShaderEditor
 		UpdateShaderErrorMessages(strErrVS, strErrPS);
 	}
 
@@ -232,10 +232,10 @@ bool NXGUIMaterialShaderEditor::OnBtnCompileClicked(NXCustomMaterial* pMaterial)
 
 void NXGUIMaterialShaderEditor::OnBtnSaveClicked(NXCustomMaterial* pMaterial)
 {
-	// ±àÒëÒ»ÏÂ
+	// ç¼–è¯‘ä¸€ä¸‹
 	if (OnBtnCompileClicked(pMaterial))
 	{
-		// Èç¹û±àÒë³É¹¦£¬ÔÙ±£´æ
+		// å¦‚æœç¼–è¯‘æˆåŠŸï¼Œå†ä¿å­˜
 		pMaterial->SaveToNSLFile();
 		pMaterial->Serialize();
 	}
@@ -245,10 +245,10 @@ void NXGUIMaterialShaderEditor::OnComboGUIStyleChanged(int selectIndex, NXGUICBu
 {
 	using namespace NXGUICommon;
 
-	// ÉèÖÃ GUI Style
+	// è®¾ç½® GUI Style
 	cbDataDisplay.guiStyle = GetGUIStyleFromString(g_strCBufferGUIStyle[selectIndex]);
 
-	// ¸ù¾İ GUI Style ÉèÖÃGUIµÄÍÏ¶¯ËÙ¶È»ò×î´ó×îĞ¡Öµ
+	// æ ¹æ® GUI Style è®¾ç½®GUIçš„æ‹–åŠ¨é€Ÿåº¦æˆ–æœ€å¤§æœ€å°å€¼
 	cbDataDisplay.params = GetGUIParamsDefaultValue(cbDataDisplay.guiStyle);
 }
 
@@ -320,7 +320,7 @@ void NXGUIMaterialShaderEditor::Render_Code(NXCustomMaterial* pMaterial)
 
 	ImGui::SameLine();
 
-	// Èç¹ûÑ¡ÖĞµÄÊÇ main() º¯Êı£¬½ûÓÃÉ¾³ı°´Å¥
+	// å¦‚æœé€‰ä¸­çš„æ˜¯ main() å‡½æ•°ï¼Œç¦ç”¨åˆ é™¤æŒ‰é’®
 	bool bIsMainFunc = m_showFuncIndex == 0;
 	if (bIsMainFunc)
 	{
@@ -340,7 +340,7 @@ void NXGUIMaterialShaderEditor::Render_Code(NXCustomMaterial* pMaterial)
 		ImGui::PopItemFlag();
 	}
 	
-	// µ±showFuncÏà¹ØÂß¼­´¥·¢£¨±ÈÈçindexÖµ¸Ä±ä£¬»òÖØĞÂ´ò¿ª²ÄÖÊ±à¼­Æ÷£©Ê±£¬ÉèÖÃĞèÒªÏÔÊ¾µÄ´úÂë
+	// å½“showFuncç›¸å…³é€»è¾‘è§¦å‘ï¼ˆæ¯”å¦‚indexå€¼æ”¹å˜ï¼Œæˆ–é‡æ–°æ‰“å¼€æè´¨ç¼–è¾‘å™¨ï¼‰æ—¶ï¼Œè®¾ç½®éœ€è¦æ˜¾ç¤ºçš„ä»£ç 
 	if (m_bShowFuncChanged)
 	{
 		std::string& strEditorText = m_showFuncIndex == 0 ? m_nslCode : m_nslFuncs[m_showFuncIndex - 1];
@@ -351,7 +351,7 @@ void NXGUIMaterialShaderEditor::Render_Code(NXCustomMaterial* pMaterial)
 
 	float fEachTextLineHeight = ImGui::GetTextLineHeight();
 	static ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput;
-	// ¹æ¶¨ UI ÖÁÉÙÁô³ö 10 ĞĞ´úÂëµÄ¸ß¶È
+	// è§„å®š UI è‡³å°‘ç•™å‡º 10 è¡Œä»£ç çš„é«˜åº¦
 	float fTextEditorHeight = max(10.0f, ImGui::GetContentRegionAvail().y / fEachTextLineHeight) * fEachTextLineHeight;
 	m_pGUICodeEditor->Render();
 }
@@ -399,7 +399,7 @@ void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
 	{
 		if (ImGui::BeginMenu("Value##material_shader_editor_add_param_popup_value"))
 		{
-			// Ìí¼Ó²ÎÊı
+			// æ·»åŠ å‚æ•°
 			for (int item = 0; item < g_strCBufferGUIStyleCount; item++)
 			{
 				if (ImGui::Selectable(g_strCBufferGUIStyle[item], false))
@@ -595,10 +595,10 @@ void NXGUIMaterialShaderEditor::Render_Params_CBufferItem(const std::string& str
 		break;
 	}
 
-	if (bDraged && cbDisplay.memoryIndex != -1) // ĞÂ¼ÓµÄ AddParam ÔÚµã±àÒë°´Å¥Ö®Ç°²»Ó¦¸Ã´«¸ø²ÎÊı
+	if (bDraged && cbDisplay.memoryIndex != -1) // æ–°åŠ çš„ AddParam åœ¨ç‚¹ç¼–è¯‘æŒ‰é’®ä¹‹å‰ä¸åº”è¯¥ä¼ ç»™å‚æ•°
 	{
-		// ÔÚÕâÀï½« GUI ĞŞ¸Ä¹ıµÄ²ÎÊı´«»Ø¸ø²ÄÖÊ CBuffer£¬ÊµÏÖÊÓ¾õÉÏµÄ±ä»¯
-		UINT actualN = cbDisplay.readType; // Êµ¼ÊÉÏÒª¿½±´µÄ×Ö½ÚÁ¿ÊÇ cbDisplay ³õÊ¼¶ÁÈ¡µÄ×Ö½ÚÊıÁ¿ actualN£¬¶ø²»ÊÇ¸ü¸Ä GUIStyle ÒÔºóµÄ²ÎÊıÊıÁ¿ N
+		// åœ¨è¿™é‡Œå°† GUI ä¿®æ”¹è¿‡çš„å‚æ•°ä¼ å›ç»™æè´¨ CBufferï¼Œå®ç°è§†è§‰ä¸Šçš„å˜åŒ–
+		UINT actualN = cbDisplay.readType; // å®é™…ä¸Šè¦æ‹·è´çš„å­—èŠ‚é‡æ˜¯ cbDisplay åˆå§‹è¯»å–çš„å­—èŠ‚æ•°é‡ actualNï¼Œè€Œä¸æ˜¯æ›´æ”¹ GUIStyle ä»¥åçš„å‚æ•°æ•°é‡ N
 		pMaterial->SetCBInfoMemoryData(cbDisplay.memoryIndex, actualN, cbDisplay.data);
 	}
 
@@ -829,8 +829,8 @@ void NXGUIMaterialShaderEditor::Render_ErrorMessages()
 
 			if (ImGui::SmallButton(errMsg.data.c_str()))
 			{
-				// 2023.5.28£¬Ô­±¾ÒªÔÚÕâÀï×ö´úÂë¸ßÁÁµÄ£¬
-				// µ«ÊÇ ImGui Multitext µÄ´úÂë¸ßÁÁ¼«ÆäÄÑ×öËùÒÔÕ½Êõ·ÅÆúÁË¡­¡­
+				// 2023.5.28ï¼ŒåŸæœ¬è¦åœ¨è¿™é‡Œåšä»£ç é«˜äº®çš„ï¼Œ
+				// ä½†æ˜¯ ImGui Multitext çš„ä»£ç é«˜äº®æå…¶éš¾åšæ‰€ä»¥æˆ˜æœ¯æ”¾å¼ƒäº†â€¦â€¦
 			}
 		}
 		ImGui::EndTable();
@@ -860,15 +860,15 @@ void NXGUIMaterialShaderEditor::SyncMaterialData(NXCustomMaterial* pMaterial)
 		default: break;
 		}
 
-		// Èç¹ûcbÖĞ´æÁË GUIStyle£¬ÓÅÏÈÊ¹ÓÃ GUIStyle ÏÔÊ¾ cb
+		// å¦‚æœcbä¸­å­˜äº† GUIStyleï¼Œä¼˜å…ˆä½¿ç”¨ GUIStyle æ˜¾ç¤º cb
 		NXGUICBufferStyle guiStyle = pMaterial->GetCBGUIStyles(i);
 		if (guiStyle == NXGUICBufferStyle::Unknown)
 		{
-			// ·ñÔò»ùÓÚ cbElem µÄÀàĞÍ×Ô¶¯Éú³É GUIStyle
+			// å¦åˆ™åŸºäº cbElem çš„ç±»å‹è‡ªåŠ¨ç”Ÿæˆ GUIStyle
 			guiStyle = GetDefaultGUIStyleFromCBufferType(cbElem.type);
 		}
 
-		// »ñÈ¡ GUI Style µÄÍÏ¶¯ËÙ¶È»ò×î´ó×îĞ¡Öµ
+		// è·å– GUI Style çš„æ‹–åŠ¨é€Ÿåº¦æˆ–æœ€å¤§æœ€å°å€¼
 		Vector2 guiParams = pMaterial->GetCBGUIParams(i);
 
 		m_cbInfosDisplay.push_back({ cbElem.name, cbElem.type, cbDataDisplay, guiStyle, guiParams, cbElem.memoryIndex });
@@ -907,7 +907,7 @@ void NXGUIMaterialShaderEditor::SyncMaterialData(NXCustomMaterial* pMaterial)
 	m_nslCode = pMaterial->GetNSLCode();
 	m_nslFuncs = pMaterial->GetNSLFuncs();
 
-	// ÈÃ CodeEditor Ò²Ë¢ĞÂÒ»´Î
+	// è®© CodeEditor ä¹Ÿåˆ·æ–°ä¸€æ¬¡
 	OnShowFuncIndexChanged(0);
 
 	UpdateNSLFunctionsDisplay();
@@ -915,15 +915,15 @@ void NXGUIMaterialShaderEditor::SyncMaterialData(NXCustomMaterial* pMaterial)
 
 void NXGUIMaterialShaderEditor::UpdateNSLFunctionsDisplay()
 {
-	// m_nslFuncsDisplay ¸ºÔğÔÚ Func Combo ÖĞÏÔÊ¾ËùÓĞº¯ÊıµÄÃû³ÆºÍ±äÁ¿
+	// m_nslFuncsDisplay è´Ÿè´£åœ¨ Func Combo ä¸­æ˜¾ç¤ºæ‰€æœ‰å‡½æ•°çš„åç§°å’Œå˜é‡
 	m_nslFuncsDisplay.clear();
-	m_nslFuncsDisplay.reserve(m_nslFuncs.size() + 1); // »¹ÓĞÈë¿ÚÖ÷º¯Êı£¬ËùÒÔ+1
+	m_nslFuncsDisplay.reserve(m_nslFuncs.size() + 1); // è¿˜æœ‰å…¥å£ä¸»å‡½æ•°ï¼Œæ‰€ä»¥+1
 	m_nslFuncsDisplay.push_back({ "main()", 0 });
 	for (int i = 0; i < m_nslFuncs.size(); i++)
 	{
-		auto strFunc = m_nslFuncs[i]; // ps: ÕâÀï²»ÄÜÓÃ auto&£¬±ğÊÖÇ·...
+		auto strFunc = m_nslFuncs[i]; // ps: è¿™é‡Œä¸èƒ½ç”¨ auto&ï¼Œåˆ«æ‰‹æ¬ ...
 
-		// ½«Ã¿¸öfuncµÄµÚÒ»ĞĞÌáÈ¡³öÀ´²¢±£´æµ½ m_nslFuncsDisplay
+		// å°†æ¯ä¸ªfuncçš„ç¬¬ä¸€è¡Œæå–å‡ºæ¥å¹¶ä¿å­˜åˆ° m_nslFuncsDisplay
 		std::size_t line_end = strFunc.find_first_of("\n\r", 0);
 		if (line_end == std::string::npos)
 			continue;

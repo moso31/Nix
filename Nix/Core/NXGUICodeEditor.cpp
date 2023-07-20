@@ -51,6 +51,12 @@ void NXGUICodeEditor::Load(const std::filesystem::path& filePath)
 
     if (file.is_open())
     {
+        m_bIsSelecting = false;
+        m_bNeedFocusOnText = true;
+        m_selections.clear();
+        m_overlaySelectCheck.clear();
+        m_threadPool.ClearTaskFunc();
+
         // 逐行读取文件内容到 m_lines 
         TextString line;
         while (std::getline(file, line))
@@ -69,6 +75,12 @@ void NXGUICodeEditor::Load(const std::filesystem::path& filePath)
 
 void NXGUICodeEditor::Load(const std::string& text)
 {
+    m_bIsSelecting = false;
+    m_bNeedFocusOnText = true;
+    m_selections.clear();
+    m_overlaySelectCheck.clear();
+    m_threadPool.ClearTaskFunc();
+
     m_lines.clear();
 
     // 按 "\n" 拆分 text

@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 #include <vector>
 #include <queue>
 #include <string>
@@ -63,6 +63,16 @@ class NXGUICodeEditor
             m_condition.notify_one();
         }
 
+        void ClearTaskFunc()
+        {
+            if (m_bShutdown) return;
+            {
+				std::unique_lock<std::mutex> lock(m_mutex);
+				std::queue<std::function<void()>> empty;
+				std::swap(m_tasks, empty);
+			}
+        }
+
         ~ThreadPool() { Shutdown(); }
 
     private:
@@ -114,12 +124,12 @@ class NXGUICodeEditor
         int col;
     };
 
-    // è®°å½•å•æ¡æ‰€é€‰æ–‡æœ¬ä¿¡æ¯ from L to R
+    // ¼ÇÂ¼µ¥ÌõËùÑ¡ÎÄ±¾ĞÅÏ¢ from L to R
     struct SelectionInfo
     {
         SelectionInfo() {}
 
-        // è‡ªåŠ¨å¯¹ A B æ’åº
+        // ×Ô¶¯¶Ô A B ÅÅĞò
         SelectionInfo(const Coordinate& A, const Coordinate& B) : L(A < B ? A : B), R(A < B ? B : A), flickerAtFront(A > B) {}
 
         bool operator==(const SelectionInfo& rhs) const
@@ -132,13 +142,13 @@ class NXGUICodeEditor
             return L == rhs && R == rhs;
         }
 
-        // æ£€æµ‹å¦ä¸€ä¸ª SelectionInfo æ˜¯å¦æ˜¯å½“å‰ SelectionInfo çš„å­é›†
+        // ¼ì²âÁíÒ»¸ö SelectionInfo ÊÇ·ñÊÇµ±Ç° SelectionInfo µÄ×Ó¼¯
         bool Include(const SelectionInfo& selection) const
         {
             return L <= selection.L && R >= selection.R;
         }
 
-        // æ£€æµ‹ Coordinate æ˜¯å¦åœ¨å½“å‰ SelectionInfo å†…
+        // ¼ì²â Coordinate ÊÇ·ñÔÚµ±Ç° SelectionInfo ÄÚ
         bool Include(const Coordinate& X) const
         {
             return L <= X && R >= X;
@@ -171,13 +181,13 @@ class NXGUICodeEditor
         int length = INT_MAX;
     };
 
-    // std::string æ‰©å±•ç±»ï¼Œç”¨äºåœ¨æ¸²æŸ“æ—¶ï¼Œæ ¹æ®é¢œè‰²ç»˜åˆ¶å­—ç¬¦
+    // std::string À©Õ¹Àà£¬ÓÃÓÚÔÚäÖÈ¾Ê±£¬¸ù¾İÑÕÉ«»æÖÆ×Ö·û
     struct TextString : public std::string
     {
         TextString() = default;
         TextString(const std::string& str) : std::string(str) {};
 
-        // æ¸²æŸ“æ—¶éå†formatArrayï¼Œä½¿ç”¨ color[i] é¢œè‰²ï¼ŒæŒç»­ length[i] ä¸ªå­—ç¬¦
+        // äÖÈ¾Ê±±éÀúformatArray£¬Ê¹ÓÃ color[i] ÑÕÉ«£¬³ÖĞø length[i] ¸ö×Ö·û
         std::vector<TextFormat> formatArray;
     };
 
@@ -188,10 +198,10 @@ class NXGUICodeEditor
         int tokenColorIndex = -1;
     };
 
-    // è¯­æ³•é«˜äº®å…³é”®è¯
+    // Óï·¨¸ßÁÁ¹Ø¼ü´Ê
     static std::vector<std::vector<std::string>> const s_hlsl_tokens;
 
-    // è¯­æ³•é«˜äº®å…³é”®è¯é¢œè‰²
+    // Óï·¨¸ßÁÁ¹Ø¼ü´ÊÑÕÉ«
     static std::vector<ImU32> s_hlsl_token_color;
 
 public:
@@ -248,40 +258,40 @@ private:
 
     bool IsVariableChar(const char& ch);
 
-    // ä»å½“å‰è¡Œä¸­æå–å‡ºå¯èƒ½æ˜¯å…³é”®è¯çš„å­—ç¬¦
+    // ´Óµ±Ç°ĞĞÖĞÌáÈ¡³ö¿ÉÄÜÊÇ¹Ø¼ü´ÊµÄ×Ö·û
     std::vector<TextKeyword> ExtractKeywords(const TextString& text);
 
 private:
     std::vector<TextString> m_lines = { TextString("") };
 
 private:
-    // è®°å½•è¡Œå·æ–‡æœ¬èƒ½è¾¾åˆ°çš„æœ€å¤§å®½åº¦
+    // ¼ÇÂ¼ĞĞºÅÎÄ±¾ÄÜ´ïµ½µÄ×î´ó¿í¶È
     float m_lineNumberWidth = 0.0f;
 
-    // è¡Œå·çŸ©å½¢ä¸¤ä¾§ç•™å‡º 4px çš„ç©ºç™½
+    // ĞĞºÅ¾ØĞÎÁ½²àÁô³ö 4px µÄ¿Õ°×
     float m_lineNumberPaddingX = 4.0f;
     float m_lineNumberWidthWithPaddingX;
 
-    // è®°å½•æœ€å¤§è¡Œå·ï¼Œç”¨äºè®¡ç®—è¡Œå·æ–‡æœ¬çš„å®½åº¦
+    // ¼ÇÂ¼×î´óĞĞºÅ£¬ÓÃÓÚ¼ÆËãĞĞºÅÎÄ±¾µÄ¿í¶È
     size_t m_maxLineNumber = 0;
 
-    // æ–‡æœ¬çš„èµ·å§‹åƒç´ ä½ç½®
+    // ÎÄ±¾µÄÆğÊ¼ÏñËØÎ»ÖÃ
     float m_lineTextStartX;
 
-    // è®°å½•æœ€å¤§è¡Œå­—ç¬¦æ•°
+    // ¼ÇÂ¼×î´óĞĞ×Ö·ûÊı
     size_t m_maxLineCharCount = 0;
 
-    // å•ä¸ªå­—ç¬¦çš„å¤§å°
+    // µ¥¸ö×Ö·ûµÄ´óĞ¡
     float m_charWidth;
     float m_charHeight;
 
-    // é—ªçƒè®¡æ—¶
+    // ÉÁË¸¼ÆÊ±
     double m_flickerDt = 0.0f;
     bool m_bResetFlickerDt = false;
 
-    // è®°å½•é€‰ä¸­ä¿¡æ¯
+    // ¼ÇÂ¼Ñ¡ÖĞĞÅÏ¢
     std::vector<SelectionInfo> m_selections;
-    // å¦ä¸€ç»„é€‰ä¸­ä¿¡æ¯ï¼Œç”¨äºåœ¨é€‰åŒºå˜åŒ–æ—¶è¿›è¡Œå»é‡ã€‚
+    // ÁíÒ»×éÑ¡ÖĞĞÅÏ¢£¬ÓÃÓÚÔÚÑ¡Çø±ä»¯Ê±½øĞĞÈ¥ÖØ¡£
     std::vector<SignedCoordinate> m_overlaySelectCheck;
 
     bool m_bIsSelecting = false;
@@ -291,13 +301,13 @@ private:
 
     bool m_bNeedFocusOnText = true;
 
-    // ä½¿ç”¨çš„å­—ä½“ï¼ˆæœ€å¥½ä¸ºæ­¤TextEditorå•ç‹¬è®¾ç½®ä¸€ä¸ªå­—ä½“ï¼‰
+    // Ê¹ÓÃµÄ×ÖÌå£¨×îºÃÎª´ËTextEditorµ¥¶ÀÉèÖÃÒ»¸ö×ÖÌå£©
     ImFont* m_pFont;
 
-    // è®°å½•æ¯è¡Œçš„æ›´æ–°æ—¶é—´ï¼Œé¿å…å¼‚æ­¥è¦†ç›–
+    // ¼ÇÂ¼Ã¿ĞĞµÄ¸üĞÂÊ±¼ä£¬±ÜÃâÒì²½¸²¸Ç
     std::vector<double> m_lineUpdateTime;
 
-    // 2023.7.18 ä½¿ç”¨çº¿ç¨‹æ± ä¼˜åŒ–é«˜äº®é€»è¾‘
-    // å½“è¿›è¡Œè¾ƒå¤šè¡Œçš„å¤åˆ¶æ“ä½œæ—¶ï¼Œå¼‚æ­¥å¤„ç†é«˜äº®
+    // 2023.7.18 Ê¹ÓÃÏß³Ì³ØÓÅ»¯¸ßÁÁÂß¼­
+    // µ±½øĞĞ½Ï¶àĞĞµÄ¸´ÖÆ²Ù×÷Ê±£¬Òì²½´¦Àí¸ßÁÁ
     NXGUICodeEditor::ThreadPool m_threadPool;
 };
