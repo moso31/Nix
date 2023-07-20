@@ -1,6 +1,6 @@
 ﻿#include "NXGUICodeEditor.h"
 
-//#define YEAH_RAINBOW
+#define YEAH_RAINBOW
 
 // static variables
 std::vector<std::vector<std::string>> const NXGUICodeEditor::s_hlsl_tokens =
@@ -60,7 +60,19 @@ void NXGUICodeEditor::Load(const std::filesystem::path& filePath)
         // 逐行读取文件内容到 m_lines 
         TextString line;
         while (std::getline(file, line))
+        {
+            // 将所有 tab 替换成 4 spaces
+            for (int i = 0; i < line.size(); i++)
+            {
+                if (line[i] == '\t')
+                {
+                    line.replace(i, 1, "    ");
+                    i += 3;
+                }
+            }
+
             m_lines.push_back(line);
+        }
 
         // 初始化每行的更新时间
         m_lineUpdateTime.assign(m_lines.size(), ImGui::GetTime());
@@ -90,13 +102,34 @@ void NXGUICodeEditor::Load(const std::string& text)
     while (end != std::string::npos)
     {
         // 然后逐行加载到 m_lines 
-        m_lines.push_back(text.substr(start, end - start));
+        std::string line(text.substr(start, end - start));
+
+        // 将所有 tab 替换成 4 spaces
+        for (int i = 0; i < line.size(); i++)
+        {
+            if (line[i] == '\t')
+            {
+                line.replace(i, 1, "    ");
+                i += 3;
+            }
+        }
+
+        m_lines.push_back(line);
         start = end + 1;
         end = text.find("\n", start);
     }
 
     // 把最后一行也加入到 m_lines 中
-    m_lines.push_back(text.substr(start));
+    std::string line(text.substr(start, end - start));
+    for (int i = 0; i < line.size(); i++)
+    {
+        if (line[i] == '\t')
+        {
+            line.replace(i, 1, "    ");
+            i += 3;
+        }
+    }
+    m_lines.push_back(line);
 
     // 初始化每行的更新时间
     m_lineUpdateTime.assign(m_lines.size(), ImGui::GetTime());
@@ -125,7 +158,7 @@ void NXGUICodeEditor::Render()
     }
 
     //ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-    ImGui::BeginChild("TextEditor");
+    ImGui::Begin("TextEditor", (bool*)true);
     if (ImGui::IsWindowFocused()) m_bNeedFocusOnText = true;
 
     const ImVec2& layerStartCursorPos = ImGui::GetCursorPos();
@@ -134,21 +167,33 @@ void NXGUICodeEditor::Render()
     Render_MainLayer();
     ImGui::EndChild();
 
-    ImGui::SetCursorPos(layerStartCursorPos);
-    ImGui::BeginChild("##debug_layer", ImVec2(), false, ImGuiWindowFlags_NoInputs);
-    Render_DebugLayer();
-    ImGui::EndChild();
+    //ImGui::SetCursorPos(layerStartCursorPos);
+    //ImGui::BeginChild("##debug_layer", ImVec2(), false, ImGuiWindowFlags_NoInputs);
+    //Render_DebugLayer();
+    //ImGui::EndChild();
 
-    ImGui::EndChild();
+    ImGui::End();
 
     ImGui::PopStyleVar();
     ImGui::PopFont();
 }
 
+std::string NXGUICodeEditor::Text()
+{
+    std::string text;
+    for (int i = 0; i < m_lines.size(); i++)
+    {
+        text += m_lines[i];
+        if (i != m_lines.size() - 1)
+            text += "\n";
+    }
+    return text;
+}
+
 void NXGUICodeEditor::AddSelection(const Coordinate& A, const Coordinate& B)
 {
     SelectionInfo selection(A, B);
-	m_selections.push_back(selection);
+    m_selections.push_back(selection);
 }
 
 void NXGUICodeEditor::RemoveSelection(const SelectionInfo& removeSelection)
@@ -175,7 +220,7 @@ void NXGUICodeEditor::Enter(const std::vector<std::vector<std::string>>& strArra
         const auto& R = selection.R;
 
         // 若有选区，先清空
-        if (L != R) 
+        if (L != R)
         {
             // 有选区：删除选区中的所有内容
             if (L.row == R.row) // 单行
@@ -665,7 +710,7 @@ void NXGUICodeEditor::Render_DebugLayer()
     for (size_t i = 0; i < m_selections.size(); i++)
     {
         const auto& selection = m_selections[i];
-        std::string info = "Selection " + std::to_string(i) + ":(" + std::to_string(selection.L.row) + ", " + std::to_string(selection.L.col) + ") " + 
+        std::string info = "Selection " + std::to_string(i) + ":(" + std::to_string(selection.L.row) + ", " + std::to_string(selection.L.col) + ") " +
             std::string(selection.flickerAtFront ? "<-" : "->") +
             " (" + std::to_string(selection.R.row) + ", " + std::to_string(selection.R.col) + ")";
         ImGui::Text(info.c_str());
@@ -910,7 +955,7 @@ void NXGUICodeEditor::SelectionsOverlayCheckForKeyEvent(bool bFlickerAtFront)
 
     m_overlaySelectCheck.clear();
     m_overlaySelectCheck.reserve(m_selections.size() * 2);
-    for (const auto& selection: m_selections)
+    for (const auto& selection : m_selections)
     {
         m_overlaySelectCheck.push_back({ selection.L, true, selection.flickerAtFront });
         m_overlaySelectCheck.push_back({ selection.R, false, selection.flickerAtFront });
@@ -1109,7 +1154,7 @@ void NXGUICodeEditor::RenderTexts_OnMouseInputs()
             if (selection.Include(pos))
             {
                 m_bIsSelecting = false;
-				if (selection == pos) RemoveSelection(selection);
+                if (selection == pos) RemoveSelection(selection);
                 break;
             }
         }
@@ -1136,7 +1181,7 @@ void NXGUICodeEditor::RenderTexts_OnMouseInputs()
         row = std::max(0, std::min(row, (int)m_lines.size() - 1));
         col = std::max(0, std::min(col, (int)m_lines[row].size()));
 
-		m_activeSelectionMove = { row, col };
+        m_activeSelectionMove = { row, col };
         SelectionsOverlayCheckForMouseEvent(false);
 
         m_bResetFlickerDt = true;
@@ -1177,9 +1222,9 @@ void NXGUICodeEditor::Render_OnMouseInputs()
 void NXGUICodeEditor::RenderTexts_OnKeyInputs()
 {
     ImGuiIO& io = ImGui::GetIO();
-	bool bAlt = io.KeyAlt;
-	bool bShift = io.KeyShift;
-	bool bCtrl = io.KeyCtrl;
+    bool bAlt = io.KeyAlt;
+    bool bShift = io.KeyShift;
+    bool bCtrl = io.KeyCtrl;
 
     if (ImGui::IsWindowFocused())
     {
@@ -1272,7 +1317,7 @@ void NXGUICodeEditor::RenderTexts_OnKeyInputs()
                 auto c = static_cast<char>(wc);
                 if (wc >= 32 && wc < 127)
                 {
-                    Enter({{{c}}});
+                    Enter({ {{c}} });
                     //Enter({ {"If it looks like food,", "it is not good food", "--senpai810"}, {"114 514", "1919810", "feichangdexinxian", "SOGOKUOISHII", "Desu!"} });
                     m_bResetFlickerDt = true;
                 }
@@ -1281,7 +1326,7 @@ void NXGUICodeEditor::RenderTexts_OnKeyInputs()
                     int tabSize = 4;
                     for (int i = 0; i < tabSize; ++i)
                     {
-                        Enter({{" "}});
+                        Enter({ {" "} });
                         m_bResetFlickerDt = true;
                     }
                 }
@@ -1466,7 +1511,7 @@ std::vector<NXGUICodeEditor::TextKeyword> NXGUICodeEditor::ExtractKeywords(const
     std::vector<NXGUICodeEditor::TextKeyword> words;
     std::string word;
     int i;
-    for(i = 0; i < text.length(); i++)
+	for (i = 0; i < text.length(); i++)
     {
         const char& c = text[i];
         // 对于字母或数字的字符，将其添加到当前单词

@@ -69,10 +69,10 @@ class NXGUICodeEditor
         {
             if (m_bShutdown) return;
             {
-				std::unique_lock<std::mutex> lock(m_mutex);
-				std::queue<std::function<void()>> empty;
-				std::swap(m_tasks, empty);
-			}
+                std::unique_lock<std::mutex> lock(m_mutex);
+                std::queue<std::function<void()>> empty;
+                std::swap(m_tasks, empty);
+            }
         }
 
         ~ThreadPool() { Shutdown(); }
@@ -213,6 +213,7 @@ public:
     void Load(const std::filesystem::path& filePath);
     void Load(const std::string& text);
     void Render();
+    std::string Text();
 
     void AddSelection(const Coordinate& A, const Coordinate& B);
     void RemoveSelection(const SelectionInfo& removeSelection);
