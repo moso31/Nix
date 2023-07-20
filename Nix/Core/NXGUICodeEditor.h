@@ -33,6 +33,8 @@ class NXGUICodeEditor
                         {
                             std::unique_lock<std::mutex> lock(m_mutex);
                             m_condition.wait(lock, [this]() { return m_bShutdown || !m_tasks.empty(); });
+
+                            if (m_tasks.empty()) return;
                             task = std::move(m_tasks.front());
                             m_tasks.pop();
                         }
