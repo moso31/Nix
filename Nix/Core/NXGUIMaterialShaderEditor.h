@@ -1,7 +1,6 @@
 #pragma once
 #include "Header.h"
 #include "NXShaderDefinitions.h"
-#include "NXInstance.h"
 
 // 显示Shader的错误信息，最多不允许超过 NXGUI_ERROR_MESSAGE_MAXLIMIT 条
 #define NXGUI_ERROR_MESSAGE_MAXLIMIT 50
@@ -18,21 +17,25 @@ struct NXGUIShaderErrorMessage
 	int col1;
 };
 
-struct NXGUIFuncItem
+struct NXGUIFuncTitle
 {
 	std::string data;
+	std::string shortData;
 	int strId;
 };
 
 class NXGUIMaterial;
 class NXGUIFileBrowser;
 class NXGUICodeEditor;
-class NXGUIMaterialShaderEditor : public NXInstance<NXGUIMaterialShaderEditor>
+class NXGUIMaterialShaderEditor
 {
 private:
 	enum class BtnParamType { CBuffer, Texture, Sampler };
 
 public:
+	NXGUIMaterialShaderEditor() {};
+	~NXGUIMaterialShaderEditor() {};
+
 	void Render(NXCustomMaterial* pMaterial);
 	void Show() { m_bShowWindow = true; }
 
@@ -47,6 +50,7 @@ public:
 	void SetGUICodeEditor(NXGUICodeEditor* pGUICodeEditor);
 
 	void RequestSyncMaterialData();
+	void RequestSyncMaterialCodes();
 	void RequestGenerateBackup();
 
 private:
@@ -77,6 +81,7 @@ private:
 	void Render_ErrorMessages();
 
 	void SyncMaterialData(NXCustomMaterial* pMaterial);
+	void SyncMaterialCode(NXCustomMaterial* pMaterial);
 	void UpdateNSLFunctionsDisplay();
 
 	bool FindCBGUIData(const std::string& name, std::vector<NXGUICBufferData>::iterator& oIterator);
@@ -90,9 +95,8 @@ private:
 	NXGUIFileBrowser* m_pFileBrowser = nullptr;
 	NXGUICodeEditor* m_pGUICodeEditor = nullptr;
 
-	std::string m_nslCode;
 	std::vector<std::string> m_nslFuncs;
-	std::vector<NXGUIFuncItem> m_nslFuncsDisplay;
+	std::vector<NXGUIFuncTitle> m_nslFuncsTitle;
 
 	// ShaderEditor 中复制一份 原始GUI类的 cb, tex, ss参数。
 	std::vector<NXGUICBufferData> m_cbInfosDisplay;
@@ -110,6 +114,7 @@ private:
 	std::string m_strQuery = "t";
 
 	bool m_bIsDirty = false;
+	bool m_bNeedSyncMaterialCode = false;
 	bool m_bNeedBackup = false;
 
 	// 用于显示的函数索引

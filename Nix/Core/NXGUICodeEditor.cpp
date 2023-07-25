@@ -1,6 +1,6 @@
 ﻿#include "NXGUICodeEditor.h"
 
-#define YEAH_RAINBOW
+int NXGUICodeEditor::FileData::IDCounter = 0;
 
 // static variables
 std::vector<std::vector<std::string>> const NXGUICodeEditor::s_hlsl_tokens =
@@ -44,56 +44,76 @@ NXGUICodeEditor::NXGUICodeEditor(ImFont* pFont) :
     CalcLineNumberRectWidth();
 }
 
-void NXGUICodeEditor::Load(const std::filesystem::path& filePath)
+void NXGUICodeEditor::Load(const std::filesystem::path& filePath, bool bRefreshHighLight)
 {
     // 逐行读取某个文件的文本信息 
-    std::ifstream file(filePath);
+    std::ifstream ifs(filePath);
 
-    if (file.is_open())
+    if (!ifs.is_open())
+        return;
+
+    for (const auto& file : m_textFiles)
     {
-        m_bIsSelecting = false;
-        m_bNeedFocusOnText = true;
-        m_selections.clear();
-        m_overlaySelectCheck.clear();
-        m_threadPool.ClearTaskFunc();
-
-        // 逐行读取文件内容到 m_lines 
-        TextString line;
-        while (std::getline(file, line))
-        {
-            // 将所有 tab 替换成 4 spaces
-            for (int i = 0; i < line.size(); i++)
-            {
-                if (line[i] == '\t')
-                {
-                    line.replace(i, 1, "    ");
-                    i += 3;
-                }
-            }
-
-            m_lines.push_back(line);
-        }
-
-        // 初始化每行的更新时间
-        m_lineUpdateTime.assign(m_lines.size(), ImGui::GetTime());
-
-        // 异步高亮语法
-        for (int i = 0; i < m_lines.size(); i++)
-            m_threadPool.AddTaskFunc([this, i]() { HighLightSyntax(i); });
+        // 如果是来自硬盘的文件，并且已经打开了这个文件，就不再重复打开
+        if (file.SameAs(filePath)) return;
     }
 
-    file.close();
+    m_bIsSelecting = false;
+    m_selections.clear();
+
+    // 必须清空线程池！因为 m_textFiles.emplace_back() 可能会导致内存地址变更。
+    // 若不清空，此时线程池task()就会继续修改m_textFiles之前指向的内存，导致未定义的行为。
+    m_threadPool.Clear();
+
+    // 将新打开的文件加入到 m_textFiles 中
+    FileData& newFile = m_textFiles.emplace_back(filePath, true);
+    auto& lines = newFile.lines;
+
+    // 逐行读取文件内容到 lines 
+    TextString line;
+    while (std::getline(ifs, line))
+    {
+        // 将所有 tab 替换成 4 spaces
+        for (int i = 0; i < line.size(); i++)
+        {
+            if (line[i] == '\t')
+            {
+                line.replace(i, 1, "    ");
+                i += 3;
+            }
+        }
+
+        lines.push_back(line);
+    }
+
+    if (bRefreshHighLight)
+    {
+        // 初始化每行的更新时间
+        newFile.updateTime.assign(lines.size(), ImGui::GetTime());
+
+        // 异步高亮语法
+        int fileIndex = (int)m_textFiles.size() - 1;
+        for (int i = 0; i < lines.size(); i++)
+            m_threadPool.Add([this, fileIndex, i]() { HighLightSyntax(fileIndex, i); });
+    }
+
+    ifs.close();
 }
 
-void NXGUICodeEditor::Load(const std::string& text)
+void NXGUICodeEditor::Load(const std::string& text, bool bRefreshHighLight, const std::string& customName)
 {
     m_bIsSelecting = false;
-    m_bNeedFocusOnText = true;
     m_selections.clear();
-    m_overlaySelectCheck.clear();
-    m_threadPool.ClearTaskFunc();
 
-    m_lines.clear();
+    // 必须清空线程池！因为 m_textFiles.emplace_back() 可能会导致内存地址变更。
+    // 若不清空，此时线程池task()就会继续修改m_textFiles之前指向的内存，导致未定义的行为。
+    m_threadPool.Clear();
+
+    // 如果不是来自硬盘的文件，无需查重直接创建
+    FileData& newFile = m_textFiles.emplace_back(customName, false);
+    auto& lines = newFile.lines;
+
+    lines.clear();
 
     // 按 "\n" 拆分 text
     size_t start = 0;
@@ -101,7 +121,7 @@ void NXGUICodeEditor::Load(const std::string& text)
 
     while (end != std::string::npos)
     {
-        // 然后逐行加载到 m_lines 
+        // 然后逐行加载到 lines 
         std::string line(text.substr(start, end - start));
 
         // 将所有 tab 替换成 4 spaces
@@ -114,12 +134,12 @@ void NXGUICodeEditor::Load(const std::string& text)
             }
         }
 
-        m_lines.push_back(line);
+        lines.push_back(line);
         start = end + 1;
         end = text.find("\n", start);
     }
 
-    // 把最后一行也加入到 m_lines 中
+    // 把最后一行也加入到 lines 中
     std::string line(text.substr(start, end - start));
     for (int i = 0; i < line.size(); i++)
     {
@@ -129,14 +149,39 @@ void NXGUICodeEditor::Load(const std::string& text)
             i += 3;
         }
     }
-    m_lines.push_back(line);
+    lines.push_back(line);
 
-    // 初始化每行的更新时间
-    m_lineUpdateTime.assign(m_lines.size(), ImGui::GetTime());
+    if (bRefreshHighLight)
+    {
+        // 初始化每行的更新时间
+        newFile.updateTime.assign(lines.size(), ImGui::GetTime());
 
-    // 异步高亮语法
-    for (int i = 0; i < m_lines.size(); i++)
-        m_threadPool.AddTaskFunc([this, i]() { HighLightSyntax(i); });
+        // 异步高亮语法
+        int fileIndex = (int)m_textFiles.size() - 1;
+        for (int i = 0; i < lines.size(); i++)
+            m_threadPool.Add([this, fileIndex, i]() { HighLightSyntax(fileIndex, i); });
+    }
+}
+
+void NXGUICodeEditor::RefreshAllHighLights()
+{
+    for (int i = 0; i < m_textFiles.size(); i++)
+    {
+        auto& file = m_textFiles[i];
+        auto& lines = file.lines;
+
+        // 初始化每行的更新时间
+        file.updateTime.assign(lines.size(), ImGui::GetTime());
+    }
+
+    for (int i = 0; i < m_textFiles.size(); i++)
+    {
+        auto& file = m_textFiles[i];
+
+        // 异步高亮语法
+        for (int j = 0; j < file.lines.size(); j++)
+            m_threadPool.Add([this, i, j]() { HighLightSyntax(i, j); });
+    }
 }
 
 void NXGUICodeEditor::Render()
@@ -150,7 +195,13 @@ void NXGUICodeEditor::Render()
         m_bResetFlickerDt = false;
     }
 
-    size_t newLineNumber = std::max(m_maxLineNumber, m_lines.size());
+    if (m_pickingIndex < 0 || m_pickingIndex >= m_textFiles.size())
+        return;
+
+    auto& currFile = m_textFiles[m_pickingIndex];
+    auto& lines = currFile.lines;
+
+    size_t newLineNumber = std::max(m_maxLineNumber, lines.size());
     if (m_maxLineNumber < newLineNumber)
     {
         m_maxLineNumber = newLineNumber;
@@ -158,33 +209,71 @@ void NXGUICodeEditor::Render()
     }
 
     //ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-    ImGui::Begin("TextEditor", (bool*)true);
+    ImGui::BeginChild("TextEditor");
     if (ImGui::IsWindowFocused()) m_bNeedFocusOnText = true;
 
     const ImVec2& layerStartCursorPos = ImGui::GetCursorPos();
+
+    if (m_enableTabItems)
+    {
+        static int path_id = 0;
+        if (ImGui::BeginTabBar("MyTabBar", ImGuiTabBarFlags_Reorderable))
+        {
+            if (ImGui::TabItemButton("+", ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip))
+            {
+                // add new temp textfile
+                Load(std::string(""), true); 
+            }
+
+            for (int i = 0; i < (int)m_textFiles.size();)
+            {
+                bool bOpen = true;
+                const auto& file = m_textFiles[i];
+                std::string fileName = file.GetName();
+
+                ImGui::PushID(file.GetId());
+                if (ImGui::BeginTabItem(fileName.c_str(), &bOpen, ImGuiTabItemFlags_None))
+                {
+                    SwitchFile(i);
+                    ImGui::EndTabItem();
+                }
+                ImGui::PopID();
+
+                if (!bOpen)
+                {
+                    m_textFiles.erase(m_textFiles.begin() + i);
+                    if (m_pickingIndex >= (int)m_textFiles.size())
+                        SwitchFile((int)m_textFiles.size() - 1);
+                }
+                else i++;
+            }
+            ImGui::EndTabBar();
+        }
+    }
 
     ImGui::BeginChild("##main_layer", ImVec2(), false, ImGuiWindowFlags_NoInputs);
     Render_MainLayer();
     ImGui::EndChild();
 
-    //ImGui::SetCursorPos(layerStartCursorPos);
+    //ImGui::SetCursorPos(ImVec2(layerStartCursorPos.x + ImGui::GetContentRegionAvail().x - 400.0f, layerStartCursorPos.y));
     //ImGui::BeginChild("##debug_layer", ImVec2(), false, ImGuiWindowFlags_NoInputs);
     //Render_DebugLayer();
     //ImGui::EndChild();
 
-    ImGui::End();
+    ImGui::EndChild();
 
     ImGui::PopStyleVar();
     ImGui::PopFont();
 }
 
-std::string NXGUICodeEditor::Text()
+std::string NXGUICodeEditor::Text(int index)
 {
+    auto& lines = m_textFiles[index].lines;
     std::string text;
-    for (int i = 0; i < m_lines.size(); i++)
+    for (int i = 0; i < lines.size(); i++)
     {
-        text += m_lines[i];
-        if (i != m_lines.size() - 1)
+        text += lines[i];
+        if (i != lines.size() - 1)
             text += "\n";
     }
     return text;
@@ -193,7 +282,7 @@ std::string NXGUICodeEditor::Text()
 void NXGUICodeEditor::AddSelection(const Coordinate& A, const Coordinate& B)
 {
     SelectionInfo selection(A, B);
-    m_selections.push_back(selection);
+	m_selections.push_back(selection);
 }
 
 void NXGUICodeEditor::RemoveSelection(const SelectionInfo& removeSelection)
@@ -208,6 +297,8 @@ void NXGUICodeEditor::ClearSelection()
 
 void NXGUICodeEditor::Enter(const std::vector<std::vector<std::string>>& strArray)
 {
+    auto& lines = m_textFiles[m_pickingIndex].lines;
+
     // 按行列号顺序排序
     std::sort(m_selections.begin(), m_selections.end(), [](const SelectionInfo& a, const SelectionInfo& b) { return a.R < b.R; });
 
@@ -220,12 +311,12 @@ void NXGUICodeEditor::Enter(const std::vector<std::vector<std::string>>& strArra
         const auto& R = selection.R;
 
         // 若有选区，先清空
-        if (L != R)
+        if (L != R) 
         {
             // 有选区：删除选区中的所有内容
             if (L.row == R.row) // 单行
             {
-                auto& line = m_lines[L.row];
+                auto& line = lines[L.row];
                 line.erase(line.begin() + L.col, line.begin() + R.col);
 
                 // 补偿计算
@@ -241,12 +332,12 @@ void NXGUICodeEditor::Enter(const std::vector<std::vector<std::string>>& strArra
             else // 多行
             {
                 // 删除左侧行的右侧部分
-                auto& lineL = m_lines[L.row];
+                auto& lineL = lines[L.row];
                 int startErasePos = std::min(L.col, (int)lineL.size());
                 lineL.erase(lineL.begin() + startErasePos, lineL.end());
 
                 // 删除右侧行的左侧部分
-                auto& lineR = m_lines[R.row];
+                auto& lineR = lines[R.row];
                 int endErasePos = std::min(R.col, (int)lineR.size());
                 lineR.erase(lineR.begin(), lineR.begin() + endErasePos);
 
@@ -254,7 +345,7 @@ void NXGUICodeEditor::Enter(const std::vector<std::vector<std::string>>& strArra
                 lineL.append(lineR);
 
                 // 删除中间行
-                m_lines.erase(std::max(m_lines.begin(), m_lines.begin() + L.row + 1), std::min(m_lines.begin() + R.row + 1, m_lines.end()));
+                lines.erase(std::max(lines.begin(), lines.begin() + L.row + 1), std::min(lines.begin() + R.row + 1, lines.end()));
 
                 // 补偿计算
                 bool bSameLine = true;
@@ -285,7 +376,7 @@ void NXGUICodeEditor::Enter(const std::vector<std::vector<std::string>>& strArra
         }
 
         // 清空完成，开始插入文本...
-        auto& line = m_lines[L.row];
+        auto& line = lines[L.row];
         int allLineIdx = 0;
         std::string strPart2;
         for (int strIdx = 0; strIdx < strArray.size(); strIdx++)
@@ -305,22 +396,22 @@ void NXGUICodeEditor::Enter(const std::vector<std::vector<std::string>>& strArra
                 else
                 {
                     // 其他段全部直接插入整行
-                    m_lines.insert(m_lines.begin() + L.row + allLineIdx, strLine);
+                    lines.insert(lines.begin() + L.row + allLineIdx, strLine);
                 }
 
                 // 如果是最后一段的最后一行。将之前保留的后半段续上。
                 if (strIdx == strArray.size() - 1 && lineIdx == str.size() - 1)
                 {
-                    m_lines[L.row + allLineIdx] += strPart2;
+                    lines[L.row + allLineIdx] += strPart2;
                 }
 
-                SetLineUpdateTime(L.row + allLineIdx);
+                SetLineUpdateTime(m_pickingIndex, L.row + allLineIdx);
 
                 // 对前两行，同步处理高亮。超过两行的，全部异步处理
                 if (allLineIdx <= 2)
-                    HighLightSyntax(L.row + allLineIdx);
+                    HighLightSyntax(m_pickingIndex, L.row + allLineIdx);
                 else
-                    m_threadPool.AddTaskFunc([this, L, allLineIdx]() { HighLightSyntax(L.row + allLineIdx); });
+                    m_threadPool.Add([this, L, allLineIdx]() { HighLightSyntax(m_pickingIndex, L.row + allLineIdx); });
             }
         }
 
@@ -365,6 +456,7 @@ void NXGUICodeEditor::Enter(const std::vector<std::vector<std::string>>& strArra
 
 void NXGUICodeEditor::Backspace(bool bDelete, bool bCtrl)
 {
+    auto& lines = m_textFiles[m_pickingIndex].lines;
     std::sort(m_selections.begin(), m_selections.end(), [](const SelectionInfo& a, const SelectionInfo& b) { return a.R < b.R; });
 
     // 按行列号从后往前挨个处理，复杂度O(selection^2)
@@ -378,10 +470,10 @@ void NXGUICodeEditor::Backspace(bool bDelete, bool bCtrl)
         if (L == R)
         {
             // 无选区：删除上一个字符，光标退一格
-            auto& line = m_lines[L.row];
+            auto& line = lines[L.row];
 
             bool bNeedCombineLastLine = (L.row > 0 && L.col == 0 && !bDelete); // 需要和上一行合并：位于列首，且按了backspace；
-            bool bNeedCombineNextLine = (L.row < m_lines.size() - 1 && L.col >= line.size() && bDelete); // 需要和下一行合并：位于列尾，且按了delete；
+            bool bNeedCombineNextLine = (L.row < lines.size() - 1 && L.col >= line.size() && bDelete); // 需要和下一行合并：位于列尾，且按了delete；
             bool bNeedCombineLines = bNeedCombineLastLine || bNeedCombineNextLine;
 
             if (!bNeedCombineLines)
@@ -427,26 +519,26 @@ void NXGUICodeEditor::Backspace(bool bDelete, bool bCtrl)
                     sel.R.col -= eraseSize;
                 }
 
-                SetLineUpdateTime(L.row, ImGui::GetTime());
-                HighLightSyntax(L.row);
+                SetLineUpdateTime(m_pickingIndex, L.row, ImGui::GetTime());
+                HighLightSyntax(m_pickingIndex, L.row);
             }
             else // 跨行
             {
                 if (bNeedCombineLastLine)
                 {
-                    auto& lastLine = m_lines[L.row - 1];
+                    auto& lastLine = lines[L.row - 1];
                     int lastLength = (int)lastLine.length();
                     lastLine.append(line);
-                    m_lines.erase(m_lines.begin() + L.row);
+                    lines.erase(lines.begin() + L.row);
 
                     selection.L = selection.R = Coordinate(L.row - 1, lastLength);
                 }
                 else if (bNeedCombineNextLine)
                 {
-                    auto& nextLine = m_lines[L.row + 1];
+                    auto& nextLine = lines[L.row + 1];
                     int lastLength = (int)line.length();
                     line.append(nextLine);
-                    m_lines.erase(m_lines.begin() + L.row + 1);
+                    lines.erase(lines.begin() + L.row + 1);
                     selection.L = selection.R = Coordinate(L.row, lastLength);
                 }
 
@@ -459,12 +551,12 @@ void NXGUICodeEditor::Backspace(bool bDelete, bool bCtrl)
                     sel.R = sel.L;
                 }
 
-                SetLineUpdateTime(L.row);
-                HighLightSyntax(L.row);
-                if (L.row + 1 < m_lines.size())
+                SetLineUpdateTime(m_pickingIndex, L.row);
+                HighLightSyntax(m_pickingIndex, L.row);
+                if (L.row + 1 < lines.size())
                 {
-                    SetLineUpdateTime(L.row + 1);
-                    HighLightSyntax(L.row + 1);
+                    SetLineUpdateTime(m_pickingIndex, L.row + 1);
+                    HighLightSyntax(m_pickingIndex, L.row + 1);
                 }
             }
         }
@@ -473,7 +565,7 @@ void NXGUICodeEditor::Backspace(bool bDelete, bool bCtrl)
             // 有选区：删除选区中的所有内容
             if (L.row == R.row) // 单行
             {
-                auto& line = m_lines[L.row];
+                auto& line = lines[L.row];
                 line.erase(line.begin() + L.col, line.begin() + R.col);
 
                 // 补偿计算
@@ -486,18 +578,18 @@ void NXGUICodeEditor::Backspace(bool bDelete, bool bCtrl)
                     sel.R.col -= shiftLength;
                 }
 
-                SetLineUpdateTime(L.row, ImGui::GetTime());
-                HighLightSyntax(L.row);
+                SetLineUpdateTime(m_pickingIndex, L.row, ImGui::GetTime());
+                HighLightSyntax(m_pickingIndex, L.row);
             }
             else // 多行
             {
                 // 删除左侧行的右侧部分
-                auto& lineL = m_lines[L.row];
+                auto& lineL = lines[L.row];
                 int startErasePos = std::min(L.col, (int)lineL.size());
                 lineL.erase(lineL.begin() + startErasePos, lineL.end());
 
                 // 删除右侧行的左侧部分
-                auto& lineR = m_lines[R.row];
+                auto& lineR = lines[R.row];
                 int endErasePos = std::min(R.col, (int)lineR.size());
                 lineR.erase(lineR.begin(), lineR.begin() + endErasePos);
 
@@ -505,7 +597,7 @@ void NXGUICodeEditor::Backspace(bool bDelete, bool bCtrl)
                 lineL.append(lineR);
 
                 // 删除中间行
-                m_lines.erase(std::max(m_lines.begin(), m_lines.begin() + L.row + 1), std::min(m_lines.begin() + R.row + 1, m_lines.end()));
+                lines.erase(std::max(lines.begin(), lines.begin() + L.row + 1), std::min(lines.begin() + R.row + 1, lines.end()));
 
                 // 补偿计算
                 bool bSameLine = true;
@@ -530,10 +622,10 @@ void NXGUICodeEditor::Backspace(bool bDelete, bool bCtrl)
                     }
                 }
 
-                SetLineUpdateTime(L.row, ImGui::GetTime());
-                SetLineUpdateTime(L.row + 1, ImGui::GetTime());
-                HighLightSyntax(L.row);
-                if (L.row + 1 < m_lines.size()) HighLightSyntax(L.row + 1);
+                SetLineUpdateTime(m_pickingIndex, L.row, ImGui::GetTime());
+                SetLineUpdateTime(m_pickingIndex, L.row + 1, ImGui::GetTime());
+                HighLightSyntax(m_pickingIndex, L.row);
+                if (L.row + 1 < lines.size()) HighLightSyntax(m_pickingIndex, L.row + 1);
             }
 
             // 更新光标位置
@@ -554,6 +646,7 @@ void NXGUICodeEditor::Escape()
 
 void NXGUICodeEditor::Copy()
 {
+    auto& lines = m_textFiles[m_pickingIndex].lines;
     std::vector<std::string> copyLines;
 
     // Copy策略：遍历所有 selections，
@@ -566,22 +659,22 @@ void NXGUICodeEditor::Copy()
         if (L == R) // rule 1.
         {
             copyLines.push_back("");
-            copyLines.push_back(m_lines[L.row]);
+            copyLines.push_back(lines[L.row]);
         }
         else // rule 2
         {
             if (L.row == R.row) // 同行
             {
-                copyLines.push_back(m_lines[L.row].substr(L.col, R.col - L.col));
+                copyLines.push_back(lines[L.row].substr(L.col, R.col - L.col));
             }
             else // 跨行
             {
-                copyLines.push_back(m_lines[L.row].substr(std::min(L.col, (int)m_lines[L.row].size())));
+                copyLines.push_back(lines[L.row].substr(std::min(L.col, (int)lines[L.row].size())));
                 for (int i = L.row + 1; i < R.row; i++)
                 {
-                    copyLines.push_back(m_lines[i]);
+                    copyLines.push_back(lines[i]);
                 }
-                copyLines.push_back(m_lines[R.row].substr(0, std::min(R.col, (int)m_lines[R.row].size())));
+                copyLines.push_back(lines[R.row].substr(0, std::min(R.col, (int)lines[R.row].size())));
             }
         }
     }
@@ -609,12 +702,14 @@ void NXGUICodeEditor::Paste()
 
 void NXGUICodeEditor::SelectAll()
 {
-    m_selections.assign(1, { {0, 0}, {(int)m_lines.size() - 1, (int)m_lines.back().length()} });
+    auto& lines = m_textFiles[m_pickingIndex].lines;
+    m_selections.assign(1, { {0, 0}, {(int)lines.size() - 1, (int)lines.back().length()} });
 }
 
-void NXGUICodeEditor::HighLightSyntax(int lineIndex)
+void NXGUICodeEditor::HighLightSyntax(int fileIndex, int lineIndex)
 {
-    TextString strLine = m_lines[lineIndex];
+    auto& lines = m_textFiles[fileIndex].lines;
+    TextString strLine = lines[lineIndex];
     std::vector<TextKeyword> strWords = ExtractKeywords(strLine);
     for (auto& strWord : strWords)
     {
@@ -657,19 +752,33 @@ void NXGUICodeEditor::HighLightSyntax(int lineIndex)
 
     // callback
     double currTime = ImGui::GetTime();
-    if (currTime >= m_lineUpdateTime[lineIndex])
+    auto& linesUpdateTime = m_textFiles[fileIndex].updateTime;
+    if (currTime >= linesUpdateTime[lineIndex])
     {
-        m_lineUpdateTime[lineIndex] = currTime;
-        m_lines[lineIndex] = strLine;
+        linesUpdateTime[lineIndex] = currTime;
+        lines[lineIndex] = strLine;
     }
 }
 
-void NXGUICodeEditor::SetLineUpdateTime(int lineIndex, double manualTime)
+void NXGUICodeEditor::SetLineUpdateTime(int fileIndex, int lineIndex, double manualTime)
 {
+    auto& lines = m_textFiles[fileIndex].lines;
+    auto& linesUpdateTime = m_textFiles[fileIndex].updateTime;
     double time = manualTime == FLT_MIN ? ImGui::GetTime() : manualTime;
-    if (m_lineUpdateTime.size() < m_lines.size())
-        m_lineUpdateTime.insert(m_lineUpdateTime.end(), m_lines.size() - m_lineUpdateTime.size(), time);
-    m_lineUpdateTime[lineIndex] = time;
+    if (linesUpdateTime.size() < lines.size())
+        linesUpdateTime.insert(linesUpdateTime.end(), lines.size() - linesUpdateTime.size(), time);
+    linesUpdateTime[lineIndex] = time;
+}
+
+void NXGUICodeEditor::SwitchFile(int fileIndex)
+{
+    if (m_pickingIndex == fileIndex)
+        return;
+
+    m_pickingIndex = fileIndex;
+
+    m_bIsSelecting = false;
+    m_selections.clear();
 }
 
 void NXGUICodeEditor::Render_MainLayer()
@@ -703,14 +812,17 @@ void NXGUICodeEditor::Render_MainLayer()
 
 void NXGUICodeEditor::Render_DebugLayer()
 {
-    ImGui::SetCursorPos(ImVec2(ImGui::GetContentRegionAvail().x - 400.0f, 0.0f));
-    ImGui::BeginChild("##debug_selections", ImVec2(350.0f, 0.0f), false, ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoNav);
+    //ImGui::SetCursorPos(ImVec2(ImGui::GetContentRegionAvail().x - 400.0f, 0.0f));
+    ImGui::BeginChild("##debug_selections", ImVec2(350.0f, ImGui::GetContentRegionAvail().y * 0.4f), true);
     ImGui::Text("Disable Render_DebugLayer() method to hide me!");
+
+    if (ImGui::Button("show/hide tabItems##debug_toggle_tabitems"))
+        m_enableTabItems = !m_enableTabItems;
 
     for (size_t i = 0; i < m_selections.size(); i++)
     {
         const auto& selection = m_selections[i];
-        std::string info = "Selection " + std::to_string(i) + ":(" + std::to_string(selection.L.row) + ", " + std::to_string(selection.L.col) + ") " +
+        std::string info = "Selection " + std::to_string(i) + ":(" + std::to_string(selection.L.row) + ", " + std::to_string(selection.L.col) + ") " + 
             std::string(selection.flickerAtFront ? "<-" : "->") +
             " (" + std::to_string(selection.R.row) + ", " + std::to_string(selection.R.col) + ")";
         ImGui::Text(info.c_str());
@@ -741,6 +853,8 @@ void NXGUICodeEditor::RenderSelections()
 
 void NXGUICodeEditor::RenderTexts()
 {
+    auto& lines = m_textFiles[m_pickingIndex].lines;
+
     ImVec2 windowPos = ImGui::GetWindowPos();
     ImVec2 contextArea = ImGui::GetContentRegionAvail();
     float scrollY = ImGui::GetScrollY();
@@ -748,9 +862,9 @@ void NXGUICodeEditor::RenderTexts()
     int endRow = (int)((scrollY + contextArea.y) / m_charHeight);
 
     m_maxLineCharCount = 0;
-    for (int i = 0; i < m_lines.size(); i++)
+    for (int i = 0; i < lines.size(); i++)
     {
-        const auto& strLine = m_lines[i];
+        const auto& strLine = lines[i];
         m_maxLineCharCount = std::max(m_maxLineCharCount, strLine.length()); // 记录每行最长的字符数，用于填充空格
 
         if (i < startRow || i > endRow)
@@ -802,14 +916,16 @@ void NXGUICodeEditor::RenderTexts()
 
 void NXGUICodeEditor::RenderLineNumber()
 {
+    auto& lines = m_textFiles[m_pickingIndex].lines;
+
     const ImVec2& windowPos = ImGui::GetWindowPos();
     const ImVec2& windowSize = ImGui::GetWindowSize();
     const auto& drawList = ImGui::GetWindowDrawList();
 
     drawList->AddRectFilled(windowPos, ImVec2(windowPos.x + windowSize.x, windowPos.y + windowSize.y), IM_COL32(100, 100, 0, 255));
 
-    size_t strLineSize = std::to_string(m_lines.size()).length();
-    for (int i = 0; i < m_lines.size(); i++)
+    size_t strLineSize = std::to_string(lines.size()).length();
+    for (int i = 0; i < lines.size(); i++)
     {
         std::string strLineNumber = std::to_string(i + 1);
         while (strLineNumber.size() < strLineSize)
@@ -836,6 +952,8 @@ void NXGUICodeEditor::CalcLineNumberRectWidth()
 
 void NXGUICodeEditor::RenderSelection(const SelectionInfo& selection)
 {
+    auto& lines = m_textFiles[m_pickingIndex].lines;
+
     const ImVec2& windowPos = ImGui::GetWindowPos();
     const auto& drawList = ImGui::GetWindowDrawList();
 
@@ -852,8 +970,8 @@ void NXGUICodeEditor::RenderSelection(const SelectionInfo& selection)
 
     if (bSingleLine)
     {
-        int linePosL = std::min(fromPos.col, (int)m_lines[fromPos.row].length());
-        int linePosR = std::min(toPos.col, (int)m_lines[toPos.row].length());
+        int linePosL = std::min(fromPos.col, (int)lines[fromPos.row].length());
+        int linePosR = std::min(toPos.col, (int)lines[toPos.row].length());
 
         // 行首坐标
         ImVec2 linePos(windowPos.x, windowPos.y + m_charHeight * fromPos.row - scrollY);
@@ -872,7 +990,7 @@ void NXGUICodeEditor::RenderSelection(const SelectionInfo& selection)
         float enterCharOffset = m_charWidth;
 
         // 绘制首行，先确定首行字符坐标
-        int linePosR = (int)m_lines[fromPos.row].length();
+        int linePosR = (int)lines[fromPos.row].length();
         int linePosL = std::min(fromPos.col, linePosR);
 
         // 行首坐标
@@ -892,13 +1010,13 @@ void NXGUICodeEditor::RenderSelection(const SelectionInfo& selection)
             linePos = ImVec2(windowPos.x, windowPos.y + m_charHeight * i - scrollY);
             // 绘制所选对象的选中状态矩形
             selectStartPos = ImVec2(linePos.x - scrollX, linePos.y);
-            selectEndPos = ImVec2(linePos.x + m_lines[i].length() * m_charWidth - scrollX, linePos.y + m_charHeight);
+            selectEndPos = ImVec2(linePos.x + lines[i].length() * m_charWidth - scrollX, linePos.y + m_charHeight);
             drawList->AddRectFilled(selectStartPos, ImVec2(selectEndPos.x + enterCharOffset, selectEndPos.y), IM_COL32(100, 100, 0, 255));
         }
 
         // 绘制尾行，确定尾行字符坐标
         linePosL = 0;
-        linePosR = std::min(toPos.col, (int)m_lines[toPos.row].length());
+        linePosR = std::min(toPos.col, (int)lines[toPos.row].length());
 
         // 行首坐标
         linePos = ImVec2(windowPos.x, windowPos.y + m_charHeight * toPos.row - scrollY);
@@ -1050,23 +1168,24 @@ int NXGUICodeEditor::CalcSelectionLength(const SelectionInfo& selection)
 {
     const auto& L = selection.L;
     const auto& R = selection.R;
+    auto& lines = m_textFiles[m_pickingIndex].lines;
 
     if (L.row == R.row)
     {
-        auto& line = m_lines[L.row];
+        auto& line = lines[L.row];
         int actualLcol = std::min(L.col, (int)line.size());
         int actualRcol = std::min(R.col, (int)line.size());
         return actualRcol - actualLcol;
     }
     else
     {
-        auto& lineL = m_lines[L.row];
-        auto& lineR = m_lines[R.row];
+        auto& lineL = lines[L.row];
+        auto& lineR = lines[R.row];
         int actualLcol = std::min(L.col, (int)lineL.size());
         int actualRcol = std::min(R.col, (int)lineR.size());
         int length = (int)lineL.size() - actualLcol + actualRcol;
         for (int i = L.row + 1; i < R.row - 1; i++)
-            length += (int)m_lines[i].size();
+            length += (int)lines[i].size();
         return length;
     }
 }
@@ -1097,6 +1216,8 @@ void NXGUICodeEditor::RenderTexts_OnMouseInputs()
     bool isMouseInContentArea = mousePos.x >= contentAreaMin.x && mousePos.x <= contentAreaMax.x &&
         mousePos.y >= contentAreaMin.y && mousePos.y <= contentAreaMax.y;
 
+    auto& lines = m_textFiles[m_pickingIndex].lines;
+
     if (isMouseInContentArea && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
     {
         // 计算出行列号
@@ -1107,17 +1228,17 @@ void NXGUICodeEditor::RenderTexts_OnMouseInputs()
         int col = (int)(fCol + 0.5f);
 
         // 约束行列号范围
-        row = std::max(0, std::min(row, (int)m_lines.size() - 1));
-        col = std::max(0, std::min(col, (int)m_lines[row].size()));
+        row = std::max(0, std::min(row, (int)lines.size() - 1));
+        col = std::max(0, std::min(col, (int)lines[row].size()));
 
         // 抓取对应字符
-        if (col < m_lines[row].size())
+        if (col < lines[row].size())
         {
             // 从当前位置开始向左右扫描，直到遇到空格或者换行符
             int left = col;
             int right = col;
-            while (left > 0 && m_lines[row][left] != ' ' && m_lines[row][left] != '\n') left--;
-            while (right < m_lines[row].size() && m_lines[row][right] != ' ' && m_lines[row][right] != '\n') right++;
+            while (left > 0 && lines[row][left] != ' ' && lines[row][left] != '\n') left--;
+            while (right < lines[row].size() && lines[row][right] != ' ' && lines[row][right] != '\n') right++;
 
             if (!io.KeyAlt) ClearSelection();
 
@@ -1139,11 +1260,11 @@ void NXGUICodeEditor::RenderTexts_OnMouseInputs()
         int col = (int)(fCol + 0.5f);
 
         // 约束行列号范围
-        row = std::max(0, std::min(row, (int)m_lines.size() - 1));
-        col = std::max(0, std::min(col, (int)m_lines[row].size()));
+        row = std::max(0, std::min(row, (int)lines.size() - 1));
+        col = std::max(0, std::min(col, (int)lines[row].size()));
 
         // test: 打印对应字符
-        //if (col < m_lines[row].size()) std::cout << m_lines[row][col];
+        //if (col < lines[row].size()) std::cout << lines[row][col];
 
         if (!io.KeyAlt) ClearSelection();
 
@@ -1154,7 +1275,7 @@ void NXGUICodeEditor::RenderTexts_OnMouseInputs()
             if (selection.Include(pos))
             {
                 m_bIsSelecting = false;
-                if (selection == pos) RemoveSelection(selection);
+				if (selection == pos) RemoveSelection(selection);
                 break;
             }
         }
@@ -1178,10 +1299,10 @@ void NXGUICodeEditor::RenderTexts_OnMouseInputs()
         int col = (int)(fCol + 0.5f);
 
         // 约束行列号范围
-        row = std::max(0, std::min(row, (int)m_lines.size() - 1));
-        col = std::max(0, std::min(col, (int)m_lines[row].size()));
+        row = std::max(0, std::min(row, (int)lines.size() - 1));
+        col = std::max(0, std::min(col, (int)lines[row].size()));
 
-        m_activeSelectionMove = { row, col };
+		m_activeSelectionMove = { row, col };
         SelectionsOverlayCheckForMouseEvent(false);
 
         m_bResetFlickerDt = true;
@@ -1198,7 +1319,7 @@ void NXGUICodeEditor::RenderTexts_OnMouseInputs()
         else if (relativeWindowPos.x > contentArea.x + scrollBarWidth)
         {
             // 当 scrollX 右移时，不准超过当前鼠标所在行的最大文本长度 + 50.0 像素
-            float scrollXLimit = m_lines[row].size() * m_charWidth - contentArea.x + 50.0f;
+            float scrollXLimit = lines[row].size() * m_charWidth - contentArea.x + 50.0f;
             scrollXLimit = std::min(scrollXLimit, scrollMax.x);
             ImGui::SetScrollX(std::min(scrollX + dragSpeed.x, scrollXLimit));
         }
@@ -1222,9 +1343,9 @@ void NXGUICodeEditor::Render_OnMouseInputs()
 void NXGUICodeEditor::RenderTexts_OnKeyInputs()
 {
     ImGuiIO& io = ImGui::GetIO();
-    bool bAlt = io.KeyAlt;
-    bool bShift = io.KeyShift;
-    bool bCtrl = io.KeyCtrl;
+	bool bAlt = io.KeyAlt;
+	bool bShift = io.KeyShift;
+	bool bCtrl = io.KeyCtrl;
 
     if (ImGui::IsWindowFocused())
     {
@@ -1367,14 +1488,16 @@ void NXGUICodeEditor::MoveUp(bool bShift, bool bPageUp, bool bCtrlHome)
 
 void NXGUICodeEditor::MoveDown(bool bShift, bool bPageDown, bool bCtrlEnd)
 {
+    auto& lines = m_textFiles[m_pickingIndex].lines;
+
     for (auto& sel : m_selections)
     {
         auto& pos = sel.flickerAtFront ? sel.L : sel.R;
-        bCtrlEnd ? pos.row = (int)m_lines.size() : bPageDown ? pos.row += 20 : pos.row++;
-        if (pos.row >= m_lines.size())
+        bCtrlEnd ? pos.row = (int)lines.size() : bPageDown ? pos.row += 20 : pos.row++;
+        if (pos.row >= lines.size())
         {
-            pos.row = (int)m_lines.size() - 1;
-            pos.col = (int)m_lines[pos.row].size();
+            pos.row = (int)lines.size() - 1;
+            pos.col = (int)lines[pos.row].size();
         }
 
         if (!bShift)
@@ -1409,8 +1532,9 @@ void NXGUICodeEditor::MoveRight(bool bShift, bool bCtrl, bool bEnd, int size)
 
 void NXGUICodeEditor::MoveLeft(SelectionInfo& sel, bool bShift, bool bCtrl, bool bHome, int size)
 {
+    auto& lines = m_textFiles[m_pickingIndex].lines;
     auto& pos = sel.flickerAtFront ? sel.L : sel.R;
-    pos.col = std::min(pos.col, (int)m_lines[pos.row].size());
+    pos.col = std::min(pos.col, (int)lines[pos.row].size());
     if (bHome) pos.col = 0;
     else
     {
@@ -1424,10 +1548,10 @@ void NXGUICodeEditor::MoveLeft(SelectionInfo& sel, bool bShift, bool bCtrl, bool
 
                 if (bCtrl)
                 {
-                    while (pos.col > 0 && !IsVariableChar(m_lines[pos.row][pos.col])) pos.col--;
+                    while (pos.col > 0 && !IsVariableChar(lines[pos.row][pos.col])) pos.col--;
                     if (pos.col > 0)
                     {
-                        while (pos.col > 0 && IsVariableChar(m_lines[pos.row][pos.col])) pos.col--;
+                        while (pos.col > 0 && IsVariableChar(lines[pos.row][pos.col])) pos.col--;
                         pos.col++;
                     }
                 }
@@ -1435,7 +1559,7 @@ void NXGUICodeEditor::MoveLeft(SelectionInfo& sel, bool bShift, bool bCtrl, bool
             else if (pos.row > 0)
             {
                 pos.row--;
-                pos.col = (int)m_lines[pos.row].size();
+                pos.col = (int)lines[pos.row].size();
                 size--;
             }
             else break; // 如果已到达全文开头，则左移终止
@@ -1456,29 +1580,30 @@ void NXGUICodeEditor::MoveLeft(SelectionInfo& sel, bool bShift, bool bCtrl, bool
 
 void NXGUICodeEditor::MoveRight(SelectionInfo& sel, bool bShift, bool bCtrl, bool bEnd, int size)
 {
+    auto& lines = m_textFiles[m_pickingIndex].lines;
     auto& pos = sel.flickerAtFront ? sel.L : sel.R;
-    pos.col = std::min(pos.col, (int)m_lines[pos.row].size());
-    if (bEnd) pos.col = (int)m_lines[pos.row].size();
+    pos.col = std::min(pos.col, (int)lines[pos.row].size());
+    if (bEnd) pos.col = (int)lines[pos.row].size();
     else
     {
         while (size) // 持续右移，直到 size 耗尽
         {
-            if (pos.col < m_lines[pos.row].size())
+            if (pos.col < lines[pos.row].size())
             {
-                int newCol = std::min(pos.col + size, (int)m_lines[pos.row].size());
+                int newCol = std::min(pos.col + size, (int)lines[pos.row].size());
                 size -= newCol - pos.col;
                 pos.col = newCol;
 
                 if (bCtrl)
                 {
-                    while (pos.col < m_lines[pos.row].size() && !IsVariableChar(m_lines[pos.row][pos.col])) pos.col++;
-                    if (pos.col < m_lines[pos.row].size())
+                    while (pos.col < lines[pos.row].size() && !IsVariableChar(lines[pos.row][pos.col])) pos.col++;
+                    if (pos.col < lines[pos.row].size())
                     {
-                        while (pos.col < m_lines[pos.row].size() && IsVariableChar(m_lines[pos.row][pos.col])) pos.col++;
+                        while (pos.col < lines[pos.row].size() && IsVariableChar(lines[pos.row][pos.col])) pos.col++;
                     }
                 }
             }
-            else if (pos.row < m_lines.size() - 1)
+            else if (pos.row < lines.size() - 1)
             {
                 pos.row++;
                 pos.col = 0;
@@ -1511,9 +1636,9 @@ std::vector<NXGUICodeEditor::TextKeyword> NXGUICodeEditor::ExtractKeywords(const
     std::vector<NXGUICodeEditor::TextKeyword> words;
     std::string word;
     int i;
-	for (i = 0; i < text.length(); i++)
+    for (i = 0; i < text.length(); i++)
     {
-        const char& c = text[i];
+        const unsigned char& c = text[i];
         // 对于字母或数字的字符，将其添加到当前单词
         if (std::isalnum(c) || c == '_') word += c;
         else if (!word.empty())

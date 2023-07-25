@@ -9,6 +9,7 @@ class NXGUIMaterial;
 class NXGUIFileBrowser;
 class NXGUIContentExplorer;
 class NXGUICodeEditor;
+class NXGUIMaterialShaderEditor;
 class NXGUISSAO;
 class NXGUICubeMap;
 class NXGUILights;
@@ -30,23 +31,24 @@ public:
 	void Release();
 
 private:
-	NXScene*				m_pCurrentScene;
-	Renderer*				m_pRenderer;
+	NXScene*	m_pCurrentScene;
+	Renderer*	m_pRenderer;
 
-	NXGUICodeEditor*		m_pGUICodeEditor;
-	NXGUIContentExplorer*	m_pGUIContentExplorer;
-	NXGUITexture*			m_pGUITexture;
+	NXGUICodeEditor*			m_pGUICodeEditor;
+	NXGUIMaterialShaderEditor*	m_pGUIMaterialShaderEditor;
+	NXGUIContentExplorer*		m_pGUIContentExplorer;
+	NXGUITexture*				m_pGUITexture;
 
-	NXGUILights*			m_pGUILights;
-	NXGUICamera*			m_pGUICamera;
-	NXGUIMaterial*			m_pGUIMaterial;
-	NXGUICubeMap*			m_pGUICubeMap;
-	NXGUIFileBrowser*		m_pFileBrowser;
-	NXGUISSAO*				m_pGUISSAO;
-	NXGUIShadows*			m_pGUIShadows;
-	NXGUIPostProcessing*	m_pGUIPostProcessing;
-	NXGUIView*				m_pGUIView;
-	NXGUIWorkspace*			m_pGUIWorkspace;
+	NXGUILights*				m_pGUILights;
+	NXGUICamera*				m_pGUICamera;
+	NXGUIMaterial*				m_pGUIMaterial;
+	NXGUICubeMap*				m_pGUICubeMap;
+	NXGUIFileBrowser*			m_pFileBrowser;
+	NXGUISSAO*					m_pGUISSAO;
+	NXGUIShadows*				m_pGUIShadows;
+	NXGUIPostProcessing*		m_pGUIPostProcessing;
+	NXGUIView*					m_pGUIView;
+	NXGUIWorkspace*				m_pGUIWorkspace;
 
-	NXGUIDebugLayer*		m_pGUIDebugLayer;
+	NXGUIDebugLayer*			m_pGUIDebugLayer;
 };

@@ -98,7 +98,7 @@ public:
 	// 将 NSL 转换为 HLSL。另外将 GUI 修改后的参数也传了进来，这些 GUI 参数将作为新编译后的 Shader 的默认值。
 	void ConvertGUIDataToHLSL(std::string& oHLSLHead, std::vector<std::string>& oHLSLFuncs, std::string& oHLSLBody, const std::vector<NXGUICBufferData>& cbDataGUI, const std::vector<NXGUITextureData>& texDataGUI, const std::vector<NXGUISamplerData>& samplerDataGUI);
 	bool CompileShader(const std::string& strHLSLHead, const std::vector<std::string>& strHLSLFunc, const std::string& strHLSLBody, std::string& oErrorMessageVS, std::string& oErrorMessagePS);
-	bool Recompile(const std::string& nslParams, const std::vector<std::string>& nslFuncs, const std::string& nslCode, const std::vector<NXGUICBufferData>& cbDefaultValues, const std::vector<NXGUITextureData>& texDefaultValues, const std::vector<NXGUISamplerData>& samplerDefaultValues, std::string& oErrorMessageVS, std::string& oErrorMessagePS);
+	bool Recompile(const std::string& nslParams, const std::vector<std::string>& nslFuncs, const std::vector<NXGUICBufferData>& cbDefaultValues, const std::vector<NXGUITextureData>& texDefaultValues, const std::vector<NXGUISamplerData>& samplerDefaultValues, std::string& oErrorMessageVS, std::string& oErrorMessagePS);
 
 	// 初始化所有着色器资源，包括 cb, tex, sampler
 	void InitShaderResources();
@@ -107,11 +107,12 @@ public:
 	void Render();
 	void Release() override {}
 
-	const std::string& GetNSLCode() { return m_nslCode; }
-	void SetNSLCode(const std::string& nslCode) { m_nslCode = nslCode; }
 	void SetNSLParam(const std::string& nslParams) { m_nslParams = nslParams; }
 
 	const std::vector<std::string>& GetNSLFuncs() { return m_nslFuncs; }
+	const std::string& GetNSLFunc(UINT index);
+	void SetNSLFunc(const std::string& nslFunc, UINT index);
+	void SetNSLMainFunc(const std::string& nslFunc);
 
 	void SortShaderCBufferParam();
 
@@ -153,7 +154,7 @@ private:
 	// 读取 nsl 文件，获取 nsl shader.
 	bool LoadShaderStringFromFile(std::string& shaderContent);
 	// 将 nsl shader 拆成 params 和 code 两部分
-	void ExtractShaderData(const std::string& shader, std::string& nslParams, std::string& nslCode, std::vector<std::string>& nslFunc);
+	void ExtractShaderData(const std::string& shader, std::string& nslParams, std::vector<std::string>& nslFunc);
 
 	// 将 nsl params 转换成 DX 可以编译的 hlsl 代码，
 	// 同时对其进行分拣，将 cb 储存到 m_cbInfo，纹理储存到 m_texInfoMap，采样器储存到 m_ssInfoMap
@@ -167,17 +168,16 @@ private:
 
 	void ProcessShaderCBufferParam(std::istringstream& in, std::ostringstream& out, const std::vector<NXGUICBufferData>& cbDefaultValues = {});
 
-	// 将 nsl funcs 转换成 DX 可以编译的 hlsl 代码，
-	void ProcessShaderFunctions(const std::vector<std::string>& nslFuncs, std::vector<std::string>& oHLSLFuncCode);
+	// 将 nsl 的主函数 转换成 DX 可以编译的 hlsl 代码，
+	void ProcessShaderMainFunc(std::string& oHLSLBodyCode);
 
-	// 将 nsl code 转换成 DX 可以编译的 hlsl 代码，
-	void ProcessShaderCode(const std::string& nslCode, std::string& oHLSLBodyCode);
+	// 将 nsl 的其它函数 转换成 DX 可以编译的 hlsl 代码，
+	void ProcessShaderFunctions(const std::vector<std::string>& nslFuncs, std::vector<std::string>& oHLSLFuncCode);
 
 	void UpdateCBData();
 
 private:
 	std::string							m_nslParams;
-	std::string							m_nslCode;
 	std::vector<std::string>			m_nslFuncs;
 
 	ComPtr<ID3D11VertexShader>			m_pVertexShader;
@@ -199,6 +199,5 @@ private:
 	NXMaterialCBufferInfo				m_cbInfoBackup;
 	std::vector<float>					m_cbInfoMemoryBackup;
 	std::vector<int>					m_cbSortedIndexBackup;
-	std::string							m_nslCodeBackup;
 	std::vector<std::string>			m_nslFuncsBackup;
 };

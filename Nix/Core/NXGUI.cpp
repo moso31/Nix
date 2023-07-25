@@ -7,6 +7,7 @@
 
 #include "NXGUIFileBrowser.h"
 #include "NXGUICodeEditor.h"
+#include "NXGUIMaterialShaderEditor.h"
 #include "NXGUIMaterial.h"
 #include "NXGUILights.h"
 #include "NXGUICamera.h"
@@ -25,6 +26,7 @@ NXGUI::NXGUI(NXScene* pScene, Renderer* pRenderer) :
 	m_pRenderer(pRenderer),
 	m_pFileBrowser(nullptr),
 	m_pGUICodeEditor(nullptr),
+	m_pGUIMaterialShaderEditor(nullptr),
 	m_pGUIMaterial(nullptr),
 	m_pGUILights(nullptr),
 	m_pGUICamera(nullptr),
@@ -69,12 +71,13 @@ void NXGUI::Init()
 	m_pFileBrowser->SetPwd("D:\\NixAssets");
 
 	m_pGUICodeEditor = new NXGUICodeEditor(pCodeEditorFont);
+	m_pGUIMaterialShaderEditor = new NXGUIMaterialShaderEditor();
 
 	m_pGUITexture = new NXGUITexture();
 	m_pGUIContentExplorer = new NXGUIContentExplorer(m_pCurrentScene, m_pGUITexture);
 
 	m_pGUICamera = new NXGUICamera(m_pCurrentScene);
-	m_pGUIMaterial = new NXGUIMaterial(m_pCurrentScene, m_pFileBrowser, m_pGUICodeEditor);
+	m_pGUIMaterial = new NXGUIMaterial(m_pCurrentScene, m_pFileBrowser, m_pGUICodeEditor, m_pGUIMaterialShaderEditor);
 	m_pGUILights = new NXGUILights(m_pCurrentScene);
 	m_pGUICubeMap = new NXGUICubeMap(m_pCurrentScene, m_pFileBrowser);
 
@@ -150,6 +153,7 @@ void NXGUI::Release()
 
 	SafeDelete(m_pGUIView);
 	SafeDelete(m_pGUIWorkspace);
+	SafeDelete(m_pGUIMaterialShaderEditor);
 	SafeDelete(m_pGUICodeEditor);
 	SafeRelease(m_pGUIMaterial);
 	SafeDelete(m_pGUILights);

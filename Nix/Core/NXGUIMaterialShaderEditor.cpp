@@ -22,6 +22,12 @@ void NXGUIMaterialShaderEditor::Render(NXCustomMaterial* pMaterial)
 		}
 	}
 
+	if (m_bNeedSyncMaterialCode)
+	{
+		SyncMaterialCode(pMaterial);
+		m_bNeedSyncMaterialCode = false;
+	}
+
 	bool k = ImGui::Begin("Material Editor##material_shader_editor", &m_bShowWindow);
 	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.1f, 0.1f, 0.1f, 0.1f));
 
@@ -205,7 +211,7 @@ bool NXGUIMaterialShaderEditor::OnBtnCompileClicked(NXCustomMaterial* pMaterial)
 	std::string nslParams = ConvertShaderResourceDataToNSLParam(m_cbInfosDisplay, m_texInfosDisplay, m_ssInfosDisplay);
 
 	std::string strErrVS, strErrPS;	// 若编译Shader出错，将错误信息记录到此字符串中。
-	bool bCompile = pMaterial->Recompile(nslParams, m_nslFuncs, m_nslCode, m_cbInfosDisplay, m_texInfosDisplay, m_ssInfosDisplay, strErrVS, strErrPS);
+	bool bCompile = pMaterial->Recompile(nslParams, m_nslFuncs, m_cbInfosDisplay, m_texInfosDisplay, m_ssInfosDisplay, strErrVS, strErrPS);
 	
 	if (bCompile)
 	{
@@ -278,6 +284,11 @@ void NXGUIMaterialShaderEditor::RequestSyncMaterialData()
 	m_bIsDirty = true;
 }
 
+void NXGUIMaterialShaderEditor::RequestSyncMaterialCodes()
+{
+	m_bNeedSyncMaterialCode = true;
+}
+
 void NXGUIMaterialShaderEditor::RequestGenerateBackup()
 {
 	m_bNeedBackup = true;
@@ -298,12 +309,12 @@ void NXGUIMaterialShaderEditor::OnBtnRemoveFunctionClicked(NXCustomMaterial* pMa
 void NXGUIMaterialShaderEditor::Render_Code(NXCustomMaterial* pMaterial)
 {
 	ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.6f);
-	if (ImGui::BeginCombo("##material_shader_editor_combo_func", m_nslFuncsDisplay[m_showFuncIndex].data.c_str()))
+	if (ImGui::BeginCombo("##material_shader_editor_combo_func", m_nslFuncsTitle[m_showFuncIndex].data.c_str()))
 	{
-		for (int item = 0; item < m_nslFuncsDisplay.size(); item++)
+		for (int item = 0; item < m_nslFuncsTitle.size(); item++)
 		{
-			ImGui::PushID(m_nslFuncsDisplay[item].strId);
-			if (ImGui::Selectable(m_nslFuncsDisplay[item].data.c_str()))
+			ImGui::PushID(m_nslFuncsTitle[item].strId);
+			if (ImGui::Selectable(m_nslFuncsTitle[item].data.c_str()))
 				OnShowFuncIndexChanged(item);
 			ImGui::PopID();
 		}
@@ -330,23 +341,14 @@ void NXGUIMaterialShaderEditor::Render_Code(NXCustomMaterial* pMaterial)
 
 	if (ImGui::ButtonEx("Remove Function##material_shader_editor_btn_removefunction"))
 	{
-		OnBtnRemoveFunctionClicked(pMaterial, m_showFuncIndex - 1);
-		OnShowFuncIndexChanged(m_showFuncIndex - 1);
+		OnBtnRemoveFunctionClicked(pMaterial, m_showFuncIndex);
+		OnShowFuncIndexChanged(m_showFuncIndex);
 	}
 
 	if (bIsMainFunc)
 	{
 		ImGui::PopStyleColor();
 		ImGui::PopItemFlag();
-	}
-	
-	// 当showFunc相关逻辑触发（比如index值改变，或重新打开材质编辑器）时，设置需要显示的代码
-	if (m_bShowFuncChanged)
-	{
-		std::string& strEditorText = m_showFuncIndex == 0 ? m_nslCode : m_nslFuncs[m_showFuncIndex - 1];
-		m_pGUICodeEditor->Load(strEditorText);
-
-		m_bShowFuncChanged = false;
 	}
 
 	float fEachTextLineHeight = ImGui::GetTextLineHeight();
@@ -903,33 +905,43 @@ void NXGUIMaterialShaderEditor::SyncMaterialData(NXCustomMaterial* pMaterial)
 		NXSamplerAddressMode ssAddressModeW = pMaterial->GetSamplerAddressMode(i, 2);
 		m_ssInfosDisplay.push_back({ pMaterial->GetSamplerName(i), ssFilter, ssAddressModeU, ssAddressModeV, ssAddressModeW });
 	}
+}
 
-	m_nslCode = pMaterial->GetNSLCode();
+void NXGUIMaterialShaderEditor::SyncMaterialCode(NXCustomMaterial* pMaterial)
+{
 	m_nslFuncs = pMaterial->GetNSLFuncs();
 
-	// 让 CodeEditor 也刷新一次
-	OnShowFuncIndexChanged(0);
-
 	UpdateNSLFunctionsDisplay();
+
+	// 让 CodeEditor 也刷新一次
+	for (int i = 0; i < m_nslFuncs.size(); i++)
+	{
+		std::string& strEditorText = m_nslFuncs[i];
+		m_pGUICodeEditor->Load(strEditorText, false, m_nslFuncsTitle[i].data);
+	}
+	m_pGUICodeEditor->RefreshAllHighLights();
 }
 
 void NXGUIMaterialShaderEditor::UpdateNSLFunctionsDisplay()
 {
-	// m_nslFuncsDisplay 负责在 Func Combo 中显示所有函数的名称和变量
-	m_nslFuncsDisplay.clear();
-	m_nslFuncsDisplay.reserve(m_nslFuncs.size() + 1); // 还有入口主函数，所以+1
-	m_nslFuncsDisplay.push_back({ "main()", 0 });
+	// m_nslFuncsTitle 负责在 Func Combo 中显示所有函数的名称和变量
+	m_nslFuncsTitle.clear();
+	m_nslFuncsTitle.reserve(m_nslFuncs.size() + 1); // 还有入口主函数，所以+1
+	m_nslFuncsTitle.push_back({ "main()", 0 });
 	for (int i = 0; i < m_nslFuncs.size(); i++)
 	{
 		auto strFunc = m_nslFuncs[i]; // ps: 这里不能用 auto&，别手欠...
 
-		// 将每个func的第一行提取出来并保存到 m_nslFuncsDisplay
+		// 将每个func的第一行提取出来并保存到 m_nslFuncsTitle
 		std::size_t line_end = strFunc.find_first_of("\n\r", 0);
 		if (line_end == std::string::npos)
 			continue;
 
 		strFunc = strFunc.substr(0, line_end);
-		m_nslFuncsDisplay.push_back({ strFunc.data(), i + 1 });
+
+		// 提取 strFunc 的方法名
+
+		m_nslFuncsTitle.push_back({ strFunc.data(), i });
 	}
 }
 

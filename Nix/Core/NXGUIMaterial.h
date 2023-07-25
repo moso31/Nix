@@ -9,7 +9,7 @@ class NXGUIMaterialShaderEditor;
 class NXGUIMaterial
 {
 public:
-	NXGUIMaterial(NXScene* pScene = nullptr, NXGUIFileBrowser* pFileBrowser = nullptr, NXGUICodeEditor* pCodeEditor = nullptr);
+	NXGUIMaterial(NXScene* pScene, NXGUIFileBrowser* pFileBrowser, NXGUICodeEditor* pCodeEditor, NXGUIMaterialShaderEditor* pMaterialShaderEditor);
 	~NXGUIMaterial() {}
 
 	void SetCurrentScene(NXScene* pScene) { m_pCurrentScene = pScene; }
@@ -33,20 +33,17 @@ private:
 
 	void SyncMaterialData(NXCustomMaterial* pMaterial);
 
-	NXGUIMaterialShaderEditor* GetShaderEditor();
-
 private:
 	NXScene* m_pCurrentScene;
 
 	NXGUIFileBrowser* m_pFileBrowser;
 	NXGUICodeEditor* m_pCodeEditor;
+	NXGUIMaterialShaderEditor* m_pMaterialShaderEditor;
 
 	// 材质 Inspector 面板不需要显示 Sampler
 	std::vector<NXGUICBufferData> m_cbInfosDisplay;
 	std::vector<NXGUITextureData> m_texInfosDisplay;
 
-	std::string m_nslCodeDisplay;
-
-	NXCustomMaterial* m_pLastMaterial;
+	NXCustomMaterial* m_pLastMaterial = nullptr;
 	bool m_bIsDirty;
 };

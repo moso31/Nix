@@ -6,11 +6,11 @@
 #include "NXGUIContentExplorer.h"
 #include "NXGUIMaterialShaderEditor.h"
 
-NXGUIMaterial::NXGUIMaterial(NXScene* pScene, NXGUIFileBrowser* pFileBrowser, NXGUICodeEditor* pCodeEditor) :
+NXGUIMaterial::NXGUIMaterial(NXScene* pScene, NXGUIFileBrowser* pFileBrowser, NXGUICodeEditor* pCodeEditor, NXGUIMaterialShaderEditor* pMaterialShaderEditor) :
 	m_pCurrentScene(pScene),
 	m_pFileBrowser(pFileBrowser),
 	m_pCodeEditor(pCodeEditor),
-	m_pLastMaterial(nullptr),
+	m_pMaterialShaderEditor(pMaterialShaderEditor),
 	m_bIsDirty(false)
 {
 }
@@ -139,9 +139,9 @@ void NXGUIMaterial::Render()
 	ImGui::End();
 
 	// 渲染 Shader Editor GUI
-	if (pCommonMaterial && pCommonMaterial->IsCustomMat())
+	if (pCommonMaterial && pCommonMaterial->IsCustomMat() && m_pMaterialShaderEditor)
 	{
-		GetShaderEditor()->Render(static_cast<NXCustomMaterial*>(pCommonMaterial));
+		m_pMaterialShaderEditor->Render(static_cast<NXCustomMaterial*>(pCommonMaterial));
 	}
 }
 
@@ -156,17 +156,21 @@ void NXGUIMaterial::SaveMaterialFile(NXCustomMaterial* pMaterial)
 
 void NXGUIMaterial::OnBtnEditShaderClicked(NXCustomMaterial* pMaterial)
 {
-	GetShaderEditor()->SetGUIMaterial(this);
-	GetShaderEditor()->SetGUIFileBrowser(m_pFileBrowser);
-	GetShaderEditor()->SetGUICodeEditor(m_pCodeEditor);
+	if (m_pMaterialShaderEditor)
+	{
+		m_pMaterialShaderEditor->SetGUIMaterial(this);
+		m_pMaterialShaderEditor->SetGUIFileBrowser(m_pFileBrowser);
+		m_pMaterialShaderEditor->SetGUICodeEditor(m_pCodeEditor);
 
-	// 将参数和nsl代码从 当前GUI材质类 中同步到 ShaderEditor
-	GetShaderEditor()->RequestSyncMaterialData();
+		// 将参数和nsl代码从 当前GUI材质类 中同步到 MaterialShaderEditor
+		m_pMaterialShaderEditor->RequestSyncMaterialData();
+		m_pMaterialShaderEditor->RequestSyncMaterialCodes();
 
-	// 并进行参数备份（revert功能要用）
-	GetShaderEditor()->RequestGenerateBackup();
+		// 并进行参数备份（revert功能要用）
+		m_pMaterialShaderEditor->RequestGenerateBackup();
 
-	GetShaderEditor()->Show();
+		m_pMaterialShaderEditor->Show();
+	}
 }
 
 void NXGUIMaterial::OnComboGUIStyleChanged(int selectIndex, NXGUICBufferData& cbDataDisplay)
@@ -236,14 +240,8 @@ void NXGUIMaterial::SyncMaterialData(NXCustomMaterial* pMaterial)
 		m_texInfosDisplay.push_back({ pMaterial->GetTextureName(i), texType, pTex });
 	}
 
-	m_nslCodeDisplay = pMaterial->GetNSLCode();
 
 	m_pLastMaterial = pMaterial;
-}
-
-NXGUIMaterialShaderEditor* NXGUIMaterial::GetShaderEditor()
-{
-	return NXGUIMaterialShaderEditor::GetInstance();
 }
 
 void NXGUIMaterial::RenderMaterialUI_Custom(NXCustomMaterial* pMaterial)
@@ -266,7 +264,6 @@ void NXGUIMaterial::RenderMaterialUI_Custom(NXCustomMaterial* pMaterial)
 		ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 0.0f);
 		RenderMaterialUI_Custom_Parameters(pMaterial);
 
-		//RenderMaterialUI_Custom_Codes(pMaterial); // 2023.6.7 可能要取消Codes了，一直没啥用……先注掉观察一段时间
 		ImGui::PopStyleVar(); // ImGuiStyleVar_IndentSpacing
 		//ImGui::EndChild();
 	}
@@ -365,15 +362,5 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters_CBufferItem(const std::st
 		// 实际上要拷贝的字节量是 cbDisplay 初始读取的字节数量 actualN，而不是更改 GUIStyle 以后的参数数量 N
 		UINT actualN = cbDisplay.readType;
 		pMaterial->SetCBInfoMemoryData(cbDisplay.memoryIndex, actualN, cbDisplay.data);
-	}
-}
-
-void NXGUIMaterial::RenderMaterialUI_Custom_Codes(NXCustomMaterial* pMaterial)
-{
-	if (ImGui::TreeNodeEx("Codes##material_custom_codes", ImGuiTreeNodeFlags_DefaultOpen))
-	{
-		static ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_ReadOnly;
-		ImGui::InputTextMultiline("##material_custom_paramview_text", &m_nslCodeDisplay, ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 16), flags);
-		ImGui::TreePop();
 	}
 }
