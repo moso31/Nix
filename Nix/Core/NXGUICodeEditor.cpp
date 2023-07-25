@@ -217,14 +217,8 @@ void NXGUICodeEditor::Render()
     if (m_enableTabItems)
     {
         static int path_id = 0;
-        if (ImGui::BeginTabBar("MyTabBar", ImGuiTabBarFlags_Reorderable))
+        if (ImGui::BeginTabBar("##main_layer_tabitems", ImGuiTabBarFlags_Reorderable))
         {
-            if (ImGui::TabItemButton("+", ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip))
-            {
-                // add new temp textfile
-                Load(std::string(""), true); 
-            }
-
             for (int i = 0; i < (int)m_textFiles.size();)
             {
                 bool bOpen = true;

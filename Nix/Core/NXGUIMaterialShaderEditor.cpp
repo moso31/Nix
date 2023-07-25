@@ -298,6 +298,7 @@ void NXGUIMaterialShaderEditor::OnBtnNewFunctionClicked(NXCustomMaterial* pMater
 {
 	m_nslFuncs.push_back("void funcs()\n{\n\t\n}");
 	UpdateNSLFunctionsDisplay();
+	//m_pGUICodeEditor->Load(m_nslFuncs[m_nslFuncs.size() - 1], true);
 }
 
 void NXGUIMaterialShaderEditor::OnBtnRemoveFunctionClicked(NXCustomMaterial* pMaterial, UINT index)
@@ -917,7 +918,7 @@ void NXGUIMaterialShaderEditor::SyncMaterialCode(NXCustomMaterial* pMaterial)
 	for (int i = 0; i < m_nslFuncs.size(); i++)
 	{
 		std::string& strEditorText = m_nslFuncs[i];
-		m_pGUICodeEditor->Load(strEditorText, false, m_nslFuncsTitle[i].data);
+		m_pGUICodeEditor->Load(strEditorText, false, m_nslFuncsTitle[i].shortData);
 	}
 	m_pGUICodeEditor->RefreshAllHighLights();
 }
@@ -927,8 +928,8 @@ void NXGUIMaterialShaderEditor::UpdateNSLFunctionsDisplay()
 	// m_nslFuncsTitle 负责在 Func Combo 中显示所有函数的名称和变量
 	m_nslFuncsTitle.clear();
 	m_nslFuncsTitle.reserve(m_nslFuncs.size() + 1); // 还有入口主函数，所以+1
-	m_nslFuncsTitle.push_back({ "main()", 0 });
-	for (int i = 0; i < m_nslFuncs.size(); i++)
+	m_nslFuncsTitle.push_back({ "main()", "main()", 0});
+	for (int i = 1; i < m_nslFuncs.size(); i++)
 	{
 		auto strFunc = m_nslFuncs[i]; // ps: 这里不能用 auto&，别手欠...
 
@@ -939,10 +940,16 @@ void NXGUIMaterialShaderEditor::UpdateNSLFunctionsDisplay()
 
 		strFunc = strFunc.substr(0, line_end);
 
-		// 提取 strFunc 的方法名
+		// strShortFunc = 显示选项卡上的名字
+		// 名字提取规则：寻找 strFunc 第一个 ( 出现的位置 之前的第一个空格。如果没有空格，直接跳到行首
+		// 然后截取空格后到 ( 之前的单词。如果啥都没截取出来，就叫"Method"算了。
+		std::size_t func_name_end = strFunc.find_first_of("(", 0);
+		std::size_t func_name_begin = strFunc.find_last_of(" \t", func_name_end);
+		std::string strShortFunc = strFunc.substr(func_name_begin + 1, func_name_end - func_name_begin - 1);
+		if (strShortFunc.empty()) strShortFunc = "Method";
+		strShortFunc += "()";
 
-
-		m_nslFuncsTitle.push_back({ strFunc.data(), i });
+		m_nslFuncsTitle.push_back({ strFunc.c_str(), strShortFunc.c_str(), i });
 	}
 }
 
