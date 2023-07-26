@@ -339,4 +339,12 @@ private:
     NXGUICodeEditor::ThreadPool m_threadPool;
 
     bool m_enableTabItems = true;
+
+private:
+    // 2023.7.26 增加 NixShaderEditor 模式。
+    // 该模式下，修改函数名所在行会自动改变 tabItem 选项卡的名称。
+    bool m_bIsNixShaderEditor = true;
+
+    void UpdateTitleNamesForAll();
+    void UpdateTitleName(int index);
 };
