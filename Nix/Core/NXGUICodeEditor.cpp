@@ -1669,8 +1669,7 @@ std::vector<NXGUICodeEditor::TextKeyword> NXGUICodeEditor::ExtractKeywords(const
 void NXGUICodeEditor::UpdateTitleNamesForAll()
 {
     // 更新所有文件的标题名，Nix MaterialShaderEditor 专用。
-    // 比如一段 NSL shader 文本如下：
-    // 
+    // 例：若一段 NSL shader 文本如下：
     // // 注释注释注释
     // float func(float2 x, float2 z) 
     // {
@@ -1724,7 +1723,6 @@ void NXGUICodeEditor::UpdateTitleNamesForAll()
 
             // 最后更新文件标题名
             file.SetName(funcName);
-
             break;
         }
     }
