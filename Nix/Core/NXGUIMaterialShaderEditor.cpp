@@ -261,7 +261,7 @@ void NXGUIMaterialShaderEditor::OnComboGUIStyleChanged(int selectIndex, NXGUICBu
 void NXGUIMaterialShaderEditor::OnShowFuncIndexChanged(int showFuncIndex)
 {
 	m_showFuncIndex = showFuncIndex;
-	m_bShowFuncChanged = true;
+	m_pGUICodeEditor->SwitchFile(showFuncIndex);
 }
 
 void NXGUIMaterialShaderEditor::SetGUIMaterial(NXGUIMaterial* pGUIMaterial)
@@ -298,7 +298,7 @@ void NXGUIMaterialShaderEditor::OnBtnNewFunctionClicked(NXCustomMaterial* pMater
 {
 	m_nslFuncs.push_back("void funcs()\n{\n\t\n}");
 	UpdateNSLFunctionsDisplay();
-	//m_pGUICodeEditor->Load(m_nslFuncs[m_nslFuncs.size() - 1], true);
+	m_pGUICodeEditor->Load(m_nslFuncs.back(), true, m_nslFuncsTitle.back().shortData);
 }
 
 void NXGUIMaterialShaderEditor::OnBtnRemoveFunctionClicked(NXCustomMaterial* pMaterial, UINT index)
@@ -327,7 +327,7 @@ void NXGUIMaterialShaderEditor::Render_Code(NXCustomMaterial* pMaterial)
 	if (ImGui::Button("New Function##material_shader_editor_btn_newfunction"))
 	{
 		OnBtnNewFunctionClicked(pMaterial);
-		OnShowFuncIndexChanged((int)m_nslFuncs.size());
+		OnShowFuncIndexChanged((int)m_nslFuncs.size() - 1);
 	}
 
 	ImGui::SameLine();
@@ -343,7 +343,7 @@ void NXGUIMaterialShaderEditor::Render_Code(NXCustomMaterial* pMaterial)
 	if (ImGui::ButtonEx("Remove Function##material_shader_editor_btn_removefunction"))
 	{
 		OnBtnRemoveFunctionClicked(pMaterial, m_showFuncIndex);
-		OnShowFuncIndexChanged(m_showFuncIndex);
+		OnShowFuncIndexChanged(min(m_showFuncIndex, (int)m_nslFuncs.size() - 1));
 	}
 
 	if (bIsMainFunc)

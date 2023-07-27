@@ -230,8 +230,9 @@ void NXGUICodeEditor::Render()
                 const auto& file = m_textFiles[i];
                 std::string fileName = file.GetName();
 
+                auto TabItemFlag = i == m_pickingIndex ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
                 ImGui::PushID(file.GetId());
-                if (ImGui::BeginTabItem(fileName.c_str(), &bOpen, ImGuiTabItemFlags_None))
+                if (ImGui::BeginTabItem(fileName.c_str(), &bOpen, TabItemFlag))
                 {
                     SwitchFile(i);
                     ImGui::EndTabItem();
@@ -411,8 +412,6 @@ void NXGUICodeEditor::Enter(const std::vector<std::vector<std::string>>& strArra
                     HighLightSyntax(m_pickingIndex, L.row + allLineIdx);
                 else
                     m_threadPool.Add([this, L, allLineIdx]() { HighLightSyntax(m_pickingIndex, L.row + allLineIdx); });
-
-                if ()
             }
         }
 
@@ -1129,6 +1128,9 @@ void NXGUICodeEditor::SelectionsOverlayCheckForKeyEvent(bool bFlickerAtFront)
 
 void NXGUICodeEditor::ScrollCheckForKeyEvent()
 {
+    if (m_selections.empty())
+        return;
+
     // 此方法负责当屏幕外有 selection 选取变化时，跳转到该位置。
     // 2023.7.11 暂跳转到 m_selections.back() 所在的位置。
     // 屏幕内存在选区的情况下，此策略有很明显的手感问题，有待优化。
@@ -1668,66 +1670,56 @@ std::vector<NXGUICodeEditor::TextKeyword> NXGUICodeEditor::ExtractKeywords(const
 
 void NXGUICodeEditor::UpdateTitleNamesForAll()
 {
-    // 更新所有文件的标题名，Nix MaterialShaderEditor 专用。
-    // 例：若一段 NSL shader 文本如下：
-    // // 注释注释注释
-    // float func(float2 x, float2 z) 
-    // {
-    //     return x.y + z.w;
-    // }
-    // 则此方法将返回 "func()"。
-
     for (auto& file : m_textFiles)
-    {
-        bool bInCommentLine = false;
-		for (auto& line : file.lines)
-        {
-            if (line.empty()) continue;
-
-            std::string lineNoComment = line;
-            if (!bInCommentLine)
-            {
-                // 提取无单行注释部分，即 "//" 之前的内容。
-                lineNoComment = line.substr(0, line.find("//"));
-                if (lineNoComment.empty()) continue;
-
-                // 查找是否有多行注释开头 "/*"。
-                // 如果有，进一步将 lineNoComment 分割成两部分
-                auto nCommentMultiLineStartPos = lineNoComment.find("/*");
-                if (nCommentMultiLineStartPos != std::string::npos)
-                {
-                    lineNoComment = lineNoComment.substr(0, nCommentMultiLineStartPos);
-                    bInCommentLine = true;
-                }
-            }
-            else
-            {
-                // 如果在多行注释中，则查找是否有多行注释结尾 "*/"。
-                // 如果有，则将 bInCommentLine 设置为 false，表示多行注释已结束。
-                auto commentPos = lineNoComment.find("*/");
-                if (commentPos != std::string::npos)
-                {
-                    lineNoComment = lineNoComment.substr(commentPos + 2);
-                    bInCommentLine = false;
-                }
-                else continue; // 如果在多行注释中，且没有多行注释结尾，则忽略此行。
-            }
-
-            if (lineNoComment.empty()) continue;
-
-            // 从 lineNoComment 中提取实际的 函数名称。
-            auto funcName = lineNoComment.substr(0, lineNoComment.find("("));
-            funcName = funcName.substr(funcName.find(" ") + 1) + ")";
-
-            if (funcName.empty()) continue;
-
-            // 最后更新文件标题名
-            file.SetName(funcName);
-            break;
-        }
-    }
+        UpdateTitleName(file);
 }
 
-void NXGUICodeEditor::UpdateTitleName(int index)
+void NXGUICodeEditor::UpdateTitleName(FileData& file)
 {
+    bool bInCommentLine = false;
+    for (auto& line : file.lines)
+    {
+        if (line.empty()) continue;
+
+        std::string lineNoComment = line;
+        if (!bInCommentLine)
+        {
+            // 提取无单行注释部分，即 "//" 之前的内容。
+            lineNoComment = line.substr(0, line.find("//"));
+            if (lineNoComment.empty()) continue;
+
+            // 查找是否有多行注释开头 "/*"。
+            // 如果有，进一步将 lineNoComment 分割成两部分
+            auto nCommentMultiLineStartPos = lineNoComment.find("/*");
+            if (nCommentMultiLineStartPos != std::string::npos)
+            {
+                lineNoComment = lineNoComment.substr(0, nCommentMultiLineStartPos);
+                bInCommentLine = true;
+            }
+        }
+        else
+        {
+            // 如果在多行注释中，则查找是否有多行注释结尾 "*/"。
+            // 如果有，则将 bInCommentLine 设置为 false，表示多行注释已结束。
+            auto commentPos = lineNoComment.find("*/");
+            if (commentPos != std::string::npos)
+            {
+                lineNoComment = lineNoComment.substr(commentPos + 2);
+                bInCommentLine = false;
+            }
+            else continue; // 如果在多行注释中，且没有多行注释结尾，则忽略此行。
+        }
+
+        if (lineNoComment.empty()) continue;
+
+        // 从 lineNoComment 中提取实际的 函数名称。
+        auto funcName = lineNoComment.substr(0, lineNoComment.find("("));
+        funcName = funcName.substr(funcName.find(" ") + 1) + ")";
+
+        if (funcName.empty()) continue;
+
+        // 最后更新文件标题名
+        file.SetName(funcName);
+        break;
+    }
 }

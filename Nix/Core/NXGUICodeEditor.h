@@ -345,6 +345,14 @@ private:
     // 该模式下，修改函数名所在行会自动改变 tabItem 选项卡的名称。
     bool m_bIsNixShaderEditor = true;
 
+    // 更新所有文件的标题名，Nix MaterialShaderEditor 专用。
+    // 例：若一段 NSL shader 文本如下：
+    // // 注释注释注释
+    // float func(float2 x, float2 z) 
+    // {
+    //     return x.y + z.w;
+    // }
+    // 则此方法将返回 "func()"。
     void UpdateTitleNamesForAll();
-    void UpdateTitleName(int index);
+    void UpdateTitleName(FileData& file);
 };
