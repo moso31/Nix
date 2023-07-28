@@ -20,7 +20,6 @@ struct NXGUIShaderErrorMessage
 struct NXGUIFuncTitle
 {
 	std::string data;
-	std::string shortData;
 	int strId;
 };
 

@@ -219,38 +219,6 @@ void NXGUICodeEditor::Render()
 
     const ImVec2& layerStartCursorPos = ImGui::GetCursorPos();
 
-    if (m_enableTabItems)
-    {
-        static int path_id = 0;
-        if (ImGui::BeginTabBar("##main_layer_tabitems", ImGuiTabBarFlags_Reorderable))
-        {
-            for (int i = 0; i < (int)m_textFiles.size();)
-            {
-                bool bOpen = true;
-                const auto& file = m_textFiles[i];
-                std::string fileName = file.GetName();
-
-                auto TabItemFlag = i == m_pickingIndex ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
-                ImGui::PushID(file.GetId());
-                if (ImGui::BeginTabItem(fileName.c_str(), &bOpen, TabItemFlag))
-                {
-                    SwitchFile(i);
-                    ImGui::EndTabItem();
-                }
-                ImGui::PopID();
-
-                if (!bOpen)
-                {
-                    m_textFiles.erase(m_textFiles.begin() + i);
-                    if (m_pickingIndex >= (int)m_textFiles.size())
-                        SwitchFile((int)m_textFiles.size() - 1);
-                }
-                else i++;
-            }
-            ImGui::EndTabBar();
-        }
-    }
-
     ImGui::BeginChild("##main_layer", ImVec2(), false, ImGuiWindowFlags_NoInputs);
     Render_MainLayer();
     ImGui::EndChild();
@@ -412,6 +380,11 @@ void NXGUICodeEditor::Enter(const std::vector<std::vector<std::string>>& strArra
                     HighLightSyntax(m_pickingIndex, L.row + allLineIdx);
                 else
                     m_threadPool.Add([this, L, allLineIdx]() { HighLightSyntax(m_pickingIndex, L.row + allLineIdx); });
+
+                if (m_bIsNixShaderEditor)
+                {
+                    UpdateTitleNamesForAll();
+                }
             }
         }
 
@@ -815,9 +788,6 @@ void NXGUICodeEditor::Render_DebugLayer()
     //ImGui::SetCursorPos(ImVec2(ImGui::GetContentRegionAvail().x - 400.0f, 0.0f));
     ImGui::BeginChild("##debug_selections", ImVec2(350.0f, ImGui::GetContentRegionAvail().y * 0.4f), true);
     ImGui::Text("Disable Render_DebugLayer() method to hide me!");
-
-    if (ImGui::Button("show/hide tabItems##debug_toggle_tabitems"))
-        m_enableTabItems = !m_enableTabItems;
 
     for (size_t i = 0; i < m_selections.size(); i++)
     {
@@ -1714,7 +1684,7 @@ void NXGUICodeEditor::UpdateTitleName(FileData& file)
 
         // 从 lineNoComment 中提取实际的 函数名称。
         auto funcName = lineNoComment.substr(0, lineNoComment.find("("));
-        funcName = funcName.substr(funcName.find(" ") + 1) + ")";
+        funcName = funcName.substr(funcName.find(" ") + 1) + "()";
 
         if (funcName.empty()) continue;
 
