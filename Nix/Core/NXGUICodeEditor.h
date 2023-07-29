@@ -226,9 +226,9 @@ public:
 
     void Load(const std::filesystem::path& filePath, bool bRefreshHighLight = false);
     void Load(const std::string& text, bool bRefreshHighLight = false, const std::string& name = "New File");
+    void ClearAllFiles();
     void RefreshAllHighLights();
     void Render();
-    std::string Text(int index);
 
     void AddSelection(const Coordinate& A, const Coordinate& B);
     void RemoveSelection(const SelectionInfo& removeSelection);
@@ -245,6 +245,7 @@ public:
     void HighLightSyntax(int fileIndex, int lineIndex);
     void SetLineUpdateTime(int fileIndex, int lineIndex, double manualTime = FLT_MIN);
     void SwitchFile(int fileIndex);
+    std::string GetCodeText(int index);
 
 private:
     void Render_MainLayer();

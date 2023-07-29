@@ -97,11 +97,6 @@ void NXGUICodeEditor::Load(const std::filesystem::path& filePath, bool bRefreshH
             m_threadPool.Add([this, fileIndex, i]() { HighLightSyntax(fileIndex, i); });
     }
 
-    if (m_bIsNixShaderEditor)
-    {
-        UpdateTitleNamesForAll();
-    }
-
     ifs.close();
 }
 
@@ -166,6 +161,14 @@ void NXGUICodeEditor::Load(const std::string& text, bool bRefreshHighLight, cons
         for (int i = 0; i < lines.size(); i++)
             m_threadPool.Add([this, fileIndex, i]() { HighLightSyntax(fileIndex, i); });
     }
+}
+
+void NXGUICodeEditor::ClearAllFiles()
+{
+    m_textFiles.clear();
+	m_bIsSelecting = false;
+	m_selections.clear();
+	m_threadPool.Clear();
 }
 
 void NXGUICodeEditor::RefreshAllHighLights()
@@ -234,8 +237,11 @@ void NXGUICodeEditor::Render()
     ImGui::PopFont();
 }
 
-std::string NXGUICodeEditor::Text(int index)
+std::string NXGUICodeEditor::GetCodeText(int index)
 {
+    if (index < 0 || index >= m_textFiles.size())
+        return std::string();
+
     auto& lines = m_textFiles[index].lines;
     std::string text;
     for (int i = 0; i < lines.size(); i++)
@@ -380,11 +386,6 @@ void NXGUICodeEditor::Enter(const std::vector<std::vector<std::string>>& strArra
                     HighLightSyntax(m_pickingIndex, L.row + allLineIdx);
                 else
                     m_threadPool.Add([this, L, allLineIdx]() { HighLightSyntax(m_pickingIndex, L.row + allLineIdx); });
-
-                if (m_bIsNixShaderEditor)
-                {
-                    UpdateTitleNamesForAll();
-                }
             }
         }
 

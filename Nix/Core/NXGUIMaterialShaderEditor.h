@@ -17,10 +17,10 @@ struct NXGUIShaderErrorMessage
 	int col1;
 };
 
-struct NXGUIFuncTitle
+struct NXGUIShaderFunctions
 {
-	std::string data;
-	int strId;
+	std::string content;
+	std::string title;
 };
 
 class NXGUIMaterial;
@@ -81,7 +81,8 @@ private:
 
 	void SyncMaterialData(NXCustomMaterial* pMaterial);
 	void SyncMaterialCode(NXCustomMaterial* pMaterial);
-	void UpdateNSLFunctionsDisplay();
+	void UpdateNSLFunctions();
+	std::string GenerateNSLFunctionTitle(int index); // 生成 nslFunc[index] 的 title（用于 combo 显示）
 
 	bool FindCBGUIData(const std::string& name, std::vector<NXGUICBufferData>::iterator& oIterator);
 	std::string GetAddressModeText(const NXSamplerAddressMode addrU, const NXSamplerAddressMode addrV, const NXSamplerAddressMode addrW);
@@ -95,7 +96,8 @@ private:
 	NXGUICodeEditor* m_pGUICodeEditor = nullptr;
 
 	std::vector<std::string> m_nslFuncs;
-	std::vector<NXGUIFuncTitle> m_nslFuncsTitle;
+	std::vector<std::string> m_nslTitles;
+	int m_showFuncIndex = 0; // 用于显示的函数索引
 
 	// ShaderEditor 中复制一份 原始GUI类的 cb, tex, ss参数。
 	std::vector<NXGUICBufferData> m_cbInfosDisplay;
@@ -115,10 +117,4 @@ private:
 	bool m_bIsDirty = false;
 	bool m_bNeedSyncMaterialCode = false;
 	bool m_bNeedBackup = false;
-
-	// 用于显示的函数索引
-	int m_showFuncIndex = 0;
-
-	// 记录当前帧是否修改了 showFuncIndex。每帧重置。
-	bool m_bShowFuncChanged = false;
 };

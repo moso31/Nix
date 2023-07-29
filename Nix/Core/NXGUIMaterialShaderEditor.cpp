@@ -210,6 +210,9 @@ bool NXGUIMaterialShaderEditor::OnBtnCompileClicked(NXCustomMaterial* pMaterial)
 	// 构建 NSLParam 代码
 	std::string nslParams = ConvertShaderResourceDataToNSLParam(m_cbInfosDisplay, m_texInfosDisplay, m_ssInfosDisplay);
 
+	// 重新计算 nsl func 和 titles
+	UpdateNSLFunctions();
+
 	std::string strErrVS, strErrPS;	// 若编译Shader出错，将错误信息记录到此字符串中。
 	bool bCompile = pMaterial->Recompile(nslParams, m_nslFuncs, m_cbInfosDisplay, m_texInfosDisplay, m_ssInfosDisplay, strErrVS, strErrPS);
 	
@@ -260,6 +263,8 @@ void NXGUIMaterialShaderEditor::OnComboGUIStyleChanged(int selectIndex, NXGUICBu
 
 void NXGUIMaterialShaderEditor::OnShowFuncIndexChanged(int showFuncIndex)
 {
+	UpdateNSLFunctions();
+
 	m_showFuncIndex = showFuncIndex;
 	m_pGUICodeEditor->SwitchFile(showFuncIndex);
 }
@@ -297,26 +302,30 @@ void NXGUIMaterialShaderEditor::RequestGenerateBackup()
 void NXGUIMaterialShaderEditor::OnBtnNewFunctionClicked(NXCustomMaterial* pMaterial)
 {
 	m_nslFuncs.push_back("void funcs()\n{\n\t\n}");
-	UpdateNSLFunctionsDisplay();
-	m_pGUICodeEditor->Load(m_nslFuncs.back(), true, m_nslFuncsTitle.back().data);
+	m_nslTitles.push_back("void funcs()");
 }
 
 void NXGUIMaterialShaderEditor::OnBtnRemoveFunctionClicked(NXCustomMaterial* pMaterial, UINT index)
 {
 	m_nslFuncs.erase(m_nslFuncs.begin() + index);
-	UpdateNSLFunctionsDisplay();
+	m_nslTitles.erase(m_nslTitles.begin() + index);
 }
 
 void NXGUIMaterialShaderEditor::Render_Code(NXCustomMaterial* pMaterial)
 {
+	if (m_nslFuncs.empty())
+		return;
+
 	ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.6f);
-	if (ImGui::BeginCombo("##material_shader_editor_combo_func", m_nslFuncsTitle[m_showFuncIndex].data.c_str()))
+	if (ImGui::BeginCombo("##material_shader_editor_combo_func", m_nslTitles[m_showFuncIndex].c_str()))
 	{
-		for (int item = 0; item < m_nslFuncsTitle.size(); item++)
+		for (int item = 0; item < m_nslTitles.size(); item++)
 		{
-			ImGui::PushID(m_nslFuncsTitle[item].strId);
-			if (ImGui::Selectable(m_nslFuncsTitle[item].data.c_str()))
+			ImGui::PushID(item);
+			if (ImGui::Selectable(m_nslTitles[item].c_str()))
+			{
 				OnShowFuncIndexChanged(item);
+			}
 			ImGui::PopID();
 		}
 		ImGui::EndCombo();
@@ -327,7 +336,8 @@ void NXGUIMaterialShaderEditor::Render_Code(NXCustomMaterial* pMaterial)
 	if (ImGui::Button("New Function##material_shader_editor_btn_newfunction"))
 	{
 		OnBtnNewFunctionClicked(pMaterial);
-		OnShowFuncIndexChanged((int)m_nslFuncs.size() - 1);
+		OnShowFuncIndexChanged((int)m_nslTitles.size() - 1);
+		m_pGUICodeEditor->Load(m_nslFuncs.back(), true, m_nslTitles.back());
 	}
 
 	ImGui::SameLine();
@@ -910,38 +920,82 @@ void NXGUIMaterialShaderEditor::SyncMaterialData(NXCustomMaterial* pMaterial)
 
 void NXGUIMaterialShaderEditor::SyncMaterialCode(NXCustomMaterial* pMaterial)
 {
+	// 将材质的源代码同步过来
 	m_nslFuncs = pMaterial->GetNSLFuncs();
-
-	UpdateNSLFunctionsDisplay();
+	m_nslTitles.resize(m_nslFuncs.size());
 
 	// 让 CodeEditor 也刷新一次
+	m_pGUICodeEditor->ClearAllFiles();
 	for (int i = 0; i < m_nslFuncs.size(); i++)
 	{
-		std::string& strEditorText = m_nslFuncs[i];
-		m_pGUICodeEditor->Load(strEditorText, false, m_nslFuncsTitle[i].data);
+		m_nslTitles[i] = GenerateNSLFunctionTitle(i);
+		m_pGUICodeEditor->Load(m_nslFuncs[i], false, m_nslTitles[i]);
 	}
 	m_pGUICodeEditor->RefreshAllHighLights();
 }
 
-void NXGUIMaterialShaderEditor::UpdateNSLFunctionsDisplay()
+void NXGUIMaterialShaderEditor::UpdateNSLFunctions()
 {
-	// m_nslFuncsTitle 负责在 Func Combo 中显示所有函数的名称和变量
-	m_nslFuncsTitle.clear();
-	m_nslFuncsTitle.reserve(m_nslFuncs.size() + 1); // 还有入口主函数，所以+1
-	m_nslFuncsTitle.push_back({ "main()", 0 });
-	for (int i = 1; i < m_nslFuncs.size(); i++)
-	{
-		auto strFunc = m_nslFuncs[i]; // ps: 这里不能用 auto&，别手欠...
+	// 从文本编辑器提取所有代码并更新nslFunc。
+	// 2023.7.29 仅需更新正在显示的代码（按现行逻辑，未显示的代码是不会被更改的）
+	m_nslFuncs[m_showFuncIndex] = m_pGUICodeEditor->GetCodeText(m_showFuncIndex);
+	m_nslTitles[m_showFuncIndex] = GenerateNSLFunctionTitle(m_showFuncIndex);
+}
 
-		// 将每个func的第一行提取出来并保存到 m_nslFuncsTitle
+std::string NXGUIMaterialShaderEditor::GenerateNSLFunctionTitle(int index)
+{
+	if (index < 0 && index >= m_nslFuncs.size()) return std::string();
+	if (index == 0) return "main()";
+
+	bool bInCommentLine = false;
+
+	// while 逐行读取文本
+	std::string strFunc = m_nslFuncs[index];
+	while (true)
+	{
 		std::size_t line_end = strFunc.find_first_of("\n\r", 0);
 		if (line_end == std::string::npos)
-			continue;
+			break;
 
-		strFunc = strFunc.substr(0, line_end);
+		std::string line = strFunc.substr(0, line_end);
+		strFunc = strFunc.substr(line_end + 1);
 
-		m_nslFuncsTitle.push_back({ strFunc.c_str(), i });
+		std::string lineNoComment;
+		if (!bInCommentLine)
+		{
+			// 提取无单行注释部分，即 "//" 之前的内容。
+			lineNoComment = line.substr(0, line.find("//"));
+			if (lineNoComment.empty()) continue;
+
+			// 查找是否有多行注释开头 "/*"。
+			// 如果有，进一步将 lineNoComment 分割成两部分
+			auto nCommentMultiLineStartPos = lineNoComment.find("/*");
+			if (nCommentMultiLineStartPos != std::string::npos)
+			{
+				lineNoComment = lineNoComment.substr(0, nCommentMultiLineStartPos);
+				bInCommentLine = true;
+			}
+		}
+		else
+		{
+			// 如果在多行注释中，则查找是否有多行注释结尾 "*/"。
+			// 如果有，则将 bInCommentLine 设置为 false，表示多行注释已结束。
+			auto commentPos = lineNoComment.find("*/");
+			if (commentPos != std::string::npos)
+			{
+				lineNoComment = lineNoComment.substr(commentPos + 2);
+				bInCommentLine = false;
+			}
+			else continue; // 如果在多行注释中，且没有多行注释结尾，则忽略此行。
+		}
+
+		if (lineNoComment.empty()) continue;
+
+		// 2023.7.29 默认去掉注释后的第一行文字内容是函数名。
+		return lineNoComment;
 	}
+
+	return "unknownFunction...";
 }
 
 bool NXGUIMaterialShaderEditor::FindCBGUIData(const std::string& name, std::vector<NXGUICBufferData>::iterator& oIterator)

@@ -24,7 +24,6 @@ private:
 	void RenderMaterialUI_Custom(NXCustomMaterial* pMaterial);
 	void RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMaterial);
 	void RenderMaterialUI_Custom_Parameters_CBufferItem(const std::string& strId, NXCustomMaterial* pMaterial, NXGUICBufferData& cbDisplay);
-	void RenderMaterialUI_Custom_Codes(NXCustomMaterial* pMaterial);
 
 private:
 	void OnBtnEditShaderClicked(NXCustomMaterial* pMaterial);

@@ -530,10 +530,11 @@ bool NXCustomMaterial::LoadShaderStringFromFile(std::string& oShader)
 void NXCustomMaterial::ExtractShaderData(const std::string& shader, std::string& nslParams, std::vector<std::string>& nslFuncs)
 {
 	// 查找 Params 和 主函数 的开始和结束位置
-	const auto paramsStart = shader.find("Params");
-	const auto codeStart = shader.find("Code");
-	const auto paramsEnd = codeStart - 1;
-	const auto codeEnd = shader.size();
+	size_t paramsStart = shader.find("Params");
+	size_t codeStart = shader.find("Code");
+	size_t funcStart = shader.find("Func:");
+	size_t paramsEnd = codeStart - 1;
+	size_t codeEnd = funcStart - 1;
 
 	// 提取 Params 和 Funcs
 	nslParams = shader.substr(paramsStart, paramsEnd - paramsStart);
@@ -541,7 +542,6 @@ void NXCustomMaterial::ExtractShaderData(const std::string& shader, std::string&
 
 	// 查找 Func 块
 	// 并跳过函数之前的 Funcs: 和 空白字符
-	size_t funcStart = shader.find("Func:");
 	while (funcStart != std::string::npos)
 	{
 		funcStart += 5; // 5 == sizeof("Func:")
