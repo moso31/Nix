@@ -235,6 +235,7 @@ public:
     void AddSelection(int rowL, int colL, int rowR, int colR, bool bScrollToThere);
     void RemoveSelection(const SelectionInfo& removeSelection);
     void ClearSelection();
+    void GetFocus() { m_bNeedFocusOnText = true; }
 
 public:
     void Enter(const std::vector<std::vector<std::string>>& strArray);

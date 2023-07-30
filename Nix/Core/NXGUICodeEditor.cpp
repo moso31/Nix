@@ -278,11 +278,11 @@ void NXGUICodeEditor::AddSelection(const Coordinate& A, const Coordinate& B)
     const auto& lineB = file[B.row];
     SelectionInfo selection(
         { 
-            std::clamp(A.row, 0, (int)lineA.size()), 
+            std::clamp(A.row, 0, (int)file.size()),
             std::clamp(A.col, 0, (int)lineA.size()),
         },
         {
-            std::clamp(B.row, 0, (int)lineB.size()),
+            std::clamp(B.row, 0, (int)file.size()),
             std::clamp(B.col, 0, (int)lineB.size()),
         }
     );

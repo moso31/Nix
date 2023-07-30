@@ -280,6 +280,7 @@ void NXGUIMaterialShaderEditor::OnShowFuncIndexChanged(int showFuncIndex)
 
 	m_showFuncIndex = showFuncIndex;
 	m_pGUICodeEditor->SwitchFile(showFuncIndex);
+	m_pGUICodeEditor->GetFocus();
 }
 
 void NXGUIMaterialShaderEditor::SetGUIMaterial(NXGUIMaterial* pGUIMaterial)
