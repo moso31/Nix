@@ -10,8 +10,8 @@ struct NXGUIShaderErrorMessage
 	// 具体的编译错误信息
 	std::string data;
 
-	// 出错的行号，列号左起，列号右至
-	// p.s. 暂时没用上，本来是打算做标记代码的，但ImGui::MultiText坑太多了，就没实现
+	// 出错的函数页，行号，列号左起，列号右至
+	int page;
 	int row;
 	int col0;
 	int col1;
@@ -95,8 +95,9 @@ private:
 	NXGUIFileBrowser* m_pFileBrowser = nullptr;
 	NXGUICodeEditor* m_pGUICodeEditor = nullptr;
 
-	std::vector<std::string> m_nslFuncs;
-	std::vector<std::string> m_nslTitles;
+	std::vector<std::string> m_nslFuncs;	// 记录 NSL 函数
+	std::vector<std::string> m_nslTitles;	// 额外用一份内存记录 NSL 函数的标头
+	std::vector<NXHLSLCodeRegion> m_HLSLFuncRegions; // 记录 NSL 函数转换到 HLSL 后，在 HLSL 中对应的行号位置。（方便在编译错误时给 CodeEditor 做跳转）
 	int m_showFuncIndex = 0; // 用于显示的函数索引
 
 	// ShaderEditor 中复制一份 原始GUI类的 cb, tex, ss参数。
@@ -112,7 +113,7 @@ private:
 	NXGUIShaderErrorMessage m_shaderErrMsgs[NXGUI_ERROR_MESSAGE_MAXLIMIT];
 
 	// 搜索栏相关
-	std::string m_strQuery = "t";
+	std::string m_strQuery;
 
 	bool m_bIsDirty = false;
 	bool m_bNeedSyncMaterialCode = false;

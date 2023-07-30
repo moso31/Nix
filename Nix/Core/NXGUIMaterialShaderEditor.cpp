@@ -58,7 +58,7 @@ void NXGUIMaterialShaderEditor::Render(NXCustomMaterial* pMaterial)
 void NXGUIMaterialShaderEditor::ClearShaderErrorMessages()
 {
 	for (int i = 0; i < NXGUI_ERROR_MESSAGE_MAXLIMIT; i++)
-		m_shaderErrMsgs[i] = { std::string(), -1, -1, -1 };
+		m_shaderErrMsgs[i] = { std::string(), -1, -1, -1, -1 };
 }
 
 void NXGUIMaterialShaderEditor::UpdateShaderErrorMessages(const std::string& strCompileErrorVS, const std::string& strCompileErrorPS)
@@ -73,21 +73,34 @@ void NXGUIMaterialShaderEditor::UpdateShaderErrorMessages(const std::string& str
 		std::getline(iss, errMsg.data);
 
 		// 创建一个正则表达式对象，用于匹配括号中的行列号
-		std::regex re("\\((\\d+),(\\d+)-(\\d+)\\)");
+		// 即：满足(a,b) 或 (a,b-c) 两种格式的任意一种（a,b,c 表任意数字）。
+		std::regex re("\\((\\d+),(\\d+)(-(\\d+))?\\)");
 
 		std::smatch match;
 		if (std::regex_search(strMsg, match, re) && match.size() > 1) 
 		{
-			std::string row_number_str = match.str(1);
-			std::string start_col_number_str = match.str(2);
-			std::string end_col_number_str = match.str(3);
+			std::string strRow = match.str(1);
+			std::string strCol0 = match.str(2);
+			std::string strCol1 = match.str(3);
 
-			errMsg.row  = std::stoi(row_number_str);
-			errMsg.col0 = std::stoi(start_col_number_str);
-			errMsg.col1 = std::stoi(end_col_number_str);
+			int row  = std::stoi(strRow);
+			errMsg.col0 = std::stoi(strCol0);
+			errMsg.col1 = strCol1.empty() ? -1 : std::stoi(strCol1);
+
+			for (int j = 0; j < m_HLSLFuncRegions.size(); j++)
+			{
+				const auto& funcRegion = m_HLSLFuncRegions[j];
+				if (row >= funcRegion.firstRow && row <= funcRegion.lastRow)
+				{
+					errMsg.page = j;
+					errMsg.row = row - funcRegion.firstRow;
+					break;
+				}
+			}
 		}
 		else
 		{
+			errMsg.page = -1;
 			errMsg.row = -1;
 			errMsg.col0 = -1;
 			errMsg.col1 = -1;
@@ -214,7 +227,7 @@ bool NXGUIMaterialShaderEditor::OnBtnCompileClicked(NXCustomMaterial* pMaterial)
 	UpdateNSLFunctions();
 
 	std::string strErrVS, strErrPS;	// 若编译Shader出错，将错误信息记录到此字符串中。
-	bool bCompile = pMaterial->Recompile(nslParams, m_nslFuncs, m_cbInfosDisplay, m_texInfosDisplay, m_ssInfosDisplay, strErrVS, strErrPS);
+	bool bCompile = pMaterial->Recompile(nslParams, m_nslFuncs, m_cbInfosDisplay, m_texInfosDisplay, m_ssInfosDisplay, m_HLSLFuncRegions, strErrVS, strErrPS);
 	
 	if (bCompile)
 	{
@@ -842,8 +855,12 @@ void NXGUIMaterialShaderEditor::Render_ErrorMessages()
 
 			if (ImGui::SmallButton(errMsg.data.c_str()))
 			{
-				// 2023.5.28，原本要在这里做代码高亮的，
-				// 但是 ImGui Multitext 的代码高亮极其难做所以战术放弃了……
+				// clear是必须的，SwitchFile 的clear不一定会执行
+				m_pGUICodeEditor->ClearSelection();
+
+				// 在此执行代码高亮标记和跳转
+				OnShowFuncIndexChanged(errMsg.page);
+				m_pGUICodeEditor->AddSelection(errMsg.row, true);
 			}
 		}
 		ImGui::EndTable();

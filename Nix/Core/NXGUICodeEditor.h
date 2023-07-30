@@ -230,7 +230,9 @@ public:
     void RefreshAllHighLights();
     void Render();
 
-    void AddSelection(const Coordinate& A, const Coordinate& B);
+    void AddSelection(int row, bool bScrollToThere);
+    void AddSelection(int row, int col, bool bScrollToThere);
+    void AddSelection(int rowL, int colL, int rowR, int colR, bool bScrollToThere);
     void RemoveSelection(const SelectionInfo& removeSelection);
     void ClearSelection();
 
@@ -259,10 +261,12 @@ private:
     void RenderSelection(const SelectionInfo& selection);
     void SelectionsOverlayCheckForMouseEvent(bool bIsDoubleClick);
     void SelectionsOverlayCheckForKeyEvent(bool bFlickerAtFront);
-    void ScrollCheckForKeyEvent();
+    void ScrollCheck();
     int CalcSelectionLength(const SelectionInfo& selection);
 
 private:
+    void AddSelection(const Coordinate& A, const Coordinate& B);
+
     void Render_OnMouseInputs();
 
     void RenderTexts_OnMouseInputs();
@@ -332,26 +336,16 @@ private:
 
     bool m_bNeedFocusOnText = true;
 
+    // 是否需要强制调用一次 ScrollCheck()
+    // 延迟两帧触发：设置为2，每帧减1，等于0时触发 ScrollCheck()。
+    // 因为设置为2后，下一帧要先跳转到对应页面，再下一帧 ScrollCheck() 才能有效。
+    // （可能需要改进？）
+    int m_bNeedScrollCheck = 0;
+
     // 使用的字体（最好为此TextEditor单独设置一个字体）
     ImFont* m_pFont;
 
     // 2023.7.18 使用线程池优化高亮逻辑
     // 当进行较多行的复制操作时，异步处理高亮
     NXGUICodeEditor::ThreadPool m_threadPool;
-
-private:
-    // 2023.7.26 增加 NixShaderEditor 模式。
-    // 该模式下，修改函数名所在行会自动改变 tabItem 选项卡的名称。
-    bool m_bIsNixShaderEditor = true;
-
-    // 更新所有文件的标题名，Nix MaterialShaderEditor 专用。
-    // 例：若一段 NSL shader 文本如下：
-    // // 注释注释注释
-    // float func(float2 x, float2 z) 
-    // {
-    //     return x.y + z.w;
-    // }
-    // 则此方法将返回 "func()"。
-    void UpdateTitleNamesForAll();
-    void UpdateTitleName(FileData& file);
 };

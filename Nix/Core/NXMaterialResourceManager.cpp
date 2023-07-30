@@ -2,6 +2,7 @@
 #include "NXPBRMaterial.h"
 #include "NXConverter.h"
 #include "NXSubMesh.h"
+#include "NXHLSLGenerator.h"
 
 void NXMaterialResourceManager::InitCommonMaterial()
 {
@@ -75,8 +76,11 @@ NXCustomMaterial* NXMaterialResourceManager::CreateCustomMaterial(const std::str
 	std::vector<std::string> strHLSLFuncs;
 	pMat->ConvertNSLToHLSL(strHLSLHead, strHLSLFuncs, strHLSLBody);
 
+	std::string strGBufferShader;
+	NXHLSLGenerator::GetInstance()->EncodeToGBufferShader(strHLSLHead, strHLSLFuncs, strHLSLBody, strGBufferShader, std::vector<NXHLSLCodeRegion>());
+
 	std::string strErrMsgVS, strErrMsgPS;
-	pMat->CompileShader(strHLSLHead, strHLSLFuncs, strHLSLBody, strErrMsgVS, strErrMsgPS);
+	pMat->CompileShader(strGBufferShader, strErrMsgVS, strErrMsgPS);
 
 	pMat->InitShaderResources();
 

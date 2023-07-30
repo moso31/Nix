@@ -10,12 +10,10 @@ NXHLSLGenerator::~NXHLSLGenerator()
 
 int NXHLSLGenerator::GetLineCount(const std::string& str) 
 {
-	int lines = 1; // 从1开始计数，因为即使没有换行符，也至少有一行
-	lines += (int)std::count(str.begin(), str.end(), '\n');
-	return lines;
+	return (int)std::count(str.begin(), str.end(), '\n') + 1;
 }
 
-void NXHLSLGenerator::EncodeToGBufferShader(const std::string& strHLSLParam, const std::vector<std::string>& strHLSLFuncs, const std::string& strHLSLBody, std::string& oHLSLFinal)
+void NXHLSLGenerator::EncodeToGBufferShader(const std::string& strHLSLParam, const std::vector<std::string>& strHLSLFuncs, const std::string& strHLSLBody, std::string& oHLSLFinal, std::vector<NXHLSLCodeRegion>& oHLSLFuncRegions)
 {
     auto strInclude = R"(#include "Common.fx"
 #include "Math.fx"
@@ -70,11 +68,26 @@ PS_INPUT VS(VS_INPUT input)
 )";
 
 	oHLSLFinal = strInclude + strHLSLParam;
+	int lineCount = GetLineCount(oHLSLFinal);
 
-	for (auto& strHLSLFunc : strHLSLFuncs)
+	oHLSLFuncRegions.resize(strHLSLFuncs.size() + 1);
+
+	// 处理子函数并记录行列号
+	for (int i = 0; i < strHLSLFuncs.size(); i++)
 	{
+		auto& strHLSLFunc = strHLSLFuncs[i];
+		int lineCountFunc = GetLineCount(strHLSLFunc) - 1;
 		oHLSLFinal = oHLSLFinal + strHLSLFunc;
+		oHLSLFuncRegions[i + 1] = { lineCount, lineCount + lineCountFunc - 1 };
+		lineCount += lineCountFunc;
 	}
 
-	oHLSLFinal = oHLSLFinal + strIOStruct + strPSBegin + strHLSLBody + strPSEnd;
+	oHLSLFinal = oHLSLFinal + strIOStruct + strPSBegin;
+
+	// 处理PS主函数并记录行列号
+	lineCount = GetLineCount(oHLSLFinal);
+	int mainFuncLineCount = GetLineCount(strHLSLBody);
+	oHLSLFuncRegions[0] = { lineCount - 2, lineCount + mainFuncLineCount };
+	lineCount += mainFuncLineCount;
+	oHLSLFinal += strHLSLBody + strPSEnd;
 }

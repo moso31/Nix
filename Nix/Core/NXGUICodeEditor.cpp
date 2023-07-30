@@ -203,38 +203,55 @@ void NXGUICodeEditor::Render()
         m_bResetFlickerDt = false;
     }
 
-    if (m_pickingIndex < 0 || m_pickingIndex >= m_textFiles.size())
-        return;
-
-    auto& currFile = m_textFiles[m_pickingIndex];
-    auto& lines = currFile.lines;
-
-    size_t newLineNumber = std::max(m_maxLineNumber, lines.size());
-    if (m_maxLineNumber < newLineNumber)
+    if (m_pickingIndex >= 0 && m_pickingIndex < m_textFiles.size())
     {
-        m_maxLineNumber = newLineNumber;
-        CalcLineNumberRectWidth(); // 行号超出渲染矩阵范围时，重新计算渲染矩阵的宽度
+        auto& currFile = m_textFiles[m_pickingIndex];
+        auto& lines = currFile.lines;
+
+        size_t newLineNumber = std::max(m_maxLineNumber, lines.size());
+        if (m_maxLineNumber < newLineNumber)
+        {
+            m_maxLineNumber = newLineNumber;
+            CalcLineNumberRectWidth(); // 行号超出渲染矩阵范围时，重新计算渲染矩阵的宽度
+        }
+
+        ImGui::BeginChild("TextEditor");
+        if (ImGui::IsWindowFocused()) m_bNeedFocusOnText = true;
+
+        const ImVec2& layerStartCursorPos = ImGui::GetCursorPos();
+
+        ImGui::BeginChild("##main_layer", ImVec2(), false, ImGuiWindowFlags_NoInputs);
+        Render_MainLayer();
+        ImGui::EndChild();
+
+        //ImGui::SetCursorPos(ImVec2(layerStartCursorPos.x + ImGui::GetContentRegionAvail().x - 400.0f, layerStartCursorPos.y));
+        //ImGui::BeginChild("##debug_layer", ImVec2(), false, ImGuiWindowFlags_NoInputs);
+        //Render_DebugLayer();
+        //ImGui::EndChild();
+
+        ImGui::EndChild();
     }
-
-    //ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-    ImGui::BeginChild("TextEditor");
-    if (ImGui::IsWindowFocused()) m_bNeedFocusOnText = true;
-
-    const ImVec2& layerStartCursorPos = ImGui::GetCursorPos();
-
-    ImGui::BeginChild("##main_layer", ImVec2(), false, ImGuiWindowFlags_NoInputs);
-    Render_MainLayer();
-    ImGui::EndChild();
-
-    //ImGui::SetCursorPos(ImVec2(layerStartCursorPos.x + ImGui::GetContentRegionAvail().x - 400.0f, layerStartCursorPos.y));
-    //ImGui::BeginChild("##debug_layer", ImVec2(), false, ImGuiWindowFlags_NoInputs);
-    //Render_DebugLayer();
-    //ImGui::EndChild();
-
-    ImGui::EndChild();
 
     ImGui::PopStyleVar();
     ImGui::PopFont();
+}
+
+void NXGUICodeEditor::AddSelection(int row, bool bScrollToThere)
+{
+    AddSelection({ row, 0 }, { row, INT_MAX });
+    if (bScrollToThere) m_bNeedScrollCheck = 2;
+}
+
+void NXGUICodeEditor::AddSelection(int row, int col, bool bScrollToThere)
+{
+    AddSelection({ row, col }, { row, col });
+    if (bScrollToThere) m_bNeedScrollCheck = 2;
+}
+
+void NXGUICodeEditor::AddSelection(int rowL, int colL, int rowR, int colR, bool bScrollToThere)
+{
+    AddSelection({ rowL, colL }, { rowR, colR });
+    if (bScrollToThere) m_bNeedScrollCheck = 2;
 }
 
 std::string NXGUICodeEditor::GetCodeText(int index)
@@ -255,7 +272,20 @@ std::string NXGUICodeEditor::GetCodeText(int index)
 
 void NXGUICodeEditor::AddSelection(const Coordinate& A, const Coordinate& B)
 {
-    SelectionInfo selection(A, B);
+    // 此方法开销不高，随便折腾
+    const auto& file = m_textFiles[m_pickingIndex].lines;
+    const auto& lineA = file[A.row];
+    const auto& lineB = file[B.row];
+    SelectionInfo selection(
+        { 
+            std::clamp(A.row, 0, (int)lineA.size()), 
+            std::clamp(A.col, 0, (int)lineA.size()),
+        },
+        {
+            std::clamp(B.row, 0, (int)lineB.size()),
+            std::clamp(B.col, 0, (int)lineB.size()),
+        }
+    );
 	m_selections.push_back(selection);
 }
 
@@ -425,7 +455,7 @@ void NXGUICodeEditor::Enter(const std::vector<std::vector<std::string>>& strArra
     }
 
     SelectionsOverlayCheckForKeyEvent(false);
-    ScrollCheckForKeyEvent();
+    ScrollCheck();
 }
 
 void NXGUICodeEditor::Backspace(bool bDelete, bool bCtrl)
@@ -473,7 +503,7 @@ void NXGUICodeEditor::Backspace(bool bDelete, bool bCtrl)
                 if (!bDelete)
                 {
                     int erasePosR = std::min(L.col, (int)line.size());
-                    int erasePosL = erasePosR - eraseSize;
+                    int erasePosL = std::max(0, erasePosR - eraseSize);
                     line.erase(line.begin() + erasePosL, line.begin() + erasePosR);
                     selection.L = selection.R = Coordinate(L.row, erasePosL);
                 }
@@ -608,7 +638,7 @@ void NXGUICodeEditor::Backspace(bool bDelete, bool bCtrl)
     }
 
     SelectionsOverlayCheckForKeyEvent(false);
-    ScrollCheckForKeyEvent();
+    ScrollCheck();
 }
 
 void NXGUICodeEditor::Escape()
@@ -750,7 +780,6 @@ void NXGUICodeEditor::SwitchFile(int fileIndex)
         return;
 
     m_pickingIndex = fileIndex;
-
     m_bIsSelecting = false;
     m_selections.clear();
 }
@@ -773,6 +802,12 @@ void NXGUICodeEditor::Render_MainLayer()
     {
         ImGui::SetKeyboardFocusHere();
         m_bNeedFocusOnText = false;
+    }
+
+    if (m_bNeedScrollCheck)
+    {
+        m_bNeedScrollCheck--; 
+        if (m_bNeedScrollCheck == 0) ScrollCheck();
     }
 
     ImGui::EndChild();
@@ -1097,7 +1132,7 @@ void NXGUICodeEditor::SelectionsOverlayCheckForKeyEvent(bool bFlickerAtFront)
     }
 }
 
-void NXGUICodeEditor::ScrollCheckForKeyEvent()
+void NXGUICodeEditor::ScrollCheck()
 {
     if (m_selections.empty())
         return;
@@ -1457,7 +1492,7 @@ void NXGUICodeEditor::MoveUp(bool bShift, bool bPageUp, bool bCtrlHome)
     }
 
     SelectionsOverlayCheckForKeyEvent(true);
-    ScrollCheckForKeyEvent();
+    ScrollCheck();
 }
 
 void NXGUICodeEditor::MoveDown(bool bShift, bool bPageDown, bool bCtrlEnd)
@@ -1487,21 +1522,21 @@ void NXGUICodeEditor::MoveDown(bool bShift, bool bPageDown, bool bCtrlEnd)
     }
 
     SelectionsOverlayCheckForKeyEvent(false);
-    ScrollCheckForKeyEvent();
+    ScrollCheck();
 }
 
 void NXGUICodeEditor::MoveLeft(bool bShift, bool bCtrl, bool bHome, int size)
 {
     for (auto& sel : m_selections) MoveLeft(sel, bShift, bCtrl, bHome, size);
     SelectionsOverlayCheckForKeyEvent(true);
-    ScrollCheckForKeyEvent();
+    ScrollCheck();
 }
 
 void NXGUICodeEditor::MoveRight(bool bShift, bool bCtrl, bool bEnd, int size)
 {
     for (auto& sel : m_selections) MoveRight(sel, bShift, bCtrl, bEnd, size);
     SelectionsOverlayCheckForKeyEvent(false);
-    ScrollCheckForKeyEvent();
+    ScrollCheck();
 }
 
 void NXGUICodeEditor::MoveLeft(SelectionInfo& sel, bool bShift, bool bCtrl, bool bHome, int size)
@@ -1637,60 +1672,4 @@ std::vector<NXGUICodeEditor::TextKeyword> NXGUICodeEditor::ExtractKeywords(const
     // 如果最后一个单词没有被添加到words列表中，则需要在循环结束后再添加一次
     if (!word.empty()) words.push_back({ word, i - (int)word.length() });
     return words;
-}
-
-void NXGUICodeEditor::UpdateTitleNamesForAll()
-{
-    for (auto& file : m_textFiles)
-        UpdateTitleName(file);
-}
-
-void NXGUICodeEditor::UpdateTitleName(FileData& file)
-{
-    bool bInCommentLine = false;
-    for (auto& line : file.lines)
-    {
-        if (line.empty()) continue;
-
-        std::string lineNoComment = line;
-        if (!bInCommentLine)
-        {
-            // 提取无单行注释部分，即 "//" 之前的内容。
-            lineNoComment = line.substr(0, line.find("//"));
-            if (lineNoComment.empty()) continue;
-
-            // 查找是否有多行注释开头 "/*"。
-            // 如果有，进一步将 lineNoComment 分割成两部分
-            auto nCommentMultiLineStartPos = lineNoComment.find("/*");
-            if (nCommentMultiLineStartPos != std::string::npos)
-            {
-                lineNoComment = lineNoComment.substr(0, nCommentMultiLineStartPos);
-                bInCommentLine = true;
-            }
-        }
-        else
-        {
-            // 如果在多行注释中，则查找是否有多行注释结尾 "*/"。
-            // 如果有，则将 bInCommentLine 设置为 false，表示多行注释已结束。
-            auto commentPos = lineNoComment.find("*/");
-            if (commentPos != std::string::npos)
-            {
-                lineNoComment = lineNoComment.substr(commentPos + 2);
-                bInCommentLine = false;
-            }
-            else continue; // 如果在多行注释中，且没有多行注释结尾，则忽略此行。
-        }
-
-        if (lineNoComment.empty()) continue;
-
-        // 从 lineNoComment 中提取实际的 函数名称。
-        auto funcName = lineNoComment.substr(0, lineNoComment.find("("));
-        funcName = funcName.substr(funcName.find(" ") + 1) + "()";
-
-        if (funcName.empty()) continue;
-
-        // 最后更新文件标题名
-        file.SetName(funcName);
-        break;
-    }
 }
