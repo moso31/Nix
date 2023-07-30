@@ -11,6 +11,8 @@ Selfmade DX11 renderer.
 - [x] Depth Peeling
 - [x] Shadow Map (PCF only)
 - [x] A very simple Tone-Mapping
+- [x] Programmable material
+  - [x] Used this HLSL code editor: https://github.com/moso31/DonoText
 
 ## Intending...
 - [ ] SSS
