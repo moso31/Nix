@@ -226,6 +226,7 @@ public:
 
     void Load(const std::filesystem::path& filePath, bool bRefreshHighLight = false);
     void Load(const std::string& text, bool bRefreshHighLight = false, const std::string& name = "New File");
+    bool RemoveFile(int removeIndex);
     void ClearAllFiles();
     void RefreshAllHighLights();
     void Render();

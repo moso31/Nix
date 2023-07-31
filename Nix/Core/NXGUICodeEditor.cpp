@@ -163,6 +163,19 @@ void NXGUICodeEditor::Load(const std::string& text, bool bRefreshHighLight, cons
     }
 }
 
+bool NXGUICodeEditor::RemoveFile(int removeIndex)
+{
+    if (removeIndex < 0 || removeIndex >= m_textFiles.size())
+		return false;
+
+	m_textFiles.erase(m_textFiles.begin() + removeIndex);
+	m_bIsSelecting = false;
+	m_selections.clear();
+	m_threadPool.Clear();
+
+    return true;
+}
+
 void NXGUICodeEditor::ClearAllFiles()
 {
     m_textFiles.clear();

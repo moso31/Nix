@@ -367,7 +367,13 @@ void NXGUIMaterialShaderEditor::Render_Code(NXCustomMaterial* pMaterial)
 	if (ImGui::ButtonEx("Remove Function##material_shader_editor_btn_removefunction"))
 	{
 		OnBtnRemoveFunctionClicked(pMaterial, m_showFuncIndex);
-		OnShowFuncIndexChanged(min(m_showFuncIndex, (int)m_nslFuncs.size() - 1));
+
+		if (m_pGUICodeEditor->RemoveFile(m_showFuncIndex))
+		{
+			m_showFuncIndex = min(m_showFuncIndex, (int)m_nslFuncs.size() - 1);
+			m_pGUICodeEditor->SwitchFile(m_showFuncIndex);
+			m_pGUICodeEditor->GetFocus();
+		}
 	}
 
 	if (bIsMainFunc)
