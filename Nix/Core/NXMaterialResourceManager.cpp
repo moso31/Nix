@@ -77,7 +77,7 @@ NXCustomMaterial* NXMaterialResourceManager::CreateCustomMaterial(const std::str
 	pMat->ConvertNSLToHLSL(strHLSLHead, strHLSLFuncs, strHLSLBody);
 
 	std::string strGBufferShader;
-	NXHLSLGenerator::GetInstance()->EncodeToGBufferShader(strHLSLHead, strHLSLFuncs, strHLSLBody, strGBufferShader, std::vector<NXHLSLCodeRegion>());
+	NXHLSLGenerator::GetInstance()->EncodeToGBufferShader(strHLSLHead, strHLSLFuncs, {}, strHLSLBody, strGBufferShader, std::vector<NXHLSLCodeRegion>());
 
 	std::string strErrMsgVS, strErrMsgPS;
 	pMat->CompileShader(strGBufferShader, strErrMsgVS, strErrMsgPS);

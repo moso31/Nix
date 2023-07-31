@@ -135,7 +135,7 @@ bool NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::s
 	return true;
 }
 
-bool NXCustomMaterial::Recompile(const std::string& nslParams, const std::vector<std::string>& nslFuncs, const std::vector<NXGUICBufferData>& cbDefaultValues, const std::vector<NXGUITextureData>& texDefaultValues, const std::vector<NXGUISamplerData>& samplerDefaultValues, std::vector<NXHLSLCodeRegion>& oShaderFuncRegions, std::string& oErrorMessageVS, std::string& oErrorMessagePS)
+bool NXCustomMaterial::Recompile(const std::string& nslParams, const std::vector<std::string>& nslFuncs, const std::vector<std::string>& nslTitles, const std::vector<NXGUICBufferData>& cbDefaultValues, const std::vector<NXGUITextureData>& texDefaultValues, const std::vector<NXGUISamplerData>& samplerDefaultValues, std::vector<NXHLSLCodeRegion>& oShaderFuncRegions, std::string& oErrorMessageVS, std::string& oErrorMessagePS)
 {
 	// 备份材质信息，方便编译失败时还原数据
 	GenerateInfoBackup();
@@ -153,7 +153,7 @@ bool NXCustomMaterial::Recompile(const std::string& nslParams, const std::vector
 
 	// 将 HLSL 组合成 GBuffer!
 	std::string strGBufferShader;
-	NXHLSLGenerator::GetInstance()->EncodeToGBufferShader(strHLSLHead, strHLSLFuncs, strHLSLBody, strGBufferShader, oShaderFuncRegions);
+	NXHLSLGenerator::GetInstance()->EncodeToGBufferShader(strHLSLHead, strHLSLFuncs, nslTitles, strHLSLBody, strGBufferShader, oShaderFuncRegions);
 
 	// 最后编译
 	bool bCompileSuccess = CompileShader(strGBufferShader, oErrorMessageVS, oErrorMessagePS);

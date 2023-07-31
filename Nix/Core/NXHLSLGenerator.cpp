@@ -13,7 +13,7 @@ int NXHLSLGenerator::GetLineCount(const std::string& str)
 	return (int)std::count(str.begin(), str.end(), '\n') + 1;
 }
 
-void NXHLSLGenerator::EncodeToGBufferShader(const std::string& strHLSLParam, const std::vector<std::string>& strHLSLFuncs, const std::string& strHLSLBody, std::string& oHLSLFinal, std::vector<NXHLSLCodeRegion>& oHLSLFuncRegions)
+void NXHLSLGenerator::EncodeToGBufferShader(const std::string& strHLSLParam, const std::vector<std::string>& strHLSLFuncs, const std::vector<std::string>& strHLSLTitles, const std::string& strHLSLBody, std::string& oHLSLFinal, std::vector<NXHLSLCodeRegion>& oHLSLFuncRegions)
 {
     auto strInclude = R"(#include "Common.fx"
 #include "Math.fx"
@@ -68,11 +68,14 @@ PS_INPUT VS(VS_INPUT input)
 )";
 
 	oHLSLFinal = strInclude + strHLSLParam;
-	int lineCount = GetLineCount(oHLSLFinal);
 
-	oHLSLFuncRegions.resize(strHLSLFuncs.size() + 1);
+	// 将子函数提前声明，避免子函数顺序不对导致编译失败
+	for (int i = 1; i < strHLSLTitles.size(); i++)
+		oHLSLFinal = oHLSLFinal + strHLSLTitles[i] + ";\n";
 
 	// 处理子函数并记录行列号
+	int lineCount = GetLineCount(oHLSLFinal);
+	oHLSLFuncRegions.resize(strHLSLFuncs.size() + 1);
 	for (int i = 0; i < strHLSLFuncs.size(); i++)
 	{
 		auto& strHLSLFunc = strHLSLFuncs[i];

@@ -227,7 +227,7 @@ bool NXGUIMaterialShaderEditor::OnBtnCompileClicked(NXCustomMaterial* pMaterial)
 	UpdateNSLFunctions();
 
 	std::string strErrVS, strErrPS;	// 若编译Shader出错，将错误信息记录到此字符串中。
-	bool bCompile = pMaterial->Recompile(nslParams, m_nslFuncs, m_cbInfosDisplay, m_texInfosDisplay, m_ssInfosDisplay, m_HLSLFuncRegions, strErrVS, strErrPS);
+	bool bCompile = pMaterial->Recompile(nslParams, m_nslFuncs, m_nslTitles, m_cbInfosDisplay, m_texInfosDisplay, m_ssInfosDisplay, m_HLSLFuncRegions, strErrVS, strErrPS);
 	
 	if (bCompile)
 	{
