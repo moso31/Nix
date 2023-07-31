@@ -1,17 +1,17 @@
 #include "NXGUIMaterial.h"
-#include <unordered_set>
 #include "NXGUICommon.h"
 #include "NXConverter.h"
 #include "NXScene.h"
 #include "NXPrimitive.h"
 #include "NXGUIContentExplorer.h"
+#include "NXGUIMaterialShaderEditor.h"
 
-NXGUIMaterial::NXGUIMaterial(NXScene* pScene, NXGUIFileBrowser* pFileBrowser) :
+NXGUIMaterial::NXGUIMaterial(NXScene* pScene, NXGUIFileBrowser* pFileBrowser, NXGUICodeEditor* pCodeEditor, NXGUIMaterialShaderEditor* pMaterialShaderEditor) :
 	m_pCurrentScene(pScene),
 	m_pFileBrowser(pFileBrowser),
-	m_whiteTexPath_test(L".\\Resource\\white1x1.png"),
-	m_normalTexPath_test(L".\\Resource\\normal1x1.png"),
-	m_currentMaterialTypeIndex(0)
+	m_pCodeEditor(pCodeEditor),
+	m_pMaterialShaderEditor(pMaterialShaderEditor),
+	m_bIsDirty(false)
 {
 }
 
@@ -89,7 +89,7 @@ void NXGUIMaterial::Render()
 	{
 		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_EXPLORER_BUTTON_DRUGING"))
 		{
-			auto pDropData = (NXGUIContentExplorerButtonDrugData*)(payload->Data);
+			auto pDropData = (NXGUIAssetDragData*)(payload->Data);
 			if (NXConvert::IsMaterialFileExtension(pDropData->srcPath.extension().string()))
 			{
 				for (NXSubMeshBase* pSubMesh : pPickingSubMeshes) 
@@ -111,117 +111,77 @@ void NXGUIMaterial::Render()
 		{
 			pCommonMaterial->SetName(strMatName);
 		}
-
-		NXMaterialType matType = pCommonMaterial->GetType();
-		m_currentMaterialTypeIndex = matType - 1;
-
-		static const char* items[] = { "Standard", "Translucent" };
-		ImGui::Combo("Material Type", &m_currentMaterialTypeIndex, items, IM_ARRAYSIZE(items));
 		ImGui::EndChild();
 
-		NXMaterialType newMatType = NXMaterialType(m_currentMaterialTypeIndex + 1);
-		switch (newMatType)
+		auto pCustomMat = pCommonMaterial->IsCustomMat();
+		if (pCustomMat)
 		{
-		case UNKNOWN:
-			break;
-		case PBR_STANDARD:
-			RenderMaterialUI_Standard(static_cast<NXPBRMaterialStandard*>(pCommonMaterial));
-			break;
-		case PBR_TRANSLUCENT:
-			RenderMaterialUI_Translucent(static_cast<NXPBRMaterialTranslucent*>(pCommonMaterial));
-			break;
-		default:
-			break;
-		}
+			RenderMaterialUI_Custom(pCustomMat);
 
-		if (matType != newMatType)
-			NXResourceManager::GetInstance()->GetMaterialManager()->ReTypeMaterial(pCommonMaterial, newMatType);
+			//// 保存当前材质
+			//if (ImGui::Button("Save##material"))
+			//{
+			//	SaveMaterialFile(pCustomMat);
+			//	pCommonMaterial->Serialize();
+			//}
+			//ImGui::SameLine();
 
-		// 保存当前材质
-		if (ImGui::Button("Save##material"))
-		{
-			pCommonMaterial->GetFilePath();
-
-			NXGUICommon::SaveMaterialFile(pCommonMaterial);
+			if (pCommonMaterial->IsCustomMat())
+			{
+				if (ImGui::Button("Edit Shader...##material_custom_editshader"))
+				{
+					OnBtnEditShaderClicked(pCustomMat);
+				}
+			}
 		}
 	}
 
 	ImGui::End();
+
+	// 渲染 Shader Editor GUI
+	if (pCommonMaterial && pCommonMaterial->IsCustomMat() && m_pMaterialShaderEditor)
+	{
+		m_pMaterialShaderEditor->Render(static_cast<NXCustomMaterial*>(pCommonMaterial));
+	}
 }
 
-void NXGUIMaterial::OnTexAlbedoChange(NXPBRMaterialBase* pMaterial)
+void NXGUIMaterial::Release()
 {
-	pMaterial->SetTexAlbedo(m_pFileBrowser->GetSelected().c_str());
 }
 
-void NXGUIMaterial::OnTexNormalChange(NXPBRMaterialBase* pMaterial)
+void NXGUIMaterial::SaveMaterialFile(NXCustomMaterial* pMaterial)
 {
-	pMaterial->SetTexNormal(m_pFileBrowser->GetSelected().c_str());
+	pMaterial->SaveToNSLFile();
 }
 
-void NXGUIMaterial::OnTexMetallicChange(NXPBRMaterialBase* pMaterial)
+void NXGUIMaterial::OnBtnEditShaderClicked(NXCustomMaterial* pMaterial)
 {
-	pMaterial->SetTexMetallic(m_pFileBrowser->GetSelected().c_str());
+	if (m_pMaterialShaderEditor)
+	{
+		m_pMaterialShaderEditor->SetGUIMaterial(this);
+		m_pMaterialShaderEditor->SetGUIFileBrowser(m_pFileBrowser);
+		m_pMaterialShaderEditor->SetGUICodeEditor(m_pCodeEditor);
+
+		// 将参数和nsl代码从 当前GUI材质类 中同步到 MaterialShaderEditor
+		m_pMaterialShaderEditor->RequestSyncMaterialData();
+		m_pMaterialShaderEditor->RequestSyncMaterialCodes();
+
+		// 并进行参数备份（revert功能要用）
+		m_pMaterialShaderEditor->RequestGenerateBackup();
+
+		m_pMaterialShaderEditor->Show();
+	}
 }
 
-void NXGUIMaterial::OnTexRoughnessChange(NXPBRMaterialBase* pMaterial)
+void NXGUIMaterial::OnComboGUIStyleChanged(int selectIndex, NXGUICBufferData& cbDataDisplay)
 {
-	pMaterial->SetTexRoughness(m_pFileBrowser->GetSelected().c_str());
-}
+	using namespace NXGUICommon;
 
-void NXGUIMaterial::OnTexAOChange(NXPBRMaterialBase* pMaterial)
-{
-	pMaterial->SetTexAO(m_whiteTexPath_test);
-}
+	// 设置 GUI Style
+	cbDataDisplay.guiStyle = GetGUIStyleFromString(g_strCBufferGUIStyle[selectIndex]);
 
-void NXGUIMaterial::OnTexAlbedoRemove(NXPBRMaterialBase* pMaterial)
-{
-	pMaterial->SetTexAlbedo(m_whiteTexPath_test);
-}
-
-void NXGUIMaterial::OnTexNormalRemove(NXPBRMaterialBase* pMaterial)
-{
-	pMaterial->SetTexNormal(m_normalTexPath_test);
-}
-
-void NXGUIMaterial::OnTexMetallicRemove(NXPBRMaterialBase* pMaterial)
-{
-	pMaterial->SetTexMetallic(m_whiteTexPath_test);
-}
-
-void NXGUIMaterial::OnTexRoughnessRemove(NXPBRMaterialBase* pMaterial)
-{
-	pMaterial->SetTexRoughness(m_whiteTexPath_test);
-}
-
-void NXGUIMaterial::OnTexAORemove(NXPBRMaterialBase* pMaterial)
-{
-	pMaterial->SetTexAO(m_whiteTexPath_test);
-}
-
-void NXGUIMaterial::OnTexAlbedoDrop(NXPBRMaterialBase* pMaterial, const std::wstring& filePath)
-{
-	pMaterial->SetTexAlbedo(filePath.c_str());
-}
-
-void NXGUIMaterial::OnTexNormalDrop(NXPBRMaterialBase* pMaterial, const std::wstring& filePath)
-{
-	pMaterial->SetTexNormal(filePath.c_str());
-}
-
-void NXGUIMaterial::OnTexMetallicDrop(NXPBRMaterialBase* pMaterial, const std::wstring& filePath)
-{
-	pMaterial->SetTexMetallic(filePath.c_str());
-}
-
-void NXGUIMaterial::OnTexRoughnessDrop(NXPBRMaterialBase* pMaterial, const std::wstring& filePath)
-{
-	pMaterial->SetTexRoughness(filePath.c_str());
-}
-
-void NXGUIMaterial::OnTexAODrop(NXPBRMaterialBase* pMaterial, const std::wstring& filePath)
-{
-	pMaterial->SetTexAO(filePath.c_str());
+	// 根据 GUI Style 设置GUI的拖动速度或最大最小值
+	cbDataDisplay.params = GetGUIParamsDefaultValue(cbDataDisplay.guiStyle);
 }
 
 void NXGUIMaterial::UpdateFileBrowserParameters()
@@ -231,143 +191,176 @@ void NXGUIMaterial::UpdateFileBrowserParameters()
 	m_pFileBrowser->SetPwd("D:\\NixAssets");
 }
 
-void NXGUIMaterial::RenderMaterialUI_Standard(NXPBRMaterialStandard* pMaterial)
+void NXGUIMaterial::SyncMaterialData(NXCustomMaterial* pMaterial)
 {
-	RenderTextureIcon((ImTextureID)pMaterial->GetSRVAlbedo(), std::bind(&NXGUIMaterial::OnTexAlbedoChange, this, pMaterial), std::bind(&NXGUIMaterial::OnTexAlbedoRemove, this, pMaterial), std::bind(&NXGUIMaterial::OnTexAlbedoDrop, this, pMaterial, std::placeholders::_1));
-	ImGui::SameLine();
-	XMVECTORF32 fAlbedo;
-	fAlbedo.v = pMaterial->GetAlbedo();
-	if (ImGui::ColorEdit3("Albedo", fAlbedo.f))
+	using namespace NXGUICommon;
+
+	m_cbInfosDisplay.clear();
+	m_cbInfosDisplay.reserve(pMaterial->GetCBufferElemCount());
+	for (UINT i = 0; i < pMaterial->GetCBufferElemCount(); i++)
 	{
-		pMaterial->SetAlbedo(fAlbedo.v);
-	}
+		auto& cbElem = pMaterial->GetCBufferElem(i);
+		const float* cbElemData = pMaterial->GetCBInfoMemoryData(cbElem.memoryIndex);
 
-	RenderTextureIcon((ImTextureID)pMaterial->GetSRVNormal(), std::bind(&NXGUIMaterial::OnTexNormalChange, this, pMaterial), std::bind(&NXGUIMaterial::OnTexNormalRemove, this, pMaterial), std::bind(&NXGUIMaterial::OnTexNormalDrop, this, pMaterial, std::placeholders::_1));
-	ImGui::SameLine();
-	XMVECTORF32 fNormal;
-	fNormal.v = pMaterial->GetNormal();
-	if (ImGui::ColorEdit3("Normal", fNormal.f))
-	{
-		pMaterial->SetNormal(fNormal.v);
-	}
-
-	RenderTextureIcon((ImTextureID)pMaterial->GetSRVMetallic(), std::bind(&NXGUIMaterial::OnTexMetallicChange, this, pMaterial), std::bind(&NXGUIMaterial::OnTexMetallicRemove, this, pMaterial), std::bind(&NXGUIMaterial::OnTexMetallicDrop, this, pMaterial, std::placeholders::_1));
-	ImGui::SameLine();
-	ImGui::SliderFloat("Metallic", pMaterial->GetMetallic(), 0.0f, 1.0f);
-
-	RenderTextureIcon((ImTextureID)pMaterial->GetSRVRoughness(), std::bind(&NXGUIMaterial::OnTexRoughnessChange, this, pMaterial), std::bind(&NXGUIMaterial::OnTexRoughnessRemove, this, pMaterial), std::bind(&NXGUIMaterial::OnTexRoughnessDrop, this, pMaterial, std::placeholders::_1));
-	ImGui::SameLine();
-	ImGui::SliderFloat("Roughness", pMaterial->GetRoughness(), 0.0f, 1.0f);
-
-	RenderTextureIcon((ImTextureID)pMaterial->GetSRVAO(), std::bind(&NXGUIMaterial::OnTexAOChange, this, pMaterial), std::bind(&NXGUIMaterial::OnTexAORemove, this, pMaterial), std::bind(&NXGUIMaterial::OnTexAODrop, this, pMaterial, std::placeholders::_1));
-	ImGui::SameLine();
-	ImGui::SliderFloat("AO", pMaterial->GetAO(), 0.0f, 1.0f);
-}
-
-void NXGUIMaterial::RenderMaterialUI_Translucent(NXPBRMaterialTranslucent* pMaterial)
-{
-	RenderTextureIcon((ImTextureID)pMaterial->GetSRVAlbedo(), std::bind(&NXGUIMaterial::OnTexAlbedoChange, this, pMaterial), std::bind(&NXGUIMaterial::OnTexAlbedoRemove, this, pMaterial), std::bind(&NXGUIMaterial::OnTexAlbedoDrop, this, pMaterial, std::placeholders::_1));
-	ImGui::SameLine();
-	XMVECTORF32 fAlbedo;
-	fAlbedo.v = pMaterial->GetAlbedo();
-	fAlbedo.f[3] = *pMaterial->GetOpacity();
-	if (ImGui::ColorEdit4("Albedo", fAlbedo.f))
-	{
-		pMaterial->SetAlbedo(fAlbedo.v);
-		pMaterial->SetOpacity(fAlbedo.f[3]);
-	}
-
-	RenderTextureIcon((ImTextureID)pMaterial->GetSRVNormal(), std::bind(&NXGUIMaterial::OnTexNormalChange, this, pMaterial), std::bind(&NXGUIMaterial::OnTexNormalRemove, this, pMaterial), std::bind(&NXGUIMaterial::OnTexNormalDrop, this, pMaterial, std::placeholders::_1));
-	ImGui::SameLine();
-	XMVECTORF32 fNormal;
-	fNormal.v = pMaterial->GetNormal();
-	if (ImGui::ColorEdit3("Normal", fNormal.f))
-	{
-		pMaterial->SetNormal(fNormal.v);
-	}
-
-	RenderTextureIcon((ImTextureID)pMaterial->GetSRVMetallic(), std::bind(&NXGUIMaterial::OnTexMetallicChange, this, pMaterial), std::bind(&NXGUIMaterial::OnTexMetallicRemove, this, pMaterial), std::bind(&NXGUIMaterial::OnTexMetallicDrop, this, pMaterial, std::placeholders::_1));
-	ImGui::SameLine();
-	ImGui::SliderFloat("Metallic", pMaterial->GetMetallic(), 0.0f, 1.0f);
-
-	RenderTextureIcon((ImTextureID)pMaterial->GetSRVRoughness(), std::bind(&NXGUIMaterial::OnTexRoughnessChange, this, pMaterial), std::bind(&NXGUIMaterial::OnTexRoughnessRemove, this, pMaterial), std::bind(&NXGUIMaterial::OnTexRoughnessDrop, this, pMaterial, std::placeholders::_1));
-	ImGui::SameLine();
-	ImGui::SliderFloat("Roughness", pMaterial->GetRoughness(), 0.0f, 1.0f);
-
-	RenderTextureIcon((ImTextureID)pMaterial->GetSRVAO(), std::bind(&NXGUIMaterial::OnTexAOChange, this, pMaterial), std::bind(&NXGUIMaterial::OnTexAORemove, this, pMaterial), std::bind(&NXGUIMaterial::OnTexAODrop, this, pMaterial, std::placeholders::_1));
-	ImGui::SameLine();
-	ImGui::SliderFloat("AO", pMaterial->GetAO(), 0.0f, 1.0f);
-}
-
-void NXGUIMaterial::RenderTextureIcon(ImTextureID ImTexID, std::function<void()> onChange, std::function<void()> onRemove, std::function<void(const std::wstring&)> onDrop)
-{
-	float my_tex_w = (float)16;
-	float my_tex_h = (float)16;
-
-	ImGuiIO& io = ImGui::GetIO();
-	{
-		//ImGui::Text("%.0fx%.0f", my_tex_w, my_tex_h);
-		//ImVec2 pos = ImGui::GetCursorScreenPos();
-		//ImVec2 uv_min = ImVec2(0.0f, 0.0f);                 // Top-left
-		//ImVec2 uv_max = ImVec2(1.0f, 1.0f);                 // Lower-right
-		//ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);   // No tint
-		//ImVec4 border_col = ImVec4(1.0f, 1.0f, 1.0f, 0.5f); // 50% opaque white
-		//ImGui::Image(ImTexID, ImVec2(my_tex_w, my_tex_h), uv_min, uv_max, tint_col, border_col);
-		//if (ImGui::IsItemHovered())
-		//{
-		//	ImGui::BeginTooltip();
-		//	float region_sz = 32.0f;
-		//	float region_x = io.MousePos.x - pos.x - region_sz * 0.5f;
-		//	float region_y = io.MousePos.y - pos.y - region_sz * 0.5f;
-		//	float zoom = 4.0f;
-		//	if (region_x < 0.0f) { region_x = 0.0f; }
-		//	else if (region_x > my_tex_w - region_sz) { region_x = my_tex_w - region_sz; }
-		//	if (region_y < 0.0f) { region_y = 0.0f; }
-		//	else if (region_y > my_tex_h - region_sz) { region_y = my_tex_h - region_sz; }
-		//	ImGui::Text("Min: (%.2f, %.2f)", region_x, region_y);
-		//	ImGui::Text("Max: (%.2f, %.2f)", region_x + region_sz, region_y + region_sz);
-		//	ImVec2 uv0 = ImVec2((region_x) / my_tex_w, (region_y) / my_tex_h);
-		//	ImVec2 uv1 = ImVec2((region_x + region_sz) / my_tex_w, (region_y + region_sz) / my_tex_h);
-		//	ImGui::Image(ImTexID, ImVec2(region_sz * zoom, region_sz * zoom), uv0, uv1, tint_col, border_col);
-		//	ImGui::EndTooltip();
-		//}
-
-		int frame_padding = 2;									// -1 == uses default padding (style.FramePadding)
-		ImVec2 size = ImVec2(16.0f, 16.0f);                     // Size of the image we want to make visible
-		ImVec2 uv0 = ImVec2(0.0f, 0.0f);
-		ImVec2 uv1 = ImVec2(1.0f, 1.0f);
-		ImVec4 bg_col = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);         // Black background
-		ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);       // No tint
-		if (ImGui::ImageButton(ImTexID, size, uv0, uv1, frame_padding, bg_col, tint_col))
+		Vector4 cbDataDisplay(cbElemData);
+		switch (cbElem.type)
 		{
-			UpdateFileBrowserParameters();
-			m_pFileBrowser->Open();
-			m_pFileBrowser->SetOnDialogOK(onChange);
+		case NXCBufferInputType::Float: cbDataDisplay = { cbDataDisplay.x, 0.0f, 0.0f, 0.0f }; break;
+		case NXCBufferInputType::Float2: cbDataDisplay = { cbDataDisplay.x, cbDataDisplay.y, 0.0f, 0.0f }; break;
+		case NXCBufferInputType::Float3: cbDataDisplay = { cbDataDisplay.x, cbDataDisplay.y, cbDataDisplay.z, 0.0f }; break;
+		default: break;
 		}
 
-		if (ImGui::BeginDragDropTarget())
+		// 如果cb中存了 GUIStyle，优先使用 GUIStyle 显示 cb
+		NXGUICBufferStyle guiStyle = pMaterial->GetCBGUIStyles(i);
+		if (guiStyle == NXGUICBufferStyle::Unknown)
 		{
-			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_EXPLORER_BUTTON_DRUGING"))
+			// 否则基于 cbElem 的类型自动生成 GUIStyle
+			guiStyle = GetDefaultGUIStyleFromCBufferType(cbElem.type);
+		}
+
+		// 设置 GUI Style 的拖动速度或最大最小值
+		Vector2 guiParams = GetGUIParamsDefaultValue(guiStyle);
+
+		m_cbInfosDisplay.push_back({ cbElem.name, cbElem.type, cbDataDisplay, guiStyle, guiParams, cbElem.memoryIndex });
+	}
+
+	for (auto& texDisplay : m_texInfosDisplay)
+	{
+		if (texDisplay.pTexture)
+			texDisplay.pTexture->RemoveRef();
+	}
+	m_texInfosDisplay.clear();
+	m_texInfosDisplay.reserve(pMaterial->GetTextureCount());
+	for (UINT i = 0; i < pMaterial->GetTextureCount(); i++)
+	{
+		NXTexture* pTex = pMaterial->GetTexture(i);
+		pTex->AddRef();
+		NXGUITextureType texType = pTex->GetSerializationData().m_textureType == NXTextureType::NormalMap ? NXGUITextureType::Normal : NXGUITextureType::Default;
+		m_texInfosDisplay.push_back({ pMaterial->GetTextureName(i), texType, pTex });
+	}
+
+
+	m_pLastMaterial = pMaterial;
+}
+
+void NXGUIMaterial::RenderMaterialUI_Custom(NXCustomMaterial* pMaterial)
+{
+	// TODO: 感觉 m_pLastMaterial 写在这里不太合适，写在类似 Update 之类的地方会更好
+	// 但现在懒得做 GUI Update 的实现 所以先这么放着了……
+	if (m_pLastMaterial != pMaterial)
+		m_bIsDirty = true;
+
+	// 将材质数据同步到 GUI材质类
+	if (m_bIsDirty)
+	{
+		SyncMaterialData(pMaterial);
+		m_bIsDirty = false;
+	}
+
+	//ImGui::BeginChild("##material_custom", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y * 0.6f));
+	{
+		// 禁用树节点首行缩进
+		ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 0.0f);
+		RenderMaterialUI_Custom_Parameters(pMaterial);
+
+		ImGui::PopStyleVar(); // ImGuiStyleVar_IndentSpacing
+		//ImGui::EndChild();
+	}
+}
+
+void NXGUIMaterial::RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMaterial)
+{
+	using namespace NXGUICommon;
+
+	if (ImGui::TreeNodeEx("Parameters##material_custom_parameters", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		ImGui::BeginChild("##material_custom_child", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y - 40.0f));
+		{
+			int paramCnt = 0;
+			for (auto& cbDisplay : m_cbInfosDisplay)
 			{
-				auto pDropData = (NXGUIContentExplorerButtonDrugData*)(payload->Data);
-				if (NXConvert::IsImageFileExtension(pDropData->srcPath.extension().string()))
+				std::string strId = "##material_custom_child_cbuffer_" + std::to_string(paramCnt++);
+				RenderMaterialUI_Custom_Parameters_CBufferItem(strId, pMaterial, cbDisplay);
+			}
+
+			for (auto& texDisplay : m_texInfosDisplay)
+			{
+				std::string strId = "##material_custom_child_texture_" + std::to_string(paramCnt);
+
+				auto& pTex = texDisplay.pTexture;
+				if (!pTex) continue;
+
+				auto onTexChange = [pMaterial, &pTex, this]()
 				{
-					onDrop(pDropData->srcPath.wstring());
-				}
-			}
-			ImGui::EndDragDropTarget();
-		}
+					pMaterial->SetTexture(pTex, m_pFileBrowser->GetSelected());
+					RequestSyncMaterialData();
+				};
 
-		ImGui::SameLine();
-		ImGui::PushID("RemoveTexButtons");
-		{
-			ImGui::PushID(ImTexID);
-			if (ImGui::Button("R"))
-			{
-				onRemove();
+				auto onTexRemove = [pMaterial, &pTex, this]()
+				{
+					pMaterial->RemoveTexture(pTex);
+					RequestSyncMaterialData();
+				};
+
+				auto onTexDrop = [pMaterial, &pTex, this](const std::wstring& dragPath)
+				{
+					pMaterial->SetTexture(pTex, dragPath);
+					RequestSyncMaterialData();
+				};
+
+				ImGui::PushID(paramCnt);
+				RenderSmallTextureIcon(pTex->GetSRV(), m_pFileBrowser, onTexChange, onTexRemove, onTexDrop);
+				ImGui::PopID();
+
+				ImGui::SameLine();
+				ImGui::Text(texDisplay.name.data());
+
+				paramCnt++;
 			}
-			ImGui::PopID();
+
+			ImGui::EndChild();
 		}
-		ImGui::PopID();
+		ImGui::TreePop();
+	}
+}
+
+void NXGUIMaterial::RenderMaterialUI_Custom_Parameters_CBufferItem(const std::string& strId, NXCustomMaterial* pMaterial, NXGUICBufferData& cbDisplay)
+{
+	using namespace NXGUICommon;
+
+	bool bDraged = false;
+	std::string strName = cbDisplay.name + strId + "_cb";
+
+	UINT N = GetValueNumOfGUIStyle(cbDisplay.guiStyle);
+	switch (cbDisplay.guiStyle)
+	{
+	case NXGUICBufferStyle::Value:
+	case NXGUICBufferStyle::Value2:
+	case NXGUICBufferStyle::Value3:
+	case NXGUICBufferStyle::Value4:
+	default:
+		bDraged |= ImGui::DragScalarN(strName.data(), ImGuiDataType_Float, cbDisplay.data, N, cbDisplay.params[0]);
+		break;
+	case NXGUICBufferStyle::Slider:
+	case NXGUICBufferStyle::Slider2:
+	case NXGUICBufferStyle::Slider3:
+	case NXGUICBufferStyle::Slider4:
+		bDraged |= ImGui::SliderScalarN(strName.data(), ImGuiDataType_Float, cbDisplay.data, N, &cbDisplay.params[0], &cbDisplay.params[1]);
+		break;
+	case NXGUICBufferStyle::Color3:
+		bDraged |= ImGui::ColorEdit3(strName.data(), cbDisplay.data);
+		break;
+	case NXGUICBufferStyle::Color4:
+		bDraged |= ImGui::ColorEdit4(strName.data(), cbDisplay.data);
+		break;
+	}
+
+	if (bDraged && cbDisplay.memoryIndex != -1) // 新加的 AddParam 在点编译按钮之前不应该传给参数
+	{
+		// 在这里将 GUI 修改过的参数传回给材质 CBuffer，实现视觉上的变化。
+		// 实际上要拷贝的字节量是 cbDisplay 初始读取的字节数量 actualN，而不是更改 GUIStyle 以后的参数数量 N
+		UINT actualN = cbDisplay.readType;
+		pMaterial->SetCBInfoMemoryData(cbDisplay.memoryIndex, actualN, cbDisplay.data);
 	}
 }

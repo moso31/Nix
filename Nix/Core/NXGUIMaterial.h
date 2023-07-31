@@ -1,53 +1,48 @@
 #pragma once
 #include "Header.h"
 #include "NXGUIFileBrowser.h"
+#include "NXShaderDefinitions.h"
 
-struct NXGUIContentExplorerButtonDrugData;
-
+class NXGUICodeEditor;
+struct NXGUIAssetDragData;
+class NXGUIMaterialShaderEditor;
 class NXGUIMaterial
 {
 public:
-	NXGUIMaterial(NXScene* pScene = nullptr, NXGUIFileBrowser* pFileBrowser = nullptr);
+	NXGUIMaterial(NXScene* pScene, NXGUIFileBrowser* pFileBrowser, NXGUICodeEditor* pCodeEditor, NXGUIMaterialShaderEditor* pMaterialShaderEditor);
 	~NXGUIMaterial() {}
 
 	void SetCurrentScene(NXScene* pScene) { m_pCurrentScene = pScene; }
 	void Render();
+	void Release();
+
+	void RequestSyncMaterialData() { m_bIsDirty = true; }
+
+	void SaveMaterialFile(NXCustomMaterial* pMaterial);
 
 private:
-	void RenderMaterialUI_Standard(NXPBRMaterialStandard* pMaterial);
-	void RenderMaterialUI_Translucent(NXPBRMaterialTranslucent* pMaterial);
+	void RenderMaterialUI_Custom(NXCustomMaterial* pMaterial);
+	void RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMaterial);
+	void RenderMaterialUI_Custom_Parameters_CBufferItem(const std::string& strId, NXCustomMaterial* pMaterial, NXGUICBufferData& cbDisplay);
 
 private:
-	void RenderTextureIcon(ImTextureID ImTexID, std::function<void()> onChange, std::function<void()> onRemove, std::function<void(const std::wstring&)> onDrop);
-
-private:
-	void OnTexAlbedoChange(NXPBRMaterialBase* pPickingObjectMaterial);
-	void OnTexNormalChange(NXPBRMaterialBase* pPickingObjectMaterial);
-	void OnTexMetallicChange(NXPBRMaterialBase* pPickingObjectMaterial);
-	void OnTexRoughnessChange(NXPBRMaterialBase* pPickingObjectMaterial);
-	void OnTexAOChange(NXPBRMaterialBase* pPickingObjectMaterial);
-
-	void OnTexAlbedoRemove(NXPBRMaterialBase* pPickingObjectMaterial);
-	void OnTexNormalRemove(NXPBRMaterialBase* pPickingObjectMaterial);
-	void OnTexMetallicRemove(NXPBRMaterialBase* pPickingObjectMaterial);
-	void OnTexRoughnessRemove(NXPBRMaterialBase* pPickingObjectMaterial);
-	void OnTexAORemove(NXPBRMaterialBase* pPickingObjectMaterial);
-
-	void OnTexAlbedoDrop(NXPBRMaterialBase* pPickingObjectMaterial, const std::wstring& filePath);
-	void OnTexNormalDrop(NXPBRMaterialBase* pPickingObjectMaterial, const std::wstring& filePath);
-	void OnTexMetallicDrop(NXPBRMaterialBase* pPickingObjectMaterial, const std::wstring& filePath);
-	void OnTexRoughnessDrop(NXPBRMaterialBase* pPickingObjectMaterial, const std::wstring& filePath);
-	void OnTexAODrop(NXPBRMaterialBase* pPickingObjectMaterial, const std::wstring& filePath);
-
+	void OnBtnEditShaderClicked(NXCustomMaterial* pMaterial);
+	void OnComboGUIStyleChanged(int selectIndex, NXGUICBufferData& cbDisplayData);
 	void UpdateFileBrowserParameters();
+
+	void SyncMaterialData(NXCustomMaterial* pMaterial);
 
 private:
 	NXScene* m_pCurrentScene;
 
 	NXGUIFileBrowser* m_pFileBrowser;
+	NXGUICodeEditor* m_pCodeEditor;
+	NXGUIMaterialShaderEditor* m_pMaterialShaderEditor;
 
-	std::wstring m_whiteTexPath_test;
-	std::wstring m_normalTexPath_test;
+	// 材质 Inspector 面板不需要显示 Sampler
+	std::vector<NXGUICBufferData> m_cbInfosDisplay;
+	std::vector<NXGUITextureData> m_texInfosDisplay;
 
-	int m_currentMaterialTypeIndex;
+	NXCustomMaterial* m_pLastMaterial = nullptr;
+	bool m_bIsDirty;
 };

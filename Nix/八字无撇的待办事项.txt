@@ -33,38 +33,72 @@ SSAO可以升级成GTAO或者HBAO
 
 ************************ 功能杂项 ************************
 
-Last Issue ID : 28
+Last Issue ID : 48
 
 【暂时搁置的功能】
 14. 不同终端的imgui.ini布局同步（在Imgui完全成型之前 感觉不太好做）
 
 【考虑要做的功能】
 3. 新材质类型：SubSurface
-7. Hierarchy 场景大纲
 4. 法线参数修正（现版本的三轴缩放是个什么鬼……）
 	（note：需要专门的法线插值，单纯的缩放不能解决问题。）
+7. Hierarchy 场景大纲
 16. CubeMap预加载优化（现在每次打开都会读一遍dds文件）
 
-5. 纹理界面化[DONE]
 21. Depth peeling UI参数可控
 22. Context Explorer 增加浏览类型（比如只显示图片/CubeMap/Nmat/FBX/……）
 25. ForceSRGB/ForceLinear纹理支持的格式还不全。导入SRGB纹理的时候可能会引起崩溃
 
-【较大的长期模块】
-12. resizeable viewport+全屏化UI
+30. Deferred Lighting
+31. GBuffer.Normal 压缩、精度提升
+32. 优化掉 GBuffer.Position
+33. 可开关的 DepthPeeling pass（现在始终保持开启太伤）
+
+36. 自定义材质
+	（注意：应该先确保代码逻辑层的逻辑是能正常使用的，然后再完善UI）
+
+37. 从大佬那里借的FileBrowser逐渐感觉不太适合自己的项目了，还是自己写一个比较好
+
+38. 材质参数的序列化
+40. 更工业化的UI布局，比如属性统一用Inspector显示，增加菜单栏等等
+42. View，加个鼠标滚轮移动的逻辑
+43. nsl Shader增加对函数功能的支持
+44. ContentExplorer 纹理、材质、模型可预览
+45. Cache加载，提速
+
+46. MaterialShaderEditor迭代更新(v1.0.0->v1.1.0)：
+	1. Revert无法重置常量的值。
+		1+. 取消大Revert，下放到参数，每个参数都有一个独立的Revert。[done]
+	2. Save按钮从Material移动到MSE。[done]
+	3. 将cb部分的Value值转换成Value2，然后重新编译nsl，DX会报错（疑似对齐算法有问题）[未复现]
+	4. Sampler还没实现。目前看加一个Type选项，并跟上配套内容就足够。[done]
+	5. 在Add Param的右侧增加搜索，运行按类型搜索、按名称搜索。[done]
+	6. 代码文本显示部分认怂，换成使用第三方TextEditor。
+	7. 解决nsl编译错误的行/列号显示不准的问题
+	8. Add Param增加Sampler选项。[done]
+	9. NXGUICBufferData.params 相关的控制逻辑一直就没加，需要增加UI逻辑。
+	10. (未确定) "|< < > >|" 合并成一个拖动的逻辑？
+
+47. 新增半自动智能指针类Ntr<T>，目前仅用于自动控制纹理资源的计数
+48. 当初始化加载一个有问题的nsl时，不要让程序崩溃
+
+【较大的长期模块、探索】
 13. 场景文件化，可保存、加载
-14. 自定义材质
+29. 更灵活的灯光系统
+35. 类似Unity GfxDeviceWorker的渲染队列处理器
+47. 是否可以将一些设置，比如MSE，封装成单独的模块？
 
 【bugs】
 17. translucent材质 IBL 亮度拉高的时候有bug，
 	并且opacity=1的时候和standard的着色结果有微弱差异。(半透的光照很可能有问题)
-19. 对选中物体做XZ拖动的时候，Y值会莫名其妙的改变
+19. 对选中物体做XZ拖动的时候，偶发Y值会莫名其妙改变的问题
 
 已完成的：
 1. ctrl左键点击ViewPort：多选材质[DONE]
 	8. 多选编辑器移动[DONE]
 	10. MoveArrows 增加不可见状态[DONE]
 2. Translucent类型材质保存[DONE]
+5. 纹理界面化[DONE]
 6. WStr相关函数整理 做成通用类? [DONE] (namespace NXConvert)
 9. 鼠标在IMGUI上的指令 和 ViewPort上的指令 如何区分？[DONE]（*新增了NXForceEvent，强制事件）
 20. 纹理加载内存优化: 每帧检查一次有没有nRefCount=0的纹理，有的话就释放掉。[DONE]
@@ -74,3 +108,9 @@ Last Issue ID : 28
 26. 将SceneManager的Material相关转移到ResourceManager。[DONE]
 27. 切换材质的时候可能会崩溃[DONE]
 28. 多选同一材质时，GUI材质可能将其视作多个材质，不提供面板显示[DONE]
+41. 增加视口以后，Picking功能已经全部乱套了，需要修正一下[DONE 2023.6.3]
+	需要同时解决UI可拖动的问题，现在左键点ViewPort上一个手滑直接拉飞了。。。[DONE 2023.6.3]
+里程碑：
+34. 即时编译Shader[DONE 2023.5.24]
+12. resize+全屏化UI[DONE 2023.6.1 22:27]
+39. 闪屏界面[DONE 2023.6.2 13:36]

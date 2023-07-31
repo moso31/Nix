@@ -2,6 +2,7 @@
 #include "ShaderComplier.h"
 #include "GlobalBufferManager.h"
 #include "NXRenderStates.h"
+#include "NXSamplerStates.h"
 #include "DirectResources.h"
 #include "NXResourceManager.h"
 #include "NXTexture.h"
@@ -26,8 +27,6 @@ void NXSkyRenderer::Init()
 	m_pDepthStencilState = NXDepthStencilState<true, false, D3D11_COMPARISON_LESS_EQUAL>::Create();
 	m_pRasterizerState = NXRasterizerState<>::Create();
 	m_pBlendState = NXBlendState<>::Create();
-
-	m_pSamplerLinearWrap.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP>::Create());
 }
 
 void NXSkyRenderer::Render()
@@ -51,7 +50,9 @@ void NXSkyRenderer::Render()
 		pCubeMap->UpdateViewParams();
 		g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 		g_pContext->PSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
-		g_pContext->PSSetSamplers(0, 1, m_pSamplerLinearWrap.GetAddressOf());
+
+		auto pSampler = NXSamplerManager::Get(NXSamplerFilter::Linear, NXSamplerAddressMode::Wrap);
+		g_pContext->PSSetSamplers(0, 1, &pSampler);
 
 		auto pCBCubeMapParam = pCubeMap->GetConstantBufferParams();
 		g_pContext->PSSetConstantBuffers(1, 1, &pCBCubeMapParam);

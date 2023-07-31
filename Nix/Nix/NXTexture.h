@@ -1,12 +1,8 @@
 #pragma once
 #include "Header.h"
+#include "NXSerializable.h"
+#include "NXTextureDefinitions.h"
 #include "NXTextureReloadTesk.h"
-
-enum NXTextureType
-{
-    Default,
-    NormalMap
-};
 
 enum NXTextureReloadingState
 {
@@ -16,28 +12,10 @@ enum NXTextureReloadingState
     Texture_FinishReload,  // B 状态
 };
 
-struct TextureNXInfo
-{
-    TextureNXInfo() = default;
-    TextureNXInfo(const TextureNXInfo& info);
-    //TextureNXInfo(const TextureNXInfo&& info) noexcept;
-
-    //TextureNXInfo& operator=(TextureNXInfo&& info);
-
-    int nTexType = 0;
-    //int TexFormat = 0;
-    //int Width = 0;
-    //int Height = 0;
-    bool bSRGB = false;
-    bool bInvertNormalY = false;
-    bool bGenerateMipMap = true;
-    bool bCubeMap = false;
-};
-
-class NXTexture
+class NXTexture : public NXSerializable
 {
 public:
-    NXTexture() :
+    NXTexture(bool bIsCommonTex = false) :
         m_nRefCount(0),
         m_reloadingState(Texture_None),
         m_pReloadingTexture(nullptr),
@@ -47,8 +25,9 @@ public:
         m_texFormat(DXGI_FORMAT_UNKNOWN),
         m_mipLevels(-1),
         m_texFilePath(""),
-        m_pInfo(nullptr)
+        m_bIsCommonTex(bIsCommonTex)
     {}
+
     virtual ~NXTexture() {};
 
     virtual NXTexture2D* Is2D() { return nullptr; }
@@ -68,7 +47,6 @@ public:
     void SwapToReloadingTexture();
 
     std::filesystem::path const GetFilePath() { return m_texFilePath; }
-    TextureNXInfo* GetTextureNXInfo() { return m_pInfo; }
 
     NXTextureReloadTask LoadTextureAsync();
     void LoadTextureSync();
@@ -79,6 +57,8 @@ public:
     UINT            GetMipLevels() { return m_mipLevels; }
     DXGI_FORMAT     GetFormat() { return m_texFormat; }
 
+    const std::string& GetDebugName() { return m_debugName; }
+
     void AddRef();
     int GetRef() { return m_nRefCount; }
     void RemoveRef();
@@ -88,13 +68,19 @@ public:
     void MarkReload();
     void OnReloadFinish();
 
+    // 序列化和反序列化
+	virtual void Serialize() override; 
+	virtual void Deserialize() override;
+
+    const NXTextureSerializationData& GetSerializationData() { return m_serializationData; }
+    void SetSerializationData(const NXTextureSerializationData& data) { m_serializationData = data; }
+
 private:
     void InternalReload(NXTexture* pReloadTexture);
 
 protected:
     std::string m_debugName;
     ComPtr<ID3D11Texture2D> m_pTexture;
-    TextureNXInfo* m_pInfo;
 
     std::filesystem::path m_texFilePath;
 
@@ -109,9 +95,15 @@ protected:
     UINT m_arraySize;
     UINT m_mipLevels;
 
+    // 序列化数据
+    NXTextureSerializationData m_serializationData;
+
 private:
     // 引用计数
     int m_nRefCount;
+
+    // 是否是公共纹理，如果是，运行时不释放（不使用引用计数）
+    bool m_bIsCommonTex;
 
     NXTextureReloadingState m_reloadingState;
     NXTexture* m_pReloadingTexture;
@@ -120,7 +112,8 @@ private:
 class NXTexture2D : public NXTexture
 {
 public:
-    NXTexture2D() : NXTexture() {}
+    NXTexture2D(bool isCommonTex = false) : NXTexture(isCommonTex) {}
+    NXTexture2D(const NXTexture2D& other) = delete;
     ~NXTexture2D() {}
 
     NXTexture2D* Is2D() override { return this; }

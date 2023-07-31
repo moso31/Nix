@@ -1,9 +1,6 @@
-#include <algorithm>
-
 #include "NXGUIContentExplorer.h"
 #include "NXGUITexture.h"
 #include "NXConverter.h"
-#include "NXGUICommon.h"
 #include "NXGUI.h"
 #include "NXScene.h"
 
@@ -105,8 +102,8 @@ void NXGUIContentExplorer::Render()
                                     strExtension = subElem.path().extension().string().c_str();
                                     strExtension = NXConvert::s2lower(strExtension);
 
-                                    // *.nxInfo 是纹理描述文件，不加载
-                                    if (strExtension == ".nxinfo")
+                                    // *.n0 （存储序列化信息的元文件）不加载
+                                    if (strExtension == ".n0")
                                         continue;
 
                                     strExtensionText = strExtension;
@@ -125,7 +122,7 @@ void NXGUIContentExplorer::Render()
                                 {
                                     m_btnDrugData.srcPath = subElem.path();
 
-                                    ImGui::SetDragDropPayload("CONTENT_EXPLORER_BUTTON_DRUGING", &m_btnDrugData, sizeof(NXGUIContentExplorerButtonDrugData));
+                                    ImGui::SetDragDropPayload("CONTENT_EXPLORER_BUTTON_DRUGING", &m_btnDrugData, sizeof(NXGUIAssetDragData));
                                     ImGui::Text("(o_o)...");
                                     ImGui::EndDragDropSource();
                                 }

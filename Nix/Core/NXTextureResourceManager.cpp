@@ -86,21 +86,28 @@ NXTexture2DArray* NXTextureResourceManager::CreateTexture2DArray(std::string Deb
 
 
 
-void NXTextureResourceManager::InitCommonRT()
+void NXTextureResourceManager::InitCommonRT(const Vector2& rtSize)
 {
-	Vector2 sz = g_dxResources->GetViewSize();
+	ResizeCommonRT(rtSize);
+}
 
+void NXTextureResourceManager::ResizeCommonRT(const Vector2& rtSize)
+{
+	for (auto& pRT : m_pCommonRT)
+		if (pRT) pRT->RemoveRef();
+
+	m_pCommonRT.clear();
 	m_pCommonRT.resize(NXCommonRT_SIZE);
 
-	m_pCommonRT[NXCommonRT_DepthZ] = CreateTexture2D("Scene DepthZ RT", DXGI_FORMAT_R24G8_TYPELESS, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE);
+	m_pCommonRT[NXCommonRT_DepthZ] = CreateTexture2D("Scene DepthZ RT", DXGI_FORMAT_R24G8_TYPELESS, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE);
 	m_pCommonRT[NXCommonRT_DepthZ]->AddDSV();
 	m_pCommonRT[NXCommonRT_DepthZ]->AddSRV();
 
-	m_pCommonRT[NXCommonRT_MainScene] = CreateTexture2D("Scene RT0", DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE);
+	m_pCommonRT[NXCommonRT_MainScene] = CreateTexture2D("Scene RT0", DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE);
 	m_pCommonRT[NXCommonRT_MainScene]->AddRTV();
 	m_pCommonRT[NXCommonRT_MainScene]->AddSRV();
 
-	m_pCommonRT[NXCommonRT_ShadowTest] = CreateTexture2D("Shadow Test RT", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE);
+	m_pCommonRT[NXCommonRT_ShadowTest] = CreateTexture2D("Shadow Test RT", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE);
 	m_pCommonRT[NXCommonRT_ShadowTest]->AddRTV();
 	m_pCommonRT[NXCommonRT_ShadowTest]->AddSRV();
 
@@ -111,30 +118,30 @@ void NXTextureResourceManager::InitCommonRT()
 	// RT3:		Metallic+Roughness+AO	R10G10B10A2_UNORM
 	// *注意：上述RT0、RT1现在用的是128位浮点数——这只是临时方案。RT2、RT3也有待商榷。
 
-	m_pCommonRT[NXCommonRT_GBuffer0] = CreateTexture2D("GBuffer RT0", DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
+	m_pCommonRT[NXCommonRT_GBuffer0] = CreateTexture2D("GBuffer RT0", DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
 	m_pCommonRT[NXCommonRT_GBuffer0]->AddRTV();
 	m_pCommonRT[NXCommonRT_GBuffer0]->AddSRV();
 
-	m_pCommonRT[NXCommonRT_GBuffer1] = CreateTexture2D("GBuffer RT1", DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
+	m_pCommonRT[NXCommonRT_GBuffer1] = CreateTexture2D("GBuffer RT1", DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
 	m_pCommonRT[NXCommonRT_GBuffer1]->AddRTV();
 	m_pCommonRT[NXCommonRT_GBuffer1]->AddSRV();
 
-	m_pCommonRT[NXCommonRT_GBuffer2] = CreateTexture2D("GBuffer RT2", DXGI_FORMAT_R10G10B10A2_UNORM, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
+	m_pCommonRT[NXCommonRT_GBuffer2] = CreateTexture2D("GBuffer RT2", DXGI_FORMAT_R10G10B10A2_UNORM, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
 	m_pCommonRT[NXCommonRT_GBuffer2]->AddRTV();
 	m_pCommonRT[NXCommonRT_GBuffer2]->AddSRV();
 
-	m_pCommonRT[NXCommonRT_GBuffer3] = CreateTexture2D("GBuffer RT3", DXGI_FORMAT_R10G10B10A2_UNORM, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
+	m_pCommonRT[NXCommonRT_GBuffer3] = CreateTexture2D("GBuffer RT3", DXGI_FORMAT_R10G10B10A2_UNORM, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
 	m_pCommonRT[NXCommonRT_GBuffer3]->AddRTV();
 	m_pCommonRT[NXCommonRT_GBuffer3]->AddSRV();
 
-	m_pCommonRT[NXCommonRT_PostProcessing] = CreateTexture2D("Post Processing", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
+	m_pCommonRT[NXCommonRT_PostProcessing] = CreateTexture2D("Post Processing", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
 	m_pCommonRT[NXCommonRT_PostProcessing]->AddRTV();
 	m_pCommonRT[NXCommonRT_PostProcessing]->AddSRV();
 }
 
 NXTexture2D* NXTextureResourceManager::GetCommonRT(NXCommonRTEnum eRT)
 {
-	return m_pCommonRT[eRT];
+	return m_pCommonRT.empty() ? nullptr : m_pCommonRT[eRT];
 }
 
 void NXTextureResourceManager::InitCommonTextures()
@@ -142,74 +149,19 @@ void NXTextureResourceManager::InitCommonTextures()
 	m_pCommonTex.resize(NXCommonTex_SIZE);
 
 	// 初始化常用贴图
-	m_pCommonTex[NXCommonTex_White] = CreateTexture2D("White Texture", g_defaultTex_white_wstr);
-	m_pCommonTex[NXCommonTex_Normal] = CreateTexture2D("Normal Texture", g_defaultTex_normal_wstr);
+	bool bIsCommonTexture = true;
+	m_pCommonTex[NXCommonTex_White] = new NXTexture2D(bIsCommonTexture);
+	m_pCommonTex[NXCommonTex_White]->Create("White Texture", g_defaultTex_white_wstr);
+	m_pCommonTex[NXCommonTex_White]->AddSRV();
+
+	m_pCommonTex[NXCommonTex_Normal] = new NXTexture2D(bIsCommonTexture);
+	m_pCommonTex[NXCommonTex_Normal]->Create("Normal Texture", g_defaultTex_normal_wstr);
+	m_pCommonTex[NXCommonTex_Normal]->AddSRV();
 }
 
 NXTexture2D* NXTextureResourceManager::GetCommonTextures(NXCommonTexEnum eTex)
 {
 	return m_pCommonTex[eTex];
-}
-
-TextureNXInfo* NXTextureResourceManager::LoadTextureInfo(const std::filesystem::path& texFilePath)
-{
-	auto pResult = new TextureNXInfo();
-
-	std::string strPath = texFilePath.string().c_str();
-	std::string strNXInfoPath = strPath + ".nxInfo";
-
-	std::ifstream ifs(strNXInfoPath, std::ios::binary);
-
-	// nxInfo 路径如果没打开，就返回一个所有值都给默认值的 info
-	if (!ifs.is_open())
-		return pResult;
-
-	std::string strIgnore;
-
-	size_t nHashFile;
-	ifs >> nHashFile;
-	std::getline(ifs, strIgnore);
-
-	// 如果打开了元文件，但发现路径哈希和纹理资源本身并不匹配，则这个元文件是失效的。返回默认元文件。
-	size_t nHashPath = std::filesystem::hash_value(texFilePath);
-	if (nHashFile != nHashPath)
-	{
-		printf("Warning: TextureInfoData of %s has founded, but couldn't be open. Consider delete that file.\n", strPath.c_str());
-		return pResult;
-	}
-
-	// 能通过以上全部条件，才使用元文件存储的数据
-	ifs >> pResult->nTexType >> pResult->bSRGB >> pResult->bInvertNormalY >> pResult->bGenerateMipMap >> pResult->bCubeMap;
-	std::getline(ifs, strIgnore);
-
-	ifs.close();
-
-	return pResult;
-}
-
-void NXTextureResourceManager::SaveTextureInfo(const TextureNXInfo* pInfo, const std::filesystem::path& texFilePath)
-{
-	if (texFilePath.empty())
-	{
-		printf("Warning: can't save TextureNXInfo for %s, path does not exist.\n", texFilePath.string().c_str());
-		return;
-	}
-
-	std::string strPathInfo = texFilePath.string() + ".nxInfo";
-
-	std::ofstream ofs(strPathInfo, std::ios::binary);
-
-	// 2023.3.22
-	// 纹理资源的元文件（*.nxInfo）存储：
-	// 1. 纹理文件路径的哈希
-	// 2. (int)TextureType, (int)IsSRGB, (int)IsInvertNormalY, (int)IsGenerateCubeMap, (int)IsCubeMap
-
-	size_t pathHashValue = std::filesystem::hash_value(texFilePath);
-	ofs << pathHashValue << std::endl;
-
-	ofs << pInfo->nTexType << ' ' << (int)pInfo->bSRGB << ' ' << (int)pInfo->bInvertNormalY << ' ' << (int)pInfo->bGenerateMipMap << ' ' << (int)pInfo->bCubeMap << std::endl;
-
-	ofs.close();
 }
 
 void NXTextureResourceManager::ReleaseUnusedTextures()
@@ -266,4 +218,5 @@ void NXTextureResourceManager::OnReload()
 void NXTextureResourceManager::Release()
 {
 	for (auto pTex : m_pTextureArray) SafeRelease(pTex);
+	for (auto pTex : m_pCommonTex) SafeRelease(pTex);
 }

@@ -71,7 +71,7 @@ void DirectResources::OnResize(UINT width, UINT height)
 	ID3D11RenderTargetView* nullViews[] = { nullptr };
 	g_pContext->OMSetRenderTargets(ARRAYSIZE(nullViews), nullViews, nullptr);
 	g_pContext->Flush1(D3D11_CONTEXT_TYPE_ALL, nullptr);
-	m_pRTVFinalQuad = nullptr;
+	m_pRTVSwapChainBuffer = nullptr;
 
 	if (g_pSwapChain)
 	{
@@ -116,26 +116,23 @@ void DirectResources::OnResize(UINT width, UINT height)
 	// 创建交换链后台缓冲区的渲染目标视图。
 	ComPtr<ID3D11Texture2D> pBackBuffer = nullptr;
 	NX::ThrowIfFailed(g_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer)));
-	NX::ThrowIfFailed(g_pDevice->CreateRenderTargetView(pBackBuffer.Get(), nullptr, &m_pRTVFinalQuad));
+	NX::ThrowIfFailed(g_pDevice->CreateRenderTargetView(pBackBuffer.Get(), nullptr, &m_pRTVSwapChainBuffer));
+}
 
-	// Setup the viewport
-	m_viewSize = { (FLOAT)width, (FLOAT)height };
-	m_viewPort = CD3D11_VIEWPORT(0.0f, 0.0f, m_viewSize.x, m_viewSize.y);
-	g_pContext->RSSetViewports(1, &m_viewPort);
+void DirectResources::PrepareToRenderGUI()
+{
+	if (!m_pRTVSwapChainBuffer)
+		return;
+
+	// 2023.6.3 设置最终呈现屏幕渲染结果所使用的RTV。
+	// 目前需要在主渲染结束后，GUI开始渲染前执行这一步骤。
+	// 换句话说，在执行此方法后，GUI将会被逐个渲染到这个Buffer上。
+	g_pContext->OMSetRenderTargets(1, m_pRTVSwapChainBuffer.GetAddressOf(), nullptr);
+	g_pContext->ClearRenderTargetView(m_pRTVSwapChainBuffer.Get(), Colors::Black);
 }
 
 void DirectResources::Release()
 {
 	if (g_pContext)				
 		g_pContext->ClearState();
-}
-
-Vector2 DirectResources::GetViewSize()
-{
-	return m_viewSize;
-}
-
-Vector2 DirectResources::GetViewPortSize()
-{
-	return Vector2(m_viewPort.Width, m_viewPort.Height);
 }

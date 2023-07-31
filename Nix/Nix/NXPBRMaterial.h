@@ -2,71 +2,35 @@
 #include "ShaderStructures.h"
 #include "NXResourceManager.h"
 #include "NXTexture.h"
+#include "NXShaderDefinitions.h"
 
-enum NXMaterialType
-{
-	UNKNOWN,
-	PBR_STANDARD,
-	PBR_TRANSLUCENT
-};
-
-struct CBufferMaterial 
-{
-};
-
-struct CBufferMaterialStandard : public CBufferMaterial
-{
-	CBufferMaterialStandard(const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao) :
-		albedo(albedo), normal(normal), metallic(metallic), roughness(roughness), ao(ao) {}
-	Vector3 albedo;
-	float _0;
-	Vector3 normal;
-	float metallic;
-	float roughness;
-	float ao;
-	Vector2 _1;
-};
-
-struct CBufferMaterialTranslucent : public CBufferMaterial
-{
-	CBufferMaterialTranslucent(const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float opacity) :
-		albedo(albedo), normal(normal), metallic(metallic), roughness(roughness), ao(ao), opacity(opacity) {}
-	Vector3 albedo;
-	float opacity;
-	Vector3 normal;
-	float metallic;
-	float roughness;
-	float ao;
-	Vector2 _1;
-};
-
-class NXMaterial
+class NXEasyMaterial;
+class NXCustomMaterial;
+class NXMaterial : public NXSerializable
 {
 protected:
 	explicit NXMaterial() = default;
-	NXMaterial(const std::string name, const NXMaterialType type = NXMaterialType::UNKNOWN, const std::string& filePath = "");
+	NXMaterial(const std::string& name, const std::filesystem::path& filePath = "");
 
 public:
-	~NXMaterial() {}
+	virtual ~NXMaterial() {}
+	virtual NXCustomMaterial* IsCustomMat() { return nullptr; }
+	virtual NXEasyMaterial* IsEasyMat() { return nullptr; }
 
 	std::string GetName() { return m_name; }
 	void SetName(std::string name) { m_name = name; }
 
-	NXMaterialType GetType() { return m_type; }
-	void SetType(NXMaterialType type) { m_type = type; }
-
-	std::string GetFilePath() { return m_filePath; }
+	const std::filesystem::path& GetFilePath() { return m_filePath; }
 	size_t GetFilePathHash() { return std::filesystem::hash_value(m_filePath); }
-
-	bool IsPBRType();
 
 	ID3D11Buffer* GetConstantBuffer() const { return m_cb.Get(); }
 
-	void Update();
-
+	virtual void Update() = 0;
+	virtual void Render() = 0;
 	virtual void Release() = 0;
 
-	virtual void ReloadTextures() = 0;
+	virtual void Serialize() {}
+	virtual void Deserialize() {}
 
 public:
 	std::vector<NXSubMeshBase*> GetRefSubMeshes() { return m_pRefSubMeshes; }
@@ -74,113 +38,166 @@ public:
 	void AddSubMesh(NXSubMeshBase* pSubMesh);
 
 protected:
-	void SetTex2D(NXTexture2D*& pTex2D, const std::wstring& texFilePath);
-
-protected:
 	std::string m_name;
-	NXMaterialType m_type;
+	ComPtr<ID3D11Buffer> m_cb;
 
-	std::unique_ptr<CBufferMaterial>	m_cbData;
-	ComPtr<ID3D11Buffer>				m_cb;
+	// 材质文件路径
+	std::filesystem::path m_filePath;
 
 private:
 	// 映射表，记录哪些Submesh使用了这个材质
 	std::vector<NXSubMeshBase*> m_pRefSubMeshes;
 	UINT m_RefSubMeshesCleanUpCount;
-
-	// 材质文件路径、哈希
-	std::string m_filePath;
-	size_t m_pathHash;
 };
 
-class NXPBRMaterialBase : public NXMaterial
+// 2023.6.4
+// 显示正在加载、加载失败等中间状态的过渡纹理
+class NXEasyMaterial : public NXMaterial
 {
-protected:
-	explicit NXPBRMaterialBase() = default;
-	explicit NXPBRMaterialBase(const std::string name, const NXMaterialType type = NXMaterialType::UNKNOWN, const std::string& filePath = "");
-	~NXPBRMaterialBase() {}
+	struct CBufferData
+	{
+		Vector2 uvScale;
+		Vector2 _0;
+	};
 
 public:
-	ID3D11ShaderResourceView* GetSRVAlbedo()	const { return m_pTexAlbedo->GetSRV(); }
-	ID3D11ShaderResourceView* GetSRVNormal()	const { return m_pTexNormal->GetSRV(); }
-	ID3D11ShaderResourceView* GetSRVMetallic()	const { return m_pTexMetallic->GetSRV(); }
-	ID3D11ShaderResourceView* GetSRVRoughness() const { return m_pTexRoughness->GetSRV(); }
-	ID3D11ShaderResourceView* GetSRVAO()		const { return m_pTexAmbientOcclusion->GetSRV(); }
+	NXEasyMaterial(const std::string& name, const std::filesystem::path& filePath);
+	NXEasyMaterial* IsEasyMat() override { return this; }
 
-	void SetTexAlbedo(const std::wstring& TexFilePath);
-	void SetTexNormal(const std::wstring& TexFilePath);
-	void SetTexMetallic(const std::wstring& TexFilePath);
-	void SetTexRoughness(const std::wstring& TexFilePath);
-	void SetTexAO(const std::wstring& TexFilePath);
-
-	std::string GetAlbedoTexFilePath()		{ return m_pTexAlbedo->GetFilePath().string(); }
-	std::string GetNormalTexFilePath()		{ return m_pTexNormal->GetFilePath().string(); }
-	std::string GetMetallicTexFilePath()	{ return m_pTexMetallic->GetFilePath().string(); }
-	std::string GetRoughnessTexFilePath()	{ return m_pTexRoughness->GetFilePath().string(); }
-	std::string GetAOTexFilePath()			{ return m_pTexAmbientOcclusion->GetFilePath().string(); }
-
-	virtual void Release();
-	virtual void ReloadTextures();
-
-private:
-	NXTexture2D* m_pTexAlbedo;
-	NXTexture2D* m_pTexNormal;
-	NXTexture2D* m_pTexMetallic;
-	NXTexture2D* m_pTexRoughness;
-	NXTexture2D* m_pTexAmbientOcclusion;
-};
-
-class NXPBRMaterialStandard : public NXPBRMaterialBase
-{
-public:
-	explicit NXPBRMaterialStandard() = default;
-	NXPBRMaterialStandard(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const std::string& filePath);
-	~NXPBRMaterialStandard() {}
-
-	CBufferMaterialStandard* GetCBData() { return static_cast<CBufferMaterialStandard*>(m_cbData.get()); }
-	
-	Vector3 	GetAlbedo()		{ return GetCBData()->albedo; }
-	Vector3 	GetNormal()		{ return GetCBData()->normal; }
-	float*		GetMetallic()	{ return &(GetCBData()->metallic); }
-	float*		GetRoughness()	{ return &(GetCBData()->roughness); }
-	float*		GetAO()			{ return &(GetCBData()->ao); }
-
-	void	SetAlbedo(const Vector3& albedo)		{ GetCBData()->albedo = albedo; }
-	void	SetNormal(const Vector3& normal)		{ GetCBData()->normal = normal; }
-	void	SetMetallic(const float metallic)		{ GetCBData()->metallic = metallic; }
-	void	SetRoughness(const float roughness)		{ GetCBData()->roughness = roughness; }
-	void	SetAO(const float ao)					{ GetCBData()->ao = ao; }
+	void Init();
+	void Update() override;
+	void Render() override;
+	void Release() override {}
 
 private:
 	void InitConstantBuffer();
 
 private:
+	ComPtr<ID3D11VertexShader>			m_pVertexShader;
+	ComPtr<ID3D11PixelShader>			m_pPixelShader;
+	ComPtr<ID3D11InputLayout>			m_pInputLayout;
+
+	NXTexture2D* m_pTexture;
+	CBufferData m_cbData;
 };
 
-class NXPBRMaterialTranslucent : public NXPBRMaterialBase
+class NXCustomMaterial : public NXMaterial
 {
+	template <typename NXMatParam>
+	using ResourceMap = std::unordered_map<std::string, NXMatParam>;
+
 public:
-	explicit NXPBRMaterialTranslucent() = default;
-	NXPBRMaterialTranslucent(const std::string name, const Vector3& albedo, const Vector3& normal, const float metallic, const float roughness, const float ao, const float opacity, const std::string& filePath);
-	~NXPBRMaterialTranslucent() {}
+	explicit NXCustomMaterial() = default;
+	NXCustomMaterial(const std::string& name, const std::filesystem::path& path);
+	~NXCustomMaterial() {}
+	NXCustomMaterial* IsCustomMat() override { return this; }
 
-	CBufferMaterialTranslucent* GetCBData() { return static_cast<CBufferMaterialTranslucent*>(m_cbData.get()); }
-	
-	Vector3 	GetAlbedo()		{ return GetCBData()->albedo; }
-	float*		GetOpacity()	{ return &(GetCBData()->opacity); }
-	Vector3 	GetNormal()		{ return GetCBData()->normal; }
-	float*		GetMetallic()	{ return &(GetCBData()->metallic); }
-	float*		GetRoughness()	{ return &(GetCBData()->roughness); }
-	float*		GetAO()			{ return &(GetCBData()->ao); }
+	void LoadShaderCode();
+	// 将 NSL 转换为 HLSL。
+	void ConvertNSLToHLSL(std::string& oHLSLHead, std::vector<std::string>& oHLSLFuncs, std::string& oHLSLBody);
+	// 将 NSL 转换为 HLSL。另外将 GUI 修改后的参数也传了进来，这些 GUI 参数将作为新编译后的 Shader 的默认值。
+	void ConvertGUIDataToHLSL(std::string& oHLSLHead, std::vector<std::string>& oHLSLFuncs, std::string& oHLSLBody, const std::vector<NXGUICBufferData>& cbDataGUI, const std::vector<NXGUITextureData>& texDataGUI, const std::vector<NXGUISamplerData>& samplerDataGUI);
+	bool CompileShader(const std::string& strGBufferShader, std::string& oErrorMessageVS, std::string& oErrorMessagePS);
+	bool Recompile(const std::string& nslParams, const std::vector<std::string>& nslFuncs, const std::vector<NXGUICBufferData>& cbDefaultValues, const std::vector<NXGUITextureData>& texDefaultValues, const std::vector<NXGUISamplerData>& samplerDefaultValues, std::vector<NXHLSLCodeRegion>& oShaderFuncRegions, std::string& oErrorMessageVS, std::string& oErrorMessagePS);
 
-	void	SetAlbedo(const Vector3& albedo)		{ GetCBData()->albedo = albedo; }
-	void	SetOpacity(const float opacity)			{ GetCBData()->opacity = opacity; }
-	void	SetColor(const Vector4& color)			{ GetCBData()->albedo = Vector3(color); GetCBData()->opacity = color.w; }
-	void	SetNormal(const Vector3& normal)		{ GetCBData()->normal = normal; }
-	void	SetMetallic(const float metallic)		{ GetCBData()->metallic = metallic; }
-	void	SetRoughness(const float roughness)		{ GetCBData()->roughness = roughness; }
-	void	SetAO(const float ao)					{ GetCBData()->ao = ao; }
+	// 初始化所有着色器资源，包括 cb, tex, sampler
+	void InitShaderResources();
+
+	virtual void Update() override;
+	void Render();
+	void Release() override {}
+
+	void SetNSLParam(const std::string& nslParams) { m_nslParams = nslParams; }
+
+	const std::vector<std::string>& GetNSLFuncs() { return m_nslFuncs; }
+	const std::string& GetNSLFunc(UINT index);
+	void SetNSLFunc(const std::string& nslFunc, UINT index);
+	void SetNSLMainFunc(const std::string& nslFunc);
+
+	void SortShaderCBufferParam();
+
+	UINT GetCBufferElemCount() { return UINT(m_cbInfo.elems.size()); }
+	const NXCBufferElem& GetCBufferElem(UINT index) { return m_cbInfo.elems[index]; }
+
+	UINT GetTextureCount() { return UINT(m_texInfos.size()); }
+	NXTexture* GetTexture(UINT index) { return m_texInfos[index].pTexture; }
+	const std::string& GetTextureName(UINT index) { return m_texInfos[index].name; }
+
+	void SetTexture(NXTexture* pTexture, const std::filesystem::path& texFilePath);
+	void RemoveTexture(NXTexture* pTexture);
+
+	UINT GetSamplerCount() { return UINT(m_samplerInfos.size()); }
+	const std::string& GetSamplerName(UINT index) { return m_samplerInfos[index].name; }
+	NXSamplerFilter GetSamplerFilter(UINT index) { return m_samplerInfos[index].filter; }
+	NXSamplerAddressMode GetSamplerAddressMode(UINT index, UINT uvwIndex) { return uvwIndex ? uvwIndex == 1 ? m_samplerInfos[index].addressV : m_samplerInfos[index].addressW : m_samplerInfos[index].addressU; }
+
+	const float* GetCBInfoMemoryData(UINT memoryIndex) { return m_cbInfoMemory.data() + memoryIndex; }
+	void SetCBInfoMemoryData(UINT memoryIndex, UINT count, const float* newData);
+
+	NXGUICBufferStyle GetCBGUIStyles(UINT index) { return m_cbInfo.elems[index].style; }
+	Vector2 GetCBGUIParams(UINT index) { return m_cbInfo.elems[index].guiParams; }
+	NXGUITextureType GetTextureGUIType(UINT index) { return m_texInfos[index].guiType; }
+
+	void GenerateInfoBackup();
+	void RecoverInfosBackup();
+
+	void RequestUpdateCBufferData() { m_bIsDirty = true; }
+
+	// 将当前的 param, code, funcs[] 重新整合成 nsl 文件，
+	// 一般在保存时调用此方法。
+	void SaveToNSLFile();
+
+	void Serialize() override;
+	void Deserialize() override;
 
 private:
-	void InitConstantBuffer();
+	// 读取 nsl 文件，获取 nsl shader.
+	bool LoadShaderStringFromFile(std::string& shaderContent);
+	// 将 nsl shader 拆成 params 和 code 两部分
+	void ExtractShaderData(const std::string& shader, std::string& nslParams, std::vector<std::string>& nslFunc);
+
+	// 将 nsl params 转换成 DX 可以编译的 hlsl 代码，
+	// 同时对其进行分拣，将 cb 储存到 m_cbInfo，纹理储存到 m_texInfoMap，采样器储存到 m_ssInfoMap
+	void ProcessShaderParameters(
+		const std::string& nslParams,
+		std::string& oHLSLHeadCode,
+		const std::vector<NXGUICBufferData>& cbDefaultValues = {},
+		const std::vector<NXGUITextureData>& texDefaultValues = {},
+		const std::vector<NXGUISamplerData>& samplerDefaultValues = {}
+	);
+
+	void ProcessShaderCBufferParam(std::istringstream& in, std::ostringstream& out, const std::vector<NXGUICBufferData>& cbDefaultValues = {});
+
+	// 将 nsl 的主函数 转换成 DX 可以编译的 hlsl 代码，
+	void ProcessShaderMainFunc(std::string& oHLSLBodyCode);
+
+	// 将 nsl 的其它函数 转换成 DX 可以编译的 hlsl 代码，
+	void ProcessShaderFunctions(const std::vector<std::string>& nslFuncs, std::vector<std::string>& oHLSLFuncCode);
+
+	void UpdateCBData();
+
+private:
+	std::string							m_nslParams;
+	std::vector<std::string>			m_nslFuncs;
+
+	ComPtr<ID3D11VertexShader>			m_pVertexShader;
+	ComPtr<ID3D11PixelShader>			m_pPixelShader;
+	ComPtr<ID3D11InputLayout>			m_pInputLayout;
+
+	std::vector<NXMaterialSamplerInfo>	m_samplerInfos;
+	std::vector<NXMaterialTextureInfo>	m_texInfos;
+	NXMaterialCBufferInfo				m_cbInfo;
+	std::vector<float>					m_cbInfoMemory;
+	std::vector<int>					m_cbSortedIndex;
+
+	std::vector<float>					m_cbData;
+	bool m_bIsDirty;
+
+	// backup datas
+	std::vector<NXMaterialSamplerInfo>	m_samplerInfosBackup;
+	std::vector<NXMaterialTextureInfo>	m_texInfosBackup;
+	NXMaterialCBufferInfo				m_cbInfoBackup;
+	std::vector<float>					m_cbInfoMemoryBackup;
+	std::vector<int>					m_cbSortedIndexBackup;
+	std::vector<std::string>			m_nslFuncsBackup;
 };

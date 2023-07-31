@@ -16,7 +16,7 @@ void NSTest::Update()
 	//return;
 
 	float speed = 0.6f;
-	auto timeDelta = g_timer->GetTimeDelta() / 1000000.0f;
+	auto timeDelta = g_timer->GetTimeDelta() / 1000.0f;
 	m_rotValue += 0.01f;// timeDelta* speed;
 
 	auto pPrimitive = dynamic_cast<NXPrimitive*>(m_pObject);

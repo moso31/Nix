@@ -31,6 +31,7 @@ private:
 public:
 
 	void Init();
+	void OnResize(const Vector2& rtSize);
 	void InitScripts();
 	void UpdateTransform(NXObject* pObject = nullptr);
 	void UpdateTransformOfEditorObjects();
@@ -103,5 +104,9 @@ private:
 
 	NXCamera* m_pMainCamera;
 	NXCubeMap* m_pCubeMap;
+
+	NXCustomMaterial* m_pTestCustomMat;
+
+	Vector2 m_rtSize;
 };
 

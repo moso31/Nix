@@ -30,8 +30,6 @@ private:
 	ComPtr<ID3D11RasterizerState>		m_pRasterizerState;
 	ComPtr<ID3D11BlendState>			m_pBlendState;
 
-	ComPtr<ID3D11SamplerState>			m_pSamplerLinearClamp;
-
 	NXRenderTarget* m_pFinalRT;
 
 private:

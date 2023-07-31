@@ -80,6 +80,12 @@ struct ConstantBufferVector4
 	Vector4 value;
 };
 
+struct ConstantBufferGlobalData
+{
+	float time;
+	Vector3 _0;
+};
+
 struct ConstantBufferObject
 {
 	Matrix world;
@@ -92,6 +98,8 @@ struct ConstantBufferObject
 	Matrix worldView;
 	Matrix worldViewInverseTranspose;
 	Matrix projection;
+
+	ConstantBufferGlobalData globalData;
 };
 
 struct ConstantBufferShadowTest

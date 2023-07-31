@@ -48,7 +48,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -108,7 +108,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_WINDOWS;FBXSDK_SHARED;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
-      <AdditionalIncludeDirectories>.\;..\;..\DirectxTex\DirectxTex\;..\NixMath\;..\IMGUI\;..\NixTools\Include\FBXSDK\;.\Core;.\Nix;.\Nix\Script;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\;..\DirectxTex\DirectxTex\;..\NixMath\;..\IMGUI\;..\NixTools\Include\;..\NixTools\Include\FBXSDK\;.\Core;.\Nix;.\Nix\Script;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OpenMPSupport>true</OpenMPSupport>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
@@ -153,9 +153,9 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_WINDOWS;FBXSDK_SHARED;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
-      <AdditionalIncludeDirectories>.\;..\;..\DirectxTex\DirectxTex\;..\NixMath\;..\IMGUI\;..\NixTools\Include\FBXSDK\;.\Core;.\Nix;.\Nix\Script;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\;..\DirectxTex\DirectxTex\;..\NixMath\;..\IMGUI\;..\NixTools\Include\;..\NixTools\Include\FBXSDK\;.\Core;.\Nix;.\Nix\Script;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OpenMPSupport>true</OpenMPSupport>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -211,8 +211,14 @@
     <ClCompile Include="Core\App.cpp" />
     <ClCompile Include="Core\DirectResources.cpp" />
     <ClCompile Include="Core\FBXMeshLoader.cpp" />
+    <ClCompile Include="Core\NXFileSystemHelper.cpp" />
     <ClCompile Include="Core\Global.cpp" />
     <ClCompile Include="Core\GlobalBufferManager.cpp" />
+    <ClCompile Include="Core\NXSamplerStates.cpp" />
+    <ClCompile Include="Core\NXGUIMaterialShaderEditor.cpp" />
+    <ClCompile Include="Core\NXGUIView.cpp" />
+    <ClCompile Include="Core\NXGUIWorkspace.cpp" />
+    <ClCompile Include="Core\NXHLSLGenerator.cpp" />
     <ClCompile Include="Core\ImageGenerator.cpp" />
     <ClCompile Include="Core\Main.cpp" />
     <ClCompile Include="Core\NXBRDFlut.cpp" />
@@ -225,7 +231,6 @@
     <ClCompile Include="Core\NXDXHelper.cpp" />
     <ClCompile Include="Core\NXEditorObjectRenderer.cpp" />
     <ClCompile Include="Core\NXEvent.cpp" />
-    <ClCompile Include="Core\NXFinalRenderer.cpp" />
     <ClCompile Include="Core\NXForwardRenderer.cpp" />
     <ClCompile Include="Core\NXGBufferRenderer.cpp" />
     <ClCompile Include="Core\NXGUI.cpp" />
@@ -250,9 +255,12 @@
     <ClCompile Include="Core\NXResourceManagerBase.cpp" />
     <ClCompile Include="Core\NXResourceReloader.cpp" />
     <ClCompile Include="Core\NXScriptResourceManager.cpp" />
+    <ClCompile Include="Core\NXSerializable.cpp" />
+    <ClCompile Include="Core\NXShaderDefinitions.cpp" />
     <ClCompile Include="Core\NXShadowMapRenderer.cpp" />
     <ClCompile Include="Core\NXShadowTestRenderer.cpp" />
     <ClCompile Include="Core\NXSkyRenderer.cpp" />
+    <ClCompile Include="Core\NXGUICodeEditor.cpp" />
     <ClCompile Include="Core\NXTextureReloadTesk.cpp" />
     <ClCompile Include="Core\NXTextureResourceManager.cpp" />
     <ClCompile Include="Core\NXTimer.cpp" />
@@ -286,8 +294,14 @@
     <ClInclude Include="Core\App.h" />
     <ClInclude Include="Core\DirectResources.h" />
     <ClInclude Include="Core\FBXMeshLoader.h" />
+    <ClInclude Include="Core\NXFileSystemHelper.h" />
     <ClInclude Include="Core\GlobalBufferManager.h" />
     <ClInclude Include="Core\Header.h" />
+    <ClInclude Include="Core\NXSamplerStates.h" />
+    <ClInclude Include="Core\NXGUIMaterialShaderEditor.h" />
+    <ClInclude Include="Core\NXGUIView.h" />
+    <ClInclude Include="Core\NXGUIWorkspace.h" />
+    <ClInclude Include="Core\NXHLSLGenerator.h" />
     <ClInclude Include="Core\ImageGenerator.h" />
     <ClInclude Include="Core\NXBRDFlut.h" />
     <ClInclude Include="Core\NXCameraResourceManager.h" />
@@ -299,7 +313,6 @@
     <ClInclude Include="Core\NXDXHelper.h" />
     <ClInclude Include="Core\NXEditorObjectRenderer.h" />
     <ClInclude Include="Core\NXEvent.h" />
-    <ClInclude Include="Core\NXFinalRenderer.h" />
     <ClInclude Include="Core\NXForwardRenderer.h" />
     <ClInclude Include="Core\NXGBufferRenderer.h" />
     <ClInclude Include="Core\NXGUI.h" />
@@ -327,9 +340,13 @@
     <ClInclude Include="Core\NXResourceManagerBase.h" />
     <ClInclude Include="Core\NXResourceReloader.h" />
     <ClInclude Include="Core\NXScriptResourceManager.h" />
+    <ClInclude Include="Core\NXSerializable.h" />
+    <ClInclude Include="Core\NXShaderDefinitions.h" />
+    <ClInclude Include="Core\NXShaderIncluder.h" />
     <ClInclude Include="Core\NXShadowMapRenderer.h" />
     <ClInclude Include="Core\NXShadowTestRenderer.h" />
     <ClInclude Include="Core\NXSkyRenderer.h" />
+    <ClInclude Include="Core\NXGUICodeEditor.h" />
     <ClInclude Include="Core\NXTextureReloadTesk.h" />
     <ClInclude Include="Core\NXTextureResourceManager.h" />
     <ClInclude Include="Core\NXTimer.h" />
@@ -346,6 +363,7 @@
     <ClInclude Include="Nix\NXPBRMaterial.h" />
     <ClInclude Include="Nix\NXPrefab.h" />
     <ClInclude Include="Nix\NXRenderableObject.h" />
+    <ClInclude Include="Nix\NXTextureDefinitions.h" />
     <ClInclude Include="Nix\NXSimpleSSAO.h" />
     <ClInclude Include="Nix\NXSubMesh.h" />
     <ClInclude Include="Nix\NXSubMeshGeometryEditor.h" />
@@ -419,7 +437,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shader\GBuffer.fx">
+    <None Include="Shader\GBufferEasy.fx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
       <FileType>Document</FileType>
@@ -434,11 +452,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\PBRLights.fx">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
-      <FileType>Document</FileType>
-    </None>
-    <None Include="Shader\PBRMaterials.fx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
       <FileType>Document</FileType>

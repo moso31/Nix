@@ -40,7 +40,7 @@ void NXScene::OnMouseDown(NXEventArgMouse eArg)
 {
 	if (eArg.VMouse & 1) // 鼠标左键
 	{
-		auto ray = GetMainCamera()->GenerateRay(Vector2(eArg.X + 0.5f, eArg.Y + 0.5f));
+		auto ray = GetMainCamera()->GenerateRay(eArg.ViewPortPos, eArg.ViewPortSize);
 		
 		// 检测是否点击编辑器对象（移动箭头，旋转环，缩放轴）
 		// （不过目前实际上只有移动箭头hhhhh）
@@ -81,7 +81,7 @@ void NXScene::OnMouseDown(NXEventArgMouse eArg)
 
 void NXScene::OnMouseMove(NXEventArgMouse eArg)
 {
-	auto worldRay = GetMainCamera()->GenerateRay(Vector2(eArg.X + 0.5f, eArg.Y + 0.5f));
+	auto worldRay = GetMainCamera()->GenerateRay(eArg.ViewPortPos, eArg.ViewPortSize);
 
 	if (m_bEditorSelectID > EditorObjectID::NONE &&
 		m_bEditorSelectID < EditorObjectID::MAX)
@@ -222,67 +222,7 @@ void NXScene::Init()
 {
 	InitEditorObjectsManager();
 
-	NXPBRMaterialStandard* pPBRMat[] = {
-		NXResourceManager::GetInstance()->GetMaterialManager()->CreatePBRMaterialStandard("rustediron2", Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f),
-		NXResourceManager::GetInstance()->GetMaterialManager()->CreatePBRMaterialStandard("hex-stones1", Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f),
-		NXResourceManager::GetInstance()->GetMaterialManager()->CreatePBRMaterialStandard("pirate-gold", Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f),
-		NXResourceManager::GetInstance()->GetMaterialManager()->CreatePBRMaterialStandard("circle-textured-metal1", Vector3(1.0f), Vector3(1.0f), 1.0f, 0.0f, 1.0f),
-	};
-
-	pPBRMat[0]->SetTexAlbedo(L"D:\\NixAssets\\rustediron2\\albedo.png");
-	pPBRMat[0]->SetTexNormal(L"D:\\NixAssets\\rustediron2\\normal.png");
-	pPBRMat[0]->SetTexMetallic(L"D:\\NixAssets\\rustediron2\\metallic.png");
-	pPBRMat[0]->SetTexRoughness(L"D:\\NixAssets\\rustediron2\\roughness.png");
-	pPBRMat[0]->SetTexAO(L"D:\\NixAssets\\rustediron2\\ao.png");
-
-	//pPBRMat[1]->SetTexAlbedo(L"D:\\NixAssets\\hex-stones1\\albedo.png");
-	//pPBRMat[1]->SetTexNormal(L"D:\\NixAssets\\hex-stones1\\normal.png");
-	//pPBRMat[1]->SetTexMetallic(L"D:\\NixAssets\\hex-stones1\\metallic.png");
-	//pPBRMat[1]->SetTexRoughness(L"D:\\NixAssets\\hex-stones1\\roughness.png");
-	//pPBRMat[1]->SetTexAO(L"D:\\NixAssets\\hex-stones1\\ao.png");
-
-	//pPBRMat[2]->SetTexAlbedo(L"D:\\NixAssets\\pirate-gold\\albedo.png");
-	//pPBRMat[2]->SetTexNormal(L"D:\\NixAssets\\pirate-gold\\normal.png");
-	//pPBRMat[2]->SetTexMetallic(L"D:\\NixAssets\\pirate-gold\\metallic.png");
-	//pPBRMat[2]->SetTexRoughness(L"D:\\NixAssets\\pirate-gold\\roughness.png");
-	//pPBRMat[2]->SetTexAO(L"D:\\NixAssets\\pirate-gold\\ao.png");
-
-	//pPBRMat[3]->SetTexAlbedo(L"D:\\NixAssets\\circle-textured-metal1\\albedo.png");
-	//pPBRMat[3]->SetTexNormal(L"D:\\NixAssets\\circle-textured-metal1\\normal.png");
-	//pPBRMat[3]->SetTexMetallic(L"D:\\NixAssets\\circle-textured-metal1\\metallic.png");
-	//pPBRMat[3]->SetTexRoughness(L"D:\\NixAssets\\circle-textured-metal1\\roughness.png");
-	//pPBRMat[3]->SetTexAO(L"D:\\NixAssets\\circle-textured-metal1\\ao.png");
-
-	//auto pSphere = NXResourceManager::GetInstance()->GetMeshManager()->CreateSphere("Sphere", 1.0f, 64, 64);
-	//NXResourceManager::GetInstance()->GetMaterialManager()->BindMaterial(pSphere->GetSubMesh(0), pPBRMat[0]);
-
-	//for (int l = 0; l < 4; l++)
-	//{
-	//	for (int m = -l; m <= l; m++)
-	//	{
-	//		Vector3 objPos(m * 1.5f, -l * 1.5f, 0.0f);
-	//		auto pSH = NXResourceManager::GetInstance()->GetMeshManager()->CreateSHSphere("shTest", l, m, 1.0f, 64, 64, objPos);
-	//		NXResourceManager::GetInstance()->GetMaterialManager()->BindMaterial(pSH->GetSubMesh(0), pPBRMat[0]);
-	//		pSH->AddScript(new NSTest());
-	//	}
-	//}
-
-	//auto p = NXResourceManager::GetInstance()->GetMeshManager()->CreatePlane("Sphere", 10.0f, 10.0f, NXPlaneAxis::POSITIVE_Y);
-	//NXResourceManager::GetInstance()->GetMaterialManager()->BindMaterial(p->GetSubMesh(0), pPBRMat[0]);
-
-	std::vector<NXPrimitive*> pMeshes;
-	//NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("D:\\NixAssets\\UnityBall.fbx", pMeshes);
-	//NXResourceManager::GetInstance()->GetMaterialManager()->BindMaterial(pMeshes[0]->GetSubMesh(0), pPBRMat[0]);
-	//NXResourceManager::GetInstance()->GetMaterialManager()->BindMaterial(pMeshes[0]->GetSubMesh(1), pPBRMat[1]);
-	//NXResourceManager::GetInstance()->GetMaterialManager()->BindMaterial(pMeshes[0]->GetSubMesh(2), pPBRMat[3]);
-	//NXResourceManager::GetInstance()->GetMaterialManager()->BindMaterial(pMeshes[0]->GetSubMesh(3), pPBRMat[3]);
-	//pMeshes[0]->SetRotation(Vector3(-0.8f, 0.0f, 0.0f));
-
-	//auto* pPlane = NXResourceManager::GetInstance()->GetMeshManager()->CreatePlane("G", 1000.0f, 1000.0f, NXPlaneAxis::POSITIVE_Y);
-	//NXResourceManager::GetInstance()->GetMaterialManager()->BindMaterial(pPlane, pPBRMat[0]);
-
-	//NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("D:\\NixAssets\\Cloth.fbx", pMeshes, true);
-	//NXResourceManager::GetInstance()->GetMaterialManager()->BindMaterial(pMeshes[0]->GetSubMesh(0), pPBRMat[0]);
+	m_pTestCustomMat = NXResourceManager::GetInstance()->GetMaterialManager()->CreateCustomMaterial("TestCustomMat", "D:\\NixAssets\\Materials\\mat.nsl");
 
 	NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\boxes.fbx", false);
 	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\shadowMapTest.fbx", false);
@@ -290,42 +230,27 @@ void NXScene::Init()
 	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\lury.fbx", false);
 	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\testScene.fbx", false);
 	p->SetScale(Vector3(0.1f));
-	NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(p, pPBRMat[0]);
+	NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(p, m_pTestCustomMat);
+
+	std::vector<NXPrimitive*> pMeshes;
 	{
 		//bool bBind = NXResourceManager::GetInstance()->BindParent(pMeshes[1], pSphere);
 		//auto pScript_test = new NSTest();
 		//pMeshes[0]->AddScript(pScript_test);
 	}
 
-	// 设置Picking Object（Demo用，临时）
-	//SetCurrentPickingSubMesh(pSphere->GetSubMesh(0));
-
-	//for (float i = -8.0f; i < 8.01f; i += 2.0f)
-	//{
-	//	for (float j = -8.0f; j < 8.01f; j += 2.0f)
-	//	{
-	//		Vector3 pos(i, 0, j);
-	//		pSphere = NXResourceManager::GetInstance()->GetMeshManager()->CreateSphere("Sphere", 1.0f, 64, 64, pos);
-	//			NXResourceManager::GetInstance()->GetMaterialManager()->BindMaterial(pSphere->GetSubMesh(0), pPBRMat[0]);
-	//	}
-	//}
-
 	auto pCamera = NXResourceManager::GetInstance()->GetCameraManager()->CreateCamera(
 		"Camera1",
 		70.0f, 0.3f, 1000.f,
 		Vector3(0.0f, 0.0f, -10.0f),
 		Vector3(0.0f, 0.0f, 0.0f),
-		Vector3(0.0f, 1.0f, 0.0f)
+		Vector3(0.0f, 1.0f, 0.0f),
+		m_rtSize
 	);
 
 	NXCubeMap* pSky =
-	NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\Alexs_Apt_2k.hdr");
-	//NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\TexturesCom_JapanInariTempleH_1K_hdri_sphere.hdr");
-	//NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\ballroom_4k.hdr");
-	//NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\blue_grotto_4k.hdr");
-	//NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\HDRGPUTest.hdr");
-	//NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\WhiteHDRI.hdr");
-	pSky->SetIntensity(0.0f);
+	NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\ballroom_4k.hdr");
+	pSky->SetIntensity(1.0f);
 
 	InitBoundingStructures();
 
@@ -357,6 +282,14 @@ void NXScene::Init()
 	InitScripts();
 }
 
+void NXScene::OnResize(const Vector2& rtSize)
+{
+	m_rtSize = rtSize;
+
+	auto pCamera = GetMainCamera();
+	if (pCamera) pCamera->OnResize(rtSize);
+}
+
 void NXScene::InitScripts()
 {
 	auto pMainCamera = GetMainCamera();
@@ -367,15 +300,15 @@ void NXScene::InitScripts()
 	NXEventKeyDown::GetInstance()->AddListener(std::bind(&NSFirstPersonalCamera::OnKeyDown, pScript, std::placeholders::_1));
 	NXEventKeyUp::GetInstance()->AddListener(std::bind(&NSFirstPersonalCamera::OnKeyUp, pScript, std::placeholders::_1));
 	NXEventMouseMove::GetInstance()->AddListener(std::bind(&NSFirstPersonalCamera::OnMouseMove, pScript, std::placeholders::_1));
-	NXEventMouseDown::GetInstance()->AddListener(std::bind(&NSFirstPersonalCamera::OnMouseDown, pScript, std::placeholders::_1));
+	NXEventMouseDownViewport::GetInstance()->AddListener(std::bind(&NSFirstPersonalCamera::OnMouseDown, pScript, std::placeholders::_1));
 	NXEventMouseUp::GetInstance()->AddListener(std::bind(&NSFirstPersonalCamera::OnMouseUp, pScript, std::placeholders::_1));
 
 	NXEventKeyDown::GetInstance()->AddListener(std::bind(&NXScene::OnKeyDown, this, std::placeholders::_1));
 	NXEventKeyUp::GetInstance()->AddListener(std::bind(&NXScene::OnKeyUp, this, std::placeholders::_1));
-	NXEventMouseMove::GetInstance()->AddListener(std::bind(&NXScene::OnMouseMove, this, std::placeholders::_1));
-	NXEventMouseDown::GetInstance()->AddListener(std::bind(&NXScene::OnMouseDown, this, std::placeholders::_1));
-	NXEventMouseUp::GetInstance()->AddListener(std::bind(&NXScene::OnMouseUp, this, std::placeholders::_1));
 	NXEventKeyUpForce::GetInstance()->AddListener(std::bind(&NXScene::OnKeyUpForce, this, std::placeholders::_1));
+	NXEventMouseMoveViewport::GetInstance()->AddListener(std::bind(&NXScene::OnMouseMove, this, std::placeholders::_1));
+	NXEventMouseDownViewport::GetInstance()->AddListener(std::bind(&NXScene::OnMouseDown, this, std::placeholders::_1));
+	NXEventMouseUpViewport::GetInstance()->AddListener(std::bind(&NXScene::OnMouseUp, this, std::placeholders::_1));
 }
 
 void NXScene::UpdateTransform(NXObject* pObject)

@@ -2,6 +2,7 @@
 #include "GlobalBufferManager.h"
 #include "ShaderComplier.h"
 #include "NXRenderStates.h"
+#include "NXSamplerStates.h"
 #include "NXResourceManager.h"
 #include "NXRenderTarget.h"
 #include "NXTexture.h"
@@ -21,8 +22,6 @@ void NXShadowTestRenderer::Init()
 	m_pDepthStencilState = NXDepthStencilState<true, false, D3D11_COMPARISON_ALWAYS>::Create();
 	m_pRasterizerState = NXRasterizerState<>::Create(1000);
 	m_pBlendState = NXBlendState<>::Create();
-
-	m_pSamplerLinearClamp.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_BORDER, D3D11_TEXTURE_ADDRESS_BORDER, D3D11_TEXTURE_ADDRESS_BORDER>::Create());
 }
 
 void NXShadowTestRenderer::Render(NXTexture2DArray* pShadowMapDepthTex)
@@ -50,7 +49,8 @@ void NXShadowTestRenderer::Render(NXTexture2DArray* pShadowMapDepthTex)
 	g_pContext->VSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbShadowTest.GetAddressOf());
 	g_pContext->PSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbShadowTest.GetAddressOf());
 
-	g_pContext->PSSetSamplers(0, 1, m_pSamplerLinearClamp.GetAddressOf());
+	auto pSampler = NXSamplerManager::Get(NXSamplerFilter::Point, NXSamplerAddressMode::Border);
+	g_pContext->PSSetSamplers(0, 1, &pSampler);
 
 	m_pResultRT->Render();
 

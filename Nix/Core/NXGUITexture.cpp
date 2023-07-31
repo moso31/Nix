@@ -2,9 +2,9 @@
 #include "NXGUICommon.h"
 #include "NXResourceManager.h"
 #include "NXPBRMaterial.h"
+#include "NXTexture.h"
 
 NXGUITexture::NXGUITexture() :
-	m_pTexInfo(nullptr),
 	m_pTexImage(nullptr)
 {
 }
@@ -14,59 +14,37 @@ void NXGUITexture::Render()
 	ImGui::Begin("Texture");
 
 	if (!m_pTexImage)
-	{
+	{ 
 		ImGui::End();
 		return;
 	}
 
-	ImGui::Image(ImTextureID(m_pTexImage->GetSRV()), ImVec2(200.0f, 200.0f));
+	float fTexSize = ImGui::GetContentRegionAvail().x * 0.7f;
+	ImGui::Image(ImTextureID(m_pTexImage->GetSRV()), ImVec2(fTexSize, fTexSize));
 
-	if (m_pTexInfo)
+	ImGui::Checkbox("Generate mip map##Texture", &m_texData.m_bGenerateMipMap);
+	ImGui::Checkbox("Invert normal Y##Texture", &m_texData.m_bInvertNormalY);
+
+	const char* strTextureTypes[] = { "Raw", "sRGB", "Linear", "Normal Map" };
+	int nTexType = (int)m_texData.m_textureType;
+	if (ImGui::Combo("Texture type##Texture", &nTexType, strTextureTypes, IM_ARRAYSIZE(strTextureTypes)))
 	{
-		bool bGenerateMipMap = m_pTexInfo->bGenerateMipMap;
-		if (ImGui::Checkbox("Generate mip map##Texture", &bGenerateMipMap))
-		{
-			m_pTexInfo->bGenerateMipMap = bGenerateMipMap;
-		}
-
-		bool bInvertNormalY = m_pTexInfo->bInvertNormalY;
-		if (ImGui::Checkbox("Invert normal Y##Texture", &bInvertNormalY))
-		{
-			m_pTexInfo->bInvertNormalY = bInvertNormalY;
-		}
-
-		int nTexType = m_pTexInfo->nTexType;
-		static const char* items[] = { "Default", "Normal map" };
-		if (ImGui::Combo("Texture type##Texture", &nTexType, items, IM_ARRAYSIZE(items)))
-		{
-			m_pTexInfo->nTexType = nTexType;
-		}
-
-		if (m_pTexInfo->nTexType == 0)
-		{
-			bool bSRGB = m_pTexInfo->bSRGB;
-			if (ImGui::Checkbox("sRGB##Texture", &bSRGB))
-			{
-				m_pTexInfo->bSRGB = bSRGB;
-			}
-		}
-
-		if (ImGui::Button("Apply##Texture"))
-		{
-			// 保存NXInfo文件
-			NXResourceManager::GetInstance()->GetTextureManager()->SaveTextureInfo(m_pTexInfo, m_pTexImage->GetFilePath());
-			m_pTexImage->MarkReload();
-
-			SetImage(m_pTexImage->GetFilePath());
-		}
+		m_texData.m_textureType = (NXTextureType)(nTexType);
 	}
 
+	if (ImGui::Button("Apply##Texture"))
+	{
+		m_pTexImage->SetSerializationData(m_texData);
+
+		// 保存NXInfo文件
+		m_pTexImage->Serialize();
+		m_pTexImage->MarkReload();
+	}
 	ImGui::End();
 }
 
 void NXGUITexture::Release()
 {
-	if (m_pTexImage) m_pTexImage->RemoveRef();
 }
 
 void NXGUITexture::SetImage(const std::filesystem::path& path)
@@ -74,7 +52,7 @@ void NXGUITexture::SetImage(const std::filesystem::path& path)
 	// 如果路径不合法，不显示纹理信息
 	if (path.empty())
 	{
-		m_pTexInfo = nullptr;
+		m_pTexImage = nullptr;
 		return;
 	}
 
@@ -82,18 +60,13 @@ void NXGUITexture::SetImage(const std::filesystem::path& path)
 	{
 		// 如果路径相同，无需重新加载
 		if (path == m_pTexImage->GetFilePath())
-		{
-			m_pTexInfo = m_pTexImage->GetTextureNXInfo();
 			return;
-		}
 
 		// 路径不同，释放旧的纹理，并且不显示纹理信息
 		m_pTexImage->RemoveRef();
-		m_pTexInfo = nullptr;
 	}
 
 	// 如果和之前的路径不同，就加载新的纹理
 	m_pTexImage = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("NXGUITexture Preview Image", path);
-	if (m_pTexImage)
-		m_pTexInfo = m_pTexImage->GetTextureNXInfo();
+	m_texData = m_pTexImage->GetSerializationData();
 }

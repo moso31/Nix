@@ -1,7 +1,8 @@
 #include "NXTimer.h"
 
 NXTimer::NXTimer() :
-	m_global_time(0)
+	m_globalTime(0),
+	m_lastTime(std::chrono::steady_clock::now())
 {
 }
 
@@ -14,11 +15,17 @@ int64_t NXTimer::GetTimeDelta()
 	return m_timeDelta;
 }
 
+int64_t NXTimer::GetGlobalTime()
+{
+	return m_globalTime;
+}
+
 void NXTimer::Tick()
 {
 	auto currTime = std::chrono::steady_clock::now();
-	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(currTime - m_lastTime);
+	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(currTime - m_lastTime);
 	m_timeDelta = duration.count();
-	m_global_time += m_timeDelta;
+	m_globalTime += m_timeDelta;
+
 	m_lastTime = currTime;
 }

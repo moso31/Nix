@@ -2,6 +2,7 @@
 #include "DirectResources.h"
 #include "ShaderComplier.h"
 #include "NXRenderStates.h"
+#include "NXSamplerStates.h"
 
 #include "NXBRDFlut.h"
 #include "GlobalBufferManager.h"
@@ -27,9 +28,6 @@ void NXForwardRenderer::Init()
 	m_pDepthStencilState = NXDepthStencilState<>::Create();
 	m_pRasterizerState = NXRasterizerState<>::Create();
 	m_pBlendState = NXBlendState<false, false, true, D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA>::Create();
-
-	m_pSamplerLinearWrap.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP>::Create());
-	m_pSamplerLinearClamp.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP>::Create());
 }
 
 void NXForwardRenderer::Render()
@@ -48,8 +46,11 @@ void NXForwardRenderer::Render()
 
 	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
-	g_pContext->PSSetSamplers(0, 1, m_pSamplerLinearWrap.GetAddressOf());
-	g_pContext->PSSetSamplers(1, 1, m_pSamplerLinearClamp.GetAddressOf());
+
+	auto pSampler = NXSamplerManager::Get(NXSamplerFilter::Linear, NXSamplerAddressMode::Wrap);
+	g_pContext->PSSetSamplers(0, 1, &pSampler);
+	pSampler = NXSamplerManager::Get(NXSamplerFilter::Linear, NXSamplerAddressMode::Clamp);
+	g_pContext->PSSetSamplers(1, 1, &pSampler);
 
 	g_pContext->VSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
 	g_pContext->PSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
@@ -82,44 +83,7 @@ void NXForwardRenderer::Render()
 	// 2022.4.14 Ö»äÖÈ¾ Transparent ÎïÌå
 	for (auto pMat : NXResourceManager::GetInstance()->GetMaterialManager()->GetMaterials())
 	{
-		if (pMat->GetType() == NXMaterialType::PBR_TRANSLUCENT)
-		{
-			NXPBRMaterialBase* pPBRMat = static_cast<NXPBRMaterialBase*>(pMat);
-
-			auto pSRVAlbedo = pPBRMat->GetSRVAlbedo();
-			g_pContext->PSSetShaderResources(1, 1, &pSRVAlbedo);
-
-			auto pSRVNormal = pPBRMat->GetSRVNormal();
-			g_pContext->PSSetShaderResources(2, 1, &pSRVNormal);
-
-			auto pSRVMetallic = pPBRMat->GetSRVMetallic();
-			g_pContext->PSSetShaderResources(3, 1, &pSRVMetallic);
-
-			auto pSRVRoughness = pPBRMat->GetSRVRoughness();
-			g_pContext->PSSetShaderResources(4, 1, &pSRVRoughness);
-
-			auto pSRVAO = pPBRMat->GetSRVAO();
-			g_pContext->PSSetShaderResources(5, 1, &pSRVAO);
-
-			auto pCBMaterial = pPBRMat->GetConstantBuffer();
-			g_pContext->PSSetConstantBuffers(3, 1, &pCBMaterial);
-
-			for (auto pSubMesh : pPBRMat->GetRefSubMeshes())
-			{
-				if (pSubMesh)
-				{
-					bool bIsVisible = pSubMesh->GetPrimitive()->GetVisible();
-					if (bIsVisible)
-					{
-						pSubMesh->UpdateViewParams();
-						g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
-
-						pSubMesh->Update();
-						pSubMesh->Render();
-					}
-				}
-			}
-		}
+		// TODO
 	}
 
 	g_pUDA->EndEvent();

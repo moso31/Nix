@@ -1,18 +1,21 @@
 #include "App.h"
 #include "DirectResources.h"
 #include "NXResourceManager.h"
+#include "ShaderComplier.h"
 #include "NXEvent.h"
 
 App::App() :
-	m_pRenderer(nullptr)
+	m_pRenderer(nullptr),
+	m_lastViewSize(0.0f, 0.0f),
+	m_viewSize(20.0f, 12.0f)
 {
 
 }
 
 void App::Init()
 {
-	g_dxResources = new DirectResources();
-	g_dxResources->InitDevice();
+	m_pDXResources = new DirectResources();
+	m_pDXResources->InitDevice();
 
 	m_pRenderer = new Renderer();
 	m_pRenderer->Init();
@@ -20,11 +23,35 @@ void App::Init()
 	m_pRenderer->InitGUI();
 }
 
+void App::OnWindowResize(UINT width, UINT height)
+{
+	if (width & height)
+	{
+		m_pDXResources->OnResize(width, height);
+		//m_pRenderer->OnResize(Vector2((float)width, (float)height));
+	}
+}
+
+void App::OnResize(const Vector2& rtSize)
+{
+	if ((UINT)rtSize.x & (UINT)rtSize.y)
+	{
+		m_pRenderer->OnResize(rtSize);
+	}
+}
+
+void App::ResizeCheck()
+{
+	if (fabsf(m_lastViewSize.x - m_viewSize.x) > 0.01f || fabsf(m_lastViewSize.y - m_viewSize.y) > 0.01f)
+	{
+		OnResize(m_viewSize);
+		m_lastViewSize = m_viewSize;
+	}
+}
+
 void App::Reload()
 {
 	m_pRenderer->ResourcesReloading();
-
-	m_pRenderer->PipelineReloading();
 }
 
 void App::Update()
@@ -36,6 +63,8 @@ void App::Update()
 void App::Draw()
 {
 	m_pRenderer->RenderFrame();
+
+	m_pDXResources->PrepareToRenderGUI();
 	m_pRenderer->RenderGUI();
 
 	// clear SRV.
@@ -66,5 +95,6 @@ void App::Release()
 {
 	SafeRelease(m_pRenderer);
 	NXResourceManager::GetInstance()->Release();
-	SafeRelease(g_dxResources);
+	NXShaderComplier::GetInstance()->Release();
+	SafeRelease(m_pDXResources);
 }

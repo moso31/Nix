@@ -4,6 +4,17 @@
 #include "Math.fx"
 #include "SHIrradianceCommon.fx"
 
+struct PBRMaterialTranslucent
+{
+	float3 albedo;
+	float opacity;
+	float3 normal;
+	float metallic;
+	float roughness;
+	float ao;
+	float2 _1;
+};
+
 TextureCube txCubeMap : register(t0);
 Texture2D txAlbedo : register(t1);
 Texture2D txNormalMap : register(t2);

@@ -8,5 +8,4 @@ ComPtr<IDXGISwapChain4>				g_pSwapChain = nullptr;
 ComPtr<ID3DUserDefinedAnnotation>	g_pUDA = nullptr;
 
 App*						g_app = nullptr;
-DirectResources*			g_dxResources = nullptr;
 NXTimer*					g_timer = nullptr;

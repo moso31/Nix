@@ -17,6 +17,7 @@ public:
 	NXDebugLayerRenderer(NXShadowMapRenderer* m_pShadowMapRenderer);
 
 	void Init();
+	void OnResize(const Vector2& rtSize);
 	void Render();
 
 	void Release();
@@ -42,7 +43,6 @@ private:
 	ComPtr<ID3D11RasterizerState>		m_pRasterizerState;
 	ComPtr<ID3D11BlendState>			m_pBlendState;
 
-	ComPtr<ID3D11SamplerState>			m_pSamplerPointClamp;
 	NXRenderTarget*						m_pRTQuad;
 	
 	// pass input resources

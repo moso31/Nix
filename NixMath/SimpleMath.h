@@ -64,6 +64,7 @@ struct Vector2 : public XMFLOAT2
     Vector2(FXMVECTOR V) { XMStoreFloat2( this, V ); }
 
     operator XMVECTOR() const { return XMLoadFloat2( this ); }
+    operator float* () { return reinterpret_cast<float*>(this); }
 
     // Comparision operators
     bool operator == ( const Vector2& V ) const;
@@ -168,6 +169,7 @@ struct Vector3 : public XMFLOAT3
 	Vector3(const float x, const Vector2& v) : XMFLOAT3(x, v.x, v.y) {};
 
     operator XMVECTOR() const { return XMLoadFloat3( this ); }
+    operator float* () { return reinterpret_cast<float*>(this); }
 
     // Comparision operators
     bool operator == ( const Vector3& V ) const;
@@ -291,6 +293,7 @@ struct Vector4 : public XMFLOAT4
     Vector4(FXMVECTOR V) { XMStoreFloat4( this, V ); }
 
     operator XMVECTOR() const { return XMLoadFloat4( this ); }
+    operator float* () { return reinterpret_cast<float*>(this); }
 
     // Comparision operators
     bool operator == ( const Vector4& V ) const;
@@ -303,6 +306,9 @@ struct Vector4 : public XMFLOAT4
     Vector4& operator*= (const Vector4& V);
     Vector4& operator*= (float S);
     Vector4& operator/= (float S);
+
+    float& operator[] (size_t i) { return (&x)[i]; }
+    const float& operator[] (size_t i) const { return (&x)[i]; }
 
     // Urnary operators
     Vector4 operator+ () const { return *this; }
@@ -404,6 +410,7 @@ struct Matrix : public XMFLOAT4X4
     Matrix( CXMMATRIX M ) { XMStoreFloat4x4( this, M ); }
 
     operator XMMATRIX() const { return XMLoadFloat4x4( this ); }
+    operator float* () { return reinterpret_cast<float*>(this); }
 
     // Comparision operators
      bool operator == ( const Matrix& M ) const;

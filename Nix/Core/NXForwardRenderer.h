@@ -22,9 +22,6 @@ private:
 	ComPtr<ID3D11RasterizerState>		m_pRasterizerState;
 	ComPtr<ID3D11BlendState>			m_pBlendState;
 
-	ComPtr<ID3D11SamplerState>			m_pSamplerLinearWrap;
-	ComPtr<ID3D11SamplerState>			m_pSamplerLinearClamp;
-
 	NXBRDFLut* m_pBRDFLut;
 	NXScene* m_pScene;
 };

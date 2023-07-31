@@ -1,5 +1,4 @@
 #include "BRDFCommon.fx"
-#include "PBRMaterials.fx"
 
 float D_GGX(float NoH, float roughness)
 {

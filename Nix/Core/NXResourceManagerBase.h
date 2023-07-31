@@ -14,7 +14,6 @@ enum NXCommonRTEnum
     // RT1:		Normal					R32G32B32A32_FLOAT
     // RT2:		Albedo					R10G10B10A2_UNORM
     // RT3:		Metallic+Roughness+AO	R10G10B10A2_UNORM
-    // *注意：上述RT0、RT1现在用的是128位浮点数——这只是临时方案。RT2、RT3也有待商榷。
     NXCommonRT_GBuffer0,
     NXCommonRT_GBuffer1,
     NXCommonRT_GBuffer2,

@@ -2,6 +2,7 @@
 #include "DirectResources.h"
 #include "ShaderComplier.h"
 #include "NXRenderStates.h"
+#include "NXSamplerStates.h"
 
 #include "NXBRDFlut.h"
 #include "GlobalBufferManager.h"
@@ -16,6 +17,8 @@ NXDepthPeelingRenderer::NXDepthPeelingRenderer(NXScene* pScene, NXBRDFLut* pBRDF
 	m_pScene(pScene),
 	m_peelingLayerCount(3)
 {
+	m_pSceneDepth[0] = nullptr;
+	m_pSceneDepth[1] = nullptr;
 }
 
 NXDepthPeelingRenderer::~NXDepthPeelingRenderer()
@@ -24,24 +27,6 @@ NXDepthPeelingRenderer::~NXDepthPeelingRenderer()
 
 void NXDepthPeelingRenderer::Init()
 {
-	auto sz = g_dxResources->GetViewSize();
-
-	m_pSceneDepth[0] = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("Depth Peeling Scene Depth 0", DXGI_FORMAT_R24G8_TYPELESS, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE);
-	m_pSceneDepth[0]->AddDSV();
-	m_pSceneDepth[0]->AddSRV();
-
-	m_pSceneDepth[1] = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("Depth Peeling Scene Depth 1", DXGI_FORMAT_R24G8_TYPELESS, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE);
-	m_pSceneDepth[1]->AddDSV();
-	m_pSceneDepth[1]->AddSRV();
-
-	m_pSceneRT.resize(m_peelingLayerCount);
-	for (UINT i = 0; i < m_peelingLayerCount; i++)
-	{
-		m_pSceneRT[i] = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("Depth Peeling Scene RT " + std::to_string(i), DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE);
-		m_pSceneRT[i]->AddRTV();
-		m_pSceneRT[i]->AddSRV();
-	}
-
 	m_pCombineRTData = new NXRenderTarget();
 	m_pCombineRTData->Init();
 
@@ -63,11 +48,31 @@ void NXDepthPeelingRenderer::Init()
 	m_pBlendState = NXBlendState<false, false, true, D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA>::Create();
 	m_pBlendStateOpaque = NXBlendState<>::Create();
 
-	m_pSamplerLinearWrap.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_WRAP>::Create());
-	m_pSamplerLinearClamp.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP>::Create());
-	m_pSamplerPointClamp.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP>::Create());
-
 	InitConstantBuffer();
+}
+
+void NXDepthPeelingRenderer::OnResize(const Vector2& rtSize)
+{
+	if (m_pSceneDepth[0]) m_pSceneDepth[0]->RemoveRef();
+	if (m_pSceneDepth[1]) m_pSceneDepth[1]->RemoveRef();
+	for (auto pSceneRT : m_pSceneRT)
+		if (pSceneRT) pSceneRT->RemoveRef();
+
+	m_pSceneDepth[0] = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("Depth Peeling Scene Depth 0", DXGI_FORMAT_R24G8_TYPELESS, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE);
+	m_pSceneDepth[0]->AddDSV();
+	m_pSceneDepth[0]->AddSRV();
+
+	m_pSceneDepth[1] = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("Depth Peeling Scene Depth 1", DXGI_FORMAT_R24G8_TYPELESS, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE);
+	m_pSceneDepth[1]->AddDSV();
+	m_pSceneDepth[1]->AddSRV();
+
+	m_pSceneRT.resize(m_peelingLayerCount);
+	for (UINT i = 0; i < m_peelingLayerCount; i++)
+	{
+		m_pSceneRT[i] = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("Depth Peeling Scene RT " + std::to_string(i), DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE);
+		m_pSceneRT[i]->AddRTV();
+		m_pSceneRT[i]->AddSRV();
+	}
 }
 
 void NXDepthPeelingRenderer::Render()
@@ -111,9 +116,12 @@ void NXDepthPeelingRenderer::Render()
 
 		g_pContext->IASetInputLayout(m_pInputLayout.Get());
 
-		g_pContext->PSSetSamplers(0, 1, m_pSamplerLinearWrap.GetAddressOf());
-		g_pContext->PSSetSamplers(1, 1, m_pSamplerLinearClamp.GetAddressOf());
-		g_pContext->PSSetSamplers(2, 1, m_pSamplerPointClamp.GetAddressOf());
+		auto pSampler = NXSamplerManager::Get(NXSamplerFilter::Linear, NXSamplerAddressMode::Wrap);
+		g_pContext->PSSetSamplers(0, 1, &pSampler);
+		pSampler = NXSamplerManager::Get(NXSamplerFilter::Linear, NXSamplerAddressMode::Clamp);
+		g_pContext->PSSetSamplers(1, 1, &pSampler);
+		pSampler = NXSamplerManager::Get(NXSamplerFilter::Point, NXSamplerAddressMode::Clamp);
+		g_pContext->PSSetSamplers(2, 1, &pSampler);
 
 		g_pContext->VSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
 		g_pContext->PSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
@@ -181,7 +189,8 @@ void NXDepthPeelingRenderer::Render()
 
 	g_pContext->IASetInputLayout(m_pInputLayoutCombine.Get());
 
-	g_pContext->PSSetSamplers(0, 1, m_pSamplerPointClamp.GetAddressOf());
+	auto pSampler = NXSamplerManager::Get(NXSamplerFilter::Point, NXSamplerAddressMode::Clamp);
+	g_pContext->PSSetSamplers(0, 1, &pSampler);
 
 	auto pRTVMainScene = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_MainScene)->GetRTV();
 	g_pContext->OMSetRenderTargets(1, &pRTVMainScene, nullptr);
@@ -238,59 +247,6 @@ void NXDepthPeelingRenderer::RenderLayer()
 	// 2022.4.14 只渲染 Transparent 物体
 	for (auto pMat : NXResourceManager::GetInstance()->GetMaterialManager()->GetMaterials())
 	{
-		if (pMat->GetType() == NXMaterialType::PBR_TRANSLUCENT)
-		{
-			NXPBRMaterialBase* pPBRMat = static_cast<NXPBRMaterialBase*>(pMat);
-
-			auto pSRVAlbedo = pPBRMat->GetSRVAlbedo();
-			g_pContext->PSSetShaderResources(1, 1, &pSRVAlbedo);
-
-			auto pSRVNormal = pPBRMat->GetSRVNormal();
-			g_pContext->PSSetShaderResources(2, 1, &pSRVNormal);
-
-			auto pSRVMetallic = pPBRMat->GetSRVMetallic();
-			g_pContext->PSSetShaderResources(3, 1, &pSRVMetallic);
-
-			auto pSRVRoughness = pPBRMat->GetSRVRoughness();
-			g_pContext->PSSetShaderResources(4, 1, &pSRVRoughness);
-
-			auto pSRVAO = pPBRMat->GetSRVAO();
-			g_pContext->PSSetShaderResources(5, 1, &pSRVAO);
-
-			auto pCBMaterial = pPBRMat->GetConstantBuffer();
-			g_pContext->PSSetConstantBuffers(3, 1, &pCBMaterial);
-
-			// 2022.4.18 
-			// 单个材质由远及近排序，尽量避免半透渲染透视关系错误的问题但作用有限。主要还是得靠OIT。
-			auto subMeshes = pPBRMat->GetRefSubMeshes();
-			std::sort(subMeshes.begin(), subMeshes.end(), [cameraPos](NXSubMeshBase* meshA, NXSubMeshBase* meshB) { 
-				Vector3 posA = meshA->GetPrimitive()->GetTranslation();
-				Vector3 posB = meshB->GetPrimitive()->GetTranslation();
-				float distA = Vector3::Distance(posA, cameraPos);
-				float distB = Vector3::Distance(posB, cameraPos);
-				return distA > distB;
-			});
-
-			for (auto pSubMesh : subMeshes)
-			{
-				if (pSubMesh)
-				{
-					bool bIsVisible = pSubMesh->GetPrimitive()->GetVisible();
-					if (bIsVisible)
-					{
-						pSubMesh->UpdateViewParams();
-						g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
-
-						pSubMesh->Update();
-
-						// 渲染两遍，先远后近
-						//g_pContext->RSSetState(m_pRasterizerStateBack.Get());
-						//pSubMesh->Render();
-						g_pContext->RSSetState(m_pRasterizerStateFront.Get());
-						pSubMesh->Render();
-					}
-				}
-			}
-		}
+		// TODO
 	}
 }

@@ -3,44 +3,6 @@
 #include "NXResourceManager.h"
 #include "NXConverter.h"
 
-TextureNXInfo::TextureNXInfo(const TextureNXInfo& info) :
-	nTexType(info.nTexType),
-	//TexFormat(info.TexFormat),
-	//Width(info.Width),
-	//Height(info.Height),
-	bSRGB(info.bSRGB),
-	bInvertNormalY(info.bInvertNormalY),
-	bGenerateMipMap(info.bGenerateMipMap),
-	bCubeMap(info.bCubeMap)
-{
-}
-//
-//TextureNXInfo::TextureNXInfo(const TextureNXInfo&& info) noexcept :
-//	nTexType(info.nTexType),
-//	TexFormat(info.TexFormat),
-//	Width(info.Width),
-//	Height(info.Height),
-//	bSRGB(info.bSRGB),
-//	bInvertNormalY(info.bInvertNormalY),
-//	bGenerateMipMap(info.bGenerateMipMap),
-//	bCubeMap(info.bCubeMap)
-//{
-//}
-//
-//TextureNXInfo& TextureNXInfo::operator=(TextureNXInfo&& info)
-//{
-//	nTexType = info.nTexType;
-//	TexFormat = info.TexFormat;
-//	Width = info.Width;
-//	Height = info.Height;
-//	bSRGB = info.bSRGB;
-//	bInvertNormalY = info.bInvertNormalY;
-//	bGenerateMipMap = info.bGenerateMipMap;
-//	bCubeMap = info.bCubeMap;
-//	return *this;
-//}
-
-
 void NXTexture::SwapToReloadingTexture()
 {
 	if (m_reloadingState == NXTextureReloadingState::Texture_StartReload)
@@ -92,18 +54,20 @@ void NXTexture::LoadTextureSync()
 
 void NXTexture::AddRef()
 {
+	if (m_bIsCommonTex) return;
+
 	m_nRefCount++;
 }
 
 void NXTexture::RemoveRef()
 {
-	m_nRefCount--;
-	if (!m_nRefCount) Release();
+	if (m_bIsCommonTex) return;
+
+	m_nRefCount--; // 2023.6.24 具体的资源回收放在 ReleaseUnusedTextures() 做
 }
 
 void NXTexture::Release()
 {
-	SafeDelete(m_pInfo);
 }
 
 void NXTexture::MarkReload()
@@ -118,6 +82,49 @@ void NXTexture::MarkReload()
 void NXTexture::OnReloadFinish()
 {
 	m_reloadingState = NXTextureReloadingState::Texture_FinishReload;
+}
+
+void NXTexture::Serialize()
+{
+	using namespace rapidjson;
+
+	if (m_texFilePath.empty())
+	{
+		printf("Warning, %s couldn't be serialized, cause path %s does not exist.\n", m_texFilePath.string().c_str(), m_texFilePath.string().c_str());
+		return;
+	}
+
+	std::string nxInfoPath = m_texFilePath.string() + ".n0";
+
+	// 2023.5.30 纹理资源的序列化: 
+	NXSerializer serializer;
+	serializer.StartObject();
+	serializer.String("NXInfoPath", nxInfoPath);	// 元文件路径
+	serializer.Uint64("PathHashValue", std::filesystem::hash_value(m_texFilePath)); // 纹理文件路径 hash value
+	serializer.Int("TextureType", (int)m_serializationData.m_textureType); // 纹理类型
+	serializer.Bool("IsInvertNormalY", m_serializationData.m_bInvertNormalY); // 是否FlipY法线
+	serializer.Bool("IsGenerateMipMap", m_serializationData.m_bGenerateMipMap); // 是否生成mipmap
+	serializer.Bool("IsCubeMap", m_serializationData.m_bCubeMap); // 是否是立方体贴图
+	serializer.EndObject();
+
+	serializer.SaveToFile(nxInfoPath.c_str());
+}
+
+void NXTexture::Deserialize()
+{
+	using namespace rapidjson;
+	std::string nxInfoPath = m_texFilePath.string() + ".n0";
+	NXDeserializer deserializer;
+	bool bJsonExist = deserializer.LoadFromFile(nxInfoPath.c_str());
+	if (bJsonExist)
+	{
+		//std::string strPathInfo;
+		//strPathInfo = deserializer.String("NXInfoPath");
+		m_serializationData.m_textureType = (NXTextureType)deserializer.Int("TextureType");
+		m_serializationData.m_bInvertNormalY = deserializer.Bool("IsInvertNormalY");
+		m_serializationData.m_bGenerateMipMap = deserializer.Bool("IsGenerateMipMap");
+		m_serializationData.m_bCubeMap = deserializer.Bool("IsCubeMap");
+	}
 }
 
 void NXTexture2D::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* initData, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
@@ -171,7 +178,8 @@ NXTexture2D* NXTexture2D::Create(const std::string& DebugName, const std::filesy
 	}
 
 	m_texFilePath = filePath;
-	m_pInfo = NXResourceManager::GetInstance()->GetTextureManager()->LoadTextureInfo(filePath);
+
+	Deserialize();
 
 	// 如果读取的是arraySize/TextureCube，就只读取ArraySize[0]/X+面。
 	if (metadata.arraySize > 1)
@@ -182,27 +190,50 @@ NXTexture2D* NXTexture2D::Create(const std::string& DebugName, const std::filesy
 		pImage.swap(timage);
 	}
 
-	// --- Convert -----------------------------------------------------------------
-	if (IsSRGB(metadata.format) != m_pInfo->bSRGB)
+	if (NXConvert::IsUnormFormat(metadata.format))
 	{
-		std::unique_ptr<ScratchImage> timage(new ScratchImage);
+		DXGI_FORMAT safeFormat = NXConvert::SafeDXGIFormat(metadata.format);
+		if (metadata.format != safeFormat)
+		{
+			std::unique_ptr<ScratchImage> timage(new ScratchImage);
+			hr = Convert(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), safeFormat, TEX_FILTER_DEFAULT, TEX_THRESHOLD_DEFAULT, *timage);
+			if (SUCCEEDED(hr))
+			{
+				metadata.format = safeFormat;
+			}
+			else
+			{
+				printf("Warning: [Convert] failed when loading NXTexture2D: %s.\n", filePath.string().c_str());
+			}
+			pImage.swap(timage);
+		}
+	}
 
-		DXGI_FORMAT tFormat = m_pInfo->bSRGB ? NXConvert::ForceSRGB(metadata.format) : NXConvert::ForceLinear(metadata.format);
-		TEX_FILTER_FLAGS texFlags = m_pInfo->bSRGB ? TEX_FILTER_SRGB_IN : TEX_FILTER_DEFAULT;
-		hr = Convert(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), tFormat, texFlags, TEX_THRESHOLD_DEFAULT, *timage);
-		if (SUCCEEDED(hr))
+	// 如果序列化的文件里记录了sRGB/Linear类型，就做对应的转换
+	if (m_serializationData.m_textureType == NXTextureType::sRGB || m_serializationData.m_textureType == NXTextureType::Linear)
+	{
+		bool bIsSRGB = m_serializationData.m_textureType == NXTextureType::sRGB;
+		DXGI_FORMAT tFormat = bIsSRGB ? NXConvert::ForceSRGB(metadata.format) : NXConvert::ForceLinear(metadata.format);
+		if (metadata.format != tFormat)
 		{
-			metadata.format = tFormat;
+			std::unique_ptr<ScratchImage> timage(new ScratchImage);
+
+			TEX_FILTER_FLAGS texFlags = bIsSRGB ? TEX_FILTER_SRGB_IN : TEX_FILTER_DEFAULT;
+			hr = Convert(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), tFormat, texFlags, TEX_THRESHOLD_DEFAULT, *timage);
+			if (SUCCEEDED(hr))
+			{
+				metadata.format = tFormat;
+			}
+			else
+			{
+				printf("Warning: [Convert] failed when loading NXTexture2D: %s\n", filePath.string().c_str());
+			}
+			pImage.swap(timage);
 		}
-		else
-		{
-			printf("Warning: [Convert] failed when loading NXTextureCube file: %ws\n", filePath.c_str());
-		}
-		pImage.swap(timage);
 	}
 
 	// --- Invert Y Channel --------------------------------------------------------
-	if (m_pInfo->bInvertNormalY)
+	if (m_serializationData.m_bInvertNormalY)
 	{
 		std::unique_ptr<ScratchImage> timage(new ScratchImage);
 
@@ -222,13 +253,13 @@ NXTexture2D* NXTexture2D::Create(const std::string& DebugName, const std::filesy
 
 		if (FAILED(hr))
 		{
-			printf("Warning: [InvertNormalY] failed when loading NXTextureCube file: %ws\n", filePath.c_str());
+			printf("Warning: [InvertNormalY] failed when loading NXTexture2D: %s\n", filePath.string().c_str());
 		}
 
 		pImage.swap(timage);
 	}
 
-	if (m_pInfo->bGenerateMipMap && metadata.width >= 2 && metadata.height >= 2 && metadata.mipLevels == 1)
+	if (m_serializationData.m_bGenerateMipMap && metadata.width >= 2 && metadata.height >= 2 && metadata.mipLevels == 1)
 	{
 		std::unique_ptr<ScratchImage> pImageMip = std::make_unique<ScratchImage>();
 		HRESULT hr = GenerateMipMaps(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), TEX_FILTER_DEFAULT, 0, *pImageMip);
@@ -239,11 +270,11 @@ NXTexture2D* NXTexture2D::Create(const std::string& DebugName, const std::filesy
 		}
 		else
 		{
-			printf("Warning: [GenerateMipMap] failed when loading NXTextureCube file: %ws\n", filePath.c_str());
+			printf("Warning: [GenerateMipMap] failed when loading NXTexture2D: %s\n", filePath.string().c_str());
 		}
 	}
 
-	this->m_texFilePath = filePath.c_str();
+	this->m_texFilePath = filePath;
 	this->m_debugName = DebugName;
 	this->m_width = (UINT)metadata.width;
 	this->m_height = (UINT)metadata.height;
@@ -262,7 +293,7 @@ NXTexture2D* NXTexture2D::Create(const std::string& DebugName, const std::filesy
 
 void NXTexture2D::AddSRV()
 {
-	ID3D11ShaderResourceView* pSRV;
+	ComPtr<ID3D11ShaderResourceView> pSRV;
 
 	DXGI_FORMAT SRVFormat = m_texFormat;
 	if (m_texFormat == DXGI_FORMAT_R24G8_TYPELESS)
@@ -279,7 +310,7 @@ void NXTexture2D::AddSRV()
 
 void NXTexture2D::AddRTV()
 {
-	ID3D11RenderTargetView* pRTV;
+	ComPtr<ID3D11RenderTargetView> pRTV;
 
 	CD3D11_RENDER_TARGET_VIEW_DESC Desc(D3D11_RTV_DIMENSION_TEXTURE2D, m_texFormat);
 	NX::ThrowIfFailed(g_pDevice->CreateRenderTargetView(m_pTexture.Get(), &Desc, &pRTV));
@@ -292,7 +323,7 @@ void NXTexture2D::AddRTV()
 
 void NXTexture2D::AddDSV()
 {
-	ID3D11DepthStencilView* pDSV;
+	ComPtr<ID3D11DepthStencilView> pDSV;
 
 	DXGI_FORMAT DSVFormat = m_texFormat;
 	if (m_texFormat == DXGI_FORMAT_R24G8_TYPELESS)
@@ -309,7 +340,7 @@ void NXTexture2D::AddDSV()
 
 void NXTexture2D::AddUAV()
 {
-	ID3D11UnorderedAccessView* pUAV;
+	ComPtr<ID3D11UnorderedAccessView> pUAV;
 
 	DXGI_FORMAT UAVFormat = m_texFormat;
 
@@ -434,7 +465,7 @@ void NXTextureCube::Create(const std::string& DebugName, const std::wstring& Fil
 
 void NXTextureCube::AddSRV()
 {
-	ID3D11ShaderResourceView* pSRV = nullptr;
+	ComPtr<ID3D11ShaderResourceView> pSRV;
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC Desc;
 	Desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
@@ -452,7 +483,7 @@ void NXTextureCube::AddSRV()
 
 void NXTextureCube::AddRTV(UINT mipSlice, UINT firstArraySlice, UINT arraySize)
 {
-	ID3D11RenderTargetView* pRTV = nullptr;
+	ComPtr<ID3D11RenderTargetView> pRTV;
 
 	D3D11_RENDER_TARGET_VIEW_DESC Desc;
 	Desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
@@ -520,7 +551,7 @@ void NXTexture2DArray::Create(std::string DebugName, const D3D11_SUBRESOURCE_DAT
 
 void NXTexture2DArray::AddSRV(UINT firstArraySlice, UINT arraySize)
 {
-	ID3D11ShaderResourceView* pSRV = nullptr;
+	ComPtr<ID3D11ShaderResourceView> pSRV;
 
 	DXGI_FORMAT SRVFormat = m_texFormat;
 	if (m_texFormat == DXGI_FORMAT_R24G8_TYPELESS)
@@ -546,7 +577,7 @@ void NXTexture2DArray::AddSRV(UINT firstArraySlice, UINT arraySize)
 
 void NXTexture2DArray::AddRTV(UINT firstArraySlice, UINT arraySize)
 {
-	ID3D11RenderTargetView* pRTV = nullptr;
+	ComPtr<ID3D11RenderTargetView> pRTV;
 
 	D3D11_RENDER_TARGET_VIEW_DESC Desc;
 	Desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
@@ -565,7 +596,7 @@ void NXTexture2DArray::AddRTV(UINT firstArraySlice, UINT arraySize)
 
 void NXTexture2DArray::AddDSV(UINT firstArraySlice, UINT arraySize)
 {
-	ID3D11DepthStencilView* pDSV = nullptr;
+	ComPtr<ID3D11DepthStencilView> pDSV;
 
 	DXGI_FORMAT DSVFormat = m_texFormat;
 	if (m_texFormat == DXGI_FORMAT_R24G8_TYPELESS)
@@ -591,7 +622,7 @@ void NXTexture2DArray::AddDSV(UINT firstArraySlice, UINT arraySize)
 
 void NXTexture2DArray::AddUAV(UINT firstArraySlice, UINT arraySize)
 {
-	ID3D11UnorderedAccessView* pUAV = nullptr;
+	ComPtr<ID3D11UnorderedAccessView> pUAV;
 
 	DXGI_FORMAT UAVFormat = m_texFormat;
 

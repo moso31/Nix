@@ -9,7 +9,7 @@ public:
 
 	void SetWorkingScene(NXScene* pScene);
 
-	NXCamera* CreateCamera(const std::string name, const float FovY, const float zNear, const float zFar, const Vector3& eye, const Vector3& at, const Vector3& up);
+	NXCamera* CreateCamera(const std::string name, const float FovY, const float zNear, const float zFar, const Vector3& eye, const Vector3& at, const Vector3& up, const Vector2& rtSize);
 
 	void OnReload() override;
 	void Release() override;

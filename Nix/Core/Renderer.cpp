@@ -1,4 +1,5 @@
 #include "Renderer.h"
+#include "NXTimer.h"
 #include "DirectResources.h"
 #include "ShaderComplier.h"
 #include "NXEvent.h"
@@ -11,8 +12,10 @@
 #include "NXCubeMap.h"
 #include "NXDepthPrepass.h"
 #include "NXSimpleSSAO.h"
+#include "NXSamplerStates.h"
 
-Renderer::Renderer() : 
+Renderer::Renderer() :
+	m_pFinalRT(nullptr),
 	m_bRenderGUI(true)
 {
 }
@@ -24,6 +27,7 @@ void Renderer::Init()
 
 	NXGlobalInputLayout::Init();
 	NXGlobalBufferManager::Init();
+	NXSamplerManager::Init();
 
 	// 渲染器
 	InitRenderer();
@@ -44,13 +48,13 @@ void Renderer::Init()
 	m_pBRDFLut->GenerateBRDFLUT();
 
 	m_pDepthPrepass = new NXDepthPrepass(m_scene);
-	m_pDepthPrepass->Init(g_dxResources->GetViewSize());
+	m_pDepthPrepass->Init();
 
 	m_pGBufferRenderer = new NXGBufferRenderer(m_scene);
 	m_pGBufferRenderer->Init();
 
 	m_pSSAO = new NXSimpleSSAO();
-	m_pSSAO->Init(g_dxResources->GetViewSize());
+	m_pSSAO->Init();
 
 	m_pShadowMapRenderer = new NXShadowMapRenderer(m_scene);
 	m_pShadowMapRenderer->Init();
@@ -76,11 +80,22 @@ void Renderer::Init()
 	m_pDebugLayerRenderer = new NXDebugLayerRenderer(m_pShadowMapRenderer);
 	m_pDebugLayerRenderer->Init();
 
-	m_pFinalRenderer = new NXFinalRenderer();
-	m_pFinalRenderer->Init();
-
 	m_pEditorObjectRenderer = new NXEditorObjectRenderer(m_scene);
 	m_pEditorObjectRenderer->Init();
+}
+
+void Renderer::OnResize(const Vector2& rtSize)
+{
+	m_viewRTSize = rtSize;
+
+	NXResourceManager::GetInstance()->GetTextureManager()->ResizeCommonRT(m_viewRTSize);
+	m_pDepthPrepass->OnResize(m_viewRTSize);
+	m_pSSAO->OnResize(m_viewRTSize);
+	m_pDepthPeelingRenderer->OnResize(m_viewRTSize);
+	m_pDebugLayerRenderer->OnResize(m_viewRTSize);
+	m_pEditorObjectRenderer->OnResize(m_viewRTSize);
+
+	m_scene->OnResize(rtSize);
 }
 
 void Renderer::InitGUI()
@@ -92,8 +107,8 @@ void Renderer::InitGUI()
 void Renderer::InitRenderer()
 {
 	// 在这里初始化CommonRT和通用纹理。
-	NXResourceManager::GetInstance()->GetTextureManager()->InitCommonRT();
 	NXResourceManager::GetInstance()->GetTextureManager()->InitCommonTextures();
+	//NXResourceManager::GetInstance()->GetTextureManager()->InitCommonRT(???);
 
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -113,21 +128,10 @@ void Renderer::ResourcesReloading()
 	NXResourceReloader::GetInstance()->Update();
 }
 
-void Renderer::PipelineReloading()
-{
-	// 【2022.7.3 should I use a "bDirty" to control this method?】
-
-	// 判断 FinalRenderer 使用哪张纹理RT 作为 Input
-	bool bEnableDebugLayer = m_pDebugLayerRenderer->GetEnableDebugLayer();
-
-	m_pFinalRenderer->SetInputTexture(bEnableDebugLayer ?
-		m_pDebugLayerRenderer->GetDebugLayerTex() :
-		NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_PostProcessing)
-	);
-}
-
 void Renderer::UpdateSceneData()
 {
+	UpdateTime();
+
 	// 更新场景Scripts。实际上是用Scripts控制指定物体的Transform。
 	m_scene->UpdateScripts();
 
@@ -149,16 +153,26 @@ void Renderer::UpdateSceneData()
 	m_pSSAO->Update();
 }
 
+void Renderer::UpdateTime()
+{
+	//g_timer
+	size_t globalTime = g_timer->GetGlobalTime();
+	float fGlobalTime = globalTime / 1000.0f;
+
+	NXGlobalBufferManager::m_cbDataObject.globalData.time = fGlobalTime;
+}
+
 void Renderer::RenderFrame()
 {
+	NXTexture2D* pSceneRT = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_MainScene);
+	if (!pSceneRT) return;
+
 	g_pUDA->BeginEvent(L"Render Scene");
 
 	// 设置视口
-	auto vp = g_dxResources->GetViewPortSize();
-	CD3D11_VIEWPORT vpCamera(0.0f, 0.0f, vp.x, vp.y);
+	CD3D11_VIEWPORT vpCamera(0.0f, 0.0f, m_viewRTSize.x, m_viewRTSize.y);
 	g_pContext->RSSetViewports(1, &vpCamera);
 
-	NXTexture2D* pSceneRT = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_MainScene);
 	g_pContext->ClearRenderTargetView(pSceneRT->GetRTV(), Colors::Black);
 
 	//m_pDepthPrepass->Render();
@@ -195,15 +209,17 @@ void Renderer::RenderFrame()
 	// 绘制调试信息层（如果有的话）
 	m_pDebugLayerRenderer->Render();
 
-	// 绘制主渲染屏幕RTV：
-	m_pFinalRenderer->Render();
+	// 判断 GUIView 使用哪张纹理RT 作为 Input
+	bool bEnableDebugLayer = m_pDebugLayerRenderer->GetEnableDebugLayer();
+	m_pFinalRT = bEnableDebugLayer ? m_pDebugLayerRenderer->GetDebugLayerTex() :
+		NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_PostProcessing);
 
 	g_pUDA->EndEvent();
 }
 
 void Renderer::RenderGUI()
 {
-	if (m_bRenderGUI) m_pGUI->Render();
+	if (m_bRenderGUI) m_pGUI->Render(m_pFinalRT);
 }
 
 void Renderer::Release()
@@ -223,7 +239,6 @@ void Renderer::Release()
 	SafeRelease(m_pDepthPeelingRenderer);
 	SafeRelease(m_pSkyRenderer);
 	SafeRelease(m_pColorMappingRenderer);
-	SafeRelease(m_pFinalRenderer);
 
 	SafeRelease(m_pBRDFLut);
 	SafeRelease(m_scene);
@@ -235,8 +250,8 @@ void Renderer::DrawDepthPrepass()
 
 void Renderer::OnKeyDown(NXEventArgKey eArg)
 {
-	if (eArg.VKey == 'H')
-	{
-		m_bRenderGUI = !m_bRenderGUI;
-	}
+	//if (eArg.VKey == 'H')
+	//{
+	//	m_bRenderGUI = !m_bRenderGUI;
+	//}
 }

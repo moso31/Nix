@@ -16,7 +16,8 @@ public:
 	NXSimpleSSAO();
 	~NXSimpleSSAO();
 
-	void Init(const Vector2& AOBufferSize);
+	void Init();
+	void OnResize(const Vector2& rtSize);
 	void Update();
 	void Render(ID3D11ShaderResourceView* pSRVNormal, ID3D11ShaderResourceView* pSRVPosition, ID3D11ShaderResourceView* pSRVDepthPrepass);
 
@@ -40,8 +41,6 @@ private:
 private:
 	ComPtr<ID3D11ComputeShader>			m_pComputeShader;
 
-	ComPtr<ID3D11SamplerState>			m_pSamplerLinearClamp;
-
 	NXTexture2D* m_pTexSSAO;
 
 	std::vector<Vector4>		m_samplePosition;
@@ -49,4 +48,6 @@ private:
 
 	ConstantBufferSSAOParams	m_ssaoParams;
 	ComPtr<ID3D11Buffer>		m_pCBSSAOParams;
+
+	Vector2 m_rtSize;
 };

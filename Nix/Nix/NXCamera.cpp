@@ -8,7 +8,9 @@ NXCamera::NXCamera() :
 	m_at(0.0f, 0.0f, 0.0f),
 	m_up(0.0f, 1.0f, 0.0f),
 	m_near(0.1f),
-	m_far(1000.0f)
+	m_far(1000.0f),
+	m_aspectRatio(1.0f),
+	m_rtSize(0.0f, 0.0f)
 {
 	m_name = "Camera";
 	m_type = NXType::eCamera;
@@ -116,15 +118,10 @@ const Matrix& NXCamera::GetViewProjectionInverseMatrix()
 	return m_mxViewProjectionInv;
 }
 
-Ray NXCamera::GenerateRay(const Vector2& cursorPosition)
+Ray NXCamera::GenerateRay(const Vector2& cursor, const Vector2& rectSize)
 {
-	return GenerateRay(cursorPosition, g_dxResources->GetViewSize());
-}
-
-Ray NXCamera::GenerateRay(const Vector2& cursor, const Vector2& imageSize)
-{
-	float x = (2.0f * cursor.x / imageSize.x - 1.0f) / m_mxProjection._11;
-	float y = (1.0f - 2.0f * cursor.y / imageSize.y) / m_mxProjection._22;
+	float x = (2.0f * cursor.x / rectSize.x - 1.0f) / m_mxProjection._11;
+	float y = (1.0f - 2.0f * cursor.y / rectSize.y) / m_mxProjection._22;
 
 	Vector3 vOrig(0.0f);
 	Vector3 vDir = Vector3(x, y, 1.0f);
@@ -136,8 +133,10 @@ Ray NXCamera::GenerateRay(const Vector2& cursor, const Vector2& imageSize)
 	return Ray(vOrigWorld, vDirWorld);
 }
 
-void NXCamera::Init(float fovY, float zNear, float zFar, Vector3 cameraPosition, Vector3 cameraLookAt, Vector3 cameraLookUp)
+void NXCamera::Init(float fovY, float zNear, float zFar, Vector3 cameraPosition, Vector3 cameraLookAt, Vector3 cameraLookUp, const Vector2& rtSize)
 {
+	OnResize(rtSize);
+
 	m_fovY = fovY;
 	m_near = zNear;
 	m_far = zFar;
@@ -159,15 +158,19 @@ void NXCamera::Init(float fovY, float zNear, float zFar, Vector3 cameraPosition,
 	NXGlobalBufferManager::m_cbDataCamera.Params1 = { 1.0f - m_far * nInv, m_far * nInv, 1.0f / m_far - nInv, nInv }; 
 }
 
+void NXCamera::OnResize(const Vector2& rtSize)
+{
+	m_rtSize = rtSize;
+	m_aspectRatio = m_rtSize.x / m_rtSize.y;
+}
+
 void NXCamera::UpdateTransform()
 {
-	Vector2 vpsz = g_dxResources->GetViewPortSize();
-	float aspectRatio = vpsz.x / vpsz.y;
 	m_mxView = XMMatrixLookAtLH(m_translation, m_at, m_up);
 	m_mxViewInv = m_mxView.Invert();
 
 	m_fovY = Clamp(m_fovY, 0.001f, 179.999f);
-	m_mxProjection = XMMatrixPerspectiveFovLH(m_fovY * XM_PI / 180.0f, aspectRatio, m_near, m_far);
+	m_mxProjection = XMMatrixPerspectiveFovLH(m_fovY * XM_PI / 180.0f, m_aspectRatio, m_near, m_far);
 	m_mxProjectionInv = m_mxProjection.Invert();
 
 	m_mxViewProjection = m_mxView * m_mxProjection;
@@ -186,8 +189,7 @@ void NXCamera::Update()
 	NXGlobalBufferManager::m_cbDataObject.projection = m_mxProjection.Transpose();
 	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbObject.Get(), 0, nullptr, &NXGlobalBufferManager::m_cbDataObject, 0, 0);
 
-	Vector2 viewSize = g_dxResources->GetViewSize();
-	NXGlobalBufferManager::m_cbDataCamera.Params0 = Vector4(viewSize.x, viewSize.y, 1.0f / viewSize.x, 1.0f / viewSize.y);
+	NXGlobalBufferManager::m_cbDataCamera.Params0 = Vector4(m_rtSize.x, m_rtSize.y, 1.0f / m_rtSize.x, 1.0f / m_rtSize.y);
 
 	NXGlobalBufferManager::m_cbDataCamera.Params2 = Vector4(m_mxProjection._11, m_mxProjection._22, 1.0f / m_mxProjection._11, 1.0f / m_mxProjection._22);
 	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbCamera.Get(), 0, nullptr, &NXGlobalBufferManager::m_cbDataCamera, 0, 0);

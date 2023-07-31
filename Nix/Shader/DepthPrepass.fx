@@ -1,10 +1,15 @@
 #include "Common.fx"
 #include "Math.fx"
-#include "PBRMaterials.fx"
 
 Texture2D txNormalMap : register(t0);
 
 SamplerState ssLinearWrap : register(s0);
+
+struct PBRMaterialStandard
+{
+	float3 normal;
+	float _0;
+};
 
 cbuffer CBufferMaterialStandard : register(b2)
 {

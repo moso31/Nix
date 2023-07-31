@@ -1,5 +1,6 @@
 #pragma once
 #include "Header.h"
+#include "NXTextureDefinitions.h"
 
 class NXGUITexture
 {
@@ -14,9 +15,6 @@ public:
 	void SetImage(const std::filesystem::path& path);
 
 private:
-	std::filesystem::path m_strImgPath;
-	NXTexture2D* m_pTexImage;
-
-	// 用于显示当前选中纹理的信息
-	TextureNXInfo* m_pTexInfo;
+	NXTexture* m_pTexImage;
+	NXTextureSerializationData m_texData;
 };

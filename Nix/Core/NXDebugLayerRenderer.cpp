@@ -3,6 +3,7 @@
 #include "NXRenderTarget.h"
 #include "ShaderComplier.h"
 #include "NXRenderStates.h"
+#include "NXSamplerStates.h"
 #include "GlobalBufferManager.h"
 #include "NXResourceManager.h"
 #include "DirectResources.h"
@@ -19,20 +20,12 @@ NXDebugLayerRenderer::NXDebugLayerRenderer(NXShadowMapRenderer* pShadowMapRender
 
 void NXDebugLayerRenderer::Init()
 {
-	Vector2 sz = g_dxResources->GetViewSize();
-
 	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\DebugLayer.fx", "VS", &m_pVertexShader, NXGlobalInputLayout::layoutPT, ARRAYSIZE(NXGlobalInputLayout::layoutPT), &m_pInputLayout);
 	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\DebugLayer.fx", "PS", &m_pPixelShader);
 
 	m_pDepthStencilState = NXDepthStencilState<true, false, D3D11_COMPARISON_ALWAYS>::Create();
 	m_pRasterizerState = NXRasterizerState<>::Create();
 	m_pBlendState = NXBlendState<>::Create();
-
-	m_pSamplerPointClamp.Swap(NXSamplerState<D3D11_FILTER_MIN_MAG_MIP_POINT>::Create());
-
-	m_pDebugLayerTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("Debug Layer Out RT", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)sz.x, (UINT)sz.y, 1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET);
-	m_pDebugLayerTex->AddRTV();
-	m_pDebugLayerTex->AddSRV();
 
 	m_pRTQuad = new NXRenderTarget();
 	m_pRTQuad->Init();
@@ -44,8 +37,18 @@ void NXDebugLayerRenderer::Init()
 	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbParams));
+}
 
-	m_cbDataParams.RTSize = Vector4(sz.x, sz.y, 1.0f / sz.x, 1.0f / sz.y);
+void NXDebugLayerRenderer::OnResize(const Vector2& rtSize)
+{
+	if (m_pDebugLayerTex)
+		m_pDebugLayerTex->RemoveRef();
+
+	m_pDebugLayerTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("Debug Layer Out RT", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET);
+	m_pDebugLayerTex->AddRTV();
+	m_pDebugLayerTex->AddSRV();
+
+	m_cbDataParams.RTSize = Vector4(rtSize.x, rtSize.y, 1.0f / rtSize.x, 1.0f / rtSize.y);
 	m_cbDataParams.LayerParam0 = Vector4(1.0f, 0.0f, 0.0f, 0.0f);
 }
 
@@ -73,7 +76,8 @@ void NXDebugLayerRenderer::Render()
 	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
 
-	g_pContext->PSSetSamplers(0, 1, m_pSamplerPointClamp.GetAddressOf());
+	auto pSampler = NXSamplerManager::Get(NXSamplerFilter::Point, NXSamplerAddressMode::Clamp);
+	g_pContext->PSSetSamplers(0, 1, &pSampler);
 	g_pContext->PSSetConstantBuffers(1, 1, m_cbParams.GetAddressOf());
 
 	NXTexture2D* pSceneInputTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_PostProcessing);
