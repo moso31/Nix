@@ -282,6 +282,7 @@ private:
     void MoveRight(SelectionInfo& selection, bool bShift, bool bCtrl, bool bEnd, int size);
 
     bool IsVariableChar(const char& ch);
+    bool IsWordSplitChar(const char& ch);
 
     // 从当前行中提取出可能是关键词的字符
     std::vector<TextKeyword> ExtractKeywords(const TextString& text);

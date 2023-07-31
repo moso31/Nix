@@ -51,6 +51,9 @@ void NXGUIView::Render()
 		ImGui::Image((void*)m_pViewRT->GetSRV(), ImVec2(viewRegionX, viewRegionY));
 		bool isHoveredOnView = ImGui::IsItemHovered();
 
+		// 点击右键时也使当前窗口获得焦点，避免其它窗口（比如CodeEditor）输入收到WASD等快捷键影响
+		if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) ImGui::SetWindowFocus(); 
+
 		const auto& rectMin = ImGui::GetItemRectMin();
 		const auto& rectMax = ImGui::GetItemRectMax();
 

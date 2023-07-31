@@ -216,7 +216,7 @@ void NXGUICodeEditor::Render()
         }
 
         ImGui::BeginChild("TextEditor");
-        if (ImGui::IsWindowFocused()) m_bNeedFocusOnText = true;
+        //if (ImGui::IsWindowFocused()) m_bNeedFocusOnText = true;
 
         const ImVec2& layerStartCursorPos = ImGui::GetCursorPos();
 
@@ -388,7 +388,16 @@ void NXGUICodeEditor::Enter(const std::vector<std::vector<std::string>>& strArra
             const auto& str = strArray[strIdx];
             for (int lineIdx = 0; lineIdx < str.size(); lineIdx++, allLineIdx++)
             {
-                const auto& strLine = str[lineIdx];
+                std::string strLine = str[lineIdx];
+
+                // 将 strLine 的所有 '\t' 替换成 "    "
+                size_t pos = strLine.find('\t');
+                while (pos != std::string::npos) 
+                {
+                    strLine.replace(pos, 1, "    ");
+                    pos = strLine.find('\t', pos + 4);
+                }
+
                 if (allLineIdx == 0)
                 {
                     int cutIdx = std::min(L.col, (int)line.size());
@@ -488,14 +497,14 @@ void NXGUICodeEditor::Backspace(bool bDelete, bool bCtrl)
                     int pos = L.col;
                     if (!bDelete) // ctrl+backspace
                     {
-                        while (pos > 0 && line[pos - 1] == ' ') pos--;
-                        while (pos > 0 && line[pos - 1] != ' ') pos--;
+                        while (pos > 0 && IsWordSplitChar(line[pos - 1])) pos--;
+                        while (pos > 0 && !IsWordSplitChar(line[pos - 1])) pos--;
                         eraseSize = std::max(0, L.col - pos);
                     }
                     else // ctrl+delete
                     {
-                        while (pos < line.size() && line[pos] == ' ') pos++;
-                        while (pos < line.size() && line[pos] != ' ') pos++;
+                        while (pos < line.size() && IsWordSplitChar(line[pos])) pos++;
+                        while (pos < line.size() && !IsWordSplitChar(line[pos])) pos++;
                         eraseSize = std::max(0, pos - L.col);
                     }
                 }
@@ -691,15 +700,19 @@ void NXGUICodeEditor::Copy()
 void NXGUICodeEditor::Paste()
 {
     std::string clipText = ImGui::GetClipboardText();
+    if (!clipText.empty() && clipText.back() == '\n') clipText.pop_back(); // ImGui的剪贴板会在内容末尾自带一个'\n'，应该去掉
+
     std::vector<std::string> lines;
     size_t pos = 0;
     std::string token;
-    while ((pos = clipText.find("\n")) != std::string::npos)
+    while ((pos = clipText.find('\n')) != std::string::npos)
     {
         token = clipText.substr(0, pos);
+        if (!token.empty() && token.back() == '\r') token.pop_back(); // 如果行尾有 '\r'，去掉
         lines.push_back(token);
         clipText.erase(0, pos + 1);
     }
+    if (!clipText.empty() && clipText.back() == '\r') clipText.pop_back(); // 如果行尾有 '\r'，去掉
     lines.push_back(clipText);
     Enter({ lines });
 }
@@ -1453,12 +1466,8 @@ void NXGUICodeEditor::RenderTexts_OnKeyInputs()
                 }
                 else if (wc == '\t') // tab
                 {
-                    int tabSize = 4;
-                    for (int i = 0; i < tabSize; ++i)
-                    {
-                        Enter({ {" "} });
-                        m_bResetFlickerDt = true;
-                    }
+                    Enter({ {{c}} }); // Enter内部会处理tab字符
+                    m_bResetFlickerDt = true;
                 }
             }
 
@@ -1544,7 +1553,16 @@ void NXGUICodeEditor::MoveLeft(SelectionInfo& sel, bool bShift, bool bCtrl, bool
     auto& lines = m_textFiles[m_pickingIndex].lines;
     auto& pos = sel.flickerAtFront ? sel.L : sel.R;
     pos.col = std::min(pos.col, (int)lines[pos.row].size());
-    if (bHome) pos.col = 0;
+    if (bHome)
+    {
+        // 按Home 先跳到本行第一个非空白字符；
+        int oldCol = pos.col;
+        pos.col = 0;
+        while(pos.col < lines[pos.row].size() && std::isspace(lines[pos.row][pos.col])) pos.col++;
+
+        // 若已在第一个非空白字符，则跳到行首
+        if (oldCol == pos.col) pos.col = 0;
+    }
     else
     {
         while (size) // 持续左移，直到 size 耗尽
@@ -1638,6 +1656,12 @@ bool NXGUICodeEditor::IsVariableChar(const char& ch)
 {
     // ctrl+left/right 可以跳过的字符：
     return std::isalnum(ch) || ch == '_';
+}
+
+bool NXGUICodeEditor::IsWordSplitChar(const char& ch)
+{
+    // ctrl+delete/backspace 删除多个字符时，遇到下列字符之一即终止
+    return std::isspace(ch) || ch == ',' || ch == ';' || ch == ':' || ch == '.' || ch == '(' || ch == ')' || ch == '[' || ch == ']' || ch == '{' || ch == '}' || ch == '<' || ch == '>';
 }
 
 std::vector<NXGUICodeEditor::TextKeyword> NXGUICodeEditor::ExtractKeywords(const TextString& text)
