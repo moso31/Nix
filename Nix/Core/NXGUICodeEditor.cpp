@@ -579,7 +579,9 @@ void NXGUICodeEditor::Backspace(bool bDelete, bool bCtrl)
             if (L.row == R.row) // 单行
             {
                 auto& line = lines[L.row];
-                line.erase(line.begin() + L.col, line.begin() + R.col);
+                int startErasePos = std::min(L.col, (int)line.size());
+                int endErasePos = std::min(R.col, (int)line.size());
+                line.erase(line.begin() + startErasePos, line.begin() + endErasePos);
 
                 // 补偿计算
                 for (int j = i + 1; j < m_selections.size(); j++)
@@ -1466,7 +1468,7 @@ void NXGUICodeEditor::RenderTexts_OnKeyInputs()
                 }
                 else if (wc == '\t') // tab
                 {
-                    Enter({ {{c}} }); // Enter内部会处理tab字符
+                    Enter({ { "    " }}); // 暂时先强制转换成4个空格，应付日常足够了
                     m_bResetFlickerDt = true;
                 }
             }
