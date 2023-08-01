@@ -434,7 +434,7 @@ void NXGUICodeEditor::Enter(const std::vector<std::vector<std::string>>& strArra
                 SetLineUpdateTime(m_pickingIndex, L.row + allLineIdx);
 
                 // 对前两行，同步处理高亮。超过两行的，全部异步处理
-                if (allLineIdx <= 2)
+                if (allLineIdx <= 2 || true)
                     HighLightSyntax(m_pickingIndex, L.row + allLineIdx);
                 else
                     m_threadPool.Add([this, L, allLineIdx]() { HighLightSyntax(m_pickingIndex, L.row + allLineIdx); });

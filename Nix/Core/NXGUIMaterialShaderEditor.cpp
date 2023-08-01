@@ -971,55 +971,7 @@ std::string NXGUIMaterialShaderEditor::GenerateNSLFunctionTitle(int index)
 	if (index < 0 && index >= m_nslFuncs.size()) return std::string();
 	if (index == 0) return "main()";
 
-	bool bInCommentLine = false;
-
-	// while 逐行读取文本
-	std::string strFunc = m_nslFuncs[index];
-	while (true)
-	{
-		std::size_t line_end = strFunc.find_first_of("\n\r", 0);
-		if (line_end == std::string::npos)
-			break;
-
-		std::string line = strFunc.substr(0, line_end);
-		strFunc = strFunc.substr(line_end + 1);
-
-		std::string lineNoComment;
-		if (!bInCommentLine)
-		{
-			// 提取无单行注释部分，即 "//" 之前的内容。
-			lineNoComment = line.substr(0, line.find("//"));
-			if (lineNoComment.empty()) continue;
-
-			// 查找是否有多行注释开头 "/*"。
-			// 如果有，进一步将 lineNoComment 分割成两部分
-			auto nCommentMultiLineStartPos = lineNoComment.find("/*");
-			if (nCommentMultiLineStartPos != std::string::npos)
-			{
-				lineNoComment = lineNoComment.substr(0, nCommentMultiLineStartPos);
-				bInCommentLine = true;
-			}
-		}
-		else
-		{
-			// 如果在多行注释中，则查找是否有多行注释结尾 "*/"。
-			// 如果有，则将 bInCommentLine 设置为 false，表示多行注释已结束。
-			auto commentPos = lineNoComment.find("*/");
-			if (commentPos != std::string::npos)
-			{
-				lineNoComment = lineNoComment.substr(commentPos + 2);
-				bInCommentLine = false;
-			}
-			else continue; // 如果在多行注释中，且没有多行注释结尾，则忽略此行。
-		}
-
-		if (lineNoComment.empty()) continue;
-
-		// 2023.7.29 默认去掉注释后的第一行文字内容是函数名。
-		return lineNoComment;
-	}
-
-	return "unknownFunction...";
+	return NXConvert::GetTitleOfFunctionData(m_nslFuncs[index]);
 }
 
 bool NXGUIMaterialShaderEditor::FindCBGUIData(const std::string& name, std::vector<NXGUICBufferData>::iterator& oIterator)

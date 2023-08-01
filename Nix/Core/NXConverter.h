@@ -17,6 +17,9 @@ std::string Trim(std::string& str);
 
 std::string GetPathOfImguiIni();
 
+// 从一段函数文本中提取出该函数的首行。这个主要是用于 HLSL 编译的
+std::string GetTitleOfFunctionData(const std::string& functionString);
+
 // 2023.5.31
 // 检测是否是 UNORM 格式的纹理
 bool IsUnormFormat(DXGI_FORMAT fmt);
