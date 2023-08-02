@@ -15,6 +15,8 @@ std::vector<std::vector<std::string>> const NXGUICodeEditor::s_hlsl_tokens =
     { "if", "else", "for", "while", "do", "switch", "case", "default", "break", "continue", "discard", "return" },
     // methods
     { "abort", "abs", "acos", "all", "AllMemoryBarrier", "AllMemoryBarrierWithGroupSync", "any", "asdouble", "asfloat", "asin", "asint", "asuint", "atan", "atan2", "ceil", "CheckAccessFullyMapped", "clamp", "clip", "cos", "cosh", "countbits", "cross", "D3DCOLORtoUBYTE4", "ddx", "ddx_coarse", "ddx_fine", "ddy", "ddy_coarse", "ddy_fine", "degrees", "determinant", "DeviceMemoryBarrier", "DeviceMemoryBarrierWithGroupSync", "distance", "dot", "dst", "errorf", "EvaluateAttributeCentroid", "EvaluateAttributeAtSample", "EvaluateAttributeSnapped", "exp", "exp2", "f16tof32", "f32tof16", "faceforward", "firstbithigh", "firstbitlow", "floor", "fma", "fmod", "frac", "frexp", "fwidth", "GetRenderTargetSampleCount", "GetRenderTargetSamplePosition", "GroupMemoryBarrier", "GroupMemoryBarrierWithGroupSync", "InterlockedAdd", "InterlockedAnd", "InterlockedCompareExchange", "InterlockedCompareStore", "InterlockedExchange", "InterlockedMax", "InterlockedMin", "InterlockedOr", "InterlockedXor", "isfinite", "isinf", "isnan", "ldexp", "length", "lerp", "lit", "log", "log10", "log2", "mad", "max", "min", "modf", "msad4", "mul", "noise", "normalize", "pow", "printf", "Process2DQuadTessFactorsAvg", "Process2DQuadTessFactorsMax", "Process2DQuadTessFactorsMin", "ProcessIsolineTessFactors", "ProcessQuadTessFactorsAvg", "ProcessQuadTessFactorsMax", "ProcessQuadTessFactorsMin", "ProcessTriTessFactorsAvg", "ProcessTriTessFactorsMax", "ProcessTriTessFactorsMin", "radians", "rcp", "reflect", "refract", "reversebits", "round", "rsqrt", "saturate", "sign", "sin", "sincos", "sinh", "smoothstep", "sqrt", "step", "tan", "tanh", "tex1D", "tex1Dgrad", "tex1Dlod", "tex1Dproj", "tex2D", "tex2Dgrad", "tex2Dlod", "tex2Dproj", "tex3D", "tex3Dgrad", "tex3Dlod", "tex3Dproj", "texCUBE", "texCUBEgrad", "texCUBElod", "texCUBEproj", "transpose", "trunc" },
+    // texture methods
+    { "CalculateLevelOfDetail", "CalculateLevelOfDetailUnclamped", "Gather", "GetDimensions", "GetSamplePosition", "Load", "Sample", "SampleLevel", "SampleBias", "SampleCmp", "SampleCmpLevelZero", "SampleGrad" },
 };
 
 std::vector<ImU32> NXGUICodeEditor::s_hlsl_token_color =
@@ -24,6 +26,7 @@ std::vector<ImU32> NXGUICodeEditor::s_hlsl_token_color =
        0xff00ffff, // types
        0xffff6fff, // conditional branches
        0xffffff4f, // methods
+       0xffdfff6f, // texture methods
 };
 
 NXGUICodeEditor::NXGUICodeEditor(ImFont* pFont) :
@@ -712,6 +715,12 @@ void NXGUICodeEditor::Copy()
     ImGui::SetClipboardText(clipBoardText.c_str());
 }
 
+void NXGUICodeEditor::Cut()
+{
+    Copy();
+    Backspace(true, false);
+}
+
 void NXGUICodeEditor::Paste()
 {
     std::string clipText = ImGui::GetClipboardText();
@@ -1274,8 +1283,9 @@ void NXGUICodeEditor::RenderTexts_OnMouseInputs()
             // 从当前位置开始向左右扫描，直到遇到空格或者换行符
             int left = col;
             int right = col;
-            while (left > 0 && lines[row][left] != ' ' && lines[row][left] != '\n') left--;
-            while (right < lines[row].size() && lines[row][right] != ' ' && lines[row][right] != '\n') right++;
+            
+            while (left > 0 && !IsWordSplitChar(lines[row][left]) && lines[row][left] != '\n') left--;
+            while (right < lines[row].size() && !IsWordSplitChar(lines[row][right]) && lines[row][right] != '\n') right++;
 
             if (!io.KeyAlt) ClearSelection();
 
@@ -1404,6 +1414,7 @@ void NXGUICodeEditor::RenderTexts_OnKeyInputs()
 
         bool bSelectAllCommand = bCtrl && ImGui::IsKeyPressed(ImGuiKey_A);
         bool bCopyCommand = bCtrl && ImGui::IsKeyPressed(ImGuiKey_C);
+        bool bCutCommand = bCtrl && ImGui::IsKeyPressed(ImGuiKey_X);
         bool bPasteCommand = bCtrl && ImGui::IsKeyPressed(ImGuiKey_V);
 
         bool bCtrlHomePressed = bCtrl && bKeyHomePressed;
@@ -1453,6 +1464,12 @@ void NXGUICodeEditor::RenderTexts_OnKeyInputs()
         else if (bCopyCommand)
         {
             Copy();
+            m_bResetFlickerDt = true;
+        }
+
+        else if (bCutCommand)
+        {
+            Cut();
             m_bResetFlickerDt = true;
         }
 
@@ -1692,7 +1709,7 @@ std::vector<NXGUICodeEditor::TextKeyword> NXGUICodeEditor::ExtractKeywords(const
         else if (!word.empty())
         {
             // 对于非字母或数字的字符，如果当前单词不为空，则添加到words列表中，并清空当前单词
-            words.push_back({ word, i - (int)word.length() });;
+            words.push_back({ word, i - (int)word.length() });
             word.clear();
         }
 

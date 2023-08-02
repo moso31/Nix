@@ -243,6 +243,7 @@ public:
     void Backspace(bool IsDelete, bool bCtrl);
     void Escape();
     void Copy();
+    void Cut();
     void Paste();
     void SelectAll();
 
