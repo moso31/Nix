@@ -554,7 +554,7 @@ inline void ImGui::FileBrowser::Display()
     if (Button("cancel") || closeFlag_ ||
         ((flags_ & ImGuiFileBrowserFlags_CloseOnEsc) &&
             IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
-            escIdx >= 0 && IsKeyPressed(escIdx)))
+            escIdx >= 0 && ImGui::IsKeyPressed(ImGuiKey_Escape)))
     {
         if (m_onCancel) m_onCancel();
         CloseCurrentPopup();
