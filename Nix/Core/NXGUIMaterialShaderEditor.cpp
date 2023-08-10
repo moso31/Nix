@@ -556,33 +556,33 @@ void NXGUIMaterialShaderEditor::Render_Params_ResourceOps(const std::string& str
 	}
 	ImGui::PopItemWidth();
 
+	float btnSize = 22.0f;
 	std::string strNameIdRemove = "-" + strNameId + "_remove";
-	if (ImGui::Button(strNameIdRemove.c_str(), ImVec2(20.0f, 20.0f))) { OnBtnRemoveParamClicked(btnParamType, index); }
+	if (ImGui::Button(strNameIdRemove.c_str(), ImVec2(btnSize, btnSize))) { OnBtnRemoveParamClicked(btnParamType, index); }
 	ImGui::SameLine();
 
 	std::string strNameIdMoveToFirst = "|<" + strNameId + "_move_to_first";
-	if (ImGui::Button(strNameIdMoveToFirst.c_str(), ImVec2(20.0f, 20.0f))) { OnBtnMoveParamToFirstClicked(btnParamType, index); }
+	if (ImGui::Button(strNameIdMoveToFirst.c_str(), ImVec2(btnSize, btnSize))) { OnBtnMoveParamToFirstClicked(btnParamType, index); }
 	ImGui::SameLine();
 
 	std::string strNameIdMoveToPrev = "<" + strNameId + "_move_to_prev";
-	if (ImGui::Button(strNameIdMoveToPrev.c_str(), ImVec2(20.0f, 20.0f))) { OnBtnMoveParamToPrevClicked(btnParamType, index); }
+	if (ImGui::Button(strNameIdMoveToPrev.c_str(), ImVec2(btnSize, btnSize))) { OnBtnMoveParamToPrevClicked(btnParamType, index); }
 	ImGui::SameLine();
 
 	std::string strNameIdMoveToNext = ">" + strNameId + "_move_to_next";
-	if (ImGui::Button(strNameIdMoveToNext.c_str(), ImVec2(20.0f, 20.0f))) { OnBtnMoveParamToNextClicked(btnParamType, index); }
+	if (ImGui::Button(strNameIdMoveToNext.c_str(), ImVec2(btnSize, btnSize))) { OnBtnMoveParamToNextClicked(btnParamType, index); }
 	ImGui::SameLine();
 
 	std::string strNameIdMoveToLast = ">|" + strNameId + "_move_to_last";
-	if (ImGui::Button(strNameIdMoveToLast.c_str(), ImVec2(20.0f, 20.0f))) { OnBtnMoveParamToLastClicked(btnParamType, index); }
+	if (ImGui::Button(strNameIdMoveToLast.c_str(), ImVec2(btnSize, btnSize))) { OnBtnMoveParamToLastClicked(btnParamType, index); }
 	ImGui::SameLine();
 
 	std::string strNameIdRevert = "Revert" + strNameId + "_revert";
-	if (ImGui::Button(strNameIdRevert.c_str())) 
+	if (ImGui::Button(strNameIdRevert.c_str(), ImVec2(0.0f, btnSize)))
 	{
 		OnBtnRevertParamClicked(pMaterial, btnParamType, index);
 		pMaterial->RequestUpdateCBufferData();
 	}
-	ImGui::SameLine();
 }
 
 void NXGUIMaterialShaderEditor::Render_Params_CBufferItem(const std::string& strId, NXCustomMaterial* pMaterial, NXGUICBufferData& cbDisplay)
