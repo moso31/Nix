@@ -670,6 +670,8 @@ void NXGUICodeEditor::Backspace(bool bDelete, bool bCtrl)
 
 void NXGUICodeEditor::Escape()
 {
+    if (m_selections.empty()) return;
+
     // 按 Esc 后，仅保留最后的 Selection，其它的清除。
     auto lastSel = m_selections.back();
     m_selections.assign(1, lastSel);
