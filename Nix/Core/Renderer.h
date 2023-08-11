@@ -45,6 +45,8 @@ public:
 
 	void Release();
 
+	void ClearAllPSResources();
+
 public:
 	NXSimpleSSAO*			GetSSAORenderer()			{ return m_pSSAO; }
 	NXShadowMapRenderer*	GetShadowMapRenderer()		{ return m_pShadowMapRenderer; }

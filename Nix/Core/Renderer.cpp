@@ -244,6 +244,12 @@ void Renderer::Release()
 	SafeRelease(m_scene);
 }
 
+void Renderer::ClearAllPSResources()
+{
+	ID3D11ShaderResourceView* const pNullSRV[64] = { nullptr };
+	g_pContext->PSSetShaderResources(0, 64, pNullSRV);
+}
+
 void Renderer::DrawDepthPrepass()
 {
 }

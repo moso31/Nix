@@ -44,8 +44,7 @@ void NXDeferredRenderer::Render()
 	g_pContext->RSSetState(m_pRasterizerState.Get());
 
 	auto pRTVScene = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_MainScene)->GetRTV();
-	auto pDSVSceneDepth = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ)->GetDSV();
-	g_pContext->OMSetRenderTargets(1, &pRTVScene, pDSVSceneDepth);
+	g_pContext->OMSetRenderTargets(1, &pRTVScene, nullptr);
 
 	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
@@ -103,6 +102,9 @@ void NXDeferredRenderer::Render()
 	g_pContext->PSSetShaderResources(8, 1, &pSRVShadowTest);
 
 	m_pResultRT->Render();
+
+	ID3D11ShaderResourceView* const pNullSRV[1] = { nullptr };
+	g_pContext->PSSetShaderResources(4, 1, pNullSRV);
 
 	g_pUDA->EndEvent();
 }
