@@ -69,7 +69,7 @@ void NXDeferredRenderer::Render()
 		auto pCubeMapSRV = pCubeMap->GetSRVCubeMap();
 		auto pPreFilterMapSRV = pCubeMap->GetSRVPreFilterMap();
 		auto pBRDF2DLUT = m_pBRDFLut->GetSRV();
-		g_pContext->PSSetShaderResources(4, 1, &pCubeMapSRV);
+		g_pContext->PSSetShaderResources(5, 1, &pCubeMapSRV);
 		g_pContext->PSSetShaderResources(6, 1, &pPreFilterMapSRV);
 		g_pContext->PSSetShaderResources(7, 1, &pBRDF2DLUT);
 
@@ -85,17 +85,19 @@ void NXDeferredRenderer::Render()
 	NXTexture2D* pGBufferRTC = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer2);
 	NXTexture2D* pGBufferRTD = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer3);
 
-	ID3D11ShaderResourceView* ppSRVs[4] = {
+	ID3D11ShaderResourceView* ppSRVs[] = {
 		pGBufferRTA->GetSRV(),
 		pGBufferRTB->GetSRV(),
 		pGBufferRTC->GetSRV(),
 		pGBufferRTD->GetSRV(),
+		pDepthZ->GetSRV(),
 	};
 
 	g_pContext->PSSetShaderResources(0, 1, &ppSRVs[0]);
 	g_pContext->PSSetShaderResources(1, 1, &ppSRVs[1]);
 	g_pContext->PSSetShaderResources(2, 1, &ppSRVs[2]);
 	g_pContext->PSSetShaderResources(3, 1, &ppSRVs[3]);
+	g_pContext->PSSetShaderResources(4, 1, &ppSRVs[4]);
 
 	auto pSRVShadowTest = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_ShadowTest)->GetSRV();
 	g_pContext->PSSetShaderResources(8, 1, &pSRVShadowTest);

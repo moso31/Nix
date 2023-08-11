@@ -117,7 +117,6 @@ void NXTextureResourceManager::ResizeCommonRT(const Vector2& rtSize)
 	// RT2:		Albedo					R10G10B10A2_UNORM
 	// RT3:		Metallic+Roughness+AO	R10G10B10A2_UNORM
 	// *注意：上述RT0、RT1现在用的是128位浮点数——这只是临时方案。RT2、RT3也有待商榷。
-
 	m_pCommonRT[NXCommonRT_GBuffer0] = CreateTexture2D("GBuffer RT0", DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
 	m_pCommonRT[NXCommonRT_GBuffer0]->AddRTV();
 	m_pCommonRT[NXCommonRT_GBuffer0]->AddSRV();

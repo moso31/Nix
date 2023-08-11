@@ -8,7 +8,8 @@ Texture2D txRT0 : register(t0);
 Texture2D txRT1 : register(t1);
 Texture2D txRT2 : register(t2);
 Texture2D txRT3 : register(t3);
-TextureCube txCubeMap : register(t4);
+Texture2D txRTDepth : register(t4);
+TextureCube txCubeMap : register(t5);
 TextureCube txPreFilterMap : register(t6);
 Texture2D txBRDF2DLUT : register(t7);
 Texture2D txShadowTest : register(t8);
@@ -19,7 +20,7 @@ SamplerState ssLinearClamp : register(s1);
 cbuffer ConstantBufferCamera : register(b1)
 {
 	float4 cameraParams0;
-	float4 cameraParams1;
+	float4 cameraParams1; // n, f, f / (f - n), -f * n / (f - n)
 	float4 cameraParams2;
 }
 
@@ -63,6 +64,13 @@ PS_INPUT VS(VS_INPUT input)
 	return output;
 }
 
+float DepthZ01ToLinear(float z01)
+{
+	float A = cameraParams1.z;
+	float B = cameraParams1.w;
+	return B / z01 - A;
+}
+
 float3 CalcBSDF(float NoV, float NoL, float NoH, float VoH, float roughness, float metallic, float3 albedo, float3 F0)
 {
 	float3 diffuse = DiffuseDisney(albedo, roughness, NoV, NoL, VoH);
@@ -93,6 +101,12 @@ float4 PS(PS_INPUT input) : SV_Target
 	float NoV = max(dot(N, V), 0.0);
 	float3 R = reflect(-V, N);
 	R = mul(R, (float3x3)m_viewTranspose);
+
+	// get depthZ
+	float depth = txRTDepth.Sample(ssLinearClamp, uv).x;
+	// convert depth to linear
+	float linearDepthZ = DepthZ01ToLinear(depth);
+	return float4(linearDepthZ.xxxx);
 
 	//return txCubeMap.Sample(ssLinearWrap, R);	// perfect reflection test
 
