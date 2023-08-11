@@ -72,11 +72,14 @@ private:
 	void OnShowFuncIndexChanged(int showFuncIndex);
 
 	void Render_Code(NXCustomMaterial* pMaterial);
+	void Render_FeaturePanel(NXCustomMaterial* pMaterial);
+	void Render_Complies(NXCustomMaterial* pMaterial);
 	void Render_Params(NXCustomMaterial* pMaterial);
 	void Render_Params_ResourceOps(const std::string& strNameId, NXCustomMaterial* pMaterial, BtnParamType btnParamType, int cbIndex);
 	void Render_Params_CBufferItem(const std::string& strId, NXCustomMaterial* pMaterial, NXGUICBufferData& cbDisplay);
 	void Render_Params_TextureItem(const int strId, NXCustomMaterial* pMaterial, NXGUITextureData& texDisplay, int texIndex);
 	void Render_Params_SamplerItem(const int strId, NXCustomMaterial* pMaterial, NXGUISamplerData& ssDisplay, int ssIndex);
+	void Render_Settings(NXCustomMaterial* pMaterial);
 	void Render_ErrorMessages();
 
 	void SyncMaterialData(NXCustomMaterial* pMaterial);

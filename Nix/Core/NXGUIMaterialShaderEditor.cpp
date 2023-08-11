@@ -40,7 +40,7 @@ void NXGUIMaterialShaderEditor::Render(NXCustomMaterial* pMaterial)
 		Render_Code(pMaterial);
 
 		ImGui::TableNextColumn();
-		Render_Params(pMaterial);
+		Render_FeaturePanel(pMaterial);
 
 		ImGui::EndTable(); // ##material_shader_editor_table
 	}
@@ -389,7 +389,28 @@ void NXGUIMaterialShaderEditor::Render_Code(NXCustomMaterial* pMaterial)
 	m_pGUICodeEditor->Render();
 }
 
-void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
+void NXGUIMaterialShaderEditor::Render_FeaturePanel(NXCustomMaterial* pMaterial)
+{
+	Render_Complies(pMaterial);
+
+	ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
+	if (ImGui::BeginTabBar("MyTabBar", tab_bar_flags))
+	{
+		if (ImGui::BeginTabItem("Parameters"))
+		{
+			Render_Params(pMaterial);
+			ImGui::EndTabItem();
+		}
+		if (ImGui::BeginTabItem("Settings"))
+		{
+			Render_Settings(pMaterial);
+			ImGui::EndTabItem();
+		}
+	}
+	ImGui::EndTabBar();
+}
+
+void NXGUIMaterialShaderEditor::Render_Complies(NXCustomMaterial* pMaterial)
 {
 	using namespace NXGUICommon;
 
@@ -456,6 +477,11 @@ void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
 
 		ImGui::EndPopup();
 	}
+}
+
+void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
+{
+	using namespace NXGUICommon;
 
 	ImGui::PushID("##material_shader_editor_custom_search");
 	ImGui::InputText("Search params", &m_strQuery);
@@ -843,6 +869,24 @@ void NXGUIMaterialShaderEditor::Render_Params_SamplerItem(const int strId, NXCus
 		}
 	}
 	ImGui::PopID();
+}
+
+void NXGUIMaterialShaderEditor::Render_Settings(NXCustomMaterial* pMaterial)
+{
+	const static char* lightingModes[] = { "StandardLit", "Unlit", "SSS(2009)" };
+	static int tempVal = 0;
+	if (ImGui::BeginCombo("Lighting model##material_shader_editor_settings", lightingModes[tempVal]))
+	{
+		for (int item = 0; item < IM_ARRAYSIZE(lightingModes); item++)
+		{
+			if (ImGui::Selectable(lightingModes[item]))
+			{
+				tempVal = item;
+				break;
+			}
+		}
+		ImGui::EndCombo();
+	}
 }
 
 void NXGUIMaterialShaderEditor::Render_ErrorMessages()
