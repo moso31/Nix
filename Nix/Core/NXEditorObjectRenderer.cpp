@@ -85,7 +85,7 @@ void NXEditorObjectRenderer::Render()
 						bool bIsHighLight = pSubMeshEditorObj->GetEditorObjectID() == m_pScene->GetEditorObjManager()->GetHighLightID();
 						m_cbDataParams.params.x = bIsHighLight ? 1.0f : 0.0f;
 						g_pContext->UpdateSubresource(m_cbParams.Get(), 0, nullptr, &m_cbDataParams, 0, 0);
-						g_pContext->PSSetConstantBuffers(1, 1, m_cbParams.GetAddressOf());
+						g_pContext->PSSetConstantBuffers(2, 1, m_cbParams.GetAddressOf());
 					}
 
 					pSubMeshEditorObj->UpdateViewParams();

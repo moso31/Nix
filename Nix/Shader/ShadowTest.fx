@@ -1,15 +1,15 @@
 #include "Common.fx"
+#include "Math.fx"
 
 #define TEST_ONLY_SIMPLE_SHADOWMAP 0
 #define TEST_SHOW_CASCADE_RANGE 0
 
 Texture2DArray txShadowMapDepth : register(t0);
 Texture2D txSceneDepth : register(t1);
-Texture2D txPosition : register(t2);
 
 SamplerState ssPointClamp : register(s0);
 
-cbuffer ConstantBufferShadowMapObject : register(b1)
+cbuffer ConstantBufferShadowMapObject : register(b2)
 {
 	matrix m_shadowMapView[8];
 	matrix m_shadowMapProj[8];
@@ -113,8 +113,15 @@ float4 PS(PS_INPUT input) : SV_Target
 {
 	float2 uv = input.tex;
 
+	// get depthZ
+	float depth = txSceneDepth.Sample(ssPointClamp, uv).x;
+	// convert depth to linear
+	float linearDepthZ = DepthZ01ToLinear(depth);
+	float3 ViewDirRawVS = GetViewDirVS_unNormalized(uv);
+	float3 PositionVS = ViewDirRawVS * linearDepthZ;
+
 	// get View-space position from GBuffer
-	float4 posVS = float4(txPosition.Sample(ssPointClamp, uv).xyz, 1.0f);
+	float4 posVS = float4(PositionVS, 1.0f);
 	float4 posWS = mul(posVS, m_viewInverse);
 	
 	int cascadeIndex = -1;

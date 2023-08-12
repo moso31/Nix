@@ -1,6 +1,6 @@
 #include "Common.fx"
 
-cbuffer CBufferParams : register(b1)
+cbuffer CBufferParams : register(b2)
 {
 	float4 param0;
 }

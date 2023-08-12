@@ -111,13 +111,7 @@ void NXTextureResourceManager::ResizeCommonRT(const Vector2& rtSize)
 	m_pCommonRT[NXCommonRT_ShadowTest]->AddRTV();
 	m_pCommonRT[NXCommonRT_ShadowTest]->AddSRV();
 
-	// 现行G-Buffer结构如下：
-	// RT0:		Position				R32G32B32A32_FLOAT
-	// RT1:		Normal					R32G32B32A32_FLOAT
-	// RT2:		Albedo					R10G10B10A2_UNORM
-	// RT3:		Metallic+Roughness+AO	R10G10B10A2_UNORM
-	// *注意：上述RT0、RT1现在用的是128位浮点数——这只是临时方案。RT2、RT3也有待商榷。
-	m_pCommonRT[NXCommonRT_GBuffer0] = CreateTexture2D("GBuffer RT0", DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
+	m_pCommonRT[NXCommonRT_GBuffer0] = CreateTexture2D("GBuffer RT0", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
 	m_pCommonRT[NXCommonRT_GBuffer0]->AddRTV();
 	m_pCommonRT[NXCommonRT_GBuffer0]->AddSRV();
 
@@ -129,7 +123,7 @@ void NXTextureResourceManager::ResizeCommonRT(const Vector2& rtSize)
 	m_pCommonRT[NXCommonRT_GBuffer2]->AddRTV();
 	m_pCommonRT[NXCommonRT_GBuffer2]->AddSRV();
 
-	m_pCommonRT[NXCommonRT_GBuffer3] = CreateTexture2D("GBuffer RT3", DXGI_FORMAT_R10G10B10A2_UNORM, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
+	m_pCommonRT[NXCommonRT_GBuffer3] = CreateTexture2D("GBuffer RT3", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
 	m_pCommonRT[NXCommonRT_GBuffer3]->AddRTV();
 	m_pCommonRT[NXCommonRT_GBuffer3]->AddSRV();
 

@@ -34,13 +34,6 @@ SamplerState ssLinearClamp : register(s1);
 SamplerState ssPointClamp : register(s2);
 #endif
 
-cbuffer ConstantBufferCamera : register(b1)
-{
-	float4 cameraParams0;
-	float4 cameraParams1;
-	float4 cameraParams2;
-}
-
 cbuffer ConstantBufferLight : register(b2)
 {
 	DistantLight m_dirLight[NUM_DISTANT_LIGHT];

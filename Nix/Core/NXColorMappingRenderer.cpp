@@ -59,7 +59,7 @@ void NXColorMappingRenderer::Render()
 	g_pContext->IASetInputLayout(m_pInputLayout.Get());
 	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
-	g_pContext->PSSetConstantBuffers(1, 1, m_cbParams.GetAddressOf());
+	g_pContext->PSSetConstantBuffers(2, 1, m_cbParams.GetAddressOf());
 
 	g_pContext->PSSetShaderResources(0, 1, &pSRVMainScene);
 

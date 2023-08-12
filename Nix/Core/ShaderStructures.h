@@ -98,6 +98,7 @@ struct ConstantBufferObject
 	Matrix worldView;
 	Matrix worldViewInverseTranspose;
 	Matrix projection;
+	Matrix projectionInverse;
 
 	ConstantBufferGlobalData globalData;
 };

@@ -187,6 +187,7 @@ void NXCamera::Update()
 	NXGlobalBufferManager::m_cbDataObject.viewInverseTranspose = m_mxViewInv;
 	NXGlobalBufferManager::m_cbDataObject.viewTranspose = m_mxView;
 	NXGlobalBufferManager::m_cbDataObject.projection = m_mxProjection.Transpose();
+	NXGlobalBufferManager::m_cbDataObject.projectionInverse = m_mxProjectionInv.Transpose();
 	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbObject.Get(), 0, nullptr, &NXGlobalBufferManager::m_cbDataObject, 0, 0);
 
 	NXGlobalBufferManager::m_cbDataCamera.Params0 = Vector4(m_rtSize.x, m_rtSize.y, 1.0f / m_rtSize.x, 1.0f / m_rtSize.y);

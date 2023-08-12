@@ -1,7 +1,7 @@
 Texture2D txRenderTarget : register(t0);
 SamplerState samLinear : register(s0);
 
-cbuffer CBufferParams : register(b1)
+cbuffer CBufferParams : register(b2)
 {
 	float4 param0; // x : enable;
 }

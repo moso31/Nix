@@ -2,7 +2,7 @@ Texture2D txRenderResult : register(t0);
 Texture2DArray txShadowMapDepth : register(t1);
 SamplerState ssPointClamp : register(s0);
 
-cbuffer CBufferParams : register(b1)
+cbuffer CBufferParams : register(b2)
 {
 	float4 RTSize;
 	float4 LayerParam0;

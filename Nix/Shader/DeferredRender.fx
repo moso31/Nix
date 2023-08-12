@@ -17,13 +17,6 @@ Texture2D txShadowTest : register(t8);
 SamplerState ssLinearWrap : register(s0);
 SamplerState ssLinearClamp : register(s1);
 
-cbuffer ConstantBufferCamera : register(b1)
-{
-	float4 cameraParams0;
-	float4 cameraParams1; // n, f, f / (f - n), -f * n / (f - n)
-	float4 cameraParams2;
-}
-
 cbuffer ConstantBufferLight : register(b2)
 {
 	DistantLight m_dirLight[NUM_DISTANT_LIGHT];
@@ -64,13 +57,6 @@ PS_INPUT VS(VS_INPUT input)
 	return output;
 }
 
-float DepthZ01ToLinear(float z01)
-{
-	float A = cameraParams1.z;
-	float B = cameraParams1.w;
-	return B / z01 - A;
-}
-
 float3 CalcBSDF(float NoV, float NoL, float NoH, float VoH, float roughness, float metallic, float3 albedo, float3 F0)
 {
 	float3 diffuse = DiffuseDisney(albedo, roughness, NoV, NoL, VoH);
@@ -93,20 +79,21 @@ float3 GetIndirectIrradiance(float3 v)
 float4 PS(PS_INPUT input) : SV_Target
 {
 	float2 uv = input.tex;
-	float a = txRT3.Sample(ssLinearWrap, uv).z;
-	//return float4(a.xxx, 1.0f);
-	float3 PositionVS = txRT0.Sample(ssLinearWrap, uv).xyz;
-	float3 N = txRT1.Sample(ssLinearWrap, uv).xyz;
-	float3 V = normalize(-PositionVS);
-	float NoV = max(dot(N, V), 0.0);
-	float3 R = reflect(-V, N);
-	R = mul(R, (float3x3)m_viewTranspose);
 
 	// get depthZ
 	float depth = txRTDepth.Sample(ssLinearClamp, uv).x;
 	// convert depth to linear
 	float linearDepthZ = DepthZ01ToLinear(depth);
-	return float4(linearDepthZ.xxxx);
+	float3 ViewDirRawVS = GetViewDirVS_unNormalized(uv);
+	float3 PositionVS = ViewDirRawVS * linearDepthZ;
+
+	float a = txRT3.Sample(ssLinearWrap, uv).z;
+	//return float4(a.xxx, 1.0f);
+	float3 N = txRT1.Sample(ssLinearWrap, uv).xyz;
+	float3 V = normalize(-PositionVS);
+	float NoV = max(dot(N, V), 0.0);
+	float3 R = reflect(-V, N);
+	R = mul(R, (float3x3)m_viewTranspose);
 
 	//return txCubeMap.Sample(ssLinearWrap, R);	// perfect reflection test
 

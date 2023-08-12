@@ -11,4 +11,4 @@ const static float NX_1DIVPI = 0.31830988618379067153776752674503;
 const static float NX_DEGTORED = NX_PI / 180.0f;
 const static float NX_REDTODEG = 180.0f / NX_PI;
 
-#endif // __MATH_UNITS__
+#endif // !__MATH_UNITS__

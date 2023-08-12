@@ -1,3 +1,6 @@
+#ifndef _BRDF_
+#define _BRDF_
+
 #include "BRDFCommon.fx"
 
 float D_GGX(float NoH, float roughness)
@@ -57,3 +60,5 @@ float3 ImportanceSampleGGX(float2 Xi, float Roughness, float3 N)
 	// Tangent to world space
 	return TangentX * H.x + TangentY * H.y + N * H.z;
 }
+
+#endif // !_BRDF_
