@@ -881,7 +881,7 @@ void NXGUIMaterialShaderEditor::Render_Settings(NXCustomMaterial* pMaterial)
 		{
 			if (ImGui::Selectable(lightingModes[item]))
 			{
-				tempVal = item;
+				pMaterial->SetShadingModel((NXShadingModel)item);
 				break;
 			}
 		}

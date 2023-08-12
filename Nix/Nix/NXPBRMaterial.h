@@ -4,6 +4,14 @@
 #include "NXTexture.h"
 #include "NXShaderDefinitions.h"
 
+enum class NXShadingModel
+{
+	None,
+	StandardLit,
+	Unlit,
+	SubSurface,
+};
+
 class NXEasyMaterial;
 class NXCustomMaterial;
 class NXMaterial : public NXSerializable
@@ -22,6 +30,9 @@ public:
 
 	const std::filesystem::path& GetFilePath() { return m_filePath; }
 	size_t GetFilePathHash() { return std::filesystem::hash_value(m_filePath); }
+
+	NXShadingModel GetShadingModel() { return m_shadingModel; }
+	void SetShadingModel(NXShadingModel shadingModel) { m_shadingModel = shadingModel; }
 
 	ID3D11Buffer* GetConstantBuffer() const { return m_cb.Get(); }
 
@@ -43,6 +54,9 @@ protected:
 
 	// 材质文件路径
 	std::filesystem::path m_filePath;
+
+	// 着色模型
+	NXShadingModel m_shadingModel = NXShadingModel::StandardLit;
 
 private:
 	// 映射表，记录哪些Submesh使用了这个材质
