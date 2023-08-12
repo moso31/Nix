@@ -132,9 +132,6 @@
     <None Include="Shader\DeferredRender.fx">
       <Filter>Shader\Renderer</Filter>
     </None>
-    <None Include="Shader\GBufferEasy.fx">
-      <Filter>Shader\Renderer</Filter>
-    </None>
     <None Include="Shader\Math.fx">
       <Filter>Shader\Math</Filter>
     </None>
