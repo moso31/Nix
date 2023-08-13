@@ -15,7 +15,6 @@ Selfmade DX11 renderer.
   - [x] Used this HLSL code editor: https://github.com/moso31/DonoText
 
 ## Intending...
-- [ ] Customable material **\[IN PROGRESS\]**
 - [ ] SSS
   - [ ] Screen-Space SSSS **\[IN PROGRESS\]**
   - [ ] Separable SSS
