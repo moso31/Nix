@@ -75,8 +75,14 @@ struct NXCBufferSets
 
 struct NXMaterialCBufferInfo
 {
+	// elems: 材质的各种参数。
     std::vector<NXCBufferElem> elems;
+
+	// sets: 材质的各种属性
+	// 2023.8.13 目前这里只记录了使用的光照模型。将来可能有更多扩展，比如背面剔除啥的。
 	NXCBufferSets sets;
+
+	// 上述所有元素将会存在同一个 cbuffer 中。
     UINT slotIndex;
 };
 
