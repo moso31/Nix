@@ -1,3 +1,6 @@
+#ifndef _SHIRRADIANCECOMMON_
+#define _SHIRRADIANCECOMMON_
+
 const static float g_SHFactor[] =
 {
 	0.28209479177387814347403972578039,
@@ -49,3 +52,5 @@ float3 GetIrradiance(float3 v, float4 m_irradSH0123x, float4 m_irradSH4567x, flo
 
 	return intensity;
 }
+
+#endif // !_SHIRRADIANCECOMMON_

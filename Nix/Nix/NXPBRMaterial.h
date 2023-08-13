@@ -4,6 +4,14 @@
 #include "NXTexture.h"
 #include "NXShaderDefinitions.h"
 
+enum class NXShadingModel
+{
+	None,
+	StandardLit,
+	Unlit,
+	SubSurface,
+};
+
 class NXEasyMaterial;
 class NXCustomMaterial;
 class NXMaterial : public NXSerializable
@@ -25,6 +33,8 @@ public:
 
 	ID3D11Buffer* GetConstantBuffer() const { return m_cb.Get(); }
 
+	virtual void SetShadingModel(NXShadingModel shadingModel) {}
+
 	virtual void Update() = 0;
 	virtual void Render() = 0;
 	virtual void Release() = 0;
@@ -43,6 +53,9 @@ protected:
 
 	// 材质文件路径
 	std::filesystem::path m_filePath;
+
+	// 着色模型
+	NXShadingModel m_shadingModel = NXShadingModel::StandardLit;
 
 private:
 	// 映射表，记录哪些Submesh使用了这个材质
@@ -96,9 +109,9 @@ public:
 	// 将 NSL 转换为 HLSL。
 	void ConvertNSLToHLSL(std::string& oHLSLHead, std::vector<std::string>& oHLSLFuncs, std::string& oHLSLBody);
 	// 将 NSL 转换为 HLSL。另外将 GUI 修改后的参数也传了进来，这些 GUI 参数将作为新编译后的 Shader 的默认值。
-	void ConvertGUIDataToHLSL(std::string& oHLSLHead, std::vector<std::string>& oHLSLFuncs, std::string& oHLSLBody, const std::vector<NXGUICBufferData>& cbDataGUI, const std::vector<NXGUITextureData>& texDataGUI, const std::vector<NXGUISamplerData>& samplerDataGUI);
+	void ConvertGUIDataToHLSL(std::string& oHLSLHead, std::vector<std::string>& oHLSLFuncs, std::string& oHLSLBody, const std::vector<NXGUICBufferData>& cbDataGUI, const NXGUICBufferSetsData& cbSettingsDataGUI, const std::vector<NXGUITextureData>& texDataGUI, const std::vector<NXGUISamplerData>& samplerDataGUI);
 	bool CompileShader(const std::string& strGBufferShader, std::string& oErrorMessageVS, std::string& oErrorMessagePS);
-	bool Recompile(const std::string& nslParams, const std::vector<std::string>& nslFuncs, const std::vector<std::string>& nslTitles, const std::vector<NXGUICBufferData>& cbDefaultValues, const std::vector<NXGUITextureData>& texDefaultValues, const std::vector<NXGUISamplerData>& samplerDefaultValues, std::vector<NXHLSLCodeRegion>& oShaderFuncRegions, std::string& oErrorMessageVS, std::string& oErrorMessagePS);
+	bool Recompile(const std::string& nslParams, const std::vector<std::string>& nslFuncs, const std::vector<std::string>& nslTitles, const std::vector<NXGUICBufferData>& cbDefaultValues, const NXGUICBufferSetsData& cbSettingDefaultValues, const std::vector<NXGUITextureData>& texDefaultValues, const std::vector<NXGUISamplerData>& samplerDefaultValues, std::vector<NXHLSLCodeRegion>& oShaderFuncRegions, std::string& oErrorMessageVS, std::string& oErrorMessagePS);
 
 	// 初始化所有着色器资源，包括 cb, tex, sampler
 	void InitShaderResources();
@@ -118,6 +131,9 @@ public:
 
 	UINT GetCBufferElemCount() { return UINT(m_cbInfo.elems.size()); }
 	const NXCBufferElem& GetCBufferElem(UINT index) { return m_cbInfo.elems[index]; }
+
+	virtual void SetShadingModel(NXShadingModel shadingModel) { m_cbInfo.sets.shadingModel = (UINT)shadingModel; }
+	const NXCBufferSets& GetCBufferSets() { return m_cbInfo.sets; }
 
 	UINT GetTextureCount() { return UINT(m_texInfos.size()); }
 	NXTexture* GetTexture(UINT index) { return m_texInfos[index].pTexture; }
@@ -162,11 +178,12 @@ private:
 		const std::string& nslParams,
 		std::string& oHLSLHeadCode,
 		const std::vector<NXGUICBufferData>& cbDefaultValues = {},
+		const NXGUICBufferSetsData& cbSettingDefaultValues = {},
 		const std::vector<NXGUITextureData>& texDefaultValues = {},
 		const std::vector<NXGUISamplerData>& samplerDefaultValues = {}
 	);
 
-	void ProcessShaderCBufferParam(std::istringstream& in, std::ostringstream& out, const std::vector<NXGUICBufferData>& cbDefaultValues = {});
+	void ProcessShaderCBufferParam(std::istringstream& in, std::ostringstream& out, const std::vector<NXGUICBufferData>& cbDefaultValues = {}, const NXGUICBufferSetsData& cbSettingDefaultValues = {});
 
 	// 将 nsl 的主函数 转换成 DX 可以编译的 hlsl 代码，
 	void ProcessShaderMainFunc(std::string& oHLSLBodyCode);

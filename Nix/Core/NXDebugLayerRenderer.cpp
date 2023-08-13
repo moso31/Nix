@@ -78,7 +78,7 @@ void NXDebugLayerRenderer::Render()
 
 	auto pSampler = NXSamplerManager::Get(NXSamplerFilter::Point, NXSamplerAddressMode::Clamp);
 	g_pContext->PSSetSamplers(0, 1, &pSampler);
-	g_pContext->PSSetConstantBuffers(1, 1, m_cbParams.GetAddressOf());
+	g_pContext->PSSetConstantBuffers(2, 1, m_cbParams.GetAddressOf());
 
 	NXTexture2D* pSceneInputTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_PostProcessing);
 	auto pSRVRenderResult = pSceneInputTex->GetSRV();

@@ -104,11 +104,11 @@ void NXCustomMaterial::ConvertNSLToHLSL(std::string& oHLSLHead, std::vector<std:
 	ProcessShaderMainFunc(oHLSLBody);
 }
 
-void NXCustomMaterial::ConvertGUIDataToHLSL(std::string& oHLSLHead, std::vector<std::string>& oHLSLFuncs, std::string& oHLSLBody, const std::vector<NXGUICBufferData>& cbDefaultValues, const std::vector<NXGUITextureData>& texDefaultValues, const std::vector<NXGUISamplerData>& samplerDefaultValues)
+void NXCustomMaterial::ConvertGUIDataToHLSL(std::string& oHLSLHead, std::vector<std::string>& oHLSLFuncs, std::string& oHLSLBody, const std::vector<NXGUICBufferData>& cbDefaultValues, const NXGUICBufferSetsData& cbSettingsDataGUI, const std::vector<NXGUITextureData>& texDefaultValues, const std::vector<NXGUISamplerData>& samplerDefaultValues)
 {
 	// 将 nsl params 转换成 DX 可以编译的 hlsl 代码，
 	// 同时对其进行分拣，将 cb 储存到 m_cbInfo，纹理储存到 m_texInfoMap，采样器储存到 m_ssInfoMap
-	ProcessShaderParameters(m_nslParams, oHLSLHead, cbDefaultValues, texDefaultValues, samplerDefaultValues);
+	ProcessShaderParameters(m_nslParams, oHLSLHead, cbDefaultValues, cbSettingsDataGUI, texDefaultValues, samplerDefaultValues);
 
 	// 将 nsl funcs 转换成 DX 可以编译的 hlsl 代码
 	ProcessShaderFunctions(m_nslFuncs, oHLSLFuncs);
@@ -135,7 +135,7 @@ bool NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::s
 	return true;
 }
 
-bool NXCustomMaterial::Recompile(const std::string& nslParams, const std::vector<std::string>& nslFuncs, const std::vector<std::string>& nslTitles, const std::vector<NXGUICBufferData>& cbDefaultValues, const std::vector<NXGUITextureData>& texDefaultValues, const std::vector<NXGUISamplerData>& samplerDefaultValues, std::vector<NXHLSLCodeRegion>& oShaderFuncRegions, std::string& oErrorMessageVS, std::string& oErrorMessagePS)
+bool NXCustomMaterial::Recompile(const std::string& nslParams, const std::vector<std::string>& nslFuncs, const std::vector<std::string>& nslTitles, const std::vector<NXGUICBufferData>& cbDefaultValues, const NXGUICBufferSetsData& cbSettingDefaultValues, const std::vector<NXGUITextureData>& texDefaultValues, const std::vector<NXGUISamplerData>& samplerDefaultValues, std::vector<NXHLSLCodeRegion>& oShaderFuncRegions, std::string& oErrorMessageVS, std::string& oErrorMessagePS)
 {
 	// 备份材质信息，方便编译失败时还原数据
 	GenerateInfoBackup();
@@ -149,7 +149,7 @@ bool NXCustomMaterial::Recompile(const std::string& nslParams, const std::vector
 	// 将 NSL 转换成 HLSL
 	std::string strHLSLHead, strHLSLBody;
 	std::vector<std::string> strHLSLFuncs;
-	ConvertGUIDataToHLSL(strHLSLHead, strHLSLFuncs, strHLSLBody, cbDefaultValues, texDefaultValues, samplerDefaultValues);
+	ConvertGUIDataToHLSL(strHLSLHead, strHLSLFuncs, strHLSLBody, cbDefaultValues, cbSettingDefaultValues, texDefaultValues, samplerDefaultValues);
 
 	// 将 HLSL 组合成 GBuffer!
 	std::string strGBufferShader;
@@ -177,6 +177,7 @@ void NXCustomMaterial::InitShaderResources()
 void NXCustomMaterial::UpdateCBData()
 {
 	auto& cbElems = m_cbInfo.elems;
+	auto& cbSets = m_cbInfo.sets;
 
 	int cbArraySize = 0;
 	for (int i = 0; i < cbElems.size(); i++)
@@ -184,6 +185,8 @@ void NXCustomMaterial::UpdateCBData()
 		auto& cb = cbElems[m_cbSortedIndex[i]];
 		cbArraySize += (int)cb.type;
 	}
+	cbArraySize += (4 - cbArraySize % 4) % 4;	// 16 bytes align
+	cbArraySize += sizeof(NXCBufferSets);
 	cbArraySize += (4 - cbArraySize % 4) % 4;	// 16 bytes align
 
 	m_cbData.clear();
@@ -221,6 +224,12 @@ void NXCustomMaterial::UpdateCBData()
 			break;
 		}
 	}
+	while (m_cbData.size() % 4 != 0) m_cbData.push_back(0); // 16 bytes align
+
+	// sets
+	auto shadingModel_floatCast = *(reinterpret_cast<float*>(&cbSets.shadingModel));
+	m_cbData.push_back(shadingModel_floatCast);
+	while (m_cbData.size() % 4 != 0) m_cbData.push_back(0); // 16 bytes align
 
 	// 基于 m_cbData 创建常量缓冲区
 	D3D11_BUFFER_DESC bufferDesc;
@@ -433,6 +442,11 @@ void NXCustomMaterial::Serialize()
 	}
 	serializer.EndArray();
 
+	// cbuffer sets
+	{
+		serializer.Uint("shadingModel", m_cbInfo.sets.shadingModel);
+	}
+
 	serializer.EndObject();
 
 	serializer.SaveToFile(n0Path.c_str());
@@ -504,6 +518,9 @@ void NXCustomMaterial::Deserialize()
 					}
 				}
 			}
+
+			auto& cbSets = m_cbInfo.sets;
+			cbSets.shadingModel = deserializer.Uint("shadingModel");
 		}
 	}
 }
@@ -577,7 +594,7 @@ void NXCustomMaterial::ExtractShaderData(const std::string& shader, std::string&
 	}
 }
 
-void NXCustomMaterial::ProcessShaderParameters(const std::string& nslParams, std::string& oHLSLHeadCode, const std::vector<NXGUICBufferData>& cbDefaultValues, const std::vector<NXGUITextureData>& texDefaultValues, const std::vector<NXGUISamplerData>& samplerDefaultValues)
+void NXCustomMaterial::ProcessShaderParameters(const std::string& nslParams, std::string& oHLSLHeadCode, const std::vector<NXGUICBufferData>& cbDefaultValues, const NXGUICBufferSetsData& cbSettingDefaultValues, const std::vector<NXGUITextureData>& texDefaultValues, const std::vector<NXGUISamplerData>& samplerDefaultValues)
 {
 	using namespace NXConvert;
 
@@ -663,7 +680,7 @@ void NXCustomMaterial::ProcessShaderParameters(const std::string& nslParams, std
 				std::ostringstream strMatStruct;
 				strMatStruct << "struct " << strMatName.str();
 				strMatStruct << "\n{\n";
-				ProcessShaderCBufferParam(in, strMatStruct, cbDefaultValues);
+				ProcessShaderCBufferParam(in, strMatStruct, cbDefaultValues, cbSettingDefaultValues);
 				strMatStruct << "};\n";
 
 				out << strMatStruct.str();
@@ -732,11 +749,12 @@ void NXCustomMaterial::ProcessShaderParameters(const std::string& nslParams, std
 	oHLSLHeadCode = std::move(out.str());
 }
 
-void NXCustomMaterial::ProcessShaderCBufferParam(std::istringstream& in, std::ostringstream& out, const std::vector<NXGUICBufferData>& cbDefaultValues)
+void NXCustomMaterial::ProcessShaderCBufferParam(std::istringstream& in, std::ostringstream& out, const std::vector<NXGUICBufferData>& cbDefaultValues, const NXGUICBufferSetsData& cbSettingDefaultValues)
 {
 	using namespace NXConvert;
 
 	auto& cbElems = m_cbInfo.elems;
+	auto& cbSets = m_cbInfo.sets;
 
 	std::istringstream inRecord(in.str());
 	std::string line;
@@ -849,22 +867,39 @@ void NXCustomMaterial::ProcessShaderCBufferParam(std::istringstream& in, std::os
 		}
 	}
 
+	cbSets = cbSettingDefaultValues.data;
+
 	SortShaderCBufferParam();
 
 	// 给 CBuffer 填充变量
+	int byteOffset = 0;
+	out << "\t// params" << "\n"; // 加个注释方便调试
 	for (int i = 0; i < m_cbSortedIndex.size(); i++)
 	{
-		auto cb = cbElems[m_cbSortedIndex[i]];
+		const auto& cb = cbElems[m_cbSortedIndex[i]];
 		switch (cb.type)
 		{
-		case NXCBufferInputType::Float:    out << "\tfloat "; break;
-		case NXCBufferInputType::Float2:   out << "\tfloat2 "; break;
-		case NXCBufferInputType::Float3:   out << "\tfloat3 "; break;
-		case NXCBufferInputType::Float4:   out << "\tfloat4 "; break;
+		case NXCBufferInputType::Float:    out << "\tfloat ";  byteOffset += (int)cb.type;	break;
+		case NXCBufferInputType::Float2:   out << "\tfloat2 "; byteOffset += (int)cb.type;	break;
+		case NXCBufferInputType::Float3:   out << "\tfloat3 "; byteOffset += (int)cb.type;	break;
+		case NXCBufferInputType::Float4:   out << "\tfloat4 "; byteOffset += (int)cb.type;	break;
 		default: break;
 		}
 		out << cb.name << ";\n";
 	}
+
+	// 16字节对齐
+	if (byteOffset % 4)
+	{
+		int paddingBytes = 4 - byteOffset % 4;
+		out << "\tfloat";
+		if (paddingBytes > 1) out << std::to_string(paddingBytes);
+		out << " _padding;\n";
+	}
+
+	out << "\n";
+	out << "\t// settings" << "\n"; // 加个注释方便调试
+	out << "\tfloat shadingModel;\n";
 }
 
 void NXCustomMaterial::ProcessShaderMainFunc(std::string& oHLSLBodyCode)

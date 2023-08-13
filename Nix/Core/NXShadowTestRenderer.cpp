@@ -34,7 +34,6 @@ void NXShadowTestRenderer::Render(NXTexture2DArray* pShadowMapDepthTex)
 
 	auto pSRVSceneDepth = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ)->GetSRV();
 	auto pSRVShadowDepth = pShadowMapDepthTex->GetSRV();
-	auto pSRVScenePosition = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer0)->GetSRV();
 	auto pRTVShadowTest = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_ShadowTest)->GetRTV();
 	g_pContext->ClearRenderTargetView(pRTVShadowTest, Colors::Black);
 	g_pContext->OMSetRenderTargets(1, &pRTVShadowTest, nullptr);
@@ -45,9 +44,8 @@ void NXShadowTestRenderer::Render(NXTexture2DArray* pShadowMapDepthTex)
 
 	g_pContext->PSSetShaderResources(0, 1, &pSRVShadowDepth);
 	g_pContext->PSSetShaderResources(1, 1, &pSRVSceneDepth);
-	g_pContext->PSSetShaderResources(2, 1, &pSRVScenePosition);
-	g_pContext->VSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbShadowTest.GetAddressOf());
-	g_pContext->PSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbShadowTest.GetAddressOf());
+	g_pContext->VSSetConstantBuffers(2, 1, NXGlobalBufferManager::m_cbShadowTest.GetAddressOf());
+	g_pContext->PSSetConstantBuffers(2, 1, NXGlobalBufferManager::m_cbShadowTest.GetAddressOf());
 
 	auto pSampler = NXSamplerManager::Get(NXSamplerFilter::Point, NXSamplerAddressMode::Border);
 	g_pContext->PSSetSamplers(0, 1, &pSampler);

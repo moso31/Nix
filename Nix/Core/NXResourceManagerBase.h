@@ -10,10 +10,10 @@ enum NXCommonRTEnum
     NXCommonRT_ShadowTest,
 
     // 现行G-Buffer结构如下：
-    // RT0:		Position				R32G32B32A32_FLOAT
-    // RT1:		Normal					R32G32B32A32_FLOAT
-    // RT2:		Albedo					R10G10B10A2_UNORM
-    // RT3:		Metallic+Roughness+AO	R10G10B10A2_UNORM
+    // RT0:		CustomData				        R8G8B8A8_UNORM
+    // RT1:		Normal					        R32G32B32A32_FLOAT
+    // RT2:		Albedo					        R10G10B10A2_UNORM
+    // RT3:		Metallic, Roughness, AO, flags	R8G8B8A8_UNORM
     NXCommonRT_GBuffer0,
     NXCommonRT_GBuffer1,
     NXCommonRT_GBuffer2,

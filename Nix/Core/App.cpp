@@ -67,9 +67,7 @@ void App::Draw()
 	m_pDXResources->PrepareToRenderGUI();
 	m_pRenderer->RenderGUI();
 
-	// clear SRV.
-	ID3D11ShaderResourceView* const pNullSRV[16] = { nullptr };
-	g_pContext->PSSetShaderResources(0, 16, pNullSRV);
+	m_pRenderer->ClearAllPSResources();
 
 	//// Present() 向用户呈现渲染图像。
 	//// 在Present之前，将所有GPU队列中的内容全部执行完，否则可能会出现渲染问题。

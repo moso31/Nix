@@ -100,6 +100,16 @@ size_t NXDeserializer::Uint64(const std::string& key, const size_t defaultValue)
 	return defaultValue;
 }
 
+uint32_t NXDeserializer::Uint(const std::string& key, const uint32_t defaultValue)
+{
+	if (m_reader.HasMember(key.c_str()))
+	{
+		auto& val = m_reader[key.c_str()];
+		if (val.IsUint()) return val.GetUint();
+	}
+	return defaultValue;
+}
+
 int NXDeserializer::Int(const std::string& key, const int defaultValue)
 {
 	if (m_reader.HasMember(key.c_str()))
@@ -146,6 +156,16 @@ size_t NXDeserializer::Uint64(const rapidjson::Value& parent, const std::string&
 	{
 		auto& val = parent[key.c_str()];
 		if (val.IsUint64()) return val.GetUint64();
+	}
+	return defaultValue;
+}
+
+uint32_t NXDeserializer::Uint(const rapidjson::Value& parent, const std::string& key, const uint32_t defaultValue)
+{
+	if (parent.HasMember(key.c_str()))
+	{
+		auto& val = parent[key.c_str()];
+		if (val.IsUint()) return val.GetUint();
 	}
 	return defaultValue;
 }

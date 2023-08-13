@@ -20,7 +20,7 @@ cbuffer CBuffer : register(b3)
 	CBufferLoading m_material;
 }
 
-TriplanarUV GetTriplanarUV(float3 position) 
+TriplanarUV GetTriplanarUV(float3 position)
 {
 	TriplanarUV triUV;
 	float3 p = position;

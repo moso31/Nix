@@ -15,11 +15,12 @@ int NXHLSLGenerator::GetLineCount(const std::string& str)
 
 void NXHLSLGenerator::EncodeToGBufferShader(const std::string& strHLSLParam, const std::vector<std::string>& strHLSLFuncs, const std::vector<std::string>& strHLSLTitles, const std::string& strHLSLBody, std::string& oHLSLFinal, std::vector<NXHLSLCodeRegion>& oHLSLFuncRegions)
 {
-    auto strInclude = R"(#include "Common.fx"
+	std::string strInclude = R"(#include "Common.fx"
 #include "Math.fx"
 )";
 
-	auto strIOStruct = R"(struct VS_INPUT
+	std::string strIOStruct = R"(
+struct VS_INPUT
 {
 	float4 pos : POSITION;
 	float3 norm : NORMAL;
@@ -58,12 +59,25 @@ PS_INPUT VS(VS_INPUT input)
 	output.tangentVS = normalize(mul(input.tangent, (float3x3)m_worldViewInverseTranspose));
 	return output;
 }
+
+void EncodeGBuffer(NXGBufferParams gBuffer, out PS_OUTPUT Output)
+{
+	Output.GBufferA = float4(1.0f, 1.0f, 1.0f, 1.0f);
+	Output.GBufferB = float4(gBuffer.normal, 1.0f);
+	Output.GBufferC = float4(gBuffer.albedo, 1.0f);
+	Output.GBufferD = float4(gBuffer.roughness, gBuffer.metallic, gBuffer.ao, asuint(m.shadingModel));
+}
 )";
 
-	auto strPSBegin = R"(void PS(PS_INPUT input, out PS_OUTPUT Output)
+	std::string strGBufferOutType = "GBuffer_StandardLit";
+	std::string strPSBegin = R"(
+void PS(PS_INPUT input, out PS_OUTPUT Output)
 {
+    NXGBufferParams o;
 )";
-    auto strPSEnd = R"(
+
+	std::string strPSEnd = R"(
+    EncodeGBuffer(o, Output);
 }
 )";
 

@@ -40,7 +40,7 @@ void NXGUIMaterialShaderEditor::Render(NXCustomMaterial* pMaterial)
 		Render_Code(pMaterial);
 
 		ImGui::TableNextColumn();
-		Render_Params(pMaterial);
+		Render_FeaturePanel(pMaterial);
 
 		ImGui::EndTable(); // ##material_shader_editor_table
 	}
@@ -227,7 +227,7 @@ bool NXGUIMaterialShaderEditor::OnBtnCompileClicked(NXCustomMaterial* pMaterial)
 	UpdateNSLFunctions();
 
 	std::string strErrVS, strErrPS;	// 若编译Shader出错，将错误信息记录到此字符串中。
-	bool bCompile = pMaterial->Recompile(nslParams, m_nslFuncs, m_nslTitles, m_cbInfosDisplay, m_texInfosDisplay, m_ssInfosDisplay, m_HLSLFuncRegions, strErrVS, strErrPS);
+	bool bCompile = pMaterial->Recompile(nslParams, m_nslFuncs, m_nslTitles, m_cbInfosDisplay, m_cbSettingsDisplay, m_texInfosDisplay, m_ssInfosDisplay, m_HLSLFuncRegions, strErrVS, strErrPS);
 	
 	if (bCompile)
 	{
@@ -389,7 +389,28 @@ void NXGUIMaterialShaderEditor::Render_Code(NXCustomMaterial* pMaterial)
 	m_pGUICodeEditor->Render();
 }
 
-void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
+void NXGUIMaterialShaderEditor::Render_FeaturePanel(NXCustomMaterial* pMaterial)
+{
+	Render_Complies(pMaterial);
+
+	ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
+	if (ImGui::BeginTabBar("MyTabBar", tab_bar_flags))
+	{
+		if (ImGui::BeginTabItem("Parameters"))
+		{
+			Render_Params(pMaterial);
+			ImGui::EndTabItem();
+		}
+		if (ImGui::BeginTabItem("Settings"))
+		{
+			Render_Settings(pMaterial);
+			ImGui::EndTabItem();
+		}
+	}
+	ImGui::EndTabBar();
+}
+
+void NXGUIMaterialShaderEditor::Render_Complies(NXCustomMaterial* pMaterial)
 {
 	using namespace NXGUICommon;
 
@@ -456,6 +477,11 @@ void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
 
 		ImGui::EndPopup();
 	}
+}
+
+void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
+{
+	using namespace NXGUICommon;
 
 	ImGui::PushID("##material_shader_editor_custom_search");
 	ImGui::InputText("Search params", &m_strQuery);
@@ -845,6 +871,24 @@ void NXGUIMaterialShaderEditor::Render_Params_SamplerItem(const int strId, NXCus
 	ImGui::PopID();
 }
 
+void NXGUIMaterialShaderEditor::Render_Settings(NXCustomMaterial* pMaterial)
+{
+	const static char* lightingModes[] = { "StandardLit", "Unlit", "SSS(2009)" };
+	UINT& shadingModel = m_cbSettingsDisplay.data.shadingModel;
+	if (ImGui::BeginCombo("Lighting model##material_shader_editor_settings", lightingModes[shadingModel]))
+	{
+		for (UINT item = 0; item < IM_ARRAYSIZE(lightingModes); item++)
+		{
+			if (ImGui::Selectable(lightingModes[item]))
+			{
+				shadingModel = item;
+				break;
+			}
+		}
+		ImGui::EndCombo();
+	}
+}
+
 void NXGUIMaterialShaderEditor::Render_ErrorMessages()
 {
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.f, 0.f));
@@ -909,6 +953,10 @@ void NXGUIMaterialShaderEditor::SyncMaterialData(NXCustomMaterial* pMaterial)
 		Vector2 guiParams = pMaterial->GetCBGUIParams(i);
 
 		m_cbInfosDisplay.push_back({ cbElem.name, cbElem.type, cbDataDisplay, guiStyle, guiParams, cbElem.memoryIndex });
+	}
+
+	{
+		m_cbSettingsDisplay.data = pMaterial->GetCBufferSets();
 	}
 
 	for (auto& texDisplay : m_texInfosDisplay)
