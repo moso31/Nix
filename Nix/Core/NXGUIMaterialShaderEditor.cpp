@@ -227,7 +227,7 @@ bool NXGUIMaterialShaderEditor::OnBtnCompileClicked(NXCustomMaterial* pMaterial)
 	UpdateNSLFunctions();
 
 	std::string strErrVS, strErrPS;	// 若编译Shader出错，将错误信息记录到此字符串中。
-	bool bCompile = pMaterial->Recompile(nslParams, m_nslFuncs, m_nslTitles, m_cbInfosDisplay, m_texInfosDisplay, m_ssInfosDisplay, m_HLSLFuncRegions, strErrVS, strErrPS);
+	bool bCompile = pMaterial->Recompile(nslParams, m_nslFuncs, m_nslTitles, m_cbInfosDisplay, m_cbSettingsDisplay, m_texInfosDisplay, m_ssInfosDisplay, m_HLSLFuncRegions, strErrVS, strErrPS);
 	
 	if (bCompile)
 	{
@@ -874,14 +874,14 @@ void NXGUIMaterialShaderEditor::Render_Params_SamplerItem(const int strId, NXCus
 void NXGUIMaterialShaderEditor::Render_Settings(NXCustomMaterial* pMaterial)
 {
 	const static char* lightingModes[] = { "StandardLit", "Unlit", "SSS(2009)" };
-	static int tempVal = 0;
-	if (ImGui::BeginCombo("Lighting model##material_shader_editor_settings", lightingModes[tempVal]))
+	UINT& shadingModel = m_cbSettingsDisplay.data.shadingModel;
+	if (ImGui::BeginCombo("Lighting model##material_shader_editor_settings", lightingModes[shadingModel]))
 	{
-		for (int item = 0; item < IM_ARRAYSIZE(lightingModes); item++)
+		for (UINT item = 0; item < IM_ARRAYSIZE(lightingModes); item++)
 		{
 			if (ImGui::Selectable(lightingModes[item]))
 			{
-				pMaterial->SetShadingModel((NXShadingModel)item);
+				shadingModel = item;
 				break;
 			}
 		}
@@ -953,6 +953,10 @@ void NXGUIMaterialShaderEditor::SyncMaterialData(NXCustomMaterial* pMaterial)
 		Vector2 guiParams = pMaterial->GetCBGUIParams(i);
 
 		m_cbInfosDisplay.push_back({ cbElem.name, cbElem.type, cbDataDisplay, guiStyle, guiParams, cbElem.memoryIndex });
+	}
+
+	{
+		m_cbSettingsDisplay.data = pMaterial->GetCBufferSets();
 	}
 
 	for (auto& texDisplay : m_texInfosDisplay)

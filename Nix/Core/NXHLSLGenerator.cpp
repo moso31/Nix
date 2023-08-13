@@ -65,7 +65,7 @@ void EncodeGBuffer(NXGBufferParams gBuffer, out PS_OUTPUT Output)
 	Output.GBufferA = float4(1.0f, 1.0f, 1.0f, 1.0f);
 	Output.GBufferB = float4(gBuffer.normal, 1.0f);
 	Output.GBufferC = float4(gBuffer.albedo, 1.0f);
-	Output.GBufferD = float4(gBuffer.roughness, gBuffer.metallic, gBuffer.ao, 1.0f);
+	Output.GBufferD = float4(gBuffer.roughness, gBuffer.metallic, gBuffer.ao, asuint(m.shadingModel));
 }
 )";
 

@@ -80,6 +80,8 @@ float4 PS(PS_INPUT input) : SV_Target
 {
 	float2 uv = input.tex;
 
+	float sets_shadingModel = txRT3.Sample(ssLinearWrap, uv).a;
+
 	// get depthZ
 	float depth = txRTDepth.Sample(ssLinearClamp, uv).x;
 	// convert depth to linear
@@ -87,7 +89,7 @@ float4 PS(PS_INPUT input) : SV_Target
 	float3 ViewDirRawVS = GetViewDirVS_unNormalized(uv);
 	float3 PositionVS = ViewDirRawVS * linearDepthZ;
 
-	float a = txRT3.Sample(ssLinearWrap, uv).z;
+	//float a = txRT3.Sample(ssLinearWrap, uv).z;
 	//return float4(a.xxx, 1.0f);
 	float3 N = txRT1.Sample(ssLinearWrap, uv).xyz;
 	float3 V = normalize(-PositionVS);
@@ -97,112 +99,120 @@ float4 PS(PS_INPUT input) : SV_Target
 
 	//return txCubeMap.Sample(ssLinearWrap, R);	// perfect reflection test
 
-	float3 albedo = txRT2.Sample(ssLinearWrap, uv).xyz;
-
-	float roughnessMap = txRT3.Sample(ssLinearWrap, uv).x;
-	float roughness = roughnessMap;
-	float perceptualRoughness = roughness * roughness;
-
-	float metallicMap = txRT3.Sample(ssLinearWrap, uv).y;
-	float metallic = metallicMap;
-
-	float AOMap = txRT3.Sample(ssLinearWrap, uv).z;
-	float ao = AOMap;
-
-	float3 ShadowTest = txShadowTest.Sample(ssLinearClamp, uv).xyz;
-
-	float3 F0 = 0.04;
-	F0 = lerp(F0, albedo, metallic);
-	albedo *= 1.0f - metallic;
-
-	float3 Lo = 0.0f;
-	int i;
-	for (i = 0; i < NUM_DISTANT_LIGHT; i++)
+	if (sets_shadingModel < 0.5f)
 	{
-		float3 LightDirWS = normalize(-m_dirLight[i].direction);
-		float3 LightDirVS = normalize(mul(LightDirWS, (float3x3)m_viewInverseTranspose));
+		float3 albedo = txRT2.Sample(ssLinearWrap, uv).xyz;
 
-		float3 L = LightDirVS;
-		float3 H = normalize(V + L);
-		float NoL = max(dot(N, L), 0.0);
-		float NoH = max(dot(N, H), 0.0);
-		float VoH = max(dot(V, H), 0.0);
+		float roughnessMap = txRT3.Sample(ssLinearWrap, uv).x;
+		float roughness = roughnessMap;
+		float perceptualRoughness = roughness * roughness;
 
-		float3 LightIlluminance = m_dirLight[i].color * m_dirLight[i].illuminance; // 方向光的Illuminace
-		float3 IncidentIlluminance = LightIlluminance * NoL;
+		float metallicMap = txRT3.Sample(ssLinearWrap, uv).y;
+		float metallic = metallicMap;
 
-		float3 bsdf = CalcBSDF(NoV, NoL, NoH, VoH, perceptualRoughness, metallic, albedo, F0);
-		Lo += bsdf * IncidentIlluminance; // Output radiance.
+		float AOMap = txRT3.Sample(ssLinearWrap, uv).z;
+		float ao = AOMap;
+
+		float3 ShadowTest = txShadowTest.Sample(ssLinearClamp, uv).xyz;
+
+		float3 F0 = 0.04;
+		F0 = lerp(F0, albedo, metallic);
+		albedo *= 1.0f - metallic;
+
+		float3 Lo = 0.0f;
+		int i;
+		for (i = 0; i < NUM_DISTANT_LIGHT; i++)
+		{
+			float3 LightDirWS = normalize(-m_dirLight[i].direction);
+			float3 LightDirVS = normalize(mul(LightDirWS, (float3x3)m_viewInverseTranspose));
+
+			float3 L = LightDirVS;
+			float3 H = normalize(V + L);
+			float NoL = max(dot(N, L), 0.0);
+			float NoH = max(dot(N, H), 0.0);
+			float VoH = max(dot(V, H), 0.0);
+
+			float3 LightIlluminance = m_dirLight[i].color * m_dirLight[i].illuminance; // 方向光的Illuminace
+			float3 IncidentIlluminance = LightIlluminance * NoL;
+
+			float3 bsdf = CalcBSDF(NoV, NoL, NoH, VoH, perceptualRoughness, metallic, albedo, F0);
+			Lo += bsdf * IncidentIlluminance; // Output radiance.
+		}
+
+		for (i = 0; i < NUM_POINT_LIGHT; i++)
+		{
+			float3 LightPosVS = mul(float4(m_pointLight[i].position, 1.0f), m_view).xyz;
+			float3 LightIntensity = m_pointLight[i].color * m_pointLight[i].intensity;
+			float3 LightDirVS = LightPosVS - PositionVS;
+
+			float3 L = normalize(LightDirVS);
+			float3 H = normalize(V + L);
+			float NoL = max(dot(N, L), 0.0);
+			float NoH = max(dot(N, H), 0.0);
+			float VoH = max(dot(V, H), 0.0);
+
+			float d2 = dot(LightDirVS, LightDirVS);
+			float3 LightIlluminance = LightIntensity / (NX_4PI * d2);
+			float3 IncidentIlluminance = LightIlluminance * NoL;
+
+			float Factor = d2 / (m_pointLight[i].influenceRadius * m_pointLight[i].influenceRadius);
+			float FalloffFactor = max(1.0f - Factor * Factor, 0.0f);
+
+			float3 bsdf = CalcBSDF(NoV, NoL, NoH, VoH, perceptualRoughness, metallic, albedo, F0);
+			Lo += bsdf * IncidentIlluminance * FalloffFactor; // Output radiance.
+		}
+
+		for (i = 0; i < NUM_SPOT_LIGHT; i++)
+		{
+			float3 LightPosVS = mul(float4(m_spotLight[i].position, 1.0f), m_view).xyz;
+			float3 LightIntensity = m_spotLight[i].color * m_spotLight[i].intensity;
+			float3 LightDirVS = LightPosVS - PositionVS;
+
+			float3 L = normalize(LightDirVS);
+			float3 H = normalize(V + L);
+			float NoL = max(dot(N, L), 0.0);
+			float NoH = max(dot(N, H), 0.0);
+			float VoH = max(dot(V, H), 0.0);
+
+			float d2 = dot(LightDirVS, LightDirVS);
+			float3 LightIlluminance = LightIntensity / (NX_PI * d2);
+			float3 IncidentIlluminance = LightIlluminance * NoL;
+
+			float CosInner = cos(m_spotLight[i].innerAngle * NX_DEGTORED);
+			float CosOuter = cos(m_spotLight[i].outerAngle * NX_DEGTORED);
+			float3 SpotDirWS = normalize(m_spotLight[i].direction);
+			float3 SpotDirVS = normalize(mul(SpotDirWS, (float3x3)m_viewInverseTranspose));
+			float FalloffFactor = (dot(-SpotDirVS, L) - CosOuter) / max(CosInner - CosOuter, 1e-4f);
+			FalloffFactor = saturate(FalloffFactor);
+			FalloffFactor = FalloffFactor * FalloffFactor;
+
+			float Factor = d2 / (m_spotLight[i].influenceRadius * m_spotLight[i].influenceRadius);
+			FalloffFactor *= max(1.0f - Factor * Factor, 0.0f);
+
+			float3 bsdf = CalcBSDF(NoV, NoL, NoH, VoH, perceptualRoughness, metallic, albedo, F0);
+			Lo += bsdf * IncidentIlluminance * FalloffFactor; // Output radiance.
+		}
+
+		float3 NormalWS = mul(N, (float3x3)m_viewTranspose);
+		//float3 IndirectIrradiance = txIrradianceMap.Sample(ssLinearWrap, NormalWS).xyz;
+		float3 IndirectIrradiance = GetIndirectIrradiance(NormalWS);
+		float3 diffuseIBL = albedo * IndirectIrradiance;
+
+		float3 preFilteredColor = txPreFilterMap.SampleLevel(ssLinearWrap, R, perceptualRoughness * 4.0f).rgb; // 4.0 = prefilter mip count - 1.
+		float2 envBRDF = txBRDF2DLUT.Sample(ssLinearClamp, float2(NoV, roughness)).rg;
+		float3 SpecularIBL = preFilteredColor * lerp(envBRDF.xxx, envBRDF.yyy, F0);
+
+		float3 energyCompensation = 1.0f + F0 * (1.0f / envBRDF.yyy - 1.0f);
+		SpecularIBL *= energyCompensation;
+
+		float3 Libl = (diffuseIBL + SpecularIBL) * m_cubeMapIntensity * ao;
+		float3 color = Libl + Lo * (1.0f - ShadowTest);
+		return float4(color, 1.0f);
 	}
-
-    for (i = 0; i < NUM_POINT_LIGHT; i++)
-    {
-		float3 LightPosVS = mul(float4(m_pointLight[i].position, 1.0f), m_view).xyz;
-		float3 LightIntensity = m_pointLight[i].color * m_pointLight[i].intensity;
-		float3 LightDirVS = LightPosVS - PositionVS;
-
-        float3 L = normalize(LightDirVS);
-		float3 H = normalize(V + L);
-		float NoL = max(dot(N, L), 0.0);
-		float NoH = max(dot(N, H), 0.0);
-		float VoH = max(dot(V, H), 0.0);
-
-		float d2 = dot(LightDirVS, LightDirVS);
-		float3 LightIlluminance = LightIntensity / (NX_4PI * d2);
-		float3 IncidentIlluminance = LightIlluminance * NoL;
-
-		float Factor = d2 / (m_pointLight[i].influenceRadius * m_pointLight[i].influenceRadius);
-		float FalloffFactor = max(1.0f - Factor * Factor, 0.0f);
-
-		float3 bsdf = CalcBSDF(NoV, NoL, NoH, VoH, perceptualRoughness, metallic, albedo, F0);
-		Lo += bsdf * IncidentIlluminance * FalloffFactor; // Output radiance.
-    }
-
-	for (i = 0; i < NUM_SPOT_LIGHT; i++)
+	else if (sets_shadingModel < 1.5f)
 	{
-		float3 LightPosVS = mul(float4(m_spotLight[i].position, 1.0f), m_view).xyz;
-		float3 LightIntensity = m_spotLight[i].color * m_spotLight[i].intensity;
-		float3 LightDirVS = LightPosVS - PositionVS;
-
-		float3 L = normalize(LightDirVS);
-		float3 H = normalize(V + L);
-		float NoL = max(dot(N, L), 0.0);
-		float NoH = max(dot(N, H), 0.0);
-		float VoH = max(dot(V, H), 0.0);
-
-		float d2 = dot(LightDirVS, LightDirVS);
-		float3 LightIlluminance = LightIntensity / (NX_PI * d2);
-		float3 IncidentIlluminance = LightIlluminance * NoL;
-
-		float CosInner = cos(m_spotLight[i].innerAngle * NX_DEGTORED);
-		float CosOuter = cos(m_spotLight[i].outerAngle * NX_DEGTORED);
-		float3 SpotDirWS = normalize(m_spotLight[i].direction);
-		float3 SpotDirVS = normalize(mul(SpotDirWS, (float3x3)m_viewInverseTranspose));
-		float FalloffFactor = (dot(-SpotDirVS, L) - CosOuter) / max(CosInner - CosOuter, 1e-4f);
-		FalloffFactor = saturate(FalloffFactor);
-		FalloffFactor = FalloffFactor * FalloffFactor;
-
-		float Factor = d2 / (m_spotLight[i].influenceRadius * m_spotLight[i].influenceRadius);
-		FalloffFactor *= max(1.0f - Factor * Factor, 0.0f);
-
-		float3 bsdf = CalcBSDF(NoV, NoL, NoH, VoH, perceptualRoughness, metallic, albedo, F0);
-		Lo += bsdf * IncidentIlluminance * FalloffFactor; // Output radiance.
+		float3 albedo = txRT2.Sample(ssLinearWrap, uv).xyz;
+		return float4(albedo, 1.0f);
 	}
-
-	float3 NormalWS = mul(N, (float3x3)m_viewTranspose);
-	//float3 IndirectIrradiance = txIrradianceMap.Sample(ssLinearWrap, NormalWS).xyz;
-	float3 IndirectIrradiance = GetIndirectIrradiance(NormalWS);
-	float3 diffuseIBL = albedo * IndirectIrradiance;
-
-	float3 preFilteredColor = txPreFilterMap.SampleLevel(ssLinearWrap, R, perceptualRoughness * 4.0f).rgb; // 4.0 = prefilter mip count - 1.
-	float2 envBRDF = txBRDF2DLUT.Sample(ssLinearClamp, float2(NoV, roughness)).rg;
-	float3 SpecularIBL = preFilteredColor * lerp(envBRDF.xxx, envBRDF.yyy, F0);
-
-	float3 energyCompensation = 1.0f + F0 * (1.0f / envBRDF.yyy - 1.0f);
-	SpecularIBL *= energyCompensation;
-
-	float3 Libl = (diffuseIBL + SpecularIBL) * m_cubeMapIntensity * ao;
-	float3 color = Libl + Lo * (1.0f - ShadowTest);
-
-	return float4(color, 1.0f);
+	else return float4(0.0f, 0.0f, 0.0f, 1.0f);
 }

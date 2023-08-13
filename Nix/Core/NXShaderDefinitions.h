@@ -68,9 +68,15 @@ struct NXCBufferElem
 	Vector2 guiParams; // gui拖动参数附加属性，drugspeed, sliderMin/Max
 };
 
+struct NXCBufferSets
+{
+	UINT shadingModel;
+};
+
 struct NXMaterialCBufferInfo
 {
     std::vector<NXCBufferElem> elems;
+	NXCBufferSets sets;
     UINT slotIndex;
 };
 
@@ -117,6 +123,11 @@ struct NXGUICBufferData
 	// 记录 backup 的 index
 	// GUI Revert 时使用此值回复
 	int backupIndex = -1;
+};
+
+struct NXGUICBufferSetsData
+{
+	NXCBufferSets data;
 };
 
 struct NXGUITextureData

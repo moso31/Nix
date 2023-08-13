@@ -103,11 +103,13 @@ private:
 	std::vector<NXHLSLCodeRegion> m_HLSLFuncRegions; // 记录 NSL 函数转换到 HLSL 后，在 HLSL 中对应的行号位置。（方便在编译错误时给 CodeEditor 做跳转）
 	int m_showFuncIndex = 0; // 用于显示的函数索引
 
-	// ShaderEditor 中复制一份 原始GUI类的 cb, tex, ss参数。
 	std::vector<NXGUICBufferData> m_cbInfosDisplay;
+	NXGUICBufferSetsData m_cbSettingsDisplay;
 	std::vector<NXGUITextureData> m_texInfosDisplay;
 	std::vector<NXGUISamplerData> m_ssInfosDisplay;
 
+	// ShaderEditor 中复制一份 原始GUI类的 cb, tex, ss参数。
+	// 用于单个参数的 小Revert 按钮。
 	std::vector<NXGUICBufferData> m_cbInfosDisplayBackup;
 	std::vector<NXGUITextureData> m_texInfosDisplayBackup;
 	std::vector<NXGUISamplerData> m_ssInfosDisplayBackup;
