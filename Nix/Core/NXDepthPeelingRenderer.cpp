@@ -153,7 +153,7 @@ void NXDepthPeelingRenderer::Render()
 
 		g_pContext->ClearDepthStencilView(pDSVSceneDepth[i % 2], D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-		auto pMainScene = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_MainScene);
+		auto pMainScene = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting0);
 		auto pDepthZ = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
 		g_pContext->CopyResource(m_pSceneRT[i]->GetTex(), pMainScene->GetTex());
 		g_pContext->CopyResource(m_pSceneDepth[i % 2]->GetTex(), pDepthZ->GetTex());
@@ -192,7 +192,7 @@ void NXDepthPeelingRenderer::Render()
 	auto pSampler = NXSamplerManager::Get(NXSamplerFilter::Point, NXSamplerAddressMode::Clamp);
 	g_pContext->PSSetSamplers(0, 1, &pSampler);
 
-	auto pRTVMainScene = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_MainScene)->GetRTV();
+	auto pRTVMainScene = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting0)->GetRTV();
 	g_pContext->OMSetRenderTargets(1, &pRTVMainScene, nullptr);
 
 	for (UINT i = 0; i < m_peelingLayerCount; i++)

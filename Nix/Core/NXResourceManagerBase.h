@@ -4,7 +4,8 @@
 enum NXCommonRTEnum
 {
     NXCommonRT_DepthZ,
-    NXCommonRT_MainScene,
+    NXCommonRT_Lighting0,
+    NXCommonRT_Lighting1,
 
     // ∆¡ƒªø’º‰“ı”∞
     NXCommonRT_ShadowTest,

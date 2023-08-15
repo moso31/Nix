@@ -43,8 +43,14 @@ void NXDeferredRenderer::Render()
 	g_pContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xffffffff);
 	g_pContext->RSSetState(m_pRasterizerState.Get());
 
-	auto pRTVScene = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_MainScene)->GetRTV();
-	g_pContext->OMSetRenderTargets(1, &pRTVScene, nullptr);
+	auto pRTVDeferredLighting = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting0)->GetRTV();
+	auto pRTVDeferredLightingEx = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting1)->GetRTV();
+
+	ID3D11RenderTargetView* ppRTVs[] = {
+		pRTVDeferredLighting,
+		pRTVDeferredLightingEx,
+	};
+	g_pContext->OMSetRenderTargets(2, ppRTVs, nullptr);
 
 	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);

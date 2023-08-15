@@ -164,7 +164,7 @@ void Renderer::UpdateTime()
 
 void Renderer::RenderFrame()
 {
-	NXTexture2D* pSceneRT = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_MainScene);
+	NXTexture2D* pSceneRT = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting0);
 	if (!pSceneRT) return;
 
 	g_pUDA->BeginEvent(L"Render Scene");

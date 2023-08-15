@@ -75,8 +75,8 @@ Last Issue ID : 50
 35. 类似Unity GfxDeviceWorker的渲染队列处理器
 47. 是否可以将一些设置，比如MSE，封装成单独的模块(dll lib)？
 50. 
-	现在的 cb slot 规则是：cb0 永远用于object cbuffer，cb1 永远用于camera cbuffer，cb2 是各种管线 pass 的自定义buffer，cb>=3 用于自定义材质buffer。
-	各种 pass 的 RTView 则更是放飞自我，夏姬八放.... 这样的坏处就是，稍微改个渲染管线的shader，都需要来回调整各种 Slot 才能让代码跑通，比较浪费精力。
+	现在的 延迟着色 pass， rt slot 规则是：rt0 永远用于object cbuffer，rt1 永远用于camera cbuffer，rt2 是各种管线 pass 的自定义buffer，rt>=3 用于自定义材质buffer。
+	其它各种 pass 的 RTView 则更是放飞自我，夏姬八放.... 这样的坏处就是，稍微改个渲染管线的shader，都需要来回调整各种 Slot 才能让代码跑通，比较浪费精力。
 	（也许这其实就是 Render graph？）
 
 【bugs】

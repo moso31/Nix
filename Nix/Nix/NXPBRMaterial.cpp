@@ -226,9 +226,8 @@ void NXCustomMaterial::UpdateCBData()
 	}
 	while (m_cbData.size() % 4 != 0) m_cbData.push_back(0); // 16 bytes align
 
-	// sets
-	auto shadingModel_floatCast = *(reinterpret_cast<float*>(&cbSets.shadingModel));
-	m_cbData.push_back(shadingModel_floatCast);
+	// material settings
+	m_cbData.push_back((float)cbSets.shadingModel);
 	while (m_cbData.size() % 4 != 0) m_cbData.push_back(0); // 16 bytes align
 
 	// 基于 m_cbData 创建常量缓冲区

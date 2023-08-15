@@ -49,6 +49,12 @@ struct PS_INPUT
 	float2 tex : TEXCOORD;
 };
 
+struct DeferredRenderingResult
+{
+	float4 Lighting   : SV_Target0;
+	float4 LightingEx : SV_Target1;
+};
+
 PS_INPUT VS(VS_INPUT input)
 {
 	PS_INPUT output = (PS_INPUT)0;
@@ -76,11 +82,11 @@ float3 GetIndirectIrradiance(float3 v)
 	return irradiance;
 }
 
-float4 PS(PS_INPUT input) : SV_Target
+void PS(PS_INPUT input, out DeferredRenderingResult output)
 {
 	float2 uv = input.tex;
 
-	float sets_shadingModel = txRT3.Sample(ssLinearWrap, uv).a;
+	float sets_shadingModel = txRT3.Sample(ssLinearWrap, uv).a * 255.0f;
 
 	// get depthZ
 	float depth = txRTDepth.Sample(ssLinearClamp, uv).x;
@@ -207,12 +213,21 @@ float4 PS(PS_INPUT input) : SV_Target
 
 		float3 Libl = (diffuseIBL + SpecularIBL) * m_cubeMapIntensity * ao;
 		float3 color = Libl + Lo * (1.0f - ShadowTest);
-		return float4(color, 1.0f);
+
+		output.Lighting = float4(color, 1.0f);
 	}
 	else if (sets_shadingModel < 1.5f)
 	{
 		float3 albedo = txRT2.Sample(ssLinearWrap, uv).xyz;
-		return float4(albedo, 1.0f);
+		output.Lighting = float4(albedo, 1.0f);
 	}
-	else return float4(0.0f, 0.0f, 0.0f, 1.0f);
+	else if (sets_shadingModel < 2.5f)
+	{
+		output.Lighting = float4(0.0f, 1.0f, 1.0f, 1.0f);
+		output.LightingEx = float4(1.0f, linearDepthZ, 1.0f, 1.0f);
+	}
+	else
+	{
+		output.Lighting = float4(0.0f, 0.0f, 0.0f, 1.0f);
+	}
 }
