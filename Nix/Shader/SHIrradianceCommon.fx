@@ -1,5 +1,5 @@
-#ifndef _SHIRRADIANCECOMMON_
-#define _SHIRRADIANCECOMMON_
+#ifndef _SHIRRADIANCE_COMMON_
+#define _SHIRRADIANCE_COMMON_
 
 const static float g_SHFactor[] =
 {
@@ -53,4 +53,4 @@ float3 GetIrradiance(float3 v, float4 m_irradSH0123x, float4 m_irradSH4567x, flo
 	return intensity;
 }
 
-#endif // !_SHIRRADIANCECOMMON_
+#endif // !_SHIRRADIANCE_COMMON_
