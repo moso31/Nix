@@ -7,6 +7,8 @@ enum NXCommonRTEnum
     NXCommonRT_Lighting0,
     NXCommonRT_Lighting1,
 
+    NXCommonRT_SSSLighting,
+
     // ∆¡ƒªø’º‰“ı”∞
     NXCommonRT_ShadowTest,
 

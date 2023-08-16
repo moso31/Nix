@@ -261,6 +261,7 @@
     <ClCompile Include="Core\NXShadowTestRenderer.cpp" />
     <ClCompile Include="Core\NXSkyRenderer.cpp" />
     <ClCompile Include="Core\NXGUICodeEditor.cpp" />
+    <ClCompile Include="Core\NXSubSurfaceRenderer.cpp" />
     <ClCompile Include="Core\NXTextureReloadTesk.cpp" />
     <ClCompile Include="Core\NXTextureResourceManager.cpp" />
     <ClCompile Include="Core\NXTimer.cpp" />
@@ -347,6 +348,7 @@
     <ClInclude Include="Core\NXShadowTestRenderer.h" />
     <ClInclude Include="Core\NXSkyRenderer.h" />
     <ClInclude Include="Core\NXGUICodeEditor.h" />
+    <ClInclude Include="Core\NXSubSurfaceRenderer.h" />
     <ClInclude Include="Core\NXTextureReloadTesk.h" />
     <ClInclude Include="Core\NXTextureResourceManager.h" />
     <ClInclude Include="Core\NXTimer.h" />
@@ -557,6 +559,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\DeferredShadingCommon.fx">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shader\SSSSSRenderer.fx">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

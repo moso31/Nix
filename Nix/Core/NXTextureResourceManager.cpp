@@ -111,6 +111,10 @@ void NXTextureResourceManager::ResizeCommonRT(const Vector2& rtSize)
 	m_pCommonRT[NXCommonRT_Lighting1]->AddRTV();
 	m_pCommonRT[NXCommonRT_Lighting1]->AddSRV();
 
+	m_pCommonRT[NXCommonRT_SSSLighting] = CreateTexture2D("SSS Lighting RT", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE);
+	m_pCommonRT[NXCommonRT_SSSLighting]->AddRTV();
+	m_pCommonRT[NXCommonRT_SSSLighting]->AddSRV();
+
 	m_pCommonRT[NXCommonRT_ShadowTest] = CreateTexture2D("Shadow Test RT", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE);
 	m_pCommonRT[NXCommonRT_ShadowTest]->AddRTV();
 	m_pCommonRT[NXCommonRT_ShadowTest]->AddSRV();

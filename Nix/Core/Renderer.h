@@ -10,6 +10,7 @@
 #include "NXDeferredRenderer.h"
 #include "NXForwardRenderer.h"
 #include "NXDepthPeelingRenderer.h"
+#include "NXSubSurfaceRenderer.h"
 #include "NXSkyRenderer.h"
 #include "NXColorMappingRenderer.h"
 #include "NXSimpleSSAO.h"
@@ -73,6 +74,7 @@ private:
 	NXShadowMapRenderer*				m_pShadowMapRenderer;
 	NXShadowTestRenderer*				m_pShadowTestRenderer;
 	NXDeferredRenderer*					m_pDeferredRenderer;
+	NXSubSurfaceRenderer*				m_pSubSurfaceRenderer;
 	NXForwardRenderer*					m_pForwardRenderer;
 	NXDepthPeelingRenderer*				m_pDepthPeelingRenderer;
 	NXSkyRenderer*						m_pSkyRenderer;

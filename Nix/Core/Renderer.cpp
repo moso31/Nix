@@ -65,6 +65,9 @@ void Renderer::Init()
 	m_pDeferredRenderer = new NXDeferredRenderer(m_scene, m_pBRDFLut);
 	m_pDeferredRenderer->Init();
 
+	m_pSubSurfaceRenderer = new NXSubSurfaceRenderer();
+	m_pSubSurfaceRenderer->Init();
+
 	m_pForwardRenderer = new NXForwardRenderer(m_scene, m_pBRDFLut);
 	m_pForwardRenderer->Init();
 
@@ -190,6 +193,9 @@ void Renderer::RenderFrame()
 	// Deferred opaque shading
 	m_pDeferredRenderer->Render();
 
+	// SSSSS: Screen-Space Sub-Surface Scattering(2009)
+	m_pSubSurfaceRenderer->Render();
+
 	// CubeMap
 	m_pSkyRenderer->Render();
 
@@ -235,6 +241,7 @@ void Renderer::Release()
 	SafeRelease(m_pShadowMapRenderer);
 	SafeRelease(m_pShadowTestRenderer);
 	SafeRelease(m_pDeferredRenderer);
+	SafeRelease(m_pSubSurfaceRenderer);
 	SafeRelease(m_pForwardRenderer);
 	SafeRelease(m_pDepthPeelingRenderer);
 	SafeRelease(m_pSkyRenderer);
