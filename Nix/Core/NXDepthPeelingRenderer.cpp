@@ -75,7 +75,7 @@ void NXDepthPeelingRenderer::OnResize(const Vector2& rtSize)
 	}
 }
 
-void NXDepthPeelingRenderer::Render()
+void NXDepthPeelingRenderer::Render(bool bSSSEnable)
 {
 	g_pUDA->BeginEvent(L"Depth peeling rendering");
 
@@ -153,8 +153,12 @@ void NXDepthPeelingRenderer::Render()
 
 		g_pContext->ClearDepthStencilView(pDSVSceneDepth[i % 2], D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-		auto pMainScene = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting0);
+		auto pMainScene = bSSSEnable ?
+			NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_SSSLighting) :
+			NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting0);
+
 		auto pDepthZ = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
+		// TODO : 加了SSSRT以后CopyResource格式不兼容了。将来想想怎么改
 		g_pContext->CopyResource(m_pSceneRT[i]->GetTex(), pMainScene->GetTex());
 		g_pContext->CopyResource(m_pSceneDepth[i % 2]->GetTex(), pDepthZ->GetTex());
 

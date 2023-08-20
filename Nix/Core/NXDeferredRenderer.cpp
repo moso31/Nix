@@ -35,7 +35,7 @@ void NXDeferredRenderer::Init()
 	m_pBlendState = NXBlendState<>::Create();
 }
 
-void NXDeferredRenderer::Render()
+void NXDeferredRenderer::Render(bool bSSSEnable)
 {
 	g_pUDA->BeginEvent(L"Deferred rendering");
 
@@ -45,12 +45,17 @@ void NXDeferredRenderer::Render()
 
 	auto pRTVDeferredLighting = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting0)->GetRTV();
 	auto pRTVDeferredLightingEx = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting1)->GetRTV();
+	auto pRTVSSSLighting = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_SSSLighting)->GetRTV();
 
 	ID3D11RenderTargetView* ppRTVs[] = {
 		pRTVDeferredLighting,
 		pRTVDeferredLightingEx,
+		pRTVSSSLighting,
 	};
-	g_pContext->OMSetRenderTargets(2, ppRTVs, nullptr);
+
+	int ppRTVSize = bSSSEnable ? ARRAYSIZE(ppRTVs) : 1;
+	//for (int i = 0; i < ppRTVSize ; i++) g_pContext->ClearRenderTargetView(ppRTVs[i], Colors::Black);
+	g_pContext->OMSetRenderTargets(ppRTVSize, ppRTVs, nullptr);
 
 	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);

@@ -23,7 +23,8 @@ NXGBufferRenderer::~NXGBufferRenderer()
 
 void NXGBufferRenderer::Init()
 {
-	m_pDepthStencilState = NXDepthStencilState<>::Create();
+	m_pDepthStencilState = NXDepthStencilState<true, true, D3D11_COMPARISON_LESS, true, 0xFF, 0xFF, 
+		D3D11_STENCIL_OP_KEEP, D3D11_STENCIL_OP_KEEP, D3D11_STENCIL_OP_REPLACE>::Create();
 	m_pRasterizerState = NXRasterizerState<>::Create();
 	m_pBlendState = NXBlendState<>::Create();
 }
@@ -31,7 +32,6 @@ void NXGBufferRenderer::Init()
 void NXGBufferRenderer::Render()
 {
 	g_pUDA->BeginEvent(L"GBuffer");
-	g_pContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 0);
 	g_pContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xffffffff);
 	g_pContext->RSSetState(m_pRasterizerState.Get());
 
@@ -83,6 +83,12 @@ void NXGBufferRenderer::Render()
 		auto pCustomMat = pMat->IsCustomMat();
 		if (pCustomMat)
 		{
+			// 3S材质需要写模板缓存
+			if (pCustomMat->GetShadingModel() == NXShadingModel::SubSurface)
+				g_pContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 0x01);
+			else
+				g_pContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 0);
+
 			pCustomMat->Render();
 
 			for (auto pSubMesh : pCustomMat->GetRefSubMeshes())

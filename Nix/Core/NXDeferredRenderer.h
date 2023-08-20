@@ -9,7 +9,7 @@ public:
 	~NXDeferredRenderer();
 
 	void Init();
-	void Render();
+	void Render(bool bSSSEnable);
 
 	void Release();
 

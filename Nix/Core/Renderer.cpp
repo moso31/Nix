@@ -190,24 +190,29 @@ void Renderer::RenderFrame()
 	g_pContext->RSSetViewports(1, &vpCamera);
 	m_pShadowTestRenderer->Render(m_pShadowMapRenderer->GetShadowMapDepthTex());
 
+	bool bSSSEnable = true;
 	// Deferred opaque shading
-	m_pDeferredRenderer->Render();
+	m_pDeferredRenderer->Render(bSSSEnable);
 
-	// SSSSS: Screen-Space Sub-Surface Scattering(2009)
-	m_pSubSurfaceRenderer->Render();
+	if (bSSSEnable)
+	{
+		// SSSSS: Screen-Space Sub-Surface Scattering(2009)
+		m_pSubSurfaceRenderer->Render();
+	}
 
 	// CubeMap
-	m_pSkyRenderer->Render();
+	m_pSkyRenderer->Render(bSSSEnable);
 
 	// Forward translucent shading
+	// 2023.8.20 前向渲染暂时停用，等 3S 搞完的
 	//m_pForwardRenderer->Render();
-	m_pDepthPeelingRenderer->Render();
+	//m_pDepthPeelingRenderer->Render(bSSSEnable);
 
 	//// SSAO
 	//m_pSSAO->Render(pSRVNormal, pSRVPosition, pSRVDepthPrepass);
 
 	// post processing
-	m_pColorMappingRenderer->Render();
+	m_pColorMappingRenderer->Render(bSSSEnable);
 
 	// 绘制编辑器对象
 	m_pEditorObjectRenderer->Render();

@@ -54,9 +54,6 @@ protected:
 	// 材质文件路径
 	std::filesystem::path m_filePath;
 
-	// 着色模型
-	NXShadingModel m_shadingModel = NXShadingModel::StandardLit;
-
 private:
 	// 映射表，记录哪些Submesh使用了这个材质
 	std::vector<NXSubMeshBase*> m_pRefSubMeshes;
@@ -132,6 +129,7 @@ public:
 	UINT GetCBufferElemCount() { return UINT(m_cbInfo.elems.size()); }
 	const NXCBufferElem& GetCBufferElem(UINT index) { return m_cbInfo.elems[index]; }
 
+	const NXShadingModel& GetShadingModel() { return NXShadingModel(m_cbInfo.sets.shadingModel + 1); }
 	virtual void SetShadingModel(NXShadingModel shadingModel) { m_cbInfo.sets.shadingModel = (UINT)shadingModel; }
 	const NXCBufferSets& GetCBufferSets() { return m_cbInfo.sets; }
 

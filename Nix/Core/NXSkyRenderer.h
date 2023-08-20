@@ -9,7 +9,7 @@ public:
 	~NXSkyRenderer();
 
 	void Init();
-	void Render();
+	void Render(bool bSSSEnable);
 
 	void Release() {}
 

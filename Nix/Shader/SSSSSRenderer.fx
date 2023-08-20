@@ -25,7 +25,18 @@ PS_INPUT VS(VS_INPUT input)
 
 float4 PS(PS_INPUT input) : SV_Target
 {
-	float3 irradiance = txIrradiance.Sample(ssLinearClamp, input.tex).xyz;
+	//float3 irradiance = txIrradiance.Sample(ssLinearClamp, input.tex).xyz;
+	float3 irradiance = float3(0.0f, 0.0f, 0.0f);
+	for (int i = -3; i <= 3; i++)
+	{
+		for (int j = -3; j <= 3; j++)
+		{
+			float2 uvOffset = float2(i, j) / 1000.0f;
+				irradiance += txIrradiance.Sample(ssLinearClamp, input.tex + uvOffset).xyz;
+		}
+	}
+	irradiance /= 49.0f;
+
 	float3 spec = txSpecular.Sample(ssLinearClamp, input.tex).xyz;
 	float3 result = irradiance + spec;
 	return float4(result, 1.0f);

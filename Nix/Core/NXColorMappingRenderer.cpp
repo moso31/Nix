@@ -37,7 +37,7 @@ void NXColorMappingRenderer::Init()
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbParams));
 }
 
-void NXColorMappingRenderer::Render()
+void NXColorMappingRenderer::Render(bool bSSSEnable)
 {
 	g_pUDA->BeginEvent(L"Post Processing");
 
@@ -45,7 +45,10 @@ void NXColorMappingRenderer::Render()
 
 	g_pUDA->BeginEvent(L"Color Mapping");
 
-	ID3D11ShaderResourceView* pSRVMainScene = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting0)->GetSRV();
+	ID3D11ShaderResourceView* pSRVMainScene = bSSSEnable ? 
+		NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_SSSLighting)->GetSRV() :
+		NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting0)->GetSRV();
+
 	ID3D11RenderTargetView* pRTVPostProcessing = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_PostProcessing)->GetRTV();
 
 	g_pContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 0);

@@ -56,8 +56,9 @@ struct PS_INPUT
 
 struct DeferredRenderingResult
 {
-	float4 Lighting   : SV_Target0;
-	float4 LightingEx : SV_Target1;
+	float4 Lighting		: SV_Target0;
+	float4 LightingEx	: SV_Target1;
+	float4 LightingCopy : SV_Target2;
 };
 
 PS_INPUT VS(VS_INPUT input)
@@ -154,11 +155,13 @@ void PS(PS_INPUT input, out DeferredRenderingResult output)
 		Lo += (diffuseIBL + SpecularIBL) * m_cubeMapIntensity;
 		Lo *= ao;
 		output.Lighting = float4(Lo, 1.0f);
+		output.LightingEx = float4(0.0f, 0.0f, 0.0f, 1.0f);
 	}
 	else if (sets_shadingModel < 1.5f)
 	{
 		float3 albedo = txRT2.Sample(ssLinearWrap, uv).xyz;
 		output.Lighting = float4(albedo, 1.0f);
+		output.LightingEx = float4(0.0f, 0.0f, 0.0f, 1.0f);
 	}
 	else if (sets_shadingModel < 2.5f)
 	{
@@ -218,5 +221,7 @@ void PS(PS_INPUT input, out DeferredRenderingResult output)
 	else
 	{
 		output.Lighting = float4(0.0f, 0.0f, 0.0f, 1.0f);
+		output.LightingEx = float4(0.0f, 0.0f, 0.0f, 1.0f);
 	}
+	output.LightingCopy = output.Lighting;
 }

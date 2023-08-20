@@ -23,30 +23,36 @@ void NXSubSurfaceRenderer::Init()
 	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\SSSSSRenderer.fx", "VS", &m_pVertexShader, NXGlobalInputLayout::layoutPT, ARRAYSIZE(NXGlobalInputLayout::layoutPT), &m_pInputLayout);
 	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\SSSSSRenderer.fx", "PS", &m_pPixelShader);
 
-	m_pDepthStencilState = NXDepthStencilState<true, false, D3D11_COMPARISON_LESS_EQUAL>::Create();
+	m_pDepthStencilState = NXDepthStencilState<false, false, D3D11_COMPARISON_LESS, true, 0xFF, 0xFF,
+		D3D11_STENCIL_OP_KEEP, D3D11_STENCIL_OP_KEEP, D3D11_STENCIL_OP_KEEP, D3D11_COMPARISON_EQUAL>::Create();
 	m_pRasterizerState = NXRasterizerState<>::Create();
 	m_pBlendState = NXBlendState<>::Create();
 }
 
 void NXSubSurfaceRenderer::Render()
 {
+	g_pUDA->BeginEvent(L"SSSSS");
 	static int RenderMode = 0;
 	if (RenderMode == 0) RenderSSSSS();
+	g_pUDA->EndEvent();
 }
 
 void NXSubSurfaceRenderer::RenderSSSSS()
 {
-	g_pUDA->BeginEvent(L"SSSSS");
+	g_pContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 0x01);
+	g_pContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xffffffff);
+	g_pContext->RSSetState(m_pRasterizerState.Get());
 
 	ID3D11ShaderResourceView* pSRVIrradiance = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting0)->GetSRV();
 	ID3D11ShaderResourceView* pSRVSpecLighting = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting1)->GetSRV();
 	ID3D11RenderTargetView* pRTVOut = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_SSSLighting)->GetRTV();
+	NXTexture2D* pDepthZ = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
 
 	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
 	g_pContext->IASetInputLayout(m_pInputLayout.Get());
 
-	g_pContext->OMSetRenderTargets(1, &pRTVOut, nullptr);
+	g_pContext->OMSetRenderTargets(1, &pRTVOut, pDepthZ->GetDSV());
 
 	auto pSampler = NXSamplerManager::Get(NXSamplerFilter::Linear, NXSamplerAddressMode::Clamp);
 	g_pContext->PSSetSamplers(0, 1, &pSampler);
@@ -55,8 +61,6 @@ void NXSubSurfaceRenderer::RenderSSSSS()
 	g_pContext->PSSetShaderResources(1, 1, &pSRVSpecLighting);
 
 	m_pResultRT->Render();
-
-	g_pUDA->EndEvent();
 }
 
 void NXSubSurfaceRenderer::Release()

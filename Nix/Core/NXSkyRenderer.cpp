@@ -29,14 +29,17 @@ void NXSkyRenderer::Init()
 	m_pBlendState = NXBlendState<>::Create();
 }
 
-void NXSkyRenderer::Render()
+void NXSkyRenderer::Render(bool bSSSEnable)
 {
 	g_pUDA->BeginEvent(L"Sky (CubeMap IBL)");
 	g_pContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 0);
 	g_pContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xffffffff);
 	g_pContext->RSSetState(m_pRasterizerState.Get());
 
-	auto pRTVScene = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting0)->GetRTV();
+	auto pRTVScene = bSSSEnable ?
+		NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_SSSLighting)->GetRTV() :
+		NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting0)->GetRTV();
+
 	auto pDSVSceneDepth = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ)->GetDSV();
 	g_pContext->OMSetRenderTargets(1, &pRTVScene, pDSVSceneDepth);
 
