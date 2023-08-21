@@ -288,7 +288,7 @@ bool IsImageFileExtension(const std::string& strExtension)
 bool IsMaterialFileExtension(const std::string& strExtension)
 {
 	std::string s = s2lower(strExtension);
-	return s == ".nmat";
+	return s == ".nsl";
 }
 
 void getline_safe(std::ifstream& ifs, std::string& s)

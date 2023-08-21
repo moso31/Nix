@@ -31,7 +31,7 @@ float4 PS(PS_INPUT input) : SV_Target
 	{
 		for (int j = -3; j <= 3; j++)
 		{
-			float2 uvOffset = float2(i, j) / 1000.0f;
+			float2 uvOffset = float2(i, j) / 100.0f;
 				irradiance += txIrradiance.Sample(ssLinearClamp, input.tex + uvOffset).xyz;
 		}
 	}

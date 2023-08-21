@@ -26,7 +26,7 @@ public:
     // 2023.3.26 这里只负责材质数组的增删操作。材质和其他资源的关联会在外部实现，见ReTypeMaterial。
     void ReplaceMaterial(NXMaterial* oldMaterial, NXMaterial* newMaterial);
 
-    NXMaterial* LoadFromNmatFile(const std::filesystem::path& matFilePath);
+    NXMaterial* LoadFromNSLFile(const std::filesystem::path& matFilePath);
 
 	NXCustomMaterial* CreateCustomMaterial(const std::string& name, const std::filesystem::path& nslFilePath);
 

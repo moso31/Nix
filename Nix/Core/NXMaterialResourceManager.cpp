@@ -38,32 +38,12 @@ void NXMaterialResourceManager::ReplaceMaterial(NXMaterial* oldMaterial, NXMater
 	std::replace(m_pMaterialArray.begin(), m_pMaterialArray.end(), oldMaterial, newMaterial);
 }
 
-NXMaterial* NXMaterialResourceManager::LoadFromNmatFile(const std::filesystem::path& matFilePath)
+NXMaterial* NXMaterialResourceManager::LoadFromNSLFile(const std::filesystem::path& matFilePath)
 {
-	std::string strMatFilePath = matFilePath.string().c_str();
-
 	// 如果已经在内存里直接拿就行了
 	NXMaterial* pNewMat = NXResourceManager::GetInstance()->GetMaterialManager()->FindMaterial(matFilePath);
-	if (pNewMat) return pNewMat;
-
-	// 否则需要读路径文件创建新材质
-	std::ifstream ifs(strMatFilePath, std::ios::binary);
-
-	if (!ifs.is_open())
-		return nullptr;
-
-	// 材质名称，材质类型
-	std::string strName, strType;
-	NXConvert::getline_safe(ifs, strName);
-	NXConvert::getline_safe(ifs, strType);
-
-	//if (strType == "Standard")
-	//	pNewMat = LoadStandardPBRMaterialFromFile(ifs, strName, strMatFilePath);
-	//if (strType == "Translucent")
-	//	pNewMat = LoadTranslucentPBRMaterialFromFile(ifs, strName, strMatFilePath);
-
-	ifs.close();
-
+	if (!pNewMat) 
+		pNewMat = NXResourceManager::GetInstance()->GetMaterialManager()->CreateCustomMaterial("Hello", matFilePath);
 	return pNewMat;
 }
 

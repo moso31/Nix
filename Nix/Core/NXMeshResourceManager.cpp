@@ -178,7 +178,7 @@ void NXMeshResourceManager::LoadMaterialSync(const NXSubMeshReloadTaskPackage* p
 	// 生成新材质
 	for (auto pSubMesh : pTaskData->submits)
 	{
-		pSubMesh->m_pReplacingMaterial = NXResourceManager::GetInstance()->GetMaterialManager()->LoadFromNmatFile(pSubMesh->m_strReplacingPath);
+		pSubMesh->m_pReplacingMaterial = NXResourceManager::GetInstance()->GetMaterialManager()->LoadFromNSLFile(pSubMesh->m_strReplacingPath);
 	}
 }
 
