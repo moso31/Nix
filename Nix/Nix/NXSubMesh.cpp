@@ -21,9 +21,9 @@ void NXSubMeshBase::MarkReplacing(const std::filesystem::path& replaceMaterialPa
 
 void NXSubMeshBase::SwitchToLoadingMaterial()
 {
-	auto pDefaultMaterial = NXResourceManager::GetInstance()->GetMaterialManager()->GetDefaultMaterial();
-	if (pDefaultMaterial)
-		NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(this, pDefaultMaterial);
+	auto pLoadingMaterial = NXResourceManager::GetInstance()->GetMaterialManager()->GetLoadingMaterial();
+	if (pLoadingMaterial)
+		NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(this, pLoadingMaterial);
 }
 
 void NXSubMeshBase::SwitchToReplacingMaterial()

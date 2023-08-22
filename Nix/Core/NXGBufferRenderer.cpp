@@ -53,10 +53,12 @@ void NXGBufferRenderer::Render()
 
 	g_pContext->OMSetRenderTargets(4, ppRTVs, pDepthZ->GetDSV());
 
-	// 2023.4.10 过渡材质(EasyMat)
+	auto pErrorMat = NXResourceManager::GetInstance()->GetMaterialManager()->GetErrorMaterial();
 	for (auto pMat : NXResourceManager::GetInstance()->GetMaterialManager()->GetMaterials())
 	{
 		auto pEasyMat = pMat->IsEasyMat();
+		auto pCustomMat = pMat->IsCustomMat();
+
 		if (pEasyMat)
 		{
 			pEasyMat->Render();
@@ -75,34 +77,51 @@ void NXGBufferRenderer::Render()
 				}
 			}
 		}
-	}
-
-	// 2023.4.10 自定义材质
-	for (auto pMat : NXResourceManager::GetInstance()->GetMaterialManager()->GetMaterials())
-	{
-		auto pCustomMat = pMat->IsCustomMat();
-		if (pCustomMat)
+		else if (pCustomMat)
 		{
-			// 3S材质需要写模板缓存
-			if (pCustomMat->GetShadingModel() == NXShadingModel::SubSurface)
-				g_pContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 0x01);
-			else
-				g_pContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 0);
-
-			pCustomMat->Render();
-
-			for (auto pSubMesh : pCustomMat->GetRefSubMeshes())
+			if (pCustomMat->GetCompileSuccess())
 			{
-				if (pSubMesh)
-				{
-					bool bIsVisible = pSubMesh->GetPrimitive()->GetVisible();
-					if (bIsVisible)
-					{
-						pSubMesh->UpdateViewParams();
-						g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
+				// 3S材质需要写模板缓存
+				if (pCustomMat->GetShadingModel() == NXShadingModel::SubSurface)
+					g_pContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 0x01);
+				else
+					g_pContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 0);
 
-						pSubMesh->Update();
-						pSubMesh->Render();
+				pCustomMat->Render();
+
+				for (auto pSubMesh : pCustomMat->GetRefSubMeshes())
+				{
+					if (pSubMesh)
+					{
+						bool bIsVisible = pSubMesh->GetPrimitive()->GetVisible();
+						if (bIsVisible)
+						{
+							pSubMesh->UpdateViewParams();
+							g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
+
+							pSubMesh->Update();
+							pSubMesh->Render();
+						}
+					}
+				}
+			}
+			else
+			{
+				pErrorMat->Render();
+
+				for (auto pSubMesh : pCustomMat->GetRefSubMeshes())
+				{
+					if (pSubMesh)
+					{
+						bool bIsVisible = pSubMesh->GetPrimitive()->GetVisible();
+						if (bIsVisible)
+						{
+							pSubMesh->UpdateViewParams();
+							g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
+
+							pSubMesh->Update();
+							pSubMesh->Render();
+						}
 					}
 				}
 			}

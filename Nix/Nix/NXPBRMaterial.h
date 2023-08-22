@@ -107,7 +107,7 @@ public:
 	void ConvertNSLToHLSL(std::string& oHLSLHead, std::vector<std::string>& oHLSLFuncs, std::string& oHLSLBody);
 	// 将 NSL 转换为 HLSL。另外将 GUI 修改后的参数也传了进来，这些 GUI 参数将作为新编译后的 Shader 的默认值。
 	void ConvertGUIDataToHLSL(std::string& oHLSLHead, std::vector<std::string>& oHLSLFuncs, std::string& oHLSLBody, const std::vector<NXGUICBufferData>& cbDataGUI, const NXGUICBufferSetsData& cbSettingsDataGUI, const std::vector<NXGUITextureData>& texDataGUI, const std::vector<NXGUISamplerData>& samplerDataGUI);
-	bool CompileShader(const std::string& strGBufferShader, std::string& oErrorMessageVS, std::string& oErrorMessagePS);
+	void CompileShader(const std::string& strGBufferShader, std::string& oErrorMessageVS, std::string& oErrorMessagePS);
 	bool Recompile(const std::string& nslParams, const std::vector<std::string>& nslFuncs, const std::vector<std::string>& nslTitles, const std::vector<NXGUICBufferData>& cbDefaultValues, const NXGUICBufferSetsData& cbSettingDefaultValues, const std::vector<NXGUITextureData>& texDefaultValues, const std::vector<NXGUISamplerData>& samplerDefaultValues, std::vector<NXHLSLCodeRegion>& oShaderFuncRegions, std::string& oErrorMessageVS, std::string& oErrorMessagePS);
 
 	// 初始化所有着色器资源，包括 cb, tex, sampler
@@ -164,6 +164,8 @@ public:
 	void Serialize() override;
 	void Deserialize() override;
 
+	bool GetCompileSuccess() { return m_bCompileSuccess; }
+
 private:
 	// 读取 nsl 文件，获取 nsl shader.
 	bool LoadShaderStringFromFile(std::string& shaderContent);
@@ -192,6 +194,10 @@ private:
 	void UpdateCBData();
 
 private:
+	bool m_bIsDirty;
+	bool m_bCompileSuccess = false;
+
+private:
 	std::string							m_nslParams;
 	std::vector<std::string>			m_nslFuncs;
 
@@ -206,7 +212,6 @@ private:
 	std::vector<int>					m_cbSortedIndex;
 
 	std::vector<float>					m_cbData;
-	bool m_bIsDirty;
 
 	// backup datas
 	std::vector<NXMaterialSamplerInfo>	m_samplerInfosBackup;

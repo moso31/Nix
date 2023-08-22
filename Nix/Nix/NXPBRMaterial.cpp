@@ -117,7 +117,7 @@ void NXCustomMaterial::ConvertGUIDataToHLSL(std::string& oHLSLHead, std::vector<
 	ProcessShaderMainFunc(oHLSLBody);
 }
 
-bool NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::string& oErrorMessageVS, std::string& oErrorMessagePS)
+void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::string& oErrorMessageVS, std::string& oErrorMessagePS)
 {
 	ComPtr<ID3D11VertexShader> pNewVS;
 	ComPtr<ID3D11PixelShader>  pNewPS;
@@ -126,13 +126,14 @@ bool NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::s
 	HRESULT hrVS = NXShaderComplier::GetInstance()->CompileVSILByCode(strGBufferShader, "VS", &pNewVS, NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), &pNewIL, oErrorMessageVS);
 	HRESULT hrPS = NXShaderComplier::GetInstance()->CompilePSByCode(strGBufferShader, "PS", &pNewPS, oErrorMessagePS);
 
-	if (FAILED(hrVS) || FAILED(hrPS))
-		return false;
-
-	m_pVertexShader = pNewVS;
-	m_pPixelShader = pNewPS;
-	m_pInputLayout = pNewIL;
-	return true;
+	m_bCompileSuccess = SUCCEEDED(hrVS) && SUCCEEDED(hrPS);
+	
+	if (m_bCompileSuccess)
+	{
+		m_pVertexShader = pNewVS;
+		m_pPixelShader = pNewPS;
+		m_pInputLayout = pNewIL;
+	}
 }
 
 bool NXCustomMaterial::Recompile(const std::string& nslParams, const std::vector<std::string>& nslFuncs, const std::vector<std::string>& nslTitles, const std::vector<NXGUICBufferData>& cbDefaultValues, const NXGUICBufferSetsData& cbSettingDefaultValues, const std::vector<NXGUITextureData>& texDefaultValues, const std::vector<NXGUISamplerData>& samplerDefaultValues, std::vector<NXHLSLCodeRegion>& oShaderFuncRegions, std::string& oErrorMessageVS, std::string& oErrorMessagePS)
@@ -156,13 +157,13 @@ bool NXCustomMaterial::Recompile(const std::string& nslParams, const std::vector
 	NXHLSLGenerator::GetInstance()->EncodeToGBufferShader(strHLSLHead, strHLSLFuncs, nslTitles, strHLSLBody, strGBufferShader, oShaderFuncRegions);
 
 	// 最后编译
-	bool bCompileSuccess = CompileShader(strGBufferShader, oErrorMessageVS, oErrorMessagePS);
+	CompileShader(strGBufferShader, oErrorMessageVS, oErrorMessagePS);
 
 	// 如果编译失败，则用备份数据恢复材质
-	if (!bCompileSuccess)
+	if (!m_bCompileSuccess)
 		RecoverInfosBackup();
 
-	return bCompileSuccess;
+	return m_bCompileSuccess;
 }
 
 void NXCustomMaterial::InitShaderResources()

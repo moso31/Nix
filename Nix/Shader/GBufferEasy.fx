@@ -74,8 +74,8 @@ PS_INPUT VS(VS_INPUT input)
 
 void PS(PS_INPUT input, out PS_OUTPUT output)
 {
-	float3 posOS = input.posOS.xyz;
-	TriplanarUV triUV = GetTriplanarUV(posOS);
+	float3 posWS = input.posWS.xyz;
+	TriplanarUV triUV = GetTriplanarUV(posWS);
 
 	float3 albedoX = txLoading.Sample(ssLinearWrap, triUV.x).xyz;
 	float3 albedoY = txLoading.Sample(ssLinearWrap, triUV.y).xyz;
@@ -85,5 +85,5 @@ void PS(PS_INPUT input, out PS_OUTPUT output)
 	output.GBufferA = float4(input.posVS.xyz, 1.0f);
 	output.GBufferB = float4(0.5f, 0.5f, 1.0f, 1.0f); // xyz = vector(0, 0, 1)
 	output.GBufferC = float4(albedo, 1.0f); // use txLoading as albedo.
-	output.GBufferD = float4(0.0f, 1.0f, 1.0f, 1.0f);
+	output.GBufferD = float4(0.0f, 1.0f, 1.0f, 1.0f / 255.0f); // xyz = Metallic/Roughness/AO, w = shading model 'unlit'.
 }

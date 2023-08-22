@@ -9,8 +9,11 @@ public:
 
     void InitCommonMaterial();
 
-    // 获取默认材质
-    NXMaterial* GetDefaultMaterial() { return m_pDefaultMaterial; }
+    // 表示 加载中 状态的过渡材质
+    NXMaterial* GetLoadingMaterial() { return m_pLoadingMaterial; }
+
+    // 表示 加载错误 状态的过渡材质
+    NXMaterial* GetErrorMaterial() { return m_pErrorMaterial; }
 
     // 获取材质数组
     const std::vector<NXMaterial*>& GetMaterials() { return m_pMaterialArray; }
@@ -34,7 +37,8 @@ public:
 	void Release() override;
 
 private:
-    NXMaterial* m_pDefaultMaterial = nullptr;
+    NXMaterial* m_pLoadingMaterial = nullptr;   // 用于显示 加载中 状态的材质
+    NXMaterial* m_pErrorMaterial = nullptr;     // 用于显示 加载错误 状态的材质
     std::vector<NXMaterial*> m_pMaterialArray;
 
 	std::vector<NXMaterial*> m_pUnusedMaterials;

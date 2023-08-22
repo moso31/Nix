@@ -6,13 +6,12 @@
 
 void NXMaterialResourceManager::InitCommonMaterial()
 {
-	// 初始化一个默认材质，用于默认材质、切换材质时的过渡材质 等功能。
-	//		ps: 直接将初始化纹理写在构造函数里了
-	auto pDefaultMat = new NXEasyMaterial("DefaultMaterial", "./Resource/loading.png");
-	RegisterMaterial(pDefaultMat);
+	// ps: 直接将初始化纹理写在构造函数里了
+	m_pLoadingMaterial = new NXEasyMaterial("LoadingMaterial", "./Resource/loading.png");
+	m_pErrorMaterial = new NXEasyMaterial("ErrorMaterial", "./Resource/error.png");
 
-	SafeRelease(m_pDefaultMaterial);
-	m_pDefaultMaterial = pDefaultMat;
+	RegisterMaterial(m_pLoadingMaterial);
+	RegisterMaterial(m_pErrorMaterial);
 }
 
 void NXMaterialResourceManager::RegisterMaterial(NXMaterial* newMaterial)
