@@ -58,6 +58,7 @@ void NXGBufferRenderer::Render()
 	{
 		auto pEasyMat = pMat->IsEasyMat();
 		auto pCustomMat = pMat->IsCustomMat();
+		g_pContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 0);
 
 		if (pEasyMat)
 		{
@@ -84,8 +85,6 @@ void NXGBufferRenderer::Render()
 				// 3S材质需要写模板缓存
 				if (pCustomMat->GetShadingModel() == NXShadingModel::SubSurface)
 					g_pContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 0x01);
-				else
-					g_pContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 0);
 
 				pCustomMat->Render();
 

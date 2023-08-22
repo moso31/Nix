@@ -8,7 +8,7 @@ void NXMaterialResourceManager::InitCommonMaterial()
 {
 	// ps: 直接将初始化纹理写在构造函数里了
 	m_pLoadingMaterial = new NXEasyMaterial("LoadingMaterial", "./Resource/loading.png");
-	m_pErrorMaterial = new NXEasyMaterial("ErrorMaterial", "./Resource/error.png");
+	m_pErrorMaterial = new NXEasyMaterial("ErrorMaterial", "./Resource/error.dds");
 
 	RegisterMaterial(m_pLoadingMaterial);
 	RegisterMaterial(m_pErrorMaterial);

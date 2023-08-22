@@ -64,23 +64,14 @@ private:
 // 显示正在加载、加载失败等中间状态的过渡纹理
 class NXEasyMaterial : public NXMaterial
 {
-	struct CBufferData
-	{
-		Vector2 uvScale;
-		Vector2 _0;
-	};
-
 public:
 	NXEasyMaterial(const std::string& name, const std::filesystem::path& filePath);
 	NXEasyMaterial* IsEasyMat() override { return this; }
 
 	void Init();
-	void Update() override;
+	void Update() override {}
 	void Render() override;
 	void Release() override {}
-
-private:
-	void InitConstantBuffer();
 
 private:
 	ComPtr<ID3D11VertexShader>			m_pVertexShader;
@@ -88,7 +79,6 @@ private:
 	ComPtr<ID3D11InputLayout>			m_pInputLayout;
 
 	NXTexture2D* m_pTexture;
-	CBufferData m_cbData;
 };
 
 class NXCustomMaterial : public NXMaterial

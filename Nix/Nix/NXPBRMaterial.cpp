@@ -36,7 +36,6 @@ NXEasyMaterial::NXEasyMaterial(const std::string& name, const std::filesystem::p
 	NXMaterial(name, filePath)
 {
 	Init();
-
 	m_pTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(m_name, filePath);
 }
 
@@ -44,24 +43,6 @@ void NXEasyMaterial::Init()
 {
 	NXShaderComplier::GetInstance()->CompileVSIL(".\\Shader\\GBufferEasy.fx", "VS", &m_pVertexShader, NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), &m_pInputLayout);
 	NXShaderComplier::GetInstance()->CompilePS(".\\Shader\\GBufferEasy.fx", "PS", &m_pPixelShader);
-
-	InitConstantBuffer();
-}
-
-void NXEasyMaterial::InitConstantBuffer()
-{
-	D3D11_BUFFER_DESC bufferDesc;
-	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(CBufferData);
-	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bufferDesc.CPUAccessFlags = 0;
-	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cb));
-}
-
-void NXEasyMaterial::Update()
-{
-	g_pContext->UpdateSubresource(m_cb.Get(), 0, nullptr, &m_cbData, 0, 0);
 }
 
 void NXEasyMaterial::Render()
@@ -75,8 +56,6 @@ void NXEasyMaterial::Render()
 
 	ID3D11SamplerState* pSampler = NXSamplerManager::Get(NXSamplerFilter::Linear, NXSamplerAddressMode::Wrap);
 	if (pSampler) g_pContext->PSSetSamplers(0, 1, &pSampler);
-
-	g_pContext->PSSetConstantBuffers(3, 1, m_cb.GetAddressOf());
 }
 
 void NXCustomMaterial::LoadShaderCode()
