@@ -54,10 +54,11 @@ void NXGBufferRenderer::Render()
 	g_pContext->OMSetRenderTargets(4, ppRTVs, pDepthZ->GetDSV());
 
 	auto pErrorMat = NXResourceManager::GetInstance()->GetMaterialManager()->GetErrorMaterial();
-	for (auto pMat : NXResourceManager::GetInstance()->GetMaterialManager()->GetMaterials())
+	auto pMaterialsArray = NXResourceManager::GetInstance()->GetMaterialManager()->GetMaterials();
+	for (auto pMat : pMaterialsArray)
 	{
-		auto pEasyMat = pMat->IsEasyMat();
-		auto pCustomMat = pMat->IsCustomMat();
+		auto pEasyMat = pMat ? pMat->IsEasyMat() : nullptr;
+		auto pCustomMat = pMat ? pMat->IsCustomMat() : nullptr;
 		g_pContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 0);
 
 		if (pEasyMat)

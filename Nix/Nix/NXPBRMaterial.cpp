@@ -58,16 +58,47 @@ void NXEasyMaterial::Render()
 	if (pSampler) g_pContext->PSSetSamplers(0, 1, &pSampler);
 }
 
-void NXCustomMaterial::LoadShaderCode()
+void NXCustomMaterial::LoadAndCompile(const std::filesystem::path& nslFilePath)
+{
+	if (LoadShaderCode())
+	{
+		std::string strHLSLHead, strHLSLBody;
+		std::vector<std::string> strHLSLFuncs;
+		ConvertNSLToHLSL(strHLSLHead, strHLSLFuncs, strHLSLBody);
+
+		std::vector<std::string> strHLSLTitles;
+		strHLSLTitles.push_back("main()");
+		for (int i = 0; i < strHLSLFuncs.size(); i++)
+			strHLSLTitles.push_back(NXConvert::GetTitleOfFunctionData(strHLSLFuncs[i]));
+
+		std::string strGBufferShader;
+		NXHLSLGenerator::GetInstance()->EncodeToGBufferShader(strHLSLHead, strHLSLFuncs, strHLSLTitles, strHLSLBody, strGBufferShader, std::vector<NXHLSLCodeRegion>());
+
+		std::string strErrMsgVS, strErrMsgPS;
+		CompileShader(strGBufferShader, strErrMsgVS, strErrMsgPS);
+
+		InitShaderResources();
+	}
+	else
+	{
+		m_bCompileSuccess = false;
+	}
+}
+
+bool NXCustomMaterial::LoadShaderCode()
 {
 	std::string strShader;
 
 	// 读取 nsl 文件，获取 nsl shader.
 	bool bLoadSuccess = LoadShaderStringFromFile(strShader);
-	assert(bLoadSuccess);
 
-	// 将 nsl shader 拆成 params 和 code 两部分
-	ExtractShaderData(strShader, m_nslParams, m_nslFuncs);
+	if (bLoadSuccess)
+	{
+		// 将 nsl shader 拆成 params 和 code 两部分
+		ExtractShaderData(strShader, m_nslParams, m_nslFuncs);
+	}
+
+	return bLoadSuccess;
 }
 
 void NXCustomMaterial::ConvertNSLToHLSL(std::string& oHLSLHead, std::vector<std::string>& oHLSLFuncs, std::string& oHLSLBody)
@@ -440,67 +471,69 @@ void NXCustomMaterial::Deserialize()
 	if (bJsonExist)
 	{
 		auto strInfoPath = deserializer.String("n0Path");
-		if (strInfoPath == nxInfoPath)
+
+		// 验证是否是当前材质的n0文件（或者是模板文件也行。在n0文件中，使用 "n0Path": "~template" 表示模板文件）
+		bool isValid = strInfoPath == nxInfoPath || strInfoPath == "~template";
+		if (!isValid) return;
+
+		// textures
+		auto texArray = deserializer.Array("textures");
+		for (auto& tex : texArray)
 		{
-			// textures
-			auto texArray = deserializer.Array("textures");
-			for (auto& tex : texArray)
+			auto objName = deserializer.String(tex, "name");
+			auto objPath = deserializer.String(tex, "path");
+
+			auto texInfo = std::find_if(m_texInfos.begin(), m_texInfos.end(), [objName](const NXMaterialTextureInfo& texInfo) { return texInfo.name == objName; });
+			if (texInfo == m_texInfos.end()) continue;
+
+			texInfo->guiType = (NXGUITextureType)deserializer.Int(tex, "guiType", (int)NXGUITextureType::Unknown);
+			SetTexture(texInfo->pTexture, objPath);
+		}
+
+		// samplers
+		auto ssArray = deserializer.Array("samplers");
+		for (auto& ss : ssArray)
+		{
+			auto objName = deserializer.String(ss, "name");
+		}
+
+		// cbuffer
+		auto cbArray = deserializer.Array("cbuffer");
+		for (auto& cb : cbArray)
+		{
+			auto objName = deserializer.String(cb, "name");
+
+			for (int i = 0; i < m_cbInfo.elems.size(); i++)
 			{
-				auto objName = deserializer.String(tex, "name");
-				auto objPath = deserializer.String(tex, "path");
-
-				auto texInfo = std::find_if(m_texInfos.begin(), m_texInfos.end(), [objName](const NXMaterialTextureInfo& texInfo) { return texInfo.name == objName; });
-				if (texInfo == m_texInfos.end()) continue;
-
-				texInfo->guiType = (NXGUITextureType)deserializer.Int(tex, "guiType", (int)NXGUITextureType::Unknown);
-				SetTexture(texInfo->pTexture, objPath);
-			}
-
-			// samplers
-			auto ssArray = deserializer.Array("samplers");
-			for (auto& ss : ssArray)
-			{
-				auto objName = deserializer.String(ss, "name");
-			}
-
-			// cbuffer
-			auto cbArray = deserializer.Array("cbuffer");
-			for (auto& cb : cbArray)
-			{
-				auto objName = deserializer.String(cb, "name");
-
-				for (int i = 0; i < m_cbInfo.elems.size(); i++)
+				auto& cbElem = m_cbInfo.elems[i];
+				if (cbElem.name == objName)
 				{
-					auto& cbElem = m_cbInfo.elems[i];
-					if (cbElem.name == objName)
+					auto objType = deserializer.Int(cb, "type", (int)NXCBufferInputType::Float);
+					if (cbElem.type == objType)
 					{
-						auto objType = deserializer.Int(cb, "type", (int)NXCBufferInputType::Float);
-						if (cbElem.type == objType)
+						auto objGUIStyle = deserializer.Int(cb, "guiStyle", (int)NXGUICBufferStyle::Unknown);
+						cbElem.style = (NXGUICBufferStyle)objGUIStyle;
+
+						auto objValues = deserializer.Array(cb, "values");
+						if (!objValues.Empty())
 						{
-							auto objGUIStyle = deserializer.Int(cb, "guiStyle", (int)NXGUICBufferStyle::Unknown);
-							cbElem.style = (NXGUICBufferStyle)objGUIStyle;
+							for (int j = 0; j < (int)cbElem.type; j++)
+								m_cbInfoMemory[cbElem.memoryIndex + j] = objValues[j].GetFloat();
+						}
 
-							auto objValues = deserializer.Array(cb, "values");
-							if (!objValues.Empty())
-							{
-								for (int j = 0; j < (int)cbElem.type; j++)
-									m_cbInfoMemory[cbElem.memoryIndex + j] = objValues[j].GetFloat();
-							}
-
-							auto objParams = deserializer.Array(cb, "guiParams");
-							if (!objParams.Empty())
-							{
-								cbElem.guiParams[0] = objParams[0].GetFloat();
-								cbElem.guiParams[1] = objParams[1].GetFloat();
-							}
+						auto objParams = deserializer.Array(cb, "guiParams");
+						if (!objParams.Empty())
+						{
+							cbElem.guiParams[0] = objParams[0].GetFloat();
+							cbElem.guiParams[1] = objParams[1].GetFloat();
 						}
 					}
 				}
 			}
-
-			auto& cbSets = m_cbInfo.sets;
-			cbSets.shadingModel = deserializer.Uint("shadingModel");
 		}
+
+		auto& cbSets = m_cbInfo.sets;
+		cbSets.shadingModel = deserializer.Uint("shadingModel");
 	}
 }
 

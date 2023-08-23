@@ -3,6 +3,8 @@
 #include "NXConverter.h"
 #include "NXGUI.h"
 #include "NXScene.h"
+#include "NXResourceManager.h"
+#include "NXMaterialResourceManager.h"
 
 NXGUIContentExplorer::NXGUIContentExplorer(NXScene* pScene, NXGUITexture* pGUITexture) :
     m_pCurrentScene(pScene),
@@ -126,19 +128,22 @@ void NXGUIContentExplorer::Render()
                                     ImGui::Text("(o_o)...");
                                     ImGui::EndDragDropSource();
                                 }
+                                
+                                // 文件夹/图标按钮 右键菜单
+                                if (ImGui::BeginPopupContextItem())
+                                {
+                                    if (ImGui::MenuItem("Rename"))
+                                    {
+
+                                    }
+
+                                    ImGui::EndPopup();
+                                }
 
                                 // 文件夹/图标按钮 单击事件
-                                if (ImGui::IsItemClicked() && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+                                if (ImGui::IsItemClicked(ImGuiMouseButton_Left) && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
                                 {
-                                    if (subElem.is_directory()) {} 
-                                    else if (subElem.path().has_extension())
-                                    {
-                                        // 如果点选了图片，就需要 NXGUITexture 显示此图的相关信息
-                                        if (NXConvert::IsImageFileExtension(subElem.path().extension().string()))
-                                        {
-                                            m_pGUITexture->SetImage(subElem.path());
-                                        }
-                                    }
+                                    OnBtnContentLeftClicked(subElem);
                                 }
 
                                 //// 文件夹/图标按钮 双击事件
@@ -213,13 +218,14 @@ void NXGUIContentExplorer::RenderContentFolderList(const std::filesystem::path& 
 
 void NXGUIContentExplorer::GenerateMaterialResourceFile(const std::filesystem::path& FolderPath)
 {
-    // 判断一下当前Folder下的所有nmat文件，如果开头是 "NewMat " + [任意数字] 的形式，就将数字记录下来
+    // 判断一下当前Folder下的所有nsl文件，如果开头是 "NewMat " + [任意数字] 的形式，就将数字记录下来
     // 如果没有这样的材质，就计数为0
     std::string strJudge = "NewMat ";
     size_t nOffset = strJudge.length();
     int nMaxValue = 0;
     for (auto const& p : std::filesystem::directory_iterator(FolderPath))
-        if (p.path().extension().string() == ".nmat")
+    {
+        if (p.path().extension().string() == ".nsl")
         {
             std::string strStem = p.path().stem().string();
             if (strStem.length() <= nOffset)
@@ -230,15 +236,40 @@ void NXGUIContentExplorer::GenerateMaterialResourceFile(const std::filesystem::p
             if (strFirst7 == strJudge)
             {
                 if (std::all_of(strLast.begin(), strLast.end(), ::isdigit))
-                nMaxValue = max(nMaxValue, std::stoi(strLast));
+                    nMaxValue = max(nMaxValue, std::stoi(strLast));
             }
         }
+    }
 
     // 最后生成的名字是 "NewMat " + [任意数字 + 1]，确保材质命名一定不会重复。
     std::string strNewName = "NewMat " + std::to_string(nMaxValue + 1);
-    std::string strNewPath = strNewName + ".nmat";
+    std::string strNewPath = strNewName + ".nsl";
     std::filesystem::path newPath = FolderPath / strNewPath;
 
-    // 默认新建一个StandardPBR材质
-    NXGUICommon::CreateDefaultMaterialFile(newPath, strNewName);
+    CreateMaterialFileOnDisk(newPath);
+}
+
+void NXGUIContentExplorer::CreateMaterialFileOnDisk(const std::filesystem::path& path)
+{
+    // 使用模板文件创建新材质。默认是一个standardPBR材质。
+    std::filesystem::copy(g_material_template_standardPBR, path, std::filesystem::copy_options::overwrite_existing);
+
+    // 对应的元文件也copy过去
+    std::filesystem::copy(g_material_template_standardPBR + ".n0", path.string() + ".n0", std::filesystem::copy_options::overwrite_existing);
+}
+
+void NXGUIContentExplorer::OnBtnContentLeftClicked(const std::filesystem::directory_entry& path)
+{
+    if (path.is_directory()) 
+    {
+        // TODO: 如果点选了文件夹，就需要切换当前的路径
+    }
+    else if (path.path().has_extension())
+    {
+        // 如果点选了图片，就需要 NXGUITexture 显示此图的相关信息
+        if (NXConvert::IsImageFileExtension(path.path().extension().string()))
+        {
+            m_pGUITexture->SetImage(path.path());
+        }
+    }
 }

@@ -92,7 +92,9 @@ public:
 	~NXCustomMaterial() {}
 	NXCustomMaterial* IsCustomMat() override { return this; }
 
-	void LoadShaderCode();
+	void LoadAndCompile(const std::filesystem::path& nslFilePath);
+
+	bool LoadShaderCode();
 	// 将 NSL 转换为 HLSL。
 	void ConvertNSLToHLSL(std::string& oHLSLHead, std::vector<std::string>& oHLSLFuncs, std::string& oHLSLBody);
 	// 将 NSL 转换为 HLSL。另外将 GUI 修改后的参数也传了进来，这些 GUI 参数将作为新编译后的 Shader 的默认值。

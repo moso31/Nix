@@ -49,24 +49,7 @@ NXMaterial* NXMaterialResourceManager::LoadFromNSLFile(const std::filesystem::pa
 NXCustomMaterial* NXMaterialResourceManager::CreateCustomMaterial(const std::string& name, const std::filesystem::path& nslFilePath)
 {
 	auto pMat = new NXCustomMaterial(name, nslFilePath);
-	pMat->LoadShaderCode();
-
-	std::string strHLSLHead, strHLSLBody;
-	std::vector<std::string> strHLSLFuncs;
-	pMat->ConvertNSLToHLSL(strHLSLHead, strHLSLFuncs, strHLSLBody);
-
-	std::vector<std::string> strHLSLTitles;
-	strHLSLTitles.push_back("main()");
-	for (int i = 0; i < strHLSLFuncs.size(); i++)
-		strHLSLTitles.push_back(NXConvert::GetTitleOfFunctionData(strHLSLFuncs[i]));
-
-	std::string strGBufferShader;
-	NXHLSLGenerator::GetInstance()->EncodeToGBufferShader(strHLSLHead, strHLSLFuncs, strHLSLTitles, strHLSLBody, strGBufferShader, std::vector<NXHLSLCodeRegion>());
-
-	std::string strErrMsgVS, strErrMsgPS;
-	pMat->CompileShader(strGBufferShader, strErrMsgVS, strErrMsgPS);
-
-	pMat->InitShaderResources();
+	pMat->LoadAndCompile(nslFilePath);
 
 	NXResourceManager::GetInstance()->GetMaterialManager()->RegisterMaterial(pMat);
 	return pMat;

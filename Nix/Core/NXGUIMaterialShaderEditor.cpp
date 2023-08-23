@@ -969,6 +969,7 @@ void NXGUIMaterialShaderEditor::SyncMaterialData(NXCustomMaterial* pMaterial)
 	for (UINT i = 0; i < pMaterial->GetTextureCount(); i++)
 	{
 		NXTexture* pTex = pMaterial->GetTexture(i);
+		if (!pTex) pTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_White);
 		if (pTex)
 		{
 			pTex->AddRef();

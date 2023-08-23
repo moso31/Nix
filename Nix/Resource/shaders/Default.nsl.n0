@@ -1,0 +1,125 @@
+{
+    "n0Path": "~template",
+    "textures": [
+        {
+            "name": "txAlbedo",
+            "path": ".\\Resource\\white1x1.png",
+            "slotIndex": 1,
+            "guiType": 0
+        },
+        {
+            "name": "txNormalMap",
+            "path": ".\\Resource\\normal1x1.png",
+            "slotIndex": 2,
+            "guiType": 1
+        },
+        {
+            "name": "txMetallicMap",
+            "path": ".\\Resource\\white1x1.png",
+            "slotIndex": 3,
+            "guiType": 0
+        },
+        {
+            "name": "txRoughnessMap",
+            "path": ".\\Resource\\white1x1.png",
+            "slotIndex": 4,
+            "guiType": 0
+        },
+        {
+            "name": "txAmbientOcclusionMap",
+            "path": ".\\Resource\\white1x1.png",
+            "slotIndex": 5,
+            "guiType": 0
+        }
+    ],
+    "samplers": [
+        {
+            "name": "ssLinearWrap",
+            "slotIndex": 0,
+            "filter": 1,
+            "addressU": 0,
+            "addressV": 0,
+            "addressW": 0
+        }
+    ],
+    "cbuffer": [
+        {
+            "name": "albedo",
+            "type": 3,
+            "guiStyle": 8,
+            "guiParams": [
+                0.0,
+                1.0
+            ],
+            "values": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        {
+            "name": "normal",
+            "type": 3,
+            "guiStyle": 8,
+            "guiParams": [
+                0.0,
+                1.0
+            ],
+            "values": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        {
+            "name": "metallic",
+            "type": 1,
+            "guiStyle": 4,
+            "guiParams": [
+                0.0,
+                1.0
+            ],
+            "values": [
+                0.0
+            ]
+        },
+        {
+            "name": "roughness",
+            "type": 1,
+            "guiStyle": 4,
+            "guiParams": [
+                0.0,
+                1.0
+            ],
+            "values": [
+                0.5
+            ]
+        },
+        {
+            "name": "ao",
+            "type": 1,
+            "guiStyle": 4,
+            "guiParams": [
+                0.0,
+                1.0
+            ],
+            "values": [
+                1.0
+            ]
+        },
+        {
+            "name": "uvScale",
+            "type": 2,
+            "guiStyle": 1,
+            "guiParams": [
+                1.0,
+                0.0
+            ],
+            "values": [
+                1.0,
+				1.0
+            ]
+        }
+    ],
+    "shadingModel": 0
+}

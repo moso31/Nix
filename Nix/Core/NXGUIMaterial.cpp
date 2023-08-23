@@ -83,7 +83,7 @@ void NXGUIMaterial::Render()
 
 	float fBtnSize = 45.0f;
 	ImGui::BeginChild("##material_iconbtn", ImVec2(fBtnSize, max(ImGui::GetContentRegionAvail().y * 0.1f, fBtnSize)));
-	ImGui::Button(".nmat##iconbtn", ImVec2(fBtnSize, fBtnSize));
+	ImGui::Button(".nsl##iconbtn", ImVec2(fBtnSize, fBtnSize));
 
 	if (ImGui::BeginDragDropTarget())
 	{

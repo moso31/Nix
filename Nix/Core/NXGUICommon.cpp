@@ -7,19 +7,6 @@
 namespace NXGUICommon
 {
 
-void CreateDefaultMaterialFile(const std::filesystem::path& path, const std::string& matName)
-{
-    // 新建一个StandardPBR材质
-    std::ofstream ofs(path, std::ios::binary);
-    ofs << matName << std::endl << "Standard\n"; // 材质名称，材质类型
-    ofs << "?\n" << 1.0f << ' ' << 1.0f << ' ' << 1.0f << ' ' << std::endl; // albedo
-    ofs << "?\n" << 1.0f << ' ' << 1.0f << ' ' << 1.0f << ' ' << std::endl; // normal
-    ofs << "?\n" << 1.0f << std::endl; // metallic
-    ofs << "?\n" << 1.0f << std::endl; // roughness
-    ofs << "?\n" << 1.0f << std::endl; // AO
-    ofs.close();
-}
-
 void RenderSmallTextureIcon(ImTextureID ImTexID, NXGUIFileBrowser* pFileBrowser, std::function<void()> onChange, std::function<void()> onRemove, std::function<void(const std::wstring&)> onDrop)
 {
 	float texSize = (float)20;

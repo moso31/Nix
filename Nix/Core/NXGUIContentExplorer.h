@@ -27,6 +27,9 @@ public:
 private:
 	// 在指定文件夹生成材质资源文件
 	void GenerateMaterialResourceFile(const std::filesystem::path& FolderPath); 
+	void CreateMaterialFileOnDisk(const std::filesystem::path& matPath);
+
+	void OnBtnContentLeftClicked(const std::filesystem::directory_entry& path);
 
 private:
 	NXScene* m_pCurrentScene;

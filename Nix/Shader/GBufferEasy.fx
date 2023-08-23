@@ -16,6 +16,9 @@ TriplanarUV GetTriplanarUV(float3 position)
 	triUV.x = p.zy;
 	triUV.y = p.xz;
 	triUV.z = p.xy;
+	triUV.x *= float2(-1.0f, 1.0f);
+	triUV.y *= float2(-1.0f, 1.0f);
+	triUV.z *= float2(-1.0f, 1.0f);
 	return triUV;
 }
 

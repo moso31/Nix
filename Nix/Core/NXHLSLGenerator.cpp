@@ -60,10 +60,13 @@ PS_INPUT VS(VS_INPUT input)
 	return output;
 }
 
-void EncodeGBuffer(NXGBufferParams gBuffer, out PS_OUTPUT Output)
+void EncodeGBuffer(NXGBufferParams gBuffer, PS_INPUT input, out PS_OUTPUT Output)
 {
 	Output.GBufferA = float4(1.0f, 1.0f, 1.0f, 1.0f);
-	Output.GBufferB = float4(gBuffer.normal, 1.0f);
+	
+    float3 normalVS = TangentSpaceToViewSpace(gBuffer.normal, input.normVS, input.tangentVS);
+	Output.GBufferB = float4(normalVS, 1.0f);
+
 	Output.GBufferC = float4(gBuffer.albedo, 1.0f);
 
 	float fShadingModel = m.shadingModel / 255.0f;
@@ -79,7 +82,7 @@ void PS(PS_INPUT input, out PS_OUTPUT Output)
 )";
 
 	std::string strPSEnd = R"(
-    EncodeGBuffer(o, Output);
+    EncodeGBuffer(o, input, Output);
 }
 )";
 

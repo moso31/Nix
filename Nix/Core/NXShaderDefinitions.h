@@ -70,7 +70,7 @@ struct NXCBufferElem
 
 struct NXCBufferSets
 {
-	UINT shadingModel;
+	UINT shadingModel = 0;
 };
 
 struct NXMaterialCBufferInfo
