@@ -39,4 +39,6 @@ private:
 	NXGUIAssetDragData m_btnDrugData;
 
 	NXGUITexture* m_pGUITexture;
+
+	std::string m_strRename;
 };

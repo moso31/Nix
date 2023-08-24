@@ -401,8 +401,6 @@ void NXCustomMaterial::Serialize()
 	NXSerializer serializer;
 	serializer.StartObject();
 
-	serializer.String("n0Path", n0Path);
-
 	serializer.StartArray("textures");
 	for (auto& texInfo : m_texInfos)
 	{
@@ -470,12 +468,6 @@ void NXCustomMaterial::Deserialize()
 	bool bJsonExist = deserializer.LoadFromFile(nxInfoPath.c_str());
 	if (bJsonExist)
 	{
-		auto strInfoPath = deserializer.String("n0Path");
-
-		// 验证是否是当前材质的n0文件（或者是模板文件也行。在n0文件中，使用 "n0Path": "~template" 表示模板文件）
-		bool isValid = strInfoPath == nxInfoPath || strInfoPath == "~template";
-		if (!isValid) return;
-
 		// textures
 		auto texArray = deserializer.Array("textures");
 		for (auto& tex : texArray)

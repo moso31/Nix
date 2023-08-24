@@ -132,9 +132,30 @@ void NXGUIContentExplorer::Render()
                                 // 文件夹/图标按钮 右键菜单
                                 if (ImGui::BeginPopupContextItem())
                                 {
-                                    if (ImGui::MenuItem("Rename"))
-                                    {
+                                    const auto& strFileStemName = subElem.path().stem().string();
+                                    ImGui::AlignTextToFramePadding();
+                                    ImGui::Text("Rename");
+                                    ImGui::SameLine();
+                                    auto inputTextWidth = ImGui::CalcTextSize(strFileStemName.c_str()).x + 50.0f;
+                                    ImGui::PushItemWidth(inputTextWidth);
+									ImGui::InputText("##rename", &m_strRename);
+									ImGui::PopItemWidth();
+									ImGui::SameLine();
 
+									if (ImGui::Button("Apply"))
+									{
+										// 构造新的文件路径
+										const std::filesystem::path& old_path = subElem.path();
+										const std::filesystem::path& new_path = old_path.parent_path() / (m_strRename + old_path.extension().string());
+
+										// 重命名原始文件或文件夹
+										if (old_path != new_path)
+											std::filesystem::rename(old_path, new_path);
+									}
+
+									if (ImGui::MenuItem("Remove"))
+									{
+                                        std::filesystem::remove(subElem.path());
                                     }
 
                                     ImGui::EndPopup();

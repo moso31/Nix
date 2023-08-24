@@ -11,10 +11,10 @@ struct NXGUIShaderErrorMessage
 	std::string data;
 
 	// 出错的函数页，行号，列号左起，列号右至
-	int page;
-	int row;
-	int col0;
-	int col1;
+	int page = 0;
+	int row = 0;
+	int col0 = 0;
+	int col1 = 0;
 };
 
 struct NXGUIShaderFunctions

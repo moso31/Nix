@@ -81,11 +81,11 @@ void NXGUIMaterialShaderEditor::UpdateShaderErrorMessages(const std::string& str
 		{
 			std::string strRow = match.str(1);
 			std::string strCol0 = match.str(2);
-			std::string strCol1 = match.str(3);
+			std::string strCol1 = match.str(4);
 
 			int row  = std::stoi(strRow);
 			errMsg.col0 = std::stoi(strCol0);
-			errMsg.col1 = strCol1.empty() ? -1 : std::stoi(strCol1);
+			errMsg.col1 = strCol1.empty() ? errMsg.col0 : std::stoi(strCol1);
 
 			for (int j = 0; j < m_HLSLFuncRegions.size(); j++)
 			{
@@ -100,10 +100,10 @@ void NXGUIMaterialShaderEditor::UpdateShaderErrorMessages(const std::string& str
 		}
 		else
 		{
-			errMsg.page = -1;
-			errMsg.row = -1;
-			errMsg.col0 = -1;
-			errMsg.col1 = -1;
+			errMsg.page = 0;
+			errMsg.row = 0;
+			errMsg.col0 = 0;
+			errMsg.col1 = 0;
 		}
 	}
 }
