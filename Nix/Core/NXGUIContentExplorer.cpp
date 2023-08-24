@@ -128,43 +128,50 @@ void NXGUIContentExplorer::Render()
                                     ImGui::Text("(o_o)...");
                                     ImGui::EndDragDropSource();
                                 }
-                                
-                                // 文件夹/图标按钮 右键菜单
-                                if (ImGui::BeginPopupContextItem())
-                                {
-                                    const auto& strFileStemName = subElem.path().stem().string();
-                                    ImGui::AlignTextToFramePadding();
-                                    ImGui::Text("Rename");
-                                    ImGui::SameLine();
-                                    auto inputTextWidth = ImGui::CalcTextSize(strFileStemName.c_str()).x + 50.0f;
-                                    ImGui::PushItemWidth(inputTextWidth);
-									ImGui::InputText("##rename", &m_strRename);
-									ImGui::PopItemWidth();
-									ImGui::SameLine();
-
-									if (ImGui::Button("Apply"))
-									{
-										// 构造新的文件路径
-										const std::filesystem::path& old_path = subElem.path();
-										const std::filesystem::path& new_path = old_path.parent_path() / (m_strRename + old_path.extension().string());
-
-										// 重命名原始文件或文件夹
-										if (old_path != new_path)
-											std::filesystem::rename(old_path, new_path);
-									}
-
-									if (ImGui::MenuItem("Remove"))
-									{
-                                        std::filesystem::remove(subElem.path());
-                                    }
-
-                                    ImGui::EndPopup();
-                                }
 
                                 // 文件夹/图标按钮 单击事件
                                 if (ImGui::IsItemClicked(ImGuiMouseButton_Left) && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
                                 {
                                     OnBtnContentLeftClicked(subElem);
+                                }
+
+                                // 文件夹/图标按钮 右键单击事件
+                                if (ImGui::IsItemClicked(ImGuiMouseButton_Right) && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+                                {
+                                    // 这里只负责装填文件名
+                                    // 实际操作在：// 文件夹/图标按钮 右键菜单
+                                    m_strRename = subElem.path().stem().string();
+                                }
+
+                                // 文件夹/图标按钮 右键菜单
+                                if (ImGui::BeginPopupContextItem())
+                                {
+                                    ImGui::AlignTextToFramePadding();
+                                    ImGui::Text("Rename");
+                                    ImGui::SameLine();
+                                    auto inputTextWidth = ImGui::CalcTextSize(m_strRename.c_str()).x + 50.0f;
+                                    ImGui::PushItemWidth(inputTextWidth);
+                                    ImGui::InputText("##rename", &m_strRename);
+                                    ImGui::PopItemWidth();
+                                    ImGui::SameLine();
+
+                                    if (ImGui::Button("Apply"))
+                                    {
+                                        // 构造新的文件路径
+                                        const std::filesystem::path& old_path = subElem.path();
+                                        const std::filesystem::path& new_path = old_path.parent_path() / (m_strRename + old_path.extension().string());
+
+                                        // 重命名原始文件或文件夹
+                                        if (old_path != new_path)
+                                            std::filesystem::rename(old_path, new_path);
+                                    }
+
+                                    if (ImGui::MenuItem("Remove"))
+                                    {
+                                        std::filesystem::remove(subElem.path());
+                                    }
+
+                                    ImGui::EndPopup();
                                 }
 
                                 //// 文件夹/图标按钮 双击事件
