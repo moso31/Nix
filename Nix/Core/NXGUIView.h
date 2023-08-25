@@ -13,7 +13,7 @@ class NXGUIView
 	};
 
 public:
-	NXGUIView() : m_pViewRT(nullptr), m_lastViewMode(ViewMode::None), m_viewMode(ViewMode::Auto), m_bCustomApplyClicked(false) {}
+	NXGUIView() : m_pViewRT(nullptr), m_viewMode(ViewMode::Auto) {}
 	~NXGUIView() {}
 
 	void SetViewRT(NXTexture2D* pTexture2D);
@@ -29,7 +29,5 @@ private:
 	
 	Vector2 m_viewRTSize;
 
-	ViewMode m_lastViewMode;
 	ViewMode m_viewMode;
-	bool m_bCustomApplyClicked;
 };

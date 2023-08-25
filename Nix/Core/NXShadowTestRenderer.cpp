@@ -44,6 +44,8 @@ void NXShadowTestRenderer::Render(NXTexture2DArray* pShadowMapDepthTex)
 
 	g_pContext->PSSetShaderResources(0, 1, &pSRVShadowDepth);
 	g_pContext->PSSetShaderResources(1, 1, &pSRVSceneDepth);
+	g_pContext->VSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
+	g_pContext->PSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
 	g_pContext->VSSetConstantBuffers(2, 1, NXGlobalBufferManager::m_cbShadowTest.GetAddressOf());
 	g_pContext->PSSetConstantBuffers(2, 1, NXGlobalBufferManager::m_cbShadowTest.GetAddressOf());
 

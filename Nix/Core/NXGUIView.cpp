@@ -102,7 +102,7 @@ void NXGUIView::Render()
 				if (ImGui::Button("Apply"))
 				{
 					m_viewMode = ViewMode::Custom;
-					m_bCustomApplyClicked = true;
+					ImGui::CloseCurrentPopup();
 				}
 				isHoveredOnView &= !ImGui::IsItemHovered();
 			}
@@ -110,25 +110,19 @@ void NXGUIView::Render()
 		}
 		ImGui::PopStyleVar();
 
-		if (m_lastViewMode != m_viewMode || m_bCustomApplyClicked)
+		switch (m_viewMode)
 		{
-			switch (m_viewMode)
-			{
-			case ViewMode::Auto:
-				m_viewRTSize = { viewRegionX, viewRegionY };
-				break;
-			case ViewMode::Custom:
-				m_viewRTSize = { (float)vs[0], (float)vs[1] };
-				break;
-			case ViewMode::Fix_1920x1080:
-				m_viewRTSize = { 1920.0f, 1080.0f };
-				break;
-			default:
-				break;
-			}
-
-			m_lastViewMode = m_viewMode;
-			m_bCustomApplyClicked = false;
+		case ViewMode::Auto:
+			m_viewRTSize = { viewRegionX, viewRegionY };
+			break;
+		case ViewMode::Custom:
+			m_viewRTSize = { (float)vs[0], (float)vs[1] };
+			break;
+		case ViewMode::Fix_1920x1080:
+			m_viewRTSize = { 1920.0f, 1080.0f };
+			break;
+		default:
+			break;
 		}
 
 		g_app->SetViewSize(m_viewRTSize);

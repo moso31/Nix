@@ -135,8 +135,6 @@ Ray NXCamera::GenerateRay(const Vector2& cursor, const Vector2& rectSize)
 
 void NXCamera::Init(float fovY, float zNear, float zFar, Vector3 cameraPosition, Vector3 cameraLookAt, Vector3 cameraLookUp, const Vector2& rtSize)
 {
-	OnResize(rtSize);
-
 	m_fovY = fovY;
 	m_near = zNear;
 	m_far = zFar;
@@ -154,14 +152,16 @@ void NXCamera::Init(float fovY, float zNear, float zFar, Vector3 cameraPosition,
 
 	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &NXGlobalBufferManager::m_cbCamera));
 
-	float invN2F = 1.0f / (m_far - m_near);
-	NXGlobalBufferManager::m_cbDataCamera.Params1 = Vector4(m_near, m_far, m_far * invN2F, -m_far * m_near * invN2F); 
+	OnResize(rtSize);
 }
 
 void NXCamera::OnResize(const Vector2& rtSize)
 {
 	m_rtSize = rtSize;
 	m_aspectRatio = m_rtSize.x / m_rtSize.y;
+
+	float invN2F = 1.0f / (m_far - m_near);
+	NXGlobalBufferManager::m_cbDataCamera.Params1 = Vector4(m_near, m_far, m_far * invN2F, -m_far * m_near * invN2F);
 }
 
 void NXCamera::UpdateTransform()
