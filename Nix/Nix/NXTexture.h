@@ -28,7 +28,7 @@ public:
         m_bIsCommonTex(bIsCommonTex)
     {}
 
-    virtual ~NXTexture() {};
+    virtual ~NXTexture();
 
     virtual NXTexture2D* Is2D() { return nullptr; }
     virtual NXTexture2DArray* Is2DArray() { return nullptr; }

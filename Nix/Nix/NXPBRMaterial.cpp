@@ -12,6 +12,7 @@
 #include "NXSamplerStates.h"
 #include "NXGUIMaterial.h"
 #include "NXGUICommon.h"
+#include "NXLog.h"
 
 NXMaterial::NXMaterial(const std::string& name, const std::filesystem::path& filePath) :
 	m_name(name),

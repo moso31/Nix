@@ -453,6 +453,9 @@
     <ClCompile Include="Core\NXSubSurfaceRenderer.cpp">
       <Filter>Core\DirectX\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXLog.cpp">
+      <Filter>Core\Helper</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -718,6 +721,9 @@
     </ClInclude>
     <ClInclude Include="Core\NXSubSurfaceRenderer.h">
       <Filter>Core\DirectX\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXLog.h">
+      <Filter>Core\Helper</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

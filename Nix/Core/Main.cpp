@@ -3,6 +3,7 @@
 #include "NXInput.h"
 #include "NXTimer.h"
 #include "NXGUI.h"
+#include "NXLog.h"
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK SplashWndProc(HWND, UINT, WPARAM, LPARAM);
@@ -93,7 +94,7 @@ DWORD WINAPI SplashScreenThread(LPVOID lpParam)
 		}
 
 		// 在此处更新闪屏
-		PaintNixLogo(hWnd, count++, hBrushes, nBrushesSize);
+		//PaintNixLogo(hWnd, count++, hBrushes, nBrushesSize);
 
 		// 限制闪屏线程的CPU占用
 		Sleep(60);
@@ -193,6 +194,10 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	std::thread splashThread(SplashScreenThread, exitEvent);
 
 	CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+
+	NXLog::Init();
+	NXLog::Log("-----Init-----");
+
 	g_app = new App();
 	g_app->Init(); 
 
@@ -237,8 +242,12 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 		}
 	}
 
+	NXLog::Log("-----Release-----");
+
 	SafeDelete(g_timer);
 	SafeRelease(g_app);
+
+	NXLog::Release();
 
 	CoUninitialize();
 	return (int)msg.wParam;
