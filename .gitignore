@@ -20,3 +20,4 @@
 *.dll
 *.idb
 *.lastcodeanalysissucceeded
+/Nix/logs/Log.txt
