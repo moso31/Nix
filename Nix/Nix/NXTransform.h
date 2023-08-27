@@ -1,11 +1,12 @@
 #pragma once
 #include "NXObject.h"
+#include "NXScriptable.h"
 #include "SimpleMath.h"
 
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
 
-class NXTransform : public NXObject
+class NXTransform : public NXObject, public NXScriptable
 {
 public:
 	NXTransform();

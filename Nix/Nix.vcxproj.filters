@@ -456,6 +456,9 @@
     <ClCompile Include="Core\NXLog.cpp">
       <Filter>Core\Helper</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\NXScriptable.cpp">
+      <Filter>Nix\Object</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -726,6 +729,12 @@
       <Filter>Core\Helper</Filter>
     </ClInclude>
     <ClInclude Include="Core\Ntr.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXScriptable.h">
+      <Filter>Nix\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\BasicDef.h">
       <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>

@@ -6,6 +6,7 @@
 #include "HBVH.h"
 #include "ShaderStructures.h"
 
+class NXScriptable;
 class NXScene : public NXObject
 {
 public:
@@ -92,6 +93,7 @@ private:
 	NXObject* m_pRootObject;
 	std::vector<NXObject*> m_objects;
 
+	std::vector<NXScriptable*> m_scriptableObjects;
 	std::vector<NXRenderableObject*> m_renderableObjects;
 	std::vector<NXPBRLight*> m_pbrLights;
 

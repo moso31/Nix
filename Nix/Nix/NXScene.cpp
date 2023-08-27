@@ -338,13 +338,11 @@ void NXScene::UpdateTransformOfEditorObjects()
 
 void NXScene::UpdateScripts()
 {
-	for (auto it = m_objects.begin(); it != m_objects.end(); it++)
+	for (auto& obj : m_scriptableObjects)
 	{
-		auto scripts = (*it)->GetScripts();
-		for (auto itScr = scripts.begin(); itScr != scripts.end(); itScr++)
+		for (auto& scr : obj->GetScripts())
 		{
-			auto pScript = *itScr;
-			pScript->Update();
+			scr->Update();
 		}
 	}
 }
@@ -476,12 +474,14 @@ void NXScene::RegisterCubeMap(NXCubeMap* newCubeMap)
 		printf("Warning: cubemap has been set already! strightly cover cubemap maybe will make some problem.\n");
 	}
 	m_pCubeMap = newCubeMap;
+	m_scriptableObjects.push_back(newCubeMap);
 	m_objects.push_back(newCubeMap);
 	newCubeMap->SetParent(m_pRootObject);
 }
 
 void NXScene::RegisterPrimitive(NXPrimitive* newPrimitive, NXObject* pParent)
 {
+	m_scriptableObjects.push_back(newPrimitive);
 	m_renderableObjects.push_back(newPrimitive);
 	m_objects.push_back(newPrimitive);
 
@@ -490,6 +490,7 @@ void NXScene::RegisterPrimitive(NXPrimitive* newPrimitive, NXObject* pParent)
 
 void NXScene::RegisterPrefab(NXPrefab* newPrefab, NXObject* pParent)
 {
+	m_scriptableObjects.push_back(newPrefab);
 	m_renderableObjects.push_back(newPrefab);
 	m_objects.push_back(newPrefab);
 
@@ -499,6 +500,7 @@ void NXScene::RegisterPrefab(NXPrefab* newPrefab, NXObject* pParent)
 void NXScene::RegisterCamera(NXCamera* newCamera, bool isMainCamera, NXObject* pParent)
 {
 	if (isMainCamera) m_pMainCamera = newCamera;
+	m_scriptableObjects.push_back(newCamera);
 	m_objects.push_back(newCamera);
 	newCamera->SetParent(pParent ? pParent : m_pRootObject);
 }

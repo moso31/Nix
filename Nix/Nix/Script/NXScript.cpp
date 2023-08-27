@@ -4,7 +4,7 @@ NXScript::~NXScript()
 {
 }
 
-void NXScript::SetObject(NXObject* pObject)
+void NXScript::SetObject(NXScriptable* pObject)
 {
 	m_pObject = pObject;
 }

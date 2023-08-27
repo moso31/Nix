@@ -1,7 +1,7 @@
 #pragma once
 #include <list>
-#include <vector>
 #include <string>
+#include "BasicDef.h"
 
 class NXTransform;
 class NXRenderableObject;
@@ -23,9 +23,6 @@ public:
 	virtual NXPrimitive* IsPrimitive() { return nullptr; }
 	virtual NXPrefab* IsPrefab() { return nullptr; }
 
-	void AddScript(NXScript* script);
-	std::vector<NXScript*> GetScripts();
-
 	NXObject* GetParent();
 	void SetParent(NXObject* pParent);
 
@@ -36,12 +33,11 @@ public:
 	// 检测pObject是否是当前节点的子节点。
 	bool IsChild(NXObject* pObject);
 
-	virtual void Update();
+	virtual void Update() {};
 	virtual void Release();
 
 protected:
 	std::string m_name;
-	std::vector<NXScript*> m_scripts;
 	
 	NXObject* m_parent = nullptr;
 	std::list<NXObject*> m_childs;

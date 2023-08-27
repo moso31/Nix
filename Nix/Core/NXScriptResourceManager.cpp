@@ -1,9 +1,10 @@
 #include "NXScriptResourceManager.h"
+#include "NXScriptable.h"
 #include "NXScene.h"
 #include "NXScriptType.h"
 #include "NSFirstPersonalCamera.h"
 
-NXScript* NXScriptResourceManager::CreateScript(const NXScriptType scriptType, NXObject* pObject)
+NXScript* NXScriptResourceManager::CreateScript(const NXScriptType scriptType, NXScriptable* pObject)
 {
 	switch (scriptType)
 	{

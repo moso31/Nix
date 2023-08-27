@@ -278,6 +278,7 @@
     <ClCompile Include="Nix\NXPBRMaterial.cpp" />
     <ClCompile Include="Nix\NXPrefab.cpp" />
     <ClCompile Include="Nix\NXRenderableObject.cpp" />
+    <ClCompile Include="Nix\NXScriptable.cpp" />
     <ClCompile Include="Nix\NXSimpleSSAO.cpp" />
     <ClCompile Include="Nix\NXSubMesh.cpp" />
     <ClCompile Include="Nix\NXSubMeshGeometryEditor.cpp" />
@@ -294,6 +295,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h" />
+    <ClInclude Include="Core\BasicDef.h" />
     <ClInclude Include="Core\DirectResources.h" />
     <ClInclude Include="Core\FBXMeshLoader.h" />
     <ClInclude Include="Core\Ntr.h" />
@@ -368,6 +370,7 @@
     <ClInclude Include="Nix\NXPBRMaterial.h" />
     <ClInclude Include="Nix\NXPrefab.h" />
     <ClInclude Include="Nix\NXRenderableObject.h" />
+    <ClInclude Include="Nix\NXScriptable.h" />
     <ClInclude Include="Nix\NXTextureDefinitions.h" />
     <ClInclude Include="Nix\NXSimpleSSAO.h" />
     <ClInclude Include="Nix\NXSubMesh.h" />

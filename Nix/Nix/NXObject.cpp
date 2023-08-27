@@ -1,16 +1,4 @@
 #include "NXObject.h"
-#include "NXScript.h"
-
-void NXObject::AddScript(NXScript* script)
-{
-	script->SetObject(this);
-	m_scripts.push_back(script);
-}
-
-std::vector<NXScript*> NXObject::GetScripts()
-{
-	return m_scripts;
-}
 
 NXObject* NXObject::GetParent()
 {
@@ -53,21 +41,8 @@ bool NXObject::IsChild(NXObject* pObject)
 	return false;
 }
 
-void NXObject::Update()
-{
-	for (auto script : m_scripts)
-	{
-		script->Update();
-	}
-}
-
 void NXObject::Release()
 {
-	for (auto script : m_scripts)
-	{
-		SafeDelete(script);
-	}
-
 	for (auto pChild : m_childs)
 	{
 		SafeRelease(pChild);

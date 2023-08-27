@@ -68,7 +68,7 @@ void NXEditorObjectRenderer::Render()
 
 	g_pContext->VSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
 
-	NXEditorObjectManager* pEditorObjManager = m_pScene->GetEditorObjManager();
+  	NXEditorObjectManager* pEditorObjManager = m_pScene->GetEditorObjManager();
 	for (auto pEditObj : pEditorObjManager->GetEditableObjects())
 	{
 		if (pEditObj->GetVisible()) // if bIsVisible
