@@ -1,8 +1,14 @@
 #pragma once
-#include "Header.h"
+#include <Windows.h>
+#include <wrl.h>
+#include <d3d11_4.h>
+#include <dxgi1_6.h>
+#include "NXObject.h"
 #include "NXSerializable.h"
 #include "NXTextureDefinitions.h"
 #include "NXTextureReloadTesk.h"
+
+using namespace Microsoft::WRL;
 
 enum NXTextureReloadingState
 {
@@ -12,7 +18,10 @@ enum NXTextureReloadingState
     Texture_FinishReload,  // B ״̬
 };
 
-class NXTexture : public NXSerializable
+class NXTexture2D;
+class NXTexture2DArray;
+class NXTextureCube;
+class NXTexture : public NXObject, public NXSerializable
 {
 public:
     NXTexture(bool bIsCommonTex = false) :
@@ -57,8 +66,6 @@ public:
     UINT            GetMipLevels() { return m_mipLevels; }
     DXGI_FORMAT     GetFormat() { return m_texFormat; }
 
-    const std::string& GetDebugName() { return m_debugName; }
-
     void AddRef();
     int GetRef() { return m_nRefCount; }
     void RemoveRef();
@@ -79,7 +86,6 @@ private:
     void InternalReload(NXTexture* pReloadTexture);
 
 protected:
-    std::string m_debugName;
     ComPtr<ID3D11Texture2D> m_pTexture;
 
     std::filesystem::path m_texFilePath;

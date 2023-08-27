@@ -1,16 +1,6 @@
 #include "NXObject.h"
 #include "NXScript.h"
 
-NXObject::NXObject() :
-	m_type(NXType::eNone),
-	m_parent(nullptr)
-{
-}
-
-NXObject::~NXObject()
-{
-}
-
 void NXObject::AddScript(NXScript* script)
 {
 	script->SetObject(this);

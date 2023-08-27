@@ -6,7 +6,7 @@
 
 NXTexture::~NXTexture()
 {
-	NXLog::LogWithStackTrace("[%s : size=(%dx%d)x%d, mip=%d, path=%s] Deleted. remain RefCount: %d", m_debugName.c_str(), m_width, m_height, m_arraySize, m_mipLevels, m_texFilePath.string().c_str(), m_nRefCount);
+	NXLog::LogWithStackTrace("[%s : size=(%dx%d)x%d, mip=%d, path=%s] Deleted. remain RefCount: %d", m_name.c_str(), m_width, m_height, m_arraySize, m_mipLevels, m_texFilePath.string().c_str(), m_nRefCount);
 }
 
 void NXTexture::SwapToReloadingTexture()
@@ -55,14 +55,14 @@ NXTextureReloadTask NXTexture::LoadTextureAsync()
 
 void NXTexture::LoadTextureSync()
 {
-	m_pReloadingTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(m_debugName, m_texFilePath, true); // 将最后的参数设为true，以强制读取硬盘纹理
+	m_pReloadingTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(m_name, m_texFilePath, true); // 将最后的参数设为true，以强制读取硬盘纹理
 }
 
 void NXTexture::AddRef()
 {
 	if (m_bIsCommonTex) return;
 
-	NXLog::LogWithStackTrace("[%s : size=(%dx%d)x%d, mip=%d, path=%s] ++ -> %d", m_debugName.c_str(), m_width, m_height, m_arraySize, m_mipLevels, m_texFilePath.string().c_str(), m_nRefCount + 1);
+	NXLog::LogWithStackTrace("[%s : size=(%dx%d)x%d, mip=%d, path=%s] ++ -> %d", m_name.c_str(), m_width, m_height, m_arraySize, m_mipLevels, m_texFilePath.string().c_str(), m_nRefCount + 1);
 	m_nRefCount++;
 }
 
@@ -70,7 +70,7 @@ void NXTexture::RemoveRef()
 {
 	if (m_bIsCommonTex) return;
 
-	NXLog::LogWithStackTrace("[%s : size=(%dx%d)x%d, mip=%d, path=%s] -- -> %d", m_debugName.c_str(), m_width, m_height, m_arraySize, m_mipLevels, m_texFilePath.string().c_str(), m_nRefCount - 1);
+	NXLog::LogWithStackTrace("[%s : size=(%dx%d)x%d, mip=%d, path=%s] -- -> %d", m_name.c_str(), m_width, m_height, m_arraySize, m_mipLevels, m_texFilePath.string().c_str(), m_nRefCount - 1);
 	m_nRefCount--; // 2023.6.24 具体的资源回收放在 ReleaseUnusedTextures() 做
 }
 
@@ -137,7 +137,7 @@ void NXTexture::Deserialize()
 
 void NXTexture2D::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* initData, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
 {
-	this->m_debugName = DebugName;
+	this->m_name = DebugName;
 	this->m_width = Width;
 	this->m_height = Height;
 	this->m_arraySize = ArraySize;
@@ -283,7 +283,7 @@ NXTexture2D* NXTexture2D::Create(const std::string& DebugName, const std::filesy
 	}
 
 	this->m_texFilePath = filePath;
-	this->m_debugName = DebugName;
+	this->m_name = DebugName;
 	this->m_width = (UINT)metadata.width;
 	this->m_height = (UINT)metadata.height;
 	this->m_arraySize = (UINT)metadata.arraySize;
@@ -310,7 +310,7 @@ void NXTexture2D::AddSRV()
 	CD3D11_SHADER_RESOURCE_VIEW_DESC Desc(D3D11_SRV_DIMENSION_TEXTURE2D, SRVFormat, 0, m_mipLevels);
 	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(m_pTexture.Get(), &Desc, &pSRV));
 
-	std::string SRVDebugName = m_debugName + " SRV";
+	std::string SRVDebugName = m_name + " SRV";
 	pSRV->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)SRVDebugName.size(), SRVDebugName.c_str());
 
 	m_pSRVs.push_back(pSRV);
@@ -323,7 +323,7 @@ void NXTexture2D::AddRTV()
 	CD3D11_RENDER_TARGET_VIEW_DESC Desc(D3D11_RTV_DIMENSION_TEXTURE2D, m_texFormat);
 	NX::ThrowIfFailed(g_pDevice->CreateRenderTargetView(m_pTexture.Get(), &Desc, &pRTV));
 
-	std::string RTVDebugName = m_debugName + " RTV";
+	std::string RTVDebugName = m_name + " RTV";
 	pRTV->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)RTVDebugName.size(), RTVDebugName.c_str());
 
 	m_pRTVs.push_back(pRTV);
@@ -340,7 +340,7 @@ void NXTexture2D::AddDSV()
 	CD3D11_DEPTH_STENCIL_VIEW_DESC Desc(D3D11_DSV_DIMENSION_TEXTURE2D, DSVFormat);
 	NX::ThrowIfFailed(g_pDevice->CreateDepthStencilView(m_pTexture.Get(), &Desc, &pDSV));
 
-	std::string DSVDebugName = m_debugName + " DSV";
+	std::string DSVDebugName = m_name + " DSV";
 	pDSV->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DSVDebugName.size(), DSVDebugName.c_str());
 
 	m_pDSVs.push_back(pDSV);
@@ -355,7 +355,7 @@ void NXTexture2D::AddUAV()
 	CD3D11_UNORDERED_ACCESS_VIEW_DESC Desc(D3D11_UAV_DIMENSION_TEXTURE2D, UAVFormat);
 	NX::ThrowIfFailed(g_pDevice->CreateUnorderedAccessView(m_pTexture.Get(), &Desc, &pUAV));
 
-	std::string UAVDebugName = m_debugName + " UAV";
+	std::string UAVDebugName = m_name + " UAV";
 	pUAV->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)UAVDebugName.size(), UAVDebugName.c_str());
 
 	m_pUAVs.push_back(pUAV);
@@ -365,7 +365,7 @@ void NXTextureCube::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* 
 {
 	UINT ArraySize = 6;	// textureCube must be 6.
 
-	this->m_debugName = DebugName;
+	this->m_name = DebugName;
 	this->m_width = Width;
 	this->m_height = Height;
 	this->m_arraySize = ArraySize;
@@ -452,7 +452,7 @@ void NXTextureCube::Create(const std::string& DebugName, const std::wstring& Fil
 	}
 
 	this->m_texFilePath = FilePath.c_str();
-	this->m_debugName = DebugName;
+	this->m_name = DebugName;
 	this->m_width = (UINT)metadata.width;
 	this->m_height = (UINT)metadata.height;
 	this->m_arraySize = (UINT)metadata.arraySize;
@@ -483,7 +483,7 @@ void NXTextureCube::AddSRV()
 
 	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(m_pTexture.Get(), &Desc, &pSRV));
 
-	std::string SRVDebugName = m_debugName + " SRV";
+	std::string SRVDebugName = m_name + " SRV";
 	pSRV->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)SRVDebugName.size(), SRVDebugName.c_str());
 
 	m_pSRVs.push_back(pSRV);
@@ -502,7 +502,7 @@ void NXTextureCube::AddRTV(UINT mipSlice, UINT firstArraySlice, UINT arraySize)
 
 	NX::ThrowIfFailed(g_pDevice->CreateRenderTargetView(m_pTexture.Get(), &Desc, &pRTV));
 
-	std::string RTVDebugName = m_debugName + " RTV";
+	std::string RTVDebugName = m_name + " RTV";
 	pRTV->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)RTVDebugName.size(), RTVDebugName.c_str());
 
 	m_pRTVs.push_back(pRTV);
@@ -531,7 +531,7 @@ void NXTextureCube::AddUAV(UINT mipSlice, UINT firstArraySlice, UINT arraySize)
 
 void NXTexture2DArray::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* initData, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
 {
-	this->m_debugName = DebugName;
+	this->m_name = DebugName;
 	this->m_width = Width;
 	this->m_height = Height;
 	this->m_arraySize = ArraySize;
@@ -577,7 +577,7 @@ void NXTexture2DArray::AddSRV(UINT firstArraySlice, UINT arraySize)
 
 	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(m_pTexture.Get(), &Desc, &pSRV));
 
-	std::string SRVDebugName = m_debugName + " SRV";
+	std::string SRVDebugName = m_name + " SRV";
 	pSRV->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)SRVDebugName.size(), SRVDebugName.c_str());
 
 	m_pSRVs.push_back(pSRV);
@@ -596,7 +596,7 @@ void NXTexture2DArray::AddRTV(UINT firstArraySlice, UINT arraySize)
 
 	NX::ThrowIfFailed(g_pDevice->CreateRenderTargetView(m_pTexture.Get(), &Desc, &pRTV));
 
-	std::string RTVDebugName = m_debugName + " RTV";
+	std::string RTVDebugName = m_name + " RTV";
 	pRTV->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)RTVDebugName.size(), RTVDebugName.c_str());
 
 	m_pRTVs.push_back(pRTV);
@@ -622,7 +622,7 @@ void NXTexture2DArray::AddDSV(UINT firstArraySlice, UINT arraySize)
 
 	NX::ThrowIfFailed(g_pDevice->CreateDepthStencilView(m_pTexture.Get(), &Desc, &pDSV));
 
-	std::string DSVDebugName = m_debugName + " DSV";
+	std::string DSVDebugName = m_name + " DSV";
 	pDSV->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DSVDebugName.size(), DSVDebugName.c_str());
 
 	m_pDSVs.push_back(pDSV);
@@ -643,7 +643,7 @@ void NXTexture2DArray::AddUAV(UINT firstArraySlice, UINT arraySize)
 
 	NX::ThrowIfFailed(g_pDevice->CreateUnorderedAccessView(m_pTexture.Get(), &Desc, &pUAV));
 
-	std::string UAVDebugName = m_debugName + " UAV";
+	std::string UAVDebugName = m_name + " UAV";
 	pUAV->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)UAVDebugName.size(), UAVDebugName.c_str());
 
 	m_pUAVs.push_back(pUAV);

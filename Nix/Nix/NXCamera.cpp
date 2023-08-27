@@ -3,7 +3,7 @@
 #include "GlobalBufferManager.h"
 #include "NSFirstPersonalCamera.h"
 
-NXCamera::NXCamera() :
+NXCamera::NXCamera(const std::string& name) :
 	NXTransform(),
 	m_at(0.0f, 0.0f, 0.0f),
 	m_up(0.0f, 1.0f, 0.0f),
@@ -12,8 +12,6 @@ NXCamera::NXCamera() :
 	m_aspectRatio(1.0f),
 	m_rtSize(0.0f, 0.0f)
 {
-	m_name = "Camera";
-	m_type = NXType::eCamera;
 }
 
 void NXCamera::SetTranslation(const Vector3& value)

@@ -1,5 +1,7 @@
 #pragma once
-#include "Header.h"
+#include <functional>
+#include <thread>
+#include <coroutine>
 
 class NXTextureReloadTask
 {

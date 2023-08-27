@@ -11,7 +11,6 @@ NXRenderableObject::NXRenderableObject() :
 	m_bIsVisible(true),
 	NXTransform()
 {
-	m_type = NXType::ePrefab;
 }
 
 void NXRenderableObject::Release()

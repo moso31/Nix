@@ -29,7 +29,6 @@ NXScene::NXScene() :
 	m_pMainCamera(nullptr),
 	m_bEditorSelectID(EditorObjectID::NONE)
 {
-	m_type = NXType::eScene;
 }
 
 NXScene::~NXScene()

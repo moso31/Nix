@@ -15,7 +15,7 @@
 #include "NXLog.h"
 
 NXMaterial::NXMaterial(const std::string& name, const std::filesystem::path& filePath) :
-	m_name(name),
+	NXObject(name),
 	m_filePath(filePath),
 	m_RefSubMeshesCleanUpCount(0)
 {
@@ -502,7 +502,7 @@ void NXCustomMaterial::Deserialize()
 				if (cbElem.name == objName)
 				{
 					auto objType = deserializer.Int(cb, "type", (int)NXCBufferInputType::Float);
-					if (cbElem.type == objType)
+					if ((int)cbElem.type == objType)
 					{
 						auto objGUIStyle = deserializer.Int(cb, "guiStyle", (int)NXGUICBufferStyle::Unknown);
 						cbElem.style = (NXGUICBufferStyle)objGUIStyle;

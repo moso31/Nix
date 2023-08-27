@@ -4,7 +4,6 @@
 
 NXPrimitive::NXPrimitive()
 {
-	m_type = NXType::ePrimitive;
 }
 
 void NXPrimitive::UpdateViewParams()

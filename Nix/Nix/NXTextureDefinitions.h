@@ -1,5 +1,4 @@
 #pragma once
-#include "Header.h"
 
 enum class NXTextureType
 {

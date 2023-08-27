@@ -193,7 +193,7 @@ void NXGUIMaterialShaderEditor::OnBtnRevertParamClicked(NXCustomMaterial* pMater
 			if (cbDisplay.memoryIndex != -1) // 新加的 AddParam 在点编译按钮之前不应该传给参数
 			{
 				// 在这里将 GUI 修改过的参数传回给材质 CBuffer，实现视觉上的变化
-				UINT actualByteCount = cbDisplay.readType;
+				UINT actualByteCount = (UINT)cbDisplay.readType;
 				pMaterial->SetCBInfoMemoryData(cbDisplay.memoryIndex, actualByteCount, cbDisplay.data);
 
 				// 通知材质下一帧更新 CBuffer
@@ -657,7 +657,7 @@ void NXGUIMaterialShaderEditor::Render_Params_CBufferItem(const std::string& str
 	if (bDraged && cbDisplay.memoryIndex != -1) // 新加的 AddParam 在点编译按钮之前不应该传给参数
 	{
 		// 在这里将 GUI 修改过的参数传回给材质 CBuffer，实现视觉上的变化
-		UINT actualN = cbDisplay.readType; // 实际上要拷贝的字节量是 cbDisplay 初始读取的字节数量 actualN，而不是更改 GUIStyle 以后的参数数量 N
+		UINT actualN = (UINT)cbDisplay.readType; // 实际上要拷贝的字节量是 cbDisplay 初始读取的字节数量 actualN，而不是更改 GUIStyle 以后的参数数量 N
 		pMaterial->SetCBInfoMemoryData(cbDisplay.memoryIndex, actualN, cbDisplay.data);
 	}
 
@@ -723,7 +723,7 @@ void NXGUIMaterialShaderEditor::Render_Params_TextureItem(const int texParamId, 
 			auto onTexChange = [pMaterial, &texDisplay, &pTex, texIndex, this]()
 			{
 				pTex->RemoveRef();
-				pTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(pTex->GetDebugName().c_str(), m_pFileBrowser->GetSelected());
+				pTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(pTex->GetName().c_str(), m_pFileBrowser->GetSelected());
 
 				texDisplay.texType = pMaterial->GetTextureGUIType(texIndex);
 				if (texDisplay.texType == NXGUITextureType::Unknown)
@@ -741,7 +741,7 @@ void NXGUIMaterialShaderEditor::Render_Params_TextureItem(const int texParamId, 
 				if (NXConvert::IsImageFileExtension(pDropData->srcPath.extension().string()))
 				{
 					pTex->RemoveRef();
-					pTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(pTex->GetDebugName().c_str(), pDropData->srcPath);
+					pTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(pTex->GetName().c_str(), pDropData->srcPath);
 
 					texDisplay.texType = pMaterial->GetTextureGUIType(texIndex);
 					if (texDisplay.texType == NXGUITextureType::Unknown)

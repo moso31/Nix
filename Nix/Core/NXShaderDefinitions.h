@@ -1,7 +1,7 @@
 #pragma once
 #include "Header.h"
 
-enum NXShaderInputType
+enum class NXShaderInputType
 {
     Unknown,
     CBuffer,
@@ -9,7 +9,7 @@ enum NXShaderInputType
     Sampler,
 };
 
-enum NXCBufferInputType
+enum class NXCBufferInputType
 {
     Float = 1,
     Float2 = 2,

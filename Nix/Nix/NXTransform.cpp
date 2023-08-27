@@ -1,6 +1,18 @@
 #include "NXTransform.h"
 
 NXTransform::NXTransform() :
+	NXObject(),
+	m_translation(0.0f),
+	m_eulerAngle(0.0f),
+	m_scale(1.0f),
+	m_rotation(Quaternion()),
+	m_worldMatrix(Matrix::Identity()),
+	m_worldMatrixInv(Matrix::Identity())
+{
+}
+
+NXTransform::NXTransform(const std::string& name) :
+	NXObject(),
 	m_translation(0.0f),
 	m_eulerAngle(0.0f),
 	m_scale(1.0f),

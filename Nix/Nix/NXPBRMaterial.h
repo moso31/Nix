@@ -14,7 +14,7 @@ enum class NXShadingModel
 
 class NXEasyMaterial;
 class NXCustomMaterial;
-class NXMaterial : public NXSerializable
+class NXMaterial : public NXObject, public NXSerializable
 {
 protected:
 	explicit NXMaterial() = default;
@@ -24,9 +24,6 @@ public:
 	virtual ~NXMaterial() {}
 	virtual NXCustomMaterial* IsCustomMat() { return nullptr; }
 	virtual NXEasyMaterial* IsEasyMat() { return nullptr; }
-
-	std::string GetName() { return m_name; }
-	void SetName(std::string name) { m_name = name; }
 
 	const std::filesystem::path& GetFilePath() { return m_filePath; }
 	size_t GetFilePathHash() { return std::filesystem::hash_value(m_filePath); }
@@ -48,7 +45,6 @@ public:
 	void AddSubMesh(NXSubMeshBase* pSubMesh);
 
 protected:
-	std::string m_name;
 	ComPtr<ID3D11Buffer> m_cb;
 
 	// 材质文件路径
@@ -121,7 +117,7 @@ public:
 	UINT GetCBufferElemCount() { return UINT(m_cbInfo.elems.size()); }
 	const NXCBufferElem& GetCBufferElem(UINT index) { return m_cbInfo.elems[index]; }
 
-	const NXShadingModel& GetShadingModel() { return NXShadingModel(m_cbInfo.sets.shadingModel + 1); }
+	NXShadingModel GetShadingModel() { return NXShadingModel(m_cbInfo.sets.shadingModel + 1); }
 	virtual void SetShadingModel(NXShadingModel shadingModel) { m_cbInfo.sets.shadingModel = (UINT)shadingModel; }
 	const NXCBufferSets& GetCBufferSets() { return m_cbInfo.sets; }
 

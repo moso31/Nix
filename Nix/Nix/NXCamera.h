@@ -7,7 +7,7 @@ class NSFirstPersonalCamera;
 class NXCamera : public NXTransform
 {
 public:
-	NXCamera();
+	NXCamera(const std::string& name);
 	~NXCamera() {}
 
 	void SetTranslation(const Vector3& value) override;

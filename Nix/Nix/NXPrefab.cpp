@@ -6,5 +6,4 @@
 
 NXPrefab::NXPrefab()
 {
-	m_type = NXType::ePrefab;
 }

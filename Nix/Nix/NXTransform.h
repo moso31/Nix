@@ -1,10 +1,15 @@
 #pragma once
 #include "NXObject.h"
+#include "SimpleMath.h"
+
+using namespace DirectX;
+using namespace DirectX::SimpleMath;
 
 class NXTransform : public NXObject
 {
 public:
 	NXTransform();
+	NXTransform(const std::string& name);
 	~NXTransform() {}
 
 	virtual NXTransform* IsTransform() override { return this; }
