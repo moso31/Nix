@@ -221,3 +221,11 @@ void NXTextureResourceManager::Release()
 	for (auto pTex : m_pTextureArray) SafeRelease(pTex);
 	for (auto pTex : m_pCommonTex) SafeRelease(pTex);
 }
+
+void NXTextureResourceManager::CreateTexture2D_Internal(const std::string& name, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
+{
+	Ntr<NXTexture2D> pTexture2D = new NXTexture2D();
+	pTexture2D->Create(name, nullptr, TexFormat, Width, Height, ArraySize, MipLevels, BindFlags, Usage, CpuAccessFlags, SampleCount, SampleQuality, MiscFlags);
+
+	m_pTextureArrayInternal.insert(pTexture2D);
+}

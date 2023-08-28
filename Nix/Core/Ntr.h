@@ -1,103 +1,43 @@
 #pragma once
-#include <atomic>
+#include "NXRefCountable.h"
 
 template <typename T>
 class Ntr
 {
 public:
-	Ntr() :
-		data(nullptr),
-		ref(new std::atomic_int(0))
-	{
-	}
+    Ntr() : data(nullptr) {}
 
-	Ntr(T* ptr) :
-		data(ptr),
-		ref(new std::atomic_int(1))
-	{
-		// 如果无法分配内存，删除数据并抛出异常
-		if (!ref)
-		{
-			delete data;
-			throw std::bad_alloc();
-		}
-	}
+    Ntr(T* ptr) : data(static_cast<IRefCountable*>(ptr))
+    {
+        if (data) data->IncRef();
+    }
 
-	Ntr(const Ntr<T>& other) :
-		data(other.data),
-		ref(other.ref)
-	{
-		(*ref)++;
-	}
+    Ntr(const Ntr<T>& other) : data(other.data)
+    {
+        if (data) data->IncRef();
+    }
 
-	~Ntr()
-	{
-		(*ref)--;
-		if (*ref == 0)
-		{
-			delete data;
-			delete ref;
-		}
-	}
+    ~Ntr()
+    {
+        if (data) data->DecRef();
+    }
 
-	Ntr<T>& operator=(const Ntr<T>& other)
-	{
-		if (this == &other)
-		{
-			return *this;
-		}
+    Ntr<T>& operator=(const Ntr<T>& other)
+    {
+        if (data != other.data)
+        {
+            if (data) data->DecRef();
+            data = other.data;
+            if (data) data->IncRef();
+        }
+        return *this;
+    }
 
-		(*ref)--;
-		if (*ref == 0)
-		{
-			delete data;
-			delete ref;
-		}
+    T& operator*() { return *static_cast<T*>(data); }
+    T* operator->() { return static_cast<T*>(data); }
 
-		data = other.data;
-		ref = other.ref;
-		(*ref)++;
-
-		return *this;
-	}
-
-	//Ntr(Ntr<T>&& other)
-	//{
-	//    data = other.data;
-	//    ref = other.ref;
-	//    other.data = nullptr;
-	//    other.ref = nullptr;
-	//}
-
-	//Ntr<T>& operator=(Ntr<T>&& other)
-	//{
-	//    if (this != &other)
-	//    {
-	//        (*ref)--;
-	//        if (*ref == 0)
-	//        {
-	//            delete data;
-	//            delete ref;
-	//        }
-
-	//        data = other.data;
-	//        ref = other.ref;
-
-	//        other.data = nullptr;
-	//        other.ref = nullptr;
-	//    }
-	//    return *this;
-	//}
-
-	T& operator*() { return *data; }
-	T* operator->() { return data; }
-
-	const T* Ptr() { return data; }
+    const T* Ptr() { return static_cast<const T*>(data); }
 
 private:
-	T* data;
-
-	// 使用 int* 而非 int。
-	// 确保多个 Ntr<> 指向同一个地址时，共享相同的引用计数
-	std::atomic_int* ref;
+    IRefCountable* data;
 };

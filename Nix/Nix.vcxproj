@@ -369,6 +369,7 @@
     <ClInclude Include="Nix\NXPBRLight.h" />
     <ClInclude Include="Nix\NXPBRMaterial.h" />
     <ClInclude Include="Nix\NXPrefab.h" />
+    <ClInclude Include="Nix\NXRefCountable.h" />
     <ClInclude Include="Nix\NXRenderableObject.h" />
     <ClInclude Include="Nix\NXScriptable.h" />
     <ClInclude Include="Nix\NXTextureDefinitions.h" />

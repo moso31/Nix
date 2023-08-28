@@ -1,5 +1,6 @@
 #pragma once
 #include "NXInstance.h"
+#include "Ntr.h"
 
 enum NXCommonRTEnum
 {

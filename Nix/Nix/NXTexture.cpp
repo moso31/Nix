@@ -6,7 +6,7 @@
 
 NXTexture::~NXTexture()
 {
-	NXLog::LogWithStackTrace("[%s : size=(%dx%d)x%d, mip=%d, path=%s] Deleted. remain RefCount: %d", m_name.c_str(), m_width, m_height, m_arraySize, m_mipLevels, m_texFilePath.string().c_str(), m_nRefCount);
+	//NXLog::LogWithStackTrace("[%s : size=(%dx%d)x%d, mip=%d, path=%s] Deleted. remain RefCount: %d", m_name.c_str(), m_width, m_height, m_arraySize, m_mipLevels, m_texFilePath.string().c_str(), m_nRefCount);
 }
 
 void NXTexture::SwapToReloadingTexture()
@@ -62,7 +62,7 @@ void NXTexture::AddRef()
 {
 	if (m_bIsCommonTex) return;
 
-	NXLog::LogWithStackTrace("[%s : size=(%dx%d)x%d, mip=%d, path=%s] ++ -> %d", m_name.c_str(), m_width, m_height, m_arraySize, m_mipLevels, m_texFilePath.string().c_str(), m_nRefCount + 1);
+	//NXLog::LogWithStackTrace("[%s : size=(%dx%d)x%d, mip=%d, path=%s] ++ -> %d", m_name.c_str(), m_width, m_height, m_arraySize, m_mipLevels, m_texFilePath.string().c_str(), m_nRefCount + 1);
 	m_nRefCount++;
 }
 
@@ -70,7 +70,7 @@ void NXTexture::RemoveRef()
 {
 	if (m_bIsCommonTex) return;
 
-	NXLog::LogWithStackTrace("[%s : size=(%dx%d)x%d, mip=%d, path=%s] -- -> %d", m_name.c_str(), m_width, m_height, m_arraySize, m_mipLevels, m_texFilePath.string().c_str(), m_nRefCount - 1);
+	//NXLog::LogWithStackTrace("[%s : size=(%dx%d)x%d, mip=%d, path=%s] -- -> %d", m_name.c_str(), m_width, m_height, m_arraySize, m_mipLevels, m_texFilePath.string().c_str(), m_nRefCount - 1);
 	m_nRefCount--; // 2023.6.24 具体的资源回收放在 ReleaseUnusedTextures() 做
 }
 

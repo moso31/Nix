@@ -2,13 +2,17 @@
 #include <list>
 #include <string>
 #include "BasicDef.h"
+#include "NXRefCountable.h"
 
 class NXTransform;
 class NXRenderableObject;
 class NXPrimitive;
 class NXPrefab;
 class NXScript;
-class NXObject
+class NXTexture;
+class NXTexture2D;
+
+class NXObject : public NXRefCountable
 {
 public:
 	NXObject() {}

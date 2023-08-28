@@ -737,6 +737,9 @@
     <ClInclude Include="Core\BasicDef.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Nix\NXRefCountable.h">
+      <Filter>Nix\Object</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="杂七杂八的编码规范.txt" />

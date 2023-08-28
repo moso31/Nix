@@ -5,6 +5,8 @@
 #include "NXGUI.h"
 #include "NXLog.h"
 
+//#define ENABLE_SPLASH_SCREEN
+
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK SplashWndProc(HWND, UINT, WPARAM, LPARAM);
 
@@ -94,7 +96,7 @@ DWORD WINAPI SplashScreenThread(LPVOID lpParam)
 		}
 
 		// 在此处更新闪屏
-		//PaintNixLogo(hWnd, count++, hBrushes, nBrushesSize);
+		PaintNixLogo(hWnd, count++, hBrushes, nBrushesSize);
 
 		// 限制闪屏线程的CPU占用
 		Sleep(60);
@@ -186,12 +188,14 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	// 加载应用程序的核心组件和资源
 	if (FAILED(InitWindow(hInstance, nCmdShow)))
 		return 0;
-	auto t = NXFilesystemHelper::GetLatestFileModifiedTime(".\\");
+
+#ifdef ENABLE_SPLASH_SCREEN
 	// 创建一个事件，用于通知闪屏线程退出
 	HANDLE exitEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr);
 
 	// 创建并启动闪屏线程
 	std::thread splashThread(SplashScreenThread, exitEvent);
+#endif
 
 	CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 
@@ -203,11 +207,13 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
 	g_timer = new NXTimer();
 
+#ifdef ENABLE_SPLASH_SCREEN
 	// 加载完成后，通知闪屏线程退出
 	SetEvent(exitEvent);
 
 	// 等待闪屏线程结束
 	splashThread.join();
+#endif
 
 	// Main message loop
 	MSG msg = { 0 };
