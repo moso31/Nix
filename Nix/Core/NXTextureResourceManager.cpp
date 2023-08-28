@@ -227,5 +227,5 @@ void NXTextureResourceManager::CreateTexture2D_Internal(const std::string& name,
 	Ntr<NXTexture2D> pTexture2D = new NXTexture2D();
 	pTexture2D->Create(name, nullptr, TexFormat, Width, Height, ArraySize, MipLevels, BindFlags, Usage, CpuAccessFlags, SampleCount, SampleQuality, MiscFlags);
 
-	m_pTextureArrayInternal.insert(pTexture2D);
+	m_pTextureArrayInternal.push_back(pTexture2D);
 }

@@ -85,5 +85,5 @@ private:
     std::vector<NXTexture2D*> m_pCommonRT;
     std::vector<NXTexture2D*> m_pCommonTex;
     std::unordered_set<NXTexture*> m_pTextureArray;
-    std::unordered_set<Ntr<NXTexture>> m_pTextureArrayInternal;
+    std::vector<Ntr<NXTexture>> m_pTextureArrayInternal;
 };
