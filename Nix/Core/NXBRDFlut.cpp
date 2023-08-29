@@ -18,7 +18,7 @@ void NXBRDFLut::GenerateBRDFLUT()
 	CD3D11_VIEWPORT vp(0.0f, 0.0f, MapSize, MapSize);
 	g_pContext->RSSetViewports(1, &vp);
 
-	m_pTexBRDFLUT = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("BRDF LUT", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)MapSize, (UINT)MapSize, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, 0);
+	m_pTexBRDFLUT = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D_Internal("BRDF LUT", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)MapSize, (UINT)MapSize, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, 0);
 	m_pTexBRDFLUT->AddSRV();
 	m_pTexBRDFLUT->AddRTV();
 

@@ -24,9 +24,9 @@ public:
     // 一定要确保 U 是 T 在一条继承链上，（比如 T is NXTexture, U is NXTexture2D）
     // 但谁基类谁派生类无所谓。// 例：
     // std::vector<Ntr<NXTexture>> m_pTexArray;
-    // m_pTexArray.push_back(new NXTexture2D());
-    template <typename U>
-    Ntr(const Ntr<U>& other) : data(static_cast<IRefCountable*>(other.Ptr()))
+    // m_pTexArray.push_back(new NXTexture2D());    template <typename U>
+    template <typename U, typename = std::enable_if_t<std::is_convertible_v(U*, T*)>>
+    Ntr(const Ntr<U>& other) : data(other.Ptr())
     {
         if (data) data->IncRef();
     }
@@ -56,6 +56,13 @@ public:
     T* operator->() { return static_cast<T*>(data); }
 
     const T* Ptr() const { return static_cast<const T*>(data); }
+
+    template <typename U>
+    Ntr<U> As() const 
+    {
+        if (!data) nullptr;
+        return Ntr<U>(static_cast<U*>(data));
+    }
 
 private:
     IRefCountable* data;

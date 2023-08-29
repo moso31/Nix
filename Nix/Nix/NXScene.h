@@ -102,7 +102,7 @@ private:
 	std::vector<NXPrimitive*> m_pSelectedObjects; 
 	bool m_bMultiSelectKeyHolding; // 是否处于多选状态(LCtrl)
 
-	NXEditorObjectManager* m_pEditorObjManager;
+	NXEditorObjectManager* m_pEditorObjManager = nullptr;
 
 	NXCamera* m_pMainCamera;
 	NXCubeMap* m_pCubeMap;
