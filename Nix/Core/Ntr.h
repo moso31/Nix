@@ -25,7 +25,7 @@ public:
     // 但谁基类谁派生类无所谓。// 例：
     // std::vector<Ntr<NXTexture>> m_pTexArray;
     // m_pTexArray.push_back(new NXTexture2D());    template <typename U>
-    template <typename U, typename = std::enable_if_t<std::is_convertible_v(U*, T*)>>
+    template <typename U>
     Ntr(const Ntr<U>& other) : data(other.Ptr())
     {
         if (data) data->IncRef();
