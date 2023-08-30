@@ -1,9 +1,9 @@
 #pragma once
-#include "header.h"
 #include "ShaderStructures.h"
+#include "Ntr.h"
 
+class NXTexture2D;
 class NXColorMappingRenderer;
-
 class NXEditorObjectRenderer
 {
 	struct CBufferParams_Internal
@@ -24,9 +24,6 @@ public:
 	bool GetEnable() { return true; }
 	void SetEnable(bool value) { m_bEnable = value; }
 
-	// 【2022.9.20 获取当前pass的输出纹理。这玩意和DebugLayer的DebugLayerTex是一回事。回头统一一下。】
-	NXTexture2D* GetPassOutTex() { return m_pPassOutTex; }
-
 private:
 	ComPtr<ID3D11VertexShader>			m_pVertexShader;
 	ComPtr<ID3D11PixelShader>			m_pPixelShader;
@@ -43,7 +40,7 @@ private:
 	NXRenderTarget*						m_pRTQuad;
 	
 	// pass output resources
-	NXTexture2D*						m_pPassOutTex;
+	Ntr<NXTexture2D>					m_pPassOutTex;
 
 	bool m_bEnable;
 };
