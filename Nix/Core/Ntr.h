@@ -10,7 +10,7 @@ public:
     Ntr() : data(nullptr) {}
 
     // 从裸指针
-    Ntr(T* ptr) : data(static_cast<IRefCountable*>(ptr))
+    Ntr(T* ptr) : data(ptr)
     {
         if (data) data->IncRef();
     }
@@ -24,7 +24,7 @@ public:
     // 一定要确保 U 是 T 在一条继承链上，（比如 T is NXTexture, U is NXTexture2D）
     // 但谁基类谁派生类无所谓。// 例：
     // std::vector<Ntr<NXTexture>> m_pTexArray;
-    // m_pTexArray.push_back(new NXTexture2D());    template <typename U>
+    // m_pTexArray.push_back(Ntr<NXTexture2D>());
     template <typename U>
     Ntr(const Ntr<U>& other) : data(other.Ptr())
     {
@@ -55,7 +55,7 @@ public:
     T& operator*() { return *static_cast<T*>(data); }
     T* operator->() { return static_cast<T*>(data); }
 
-    const T* Ptr() const { return static_cast<const T*>(data); }
+    T* Ptr() const { return static_cast<T*>(data); }
 
     template <typename U>
     Ntr<U> As() const 

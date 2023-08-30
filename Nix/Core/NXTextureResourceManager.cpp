@@ -224,9 +224,8 @@ void NXTextureResourceManager::Release()
 
 Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D_Internal(const std::string& name, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
 {
-	Ntr<NXTexture> pTexture = new NXTexture2D();
-	auto& pTexture2D = pTexture.As<NXTexture2D>();
+	Ntr<NXTexture2D> pTexture2D = new NXTexture2D();
 	pTexture2D->Create(name, nullptr, TexFormat, Width, Height, ArraySize, MipLevels, BindFlags, Usage, CpuAccessFlags, SampleCount, SampleQuality, MiscFlags);
-	m_pTextureArrayInternal.push_back(pTexture);
+	m_pTextureArrayInternal.push_back(pTexture2D);
 	return pTexture2D;
 }
