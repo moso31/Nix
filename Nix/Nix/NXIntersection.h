@@ -1,6 +1,7 @@
 #pragma once
-#include "Header.h"
+#include "BaseDefs/Math.h"
 
+class NXSubMeshBase;
 class NXHit
 {
 public:

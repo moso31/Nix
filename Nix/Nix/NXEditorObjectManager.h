@@ -1,7 +1,10 @@
 #pragma once
-#include "Header.h"
+#include "BaseDefs/Math.h"
 
+enum EditorObjectID;
 class NXHit;
+class NXScene;
+class NXPrimitive;
 // 编辑器物体（=移动箭头，旋转轴 这类物体的Mesh）的管理类
 class NXEditorObjectManager
 {

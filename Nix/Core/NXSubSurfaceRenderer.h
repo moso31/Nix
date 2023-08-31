@@ -1,7 +1,8 @@
 #pragma once
-#include "header.h"
+#include "BaseDefs/DX11.h"
 #include "ShaderStructures.h"
 
+class NXRenderTarget;
 class NXSubSurfaceRenderer
 {
 public:

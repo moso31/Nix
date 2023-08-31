@@ -1,4 +1,6 @@
-﻿#include "Header.h"
+﻿#include "BaseDefs\NixCore.h"
+#include "BaseDefs\DearImGui.h"
+
 #include "App.h"
 #include "NXInput.h"
 #include "NXTimer.h"

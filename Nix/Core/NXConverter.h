@@ -1,5 +1,6 @@
 #pragma once
-#include "Header.h"
+#include "BaseDefs/CppSTLFully.h"
+#include "BaseDefs/DX11.h"
 
 namespace NXConvert
 {

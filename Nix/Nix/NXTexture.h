@@ -25,7 +25,6 @@ class NXTexture : public NXObject, public NXSerializable
 {
 public:
     NXTexture(bool bIsCommonTex = false) :
-        m_nRefCount(0),
         m_reloadingState(Texture_None),
         m_pReloadingTexture(nullptr),
         m_width(-1),
@@ -66,9 +65,6 @@ public:
     UINT            GetMipLevels() { return m_mipLevels; }
     DXGI_FORMAT     GetFormat() { return m_texFormat; }
 
-    void AddRef();
-    int GetRef() { return m_nRefCount; }
-    void RemoveRef();
     void Release();
 
     // 当出现需要重新加载m_pTexture纹理的事件时（比如纹理属性Apply、Mesh材质变更）会触发这里的逻辑。
@@ -105,9 +101,6 @@ protected:
     NXTextureSerializationData m_serializationData;
 
 private:
-    // 引用计数
-    int m_nRefCount;
-
     // 是否是公共纹理，如果是，运行时不释放（不使用引用计数）
     bool m_bIsCommonTex;
 

@@ -1,3 +1,5 @@
+#include "BaseDefs/DearImGui.h"
+
 #include "NXGUICamera.h"
 #include "NXScene.h"
 #include "NXCamera.h"

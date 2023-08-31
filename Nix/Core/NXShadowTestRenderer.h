@@ -1,7 +1,9 @@
 #pragma once
-#include "header.h"
+#include "BaseDefs/DX11.h"
 #include "ShaderStructures.h"
 
+class NXTexture2DArray;
+class NXRenderTarget;
 class NXShadowTestRenderer
 {
 public:

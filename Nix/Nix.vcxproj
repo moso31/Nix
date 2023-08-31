@@ -229,7 +229,6 @@
     <ClCompile Include="Core\NXDebugLayerRenderer.cpp" />
     <ClCompile Include="Core\NXDeferredRenderer.cpp" />
     <ClCompile Include="Core\NXDepthPeelingRenderer.cpp" />
-    <ClCompile Include="Core\NXDXHelper.cpp" />
     <ClCompile Include="Core\NXEditorObjectRenderer.cpp" />
     <ClCompile Include="Core\NXEvent.cpp" />
     <ClCompile Include="Core\NXForwardRenderer.cpp" />
@@ -294,10 +293,16 @@
     <ClCompile Include="Nix\NXTransform.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BaseDefs\CppSTLFully.h" />
+    <ClInclude Include="BaseDefs\CrtDbg.h" />
+    <ClInclude Include="BaseDefs\NixCore.h" />
+    <ClInclude Include="BaseDefs\DearImGui.h" />
+    <ClInclude Include="BaseDefs\DX11.h" />
+    <ClInclude Include="BaseDefs\Math.h" />
     <ClInclude Include="Core\App.h" />
-    <ClInclude Include="Core\BasicDef.h" />
     <ClInclude Include="Core\DirectResources.h" />
     <ClInclude Include="Core\FBXMeshLoader.h" />
+    <ClInclude Include="Core\Global.h" />
     <ClInclude Include="Core\Ntr.h" />
     <ClInclude Include="Core\NXFileSystemHelper.h" />
     <ClInclude Include="Core\GlobalBufferManager.h" />
@@ -316,7 +321,6 @@
     <ClInclude Include="Core\NXDebugLayerRenderer.h" />
     <ClInclude Include="Core\NXDeferredRenderer.h" />
     <ClInclude Include="Core\NXDepthPeelingRenderer.h" />
-    <ClInclude Include="Core\NXDXHelper.h" />
     <ClInclude Include="Core\NXEditorObjectRenderer.h" />
     <ClInclude Include="Core\NXEvent.h" />
     <ClInclude Include="Core\NXForwardRenderer.h" />
@@ -328,7 +332,6 @@
     <ClInclude Include="Core\NXGUICubeMap.h" />
     <ClInclude Include="Core\NXGUIDebugLayer.h" />
     <ClInclude Include="Core\NXGUIFileBrowser.h" />
-    <ClInclude Include="Core\NXGUIImpl.h" />
     <ClInclude Include="Core\NXGUILights.h" />
     <ClInclude Include="Core\NXGUIMaterial.h" />
     <ClInclude Include="Core\NXGUIPostProcessing.h" />

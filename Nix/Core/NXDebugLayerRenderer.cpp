@@ -10,7 +10,6 @@
 #include "NXTexture.h"
 
 NXDebugLayerRenderer::NXDebugLayerRenderer(NXShadowMapRenderer* pShadowMapRenderer) :
-	m_pDebugLayerTex(nullptr),
 	m_pShadowMapRenderer(pShadowMapRenderer),
 	m_bEnableDebugLayer(false),
 	m_bEnableShadowMapDebugLayer(false),
@@ -41,10 +40,7 @@ void NXDebugLayerRenderer::Init()
 
 void NXDebugLayerRenderer::OnResize(const Vector2& rtSize)
 {
-	if (m_pDebugLayerTex)
-		m_pDebugLayerTex->RemoveRef();
-
-	m_pDebugLayerTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("Debug Layer Out RT", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET);
+	m_pDebugLayerTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D_Internal("Debug Layer Out RT", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET);
 	m_pDebugLayerTex->AddRTV();
 	m_pDebugLayerTex->AddSRV();
 
@@ -94,13 +90,12 @@ void NXDebugLayerRenderer::Render()
 
 void NXDebugLayerRenderer::Release()
 {
-	m_pDebugLayerTex->RemoveRef();
 	SafeRelease(m_pRTQuad);
 }
 
 NXTexture2D* NXDebugLayerRenderer::GetDebugLayerTex()
 {
-	return m_pDebugLayerTex;
+	return m_pDebugLayerTex.Ptr();
 }
 
 void NXDebugLayerRenderer::RenderShadowMapAtlas()

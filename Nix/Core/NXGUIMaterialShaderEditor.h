@@ -1,5 +1,4 @@
 #pragma once
-#include "Header.h"
 #include "NXShaderDefinitions.h"
 
 // 显示Shader的错误信息，最多不允许超过 NXGUI_ERROR_MESSAGE_MAXLIMIT 条

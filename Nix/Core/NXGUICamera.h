@@ -1,8 +1,7 @@
 #pragma once
-#include "Header.h"
 
+class NXScene;
 class NXCamera;
-
 class NXGUICamera
 {
 public:

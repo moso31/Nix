@@ -1,11 +1,14 @@
 #pragma once
-#include "header.h"
-#include "NXEvent.h"
+#include "BaseDefs/Math.h"
 
+#include "NXEvent.h"
 #include "NXObject.h"
 #include "HBVH.h"
 #include "ShaderStructures.h"
 
+class NXCamera;
+class NXPBRLight;
+class NXEditorObjectManager;
 class NXScriptable;
 class NXScene : public NXObject
 {

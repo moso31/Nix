@@ -1,6 +1,7 @@
 #pragma once
-#include "Header.h"
 #include "NXGUICommon.h"
+#include <filesystem>
+#include <unordered_map>
 
 struct NXGUIContentExplorerListSelectionInfo 
 {
@@ -9,6 +10,7 @@ struct NXGUIContentExplorerListSelectionInfo
 	std::filesystem::path filePath;
 };
 
+class NXScene;
 class NXGUITexture;
 class NXGUIContentExplorer
 {

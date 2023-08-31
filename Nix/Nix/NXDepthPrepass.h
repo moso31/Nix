@@ -1,6 +1,8 @@
 #pragma once
-#include "Header.h"
+#include "BaseDefs/DX11.h"
+#include "BaseDefs/Math.h"
 
+class NXScene;
 class NXDepthPrepass
 {
 public:

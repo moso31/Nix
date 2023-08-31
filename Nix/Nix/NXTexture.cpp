@@ -58,22 +58,6 @@ void NXTexture::LoadTextureSync()
 	m_pReloadingTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(m_name, m_texFilePath, true); // 将最后的参数设为true，以强制读取硬盘纹理
 }
 
-void NXTexture::AddRef()
-{
-	if (m_bIsCommonTex) return;
-
-	//NXLog::LogWithStackTrace("[%s : size=(%dx%d)x%d, mip=%d, path=%s] ++ -> %d", m_name.c_str(), m_width, m_height, m_arraySize, m_mipLevels, m_texFilePath.string().c_str(), m_nRefCount + 1);
-	m_nRefCount++;
-}
-
-void NXTexture::RemoveRef()
-{
-	if (m_bIsCommonTex) return;
-
-	//NXLog::LogWithStackTrace("[%s : size=(%dx%d)x%d, mip=%d, path=%s] -- -> %d", m_name.c_str(), m_width, m_height, m_arraySize, m_mipLevels, m_texFilePath.string().c_str(), m_nRefCount - 1);
-	m_nRefCount--; // 2023.6.24 具体的资源回收放在 ReleaseUnusedTextures() 做
-}
-
 void NXTexture::Release()
 {
 }

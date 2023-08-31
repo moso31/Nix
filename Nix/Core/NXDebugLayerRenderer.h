@@ -1,5 +1,5 @@
 #pragma once
-#include "Header.h"
+#include "Ntr.h"
 
 struct CBufferDebugLayer
 {
@@ -7,7 +7,7 @@ struct CBufferDebugLayer
 	Vector4 LayerParam0; // x: EnableShadowMap, y: ZoomScale
 };
 
-
+class NXTexture2D;
 class NXShadowMapRenderer;
 
 class NXDebugLayerRenderer
@@ -47,10 +47,9 @@ private:
 	
 	// pass input resources
 	NXShadowMapRenderer*				m_pShadowMapRenderer;
-	NXTexture2D*						m_pSceneInputTex;
 
 	// pass output resources
-	NXTexture2D*						m_pDebugLayerTex;
+	Ntr<NXTexture2D>					m_pDebugLayerTex;
 
 	ComPtr<ID3D11Buffer>				m_cbParams;
 	CBufferDebugLayer					m_cbDataParams;

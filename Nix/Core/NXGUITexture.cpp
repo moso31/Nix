@@ -1,3 +1,5 @@
+#include "BaseDefs/DearImGui.h"
+
 #include "NXGUITexture.h"
 #include "NXGUICommon.h"
 #include "NXResourceManager.h"

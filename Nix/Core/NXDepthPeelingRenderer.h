@@ -1,5 +1,5 @@
 #pragma once
-#include "header.h"
+#include "BaseDefs/DX11.h"
 #include "ShaderStructures.h"
 
 struct CBufferDepthPeelingParams
@@ -8,6 +8,10 @@ struct CBufferDepthPeelingParams
 	Vector3 _0;
 };
 
+class NXScene;
+class NXBRDFLut;
+class NXTexture2D;
+class NXRenderTarget;
 class NXDepthPeelingRenderer
 {
 public:

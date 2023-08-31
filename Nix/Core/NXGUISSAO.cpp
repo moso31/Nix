@@ -1,3 +1,5 @@
+#include "BaseDefs/DearImGui.h"
+
 #include "NXGUISSAO.h"
 #include "NXSimpleSSAO.h"
 

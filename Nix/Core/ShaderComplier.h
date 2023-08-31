@@ -1,5 +1,6 @@
 #pragma once
-#include "Header.h"
+#include <string>
+#include "BaseDefs/DX11.h"
 #include "NXInstance.h"
 
 struct CD3D_SHADER_MACRO : public D3D_SHADER_MACRO

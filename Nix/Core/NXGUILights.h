@@ -1,8 +1,7 @@
 #pragma once
-#include "Header.h"
 
+class NXScene;
 class NXPBRLight;
-
 class NXGUILights
 {
 public:
@@ -14,5 +13,6 @@ public:
 private:
 	NXScene* m_pCurrentScene;
 	NXPBRLight* m_pCurrentLight;
+
 	size_t m_currentItemIdx;
 };

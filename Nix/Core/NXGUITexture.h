@@ -1,5 +1,4 @@
 #pragma once
-#include "Header.h"
 #include "NXTextureDefinitions.h"
 
 class NXGUITexture

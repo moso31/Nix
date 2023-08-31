@@ -1,3 +1,5 @@
+#include "BaseDefs/DearImGui.h"
+
 #include "NXGUILights.h"
 #include "NXScene.h"
 #include "NXPBRLight.h"

@@ -1,5 +1,5 @@
 #pragma once
-#include "header.h"
+#include "BaseDefs/Math.h"
 
 #if defined(DEBUG) | defined(_DEBUG)
 	#undef DEBUG_NEW

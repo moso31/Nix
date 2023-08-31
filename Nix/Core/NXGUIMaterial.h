@@ -1,11 +1,12 @@
 #pragma once
-#include "Header.h"
 #include "NXGUIFileBrowser.h"
 #include "NXShaderDefinitions.h"
 
+class NXScene;
+class NXCustomMaterial;
 class NXGUICodeEditor;
-struct NXGUIAssetDragData;
 class NXGUIMaterialShaderEditor;
+struct NXGUIAssetDragData;
 class NXGUIMaterial
 {
 public:

@@ -1,3 +1,5 @@
+#include "BaseDefs/DearImGui.h"
+
 #include "NXGUIShadows.h"
 #include "NXShadowMapRenderer.h"
 

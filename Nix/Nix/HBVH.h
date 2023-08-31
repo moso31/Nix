@@ -1,5 +1,5 @@
 #pragma once
-#include "Header.h"
+#include "BaseDefs/Math.h"
 
 enum HBVHSplitMode
 {
@@ -58,6 +58,7 @@ struct HBVHTreeletInfo
 	HBVHTreeNode* node;
 };
 
+class NXScene;
 class NXHit;
 class HBVHTree
 {

@@ -1,21 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Core">
-      <UniqueIdentifier>{09d76e45-341d-4fc6-b5ac-235f2eb3a219}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\DirectX">
-      <UniqueIdentifier>{ca2e5c32-2029-429d-9f92-4a6d2488cf8c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\Input">
-      <UniqueIdentifier>{7839a120-6d02-4163-88ad-97af4f368343}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\Helper">
-      <UniqueIdentifier>{96ebf3ac-bd17-4bb6-b13f-043a28337db8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\File">
-      <UniqueIdentifier>{7687d245-65ec-43bf-b96d-c06d3b864c3c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Nix">
       <UniqueIdentifier>{a38f319f-8ffb-4e0c-b295-e26ccd9d809f}</UniqueIdentifier>
     </Filter>
@@ -55,26 +40,8 @@
     <Filter Include="Nix\Scene">
       <UniqueIdentifier>{d197e267-4212-4de3-a89b-ab57b9ca0af8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\DirectX\Renderer">
-      <UniqueIdentifier>{fce4c3cd-5a30-4a68-93d9-7df8246a1267}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\UI">
-      <UniqueIdentifier>{de9ace55-c4c4-48d5-abfd-52abd2c8e492}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\DirectX\NXResources">
-      <UniqueIdentifier>{96100877-c259-41e1-b3d6-55542100aa12}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\DirectX\Renderer\DebugLayer">
-      <UniqueIdentifier>{37cd9fa6-55b5-456c-b161-f79e2ca26fa6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\DirectX\Renderer\EditorObjectLayer">
-      <UniqueIdentifier>{47ca16b0-e59c-4ebd-b48b-d55afdebabf5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Nix\Texture">
       <UniqueIdentifier>{d5d9ef4c-09ae-4295-aecb-257ddc7dbfba}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\DirectX\Compile">
-      <UniqueIdentifier>{bab74a59-0b89-4335-9c36-8cfcc6df66f2}</UniqueIdentifier>
     </Filter>
     <Filter Include="Shader">
       <UniqueIdentifier>{d99dfb08-f23b-4a25-8f50-c19ef8d7e01a}</UniqueIdentifier>
@@ -108,6 +75,42 @@
     </Filter>
     <Filter Include="Shader\Editor">
       <UniqueIdentifier>{dae66a33-828d-4c6a-8267-ae37c226987f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core">
+      <UniqueIdentifier>{09d76e45-341d-4fc6-b5ac-235f2eb3a219}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\DirectX">
+      <UniqueIdentifier>{ca2e5c32-2029-429d-9f92-4a6d2488cf8c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\DirectX\Renderer">
+      <UniqueIdentifier>{fce4c3cd-5a30-4a68-93d9-7df8246a1267}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\DirectX\Renderer\DebugLayer">
+      <UniqueIdentifier>{37cd9fa6-55b5-456c-b161-f79e2ca26fa6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\DirectX\Renderer\EditorObjectLayer">
+      <UniqueIdentifier>{47ca16b0-e59c-4ebd-b48b-d55afdebabf5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\DirectX\NXResources">
+      <UniqueIdentifier>{96100877-c259-41e1-b3d6-55542100aa12}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\DirectX\Compile">
+      <UniqueIdentifier>{bab74a59-0b89-4335-9c36-8cfcc6df66f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Input">
+      <UniqueIdentifier>{7839a120-6d02-4163-88ad-97af4f368343}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Helper">
+      <UniqueIdentifier>{96ebf3ac-bd17-4bb6-b13f-043a28337db8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\File">
+      <UniqueIdentifier>{7687d245-65ec-43bf-b96d-c06d3b864c3c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\UI">
+      <UniqueIdentifier>{de9ace55-c4c4-48d5-abfd-52abd2c8e492}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="BaseDefs">
+      <UniqueIdentifier>{2dc1510e-f469-4917-8b57-774a00a9c3ed}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -229,9 +232,6 @@
       <Filter>Core\Input</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXTimer.cpp">
-      <Filter>Core\Helper</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\NXDXHelper.cpp">
       <Filter>Core\Helper</Filter>
     </ClCompile>
     <ClCompile Include="Nix\HBVH.cpp">
@@ -488,9 +488,6 @@
     <ClInclude Include="Core\NXTimer.h">
       <Filter>Core\Helper</Filter>
     </ClInclude>
-    <ClInclude Include="Core\NXDXHelper.h">
-      <Filter>Core\Helper</Filter>
-    </ClInclude>
     <ClInclude Include="Core\ShaderStructures.h">
       <Filter>Core\DirectX</Filter>
     </ClInclude>
@@ -555,9 +552,6 @@
       <Filter>Core\DirectX\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXGUI.h">
-      <Filter>Core\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\NXGUIImpl.h">
       <Filter>Core\UI</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXGUIMaterial.h">
@@ -734,11 +728,29 @@
     <ClInclude Include="Nix\NXScriptable.h">
       <Filter>Nix\Object</Filter>
     </ClInclude>
-    <ClInclude Include="Core\BasicDef.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="Nix\NXRefCountable.h">
       <Filter>Nix\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseDefs\DX11.h">
+      <Filter>BaseDefs</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseDefs\Math.h">
+      <Filter>BaseDefs</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseDefs\NixCore.h">
+      <Filter>BaseDefs</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseDefs\DearImGui.h">
+      <Filter>BaseDefs</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseDefs\CppSTLFully.h">
+      <Filter>BaseDefs</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseDefs\CrtDbg.h">
+      <Filter>BaseDefs</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Global.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

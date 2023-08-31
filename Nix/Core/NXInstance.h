@@ -1,5 +1,4 @@
 #pragma once
-#include "Header.h"
 
 // 2023.5.26
 // 注：这个类从内容到注释几乎-完-全-是-chatgpt 创造的。特此感谢！:)

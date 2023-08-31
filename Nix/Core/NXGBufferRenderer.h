@@ -1,7 +1,8 @@
 #pragma once
-#include "header.h"
+#include "BaseDefs/DX11.h"
 #include "ShaderStructures.h"
 
+class NXScene;
 class NXGBufferRenderer
 {
 private:
@@ -24,5 +25,4 @@ private:
 	ComPtr<ID3D11SamplerState>			m_pSamplerLinearClamp;
 
 	NXScene* m_pScene;
-	NXCustomMaterial* m_pTestCustomMat;
 };

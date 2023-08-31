@@ -1,6 +1,5 @@
 #pragma once
-#include "Header.h"
-#include <queue>
+#include "BaseDefs/CppSTLFully.h"
 
 template <typename T> using priority_queue_distance_cartesian = std::priority_queue<T, std::vector<T>, std::function<bool(const T& valA, const T& valB)>>;
 //template <typename T> using priority_queue_distance_harmonic = std::priority_queue<T, vector<T>, function<bool(const T& valA)>>;

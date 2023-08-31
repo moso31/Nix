@@ -1,3 +1,5 @@
+#include "BaseDefs/DearImGui.h"
+
 #include "NXGUIDebugLayer.h"
 #include "NXDebugLayerRenderer.h"
 

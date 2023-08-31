@@ -1,3 +1,5 @@
+#include "BaseDefs/DearImGui.h"
+
 #include "NXGUICubeMap.h"
 #include "NXScene.h"
 #include "NXCubeMap.h"

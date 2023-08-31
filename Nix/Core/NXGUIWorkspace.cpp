@@ -1,3 +1,5 @@
+#include "BaseDefs/DearImGui.h"
+
 #include "NXGUIWorkspace.h"
 #include "NXFileSystemHelper.h"
 

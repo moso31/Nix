@@ -1,4 +1,4 @@
-#include "Header.h"
+#include "Global.h"
 
 HINSTANCE							g_hInst = nullptr;
 HWND								g_hWnd = nullptr;

@@ -1,5 +1,4 @@
 #pragma once
-#include "header.h"
 #include "ShaderStructures.h"
 
 struct CBufferColorMapping

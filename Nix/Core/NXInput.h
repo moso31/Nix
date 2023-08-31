@@ -1,5 +1,6 @@
 #pragma once
-#include "header.h"
+#include "BaseDefs/DX11.h" 
+#include "BaseDefs/Math.h"
 #include "NXInstance.h"
 
 class NXInput : public NXInstance<NXInput>

@@ -1,8 +1,6 @@
 #pragma once
-#include "Header.h"
 
 class NXColorMappingRenderer;
-
 class NXGUIPostProcessing
 {
 public:

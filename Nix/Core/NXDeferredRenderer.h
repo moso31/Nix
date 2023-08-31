@@ -1,7 +1,10 @@
 #pragma once
-#include "header.h"
+#include "BaseDefs/DX11.h"
 #include "ShaderStructures.h"
 
+class NXScene;
+class NXBRDFLut;
+class NXRenderTarget;
 class NXDeferredRenderer
 {
 public:

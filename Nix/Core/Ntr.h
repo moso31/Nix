@@ -48,7 +48,7 @@ public:
     T& operator*() { return *static_cast<T*>(data); }
     T* operator->() { return static_cast<T*>(data); }
 
-    const T* Ptr() { return static_cast<T*>(data); }
+    T* Ptr() { return static_cast<T*>(data); }
 
     template <typename U>
     Ntr<U> As() const 

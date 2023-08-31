@@ -1,5 +1,4 @@
 #pragma once
-#include "header.h"
 
 class NXScriptable;
 class NXScript

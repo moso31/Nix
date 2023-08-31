@@ -1,0 +1,6 @@
+#pragma once
+#include "SimpleMath.h"
+
+using namespace DirectX::SimpleMath;
+
+typedef unsigned int UINT;

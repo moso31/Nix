@@ -1,6 +1,6 @@
 #pragma once
-#include "Header.h"
 #include <random>
+#include "BaseDefs/Math.h"
 #include "NXInstance.h"
 
 using RandomFloatDistribution = std::uniform_real_distribution<float>;

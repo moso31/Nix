@@ -1,4 +1,6 @@
-﻿#include "NXGUIMaterialShaderEditor.h"
+﻿#include "BaseDefs/DearImGui.h"
+
+#include "NXGUIMaterialShaderEditor.h"
 #include "NXGUIMaterial.h"
 #include "NXGUICommon.h"
 #include "NXGUICodeEditor.h"

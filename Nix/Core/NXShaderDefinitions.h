@@ -1,5 +1,6 @@
 #pragma once
-#include "Header.h"
+#include "BaseDefs/Math.h"
+#include <string>
 
 enum class NXShaderInputType
 {

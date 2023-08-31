@@ -86,7 +86,7 @@ void App::Draw()
 	//}
 
 	DXGI_PRESENT_PARAMETERS parameters = { 0 };
-	NX::ThrowIfFailed(g_pSwapChain->Present1(0, 0, &parameters));
+	g_pSwapChain->Present1(0, 0, &parameters);
 }
 
 void App::ReleaseUnusedTextures()

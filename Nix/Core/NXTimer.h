@@ -1,5 +1,7 @@
 #pragma once
-#include "Header.h"
+#include <stdint.h>
+#include <chrono>
+using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
 
 class NXTimer
 {

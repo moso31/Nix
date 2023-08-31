@@ -1,7 +1,10 @@
 #pragma once
-#include "Header.h"
+#include <string>
 #include "NXGUIFileBrowser.h"
 
+class NXScene;
+class NXCubeMap;
+class NXGUIFileBrowser;
 struct NXGUIAssetDragData;
 class NXGUICubeMap
 {

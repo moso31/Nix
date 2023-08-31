@@ -1,3 +1,5 @@
+#include "BaseDefs/DearImGui.h"
+
 #include "NXGUIPostProcessing.h"
 #include "NXColorMappingRenderer.h"
 

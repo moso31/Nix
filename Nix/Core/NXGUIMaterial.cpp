@@ -1,3 +1,5 @@
+#include "BaseDefs/DearImGui.h"
+
 #include "NXGUIMaterial.h"
 #include "NXGUICommon.h"
 #include "NXConverter.h"

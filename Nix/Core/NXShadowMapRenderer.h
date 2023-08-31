@@ -1,5 +1,5 @@
 #pragma once
-#include "header.h"
+#include "BaseDefs/Math.h"
 #include "ShaderStructures.h"
 
 struct CBufferShadowMapObject
@@ -9,6 +9,8 @@ struct CBufferShadowMapObject
 	Matrix projection;
 };
 
+class NXScene;
+class NXTexture2DArray;
 class NXShadowMapRenderer
 {
 private:
