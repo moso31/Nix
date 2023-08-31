@@ -1,4 +1,6 @@
 #pragma once
+#include <filesystem>
+#include "BaseDefs/DX11.h"
 #include "NXTransform.h"
 #include "DirectXTex.h"
 #include "ShaderStructures.h"
@@ -30,6 +32,8 @@ struct ConstantBufferCubeMap
 	Vector4 irradMode;
 };
 
+class NXScene;
+class NXTextureCube;
 class NXCubeMap : public NXTransform
 {
 public:

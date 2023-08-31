@@ -1,6 +1,5 @@
 #pragma once
-
-#include <windows.h>
+#include <Windows.h>
 
 #include <malloc.h>
 #include <memory.h>
@@ -10,6 +9,12 @@
 #define SafeDelete(x) { delete x; x = nullptr; }
 #define SafeReleaseCOM(x) { if (x) { x->Release(); x = nullptr; } }
 #define SafeRelease(x) { if (x) { x->Release(); SafeDelete(x); } }
+
+namespace NX
+{
+	void ThrowIfFailed(HRESULT hr) { if (FAILED(hr)) throw(hr); }
+	void MessageBoxIfFailed(HRESULT hr, LPCWSTR errMsg) { if (FAILED(hr)) { MessageBox(nullptr, errMsg, L"error", MB_OK); throw(hr); } }
+}
 
 #include <string>
 const std::string   g_str_empty = "";

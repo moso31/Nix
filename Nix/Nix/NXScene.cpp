@@ -1,4 +1,5 @@
 #include "NXScene.h"
+#include "Global.h"
 #include "NXEditorObjectManager.h"
 #include "NXSubMeshGeometryEditor.h"
 #include "GlobalBufferManager.h"

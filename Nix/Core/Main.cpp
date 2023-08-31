@@ -1,5 +1,8 @@
-﻿#include "BaseDefs\NixCore.h"
-#include "BaseDefs\DearImGui.h"
+﻿#include "BaseDefs/NixCore.h"
+#include "BaseDefs/DX11.h"
+#include "BaseDefs/DearImGui.h"
+#include "BaseDefs/CrtDbg.h"
+#include "Global.h"
 
 #include "App.h"
 #include "NXInput.h"

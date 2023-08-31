@@ -1,4 +1,5 @@
 #pragma once
+#include "BaseDefs/Math.h"
 #include "NXResourceManagerBase.h"
 
 class NXLightResourceManager : public NXResourceManagerBase

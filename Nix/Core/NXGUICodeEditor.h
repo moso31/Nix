@@ -11,6 +11,7 @@
 #include <iostream>
 #include <cctype>
 #include <filesystem>
+
 #include "imgui.h"
 
 class NXGUICodeEditor

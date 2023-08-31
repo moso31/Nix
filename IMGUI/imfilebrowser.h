@@ -10,6 +10,8 @@
 #include <vector>
 #include <functional>
 
+#include "imgui.h"
+
 #ifndef IMGUI_VERSION
 #   error "include imgui.h before this header"
 #endif

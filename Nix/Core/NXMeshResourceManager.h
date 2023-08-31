@@ -1,4 +1,6 @@
 #pragma once
+#include "BaseDefs/NixCore.h"
+#include "BaseDefs/Math.h"
 #include "NXResourceManagerBase.h"
 
 struct NXSubMeshReloadTaskPackage

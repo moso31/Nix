@@ -1,5 +1,6 @@
 #pragma once
 #include "BaseDefs/DX11.h"
+#include "Ntr.h"
 #include "ShaderStructures.h"
 
 struct CBufferDepthPeelingParams
@@ -39,9 +40,9 @@ private:
 	ComPtr<ID3D11BlendState>			m_pBlendState;
 	ComPtr<ID3D11BlendState>			m_pBlendStateOpaque;
 
-	NXTexture2D*						m_pSceneDepth[2];
-	std::vector<NXTexture2D*>			m_pSceneRT;
-	NXTexture2D*						m_pSceneCombineRT;
+	Ntr<NXTexture2D>					m_pSceneDepth[2];
+	std::vector<Ntr<NXTexture2D>>		m_pSceneRT;
+	Ntr<NXTexture2D>					m_pSceneCombineRT;
 	NXRenderTarget*						m_pCombineRTData;
 
 	ComPtr<ID3D11VertexShader>			m_pVertexShaderDepthPeeling;

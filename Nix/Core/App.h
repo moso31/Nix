@@ -1,4 +1,5 @@
 #pragma once
+#include "DirectResources.h"
 #include "Renderer.h"
 
 class App

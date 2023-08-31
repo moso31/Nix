@@ -22,6 +22,7 @@ struct NXGUIShaderFunctions
 	std::string title;
 };
 
+class NXCustomMaterial;
 class NXGUIMaterial;
 class NXGUIFileBrowser;
 class NXGUICodeEditor;

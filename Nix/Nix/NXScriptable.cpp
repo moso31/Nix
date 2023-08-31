@@ -24,6 +24,7 @@ void NXScriptable::Destroy()
 {
 	for (auto script : m_scripts)
 	{
-		SafeDelete(script);
+		delete script; 
+		script = nullptr;
 	}
 }

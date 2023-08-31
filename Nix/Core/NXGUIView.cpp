@@ -1,6 +1,7 @@
-#include "BaseDefs/DearImGui.h"
-
 #include "NXGUIView.h"
+#include "BaseDefs/DearImGui.h"
+#include "Global.h"
+
 #include "NXTexture.h"
 #include "NXInput.h"
 #include "App.h"

@@ -1,4 +1,7 @@
 #pragma once
+#include "BaseDefs/NixCore.h"
+#include "BaseDefs/DX11.h"
+#include "BaseDefs/DearImGui.h"
 
 class NXScene;
 class Renderer;

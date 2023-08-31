@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <filesystem>
 #include "BaseDefs/DX11.h"
 #include "NXInstance.h"
 

@@ -1,6 +1,9 @@
 #pragma once
 #include "NXInstance.h"
 #include "Ntr.h"
+#include <string>
+#include <filesystem>
+#include <unordered_set>
 
 enum NXCommonRTEnum
 {
@@ -34,6 +37,39 @@ enum NXCommonTexEnum
     NXCommonTex_Normal,
     NXCommonTex_SIZE,
 };
+
+// Nix认为，宇宙万法的那个源头
+class NXObject;
+
+// scene
+class NXScene;
+
+// Textures
+class NXTexture;
+class NXTexture2D;
+class NXTexture2DArray;
+class NXTextureCube;
+
+// Materials
+class NXMaterial;
+class NXEasyMaterial;
+class NXCustomMaterial;
+
+// Meshes
+class NXSubMeshBase;
+class NXRenderableObject;
+class NXPrefab;
+class NXPrimitive;
+
+// Camera
+class NXCamera;
+
+// Sky & Lights
+class NXPBRLight;
+class NXPBRDistantLight;
+class NXPBRPointLight;
+class NXPBRSpotLight;
+class NXCubeMap; 
 
 class NXResourceManagerBase
 {

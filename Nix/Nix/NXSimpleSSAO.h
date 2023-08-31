@@ -2,6 +2,7 @@
 #include "BaseDefs/DX11.h"
 #include "BaseDefs/Math.h"
 
+class NXTexture2D;
 class NXSimpleSSAO
 {
 	struct ConstantBufferSSAOParams

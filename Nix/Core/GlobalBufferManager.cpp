@@ -1,4 +1,6 @@
 #include "GlobalBufferManager.h"
+#include "BaseDefs/NixCore.h"
+#include "Global.h"
 
 ComPtr<ID3D11Buffer>				NXGlobalBufferManager::m_cbObject;
 ConstantBufferObject				NXGlobalBufferManager::m_cbDataObject;

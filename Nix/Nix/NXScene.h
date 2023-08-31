@@ -1,5 +1,6 @@
 #pragma once
 #include "BaseDefs/Math.h"
+#include "BaseDefs/DX11.h"
 
 #include "NXEvent.h"
 #include "NXObject.h"
@@ -9,7 +10,11 @@
 class NXCamera;
 class NXPBRLight;
 class NXEditorObjectManager;
+class NXSubMeshBase;
+class NXCubeMap;
 class NXScriptable;
+class NXCustomMaterial;
+enum EditorObjectID;
 class NXScene : public NXObject
 {
 public:

@@ -1,4 +1,5 @@
 #include "NXRenderTarget.h"
+#include "Global.h"
 #include "DirectResources.h"
 #include "ShaderComplier.h"
 #include "GlobalBufferManager.h"

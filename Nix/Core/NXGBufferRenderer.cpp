@@ -1,3 +1,5 @@
+#include "Global.h"
+
 #include "NXGBufferRenderer.h"
 #include "ShaderComplier.h"
 #include "NXHLSLGenerator.h"

@@ -1,4 +1,6 @@
 #include "NXCamera.h"
+#include "BaseDefs/NixCore.h"
+#include "Global.h"
 #include "DirectResources.h"
 #include "GlobalBufferManager.h"
 #include "NSFirstPersonalCamera.h"

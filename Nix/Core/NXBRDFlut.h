@@ -2,6 +2,7 @@
 #include "BaseDefs/DX11.h"
 #include "Ntr.h"
 
+class NXTexture2D;
 class NXBRDFLut
 {
 public:

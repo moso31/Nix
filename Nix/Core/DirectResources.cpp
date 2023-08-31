@@ -1,4 +1,6 @@
 #include "DirectResources.h"
+#include "BaseDefs/NixCore.h"
+#include "Global.h"
 
 void DirectResources::InitDevice()
 {

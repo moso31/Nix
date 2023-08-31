@@ -1,3 +1,5 @@
+#include "Global.h"
+
 #include "NXGUI.h"
 #include "NXEvent.h"
 #include "DirectResources.h"

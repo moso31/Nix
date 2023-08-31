@@ -1,3 +1,7 @@
+#include "BaseDefs/NixCore.h"
+#include "BaseDefs/DX11.h"
+#include "Global.h"
+
 #include "NXColorMappingRenderer.h"
 #include "ShaderComplier.h"
 #include "NXRenderStates.h"

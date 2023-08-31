@@ -1,4 +1,12 @@
 #pragma once
+#include "Global.h"
+
+enum NXKeyCode
+{
+	LeftShift = 16,
+	LeftControl = 17,
+	LeftAlt = 18,
+};
 
 class NXScriptable;
 class NXScript

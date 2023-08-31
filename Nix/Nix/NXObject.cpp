@@ -1,3 +1,4 @@
+#include "BaseDefs/NixCore.h"
 #include "NXObject.h"
 
 NXObject* NXObject::GetParent()

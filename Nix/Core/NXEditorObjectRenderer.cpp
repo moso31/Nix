@@ -1,3 +1,6 @@
+#include "BaseDefs/NixCore.h"
+#include "Global.h"
+
 #include "NXEditorObjectRenderer.h"
 #include "ShaderComplier.h"
 #include "NXRenderStates.h"

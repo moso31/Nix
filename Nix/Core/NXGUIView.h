@@ -1,5 +1,6 @@
 #pragma once
 #include "BaseDefs/Math.h"
+#include <string>
 
 class NXTexture2D;
 // 2023.6.1 用于渲染视口RT

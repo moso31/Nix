@@ -1,4 +1,5 @@
 #pragma once
+#include "BaseDefs/DX11.h"
 #include "ShaderStructures.h"
 
 struct CBufferColorMapping
@@ -6,6 +7,7 @@ struct CBufferColorMapping
 	Vector4 param0; // x: enable
 };
 
+class NXRenderTarget;
 class NXColorMappingRenderer
 {
 public:

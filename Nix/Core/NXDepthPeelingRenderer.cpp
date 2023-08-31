@@ -53,23 +53,18 @@ void NXDepthPeelingRenderer::Init()
 
 void NXDepthPeelingRenderer::OnResize(const Vector2& rtSize)
 {
-	if (m_pSceneDepth[0]) m_pSceneDepth[0]->RemoveRef();
-	if (m_pSceneDepth[1]) m_pSceneDepth[1]->RemoveRef();
-	for (auto pSceneRT : m_pSceneRT)
-		if (pSceneRT) pSceneRT->RemoveRef();
-
-	m_pSceneDepth[0] = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("Depth Peeling Scene Depth 0", DXGI_FORMAT_R24G8_TYPELESS, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE);
+	m_pSceneDepth[0] = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D_Internal("Depth Peeling Scene Depth 0", DXGI_FORMAT_R24G8_TYPELESS, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE);
 	m_pSceneDepth[0]->AddDSV();
 	m_pSceneDepth[0]->AddSRV();
 
-	m_pSceneDepth[1] = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("Depth Peeling Scene Depth 1", DXGI_FORMAT_R24G8_TYPELESS, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE);
+	m_pSceneDepth[1] = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D_Internal("Depth Peeling Scene Depth 1", DXGI_FORMAT_R24G8_TYPELESS, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE);
 	m_pSceneDepth[1]->AddDSV();
 	m_pSceneDepth[1]->AddSRV();
 
 	m_pSceneRT.resize(m_peelingLayerCount);
 	for (UINT i = 0; i < m_peelingLayerCount; i++)
 	{
-		m_pSceneRT[i] = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("Depth Peeling Scene RT " + std::to_string(i), DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE);
+		m_pSceneRT[i] = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D_Internal("Depth Peeling Scene RT " + std::to_string(i), DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE);
 		m_pSceneRT[i]->AddRTV();
 		m_pSceneRT[i]->AddSRV();
 	}
@@ -220,10 +215,6 @@ void NXDepthPeelingRenderer::Render(bool bSSSEnable)
 
 void NXDepthPeelingRenderer::Release()
 {
-	for(auto pRT : m_pSceneRT) pRT->RemoveRef();
-	m_pSceneDepth[0]->RemoveRef();
-	m_pSceneDepth[1]->RemoveRef();
-
 	SafeDelete(m_pCombineRTData);
 }
 

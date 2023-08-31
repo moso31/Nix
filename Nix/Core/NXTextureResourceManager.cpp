@@ -1,4 +1,5 @@
 #include "NXTextureResourceManager.h"
+#include "BaseDefs/NixCore.h"
 #include "NXTexture.h"
 #include "DirectResources.h"
 

@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include "ShaderStructures.h"
 #include "NXInstance.h"
 
@@ -12,13 +13,15 @@ enum NXPlaneAxis
 	NEGATIVE_Z
 };
 
+class NXPrefab;
+class NXPrimitive;
 class NXSubMeshGeometryEditor : public NXInstance<NXSubMeshGeometryEditor>
 {
 public:
 	NXSubMeshGeometryEditor();
 	~NXSubMeshGeometryEditor();
 
-	void CreateFBXPrefab(NXPrefab* pPrefab, std::string filePath, bool bAutoCalcTangents);
+	void CreateFBXPrefab(NXPrefab* pPrefab, const std::string& filePath, bool bAutoCalcTangents);
 
 	void CreateBox(NXPrimitive* pMesh, float x = 1.0f, float y = 1.0f, float z = 1.0f);
 	void CreateCylinder(NXPrimitive* pMesh, float radius = 1.0f, float length = 3.0f, int segmentCircle = 16, int segmentLength = 4);

@@ -1,4 +1,5 @@
 #pragma once
+#include "BaseDefs/Math.h"
 #include "NXInstance.h"
 
 struct NXEventArgKey

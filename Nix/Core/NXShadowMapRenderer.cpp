@@ -1,4 +1,5 @@
 #include "NXShadowMapRenderer.h"
+#include "Global.h"
 #include "ShaderComplier.h"
 #include "NXRenderStates.h"
 #include "GlobalBufferManager.h"

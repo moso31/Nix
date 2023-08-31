@@ -13,7 +13,7 @@ NXSubMeshGeometryEditor::~NXSubMeshGeometryEditor()
 {
 }
 
-void NXSubMeshGeometryEditor::CreateFBXPrefab(NXPrefab* pPrefab, std::string filePath, bool bAutoCalcTangents)
+void NXSubMeshGeometryEditor::CreateFBXPrefab(NXPrefab* pPrefab, const std::string& filePath, bool bAutoCalcTangents)
 {
 	FBXMeshLoader::LoadFBXFile(filePath, pPrefab, bAutoCalcTangents);
 }

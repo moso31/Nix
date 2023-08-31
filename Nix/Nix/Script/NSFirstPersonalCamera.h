@@ -1,7 +1,9 @@
 #pragma once
 #include "NXScript.h"
 #include "NXEvent.h"
+#include "NXTimer.h"
 
+class NXCamera;
 class NSFirstPersonalCamera : public NXScript
 {
 public:

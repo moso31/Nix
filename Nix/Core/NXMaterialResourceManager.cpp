@@ -1,3 +1,4 @@
+#include "BaseDefs/NixCore.h"
 #include "NXMaterialResourceManager.h"
 #include "NXPBRMaterial.h"
 #include "NXConverter.h"

@@ -1,8 +1,11 @@
 #pragma once
+#include "BaseDefs/DX11.h"
 #include "ShaderStructures.h"
 #include "Ntr.h"
 
+class NXScene;
 class NXTexture2D;
+class NXRenderTarget;
 class NXColorMappingRenderer;
 class NXEditorObjectRenderer
 {

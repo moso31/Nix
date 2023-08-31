@@ -1,5 +1,8 @@
 #pragma once
 
+#include <Windows.h>
+#include "BaseDefs/DX11.h"
+
 #if defined(DEBUG) | defined(_DEBUG)
 #undef DEBUG_NEW
 #undef new

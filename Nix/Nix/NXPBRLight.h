@@ -1,6 +1,7 @@
 #pragma once
 #include "NXInstance.h"
 #include "ShaderStructures.h"
+#include <string>
 
 enum NXLightTypeEnum
 {

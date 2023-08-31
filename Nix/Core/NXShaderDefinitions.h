@@ -87,6 +87,7 @@ struct NXMaterialCBufferInfo
     UINT slotIndex;
 };
 
+class NXTexture;
 struct NXMaterialTextureInfo
 {
     std::string name;

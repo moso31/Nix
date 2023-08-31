@@ -2,6 +2,7 @@
 #include "NXResourceManagerBase.h"
 
 enum NXScriptType;
+class NXScript;
 class NXScriptable;
 class NXScriptResourceManager : public NXResourceManagerBase
 {

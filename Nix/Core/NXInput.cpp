@@ -1,4 +1,6 @@
 #include "NXInput.h"
+#include "BaseDefs/NixCore.h"
+#include "Global.h"
 #include "NXEvent.h"
 
 NXInput::NXInput() :

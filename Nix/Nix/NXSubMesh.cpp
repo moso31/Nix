@@ -1,4 +1,5 @@
 #include "NXSubMesh.h"
+#include "Global.h"
 #include "NXPrimitive.h"
 
 template class NXSubMesh<VertexPNTT>;

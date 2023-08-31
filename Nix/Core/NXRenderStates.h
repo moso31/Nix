@@ -1,4 +1,5 @@
 #pragma once
+#include "BaseDefs/NixCore.h"
 #include "BaseDefs/DX11.h"
 
 template<

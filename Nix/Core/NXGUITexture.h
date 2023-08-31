@@ -1,6 +1,8 @@
 #pragma once
+#include <filesystem>
 #include "NXTextureDefinitions.h"
 
+class NXTexture;
 class NXGUITexture
 {
 public:

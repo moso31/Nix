@@ -1,4 +1,6 @@
 #pragma once
+#include "BaseDefs/NixCore.h"
+#include "Global.h"
 #include "NXRenderStates.h"
 #include "NXShaderDefinitions.h"
 

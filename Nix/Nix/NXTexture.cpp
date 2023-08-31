@@ -1,4 +1,5 @@
 #include "NXTexture.h"
+#include "Global.h"
 #include "DirectXTex.h"
 #include "NXResourceManager.h"
 #include "NXConverter.h"

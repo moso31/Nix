@@ -1,4 +1,5 @@
 #include "NXPrimitive.h"
+#include "Global.h"
 #include "GlobalBufferManager.h"
 #include "NXScene.h"
 

@@ -1,4 +1,5 @@
 #pragma once
+#include <filesystem>
 #include "NXShaderDefinitions.h"
 
 struct NXGUIAssetDragData

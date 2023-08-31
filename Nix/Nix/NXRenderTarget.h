@@ -1,4 +1,5 @@
 #pragma once
+#include "BaseDefs/DX11.h"
 #include "NXObject.h"
 #include "ShaderStructures.h"
 

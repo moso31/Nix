@@ -1,4 +1,6 @@
 #include "ShaderComplier.h"
+#include "BaseDefs/NixCore.h"
+#include "Global.h"
 #include "NXShaderIncluder.h"
 
 const std::string NXShaderComplier::s_smVersionVS = "vs_5_0";
