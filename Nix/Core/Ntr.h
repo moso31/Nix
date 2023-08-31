@@ -4,6 +4,7 @@
 template <typename T>
 class Ntr
 {
+    template<class U> friend class Ntr;
 public:
     Ntr() : data(nullptr) {}
 
@@ -18,7 +19,7 @@ public:
     }
 
     template <typename U>
-    Ntr(const Ntr<U>& other) : data(other.Ptr())
+    Ntr(const Ntr<U>& other) : data(other.data)
     {
         if (data) data->IncRef();
     }
@@ -47,7 +48,7 @@ public:
     T& operator*() { return *static_cast<T*>(data); }
     T* operator->() { return static_cast<T*>(data); }
 
-    T* Ptr() const { return static_cast<T*>(data); }
+    const T* Ptr() { return static_cast<T*>(data); }
 
     template <typename U>
     Ntr<U> As() const 

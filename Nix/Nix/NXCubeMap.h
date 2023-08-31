@@ -2,6 +2,7 @@
 #include "NXTransform.h"
 #include "DirectXTex.h"
 #include "ShaderStructures.h"
+#include "Ntr.h"
 
 struct ConstantBufferImageData
 {
@@ -41,8 +42,8 @@ public:
 	void Render();
 	void Release() override;
 
-	NXTextureCube* GenerateCubeMap(NXTexture2D* pTexHDR);
-	void GenerateIrradianceSHFromHDRI(NXTexture2D* pTexHDR);
+	Ntr<NXTextureCube> GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR);
+	void GenerateIrradianceSHFromHDRI(Ntr<NXTexture2D>& pTexHDR);
 	void GenerateIrradianceSHFromCubeMap();
 
 	void GenerateIrradianceMap();
@@ -60,7 +61,7 @@ public:
 
 	void SetIrradMode(int val) { m_cbData.irradMode = Vector4((float)val); };
 
-	void SaveHDRAsDDS(NXTextureCube* pTexture, const std::filesystem::path& filePath);
+	void SaveHDRAsDDS(Ntr<NXTextureCube>& pTexture, const std::filesystem::path& filePath);
 	void LoadDDS(const std::filesystem::path& filePath);
 
 private:
@@ -84,9 +85,9 @@ private:
 	ComPtr<ID3D11Buffer>		m_pVertexBufferCubeBox;
 	ComPtr<ID3D11Buffer>		m_pIndexBufferCubeBox;
 
-	NXTextureCube*						m_pTexCubeMap;
-	NXTextureCube*						m_pTexIrradianceMap;
-	NXTextureCube*						m_pTexPreFilterMap;
+	Ntr<NXTextureCube>			m_pTexCubeMap;
+	Ntr<NXTextureCube>			m_pTexIrradianceMap;
+	Ntr<NXTextureCube>			m_pTexPreFilterMap;
 
 	Vector3 m_shIrradianceMap[9];
 	Vector3 m_shIrradianceMap_CPU[9];

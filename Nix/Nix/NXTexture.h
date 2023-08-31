@@ -43,11 +43,11 @@ public:
     virtual NXTexture2DArray* Is2DArray() { return nullptr; }
     virtual NXTextureCube* IsCubeMap() { return nullptr; }
 
-    ID3D11Texture2D* GetTex() { return m_pTexture.Get(); }
-    ID3D11ShaderResourceView* GetSRV(UINT index = 0) { return m_pSRVs.empty() ? nullptr : m_pSRVs[index].Get(); }
-    ID3D11RenderTargetView* GetRTV(UINT index = 0) { return m_pRTVs.empty() ? nullptr : m_pRTVs[index].Get(); }
-    ID3D11DepthStencilView* GetDSV(UINT index = 0) { return m_pDSVs.empty() ? nullptr : m_pDSVs[index].Get(); }
-    ID3D11UnorderedAccessView* GetUAV(UINT index = 0) { return m_pUAVs.empty() ? nullptr : m_pUAVs[index].Get(); }
+    ID3D11Texture2D* GetTex() const { return m_pTexture.Get(); }
+    ID3D11ShaderResourceView* GetSRV(UINT index = 0) const { return m_pSRVs.empty() ? nullptr : m_pSRVs[index].Get(); }
+    ID3D11RenderTargetView* GetRTV(UINT index = 0) const { return m_pRTVs.empty() ? nullptr : m_pRTVs[index].Get(); }
+    ID3D11DepthStencilView* GetDSV(UINT index = 0) const { return m_pDSVs.empty() ? nullptr : m_pDSVs[index].Get(); }
+    ID3D11UnorderedAccessView* GetUAV(UINT index = 0) const { return m_pUAVs.empty() ? nullptr : m_pUAVs[index].Get(); }
 
     NXTextureReloadingState GetReloadingState() { return m_reloadingState; }
     void SetReloadingState(NXTextureReloadingState state) { m_reloadingState = state; }

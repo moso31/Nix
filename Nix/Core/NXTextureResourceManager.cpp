@@ -222,10 +222,62 @@ void NXTextureResourceManager::Release()
 	for (auto pTex : m_pCommonTex) SafeRelease(pTex);
 }
 
+Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D_Internal(const std::string& name, const std::filesystem::path& filePath, bool bForce)
+{
+	if (!bForce)
+	{
+		// 先在已加载纹理里面找当前纹理，有的话就不用Create了
+		for (auto pTexture : m_pTextureArrayInternal)
+		{
+			auto& pTex2D = pTexture.As<NXTexture2D>();
+			if (pTex2D.Ptr() && !filePath.empty() && std::filesystem::hash_value(filePath) == std::filesystem::hash_value(pTexture->GetFilePath()))
+			{
+				return pTex2D;
+			}
+		}
+	}
+
+	Ntr<NXTexture2D> pTexture2D(new NXTexture2D());
+	pTexture2D->Create(name, filePath);
+	pTexture2D->AddSRV();
+
+	if (!bForce)
+		m_pTextureArrayInternal.push_back(pTexture2D); // 2023.3.26 如果是强制加载，就不应加入到资源数组里面
+	return pTexture2D;
+}
+
 Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D_Internal(const std::string& name, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
 {
-	Ntr<NXTexture2D> pTexture2D = new NXTexture2D();
+	Ntr<NXTexture2D> pTexture2D(new NXTexture2D());
 	pTexture2D->Create(name, nullptr, TexFormat, Width, Height, ArraySize, MipLevels, BindFlags, Usage, CpuAccessFlags, SampleCount, SampleQuality, MiscFlags);
 	m_pTextureArrayInternal.push_back(pTexture2D);
 	return pTexture2D;
+}
+
+Ntr<NXTextureCube> NXTextureResourceManager::CreateTextureCube_Internal(const std::string& name, const std::wstring& filePath, UINT width, UINT height)
+{
+	// 先在已加载纹理里面找当前纹理，有的话就不用Create了
+	for (auto& pTexture : m_pTextureArrayInternal)
+	{
+		auto& pTexCube = pTexture.As<NXTextureCube>();
+		if (pTexCube.Ptr() && !filePath.empty() && std::filesystem::hash_value(filePath) == std::filesystem::hash_value(pTexture->GetFilePath()))
+		{
+			return pTexCube;
+		}
+	}
+
+	NXTextureCube* pTextureCube = new NXTextureCube();
+	pTextureCube->Create(name, filePath, width, height);
+
+	m_pTextureArrayInternal.push_back(pTextureCube);
+	return pTextureCube;
+}
+
+Ntr<NXTextureCube> NXTextureResourceManager::CreateTextureCube_Internal(const std::string& name, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
+{
+	Ntr<NXTextureCube> pTextureCube(new NXTextureCube());
+	pTextureCube->Create(name, nullptr, TexFormat, Width, Height, MipLevels, BindFlags, Usage, CpuAccessFlags, SampleCount, SampleQuality, MiscFlags);
+
+	m_pTextureArrayInternal.push_back(pTextureCube);
+	return pTextureCube;
 }
