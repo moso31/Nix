@@ -752,6 +752,9 @@
     <ClInclude Include="Core\Global.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Core\imfilebrowser.h">
+      <Filter>Core\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="杂七杂八的编码规范.txt" />

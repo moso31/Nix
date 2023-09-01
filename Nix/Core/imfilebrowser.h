@@ -1,16 +1,6 @@
 ﻿#pragma once
-
-#include <algorithm>
-#include <array>
-#include <cstring>
-#include <filesystem>
-#include <memory>
-#include <set>
-#include <string>
-#include <vector>
-#include <functional>
-
-#include "imgui.h"
+#include "BaseDefs/CppSTLFully.h"
+#include "BaseDefs/DearImGui.h"
 
 #ifndef IMGUI_VERSION
 #   error "include imgui.h before this header"

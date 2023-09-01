@@ -1,18 +1,8 @@
 ﻿#pragma once
-#include <vector>
-#include <queue>
-#include <string>
-#include <algorithm>
-#include <thread>
-#include <mutex>
-#include <condition_variable>
-#include <functional>
-#include <fstream>
-#include <iostream>
-#include <cctype>
-#include <filesystem>
-
-#include "imgui.h"
+#define NOMINMAX
+#include "BaseDefs/CppSTLFully.h"
+#include "BaseDefs/DearImGui.h"
+#undef NOMINMAX
 
 class NXGUICodeEditor
 {

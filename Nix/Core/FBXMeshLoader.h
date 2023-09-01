@@ -1,4 +1,5 @@
 #pragma once
+#include "BaseDefs/DX11.h"
 #include "BaseDefs/Math.h"
 
 #if defined(DEBUG) | defined(_DEBUG)
@@ -29,6 +30,10 @@ struct FBXMeshVertexData
 struct VertexPNTT;
 
 class NXScene;
+class NXPrefab;
+class NXPrimitive;
+class NXSubMeshBase;
+class NXRenderableObject;
 class FBXMeshLoader
 {
 public:

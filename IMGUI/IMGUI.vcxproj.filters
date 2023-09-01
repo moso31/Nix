@@ -12,9 +12,6 @@
     <ClInclude Include="imgui_impl_win32.h">
       <Filter>impl</Filter>
     </ClInclude>
-    <ClInclude Include="imfilebrowser.h">
-      <Filter>addons</Filter>
-    </ClInclude>
     <ClInclude Include="imgui_stdlib.h" />
   </ItemGroup>
   <ItemGroup>
