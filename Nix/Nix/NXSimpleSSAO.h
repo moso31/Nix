@@ -1,6 +1,7 @@
 #pragma once
 #include "BaseDefs/DX11.h"
 #include "BaseDefs/Math.h"
+#include "Ntr.h"
 
 class NXTexture2D;
 class NXSimpleSSAO
@@ -43,7 +44,7 @@ private:
 private:
 	ComPtr<ID3D11ComputeShader>			m_pComputeShader;
 
-	NXTexture2D* m_pTexSSAO;
+	Ntr<NXTexture2D>			m_pTexSSAO;
 
 	std::vector<Vector4>		m_samplePosition;
 	ComPtr<ID3D11Buffer> 		m_pCBSamplePositions;

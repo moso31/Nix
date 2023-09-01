@@ -5,6 +5,10 @@
 #include <memory.h>
 #include <tchar.h>
 
+#include <string>
+
+#include "Ntr.h"
+
 #define SafeDeleteArray(x) { delete[] x; x = nullptr; }
 #define SafeDelete(x) { delete x; x = nullptr; }
 #define SafeReleaseCOM(x) { if (x) { x->Release(); x = nullptr; } }
@@ -16,7 +20,6 @@ namespace NX
 	void MessageBoxIfFailed(HRESULT hr, LPCWSTR errMsg) { if (FAILED(hr)) { MessageBox(nullptr, errMsg, L"error", MB_OK); throw(hr); } }
 }
 
-#include <string>
 const std::string   g_str_empty = "";
 
 // texture file paths

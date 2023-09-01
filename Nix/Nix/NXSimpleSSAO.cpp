@@ -10,8 +10,7 @@
 #include "SamplerMath.h"
 #include "NXTexture.h"
 
-NXSimpleSSAO::NXSimpleSSAO() :
-	m_pTexSSAO(nullptr)
+NXSimpleSSAO::NXSimpleSSAO()
 {
 }
 
@@ -32,10 +31,7 @@ void NXSimpleSSAO::Init()
 
 void NXSimpleSSAO::OnResize(const Vector2& rtSize)
 {
-	if (m_pTexSSAO)
-		m_pTexSSAO->RemoveRef();
-
-	m_pTexSSAO = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("Simple SSAO", DXGI_FORMAT_R32G32B32A32_FLOAT, lround(rtSize.x), lround(rtSize.y), 1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS);
+	m_pTexSSAO = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D_Internal("Simple SSAO", DXGI_FORMAT_R32G32B32A32_FLOAT, lround(rtSize.x), lround(rtSize.y), 1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS);
 	m_pTexSSAO->AddSRV();
 	m_pTexSSAO->AddUAV();
 
@@ -87,7 +83,6 @@ ID3D11ShaderResourceView* NXSimpleSSAO::GetSRV()
 
 void NXSimpleSSAO::Release()
 {
-	m_pTexSSAO->RemoveRef();
 }
 
 void NXSimpleSSAO::InitSSAOParams()

@@ -1,5 +1,6 @@
 #pragma once
 #include <filesystem>
+#include "Ntr.h"
 #include "NXTextureDefinitions.h"
 
 class NXTexture;
@@ -16,6 +17,6 @@ public:
 	void SetImage(const std::filesystem::path& path);
 
 private:
-	NXTexture* m_pTexImage;
+	Ntr<NXTexture> m_pTexImage;
 	NXTextureSerializationData m_texData;
 };

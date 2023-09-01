@@ -50,6 +50,9 @@ public:
 
     T* Ptr() { return static_cast<T*>(data); }
 
+    bool IsValid() const { return data != nullptr; }
+    bool IsNull() const { return data == nullptr; }
+
     template <typename U>
     Ntr<U> As() const 
     {
