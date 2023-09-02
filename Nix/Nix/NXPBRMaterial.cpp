@@ -37,7 +37,7 @@ NXEasyMaterial::NXEasyMaterial(const std::string& name, const std::filesystem::p
 	NXMaterial(name, filePath)
 {
 	Init();
-	m_pTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(m_name, filePath);
+	m_pTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D_Internal(m_name, filePath);
 }
 
 void NXEasyMaterial::Init()

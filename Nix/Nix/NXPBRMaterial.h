@@ -74,7 +74,7 @@ private:
 	ComPtr<ID3D11PixelShader>			m_pPixelShader;
 	ComPtr<ID3D11InputLayout>			m_pInputLayout;
 
-	NXTexture2D* m_pTexture;
+	Ntr<NXTexture2D> m_pTexture;
 };
 
 class NXCustomMaterial : public NXMaterial

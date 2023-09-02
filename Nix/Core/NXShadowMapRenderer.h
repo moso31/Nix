@@ -28,7 +28,7 @@ public:
 
 	void Release();
 
-	NXTexture2DArray* GetShadowMapDepthTex() { return m_pShadowMapDepth; }
+	NXTexture2DArray* GetShadowMapDepthTex() { return m_pShadowMapDepth.Ptr(); }
 
 	UINT	GetCascadeCount()						{ return m_cascadeCount; }
 	int 	GetDepthBias()							{ return m_depthBias; }
@@ -58,8 +58,8 @@ private:
 
 	NXScene*							m_pScene;
 
-	// 2022.5.10 阴影贴图（目前仅用于方向光）
-	NXTexture2DArray*					m_pShadowMapDepth;
+	// 2022.5.10 阴影贴图（目前仅用于平行光）
+	Ntr<NXTexture2DArray>				m_pShadowMapDepth;
 
 	ComPtr<ID3D11Buffer>				m_cbShadowMapObject;
 	CBufferShadowMapObject				m_cbDataShadowMapObject;

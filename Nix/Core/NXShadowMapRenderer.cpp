@@ -34,7 +34,7 @@ void NXShadowMapRenderer::Init()
 	m_pRasterizerState = NXRasterizerState<>::Create(0);
 	m_pBlendState = NXBlendState<>::Create();
 
-	m_pShadowMapDepth = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DArray("Shadow DepthZ RT", DXGI_FORMAT_R32_TYPELESS, m_shadowMapRTSize, m_shadowMapRTSize, m_cascadeCount, 1, D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE);
+	m_pShadowMapDepth = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DArray_Internal("Shadow DepthZ RT", DXGI_FORMAT_R32_TYPELESS, m_shadowMapRTSize, m_shadowMapRTSize, m_cascadeCount, 1, D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE);
 	for (UINT i = 0; i < m_cascadeCount; i++)
 		m_pShadowMapDepth->AddDSV(i, 1);	// DSV 单张切片（每次写cascade深度 只写一片）
 	m_pShadowMapDepth->AddSRV(0, m_cascadeCount); // SRV 读取整个纹理数组（ShadowTest时使用）
@@ -110,7 +110,6 @@ void NXShadowMapRenderer::RenderSingleObject(NXRenderableObject* pRenderableObje
 
 void NXShadowMapRenderer::Release()
 {
-	m_pShadowMapDepth->RemoveRef();
 }
 
 void NXShadowMapRenderer::SetCascadeCount(UINT value)

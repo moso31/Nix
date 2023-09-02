@@ -145,17 +145,20 @@ Ntr<NXTexture2D> NXTextureResourceManager::GetCommonRT(NXCommonRTEnum eRT)
 
 void NXTextureResourceManager::InitCommonTextures()
 {
-	m_pCommonTex.resize(NXCommonTex_SIZE);
+	m_pCommonTex.reserve(NXCommonTex_SIZE);
 
 	// 初始化常用贴图
 	bool bIsCommonTexture = true;
-	m_pCommonTex[NXCommonTex_White] = new NXTexture2D(bIsCommonTexture);
-	m_pCommonTex[NXCommonTex_White]->Create("White Texture", g_defaultTex_white_wstr);
-	m_pCommonTex[NXCommonTex_White]->AddSRV();
 
-	m_pCommonTex[NXCommonTex_Normal] = new NXTexture2D(bIsCommonTexture);
-	m_pCommonTex[NXCommonTex_Normal]->Create("Normal Texture", g_defaultTex_normal_wstr);
-	m_pCommonTex[NXCommonTex_Normal]->AddSRV();
+	// NXCommonTex_White
+	auto& pTex = m_pCommonTex.emplace_back(new NXTexture2D(bIsCommonTexture));
+	pTex->Create("White Texture", g_defaultTex_white_wstr);
+	pTex->AddSRV();
+
+	// NXCommonTex_Normal
+	auto& pTex = m_pCommonTex.emplace_back(new NXTexture2D(bIsCommonTexture));
+	pTex->Create("Normal Texture", g_defaultTex_normal_wstr);
+	pTex->AddSRV();
 }
 
 Ntr<NXTexture2D> NXTextureResourceManager::GetCommonTextures(NXCommonTexEnum eTex)
@@ -165,9 +168,9 @@ Ntr<NXTexture2D> NXTextureResourceManager::GetCommonTextures(NXCommonTexEnum eTe
 
 void NXTextureResourceManager::OnReload()
 {
-	for (auto pTex : m_pTextureArray)
+	for (auto pTex : m_pTextureArrayInternal)
 	{
-		if (!pTex) continue;
+		if (pTex.IsNull()) continue;
 
 		// 2023.3.25 目前仅支持 Texture2D 的 Reload
 		if (!pTex->Is2D()) continue;
@@ -265,4 +268,13 @@ Ntr<NXTextureCube> NXTextureResourceManager::CreateTextureCube_Internal(const st
 
 	m_pTextureArrayInternal.push_back(pTextureCube);
 	return pTextureCube;
+}
+
+Ntr<NXTexture2DArray> NXTextureResourceManager::CreateTexture2DArray_Internal(std::string name, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
+{
+	Ntr<NXTexture2DArray> pTexture2DArray(new NXTexture2DArray());
+	pTexture2DArray->Create(name, nullptr, TexFormat, Width, Height, ArraySize, MipLevels, BindFlags, Usage, CpuAccessFlags, SampleCount, SampleQuality, MiscFlags);
+
+	m_pTextureArrayInternal.push_back(pTexture2DArray);
+	return pTexture2DArray;
 }

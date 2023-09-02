@@ -93,11 +93,6 @@ void App::Draw()
 	g_pSwapChain->Present1(0, 0, &parameters);
 }
 
-void App::ReleaseUnusedTextures()
-{
-	NXResourceManager::GetInstance()->GetTextureManager()->ReleaseUnusedTextures();
-}
-
 void App::Release()
 {
 	SafeRelease(m_pRenderer);
