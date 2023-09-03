@@ -268,7 +268,7 @@ void NXCustomMaterial::Render()
 
 	for (auto& texInfo : m_texInfos)
 	{
-		if (texInfo.pTexture)
+		if (texInfo.pTexture.IsValid())
 		{
 			ID3D11ShaderResourceView* pSRV = texInfo.pTexture->GetSRV();
 			if (pSRV) g_pContext->PSSetShaderResources(texInfo.slotIndex, 1, &pSRV);
@@ -296,27 +296,21 @@ void NXCustomMaterial::Update()
 		g_pContext->UpdateSubresource(m_cb.Get(), 0, nullptr, m_cbData.data(), 0, 0);
 }
 
-void NXCustomMaterial::SetTexture(NXTexture* pTexture, const std::filesystem::path& texFilePath)
+void NXCustomMaterial::SetTexture(const Ntr<NXTexture>& pTexture, const std::filesystem::path& texFilePath)
 {
 	auto it = std::find_if(m_texInfos.begin(), m_texInfos.end(), [pTexture](const NXMaterialTextureInfo& texInfo) { return texInfo.pTexture == pTexture; });
 	if (it != m_texInfos.end())
 	{
-		auto& pTex = it->pTexture;
-		if (pTex)
-			pTex->RemoveRef();
-
-		pTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(m_name, texFilePath);
+		it->pTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D_Internal(m_name, texFilePath);
 	}
 }
 
-void NXCustomMaterial::RemoveTexture(NXTexture* pTexture)
+void NXCustomMaterial::RemoveTexture(const Ntr<NXTexture>& pTexture)
 {
 	auto it = std::find_if(m_texInfos.begin(), m_texInfos.end(), [pTexture](const NXMaterialTextureInfo& texInfo) { return texInfo.pTexture == pTexture; });
 	if (it != m_texInfos.end())
 	{
 		auto& pTex = it->pTexture;
-		if (pTex)
-			pTex->RemoveRef();
 
 		// Get tex by NXTextureType
 		if (pTex->GetSerializationData().m_textureType == NXTextureType::NormalMap)
@@ -697,7 +691,7 @@ void NXCustomMaterial::ProcessShaderParameters(const std::string& nslParams, std
 			else if (type == "Tex2D")
 			{
 				// 如果默认值vector中存储的纹理信息不是空的，就优先在vector中匹配同名的NXTexture指针
-				NXTexture* pTexValue = nullptr;
+				Ntr<NXTexture> pTexValue;
 				NXGUITextureType guiType = NXGUITextureType::Unknown;
 				if (!texDefaultValues.empty())
 				{
@@ -708,7 +702,7 @@ void NXCustomMaterial::ProcessShaderParameters(const std::string& nslParams, std
 					// 若能匹配某个 NXTexture*，使用该 NXTexture* 作为新 Shader 的默认值；否则使用 nullptr
 					if (it != texDefaultValues.end())
 					{
-						if (it->pTexture)
+						if (it->pTexture.IsValid())
 						{
 							pTexValue = it->pTexture;
 							guiType = it->texType;

@@ -84,7 +84,7 @@ private:
 
 	NXGUI*								m_pGUI;
 
-	NXTexture2D*						m_pFinalRT;
+	Ntr<NXTexture2D>					m_pFinalRT;
 
 	bool								m_bRenderGUI;
 };

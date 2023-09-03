@@ -96,7 +96,7 @@ void NXGUI::Init()
 	//ImGui::LoadIniSettingsFromDisk(NXConvert::GetPathOfImguiIni().c_str());
 }
 
-void NXGUI::Render(NXTexture2D* pGUIViewRT)
+void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT)
 {
 	g_pUDA->BeginEvent(L"GUI");
 

@@ -16,8 +16,8 @@
 
 namespace NX
 {
-	void ThrowIfFailed(HRESULT hr) { if (FAILED(hr)) throw(hr); }
-	void MessageBoxIfFailed(HRESULT hr, LPCWSTR errMsg) { if (FAILED(hr)) { MessageBox(nullptr, errMsg, L"error", MB_OK); throw(hr); } }
+	inline void ThrowIfFailed(HRESULT hr) { if (FAILED(hr)) throw(hr); }
+	inline void MessageBoxIfFailed(HRESULT hr, LPCWSTR errMsg) { if (FAILED(hr)) { MessageBox(nullptr, errMsg, L"error", MB_OK); throw(hr); } }
 }
 
 const std::string   g_str_empty = "";

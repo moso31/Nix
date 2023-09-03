@@ -3,6 +3,7 @@
 #include "Global.h"
 
 #include "App.h"
+#include "Renderer.h"
 #include "DirectResources.h"
 #include "NXResourceManager.h"
 #include "ShaderComplier.h"

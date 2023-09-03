@@ -6,7 +6,7 @@
 #include "NXInput.h"
 #include "App.h"
 
-void NXGUIView::SetViewRT(NXTexture2D* pTex)
+void NXGUIView::SetViewRT(Ntr<NXTexture2D> pTex)
 {
 	m_pViewRT = pTex;
 }
@@ -16,7 +16,7 @@ void NXGUIView::Render()
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1, 1));
 	ImGui::Begin("View", false, ImGuiWindowFlags_NoScrollbar);
 
-	if (m_pViewRT && m_pViewRT->GetSRV())
+	if (m_pViewRT.IsValid() && m_pViewRT->GetSRV())
 	{
 		float windowHeight = ImGui::GetWindowHeight();
 

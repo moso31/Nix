@@ -122,11 +122,11 @@ public:
 	const NXCBufferSets& GetCBufferSets() { return m_cbInfo.sets; }
 
 	UINT GetTextureCount() { return UINT(m_texInfos.size()); }
-	NXTexture* GetTexture(UINT index) { return m_texInfos[index].pTexture; }
+	Ntr<NXTexture> GetTexture(UINT index) { return m_texInfos[index].pTexture; }
 	const std::string& GetTextureName(UINT index) { return m_texInfos[index].name; }
 
-	void SetTexture(NXTexture* pTexture, const std::filesystem::path& texFilePath);
-	void RemoveTexture(NXTexture* pTexture);
+	void SetTexture(const Ntr<NXTexture>& pTexture, const std::filesystem::path& texFilePath);
+	void RemoveTexture(const Ntr<NXTexture>& pTexture);
 
 	UINT GetSamplerCount() { return UINT(m_samplerInfos.size()); }
 	const std::string& GetSamplerName(UINT index) { return m_samplerInfos[index].name; }

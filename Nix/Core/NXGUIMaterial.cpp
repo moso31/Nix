@@ -227,19 +227,13 @@ void NXGUIMaterial::SyncMaterialData(NXCustomMaterial* pMaterial)
 		m_cbInfosDisplay.push_back({ cbElem.name, cbElem.type, cbDataDisplay, guiStyle, guiParams, cbElem.memoryIndex });
 	}
 
-	for (auto& texDisplay : m_texInfosDisplay)
-	{
-		if (texDisplay.pTexture)
-			texDisplay.pTexture->RemoveRef();
-	}
 	m_texInfosDisplay.clear();
 	m_texInfosDisplay.reserve(pMaterial->GetTextureCount());
 	for (UINT i = 0; i < pMaterial->GetTextureCount(); i++)
 	{
-		NXTexture* pTex = pMaterial->GetTexture(i);
-		if (pTex)
+		auto& pTex = pMaterial->GetTexture(i);
+		if (pTex.IsValid())
 		{
-			pTex->AddRef();
 			NXGUITextureType texType = pTex->GetSerializationData().m_textureType == NXTextureType::NormalMap ? NXGUITextureType::Normal : NXGUITextureType::Default;
 			m_texInfosDisplay.push_back({ pMaterial->GetTextureName(i), texType, pTex });
 		}
@@ -296,7 +290,7 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMateri
 				std::string strId = "##material_custom_child_texture_" + std::to_string(paramCnt);
 
 				auto& pTex = texDisplay.pTexture;
-				if (!pTex) continue;
+				if (pTex.IsNull()) continue;
 
 				auto onTexChange = [pMaterial, &pTex, this]()
 				{

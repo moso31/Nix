@@ -1,5 +1,6 @@
 #pragma once
 #include "BaseDefs/DX11.h"
+#include "Ntr.h"
 #include "NXObject.h"
 #include "NXSerializable.h"
 #include "NXTextureDefinitions.h"
@@ -21,7 +22,7 @@ class NXTextureCube;
 class NXTexture : public NXObject, public NXSerializable
 {
 public:
-    NXTexture(bool bIsCommonTex = false) :
+    NXTexture() :
         m_reloadingState(Texture_None),
         m_pReloadingTexture(nullptr),
         m_width(-1),
@@ -29,8 +30,7 @@ public:
         m_arraySize(-1),
         m_texFormat(DXGI_FORMAT_UNKNOWN),
         m_mipLevels(-1),
-        m_texFilePath(""),
-        m_bIsCommonTex(bIsCommonTex)
+        m_texFilePath("")
     {}
 
     virtual ~NXTexture();
@@ -48,7 +48,7 @@ public:
     NXTextureReloadingState GetReloadingState() { return m_reloadingState; }
     void SetReloadingState(NXTextureReloadingState state) { m_reloadingState = state; }
 
-    NXTexture* GetReloadingTexture() { return m_pReloadingTexture; }
+    Ntr<NXTexture> GetReloadingTexture() { return m_pReloadingTexture; }
     void SwapToReloadingTexture();
 
     std::filesystem::path const GetFilePath() { return m_texFilePath; }
@@ -76,7 +76,7 @@ public:
     void SetSerializationData(const NXTextureSerializationData& data) { m_serializationData = data; }
 
 private:
-    void InternalReload(NXTexture* pReloadTexture);
+    void InternalReload(Ntr<NXTexture> pReloadTexture);
 
 protected:
     ComPtr<ID3D11Texture2D> m_pTexture;
@@ -98,17 +98,14 @@ protected:
     NXTextureSerializationData m_serializationData;
 
 private:
-    // 是否是公共纹理，如果是，运行时不释放（不使用引用计数）
-    bool m_bIsCommonTex;
-
     NXTextureReloadingState m_reloadingState;
-    NXTexture* m_pReloadingTexture;
+    Ntr<NXTexture> m_pReloadingTexture;
 };
 
 class NXTexture2D : public NXTexture
 {
 public:
-    NXTexture2D(bool isCommonTex = false) : NXTexture(isCommonTex) {}
+    NXTexture2D() {}
     NXTexture2D(const NXTexture2D& other) = delete;
     ~NXTexture2D() {}
 

@@ -20,11 +20,11 @@ void NXTexture::SwapToReloadingTexture()
 	if (m_reloadingState == NXTextureReloadingState::Texture_FinishReload)
 	{
 		InternalReload(m_pReloadingTexture);
-		SafeRelease(m_pReloadingTexture);
+		m_pReloadingTexture->DecRef(); // same as m_pReloadingTexture = nullptr, but faster.
 	}
 }
 
-void NXTexture::InternalReload(NXTexture* pReloadTexture)
+void NXTexture::InternalReload(Ntr<NXTexture> pReloadTexture)
 {
 	m_pTexture = pReloadTexture->m_pTexture;
 
@@ -56,7 +56,7 @@ NXTextureReloadTask NXTexture::LoadTextureAsync()
 
 void NXTexture::LoadTextureSync()
 {
-	m_pReloadingTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(m_name, m_texFilePath, true); // 将最后的参数设为true，以强制读取硬盘纹理
+	m_pReloadingTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D_Internal(m_name, m_texFilePath); 
 }
 
 void NXTexture::Release()
@@ -144,8 +144,6 @@ void NXTexture2D::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* in
 
 	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&Desc, initData, &m_pTexture));
 	m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
-
-	AddRef();
 }
 
 NXTexture2D* NXTexture2D::Create(const std::string& DebugName, const std::filesystem::path& filePath)
@@ -278,8 +276,6 @@ NXTexture2D* NXTexture2D::Create(const std::string& DebugName, const std::filesy
 	DirectX::CreateTextureEx(g_pDevice.Get(), pImage->GetImage(0, 0, 0), pImage->GetImageCount(), metadata, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, false, CREATETEX_DEFAULT, (ID3D11Resource**)m_pTexture.GetAddressOf());
 	m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
 
-	AddRef();
-
 	pImage.reset();
 	return this;
 }
@@ -372,8 +368,6 @@ void NXTextureCube::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* 
 
 	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&Desc, initData, &m_pTexture));
 	m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
-
-	AddRef();
 }
 
 void NXTextureCube::Create(const std::string& DebugName, const std::wstring& FilePath, size_t width, size_t height)
@@ -452,8 +446,6 @@ void NXTextureCube::Create(const std::string& DebugName, const std::wstring& Fil
 	HDRPreviewInfo.mipLevels = 1;
 	HDRPreviewInfo.miscFlags = 0;
 	CreateShaderResourceView(g_pDevice.Get(), pImage->GetImage(0, 0, 0), 1, HDRPreviewInfo, &m_pSRVPreview2D);
-
-	AddRef();
 }
 
 void NXTextureCube::AddSRV()
@@ -538,8 +530,6 @@ void NXTexture2DArray::Create(std::string DebugName, const D3D11_SUBRESOURCE_DAT
 
 	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&Desc, initData, &m_pTexture));
 	m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
-
-	AddRef();
 }
 
 void NXTexture2DArray::AddSRV(UINT firstArraySlice, UINT arraySize)

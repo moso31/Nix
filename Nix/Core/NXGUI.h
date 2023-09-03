@@ -30,7 +30,7 @@ public:
 	~NXGUI();
 
 	void Init();
-	void Render(NXTexture2D* pGUIViewRT);
+	void Render(Ntr<NXTexture2D> pGUIViewRT);
 	void Release();
 
 private:

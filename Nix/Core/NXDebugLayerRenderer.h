@@ -24,7 +24,7 @@ public:
 
 	void Release();
 
-	NXTexture2D*	GetDebugLayerTex();
+	Ntr<NXTexture2D> const GetDebugLayerTex() { return m_pDebugLayerTex; }
 
 	bool	GetEnableDebugLayer()							{ return m_bEnableDebugLayer; }
 	bool	GetEnableShadowMapDebugLayer()					{ return m_bEnableShadowMapDebugLayer; }

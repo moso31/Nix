@@ -147,16 +147,13 @@ void NXTextureResourceManager::InitCommonTextures()
 {
 	m_pCommonTex.reserve(NXCommonTex_SIZE);
 
-	// 初始化常用贴图
-	bool bIsCommonTexture = true;
-
 	// NXCommonTex_White
-	auto& pTex = m_pCommonTex.emplace_back(new NXTexture2D(bIsCommonTexture));
+	auto pTex = m_pCommonTex.emplace_back(new NXTexture2D());
 	pTex->Create("White Texture", g_defaultTex_white_wstr);
 	pTex->AddSRV();
 
 	// NXCommonTex_Normal
-	auto& pTex = m_pCommonTex.emplace_back(new NXTexture2D(bIsCommonTexture));
+	pTex = m_pCommonTex.emplace_back(new NXTexture2D());
 	pTex->Create("Normal Texture", g_defaultTex_normal_wstr);
 	pTex->AddSRV();
 }
@@ -168,7 +165,7 @@ Ntr<NXTexture2D> NXTextureResourceManager::GetCommonTextures(NXCommonTexEnum eTe
 
 void NXTextureResourceManager::OnReload()
 {
-	for (auto pTex : m_pTextureArrayInternal)
+	for (auto& pTex : m_pTextureArrayInternal)
 	{
 		if (pTex.IsNull()) continue;
 
@@ -184,7 +181,8 @@ void NXTextureResourceManager::OnReload()
 			if (bAsync)
 			{
 				auto LoadTextureAsyncTask = pTex->LoadTextureAsync(); // 异步加载纹理。
-				LoadTextureAsyncTask.m_handle.promise().m_callbackFunc = [pTex]() { pTex->OnReloadFinish(); };
+
+				LoadTextureAsyncTask.m_handle.promise().m_callbackFunc = [&pTex]() { pTex->OnReloadFinish(); };
 			}
 			else
 			{
@@ -206,8 +204,6 @@ void NXTextureResourceManager::OnReload()
 
 void NXTextureResourceManager::Release()
 {
-	for (auto pTex : m_pTextureArray) SafeRelease(pTex);
-	for (auto pTex : m_pCommonTex) SafeRelease(pTex);
 }
 
 Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D_Internal(const std::string& name, const std::filesystem::path& filePath, bool bForce)
@@ -218,7 +214,7 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D_Internal(const std::s
 		for (auto pTexture : m_pTextureArrayInternal)
 		{
 			auto& pTex2D = pTexture.As<NXTexture2D>();
-			if (pTex2D.Ptr() && !filePath.empty() && std::filesystem::hash_value(filePath) == std::filesystem::hash_value(pTexture->GetFilePath()))
+			if (pTex2D.IsValid() && !filePath.empty() && std::filesystem::hash_value(filePath) == std::filesystem::hash_value(pTexture->GetFilePath()))
 			{
 				return pTex2D;
 			}

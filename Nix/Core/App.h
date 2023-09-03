@@ -1,7 +1,8 @@
 #pragma once
-#include "DirectResources.h"
-#include "Renderer.h"
+#include "BaseDefs/Math.h"
 
+class Renderer;
+class DirectResources;
 class App
 {
 public:
@@ -14,7 +15,6 @@ public:
 	void Reload();
 	void Update();
 	void Draw();
-	void ReleaseUnusedTextures();
 
 	void Release();
 

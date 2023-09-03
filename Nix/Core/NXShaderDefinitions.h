@@ -1,5 +1,6 @@
 #pragma once
 #include "BaseDefs/Math.h"
+#include "Ntr.h"
 #include <string>
 
 enum class NXShaderInputType
@@ -91,7 +92,7 @@ class NXTexture;
 struct NXMaterialTextureInfo
 {
     std::string name;
-    NXTexture* pTexture;
+    Ntr<NXTexture> pTexture;
     UINT slotIndex;
 	NXGUITextureType guiType;
 };
@@ -142,7 +143,7 @@ struct NXGUITextureData
 {
 	std::string name;
 	NXGUITextureType texType;
-	NXTexture* pTexture;
+	Ntr<NXTexture> pTexture;
 
 	int backupIndex = -1;
 };

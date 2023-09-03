@@ -1,6 +1,7 @@
 #pragma once
 #include "BaseDefs/DX11.h"
 #include "BaseDefs/Math.h"
+#include "Ntr.h"
 #include "ShaderStructures.h"
 
 struct CBufferShadowMapObject
@@ -28,7 +29,7 @@ public:
 
 	void Release();
 
-	NXTexture2DArray* GetShadowMapDepthTex() { return m_pShadowMapDepth.Ptr(); }
+	NXTexture2DArray* GetShadowMapDepthTex();
 
 	UINT	GetCascadeCount()						{ return m_cascadeCount; }
 	int 	GetDepthBias()							{ return m_depthBias; }

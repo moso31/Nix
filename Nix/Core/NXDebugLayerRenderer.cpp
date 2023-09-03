@@ -76,7 +76,7 @@ void NXDebugLayerRenderer::Render()
 	g_pContext->PSSetSamplers(0, 1, &pSampler);
 	g_pContext->PSSetConstantBuffers(2, 1, m_cbParams.GetAddressOf());
 
-	NXTexture2D* pSceneInputTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_PostProcessing);
+	auto& pSceneInputTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_PostProcessing);
 	auto pSRVRenderResult = pSceneInputTex->GetSRV();
 	g_pContext->PSSetShaderResources(0, 1, &pSRVRenderResult);	// 第0张Input的RT写死，一定是SceneInputTexture
 
@@ -91,11 +91,6 @@ void NXDebugLayerRenderer::Render()
 void NXDebugLayerRenderer::Release()
 {
 	SafeRelease(m_pRTQuad);
-}
-
-NXTexture2D* NXDebugLayerRenderer::GetDebugLayerTex()
-{
-	return m_pDebugLayerTex.Ptr();
 }
 
 void NXDebugLayerRenderer::RenderShadowMapAtlas()
