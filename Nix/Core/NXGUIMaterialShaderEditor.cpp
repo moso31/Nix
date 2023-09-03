@@ -723,7 +723,7 @@ void NXGUIMaterialShaderEditor::Render_Params_TextureItem(const int texParamId, 
 
 			auto onTexChange = [pMaterial, &texDisplay, &pTex, texIndex, this]()
 			{
-				pTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D_Internal(pTex->GetName().c_str(), m_pFileBrowser->GetSelected());
+				pTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(pTex->GetName().c_str(), m_pFileBrowser->GetSelected());
 
 				texDisplay.texType = pMaterial->GetTextureGUIType(texIndex);
 				if (texDisplay.texType == NXGUITextureType::Unknown)
@@ -740,7 +740,7 @@ void NXGUIMaterialShaderEditor::Render_Params_TextureItem(const int texParamId, 
 				auto pDropData = (NXGUIAssetDragData*)(payload->Data);
 				if (NXConvert::IsImageFileExtension(pDropData->srcPath.extension().string()))
 				{
-					pTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D_Internal(pTex->GetName().c_str(), pDropData->srcPath);
+					pTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(pTex->GetName().c_str(), pDropData->srcPath);
 
 					texDisplay.texType = pMaterial->GetTextureGUIType(texIndex);
 					if (texDisplay.texType == NXGUITextureType::Unknown)

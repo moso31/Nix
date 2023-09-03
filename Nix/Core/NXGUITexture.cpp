@@ -60,7 +60,7 @@ void NXGUITexture::SetImage(const std::filesystem::path& path)
 	if (m_pTexImage.IsValid() && path != m_pTexImage->GetFilePath())
 	{
 		// 如果和之前的路径不同，换纹理
-		m_pTexImage = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D_Internal("NXGUITexture Preview Image", path);
+		m_pTexImage = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("NXGUITexture Preview Image", path);
 		m_texData = m_pTexImage->GetSerializationData();
 	}
 }

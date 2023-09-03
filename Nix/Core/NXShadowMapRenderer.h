@@ -29,7 +29,7 @@ public:
 
 	void Release();
 
-	NXTexture2DArray* GetShadowMapDepthTex();
+	Ntr<NXTexture2DArray> GetShadowMapDepthTex();
 
 	UINT	GetCascadeCount()						{ return m_cascadeCount; }
 	int 	GetDepthBias()							{ return m_depthBias; }

@@ -31,7 +31,7 @@ void NXSimpleSSAO::Init()
 
 void NXSimpleSSAO::OnResize(const Vector2& rtSize)
 {
-	m_pTexSSAO = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D_Internal("Simple SSAO", DXGI_FORMAT_R32G32B32A32_FLOAT, lround(rtSize.x), lround(rtSize.y), 1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS);
+	m_pTexSSAO = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("Simple SSAO", DXGI_FORMAT_R32G32B32A32_FLOAT, lround(rtSize.x), lround(rtSize.y), 1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS);
 	m_pTexSSAO->AddSRV();
 	m_pTexSSAO->AddUAV();
 

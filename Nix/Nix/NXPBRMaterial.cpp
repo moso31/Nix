@@ -37,7 +37,7 @@ NXEasyMaterial::NXEasyMaterial(const std::string& name, const std::filesystem::p
 	NXMaterial(name, filePath)
 {
 	Init();
-	m_pTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D_Internal(m_name, filePath);
+	m_pTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(m_name, filePath);
 }
 
 void NXEasyMaterial::Init()
@@ -301,7 +301,7 @@ void NXCustomMaterial::SetTexture(const Ntr<NXTexture>& pTexture, const std::fil
 	auto it = std::find_if(m_texInfos.begin(), m_texInfos.end(), [pTexture](const NXMaterialTextureInfo& texInfo) { return texInfo.pTexture == pTexture; });
 	if (it != m_texInfos.end())
 	{
-		it->pTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D_Internal(m_name, texFilePath);
+		it->pTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(m_name, texFilePath);
 	}
 }
 
@@ -699,7 +699,7 @@ void NXCustomMaterial::ProcessShaderParameters(const std::string& nslParams, std
 						[&name, this](const NXGUITextureData& texDisplay) { return texDisplay.name == name; }
 					);
 
-					// 若能匹配某个 NXTexture*，使用该 NXTexture* 作为新 Shader 的默认值；否则使用 nullptr
+					// 若能匹配某个 NXTexture，使用该 NXTexture 作为新 Shader 的默认值；否则使用 nullptr
 					if (it != texDefaultValues.end())
 					{
 						if (it->pTexture.IsValid())

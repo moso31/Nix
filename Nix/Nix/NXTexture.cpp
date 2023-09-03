@@ -56,7 +56,7 @@ NXTextureReloadTask NXTexture::LoadTextureAsync()
 
 void NXTexture::LoadTextureSync()
 {
-	m_pReloadingTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D_Internal(m_name, m_texFilePath); 
+	m_pReloadingTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(m_name, m_texFilePath); 
 }
 
 void NXTexture::Release()
@@ -146,7 +146,7 @@ void NXTexture2D::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* in
 	m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
 }
 
-NXTexture2D* NXTexture2D::Create(const std::string& DebugName, const std::filesystem::path& filePath)
+Ntr<NXTexture2D> NXTexture2D::Create(const std::string& DebugName, const std::filesystem::path& filePath)
 {
 	TexMetadata metadata;
 	std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>();

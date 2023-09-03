@@ -40,7 +40,7 @@ void NXDebugLayerRenderer::Init()
 
 void NXDebugLayerRenderer::OnResize(const Vector2& rtSize)
 {
-	m_pDebugLayerTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D_Internal("Debug Layer Out RT", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET);
+	m_pDebugLayerTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("Debug Layer Out RT", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET);
 	m_pDebugLayerTex->AddRTV();
 	m_pDebugLayerTex->AddSRV();
 
@@ -95,7 +95,7 @@ void NXDebugLayerRenderer::Release()
 
 void NXDebugLayerRenderer::RenderShadowMapAtlas()
 {
-	NXTexture2DArray* pShadowMapDepthTex = m_pShadowMapRenderer->GetShadowMapDepthTex();
+	Ntr<NXTexture2DArray> pShadowMapDepthTex = m_pShadowMapRenderer->GetShadowMapDepthTex();
 	auto pSRVShadowDepth = pShadowMapDepthTex->GetSRV();
 	g_pContext->PSSetShaderResources(1, 1, &pSRVShadowDepth);
 }

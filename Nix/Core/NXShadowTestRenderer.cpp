@@ -24,7 +24,7 @@ void NXShadowTestRenderer::Init()
 	m_pBlendState = NXBlendState<>::Create();
 }
 
-void NXShadowTestRenderer::Render(NXTexture2DArray* pShadowMapDepthTex)
+void NXShadowTestRenderer::Render(Ntr<NXTexture2DArray> pShadowMapDepthTex)
 {
 	g_pUDA->BeginEvent(L"Shadow Test");
 

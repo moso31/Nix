@@ -35,10 +35,6 @@ public:
 
     virtual ~NXTexture();
 
-    virtual NXTexture2D* Is2D() { return nullptr; }
-    virtual NXTexture2DArray* Is2DArray() { return nullptr; }
-    virtual NXTextureCube* IsCubeMap() { return nullptr; }
-
     ID3D11Texture2D* GetTex() const { return m_pTexture.Get(); }
     ID3D11ShaderResourceView* GetSRV(UINT index = 0) const { return m_pSRVs.empty() ? nullptr : m_pSRVs[index].Get(); }
     ID3D11RenderTargetView* GetRTV(UINT index = 0) const { return m_pRTVs.empty() ? nullptr : m_pRTVs[index].Get(); }
@@ -109,8 +105,6 @@ public:
     NXTexture2D(const NXTexture2D& other) = delete;
     ~NXTexture2D() {}
 
-    NXTexture2D* Is2D() override { return this; }
-
     void Create(std::string DebugName,
         const D3D11_SUBRESOURCE_DATA* initData,
         DXGI_FORMAT TexFormat,
@@ -125,7 +119,7 @@ public:
         UINT SampleQuality,
         UINT MiscFlags);
 
-    NXTexture2D* Create(const std::string& DebugName, const std::filesystem::path& FilePath);
+    Ntr<NXTexture2D> Create(const std::string& DebugName, const std::filesystem::path& FilePath);
 
     void AddSRV();
     void AddRTV();
@@ -138,8 +132,6 @@ class NXTextureCube : public NXTexture
 public:
     NXTextureCube() : NXTexture() {}
     ~NXTextureCube() {}
-
-    NXTextureCube* IsCubeMap() override { return this; }
 
     void Create(std::string DebugName,
         const D3D11_SUBRESOURCE_DATA* initData,
@@ -172,8 +164,6 @@ class NXTexture2DArray : public NXTexture
 public:
     NXTexture2DArray() : NXTexture() {}
     ~NXTexture2DArray() {}
-
-    NXTexture2DArray* Is2DArray() override { return this; }
 
     void Create(std::string DebugName,
         const D3D11_SUBRESOURCE_DATA* initData,

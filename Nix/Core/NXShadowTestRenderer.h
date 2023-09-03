@@ -1,5 +1,6 @@
 #pragma once
 #include "BaseDefs/DX11.h"
+#include "Ntr.h"
 #include "ShaderStructures.h"
 
 class NXTexture2DArray;
@@ -11,7 +12,7 @@ public:
 	~NXShadowTestRenderer();
 
 	void Init();
-	void Render(NXTexture2DArray* pShadowMapDepthTex);
+	void Render(Ntr<NXTexture2DArray> pShadowMapDepthTex);
 
 	void Release();
 
