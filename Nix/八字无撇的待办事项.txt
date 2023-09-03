@@ -33,55 +33,12 @@ SSAO可以升级成GTAO或者HBAO
 
 ************************ 功能杂项 ************************
 
-Last Issue ID : 50
+【暂时搁置的功能】		已移至 https://github.com/moso31/Nix/issues/
+【考虑要做的功能】		已移至 https://github.com/moso31/Nix/issues/
+【较大的长期模块、探索】	已移至 https://github.com/moso31/Nix/issues/
+【bugs】					已移至 https://github.com/moso31/Nix/issues/
 
-【暂时搁置的功能】
-14. 不同终端的imgui.ini布局同步（在Imgui完全成型之前 感觉不太好做）
-
-【考虑要做的功能】
-3. 新材质类型：SubSurface
-4. 法线参数修正（现版本的三轴缩放是个什么鬼……）
-	（note：需要专门的法线插值，单纯的缩放不能解决问题。）
-7. Hierarchy 场景大纲
-16. CubeMap预加载优化（现在每次打开都会读一遍dds文件）
-
-21. Depth peeling UI参数可控
-22. Context Explorer 增加浏览类型（比如只显示图片/CubeMap/Nmat/FBX/……）
-25. ForceSRGB/ForceLinear纹理支持的格式还不全。导入SRGB纹理的时候可能会引起崩溃
-
-30. Deferred Lighting
-31. GBuffer.Normal 压缩、精度提升
-32. 优化掉 GBuffer.Position
-33. 可开关的 DepthPeeling pass（现在始终保持开启太伤）
-
-36. 自定义材质
-	（注意：应该先确保代码逻辑层的逻辑是能正常使用的，然后再完善UI）
-
-37. 从大佬那里借的FileBrowser逐渐感觉不太适合自己的项目了，还是自己写一个比较好
-
-38. 材质参数的序列化
-40. 更工业化的UI布局，比如属性统一用Inspector显示，增加菜单栏等等
-42. View，加个鼠标滚轮移动的逻辑
-43. nsl Shader增加对函数功能的支持
-44. ContentExplorer 纹理、材质、模型可预览
-45. Cache加载，提速
-
-【较大的长期模块、探索】
-13. 场景文件化，可保存、加载
-29. 更灵活的灯光系统
-35. 类似Unity GfxDeviceWorker的渲染队列处理器
-47. 是否可以将一些设置，比如MSE，封装成单独的模块(dll lib)？
-50. 
-	现在的 延迟着色 pass， rt slot 规则是：rt0 永远用于object cbuffer，rt1 永远用于camera cbuffer，rt2 是各种管线 pass 的自定义buffer，rt>=3 用于自定义材质buffer。
-	其它各种 pass 的 RTView 则更是放飞自我，夏姬八放.... 这样的坏处就是，稍微改个渲染管线的shader，都需要来回调整各种 Slot 才能让代码跑通，比较浪费精力。
-	（也许这其实就是 Render graph？）
-
-【bugs】
-17. translucent材质 IBL 亮度拉高的时候有bug，
-	并且opacity=1的时候和standard的着色结果有微弱差异。(半透的光照很可能有问题)
-19. 对选中物体做XZ拖动的时候，偶发Y值会莫名其妙改变的问题
-
-已完成的：
+【已完成的】（已移至 https://github.com/moso31/Nix/issues/，以后不再添加）
 1. ctrl左键点击ViewPort：多选材质[DONE]
 	8. 多选编辑器移动[DONE]
 	10. MoveArrows 增加不可见状态[DONE]
@@ -110,11 +67,14 @@ Last Issue ID : 50
 	8. Add Param增加Sampler选项。[done]
 	9. NXGUICBufferData.params 相关的控制逻辑一直就没加，需要增加UI逻辑。[done]
 	10. (未确定) "|< < > >|" 合并成一个拖动的逻辑？[暂不实现]
-
-48. 新增半自动智能指针类Ntr<T>，目前仅用于自动控制纹理资源的计数[done]
+	
+36. 自定义材质[done]
+	（注意：应该先确保代码逻辑层的逻辑是能正常使用的，然后再完善UI）
+43. nsl Shader增加对函数功能的支持[done]
+48. 新增半自动智能指针类Ntr<T>，目前仅用于自动控制纹理资源的计数[done 2023.9.3]
 49. 当初始化加载一个有问题的nsl时，不要让程序崩溃[done]
 
-里程碑：
+【里程碑】
 2023.5.24			即时编译Shader
 2023.6.1   22:27	resize+全屏化UI
 2023.6.2   13:36	闪屏(Splash)界面
