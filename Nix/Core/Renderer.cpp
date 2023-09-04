@@ -15,7 +15,6 @@
 #include "NXSamplerStates.h"
 
 Renderer::Renderer() :
-	m_pFinalRT(nullptr),
 	m_bRenderGUI(true)
 {
 }

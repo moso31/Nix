@@ -114,7 +114,7 @@ void NXShadowMapRenderer::Release()
 
 Ntr<NXTexture2DArray> NXShadowMapRenderer::GetShadowMapDepthTex()
 {
-	return m_pShadowMapDepth.Ptr();
+	return m_pShadowMapDepth;
 }
 
 void NXShadowMapRenderer::SetCascadeCount(UINT value)

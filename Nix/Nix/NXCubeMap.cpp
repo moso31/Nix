@@ -17,10 +17,7 @@ using namespace DirectX::SamplerMath;
 using namespace DirectX::SimpleMath::SH;
 
 NXCubeMap::NXCubeMap(NXScene* pScene) :
-	m_pScene(pScene),
-	m_pTexCubeMap(nullptr),
-	m_pTexIrradianceMap(nullptr),
-	m_pTexPreFilterMap(nullptr)
+	m_pScene(pScene)
 {
 	InitConstantBuffer();
 }

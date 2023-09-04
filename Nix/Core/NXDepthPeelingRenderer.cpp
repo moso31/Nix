@@ -17,8 +17,6 @@ NXDepthPeelingRenderer::NXDepthPeelingRenderer(NXScene* pScene, NXBRDFLut* pBRDF
 	m_pScene(pScene),
 	m_peelingLayerCount(3)
 {
-	m_pSceneDepth[0] = nullptr;
-	m_pSceneDepth[1] = nullptr;
 }
 
 NXDepthPeelingRenderer::~NXDepthPeelingRenderer()
