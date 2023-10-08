@@ -15,11 +15,7 @@ Selfmade DX11 renderer.
   - [x] Used this HLSL code editor: https://github.com/moso31/DonoText
 
 ## Intending...
-- [ ] SSS
-  - [ ] Screen-Space SSSS **\[IN PROGRESS\]**
-  - [ ] Separable SSS
-  - [ ] Burley SSS
-  - [ ] PreIntegrated SSS
+- [ ] Burley SSS **\[IN PROGRESS\]**
 
 - [ ] Anti-Aliasing(TAA SMAA FXAA...)
 - [ ] Screen Space Ambient Occlusion(HBAO GTAO...)
