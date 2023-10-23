@@ -20,7 +20,7 @@ void NXTexture::SwapToReloadingTexture()
 	if (m_reloadingState == NXTextureReloadingState::Texture_FinishReload)
 	{
 		InternalReload(m_pReloadingTexture);
-		m_pReloadingTexture->DecRef(); // same as m_pReloadingTexture = nullptr, but faster.
+		m_pReloadingTexture = nullptr;
 	}
 }
 
@@ -56,7 +56,8 @@ NXTextureReloadTask NXTexture::LoadTextureAsync()
 
 void NXTexture::LoadTextureSync()
 {
-	m_pReloadingTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(m_name, m_texFilePath); 
+	auto pOldTex = m_pReloadingTexture;
+	m_pReloadingTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(m_name, m_texFilePath, true); 
 }
 
 void NXTexture::Release()

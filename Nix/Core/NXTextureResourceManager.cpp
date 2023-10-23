@@ -141,6 +141,8 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D(const std::string& na
 	pTexture2D->Create(name, filePath);
 	pTexture2D->AddSRV();
 
+	pTexture2D->SetRefCountDebugName(name);
+
 	if (!bForce)
 		m_pTextureArrayInternal.push_back(pTexture2D); // 2023.3.26 如果是强制加载，就不应加入到资源数组里面
 	return pTexture2D;

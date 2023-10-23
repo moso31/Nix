@@ -50,17 +50,9 @@ void NXGUITexture::Release()
 
 void NXGUITexture::SetImage(const std::filesystem::path& path)
 {
-	// 如果路径不合法，不显示纹理信息
-	if (path.empty())
-	{
-		m_pTexImage->DecRef(); // 释放对当前纹理的引用
+	if (m_pTexImage.IsValid() && path == m_pTexImage->GetFilePath())
 		return;
-	}
 
-	if (m_pTexImage.IsValid() && path != m_pTexImage->GetFilePath())
-	{
-		// 如果和之前的路径不同，换纹理
-		m_pTexImage = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("NXGUITexture Preview Image", path);
-		m_texData = m_pTexImage->GetSerializationData();
-	}
+	m_pTexImage = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("NXGUITexture Preview Image", path);
+	m_texData = m_pTexImage->GetSerializationData();
 }

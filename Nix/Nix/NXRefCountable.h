@@ -1,5 +1,13 @@
 #pragma once
+
 #include <atomic>
+#include <string>
+
+#if defined(_DEBUG)
+#define DEBUG_ACTION(X) X
+#else
+#define DEBUG_ACTION(X)
+#endif
 
 class IRefCountable
 {
@@ -16,10 +24,19 @@ public:
 	{
 		if (--m_refCount == 0)
 		{
+			DEBUG_ACTION(if (!m_refCountDebug.empty()) printf("%s removing.\n", m_refCountDebug.c_str()));
 			delete this;
 		}
 	}
 
+	inline void SetRefCountDebugName(const std::string& debugName) 
+	{
+		DEBUG_ACTION(m_refCountDebug = m_refCountDebug);
+	}
+
 private:
 	std::atomic_int m_refCount = 0;
+
+private:
+	DEBUG_ACTION(std::string m_refCountDebug);
 };
