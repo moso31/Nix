@@ -26,6 +26,18 @@ float3 TangentSpaceToViewSpace(float3 normalMapValue, float3 normalVS, float3 ta
 	return ChangeBasisVector(normalTS, normalVS, tangentVS);
 }
 
+// 在表面某处建基
+// 获取 NormalVS，并计算对应的 TangentVS 和 BitangentVS
+void GetNTBMatrixVS(float3 NormalVS, out float3 TangentVS, out float3 BitangentVS)
+{
+	float3 upVector = float3(0, 1, 0);
+	if (abs(dot(NormalVS, upVector)) > 0.99) 
+		upVector = float3(1, 0, 0); 
+
+	TangentVS = normalize(cross(upVector, NormalVS));
+	BitangentVS = cross(NormalVS, TangentVS);
+}
+
 float DepthZ01ToLinear(float z01)
 {
 	float A = cameraParams1.z;

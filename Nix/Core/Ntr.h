@@ -49,6 +49,7 @@ public:
     T* operator->() { return static_cast<T*>(data); }
 
     T* Ptr() { return static_cast<T*>(data); }
+    T** PPtr() { return &static_cast<T*>(data); }
 
     bool IsValid() const { return data != nullptr; }
     bool IsNull() const { return data == nullptr; }

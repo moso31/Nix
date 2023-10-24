@@ -32,6 +32,7 @@ float2 GenerateBurley3SDiskUV(float r)
 Texture2D txIrradiance : register(t0);
 Texture2D txSpecular : register(t1);
 Texture2D txNormal : register(t2);
+Texture2D txDepthZ : register(t3);
 SamplerState ssLinearClamp : register(s0);
 
 struct VS_INPUT
@@ -57,13 +58,17 @@ PS_INPUT VS(VS_INPUT input)
 
 float4 PS(PS_INPUT input) : SV_Target
 {
-	float depth = txRTDepth.Sample(ssLinearClamp, uv).x;
+	float depth = txDepthZ.Sample(ssLinearClamp, uv).x;
 	float linearDepthZ = DepthZ01ToLinear(depth);
 	float3 ViewDirRawVS = GetViewDirVS_unNormalized(uv);
 	float3 PositionVS = ViewDirRawVS * linearDepthZ;
 
 	float3 irradiance = txIrradiance.Sample(ssLinearClamp, input.tex).xyz;
-	float3 N = txNormal.Sample(ssLinearClamp, input.tex).xyz;
+	float3 NormalVS = txNormal.Sample(ssLinearClamp, input.tex).xyz;
+	float3 TangentVS, BitangentVS;
+	GetNTBMatrixVS(NormalVS, TangentVS, BitangentVS);
+
+	float3 SSSResult = 0.0f;
 
 	for (int i = -3; i <= 3; i++)
 	{

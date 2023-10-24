@@ -46,8 +46,8 @@ void NXSubSurfaceRenderer::RenderSSSSS()
 	ID3D11ShaderResourceView* pSRVIrradiance = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting0)->GetSRV();
 	ID3D11ShaderResourceView* pSRVSpecLighting = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting1)->GetSRV();
 	ID3D11ShaderResourceView* pSRVNormal = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer1)->GetSRV();
+	ID3D11ShaderResourceView* pSRVDepthZ = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ)->GetSRV();
 	ID3D11RenderTargetView* pRTVBurleySSSOut = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_SSSLighting)->GetRTV();
-	auto& pDepthZ = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
 
 	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
 	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
@@ -61,6 +61,7 @@ void NXSubSurfaceRenderer::RenderSSSSS()
 	g_pContext->PSSetShaderResources(0, 1, &pSRVIrradiance);
 	g_pContext->PSSetShaderResources(1, 1, &pSRVSpecLighting);
 	g_pContext->PSSetShaderResources(2, 1, &pSRVNormal);
+	g_pContext->PSSetShaderResources(3, 1, &pSRVDepthZ);
 
 	m_pResultRT->Render();
 }
