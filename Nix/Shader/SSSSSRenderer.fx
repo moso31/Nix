@@ -1,5 +1,37 @@
+// G(x)
+float Burley3S_G(float x) 
+{
+	return pow(1 + 4 * x * (2 * x + sqrt(1 + 4 * x * x)), 1.0f / 3.0f); 
+}
+
+// Generate r = P^-1(x)
+float Burley3S_InverseCDF(float x)
+{
+	return 3.0f / s * log((1 + 1 / Burley3S_G(1 - x) + Burley3S_G(1 - x)) / (4 * (1 - x)));
+}
+
+// p(r)
+float Burley3S_PDF(float x)
+{
+	return s / 4 * (exp(-s * x) + exp(-s * x / 3)); 
+}
+
+float GenerateBurley3SSample()
+{
+	float x = Random01(); // 0~1
+	float r = Burley3S_InverseCDF(x);
+	return r;
+}
+
+float2 GenerateBurley3SDiskUV(float r)
+{
+	float theta = Random01() * 2PI;
+	return float2(r * cos(theta), r * sin(theta));
+}
+
 Texture2D txIrradiance : register(t0);
 Texture2D txSpecular : register(t1);
+Texture2D txNormal : register(t2);
 SamplerState ssLinearClamp : register(s0);
 
 struct VS_INPUT
@@ -25,8 +57,14 @@ PS_INPUT VS(VS_INPUT input)
 
 float4 PS(PS_INPUT input) : SV_Target
 {
-	//float3 irradiance = txIrradiance.Sample(ssLinearClamp, input.tex).xyz;
-	float3 irradiance = float3(0.0f, 0.0f, 0.0f);
+	float depth = txRTDepth.Sample(ssLinearClamp, uv).x;
+	float linearDepthZ = DepthZ01ToLinear(depth);
+	float3 ViewDirRawVS = GetViewDirVS_unNormalized(uv);
+	float3 PositionVS = ViewDirRawVS * linearDepthZ;
+
+	float3 irradiance = txIrradiance.Sample(ssLinearClamp, input.tex).xyz;
+	float3 N = txNormal.Sample(ssLinearClamp, input.tex).xyz;
+
 	for (int i = -3; i <= 3; i++)
 	{
 		for (int j = -3; j <= 3; j++)
