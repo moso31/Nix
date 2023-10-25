@@ -1,5 +1,6 @@
 #pragma once
 #include "BaseDefs/DX11.h"
+#include "SimpleMath.h"
 #include "Ntr.h"
 #include "NXObject.h"
 #include "NXSerializable.h"
@@ -7,6 +8,7 @@
 #include "NXTextureReloadTesk.h"
 
 using namespace Microsoft::WRL;
+using namespace SimpleMath;
 
 enum NXTextureReloadingState
 {

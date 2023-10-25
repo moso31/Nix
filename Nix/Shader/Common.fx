@@ -34,6 +34,7 @@ cbuffer ConstantBufferObject : register(b0)
 
 cbuffer ConstantBufferCamera : register(b1)
 {
+	// xy: RTSize, zw: 1.0f / RTSize
 	float4 cameraParams0;
 
 	// n, f, f / (f - n), -f * n / (f - n)

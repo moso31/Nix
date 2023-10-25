@@ -1,9 +1,15 @@
 #include "Math.fx"
 
-// G(x)
-float Burley3S_G(float x) 
+// R(r)
+float3 Burley3S_R(float r)
 {
-	return pow(1 + 4 * x * (2 * x + sqrt(1 + 4 * x * x)), 1.0f / 3.0f); 
+
+}
+
+// G(x)
+float Burley3S_G(float x)
+{
+	return pow(1 + 4 * x * (2 * x + sqrt(1 + 4 * x * x)), 1.0f / 3.0f);
 }
 
 // Generate r = P^-1(x)
@@ -17,29 +23,16 @@ float Burley3S_InverseCDF(float x, float s)
 // s 和 介质相关，一般可以理解成 s 越高，介质越稠密
 float Burley3S_PDF(float x, float s)
 {
-	return s / 4 * (exp(-s * x) + exp(-s * x / 3)); 
-}
-
-float2 GenerateBurley3SDiskUV(float r)
-{
-	float theta = Random01() * 2PI;
-	return float2(r * cos(theta), r * sin(theta));
-}
-
-// 基于一张预设的 Noise 纹理 进行采样，以生成 随机数
-float RandomSampleFromNoiseGray(Texture2D NoiseTex, float2 uv, uint seed)
-{
-	float2 noiseUV = frac(uv + float2(seed * 0.37, seed * 0.73));
-	return NoiseTex.Sample(NoiseSampler, noiseUV).r; // Burley SSS 使用的纹理应该只有 R 通道
+	return s / 4 * (exp(-s * x) + exp(-s * x / 3));
 }
 
 // 将 View-Space Pos 转换成 ScreenUV。
-float2 ConvertPositionVSToScreenUV(float3 PositionVS)
+float2 ConvertPositionVSToScreenUV(float3 positionVS)
 {
-	float zClipInv = 1.0f / (PositionVS.z * cameraParams1.z + cameraParams1.w);
-	float2 PositionNDCxy = PositionVS.xy * cameraParams2.xy * zClipInv;
-	float2 ScreenUV = (PositionNDCxy + 1.0f) * 0.5f;
-	return ScreenUV;
+	float zClipInv = 1.0f / (positionVS.z * cameraParams1.z + cameraParams1.w);
+	float2 positionNDCxy = positionVS.xy * cameraParams2.xy * zClipInv;
+	float2 screenUV = (positionNDCxy + 1.0f) * 0.5f;
+	return screenUV;
 }
 
 Texture2D txIrradiance : register(t0);
@@ -48,6 +41,13 @@ Texture2D txNormal : register(t2);
 Texture2D txDepthZ : register(t3);
 Texture2D txNoiseGray : register(t4);
 SamplerState ssLinearClamp : register(s0);
+
+// 基于一张预设的 Noise 纹理 进行采样，以生成 0~1 区间内的随机数
+float Random01FromNoiseGray(float2 coord, float seed)
+{
+	float2 noiseUV = frac(coord + float2(seed * 1.14, seed * 5.14));
+	return txNoiseGray.Sample(ssLinearClamp, noiseUV).r; // Burley SSS 使用的纹理应该只有 R 通道
+}
 
 struct VS_INPUT
 {
@@ -72,66 +72,75 @@ PS_INPUT VS(VS_INPUT input)
 
 float4 PS(PS_INPUT input) : SV_Target
 {
+	float2 uv = input.tex;
+	float2 screenCoord = uv * cameraParams0.xy;
 	float s = 0.5f;
 
-	float Depth = txDepthZ.Sample(ssLinearClamp, uv).x;
-	float LinearDepthZ = DepthZ01ToLinear(Depth);
-	float3 ViewDirRawVS = GetViewDirVS_unNormalized(uv);
-	float3 PositionVS = ViewDirRawVS * LinearDepthZ;
+	float depth = txDepthZ.Sample(ssLinearClamp, uv).x;
+	float linearDepthZ = DepthZ01ToLinear(depth);
+	float3 viewDirRawVS = GetViewDirVS_unNormalized(uv);
+	float3 positionVS = viewDirRawVS * linearDepthZ;
 
-	float3 Irradiance = txIrradiance.Sample(ssLinearClamp, input.tex).xyz;
-	float3 NormalVS = txNormal.Sample(ssLinearClamp, input.tex).xyz;
-	float3 TangentVS, BitangentVS;
-	GetNTBMatrixVS(NormalVS, TangentVS, BitangentVS);
+	float3 irradiance = txIrradiance.Sample(ssLinearClamp, uv).xyz;
+	float3 normalVS = txNormal.Sample(ssLinearClamp, uv).xyz;
+	float3 tangentVS, bitangentVS;
+	GetNTBMatrixVS(normalVS, tangentVS, bitangentVS);
 
-	float3 SSSResult = 0.0f;
+	float3 sssResult = 0.0f;
 
-	float SampleN = 20.0f; // Burley SSS 采样次数
-	float SumWeight = 0.0f;
-	for (float i = 0.0f; i < SampleN; i += 1.0f)
+	float sampleN = 20.0f; // Burley SSS 采样次数
+	float sumWeight = 0.0f;
+	for (float i = 0.0f; i < sampleN; i += 1.0f)
 	{
-		// 生成 x
-		float Random = Random01(); 
+		// 准备两个0~1随机数，使用不同的 seed
+		float randA = Random01FromNoiseGray(screenCoord, i);
+		float randB = Random01FromNoiseGray(screenCoord, i + sampleN);
 
 		// 重点采样，生成 r
-		float r = Burley3S_InverseCDF(random, s); 
+		float r = Burley3S_InverseCDF(randA, s);
+
+		// 均匀采样，生成 theta
+		float theta = NX_2PI * randB;
 
 		// Disk UV 采样，2D 圆盘样本
-		float2 DiskUV = GenerateBurley3SDiskUV(r); 
+		// same as float2 diskUV = float2(r * sin(theta), r * cos(theta));
+		float2 diskUV;
+		sincos(theta, diskUV.x, diskUV.y);
+		diskUV *= r; 
 
 		// 基于命中点的切线空间 进行 Disk UV 偏移，得到采样点
-		float3 SamplePos = PositionVS + TangentVS * DiskUV.x + BitangentVS * DiskUV.y;
+		float3 samplePos = positionVS + tangentVS * diskUV.x + bitangentVS * diskUV.y;
 
 		// 将采样点转换回屏幕空间 UV
-		float2 SampleUV = ConvertPositionVSToScreenUV(SamplePos); 
+		float2 sampleUV = ConvertPositionVSToScreenUV(samplePos);
 
 		// 获取采样点的深度，并转换成线性深度
-		float SampleDepth = txDepthZ.Sample(ssLinearClamp, SampleUV).x;
-		float SampleLinearDepth = DepthZ01ToLinear(SampleDepth);
+		float sampleDepth = txDepthZ.Sample(ssLinearClamp, sampleUV).x;
+		float sampleLinearDepth = DepthZ01ToLinear(sampleDepth);
 
 		// 深度信息不一定位于 Disk 切平面上，需要 使用勾股定理校正 r 的值
-		float depthOffset = SampleLinearDepth - Depth;
-		float AdjustR = sqrt(r * r + depthOffset * depthOffset); // 校正 r
+		float depthOffset = sampleLinearDepth - depth;
+		float adjustR = sqrt(r * r + depthOffset * depthOffset); // 校正 r
 
 		// 最后，统计当前样本的反射率 R(r)
-		float3 Weight = R(AdjustR) * NX_2PI * AdjustR / Burley3S_PDF(r, s);
+		float3 weight = R(adjustR) * NX_2PI * adjustR / Burley3S_PDF(r, s);
 
 		// 累积采样结果
-		float3 SampleColor = txIrradiance.Sample(ssLinearClamp, SampleUV).xyz;
-		SampleColor *= Weight; // 蒙特卡洛采样
-		SSSResult += sampleColor / SampleN; 
-		SumWeight += Weight;
+		float3 sampleColor = txIrradiance.Sample(ssLinearClamp, sampleUV).xyz;
+		sampleColor *= weight; // 蒙特卡洛采样
+		sssResult += sampleColor / sampleN;
+		sumWeight += weight;
 	}
 
-	SSSResult /= SumWeight;
+	sssResult /= sumWeight;
 
 	//// 透射
-	//float3 TransmissionColor = GetTransmissionColor(); // 用户自定义透射颜色 I_{tt}
-	//TransmissionColor *= 0.25f * A * (exp(-s * centerDepth) + exp(-s * centerDepth / 3));
+	//float3 transmissionColor = GetTransmissionColor(); // 用户自定义透射颜色 I_{tt}
+	//transmissionColor *= 0.25f * A * (exp(-s * centerDepth) + exp(-s * centerDepth / 3));
 
-	//SSSresult += TransmissionColor;
+	//sssResult += transmissionColor;
 
-	float3 spec = txSpecular.Sample(ssLinearClamp, input.tex).xyz;
+	float3 spec = txSpecular.Sample(ssLinearClamp, uv).xyz;
 	float3 result = irradiance + spec;
 	return float4(result, 1.0f);
 }
