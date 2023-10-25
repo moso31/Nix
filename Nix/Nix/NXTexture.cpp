@@ -4,6 +4,8 @@
 #include "NXResourceManager.h"
 #include "NXConverter.h"
 #include "NXLog.h"
+#include "SimpleMath.h"
+#include "NXRandom.h"
 
 NXTexture::~NXTexture()
 {
@@ -278,6 +280,106 @@ Ntr<NXTexture2D> NXTexture2D::Create(const std::string& DebugName, const std::fi
 	m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
 
 	pImage.reset();
+	return this;
+}
+
+Ntr<NXTexture2D> NXTexture2D::CreateSolid(const std::string& DebugName, UINT TexSize, const Vector4& Color)
+{
+    // 创建大小为 TexSize * TexSize 的纯色纹理
+    DirectX::Image image;
+    image.width = TexSize;
+    image.height = TexSize;
+    image.format = DXGI_FORMAT_R8G8B8A8_UNORM;		// 8-bit UNORM for each channel
+    image.rowPitch = TexSize * 4;					// 4 bytes per pixel (RGBA)
+    image.slicePitch = image.rowPitch * TexSize;	// size of entire image
+    image.pixels = new uint8_t[image.slicePitch];
+
+    // Convert floating point color to 8-bit color
+    uint8_t r = static_cast<uint8_t>(Color.x * 255.0f);
+    uint8_t g = static_cast<uint8_t>(Color.y * 255.0f);
+    uint8_t b = static_cast<uint8_t>(Color.z * 255.0f);
+    uint8_t a = static_cast<uint8_t>(Color.w * 255.0f);
+
+    for (int i = 0; i < TexSize; ++i)
+    {
+        for (int j = 0; j < TexSize; ++j)
+        {
+            uint8_t* pixel = image.pixels + i * image.rowPitch + j * 4;
+            pixel[0] = r;
+            pixel[1] = g;
+            pixel[2] = b;
+            pixel[3] = a;
+        }
+    }
+
+	// Directly create the texture using the provided data
+	TexMetadata metadata;
+	metadata.width = image.width;
+	metadata.height = image.height;
+	metadata.depth = 1;
+	metadata.arraySize = 1;
+	metadata.mipLevels = 1;
+	metadata.format = image.format;
+	metadata.dimension = TEX_DIMENSION_TEXTURE2D;
+
+	DirectX::CreateTextureEx(g_pDevice.Get(), &image, 1, metadata, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0, CREATETEX_DEFAULT, (ID3D11Resource**)m_pTexture.GetAddressOf());
+	m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
+
+    delete[] image.pixels;
+    return this;
+}
+
+Ntr<NXTexture2D> NXTexture2D::CreateNoise(const std::string& DebugName, UINT TexSize, UINT Dimension)
+{
+	// Check if dimension is valid (1, 2, 3, or 4)
+	if (Dimension < 1 || Dimension > 4)
+	{
+		printf("Invalid Dimension for Noise Texture. Allowed values are 1, 2, 3, or 4.\n");
+		return nullptr;
+	}
+
+	DXGI_FORMAT format;
+	switch (Dimension)
+	{
+	case 1: format = DXGI_FORMAT_R8_UNORM; break;
+	case 2: format = DXGI_FORMAT_R8G8_UNORM; break;
+	case 3: format = DXGI_FORMAT_R8G8B8A8_UNORM; break;
+	case 4: format = DXGI_FORMAT_R8G8B8A8_UNORM; break;
+	}
+
+	DirectX::Image image;
+	image.width = TexSize;
+	image.height = TexSize;
+	image.format = format;
+	image.rowPitch = TexSize * Dimension;
+	image.slicePitch = image.rowPitch * TexSize;
+	image.pixels = new uint8_t[image.slicePitch];
+
+	NXRandom* randInst = NXRandom::GetInstance();
+	for (int i = 0; i < TexSize; ++i)
+	{
+		for (int j = 0; j < TexSize; ++j)
+		{
+			uint8_t* pixel = image.pixels + i * image.rowPitch + j * Dimension;
+			for(int dim = 0; dim < Dimension; dim++)
+				pixel[dim] = randInst->CreateUINT8();
+		}
+	}
+
+	// Directly create the texture using the provided data
+	TexMetadata metadata;
+	metadata.width = image.width;
+	metadata.height = image.height;
+	metadata.depth = 1;
+	metadata.arraySize = 1;
+	metadata.mipLevels = 1;
+	metadata.format = image.format;
+	metadata.dimension = TEX_DIMENSION_TEXTURE2D;
+
+	DirectX::CreateTextureEx(g_pDevice.Get(), &image, 1, metadata, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0, CREATETEX_DEFAULT, (ID3D11Resource**)m_pTexture.GetAddressOf());
+	m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
+
+	delete[] image.pixels;
 	return this;
 }
 

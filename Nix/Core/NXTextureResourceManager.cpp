@@ -72,6 +72,11 @@ void NXTextureResourceManager::InitCommonTextures()
 	pTex = m_pCommonTex.emplace_back(new NXTexture2D());
 	pTex->Create("Normal Texture", g_defaultTex_normal_wstr);
 	pTex->AddSRV();
+
+	// Noise 2D Gray, 64x64
+	pTex = m_pCommonTex.emplace_back(new NXTexture2D());
+	pTex->CreateNoise("Noise2DGray 64x64", 64, 1);
+	pTex->AddSRV();
 }
 
 Ntr<NXTexture2D> NXTextureResourceManager::GetCommonTextures(NXCommonTexEnum eTex)

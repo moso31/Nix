@@ -119,6 +119,8 @@ public:
         UINT MiscFlags);
 
     Ntr<NXTexture2D> Create(const std::string& DebugName, const std::filesystem::path& FilePath);
+    Ntr<NXTexture2D> CreateSolid(const std::string& DebugName, UINT TexSize, const Vector4& Color);
+    Ntr<NXTexture2D> CreateNoise(const std::string& DebugName, UINT TexSize, UINT Dimension);
 
     void AddSRV();
     void AddRTV();

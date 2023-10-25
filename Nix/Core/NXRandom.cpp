@@ -39,3 +39,10 @@ Vector4 NXRandom::CreateVector4(float minValue, float maxValue)
 	RandomFloatDistribution r(minValue, maxValue);
 	return Vector4(r(m_rng), r(m_rng), r(m_rng), r(m_rng));
 }
+
+uint8_t NXRandom::CreateUINT8(uint8_t minValue, uint8_t maxValue)
+{
+	// random 0 ~ 255
+	RandomIntDistribution r(0, 255);
+	return (uint8_t)r(m_rng);
+}

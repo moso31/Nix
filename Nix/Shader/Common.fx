@@ -35,8 +35,15 @@ cbuffer ConstantBufferObject : register(b0)
 cbuffer ConstantBufferCamera : register(b1)
 {
 	float4 cameraParams0;
-	float4 cameraParams1; // n, f, f / (f - n), -f * n / (f - n)
-	float4 cameraParams2; // proj._11, proj._22, invProj._11, invProj._22
+
+	// n, f, f / (f - n), -f * n / (f - n)
+	// Nix use left-hand space, so 
+	// PosCS.z = PosVS.z * cameraParams1.z + cameraParams1.w, PosCS.w = PosVS.z
+	// PosNDC.z = PosCS.z / PosCS.w
+	float4 cameraParams1; 
+
+	// proj._11, proj._22, invProj._11, invProj._22
+	float4 cameraParams2; 
 }
 
 #endif // !_COMMON_

@@ -2,6 +2,7 @@
 #define _MATH_
 
 #include "Common.fx"
+#include "MathUnits.fx"
 
 // 坐标基变换。将 Vector 从 sourceBasis 转换到 targetBasis
 float3 ChangeBasisVector(float3 sourceBasisVector, float3 targetBasisNormal, float3 targetBasisTangent)
