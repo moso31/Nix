@@ -211,6 +211,7 @@
     <ClCompile Include="Core\App.cpp" />
     <ClCompile Include="Core\DirectResources.cpp" />
     <ClCompile Include="Core\FBXMeshLoader.cpp" />
+    <ClCompile Include="Core\NXDepthRenderer.cpp" />
     <ClCompile Include="Core\NXFileSystemHelper.cpp" />
     <ClCompile Include="Core\Global.cpp" />
     <ClCompile Include="Core\GlobalBufferManager.cpp" />
@@ -305,6 +306,7 @@
     <ClInclude Include="Core\Global.h" />
     <ClInclude Include="Core\imfilebrowser.h" />
     <ClInclude Include="Core\Ntr.h" />
+    <ClInclude Include="Core\NXDepthRenderer.h" />
     <ClInclude Include="Core\NXFileSystemHelper.h" />
     <ClInclude Include="Core\GlobalBufferManager.h" />
     <ClInclude Include="Core\Header.h" />
@@ -575,6 +577,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\SSSSSRenderer.fx">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shader\Depth.fx">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

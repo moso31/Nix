@@ -49,6 +49,9 @@ void Renderer::Init()
 	m_pDepthPrepass = new NXDepthPrepass(m_scene);
 	m_pDepthPrepass->Init();
 
+	m_pDepthRenderer = new NXDepthRenderer();
+	m_pDepthRenderer->Init();
+
 	m_pGBufferRenderer = new NXGBufferRenderer(m_scene);
 	m_pGBufferRenderer->Init();
 
@@ -182,6 +185,13 @@ void Renderer::RenderFrame()
 	// GBuffer
 	m_pGBufferRenderer->Render();
 
+	// Depth Copy 2023.10.26
+	// Burley SSS 既需要将 Depth 的模板缓存绑定到output，又需要深度信息作为input，这就会导致资源绑定冲突。
+	// 所以这里 Copy 一份记录到 GBuffer 为止的 Depth 到 DepthR32。
+	// 遇到需要避免资源绑定冲突的情况，就使用复制的这张作为input。
+	// 【未来如有需要可升级成 Hi-Z】
+	m_pDepthRenderer->Render();
+
 	// Shadow Map
 	CD3D11_VIEWPORT vpShadow(0.0f, 0.0f, 2048, 2048);
 	g_pContext->RSSetViewports(1, &vpShadow);
@@ -241,6 +251,7 @@ void Renderer::Release()
 	SafeRelease(m_pSSAO);
 	SafeDelete(m_pDepthPrepass);
 
+	SafeRelease(m_pDepthRenderer);
 	SafeRelease(m_pGBufferRenderer);
 	SafeRelease(m_pShadowMapRenderer);
 	SafeRelease(m_pShadowTestRenderer);

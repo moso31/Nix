@@ -17,6 +17,10 @@ void NXTextureResourceManager::ResizeCommonRT(const Vector2& rtSize)
 	m_pCommonRT[NXCommonRT_DepthZ]->AddDSV();
 	m_pCommonRT[NXCommonRT_DepthZ]->AddSRV();
 
+	m_pCommonRT[NXCommonRT_DepthZ_R32] = CreateTexture2D("Scene DepthZ R32 RT", DXGI_FORMAT_R32_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE);
+	m_pCommonRT[NXCommonRT_DepthZ_R32]->AddRTV();
+	m_pCommonRT[NXCommonRT_DepthZ_R32]->AddSRV();
+
 	m_pCommonRT[NXCommonRT_Lighting0] = CreateTexture2D("Lighting RT0", DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE);
 	m_pCommonRT[NXCommonRT_Lighting0]->AddRTV();
 	m_pCommonRT[NXCommonRT_Lighting0]->AddSRV();

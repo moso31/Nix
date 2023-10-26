@@ -8,6 +8,7 @@
 enum NXCommonRTEnum
 {
     NXCommonRT_DepthZ,
+    NXCommonRT_DepthZ_R32,
     NXCommonRT_Lighting0,
     NXCommonRT_Lighting1,
 

@@ -208,6 +208,9 @@
     <None Include="Shader\SSSSSRenderer.fx">
       <Filter>Shader\Renderer</Filter>
     </None>
+    <None Include="Shader\Depth.fx">
+      <Filter>Shader\Renderer</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">
@@ -458,6 +461,9 @@
     </ClCompile>
     <ClCompile Include="Nix\NXScriptable.cpp">
       <Filter>Nix\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXDepthRenderer.cpp">
+      <Filter>Core\DirectX\Renderer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -754,6 +760,9 @@
     </ClInclude>
     <ClInclude Include="Core\imfilebrowser.h">
       <Filter>Core\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXDepthRenderer.h">
+      <Filter>Core\DirectX\Renderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

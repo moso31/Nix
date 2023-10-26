@@ -8,6 +8,7 @@
 #include "NXShadowTestRenderer.h"
 #include "NXDeferredRenderer.h"
 #include "NXForwardRenderer.h"
+#include "NXDepthRenderer.h"
 #include "NXDepthPeelingRenderer.h"
 #include "NXSubSurfaceRenderer.h"
 #include "NXSkyRenderer.h"
@@ -70,6 +71,7 @@ private:
 	NXScene*							m_scene;
 	NXDepthPrepass*						m_pDepthPrepass;
 	NXGBufferRenderer*					m_pGBufferRenderer;
+	NXDepthRenderer*					m_pDepthRenderer;
 	NXShadowMapRenderer*				m_pShadowMapRenderer;
 	NXShadowTestRenderer*				m_pShadowTestRenderer;
 	NXDeferredRenderer*					m_pDeferredRenderer;
