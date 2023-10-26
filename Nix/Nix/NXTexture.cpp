@@ -346,7 +346,7 @@ Ntr<NXTexture2D> NXTexture2D::CreateNoise(const std::string& DebugName, UINT Tex
 	case 4: format = DXGI_FORMAT_R32G32B32A32_FLOAT; break;
 	}
 
-	UINT bytePerPixel = 4 * Dimension; // 现阶段只支持 32-bit 纹理，每个像素 4 * Dimension 字节
+	UINT bytePerPixel = sizeof(float) * Dimension; // 2023.10.26 现阶段只支持 32-bit float 纹理，所以每个像素占 sizeof(float) * Dimension 字节
 
 	DirectX::Image image;
 	image.width = TexSize;
@@ -361,9 +361,9 @@ Ntr<NXTexture2D> NXTexture2D::CreateNoise(const std::string& DebugName, UINT Tex
 	{
 		for (UINT j = 0; j < TexSize; ++j)
 		{
-			uint8_t* pixel = image.pixels + i * image.rowPitch + j * Dimension;
+			float* pixel = reinterpret_cast<float*>(image.pixels + i * image.rowPitch + j * Dimension * sizeof(float));
 			for(UINT dim = 0; dim < Dimension; dim++)
-				pixel[dim] = randInst->CreateUINT8();
+				pixel[dim] = randInst->CreateFloat();
 		}
 	}
 

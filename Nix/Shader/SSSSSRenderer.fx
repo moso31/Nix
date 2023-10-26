@@ -1,9 +1,9 @@
 #include "Math.fx"
 
 // R(r)
-float3 Burley3S_R(float r)
+float3 Burley3S_R(float r, float A, float s)
 {
-
+    return A * s * (exp(-s * r) + exp(-s * r / 3)) / (8 * NX_PI * r);
 }
 
 // G(x)
@@ -74,6 +74,7 @@ float4 PS(PS_INPUT input) : SV_Target
 {
 	float2 uv = input.tex;
 	float2 screenCoord = uv * cameraParams0.xy;
+	float A = 0.25f;
 	float s = 0.5f;
 
 	float depth = txDepthZ.Sample(ssLinearClamp, uv).x;
@@ -123,7 +124,7 @@ float4 PS(PS_INPUT input) : SV_Target
 		float adjustR = sqrt(r * r + depthOffset * depthOffset); // 校正 r
 
 		// 最后，统计当前样本的反射率 R(r)
-		float3 weight = R(adjustR) * NX_2PI * adjustR / Burley3S_PDF(r, s);
+		float3 weight = Burley3S_R(adjustR, A, s) * NX_2PI * adjustR / Burley3S_PDF(r, s);
 
 		// 累积采样结果
 		float3 sampleColor = txIrradiance.Sample(ssLinearClamp, sampleUV).xyz;
@@ -141,6 +142,6 @@ float4 PS(PS_INPUT input) : SV_Target
 	//sssResult += transmissionColor;
 
 	float3 spec = txSpecular.Sample(ssLinearClamp, uv).xyz;
-	float3 result = irradiance + spec;
+	float3 result = sssResult + spec;
 	return float4(result, 1.0f);
 }

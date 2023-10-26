@@ -66,6 +66,9 @@ void NXSubSurfaceRenderer::RenderSSSSS()
 	g_pContext->PSSetShaderResources(4, 1, &pSRVNoiseGray);
 
 	m_pResultRT->Render();
+
+	ID3D11ShaderResourceView* const pNullSRV[4] = { nullptr };
+	g_pContext->PSSetShaderResources(0, 4, pNullSRV);
 }
 
 void NXSubSurfaceRenderer::Release()
