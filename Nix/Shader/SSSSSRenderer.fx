@@ -29,8 +29,8 @@ float Burley3S_PDF(float x, float s)
 // 将 View-Space Pos 转换成 ScreenUV。
 float2 ConvertPositionVSToScreenUV(float3 positionVS)
 {
-	float zClipInv = 1.0f / (positionVS.z * cameraParams1.z + cameraParams1.w);
-	float2 positionNDCxy = positionVS.xy * cameraParams2.xy * zClipInv * float2(1.0f, -1.0f);
+	float wClipInv = 1.0f / positionVS.z;
+	float2 positionNDCxy = positionVS.xy * cameraParams2.xy * wClipInv * float2(1.0f, -1.0f);
 	float2 screenUV = (positionNDCxy + 1.0f) * 0.5f;
 	return screenUV;
 }
@@ -98,7 +98,7 @@ float4 PS(PS_INPUT input) : SV_Target
 		float randB = Random01FromNoiseGray(screenCoord, i + sampleN);
 
 		// 重点采样，生成 r
-		float r = Burley3S_InverseCDF(randA, s) * 0.0001;
+		float r = Burley3S_InverseCDF(randA, s) * 0.01;
 
 		// 均匀采样，生成 theta
 		float theta = NX_2PI * randB;
