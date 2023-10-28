@@ -159,9 +159,6 @@ void NXCamera::OnResize(const Vector2& rtSize)
 {
 	m_rtSize = rtSize;
 	m_aspectRatio = m_rtSize.x / m_rtSize.y;
-
-	float invN2F = 1.0f / (m_far - m_near);
-	NXGlobalBufferManager::m_cbDataCamera.Params1 = Vector4(m_near, m_far, m_far * invN2F, -m_far * m_near * invN2F);
 }
 
 void NXCamera::UpdateTransform()
@@ -191,6 +188,8 @@ void NXCamera::Update()
 	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbObject.Get(), 0, nullptr, &NXGlobalBufferManager::m_cbDataObject, 0, 0);
 
 	NXGlobalBufferManager::m_cbDataCamera.Params0 = Vector4(m_rtSize.x, m_rtSize.y, 1.0f / m_rtSize.x, 1.0f / m_rtSize.y);
+	float invN2F = 1.0f / (m_far - m_near);
+	NXGlobalBufferManager::m_cbDataCamera.Params1 = Vector4(m_near, m_far, m_far * invN2F, -m_far * m_near * invN2F);
 	NXGlobalBufferManager::m_cbDataCamera.Params2 = Vector4(m_mxProjection._11, m_mxProjection._22, 1.0f / m_mxProjection._11, 1.0f / m_mxProjection._22);
 	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbCamera.Get(), 0, nullptr, &NXGlobalBufferManager::m_cbDataCamera, 0, 0);
 }

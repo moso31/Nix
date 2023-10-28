@@ -51,12 +51,13 @@ void NXGUICamera::Render()
         float fFar = m_pCurrentCamera->GetZFar();
         if (ImGui::DragFloat("ZNear", &fNear, 0.01f, 0.01f, fFar))
         {
+            fNear = std::fmaxf(0.01f, fNear);
             m_pCurrentCamera->SetZNear(fNear);
         }
 
         if (ImGui::DragFloat("ZFar", &fFar, 0.01f, fNear, 10000.0f))
         {
-            m_pCurrentCamera->SetZFar(fNear);
+            m_pCurrentCamera->SetZFar(fFar);
         }
     }
 

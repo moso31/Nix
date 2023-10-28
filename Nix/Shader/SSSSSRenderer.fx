@@ -127,9 +127,7 @@ float4 PS(PS_INPUT input) : SV_Target
 		float3 weight = Burley3S_R(adjustR, A, s) * NX_2PI * adjustR / Burley3S_PDF(r, s);
 
 		// 累积采样结果
-		float3 sampleColor = txIrradiance.Sample(ssLinearClamp, sampleUV).xyz;
-		sampleColor *= weight; // 蒙特卡洛采样
-		sssResult += sampleColor / sampleN;
+		sssResult += txIrradiance.Sample(ssLinearClamp, sampleUV).xyz * weight;
 		sumWeight += weight;
 	}
 
