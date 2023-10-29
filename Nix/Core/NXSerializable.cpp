@@ -30,7 +30,44 @@ void NXSerializer::PushInt(int value)
 
 void NXSerializer::PushFloat(float value)
 {
+	// ps: rapidjson writer 好像只接收 double……
 	m_writer.Double((double)value);
+}
+
+void NXSerializer::Float(const std::string& key, float value)
+{
+	m_writer.Key(key.c_str());
+	m_writer.Double((double)value);
+}
+
+void NXSerializer::Vector2(const std::string& key, const DirectX::SimpleMath::Vector2& value)
+{
+	m_writer.Key(key.c_str());
+	m_writer.StartArray();
+	m_writer.Double((double)value.x);
+	m_writer.Double((double)value.y);
+	m_writer.EndArray();
+}
+
+void NXSerializer::Vector3(const std::string& key, const DirectX::SimpleMath::Vector3& value)
+{
+	m_writer.Key(key.c_str());
+	m_writer.StartArray();
+	m_writer.Double((double)value.x);
+	m_writer.Double((double)value.y);
+	m_writer.Double((double)value.z);
+	m_writer.EndArray();
+}
+
+void NXSerializer::Vector4(const std::string& key, const DirectX::SimpleMath::Vector4& value)
+{
+	m_writer.Key(key.c_str());
+	m_writer.StartArray();
+	m_writer.Double((double)value.x);
+	m_writer.Double((double)value.y);
+	m_writer.Double((double)value.z);
+	m_writer.Double((double)value.w);
+	m_writer.EndArray();
 }
 
 void NXSerializer::String(const std::string& key, const std::string& value)
@@ -130,6 +167,30 @@ float NXDeserializer::Float(const std::string& key, const float defaultValue)
 	return defaultValue;
 }
 
+DirectX::SimpleMath::Vector2 NXDeserializer::Vector2(const std::string& key, const DirectX::SimpleMath::Vector2 defaultValue)
+{
+	auto Array = m_reader[key.c_str()].GetArray();
+	if (Array.Size() >= 2)
+		return DirectX::SimpleMath::Vector2(Array[0].GetFloat(), Array[1].GetFloat());
+	return defaultValue;
+}
+
+DirectX::SimpleMath::Vector3 NXDeserializer::Vector3(const std::string& key, const DirectX::SimpleMath::Vector3 defaultValue)
+{
+	auto Array = m_reader[key.c_str()].GetArray();
+	if (Array.Size() >= 3)
+		return DirectX::SimpleMath::Vector3(Array[0].GetFloat(), Array[1].GetFloat(), Array[2].GetFloat());
+	return defaultValue;
+}
+
+DirectX::SimpleMath::Vector4 NXDeserializer::Vector4(const std::string& key, const DirectX::SimpleMath::Vector4 defaultValue)
+{
+	auto Array = m_reader[key.c_str()].GetArray();
+	if (Array.Size() >= 4)
+		return DirectX::SimpleMath::Vector4(Array[0].GetFloat(), Array[1].GetFloat(), Array[2].GetFloat(), Array[3].GetFloat());
+	return defaultValue;
+}
+
 std::string NXDeserializer::String(const rapidjson::Value& parent, const std::string& key, const std::string& defaultValue)
 {
 	if (parent.HasMember(key.c_str()))
@@ -186,6 +247,51 @@ float NXDeserializer::Float(const rapidjson::Value& parent, const std::string& k
 	{
 		auto& val = parent[key.c_str()];
 		if (val.IsFloat()) return val.GetFloat();
+	}
+	return defaultValue;
+}
+
+DirectX::SimpleMath::Vector2 NXDeserializer::Vector2(const rapidjson::Value& parent, const std::string& key, const DirectX::SimpleMath::Vector2 defaultValue)
+{
+	if (parent.HasMember(key.c_str()))
+	{
+		auto& val = parent[key.c_str()];
+		if (val.IsArray())
+		{
+			auto Array = val.GetArray();
+			if (Array.Size() >= 2)
+				return DirectX::SimpleMath::Vector2(Array[0].GetFloat(), Array[1].GetFloat());
+		}
+	}
+	return defaultValue;
+}
+
+DirectX::SimpleMath::Vector3 NXDeserializer::Vector3(const rapidjson::Value& parent, const std::string& key, const DirectX::SimpleMath::Vector3 defaultValue)
+{
+	if (parent.HasMember(key.c_str()))
+	{
+		auto& val = parent[key.c_str()];
+		if (val.IsArray())
+		{
+			auto Array = val.GetArray();
+			if (Array.Size() >= 3)
+				return DirectX::SimpleMath::Vector3(Array[0].GetFloat(), Array[1].GetFloat(), Array[2].GetFloat());
+		}
+	}
+	return defaultValue;
+}
+
+DirectX::SimpleMath::Vector4 NXDeserializer::Vector4(const rapidjson::Value& parent, const std::string& key, const DirectX::SimpleMath::Vector4 defaultValue)
+{
+	if (parent.HasMember(key.c_str()))
+	{
+		auto& val = parent[key.c_str()];
+		if (val.IsArray())
+		{
+			auto Array = val.GetArray();
+			if (Array.Size() >= 4)
+				return DirectX::SimpleMath::Vector4(Array[0].GetFloat(), Array[1].GetFloat(), Array[2].GetFloat(), Array[3].GetFloat());
+		}
 	}
 	return defaultValue;
 }

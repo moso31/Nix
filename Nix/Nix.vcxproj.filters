@@ -91,9 +91,6 @@
     <Filter Include="Core\DirectX\Renderer\EditorObjectLayer">
       <UniqueIdentifier>{47ca16b0-e59c-4ebd-b48b-d55afdebabf5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\DirectX\NXResources">
-      <UniqueIdentifier>{96100877-c259-41e1-b3d6-55542100aa12}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Core\DirectX\Compile">
       <UniqueIdentifier>{bab74a59-0b89-4335-9c36-8cfcc6df66f2}</UniqueIdentifier>
     </Filter>
@@ -111,6 +108,9 @@
     </Filter>
     <Filter Include="BaseDefs">
       <UniqueIdentifier>{2dc1510e-f469-4917-8b57-774a00a9c3ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\DirectX\Manager">
+      <UniqueIdentifier>{96100877-c259-41e1-b3d6-55542100aa12}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -328,10 +328,10 @@
       <Filter>Core\UI</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXResourceManager.cpp">
-      <Filter>Core\DirectX\NXResources</Filter>
+      <Filter>Core\DirectX\Manager</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXResourceReloader.cpp">
-      <Filter>Core\DirectX\NXResources</Filter>
+      <Filter>Core\DirectX\Manager</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXGUILights.cpp">
       <Filter>Core\UI</Filter>
@@ -397,31 +397,31 @@
       <Filter>Core\DirectX\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXTextureReloadTesk.cpp">
-      <Filter>Core\DirectX\NXResources</Filter>
+      <Filter>Core\DirectX\Manager</Filter>
     </ClCompile>
     <ClCompile Include="Nix\NXTexture.cpp">
       <Filter>Nix\Texture</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXResourceManagerBase.cpp">
-      <Filter>Core\DirectX\NXResources</Filter>
+      <Filter>Core\DirectX\Manager</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXTextureResourceManager.cpp">
-      <Filter>Core\DirectX\NXResources</Filter>
+      <Filter>Core\DirectX\Manager</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXMaterialResourceManager.cpp">
-      <Filter>Core\DirectX\NXResources</Filter>
+      <Filter>Core\DirectX\Manager</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXMeshResourceManager.cpp">
-      <Filter>Core\DirectX\NXResources</Filter>
+      <Filter>Core\DirectX\Manager</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXLightResourceManager.cpp">
-      <Filter>Core\DirectX\NXResources</Filter>
+      <Filter>Core\DirectX\Manager</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXCameraResourceManager.cpp">
-      <Filter>Core\DirectX\NXResources</Filter>
+      <Filter>Core\DirectX\Manager</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXScriptResourceManager.cpp">
-      <Filter>Core\DirectX\NXResources</Filter>
+      <Filter>Core\DirectX\Manager</Filter>
     </ClCompile>
     <ClCompile Include="Core\ShaderComplier.cpp">
       <Filter>Core\DirectX\Compile</Filter>
@@ -467,6 +467,9 @@
     </ClCompile>
     <ClCompile Include="Core\NXGUIInspector.cpp">
       <Filter>Core\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXDiffuseProfiler.cpp">
+      <Filter>Nix\Material</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -591,10 +594,10 @@
       <Filter>Core\UI</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXResourceManager.h">
-      <Filter>Core\DirectX\NXResources</Filter>
+      <Filter>Core\DirectX\Manager</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXResourceReloader.h">
-      <Filter>Core\DirectX\NXResources</Filter>
+      <Filter>Core\DirectX\Manager</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXGUILights.h">
       <Filter>Core\UI</Filter>
@@ -663,31 +666,31 @@
       <Filter>Core\DirectX\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXTextureReloadTesk.h">
-      <Filter>Core\DirectX\NXResources</Filter>
+      <Filter>Core\DirectX\Manager</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXTexture.h">
       <Filter>Nix\Texture</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXResourceManagerBase.h">
-      <Filter>Core\DirectX\NXResources</Filter>
+      <Filter>Core\DirectX\Manager</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXTextureResourceManager.h">
-      <Filter>Core\DirectX\NXResources</Filter>
+      <Filter>Core\DirectX\Manager</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXMaterialResourceManager.h">
-      <Filter>Core\DirectX\NXResources</Filter>
+      <Filter>Core\DirectX\Manager</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXMeshResourceManager.h">
-      <Filter>Core\DirectX\NXResources</Filter>
+      <Filter>Core\DirectX\Manager</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXLightResourceManager.h">
-      <Filter>Core\DirectX\NXResources</Filter>
+      <Filter>Core\DirectX\Manager</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXCameraResourceManager.h">
-      <Filter>Core\DirectX\NXResources</Filter>
+      <Filter>Core\DirectX\Manager</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXScriptResourceManager.h">
-      <Filter>Core\DirectX\NXResources</Filter>
+      <Filter>Core\DirectX\Manager</Filter>
     </ClInclude>
     <ClInclude Include="Core\ShaderComplier.h">
       <Filter>Core\DirectX\Compile</Filter>
@@ -769,6 +772,9 @@
     </ClInclude>
     <ClInclude Include="Core\NXGUIInspector.h">
       <Filter>Core\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXDiffuseProfiler.h">
+      <Filter>Nix\Material</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

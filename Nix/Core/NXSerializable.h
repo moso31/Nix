@@ -21,6 +21,8 @@
 
 using namespace rapidjson;
 
+#include "BaseDefs/Math.h"
+
 class NXSerializer
 {
 public:
@@ -40,6 +42,10 @@ public:
 	void Uint64(const std::string& key, size_t value);
 	void Uint(const std::string& key, unsigned int value);
 	void Int(const std::string& key, int value);
+	void Float(const std::string& key, float value);
+	void Vector2(const std::string& key, const DirectX::SimpleMath::Vector2& value);
+	void Vector3(const std::string& key, const DirectX::SimpleMath::Vector3& value);
+	void Vector4(const std::string& key, const DirectX::SimpleMath::Vector4& value);
 
 	std::string Json() const { return m_stringBuffer.GetString(); }
 
@@ -64,6 +70,9 @@ public:
 	uint32_t Uint(const std::string& key, const uint32_t defaultValue = 0);
 	int Int(const std::string& key, const int defaultValue = 0);
 	float Float(const std::string& key, const float defaultValue = 0.0f);
+	DirectX::SimpleMath::Vector2 Vector2(const std::string& key, const DirectX::SimpleMath::Vector2 defaultValue = DirectX::SimpleMath::Vector2(0.0f));
+	DirectX::SimpleMath::Vector3 Vector3(const std::string& key, const DirectX::SimpleMath::Vector3 defaultValue = DirectX::SimpleMath::Vector3(0.0f));
+	DirectX::SimpleMath::Vector4 Vector4(const std::string& key, const DirectX::SimpleMath::Vector4 defaultValue = DirectX::SimpleMath::Vector4(0.0f));
 
 	std::string String(const rapidjson::Value& parent, const std::string& key, const std::string& defaultValue = "");
 	bool Bool(const rapidjson::Value& parent, const std::string& key, const bool defaultValue = false);
@@ -71,6 +80,9 @@ public:
 	uint32_t Uint(const rapidjson::Value& parent, const std::string& key, const uint32_t defaultValue = 0);
 	int Int(const rapidjson::Value& parent, const std::string& key, const int defaultValue = 0);
 	float Float(const rapidjson::Value& parent, const std::string& key, const float defaultValue = 0.0f);
+	DirectX::SimpleMath::Vector2 Vector2(const rapidjson::Value& parent, const std::string& key, const DirectX::SimpleMath::Vector2 defaultValue = DirectX::SimpleMath::Vector2(0.0f));
+	DirectX::SimpleMath::Vector3 Vector3(const rapidjson::Value& parent, const std::string& key, const DirectX::SimpleMath::Vector3 defaultValue = DirectX::SimpleMath::Vector3(0.0f));
+	DirectX::SimpleMath::Vector4 Vector4(const rapidjson::Value& parent, const std::string& key, const DirectX::SimpleMath::Vector4 defaultValue = DirectX::SimpleMath::Vector4(0.0f));
 
 	const GenericObject<false, Value> Object(const std::string& key);
 	const GenericArray<false, Value> Array(const std::string& key);
