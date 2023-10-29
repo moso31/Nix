@@ -465,6 +465,9 @@
     <ClCompile Include="Core\NXDepthRenderer.cpp">
       <Filter>Core\DirectX\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXGUIInspector.cpp">
+      <Filter>Core\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -763,6 +766,9 @@
     </ClInclude>
     <ClInclude Include="Core\NXDepthRenderer.h">
       <Filter>Core\DirectX\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXGUIInspector.h">
+      <Filter>Core\UI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

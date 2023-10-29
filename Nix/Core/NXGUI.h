@@ -22,6 +22,7 @@ class NXGUIPostProcessing;
 class NXGUIDebugLayer;
 class NXGUIView;
 class NXGUIWorkspace;
+class NXGUIInspector;
 
 class NXGUI
 {
@@ -52,6 +53,7 @@ private:
 	NXGUIPostProcessing*		m_pGUIPostProcessing;
 	NXGUIView*					m_pGUIView;
 	NXGUIWorkspace*				m_pGUIWorkspace;
+	NXGUIInspector*				m_pGUIInspector;
 
 	NXGUIDebugLayer*			m_pGUIDebugLayer;
 };

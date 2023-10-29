@@ -11,6 +11,7 @@
 #include "NXGUICodeEditor.h"
 #include "NXGUIMaterialShaderEditor.h"
 #include "NXGUIMaterial.h"
+#include "NXGUIInspector.h"
 #include "NXGUILights.h"
 #include "NXGUICamera.h"
 #include "NXGUICubeMap.h"
@@ -78,6 +79,8 @@ void NXGUI::Init()
 	m_pGUITexture = new NXGUITexture();
 	m_pGUIContentExplorer = new NXGUIContentExplorer(m_pCurrentScene, m_pGUITexture);
 
+	m_pGUIInspector = new NXGUIInspector();
+
 	m_pGUICamera = new NXGUICamera(m_pCurrentScene);
 	m_pGUIMaterial = new NXGUIMaterial(m_pCurrentScene, m_pFileBrowser, m_pGUICodeEditor, m_pGUIMaterialShaderEditor);
 	m_pGUILights = new NXGUILights(m_pCurrentScene);
@@ -111,6 +114,7 @@ void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT)
 	m_pGUIWorkspace->Render();
 
 	m_pGUIContentExplorer->Render();
+	m_pGUIInspector->Render();
 	m_pGUITexture->Render();
 	m_pGUICubeMap->Render();
 	m_pGUIMaterial->Render();
@@ -158,6 +162,7 @@ void NXGUI::Release()
 	SafeDelete(m_pGUIMaterialShaderEditor);
 	SafeDelete(m_pGUICodeEditor);
 	SafeRelease(m_pGUIMaterial);
+	SafeDelete(m_pGUIInspector);
 	SafeDelete(m_pGUILights);
 	SafeDelete(m_pGUICamera);
 	SafeDelete(m_pGUICubeMap);
