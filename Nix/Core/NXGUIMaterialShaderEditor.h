@@ -26,6 +26,7 @@ class NXCustomMaterial;
 class NXGUIMaterial;
 class NXGUIFileBrowser;
 class NXGUICodeEditor;
+class NXSSSDiffuseProfiler;
 class NXGUIMaterialShaderEditor
 {
 private:

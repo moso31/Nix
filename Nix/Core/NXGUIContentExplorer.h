@@ -27,9 +27,12 @@ public:
 	void RenderContentFolderList(const std::filesystem::path& FolderPath);
 
 private:
-	// 在指定文件夹生成材质资源文件
+	// 在指定文件夹生成各种资产文件
 	void GenerateMaterialResourceFile(const std::filesystem::path& FolderPath); 
-	void CreateMaterialFileOnDisk(const std::filesystem::path& matPath);
+	void GenerateSSSProfileResourceFile(const std::filesystem::path& FolderPath);
+
+	void CreateMaterialFileOnDisk(const std::filesystem::path& path);
+	void CreateSSSProfileFileOnDisk(const std::filesystem::path& path);
 
 	void OnBtnContentLeftClicked(const std::filesystem::directory_entry& path);
 

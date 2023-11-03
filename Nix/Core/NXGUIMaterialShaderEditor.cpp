@@ -1,5 +1,6 @@
 ﻿#include "BaseDefs/DearImGui.h"
 
+#include "NXDiffuseProfiler.h"
 #include "NXGUIMaterialShaderEditor.h"
 #include "NXGUIMaterial.h"
 #include "NXGUICommon.h"
@@ -880,6 +881,8 @@ void NXGUIMaterialShaderEditor::Render_Settings(NXCustomMaterial* pMaterial)
 			if (ImGui::Selectable(lightingModes[item]))
 			{
 				shadingModel = item;
+				//ImGui::Button("Diffuse Profile");
+				NXSSSDiffuseProfiler d;
 				break;
 			}
 		}

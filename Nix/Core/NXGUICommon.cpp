@@ -178,6 +178,27 @@ std::string ConvertShaderResourceDataToNSLParam(const std::vector<NXGUICBufferDa
 	return strNSLParamBegin + strNSLParam + strNSLParamEnd;
 }
 
+std::filesystem::path GenerateAssetNameJudge(const std::filesystem::path& strFolderPath, const std::string& strSuffix, const std::string& strJudge)
+{
+	UINT nMaxNumber = 0;
+	for (auto& file : std::filesystem::directory_iterator(strFolderPath))
+	{
+		if (file.path().extension().string() == strSuffix)
+		{
+			std::string strFileName = file.path().stem().string();
+			if (strFileName.substr(0, strJudge.length() + 1) == strJudge + " ")
+			{
+				UINT num = std::stoi(strFileName.substr(strJudge.length() + 1));
+				if (num > nMaxNumber)
+					nMaxNumber = num;
+			}
+		}
+	}
+	nMaxNumber++;
+
+	return strFolderPath / (strJudge + " " + std::to_string(nMaxNumber) + strSuffix);
+}
+
 UINT GetValueNumOfGUIStyle(NXGUICBufferStyle eGuiStyle)
 {
 	switch (eGuiStyle)

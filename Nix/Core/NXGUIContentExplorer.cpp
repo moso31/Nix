@@ -77,6 +77,10 @@ void NXGUIContentExplorer::Render()
                 {
                     GenerateMaterialResourceFile(singleSelectFolderPath);
                 }
+                if (ImGui::Selectable("SSS Profile", false))
+                {
+                    GenerateSSSProfileResourceFile(singleSelectFolderPath);
+                }
                 ImGui::EndPopup();
             }
 
@@ -248,35 +252,14 @@ void NXGUIContentExplorer::RenderContentFolderList(const std::filesystem::path& 
 
 void NXGUIContentExplorer::GenerateMaterialResourceFile(const std::filesystem::path& FolderPath)
 {
-    // 判断一下当前Folder下的所有nsl文件，如果开头是 "NewMat " + [任意数字] 的形式，就将数字记录下来
-    // 如果没有这样的材质，就计数为0
-    std::string strJudge = "NewMat ";
-    size_t nOffset = strJudge.length();
-    int nMaxValue = 0;
-    for (auto const& p : std::filesystem::directory_iterator(FolderPath))
-    {
-        if (p.path().extension().string() == ".nsl")
-        {
-            std::string strStem = p.path().stem().string();
-            if (strStem.length() <= nOffset)
-                continue;
-
-            std::string strFirst7 = strStem.substr(0, nOffset);
-            std::string strLast = strStem.substr(nOffset, strStem.length() - nOffset);
-            if (strFirst7 == strJudge)
-            {
-                if (std::all_of(strLast.begin(), strLast.end(), ::isdigit))
-                    nMaxValue = max(nMaxValue, std::stoi(strLast));
-            }
-        }
-    }
-
-    // 最后生成的名字是 "NewMat " + [任意数字 + 1]，确保材质命名一定不会重复。
-    std::string strNewName = "NewMat " + std::to_string(nMaxValue + 1);
-    std::string strNewPath = strNewName + ".nsl";
-    std::filesystem::path newPath = FolderPath / strNewPath;
-
+    std::filesystem::path newPath = NXGUICommon::GenerateAssetNameJudge(FolderPath, ".nsl", "New Material");
     CreateMaterialFileOnDisk(newPath);
+}
+
+void NXGUIContentExplorer::GenerateSSSProfileResourceFile(const std::filesystem::path& FolderPath)
+{
+    std::filesystem::path newPath = NXGUICommon::GenerateAssetNameJudge(FolderPath, ".nssprof", "New SSS Profile");
+	CreateSSSProfileFileOnDisk(newPath);
 }
 
 void NXGUIContentExplorer::CreateMaterialFileOnDisk(const std::filesystem::path& path)
@@ -286,6 +269,14 @@ void NXGUIContentExplorer::CreateMaterialFileOnDisk(const std::filesystem::path&
 
     // 对应的元文件也copy过去
     std::filesystem::copy(g_material_template_standardPBR + ".n0", path.string() + ".n0", std::filesystem::copy_options::overwrite_existing);
+}
+
+#include "NXDiffuseProfiler.h"
+void NXGUIContentExplorer::CreateSSSProfileFileOnDisk(const std::filesystem::path& path)
+{
+    NXSSSDiffuseProfiler ssprof;
+    ssprof.SetFilePath(path);
+    ssprof.Serialize();
 }
 
 void NXGUIContentExplorer::OnBtnContentLeftClicked(const std::filesystem::directory_entry& path)

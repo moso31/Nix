@@ -2,11 +2,11 @@
 #include "BaseDefs/Math.h"
 #include "NXSerializable.h"
 
-class NXSSDiffuseProfiler : public NXSerializable
+class NXSSSDiffuseProfiler : public NXSerializable
 {
 public:
-	NXSSDiffuseProfiler() {}
-	~NXSSDiffuseProfiler() {}
+	NXSSSDiffuseProfiler() {}
+	~NXSSSDiffuseProfiler() {}
 
 	virtual void Serialize() override;
 	virtual void Deserialize() override;

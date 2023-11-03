@@ -26,4 +26,10 @@ namespace NXGUICommon
 	Vector2				GetGUIParamsDefaultValue(NXGUICBufferStyle eGUIStyle);
 
 	std::string ConvertShaderResourceDataToNSLParam(const std::vector<NXGUICBufferData>& cbInfosDisplay, const std::vector<NXGUITextureData>& texInfosDisplay, const std::vector<NXGUISamplerData>& ssInfosDisplay);
+
+	// 生成新资产。用于ContentExplorer添加文件时确定 具体的序号。
+	// 判断一下当前Folder下所有扩展名类型为 strSuffix 的文件，如果文件名是 strJudge + [任意数字] 的形式，记下这个数字。
+	// 遍历完成时，确定 最大的那个数字+1。若没有这种文件，则使用 1。
+	// 然后在当前文件夹下返回这个路径。
+	std::filesystem::path GenerateAssetNameJudge(const std::filesystem::path& strFolderPath, const std::string& strSuffix, const std::string& strJudge);
 }

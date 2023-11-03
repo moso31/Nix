@@ -2,6 +2,7 @@
 // Nix 序列化类，基于 rapidjson 库开发，
 // 用于处理引擎中任何需要序列化的资产。
 
+#pragma once
 #include <filesystem>
 #include <fstream>
 
