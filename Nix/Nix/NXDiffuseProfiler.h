@@ -1,8 +1,8 @@
 #pragma once
-#include "BaseDefs/Math.h"
+#include "NXObject.h"
 #include "NXSerializable.h"
 
-class NXSSSDiffuseProfiler : public NXSerializable
+class NXSSSDiffuseProfiler : public NXObject, public NXSerializable
 {
 public:
 	NXSSSDiffuseProfiler() {}
@@ -16,8 +16,8 @@ public:
 private:
 	std::filesystem::path m_filePath;
 
-	Vector3 m_scatter;
-	float m_scatterStrength;
-	Vector3 m_transmit;
-	float m_transmitStrength;
+	Vector3 m_scatter = Vector3(1.0f);
+	float m_scatterStrength = 1.0f;
+	Vector3 m_transmit = Vector3(1.0f);
+	float m_transmitStrength = 1.0f;
 };

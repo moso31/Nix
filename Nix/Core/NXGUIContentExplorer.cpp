@@ -7,6 +7,7 @@
 #include "NXScene.h"
 #include "NXResourceManager.h"
 #include "NXMaterialResourceManager.h"
+#include "NXDiffuseProfiler.h"
 
 NXGUIContentExplorer::NXGUIContentExplorer(NXScene* pScene, NXGUITexture* pGUITexture) :
     m_pCurrentScene(pScene),
@@ -271,7 +272,6 @@ void NXGUIContentExplorer::CreateMaterialFileOnDisk(const std::filesystem::path&
     std::filesystem::copy(g_material_template_standardPBR + ".n0", path.string() + ".n0", std::filesystem::copy_options::overwrite_existing);
 }
 
-#include "NXDiffuseProfiler.h"
 void NXGUIContentExplorer::CreateSSSProfileFileOnDisk(const std::filesystem::path& path)
 {
     NXSSSDiffuseProfiler ssprof;

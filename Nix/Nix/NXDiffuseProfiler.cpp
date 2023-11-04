@@ -10,8 +10,6 @@ void NXSSSDiffuseProfiler::Serialize()
 		return;
 	}
 
-	std::string nxInfoPath = m_filePath.string() + ".n0";
-
 	NXSerializer serializer;
 	serializer.StartObject();
 	serializer.Vector3("scatter", m_scatter);
@@ -20,7 +18,7 @@ void NXSSSDiffuseProfiler::Serialize()
 	serializer.Float("transmitStrength", m_transmitStrength);
 	serializer.EndObject();
 
-	serializer.SaveToFile(nxInfoPath.c_str());
+	serializer.SaveToFile(m_filePath);
 }
 
 void NXSSSDiffuseProfiler::Deserialize()
@@ -32,10 +30,8 @@ void NXSSSDiffuseProfiler::Deserialize()
 		return;
 	}
 
-	std::string nxInfoPath = m_filePath.string() + ".n0";
-
 	NXDeserializer deserializer;
-	if (!deserializer.LoadFromFile(nxInfoPath.c_str()))
+	if (!deserializer.LoadFromFile(m_filePath))
 		return;
 
 	deserializer.Vector3("scatter", m_scatter);
