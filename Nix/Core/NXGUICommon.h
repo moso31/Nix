@@ -27,9 +27,11 @@ namespace NXGUICommon
 
 	std::string ConvertShaderResourceDataToNSLParam(const std::vector<NXGUICBufferData>& cbInfosDisplay, const std::vector<NXGUITextureData>& texInfosDisplay, const std::vector<NXGUISamplerData>& ssInfosDisplay);
 
-	// 生成新资产。用于ContentExplorer添加文件时确定 具体的序号。
-	// 判断一下当前Folder下所有扩展名类型为 strSuffix 的文件，如果文件名是 strJudge + [任意数字] 的形式，记下这个数字。
-	// 遍历完成时，确定 最大的那个数字+1。若没有这种文件，则使用 1。
-	// 然后在当前文件夹下返回这个路径。
+	// 用于生成新资产时，ContentExplorer添加文件时确定 具体的序号
+	// 比如某个文件夹下新建了材质，应该叫 "New Material ?"，这个方法就用于确定 ? 是多少。
 	std::filesystem::path GenerateAssetNameJudge(const std::filesystem::path& strFolderPath, const std::string& strSuffix, const std::string& strJudge);
+
+	// 遍历指定文件夹下的所有文件（注意是递归遍历），并返回一个所有扩展名为 strSuffix 的文件数组。
+	// 2023.11.4 此方法，目前主要是材质编辑器中，替换 nssprof 的时候，对应的替换popup使用。将来换纹理，换材质等，也会基于这个方法
+	std::vector<std::filesystem::path> GetFilesInFolder(const std::filesystem::path& strFolderPath, const std::string& strSuffix);
 }

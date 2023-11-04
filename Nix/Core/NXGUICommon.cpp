@@ -180,6 +180,11 @@ std::string ConvertShaderResourceDataToNSLParam(const std::vector<NXGUICBufferDa
 
 std::filesystem::path GenerateAssetNameJudge(const std::filesystem::path& strFolderPath, const std::string& strSuffix, const std::string& strJudge)
 {
+	// 整体思路：
+	// 判断一下当前Folder下所有扩展名类型为 strSuffix 的文件，如果文件名是 strJudge + [任意数字] 的形式，记下这个数字。
+	// 遍历完成时，确定 最大的那个数字+1。若没有这种文件，则使用 1。
+	// 然后在当前文件夹下返回这个路径。
+
 	UINT nMaxNumber = 0;
 	for (auto& file : std::filesystem::directory_iterator(strFolderPath))
 	{
@@ -197,6 +202,23 @@ std::filesystem::path GenerateAssetNameJudge(const std::filesystem::path& strFol
 	nMaxNumber++;
 
 	return strFolderPath / (strJudge + " " + std::to_string(nMaxNumber) + strSuffix);
+}
+
+std::vector<std::filesystem::path> GetFilesInFolder(const std::filesystem::path& strFolderPath, const std::string& strSuffix)
+{
+	std::vector<std::filesystem::path> resultPaths;
+	if (!std::filesystem::exists(strFolderPath) || !std::filesystem::is_directory(strFolderPath)) 
+		return resultPaths;
+
+	for (const auto& entry : std::filesystem::recursive_directory_iterator(strFolderPath)) 
+	{
+		if (std::filesystem::is_regular_file(entry) && entry.path().extension().string() == strSuffix)
+		{
+			resultPaths.push_back(entry.path());
+		}
+	}
+
+	return resultPaths;
 }
 
 UINT GetValueNumOfGUIStyle(NXGUICBufferStyle eGuiStyle)

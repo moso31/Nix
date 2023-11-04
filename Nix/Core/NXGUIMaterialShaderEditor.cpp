@@ -872,7 +872,7 @@ void NXGUIMaterialShaderEditor::Render_Params_SamplerItem(const int strId, NXCus
 
 void NXGUIMaterialShaderEditor::Render_Settings(NXCustomMaterial* pMaterial)
 {
-	const static char* lightingModes[] = { "StandardLit", "Unlit", "SSS(2009)" };
+	const static char* lightingModes[] = { "StandardLit", "Unlit", "Burley SSS" };
 	UINT& shadingModel = m_cbSettingsDisplay.data.shadingModel;
 	if (ImGui::BeginCombo("Lighting model##material_shader_editor_settings", lightingModes[shadingModel]))
 	{
@@ -881,12 +881,48 @@ void NXGUIMaterialShaderEditor::Render_Settings(NXCustomMaterial* pMaterial)
 			if (ImGui::Selectable(lightingModes[item]))
 			{
 				shadingModel = item;
-				//ImGui::Button("Diffuse Profile");
-				NXSSSDiffuseProfiler d;
 				break;
 			}
 		}
 		ImGui::EndCombo();
+	}
+
+	if (shadingModel == 2)
+	{
+		float itemWidth = ImGui::CalcItemWidth();
+		std::string strDiffusionProfile("[Default]");
+		ImGui::PushItemWidth(itemWidth);
+		ImGui::InputText("", &strDiffusionProfile);
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+		if (ImGui::Button("Diffuse Profile"))
+		{
+			ImGui::OpenPopup("##material_shader_editor_settings_diffuse_profile_popup");
+		}
+	}
+
+	if (ImGui::BeginPopup("##material_shader_editor_settings_diffuse_profile_popup"))
+	{
+		// 递归遍历 Asset 文件夹下的所有 文件，结尾是 *.nssprof 的
+		auto pathes = NXGUICommon::GetFilesInFolder("D:\\nixAssets", ".nssprof");
+
+		ImGui::BeginChild("##material_shader_editor_settings_diffuse_profile_popup_div", ImVec2(300, 300));
+		if (pathes.empty())
+		{
+			ImGui::Text("No SSS Profile File.");
+		}
+		else
+		{
+			for (auto& path : pathes)
+			{
+				if (ImGui::Button(path.filename().string().c_str()))
+				{
+				}
+			}
+		}
+		ImGui::EndChild();
+
+		ImGui::EndPopup();
 	}
 }
 
