@@ -7,7 +7,6 @@ class NXScene;
 class Renderer;
 class NXTexture2D;
 
-class NXGUITexture;
 class NXGUIMaterial;
 class NXGUIFileBrowser;
 class NXGUIContentExplorer;
@@ -31,17 +30,18 @@ public:
 	~NXGUI();
 
 	void Init();
+	void ExecuteDeferredCommands();
 	void Render(Ntr<NXTexture2D> pGUIViewRT);
 	void Release();
 
 private:
+	bool m_bInited = false;
 	NXScene*	m_pCurrentScene;
 	Renderer*	m_pRenderer;
 
 	NXGUICodeEditor*			m_pGUICodeEditor;
 	NXGUIMaterialShaderEditor*	m_pGUIMaterialShaderEditor;
 	NXGUIContentExplorer*		m_pGUIContentExplorer;
-	NXGUITexture*				m_pGUITexture;
 
 	NXGUILights*				m_pGUILights;
 	NXGUICamera*				m_pGUICamera;

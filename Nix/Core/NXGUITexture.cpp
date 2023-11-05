@@ -5,6 +5,7 @@
 #include "NXResourceManager.h"
 #include "NXPBRMaterial.h"
 #include "NXTexture.h"
+#include "NXGUIInspector.h"
 
 NXGUITexture::NXGUITexture()
 {
@@ -12,8 +13,6 @@ NXGUITexture::NXGUITexture()
 
 void NXGUITexture::Render()
 {
-	ImGui::Begin("Texture");
-
 	if (m_pTexImage.IsNull())
 	{ 
 		ImGui::End();
@@ -41,7 +40,6 @@ void NXGUITexture::Render()
 		m_pTexImage->Serialize();
 		m_pTexImage->MarkReload();
 	}
-	ImGui::End();
 }
 
 void NXGUITexture::Release()

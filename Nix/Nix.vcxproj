@@ -215,6 +215,7 @@
     <ClCompile Include="Core\NXFileSystemHelper.cpp" />
     <ClCompile Include="Core\Global.cpp" />
     <ClCompile Include="Core\GlobalBufferManager.cpp" />
+    <ClCompile Include="Core\NXGUICommandManager.cpp" />
     <ClCompile Include="Core\NXGUIInspector.cpp" />
     <ClCompile Include="Core\NXLog.cpp" />
     <ClCompile Include="Core\NXSamplerStates.cpp" />
@@ -312,6 +313,7 @@
     <ClInclude Include="Core\NXFileSystemHelper.h" />
     <ClInclude Include="Core\GlobalBufferManager.h" />
     <ClInclude Include="Core\Header.h" />
+    <ClInclude Include="Core\NXGUICommandManager.h" />
     <ClInclude Include="Core\NXGUIInspector.h" />
     <ClInclude Include="Core\NXLog.h" />
     <ClInclude Include="Core\NXSamplerStates.h" />

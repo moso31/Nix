@@ -910,6 +910,7 @@ void NXGUIMaterialShaderEditor::Render_Settings(NXCustomMaterial* pMaterial)
 		if (pathes.empty())
 		{
 			ImGui::Text("No SSS Profile File.");
+			ImGui::Text("You can create one at Content Explorer->Add.");
 		}
 		else
 		{

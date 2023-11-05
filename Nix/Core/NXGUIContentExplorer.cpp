@@ -1,17 +1,17 @@
 #include "BaseDefs/DearImGui.h"
 
 #include "NXGUIContentExplorer.h"
-#include "NXGUITexture.h"
+#include "NXGUIInspector.h"
 #include "NXConverter.h"
 #include "NXGUI.h"
 #include "NXScene.h"
 #include "NXResourceManager.h"
 #include "NXMaterialResourceManager.h"
 #include "NXDiffuseProfiler.h"
+#include "NXGUICommandManager.h"
 
-NXGUIContentExplorer::NXGUIContentExplorer(NXScene* pScene, NXGUITexture* pGUITexture) :
+NXGUIContentExplorer::NXGUIContentExplorer(NXScene* pScene) :
     m_pCurrentScene(pScene),
-    m_pGUITexture(pGUITexture),
     m_contentFilePath("D:\\NixAssets")
 {
 }
@@ -287,10 +287,24 @@ void NXGUIContentExplorer::OnBtnContentLeftClicked(const std::filesystem::direct
     }
     else if (path.path().has_extension())
     {
+        const auto& strExtension = path.path().extension().string();
+
         // 如果点选了图片，就需要 NXGUITexture 显示此图的相关信息
-        if (NXConvert::IsImageFileExtension(path.path().extension().string()))
+        if (NXConvert::IsImageFileExtension(strExtension))
         {
-            m_pGUITexture->SetImage(path.path());
+            // 推送两个命令
+            // 第一个让 Inspector 切换到 Texture 面板，
+            // 第二个让 Texture 面板切换到当前选中的贴图
+
+            {
+                NXGUICommand e(NXGUICmd_Inspector_SetIdx, { NXGUIInspector_Texture });
+                NXGUICommandManager::GetInstance()->PushCommand(e);
+            }
+
+            {
+                NXGUICommand e(NXGUICmd_Inspector_SetTexture, { path.path() });
+                NXGUICommandManager::GetInstance()->PushCommand(e);
+            }
         }
     }
 }

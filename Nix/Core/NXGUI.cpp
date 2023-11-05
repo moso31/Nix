@@ -23,6 +23,7 @@
 #include "NXGUITexture.h"
 #include "NXGUIView.h"
 #include "NXGUIWorkspace.h"
+#include "NXGUICommandManager.h"
 
 NXGUI::NXGUI(NXScene* pScene, Renderer* pRenderer) :
 	m_pCurrentScene(pScene),
@@ -39,7 +40,6 @@ NXGUI::NXGUI(NXScene* pScene, Renderer* pRenderer) :
 	m_pGUIPostProcessing(nullptr),
 	m_pGUIDebugLayer(nullptr),
 	m_pGUIContentExplorer(nullptr),
-	m_pGUITexture(nullptr),
 	m_pGUIView(nullptr),
 	m_pGUIWorkspace(nullptr)
 {
@@ -76,10 +76,10 @@ void NXGUI::Init()
 	m_pGUICodeEditor = new NXGUICodeEditor(pCodeEditorFont);
 	m_pGUIMaterialShaderEditor = new NXGUIMaterialShaderEditor();
 
-	m_pGUITexture = new NXGUITexture();
-	m_pGUIContentExplorer = new NXGUIContentExplorer(m_pCurrentScene, m_pGUITexture);
+	m_pGUIContentExplorer = new NXGUIContentExplorer(m_pCurrentScene);
 
 	m_pGUIInspector = new NXGUIInspector();
+	m_pGUIInspector->InitGUI();
 
 	m_pGUICamera = new NXGUICamera(m_pCurrentScene);
 	m_pGUIMaterial = new NXGUIMaterial(m_pCurrentScene, m_pFileBrowser, m_pGUICodeEditor, m_pGUIMaterialShaderEditor);
@@ -97,6 +97,15 @@ void NXGUI::Init()
 	m_pGUIWorkspace->Init();
 
 	//ImGui::LoadIniSettingsFromDisk(NXConvert::GetPathOfImguiIni().c_str());
+
+	NXGUICommandManager::GetInstance()->Init(m_pGUIInspector);
+
+	m_bInited = true;
+}
+
+void NXGUI::ExecuteDeferredCommands()
+{
+	NXGUICommandManager::GetInstance()->Update();
 }
 
 void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT)
@@ -115,7 +124,6 @@ void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT)
 
 	m_pGUIContentExplorer->Render();
 	m_pGUIInspector->Render();
-	m_pGUITexture->Render();
 	m_pGUICubeMap->Render();
 	m_pGUIMaterial->Render();
 	m_pGUILights->Render();
@@ -162,7 +170,7 @@ void NXGUI::Release()
 	SafeDelete(m_pGUIMaterialShaderEditor);
 	SafeDelete(m_pGUICodeEditor);
 	SafeRelease(m_pGUIMaterial);
-	SafeDelete(m_pGUIInspector);
+	SafeRelease(m_pGUIInspector);
 	SafeDelete(m_pGUILights);
 	SafeDelete(m_pGUICamera);
 	SafeDelete(m_pGUICubeMap);
@@ -171,7 +179,6 @@ void NXGUI::Release()
 	SafeDelete(m_pFileBrowser);
 	SafeDelete(m_pGUIPostProcessing);
 	SafeDelete(m_pGUIDebugLayer);
-	SafeRelease(m_pGUITexture);
 	SafeDelete(m_pGUIContentExplorer);
 
 	ImGui_ImplDX11_Shutdown();

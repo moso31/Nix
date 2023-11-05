@@ -66,6 +66,9 @@ void App::Reload()
 
 void App::Update()
 {
+	// 更新 GUI（仅延迟更新的部分。详见此方法注释）
+	m_pRenderer->UpdateGUI();
+
 	// 更新场景数据
 	m_pRenderer->UpdateSceneData();
 }

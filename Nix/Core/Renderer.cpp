@@ -133,6 +133,11 @@ void Renderer::ResourcesReloading()
 	NXResourceReloader::GetInstance()->Update();
 }
 
+void Renderer::UpdateGUI()
+{
+	m_pGUI->ExecuteDeferredCommands();
+}
+
 void Renderer::UpdateSceneData()
 {
 	UpdateTime();

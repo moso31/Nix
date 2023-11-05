@@ -11,11 +11,10 @@ struct NXGUIContentExplorerListSelectionInfo
 };
 
 class NXScene;
-class NXGUITexture;
 class NXGUIContentExplorer
 {
 public:
-	NXGUIContentExplorer(NXScene* pScene, NXGUITexture* pTexture);
+	NXGUIContentExplorer(NXScene* pScene);
 	~NXGUIContentExplorer() {}
 
 	void Render();
@@ -42,8 +41,6 @@ private:
 
 	std::unordered_map<size_t, NXGUIContentExplorerListSelectionInfo> m_selectionInfo;
 	NXGUIAssetDragData m_btnDrugData;
-
-	NXGUITexture* m_pGUITexture;
 
 	std::string m_strRename;
 };
