@@ -208,6 +208,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BaseDefs\DearImGui.cpp" />
     <ClCompile Include="Core\App.cpp" />
     <ClCompile Include="Core\DirectResources.cpp" />
     <ClCompile Include="Core\FBXMeshLoader.cpp" />

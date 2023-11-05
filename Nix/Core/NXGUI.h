@@ -7,10 +7,8 @@ class NXScene;
 class Renderer;
 class NXTexture2D;
 
-class NXGUIMaterial;
 class NXGUIFileBrowser;
 class NXGUIContentExplorer;
-class NXGUICodeEditor;
 class NXGUIMaterialShaderEditor;
 class NXGUISSAO;
 class NXGUICubeMap;
@@ -39,13 +37,9 @@ private:
 	NXScene*	m_pCurrentScene;
 	Renderer*	m_pRenderer;
 
-	NXGUICodeEditor*			m_pGUICodeEditor;
-	NXGUIMaterialShaderEditor*	m_pGUIMaterialShaderEditor;
 	NXGUIContentExplorer*		m_pGUIContentExplorer;
-
 	NXGUILights*				m_pGUILights;
 	NXGUICamera*				m_pGUICamera;
-	NXGUIMaterial*				m_pGUIMaterial;
 	NXGUICubeMap*				m_pGUICubeMap;
 	NXGUIFileBrowser*			m_pFileBrowser;
 	NXGUISSAO*					m_pGUISSAO;
@@ -54,6 +48,7 @@ private:
 	NXGUIView*					m_pGUIView;
 	NXGUIWorkspace*				m_pGUIWorkspace;
 	NXGUIInspector*				m_pGUIInspector;
+	NXGUIMaterialShaderEditor*	m_pGUIMaterialShaderEditor;
 
 	NXGUIDebugLayer*			m_pGUIDebugLayer;
 };

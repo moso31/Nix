@@ -20,3 +20,7 @@
 #endif
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+// Nix 的 imgui 使用的 字体集，需要在 NXGUI::Init() 中初始化它们。
+extern ImFont* g_imgui_font_general;
+extern ImFont* g_imgui_font_codeEditor;

@@ -23,20 +23,19 @@ struct NXGUIShaderFunctions
 };
 
 class NXCustomMaterial;
-class NXGUIMaterial;
-class NXGUIFileBrowser;
 class NXGUICodeEditor;
-class NXSSSDiffuseProfiler;
 class NXGUIMaterialShaderEditor
 {
 private:
 	enum class BtnParamType { CBuffer, Texture, Sampler };
 
 public:
-	NXGUIMaterialShaderEditor() {};
+	NXGUIMaterialShaderEditor();
 	~NXGUIMaterialShaderEditor() {};
 
-	void Render(NXCustomMaterial* pMaterial);
+	void SetMaterial(NXCustomMaterial* pMaterial) { m_pMaterial = pMaterial; }
+
+	void Render();
 	void Show() { m_bShowWindow = true; }
 
 	// 更新Shader编译错误信息（编译材质出错时触发）
@@ -45,13 +44,11 @@ public:
 	// 更新Shader编译错误信息（编译材质出错时触发）
 	void UpdateShaderErrorMessages(const std::string& strCompileErrorVS, const std::string& strCompileErrorPS);
 
-	void SetGUIMaterial(NXGUIMaterial* pGUIMaterial);
-	void SetGUIFileBrowser(NXGUIFileBrowser* pGUIFileBrowser);
-	void SetGUICodeEditor(NXGUICodeEditor* pGUICodeEditor);
-
 	void RequestSyncMaterialData();
 	void RequestSyncMaterialCodes();
 	void RequestGenerateBackup();
+
+	void Release();
 
 private:
 	void OnBtnNewFunctionClicked(NXCustomMaterial* pMaterial);
@@ -95,8 +92,7 @@ private:
 
 private:
 	bool m_bShowWindow = false;
-	NXGUIMaterial* m_pGUIMaterial = nullptr;
-	NXGUIFileBrowser* m_pFileBrowser = nullptr;
+	NXCustomMaterial* m_pMaterial = nullptr;
 	NXGUICodeEditor* m_pGUICodeEditor = nullptr;
 
 	std::vector<std::string> m_nslFuncs;	// 记录 NSL 函数

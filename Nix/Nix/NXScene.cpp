@@ -5,15 +5,14 @@
 #include "GlobalBufferManager.h"
 #include "NXIntersection.h"
 #include "NXRandom.h"
-
 #include "NXPrefab.h"
 #include "NXPrimitive.h"
 #include "NXCamera.h"
-
 #include "NXPBRLight.h"
 #include "NXPBRMaterial.h"
-
 #include "NXCubeMap.h"
+#include "NXGUICommandManager.h"
+#include "NXGUIInspector.h"
 
 #include "NXScript.h"
 #include "NXScriptType.h"
@@ -71,7 +70,14 @@ void NXScene::OnMouseDown(NXEventArgMouse eArg)
 
 			NXHit hit;
 			RayCast(ray, hit);
-			if (hit.pSubMesh) AddPickingSubMesh(hit.pSubMesh);
+			if (hit.pSubMesh)
+			{
+				AddPickingSubMesh(hit.pSubMesh);
+				{
+					NXGUICommand e(NXGUICmd_Inspector_SetIdx, { NXGUIInspector_Material });
+					NXGUICommandManager::GetInstance()->PushCommand(e);
+				}
+			}
 
 			// 若没有picking对象，隐藏EditorObjects
 			m_pEditorObjManager->SetVisible(!m_pSelectedObjects.empty());

@@ -17,7 +17,11 @@ void NXGUICommandManager::Update()
 		{
 		case NXGUICmd_Inspector_SetIdx:
 		case NXGUICmd_Inspector_SetTexture:
+		case NXGUICmd_Inspector_OpenShaderEditor:
+		case NXGUICmd_MSE_SetMaterial:
+		case NXGUICmd_MSE_CompileSuccess:
 			m_pGUIInspector->DoCommand(e);
+			break;
 		default:
 			break;
 		}

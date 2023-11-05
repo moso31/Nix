@@ -2,8 +2,6 @@
 
 #include "NXGUICommon.h"
 #include "NXConverter.h"
-#include "NXPBRMaterial.h"
-#include "NXResourceManager.h"
 #include "NXGUIFileBrowser.h"
 
 namespace NXGUICommon
@@ -22,7 +20,7 @@ void RenderSmallTextureIcon(ImTextureID ImTexID, NXGUIFileBrowser* pFileBrowser,
 		ImVec4 bg_col = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);         // Black background
 		ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);       // No tint
 
-		if (onChange && ImGui::ImageButton(ImTexID, size, uv0, uv1, frame_padding, bg_col, tint_col))
+		if (onChange && ImGui::ImageButton(ImTexID, size, uv0, uv1, frame_padding, bg_col, tint_col) && pFileBrowser)
 		{
 			pFileBrowser->SetTitle("Material");
 			pFileBrowser->SetTypeFilters({ ".png", ".jpg", ".bmp", ".dds", ".tga", ".tif", ".tiff" });

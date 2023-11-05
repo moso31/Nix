@@ -1,21 +1,26 @@
 ﻿#include "BaseDefs/DearImGui.h"
+#include <regex>
 
 #include "NXDiffuseProfiler.h"
 #include "NXGUIMaterialShaderEditor.h"
-#include "NXGUIMaterial.h"
 #include "NXGUICommon.h"
 #include "NXGUICodeEditor.h"
 #include "NXPBRMaterial.h"
 #include "NXConverter.h"
-#include <regex>
+#include "NXGUICommandManager.h"
 
-void NXGUIMaterialShaderEditor::Render(NXCustomMaterial* pMaterial)
+NXGUIMaterialShaderEditor::NXGUIMaterialShaderEditor()
+{
+	m_pGUICodeEditor = new NXGUICodeEditor(g_imgui_font_codeEditor);
+}
+
+void NXGUIMaterialShaderEditor::Render()
 {
 	if (!m_bShowWindow) return;
 
 	if (m_bIsDirty)
 	{
-		SyncMaterialData(pMaterial);
+		SyncMaterialData(m_pMaterial);
 		m_bIsDirty = false;
 
 		if (m_bNeedBackup)
@@ -27,7 +32,7 @@ void NXGUIMaterialShaderEditor::Render(NXCustomMaterial* pMaterial)
 
 	if (m_bNeedSyncMaterialCode)
 	{
-		SyncMaterialCode(pMaterial);
+		SyncMaterialCode(m_pMaterial);
 		m_bNeedSyncMaterialCode = false;
 	}
 
@@ -40,10 +45,10 @@ void NXGUIMaterialShaderEditor::Render(NXCustomMaterial* pMaterial)
 	if (ImGui::BeginTable("##material_shader_editor_table", 2, ImGuiTableFlags_Resizable))
 	{
 		ImGui::TableNextColumn();
-		Render_Code(pMaterial);
+		Render_Code(m_pMaterial);
 
 		ImGui::TableNextColumn();
-		Render_FeaturePanel(pMaterial);
+		Render_FeaturePanel(m_pMaterial);
 
 		ImGui::EndTable(); // ##material_shader_editor_table
 	}
@@ -239,11 +244,14 @@ bool NXGUIMaterialShaderEditor::OnBtnCompileClicked(NXCustomMaterial* pMaterial)
 		// 若编译成功，对 GUI材质类、GUI ShaderEditor、材质类 都 MakeDirty，
 		// 确保下一帧一定会更新一次材质数据。
 		pMaterial->RequestUpdateCBufferData();
-		m_pGUIMaterial->RequestSyncMaterialData();
 		RequestSyncMaterialData();
 
 		// 重新生成数据备份以用于Revert
 		RequestGenerateBackup();
+
+		// 推送到命令队列，确保其他需要更新的UI 同步更新
+		NXGUICommand e(NXGUICmd_MSE_CompileSuccess);
+		NXGUICommandManager::GetInstance()->PushCommand(e);
 	}
 	else
 	{
@@ -285,21 +293,6 @@ void NXGUIMaterialShaderEditor::OnShowFuncIndexChanged(int showFuncIndex)
 	m_pGUICodeEditor->GetFocus();
 }
 
-void NXGUIMaterialShaderEditor::SetGUIMaterial(NXGUIMaterial* pGUIMaterial)
-{
-	m_pGUIMaterial = pGUIMaterial;
-}
-
-void NXGUIMaterialShaderEditor::SetGUIFileBrowser(NXGUIFileBrowser* pGUIFileBrowser)
-{
-	m_pFileBrowser = pGUIFileBrowser;
-}
-
-void NXGUIMaterialShaderEditor::SetGUICodeEditor(NXGUICodeEditor* pGUICodeEditor)
-{
-	m_pGUICodeEditor = pGUICodeEditor;
-}
-
 void NXGUIMaterialShaderEditor::RequestSyncMaterialData()
 {
 	m_bIsDirty = true;
@@ -313,6 +306,11 @@ void NXGUIMaterialShaderEditor::RequestSyncMaterialCodes()
 void NXGUIMaterialShaderEditor::RequestGenerateBackup()
 {
 	m_bNeedBackup = true;
+}
+
+void NXGUIMaterialShaderEditor::Release()
+{
+	SafeDelete(m_pGUICodeEditor);
 }
 
 void NXGUIMaterialShaderEditor::OnBtnNewFunctionClicked(NXCustomMaterial* pMaterial)
@@ -715,24 +713,6 @@ void NXGUIMaterialShaderEditor::Render_Params_TextureItem(const int texParamId, 
 		ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);       // No tint
 
 		auto ImTexID = pTex->GetSRV();
-
-		if (ImGui::ImageButton(ImTexID, size, uv0, uv1, frame_padding, bg_col, tint_col))
-		{
-			m_pFileBrowser->SetTitle("Material");
-			m_pFileBrowser->SetTypeFilters({ ".png", ".jpg", ".bmp", ".dds", ".tga", ".tif", ".tiff" });
-			m_pFileBrowser->SetPwd("D:\\NixAssets");
-
-			auto onTexChange = [pMaterial, &texDisplay, &pTex, texIndex, this]()
-			{
-				pTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(pTex->GetName().c_str(), m_pFileBrowser->GetSelected());
-
-				texDisplay.texType = pMaterial->GetTextureGUIType(texIndex);
-				if (texDisplay.texType == NXGUITextureType::Unknown)
-					texDisplay.texType = pTex->GetSerializationData().m_textureType == NXTextureType::NormalMap ? NXGUITextureType::Normal : NXGUITextureType::Default;
-			};
-			m_pFileBrowser->Open();
-			m_pFileBrowser->SetOnDialogOK(onTexChange);
-		}
 
 		if (ImGui::BeginDragDropTarget())
 		{

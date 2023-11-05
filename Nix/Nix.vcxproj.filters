@@ -474,6 +474,9 @@
     <ClCompile Include="Core\NXGUICommandManager.cpp">
       <Filter>Core\UI</Filter>
     </ClCompile>
+    <ClCompile Include="BaseDefs\DearImGui.cpp">
+      <Filter>BaseDefs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">

@@ -7,11 +7,10 @@ struct NXGUIAssetDragData
 	std::filesystem::path srcPath;
 };
 
-class NXMaterial;
 class NXGUIFileBrowser;
 namespace NXGUICommon
 {
-	void RenderSmallTextureIcon(ImTextureID ImTexID, NXGUIFileBrowser* pFileBrowser, std::function<void()> onChange, std::function<void()> onRemove, std::function<void(const std::wstring&)> onDrop);
+	void RenderSmallTextureIcon(void* ImTexID, NXGUIFileBrowser* pFileBrowser, std::function<void()> onChange, std::function<void()> onRemove, std::function<void(const std::wstring&)> onDrop);
 
 	// ½«×Ö·û´®×ª»»³ÉGUIStyle
 	NXGUICBufferStyle	GetGUIStyleFromString(const std::string& strTypeString);

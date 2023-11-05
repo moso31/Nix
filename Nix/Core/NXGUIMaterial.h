@@ -1,16 +1,15 @@
 #pragma once
-#include "NXGUIFileBrowser.h"
 #include "NXShaderDefinitions.h"
 
 class NXScene;
+class NXMaterial;
 class NXCustomMaterial;
 class NXGUICodeEditor;
-class NXGUIMaterialShaderEditor;
 struct NXGUIAssetDragData;
 class NXGUIMaterial
 {
 public:
-	NXGUIMaterial(NXScene* pScene, NXGUIFileBrowser* pFileBrowser, NXGUICodeEditor* pCodeEditor, NXGUIMaterialShaderEditor* pMaterialShaderEditor);
+	NXGUIMaterial(NXScene* pScene);
 	~NXGUIMaterial() {}
 
 	void SetCurrentScene(NXScene* pScene) { m_pCurrentScene = pScene; }
@@ -29,16 +28,12 @@ private:
 private:
 	void OnBtnEditShaderClicked(NXCustomMaterial* pMaterial);
 	void OnComboGUIStyleChanged(int selectIndex, NXGUICBufferData& cbDisplayData);
-	void UpdateFileBrowserParameters();
 
 	void SyncMaterialData(NXCustomMaterial* pMaterial);
 
 private:
 	NXScene* m_pCurrentScene;
-
-	NXGUIFileBrowser* m_pFileBrowser;
-	NXGUICodeEditor* m_pCodeEditor;
-	NXGUIMaterialShaderEditor* m_pMaterialShaderEditor;
+	NXMaterial* m_pLastCommonPickMaterial = nullptr;
 
 	// 材质 Inspector 面板不需要显示 Sampler
 	std::vector<NXGUICBufferData> m_cbInfosDisplay;

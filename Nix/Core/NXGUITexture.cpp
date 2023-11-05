@@ -13,9 +13,10 @@ NXGUITexture::NXGUITexture()
 
 void NXGUITexture::Render()
 {
+	ImGui::Text("Texture");
+
 	if (m_pTexImage.IsNull())
 	{ 
-		ImGui::End();
 		return;
 	}
 

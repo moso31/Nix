@@ -12,13 +12,15 @@ enum NXGUIInspectorEnum
 struct NXGUICommand;
 class NXGUITexture;
 class NXGUIMaterial;
+class NXGUIMaterialShaderEditor;
+class NXScene;
 class NXGUIInspector
 {
 public:
 	NXGUIInspector();
 	~NXGUIInspector() {}
 
-	void InitGUI();
+	void InitGUI(NXScene* pScene, NXGUIMaterialShaderEditor* pMaterialShaderEditor);
 
 	void DoCommand(const NXGUICommand& cmd);
 	void Render();
@@ -27,10 +29,12 @@ public:
 
 private:
 	void Render_Texture();
+	void Render_Material();
 	void Render_SubsurfaceProfiler();
 
 private:
 	NXGUIInspectorEnum m_inspectorIndex;
 	NXGUITexture* m_pGUITexture;
 	NXGUIMaterial* m_pGUIMaterial;
+	NXGUIMaterialShaderEditor* m_pGUIMaterialShaderEditor;
 };

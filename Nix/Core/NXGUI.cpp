@@ -8,9 +8,7 @@
 #include "NXConverter.h"
 
 #include "NXGUIFileBrowser.h"
-#include "NXGUICodeEditor.h"
 #include "NXGUIMaterialShaderEditor.h"
-#include "NXGUIMaterial.h"
 #include "NXGUIInspector.h"
 #include "NXGUILights.h"
 #include "NXGUICamera.h"
@@ -29,9 +27,7 @@ NXGUI::NXGUI(NXScene* pScene, Renderer* pRenderer) :
 	m_pCurrentScene(pScene),
 	m_pRenderer(pRenderer),
 	m_pFileBrowser(nullptr),
-	m_pGUICodeEditor(nullptr),
 	m_pGUIMaterialShaderEditor(nullptr),
-	m_pGUIMaterial(nullptr),
 	m_pGUILights(nullptr),
 	m_pGUICamera(nullptr),
 	m_pGUICubeMap(nullptr),
@@ -61,11 +57,13 @@ void NXGUI::Init()
 	ImGui_ImplDX11_Init(g_pDevice.Get(), g_pContext.Get());
 
 	// 设置字体
-	io.Fonts->AddFontFromFileTTF("./Resource/fonts/JetBrainsMono-Bold.ttf", 16);
+	g_imgui_font_general = io.Fonts->AddFontFromFileTTF("./Resource/fonts/JetBrainsMono-Bold.ttf", 16);
 
+	// CodeEditor 需要使用独立的字体配置。
+	// 若直接使用基本字体，就算是等宽字体，对齐也会有问题
 	ImFontConfig configData;
 	configData.GlyphMinAdvanceX = configData.GlyphMaxAdvanceX = 7.0f;
-	auto pCodeEditorFont = io.Fonts->AddFontFromFileTTF("./Resource/fonts/JetBrainsMono-Bold.ttf", 16, &configData);
+	g_imgui_font_codeEditor = io.Fonts->AddFontFromFileTTF("./Resource/fonts/JetBrainsMono-Bold.ttf", 16, &configData);
 
 	ImGui_ImplDX11_CreateDeviceObjects();
 
@@ -73,16 +71,13 @@ void NXGUI::Init()
 	m_pFileBrowser->SetTitle("File Browser");
 	m_pFileBrowser->SetPwd("D:\\NixAssets");
 
-	m_pGUICodeEditor = new NXGUICodeEditor(pCodeEditorFont);
 	m_pGUIMaterialShaderEditor = new NXGUIMaterialShaderEditor();
-
 	m_pGUIContentExplorer = new NXGUIContentExplorer(m_pCurrentScene);
 
 	m_pGUIInspector = new NXGUIInspector();
-	m_pGUIInspector->InitGUI();
+	m_pGUIInspector->InitGUI(m_pCurrentScene, m_pGUIMaterialShaderEditor);
 
 	m_pGUICamera = new NXGUICamera(m_pCurrentScene);
-	m_pGUIMaterial = new NXGUIMaterial(m_pCurrentScene, m_pFileBrowser, m_pGUICodeEditor, m_pGUIMaterialShaderEditor);
 	m_pGUILights = new NXGUILights(m_pCurrentScene);
 	m_pGUICubeMap = new NXGUICubeMap(m_pCurrentScene, m_pFileBrowser);
 
@@ -122,10 +117,10 @@ void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT)
 	// 所以这里写在所有 UI 最前面。
 	m_pGUIWorkspace->Render();
 
+	m_pGUIMaterialShaderEditor->Render();
 	m_pGUIContentExplorer->Render();
 	m_pGUIInspector->Render();
 	m_pGUICubeMap->Render();
-	m_pGUIMaterial->Render();
 	m_pGUILights->Render();
 	m_pGUICamera->Render();
 	m_pGUISSAO->Render();
@@ -168,8 +163,6 @@ void NXGUI::Release()
 	SafeDelete(m_pGUIView);
 	SafeDelete(m_pGUIWorkspace);
 	SafeDelete(m_pGUIMaterialShaderEditor);
-	SafeDelete(m_pGUICodeEditor);
-	SafeRelease(m_pGUIMaterial);
 	SafeRelease(m_pGUIInspector);
 	SafeDelete(m_pGUILights);
 	SafeDelete(m_pGUICamera);

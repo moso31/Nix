@@ -5,25 +5,21 @@
 #include "NXConverter.h"
 #include "NXScene.h"
 #include "NXPrimitive.h"
-#include "NXGUIContentExplorer.h"
-#include "NXGUIMaterialShaderEditor.h"
+#include "NXGUICommandManager.h"
 
-NXGUIMaterial::NXGUIMaterial(NXScene* pScene, NXGUIFileBrowser* pFileBrowser, NXGUICodeEditor* pCodeEditor, NXGUIMaterialShaderEditor* pMaterialShaderEditor) :
+NXGUIMaterial::NXGUIMaterial(NXScene* pScene) :
 	m_pCurrentScene(pScene),
-	m_pFileBrowser(pFileBrowser),
-	m_pCodeEditor(pCodeEditor),
-	m_pMaterialShaderEditor(pMaterialShaderEditor),
 	m_bIsDirty(false)
 {
 }
 
 void NXGUIMaterial::Render()
 {
-	ImGui::Begin("Material");
+	ImGui::Text("Material");
+
 	std::vector<NXSubMeshBase*> pPickingSubMeshes = m_pCurrentScene->GetPickingSubMeshes();
 	if (pPickingSubMeshes.empty())
 	{
-		ImGui::End();
 		return;
 	}
 
@@ -138,12 +134,17 @@ void NXGUIMaterial::Render()
 		}
 	}
 
-	ImGui::End();
 
 	// 渲染 Shader Editor GUI
-	if (pCommonMaterial && pCommonMaterial->IsCustomMat() && m_pMaterialShaderEditor)
+	if (pCommonMaterial && pCommonMaterial->IsCustomMat())
 	{
-		m_pMaterialShaderEditor->Render(static_cast<NXCustomMaterial*>(pCommonMaterial));
+		if (m_pLastCommonPickMaterial != pCommonMaterial)
+		{
+			NXGUICommand e(NXGUICmd_MSE_SetMaterial, { static_cast<NXCustomMaterial*>(pCommonMaterial) });
+			NXGUICommandManager::GetInstance()->PushCommand(e);
+
+			m_pLastCommonPickMaterial = pCommonMaterial;
+		}
 	}
 }
 
@@ -158,21 +159,8 @@ void NXGUIMaterial::SaveMaterialFile(NXCustomMaterial* pMaterial)
 
 void NXGUIMaterial::OnBtnEditShaderClicked(NXCustomMaterial* pMaterial)
 {
-	if (m_pMaterialShaderEditor)
-	{
-		m_pMaterialShaderEditor->SetGUIMaterial(this);
-		m_pMaterialShaderEditor->SetGUIFileBrowser(m_pFileBrowser);
-		m_pMaterialShaderEditor->SetGUICodeEditor(m_pCodeEditor);
-
-		// 将参数和nsl代码从 当前GUI材质类 中同步到 MaterialShaderEditor
-		m_pMaterialShaderEditor->RequestSyncMaterialData();
-		m_pMaterialShaderEditor->RequestSyncMaterialCodes();
-
-		// 并进行参数备份（revert功能要用）
-		m_pMaterialShaderEditor->RequestGenerateBackup();
-
-		m_pMaterialShaderEditor->Show();
-	}
+	NXGUICommand e(NXGUICmd_Inspector_OpenShaderEditor);
+	NXGUICommandManager::GetInstance()->PushCommand(e);
 }
 
 void NXGUIMaterial::OnComboGUIStyleChanged(int selectIndex, NXGUICBufferData& cbDataDisplay)
@@ -184,13 +172,6 @@ void NXGUIMaterial::OnComboGUIStyleChanged(int selectIndex, NXGUICBufferData& cb
 
 	// 根据 GUI Style 设置GUI的拖动速度或最大最小值
 	cbDataDisplay.params = GetGUIParamsDefaultValue(cbDataDisplay.guiStyle);
-}
-
-void NXGUIMaterial::UpdateFileBrowserParameters()
-{
-	m_pFileBrowser->SetTitle("Material");
-	m_pFileBrowser->SetTypeFilters({ ".png", ".jpg", ".bmp", ".dds", ".tga", ".tif", ".tiff" });
-	m_pFileBrowser->SetPwd("D:\\NixAssets");
 }
 
 void NXGUIMaterial::SyncMaterialData(NXCustomMaterial* pMaterial)
@@ -294,7 +275,7 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMateri
 
 				auto onTexChange = [pMaterial, &pTex, this]()
 				{
-					pMaterial->SetTexture(pTex, m_pFileBrowser->GetSelected());
+					//pMaterial->SetTexture(pTex, m_pFileBrowser->GetSelected());
 					RequestSyncMaterialData();
 				};
 
@@ -311,7 +292,7 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMateri
 				};
 
 				ImGui::PushID(paramCnt);
-				RenderSmallTextureIcon(pTex->GetSRV(), m_pFileBrowser, onTexChange, onTexRemove, onTexDrop);
+				RenderSmallTextureIcon(pTex->GetSRV(), nullptr, onTexChange, onTexRemove, onTexDrop);
 				ImGui::PopID();
 
 				ImGui::SameLine();
