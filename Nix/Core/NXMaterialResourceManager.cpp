@@ -59,6 +59,30 @@ NXCustomMaterial* NXMaterialResourceManager::CreateCustomMaterial(const std::str
 
 void NXMaterialResourceManager::CreateSSSProfile(const std::filesystem::path& sssProfFilePath)
 {
+	for (auto& prof : m_pSSSProfileArray)
+	{
+		if (prof->GetFilePath() == sssProfFilePath)
+			return;
+	}
+
+	Ntr<NXSSSDiffuseProfile> pSSSProfile(new NXSSSDiffuseProfile());
+	pSSSProfile->SetFilePath(sssProfFilePath);
+	pSSSProfile->Deserialize();
+
+	m_pSSSProfileArray.push_back(pSSSProfile);
+}
+
+Ntr<NXSSSDiffuseProfile> NXMaterialResourceManager::GetSSSProfile(const std::filesystem::path& sssProfFilePath, bool tryCreate)
+{
+	for (auto& prof : m_pSSSProfileArray)
+	{
+		if (prof->GetFilePath() == sssProfFilePath)
+			return prof;
+	}
+
+	if (!tryCreate || sssProfFilePath.extension().string() != ".nssprof")
+		return nullptr;
+
 	Ntr<NXSSSDiffuseProfile> pSSSProfile(new NXSSSDiffuseProfile());
 	pSSSProfile->SetFilePath(sssProfFilePath);
 	pSSSProfile->Deserialize();

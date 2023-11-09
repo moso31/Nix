@@ -151,6 +151,9 @@ public:
 	// 一般在保存时调用此方法。
 	void SaveToNSLFile();
 
+	void SetSSSProfile(const Ntr<NXSSSDiffuseProfile>& pSSSProfile) { m_pSSSProfile = pSSSProfile; }
+	Ntr<NXSSSDiffuseProfile> GetSSSProfile() { return m_pSSSProfile; }
+
 	void Serialize() override;
 	void Deserialize() override;
 
@@ -211,5 +214,5 @@ private:
 	std::vector<int>					m_cbSortedIndexBackup;
 	std::vector<std::string>			m_nslFuncsBackup;
 
-	NXSSSDiffuseProfile*				m_pSSSProfiler;
+	Ntr<NXSSSDiffuseProfile>			m_pSSSProfile;
 };

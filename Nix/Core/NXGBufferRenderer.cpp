@@ -86,9 +86,11 @@ void NXGBufferRenderer::Render()
 		{
 			if (pCustomMat->GetCompileSuccess())
 			{
-				// 3S材质需要写模板缓存
 				if (pCustomMat->GetShadingModel() == NXShadingModel::SubSurface)
+				{
+					// 3S材质需要写模板缓存
 					g_pContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 0x01);
+				}
 
 				pCustomMat->Render();
 

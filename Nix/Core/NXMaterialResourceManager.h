@@ -35,6 +35,7 @@ public:
 	NXCustomMaterial* CreateCustomMaterial(const std::string& name, const std::filesystem::path& nslFilePath);
 
     void CreateSSSProfile(const std::filesystem::path& sssProfFilePath);
+    Ntr<NXSSSDiffuseProfile> GetSSSProfile(const std::filesystem::path& sssProfFilePath, bool tryCreate = false);
 
 	void OnReload() override;
 	void Release() override;

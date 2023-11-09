@@ -12,7 +12,7 @@
 #include "NXSamplerStates.h"
 #include "NXGUIMaterial.h"
 #include "NXGUICommon.h"
-#include "NXLog.h"
+#include "NXSSSDiffuseProfile.h"
 
 NXMaterial::NXMaterial(const std::string& name, const std::filesystem::path& filePath) :
 	NXObject(name),
@@ -448,6 +448,7 @@ void NXCustomMaterial::Serialize()
 	// cbuffer sets
 	{
 		serializer.Uint("shadingModel", m_cbInfo.sets.shadingModel);
+		serializer.String("sssProfile", m_pSSSProfile->GetFilePath().string());
 	}
 
 	serializer.EndObject();
@@ -521,6 +522,15 @@ void NXCustomMaterial::Deserialize()
 
 		auto& cbSets = m_cbInfo.sets;
 		cbSets.shadingModel = deserializer.Uint("shadingModel");
+
+		if (cbSets.shadingModel == 2)
+		{
+			auto sssProfilePath = deserializer.String("sssProfile");
+			if (sssProfilePath.empty())
+				// todo: 使用默认SSSProfile
+			else
+				// todo: 使用对应路径的 m_pSSSProfile = NXResourceManager::GetInstance()->GetMaterialManager()->GetSSSProfile(sssProfilePath, true);
+		}
 	}
 }
 

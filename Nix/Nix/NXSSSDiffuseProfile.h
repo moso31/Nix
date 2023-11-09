@@ -12,6 +12,7 @@ public:
 	virtual void Deserialize() override;
 
 	void SetFilePath(const std::filesystem::path& path) { m_filePath = path; }
+	const std::filesystem::path& GetFilePath() const { return m_filePath; }
 
 private:
 	std::filesystem::path m_filePath;
