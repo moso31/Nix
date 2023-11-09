@@ -1,6 +1,6 @@
-#include "NXDiffuseProfiler.h"
+#include "NXSSSDiffuseProfile.h"
 
-void NXSSSDiffuseProfiler::Serialize()
+void NXSSSDiffuseProfile::Serialize()
 {
 	using namespace rapidjson;
 
@@ -21,7 +21,7 @@ void NXSSSDiffuseProfiler::Serialize()
 	serializer.SaveToFile(m_filePath);
 }
 
-void NXSSSDiffuseProfiler::Deserialize()
+void NXSSSDiffuseProfile::Deserialize()
 {
 	using namespace rapidjson;
 	if (m_filePath.empty())

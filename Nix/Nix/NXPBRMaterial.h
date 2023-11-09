@@ -14,6 +14,8 @@ enum class NXShadingModel
 
 class NXEasyMaterial;
 class NXCustomMaterial;
+class NXSSSDiffuseProfile;
+
 class NXMaterial : public NXObject, public NXSerializable
 {
 protected:
@@ -208,4 +210,6 @@ private:
 	std::vector<float>					m_cbInfoMemoryBackup;
 	std::vector<int>					m_cbSortedIndexBackup;
 	std::vector<std::string>			m_nslFuncsBackup;
+
+	NXSSSDiffuseProfile*				m_pSSSProfiler;
 };

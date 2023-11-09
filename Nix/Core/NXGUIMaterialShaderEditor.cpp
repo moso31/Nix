@@ -1,7 +1,7 @@
 ﻿#include "BaseDefs/DearImGui.h"
 #include <regex>
 
-#include "NXDiffuseProfiler.h"
+#include "NXSSSDiffuseProfile.h"
 #include "NXGUIMaterialShaderEditor.h"
 #include "NXGUICommon.h"
 #include "NXGUICodeEditor.h"

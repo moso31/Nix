@@ -468,7 +468,7 @@
     <ClCompile Include="Core\NXGUIInspector.cpp">
       <Filter>Core\UI</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\NXDiffuseProfiler.cpp">
+    <ClCompile Include="Nix\NXSSSDiffuseProfile.cpp">
       <Filter>Nix\Material</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXGUICommandManager.cpp">
@@ -779,7 +779,7 @@
     <ClInclude Include="Core\NXGUIInspector.h">
       <Filter>Core\UI</Filter>
     </ClInclude>
-    <ClInclude Include="Nix\NXDiffuseProfiler.h">
+    <ClInclude Include="Nix\NXSSSDiffuseProfile.h">
       <Filter>Nix\Material</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXGUICommandManager.h">

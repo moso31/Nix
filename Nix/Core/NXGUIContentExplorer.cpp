@@ -7,7 +7,7 @@
 #include "NXScene.h"
 #include "NXResourceManager.h"
 #include "NXMaterialResourceManager.h"
-#include "NXDiffuseProfiler.h"
+#include "NXSSSDiffuseProfile.h"
 #include "NXGUICommandManager.h"
 
 NXGUIContentExplorer::NXGUIContentExplorer(NXScene* pScene) :
@@ -274,7 +274,7 @@ void NXGUIContentExplorer::CreateMaterialFileOnDisk(const std::filesystem::path&
 
 void NXGUIContentExplorer::CreateSSSProfileFileOnDisk(const std::filesystem::path& path)
 {
-    NXSSSDiffuseProfiler ssprof;
+    NXSSSDiffuseProfile ssprof;
     ssprof.SetFilePath(path);
     ssprof.Serialize();
 }

@@ -4,6 +4,7 @@
 #include "NXConverter.h"
 #include "NXSubMesh.h"
 #include "NXHLSLGenerator.h"
+#include "NXSSSDiffuseProfile.h"
 
 void NXMaterialResourceManager::InitCommonMaterial()
 {
@@ -41,9 +42,9 @@ void NXMaterialResourceManager::ReplaceMaterial(NXMaterial* oldMaterial, NXMater
 NXMaterial* NXMaterialResourceManager::LoadFromNSLFile(const std::filesystem::path& matFilePath)
 {
 	// 如果已经在内存里直接拿就行了
-	NXMaterial* pNewMat = NXResourceManager::GetInstance()->GetMaterialManager()->FindMaterial(matFilePath);
+	NXMaterial* pNewMat = FindMaterial(matFilePath);
 	if (!pNewMat) 
-		pNewMat = NXResourceManager::GetInstance()->GetMaterialManager()->CreateCustomMaterial("Hello", matFilePath);
+		pNewMat = CreateCustomMaterial("Hello", matFilePath);
 	return pNewMat;
 }
 
@@ -52,8 +53,17 @@ NXCustomMaterial* NXMaterialResourceManager::CreateCustomMaterial(const std::str
 	auto pMat = new NXCustomMaterial(name, nslFilePath);
 	pMat->LoadAndCompile(nslFilePath);
 
-	NXResourceManager::GetInstance()->GetMaterialManager()->RegisterMaterial(pMat);
+	RegisterMaterial(pMat);
 	return pMat;
+}
+
+void NXMaterialResourceManager::CreateSSSProfile(const std::filesystem::path& sssProfFilePath)
+{
+	Ntr<NXSSSDiffuseProfile> pSSSProfile(new NXSSSDiffuseProfile());
+	pSSSProfile->SetFilePath(sssProfFilePath);
+	pSSSProfile->Deserialize();
+
+	m_pSSSProfileArray.push_back(pSSSProfile);
 }
 
 void NXMaterialResourceManager::OnReload()

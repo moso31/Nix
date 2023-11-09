@@ -1,6 +1,7 @@
 #pragma once
 #include "NXResourceManagerBase.h"
 
+class NXSSSDiffuseProfile;
 class NXMaterialResourceManager : public NXResourceManagerBase
 {
 public:
@@ -33,6 +34,8 @@ public:
 
 	NXCustomMaterial* CreateCustomMaterial(const std::string& name, const std::filesystem::path& nslFilePath);
 
+    void CreateSSSProfile(const std::filesystem::path& sssProfFilePath);
+
 	void OnReload() override;
 	void Release() override;
 
@@ -42,4 +45,7 @@ private:
     std::vector<NXMaterial*> m_pMaterialArray;
 
 	std::vector<NXMaterial*> m_pUnusedMaterials;
+
+    // 记录所有场景中使用的 SSS Profiler
+    std::vector<Ntr<NXSSSDiffuseProfile>> m_pSSSProfileArray;
 };
