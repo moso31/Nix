@@ -526,10 +526,8 @@ void NXCustomMaterial::Deserialize()
 		if (cbSets.shadingModel == 2)
 		{
 			auto sssProfilePath = deserializer.String("sssProfile");
-			if (sssProfilePath.empty())
-				// todo: 使用默认SSSProfile
-			else
-				// todo: 使用对应路径的 m_pSSSProfile = NXResourceManager::GetInstance()->GetMaterialManager()->GetSSSProfile(sssProfilePath, true);
+			auto& pSSSProfile = NXResourceManager::GetInstance()->GetMaterialManager()->GetOrAddSSSProfile(sssProfilePath);
+			m_SSSProfileHashValue = pSSSProfile.IsValid() ? std::filesystem::hash_value(pSSSProfile->GetFilePath()) : 0;
 		}
 	}
 }

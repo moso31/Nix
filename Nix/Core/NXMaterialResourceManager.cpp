@@ -57,37 +57,26 @@ NXCustomMaterial* NXMaterialResourceManager::CreateCustomMaterial(const std::str
 	return pMat;
 }
 
-void NXMaterialResourceManager::CreateSSSProfile(const std::filesystem::path& sssProfFilePath)
+Ntr<NXSSSDiffuseProfile> NXMaterialResourceManager::GetOrAddSSSProfile(const std::filesystem::path& sssProfFilePath)
 {
-	for (auto& prof : m_pSSSProfileArray)
+	size_t pathHash = std::filesystem::hash_value(sssProfFilePath);
+	if (m_pSSSProfiles.find(pathHash) != m_pSSSProfiles.end())
 	{
-		if (prof->GetFilePath() == sssProfFilePath)
-			return;
+		return m_pSSSProfiles[pathHash];
 	}
 
-	Ntr<NXSSSDiffuseProfile> pSSSProfile(new NXSSSDiffuseProfile());
-	pSSSProfile->SetFilePath(sssProfFilePath);
-	pSSSProfile->Deserialize();
-
-	m_pSSSProfileArray.push_back(pSSSProfile);
-}
-
-Ntr<NXSSSDiffuseProfile> NXMaterialResourceManager::GetSSSProfile(const std::filesystem::path& sssProfFilePath, bool tryCreate)
-{
-	for (auto& prof : m_pSSSProfileArray)
+	if (sssProfFilePath.extension().string() == ".nssprof")
 	{
-		if (prof->GetFilePath() == sssProfFilePath)
-			return prof;
+		// 2023.11.10 
+		// TODO：这里没有判断*.nssprof文件内的data是否是有效的，目前暂时默认不会出问题
+		Ntr<NXSSSDiffuseProfile> pSSSProfile(new NXSSSDiffuseProfile());
+		pSSSProfile->SetFilePath(sssProfFilePath);
+		pSSSProfile->Deserialize();
+
+		m_pSSSProfiles[pathHash] = pSSSProfile;
 	}
 
-	if (!tryCreate || sssProfFilePath.extension().string() != ".nssprof")
-		return nullptr;
-
-	Ntr<NXSSSDiffuseProfile> pSSSProfile(new NXSSSDiffuseProfile());
-	pSSSProfile->SetFilePath(sssProfFilePath);
-	pSSSProfile->Deserialize();
-
-	m_pSSSProfileArray.push_back(pSSSProfile);
+	return nullptr;
 }
 
 void NXMaterialResourceManager::OnReload()

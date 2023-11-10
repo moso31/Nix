@@ -214,5 +214,7 @@ private:
 	std::vector<int>					m_cbSortedIndexBackup;
 	std::vector<std::string>			m_nslFuncsBackup;
 
-	Ntr<NXSSSDiffuseProfile>			m_pSSSProfile;
+	// SSS profile 的路径 Hash
+	// 如果 Hash == 0，说明没有有效 SSSProfile，将使用一个预构建的默认 SSSProfile。
+	size_t								m_SSSProfileHashValue = 0;
 };
