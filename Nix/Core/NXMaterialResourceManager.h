@@ -40,6 +40,9 @@ public:
 	void Release() override;
 
 private:
+    void AdjustSSSProfileMapToGBufferIndex();
+
+private:
     NXMaterial* m_pLoadingMaterial = nullptr;   // 用于显示 加载中 状态的材质
     NXMaterial* m_pErrorMaterial = nullptr;     // 用于显示 加载错误 状态的材质
     std::vector<NXMaterial*> m_pMaterialArray;
@@ -49,6 +52,7 @@ private:
     // 记录所有场景中使用的 SSS Profiler
     std::map<size_t, Ntr<NXSSSDiffuseProfile>> m_SSSProfilesMap;
 
+    // 2023.11.11
     // 在 Nix 中，GBuffer 将使用某张RT（具体是哪张RT，见最新相关代码）的 8bit，记录当前像素使用了哪个 SSSProfile。
     // m_SSSProfileCBufferIndexMap 负责在原始文件 HashValue 和 8bit 之间建立一对一映射。
     // 由此就可以知道 m_SSSProfilesMap 的每个 SSSProfile 在 GBufferRT 中的 8bit 编号。

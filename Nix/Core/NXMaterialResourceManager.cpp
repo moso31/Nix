@@ -60,9 +60,9 @@ NXCustomMaterial* NXMaterialResourceManager::CreateCustomMaterial(const std::str
 Ntr<NXSSSDiffuseProfile> NXMaterialResourceManager::GetOrAddSSSProfile(const std::filesystem::path& sssProfFilePath)
 {
 	size_t pathHash = std::filesystem::hash_value(sssProfFilePath);
-	if (m_pSSSProfiles.find(pathHash) != m_pSSSProfiles.end())
+	if (m_SSSProfilesMap.find(pathHash) != m_SSSProfilesMap.end())
 	{
-		return m_pSSSProfiles[pathHash];
+		return m_SSSProfilesMap[pathHash];
 	}
 
 	if (sssProfFilePath.extension().string() == ".nssprof")
@@ -73,7 +73,7 @@ Ntr<NXSSSDiffuseProfile> NXMaterialResourceManager::GetOrAddSSSProfile(const std
 		pSSSProfile->SetFilePath(sssProfFilePath);
 		pSSSProfile->Deserialize();
 
-		m_pSSSProfiles[pathHash] = pSSSProfile;
+		m_SSSProfilesMap[pathHash] = pSSSProfile;
 	}
 
 	return nullptr;
@@ -86,9 +86,25 @@ void NXMaterialResourceManager::OnReload()
 		SafeRelease(mat);
 	}
 	m_pUnusedMaterials.clear();
+
+	AdjustSSSProfileMapToGBufferIndex();
 }
 
 void NXMaterialResourceManager::Release()
 {
 	for (auto pMat : m_pMaterialArray) SafeRelease(pMat);
+}
+
+void NXMaterialResourceManager::AdjustSSSProfileMapToGBufferIndex()
+{
+	size_t checkList[255];
+	for (auto const& [key, val] : m_SSSProfileGBufferIndexMap)
+		checkList[val] = key;
+
+	int i = 0;
+	m_SSSProfileGBufferIndexMap.clear();
+	for (auto const& [key, val] : m_SSSProfilesMap)
+	{
+		m_SSSProfileGBufferIndexMap[key] = i++;
+	}
 }
