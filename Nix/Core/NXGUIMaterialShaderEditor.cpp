@@ -898,8 +898,7 @@ void NXGUIMaterialShaderEditor::Render_Settings(NXCustomMaterial* pMaterial)
 			{
 				if (ImGui::Button(path.filename().string().c_str()))
 				{
-					Ntr<NXSSSDiffuseProfile> pProfile = NXResourceManager::GetInstance()->GetMaterialManager()->GetSSSProfile(path);
-					if (pProfile.IsValid()) m_pMaterial->SetSSSProfile(pProfile);
+					m_pMaterial->SetSSSProfile(path);
 				}
 			}
 		}

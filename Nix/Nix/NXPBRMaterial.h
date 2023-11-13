@@ -151,8 +151,10 @@ public:
 	// 一般在保存时调用此方法。
 	void SaveToNSLFile();
 
-	void SetSSSProfile(const Ntr<NXSSSDiffuseProfile>& pSSSProfile) { m_pSSSProfile = pSSSProfile; }
-	Ntr<NXSSSDiffuseProfile> GetSSSProfile() { return m_pSSSProfile; }
+	void SetSSSProfile(const std::filesystem::path& path) { m_sssProfilePath = path; }
+	std::filesystem::path GetSSSProfilePath() const { return m_sssProfilePath; }
+	Ntr<NXSSSDiffuseProfile> GetSSSProfile() const;
+	void SetGBufferIndexInternal(UINT8 index) { m_sssProfileGBufferIndexInternal = index; }
 
 	void Serialize() override;
 	void Deserialize() override;
@@ -214,7 +216,7 @@ private:
 	std::vector<int>					m_cbSortedIndexBackup;
 	std::vector<std::string>			m_nslFuncsBackup;
 
-	// SSS profile 的路径 Hash
-	// 如果 Hash == 0，说明没有有效 SSSProfile，将使用一个预构建的默认 SSSProfile。
-	size_t								m_SSSProfileHashValue = 0;
+	// SSS profile 的路径
+	std::filesystem::path				m_sssProfilePath;
+	UINT8								m_sssProfileGBufferIndexInternal;
 };

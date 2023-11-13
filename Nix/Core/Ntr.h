@@ -47,6 +47,7 @@ public:
 
     T& operator*() { return *static_cast<T*>(data); }
     T* operator->() { return static_cast<T*>(data); }
+    const T* operator->() const { return static_cast<const T*>(data); }
 
     T* Ptr() { return static_cast<T*>(data); }
     T** PPtr() { return &static_cast<T*>(data); }

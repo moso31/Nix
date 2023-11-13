@@ -61,9 +61,7 @@ Ntr<NXSSSDiffuseProfile> NXMaterialResourceManager::GetOrAddSSSProfile(const std
 {
 	size_t pathHash = std::filesystem::hash_value(sssProfFilePath);
 	if (m_SSSProfilesMap.find(pathHash) != m_SSSProfilesMap.end())
-	{
 		return m_SSSProfilesMap[pathHash];
-	}
 
 	if (sssProfFilePath.extension().string() == ".nssprof")
 	{
@@ -73,7 +71,9 @@ Ntr<NXSSSDiffuseProfile> NXMaterialResourceManager::GetOrAddSSSProfile(const std
 		pSSSProfile->SetFilePath(sssProfFilePath);
 		pSSSProfile->Deserialize();
 
+		// 添加到 map 并维护 GBufferIndexMap
 		m_SSSProfilesMap[pathHash] = pSSSProfile;
+		return pSSSProfile;
 	}
 
 	return nullptr;
@@ -81,12 +81,10 @@ Ntr<NXSSSDiffuseProfile> NXMaterialResourceManager::GetOrAddSSSProfile(const std
 
 void NXMaterialResourceManager::OnReload()
 {
-	for (auto mat : m_pUnusedMaterials)
-	{
-		SafeRelease(mat);
-	}
-	m_pUnusedMaterials.clear();
+	// 释放不用的材质
+	ReleaseUnusedMaterials();
 
+	// 每帧都需要清空 sssProfileGBufferIndexMap 的索引，重新计算
 	AdjustSSSProfileMapToGBufferIndex();
 }
 
@@ -95,16 +93,27 @@ void NXMaterialResourceManager::Release()
 	for (auto pMat : m_pMaterialArray) SafeRelease(pMat);
 }
 
+void NXMaterialResourceManager::ReleaseUnusedMaterials()
+{
+	for (auto mat : m_pUnusedMaterials) SafeRelease(mat);
+	m_pUnusedMaterials.clear();
+}
+
 void NXMaterialResourceManager::AdjustSSSProfileMapToGBufferIndex()
 {
-	size_t checkList[255];
-	for (auto const& [key, val] : m_SSSProfileGBufferIndexMap)
-		checkList[val] = key;
+	for (auto& [_, idx] : m_SSSProfileGBufferIndexMap) idx = -1;
 
-	int i = 0;
-	m_SSSProfileGBufferIndexMap.clear();
-	for (auto const& [key, val] : m_SSSProfilesMap)
+	UINT8 sssGBufferIndex = 0;
+	for (auto pMat : m_pMaterialArray)
 	{
-		m_SSSProfileGBufferIndexMap[key] = i++;
+		auto pCustomMat = pMat->IsCustomMat();
+		if (pCustomMat->GetShadingModel() == NXShadingModel::SubSurface)
+		{
+			PathHashValue pathHash = std::filesystem::hash_value(pCustomMat->GetSSSProfilePath());
+			if (m_SSSProfileGBufferIndexMap.find(pathHash) == m_SSSProfileGBufferIndexMap.end() || m_SSSProfileGBufferIndexMap[pathHash] == -1)
+				m_SSSProfileGBufferIndexMap[pathHash] = sssGBufferIndex++;
+
+			pCustomMat->SetGBufferIndexInternal(m_SSSProfileGBufferIndexMap[pathHash]);
+		}
 	}
 }

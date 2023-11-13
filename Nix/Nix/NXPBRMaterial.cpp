@@ -242,6 +242,10 @@ void NXCustomMaterial::UpdateCBData()
 	m_cbData.push_back((float)cbSets.shadingModel);
 	while (m_cbData.size() % 4 != 0) m_cbData.push_back(0); // 16 bytes align
 
+	// sss Profile
+	m_cbData.push_back((float)m_sssProfileGBufferIndexInternal);
+	while (m_cbData.size() % 4 != 0) m_cbData.push_back(0); // 16 bytes align
+
 	// 基于 m_cbData 创建常量缓冲区
 	D3D11_BUFFER_DESC bufferDesc;
 	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
@@ -389,6 +393,11 @@ void NXCustomMaterial::SaveToNSLFile()
 	outputFile.close();
 }
 
+Ntr<NXSSSDiffuseProfile> NXCustomMaterial::GetSSSProfile() const
+{
+	return NXResourceManager::GetInstance()->GetMaterialManager()->GetOrAddSSSProfile(m_sssProfilePath);
+}
+
 void NXCustomMaterial::Serialize()
 {
 	using namespace rapidjson;
@@ -448,7 +457,7 @@ void NXCustomMaterial::Serialize()
 	// cbuffer sets
 	{
 		serializer.Uint("shadingModel", m_cbInfo.sets.shadingModel);
-		serializer.String("sssProfile", m_pSSSProfile->GetFilePath().string());
+		serializer.String("sssProfilePath", m_sssProfilePath.string());
 	}
 
 	serializer.EndObject();
@@ -525,9 +534,7 @@ void NXCustomMaterial::Deserialize()
 
 		if (cbSets.shadingModel == 2)
 		{
-			auto sssProfilePath = deserializer.String("sssProfile");
-			auto& pSSSProfile = NXResourceManager::GetInstance()->GetMaterialManager()->GetOrAddSSSProfile(sssProfilePath);
-			m_SSSProfileHashValue = pSSSProfile.IsValid() ? std::filesystem::hash_value(pSSSProfile->GetFilePath()) : 0;
+			m_sssProfilePath = deserializer.String("sssProfile");
 		}
 	}
 }
@@ -901,12 +908,16 @@ void NXCustomMaterial::ProcessShaderCBufferParam(std::istringstream& in, std::os
 		int paddingBytes = 4 - byteOffset % 4;
 		out << "\tfloat";
 		if (paddingBytes > 1) out << std::to_string(paddingBytes);
-		out << " _padding;\n";
+		out << " _pad0;\n";
 	}
 
 	out << "\n";
 	out << "\t// settings" << "\n"; // 加个注释方便调试
 	out << "\tfloat shadingModel;\n";
+	out << "\tfloat3 _pad1;\n";
+	
+	// 用于传递材质的自定义数据
+	out << "\tfloat4 customData0;\n"; 
 }
 
 void NXCustomMaterial::ProcessShaderMainFunc(std::string& oHLSLBodyCode)

@@ -1,9 +1,7 @@
 #pragma once
 #include "NXInstance.h"
 #include "Ntr.h"
-#include <string>
-#include <filesystem>
-#include <unordered_set>
+#include "BaseDefs/CppSTLFully.h"
 
 enum NXCommonRTEnum
 {
