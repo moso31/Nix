@@ -27,6 +27,14 @@ void NXSubSurfaceRenderer::Init()
 		D3D11_STENCIL_OP_KEEP, D3D11_STENCIL_OP_KEEP, D3D11_STENCIL_OP_KEEP, D3D11_COMPARISON_EQUAL>::Create();
 	m_pRasterizerState = NXRasterizerState<>::Create();
 	m_pBlendState = NXBlendState<>::Create();
+
+	D3D11_BUFFER_DESC bufferDesc;
+	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = sizeof(CBufferDiffuseProfileData);
+	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbDiffuseProfile));
 }
 
 void NXSubSurfaceRenderer::Render()
@@ -39,6 +47,10 @@ void NXSubSurfaceRenderer::Render()
 
 void NXSubSurfaceRenderer::RenderSSSSS()
 {
+	auto& cbDiffuseProfileData = NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfileData();
+	g_pContext->UpdateSubresource(m_cbDiffuseProfile.Get(), 0, nullptr, &cbDiffuseProfileData, 0, 0);
+	g_pContext->PSSetConstantBuffers(2, 1, m_cbDiffuseProfile.GetAddressOf());
+
 	g_pContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 0x01);
 	g_pContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xffffffff);
 	g_pContext->RSSetState(m_pRasterizerState.Get());

@@ -73,7 +73,7 @@ void PS(PS_INPUT input, out DeferredRenderingResult output)
 {
 	float2 uv = input.tex;
 
-	float sets_shadingModel = txRT3.Sample(ssLinearWrap, uv).a * 255.0f;
+	uint shadingModel = (uint)(txRT3.Sample(ssLinearWrap, uv).a * 255.0f);
 
 	// get depthZ
 	float depth = txRTDepth.Sample(ssLinearClamp, uv).x;
@@ -106,7 +106,7 @@ void PS(PS_INPUT input, out DeferredRenderingResult output)
 
 	float3 ShadowTest = txShadowTest.Sample(ssLinearClamp, uv).xyz;
 
-	if (sets_shadingModel < 0.5f)
+	if (shadingModel == 0)
 	{
 		float3 F0 = 0.04;
 		F0 = lerp(F0, albedo, metallic);
@@ -157,13 +157,13 @@ void PS(PS_INPUT input, out DeferredRenderingResult output)
 		output.Lighting = float4(Lo, 1.0f);
 		output.LightingEx = float4(0.0f, 0.0f, 0.0f, 1.0f);
 	}
-	else if (sets_shadingModel < 1.5f)
+	else if (shadingModel == 1)
 	{
 		float3 albedo = txRT2.Sample(ssLinearWrap, uv).xyz;
 		output.Lighting = float4(albedo, 1.0f);
 		output.LightingEx = float4(0.0f, 0.0f, 0.0f, 1.0f);
 	}
-	else if (sets_shadingModel < 2.5f)
+	else if (shadingModel == 2)
 	{
 		float3 F0 = 0.04;
 		F0 = lerp(F0, albedo, metallic);

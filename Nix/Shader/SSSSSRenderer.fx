@@ -42,6 +42,19 @@ Texture2D txDepthZ : register(t3);
 Texture2D txNoiseGray : register(t4);
 SamplerState ssLinearClamp : register(s0);
 
+struct CBufferDiffuseProfile
+{
+	float3 scatter;
+	float scatterStrength;
+	float3 transmit;
+	float transmitStrength;
+};
+
+cbuffer CBufferParams : register(b2)
+{
+	CBufferDiffuseProfile sssProfData[16];
+}
+
 // 基于一张预设的 Noise 纹理 进行采样，以生成 0~1 区间内的随机数
 float Random01FromNoiseGray(float2 coord, float seed)
 {
@@ -74,7 +87,6 @@ float4 PS(PS_INPUT input) : SV_Target
 {
 	float2 uv = input.tex;
 	float2 screenCoord = uv * cameraParams0.xy;
-	float3 s = 0.5f.xxx;
 
 	float depth = txDepthZ.Sample(ssLinearClamp, uv).x;
 	float linearDepthZ = DepthZ01ToLinear(depth);
@@ -82,9 +94,13 @@ float4 PS(PS_INPUT input) : SV_Target
 	float3 positionVS = viewDirRawVS * linearDepthZ;
 
 	float3 irradiance = txIrradiance.Sample(ssLinearClamp, uv).xyz;
-	float3 normalVS = txNormal.Sample(ssLinearClamp, uv).xyz;
+	float4 rt1 = txNormal.Sample(ssLinearClamp, uv);
+	float3 normalVS = rt1.xyz;
 	float3 tangentVS, bitangentVS;
 	GetNTBMatrixVS(normalVS, tangentVS, bitangentVS);
+
+	uint sssProfIndex = asuint(rt1.w);
+	float3 s = sssProfData[sssProfIndex].scatter;
 
 	float3 sssResult = 0.0f;
 

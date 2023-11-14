@@ -1,7 +1,23 @@
 #pragma once
 #include "NXResourceManagerBase.h"
+#include "BaseDefs/Math.h"
+
+using namespace DirectX::SimpleMath;
 
 using PathHashValue = size_t;
+
+struct DiffuseProfileData
+{
+    Vector3 scatter;
+    float scatterStrength;
+    Vector3 transmit;
+    float transmitStrength;
+};
+
+struct CBufferDiffuseProfileData
+{
+    DiffuseProfileData sssProfData[16];
+};
 
 class NXSSSDiffuseProfile;
 class NXMaterialResourceManager : public NXResourceManagerBase
@@ -37,6 +53,7 @@ public:
 	NXCustomMaterial* CreateCustomMaterial(const std::string& name, const std::filesystem::path& nslFilePath);
 
     Ntr<NXSSSDiffuseProfile> GetOrAddSSSProfile(const std::filesystem::path& sssProfFilePath);
+    const CBufferDiffuseProfileData& GetCBufferDiffuseProfileData() const { return m_cbDiffuseProfileData; }
 
 	void OnReload() override;
 	void Release() override;
@@ -44,6 +61,7 @@ public:
 private:
     void ReleaseUnusedMaterials();
     void AdjustSSSProfileMapToGBufferIndex();
+    void AdjustDiffuseProfileRenderData(PathHashValue pathHash, UINT index);
 
 private:
     NXMaterial* m_pLoadingMaterial = nullptr;   // 用于显示 加载中 状态的材质
@@ -53,11 +71,14 @@ private:
 	std::vector<NXMaterial*> m_pUnusedMaterials;
 
     // 记录所有场景中使用的 SSS Profiler
-    std::map<PathHashValue, Ntr<NXSSSDiffuseProfile>> m_SSSProfilesMap;
+    std::map<PathHashValue, Ntr<NXSSSDiffuseProfile>> m_sssProfilesMap;
 
     // 2023.11.11
     // 在 Nix 中，GBuffer 将使用某张RT（具体是哪张RT，见最新相关代码）的 8bit，记录当前像素使用了哪个 SSSProfile。
     // m_SSSProfileCBufferIndexMap 负责在原始文件 HashValue 和 8bit 之间建立一对一映射。
-    // 由此就可以知道 m_SSSProfilesMap 的每个 SSSProfile 在 GBufferRT 中的 8bit 编号。
-    std::map<PathHashValue, UINT8> m_SSSProfileGBufferIndexMap;
+    // 由此就可以知道 m_sssProfilesMap 的每个 SSSProfile 在 GBufferRT 中的 8bit 编号。
+    std::map<PathHashValue, UINT8> m_sssProfileGBufferIndexMap;
+
+    // SSS pass 最终使用的 CBuffer
+    CBufferDiffuseProfileData m_cbDiffuseProfileData;
 };

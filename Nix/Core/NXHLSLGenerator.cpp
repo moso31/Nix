@@ -62,15 +62,23 @@ PS_INPUT VS(VS_INPUT input)
 
 void EncodeGBuffer(NXGBufferParams gBuffer, PS_INPUT input, out PS_OUTPUT Output)
 {
+	uint uShadingModel = asuint(m.shadingModel);
+
 	Output.GBufferA = float4(1.0f, 1.0f, 1.0f, 1.0f);
 	
     float3 normalVS = TangentSpaceToViewSpace(gBuffer.normal, input.normVS, input.tangentVS);
-	Output.GBufferB = float4(normalVS, 1.0f);
+	if (uShadingModel == 2) // burley SSS
+	{
+		Output.GBufferB = float4(normalVS, m.customData0.x);
+	}
+	else
+	{
+		Output.GBufferB = float4(normalVS, 1.0f);
+	}
 
 	Output.GBufferC = float4(gBuffer.albedo, 1.0f);
 
-	float fShadingModel = m.shadingModel / 255.0f;
-	Output.GBufferD = float4(gBuffer.roughness, gBuffer.metallic, gBuffer.ao, fShadingModel);
+	Output.GBufferD = float4(gBuffer.roughness, gBuffer.metallic, gBuffer.ao, (float)uShadingModel / 255.0f);
 }
 )";
 

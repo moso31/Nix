@@ -14,6 +14,16 @@ public:
 	void SetFilePath(const std::filesystem::path& path) { m_filePath = path; }
 	const std::filesystem::path& GetFilePath() const { return m_filePath; }
 
+	Vector3 GetScatter() const { return m_scatter; }
+	void SetScatter(const Vector3& value) { m_scatter = value; }
+	float GetScatterStrength() { return m_scatterStrength; }
+	void SetScatterStrength(float value) { m_scatterStrength = value; }
+
+	Vector3 GetTransmit() const { return m_transmit; }
+	void SetTransmit(const Vector3& value) { m_transmit = value; }
+	float GetTransmitStrength() { return m_transmitStrength; }
+	void SetTransmitStrength(float value) { m_transmitStrength = value; }
+
 private:
 	std::filesystem::path m_filePath;
 

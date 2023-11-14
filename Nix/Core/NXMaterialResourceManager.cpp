@@ -60,8 +60,8 @@ NXCustomMaterial* NXMaterialResourceManager::CreateCustomMaterial(const std::str
 Ntr<NXSSSDiffuseProfile> NXMaterialResourceManager::GetOrAddSSSProfile(const std::filesystem::path& sssProfFilePath)
 {
 	size_t pathHash = std::filesystem::hash_value(sssProfFilePath);
-	if (m_SSSProfilesMap.find(pathHash) != m_SSSProfilesMap.end())
-		return m_SSSProfilesMap[pathHash];
+	if (m_sssProfilesMap.find(pathHash) != m_sssProfilesMap.end())
+		return m_sssProfilesMap[pathHash];
 
 	if (sssProfFilePath.extension().string() == ".nssprof")
 	{
@@ -72,7 +72,7 @@ Ntr<NXSSSDiffuseProfile> NXMaterialResourceManager::GetOrAddSSSProfile(const std
 		pSSSProfile->Deserialize();
 
 		// 添加到 map 并维护 GBufferIndexMap
-		m_SSSProfilesMap[pathHash] = pSSSProfile;
+		m_sssProfilesMap[pathHash] = pSSSProfile;
 		return pSSSProfile;
 	}
 
@@ -101,19 +101,50 @@ void NXMaterialResourceManager::ReleaseUnusedMaterials()
 
 void NXMaterialResourceManager::AdjustSSSProfileMapToGBufferIndex()
 {
-	for (auto& [_, idx] : m_SSSProfileGBufferIndexMap) idx = -1;
+	// 本方法负责维护序列
+	// m_sssProfileGBufferIndexMap 负责存储 SSSProfile 路径 和 GBufferIndex 的映射，
+	// 渲染 GBuffer 时 需要依赖它确定材质使用的 GBufferIndex
+	// m_sssProfileRenderList 负责存储 GBufferIndex 和 SSSProfile 的映射，
+	// 渲染 3S pass 时 需要依赖它确定实际的 SSSProfile 数据
+	
+	// 2023.11.14：Nix 现在没有视锥剔除，将来如果有了必然需要重写这……但现在先这样
+
+	const static UINT8 INVALID_SSS_PROFILE = 0xff;
+	for (auto& [_, idx] : m_sssProfileGBufferIndexMap) idx = INVALID_SSS_PROFILE;
 
 	UINT8 sssGBufferIndex = 0;
 	for (auto pMat : m_pMaterialArray)
 	{
 		auto pCustomMat = pMat->IsCustomMat();
-		if (pCustomMat->GetShadingModel() == NXShadingModel::SubSurface)
+		if (pCustomMat && pCustomMat->GetShadingModel() == NXShadingModel::SubSurface)
 		{
-			PathHashValue pathHash = std::filesystem::hash_value(pCustomMat->GetSSSProfilePath());
-			if (m_SSSProfileGBufferIndexMap.find(pathHash) == m_SSSProfileGBufferIndexMap.end() || m_SSSProfileGBufferIndexMap[pathHash] == -1)
-				m_SSSProfileGBufferIndexMap[pathHash] = sssGBufferIndex++;
+			auto& path = pCustomMat->GetSSSProfilePath();
+			if (path.empty()) continue;
 
-			pCustomMat->SetGBufferIndexInternal(m_SSSProfileGBufferIndexMap[pathHash]);
+			auto& pProfile = GetOrAddSSSProfile(path); // 维护一下 SSSProfileMap，确保里面一定有当前帧的材质
+			PathHashValue pathHash = std::filesystem::hash_value(path);
+
+			if (m_sssProfileGBufferIndexMap.find(pathHash) == m_sssProfileGBufferIndexMap.end() || 
+				m_sssProfileGBufferIndexMap[pathHash] == INVALID_SSS_PROFILE)
+			{
+				AdjustDiffuseProfileRenderData(pathHash, sssGBufferIndex);
+
+				m_sssProfileGBufferIndexMap[pathHash] = sssGBufferIndex++;
+
+				if (sssGBufferIndex >= 16)
+					break; // 超过 16 个 profile，GBufferIndex 用完了，不再继续遍历
+			}
+
+			pCustomMat->SetGBufferIndexInternal(m_sssProfileGBufferIndexMap[pathHash]);
 		}
 	}
+}
+
+void NXMaterialResourceManager::AdjustDiffuseProfileRenderData(PathHashValue pathHash, UINT sssGBufferIndex)
+{
+	// m_sssProfilesMap 无需exist检查，外层逻辑负责确保 m_sssProfilesMap[pathHash] 必然存在
+	m_cbDiffuseProfileData.sssProfData[sssGBufferIndex].scatter = m_sssProfilesMap[pathHash]->GetScatter();
+	m_cbDiffuseProfileData.sssProfData[sssGBufferIndex].scatterStrength = m_sssProfilesMap[pathHash]->GetScatterStrength();
+	m_cbDiffuseProfileData.sssProfData[sssGBufferIndex].transmit = m_sssProfilesMap[pathHash]->GetTransmit();
+	m_cbDiffuseProfileData.sssProfData[sssGBufferIndex].transmitStrength = m_sssProfilesMap[pathHash]->GetTransmitStrength();
 }

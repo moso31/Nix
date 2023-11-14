@@ -239,11 +239,12 @@ void NXCustomMaterial::UpdateCBData()
 	while (m_cbData.size() % 4 != 0) m_cbData.push_back(0); // 16 bytes align
 
 	// material settings
-	m_cbData.push_back((float)cbSets.shadingModel);
+	m_cbData.push_back(reinterpret_cast<float&>(cbSets.shadingModel));
 	while (m_cbData.size() % 4 != 0) m_cbData.push_back(0); // 16 bytes align
 
 	// sss Profile
-	m_cbData.push_back((float)m_sssProfileGBufferIndexInternal);
+	UINT sssGBufferIndex = (UINT)m_sssProfileGBufferIndexInternal;
+	m_cbData.push_back(reinterpret_cast<float&>(sssGBufferIndex));
 	while (m_cbData.size() % 4 != 0) m_cbData.push_back(0); // 16 bytes align
 
 	// 基于 m_cbData 创建常量缓冲区
@@ -391,11 +392,6 @@ void NXCustomMaterial::SaveToNSLFile()
 
 	outputFile << content;
 	outputFile.close();
-}
-
-Ntr<NXSSSDiffuseProfile> NXCustomMaterial::GetSSSProfile() const
-{
-	return NXResourceManager::GetInstance()->GetMaterialManager()->GetOrAddSSSProfile(m_sssProfilePath);
 }
 
 void NXCustomMaterial::Serialize()

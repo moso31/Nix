@@ -695,8 +695,6 @@ void NXGUIMaterialShaderEditor::Render_Params_CBufferItem(const std::string& str
 
 void NXGUIMaterialShaderEditor::Render_Params_TextureItem(const int texParamId, NXCustomMaterial* pMaterial, NXGUITextureData& texDisplay, int texIndex)
 {
-	using namespace NXGUICommon;
-
 	auto& pTex = texDisplay.pTexture;
 	if (pTex.IsNull()) return;
 
@@ -713,6 +711,11 @@ void NXGUIMaterialShaderEditor::Render_Params_TextureItem(const int texParamId, 
 		ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);       // No tint
 
 		auto ImTexID = pTex->GetSRV();
+
+		if (ImGui::ImageButton(ImTexID, size, uv0, uv1, frame_padding, bg_col, tint_col))
+		{
+			// 2023.11.14 TODO: Add a popup to switch texture...
+		}
 
 		if (ImGui::BeginDragDropTarget())
 		{
@@ -870,7 +873,7 @@ void NXGUIMaterialShaderEditor::Render_Settings(NXCustomMaterial* pMaterial)
 	if (shadingModel == 2)
 	{
 		float itemWidth = ImGui::CalcItemWidth();
-		std::string strDiffusionProfile("[Default]");
+		std::string strDiffusionProfile(pMaterial->GetSSSProfilePath().empty() ? "[Default Diffuse Profile]" : pMaterial->GetSSSProfilePath().string());
 		ImGui::PushItemWidth(itemWidth);
 		ImGui::InputText("", &strDiffusionProfile);
 		ImGui::PopItemWidth();

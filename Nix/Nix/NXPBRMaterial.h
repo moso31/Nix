@@ -153,7 +153,6 @@ public:
 
 	void SetSSSProfile(const std::filesystem::path& path) { m_sssProfilePath = path; }
 	std::filesystem::path GetSSSProfilePath() const { return m_sssProfilePath; }
-	Ntr<NXSSSDiffuseProfile> GetSSSProfile() const;
 	void SetGBufferIndexInternal(UINT8 index) { m_sssProfileGBufferIndexInternal = index; }
 
 	void Serialize() override;
