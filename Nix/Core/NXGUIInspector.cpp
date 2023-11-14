@@ -5,6 +5,7 @@
 #include "NXGUITexture.h"
 #include "NXGUIMaterial.h"
 #include "NXGUIMaterialShaderEditor.h"
+#include "NXGUIDiffuseProfile.h"
 #include "NXScene.h"
 
 NXGUIInspector::NXGUIInspector()
@@ -15,6 +16,7 @@ void NXGUIInspector::InitGUI(NXScene* pScene, NXGUIMaterialShaderEditor* pMateri
 {
 	m_pGUITexture = new NXGUITexture();
 	m_pGUIMaterial = new NXGUIMaterial(pScene);
+	m_pGUIDiffuseProfile = new NXGUIDiffuseProfile();
 	m_pGUIMaterialShaderEditor = pMaterialShaderEditor;
 }
 
@@ -34,9 +36,9 @@ void NXGUIInspector::DoCommand(const NXGUICommand& cmd)
 				break;
 			}
 
-			case NXGUIInspector_SubsurfaceProfiler:
+			case NXGUIInspector_SubsurfaceProfile:
 			{
-				m_pGUIMaterial->
+				m_pGUIDiffuseProfile->SetDiffuseProfile(std::any_cast<std::filesystem::path>(cmd.args[1]));
 				break;
 			}
 		}
@@ -81,7 +83,7 @@ void NXGUIInspector::Render()
 	case NXGUIInspector_Material:
 		Render_Material();
 		break;
-	case NXGUIInspector_SubsurfaceProfiler: 
+	case NXGUIInspector_SubsurfaceProfile: 
 		Render_SubsurfaceProfiler();
 		break;
 	default:
@@ -96,6 +98,7 @@ void NXGUIInspector::Release()
 {
 	SafeRelease(m_pGUITexture);
 	SafeRelease(m_pGUIMaterial);
+	SafeRelease(m_pGUIDiffuseProfile);
 }
 
 void NXGUIInspector::Render_Texture()
@@ -110,5 +113,5 @@ void NXGUIInspector::Render_Material()
 
 void NXGUIInspector::Render_SubsurfaceProfiler()
 {
-	ImGui::Text("SSS Diffuse Profiler");
+	m_pGUIDiffuseProfile->Render();
 }

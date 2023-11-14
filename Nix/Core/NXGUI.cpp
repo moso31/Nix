@@ -162,7 +162,7 @@ void NXGUI::Release()
 
 	SafeDelete(m_pGUIView);
 	SafeDelete(m_pGUIWorkspace);
-	SafeDelete(m_pGUIMaterialShaderEditor);
+	SafeRelease(m_pGUIMaterialShaderEditor);
 	SafeRelease(m_pGUIInspector);
 	SafeDelete(m_pGUILights);
 	SafeDelete(m_pGUICamera);

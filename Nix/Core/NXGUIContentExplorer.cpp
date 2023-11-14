@@ -283,7 +283,7 @@ void NXGUIContentExplorer::OnBtnContentLeftClicked(const std::filesystem::direct
 {
     if (path.is_directory()) 
     {
-        // TODO: 如果点选了文件夹，就需要切换当前的路径
+        // TODO: 如果点选了文件夹（双击），就打开该文件夹
     }
     else if (path.path().has_extension())
     {
@@ -291,16 +291,13 @@ void NXGUIContentExplorer::OnBtnContentLeftClicked(const std::filesystem::direct
 
         if (NXConvert::IsImageFileExtension(strExtension))
         {
-            // 如果点选了图片， 就需要 NXGUIInspector 显示此图的相关信息
-            // 推送两个命令
-            // 第一个让 Inspector 切换到 Texture 面板，
-            // 第二个让 Texture 面板切换到当前选中的贴图
             NXGUICommand e(NXGUICmd_Inspector_SetIdx, { NXGUIInspector_Texture, path.path() });
             NXGUICommandManager::GetInstance()->PushCommand(e);
         }
         else if (NXConvert::IsDiffuseProfileExtension(strExtension))
         {
-            // 点选 DiffuseProfile 文件
+            NXGUICommand e(NXGUICmd_Inspector_SetIdx, { NXGUIInspector_SubsurfaceProfile, path.path() });
+            NXGUICommandManager::GetInstance()->PushCommand(e);
         }
     }
 }

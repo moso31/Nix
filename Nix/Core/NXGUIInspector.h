@@ -6,7 +6,7 @@ enum NXGUIInspectorEnum
 	NXGUIInspector_Nothing,
 	NXGUIInspector_Texture,
 	NXGUIInspector_Material,
-	NXGUIInspector_SubsurfaceProfiler,
+	NXGUIInspector_SubsurfaceProfile,
 };
 
 struct NXGUICommand;
@@ -37,5 +37,6 @@ private:
 	NXGUIInspectorEnum m_inspectorIndex;
 	NXGUITexture* m_pGUITexture;
 	NXGUIMaterial* m_pGUIMaterial;
+	NXGUIDiffuseProfile* m_pGUIDiffuseProfile;
 	NXGUIMaterialShaderEditor* m_pGUIMaterialShaderEditor;
 };

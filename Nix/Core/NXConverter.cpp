@@ -294,7 +294,7 @@ bool IsMaterialFileExtension(const std::string& strExtension)
 bool IsDiffuseProfileExtension(const std::string& strExt)
 {
 	std::string s = s2lower(strExt);
-	return s == ".nssProf";
+	return s == ".nssprof";
 }
 
 void getline_safe(std::ifstream& ifs, std::string& s)

@@ -887,7 +887,7 @@ void NXGUIMaterialShaderEditor::Render_Settings(NXCustomMaterial* pMaterial)
 	if (ImGui::BeginPopup("##material_shader_editor_settings_diffuse_profile_popup"))
 	{
 		// 递归遍历 Asset 文件夹下的所有 文件，结尾是 *.nssprof 的
-		auto pathes = NXGUICommon::GetFilesInFolder("D:\\nixAssets", ".nssprof");
+		auto pathes = NXGUICommon::GetFilesInFolder("D:\\NixAssets", ".nssprof");
 
 		ImGui::BeginChild("##material_shader_editor_settings_diffuse_profile_popup_div", ImVec2(300, 300));
 		if (pathes.empty())

@@ -1,5 +1,7 @@
+#include "BaseDefs/DearImGui.h"
 #include "NXGUIDiffuseProfile.h"
 #include "NXResourceManager.h"
+#include "NXSSSDiffuseProfile.h"
 
 NXGUIDiffuseProfile::NXGUIDiffuseProfile()
 {
@@ -7,6 +9,11 @@ NXGUIDiffuseProfile::NXGUIDiffuseProfile()
 
 void NXGUIDiffuseProfile::Render()
 {
+	Vector3 val = m_pShowProfile->GetScatter();
+	if (ImGui::ColorEdit3("", val))
+	{
+		m_pShowProfile->SetScatter(val);
+	}
 }
 
 void NXGUIDiffuseProfile::Release()
