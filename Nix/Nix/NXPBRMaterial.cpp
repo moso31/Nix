@@ -251,7 +251,7 @@ void NXCustomMaterial::UpdateCBData()
 	D3D11_BUFFER_DESC bufferDesc;
 	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
 	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = (UINT)(cbArraySize * sizeof(float));
+	bufferDesc.ByteWidth = (UINT)(m_cbData.size() * sizeof(float));
 	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
 	D3D11_SUBRESOURCE_DATA InitData = {};

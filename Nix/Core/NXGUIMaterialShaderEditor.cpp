@@ -902,6 +902,7 @@ void NXGUIMaterialShaderEditor::Render_Settings(NXCustomMaterial* pMaterial)
 				if (ImGui::Button(path.filename().string().c_str()))
 				{
 					m_pMaterial->SetSSSProfile(path);
+					ImGui::CloseCurrentPopup();
 				}
 			}
 		}

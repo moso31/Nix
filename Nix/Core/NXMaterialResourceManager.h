@@ -26,7 +26,7 @@ public:
 	NXMaterialResourceManager() {}
 	~NXMaterialResourceManager() {}
 
-    void InitCommonMaterial();
+    void Init();
 
     // 表示 加载中 状态的过渡材质
     NXMaterial* GetLoadingMaterial() { return m_pLoadingMaterial; }
@@ -69,6 +69,8 @@ private:
     std::vector<NXMaterial*> m_pMaterialArray;
 
 	std::vector<NXMaterial*> m_pUnusedMaterials;
+
+    Ntr<NXSSSDiffuseProfile> m_defaultDiffuseProfile;
 
     // 记录所有场景中使用的 SSS Profiler
     std::map<PathHashValue, Ntr<NXSSSDiffuseProfile>> m_sssProfilesMap;
