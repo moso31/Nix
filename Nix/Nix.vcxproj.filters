@@ -477,6 +477,9 @@
     <ClCompile Include="BaseDefs\DearImGui.cpp">
       <Filter>BaseDefs</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXGUIDiffuseProfile.cpp">
+      <Filter>Core\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -783,6 +786,9 @@
       <Filter>Nix\Material</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXGUICommandManager.h">
+      <Filter>Core\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXGUIDiffuseProfile.h">
       <Filter>Core\UI</Filter>
     </ClInclude>
   </ItemGroup>

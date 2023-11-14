@@ -23,11 +23,25 @@ void NXGUIInspector::DoCommand(const NXGUICommand& cmd)
 	switch (cmd.type)
 	{
 	case NXGUICmd_Inspector_SetIdx:
+	{
 		m_inspectorIndex = std::any_cast<NXGUIInspectorEnum>(cmd.args[0]);
+
+		switch (m_inspectorIndex)
+		{
+			case NXGUIInspector_Texture:
+			{
+				m_pGUITexture->SetImage(std::any_cast<std::filesystem::path>(cmd.args[1]));
+				break;
+			}
+
+			case NXGUIInspector_SubsurfaceProfiler:
+			{
+				m_pGUIMaterial->
+				break;
+			}
+		}
 		break;
-	case NXGUICmd_Inspector_SetTexture:
-		m_pGUITexture->SetImage(std::any_cast<std::filesystem::path>(cmd.args[0]));
-		break;
+	}
 	case NXGUICmd_Inspector_OpenShaderEditor:
 	{
 		// 将参数和nsl代码从 当前GUI材质类 中同步到 MaterialShaderEditor

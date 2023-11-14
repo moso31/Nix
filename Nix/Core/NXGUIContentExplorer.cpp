@@ -289,22 +289,18 @@ void NXGUIContentExplorer::OnBtnContentLeftClicked(const std::filesystem::direct
     {
         const auto& strExtension = path.path().extension().string();
 
-        // 如果点选了图片，就需要 NXGUITexture 显示此图的相关信息
         if (NXConvert::IsImageFileExtension(strExtension))
         {
+            // 如果点选了图片， 就需要 NXGUIInspector 显示此图的相关信息
             // 推送两个命令
             // 第一个让 Inspector 切换到 Texture 面板，
             // 第二个让 Texture 面板切换到当前选中的贴图
-
-            {
-                NXGUICommand e(NXGUICmd_Inspector_SetIdx, { NXGUIInspector_Texture });
-                NXGUICommandManager::GetInstance()->PushCommand(e);
-            }
-
-            {
-                NXGUICommand e(NXGUICmd_Inspector_SetTexture, { path.path() });
-                NXGUICommandManager::GetInstance()->PushCommand(e);
-            }
+            NXGUICommand e(NXGUICmd_Inspector_SetIdx, { NXGUIInspector_Texture, path.path() });
+            NXGUICommandManager::GetInstance()->PushCommand(e);
+        }
+        else if (NXConvert::IsDiffuseProfileExtension(strExtension))
+        {
+            // 点选 DiffuseProfile 文件
         }
     }
 }

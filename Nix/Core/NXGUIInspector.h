@@ -13,6 +13,7 @@ struct NXGUICommand;
 class NXGUITexture;
 class NXGUIMaterial;
 class NXGUIMaterialShaderEditor;
+class NXGUIDiffuseProfile;
 class NXScene;
 class NXGUIInspector
 {

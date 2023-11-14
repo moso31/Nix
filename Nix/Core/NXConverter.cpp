@@ -291,6 +291,12 @@ bool IsMaterialFileExtension(const std::string& strExtension)
 	return s == ".nsl";
 }
 
+bool IsDiffuseProfileExtension(const std::string& strExt)
+{
+	std::string s = s2lower(strExt);
+	return s == ".nssProf";
+}
+
 void getline_safe(std::ifstream& ifs, std::string& s)
 {
 	std::getline(ifs, s);

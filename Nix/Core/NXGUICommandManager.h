@@ -8,7 +8,6 @@ enum NXGUICommandType
 {
 	NXGUICmd_None,
 	NXGUICmd_Inspector_SetIdx,
-	NXGUICmd_Inspector_SetTexture,
 	NXGUICmd_Inspector_OpenShaderEditor,
 	NXGUICmd_MSE_SetMaterial,
 	NXGUICmd_MSE_CompileSuccess,

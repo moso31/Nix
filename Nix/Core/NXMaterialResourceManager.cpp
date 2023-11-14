@@ -102,16 +102,11 @@ void NXMaterialResourceManager::ReleaseUnusedMaterials()
 
 void NXMaterialResourceManager::AdjustSSSProfileMapToGBufferIndex()
 {
-	// 1. 遍历所有的 sss 材质，每出现一个新的 sss profile 路径，将该路径添加到 m_sssProfileGBufferIndexMap 中
-	//	  a) 如果出现无效路径或者 profile 读取失败，将一个空路径Hash（"0"）添加到 m_sssProfileGBufferIndexMap。
-
-	// 本方法负责维护序列
-	// m_sssProfileGBufferIndexMap 负责存储 SSSProfile 路径 和 GBufferIndex 的映射，
-	// 渲染 GBuffer 时 需要依赖它确定材质使用的 GBufferIndex
-	// m_sssProfileRenderList 负责存储 GBufferIndex 和 SSSProfile 的映射，
-	// 渲染 3S pass 时 需要依赖它确定实际的 SSSProfile 数据
+	// 此方法负责每帧维护 SSSProfile、Mesh、Material 之间的映射关系
+	// 遍历所有的 sss 材质，每出现一个新的 sss profile 路径，将该路径添加到 m_sssProfileGBufferIndexMap 中
+	//	  如果出现无效路径或者 profile 读取失败，将一个空路径Hash（"0"）添加到 m_sssProfileGBufferIndexMap。
 	
-	// 2023.11.14：Nix 现在没有视锥剔除，将来如果有了必然需要重写这……但现在先这样
+	// 2023.11.14：Nix 现在没有视锥剔除，将来如果有了必然需要重写这里的逻辑，但现在就先这样吧
 
 	const static UINT8 INVALID_SSS_PROFILE = 0xff;
 	for (auto& [_, idx] : m_sssProfileGBufferIndexMap) idx = INVALID_SSS_PROFILE;
@@ -126,18 +121,18 @@ void NXMaterialResourceManager::AdjustSSSProfileMapToGBufferIndex()
 			auto& pProfile = GetOrAddSSSProfile(path); // 维护一下 SSSProfileMap，目的是确保里面一定有当前帧绘制的所有材质
 			PathHashValue pathHash = std::filesystem::hash_value(path);
 
-			// 是否是没有记录过的新路径？
+			// 是否是本次遍历过程中 没有记录过的新路径？
 			if (m_sssProfileGBufferIndexMap.find(pathHash) == m_sssProfileGBufferIndexMap.end() || 
 				m_sssProfileGBufferIndexMap[pathHash] == INVALID_SSS_PROFILE)
 			{
 				// 是，就存到 m_cbDiffuseProfileData 中
 				AdjustDiffuseProfileRenderData(pathHash, sssGBufferIndex);
 
-				// 同步保存这个 sss profile 在 GBuffer 的索引编号
+				// 同时保存这个 sss profile 在 GBuffer 的索引编号
 				m_sssProfileGBufferIndexMap[pathHash] = sssGBufferIndex++;
 
-				if (sssGBufferIndex >= 16)
-					break; // 超过 16 个 profile，GBufferIndex 用完了，不再继续遍历
+				// 若超过 16 个 profile，GBufferIndex 用完了，没有继续遍历的必要
+				if (sssGBufferIndex >= 16) break; 
 			}
 
 			// 设置当前材质的 sss profile 在 GBuffer 的索引编号
