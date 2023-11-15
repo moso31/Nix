@@ -61,7 +61,6 @@ public:
 
 	NXCamera* GetMainCamera() { return m_pMainCamera; }
 	std::vector<NXRenderableObject*> GetRenderableObjects() { return m_renderableObjects; }	
-	std::vector<NXPBRLight*> GetPBRLights() { return m_pbrLights; }
 	NXCubeMap* GetCubeMap() { return m_pCubeMap; }
 
 	NXEditorObjectManager* GetEditorObjManager() { return m_pEditorObjManager; }
@@ -103,7 +102,6 @@ private:
 
 	std::vector<NXScriptable*> m_scriptableObjects;
 	std::vector<NXRenderableObject*> m_renderableObjects;
-	std::vector<NXPBRLight*> m_pbrLights;
 
 	// 当前选中的SubMesh和对应的Objects
 	std::vector<NXSubMeshBase*> m_pSelectedSubMeshes;

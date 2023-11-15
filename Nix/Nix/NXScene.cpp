@@ -262,15 +262,15 @@ void NXScene::Init()
 
 	// Init Lighting
 	{
-		NXPBRPointLight* pPointLight;
+		Ntr<NXPBRPointLight> pPointLight;
 		pPointLight = NXResourceManager::GetInstance()->GetLightManager()->CreatePBRPointLight(Vector3(0.0f, 0.25f, 0.0f), Vector3(1.0f), 100.0f, 100.0f);
 		m_cbDataLights.pointLight[0] = pPointLight->GetConstantBuffer();
 
-		NXPBRDistantLight* pDirLight;
+		Ntr<NXPBRDistantLight> pDirLight;
 		pDirLight = NXResourceManager::GetInstance()->GetLightManager()->CreatePBRDistantLight(Vector3(-1.0f, -1.30f, 1.0f), Vector3(1.0f), 0.0f);
 		m_cbDataLights.distantLight[0] = pDirLight->GetConstantBuffer();
 
-		NXPBRSpotLight* pSpotLight;
+		Ntr<NXPBRSpotLight> pSpotLight;
 		//pSpotLight = NXResourceManager::GetInstance()->GetLightManager()->CreatePBRSpotLight(Vector3(0.0f, 2.0f, 0.0f), Vector3(0.0f, -1.0f, 0.0f), Vector3(1.0f), 1.0f, 30.0f, 50.0f, 100.0f);
 		//m_cbDataLights.spotLight[0] = pSpotLight->GetConstantBuffer();
 
@@ -396,7 +396,6 @@ void NXScene::UpdateLightData()
 void NXScene::Release()
 {
 	SafeRelease(m_pEditorObjManager);
-	for (auto pLight : m_pbrLights) SafeDelete(pLight);
 	SafeRelease(m_pBVHTree);
 	SafeRelease(m_pRootObject);
 }
@@ -511,13 +510,11 @@ void NXScene::RegisterCamera(NXCamera* newCamera, bool isMainCamera, NXObject* p
 	m_objects.push_back(newCamera);
 	newCamera->SetParent(pParent ? pParent : m_pRootObject);
 }
-
 void NXScene::RegisterLight(NXPBRLight* newLight, NXObject* pParent)
 {
-	m_pbrLights.push_back(newLight);
+	m_objects.push_back(newLight);
+	newLight->SetParent(pParent ? pParent : m_pRootObject);
 }
-
-
 void NXScene::InitEditorObjectsManager()
 {
 	m_pEditorObjManager = new NXEditorObjectManager(this);

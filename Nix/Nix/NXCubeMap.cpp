@@ -16,8 +16,7 @@
 using namespace DirectX::SamplerMath;
 using namespace DirectX::SimpleMath::SH;
 
-NXCubeMap::NXCubeMap(NXScene* pScene) :
-	m_pScene(pScene)
+NXCubeMap::NXCubeMap()
 {
 	InitConstantBuffer();
 }
@@ -87,9 +86,8 @@ void NXCubeMap::Update()
 	g_pContext->UpdateSubresource(m_cb.Get(), 0, nullptr, &m_cbData, 0, 0);
 }
 
-void NXCubeMap::UpdateViewParams()
+void NXCubeMap::UpdateViewParams(NXCamera* pCamera)
 {
-	auto pCamera = m_pScene->GetMainCamera();
 	NXGlobalBufferManager::m_cbDataObject.world = Matrix::CreateTranslation(pCamera->GetTranslation()).Transpose();
 	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbObject.Get(), 0, nullptr, &NXGlobalBufferManager::m_cbDataObject, 0, 0);
 }

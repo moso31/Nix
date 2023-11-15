@@ -50,7 +50,7 @@ void NXSkyRenderer::Render(bool bSSSEnable)
 	auto pCubeMap = m_pScene->GetCubeMap();
 	if (pCubeMap)
 	{
-		pCubeMap->UpdateViewParams();
+		pCubeMap->UpdateViewParams(m_pScene->GetMainCamera());
 		g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 		g_pContext->PSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 

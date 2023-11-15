@@ -32,17 +32,17 @@ struct ConstantBufferCubeMap
 	Vector4 irradMode;
 };
 
-class NXScene;
+class NXCamera;
 class NXTextureCube;
 class NXCubeMap : public NXTransform
 {
 public:
-	NXCubeMap(NXScene* pScene);
+	NXCubeMap();
 	~NXCubeMap() {}
 
 	bool Init(const std::filesystem::path& filePath);
 	void Update() override;
-	void UpdateViewParams();
+	void UpdateViewParams(NXCamera* pCamera);
 	void Render();
 	void Release() override;
 
@@ -74,8 +74,6 @@ private:
 	void InitConstantBuffer();
 
 private:
-	NXScene* m_pScene;
-
 	Matrix m_mxCubeMapProj;
 	Matrix m_mxCubeMapView[6];
 
