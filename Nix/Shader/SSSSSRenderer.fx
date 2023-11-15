@@ -1,7 +1,8 @@
 #include "Math.fx"
+#include "PBRLights.fx"
 
 // R(r)
-float3 Burley3S_R(float r, float s)
+float Burley3S_R(float r, float s)
 {
     return s * (exp(-s * r) + exp(-s * r / 3)) / (8 * NX_PI * r);
 }
@@ -48,9 +49,18 @@ struct CBufferDiffuseProfile
 	float scatterStrength;
 	float3 transmit;
 	float transmitStrength;
+	float radius;
+	float3 _0;
 };
 
-cbuffer CBufferParams : register(b2)
+cbuffer ConstantBufferLight : register(b2)
+{
+	DistantLight m_dirLight[NUM_DISTANT_LIGHT];
+	PointLight m_pointLight[NUM_POINT_LIGHT];
+	SpotLight m_spotLight[NUM_SPOT_LIGHT];
+}
+
+cbuffer CBufferParams : register(b3)
 {
 	CBufferDiffuseProfile sssProfData[16];
 }
@@ -89,9 +99,9 @@ float4 PS(PS_INPUT input) : SV_Target
 	float2 screenCoord = uv * cameraParams0.xy;
 
 	float depth = txDepthZ.Sample(ssLinearClamp, uv).x;
-	float linearDepthZ = DepthZ01ToLinear(depth);
+	float centerLinearDepth = DepthZ01ToLinear(depth);
 	float3 viewDirRawVS = GetViewDirVS_unNormalized(uv);
-	float3 positionVS = viewDirRawVS * linearDepthZ;
+	float3 positionVS = viewDirRawVS * centerLinearDepth;
 
 	float3 irradiance = txIrradiance.Sample(ssLinearClamp, uv).xyz;
 	float4 rt1 = txNormal.Sample(ssLinearClamp, uv);
@@ -100,7 +110,11 @@ float4 PS(PS_INPUT input) : SV_Target
 	GetNTBMatrixVS(normalVS, tangentVS, bitangentVS);
 
 	uint sssProfIndex = asuint(rt1.w);
-	float3 s = sssProfData[sssProfIndex].scatter;
+	float radiusCM = sssProfData[sssProfIndex].radius * 0.01;
+	float3 scatter = sssProfData[sssProfIndex].scatter;
+	float s = sssProfData[sssProfIndex].scatterStrength;
+	float3 transmit = sssProfData[sssProfIndex].transmit;
+	float t = sssProfData[sssProfIndex].transmitStrength;
 
 	float3 sssResult = 0.0f;
 
@@ -113,7 +127,7 @@ float4 PS(PS_INPUT input) : SV_Target
 		float randB = Random01FromNoiseGray(screenCoord, i + sampleN);
 
 		// 重点采样，生成 r
-		float r = Burley3S_InverseCDF(randA, s) * 0.01;
+		float r = Burley3S_InverseCDF(randA, s) * radiusCM;
 
 		// 均匀采样，生成 theta
 		float theta = NX_2PI * randB;
@@ -134,12 +148,13 @@ float4 PS(PS_INPUT input) : SV_Target
 		float sampleDepth = txDepthZ.Sample(ssLinearClamp, sampleUV).x;
 		float sampleLinearDepth = DepthZ01ToLinear(sampleDepth);
 
-		// 深度信息不一定位于 Disk 切平面上，需要 使用勾股定理校正 r 的值
-		float depthOffset = sampleLinearDepth - depth;
-		float adjustR = sqrt(r * r + depthOffset * depthOffset); // 校正 r
+		// 深度信息不一定位于 Disk 切平面上，需要 确定实际的 r 的值
+		float3 sampleVS = GetViewDirVS_unNormalized(sampleUV) * sampleLinearDepth;
+		float adjustR = distance(sampleVS, positionVS); // 获取实际的 r
 
 		// 最后，统计当前样本的反射率 R(r)
-		float3 weight = Burley3S_R(adjustR, s) * NX_2PI * adjustR / Burley3S_PDF(r, s);
+		// 算 pdf 时，仍然用初始 r 值计算
+		float3 weight = scatter * Burley3S_R(adjustR, s) * NX_2PI * adjustR / Burley3S_PDF(r, s);
 
 		// 累积采样结果
 		sssResult += txIrradiance.Sample(ssLinearClamp, sampleUV).xyz * weight;
@@ -148,11 +163,12 @@ float4 PS(PS_INPUT input) : SV_Target
 
 	sssResult /= sumWeight;
 
-	//// 透射
-	//float3 transmissionColor = GetTransmissionColor(); // 用户自定义透射颜色 I_{tt}
-	//transmissionColor *= 0.25f * A * (exp(-s * centerDepth) + exp(-s * centerDepth / 3));
-
-	//sssResult += transmissionColor;
+	// 透射
+	if (dot(normalVS, viewDirRawVS) > 0.0f)
+	{
+		float3 transmissionColor = transmit * 0.25f * t * (exp(-s * centerLinearDepth) + exp(-s * centerLinearDepth / 3));
+		sssResult += transmissionColor;
+	}
 
 	float3 spec = txSpecular.Sample(ssLinearClamp, uv).xyz;
 	float3 result = sssResult + spec;

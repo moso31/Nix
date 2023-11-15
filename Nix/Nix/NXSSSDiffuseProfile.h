@@ -24,6 +24,9 @@ public:
 	float GetTransmitStrength() { return m_transmitStrength; }
 	void SetTransmitStrength(float value) { m_transmitStrength = value; }
 
+	float GetRadius() { return m_radius; }
+	void SetRadius(float value) { m_radius = value; }
+
 private:
 	std::filesystem::path m_filePath;
 
@@ -31,4 +34,7 @@ private:
 	float m_scatterStrength = 1.0f;
 	Vector3 m_transmit = Vector3(1.0f);
 	float m_transmitStrength = 1.0f;
+
+	// SSS µÄ°ë¾¶£¨µ¥Î»m£©
+	float m_radius = 1.0f;
 };

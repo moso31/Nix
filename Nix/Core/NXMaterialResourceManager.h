@@ -12,6 +12,8 @@ struct DiffuseProfileData
     float scatterStrength;
     Vector3 transmit;
     float transmitStrength;
+    float radius;
+    Vector3 _padding;
 };
 
 struct CBufferDiffuseProfileData

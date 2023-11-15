@@ -3,29 +3,24 @@
 #include "NXPBRLight.h"
 #include "NXCubeMap.h"
 
-void NXLightResourceManager::SetWorkingScene(NXScene* pScene)
+Ntr<NXPBRDistantLight> NXLightResourceManager::CreatePBRDistantLight(const Vector3& direction, const Vector3& color, const float illuminance)
 {
-	m_pWorkingScene = pScene;
-}
-
-NXPBRDistantLight* NXLightResourceManager::CreatePBRDistantLight(const Vector3& direction, const Vector3& color, const float illuminance)
-{
-	auto pLight = new NXPBRDistantLight(direction, color, illuminance);
-	m_pWorkingScene->RegisterLight(pLight);
+	Ntr<NXPBRDistantLight> pLight(new NXPBRDistantLight(direction, color, illuminance));
+	m_distantLights.push_back(pLight);
 	return pLight;
 }
 
-NXPBRPointLight* NXLightResourceManager::CreatePBRPointLight(const Vector3& position, const Vector3& color, const float intensity, const float influenceRadius)
+Ntr<NXPBRPointLight> NXLightResourceManager::CreatePBRPointLight(const Vector3& position, const Vector3& color, const float intensity, const float influenceRadius)
 {
-	auto pLight = new NXPBRPointLight(position, color, intensity, influenceRadius);
-	m_pWorkingScene->RegisterLight(pLight);
+	Ntr<NXPBRPointLight> pLight(new NXPBRPointLight(position, color, intensity, influenceRadius));
+	m_pointLights.push_back(pLight);
 	return pLight;
 }
 
-NXPBRSpotLight* NXLightResourceManager::CreatePBRSpotLight(const Vector3& position, const Vector3& direction, const Vector3& color, const float intensity, const float innerAngle, const float outerAngle, const float influenceRadius)
+Ntr<NXPBRSpotLight> NXLightResourceManager::CreatePBRSpotLight(const Vector3& position, const Vector3& direction, const Vector3& color, const float intensity, const float innerAngle, const float outerAngle, const float influenceRadius)
 {
-	auto pLight = new NXPBRSpotLight(position, direction, color, intensity, innerAngle, outerAngle, influenceRadius);
-	m_pWorkingScene->RegisterLight(pLight);
+	Ntr<NXPBRSpotLight> pLight(new NXPBRSpotLight(position, direction, color, intensity, innerAngle, outerAngle, influenceRadius));
+	m_spotLights.push_back(pLight);
 	return pLight;
 }
 

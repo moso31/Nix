@@ -17,9 +17,4 @@ public:
 
 private:
 	Ntr<NXSSSDiffuseProfile> m_pShowProfile;
-
-	Vector3 m_scatter;
-	float m_scatterStrength;
-	Vector3 m_transmit;
-	float m_transmitStrength;
 };

@@ -49,7 +49,9 @@ void NXSubSurfaceRenderer::RenderSSSSS()
 {
 	auto& cbDiffuseProfileData = NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfileData();
 	g_pContext->UpdateSubresource(m_cbDiffuseProfile.Get(), 0, nullptr, &cbDiffuseProfileData, 0, 0);
-	g_pContext->PSSetConstantBuffers(2, 1, m_cbDiffuseProfile.GetAddressOf());
+	g_pContext->PSSetConstantBuffers(3, 1, m_cbDiffuseProfile.GetAddressOf());
+
+	g_pContext->PSSetConstantBuffers(2, 1, );
 
 	g_pContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 0x01);
 	g_pContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xffffffff);

@@ -11,20 +11,15 @@ enum NXLightTypeEnum
 	NXLight_Spot,
 };
 
-class NXPBRLight
+class NXPBRLight : public NXObject // TODO£º¸Ä³É¼Ì³Ð Transform
 {
 public:
 	NXPBRLight() { m_name = "Unknown Light"; m_type = NXLight_Unknown; }
 	virtual ~NXPBRLight() {}
 
-	std::string GetName() { return m_name; }
-	void SetName(std::string name) { m_name = name; }
-
 	NXLightTypeEnum GetType() { return m_type; }
-	//std::string GetTypeString() { return NXLightTypeEnumStr[m_type]; }
 
 public:
-	std::string m_name;
 	NXLightTypeEnum m_type;
 };
 
