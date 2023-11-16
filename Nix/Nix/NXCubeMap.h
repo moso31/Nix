@@ -32,17 +32,17 @@ struct ConstantBufferCubeMap
 	Vector4 irradMode;
 };
 
-class NXCamera;
+class NXScene;
 class NXTextureCube;
 class NXCubeMap : public NXTransform
 {
 public:
-	NXCubeMap();
+	NXCubeMap(NXScene* pScene);
 	~NXCubeMap() {}
 
 	bool Init(const std::filesystem::path& filePath);
 	void Update() override;
-	void UpdateViewParams(NXCamera* pCamera);
+	void UpdateViewParams();
 	void Render();
 	void Release() override;
 
@@ -74,6 +74,8 @@ private:
 	void InitConstantBuffer();
 
 private:
+	NXScene* m_pScene;
+
 	Matrix m_mxCubeMapProj;
 	Matrix m_mxCubeMapView[6];
 
@@ -98,9 +100,9 @@ private:
 	ConstantBufferCubeMap	m_cbData;
 	ComPtr<ID3D11Buffer>	m_cb;
 
-////////////////////////////////////////////////////////////////////////////
-//// Deprecated functions...
-////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////
+	//// Deprecated functions...
+	////////////////////////////////////////////////////////////////////////////
 
 
 public:

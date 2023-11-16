@@ -3,24 +3,29 @@
 #include "NXPBRLight.h"
 #include "NXCubeMap.h"
 
-Ntr<NXPBRDistantLight> NXLightResourceManager::CreatePBRDistantLight(const Vector3& direction, const Vector3& color, const float illuminance)
+void NXLightResourceManager::SetWorkingScene(NXScene* pScene)
 {
-	Ntr<NXPBRDistantLight> pLight(new NXPBRDistantLight(direction, color, illuminance));
-	m_distantLights.push_back(pLight);
+	m_pWorkingScene = pScene;
+}
+
+NXPBRDistantLight* NXLightResourceManager::CreatePBRDistantLight(const Vector3& direction, const Vector3& color, const float illuminance)
+{
+	auto pLight = new NXPBRDistantLight(direction, color, illuminance);
+	m_pWorkingScene->RegisterLight(pLight);
 	return pLight;
 }
 
-Ntr<NXPBRPointLight> NXLightResourceManager::CreatePBRPointLight(const Vector3& position, const Vector3& color, const float intensity, const float influenceRadius)
+NXPBRPointLight* NXLightResourceManager::CreatePBRPointLight(const Vector3& position, const Vector3& color, const float intensity, const float influenceRadius)
 {
-	Ntr<NXPBRPointLight> pLight(new NXPBRPointLight(position, color, intensity, influenceRadius));
-	m_pointLights.push_back(pLight);
+	auto pLight = new NXPBRPointLight(position, color, intensity, influenceRadius);
+	m_pWorkingScene->RegisterLight(pLight);
 	return pLight;
 }
 
-Ntr<NXPBRSpotLight> NXLightResourceManager::CreatePBRSpotLight(const Vector3& position, const Vector3& direction, const Vector3& color, const float intensity, const float innerAngle, const float outerAngle, const float influenceRadius)
+NXPBRSpotLight* NXLightResourceManager::CreatePBRSpotLight(const Vector3& position, const Vector3& direction, const Vector3& color, const float intensity, const float innerAngle, const float outerAngle, const float influenceRadius)
 {
-	Ntr<NXPBRSpotLight> pLight(new NXPBRSpotLight(position, direction, color, intensity, innerAngle, outerAngle, influenceRadius));
-	m_spotLights.push_back(pLight);
+	auto pLight = new NXPBRSpotLight(position, direction, color, intensity, innerAngle, outerAngle, influenceRadius);
+	m_pWorkingScene->RegisterLight(pLight);
 	return pLight;
 }
 

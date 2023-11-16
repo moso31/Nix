@@ -40,7 +40,7 @@ void NXScene::OnMouseDown(NXEventArgMouse eArg)
 	if (eArg.VMouse & 1) // 鼠标左键
 	{
 		auto ray = GetMainCamera()->GenerateRay(eArg.ViewPortPos, eArg.ViewPortSize);
-		
+
 		// 检测是否点击编辑器对象（移动箭头，旋转环，缩放轴）
 		// （不过目前实际上只有移动箭头hhhhh）
 		NXHit editObjHit;
@@ -93,7 +93,7 @@ void NXScene::OnMouseMove(NXEventArgMouse eArg)
 		m_bEditorSelectID < EditorObjectID::MAX)
 	{
 		// 进入这里说明正在拖动 MoveArrow/RotateRing/ScaleBoxes
-		
+
 		// 获取拖动后位置在MoveArrow的轴/平面上的投影坐标
 		Vector3 anchorPos = GetAnchorOfEditorObject(worldRay);
 
@@ -255,22 +255,22 @@ void NXScene::Init()
 	);
 
 	NXCubeMap* pSky =
-	NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\ballroom_4k.hdr");
+		NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\ballroom_4k.hdr");
 	pSky->SetIntensity(1.0f);
 
 	InitBoundingStructures();
 
 	// Init Lighting
 	{
-		Ntr<NXPBRPointLight> pPointLight;
+		NXPBRPointLight* pPointLight;
 		pPointLight = NXResourceManager::GetInstance()->GetLightManager()->CreatePBRPointLight(Vector3(0.0f, 0.25f, 0.0f), Vector3(1.0f), 100.0f, 100.0f);
 		m_cbDataLights.pointLight[0] = pPointLight->GetConstantBuffer();
 
-		Ntr<NXPBRDistantLight> pDirLight;
+		NXPBRDistantLight* pDirLight;
 		pDirLight = NXResourceManager::GetInstance()->GetLightManager()->CreatePBRDistantLight(Vector3(-1.0f, -1.30f, 1.0f), Vector3(1.0f), 0.0f);
 		m_cbDataLights.distantLight[0] = pDirLight->GetConstantBuffer();
 
-		Ntr<NXPBRSpotLight> pSpotLight;
+		NXPBRSpotLight* pSpotLight;
 		//pSpotLight = NXResourceManager::GetInstance()->GetLightManager()->CreatePBRSpotLight(Vector3(0.0f, 2.0f, 0.0f), Vector3(0.0f, -1.0f, 0.0f), Vector3(1.0f), 1.0f, 30.0f, 50.0f, 100.0f);
 		//m_cbDataLights.spotLight[0] = pSpotLight->GetConstantBuffer();
 
@@ -396,6 +396,7 @@ void NXScene::UpdateLightData()
 void NXScene::Release()
 {
 	SafeRelease(m_pEditorObjManager);
+	for (auto pLight : m_pbrLights) SafeDelete(pLight);
 	SafeRelease(m_pBVHTree);
 	SafeRelease(m_pRootObject);
 }
@@ -408,7 +409,7 @@ void NXScene::AddPickingSubMesh(NXSubMeshBase* pPickingSubMesh)
 		m_pSelectedObjects.push_back(pPickingObj);
 		m_selectObjHitOffset.push_back(Vector3(0.0f));
 	}
-		
+
 	if (m_pSelectedSubMeshes.empty() || std::find(m_pSelectedSubMeshes.begin(), m_pSelectedSubMeshes.end(), pPickingSubMesh) == m_pSelectedSubMeshes.end())
 	{
 		m_pSelectedSubMeshes.push_back(pPickingSubMesh);
@@ -510,11 +511,13 @@ void NXScene::RegisterCamera(NXCamera* newCamera, bool isMainCamera, NXObject* p
 	m_objects.push_back(newCamera);
 	newCamera->SetParent(pParent ? pParent : m_pRootObject);
 }
+
 void NXScene::RegisterLight(NXPBRLight* newLight, NXObject* pParent)
 {
-	m_objects.push_back(newLight);
-	newLight->SetParent(pParent ? pParent : m_pRootObject);
+	m_pbrLights.push_back(newLight);
 }
+
+
 void NXScene::InitEditorObjectsManager()
 {
 	m_pEditorObjManager = new NXEditorObjectManager(this);

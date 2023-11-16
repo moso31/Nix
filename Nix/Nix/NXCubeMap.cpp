@@ -16,7 +16,8 @@
 using namespace DirectX::SamplerMath;
 using namespace DirectX::SimpleMath::SH;
 
-NXCubeMap::NXCubeMap()
+NXCubeMap::NXCubeMap(NXScene* pScene) :
+	m_pScene(pScene)
 {
 	InitConstantBuffer();
 }
@@ -27,12 +28,12 @@ bool NXCubeMap::Init(const std::filesystem::path& filePath)
 	InitVertex();
 
 	m_mxCubeMapProj = XMMatrixPerspectiveFovLH(XMConvertToRadians(90.0f), 1.0f, 0.1f, 10.0f);
-	m_mxCubeMapView[0] = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3( 1.0f,  0.0f,  0.0f), Vector3(0.0f,  1.0f,  0.0f));
-	m_mxCubeMapView[1] = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(-1.0f,  0.0f,  0.0f), Vector3(0.0f,  1.0f,  0.0f));
-	m_mxCubeMapView[2] = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3( 0.0f,  1.0f,  0.0f), Vector3(0.0f,  0.0f, -1.0f));
-	m_mxCubeMapView[3] = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3( 0.0f, -1.0f,  0.0f), Vector3(0.0f,  0.0f,  1.0f));
-	m_mxCubeMapView[4] = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3( 0.0f,  0.0f,  1.0f), Vector3(0.0f,  1.0f,  0.0f));
-	m_mxCubeMapView[5] = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3( 0.0f,  0.0f, -1.0f), Vector3(0.0f,  1.0f,  0.0f));
+	m_mxCubeMapView[0] = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(1.0f, 0.0f, 0.0f), Vector3(0.0f, 1.0f, 0.0f));
+	m_mxCubeMapView[1] = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(-1.0f, 0.0f, 0.0f), Vector3(0.0f, 1.0f, 0.0f));
+	m_mxCubeMapView[2] = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 1.0f, 0.0f), Vector3(0.0f, 0.0f, -1.0f));
+	m_mxCubeMapView[3] = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, -1.0f, 0.0f), Vector3(0.0f, 0.0f, 1.0f));
+	m_mxCubeMapView[4] = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 1.0f), Vector3(0.0f, 1.0f, 0.0f));
+	m_mxCubeMapView[5] = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, -1.0f), Vector3(0.0f, 1.0f, 0.0f));
 
 	std::string strExtension = NXConvert::s2lower(filePath.extension().string().c_str());
 
@@ -66,7 +67,7 @@ ID3D11ShaderResourceView* NXCubeMap::GetSRVCubeMap()
 }
 
 ID3D11ShaderResourceView* NXCubeMap::GetSRVCubeMapPreview2D()
-{ 
+{
 	return m_pTexCubeMap->GetSRVPreview2D();
 }
 
@@ -86,8 +87,9 @@ void NXCubeMap::Update()
 	g_pContext->UpdateSubresource(m_cb.Get(), 0, nullptr, &m_cbData, 0, 0);
 }
 
-void NXCubeMap::UpdateViewParams(NXCamera* pCamera)
+void NXCubeMap::UpdateViewParams()
 {
+	auto pCamera = m_pScene->GetMainCamera();
 	NXGlobalBufferManager::m_cbDataObject.world = Matrix::CreateTranslation(pCamera->GetTranslation()).Transpose();
 	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbObject.Get(), 0, nullptr, &NXGlobalBufferManager::m_cbDataObject, 0, 0);
 }
@@ -341,8 +343,8 @@ void NXCubeMap::GenerateIrradianceSHFromCubeMap()
 				float v = (float)(i + 0.5f) / (float)nIrradTexSize * 2.0f - 1.0f;
 
 				Vector3 dir;
-				if (iFace == 0) dir = Vector3(1.0f, -v, -u); 
-				if (iFace == 1) dir = Vector3(-1.0f, -v, u); 
+				if (iFace == 0) dir = Vector3(1.0f, -v, -u);
+				if (iFace == 1) dir = Vector3(-1.0f, -v, u);
 				if (iFace == 2) dir = Vector3(u, 1.0f, v);
 				if (iFace == 3) dir = Vector3(u, -1.0f, -v);
 				if (iFace == 4) dir = Vector3(u, -v, 1.0f);
