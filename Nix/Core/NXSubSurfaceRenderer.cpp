@@ -6,8 +6,10 @@
 #include "NXResourceManager.h"
 #include "NXSamplerStates.h"
 #include "NXTexture.h"
+#include "NXScene.h"
 
-NXSubSurfaceRenderer::NXSubSurfaceRenderer()
+NXSubSurfaceRenderer::NXSubSurfaceRenderer(NXScene* pScene) :
+	m_pScene(pScene)
 {
 }
 
@@ -51,12 +53,16 @@ void NXSubSurfaceRenderer::RenderSSSSS()
 	g_pContext->UpdateSubresource(m_cbDiffuseProfile.Get(), 0, nullptr, &cbDiffuseProfileData, 0, 0);
 	g_pContext->PSSetConstantBuffers(3, 1, m_cbDiffuseProfile.GetAddressOf());
 
+	auto pCBLight = m_pScene->GetConstantBufferLights();
+	g_pContext->PSSetConstantBuffers(2, 1, &pCBLight);
+
 	g_pContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 0x01);
 	g_pContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xffffffff);
 	g_pContext->RSSetState(m_pRasterizerState.Get());
 
 	ID3D11ShaderResourceView* pSRVIrradiance = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting0)->GetSRV();
 	ID3D11ShaderResourceView* pSRVSpecLighting = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting1)->GetSRV();
+	ID3D11ShaderResourceView* pSRVSSSTransmit = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting2)->GetSRV();
 	ID3D11ShaderResourceView* pSRVNormal = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer1)->GetSRV();
 	ID3D11ShaderResourceView* pSRVDepthZ = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ_R32)->GetSRV();
 	ID3D11ShaderResourceView* pSRVNoiseGray = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_Noise2DGray_64x64)->GetSRV();
@@ -74,14 +80,15 @@ void NXSubSurfaceRenderer::RenderSSSSS()
 
 	g_pContext->PSSetShaderResources(0, 1, &pSRVIrradiance);
 	g_pContext->PSSetShaderResources(1, 1, &pSRVSpecLighting);
-	g_pContext->PSSetShaderResources(2, 1, &pSRVNormal);
-	g_pContext->PSSetShaderResources(3, 1, &pSRVDepthZ);
-	g_pContext->PSSetShaderResources(4, 1, &pSRVNoiseGray);
+	g_pContext->PSSetShaderResources(2, 1, &pSRVSSSTransmit);
+	g_pContext->PSSetShaderResources(3, 1, &pSRVNormal);
+	g_pContext->PSSetShaderResources(4, 1, &pSRVDepthZ);
+	g_pContext->PSSetShaderResources(5, 1, &pSRVNoiseGray);
 
 	m_pResultRT->Render();
 
-	ID3D11ShaderResourceView* const pNullSRV[4] = { nullptr };
-	g_pContext->PSSetShaderResources(0, 4, pNullSRV);
+	ID3D11ShaderResourceView* const pNullSRV[6] = { nullptr };
+	g_pContext->PSSetShaderResources(0, 6, pNullSRV);
 }
 
 void NXSubSurfaceRenderer::Release()

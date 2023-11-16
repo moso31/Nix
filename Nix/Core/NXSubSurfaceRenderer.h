@@ -2,11 +2,12 @@
 #include "BaseDefs/DX11.h"
 #include "ShaderStructures.h"
 
+class NXScene;
 class NXRenderTarget;
 class NXSubSurfaceRenderer
 {
 public:
-	NXSubSurfaceRenderer();
+	NXSubSurfaceRenderer(NXScene* pScene);
 	~NXSubSurfaceRenderer();
 
 	void Init();
@@ -18,6 +19,7 @@ private:
 	void RenderSSSSS();
 
 private:
+	NXScene* m_pScene;
 	ComPtr<ID3D11VertexShader>			m_pVertexShader; 
 	ComPtr<ID3D11PixelShader>			m_pPixelShader;
 	ComPtr<ID3D11InputLayout>			m_pInputLayout;

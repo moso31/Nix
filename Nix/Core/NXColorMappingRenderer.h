@@ -15,7 +15,7 @@ public:
 	~NXColorMappingRenderer();
 
 	void Init();
-	void Render(bool bSSSEnable);
+	void Render();
 
 	bool GetEnable() const { return m_bEnablePostProcessing; }
 	void SetEnable(bool value) { m_bEnablePostProcessing = value; }

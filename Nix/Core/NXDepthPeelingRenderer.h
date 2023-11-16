@@ -21,7 +21,7 @@ public:
 
 	void Init();
 	void OnResize(const Vector2& rtSize);
-	void Render(bool bSSSEnable);
+	void Render();
 
 	void Release();
 

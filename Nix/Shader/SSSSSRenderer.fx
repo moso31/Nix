@@ -38,9 +38,10 @@ float2 ConvertPositionVSToScreenUV(float3 positionVS)
 
 Texture2D txIrradiance : register(t0);
 Texture2D txSpecular : register(t1);
-Texture2D txNormal : register(t2);
-Texture2D txDepthZ : register(t3);
-Texture2D txNoiseGray : register(t4);
+Texture2D txIrradianceTransmit : register(t2);
+Texture2D txNormal : register(t3);
+Texture2D txDepthZ : register(t4);
+Texture2D txNoiseGray : register(t5);
 SamplerState ssLinearClamp : register(s0);
 
 struct CBufferDiffuseProfile
@@ -164,11 +165,9 @@ float4 PS(PS_INPUT input) : SV_Target
 	sssResult /= sumWeight;
 
 	// Í¸Éä
-	if (dot(normalVS, viewDirRawVS) > 0.0f)
-	{
-		float3 transmissionColor = transmit * 0.25f * t * (exp(-s * centerLinearDepth) + exp(-s * centerLinearDepth / 3));
-		sssResult += transmissionColor;
-	}
+	float3 irradTransmit = txIrradianceTransmit.Sample(ssLinearClamp, uv).xyz;
+	float3 transmissionColor = irradTransmit * transmit * 0.25f * t * (exp(-s * centerLinearDepth) + exp(-s * centerLinearDepth / 3));
+	sssResult += transmissionColor;
 
 	float3 spec = txSpecular.Sample(ssLinearClamp, uv).xyz;
 	float3 result = sssResult + spec;

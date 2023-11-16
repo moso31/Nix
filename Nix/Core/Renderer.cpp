@@ -67,7 +67,7 @@ void Renderer::Init()
 	m_pDeferredRenderer = new NXDeferredRenderer(m_scene, m_pBRDFLut);
 	m_pDeferredRenderer->Init();
 
-	m_pSubSurfaceRenderer = new NXSubSurfaceRenderer();
+	m_pSubSurfaceRenderer = new NXSubSurfaceRenderer(m_scene);
 	m_pSubSurfaceRenderer->Init();
 
 	m_pForwardRenderer = new NXForwardRenderer(m_scene, m_pBRDFLut);
@@ -204,18 +204,14 @@ void Renderer::RenderFrame()
 	g_pContext->RSSetViewports(1, &vpCamera);
 	m_pShadowTestRenderer->Render(m_pShadowMapRenderer->GetShadowMapDepthTex());
 
-	bool bSSSEnable = true;
 	// Deferred opaque shading
-	m_pDeferredRenderer->Render(bSSSEnable);
+	m_pDeferredRenderer->Render();
 
-	if (bSSSEnable)
-	{
-		// SSSSS: Screen-Space Sub-Surface Scattering(2009)
-		m_pSubSurfaceRenderer->Render();
-	}
+	// Burley SSS (2015)
+	m_pSubSurfaceRenderer->Render();
 
 	// CubeMap
-	m_pSkyRenderer->Render(bSSSEnable);
+	m_pSkyRenderer->Render();
 
 	// Forward translucent shading
 	// 2023.8.20 前向渲染暂时停用，等 3S 搞完的
@@ -226,7 +222,7 @@ void Renderer::RenderFrame()
 	//m_pSSAO->Render(pSRVNormal, pSRVPosition, pSRVDepthPrepass);
 
 	// post processing
-	m_pColorMappingRenderer->Render(bSSSEnable);
+	m_pColorMappingRenderer->Render();
 
 	// 绘制编辑器对象
 	m_pEditorObjectRenderer->Render();
