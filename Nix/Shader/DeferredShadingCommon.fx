@@ -16,6 +16,15 @@ void CalcBSDF(float NoV, float NoL, float NoH, float VoH, float roughness, float
 	specBSDF = D * G * F;
 }
 
+void CalcBTDF_SubSurface(float3 N, float3 L, float3 V, float3 albedo, float3 LightIlluminance, out float3 I_transmit)
+{
+	float backNoL = saturate(dot(N, -L));
+	float3 backH = normalize(-L + N);
+	float backVoH = pow(saturate(dot(V, backH)), 4.0f);
+	float3 transDiff = DiffuseLambert(albedo);
+	I_transmit = backVoH * transDiff * LightIlluminance * backNoL;
+}
+
 void EvalRadiance_DirLight(DistantLight dirLight, float3 V, float3 N, float NoV, float perceptualRoughness, float metallic, float3 albedo, float F0, out float3 Lo_diff, out float3 Lo_spec)
 {
 	float3 LightDirWS = normalize(-dirLight.direction);
@@ -97,7 +106,6 @@ void EvalRadiance_SpotLight(SpotLight spotLight, float3 CamPosVS, float3 V, floa
 	Lo_spec = f_spec * IncidentIlluminance * FalloffFactor;
 }
 
-
 void EvalRadiance_DirLight_SubSurface(DistantLight dirLight, float3 V, float3 N, float NoV, float perceptualRoughness, float metallic, float3 albedo, float F0, out float3 Lo_diff, out float3 Lo_spec, out float3 I_transmit)
 {
 	float3 LightDirWS = normalize(-dirLight.direction);
@@ -118,8 +126,7 @@ void EvalRadiance_DirLight_SubSurface(DistantLight dirLight, float3 V, float3 N,
 	Lo_diff = f_diff * IncidentIlluminance;
 	Lo_spec = f_spec * IncidentIlluminance;
 
-	float backNoL = (dot(-N, L) + 1.0) * 0.5f;
-	I_transmit = dot(LightIlluminance, LightIlluminance) < 1e-4f ? 0.0f : LightIlluminance * backNoL;
+	CalcBTDF_SubSurface(N, L, V, albedo, LightIlluminance, I_transmit);
 }
 
 void EvalRadiance_PointLight_SubSurface(PointLight pointLight, float3 CamPosVS, float3 V, float3 N, float NoV, float perceptualRoughness, float metallic, float3 albedo, float F0, out float3 Lo_diff, out float3 Lo_spec, out float3 I_transmit)
@@ -149,6 +156,8 @@ void EvalRadiance_PointLight_SubSurface(PointLight pointLight, float3 CamPosVS, 
 
 	float backNoL = (dot(-N, L) + 1.0) * 0.5f;
 	I_transmit = dot(LightIlluminance, LightIlluminance) < 1e-4f ? 0.0f : LightIlluminance * backNoL;
+
+	CalcBTDF_SubSurface(N, L, V, albedo, LightIlluminance, I_transmit);
 }
 
 void EvalRadiance_SpotLight_SubSurface(SpotLight spotLight, float3 CamPosVS, float3 V, float3 N, float NoV, float perceptualRoughness, float metallic, float3 albedo, float F0, out float3 Lo_diff, out float3 Lo_spec, out float3 I_transmit)
@@ -186,6 +195,8 @@ void EvalRadiance_SpotLight_SubSurface(SpotLight spotLight, float3 CamPosVS, flo
 
 	float backNoL = (dot(-N, L) + 1.0) * 0.5f;
 	I_transmit = dot(LightIlluminance, LightIlluminance) < 1e-4f ? 0.0f : LightIlluminance * backNoL;
+
+	CalcBTDF_SubSurface(N, L, V, albedo, LightIlluminance, I_transmit);
 }
 
 #endif // _DEFERRED_SHADING_COMMON_H_
