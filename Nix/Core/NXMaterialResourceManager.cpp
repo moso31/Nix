@@ -146,9 +146,11 @@ void NXMaterialResourceManager::AdjustDiffuseProfileRenderData(PathHashValue pat
 	bool isInvalidProfile = pathHash == std::filesystem::hash_value("") || m_sssProfilesMap.find(pathHash) == m_sssProfilesMap.end();
 	auto& pProfile = isInvalidProfile ? m_defaultDiffuseProfile : m_sssProfilesMap[pathHash];
 
-	m_cbDiffuseProfileData.sssProfData[sssGBufferIndex].radius = pProfile->GetRadius();
-	m_cbDiffuseProfileData.sssProfData[sssGBufferIndex].scatter = pProfile->GetScatter();
-	m_cbDiffuseProfileData.sssProfData[sssGBufferIndex].scatterStrength = pProfile->GetScatterStrength();
+	Vector3 scatterDistance = pProfile->GetScatter() * pProfile->GetScatterDistance();
+	float maxScatterDistance = scatterDistance.MaxComponent();
+	
+	m_cbDiffuseProfileData.sssProfData[sssGBufferIndex].scatterParam = scatterDistance.Reciprocal();
+	m_cbDiffuseProfileData.sssProfData[sssGBufferIndex].maxScatterDist = 1.0f / maxScatterDistance; // is rcp of dist actually!
 	m_cbDiffuseProfileData.sssProfData[sssGBufferIndex].transmit = pProfile->GetTransmit();
 	m_cbDiffuseProfileData.sssProfData[sssGBufferIndex].transmitStrength = pProfile->GetTransmitStrength();
 }
