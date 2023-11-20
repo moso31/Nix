@@ -12,25 +12,16 @@ void NXGUIDiffuseProfile::Render()
 	if (m_pShowProfile.IsNull())
 		return;
 
-	float radiusM = m_pShowProfile->GetRadius();
-	{
-		float radiusCM = radiusM * 100.0f;
-		if (ImGui::DragFloat("Radius (cm)", &radiusCM, 0.01f))
-		{
-			m_pShowProfile->SetRadius(radiusCM * 0.01f);
-		}
-	}
-
 	Vector3 scatter = m_pShowProfile->GetScatter();
 	if (ImGui::ColorEdit3("Scatter Color", scatter))
 	{
 		m_pShowProfile->SetScatter(scatter);
 	}
 
-	float scatterStrength = m_pShowProfile->GetScatterStrength();
-	if (ImGui::DragFloat("Scatter Strength", &scatterStrength, 0.01f))
+	float scatterDistance = m_pShowProfile->GetScatterDistance();
+	if (ImGui::DragFloat("Scatter Distance", &scatterDistance, 0.01f))
 	{
-		m_pShowProfile->SetScatterStrength(scatterStrength);
+		m_pShowProfile->SetScatterDistance(scatterDistance);
 	}
 
 	Vector3 transmit = m_pShowProfile->GetTransmit();

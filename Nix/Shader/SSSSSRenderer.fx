@@ -2,7 +2,7 @@
 #include "PBRLights.fx"
 
 // R(r)
-float Burley3S_R(float r, float s)
+float3 Burley3S_R(float r, float3 s)
 {
     return s * (exp(-s * r) + exp(-s * r / 3)) / (8 * NX_PI * r);
 }
@@ -46,12 +46,10 @@ SamplerState ssLinearClamp : register(s0);
 
 struct CBufferDiffuseProfile
 {
-	float3 scatter;
-	float scatterStrength;
+	float3 scatterParam; // x y z 的 s 参数不同
+	float maxScatterDistance;
 	float3 transmit;
 	float transmitStrength;
-	float radius;
-	float3 _0;
 };
 
 cbuffer ConstantBufferLight : register(b2)
@@ -111,33 +109,35 @@ float4 PS(PS_INPUT input) : SV_Target
 	GetNTBMatrixVS(normalVS, tangentVS, bitangentVS);
 
 	uint sssProfIndex = asuint(rt1.w);
-	float radiusCM = sssProfData[sssProfIndex].radius * 0.01;
-	float3 scatter = sssProfData[sssProfIndex].scatter;
-	float s = sssProfData[sssProfIndex].scatterStrength;
+	float3 scatter = sssProfData[sssProfIndex].scatterParam;
+	float minScatter = min(scatter.x, min(scatter.y, scatter.z)); // 最小值
 	float3 transmit = sssProfData[sssProfIndex].transmit;
 	float t = sssProfData[sssProfIndex].transmitStrength;
 
 	float3 sssResult = 0.0f;
 
-	float sampleN = 20.0f; // Burley SSS 采样次数
+	float sampleDistScale = 0.01f; // TODO: why 0.01?
+	float sampleN = 100.0f; // Burley SSS 采样次数
+	float sampleInv = rcp(sampleN);
 	float sumWeight = 0.0f;
 	for (float i = 0.0f; i < sampleN; i += 1.0f)
 	{
-		// 准备两个0~1随机数，使用不同的 seed
-		float randA = Random01FromNoiseGray(screenCoord, i);
-		float randB = Random01FromNoiseGray(screenCoord, i + sampleN);
+		// 准备两个0~1范围数
+		float e1 = i * sampleInv; // r 均匀生成
+		float e2 = Random01FromNoiseGray(screenCoord, i); // 旋转角 theta 随机生成
 
-		// 重点采样，生成 r
-		float r = Burley3S_InverseCDF(randA, s) * radiusCM;
+		// 反演 e1，获取实际的 r
+		// 反演时使用 rgb 通道中 最小的 scatter，确保三个通道的采样范围估计都是完整的
+		float r = Burley3S_InverseCDF(e1, minScatter);
 
 		// 均匀采样，生成 theta
-		float theta = NX_2PI * randB;
+		float theta = NX_2PI * e2;
 
 		// Disk UV 采样，2D 圆盘样本
 		// same as float2 diskUV = float2(r * sin(theta), r * cos(theta));
 		float2 diskUV;
 		sincos(theta, diskUV.x, diskUV.y);
-		diskUV *= r; 
+		diskUV *= r;
 
 		// 基于命中点的切线空间 进行 Disk UV 偏移，得到采样点
 		float3 samplePos = positionVS + tangentVS * diskUV.x + bitangentVS * diskUV.y;
@@ -155,7 +155,7 @@ float4 PS(PS_INPUT input) : SV_Target
 
 		// 最后，统计当前样本的反射率 R(r)
 		// 算 pdf 时，仍然用初始 r 值计算
-		float3 weight = scatter * Burley3S_R(adjustR, s) * NX_2PI * adjustR / Burley3S_PDF(r, s);
+		float3 weight = Burley3S_R(adjustR, scatter) * NX_2PI * adjustR / Burley3S_PDF(r, minScatter);
 
 		// 累积采样结果
 		sssResult += txIrradiance.Sample(ssLinearClamp, sampleUV).xyz * weight;
@@ -165,9 +165,9 @@ float4 PS(PS_INPUT input) : SV_Target
 	sssResult /= sumWeight;
 
 	// 透射
-	float3 irradTransmit = txIrradianceTransmit.Sample(ssLinearClamp, uv).xyz;
-	float3 transmissionColor = irradTransmit * transmit * 0.25f * t * (exp(-s * centerLinearDepth) + exp(-s * centerLinearDepth / 3));
-	sssResult += transmissionColor;
+	//float3 irradTransmit = txIrradianceTransmit.Sample(ssLinearClamp, uv).xyz;
+	//float3 transmissionColor = irradTransmit * transmit * 0.25f * t * (exp(-s * centerLinearDepth) + exp(-s * centerLinearDepth / 3));
+	//sssResult += transmissionColor;
 
 	float3 spec = txSpecular.Sample(ssLinearClamp, uv).xyz;
 	float3 result = sssResult + spec;

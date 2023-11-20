@@ -12,9 +12,8 @@ void NXSSSDiffuseProfile::Serialize()
 
 	NXSerializer serializer;
 	serializer.StartObject();
-	serializer.Float("radius", m_radius);
 	serializer.Vector3("scatter", m_scatter);
-	serializer.Float("scatterStrength", m_scatterStrength);
+	serializer.Float("scatterDistance", m_scatterDistance);
 	serializer.Vector3("transmit", m_transmit);
 	serializer.Float("transmitStrength", m_transmitStrength);
 	serializer.EndObject();
@@ -35,9 +34,8 @@ void NXSSSDiffuseProfile::Deserialize()
 	if (!deserializer.LoadFromFile(m_filePath))
 		return;
 
-	deserializer.Float("radius", m_radius);
 	deserializer.Vector3("scatter", m_scatter);
-	deserializer.Float("scatterStrength", m_scatterStrength);
+	deserializer.Float("scatterDistance", m_scatterDistance);
 	deserializer.Vector3("transmit", m_transmit);
 	deserializer.Float("transmitStrength", m_transmitStrength);
 }

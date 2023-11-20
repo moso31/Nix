@@ -13,9 +13,9 @@ Selfmade DX11 renderer.
 - [x] A very simple Tone-Mapping
 - [x] Programmable material
   - [x] Used this HLSL code editor: https://github.com/moso31/DonoText
+- [x] Burley SSS + approx SSS BTDF
 
 ## Intending...
-- [ ] Burley SSS **\[IN PROGRESS\]**
 
 - [ ] Anti-Aliasing(TAA SMAA FXAA...)
 - [ ] Screen Space Ambient Occlusion(HBAO GTAO...)
@@ -28,3 +28,4 @@ Selfmade DX11 renderer.
 
 ![image](https://github.com/moso31/Nix/assets/15684115/70bf7f43-61eb-473a-8b7a-5a3fad1230b6)
 
+![image](https://github.com/moso31/Nix/assets/15684115/f9be63b4-3337-404d-838f-88a18dc734ed)

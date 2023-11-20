@@ -16,25 +16,20 @@ public:
 
 	Vector3 GetScatter() const { return m_scatter; }
 	void SetScatter(const Vector3& value) { m_scatter = value; }
-	float GetScatterStrength() { return m_scatterStrength; }
-	void SetScatterStrength(float value) { m_scatterStrength = value; }
+	float GetScatterDistance() { return m_scatterDistance; }
+	void SetScatterDistance(float value) { m_scatterDistance = value; }
 
 	Vector3 GetTransmit() const { return m_transmit; }
 	void SetTransmit(const Vector3& value) { m_transmit = value; }
 	float GetTransmitStrength() { return m_transmitStrength; }
 	void SetTransmitStrength(float value) { m_transmitStrength = value; }
 
-	float GetRadius() { return m_radius; }
-	void SetRadius(float value) { m_radius = value; }
-
 private:
 	std::filesystem::path m_filePath;
 
 	Vector3 m_scatter = Vector3(1.0f);
-	float m_scatterStrength = 1.0f;
+	float m_scatterDistance = 1.0f;
+
 	Vector3 m_transmit = Vector3(1.0f);
 	float m_transmitStrength = 1.0f;
-
-	// SSS µÄ°ë¾¶£¨µ¥Î»m£©
-	float m_radius = 1.0f;
 };

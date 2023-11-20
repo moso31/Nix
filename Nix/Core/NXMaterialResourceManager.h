@@ -8,12 +8,11 @@ using PathHashValue = size_t;
 
 struct DiffuseProfileData
 {
-    Vector3 scatter;
-    float scatterStrength;
+    Vector3 scatterParam; // 1.0 / scatterDistance.xyz
+    float maxScatterDist; 
+
     Vector3 transmit;
     float transmitStrength;
-    float radius;
-    Vector3 _padding;
 };
 
 struct CBufferDiffuseProfileData
