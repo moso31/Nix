@@ -185,7 +185,7 @@ void PS(PS_INPUT input, out DeferredRenderingResult output)
 	{
 		float3 F0 = 0.04;
 		F0 = lerp(F0, albedo, metallic);
-		albedo *= 1.0f - metallic;
+		albedo *= 1.0f - metallic; 
 
 		float3 Lo_diff = 0.0f;
 		float3 Lo_spec = 0.0f;
