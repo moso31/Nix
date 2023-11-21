@@ -120,7 +120,7 @@ float4 PS(PS_INPUT input) : SV_Target
 	float sampleN = 100.0f; // Burley SSS 采样次数
 	float sampleInv = rcp(sampleN);
 	float sumWeight = 0.0f;
-	for (float i = 0.0f; i < sampleN; i += 1.0f)
+	for (float i = 0.5f; i < sampleN; i += 1.0f)
 	{
 		// 准备两个0~1范围数
 		float e1 = i * sampleInv; // r 均匀生成
@@ -128,7 +128,7 @@ float4 PS(PS_INPUT input) : SV_Target
 
 		// 反演 e1，获取实际的 r
 		// 反演时使用 rgb 通道中 最小的 scatter，确保三个通道的采样范围估计都是完整的
-		float r = Burley3S_InverseCDF(e1, minScatter);
+		float r = Burley3S_InverseCDF(e1, minScatter) * sampleDistScale;
 
 		// 均匀采样，生成 theta
 		float theta = NX_2PI * e2;
@@ -165,9 +165,9 @@ float4 PS(PS_INPUT input) : SV_Target
 	sssResult /= sumWeight;
 
 	// 透射
-	//float3 irradTransmit = txIrradianceTransmit.Sample(ssLinearClamp, uv).xyz;
-	//float3 transmissionColor = irradTransmit * transmit * 0.25f * t * (exp(-s * centerLinearDepth) + exp(-s * centerLinearDepth / 3));
-	//sssResult += transmissionColor;
+	float3 irradTransmit = txIrradianceTransmit.Sample(ssLinearClamp, uv).xyz;
+	float3 transmissionColor = transmit * irradTransmit * 0.25f * (exp(-scatter * centerLinearDepth) + exp(-scatter * centerLinearDepth / 3));
+	sssResult += transmissionColor;
 
 	float3 spec = txSpecular.Sample(ssLinearClamp, uv).xyz;
 	float3 result = sssResult + spec;

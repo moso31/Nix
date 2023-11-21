@@ -20,7 +20,7 @@ void CalcBTDF_SubSurface(float3 N, float3 L, float3 V, float3 albedo, float3 Lig
 {
 	float backNoL = saturate(dot(N, -L));
 	float3 backH = normalize(-L + N);
-	float backVoH = pow(saturate(dot(V, backH)), 4.0f);
+	float backVoH = saturate(dot(V, backH));
 	float3 transDiff = DiffuseLambert(albedo);
 	I_transmit = backVoH * transDiff * LightIlluminance * backNoL;
 }
@@ -126,7 +126,8 @@ void EvalRadiance_DirLight_SubSurface(DistantLight dirLight, float3 V, float3 N,
 	Lo_diff = f_diff * IncidentIlluminance;
 	Lo_spec = f_spec * IncidentIlluminance;
 
-	CalcBTDF_SubSurface(N, L, V, albedo, LightIlluminance, I_transmit);
+	I_transmit = f_diff * LightIlluminance * saturate(dot(-N, L));
+	//CalcBTDF_SubSurface(N, L, V, albedo, LightIlluminance, I_transmit);
 }
 
 void EvalRadiance_PointLight_SubSurface(PointLight pointLight, float3 CamPosVS, float3 V, float3 N, float NoV, float perceptualRoughness, float metallic, float3 albedo, float F0, out float3 Lo_diff, out float3 Lo_spec, out float3 I_transmit)

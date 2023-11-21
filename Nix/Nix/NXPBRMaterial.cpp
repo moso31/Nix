@@ -530,7 +530,7 @@ void NXCustomMaterial::Deserialize()
 
 		if (cbSets.shadingModel == 2)
 		{
-			m_sssProfilePath = deserializer.String("sssProfile");
+			m_sssProfilePath = deserializer.String("sssProfilePath");
 		}
 	}
 }
