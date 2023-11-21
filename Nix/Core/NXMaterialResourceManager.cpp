@@ -15,6 +15,14 @@ void NXMaterialResourceManager::Init()
 	RegisterMaterial(m_pErrorMaterial);
 
 	m_defaultDiffuseProfile = new NXSSSDiffuseProfile();
+
+	D3D11_BUFFER_DESC bufferDesc;
+	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = sizeof(CBufferDiffuseProfileData);
+	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbDiffuseProfile));
 }
 
 void NXMaterialResourceManager::RegisterMaterial(NXMaterial* newMaterial)
@@ -146,7 +154,12 @@ void NXMaterialResourceManager::AdjustDiffuseProfileRenderData(PathHashValue pat
 	bool isInvalidProfile = pathHash == std::filesystem::hash_value("") || m_sssProfilesMap.find(pathHash) == m_sssProfilesMap.end();
 	auto& pProfile = isInvalidProfile ? m_defaultDiffuseProfile : m_sssProfilesMap[pathHash];
 
-	Vector3 scatterDistance = pProfile->GetScatter() * pProfile->GetScatterDistance();
+	// 2023.11.21 
+	// 原paper只是明确指出了"Burley SSS 的 s 值应该与 散射距离 成反比例"
+	// 但没有说具体的比例多少合适，另外目前 Nix 的单位测定也不是特别完善。
+	// 0.01 是基于引擎当前环境测的比较合理的所放量，目前就先这样。
+	float scaleFactor = 0.01f;
+	Vector3 scatterDistance = pProfile->GetScatter() * pProfile->GetScatterDistance() * scaleFactor;
 	float maxScatterDistance = scatterDistance.MaxComponent();
 	
 	m_cbDiffuseProfileData.sssProfData[sssGBufferIndex].scatterParam = scatterDistance.Reciprocal();

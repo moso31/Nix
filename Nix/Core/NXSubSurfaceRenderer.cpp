@@ -29,14 +29,6 @@ void NXSubSurfaceRenderer::Init()
 		D3D11_STENCIL_OP_KEEP, D3D11_STENCIL_OP_KEEP, D3D11_STENCIL_OP_KEEP, D3D11_COMPARISON_EQUAL>::Create();
 	m_pRasterizerState = NXRasterizerState<>::Create();
 	m_pBlendState = NXBlendState<>::Create();
-
-	D3D11_BUFFER_DESC bufferDesc;
-	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(CBufferDiffuseProfileData);
-	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bufferDesc.CPUAccessFlags = 0;
-	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbDiffuseProfile));
 }
 
 void NXSubSurfaceRenderer::Render()

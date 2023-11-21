@@ -5,6 +5,15 @@
 #include "BRDF.fx"
 #include "PBRLights.fx"
 
+struct CBufferDiffuseProfile
+{
+	// TODO: CBufferDiffuseProfile 做到头文件类，统一管理，现在有多处地方定义了这个struct
+	float3 scatterParam; // x y z 的 s 参数不同
+	float maxScatterDistance;
+	float3 transmit;
+	float transmitStrength;
+};
+
 void CalcBSDF(float NoV, float NoL, float NoH, float VoH, float roughness, float metallic, float3 albedo, float3 F0, out float3 diffBSDF, out float3 specBSDF)
 {
 	diffBSDF = DiffuseDisney(albedo, roughness, NoV, NoL, VoH);
@@ -14,15 +23,6 @@ void CalcBSDF(float NoV, float NoL, float NoH, float VoH, float roughness, float
 	float G = G_GGX_SmithJoint(NoV, NoL, roughness);
 	float3 F = F_Schlick(saturate(VoH), F0);
 	specBSDF = D * G * F;
-}
-
-void CalcBTDF_SubSurface(float3 N, float3 L, float3 V, float3 albedo, float3 LightIlluminance, out float3 I_transmit)
-{
-	float backNoL = saturate(dot(N, -L));
-	float3 backH = normalize(-L + N);
-	float backVoH = saturate(dot(V, backH));
-	float3 transDiff = DiffuseLambert(albedo);
-	I_transmit = backVoH * transDiff * LightIlluminance * backNoL;
 }
 
 void EvalRadiance_DirLight(DistantLight dirLight, float3 V, float3 N, float NoV, float perceptualRoughness, float metallic, float3 albedo, float F0, out float3 Lo_diff, out float3 Lo_spec)
@@ -106,19 +106,22 @@ void EvalRadiance_SpotLight(SpotLight spotLight, float3 CamPosVS, float3 V, floa
 	Lo_spec = f_spec * IncidentIlluminance * FalloffFactor;
 }
 
-void EvalRadiance_DirLight_SubSurface(DistantLight dirLight, float3 V, float3 N, float NoV, float perceptualRoughness, float metallic, float3 albedo, float F0, out float3 Lo_diff, out float3 Lo_spec, out float3 I_transmit)
+void EvalRadiance_DirLight_SubSurface(CBufferDiffuseProfile sssProfile, DistantLight dirLight, float3 V, float3 N, float NoV, float perceptualRoughness, float metallic, float3 albedo, float F0, out float3 Lo_diff, out float3 Lo_spec)
 {
 	float3 LightDirWS = normalize(-dirLight.direction);
 	float3 LightDirVS = normalize(mul(LightDirWS, (float3x3)m_viewInverseTranspose));
 
 	float3 L = LightDirVS;
 	float3 H = normalize(V + L);
-	float NoL = max(dot(N, L), 0.0);
-	float NoH = max(dot(N, H), 0.0);
-	float VoH = max(dot(V, H), 0.0);
+	float NoL = saturate(dot(N, L));
+	float NoH = saturate(dot(N, H));
+	float VoH = saturate(dot(V, H));
 
 	float3 LightIlluminance = dirLight.color * dirLight.illuminance; // 方向光的Illuminace
 	float3 IncidentIlluminance = LightIlluminance * NoL;
+
+	float backNoL = saturate(dot(-N, L));
+	float3 IncidentIlluminanceTransmit = LightIlluminance * backNoL;
 
 	float3 f_diff, f_spec;
 	CalcBSDF(NoV, NoL, NoH, VoH, perceptualRoughness, metallic, albedo, F0, f_diff, f_spec);
@@ -126,11 +129,15 @@ void EvalRadiance_DirLight_SubSurface(DistantLight dirLight, float3 V, float3 N,
 	Lo_diff = f_diff * IncidentIlluminance;
 	Lo_spec = f_spec * IncidentIlluminance;
 
-	I_transmit = f_diff * LightIlluminance * saturate(dot(-N, L));
-	//CalcBTDF_SubSurface(N, L, V, albedo, LightIlluminance, I_transmit);
+	// 对 3s 材质，连背面的光照也一起考虑。但背面只算漫反射
+	float3 scatter = sssProfile.scatterParam;
+	float thickness = sssProfile.transmitStrength;
+	float3 irradTransmit = f_diff * IncidentIlluminanceTransmit;
+	float3 Lo_transmit = sssProfile.transmit * irradTransmit * 0.25f * (exp(-scatter * thickness) + 3 * exp(-scatter * thickness / 3));
+	Lo_diff += Lo_transmit;
 }
 
-void EvalRadiance_PointLight_SubSurface(PointLight pointLight, float3 CamPosVS, float3 V, float3 N, float NoV, float perceptualRoughness, float metallic, float3 albedo, float F0, out float3 Lo_diff, out float3 Lo_spec, out float3 I_transmit)
+void EvalRadiance_PointLight_SubSurface(CBufferDiffuseProfile sssProfile, PointLight pointLight, float3 CamPosVS, float3 V, float3 N, float NoV, float perceptualRoughness, float metallic, float3 albedo, float F0, out float3 Lo_diff, out float3 Lo_spec)
 {
 	float3 LightPosVS = mul(float4(pointLight.position, 1.0f), m_view).xyz;
 	float3 LightIntensity = pointLight.color * pointLight.intensity;
@@ -146,6 +153,9 @@ void EvalRadiance_PointLight_SubSurface(PointLight pointLight, float3 CamPosVS, 
 	float3 LightIlluminance = LightIntensity / (NX_4PI * d2);
 	float3 IncidentIlluminance = LightIlluminance * NoL;
 
+	float backNoL = saturate(dot(-N, L));
+	float3 IncidentIlluminanceTransmit = LightIlluminance * backNoL;
+
 	float Factor = d2 / (pointLight.influenceRadius * pointLight.influenceRadius);
 	float FalloffFactor = max(1.0f - Factor * Factor, 0.0f);
 
@@ -155,13 +165,15 @@ void EvalRadiance_PointLight_SubSurface(PointLight pointLight, float3 CamPosVS, 
 	Lo_diff = f_diff * IncidentIlluminance * FalloffFactor;
 	Lo_spec = f_spec * IncidentIlluminance * FalloffFactor;
 
-	float backNoL = (dot(-N, L) + 1.0) * 0.5f;
-	I_transmit = dot(LightIlluminance, LightIlluminance) < 1e-4f ? 0.0f : LightIlluminance * backNoL;
-
-	CalcBTDF_SubSurface(N, L, V, albedo, LightIlluminance, I_transmit);
+	// 对 3s 材质，连背面的光照也一起考虑。但背面只算漫反射
+	float3 scatter = sssProfile.scatterParam;
+	float thickness = sssProfile.transmitStrength;
+	float3 irradTransmit = f_diff * IncidentIlluminanceTransmit * FalloffFactor;
+	float3 Lo_transmit = sssProfile.transmit * irradTransmit * 0.25f * (exp(-scatter * thickness) + 3 * exp(-scatter * thickness / 3));
+	Lo_diff += Lo_transmit;
 }
 
-void EvalRadiance_SpotLight_SubSurface(SpotLight spotLight, float3 CamPosVS, float3 V, float3 N, float NoV, float perceptualRoughness, float metallic, float3 albedo, float F0, out float3 Lo_diff, out float3 Lo_spec, out float3 I_transmit)
+void EvalRadiance_SpotLight_SubSurface(CBufferDiffuseProfile sssProfile, SpotLight spotLight, float3 CamPosVS, float3 V, float3 N, float NoV, float perceptualRoughness, float metallic, float3 albedo, float F0, out float3 Lo_diff, out float3 Lo_spec)
 {
 	float3 LightPosVS = mul(float4(spotLight.position, 1.0f), m_view).xyz;
 	float3 LightIntensity = spotLight.color * spotLight.intensity;
@@ -176,6 +188,9 @@ void EvalRadiance_SpotLight_SubSurface(SpotLight spotLight, float3 CamPosVS, flo
 	float d2 = dot(LightDirVS, LightDirVS);
 	float3 LightIlluminance = LightIntensity / (NX_PI * d2);
 	float3 IncidentIlluminance = LightIlluminance * NoL;
+
+	float backNoL = saturate(dot(-N, L));
+	float3 IncidentIlluminanceTransmit = LightIlluminance * backNoL;
 
 	float CosInner = cos(spotLight.innerAngle * NX_DEGTORED);
 	float CosOuter = cos(spotLight.outerAngle * NX_DEGTORED);
@@ -194,10 +209,12 @@ void EvalRadiance_SpotLight_SubSurface(SpotLight spotLight, float3 CamPosVS, flo
 	Lo_diff = f_diff * IncidentIlluminance * FalloffFactor;
 	Lo_spec = f_spec * IncidentIlluminance * FalloffFactor;
 
-	float backNoL = (dot(-N, L) + 1.0) * 0.5f;
-	I_transmit = dot(LightIlluminance, LightIlluminance) < 1e-4f ? 0.0f : LightIlluminance * backNoL;
-
-	CalcBTDF_SubSurface(N, L, V, albedo, LightIlluminance, I_transmit);
+	// 对 3s 材质，连背面的光照也一起考虑。但背面只算漫反射
+	float3 scatter = sssProfile.scatterParam;
+	float thickness = sssProfile.transmitStrength;
+	float3 irradTransmit = f_diff * IncidentIlluminanceTransmit * FalloffFactor;
+	float3 Lo_transmit = sssProfile.transmit * irradTransmit * 0.25f * (exp(-scatter * thickness) + 3 * exp(-scatter * thickness / 3));
+	Lo_diff += Lo_transmit;
 }
 
 #endif // _DEFERRED_SHADING_COMMON_H_

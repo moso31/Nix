@@ -36,16 +36,6 @@ cbuffer ConstantBufferCubeMap : register(b3)
 	float4 m_cubeMapIrradMode;
 }
 
-struct CBufferDiffuseProfile
-{
-	float3 scatter;
-	float scatterStrength;
-	float3 transmit;
-	float transmitStrength;
-	float radius;
-	float3 _0;
-};
-
 cbuffer CBufferParams : register(b4)
 {
 	CBufferDiffuseProfile sssProfData[16];
@@ -100,7 +90,9 @@ void PS(PS_INPUT input, out DeferredRenderingResult output)
 
 	//float a = txRT3.Sample(ssLinearWrap, uv).z;
 	//return float4(a.xxx, 1.0f);
-	float3 N = txRT1.Sample(ssLinearWrap, uv).xyz;
+	float4 rt1 = txRT1.Sample(ssLinearWrap, uv);
+	float3 N = rt1.xyz;
+	uint sssProfIndex = asuint(rt1.w);
 	float3 V = normalize(-PositionVS);
 	float NoV = max(dot(N, V), 0.0);
 	float3 R = reflect(-V, N);
@@ -172,14 +164,12 @@ void PS(PS_INPUT input, out DeferredRenderingResult output)
 		Lo *= ao;
 		output.Lighting = float4(Lo, 1.0f);
 		output.LightingEx = float4(0.0f, 0.0f, 0.0f, 1.0f);
-		output.LightingSSSTransmit = float4(0.0f, 0.0f, 0.0f, 1.0f);
 	}
 	else if (shadingModel == 1)
 	{
 		float3 albedo = txRT2.Sample(ssLinearWrap, uv).xyz;
 		output.Lighting = float4(albedo, 1.0f);
 		output.LightingEx = float4(0.0f, 0.0f, 0.0f, 1.0f);
-		output.LightingSSSTransmit = float4(0.0f, 0.0f, 0.0f, 1.0f);
 	}
 	else if (shadingModel == 2)
 	{
@@ -189,31 +179,27 @@ void PS(PS_INPUT input, out DeferredRenderingResult output)
 
 		float3 Lo_diff = 0.0f;
 		float3 Lo_spec = 0.0f;
-		float3 I_transmit = 0.0f;
 		float3 Ld, Ls, Itt;
 		int i;
 		for (i = 0; i < NUM_DISTANT_LIGHT; i++)
 		{
-			EvalRadiance_DirLight_SubSurface(m_dirLight[i], V, N, NoV, perceptualRoughness, metallic, albedo, F0, Ld, Ls, Itt);
+			EvalRadiance_DirLight_SubSurface(sssProfData[sssProfIndex], m_dirLight[i], V, N, NoV, perceptualRoughness, metallic, albedo, F0, Ld, Ls);
 			Lo_diff += Ld;
 			Lo_spec += Ls;
-			I_transmit += Itt;
 		}
 
 		for (i = 0; i < NUM_POINT_LIGHT; i++)
 		{
-			EvalRadiance_PointLight_SubSurface(m_pointLight[i], PositionVS, V, N, NoV, perceptualRoughness, metallic, albedo, F0, Ld, Ls, Itt);
+			EvalRadiance_PointLight_SubSurface(sssProfData[sssProfIndex], m_pointLight[i], PositionVS, V, N, NoV, perceptualRoughness, metallic, albedo, F0, Ld, Ls);
 			Lo_diff += Ld;
 			Lo_spec += Ls;
-			I_transmit += Itt;
 		}
 
 		for (i = 0; i < NUM_SPOT_LIGHT; i++)
 		{
-			EvalRadiance_SpotLight_SubSurface(m_spotLight[i], PositionVS, V, N, NoV, perceptualRoughness, metallic, albedo, F0, Ld, Ls, Itt);
+			EvalRadiance_SpotLight_SubSurface(sssProfData[sssProfIndex], m_spotLight[i], PositionVS, V, N, NoV, perceptualRoughness, metallic, albedo, F0, Ld, Ls);
 			Lo_diff += Ld;
 			Lo_spec += Ls;
-			I_transmit += Itt;
 		}
 
 		float3 NormalWS = mul(N, (float3x3)m_viewTranspose);
@@ -239,13 +225,12 @@ void PS(PS_INPUT input, out DeferredRenderingResult output)
 
 		output.Lighting = float4(Lo_diff, 1.0f);
 		output.LightingEx = float4(Lo_spec, 1.0f);
-		output.LightingSSSTransmit = float4(I_transmit, 1.0f);
 	}
 	else
 	{
 		output.Lighting = float4(0.0f, 0.0f, 0.0f, 1.0f);
 		output.LightingEx = float4(0.0f, 0.0f, 0.0f, 1.0f);
-		output.LightingSSSTransmit = float4(0.0f, 0.0f, 0.0f, 1.0f);
 	}
 	output.LightingCopy = output.Lighting;
+	output.LightingSSSTransmit = float4(0.0f, 0.0f, 0.0f, 1.0f);
 }

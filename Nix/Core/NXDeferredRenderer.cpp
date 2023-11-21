@@ -88,6 +88,10 @@ void NXDeferredRenderer::Render()
 		g_pContext->PSSetConstantBuffers(3, 1, &pCBCubeMapParam);
 	}
 
+	auto& cbDiffuseProfileData = NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfileData();
+	g_pContext->PSSetConstantBuffers(4, 1, m_cbDiffuseProfile.GetAddressOf());
+	g_pContext->PSSetConstantBuffers(4, 1, )
+
 	g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 
 	auto& pDepthZ = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);

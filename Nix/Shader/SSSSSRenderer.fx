@@ -46,18 +46,12 @@ SamplerState ssLinearClamp : register(s0);
 
 struct CBufferDiffuseProfile
 {
+	// TODO: CBufferDiffuseProfile 做到头文件类，统一管理，现在有多处地方定义了这个struct
 	float3 scatterParam; // x y z 的 s 参数不同
 	float maxScatterDistance;
 	float3 transmit;
 	float transmitStrength;
 };
-
-cbuffer ConstantBufferLight : register(b2)
-{
-	DistantLight m_dirLight[NUM_DISTANT_LIGHT];
-	PointLight m_pointLight[NUM_POINT_LIGHT];
-	SpotLight m_spotLight[NUM_SPOT_LIGHT];
-}
 
 cbuffer CBufferParams : register(b3)
 {
@@ -116,7 +110,6 @@ float4 PS(PS_INPUT input) : SV_Target
 
 	float3 sssResult = 0.0f;
 
-	float sampleDistScale = 0.01f; // TODO: why 0.01?
 	float sampleN = 100.0f; // Burley SSS 采样次数
 	float sampleInv = rcp(sampleN);
 	float sumWeight = 0.0f;
@@ -128,7 +121,7 @@ float4 PS(PS_INPUT input) : SV_Target
 
 		// 反演 e1，获取实际的 r
 		// 反演时使用 rgb 通道中 最小的 scatter，确保三个通道的采样范围估计都是完整的
-		float r = Burley3S_InverseCDF(e1, minScatter) * sampleDistScale;
+		float r = Burley3S_InverseCDF(e1, minScatter);
 
 		// 均匀采样，生成 theta
 		float theta = NX_2PI * e2;
@@ -163,11 +156,6 @@ float4 PS(PS_INPUT input) : SV_Target
 	}
 
 	sssResult /= sumWeight;
-
-	// 透射
-	float3 irradTransmit = txIrradianceTransmit.Sample(ssLinearClamp, uv).xyz;
-	float3 transmissionColor = transmit * irradTransmit * 0.25f * (exp(-scatter * centerLinearDepth) + exp(-scatter * centerLinearDepth / 3));
-	sssResult += transmissionColor;
 
 	float3 spec = txSpecular.Sample(ssLinearClamp, uv).xyz;
 	float3 result = sssResult + spec;
