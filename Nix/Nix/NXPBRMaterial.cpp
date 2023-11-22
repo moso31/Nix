@@ -191,49 +191,30 @@ void NXCustomMaterial::UpdateCBData()
 	auto& cbElems = m_cbInfo.elems;
 	auto& cbSets = m_cbInfo.sets;
 
-	int cbArraySize = 0;
-	for (int i = 0; i < cbElems.size(); i++)
-	{
-		auto& cb = cbElems[m_cbSortedIndex[i]];
-		cbArraySize += (int)cb.type;
-	}
-	cbArraySize += (4 - cbArraySize % 4) % 4;	// 16 bytes align
-	cbArraySize += sizeof(NXCBufferSets);
-	cbArraySize += (4 - cbArraySize % 4) % 4;	// 16 bytes align
-
+	int alignCheck = 0;
 	m_cbData.clear();
-	m_cbData.reserve(cbArraySize);
 	for (int i = 0; i < cbElems.size(); i++)
 	{
 		auto& cb = cbElems[m_cbSortedIndex[i]];
-		switch (cb.type)
+		int nType = (int)cb.type;
+
+		// 进行4float(16byte)对齐检查。
+		if (alignCheck + nType < 4) // 不需要 padding
 		{
-		case NXCBufferInputType::Float:
-			m_cbData.push_back(m_cbInfoMemory[cb.memoryIndex + 0]);
-			break;
-		case NXCBufferInputType::Float2:
-		{
-			m_cbData.push_back(m_cbInfoMemory[cb.memoryIndex + 0]);
-			m_cbData.push_back(m_cbInfoMemory[cb.memoryIndex + 1]);
-			break;
+			for(int j = 0; j < nType; j++) m_cbData.push_back(m_cbInfoMemory[cb.memoryIndex + j]);
+			alignCheck += nType;
 		}
-		case NXCBufferInputType::Float3:
+		else if (alignCheck + nType == 4)
 		{
-			m_cbData.push_back(m_cbInfoMemory[cb.memoryIndex + 0]);
-			m_cbData.push_back(m_cbInfoMemory[cb.memoryIndex + 1]);
-			m_cbData.push_back(m_cbInfoMemory[cb.memoryIndex + 2]);
-			break;
+			for (int j = 0; j < nType; j++) m_cbData.push_back(m_cbInfoMemory[cb.memoryIndex + j]);
+			alignCheck = 0;
 		}
-		case NXCBufferInputType::Float4:
+		else // > 4，先补充对齐 _pad，再填下一个 float
 		{
-			m_cbData.push_back(m_cbInfoMemory[cb.memoryIndex + 0]);
-			m_cbData.push_back(m_cbInfoMemory[cb.memoryIndex + 1]);
-			m_cbData.push_back(m_cbInfoMemory[cb.memoryIndex + 2]);
-			m_cbData.push_back(m_cbInfoMemory[cb.memoryIndex + 3]);
-			break;
-		}
-		default:
-			break;
+			while (m_cbData.size() % 4 != 0) m_cbData.push_back(0); // 16 bytes align
+
+			for (int j = 0; j < nType; j++) m_cbData.push_back(m_cbInfoMemory[cb.memoryIndex + j]);
+			alignCheck = nType % 4;
 		}
 	}
 	while (m_cbData.size() % 4 != 0) m_cbData.push_back(0); // 16 bytes align
@@ -683,20 +664,19 @@ void NXCustomMaterial::ProcessShaderParameters(const std::string& nslParams, std
 			{
 				m_cbInfo.slotIndex = typeToRegisterIndex[type];
 
-				std::ostringstream strMatName;
-				strMatName << "Mat_" << std::filesystem::hash_value(m_filePath);
+				std::string strMatName("Mat_" + std::to_string(std::filesystem::hash_value(m_filePath)));
 
 				// 处理 CBuffer。内部需要按照 packing rules 的建议对 CBuffer 进行排序。
-				std::ostringstream strMatStruct;
-				strMatStruct << "struct " << strMatName.str();
-				strMatStruct << "\n{\n";
+				std::string strMatStruct;
+				strMatStruct += "struct " + strMatName + "\n";
+				strMatStruct += "{\n";
 				ProcessShaderCBufferParam(in, strMatStruct, cbDefaultValues, cbSettingDefaultValues);
-				strMatStruct << "};\n";
+				strMatStruct += "};\n";
 
-				out << strMatStruct.str();
-				out << typeToPrefix[type] << " CBuffer_" << strMatName.str() << " : register(" << typeToRegisterPrefix[type] << typeToRegisterIndex[type]++ << ")";
+				out << strMatStruct;
+				out << typeToPrefix[type] << " CBuffer_" << strMatName << " : register(" << typeToRegisterPrefix[type] << typeToRegisterIndex[type]++ << ")";
 				out << "\n{\n";
-				out << "\t" << strMatName.str() << " " << "m" << ";\n";
+				out << "\t" << strMatName << " " << "m" << ";\n";
 				out << "}\n";
 			}
 			else if (type == "Tex2D")
@@ -759,7 +739,7 @@ void NXCustomMaterial::ProcessShaderParameters(const std::string& nslParams, std
 	oHLSLHeadCode = std::move(out.str());
 }
 
-void NXCustomMaterial::ProcessShaderCBufferParam(std::istringstream& in, std::ostringstream& out, const std::vector<NXGUICBufferData>& cbDefaultValues, const NXGUICBufferSetsData& cbSettingDefaultValues)
+void NXCustomMaterial::ProcessShaderCBufferParam(std::istringstream& in, std::string& outStr, const std::vector<NXGUICBufferData>& cbDefaultValues, const NXGUICBufferSetsData& cbSettingDefaultValues)
 {
 	using namespace NXConvert;
 
@@ -882,38 +862,68 @@ void NXCustomMaterial::ProcessShaderCBufferParam(std::istringstream& in, std::os
 	SortShaderCBufferParam();
 
 	// 给 CBuffer 填充变量
-	int byteOffset = 0;
-	out << "\t// params" << "\n"; // 加个注释方便调试
+	std::string strResult = "\t// params \n"; // 加个注释方便调试
+	int alignCheck = 0;
+	int paddingNum = 0;
 	for (int i = 0; i < m_cbSortedIndex.size(); i++)
 	{
 		const auto& cb = cbElems[m_cbSortedIndex[i]];
-		switch (cb.type)
+
+		int nType = (int)(cb.type);
+
+		// 进行4float(16byte)对齐检查。
+		if (alignCheck + nType < 4) // 不需要 padding
 		{
-		case NXCBufferInputType::Float:    out << "\tfloat ";  byteOffset += (int)cb.type;	break;
-		case NXCBufferInputType::Float2:   out << "\tfloat2 "; byteOffset += (int)cb.type;	break;
-		case NXCBufferInputType::Float3:   out << "\tfloat3 "; byteOffset += (int)cb.type;	break;
-		case NXCBufferInputType::Float4:   out << "\tfloat4 "; byteOffset += (int)cb.type;	break;
-		default: break;
+			strResult += "\tfloat";
+			if (nType > 1) strResult += std::to_string(nType);
+
+			strResult += " " + cb.name;
+			alignCheck += nType;
 		}
-		out << cb.name << ";\n";
+		else if (alignCheck + nType == 4)
+		{
+			strResult += "\tfloat";
+			if (nType > 1) strResult += std::to_string(nType);
+
+			strResult += " " + cb.name;
+			alignCheck = 0;
+		}
+		else // > 4，先补充对齐 _pad，再填下一个 float
+		{
+			int nAlign = 4 - alignCheck;
+			strResult += "\tfloat";
+			if (nAlign > 1) strResult += std::to_string(nAlign);
+			strResult += " _pad" + std::to_string(paddingNum++);
+			strResult += ";\n";
+
+			strResult += "\tfloat";
+			if (nType > 1) strResult += std::to_string(nType);
+
+			strResult += " " + cb.name;
+			alignCheck = nType % 4;
+		}
+
+		strResult += ";\n";
 	}
 
-	// 16字节对齐
-	if (byteOffset % 4)
+	if (alignCheck)
 	{
-		int paddingBytes = 4 - byteOffset % 4;
-		out << "\tfloat";
-		if (paddingBytes > 1) out << std::to_string(paddingBytes);
-		out << " _pad0;\n";
+		int nAlign = 4 - alignCheck;
+		strResult += "\tfloat";
+		if (nAlign > 1) strResult += std::to_string(nAlign);
+		strResult += " _pad" + std::to_string(paddingNum++);
+		strResult += ";\n";
 	}
 
-	out << "\n";
-	out << "\t// settings" << "\n"; // 加个注释方便调试
-	out << "\tfloat shadingModel;\n";
-	out << "\tfloat3 _pad1;\n";
+	strResult += "\t// settings\n"; // 加个注释方便调试
+	strResult += "\tfloat shadingModel;\n";
+	strResult += "\tfloat3 _pad" + std::to_string(paddingNum++) + ";\n";
 	
 	// 用于传递材质的自定义数据
-	out << "\tfloat4 customData0;\n"; 
+	strResult += "\t// customDatas\n"; // 加个注释方便调试
+	strResult += "\tfloat4 customData0;\n";
+
+	outStr += strResult;
 }
 
 void NXCustomMaterial::ProcessShaderMainFunc(std::string& oHLSLBodyCode)

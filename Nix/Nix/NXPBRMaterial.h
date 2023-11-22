@@ -177,7 +177,7 @@ private:
 		const std::vector<NXGUISamplerData>& samplerDefaultValues = {}
 	);
 
-	void ProcessShaderCBufferParam(std::istringstream& in, std::ostringstream& out, const std::vector<NXGUICBufferData>& cbDefaultValues = {}, const NXGUICBufferSetsData& cbSettingDefaultValues = {});
+	void ProcessShaderCBufferParam(std::istringstream& in, std::string& outStr, const std::vector<NXGUICBufferData>& cbDefaultValues = {}, const NXGUICBufferSetsData& cbSettingDefaultValues = {});
 
 	// 将 nsl 的主函数 转换成 DX 可以编译的 hlsl 代码，
 	void ProcessShaderMainFunc(std::string& oHLSLBodyCode);

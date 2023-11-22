@@ -167,7 +167,6 @@ void PS(PS_INPUT input, out DeferredRenderingResult output)
 	}
 	else if (shadingModel == 1)
 	{
-		float3 albedo = txRT2.Sample(ssLinearWrap, uv).xyz;
 		output.Lighting = float4(albedo, 1.0f);
 		output.LightingEx = float4(0.0f, 0.0f, 0.0f, 1.0f);
 	}

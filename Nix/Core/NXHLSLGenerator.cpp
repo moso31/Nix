@@ -66,19 +66,23 @@ void EncodeGBuffer(NXGBufferParams gBuffer, PS_INPUT input, out PS_OUTPUT Output
 
 	Output.GBufferA = float4(1.0f, 1.0f, 1.0f, 1.0f);
 	
-    float3 normalVS = TangentSpaceToViewSpace(gBuffer.normal, input.normVS, input.tangentVS);
+	float3 normalVS = TangentSpaceToViewSpace(gBuffer.normal, input.normVS, input.tangentVS);
 	if (uShadingModel == 2) // burley SSS
 	{
 		Output.GBufferB = float4(normalVS, m.customData0.x);
 	}
-	else
+	else if (uShadingModel == 1)
+	{
+		Output.GBufferB = float4(1.0f, 1.0f, 1.0f, 1.0f);
+		Output.GBufferC = float4(gBuffer.albedo, 1.0f);
+		Output.GBufferD = float4(1.0f, 1.0f, 1.0f, (float)uShadingModel / 255.0f);
+	}
+	else 
 	{
 		Output.GBufferB = float4(normalVS, 1.0f);
+		Output.GBufferC = float4(gBuffer.albedo, 1.0f);
+		Output.GBufferD = float4(gBuffer.roughness, gBuffer.metallic, gBuffer.ao, (float)uShadingModel / 255.0f);
 	}
-
-	Output.GBufferC = float4(gBuffer.albedo, 1.0f);
-
-	Output.GBufferD = float4(gBuffer.roughness, gBuffer.metallic, gBuffer.ao, (float)uShadingModel / 255.0f);
 }
 )";
 
@@ -87,6 +91,11 @@ void EncodeGBuffer(NXGBufferParams gBuffer, PS_INPUT input, out PS_OUTPUT Output
 void PS(PS_INPUT input, out PS_OUTPUT Output)
 {
     NXGBufferParams o;
+	o.albedo = 1.0f.xxx;
+	o.normal = 1.0f.xxx;
+	o.metallic = 1.0f;
+	o.roughness = 1.0f;
+	o.ao = 1.0f;
 )";
 
 	std::string strPSEnd = R"(
