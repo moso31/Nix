@@ -33,15 +33,7 @@ public:
 	// 资源重加载（如果上一帧修改了资源）
 	void ResourcesReloading();
 
-	// 2023.11.5 Nix 的 GUI 控制参数目前暂时使用两种方式：即时更新 和 延迟更新
-	// 1. 即时更新：GUI 每次修改参数，都会立即更新到对应的资源上（即，传统的 dearImgui 更新参数的方法）
-	// 2. 延迟更新：GUI 修改参数后，通过命令队列的形式交给 NXGUICommandManager，等到下一帧 UpdateGUI 再更新
-	// UpdateGUI() 负责处理 延迟更新
-	// RenderGUI() 负责 渲染 和 即时更新
-	void UpdateGUI();
-
-	// 更新 NXScene 场景
-	void UpdateSceneData();
+	void Update();
 
 	void UpdateTime();
 
@@ -55,7 +47,6 @@ public:
 
 	void ClearAllPSResources();
 
-public:
 	NXSimpleSSAO*			GetSSAORenderer()			{ return m_pSSAO; }
 	NXShadowMapRenderer*	GetShadowMapRenderer()		{ return m_pShadowMapRenderer; }
 	// 2023.3.10 目前 PostProcessing 只有 ColorMapping…… 所以这两个暂时算是同义词。
@@ -63,6 +54,16 @@ public:
 	NXDebugLayerRenderer*	GetDebugLayerRenderer()		{ return m_pDebugLayerRenderer; }
 
 private:
+	// 2023.11.5 Nix 的 GUI 控制参数目前暂时使用两种方式：即时更新 和 延迟更新
+	// 1. 即时更新：GUI 每次修改参数，都会立即更新到对应的资源上（即，传统的 dearImgui 更新参数的方法）
+	// 2. 延迟更新：上一帧的 GUI 修改参数后，通过命令队列的形式交给 NXGUICommandManager，等到这一帧 UpdateGUI 再更新
+	// UpdateGUI() 负责处理 延迟更新
+	// RenderGUI() 负责处理GUI的渲染和 即时更新
+	void UpdateGUI();
+
+	// 更新 NXScene 场景
+	void UpdateSceneData();
+
 	void DrawDepthPrepass();
 	void OnKeyDown(NXEventArgKey eArg);
 

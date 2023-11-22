@@ -88,9 +88,8 @@ void NXDeferredRenderer::Render()
 		g_pContext->PSSetConstantBuffers(3, 1, &pCBCubeMapParam);
 	}
 
-	auto& cbDiffuseProfileData = NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfileData();
-	g_pContext->PSSetConstantBuffers(4, 1, m_cbDiffuseProfile.GetAddressOf());
-	g_pContext->PSSetConstantBuffers(4, 1, )
+	auto& cbDiffuseProfile = NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfile();
+	g_pContext->PSSetConstantBuffers(4, 1, cbDiffuseProfile.GetAddressOf());
 
 	g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
 

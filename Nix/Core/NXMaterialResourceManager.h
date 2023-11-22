@@ -55,6 +55,7 @@ public:
 
     Ntr<NXSSSDiffuseProfile> GetOrAddSSSProfile(const std::filesystem::path& sssProfFilePath);
     const CBufferDiffuseProfileData& GetCBufferDiffuseProfileData() const { return m_cbDiffuseProfileData; }
+    const ComPtr<ID3D11Buffer>& GetCBufferDiffuseProfile() const { return m_cbDiffuseProfile; }
 
 	void OnReload() override;
 	void Release() override;
@@ -82,6 +83,7 @@ private:
     // 由此就可以知道 m_sssProfilesMap 的每个 SSSProfile 在 GBufferRT 中的 8bit 编号。
     std::map<PathHashValue, UINT8> m_sssProfileGBufferIndexMap;
 
-    // SSS pass 最终使用的 CBuffer
-    CBufferDiffuseProfileData m_cbDiffuseProfileData;
+    // SSS profile CBuffer
+    ComPtr<ID3D11Buffer>        m_cbDiffuseProfile;
+    CBufferDiffuseProfileData   m_cbDiffuseProfileData;
 };

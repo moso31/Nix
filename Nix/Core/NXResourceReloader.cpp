@@ -7,7 +7,7 @@ void NXResourceReloader::Push(NXResourceReloadCommand* pCommand)
 	m_resourceReloadCmdList.push_back(pCommand);
 }
 
-void NXResourceReloader::Update()
+void NXResourceReloader::OnReload()
 {
 	for (auto cmd : m_resourceReloadCmdList)
 	{

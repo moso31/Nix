@@ -81,6 +81,7 @@ public:
 	virtual ~NXResourceManagerBase() {}
 
     virtual void OnReload() {}
+    virtual void Update() {}
     virtual void Release() {}
 
 protected:

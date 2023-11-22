@@ -41,9 +41,8 @@ void NXSubSurfaceRenderer::Render()
 
 void NXSubSurfaceRenderer::RenderSSSSS()
 {
-	auto& cbDiffuseProfileData = NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfileData();
-	g_pContext->UpdateSubresource(m_cbDiffuseProfile.Get(), 0, nullptr, &cbDiffuseProfileData, 0, 0);
-	g_pContext->PSSetConstantBuffers(3, 1, m_cbDiffuseProfile.GetAddressOf());
+	auto& cbDiffuseProfile = NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfile();
+	g_pContext->PSSetConstantBuffers(3, 1, cbDiffuseProfile.GetAddressOf());
 
 	auto pCBLight = m_pScene->GetConstantBufferLights();
 	g_pContext->PSSetConstantBuffers(2, 1, &pCBLight);

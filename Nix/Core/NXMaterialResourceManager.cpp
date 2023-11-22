@@ -1,4 +1,5 @@
 #include "BaseDefs/NixCore.h"
+#include "Global.h"
 #include "NXMaterialResourceManager.h"
 #include "NXPBRMaterial.h"
 #include "NXConverter.h"
@@ -166,4 +167,6 @@ void NXMaterialResourceManager::AdjustDiffuseProfileRenderData(PathHashValue pat
 	m_cbDiffuseProfileData.sssProfData[sssGBufferIndex].maxScatterDist = 1.0f / maxScatterDistance; // is rcp of dist actually!
 	m_cbDiffuseProfileData.sssProfData[sssGBufferIndex].transmit = pProfile->GetTransmit();
 	m_cbDiffuseProfileData.sssProfData[sssGBufferIndex].transmitStrength = pProfile->GetTransmitStrength();
+
+	g_pContext->UpdateSubresource(m_cbDiffuseProfile.Get(), 0, nullptr, &m_cbDiffuseProfileData, 0, 0);
 }

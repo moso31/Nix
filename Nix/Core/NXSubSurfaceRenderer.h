@@ -28,7 +28,5 @@ private:
 	ComPtr<ID3D11RasterizerState>		m_pRasterizerState;
 	ComPtr<ID3D11BlendState>			m_pBlendState;
 
-	ComPtr<ID3D11Buffer>				m_cbDiffuseProfile;
-
 	NXRenderTarget* m_pResultRT;
 };

@@ -20,7 +20,7 @@ public:
 
 	void Push(NXResourceReloadCommand* pCommand);
 
-	void Update();
+	void OnReload();
 
 private:
 

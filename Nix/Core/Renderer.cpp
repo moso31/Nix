@@ -130,7 +130,13 @@ void Renderer::InitEvents()
 void Renderer::ResourcesReloading()
 {
 	NXResourceManager::GetInstance()->OnReload();
-	NXResourceReloader::GetInstance()->Update();
+	NXResourceReloader::GetInstance()->OnReload();
+}
+
+void Renderer::Update()
+{
+	UpdateGUI();
+	UpdateSceneData();
 }
 
 void Renderer::UpdateGUI()
