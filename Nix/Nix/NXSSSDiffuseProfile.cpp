@@ -4,7 +4,7 @@ void NXSSSDiffuseProfile::Serialize()
 {
 	using namespace rapidjson;
 
-	if (m_filePath.empty())
+	if (!std::filesystem::exists(m_filePath.string()))
 	{
 		printf("Warning, %s couldn't be serialized, cause path %s does not exist.\n", m_filePath.string().c_str(), m_filePath.string().c_str());
 		return;
@@ -24,7 +24,7 @@ void NXSSSDiffuseProfile::Serialize()
 void NXSSSDiffuseProfile::Deserialize()
 {
 	using namespace rapidjson;
-	if (m_filePath.empty())
+	if (!std::filesystem::exists(m_filePath.string()))
 	{
 		printf("Warning, %s couldn't be deserialized, cause path %s does not exist.\n", m_filePath.string().c_str(), m_filePath.string().c_str());
 		return;
@@ -34,8 +34,8 @@ void NXSSSDiffuseProfile::Deserialize()
 	if (!deserializer.LoadFromFile(m_filePath))
 		return;
 
-	deserializer.Vector3("scatter", m_scatter);
-	deserializer.Float("scatterDistance", m_scatterDistance);
-	deserializer.Vector3("transmit", m_transmit);
-	deserializer.Float("transmitStrength", m_transmitStrength);
+	m_scatter = deserializer.Vector3("scatter");
+	m_scatterDistance = deserializer.Float("scatterDistance");
+	m_transmit = deserializer.Vector3("transmit");
+	m_transmitStrength = deserializer.Float("transmitStrength");
 }

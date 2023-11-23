@@ -19,7 +19,7 @@ void NXGUIDiffuseProfile::Render()
 	}
 
 	float scatterDistance = m_pShowProfile->GetScatterDistance();
-	if (ImGui::DragFloat("Scatter Distance", &scatterDistance, 0.01f))
+	if (ImGui::DragFloat("Scatter Distance", &scatterDistance, 0.01f, 0.0f, 100.0f))
 	{
 		m_pShowProfile->SetScatterDistance(scatterDistance);
 	}
@@ -31,9 +31,14 @@ void NXGUIDiffuseProfile::Render()
 	}
 
 	float transmitStrength = m_pShowProfile->GetTransmitStrength();
-	if (ImGui::DragFloat("Transmit Strength", &transmitStrength, 0.01f))
+	if (ImGui::DragFloat("Transmit Strength", &transmitStrength, 0.01f, 0.0f, 100.0f))
 	{
 		m_pShowProfile->SetTransmitStrength(transmitStrength);
+	}
+
+	if (ImGui::Button("Save"))
+	{
+		OnSaveClicked();
 	}
 }
 
@@ -47,4 +52,9 @@ void NXGUIDiffuseProfile::SetDiffuseProfile(const std::filesystem::path& path)
 	// 所以需要一个指向 MaterialManager 的 m_sssProfilesMap 参数的指针 m_pShowProfile。
 	// GUI 类 只负责改 m_pShowProfile 的值，MaterialManager 会自动维护即时更新的逻辑。
 	m_pShowProfile = NXResourceManager::GetInstance()->GetMaterialManager()->GetOrAddSSSProfile(path);
+}
+
+void NXGUIDiffuseProfile::OnSaveClicked()
+{
+	m_pShowProfile->Serialize();
 }

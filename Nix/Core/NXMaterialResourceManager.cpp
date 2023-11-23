@@ -156,9 +156,8 @@ void NXMaterialResourceManager::AdjustDiffuseProfileRenderData(PathHashValue pat
 	auto& pProfile = isInvalidProfile ? m_defaultDiffuseProfile : m_sssProfilesMap[pathHash];
 
 	// 2023.11.21 
-	// 原paper只是明确指出了"Burley SSS 的 s 值应该与 散射距离 成反比例"
-	// 但没有说具体的比例多少合适，另外目前 Nix 的单位测定也不是特别完善。
-	// 0.01 是基于引擎当前环境测的比较合理的所放量，目前就先这样。
+	// 原paper只是明确指出了"Burley SSS 的 s 值应该与 散射距离 成反比例"，但没有说具体的比例多少合适。
+	// 所以现阶段先使用 基于引擎当前环境测的一个比较合理的scaleFactor。
 	float scaleFactor = 0.01f;
 	Vector3 scatterDistance = pProfile->GetScatter() * pProfile->GetScatterDistance() * scaleFactor;
 	float maxScatterDistance = scatterDistance.MaxComponent();

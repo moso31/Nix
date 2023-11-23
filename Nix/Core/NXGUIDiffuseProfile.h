@@ -16,5 +16,8 @@ public:
 	void SetDiffuseProfile(const std::filesystem::path& path);
 
 private:
+	void OnSaveClicked();
+
+private:
 	Ntr<NXSSSDiffuseProfile> m_pShowProfile;
 };
