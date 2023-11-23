@@ -12,7 +12,7 @@ Selfmade DX11 renderer.
 ### Programmable material + HLSL code editor: https://github.com/moso31/DonoText
 ![image](https://github.com/moso31/Nix/assets/15684115/70bf7f43-61eb-473a-8b7a-5a3fad1230b6)
 ### Burley SSS + approx SSS BTDF
-![image](https://github.com/moso31/Nix/assets/15684115/82eae988-7f59-41e8-bdd1-a6b9637bb826)
+![image](https://github.com/moso31/Nix/assets/15684115/e08205c6-4929-4d25-8019-bcbb7c6a278e)
 ![transition_animation](https://github.com/moso31/Nix/assets/15684115/d13bae94-fe1c-4c53-8d0a-be8ed776f075)
 
 ## Intending...
