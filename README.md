@@ -16,7 +16,7 @@ Selfmade DX11 renderer.
 ![transition_animation](https://github.com/moso31/Nix/assets/15684115/d13bae94-fe1c-4c53-8d0a-be8ed776f075)
 
 ## Intending...
-
+- [ ] DX12
 - [ ] Anti-Aliasing(TAA SMAA FXAA...)
 - [ ] Screen Space Ambient Occlusion(HBAO GTAO...)
 - [ ] SSR
