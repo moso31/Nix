@@ -1,6 +1,6 @@
 #pragma once
 #include <Windows.h>
-#include "BaseDefs/DX11.h"
+#include "BaseDefs/DX12.h"
 
 class App;
 class NXTimer;
@@ -9,10 +9,10 @@ class NXTimer;
 extern	HINSTANCE				g_hInst;
 extern	HWND					g_hWnd;
 
-extern	ComPtr<ID3D11Device5>				g_pDevice;
-extern	ComPtr<ID3D11DeviceContext4>		g_pContext;
-extern	ComPtr<IDXGISwapChain4>				g_pSwapChain;
-extern	ComPtr<ID3DUserDefinedAnnotation>	g_pUDA;
+extern	ComPtr<ID3D12Device8>				g_pDevice;
+extern	ComPtr<ID3D12CommandQueue>			g_pCommandQueue;
+extern	ComPtr<ID3D12CommandAllocator>		g_pCommandAllocator;
+extern	ComPtr<ID3D12GraphicsCommandList6>	g_pCommandList;
 
 extern	App* g_app;
 extern	NXTimer* g_timer;

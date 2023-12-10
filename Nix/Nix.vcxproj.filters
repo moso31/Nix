@@ -480,6 +480,9 @@
     <ClCompile Include="Core\NXGUIDiffuseProfile.cpp">
       <Filter>Core\UI</Filter>
     </ClCompile>
+    <ClCompile Include="BaseDefs\DX12.cpp">
+      <Filter>BaseDefs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -752,9 +755,6 @@
     <ClInclude Include="Nix\NXRefCountable.h">
       <Filter>Nix\Object</Filter>
     </ClInclude>
-    <ClInclude Include="BaseDefs\DX11.h">
-      <Filter>BaseDefs</Filter>
-    </ClInclude>
     <ClInclude Include="BaseDefs\Math.h">
       <Filter>BaseDefs</Filter>
     </ClInclude>
@@ -790,6 +790,9 @@
     </ClInclude>
     <ClInclude Include="Core\NXGUIDiffuseProfile.h">
       <Filter>Core\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseDefs\DX12.h">
+      <Filter>BaseDefs</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

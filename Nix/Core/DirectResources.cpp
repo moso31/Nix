@@ -4,137 +4,127 @@
 
 void DirectResources::InitDevice()
 {
+#ifdef _DEBUG
+	ComPtr<ID3D12Debug> debugController;
+	D3D12GetDebugInterface(IID_PPV_ARGS(&debugController));
+	debugController->EnableDebugLayer();
+#endif
+
+	HRESULT hr;
+	hr = CreateDXGIFactory2(0, IID_PPV_ARGS(&m_pDXGIFactory));
+
+	ComPtr<IDXGIAdapter1> pAdapter;
+	m_pDXGIFactory->EnumAdapters1(0, &pAdapter);
+
+	ComPtr<IDXGIAdapter4> pAdapter4;
+	hr = pAdapter.As(&pAdapter4);
+
+	hr = D3D12CreateDevice(pAdapter4.Get(), D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&g_pDevice));
+	hr = g_pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_pFence));
+
+	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
+	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+	hr = g_pDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&g_pCommandQueue));
+	hr = g_pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&g_pCommandAllocator));
+	hr = g_pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, g_pCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&g_pCommandList));
+
 	RECT rc;
 	GetClientRect(g_hWnd, &rc);
 	UINT width = rc.right - rc.left;
 	UINT height = rc.bottom - rc.top;
-
-	UINT createDeviceFlags = D3D11_CREATE_DEVICE_DISABLE_GPU_TIMEOUT;
-#ifdef _DEBUG
-	createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
-#endif
-
-	D3D_FEATURE_LEVEL featureLevels[] =
-	{
-		D3D_FEATURE_LEVEL_11_1,
-		D3D_FEATURE_LEVEL_11_0,
-		D3D_FEATURE_LEVEL_10_1,
-		D3D_FEATURE_LEVEL_10_0,
-	};
-	D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_1;
-
-	ComPtr<ID3D11Device> pDevice;
-	ComPtr<ID3D11DeviceContext> pContext;
-	HRESULT hr = D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, 0, createDeviceFlags,
-		featureLevels, ARRAYSIZE(featureLevels), D3D11_SDK_VERSION, &pDevice, &featureLevel, &pContext);
-
-	if (FAILED(hr))
-	{
-		NX::ThrowIfFailed(D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_WARP, 0, createDeviceFlags,
-			featureLevels, ARRAYSIZE(featureLevels), D3D11_SDK_VERSION, &pDevice, &featureLevel, &pContext));
-	}
-
-	NX::ThrowIfFailed(pDevice.As(&g_pDevice));
-	NX::ThrowIfFailed(pContext.As(&g_pContext));
-	NX::ThrowIfFailed(pContext.As(&g_pUDA));
-
-	ComPtr<ID3D11Debug> pDebug;
-	if (SUCCEEDED(pDevice.As(&pDebug)))
-	{
-		ComPtr<ID3D11InfoQueue> d3dInfoQueue;
-		if (SUCCEEDED(pDebug.As(&d3dInfoQueue)))
-		{
-#ifdef _DEBUG
-			d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_CORRUPTION, true);
-			d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, true);
-#endif
-			D3D11_MESSAGE_ID hide[] =
-			{
-				D3D11_MESSAGE_ID_SETPRIVATEDATA_CHANGINGPARAMS,
-
-				// 在此添加想要禁用的 D3D11_MESSAGE_ID
-				// Add more message IDs here as needed
-				D3D11_MESSAGE_ID_DEVICE_DRAW_RENDERTARGETVIEW_NOT_SET,
-			};
-
-			D3D11_INFO_QUEUE_FILTER filter = {};
-			filter.DenyList.NumIDs = _countof(hide);
-			filter.DenyList.pIDList = hide;
-			d3dInfoQueue->AddStorageFilterEntries(&filter);
-		}
-	}
-
 	OnResize(width, height);
+}
+
+void DirectResources::InitCommandLists()
+{
+	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
+	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+
+	HRESULT hr;
+
+	// 创建命令队列
+	hr = g_pDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&g_pCommandQueue));
+
+	// 创建命令分配器
+	hr = g_pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&g_pCommandAllocator));
+
+	// 创建命令列表，并将其和 命令分配器 关联
+	// 同时设定初始渲染管线状态 = nullptr（默认状态）
+	hr = g_pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, g_pCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&g_pCommandList));
 }
 
 void DirectResources::OnResize(UINT width, UINT height)
 {
-	// 清除特定于上一窗口大小的上下文。
-	ID3D11RenderTargetView* nullViews[] = { nullptr };
-	g_pContext->OMSetRenderTargets(ARRAYSIZE(nullViews), nullViews, nullptr);
-	g_pContext->Flush1(D3D11_CONTEXT_TYPE_ALL, nullptr);
-	m_pRTVSwapChainBuffer = nullptr;
+	HRESULT hr;
 
-	if (g_pSwapChain)
+	if (m_pSwapChain.Get())
 	{
-		// 如果交换链已存在，请调整其大小。
-		HRESULT hr = g_pSwapChain->ResizeBuffers(2, width, height, DXGI_FORMAT_B8G8R8A8_UNORM, 0);
+		hr = m_pSwapChain->ResizeBuffers(2, width, height, DXGI_FORMAT_B8G8R8A8_UNORM, 0);
 	}
 	else
 	{
-		DXGI_SWAP_CHAIN_DESC1 sd;
-		ZeroMemory(&sd, sizeof(sd));
-		sd.Width = width;
-		sd.Height = height;
-		sd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		sd.Stereo = false;
-		// 暂不使用多采样
-		sd.SampleDesc.Count = 1;
-		sd.SampleDesc.Quality = 0;
-		sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		// 使用双缓冲最大程度地减小延迟
-		sd.BufferCount = 2;
-		sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
-		sd.Flags = 0;
-		sd.Scaling = DXGI_SCALING_NONE;
-		sd.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
+		DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
+		swapChainDesc.BufferDesc.Width = width;
+		swapChainDesc.BufferDesc.Height = height;
+		swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; // 8 位 RGBA
+		swapChainDesc.BufferDesc.RefreshRate.Numerator = 60; // 刷新率
+		swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
+		swapChainDesc.SampleDesc.Count = 1; // MSAA4x 禁用
+		swapChainDesc.SampleDesc.Quality = 0;
+		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT; // 用于RT
+		swapChainDesc.BufferCount = 2; // 双缓冲
+		swapChainDesc.OutputWindow = g_hWnd; // 窗口句柄
+		swapChainDesc.Windowed = true; // 窗口模式
+		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD; // 翻转模式
+		swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH; // 允许全屏切换
 
-		ComPtr<IDXGIDevice3> pDxgiDevice;
-		NX::ThrowIfFailed(g_pDevice.As(&pDxgiDevice));
+		ComPtr<IDXGISwapChain> pSwapChain;
+		hr = m_pDXGIFactory->CreateSwapChain(g_pCommandQueue.Get(), &swapChainDesc, &pSwapChain);
+		hr = pSwapChain.As(&m_pSwapChain);
 
-		ComPtr<IDXGIAdapter> pDxgiAdapter;
-		NX::ThrowIfFailed(pDxgiDevice->GetAdapter(&pDxgiAdapter));
+		// 构建描述符
+		D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
+		rtvHeapDesc.NumDescriptors = 2; // 双缓冲
+		rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV; // RTV
+		rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE; // 无标志
+		rtvHeapDesc.NodeMask = 0; // 单GPU
 
-		ComPtr<IDXGIFactory5> pDxgiFactory;
-		NX::ThrowIfFailed(pDxgiAdapter->GetParent(IID_PPV_ARGS(&pDxgiFactory)));
+		// 创建描述符堆
+		hr = g_pDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_pRTVHeap));
+		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_pRTVHeap->GetCPUDescriptorHandleForHeapStart();
 
-		ComPtr<IDXGISwapChain1> pSwapChain;
-		NX::ThrowIfFailed(pDxgiFactory->CreateSwapChainForHwnd(g_pDevice.Get(), g_hWnd, &sd, nullptr, nullptr, &pSwapChain));
-		
-		NX::ThrowIfFailed(pSwapChain.As(&g_pSwapChain));
+		// 创建RTV
+		for (int i = 0; i < 2; ++i)
+		{
+			hr = m_pSwapChain->GetBuffer(i, IID_PPV_ARGS(&m_pSwapChainRT[i]));
+			g_pDevice->CreateRenderTargetView(m_pSwapChainRT[i].Get(), nullptr, rtvHandle);
+			rtvHandle.ptr += g_pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+
+			std::wstring strDebugName = L"SwapChain RT " + std::to_wstring(i);
+			m_pSwapChainRT[i]->SetName(strDebugName.c_str());
+		}
 	}
-
-
-	// 创建交换链后台缓冲区的渲染目标视图。
-	ComPtr<ID3D11Texture2D> pBackBuffer = nullptr;
-	NX::ThrowIfFailed(g_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer)));
-	NX::ThrowIfFailed(g_pDevice->CreateRenderTargetView(pBackBuffer.Get(), nullptr, &m_pRTVSwapChainBuffer));
 }
 
 void DirectResources::PrepareToRenderGUI()
 {
-	if (!m_pRTVSwapChainBuffer)
-		return;
-
-	// 2023.6.3 设置最终呈现屏幕渲染结果所使用的RTV。
-	// 目前需要在主渲染结束后，GUI开始渲染前执行这一步骤。
-	// 换句话说，在执行此方法后，GUI将会被逐个渲染到这个Buffer上。
-	g_pContext->OMSetRenderTargets(1, m_pRTVSwapChainBuffer.GetAddressOf(), nullptr);
-	g_pContext->ClearRenderTargetView(m_pRTVSwapChainBuffer.Get(), Colors::Black);
+	// 2023.12.10 设置最终呈现屏幕渲染结果所使用的RTV。
+	// 目前在主渲染结束后，GUI开始渲染前执行这一步骤。GUI将会被逐个渲染到当前帧，SwapChain的RTV上。
+	g_pCommandList->OMSetRenderTargets(1, &GetCurrentSwapChainRTV(), true, nullptr);
+	g_pCommandList->ClearRenderTargetView(GetCurrentSwapChainRTV(), DirectX::Colors::Black, 0, nullptr);
 }
 
 void DirectResources::Release()
 {
-	if (g_pContext)				
-		g_pContext->ClearState();
+	// 好像没啥用，先注掉了
+	//g_pCommandList->ClearState(nullptr);
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE DirectResources::GetCurrentSwapChainRTV()
+{
+	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = m_pRTVHeap->GetCPUDescriptorHandleForHeapStart();
+	cpuHandle.ptr += g_pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV) * m_pSwapChain->GetCurrentBackBufferIndex();
+	return cpuHandle;
 }

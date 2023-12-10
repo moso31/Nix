@@ -209,6 +209,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BaseDefs\DearImGui.cpp" />
+    <ClCompile Include="BaseDefs\DX12.cpp" />
     <ClCompile Include="Core\App.cpp" />
     <ClCompile Include="Core\DirectResources.cpp" />
     <ClCompile Include="Core\FBXMeshLoader.cpp" />
@@ -301,9 +302,9 @@
   <ItemGroup>
     <ClInclude Include="BaseDefs\CppSTLFully.h" />
     <ClInclude Include="BaseDefs\CrtDbg.h" />
+    <ClInclude Include="BaseDefs\DX12.h" />
     <ClInclude Include="BaseDefs\NixCore.h" />
     <ClInclude Include="BaseDefs\DearImGui.h" />
-    <ClInclude Include="BaseDefs\DX11.h" />
     <ClInclude Include="BaseDefs\Math.h" />
     <ClInclude Include="Core\App.h" />
     <ClInclude Include="Core\DirectResources.h" />
