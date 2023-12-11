@@ -113,13 +113,6 @@ void Renderer::InitRenderer()
 {
 	// 在这里初始化CommonRT和通用纹理。
 	NXResourceManager::GetInstance()->GetTextureManager()->InitCommonTextures();
-	//NXResourceManager::GetInstance()->GetTextureManager()->InitCommonRT(???);
-
-	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	g_pContext->OMSetDepthStencilState(nullptr, 0); 
-	g_pContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
-	g_pContext->RSSetState(nullptr);	// back culling
 }
 
 void Renderer::InitEvents()

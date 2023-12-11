@@ -1,5 +1,5 @@
 #pragma once
-#include "BaseDefs/DX11.h"
+#include "BaseDefs/DX12.h"
 #include "BaseDefs/Math.h"
 #include "NXResourceManagerBase.h"
 
@@ -28,8 +28,15 @@ public:
     Ntr<NXTexture2DArray> CreateTexture2DArray(std::string DebugName, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize = 1, UINT MipLevels = 0, UINT BindFlags = D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE Usage = D3D11_USAGE_DEFAULT, UINT CpuAccessFlags = 0, UINT SampleCount = 1, UINT SampleQuality = 0, UINT MiscFlags = 0);
 
 private:
-    std::vector<Ntr<NXTexture2D>> m_pCommonRT;
     std::vector<Ntr<NXTexture2D>> m_pCommonTex;
+    std::vector<Ntr<NXTexture2D>> m_pCommonRT;
 
     std::vector<Ntr<NXTexture>> m_pTextureArrayInternal;
+
+	ComPtr<ID3D12DescriptorHeap> m_pSRVHeapTex;
+	ComPtr<ID3D12DescriptorHeap> m_pUAVHeapTex;
+	ComPtr<ID3D12DescriptorHeap> m_pSRVHeapRT;
+	ComPtr<ID3D12DescriptorHeap> m_pUAVHeapRT;
+	ComPtr<ID3D12DescriptorHeap> m_pRTVHeapRT;
+	ComPtr<ID3D12DescriptorHeap> m_pDSVHeapRT;
 };

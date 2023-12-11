@@ -118,7 +118,7 @@ void DirectResources::PrepareToRenderGUI()
 
 void DirectResources::Release()
 {
-	// 好像没啥用，先注掉了
+	// 2023.12.11 好像没啥用，先注掉，等跑通了再看
 	//g_pCommandList->ClearState(nullptr);
 }
 
