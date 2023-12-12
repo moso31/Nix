@@ -488,9 +488,6 @@
     <ClInclude Include="Core\App.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Header.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="Core\NXInstance.h">
       <Filter>Core</Filter>
     </ClInclude>

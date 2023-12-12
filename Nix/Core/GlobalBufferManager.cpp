@@ -11,9 +11,9 @@ ConstantBufferShadowTest			NXGlobalBufferManager::m_cbDataShadowTest;
 
 void NXGlobalBufferManager::Init()
 {
-	m_cbObject = NX12Util::CreateResource_CBuffer(g_pDevice.Get(), sizeof(ConstantBufferObject), L"CB Object");
-	m_cbCamera = NX12Util::CreateResource_CBuffer(g_pDevice.Get(), sizeof(ConstantBufferCamera), L"CB Camera");
-	m_cbShadowTest = NX12Util::CreateResource_CBuffer(g_pDevice.Get(), sizeof(ConstantBufferShadowTest), L"CB Shadow Test");
+	m_cbObject = NX12Util::CreateBuffer(g_pDevice.Get(), L"CB Object", sizeof(ConstantBufferObject), D3D12_HEAP_TYPE_UPLOAD);
+	m_cbCamera = NX12Util::CreateBuffer(g_pDevice.Get(), L"CB Camera", sizeof(ConstantBufferCamera), D3D12_HEAP_TYPE_UPLOAD);
+	m_cbShadowTest = NX12Util::CreateBuffer(g_pDevice.Get(), L"CB Shadow Test", sizeof(ConstantBufferShadowTest), D3D12_HEAP_TYPE_UPLOAD);
 }
 
 D3D12_INPUT_ELEMENT_DESC	NXGlobalInputLayout::layoutP[1];

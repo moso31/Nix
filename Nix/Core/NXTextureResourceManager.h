@@ -29,9 +29,8 @@ public:
 
 private:
     std::vector<Ntr<NXTexture2D>> m_pCommonTex;
-    std::vector<Ntr<NXTexture2D>> m_pCommonRT;
-
-    std::vector<Ntr<NXTexture>> m_pTextureArrayInternal;
+    std::vector<Ntr<NXTexture2D>> m_pCommonRT; 
+     
 
 	ComPtr<ID3D12DescriptorHeap> m_pSRVHeapTex;
 	ComPtr<ID3D12DescriptorHeap> m_pUAVHeapTex;

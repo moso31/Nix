@@ -76,7 +76,10 @@ private:
     void InternalReload(Ntr<NXTexture> pReloadTexture);
 
 protected:
-    ComPtr<ID3D11Texture2D> m_pTexture;
+    ComPtr<ID3D12Resource> m_pTexture;
+
+    // TODO: 临时资源，后续考虑优化
+    ComPtr<ID3D12Resource> m_pTextureUploadBuffer; 
 
     std::filesystem::path m_texFilePath;
 
@@ -123,6 +126,8 @@ public:
     Ntr<NXTexture2D> Create(const std::string& DebugName, const std::filesystem::path& FilePath);
     Ntr<NXTexture2D> CreateSolid(const std::string& DebugName, UINT TexSize, const Vector4& Color);
     Ntr<NXTexture2D> CreateNoise(const std::string& DebugName, UINT TexSize, UINT Dimension);
+
+    void Create(const std::string& name, DXGI_FORMAT texFormat, UINT width, UINT height, UINT arraySize, UINT mipLevels);
 
     void AddSRV();
     void AddRTV();

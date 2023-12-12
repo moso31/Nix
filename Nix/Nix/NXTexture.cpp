@@ -272,61 +272,28 @@ Ntr<NXTexture2D> NXTexture2D::Create(const std::string& DebugName, const std::fi
 		}
 	}
 
-	this->m_texFilePath = filePath;
-	this->m_name = DebugName;
-	this->m_width = (UINT)metadata.width;
-	this->m_height = (UINT)metadata.height;
-	this->m_arraySize = (UINT)metadata.arraySize;
-	this->m_mipLevels = (UINT)metadata.mipLevels;
-	this->m_texFormat = metadata.format;
-
-	// Describe and create a Texture2D.
-	D3D12_RESOURCE_DESC desc = {};
-	desc.Width = static_cast<UINT>(metadata.width);
-	desc.Height = static_cast<UINT>(metadata.height);
-	desc.MipLevels = static_cast<UINT16>(metadata.mipLevels);
-	desc.DepthOrArraySize = (metadata.dimension == TEX_DIMENSION_TEXTURE3D)
-		? static_cast<UINT16>(metadata.depth)
-		: static_cast<UINT16>(metadata.arraySize);
-	desc.Format = metadata.format;
-	desc.Flags = D3D12_RESOURCE_FLAG_NONE;
-	desc.SampleDesc.Count = 1;
-	desc.Dimension = static_cast<D3D12_RESOURCE_DIMENSION>(metadata.dimension);
+	m_texFilePath = filePath;
+	m_name = DebugName;
+	m_width = (UINT)metadata.width;
+	m_height = (UINT)metadata.height;
+	m_arraySize = (UINT)metadata.arraySize;
+	m_mipLevels = (UINT)metadata.mipLevels;
+	m_texFormat = metadata.format;
 
 	// TODO：关于纹理创建这事比较麻烦，DX12现在需要一个uploadBuffer做中继，不然传不上去
-	// 但是 uploadBuffer 在数据上传后，就没用了，关键是如何确认GPU中上传完毕，可以释放？
+	// 但是 uploadBuffer 在数据上传后，就没用了，关键是如何确认uploadBuffer 在GPU中上传完毕，可以释放？
 	// 常用的做法包括：重用上传缓冲区，或基于Fence释放资源，这都是可以考虑的方向。
 	// 为了实现这个，可能需要配套设计一个异步管理系统。太繁琐了，我还没想好。
 	// 2023.12.11
 	// 目前处于11转12阶段，为方便起见，暂时在NXTexture中始终保持这两份内存。
 	// 好处是简单，坏处是额外存储了一份纹理的内存开销。必然要改
-	NX12Util::
-	CD3DX12_HEAP_PROPERTIES defaultHeap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-	CD3DX12_HEAP_PROPERTIES uploadHeap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-
-	g_pDevice->CreateCommittedResource(
-		&defaultHeap,
-		D3D12_HEAP_FLAG_NONE,
-		&desc,
-		D3D12_RESOURCE_STATE_COPY_DEST,
-		nullptr,
-		IID_PPV_ARGS(&m_pTexture));
-
-	const UINT64 uploadBufferSize = GetRequiredIntermediateSize(m_pTexture.Get(), 0, 1);
-	CD3DX12_RESOURCE_DESC uploadBuffer = CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize);
-	// Create the GPU upload buffer.
-	g_pDevice->CreateCommittedResource(
-		&uploadHeap,
-		D3D12_HEAP_FLAG_NONE,
-		&uploadBuffer,
-		D3D12_RESOURCE_STATE_GENERIC_READ,
-		nullptr,
-		IID_PPV_ARGS(&m_pTextureUpload));
-	m_pTextureUpload->SetName(L"textureUploadHeap temp");
+	std::wstring name = NXConvert::s2ws(DebugName);
+	std::wstring nameUploadTemp = name + L"UploadBuffer temp";
+	m_pTexture = NX12Util::CreateTexture2D(g_pDevice.Get(), name.c_str(), m_width, m_height, m_texFormat, m_mipLevels, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_COPY_DEST);
+	m_pTextureUploadBuffer = NX12Util::CreateTexture2D(g_pDevice.Get(), nameUploadTemp.c_str(), m_width, m_height, m_texFormat, m_mipLevels, D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_GENERIC_READ);
 
 	// Copy data to the intermediate upload heap and then schedule a copy 
 	// from the upload heap to the Texture2D.
-
 	int pixelSize = pImage->GetPixelsSize() / metadata.width / metadata.height / metadata.depth;
 	D3D12_SUBRESOURCE_DATA textureData = {};
 	textureData.pData = pImage->GetPixels();

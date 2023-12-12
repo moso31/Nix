@@ -111,7 +111,6 @@ void Renderer::InitGUI()
 
 void Renderer::InitRenderer()
 {
-	// 在这里初始化CommonRT和通用纹理。
 	NXResourceManager::GetInstance()->GetTextureManager()->InitCommonTextures();
 }
 

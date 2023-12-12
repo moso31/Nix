@@ -13,11 +13,11 @@ using namespace Microsoft::WRL;
 class NX12Util
 {
 public:
-	static ID3D12Resource* CreateResource_CBuffer(ID3D12Device* pDevice, UINT sizeOfByte, const std::wstring& name);
+	static ID3D12Resource* CreateBuffer(ID3D12Device* pDevice, const std::wstring& name, UINT sizeOfByte, D3D12_HEAP_TYPE heapType);
+	static ID3D12Resource* CreateTexture2D(ID3D12Device* pDevice, const std::wstring& name, UINT width, UINT height, DXGI_FORMAT format, UINT mipLevels, D3D12_HEAP_TYPE heapType, D3D12_RESOURCE_STATES initState);
 	static D3D12_RESOURCE_DESC CreateResourceDesc_DepthStencil(UINT width, UINT height, DXGI_FORMAT fmt = DXGI_FORMAT_D24_UNORM_S8_UINT);
 
-	static D3D12_HEAP_PROPERTIES CreateHeapProperties_Upload();
-	static D3D12_HEAP_PROPERTIES CreateHeapProperties_Default();
+	static D3D12_HEAP_PROPERTIES CreateHeapProperties(D3D12_HEAP_TYPE heapType);
 
 	static D3D12_CLEAR_VALUE CreateClearValue(float depth = 1.0f, UINT8 stencil = 0, DXGI_FORMAT fmt = DXGI_FORMAT_D24_UNORM_S8_UINT);
 
