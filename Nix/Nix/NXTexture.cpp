@@ -148,11 +148,6 @@ void NXTexture2D::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* in
 	m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
 }
 
-void NXTexture2D::Create(const std::string& name, DXGI_FORMAT texFormat, UINT width, UINT height, UINT arraySize, UINT mipLevels)
-{
-
-}
-
 Ntr<NXTexture2D> NXTexture2D::Create(const std::string& DebugName, const std::filesystem::path& filePath)
 {
 	TexMetadata metadata;
@@ -280,74 +275,31 @@ Ntr<NXTexture2D> NXTexture2D::Create(const std::string& DebugName, const std::fi
 	m_mipLevels = (UINT)metadata.mipLevels;
 	m_texFormat = metadata.format;
 
-	// TODO：关于纹理创建这事比较麻烦，DX12现在需要一个uploadBuffer做中继，不然传不上去
-	// 但是 uploadBuffer 在数据上传后，就没用了，关键是如何确认uploadBuffer 在GPU中上传完毕，可以释放？
-	// 常用的做法包括：重用上传缓冲区，或基于Fence释放资源，这都是可以考虑的方向。
-	// 为了实现这个，可能需要配套设计一个异步管理系统。太繁琐了，我还没想好。
-	// 2023.12.11
-	// 目前处于11转12阶段，为方便起见，暂时在NXTexture中始终保持这两份内存。
-	// 好处是简单，坏处是额外存储了一份纹理的内存开销。必然要改
-	std::wstring name = NXConvert::s2ws(DebugName);
-	std::wstring nameUploadTemp = name + L"UploadBuffer temp";
-	m_pTexture = NX12Util::CreateTexture2D(g_pDevice.Get(), name.c_str(), m_width, m_height, m_texFormat, m_mipLevels, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_COPY_DEST);
-
-	D3D12_PLACED_SUBRESOURCE_FOOTPRINT* pLayouts = new D3D12_PLACED_SUBRESOURCE_FOOTPRINT[m_mipLevels];
-	UINT* pNumRows = new UINT[m_mipLevels];
-	UINT64* pRowSizeInBytes = new UINT64[m_mipLevels];
-
-	UINT uploadBufferSize = NX12Util::GetRequiredIntermediateLayoutInfos(g_pDevice.Get(), m_pTexture.Get(), pLayouts, pNumRows, pRowSizeInBytes);
-	m_pTextureUploadBuffer = NX12Util::CreateBuffer(g_pDevice.Get(), nameUploadTemp.c_str(), uploadBufferSize, D3D12_HEAP_TYPE_UPLOAD);
-
-	void* pMappedData;
-	m_pTextureUploadBuffer->Map(0, nullptr, &pMappedData);
-	for (UINT mip = 0; mip < m_mipLevels; mip++)
-	{
-		const Image* pImg = pImage->GetImage(mip, 0, 0);
-		const BYTE* pSrcData = pImg->pixels;
-		BYTE* pDstData = reinterpret_cast<BYTE*>(pMappedData) + pLayouts[mip].Offset;
-
-		for (UINT y = 0; y < pNumRows[mip]; y++)
-		{
-			memcpy(pDstData + pLayouts[mip].Footprint.RowPitch * y, pSrcData + pImg->rowPitch * y, pRowSizeInBytes[mip]);
-		}
-	}
-	m_pTextureUploadBuffer->Unmap(0, nullptr);
-
-	NX12Util::CopyTextureRegion(g_pCommandList.Get(), m_pTexture.Get(), m_pTextureUploadBuffer.Get(), m_mipLevels, pLayouts);
-
-	auto barrier = NX12Util::CreateResourceBarrier_Transition(m_pTexture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-	g_pCommandList->ResourceBarrier(1, &barrier);
-
-	delete[] pLayouts;
-	delete[] pNumRows;
-	delete[] pRowSizeInBytes;
+	CreateInternal(DebugName, pImage);
 
 	pImage.reset();
 	return this;
 }
 
-Ntr<NXTexture2D> NXTexture2D::CreateSolid(const std::string& DebugName, UINT TexSize, const Vector4& Color)
+Ntr<NXTexture2D> NXTexture2D::CreateSolid(const std::string& debugName, UINT texSize, const Vector4& color)
 {
-	// 创建大小为 TexSize * TexSize 的纯色纹理
-	DirectX::Image image;
-	image.width = TexSize;
-	image.height = TexSize;
-	image.format = DXGI_FORMAT_R8G8B8A8_UNORM;		// 8-bit UNORM for each channel
-	image.rowPitch = TexSize * 4;					// 4 bytes per pixel (RGBA)
-	image.slicePitch = image.rowPitch * TexSize;	// size of entire image
-	image.pixels = new uint8_t[image.slicePitch];
+	// 创建大小为 texSize * texSize 的纯色纹理
+	std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>();
+	DXGI_FORMAT fmt = DXGI_FORMAT_R8G8B8A8_UNORM;
+	pImage->Initialize2D(fmt, texSize, texSize, 1, 1);
 
 	// Convert floating point color to 8-bit color
-	uint8_t r = static_cast<uint8_t>(Color.x * 255.0f);
-	uint8_t g = static_cast<uint8_t>(Color.y * 255.0f);
-	uint8_t b = static_cast<uint8_t>(Color.z * 255.0f);
-	uint8_t a = static_cast<uint8_t>(Color.w * 255.0f);
+	uint8_t r = static_cast<uint8_t>(color.x * 255.0f);
+	uint8_t g = static_cast<uint8_t>(color.y * 255.0f);
+	uint8_t b = static_cast<uint8_t>(color.z * 255.0f);
+	uint8_t a = static_cast<uint8_t>(color.w * 255.0f);
 
-	for (UINT i = 0; i < TexSize; ++i)
+	const Image& pImg = *pImage->GetImage(0, 0, 0);
+	for (UINT i = 0; i < texSize; ++i)
 	{
-		for (UINT j = 0; j < TexSize; ++j)
+		for (UINT j = 0; j < texSize; ++j)
 		{
-			uint8_t* pixel = image.pixels + i * image.rowPitch + j * 4;
+			uint8_t* pixel = pImg.pixels + i * pImg.rowPitch + j * 4;
 			pixel[0] = r;
 			pixel[1] = g;
 			pixel[2] = b;
@@ -355,78 +307,68 @@ Ntr<NXTexture2D> NXTexture2D::CreateSolid(const std::string& DebugName, UINT Tex
 		}
 	}
 
-	// Directly create the texture using the provided data
-	TexMetadata metadata;
-	metadata.width = image.width;
-	metadata.height = image.height;
-	metadata.depth = 1;
-	metadata.arraySize = 1;
-	metadata.mipLevels = 1;
-	metadata.format = image.format;
-	metadata.dimension = TEX_DIMENSION_TEXTURE2D;
+	m_texFilePath = "[Default Solid Texture]";
+	m_name = debugName;
+	m_width = texSize;
+	m_height = texSize;
+	m_arraySize = 1;
+	m_mipLevels = 1;
+	m_texFormat = fmt;
 
-	DirectX::CreateTextureEx(g_pDevice.Get(), &image, 1, metadata, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0, CREATETEX_DEFAULT, (ID3D11Resource**)m_pTexture.GetAddressOf());
-	m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
+	CreateInternal(debugName, pImage);
 
-	delete[] image.pixels;
+	pImage.reset();
 	return this;
 }
 
-Ntr<NXTexture2D> NXTexture2D::CreateNoise(const std::string& DebugName, UINT TexSize, UINT Dimension)
+Ntr<NXTexture2D> NXTexture2D::CreateNoise(const std::string& debugName, UINT texSize, UINT dimension)
 {
+	// 创建大小为 texSize * texSize 的噪声纹理
+
 	// Check if dimension is valid (1, 2, 3, or 4)
-	if (Dimension < 1 || Dimension > 4)
+	if (dimension < 1 || dimension > 4)
 	{
 		printf("Invalid Dimension for Noise Texture. Allowed values are 1, 2, 3, or 4.\n");
 		return nullptr;
 	}
 
-	DXGI_FORMAT format;
-	switch (Dimension)
+	DXGI_FORMAT fmt;
+	switch (dimension)
 	{
-	case 1: format = DXGI_FORMAT_R32_FLOAT; break;
-	case 2: format = DXGI_FORMAT_R32G32_FLOAT; break;
-	case 3: format = DXGI_FORMAT_R32G32B32_FLOAT; break;
-	case 4: format = DXGI_FORMAT_R32G32B32A32_FLOAT; break;
+	case 1: fmt = DXGI_FORMAT_R32_FLOAT; break;
+	case 2: fmt = DXGI_FORMAT_R32G32_FLOAT; break;
+	case 3: fmt = DXGI_FORMAT_R32G32B32_FLOAT; break;
+	case 4: fmt = DXGI_FORMAT_R32G32B32A32_FLOAT; break;
 	}
 
-	UINT bytePerPixel = sizeof(float) * Dimension; // 2023.10.26 现阶段只支持 32-bit float 纹理，所以每个像素占 sizeof(float) * Dimension 字节
+	UINT bytePerPixel = sizeof(float) * dimension; // 2023.10.26 现阶段只支持 32-bit float 纹理，所以每个像素占 sizeof(float) * Dimension 字节
 
-	DirectX::Image image;
-	image.width = TexSize;
-	image.height = TexSize;
-	image.format = format;
-	image.rowPitch = TexSize * bytePerPixel;
-	image.slicePitch = image.rowPitch * TexSize;
-	image.pixels = new uint8_t[image.slicePitch];
+	std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>();
+	pImage->Initialize2D(fmt, texSize, texSize, 1, 1);
 
 	NXRandom* randInst = NXRandom::GetInstance();
-	for (UINT i = 0; i < TexSize; ++i)
+	const Image& image = *pImage->GetImage(0, 0, 0);
+	for (UINT i = 0; i < texSize; ++i)
 	{
-		for (UINT j = 0; j < TexSize; ++j)
+		for (UINT j = 0; j < texSize; ++j)
 		{
-			float* pixel = reinterpret_cast<float*>(image.pixels + i * image.rowPitch + j * Dimension * sizeof(float));
-			for(UINT dim = 0; dim < Dimension; dim++)
+			float* pixel = reinterpret_cast<float*>(image.pixels + i * image.rowPitch + j * dimension * sizeof(float));
+			for(UINT dim = 0; dim < dimension; dim++)
 				pixel[dim] = randInst->CreateFloat();
 		}
 	}
 
-	// Directly create the texture using the provided data
-	TexMetadata metadata;
-	metadata.width = image.width;
-	metadata.height = image.height;
-	metadata.depth = 1;
-	metadata.arraySize = 1;
-	metadata.mipLevels = 1;
-	metadata.format = image.format;
-	metadata.dimension = TEX_DIMENSION_TEXTURE2D;
-	metadata.miscFlags = 0;
-	metadata.miscFlags2 = 0;
+	m_texFilePath = "[Default Noise Texture]";
+	m_name = debugName;
+	m_width = texSize;
+	m_height = texSize;
+	m_arraySize = 1;
+	m_mipLevels = 1;
+	m_texFormat = fmt;
 
-	DirectX::CreateTextureEx(g_pDevice.Get(), &image, 1, metadata, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0, CREATETEX_DEFAULT, (ID3D11Resource**)m_pTexture.GetAddressOf());
-	m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
+	CreateInternal(debugName, pImage);
 
-	delete[] image.pixels;
+	pImage.reset();
 	return this;
 }
 
@@ -490,6 +432,51 @@ void NXTexture2D::AddUAV()
 	pUAV->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)UAVDebugName.size(), UAVDebugName.c_str());
 
 	m_pUAVs.push_back(pUAV);
+}
+
+void NXTexture2D::CreateInternal(const std::string& debugName, const std::unique_ptr<ScratchImage>& pImage)
+{
+	// TODO：关于纹理创建这事比较麻烦，DX12现在需要一个uploadBuffer做中继，不然传不上去
+	// 但是 uploadBuffer 在数据上传后，就没用了，关键是如何确认uploadBuffer 在GPU中上传完毕，可以释放？
+	// 常用的做法包括：重用上传缓冲区，或基于Fence释放资源，这都是可以考虑的方向。
+	// 为了实现这个，可能需要配套设计一个异步管理系统。太繁琐了，我还没想好。
+	// 2023.12.11
+	// 目前处于11转12阶段，为方便起见，暂时在NXTexture中始终保持这两份内存。
+	// 好处是简单，坏处是额外存储了一份纹理的内存开销。必然要改
+	std::wstring name = NXConvert::s2ws(debugName);
+	std::wstring nameUploadTemp = name + L"UploadBuffer temp";
+	m_pTexture = NX12Util::CreateTexture2D(g_pDevice.Get(), name.c_str(), m_width, m_height, m_texFormat, m_mipLevels, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_COPY_DEST);
+
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT* pLayouts = new D3D12_PLACED_SUBRESOURCE_FOOTPRINT[m_mipLevels];
+	UINT* pNumRows = new UINT[m_mipLevels];
+	UINT64* pRowSizeInBytes = new UINT64[m_mipLevels];
+
+	UINT uploadBufferSize = NX12Util::GetRequiredIntermediateLayoutInfos(g_pDevice.Get(), m_pTexture.Get(), pLayouts, pNumRows, pRowSizeInBytes);
+	m_pTextureUploadBuffer = NX12Util::CreateBuffer(g_pDevice.Get(), nameUploadTemp.c_str(), uploadBufferSize, D3D12_HEAP_TYPE_UPLOAD);
+
+	void* pMappedData;
+	m_pTextureUploadBuffer->Map(0, nullptr, &pMappedData);
+	for (UINT mip = 0; mip < m_mipLevels; mip++)
+	{
+		const Image* pImg = pImage->GetImage(mip, 0, 0);
+		const BYTE* pSrcData = pImg->pixels;
+		BYTE* pDstData = reinterpret_cast<BYTE*>(pMappedData) + pLayouts[mip].Offset;
+
+		for (UINT y = 0; y < pNumRows[mip]; y++)
+		{
+			memcpy(pDstData + pLayouts[mip].Footprint.RowPitch * y, pSrcData + pImg->rowPitch * y, pRowSizeInBytes[mip]);
+		}
+	}
+	m_pTextureUploadBuffer->Unmap(0, nullptr);
+
+	NX12Util::CopyTextureRegion(g_pCommandList.Get(), m_pTexture.Get(), m_pTextureUploadBuffer.Get(), m_mipLevels, pLayouts);
+
+	auto barrier = NX12Util::CreateResourceBarrier_Transition(m_pTexture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	g_pCommandList->ResourceBarrier(1, &barrier);
+
+	delete[] pLayouts;
+	delete[] pNumRows;
+	delete[] pRowSizeInBytes;
 }
 
 void NXTextureCube::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* initData, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)

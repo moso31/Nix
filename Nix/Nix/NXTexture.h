@@ -127,12 +127,13 @@ public:
     Ntr<NXTexture2D> CreateSolid(const std::string& DebugName, UINT TexSize, const Vector4& Color);
     Ntr<NXTexture2D> CreateNoise(const std::string& DebugName, UINT TexSize, UINT Dimension);
 
-    void Create(const std::string& name, DXGI_FORMAT texFormat, UINT width, UINT height, UINT arraySize, UINT mipLevels);
-
     void AddSRV();
     void AddRTV();
     void AddDSV();
     void AddUAV();
+
+private:
+    void CreateInternal(const std::string& debugName, const std::unique_ptr<DirectX::ScratchImage>& pImage);
 };
 
 class NXTextureCube : public NXTexture
