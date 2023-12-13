@@ -113,7 +113,56 @@ D3D12_CLEAR_VALUE NX12Util::CreateClearValue(float depth, UINT8 stencil, DXGI_FO
 	return cv;
 }
 
+D3D12_RESOURCE_BARRIER NX12Util::CreateResourceBarrier_Transition(ID3D12Resource* pResource, D3D12_RESOURCE_STATES from, D3D12_RESOURCE_STATES to)
+{
+	D3D12_RESOURCE_BARRIER barrier = {};
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barrier.Transition.pResource = pResource;
+	barrier.Transition.StateBefore = from;
+	barrier.Transition.StateAfter = to;
+	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	return barrier;
+}
+
+void NX12Util::CopyTextureRegion(ID3D12GraphicsCommandList* pCommandList, ID3D12Resource* pTexture, ID3D12Resource* pTextureUploadBuffer, UINT mipCount, const D3D12_PLACED_SUBRESOURCE_FOOTPRINT* pLayouts)
+{
+	for (UINT mip = 0; mip < mipCount; ++mip) 
+	{
+		D3D12_TEXTURE_COPY_LOCATION dst = {};
+		dst.SubresourceIndex = mip;
+		dst.PlacedFootprint = {};
+		dst.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+		dst.pResource = pTexture;
+
+		D3D12_TEXTURE_COPY_LOCATION src = {};
+		src.SubresourceIndex = 0;
+		src.PlacedFootprint = pLayouts[mip];
+		src.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+		src.pResource = pTextureUploadBuffer;
+
+		pCommandList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
+	}
+}
+
 UINT NX12Util::ByteAlign256(UINT sizeInBytes)
 {
 	return (sizeInBytes + 255) & ~255;
+}
+
+UINT NX12Util::GetRequiredIntermediateSize(ID3D12Device* pDevice, ID3D12Resource* pResource)
+{
+	D3D12_RESOURCE_DESC desc = pResource->GetDesc();
+	UINT64 requiredSize = 0;
+	pDevice->GetCopyableFootprints(&desc, 0, desc.MipLevels, 0, nullptr, nullptr, nullptr, &requiredSize);
+	return (UINT)requiredSize;
+}
+
+UINT NX12Util::GetRequiredIntermediateLayoutInfos(ID3D12Device* pDevice, ID3D12Resource* pResource, D3D12_PLACED_SUBRESOURCE_FOOTPRINT* oLayouts, UINT* oNumRows, UINT64* oRowSizeInBytes)
+{
+
+	D3D12_RESOURCE_DESC desc = pResource->GetDesc();
+	UINT64 requiredSize = 0;
+	pDevice->GetCopyableFootprints(&desc, 0, desc.MipLevels, 0, oLayouts, oNumRows, oRowSizeInBytes, &requiredSize);
+	return (UINT)requiredSize;
 }

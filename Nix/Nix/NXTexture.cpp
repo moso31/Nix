@@ -290,23 +290,37 @@ Ntr<NXTexture2D> NXTexture2D::Create(const std::string& DebugName, const std::fi
 	std::wstring name = NXConvert::s2ws(DebugName);
 	std::wstring nameUploadTemp = name + L"UploadBuffer temp";
 	m_pTexture = NX12Util::CreateTexture2D(g_pDevice.Get(), name.c_str(), m_width, m_height, m_texFormat, m_mipLevels, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_COPY_DEST);
-	m_pTextureUploadBuffer = NX12Util::CreateTexture2D(g_pDevice.Get(), nameUploadTemp.c_str(), m_width, m_height, m_texFormat, m_mipLevels, D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_GENERIC_READ);
 
-	// Copy data to the intermediate upload heap and then schedule a copy 
-	// from the upload heap to the Texture2D.
-	int pixelSize = pImage->GetPixelsSize() / metadata.width / metadata.height / metadata.depth;
-	D3D12_SUBRESOURCE_DATA textureData = {};
-	textureData.pData = pImage->GetPixels();
-	textureData.RowPitch = metadata.width * pixelSize;
-	textureData.SlicePitch = textureData.RowPitch * metadata.height;
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT* pLayouts = new D3D12_PLACED_SUBRESOURCE_FOOTPRINT[m_mipLevels];
+	UINT* pNumRows = new UINT[m_mipLevels];
+	UINT64* pRowSizeInBytes = new UINT64[m_mipLevels];
 
-	UpdateSubresources(g_pCommandList.Get(), m_pTexture.Get(), m_pTextureUpload.Get(), 0, 0, 1, &textureData);
+	UINT uploadBufferSize = NX12Util::GetRequiredIntermediateLayoutInfos(g_pDevice.Get(), m_pTexture.Get(), pLayouts, pNumRows, pRowSizeInBytes);
+	m_pTextureUploadBuffer = NX12Util::CreateBuffer(g_pDevice.Get(), nameUploadTemp.c_str(), uploadBufferSize, D3D12_HEAP_TYPE_UPLOAD);
 
-	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_pTexture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	void* pMappedData;
+	m_pTextureUploadBuffer->Map(0, nullptr, &pMappedData);
+	for (UINT mip = 0; mip < m_mipLevels; mip++)
+	{
+		const Image* pImg = pImage->GetImage(mip, 0, 0);
+		const BYTE* pSrcData = pImg->pixels;
+		BYTE* pDstData = reinterpret_cast<BYTE*>(pMappedData) + pLayouts[mip].Offset;
+
+		for (UINT y = 0; y < pNumRows[mip]; y++)
+		{
+			memcpy(pDstData + pLayouts[mip].Footprint.RowPitch * y, pSrcData + pImg->rowPitch * y, pRowSizeInBytes[mip]);
+		}
+	}
+	m_pTextureUploadBuffer->Unmap(0, nullptr);
+
+	NX12Util::CopyTextureRegion(g_pCommandList.Get(), m_pTexture.Get(), m_pTextureUploadBuffer.Get(), m_mipLevels, pLayouts);
+
+	auto barrier = NX12Util::CreateResourceBarrier_Transition(m_pTexture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	g_pCommandList->ResourceBarrier(1, &barrier);
 
-	//hr = CreateTextureEx(g_pDevice.Get(), metadata, D3D12_RESOURCE_FLAG_NONE, CREATETEX_DEFAULT, &m_pTexture);
-	m_pTexture->SetName(L"My Texture");
+	delete[] pLayouts;
+	delete[] pNumRows;
+	delete[] pRowSizeInBytes;
 
 	pImage.reset();
 	return this;
