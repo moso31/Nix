@@ -109,21 +109,8 @@ public:
     NXTexture2D(const NXTexture2D& other) = delete;
     ~NXTexture2D() {}
 
-    void Create(std::string DebugName,
-        const D3D11_SUBRESOURCE_DATA* initData,
-        DXGI_FORMAT TexFormat,
-        UINT Width,
-        UINT Height,
-        UINT ArraySize,
-        UINT MipLevels,
-        UINT BindFlags,
-        D3D11_USAGE Usage,
-        UINT CpuAccessFlags,
-        UINT SampleCount,
-        UINT SampleQuality,
-        UINT MiscFlags);
-
     Ntr<NXTexture2D> Create(const std::string& DebugName, const std::filesystem::path& FilePath);
+    Ntr<NXTexture2D> CreateRT(const std::string& debugName, DXGI_FORMAT fmt, UINT width, UINT height);
     Ntr<NXTexture2D> CreateSolid(const std::string& DebugName, UINT TexSize, const Vector4& Color);
     Ntr<NXTexture2D> CreateNoise(const std::string& DebugName, UINT TexSize, UINT Dimension);
 
@@ -163,6 +150,9 @@ public:
     void AddUAV(UINT mipSlice = -1, UINT firstArraySlice = 0, UINT arraySize = -1);
 
     ID3D11ShaderResourceView* GetSRVPreview2D() { return m_pSRVPreview2D.Get(); }
+
+private:
+    void CreateInternal(const std::string& debugName, const std::unique_ptr<DirectX::ScratchImage>& pImage);
 
 private:
     ComPtr<ID3D11ShaderResourceView> m_pSRVPreview2D;

@@ -122,32 +122,6 @@ void NXTexture::Deserialize()
 	}
 }
 
-void NXTexture2D::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* initData, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
-{
-	this->m_name = DebugName;
-	this->m_width = Width;
-	this->m_height = Height;
-	this->m_arraySize = ArraySize;
-	this->m_texFormat = TexFormat;
-	this->m_mipLevels = MipLevels;
-
-	D3D11_TEXTURE2D_DESC Desc;
-	Desc.Format = TexFormat;
-	Desc.Width = Width;
-	Desc.Height = Height;
-	Desc.ArraySize = ArraySize;
-	Desc.MipLevels = MipLevels;
-	Desc.BindFlags = BindFlags;
-	Desc.Usage = Usage;
-	Desc.CPUAccessFlags = CpuAccessFlags;
-	Desc.SampleDesc.Count = SampleCount;
-	Desc.SampleDesc.Quality = SampleQuality;
-	Desc.MiscFlags = MiscFlags;
-
-	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&Desc, initData, &m_pTexture));
-	m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
-}
-
 Ntr<NXTexture2D> NXTexture2D::Create(const std::string& DebugName, const std::filesystem::path& filePath)
 {
 	TexMetadata metadata;
@@ -276,6 +250,26 @@ Ntr<NXTexture2D> NXTexture2D::Create(const std::string& DebugName, const std::fi
 	m_texFormat = metadata.format;
 
 	CreateInternal(DebugName, pImage);
+
+	pImage.reset();
+	return this;
+}
+
+Ntr<NXTexture2D> NXTexture2D::CreateRT(const std::string& debugName, DXGI_FORMAT fmt, UINT width, UINT height)
+{
+	// 创建大小为 texSize * texSize 的纯色纹理
+	std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>();
+	pImage->Initialize2D(fmt, width, height, 1, 1);
+
+	m_texFilePath = "[Default Solid Texture]";
+	m_name = debugName;
+	m_width = width;
+	m_height = height;
+	m_arraySize = 1;
+	m_mipLevels = 1;
+	m_texFormat = fmt;
+
+	CreateInternal(debugName, pImage);
 
 	pImage.reset();
 	return this;
@@ -479,11 +473,11 @@ void NXTexture2D::CreateInternal(const std::string& debugName, const std::unique
 	delete[] pRowSizeInBytes;
 }
 
-void NXTextureCube::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* initData, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
+void NXTextureCube::Create(std::string debugName, const D3D11_SUBRESOURCE_DATA* initData, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
 {
 	UINT ArraySize = 6;	// textureCube must be 6.
 
-	this->m_name = DebugName;
+	this->m_name = debugName;
 	this->m_width = Width;
 	this->m_height = Height;
 	this->m_arraySize = ArraySize;
@@ -507,7 +501,7 @@ void NXTextureCube::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* 
 	m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
 }
 
-void NXTextureCube::Create(const std::string& DebugName, const std::wstring& FilePath, size_t width, size_t height)
+void NXTextureCube::Create(const std::string& debugName, const std::wstring& FilePath, size_t width, size_t height)
 {
 	TexMetadata metadata;
 	std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>();
@@ -568,12 +562,14 @@ void NXTextureCube::Create(const std::string& DebugName, const std::wstring& Fil
 	}
 
 	this->m_texFilePath = FilePath.c_str();
-	this->m_name = DebugName;
+	this->m_name = debugName;
 	this->m_width = (UINT)metadata.width;
 	this->m_height = (UINT)metadata.height;
 	this->m_arraySize = (UINT)metadata.arraySize;
 	this->m_texFormat = metadata.format;
 	this->m_mipLevels = (UINT)metadata.mipLevels;
+
+	CreateInternal(debugName, pImage);
 
 	DirectX::CreateTextureEx(g_pDevice.Get(), pImage->GetImages(), pImage->GetImageCount(), metadata, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, CREATETEX_DEFAULT, (ID3D11Resource**)m_pTexture.GetAddressOf());
 	m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
@@ -640,6 +636,51 @@ void NXTextureCube::AddUAV(UINT mipSlice, UINT firstArraySlice, UINT arraySize)
 	Desc.Texture2DArray.MipSlice = mipSlice;
 	Desc.Texture2DArray.FirstArraySlice = firstArraySlice;
 	Desc.Texture2DArray.ArraySize = arraySize;
+}
+
+void NXTextureCube::CreateInternal(const std::string& debugName, const std::unique_ptr<DirectX::ScratchImage>& pImage)
+{
+	// TODO：关于纹理创建这事比较麻烦，DX12现在需要一个uploadBuffer做中继，不然传不上去
+	// 但是 uploadBuffer 在数据上传后，就没用了，关键是如何确认uploadBuffer 在GPU中上传完毕，可以释放？
+	// 常用的做法包括：重用上传缓冲区，或基于Fence释放资源，这都是可以考虑的方向。
+	// 为了实现这个，可能需要配套设计一个异步管理系统。太繁琐了，我还没想好。
+	// 2023.12.11
+	// 目前处于11转12阶段，为方便起见，暂时在NXTexture中始终保持这两份内存。
+	// 好处是简单，坏处是额外存储了一份纹理的内存开销。必然要改
+	std::wstring name = NXConvert::s2ws(debugName);
+	std::wstring nameUploadTemp = name + L"UploadBuffer temp";
+	m_pTexture = NX12Util::CreateTexture2D(g_pDevice.Get(), name.c_str(), m_width, m_height, m_texFormat, m_mipLevels, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_COPY_DEST);
+
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT* pLayouts = new D3D12_PLACED_SUBRESOURCE_FOOTPRINT[m_mipLevels];
+	UINT* pNumRows = new UINT[m_mipLevels];
+	UINT64* pRowSizeInBytes = new UINT64[m_mipLevels];
+
+	UINT uploadBufferSize = NX12Util::GetRequiredIntermediateLayoutInfos(g_pDevice.Get(), m_pTexture.Get(), pLayouts, pNumRows, pRowSizeInBytes);
+	m_pTextureUploadBuffer = NX12Util::CreateBuffer(g_pDevice.Get(), nameUploadTemp.c_str(), uploadBufferSize, D3D12_HEAP_TYPE_UPLOAD);
+
+	void* pMappedData;
+	m_pTextureUploadBuffer->Map(0, nullptr, &pMappedData);
+	for (UINT mip = 0; mip < m_mipLevels; mip++)
+	{
+		const Image* pImg = pImage->GetImage(mip, 0, 0);
+		const BYTE* pSrcData = pImg->pixels;
+		BYTE* pDstData = reinterpret_cast<BYTE*>(pMappedData) + pLayouts[mip].Offset;
+
+		for (UINT y = 0; y < pNumRows[mip]; y++)
+		{
+			memcpy(pDstData + pLayouts[mip].Footprint.RowPitch * y, pSrcData + pImg->rowPitch * y, pRowSizeInBytes[mip]);
+		}
+	}
+	m_pTextureUploadBuffer->Unmap(0, nullptr);
+
+	NX12Util::CopyTextureRegion(g_pCommandList.Get(), m_pTexture.Get(), m_pTextureUploadBuffer.Get(), m_mipLevels, pLayouts);
+
+	auto barrier = NX12Util::CreateResourceBarrier_Transition(m_pTexture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	g_pCommandList->ResourceBarrier(1, &barrier);
+
+	delete[] pLayouts;
+	delete[] pNumRows;
+	delete[] pRowSizeInBytes;
 }
 
 
