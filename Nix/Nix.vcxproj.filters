@@ -25,9 +25,6 @@
     <Filter Include="Nix\Object\Transform\Primitive">
       <UniqueIdentifier>{f3755d2c-4e07-43f5-a8fe-bf2096c2ee55}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Nix\Object\Transform\Primitive\Shape">
-      <UniqueIdentifier>{7525b90e-ff3e-4a65-8989-9d59da76ed60}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Nix\Object\Transform\Primitive\Other">
       <UniqueIdentifier>{a195dd0d-fa7c-4d8a-82cb-017765c56820}</UniqueIdentifier>
     </Filter>
@@ -111,6 +108,9 @@
     </Filter>
     <Filter Include="Core\DirectX\Manager">
       <UniqueIdentifier>{96100877-c259-41e1-b3d6-55542100aa12}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Nix\Object\Transform\Primitive\Shape">
+      <UniqueIdentifier>{7525b90e-ff3e-4a65-8989-9d59da76ed60}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -25,6 +25,56 @@ void NXTexture::SwapToReloadingTexture()
 	}
 }
 
+void NXTexture::CreateInternal(const std::string& debugName, const std::unique_ptr<DirectX::ScratchImage>& pImage)
+{
+	// TODO：关于纹理创建这事比较麻烦，DX12现在需要一个uploadBuffer做中继，不然传不上去
+	// 但是 uploadBuffer 在数据上传后，就没用了，关键是如何确认uploadBuffer 在GPU中上传完毕，可以释放？
+	// 常用的做法包括：重用上传缓冲区，或基于Fence释放资源，这都是可以考虑的方向。
+	// 为了实现这个，可能需要配套设计一个异步管理系统。太繁琐了，我还没想好。
+	// 2023.12.11
+	// 目前处于11转12阶段，为方便起见，暂时在NXTexture中始终保持这两份内存。
+	// 好处是简单，坏处是额外存储了一份纹理的内存开销。必然要改
+	std::wstring name = NXConvert::s2ws(debugName);
+	std::wstring nameUploadTemp = name + L"UploadBuffer temp";
+	m_pTexture = NX12Util::CreateTexture2D(g_pDevice.Get(), name.c_str(), m_width, m_height, m_texFormat, m_mipLevels, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_COPY_DEST);
+
+	UINT layoutSize = m_arraySize * m_mipLevels;
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT* pLayouts = new D3D12_PLACED_SUBRESOURCE_FOOTPRINT[layoutSize];
+	UINT* pNumRows = new UINT[layoutSize];
+	UINT64* pRowSizeInBytes = new UINT64[layoutSize];
+
+	UINT uploadBufferSize = NX12Util::GetRequiredIntermediateLayoutInfos(g_pDevice.Get(), m_pTexture.Get(), pLayouts, pNumRows, pRowSizeInBytes);
+	m_pTextureUploadBuffer = NX12Util::CreateBuffer(g_pDevice.Get(), nameUploadTemp.c_str(), uploadBufferSize, D3D12_HEAP_TYPE_UPLOAD);
+
+	void* pMappedData;
+	m_pTextureUploadBuffer->Map(0, nullptr, &pMappedData);
+
+	for (UINT item = 0, index = 0; item < m_arraySize; item++)
+	{
+		for (UINT mip = 0; mip < m_mipLevels; mip++, index++)
+		{
+			const Image* pImg = pImage->GetImage(mip, item, 0);
+			const BYTE* pSrcData = pImg->pixels;
+			BYTE* pDstData = reinterpret_cast<BYTE*>(pMappedData) + pLayouts[index].Offset;
+
+			for (UINT y = 0; y < pNumRows[index]; y++)
+			{
+				memcpy(pDstData + pLayouts[index].Footprint.RowPitch * y, pSrcData + pImg->rowPitch * y, pRowSizeInBytes[index]);
+			}
+		}
+	}
+	m_pTextureUploadBuffer->Unmap(0, nullptr);
+
+	NX12Util::CopyTextureRegion(g_pCommandList.Get(), m_pTexture.Get(), m_pTextureUploadBuffer.Get(), layoutSize, pLayouts);
+
+	auto barrier = NX12Util::CreateResourceBarrier_Transition(m_pTexture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	g_pCommandList->ResourceBarrier(1, &barrier);
+
+	delete[] pLayouts;
+	delete[] pNumRows;
+	delete[] pRowSizeInBytes;
+}
+
 void NXTexture::InternalReload(Ntr<NXTexture> pReloadTexture)
 {
 	m_pTexture = pReloadTexture->m_pTexture;
@@ -257,11 +307,9 @@ Ntr<NXTexture2D> NXTexture2D::Create(const std::string& DebugName, const std::fi
 
 Ntr<NXTexture2D> NXTexture2D::CreateRT(const std::string& debugName, DXGI_FORMAT fmt, UINT width, UINT height)
 {
-	// 创建大小为 texSize * texSize 的纯色纹理
-	std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>();
-	pImage->Initialize2D(fmt, width, height, 1, 1);
+	m_pTexture = NX12Util::CreateTexture2D(g_pDevice.Get(), debugName, width, height, fmt, 1, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-	m_texFilePath = "[Default Solid Texture]";
+	m_texFilePath = "[Render Target: " + debugName + "]";
 	m_name = debugName;
 	m_width = width;
 	m_height = height;
@@ -269,9 +317,6 @@ Ntr<NXTexture2D> NXTexture2D::CreateRT(const std::string& debugName, DXGI_FORMAT
 	m_mipLevels = 1;
 	m_texFormat = fmt;
 
-	CreateInternal(debugName, pImage);
-
-	pImage.reset();
 	return this;
 }
 
@@ -428,61 +473,18 @@ void NXTexture2D::AddUAV()
 	m_pUAVs.push_back(pUAV);
 }
 
-void NXTexture2D::CreateInternal(const std::string& debugName, const std::unique_ptr<ScratchImage>& pImage)
-{
-	// TODO：关于纹理创建这事比较麻烦，DX12现在需要一个uploadBuffer做中继，不然传不上去
-	// 但是 uploadBuffer 在数据上传后，就没用了，关键是如何确认uploadBuffer 在GPU中上传完毕，可以释放？
-	// 常用的做法包括：重用上传缓冲区，或基于Fence释放资源，这都是可以考虑的方向。
-	// 为了实现这个，可能需要配套设计一个异步管理系统。太繁琐了，我还没想好。
-	// 2023.12.11
-	// 目前处于11转12阶段，为方便起见，暂时在NXTexture中始终保持这两份内存。
-	// 好处是简单，坏处是额外存储了一份纹理的内存开销。必然要改
-	std::wstring name = NXConvert::s2ws(debugName);
-	std::wstring nameUploadTemp = name + L"UploadBuffer temp";
-	m_pTexture = NX12Util::CreateTexture2D(g_pDevice.Get(), name.c_str(), m_width, m_height, m_texFormat, m_mipLevels, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_COPY_DEST);
-
-	D3D12_PLACED_SUBRESOURCE_FOOTPRINT* pLayouts = new D3D12_PLACED_SUBRESOURCE_FOOTPRINT[m_mipLevels];
-	UINT* pNumRows = new UINT[m_mipLevels];
-	UINT64* pRowSizeInBytes = new UINT64[m_mipLevels];
-
-	UINT uploadBufferSize = NX12Util::GetRequiredIntermediateLayoutInfos(g_pDevice.Get(), m_pTexture.Get(), pLayouts, pNumRows, pRowSizeInBytes);
-	m_pTextureUploadBuffer = NX12Util::CreateBuffer(g_pDevice.Get(), nameUploadTemp.c_str(), uploadBufferSize, D3D12_HEAP_TYPE_UPLOAD);
-
-	void* pMappedData;
-	m_pTextureUploadBuffer->Map(0, nullptr, &pMappedData);
-	for (UINT mip = 0; mip < m_mipLevels; mip++)
-	{
-		const Image* pImg = pImage->GetImage(mip, 0, 0);
-		const BYTE* pSrcData = pImg->pixels;
-		BYTE* pDstData = reinterpret_cast<BYTE*>(pMappedData) + pLayouts[mip].Offset;
-
-		for (UINT y = 0; y < pNumRows[mip]; y++)
-		{
-			memcpy(pDstData + pLayouts[mip].Footprint.RowPitch * y, pSrcData + pImg->rowPitch * y, pRowSizeInBytes[mip]);
-		}
-	}
-	m_pTextureUploadBuffer->Unmap(0, nullptr);
-
-	NX12Util::CopyTextureRegion(g_pCommandList.Get(), m_pTexture.Get(), m_pTextureUploadBuffer.Get(), m_mipLevels, pLayouts);
-
-	auto barrier = NX12Util::CreateResourceBarrier_Transition(m_pTexture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-	g_pCommandList->ResourceBarrier(1, &barrier);
-
-	delete[] pLayouts;
-	delete[] pNumRows;
-	delete[] pRowSizeInBytes;
-}
-
-void NXTextureCube::Create(std::string debugName, const D3D11_SUBRESOURCE_DATA* initData, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
+void NXTextureCube::Create(std::string debugName, const D3D11_SUBRESOURCE_DATA* initData, DXGI_FORMAT texFormat, UINT width, UINT height, UINT miplevels, UINT bindflags, D3D11_USAGE usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
 {
 	UINT ArraySize = 6;	// textureCube must be 6.
 
-	this->m_name = debugName;
-	this->m_width = Width;
-	this->m_height = Height;
-	this->m_arraySize = ArraySize;
-	this->m_texFormat = TexFormat;
-	this->m_mipLevels = MipLevels;
+	m_name = debugName;
+	m_width = Width;
+	m_height = Height;
+	m_arraySize = ArraySize;
+	m_texFormat = TexFormat;
+	m_mipLevels = MipLevels;
+
+	NX12Util::CreateTexture2D(g_pDevice.Get(), debugName, width, height, texf)
 
 	D3D11_TEXTURE2D_DESC Desc;
 	Desc.Format = TexFormat;
@@ -637,52 +639,6 @@ void NXTextureCube::AddUAV(UINT mipSlice, UINT firstArraySlice, UINT arraySize)
 	Desc.Texture2DArray.FirstArraySlice = firstArraySlice;
 	Desc.Texture2DArray.ArraySize = arraySize;
 }
-
-void NXTextureCube::CreateInternal(const std::string& debugName, const std::unique_ptr<DirectX::ScratchImage>& pImage)
-{
-	// TODO：关于纹理创建这事比较麻烦，DX12现在需要一个uploadBuffer做中继，不然传不上去
-	// 但是 uploadBuffer 在数据上传后，就没用了，关键是如何确认uploadBuffer 在GPU中上传完毕，可以释放？
-	// 常用的做法包括：重用上传缓冲区，或基于Fence释放资源，这都是可以考虑的方向。
-	// 为了实现这个，可能需要配套设计一个异步管理系统。太繁琐了，我还没想好。
-	// 2023.12.11
-	// 目前处于11转12阶段，为方便起见，暂时在NXTexture中始终保持这两份内存。
-	// 好处是简单，坏处是额外存储了一份纹理的内存开销。必然要改
-	std::wstring name = NXConvert::s2ws(debugName);
-	std::wstring nameUploadTemp = name + L"UploadBuffer temp";
-	m_pTexture = NX12Util::CreateTexture2D(g_pDevice.Get(), name.c_str(), m_width, m_height, m_texFormat, m_mipLevels, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_COPY_DEST);
-
-	D3D12_PLACED_SUBRESOURCE_FOOTPRINT* pLayouts = new D3D12_PLACED_SUBRESOURCE_FOOTPRINT[m_mipLevels];
-	UINT* pNumRows = new UINT[m_mipLevels];
-	UINT64* pRowSizeInBytes = new UINT64[m_mipLevels];
-
-	UINT uploadBufferSize = NX12Util::GetRequiredIntermediateLayoutInfos(g_pDevice.Get(), m_pTexture.Get(), pLayouts, pNumRows, pRowSizeInBytes);
-	m_pTextureUploadBuffer = NX12Util::CreateBuffer(g_pDevice.Get(), nameUploadTemp.c_str(), uploadBufferSize, D3D12_HEAP_TYPE_UPLOAD);
-
-	void* pMappedData;
-	m_pTextureUploadBuffer->Map(0, nullptr, &pMappedData);
-	for (UINT mip = 0; mip < m_mipLevels; mip++)
-	{
-		const Image* pImg = pImage->GetImage(mip, 0, 0);
-		const BYTE* pSrcData = pImg->pixels;
-		BYTE* pDstData = reinterpret_cast<BYTE*>(pMappedData) + pLayouts[mip].Offset;
-
-		for (UINT y = 0; y < pNumRows[mip]; y++)
-		{
-			memcpy(pDstData + pLayouts[mip].Footprint.RowPitch * y, pSrcData + pImg->rowPitch * y, pRowSizeInBytes[mip]);
-		}
-	}
-	m_pTextureUploadBuffer->Unmap(0, nullptr);
-
-	NX12Util::CopyTextureRegion(g_pCommandList.Get(), m_pTexture.Get(), m_pTextureUploadBuffer.Get(), m_mipLevels, pLayouts);
-
-	auto barrier = NX12Util::CreateResourceBarrier_Transition(m_pTexture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-	g_pCommandList->ResourceBarrier(1, &barrier);
-
-	delete[] pLayouts;
-	delete[] pNumRows;
-	delete[] pRowSizeInBytes;
-}
-
 
 void NXTexture2DArray::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* initData, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
 {

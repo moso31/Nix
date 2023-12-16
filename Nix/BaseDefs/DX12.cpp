@@ -1,6 +1,6 @@
 #include "DX12.h"
 
-ID3D12Resource* NX12Util::CreateBuffer(ID3D12Device* pDevice, const std::wstring& name, UINT sizeOfByte, D3D12_HEAP_TYPE heapType)
+ID3D12Resource* NX12Util::CreateBuffer(ID3D12Device* pDevice, const std::string& name, UINT sizeOfByte, D3D12_HEAP_TYPE heapType)
 {
 	ID3D12Resource* pResource = nullptr;
 
@@ -26,7 +26,8 @@ ID3D12Resource* NX12Util::CreateBuffer(ID3D12Device* pDevice, const std::wstring
 		IID_PPV_ARGS(&pResource)
 	);
 
-	pResource->SetName(name.c_str());
+	std::wstring wName(name.begin(), name.end());
+	pResource->SetName(wName.c_str());
 
 	if (FAILED(hr))
 	{
@@ -38,7 +39,7 @@ ID3D12Resource* NX12Util::CreateBuffer(ID3D12Device* pDevice, const std::wstring
 	return pResource;
 }
 
-ID3D12Resource* NX12Util::CreateTexture2D(ID3D12Device* pDevice, const std::wstring& name, UINT width, UINT height, DXGI_FORMAT format, UINT mipLevels, D3D12_HEAP_TYPE heapType, D3D12_RESOURCE_STATES initState)
+ID3D12Resource* NX12Util::CreateTexture2D(ID3D12Device* pDevice, const std::string& name, UINT width, UINT height, DXGI_FORMAT format, UINT mipLevels, D3D12_HEAP_TYPE heapType, D3D12_RESOURCE_STATES initState)
 {
 	ID3D12Resource* pResource;
 	D3D12_RESOURCE_DESC desc = {};
@@ -63,7 +64,8 @@ ID3D12Resource* NX12Util::CreateTexture2D(ID3D12Device* pDevice, const std::wstr
 		IID_PPV_ARGS(&pResource)
 	);
 
-	pResource->SetName(name.c_str());
+	std::wstring wName(name.begin(), name.end());
+	pResource->SetName(wName.c_str());
 
 	if (FAILED(hr))
 	{
@@ -125,19 +127,19 @@ D3D12_RESOURCE_BARRIER NX12Util::CreateResourceBarrier_Transition(ID3D12Resource
 	return barrier;
 }
 
-void NX12Util::CopyTextureRegion(ID3D12GraphicsCommandList* pCommandList, ID3D12Resource* pTexture, ID3D12Resource* pTextureUploadBuffer, UINT mipCount, const D3D12_PLACED_SUBRESOURCE_FOOTPRINT* pLayouts)
+void NX12Util::CopyTextureRegion(ID3D12GraphicsCommandList* pCommandList, ID3D12Resource* pTexture, ID3D12Resource* pTextureUploadBuffer, UINT layoutSize, const D3D12_PLACED_SUBRESOURCE_FOOTPRINT* pLayouts)
 {
-	for (UINT mip = 0; mip < mipCount; ++mip) 
+	for (UINT idx = 0; idx < layoutSize; ++idx)
 	{
 		D3D12_TEXTURE_COPY_LOCATION dst = {};
-		dst.SubresourceIndex = mip;
+		dst.SubresourceIndex = idx;
 		dst.PlacedFootprint = {};
 		dst.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
 		dst.pResource = pTexture;
 
 		D3D12_TEXTURE_COPY_LOCATION src = {};
 		src.SubresourceIndex = 0;
-		src.PlacedFootprint = pLayouts[mip];
+		src.PlacedFootprint = pLayouts[idx];
 		src.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
 		src.pResource = pTextureUploadBuffer;
 

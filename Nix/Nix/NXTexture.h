@@ -72,6 +72,9 @@ public:
     const NXTextureSerializationData& GetSerializationData() { return m_serializationData; }
     void SetSerializationData(const NXTextureSerializationData& data) { m_serializationData = data; }
 
+protected:
+    void CreateInternal(const std::string& debugName, const std::unique_ptr<DirectX::ScratchImage>& pImage);
+
 private:
     void InternalReload(Ntr<NXTexture> pReloadTexture);
 
@@ -118,9 +121,6 @@ public:
     void AddRTV();
     void AddDSV();
     void AddUAV();
-
-private:
-    void CreateInternal(const std::string& debugName, const std::unique_ptr<DirectX::ScratchImage>& pImage);
 };
 
 class NXTextureCube : public NXTexture
@@ -150,9 +150,6 @@ public:
     void AddUAV(UINT mipSlice = -1, UINT firstArraySlice = 0, UINT arraySize = -1);
 
     ID3D11ShaderResourceView* GetSRVPreview2D() { return m_pSRVPreview2D.Get(); }
-
-private:
-    void CreateInternal(const std::string& debugName, const std::unique_ptr<DirectX::ScratchImage>& pImage);
 
 private:
     ComPtr<ID3D11ShaderResourceView> m_pSRVPreview2D;

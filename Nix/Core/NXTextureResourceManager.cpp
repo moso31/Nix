@@ -161,6 +161,14 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D(const std::string& na
 	return pTexture2D;
 }
 
+Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D(const std::string& name, DXGI_FORMAT fmt, UINT width, UINT height)
+{
+	Ntr<NXTexture2D> pTexture2D(new NXTexture2D());
+	pTexture2D->Create(name, nullptr, TexFormat, Width, Height, ArraySize, MipLevels, BindFlags, Usage, CpuAccessFlags, SampleCount, SampleQuality, MiscFlags);
+	m_pTextureArrayInternal.push_back(pTexture2D);
+	return pTexture2D;
+}
+
 Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D(const std::string& name, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
 {
 	Ntr<NXTexture2D> pTexture2D(new NXTexture2D());
