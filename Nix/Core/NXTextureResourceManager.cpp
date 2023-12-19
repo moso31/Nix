@@ -13,53 +13,53 @@ void NXTextureResourceManager::ResizeCommonRT(const Vector2& rtSize)
 	m_pCommonRT.clear();
 	m_pCommonRT.resize(NXCommonRT_SIZE);
 
-	m_pCommonRT[NXCommonRT_DepthZ] = CreateTexture2D("Scene DepthZ RT", DXGI_FORMAT_R24G8_TYPELESS, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE);
+	m_pCommonRT[NXCommonRT_DepthZ] = CreateRT("Scene DepthZ RT", DXGI_FORMAT_R24G8_TYPELESS, (UINT)rtSize.x, (UINT)rtSize.y);
 	m_pCommonRT[NXCommonRT_DepthZ]->AddDSV();
 	m_pCommonRT[NXCommonRT_DepthZ]->AddSRV();
 
-	m_pCommonRT[NXCommonRT_DepthZ_R32] = CreateTexture2D("Scene DepthZ R32 RT", DXGI_FORMAT_R32_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE);
+	m_pCommonRT[NXCommonRT_DepthZ_R32] = CreateRT("Scene DepthZ R32 RT", DXGI_FORMAT_R32_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y);
 	m_pCommonRT[NXCommonRT_DepthZ_R32]->AddRTV();
 	m_pCommonRT[NXCommonRT_DepthZ_R32]->AddSRV();
 
-	m_pCommonRT[NXCommonRT_Lighting0] = CreateTexture2D("Lighting RT0", DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE);
+	m_pCommonRT[NXCommonRT_Lighting0] = CreateRT("Lighting RT0", DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y);
 	m_pCommonRT[NXCommonRT_Lighting0]->AddRTV();
 	m_pCommonRT[NXCommonRT_Lighting0]->AddSRV();
 
-	m_pCommonRT[NXCommonRT_Lighting1] = CreateTexture2D("Lighting RT1", DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE);
+	m_pCommonRT[NXCommonRT_Lighting1] = CreateRT("Lighting RT1", DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y);
 	m_pCommonRT[NXCommonRT_Lighting1]->AddRTV();
 	m_pCommonRT[NXCommonRT_Lighting1]->AddSRV();
 
-	m_pCommonRT[NXCommonRT_Lighting2] = CreateTexture2D("Lighting RT2", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE);
+	m_pCommonRT[NXCommonRT_Lighting2] = CreateRT("Lighting RT2", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y);
 	m_pCommonRT[NXCommonRT_Lighting2]->AddRTV();
 	m_pCommonRT[NXCommonRT_Lighting2]->AddSRV();
 
-	m_pCommonRT[NXCommonRT_SSSLighting] = CreateTexture2D("SSS Lighting RT", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE);
+	m_pCommonRT[NXCommonRT_SSSLighting] = CreateRT("SSS Lighting RT", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y);
 	m_pCommonRT[NXCommonRT_SSSLighting]->AddRTV();
 	m_pCommonRT[NXCommonRT_SSSLighting]->AddSRV();
 
-	m_pCommonRT[NXCommonRT_ShadowTest] = CreateTexture2D("Shadow Test RT", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE);
+	m_pCommonRT[NXCommonRT_ShadowTest] = CreateRT("Shadow Test RT", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)rtSize.x, (UINT)rtSize.y);
 	m_pCommonRT[NXCommonRT_ShadowTest]->AddRTV();
 	m_pCommonRT[NXCommonRT_ShadowTest]->AddSRV();
 
-	m_pCommonRT[NXCommonRT_GBuffer0] = CreateTexture2D("GBuffer RT0", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
+	m_pCommonRT[NXCommonRT_GBuffer0] = CreateRT("GBuffer RT0", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)rtSize.x, (UINT)rtSize.y);
 	m_pCommonRT[NXCommonRT_GBuffer0]->AddRTV();
 	m_pCommonRT[NXCommonRT_GBuffer0]->AddSRV();
 
-	m_pCommonRT[NXCommonRT_GBuffer1] = CreateTexture2D("GBuffer RT1", DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
+	m_pCommonRT[NXCommonRT_GBuffer1] = CreateRT("GBuffer RT1", DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y);
 	m_pCommonRT[NXCommonRT_GBuffer1]->AddRTV();
 	m_pCommonRT[NXCommonRT_GBuffer1]->AddSRV();
 
-	m_pCommonRT[NXCommonRT_GBuffer2] = CreateTexture2D("GBuffer RT2", DXGI_FORMAT_R10G10B10A2_UNORM, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
+	m_pCommonRT[NXCommonRT_GBuffer2] = CreateRT("GBuffer RT2", DXGI_FORMAT_R10G10B10A2_UNORM, (UINT)rtSize.x, (UINT)rtSize.y);
 	m_pCommonRT[NXCommonRT_GBuffer2]->AddRTV();
 	m_pCommonRT[NXCommonRT_GBuffer2]->AddSRV();
 
-	m_pCommonRT[NXCommonRT_GBuffer3] = CreateTexture2D("GBuffer RT3", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
+	m_pCommonRT[NXCommonRT_GBuffer3] = CreateRT("GBuffer RT3", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)rtSize.x, (UINT)rtSize.y);
 	m_pCommonRT[NXCommonRT_GBuffer3]->AddRTV();
 	m_pCommonRT[NXCommonRT_GBuffer3]->AddSRV();
 
-	m_pCommonRT[NXCommonRT_PostProcessing] = CreateTexture2D("Post Processing", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, D3D11_CPU_ACCESS_READ, 1, 0, 0);
-	m_pCommonRT[NXCommonRT_PostProcessing]->AddRTV();
-	m_pCommonRT[NXCommonRT_PostProcessing]->AddSRV();
+	m_pCommonRT[NXCommonRT_GBuffer3] = CreateRT("Post Processing", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y);
+	m_pCommonRT[NXCommonRT_GBuffer3]->AddRTV();
+	m_pCommonRT[NXCommonRT_GBuffer3]->AddSRV();
 }
 
 Ntr<NXTexture2D> NXTextureResourceManager::GetCommonRT(NXCommonRTEnum eRT)
@@ -161,18 +161,10 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D(const std::string& na
 	return pTexture2D;
 }
 
-Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D(const std::string& name, DXGI_FORMAT fmt, UINT width, UINT height)
+Ntr<NXTexture2D> NXTextureResourceManager::CreateRT(const std::string& name, DXGI_FORMAT fmt, UINT width, UINT height)
 {
 	Ntr<NXTexture2D> pTexture2D(new NXTexture2D());
-	pTexture2D->Create(name, nullptr, TexFormat, Width, Height, ArraySize, MipLevels, BindFlags, Usage, CpuAccessFlags, SampleCount, SampleQuality, MiscFlags);
-	m_pTextureArrayInternal.push_back(pTexture2D);
-	return pTexture2D;
-}
-
-Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D(const std::string& name, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
-{
-	Ntr<NXTexture2D> pTexture2D(new NXTexture2D());
-	pTexture2D->Create(name, nullptr, TexFormat, Width, Height, ArraySize, MipLevels, BindFlags, Usage, CpuAccessFlags, SampleCount, SampleQuality, MiscFlags);
+	pTexture2D->CreateRT(name, fmt, width, height);
 	m_pTextureArrayInternal.push_back(pTexture2D);
 	return pTexture2D;
 }

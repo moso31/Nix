@@ -25,7 +25,7 @@ void NXTexture::SwapToReloadingTexture()
 	}
 }
 
-void NXTexture::CreateInternal(const std::string& debugName, const std::unique_ptr<DirectX::ScratchImage>& pImage)
+void NXTexture::CreateInternal(const std::string& name, const std::unique_ptr<DirectX::ScratchImage>& pImage)
 {
 	// TODO：关于纹理创建这事比较麻烦，DX12现在需要一个uploadBuffer做中继，不然传不上去
 	// 但是 uploadBuffer 在数据上传后，就没用了，关键是如何确认uploadBuffer 在GPU中上传完毕，可以释放？
@@ -34,8 +34,7 @@ void NXTexture::CreateInternal(const std::string& debugName, const std::unique_p
 	// 2023.12.11
 	// 目前处于11转12阶段，为方便起见，暂时在NXTexture中始终保持这两份内存。
 	// 好处是简单，坏处是额外存储了一份纹理的内存开销。必然要改
-	std::wstring name = NXConvert::s2ws(debugName);
-	std::wstring nameUploadTemp = name + L"UploadBuffer temp";
+	std::string nameUploadTemp = name + "UploadBuffer temp";
 	m_pTexture = NX12Util::CreateTexture2D(g_pDevice.Get(), name.c_str(), m_width, m_height, m_texFormat, m_mipLevels, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_COPY_DEST);
 
 	UINT layoutSize = m_arraySize * m_mipLevels;
