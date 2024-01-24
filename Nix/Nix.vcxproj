@@ -108,7 +108,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_WINDOWS;FBXSDK_SHARED;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
-      <AdditionalIncludeDirectories>.\;..\;..\DirectxTex\DirectxTex\;..\NixMath\;..\IMGUI\;..\NixTools\Include\;..\NixTools\Include\FBXSDK\;.\Core;.\Nix;.\Nix\Script;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\;..\DirectxTex\DirectxTex\;..\XAllocator\;..\NixMath\;..\IMGUI\;..\NixTools\Include\;..\NixTools\Include\FBXSDK\;.\Core;.\Nix;.\Nix\Script;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OpenMPSupport>true</OpenMPSupport>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
@@ -116,7 +116,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxguid.lib;winmm.lib;comctl32.lib;NixMath.lib;DirectXTex.lib;IMGUI.lib;libfbxsdk.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\NixMath\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\DirectXTex\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\IMGUI\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\FBXSDK\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\NixMath\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\DirectXTex\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\IMGUI\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\FBXSDK\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\XAllocator\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
     <PostBuildEvent>
@@ -153,7 +153,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_WINDOWS;FBXSDK_SHARED;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
-      <AdditionalIncludeDirectories>.\;..\;..\DirectxTex\DirectxTex\;..\NixMath\;..\IMGUI\;..\NixTools\Include\;..\NixTools\Include\FBXSDK\;.\Core;.\Nix;.\Nix\Script;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\;..\DirectxTex\DirectxTex\;..\XAllocator\;..\NixMath\;..\IMGUI\;..\NixTools\Include\;..\NixTools\Include\FBXSDK\;.\Core;.\Nix;.\Nix\Script;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OpenMPSupport>true</OpenMPSupport>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
@@ -163,7 +163,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxguid.lib;winmm.lib;comctl32.lib;NixMath.lib;DirectXTex.lib;IMGUI.lib;libfbxsdk.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\NixMath\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\DirectXTex\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\IMGUI\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\FBXSDK\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\NixMath\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\DirectXTex\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\IMGUI\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\FBXSDK\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\XAllocator\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
     <PostBuildEvent>

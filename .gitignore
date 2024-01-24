@@ -21,3 +21,4 @@
 *.idb
 *.lastcodeanalysissucceeded
 /Nix/logs/Log.txt
+/XAllocator/x64/Release
