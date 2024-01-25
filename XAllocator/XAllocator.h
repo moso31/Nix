@@ -14,8 +14,10 @@ struct AllocatorRangeInterval
 	UINT st, ed;
 };
 
+class XAllocatorBase {};
+
 template<typename T>
-class XAllocator
+class XAllocator : public XAllocatorBase
 {
 protected:
 	struct Page

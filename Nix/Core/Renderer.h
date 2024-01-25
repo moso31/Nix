@@ -68,10 +68,6 @@ private:
 	void OnKeyDown(NXEventArgKey eArg);
 
 private:
-	ComPtr<ID3D11InputLayout>			m_pInputLayoutP;
-	ComPtr<ID3D11InputLayout>			m_pInputLayoutPT;
-	ComPtr<ID3D11InputLayout>			m_pInputLayoutPNT;
-
 	Vector2								m_viewRTSize;
 
 	NXBRDFLut*							m_pBRDFLut;
@@ -92,9 +88,8 @@ private:
 	NXDebugLayerRenderer*				m_pDebugLayerRenderer;
 	NXEditorObjectRenderer*				m_pEditorObjectRenderer;
 
-	NXGUI*								m_pGUI;
-
 	Ntr<NXTexture2D>					m_pFinalRT;
 
+	NXGUI*								m_pGUI;
 	bool								m_bRenderGUI;
 };

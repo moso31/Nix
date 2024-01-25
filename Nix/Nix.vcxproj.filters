@@ -483,6 +483,9 @@
     <ClCompile Include="BaseDefs\DX12.cpp">
       <Filter>BaseDefs</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXAllocatorManager.cpp">
+      <Filter>Core\DirectX\Manager</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -790,6 +793,9 @@
     </ClInclude>
     <ClInclude Include="BaseDefs\DX12.h">
       <Filter>BaseDefs</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXAllocatorManager.h">
+      <Filter>Core\DirectX\Manager</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

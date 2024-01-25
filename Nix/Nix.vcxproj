@@ -213,6 +213,7 @@
     <ClCompile Include="Core\App.cpp" />
     <ClCompile Include="Core\DirectResources.cpp" />
     <ClCompile Include="Core\FBXMeshLoader.cpp" />
+    <ClCompile Include="Core\NXAllocatorManager.cpp" />
     <ClCompile Include="Core\NXDepthRenderer.cpp" />
     <ClCompile Include="Core\NXFileSystemHelper.cpp" />
     <ClCompile Include="Core\Global.cpp" />
@@ -312,6 +313,7 @@
     <ClInclude Include="Core\Global.h" />
     <ClInclude Include="Core\imfilebrowser.h" />
     <ClInclude Include="Core\Ntr.h" />
+    <ClInclude Include="Core\NXAllocatorManager.h" />
     <ClInclude Include="Core\NXDepthRenderer.h" />
     <ClInclude Include="Core\NXFileSystemHelper.h" />
     <ClInclude Include="Core\GlobalBufferManager.h" />

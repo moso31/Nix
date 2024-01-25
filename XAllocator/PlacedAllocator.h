@@ -3,7 +3,7 @@
 
 #define PlacedAllocatorBase XAllocator<ID3D12Heap*>
 
-class PlacedAllocator : PlacedAllocatorBase
+class PlacedAllocator : public PlacedAllocatorBase
 {
 public:
 	PlacedAllocator(ID3D12Device* pDevice, UINT blockByteSize = 256) : 

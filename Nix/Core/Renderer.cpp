@@ -13,6 +13,7 @@
 #include "NXDepthPrepass.h"
 #include "NXSimpleSSAO.h"
 #include "NXSamplerStates.h"
+#include "NXAllocatorManager.h"
 
 Renderer::Renderer() :
 	m_bRenderGUI(true)
@@ -38,6 +39,9 @@ void Renderer::Init()
 	NXResourceManager::GetInstance()->GetMeshManager()->SetWorkingScene(m_scene);
 	NXResourceManager::GetInstance()->GetCameraManager()->SetWorkingScene(m_scene);
 	NXResourceManager::GetInstance()->GetLightManager()->SetWorkingScene(m_scene);
+
+	// 创建各种DX12资源分配器
+	NXAllocatorManager::GetInstance()->Init();
 
 	m_scene->Init();
 
