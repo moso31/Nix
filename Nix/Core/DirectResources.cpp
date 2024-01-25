@@ -26,8 +26,12 @@ void DirectResources::InitDevice()
 	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 	hr = g_pDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&g_pCommandQueue));
-	hr = g_pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&g_pCommandAllocator));
-	hr = g_pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, g_pCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&g_pCommandList));
+
+	for (int i = 0; i < FRAME_BUFFER_NUM; i++)
+	{
+		hr = g_pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_pCommandAllocator[i]));
+		hr = g_pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandAllocator[i].Get(), nullptr, IID_PPV_ARGS(&m_pCommandList[i]));
+	}
 
 	RECT rc;
 	GetClientRect(g_hWnd, &rc);
@@ -36,23 +40,9 @@ void DirectResources::InitDevice()
 	OnResize(width, height);
 }
 
-void DirectResources::InitCommandLists()
+void DirectResources::FrameBegin()
 {
-	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
-	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-
-	HRESULT hr;
-
-	// 创建命令队列
-	hr = g_pDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&g_pCommandQueue));
-
-	// 创建命令分配器
-	hr = g_pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&g_pCommandAllocator));
-
-	// 创建命令列表，并将其和 命令分配器 关联
-	// 同时设定初始渲染管线状态 = nullptr（默认状态）
-	hr = g_pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, g_pCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&g_pCommandList));
+	m_swapChainBackBufferIndex = m_pSwapChain->GetCurrentBackBufferIndex();
 }
 
 void DirectResources::OnResize(UINT width, UINT height)
@@ -61,7 +51,7 @@ void DirectResources::OnResize(UINT width, UINT height)
 
 	if (m_pSwapChain.Get())
 	{
-		hr = m_pSwapChain->ResizeBuffers(2, width, height, DXGI_FORMAT_B8G8R8A8_UNORM, 0);
+		hr = m_pSwapChain->ResizeBuffers(FRAME_BUFFER_NUM, width, height, DXGI_FORMAT_B8G8R8A8_UNORM, 0);
 	}
 	else
 	{
@@ -74,7 +64,7 @@ void DirectResources::OnResize(UINT width, UINT height)
 		swapChainDesc.SampleDesc.Count = 1; // MSAA4x 禁用
 		swapChainDesc.SampleDesc.Quality = 0;
 		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT; // 用于RT
-		swapChainDesc.BufferCount = 2; // 双缓冲
+		swapChainDesc.BufferCount = FRAME_BUFFER_NUM; // n缓冲
 		swapChainDesc.OutputWindow = g_hWnd; // 窗口句柄
 		swapChainDesc.Windowed = true; // 窗口模式
 		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD; // 翻转模式
@@ -86,7 +76,7 @@ void DirectResources::OnResize(UINT width, UINT height)
 
 		// 构建描述符
 		D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-		rtvHeapDesc.NumDescriptors = 2; // 双缓冲
+		rtvHeapDesc.NumDescriptors = FRAME_BUFFER_NUM; // n缓冲
 		rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV; // RTV
 		rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE; // 无标志
 		rtvHeapDesc.NodeMask = 0; // 单GPU
@@ -96,7 +86,7 @@ void DirectResources::OnResize(UINT width, UINT height)
 		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_pRTVHeap->GetCPUDescriptorHandleForHeapStart();
 
 		// 创建RTV
-		for (int i = 0; i < 2; ++i)
+		for (int i = 0; i < FRAME_BUFFER_NUM; ++i)
 		{
 			hr = m_pSwapChain->GetBuffer(i, IID_PPV_ARGS(&m_pSwapChainRT[i]));
 			g_pDevice->CreateRenderTargetView(m_pSwapChainRT[i].Get(), nullptr, rtvHandle);
@@ -114,6 +104,31 @@ void DirectResources::PrepareToRenderGUI()
 	// 目前在主渲染结束后，GUI开始渲染前执行这一步骤。GUI将会被逐个渲染到当前帧，SwapChain的RTV上。
 	g_pCommandList->OMSetRenderTargets(1, &GetCurrentSwapChainRTV(), true, nullptr);
 	g_pCommandList->ClearRenderTargetView(GetCurrentSwapChainRTV(), DirectX::Colors::Black, 0, nullptr);
+}
+
+void DirectResources::FrameEnd()
+{
+	auto pCmdList = GetCurrentCommandList();
+	pCmdList->Close();
+
+	ID3D12CommandList* pCmdLists[] = { pCmdList };
+	g_pCommandQueue->ExecuteCommandLists(1, pCmdLists);
+
+	m_pSwapChain->Present(0, 0);
+
+	m_currFenceValue++;
+	g_pCommandQueue->Signal(m_pFence.Get(), m_currFenceValue);
+
+	if (m_currFenceValue - m_pFence->GetCompletedValue() > FRAME_BUFFER_NUM - 1)
+	{
+		//printf("%lld, %lld\n", m_currFenceValue, m_pFence->GetCompletedValue());
+
+		HANDLE fenceEvent = CreateEvent(nullptr, false, false, nullptr);
+		m_pFence->SetEventOnCompletion(m_currFenceValue - FRAME_BUFFER_NUM + 1, fenceEvent);
+
+		WaitForSingleObject(fenceEvent, INFINITE);
+		CloseHandle(fenceEvent);
+	}
 }
 
 void DirectResources::Release()

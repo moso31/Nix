@@ -234,6 +234,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 		{
 			g_timer->Tick();
 
+			g_app->FrameBegin();
 			g_app->ResizeCheck();
 
 			g_app->Reload();

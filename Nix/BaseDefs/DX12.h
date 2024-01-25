@@ -8,6 +8,32 @@
 using namespace DirectX;
 using namespace Microsoft::WRL;
 
+#define FRAME_BUFFER_NUM 3 // 使用三缓冲
+
+template <typename T>
+class MultiFrame
+{
+public:
+	T& operator[](size_t index) { return data[index]; }
+	const T& operator[](size_t index) const { return data[index]; }
+
+	void Reset(const T& val) { for (int i = 0; i < FRAME_BUFFER_NUM; i++) data[i] = val; }
+
+protected:
+	T data[FRAME_BUFFER_NUM];
+};
+
+template <typename T>
+struct XAllocatorData
+{
+	virtual UINT DataByteSize() { return sizeof(T); }
+
+	T data;
+	UINT pageIndex; // 记录该数据在 XAllocator 的页面索引
+	UINT pageByteOffset; // 记录该数据在 XAllocator 的页面的字节偏移量
+	D3D12_GPU_VIRTUAL_ADDRESS GPUVirtualAddr; // 记录该数据的 GPU 虚拟地址
+};
+
 #include <string>
 
 class NX12Util

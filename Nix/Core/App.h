@@ -11,10 +11,13 @@ public:
 	void Init();
 	void OnWindowResize(UINT width, UINT height);
 	void OnResize(const Vector2& rtSize);
+
+	void FrameBegin();
 	void ResizeCheck();
 	void Reload();
 	void Update();
 	void Draw();
+	void FrameEnd();
 
 	void Release();
 

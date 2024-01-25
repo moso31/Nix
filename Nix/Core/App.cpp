@@ -50,6 +50,11 @@ void App::OnResize(const Vector2& rtSize)
 	NXLog::Log("-----OnResize(End)-----");
 }
 
+void App::FrameBegin()
+{
+	m_pDXResources->FrameBegin();
+}
+
 void App::ResizeCheck()
 {
 	if (fabsf(m_lastViewSize.x - m_viewSize.x) > 0.01f || fabsf(m_lastViewSize.y - m_viewSize.y) > 0.01f)
@@ -77,20 +82,11 @@ void App::Draw()
 	m_pRenderer->RenderGUI();
 
 	m_pRenderer->ClearAllPSResources();
+}
 
-	//// Present() 向用户呈现渲染图像。
-	//// 在Present之前，将所有GPU队列中的内容全部执行完，否则可能会出现渲染问题。
-	//// （比如切换CubeMapSRV-Preview2D纹理后未能在Present之前及时加载导致程序崩溃）。
-	//ComPtr<ID3D11Query> pQuery;
-	//g_pDevice->CreateQuery(&CD3D11_QUERY_DESC(D3D11_QUERY_EVENT, 0), &pQuery);
-	//g_pContext->End(pQuery.Get());
-
-	//while (g_pContext->GetData(pQuery.Get(), nullptr, 0, 0) != S_OK)
-	//{
-	//}
-
-	DXGI_PRESENT_PARAMETERS parameters = { 0 };
-	g_pSwapChain->Present1(0, 0, &parameters);
+void App::FrameEnd()
+{
+	m_pDXResources->FrameEnd();
 }
 
 void App::Release()
