@@ -27,7 +27,7 @@ void DirectResources::InitDevice()
 	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 	hr = g_pDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&g_pCommandQueue));
 
-	for (int i = 0; i < FRAME_BUFFER_NUM; i++)
+	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 	{
 		hr = g_pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_pCommandAllocator[i]));
 		hr = g_pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandAllocator[i].Get(), nullptr, IID_PPV_ARGS(&m_pCommandList[i]));
@@ -42,7 +42,7 @@ void DirectResources::InitDevice()
 
 void DirectResources::FrameBegin()
 {
-	m_swapChainBackBufferIndex = m_pSwapChain->GetCurrentBackBufferIndex();
+	MultiFrameSets::swapChainIndex = m_pSwapChain->GetCurrentBackBufferIndex();
 }
 
 void DirectResources::OnResize(UINT width, UINT height)
@@ -51,7 +51,7 @@ void DirectResources::OnResize(UINT width, UINT height)
 
 	if (m_pSwapChain.Get())
 	{
-		hr = m_pSwapChain->ResizeBuffers(FRAME_BUFFER_NUM, width, height, DXGI_FORMAT_B8G8R8A8_UNORM, 0);
+		hr = m_pSwapChain->ResizeBuffers(MultiFrameSets_swapChainCount, width, height, DXGI_FORMAT_B8G8R8A8_UNORM, 0);
 	}
 	else
 	{
@@ -64,7 +64,7 @@ void DirectResources::OnResize(UINT width, UINT height)
 		swapChainDesc.SampleDesc.Count = 1; // MSAA4x 禁用
 		swapChainDesc.SampleDesc.Quality = 0;
 		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT; // 用于RT
-		swapChainDesc.BufferCount = FRAME_BUFFER_NUM; // n缓冲
+		swapChainDesc.BufferCount = MultiFrameSets_swapChainCount; // n缓冲
 		swapChainDesc.OutputWindow = g_hWnd; // 窗口句柄
 		swapChainDesc.Windowed = true; // 窗口模式
 		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD; // 翻转模式
@@ -76,7 +76,7 @@ void DirectResources::OnResize(UINT width, UINT height)
 
 		// 构建描述符
 		D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-		rtvHeapDesc.NumDescriptors = FRAME_BUFFER_NUM; // n缓冲
+		rtvHeapDesc.NumDescriptors = MultiFrameSets_swapChainCount; // n缓冲
 		rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV; // RTV
 		rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE; // 无标志
 		rtvHeapDesc.NodeMask = 0; // 单GPU
@@ -86,7 +86,7 @@ void DirectResources::OnResize(UINT width, UINT height)
 		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_pRTVHeap->GetCPUDescriptorHandleForHeapStart();
 
 		// 创建RTV
-		for (int i = 0; i < FRAME_BUFFER_NUM; ++i)
+		for (int i = 0; i < MultiFrameSets_swapChainCount; ++i)
 		{
 			hr = m_pSwapChain->GetBuffer(i, IID_PPV_ARGS(&m_pSwapChainRT[i]));
 			g_pDevice->CreateRenderTargetView(m_pSwapChainRT[i].Get(), nullptr, rtvHandle);
@@ -119,12 +119,12 @@ void DirectResources::FrameEnd()
 	m_currFenceValue++;
 	g_pCommandQueue->Signal(m_pFence.Get(), m_currFenceValue);
 
-	if (m_currFenceValue - m_pFence->GetCompletedValue() > FRAME_BUFFER_NUM - 1)
+	if (m_currFenceValue - m_pFence->GetCompletedValue() > MultiFrameSets_swapChainCount - 1)
 	{
 		//printf("%lld, %lld\n", m_currFenceValue, m_pFence->GetCompletedValue());
 
 		HANDLE fenceEvent = CreateEvent(nullptr, false, false, nullptr);
-		m_pFence->SetEventOnCompletion(m_currFenceValue - FRAME_BUFFER_NUM + 1, fenceEvent);
+		m_pFence->SetEventOnCompletion(m_currFenceValue - MultiFrameSets_swapChainCount + 1, fenceEvent);
 
 		WaitForSingleObject(fenceEvent, INFINITE);
 		CloseHandle(fenceEvent);
@@ -140,6 +140,6 @@ void DirectResources::Release()
 D3D12_CPU_DESCRIPTOR_HANDLE DirectResources::GetCurrentSwapChainRTV()
 {
 	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = m_pRTVHeap->GetCPUDescriptorHandleForHeapStart();
-	cpuHandle.ptr += g_pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV) * m_pSwapChain->GetCurrentBackBufferIndex();
+	cpuHandle.ptr += g_pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV) * MultiFrameSets::swapChainIndex;
 	return cpuHandle;
 }

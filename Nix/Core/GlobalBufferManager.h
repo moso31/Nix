@@ -2,19 +2,16 @@
 #include "BaseDefs/DX12.h"
 #include "ShaderStructures.h"
 
+// 2024.1.26 TODO：cbData按Object和View分可以，但现在的分法有问题。
+// m_cbDataObject中存在一些view proj之类的参数，实际上应该放在Camera中。 // 将来再改，现在没空
 class NXGlobalBufferManager
 {
 public:
 	static void Init();
 
-	static ComPtr<ID3D12Resource>				m_cbObject;
-	static ConstantBufferObject					m_cbDataObject;
-
-	static ComPtr<ID3D12Resource>				m_cbCamera;
-	static ConstantBufferCamera					m_cbDataCamera;
-
-	static ComPtr<ID3D12Resource>				m_cbShadowTest;
-	static ConstantBufferShadowTest				m_cbDataShadowTest;
+	static MultiFrame<CommittedResourceData<ConstantBufferObject>>		m_cbDataObject;
+	static MultiFrame<CommittedResourceData<ConstantBufferCamera>>		m_cbDataCamera;
+	static MultiFrame<CommittedResourceData<ConstantBufferShadowTest>>	m_cbDataShadowTest;
 };
 
 class NXGlobalInputLayout

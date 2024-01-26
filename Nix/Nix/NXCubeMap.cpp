@@ -12,6 +12,7 @@
 #include "NXConverter.h"
 #include "SamplerMath.h"
 #include "NXTexture.h"
+#include "NXAllocatorManager.h"
 
 using namespace DirectX::SamplerMath;
 using namespace DirectX::SimpleMath::SH;
@@ -90,8 +91,11 @@ void NXCubeMap::Update()
 void NXCubeMap::UpdateViewParams()
 {
 	auto pCamera = m_pScene->GetMainCamera();
-	NXGlobalBufferManager::m_cbDataObject.world = Matrix::CreateTranslation(pCamera->GetTranslation()).Transpose();
-	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbObject.Get(), 0, nullptr, &NXGlobalBufferManager::m_cbDataObject, 0, 0);
+
+	auto& cbDataObject = NXGlobalBufferManager::m_cbDataObject.Current();
+	cbDataObject.data.world = Matrix::CreateTranslation(pCamera->GetTranslation()).Transpose();
+
+	NXAllocatorManager::GetInstance()->GetCBufferAllocator()->UpdateData(cbDataObject);
 }
 
 void NXCubeMap::Render()

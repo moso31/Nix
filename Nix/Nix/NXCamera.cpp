@@ -4,6 +4,7 @@
 #include "DirectResources.h"
 #include "GlobalBufferManager.h"
 #include "NSFirstPersonalCamera.h"
+#include "NXAllocatorManager.h"
 
 NXCamera::NXCamera(const std::string& name) :
 	NXTransform(),
@@ -178,20 +179,21 @@ void NXCamera::UpdateTransform()
 
 void NXCamera::Update()
 {
-	// 【2022.5.10 m_mxViewProjection 完全可以传给GPU，我就是懒得做……有空补上吧。】
-	NXGlobalBufferManager::m_cbDataObject.view = m_mxView.Transpose();
-	NXGlobalBufferManager::m_cbDataObject.viewInverse = m_mxViewInv.Transpose();
-	NXGlobalBufferManager::m_cbDataObject.viewInverseTranspose = m_mxViewInv;
-	NXGlobalBufferManager::m_cbDataObject.viewTranspose = m_mxView;
-	NXGlobalBufferManager::m_cbDataObject.projection = m_mxProjection.Transpose();
-	NXGlobalBufferManager::m_cbDataObject.projectionInverse = m_mxProjectionInv.Transpose();
-	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbObject.Get(), 0, nullptr, &NXGlobalBufferManager::m_cbDataObject, 0, 0);
+	auto& cbDataObject = NXGlobalBufferManager::m_cbDataObject.Current();
+	cbDataObject.data.view = m_mxView.Transpose();
+	cbDataObject.data.viewInverse = m_mxViewInv.Transpose();
+	cbDataObject.data.viewInverseTranspose = m_mxViewInv;
+	cbDataObject.data.viewTranspose = m_mxView;
+	cbDataObject.data.projection = m_mxProjection.Transpose();
+	cbDataObject.data.projectionInverse = m_mxProjectionInv.Transpose();
+	NXAllocatorManager::GetInstance()->GetCBufferAllocator()->UpdateData(cbDataObject);
 
-	NXGlobalBufferManager::m_cbDataCamera.Params0 = Vector4(m_rtSize.x, m_rtSize.y, 1.0f / m_rtSize.x, 1.0f / m_rtSize.y);
+	auto& cbDataCamera = NXGlobalBufferManager::m_cbDataCamera.Current();
 	float invN2F = 1.0f / (m_far - m_near);
-	NXGlobalBufferManager::m_cbDataCamera.Params1 = Vector4(m_near, m_far, m_far * invN2F, -m_far * m_near * invN2F);
-	NXGlobalBufferManager::m_cbDataCamera.Params2 = Vector4(m_mxProjection._11, m_mxProjection._22, 1.0f / m_mxProjection._11, 1.0f / m_mxProjection._22);
-	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbCamera.Get(), 0, nullptr, &NXGlobalBufferManager::m_cbDataCamera, 0, 0);
+	cbDataCamera.data.Params0 = Vector4(m_rtSize.x, m_rtSize.y, 1.0f / m_rtSize.x, 1.0f / m_rtSize.y);
+	cbDataCamera.data.Params1 = Vector4(m_near, m_far, m_far * invN2F, -m_far * m_near * invN2F);
+	cbDataCamera.data.Params2 = Vector4(m_mxProjection._11, m_mxProjection._22, 1.0f / m_mxProjection._11, 1.0f / m_mxProjection._22);
+	NXAllocatorManager::GetInstance()->GetCBufferAllocator()->UpdateData(cbDataCamera);
 }
 
 void NXCamera::Render()

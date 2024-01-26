@@ -2,6 +2,7 @@
 #include "Global.h"
 #include "GlobalBufferManager.h"
 #include "NXScene.h"
+#include "NXAllocatorManager.h"
 
 NXPrimitive::NXPrimitive()
 {
@@ -9,17 +10,18 @@ NXPrimitive::NXPrimitive()
 
 void NXPrimitive::UpdateViewParams()
 {
+	auto& cbDataObject = NXGlobalBufferManager::m_cbDataObject.Current();
+
+	auto mxView = cbDataObject.data.view.Transpose();
 	auto mxWorld = m_worldMatrix.Transpose();
-	NXGlobalBufferManager::m_cbDataObject.world = mxWorld;
-	NXGlobalBufferManager::m_cbDataObject.worldInverseTranspose = m_worldMatrix.Invert(); // it actually = m_worldMatrix.Invert().Transpose().Transpose();
-
-	auto mxView = NXGlobalBufferManager::m_cbDataObject.view.Transpose();
-	NXGlobalBufferManager::m_cbDataObject.worldViewInverseTranspose = (m_worldMatrix * mxView).Invert();
-
 	auto mxWorldView = (m_worldMatrix * mxView).Transpose();
-	NXGlobalBufferManager::m_cbDataObject.worldView = mxWorldView;
 
-	g_pContext->UpdateSubresource(NXGlobalBufferManager::m_cbObject.Get(), 0, nullptr, &NXGlobalBufferManager::m_cbDataObject, 0, 0);
+	cbDataObject.data.world = mxWorld;
+	cbDataObject.data.worldInverseTranspose = m_worldMatrix.Invert(); // it actually = m_worldMatrix.Invert().Transpose().Transpose();
+	cbDataObject.data.worldViewInverseTranspose = (m_worldMatrix * mxView).Invert();
+	cbDataObject.data.worldView = mxWorldView;
+
+	NXAllocatorManager::GetInstance()->GetCBufferAllocator()->UpdateData(cbDataObject);
 }
 
 void NXPrimitive::CalculateTangents(bool bUpdateVBIB)

@@ -1,19 +1,20 @@
 #include "GlobalBufferManager.h"
 #include "BaseDefs/NixCore.h"
 #include "Global.h"
+#include "NXAllocatorManager.h"
 
-ComPtr<ID3D12Resource>				NXGlobalBufferManager::m_cbObject;
-ConstantBufferObject				NXGlobalBufferManager::m_cbDataObject;
-ComPtr<ID3D12Resource>				NXGlobalBufferManager::m_cbCamera;
-ConstantBufferCamera				NXGlobalBufferManager::m_cbDataCamera;
-ComPtr<ID3D12Resource>				NXGlobalBufferManager::m_cbShadowTest;
-ConstantBufferShadowTest			NXGlobalBufferManager::m_cbDataShadowTest;
+MultiFrame<CommittedResourceData<ConstantBufferObject>>		NXGlobalBufferManager::m_cbDataObject;
+MultiFrame<CommittedResourceData<ConstantBufferCamera>>		NXGlobalBufferManager::m_cbDataCamera;
+MultiFrame<CommittedResourceData<ConstantBufferShadowTest>>	NXGlobalBufferManager::m_cbDataShadowTest;
 
 void NXGlobalBufferManager::Init()
 {
-	m_cbObject = NX12Util::CreateBuffer(g_pDevice.Get(), L"CB Object", sizeof(ConstantBufferObject), D3D12_HEAP_TYPE_UPLOAD);
-	m_cbCamera = NX12Util::CreateBuffer(g_pDevice.Get(), L"CB Camera", sizeof(ConstantBufferCamera), D3D12_HEAP_TYPE_UPLOAD);
-	m_cbShadowTest = NX12Util::CreateBuffer(g_pDevice.Get(), L"CB Shadow Test", sizeof(ConstantBufferShadowTest), D3D12_HEAP_TYPE_UPLOAD);
+	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
+	{
+		NXAllocatorManager::GetInstance()->GetCBufferAllocator()->Alloc(ResourceType_Upload, m_cbDataObject.Get(i));
+		NXAllocatorManager::GetInstance()->GetCBufferAllocator()->Alloc(ResourceType_Upload, m_cbDataCamera.Get(i));
+		NXAllocatorManager::GetInstance()->GetCBufferAllocator()->Alloc(ResourceType_Upload, m_cbDataShadowTest.Get(i));
+	}
 }
 
 D3D12_INPUT_ELEMENT_DESC	NXGlobalInputLayout::layoutP[1];

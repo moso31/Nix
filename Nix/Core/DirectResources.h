@@ -14,7 +14,7 @@ public:
 	void	Release();
 
 	D3D12_CPU_DESCRIPTOR_HANDLE	GetCurrentSwapChainRTV();
-	ID3D12GraphicsCommandList6* GetCurrentCommandList() { return m_pCommandList[m_swapChainBackBufferIndex].Get(); }
+	ID3D12GraphicsCommandList6* GetCurrentCommandList() { return m_pCommandList[MultiFrameSets::swapChainIndex].Get(); }
 
 private:
 	ComPtr<IDXGIFactory7>		m_pDXGIFactory;
@@ -29,6 +29,4 @@ private:
 	 
 	ComPtr<ID3D12Resource>			m_pDepthStencilBuffer;
 	ComPtr<ID3D12DescriptorHeap>	m_pRTVHeap;
-
-	UINT m_swapChainBackBufferIndex = 0;
 };
