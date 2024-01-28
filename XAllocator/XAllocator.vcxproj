@@ -21,13 +21,17 @@
   <ItemGroup>
     <ClCompile Include="CommittedAllocator.cpp" />
     <ClCompile Include="DescriptorAllocator.cpp" />
+    <ClCompile Include="DSVAllocator.cpp" />
     <ClCompile Include="PlacedAllocator.cpp" />
+    <ClCompile Include="RTVAllocator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommittedAllocator.h" />
     <ClInclude Include="DescriptorAllocator.h" />
+    <ClInclude Include="DSVAllocator.h" />
     <ClInclude Include="DXIncludes.h" />
     <ClInclude Include="PlacedAllocator.h" />
+    <ClInclude Include="RTVAllocator.h" />
     <ClInclude Include="XAllocator.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

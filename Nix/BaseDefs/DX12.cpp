@@ -115,7 +115,7 @@ D3D12_CLEAR_VALUE NX12Util::CreateClearValue(float depth, UINT8 stencil, DXGI_FO
 	return cv;
 }
 
-D3D12_RESOURCE_BARRIER NX12Util::CreateResourceBarrier_Transition(ID3D12Resource* pResource, D3D12_RESOURCE_STATES from, D3D12_RESOURCE_STATES to)
+void NX12Util::SetResourceBarrier(ID3D12GraphicsCommandList* pCommandList, ID3D12Resource* pResource, D3D12_RESOURCE_STATES from, D3D12_RESOURCE_STATES to)
 {
 	D3D12_RESOURCE_BARRIER barrier = {};
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -124,7 +124,7 @@ D3D12_RESOURCE_BARRIER NX12Util::CreateResourceBarrier_Transition(ID3D12Resource
 	barrier.Transition.StateBefore = from;
 	barrier.Transition.StateAfter = to;
 	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-	return barrier;
+	pCommandList->ResourceBarrier(1, &barrier);
 }
 
 void NX12Util::CopyTextureRegion(ID3D12GraphicsCommandList* pCommandList, ID3D12Resource* pTexture, ID3D12Resource* pTextureUploadBuffer, UINT layoutSize, const D3D12_PLACED_SUBRESOURCE_FOOTPRINT* pLayouts)

@@ -5,6 +5,7 @@
 #include "NXConverter.h"
 #include "NXLog.h"
 #include "NXRandom.h"
+#include "NXAllocatorManager.h"
 
 NXTexture::~NXTexture()
 {
@@ -25,53 +26,56 @@ void NXTexture::SwapToReloadingTexture()
 	}
 }
 
-void NXTexture::CreateInternal(const std::string& name, const std::unique_ptr<DirectX::ScratchImage>& pImage)
+void NXTexture::CreateInternal(const std::unique_ptr<DirectX::ScratchImage>& pImage)
 {
-	// TODO：关于纹理创建这事比较麻烦，DX12现在需要一个uploadBuffer做中继，不然传不上去
-	// 但是 uploadBuffer 在数据上传后，就没用了，关键是如何确认uploadBuffer 在GPU中上传完毕，可以释放？
-	// 常用的做法包括：重用上传缓冲区，或基于Fence释放资源，这都是可以考虑的方向。
-	// 为了实现这个，可能需要配套设计一个异步管理系统。太繁琐了，我还没想好。
-	// 2023.12.11
-	// 目前处于11转12阶段，为方便起见，暂时在NXTexture中始终保持这两份内存。
-	// 好处是简单，坏处是额外存储了一份纹理的内存开销。必然要改
-	std::string nameUploadTemp = name + "UploadBuffer temp";
-	m_pTexture = NX12Util::CreateTexture2D(g_pDevice.Get(), name.c_str(), m_width, m_height, m_texFormat, m_mipLevels, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_COPY_DEST);
+	D3D12_RESOURCE_DESC desc = {};
+	desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	desc.Width = m_width;
+	desc.Height = m_height;
+	desc.DepthOrArraySize = m_arraySize;
+	desc.MipLevels = m_mipLevels;
+	desc.Format = m_texFormat;
+	desc.SampleDesc.Count = 1;
+	desc.SampleDesc.Quality = 0;
+	desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	desc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-	UINT layoutSize = m_arraySize * m_mipLevels;
-	D3D12_PLACED_SUBRESOURCE_FOOTPRINT* pLayouts = new D3D12_PLACED_SUBRESOURCE_FOOTPRINT[layoutSize];
-	UINT* pNumRows = new UINT[layoutSize];
-	UINT64* pRowSizeInBytes = new UINT64[layoutSize];
+	UINT layoutSize = desc.DepthOrArraySize * desc.MipLevels;
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT* layouts = new D3D12_PLACED_SUBRESOURCE_FOOTPRINT[layoutSize];
+	UINT* numRow = new UINT[layoutSize];
+	UINT64* numRowSizeInBytes = new UINT64[layoutSize];
+	size_t totalBytes;
+	g_pDevice->GetCopyableFootprints(&desc, 0, layoutSize, 0, layouts, numRow, numRowSizeInBytes, &totalBytes);
 
-	UINT uploadBufferSize = NX12Util::GetRequiredIntermediateLayoutInfos(g_pDevice.Get(), m_pTexture.Get(), pLayouts, pNumRows, pRowSizeInBytes);
-	m_pTextureUploadBuffer = NX12Util::CreateBuffer(g_pDevice.Get(), nameUploadTemp.c_str(), uploadBufferSize, D3D12_HEAP_TYPE_UPLOAD);
-
-	void* pMappedData;
-	m_pTextureUploadBuffer->Map(0, nullptr, &pMappedData);
-
-	for (UINT item = 0, index = 0; item < m_arraySize; item++)
+	if (NXAllocatorManager::GetInstance()->GetTextureAllocator()->Alloc(desc, m_pTexture.GetAddressOf()))
 	{
-		for (UINT mip = 0; mip < m_mipLevels; mip++, index++)
-		{
-			const Image* pImg = pImage->GetImage(mip, item, 0);
-			const BYTE* pSrcData = pImg->pixels;
-			BYTE* pDstData = reinterpret_cast<BYTE*>(pMappedData) + pLayouts[index].Offset;
+		m_pTextureUpload = NX12Util::CreateBuffer(g_pDevice.Get(), "textureUploadHeap temp", totalBytes, D3D12_HEAP_TYPE_UPLOAD);
+		void* mappedData;
+		m_pTextureUpload->Map(0, nullptr, &mappedData);
 
-			for (UINT y = 0; y < pNumRows[index]; y++)
+		auto texDesc = m_pTexture->GetDesc();
+		for (UINT face = 0, index = 0; face < texDesc.DepthOrArraySize; face++)
+		{
+			for (UINT mip = 0; mip < texDesc.MipLevels; mip++, index++)
 			{
-				memcpy(pDstData + pLayouts[index].Footprint.RowPitch * y, pSrcData + pImg->rowPitch * y, pRowSizeInBytes[index]);
+				const Image* pImg = pImage->GetImage(mip, face, 0);
+				const BYTE* pSrcData = pImg->pixels;
+				BYTE* pDstData = reinterpret_cast<BYTE*>(mappedData) + layouts[index].Offset;
+
+				for (UINT y = 0; y < numRow[index]; y++)
+				{
+					memcpy(pDstData + layouts[index].Footprint.RowPitch * y, pSrcData + pImg->rowPitch * y, numRowSizeInBytes[index]);
+				}
 			}
 		}
+
+		m_pTextureUpload->Unmap(0, nullptr);
+
+		NX12Util::CopyTextureRegion(g_pCommandList.Get(), m_pTexture.Get(), m_pTextureUpload.Get(), layoutSize, layouts);
+		NX12Util::SetResourceBarrier(g_pCommandList.Get(), m_pTexture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+		m_pTexture->SetName(NXConvert::s2ws(m_name).c_str());
 	}
-	m_pTextureUploadBuffer->Unmap(0, nullptr);
-
-	NX12Util::CopyTextureRegion(g_pCommandList.Get(), m_pTexture.Get(), m_pTextureUploadBuffer.Get(), layoutSize, pLayouts);
-
-	auto barrier = NX12Util::CreateResourceBarrier_Transition(m_pTexture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-	g_pCommandList->ResourceBarrier(1, &barrier);
-
-	delete[] pLayouts;
-	delete[] pNumRows;
-	delete[] pRowSizeInBytes;
 }
 
 void NXTexture::InternalReload(Ntr<NXTexture> pReloadTexture)
@@ -171,7 +175,7 @@ void NXTexture::Deserialize()
 	}
 }
 
-Ntr<NXTexture2D> NXTexture2D::Create(const std::string& DebugName, const std::filesystem::path& filePath)
+Ntr<NXTexture2D> NXTexture2D::Create(const std::string& debugName, const std::filesystem::path& filePath)
 {
 	TexMetadata metadata;
 	std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>();
@@ -291,14 +295,14 @@ Ntr<NXTexture2D> NXTexture2D::Create(const std::string& DebugName, const std::fi
 	}
 
 	m_texFilePath = filePath;
-	m_name = DebugName;
+	m_name = debugName;
 	m_width = (UINT)metadata.width;
 	m_height = (UINT)metadata.height;
 	m_arraySize = (UINT)metadata.arraySize;
 	m_mipLevels = (UINT)metadata.mipLevels;
 	m_texFormat = metadata.format;
 
-	CreateInternal(DebugName, pImage);
+	CreateInternal(pImage);
 
 	pImage.reset();
 	return this;
@@ -353,7 +357,7 @@ Ntr<NXTexture2D> NXTexture2D::CreateSolid(const std::string& debugName, UINT tex
 	m_mipLevels = 1;
 	m_texFormat = fmt;
 
-	CreateInternal(debugName, pImage);
+	CreateInternal(pImage);
 
 	pImage.reset();
 	return this;
@@ -404,7 +408,7 @@ Ntr<NXTexture2D> NXTexture2D::CreateNoise(const std::string& debugName, UINT tex
 	m_mipLevels = 1;
 	m_texFormat = fmt;
 
-	CreateInternal(debugName, pImage);
+	CreateInternal(pImage);
 
 	pImage.reset();
 	return this;
@@ -412,64 +416,67 @@ Ntr<NXTexture2D> NXTexture2D::CreateNoise(const std::string& debugName, UINT tex
 
 void NXTexture2D::AddSRV()
 {
-	ComPtr<ID3D11ShaderResourceView> pSRV;
+	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
+	if (!NXAllocatorManager::GetInstance()->GetDescriptorAllocator()->Alloc(DescriptorType_SRV, cpuHandle)) 
+		return;
 
 	DXGI_FORMAT SRVFormat = m_texFormat;
 	if (m_texFormat == DXGI_FORMAT_R24G8_TYPELESS)
 		SRVFormat = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 
-	CD3D11_SHADER_RESOURCE_VIEW_DESC Desc(D3D11_SRV_DIMENSION_TEXTURE2D, SRVFormat, 0, m_mipLevels);
-	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(m_pTexture.Get(), &Desc, &pSRV));
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING; // 默认的映射
+	srvDesc.Format = SRVFormat; // 纹理的格式
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = m_mipLevels;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	srvDesc.Texture2D.ResourceMinLODClamp = 0.0;
+	srvDesc.Texture2D.PlaneSlice = 0;
 
-	std::string SRVDebugName = m_name + " SRV";
-	pSRV->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)SRVDebugName.size(), SRVDebugName.c_str());
-
-	m_pSRVs.push_back(pSRV);
+	g_pDevice->CreateShaderResourceView(m_pTexture.Get(), &srvDesc, cpuHandle);
+	m_pSRVs.push_back(cpuHandle.ptr);
 }
 
 void NXTexture2D::AddRTV()
 {
-	ComPtr<ID3D11RenderTargetView> pRTV;
+	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
+	if (!NXAllocatorManager::GetInstance()->GetRTVAllocator()->Alloc(cpuHandle))
+		return;
 
-	CD3D11_RENDER_TARGET_VIEW_DESC Desc(D3D11_RTV_DIMENSION_TEXTURE2D, m_texFormat);
-	NX::ThrowIfFailed(g_pDevice->CreateRenderTargetView(m_pTexture.Get(), &Desc, &pRTV));
-
-	std::string RTVDebugName = m_name + " RTV";
-	pRTV->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)RTVDebugName.size(), RTVDebugName.c_str());
-
-	m_pRTVs.push_back(pRTV);
+	g_pDevice->CreateRenderTargetView(m_pTexture.Get(), nullptr, cpuHandle);
+	m_pRTVs.push_back(cpuHandle.ptr);
 }
 
 void NXTexture2D::AddDSV()
 {
-	ComPtr<ID3D11DepthStencilView> pDSV;
+	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
+	if (!NXAllocatorManager::GetInstance()->GetDSVAllocator()->Alloc(cpuHandle))
+		return;
 
 	DXGI_FORMAT DSVFormat = m_texFormat;
 	if (m_texFormat == DXGI_FORMAT_R24G8_TYPELESS)
 		DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	else if (m_texFormat == DXGI_FORMAT_R32_TYPELESS)
+		DSVFormat = DXGI_FORMAT_D32_FLOAT;
+	
+	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};	
+	dsvDesc.Format = DSVFormat;
+	dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
+	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+	dsvDesc.Texture2D.MipSlice = 0;
 
-	CD3D11_DEPTH_STENCIL_VIEW_DESC Desc(D3D11_DSV_DIMENSION_TEXTURE2D, DSVFormat);
-	NX::ThrowIfFailed(g_pDevice->CreateDepthStencilView(m_pTexture.Get(), &Desc, &pDSV));
-
-	std::string DSVDebugName = m_name + " DSV";
-	pDSV->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DSVDebugName.size(), DSVDebugName.c_str());
-
-	m_pDSVs.push_back(pDSV);
+	g_pDevice->CreateDepthStencilView(m_pTexture.Get(), &dsvDesc, cpuHandle);
+	m_pDSVs.push_back(cpuHandle.ptr);
 }
 
 void NXTexture2D::AddUAV()
 {
-	ComPtr<ID3D11UnorderedAccessView> pUAV;
+	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
+	if (!NXAllocatorManager::GetInstance()->GetDescriptorAllocator()->Alloc(DescriptorType_UAV, cpuHandle))
+		return;
 
-	DXGI_FORMAT UAVFormat = m_texFormat;
-
-	CD3D11_UNORDERED_ACCESS_VIEW_DESC Desc(D3D11_UAV_DIMENSION_TEXTURE2D, UAVFormat);
-	NX::ThrowIfFailed(g_pDevice->CreateUnorderedAccessView(m_pTexture.Get(), &Desc, &pUAV));
-
-	std::string UAVDebugName = m_name + " UAV";
-	pUAV->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)UAVDebugName.size(), UAVDebugName.c_str());
-
-	m_pUAVs.push_back(pUAV);
+	g_pDevice->CreateUnorderedAccessView(m_pTexture.Get(), nullptr, nullptr, cpuHandle); 
+	m_pUAVs.push_back(cpuHandle.ptr);
 }
 
 void NXTextureCube::Create(std::string debugName, const D3D11_SUBRESOURCE_DATA* initData, DXGI_FORMAT texFormat, UINT width, UINT height, UINT miplevels, UINT bindflags, D3D11_USAGE usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
@@ -570,10 +577,7 @@ void NXTextureCube::Create(const std::string& debugName, const std::wstring& Fil
 	this->m_texFormat = metadata.format;
 	this->m_mipLevels = (UINT)metadata.mipLevels;
 
-	CreateInternal(debugName, pImage);
-
-	DirectX::CreateTextureEx(g_pDevice.Get(), pImage->GetImages(), pImage->GetImageCount(), metadata, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, CREATETEX_DEFAULT, (ID3D11Resource**)m_pTexture.GetAddressOf());
-	m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
+	CreateInternal(pImage);
 
 	auto HDRPreviewInfo = metadata;
 	HDRPreviewInfo.arraySize = 1;
@@ -584,59 +588,74 @@ void NXTextureCube::Create(const std::string& debugName, const std::wstring& Fil
 
 void NXTextureCube::AddSRV()
 {
-	ComPtr<ID3D11ShaderResourceView> pSRV;
+	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
+	if (!NXAllocatorManager::GetInstance()->GetDescriptorAllocator()->Alloc(DescriptorType_SRV, cpuHandle))
+		return;
 
-	D3D11_SHADER_RESOURCE_VIEW_DESC Desc;
-	Desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
-	Desc.Format = m_texFormat;
-	Desc.TextureCube.MostDetailedMip = 0;
-	Desc.TextureCube.MipLevels = m_mipLevels;
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
+	srvDesc.Format = m_texFormat;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.TextureCube.MipLevels = m_mipLevels;
+	srvDesc.TextureCube.MostDetailedMip = 0;
+	srvDesc.TextureCube.ResourceMinLODClamp = 0.0f;
 
-	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(m_pTexture.Get(), &Desc, &pSRV));
-
-	std::string SRVDebugName = m_name + " SRV";
-	pSRV->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)SRVDebugName.size(), SRVDebugName.c_str());
-
-	m_pSRVs.push_back(pSRV);
+	g_pDevice->CreateShaderResourceView(m_pTexture.Get(), &srvDesc, cpuHandle);
+	m_pSRVs.push_back(cpuHandle.ptr);
 }
 
 void NXTextureCube::AddRTV(UINT mipSlice, UINT firstArraySlice, UINT arraySize)
 {
-	ComPtr<ID3D11RenderTargetView> pRTV;
+	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
+	if (!NXAllocatorManager::GetInstance()->GetRTVAllocator()->Alloc(cpuHandle))
+		return;
 
-	D3D11_RENDER_TARGET_VIEW_DESC Desc;
-	Desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
-	Desc.Format = m_texFormat;
-	Desc.Texture2DArray.MipSlice = mipSlice;
-	Desc.Texture2DArray.FirstArraySlice = firstArraySlice;
-	Desc.Texture2DArray.ArraySize = arraySize;
+	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
+	rtvDesc.Format = m_texFormat;
+	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
+	rtvDesc.Texture2DArray.MipSlice = mipSlice;
+	rtvDesc.Texture2DArray.FirstArraySlice = firstArraySlice;
+	rtvDesc.Texture2DArray.ArraySize = arraySize;
+	rtvDesc.Texture2DArray.PlaneSlice = 0;
 
-	NX::ThrowIfFailed(g_pDevice->CreateRenderTargetView(m_pTexture.Get(), &Desc, &pRTV));
-
-	std::string RTVDebugName = m_name + " RTV";
-	pRTV->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)RTVDebugName.size(), RTVDebugName.c_str());
-
-	m_pRTVs.push_back(pRTV);
+	g_pDevice->CreateRenderTargetView(m_pTexture.Get(), &rtvDesc, cpuHandle);
+	m_pRTVs.push_back(cpuHandle.ptr);
 }
 
 void NXTextureCube::AddDSV(UINT mipSlice, UINT firstArraySlice, UINT arraySize)
 {
-	D3D11_DEPTH_STENCIL_VIEW_DESC Desc;
-	Desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
-	Desc.Format = m_texFormat;
-	Desc.Texture2DArray.MipSlice = mipSlice;
-	Desc.Texture2DArray.FirstArraySlice = firstArraySlice;
-	Desc.Texture2DArray.ArraySize = arraySize;
+	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
+	if (!NXAllocatorManager::GetInstance()->GetDSVAllocator()->Alloc(cpuHandle))
+		return;
+
+	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc;
+	dsvDesc.Format = m_texFormat;
+	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
+	dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
+	dsvDesc.Texture2DArray.MipSlice = mipSlice;
+	dsvDesc.Texture2DArray.FirstArraySlice = firstArraySlice;
+	dsvDesc.Texture2DArray.ArraySize = arraySize;
+
+	g_pDevice->CreateDepthStencilView(m_pTexture.Get(), &dsvDesc, cpuHandle);
+	m_pDSVs.push_back(cpuHandle.ptr);
 }
 
 void NXTextureCube::AddUAV(UINT mipSlice, UINT firstArraySlice, UINT arraySize)
 {
-	D3D11_UNORDERED_ACCESS_VIEW_DESC Desc;
-	Desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
-	Desc.Format = m_texFormat;
-	Desc.Texture2DArray.MipSlice = mipSlice;
-	Desc.Texture2DArray.FirstArraySlice = firstArraySlice;
-	Desc.Texture2DArray.ArraySize = arraySize;
+	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
+	if (!NXAllocatorManager::GetInstance()->GetDescriptorAllocator()->Alloc(DescriptorType_UAV, cpuHandle))
+		return;
+
+	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
+	uavDesc.Format = m_texFormat;
+	uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
+	uavDesc.Texture2DArray.MipSlice = mipSlice;
+	uavDesc.Texture2DArray.FirstArraySlice = firstArraySlice;
+	uavDesc.Texture2DArray.ArraySize = arraySize;
+	uavDesc.Texture2DArray.PlaneSlice = 0;
+
+	g_pDevice->CreateUnorderedAccessView(m_pTexture.Get(), nullptr, &uavDesc, cpuHandle);
+	m_pUAVs.push_back(cpuHandle.ptr);
 }
 
 void NXTexture2DArray::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* initData, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
@@ -667,7 +686,9 @@ void NXTexture2DArray::Create(std::string DebugName, const D3D11_SUBRESOURCE_DAT
 
 void NXTexture2DArray::AddSRV(UINT firstArraySlice, UINT arraySize)
 {
-	ComPtr<ID3D11ShaderResourceView> pSRV;
+	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
+	if (!NXAllocatorManager::GetInstance()->GetDescriptorAllocator()->Alloc(DescriptorType_SRV, cpuHandle))
+		return;
 
 	DXGI_FORMAT SRVFormat = m_texFormat;
 	if (m_texFormat == DXGI_FORMAT_R24G8_TYPELESS)
@@ -675,44 +696,44 @@ void NXTexture2DArray::AddSRV(UINT firstArraySlice, UINT arraySize)
 	else if (m_texFormat == DXGI_FORMAT_R32_TYPELESS)
 		SRVFormat = DXGI_FORMAT_R32_FLOAT;
 
-	D3D11_SHADER_RESOURCE_VIEW_DESC Desc;
-	Desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
-	Desc.Format = SRVFormat;
-	Desc.Texture2DArray.MostDetailedMip = 0;
-	Desc.Texture2DArray.MipLevels = m_mipLevels;
-	Desc.Texture2DArray.FirstArraySlice = firstArraySlice;
-	Desc.Texture2DArray.ArraySize = arraySize;
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING; // 默认的映射
+	srvDesc.Format = SRVFormat; // 纹理的格式
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+	srvDesc.Texture2DArray.MipLevels = m_mipLevels;
+	srvDesc.Texture2DArray.MostDetailedMip = 0;
+	srvDesc.Texture2DArray.ResourceMinLODClamp = 0.0;
+	srvDesc.Texture2DArray.PlaneSlice = 0;
+	srvDesc.Texture2DArray.FirstArraySlice = firstArraySlice;
+	srvDesc.Texture2DArray.ArraySize = arraySize;
 
-	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(m_pTexture.Get(), &Desc, &pSRV));
-
-	std::string SRVDebugName = m_name + " SRV";
-	pSRV->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)SRVDebugName.size(), SRVDebugName.c_str());
-
-	m_pSRVs.push_back(pSRV);
+	g_pDevice->CreateShaderResourceView(m_pTexture.Get(), &srvDesc, cpuHandle);
+	m_pSRVs.push_back(cpuHandle.ptr);
 }
 
 void NXTexture2DArray::AddRTV(UINT firstArraySlice, UINT arraySize)
 {
-	ComPtr<ID3D11RenderTargetView> pRTV;
+	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
+	if (!NXAllocatorManager::GetInstance()->GetRTVAllocator()->Alloc(cpuHandle))
+		return;
 
-	D3D11_RENDER_TARGET_VIEW_DESC Desc;
-	Desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
-	Desc.Format = m_texFormat;
-	Desc.Texture2DArray.MipSlice = 0;
-	Desc.Texture2DArray.FirstArraySlice = firstArraySlice;
-	Desc.Texture2DArray.ArraySize = arraySize;
+	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
+	rtvDesc.Format = m_texFormat; 
+	rtvDesc.Texture2DArray.MipSlice = 0;
+	rtvDesc.Texture2DArray.FirstArraySlice = firstArraySlice;
+	rtvDesc.Texture2DArray.ArraySize = arraySize;
+	rtvDesc.Texture2DArray.PlaneSlice = 0;
 
-	NX::ThrowIfFailed(g_pDevice->CreateRenderTargetView(m_pTexture.Get(), &Desc, &pRTV));
-
-	std::string RTVDebugName = m_name + " RTV";
-	pRTV->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)RTVDebugName.size(), RTVDebugName.c_str());
-
-	m_pRTVs.push_back(pRTV);
+	g_pDevice->CreateRenderTargetView(m_pTexture.Get(), nullptr, cpuHandle);
+	m_pRTVs.push_back(cpuHandle.ptr);
 }
 
 void NXTexture2DArray::AddDSV(UINT firstArraySlice, UINT arraySize)
 {
-	ComPtr<ID3D11DepthStencilView> pDSV;
+	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
+	if (!NXAllocatorManager::GetInstance()->GetDSVAllocator()->Alloc(cpuHandle))
+		return;
 
 	DXGI_FORMAT DSVFormat = m_texFormat;
 	if (m_texFormat == DXGI_FORMAT_R24G8_TYPELESS)
@@ -720,39 +741,32 @@ void NXTexture2DArray::AddDSV(UINT firstArraySlice, UINT arraySize)
 	else if (m_texFormat == DXGI_FORMAT_R32_TYPELESS)
 		DSVFormat = DXGI_FORMAT_D32_FLOAT;
 
-	D3D11_DEPTH_STENCIL_VIEW_DESC Desc;
-	Desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
-	Desc.Format = DSVFormat;
-	Desc.Texture2DArray.FirstArraySlice = firstArraySlice;
-	Desc.Texture2DArray.ArraySize = arraySize;
-	Desc.Texture2DArray.MipSlice = 0;
-	Desc.Flags = 0;
+	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+	dsvDesc.Format = DSVFormat;
+	dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
+	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
+	dsvDesc.Texture2DArray.MipSlice = 0;
+	dsvDesc.Texture2DArray.FirstArraySlice = firstArraySlice;
+	dsvDesc.Texture2DArray.ArraySize = arraySize;
 
-	NX::ThrowIfFailed(g_pDevice->CreateDepthStencilView(m_pTexture.Get(), &Desc, &pDSV));
-
-	std::string DSVDebugName = m_name + " DSV";
-	pDSV->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DSVDebugName.size(), DSVDebugName.c_str());
-
-	m_pDSVs.push_back(pDSV);
+	g_pDevice->CreateDepthStencilView(m_pTexture.Get(), &dsvDesc, cpuHandle);
+	m_pDSVs.push_back(cpuHandle.ptr);
 }
 
 void NXTexture2DArray::AddUAV(UINT firstArraySlice, UINT arraySize)
 {
-	ComPtr<ID3D11UnorderedAccessView> pUAV;
+	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
+	if (!NXAllocatorManager::GetInstance()->GetDescriptorAllocator()->Alloc(DescriptorType_UAV, cpuHandle))
+		return;
 
-	DXGI_FORMAT UAVFormat = m_texFormat;
+	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+	uavDesc.Format = m_texFormat;
+	uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
+	uavDesc.Texture2DArray.MipSlice = 0;
+	uavDesc.Texture2DArray.FirstArraySlice = firstArraySlice;
+	uavDesc.Texture2DArray.ArraySize = arraySize;
 
-	D3D11_UNORDERED_ACCESS_VIEW_DESC Desc;
-	Desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
-	Desc.Format = UAVFormat;
-	Desc.Texture2DArray.FirstArraySlice = firstArraySlice;
-	Desc.Texture2DArray.ArraySize = arraySize;
-	Desc.Texture2DArray.MipSlice = 0;
+	g_pDevice->CreateUnorderedAccessView(m_pTexture.Get(), nullptr, nullptr, cpuHandle);
+	m_pUAVs.push_back(cpuHandle.ptr);
 
-	NX::ThrowIfFailed(g_pDevice->CreateUnorderedAccessView(m_pTexture.Get(), &Desc, &pUAV));
-
-	std::string UAVDebugName = m_name + " UAV";
-	pUAV->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)UAVDebugName.size(), UAVDebugName.c_str());
-
-	m_pUAVs.push_back(pUAV);
 }

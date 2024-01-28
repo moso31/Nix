@@ -74,14 +74,13 @@ void DirectResources::OnResize(UINT width, UINT height)
 		hr = m_pDXGIFactory->CreateSwapChain(g_pCommandQueue.Get(), &swapChainDesc, &pSwapChain);
 		hr = pSwapChain.As(&m_pSwapChain);
 
-		// 构建描述符
+		// 创建描述符堆
 		D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
 		rtvHeapDesc.NumDescriptors = MultiFrameSets_swapChainCount; // n缓冲
 		rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV; // RTV
 		rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE; // 无标志
 		rtvHeapDesc.NodeMask = 0; // 单GPU
 
-		// 创建描述符堆
 		hr = g_pDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_pRTVHeap));
 		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_pRTVHeap->GetCPUDescriptorHandleForHeapStart();
 

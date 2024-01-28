@@ -26,6 +26,7 @@ public:
 	DescriptorAllocator(ID3D12Device* pDevice);
 
 	// 在堆里找一段大小为 allocSize 的空间，并分配描述符
+	bool Alloc(DescriptorType type, D3D12_CPU_DESCRIPTOR_HANDLE& oHandle);
 	bool Alloc(DescriptorType type, UINT size, UINT& oPageIdx, UINT& oFirstIdx, D3D12_CPU_DESCRIPTOR_HANDLE& oHandle);
 
 	// 移除 pageIdx 页面的，从 start 开始长度为 size 的内存块

@@ -14,6 +14,12 @@ DescriptorAllocator::DescriptorAllocator(ID3D12Device* pDevice) :
 	m_pDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_renderHeap));
 }
 
+bool DescriptorAllocator::Alloc(DescriptorType type, D3D12_CPU_DESCRIPTOR_HANDLE& oHandle)
+{
+	UINT pageIdx, firstIdx;
+	return Alloc(type, 1, pageIdx, firstIdx, oHandle);
+}
+
 // 分配一个大小为 size 的内存块
 // size: 要分配的内存块的大小
 // oPageIdx: 分配到的页的下标

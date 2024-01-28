@@ -4,6 +4,8 @@
     <ClCompile Include="CommittedAllocator.cpp" />
     <ClCompile Include="DescriptorAllocator.cpp" />
     <ClCompile Include="PlacedAllocator.cpp" />
+    <ClCompile Include="RTVAllocator.cpp" />
+    <ClCompile Include="DSVAllocator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommittedAllocator.h" />
@@ -11,5 +13,7 @@
     <ClInclude Include="PlacedAllocator.h" />
     <ClInclude Include="XAllocator.h" />
     <ClInclude Include="DXIncludes.h" />
+    <ClInclude Include="RTVAllocator.h" />
+    <ClInclude Include="DSVAllocator.h" />
   </ItemGroup>
 </Project>

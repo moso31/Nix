@@ -3,6 +3,8 @@
 #include "CommittedAllocator.h"
 #include "PlacedAllocator.h"
 #include "DescriptorAllocator.h"
+#include "RTVAllocator.h"
+#include "DSVAllocator.h"
 
 // DX12 ∑÷≈‰∆˜
 class NXAllocatorManager : public NXInstance<NXAllocatorManager>
@@ -16,6 +18,8 @@ public:
 	CommittedAllocator*		GetCBufferAllocator()		{ return m_pCBufferAllocator; }
 	PlacedAllocator*		GetTextureAllocator()		{ return m_pTextureAllocator; }
 	DescriptorAllocator*	GetDescriptorAllocator()	{ return m_pDescriptorAllocator; }
+	RTVAllocator*			GetRTVAllocator()			{ return m_pRTVAllocator; }
+	DSVAllocator*			GetDSVAllocator()			{ return m_pDSVAllocator; }
 
 	void Release();
 
@@ -26,4 +30,6 @@ private:
 	CommittedAllocator*		m_pCBufferAllocator;
 	PlacedAllocator*		m_pTextureAllocator;
 	DescriptorAllocator*	m_pDescriptorAllocator;
+	RTVAllocator*			m_pRTVAllocator;
+	DSVAllocator*			m_pDSVAllocator;
 };
