@@ -1,6 +1,7 @@
 #pragma once
 #include <filesystem>
-#include "BaseDefs/DX11.h"
+#include "BaseDefs/DX12.h"
+#include "CommittedAllocator.h"
 #include "NXTransform.h"
 #include "DirectXTex.h"
 #include "ShaderStructures.h"
@@ -40,6 +41,17 @@ public:
 	NXCubeMap(NXScene* pScene);
 	~NXCubeMap() {}
 
+	// 1. 顶点初始化
+	// 2. 构建相机
+	// 3. 如果是dds，加载；如果是hdr，强转成dds，加载
+	//		LoadDDS：创建一个NXTextureCube+SRV
+	// 4. 生成IrradMap
+	//		如果是SH方法，最终生成的结果保存为cbData
+	//		如果是Tex方法，
+	// 5. 生成PreFilterMap
+	//		GeneratePreFilterMap()：
+	//		1. 创建一个CubeMap + SRV，同时准备shader和渲染管线相关的内容
+	//		2. for 循环 渲染30个RTV，并依次绘制
 	bool Init(const std::filesystem::path& filePath);
 	void Update() override;
 	void UpdateViewParams();
@@ -53,10 +65,10 @@ public:
 	void GenerateIrradianceMap();
 	void GeneratePreFilterMap();
 
-	ID3D11ShaderResourceView* GetSRVCubeMap();
-	ID3D11ShaderResourceView* GetSRVCubeMapPreview2D();
-	ID3D11ShaderResourceView* GetSRVIrradianceMap();
-	ID3D11ShaderResourceView* GetSRVPreFilterMap();
+	size_t GetSRVCubeMap();
+	size_t GetSRVCubeMapPreview2D();
+	size_t GetSRVIrradianceMap();
+	size_t GetSRVPreFilterMap();
 
 	ID3D11Buffer* GetConstantBufferParams() { return m_cb.Get(); }
 
@@ -71,7 +83,6 @@ public:
 private:
 	void InitVertex();
 	void UpdateVBIB();
-	void InitConstantBuffer();
 
 private:
 	NXScene* m_pScene;
@@ -96,9 +107,9 @@ private:
 	Vector3 m_shIrradianceMap[9];
 	Vector3 m_shIrradianceMap_CPU[9];
 
-
-	ConstantBufferCubeMap	m_cbData;
-	ComPtr<ID3D11Buffer>	m_cb;
+	// 生成使用独立的 allocator 来管理 CubeMap 的 cb
+	CommittedAllocator* m_cbAllocator;
+	CommittedResourceData<ConstantBufferCubeMap> m_cbData;
 
 	////////////////////////////////////////////////////////////////////////////
 	//// Deprecated functions...
@@ -107,8 +118,8 @@ private:
 
 public:
 	void GenerateIrradianceSHFromHDRI_Deprecated(NXTexture2D* pTexHDR);
-	ID3D11ShaderResourceView* GetSRVIrradianceSH() { return m_pSRVIrradianceSH.Get(); }
+	size_t GetSRVIrradianceSH() { return m_pSRVIrradianceSH; }
 
 private:
-	ComPtr<ID3D11ShaderResourceView>	m_pSRVIrradianceSH;
+	size_t	m_pSRVIrradianceSH;
 };

@@ -39,40 +39,9 @@ SSAO可以升级成GTAO或者HBAO
 【bugs】					已移至 https://github.com/moso31/Nix/issues/
 
 【已完成的】（已移至 https://github.com/moso31/Nix/issues/，以后不再添加）
-1. ctrl左键点击ViewPort：多选材质[DONE]
-	8. 多选编辑器移动[DONE]
-	10. MoveArrows 增加不可见状态[DONE]
-2. Translucent类型材质保存[DONE]
-5. 纹理界面化[DONE]
-6. WStr相关函数整理 做成通用类? [DONE] (namespace NXConvert)
-9. 鼠标在IMGUI上的指令 和 ViewPort上的指令 如何区分？[DONE]（*新增了NXForceEvent，强制事件）
-20. 纹理加载内存优化: 每帧检查一次有没有nRefCount=0的纹理，有的话就释放掉。[DONE]
-23. 现在改纹理，Apply以后纹理是变，但是使用了这些纹理的材质没有改变。
-	这个要稍花精力想一下，目前纹理和材质还没有建立联系。[DONE]
-24. contentExplorer，点cubemap类型的dds纹理，会崩溃[DONE]
-26. 将SceneManager的Material相关转移到ResourceManager。[DONE]
-27. 切换材质的时候可能会崩溃[DONE]
-28. 多选同一材质时，GUI材质可能将其视作多个材质，不提供面板显示[DONE]
-41. 增加视口以后，Picking功能已经全部乱套了，需要修正一下[DONE 2023.6.3]
-	需要同时解决UI可拖动的问题，现在左键点ViewPort上一个手滑直接拉飞了。。。[DONE 2023.6.3]
-46. MaterialShaderEditor迭代更新(v1.0.0->v1.1.0)：[done]
-	1. Revert无法重置常量的值。
-		1+. 取消大Revert，下放到参数，每个参数都有一个独立的Revert。[done]
-	2. Save按钮从Material移动到MSE。[done]
-	3. 将cb部分的Value值转换成Value2，然后重新编译nsl，DX会报错（疑似对齐算法有问题）[未复现]
-	4. Sampler还没实现。目前看加一个Type选项，并跟上配套内容就足够。[done]
-	5. 在Add Param的右侧增加搜索，运行按类型搜索、按名称搜索。[done]
-	6. 代码文本显示部分认怂，换成使用第三方TextEditor。[done] （最后没认怂...硬头皮写了一个）
-	7. 解决nsl编译错误的行/列号显示不准的问题 [done]（改成了点击行列号直接跳转到对应行）
-	8. Add Param增加Sampler选项。[done]
-	9. NXGUICBufferData.params 相关的控制逻辑一直就没加，需要增加UI逻辑。[done]
-	10. (未确定) "|< < > >|" 合并成一个拖动的逻辑？[暂不实现]
-	
-36. 自定义材质[done]
-	（注意：应该先确保代码逻辑层的逻辑是能正常使用的，然后再完善UI）
-43. nsl Shader增加对函数功能的支持[done]
-48. 新增半自动智能指针类Ntr<T>，目前仅用于自动控制纹理资源的计数[done 2023.9.3]
-49. 当初始化加载一个有问题的nsl时，不要让程序崩溃[done]
+
+【临时想法】
+1. XAllocator的页面分配是固定的，这在大多数小Buffer需求下是比较浪费显存的做法。改成可调整的。
 
 【里程碑】
 2023.5.24			即时编译Shader

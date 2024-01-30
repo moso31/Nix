@@ -1,5 +1,6 @@
 #pragma once
 #include "BaseDefs/DX12.h"
+#include "CommittedAllocator.h"
 #include "ShaderStructures.h"
 
 // 2024.1.26 TODO：cbData按Object和View分可以，但现在的分法有问题。

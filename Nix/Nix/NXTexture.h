@@ -9,6 +9,7 @@
 
 using namespace Microsoft::WRL;
 using namespace SimpleMath;
+using namespace DirectX;
 
 enum NXTextureReloadingState
 {
@@ -17,6 +18,11 @@ enum NXTextureReloadingState
     Texture_Reloading,  // Default->B ״̬
     Texture_FinishReload,  // B ״̬
 };
+
+namespace DirectX
+{
+    class ScratchImage;
+}
 
 class NXTexture2D;
 class NXTexture2DArray;
@@ -32,16 +38,15 @@ public:
         m_texFormat(DXGI_FORMAT_UNKNOWN),
         m_mipLevels(-1),
         m_texFilePath(""),
-        m_dimension(texDim)
     {}
 
     virtual ~NXTexture();
 
     ID3D11Texture2D* GetTex() const { return m_pTexture.Get(); }
-    ID3D11ShaderResourceView*   GetSRV(UINT index = 0) const { return m_pSRVs.empty() ? nullptr : m_pSRVs[index].Get(); }
-    ID3D11RenderTargetView*     GetRTV(UINT index = 0) const { return m_pRTVs.empty() ? nullptr : m_pRTVs[index].Get(); }
-    ID3D11DepthStencilView*     GetDSV(UINT index = 0) const { return m_pDSVs.empty() ? nullptr : m_pDSVs[index].Get(); }
-    ID3D11UnorderedAccessView*  GetUAV(UINT index = 0) const { return m_pUAVs.empty() ? nullptr : m_pUAVs[index].Get(); }
+    size_t GetSRV(UINT index = 0) const { m_pSRVs[index]; }
+    size_t GetRTV(UINT index = 0) const { m_pRTVs[index]; }
+    size_t GetDSV(UINT index = 0) const { m_pDSVs[index]; }
+    size_t GetUAV(UINT index = 0) const { m_pUAVs[index]; }
 
     NXTextureReloadingState GetReloadingState() { return m_reloadingState; }
     void SetReloadingState(NXTextureReloadingState state) { m_reloadingState = state; }
@@ -148,10 +153,10 @@ public:
     void AddDSV(UINT mipSlice = -1, UINT firstArraySlice = 0, UINT arraySize = -1);
     void AddUAV(UINT mipSlice = -1, UINT firstArraySlice = 0, UINT arraySize = -1);
 
-    ID3D11ShaderResourceView* GetSRVPreview2D() { return m_pSRVPreview2D.Get(); }
+    size_t GetSRVPreview2D() { return m_pSRVPreview2D; }
 
 private:
-    ComPtr<ID3D11ShaderResourceView> m_pSRVPreview2D;
+    size_t m_pSRVPreview2D;
 };
 
 class NXTexture2DArray : public NXTexture
