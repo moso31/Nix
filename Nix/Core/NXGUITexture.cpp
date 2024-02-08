@@ -30,7 +30,7 @@ void NXGUITexture::Render()
 	int nTexType = (int)m_texData.m_textureType;
 	if (ImGui::Combo("Texture type##Texture", &nTexType, strTextureTypes, IM_ARRAYSIZE(strTextureTypes)))
 	{
-		m_texData.m_textureType = (NXTextureType)(nTexType);
+		m_texData.m_textureType = (NXTextureMode)(nTexType);
 	}
 
 	if (ImGui::Button("Apply##Texture"))

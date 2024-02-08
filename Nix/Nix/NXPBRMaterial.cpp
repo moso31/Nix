@@ -298,8 +298,8 @@ void NXCustomMaterial::RemoveTexture(const Ntr<NXTexture>& pTexture)
 	{
 		auto& pTex = it->pTexture;
 
-		// Get tex by NXTextureType
-		if (pTex->GetSerializationData().m_textureType == NXTextureType::NormalMap)
+		// Get tex by NXTextureMode
+		if (pTex->GetSerializationData().m_textureType == NXTextureMode::NormalMap)
 			pTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_Normal);
 		else
 			pTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_White);
@@ -460,7 +460,7 @@ void NXCustomMaterial::Deserialize()
 			auto texInfo = std::find_if(m_texInfos.begin(), m_texInfos.end(), [objName](const NXMaterialTextureInfo& texInfo) { return texInfo.name == objName; });
 			if (texInfo == m_texInfos.end()) continue;
 
-			texInfo->guiType = (NXGUITextureType)deserializer.Int(tex, "guiType", (int)NXGUITextureType::Unknown);
+			texInfo->guiType = (NXGUITextureMode)deserializer.Int(tex, "guiType", (int)NXGUITextureMode::Unknown);
 			SetTexture(texInfo->pTexture, objPath);
 		}
 
@@ -683,7 +683,7 @@ void NXCustomMaterial::ProcessShaderParameters(const std::string& nslParams, std
 			{
 				// 如果默认值vector中存储的纹理信息不是空的，就优先在vector中匹配同名的NXTexture指针
 				Ntr<NXTexture> pTexValue;
-				NXGUITextureType guiType = NXGUITextureType::Unknown;
+				NXGUITextureMode guiType = NXGUITextureMode::Unknown;
 				if (!texDefaultValues.empty())
 				{
 					auto it = std::find_if(texDefaultValues.begin(), texDefaultValues.end(),

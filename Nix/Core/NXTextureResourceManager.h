@@ -22,10 +22,10 @@ public:
     Ntr<NXTexture2D> CreateTexture2D(const std::string& name, const std::filesystem::path& FilePath, bool bForce = false);
     Ntr<NXTexture2D> CreateRT(const std::string& name, DXGI_FORMAT fmt, UINT width, UINT height);
 
-    Ntr<NXTextureCube> CreateTextureCube(const std::string& name, const std::wstring& FilePath, UINT Width = 0, UINT Height = 0);
-    Ntr<NXTextureCube> CreateTextureCube(const std::string& name, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT MipLevels = 0, UINT BindFlags = D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE Usage = D3D11_USAGE_DEFAULT, UINT CpuAccessFlags = 0, UINT SampleCount = 1, UINT SampleQuality = 0, UINT MiscFlags = 0);
+    Ntr<NXTextureCube> CreateTextureCube(const std::string& name, const std::wstring& filePath, UINT width = 0, UINT height = 0);
+    Ntr<NXTextureCube> CreateTextureCube(const std::string& name, DXGI_FORMAT texFormat, UINT width, UINT height, UINT mipLevels = 0);
 
-    Ntr<NXTexture2DArray> CreateTexture2DArray(std::string DebugName, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize = 1, UINT MipLevels = 0, UINT BindFlags = D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE Usage = D3D11_USAGE_DEFAULT, UINT CpuAccessFlags = 0, UINT SampleCount = 1, UINT SampleQuality = 0, UINT MiscFlags = 0);
+    Ntr<NXTexture2DArray> CreateTexture2DArray(const std::string& debugName, DXGI_FORMAT texFormat, UINT width, UINT height, UINT arraySize = 1, UINT mipLevels = 0);
 
 private:
     std::vector<Ntr<NXTexture2D>> m_pCommonTex;

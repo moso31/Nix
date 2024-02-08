@@ -36,7 +36,7 @@ enum class NXGUICBufferStyle
 };
 
 // 专门用于在材质编辑器下显示纹理类型的枚举，只有 Default 和 Normal 两种选项
-enum class NXGUITextureType
+enum class NXGUITextureMode
 {
 	Default,
 	Normal,
@@ -94,7 +94,7 @@ struct NXMaterialTextureInfo
     std::string name;
     Ntr<NXTexture> pTexture;
     UINT slotIndex;
-	NXGUITextureType guiType;
+	NXGUITextureMode guiType;
 };
 
 struct NXMaterialSamplerInfo
@@ -142,7 +142,7 @@ struct NXGUICBufferSetsData
 struct NXGUITextureData
 {
 	std::string name;
-	NXGUITextureType texType;
+	NXGUITextureMode texType;
 	Ntr<NXTexture> pTexture;
 
 	int backupIndex = -1;

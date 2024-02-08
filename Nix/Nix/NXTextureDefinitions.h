@@ -1,6 +1,6 @@
 #pragma once
 
-enum class NXTextureType
+enum class NXTextureMode
 {
     Raw,			// 使用原生格式
     sRGB,           // sRGB颜色纹理
@@ -12,7 +12,7 @@ enum class NXTextureType
 struct NXTextureSerializationData
 {
     // 纹理类型
-    NXTextureType m_textureType = NXTextureType::Raw;
+    NXTextureMode m_textureType = NXTextureMode::Raw;
 
     // 是否反转法线Y轴
     bool m_bInvertNormalY = false;

@@ -26,10 +26,45 @@ void NXTexture::SwapToReloadingTexture()
 	}
 }
 
+void NXTexture::CreateInternal()
+{
+	// 创建非文件格式的纹理。
+	// 创建这类纹理时，没有从文件读取资源的需求，不需要提供上传堆资源。
+	D3D12_RESOURCE_DESC desc = {};
+	desc.Dimension = GetResourceDimentionFromType();
+	desc.Width = m_width;
+	desc.Height = m_height;
+	desc.DepthOrArraySize = m_arraySize;
+	desc.MipLevels = m_mipLevels;
+	desc.Format = m_texFormat;
+	desc.SampleDesc.Count = 1;
+	desc.SampleDesc.Quality = 0;
+	desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	desc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+	HRESULT hr = g_pDevice->CreateCommittedResource(
+		&NX12Util::CreateHeapProperties(D3D12_HEAP_TYPE_DEFAULT),
+		D3D12_HEAP_FLAG_NONE,
+		&desc,
+		D3D12_RESOURCE_STATE_COMMON,
+		nullptr,
+		IID_PPV_ARGS(&m_pTexture)
+	);
+
+	std::wstring wName(m_name.begin(), m_name.end());
+	m_pTexture->SetName(wName.c_str());
+
+	if (FAILED(hr))
+	{
+		m_pTexture.Reset();
+		return;
+	}
+}
+
 void NXTexture::CreateInternal(const std::unique_ptr<DirectX::ScratchImage>& pImage)
 {
 	D3D12_RESOURCE_DESC desc = {};
-	desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	desc.Dimension = GetResourceDimentionFromType();
 	desc.Width = m_width;
 	desc.Height = m_height;
 	desc.DepthOrArraySize = m_arraySize;
@@ -100,6 +135,25 @@ void NXTexture::InternalReload(Ntr<NXTexture> pReloadTexture)
 	for (size_t i = 0; i < pReloadUAVs.size(); i++) m_pUAVs[i] = pReloadUAVs[i];
 }
 
+D3D12_RESOURCE_DIMENSION NXTexture::GetResourceDimentionFromType()
+{
+	switch (m_type)
+	{
+	case TextureType_None: 
+		return D3D12_RESOURCE_DIMENSION_UNKNOWN;
+	case TextureType_1D: 
+		return D3D12_RESOURCE_DIMENSION_TEXTURE1D;
+	case TextureType_2D: 
+	case TextureType_Cube:
+	case TextureType_2DArray:
+		return D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	case TextureType_3D:
+		return D3D12_RESOURCE_DIMENSION_TEXTURE3D;
+	default:
+		return D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	}
+}
+
 NXTextureReloadTask NXTexture::LoadTextureAsync()
 {
 	co_await NXTextureAwaiter();
@@ -168,7 +222,7 @@ void NXTexture::Deserialize()
 	{
 		//std::string strPathInfo;
 		//strPathInfo = deserializer.String("NXInfoPath");
-		m_serializationData.m_textureType = (NXTextureType)deserializer.Int("TextureType");
+		m_serializationData.m_textureType = (NXTextureMode)deserializer.Int("TextureType");
 		m_serializationData.m_bInvertNormalY = deserializer.Bool("IsInvertNormalY");
 		m_serializationData.m_bGenerateMipMap = deserializer.Bool("IsGenerateMipMap");
 		m_serializationData.m_bCubeMap = deserializer.Bool("IsCubeMap");
@@ -230,9 +284,9 @@ Ntr<NXTexture2D> NXTexture2D::Create(const std::string& debugName, const std::fi
 	}
 
 	// 如果序列化的文件里记录了sRGB/Linear类型，就做对应的转换
-	if (m_serializationData.m_textureType == NXTextureType::sRGB || m_serializationData.m_textureType == NXTextureType::Linear)
+	if (m_serializationData.m_textureType == NXTextureMode::sRGB || m_serializationData.m_textureType == NXTextureMode::Linear)
 	{
-		bool bIsSRGB = m_serializationData.m_textureType == NXTextureType::sRGB;
+		bool bIsSRGB = m_serializationData.m_textureType == NXTextureMode::sRGB;
 		DXGI_FORMAT tFormat = bIsSRGB ? NXConvert::ForceSRGB(metadata.format) : NXConvert::ForceLinear(metadata.format);
 		if (metadata.format != tFormat)
 		{
@@ -479,41 +533,23 @@ void NXTexture2D::AddUAV()
 	m_pUAVs.push_back(cpuHandle.ptr);
 }
 
-void NXTextureCube::Create(std::string debugName, const D3D11_SUBRESOURCE_DATA* initData, DXGI_FORMAT texFormat, UINT width, UINT height, UINT miplevels, UINT bindflags, D3D11_USAGE usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
+void NXTextureCube::Create(const std::string& debugName, DXGI_FORMAT texFormat, UINT width, UINT height, UINT mipLevels)
 {
-	UINT ArraySize = 6;	// textureCube must be 6.
-
 	m_name = debugName;
-	m_width = Width;
-	m_height = Height;
-	m_arraySize = ArraySize;
-	m_texFormat = TexFormat;
-	m_mipLevels = MipLevels;
+	m_width = width;
+	m_height = height;
+	m_arraySize = 6; 	// textureCube must be 6.
+	m_texFormat = texFormat;
+	m_mipLevels = mipLevels;
 
-	NX12Util::CreateTexture2D(g_pDevice.Get(), debugName, width, height, texf)
-
-	D3D11_TEXTURE2D_DESC Desc;
-	Desc.Format = TexFormat;
-	Desc.Width = Width;
-	Desc.Height = Height;
-	Desc.ArraySize = ArraySize;
-	Desc.MipLevels = MipLevels;
-	Desc.BindFlags = BindFlags;
-	Desc.Usage = Usage;
-	Desc.CPUAccessFlags = CpuAccessFlags;
-	Desc.SampleDesc.Count = SampleCount;
-	Desc.SampleDesc.Quality = SampleQuality;
-	Desc.MiscFlags = MiscFlags | D3D11_RESOURCE_MISC_TEXTURECUBE; // textureCube must keep D3D11_RESOURCE_MISC_TEXTURECUBE flag.
-
-	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&Desc, initData, &m_pTexture));
-	m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
+	CreateInternal();
 }
 
-void NXTextureCube::Create(const std::string& debugName, const std::wstring& FilePath, size_t width, size_t height)
+void NXTextureCube::Create(const std::string& debugName, const std::wstring& filePath, size_t width, size_t height)
 {
 	TexMetadata metadata;
 	std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>();
-	LoadFromDDSFile(FilePath.c_str(), DDS_FLAGS_NONE, &metadata, *pImage);
+	LoadFromDDSFile(filePath.c_str(), DDS_FLAGS_NONE, &metadata, *pImage);
 	if (IsCompressed(metadata.format))
 	{
 		auto img = pImage->GetImage(0, 0, 0);
@@ -528,7 +564,7 @@ void NXTextureCube::Create(const std::string& debugName, const std::wstring& Fil
 		}
 		else
 		{
-			printf("Warning: [Decompress] failure when loading NXTextureCube file: %ws\n", FilePath.c_str());
+			printf("Warning: [Decompress] failure when loading NXTextureCube file: %ws\n", filePath.c_str());
 		}
 	}
 
@@ -549,7 +585,7 @@ void NXTextureCube::Create(const std::string& debugName, const std::wstring& Fil
 		}
 		else
 		{
-			printf("Warning: [Resize] failure when loading NXTextureCube file: %ws\n", FilePath.c_str());
+			printf("Warning: [Resize] failure when loading NXTextureCube file: %ws\n", filePath.c_str());
 		}
 	}
 
@@ -565,11 +601,11 @@ void NXTextureCube::Create(const std::string& debugName, const std::wstring& Fil
 		}
 		else
 		{
-			printf("Warning: [GenerateMipMaps] failure when loading NXTextureCube file: %ws\n", FilePath.c_str());
+			printf("Warning: [GenerateMipMaps] failure when loading NXTextureCube file: %ws\n", filePath.c_str());
 		}
 	}
 
-	this->m_texFilePath = FilePath.c_str();
+	this->m_texFilePath = filePath.c_str();
 	this->m_name = debugName;
 	this->m_width = (UINT)metadata.width;
 	this->m_height = (UINT)metadata.height;
@@ -658,30 +694,15 @@ void NXTextureCube::AddUAV(UINT mipSlice, UINT firstArraySlice, UINT arraySize)
 	m_pUAVs.push_back(cpuHandle.ptr);
 }
 
-void NXTexture2DArray::Create(std::string DebugName, const D3D11_SUBRESOURCE_DATA* initData, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
+void NXTexture2DArray::Create(const std::string& debugName, DXGI_FORMAT texFormat, UINT width, UINT height, UINT arraySize, UINT mipLevels)
 {
-	this->m_name = DebugName;
-	this->m_width = Width;
-	this->m_height = Height;
-	this->m_arraySize = ArraySize;
-	this->m_texFormat = TexFormat;
-	this->m_mipLevels = MipLevels;
-
-	D3D11_TEXTURE2D_DESC Desc;
-	Desc.Format = TexFormat;
-	Desc.Width = Width;
-	Desc.Height = Height;
-	Desc.ArraySize = ArraySize;
-	Desc.MipLevels = MipLevels;
-	Desc.BindFlags = BindFlags;
-	Desc.Usage = Usage;
-	Desc.CPUAccessFlags = CpuAccessFlags;
-	Desc.SampleDesc.Count = SampleCount;
-	Desc.SampleDesc.Quality = SampleQuality;
-	Desc.MiscFlags = MiscFlags;
-
-	NX::ThrowIfFailed(g_pDevice->CreateTexture2D(&Desc, initData, &m_pTexture));
-	m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)DebugName.size(), DebugName.c_str());
+	this->m_name = debugName;
+	this->m_width = width;
+	this->m_height = height;
+	this->m_arraySize = arraySize;
+	this->m_texFormat = texFormat;
+	this->m_mipLevels = mipLevels;
+	CreateInternal();
 }
 
 void NXTexture2DArray::AddSRV(UINT firstArraySlice, UINT arraySize)

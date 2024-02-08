@@ -183,25 +183,23 @@ Ntr<NXTextureCube> NXTextureResourceManager::CreateTextureCube(const std::string
 
 	Ntr<NXTextureCube> pTextureCube = new NXTextureCube();
 	pTextureCube->Create(name, filePath, width, height);
-
 	m_pTextureArrayInternal.push_back(pTextureCube);
 	return pTextureCube;
 }
 
-Ntr<NXTextureCube> NXTextureResourceManager::CreateTextureCube(const std::string& name, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
+Ntr<NXTextureCube> NXTextureResourceManager::CreateTextureCube(const std::string& name, DXGI_FORMAT texFormat, UINT width, UINT height, UINT mipLevels = 0)
 {
 	Ntr<NXTextureCube> pTextureCube(new NXTextureCube());
-	pTextureCube->Create(name, nullptr, TexFormat, Width, Height, MipLevels, BindFlags, Usage, CpuAccessFlags, SampleCount, SampleQuality, MiscFlags);
-
+	pTextureCube->Create(name, texFormat, width, height, mipLevels);
 	m_pTextureArrayInternal.push_back(pTextureCube);
 	return pTextureCube;
 }
 
-Ntr<NXTexture2DArray> NXTextureResourceManager::CreateTexture2DArray(std::string name, DXGI_FORMAT TexFormat, UINT Width, UINT Height, UINT ArraySize, UINT MipLevels, UINT BindFlags, D3D11_USAGE Usage, UINT CpuAccessFlags, UINT SampleCount, UINT SampleQuality, UINT MiscFlags)
+Ntr<NXTexture2DArray> NXTextureResourceManager::CreateTexture2DArray(const std::string& debugName, DXGI_FORMAT texFormat, UINT width, UINT height, UINT arraySize, UINT mipLevels)
 {
 	Ntr<NXTexture2DArray> pTexture2DArray(new NXTexture2DArray());
-	pTexture2DArray->Create(name, nullptr, TexFormat, Width, Height, ArraySize, MipLevels, BindFlags, Usage, CpuAccessFlags, SampleCount, SampleQuality, MiscFlags);
-
+	pTexture2DArray->Create(debugName, texFormat, width, height, arraySize, mipLevels);
 	m_pTextureArrayInternal.push_back(pTexture2DArray);
 	return pTexture2DArray;
 }
+
