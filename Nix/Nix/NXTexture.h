@@ -54,10 +54,19 @@ public:
     virtual ~NXTexture();
 
     ID3D12Resource* GetTex() const { return m_pTexture.Get(); }
-    size_t GetSRV(UINT index = 0) const { m_pSRVs[index]; }
-    size_t GetRTV(UINT index = 0) const { m_pRTVs[index]; }
-    size_t GetDSV(UINT index = 0) const { m_pDSVs[index]; }
-    size_t GetUAV(UINT index = 0) const { m_pUAVs[index]; }
+
+    const size_t GetSRV(UINT index = 0) const { m_pSRVs[index]; }
+    const size_t GetRTV(UINT index = 0) const { m_pRTVs[index]; }
+    const size_t GetDSV(UINT index = 0) const { m_pDSVs[index]; }
+    const size_t GetUAV(UINT index = 0) const { m_pUAVs[index]; }
+    const size_t GetSRVs() const { return m_pSRVs.size(); }
+    const size_t GetRTVs() const { return m_pRTVs.size(); }
+    const size_t GetDSVs() const { return m_pDSVs.size(); }
+    const size_t GetUAVs() const { return m_pUAVs.size(); }
+    const size_t* GetSRVArray() { return m_pSRVs.data(); }
+    const size_t* GetRTVArray() { return m_pRTVs.data(); }
+    const size_t* GetDSVArray() { return m_pDSVs.data(); }
+    const size_t* GetUAVArray() { return m_pUAVs.data(); }
 
     NXTextureReloadingState GetReloadingState() { return m_reloadingState; }
     void SetReloadingState(NXTextureReloadingState state) { m_reloadingState = state; }

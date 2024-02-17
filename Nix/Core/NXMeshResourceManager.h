@@ -1,6 +1,7 @@
 #pragma once
 #include "BaseDefs/NixCore.h"
 #include "BaseDefs/Math.h"
+#include "BaseDefs/DX12.h"
 #include "NXResourceManagerBase.h"
 
 struct NXSubMeshReloadTaskPackage
@@ -19,7 +20,7 @@ public:
 	NXMeshResourceManager() : m_pWorkingScene(nullptr) {}
 	~NXMeshResourceManager() {}
 
-	void SetWorkingScene(NXScene* pScene);
+	void Init(NXScene* pScene);
 
 	NXPrimitive* CreateBox(const std::string name, const float width, const float height, const float length, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));
 	NXPrimitive* CreateSphere(const std::string name, const float radius, const UINT segmentHorizontal, const UINT segmentVertical, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));

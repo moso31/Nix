@@ -14,10 +14,18 @@ DescriptorAllocator::DescriptorAllocator(ID3D12Device* pDevice) :
 	m_pDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_renderHeap));
 }
 
-bool DescriptorAllocator::Alloc(DescriptorType type, D3D12_CPU_DESCRIPTOR_HANDLE& oHandle)
+DescriptorAllocator::DescriptorAllocator(ID3D12Device* pDevice, UINT pageNumLimit, UINT pageSizeLimit, UINT renderPageNumLimit) :
+	m_pDevice(pDevice),
+	m_descriptorByteSize(pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)),
+	DescriptorAllocatorBase(pageNumLimit, pageSizeLimit)
 {
-	UINT pageIdx, firstIdx;
-	return Alloc(type, 1, pageIdx, firstIdx, oHandle);
+	// 创建一个 shader-visible 的描述符堆，用于渲染前每帧提交。
+	D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	desc.NodeMask = 0;
+	desc.NumDescriptors = renderPageNumLimit;
+	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	m_pDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_renderHeap));
 }
 
 // 分配一个大小为 size 的内存块
@@ -115,7 +123,7 @@ void DescriptorAllocator::CreateNewPage(DescriptorAllocatorBase::Page& newPage)
 
 UINT DescriptorAllocator::AppendToRenderHeap(const size_t* cpuHandles, const size_t cpuHandlesSize)
 {
-	UINT firstOffsetIndex = m_currentOffset;
+	UINT firstOffsetIndex = m_renderHeapOffset;
 
 	for (size_t i = 0; i < cpuHandlesSize; i++)
 	{
@@ -123,7 +131,7 @@ UINT DescriptorAllocator::AppendToRenderHeap(const size_t* cpuHandles, const siz
 		srcHandle.ptr = cpuHandles[i];
 
 		// 计算新的 ring buffer 偏移量
-		UINT heapOffset = m_currentOffset * m_descriptorByteSize;
+		UINT heapOffset = m_renderHeapOffset * m_descriptorByteSize;
 		D3D12_CPU_DESCRIPTOR_HANDLE destHandle = m_renderHeap->GetCPUDescriptorHandleForHeapStart();
 		destHandle.ptr += heapOffset;
 
@@ -131,8 +139,13 @@ UINT DescriptorAllocator::AppendToRenderHeap(const size_t* cpuHandles, const siz
 		m_pDevice->CopyDescriptorsSimple(1, destHandle, srcHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		// 更新偏移量
-		m_currentOffset = (m_currentOffset + 1) % DESCRIPTOR_NUM_PER_HEAP_MAXLIMIT;
+		m_renderHeapOffset = (m_renderHeapOffset + 1) % DESCRIPTOR_NUM_PER_HEAP_MAXLIMIT;
 	}
 
 	return firstOffsetIndex;
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE DescriptorAllocator::GetRenderHeapGPUHandle(UINT gpuOffset)
+{
+	return { m_renderHeap->GetGPUDescriptorHandleForHeapStart().ptr + gpuOffset * m_descriptorByteSize };
 }

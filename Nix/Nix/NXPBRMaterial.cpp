@@ -228,7 +228,7 @@ void NXCustomMaterial::UpdateCBData()
 	m_cbData.push_back(reinterpret_cast<float&>(sssGBufferIndex));
 	while (m_cbData.size() % 4 != 0) m_cbData.push_back(0); // 16 bytes align
 
-	// 基于 m_cbData 创建常量缓冲区
+	// 基于 m_cbDataSH 创建常量缓冲区
 	D3D11_BUFFER_DESC bufferDesc;
 	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
 	bufferDesc.Usage = D3D11_USAGE_DEFAULT;

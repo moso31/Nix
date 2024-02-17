@@ -147,6 +147,116 @@ void NX12Util::CopyTextureRegion(ID3D12GraphicsCommandList* pCommandList, ID3D12
 	}
 }
 
+D3D12_VIEWPORT NX12Util::ViewPort(float width, float height, float minDepth, float maxDepth, float topLeftX, float topLeftY)
+{
+	D3D12_VIEWPORT vp;
+	vp.Width = width;
+	vp.Height = height;
+	vp.MinDepth = minDepth;
+	vp.MaxDepth = maxDepth;
+	vp.TopLeftX = topLeftX;
+	vp.TopLeftY = topLeftY;
+	return vp;
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE NX12Util::CPUDescriptorHandle(size_t ptr)
+{
+	return { ptr };
+}
+
+D3D12_ROOT_PARAMETER NX12Util::CreateRootParameterCBV(UINT slot, UINT space, D3D12_SHADER_VISIBILITY visibility)
+{
+	D3D12_ROOT_PARAMETER rp;
+	rp.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rp.Descriptor.ShaderRegister = slot;
+	rp.Descriptor.RegisterSpace = space;
+	rp.ShaderVisibility = visibility;
+	return rp;
+}
+
+D3D12_ROOT_PARAMETER NX12Util::CreateRootParameterSRV(UINT slot, UINT space, D3D12_SHADER_VISIBILITY visibility)
+{
+	D3D12_ROOT_PARAMETER rp;
+	rp.ParameterType = D3D12_ROOT_PARAMETER_TYPE_SRV;
+	rp.Descriptor.ShaderRegister = slot;
+	rp.Descriptor.RegisterSpace = space;
+	rp.ShaderVisibility = visibility;
+	return rp;
+}
+
+D3D12_ROOT_PARAMETER NX12Util::CreateRootParameterUAV(UINT slot, UINT space, D3D12_SHADER_VISIBILITY visibility)
+{
+	D3D12_ROOT_PARAMETER rp;
+	rp.ParameterType = D3D12_ROOT_PARAMETER_TYPE_UAV;
+	rp.Descriptor.ShaderRegister = slot;
+	rp.Descriptor.RegisterSpace = space;
+	rp.ShaderVisibility = visibility;
+	return rp;
+}
+
+D3D12_ROOT_PARAMETER NX12Util::CreateRootParameterTable(UINT numRanges, const D3D12_DESCRIPTOR_RANGE* pRanges, D3D12_SHADER_VISIBILITY visibility)
+{
+	D3D12_ROOT_PARAMETER rp;
+	rp.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rp.DescriptorTable.NumDescriptorRanges = numRanges;
+	rp.DescriptorTable.pDescriptorRanges = pRanges;
+	rp.ShaderVisibility = visibility;
+	return rp;
+}
+
+D3D12_ROOT_PARAMETER NX12Util::CreateRootParameterTable(const std::vector<D3D12_DESCRIPTOR_RANGE>& pRanges, D3D12_SHADER_VISIBILITY visibility)
+{
+	D3D12_ROOT_PARAMETER rp;
+	rp.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rp.DescriptorTable.NumDescriptorRanges = (UINT)pRanges.size();
+	rp.DescriptorTable.pDescriptorRanges = pRanges.data();
+	rp.ShaderVisibility = visibility;
+	return rp;
+}
+
+D3D12_DESCRIPTOR_RANGE NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE rangeType, UINT numDescriptors, UINT slotStart, UINT space, UINT offset)
+{
+	D3D12_DESCRIPTOR_RANGE dr;
+	dr.RangeType = rangeType;
+	dr.NumDescriptors = numDescriptors;
+	dr.BaseShaderRegister = slotStart;
+	dr.RegisterSpace = space;
+	dr.OffsetInDescriptorsFromTableStart = offset;
+	return dr;
+}
+
+ID3D12RootSignature* NX12Util::CreateRootSignature(ID3D12Device* pDevice, UINT numParams, const D3D12_ROOT_PARAMETER* pParams, UINT numSamplers, const D3D12_STATIC_SAMPLER_DESC* pSamplers)
+{
+	D3D12_ROOT_SIGNATURE_DESC desc = {};
+	desc.NumParameters = numParams;
+	desc.pParameters = pParams;
+	desc.NumStaticSamplers = numSamplers;
+	desc.pStaticSamplers = pSamplers;
+	desc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+
+	ComPtr<ID3DBlob> pSigBlob = nullptr;
+	ComPtr<ID3DBlob> pErrorBlob = nullptr;
+	HRESULT hr = D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &pSigBlob, &pErrorBlob);
+	if (FAILED(hr))
+		return nullptr;
+
+	ID3D12RootSignature* pRootSig = nullptr;
+	hr = pDevice->CreateRootSignature(0, pSigBlob->GetBufferPointer(), pSigBlob->GetBufferSize(), IID_PPV_ARGS(&pRootSig));
+	pSigBlob->Release();
+	if (FAILED(hr))
+	{
+		pRootSig->Release();
+		return nullptr;
+	}
+
+	return pRootSig;
+}
+
+ID3D12RootSignature* NX12Util::CreateRootSignature(ID3D12Device* pDevice, const std::vector<D3D12_ROOT_PARAMETER>& pParams, const std::vector<D3D12_STATIC_SAMPLER_DESC>& pSamplers)
+{
+	return CreateRootSignature(pDevice, (UINT)pParams.size(), pParams.data(), (UINT)pSamplers.size(), pSamplers.data());
+}
+
 UINT NX12Util::ByteAlign256(UINT sizeInBytes)
 {
 	return (sizeInBytes + 255) & ~255;
@@ -162,9 +272,20 @@ UINT NX12Util::GetRequiredIntermediateSize(ID3D12Device* pDevice, ID3D12Resource
 
 UINT NX12Util::GetRequiredIntermediateLayoutInfos(ID3D12Device* pDevice, ID3D12Resource* pResource, D3D12_PLACED_SUBRESOURCE_FOOTPRINT* oLayouts, UINT* oNumRows, UINT64* oRowSizeInBytes)
 {
-
 	D3D12_RESOURCE_DESC desc = pResource->GetDesc();
 	UINT64 requiredSize = 0;
 	pDevice->GetCopyableFootprints(&desc, 0, desc.MipLevels, 0, oLayouts, oNumRows, oRowSizeInBytes, &requiredSize);
 	return (UINT)requiredSize;
+}
+
+void NX12Util::BeginEvent(ID3D12GraphicsCommandList* pCmdList, PCSTR fmt)
+{
+#ifdef DEBUG
+	PIXBeginEvent(pCmdList, 0, fmt);
+#endif // DEBUG
+}
+
+void NX12Util::EndEvent()
+{
+	PIXEndEvent();
 }

@@ -5,7 +5,7 @@
 #include "NXPrefab.h"
 #include "NXTextureReloadTesk.h"
 
-void NXMeshResourceManager::SetWorkingScene(NXScene* pScene)
+void NXMeshResourceManager::Init(NXScene* pScene)
 {
 	m_pWorkingScene = pScene;
 }

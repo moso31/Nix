@@ -2,6 +2,7 @@
 #include <filesystem>
 #include "BaseDefs/DX12.h"
 #include "CommittedAllocator.h"
+#include "DescriptorAllocator.h"
 #include "NXTransform.h"
 #include "DirectXTex.h"
 #include "ShaderStructures.h"
@@ -72,17 +73,17 @@ public:
 
 	ID3D11Buffer* GetConstantBufferParams() { return m_cb.Get(); }
 
-	void SetIntensity(float val) { m_cbData.intensity = val; }
-	float* GetIntensity() { return &m_cbData.intensity; }
+	void SetIntensity(float val) { m_cbDataSH.intensity = val; }
+	float* GetIntensity() { return &m_cbDataSH.intensity; }
 
-	void SetIrradMode(int val) { m_cbData.irradMode = Vector4((float)val); };
+	void SetIrradMode(int val) { m_cbDataSH.irradMode = Vector4((float)val); };
 
 	void SaveHDRAsDDS(Ntr<NXTextureCube>& pTexture, const std::filesystem::path& filePath);
 	void LoadDDS(const std::filesystem::path& filePath);
 
 private:
 	void InitVertex();
-	void UpdateVBIB();
+	void InitRootSignature();
 
 private:
 	NXScene* m_pScene;
@@ -92,13 +93,9 @@ private:
 
 	std::vector<VertexP>		m_vertices;
 	std::vector<UINT>			m_indices;
-	ComPtr<ID3D11Buffer>		m_pVertexBuffer;
-	ComPtr<ID3D11Buffer>		m_pIndexBuffer;
 
 	std::vector<VertexP>		m_verticesCubeBox;
 	std::vector<UINT>			m_indicesCubeBox;
-	ComPtr<ID3D11Buffer>		m_pVertexBufferCubeBox;
-	ComPtr<ID3D11Buffer>		m_pIndexBufferCubeBox;
 
 	Ntr<NXTextureCube>			m_pTexCubeMap;
 	Ntr<NXTextureCube>			m_pTexIrradianceMap;
@@ -109,17 +106,17 @@ private:
 
 	// 生成使用独立的 allocator 来管理 CubeMap 的 cb
 	CommittedAllocator* m_cbAllocator;
-	CommittedResourceData<ConstantBufferCubeMap> m_cbData;
+	CommittedResourceData<ConstantBufferCubeMap> m_cbDataSH;
 
-	////////////////////////////////////////////////////////////////////////////
-	//// Deprecated functions...
-	////////////////////////////////////////////////////////////////////////////
+	size_t	m_pSRVIrradianceSH;
 
+	ComPtr<ID3D12CommandAllocator> m_pCommandAllocator;
+	ComPtr<ID3D12GraphicsCommandList> m_pCommandList;
+
+	ComPtr<ID3D12RootSignature> m_pRootSigCubeMap;
+	ComPtr<ID3D12PipelineState> m_pPSOCubeMap;
 
 public:
 	void GenerateIrradianceSHFromHDRI_Deprecated(NXTexture2D* pTexHDR);
 	size_t GetSRVIrradianceSH() { return m_pSRVIrradianceSH; }
-
-private:
-	size_t	m_pSRVIrradianceSH;
 };

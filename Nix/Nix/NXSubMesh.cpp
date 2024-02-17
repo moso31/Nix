@@ -1,6 +1,7 @@
 #include "NXSubMesh.h"
 #include "Global.h"
 #include "NXPrimitive.h"
+#include "NXSubMeshGeometryEditor.h"
 
 template class NXSubMesh<VertexPNTT>;
 template class NXSubMesh<VertexEditorObjects>;
@@ -85,23 +86,7 @@ void NXSubMesh<TVertex>::CalcLocalAABB()
 template<class TVertex>
 void NXSubMesh<TVertex>::UpdateVBIB()
 {
-	D3D11_BUFFER_DESC bufferDesc;
-	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(TVertex) * (UINT)m_vertices.size();
-	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bufferDesc.CPUAccessFlags = 0;
-	D3D11_SUBRESOURCE_DATA InitData;
-	ZeroMemory(&InitData, sizeof(InitData));
-	InitData.pSysMem = m_vertices.data();
-	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &m_pVertexBuffer));
-
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(UINT) * (UINT)m_indices.size();
-	bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	bufferDesc.CPUAccessFlags = 0;
-	InitData.pSysMem = m_indices.data();
-	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &m_pIndexBuffer));
+	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(m_vertices, m_indices, "TODO...");
 }
 
 void NXSubMeshStandard::CalculateTangents(bool bUpdateVBIB)

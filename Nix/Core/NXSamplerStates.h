@@ -1,29 +1,27 @@
 #pragma once
-#include "BaseDefs/NixCore.h"
-#include "Global.h"
-#include "NXRenderStates.h"
-#include "NXShaderDefinitions.h"
+#include "BaseDefs/DX12.h"
 
-class NXSamplerManager;
-class NXSamplerState
+template<
+    D3D12_FILTER Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR,
+    D3D12_TEXTURE_ADDRESS_MODE AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+    D3D12_TEXTURE_ADDRESS_MODE AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+    D3D12_TEXTURE_ADDRESS_MODE AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+    D3D12_COMPARISON_FUNC ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER,
+    FLOAT MipLODBias = 0.0f,
+    UINT MaxAnisotropy = 1,
+    D3D12_STATIC_BORDER_COLOR BorderColor = D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK,
+    FLOAT MinLOD = -3.402823466e+38F, // Use D3D12_FLOAT32_MIN for clarity if available
+    FLOAT MaxLOD = 3.402823466e+38F // Use D3D12_FLOAT32_MAX for clarity if available
+>
+class NXStaticSamplerState
 {
-    friend class NXSamplerManager;
-private:
-    static ID3D11SamplerState* Create(
-        D3D11_FILTER Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR,
-        D3D11_TEXTURE_ADDRESS_MODE AddressU = D3D11_TEXTURE_ADDRESS_WRAP,
-        D3D11_TEXTURE_ADDRESS_MODE AddressV = D3D11_TEXTURE_ADDRESS_WRAP,
-        D3D11_TEXTURE_ADDRESS_MODE AddressW = D3D11_TEXTURE_ADDRESS_WRAP,
-        D3D11_COMPARISON_FUNC ComparisonFunc = D3D11_COMPARISON_NEVER,
-        FLOAT MipLODBias = 0.0f,
-        UINT MaxAnisotropy = 1,
-        const Vector4 BorderColor = Vector4(1.0f),
-        FLOAT MinLOD = -3.402823466e+38F,
-        FLOAT MaxLOD = 3.402823466e+38F)
+public:
+    static D3D12_STATIC_SAMPLER_DESC Create(UINT Slot = 0, UINT Space = 0, D3D12_SHADER_VISIBILITY Visibility = D3D12_SHADER_VISIBILITY_ALL)
     {
-        ID3D11SamplerState* pSamplerState = nullptr;
-
-        D3D11_SAMPLER_DESC desc;
+        D3D12_STATIC_SAMPLER_DESC desc;
+        desc.ShaderRegister = Slot;
+        desc.RegisterSpace = Space;
+        desc.ShaderVisibility = Visibility;
         desc.Filter = Filter;
         desc.AddressU = AddressU;
         desc.AddressV = AddressV;
@@ -31,35 +29,14 @@ private:
         desc.MipLODBias = MipLODBias;
         desc.MaxAnisotropy = MaxAnisotropy;
         desc.ComparisonFunc = ComparisonFunc;
-        desc.BorderColor[0] = BorderColor.x;
-        desc.BorderColor[1] = BorderColor.y;
-        desc.BorderColor[2] = BorderColor.z;
-        desc.BorderColor[3] = BorderColor.w;
+        desc.BorderColor = BorderColor;
         desc.MinLOD = MinLOD;
         desc.MaxLOD = MaxLOD;
 
-        NX::ThrowIfFailed(g_pDevice->CreateSamplerState(&desc, &pSamplerState));
-        return pSamplerState;
+        desc.SamplerFeedbackMipRegion.Width = 0;
+        desc.SamplerFeedbackMipRegion.Height = 0;
+        desc.SamplerFeedbackMipRegion.Depth = 0;
+
+        return desc;
     }
-};
-
-// 2023.6.27 全局 SamplerStates 类
-// 一些 SamplerState 的组合非常常用，比如 PointClamp, LinearClamp, AnisotropicClamp 等等
-// 这里将这些常用的 SamplerState 封装成静态全局对象，方便使用
-class NXSamplerManager
-{
-public:
-    NXSamplerManager() {}
-	~NXSamplerManager() {}
-
-    static void Init();
-
-	static ID3D11SamplerState* Get(NXSamplerFilter filter, NXSamplerAddressMode addr);
-	static ID3D11SamplerState* Get(NXSamplerFilter filter, NXSamplerAddressMode addrU, NXSamplerAddressMode addrV, NXSamplerAddressMode addrW);
-
-private:
-	const static int ADDRESS_TYPE_COUNT = 5; // 5 * 5 * 5 * 3 = 375 samplers.
-	static D3D12_STATIC_SAMPLER_DESC s_Point[ADDRESS_TYPE_COUNT][ADDRESS_TYPE_COUNT][ADDRESS_TYPE_COUNT];
-	static D3D12_STATIC_SAMPLER_DESC s_Linear[ADDRESS_TYPE_COUNT][ADDRESS_TYPE_COUNT][ADDRESS_TYPE_COUNT];
-	static D3D12_STATIC_SAMPLER_DESC s_Aniso[ADDRESS_TYPE_COUNT][ADDRESS_TYPE_COUNT][ADDRESS_TYPE_COUNT];
 };

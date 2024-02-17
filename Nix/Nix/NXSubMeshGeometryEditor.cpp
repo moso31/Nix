@@ -13,6 +13,16 @@ NXSubMeshGeometryEditor::~NXSubMeshGeometryEditor()
 {
 }
 
+void NXSubMeshGeometryEditor::Init(ID3D12Device* pDevice)
+{
+	m_pDevice = pDevice;
+	m_vbAllocator = new CommittedAllocator(m_pDevice.Get());
+	m_ibAllocator = new CommittedAllocator(m_pDevice.Get());
+
+	m_pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_pCommandAllocator));
+	m_pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&m_pCommandList));
+}
+
 void NXSubMeshGeometryEditor::CreateFBXPrefab(NXPrefab* pPrefab, const std::string& filePath, bool bAutoCalcTangents)
 {
 	FBXMeshLoader::LoadFBXFile(filePath, pPrefab, bAutoCalcTangents);

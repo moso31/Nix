@@ -28,14 +28,13 @@ NXShaderComplier::~NXShaderComplier()
 {
 }
 
-HRESULT NXShaderComplier::CompileVS(const std::filesystem::path& shaderFilePath, const std::string& mainFuncEntryPoint, ID3D11VertexShader** ppOutVS, std::string& oErrorMessage, bool clearDefineMacros)
+HRESULT NXShaderComplier::CompileVS(const std::filesystem::path& shaderFilePath, const std::string& mainFuncEntryPoint, ID3DBlob* pVSBlob, std::string& oErrorMessage, bool clearDefineMacros)
 {
-	ComPtr<ID3DBlob> pBlob;
 	HRESULT hr = S_OK;
 
 	ComPtr<ID3DBlob> pErrorBlob;
 	hr = D3DCompileFromFile(shaderFilePath.c_str(), m_defineMacros.data(), m_pd3dInclude, mainFuncEntryPoint.c_str(), s_smVersionVS.c_str(),
-		m_shaderFlags, m_shaderFlags2, &pBlob, &pErrorBlob);
+		m_shaderFlags, m_shaderFlags2, &pVSBlob, &pErrorBlob);
 	if (FAILED(hr))
 	{
 		if (pErrorBlob)
@@ -49,7 +48,30 @@ HRESULT NXShaderComplier::CompileVS(const std::filesystem::path& shaderFilePath,
 	std::wstring errorMessage = L"shader " + shaderFilePath.wstring() + L" cannot be compiled.  Please run this executable from the directory that contains the FX file.";
 	NX::MessageBoxIfFailed(hr, errorMessage.c_str());
 
-	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, ppOutVS));
+	if (clearDefineMacros) ClearMacros();
+
+	return S_OK;
+}
+
+HRESULT NXShaderComplier::CompilePS(const std::filesystem::path& shaderFilePath, const std::string& mainFuncEntryPoint, ID3DBlob* pPSBlob, std::string& oErrorMessage, bool clearDefineMacros)
+{
+	HRESULT hr = S_OK;
+
+	ComPtr<ID3DBlob> pErrorBlob;
+	hr = D3DCompileFromFile(shaderFilePath.c_str(), m_defineMacros.data(), m_pd3dInclude, mainFuncEntryPoint.c_str(), s_smVersionVS.c_str(),
+		m_shaderFlags, m_shaderFlags2, &pPSBlob, &pErrorBlob);
+	if (FAILED(hr))
+	{
+		if (pErrorBlob)
+		{
+			oErrorMessage = reinterpret_cast<const char*>(pErrorBlob->GetBufferPointer());
+			OutputDebugStringA(oErrorMessage.c_str());
+		}
+		return hr;
+	}
+
+	std::wstring errorMessage = L"shader " + shaderFilePath.wstring() + L" cannot be compiled.  Please run this executable from the directory that contains the FX file.";
+	NX::MessageBoxIfFailed(hr, errorMessage.c_str());
 
 	if (clearDefineMacros) ClearMacros();
 

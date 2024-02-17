@@ -36,7 +36,7 @@ void Renderer::Init()
 
 	NXResourceManager::GetInstance()->GetMaterialManager()->Init();
 
-	NXResourceManager::GetInstance()->GetMeshManager()->SetWorkingScene(m_scene);
+	NXResourceManager::GetInstance()->GetMeshManager()->Init(m_scene);
 	NXResourceManager::GetInstance()->GetCameraManager()->SetWorkingScene(m_scene);
 	NXResourceManager::GetInstance()->GetLightManager()->SetWorkingScene(m_scene);
 

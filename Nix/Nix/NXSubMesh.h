@@ -85,9 +85,6 @@ public:
 	void CalcLocalAABB() override;
 
 protected:
-	ComPtr<ID3D11Buffer>		m_pVertexBuffer;
-	ComPtr<ID3D11Buffer>		m_pIndexBuffer;
-
 	std::vector<TVertex>		m_vertices;
 	std::vector<UINT>			m_indices;
 };
