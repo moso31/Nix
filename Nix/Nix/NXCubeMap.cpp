@@ -164,6 +164,9 @@ Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)
 	ID3D12DescriptorHeap* ppHeaps[] = { pDescriptorAllocator->GetRenderHeap() };
 	m_pCommandList->SetDescriptorHeaps(1, ppHeaps);
 
+	m_pCommandList->SetGraphicsRootSignature(m_pRootSigCubeMap.Get());
+	m_pCommandList->SetPipelineState(m_pPSOCubeMap.Get());
+
 	for (int i = 0; i < 6; i++)
 	{
 		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = NX12Util::CPUDescriptorHandle(pTexCubeMap->GetRTV(i));
@@ -174,7 +177,7 @@ Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)
 		m_cbAllocator->UpdateData(cbData);
 
 		m_pCommandList->SetGraphicsRootConstantBufferView(0, cbData.GPUVirtualAddr);
-		m_pCommandList->SetGraphicsRootDescriptorTable(2, gpuHandle);
+		m_pCommandList->SetGraphicsRootDescriptorTable(1, gpuHandle);
 
 		NXMeshViews meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_CubeMapBox");
 		m_pCommandList->IASetVertexBuffers(0, 1, &meshView.vbv);
@@ -523,100 +526,51 @@ void NXCubeMap::GeneratePreFilterMap()
 	cbCubeCamera.data.world = Matrix::Identity();
 	cbCubeCamera.data.projection = m_mxCubeMapProj.Transpose();
 
+	m_pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
 	auto pDescriptorAllocator = NXAllocatorManager::GetInstance()->GetDescriptorAllocator();
 	UINT renderHeapOffset = pDescriptorAllocator->AppendToRenderHeap(m_pTexCubeMap->GetSRVArray(), m_pTexCubeMap->GetSRVs());
-	auto gpuHandle = pDescriptorAllocator->GetRenderHeapGPUHandle(renderHeapOffset);
+	auto srvHandle = pDescriptorAllocator->GetRenderHeapGPUHandle(renderHeapOffset);
 
 	ID3D12DescriptorHeap* ppHeaps[] = { pDescriptorAllocator->GetRenderHeap() };
 	m_pCommandList->SetDescriptorHeaps(1, ppHeaps);
 
-	for (float mipSize = mapSize, float rough = 0.0f; rough < 0.9999f; mipSize /= 2.0f, rough += 0.25f)
+	m_pCommandList->SetGraphicsRootSignature(m_pRootSigPreFilterMap.Get());
+	m_pCommandList->SetPipelineState(m_pPSOPreFilterMap.Get());
+
+	float rough[] = { 0.0f, 0.25f, 0.5f, 0.75f, 1.0f };
+	for (int i = 0; i < _countof(rough); i++)
 	{
+		float mipSize = (float)((UINT)mapSize >> i);
+
 		CommittedResourceData<ConstantBufferFloat> cbRoughness;
-		cbRoughness.data.value = rough * rough;
+		cbRoughness.data.value = rough[i] * rough[i];
+		m_cbAllocator->UpdateData(cbRoughness);
 
 		auto vp = NX12Util::ViewPort(mipSize, mipSize);
 		m_pCommandList->RSSetViewports(1, &vp);
 
 		for (int j = 0; j < 6; j++)
 		{
-			cbCubeCamera.view = m_mxCubeMapView[j].Transpose();
-			cbDataCubeCamera.view = m_mxCubeMapView[j].Transpose();
-			auto pRTV = m_pTexPreFilterMap->GetRTV(i * 6 + j);
-			g_pContext->ClearRenderTargetView(pRTV, Colors::WhiteSmoke);
-			g_pContext->OMSetRenderTargets(1, &pRTV, nullptr);
+			cbCubeCamera.data.view = m_mxCubeMapView[j].Transpose();
 
-			g_pContext->UpdateSubresource(cbCubeCamera.Get(), 0, nullptr, &cbDataCubeCamera, 0, 0);
-			g_pContext->UpdateSubresource(cbRoughness.Get(), 0, nullptr, &cbDataRoughness, 0, 0);
-			g_pContext->DrawIndexed((UINT)m_indicesCubeBox.size() / 6, j * 6, 0);
+			D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = NX12Util::CPUDescriptorHandle(m_pTexPreFilterMap->GetRTV(i * 6 + j));
+			m_pCommandList->ClearRenderTargetView(rtvHandle, Colors::WhiteSmoke, 0, nullptr);
+			m_pCommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+			m_cbAllocator->UpdateData(cbCubeCamera);
+
+			m_pCommandList->SetGraphicsRootConstantBufferView(0, cbCubeCamera.GPUVirtualAddr);
+			m_pCommandList->SetGraphicsRootConstantBufferView(1, cbRoughness.GPUVirtualAddr);
+			m_pCommandList->SetGraphicsRootDescriptorTable(2, srvHandle);
+
+			NXMeshViews meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_CubeMapBox");
+			m_pCommandList->IASetVertexBuffers(0, 1, &meshView.vbv);
+			m_pCommandList->IASetIndexBuffer(&meshView.ibv);
+			m_pCommandList->DrawIndexedInstanced(6, 1, i * 6, 0, 0);
 		}
 	}
 
-	// ----- after ------
-
-	ComPtr<ID3D11InputLayout> pInputLayoutP;
-	ComPtr<ID3D11VertexShader> pVertexShader;
-	ComPtr<ID3D11PixelShader> pPixelShader;
-
-	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\CubeMapPreFilter.fx", "VS", &pVertexShader, NXGlobalInputLayout::layoutPNT, ARRAYSIZE(NXGlobalInputLayout::layoutPNT), &pInputLayoutP);
-	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\CubeMapPreFilter.fx", "PS", &pPixelShader);
-	g_pContext->VSSetShader(pVertexShader.Get(), nullptr, 0);
-	g_pContext->PSSetShader(pPixelShader.Get(), nullptr, 0);
-	g_pContext->IASetInputLayout(pInputLayoutP.Get());
-
-	D3D11_BUFFER_DESC bufferDesc;
-	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(ConstantBufferObject);
-	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bufferDesc.CPUAccessFlags = 0;
-	ComPtr<ID3D11Buffer> cbCubeCamera;
-	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &cbCubeCamera));
-
-	ComPtr<ID3D11Buffer> cbRoughness;
-	bufferDesc.ByteWidth = sizeof(ConstantBufferFloat);
-	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &cbRoughness));
-
-	auto pSRVCubeMap = m_pTexCubeMap->GetSRV();
-	g_pContext->PSSetShaderResources(0, 1, &pSRVCubeMap);
-	g_pContext->VSSetConstantBuffers(0, 1, cbCubeCamera.GetAddressOf());
-	g_pContext->PSSetConstantBuffers(1, 1, cbRoughness.GetAddressOf());
-
-	ConstantBufferObject cbDataCubeCamera;
-	cbDataCubeCamera.world = Matrix::Identity();
-	cbDataCubeCamera.projection = m_mxCubeMapProj.Transpose();
-
-	UINT stride = sizeof(VertexP);
-	UINT offset = 0;
-	g_pContext->IASetVertexBuffers(0, 1, m_pVertexBufferCubeBox.GetAddressOf(), &stride, &offset);
-	g_pContext->IASetIndexBuffer(m_pIndexBufferCubeBox.Get(), DXGI_FORMAT_R32_UINT, 0);
-
-	float roughValues[5] = { 0.0f, 0.25f, 0.5f, 0.75f, 1.0f };
-	ConstantBufferFloat cbDataRoughness;
-	cbDataRoughness.value = 0;
-
-	UINT uMapSize = (UINT)MapSize;
-	CD3D11_VIEWPORT vp;
-	for (int i = 0; i < 5; i++)
-	{
-		cbDataRoughness.value = roughValues[i] * roughValues[i];
-
-		vp = CD3D11_VIEWPORT(0.0f, 0.0f, (float)(uMapSize >> i), (float)(uMapSize >> i));
-		g_pContext->RSSetViewports(1, &vp);
-		for (int j = 0; j < 6; j++)
-		{
-			cbDataCubeCamera.view = m_mxCubeMapView[j].Transpose();
-			auto pRTV = m_pTexPreFilterMap->GetRTV(i * 6 + j);
-			g_pContext->ClearRenderTargetView(pRTV, Colors::WhiteSmoke);
-			g_pContext->OMSetRenderTargets(1, &pRTV, nullptr);
-
-			g_pContext->UpdateSubresource(cbCubeCamera.Get(), 0, nullptr, &cbDataCubeCamera, 0, 0);
-			g_pContext->UpdateSubresource(cbRoughness.Get(), 0, nullptr, &cbDataRoughness, 0, 0);
-			g_pContext->DrawIndexed((UINT)m_indicesCubeBox.size() / 6, j * 6, 0);
-		}
-	}
-
-	g_pUDA->EndEvent();
+	NX12Util::EndEvent();
 }
 
 void NXCubeMap::SaveHDRAsDDS(Ntr<NXTextureCube>& pTexCubeMap, const std::filesystem::path& filePath)
@@ -754,18 +708,26 @@ void NXCubeMap::InitVertex()
 
 void NXCubeMap::InitRootSignature()
 {
-	std::vector<D3D12_DESCRIPTOR_RANGE> ranges;
-	ranges.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0)); // t0 ~ t0.
+	std::vector<D3D12_DESCRIPTOR_RANGE> rangesCubeMap;
+	rangesCubeMap.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0)); // t0 ~ t0.
 
-	std::vector<D3D12_ROOT_PARAMETER> rootParams;
-	rootParams.push_back(NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL)); // b0
-	rootParams.push_back(NX12Util::CreateRootParameterCBV(1, 0, D3D12_SHADER_VISIBILITY_ALL)); // b1
-	rootParams.push_back(NX12Util::CreateRootParameterTable(ranges, D3D12_SHADER_VISIBILITY_ALL)); // 上面的 ranges. t0 ~ t0.
+	std::vector<D3D12_ROOT_PARAMETER> rootParamsCubeMap;
+	rootParamsCubeMap.push_back(NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL)); // b0
+	rootParamsCubeMap.push_back(NX12Util::CreateRootParameterTable(rangesCubeMap, D3D12_SHADER_VISIBILITY_ALL)); // 上面的 rangesCubeMap. t0 ~ t0.
 
 	std::vector<D3D12_STATIC_SAMPLER_DESC> pSamplers;
 	pSamplers.push_back(NXStaticSamplerState<>::Create(0, 0, D3D12_SHADER_VISIBILITY_ALL)); // s0
 
-	m_pRootSigCubeMap = NX12Util::CreateRootSignature(g_pDevice.Get(), rootParams, pSamplers);
+	std::vector<D3D12_DESCRIPTOR_RANGE> rangesPreFilter;
+	rangesPreFilter.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0)); // t0 ~ t0.
+
+	std::vector<D3D12_ROOT_PARAMETER> rootParamsPreFilter;
+	rootParamsPreFilter.push_back(NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL)); // b0
+	rootParamsPreFilter.push_back(NX12Util::CreateRootParameterCBV(1, 0, D3D12_SHADER_VISIBILITY_ALL)); // b1
+	rootParamsPreFilter.push_back(NX12Util::CreateRootParameterTable(rangesPreFilter, D3D12_SHADER_VISIBILITY_ALL)); // 上面的 rangesPreFilter. t0 ~ t0.
+
+	m_pRootSigCubeMap = NX12Util::CreateRootSignature(g_pDevice.Get(), rootParamsCubeMap, pSamplers);
+	m_pRootSigPreFilterMap = NX12Util::CreateRootSignature(g_pDevice.Get(), rootParamsPreFilter, pSamplers);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -774,132 +736,132 @@ void NXCubeMap::InitRootSignature()
 
 void NXCubeMap::GenerateIrradianceSHFromHDRI_Deprecated(NXTexture2D* pTexHDR)
 {
-	g_pUDA->BeginEvent(L"Generate Irradiance Map SH");
+	//g_pUDA->BeginEvent(L"Generate Irradiance Map SH");
 
-	auto pSampler = NXSamplerManager::Get(NXSamplerFilter::Linear, NXSamplerAddressMode::Clamp);
-	g_pContext->CSSetSamplers(0, 1, &pSampler);
+	//auto pSampler = NXSamplerManager::Get(NXSamplerFilter::Linear, NXSamplerAddressMode::Clamp);
+	//g_pContext->CSSetSamplers(0, 1, &pSampler);
 
-	ComPtr<ID3D11Buffer> cbImageSize;
-	D3D11_BUFFER_DESC bufferDesc;
-	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(ConstantBufferImageData);
-	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bufferDesc.CPUAccessFlags = 0;
-	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &cbImageSize));
+	//ComPtr<ID3D11Buffer> cbImageSize;
+	//D3D11_BUFFER_DESC bufferDesc;
+	//ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+	//bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	//bufferDesc.ByteWidth = sizeof(ConstantBufferImageData);
+	//bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	//bufferDesc.CPUAccessFlags = 0;
+	//NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &cbImageSize));
 
-	UINT nThreadSize = 8;
-	UINT tempWidth = pTexHDR->GetWidth();
-	UINT tempHeight = pTexHDR->GetHeight();
-	UINT SHIrradPassCount = 0;
-	while (tempWidth != 1 || tempHeight != 1)
-	{
-		tempWidth = max((tempWidth + nThreadSize - 1) / nThreadSize, 1);
-		tempHeight = max((tempHeight + nThreadSize - 1) / nThreadSize, 1);
-		SHIrradPassCount++;
-	}
-	SHIrradPassCount = max(SHIrradPassCount, 2);
+	//UINT nThreadSize = 8;
+	//UINT tempWidth = pTexHDR->GetWidth();
+	//UINT tempHeight = pTexHDR->GetHeight();
+	//UINT SHIrradPassCount = 0;
+	//while (tempWidth != 1 || tempHeight != 1)
+	//{
+	//	tempWidth = max((tempWidth + nThreadSize - 1) / nThreadSize, 1);
+	//	tempHeight = max((tempHeight + nThreadSize - 1) / nThreadSize, 1);
+	//	SHIrradPassCount++;
+	//}
+	//SHIrradPassCount = max(SHIrradPassCount, 2);
 
-	tempWidth = pTexHDR->GetWidth();
-	tempHeight = pTexHDR->GetHeight();
-	std::vector<ComPtr<ID3D11ShaderResourceView>> pSRVIrradSHs;
-	pSRVIrradSHs.reserve(SHIrradPassCount);
-	for (UINT passId = 0; passId < SHIrradPassCount; passId++)
-	{
-		std::wstring eventName = L"SH Irradiance Gather" + std::to_wstring(passId);
-		g_pUDA->BeginEvent(eventName.c_str());
+	//tempWidth = pTexHDR->GetWidth();
+	//tempHeight = pTexHDR->GetHeight();
+	//std::vector<ComPtr<ID3D11ShaderResourceView>> pSRVIrradSHs;
+	//pSRVIrradSHs.reserve(SHIrradPassCount);
+	//for (UINT passId = 0; passId < SHIrradPassCount; passId++)
+	//{
+	//	std::wstring eventName = L"SH Irradiance Gather" + std::to_wstring(passId);
+	//	g_pUDA->BeginEvent(eventName.c_str());
 
-		UINT currWidth = tempWidth;
-		UINT currHeight = tempHeight;
+	//	UINT currWidth = tempWidth;
+	//	UINT currHeight = tempHeight;
 
-		tempWidth = max((tempWidth + nThreadSize - 1) / nThreadSize, 1);
-		tempHeight = max((tempHeight + nThreadSize - 1) / nThreadSize, 1);
+	//	tempWidth = max((tempWidth + nThreadSize - 1) / nThreadSize, 1);
+	//	tempHeight = max((tempHeight + nThreadSize - 1) / nThreadSize, 1);
 
-		ConstantBufferImageData cbImageSizeData;
-		cbImageSizeData.currImgSize = Vector4((float)currWidth, (float)currHeight, 1.0f / (float)currWidth, 1.0f / (float)currHeight);
-		cbImageSizeData.nextImgSize = Vector4((float)tempWidth, (float)tempHeight, 1.0f / (float)tempWidth, 1.0f / (float)tempHeight);
+	//	ConstantBufferImageData cbImageSizeData;
+	//	cbImageSizeData.currImgSize = Vector4((float)currWidth, (float)currHeight, 1.0f / (float)currWidth, 1.0f / (float)currHeight);
+	//	cbImageSizeData.nextImgSize = Vector4((float)tempWidth, (float)tempHeight, 1.0f / (float)tempWidth, 1.0f / (float)tempHeight);
 
-		g_pContext->UpdateSubresource(cbImageSize.Get(), 0, nullptr, &cbImageSizeData, 0, 0);
-		g_pContext->CSSetConstantBuffers(0, 1, cbImageSize.GetAddressOf());
+	//	g_pContext->UpdateSubresource(cbImageSize.Get(), 0, nullptr, &cbImageSizeData, 0, 0);
+	//	g_pContext->CSSetConstantBuffers(0, 1, cbImageSize.GetAddressOf());
 
-		size_t irradianceBufferElements = tempWidth * tempHeight;
-		size_t irradianceBufferSize = sizeof(ConstantBufferIrradSH) * irradianceBufferElements;
+	//	size_t irradianceBufferElements = tempWidth * tempHeight;
+	//	size_t irradianceBufferSize = sizeof(ConstantBufferIrradSH) * irradianceBufferElements;
 
-		D3D11_BUFFER_DESC bufferDesc;
-		ComPtr<ID3D11Buffer> cbIrradianceSH;
-		ZeroMemory(&bufferDesc, sizeof(bufferDesc));
-		bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-		bufferDesc.ByteWidth = (UINT)irradianceBufferSize;
-		bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
-		bufferDesc.CPUAccessFlags = 0;
-		bufferDesc.StructureByteStride = sizeof(ConstantBufferIrradSH);
-		bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-		NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &cbIrradianceSH));
+	//	D3D11_BUFFER_DESC bufferDesc;
+	//	ComPtr<ID3D11Buffer> cbIrradianceSH;
+	//	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+	//	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	//	bufferDesc.ByteWidth = (UINT)irradianceBufferSize;
+	//	bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+	//	bufferDesc.CPUAccessFlags = 0;
+	//	bufferDesc.StructureByteStride = sizeof(ConstantBufferIrradSH);
+	//	bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+	//	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &cbIrradianceSH));
 
-		ComPtr<ID3D11ComputeShader> pComputeShader;
-		std::wstring strCSPath = L"";
+	//	ComPtr<ID3D11ComputeShader> pComputeShader;
+	//	std::wstring strCSPath = L"";
 
-		// 设置 CubeMapIrradianceSH.fx 使用哪个入口点函数
-		if (passId == 0)
-		{
-			CD3D_SHADER_MACRO macro("CUBEMAP_IRRADSH_FIRST", "1");
-			NXShaderComplier::GetInstance()->AddMacro(macro);
-		}
-		else if (passId > 0 && passId < SHIrradPassCount - 1)
-		{
-			CD3D_SHADER_MACRO macro("CUBEMAP_IRRADSH_MIDDLE", "1");
-			NXShaderComplier::GetInstance()->AddMacro(macro);
-		}
-		else
-		{
-			CD3D_SHADER_MACRO macro("CUBEMAP_IRRADSH_LAST", "1");
-			NXShaderComplier::GetInstance()->AddMacro(macro);
-		}
+	//	// 设置 CubeMapIrradianceSH.fx 使用哪个入口点函数
+	//	if (passId == 0)
+	//	{
+	//		CD3D_SHADER_MACRO macro("CUBEMAP_IRRADSH_FIRST", "1");
+	//		NXShaderComplier::GetInstance()->AddMacro(macro);
+	//	}
+	//	else if (passId > 0 && passId < SHIrradPassCount - 1)
+	//	{
+	//		CD3D_SHADER_MACRO macro("CUBEMAP_IRRADSH_MIDDLE", "1");
+	//		NXShaderComplier::GetInstance()->AddMacro(macro);
+	//	}
+	//	else
+	//	{
+	//		CD3D_SHADER_MACRO macro("CUBEMAP_IRRADSH_LAST", "1");
+	//		NXShaderComplier::GetInstance()->AddMacro(macro);
+	//	}
 
-		NXShaderComplier::GetInstance()->CompileCS(L"Shader\\CubeMapIrradianceSH.fx", "CS", &pComputeShader);
+	//	NXShaderComplier::GetInstance()->CompileCS(L"Shader\\CubeMapIrradianceSH.fx", "CS", &pComputeShader);
 
-		ComPtr<ID3D11UnorderedAccessView> pUAVIrradSH;
-		CD3D11_UNORDERED_ACCESS_VIEW_DESC UAVDesc(D3D11_UAV_DIMENSION_BUFFER, DXGI_FORMAT_UNKNOWN, 0, (UINT)irradianceBufferElements);
-		NX::ThrowIfFailed(g_pDevice->CreateUnorderedAccessView(cbIrradianceSH.Get(), &UAVDesc, pUAVIrradSH.GetAddressOf()));
+	//	ComPtr<ID3D11UnorderedAccessView> pUAVIrradSH;
+	//	CD3D11_UNORDERED_ACCESS_VIEW_DESC UAVDesc(D3D11_UAV_DIMENSION_BUFFER, DXGI_FORMAT_UNKNOWN, 0, (UINT)irradianceBufferElements);
+	//	NX::ThrowIfFailed(g_pDevice->CreateUnorderedAccessView(cbIrradianceSH.Get(), &UAVDesc, pUAVIrradSH.GetAddressOf()));
 
-		ComPtr<ID3D11ShaderResourceView> pSRVIrradSH;
-		CD3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc(D3D11_SRV_DIMENSION_BUFFER, DXGI_FORMAT_UNKNOWN, 0, (UINT)irradianceBufferElements);
-		NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(cbIrradianceSH.Get(), &SRVDesc, pSRVIrradSH.GetAddressOf()));
+	//	ComPtr<ID3D11ShaderResourceView> pSRVIrradSH;
+	//	CD3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc(D3D11_SRV_DIMENSION_BUFFER, DXGI_FORMAT_UNKNOWN, 0, (UINT)irradianceBufferElements);
+	//	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(cbIrradianceSH.Get(), &SRVDesc, pSRVIrradSH.GetAddressOf()));
 
-		std::string UAVDebugName = "SHIrrad Buffer UAV" + std::to_string(passId);
-		pUAVIrradSH->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)UAVDebugName.size(), UAVDebugName.c_str());
+	//	std::string UAVDebugName = "SHIrrad Buffer UAV" + std::to_string(passId);
+	//	pUAVIrradSH->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)UAVDebugName.size(), UAVDebugName.c_str());
 
-		std::string SRVDebugName = "SHIrrad Buffer SRV" + std::to_string(passId);
-		pSRVIrradSH->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)SRVDebugName.size(), SRVDebugName.c_str());
-		pSRVIrradSHs.push_back(pSRVIrradSH);
-		if (passId == SHIrradPassCount - 1)
-			m_pSRVIrradianceSH = pSRVIrradSH;
+	//	std::string SRVDebugName = "SHIrrad Buffer SRV" + std::to_string(passId);
+	//	pSRVIrradSH->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)SRVDebugName.size(), SRVDebugName.c_str());
+	//	pSRVIrradSHs.push_back(pSRVIrradSH);
+	//	if (passId == SHIrradPassCount - 1)
+	//		m_pSRVIrradianceSH = pSRVIrradSH;
 
-		g_pContext->CSSetUnorderedAccessViews(0, 1, pUAVIrradSH.GetAddressOf(), nullptr);
+	//	g_pContext->CSSetUnorderedAccessViews(0, 1, pUAVIrradSH.GetAddressOf(), nullptr);
 
-		if (passId == 0)
-		{
-			auto pSRV = pTexHDR->GetSRV();
-			g_pContext->CSSetShaderResources(0, 1, &pSRV);
-		}
-		else
-		{
-			g_pContext->CSSetShaderResources(0, 1, pSRVIrradSHs[passId - 1].GetAddressOf());
-		}
+	//	if (passId == 0)
+	//	{
+	//		auto pSRV = pTexHDR->GetSRV();
+	//		g_pContext->CSSetShaderResources(0, 1, &pSRV);
+	//	}
+	//	else
+	//	{
+	//		g_pContext->CSSetShaderResources(0, 1, pSRVIrradSHs[passId - 1].GetAddressOf());
+	//	}
 
-		g_pContext->CSSetShader(pComputeShader.Get(), nullptr, 0);
+	//	g_pContext->CSSetShader(pComputeShader.Get(), nullptr, 0);
 
-		g_pContext->Dispatch(tempWidth, tempHeight, 1);
+	//	g_pContext->Dispatch(tempWidth, tempHeight, 1);
 
-		// 用完以后清空对应槽位的SRV UAV，避免后续pass资源绑不上（可能有优化空间）
-		ComPtr<ID3D11ShaderResourceView> pSRVNull[1] = { nullptr };
-		g_pContext->CSSetShaderResources(0, 1, pSRVNull->GetAddressOf());
+	//	// 用完以后清空对应槽位的SRV UAV，避免后续pass资源绑不上（可能有优化空间）
+	//	ComPtr<ID3D11ShaderResourceView> pSRVNull[1] = { nullptr };
+	//	g_pContext->CSSetShaderResources(0, 1, pSRVNull->GetAddressOf());
 
-		ComPtr<ID3D11UnorderedAccessView> pUAVNull[1] = { nullptr };
-		g_pContext->CSSetUnorderedAccessViews(0, 1, pUAVNull->GetAddressOf(), nullptr);
+	//	ComPtr<ID3D11UnorderedAccessView> pUAVNull[1] = { nullptr };
+	//	g_pContext->CSSetUnorderedAccessViews(0, 1, pUAVNull->GetAddressOf(), nullptr);
 
-		g_pUDA->EndEvent();
-	}
+	//	g_pUDA->EndEvent();
+	//}
 
-	g_pUDA->EndEvent();
+	//g_pUDA->EndEvent();
 }
