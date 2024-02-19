@@ -494,9 +494,7 @@ void NXCubeMap::GeneratePreFilterMap()
 {
 	NX12Util::BeginEvent(m_pCommandList.Get(), "Generate PreFilter Map");
 
-	NXStaticSamplerState<>::Create(0, 0, D3D12_SHADER_VISIBILITY_ALL);
-	//auto pSampler = NXSamplerManager::Get(NXSamplerFilter::Linear, NXSamplerAddressMode::Wrap);
-	//g_pContext->PSSetSamplers(0, 1, &pSampler);
+	auto pGlobalDescriptorAllocator = NXAllocatorManager::GetInstance()->GetDescriptorAllocator();
 
 	float mapSize = 512.0f;
 	m_pTexPreFilterMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTextureCube("PreFilter Map", m_pTexCubeMap->GetFormat(), (UINT)mapSize, (UINT)mapSize, 5);
@@ -536,13 +534,20 @@ void NXCubeMap::GeneratePreFilterMap()
 	cbCubeCamera.data.world = Matrix::Identity();
 	cbCubeCamera.data.projection = m_mxCubeMapProj.Transpose();
 
+	D3D12_CPU_DESCRIPTOR_HANDLE cbvHandle;
+	pGlobalDescriptorAllocator->Alloc(DescriptorType_CBV, cbvHandle);
+
+	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
+	cbvDesc.BufferLocation = cbCubeCamera.GPUVirtualAddr;
+	cbvDesc.SizeInBytes = NX12Util::ByteAlign256(cbCubeCamera.DataByteSize());
+	g_pDevice->CreateConstantBufferView(&cbvDesc, cbvHandle);
+
 	m_pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	auto pDescriptorAllocator = NXAllocatorManager::GetInstance()->GetDescriptorAllocator();
-	UINT renderHeapOffset = pDescriptorAllocator->AppendToRenderHeap(m_pTexCubeMap->GetSRVArray(), m_pTexCubeMap->GetSRVs());
-	auto srvHandle = pDescriptorAllocator->GetRenderHeapGPUHandle(renderHeapOffset);
+	UINT renderHeapOffset = pGlobalDescriptorAllocator->AppendToRenderHeap(m_pTexCubeMap->GetSRVArray(), m_pTexCubeMap->GetSRVs());
+	auto srvHandle = pGlobalDescriptorAllocator->GetRenderHeapGPUHandle(renderHeapOffset);
 
-	ID3D12DescriptorHeap* ppHeaps[] = { pDescriptorAllocator->GetRenderHeap() };
+	ID3D12DescriptorHeap* ppHeaps[] = { pGlobalDescriptorAllocator->GetRenderHeap() };
 	m_pCommandList->SetDescriptorHeaps(1, ppHeaps);
 
 	m_pCommandList->SetGraphicsRootSignature(m_pRootSigPreFilterMap.Get());
@@ -556,6 +561,14 @@ void NXCubeMap::GeneratePreFilterMap()
 		CommittedResourceData<ConstantBufferFloat> cbRoughness;
 		cbRoughness.data.value = rough[i] * rough[i];
 		m_cbAllocator->UpdateData(cbRoughness);
+
+		D3D12_CPU_DESCRIPTOR_HANDLE cbvHandle;
+		pGlobalDescriptorAllocator->Alloc(DescriptorType_CBV, cbvHandle);
+
+		D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
+		cbvDesc.BufferLocation = cbRoughness.GPUVirtualAddr;
+		cbvDesc.SizeInBytes = NX12Util::ByteAlign256(cbRoughness.DataByteSize());
+		g_pDevice->CreateConstantBufferView(&cbvDesc, cbvHandle);
 
 		auto vp = NX12Util::ViewPort(mipSize, mipSize);
 		m_pCommandList->RSSetViewports(1, &vp);

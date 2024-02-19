@@ -47,8 +47,6 @@ public:
 	static ID3D12CommandQueue* CreateCommandQueue(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE type);
 	static ID3D12CommandList* CreateCommandList(ID3D12Device* pDevice, ID3D12CommandAllocator* oCmdAllocator, D3D12_COMMAND_LIST_TYPE type, UINT nodeMask = 0, ID3D12PipelineState* InitState = nullptr);
 
-	static void CreateConstantBufferView(D3D12_GPU_VIRTUAL_ADDRESS GPUVirtualAddr, UINT dataByteSize, );
-
 	static ID3D12Resource* CreateBuffer(ID3D12Device* pDevice, const std::string& name, UINT sizeOfByte, D3D12_HEAP_TYPE heapType);
 	static ID3D12Resource* CreateTexture2D(ID3D12Device* pDevice, const std::string& name, UINT width, UINT height, DXGI_FORMAT format, UINT mipLevels, D3D12_HEAP_TYPE heapType, D3D12_RESOURCE_STATES initState);
 	static D3D12_RESOURCE_DESC CreateResourceDesc_DepthStencil(UINT width, UINT height, DXGI_FORMAT fmt = DXGI_FORMAT_D24_UNORM_S8_UINT);
