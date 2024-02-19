@@ -32,7 +32,8 @@ DescriptorAllocator::DescriptorAllocator(ID3D12Device* pDevice, UINT pageNumLimi
 // size: 要分配的内存块的大小
 // oPageIdx: 分配到的页的下标
 // oFirstIdx: 分配到的页中的第一个内存块的下标
-bool DescriptorAllocator::Alloc(DescriptorType type, UINT size, UINT& oPageIdx, UINT& oFirstIdx, D3D12_CPU_DESCRIPTOR_HANDLE& oHandle)
+// oHandles: 返回分配的首个 cpu descriptor handle 的地址
+bool DescriptorAllocator::Alloc(DescriptorType type, UINT size, UINT& oPageIdx, UINT& oFirstIdx, D3D12_CPU_DESCRIPTOR_HANDLE& oHandles)
 {
 	auto predicate = [type](Page& page){
 		return page.data.type == type;
@@ -45,12 +46,18 @@ bool DescriptorAllocator::Alloc(DescriptorType type, UINT size, UINT& oPageIdx, 
 	if (DescriptorAllocatorBase::Alloc(size, oPageIdx, oFirstIdx, predicate, onCreate))
 	{
 		auto& pDescriptor = m_pages[oPageIdx].data;
-		oHandle = pDescriptor.data->GetCPUDescriptorHandleForHeapStart();
-		oHandle.ptr += oFirstIdx * m_descriptorByteSize;
+		oHandles = pDescriptor.data->GetCPUDescriptorHandleForHeapStart();
+		oHandles.ptr += oFirstIdx * m_descriptorByteSize;
 		return true;
 	}
 
 	return false;
+}
+
+bool DescriptorAllocator::Alloc(DescriptorType type, D3D12_CPU_DESCRIPTOR_HANDLE& oHandle)
+{
+	UINT nouse[2];
+	return Alloc(type, 1, nouse[0], nouse[1], oHandle);
 }
 
 void DescriptorAllocator::Remove(UINT pageIdx, UINT start, UINT size)

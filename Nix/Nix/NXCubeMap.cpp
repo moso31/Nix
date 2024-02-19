@@ -22,13 +22,12 @@ NXCubeMap::NXCubeMap(NXScene* pScene) :
 	m_pScene(pScene)
 {
 	m_cbAllocator = new CommittedAllocator(g_pDevice.Get(), 256);
-	m_cbAllocator->Alloc(ResourceType_Upload, m_cbDataSH);
+	m_cbAllocator->Alloc(ResourceType_Upload, m_cbData);
 }
 
 bool NXCubeMap::Init(const std::filesystem::path& filePath)
 {
-	g_pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_pCommandAllocator));
-	g_pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&m_pCommandList));
+	NX12Util::CreateCommands(g_pDevice.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.Get(), m_pCommandAllocator.Get(), m_pCommandList.Get());
 
 	// create vertex
 	InitVertex();
@@ -90,7 +89,7 @@ size_t NXCubeMap::GetSRVPreFilterMap()
 
 void NXCubeMap::Update()
 {
-	m_cbAllocator->UpdateData(m_cbDataSH);
+	m_cbAllocator->UpdateData(m_cbData);
 }
 
 void NXCubeMap::UpdateViewParams()
@@ -120,7 +119,9 @@ void NXCubeMap::Release()
 Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)
 {
 	PIXBeginEvent(m_pCommandList.Get(), 0, L"Generate Cube Map");
-	
+
+	auto pGlobalDescriptorAllocator = NXAllocatorManager::GetInstance()->GetDescriptorAllocator();
+
 	const static float mapSize = 1024;
 	auto vp = NX12Util::ViewPort(mapSize, mapSize);
 	m_pCommandList->RSSetViewports(1, &vp);
@@ -149,19 +150,27 @@ Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	g_pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSOCubeMap));
 
 	CommittedResourceData<ConstantBufferObject> cbData;
 	cbData.data.world = Matrix::Identity();
 	cbData.data.projection = m_mxCubeMapProj.Transpose();
 	m_cbAllocator->Alloc(ResourceType_Upload, cbData);
 
+	D3D12_CPU_DESCRIPTOR_HANDLE cbvHandle;
+	pGlobalDescriptorAllocator->Alloc(DescriptorType_CBV, cbvHandle);
+
+	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
+	cbvDesc.BufferLocation = cbData.GPUVirtualAddr;
+	cbvDesc.SizeInBytes = NX12Util::ByteAlign256(cbData.DataByteSize());
+	g_pDevice->CreateConstantBufferView(&cbvDesc, cbvHandle);
+
 	m_pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	auto pDescriptorAllocator = NXAllocatorManager::GetInstance()->GetDescriptorAllocator();
-	UINT renderHeapOffset = pDescriptorAllocator->AppendToRenderHeap(pTexHDR->GetSRVArray(), pTexHDR->GetSRVs());
-	auto gpuHandle = pDescriptorAllocator->GetRenderHeapGPUHandle(renderHeapOffset);
+	UINT renderHeapOffset = pGlobalDescriptorAllocator->AppendToRenderHeap(pTexHDR->GetSRVArray(), pTexHDR->GetSRVs());
+	auto gpuHandle = pGlobalDescriptorAllocator->GetRenderHeapGPUHandle(renderHeapOffset);
 
-	ID3D12DescriptorHeap* ppHeaps[] = { pDescriptorAllocator->GetRenderHeap() };
+	ID3D12DescriptorHeap* ppHeaps[] = { pGlobalDescriptorAllocator->GetRenderHeap() };
 	m_pCommandList->SetDescriptorHeaps(1, ppHeaps);
 
 	m_pCommandList->SetGraphicsRootSignature(m_pRootSigCubeMap.Get());
@@ -169,7 +178,7 @@ Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)
 
 	for (int i = 0; i < 6; i++)
 	{
-		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = NX12Util::CPUDescriptorHandle(pTexCubeMap->GetRTV(i));
+		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = pTexCubeMap->GetRTV(i);
 		m_pCommandList->ClearRenderTargetView(rtvHandle, Colors::WhiteSmoke, 0, nullptr);
 		m_pCommandList->OMSetRenderTargets(1, &rtvHandle, true, nullptr);
 
@@ -408,13 +417,13 @@ void NXCubeMap::GenerateIrradianceSHFromCubeMap()
 		}
 	}
 
-	m_cbDataSH.data.irradSH0123x = Vector4(m_shIrradianceMap[0].x, m_shIrradianceMap[1].x, m_shIrradianceMap[2].x, m_shIrradianceMap[3].x);
-	m_cbDataSH.data.irradSH0123y = Vector4(m_shIrradianceMap[0].y, m_shIrradianceMap[1].y, m_shIrradianceMap[2].y, m_shIrradianceMap[3].y);
-	m_cbDataSH.data.irradSH0123z = Vector4(m_shIrradianceMap[0].z, m_shIrradianceMap[1].z, m_shIrradianceMap[2].z, m_shIrradianceMap[3].z);
-	m_cbDataSH.data.irradSH4567x = Vector4(m_shIrradianceMap[4].x, m_shIrradianceMap[5].x, m_shIrradianceMap[6].x, m_shIrradianceMap[7].x);
-	m_cbDataSH.data.irradSH4567y = Vector4(m_shIrradianceMap[4].y, m_shIrradianceMap[5].y, m_shIrradianceMap[6].y, m_shIrradianceMap[7].y);
-	m_cbDataSH.data.irradSH4567z = Vector4(m_shIrradianceMap[4].z, m_shIrradianceMap[5].z, m_shIrradianceMap[6].z, m_shIrradianceMap[7].z);
-	m_cbDataSH.data.irradSH8xyz = m_shIrradianceMap[8];
+	m_cbData.data.irradSH0123x = Vector4(m_shIrradianceMap[0].x, m_shIrradianceMap[1].x, m_shIrradianceMap[2].x, m_shIrradianceMap[3].x);
+	m_cbData.data.irradSH0123y = Vector4(m_shIrradianceMap[0].y, m_shIrradianceMap[1].y, m_shIrradianceMap[2].y, m_shIrradianceMap[3].y);
+	m_cbData.data.irradSH0123z = Vector4(m_shIrradianceMap[0].z, m_shIrradianceMap[1].z, m_shIrradianceMap[2].z, m_shIrradianceMap[3].z);
+	m_cbData.data.irradSH4567x = Vector4(m_shIrradianceMap[4].x, m_shIrradianceMap[5].x, m_shIrradianceMap[6].x, m_shIrradianceMap[7].x);
+	m_cbData.data.irradSH4567y = Vector4(m_shIrradianceMap[4].y, m_shIrradianceMap[5].y, m_shIrradianceMap[6].y, m_shIrradianceMap[7].y);
+	m_cbData.data.irradSH4567z = Vector4(m_shIrradianceMap[4].z, m_shIrradianceMap[5].z, m_shIrradianceMap[6].z, m_shIrradianceMap[7].z);
+	m_cbData.data.irradSH8xyz = m_shIrradianceMap[8];
 	int x = 0;
 }
 
@@ -521,6 +530,7 @@ void NXCubeMap::GeneratePreFilterMap()
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	g_pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSOPreFilterMap));
 
 	CommittedResourceData<ConstantBufferObject> cbCubeCamera;
 	cbCubeCamera.data.world = Matrix::Identity();
@@ -554,7 +564,7 @@ void NXCubeMap::GeneratePreFilterMap()
 		{
 			cbCubeCamera.data.view = m_mxCubeMapView[j].Transpose();
 
-			D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = NX12Util::CPUDescriptorHandle(m_pTexPreFilterMap->GetRTV(i * 6 + j));
+			D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_pTexPreFilterMap->GetRTV(i * 6 + j);
 			m_pCommandList->ClearRenderTargetView(rtvHandle, Colors::WhiteSmoke, 0, nullptr);
 			m_pCommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 			m_cbAllocator->UpdateData(cbCubeCamera);
@@ -577,9 +587,8 @@ void NXCubeMap::SaveHDRAsDDS(Ntr<NXTextureCube>& pTexCubeMap, const std::filesys
 {
 	// Save as *.dds texture file.
 	std::unique_ptr<ScratchImage> pMappedImage = std::make_unique<ScratchImage>();
-	HRESULT hr = CaptureTexture(g_pDevice.Get(), g_pContext.Get(), pTexCubeMap->GetTex(), *pMappedImage);
+	HRESULT hr = CaptureTexture(m_pCommandQueue.Get(), pTexCubeMap->GetTex(), true, *pMappedImage);
 	TexMetadata cubeDDSInfo = pMappedImage->GetMetadata();
-	cubeDDSInfo.miscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
 	std::filesystem::path strPath = filePath;
 	strPath.replace_extension(".dds");

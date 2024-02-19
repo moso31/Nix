@@ -71,12 +71,12 @@ public:
 	size_t GetSRVIrradianceMap();
 	size_t GetSRVPreFilterMap();
 
-	ID3D11Buffer* GetConstantBufferParams() { return m_cb.Get(); }
+	D3D12_GPU_VIRTUAL_ADDRESS GetCBDataParams() { return m_cbData.GPUVirtualAddr; }
 
-	void SetIntensity(float val) { m_cbDataSH.intensity = val; }
-	float* GetIntensity() { return &m_cbDataSH.intensity; }
+	void SetIntensity(float val) { m_cbData.data.intensity = val; }
+	float* GetIntensity() { return &m_cbData.data.intensity; }
 
-	void SetIrradMode(int val) { m_cbDataSH.irradMode = Vector4((float)val); };
+	void SetIrradMode(int val) { m_cbData.data.irradMode = Vector4((float)val); };
 
 	void SaveHDRAsDDS(Ntr<NXTextureCube>& pTexture, const std::filesystem::path& filePath);
 	void LoadDDS(const std::filesystem::path& filePath);
@@ -106,10 +106,11 @@ private:
 
 	// 生成使用独立的 allocator 来管理 CubeMap 的 cb
 	CommittedAllocator* m_cbAllocator;
-	CommittedResourceData<ConstantBufferCubeMap> m_cbDataSH;
+	CommittedResourceData<ConstantBufferCubeMap> m_cbData;
 
 	size_t	m_pSRVIrradianceSH;
 
+	ComPtr<ID3D12CommandQueue> m_pCommandQueue;
 	ComPtr<ID3D12CommandAllocator> m_pCommandAllocator;
 	ComPtr<ID3D12GraphicsCommandList> m_pCommandList;
 

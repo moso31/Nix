@@ -254,8 +254,7 @@ void NXScene::Init()
 		m_rtSize
 	);
 
-	NXCubeMap* pSky =
-		NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\ballroom_4k.hdr");
+	NXCubeMap* pSky = NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\ballroom_4k.hdr");
 	pSky->SetIntensity(1.0f);
 
 	InitBoundingStructures();

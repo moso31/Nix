@@ -55,10 +55,10 @@ public:
 
     ID3D12Resource* GetTex() const { return m_pTexture.Get(); }
 
-    const size_t GetSRV(UINT index = 0) const { m_pSRVs[index]; }
-    const size_t GetRTV(UINT index = 0) const { m_pRTVs[index]; }
-    const size_t GetDSV(UINT index = 0) const { m_pDSVs[index]; }
-    const size_t GetUAV(UINT index = 0) const { m_pUAVs[index]; }
+    const D3D12_CPU_DESCRIPTOR_HANDLE GetSRV(UINT index = 0) const { return { m_pSRVs[index] }; }
+    const D3D12_CPU_DESCRIPTOR_HANDLE GetRTV(UINT index = 0) const { return { m_pRTVs[index] }; }
+    const D3D12_CPU_DESCRIPTOR_HANDLE GetDSV(UINT index = 0) const { return { m_pDSVs[index] }; }
+    const D3D12_CPU_DESCRIPTOR_HANDLE GetUAV(UINT index = 0) const { return { m_pUAVs[index] }; }
     const size_t GetSRVs() const { return m_pSRVs.size(); }
     const size_t GetRTVs() const { return m_pRTVs.size(); }
     const size_t GetDSVs() const { return m_pDSVs.size(); }

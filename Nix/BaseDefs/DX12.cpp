@@ -1,5 +1,31 @@
 #include "DX12.h"
 
+void NX12Util::CreateCommands(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE type, ID3D12CommandQueue* oCmdQueue, ID3D12CommandAllocator* oCmdAllocator, ID3D12GraphicsCommandList* oCmdList, bool disableGPUTimeOut)
+{
+	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
+	queueDesc.Type = type;
+	queueDesc.Flags = disableGPUTimeOut ? D3D12_COMMAND_QUEUE_FLAG_DISABLE_GPU_TIMEOUT : D3D12_COMMAND_QUEUE_FLAG_NONE;
+
+	HRESULT hr;
+	hr = pDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&oCmdQueue));
+	hr = pDevice->CreateCommandAllocator(type, IID_PPV_ARGS(&oCmdAllocator));
+	hr = pDevice->CreateCommandList(0, type, oCmdAllocator, nullptr, IID_PPV_ARGS(&oCmdList));
+}
+
+ID3D12CommandQueue* NX12Util::CreateCommandQueue(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE type)
+{
+	ID3D12CommandQueue* pCmdQueue;
+	HRESULT hr = pDevice->CreateCommandAllocator(type, IID_PPV_ARGS(&pCmdQueue));
+	return pCmdQueue;
+}
+
+ID3D12CommandList* NX12Util::CreateCommandList(ID3D12Device* pDevice, ID3D12CommandAllocator* oCmdAllocator, D3D12_COMMAND_LIST_TYPE type, UINT nodeMask, ID3D12PipelineState* InitState)
+{
+	ID3D12CommandList* pCmdList;
+	HRESULT hr = pDevice->CreateCommandList(nodeMask, type, oCmdAllocator, InitState, IID_PPV_ARGS(&pCmdList));
+	return pCmdList;
+}
+
 ID3D12Resource* NX12Util::CreateBuffer(ID3D12Device* pDevice, const std::string& name, UINT sizeOfByte, D3D12_HEAP_TYPE heapType)
 {
 	ID3D12Resource* pResource = nullptr;
