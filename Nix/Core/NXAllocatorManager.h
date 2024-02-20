@@ -5,6 +5,7 @@
 #include "DescriptorAllocator.h"
 #include "RTVAllocator.h"
 #include "DSVAllocator.h"
+#include "NXShaderVisibleDescriptorHeap.h"
 
 // DX12 ∑÷≈‰∆˜
 class NXAllocatorManager : public NXInstance<NXAllocatorManager>
@@ -21,6 +22,8 @@ public:
 	RTVAllocator*			GetRTVAllocator()			{ return m_pRTVAllocator; }
 	DSVAllocator*			GetDSVAllocator()			{ return m_pDSVAllocator; }
 
+	NXShaderVisibleDescriptorHeap* GetShaderVisibleDescriptorHeap() { return m_pShaderVisibleDescriptorHeap; }
+
 	void Release();
 
 private:
@@ -32,4 +35,6 @@ private:
 	DescriptorAllocator*	m_pDescriptorAllocator;
 	RTVAllocator*			m_pRTVAllocator;
 	DSVAllocator*			m_pDSVAllocator;
+
+	NXShaderVisibleDescriptorHeap* m_pShaderVisibleDescriptorHeap;
 };

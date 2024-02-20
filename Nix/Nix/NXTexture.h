@@ -169,7 +169,7 @@ public:
     void AddDSV(UINT mipSlice = -1, UINT firstArraySlice = 0, UINT arraySize = -1);
     void AddUAV(UINT mipSlice = -1, UINT firstArraySlice = 0, UINT arraySize = -1);
 
-    size_t GetSRVPreview2D() { return m_pSRVPreview2D; }
+    D3D12_CPU_DESCRIPTOR_HANDLE GetSRVPreview2D() { return { m_pSRVPreview2D }; }
 
 private:
     size_t m_pSRVPreview2D = 0;

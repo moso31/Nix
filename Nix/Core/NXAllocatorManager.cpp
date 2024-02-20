@@ -7,6 +7,8 @@ void NXAllocatorManager::Init()
 	m_pDescriptorAllocator = new DescriptorAllocator(m_pDevice);
 	m_pRTVAllocator = new RTVAllocator(m_pDevice);
 	m_pDSVAllocator = new DSVAllocator(m_pDevice);
+
+	m_pShaderVisibleDescriptorHeap = new NXShaderVisibleDescriptorHeap(m_pDevice);
 }
 
 void NXAllocatorManager::Release()
@@ -16,4 +18,6 @@ void NXAllocatorManager::Release()
 	delete m_pDescriptorAllocator;
 	delete m_pRTVAllocator;
 	delete m_pDSVAllocator;
+
+	delete m_pShaderVisibleDescriptorHeap;
 }

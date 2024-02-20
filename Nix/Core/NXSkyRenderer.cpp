@@ -6,6 +6,7 @@
 #include "DirectResources.h"
 #include "NXResourceManager.h"
 #include "NXTexture.h"
+#include "NXAllocatorManager.h"
 
 #include "Global.h"
 #include "NXScene.h"
@@ -74,6 +75,13 @@ void NXSkyRenderer::Init()
 void NXSkyRenderer::Render()
 {
 	NX12Util::BeginEvent(m_pCommandList.Get(), "Sky (CubeMap IBL)");
+
+	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
+	UINT heapStart = pShaderVisibleDescriptorHeap->GetOffset();
+	auto gpuHandle = pGlobalDescriptorAllocator->GetRenderHeapGPUHandle(renderHeapOffset);
+
+	ID3D12DescriptorHeap* ppHeaps[] = { pGlobalDescriptorAllocator->GetRenderHeap() };
+	m_pCommandList->SetDescriptorHeaps(1, ppHeaps);
 	
 	auto rtvHandle = m_pTexPassOut->GetRTV();
 	auto dsvHandle = m_pTexPassOutDepth->GetDSV();

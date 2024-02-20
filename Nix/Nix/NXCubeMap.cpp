@@ -67,22 +67,22 @@ bool NXCubeMap::Init(const std::filesystem::path& filePath)
 	return true;
 }
 
-size_t NXCubeMap::GetSRVCubeMap()
+D3D12_CPU_DESCRIPTOR_HANDLE NXCubeMap::GetSRVCubeMap()
 {
 	return m_pTexCubeMap->GetSRV();
 }
 
-size_t NXCubeMap::GetSRVCubeMapPreview2D()
+D3D12_CPU_DESCRIPTOR_HANDLE NXCubeMap::GetSRVCubeMapPreview2D()
 {
 	return m_pTexCubeMap->GetSRVPreview2D();
 }
 
-size_t NXCubeMap::GetSRVIrradianceMap()
+D3D12_CPU_DESCRIPTOR_HANDLE NXCubeMap::GetSRVIrradianceMap()
 {
 	return m_pTexIrradianceMap->GetSRV();
 }
 
-size_t NXCubeMap::GetSRVPreFilterMap()
+D3D12_CPU_DESCRIPTOR_HANDLE NXCubeMap::GetSRVPreFilterMap()
 {
 	return m_pTexPreFilterMap->GetSRV();
 }
@@ -167,10 +167,12 @@ Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)
 
 	m_pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	UINT renderHeapOffset = pGlobalDescriptorAllocator->AppendToRenderHeap(pTexHDR->GetSRVArray(), pTexHDR->GetSRVs());
-	auto gpuHandle = pGlobalDescriptorAllocator->GetRenderHeapGPUHandle(renderHeapOffset);
+	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
+	UINT renderHeapOffset = pShaderVisibleDescriptorHeap->GetOffset();
+	pShaderVisibleDescriptorHeap->Append(pTexHDR->GetSRVArray(), pTexHDR->GetSRVs());
+	auto gpuHandle = pShaderVisibleDescriptorHeap->GetGPUHandle(renderHeapOffset);
 
-	ID3D12DescriptorHeap* ppHeaps[] = { pGlobalDescriptorAllocator->GetRenderHeap() };
+	ID3D12DescriptorHeap* ppHeaps[] = { pShaderVisibleDescriptorHeap->GetHeap() };
 	m_pCommandList->SetDescriptorHeaps(1, ppHeaps);
 
 	m_pCommandList->SetGraphicsRootSignature(m_pRootSigCubeMap.Get());
@@ -544,10 +546,13 @@ void NXCubeMap::GeneratePreFilterMap()
 
 	m_pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	UINT renderHeapOffset = pGlobalDescriptorAllocator->AppendToRenderHeap(m_pTexCubeMap->GetSRVArray(), m_pTexCubeMap->GetSRVs());
-	auto srvHandle = pGlobalDescriptorAllocator->GetRenderHeapGPUHandle(renderHeapOffset);
 
-	ID3D12DescriptorHeap* ppHeaps[] = { pGlobalDescriptorAllocator->GetRenderHeap() };
+	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
+	UINT renderHeapOffset = pShaderVisibleDescriptorHeap->GetOffset();
+	pShaderVisibleDescriptorHeap->Append(m_pTexCubeMap->GetSRVArray(), m_pTexCubeMap->GetSRVs());
+	auto srvHandle = pShaderVisibleDescriptorHeap->GetGPUHandle(renderHeapOffset);
+
+	ID3D12DescriptorHeap* ppHeaps[] = { pShaderVisibleDescriptorHeap->GetHeap() };
 	m_pCommandList->SetDescriptorHeaps(1, ppHeaps);
 
 	m_pCommandList->SetGraphicsRootSignature(m_pRootSigPreFilterMap.Get());

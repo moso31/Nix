@@ -66,10 +66,10 @@ public:
 	void GenerateIrradianceMap();
 	void GeneratePreFilterMap();
 
-	size_t GetSRVCubeMap();
-	size_t GetSRVCubeMapPreview2D();
-	size_t GetSRVIrradianceMap();
-	size_t GetSRVPreFilterMap();
+	D3D12_CPU_DESCRIPTOR_HANDLE GetSRVCubeMap();
+	D3D12_CPU_DESCRIPTOR_HANDLE GetSRVCubeMapPreview2D();
+	D3D12_CPU_DESCRIPTOR_HANDLE GetSRVIrradianceMap();
+	D3D12_CPU_DESCRIPTOR_HANDLE GetSRVPreFilterMap();
 
 	D3D12_GPU_VIRTUAL_ADDRESS GetCBDataParams() { return m_cbData.GPUVirtualAddr; }
 
