@@ -98,7 +98,6 @@ void NXCubeMap::UpdateViewParams()
 
 	auto& cbDataObject = NXGlobalBufferManager::m_cbDataObject.Current();
 	cbDataObject.data.world = Matrix::CreateTranslation(pCamera->GetTranslation()).Transpose();
-
 	m_cbAllocator->UpdateData(cbDataObject);
 }
 
@@ -159,11 +158,7 @@ Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)
 
 	D3D12_CPU_DESCRIPTOR_HANDLE cbvHandle;
 	pGlobalDescriptorAllocator->Alloc(DescriptorType_CBV, cbvHandle);
-
-	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
-	cbvDesc.BufferLocation = cbData.GPUVirtualAddr;
-	cbvDesc.SizeInBytes = NX12Util::ByteAlign256(cbData.DataByteSize());
-	g_pDevice->CreateConstantBufferView(&cbvDesc, cbvHandle);
+	g_pDevice->CreateConstantBufferView(&cbData.CBVDesc(), cbvHandle);
 
 	m_pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -535,17 +530,13 @@ void NXCubeMap::GeneratePreFilterMap()
 	CommittedResourceData<ConstantBufferObject> cbCubeCamera;
 	cbCubeCamera.data.world = Matrix::Identity();
 	cbCubeCamera.data.projection = m_mxCubeMapProj.Transpose();
+	m_cbAllocator->Alloc(ResourceType_Upload, cbCubeCamera);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE cbvHandle;
 	pGlobalDescriptorAllocator->Alloc(DescriptorType_CBV, cbvHandle);
-
-	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
-	cbvDesc.BufferLocation = cbCubeCamera.GPUVirtualAddr;
-	cbvDesc.SizeInBytes = NX12Util::ByteAlign256(cbCubeCamera.DataByteSize());
-	g_pDevice->CreateConstantBufferView(&cbvDesc, cbvHandle);
+	g_pDevice->CreateConstantBufferView(&cbCubeCamera.CBVDesc(), cbvHandle);
 
 	m_pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
 
 	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
 	UINT renderHeapOffset = pShaderVisibleDescriptorHeap->GetOffset();
@@ -569,11 +560,7 @@ void NXCubeMap::GeneratePreFilterMap()
 
 		D3D12_CPU_DESCRIPTOR_HANDLE cbvHandle;
 		pGlobalDescriptorAllocator->Alloc(DescriptorType_CBV, cbvHandle);
-
-		D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
-		cbvDesc.BufferLocation = cbRoughness.GPUVirtualAddr;
-		cbvDesc.SizeInBytes = NX12Util::ByteAlign256(cbRoughness.DataByteSize());
-		g_pDevice->CreateConstantBufferView(&cbvDesc, cbvHandle);
+		g_pDevice->CreateConstantBufferView(&cbRoughness.CBVDesc(), cbvHandle);
 
 		auto vp = NX12Util::ViewPort(mipSize, mipSize);
 		m_pCommandList->RSSetViewports(1, &vp);

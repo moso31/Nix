@@ -34,6 +34,11 @@ void NXShaderVisibleDescriptorHeap::Append(const size_t* cpuHandles, const size_
 	}
 }
 
+void NXShaderVisibleDescriptorHeap::Append(const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
+{
+	Append(&cpuHandle.ptr, 1);
+}
+
 D3D12_GPU_DESCRIPTOR_HANDLE NXShaderVisibleDescriptorHeap::GetGPUHandle(UINT gpuOffset)
 {
 	return { m_shaderVisibleHeap->GetGPUDescriptorHandleForHeapStart().ptr + gpuOffset * m_descriptorByteSize };

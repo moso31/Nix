@@ -77,19 +77,25 @@ void NXSkyRenderer::Render()
 	NX12Util::BeginEvent(m_pCommandList.Get(), "Sky (CubeMap IBL)");
 
 	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
-	UINT heapStart = pShaderVisibleDescriptorHeap->GetOffset();
-	auto gpuHandle = pGlobalDescriptorAllocator->GetRenderHeapGPUHandle(renderHeapOffset);
-
-	ID3D12DescriptorHeap* ppHeaps[] = { pGlobalDescriptorAllocator->GetRenderHeap() };
-	m_pCommandList->SetDescriptorHeaps(1, ppHeaps);
-	
-	auto rtvHandle = m_pTexPassOut->GetRTV();
-	auto dsvHandle = m_pTexPassOutDepth->GetDSV();
-	m_pCommandList->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);
 
 	auto pCubeMap = m_pScene->GetCubeMap();
 	if (pCubeMap)
 	{
+		// °ó¶¨RootSigºÍPSO
+		m_pCommandList->SetGraphicsRootSignature(m_pRootSig.Get());
+		m_pCommandList->SetPipelineState(m_pPSO.Get());
+
+		// °ó¶¨¶Ñ
+		ID3D12DescriptorHeap* ppHeaps[] = { pShaderVisibleDescriptorHeap->GetHeap() };
+		m_pCommandList->SetDescriptorHeaps(1, ppHeaps);
+
+		auto rtvHandle = m_pTexPassOut->GetRTV();
+		auto dsvHandle = m_pTexPassOutDepth->GetDSV();
+		m_pCommandList->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);
+
+		size_t srvHandle[] = { pCubeMap->GetSRVCubeMap().ptr };
+		pShaderVisibleDescriptorHeap->Append(srvHandle, 1);
+
 		pCubeMap->UpdateViewParams();
 
 		m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBufferManager::m_cbDataObject.Current().GPUVirtualAddr);

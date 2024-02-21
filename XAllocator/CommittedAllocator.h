@@ -4,12 +4,16 @@
 template <typename T>
 struct CommittedResourceData
 {
-	virtual UINT DataByteSize() { return sizeof(T); }
+	UINT DataByteSize() { return sizeof(T); }
+	const D3D12_CONSTANT_BUFFER_VIEW_DESC CBVDesc() { return { GPUVirtualAddr, AlignedDataByteSize() }; }
 
 	T data;
 	UINT pageIndex; // 记录该数据在 XAllocator 的页面索引
 	UINT pageByteOffset; // 记录该数据在 XAllocator 的页面的字节偏移量
 	D3D12_GPU_VIRTUAL_ADDRESS GPUVirtualAddr; // 记录该数据的 GPU 虚拟地址
+
+private:
+	UINT AlignedDataByteSize() { return (sizeof(T) + 255) & ~255; }
 };
 
 enum ResourceType
@@ -61,7 +65,7 @@ public:
 	template <typename T>
 	void UpdateData(CommittedResourceData<T>& info)
 	{
-		return UpdateData(info.data, info.DataByteSize(), info.pageIndex, info.pageByteOffset)
+		return UpdateData(info.data, info.DataByteSize(), info.pageIndex, info.pageByteOffset);
 	}
 
 	// 更新资源池中的内存。
