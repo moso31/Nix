@@ -14,29 +14,27 @@ NXShaderVisibleDescriptorHeap::NXShaderVisibleDescriptorHeap(ID3D12Device* pDevi
 	m_pDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_shaderVisibleHeap));
 }
 
-void NXShaderVisibleDescriptorHeap::Append(const size_t* cpuHandles, const size_t cpuHandlesSize)
+const D3D12_GPU_DESCRIPTOR_HANDLE NXShaderVisibleDescriptorHeap::Append(const size_t* cpuHandles, const size_t cpuHandlesSize)
 {
+	UINT heapOffset = m_shaderVisibleHeapOffset * m_descriptorByteSize;
+	D3D12_CPU_DESCRIPTOR_HANDLE destHandle = { m_shaderVisibleHeap->GetCPUDescriptorHandleForHeapStart().ptr + heapOffset };
+	D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = { m_shaderVisibleHeap->GetGPUDescriptorHandleForHeapStart().ptr + heapOffset };
+
 	for (size_t i = 0; i < cpuHandlesSize; i++)
 	{
-		D3D12_CPU_DESCRIPTOR_HANDLE srcHandle;
-		srcHandle.ptr = cpuHandles[i];
-
-		// 计算新的 ring buffer 偏移量
-		UINT heapOffset = m_shaderVisibleHeapOffset * m_descriptorByteSize;
-		D3D12_CPU_DESCRIPTOR_HANDLE destHandle = m_shaderVisibleHeap->GetCPUDescriptorHandleForHeapStart();
-		destHandle.ptr += heapOffset;
-
-		// 拷贝描述符
+		D3D12_CPU_DESCRIPTOR_HANDLE srcHandle = { cpuHandles[i] };
 		m_pDevice->CopyDescriptorsSimple(1, destHandle, srcHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-		// 更新偏移量
 		m_shaderVisibleHeapOffset = (m_shaderVisibleHeapOffset + 1) % m_maxDescriptors;
+		destHandle.ptr += m_descriptorByteSize;
 	}
+
+	return gpuHandle;
 }
 
-void NXShaderVisibleDescriptorHeap::Append(const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
+const D3D12_GPU_DESCRIPTOR_HANDLE NXShaderVisibleDescriptorHeap::Append(const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
 {
-	Append(&cpuHandle.ptr, 1);
+	return Append(&cpuHandle.ptr, 1);
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE NXShaderVisibleDescriptorHeap::GetGPUHandle(UINT gpuOffset)

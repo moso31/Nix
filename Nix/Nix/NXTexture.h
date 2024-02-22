@@ -48,7 +48,8 @@ public:
         m_texFormat(DXGI_FORMAT_UNKNOWN),
         m_mipLevels(-1),
         m_texFilePath(""),
-        m_type(type)
+        m_type(type),
+        m_resourceState(D3D12_RESOURCE_STATE_COMMON)
     {}
 
     virtual ~NXTexture();
@@ -67,6 +68,9 @@ public:
     const size_t* GetRTVArray() { return m_pRTVs.data(); }
     const size_t* GetDSVArray() { return m_pDSVs.data(); }
     const size_t* GetUAVArray() { return m_pUAVs.data(); }
+
+    const D3D12_RESOURCE_STATES& GetResourceState() { return m_resourceState; }
+    const void SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D3D12_RESOURCE_STATES& state);
 
     NXTextureReloadingState GetReloadingState() { return m_reloadingState; }
     void SetReloadingState(NXTextureReloadingState state) { m_reloadingState = state; }
@@ -99,13 +103,13 @@ public:
     void SetSerializationData(const NXTextureSerializationData& data) { m_serializationData = data; }
 
 protected:
-    // 创建纹理，空（RT用）
+    // 创建纹理，程序生成    // TODO：允许被PlaceResource统一管理
     // m_pTexture 独立存储在NXTexture成员上
-    void CreateInternal();
+    void CreateInternal(D3D12_RESOURCE_FLAGS flags);
 
     // 创建纹理，从文件读取
     // m_pTexture 存储在全局分配器g_pTextureAllocator，并作为大PlaceResource的一部分被统一管理。
-    void CreateInternal(const std::unique_ptr<DirectX::ScratchImage>& pImage);
+    void CreateInternal(const std::unique_ptr<DirectX::ScratchImage>& pImage, D3D12_RESOURCE_FLAGS flags);
 
 private:
     void InternalReload(Ntr<NXTexture> pReloadTexture);
@@ -115,6 +119,7 @@ protected:
     ComPtr<ID3D12Resource> m_pTexture;
     ComPtr<ID3D12Resource> m_pTextureUpload; 
 
+    D3D12_RESOURCE_STATES m_resourceState;
     std::filesystem::path m_texFilePath;
 
     std::vector<UINT64> m_pSRVs;
@@ -144,10 +149,10 @@ public:
     NXTexture2D(const NXTexture2D& other) = delete;
     ~NXTexture2D() {}
 
-    Ntr<NXTexture2D> Create(const std::string& DebugName, const std::filesystem::path& FilePath);
-    Ntr<NXTexture2D> CreateRT(const std::string& debugName, DXGI_FORMAT fmt, UINT width, UINT height);
-    Ntr<NXTexture2D> CreateSolid(const std::string& DebugName, UINT TexSize, const Vector4& Color);
-    Ntr<NXTexture2D> CreateNoise(const std::string& DebugName, UINT TexSize, UINT Dimension);
+    Ntr<NXTexture2D> Create(const std::string& DebugName, const std::filesystem::path& FilePath, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
+    Ntr<NXTexture2D> CreateRT(const std::string& debugName, DXGI_FORMAT fmt, UINT width, UINT height, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
+    Ntr<NXTexture2D> CreateSolid(const std::string& DebugName, UINT TexSize, const Vector4& Color, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
+    Ntr<NXTexture2D> CreateNoise(const std::string& DebugName, UINT TexSize, UINT Dimension, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
 
     void AddSRV();
     void AddRTV();
@@ -161,8 +166,8 @@ public:
     NXTextureCube() : NXTexture(TextureType_Cube) {}
     ~NXTextureCube() {}
 
-    void Create(const std::string& debugName, DXGI_FORMAT texFormat, UINT width, UINT height, UINT mipLevels);
-    void Create(const std::string& debugName, const std::wstring& filePath, size_t width = 0, size_t height = 0);
+    void Create(const std::string& debugName, DXGI_FORMAT texFormat, UINT width, UINT height, UINT mipLevels, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
+    void Create(const std::string& debugName, const std::wstring& filePath, size_t width = 0, size_t height = 0, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
 
     void AddSRV();
     void AddRTV(UINT mipSlice = -1, UINT firstArraySlice = 0, UINT arraySize = -1);
@@ -181,7 +186,7 @@ public:
     NXTexture2DArray() : NXTexture(TextureType_2DArray) {}
     ~NXTexture2DArray() {}
 
-    void Create(const std::string& debugName, DXGI_FORMAT texFormat, UINT width, UINT height, UINT arraySize, UINT mipLevels);
+    void Create(const std::string& debugName, DXGI_FORMAT texFormat, UINT width, UINT height, UINT arraySize, UINT mipLevels, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
 
     void AddSRV(UINT firstArraySlice = 0, UINT arraySize = -1);
     void AddRTV(UINT firstArraySlice = 0, UINT arraySize = -1);

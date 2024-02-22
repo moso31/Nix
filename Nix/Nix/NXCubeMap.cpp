@@ -163,9 +163,7 @@ Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)
 	m_pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
-	UINT renderHeapOffset = pShaderVisibleDescriptorHeap->GetOffset();
-	pShaderVisibleDescriptorHeap->Append(pTexHDR->GetSRVArray(), pTexHDR->GetSRVs());
-	auto gpuHandle = pShaderVisibleDescriptorHeap->GetGPUHandle(renderHeapOffset);
+	D3D12_GPU_DESCRIPTOR_HANDLE srvHandle = pShaderVisibleDescriptorHeap->Append(pTexHDR->GetSRVArray(), pTexHDR->GetSRVs());
 
 	ID3D12DescriptorHeap* ppHeaps[] = { pShaderVisibleDescriptorHeap->GetHeap() };
 	m_pCommandList->SetDescriptorHeaps(1, ppHeaps);
@@ -173,6 +171,7 @@ Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)
 	m_pCommandList->SetGraphicsRootSignature(m_pRootSigCubeMap.Get());
 	m_pCommandList->SetPipelineState(m_pPSOCubeMap.Get());
 
+	pTexCubeMap->SetResourceState(m_pCommandList.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET);
 	for (int i = 0; i < 6; i++)
 	{
 		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = pTexCubeMap->GetRTV(i);
@@ -183,7 +182,7 @@ Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)
 		m_cbAllocator->UpdateData(cbData);
 
 		m_pCommandList->SetGraphicsRootConstantBufferView(0, cbData.GPUVirtualAddr);
-		m_pCommandList->SetGraphicsRootDescriptorTable(1, gpuHandle);
+		m_pCommandList->SetGraphicsRootDescriptorTable(1, srvHandle);
 
 		NXMeshViews meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_CubeMapBox");
 		m_pCommandList->IASetVertexBuffers(0, 1, &meshView.vbv);
@@ -539,9 +538,7 @@ void NXCubeMap::GeneratePreFilterMap()
 	m_pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
-	UINT renderHeapOffset = pShaderVisibleDescriptorHeap->GetOffset();
-	pShaderVisibleDescriptorHeap->Append(m_pTexCubeMap->GetSRVArray(), m_pTexCubeMap->GetSRVs());
-	auto srvHandle = pShaderVisibleDescriptorHeap->GetGPUHandle(renderHeapOffset);
+	D3D12_GPU_DESCRIPTOR_HANDLE srvHandle = pShaderVisibleDescriptorHeap->Append(m_pTexCubeMap->GetSRVArray(), m_pTexCubeMap->GetSRVs());
 
 	ID3D12DescriptorHeap* ppHeaps[] = { pShaderVisibleDescriptorHeap->GetHeap() };
 	m_pCommandList->SetDescriptorHeaps(1, ppHeaps);
@@ -722,6 +719,10 @@ void NXCubeMap::InitVertex()
 
 void NXCubeMap::InitRootSignature()
 {
+	std::vector<D3D12_STATIC_SAMPLER_DESC> pSamplers;
+	pSamplers.push_back(NXStaticSamplerState<>::Create(0, 0, D3D12_SHADER_VISIBILITY_ALL)); // s0
+
+	// cubemap
 	std::vector<D3D12_DESCRIPTOR_RANGE> rangesCubeMap;
 	rangesCubeMap.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0)); // t0 ~ t0.
 
@@ -729,9 +730,9 @@ void NXCubeMap::InitRootSignature()
 	rootParamsCubeMap.push_back(NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL)); // b0
 	rootParamsCubeMap.push_back(NX12Util::CreateRootParameterTable(rangesCubeMap, D3D12_SHADER_VISIBILITY_ALL)); // 上面的 rangesCubeMap. t0 ~ t0.
 
-	std::vector<D3D12_STATIC_SAMPLER_DESC> pSamplers;
-	pSamplers.push_back(NXStaticSamplerState<>::Create(0, 0, D3D12_SHADER_VISIBILITY_ALL)); // s0
+	m_pRootSigCubeMap = NX12Util::CreateRootSignature(g_pDevice.Get(), rootParamsCubeMap, pSamplers);
 
+	// prefilter map
 	std::vector<D3D12_DESCRIPTOR_RANGE> rangesPreFilter;
 	rangesPreFilter.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0)); // t0 ~ t0.
 
@@ -740,7 +741,6 @@ void NXCubeMap::InitRootSignature()
 	rootParamsPreFilter.push_back(NX12Util::CreateRootParameterCBV(1, 0, D3D12_SHADER_VISIBILITY_ALL)); // b1
 	rootParamsPreFilter.push_back(NX12Util::CreateRootParameterTable(rangesPreFilter, D3D12_SHADER_VISIBILITY_ALL)); // 上面的 rangesPreFilter. t0 ~ t0.
 
-	m_pRootSigCubeMap = NX12Util::CreateRootSignature(g_pDevice.Get(), rootParamsCubeMap, pSamplers);
 	m_pRootSigPreFilterMap = NX12Util::CreateRootSignature(g_pDevice.Get(), rootParamsPreFilter, pSamplers);
 }
 

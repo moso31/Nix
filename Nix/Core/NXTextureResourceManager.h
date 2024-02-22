@@ -19,13 +19,13 @@ public:
     void OnReload() override;
     void Release() override;
 
-    Ntr<NXTexture2D> CreateTexture2D(const std::string& name, const std::filesystem::path& FilePath, bool bForce = false);
-    Ntr<NXTexture2D> CreateRT(const std::string& name, DXGI_FORMAT fmt, UINT width, UINT height);
+    Ntr<NXTexture2D> CreateTexture2D(const std::string& name, const std::filesystem::path& FilePath, bool bForce = false, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
+    Ntr<NXTexture2D> CreateRT(const std::string& name, DXGI_FORMAT fmt, UINT width, UINT height, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
 
-    Ntr<NXTextureCube> CreateTextureCube(const std::string& name, const std::wstring& filePath, UINT width = 0, UINT height = 0);
-    Ntr<NXTextureCube> CreateTextureCube(const std::string& name, DXGI_FORMAT texFormat, UINT width, UINT height, UINT mipLevels = 0);
+    Ntr<NXTextureCube> CreateTextureCube(const std::string& name, const std::wstring& filePath, UINT width = 0, UINT height = 0, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
+    Ntr<NXTextureCube> CreateTextureCube(const std::string& name, DXGI_FORMAT texFormat, UINT width, UINT height, UINT mipLevels = 0, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
 
-    Ntr<NXTexture2DArray> CreateTexture2DArray(const std::string& debugName, DXGI_FORMAT texFormat, UINT width, UINT height, UINT arraySize = 1, UINT mipLevels = 0);
+    Ntr<NXTexture2DArray> CreateTexture2DArray(const std::string& debugName, DXGI_FORMAT texFormat, UINT width, UINT height, UINT arraySize = 1, UINT mipLevels = 0, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
 
 private:
     std::vector<Ntr<NXTexture2D>> m_pCommonTex;

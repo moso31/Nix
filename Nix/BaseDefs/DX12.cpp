@@ -40,7 +40,7 @@ ID3D12Resource* NX12Util::CreateBuffer(ID3D12Device* pDevice, const std::string&
 	desc.Format = DXGI_FORMAT_UNKNOWN;
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
-	desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+	desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	desc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
 	HRESULT hr = pDevice->CreateCommittedResource(
@@ -48,44 +48,6 @@ ID3D12Resource* NX12Util::CreateBuffer(ID3D12Device* pDevice, const std::string&
 		D3D12_HEAP_FLAG_NONE,
 		&desc, 
 		D3D12_RESOURCE_STATE_GENERIC_READ, // 初始的资源状态为READ（允许CPU写入数据）
-		nullptr,
-		IID_PPV_ARGS(&pResource)
-	);
-
-	std::wstring wName(name.begin(), name.end());
-	pResource->SetName(wName.c_str());
-
-	if (FAILED(hr))
-	{
-		pResource->Release();
-		delete pResource;
-		return nullptr;
-	}
-
-	return pResource;
-}
-
-ID3D12Resource* NX12Util::CreateTexture2D(ID3D12Device* pDevice, const std::string& name, UINT width, UINT height, DXGI_FORMAT format, UINT mipLevels, D3D12_HEAP_TYPE heapType, D3D12_RESOURCE_STATES initState)
-{
-	ID3D12Resource* pResource;
-	D3D12_RESOURCE_DESC desc = {};
-	desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	desc.Alignment = 0;
-	desc.Width = width;
-	desc.Height = height;
-	desc.Format = format;
-	desc.DepthOrArraySize = 1;
-	desc.MipLevels = mipLevels;
-	desc.SampleDesc.Count = 1;
-	desc.SampleDesc.Quality = 0;
-	desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-	desc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-	HRESULT hr = pDevice->CreateCommittedResource(
-		&CreateHeapProperties(heapType),
-		D3D12_HEAP_FLAG_NONE,
-		&desc,
-		initState,
 		nullptr,
 		IID_PPV_ARGS(&pResource)
 	);

@@ -8,8 +8,8 @@ public:
 	~NXShaderVisibleDescriptorHeap() {}
 
 	// 将一组（通常是non-shader-visible的）描述符拷贝到 shader-Visible Heap 中，并返回其在ring buffer中的偏移量
-	void Append(const size_t* cpuHandles, const size_t cpuHandlesSize);
-	void Append(const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle);
+	const D3D12_GPU_DESCRIPTOR_HANDLE Append(const size_t* cpuHandles, const size_t cpuHandlesSize);
+	const D3D12_GPU_DESCRIPTOR_HANDLE Append(const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle);
 	const UINT GetOffset() const { return m_shaderVisibleHeapOffset; }
 
 	ID3D12DescriptorHeap* GetHeap() { return m_shaderVisibleHeap.Get(); }

@@ -135,7 +135,7 @@ void NXTextureResourceManager::Release()
 {
 }
 
-Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D(const std::string& name, const std::filesystem::path& filePath, bool bForce)
+Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D(const std::string& name, const std::filesystem::path& filePath, bool bForce, D3D12_RESOURCE_FLAGS flags)
 {
 	if (!bForce)
 	{
@@ -151,7 +151,7 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D(const std::string& na
 	}
 
 	Ntr<NXTexture2D> pTexture2D(new NXTexture2D());
-	pTexture2D->Create(name, filePath);
+	pTexture2D->Create(name, filePath, flags);
 	pTexture2D->AddSRV();
 
 	pTexture2D->SetRefCountDebugName(name);
@@ -161,15 +161,15 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D(const std::string& na
 	return pTexture2D;
 }
 
-Ntr<NXTexture2D> NXTextureResourceManager::CreateRT(const std::string& name, DXGI_FORMAT fmt, UINT width, UINT height)
+Ntr<NXTexture2D> NXTextureResourceManager::CreateRT(const std::string& name, DXGI_FORMAT fmt, UINT width, UINT height, D3D12_RESOURCE_FLAGS flags)
 {
 	Ntr<NXTexture2D> pTexture2D(new NXTexture2D());
-	pTexture2D->CreateRT(name, fmt, width, height);
+	pTexture2D->CreateRT(name, fmt, width, height, flags);
 	m_pTextureArrayInternal.push_back(pTexture2D);
 	return pTexture2D;
 }
 
-Ntr<NXTextureCube> NXTextureResourceManager::CreateTextureCube(const std::string& name, const std::wstring& filePath, UINT width, UINT height)
+Ntr<NXTextureCube> NXTextureResourceManager::CreateTextureCube(const std::string& name, const std::wstring& filePath, UINT width, UINT height, D3D12_RESOURCE_FLAGS flags)
 {
 	// 先在已加载纹理里面找当前纹理，有的话就不用Create了
 	for (auto& pTexture : m_pTextureArrayInternal)
@@ -182,23 +182,23 @@ Ntr<NXTextureCube> NXTextureResourceManager::CreateTextureCube(const std::string
 	}
 
 	Ntr<NXTextureCube> pTextureCube = new NXTextureCube();
-	pTextureCube->Create(name, filePath, width, height);
+	pTextureCube->Create(name, filePath, width, height, flags);
 	m_pTextureArrayInternal.push_back(pTextureCube);
 	return pTextureCube;
 }
 
-Ntr<NXTextureCube> NXTextureResourceManager::CreateTextureCube(const std::string& name, DXGI_FORMAT texFormat, UINT width, UINT height, UINT mipLevels = 0)
+Ntr<NXTextureCube> NXTextureResourceManager::CreateTextureCube(const std::string& name, DXGI_FORMAT texFormat, UINT width, UINT height, UINT mipLevels, D3D12_RESOURCE_FLAGS flags)
 {
 	Ntr<NXTextureCube> pTextureCube(new NXTextureCube());
-	pTextureCube->Create(name, texFormat, width, height, mipLevels);
+	pTextureCube->Create(name, texFormat, width, height, mipLevels, flags);
 	m_pTextureArrayInternal.push_back(pTextureCube);
 	return pTextureCube;
 }
 
-Ntr<NXTexture2DArray> NXTextureResourceManager::CreateTexture2DArray(const std::string& debugName, DXGI_FORMAT texFormat, UINT width, UINT height, UINT arraySize, UINT mipLevels)
+Ntr<NXTexture2DArray> NXTextureResourceManager::CreateTexture2DArray(const std::string& debugName, DXGI_FORMAT texFormat, UINT width, UINT height, UINT arraySize, UINT mipLevels, D3D12_RESOURCE_FLAGS flags)
 {
 	Ntr<NXTexture2DArray> pTexture2DArray(new NXTexture2DArray());
-	pTexture2DArray->Create(debugName, texFormat, width, height, arraySize, mipLevels);
+	pTexture2DArray->Create(debugName, texFormat, width, height, arraySize, mipLevels, flags);
 	m_pTextureArrayInternal.push_back(pTexture2DArray);
 	return pTexture2DArray;
 }

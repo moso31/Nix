@@ -12,6 +12,18 @@ NXTexture::~NXTexture()
 	//NXLog::LogWithStackTrace("[%s : size=(%dx%d)x%d, mip=%d, path=%s] Deleted. remain RefCount: %d", m_name.c_str(), m_width, m_height, m_arraySize, m_mipLevels, m_texFilePath.string().c_str(), m_nRefCount);
 }
 
+const void NXTexture::SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D3D12_RESOURCE_STATES& state)
+{
+	D3D12_RESOURCE_BARRIER barrier = {};
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barrier.Transition.pResource = m_pTexture.Get();
+	barrier.Transition.StateBefore = m_resourceState;
+	barrier.Transition.StateAfter = state;
+	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	pCommandList->ResourceBarrier(1, &barrier);
+}
+
 void NXTexture::SwapToReloadingTexture()
 {
 	if (m_reloadingState == NXTextureReloadingState::Texture_StartReload)
@@ -26,7 +38,7 @@ void NXTexture::SwapToReloadingTexture()
 	}
 }
 
-void NXTexture::CreateInternal()
+void NXTexture::CreateInternal(D3D12_RESOURCE_FLAGS flags)
 {
 	// 创建非文件格式的纹理。
 	// 创建这类纹理时，没有从文件读取资源的需求，不需要提供上传堆资源。
@@ -40,7 +52,7 @@ void NXTexture::CreateInternal()
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
 	desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	desc.Flags = D3D12_RESOURCE_FLAG_NONE;
+	desc.Flags = flags;
 
 	HRESULT hr = g_pDevice->CreateCommittedResource(
 		&NX12Util::CreateHeapProperties(D3D12_HEAP_TYPE_DEFAULT),
@@ -61,7 +73,7 @@ void NXTexture::CreateInternal()
 	}
 }
 
-void NXTexture::CreateInternal(const std::unique_ptr<DirectX::ScratchImage>& pImage)
+void NXTexture::CreateInternal(const std::unique_ptr<DirectX::ScratchImage>& pImage, D3D12_RESOURCE_FLAGS flags)
 {
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = GetResourceDimentionFromType();
@@ -73,7 +85,7 @@ void NXTexture::CreateInternal(const std::unique_ptr<DirectX::ScratchImage>& pIm
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
 	desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	desc.Flags = D3D12_RESOURCE_FLAG_NONE;
+	desc.Flags = flags;
 
 	UINT layoutSize = desc.DepthOrArraySize * desc.MipLevels;
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT* layouts = new D3D12_PLACED_SUBRESOURCE_FOOTPRINT[layoutSize];
@@ -229,7 +241,7 @@ void NXTexture::Deserialize()
 	}
 }
 
-Ntr<NXTexture2D> NXTexture2D::Create(const std::string& debugName, const std::filesystem::path& filePath)
+Ntr<NXTexture2D> NXTexture2D::Create(const std::string& debugName, const std::filesystem::path& filePath, D3D12_RESOURCE_FLAGS flags)
 {
 	TexMetadata metadata;
 	std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>();
@@ -356,16 +368,14 @@ Ntr<NXTexture2D> NXTexture2D::Create(const std::string& debugName, const std::fi
 	m_mipLevels = (UINT)metadata.mipLevels;
 	m_texFormat = metadata.format;
 
-	CreateInternal(pImage);
+	CreateInternal(pImage, flags);
 
 	pImage.reset();
 	return this;
 }
 
-Ntr<NXTexture2D> NXTexture2D::CreateRT(const std::string& debugName, DXGI_FORMAT fmt, UINT width, UINT height)
+Ntr<NXTexture2D> NXTexture2D::CreateRT(const std::string& debugName, DXGI_FORMAT fmt, UINT width, UINT height, D3D12_RESOURCE_FLAGS flags)
 {
-	m_pTexture = NX12Util::CreateTexture2D(g_pDevice.Get(), debugName, width, height, fmt, 1, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-
 	m_texFilePath = "[Render Target: " + debugName + "]";
 	m_name = debugName;
 	m_width = width;
@@ -373,11 +383,12 @@ Ntr<NXTexture2D> NXTexture2D::CreateRT(const std::string& debugName, DXGI_FORMAT
 	m_arraySize = 1;
 	m_mipLevels = 1;
 	m_texFormat = fmt;
+	CreateInternal(flags);
 
 	return this;
 }
 
-Ntr<NXTexture2D> NXTexture2D::CreateSolid(const std::string& debugName, UINT texSize, const Vector4& color)
+Ntr<NXTexture2D> NXTexture2D::CreateSolid(const std::string& debugName, UINT texSize, const Vector4& color, D3D12_RESOURCE_FLAGS flags)
 {
 	// 创建大小为 texSize * texSize 的纯色纹理
 	std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>();
@@ -411,13 +422,13 @@ Ntr<NXTexture2D> NXTexture2D::CreateSolid(const std::string& debugName, UINT tex
 	m_mipLevels = 1;
 	m_texFormat = fmt;
 
-	CreateInternal(pImage);
+	CreateInternal(pImage, flags);
 
 	pImage.reset();
 	return this;
 }
 
-Ntr<NXTexture2D> NXTexture2D::CreateNoise(const std::string& debugName, UINT texSize, UINT dimension)
+Ntr<NXTexture2D> NXTexture2D::CreateNoise(const std::string& debugName, UINT texSize, UINT dimension, D3D12_RESOURCE_FLAGS flags)
 {
 	// 创建大小为 texSize * texSize 的噪声纹理
 
@@ -462,7 +473,7 @@ Ntr<NXTexture2D> NXTexture2D::CreateNoise(const std::string& debugName, UINT tex
 	m_mipLevels = 1;
 	m_texFormat = fmt;
 
-	CreateInternal(pImage);
+	CreateInternal(pImage, flags);
 
 	pImage.reset();
 	return this;
@@ -533,7 +544,7 @@ void NXTexture2D::AddUAV()
 	m_pUAVs.push_back(cpuHandle.ptr);
 }
 
-void NXTextureCube::Create(const std::string& debugName, DXGI_FORMAT texFormat, UINT width, UINT height, UINT mipLevels)
+void NXTextureCube::Create(const std::string& debugName, DXGI_FORMAT texFormat, UINT width, UINT height, UINT mipLevels, D3D12_RESOURCE_FLAGS flags)
 {
 	m_name = debugName;
 	m_width = width;
@@ -542,10 +553,10 @@ void NXTextureCube::Create(const std::string& debugName, DXGI_FORMAT texFormat, 
 	m_texFormat = texFormat;
 	m_mipLevels = mipLevels;
 
-	CreateInternal();
+	CreateInternal(flags);
 }
 
-void NXTextureCube::Create(const std::string& debugName, const std::wstring& filePath, size_t width, size_t height)
+void NXTextureCube::Create(const std::string& debugName, const std::wstring& filePath, size_t width, size_t height, D3D12_RESOURCE_FLAGS flags)
 {
 	TexMetadata metadata;
 	std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>();
@@ -613,7 +624,7 @@ void NXTextureCube::Create(const std::string& debugName, const std::wstring& fil
 	this->m_texFormat = metadata.format;
 	this->m_mipLevels = (UINT)metadata.mipLevels;
 
-	CreateInternal(pImage);
+	CreateInternal(pImage, flags);
 
 	auto HDRPreviewInfo = metadata;
 	HDRPreviewInfo.arraySize = 1;
@@ -694,7 +705,7 @@ void NXTextureCube::AddUAV(UINT mipSlice, UINT firstArraySlice, UINT arraySize)
 	m_pUAVs.push_back(cpuHandle.ptr);
 }
 
-void NXTexture2DArray::Create(const std::string& debugName, DXGI_FORMAT texFormat, UINT width, UINT height, UINT arraySize, UINT mipLevels)
+void NXTexture2DArray::Create(const std::string& debugName, DXGI_FORMAT texFormat, UINT width, UINT height, UINT arraySize, UINT mipLevels, D3D12_RESOURCE_FLAGS flags)
 {
 	this->m_name = debugName;
 	this->m_width = width;
@@ -702,7 +713,7 @@ void NXTexture2DArray::Create(const std::string& debugName, DXGI_FORMAT texForma
 	this->m_arraySize = arraySize;
 	this->m_texFormat = texFormat;
 	this->m_mipLevels = mipLevels;
-	CreateInternal();
+	CreateInternal(flags);
 }
 
 void NXTexture2DArray::AddSRV(UINT firstArraySlice, UINT arraySize)
