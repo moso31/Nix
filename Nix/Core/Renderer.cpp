@@ -48,7 +48,7 @@ void Renderer::Init()
 	auto pCubeMap = m_scene->GetCubeMap();
 
 	m_pBRDFLut = new NXBRDFLut();
-	m_pBRDFLut->GenerateBRDFLUT();
+	m_pBRDFLut->Init();
 
 	m_pDepthPrepass = new NXDepthPrepass(m_scene);
 	m_pDepthPrepass->Init();

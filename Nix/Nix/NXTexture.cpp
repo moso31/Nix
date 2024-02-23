@@ -374,7 +374,7 @@ Ntr<NXTexture2D> NXTexture2D::Create(const std::string& debugName, const std::fi
 	return this;
 }
 
-Ntr<NXTexture2D> NXTexture2D::CreateRT(const std::string& debugName, DXGI_FORMAT fmt, UINT width, UINT height, D3D12_RESOURCE_FLAGS flags)
+Ntr<NXTexture2D> NXTexture2D::CreateTexture2D(const std::string& debugName, DXGI_FORMAT fmt, UINT width, UINT height, D3D12_RESOURCE_FLAGS flags)
 {
 	m_texFilePath = "[Render Target: " + debugName + "]";
 	m_name = debugName;

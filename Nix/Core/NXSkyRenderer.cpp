@@ -105,7 +105,7 @@ void NXSkyRenderer::Render()
 		m_pCommandList->SetGraphicsRootConstantBufferView(1, pCubeMap->GetCBDataParams());
 		m_pCommandList->SetGraphicsRootDescriptorTable(2, srvHandle);
 
-		pCubeMap->Render();
+		pCubeMap->Render(m_pCommandList.Get());
 
 		m_pTexPassOut->SetResourceState(m_pCommandList.Get(), D3D12_RESOURCE_STATE_COMMON);
 		m_pTexPassOutDepth->SetResourceState(m_pCommandList.Get(), D3D12_RESOURCE_STATE_COMMON);

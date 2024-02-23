@@ -150,7 +150,7 @@ public:
     ~NXTexture2D() {}
 
     Ntr<NXTexture2D> Create(const std::string& DebugName, const std::filesystem::path& FilePath, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
-    Ntr<NXTexture2D> CreateRT(const std::string& debugName, DXGI_FORMAT fmt, UINT width, UINT height, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
+    Ntr<NXTexture2D> CreateTexture2D(const std::string& debugName, DXGI_FORMAT fmt, UINT width, UINT height, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
     Ntr<NXTexture2D> CreateSolid(const std::string& DebugName, UINT TexSize, const Vector4& Color, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
     Ntr<NXTexture2D> CreateNoise(const std::string& DebugName, UINT TexSize, UINT Dimension, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
 

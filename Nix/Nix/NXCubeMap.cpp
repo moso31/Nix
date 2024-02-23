@@ -101,13 +101,12 @@ void NXCubeMap::UpdateViewParams()
 	m_cbAllocator->UpdateData(cbDataObject);
 }
 
-void NXCubeMap::Render()
+void NXCubeMap::Render(ID3D12GraphicsCommandList* pCmdList)
 {
-	UINT stride = sizeof(VertexP);
-	UINT offset = 0;
-	g_pContext->IASetVertexBuffers(0, 1, m_pVertexBuffer.GetAddressOf(), &stride, &offset);
-	g_pContext->IASetIndexBuffer(m_pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-	g_pContext->DrawIndexed((UINT)m_indices.size(), 0, 0);
+	const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_CubeMapSphere");
+	pCmdList->IASetVertexBuffers(0, 1, &meshView.vbv);
+	pCmdList->IASetIndexBuffer(&meshView.ibv);
+	pCmdList->DrawIndexedInstanced((UINT)meshView.indexCount, 1, 0, 0, 0);
 }
 
 void NXCubeMap::Release()
@@ -184,7 +183,7 @@ Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)
 		m_pCommandList->SetGraphicsRootConstantBufferView(0, cbData.GPUVirtualAddr);
 		m_pCommandList->SetGraphicsRootDescriptorTable(1, srvHandle);
 
-		NXMeshViews meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_CubeMapBox");
+		const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_CubeMapBox");
 		m_pCommandList->IASetVertexBuffers(0, 1, &meshView.vbv);
 		m_pCommandList->IASetIndexBuffer(&meshView.ibv);
 		m_pCommandList->DrawIndexedInstanced(6, 1, i * 6, 0, 0);
@@ -575,7 +574,7 @@ void NXCubeMap::GeneratePreFilterMap()
 			m_pCommandList->SetGraphicsRootConstantBufferView(1, cbRoughness.GPUVirtualAddr);
 			m_pCommandList->SetGraphicsRootDescriptorTable(2, srvHandle);
 
-			NXMeshViews meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_CubeMapBox");
+			const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_CubeMapBox");
 			m_pCommandList->IASetVertexBuffers(0, 1, &meshView.vbv);
 			m_pCommandList->IASetIndexBuffer(&meshView.ibv);
 			m_pCommandList->DrawIndexedInstanced(6, 1, i * 6, 0, 0);

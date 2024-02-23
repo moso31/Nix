@@ -5,20 +5,26 @@
 #include "ShaderComplier.h"
 #include "GlobalBufferManager.h"
 #include "NXTexture.h"
+#include "NXSubMeshGeometryEditor.h"
 
 NXBRDFLut::NXBRDFLut() 
 {
 }
 
-void NXBRDFLut::GenerateBRDFLUT()
+void NXBRDFLut::Init()
 {
-	g_pUDA->BeginEvent(L"Generate BRDF 2D LUT");
+	InitVertex();
+	InitRoogSignature();
+	DrawBRDFLUT();
+}
 
-	const static float MapSize = 512.0f;
-	CD3D11_VIEWPORT vp(0.0f, 0.0f, MapSize, MapSize);
-	g_pContext->RSSetViewports(1, &vp);
+void NXBRDFLut::Release()
+{
+}
 
-	m_pTexBRDFLUT = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("BRDF LUT", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)MapSize, (UINT)MapSize, 1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1, 0, 0);
+void NXBRDFLut::InitVertex()
+{
+	m_pTexBRDFLUT = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("BRDF LUT", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)MapSize, (UINT)MapSize, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 	m_pTexBRDFLUT->AddSRV();
 	m_pTexBRDFLUT->AddRTV();
 
@@ -37,34 +43,41 @@ void NXBRDFLut::GenerateBRDFLUT()
 		0,  3,	2,
 	};
 
-	D3D11_BUFFER_DESC bufferDesc;
-	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(VertexPT) * (UINT)vertices.size();
-	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bufferDesc.CPUAccessFlags = 0;
-	D3D11_SUBRESOURCE_DATA InitData;
-	ZeroMemory(&InitData, sizeof(InitData));
-	InitData.pSysMem = vertices.data();
+	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(vertices, indices, "_PlanePositiveZ");
+}
 
-	ComPtr<ID3D11Buffer> pVertexBuffer;
-	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &pVertexBuffer));
+void NXBRDFLut::InitRootSignature()
+{
+	ComPtr<ID3DBlob> pBlobVS, pBlobPS;
+	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\BRDF2DLUT.fx", "VS", pBlobVS.Get());
+	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\BRDF2DLUT.fx", "PS", pBlobPS.Get());
 
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(UINT) * (UINT)indices.size();
-	bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	bufferDesc.CPUAccessFlags = 0;
-	InitData.pSysMem = indices.data();
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+	psoDesc.pRootSignature = m_pRootSig.Get();
+	psoDesc.InputLayout = { NXGlobalInputLayout::layoutPT, 1 };
+	psoDesc.BlendState = NXBlendState<>::Create();
+	psoDesc.RasterizerState = NXRasterizerState<>::Create();
+	psoDesc.DepthStencilState = NXDepthStencilState<>::Create();
+	psoDesc.SampleDesc.Count = 1;
+	psoDesc.SampleDesc.Quality = 0;
+	psoDesc.SampleMask = UINT_MAX;
+	psoDesc.NumRenderTargets = 1;
+	psoDesc.RTVFormats[0] = pTexCubeMap->GetFormat();
+	psoDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
+	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
+	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	g_pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSOCubeMap));
+}
 
-	ComPtr<ID3D11Buffer> pIndexBuffer;
-	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &pIndexBuffer));
+void NXBRDFLut::DrawBRDFLUT()
+{
+	NX12Util::BeginEvent(m_pCommandList.Get(), "Generate BRDF 2D LUT");
 
-	ComPtr<ID3D11InputLayout> pInputLayoutPT;
-	ComPtr<ID3D11VertexShader> pVertexShader;
-	ComPtr<ID3D11PixelShader> pPixelShader;
+	const static float MapSize = 512.0f;
+	auto vp = NX12Util::ViewPort(MapSize, MapSize);
+	m_pCommandList->RSSetViewports(1, &vp);
 
-	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\BRDF2DLUT.fx", "VS", &pVertexShader, NXGlobalInputLayout::layoutPT, ARRAYSIZE(NXGlobalInputLayout::layoutPT), &pInputLayoutPT);
-	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\BRDF2DLUT.fx", "PS", &pPixelShader);
 	g_pContext->VSSetShader(pVertexShader.Get(), nullptr, 0);
 	g_pContext->PSSetShader(pPixelShader.Get(), nullptr, 0);
 	g_pContext->IASetInputLayout(pInputLayoutPT.Get());
@@ -79,11 +92,7 @@ void NXBRDFLut::GenerateBRDFLUT()
 	g_pContext->OMSetRenderTargets(1, &pRTV, nullptr);
 	g_pContext->DrawIndexed((UINT)indices.size(), 0, 0);
 
-	g_pUDA->EndEvent();
-}
-
-void NXBRDFLut::Release()
-{
+	NX12Util::EndEvent();
 }
 
 ID3D11ShaderResourceView* NXBRDFLut::GetSRV()

@@ -56,7 +56,7 @@ public:
 	bool Init(const std::filesystem::path& filePath);
 	void Update() override;
 	void UpdateViewParams();
-	void Render();
+	void Render(ID3D12GraphicsCommandList* pCmdList);
 	void Release() override;
 
 	Ntr<NXTextureCube> GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR);
