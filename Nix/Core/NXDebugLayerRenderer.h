@@ -1,5 +1,5 @@
 #pragma once
-#include "BaseDefs/DX11.h"
+#include "BaseDefs/DX12.h"
 #include "BaseDefs/Math.h"
 #include "Ntr.h"
 
@@ -24,7 +24,7 @@ public:
 
 	void Release();
 
-	Ntr<NXTexture2D> const GetDebugLayerTex() { return m_pDebugLayerTex; }
+	Ntr<NXTexture2D> const GetDebugLayerTex() { return m_pTexPassOut; }
 
 	bool	GetEnableDebugLayer()							{ return m_bEnableDebugLayer; }
 	bool	GetEnableShadowMapDebugLayer()					{ return m_bEnableShadowMapDebugLayer; }
@@ -34,27 +34,17 @@ public:
 	void	SetShadowMapDebugLayerZoomScale(float value)	{ m_fShadowMapZoomScale = value; }
 
 private:
-	void RenderShadowMapAtlas();
-
-private:
-	ComPtr<ID3D11VertexShader>			m_pVertexShader;
-	ComPtr<ID3D11PixelShader>			m_pPixelShader;
-	ComPtr<ID3D11InputLayout>			m_pInputLayout;
-
-	ComPtr<ID3D11DepthStencilState>		m_pDepthStencilState;
-	ComPtr<ID3D11RasterizerState>		m_pRasterizerState;
-	ComPtr<ID3D11BlendState>			m_pBlendState;
-
-	NXRenderTarget*						m_pRTQuad;
+	Ntr<NXTexture2D>					m_pTexPassIn0; // render result.
+	Ntr<NXTexture2DArray>				m_pTexPassIn1; // shadow map atlas.
+	Ntr<NXTexture2D>					m_pTexPassOut; // debug layer.
+	ComPtr<ID3D12GraphicsCommandList>	m_pCommandList;
+	ComPtr<ID3D12PipelineState>			m_pPSO;
+	ComPtr<ID3D12RootSignature>			m_pRootSig;
 	
 	// pass input resources
 	NXShadowMapRenderer*				m_pShadowMapRenderer;
 
-	// pass output resources
-	Ntr<NXTexture2D>					m_pDebugLayerTex;
-
-	ComPtr<ID3D11Buffer>				m_cbParams;
-	CBufferDebugLayer					m_cbDataParams;
+	MultiFrame<CommittedResourceData<CBufferDebugLayer>> m_cbParams;
 
 	bool m_bEnableDebugLayer;
 	bool m_bEnableShadowMapDebugLayer;
