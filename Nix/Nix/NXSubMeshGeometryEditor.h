@@ -118,6 +118,9 @@ public:
 	const NXMeshViews& GetMeshViews(const std::string& name) { return m_data[name]; }
 
 private:
+	void InitCommonMeshes();
+
+private:
 	// 最重要的Mesh数据存储
 	std::unordered_map<std::string, NXMeshViews> m_data; 
 

@@ -21,6 +21,8 @@ void NXSubMeshGeometryEditor::Init(ID3D12Device* pDevice)
 
 	m_pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_pCommandAllocator));
 	m_pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&m_pCommandList));
+
+	InitCommonMeshes();
 }
 
 void NXSubMeshGeometryEditor::CreateFBXPrefab(NXPrefab* pPrefab, const std::string& filePath, bool bAutoCalcTangents)
@@ -669,4 +671,27 @@ void NXSubMeshGeometryEditor::CreateMoveArrows(NXPrimitive* pMesh)
 		pSubMesh->UpdateVBIB();
 		pMesh->AddSubMesh(pSubMesh);
 	}
+}
+
+void NXSubMeshGeometryEditor::InitCommonMeshes()
+{
+	float scale = 1.0f;
+
+	// Create vertex buffer
+	std::vector<VertexPT> vertices =
+	{
+		// -Z
+		{ Vector3(-scale, +scale, 0.0f), Vector2(0.0f, 0.0f) },
+		{ Vector3(+scale, +scale, 0.0f), Vector2(1.0f, 0.0f) },
+		{ Vector3(+scale, -scale, 0.0f), Vector2(1.0f, 1.0f) },
+		{ Vector3(-scale, -scale, 0.0f), Vector2(0.0f, 1.0f) },
+	};
+
+	std::vector<UINT> indices =
+	{
+		0,  1,  2,
+		0,  2,  3
+	};
+
+	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(vertices, indices, "_RenderTarget");
 }

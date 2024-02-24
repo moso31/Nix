@@ -1,5 +1,4 @@
 #include "BaseDefs/NixCore.h"
-#include "BaseDefs/DX11.h"
 #include "Global.h"
 
 #include "NXColorMappingRenderer.h"
@@ -7,12 +6,13 @@
 #include "NXRenderStates.h"
 #include "GlobalBufferManager.h"
 #include "NXResourceManager.h"
-#include "NXRenderTarget.h"
+#include "NXSubMeshGeometryEditor.h"
 #include "NXTexture.h"
+#include "NXAllocatorManager.h"
+#include "NXSamplerStates.h"
 
 NXColorMappingRenderer::NXColorMappingRenderer() :
-	m_bEnablePostProcessing(true),
-	m_pFinalRT(nullptr)
+	m_bEnablePostProcessing(true)
 {
 }
 
@@ -22,59 +22,77 @@ NXColorMappingRenderer::~NXColorMappingRenderer()
 
 void NXColorMappingRenderer::Init()
 {
-	m_pFinalRT = new NXRenderTarget();
-	m_pFinalRT->Init();
+	m_pTexPassIn = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_SSSLighting);
+	m_pTexPassOut = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_PostProcessing);
 
-	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\ColorMapping.fx", "VS", &m_pVertexShader, NXGlobalInputLayout::layoutPT, ARRAYSIZE(NXGlobalInputLayout::layoutPT), &m_pInputLayout);
-	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\ColorMapping.fx", "PS", &m_pPixelShader);
+	ComPtr<ID3DBlob> pVSBlob, pPSBlob;
+	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\ColorMapping.fx", "VS", pVSBlob.Get());
+	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\ColorMapping.fx", "PS", pPSBlob.Get());
 
-	m_pDepthStencilState = NXDepthStencilState<true, false, D3D11_COMPARISON_ALWAYS>::Create();
-	m_pRasterizerState = NXRasterizerState<>::Create();
-	m_pBlendState = NXBlendState<>::Create();
+	std::vector<D3D12_DESCRIPTOR_RANGE> ranges;
+	ranges.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0));
 
-	D3D11_BUFFER_DESC bufferDesc;
-	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(CBufferColorMapping);
-	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bufferDesc.CPUAccessFlags = 0;
-	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbParams));
+	std::vector<D3D12_ROOT_PARAMETER> rootParams;
+	rootParams.push_back(NX12Util::CreateRootParameterCBV(2, 0, D3D12_SHADER_VISIBILITY_ALL));
+	rootParams.push_back(NX12Util::CreateRootParameterTable(ranges, D3D12_SHADER_VISIBILITY_ALL));
+
+	std::vector<D3D12_STATIC_SAMPLER_DESC> staticSamplers;
+	staticSamplers.push_back(NXStaticSamplerState<>::Create(0, 0, D3D12_SHADER_VISIBILITY_ALL));
+
+	m_pRootSig = NX12Util::CreateRootSignature(g_pDevice.Get(), rootParams, staticSamplers);
+
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+	psoDesc.pRootSignature = m_pRootSig.Get();
+	psoDesc.InputLayout = { NXGlobalInputLayout::layoutPT, 1 };
+	psoDesc.BlendState = NXBlendState<>::Create();
+	psoDesc.RasterizerState = NXRasterizerState<>::Create();
+	psoDesc.DepthStencilState = NXDepthStencilState<true, false, D3D12_COMPARISON_FUNC_ALWAYS>::Create();
+	psoDesc.SampleDesc.Count = 1;
+	psoDesc.SampleDesc.Quality = 0;
+	psoDesc.SampleMask = UINT_MAX;
+	psoDesc.NumRenderTargets = 1;
+	psoDesc.RTVFormats[0] = m_pTexPassOut->GetFormat();
+	psoDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
+	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
+	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	g_pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
+
+	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
+		NXAllocatorManager::GetInstance()->GetCBufferAllocator()->Alloc(ResourceType_Upload, m_cbParams.Get(i));
 }
 
 void NXColorMappingRenderer::Render()
 {
-	g_pUDA->BeginEvent(L"Post Processing");
+	NX12Util::BeginEvent(m_pCommandList.Get(), "Post Processing");
 
-	m_cbDataParams.param0.x = m_bEnablePostProcessing ? 1.0f : 0.0f;
+	m_cbParams.Current().data.param0.x = m_bEnablePostProcessing ? 1.0f : 0.0f;
+	NXAllocatorManager::GetInstance()->GetCBufferAllocator()->UpdateData(m_cbParams.Current());
 
-	g_pUDA->BeginEvent(L"Color Mapping");
+	NX12Util::BeginEvent(m_pCommandList.Get(), "Color Mapping");
 
-	ID3D11ShaderResourceView* pSRVMainScene = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_SSSLighting)->GetSRV();
-	ID3D11RenderTargetView* pRTVPostProcessing = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_PostProcessing)->GetRTV();
+	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
+	auto srvHandle = pShaderVisibleDescriptorHeap->Append(m_pTexPassIn->GetSRVArray(), m_pTexPassIn->GetSRVs());
 
-	g_pContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 0);
-	g_pContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xffffffff);
-	g_pContext->RSSetState(m_pRasterizerState.Get());
+	ID3D12DescriptorHeap* ppHeaps[] = { pShaderVisibleDescriptorHeap->GetHeap() };
+	m_pCommandList->SetDescriptorHeaps(1, ppHeaps);
 
-	g_pContext->OMSetRenderTargets(1, &pRTVPostProcessing, nullptr);
+	m_pCommandList->OMSetRenderTargets(0, &m_pTexPassOut->GetRTV(), false, nullptr);
+	m_pCommandList->SetGraphicsRootSignature(m_pRootSig.Get());
+	m_pCommandList->SetPipelineState(m_pPSO.Get());
 
-	g_pContext->UpdateSubresource(m_cbParams.Get(), 0, nullptr, &m_cbDataParams, 0, 0);
+	m_pCommandList->SetGraphicsRootConstantBufferView(0, m_cbParams.Current().GPUVirtualAddr);
+	m_pCommandList->SetGraphicsRootDescriptorTable(1, srvHandle);
+	
+	const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_RenderTarget");
+	m_pCommandList->IASetVertexBuffers(0, 1, &meshView.vbv);
+	m_pCommandList->IASetIndexBuffer(&meshView.ibv);
+	m_pCommandList->DrawIndexedInstanced(meshView.indexCount, 1, 0, 0, 0);
 
-	g_pContext->IASetInputLayout(m_pInputLayout.Get());
-	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
-	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
-	g_pContext->PSSetConstantBuffers(2, 1, m_cbParams.GetAddressOf());
-
-	g_pContext->PSSetShaderResources(0, 1, &pSRVMainScene);
-
-	m_pFinalRT->Render();
-
-	g_pUDA->EndEvent();
-
-	g_pUDA->EndEvent();
+	NX12Util::EndEvent(); 
+	NX12Util::EndEvent();
 }
 
 void NXColorMappingRenderer::Release()
 {
-	SafeRelease(m_pFinalRT);
 }

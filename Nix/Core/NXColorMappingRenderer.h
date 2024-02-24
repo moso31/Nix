@@ -1,5 +1,5 @@
 #pragma once
-#include "BaseDefs/DX11.h"
+#include "BaseDefs/DX12.h"
 #include "ShaderStructures.h"
 
 struct CBufferColorMapping
@@ -7,7 +7,6 @@ struct CBufferColorMapping
 	Vector4 param0; // x: enable
 };
 
-class NXRenderTarget;
 class NXColorMappingRenderer
 {
 public:
@@ -23,19 +22,13 @@ public:
 	void Release();
 
 private:
-	ComPtr<ID3D11VertexShader>			m_pVertexShader;
-	ComPtr<ID3D11PixelShader>			m_pPixelShader;
-	ComPtr<ID3D11InputLayout>			m_pInputLayout;
-
-	ComPtr<ID3D11DepthStencilState>		m_pDepthStencilState;
-	ComPtr<ID3D11RasterizerState>		m_pRasterizerState;
-	ComPtr<ID3D11BlendState>			m_pBlendState;
-
-	NXRenderTarget* m_pFinalRT;
-
-private:
 	bool m_bEnablePostProcessing;
+	Ntr<NXTexture2D>	m_pTexPassIn;
+	Ntr<NXTexture2D>	m_pTexPassOut;
 
-	ComPtr<ID3D11Buffer>				m_cbParams;
-	CBufferColorMapping					m_cbDataParams;
+	MultiFrame<CommittedResourceData<CBufferColorMapping>> m_cbParams;
+
+	ComPtr<ID3D12GraphicsCommandList> m_pCommandList;
+	ComPtr<ID3D12PipelineState> m_pPSO;
+	ComPtr<ID3D12RootSignature> m_pRootSig;
 };

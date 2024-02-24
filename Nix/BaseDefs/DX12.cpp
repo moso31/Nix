@@ -245,6 +245,11 @@ ID3D12RootSignature* NX12Util::CreateRootSignature(ID3D12Device* pDevice, const 
 	return CreateRootSignature(pDevice, (UINT)pParams.size(), pParams.data(), (UINT)pSamplers.size(), pSamplers.data());
 }
 
+ID3D12RootSignature* NX12Util::CreateRootSignature(ID3D12Device* pDevice, const std::vector<D3D12_ROOT_PARAMETER>& pParams)
+{
+	return CreateRootSignature(pDevice, (UINT)pParams.size(), pParams.data(), 0, nullptr);
+}
+
 UINT NX12Util::ByteAlign256(UINT sizeInBytes)
 {
 	return (sizeInBytes + 255) & ~255;

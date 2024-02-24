@@ -5,7 +5,8 @@
 #include "ShaderComplier.h"
 #include "NXRenderStates.h"
 #include "GlobalBufferManager.h"
-#include "NXRenderTarget.h"
+#include "NXSubMeshGeometryEditor.h"
+#include "NXAllocatorManager.h"
 #include "NXScene.h"
 #include "NXResourceManager.h"
 #include "DirectResources.h"
@@ -13,8 +14,7 @@
 #include "NXEditorObjectManager.h"
 
 NXEditorObjectRenderer::NXEditorObjectRenderer(NXScene* pScene) :
-	m_pScene(pScene),
-	m_pRTQuad(nullptr)
+	m_pScene(pScene)
 {
 }
 
@@ -24,48 +24,56 @@ NXEditorObjectRenderer::~NXEditorObjectRenderer()
 
 void NXEditorObjectRenderer::Init()
 {
-	m_pRTQuad = new NXRenderTarget();
-	m_pRTQuad->Init();
+	ComPtr<ID3DBlob> pVSBlob, pPSBlob;
+	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\EditorObjects.fx", "VS", pVSBlob.Get());
+	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\EditorObjects.fx", "PS", pPSBlob.Get());
 
-	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\EditorObjects.fx", "VS", &m_pVertexShader, NXGlobalInputLayout::layoutEditorObject, ARRAYSIZE(NXGlobalInputLayout::layoutEditorObject), &m_pInputLayout);
-	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\EditorObjects.fx", "PS", &m_pPixelShader);
+	std::vector<D3D12_ROOT_PARAMETER> rootParams;
+	rootParams.push_back(NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL));
+	rootParams.push_back(NX12Util::CreateRootParameterCBV(1, 0, D3D12_SHADER_VISIBILITY_ALL));
+	rootParams.push_back(NX12Util::CreateRootParameterCBV(2, 0, D3D12_SHADER_VISIBILITY_ALL));
 
-	m_pDepthStencilState = NXDepthStencilState<false, false, D3D11_COMPARISON_LESS>::Create();
-	m_pRasterizerState = NXRasterizerState<D3D11_FILL_SOLID, D3D11_CULL_NONE>::Create();
-	m_pBlendState = NXBlendState<false, false, true, D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA, D3D11_BLEND_OP_ADD>::Create();
+	m_pRootSig = NX12Util::CreateRootSignature(g_pDevice.Get(), rootParams);
 
-	D3D11_BUFFER_DESC bufferDesc;
-	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(CBufferParams_Internal);
-	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bufferDesc.CPUAccessFlags = 0;
-	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbParams));
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+	psoDesc.pRootSignature = m_pRootSig.Get();
+	psoDesc.InputLayout = { NXGlobalInputLayout::layoutEditorObject, 1 };
+	psoDesc.BlendState = NXBlendState<false, false, true, D3D12_BLEND_SRC_ALPHA, D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_OP_ADD>::Create();
+	psoDesc.RasterizerState = NXRasterizerState<D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_NONE>::Create();
+	psoDesc.DepthStencilState = NXDepthStencilState<false, false, D3D12_COMPARISON_FUNC_LESS>::Create();
+	psoDesc.SampleDesc.Count = 1;
+	psoDesc.SampleDesc.Quality = 0;
+	psoDesc.SampleMask = UINT_MAX;
+	psoDesc.NumRenderTargets = 1;
+	psoDesc.RTVFormats[0] = m_pTexPassOut->GetFormat();
+	psoDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
+	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
+	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	g_pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
+
+	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
+	{
+		NXAllocatorManager::GetInstance()->GetCBufferAllocator()->Alloc(ResourceType_Upload, m_cbParams.Get(i));
+	}
+
+	m_pTexPassOut = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_PostProcessing);
 }
 
 void NXEditorObjectRenderer::OnResize(const Vector2& rtSize)
 {
-	m_pPassOutTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("Editor objects Out RT", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)rtSize.x, (UINT)rtSize.y, 1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET);
-	m_pPassOutTex->AddRTV();
-	m_pPassOutTex->AddSRV();
 }
 
 void NXEditorObjectRenderer::Render()
 {
-	g_pUDA->BeginEvent(L"Editor objects");
+	NX12Util::BeginEvent(m_pCommandList.Get(), "Editor objects");
 
-	g_pContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 0);
-	g_pContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xffffffff);
-	g_pContext->RSSetState(m_pRasterizerState.Get());
+	m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBufferManager::m_cbDataCamera.Current().GPUVirtualAddr);
 
-	auto pRTVOutput = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_PostProcessing)->GetRTV();
-	g_pContext->OMSetRenderTargets(1, &pRTVOutput, nullptr);
+	m_pCommandList->SetGraphicsRootSignature(m_pRootSig.Get());
+	m_pCommandList->SetPipelineState(m_pPSO.Get());
 
-	g_pContext->IASetInputLayout(m_pInputLayout.Get());
-	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
-	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
-
-	g_pContext->VSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
+	m_pCommandList->OMSetRenderTargets(1, &m_pTexPassOut->GetRTV(), false, nullptr);
 
   	NXEditorObjectManager* pEditorObjManager = m_pScene->GetEditorObjManager();
 	for (auto pEditObj : pEditorObjManager->GetEditableObjects())
@@ -82,13 +90,14 @@ void NXEditorObjectRenderer::Render()
 					// 判断当前SubMesh是否高亮显示
 					{
 						bool bIsHighLight = pSubMeshEditorObj->GetEditorObjectID() == m_pScene->GetEditorObjManager()->GetHighLightID();
-						m_cbDataParams.params.x = bIsHighLight ? 1.0f : 0.0f;
-						g_pContext->UpdateSubresource(m_cbParams.Get(), 0, nullptr, &m_cbDataParams, 0, 0);
-						g_pContext->PSSetConstantBuffers(2, 1, m_cbParams.GetAddressOf());
+						m_cbParams.Current().data.value.x = bIsHighLight ? 1.0f : 0.0f;
+						NXAllocatorManager::GetInstance()->GetCBufferAllocator()->UpdateData(m_cbParams.Current());
+						m_pCommandList->SetGraphicsRootConstantBufferView(0, m_cbParams.Current().GPUVirtualAddr);
 					}
 
 					pSubMeshEditorObj->UpdateViewParams();
-					g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
+
+					m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBufferManager::m_cbDataObject.Current().GPUVirtualAddr);
 
 					pSubMeshEditorObj->Update();
 					pSubMeshEditorObj->Render();
@@ -97,10 +106,9 @@ void NXEditorObjectRenderer::Render()
 		}
 	}
 
-	g_pUDA->EndEvent();
+	NX12Util::EndEvent();
 }
 
 void NXEditorObjectRenderer::Release()
 {
-	SafeRelease(m_pRTQuad);
 }

@@ -17,7 +17,7 @@ private:
 	void InitRootSignature();
 	void DrawBRDFLUT();
 
-	ID3D11ShaderResourceView* GetSRV();
+	D3D12_CPU_DESCRIPTOR_HANDLE GetSRV() { return m_pTexBRDFLUT->GetSRV(); }
 
 private:
 	const float m_mapSize = 512.0f;
