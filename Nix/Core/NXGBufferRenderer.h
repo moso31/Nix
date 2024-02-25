@@ -1,5 +1,5 @@
 #pragma once
-#include "BaseDefs/DX11.h"
+#include "BaseDefs/DX12.h"
 #include "ShaderStructures.h"
 
 class NXScene;
@@ -17,12 +17,12 @@ public:
 	void Release();
 
 private:
-	ComPtr<ID3D11DepthStencilState>		m_pDepthStencilState;
-	ComPtr<ID3D11RasterizerState>		m_pRasterizerState;
-	ComPtr<ID3D11BlendState>			m_pBlendState;
+	Ntr<NXTexture2D> m_pDepthZ;
+	Ntr<NXTexture2D> m_pGBufferRT[4];
 
-	ComPtr<ID3D11SamplerState>			m_pSamplerLinearWrap;
-	ComPtr<ID3D11SamplerState>			m_pSamplerLinearClamp;
+	ComPtr<ID3D12GraphicsCommandList>	m_pCommandList;
+	ComPtr<ID3D12PipelineState>			m_pPSO;
+	ComPtr<ID3D12RootSignature>			m_pRootSig;
 
 	NXScene* m_pScene;
 };

@@ -37,6 +37,7 @@ private:
 	Ntr<NXTexture2D>					m_pTexPassIn0; // render result.
 	Ntr<NXTexture2DArray>				m_pTexPassIn1; // shadow map atlas.
 	Ntr<NXTexture2D>					m_pTexPassOut; // debug layer.
+
 	ComPtr<ID3D12GraphicsCommandList>	m_pCommandList;
 	ComPtr<ID3D12PipelineState>			m_pPSO;
 	ComPtr<ID3D12RootSignature>			m_pRootSig;

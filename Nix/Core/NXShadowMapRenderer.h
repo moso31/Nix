@@ -1,8 +1,9 @@
 #pragma once
-#include "BaseDefs/DX11.h"
+#include "BaseDefs/DX12.h"
 #include "BaseDefs/Math.h"
 #include "Ntr.h"
 #include "ShaderStructures.h"
+#include "CommittedAllocator.h"
 
 struct CBufferShadowMapObject
 {
@@ -49,21 +50,16 @@ private:
 	void UpdateShadowMapBuffer(NXPBRDistantLight* pDirLight);
 
 private:
-	ComPtr<ID3D11VertexShader>			m_pVertexShader;
-	ComPtr<ID3D11PixelShader>			m_pPixelShader;
-	ComPtr<ID3D11InputLayout>			m_pInputLayout;
-
-	ComPtr<ID3D11DepthStencilState>		m_pDepthStencilState;
-	ComPtr<ID3D11RasterizerState>		m_pRasterizerState;
-	ComPtr<ID3D11BlendState>			m_pBlendState;
+	ComPtr<ID3D12GraphicsCommandList>	m_pCommandList;
+	ComPtr<ID3D12PipelineState>			m_pPSO;
+	ComPtr<ID3D12RootSignature>			m_pRootSig;
 
 	NXScene*							m_pScene;
 
 	// 2022.5.10 阴影贴图（目前仅用于平行光）
 	Ntr<NXTexture2DArray>				m_pShadowMapDepth;
 
-	ComPtr<ID3D11Buffer>				m_cbShadowMapObject;
-	CBufferShadowMapObject				m_cbDataShadowMapObject;
+	MultiFrame<CommittedResourceData<CBufferShadowMapObject>>	m_cbShadowMapObject;
 
 	// cascade 级联数量
 	UINT m_cascadeCount;

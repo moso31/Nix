@@ -23,7 +23,7 @@ public:
 	void UpdateViewParams();
 
 	void Update() { if (m_pMaterial) m_pMaterial->Update(); }
-	virtual void Render() = 0;
+	virtual void Render(ID3D12CommandList* pCommandList) = 0;
 
 	virtual bool RayCastLocal(const Ray& localRay, NXHit& outHitInfo, float& outDist) = 0;
 	virtual void UpdateVBIB() = 0;
@@ -72,7 +72,7 @@ public:
 	NXSubMesh(NXPrimitive* pPrimitive) : NXSubMeshBase(pPrimitive) {}
 	virtual ~NXSubMesh() {}
 
-	void Render() override;
+	void Render(ID3D12CommandList* pCommandList) override;
 
 	virtual bool RayCastLocal(const Ray& localRay, NXHit& outHitInfo, float& outDist);
 

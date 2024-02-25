@@ -41,7 +41,7 @@ void NXSubMeshBase::OnReplaceFinish()
 }
 
 template<class TVertex>
-void NXSubMesh<TVertex>::Render()
+void NXSubMesh<TVertex>::Render(ID3D12CommandList* pCommandList)
 {
 	UINT stride = sizeof(TVertex);
 	UINT offset = 0;

@@ -204,7 +204,8 @@ void Renderer::RenderFrame()
 	g_pContext->RSSetViewports(1, &vpShadow);
 	m_pShadowMapRenderer->Render();
 	g_pContext->RSSetViewports(1, &vpCamera);
-	m_pShadowTestRenderer->Render(m_pShadowMapRenderer->GetShadowMapDepthTex());
+	m_pShadowTestRenderer->SetShadowMapDepth(m_pShadowMapRenderer->GetShadowMapDepthTex());
+	m_pShadowTestRenderer->Render();
 
 	// Deferred opaque shading
 	m_pDeferredRenderer->Render();

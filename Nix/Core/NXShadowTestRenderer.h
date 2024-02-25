@@ -1,10 +1,9 @@
 #pragma once
-#include "BaseDefs/DX11.h"
+#include "BaseDefs/DX12.h"
 #include "Ntr.h"
 #include "ShaderStructures.h"
 
 class NXTexture2DArray;
-class NXRenderTarget;
 class NXShadowTestRenderer
 {
 public:
@@ -12,18 +11,18 @@ public:
 	~NXShadowTestRenderer();
 
 	void Init();
-	void Render(Ntr<NXTexture2DArray> pShadowMapDepthTex);
+	void Render();
+
+	void SetShadowMapDepth(const Ntr<NXTexture2D>& pShadowMapDepth) { m_pTexPassIn1 = pShadowMapDepth; }
 
 	void Release();
 
 private:
-	ComPtr<ID3D11VertexShader>			m_pVertexShader;
-	ComPtr<ID3D11PixelShader>			m_pPixelShader;
-	ComPtr<ID3D11InputLayout>			m_pInputLayout;
+	ComPtr<ID3D12GraphicsCommandList>	m_pCommandList;
+	ComPtr<ID3D12PipelineState>			m_pPSO;
+	ComPtr<ID3D12RootSignature>			m_pRootSig;
 
-	ComPtr<ID3D11DepthStencilState>		m_pDepthStencilState;
-	ComPtr<ID3D11RasterizerState>		m_pRasterizerState;
-	ComPtr<ID3D11BlendState>			m_pBlendState;
-
-	NXRenderTarget* m_pResultRT;
+	Ntr<NXTexture2D> m_pTexPassIn0; // sceneDepth
+	Ntr<NXTexture2D> m_pTexPassIn1; // shadowMapDepth
+	Ntr<NXTexture2D> m_pTexPassOut;
 };

@@ -4,8 +4,8 @@
 #define TEST_ONLY_SIMPLE_SHADOWMAP 0
 #define TEST_SHOW_CASCADE_RANGE 0
 
-Texture2DArray txShadowMapDepth : register(t0);
-Texture2D txSceneDepth : register(t1);
+Texture2D txSceneDepth : register(t0);
+Texture2DArray txShadowMapDepth : register(t1);
 
 SamplerState ssPointClamp : register(s0);
 
