@@ -77,8 +77,8 @@ void Renderer::Init()
 	m_pForwardRenderer = new NXForwardRenderer(m_scene, m_pBRDFLut);
 	m_pForwardRenderer->Init();
 
-	m_pDepthPeelingRenderer = new NXDepthPeelingRenderer(m_scene, m_pBRDFLut);
-	m_pDepthPeelingRenderer->Init();
+	//m_pDepthPeelingRenderer = new NXDepthPeelingRenderer(m_scene, m_pBRDFLut);
+	//m_pDepthPeelingRenderer->Init();
 
 	m_pSkyRenderer = new NXSkyRenderer(m_scene);
 	m_pSkyRenderer->Init();
@@ -100,7 +100,7 @@ void Renderer::OnResize(const Vector2& rtSize)
 	NXResourceManager::GetInstance()->GetTextureManager()->ResizeCommonRT(m_viewRTSize);
 	m_pDepthPrepass->OnResize(m_viewRTSize);
 	m_pSSAO->OnResize(m_viewRTSize);
-	m_pDepthPeelingRenderer->OnResize(m_viewRTSize);
+	//m_pDepthPeelingRenderer->OnResize(m_viewRTSize);
 	m_pDebugLayerRenderer->OnResize(m_viewRTSize);
 	m_pEditorObjectRenderer->OnResize(m_viewRTSize);
 

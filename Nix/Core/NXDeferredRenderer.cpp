@@ -10,7 +10,8 @@
 #include "NXScene.h"
 #include "NXPrimitive.h"
 #include "NXCubeMap.h"
-#include "NXRenderTarget.h"
+#include "Global.h"
+#include "NXSubMeshGeometryEditor.h"
 
 NXDeferredRenderer::NXDeferredRenderer(NXScene* pScene, NXBRDFLut* pBRDFLut) :
 	m_pBRDFLut(pBRDFLut),
@@ -24,107 +25,101 @@ NXDeferredRenderer::~NXDeferredRenderer()
 
 void NXDeferredRenderer::Init()
 {
-	m_pResultRT = new NXRenderTarget();
-	m_pResultRT->Init();
+	m_pTexPassIn[0] = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer0);
+	m_pTexPassIn[1] = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer1);
+	m_pTexPassIn[2] = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer2);
+	m_pTexPassIn[3] = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer3);
+	m_pTexPassIn[4] = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
+	m_pTexPassIn[5] = m_pScene->GetCubeMap()->GetCubeMap();
+	m_pTexPassIn[6] = m_pScene->GetCubeMap()->GetPreFilterMap();
+	m_pTexPassIn[7] = m_pBRDFLut->GetTex();
+	m_pTexPassIn[8] = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_ShadowTest);
 
-	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\DeferredRender.fx", "VS", &m_pVertexShader, NXGlobalInputLayout::layoutPT, ARRAYSIZE(NXGlobalInputLayout::layoutPT), &m_pInputLayout);
-	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\DeferredRender.fx", "PS", &m_pPixelShader);
+	m_pTexPassOut[0] = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting0);
+	m_pTexPassOut[1] = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting1);
+	m_pTexPassOut[2] = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting2);
+	m_pTexPassOut[3] = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_SSSLighting);
 
-	m_pDepthStencilState = NXDepthStencilState<true, false, D3D11_COMPARISON_LESS_EQUAL>::Create();
-	m_pRasterizerState = NXRasterizerState<>::Create();
-	m_pBlendState = NXBlendState<>::Create();
+	ComPtr<ID3DBlob> pVSBlob, pPSBlob;
+	NXShaderComplier::GetInstance()->CompileVS("Shader\\DeferredRender.fx", "VS", pVSBlob.Get());
+	NXShaderComplier::GetInstance()->CompilePS("Shader\\DeferredRender.fx", "PS", pPSBlob.Get());
+
+	std::vector<D3D12_DESCRIPTOR_RANGE> ranges;
+	ranges.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 9, 0, 0)); 
+
+	// t0~t8, s0~s1, b0~b4.
+	std::vector<D3D12_ROOT_PARAMETER> rootParam;
+	rootParam.push_back(NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL));
+	rootParam.push_back(NX12Util::CreateRootParameterCBV(1, 0, D3D12_SHADER_VISIBILITY_ALL));
+	rootParam.push_back(NX12Util::CreateRootParameterCBV(2, 0, D3D12_SHADER_VISIBILITY_ALL));
+	rootParam.push_back(NX12Util::CreateRootParameterCBV(3, 0, D3D12_SHADER_VISIBILITY_ALL));
+	rootParam.push_back(NX12Util::CreateRootParameterCBV(4, 0, D3D12_SHADER_VISIBILITY_ALL));
+	rootParam.push_back(NX12Util::CreateRootParameterTable(ranges, D3D12_SHADER_VISIBILITY_ALL));
+
+	std::vector<D3D12_STATIC_SAMPLER_DESC> samplers;
+	samplers.push_back(NXStaticSamplerState<>::Create(0, 0, D3D12_SHADER_VISIBILITY_ALL));
+	samplers.push_back(NXStaticSamplerStateUVW<D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_CLAMP>::Create(1, 0, D3D12_SHADER_VISIBILITY_ALL));
+
+	m_pRootSig = NX12Util::CreateRootSignature(g_pDevice.Get(), rootParam, samplers);
+
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+	psoDesc.pRootSignature = m_pRootSig.Get();
+	psoDesc.InputLayout = { NXGlobalInputLayout::layoutPT, 1 };
+	psoDesc.BlendState = NXBlendState<>::Create();
+	psoDesc.RasterizerState = NXRasterizerState<>::Create();
+	psoDesc.DepthStencilState = NXDepthStencilState<true, false, D3D12_COMPARISON_FUNC_LESS_EQUAL>::Create();
+	psoDesc.SampleDesc.Count = 1;
+	psoDesc.SampleDesc.Quality = 0;
+	psoDesc.SampleMask = UINT_MAX;
+	psoDesc.NumRenderTargets = 1;
+	psoDesc.RTVFormats[0] = m_pTexPassOut[0]->GetFormat();
+	psoDesc.RTVFormats[1] = m_pTexPassOut[1]->GetFormat();
+	psoDesc.RTVFormats[2] = m_pTexPassOut[2]->GetFormat();
+	psoDesc.RTVFormats[3] = m_pTexPassOut[3]->GetFormat();
+	psoDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
+	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
+	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	g_pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
 }
 
 void NXDeferredRenderer::Render()
 {
-	g_pUDA->BeginEvent(L"Deferred rendering");
+	NX12Util::BeginEvent(m_pCommandList.Get(), "Deferred rendering");
 
-	g_pContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 0);
-	g_pContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xffffffff);
-	g_pContext->RSSetState(m_pRasterizerState.Get());
+	D3D12_CPU_DESCRIPTOR_HANDLE ppRTVs[] = { m_pTexPassOut[0]->GetRTV(), m_pTexPassOut[1]->GetRTV(), m_pTexPassOut[2]->GetRTV(), m_pTexPassOut[3]->GetRTV() };
+	m_pCommandList->OMSetRenderTargets(_countof(ppRTVs), ppRTVs, true, nullptr);
 
-	auto pRTVDeferredLighting = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting0)->GetRTV();
-	auto pRTVDeferredLightingEx = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting1)->GetRTV();
-	auto pRTVDeferredLightingSSSTransmit = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting2)->GetRTV();
-	auto pRTVSSSLighting = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_SSSLighting)->GetRTV();
+	m_pCommandList->SetGraphicsRootSignature(m_pRootSig.Get());
+	m_pCommandList->SetPipelineState(m_pPSO.Get());
 
-	ID3D11RenderTargetView* ppRTVs[] = {
-		pRTVDeferredLighting,
-		pRTVDeferredLightingEx,
-		pRTVDeferredLightingSSSTransmit,
-		pRTVSSSLighting,
-	};
+	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
+	D3D12_GPU_DESCRIPTOR_HANDLE srvHandle[9];
+	for (int i = 0; i < _countof(srvHandle); i++)
+		srvHandle[i] = pShaderVisibleDescriptorHeap->Append(m_pTexPassIn[i]->GetSRV());
 
-	//for (int i = 0; i < ppRTVSize ; i++) g_pContext->ClearRenderTargetView(ppRTVs[i], Colors::Black);
-	g_pContext->OMSetRenderTargets(ARRAYSIZE(ppRTVs), ppRTVs, nullptr);
+	ID3D12DescriptorHeap* ppHeaps[] = { pShaderVisibleDescriptorHeap->GetHeap() };
+	m_pCommandList->SetDescriptorHeaps(1, ppHeaps);
 
-	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
-	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
-	g_pContext->IASetInputLayout(m_pInputLayout.Get());
+	NXAllocatorManager::GetInstance()->GetCBufferAllocator()->UpdateData(NXGlobalBufferManager::m_cbDataObject.Current());
+	NXAllocatorManager::GetInstance()->GetCBufferAllocator()->UpdateData(NXGlobalBufferManager::m_cbDataCamera.Current());
+	NXAllocatorManager::GetInstance()->GetCBufferAllocator()->UpdateData(m_pScene->GetConstantBufferLights());
+	NXAllocatorManager::GetInstance()->GetCBufferAllocator()->UpdateData(m_pScene->GetCubeMap()->GetCBDataParams());
+	NXAllocatorManager::GetInstance()->GetCBufferAllocator()->UpdateData(NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfile());
 
-	auto pSampler = NXSamplerManager::Get(NXSamplerFilter::Linear, NXSamplerAddressMode::Wrap);
-	g_pContext->PSSetSamplers(0, 1, &pSampler);
-	pSampler = NXSamplerManager::Get(NXSamplerFilter::Linear, NXSamplerAddressMode::Clamp);
-	g_pContext->PSSetSamplers(1, 1, &pSampler);
+	m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBufferManager::m_cbDataObject.Current().GPUVirtualAddr);
+	m_pCommandList->SetGraphicsRootConstantBufferView(1, NXGlobalBufferManager::m_cbDataCamera.Current().GPUVirtualAddr);
+	m_pCommandList->SetGraphicsRootConstantBufferView(2, m_pScene->GetConstantBufferLights());
+	m_pCommandList->SetGraphicsRootConstantBufferView(3, m_pScene->GetCubeMap()->GetCBDataParams());
+	m_pCommandList->SetGraphicsRootConstantBufferView(4, NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfile());
+	m_pCommandList->SetGraphicsRootShaderResourceView(5, srvHandle[0].ptr);
 
-	g_pContext->VSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
-	g_pContext->PSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
-
-	auto pCbLights = m_pScene->GetConstantBufferLights();
-	auto pCubeMap = m_pScene->GetCubeMap();
-	if (pCbLights)
-		g_pContext->PSSetConstantBuffers(2, 1, &pCbLights);
-
-	if (pCubeMap)
-	{
-		auto pCubeMapSRV = pCubeMap->GetSRVCubeMap();
-		auto pPreFilterMapSRV = pCubeMap->GetSRVPreFilterMap();
-		auto pBRDF2DLUT = m_pBRDFLut->GetSRV();
-		g_pContext->PSSetShaderResources(5, 1, &pCubeMapSRV);
-		g_pContext->PSSetShaderResources(6, 1, &pPreFilterMapSRV);
-		g_pContext->PSSetShaderResources(7, 1, &pBRDF2DLUT);
-
-		auto pCBCubeMapParam = pCubeMap->GetConstantBufferParams();
-		g_pContext->PSSetConstantBuffers(3, 1, &pCBCubeMapParam);
-	}
-
-	auto& cbDiffuseProfile = NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfile();
-	g_pContext->PSSetConstantBuffers(4, 1, cbDiffuseProfile.GetAddressOf());
-
-	g_pContext->VSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbObject.GetAddressOf());
-
-	auto& pDepthZ = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
-	auto& pGBufferRTA = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer0);
-	auto& pGBufferRTB = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer1);
-	auto& pGBufferRTC = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer2);
-	auto& pGBufferRTD = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer3);
-
-	ID3D11ShaderResourceView* ppSRVs[] = {
-		pGBufferRTA->GetSRV(),
-		pGBufferRTB->GetSRV(),
-		pGBufferRTC->GetSRV(),
-		pGBufferRTD->GetSRV(),
-		pDepthZ->GetSRV(),
-	};
-
-	g_pContext->PSSetShaderResources(0, 1, &ppSRVs[0]);
-	g_pContext->PSSetShaderResources(1, 1, &ppSRVs[1]);
-	g_pContext->PSSetShaderResources(2, 1, &ppSRVs[2]);
-	g_pContext->PSSetShaderResources(3, 1, &ppSRVs[3]);
-	g_pContext->PSSetShaderResources(4, 1, &ppSRVs[4]);
-
-	auto pSRVShadowTest = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_ShadowTest)->GetSRV();
-	g_pContext->PSSetShaderResources(8, 1, &pSRVShadowTest);
-
-	m_pResultRT->Render();
-
-	ID3D11ShaderResourceView* const pNullSRV[1] = { nullptr };
-	g_pContext->PSSetShaderResources(4, 1, pNullSRV);
-
-	g_pUDA->EndEvent();
+	const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_RenderTarget");
+	m_pCommandList->IASetVertexBuffers(0, 1, &meshView.vbv);
+	m_pCommandList->IASetIndexBuffer(&meshView.ibv);
+	m_pCommandList->DrawIndexedInstanced(meshView.indexCount, 1, 0, 0, 0);
 }
 
 void NXDeferredRenderer::Release()
 {
-	SafeRelease(m_pResultRT);
 }

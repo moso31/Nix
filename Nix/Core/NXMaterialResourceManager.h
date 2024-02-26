@@ -54,8 +54,7 @@ public:
 	NXCustomMaterial* CreateCustomMaterial(const std::string& name, const std::filesystem::path& nslFilePath);
 
     Ntr<NXSSSDiffuseProfile> GetOrAddSSSProfile(const std::filesystem::path& sssProfFilePath);
-    const CBufferDiffuseProfileData& GetCBufferDiffuseProfileData() const { return m_cbDiffuseProfileData; }
-    const ComPtr<ID3D11Buffer>& GetCBufferDiffuseProfile() const { return m_cbDiffuseProfile; }
+    const MultiFrame<CommittedResourceData<CBufferDiffuseProfileData>>& GetCBufferDiffuseProfile() const { return m_cbDiffuseProfile; }
 
 	void OnReload() override;
 	void Release() override;
@@ -84,6 +83,5 @@ private:
     std::map<PathHashValue, UINT8> m_sssProfileGBufferIndexMap;
 
     // SSS profile CBuffer
-    ComPtr<ID3D11Buffer>        m_cbDiffuseProfile;
-    CBufferDiffuseProfileData   m_cbDiffuseProfileData;
+    MultiFrame<CommittedResourceData<CBufferDiffuseProfileData>> m_cbDiffuseProfile;
 };

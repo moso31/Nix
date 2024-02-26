@@ -17,6 +17,8 @@ void NXMaterialResourceManager::Init()
 
 	m_defaultDiffuseProfile = new NXSSSDiffuseProfile();
 
+	
+
 	D3D11_BUFFER_DESC bufferDesc;
 	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
 	bufferDesc.Usage = D3D11_USAGE_DEFAULT;

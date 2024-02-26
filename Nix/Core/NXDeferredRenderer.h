@@ -17,17 +17,13 @@ public:
 	void Release();
 
 private:
-	// 进行最终渲染时使用此组Shaders
-	ComPtr<ID3D11VertexShader>			m_pVertexShader; 
-	ComPtr<ID3D11PixelShader>			m_pPixelShader;
-	ComPtr<ID3D11InputLayout>			m_pInputLayout;
+	ComPtr<ID3D12GraphicsCommandList>	m_pCommandList;
+	ComPtr<ID3D12PipelineState>			m_pPSO;
+	ComPtr<ID3D12RootSignature>			m_pRootSig;
 
-	ComPtr<ID3D11DepthStencilState>		m_pDepthStencilState;
-	ComPtr<ID3D11RasterizerState>		m_pRasterizerState;
-	ComPtr<ID3D11BlendState>			m_pBlendState;
+	Ntr<NXTexture2D> 					m_pTexPassIn[9];
+	Ntr<NXTexture2D> 					m_pTexPassOut[4];
 
 	NXBRDFLut* m_pBRDFLut;
 	NXScene* m_pScene;
-
-	NXRenderTarget* m_pResultRT;
 };

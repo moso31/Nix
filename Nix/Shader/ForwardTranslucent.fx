@@ -21,12 +21,9 @@ Texture2D txNormalMap : register(t2);
 Texture2D txMetallicMap : register(t3);
 Texture2D txRoughnessMap : register(t4);
 Texture2D txAmbientOcclusionMap : register(t5);
-//Texture2D txHeightMap : register(t6);
-//TextureCube txIrradianceMap : register(t7);
-TextureCube txPreFilterMap : register(t8);
-Texture2D txBRDF2DLUT : register(t9);
-//Texture2D txShadowMap : register(t10);
-Texture2D txDepthPeeling : register(t11);
+TextureCube txPreFilterMap : register(t6);
+Texture2D txBRDF2DLUT : register(t7);
+Texture2D txDepthPeeling : register(t8);
 
 SamplerState ssLinearWrap : register(s0);
 SamplerState ssLinearClamp : register(s1);

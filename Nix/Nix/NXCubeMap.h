@@ -71,6 +71,10 @@ public:
 	D3D12_CPU_DESCRIPTOR_HANDLE GetSRVIrradianceMap();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetSRVPreFilterMap();
 
+	const Ntr<NXTexture2D>& GetCubeMap() { return m_pTexCubeMap; }
+	const Ntr<NXTexture2D>& GetIrradianceMap() { return m_pTexIrradianceMap; }
+	const Ntr<NXTexture2D>& GetPreFilterMap() { return m_pTexPreFilterMap; }
+
 	D3D12_GPU_VIRTUAL_ADDRESS GetCBDataParams() { return m_cbData.GPUVirtualAddr; }
 
 	void SetIntensity(float val) { m_cbData.data.intensity = val; }

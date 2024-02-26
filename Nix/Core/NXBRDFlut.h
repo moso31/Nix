@@ -12,12 +12,12 @@ public:
 	void Init();
 	void Release();
 
+	const Ntr<NXTexture2D> GetTex() const { return m_pTexBRDFLUT; }
+
 private:
 	void InitVertex();
 	void InitRootSignature();
 	void DrawBRDFLUT();
-
-	D3D12_CPU_DESCRIPTOR_HANDLE GetSRV() { return m_pTexBRDFLUT->GetSRV(); }
 
 private:
 	const float m_mapSize = 512.0f;

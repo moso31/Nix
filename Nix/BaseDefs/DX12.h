@@ -14,7 +14,7 @@ using namespace Microsoft::WRL;
 
 #define MultiFrameSets_swapChainCount 3 // 使用三缓冲
 
-class MultiFrameSets
+class MultiFrameSets 
 {
 public:
 	static UINT8 swapChainIndex; // 静态变量，用于存储当前帧的索引
