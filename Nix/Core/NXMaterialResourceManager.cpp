@@ -6,6 +6,7 @@
 #include "NXSubMesh.h"
 #include "NXHLSLGenerator.h"
 #include "NXSSSDiffuseProfile.h"
+#include "NXAllocatorManager.h"
 
 void NXMaterialResourceManager::Init()
 {
@@ -17,15 +18,8 @@ void NXMaterialResourceManager::Init()
 
 	m_defaultDiffuseProfile = new NXSSSDiffuseProfile();
 
-	
-
-	D3D11_BUFFER_DESC bufferDesc;
-	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(CBufferDiffuseProfileData);
-	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bufferDesc.CPUAccessFlags = 0;
-	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbDiffuseProfile));
+	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
+		NXAllocatorManager::GetInstance()->GetCBufferAllocator()->Alloc(ResourceType_Upload, m_cbDiffuseProfile.Get(i));
 }
 
 void NXMaterialResourceManager::RegisterMaterial(NXMaterial* newMaterial)
@@ -164,10 +158,10 @@ void NXMaterialResourceManager::AdjustDiffuseProfileRenderData(PathHashValue pat
 	Vector3 scatterDistance = pProfile->GetScatter() * pProfile->GetScatterDistance() * scaleFactor;
 	float maxScatterDistance = scatterDistance.MaxComponent();
 	
-	m_cbDiffuseProfileData.sssProfData[sssGBufferIndex].scatterParam = scatterDistance.Reciprocal();
-	m_cbDiffuseProfileData.sssProfData[sssGBufferIndex].maxScatterDist = 1.0f / maxScatterDistance; // is rcp of dist actually!
-	m_cbDiffuseProfileData.sssProfData[sssGBufferIndex].transmit = pProfile->GetTransmit();
-	m_cbDiffuseProfileData.sssProfData[sssGBufferIndex].transmitStrength = pProfile->GetTransmitStrength();
+	m_cbDiffuseProfile.Current().data.sssProfData[sssGBufferIndex].scatterParam = scatterDistance.Reciprocal();
+	m_cbDiffuseProfile.Current().data.sssProfData[sssGBufferIndex].maxScatterDist = 1.0f / maxScatterDistance; // is rcp of dist actually!
+	m_cbDiffuseProfile.Current().data.sssProfData[sssGBufferIndex].transmit = pProfile->GetTransmit();
+	m_cbDiffuseProfile.Current().data.sssProfData[sssGBufferIndex].transmitStrength = pProfile->GetTransmitStrength();
 
-	g_pContext->UpdateSubresource(m_cbDiffuseProfile.Get(), 0, nullptr, &m_cbDiffuseProfileData, 0, 0);
+	NXAllocatorManager::GetInstance()->GetCBufferAllocator()->UpdateData(m_cbDiffuseProfile.Current());
 }

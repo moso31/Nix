@@ -29,12 +29,9 @@ void NXSubSurfaceRenderer::Init()
 	m_pTexPassOut = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_SSSLighting);
 	m_pTexDepth = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
 
-	// t0~t5, s0, b0~b3
+	// t0~t5, s0, b3
 	std::vector<D3D12_DESCRIPTOR_RANGE> ranges = { NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 6, 0) };
 	std::vector<D3D12_ROOT_PARAMETER> rootParam = {
-		NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL),
-		NX12Util::CreateRootParameterCBV(1, 0, D3D12_SHADER_VISIBILITY_ALL),
-		NX12Util::CreateRootParameterCBV(2, 0, D3D12_SHADER_VISIBILITY_ALL),
 		NX12Util::CreateRootParameterCBV(3, 0, D3D12_SHADER_VISIBILITY_ALL),
 		NX12Util::CreateRootParameterTable(ranges, D3D12_SHADER_VISIBILITY_ALL),
 	};
@@ -56,7 +53,7 @@ void NXSubSurfaceRenderer::Init()
 	psoDesc.SampleDesc.Quality = 0;
 	psoDesc.SampleMask = UINT_MAX;
 	psoDesc.NumRenderTargets = 1;
-	psoDesc.RTVFormats[0] = m_pTexPassOut[0]->GetFormat();
+	psoDesc.RTVFormats[0] = m_pTexPassOut->GetFormat();
 	psoDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
@@ -74,45 +71,24 @@ void NXSubSurfaceRenderer::Render()
 
 void NXSubSurfaceRenderer::RenderSSSSS()
 {
-	auto& cbDiffuseProfile = NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfile();
-	g_pContext->PSSetConstantBuffers(3, 1, cbDiffuseProfile.GetAddressOf());
+	m_pCommandList->OMSetStencilRef(0x01);
 
-	auto pCBLight = m_pScene->GetConstantBufferLights();
-	g_pContext->PSSetConstantBuffers(2, 1, &pCBLight);
+	m_pCommandList->OMSetRenderTargets(1, &m_pTexPassOut->GetRTV(), false, nullptr);
+	m_pCommandList->SetGraphicsRootSignature(m_pRootSig.Get());
+	m_pCommandList->SetPipelineState(m_pPSO.Get());
 
-	g_pContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 0x01);
-	g_pContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xffffffff);
-	g_pContext->RSSetState(m_pRasterizerState.Get());
+	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
+	D3D12_GPU_DESCRIPTOR_HANDLE srvHandle[6];
+	for (int i = 0; i < _countof(srvHandle); i++)
+		srvHandle[i] = pShaderVisibleDescriptorHeap->Append(m_pTexPassIn[i]->GetSRV());
 
-	ID3D11ShaderResourceView* pSRVIrradiance	= NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting0)->GetSRV();
-	ID3D11ShaderResourceView* pSRVSpecLighting	= NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting1)->GetSRV();
-	ID3D11ShaderResourceView* pSRVSSSTransmit	= NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting2)->GetSRV();
-	ID3D11ShaderResourceView* pSRVNormal		= NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer1)->GetSRV();
-	ID3D11ShaderResourceView* pSRVDepthZ		= NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ_R32)->GetSRV();
-	ID3D11ShaderResourceView* pSRVNoiseGray		= NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_Noise2DGray_64x64)->GetSRV();
-	ID3D11DepthStencilView* pDSVDepthZ			= NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ)->GetDSV();
-	ID3D11RenderTargetView* pRTVBurleySSSOut	= NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_SSSLighting)->GetRTV();
+	ID3D12DescriptorHeap* ppHeaps[] = { pShaderVisibleDescriptorHeap->GetHeap() };
+	m_pCommandList->SetDescriptorHeaps(1, ppHeaps);
 
-	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
-	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
-	g_pContext->IASetInputLayout(m_pInputLayout.Get());
+	m_pCommandList->SetGraphicsRootConstantBufferView(0, NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfile());
+	m_pCommandList->SetGraphicsRootDescriptorTable(1, srvHandle[0]);
 
-	g_pContext->OMSetRenderTargets(1, &pRTVBurleySSSOut, pDSVDepthZ);
-
-	auto pSampler = NXSamplerManager::Get(NXSamplerFilter::Linear, NXSamplerAddressMode::Clamp);
-	g_pContext->PSSetSamplers(0, 1, &pSampler);
-
-	g_pContext->PSSetShaderResources(0, 1, &pSRVIrradiance);
-	g_pContext->PSSetShaderResources(1, 1, &pSRVSpecLighting);
-	g_pContext->PSSetShaderResources(2, 1, &pSRVSSSTransmit);
-	g_pContext->PSSetShaderResources(3, 1, &pSRVNormal);
-	g_pContext->PSSetShaderResources(4, 1, &pSRVDepthZ);
-	g_pContext->PSSetShaderResources(5, 1, &pSRVNoiseGray);
-
-	m_pResultRT->Render();
-
-	ID3D11ShaderResourceView* const pNullSRV[6] = { nullptr };
-	g_pContext->PSSetShaderResources(0, 6, pNullSRV);
+	m_pCommandList->OMSetStencilRef(0x00);
 }
 
 void NXSubSurfaceRenderer::Release()
