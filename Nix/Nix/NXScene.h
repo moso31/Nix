@@ -1,6 +1,6 @@
 #pragma once
 #include "BaseDefs/Math.h"
-#include "BaseDefs/DX11.h"
+#include "BaseDefs/DX12.h"
 
 #include "NXEvent.h"
 #include "NXObject.h"

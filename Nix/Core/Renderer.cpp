@@ -1,5 +1,6 @@
 #include "Renderer.h"
 #include "NXTimer.h"
+#include "Global.h"
 #include "DirectResources.h"
 #include "ShaderComplier.h"
 #include "NXEvent.h"
@@ -12,7 +13,6 @@
 #include "NXCubeMap.h"
 #include "NXDepthPrepass.h"
 #include "NXSimpleSSAO.h"
-#include "NXSamplerStates.h"
 #include "NXAllocatorManager.h"
 
 Renderer::Renderer() :
@@ -27,7 +27,6 @@ void Renderer::Init()
 
 	NXGlobalInputLayout::Init();
 	NXGlobalBufferManager::Init();
-	NXSamplerManager::Init();
 
 	// äÖÈ¾Æ÷
 	InitRenderer();
@@ -171,7 +170,7 @@ void Renderer::UpdateTime()
 	size_t globalTime = g_timer->GetGlobalTime();
 	float fGlobalTime = globalTime / 1000.0f;
 
-	NXGlobalBufferManager::m_cbDataObject.globalData.time = fGlobalTime;
+	NXGlobalBufferManager::m_cbDataObject.Current().data.globalData.time = fGlobalTime;
 }
 
 void Renderer::RenderFrame()
@@ -179,13 +178,12 @@ void Renderer::RenderFrame()
 	auto& pSceneRT = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting0);
 	if (pSceneRT.IsNull()) return;
 
-	g_pUDA->BeginEvent(L"Render Scene");
+	NX12Util::BeginEvent(m_pCommandList.Get(), "Render Scene");
 
 	// ÉèÖÃÊÓ¿Ú
-	CD3D11_VIEWPORT vpCamera(0.0f, 0.0f, m_viewRTSize.x, m_viewRTSize.y);
-	g_pContext->RSSetViewports(1, &vpCamera);
-
-	g_pContext->ClearRenderTargetView(pSceneRT->GetRTV(), Colors::Black);
+	auto vpCamera = NX12Util::ViewPort(m_viewRTSize.x, m_viewRTSize.y);
+	m_pCommandList->RSSetViewports(1, &vpCamera);
+	m_pCommandList->ClearRenderTargetView(pSceneRT->GetRTV(), Colors::Black, 0, nullptr);
 
 	//m_pDepthPrepass->Render();
 
@@ -200,10 +198,10 @@ void Renderer::RenderFrame()
 	m_pDepthRenderer->Render();
 
 	// Shadow Map
-	CD3D11_VIEWPORT vpShadow(0.0f, 0.0f, 2048, 2048);
-	g_pContext->RSSetViewports(1, &vpShadow);
+	auto vpShadow = NX12Util::ViewPort(2048, 2048);
+	m_pCommandList->RSSetViewports(1, &vpShadow);
 	m_pShadowMapRenderer->Render();
-	g_pContext->RSSetViewports(1, &vpCamera);
+	m_pCommandList->RSSetViewports(1, &vpCamera);
 	m_pShadowTestRenderer->SetShadowMapDepth(m_pShadowMapRenderer->GetShadowMapDepthTex());
 	m_pShadowTestRenderer->Render();
 
@@ -238,7 +236,7 @@ void Renderer::RenderFrame()
 	m_pFinalRT = bEnableDebugLayer ? m_pDebugLayerRenderer->GetDebugLayerTex() :
 		NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_PostProcessing);
 
-	g_pUDA->EndEvent();
+	NX12Util::EndEvent();
 }
 
 void Renderer::RenderGUI()
@@ -262,7 +260,7 @@ void Renderer::Release()
 	SafeRelease(m_pDeferredRenderer);
 	SafeRelease(m_pSubSurfaceRenderer);
 	SafeRelease(m_pForwardRenderer);
-	SafeRelease(m_pDepthPeelingRenderer);
+	//SafeRelease(m_pDepthPeelingRenderer);
 	SafeRelease(m_pSkyRenderer);
 	SafeRelease(m_pColorMappingRenderer);
 
@@ -272,8 +270,6 @@ void Renderer::Release()
 
 void Renderer::ClearAllPSResources()
 {
-	ID3D11ShaderResourceView* const pNullSRV[64] = { nullptr };
-	g_pContext->PSSetShaderResources(0, 64, pNullSRV);
 }
 
 void Renderer::DrawDepthPrepass()

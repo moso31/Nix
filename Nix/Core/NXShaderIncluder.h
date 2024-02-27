@@ -1,5 +1,5 @@
 #pragma once
-#include "BaseDefs/DX11.h"
+#include "BaseDefs/DX12.h"
 #include "BaseDefs/CppSTLFully.h"
 
 class NXFullyIncludeHandler : public ID3DInclude

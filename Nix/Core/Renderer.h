@@ -69,6 +69,7 @@ private:
 
 private:
 	Vector2								m_viewRTSize;
+	ComPtr<ID3D12GraphicsCommandList>	m_pCommandList;
 
 	NXBRDFLut*							m_pBRDFLut;
 
@@ -81,7 +82,7 @@ private:
 	NXDeferredRenderer*					m_pDeferredRenderer;
 	NXSubSurfaceRenderer*				m_pSubSurfaceRenderer;
 	NXForwardRenderer*					m_pForwardRenderer;
-	NXDepthPeelingRenderer*				m_pDepthPeelingRenderer;
+	//NXDepthPeelingRenderer*				m_pDepthPeelingRenderer;
 	NXSkyRenderer*						m_pSkyRenderer;
 	NXColorMappingRenderer*				m_pColorMappingRenderer;
 	NXSimpleSSAO*						m_pSSAO;
