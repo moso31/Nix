@@ -1,6 +1,7 @@
 #pragma once
-#include "NXResourceManagerBase.h"
+#include "BaseDefs/DX12.h"
 #include "BaseDefs/Math.h"
+#include "NXResourceManagerBase.h"
 
 using namespace DirectX::SimpleMath;
 

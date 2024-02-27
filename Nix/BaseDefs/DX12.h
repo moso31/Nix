@@ -44,7 +44,8 @@ class NX12Util
 {
 public:
 	static void CreateCommands(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE type, ID3D12CommandQueue* oCmdQueue, ID3D12CommandAllocator* oCmdAllocator, ID3D12GraphicsCommandList* oCmdList, bool disableGPUTimeOut = false);
-	static ID3D12CommandQueue* CreateCommandQueue(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE type);
+	static ID3D12CommandQueue* CreateCommandQueue(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE type, bool disableGPUTimeOut = false);
+	static ID3D12CommandAllocator* CreateCommandAllocator(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE type);
 	static ID3D12CommandList* CreateCommandList(ID3D12Device* pDevice, ID3D12CommandAllocator* oCmdAllocator, D3D12_COMMAND_LIST_TYPE type, UINT nodeMask = 0, ID3D12PipelineState* InitState = nullptr);
 
 	static ID3D12Resource* CreateBuffer(ID3D12Device* pDevice, const std::string& name, UINT sizeOfByte, D3D12_HEAP_TYPE heapType);

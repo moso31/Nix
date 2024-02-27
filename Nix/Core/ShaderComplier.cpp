@@ -77,180 +77,180 @@ HRESULT NXShaderComplier::CompilePS(const std::filesystem::path& shaderFilePath,
 
 	return S_OK;
 }
-
-HRESULT NXShaderComplier::CompileVSIL(const std::filesystem::path& shaderFilePath, const std::string& mainFuncEntryPoint, ID3D11VertexShader** ppOutVS, const D3D11_INPUT_ELEMENT_DESC* pILDescs, UINT numElementsOfIL, ID3D11InputLayout** ppOutIL, std::string& oErrorMessage, bool clearDefineMacros)
-{
-	ComPtr<ID3DBlob> pBlob;
-	HRESULT hr = S_OK;
-
-	if (!m_defineMacros.empty())
-	{
-		// 补一个空 shader macro, 否则会报错
-		m_defineMacros.push_back(CD3D_SHADER_MACRO(nullptr, nullptr));
-	}
-
-	ComPtr<ID3DBlob> pErrorBlob;
-	hr = D3DCompileFromFile(shaderFilePath.c_str(), m_defineMacros.data(), m_pd3dInclude, mainFuncEntryPoint.c_str(), s_smVersionVS.c_str(),
-		m_shaderFlags, m_shaderFlags2, &pBlob, &pErrorBlob);
-	if (FAILED(hr))
-	{
-		if (pErrorBlob)
-		{
-			oErrorMessage = reinterpret_cast<const char*>(pErrorBlob->GetBufferPointer());
-			OutputDebugStringA(oErrorMessage.c_str());
-		}
-		return hr;
-	}
-
-	std::wstring errorMessage = L"shader " + shaderFilePath.wstring() + L" cannot be compiled.  Please run this executable from the directory that contains the FX file.";
-	NX::MessageBoxIfFailed(hr, errorMessage.c_str());
-
-	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, ppOutVS));
-
-	if (clearDefineMacros) ClearMacros();
-
-	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(pILDescs, numElementsOfIL, pBlob->GetBufferPointer(), pBlob->GetBufferSize(), ppOutIL));
-
-	return S_OK;
-}
-
-HRESULT NXShaderComplier::CompileVSILByCode(const std::string& shaderCode, const std::string& mainFuncEntryPoint, ID3D11VertexShader** ppOutVS, const D3D11_INPUT_ELEMENT_DESC* pILDescs, UINT numElementsOfIL, ID3D11InputLayout** ppOutIL, std::string& oErrorMessage, bool clearDefineMacros)
-{
-	ComPtr<ID3DBlob> pBlob;
-	HRESULT hr = S_OK;
-
-	if (!m_defineMacros.empty())
-	{
-		// 补一个空 shader macro, 否则会报错
-		m_defineMacros.push_back(CD3D_SHADER_MACRO(nullptr, nullptr));
-	}
-
-	ComPtr<ID3DBlob> pErrorBlob;
-	hr = D3DCompile(shaderCode.c_str(), shaderCode.size(), nullptr, m_defineMacros.data(), m_pd3dInclude, mainFuncEntryPoint.c_str(), s_smVersionVS.c_str(),
-		m_shaderFlags, m_shaderFlags2, &pBlob, &pErrorBlob);
-	if (FAILED(hr))
-	{
-		if (pErrorBlob)
-		{
-			oErrorMessage = reinterpret_cast<const char*>(pErrorBlob->GetBufferPointer());
-			OutputDebugStringA(oErrorMessage.c_str());
-		}
-		return hr;
-	}
-
-	std::wstring errorMessage = L"shader [CUSTOMCODE] cannot be compiled.  Please run this executable from the directory that contains the FX file.";
-	NX::MessageBoxIfFailed(hr, errorMessage.c_str());
-
-	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, ppOutVS));
-
-	if (clearDefineMacros) ClearMacros();
-
-	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(pILDescs, numElementsOfIL, pBlob->GetBufferPointer(), pBlob->GetBufferSize(), ppOutIL));
-
-	return S_OK;
-}
-
-HRESULT NXShaderComplier::CompilePS(const std::filesystem::path& shaderFilePath, const std::string& mainFuncEntryPoint, ID3D11PixelShader** ppOutPS, std::string& oErrorMessage, bool clearDefineMacros)
-{
-	ComPtr<ID3DBlob> pBlob;
-	HRESULT hr = S_OK;
-
-	if (!m_defineMacros.empty())
-	{
-		// 补一个空 shader macro, 否则会报错
-		m_defineMacros.push_back(CD3D_SHADER_MACRO(nullptr, nullptr));
-	}
-
-	ComPtr<ID3DBlob> pErrorBlob;
-	hr = D3DCompileFromFile(shaderFilePath.c_str(), m_defineMacros.data(), m_pd3dInclude, mainFuncEntryPoint.c_str(), s_smVersionPS.c_str(),
-		m_shaderFlags, m_shaderFlags2, &pBlob, &pErrorBlob);
-	if (FAILED(hr))
-	{
-		if (pErrorBlob)
-		{
-			oErrorMessage = reinterpret_cast<const char*>(pErrorBlob->GetBufferPointer());
-			OutputDebugStringA(oErrorMessage.c_str());
-		}
-		return hr;
-	}
-
-	std::wstring errorMessage = L"shader " + shaderFilePath.wstring() + L" cannot be compiled.  Please run this executable from the directory that contains the FX file.";
-	NX::MessageBoxIfFailed(hr, errorMessage.c_str());
-
-	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, ppOutPS));
-
-	if (clearDefineMacros) ClearMacros();
-
-	return S_OK;
-}
-
-HRESULT NXShaderComplier::CompilePSByCode(const std::string& shaderCode, const std::string& mainFuncEntryPoint, ID3D11PixelShader** ppOutPS, std::string& oErrorMessage, bool clearDefineMacros)
-{
-	ComPtr<ID3DBlob> pBlob;
-	HRESULT hr = S_OK;
-
-	if (!m_defineMacros.empty())
-	{
-		// 补一个空 shader macro, 否则会报错
-		m_defineMacros.push_back(CD3D_SHADER_MACRO(nullptr, nullptr));
-	}
-
-	ComPtr<ID3DBlob> pErrorBlob;
-	hr = D3DCompile(shaderCode.c_str(), shaderCode.size(), nullptr, m_defineMacros.data(), m_pd3dInclude, mainFuncEntryPoint.c_str(), s_smVersionPS.c_str(),
-		m_shaderFlags, m_shaderFlags2, &pBlob, &pErrorBlob);
-	if (FAILED(hr))
-	{
-		if (pErrorBlob)
-		{
-			oErrorMessage = reinterpret_cast<const char*>(pErrorBlob->GetBufferPointer());
-			OutputDebugStringA(oErrorMessage.c_str());
-		}
-		return hr;
-	}
-
-	std::wstring errorMessage = L"shader [CUSTOMCODE] cannot be compiled.  Please run this executable from the directory that contains the FX file.";
-	NX::MessageBoxIfFailed(hr, errorMessage.c_str());
-
-	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, ppOutPS));
-
-	if (clearDefineMacros) ClearMacros();
-
-	return S_OK;
-}
-
-HRESULT NXShaderComplier::CompileCS(const std::filesystem::path& shaderFilePath, const std::string& mainFuncEntryPoint, ID3D11ComputeShader** ppOutCS, std::string& oErrorMessage, bool clearDefineMacros)
-{
-	ComPtr<ID3DBlob> pBlob;
-	HRESULT hr = S_OK;
-
-	if (!m_defineMacros.empty()) 
-	{ 
-		// 补一个空 shader macro, 否则会报错
-		m_defineMacros.push_back(CD3D_SHADER_MACRO(nullptr, nullptr)); 
-	}
-
-	ComPtr<ID3DBlob> pErrorBlob;
-	hr = D3DCompileFromFile(shaderFilePath.c_str(), m_defineMacros.data(), m_pd3dInclude, mainFuncEntryPoint.c_str(), s_smVersionCS.c_str(),
-		m_shaderFlags, m_shaderFlags2, &pBlob, &pErrorBlob);
-	if (FAILED(hr))
-	{
-		if (pErrorBlob)
-		{
-			oErrorMessage = reinterpret_cast<const char*>(pErrorBlob->GetBufferPointer());
-			OutputDebugStringA(oErrorMessage.c_str());
-		}
-		return hr;
-	}
-
-	std::wstring errorMessage = L"shader " + shaderFilePath.wstring() + L" cannot be compiled.  Please run this executable from the directory that contains the FX file.";
-	NX::MessageBoxIfFailed(hr, errorMessage.c_str());
-
-	NX::ThrowIfFailed(g_pDevice->CreateComputeShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, ppOutCS));
-
-	if (clearDefineMacros) ClearMacros();
-
-	return S_OK;
-}
+//
+//HRESULT NXShaderComplier::CompileVSIL(const std::filesystem::path& shaderFilePath, const std::string& mainFuncEntryPoint, ID3D11VertexShader** ppOutVS, const D3D11_INPUT_ELEMENT_DESC* pILDescs, UINT numElementsOfIL, ID3D11InputLayout** ppOutIL, std::string& oErrorMessage, bool clearDefineMacros)
+//{
+//	ComPtr<ID3DBlob> pBlob;
+//	HRESULT hr = S_OK;
+//
+//	if (!m_defineMacros.empty())
+//	{
+//		// 补一个空 shader macro, 否则会报错
+//		m_defineMacros.push_back(CD3D_SHADER_MACRO(nullptr, nullptr));
+//	}
+//
+//	ComPtr<ID3DBlob> pErrorBlob;
+//	hr = D3DCompileFromFile(shaderFilePath.c_str(), m_defineMacros.data(), m_pd3dInclude, mainFuncEntryPoint.c_str(), s_smVersionVS.c_str(),
+//		m_shaderFlags, m_shaderFlags2, &pBlob, &pErrorBlob);
+//	if (FAILED(hr))
+//	{
+//		if (pErrorBlob)
+//		{
+//			oErrorMessage = reinterpret_cast<const char*>(pErrorBlob->GetBufferPointer());
+//			OutputDebugStringA(oErrorMessage.c_str());
+//		}
+//		return hr;
+//	}
+//
+//	std::wstring errorMessage = L"shader " + shaderFilePath.wstring() + L" cannot be compiled.  Please run this executable from the directory that contains the FX file.";
+//	NX::MessageBoxIfFailed(hr, errorMessage.c_str());
+//
+//	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, ppOutVS));
+//
+//	if (clearDefineMacros) ClearMacros();
+//
+//	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(pILDescs, numElementsOfIL, pBlob->GetBufferPointer(), pBlob->GetBufferSize(), ppOutIL));
+//
+//	return S_OK;
+//}
+//
+//HRESULT NXShaderComplier::CompileVSILByCode(const std::string& shaderCode, const std::string& mainFuncEntryPoint, ID3D11VertexShader** ppOutVS, const D3D11_INPUT_ELEMENT_DESC* pILDescs, UINT numElementsOfIL, ID3D11InputLayout** ppOutIL, std::string& oErrorMessage, bool clearDefineMacros)
+//{
+//	ComPtr<ID3DBlob> pBlob;
+//	HRESULT hr = S_OK;
+//
+//	if (!m_defineMacros.empty())
+//	{
+//		// 补一个空 shader macro, 否则会报错
+//		m_defineMacros.push_back(CD3D_SHADER_MACRO(nullptr, nullptr));
+//	}
+//
+//	ComPtr<ID3DBlob> pErrorBlob;
+//	hr = D3DCompile(shaderCode.c_str(), shaderCode.size(), nullptr, m_defineMacros.data(), m_pd3dInclude, mainFuncEntryPoint.c_str(), s_smVersionVS.c_str(),
+//		m_shaderFlags, m_shaderFlags2, &pBlob, &pErrorBlob);
+//	if (FAILED(hr))
+//	{
+//		if (pErrorBlob)
+//		{
+//			oErrorMessage = reinterpret_cast<const char*>(pErrorBlob->GetBufferPointer());
+//			OutputDebugStringA(oErrorMessage.c_str());
+//		}
+//		return hr;
+//	}
+//
+//	std::wstring errorMessage = L"shader [CUSTOMCODE] cannot be compiled.  Please run this executable from the directory that contains the FX file.";
+//	NX::MessageBoxIfFailed(hr, errorMessage.c_str());
+//
+//	NX::ThrowIfFailed(g_pDevice->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, ppOutVS));
+//
+//	if (clearDefineMacros) ClearMacros();
+//
+//	NX::ThrowIfFailed(g_pDevice->CreateInputLayout(pILDescs, numElementsOfIL, pBlob->GetBufferPointer(), pBlob->GetBufferSize(), ppOutIL));
+//
+//	return S_OK;
+//}
+//
+//HRESULT NXShaderComplier::CompilePS(const std::filesystem::path& shaderFilePath, const std::string& mainFuncEntryPoint, ID3D11PixelShader** ppOutPS, std::string& oErrorMessage, bool clearDefineMacros)
+//{
+//	ComPtr<ID3DBlob> pBlob;
+//	HRESULT hr = S_OK;
+//
+//	if (!m_defineMacros.empty())
+//	{
+//		// 补一个空 shader macro, 否则会报错
+//		m_defineMacros.push_back(CD3D_SHADER_MACRO(nullptr, nullptr));
+//	}
+//
+//	ComPtr<ID3DBlob> pErrorBlob;
+//	hr = D3DCompileFromFile(shaderFilePath.c_str(), m_defineMacros.data(), m_pd3dInclude, mainFuncEntryPoint.c_str(), s_smVersionPS.c_str(),
+//		m_shaderFlags, m_shaderFlags2, &pBlob, &pErrorBlob);
+//	if (FAILED(hr))
+//	{
+//		if (pErrorBlob)
+//		{
+//			oErrorMessage = reinterpret_cast<const char*>(pErrorBlob->GetBufferPointer());
+//			OutputDebugStringA(oErrorMessage.c_str());
+//		}
+//		return hr;
+//	}
+//
+//	std::wstring errorMessage = L"shader " + shaderFilePath.wstring() + L" cannot be compiled.  Please run this executable from the directory that contains the FX file.";
+//	NX::MessageBoxIfFailed(hr, errorMessage.c_str());
+//
+//	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, ppOutPS));
+//
+//	if (clearDefineMacros) ClearMacros();
+//
+//	return S_OK;
+//}
+//
+//HRESULT NXShaderComplier::CompilePSByCode(const std::string& shaderCode, const std::string& mainFuncEntryPoint, ID3D11PixelShader** ppOutPS, std::string& oErrorMessage, bool clearDefineMacros)
+//{
+//	ComPtr<ID3DBlob> pBlob;
+//	HRESULT hr = S_OK;
+//
+//	if (!m_defineMacros.empty())
+//	{
+//		// 补一个空 shader macro, 否则会报错
+//		m_defineMacros.push_back(CD3D_SHADER_MACRO(nullptr, nullptr));
+//	}
+//
+//	ComPtr<ID3DBlob> pErrorBlob;
+//	hr = D3DCompile(shaderCode.c_str(), shaderCode.size(), nullptr, m_defineMacros.data(), m_pd3dInclude, mainFuncEntryPoint.c_str(), s_smVersionPS.c_str(),
+//		m_shaderFlags, m_shaderFlags2, &pBlob, &pErrorBlob);
+//	if (FAILED(hr))
+//	{
+//		if (pErrorBlob)
+//		{
+//			oErrorMessage = reinterpret_cast<const char*>(pErrorBlob->GetBufferPointer());
+//			OutputDebugStringA(oErrorMessage.c_str());
+//		}
+//		return hr;
+//	}
+//
+//	std::wstring errorMessage = L"shader [CUSTOMCODE] cannot be compiled.  Please run this executable from the directory that contains the FX file.";
+//	NX::MessageBoxIfFailed(hr, errorMessage.c_str());
+//
+//	NX::ThrowIfFailed(g_pDevice->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, ppOutPS));
+//
+//	if (clearDefineMacros) ClearMacros();
+//
+//	return S_OK;
+//}
+//
+//HRESULT NXShaderComplier::CompileCS(const std::filesystem::path& shaderFilePath, const std::string& mainFuncEntryPoint, ID3D11ComputeShader** ppOutCS, std::string& oErrorMessage, bool clearDefineMacros)
+//{
+//	ComPtr<ID3DBlob> pBlob;
+//	HRESULT hr = S_OK;
+//
+//	if (!m_defineMacros.empty()) 
+//	{ 
+//		// 补一个空 shader macro, 否则会报错
+//		m_defineMacros.push_back(CD3D_SHADER_MACRO(nullptr, nullptr)); 
+//	}
+//
+//	ComPtr<ID3DBlob> pErrorBlob;
+//	hr = D3DCompileFromFile(shaderFilePath.c_str(), m_defineMacros.data(), m_pd3dInclude, mainFuncEntryPoint.c_str(), s_smVersionCS.c_str(),
+//		m_shaderFlags, m_shaderFlags2, &pBlob, &pErrorBlob);
+//	if (FAILED(hr))
+//	{
+//		if (pErrorBlob)
+//		{
+//			oErrorMessage = reinterpret_cast<const char*>(pErrorBlob->GetBufferPointer());
+//			OutputDebugStringA(oErrorMessage.c_str());
+//		}
+//		return hr;
+//	}
+//
+//	std::wstring errorMessage = L"shader " + shaderFilePath.wstring() + L" cannot be compiled.  Please run this executable from the directory that contains the FX file.";
+//	NX::MessageBoxIfFailed(hr, errorMessage.c_str());
+//
+//	NX::ThrowIfFailed(g_pDevice->CreateComputeShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, ppOutCS));
+//
+//	if (clearDefineMacros) ClearMacros();
+//
+//	return S_OK;
+//}
 
 void NXShaderComplier::AddMacro(const CD3D_SHADER_MACRO& macro)
 {

@@ -12,11 +12,22 @@ void NX12Util::CreateCommands(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE typ
 	hr = pDevice->CreateCommandList(0, type, oCmdAllocator, nullptr, IID_PPV_ARGS(&oCmdList));
 }
 
-ID3D12CommandQueue* NX12Util::CreateCommandQueue(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE type)
+ID3D12CommandQueue* NX12Util::CreateCommandQueue(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE type, bool disableGPUTimeOut)
 {
+	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
+	queueDesc.Type = type;
+	queueDesc.Flags = disableGPUTimeOut ? D3D12_COMMAND_QUEUE_FLAG_DISABLE_GPU_TIMEOUT : D3D12_COMMAND_QUEUE_FLAG_NONE;
+
 	ID3D12CommandQueue* pCmdQueue;
-	HRESULT hr = pDevice->CreateCommandAllocator(type, IID_PPV_ARGS(&pCmdQueue));
+	HRESULT hr = pDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&pCmdQueue));
 	return pCmdQueue;
+}
+
+ID3D12CommandAllocator* NX12Util::CreateCommandAllocator(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE type)
+{
+	ID3D12CommandAllocator* pCmdAllocator;
+	HRESULT hr = pDevice->CreateCommandAllocator(type, IID_PPV_ARGS(&pCmdAllocator));
+	return pCmdAllocator;
 }
 
 ID3D12CommandList* NX12Util::CreateCommandList(ID3D12Device* pDevice, ID3D12CommandAllocator* oCmdAllocator, D3D12_COMMAND_LIST_TYPE type, UINT nodeMask, ID3D12PipelineState* InitState)

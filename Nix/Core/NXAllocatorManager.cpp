@@ -1,14 +1,18 @@
 #include "NXAllocatorManager.h"
 
-void NXAllocatorManager::Init()
+void NXAllocatorManager::Init(ID3D12Device* pDevice)
 {
-	m_pCBufferAllocator = new CommittedAllocator(m_pDevice, 256);
-	m_pTextureAllocator = new PlacedAllocator(m_pDevice, 256);
-	m_pDescriptorAllocator = new DescriptorAllocator(m_pDevice);
-	m_pRTVAllocator = new RTVAllocator(m_pDevice);
-	m_pDSVAllocator = new DSVAllocator(m_pDevice);
+	m_pCBufferAllocator = new CommittedAllocator(pDevice, 256);
+	m_pTextureAllocator = new PlacedAllocator(pDevice, 256);
+	m_pDescriptorAllocator = new DescriptorAllocator(pDevice);
+	m_pRTVAllocator = new RTVAllocator(pDevice);
+	m_pDSVAllocator = new DSVAllocator(pDevice);
 
-	m_pShaderVisibleDescriptorHeap = new NXShaderVisibleDescriptorHeap(m_pDevice);
+	m_pShaderVisibleDescriptorHeap = new NXShaderVisibleDescriptorHeap(pDevice);
+
+	m_pCommandQueue = NX12Util::CreateCommandQueue(pDevice, D3D12_COMMAND_LIST_TYPE_DIRECT, false);
+	m_pCommandAllocator = NX12Util::CreateCommandAllocator(pDevice, D3D12_COMMAND_LIST_TYPE_DIRECT);
+	m_pCommandList = NX12Util::CreateCommandList(pDevice, m_pCommandAllocator, D3D12_COMMAND_LIST_TYPE_DIRECT);
 }
 
 void NXAllocatorManager::Release()
