@@ -1,6 +1,6 @@
 #include "NXSkyRenderer.h"
 #include "ShaderComplier.h"
-#include "GlobalBufferManager.h"
+#include "NXGlobalDefinitions.h"
 #include "NXRenderStates.h"
 #include "NXSamplerStates.h"
 #include "DirectResources.h"
@@ -8,7 +8,6 @@
 #include "NXTexture.h"
 #include "NXAllocatorManager.h"
 
-#include "Global.h"
 #include "NXScene.h"
 #include "NXCubeMap.h"
 
@@ -34,7 +33,7 @@ void NXSkyRenderer::InitSignature()
 	std::vector<D3D12_STATIC_SAMPLER_DESC> samplers;
 	samplers.push_back(NXStaticSamplerState<>::Create(0, 0, D3D12_SHADER_VISIBILITY_ALL));
 
-	NX12Util::CreateRootSignature(g_pDevice.Get(), rootParam, samplers);
+	NX12Util::CreateRootSignature(NXGlobalDX::device.Get(), rootParam, samplers);
 }
 
 void NXSkyRenderer::InitPSO()
@@ -58,7 +57,7 @@ void NXSkyRenderer::InitPSO()
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	g_pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
+	NXGlobalDX::device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
 }
 
 void NXSkyRenderer::Init()
@@ -66,7 +65,7 @@ void NXSkyRenderer::Init()
 	m_pTexPassOut = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_SSSLighting);
 	m_pTexPassOutDepth = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
 
-	NX12Util::CreateCommands(g_pDevice.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.Get(), m_pCommandAllocator.Get(), m_pCommandList.Get());
+	NX12Util::CreateCommands(NXGlobalDX::device.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.Get(), m_pCommandAllocator.Get(), m_pCommandList.Get());
 
 	InitSignature();
 	InitPSO();
@@ -101,7 +100,7 @@ void NXSkyRenderer::Render()
 
 		pCubeMap->UpdateViewParams();
 
-		m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBufferManager::m_cbDataObject.Current().GPUVirtualAddr);
+		m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbObject.Current().GPUVirtualAddr);
 		m_pCommandList->SetGraphicsRootConstantBufferView(1, pCubeMap->GetCBDataParams());
 		m_pCommandList->SetGraphicsRootDescriptorTable(2, srvHandle);
 

@@ -1,7 +1,7 @@
 ﻿#include "BaseDefs/NixCore.h"
 #include "BaseDefs/CrtDbg.h"
 #include "BaseDefs/DearImGui.h"
-#include "Global.h"
+#include "NXGlobalDefinitions.h"
 
 #include "App.h"
 #include "NXInput.h"
@@ -163,18 +163,18 @@ HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow)
 		return E_FAIL;
 
 	// Create window
-	g_hInst = hInstance;
+	NXGlobalWindows::hInst = hInstance;
 	LONG offset = 50;
 	RECT rc = { 0 + offset, 0 + offset, 1600 + offset, 900 + offset };
 	//RECT rc = { 0, 0, 120, 90 };
 
-	g_hWnd = CreateWindow(L"NixWindowClass", L"Nix",
+	NXGlobalWindows::hWnd = CreateWindow(L"NixWindowClass", L"Nix",
 		WS_OVERLAPPEDWINDOW,
 		0, 0, rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr, hInstance,
 		nullptr);
 
-	//SetWindowLong(g_hWnd, GWL_STYLE, 5);
-	ShowWindow(g_hWnd, SW_HIDE);
+	//SetWindowLong(NXGlobalWindows::hWnd, GWL_STYLE, 5);
+	ShowWindow(NXGlobalWindows::hWnd, SW_HIDE);
 
 	return S_OK;
 }
@@ -206,10 +206,10 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	NXLog::Init();
 	NXLog::Log("-----Init-----");
 
-	g_app = new App();
-	g_app->Init(); 
+	NXGlobalApp::App = new App();
+	NXGlobalApp::App->Init();
 
-	g_timer = new NXTimer();
+	NXGlobalApp::Timer = new NXTimer();
 
 #ifdef ENABLE_SPLASH_SCREEN
 	// 加载完成后，通知闪屏线程退出
@@ -232,21 +232,21 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 		}
 		else
 		{
-			g_timer->Tick();
+			NXGlobalApp::Timer->Tick();
 
-			g_app->FrameBegin();
-			g_app->ResizeCheck();
+			NXGlobalApp::App->FrameBegin();
+			NXGlobalApp::App->ResizeCheck();
 
-			g_app->Reload();
+			NXGlobalApp::App->Reload();
 
-			if (!IsWindowVisible(g_hWnd))
+			if (!IsWindowVisible(NXGlobalWindows::hWnd))
 			{
-				ShowWindow(g_hWnd, SW_SHOWMAXIMIZED);
-				SetForegroundWindow(g_hWnd);
+				ShowWindow(NXGlobalWindows::hWnd, SW_SHOWMAXIMIZED);
+				SetForegroundWindow(NXGlobalWindows::hWnd);
 			}
 
-			g_app->Update();
-			g_app->Draw();
+			NXGlobalApp::App->Update();
+			NXGlobalApp::App->Draw();
 
 			NXInput::GetInstance()->RestoreData(); // 清空鼠标/键盘的激活状态
 		}
@@ -254,8 +254,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
 	NXLog::Log("-----Release-----");
 
-	SafeDelete(g_timer);
-	SafeRelease(g_app);
+	SafeDelete(NXGlobalApp::Timer);
+	SafeRelease(NXGlobalApp::App);
 
 	NXLog::Release();
 
@@ -279,7 +279,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 
 	case WM_SIZE:
-		if (g_app) g_app->OnWindowResize(LOWORD(lParam), HIWORD(lParam));
+		if (NXGlobalApp::App) NXGlobalApp::App->OnWindowResize(LOWORD(lParam), HIWORD(lParam));
 		break;
 
 	case WM_DESTROY:

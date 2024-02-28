@@ -216,8 +216,7 @@
     <ClCompile Include="Core\NXAllocatorManager.cpp" />
     <ClCompile Include="Core\NXDepthRenderer.cpp" />
     <ClCompile Include="Core\NXFileSystemHelper.cpp" />
-    <ClCompile Include="Core\Global.cpp" />
-    <ClCompile Include="Core\GlobalBufferManager.cpp" />
+    <ClCompile Include="Core\NXGlobalDefinitions.cpp" />
     <ClCompile Include="Core\NXGUICommandManager.cpp" />
     <ClCompile Include="Core\NXGUIDiffuseProfile.cpp" />
     <ClCompile Include="Core\NXGUIInspector.cpp" />
@@ -311,13 +310,12 @@
     <ClInclude Include="Core\App.h" />
     <ClInclude Include="Core\DirectResources.h" />
     <ClInclude Include="Core\FBXMeshLoader.h" />
-    <ClInclude Include="Core\Global.h" />
     <ClInclude Include="Core\imfilebrowser.h" />
     <ClInclude Include="Core\Ntr.h" />
     <ClInclude Include="Core\NXAllocatorManager.h" />
     <ClInclude Include="Core\NXDepthRenderer.h" />
     <ClInclude Include="Core\NXFileSystemHelper.h" />
-    <ClInclude Include="Core\GlobalBufferManager.h" />
+    <ClInclude Include="Core\NXGlobalDefinitions.h" />
     <ClInclude Include="Core\NXGUICommandManager.h" />
     <ClInclude Include="Core\NXGUIDiffuseProfile.h" />
     <ClInclude Include="Core\NXGUIInspector.h" />

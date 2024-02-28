@@ -1,6 +1,6 @@
 #include "NXInput.h"
 #include "BaseDefs/NixCore.h"
-#include "Global.h"
+#include "NXGlobalDefinitions.H"
 #include "NXEvent.h"
 
 NXInput::NXInput() :
@@ -39,7 +39,7 @@ XMINT2 NXInput::MousePosition()
 {
 	POINT p;
 	GetCursorPos(&p);
-	ScreenToClient(g_hWnd, &p);
+	ScreenToClient(NXGlobalWindows::hWnd, &p);
 	return XMINT2(p.x, p.y);
 }
 
@@ -54,7 +54,7 @@ void NXInput::UpdateMousePosInfo()
 	POINT p;
 	GetCursorPos(&p);
 	m_mouseAbsolutePos = Vector2((float)p.x, (float)p.y);
-	ScreenToClient(g_hWnd, &p);
+	ScreenToClient(NXGlobalWindows::hWnd, &p);
 	m_mouseWindowPos = Vector2((float)p.x, (float)p.y);
 }
 

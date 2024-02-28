@@ -1,8 +1,7 @@
 #include "NXScene.h"
-#include "Global.h"
 #include "NXEditorObjectManager.h"
 #include "NXSubMeshGeometryEditor.h"
-#include "GlobalBufferManager.h"
+#include "NXGlobalDefinitions.h"
 #include "NXIntersection.h"
 #include "NXRandom.h"
 #include "NXPrefab.h"
@@ -279,7 +278,7 @@ void NXScene::Init()
 		bufferDesc.ByteWidth = sizeof(ConstantBufferLight);
 		bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 		bufferDesc.CPUAccessFlags = 0;
-		NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbLights));
+		NX::ThrowIfFailed(NXGlobalDX::device->CreateBuffer(&bufferDesc, nullptr, &m_cbLights));
 
 		g_pContext->UpdateSubresource(m_cbLights.Get(), 0, nullptr, &m_cbDataLights, 0, 0);
 	}

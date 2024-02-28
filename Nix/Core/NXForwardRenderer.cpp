@@ -5,11 +5,10 @@
 #include "NXSamplerStates.h"
 
 #include "NXBRDFlut.h"
-#include "GlobalBufferManager.h"
+#include "NXGlobalDefinitions.h"
 #include "NXScene.h"
 #include "NXPrimitive.h"
 #include "NXCubeMap.h"
-#include "Global.h"
 
 NXForwardRenderer::NXForwardRenderer(NXScene* pScene, NXBRDFLut* pBRDFLut) :
 	m_pBRDFLut(pBRDFLut),
@@ -58,7 +57,7 @@ void NXForwardRenderer::Init()
 	samplers.push_back(NXStaticSamplerStateUVW<D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_CLAMP>::Create(1, 0, D3D12_SHADER_VISIBILITY_ALL));
 	samplers.push_back(NXStaticSamplerStateUVW<D3D12_FILTER_MIN_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_CLAMP>::Create(2, 0, D3D12_SHADER_VISIBILITY_ALL));
 
-	m_pRootSig = NX12Util::CreateRootSignature(g_pDevice.Get(), rootParam, samplers);
+	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::device.Get(), rootParam, samplers);
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.pRootSignature = m_pRootSig.Get();
@@ -75,7 +74,7 @@ void NXForwardRenderer::Init()
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	g_pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
+	NXGlobalDX::device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
 }
 
 void NXForwardRenderer::Render()
@@ -105,8 +104,8 @@ void NXForwardRenderer::Render()
 	//pSampler = NXSamplerManager::Get(NXSamplerFilter::Linear, NXSamplerAddressMode::Clamp);
 	//g_pContext->PSSetSamplers(1, 1, &pSampler);
 
-	//g_pContext->VSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
-	//g_pContext->PSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
+	//g_pContext->VSSetConstantBuffers(1, 1, NXGlobalBuffer::cbCamera.GetAddressOf());
+	//g_pContext->PSSetConstantBuffers(1, 1, NXGlobalBuffer::cbCamera.GetAddressOf());
 
 	//auto pCbLights = m_pScene->GetConstantBufferLights();
 	//auto pCubeMap = m_pScene->GetCubeMap();

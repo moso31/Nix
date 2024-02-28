@@ -10,13 +10,17 @@ void NXAllocatorManager::Init(ID3D12Device* pDevice)
 
 	m_pShaderVisibleDescriptorHeap = new NXShaderVisibleDescriptorHeap(pDevice);
 
+	m_pCommandList = NX12Util::CreateCommandList(pDevice, m_pCommandAllocator, D3D12_COMMAND_LIST_TYPE_DIRECT);
 	m_pCommandQueue = NX12Util::CreateCommandQueue(pDevice, D3D12_COMMAND_LIST_TYPE_DIRECT, false);
 	m_pCommandAllocator = NX12Util::CreateCommandAllocator(pDevice, D3D12_COMMAND_LIST_TYPE_DIRECT);
-	m_pCommandList = NX12Util::CreateCommandList(pDevice, m_pCommandAllocator, D3D12_COMMAND_LIST_TYPE_DIRECT);
 }
 
 void NXAllocatorManager::Release()
 {
+	m_pCommandList->Release();
+	m_pCommandQueue->Release();
+	m_pCommandAllocator->Release();
+
 	delete m_pCBufferAllocator;
 	delete m_pTextureAllocator;
 	delete m_pDescriptorAllocator;

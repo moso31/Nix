@@ -1,4 +1,4 @@
-#include "Global.h"
+#include "NXGlobalDefinitions.H"
 
 #include "NXGUI.h"
 #include "NXEvent.h"
@@ -53,8 +53,8 @@ void NXGUI::Init()
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
 	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
 
-	ImGui_ImplWin32_Init(g_hWnd);
-	ImGui_ImplDX11_Init(g_pDevice.Get(), g_pContext.Get());
+	ImGui_ImplWin32_Init(NXGlobalWindows::hWnd);
+	ImGui_ImplDX11_Init(NXGlobalDX::device.Get(), g_pContext.Get());
 
 	// ÉèÖÃ×ÖÌå
 	g_imgui_font_general = io.Fonts->AddFontFromFileTTF("./Resource/fonts/JetBrainsMono-Bold.ttf", 16);

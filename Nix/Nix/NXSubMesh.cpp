@@ -1,5 +1,5 @@
 #include "NXSubMesh.h"
-#include "Global.h"
+#include "NXGlobalDefinitions.h"
 #include "NXPrimitive.h"
 #include "NXSubMeshGeometryEditor.h"
 

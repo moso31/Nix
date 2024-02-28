@@ -1,10 +1,9 @@
 #include "BaseDefs/NixCore.h"
-#include "Global.h"
+#include "NXGlobalDefinitions.h"
 
 #include "NXColorMappingRenderer.h"
 #include "ShaderComplier.h"
 #include "NXRenderStates.h"
-#include "GlobalBufferManager.h"
 #include "NXResourceManager.h"
 #include "NXSubMeshGeometryEditor.h"
 #include "NXTexture.h"
@@ -39,7 +38,7 @@ void NXColorMappingRenderer::Init()
 	std::vector<D3D12_STATIC_SAMPLER_DESC> staticSamplers;
 	staticSamplers.push_back(NXStaticSamplerState<>::Create(0, 0, D3D12_SHADER_VISIBILITY_ALL));
 
-	m_pRootSig = NX12Util::CreateRootSignature(g_pDevice.Get(), rootParams, staticSamplers);
+	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::device.Get(), rootParams, staticSamplers);
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.pRootSignature = m_pRootSig.Get();
@@ -56,7 +55,7 @@ void NXColorMappingRenderer::Init()
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	g_pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
+	NXGlobalDX::device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
 
 	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 		NXAllocatorManager::GetInstance()->GetCBufferAllocator()->Alloc(ResourceType_Upload, m_cbParams.Get(i));

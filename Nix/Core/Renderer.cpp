@@ -1,6 +1,6 @@
 #include "Renderer.h"
 #include "NXTimer.h"
-#include "Global.h"
+#include "NXGlobalDefinitions.h"
 #include "DirectResources.h"
 #include "ShaderComplier.h"
 #include "NXEvent.h"
@@ -26,7 +26,7 @@ void Renderer::Init()
 	InitEvents();
 
 	NXGlobalInputLayout::Init();
-	NXGlobalBufferManager::Init();
+	NXGlobalBuffer::Init();
 
 	// äÖÈ¾Æ÷
 	InitRenderer();
@@ -49,8 +49,8 @@ void Renderer::Init()
 	m_pBRDFLut = new NXBRDFLut();
 	m_pBRDFLut->Init();
 
-	m_pDepthPrepass = new NXDepthPrepass(m_scene);
-	m_pDepthPrepass->Init();
+	//m_pDepthPrepass = new NXDepthPrepass(m_scene);
+	//m_pDepthPrepass->Init();
 
 	m_pDepthRenderer = new NXDepthRenderer();
 	m_pDepthRenderer->Init();
@@ -58,8 +58,8 @@ void Renderer::Init()
 	m_pGBufferRenderer = new NXGBufferRenderer(m_scene);
 	m_pGBufferRenderer->Init();
 
-	m_pSSAO = new NXSimpleSSAO();
-	m_pSSAO->Init();
+	//m_pSSAO = new NXSimpleSSAO();
+	//m_pSSAO->Init();
 
 	m_pShadowMapRenderer = new NXShadowMapRenderer(m_scene);
 	m_pShadowMapRenderer->Init();
@@ -97,8 +97,8 @@ void Renderer::OnResize(const Vector2& rtSize)
 	m_viewRTSize = rtSize;
 
 	NXResourceManager::GetInstance()->GetTextureManager()->ResizeCommonRT(m_viewRTSize);
-	m_pDepthPrepass->OnResize(m_viewRTSize);
-	m_pSSAO->OnResize(m_viewRTSize);
+	//m_pDepthPrepass->OnResize(m_viewRTSize);
+	//m_pSSAO->OnResize(m_viewRTSize);
 	//m_pDepthPeelingRenderer->OnResize(m_viewRTSize);
 	m_pDebugLayerRenderer->OnResize(m_viewRTSize);
 	m_pEditorObjectRenderer->OnResize(m_viewRTSize);
@@ -161,16 +161,15 @@ void Renderer::UpdateSceneData()
 		pCubeMap->Update();
 	}
 
-	m_pSSAO->Update();
+	//m_pSSAO->Update();
 }
 
 void Renderer::UpdateTime()
 {
-	//g_timer
-	size_t globalTime = g_timer->GetGlobalTime();
+	size_t globalTime = NXGlobalApp::Timer->GetGlobalTime();
 	float fGlobalTime = globalTime / 1000.0f;
 
-	NXGlobalBufferManager::m_cbDataObject.Current().data.globalData.time = fGlobalTime;
+	NXGlobalBuffer::cbObject.Current().data.globalData.time = fGlobalTime;
 }
 
 void Renderer::RenderFrame()
@@ -250,7 +249,7 @@ void Renderer::Release()
 	SafeRelease(m_pDebugLayerRenderer);
 	SafeRelease(m_pGUI);
 
-	SafeRelease(m_pSSAO);
+	//SafeRelease(m_pSSAO);
 	SafeDelete(m_pDepthPrepass);
 
 	SafeRelease(m_pDepthRenderer);

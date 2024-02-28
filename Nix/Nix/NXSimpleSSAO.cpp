@@ -1,7 +1,7 @@
 //#include "NXSimpleSSAO.h"
 //#include "NXRandom.h"
 //#include "ShaderComplier.h"
-//#include "GlobalBufferManager.h"
+//#include "NXGlobalDefinitions.h"
 //#include "DirectResources.h"
 //#include "NXResourceManager.h"
 //#include "NXRenderStates.h"
@@ -48,7 +48,7 @@
 //	g_pUDA->BeginEvent(L"Simple SSAO");
 //	g_pContext->CSSetShader(m_pComputeShader.Get(), nullptr, 0);
 //	
-//	g_pContext->CSSetConstantBuffers(0, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
+//	g_pContext->CSSetConstantBuffers(0, 1, NXGlobalBuffer::cbCamera.GetAddressOf());
 //	g_pContext->CSSetConstantBuffers(1, 1, m_pCBSamplePositions.GetAddressOf());
 //	g_pContext->CSSetConstantBuffers(2, 1, m_pCBSSAOParams.GetAddressOf());
 //
@@ -93,7 +93,7 @@
 //	bufferDesc.ByteWidth = sizeof(ConstantBufferSSAOParams);
 //	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 //	bufferDesc.CPUAccessFlags = 0;
-//	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_pCBSSAOParams));
+//	NX::ThrowIfFailed(NXGlobalDX::device->CreateBuffer(&bufferDesc, nullptr, &m_pCBSSAOParams));
 //}
 //
 //void NXSimpleSSAO::GenerateSamplePosition()
@@ -115,7 +115,7 @@
 //	bufferDesc.ByteWidth = sizeof(Vector4) * SSAO_SAMPLE_COUNT;
 //	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 //	bufferDesc.CPUAccessFlags = 0;
-//	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_pCBSamplePositions));
+//	NX::ThrowIfFailed(NXGlobalDX::device->CreateBuffer(&bufferDesc, nullptr, &m_pCBSamplePositions));
 //
 //	g_pContext->UpdateSubresource(m_pCBSamplePositions.Get(), 0, nullptr, m_samplePosition.data(), 0, 0);
 //}

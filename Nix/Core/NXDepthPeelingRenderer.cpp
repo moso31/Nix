@@ -5,7 +5,7 @@
 //#include "NXSamplerStates.h"
 //
 //#include "NXBRDFlut.h"
-//#include "GlobalBufferManager.h"
+//#include "NXGlobalDefinitions.h"
 //#include "NXScene.h"
 //#include "NXPrimitive.h"
 //#include "NXCubeMap.h"
@@ -116,8 +116,8 @@
 //		pSampler = NXSamplerManager::Get(NXSamplerFilter::Point, NXSamplerAddressMode::Clamp);
 //		g_pContext->PSSetSamplers(2, 1, &pSampler);
 //
-//		g_pContext->VSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
-//		g_pContext->PSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
+//		g_pContext->VSSetConstantBuffers(1, 1, NXGlobalBuffer::cbCamera.GetAddressOf());
+//		g_pContext->PSSetConstantBuffers(1, 1, NXGlobalBuffer::cbCamera.GetAddressOf());
 //
 //		auto pCbLights = m_pScene->GetConstantBufferLights();
 //		auto pCubeMap = m_pScene->GetCubeMap();
@@ -224,7 +224,7 @@
 //	bufferDesc.ByteWidth = sizeof(CBufferDepthPeelingParams);
 //	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 //	bufferDesc.CPUAccessFlags = 0;
-//	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &m_cbDepthPeelingParams));
+//	NX::ThrowIfFailed(NXGlobalDX::device->CreateBuffer(&bufferDesc, nullptr, &m_cbDepthPeelingParams));
 //
 //	g_pContext->UpdateSubresource(m_cbDepthPeelingParams.Get(), 0, nullptr, &m_cbDepthPeelingParamsData, 0, 0);
 //}

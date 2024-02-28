@@ -1,6 +1,6 @@
 #include "DirectResources.h"
 #include "BaseDefs/NixCore.h"
-#include "Global.h"
+#include "NXGlobalDefinitions.h"
 
 void DirectResources::InitDevice()
 {
@@ -19,22 +19,12 @@ void DirectResources::InitDevice()
 	ComPtr<IDXGIAdapter4> pAdapter4;
 	hr = pAdapter.As(&pAdapter4);
 
-	hr = D3D12CreateDevice(pAdapter4.Get(), D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&g_pDevice));
-	hr = g_pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_pFence));
+	NXGlobalDX::Init(pAdapter4.Get());
 
-	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
-	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-	hr = g_pDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&g_pCommandQueue));
-
-	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
-	{
-		hr = g_pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_pCommandAllocator[i]));
-		hr = g_pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandAllocator[i].Get(), nullptr, IID_PPV_ARGS(&m_pCommandList[i]));
-	}
+	hr = NXGlobalDX::device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_pFence));
 
 	RECT rc;
-	GetClientRect(g_hWnd, &rc);
+	GetClientRect(NXGlobalWindows::hWnd, &rc);
 	UINT width = rc.right - rc.left;
 	UINT height = rc.bottom - rc.top;
 	OnResize(width, height);
@@ -65,13 +55,13 @@ void DirectResources::OnResize(UINT width, UINT height)
 		swapChainDesc.SampleDesc.Quality = 0;
 		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT; // 用于RT
 		swapChainDesc.BufferCount = MultiFrameSets_swapChainCount; // n缓冲
-		swapChainDesc.OutputWindow = g_hWnd; // 窗口句柄
+		swapChainDesc.OutputWindow = NXGlobalWindows::hWnd; // 窗口句柄
 		swapChainDesc.Windowed = true; // 窗口模式
 		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD; // 翻转模式
 		swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH; // 允许全屏切换
 
 		ComPtr<IDXGISwapChain> pSwapChain;
-		hr = m_pDXGIFactory->CreateSwapChain(g_pCommandQueue.Get(), &swapChainDesc, &pSwapChain);
+		hr = m_pDXGIFactory->CreateSwapChain(NXGlobalDX::cmdQueue.Get(), &swapChainDesc, &pSwapChain);
 		hr = pSwapChain.As(&m_pSwapChain);
 
 		// 创建描述符堆
@@ -81,15 +71,15 @@ void DirectResources::OnResize(UINT width, UINT height)
 		rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE; // 无标志
 		rtvHeapDesc.NodeMask = 0; // 单GPU
 
-		hr = g_pDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_pRTVHeap));
+		hr = NXGlobalDX::device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_pRTVHeap));
 		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_pRTVHeap->GetCPUDescriptorHandleForHeapStart();
 
 		// 创建RTV
 		for (int i = 0; i < MultiFrameSets_swapChainCount; ++i)
 		{
 			hr = m_pSwapChain->GetBuffer(i, IID_PPV_ARGS(&m_pSwapChainRT[i]));
-			g_pDevice->CreateRenderTargetView(m_pSwapChainRT[i].Get(), nullptr, rtvHandle);
-			rtvHandle.ptr += g_pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+			NXGlobalDX::device->CreateRenderTargetView(m_pSwapChainRT[i].Get(), nullptr, rtvHandle);
+			rtvHandle.ptr += NXGlobalDX::device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
 			std::wstring strDebugName = L"SwapChain RT " + std::to_wstring(i);
 			m_pSwapChainRT[i]->SetName(strDebugName.c_str());
@@ -99,6 +89,7 @@ void DirectResources::OnResize(UINT width, UINT height)
 
 void DirectResources::PrepareToRenderGUI()
 {
+	// 2024.2.28 【就不应该写在这里！换个地方实现它】
 	// 2023.12.10 设置最终呈现屏幕渲染结果所使用的RTV。
 	// 目前在主渲染结束后，GUI开始渲染前执行这一步骤。GUI将会被逐个渲染到当前帧，SwapChain的RTV上。
 	g_pCommandList->OMSetRenderTargets(1, &GetCurrentSwapChainRTV(), true, nullptr);
@@ -111,12 +102,12 @@ void DirectResources::FrameEnd()
 	pCmdList->Close();
 
 	ID3D12CommandList* pCmdLists[] = { pCmdList };
-	g_pCommandQueue->ExecuteCommandLists(1, pCmdLists);
+	NXGlobalDX::cmdQueue->ExecuteCommandLists(1, pCmdLists);
 
 	m_pSwapChain->Present(0, 0);
 
 	m_currFenceValue++;
-	g_pCommandQueue->Signal(m_pFence.Get(), m_currFenceValue);
+	NXGlobalDX::cmdQueue->Signal(m_pFence.Get(), m_currFenceValue);
 
 	if (m_currFenceValue - m_pFence->GetCompletedValue() > MultiFrameSets_swapChainCount - 1)
 	{
@@ -139,6 +130,6 @@ void DirectResources::Release()
 D3D12_CPU_DESCRIPTOR_HANDLE DirectResources::GetCurrentSwapChainRTV()
 {
 	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = m_pRTVHeap->GetCPUDescriptorHandleForHeapStart();
-	cpuHandle.ptr += g_pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV) * MultiFrameSets::swapChainIndex;
+	cpuHandle.ptr += NXGlobalDX::device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV) * MultiFrameSets::swapChainIndex;
 	return cpuHandle;
 }

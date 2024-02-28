@@ -216,16 +216,10 @@
     <ClCompile Include="Core\App.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Core\Global.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="Core\FBXMeshLoader.cpp">
       <Filter>Core\File</Filter>
     </ClCompile>
     <ClCompile Include="Core\DirectResources.cpp">
-      <Filter>Core\DirectX</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\GlobalBufferManager.cpp">
       <Filter>Core\DirectX</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXEvent.cpp">
@@ -489,6 +483,9 @@
     <ClCompile Include="Core\NXShaderVisibleDescriptorHeap.cpp">
       <Filter>Core\DirectX</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXGlobalDefinitions.cpp">
+      <Filter>Core\DirectX</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -501,9 +498,6 @@
       <Filter>Core\File</Filter>
     </ClInclude>
     <ClInclude Include="Core\DirectResources.h">
-      <Filter>Core\DirectX</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\GlobalBufferManager.h">
       <Filter>Core\DirectX</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXEvent.h">
@@ -773,9 +767,6 @@
     <ClInclude Include="BaseDefs\CrtDbg.h">
       <Filter>BaseDefs</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Global.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="Core\imfilebrowser.h">
       <Filter>Core\UI</Filter>
     </ClInclude>
@@ -801,6 +792,9 @@
       <Filter>Core\DirectX\Manager</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXShaderVisibleDescriptorHeap.h">
+      <Filter>Core\DirectX</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXGlobalDefinitions.h">
       <Filter>Core\DirectX</Filter>
     </ClInclude>
   </ItemGroup>

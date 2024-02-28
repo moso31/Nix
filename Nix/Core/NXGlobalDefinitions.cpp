@@ -1,19 +1,41 @@
-#include "GlobalBufferManager.h"
+#include "NXGlobalDefinitions.h"
 #include "BaseDefs/NixCore.h"
-#include "Global.h"
 #include "NXAllocatorManager.h"
 
-MultiFrame<CommittedResourceData<ConstantBufferObject>>		NXGlobalBufferManager::m_cbDataObject;
-MultiFrame<CommittedResourceData<ConstantBufferCamera>>		NXGlobalBufferManager::m_cbDataCamera;
-MultiFrame<CommittedResourceData<ConstantBufferShadowTest>>	NXGlobalBufferManager::m_cbDataShadowTest;
+HINSTANCE	NXGlobalWindows::hInst;
+HWND		NXGlobalWindows::hWnd;
 
-void NXGlobalBufferManager::Init()
+ComPtr<ID3D12Device8>							NXGlobalDX::device;
+ComPtr<ID3D12CommandQueue>						NXGlobalDX::cmdQueue;
+MultiFrame<ComPtr<ID3D12GraphicsCommandList>>	NXGlobalDX::cmdList;
+MultiFrame<ComPtr<ID3D12CommandAllocator>>		NXGlobalDX::cmdAllocator;
+
+void NXGlobalDX::Init(IDXGIAdapter4* pAdapter)
+{
+	HRESULT hr = D3D12CreateDevice(pAdapter, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&device));
+	cmdQueue = NX12Util::CreateCommandQueue(device.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT, false);
+
+	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
+	{
+		cmdAllocator[i] = NX12Util::CreateCommandAllocator(device.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT);
+		cmdList[i] = NX12Util::CreateCommandList(device.Get(), cmdAllocator.Get(i).Get(), D3D12_COMMAND_LIST_TYPE_DIRECT);
+	}
+}
+
+App*		NXGlobalApp::App;
+NXTimer*	NXGlobalApp::Timer;
+
+MultiFrame<CommittedResourceData<ConstantBufferObject>>		NXGlobalBuffer::cbObject;
+MultiFrame<CommittedResourceData<ConstantBufferCamera>>		NXGlobalBuffer::cbCamera;
+MultiFrame<CommittedResourceData<ConstantBufferShadowTest>>	NXGlobalBuffer::cbShadowTest;
+
+void NXGlobalBuffer::Init()
 {
 	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 	{
-		NXAllocatorManager::GetInstance()->GetCBufferAllocator()->Alloc(ResourceType_Upload, m_cbDataObject.Get(i));
-		NXAllocatorManager::GetInstance()->GetCBufferAllocator()->Alloc(ResourceType_Upload, m_cbDataCamera.Get(i));
-		NXAllocatorManager::GetInstance()->GetCBufferAllocator()->Alloc(ResourceType_Upload, m_cbDataShadowTest.Get(i));
+		NXAllocatorManager::GetInstance()->GetCBufferAllocator()->Alloc(ResourceType_Upload, cbObject.Get(i));
+		NXAllocatorManager::GetInstance()->GetCBufferAllocator()->Alloc(ResourceType_Upload, cbCamera.Get(i));
+		NXAllocatorManager::GetInstance()->GetCBufferAllocator()->Alloc(ResourceType_Upload, cbShadowTest.Get(i));
 	}
 }
 

@@ -1,5 +1,5 @@
 #include "NXGBufferRenderer.h"
-#include "Global.h"
+#include "NXGlobalDefinitions.h"
 #include "Ntr.h"
 
 #include "ShaderComplier.h"
@@ -7,7 +7,6 @@
 #include "DirectResources.h"
 #include "NXResourceManager.h"
 
-#include "GlobalBufferManager.h"
 #include "NXScene.h"
 #include "NXPrimitive.h"
 #include "NXCubeMap.h"
@@ -35,7 +34,7 @@ void NXGBufferRenderer::Init()
 	m_pGBufferRT[3] = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer3);
 
 	// todo: rootparam, staticsampler. 需要结合nsl的完整逻辑想想
-	m_pRootSig = NX12Util::CreateRootSignature(g_pDevice.Get(), rootParams, staticSamplers);
+	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::device.Get(), rootParams, staticSamplers);
 
 	ComPtr<ID3DBlob> pVSBlob, pPSBlob;
 	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\DebugLayer.fx", "VS", pVSBlob.Get());
@@ -57,7 +56,7 @@ void NXGBufferRenderer::Init()
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	g_pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
+	NXGlobalDX::device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
 }
 
 void NXGBufferRenderer::Render()
@@ -92,7 +91,7 @@ void NXGBufferRenderer::Render()
 					if (bIsVisible)
 					{
 						pSubMesh->UpdateViewParams();
-						m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBufferManager::m_cbDataObject.Current().GPUVirtualAddr);
+						m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbObject.Current().GPUVirtualAddr);
 						pSubMesh->Update();
 						pSubMesh->Render(m_pCommandList.Get());
 					}
@@ -119,7 +118,7 @@ void NXGBufferRenderer::Render()
 						if (bIsVisible)
 						{
 							pSubMesh->UpdateViewParams();
-							m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBufferManager::m_cbDataObject.Current().GPUVirtualAddr);
+							m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbObject.Current().GPUVirtualAddr);
 							pSubMesh->Update();
 							pSubMesh->Render(m_pCommandList.Get());
 						}
@@ -138,7 +137,7 @@ void NXGBufferRenderer::Render()
 						if (bIsVisible)
 						{
 							pSubMesh->UpdateViewParams();
-							m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBufferManager::m_cbDataObject.Current().GPUVirtualAddr);
+							m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbObject.Current().GPUVirtualAddr);
 							pSubMesh->Update();
 							pSubMesh->Render(m_pCommandList.Get());
 						}

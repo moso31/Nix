@@ -1,6 +1,6 @@
 #include "NXGUIView.h"
 #include "BaseDefs/DearImGui.h"
-#include "Global.h"
+#include "NXGlobalDefinitions.h"
 
 #include "NXTexture.h"
 #include "NXInput.h"
@@ -128,7 +128,7 @@ void NXGUIView::Render()
 			break;
 		}
 
-		g_app->SetViewSize(m_viewRTSize);
+		NXGlobalApp::App->SetViewSize(m_viewRTSize);
 
 		NXInput::GetInstance()->UpdateViewPortInput(isHoveredOnView, Vector4(rectMin.x, rectMin.y, rectMax.x, rectMax.y));
 	}

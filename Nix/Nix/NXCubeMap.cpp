@@ -1,7 +1,6 @@
 #include "NXCubeMap.h"
 #include "SphereHarmonics.h"
-#include "Global.h"
-#include "GlobalBufferManager.h"
+#include "NXGlobalDefinitions.h"
 #include "NXScene.h"
 #include "NXCamera.h"
 #include "ShaderComplier.h"
@@ -21,13 +20,13 @@ using namespace DirectX::SimpleMath::SH;
 NXCubeMap::NXCubeMap(NXScene* pScene) :
 	m_pScene(pScene)
 {
-	m_cbAllocator = new CommittedAllocator(g_pDevice.Get(), 256);
+	m_cbAllocator = new CommittedAllocator(NXGlobalDX::device.Get(), 256);
 	m_cbAllocator->Alloc(ResourceType_Upload, m_cbData);
 }
 
 bool NXCubeMap::Init(const std::filesystem::path& filePath)
 {
-	NX12Util::CreateCommands(g_pDevice.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.Get(), m_pCommandAllocator.Get(), m_pCommandList.Get());
+	NX12Util::CreateCommands(NXGlobalDX::device.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.Get(), m_pCommandAllocator.Get(), m_pCommandList.Get());
 
 	// create vertex
 	InitVertex();
@@ -96,7 +95,7 @@ void NXCubeMap::UpdateViewParams()
 {
 	auto pCamera = m_pScene->GetMainCamera();
 
-	auto& cbDataObject = NXGlobalBufferManager::m_cbDataObject.Current();
+	auto& cbDataObject = NXGlobalBuffer::cbObject.Current();
 	cbDataObject.data.world = Matrix::CreateTranslation(pCamera->GetTranslation()).Transpose();
 	m_cbAllocator->UpdateData(cbDataObject);
 }
@@ -148,7 +147,7 @@ Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	g_pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSOCubeMap));
+	NXGlobalDX::device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSOCubeMap));
 
 	CommittedResourceData<ConstantBufferObject> cbData;
 	cbData.data.world = Matrix::Identity();
@@ -157,7 +156,7 @@ Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)
 
 	D3D12_CPU_DESCRIPTOR_HANDLE cbvHandle;
 	pGlobalDescriptorAllocator->Alloc(DescriptorType_CBV, cbvHandle);
-	g_pDevice->CreateConstantBufferView(&cbData.CBVDesc(), cbvHandle);
+	NXGlobalDX::device->CreateConstantBufferView(&cbData.CBVDesc(), cbvHandle);
 
 	m_pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -456,7 +455,7 @@ void NXCubeMap::GenerateIrradianceMap()
 	//bufferDesc.ByteWidth = sizeof(ConstantBufferObject);
 	//bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	//bufferDesc.CPUAccessFlags = 0;
-	//NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &cb));
+	//NX::ThrowIfFailed(NXGlobalDX::device->CreateBuffer(&bufferDesc, nullptr, &cb));
 
 	//auto pSRVCubeMap = m_pTexCubeMap->GetSRV();
 	//g_pContext->PSSetShaderResources(0, 1, &pSRVCubeMap);
@@ -523,7 +522,7 @@ void NXCubeMap::GeneratePreFilterMap()
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	g_pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSOPreFilterMap));
+	NXGlobalDX::device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSOPreFilterMap));
 
 	CommittedResourceData<ConstantBufferObject> cbCubeCamera;
 	cbCubeCamera.data.world = Matrix::Identity();
@@ -532,7 +531,7 @@ void NXCubeMap::GeneratePreFilterMap()
 
 	D3D12_CPU_DESCRIPTOR_HANDLE cbvHandle;
 	pGlobalDescriptorAllocator->Alloc(DescriptorType_CBV, cbvHandle);
-	g_pDevice->CreateConstantBufferView(&cbCubeCamera.CBVDesc(), cbvHandle);
+	NXGlobalDX::device->CreateConstantBufferView(&cbCubeCamera.CBVDesc(), cbvHandle);
 
 	m_pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -556,7 +555,7 @@ void NXCubeMap::GeneratePreFilterMap()
 
 		D3D12_CPU_DESCRIPTOR_HANDLE cbvHandle;
 		pGlobalDescriptorAllocator->Alloc(DescriptorType_CBV, cbvHandle);
-		g_pDevice->CreateConstantBufferView(&cbRoughness.CBVDesc(), cbvHandle);
+		NXGlobalDX::device->CreateConstantBufferView(&cbRoughness.CBVDesc(), cbvHandle);
 
 		auto vp = NX12Util::ViewPort(mipSize, mipSize);
 		m_pCommandList->RSSetViewports(1, &vp);
@@ -729,7 +728,7 @@ void NXCubeMap::InitRootSignature()
 	rootParamsCubeMap.push_back(NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL)); // b0
 	rootParamsCubeMap.push_back(NX12Util::CreateRootParameterTable(rangesCubeMap, D3D12_SHADER_VISIBILITY_ALL)); // 上面的 rangesCubeMap. t0 ~ t0.
 
-	m_pRootSigCubeMap = NX12Util::CreateRootSignature(g_pDevice.Get(), rootParamsCubeMap, pSamplers);
+	m_pRootSigCubeMap = NX12Util::CreateRootSignature(NXGlobalDX::device.Get(), rootParamsCubeMap, pSamplers);
 
 	// prefilter map
 	std::vector<D3D12_DESCRIPTOR_RANGE> rangesPreFilter;
@@ -740,7 +739,7 @@ void NXCubeMap::InitRootSignature()
 	rootParamsPreFilter.push_back(NX12Util::CreateRootParameterCBV(1, 0, D3D12_SHADER_VISIBILITY_ALL)); // b1
 	rootParamsPreFilter.push_back(NX12Util::CreateRootParameterTable(rangesPreFilter, D3D12_SHADER_VISIBILITY_ALL)); // 上面的 rangesPreFilter. t0 ~ t0.
 
-	m_pRootSigPreFilterMap = NX12Util::CreateRootSignature(g_pDevice.Get(), rootParamsPreFilter, pSamplers);
+	m_pRootSigPreFilterMap = NX12Util::CreateRootSignature(NXGlobalDX::device.Get(), rootParamsPreFilter, pSamplers);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -761,7 +760,7 @@ void NXCubeMap::GenerateIrradianceSHFromHDRI_Deprecated(NXTexture2D* pTexHDR)
 	//bufferDesc.ByteWidth = sizeof(ConstantBufferImageData);
 	//bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	//bufferDesc.CPUAccessFlags = 0;
-	//NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &cbImageSize));
+	//NX::ThrowIfFailed(NXGlobalDX::device->CreateBuffer(&bufferDesc, nullptr, &cbImageSize));
 
 	//UINT nThreadSize = 8;
 	//UINT tempWidth = pTexHDR->GetWidth();
@@ -809,7 +808,7 @@ void NXCubeMap::GenerateIrradianceSHFromHDRI_Deprecated(NXTexture2D* pTexHDR)
 	//	bufferDesc.CPUAccessFlags = 0;
 	//	bufferDesc.StructureByteStride = sizeof(ConstantBufferIrradSH);
 	//	bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-	//	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &cbIrradianceSH));
+	//	NX::ThrowIfFailed(NXGlobalDX::device->CreateBuffer(&bufferDesc, nullptr, &cbIrradianceSH));
 
 	//	ComPtr<ID3D11ComputeShader> pComputeShader;
 	//	std::wstring strCSPath = L"";
@@ -835,11 +834,11 @@ void NXCubeMap::GenerateIrradianceSHFromHDRI_Deprecated(NXTexture2D* pTexHDR)
 
 	//	ComPtr<ID3D11UnorderedAccessView> pUAVIrradSH;
 	//	CD3D11_UNORDERED_ACCESS_VIEW_DESC UAVDesc(D3D11_UAV_DIMENSION_BUFFER, DXGI_FORMAT_UNKNOWN, 0, (UINT)irradianceBufferElements);
-	//	NX::ThrowIfFailed(g_pDevice->CreateUnorderedAccessView(cbIrradianceSH.Get(), &UAVDesc, pUAVIrradSH.GetAddressOf()));
+	//	NX::ThrowIfFailed(NXGlobalDX::device->CreateUnorderedAccessView(cbIrradianceSH.Get(), &UAVDesc, pUAVIrradSH.GetAddressOf()));
 
 	//	ComPtr<ID3D11ShaderResourceView> pSRVIrradSH;
 	//	CD3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc(D3D11_SRV_DIMENSION_BUFFER, DXGI_FORMAT_UNKNOWN, 0, (UINT)irradianceBufferElements);
-	//	NX::ThrowIfFailed(g_pDevice->CreateShaderResourceView(cbIrradianceSH.Get(), &SRVDesc, pSRVIrradSH.GetAddressOf()));
+	//	NX::ThrowIfFailed(NXGlobalDX::device->CreateShaderResourceView(cbIrradianceSH.Get(), &SRVDesc, pSRVIrradSH.GetAddressOf()));
 
 	//	std::string UAVDebugName = "SHIrrad Buffer UAV" + std::to_string(passId);
 	//	pUAVIrradSH->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)UAVDebugName.size(), UAVDebugName.c_str());

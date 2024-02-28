@@ -6,11 +6,10 @@
 #include "NXBRDFlut.h"
 #include "NXRenderStates.h"
 #include "NXSamplerStates.h"
-#include "GlobalBufferManager.h"
+#include "NXGlobalDefinitions.h"
 #include "NXScene.h"
 #include "NXPrimitive.h"
 #include "NXCubeMap.h"
-#include "Global.h"
 #include "NXSubMeshGeometryEditor.h"
 
 NXDeferredRenderer::NXDeferredRenderer(NXScene* pScene, NXBRDFLut* pBRDFLut) :
@@ -60,7 +59,7 @@ void NXDeferredRenderer::Init()
 	samplers.push_back(NXStaticSamplerState<>::Create(0, 0, D3D12_SHADER_VISIBILITY_ALL));
 	samplers.push_back(NXStaticSamplerStateUVW<D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_CLAMP>::Create(1, 0, D3D12_SHADER_VISIBILITY_ALL));
 
-	m_pRootSig = NX12Util::CreateRootSignature(g_pDevice.Get(), rootParam, samplers);
+	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::device.Get(), rootParam, samplers);
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.pRootSignature = m_pRootSig.Get();
@@ -80,7 +79,7 @@ void NXDeferredRenderer::Init()
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	g_pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
+	NXGlobalDX::device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
 }
 
 void NXDeferredRenderer::Render()
@@ -101,8 +100,8 @@ void NXDeferredRenderer::Render()
 	ID3D12DescriptorHeap* ppHeaps[] = { pShaderVisibleDescriptorHeap->GetHeap() };
 	m_pCommandList->SetDescriptorHeaps(1, ppHeaps);
 
-	m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBufferManager::m_cbDataObject.Current().GPUVirtualAddr);
-	m_pCommandList->SetGraphicsRootConstantBufferView(1, NXGlobalBufferManager::m_cbDataCamera.Current().GPUVirtualAddr);
+	m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbObject.Current().GPUVirtualAddr);
+	m_pCommandList->SetGraphicsRootConstantBufferView(1, NXGlobalBuffer::cbCamera.Current().GPUVirtualAddr);
 	m_pCommandList->SetGraphicsRootConstantBufferView(2, m_pScene->GetConstantBufferLights());
 	m_pCommandList->SetGraphicsRootConstantBufferView(3, m_pScene->GetCubeMap()->GetCBDataParams());
 	m_pCommandList->SetGraphicsRootConstantBufferView(4, NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfile());

@@ -1,5 +1,5 @@
 #include "NXPrefab.h"
-#include "GlobalBufferManager.h"
+#include "NXGlobalDefinitions.h"
 #include "NXScene.h"
 #include "NXPrimitive.h"
 #include "NXIntersection.h"

@@ -1,6 +1,6 @@
 #include "BaseDefs/NixCore.h"
 #include "BaseDefs/DX12.h"
-#include "Global.h"
+#include "NXGlobalDefinitions.H"
 
 #include "App.h"
 #include "Renderer.h"

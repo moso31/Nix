@@ -1,13 +1,12 @@
 #include "NXSubSurfaceRenderer.h"
 #include "ShaderComplier.h"
 #include "NXRenderStates.h"
-#include "GlobalBufferManager.h"
+#include "NXGlobalDefinitions.h"
 #include "NXResourceManager.h"
 #include "NXSamplerStates.h"
 #include "NXTexture.h"
 #include "NXScene.h"
 #include "NXAllocatorManager.h"
-#include "Global.h"
 
 NXSubSurfaceRenderer::NXSubSurfaceRenderer(NXScene* pScene) :
 	m_pScene(pScene)
@@ -41,7 +40,7 @@ void NXSubSurfaceRenderer::Init()
 	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\SSSSSRenderer.fx", "VS", pVSBlob.Get());
 	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\SSSSSRenderer.fx", "PS", pPSBlob.Get());
 
-	m_pRootSig = NX12Util::CreateRootSignature(g_pDevice.Get(), rootParam, samplers);
+	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::device.Get(), rootParam, samplers);
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.pRootSignature = m_pRootSig.Get();
@@ -58,7 +57,7 @@ void NXSubSurfaceRenderer::Init()
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	g_pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
+	NXGlobalDX::device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
 }
 
 void NXSubSurfaceRenderer::Render()

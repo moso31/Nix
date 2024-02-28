@@ -2,7 +2,7 @@
 //#include "ShaderComplier.h"
 //#include "NXRenderStates.h"
 //#include "NXSamplerStates.h"
-//#include "GlobalBufferManager.h"
+//#include "NXGlobalDefinitions.h"
 //#include "DirectResources.h"
 //#include "NXResourceManager.h"
 //#include "NXTexture.h"
@@ -35,8 +35,8 @@ NXDepthPrepass::~NXDepthPrepass()
 //
 //	g_pContext->IASetInputLayout(m_pInputLayout.Get());
 //
-//	g_pContext->VSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
-//	g_pContext->PSSetConstantBuffers(1, 1, NXGlobalBufferManager::m_cbCamera.GetAddressOf());
+//	g_pContext->VSSetConstantBuffers(1, 1, NXGlobalBuffer::cbCamera.GetAddressOf());
+//	g_pContext->PSSetConstantBuffers(1, 1, NXGlobalBuffer::cbCamera.GetAddressOf());
 //
 //	auto& pDepthZ = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
 //	auto& pGBufferRTA = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer0);

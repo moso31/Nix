@@ -8,6 +8,12 @@
 #include "DSVAllocator.h"
 #include "NXShaderVisibleDescriptorHeap.h"
 
+#define NXAllocator::GetInstance()->GetCBufferAllocator() NXCBufferAllocator
+#define NXAllocator::GetInstance()->GetTextureAllocator() NXTextureAllocator
+#define NXAllocator::GetInstance()->GetDescriptorAllocator() NXDescriptorAllocator
+#define NXAllocator::GetInstance()->GetShaderVisibleDescriptorHeap() NXShaderVisibleHeap
+#define NXAllocator::GetInstance()->GetCommandList() NXCmdList
+
 // DX12 ∑÷≈‰∆˜
 class NXAllocatorManager : public NXInstance<NXAllocatorManager>
 {
@@ -21,6 +27,10 @@ public:
 	DSVAllocator*			GetDSVAllocator()			{ return m_pDSVAllocator; }
 
 	NXShaderVisibleDescriptorHeap* GetShaderVisibleDescriptorHeap() { return m_pShaderVisibleDescriptorHeap; }
+
+	ID3D12CommandList* GetCommandList() { return m_pCommandList; }
+	ID3D12CommandQueue* GetCommandQueue() { return m_pCommandQueue; }
+	ID3D12CommandAllocator* GetCommandAllocator() { return m_pCommandAllocator; }
 
 	void Release();
 

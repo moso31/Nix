@@ -1,8 +1,7 @@
 #include "NXCamera.h"
 #include "BaseDefs/NixCore.h"
-#include "Global.h"
+#include "NXGlobalDefinitions.h"
 #include "DirectResources.h"
-#include "GlobalBufferManager.h"
 #include "NSFirstPersonalCamera.h"
 #include "NXAllocatorManager.h"
 
@@ -151,7 +150,7 @@ void NXCamera::Init(float fovY, float zNear, float zFar, Vector3 cameraPosition,
 	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
 
-	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, nullptr, &NXGlobalBufferManager::m_cbCamera));
+	NX::ThrowIfFailed(NXGlobalDX::device->CreateBuffer(&bufferDesc, nullptr, &NXGlobalBuffer::cbCamera));
 
 	OnResize(rtSize);
 }
@@ -179,7 +178,7 @@ void NXCamera::UpdateTransform()
 
 void NXCamera::Update()
 {
-	auto& cbDataObject = NXGlobalBufferManager::m_cbDataObject.Current();
+	auto& cbDataObject = NXGlobalBuffer::cbObject.Current();
 	cbDataObject.data.view = m_mxView.Transpose();
 	cbDataObject.data.viewInverse = m_mxViewInv.Transpose();
 	cbDataObject.data.viewInverseTranspose = m_mxViewInv;
@@ -188,7 +187,7 @@ void NXCamera::Update()
 	cbDataObject.data.projectionInverse = m_mxProjectionInv.Transpose();
 	NXAllocatorManager::GetInstance()->GetCBufferAllocator()->UpdateData(cbDataObject);
 
-	auto& cbDataCamera = NXGlobalBufferManager::m_cbDataCamera.Current();
+	auto& cbDataCamera = NXGlobalBuffer::cbCamera.Current();
 	float invN2F = 1.0f / (m_far - m_near);
 	cbDataCamera.data.Params0 = Vector4(m_rtSize.x, m_rtSize.y, 1.0f / m_rtSize.x, 1.0f / m_rtSize.y);
 	cbDataCamera.data.Params1 = Vector4(m_near, m_far, m_far * invN2F, -m_far * m_near * invN2F);

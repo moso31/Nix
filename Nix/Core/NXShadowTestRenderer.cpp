@@ -1,12 +1,11 @@
 #include "NXShadowTestRenderer.h"
-#include "GlobalBufferManager.h"
+#include "NXGlobalDefinitions.h"
 #include "ShaderComplier.h"
 #include "NXRenderStates.h"
 #include "NXSamplerStates.h"
 #include "NXResourceManager.h"
 #include "NXSubMeshGeometryEditor.h"
 #include "NXTexture.h"
-#include "Global.h"
 
 NXShadowTestRenderer::~NXShadowTestRenderer()
 {
@@ -32,7 +31,7 @@ void NXShadowTestRenderer::Init()
 	staticSamplers.push_back(NXStaticSamplerState<D3D12_FILTER_MIN_LINEAR_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_BORDER, D3D12_TEXTURE_ADDRESS_MODE_BORDER, D3D12_TEXTURE_ADDRESS_MODE_BORDER>::Create(0, 0, D3D12_SHADER_VISIBILITY_ALL)); // s0
 
 	// Create the root signature with the new configuration
-	m_pRootSig = NX12Util::CreateRootSignature(g_pDevice.Get(), rootParams, staticSamplers);
+	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::device.Get(), rootParams, staticSamplers);
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.pRootSignature = m_pRootSig.Get();
@@ -49,7 +48,7 @@ void NXShadowTestRenderer::Init()
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	g_pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
+	NXGlobalDX::device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
 
 	m_pTexPassIn0 = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
 	// m_pTexPassIn1 由 SetShadowMapDepth() 方法传入
@@ -74,8 +73,8 @@ void NXShadowTestRenderer::Render()
 	m_pCommandList->ClearRenderTargetView(m_pTexPassOut->GetRTV(), Colors::Black, 0, nullptr);
 	m_pCommandList->OMSetRenderTargets(1, &m_pTexPassOut->GetRTV(), false, nullptr);
 
-	m_pCommandList->SetGraphicsRootConstantBufferView(1, NXGlobalBufferManager::m_cbDataCamera.Current().GPUVirtualAddr);
-	m_pCommandList->SetGraphicsRootConstantBufferView(2, NXGlobalBufferManager::m_cbDataShadowTest.Current().GPUVirtualAddr);
+	m_pCommandList->SetGraphicsRootConstantBufferView(1, NXGlobalBuffer::cbCamera.Current().GPUVirtualAddr);
+	m_pCommandList->SetGraphicsRootConstantBufferView(2, NXGlobalBuffer::cbShadowTest.Current().GPUVirtualAddr);
 	m_pCommandList->SetGraphicsRootDescriptorTable(0, srvHandle0);
 	m_pCommandList->SetGraphicsRootDescriptorTable(1, srvHandle1);
 

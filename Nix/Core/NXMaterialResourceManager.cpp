@@ -1,5 +1,5 @@
 #include "BaseDefs/NixCore.h"
-#include "Global.h"
+#include "NXGlobalDefinitions.h"
 #include "NXMaterialResourceManager.h"
 #include "NXPBRMaterial.h"
 #include "NXConverter.h"

@@ -1,6 +1,5 @@
 #include "NXPrimitive.h"
-#include "Global.h"
-#include "GlobalBufferManager.h"
+#include "NXGlobalDefinitions.h"
 #include "NXScene.h"
 #include "NXAllocatorManager.h"
 
@@ -10,7 +9,7 @@ NXPrimitive::NXPrimitive()
 
 void NXPrimitive::UpdateViewParams()
 {
-	auto& cbDataObject = NXGlobalBufferManager::m_cbDataObject.Current();
+	auto& cbDataObject = NXGlobalBuffer::cbObject.Current();
 
 	auto mxView = cbDataObject.data.view.Transpose();
 	auto mxWorld = m_worldMatrix.Transpose();

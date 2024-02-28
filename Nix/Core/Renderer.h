@@ -1,5 +1,5 @@
 #pragma once
-#include "GlobalBufferManager.h"
+#include "NXGlobalDefinitions.h"
 #include "NXBRDFlut.h"
 
 #include "NXDepthPrepass.h"

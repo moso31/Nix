@@ -3,11 +3,10 @@
 #include "NXResourceManager.h"
 #include "ShaderStructures.h"
 #include "ShaderComplier.h"
-#include "GlobalBufferManager.h"
+#include "NXGlobalDefinitions.h"
 #include "NXTexture.h"
 #include "NXRenderStates.h"
 #include "NXSubMeshGeometryEditor.h"
-#include "Global.h"
 
 NXBRDFLut::NXBRDFLut() 
 {
@@ -55,7 +54,7 @@ void NXBRDFLut::InitRootSignature()
 	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\BRDF2DLUT.fx", "PS", pPSBlob.Get());
 
 	// 创建啥都没有的空描述符（BRDFLUT2D 不需要）
-	m_pRootSig = NX12Util::CreateRootSignature(g_pDevice.Get(), 0, nullptr, 0, nullptr);
+	m_pRootSig = NX12Util::CreateRootSignature(.Get(), 0, nullptr, 0, nullptr);
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.pRootSignature = m_pRootSig.Get();
@@ -72,7 +71,7 @@ void NXBRDFLut::InitRootSignature()
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	g_pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
+	NXGlobalDX::device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
 }
 
 void NXBRDFLut::DrawBRDFLUT()

@@ -1,13 +1,12 @@
 #include "NXDepthRenderer.h"
 #include "ShaderComplier.h"
 #include "NXRenderStates.h"
-#include "GlobalBufferManager.h"
+#include "NXGlobalDefinitions.h"
 #include "NXResourceManager.h"
 #include "NXSamplerStates.h"
 #include "NXTexture.h"
 #include "NXAllocatorManager.h"
 #include "NXSubMeshGeometryEditor.h"
-#include "Global.h"
 
 void NXDepthRenderer::Init()
 {
@@ -27,7 +26,7 @@ void NXDepthRenderer::Init()
 	std::vector<D3D12_STATIC_SAMPLER_DESC> samplers;
 	samplers.push_back(NXStaticSamplerState<D3D12_FILTER_MIN_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_CLAMP>::Create(0, 0, D3D12_SHADER_VISIBILITY_ALL));
 
-	m_pRootSig = NX12Util::CreateRootSignature(g_pDevice.Get(), rootParam, samplers);
+	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::device.Get(), rootParam, samplers);
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.pRootSignature = m_pRootSig.Get();
@@ -44,7 +43,7 @@ void NXDepthRenderer::Init()
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	g_pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
+	NXGlobalDX::device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
 }
 
 void NXDepthRenderer::Render()

@@ -1,10 +1,9 @@
 #include "BaseDefs/NixCore.h"
-#include "Global.h"
 
 #include "NXEditorObjectRenderer.h"
 #include "ShaderComplier.h"
 #include "NXRenderStates.h"
-#include "GlobalBufferManager.h"
+#include "NXGlobalDefinitions.h"
 #include "NXSubMeshGeometryEditor.h"
 #include "NXAllocatorManager.h"
 #include "NXScene.h"
@@ -33,7 +32,7 @@ void NXEditorObjectRenderer::Init()
 	rootParams.push_back(NX12Util::CreateRootParameterCBV(1, 0, D3D12_SHADER_VISIBILITY_ALL));
 	rootParams.push_back(NX12Util::CreateRootParameterCBV(2, 0, D3D12_SHADER_VISIBILITY_ALL));
 
-	m_pRootSig = NX12Util::CreateRootSignature(g_pDevice.Get(), rootParams);
+	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::device.Get(), rootParams);
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.pRootSignature = m_pRootSig.Get();
@@ -50,7 +49,7 @@ void NXEditorObjectRenderer::Init()
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	g_pDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
+	NXGlobalDX::device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
 
 	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 	{
@@ -68,7 +67,7 @@ void NXEditorObjectRenderer::Render()
 {
 	NX12Util::BeginEvent(m_pCommandList.Get(), "Editor objects");
 
-	m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBufferManager::m_cbDataCamera.Current().GPUVirtualAddr);
+	m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbCamera.Current().GPUVirtualAddr);
 
 	m_pCommandList->SetGraphicsRootSignature(m_pRootSig.Get());
 	m_pCommandList->SetPipelineState(m_pPSO.Get());
@@ -97,7 +96,7 @@ void NXEditorObjectRenderer::Render()
 
 					pSubMeshEditorObj->UpdateViewParams();
 
-					m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBufferManager::m_cbDataObject.Current().GPUVirtualAddr);
+					m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbObject.Current().GPUVirtualAddr);
 
 					pSubMeshEditorObj->Update();
 					pSubMeshEditorObj->Render();

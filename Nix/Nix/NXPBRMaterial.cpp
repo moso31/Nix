@@ -8,7 +8,7 @@
 
 #include "ShaderComplier.h"
 #include "NXHLSLGenerator.h"
-#include "GlobalBufferManager.h"
+#include "NXGlobalDefinitions.h"
 #include "NXSamplerStates.h"
 #include "NXGUIMaterial.h"
 #include "NXGUICommon.h"
@@ -238,7 +238,7 @@ void NXCustomMaterial::UpdateCBData()
 	D3D11_SUBRESOURCE_DATA InitData = {};
 	InitData.pSysMem = m_cbData.data();
 
-	NX::ThrowIfFailed(g_pDevice->CreateBuffer(&bufferDesc, &InitData, &m_cb));
+	NX::ThrowIfFailed(NXGlobalDX::device->CreateBuffer(&bufferDesc, &InitData, &m_cb));
 }
 
 NXCustomMaterial::NXCustomMaterial(const std::string& name, const std::filesystem::path& path) :
