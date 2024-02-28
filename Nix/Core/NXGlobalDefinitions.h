@@ -14,6 +14,10 @@ class NXGlobalDX
 {
 public:
 	static void Init(IDXGIAdapter4* pAdapter);
+	static ID3D12Device8* GetDevice() { return device.Get(); }
+	static ID3D12CommandQueue* GetCmdQueue() { return cmdQueue.Get(); }
+	static ID3D12GraphicsCommandList* CurrentCmdList() { return cmdList.Current().Get(); }
+	static ID3D12CommandAllocator* CurrentCmdAllocator() { return cmdAllocator.Current().Get(); }
 
 	static ComPtr<ID3D12Device8>							device;
 	static ComPtr<ID3D12CommandQueue>						cmdQueue;

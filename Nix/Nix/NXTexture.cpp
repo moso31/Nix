@@ -118,8 +118,12 @@ void NXTexture::CreateInternal(const std::unique_ptr<DirectX::ScratchImage>& pIm
 
 		m_pTextureUpload->Unmap(0, nullptr);
 
-		NX12Util::CopyTextureRegion(g_pCommandList.Get(), m_pTexture.Get(), m_pTextureUpload.Get(), layoutSize, layouts);
-		NX12Util::SetResourceBarrier(g_pCommandList.Get(), m_pTexture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		NXGlobalDX::CurrentCmdList()->Reset(NXGlobalDX::CurrentCmdAllocator(), nullptr);
+		NX12Util::CopyTextureRegion(NXGlobalDX::CurrentCmdList(), m_pTexture.Get(), m_pTextureUpload.Get(), layoutSize, layouts);
+		NX12Util::SetResourceBarrier(NXGlobalDX::CurrentCmdList(), m_pTexture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		NXGlobalDX::CurrentCmdList()->Close();
+
+		NXGlobalDX::cmdQueue->ExecuteCommandLists();
 
 		m_pTexture->SetName(NXConvert::s2ws(m_name).c_str());
 	}

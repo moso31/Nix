@@ -65,6 +65,7 @@ void NXSkyRenderer::Init()
 	m_pTexPassOut = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_SSSLighting);
 	m_pTexPassOutDepth = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
 
+	NX12Util::CreateCommandQueue(NXGlobalDX::device.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT, false);
 	NX12Util::CreateCommands(NXGlobalDX::device.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.Get(), m_pCommandAllocator.Get(), m_pCommandList.Get());
 
 	InitSignature();

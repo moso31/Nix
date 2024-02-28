@@ -12,7 +12,7 @@ MultiFrame<ComPtr<ID3D12CommandAllocator>>		NXGlobalDX::cmdAllocator;
 
 void NXGlobalDX::Init(IDXGIAdapter4* pAdapter)
 {
-	HRESULT hr = D3D12CreateDevice(pAdapter, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&device));
+	HRESULT hr = D3D12CreateDevice(pAdapter, D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&device));
 	cmdQueue = NX12Util::CreateCommandQueue(device.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT, false);
 
 	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
