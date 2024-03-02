@@ -6,13 +6,12 @@
     <ClInclude Include="imstb_rectpack.h" />
     <ClInclude Include="imstb_textedit.h" />
     <ClInclude Include="imstb_truetype.h" />
-    <ClInclude Include="imgui_impl_dx11.h">
-      <Filter>impl</Filter>
-    </ClInclude>
     <ClInclude Include="imgui_impl_win32.h">
       <Filter>impl</Filter>
     </ClInclude>
-    <ClInclude Include="imgui_stdlib.h" />
+    <ClInclude Include="imgui_impl_dx12.h">
+      <Filter>impl</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="imgui_demo.cpp" />
@@ -20,13 +19,12 @@
     <ClCompile Include="imgui_tables.cpp" />
     <ClCompile Include="imgui_widgets.cpp" />
     <ClCompile Include="imgui.cpp" />
-    <ClCompile Include="imgui_impl_dx11.cpp">
-      <Filter>impl</Filter>
-    </ClCompile>
     <ClCompile Include="imgui_impl_win32.cpp">
       <Filter>impl</Filter>
     </ClCompile>
-    <ClCompile Include="imgui_stdlib.cpp" />
+    <ClCompile Include="imgui_impl_dx12.cpp">
+      <Filter>impl</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="impl">

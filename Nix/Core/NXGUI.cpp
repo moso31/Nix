@@ -6,6 +6,7 @@
 #include "Renderer.h"
 #include "NXScene.h"
 #include "NXConverter.h"
+#include "NXAllocatorManager.h"
 
 #include "NXGUIFileBrowser.h"
 #include "NXGUIMaterialShaderEditor.h"
@@ -53,8 +54,12 @@ void NXGUI::Init()
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
 	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
 
+	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
+	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
+	D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = pShaderVisibleDescriptorHeap->Append(cpuHandle);
+
 	ImGui_ImplWin32_Init(NXGlobalWindows::hWnd);
-	ImGui_ImplDX11_Init(NXGlobalDX::device.Get(), g_pContext.Get());
+	ImGui_ImplDX12_Init(NXGlobalDX::device.Get(), MultiFrameSets_swapChainCount, DXGI_FORMAT_R8G8B8A8_UNORM, pShaderVisibleDescriptorHeap->GetHeap(), cpuHandle, gpuHandle);
 
 	// ÉèÖÃ×ÖÌå
 	g_imgui_font_general = io.Fonts->AddFontFromFileTTF("./Resource/fonts/JetBrainsMono-Bold.ttf", 16);
@@ -65,7 +70,7 @@ void NXGUI::Init()
 	configData.GlyphMinAdvanceX = configData.GlyphMaxAdvanceX = 7.0f;
 	g_imgui_font_codeEditor = io.Fonts->AddFontFromFileTTF("./Resource/fonts/JetBrainsMono-Bold.ttf", 16, &configData);
 
-	ImGui_ImplDX11_CreateDeviceObjects();
+	ImGui_ImplDX12_CreateDeviceObjects();
 
 	m_pFileBrowser = new NXGUIFileBrowser();
 	m_pFileBrowser->SetTitle("File Browser");
@@ -105,9 +110,9 @@ void NXGUI::ExecuteDeferredCommands()
 
 void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT)
 {
-	g_pUDA->BeginEvent(L"GUI");
+	NX12Util::BeginEvent(NXGlobalDX::CurrentCmdList(), "dear-imgui");
 
-	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplDX12_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
@@ -144,7 +149,7 @@ void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT)
 
 	// Rendering
 	ImGui::Render();
-	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), NXGlobalDX::CurrentCmdList());
 
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -153,7 +158,7 @@ void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT)
 		ImGui::RenderPlatformWindowsDefault();
 	}
 
-	g_pUDA->EndEvent();
+	NX12Util::EndEvent();
 }
 
 void NXGUI::Release()
@@ -174,7 +179,7 @@ void NXGUI::Release()
 	SafeDelete(m_pGUIDebugLayer);
 	SafeDelete(m_pGUIContentExplorer);
 
-	ImGui_ImplDX11_Shutdown();
+	ImGui_ImplDX12_Shutdown();
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
 }
