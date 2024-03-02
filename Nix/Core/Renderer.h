@@ -41,7 +41,7 @@ public:
 	void RenderFrame();
 
 	// 负责处理 GUI 的实际渲染 和 即时更新。见上面 UpdateGUI() 的注释
-	void RenderGUI();
+	void RenderGUI(D3D12_CPU_DESCRIPTOR_HANDLE swapChainRTV);
 
 	void Release();
 

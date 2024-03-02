@@ -76,10 +76,11 @@ void App::Update()
 
 void App::Draw()
 {
+	// »­äÖÈ¾Ö¡
 	m_pRenderer->RenderFrame();
 
-	m_pDXResources->PrepareToRenderGUI();
-	m_pRenderer->RenderGUI();
+	// »­UI
+	m_pRenderer->RenderGUI(m_pDXResources->GetCurrentSwapChainRTV());
 
 	m_pRenderer->ClearAllPSResources();
 }

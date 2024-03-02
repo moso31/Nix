@@ -87,15 +87,6 @@ void DirectResources::OnResize(UINT width, UINT height)
 	}
 }
 
-void DirectResources::PrepareToRenderGUI()
-{
-	// 2024.2.28 【就不应该写在这里！换个地方实现它】
-	// 2023.12.10 设置最终呈现屏幕渲染结果所使用的RTV。
-	// 目前在主渲染结束后，GUI开始渲染前执行这一步骤。GUI将会被逐个渲染到当前帧，SwapChain的RTV上。
-	g_pCommandList->OMSetRenderTargets(1, &GetCurrentSwapChainRTV(), true, nullptr);
-	g_pCommandList->ClearRenderTargetView(GetCurrentSwapChainRTV(), DirectX::Colors::Black, 0, nullptr);
-}
-
 void DirectResources::FrameEnd()
 {
 	auto pCmdList = GetCurrentCommandList();

@@ -8,7 +8,6 @@ public:
 
 	void	FrameBegin();
 	void	OnResize(UINT width, UINT height);
-	void	PrepareToRenderGUI();
 	void	FrameEnd();
 
 	void	Release();

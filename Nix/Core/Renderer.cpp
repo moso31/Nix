@@ -238,8 +238,12 @@ void Renderer::RenderFrame()
 	NX12Util::EndEvent();
 }
 
-void Renderer::RenderGUI()
+void Renderer::RenderGUI(D3D12_CPU_DESCRIPTOR_HANDLE swapChainRTV)
 {
+	// GUI将被直接渲染到SwapChain的RTV上
+	NXGlobalDX::CurrentCmdList()->OMSetRenderTargets(1, &swapChainRTV, true, nullptr);
+	NXGlobalDX::CurrentCmdList()->ClearRenderTargetView(swapChainRTV, DirectX::Colors::Black, 0, nullptr);
+
 	if (m_bRenderGUI) m_pGUI->Render(m_pFinalRT);
 }
 
