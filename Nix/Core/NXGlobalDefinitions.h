@@ -1,6 +1,6 @@
 #pragma once
 #include "BaseDefs/DX12.h"
-#include "CommittedAllocator.h"
+#include "BaseDefs/NixCore.h"
 #include "ShaderStructures.h"
 
 class NXGlobalWindows
@@ -51,9 +51,9 @@ class NXGlobalInputLayout
 public:
 	static void Init();
 
-	static D3D12_INPUT_ELEMENT_DESC	layoutP[1];
-	static D3D12_INPUT_ELEMENT_DESC	layoutPT[2];
-	static D3D12_INPUT_ELEMENT_DESC	layoutPNT[3];
-	static D3D12_INPUT_ELEMENT_DESC	layoutPNTT[4];
-	static D3D12_INPUT_ELEMENT_DESC	layoutEditorObject[2];
+	static D3D12_INPUT_LAYOUT_DESC layoutP;
+	static D3D12_INPUT_LAYOUT_DESC layoutPT;
+	static D3D12_INPUT_LAYOUT_DESC layoutPNT;
+	static D3D12_INPUT_LAYOUT_DESC layoutPNTT;
+	static D3D12_INPUT_LAYOUT_DESC layoutEditorObject;
 };

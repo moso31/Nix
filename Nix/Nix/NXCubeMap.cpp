@@ -6,7 +6,7 @@
 #include "ShaderComplier.h"
 #include "DirectResources.h"
 #include "NXRenderStates.h"
-#include "NXSamplerStates.h"
+#include "NXSamplerManager.h"
 #include "NXResourceManager.h"
 #include "DirectXTex.h"
 #include "NXConverter.h"
@@ -134,7 +134,7 @@ Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.pRootSignature = m_pRootSigCubeMap.Get();
-	psoDesc.InputLayout = { NXGlobalInputLayout::layoutP, 1 };
+	psoDesc.InputLayout = NXGlobalInputLayout::layoutP;
 	psoDesc.BlendState = NXBlendState<>::Create();
 	psoDesc.RasterizerState = NXRasterizerState<>::Create();
 	psoDesc.DepthStencilState = NXDepthStencilState<>::Create();
@@ -509,7 +509,7 @@ void NXCubeMap::GeneratePreFilterMap()
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.pRootSignature = m_pRootSigPreFilterMap.Get();
-	psoDesc.InputLayout = { NXGlobalInputLayout::layoutPNT, 1 };
+	psoDesc.InputLayout = NXGlobalInputLayout::layoutPNT;
 	psoDesc.BlendState = NXBlendState<>::Create();
 	psoDesc.RasterizerState = NXRasterizerState<>::Create();
 	psoDesc.DepthStencilState = NXDepthStencilState<>::Create();
@@ -717,27 +717,32 @@ void NXCubeMap::InitVertex()
 
 void NXCubeMap::InitRootSignature()
 {
-	std::vector<D3D12_STATIC_SAMPLER_DESC> pSamplers;
-	pSamplers.push_back(NXStaticSamplerState<>::Create(0, 0, D3D12_SHADER_VISIBILITY_ALL)); // s0
+	std::vector<D3D12_STATIC_SAMPLER_DESC> pSamplers = {
+		NXSamplerManager::GetInstance()->CreateIso(0, 0, D3D12_SHADER_VISIBILITY_ALL) // s0
+	};
 
 	// cubemap
-	std::vector<D3D12_DESCRIPTOR_RANGE> rangesCubeMap;
-	rangesCubeMap.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0)); // t0 ~ t0.
+	std::vector<D3D12_DESCRIPTOR_RANGE> rangesCubeMap = {
+		NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0) // t0 ~ t0.
+	};
 
-	std::vector<D3D12_ROOT_PARAMETER> rootParamsCubeMap;
-	rootParamsCubeMap.push_back(NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL)); // b0
-	rootParamsCubeMap.push_back(NX12Util::CreateRootParameterTable(rangesCubeMap, D3D12_SHADER_VISIBILITY_ALL)); // 上面的 rangesCubeMap. t0 ~ t0.
+	std::vector<D3D12_ROOT_PARAMETER> rootParamsCubeMap = {
+		NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL), // b0
+		NX12Util::CreateRootParameterTable(rangesCubeMap, D3D12_SHADER_VISIBILITY_ALL) // 上面的 rangesCubeMap. t0 ~ t0.
+	};
 
 	m_pRootSigCubeMap = NX12Util::CreateRootSignature(NXGlobalDX::device.Get(), rootParamsCubeMap, pSamplers);
 
 	// prefilter map
-	std::vector<D3D12_DESCRIPTOR_RANGE> rangesPreFilter;
-	rangesPreFilter.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0)); // t0 ~ t0.
+	std::vector<D3D12_DESCRIPTOR_RANGE> rangesPreFilter = {
+		NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0) // t0 ~ t0.
+	};
 
-	std::vector<D3D12_ROOT_PARAMETER> rootParamsPreFilter;
-	rootParamsPreFilter.push_back(NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL)); // b0
-	rootParamsPreFilter.push_back(NX12Util::CreateRootParameterCBV(1, 0, D3D12_SHADER_VISIBILITY_ALL)); // b1
-	rootParamsPreFilter.push_back(NX12Util::CreateRootParameterTable(rangesPreFilter, D3D12_SHADER_VISIBILITY_ALL)); // 上面的 rangesPreFilter. t0 ~ t0.
+	std::vector<D3D12_ROOT_PARAMETER> rootParamsPreFilter = {
+		NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL), // b0
+		NX12Util::CreateRootParameterCBV(1, 0, D3D12_SHADER_VISIBILITY_ALL), // b1
+		NX12Util::CreateRootParameterTable(rangesPreFilter, D3D12_SHADER_VISIBILITY_ALL) // 上面的 rangesPreFilter. t0 ~ t0.
+	};
 
 	m_pRootSigPreFilterMap = NX12Util::CreateRootSignature(NXGlobalDX::device.Get(), rootParamsPreFilter, pSamplers);
 }

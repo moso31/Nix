@@ -3,7 +3,7 @@
 #include "NXRenderStates.h"
 #include "NXGlobalDefinitions.h"
 #include "NXResourceManager.h"
-#include "NXSamplerStates.h"
+#include "NXSamplerManager.h"
 #include "NXTexture.h"
 #include "NXScene.h"
 #include "NXAllocatorManager.h"
@@ -29,22 +29,28 @@ void NXSubSurfaceRenderer::Init()
 	m_pTexDepth = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
 
 	// t0~t5, s0, b3
-	std::vector<D3D12_DESCRIPTOR_RANGE> ranges = { NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 6, 0) };
+	std::vector<D3D12_DESCRIPTOR_RANGE> ranges = {
+		NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 6, 0)
+	};
+
 	std::vector<D3D12_ROOT_PARAMETER> rootParam = {
 		NX12Util::CreateRootParameterCBV(3, 0, D3D12_SHADER_VISIBILITY_ALL),
-		NX12Util::CreateRootParameterTable(ranges, D3D12_SHADER_VISIBILITY_ALL),
+		NX12Util::CreateRootParameterTable(ranges, D3D12_SHADER_VISIBILITY_ALL)
 	};
-	std::vector<D3D12_STATIC_SAMPLER_DESC> samplers = { NXStaticSamplerStateUVW<D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_CLAMP>::Create() };
+
+	std::vector<D3D12_STATIC_SAMPLER_DESC> samplers = {
+		NXSamplerManager::GetInstance()->CreateIso(0, 0, D3D12_SHADER_VISIBILITY_ALL, D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_CLAMP)
+	};
+
+	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::device.Get(), rootParam, samplers);
 
 	ComPtr<ID3DBlob> pVSBlob, pPSBlob;
 	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\SSSSSRenderer.fx", "VS", pVSBlob.Get());
 	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\SSSSSRenderer.fx", "PS", pPSBlob.Get());
 
-	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::device.Get(), rootParam, samplers);
-
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.pRootSignature = m_pRootSig.Get();
-	psoDesc.InputLayout = { NXGlobalInputLayout::layoutPT, 1 };
+	psoDesc.InputLayout = NXGlobalInputLayout::layoutPT;
 	psoDesc.BlendState = NXBlendState<>::Create();
 	psoDesc.RasterizerState = NXRasterizerState<>::Create();
 	psoDesc.DepthStencilState = NXDepthStencilState<false, false, D3D12_COMPARISON_FUNC_LESS, true, 0xFF, 0xFF, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_COMPARISON_FUNC_EQUAL>::Create();

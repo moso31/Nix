@@ -78,7 +78,7 @@ public:
     Ntr<NXTexture> GetReloadingTexture() { return m_pReloadingTexture; }
     void SwapToReloadingTexture();
 
-    const std::filesystem::path& const GetFilePath() { return m_texFilePath; }
+    const std::filesystem::path& GetFilePath() const { return m_texFilePath; }
 
     NXTextureReloadTask LoadTextureAsync();
     void LoadTextureSync();

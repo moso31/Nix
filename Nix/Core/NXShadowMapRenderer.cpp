@@ -37,7 +37,7 @@ void NXShadowMapRenderer::Init()
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.pRootSignature = m_pRootSig.Get();
-	psoDesc.InputLayout = { NXGlobalInputLayout::layoutPT, 1 };
+	psoDesc.InputLayout = NXGlobalInputLayout::layoutPT;
 	psoDesc.BlendState = NXBlendState<>::Create();
 	psoDesc.RasterizerState = NXRasterizerState<>::Create();
 	psoDesc.DepthStencilState = NXDepthStencilState<true, true, D3D12_COMPARISON_FUNC_LESS>::Create();

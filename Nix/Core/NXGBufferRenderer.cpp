@@ -11,7 +11,7 @@
 #include "NXPrimitive.h"
 #include "NXCubeMap.h"
 #include "NXRenderStates.h"
-#include "NXSamplerStates.h"
+#include "NXSamplerManager.h"
 #include "NXAllocatorManager.h"
 
 #include "NXPBRMaterial.h"
@@ -27,36 +27,9 @@ NXGBufferRenderer::~NXGBufferRenderer()
 
 void NXGBufferRenderer::Init()
 {
-	m_pDepthZ = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
-	m_pGBufferRT[0] = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer0);
-	m_pGBufferRT[1] = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer1);
-	m_pGBufferRT[2] = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer2);
-	m_pGBufferRT[3] = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer3);
-
-	// todo: rootparam, staticsampler. 需要结合nsl的完整逻辑想想
-	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::device.Get(), rootParams, staticSamplers);
-
 	ComPtr<ID3DBlob> pVSBlob, pPSBlob;
 	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\DebugLayer.fx", "VS", pVSBlob.Get());
 	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\DebugLayer.fx", "PS", pPSBlob.Get());
-
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-	psoDesc.pRootSignature = m_pRootSig.Get();
-	psoDesc.InputLayout = { NXGlobalInputLayout::layoutPT, 1 };
-	psoDesc.BlendState = NXBlendState<>::Create();
-	psoDesc.RasterizerState = NXRasterizerState<>::Create();
-	psoDesc.DepthStencilState = NXDepthStencilState<true, true, D3D12_COMPARISON_FUNC_LESS, true, 0xff, 0xff, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_REPLACE>::Create();
-	psoDesc.SampleDesc.Count = 1;
-	psoDesc.SampleDesc.Quality = 0;
-	psoDesc.SampleMask = UINT_MAX;
-	psoDesc.NumRenderTargets = 1;
-	for (int i = 0; i < 4; i++) 
-		psoDesc.RTVFormats[0] = m_pGBufferRT[0]->GetFormat();
-	psoDesc.DSVFormat = m_pDepthZ->GetFormat();
-	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
-	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
-	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	NXGlobalDX::device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
 }
 
 void NXGBufferRenderer::Render()
@@ -66,11 +39,20 @@ void NXGBufferRenderer::Render()
 	m_pCommandList->SetGraphicsRootSignature(m_pRootSig.Get());
 	m_pCommandList->SetPipelineState(m_pPSO.Get());
 
-	D3D12_CPU_DESCRIPTOR_HANDLE pRTs[] = { m_pGBufferRT[0]->GetRTV(), m_pGBufferRT[1]->GetRTV(), m_pGBufferRT[2]->GetRTV(), m_pGBufferRT[3]->GetRTV() };
-	m_pCommandList->ClearDepthStencilView(m_pDepthZ->GetDSV(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0x0, 0, nullptr);
+	Ntr<NXTexture2D> pGBuffers[] =
+	{
+		NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer0),
+		NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer1),
+		NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer2),
+		NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer3),
+	};
+	Ntr<NXTexture2D> pDepthZ = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
+
+	D3D12_CPU_DESCRIPTOR_HANDLE pRTs[] = { pGBuffers[0]->GetRTV(), pGBuffers[1]->GetRTV(), pGBuffers[2]->GetRTV(), pGBuffers[3]->GetRTV() };
+	m_pCommandList->ClearDepthStencilView(pDepthZ->GetDSV(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0x0, 0, nullptr);
 	for (int i = 0; i < _countof(pRTs); i++)
-		m_pCommandList->ClearRenderTargetView(m_pGBufferRT[i]->GetRTV(), Colors::Black, 0, nullptr);
-	m_pCommandList->OMSetRenderTargets(_countof(pRTs), pRTs, false, &m_pDepthZ->GetDSV());
+		m_pCommandList->ClearRenderTargetView(pGBuffers[i]->GetRTV(), Colors::Black, 0, nullptr);
+	m_pCommandList->OMSetRenderTargets(_countof(pRTs), pRTs, false, &pDepthZ->GetDSV());
 
 	auto pErrorMat = NXResourceManager::GetInstance()->GetMaterialManager()->GetErrorMaterial();
 	auto pMaterialsArray = NXResourceManager::GetInstance()->GetMaterialManager()->GetMaterials();
@@ -82,7 +64,7 @@ void NXGBufferRenderer::Render()
 
 		if (pEasyMat)
 		{
-			pEasyMat->Render();
+			pEasyMat->Render(m_pCommandList.Get());
 			for (auto pSubMesh : pEasyMat->GetRefSubMeshes())
 			{
 				if (pSubMesh)

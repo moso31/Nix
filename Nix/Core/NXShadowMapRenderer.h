@@ -1,9 +1,8 @@
 #pragma once
 #include "BaseDefs/DX12.h"
 #include "BaseDefs/Math.h"
-#include "Ntr.h"
+#include "BaseDefs/NixCore.h"
 #include "ShaderStructures.h"
-#include "CommittedAllocator.h"
 
 struct CBufferShadowMapObject
 {

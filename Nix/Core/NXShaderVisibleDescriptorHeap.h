@@ -13,7 +13,7 @@ public:
 	const UINT GetOffset() const { return m_shaderVisibleHeapOffset; }
 
 	ID3D12DescriptorHeap* GetHeap() { return m_shaderVisibleHeap.Get(); }
-	D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle(UINT gpuOffset); // 获取ringbuffer中 offset位置处的 gpuHandle。
+	D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle(); // 获取ringbuffer中 当前位置的 gpuHandle。
 
 private:
 	const UINT m_maxDescriptors;

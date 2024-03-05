@@ -1,5 +1,5 @@
 #include "NXBRDFlut.h"
-#include "NXSamplerStates.h"
+#include "NXSamplerManager.h"
 #include "NXResourceManager.h"
 #include "ShaderStructures.h"
 #include "ShaderComplier.h"
@@ -53,12 +53,12 @@ void NXBRDFLut::InitRootSignature()
 	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\BRDF2DLUT.fx", "VS", pVSBlob.Get());
 	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\BRDF2DLUT.fx", "PS", pPSBlob.Get());
 
-	// ´´½¨É¶¶¼Ã»ÓÐµÄ¿ÕÃèÊö·û£¨BRDFLUT2D ²»ÐèÒª£©
-	m_pRootSig = NX12Util::CreateRootSignature(.Get(), 0, nullptr, 0, nullptr);
+	// ï¿½ï¿½ï¿½ï¿½É¶ï¿½ï¿½Ã»ï¿½ÐµÄ¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½BRDFLUT2D ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½
+	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::GetDevice(), 0, nullptr, 0, nullptr);
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.pRootSignature = m_pRootSig.Get();
-	psoDesc.InputLayout = { NXGlobalInputLayout::layoutPT, 1 };
+	psoDesc.InputLayout = NXGlobalInputLayout::layoutPT;
 	psoDesc.BlendState = NXBlendState<>::Create();
 	psoDesc.RasterizerState = NXRasterizerState<>::Create();
 	psoDesc.DepthStencilState = NXDepthStencilState<>::Create();

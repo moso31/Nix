@@ -30,12 +30,10 @@ public:
 	const std::filesystem::path& GetFilePath() { return m_filePath; }
 	size_t GetFilePathHash() { return std::filesystem::hash_value(m_filePath); }
 
-	ID3D11Buffer* GetConstantBuffer() const { return m_cb.Get(); }
-
 	virtual void SetShadingModel(NXShadingModel shadingModel) {}
 
 	virtual void Update() = 0;
-	virtual void Render() = 0;
+	virtual void Render(ID3D12GraphicsCommandList* pCommandList) = 0;
 	virtual void Release() = 0;
 
 	virtual void Serialize() {}
@@ -47,7 +45,8 @@ public:
 	void AddSubMesh(NXSubMeshBase* pSubMesh);
 
 protected:
-	ComPtr<ID3D11Buffer> m_cb;
+	ComPtr<ID3D12PipelineState> m_pPSO;
+	ComPtr<ID3D12RootSignature> m_pRootSig;
 
 	// 材质文件路径
 	std::filesystem::path m_filePath;
@@ -68,14 +67,10 @@ public:
 
 	void Init();
 	void Update() override {}
-	void Render() override;
+	void Render(ID3D12GraphicsCommandList* pCommandList) override;
 	void Release() override {}
 
 private:
-	ComPtr<ID3D11VertexShader>			m_pVertexShader;
-	ComPtr<ID3D11PixelShader>			m_pPixelShader;
-	ComPtr<ID3D11InputLayout>			m_pInputLayout;
-
 	Ntr<NXTexture2D> m_pTexture;
 };
 
@@ -104,7 +99,7 @@ public:
 	void InitShaderResources();
 
 	virtual void Update() override;
-	void Render();
+	void Render(ID3D12GraphicsCommandList* pCommandList) override;
 	void Release() override {}
 
 	void SetNSLParam(const std::string& nslParams) { m_nslParams = nslParams; }
@@ -192,30 +187,26 @@ private:
 	bool m_bCompileSuccess = false;
 
 private:
-	std::string							m_nslParams;
-	std::vector<std::string>			m_nslFuncs;
+	std::string								m_nslParams;
+	std::vector<std::string>				m_nslFuncs;
 
-	ComPtr<ID3D11VertexShader>			m_pVertexShader;
-	ComPtr<ID3D11PixelShader>			m_pPixelShader;
-	ComPtr<ID3D11InputLayout>			m_pInputLayout;
+	std::vector<NXMaterialSamplerInfo>		m_samplerInfos;
+	std::vector<NXMaterialTextureInfo>		m_texInfos;
+	NXMaterialCBufferInfo					m_cbInfo;
+	std::vector<float>						m_cbInfoMemory;
+	std::vector<int>						m_cbSortedIndex;
 
-	std::vector<NXMaterialSamplerInfo>	m_samplerInfos;
-	std::vector<NXMaterialTextureInfo>	m_texInfos;
-	NXMaterialCBufferInfo				m_cbInfo;
-	std::vector<float>					m_cbInfoMemory;
-	std::vector<int>					m_cbSortedIndex;
-
-	std::vector<float>					m_cbData;
+	MultiFrame<CommittedResourceData<std::vector<float>>>	m_cbData;
 
 	// backup datas
-	std::vector<NXMaterialSamplerInfo>	m_samplerInfosBackup;
-	std::vector<NXMaterialTextureInfo>	m_texInfosBackup;
-	NXMaterialCBufferInfo				m_cbInfoBackup;
-	std::vector<float>					m_cbInfoMemoryBackup;
-	std::vector<int>					m_cbSortedIndexBackup;
-	std::vector<std::string>			m_nslFuncsBackup;
+	std::vector<NXMaterialSamplerInfo>		m_samplerInfosBackup;
+	std::vector<NXMaterialTextureInfo>		m_texInfosBackup;
+	NXMaterialCBufferInfo					m_cbInfoBackup;
+	std::vector<float>						m_cbInfoMemoryBackup;
+	std::vector<int>						m_cbSortedIndexBackup;
+	std::vector<std::string>				m_nslFuncsBackup;
 
 	// SSS profile 的路径
-	std::filesystem::path				m_sssProfilePath;
-	UINT8								m_sssProfileGBufferIndexInternal;
+	std::filesystem::path					m_sssProfilePath;
+	UINT8									m_sssProfileGBufferIndexInternal;
 };

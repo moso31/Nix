@@ -1,8 +1,7 @@
 #pragma once
 #include <filesystem>
 #include "BaseDefs/DX12.h"
-#include "CommittedAllocator.h"
-#include "DescriptorAllocator.h"
+#include "BaseDefs/NixCore.h"
 #include "NXTransform.h"
 #include "DirectXTex.h"
 #include "ShaderStructures.h"

@@ -1,7 +1,7 @@
 //#include "NXDepthPrepass.h"
 //#include "ShaderComplier.h"
 //#include "NXRenderStates.h"
-//#include "NXSamplerStates.h"
+//#include "NXSamplerManager.h"
 //#include "NXGlobalDefinitions.h"
 //#include "DirectResources.h"
 //#include "NXResourceManager.h"
@@ -58,8 +58,8 @@ NXDepthPrepass::~NXDepthPrepass()
 //	auto pSampler = NXSamplerManager::Get(NXSamplerFilter::Linear, NXSamplerAddressMode::Clamp);
 //	g_pContext->PSSetSamplers(0, 1, &pSampler);
 //
-//	// »æÖÆ DepthPrepass
-//	// 2023.6.4: ÔÝÊ±Í£ÓÃ
+//	// ï¿½ï¿½ï¿½ï¿½ DepthPrepass
+//	// 2023.6.4: ï¿½ï¿½Ê±Í£ï¿½ï¿½
 //	for (auto pRenderObj : m_pScene->GetRenderableObjects())
 //	{
 //	}

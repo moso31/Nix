@@ -2,7 +2,7 @@
 #include "NXGlobalDefinitions.h"
 #include "ShaderComplier.h"
 #include "NXRenderStates.h"
-#include "NXSamplerStates.h"
+#include "NXSamplerManager.h"
 #include "NXResourceManager.h"
 #include "NXSubMeshGeometryEditor.h"
 #include "NXTexture.h"
@@ -18,24 +18,27 @@ void NXShadowTestRenderer::Init()
 	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\ShadowTest.fx", "PS", pPSBlob.Get());
 
 	// t0, t1, b0, b1, b2, s0
-	std::vector<D3D12_DESCRIPTOR_RANGE> ranges;
-	ranges.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 0));
+	std::vector<D3D12_DESCRIPTOR_RANGE> ranges = {
+		NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 0)
+	};
 
-	std::vector<D3D12_ROOT_PARAMETER> rootParams;
-	rootParams.push_back(NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL)); // b0
-	rootParams.push_back(NX12Util::CreateRootParameterCBV(1, 0, D3D12_SHADER_VISIBILITY_ALL)); // b1
-	rootParams.push_back(NX12Util::CreateRootParameterCBV(2, 0, D3D12_SHADER_VISIBILITY_ALL)); // b2
-	rootParams.push_back(NX12Util::CreateRootParameterTable(ranges, D3D12_SHADER_VISIBILITY_ALL)); // t0, t1
+	std::vector<D3D12_ROOT_PARAMETER> rootParams = {
+		NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL), // b0
+		NX12Util::CreateRootParameterCBV(1, 0, D3D12_SHADER_VISIBILITY_ALL), // b1
+		NX12Util::CreateRootParameterCBV(2, 0, D3D12_SHADER_VISIBILITY_ALL), // b2
+		NX12Util::CreateRootParameterTable(ranges, D3D12_SHADER_VISIBILITY_ALL) // t0, t1
+	};
 
-	std::vector<D3D12_STATIC_SAMPLER_DESC> staticSamplers;
-	staticSamplers.push_back(NXStaticSamplerState<D3D12_FILTER_MIN_LINEAR_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_BORDER, D3D12_TEXTURE_ADDRESS_MODE_BORDER, D3D12_TEXTURE_ADDRESS_MODE_BORDER>::Create(0, 0, D3D12_SHADER_VISIBILITY_ALL)); // s0
+	std::vector<D3D12_STATIC_SAMPLER_DESC> staticSamplers = {
+		NXSamplerManager::GetInstance()->CreateIso(0, 0, D3D12_SHADER_VISIBILITY_ALL, D3D12_FILTER_MIN_LINEAR_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_BORDER) // s0
+	};
 
 	// Create the root signature with the new configuration
 	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::device.Get(), rootParams, staticSamplers);
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.pRootSignature = m_pRootSig.Get();
-	psoDesc.InputLayout = { NXGlobalInputLayout::layoutPT, 1 };
+	psoDesc.InputLayout = NXGlobalInputLayout::layoutPT;
 	psoDesc.BlendState = NXBlendState<>::Create();
 	psoDesc.RasterizerState = NXRasterizerState<D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_BACK, 0, 0, 1000.0f>::Create();;
 	psoDesc.DepthStencilState = NXDepthStencilState<true, false, D3D12_COMPARISON_FUNC_ALWAYS>::Create();
@@ -44,14 +47,14 @@ void NXShadowTestRenderer::Init()
 	psoDesc.SampleMask = UINT_MAX;
 	psoDesc.NumRenderTargets = 0;
 	psoDesc.RTVFormats[0] = m_pTexPassOut->GetFormat();
-	psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN; // shadowtest ²»ÐèÒª dsv
+	psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN; // shadowtest ï¿½ï¿½ï¿½ï¿½Òª dsv
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	NXGlobalDX::device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
 
 	m_pTexPassIn0 = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
-	// m_pTexPassIn1 ÓÉ SetShadowMapDepth() ·½·¨´«Èë
+	// m_pTexPassIn1 ï¿½ï¿½ SetShadowMapDepth() ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 	m_pTexPassOut = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_ShadowTest);
 }

@@ -8,7 +8,7 @@
 #include "NXSubMeshGeometryEditor.h"
 #include "NXTexture.h"
 #include "NXAllocatorManager.h"
-#include "NXSamplerStates.h"
+#include "NXSamplerManager.h"
 
 NXColorMappingRenderer::NXColorMappingRenderer() :
 	m_bEnablePostProcessing(true)
@@ -28,21 +28,24 @@ void NXColorMappingRenderer::Init()
 	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\ColorMapping.fx", "VS", pVSBlob.Get());
 	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\ColorMapping.fx", "PS", pPSBlob.Get());
 
-	std::vector<D3D12_DESCRIPTOR_RANGE> ranges;
-	ranges.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0));
+	std::vector<D3D12_DESCRIPTOR_RANGE> ranges = {
+		NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0)
+	};
 
-	std::vector<D3D12_ROOT_PARAMETER> rootParams;
-	rootParams.push_back(NX12Util::CreateRootParameterCBV(2, 0, D3D12_SHADER_VISIBILITY_ALL));
-	rootParams.push_back(NX12Util::CreateRootParameterTable(ranges, D3D12_SHADER_VISIBILITY_ALL));
+	std::vector<D3D12_ROOT_PARAMETER> rootParams = {
+		NX12Util::CreateRootParameterCBV(2, 0, D3D12_SHADER_VISIBILITY_ALL),
+		NX12Util::CreateRootParameterTable(ranges, D3D12_SHADER_VISIBILITY_ALL)
+	};
 
-	std::vector<D3D12_STATIC_SAMPLER_DESC> staticSamplers;
-	staticSamplers.push_back(NXStaticSamplerState<>::Create(0, 0, D3D12_SHADER_VISIBILITY_ALL));
+	std::vector<D3D12_STATIC_SAMPLER_DESC> staticSamplers = { 
+		NXSamplerManager::GetInstance()->CreateIso(0, 0, D3D12_SHADER_VISIBILITY_ALL) 
+	};
 
-	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::device.Get(), rootParams, staticSamplers);
+	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::GetDevice(), rootParams, staticSamplers);
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.pRootSignature = m_pRootSig.Get();
-	psoDesc.InputLayout = { NXGlobalInputLayout::layoutPT, 1 };
+	psoDesc.InputLayout = NXGlobalInputLayout::layoutPT;
 	psoDesc.BlendState = NXBlendState<>::Create();
 	psoDesc.RasterizerState = NXRasterizerState<>::Create();
 	psoDesc.DepthStencilState = NXDepthStencilState<true, false, D3D12_COMPARISON_FUNC_ALWAYS>::Create();

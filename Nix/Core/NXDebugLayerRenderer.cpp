@@ -2,7 +2,7 @@
 #include "NXShadowMapRenderer.h"
 #include "ShaderComplier.h"
 #include "NXRenderStates.h"
-#include "NXSamplerStates.h"
+#include "NXSamplerManager.h"
 #include "NXGlobalDefinitions.h"
 #include "NXResourceManager.h"
 #include "DirectResources.h"
@@ -30,7 +30,7 @@ void NXDebugLayerRenderer::Init()
 	rootParams.push_back(NX12Util::CreateRootParameterTable(ranges, D3D12_SHADER_VISIBILITY_ALL));
 
 	std::vector<D3D12_STATIC_SAMPLER_DESC> staticSamplers;
-	staticSamplers.push_back(NXStaticSamplerState<D3D12_FILTER_MIN_LINEAR_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_CLAMP>::Create(0, 0, D3D12_SHADER_VISIBILITY_ALL)); // s0
+	staticSamplers.push_back(NXSamplerManager::GetInstance()->CreateIso(0, 0, D3D12_SHADER_VISIBILITY_ALL, D3D12_FILTER_MIN_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_CLAMP));
 
 	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::device.Get(), rootParams, staticSamplers);
 
@@ -40,7 +40,7 @@ void NXDebugLayerRenderer::Init()
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.pRootSignature = m_pRootSig.Get();
-	psoDesc.InputLayout = { NXGlobalInputLayout::layoutPT, 1 };
+	psoDesc.InputLayout = NXGlobalInputLayout::layoutPT;
 	psoDesc.BlendState = NXBlendState<>::Create();
 	psoDesc.RasterizerState = NXRasterizerState<>::Create();
 	psoDesc.DepthStencilState = NXDepthStencilState<true, false, D3D12_COMPARISON_FUNC_ALWAYS>::Create();

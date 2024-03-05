@@ -37,7 +37,7 @@ const D3D12_GPU_DESCRIPTOR_HANDLE NXShaderVisibleDescriptorHeap::Append(const D3
 	return Append(&cpuHandle.ptr, 1);
 }
 
-D3D12_GPU_DESCRIPTOR_HANDLE NXShaderVisibleDescriptorHeap::GetGPUHandle(UINT gpuOffset)
+D3D12_GPU_DESCRIPTOR_HANDLE NXShaderVisibleDescriptorHeap::GetGPUHandle()
 {
-	return { m_shaderVisibleHeap->GetGPUDescriptorHandleForHeapStart().ptr + gpuOffset * m_descriptorByteSize };
+	return { m_shaderVisibleHeap->GetGPUDescriptorHandleForHeapStart().ptr + m_shaderVisibleHeapOffset * m_descriptorByteSize };
 }

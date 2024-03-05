@@ -1,5 +1,6 @@
 #pragma once
 #include "BaseDefs/DX12.h"
+#include "BaseDefs/NixCore.h"
 #include "BaseDefs/Math.h"
 #include "NXResourceManagerBase.h"
 

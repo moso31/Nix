@@ -438,9 +438,6 @@
     <ClCompile Include="Core\NXGUIWorkspace.cpp">
       <Filter>Core\UI</Filter>
     </ClCompile>
-    <ClCompile Include="Core\NXSamplerStates.cpp">
-      <Filter>Core\DirectX</Filter>
-    </ClCompile>
     <ClCompile Include="Core\NXFileSystemHelper.cpp">
       <Filter>Core\Helper</Filter>
     </ClCompile>
@@ -485,6 +482,9 @@
     </ClCompile>
     <ClCompile Include="Core\NXGlobalDefinitions.cpp">
       <Filter>Core\DirectX</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXSamplerManager.cpp">
+      <Filter>Core\DirectX\Manager</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -728,9 +728,6 @@
     <ClInclude Include="Core\NXGUIWorkspace.h">
       <Filter>Core\UI</Filter>
     </ClInclude>
-    <ClInclude Include="Core\NXSamplerStates.h">
-      <Filter>Core\DirectX</Filter>
-    </ClInclude>
     <ClInclude Include="Core\NXFileSystemHelper.h">
       <Filter>Core\Helper</Filter>
     </ClInclude>
@@ -796,6 +793,9 @@
     </ClInclude>
     <ClInclude Include="Core\NXGlobalDefinitions.h">
       <Filter>Core\DirectX</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXSamplerManager.h">
+      <Filter>Core\DirectX\Manager</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -2,7 +2,7 @@
 #include "ShaderComplier.h"
 #include "NXGlobalDefinitions.h"
 #include "NXRenderStates.h"
-#include "NXSamplerStates.h"
+#include "NXSamplerManager.h"
 #include "DirectResources.h"
 #include "NXResourceManager.h"
 #include "NXTexture.h"
@@ -22,16 +22,19 @@ NXSkyRenderer::~NXSkyRenderer()
 
 void NXSkyRenderer::InitSignature()
 {
-	std::vector<D3D12_DESCRIPTOR_RANGE> ranges;
-	ranges.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0));
+	std::vector<D3D12_DESCRIPTOR_RANGE> ranges = {
+		NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0)
+	};
 
-	std::vector<D3D12_ROOT_PARAMETER> rootParam;
-	rootParam.push_back(NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL));
-	rootParam.push_back(NX12Util::CreateRootParameterCBV(1, 0, D3D12_SHADER_VISIBILITY_ALL));
-	rootParam.push_back(NX12Util::CreateRootParameterTable(ranges, D3D12_SHADER_VISIBILITY_ALL));
+	std::vector<D3D12_ROOT_PARAMETER> rootParam = {
+		NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL),
+		NX12Util::CreateRootParameterCBV(1, 0, D3D12_SHADER_VISIBILITY_ALL),
+		NX12Util::CreateRootParameterTable(ranges, D3D12_SHADER_VISIBILITY_ALL)
+	};
 
-	std::vector<D3D12_STATIC_SAMPLER_DESC> samplers;
-	samplers.push_back(NXStaticSamplerState<>::Create(0, 0, D3D12_SHADER_VISIBILITY_ALL));
+	std::vector<D3D12_STATIC_SAMPLER_DESC> samplers = {
+		NXSamplerManager::GetInstance()->CreateIso(0, 0, D3D12_SHADER_VISIBILITY_ALL)
+	};
 
 	NX12Util::CreateRootSignature(NXGlobalDX::device.Get(), rootParam, samplers);
 }
@@ -44,7 +47,7 @@ void NXSkyRenderer::InitPSO()
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.pRootSignature = m_pRootSig.Get();
-	psoDesc.InputLayout = { NXGlobalInputLayout::layoutP, 1 };
+	psoDesc.InputLayout = NXGlobalInputLayout::layoutP;
 	psoDesc.BlendState = NXBlendState<>::Create();
 	psoDesc.RasterizerState = NXRasterizerState<>::Create();
 	psoDesc.DepthStencilState = NXDepthStencilState<true, false, D3D12_COMPARISON_FUNC_LESS_EQUAL>::Create();
@@ -81,15 +84,15 @@ void NXSkyRenderer::Render()
 	auto pCubeMap = m_pScene->GetCubeMap();
 	if (pCubeMap)
 	{
-		// °ó¶¨RootSigºÍPSO
+		// ï¿½ï¿½RootSigï¿½ï¿½PSO
 		m_pCommandList->SetGraphicsRootSignature(m_pRootSig.Get());
 		m_pCommandList->SetPipelineState(m_pPSO.Get());
 
-		// °ó¶¨¶Ñ
+		// ï¿½ó¶¨¶ï¿½
 		ID3D12DescriptorHeap* ppHeaps[] = { pShaderVisibleDescriptorHeap->GetHeap() };
 		m_pCommandList->SetDescriptorHeaps(1, ppHeaps);
 
-		// ÉèÖÃ×ÊÔ´×´Ì¬
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´×´Ì¬
 		m_pTexPassOut->SetResourceState(m_pCommandList.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET);
 		m_pTexPassOutDepth->SetResourceState(m_pCommandList.Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
 

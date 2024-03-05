@@ -3,7 +3,7 @@
 #include "NXRenderStates.h"
 #include "NXGlobalDefinitions.h"
 #include "NXResourceManager.h"
-#include "NXSamplerStates.h"
+#include "NXSamplerManager.h"
 #include "NXTexture.h"
 #include "NXAllocatorManager.h"
 #include "NXSubMeshGeometryEditor.h"
@@ -17,20 +17,23 @@ void NXDepthRenderer::Init()
 	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\Depth.fx", "VS", pVSBlob.Get());
 	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\Depth.fx", "PS", pPSBlob.Get());
 
-	std::vector<D3D12_DESCRIPTOR_RANGE> ranges;
-	ranges.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0));
+	std::vector<D3D12_DESCRIPTOR_RANGE> ranges = {
+		NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0)
+	};
 
-	std::vector<D3D12_ROOT_PARAMETER> rootParam;
-	rootParam.push_back(NX12Util::CreateRootParameterTable(ranges, D3D12_SHADER_VISIBILITY_ALL));
+	std::vector<D3D12_ROOT_PARAMETER> rootParam = {
+		NX12Util::CreateRootParameterTable(ranges, D3D12_SHADER_VISIBILITY_ALL)
+	};
 
-	std::vector<D3D12_STATIC_SAMPLER_DESC> samplers;
-	samplers.push_back(NXStaticSamplerState<D3D12_FILTER_MIN_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_CLAMP>::Create(0, 0, D3D12_SHADER_VISIBILITY_ALL));
+	std::vector<D3D12_STATIC_SAMPLER_DESC> samplers = {
+		NXSamplerManager::GetInstance()->CreateIso(0, 0, D3D12_SHADER_VISIBILITY_ALL, D3D12_FILTER_MIN_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_CLAMP)
+	};
 
 	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::device.Get(), rootParam, samplers);
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.pRootSignature = m_pRootSig.Get();
-	psoDesc.InputLayout = { NXGlobalInputLayout::layoutPT, 1 };
+	psoDesc.InputLayout = NXGlobalInputLayout::layoutPT;
 	psoDesc.BlendState = NXBlendState<>::Create();
 	psoDesc.RasterizerState = NXRasterizerState<>::Create();
 	psoDesc.DepthStencilState = NXDepthStencilState<false, false, D3D12_COMPARISON_FUNC_LESS, true, 0xFF, 0xFF, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_COMPARISON_FUNC_EQUAL>::Create();

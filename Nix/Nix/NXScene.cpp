@@ -262,25 +262,23 @@ void NXScene::Init()
 	{
 		NXPBRPointLight* pPointLight;
 		pPointLight = NXResourceManager::GetInstance()->GetLightManager()->CreatePBRPointLight(Vector3(0.0f, 0.25f, 0.0f), Vector3(1.0f), 100.0f, 100.0f);
-		m_cbDataLights.pointLight[0] = pPointLight->GetConstantBuffer();
 
 		NXPBRDistantLight* pDirLight;
 		pDirLight = NXResourceManager::GetInstance()->GetLightManager()->CreatePBRDistantLight(Vector3(-1.0f, -1.30f, 1.0f), Vector3(1.0f), 0.0f);
-		m_cbDataLights.distantLight[0] = pDirLight->GetConstantBuffer();
 
 		NXPBRSpotLight* pSpotLight;
 		//pSpotLight = NXResourceManager::GetInstance()->GetLightManager()->CreatePBRSpotLight(Vector3(0.0f, 2.0f, 0.0f), Vector3(0.0f, -1.0f, 0.0f), Vector3(1.0f), 1.0f, 30.0f, 50.0f, 100.0f);
-		//m_cbDataLights.spotLight[0] = pSpotLight->GetConstantBuffer();
 
-		D3D11_BUFFER_DESC bufferDesc;
-		ZeroMemory(&bufferDesc, sizeof(bufferDesc));
-		bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-		bufferDesc.ByteWidth = sizeof(ConstantBufferLight);
-		bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		bufferDesc.CPUAccessFlags = 0;
-		NX::ThrowIfFailed(NXGlobalDX::device->CreateBuffer(&bufferDesc, nullptr, &m_cbLights));
+		for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
+		{
+			NXAllocatorManager::GetInstance()->GetCBufferAllocator()->Alloc(ResourceType_Upload, m_cbDataLights.Get(i));
 
-		g_pContext->UpdateSubresource(m_cbLights.Get(), 0, nullptr, &m_cbDataLights, 0, 0);
+			auto& lightsData = m_cbDataLights.Get(i).data;
+			lightsData.pointLight[0] = pPointLight->GetConstantBuffer();
+			lightsData.distantLight[0] = pDirLight->GetConstantBuffer();
+			//lightsData.spotLight[0] = pSpotLight->GetConstantBuffer();
+			NXAllocatorManager::GetInstance()->GetCBufferAllocator()->UpdateData(m_cbDataLights.Get(i));
+		}
 	}
 
 	InitScripts();
@@ -367,28 +365,29 @@ void NXScene::UpdateLightData()
 	UINT pointIdx = 0;
 	UINT spotIdx = 0;
 
+	auto cbLightData = m_cbDataLights.Current().data;
 	for (auto pLight : GetPBRLights())
 	{
 		switch (pLight->GetType())
 		{
 		case NXLight_Distant:
 			pDirLight = (NXPBRDistantLight*)pLight;
-			m_cbDataLights.distantLight[dirIdx++] = pDirLight->GetConstantBuffer();
+			cbLightData.distantLight[dirIdx++] = pDirLight->GetConstantBuffer();
 			break;
 		case NXLight_Point:
 			pPointLight = (NXPBRPointLight*)pLight;
-			m_cbDataLights.pointLight[pointIdx++] = pPointLight->GetConstantBuffer();
+			cbLightData.pointLight[pointIdx++] = pPointLight->GetConstantBuffer();
 			break;
 		case NXLight_Spot:
 			pSpotLight = (NXPBRSpotLight*)pLight;
-			m_cbDataLights.spotLight[spotIdx++] = pSpotLight->GetConstantBuffer();
+			cbLightData.spotLight[spotIdx++] = pSpotLight->GetConstantBuffer();
 			break;
 		default:
 			break;
 		}
 	}
 
-	g_pContext->UpdateSubresource(m_cbLights.Get(), 0, nullptr, &m_cbDataLights, 0, 0);
+	NXAllocatorManager::GetInstance()->GetCBufferAllocator()->UpdateData(m_cbDataLights.Current());
 }
 
 void NXScene::Release()

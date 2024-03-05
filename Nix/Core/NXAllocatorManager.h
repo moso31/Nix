@@ -1,18 +1,14 @@
 #pragma once
 #include "BaseDefs/DX12.h"
+#include "BaseDefs/NixCore.h"
 #include "NXInstance.h"
-#include "CommittedAllocator.h"
-#include "PlacedAllocator.h"
-#include "DescriptorAllocator.h"
-#include "RTVAllocator.h"
-#include "DSVAllocator.h"
 #include "NXShaderVisibleDescriptorHeap.h"
 
-#define NXAllocator::GetInstance()->GetCBufferAllocator() NXCBufferAllocator
-#define NXAllocator::GetInstance()->GetTextureAllocator() NXTextureAllocator
-#define NXAllocator::GetInstance()->GetDescriptorAllocator() NXDescriptorAllocator
-#define NXAllocator::GetInstance()->GetShaderVisibleDescriptorHeap() NXShaderVisibleHeap
-#define NXAllocator::GetInstance()->GetCommandList() NXCmdList
+#define NXCBufferAllocator		NXAllocatorManager::GetInstance()->GetCBufferAllocator()
+#define NXTextureAllocator		NXAllocatorManager::GetInstance()->GetTextureAllocator()
+#define NXDescriptorAllocator	NXAllocatorManager::GetInstance()->GetDescriptorAllocator()
+#define NXShaderVisibleHeap		NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap()
+#define NXCmdList				NXAllocatorManager::GetInstance()->GetCommandList()
 
 // DX12 ·ÖÅäÆ÷
 class NXAllocatorManager : public NXInstance<NXAllocatorManager>

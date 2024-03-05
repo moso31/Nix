@@ -5,7 +5,7 @@
 
 #include "NXBRDFlut.h"
 #include "NXRenderStates.h"
-#include "NXSamplerStates.h"
+#include "NXSamplerManager.h"
 #include "NXGlobalDefinitions.h"
 #include "NXScene.h"
 #include "NXPrimitive.h"
@@ -43,27 +43,30 @@ void NXDeferredRenderer::Init()
 	NXShaderComplier::GetInstance()->CompileVS("Shader\\DeferredRender.fx", "VS", pVSBlob.Get());
 	NXShaderComplier::GetInstance()->CompilePS("Shader\\DeferredRender.fx", "PS", pPSBlob.Get());
 
-	std::vector<D3D12_DESCRIPTOR_RANGE> ranges;
-	ranges.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 9, 0, 0)); 
-
 	// t0~t8, s0~s1, b0~b4.
-	std::vector<D3D12_ROOT_PARAMETER> rootParam;
-	rootParam.push_back(NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL));
-	rootParam.push_back(NX12Util::CreateRootParameterCBV(1, 0, D3D12_SHADER_VISIBILITY_ALL));
-	rootParam.push_back(NX12Util::CreateRootParameterCBV(2, 0, D3D12_SHADER_VISIBILITY_ALL));
-	rootParam.push_back(NX12Util::CreateRootParameterCBV(3, 0, D3D12_SHADER_VISIBILITY_ALL));
-	rootParam.push_back(NX12Util::CreateRootParameterCBV(4, 0, D3D12_SHADER_VISIBILITY_ALL));
-	rootParam.push_back(NX12Util::CreateRootParameterTable(ranges, D3D12_SHADER_VISIBILITY_ALL));
+	std::vector<D3D12_DESCRIPTOR_RANGE> ranges = {
+		NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 9, 0, 0) 
+	};
 
-	std::vector<D3D12_STATIC_SAMPLER_DESC> samplers;
-	samplers.push_back(NXStaticSamplerState<>::Create(0, 0, D3D12_SHADER_VISIBILITY_ALL));
-	samplers.push_back(NXStaticSamplerStateUVW<D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_CLAMP>::Create(1, 0, D3D12_SHADER_VISIBILITY_ALL));
+	std::vector<D3D12_ROOT_PARAMETER> rootParam = {
+		NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL),
+		NX12Util::CreateRootParameterCBV(1, 0, D3D12_SHADER_VISIBILITY_ALL),
+		NX12Util::CreateRootParameterCBV(2, 0, D3D12_SHADER_VISIBILITY_ALL),
+		NX12Util::CreateRootParameterCBV(3, 0, D3D12_SHADER_VISIBILITY_ALL),
+		NX12Util::CreateRootParameterCBV(4, 0, D3D12_SHADER_VISIBILITY_ALL),
+		NX12Util::CreateRootParameterTable(ranges, D3D12_SHADER_VISIBILITY_ALL),
+	};
+
+	std::vector<D3D12_STATIC_SAMPLER_DESC> samplers = {
+		NXSamplerManager::GetInstance()->CreateIso(0, 0, D3D12_SHADER_VISIBILITY_ALL, D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_WRAP),
+		NXSamplerManager::GetInstance()->CreateIso(0, 0, D3D12_SHADER_VISIBILITY_ALL, D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_CLAMP),
+	};
 
 	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::device.Get(), rootParam, samplers);
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.pRootSignature = m_pRootSig.Get();
-	psoDesc.InputLayout = { NXGlobalInputLayout::layoutPT, 1 };
+	psoDesc.InputLayout = NXGlobalInputLayout::layoutPT;
 	psoDesc.BlendState = NXBlendState<>::Create();
 	psoDesc.RasterizerState = NXRasterizerState<>::Create();
 	psoDesc.DepthStencilState = NXDepthStencilState<true, false, D3D12_COMPARISON_FUNC_LESS_EQUAL>::Create();

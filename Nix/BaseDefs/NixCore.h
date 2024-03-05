@@ -9,6 +9,12 @@
 
 #include "Ntr.h"
 
+#include "CommittedAllocator.h"
+#include "DescriptorAllocator.h"
+#include "PlacedAllocator.h"
+#include "DSVAllocator.h"
+#include "RTVAllocator.h"
+
 #define SafeDeleteArray(x) { delete[] x; x = nullptr; }
 #define SafeDelete(x) { delete x; x = nullptr; }
 #define SafeReleaseCOM(x) { if (x) { x->Release(); x = nullptr; } }

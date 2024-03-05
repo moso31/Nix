@@ -58,7 +58,7 @@ ID3D12Resource* NX12Util::CreateBuffer(ID3D12Device* pDevice, const std::string&
 		&CreateHeapProperties(heapType),
 		D3D12_HEAP_FLAG_NONE,
 		&desc, 
-		D3D12_RESOURCE_STATE_GENERIC_READ, // ³õÊ¼µÄ×ÊÔ´×´Ì¬ÎªREAD£¨ÔÊÐíCPUÐ´ÈëÊý¾Ý£©
+		D3D12_RESOURCE_STATE_GENERIC_READ, // ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½Ô´×´Ì¬ÎªREADï¿½ï¿½ï¿½ï¿½ï¿½ï¿½CPUÐ´ï¿½ï¿½ï¿½ï¿½ï¿½Ý£ï¿½
 		nullptr,
 		IID_PPV_ARGS(&pResource)
 	);

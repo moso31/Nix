@@ -1,6 +1,7 @@
 #pragma once
 #include "BaseDefs/Math.h"
 #include "BaseDefs/DX12.h"
+#include "BaseDefs/NixCore.h"
 
 #include "NXEvent.h"
 #include "NXObject.h"
@@ -69,7 +70,7 @@ public:
 	// 目前只对第一个光源创建Parallel ShadowMap。
 	//void InitShadowMapTransformInfo(ConstantBufferShadowMapTransform& out_cb);
 
-	ID3D11Buffer* GetConstantBufferLights() const { return m_cbLights.Get(); }
+	D3D12_GPU_VIRTUAL_ADDRESS GetConstantBufferLights() { return m_cbDataLights.Current().GPUVirtualAddr; }
 
 	// 更新场景BVH树
 	void BuildBVHTrees(const HBVHSplitMode SplitMode);
@@ -88,8 +89,7 @@ private:
 	void InitBoundingStructures();
 
 private:
-	ComPtr<ID3D11Buffer> m_cbLights;
-	ConstantBufferLight m_cbDataLights;
+	MultiFrame<CommittedResourceData<ConstantBufferLight>> m_cbDataLights;
 
 	AABB m_aabb;
 	BoundingSphere m_boundingSphere;

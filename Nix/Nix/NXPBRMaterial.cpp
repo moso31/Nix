@@ -3,13 +3,15 @@
 #include <direct.h>
 #include "DirectXTex.h"
 #include "NXConverter.h"
-#include "NXResourceManager.h"
 #include "NXSubMesh.h"
+#include "NXResourceManager.h"
+#include "NXAllocatorManager.h"
 
 #include "ShaderComplier.h"
 #include "NXHLSLGenerator.h"
 #include "NXGlobalDefinitions.h"
-#include "NXSamplerStates.h"
+#include "NXSamplerManager.h"
+#include "NXRenderStates.h"
 #include "NXGUIMaterial.h"
 #include "NXGUICommon.h"
 #include "NXSSSDiffuseProfile.h"
@@ -42,21 +44,68 @@ NXEasyMaterial::NXEasyMaterial(const std::string& name, const std::filesystem::p
 
 void NXEasyMaterial::Init()
 {
-	NXShaderComplier::GetInstance()->CompileVSIL(".\\Shader\\GBufferEasy.fx", "VS", &m_pVertexShader, NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), &m_pInputLayout);
-	NXShaderComplier::GetInstance()->CompilePS(".\\Shader\\GBufferEasy.fx", "PS", &m_pPixelShader);
+	ComPtr<ID3DBlob> pVSBlob, pPSBlob;
+	NXShaderComplier::GetInstance()->CompileVS(".\\Shader\\GBufferEasy.fx", "VS", pVSBlob.Get());
+	NXShaderComplier::GetInstance()->CompilePS(".\\Shader\\GBufferEasy.fx", "PS", pPSBlob.Get());
+
+	// b0, t1, s0
+	std::vector<D3D12_DESCRIPTOR_RANGE> ranges = {
+		NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1)
+	};
+
+	std::vector<D3D12_ROOT_PARAMETER> rootParams = {
+		NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL),
+		NX12Util::CreateRootParameterTable(ranges, D3D12_SHADER_VISIBILITY_ALL)
+	};
+
+	std::vector<D3D12_STATIC_SAMPLER_DESC> staticSamplers = {
+		NXSamplerManager::GetInstance()->CreateIso(0, 0, D3D12_SHADER_VISIBILITY_ALL)
+	};
+
+	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::device.Get(), rootParams, staticSamplers);
+
+	Ntr<NXTexture2D> pGBuffers[] =
+	{
+		NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer0),
+		NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer1),
+		NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer2),
+		NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer3),
+	};
+	Ntr<NXTexture2D> pDepthZ = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
+
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+	psoDesc.pRootSignature = m_pRootSig.Get();
+	psoDesc.InputLayout = NXGlobalInputLayout::layoutPNTT;
+	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
+	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() }; 
+	psoDesc.RasterizerState = NXRasterizerState<>::Create();
+	psoDesc.BlendState = NXBlendState<>::Create();
+	psoDesc.DepthStencilState = NXDepthStencilState<>::Create();
+	psoDesc.SampleDesc.Count = 1;
+	psoDesc.SampleDesc.Quality = 0;
+	psoDesc.SampleMask = UINT_MAX;
+	psoDesc.NumRenderTargets = 1;
+	for (int i = 0; i < _countof(pGBuffers); i++) 
+		psoDesc.RTVFormats[i] = pGBuffers[i]->GetFormat();
+	psoDesc.DSVFormat = pDepthZ->GetFormat();
+	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
+	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
+	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	NXGlobalDX::device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
 }
 
-void NXEasyMaterial::Render()
+void NXEasyMaterial::Render(ID3D12GraphicsCommandList* pCommandList)
 {
-	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
-	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
-	g_pContext->IASetInputLayout(m_pInputLayout.Get());
+	pCommandList->SetGraphicsRootSignature(m_pRootSig.Get());
+	pCommandList->SetPipelineState(m_pPSO.Get());
 
-	ID3D11ShaderResourceView* pSRV = m_pTexture->GetSRV();
-	if (pSRV) g_pContext->PSSetShaderResources(1, 1, &pSRV);
+	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
+	auto srvHandle = pShaderVisibleDescriptorHeap->Append(m_pTexture->GetSRV());
 
-	ID3D11SamplerState* pSampler = NXSamplerManager::Get(NXSamplerFilter::Linear, NXSamplerAddressMode::Wrap);
-	if (pSampler) g_pContext->PSSetSamplers(0, 1, &pSampler);
+	ID3D12DescriptorHeap* ppHeaps[] = { pShaderVisibleDescriptorHeap->GetHeap() };
+	pCommandList->SetDescriptorHeaps(1, ppHeaps);
+
+	pCommandList->SetGraphicsRootDescriptorTable(1, srvHandle);
 }
 
 void NXCustomMaterial::LoadAndCompile(const std::filesystem::path& nslFilePath)
@@ -130,20 +179,62 @@ void NXCustomMaterial::ConvertGUIDataToHLSL(std::string& oHLSLHead, std::vector<
 
 void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::string& oErrorMessageVS, std::string& oErrorMessagePS)
 {
-	ComPtr<ID3D11VertexShader> pNewVS;
-	ComPtr<ID3D11PixelShader>  pNewPS;
-	ComPtr<ID3D11InputLayout>  pNewIL;
-
-	HRESULT hrVS = NXShaderComplier::GetInstance()->CompileVSILByCode(strGBufferShader, "VS", &pNewVS, NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), &pNewIL, oErrorMessageVS);
-	HRESULT hrPS = NXShaderComplier::GetInstance()->CompilePSByCode(strGBufferShader, "PS", &pNewPS, oErrorMessagePS);
-
+	ComPtr<ID3DBlob> pVSBlob, pPSBlob;
+	HRESULT hrVS = NXShaderComplier::GetInstance()->CompileVS(strGBufferShader, "VS", pVSBlob.Get(), oErrorMessageVS);
+	HRESULT hrPS = NXShaderComplier::GetInstance()->CompilePS(strGBufferShader, "PS", pPSBlob.Get(), oErrorMessagePS);
 	m_bCompileSuccess = SUCCEEDED(hrVS) && SUCCEEDED(hrPS);
 	
+	// 如果JIT编译OK，就可以构建shader了。首先重新构建根签名和PSO。
 	if (m_bCompileSuccess)
-	{
-		m_pVertexShader = pNewVS;
-		m_pPixelShader = pNewPS;
-		m_pInputLayout = pNewIL;
+	{ 
+		// b3, t0~tN, s0~sN.
+		std::vector<D3D12_DESCRIPTOR_RANGE> ranges;
+		ranges.reserve(m_texInfos.size());
+
+		// t0~tN. 每张tex指定了slotIndex 所以还是得用for循环
+		for (const auto &texInfo : m_texInfos)
+			ranges.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, texInfo.slotIndex));
+
+		std::vector<D3D12_ROOT_PARAMETER> rootParams = {
+			NX12Util::CreateRootParameterCBV(3, 0, D3D12_SHADER_VISIBILITY_ALL), // b3
+			NX12Util::CreateRootParameterTable(ranges, D3D12_SHADER_VISIBILITY_ALL), // t0~tN
+		};
+
+		std::vector<D3D12_STATIC_SAMPLER_DESC> staticSamplers;
+		staticSamplers.reserve(m_samplerInfos.size());
+		for (int i = 0; i < m_samplerInfos.size(); i++)
+			NXSamplerManager::GetInstance()->Create(i, 0, D3D12_SHADER_VISIBILITY_ALL, m_samplerInfos[i]); // s0~sN
+
+		m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::device.Get(), rootParams, staticSamplers);
+
+		Ntr<NXTexture2D> pGBuffers[] =
+		{
+			NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer0),
+			NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer1),
+			NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer2),
+			NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer3),
+		};
+		Ntr<NXTexture2D> pDepthZ = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
+
+		D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+		psoDesc.pRootSignature = m_pRootSig.Get();
+		psoDesc.InputLayout = NXGlobalInputLayout::layoutPNTT;
+		psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
+		psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
+		psoDesc.RasterizerState = NXRasterizerState<>::Create();
+		psoDesc.BlendState = NXBlendState<>::Create();
+		psoDesc.DepthStencilState = NXDepthStencilState<>::Create();
+		psoDesc.SampleDesc.Count = 1;
+		psoDesc.SampleDesc.Quality = 0;
+		psoDesc.SampleMask = UINT_MAX;
+		psoDesc.NumRenderTargets = 1;
+		for (int i = 0; i < _countof(pGBuffers); i++)
+			psoDesc.RTVFormats[i] = pGBuffers[i]->GetFormat();
+		psoDesc.DSVFormat = pDepthZ->GetFormat();
+		psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
+		psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
+		psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+		NXGlobalDX::device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
 	}
 }
 
@@ -190,9 +281,10 @@ void NXCustomMaterial::UpdateCBData()
 {
 	auto& cbElems = m_cbInfo.elems;
 	auto& cbSets = m_cbInfo.sets;
+	auto& cbData = m_cbData.Current().data;
 
 	int alignCheck = 0;
-	m_cbData.clear();
+	cbData.clear();
 	for (int i = 0; i < cbElems.size(); i++)
 	{
 		auto& cb = cbElems[m_cbSortedIndex[i]];
@@ -201,44 +293,35 @@ void NXCustomMaterial::UpdateCBData()
 		// 进行4float(16byte)对齐检查。
 		if (alignCheck + nType < 4) // 不需要 padding
 		{
-			for(int j = 0; j < nType; j++) m_cbData.push_back(m_cbInfoMemory[cb.memoryIndex + j]);
+			for(int j = 0; j < nType; j++) cbData.push_back(m_cbInfoMemory[cb.memoryIndex + j]);
 			alignCheck += nType;
 		}
 		else if (alignCheck + nType == 4)
 		{
-			for (int j = 0; j < nType; j++) m_cbData.push_back(m_cbInfoMemory[cb.memoryIndex + j]);
+			for (int j = 0; j < nType; j++) cbData.push_back(m_cbInfoMemory[cb.memoryIndex + j]);
 			alignCheck = 0;
 		}
 		else // > 4，先补充对齐 _pad，再填下一个 float
 		{
-			while (m_cbData.size() % 4 != 0) m_cbData.push_back(0); // 16 bytes align
+			while (cbData.size() % 4 != 0) cbData.push_back(0); // 16 bytes align
 
-			for (int j = 0; j < nType; j++) m_cbData.push_back(m_cbInfoMemory[cb.memoryIndex + j]);
+			for (int j = 0; j < nType; j++) cbData.push_back(m_cbInfoMemory[cb.memoryIndex + j]);
 			alignCheck = nType % 4;
 		}
 	}
-	while (m_cbData.size() % 4 != 0) m_cbData.push_back(0); // 16 bytes align
+	while (cbData.size() % 4 != 0) cbData.push_back(0); // 16 bytes align
 
 	// material settings
-	m_cbData.push_back(reinterpret_cast<float&>(cbSets.shadingModel));
-	while (m_cbData.size() % 4 != 0) m_cbData.push_back(0); // 16 bytes align
+	cbData.push_back(reinterpret_cast<float&>(cbSets.shadingModel));
+	while (cbData.size() % 4 != 0) cbData.push_back(0); // 16 bytes align
 
 	// sss Profile
 	UINT sssGBufferIndex = (UINT)m_sssProfileGBufferIndexInternal;
-	m_cbData.push_back(reinterpret_cast<float&>(sssGBufferIndex));
-	while (m_cbData.size() % 4 != 0) m_cbData.push_back(0); // 16 bytes align
+	cbData.push_back(reinterpret_cast<float&>(sssGBufferIndex));
+	while (cbData.size() % 4 != 0) cbData.push_back(0); // 16 bytes align
 
-	// 基于 m_cbDataSH 创建常量缓冲区
-	D3D11_BUFFER_DESC bufferDesc;
-	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = (UINT)(m_cbData.size() * sizeof(float));
-	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bufferDesc.CPUAccessFlags = 0;
-	D3D11_SUBRESOURCE_DATA InitData = {};
-	InitData.pSysMem = m_cbData.data();
-
-	NX::ThrowIfFailed(NXGlobalDX::device->CreateBuffer(&bufferDesc, &InitData, &m_cb));
+	// 重建整个CBuffer
+	NXAllocatorManager::GetInstance()->GetCBufferAllocator()->Alloc(ResourceType_Upload, m_cbData.Current());
 }
 
 NXCustomMaterial::NXCustomMaterial(const std::string& name, const std::filesystem::path& path) :
@@ -246,28 +329,24 @@ NXCustomMaterial::NXCustomMaterial(const std::string& name, const std::filesyste
 {
 }
 
-void NXCustomMaterial::Render()
+void NXCustomMaterial::Render(ID3D12GraphicsCommandList* pCommandList)
 {
-	g_pContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
-	g_pContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
-	g_pContext->IASetInputLayout(m_pInputLayout.Get());
+	pCommandList->SetGraphicsRootSignature(m_pRootSig.Get());
+	pCommandList->SetPipelineState(m_pPSO.Get());
 
+	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
+	ID3D12DescriptorHeap* ppHeaps[] = { pShaderVisibleDescriptorHeap->GetHeap() };
+	pCommandList->SetDescriptorHeaps(1, ppHeaps);
+
+	D3D12_GPU_DESCRIPTOR_HANDLE srvHandle = pShaderVisibleDescriptorHeap->GetGPUHandle();
 	for (auto& texInfo : m_texInfos)
 	{
 		if (texInfo.pTexture.IsValid())
 		{
-			ID3D11ShaderResourceView* pSRV = texInfo.pTexture->GetSRV();
-			if (pSRV) g_pContext->PSSetShaderResources(texInfo.slotIndex, 1, &pSRV);
+			pShaderVisibleDescriptorHeap->Append(texInfo.pTexture->GetSRV());
 		}
 	}
-
-	for (auto& ssInfo : m_samplerInfos)
-	{
-		auto pSampler = NXSamplerManager::Get(ssInfo.filter, ssInfo.addressU, ssInfo.addressV, ssInfo.addressW);
-		g_pContext->PSSetSamplers(ssInfo.slotIndex, 1, &pSampler);
-	}
-
-	g_pContext->PSSetConstantBuffers(m_cbInfo.slotIndex, 1, m_cb.GetAddressOf());
+	pCommandList->SetGraphicsRootDescriptorTable(1, srvHandle); // t0~tN.
 }
 
 void NXCustomMaterial::Update()
@@ -277,9 +356,10 @@ void NXCustomMaterial::Update()
 		UpdateCBData();
 		m_bIsDirty = false;
 	}
-
-	if (m_cb)
-		g_pContext->UpdateSubresource(m_cb.Get(), 0, nullptr, m_cbData.data(), 0, 0);
+	else
+	{
+		NXAllocatorManager::GetInstance()->GetCBufferAllocator()->UpdateData(m_cbData.Current());
+	}
 }
 
 void NXCustomMaterial::SetTexture(const Ntr<NXTexture>& pTexture, const std::filesystem::path& texFilePath)

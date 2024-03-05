@@ -1,12 +1,14 @@
 #pragma once
 #include "BaseDefs/DX12.h"
 #include "ShaderStructures.h"
+#include "Ntr.h"
 
 struct CBufferColorMapping
 {
 	Vector4 param0; // x: enable
 };
 
+class NXTexture2D;
 class NXColorMappingRenderer
 {
 public:

@@ -2,7 +2,7 @@
 #include "DirectResources.h"
 #include "ShaderComplier.h"
 #include "NXRenderStates.h"
-#include "NXSamplerStates.h"
+#include "NXSamplerManager.h"
 
 #include "NXBRDFlut.h"
 #include "NXGlobalDefinitions.h"
@@ -40,28 +40,31 @@ void NXForwardRenderer::Init()
 	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\ForwardTranslucent.fx", "PS", pPSBlob.Get());
 
 	// t0~t8, s0~s2, b0~b5
-	std::vector<D3D12_DESCRIPTOR_RANGE> ranges;
-	ranges.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 9, 0, 0));
+	std::vector<D3D12_DESCRIPTOR_RANGE> ranges = {
+		NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 9, 0, 0)
+	};
 
-	std::vector<D3D12_ROOT_PARAMETER> rootParam;
-	rootParam.push_back(NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL));
-	rootParam.push_back(NX12Util::CreateRootParameterCBV(1, 0, D3D12_SHADER_VISIBILITY_ALL));
-	rootParam.push_back(NX12Util::CreateRootParameterCBV(2, 0, D3D12_SHADER_VISIBILITY_ALL));
-	rootParam.push_back(NX12Util::CreateRootParameterCBV(3, 0, D3D12_SHADER_VISIBILITY_ALL));
-	rootParam.push_back(NX12Util::CreateRootParameterCBV(4, 0, D3D12_SHADER_VISIBILITY_ALL));
-	rootParam.push_back(NX12Util::CreateRootParameterCBV(5, 0, D3D12_SHADER_VISIBILITY_ALL));
-	rootParam.push_back(NX12Util::CreateRootParameterTable(6, 0, D3D12_SHADER_VISIBILITY_ALL));
+	std::vector<D3D12_ROOT_PARAMETER> rootParam = {
+		NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL),
+		NX12Util::CreateRootParameterCBV(1, 0, D3D12_SHADER_VISIBILITY_ALL),
+		NX12Util::CreateRootParameterCBV(2, 0, D3D12_SHADER_VISIBILITY_ALL),
+		NX12Util::CreateRootParameterCBV(3, 0, D3D12_SHADER_VISIBILITY_ALL),
+		NX12Util::CreateRootParameterCBV(4, 0, D3D12_SHADER_VISIBILITY_ALL),
+		NX12Util::CreateRootParameterCBV(5, 0, D3D12_SHADER_VISIBILITY_ALL),
+		NX12Util::CreateRootParameterTable(6, 0, D3D12_SHADER_VISIBILITY_ALL)
+	};
 
-	std::vector<D3D12_STATIC_SAMPLER_DESC> samplers;
-	samplers.push_back(NXStaticSamplerStateUVW<>::Create(0, 0, D3D12_SHADER_VISIBILITY_ALL));
-	samplers.push_back(NXStaticSamplerStateUVW<D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_CLAMP>::Create(1, 0, D3D12_SHADER_VISIBILITY_ALL));
-	samplers.push_back(NXStaticSamplerStateUVW<D3D12_FILTER_MIN_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_CLAMP>::Create(2, 0, D3D12_SHADER_VISIBILITY_ALL));
+	std::vector<D3D12_STATIC_SAMPLER_DESC> samplers = {
+		NXSamplerManager::GetInstance()->CreateIso(0, 0, D3D12_SHADER_VISIBILITY_ALL),
+		NXSamplerManager::GetInstance()->CreateIso(1, 0, D3D12_SHADER_VISIBILITY_ALL, D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_CLAMP),
+		NXSamplerManager::GetInstance()->CreateIso(2, 0, D3D12_SHADER_VISIBILITY_ALL, D3D12_FILTER_MIN_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_CLAMP),
+	};
 
 	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::device.Get(), rootParam, samplers);
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.pRootSignature = m_pRootSig.Get();
-	psoDesc.InputLayout = { NXGlobalInputLayout::layoutPNTT, 1 };
+	psoDesc.InputLayout = NXGlobalInputLayout::layoutPNTT;
 	psoDesc.BlendState = NXBlendState<false, false, true, D3D12_BLEND_SRC_ALPHA, D3D12_BLEND_INV_SRC_ALPHA>::Create();
 	psoDesc.RasterizerState = NXRasterizerState<>::Create();
 	psoDesc.DepthStencilState = NXDepthStencilState<>::Create();
@@ -84,7 +87,7 @@ void NXForwardRenderer::Render()
 	m_pCommandList->SetGraphicsRootSignature(m_pRootSig.Get());
 	m_pCommandList->SetPipelineState(m_pPSO.Get());
 
-	//TODO: »ØÍ·ÔÙÐÞÕâ¿é£¬ÐèÒªÏÈÅÜÍ¨ÆäËûÄÚÈÝ
+	//TODO: ï¿½ï¿½Í·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½é£¬ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½Í¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 	//g_pContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 0);
 	//g_pContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xffffffff);
@@ -125,14 +128,14 @@ void NXForwardRenderer::Render()
 	//	g_pContext->PSSetConstantBuffers(5, 1, &pCBCubeMapParam);
 	//}
 
-	//// PBR´ó¸Ä¡£ÒõÓ°ÌùÍ¼ÔÝÊ±Í£ÓÃ¡£
+	//// PBRï¿½ï¿½Ä¡ï¿½ï¿½ï¿½Ó°ï¿½ï¿½Í¼ï¿½ï¿½Ê±Í£ï¿½Ã¡ï¿½
 	////auto pShadowMapSRV = m_pPassShadowMap->GetSRV();
 	////g_pContext->PSSetShaderResources(10, 1, &pShadowMapSRV);
 
 	////auto pShadowMapConstantBufferTransform = m_pPassShadowMap->GetConstantBufferTransform();
 	////g_pContext->PSSetConstantBuffers(4, 1, &pShadowMapConstantBufferTransform);
 
-	//// 2022.4.14 Ö»äÖÈ¾ Transparent ÎïÌå
+	//// 2022.4.14 Ö»ï¿½ï¿½È¾ Transparent ï¿½ï¿½ï¿½ï¿½
 	//for (auto pMat : NXResourceManager::GetInstance()->GetMaterialManager()->GetMaterials())
 	//{
 	//	// TODO

@@ -2,7 +2,7 @@
 //#include "DirectResources.h"
 //#include "ShaderComplier.h"
 //#include "NXRenderStates.h"
-//#include "NXSamplerStates.h"
+//#include "NXSamplerManager.h"
 //
 //#include "NXBRDFlut.h"
 //#include "NXGlobalDefinitions.h"
@@ -85,8 +85,8 @@
 //	{
 //		g_pUDA->BeginEvent(L"Layer");
 //
-//		// Ç°Ãæ²ÉÓÃ²»Í¸Ã÷äÖÈ¾
-//		// ×îºóÒ»²ãÇ¿ÖÆ°ëÍ¸äÖÈ¾£¨×Ü±È¿´²»µ½ÒªºÃ£©
+//		// Ç°ï¿½ï¿½ï¿½ï¿½Ã²ï¿½Í¸ï¿½ï¿½ï¿½ï¿½È¾
+//		// ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Ç¿ï¿½Æ°ï¿½Í¸ï¿½ï¿½È¾ï¿½ï¿½ï¿½Ü±È¿ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½Ã£ï¿½
 //		if (i == m_peelingLayerCount - 1)
 //		{
 //			g_pContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xffffffff);
@@ -137,7 +137,7 @@
 //			g_pContext->PSSetConstantBuffers(5, 1, &pCBCubeMapParam);
 //		}
 //
-//		// PBR´ó¸Ä¡£ÒõÓ°ÌùÍ¼ÔÝÊ±Í£ÓÃ¡£
+//		// PBRï¿½ï¿½Ä¡ï¿½ï¿½ï¿½Ó°ï¿½ï¿½Í¼ï¿½ï¿½Ê±Í£ï¿½Ã¡ï¿½
 //		//auto pShadowMapSRV = m_pPassShadowMap->GetSRV();
 //		//g_pContext->PSSetShaderResources(10, 1, &pShadowMapSRV);
 //
@@ -148,7 +148,7 @@
 //
 //		auto pMainScene = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_SSSLighting);
 //		auto pDepthZ = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
-//		// TODO : ¼ÓÁËSSSRTÒÔºóCopyResource¸ñÊ½²»¼æÈÝÁË¡£½«À´ÏëÏëÔõÃ´¸Ä
+//		// TODO : ï¿½ï¿½ï¿½ï¿½SSSRTï¿½Ôºï¿½CopyResourceï¿½ï¿½Ê½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã´ï¿½ï¿½
 //		g_pContext->CopyResource(m_pSceneRT[i]->GetTex(), pMainScene->GetTex());
 //		g_pContext->CopyResource(m_pSceneDepth[i % 2]->GetTex(), pDepthZ->GetTex());
 //
@@ -169,7 +169,7 @@
 //	// Combine Layers
 //	g_pUDA->BeginEvent(L"Combine");
 //
-//	// ´« cb params
+//	// ï¿½ï¿½ cb params
 //	{
 //		g_pContext->PSSetConstantBuffers(4, 1, m_cbDepthPeelingParams.GetAddressOf());
 //	}
@@ -195,7 +195,7 @@
 //		g_pContext->PSSetShaderResources(i, 1, &pSRVScene);
 //	}
 //
-//	// ¡¾ÎÒTMÒª·èÁËÕâ¸öNullSRVµ½µ×ÒªÔõÃ´´¦Àí°¡°¡°¡°¡°¡°¡°¡°¡¡¿
+//	// ï¿½ï¿½ï¿½ï¿½TMÒªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½NullSRVï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½Ã´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 //	ID3D11ShaderResourceView* const pNullSRV[16] = { nullptr };
 //	g_pContext->PSSetShaderResources(m_peelingLayerCount, 16 - m_peelingLayerCount, pNullSRV);
 //
@@ -234,7 +234,7 @@
 //	auto pMainCamera = m_pScene->GetMainCamera();
 //	Vector3 cameraPos = pMainCamera ? Vector3(0.0f) : pMainCamera->GetTranslation();
 //
-//	// 2022.4.14 Ö»äÖÈ¾ Transparent ÎïÌå
+//	// 2022.4.14 Ö»ï¿½ï¿½È¾ Transparent ï¿½ï¿½ï¿½ï¿½
 //	for (auto pMat : NXResourceManager::GetInstance()->GetMaterialManager()->GetMaterials())
 //	{
 //		// TODO
