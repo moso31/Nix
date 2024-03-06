@@ -5,7 +5,7 @@
 //#include "DirectResources.h"
 //#include "NXResourceManager.h"
 //#include "NXRenderStates.h"
-//#include "NXSamplerManager.h"
+//#include "NXSamplerStates.h"
 //#include "NXScene.h"
 //#include "SamplerMath.h"
 //#include "NXTexture.h"
@@ -25,7 +25,7 @@
 //	// SSAO Params
 //	InitSSAOParams();
 //
-//	// О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+//	// иЗЁикФ╩З╡ияЫпРап
 //	GenerateSamplePosition();
 //}
 //
@@ -66,7 +66,7 @@
 //	int threadCountY = ((int)m_rtSize.y + 7) / 8;
 //	g_pContext->Dispatch(threadCountX, threadCountY, 1);
 //
-//	// О©╫О©╫О©╫О©╫О©╫т╨О©╫О©╫О©╫у╤О©╫с╕О©╫О©╫н╩О©╫О©╫SRVО©╫О©╫О©╫О©╫х╩О©╫О©╫р╩ж║О©╫О©╫О©╫О©╫DepthPrepassй╠DSVО©╫О©╫О©╫о║О©╫
+//	// сцмЙрт╨СгЕ©у╤тс╕╡шн╩╣дSRVё╛╡╩х╩обр╩ж║╢╕юМDepthPrepassй╠DSV╟С╡╩ио║ё
 //	ComPtr<ID3D11ShaderResourceView> pSRVNull[3] = { nullptr, nullptr, nullptr };
 //	g_pContext->CSSetShaderResources(0, 3, pSRVNull->GetAddressOf());
 //

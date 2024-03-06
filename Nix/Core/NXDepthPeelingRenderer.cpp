@@ -2,7 +2,7 @@
 //#include "DirectResources.h"
 //#include "ShaderComplier.h"
 //#include "NXRenderStates.h"
-//#include "NXSamplerManager.h"
+//#include "NXSamplerStates.h"
 //
 //#include "NXBRDFlut.h"
 //#include "NXGlobalDefinitions.h"
@@ -85,8 +85,8 @@
 //	{
 //		g_pUDA->BeginEvent(L"Layer");
 //
-//		// ǰ����ò�͸����Ⱦ
-//		// ���һ��ǿ�ư�͸��Ⱦ���ܱȿ�����Ҫ�ã�
+//		// 前面采用不透明渲染
+//		// 最后一层强制半透渲染（总比看不到要好）
 //		if (i == m_peelingLayerCount - 1)
 //		{
 //			g_pContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xffffffff);
@@ -137,7 +137,7 @@
 //			g_pContext->PSSetConstantBuffers(5, 1, &pCBCubeMapParam);
 //		}
 //
-//		// PBR��ġ���Ӱ��ͼ��ʱͣ�á�
+//		// PBR大改。阴影贴图暂时停用。
 //		//auto pShadowMapSRV = m_pPassShadowMap->GetSRV();
 //		//g_pContext->PSSetShaderResources(10, 1, &pShadowMapSRV);
 //
@@ -148,7 +148,7 @@
 //
 //		auto pMainScene = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_SSSLighting);
 //		auto pDepthZ = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
-//		// TODO : ����SSSRT�Ժ�CopyResource��ʽ�������ˡ�����������ô��
+//		// TODO : 加了SSSRT以后CopyResource格式不兼容了。将来想想怎么改
 //		g_pContext->CopyResource(m_pSceneRT[i]->GetTex(), pMainScene->GetTex());
 //		g_pContext->CopyResource(m_pSceneDepth[i % 2]->GetTex(), pDepthZ->GetTex());
 //
@@ -169,7 +169,7 @@
 //	// Combine Layers
 //	g_pUDA->BeginEvent(L"Combine");
 //
-//	// �� cb params
+//	// 传 cb params
 //	{
 //		g_pContext->PSSetConstantBuffers(4, 1, m_cbDepthPeelingParams.GetAddressOf());
 //	}
@@ -195,7 +195,7 @@
 //		g_pContext->PSSetShaderResources(i, 1, &pSRVScene);
 //	}
 //
-//	// ����TMҪ�������NullSRV����Ҫ��ô����������������������
+//	// 【我TM要疯了这个NullSRV到底要怎么处理啊啊啊啊啊啊啊啊】
 //	ID3D11ShaderResourceView* const pNullSRV[16] = { nullptr };
 //	g_pContext->PSSetShaderResources(m_peelingLayerCount, 16 - m_peelingLayerCount, pNullSRV);
 //
@@ -234,7 +234,7 @@
 //	auto pMainCamera = m_pScene->GetMainCamera();
 //	Vector3 cameraPos = pMainCamera ? Vector3(0.0f) : pMainCamera->GetTranslation();
 //
-//	// 2022.4.14 ֻ��Ⱦ Transparent ����
+//	// 2022.4.14 只渲染 Transparent 物体
 //	for (auto pMat : NXResourceManager::GetInstance()->GetMaterialManager()->GetMaterials())
 //	{
 //		// TODO

@@ -58,8 +58,8 @@ NXDepthPrepass::~NXDepthPrepass()
 //	auto pSampler = NXSamplerManager::Get(NXSamplerFilter::Linear, NXSamplerAddressMode::Clamp);
 //	g_pContext->PSSetSamplers(0, 1, &pSampler);
 //
-//	// ï¿½ï¿½ï¿½ï¿½ DepthPrepass
-//	// 2023.6.4: ï¿½ï¿½Ê±Í£ï¿½ï¿½
+//	// »æÖÆ DepthPrepass
+//	// 2023.6.4: ÔÝÊ±Í£ÓÃ
 //	for (auto pRenderObj : m_pScene->GetRenderableObjects())
 //	{
 //	}

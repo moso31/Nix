@@ -47,14 +47,14 @@ void NXShadowTestRenderer::Init()
 	psoDesc.SampleMask = UINT_MAX;
 	psoDesc.NumRenderTargets = 0;
 	psoDesc.RTVFormats[0] = m_pTexPassOut->GetFormat();
-	psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN; // shadowtest ï¿½ï¿½ï¿½ï¿½Òª dsv
+	psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN; // shadowtest ²»ÐèÒª dsv
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	NXGlobalDX::device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
 
 	m_pTexPassIn0 = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
-	// m_pTexPassIn1 ï¿½ï¿½ SetShadowMapDepth() ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	// m_pTexPassIn1 ÓÉ SetShadowMapDepth() ·½·¨´«Èë
 
 	m_pTexPassOut = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_ShadowTest);
 }

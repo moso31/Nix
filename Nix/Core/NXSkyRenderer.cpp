@@ -84,15 +84,12 @@ void NXSkyRenderer::Render()
 	auto pCubeMap = m_pScene->GetCubeMap();
 	if (pCubeMap)
 	{
-		// ��RootSig��PSO
 		m_pCommandList->SetGraphicsRootSignature(m_pRootSig.Get());
 		m_pCommandList->SetPipelineState(m_pPSO.Get());
 
-		// �󶨶�
 		ID3D12DescriptorHeap* ppHeaps[] = { pShaderVisibleDescriptorHeap->GetHeap() };
 		m_pCommandList->SetDescriptorHeaps(1, ppHeaps);
 
-		// ������Դ״̬
 		m_pTexPassOut->SetResourceState(m_pCommandList.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET);
 		m_pTexPassOutDepth->SetResourceState(m_pCommandList.Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
 

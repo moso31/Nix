@@ -53,7 +53,6 @@ void NXBRDFLut::InitRootSignature()
 	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\BRDF2DLUT.fx", "VS", pVSBlob.Get());
 	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\BRDF2DLUT.fx", "PS", pPSBlob.Get());
 
-	// ����ɶ��û�еĿ���������BRDFLUT2D ����Ҫ��
 	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::GetDevice(), 0, nullptr, 0, nullptr);
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
