@@ -93,7 +93,7 @@
 //	bufferDesc.ByteWidth = sizeof(ConstantBufferSSAOParams);
 //	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 //	bufferDesc.CPUAccessFlags = 0;
-//	NX::ThrowIfFailed(NXGlobalDX::device->CreateBuffer(&bufferDesc, nullptr, &m_pCBSSAOParams));
+//	NX::ThrowIfFailed(NXGlobalDX::GetDevice()->CreateBuffer(&bufferDesc, nullptr, &m_pCBSSAOParams));
 //}
 //
 //void NXSimpleSSAO::GenerateSamplePosition()
@@ -115,7 +115,7 @@
 //	bufferDesc.ByteWidth = sizeof(Vector4) * SSAO_SAMPLE_COUNT;
 //	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 //	bufferDesc.CPUAccessFlags = 0;
-//	NX::ThrowIfFailed(NXGlobalDX::device->CreateBuffer(&bufferDesc, nullptr, &m_pCBSamplePositions));
+//	NX::ThrowIfFailed(NXGlobalDX::GetDevice()->CreateBuffer(&bufferDesc, nullptr, &m_pCBSamplePositions));
 //
 //	g_pContext->UpdateSubresource(m_pCBSamplePositions.Get(), 0, nullptr, m_samplePosition.data(), 0, 0);
 //}

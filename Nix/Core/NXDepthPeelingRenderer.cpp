@@ -224,7 +224,7 @@
 //	bufferDesc.ByteWidth = sizeof(CBufferDepthPeelingParams);
 //	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 //	bufferDesc.CPUAccessFlags = 0;
-//	NX::ThrowIfFailed(NXGlobalDX::device->CreateBuffer(&bufferDesc, nullptr, &m_cbDepthPeelingParams));
+//	NX::ThrowIfFailed(NXGlobalDX::GetDevice()->CreateBuffer(&bufferDesc, nullptr, &m_cbDepthPeelingParams));
 //
 //	g_pContext->UpdateSubresource(m_cbDepthPeelingParams.Get(), 0, nullptr, &m_cbDepthPeelingParamsData, 0, 0);
 //}

@@ -59,7 +59,7 @@ void NXGUI::Init()
 	D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = pShaderVisibleDescriptorHeap->Append(cpuHandle);
 
 	ImGui_ImplWin32_Init(NXGlobalWindows::hWnd);
-	ImGui_ImplDX12_Init(NXGlobalDX::device.Get(), MultiFrameSets_swapChainCount, DXGI_FORMAT_R8G8B8A8_UNORM, pShaderVisibleDescriptorHeap->GetHeap(), cpuHandle, gpuHandle);
+	ImGui_ImplDX12_Init(NXGlobalDX::GetDevice(), MultiFrameSets_swapChainCount, DXGI_FORMAT_R8G8B8A8_UNORM, pShaderVisibleDescriptorHeap->GetHeap(), cpuHandle, gpuHandle);
 
 	// ÉèÖÃ×ÖÌå
 	g_imgui_font_general = io.Fonts->AddFontFromFileTTF("./Resource/fonts/JetBrainsMono-Bold.ttf", 16);

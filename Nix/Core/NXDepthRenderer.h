@@ -3,6 +3,7 @@
 #include "Ntr.h"
 #include "ShaderStructures.h"
 
+class NXTexture2D;
 class NXDepthRenderer
 {
 public:

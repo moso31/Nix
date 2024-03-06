@@ -150,7 +150,7 @@ void NXCamera::Init(float fovY, float zNear, float zFar, Vector3 cameraPosition,
 	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
 
-	NX::ThrowIfFailed(NXGlobalDX::device->CreateBuffer(&bufferDesc, nullptr, &NXGlobalBuffer::cbCamera));
+	NX::ThrowIfFailed(NXGlobalDX::GetDevice()->CreateBuffer(&bufferDesc, nullptr, &NXGlobalBuffer::cbCamera));
 
 	OnResize(rtSize);
 }

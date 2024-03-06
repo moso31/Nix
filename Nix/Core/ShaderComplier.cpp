@@ -105,11 +105,11 @@ HRESULT NXShaderComplier::CompilePS(const std::filesystem::path& shaderFilePath,
 //	std::wstring errorMessage = L"shader " + shaderFilePath.wstring() + L" cannot be compiled.  Please run this executable from the directory that contains the FX file.";
 //	NX::MessageBoxIfFailed(hr, errorMessage.c_str());
 //
-//	NX::ThrowIfFailed(NXGlobalDX::device->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, ppOutVS));
+//	NX::ThrowIfFailed(NXGlobalDX::GetDevice()->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, ppOutVS));
 //
 //	if (clearDefineMacros) ClearMacros();
 //
-//	NX::ThrowIfFailed(NXGlobalDX::device->CreateInputLayout(pILDescs, numElementsOfIL, pBlob->GetBufferPointer(), pBlob->GetBufferSize(), ppOutIL));
+//	NX::ThrowIfFailed(NXGlobalDX::GetDevice()->CreateInputLayout(pILDescs, numElementsOfIL, pBlob->GetBufferPointer(), pBlob->GetBufferSize(), ppOutIL));
 //
 //	return S_OK;
 //}
@@ -141,11 +141,11 @@ HRESULT NXShaderComplier::CompilePS(const std::filesystem::path& shaderFilePath,
 //	std::wstring errorMessage = L"shader [CUSTOMCODE] cannot be compiled.  Please run this executable from the directory that contains the FX file.";
 //	NX::MessageBoxIfFailed(hr, errorMessage.c_str());
 //
-//	NX::ThrowIfFailed(NXGlobalDX::device->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, ppOutVS));
+//	NX::ThrowIfFailed(NXGlobalDX::GetDevice()->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, ppOutVS));
 //
 //	if (clearDefineMacros) ClearMacros();
 //
-//	NX::ThrowIfFailed(NXGlobalDX::device->CreateInputLayout(pILDescs, numElementsOfIL, pBlob->GetBufferPointer(), pBlob->GetBufferSize(), ppOutIL));
+//	NX::ThrowIfFailed(NXGlobalDX::GetDevice()->CreateInputLayout(pILDescs, numElementsOfIL, pBlob->GetBufferPointer(), pBlob->GetBufferSize(), ppOutIL));
 //
 //	return S_OK;
 //}
@@ -177,7 +177,7 @@ HRESULT NXShaderComplier::CompilePS(const std::filesystem::path& shaderFilePath,
 //	std::wstring errorMessage = L"shader " + shaderFilePath.wstring() + L" cannot be compiled.  Please run this executable from the directory that contains the FX file.";
 //	NX::MessageBoxIfFailed(hr, errorMessage.c_str());
 //
-//	NX::ThrowIfFailed(NXGlobalDX::device->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, ppOutPS));
+//	NX::ThrowIfFailed(NXGlobalDX::GetDevice()->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, ppOutPS));
 //
 //	if (clearDefineMacros) ClearMacros();
 //
@@ -211,7 +211,7 @@ HRESULT NXShaderComplier::CompilePS(const std::filesystem::path& shaderFilePath,
 //	std::wstring errorMessage = L"shader [CUSTOMCODE] cannot be compiled.  Please run this executable from the directory that contains the FX file.";
 //	NX::MessageBoxIfFailed(hr, errorMessage.c_str());
 //
-//	NX::ThrowIfFailed(NXGlobalDX::device->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, ppOutPS));
+//	NX::ThrowIfFailed(NXGlobalDX::GetDevice()->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, ppOutPS));
 //
 //	if (clearDefineMacros) ClearMacros();
 //
@@ -245,7 +245,7 @@ HRESULT NXShaderComplier::CompilePS(const std::filesystem::path& shaderFilePath,
 //	std::wstring errorMessage = L"shader " + shaderFilePath.wstring() + L" cannot be compiled.  Please run this executable from the directory that contains the FX file.";
 //	NX::MessageBoxIfFailed(hr, errorMessage.c_str());
 //
-//	NX::ThrowIfFailed(NXGlobalDX::device->CreateComputeShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, ppOutCS));
+//	NX::ThrowIfFailed(NXGlobalDX::GetDevice()->CreateComputeShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, ppOutCS));
 //
 //	if (clearDefineMacros) ClearMacros();
 //

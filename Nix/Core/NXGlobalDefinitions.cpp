@@ -5,20 +5,20 @@
 HINSTANCE	NXGlobalWindows::hInst;
 HWND		NXGlobalWindows::hWnd;
 
-ComPtr<ID3D12Device8>							NXGlobalDX::device;
-ComPtr<ID3D12CommandQueue>						NXGlobalDX::cmdQueue;
-MultiFrame<ComPtr<ID3D12GraphicsCommandList>>	NXGlobalDX::cmdList;
-MultiFrame<ComPtr<ID3D12CommandAllocator>>		NXGlobalDX::cmdAllocator;
+ComPtr<ID3D12Device8>							NXGlobalDX::s_device;
+ComPtr<ID3D12CommandQueue>						NXGlobalDX::s_cmdQueue;
+MultiFrame<ComPtr<ID3D12GraphicsCommandList>>	NXGlobalDX::s_cmdList;
+MultiFrame<ComPtr<ID3D12CommandAllocator>>		NXGlobalDX::s_cmdAllocator;
 
 void NXGlobalDX::Init(IDXGIAdapter4* pAdapter)
 {
-	HRESULT hr = D3D12CreateDevice(pAdapter, D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&device));
-	cmdQueue = NX12Util::CreateCommandQueue(device.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT, false);
+	HRESULT hr = D3D12CreateDevice(pAdapter, D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&s_device));
+	s_cmdQueue = NX12Util::CreateCommandQueue(device.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT, false);
 
 	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 	{
-		cmdAllocator[i] = NX12Util::CreateCommandAllocator(device.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT);
-		cmdList[i] = NX12Util::CreateCommandList(device.Get(), cmdAllocator.Get(i).Get(), D3D12_COMMAND_LIST_TYPE_DIRECT);
+		s_cmdAllocator[i] = NX12Util::CreateCommandAllocator(s_device.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT);
+		s_cmdList[i] = NX12Util::CreateCommandList(s_device.Get(), s_cmdAllocator.Get(i).Get(), D3D12_COMMAND_LIST_TYPE_DIRECT);
 	}
 }
 

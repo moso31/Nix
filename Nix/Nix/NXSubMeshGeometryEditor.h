@@ -52,7 +52,7 @@ public:
 	void CreateMoveArrows(NXPrimitive* pMesh);
 
 	template<class TVertex>
-	void CreateVBIB(const std::vector<TVertex>& vbData, const std::vector<UINT>& ibData, const std::string& name)
+	void CreateVBIB(const std::vector<TVertex>& vertices, const std::vector<UINT>& indices, const std::string& name)
 	{
 		if (m_data.find(name) != m_data.end())
 		{

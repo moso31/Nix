@@ -36,7 +36,7 @@ void NXSkyRenderer::InitSignature()
 		NXSamplerManager::GetInstance()->CreateIso(0, 0, D3D12_SHADER_VISIBILITY_ALL)
 	};
 
-	NX12Util::CreateRootSignature(NXGlobalDX::device.Get(), rootParam, samplers);
+	NX12Util::CreateRootSignature(NXGlobalDX::GetDevice(), rootParam, samplers);
 }
 
 void NXSkyRenderer::InitPSO()
@@ -60,7 +60,7 @@ void NXSkyRenderer::InitPSO()
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	NXGlobalDX::device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
+	NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
 }
 
 void NXSkyRenderer::Init()
@@ -68,8 +68,8 @@ void NXSkyRenderer::Init()
 	m_pTexPassOut = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_SSSLighting);
 	m_pTexPassOutDepth = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
 
-	NX12Util::CreateCommandQueue(NXGlobalDX::device.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT, false);
-	NX12Util::CreateCommands(NXGlobalDX::device.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.Get(), m_pCommandAllocator.Get(), m_pCommandList.Get());
+	NX12Util::CreateCommandQueue(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, false);
+	NX12Util::CreateCommands(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.Get(), m_pCommandAllocator.Get(), m_pCommandList.Get());
 
 	InitSignature();
 	InitPSO();

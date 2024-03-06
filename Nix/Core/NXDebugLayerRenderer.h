@@ -1,6 +1,7 @@
 #pragma once
 #include "BaseDefs/DX12.h"
 #include "BaseDefs/Math.h"
+#include "BaseDefs/NixCore.h"
 #include "Ntr.h"
 
 struct CBufferDebugLayer
@@ -10,6 +11,7 @@ struct CBufferDebugLayer
 };
 
 class NXTexture2D;
+class NXTexture2DArray;
 class NXRenderTarget;
 class NXShadowMapRenderer;
 class NXDebugLayerRenderer

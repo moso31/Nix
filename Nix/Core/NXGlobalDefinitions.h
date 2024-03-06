@@ -14,15 +14,15 @@ class NXGlobalDX
 {
 public:
 	static void Init(IDXGIAdapter4* pAdapter);
-	static ID3D12Device8* GetDevice() { return device.Get(); }
-	static ID3D12CommandQueue* GetCmdQueue() { return cmdQueue.Get(); }
-	static ID3D12GraphicsCommandList* CurrentCmdList() { return cmdList.Current().Get(); }
-	static ID3D12CommandAllocator* CurrentCmdAllocator() { return cmdAllocator.Current().Get(); }
+	static ID3D12Device8* GetDevice() { return s_device.Get(); }
+	static ID3D12CommandQueue* GetCmdQueue() { return s_cmdQueue.Get(); }
+	static ID3D12GraphicsCommandList* CurrentCmdList() { return s_cmdList.Current().Get(); }
+	static ID3D12CommandAllocator* CurrentCmdAllocator() { return s_cmdAllocator.Current().Get(); }
 
-	static ComPtr<ID3D12Device8>							device;
-	static ComPtr<ID3D12CommandQueue>						cmdQueue;
-	static MultiFrame<ComPtr<ID3D12GraphicsCommandList>>	cmdList;
-	static MultiFrame<ComPtr<ID3D12CommandAllocator>>		cmdAllocator;
+	static ComPtr<ID3D12Device8>							s_device;
+	static ComPtr<ID3D12CommandQueue>						s_cmdQueue;
+	static MultiFrame<ComPtr<ID3D12GraphicsCommandList>>	s_cmdList;
+	static MultiFrame<ComPtr<ID3D12CommandAllocator>>		s_cmdAllocator;
 };
 
 class App;

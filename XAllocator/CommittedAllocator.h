@@ -65,7 +65,7 @@ public:
 	template <typename T>
 	void UpdateData(CommittedResourceData<T>& info)
 	{
-		return UpdateData(info.data, info.DataByteSize(), info.pageIndex, info.pageByteOffset);
+		UpdateData(&info.data, info.DataByteSize(), info.pageIndex, info.pageByteOffset);
 	}
 
 	// 更新资源池中的内存。

@@ -54,7 +54,7 @@ void NXTexture::CreateInternal(D3D12_RESOURCE_FLAGS flags)
 	desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	desc.Flags = flags;
 
-	HRESULT hr = NXGlobalDX::device->CreateCommittedResource(
+	HRESULT hr = NXGlobalDX::GetDevice()->CreateCommittedResource(
 		&NX12Util::CreateHeapProperties(D3D12_HEAP_TYPE_DEFAULT),
 		D3D12_HEAP_FLAG_NONE,
 		&desc,
@@ -92,11 +92,11 @@ void NXTexture::CreateInternal(const std::unique_ptr<DirectX::ScratchImage>& pIm
 	UINT* numRow = new UINT[layoutSize];
 	UINT64* numRowSizeInBytes = new UINT64[layoutSize];
 	size_t totalBytes;
-	NXGlobalDX::device->GetCopyableFootprints(&desc, 0, layoutSize, 0, layouts, numRow, numRowSizeInBytes, &totalBytes);
+	NXGlobalDX::GetDevice()->GetCopyableFootprints(&desc, 0, layoutSize, 0, layouts, numRow, numRowSizeInBytes, &totalBytes);
 
 	if (NXAllocatorManager::GetInstance()->GetTextureAllocator()->Alloc(desc, m_pTexture.GetAddressOf()))
 	{
-		m_pTextureUpload = NX12Util::CreateBuffer(NXGlobalDX::device.Get(), "textureUploadHeap temp", totalBytes, D3D12_HEAP_TYPE_UPLOAD);
+		m_pTextureUpload = NX12Util::CreateBuffer(NXGlobalDX::GetDevice(), "textureUploadHeap temp", totalBytes, D3D12_HEAP_TYPE_UPLOAD);
 		void* mappedData;
 		m_pTextureUpload->Map(0, nullptr, &mappedData);
 
@@ -123,7 +123,7 @@ void NXTexture::CreateInternal(const std::unique_ptr<DirectX::ScratchImage>& pIm
 		NX12Util::SetResourceBarrier(NXGlobalDX::CurrentCmdList(), m_pTexture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		NXGlobalDX::CurrentCmdList()->Close();
 
-		NXGlobalDX::cmdQueue->ExecuteCommandLists();
+		NXGlobalDX::GetCmdQueue()->ExecuteCommandLists();
 
 		m_pTexture->SetName(NXConvert::s2ws(m_name).c_str());
 	}
@@ -502,7 +502,7 @@ void NXTexture2D::AddSRV()
 	srvDesc.Texture2D.ResourceMinLODClamp = 0.0;
 	srvDesc.Texture2D.PlaneSlice = 0;
 
-	NXGlobalDX::device->CreateShaderResourceView(m_pTexture.Get(), &srvDesc, cpuHandle);
+	NXGlobalDX::GetDevice()->CreateShaderResourceView(m_pTexture.Get(), &srvDesc, cpuHandle);
 	m_pSRVs.push_back(cpuHandle.ptr);
 }
 
@@ -512,7 +512,7 @@ void NXTexture2D::AddRTV()
 	if (!NXAllocatorManager::GetInstance()->GetRTVAllocator()->Alloc(cpuHandle))
 		return;
 
-	NXGlobalDX::device->CreateRenderTargetView(m_pTexture.Get(), nullptr, cpuHandle);
+	NXGlobalDX::GetDevice()->CreateRenderTargetView(m_pTexture.Get(), nullptr, cpuHandle);
 	m_pRTVs.push_back(cpuHandle.ptr);
 }
 
@@ -534,7 +534,7 @@ void NXTexture2D::AddDSV()
 	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 	dsvDesc.Texture2D.MipSlice = 0;
 
-	NXGlobalDX::device->CreateDepthStencilView(m_pTexture.Get(), &dsvDesc, cpuHandle);
+	NXGlobalDX::GetDevice()->CreateDepthStencilView(m_pTexture.Get(), &dsvDesc, cpuHandle);
 	m_pDSVs.push_back(cpuHandle.ptr);
 }
 
@@ -544,7 +544,7 @@ void NXTexture2D::AddUAV()
 	if (!NXAllocatorManager::GetInstance()->GetDescriptorAllocator()->Alloc(DescriptorType_UAV, cpuHandle))
 		return;
 
-	NXGlobalDX::device->CreateUnorderedAccessView(m_pTexture.Get(), nullptr, nullptr, cpuHandle); 
+	NXGlobalDX::GetDevice()->CreateUnorderedAccessView(m_pTexture.Get(), nullptr, nullptr, cpuHandle); 
 	m_pUAVs.push_back(cpuHandle.ptr);
 }
 
@@ -634,7 +634,7 @@ void NXTextureCube::Create(const std::string& debugName, const std::wstring& fil
 	HDRPreviewInfo.arraySize = 1;
 	HDRPreviewInfo.mipLevels = 1;
 	HDRPreviewInfo.miscFlags = 0;
-	CreateShaderResourceView(NXGlobalDX::device.Get(), pImage->GetImage(0, 0, 0), 1, HDRPreviewInfo, &m_pSRVPreview2D);
+	CreateShaderResourceView(NXGlobalDX::GetDevice(), pImage->GetImage(0, 0, 0), 1, HDRPreviewInfo, &m_pSRVPreview2D);
 }
 
 void NXTextureCube::AddSRV()
@@ -651,7 +651,7 @@ void NXTextureCube::AddSRV()
 	srvDesc.TextureCube.MostDetailedMip = 0;
 	srvDesc.TextureCube.ResourceMinLODClamp = 0.0f;
 
-	NXGlobalDX::device->CreateShaderResourceView(m_pTexture.Get(), &srvDesc, cpuHandle);
+	NXGlobalDX::GetDevice()->CreateShaderResourceView(m_pTexture.Get(), &srvDesc, cpuHandle);
 	m_pSRVs.push_back(cpuHandle.ptr);
 }
 
@@ -669,7 +669,7 @@ void NXTextureCube::AddRTV(UINT mipSlice, UINT firstArraySlice, UINT arraySize)
 	rtvDesc.Texture2DArray.ArraySize = arraySize;
 	rtvDesc.Texture2DArray.PlaneSlice = 0;
 
-	NXGlobalDX::device->CreateRenderTargetView(m_pTexture.Get(), &rtvDesc, cpuHandle);
+	NXGlobalDX::GetDevice()->CreateRenderTargetView(m_pTexture.Get(), &rtvDesc, cpuHandle);
 	m_pRTVs.push_back(cpuHandle.ptr);
 }
 
@@ -687,7 +687,7 @@ void NXTextureCube::AddDSV(UINT mipSlice, UINT firstArraySlice, UINT arraySize)
 	dsvDesc.Texture2DArray.FirstArraySlice = firstArraySlice;
 	dsvDesc.Texture2DArray.ArraySize = arraySize;
 
-	NXGlobalDX::device->CreateDepthStencilView(m_pTexture.Get(), &dsvDesc, cpuHandle);
+	NXGlobalDX::GetDevice()->CreateDepthStencilView(m_pTexture.Get(), &dsvDesc, cpuHandle);
 	m_pDSVs.push_back(cpuHandle.ptr);
 }
 
@@ -705,7 +705,7 @@ void NXTextureCube::AddUAV(UINT mipSlice, UINT firstArraySlice, UINT arraySize)
 	uavDesc.Texture2DArray.ArraySize = arraySize;
 	uavDesc.Texture2DArray.PlaneSlice = 0;
 
-	NXGlobalDX::device->CreateUnorderedAccessView(m_pTexture.Get(), nullptr, &uavDesc, cpuHandle);
+	NXGlobalDX::GetDevice()->CreateUnorderedAccessView(m_pTexture.Get(), nullptr, &uavDesc, cpuHandle);
 	m_pUAVs.push_back(cpuHandle.ptr);
 }
 
@@ -743,7 +743,7 @@ void NXTexture2DArray::AddSRV(UINT firstArraySlice, UINT arraySize)
 	srvDesc.Texture2DArray.FirstArraySlice = firstArraySlice;
 	srvDesc.Texture2DArray.ArraySize = arraySize;
 
-	NXGlobalDX::device->CreateShaderResourceView(m_pTexture.Get(), &srvDesc, cpuHandle);
+	NXGlobalDX::GetDevice()->CreateShaderResourceView(m_pTexture.Get(), &srvDesc, cpuHandle);
 	m_pSRVs.push_back(cpuHandle.ptr);
 }
 
@@ -761,7 +761,7 @@ void NXTexture2DArray::AddRTV(UINT firstArraySlice, UINT arraySize)
 	rtvDesc.Texture2DArray.ArraySize = arraySize;
 	rtvDesc.Texture2DArray.PlaneSlice = 0;
 
-	NXGlobalDX::device->CreateRenderTargetView(m_pTexture.Get(), nullptr, cpuHandle);
+	NXGlobalDX::GetDevice()->CreateRenderTargetView(m_pTexture.Get(), nullptr, cpuHandle);
 	m_pRTVs.push_back(cpuHandle.ptr);
 }
 
@@ -785,7 +785,7 @@ void NXTexture2DArray::AddDSV(UINT firstArraySlice, UINT arraySize)
 	dsvDesc.Texture2DArray.FirstArraySlice = firstArraySlice;
 	dsvDesc.Texture2DArray.ArraySize = arraySize;
 
-	NXGlobalDX::device->CreateDepthStencilView(m_pTexture.Get(), &dsvDesc, cpuHandle);
+	NXGlobalDX::GetDevice()->CreateDepthStencilView(m_pTexture.Get(), &dsvDesc, cpuHandle);
 	m_pDSVs.push_back(cpuHandle.ptr);
 }
 
@@ -802,7 +802,7 @@ void NXTexture2DArray::AddUAV(UINT firstArraySlice, UINT arraySize)
 	uavDesc.Texture2DArray.FirstArraySlice = firstArraySlice;
 	uavDesc.Texture2DArray.ArraySize = arraySize;
 
-	NXGlobalDX::device->CreateUnorderedAccessView(m_pTexture.Get(), nullptr, nullptr, cpuHandle);
+	NXGlobalDX::GetDevice()->CreateUnorderedAccessView(m_pTexture.Get(), nullptr, nullptr, cpuHandle);
 	m_pUAVs.push_back(cpuHandle.ptr);
 
 }
