@@ -15,3 +15,6 @@
 #include <filesystem>
 #include <functional>
 #include <array>
+#include <thread>
+#include <condition_variable>
+#include <mutex>

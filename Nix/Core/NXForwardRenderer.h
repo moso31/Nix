@@ -1,9 +1,11 @@
 #pragma once
 #include "BaseDefs/DX12.h"
+#include "Ntr.h"
 #include "ShaderStructures.h"
 
 class NXScene;
 class NXBRDFLut;
+class NXTexture2D;
 class NXForwardRenderer
 {
 public:

@@ -37,7 +37,7 @@ void NXEditorObjectRenderer::Init()
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.pRootSignature = m_pRootSig.Get();
 	psoDesc.InputLayout = NXGlobalInputLayout::layoutEditorObject;
-	psoDesc.BlendState = NXBlendState<false, false, true, D3D12_BLEND_SRC_ALPHA, D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_OP_ADD>::Create();
+	psoDesc.BlendState = NXBlendState<false, false, true, false, D3D12_BLEND_SRC_ALPHA, D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_OP_ADD>::Create();
 	psoDesc.RasterizerState = NXRasterizerState<D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_NONE>::Create();
 	psoDesc.DepthStencilState = NXDepthStencilState<false, false, D3D12_COMPARISON_FUNC_LESS>::Create();
 	psoDesc.SampleDesc.Count = 1;
@@ -99,7 +99,7 @@ void NXEditorObjectRenderer::Render()
 					m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbObject.Current().GPUVirtualAddr);
 
 					pSubMeshEditorObj->Update();
-					pSubMeshEditorObj->Render();
+					pSubMeshEditorObj->Render(m_pCommandList.Get());
 				}
 			}
 		}

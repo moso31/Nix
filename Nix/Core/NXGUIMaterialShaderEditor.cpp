@@ -8,6 +8,7 @@
 #include "NXPBRMaterial.h"
 #include "NXConverter.h"
 #include "NXGUICommandManager.h"
+#include "NXAllocatorManager.h"
 
 NXGUIMaterialShaderEditor::NXGUIMaterialShaderEditor()
 {
@@ -711,7 +712,7 @@ void NXGUIMaterialShaderEditor::Render_Params_TextureItem(const int texParamId, 
 		ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);       // No tint
 
 		auto ImTexID = pTex->GetSRV();
-
+		NXShaderVisibleDescHeap->
 		if (ImGui::ImageButton(ImTexID, size, uv0, uv1, frame_padding, bg_col, tint_col))
 		{
 			// 2023.11.14 TODO: Add a popup to switch texture...

@@ -4,11 +4,11 @@
 #include "NXInstance.h"
 #include "NXShaderVisibleDescriptorHeap.h"
 
-#define NXCBufferAllocator		NXAllocatorManager::GetInstance()->GetCBufferAllocator()
-#define NXTextureAllocator		NXAllocatorManager::GetInstance()->GetTextureAllocator()
-#define NXDescriptorAllocator	NXAllocatorManager::GetInstance()->GetDescriptorAllocator()
-#define NXShaderVisibleHeap		NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap()
-#define NXCmdList				NXAllocatorManager::GetInstance()->GetCommandList()
+#define NXCBufferAllocator			NXAllocatorManager::GetInstance()->GetCBufferAllocator()
+#define NXTextureAllocator			NXAllocatorManager::GetInstance()->GetTextureAllocator()
+#define NXDescriptorAllocator		NXAllocatorManager::GetInstance()->GetDescriptorAllocator()
+#define NXGPUHandleHeap				NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap()
+#define NXCmdList					NXAllocatorManager::GetInstance()->GetCommandList()
 
 // DX12 ·ÖÅäÆ÷
 class NXAllocatorManager : public NXInstance<NXAllocatorManager>

@@ -6,6 +6,7 @@
 #include "NXResourceReloader.h"
 #include "NXGUIContentExplorer.h"
 #include "NXGUICommon.h"
+#include "NXAllocatorManager.h"
 
 NXGUICubeMap::NXGUICubeMap(NXScene* pScene, NXGUIFileBrowser* pFileBrowser) :
 	m_pCurrentScene(pScene),
@@ -21,7 +22,8 @@ void NXGUICubeMap::Render()
 
 	ImGui::Begin("CubeMap");
 
-	RenderSmallTextureIcon((ImTextureID)pCubeMap->GetSRVCubeMapPreview2D(), m_pFileBrowser, std::bind(&NXGUICubeMap::OnCubeMapTexChange, this, pCubeMap), nullptr, std::bind(&NXGUICubeMap::OnCubeMapTexDrop, this, pCubeMap, std::placeholders::_1));
+	auto& srvHandle = NXShaderVisibleDescHeap->Append(pCubeMap->GetSRVCubeMapPreview2D());
+	RenderSmallTextureIcon(srvHandle, m_pFileBrowser, std::bind(&NXGUICubeMap::OnCubeMapTexChange, this, pCubeMap), nullptr, std::bind(&NXGUICubeMap::OnCubeMapTexDrop, this, pCubeMap, std::placeholders::_1));
 
 	ImGui::SliderFloat("Intensity", pCubeMap->GetIntensity(), 0.0f, 10.0f);
 

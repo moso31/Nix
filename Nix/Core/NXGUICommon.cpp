@@ -7,7 +7,7 @@
 namespace NXGUICommon
 {
 
-void RenderSmallTextureIcon(ImTextureID ImTexID, NXGUIFileBrowser* pFileBrowser, std::function<void()> onChange, std::function<void()> onRemove, std::function<void(const std::wstring&)> onDrop)
+void RenderSmallTextureIcon(D3D12_GPU_DESCRIPTOR_HANDLE srvHandle, NXGUIFileBrowser* pFileBrowser, std::function<void()> onChange, std::function<void()> onRemove, std::function<void(const std::wstring&)> onDrop)
 {
 	float texSize = (float)20;
 
@@ -15,12 +15,8 @@ void RenderSmallTextureIcon(ImTextureID ImTexID, NXGUIFileBrowser* pFileBrowser,
 	{
 		int frame_padding = 2;									// -1 == uses default padding (style.FramePadding)
 		ImVec2 size = ImVec2(texSize - frame_padding, texSize - frame_padding);                     // Size of the image we want to make visible
-		ImVec2 uv0 = ImVec2(0.0f, 0.0f);
-		ImVec2 uv1 = ImVec2(1.0f, 1.0f);
-		ImVec4 bg_col = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);         // Black background
-		ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);       // No tint
 
-		if (onChange && ImGui::ImageButton(ImTexID, size, uv0, uv1, frame_padding, bg_col, tint_col) && pFileBrowser)
+		if (onChange && ImGui::ImageButton("", (ImTextureID)srvHandle.ptr, size) && pFileBrowser)
 		{
 			pFileBrowser->SetTitle("Material");
 			pFileBrowser->SetTypeFilters({ ".png", ".jpg", ".bmp", ".dds", ".tga", ".tif", ".tiff" });

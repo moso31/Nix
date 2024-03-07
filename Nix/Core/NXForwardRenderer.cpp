@@ -65,7 +65,7 @@ void NXForwardRenderer::Init()
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.pRootSignature = m_pRootSig.Get();
 	psoDesc.InputLayout = NXGlobalInputLayout::layoutPNTT;
-	psoDesc.BlendState = NXBlendState<false, false, true, D3D12_BLEND_SRC_ALPHA, D3D12_BLEND_INV_SRC_ALPHA>::Create();
+	psoDesc.BlendState = NXBlendState<false, false, true, false, D3D12_BLEND_SRC_ALPHA, D3D12_BLEND_INV_SRC_ALPHA>::Create();
 	psoDesc.RasterizerState = NXRasterizerState<>::Create();
 	psoDesc.DepthStencilState = NXDepthStencilState<>::Create();
 	psoDesc.SampleDesc.Count = 1;
@@ -141,5 +141,5 @@ void NXForwardRenderer::Render()
 	//	// TODO
 	//}
 
-	NX12Util::EndEvent;
+	NX12Util::EndEvent();
 }

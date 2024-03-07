@@ -90,7 +90,7 @@ void NXGBufferRenderer::Render()
 					m_pCommandList->OMSetStencilRef(0x1);
 				}
 
-				pCustomMat->Render();
+				pCustomMat->Render(m_pCommandList.Get());
 
 				for (auto pSubMesh : pCustomMat->GetRefSubMeshes())
 				{
@@ -109,7 +109,7 @@ void NXGBufferRenderer::Render()
 			}
 			else
 			{
-				pErrorMat->Render();
+				pErrorMat->Render(m_pCommandList.Get());
 
 				for (auto pSubMesh : pCustomMat->GetRefSubMeshes())
 				{
