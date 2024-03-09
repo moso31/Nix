@@ -275,6 +275,7 @@
     <ClCompile Include="Core\ShaderComplier.cpp" />
     <ClCompile Include="Core\NXShaderVisibleDescriptorHeap.cpp" />
     <ClCompile Include="Nix\HBVH.cpp" />
+    <ClCompile Include="Nix\NXBuffer.cpp" />
     <ClCompile Include="Nix\NXDepthPrepass.cpp" />
     <ClCompile Include="Nix\NXSSSDiffuseProfile.cpp" />
     <ClCompile Include="Nix\NXEditorObjectManager.cpp" />
@@ -377,6 +378,7 @@
     <ClInclude Include="Core\ShaderStructures.h" />
     <ClInclude Include="Core\NXShaderVisibleDescriptorHeap.h" />
     <ClInclude Include="Nix\HBVH.h" />
+    <ClInclude Include="Nix\NXBuffer.h" />
     <ClInclude Include="Nix\NXDepthPrepass.h" />
     <ClInclude Include="Nix\NXSSSDiffuseProfile.h" />
     <ClInclude Include="Nix\NXEditorObjectManager.h" />

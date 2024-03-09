@@ -37,9 +37,6 @@
     <Filter Include="Nix\Scene">
       <UniqueIdentifier>{d197e267-4212-4de3-a89b-ab57b9ca0af8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Nix\Texture">
-      <UniqueIdentifier>{d5d9ef4c-09ae-4295-aecb-257ddc7dbfba}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shader">
       <UniqueIdentifier>{d99dfb08-f23b-4a25-8f50-c19ef8d7e01a}</UniqueIdentifier>
     </Filter>
@@ -111,6 +108,9 @@
     </Filter>
     <Filter Include="Nix\Object\Transform\Primitive\Shape">
       <UniqueIdentifier>{7525b90e-ff3e-4a65-8989-9d59da76ed60}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Nix\TextureBuffer">
+      <UniqueIdentifier>{d5d9ef4c-09ae-4295-aecb-257ddc7dbfba}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -394,7 +394,7 @@
       <Filter>Core\DirectX\Manager</Filter>
     </ClCompile>
     <ClCompile Include="Nix\NXTexture.cpp">
-      <Filter>Nix\Texture</Filter>
+      <Filter>Nix\TextureBuffer</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXResourceManagerBase.cpp">
       <Filter>Core\DirectX\Manager</Filter>
@@ -485,6 +485,9 @@
     </ClCompile>
     <ClCompile Include="Core\NXSamplerManager.cpp">
       <Filter>Core\DirectX\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXBuffer.cpp">
+      <Filter>Nix\TextureBuffer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -678,7 +681,7 @@
       <Filter>Core\DirectX\Manager</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXTexture.h">
-      <Filter>Nix\Texture</Filter>
+      <Filter>Nix\TextureBuffer</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXResourceManagerBase.h">
       <Filter>Core\DirectX\Manager</Filter>
@@ -720,7 +723,7 @@
       <Filter>Core\DirectX</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXTextureDefinitions.h">
-      <Filter>Nix\Texture</Filter>
+      <Filter>Nix\TextureBuffer</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXGUIView.h">
       <Filter>Core\UI</Filter>
@@ -796,6 +799,9 @@
     </ClInclude>
     <ClInclude Include="Core\NXSamplerManager.h">
       <Filter>Core\DirectX\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXBuffer.h">
+      <Filter>Nix\TextureBuffer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

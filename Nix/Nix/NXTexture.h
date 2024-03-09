@@ -170,6 +170,7 @@ public:
     void Create(const std::string& debugName, const std::wstring& filePath, size_t width = 0, size_t height = 0, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
 
     void AddSRV();
+    void AddSRVPreview2D();
     void AddRTV(UINT mipSlice = -1, UINT firstArraySlice = 0, UINT arraySize = -1);
     void AddDSV(UINT mipSlice = -1, UINT firstArraySlice = 0, UINT arraySize = -1);
     void AddUAV(UINT mipSlice = -1, UINT firstArraySlice = 0, UINT arraySize = -1);

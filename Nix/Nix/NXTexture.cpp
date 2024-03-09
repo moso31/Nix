@@ -94,7 +94,7 @@ void NXTexture::CreateInternal(const std::unique_ptr<DirectX::ScratchImage>& pIm
 	size_t totalBytes;
 	NXGlobalDX::GetDevice()->GetCopyableFootprints(&desc, 0, layoutSize, 0, layouts, numRow, numRowSizeInBytes, &totalBytes);
 
-	if (NXAllocatorManager::GetInstance()->GetTextureAllocator()->Alloc(desc, m_pTexture.GetAddressOf()))
+	if (NXTextureAllocator->Alloc(desc, m_pTexture.GetAddressOf()))
 	{
 		m_pTextureUpload = NX12Util::CreateBuffer(NXGlobalDX::GetDevice(), "textureUploadHeap temp", totalBytes, D3D12_HEAP_TYPE_UPLOAD);
 		void* mappedData;
@@ -630,11 +630,7 @@ void NXTextureCube::Create(const std::string& debugName, const std::wstring& fil
 
 	CreateInternal(pImage, flags);
 
-	auto HDRPreviewInfo = metadata;
-	HDRPreviewInfo.arraySize = 1;
-	HDRPreviewInfo.mipLevels = 1;
-	HDRPreviewInfo.miscFlags = 0;
-	CreateShaderResourceView(NXGlobalDX::GetDevice(), pImage->GetImage(0, 0, 0), 1, HDRPreviewInfo, &m_pSRVPreview2D);
+	AddSRVPreview2D();
 }
 
 void NXTextureCube::AddSRV()
@@ -653,6 +649,28 @@ void NXTextureCube::AddSRV()
 
 	NXGlobalDX::GetDevice()->CreateShaderResourceView(m_pTexture.Get(), &srvDesc, cpuHandle);
 	m_pSRVs.push_back(cpuHandle.ptr);
+}
+
+void NXTextureCube::AddSRVPreview2D()
+{
+	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
+	if (!NXAllocatorManager::GetInstance()->GetDescriptorAllocator()->Alloc(DescriptorType_SRV, cpuHandle))
+		return;
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = m_texFormat;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY; // Use a 2D texture array view
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+
+	srvDesc.Texture2DArray.MostDetailedMip = 0; 
+	srvDesc.Texture2DArray.MipLevels = 1; 
+	srvDesc.Texture2DArray.FirstArraySlice = 0; 
+	srvDesc.Texture2DArray.ArraySize = 1; 
+	srvDesc.Texture2DArray.PlaneSlice = 0;
+	srvDesc.Texture2DArray.ResourceMinLODClamp = 0.0f;
+
+	NXGlobalDX::GetDevice()->CreateShaderResourceView(m_pTexture.Get(), &srvDesc, cpuHandle);
+	m_pSRVPreview2D = cpuHandle.ptr;
 }
 
 void NXTextureCube::AddRTV(UINT mipSlice, UINT firstArraySlice, UINT arraySize)

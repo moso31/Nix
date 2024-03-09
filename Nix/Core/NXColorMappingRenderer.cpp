@@ -61,7 +61,10 @@ void NXColorMappingRenderer::Init()
 	NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
 
 	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
+	{
 		NXCBufferAllocator->Alloc(ResourceType_Upload, m_cbParams.Get(i));
+
+	}
 }
 
 void NXColorMappingRenderer::Render()
