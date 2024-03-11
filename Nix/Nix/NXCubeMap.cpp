@@ -21,7 +21,7 @@ NXCubeMap::NXCubeMap(NXScene* pScene) :
 	m_pScene(pScene)
 {
 	m_cbAllocator = new CommittedAllocator(NXGlobalDX::GetDevice(), 256);
-	m_cbAllocator->Alloc(ResourceType_Upload, m_cbData);
+	m_cbData.Create(m_cbAllocator, NXDescriptorAllocator, false);
 }
 
 bool NXCubeMap::Init(const std::filesystem::path& filePath)
@@ -88,7 +88,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE NXCubeMap::GetSRVPreFilterMap()
 
 void NXCubeMap::Update()
 {
-	m_cbAllocator->UpdateData(m_cbData);
+	m_cbData.UpdateBuffer();
 }
 
 void NXCubeMap::UpdateViewParams()
@@ -149,14 +149,10 @@ Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSOCubeMap));
 
-	CommittedResourceData<ConstantBufferObject> cbData;
-	cbData.data.world = Matrix::Identity();
-	cbData.data.projection = m_mxCubeMapProj.Transpose();
-	m_cbAllocator->Alloc(ResourceType_Upload, cbData);
-
-	D3D12_CPU_DESCRIPTOR_HANDLE cbvHandle;
-	pGlobalDescriptorAllocator->Alloc(DescriptorType_CBV, cbvHandle);
-	NXGlobalDX::GetDevice()->CreateConstantBufferView(&cbData.CBVDesc(), cbvHandle);
+	NXBuffer<ConstantBufferObject> cbData;
+	cbData.Create(NXCBufferAllocator, NXDescriptorAllocator, false);
+	cbData.Current().world = Matrix::Identity();
+	cbData.Current().projection = m_mxCubeMapProj.Transpose();
 
 	m_pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -176,10 +172,10 @@ Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)
 		m_pCommandList->ClearRenderTargetView(rtvHandle, Colors::WhiteSmoke, 0, nullptr);
 		m_pCommandList->OMSetRenderTargets(1, &rtvHandle, true, nullptr);
 
-		cbData.data.view = m_mxCubeMapView[i].Transpose();
-		m_cbAllocator->UpdateData(cbData);
+		cbData.Current().view = m_mxCubeMapView[i].Transpose();
+		cbData.UpdateBuffer();
 
-		m_pCommandList->SetGraphicsRootConstantBufferView(0, cbData.GPUVirtualAddr);
+		m_pCommandList->SetGraphicsRootConstantBufferView(0, cbData.GetGPUHandle());
 		m_pCommandList->SetGraphicsRootDescriptorTable(1, srvHandle);
 
 		const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_CubeMapBox");
@@ -411,13 +407,13 @@ void NXCubeMap::GenerateIrradianceSHFromCubeMap()
 		}
 	}
 
-	m_cbData.data.irradSH0123x = Vector4(m_shIrradianceMap[0].x, m_shIrradianceMap[1].x, m_shIrradianceMap[2].x, m_shIrradianceMap[3].x);
-	m_cbData.data.irradSH0123y = Vector4(m_shIrradianceMap[0].y, m_shIrradianceMap[1].y, m_shIrradianceMap[2].y, m_shIrradianceMap[3].y);
-	m_cbData.data.irradSH0123z = Vector4(m_shIrradianceMap[0].z, m_shIrradianceMap[1].z, m_shIrradianceMap[2].z, m_shIrradianceMap[3].z);
-	m_cbData.data.irradSH4567x = Vector4(m_shIrradianceMap[4].x, m_shIrradianceMap[5].x, m_shIrradianceMap[6].x, m_shIrradianceMap[7].x);
-	m_cbData.data.irradSH4567y = Vector4(m_shIrradianceMap[4].y, m_shIrradianceMap[5].y, m_shIrradianceMap[6].y, m_shIrradianceMap[7].y);
-	m_cbData.data.irradSH4567z = Vector4(m_shIrradianceMap[4].z, m_shIrradianceMap[5].z, m_shIrradianceMap[6].z, m_shIrradianceMap[7].z);
-	m_cbData.data.irradSH8xyz = m_shIrradianceMap[8];
+	m_cbData.Current().irradSH0123x = Vector4(m_shIrradianceMap[0].x, m_shIrradianceMap[1].x, m_shIrradianceMap[2].x, m_shIrradianceMap[3].x);
+	m_cbData.Current().irradSH0123y = Vector4(m_shIrradianceMap[0].y, m_shIrradianceMap[1].y, m_shIrradianceMap[2].y, m_shIrradianceMap[3].y);
+	m_cbData.Current().irradSH0123z = Vector4(m_shIrradianceMap[0].z, m_shIrradianceMap[1].z, m_shIrradianceMap[2].z, m_shIrradianceMap[3].z);
+	m_cbData.Current().irradSH4567x = Vector4(m_shIrradianceMap[4].x, m_shIrradianceMap[5].x, m_shIrradianceMap[6].x, m_shIrradianceMap[7].x);
+	m_cbData.Current().irradSH4567y = Vector4(m_shIrradianceMap[4].y, m_shIrradianceMap[5].y, m_shIrradianceMap[6].y, m_shIrradianceMap[7].y);
+	m_cbData.Current().irradSH4567z = Vector4(m_shIrradianceMap[4].z, m_shIrradianceMap[5].z, m_shIrradianceMap[6].z, m_shIrradianceMap[7].z);
+	m_cbData.Current().irradSH8xyz = m_shIrradianceMap[8];
 	int x = 0;
 }
 

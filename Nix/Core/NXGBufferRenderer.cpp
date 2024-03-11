@@ -73,7 +73,7 @@ void NXGBufferRenderer::Render()
 					if (bIsVisible)
 					{
 						pSubMesh->UpdateViewParams();
-						m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbObject.Current().GPUVirtualAddr);
+						m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbObject.GetGPUHandle());
 						pSubMesh->Update();
 						pSubMesh->Render(m_pCommandList.Get());
 					}
@@ -100,7 +100,7 @@ void NXGBufferRenderer::Render()
 						if (bIsVisible)
 						{
 							pSubMesh->UpdateViewParams();
-							m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbObject.Current().GPUVirtualAddr);
+							m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbObject.GetGPUHandle());
 							pSubMesh->Update();
 							pSubMesh->Render(m_pCommandList.Get());
 						}
@@ -119,7 +119,7 @@ void NXGBufferRenderer::Render()
 						if (bIsVisible)
 						{
 							pSubMesh->UpdateViewParams();
-							m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbObject.Current().GPUVirtualAddr);
+							m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbObject.GetGPUHandle());
 							pSubMesh->Update();
 							pSubMesh->Render(m_pCommandList.Get());
 						}

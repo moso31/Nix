@@ -13,7 +13,7 @@ MultiFrame<ComPtr<ID3D12CommandAllocator>>		NXGlobalDX::s_cmdAllocator;
 void NXGlobalDX::Init(IDXGIAdapter4* pAdapter)
 {
 	HRESULT hr = D3D12CreateDevice(pAdapter, D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&s_device));
-	s_cmdQueue = NX12Util::CreateCommandQueue(device.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT, false);
+	s_cmdQueue = NX12Util::CreateCommandQueue(s_device.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT, false);
 
 	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 	{
@@ -25,18 +25,15 @@ void NXGlobalDX::Init(IDXGIAdapter4* pAdapter)
 App*		NXGlobalApp::App;
 NXTimer*	NXGlobalApp::Timer;
 
-MultiFrame<CommittedResourceData<ConstantBufferObject>>		NXGlobalBuffer::cbObject;
-MultiFrame<CommittedResourceData<ConstantBufferCamera>>		NXGlobalBuffer::cbCamera;
-MultiFrame<CommittedResourceData<ConstantBufferShadowTest>>	NXGlobalBuffer::cbShadowTest;
+NXBuffer<ConstantBufferObject>		NXGlobalBuffer::cbObject;
+NXBuffer<ConstantBufferCamera>		NXGlobalBuffer::cbCamera;
+NXBuffer<ConstantBufferShadowTest>	NXGlobalBuffer::cbShadowTest;
 
 void NXGlobalBuffer::Init()
 {
-	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
-	{
-		NXAllocatorManager::GetInstance()->GetCBufferAllocator()->Alloc(ResourceType_Upload, cbObject.Get(i));
-		NXAllocatorManager::GetInstance()->GetCBufferAllocator()->Alloc(ResourceType_Upload, cbCamera.Get(i));
-		NXAllocatorManager::GetInstance()->GetCBufferAllocator()->Alloc(ResourceType_Upload, cbShadowTest.Get(i));
-	}
+	cbObject.Create(NXCBufferAllocator, NXDescriptorAllocator, true);
+	cbCamera.Create(NXCBufferAllocator, NXDescriptorAllocator, true);
+	cbShadowTest.Create(NXCBufferAllocator, NXDescriptorAllocator, true);
 }
 
 D3D12_INPUT_LAYOUT_DESC	NXGlobalInputLayout::layoutP;

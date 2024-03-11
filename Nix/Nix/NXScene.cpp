@@ -365,7 +365,7 @@ void NXScene::UpdateLightData()
 	UINT pointIdx = 0;
 	UINT spotIdx = 0;
 
-	auto cbLightData = m_cbDataLights.Current().data;
+	auto cbLightData = m_cbDataLights.Current();
 	for (auto pLight : GetPBRLights())
 	{
 		switch (pLight->GetType())

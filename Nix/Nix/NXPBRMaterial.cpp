@@ -281,7 +281,7 @@ void NXCustomMaterial::UpdateCBData()
 {
 	auto& cbElems = m_cbInfo.elems;
 	auto& cbSets = m_cbInfo.sets;
-	auto& cbData = m_cbData.Current().data;
+	auto& cbData = m_cbData.Current();
 
 	int alignCheck = 0;
 	cbData.clear();

@@ -76,8 +76,8 @@ void NXShadowTestRenderer::Render()
 	m_pCommandList->ClearRenderTargetView(m_pTexPassOut->GetRTV(), Colors::Black, 0, nullptr);
 	m_pCommandList->OMSetRenderTargets(1, &m_pTexPassOut->GetRTV(), false, nullptr);
 
-	m_pCommandList->SetGraphicsRootConstantBufferView(1, NXGlobalBuffer::cbCamera.Current().GPUVirtualAddr);
-	m_pCommandList->SetGraphicsRootConstantBufferView(2, NXGlobalBuffer::cbShadowTest.Current().GPUVirtualAddr);
+	m_pCommandList->SetGraphicsRootConstantBufferView(1, NXGlobalBuffer::cbCamera.GetGPUHandle());
+	m_pCommandList->SetGraphicsRootConstantBufferView(2, NXGlobalBuffer::cbShadowTest.GetGPUHandle());
 	m_pCommandList->SetGraphicsRootDescriptorTable(0, srvHandle0);
 	m_pCommandList->SetGraphicsRootDescriptorTable(1, srvHandle1);
 

@@ -25,6 +25,9 @@ void Renderer::Init()
 	// 输入事件
 	InitEvents();
 
+	// 创建各种DX12资源分配器
+	NXAllocatorManager::GetInstance()->Init();
+
 	NXGlobalInputLayout::Init();
 	NXGlobalBuffer::Init();
 
@@ -38,9 +41,6 @@ void Renderer::Init()
 	NXResourceManager::GetInstance()->GetMeshManager()->Init(m_scene);
 	NXResourceManager::GetInstance()->GetCameraManager()->SetWorkingScene(m_scene);
 	NXResourceManager::GetInstance()->GetLightManager()->SetWorkingScene(m_scene);
-
-	// 创建各种DX12资源分配器
-	NXAllocatorManager::GetInstance()->Init();
 
 	m_scene->Init();
 
@@ -169,7 +169,7 @@ void Renderer::UpdateTime()
 	size_t globalTime = NXGlobalApp::Timer->GetGlobalTime();
 	float fGlobalTime = globalTime / 1000.0f;
 
-	NXGlobalBuffer::cbObject.Current().data.globalData.time = fGlobalTime;
+	NXGlobalBuffer::cbObject.Current().globalData.time = fGlobalTime;
 }
 
 void Renderer::RenderFrame()

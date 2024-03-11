@@ -70,7 +70,7 @@ public:
 	// 目前只对第一个光源创建Parallel ShadowMap。
 	//void InitShadowMapTransformInfo(ConstantBufferShadowMapTransform& out_cb);
 
-	D3D12_GPU_VIRTUAL_ADDRESS GetConstantBufferLights() { return m_cbDataLights.Current().GPUVirtualAddr; }
+	D3D12_GPU_VIRTUAL_ADDRESS GetConstantBufferLights() { return m_cbDataLights.GetGPUHandle(); }
 
 	// 更新场景BVH树
 	void BuildBVHTrees(const HBVHSplitMode SplitMode);

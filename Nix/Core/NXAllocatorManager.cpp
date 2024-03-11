@@ -1,7 +1,9 @@
 #include "NXAllocatorManager.h"
+#include "NXGlobalDefinitions.h"
 
-void NXAllocatorManager::Init(ID3D12Device* pDevice)
+void NXAllocatorManager::Init()
 {
+	auto pDevice = NXGlobalDX::GetDevice();
 	m_pCBufferAllocator = new CommittedAllocator(pDevice, 256);
 	m_pTextureAllocator = new PlacedAllocator(pDevice, 256);
 	m_pDescriptorAllocator = new DescriptorAllocator(pDevice);

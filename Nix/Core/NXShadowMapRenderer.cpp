@@ -81,7 +81,7 @@ void NXShadowMapRenderer::Render()
 	m_pCommandList->SetGraphicsRootSignature(m_pRootSig.Get());
 	m_pCommandList->SetPipelineState(m_pPSO.Get());
 
-	NXGlobalBuffer::cbShadowTest.Current().data.test_transition = m_test_transition;
+	NXGlobalBuffer::cbShadowTest.Current().test_transition = m_test_transition;
 
 	for (auto pLight : m_pScene->GetPBRLights())
 	{
@@ -100,10 +100,10 @@ void NXShadowMapRenderer::RenderSingleObject(NXRenderableObject* pRenderableObje
 	NXPrimitive* pPrimitive = pRenderableObject->IsPrimitive();
 	if (pPrimitive)
 	{
-		m_cbShadowMapObject.Current().data.world = pPrimitive->GetWorldMatrix().Transpose();
+		m_cbShadowMapObject.Current().world = pPrimitive->GetWorldMatrix().Transpose();
 		NXAllocatorManager::GetInstance()->GetCBufferAllocator()->UpdateData(m_cbShadowMapObject.Current());
 
-		m_pCommandList->SetGraphicsRootConstantBufferView(0, m_cbShadowMapObject.Current().GPUVirtualAddr);
+		m_pCommandList->SetGraphicsRootConstantBufferView(0, m_cbShadowMapObject.GetGPUHandle());
 
 		for (UINT i = 0; i < pPrimitive->GetSubMeshCount(); i++)
 		{
@@ -213,7 +213,7 @@ void NXShadowMapRenderer::UpdateShadowMapBuffer(NXPBRDistantLight* pDirLight)
 
 		zCascadeLength += zLastCascadeTransitionLength;
 
-		NXGlobalBuffer::cbShadowTest.Current().data.frustumParams[i] = Vector4(zCascadeFar, zLastCascadeTransitionLength, 0.0f, 0.0f);
+		NXGlobalBuffer::cbShadowTest.Current().frustumParams[i] = Vector4(zCascadeFar, zLastCascadeTransitionLength, 0.0f, 0.0f);
 
 		float zCascadeNearProj = (zCascadeNear * mxCamProj._33 + mxCamProj._43) / zCascadeNear;
 		float zCascadeFarProj  = (zCascadeFar  * mxCamProj._33 + mxCamProj._43) / zCascadeFar;
@@ -268,10 +268,10 @@ void NXShadowMapRenderer::UpdateShadowMapBuffer(NXPBRDistantLight* pDirLight)
 		Matrix mxShadowProj = XMMatrixOrthographicOffCenterLH(-sphereRadius, sphereRadius, -sphereRadius, sphereRadius, 0.0f, backDistance * 2.0f);
 
 		// 更新当前 cascade 层 的 ShadowMap view proj 绘制矩阵
-		m_cbShadowMapObject.Current().data.view = mxShadowView.Transpose();
-		m_cbShadowMapObject.Current().data.projection = mxShadowProj.Transpose();
-		NXGlobalBuffer::cbShadowTest.Current().data.view[i] = m_cbShadowMapObject.Current().data.view;
-		NXGlobalBuffer::cbShadowTest.Current().data.projection[i] = m_cbShadowMapObject.Current().data.projection;
+		m_cbShadowMapObject.Current().view = mxShadowView.Transpose();
+		m_cbShadowMapObject.Current().projection = mxShadowProj.Transpose();
+		NXGlobalBuffer::cbShadowTest.Current().view[i] = m_cbShadowMapObject.Current().view;
+		NXGlobalBuffer::cbShadowTest.Current().projection[i] = m_cbShadowMapObject.Current().projection;
 
 		m_pCommandList->ClearDepthStencilView(m_pShadowMapDepth->GetDSV(i), D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0x0, 0, nullptr);
 		m_pCommandList->OMSetRenderTargets(0, nullptr, false, &m_pShadowMapDepth->GetDSV(i));

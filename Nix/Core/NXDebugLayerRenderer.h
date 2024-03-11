@@ -47,7 +47,7 @@ private:
 	// pass input resources
 	NXShadowMapRenderer*				m_pShadowMapRenderer;
 
-	MultiFrame<CommittedResourceData<CBufferDebugLayer>> m_cbParams;
+	NXBuffer<CBufferDebugLayer> 		m_cbParams;
 
 	bool m_bEnableDebugLayer;
 	bool m_bEnableShadowMapDebugLayer;

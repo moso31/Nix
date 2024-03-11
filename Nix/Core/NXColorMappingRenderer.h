@@ -28,7 +28,7 @@ private:
 	Ntr<NXTexture2D>	m_pTexPassIn;
 	Ntr<NXTexture2D>	m_pTexPassOut;
 
-	MultiFrame<CommittedResourceData<CBufferColorMapping>> m_cbParams;
+	NXBuffer<CBufferColorMapping> m_cbParams;
 
 	ComPtr<ID3D12GraphicsCommandList> m_pCommandList;
 	ComPtr<ID3D12PipelineState> m_pPSO;

@@ -80,8 +80,8 @@ void NXDebugLayerRenderer::Render()
 	NX12Util::BeginEvent(m_pCommandList.Get(), "Debug Layer");
 
 	// Update LayerParams
-	m_cbParams.Current().data.LayerParam0.x = (float)m_bEnableShadowMapDebugLayer;
-	m_cbParams.Current().data.LayerParam0.y = m_fShadowMapZoomScale;
+	m_cbParams.Current().LayerParam0.x = (float)m_bEnableShadowMapDebugLayer;
+	m_cbParams.Current().LayerParam0.y = m_fShadowMapZoomScale;
 	NXAllocatorManager::GetInstance()->GetCBufferAllocator()->UpdateData(m_cbParams.Current());
 
 	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
@@ -95,7 +95,7 @@ void NXDebugLayerRenderer::Render()
 	m_pCommandList->SetGraphicsRootSignature(m_pRootSig.Get());
 	m_pCommandList->SetPipelineState(m_pPSO.Get());
 
-	m_pCommandList->SetGraphicsRootConstantBufferView(0, m_cbParams.Current().GPUVirtualAddr);
+	m_pCommandList->SetGraphicsRootConstantBufferView(0, m_cbParams.GetGPUHandle());
 	m_pCommandList->SetGraphicsRootDescriptorTable(1, srvHandle0);
 
 	const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_RenderTarget");

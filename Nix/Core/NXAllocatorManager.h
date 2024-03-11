@@ -14,7 +14,7 @@
 class NXAllocatorManager : public NXInstance<NXAllocatorManager>
 {
 public:
-	void Init(ID3D12Device* pDevice);
+	void Init();
 
 	CommittedAllocator*		GetCBufferAllocator()		{ return m_pCBufferAllocator; }
 	PlacedAllocator*		GetTextureAllocator()		{ return m_pTextureAllocator; }

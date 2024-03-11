@@ -6,6 +6,7 @@
 #include "DirectXTex.h"
 #include "ShaderStructures.h"
 #include "Ntr.h"
+#include "NXBuffer.h"
 
 struct ConstantBufferImageData
 {
@@ -109,7 +110,7 @@ private:
 
 	// 生成使用独立的 allocator 来管理 CubeMap 的 cb
 	CommittedAllocator* m_cbAllocator;
-	CommittedResourceData<ConstantBufferCubeMap> m_cbData;
+	NXBuffer<ConstantBufferCubeMap> m_cbData;
 
 	size_t	m_pSRVIrradianceSH;
 

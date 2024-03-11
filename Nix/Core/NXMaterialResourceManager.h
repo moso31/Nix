@@ -56,7 +56,7 @@ public:
 	NXCustomMaterial* CreateCustomMaterial(const std::string& name, const std::filesystem::path& nslFilePath);
 
     Ntr<NXSSSDiffuseProfile> GetOrAddSSSProfile(const std::filesystem::path& sssProfFilePath);
-    D3D12_GPU_VIRTUAL_ADDRESS GetCBufferDiffuseProfile() { return m_cbDiffuseProfile.Current().GPUVirtualAddr; }
+    D3D12_GPU_VIRTUAL_ADDRESS GetCBufferDiffuseProfile() { return m_cbDiffuseProfile.GetGPUHandle(); }
 
 	void OnReload() override;
 	void Release() override;

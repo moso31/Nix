@@ -71,7 +71,7 @@ void NXColorMappingRenderer::Render()
 {
 	NX12Util::BeginEvent(m_pCommandList.Get(), "Post Processing");
 
-	m_cbParams.Current().data.param0.x = m_bEnablePostProcessing ? 1.0f : 0.0f;
+	m_cbParams.Current().param0.x = m_bEnablePostProcessing ? 1.0f : 0.0f;
 	NXCBufferAllocator->UpdateData(m_cbParams.Current());
 
 	NX12Util::BeginEvent(m_pCommandList.Get(), "Color Mapping");
@@ -86,7 +86,7 @@ void NXColorMappingRenderer::Render()
 	m_pCommandList->SetGraphicsRootSignature(m_pRootSig.Get());
 	m_pCommandList->SetPipelineState(m_pPSO.Get());
 
-	m_pCommandList->SetGraphicsRootConstantBufferView(0, m_cbParams.Current().GPUVirtualAddr);
+	m_pCommandList->SetGraphicsRootConstantBufferView(0, m_cbParams.GetGPUHandle());
 	m_pCommandList->SetGraphicsRootDescriptorTable(1, srvHandle);
 	
 	const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_RenderTarget");

@@ -67,7 +67,7 @@ void NXEditorObjectRenderer::Render()
 {
 	NX12Util::BeginEvent(m_pCommandList.Get(), "Editor objects");
 
-	m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbCamera.Current().GPUVirtualAddr);
+	m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbCamera.GetGPUHandle());
 
 	m_pCommandList->SetGraphicsRootSignature(m_pRootSig.Get());
 	m_pCommandList->SetPipelineState(m_pPSO.Get());
@@ -89,14 +89,14 @@ void NXEditorObjectRenderer::Render()
 					// 判断当前SubMesh是否高亮显示
 					{
 						bool bIsHighLight = pSubMeshEditorObj->GetEditorObjectID() == m_pScene->GetEditorObjManager()->GetHighLightID();
-						m_cbParams.Current().data.value.x = bIsHighLight ? 1.0f : 0.0f;
+						m_cbParams.Current().value.x = bIsHighLight ? 1.0f : 0.0f;
 						NXAllocatorManager::GetInstance()->GetCBufferAllocator()->UpdateData(m_cbParams.Current());
-						m_pCommandList->SetGraphicsRootConstantBufferView(0, m_cbParams.Current().GPUVirtualAddr);
+						m_pCommandList->SetGraphicsRootConstantBufferView(0, m_cbParams.GetGPUHandle());
 					}
 
 					pSubMeshEditorObj->UpdateViewParams();
 
-					m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbObject.Current().GPUVirtualAddr);
+					m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbObject.GetGPUHandle());
 
 					pSubMeshEditorObj->Update();
 					pSubMeshEditorObj->Render(m_pCommandList.Get());

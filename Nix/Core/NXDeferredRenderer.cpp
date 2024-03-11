@@ -103,8 +103,8 @@ void NXDeferredRenderer::Render()
 	ID3D12DescriptorHeap* ppHeaps[] = { pShaderVisibleDescriptorHeap->GetHeap() };
 	m_pCommandList->SetDescriptorHeaps(1, ppHeaps);
 
-	m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbObject.Current().GPUVirtualAddr);
-	m_pCommandList->SetGraphicsRootConstantBufferView(1, NXGlobalBuffer::cbCamera.Current().GPUVirtualAddr);
+	m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbObject.GetGPUHandle());
+	m_pCommandList->SetGraphicsRootConstantBufferView(1, NXGlobalBuffer::cbCamera.GetGPUHandle());
 	m_pCommandList->SetGraphicsRootConstantBufferView(2, m_pScene->GetConstantBufferLights());
 	m_pCommandList->SetGraphicsRootConstantBufferView(3, m_pScene->GetCubeMap()->GetCBDataParams());
 	m_pCommandList->SetGraphicsRootConstantBufferView(4, NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfile());

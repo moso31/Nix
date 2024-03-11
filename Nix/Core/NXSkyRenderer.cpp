@@ -101,7 +101,7 @@ void NXSkyRenderer::Render()
 
 		pCubeMap->UpdateViewParams();
 
-		m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbObject.Current().GPUVirtualAddr);
+		m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbObject.GetGPUHandle());
 		m_pCommandList->SetGraphicsRootConstantBufferView(1, pCubeMap->GetCBDataParams());
 		m_pCommandList->SetGraphicsRootDescriptorTable(2, srvHandle);
 

@@ -2,6 +2,7 @@
 #include "BaseDefs/DX12.h"
 #include "BaseDefs/NixCore.h"
 #include "ShaderStructures.h"
+#include "NXBuffer.h"
 
 class NXGlobalWindows
 {
@@ -41,9 +42,9 @@ class NXGlobalBuffer
 public:
 	static void Init();
 
-	static MultiFrame<CommittedResourceData<ConstantBufferObject>>		cbObject;
-	static MultiFrame<CommittedResourceData<ConstantBufferCamera>>		cbCamera;
-	static MultiFrame<CommittedResourceData<ConstantBufferShadowTest>>	cbShadowTest;
+	static NXBuffer<ConstantBufferObject>		cbObject;
+	static NXBuffer<ConstantBufferCamera>		cbCamera;
+	static NXBuffer<ConstantBufferShadowTest>	cbShadowTest;
 };
 
 class NXGlobalInputLayout
