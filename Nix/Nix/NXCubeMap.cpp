@@ -95,9 +95,8 @@ void NXCubeMap::UpdateViewParams()
 {
 	auto pCamera = m_pScene->GetMainCamera();
 
-	auto& cbDataObject = NXGlobalBuffer::cbObject.Current();
-	cbDataObject.data.world = Matrix::CreateTranslation(pCamera->GetTranslation()).Transpose();
-	m_cbAllocator->UpdateData(cbDataObject);
+	NXGlobalBuffer::cbObject.Current().world = Matrix::CreateTranslation(pCamera->GetTranslation()).Transpose();
+	NXGlobalBuffer::cbObject.UpdateBuffer();
 }
 
 void NXCubeMap::Render(ID3D12GraphicsCommandList* pCmdList)
@@ -115,7 +114,7 @@ void NXCubeMap::Release()
 
 Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)
 {
-	PIXBeginEvent(m_pCommandList.Get(), 0, L"Generate Cube Map");
+	NX12Util::BeginEvent(m_pCommandList.Get(), "Generate Cube Map");
 
 	auto pGlobalDescriptorAllocator = NXAllocatorManager::GetInstance()->GetDescriptorAllocator();
 
@@ -150,7 +149,7 @@ Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)
 	NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSOCubeMap));
 
 	NXBuffer<ConstantBufferObject> cbData;
-	cbData.Create(NXCBufferAllocator, NXDescriptorAllocator, false);
+	cbData.Create(m_cbAllocator, NXDescriptorAllocator, false);
 	cbData.Current().world = Matrix::Identity();
 	cbData.Current().projection = m_mxCubeMapProj.Transpose();
 
@@ -184,7 +183,7 @@ Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)
 		m_pCommandList->DrawIndexedInstanced(6, 1, i * 6, 0, 0);
 	}
 
-	PIXEndEvent();
+	NX12Util::EndEvent();
 	return pTexCubeMap;
 }
 
@@ -520,14 +519,10 @@ void NXCubeMap::GeneratePreFilterMap()
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSOPreFilterMap));
 
-	CommittedResourceData<ConstantBufferObject> cbCubeCamera;
-	cbCubeCamera.data.world = Matrix::Identity();
-	cbCubeCamera.data.projection = m_mxCubeMapProj.Transpose();
-	m_cbAllocator->Alloc(ResourceType_Upload, cbCubeCamera);
-
-	D3D12_CPU_DESCRIPTOR_HANDLE cbvHandle;
-	pGlobalDescriptorAllocator->Alloc(DescriptorType_CBV, cbvHandle);
-	NXGlobalDX::GetDevice()->CreateConstantBufferView(&cbCubeCamera.CBVDesc(), cbvHandle);
+	NXBuffer<ConstantBufferObject> cbCubeCamera;
+	cbCubeCamera.Create(m_cbAllocator, NXDescriptorAllocator, false);
+	cbCubeCamera.Current().world = Matrix::Identity();
+	cbCubeCamera.Current().projection = m_mxCubeMapProj.Transpose();
 
 	m_pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -545,28 +540,26 @@ void NXCubeMap::GeneratePreFilterMap()
 	{
 		float mipSize = (float)((UINT)mapSize >> i);
 
-		CommittedResourceData<ConstantBufferFloat> cbRoughness;
-		cbRoughness.data.value = rough[i] * rough[i];
-		m_cbAllocator->UpdateData(cbRoughness);
-
-		D3D12_CPU_DESCRIPTOR_HANDLE cbvHandle;
-		pGlobalDescriptorAllocator->Alloc(DescriptorType_CBV, cbvHandle);
-		NXGlobalDX::GetDevice()->CreateConstantBufferView(&cbRoughness.CBVDesc(), cbvHandle);
+		NXBuffer<ConstantBufferFloat> cbRoughness;
+		cbRoughness.Create(m_cbAllocator, NXDescriptorAllocator, false);
+		cbRoughness.Current().value = rough[i] * rough[i];
+		cbRoughness.UpdateBuffer();
 
 		auto vp = NX12Util::ViewPort(mipSize, mipSize);
 		m_pCommandList->RSSetViewports(1, &vp);
 
 		for (int j = 0; j < 6; j++)
 		{
-			cbCubeCamera.data.view = m_mxCubeMapView[j].Transpose();
+			cbCubeCamera.Current().view = m_mxCubeMapView[j].Transpose();
 
 			D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_pTexPreFilterMap->GetRTV(i * 6 + j);
 			m_pCommandList->ClearRenderTargetView(rtvHandle, Colors::WhiteSmoke, 0, nullptr);
 			m_pCommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
-			m_cbAllocator->UpdateData(cbCubeCamera);
 
-			m_pCommandList->SetGraphicsRootConstantBufferView(0, cbCubeCamera.GPUVirtualAddr);
-			m_pCommandList->SetGraphicsRootConstantBufferView(1, cbRoughness.GPUVirtualAddr);
+			cbCubeCamera.UpdateBuffer();
+
+			m_pCommandList->SetGraphicsRootConstantBufferView(0, cbCubeCamera.GetGPUHandle());
+			m_pCommandList->SetGraphicsRootConstantBufferView(1, cbRoughness.GetGPUHandle());
 			m_pCommandList->SetGraphicsRootDescriptorTable(2, srvHandle);
 
 			const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_CubeMapBox");

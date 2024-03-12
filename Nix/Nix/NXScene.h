@@ -7,6 +7,7 @@
 #include "NXObject.h"
 #include "HBVH.h"
 #include "ShaderStructures.h"
+#include "NXBuffer.h"
 
 class NXCamera;
 class NXPBRLight;
@@ -89,7 +90,7 @@ private:
 	void InitBoundingStructures();
 
 private:
-	MultiFrame<CommittedResourceData<ConstantBufferLight>> m_cbDataLights;
+	NXBuffer<ConstantBufferLight> m_cbDataLights;
 
 	AABB m_aabb;
 	BoundingSphere m_boundingSphere;
