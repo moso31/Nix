@@ -18,8 +18,7 @@ void NXMaterialResourceManager::Init()
 
 	m_defaultDiffuseProfile = new NXSSSDiffuseProfile();
 
-	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
-		NXAllocatorManager::GetInstance()->GetCBufferAllocator()->Alloc(ResourceType_Upload, m_cbDiffuseProfile.Get(i));
+	m_cbDiffuseProfile.Create(NXCBufferAllocator, NXDescriptorAllocator, true);
 }
 
 void NXMaterialResourceManager::RegisterMaterial(NXMaterial* newMaterial)
@@ -163,5 +162,5 @@ void NXMaterialResourceManager::AdjustDiffuseProfileRenderData(PathHashValue pat
 	m_cbDiffuseProfile.Current().sssProfData[sssGBufferIndex].transmit = pProfile->GetTransmit();
 	m_cbDiffuseProfile.Current().sssProfData[sssGBufferIndex].transmitStrength = pProfile->GetTransmitStrength();
 
-	NXAllocatorManager::GetInstance()->GetCBufferAllocator()->UpdateData(m_cbDiffuseProfile.Current());
+	m_cbDiffuseProfile.UpdateBuffer();
 }

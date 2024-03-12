@@ -57,8 +57,7 @@ void NXShadowMapRenderer::Init()
 		m_pShadowMapDepth->AddDSV(i, 1);	// DSV 单张切片（每次写cascade深度 只写一片）
 	m_pShadowMapDepth->AddSRV(0, m_cascadeCount); // SRV 读取整个纹理数组（ShadowTest时使用）
 
-	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
-		NXAllocatorManager::GetInstance()->GetCBufferAllocator()->Alloc(ResourceType_Upload, m_cbShadowMapObject.Get(i));
+	m_cbShadowMapObject.Create(NXCBufferAllocator, NXDescriptorAllocator, true);
 
 	SetCascadeCount(m_cascadeCount);
 	SetShadowDistance(m_shadowDistance);
@@ -69,7 +68,7 @@ void NXShadowMapRenderer::Init()
 	{
 		for (int j = 0; j < 8; j++)
 		{
-			NXGlobalBuffer::cbShadowTest.Get(i).data.frustumParams[j] = Vector4(0.0f);
+			NXGlobalBuffer::cbShadowTest.Get(i).frustumParams[j] = Vector4(0.0f);
 		}
 	}
 }
@@ -101,7 +100,7 @@ void NXShadowMapRenderer::RenderSingleObject(NXRenderableObject* pRenderableObje
 	if (pPrimitive)
 	{
 		m_cbShadowMapObject.Current().world = pPrimitive->GetWorldMatrix().Transpose();
-		NXAllocatorManager::GetInstance()->GetCBufferAllocator()->UpdateData(m_cbShadowMapObject.Current());
+		m_cbShadowMapObject.UpdateBuffer();
 
 		m_pCommandList->SetGraphicsRootConstantBufferView(0, m_cbShadowMapObject.GetGPUHandle());
 
@@ -134,7 +133,7 @@ void NXShadowMapRenderer::SetCascadeCount(UINT value)
 	m_cascadeCount = value;
 	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 	{
-		NXGlobalBuffer::cbShadowTest.Get(i).data.cascadeCount = (float)m_cascadeCount;
+		NXGlobalBuffer::cbShadowTest.Get(i).cascadeCount = (float)m_cascadeCount;
 	}
 }
 
@@ -143,7 +142,7 @@ void NXShadowMapRenderer::SetDepthBias(int value)
 	m_depthBias = value;
 	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 	{
-		NXGlobalBuffer::cbShadowTest.Get(i).data.depthBias = (float)m_depthBias;
+		NXGlobalBuffer::cbShadowTest.Get(i).depthBias = (float)m_depthBias;
 	}
 }
 
@@ -152,7 +151,7 @@ void NXShadowMapRenderer::SetShadowDistance(float value)
 	m_shadowDistance = value;
 	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 	{
-		NXGlobalBuffer::cbShadowTest.Get(i).data.shadowDistance = m_shadowDistance;
+		NXGlobalBuffer::cbShadowTest.Get(i).shadowDistance = m_shadowDistance;
 	}
 }
 
@@ -161,7 +160,7 @@ void NXShadowMapRenderer::SetCascadeTransitionScale(float value)
 	m_cascadeTransitionScale = value;
 	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 	{
-		NXGlobalBuffer::cbShadowTest.Get(i).data.cascadeTransitionScale = m_cascadeTransitionScale;
+		NXGlobalBuffer::cbShadowTest.Get(i).cascadeTransitionScale = m_cascadeTransitionScale;
 	}
 }
 
@@ -284,5 +283,5 @@ void NXShadowMapRenderer::UpdateShadowMapBuffer(NXPBRDistantLight* pDirLight)
 	}
 
 	// Shadow Test
-	NXAllocatorManager::GetInstance()->GetCBufferAllocator()->UpdateData(NXGlobalBuffer::cbShadowTest.Current());
+	NXGlobalBuffer::cbShadowTest.UpdateBuffer();
 }

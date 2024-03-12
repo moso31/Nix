@@ -321,7 +321,7 @@ void NXCustomMaterial::UpdateCBData()
 	while (cbData.size() % 4 != 0) cbData.push_back(0); // 16 bytes align
 
 	// 重建整个CBuffer
-	NXAllocatorManager::GetInstance()->GetCBufferAllocator()->Alloc(ResourceType_Upload, m_cbData.Current());
+	m_cbData.Create((UINT)(cbData.size() * sizeof(float)), NXCBufferAllocator, NXDescriptorAllocator, true);
 }
 
 NXCustomMaterial::NXCustomMaterial(const std::string& name, const std::filesystem::path& path) :
@@ -358,7 +358,7 @@ void NXCustomMaterial::Update()
 	}
 	else
 	{
-		NXAllocatorManager::GetInstance()->GetCBufferAllocator()->UpdateData(m_cbData.Current());
+		m_cbData.UpdateBuffer();
 	}
 }
 

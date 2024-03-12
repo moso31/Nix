@@ -55,8 +55,7 @@ void NXDebugLayerRenderer::Init()
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
 
-	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
-		NXCBufferAllocator->Alloc(ResourceType_Upload, m_cbParams.Get(i));
+	m_cbParams.Create(NXCBufferAllocator, NXDescriptorAllocator, true);
 }
 
 void NXDebugLayerRenderer::OnResize(const Vector2& rtSize)
@@ -67,8 +66,8 @@ void NXDebugLayerRenderer::OnResize(const Vector2& rtSize)
 
 	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 	{
-		m_cbParams.Get(i).data.RTSize = Vector4(rtSize.x, rtSize.y, 1.0f / rtSize.x, 1.0f / rtSize.y);
-		m_cbParams.Get(i).data.LayerParam0 = Vector4(1.0f, 0.0f, 0.0f, 0.0f);
+		m_cbParams.Get(i).RTSize = Vector4(rtSize.x, rtSize.y, 1.0f / rtSize.x, 1.0f / rtSize.y);
+		m_cbParams.Get(i).LayerParam0 = Vector4(1.0f, 0.0f, 0.0f, 0.0f);
 	}
 }
 
@@ -82,7 +81,7 @@ void NXDebugLayerRenderer::Render()
 	// Update LayerParams
 	m_cbParams.Current().LayerParam0.x = (float)m_bEnableShadowMapDebugLayer;
 	m_cbParams.Current().LayerParam0.y = m_fShadowMapZoomScale;
-	NXAllocatorManager::GetInstance()->GetCBufferAllocator()->UpdateData(m_cbParams.Current());
+	m_cbParams.UpdateBuffer();
 
 	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
 	auto srvHandle0 = pShaderVisibleDescriptorHeap->Append(m_pTexPassIn0->GetSRV());

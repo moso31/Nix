@@ -51,10 +51,7 @@ void NXEditorObjectRenderer::Init()
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
 
-	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
-	{
-		NXAllocatorManager::GetInstance()->GetCBufferAllocator()->Alloc(ResourceType_Upload, m_cbParams.Get(i));
-	}
+	m_cbParams.Create(NXCBufferAllocator, NXDescriptorAllocator, true);
 
 	m_pTexPassOut = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_PostProcessing);
 }
@@ -90,7 +87,7 @@ void NXEditorObjectRenderer::Render()
 					{
 						bool bIsHighLight = pSubMeshEditorObj->GetEditorObjectID() == m_pScene->GetEditorObjManager()->GetHighLightID();
 						m_cbParams.Current().value.x = bIsHighLight ? 1.0f : 0.0f;
-						NXAllocatorManager::GetInstance()->GetCBufferAllocator()->UpdateData(m_cbParams.Current());
+						m_cbParams.UpdateBuffer();
 						m_pCommandList->SetGraphicsRootConstantBufferView(0, m_cbParams.GetGPUHandle());
 					}
 

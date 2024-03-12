@@ -60,11 +60,7 @@ void NXColorMappingRenderer::Init()
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
 
-	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
-	{
-		NXCBufferAllocator->Alloc(ResourceType_Upload, m_cbParams.Get(i));
-
-	}
+	m_cbParams.Create(NXCBufferAllocator, NXDescriptorAllocator, true);
 }
 
 void NXColorMappingRenderer::Render()
@@ -72,7 +68,7 @@ void NXColorMappingRenderer::Render()
 	NX12Util::BeginEvent(m_pCommandList.Get(), "Post Processing");
 
 	m_cbParams.Current().param0.x = m_bEnablePostProcessing ? 1.0f : 0.0f;
-	NXCBufferAllocator->UpdateData(m_cbParams.Current());
+	m_cbParams.UpdateBuffer();
 
 	NX12Util::BeginEvent(m_pCommandList.Get(), "Color Mapping");
 

@@ -13,6 +13,8 @@ class NXBuffer
 		D3D12_GPU_VIRTUAL_ADDRESS GPUVirtualAddr; // 记录该数据的 GPU 虚拟地址
 		UINT pageIndex;
 		UINT pageOffset;
+
+		UINT byteSize;
 	};
 
 public:
@@ -21,6 +23,14 @@ public:
 
 	void Create(CommittedAllocator* pCBAllocator, DescriptorAllocator* pDescriptorAllocator, bool isMultiFrame)
 	{
+		Create(sizeof(T), pCBAllocator, pDescriptorAllocator, isMultiFrame);
+	}
+
+	void Create(UINT byteSize, CommittedAllocator* pCBAllocator, DescriptorAllocator* pDescriptorAllocator, bool isMultiFrame)
+	{
+		// TODO: 光Alloc不行，还得在合适的时间Remove
+		// Remove的配套机制需要XAllocator实现
+
 		// Init
 		m_pDevice = pCBAllocator->GetD3DDevice();
 		m_pCBAllocator = pCBAllocator;
@@ -28,26 +38,29 @@ public:
 		m_isMultiFrame = isMultiFrame;
 
 		// Create
-		m_buffers = std::make_unique<T[]>(isMultiFrame ? 3 : 1);
+		m_buffers = std::make_unique<NXBufferData[]>(isMultiFrame ? 3 : 1);
 
 		for (auto& buffer : m_buffers)
 		{
-			m_pCBAllocator->Alloc(sizeof(T), ResourceType_Upload, buffer.GPUVirtualAddr, buffer.pageIndex, buffer.pageOffset);
+			m_pCBAllocator->Alloc(byteSize, ResourceType_Upload, buffer.GPUVirtualAddr, buffer.pageIndex, buffer.pageOffset);
 
 			D3D12_CPU_DESCRIPTOR_HANDLE cbvHandle;
 			m_pDescriptorAllocator->Alloc(DescriptorType_CBV, cbvHandle);
 
 			D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
 			cbvDesc.BufferLocation = buffer.GPUVirtualAddr;
-			cbvDesc.SizeInBytes = (sizeof(T) + 255) & ~255);
+			cbvDesc.SizeInBytes = (byteSize + 255) & ~255);
 			m_pDevice->CreateConstantBufferView(&cbvDesc, cbvHandle);
+			
+			buffer.byteSize = byteSize;
 		}
 	}
 
+	// like updatesubresource in dx11.
 	void UpdateBuffer()
 	{
 		NXBufferData& currBuffer = m_isMultiFrame ? m_buffers[MultiFrameSets::swapChainIndex] : m_buffers[0];
-		m_pCBAllocator->UpdateData(currBuffer.data, sizeof(T), currBuffer.pageIndex, currBuffer.pageOffset);
+		m_pCBAllocator->UpdateData(currBuffer.data, currBuffer.byteSize, currBuffer.pageIndex, currBuffer.pageOffset);
 	}
 
 	const D3D12_GPU_VIRTUAL_ADDRESS& GetGPUHandle()

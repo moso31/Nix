@@ -1,6 +1,7 @@
 #pragma once
 #include "BaseDefs/DX12.h"
 #include "ShaderStructures.h"
+#include "NXBuffer.h"
 #include "Ntr.h"
 
 class NXScene;
@@ -28,7 +29,7 @@ private:
 
 	Ntr<NXTexture2D>					m_pTexPassOut;
 
-	MultiFrame<CommittedResourceData<ConstantBufferVector4>>	m_cbParams;
+	NXBuffer<ConstantBufferVector4>		m_cbParams;
 
 	ComPtr<ID3D12GraphicsCommandList>	m_pCommandList;
 	ComPtr<ID3D12PipelineState>			m_pPSO;

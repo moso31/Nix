@@ -3,6 +3,7 @@
 #include "BaseDefs/NixCore.h"
 #include "BaseDefs/Math.h"
 #include "NXResourceManagerBase.h"
+#include "NXBuffer.h"
 
 using namespace DirectX::SimpleMath;
 
@@ -85,5 +86,5 @@ private:
     std::map<PathHashValue, UINT8> m_sssProfileGBufferIndexMap;
 
     // SSS profile CBuffer
-    MultiFrame<CommittedResourceData<CBufferDiffuseProfileData>> m_cbDiffuseProfile;
+    NXBuffer<CBufferDiffuseProfileData> m_cbDiffuseProfile;
 };

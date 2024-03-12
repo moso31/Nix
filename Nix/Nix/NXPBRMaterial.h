@@ -1,6 +1,7 @@
 #pragma once
 #include "ShaderStructures.h"
 #include "NXResourceManager.h"
+#include "NXBuffer.h"
 #include "NXTexture.h"
 #include "NXShaderDefinitions.h"
 
@@ -196,7 +197,7 @@ private:
 	std::vector<float>						m_cbInfoMemory;
 	std::vector<int>						m_cbSortedIndex;
 
-	MultiFrame<CommittedResourceData<std::vector<float>>>	m_cbData;
+	NXBuffer<std::vector<float>>			m_cbData;
 
 	// backup datas
 	std::vector<NXMaterialSamplerInfo>		m_samplerInfosBackup;
