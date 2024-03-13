@@ -37,11 +37,14 @@ public:
 		m_pDescriptorAllocator = pDescriptorAllocator;
 		m_isMultiFrame = isMultiFrame;
 
+		UINT arrSize = isMultiFrame ? MultiFrameSets_swapChainCount : 1;
 		// Create
-		m_buffers = std::make_unique<NXBufferData[]>(isMultiFrame ? 3 : 1);
+		m_buffers = std::make_unique<NXBufferData[]>(arrSize);
 
-		for (auto& buffer : m_buffers)
+		for (UINT i = 0; i < arrSize; i++)
 		{
+			NXBufferData& buffer = m_buffers[i];
+
 			m_pCBAllocator->Alloc(byteSize, ResourceType_Upload, buffer.GPUVirtualAddr, buffer.pageIndex, buffer.pageOffset);
 
 			D3D12_CPU_DESCRIPTOR_HANDLE cbvHandle;
@@ -49,7 +52,7 @@ public:
 
 			D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
 			cbvDesc.BufferLocation = buffer.GPUVirtualAddr;
-			cbvDesc.SizeInBytes = (byteSize + 255) & ~255);
+			cbvDesc.SizeInBytes = (byteSize + 255) & ~255;
 			m_pDevice->CreateConstantBufferView(&cbvDesc, cbvHandle);
 			
 			buffer.byteSize = byteSize;
@@ -60,12 +63,12 @@ public:
 	void UpdateBuffer()
 	{
 		NXBufferData& currBuffer = m_isMultiFrame ? m_buffers[MultiFrameSets::swapChainIndex] : m_buffers[0];
-		m_pCBAllocator->UpdateData(currBuffer.data, currBuffer.byteSize, currBuffer.pageIndex, currBuffer.pageOffset);
+		m_pCBAllocator->UpdateData(&currBuffer.data, currBuffer.byteSize, currBuffer.pageIndex, currBuffer.pageOffset);
 	}
 
 	const D3D12_GPU_VIRTUAL_ADDRESS& GetGPUHandle()
 	{
-		return m_isMultiFrame ? m_buffers[MultiFrameSets::swapChainIndex].GetGPUHandle() : m_buffers[0].GetGPUHandle();
+		return m_isMultiFrame ? m_buffers[MultiFrameSets::swapChainIndex].GPUVirtualAddr : m_buffers[0].GPUVirtualAddr;
 	}
 
 	T& Current()

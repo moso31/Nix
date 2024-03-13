@@ -3,6 +3,7 @@
 #include "BaseDefs/Math.h"
 #include "BaseDefs/NixCore.h"
 #include "Ntr.h"
+#include "NXBuffer.h"
 
 struct CBufferDebugLayer
 {

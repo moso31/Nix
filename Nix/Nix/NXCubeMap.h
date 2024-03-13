@@ -75,12 +75,12 @@ public:
 	const Ntr<NXTexture2D>& GetIrradianceMap() { return m_pTexIrradianceMap; }
 	const Ntr<NXTexture2D>& GetPreFilterMap() { return m_pTexPreFilterMap; }
 
-	D3D12_GPU_VIRTUAL_ADDRESS GetCBDataParams() { return m_cbData.GPUVirtualAddr; }
+	const D3D12_GPU_VIRTUAL_ADDRESS& GetCBDataParams() { return m_cbData.GetGPUHandle(); }
 
-	void SetIntensity(float val) { m_cbData.data.intensity = val; }
-	float* GetIntensity() { return &m_cbData.data.intensity; }
+	void SetIntensity(float val);
+	float* GetIntensity() { return &m_cbData.Current().intensity; }
 
-	void SetIrradMode(int val) { m_cbData.data.irradMode = Vector4((float)val); };
+	void SetIrradMode(int val);
 
 	void SaveHDRAsDDS(Ntr<NXTextureCube>& pTexture, const std::filesystem::path& filePath);
 	void LoadDDS(const std::filesystem::path& filePath);

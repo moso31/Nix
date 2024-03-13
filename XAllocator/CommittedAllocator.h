@@ -23,7 +23,7 @@ public:
 		CommittedAllocatorBase(1000000, 100), m_pDevice(pDevice), m_blockByteSize(blockByteSize) {}
 	~CommittedAllocator() {}
 
-	const ID3D12Device* GetD3DDevice() const { return m_pDevice; }
+	ID3D12Device* GetD3DDevice() { return m_pDevice; }
 
 	// 在资源池中分配一段内存。
 	// byteSize：

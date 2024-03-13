@@ -21,7 +21,7 @@ NXCubeMap::NXCubeMap(NXScene* pScene) :
 	m_pScene(pScene)
 {
 	m_cbAllocator = new CommittedAllocator(NXGlobalDX::GetDevice(), 256);
-	m_cbData.Create(m_cbAllocator, NXDescriptorAllocator, false);
+	m_cbData.Create(m_cbAllocator, NXDescriptorAllocator, true);
 }
 
 bool NXCubeMap::Init(const std::filesystem::path& filePath)
@@ -406,14 +406,18 @@ void NXCubeMap::GenerateIrradianceSHFromCubeMap()
 		}
 	}
 
-	m_cbData.Current().irradSH0123x = Vector4(m_shIrradianceMap[0].x, m_shIrradianceMap[1].x, m_shIrradianceMap[2].x, m_shIrradianceMap[3].x);
-	m_cbData.Current().irradSH0123y = Vector4(m_shIrradianceMap[0].y, m_shIrradianceMap[1].y, m_shIrradianceMap[2].y, m_shIrradianceMap[3].y);
-	m_cbData.Current().irradSH0123z = Vector4(m_shIrradianceMap[0].z, m_shIrradianceMap[1].z, m_shIrradianceMap[2].z, m_shIrradianceMap[3].z);
-	m_cbData.Current().irradSH4567x = Vector4(m_shIrradianceMap[4].x, m_shIrradianceMap[5].x, m_shIrradianceMap[6].x, m_shIrradianceMap[7].x);
-	m_cbData.Current().irradSH4567y = Vector4(m_shIrradianceMap[4].y, m_shIrradianceMap[5].y, m_shIrradianceMap[6].y, m_shIrradianceMap[7].y);
-	m_cbData.Current().irradSH4567z = Vector4(m_shIrradianceMap[4].z, m_shIrradianceMap[5].z, m_shIrradianceMap[6].z, m_shIrradianceMap[7].z);
-	m_cbData.Current().irradSH8xyz = m_shIrradianceMap[8];
-	int x = 0;
+	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
+	{
+		auto& cbData = m_cbData.Get(i);
+
+		cbData.irradSH0123x = Vector4(m_shIrradianceMap[0].x, m_shIrradianceMap[1].x, m_shIrradianceMap[2].x, m_shIrradianceMap[3].x);
+		cbData.irradSH0123y = Vector4(m_shIrradianceMap[0].y, m_shIrradianceMap[1].y, m_shIrradianceMap[2].y, m_shIrradianceMap[3].y);
+		cbData.irradSH0123z = Vector4(m_shIrradianceMap[0].z, m_shIrradianceMap[1].z, m_shIrradianceMap[2].z, m_shIrradianceMap[3].z);
+		cbData.irradSH4567x = Vector4(m_shIrradianceMap[4].x, m_shIrradianceMap[5].x, m_shIrradianceMap[6].x, m_shIrradianceMap[7].x);
+		cbData.irradSH4567y = Vector4(m_shIrradianceMap[4].y, m_shIrradianceMap[5].y, m_shIrradianceMap[6].y, m_shIrradianceMap[7].y);
+		cbData.irradSH4567z = Vector4(m_shIrradianceMap[4].z, m_shIrradianceMap[5].z, m_shIrradianceMap[6].z, m_shIrradianceMap[7].z);
+		cbData.irradSH8xyz = m_shIrradianceMap[8];
+	}
 }
 
 // ps. DX11 升级 DX12 期间暂时禁用
@@ -570,6 +574,18 @@ void NXCubeMap::GeneratePreFilterMap()
 	}
 
 	NX12Util::EndEvent();
+}
+
+void NXCubeMap::SetIntensity(float val)
+{
+	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
+		m_cbData.Get(i).intensity = val;
+}
+
+void NXCubeMap::SetIrradMode(int val)
+{
+	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
+		m_cbData.Current().irradMode = Vector4((float)val);
 }
 
 void NXCubeMap::SaveHDRAsDDS(Ntr<NXTextureCube>& pTexCubeMap, const std::filesystem::path& filePath)
