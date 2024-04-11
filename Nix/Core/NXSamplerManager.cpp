@@ -33,12 +33,7 @@ const D3D12_STATIC_SAMPLER_DESC& NXSamplerManager::Create(UINT slot, UINT space,
 
 const D3D12_STATIC_SAMPLER_DESC &NXSamplerManager::Create(UINT slot, UINT space, D3D12_SHADER_VISIBILITY visibility, const NXMaterialSamplerInfo &ssInfo)
 {
-    ssInfo.filter;
-    ssInfo.name;
-    ssInfo.slotIndex;
-    ssInfo.addressU;
-    ssInfo.addressV;
-    ssInfo.addressW;
+    return Create(slot, space, visibility, ToFilterMode(ssInfo.filter), ToAddressMode(ssInfo.addressU), ToAddressMode(ssInfo.addressV), ToAddressMode(ssInfo.addressW), D3D12_COMPARISON_FUNC_NEVER, 0.0f, 1, D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK, -D3D12_FLOAT32_MAX, D3D12_FLOAT32_MAX);
 }
 
 bool NXSamplerManager::IsSame(const D3D12_STATIC_SAMPLER_DESC& lhs, const D3D12_STATIC_SAMPLER_DESC& rhs)
@@ -61,11 +56,16 @@ D3D12_TEXTURE_ADDRESS_MODE NXSamplerManager::ToAddressMode(NXSamplerAddressMode 
 
 D3D12_FILTER NXSamplerManager::ToFilterMode(NXSamplerFilter filter)
 {
-    switch (filter)
-    {
-    case NXSamplerFilter::Point:            return D3D12_FILTER_COMPARISON_MIN_MAG_MIP_POINT;
-    case NXSamplerFilter::Linear:           return D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
-    case NXSamplerFilter::Anisotropic:      return D3D12_FILTER_ANISOTROPIC;
-    case NXSamplerFilter::Unknown:          return D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
-    }
+	switch (filter)
+	{
+	case NXSamplerFilter::Point:
+		return D3D12_FILTER_COMPARISON_MIN_MAG_MIP_POINT;
+	case NXSamplerFilter::Linear:
+		return D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
+	case NXSamplerFilter::Anisotropic:
+		return D3D12_FILTER_ANISOTROPIC;
+	case NXSamplerFilter::Unknown:
+	default: 
+        return D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
+	}
 }

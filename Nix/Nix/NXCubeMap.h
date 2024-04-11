@@ -71,9 +71,9 @@ public:
 	D3D12_CPU_DESCRIPTOR_HANDLE GetSRVIrradianceMap();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetSRVPreFilterMap();
 
-	const Ntr<NXTexture2D>& GetCubeMap() { return m_pTexCubeMap; }
-	const Ntr<NXTexture2D>& GetIrradianceMap() { return m_pTexIrradianceMap; }
-	const Ntr<NXTexture2D>& GetPreFilterMap() { return m_pTexPreFilterMap; }
+	Ntr<NXTexture2D> GetCubeMap() { return m_pTexCubeMap; }
+	Ntr<NXTexture2D> GetIrradianceMap() { return m_pTexIrradianceMap; }
+	Ntr<NXTexture2D> GetPreFilterMap() { return m_pTexPreFilterMap; }
 
 	const D3D12_GPU_VIRTUAL_ADDRESS& GetCBDataParams() { return m_cbData.GetGPUHandle(); }
 

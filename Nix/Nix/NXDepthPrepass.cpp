@@ -6,18 +6,18 @@
 //#include "DirectResources.h"
 //#include "NXResourceManager.h"
 //#include "NXTexture.h"
-#include "NXScene.h"
+//#include "NXScene.h"
 //#include "NXPrefab.h"
 
-NXDepthPrepass::NXDepthPrepass(NXScene* pScene) 
-	//m_pInputLayout(nullptr),
-	//m_pScene(pScene)
-{
-}
+//NXDepthPrepass::NXDepthPrepass(NXScene* pScene) 
+//	m_pInputLayout(nullptr),
+//	m_pScene(pScene)
+//{
+//}
 
-NXDepthPrepass::~NXDepthPrepass()
-{
-}
+//NXDepthPrepass::~NXDepthPrepass()
+//{
+//}
 
 //void NXDepthPrepass::Init()
 //{

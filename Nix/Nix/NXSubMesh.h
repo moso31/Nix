@@ -23,7 +23,7 @@ public:
 	void UpdateViewParams();
 
 	void Update() { if (m_pMaterial) m_pMaterial->Update(); }
-	virtual void Render(ID3D12CommandList* pCommandList) = 0;
+	virtual void Render(ID3D12GraphicsCommandList* pCommandList) = 0;
 
 	virtual bool RayCastLocal(const Ray& localRay, NXHit& outHitInfo, float& outDist) = 0;
 	virtual void UpdateVBIB() = 0;
@@ -69,10 +69,10 @@ template<class TVertex>
 class NXSubMesh : public NXSubMeshBase
 {
 public:
-	NXSubMesh(NXPrimitive* pPrimitive) : NXSubMeshBase(pPrimitive) {}
+	NXSubMesh(NXPrimitive* pPrimitive, const std::string& subMeshName) : NXSubMeshBase(pPrimitive), m_subMeshName(subMeshName) {}
 	virtual ~NXSubMesh() {}
 
-	void Render(ID3D12CommandList* pCommandList) override;
+	void Render(ID3D12GraphicsCommandList* pCommandList) override;
 
 	virtual bool RayCastLocal(const Ray& localRay, NXHit& outHitInfo, float& outDist);
 
@@ -85,6 +85,7 @@ public:
 	void CalcLocalAABB() override;
 
 protected:
+	std::string					m_subMeshName;
 	std::vector<TVertex>		m_vertices;
 	std::vector<UINT>			m_indices;
 };
@@ -95,7 +96,7 @@ class NXSubMeshStandard : public NXSubMesh<VertexPNTT>
 	friend class NXSubMeshGeometryEditor;
 	
 public:
-	NXSubMeshStandard(NXPrimitive* pPrimitive) : NXSubMesh<VertexPNTT>(pPrimitive) {}
+	NXSubMeshStandard(NXPrimitive* pPrimitive, const std::string& subMeshName) : NXSubMesh<VertexPNTT>(pPrimitive, subMeshName) {}
 	virtual ~NXSubMeshStandard() {}
 
 	virtual bool IsSubMeshStandard()	 override { return true; }
@@ -124,7 +125,7 @@ class NXSubMeshEditorObjects : public NXSubMesh<VertexEditorObjects>
 	friend class NXSubMeshGeometryEditor;
 
 public:
-	NXSubMeshEditorObjects(NXPrimitive* pPrimitive, EditorObjectID id) : NXSubMesh<VertexEditorObjects>(pPrimitive), m_editorObjID(id) {}
+	NXSubMeshEditorObjects(NXPrimitive* pPrimitive, const std::string& subMeshName, EditorObjectID id) : NXSubMesh<VertexEditorObjects>(pPrimitive, subMeshName), m_editorObjID(id) {}
 	virtual ~NXSubMeshEditorObjects() {}
 
 	virtual bool IsSubMeshEditorObject() override { return true; }

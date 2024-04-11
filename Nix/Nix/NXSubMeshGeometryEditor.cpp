@@ -19,8 +19,7 @@ void NXSubMeshGeometryEditor::Init(ID3D12Device* pDevice)
 	m_vbAllocator = new CommittedAllocator(m_pDevice.Get());
 	m_ibAllocator = new CommittedAllocator(m_pDevice.Get());
 
-	m_pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_pCommandAllocator));
-	m_pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&m_pCommandList));
+	NX12Util::CreateCommands(m_pDevice.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.GetAddressOf(), m_pCommandAllocator.GetAddressOf(), m_pCommandList.GetAddressOf());
 
 	InitCommonMeshes();
 }
@@ -37,7 +36,7 @@ void NXSubMeshGeometryEditor::CreateBox(NXPrimitive* pMesh, float x, float y, fl
 	z *= 0.5f;
 
 	pMesh->ClearSubMeshes();
-	NXSubMeshStandard* pSubMesh = new NXSubMeshStandard(pMesh);
+	NXSubMeshStandard* pSubMesh = new NXSubMeshStandard(pMesh, "_Box");
 	pSubMesh->m_vertices =
 	{
 		// -X
@@ -106,7 +105,7 @@ void NXSubMeshGeometryEditor::CreateBox(NXPrimitive* pMesh, float x, float y, fl
 void NXSubMeshGeometryEditor::CreateCylinder(NXPrimitive* pMesh, float radius, float length, int segmentCircle, int segmentLength)
 {
 	pMesh->ClearSubMeshes();
-	NXSubMeshStandard* pSubMesh = new NXSubMeshStandard(pMesh);
+	NXSubMeshStandard* pSubMesh = new NXSubMeshStandard(pMesh, "_Cylinder");
 
 	int currVertIdx = 0;
 
@@ -246,7 +245,7 @@ void NXSubMeshGeometryEditor::CreateCylinder(NXPrimitive* pMesh, float radius, f
 void NXSubMeshGeometryEditor::CreatePlane(NXPrimitive* pMesh, float width, float height, NXPlaneAxis Axis)
 {
 	pMesh->ClearSubMeshes();
-	NXSubMeshStandard* pSubMesh = new NXSubMeshStandard(pMesh);
+	NXSubMeshStandard* pSubMesh = new NXSubMeshStandard(pMesh, "_Plane");
 
 	float w = width * 0.5f, h = height * 0.5f;
 	switch (Axis)
@@ -321,7 +320,7 @@ void NXSubMeshGeometryEditor::CreatePlane(NXPrimitive* pMesh, float width, float
 void NXSubMeshGeometryEditor::CreateSphere(NXPrimitive* pMesh, float radius, int segmentHorizontal, int segmentVertical)
 {
 	pMesh->ClearSubMeshes();
-	NXSubMeshStandard* pSubMesh = new NXSubMeshStandard(pMesh);
+	NXSubMeshStandard* pSubMesh = new NXSubMeshStandard(pMesh, "_Sphere");
 
 	Vector3 vTop(0.0f, 1.0f, 0.0f);
 	Vector3 vBottom(0.0f, -1.0f, 0.0f);
@@ -402,7 +401,7 @@ void NXSubMeshGeometryEditor::CreateSphere(NXPrimitive* pMesh, float radius, int
 void NXSubMeshGeometryEditor::CreateSHSphere(NXPrimitive* pMesh, int basis_l, int basis_m, float radius, int segmentHorizontal, int segmentVertical)
 {
 	pMesh->ClearSubMeshes();
-	NXSubMeshStandard* pSubMesh = new NXSubMeshStandard(pMesh);
+	NXSubMeshStandard* pSubMesh = new NXSubMeshStandard(pMesh, "_SHSphere");
 
 	Vector3 vTop(0.0f, 1.0f, 0.0f);
 	Vector3 vBottom(0.0f, -1.0f, 0.0f);
@@ -512,7 +511,7 @@ void NXSubMeshGeometryEditor::CreateMoveArrows(NXPrimitive* pMesh)
 		UINT currVertIdx = 0;
 
 		EditorObjectID objId = i == 0 ? EditorObjectID::TRANSLATE_X : i == 1 ? EditorObjectID::TRANSLATE_Y : EditorObjectID::TRANSLATE_Z;
-		NXSubMeshEditorObjects* pSubMesh = new NXSubMeshEditorObjects(pMesh, objId);
+		NXSubMeshEditorObjects* pSubMesh = new NXSubMeshEditorObjects(pMesh, "_MoveArrows_1", objId);
 		for (int segIdx = 0; segIdx < 16; segIdx++)
 		{
 			float angleCurr = (float)(segIdx + 0) * fSegmentCircleInv * XM_2PI;
@@ -573,7 +572,7 @@ void NXSubMeshGeometryEditor::CreateMoveArrows(NXPrimitive* pMesh)
 	{
 		UINT currVertIdx = 0;
 		EditorObjectID objId = i == 0 ? EditorObjectID::TRANSLATE_X : i == 1 ? EditorObjectID::TRANSLATE_Y : EditorObjectID::TRANSLATE_Z;
-		NXSubMeshEditorObjects* pSubMesh = new NXSubMeshEditorObjects(pMesh, objId);
+		NXSubMeshEditorObjects* pSubMesh = new NXSubMeshEditorObjects(pMesh, "_MoveArrows_2", objId);
 		for (int segIdx = 0; segIdx < 16; segIdx++)
 		{
 			float angleCurr = (float)(segIdx + 0) * fSegmentCircleInv * XM_2PI;
@@ -628,7 +627,7 @@ void NXSubMeshGeometryEditor::CreateMoveArrows(NXPrimitive* pMesh)
 	{
 		UINT currVertIdx = 0;
 		EditorObjectID objId = i == 0 ? EditorObjectID::TRANSLATE_XY : i == 1 ? EditorObjectID::TRANSLATE_XZ : EditorObjectID::TRANSLATE_YZ;
-		NXSubMeshEditorObjects* pSubMesh = new NXSubMeshEditorObjects(pMesh, objId);
+		NXSubMeshEditorObjects* pSubMesh = new NXSubMeshEditorObjects(pMesh, "_MoveArrows_3", objId);
 
 		Vector4 color(0.8f, 0.8f, 0.7f, 0.5f);
 		Vector3 p0, p1, p2, p3;
@@ -673,12 +672,29 @@ void NXSubMeshGeometryEditor::CreateMoveArrows(NXPrimitive* pMesh)
 	}
 }
 
+const NXMeshViews& NXSubMeshGeometryEditor::GetMeshViews(const std::string& name)
+{
+	auto it = m_data.find(name);
+	if (it != m_data.end())
+	{
+		return it->second;
+	}
+	else
+	{
+		return m_data["_Unknown"]; 
+	}
+}
+
 void NXSubMeshGeometryEditor::InitCommonMeshes()
 {
+	std::vector<float> verticesUnknown = { 2.0f };
+	std::vector<UINT> indicesUnknown = { 0 };
+	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(verticesUnknown, indicesUnknown, "_Unknown");
+
 	float scale = 1.0f;
 
 	// Create vertex buffer
-	std::vector<VertexPT> vertices =
+	std::vector<VertexPT> verticesRT =
 	{
 		// -Z
 		{ Vector3(-scale, +scale, 0.0f), Vector2(0.0f, 0.0f) },
@@ -687,11 +703,11 @@ void NXSubMeshGeometryEditor::InitCommonMeshes()
 		{ Vector3(-scale, -scale, 0.0f), Vector2(0.0f, 1.0f) },
 	};
 
-	std::vector<UINT> indices =
+	std::vector<UINT> indicesRT =
 	{
 		0,  1,  2,
 		0,  2,  3
 	};
 
-	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(vertices, indices, "_RenderTarget");
+	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(verticesRT, indicesRT, "_RenderTarget");
 }

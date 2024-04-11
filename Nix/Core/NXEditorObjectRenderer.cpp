@@ -24,8 +24,8 @@ NXEditorObjectRenderer::~NXEditorObjectRenderer()
 void NXEditorObjectRenderer::Init()
 {
 	ComPtr<ID3DBlob> pVSBlob, pPSBlob;
-	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\EditorObjects.fx", "VS", pVSBlob.Get());
-	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\EditorObjects.fx", "PS", pPSBlob.Get());
+	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\EditorObjects.fx", "VS", pVSBlob.GetAddressOf());
+	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\EditorObjects.fx", "PS", pPSBlob.GetAddressOf());
 
 	std::vector<D3D12_ROOT_PARAMETER> rootParams;
 	rootParams.push_back(NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL));

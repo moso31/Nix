@@ -8,7 +8,6 @@
 #define NXTextureAllocator			NXAllocatorManager::GetInstance()->GetTextureAllocator()
 #define NXDescriptorAllocator		NXAllocatorManager::GetInstance()->GetDescriptorAllocator()
 #define NXGPUHandleHeap				NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap()
-#define NXCmdList					NXAllocatorManager::GetInstance()->GetCommandList()
 
 // DX12 ∑÷≈‰∆˜
 class NXAllocatorManager : public NXInstance<NXAllocatorManager>
@@ -24,17 +23,9 @@ public:
 
 	NXShaderVisibleDescriptorHeap* GetShaderVisibleDescriptorHeap() { return m_pShaderVisibleDescriptorHeap; }
 
-	ID3D12CommandList* GetCommandList() { return m_pCommandList; }
-	ID3D12CommandQueue* GetCommandQueue() { return m_pCommandQueue; }
-	ID3D12CommandAllocator* GetCommandAllocator() { return m_pCommandAllocator; }
-
 	void Release();
 
 private:
-	ID3D12CommandQueue*				m_pCommandQueue;
-	ID3D12CommandAllocator*			m_pCommandAllocator;
-	ID3D12CommandList*				m_pCommandList;
-
 	CommittedAllocator*				m_pCBufferAllocator;
 	PlacedAllocator*				m_pTextureAllocator;
 	DescriptorAllocator*			m_pDescriptorAllocator;

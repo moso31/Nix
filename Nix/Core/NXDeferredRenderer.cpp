@@ -40,8 +40,8 @@ void NXDeferredRenderer::Init()
 	m_pTexPassOut[3] = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_SSSLighting);
 
 	ComPtr<ID3DBlob> pVSBlob, pPSBlob;
-	NXShaderComplier::GetInstance()->CompileVS("Shader\\DeferredRender.fx", "VS", pVSBlob.Get());
-	NXShaderComplier::GetInstance()->CompilePS("Shader\\DeferredRender.fx", "PS", pPSBlob.Get());
+	NXShaderComplier::GetInstance()->CompileVS("Shader\\DeferredRender.fx", "VS", pVSBlob.GetAddressOf());
+	NXShaderComplier::GetInstance()->CompilePS("Shader\\DeferredRender.fx", "PS", pPSBlob.GetAddressOf());
 
 	// t0~t8, s0~s1, b0~b4.
 	std::vector<D3D12_DESCRIPTOR_RANGE> ranges = {

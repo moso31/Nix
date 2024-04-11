@@ -28,8 +28,8 @@ NXShadowMapRenderer::~NXShadowMapRenderer()
 void NXShadowMapRenderer::Init()
 {
 	ComPtr<ID3DBlob> pVSBlob, pPSBlob;
-	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\ShadowMap.fx", "VS", pVSBlob.Get());
-	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\ShadowMap.fx", "PS", pPSBlob.Get());
+	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\ShadowMap.fx", "VS", pVSBlob.GetAddressOf());
+	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\ShadowMap.fx", "PS", pPSBlob.GetAddressOf());
 
 	std::vector<D3D12_ROOT_PARAMETER> rootParams;
 	rootParams.push_back(NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL)); // b0
@@ -142,7 +142,7 @@ void NXShadowMapRenderer::SetDepthBias(int value)
 	m_depthBias = value;
 	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 	{
-		NXGlobalBuffer::cbShadowTest.Get(i).depthBias = (float)m_depthBias;
+		NXGlobalBuffer::cbShadowTest.Get(i).depthBias = m_depthBias;
 	}
 }
 

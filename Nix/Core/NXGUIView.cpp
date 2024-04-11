@@ -5,6 +5,7 @@
 #include "NXTexture.h"
 #include "NXInput.h"
 #include "App.h"
+#include "NXAllocatorManager.h"
 
 void NXGUIView::SetViewRT(Ntr<NXTexture2D> pTex)
 {
@@ -16,7 +17,8 @@ void NXGUIView::Render()
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1, 1));
 	ImGui::Begin("View", false, ImGuiWindowFlags_NoScrollbar);
 
-	if (m_pViewRT.IsValid() && m_pViewRT->GetSRV())
+
+	if (m_pViewRT.IsValid())
 	{
 		float windowHeight = ImGui::GetWindowHeight();
 
@@ -51,7 +53,8 @@ void NXGUIView::Render()
 		ImVec2 viewPos(viewOffsetX, viewOffsetY + tabOffsetY);
 		ImGui::SetCursorPos(viewPos);
 
-		ImGui::Image((void*)m_pViewRT->GetSRV(), ImVec2(viewRegionX, viewRegionY));
+		auto& srvHandle = NXGPUHandleHeap->Append(m_pViewRT->GetSRV());
+		ImGui::Image((ImTextureID)srvHandle.ptr, ImVec2(viewRegionX, viewRegionY));
 		bool isHoveredOnView = ImGui::IsItemHovered();
 
 		// 点击右键时也使当前窗口获得焦点，避免其它窗口（比如CodeEditor）输入收到WASD等快捷键影响

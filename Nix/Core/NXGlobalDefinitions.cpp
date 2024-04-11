@@ -18,7 +18,7 @@ void NXGlobalDX::Init(IDXGIAdapter4* pAdapter)
 	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 	{
 		s_cmdAllocator[i] = NX12Util::CreateCommandAllocator(s_device.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT);
-		s_cmdList[i] = NX12Util::CreateCommandList(s_device.Get(), s_cmdAllocator.Get(i).Get(), D3D12_COMMAND_LIST_TYPE_DIRECT);
+		s_cmdList[i] = NX12Util::CreateGraphicsCommandList(s_device.Get(), s_cmdAllocator.Get(i).Get(), D3D12_COMMAND_LIST_TYPE_DIRECT);
 	}
 }
 
@@ -44,20 +44,20 @@ D3D12_INPUT_LAYOUT_DESC	NXGlobalInputLayout::layoutEditorObject;
 
 void NXGlobalInputLayout::Init()
 {
-	D3D12_INPUT_ELEMENT_DESC layoutDescP[] =
+	static D3D12_INPUT_ELEMENT_DESC layoutDescP[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
 	};
 	layoutP = { layoutDescP, _countof(layoutDescP)};
 
-	D3D12_INPUT_ELEMENT_DESC layoutDescPT[] =
+	static D3D12_INPUT_ELEMENT_DESC layoutDescPT[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 	};
 	layoutPT = { layoutDescPT, _countof(layoutDescPT) };
 
-	D3D12_INPUT_ELEMENT_DESC layoutDescPNT[] =
+	static D3D12_INPUT_ELEMENT_DESC layoutDescPNT[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
@@ -65,7 +65,7 @@ void NXGlobalInputLayout::Init()
 	};
 	layoutPNT = { layoutDescPNT, _countof(layoutDescPNT) };
 
-	D3D12_INPUT_ELEMENT_DESC layoutDescPNTT[] = 
+	static D3D12_INPUT_ELEMENT_DESC layoutDescPNTT[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
@@ -74,7 +74,7 @@ void NXGlobalInputLayout::Init()
 	};
 	layoutPNTT = { layoutDescPNTT, _countof(layoutDescPNTT) };
 
-	D3D12_INPUT_ELEMENT_DESC layoutDescEditorObject[] = 
+	static D3D12_INPUT_ELEMENT_DESC layoutDescEditorObject[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },

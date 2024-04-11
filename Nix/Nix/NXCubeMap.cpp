@@ -26,7 +26,7 @@ NXCubeMap::NXCubeMap(NXScene* pScene) :
 
 bool NXCubeMap::Init(const std::filesystem::path& filePath)
 {
-	NX12Util::CreateCommands(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.Get(), m_pCommandAllocator.Get(), m_pCommandList.Get());
+	NX12Util::CreateCommands(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.GetAddressOf(), m_pCommandAllocator.GetAddressOf(), m_pCommandList.GetAddressOf());
 
 	// create vertex
 	InitVertex();
@@ -50,7 +50,6 @@ bool NXCubeMap::Init(const std::filesystem::path& filePath)
 	{
 		// 1. HDR纹理
 		Ntr<NXTexture2D> pTexHDR = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("HDR Temp Texture", filePath);
-		pTexHDR->AddSRV();
 
 		// 2. 先使用HDR->DDS，然后将DDS保存为本地文件，再读取DDS本地文件作为实际CubeMap。
 		// 直接用HDR->DDS然后作为CubeMap的话，不知道什么原因GPU队列会严重阻塞，导致加载速度大幅减慢。
@@ -114,35 +113,35 @@ void NXCubeMap::Release()
 
 Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)
 {
+	m_pCommandList->Reset(m_pCommandAllocator.Get(), nullptr);
 	NX12Util::BeginEvent(m_pCommandList.Get(), "Generate Cube Map");
-
-	auto pGlobalDescriptorAllocator = NXAllocatorManager::GetInstance()->GetDescriptorAllocator();
 
 	const static float mapSize = 1024;
 	auto vp = NX12Util::ViewPort(mapSize, mapSize);
 	m_pCommandList->RSSetViewports(1, &vp);
+	m_pCommandList->RSSetScissorRects(1, &NX12Util::ScissorRect(vp));
 
-	Ntr<NXTextureCube> pTexCubeMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTextureCube("Main CubeMap", DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)mapSize, (UINT)mapSize, 1);
+	Ntr<NXTextureCube> pTexCubeMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTextureCube("Main CubeMap", DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)mapSize, (UINT)mapSize, 1, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 
 	pTexCubeMap->AddSRV();
 	for (int i = 0; i < 6; i++) pTexCubeMap->AddRTV(0, i, 1);
 
 	ComPtr<ID3DBlob> pVSBlob, pPSBlob;
-	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\HDRToCubeMap.fx", "VS", pVSBlob.Get());
-	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\HDRToCubeMap.fx", "PS", pPSBlob.Get());
+	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\HDRToCubeMap.fx", "VS", pVSBlob.GetAddressOf());
+	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\HDRToCubeMap.fx", "PS", pPSBlob.GetAddressOf());
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.pRootSignature = m_pRootSigCubeMap.Get();
 	psoDesc.InputLayout = NXGlobalInputLayout::layoutP;
 	psoDesc.BlendState = NXBlendState<>::Create();
 	psoDesc.RasterizerState = NXRasterizerState<>::Create();
-	psoDesc.DepthStencilState = NXDepthStencilState<>::Create();
+	psoDesc.DepthStencilState = NXDepthStencilState<false>::Create();
 	psoDesc.SampleDesc.Count = 1;
 	psoDesc.SampleDesc.Quality = 0;
 	psoDesc.SampleMask = UINT_MAX;
 	psoDesc.NumRenderTargets = 1;
 	psoDesc.RTVFormats[0] = pTexCubeMap->GetFormat();
-	psoDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -156,7 +155,7 @@ Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)
 	m_pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
-	D3D12_GPU_DESCRIPTOR_HANDLE srvHandle = pShaderVisibleDescriptorHeap->Append(pTexHDR->GetSRVArray(), pTexHDR->GetSRVs());
+	auto gpuHandle = pShaderVisibleDescriptorHeap->Append(pTexHDR->GetSRV());
 
 	ID3D12DescriptorHeap* ppHeaps[] = { pShaderVisibleDescriptorHeap->GetHeap() };
 	m_pCommandList->SetDescriptorHeaps(1, ppHeaps);
@@ -168,14 +167,14 @@ Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)
 	for (int i = 0; i < 6; i++)
 	{
 		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = pTexCubeMap->GetRTV(i);
-		m_pCommandList->ClearRenderTargetView(rtvHandle, Colors::WhiteSmoke, 0, nullptr);
-		m_pCommandList->OMSetRenderTargets(1, &rtvHandle, true, nullptr);
+		m_pCommandList->ClearRenderTargetView(rtvHandle, pTexCubeMap->GetClearValue().Color, 0, nullptr);
+		m_pCommandList->OMSetRenderTargets(1, &rtvHandle, false, nullptr);
 
 		cbData.Current().view = m_mxCubeMapView[i].Transpose();
 		cbData.UpdateBuffer();
 
 		m_pCommandList->SetGraphicsRootConstantBufferView(0, cbData.GetGPUHandle());
-		m_pCommandList->SetGraphicsRootDescriptorTable(1, srvHandle);
+		m_pCommandList->SetGraphicsRootDescriptorTable(1, gpuHandle);
 
 		const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_CubeMapBox");
 		m_pCommandList->IASetVertexBuffers(0, 1, &meshView.vbv);
@@ -184,6 +183,11 @@ Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)
 	}
 
 	NX12Util::EndEvent();
+
+	m_pCommandList->Close();
+	ID3D12CommandList* pCmdLists[] = { m_pCommandList.Get() };
+	m_pCommandQueue->ExecuteCommandLists(1, pCmdLists);
+
 	return pTexCubeMap;
 }
 
@@ -472,7 +476,7 @@ void NXCubeMap::GenerateIrradianceMap()
 	//for (int i = 0; i < 6; i++)
 	//{
 	//	auto pRTV = m_pTexIrradianceMap->GetRTV(i);
-	//	g_pContext->ClearRenderTargetView(pRTV, Colors::WhiteSmoke);
+	//	g_pContext->ClearRenderTargetView(pRTV, Colors::Black);
 	//	g_pContext->OMSetRenderTargets(1, &pRTV, nullptr);
 
 	//	cbData.view = m_mxCubeMapView[i].Transpose();
@@ -485,12 +489,11 @@ void NXCubeMap::GenerateIrradianceMap()
 
 void NXCubeMap::GeneratePreFilterMap()
 {
+	m_pCommandList->Reset(m_pCommandAllocator.Get(), nullptr);
 	NX12Util::BeginEvent(m_pCommandList.Get(), "Generate PreFilter Map");
 
-	auto pGlobalDescriptorAllocator = NXAllocatorManager::GetInstance()->GetDescriptorAllocator();
-
 	float mapSize = 512.0f;
-	m_pTexPreFilterMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTextureCube("PreFilter Map", m_pTexCubeMap->GetFormat(), (UINT)mapSize, (UINT)mapSize, 5);
+	m_pTexPreFilterMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTextureCube("PreFilter Map", m_pTexCubeMap->GetFormat(), (UINT)mapSize, (UINT)mapSize, 5, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 	m_pTexPreFilterMap->AddSRV();
 
 	for (int i = 0; i < 5; i++)
@@ -503,21 +506,21 @@ void NXCubeMap::GeneratePreFilterMap()
 	}
 
 	ComPtr<ID3DBlob> pVSBlob, pPSBlob;
-	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\CubeMapPreFilter.fx", "VS", pVSBlob.Get());
-	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\CubeMapPreFilter.fx", "PS", pPSBlob.Get());
+	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\CubeMapPreFilter.fx", "VS", pVSBlob.GetAddressOf());
+	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\CubeMapPreFilter.fx", "PS", pPSBlob.GetAddressOf());
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.pRootSignature = m_pRootSigPreFilterMap.Get();
 	psoDesc.InputLayout = NXGlobalInputLayout::layoutPNT;
 	psoDesc.BlendState = NXBlendState<>::Create();
 	psoDesc.RasterizerState = NXRasterizerState<>::Create();
-	psoDesc.DepthStencilState = NXDepthStencilState<>::Create();
+	psoDesc.DepthStencilState = NXDepthStencilState<false>::Create();
 	psoDesc.SampleDesc.Count = 1;
 	psoDesc.SampleDesc.Quality = 0;
 	psoDesc.SampleMask = UINT_MAX;
 	psoDesc.NumRenderTargets = 1;
 	psoDesc.RTVFormats[0] = m_pTexPreFilterMap->GetFormat();
-	psoDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -531,7 +534,7 @@ void NXCubeMap::GeneratePreFilterMap()
 	m_pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
-	D3D12_GPU_DESCRIPTOR_HANDLE srvHandle = pShaderVisibleDescriptorHeap->Append(m_pTexCubeMap->GetSRVArray(), m_pTexCubeMap->GetSRVs());
+	UINT srvHandle = pShaderVisibleDescriptorHeap->Append(m_pTexCubeMap->GetSRVArray(), m_pTexCubeMap->GetSRVs());
 
 	ID3D12DescriptorHeap* ppHeaps[] = { pShaderVisibleDescriptorHeap->GetHeap() };
 	m_pCommandList->SetDescriptorHeaps(1, ppHeaps);
@@ -539,6 +542,7 @@ void NXCubeMap::GeneratePreFilterMap()
 	m_pCommandList->SetGraphicsRootSignature(m_pRootSigPreFilterMap.Get());
 	m_pCommandList->SetPipelineState(m_pPSOPreFilterMap.Get());
 
+	m_pTexPreFilterMap->SetResourceState(m_pCommandList.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET);
 	float rough[] = { 0.0f, 0.25f, 0.5f, 0.75f, 1.0f };
 	for (int i = 0; i < _countof(rough); i++)
 	{
@@ -551,20 +555,21 @@ void NXCubeMap::GeneratePreFilterMap()
 
 		auto vp = NX12Util::ViewPort(mipSize, mipSize);
 		m_pCommandList->RSSetViewports(1, &vp);
+		m_pCommandList->RSSetScissorRects(1, &NX12Util::ScissorRect(vp));
 
 		for (int j = 0; j < 6; j++)
 		{
 			cbCubeCamera.Current().view = m_mxCubeMapView[j].Transpose();
 
 			D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_pTexPreFilterMap->GetRTV(i * 6 + j);
-			m_pCommandList->ClearRenderTargetView(rtvHandle, Colors::WhiteSmoke, 0, nullptr);
-			m_pCommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+			m_pCommandList->ClearRenderTargetView(rtvHandle, m_pTexPreFilterMap->GetClearValue().Color, 0, nullptr);
+			m_pCommandList->OMSetRenderTargets(1, &rtvHandle, false, nullptr);
 
 			cbCubeCamera.UpdateBuffer();
 
 			m_pCommandList->SetGraphicsRootConstantBufferView(0, cbCubeCamera.GetGPUHandle());
 			m_pCommandList->SetGraphicsRootConstantBufferView(1, cbRoughness.GetGPUHandle());
-			m_pCommandList->SetGraphicsRootDescriptorTable(2, srvHandle);
+			m_pCommandList->SetGraphicsRootDescriptorTable(2, pShaderVisibleDescriptorHeap->GetGPUHandle(srvHandle));
 
 			const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_CubeMapBox");
 			m_pCommandList->IASetVertexBuffers(0, 1, &meshView.vbv);
@@ -574,6 +579,10 @@ void NXCubeMap::GeneratePreFilterMap()
 	}
 
 	NX12Util::EndEvent();
+
+	m_pCommandList->Close();
+	ID3D12CommandList* pCmdLists[] = { m_pCommandList.Get() };
+	m_pCommandQueue->ExecuteCommandLists(1, pCmdLists);
 }
 
 void NXCubeMap::SetIntensity(float val)

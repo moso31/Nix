@@ -246,9 +246,6 @@
     <ClCompile Include="Nix\NXObject.cpp">
       <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\NXRenderTarget.cpp">
-      <Filter>Nix\Object\Transform\Primitive\Other</Filter>
-    </ClCompile>
     <ClCompile Include="Nix\Script\NXScript.cpp">
       <Filter>Nix\Script</Filter>
     </ClCompile>
@@ -529,9 +526,6 @@
     </ClInclude>
     <ClInclude Include="Nix\NXObject.h">
       <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\NXRenderTarget.h">
-      <Filter>Nix\Object\Transform\Primitive\Other</Filter>
     </ClInclude>
     <ClInclude Include="Nix\Script\NXScript.h">
       <Filter>Nix\Script</Filter>

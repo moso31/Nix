@@ -14,8 +14,8 @@ NXShadowTestRenderer::~NXShadowTestRenderer()
 void NXShadowTestRenderer::Init()
 {
 	ComPtr<ID3DBlob> pVSBlob, pPSBlob;
-	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\ShadowTest.fx", "VS", pVSBlob.Get());
-	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\ShadowTest.fx", "PS", pPSBlob.Get());
+	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\ShadowTest.fx", "VS", pVSBlob.GetAddressOf());
+	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\ShadowTest.fx", "PS", pPSBlob.GetAddressOf());
 
 	// t0, t1, b0, b1, b2, s0
 	std::vector<D3D12_DESCRIPTOR_RANGE> ranges = {

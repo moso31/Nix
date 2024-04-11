@@ -42,10 +42,10 @@ void CommittedAllocator::UpdateData(void* data, UINT dataSize, UINT pageIdx, UIN
 	memcpy(pDest, data, dataSize);
 }
 
-void CommittedAllocator::UpdateData(ID3D12GraphicsCommandList* pCmdList, ID3D12Resource* pUploadResource, UINT dataSize, UINT pageIdx, UINT pageByteOffset)
+void CommittedAllocator::UpdateData(ID3D12GraphicsCommandList* pCmdList, ID3D12Resource* pUploadResource, UINT srcDataOffset, UINT srcDataSize, UINT pageIdx, UINT pageByteOffset)
 {
 	auto& pResource = m_pages[pageIdx].data.pResource;
-	pCmdList->CopyBufferRegion(pResource, pageByteOffset, pUploadResource, pageByteOffset, dataSize);
+	pCmdList->CopyBufferRegion(pResource, pageByteOffset, pUploadResource, srcDataOffset, srcDataSize);
 }
 
 void CommittedAllocator::SetResourceState(ID3D12GraphicsCommandList* pCmdList, UINT pageIdx, const D3D12_RESOURCE_STATES& state)
@@ -65,6 +65,7 @@ void CommittedAllocator::SetResourceState(ID3D12GraphicsCommandList* pCmdList, U
 		barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 
 		pCmdList->ResourceBarrier(1, &barrier);
+		m_pages[pageIdx].data.resourceState = state;
 	}
 }
 

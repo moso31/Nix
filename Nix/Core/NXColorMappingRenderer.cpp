@@ -25,8 +25,8 @@ void NXColorMappingRenderer::Init()
 	m_pTexPassOut = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_PostProcessing);
 
 	ComPtr<ID3DBlob> pVSBlob, pPSBlob;
-	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\ColorMapping.fx", "VS", pVSBlob.Get());
-	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\ColorMapping.fx", "PS", pPSBlob.Get());
+	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\ColorMapping.fx", "VS", pVSBlob.GetAddressOf());
+	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\ColorMapping.fx", "PS", pPSBlob.GetAddressOf());
 
 	std::vector<D3D12_DESCRIPTOR_RANGE> ranges = {
 		NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0)
@@ -73,7 +73,7 @@ void NXColorMappingRenderer::Render()
 	NX12Util::BeginEvent(m_pCommandList.Get(), "Color Mapping");
 
 	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
-	auto srvHandle = pShaderVisibleDescriptorHeap->Append(m_pTexPassIn->GetSRVArray(), m_pTexPassIn->GetSRVs());
+	UINT srvHandle = pShaderVisibleDescriptorHeap->Append(m_pTexPassIn->GetSRVArray(), m_pTexPassIn->GetSRVs());
 
 	ID3D12DescriptorHeap* ppHeaps[] = { pShaderVisibleDescriptorHeap->GetHeap() };
 	m_pCommandList->SetDescriptorHeaps(1, ppHeaps);
@@ -83,7 +83,7 @@ void NXColorMappingRenderer::Render()
 	m_pCommandList->SetPipelineState(m_pPSO.Get());
 
 	m_pCommandList->SetGraphicsRootConstantBufferView(0, m_cbParams.GetGPUHandle());
-	m_pCommandList->SetGraphicsRootDescriptorTable(1, srvHandle);
+	m_pCommandList->SetGraphicsRootDescriptorTable(1, pShaderVisibleDescriptorHeap->GetGPUHandle(srvHandle));
 	
 	const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_RenderTarget");
 	m_pCommandList->IASetVertexBuffers(0, 1, &meshView.vbv);

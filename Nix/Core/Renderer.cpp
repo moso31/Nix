@@ -14,9 +14,11 @@
 #include "NXDepthPrepass.h"
 #include "NXSimpleSSAO.h"
 #include "NXAllocatorManager.h"
+#include "NXSubMeshGeometryEditor.h"
 
-Renderer::Renderer() :
-	m_bRenderGUI(true)
+Renderer::Renderer(const Vector2& rtSize) :
+	m_bRenderGUI(true),
+	m_viewRTSize(rtSize)
 {
 }
 
@@ -31,8 +33,12 @@ void Renderer::Init()
 	NXGlobalInputLayout::Init();
 	NXGlobalBuffer::Init();
 
+	NXTexture::Init();
+
 	// 渲染器
 	InitRenderer();
+
+	NXSubMeshGeometryEditor::GetInstance()->Init(NXGlobalDX::GetDevice());
 
 	m_scene = new NXScene();
 
@@ -115,8 +121,11 @@ void Renderer::InitGUI()
 void Renderer::InitRenderer()
 {
 	NXResourceManager::GetInstance()->GetTextureManager()->InitCommonTextures();
-}
 
+	// 2024.4.9 【InitCommonRT 和 OnResize 会导致不必要的重复创建RT。需要优化】
+	NXResourceManager::GetInstance()->GetTextureManager()->InitCommonRT(m_viewRTSize);
+}
+ 
 void Renderer::InitEvents()
 {
 	NXEventKeyDown::GetInstance()->AddListener(std::bind(&Renderer::OnKeyDown, this, std::placeholders::_1));

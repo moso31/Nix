@@ -711,8 +711,8 @@ void NXGUIMaterialShaderEditor::Render_Params_TextureItem(const int texParamId, 
 		ImVec4 bg_col = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);         // Black background
 		ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);       // No tint
 
-		auto ImTexID = pTex->GetSRV();
-		NXShaderVisibleDescHeap->
+		auto& srvHandle = NXGPUHandleHeap->Append(pTex->GetSRV());
+		const ImTextureID& ImTexID = (ImTextureID)srvHandle.ptr;
 		if (ImGui::ImageButton(ImTexID, size, uv0, uv1, frame_padding, bg_col, tint_col))
 		{
 			// 2023.11.14 TODO: Add a popup to switch texture...

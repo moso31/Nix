@@ -52,12 +52,15 @@ public:
 	void CreateMoveArrows(NXPrimitive* pMesh);
 
 	template<class TVertex>
-	void CreateVBIB(const std::vector<TVertex>& vertices, const std::vector<UINT>& indices, const std::string& name)
+	void CreateVBIB(const std::vector<TVertex>& vertices, const std::vector<UINT>& indices, const std::string& name, bool forceCreate = false)
 	{
 		if (m_data.find(name) != m_data.end())
 		{
-			//throw std::exception("Mesh name already exists.");
-			return;
+			if (!forceCreate)
+			{
+				//throw std::exception("Mesh name already exists.");
+				return;
+			}
 		}
 
 		UINT vbSize = (UINT)vertices.size() * sizeof(TVertex);
@@ -91,14 +94,14 @@ public:
 			uploadIB->Map(0, nullptr, &mappedData);
 			memcpy(mappedData, indices.data(), ibDataSize);
 			uploadIB->Unmap(0, nullptr);
-
+			
 			// 2.3 从上传堆拷贝到默认堆
+			m_pCommandList->Reset(m_pCommandAllocator.Get(), nullptr);
 			m_vbAllocator->SetResourceState(m_pCommandList.Get(), vbData.pageIndex, D3D12_RESOURCE_STATE_COPY_DEST);
-			m_vbAllocator->UpdateData(m_pCommandList.Get(), uploadVB.Get(), vbDataSize, vbData.pageIndex, vbData.pageByteOffset);
+			m_vbAllocator->UpdateData(m_pCommandList.Get(), uploadVB.Get(), 0, vbDataSize, vbData.pageIndex, vbData.pageByteOffset);
 			m_vbAllocator->SetResourceState(m_pCommandList.Get(), vbData.pageIndex, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
-
 			m_ibAllocator->SetResourceState(m_pCommandList.Get(), ibData.pageIndex, D3D12_RESOURCE_STATE_COPY_DEST);
-			m_ibAllocator->UpdateData(m_pCommandList.Get(), uploadIB.Get(), ibDataSize, ibData.pageIndex, ibData.pageByteOffset);
+			m_ibAllocator->UpdateData(m_pCommandList.Get(), uploadIB.Get(), 0, ibDataSize, ibData.pageIndex, ibData.pageByteOffset);
 			m_ibAllocator->SetResourceState(m_pCommandList.Get(), ibData.pageIndex, D3D12_RESOURCE_STATE_INDEX_BUFFER);
 
 			// 3. 将Mesh数据存储到m_data中
@@ -112,10 +115,14 @@ public:
 			views.indexCount = (UINT)indices.size();
 			views.vertexCount = (UINT)vertices.size();
 			m_data[name] = std::move(views);
+
+			m_pCommandList->Close();
+			ID3D12CommandList* pCmdLists[] = { m_pCommandList.Get() };
+			m_pCommandQueue->ExecuteCommandLists(1, pCmdLists);
 		}
 	}
 
-	const NXMeshViews& GetMeshViews(const std::string& name) { return m_data[name]; }
+	const NXMeshViews& GetMeshViews(const std::string& name);
 
 private:
 	void InitCommonMeshes();
@@ -128,7 +135,8 @@ private:
 	CommittedAllocator* m_ibAllocator;
 
 	ComPtr<ID3D12Device> m_pDevice;
-	ComPtr<ID3D12CommandAllocator> m_pCommandAllocator;
+	ComPtr<ID3D12CommandQueue> m_pCommandQueue;
+	ComPtr<ID3D12CommandAllocator> m_pCommandAllocator; 
 	ComPtr<ID3D12GraphicsCommandList> m_pCommandList;
 
 	// 临时资源存放列表

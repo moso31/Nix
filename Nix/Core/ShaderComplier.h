@@ -23,8 +23,8 @@ public:
 	NXShaderComplier();
 	~NXShaderComplier();
 
-	HRESULT CompileVS(const std::filesystem::path& shaderFilePath, const std::string& mainFuncEntryPoint, ID3DBlob* pVSBlob, std::string& oErrorMessage = std::string(), bool clearDefineMacros = true);
-	HRESULT CompilePS(const std::filesystem::path& shaderFilePath, const std::string& mainFuncEntryPoint, ID3DBlob* pPSBlob, std::string& oErrorMessage = std::string(), bool clearDefineMacros = true);
+	HRESULT CompileVS(const std::filesystem::path& shaderFilePath, const std::string& mainFuncEntryPoint, ID3DBlob** pVSBlob, std::string& oErrorMessage = std::string(), bool clearDefineMacros = true);
+	HRESULT CompilePS(const std::filesystem::path& shaderFilePath, const std::string& mainFuncEntryPoint, ID3DBlob** pPSBlob, std::string& oErrorMessage = std::string(), bool clearDefineMacros = true);
 
 	//HRESULT CompileVSIL(const std::filesystem::path& shaderFilePath, const std::string& mainFuncEntryPoint, ID3D11VertexShader** ppOutVS, const D3D11_INPUT_ELEMENT_DESC* pILDescs, UINT numElementsOfIL, ID3D11InputLayout** ppOutIL, std::string& oErrorMessage = std::string(), bool clearDefineMacros = true);
 	//HRESULT CompileVSILByCode(const std::string& shaderCode, const std::string& mainFuncEntryPoint, ID3D11VertexShader** ppOutVS, const D3D11_INPUT_ELEMENT_DESC* pILDescs, UINT numElementsOfIL, ID3D11InputLayout** ppOutIL, std::string& oErrorMessage = std::string(), bool clearDefineMacros = true);

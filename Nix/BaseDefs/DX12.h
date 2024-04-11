@@ -20,8 +20,6 @@ public:
 	static UINT8 swapChainIndex; // 静态变量，用于存储当前帧的索引
 };
 
-UINT8 MultiFrameSets::swapChainIndex = 0; // 初始化静态变量
-
 template <typename T>
 class MultiFrame
 {
@@ -43,20 +41,20 @@ protected:
 class NX12Util
 {
 public:
-	static void CreateCommands(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE type, ID3D12CommandQueue* oCmdQueue, ID3D12CommandAllocator* oCmdAllocator, ID3D12GraphicsCommandList* oCmdList, bool disableGPUTimeOut = false);
+	static void CreateCommands(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE type, ID3D12CommandQueue** oCmdQueue, ID3D12CommandAllocator** oCmdAllocator, ID3D12GraphicsCommandList** oCmdList, bool disableGPUTimeOut = false);
 	static ID3D12CommandQueue* CreateCommandQueue(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE type, bool disableGPUTimeOut = false);
 	static ID3D12CommandAllocator* CreateCommandAllocator(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE type);
-	static ID3D12CommandList* CreateCommandList(ID3D12Device* pDevice, ID3D12CommandAllocator* oCmdAllocator, D3D12_COMMAND_LIST_TYPE type, UINT nodeMask = 0, ID3D12PipelineState* InitState = nullptr);
+	static ID3D12GraphicsCommandList* CreateGraphicsCommandList(ID3D12Device* pDevice, ID3D12CommandAllocator* oCmdAllocator, D3D12_COMMAND_LIST_TYPE type, UINT nodeMask = 0, ID3D12PipelineState* InitState = nullptr);
 
 	static ID3D12Resource* CreateBuffer(ID3D12Device* pDevice, const std::string& name, UINT sizeOfByte, D3D12_HEAP_TYPE heapType);
 	static D3D12_RESOURCE_DESC CreateResourceDesc_DepthStencil(UINT width, UINT height, DXGI_FORMAT fmt = DXGI_FORMAT_D24_UNORM_S8_UINT);
 	static D3D12_HEAP_PROPERTIES CreateHeapProperties(D3D12_HEAP_TYPE heapType);
 	static D3D12_CLEAR_VALUE CreateClearValue(float depth = 1.0f, UINT8 stencil = 0, DXGI_FORMAT fmt = DXGI_FORMAT_D24_UNORM_S8_UINT);
 
-	static void SetResourceBarrier(ID3D12GraphicsCommandList* pCommandList, ID3D12Resource* pResource, D3D12_RESOURCE_STATES from, D3D12_RESOURCE_STATES to);
 	static void CopyTextureRegion(ID3D12GraphicsCommandList* pCommandList, ID3D12Resource* pTexture, ID3D12Resource* pTextureUploadBuffer, UINT layoutSize, const D3D12_PLACED_SUBRESOURCE_FOOTPRINT* pLayouts);
 
 	static D3D12_VIEWPORT ViewPort(float width, float height, float minDepth = 0.0f, float maxDepth = 1.0f, float topLeftX = 0.0f, float topLeftY = 0.0f);
+	static D3D12_RECT ScissorRect(const D3D12_VIEWPORT& vp);
 
 	static D3D12_CPU_DESCRIPTOR_HANDLE CPUDescriptorHandle(size_t ptr);
 

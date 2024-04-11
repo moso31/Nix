@@ -23,7 +23,7 @@ void App::Init()
 	m_pDXResources = new DirectResources();
 	m_pDXResources->InitDevice();
 
-	m_pRenderer = new Renderer();
+	m_pRenderer = new Renderer(m_viewSize);
 	m_pRenderer->Init();
 
 	m_pRenderer->InitGUI();

@@ -11,16 +11,16 @@ void NXPrimitive::UpdateViewParams()
 {
 	auto& cbDataObject = NXGlobalBuffer::cbObject.Current();
 
-	auto mxView = cbDataObject.data.view.Transpose();
-	auto mxWorld = m_worldMatrix.Transpose();
-	auto mxWorldView = (m_worldMatrix * mxView).Transpose();
+	auto& mxView = cbDataObject.view.Transpose();
+	auto& mxWorld = m_worldMatrix.Transpose();
+	auto& mxWorldView = (m_worldMatrix * mxView).Transpose();
 
-	cbDataObject.data.world = mxWorld;
-	cbDataObject.data.worldInverseTranspose = m_worldMatrix.Invert(); // it actually = m_worldMatrix.Invert().Transpose().Transpose();
-	cbDataObject.data.worldViewInverseTranspose = (m_worldMatrix * mxView).Invert();
-	cbDataObject.data.worldView = mxWorldView;
+	cbDataObject.world = mxWorld;
+	cbDataObject.worldInverseTranspose = m_worldMatrix.Invert(); // it actually = m_worldMatrix.Invert().Transpose().Transpose();
+	cbDataObject.worldViewInverseTranspose = (m_worldMatrix * mxView).Invert();
+	cbDataObject.worldView = mxWorldView;
 
-	NXAllocatorManager::GetInstance()->GetCBufferAllocator()->UpdateData(cbDataObject);
+	NXGlobalBuffer::cbObject.UpdateBuffer();
 }
 
 void NXPrimitive::CalculateTangents(bool bUpdateVBIB)

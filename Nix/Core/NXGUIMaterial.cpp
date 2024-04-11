@@ -5,6 +5,7 @@
 #include "NXConverter.h"
 #include "NXScene.h"
 #include "NXPrimitive.h"
+#include "NXAllocatorManager.h"
 #include "NXGUICommandManager.h"
 
 NXGUIMaterial::NXGUIMaterial(NXScene* pScene) :
@@ -292,7 +293,8 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMateri
 				};
 
 				ImGui::PushID(paramCnt);
-				RenderSmallTextureIcon(pTex->GetSRV(), nullptr, onTexChange, onTexRemove, onTexDrop);
+				auto& srvHandle = NXGPUHandleHeap->Append(pTex->GetSRV());
+				RenderSmallTextureIcon(srvHandle, nullptr, onTexChange, onTexRemove, onTexDrop);
 				ImGui::PopID();
 
 				ImGui::SameLine();

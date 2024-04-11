@@ -49,10 +49,12 @@ public:
         m_mipLevels(-1),
         m_texFilePath(""),
         m_type(type),
-        m_resourceState(D3D12_RESOURCE_STATE_COMMON)
+        m_resourceState(D3D12_RESOURCE_STATE_COPY_DEST)
     {}
 
     virtual ~NXTexture();
+
+    static void Init();
 
     ID3D12Resource* GetTex() const { return m_pTexture.Get(); }
 
@@ -68,6 +70,10 @@ public:
     const size_t* GetRTVArray() { return m_pRTVs.data(); }
     const size_t* GetDSVArray() { return m_pDSVs.data(); }
     const size_t* GetUAVArray() { return m_pUAVs.data(); }
+
+    const D3D12_CLEAR_VALUE& GetClearValue() { return m_clearValue; }
+    void SetClearValue(float R, float G, float B, float A);
+    void SetClearValue(float depth, UINT stencilRef);
 
     const D3D12_RESOURCE_STATES& GetResourceState() { return m_resourceState; }
     const void SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D3D12_RESOURCE_STATES& state);
@@ -115,6 +121,9 @@ private:
     void InternalReload(Ntr<NXTexture> pReloadTexture);
     D3D12_RESOURCE_DIMENSION GetResourceDimentionFromType();
 
+    static ComPtr<ID3D12CommandAllocator> s_pCmdAllocator;
+    static ComPtr<ID3D12GraphicsCommandList> s_pCmdList;
+
 protected:
     ComPtr<ID3D12Resource> m_pTexture;
     ComPtr<ID3D12Resource> m_pTextureUpload; 
@@ -136,6 +145,8 @@ protected:
 
     // 序列化数据
     NXTextureSerializationData m_serializationData;
+
+    D3D12_CLEAR_VALUE m_clearValue;
 
 private:
     NXTextureReloadingState m_reloadingState;

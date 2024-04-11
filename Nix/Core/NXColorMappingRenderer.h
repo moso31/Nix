@@ -2,6 +2,7 @@
 #include "BaseDefs/DX12.h"
 #include "ShaderStructures.h"
 #include "Ntr.h"
+#include "NXBuffer.h"
 
 struct CBufferColorMapping
 {

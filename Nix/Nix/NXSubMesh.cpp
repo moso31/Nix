@@ -41,13 +41,12 @@ void NXSubMeshBase::OnReplaceFinish()
 }
 
 template<class TVertex>
-void NXSubMesh<TVertex>::Render(ID3D12CommandList* pCommandList)
+void NXSubMesh<TVertex>::Render(ID3D12GraphicsCommandList* pCommandList)
 {
-	UINT stride = sizeof(TVertex);
-	UINT offset = 0;
-	g_pContext->IASetVertexBuffers(0, 1, m_pVertexBuffer.GetAddressOf(), &stride, &offset);
-	g_pContext->IASetIndexBuffer(m_pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-	g_pContext->DrawIndexed((UINT)m_indices.size(), 0, 0);
+	auto& subMeshViews = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews(m_subMeshName);
+	pCommandList->IASetVertexBuffers(0, 1, &subMeshViews.vbv);
+	pCommandList->IASetIndexBuffer(&subMeshViews.ibv);
+	pCommandList->DrawIndexedInstanced(subMeshViews.indexCount, 1, 0, 0, 0);
 }
 
 template<class TVertex>
@@ -86,7 +85,7 @@ void NXSubMesh<TVertex>::CalcLocalAABB()
 template<class TVertex>
 void NXSubMesh<TVertex>::UpdateVBIB()
 {
-	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(m_vertices, m_indices, "TODO...");
+	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(m_vertices, m_indices, m_subMeshName, true);
 }
 
 void NXSubMeshStandard::CalculateTangents(bool bUpdateVBIB)

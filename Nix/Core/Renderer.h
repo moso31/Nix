@@ -22,7 +22,7 @@ struct NXEventArgKey;
 class Renderer
 {
 public:
-	Renderer();
+	Renderer(const Vector2& rtSize);
 
 	void Init();
 	void OnResize(const Vector2& rtSize);

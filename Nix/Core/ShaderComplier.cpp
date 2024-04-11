@@ -28,13 +28,13 @@ NXShaderComplier::~NXShaderComplier()
 {
 }
 
-HRESULT NXShaderComplier::CompileVS(const std::filesystem::path& shaderFilePath, const std::string& mainFuncEntryPoint, ID3DBlob* pVSBlob, std::string& oErrorMessage, bool clearDefineMacros)
+HRESULT NXShaderComplier::CompileVS(const std::filesystem::path& shaderFilePath, const std::string& mainFuncEntryPoint, ID3DBlob** pVSBlob, std::string& oErrorMessage, bool clearDefineMacros)
 {
 	HRESULT hr = S_OK;
 
 	ComPtr<ID3DBlob> pErrorBlob;
 	hr = D3DCompileFromFile(shaderFilePath.c_str(), m_defineMacros.data(), m_pd3dInclude, mainFuncEntryPoint.c_str(), s_smVersionVS.c_str(),
-		m_shaderFlags, m_shaderFlags2, &pVSBlob, &pErrorBlob);
+		m_shaderFlags, m_shaderFlags2, pVSBlob, &pErrorBlob);
 	if (FAILED(hr))
 	{
 		if (pErrorBlob)
@@ -53,13 +53,13 @@ HRESULT NXShaderComplier::CompileVS(const std::filesystem::path& shaderFilePath,
 	return S_OK;
 }
 
-HRESULT NXShaderComplier::CompilePS(const std::filesystem::path& shaderFilePath, const std::string& mainFuncEntryPoint, ID3DBlob* pPSBlob, std::string& oErrorMessage, bool clearDefineMacros)
+HRESULT NXShaderComplier::CompilePS(const std::filesystem::path& shaderFilePath, const std::string& mainFuncEntryPoint, ID3DBlob** pPSBlob, std::string& oErrorMessage, bool clearDefineMacros)
 {
 	HRESULT hr = S_OK;
 
 	ComPtr<ID3DBlob> pErrorBlob;
-	hr = D3DCompileFromFile(shaderFilePath.c_str(), m_defineMacros.data(), m_pd3dInclude, mainFuncEntryPoint.c_str(), s_smVersionVS.c_str(),
-		m_shaderFlags, m_shaderFlags2, &pPSBlob, &pErrorBlob);
+	hr = D3DCompileFromFile(shaderFilePath.c_str(), m_defineMacros.data(), m_pd3dInclude, mainFuncEntryPoint.c_str(), s_smVersionPS.c_str(),
+		m_shaderFlags, m_shaderFlags2, pPSBlob, &pErrorBlob);
 	if (FAILED(hr))
 	{
 		if (pErrorBlob)

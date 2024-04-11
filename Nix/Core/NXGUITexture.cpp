@@ -6,6 +6,7 @@
 #include "NXPBRMaterial.h"
 #include "NXTexture.h"
 #include "NXGUIInspector.h"
+#include "NXAllocatorManager.h"
 
 NXGUITexture::NXGUITexture()
 {
@@ -21,7 +22,9 @@ void NXGUITexture::Render()
 	}
 
 	float fTexSize = ImGui::GetContentRegionAvail().x * 0.7f;
-	ImGui::Image(ImTextureID(m_pTexImage->GetSRV()), ImVec2(fTexSize, fTexSize));
+	auto& srvHandle = NXGPUHandleHeap->Append(m_pTexImage->GetSRV());
+	const ImTextureID& ImTexID = (ImTextureID)srvHandle.ptr;
+	ImGui::Image(ImTexID, ImVec2(fTexSize, fTexSize));
 
 	ImGui::Checkbox("Generate mip map##Texture", &m_texData.m_bGenerateMipMap);
 	ImGui::Checkbox("Invert normal Y##Texture", &m_texData.m_bInvertNormalY);

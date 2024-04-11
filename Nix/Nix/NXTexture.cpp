@@ -7,13 +7,42 @@
 #include "NXRandom.h"
 #include "NXAllocatorManager.h"
 
+ComPtr<ID3D12CommandAllocator> NXTexture::s_pCmdAllocator = nullptr;
+ComPtr<ID3D12GraphicsCommandList> NXTexture::s_pCmdList = nullptr;
+
 NXTexture::~NXTexture()
 {
 	//NXLog::LogWithStackTrace("[%s : size=(%dx%d)x%d, mip=%d, path=%s] Deleted. remain RefCount: %d", m_name.c_str(), m_width, m_height, m_arraySize, m_mipLevels, m_texFilePath.string().c_str(), m_nRefCount);
 }
 
+void NXTexture::Init()
+{
+	s_pCmdAllocator = NX12Util::CreateCommandAllocator(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT);
+	s_pCmdList = NX12Util::CreateGraphicsCommandList(NXGlobalDX::GetDevice(), s_pCmdAllocator.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT);
+	s_pCmdList->Close();
+}
+
+void NXTexture::SetClearValue(float R, float G, float B, float A)
+{
+	m_clearValue.Color[0] = R;
+	m_clearValue.Color[1] = G;
+	m_clearValue.Color[2] = B;
+	m_clearValue.Color[3] = A;
+	m_clearValue.Format = NXConvert::DXGINoTypeless(m_texFormat);
+}
+
+void NXTexture::SetClearValue(float depth, UINT stencilRef)
+{
+	m_clearValue.DepthStencil.Depth = depth;
+	m_clearValue.DepthStencil.Stencil = stencilRef;
+	m_clearValue.Format = NXConvert::DXGINoTypeless(m_texFormat);
+}
+
 const void NXTexture::SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D3D12_RESOURCE_STATES& state)
 {
+	if (m_resourceState == state)
+		return;
+
 	D3D12_RESOURCE_BARRIER barrier = {};
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
@@ -22,6 +51,8 @@ const void NXTexture::SetResourceState(ID3D12GraphicsCommandList* pCommandList, 
 	barrier.Transition.StateAfter = state;
 	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 	pCommandList->ResourceBarrier(1, &barrier);
+
+	m_resourceState = state;
 }
 
 void NXTexture::SwapToReloadingTexture()
@@ -54,14 +85,32 @@ void NXTexture::CreateInternal(D3D12_RESOURCE_FLAGS flags)
 	desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	desc.Flags = flags;
 
-	HRESULT hr = NXGlobalDX::GetDevice()->CreateCommittedResource(
-		&NX12Util::CreateHeapProperties(D3D12_HEAP_TYPE_DEFAULT),
-		D3D12_HEAP_FLAG_NONE,
-		&desc,
-		D3D12_RESOURCE_STATE_COMMON,
-		nullptr,
-		IID_PPV_ARGS(&m_pTexture)
-	);
+	HRESULT hr;
+	if (flags & (D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL))
+	{
+		SetClearValue(0.0f, 0.0f, 0.0f, 1.0f);
+		hr = NXGlobalDX::GetDevice()->CreateCommittedResource(
+			&NX12Util::CreateHeapProperties(D3D12_HEAP_TYPE_DEFAULT),
+			D3D12_HEAP_FLAG_NONE,
+			&desc,
+			D3D12_RESOURCE_STATE_COMMON,
+			&m_clearValue,
+			IID_PPV_ARGS(&m_pTexture)
+		);
+	}
+	else
+	{
+		hr = NXGlobalDX::GetDevice()->CreateCommittedResource(
+			&NX12Util::CreateHeapProperties(D3D12_HEAP_TYPE_DEFAULT),
+			D3D12_HEAP_FLAG_NONE,
+			&desc,
+			D3D12_RESOURCE_STATE_COMMON,
+			nullptr,
+			IID_PPV_ARGS(&m_pTexture)
+		);
+	}
+
+	m_resourceState = D3D12_RESOURCE_STATE_COMMON;
 
 	std::wstring wName(m_name.begin(), m_name.end());
 	m_pTexture->SetName(wName.c_str());
@@ -96,7 +145,10 @@ void NXTexture::CreateInternal(const std::unique_ptr<DirectX::ScratchImage>& pIm
 
 	if (NXTextureAllocator->Alloc(desc, m_pTexture.GetAddressOf()))
 	{
-		m_pTextureUpload = NX12Util::CreateBuffer(NXGlobalDX::GetDevice(), "textureUploadHeap temp", totalBytes, D3D12_HEAP_TYPE_UPLOAD);
+		m_pTexture->SetName(NXConvert::s2ws(m_name).c_str());
+		m_resourceState = D3D12_RESOURCE_STATE_COPY_DEST; // 和 NXTextureAllocator->Alloc 内部的逻辑保持同步
+
+		m_pTextureUpload = NX12Util::CreateBuffer(NXGlobalDX::GetDevice(), "textureUploadHeap temp", (UINT)totalBytes, D3D12_HEAP_TYPE_UPLOAD);
 		void* mappedData;
 		m_pTextureUpload->Map(0, nullptr, &mappedData);
 
@@ -118,14 +170,14 @@ void NXTexture::CreateInternal(const std::unique_ptr<DirectX::ScratchImage>& pIm
 
 		m_pTextureUpload->Unmap(0, nullptr);
 
-		NXGlobalDX::CurrentCmdList()->Reset(NXGlobalDX::CurrentCmdAllocator(), nullptr);
-		NX12Util::CopyTextureRegion(NXGlobalDX::CurrentCmdList(), m_pTexture.Get(), m_pTextureUpload.Get(), layoutSize, layouts);
-		NX12Util::SetResourceBarrier(NXGlobalDX::CurrentCmdList(), m_pTexture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-		NXGlobalDX::CurrentCmdList()->Close();
+		s_pCmdList->Reset(s_pCmdAllocator.Get(), nullptr);
+		SetResourceState(s_pCmdList.Get(), D3D12_RESOURCE_STATE_COPY_DEST);
+		NX12Util::CopyTextureRegion(s_pCmdList.Get(), m_pTexture.Get(), m_pTextureUpload.Get(), layoutSize, layouts);
+		SetResourceState(s_pCmdList.Get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		s_pCmdList->Close();
 
-		NXGlobalDX::GetCmdQueue()->ExecuteCommandLists();
-
-		m_pTexture->SetName(NXConvert::s2ws(m_name).c_str());
+		ID3D12CommandList* pCmdLists[] = { s_pCmdList.Get() };
+		NXGlobalDX::GetCmdQueue()->ExecuteCommandLists(1, pCmdLists);
 	}
 }
 

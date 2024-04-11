@@ -188,7 +188,12 @@ void FBXMeshLoader::EncodePrimitiveData(FbxNode* pNode, NXPrimitive* pPrimitive,
 
 		std::vector<NXSubMeshBase*> pSubMeshes;
 		pSubMeshes.reserve(materialCount);
-		for (int i = 0; i < materialCount; i++) pSubMeshes.push_back(new NXSubMeshStandard(pPrimitive));
+		for (int i = 0; i < materialCount; i++)
+		{
+			auto fbxMaterial = pNode->GetMaterial(i);
+			std::string subMeshName(fbxMaterial ? fbxMaterial->GetName() + '_' + std::to_string(i) : "nixGen_" + std::to_string(i));
+			pSubMeshes.push_back(new NXSubMeshStandard(pPrimitive, subMeshName));
+		}
 
 		if (materialCount == 1)
 		{

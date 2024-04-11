@@ -115,7 +115,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxguid.lib;winmm.lib;comctl32.lib;NixMath.lib;DirectXTex.lib;IMGUI.lib;libfbxsdk.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;dxguid.lib;winmm.lib;comctl32.lib;NixMath.lib;DirectXTex.lib;IMGUI.lib;libfbxsdk.lib;XAllocator.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\NixMath\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\DirectXTex\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\IMGUI\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\FBXSDK\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\XAllocator\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
@@ -162,7 +162,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxguid.lib;winmm.lib;comctl32.lib;NixMath.lib;DirectXTex.lib;IMGUI.lib;libfbxsdk.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;dxguid.lib;winmm.lib;comctl32.lib;NixMath.lib;DirectXTex.lib;IMGUI.lib;libfbxsdk.lib;XAllocator.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\NixMath\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\DirectXTex\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\IMGUI\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\FBXSDK\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\XAllocator\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
@@ -296,7 +296,6 @@
     <ClCompile Include="Nix\NXCamera.cpp" />
     <ClCompile Include="Nix\NXObject.cpp" />
     <ClCompile Include="Nix\NXPrimitive.cpp" />
-    <ClCompile Include="Nix\NXRenderTarget.cpp" />
     <ClCompile Include="Nix\NXScene.cpp" />
     <ClCompile Include="Nix\Script\NXScript.cpp" />
     <ClCompile Include="Nix\NXTransform.cpp" />
@@ -401,7 +400,6 @@
     <ClInclude Include="Nix\NXCamera.h" />
     <ClInclude Include="Nix\NXObject.h" />
     <ClInclude Include="Nix\NXPrimitive.h" />
-    <ClInclude Include="Nix\NXRenderTarget.h" />
     <ClInclude Include="Nix\NXScene.h" />
     <ClInclude Include="Nix\Script\NXScript.h" />
     <ClInclude Include="Nix\Script\NXScriptType.h" />

@@ -229,10 +229,10 @@ void NXScene::Init()
 
 	m_pTestCustomMat = NXResourceManager::GetInstance()->GetMaterialManager()->CreateCustomMaterial("TestCustomMat", "D:\\NixAssets\\Materials\\mat.nsl");
 
-	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\boxes.fbx", false);
+	NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\boxes.fbx", false);
 	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\shadowMapTest.fbx", false);
 	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\EditorObjTest.fbx", false);
-	NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\lury.fbx", false);
+	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\lury.fbx", false);
 	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\testScene.fbx", false);
 	p->SetScale(Vector3(0.1f));
 	NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(p, m_pTestCustomMat);
@@ -269,7 +269,7 @@ void NXScene::Init()
 		NXPBRSpotLight* pSpotLight;
 		//pSpotLight = NXResourceManager::GetInstance()->GetLightManager()->CreatePBRSpotLight(Vector3(0.0f, 2.0f, 0.0f), Vector3(0.0f, -1.0f, 0.0f), Vector3(1.0f), 1.0f, 30.0f, 50.0f, 100.0f);
 
-		m_cbDataLights.Create();
+		m_cbDataLights.Create(NXCBufferAllocator, NXDescriptorAllocator, true);
 		for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 		{
 			m_cbDataLights.Get(i).pointLight[0] = pPointLight->GetConstantBuffer();

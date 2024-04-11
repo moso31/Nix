@@ -1,15 +1,20 @@
 #include "DX12.h"
 
-void NX12Util::CreateCommands(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE type, ID3D12CommandQueue* oCmdQueue, ID3D12CommandAllocator* oCmdAllocator, ID3D12GraphicsCommandList* oCmdList, bool disableGPUTimeOut)
+UINT8 MultiFrameSets::swapChainIndex = 0; // 初始化静态变量
+
+void NX12Util::CreateCommands(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE type, ID3D12CommandQueue** oCmdQueue, ID3D12CommandAllocator** oCmdAllocator, ID3D12GraphicsCommandList** oCmdList, bool disableGPUTimeOut)
 {
 	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
 	queueDesc.Type = type;
 	queueDesc.Flags = disableGPUTimeOut ? D3D12_COMMAND_QUEUE_FLAG_DISABLE_GPU_TIMEOUT : D3D12_COMMAND_QUEUE_FLAG_NONE;
 
 	HRESULT hr;
-	hr = pDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&oCmdQueue));
-	hr = pDevice->CreateCommandAllocator(type, IID_PPV_ARGS(&oCmdAllocator));
-	hr = pDevice->CreateCommandList(0, type, oCmdAllocator, nullptr, IID_PPV_ARGS(&oCmdList));
+	hr = pDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(oCmdQueue));
+	hr = pDevice->CreateCommandAllocator(type, IID_PPV_ARGS(oCmdAllocator));
+	hr = pDevice->CreateCommandList(0, type, *oCmdAllocator, nullptr, IID_PPV_ARGS(oCmdList));
+
+	// 默认关闭 commandList.
+	(*oCmdList)->Close();
 }
 
 ID3D12CommandQueue* NX12Util::CreateCommandQueue(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE type, bool disableGPUTimeOut)
@@ -30,9 +35,9 @@ ID3D12CommandAllocator* NX12Util::CreateCommandAllocator(ID3D12Device* pDevice, 
 	return pCmdAllocator;
 }
 
-ID3D12CommandList* NX12Util::CreateCommandList(ID3D12Device* pDevice, ID3D12CommandAllocator* oCmdAllocator, D3D12_COMMAND_LIST_TYPE type, UINT nodeMask, ID3D12PipelineState* InitState)
+ID3D12GraphicsCommandList* NX12Util::CreateGraphicsCommandList(ID3D12Device* pDevice, ID3D12CommandAllocator* oCmdAllocator, D3D12_COMMAND_LIST_TYPE type, UINT nodeMask, ID3D12PipelineState* InitState)
 {
-	ID3D12CommandList* pCmdList;
+	ID3D12GraphicsCommandList* pCmdList;
 	HRESULT hr = pDevice->CreateCommandList(nodeMask, type, oCmdAllocator, InitState, IID_PPV_ARGS(&pCmdList));
 	return pCmdList;
 }
@@ -51,7 +56,7 @@ ID3D12Resource* NX12Util::CreateBuffer(ID3D12Device* pDevice, const std::string&
 	desc.Format = DXGI_FORMAT_UNKNOWN;
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
-	desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 	desc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
 	HRESULT hr = pDevice->CreateCommittedResource(
@@ -114,18 +119,6 @@ D3D12_CLEAR_VALUE NX12Util::CreateClearValue(float depth, UINT8 stencil, DXGI_FO
 	return cv;
 }
 
-void NX12Util::SetResourceBarrier(ID3D12GraphicsCommandList* pCommandList, ID3D12Resource* pResource, D3D12_RESOURCE_STATES from, D3D12_RESOURCE_STATES to)
-{
-	D3D12_RESOURCE_BARRIER barrier = {};
-	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	barrier.Transition.pResource = pResource;
-	barrier.Transition.StateBefore = from;
-	barrier.Transition.StateAfter = to;
-	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-	pCommandList->ResourceBarrier(1, &barrier);
-}
-
 void NX12Util::CopyTextureRegion(ID3D12GraphicsCommandList* pCommandList, ID3D12Resource* pTexture, ID3D12Resource* pTextureUploadBuffer, UINT layoutSize, const D3D12_PLACED_SUBRESOURCE_FOOTPRINT* pLayouts)
 {
 	for (UINT idx = 0; idx < layoutSize; ++idx)
@@ -156,6 +149,16 @@ D3D12_VIEWPORT NX12Util::ViewPort(float width, float height, float minDepth, flo
 	vp.TopLeftX = topLeftX;
 	vp.TopLeftY = topLeftY;
 	return vp;
+}
+
+D3D12_RECT NX12Util::ScissorRect(const D3D12_VIEWPORT& vp)
+{
+	D3D12_RECT rect;
+	rect.left = (LONG)vp.TopLeftX;
+	rect.top = (LONG)vp.TopLeftY;
+	rect.right = (LONG)(vp.TopLeftX + vp.Width);
+	rect.bottom = (LONG)(vp.TopLeftY + vp.Height);
+	return rect;
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE NX12Util::CPUDescriptorHandle(size_t ptr)
