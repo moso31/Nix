@@ -19,6 +19,8 @@ NXSubSurfaceRenderer::~NXSubSurfaceRenderer()
 
 void NXSubSurfaceRenderer::Init()
 {
+	NX12Util::CreateCommands(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.GetAddressOf(), m_pCommandAllocator.GetAddressOf(), m_pCommandList.GetAddressOf());
+
 	m_pTexPassIn[0] = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting0);
 	m_pTexPassIn[1] = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting1);
 	m_pTexPassIn[2] = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting2);
@@ -34,6 +36,7 @@ void NXSubSurfaceRenderer::Init()
 	};
 
 	std::vector<D3D12_ROOT_PARAMETER> rootParam = {
+		NX12Util::CreateRootParameterCBV(1, 0, D3D12_SHADER_VISIBILITY_ALL),
 		NX12Util::CreateRootParameterCBV(3, 0, D3D12_SHADER_VISIBILITY_ALL),
 		NX12Util::CreateRootParameterTable(ranges, D3D12_SHADER_VISIBILITY_ALL)
 	};
@@ -68,10 +71,16 @@ void NXSubSurfaceRenderer::Init()
 
 void NXSubSurfaceRenderer::Render()
 {
+	m_pCommandList->Reset(m_pCommandAllocator.Get(), nullptr);
+
 	NX12Util::BeginEvent(m_pCommandList.Get(), "SSSSS");
 	static int RenderMode = 0;
 	if (RenderMode == 0) RenderSSSSS();
 	NX12Util::EndEvent();
+
+	m_pCommandList->Close();
+	ID3D12CommandList* pCmdLists[] = { m_pCommandList.Get() };
+	m_pCommandQueue->ExecuteCommandLists(1, pCmdLists);
 }
 
 void NXSubSurfaceRenderer::RenderSSSSS()

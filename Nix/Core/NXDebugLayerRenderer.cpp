@@ -17,10 +17,16 @@ NXDebugLayerRenderer::NXDebugLayerRenderer(NXShadowMapRenderer* pShadowMapRender
 {
 }
 
-void NXDebugLayerRenderer::Init()
+void NXDebugLayerRenderer::Init(const Vector2& rtSize)
 {
 	m_pTexPassIn0 = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_PostProcessing);
 	m_pTexPassIn1 = m_pShadowMapRenderer->GetShadowMapDepthTex();
+
+	m_pTexPassOut = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("Debug Layer Out RT", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+	m_pTexPassOut->AddRTV();
+	m_pTexPassOut->AddSRV();
+
+	NX12Util::CreateCommands(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.GetAddressOf(), m_pCommandAllocator.GetAddressOf(), m_pCommandList.GetAddressOf());
 
 	std::vector<D3D12_DESCRIPTOR_RANGE> ranges;
 	ranges.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 0)); // t0~t1. 2 descriptors.
@@ -76,6 +82,8 @@ void NXDebugLayerRenderer::Render()
 	if (!m_bEnableDebugLayer)
 		return;
 
+	m_pCommandList->Reset(m_pCommandAllocator.Get(), nullptr);
+
 	NX12Util::BeginEvent(m_pCommandList.Get(), "Debug Layer");
 
 	// Update LayerParams
@@ -103,6 +111,10 @@ void NXDebugLayerRenderer::Render()
 	m_pCommandList->DrawIndexedInstanced(meshView.indexCount, 1, 0, 0, 0);
 
 	NX12Util::EndEvent();
+
+	m_pCommandList->Close();
+	ID3D12CommandList* ppCommandLists[] = { m_pCommandList.Get() };
+	m_pCommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 }
 
 void NXDebugLayerRenderer::Release()

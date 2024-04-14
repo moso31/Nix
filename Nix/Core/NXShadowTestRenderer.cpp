@@ -13,6 +13,8 @@ NXShadowTestRenderer::~NXShadowTestRenderer()
 
 void NXShadowTestRenderer::Init()
 {
+	NX12Util::CreateCommands(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.GetAddressOf(), m_pCommandAllocator.GetAddressOf(), m_pCommandList.GetAddressOf());
+
 	ComPtr<ID3DBlob> pVSBlob, pPSBlob;
 	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\ShadowTest.fx", "VS", pVSBlob.GetAddressOf());
 	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\ShadowTest.fx", "PS", pPSBlob.GetAddressOf());
@@ -36,6 +38,11 @@ void NXShadowTestRenderer::Init()
 	// Create the root signature with the new configuration
 	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::GetDevice(), rootParams, staticSamplers);
 
+	m_pTexPassIn0 = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
+	// m_pTexPassIn1 由 SetShadowMapDepth() 方法传入
+
+	m_pTexPassOut = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_ShadowTest);
+
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.pRootSignature = m_pRootSig.Get();
 	psoDesc.InputLayout = NXGlobalInputLayout::layoutPT;
@@ -45,22 +52,19 @@ void NXShadowTestRenderer::Init()
 	psoDesc.SampleDesc.Count = 1;
 	psoDesc.SampleDesc.Quality = 0;
 	psoDesc.SampleMask = UINT_MAX;
-	psoDesc.NumRenderTargets = 0;
+	psoDesc.NumRenderTargets = 1;
 	psoDesc.RTVFormats[0] = m_pTexPassOut->GetFormat();
 	psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN; // shadowtest 不需要 dsv
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
-
-	m_pTexPassIn0 = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
-	// m_pTexPassIn1 由 SetShadowMapDepth() 方法传入
-
-	m_pTexPassOut = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_ShadowTest);
 }
 
 void NXShadowTestRenderer::Render()
 {
+	m_pCommandList->Reset(m_pCommandAllocator.Get(), nullptr);
+
 	NX12Util::BeginEvent(m_pCommandList.Get(), "Shadow Test");
 
 	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
@@ -87,6 +91,10 @@ void NXShadowTestRenderer::Render()
 	m_pCommandList->DrawIndexedInstanced(meshView.indexCount, 1, 0, 0, 0);
 
 	NX12Util::EndEvent();
+
+	m_pCommandList->Close();
+	ID3D12CommandList* pCmdLists[] = { m_pCommandList.Get() };
+	m_pCommandQueue->ExecuteCommandLists(1, pCmdLists);
 }
 
 void NXShadowTestRenderer::Release()

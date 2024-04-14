@@ -23,6 +23,10 @@ NXEditorObjectRenderer::~NXEditorObjectRenderer()
 
 void NXEditorObjectRenderer::Init()
 {
+	m_pTexPassOut = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_PostProcessing);
+
+	NX12Util::CreateCommands(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.GetAddressOf(), m_pCommandAllocator.GetAddressOf(), m_pCommandList.GetAddressOf());
+
 	ComPtr<ID3DBlob> pVSBlob, pPSBlob;
 	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\EditorObjects.fx", "VS", pVSBlob.GetAddressOf());
 	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\EditorObjects.fx", "PS", pPSBlob.GetAddressOf());
@@ -52,8 +56,6 @@ void NXEditorObjectRenderer::Init()
 	NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
 
 	m_cbParams.Create(NXCBufferAllocator, NXDescriptorAllocator, true);
-
-	m_pTexPassOut = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_PostProcessing);
 }
 
 void NXEditorObjectRenderer::OnResize(const Vector2& rtSize)
@@ -62,6 +64,8 @@ void NXEditorObjectRenderer::OnResize(const Vector2& rtSize)
 
 void NXEditorObjectRenderer::Render()
 {
+	m_pCommandList->Reset(m_pCommandAllocator.Get(), nullptr);
+
 	NX12Util::BeginEvent(m_pCommandList.Get(), "Editor objects");
 
 	m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbCamera.GetGPUHandle());
@@ -103,6 +107,10 @@ void NXEditorObjectRenderer::Render()
 	}
 
 	NX12Util::EndEvent();
+
+	m_pCommandList->Close();
+	ID3D12CommandList* ppCommandLists[] = { m_pCommandList.Get() };
+	m_pCommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 }
 
 void NXEditorObjectRenderer::Release()

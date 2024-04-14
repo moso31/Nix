@@ -24,6 +24,8 @@ void NXColorMappingRenderer::Init()
 	m_pTexPassIn = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_SSSLighting);
 	m_pTexPassOut = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_PostProcessing);
 
+	NX12Util::CreateCommands(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.GetAddressOf(), m_pCommandAllocator.GetAddressOf(), m_pCommandList.GetAddressOf());
+
 	ComPtr<ID3DBlob> pVSBlob, pPSBlob;
 	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\ColorMapping.fx", "VS", pVSBlob.GetAddressOf());
 	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\ColorMapping.fx", "PS", pPSBlob.GetAddressOf());
@@ -65,6 +67,8 @@ void NXColorMappingRenderer::Init()
 
 void NXColorMappingRenderer::Render()
 {
+	m_pCommandList->Reset(m_pCommandAllocator.Get(), nullptr);
+
 	NX12Util::BeginEvent(m_pCommandList.Get(), "Post Processing");
 
 	m_cbParams.Current().param0.x = m_bEnablePostProcessing ? 1.0f : 0.0f;
@@ -92,6 +96,10 @@ void NXColorMappingRenderer::Render()
 
 	NX12Util::EndEvent(); 
 	NX12Util::EndEvent();
+
+	m_pCommandList->Close();
+	ID3D12CommandList* ppCommandLists[] = { m_pCommandList.Get() };
+	m_pCommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 }
 
 void NXColorMappingRenderer::Release()

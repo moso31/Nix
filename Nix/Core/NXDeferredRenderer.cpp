@@ -24,6 +24,8 @@ NXDeferredRenderer::~NXDeferredRenderer()
 
 void NXDeferredRenderer::Init()
 {
+	NX12Util::CreateCommands(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.GetAddressOf(), m_pCommandAllocator.GetAddressOf(), m_pCommandList.GetAddressOf());
+
 	m_pTexPassIn[0] = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer0);
 	m_pTexPassIn[1] = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer1);
 	m_pTexPassIn[2] = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer2);
@@ -59,7 +61,7 @@ void NXDeferredRenderer::Init()
 
 	std::vector<D3D12_STATIC_SAMPLER_DESC> samplers = {
 		NXSamplerManager::GetInstance()->CreateIso(0, 0, D3D12_SHADER_VISIBILITY_ALL, D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_WRAP),
-		NXSamplerManager::GetInstance()->CreateIso(0, 0, D3D12_SHADER_VISIBILITY_ALL, D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_CLAMP),
+		NXSamplerManager::GetInstance()->CreateIso(1, 0, D3D12_SHADER_VISIBILITY_ALL, D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_CLAMP),
 	};
 
 	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::GetDevice(), rootParam, samplers);
@@ -73,7 +75,7 @@ void NXDeferredRenderer::Init()
 	psoDesc.SampleDesc.Count = 1;
 	psoDesc.SampleDesc.Quality = 0;
 	psoDesc.SampleMask = UINT_MAX;
-	psoDesc.NumRenderTargets = 1;
+	psoDesc.NumRenderTargets = 4;
 	psoDesc.RTVFormats[0] = m_pTexPassOut[0]->GetFormat();
 	psoDesc.RTVFormats[1] = m_pTexPassOut[1]->GetFormat();
 	psoDesc.RTVFormats[2] = m_pTexPassOut[2]->GetFormat();
@@ -87,6 +89,8 @@ void NXDeferredRenderer::Init()
 
 void NXDeferredRenderer::Render()
 {
+	m_pCommandList->Reset(m_pCommandAllocator.Get(), nullptr);
+
 	NX12Util::BeginEvent(m_pCommandList.Get(), "Deferred rendering");
 
 	D3D12_CPU_DESCRIPTOR_HANDLE ppRTVs[] = { m_pTexPassOut[0]->GetRTV(), m_pTexPassOut[1]->GetRTV(), m_pTexPassOut[2]->GetRTV(), m_pTexPassOut[3]->GetRTV() };
@@ -114,6 +118,10 @@ void NXDeferredRenderer::Render()
 	m_pCommandList->IASetVertexBuffers(0, 1, &meshView.vbv);
 	m_pCommandList->IASetIndexBuffer(&meshView.ibv);
 	m_pCommandList->DrawIndexedInstanced(meshView.indexCount, 1, 0, 0, 0);
+
+	m_pCommandList->Close();
+	ID3D12CommandList* pCmdLists[] = {m_pCommandList.Get()};
+	m_pCommandQueue->ExecuteCommandLists(1, pCmdLists);
 }
 
 void NXDeferredRenderer::Release()

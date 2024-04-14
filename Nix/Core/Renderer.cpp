@@ -79,8 +79,8 @@ void Renderer::Init()
 	m_pSubSurfaceRenderer = new NXSubSurfaceRenderer(m_scene);
 	m_pSubSurfaceRenderer->Init();
 
-	m_pForwardRenderer = new NXForwardRenderer(m_scene, m_pBRDFLut);
-	m_pForwardRenderer->Init();
+	//m_pForwardRenderer = new NXForwardRenderer(m_scene, m_pBRDFLut);
+	//m_pForwardRenderer->Init();
 
 	//m_pDepthPeelingRenderer = new NXDepthPeelingRenderer(m_scene, m_pBRDFLut);
 	//m_pDepthPeelingRenderer->Init();
@@ -92,7 +92,7 @@ void Renderer::Init()
 	m_pColorMappingRenderer->Init();
 
 	m_pDebugLayerRenderer = new NXDebugLayerRenderer(m_pShadowMapRenderer);
-	m_pDebugLayerRenderer->Init();
+	m_pDebugLayerRenderer->Init(m_viewRTSize);
 
 	m_pEditorObjectRenderer = new NXEditorObjectRenderer(m_scene);
 	m_pEditorObjectRenderer->Init();
@@ -271,7 +271,7 @@ void Renderer::Release()
 	SafeRelease(m_pShadowTestRenderer);
 	SafeRelease(m_pDeferredRenderer);
 	SafeRelease(m_pSubSurfaceRenderer);
-	SafeRelease(m_pForwardRenderer);
+	//SafeRelease(m_pForwardRenderer);
 	//SafeRelease(m_pDepthPeelingRenderer);
 	SafeRelease(m_pSkyRenderer);
 	SafeRelease(m_pColorMappingRenderer);

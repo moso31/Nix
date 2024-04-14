@@ -240,7 +240,17 @@ ID3D12RootSignature* NX12Util::CreateRootSignature(ID3D12Device* pDevice, UINT n
 	ComPtr<ID3DBlob> pErrorBlob = nullptr;
 	HRESULT hr = D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &pSigBlob, &pErrorBlob);
 	if (FAILED(hr))
+	{
+		if (pErrorBlob != nullptr) 
+		{
+			// 将错误信息转换为字符指针
+			char* errorMessage = static_cast<char*>(pErrorBlob->GetBufferPointer());
+
+			// 打印错误信息
+			printf("Error compiling root signature: %s\n", errorMessage);
+		}
 		return nullptr;
+	}
 
 	ID3D12RootSignature* pRootSig = nullptr;
 	hr = pDevice->CreateRootSignature(0, pSigBlob->GetBufferPointer(), pSigBlob->GetBufferSize(), IID_PPV_ARGS(&pRootSig));

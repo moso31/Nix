@@ -57,9 +57,9 @@ void NXTextureResourceManager::ResizeCommonRT(const Vector2& rtSize)
 	m_pCommonRT[NXCommonRT_GBuffer3]->AddRTV();
 	m_pCommonRT[NXCommonRT_GBuffer3]->AddSRV();
 
-	m_pCommonRT[NXCommonRT_GBuffer3] = CreateTexture2D("Post Processing", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-	m_pCommonRT[NXCommonRT_GBuffer3]->AddRTV();
-	m_pCommonRT[NXCommonRT_GBuffer3]->AddSRV();
+	m_pCommonRT[NXCommonRT_PostProcessing] = CreateTexture2D("Post Processing", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+	m_pCommonRT[NXCommonRT_PostProcessing]->AddRTV();
+	m_pCommonRT[NXCommonRT_PostProcessing]->AddSRV();
 }
 
 Ntr<NXTexture2D> NXTextureResourceManager::GetCommonRT(NXCommonRTEnum eRT)

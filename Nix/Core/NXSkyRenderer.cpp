@@ -36,7 +36,7 @@ void NXSkyRenderer::InitSignature()
 		NXSamplerManager::GetInstance()->CreateIso(0, 0, D3D12_SHADER_VISIBILITY_ALL)
 	};
 
-	NX12Util::CreateRootSignature(NXGlobalDX::GetDevice(), rootParam, samplers);
+	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::GetDevice(), rootParam, samplers);
 }
 
 void NXSkyRenderer::InitPSO()
@@ -76,6 +76,8 @@ void NXSkyRenderer::Init()
 
 void NXSkyRenderer::Render()
 {
+	m_pCommandList->Reset(m_pCommandAllocator.Get(), nullptr);
+
 	NX12Util::BeginEvent(m_pCommandList.Get(), "Sky (CubeMap IBL)");
 
 	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
@@ -111,4 +113,8 @@ void NXSkyRenderer::Render()
 	}
 
 	NX12Util::EndEvent();
+
+	m_pCommandList->Close();
+	ID3D12CommandList* pCmdLists[] = { m_pCommandList.Get() };
+	m_pCommandQueue->ExecuteCommandLists(1, pCmdLists);
 }

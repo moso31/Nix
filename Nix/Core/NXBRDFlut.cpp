@@ -14,6 +14,8 @@ NXBRDFLut::NXBRDFLut()
 
 void NXBRDFLut::Init()
 {
+	NX12Util::CreateCommands(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.GetAddressOf(), m_pCommandAllocator.GetAddressOf(), m_pCommandList.GetAddressOf());
+
 	m_pTexBRDFLUT = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("BRDF LUT", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)m_mapSize, (UINT)m_mapSize, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 	m_pTexBRDFLUT->AddSRV();
 	m_pTexBRDFLUT->AddRTV();
@@ -60,13 +62,13 @@ void NXBRDFLut::InitRootSignature()
 	psoDesc.InputLayout = NXGlobalInputLayout::layoutPT;
 	psoDesc.BlendState = NXBlendState<>::Create();
 	psoDesc.RasterizerState = NXRasterizerState<>::Create();
-	psoDesc.DepthStencilState = NXDepthStencilState<>::Create();
+	psoDesc.DepthStencilState = NXDepthStencilState<false>::Create();
 	psoDesc.SampleDesc.Count = 1;
 	psoDesc.SampleDesc.Quality = 0;
 	psoDesc.SampleMask = UINT_MAX;
 	psoDesc.NumRenderTargets = 1;
 	psoDesc.RTVFormats[0] = m_pTexBRDFLUT->GetFormat();
-	psoDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -75,11 +77,15 @@ void NXBRDFLut::InitRootSignature()
 
 void NXBRDFLut::DrawBRDFLUT()
 {
+	m_pCommandList->Reset(m_pCommandAllocator.Get(), nullptr);
+
 	NX12Util::BeginEvent(m_pCommandList.Get(), "Generate BRDF 2D LUT");
 
 	auto vp = NX12Util::ViewPort(m_mapSize, m_mapSize);
 	m_pCommandList->RSSetViewports(1, &vp);
+	m_pCommandList->RSSetScissorRects(1, &NX12Util::ScissorRect(vp));
 
+	m_pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	m_pCommandList->SetGraphicsRootSignature(m_pRootSig.Get());
 	m_pCommandList->SetPipelineState(m_pPSO.Get());
 
@@ -94,4 +100,8 @@ void NXBRDFLut::DrawBRDFLUT()
 	m_pTexBRDFLUT->SetResourceState(m_pCommandList.Get(), D3D12_RESOURCE_STATE_COMMON);
 
 	NX12Util::EndEvent();
+
+	m_pCommandList->Close();
+	ID3D12CommandList* pCmdLists[] = { m_pCommandList.Get() };
+	m_pCommandQueue->ExecuteCommandLists(1, pCmdLists);
 }

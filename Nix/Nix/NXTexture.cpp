@@ -86,7 +86,7 @@ void NXTexture::CreateInternal(D3D12_RESOURCE_FLAGS flags)
 	desc.Flags = flags;
 
 	HRESULT hr;
-	if (flags & (D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL))
+	if (flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET)
 	{
 		SetClearValue(0.0f, 0.0f, 0.0f, 1.0f);
 		hr = NXGlobalDX::GetDevice()->CreateCommittedResource(
@@ -95,6 +95,18 @@ void NXTexture::CreateInternal(D3D12_RESOURCE_FLAGS flags)
 			&desc,
 			D3D12_RESOURCE_STATE_COMMON,
 			&m_clearValue,
+			IID_PPV_ARGS(&m_pTexture)
+		);
+	}
+	else if (flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
+	{
+		SetClearValue(0.0f, 0x00);
+		hr = NXGlobalDX::GetDevice()->CreateCommittedResource(
+			&NX12Util::CreateHeapProperties(D3D12_HEAP_TYPE_DEFAULT),
+			D3D12_HEAP_FLAG_NONE,
+			&desc,
+			D3D12_RESOURCE_STATE_COMMON,
+			nullptr,
 			IID_PPV_ARGS(&m_pTexture)
 		);
 	}
