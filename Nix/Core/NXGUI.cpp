@@ -6,7 +6,6 @@
 #include "Renderer.h"
 #include "NXScene.h"
 #include "NXConverter.h"
-#include "NXAllocatorManager.h"
 
 #include "NXGUIFileBrowser.h"
 #include "NXGUIMaterialShaderEditor.h"
@@ -54,12 +53,10 @@ void NXGUI::Init()
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
 	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
 
-	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
-	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
-	D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = pShaderVisibleDescriptorHeap->Append(cpuHandle);
+	m_pImguiDescHeap = new NXShaderVisibleDescriptorHeap(NXGlobalDX::GetDevice());
 
 	ImGui_ImplWin32_Init(NXGlobalWindows::hWnd);
-	ImGui_ImplDX12_Init(NXGlobalDX::GetDevice(), MultiFrameSets_swapChainCount, DXGI_FORMAT_R8G8B8A8_UNORM, pShaderVisibleDescriptorHeap->GetHeap(), cpuHandle, gpuHandle);
+	ImGui_ImplDX12_Init(NXGlobalDX::GetDevice(), MultiFrameSets_swapChainCount, DXGI_FORMAT_R8G8B8A8_UNORM, m_pImguiDescHeap->GetHeap(), m_pImguiDescHeap->GetCPUHandle(0), m_pImguiDescHeap->GetGPUHandle(0));
 
 	// ÉèÖÃ×ÖÌå
 	g_imgui_font_general = io.Fonts->AddFontFromFileTTF("./Resource/fonts/JetBrainsMono-Bold.ttf", 16);

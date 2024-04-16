@@ -33,9 +33,7 @@ void DirectResources::InitDevice()
 void DirectResources::FrameBegin()
 {
 	MultiFrameSets::swapChainIndex = m_pSwapChain->GetCurrentBackBufferIndex();
-
-	auto pCmdList = m_pCommandList.Current();
-	pCmdList->Reset(m_pCommandAllocator.Current().Get(), nullptr);
+	NXGlobalDX::CurrentCmdList()->Reset(NXGlobalDX::CurrentCmdAllocator(), nullptr);
 }
 
 void DirectResources::OnResize(UINT width, UINT height)
@@ -92,10 +90,10 @@ void DirectResources::OnResize(UINT width, UINT height)
 
 void DirectResources::FrameEnd()
 {
-	auto pCmdList = m_pCommandList.Current();
+	auto pCmdList = NXGlobalDX::CurrentCmdList();
 	pCmdList->Close();
 
-	ID3D12CommandList* pCmdLists[] = { pCmdList.Get() };
+	ID3D12CommandList* pCmdLists[] = { pCmdList };
 	NXGlobalDX::GetCmdQueue()->ExecuteCommandLists(1, pCmdLists);
 
 	m_pSwapChain->Present(0, 0);

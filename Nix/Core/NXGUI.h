@@ -2,6 +2,7 @@
 #include "BaseDefs/NixCore.h"
 #include "BaseDefs/DX12.h"
 #include "BaseDefs/DearImGui.h"
+#include "NXShaderVisibleDescriptorHeap.h"
 
 class NXScene;
 class Renderer;
@@ -33,6 +34,8 @@ public:
 	void Release();
 
 private:
+	NXShaderVisibleDescriptorHeap*	m_pImguiDescHeap;
+
 	bool m_bInited = false;
 	NXScene*	m_pCurrentScene;
 	Renderer*	m_pRenderer;
