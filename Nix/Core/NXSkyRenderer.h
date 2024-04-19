@@ -12,7 +12,7 @@ public:
 	~NXSkyRenderer();
 
 	void Init();
-	void Render();
+	void Render(ID3D12GraphicsCommandList* pCmdList);
 
 	void Release() {}
 
@@ -21,10 +21,6 @@ private:
 	void InitPSO();
 
 private:
-	ComPtr<ID3D12CommandQueue>			m_pCommandQueue;
-	ComPtr<ID3D12CommandAllocator>		m_pCommandAllocator;
-	ComPtr<ID3D12GraphicsCommandList>	m_pCommandList;
-
 	ComPtr<ID3D12RootSignature>			m_pRootSig;
 	ComPtr<ID3D12PipelineState>			m_pPSO;
 

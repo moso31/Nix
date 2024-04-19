@@ -26,8 +26,6 @@ void NXDebugLayerRenderer::Init(const Vector2& rtSize)
 	m_pTexPassOut->AddRTV();
 	m_pTexPassOut->AddSRV();
 
-	NX12Util::CreateCommands(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.GetAddressOf(), m_pCommandAllocator.GetAddressOf(), m_pCommandList.GetAddressOf());
-
 	std::vector<D3D12_DESCRIPTOR_RANGE> ranges;
 	ranges.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 0)); // t0~t1. 2 descriptors.
 
@@ -77,14 +75,12 @@ void NXDebugLayerRenderer::OnResize(const Vector2& rtSize)
 	}
 }
 
-void NXDebugLayerRenderer::Render()
+void NXDebugLayerRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 {
 	if (!m_bEnableDebugLayer)
 		return;
 
-	m_pCommandList->Reset(m_pCommandAllocator.Get(), nullptr);
-
-	NX12Util::BeginEvent(m_pCommandList.Get(), "Debug Layer");
+	NX12Util::BeginEvent(pCmdList, "Debug Layer");
 
 	// Update LayerParams
 	m_cbParams.Current().LayerParam0.x = (float)m_bEnableShadowMapDebugLayer;
@@ -96,25 +92,21 @@ void NXDebugLayerRenderer::Render()
 	auto srvHandle1 = pShaderVisibleDescriptorHeap->Append(m_pTexPassIn1->GetSRV());
 
 	ID3D12DescriptorHeap* ppHeaps[] = { pShaderVisibleDescriptorHeap->GetHeap() };
-	m_pCommandList->SetDescriptorHeaps(1, ppHeaps);
+	pCmdList->SetDescriptorHeaps(1, ppHeaps);
 
-	m_pCommandList->OMSetRenderTargets(1, &m_pTexPassOut->GetRTV(), false, nullptr);
-	m_pCommandList->SetGraphicsRootSignature(m_pRootSig.Get());
-	m_pCommandList->SetPipelineState(m_pPSO.Get());
+	pCmdList->OMSetRenderTargets(1, &m_pTexPassOut->GetRTV(), false, nullptr);
+	pCmdList->SetGraphicsRootSignature(m_pRootSig.Get());
+	pCmdList->SetPipelineState(m_pPSO.Get());
 
-	m_pCommandList->SetGraphicsRootConstantBufferView(0, m_cbParams.GetGPUHandle());
-	m_pCommandList->SetGraphicsRootDescriptorTable(1, srvHandle0);
+	pCmdList->SetGraphicsRootConstantBufferView(0, m_cbParams.GetGPUHandle());
+	pCmdList->SetGraphicsRootDescriptorTable(1, srvHandle0);
 
 	const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_RenderTarget");
-	m_pCommandList->IASetVertexBuffers(0, 1, &meshView.vbv);
-	m_pCommandList->IASetIndexBuffer(&meshView.ibv);
-	m_pCommandList->DrawIndexedInstanced(meshView.indexCount, 1, 0, 0, 0);
+	pCmdList->IASetVertexBuffers(0, 1, &meshView.vbv);
+	pCmdList->IASetIndexBuffer(&meshView.ibv);
+	pCmdList->DrawIndexedInstanced(meshView.indexCount, 1, 0, 0, 0);
 
 	NX12Util::EndEvent();
-
-	m_pCommandList->Close();
-	ID3D12CommandList* ppCommandLists[] = { m_pCommandList.Get() };
-	m_pCommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 }
 
 void NXDebugLayerRenderer::Release()

@@ -49,29 +49,29 @@ void NXDepthRenderer::Init()
 	NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
 }
 
-void NXDepthRenderer::Render()
+void NXDepthRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 {
-	NX12Util::BeginEvent(m_pCommandList.Get(), "Depth Copy");
+	NX12Util::BeginEvent(pCmdList, "Depth Copy");
 
-	m_pCommandList->OMSetRenderTargets(1, &m_pTexPassOut->GetRTV(), false, nullptr);
-	m_pCommandList->SetGraphicsRootSignature(m_pRootSig.Get());
-	m_pCommandList->SetPipelineState(m_pPSO.Get());
+	pCmdList->OMSetRenderTargets(1, &m_pTexPassOut->GetRTV(), false, nullptr);
+	pCmdList->SetGraphicsRootSignature(m_pRootSig.Get());
+	pCmdList->SetPipelineState(m_pPSO.Get());
 
 	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
 	auto srvHandle = pShaderVisibleDescriptorHeap->Append(m_pTexPassIn->GetSRV());
 
 	ID3D12DescriptorHeap* ppHeaps[] = { pShaderVisibleDescriptorHeap->GetHeap() };
-	m_pCommandList->SetDescriptorHeaps(1, ppHeaps);
+	pCmdList->SetDescriptorHeaps(1, ppHeaps);
 
-	m_pCommandList->OMSetStencilRef(0x01);
-	m_pCommandList->SetGraphicsRootDescriptorTable(0, srvHandle);
+	pCmdList->OMSetStencilRef(0x01);
+	pCmdList->SetGraphicsRootDescriptorTable(0, srvHandle);
 
 	const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_RenderTarget");
-	m_pCommandList->IASetVertexBuffers(0, 1, &meshView.vbv);
-	m_pCommandList->IASetIndexBuffer(&meshView.ibv);
-	m_pCommandList->DrawIndexedInstanced(meshView.indexCount, 1, 0, 0, 0);
+	pCmdList->IASetVertexBuffers(0, 1, &meshView.vbv);
+	pCmdList->IASetIndexBuffer(&meshView.ibv);
+	pCmdList->DrawIndexedInstanced(meshView.indexCount, 1, 0, 0, 0);
 
-	m_pCommandList->OMSetStencilRef(0x00);
+	pCmdList->OMSetStencilRef(0x00);
 
 	NX12Util::EndEvent();
 }

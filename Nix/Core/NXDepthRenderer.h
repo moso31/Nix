@@ -11,12 +11,11 @@ public:
 	~NXDepthRenderer() {}
 
 	void Init();
-	void Render();
+	void Render(ID3D12GraphicsCommandList* pCmdList);
 
 	void Release();
 
 private:
-	ComPtr<ID3D12GraphicsCommandList>	m_pCommandList;
 	ComPtr<ID3D12PipelineState>			m_pPSO;
 	ComPtr<ID3D12RootSignature>			m_pRootSig;
 

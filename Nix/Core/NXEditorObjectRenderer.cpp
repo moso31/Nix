@@ -25,8 +25,6 @@ void NXEditorObjectRenderer::Init()
 {
 	m_pTexPassOut = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_PostProcessing);
 
-	NX12Util::CreateCommands(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.GetAddressOf(), m_pCommandAllocator.GetAddressOf(), m_pCommandList.GetAddressOf());
-
 	ComPtr<ID3DBlob> pVSBlob, pPSBlob;
 	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\EditorObjects.fx", "VS", pVSBlob.GetAddressOf());
 	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\EditorObjects.fx", "PS", pPSBlob.GetAddressOf());
@@ -62,18 +60,16 @@ void NXEditorObjectRenderer::OnResize(const Vector2& rtSize)
 {
 }
 
-void NXEditorObjectRenderer::Render()
+void NXEditorObjectRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 {
-	m_pCommandList->Reset(m_pCommandAllocator.Get(), nullptr);
+	NX12Util::BeginEvent(pCmdList, "Editor objects");
 
-	NX12Util::BeginEvent(m_pCommandList.Get(), "Editor objects");
+	pCmdList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbCamera.GetGPUHandle());
 
-	m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbCamera.GetGPUHandle());
+	pCmdList->SetGraphicsRootSignature(m_pRootSig.Get());
+	pCmdList->SetPipelineState(m_pPSO.Get());
 
-	m_pCommandList->SetGraphicsRootSignature(m_pRootSig.Get());
-	m_pCommandList->SetPipelineState(m_pPSO.Get());
-
-	m_pCommandList->OMSetRenderTargets(1, &m_pTexPassOut->GetRTV(), false, nullptr);
+	pCmdList->OMSetRenderTargets(1, &m_pTexPassOut->GetRTV(), false, nullptr);
 
   	NXEditorObjectManager* pEditorObjManager = m_pScene->GetEditorObjManager();
 	for (auto pEditObj : pEditorObjManager->GetEditableObjects())
@@ -92,25 +88,21 @@ void NXEditorObjectRenderer::Render()
 						bool bIsHighLight = pSubMeshEditorObj->GetEditorObjectID() == m_pScene->GetEditorObjManager()->GetHighLightID();
 						m_cbParams.Current().value.x = bIsHighLight ? 1.0f : 0.0f;
 						m_cbParams.UpdateBuffer();
-						m_pCommandList->SetGraphicsRootConstantBufferView(0, m_cbParams.GetGPUHandle());
+						pCmdList->SetGraphicsRootConstantBufferView(0, m_cbParams.GetGPUHandle());
 					}
 
 					pSubMeshEditorObj->UpdateViewParams();
 
-					m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbObject.GetGPUHandle());
+					pCmdList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbObject.GetGPUHandle());
 
 					pSubMeshEditorObj->Update();
-					pSubMeshEditorObj->Render(m_pCommandList.Get());
+					pSubMeshEditorObj->Render(pCmdList);
 				}
 			}
 		}
 	}
 
 	NX12Util::EndEvent();
-
-	m_pCommandList->Close();
-	ID3D12CommandList* ppCommandLists[] = { m_pCommandList.Get() };
-	m_pCommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 }
 
 void NXEditorObjectRenderer::Release()

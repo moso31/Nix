@@ -53,6 +53,7 @@ void NXGUI::Init()
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
 	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
 
+	NX12Util::CreateCommands(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, &m_pCmdQueue, &m_pCmdAllocator, &m_pCmdList);
 	m_pImguiDescHeap = new NXShaderVisibleDescriptorHeap(NXGlobalDX::GetDevice());
 
 	ImGui_ImplWin32_Init(NXGlobalWindows::hWnd);
@@ -105,9 +106,15 @@ void NXGUI::ExecuteDeferredCommands()
 	NXGUICommandManager::GetInstance()->Update();
 }
 
-void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT)
+void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT, D3D12_CPU_DESCRIPTOR_HANDLE swapChainRTV)
 {
-	NX12Util::BeginEvent(NXGlobalDX::CurrentCmdList(), "dear-imgui");
+	m_pCmdList->Reset(m_pCmdAllocator.Get(), nullptr);
+
+	// GUI将被直接渲染到SwapChain的RTV上
+	m_pCmdList->OMSetRenderTargets(1, &swapChainRTV, true, nullptr);
+	m_pCmdList->ClearRenderTargetView(swapChainRTV, DirectX::Colors::Black, 0, nullptr);
+
+	NX12Util::BeginEvent(m_pCmdList.Get(), "dear-imgui");
 
 	ImGui_ImplDX12_NewFrame();
 	ImGui_ImplWin32_NewFrame();
@@ -146,7 +153,7 @@ void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT)
 
 	// Rendering
 	ImGui::Render();
-	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), NXGlobalDX::CurrentCmdList());
+	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), m_pCmdList.Get());
 
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -156,6 +163,10 @@ void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT)
 	}
 
 	NX12Util::EndEvent();
+
+	m_pCmdList->Close();
+	ID3D12CommandList* ppCmdLists[] = { m_pCmdList.Get() };
+	m_pCmdQueue->ExecuteCommandLists(1, ppCmdLists);
 }
 
 void NXGUI::Release()

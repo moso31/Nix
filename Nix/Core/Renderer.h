@@ -68,9 +68,11 @@ private:
 	void OnKeyDown(NXEventArgKey eArg);
 
 private:
-	Vector2								m_viewRTSize;
+	ComPtr<ID3D12CommandAllocator>		m_pCommandAllocator;
+	ComPtr<ID3D12CommandQueue>			m_pCommandQueue;
 	ComPtr<ID3D12GraphicsCommandList>	m_pCommandList;
 
+	Vector2								m_viewRTSize;
 	NXBRDFLut*							m_pBRDFLut;
 
 	NXScene*							m_scene;

@@ -30,11 +30,15 @@ public:
 
 	void Init();
 	void ExecuteDeferredCommands();
-	void Render(Ntr<NXTexture2D> pGUIViewRT);
+	void Render(Ntr<NXTexture2D> pGUIViewRT, D3D12_CPU_DESCRIPTOR_HANDLE swapChainRTV);
 	void Release();
 
 private:
 	NXShaderVisibleDescriptorHeap*	m_pImguiDescHeap;
+
+	ComPtr<ID3D12GraphicsCommandList>	m_pCmdList;
+	ComPtr<ID3D12CommandAllocator>		m_pCmdAllocator;
+	ComPtr<ID3D12CommandQueue>			m_pCmdQueue;
 
 	bool m_bInited = false;
 	NXScene*	m_pCurrentScene;

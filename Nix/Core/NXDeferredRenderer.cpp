@@ -24,8 +24,6 @@ NXDeferredRenderer::~NXDeferredRenderer()
 
 void NXDeferredRenderer::Init()
 {
-	NX12Util::CreateCommands(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.GetAddressOf(), m_pCommandAllocator.GetAddressOf(), m_pCommandList.GetAddressOf());
-
 	m_pTexPassIn[0] = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer0);
 	m_pTexPassIn[1] = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer1);
 	m_pTexPassIn[2] = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer2);
@@ -87,17 +85,15 @@ void NXDeferredRenderer::Init()
 	NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
 }
 
-void NXDeferredRenderer::Render()
+void NXDeferredRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 {
-	m_pCommandList->Reset(m_pCommandAllocator.Get(), nullptr);
-
-	NX12Util::BeginEvent(m_pCommandList.Get(), "Deferred rendering");
+	NX12Util::BeginEvent(pCmdList, "Deferred rendering");
 
 	D3D12_CPU_DESCRIPTOR_HANDLE ppRTVs[] = { m_pTexPassOut[0]->GetRTV(), m_pTexPassOut[1]->GetRTV(), m_pTexPassOut[2]->GetRTV(), m_pTexPassOut[3]->GetRTV() };
-	m_pCommandList->OMSetRenderTargets(_countof(ppRTVs), ppRTVs, true, nullptr);
+	pCmdList->OMSetRenderTargets(_countof(ppRTVs), ppRTVs, true, nullptr);
 
-	m_pCommandList->SetGraphicsRootSignature(m_pRootSig.Get());
-	m_pCommandList->SetPipelineState(m_pPSO.Get());
+	pCmdList->SetGraphicsRootSignature(m_pRootSig.Get());
+	pCmdList->SetPipelineState(m_pPSO.Get());
 
 	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
 	D3D12_GPU_DESCRIPTOR_HANDLE srvHandle[9];
@@ -105,23 +101,19 @@ void NXDeferredRenderer::Render()
 		srvHandle[i] = pShaderVisibleDescriptorHeap->Append(m_pTexPassIn[i]->GetSRV());
 
 	ID3D12DescriptorHeap* ppHeaps[] = { pShaderVisibleDescriptorHeap->GetHeap() };
-	m_pCommandList->SetDescriptorHeaps(1, ppHeaps);
+	pCmdList->SetDescriptorHeaps(1, ppHeaps);
 
-	m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbObject.GetGPUHandle());
-	m_pCommandList->SetGraphicsRootConstantBufferView(1, NXGlobalBuffer::cbCamera.GetGPUHandle());
-	m_pCommandList->SetGraphicsRootConstantBufferView(2, m_pScene->GetConstantBufferLights());
-	m_pCommandList->SetGraphicsRootConstantBufferView(3, m_pScene->GetCubeMap()->GetCBDataParams());
-	m_pCommandList->SetGraphicsRootConstantBufferView(4, NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfile());
-	m_pCommandList->SetGraphicsRootShaderResourceView(5, srvHandle[0].ptr);
+	pCmdList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbObject.GetGPUHandle());
+	pCmdList->SetGraphicsRootConstantBufferView(1, NXGlobalBuffer::cbCamera.GetGPUHandle());
+	pCmdList->SetGraphicsRootConstantBufferView(2, m_pScene->GetConstantBufferLights());
+	pCmdList->SetGraphicsRootConstantBufferView(3, m_pScene->GetCubeMap()->GetCBDataParams());
+	pCmdList->SetGraphicsRootConstantBufferView(4, NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfile());
+	pCmdList->SetGraphicsRootShaderResourceView(5, srvHandle[0].ptr);
 
 	const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_RenderTarget");
-	m_pCommandList->IASetVertexBuffers(0, 1, &meshView.vbv);
-	m_pCommandList->IASetIndexBuffer(&meshView.ibv);
-	m_pCommandList->DrawIndexedInstanced(meshView.indexCount, 1, 0, 0, 0);
-
-	m_pCommandList->Close();
-	ID3D12CommandList* pCmdLists[] = {m_pCommandList.Get()};
-	m_pCommandQueue->ExecuteCommandLists(1, pCmdLists);
+	pCmdList->IASetVertexBuffers(0, 1, &meshView.vbv);
+	pCmdList->IASetIndexBuffer(&meshView.ibv);
+	pCmdList->DrawIndexedInstanced(meshView.indexCount, 1, 0, 0, 0);
 }
 
 void NXDeferredRenderer::Release()

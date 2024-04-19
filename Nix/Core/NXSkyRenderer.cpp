@@ -68,53 +68,45 @@ void NXSkyRenderer::Init()
 	m_pTexPassOut = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_SSSLighting);
 	m_pTexPassOutDepth = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
 
-	NX12Util::CreateCommands(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.GetAddressOf(), m_pCommandAllocator.GetAddressOf(), m_pCommandList.GetAddressOf(), false);
-
 	InitSignature();	
 	InitPSO();
 }
 
-void NXSkyRenderer::Render()
+void NXSkyRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 {
-	m_pCommandList->Reset(m_pCommandAllocator.Get(), nullptr);
-
-	NX12Util::BeginEvent(m_pCommandList.Get(), "Sky (CubeMap IBL)");
+	NX12Util::BeginEvent(pCmdList, "Sky (CubeMap IBL)");
 
 	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
 
 	auto pCubeMap = m_pScene->GetCubeMap();
 	if (pCubeMap)
 	{
-		m_pCommandList->SetGraphicsRootSignature(m_pRootSig.Get());
-		m_pCommandList->SetPipelineState(m_pPSO.Get());
+		pCmdList->SetGraphicsRootSignature(m_pRootSig.Get());
+		pCmdList->SetPipelineState(m_pPSO.Get());
 
 		ID3D12DescriptorHeap* ppHeaps[] = { pShaderVisibleDescriptorHeap->GetHeap() };
-		m_pCommandList->SetDescriptorHeaps(1, ppHeaps);
+		pCmdList->SetDescriptorHeaps(1, ppHeaps);
 
-		m_pTexPassOut->SetResourceState(m_pCommandList.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET);
-		m_pTexPassOutDepth->SetResourceState(m_pCommandList.Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
+		m_pTexPassOut->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		m_pTexPassOutDepth->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
 		auto rtvHandle = m_pTexPassOut->GetRTV();
 		auto dsvHandle = m_pTexPassOutDepth->GetDSV();
-		m_pCommandList->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);
+		pCmdList->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);
 
 		D3D12_GPU_DESCRIPTOR_HANDLE srvHandle = pShaderVisibleDescriptorHeap->Append(pCubeMap->GetSRVCubeMap());
 
 		pCubeMap->UpdateViewParams();
 
-		m_pCommandList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbObject.GetGPUHandle());
-		m_pCommandList->SetGraphicsRootConstantBufferView(1, pCubeMap->GetCBDataParams());
-		m_pCommandList->SetGraphicsRootDescriptorTable(2, srvHandle);
+		pCmdList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbObject.GetGPUHandle());
+		pCmdList->SetGraphicsRootConstantBufferView(1, pCubeMap->GetCBDataParams());
+		pCmdList->SetGraphicsRootDescriptorTable(2, srvHandle);
 
-		pCubeMap->Render(m_pCommandList.Get());
+		pCubeMap->Render(pCmdList);
 
-		m_pTexPassOut->SetResourceState(m_pCommandList.Get(), D3D12_RESOURCE_STATE_COMMON);
-		m_pTexPassOutDepth->SetResourceState(m_pCommandList.Get(), D3D12_RESOURCE_STATE_COMMON);
+		m_pTexPassOut->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COMMON);
+		m_pTexPassOutDepth->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COMMON);
 	}
 
 	NX12Util::EndEvent();
-
-	m_pCommandList->Close();
-	ID3D12CommandList* pCmdLists[] = { m_pCommandList.Get() };
-	m_pCommandQueue->ExecuteCommandLists(1, pCmdLists);
 }

@@ -27,8 +27,6 @@ NXShadowMapRenderer::~NXShadowMapRenderer()
 
 void NXShadowMapRenderer::Init()
 {
-	NX12Util::CreateCommands(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.GetAddressOf(), m_pCommandAllocator.GetAddressOf(), m_pCommandList.GetAddressOf());
-
 	ComPtr<ID3DBlob> pVSBlob, pPSBlob;
 	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\ShadowMap.fx", "VS", pVSBlob.GetAddressOf());
 	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\ShadowMap.fx", "PS", pPSBlob.GetAddressOf());
@@ -75,15 +73,13 @@ void NXShadowMapRenderer::Init()
 	}
 }
 
-void NXShadowMapRenderer::Render()
+void NXShadowMapRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 {
-	m_pCommandList->Reset(m_pCommandAllocator.Get(), nullptr);
+	NX12Util::BeginEvent(pCmdList, "Shadow Map");
 
-	NX12Util::BeginEvent(m_pCommandList.Get(), "Shadow Map");
-
-	m_pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	m_pCommandList->SetGraphicsRootSignature(m_pRootSig.Get());
-	m_pCommandList->SetPipelineState(m_pPSO.Get());
+	pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	pCmdList->SetGraphicsRootSignature(m_pRootSig.Get());
+	pCmdList->SetPipelineState(m_pPSO.Get());
 
 	NXGlobalBuffer::cbShadowTest.Current().test_transition = m_test_transition;
 
@@ -92,18 +88,14 @@ void NXShadowMapRenderer::Render()
 		if (pLight->GetType() == NXLightTypeEnum::NXLight_Distant)
 		{
 			NXPBRDistantLight* pDirLight = static_cast<NXPBRDistantLight*>(pLight);
-			UpdateShadowMapBuffer(pDirLight);
+			UpdateShadowMapBuffer(pCmdList, pDirLight);
 		}
 	}
 
 	NX12Util::EndEvent();
-
-	m_pCommandList->Close();
-	ID3D12CommandList* pCmdLists[] = { m_pCommandList.Get() };
-	m_pCommandQueue->ExecuteCommandLists(1, pCmdLists);
 }
 
-void NXShadowMapRenderer::RenderSingleObject(NXRenderableObject* pRenderableObject)
+void NXShadowMapRenderer::RenderSingleObject(ID3D12GraphicsCommandList* pCmdList, NXRenderableObject* pRenderableObject)
 {
 	NXPrimitive* pPrimitive = pRenderableObject->IsPrimitive();
 	if (pPrimitive)
@@ -111,12 +103,12 @@ void NXShadowMapRenderer::RenderSingleObject(NXRenderableObject* pRenderableObje
 		m_cbShadowMapObject.Current().world = pPrimitive->GetWorldMatrix().Transpose();
 		m_cbShadowMapObject.UpdateBuffer();
 
-		m_pCommandList->SetGraphicsRootConstantBufferView(0, m_cbShadowMapObject.GetGPUHandle());
+		pCmdList->SetGraphicsRootConstantBufferView(0, m_cbShadowMapObject.GetGPUHandle());
 
 		for (UINT i = 0; i < pPrimitive->GetSubMeshCount(); i++)
 		{
 			NXSubMeshBase* pSubmesh = pPrimitive->GetSubMesh(i);
-			pSubmesh->Render(m_pCommandList.Get());
+			pSubmesh->Render(pCmdList);
 		}
 	}
 
@@ -124,7 +116,7 @@ void NXShadowMapRenderer::RenderSingleObject(NXRenderableObject* pRenderableObje
 	{
 		NXRenderableObject* pChildRenderableObject = pChildObject->IsRenderableObject();
 		if (pChildRenderableObject)
-			RenderSingleObject(pChildRenderableObject);
+			RenderSingleObject(pCmdList, pChildRenderableObject);
 	}
 }
 
@@ -173,7 +165,7 @@ void NXShadowMapRenderer::SetCascadeTransitionScale(float value)
 	}
 }
 
-void NXShadowMapRenderer::UpdateShadowMapBuffer(NXPBRDistantLight* pDirLight)
+void NXShadowMapRenderer::UpdateShadowMapBuffer(ID3D12GraphicsCommandList* pCmdList, NXPBRDistantLight* pDirLight)
 {
 	Vector3 lightDirection = pDirLight->GetDirection();
 	lightDirection = lightDirection.IsZero() ? Vector3(0.0f, 0.0f, 1.0f) : lightDirection;
@@ -281,13 +273,13 @@ void NXShadowMapRenderer::UpdateShadowMapBuffer(NXPBRDistantLight* pDirLight)
 		NXGlobalBuffer::cbShadowTest.Current().view[i] = m_cbShadowMapObject.Current().view;
 		NXGlobalBuffer::cbShadowTest.Current().projection[i] = m_cbShadowMapObject.Current().projection;
 
-		m_pCommandList->ClearDepthStencilView(m_pShadowMapDepth->GetDSV(i), D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0x0, 0, nullptr);
-		m_pCommandList->OMSetRenderTargets(0, nullptr, false, &m_pShadowMapDepth->GetDSV(i));
+		pCmdList->ClearDepthStencilView(m_pShadowMapDepth->GetDSV(i), D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0x0, 0, nullptr);
+		pCmdList->OMSetRenderTargets(0, nullptr, false, &m_pShadowMapDepth->GetDSV(i));
 
 		// 更新当前 cascade 层 的 ShadowMap world 绘制矩阵，并绘制
 		for (auto pRenderableObj : m_pScene->GetRenderableObjects())
 		{
-			RenderSingleObject(pRenderableObj);
+			RenderSingleObject(pCmdList, pRenderableObj);
 		}
 	}
 

@@ -25,8 +25,8 @@ public:
 	~NXShadowMapRenderer();
 
 	void Init();
-	void Render();
-	void RenderSingleObject(NXRenderableObject* pRenderableObject);
+	void Render(ID3D12GraphicsCommandList* pCmdList);
+	void RenderSingleObject(ID3D12GraphicsCommandList* pCmdList, NXRenderableObject* pRenderableObject);
 
 	void Release();
 
@@ -47,13 +47,9 @@ public:
 	void	SetCascadeExponentScale(float value)	{ m_cascadeExponentScale = value; }
 
 private:
-	void UpdateShadowMapBuffer(NXPBRDistantLight* pDirLight);
+	void UpdateShadowMapBuffer(ID3D12GraphicsCommandList* pCmdList, NXPBRDistantLight* pDirLight);
 
 private:
-	ComPtr<ID3D12GraphicsCommandList>	m_pCommandList;
-	ComPtr<ID3D12CommandAllocator>		m_pCommandAllocator;
-	ComPtr<ID3D12CommandQueue>			m_pCommandQueue;
-
 	ComPtr<ID3D12PipelineState>			m_pPSO;
 	ComPtr<ID3D12RootSignature>			m_pRootSig;
 

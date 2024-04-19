@@ -35,6 +35,8 @@ void Renderer::Init()
 
 	NXTexture::Init();
 
+	NX12Util::CreateCommands(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.GetAddressOf(), m_pCommandAllocator.GetAddressOf(), m_pCommandList.GetAddressOf());
+
 	// 渲染器
 	InitRenderer();
 
@@ -183,6 +185,8 @@ void Renderer::UpdateTime()
 
 void Renderer::RenderFrame()
 {
+	m_pCommandList->Reset(m_pCommandAllocator.Get(), nullptr);
+
 	auto& pSceneRT = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting0);
 	if (pSceneRT.IsNull()) return;
 
@@ -196,31 +200,31 @@ void Renderer::RenderFrame()
 	//m_pDepthPrepass->Render();
 
 	// GBuffer
-	m_pGBufferRenderer->Render();
+	m_pGBufferRenderer->Render(m_pCommandList.Get());
 
 	// Depth Copy 2023.10.26
 	// Burley SSS 既需要将 Depth 的模板缓存绑定到output，又需要深度信息作为input，这就会导致资源绑定冲突。
 	// 所以这里 Copy 一份记录到 GBuffer 为止的 Depth 到 DepthR32。
 	// 遇到需要避免资源绑定冲突的情况，就使用复制的这张作为input。
 	// 【未来如有需要可升级成 Hi-Z】
-	m_pDepthRenderer->Render();
+	m_pDepthRenderer->Render(m_pCommandList.Get());
 
 	// Shadow Map
 	auto vpShadow = NX12Util::ViewPort(2048, 2048);
 	m_pCommandList->RSSetViewports(1, &vpShadow);
-	m_pShadowMapRenderer->Render();
+	m_pShadowMapRenderer->Render(m_pCommandList.Get());
 	m_pCommandList->RSSetViewports(1, &vpCamera);
 	m_pShadowTestRenderer->SetShadowMapDepth(m_pShadowMapRenderer->GetShadowMapDepthTex());
-	m_pShadowTestRenderer->Render();
+	m_pShadowTestRenderer->Render(m_pCommandList.Get());
 
 	// Deferred opaque shading
-	m_pDeferredRenderer->Render();
+	m_pDeferredRenderer->Render(m_pCommandList.Get());
 
 	// Burley SSS (2015)
-	m_pSubSurfaceRenderer->Render();
+	m_pSubSurfaceRenderer->Render(m_pCommandList.Get());
 
 	// CubeMap
-	m_pSkyRenderer->Render();
+	m_pSkyRenderer->Render(m_pCommandList.Get());
 
 	// Forward translucent shading
 	// 2023.8.20 前向渲染暂时停用，等 3S 搞完的
@@ -231,13 +235,13 @@ void Renderer::RenderFrame()
 	//m_pSSAO->Render(pSRVNormal, pSRVPosition, pSRVDepthPrepass);
 
 	// post processing
-	m_pColorMappingRenderer->Render();
+	m_pColorMappingRenderer->Render(m_pCommandList.Get());
 
 	// 绘制编辑器对象
-	m_pEditorObjectRenderer->Render();
+	m_pEditorObjectRenderer->Render(m_pCommandList.Get());
 
 	// 绘制调试信息层（如果有的话）
-	m_pDebugLayerRenderer->Render();
+	m_pDebugLayerRenderer->Render(m_pCommandList.Get());
 
 	// 判断 GUIView 使用哪张纹理RT 作为 Input
 	bool bEnableDebugLayer = m_pDebugLayerRenderer->GetEnableDebugLayer();
@@ -245,15 +249,15 @@ void Renderer::RenderFrame()
 		NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_PostProcessing);
 
 	NX12Util::EndEvent();
+
+	m_pCommandList->Close();
+	ID3D12CommandList* pCmdLists[] = { m_pCommandList.Get() };
+	m_pCommandQueue->ExecuteCommandLists(1, pCmdLists);
 }
 
 void Renderer::RenderGUI(D3D12_CPU_DESCRIPTOR_HANDLE swapChainRTV)
 {
-	// GUI将被直接渲染到SwapChain的RTV上
-	NXGlobalDX::CurrentCmdList()->OMSetRenderTargets(1, &swapChainRTV, true, nullptr);
-	NXGlobalDX::CurrentCmdList()->ClearRenderTargetView(swapChainRTV, DirectX::Colors::Black, 0, nullptr);
-
-	if (m_bRenderGUI) m_pGUI->Render(m_pFinalRT);
+	if (m_bRenderGUI) m_pGUI->Render(m_pFinalRT, swapChainRTV);
 }
 
 void Renderer::Release()

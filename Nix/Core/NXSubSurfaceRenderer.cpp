@@ -19,8 +19,6 @@ NXSubSurfaceRenderer::~NXSubSurfaceRenderer()
 
 void NXSubSurfaceRenderer::Init()
 {
-	NX12Util::CreateCommands(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.GetAddressOf(), m_pCommandAllocator.GetAddressOf(), m_pCommandList.GetAddressOf());
-
 	m_pTexPassIn[0] = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting0);
 	m_pTexPassIn[1] = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting1);
 	m_pTexPassIn[2] = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting2);
@@ -69,27 +67,21 @@ void NXSubSurfaceRenderer::Init()
 	NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
 }
 
-void NXSubSurfaceRenderer::Render()
+void NXSubSurfaceRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 {
-	m_pCommandList->Reset(m_pCommandAllocator.Get(), nullptr);
-
-	NX12Util::BeginEvent(m_pCommandList.Get(), "SSSSS");
+	NX12Util::BeginEvent(pCmdList, "SSSSS");
 	static int RenderMode = 0;
-	if (RenderMode == 0) RenderSSSSS();
+	if (RenderMode == 0) RenderSSSSS(pCmdList);
 	NX12Util::EndEvent();
-
-	m_pCommandList->Close();
-	ID3D12CommandList* pCmdLists[] = { m_pCommandList.Get() };
-	m_pCommandQueue->ExecuteCommandLists(1, pCmdLists);
 }
 
-void NXSubSurfaceRenderer::RenderSSSSS()
+void NXSubSurfaceRenderer::RenderSSSSS(ID3D12GraphicsCommandList* pCmdList)
 {
-	m_pCommandList->OMSetStencilRef(0x01);
+	pCmdList->OMSetStencilRef(0x01);
 
-	m_pCommandList->OMSetRenderTargets(1, &m_pTexPassOut->GetRTV(), false, nullptr);
-	m_pCommandList->SetGraphicsRootSignature(m_pRootSig.Get());
-	m_pCommandList->SetPipelineState(m_pPSO.Get());
+	pCmdList->OMSetRenderTargets(1, &m_pTexPassOut->GetRTV(), false, nullptr);
+	pCmdList->SetGraphicsRootSignature(m_pRootSig.Get());
+	pCmdList->SetPipelineState(m_pPSO.Get());
 
 	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
 	D3D12_GPU_DESCRIPTOR_HANDLE srvHandle[6];
@@ -97,12 +89,12 @@ void NXSubSurfaceRenderer::RenderSSSSS()
 		srvHandle[i] = pShaderVisibleDescriptorHeap->Append(m_pTexPassIn[i]->GetSRV());
 
 	ID3D12DescriptorHeap* ppHeaps[] = { pShaderVisibleDescriptorHeap->GetHeap() };
-	m_pCommandList->SetDescriptorHeaps(1, ppHeaps);
+	pCmdList->SetDescriptorHeaps(1, ppHeaps);
 
-	m_pCommandList->SetGraphicsRootConstantBufferView(0, NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfile());
-	m_pCommandList->SetGraphicsRootDescriptorTable(1, srvHandle[0]);
+	pCmdList->SetGraphicsRootConstantBufferView(0, NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfile());
+	pCmdList->SetGraphicsRootDescriptorTable(1, srvHandle[0]);
 
-	m_pCommandList->OMSetStencilRef(0x00);
+	pCmdList->OMSetStencilRef(0x00);
 }
 
 void NXSubSurfaceRenderer::Release()
