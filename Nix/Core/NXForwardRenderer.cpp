@@ -141,5 +141,5 @@ void NXForwardRenderer::Render()
 	//	// TODO
 	//}
 
-	NX12Util::EndEvent();
+	NX12Util::EndEvent(m_pCommandList.Get());
 }

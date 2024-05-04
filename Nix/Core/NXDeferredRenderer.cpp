@@ -78,7 +78,7 @@ void NXDeferredRenderer::Init()
 	psoDesc.RTVFormats[1] = m_pTexPassOut[1]->GetFormat();
 	psoDesc.RTVFormats[2] = m_pTexPassOut[2]->GetFormat();
 	psoDesc.RTVFormats[3] = m_pTexPassOut[3]->GetFormat();
-	psoDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -100,20 +100,19 @@ void NXDeferredRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 	for (int i = 0; i < _countof(srvHandle); i++)
 		srvHandle[i] = pShaderVisibleDescriptorHeap->Append(m_pTexPassIn[i]->GetSRV());
 
-	ID3D12DescriptorHeap* ppHeaps[] = { pShaderVisibleDescriptorHeap->GetHeap() };
-	pCmdList->SetDescriptorHeaps(1, ppHeaps);
-
 	pCmdList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbObject.GetGPUHandle());
 	pCmdList->SetGraphicsRootConstantBufferView(1, NXGlobalBuffer::cbCamera.GetGPUHandle());
 	pCmdList->SetGraphicsRootConstantBufferView(2, m_pScene->GetConstantBufferLights());
 	pCmdList->SetGraphicsRootConstantBufferView(3, m_pScene->GetCubeMap()->GetCBDataParams());
 	pCmdList->SetGraphicsRootConstantBufferView(4, NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfile());
-	pCmdList->SetGraphicsRootShaderResourceView(5, srvHandle[0].ptr);
+	pCmdList->SetGraphicsRootDescriptorTable(5, srvHandle[0]);
 
 	const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_RenderTarget");
 	pCmdList->IASetVertexBuffers(0, 1, &meshView.vbv);
 	pCmdList->IASetIndexBuffer(&meshView.ibv);
 	pCmdList->DrawIndexedInstanced(meshView.indexCount, 1, 0, 0, 0);
+
+	NX12Util::EndEvent(pCmdList);
 }
 
 void NXDeferredRenderer::Release()

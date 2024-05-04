@@ -37,7 +37,7 @@ DXGI_FORMAT SafeDXGIFormat(DXGI_FORMAT fmt);
 // 2024.4.9
 // 从一个DXGI_FORMAT中去掉Typeless类型
 // DX12建议创建资源时指定clearValue，而clearValue的格式不能是Typeless类型
-DXGI_FORMAT DXGINoTypeless(DXGI_FORMAT fmt);
+DXGI_FORMAT DXGINoTypeless(DXGI_FORMAT fmt, bool isDepthStencil = false);
 
 DXGI_FORMAT ForceSRGB(DXGI_FORMAT fmt);
 DXGI_FORMAT ForceLinear(DXGI_FORMAT fmt);

@@ -19,7 +19,6 @@ void NXTexture::Init()
 {
 	s_pCmdAllocator = NX12Util::CreateCommandAllocator(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT);
 	s_pCmdList = NX12Util::CreateGraphicsCommandList(NXGlobalDX::GetDevice(), s_pCmdAllocator.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT);
-	s_pCmdList->Close();
 }
 
 void NXTexture::SetClearValue(float R, float G, float B, float A)
@@ -35,7 +34,7 @@ void NXTexture::SetClearValue(float depth, UINT stencilRef)
 {
 	m_clearValue.DepthStencil.Depth = depth;
 	m_clearValue.DepthStencil.Stencil = stencilRef;
-	m_clearValue.Format = NXConvert::DXGINoTypeless(m_texFormat);
+	m_clearValue.Format = NXConvert::DXGINoTypeless(m_texFormat, true);
 }
 
 const void NXTexture::SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D3D12_RESOURCE_STATES& state)
@@ -88,41 +87,29 @@ void NXTexture::CreateInternal(D3D12_RESOURCE_FLAGS flags)
 	HRESULT hr;
 	if (flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET)
 	{
+		m_resourceState = D3D12_RESOURCE_STATE_RENDER_TARGET;
 		SetClearValue(0.0f, 0.0f, 0.0f, 1.0f);
-		hr = NXGlobalDX::GetDevice()->CreateCommittedResource(
-			&NX12Util::CreateHeapProperties(D3D12_HEAP_TYPE_DEFAULT),
-			D3D12_HEAP_FLAG_NONE,
-			&desc,
-			D3D12_RESOURCE_STATE_COMMON,
-			&m_clearValue,
-			IID_PPV_ARGS(&m_pTexture)
-		);
+
 	}
 	else if (flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
 	{
+		m_resourceState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 		SetClearValue(0.0f, 0x00);
-		hr = NXGlobalDX::GetDevice()->CreateCommittedResource(
-			&NX12Util::CreateHeapProperties(D3D12_HEAP_TYPE_DEFAULT),
-			D3D12_HEAP_FLAG_NONE,
-			&desc,
-			D3D12_RESOURCE_STATE_COMMON,
-			nullptr,
-			IID_PPV_ARGS(&m_pTexture)
-		);
 	}
 	else
 	{
-		hr = NXGlobalDX::GetDevice()->CreateCommittedResource(
-			&NX12Util::CreateHeapProperties(D3D12_HEAP_TYPE_DEFAULT),
-			D3D12_HEAP_FLAG_NONE,
-			&desc,
-			D3D12_RESOURCE_STATE_COMMON,
-			nullptr,
-			IID_PPV_ARGS(&m_pTexture)
-		);
+		m_resourceState = D3D12_RESOURCE_STATE_COMMON;
+		SetClearValue(0.0f, 0x00);
 	}
 
-	m_resourceState = D3D12_RESOURCE_STATE_COMMON;
+	hr = NXGlobalDX::GetDevice()->CreateCommittedResource(
+		&NX12Util::CreateHeapProperties(D3D12_HEAP_TYPE_DEFAULT),
+		D3D12_HEAP_FLAG_NONE,
+		&desc,
+		m_resourceState,
+		&m_clearValue,
+		IID_PPV_ARGS(&m_pTexture)
+	);
 
 	std::wstring wName(m_name.begin(), m_name.end());
 	m_pTexture->SetName(wName.c_str());
@@ -327,6 +314,8 @@ Ntr<NXTexture2D> NXTexture2D::Create(const std::string& debugName, const std::fi
 
 	if (FAILED(hr))
 	{
+		std::wstring errMsg = L"Failed to load texture file." + filePath.wstring();
+		MessageBox(NULL, errMsg.c_str(), L"Error", MB_OK | MB_ICONERROR);
 		pImage.reset();
 		return nullptr;
 	}

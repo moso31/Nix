@@ -84,12 +84,6 @@ void NXSkyRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 		pCmdList->SetGraphicsRootSignature(m_pRootSig.Get());
 		pCmdList->SetPipelineState(m_pPSO.Get());
 
-		ID3D12DescriptorHeap* ppHeaps[] = { pShaderVisibleDescriptorHeap->GetHeap() };
-		pCmdList->SetDescriptorHeaps(1, ppHeaps);
-
-		m_pTexPassOut->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_RENDER_TARGET);
-		m_pTexPassOutDepth->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-
 		auto rtvHandle = m_pTexPassOut->GetRTV();
 		auto dsvHandle = m_pTexPassOutDepth->GetDSV();
 		pCmdList->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);
@@ -103,10 +97,7 @@ void NXSkyRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 		pCmdList->SetGraphicsRootDescriptorTable(2, srvHandle);
 
 		pCubeMap->Render(pCmdList);
-
-		m_pTexPassOut->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COMMON);
-		m_pTexPassOutDepth->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COMMON);
 	}
 
-	NX12Util::EndEvent();
+	NX12Util::EndEvent(pCmdList);
 }

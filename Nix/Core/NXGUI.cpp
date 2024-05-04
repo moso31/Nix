@@ -6,6 +6,7 @@
 #include "Renderer.h"
 #include "NXScene.h"
 #include "NXConverter.h"
+#include "NXAllocatorManager.h"
 
 #include "NXGUIFileBrowser.h"
 #include "NXGUIMaterialShaderEditor.h"
@@ -53,13 +54,19 @@ void NXGUI::Init()
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
 	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
 
-	NX12Util::CreateCommands(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, &m_pCmdQueue, &m_pCmdAllocator, &m_pCmdList);
-	m_pImguiDescHeap = new NXShaderVisibleDescriptorHeap(NXGlobalDX::GetDevice());
+	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
+	{
+		m_pCmdAllocator[i] = NX12Util::CreateCommandAllocator(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT);
+		m_pCmdList[i] = NX12Util::CreateGraphicsCommandList(NXGlobalDX::GetDevice(), m_pCmdAllocator.Get(i).Get(), D3D12_COMMAND_LIST_TYPE_DIRECT);
+	}
 
-	ImGui_ImplWin32_Init(NXGlobalWindows::hWnd);
+	m_pImguiDescHeap = new NXShaderVisibleDescriptorHeap(NXGlobalDX::GetDevice());
+	m_pImguiDescHeap->GetHeap()->SetName(L"ImGui shader visible heap");
 	ImGui_ImplDX12_Init(NXGlobalDX::GetDevice(), MultiFrameSets_swapChainCount, DXGI_FORMAT_R8G8B8A8_UNORM, m_pImguiDescHeap->GetHeap(), m_pImguiDescHeap->GetCPUHandle(0), m_pImguiDescHeap->GetGPUHandle(0));
 
 	// 设置字体
+
+	ImGui_ImplWin32_Init(NXGlobalWindows::hWnd);
 	g_imgui_font_general = io.Fonts->AddFontFromFileTTF("./Resource/fonts/JetBrainsMono-Bold.ttf", 16);
 
 	// CodeEditor 需要使用独立的字体配置。
@@ -106,16 +113,8 @@ void NXGUI::ExecuteDeferredCommands()
 	NXGUICommandManager::GetInstance()->Update();
 }
 
-void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT, D3D12_CPU_DESCRIPTOR_HANDLE swapChainRTV)
+void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT, const NXSwapChainBuffer& swapChainBuffer)
 {
-	m_pCmdList->Reset(m_pCmdAllocator.Get(), nullptr);
-
-	// GUI将被直接渲染到SwapChain的RTV上
-	m_pCmdList->OMSetRenderTargets(1, &swapChainRTV, true, nullptr);
-	m_pCmdList->ClearRenderTargetView(swapChainRTV, DirectX::Colors::Black, 0, nullptr);
-
-	NX12Util::BeginEvent(m_pCmdList.Get(), "dear-imgui");
-
 	ImGui_ImplDX12_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
@@ -137,9 +136,9 @@ void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT, D3D12_CPU_DESCRIPTOR_HANDLE swap
 	m_pGUIPostProcessing->Render();
 	m_pGUIDebugLayer->Render();
 
-	if (m_pGUIView->GetViewRT() != pGUIViewRT)
-		m_pGUIView->SetViewRT(pGUIViewRT);
-	m_pGUIView->Render();
+	//if (m_pGUIView->GetViewRT() != pGUIViewRT)
+	//	m_pGUIView->SetViewRT(pGUIViewRT);
+	//m_pGUIView->Render(m_pImguiDescHeap);
 
 	static bool show_demo_window = true;
 	static bool show_another_window = false;
@@ -153,7 +152,42 @@ void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT, D3D12_CPU_DESCRIPTOR_HANDLE swap
 
 	// Rendering
 	ImGui::Render();
-	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), m_pCmdList.Get());
+
+	auto pCmdAllocator = m_pCmdAllocator.Current().Get();
+	auto pCmdList = m_pCmdList.Current().Get();
+
+	pCmdAllocator->Reset();
+	pCmdList->Reset(pCmdAllocator, nullptr);
+
+	NX12Util::BeginEvent(pCmdList, "dear-imgui");
+
+	auto pDescHeap = m_pImguiDescHeap->GetHeap();
+	pCmdList->SetDescriptorHeaps(1, &pDescHeap);
+
+	D3D12_RESOURCE_BARRIER barrier = {};
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barrier.Transition.pResource = swapChainBuffer.pBuffer.Get();
+	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	pCmdList->ResourceBarrier(1, &barrier);
+
+	// Render Dear ImGui graphics
+	const float clear_color_with_alpha[4] = { clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w };
+	pCmdList->ClearRenderTargetView(swapChainBuffer.rtvHandle, clear_color_with_alpha, 0, nullptr);
+	pCmdList->OMSetRenderTargets(1, &swapChainBuffer.rtvHandle, FALSE, nullptr);
+
+	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), pCmdList);
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+	pCmdList->ResourceBarrier(1, &barrier);
+
+	NX12Util::EndEvent(pCmdList);
+
+	pCmdList->Close();
+	ID3D12CommandList* ppCmdLists[] = { pCmdList };
+	NXGlobalDX::GetCmdQueue()->ExecuteCommandLists(1, ppCmdLists);
 
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -161,12 +195,6 @@ void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT, D3D12_CPU_DESCRIPTOR_HANDLE swap
 		ImGui::UpdatePlatformWindows();
 		ImGui::RenderPlatformWindowsDefault();
 	}
-
-	NX12Util::EndEvent();
-
-	m_pCmdList->Close();
-	ID3D12CommandList* ppCmdLists[] = { m_pCmdList.Get() };
-	m_pCmdQueue->ExecuteCommandLists(1, ppCmdLists);
 }
 
 void NXGUI::Release()

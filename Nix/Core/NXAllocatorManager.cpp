@@ -11,6 +11,7 @@ void NXAllocatorManager::Init()
 	m_pDSVAllocator = new DSVAllocator(pDevice);
 
 	m_pShaderVisibleDescriptorHeap = new NXShaderVisibleDescriptorHeap(pDevice);
+	m_pShaderVisibleDescriptorHeap->GetHeap()->SetName(L"NXGlobal shader visible heap");
 }
 
 void NXAllocatorManager::Release()

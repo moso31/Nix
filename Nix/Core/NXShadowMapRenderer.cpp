@@ -4,6 +4,7 @@
 #include "NXRenderStates.h"
 #include "NXResourceManager.h"
 #include "NXAllocatorManager.h"
+#include "NXConverter.h"
 
 #include "NXScene.h"
 #include "NXPBRLight.h"
@@ -49,9 +50,9 @@ void NXShadowMapRenderer::Init()
 	psoDesc.SampleDesc.Count = 1;
 	psoDesc.SampleDesc.Quality = 0;
 	psoDesc.SampleMask = UINT_MAX;
-	psoDesc.NumRenderTargets = 1;
-	psoDesc.RTVFormats[0] = DXGI_FORMAT_R32_FLOAT; // shadowmap 不需要RTV，写DSV就够了。但不在PSO里至少绑一个RTV的话，会报警告……
-	psoDesc.DSVFormat = m_pShadowMapDepth->GetFormat();
+	psoDesc.NumRenderTargets = 0;
+	//psoDesc.RTVFormats[0] = DXGI_FORMAT_UNKNOWN; // shadowmap 不需要RTV，写DSV就够了。但不在PSO里至少绑一个RTV的话，会报警告……
+	psoDesc.DSVFormat = NXConvert::DXGINoTypeless(m_pShadowMapDepth->GetFormat(), true);
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -92,7 +93,7 @@ void NXShadowMapRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 		}
 	}
 
-	NX12Util::EndEvent();
+	NX12Util::EndEvent(pCmdList);
 }
 
 void NXShadowMapRenderer::RenderSingleObject(ID3D12GraphicsCommandList* pCmdList, NXRenderableObject* pRenderableObject)
@@ -273,7 +274,7 @@ void NXShadowMapRenderer::UpdateShadowMapBuffer(ID3D12GraphicsCommandList* pCmdL
 		NXGlobalBuffer::cbShadowTest.Current().view[i] = m_cbShadowMapObject.Current().view;
 		NXGlobalBuffer::cbShadowTest.Current().projection[i] = m_cbShadowMapObject.Current().projection;
 
-		pCmdList->ClearDepthStencilView(m_pShadowMapDepth->GetDSV(i), D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0x0, 0, nullptr);
+		pCmdList->ClearDepthStencilView(m_pShadowMapDepth->GetDSV(i), D3D12_CLEAR_FLAG_DEPTH, 0.0f, 0x0, 0, nullptr);
 		pCmdList->OMSetRenderTargets(0, nullptr, false, &m_pShadowMapDepth->GetDSV(i));
 
 		// 更新当前 cascade 层 的 ShadowMap world 绘制矩阵，并绘制

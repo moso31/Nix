@@ -211,6 +211,7 @@
     <None Include="Shader\Depth.fx">
       <Filter>Shader\Renderer</Filter>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">

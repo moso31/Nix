@@ -16,7 +16,7 @@ void RenderSmallTextureIcon(D3D12_GPU_DESCRIPTOR_HANDLE srvHandle, NXGUIFileBrow
 		int frame_padding = 2;									// -1 == uses default padding (style.FramePadding)
 		ImVec2 size = ImVec2(texSize - frame_padding, texSize - frame_padding);                     // Size of the image we want to make visible
 
-		if (onChange && ImGui::ImageButton("", (ImTextureID)srvHandle.ptr, size) && pFileBrowser)
+		if (onChange && ImGui::ImageButton("##", (ImTextureID)srvHandle.ptr, size) && pFileBrowser)
 		{
 			pFileBrowser->SetTitle("Material");
 			pFileBrowser->SetTypeFilters({ ".png", ".jpg", ".bmp", ".dds", ".tga", ".tif", ".tiff" });

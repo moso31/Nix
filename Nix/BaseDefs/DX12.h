@@ -6,7 +6,7 @@
 #include <d3dcompiler.h>
 
 #ifdef DEBUG
-#include <pix.h>
+#include <pix3.h>
 #endif
 
 using namespace DirectX;
@@ -41,10 +41,10 @@ protected:
 class NX12Util
 {
 public:
-	static void CreateCommands(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE type, ID3D12CommandQueue** oCmdQueue, ID3D12CommandAllocator** oCmdAllocator, ID3D12GraphicsCommandList** oCmdList, bool disableGPUTimeOut = false);
+	static void CreateCommands(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE type, ID3D12CommandQueue** oCmdQueue, ID3D12CommandAllocator** oCmdAllocator, ID3D12GraphicsCommandList** oCmdList, bool disableGPUTimeOut = false, bool closeCmdListAtFirst = true);
 	static ID3D12CommandQueue* CreateCommandQueue(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE type, bool disableGPUTimeOut = false);
 	static ID3D12CommandAllocator* CreateCommandAllocator(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE type);
-	static ID3D12GraphicsCommandList* CreateGraphicsCommandList(ID3D12Device* pDevice, ID3D12CommandAllocator* oCmdAllocator, D3D12_COMMAND_LIST_TYPE type, UINT nodeMask = 0, ID3D12PipelineState* InitState = nullptr);
+	static ID3D12GraphicsCommandList* CreateGraphicsCommandList(ID3D12Device* pDevice, ID3D12CommandAllocator* oCmdAllocator, D3D12_COMMAND_LIST_TYPE type, UINT nodeMask = 0, ID3D12PipelineState* InitState = nullptr, bool closeCmdListAtFirst = true);
 
 	static ID3D12Resource* CreateBuffer(ID3D12Device* pDevice, const std::string& name, UINT sizeOfByte, D3D12_HEAP_TYPE heapType);
 	static D3D12_RESOURCE_DESC CreateResourceDesc_DepthStencil(UINT width, UINT height, DXGI_FORMAT fmt = DXGI_FORMAT_D24_UNORM_S8_UINT);
@@ -75,5 +75,5 @@ public:
 	static UINT GetRequiredIntermediateLayoutInfos(ID3D12Device* pDevice, ID3D12Resource* pResource, D3D12_PLACED_SUBRESOURCE_FOOTPRINT* oLayouts, UINT* oNumRows, UINT64* oRowSizeInBytes);
 
 	static void BeginEvent(ID3D12GraphicsCommandList* pCmdList, PCSTR fmt);
-	static void EndEvent();
+	static void EndEvent(ID3D12GraphicsCommandList* pCmdList);
 };

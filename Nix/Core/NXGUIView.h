@@ -4,6 +4,7 @@
 #include "Ntr.h"
 
 class NXTexture2D;
+class NXShaderVisibleDescriptorHeap;
 // 2023.6.1 用于渲染视口RT
 class NXGUIView
 {
@@ -22,7 +23,7 @@ public:
 	void SetViewRT(Ntr<NXTexture2D> pTexture2D);
 	Ntr<NXTexture2D> GetViewRT() { return m_pViewRT; }
 
-	void Render();
+	void Render(NXShaderVisibleDescriptorHeap* pImguiHeap);
 
 private:
 	const std::string GetViewModeString() const;

@@ -53,7 +53,7 @@ void NXDebugLayerRenderer::Init(const Vector2& rtSize)
 	psoDesc.SampleMask = UINT_MAX;
 	psoDesc.NumRenderTargets = 1;
 	psoDesc.RTVFormats[0] = m_pTexPassOut->GetFormat();
-	psoDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -91,9 +91,6 @@ void NXDebugLayerRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 	auto srvHandle0 = pShaderVisibleDescriptorHeap->Append(m_pTexPassIn0->GetSRV());
 	auto srvHandle1 = pShaderVisibleDescriptorHeap->Append(m_pTexPassIn1->GetSRV());
 
-	ID3D12DescriptorHeap* ppHeaps[] = { pShaderVisibleDescriptorHeap->GetHeap() };
-	pCmdList->SetDescriptorHeaps(1, ppHeaps);
-
 	pCmdList->OMSetRenderTargets(1, &m_pTexPassOut->GetRTV(), false, nullptr);
 	pCmdList->SetGraphicsRootSignature(m_pRootSig.Get());
 	pCmdList->SetPipelineState(m_pPSO.Get());
@@ -106,7 +103,7 @@ void NXDebugLayerRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 	pCmdList->IASetIndexBuffer(&meshView.ibv);
 	pCmdList->DrawIndexedInstanced(meshView.indexCount, 1, 0, 0, 0);
 
-	NX12Util::EndEvent();
+	NX12Util::EndEvent(pCmdList);
 }
 
 void NXDebugLayerRenderer::Release()

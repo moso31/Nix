@@ -248,6 +248,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 			NXGlobalApp::App->Update();
 			NXGlobalApp::App->Draw();
 
+			NXGlobalApp::App->FrameEnd();
+
 			NXInput::GetInstance()->RestoreData(); // 清空鼠标/键盘的激活状态
 		}
 	}

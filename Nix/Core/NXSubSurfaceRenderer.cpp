@@ -7,6 +7,7 @@
 #include "NXTexture.h"
 #include "NXScene.h"
 #include "NXAllocatorManager.h"
+#include "NXSubMeshGeometryEditor.h"
 
 NXSubSurfaceRenderer::NXSubSurfaceRenderer(NXScene* pScene) :
 	m_pScene(pScene)
@@ -30,7 +31,7 @@ void NXSubSurfaceRenderer::Init()
 
 	// t0~t5, s0, b3
 	std::vector<D3D12_DESCRIPTOR_RANGE> ranges = {
-		NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 6, 0)
+		NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 6, 0) // t0~t5
 	};
 
 	std::vector<D3D12_ROOT_PARAMETER> rootParam = {
@@ -60,7 +61,7 @@ void NXSubSurfaceRenderer::Init()
 	psoDesc.SampleMask = UINT_MAX;
 	psoDesc.NumRenderTargets = 1;
 	psoDesc.RTVFormats[0] = m_pTexPassOut->GetFormat();
-	psoDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -72,7 +73,7 @@ void NXSubSurfaceRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 	NX12Util::BeginEvent(pCmdList, "SSSSS");
 	static int RenderMode = 0;
 	if (RenderMode == 0) RenderSSSSS(pCmdList);
-	NX12Util::EndEvent();
+	NX12Util::EndEvent(pCmdList);
 }
 
 void NXSubSurfaceRenderer::RenderSSSSS(ID3D12GraphicsCommandList* pCmdList)
@@ -88,13 +89,16 @@ void NXSubSurfaceRenderer::RenderSSSSS(ID3D12GraphicsCommandList* pCmdList)
 	for (int i = 0; i < _countof(srvHandle); i++)
 		srvHandle[i] = pShaderVisibleDescriptorHeap->Append(m_pTexPassIn[i]->GetSRV());
 
-	ID3D12DescriptorHeap* ppHeaps[] = { pShaderVisibleDescriptorHeap->GetHeap() };
-	pCmdList->SetDescriptorHeaps(1, ppHeaps);
-
-	pCmdList->SetGraphicsRootConstantBufferView(0, NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfile());
-	pCmdList->SetGraphicsRootDescriptorTable(1, srvHandle[0]);
+	pCmdList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbCamera.GetGPUHandle());
+	pCmdList->SetGraphicsRootConstantBufferView(1, NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfile());
+	pCmdList->SetGraphicsRootDescriptorTable(2, srvHandle[0]);
 
 	pCmdList->OMSetStencilRef(0x00);
+
+	const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_RenderTarget");
+	pCmdList->IASetVertexBuffers(0, 1, &meshView.vbv);
+	pCmdList->IASetIndexBuffer(&meshView.ibv);
+	pCmdList->DrawIndexedInstanced(meshView.indexCount, 1, 0, 0, 0);
 }
 
 void NXSubSurfaceRenderer::Release()

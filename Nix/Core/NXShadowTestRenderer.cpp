@@ -67,9 +67,6 @@ void NXShadowTestRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 	auto srvHandle0 = pShaderVisibleDescriptorHeap->Append(m_pTexPassIn0->GetSRV());
 	auto srvHandle1 = pShaderVisibleDescriptorHeap->Append(m_pTexPassIn1->GetSRV());
 
-	ID3D12DescriptorHeap* ppHeaps[] = { pShaderVisibleDescriptorHeap->GetHeap() };
-	pCmdList->SetDescriptorHeaps(1, ppHeaps);
-
 	pCmdList->SetGraphicsRootSignature(m_pRootSig.Get());
 	pCmdList->SetPipelineState(m_pPSO.Get());
 
@@ -78,15 +75,14 @@ void NXShadowTestRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 
 	pCmdList->SetGraphicsRootConstantBufferView(1, NXGlobalBuffer::cbCamera.GetGPUHandle());
 	pCmdList->SetGraphicsRootConstantBufferView(2, NXGlobalBuffer::cbShadowTest.GetGPUHandle());
-	pCmdList->SetGraphicsRootDescriptorTable(0, srvHandle0);
-	pCmdList->SetGraphicsRootDescriptorTable(1, srvHandle1);
+	pCmdList->SetGraphicsRootDescriptorTable(3, srvHandle0);
 
 	const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_RenderTarget");
 	pCmdList->IASetVertexBuffers(0, 1, &meshView.vbv);
 	pCmdList->IASetIndexBuffer(&meshView.ibv);
 	pCmdList->DrawIndexedInstanced(meshView.indexCount, 1, 0, 0, 0);
 
-	NX12Util::EndEvent();
+	NX12Util::EndEvent(pCmdList);
 }
 
 void NXShadowTestRenderer::Release()

@@ -80,7 +80,7 @@ void App::Draw()
 	m_pRenderer->RenderFrame();
 
 	// »­UI
-	m_pRenderer->RenderGUI(m_pDXResources->GetCurrentSwapChainRTV());
+	m_pRenderer->RenderGUI(m_pDXResources->GetCurrentSwapChain());
 
 	m_pRenderer->ClearAllPSResources();
 }

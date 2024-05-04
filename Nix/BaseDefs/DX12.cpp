@@ -2,7 +2,7 @@
 
 UINT8 MultiFrameSets::swapChainIndex = 0; // 初始化静态变量
 
-void NX12Util::CreateCommands(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE type, ID3D12CommandQueue** oCmdQueue, ID3D12CommandAllocator** oCmdAllocator, ID3D12GraphicsCommandList** oCmdList, bool disableGPUTimeOut)
+void NX12Util::CreateCommands(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE type, ID3D12CommandQueue** oCmdQueue, ID3D12CommandAllocator** oCmdAllocator, ID3D12GraphicsCommandList** oCmdList, bool disableGPUTimeOut, bool closeCmdListAtFirst)
 {
 	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
 	queueDesc.Type = type;
@@ -13,8 +13,7 @@ void NX12Util::CreateCommands(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE typ
 	hr = pDevice->CreateCommandAllocator(type, IID_PPV_ARGS(oCmdAllocator));
 	hr = pDevice->CreateCommandList(0, type, *oCmdAllocator, nullptr, IID_PPV_ARGS(oCmdList));
 
-	// 默认关闭 commandList.
-	(*oCmdList)->Close();
+	if (closeCmdListAtFirst) (*oCmdList)->Close();
 }
 
 ID3D12CommandQueue* NX12Util::CreateCommandQueue(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE type, bool disableGPUTimeOut)
@@ -35,10 +34,11 @@ ID3D12CommandAllocator* NX12Util::CreateCommandAllocator(ID3D12Device* pDevice, 
 	return pCmdAllocator;
 }
 
-ID3D12GraphicsCommandList* NX12Util::CreateGraphicsCommandList(ID3D12Device* pDevice, ID3D12CommandAllocator* oCmdAllocator, D3D12_COMMAND_LIST_TYPE type, UINT nodeMask, ID3D12PipelineState* InitState)
+ID3D12GraphicsCommandList* NX12Util::CreateGraphicsCommandList(ID3D12Device* pDevice, ID3D12CommandAllocator* oCmdAllocator, D3D12_COMMAND_LIST_TYPE type, UINT nodeMask, ID3D12PipelineState* InitState, bool closeCmdListAtFirst)
 {
 	ID3D12GraphicsCommandList* pCmdList;
 	HRESULT hr = pDevice->CreateCommandList(nodeMask, type, oCmdAllocator, InitState, IID_PPV_ARGS(&pCmdList));
+	if (closeCmdListAtFirst) pCmdList->Close();
 	return pCmdList;
 }
 
@@ -302,7 +302,9 @@ void NX12Util::BeginEvent(ID3D12GraphicsCommandList* pCmdList, PCSTR fmt)
 #endif // DEBUG
 }
 
-void NX12Util::EndEvent()
+void NX12Util::EndEvent(ID3D12GraphicsCommandList* pCmdList)
 {
-	PIXEndEvent();
+#ifdef DEBUG
+	PIXEndEvent(pCmdList);
+#endif // DEBUG
 }

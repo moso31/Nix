@@ -99,7 +99,7 @@ void NXBRDFLut::DrawBRDFLUT()
 
 	m_pTexBRDFLUT->SetResourceState(m_pCommandList.Get(), D3D12_RESOURCE_STATE_COMMON);
 
-	NX12Util::EndEvent();
+	NX12Util::EndEvent(m_pCommandList.Get());
 
 	m_pCommandList->Close();
 	ID3D12CommandList* pCmdLists[] = { m_pCommandList.Get() };

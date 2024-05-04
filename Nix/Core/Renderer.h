@@ -1,6 +1,7 @@
 #pragma once
 #include "NXGlobalDefinitions.h"
 #include "NXBRDFlut.h"
+#include "DirectResources.h"
 
 #include "NXDepthPrepass.h"
 #include "NXGBufferRenderer.h"
@@ -41,7 +42,7 @@ public:
 	void RenderFrame();
 
 	// 负责处理 GUI 的实际渲染 和 即时更新。见上面 UpdateGUI() 的注释
-	void RenderGUI(D3D12_CPU_DESCRIPTOR_HANDLE swapChainRTV);
+	void RenderGUI(const NXSwapChainBuffer& swapChainBuffer);
 
 	void Release();
 

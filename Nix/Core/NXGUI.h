@@ -3,6 +3,7 @@
 #include "BaseDefs/DX12.h"
 #include "BaseDefs/DearImGui.h"
 #include "NXShaderVisibleDescriptorHeap.h"
+#include "DirectResources.h"
 
 class NXScene;
 class Renderer;
@@ -30,15 +31,14 @@ public:
 
 	void Init();
 	void ExecuteDeferredCommands();
-	void Render(Ntr<NXTexture2D> pGUIViewRT, D3D12_CPU_DESCRIPTOR_HANDLE swapChainRTV);
+	void Render(Ntr<NXTexture2D> pGUIViewRT, const NXSwapChainBuffer& swapChainBuffer);
 	void Release();
 
 private:
 	NXShaderVisibleDescriptorHeap*	m_pImguiDescHeap;
 
-	ComPtr<ID3D12GraphicsCommandList>	m_pCmdList;
-	ComPtr<ID3D12CommandAllocator>		m_pCmdAllocator;
-	ComPtr<ID3D12CommandQueue>			m_pCmdQueue;
+	MultiFrame<ComPtr<ID3D12GraphicsCommandList>>	m_pCmdList;
+	MultiFrame<ComPtr<ID3D12CommandAllocator>>		m_pCmdAllocator;
 
 	bool m_bInited = false;
 	NXScene*	m_pCurrentScene;

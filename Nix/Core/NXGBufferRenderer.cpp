@@ -43,10 +43,12 @@ void NXGBufferRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 	Ntr<NXTexture2D> pDepthZ = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE pRTs[] = { pGBuffers[0]->GetRTV(), pGBuffers[1]->GetRTV(), pGBuffers[2]->GetRTV(), pGBuffers[3]->GetRTV() };
-	pCmdList->ClearDepthStencilView(pDepthZ->GetDSV(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0x0, 0, nullptr);
+	pCmdList->ClearDepthStencilView(pDepthZ->GetDSV(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 0.0f, 0x0, 0, nullptr);
 	for (int i = 0; i < _countof(pRTs); i++)
 		pCmdList->ClearRenderTargetView(pGBuffers[i]->GetRTV(), Colors::Black, 0, nullptr);
 	pCmdList->OMSetRenderTargets(_countof(pRTs), pRTs, false, &pDepthZ->GetDSV());
+
+	pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	auto pErrorMat = NXResourceManager::GetInstance()->GetMaterialManager()->GetErrorMaterial();
 	auto pMaterialsArray = NXResourceManager::GetInstance()->GetMaterialManager()->GetMaterials();
@@ -123,7 +125,7 @@ void NXGBufferRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 		}
 	}
 
-	NX12Util::EndEvent();
+	NX12Util::EndEvent(pCmdList);
 }
 
 void NXGBufferRenderer::Release()

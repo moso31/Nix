@@ -28,7 +28,6 @@ PS_INPUT VS(VS_INPUT input)
 	return output;
 }
 
-float4 PS(PS_INPUT input) : SV_Target
+void PS(PS_INPUT input)
 {
-	return float4(0.0f, 0.0f, 0.0f, 1.0f);
 }

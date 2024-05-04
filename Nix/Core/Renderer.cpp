@@ -195,7 +195,11 @@ void Renderer::RenderFrame()
 	// ÉèÖÃÊÓ¿Ú
 	auto vpCamera = NX12Util::ViewPort(m_viewRTSize.x, m_viewRTSize.y);
 	m_pCommandList->RSSetViewports(1, &vpCamera);
+	m_pCommandList->RSSetScissorRects(1, &NX12Util::ScissorRect(vpCamera));
 	m_pCommandList->ClearRenderTargetView(pSceneRT->GetRTV(), Colors::Black, 0, nullptr);
+
+	ID3D12DescriptorHeap* ppHeaps[] = { NXGPUHandleHeap->GetHeap() };
+	m_pCommandList->SetDescriptorHeaps(1, ppHeaps);
 
 	//m_pDepthPrepass->Render();
 
@@ -212,8 +216,10 @@ void Renderer::RenderFrame()
 	// Shadow Map
 	auto vpShadow = NX12Util::ViewPort(2048, 2048);
 	m_pCommandList->RSSetViewports(1, &vpShadow);
+	m_pCommandList->RSSetScissorRects(1, &NX12Util::ScissorRect(vpShadow));
 	m_pShadowMapRenderer->Render(m_pCommandList.Get());
 	m_pCommandList->RSSetViewports(1, &vpCamera);
+	m_pCommandList->RSSetScissorRects(1, &NX12Util::ScissorRect(vpCamera));
 	m_pShadowTestRenderer->SetShadowMapDepth(m_pShadowMapRenderer->GetShadowMapDepthTex());
 	m_pShadowTestRenderer->Render(m_pCommandList.Get());
 
@@ -248,16 +254,16 @@ void Renderer::RenderFrame()
 	m_pFinalRT = bEnableDebugLayer ? m_pDebugLayerRenderer->GetDebugLayerTex() :
 		NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_PostProcessing);
 
-	NX12Util::EndEvent();
+	NX12Util::EndEvent(m_pCommandList.Get());
 
 	m_pCommandList->Close();
 	ID3D12CommandList* pCmdLists[] = { m_pCommandList.Get() };
 	m_pCommandQueue->ExecuteCommandLists(1, pCmdLists);
 }
 
-void Renderer::RenderGUI(D3D12_CPU_DESCRIPTOR_HANDLE swapChainRTV)
+void Renderer::RenderGUI(const NXSwapChainBuffer& swapChainBuffer)
 {
-	if (m_bRenderGUI) m_pGUI->Render(m_pFinalRT, swapChainRTV);
+	if (m_bRenderGUI) m_pGUI->Render(m_pFinalRT, swapChainBuffer);
 }
 
 void Renderer::Release()

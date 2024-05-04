@@ -87,7 +87,7 @@ void NXEasyMaterial::Init()
 	psoDesc.NumRenderTargets = _countof(pGBuffers);
 	for (int i = 0; i < _countof(pGBuffers); i++) 
 		psoDesc.RTVFormats[i] = pGBuffers[i]->GetFormat();
-	psoDesc.DSVFormat = pDepthZ->GetFormat();
+	psoDesc.DSVFormat = NXConvert::DXGINoTypeless(pDepthZ->GetFormat(), true);
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -101,9 +101,6 @@ void NXEasyMaterial::Render(ID3D12GraphicsCommandList* pCommandList)
 
 	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
 	auto srvHandle = pShaderVisibleDescriptorHeap->Append(m_pTexture->GetSRV());
-
-	ID3D12DescriptorHeap* ppHeaps[] = { pShaderVisibleDescriptorHeap->GetHeap() };
-	pCommandList->SetDescriptorHeaps(1, ppHeaps);
 
 	pCommandList->SetGraphicsRootDescriptorTable(1, srvHandle);
 }
@@ -281,7 +278,7 @@ void NXCustomMaterial::UpdateCBData()
 {
 	auto& cbElems = m_cbInfo.elems;
 	auto& cbSets = m_cbInfo.sets;
-	auto& cbData = m_cbData.Current();
+	std::vector<float> cbData;
 
 	int alignCheck = 0;
 	cbData.clear();
@@ -322,6 +319,7 @@ void NXCustomMaterial::UpdateCBData()
 
 	// 重建整个CBuffer
 	m_cbData.Create((UINT)(cbData.size() * sizeof(float)), NXCBufferAllocator, NXDescriptorAllocator, true);
+	m_cbData.Set(cbData);
 }
 
 NXCustomMaterial::NXCustomMaterial(const std::string& name, const std::filesystem::path& path) :
@@ -335,8 +333,6 @@ void NXCustomMaterial::Render(ID3D12GraphicsCommandList* pCommandList)
 	pCommandList->SetPipelineState(m_pPSO.Get());
 
 	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
-	ID3D12DescriptorHeap* ppHeaps[] = { pShaderVisibleDescriptorHeap->GetHeap() };
-	pCommandList->SetDescriptorHeaps(1, ppHeaps);
 
 	UINT srvHandle = pShaderVisibleDescriptorHeap->GetCurrOffset();
 	for (auto& texInfo : m_texInfos)

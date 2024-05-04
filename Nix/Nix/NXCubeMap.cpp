@@ -182,7 +182,7 @@ Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)
 		m_pCommandList->DrawIndexedInstanced(6, 1, i * 6, 0, 0);
 	}
 
-	NX12Util::EndEvent();
+	NX12Util::EndEvent(m_pCommandList.Get());
 
 	m_pCommandList->Close();
 	ID3D12CommandList* pCmdLists[] = { m_pCommandList.Get() };
@@ -578,7 +578,7 @@ void NXCubeMap::GeneratePreFilterMap()
 		}
 	}
 
-	NX12Util::EndEvent();
+	NX12Util::EndEvent(m_pCommandList.Get());
 
 	m_pCommandList->Close();
 	ID3D12CommandList* pCmdLists[] = { m_pCommandList.Get() };

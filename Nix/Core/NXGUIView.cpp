@@ -12,7 +12,7 @@ void NXGUIView::SetViewRT(Ntr<NXTexture2D> pTex)
 	m_pViewRT = pTex;
 }
 
-void NXGUIView::Render()
+void NXGUIView::Render(NXShaderVisibleDescriptorHeap* pImguiHeap)
 {
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1, 1));
 	ImGui::Begin("View", false, ImGuiWindowFlags_NoScrollbar);
@@ -53,7 +53,7 @@ void NXGUIView::Render()
 		ImVec2 viewPos(viewOffsetX, viewOffsetY + tabOffsetY);
 		ImGui::SetCursorPos(viewPos);
 
-		auto& srvHandle = NXGPUHandleHeap->Append(m_pViewRT->GetSRV());
+		auto& srvHandle = pImguiHeap->Append(m_pViewRT->GetSRV());
 		ImGui::Image((ImTextureID)srvHandle.ptr, ImVec2(viewRegionX, viewRegionY));
 		bool isHoveredOnView = ImGui::IsItemHovered();
 

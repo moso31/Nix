@@ -359,7 +359,7 @@ void ImGui_ImplDX12_RenderDrawData(ImDrawData* draw_data, ID3D12GraphicsCommandL
         }
         global_idx_offset += cmd_list->IdxBuffer.Size;
         global_vtx_offset += cmd_list->VtxBuffer.Size;
-    }
+    }   
 }
 
 static void ImGui_ImplDX12_CreateFontsTexture()

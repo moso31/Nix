@@ -31,7 +31,7 @@ public:
 		// TODO: 光Alloc不行，还得在合适的时间Remove
 		// Remove的配套机制需要XAllocator实现
 
-		// Init
+		// lazy-Init
 		m_pDevice = pCBAllocator->GetD3DDevice();
 		m_pCBAllocator = pCBAllocator;
 		m_pDescriptorAllocator = pDescriptorAllocator;
@@ -45,8 +45,10 @@ public:
 		{
 			NXBufferData& buffer = m_buffers[i];
 
+			// 分配显存，返回对应GPU地址，和索引（在该CBAllocator下的第几页的第几偏移量）
 			m_pCBAllocator->Alloc(byteSize, ResourceType_Upload, buffer.GPUVirtualAddr, buffer.pageIndex, buffer.pageOffset);
 
+			// 分配描述符
 			D3D12_CPU_DESCRIPTOR_HANDLE cbvHandle;
 			m_pDescriptorAllocator->Alloc(DescriptorType_CBV, cbvHandle);
 
@@ -79,6 +81,24 @@ public:
 	T& Get(UINT index)
 	{
 		return m_buffers[index].data;
+	}
+
+	void Set(const T& data)
+	{
+		if (m_isMultiFrame)
+		{
+			for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
+				m_buffers[i].data = data;
+		}
+		else
+		{
+			m_buffers[0].data = data;
+		}
+	}
+
+	bool IsNull()
+	{
+		return m_buffers.get() == nullptr;
 	}
 
 private:
