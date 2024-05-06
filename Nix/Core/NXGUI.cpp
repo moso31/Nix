@@ -136,9 +136,9 @@ void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT, const NXSwapChainBuffer& swapCha
 	m_pGUIPostProcessing->Render();
 	m_pGUIDebugLayer->Render();
 
-	//if (m_pGUIView->GetViewRT() != pGUIViewRT)
-	//	m_pGUIView->SetViewRT(pGUIViewRT);
-	//m_pGUIView->Render(m_pImguiDescHeap);
+	if (m_pGUIView->GetViewRT() != pGUIViewRT)
+		m_pGUIView->SetViewRT(pGUIViewRT);
+	m_pGUIView->Render(m_pImguiDescHeap);
 
 	static bool show_demo_window = true;
 	static bool show_another_window = false;

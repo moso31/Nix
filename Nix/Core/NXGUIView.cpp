@@ -53,7 +53,7 @@ void NXGUIView::Render(NXShaderVisibleDescriptorHeap* pImguiHeap)
 		ImVec2 viewPos(viewOffsetX, viewOffsetY + tabOffsetY);
 		ImGui::SetCursorPos(viewPos);
 
-		auto& srvHandle = pImguiHeap->Append(m_pViewRT->GetSRV());
+		auto& srvHandle = NXGPUHandleHeap->Append(m_pViewRT->GetSRV());
 		ImGui::Image((ImTextureID)srvHandle.ptr, ImVec2(viewRegionX, viewRegionY));
 		bool isHoveredOnView = ImGui::IsItemHovered();
 
