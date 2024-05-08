@@ -73,14 +73,15 @@ void NXColorMappingRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 	NX12Util::BeginEvent(pCmdList, "Color Mapping");
 
 	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
-	UINT srvHandle = pShaderVisibleDescriptorHeap->Append(m_pTexPassIn->GetSRVArray(), m_pTexPassIn->GetSRVs());
+
+	D3D12_GPU_DESCRIPTOR_HANDLE srvHandle0 = NXGPUHandleHeap->SetFluidDescriptor(m_pTexPassIn->GetSRV(0));
 
 	pCmdList->OMSetRenderTargets(0, &m_pTexPassOut->GetRTV(), false, nullptr);
 	pCmdList->SetGraphicsRootSignature(m_pRootSig.Get());
 	pCmdList->SetPipelineState(m_pPSO.Get());
 
 	pCmdList->SetGraphicsRootConstantBufferView(0, m_cbParams.GetGPUHandle());
-	pCmdList->SetGraphicsRootDescriptorTable(1, pShaderVisibleDescriptorHeap->GetGPUHandle(srvHandle));
+	pCmdList->SetGraphicsRootDescriptorTable(1, srvHandle0);
 	
 	const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_RenderTarget");
 	pCmdList->IASetVertexBuffers(0, 1, &meshView.vbv);

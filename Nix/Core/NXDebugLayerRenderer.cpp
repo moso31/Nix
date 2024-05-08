@@ -87,9 +87,8 @@ void NXDebugLayerRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 	m_cbParams.Current().LayerParam0.y = m_fShadowMapZoomScale;
 	m_cbParams.UpdateBuffer();
 
-	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
-	auto srvHandle0 = pShaderVisibleDescriptorHeap->Append(m_pTexPassIn0->GetSRV());
-	auto srvHandle1 = pShaderVisibleDescriptorHeap->Append(m_pTexPassIn1->GetSRV());
+	auto srvHandle0 = NXGPUHandleHeap->SetFluidDescriptor(m_pTexPassIn0->GetSRV());
+	NXGPUHandleHeap->SetFluidDescriptor(m_pTexPassIn1->GetSRV());
 
 	pCmdList->OMSetRenderTargets(1, &m_pTexPassOut->GetRTV(), false, nullptr);
 	pCmdList->SetGraphicsRootSignature(m_pRootSig.Get());

@@ -60,7 +60,7 @@ void NXGUI::Init()
 		m_pCmdList[i] = NX12Util::CreateGraphicsCommandList(NXGlobalDX::GetDevice(), m_pCmdAllocator.Get(i).Get(), D3D12_COMMAND_LIST_TYPE_DIRECT);
 	}
 
-	m_pImguiDescHeap = new NXShaderVisibleDescriptorHeap(NXGlobalDX::GetDevice());
+	m_pImguiDescHeap = new NXShaderVisibleDescriptorHeap(NXGlobalDX::GetDevice(), 10);
 	m_pImguiDescHeap->GetHeap()->SetName(L"ImGui shader visible heap");
 	ImGui_ImplDX12_Init(NXGlobalDX::GetDevice(), MultiFrameSets_swapChainCount, DXGI_FORMAT_R8G8B8A8_UNORM, m_pImguiDescHeap->GetHeap(), m_pImguiDescHeap->GetCPUHandle(0), m_pImguiDescHeap->GetGPUHandle(0));
 

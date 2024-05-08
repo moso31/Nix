@@ -76,8 +76,6 @@ void NXSkyRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 {
 	NX12Util::BeginEvent(pCmdList, "Sky (CubeMap IBL)");
 
-	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
-
 	auto pCubeMap = m_pScene->GetCubeMap();
 	if (pCubeMap)
 	{
@@ -88,7 +86,7 @@ void NXSkyRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 		auto dsvHandle = m_pTexPassOutDepth->GetDSV();
 		pCmdList->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);
 
-		D3D12_GPU_DESCRIPTOR_HANDLE srvHandle = pShaderVisibleDescriptorHeap->Append(pCubeMap->GetSRVCubeMap());
+		D3D12_GPU_DESCRIPTOR_HANDLE srvHandle = NXGPUHandleHeap->SetFluidDescriptor(pCubeMap->GetSRVCubeMap());
 
 		pCubeMap->UpdateViewParams();
 

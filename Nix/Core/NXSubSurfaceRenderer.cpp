@@ -84,14 +84,12 @@ void NXSubSurfaceRenderer::RenderSSSSS(ID3D12GraphicsCommandList* pCmdList)
 	pCmdList->SetGraphicsRootSignature(m_pRootSig.Get());
 	pCmdList->SetPipelineState(m_pPSO.Get());
 
-	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
-	D3D12_GPU_DESCRIPTOR_HANDLE srvHandle[6];
-	for (int i = 0; i < _countof(srvHandle); i++)
-		srvHandle[i] = pShaderVisibleDescriptorHeap->Append(m_pTexPassIn[i]->GetSRV());
+	D3D12_GPU_DESCRIPTOR_HANDLE srvHandle0 = NXGPUHandleHeap->SetFluidDescriptor(m_pTexPassIn[0]->GetSRV());
+	for (int i = 1; i < _countof(m_pTexPassIn); i++) NXGPUHandleHeap->SetFluidDescriptor(m_pTexPassIn[i]->GetSRV());
 
 	pCmdList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbCamera.GetGPUHandle());
 	pCmdList->SetGraphicsRootConstantBufferView(1, NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfile());
-	pCmdList->SetGraphicsRootDescriptorTable(2, srvHandle[0]);
+	pCmdList->SetGraphicsRootDescriptorTable(2, srvHandle0);
 
 	pCmdList->OMSetStencilRef(0x00);
 

@@ -95,17 +95,15 @@ void NXDeferredRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 	pCmdList->SetGraphicsRootSignature(m_pRootSig.Get());
 	pCmdList->SetPipelineState(m_pPSO.Get());
 
-	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
-	D3D12_GPU_DESCRIPTOR_HANDLE srvHandle[9];
-	for (int i = 0; i < _countof(srvHandle); i++)
-		srvHandle[i] = pShaderVisibleDescriptorHeap->Append(m_pTexPassIn[i]->GetSRV());
+	D3D12_GPU_DESCRIPTOR_HANDLE srvHandle0 = NXGPUHandleHeap->SetFluidDescriptor(m_pTexPassIn[0]->GetSRV());
+	for (int i = 1; i < _countof(m_pTexPassIn); i++) NXGPUHandleHeap->SetFluidDescriptor(m_pTexPassIn[i]->GetSRV());
 
 	pCmdList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbObject.GetGPUHandle());
 	pCmdList->SetGraphicsRootConstantBufferView(1, NXGlobalBuffer::cbCamera.GetGPUHandle());
 	pCmdList->SetGraphicsRootConstantBufferView(2, m_pScene->GetConstantBufferLights());
 	pCmdList->SetGraphicsRootConstantBufferView(3, m_pScene->GetCubeMap()->GetCBDataParams());
 	pCmdList->SetGraphicsRootConstantBufferView(4, NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfile());
-	pCmdList->SetGraphicsRootDescriptorTable(5, srvHandle[0]);
+	pCmdList->SetGraphicsRootDescriptorTable(5, srvHandle0);
 
 	const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_RenderTarget");
 	pCmdList->IASetVertexBuffers(0, 1, &meshView.vbv);

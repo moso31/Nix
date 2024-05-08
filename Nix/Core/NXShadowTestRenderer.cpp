@@ -64,8 +64,8 @@ void NXShadowTestRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 	NX12Util::BeginEvent(pCmdList, "Shadow Test");
 
 	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
-	auto srvHandle0 = pShaderVisibleDescriptorHeap->Append(m_pTexPassIn0->GetSRV());
-	auto srvHandle1 = pShaderVisibleDescriptorHeap->Append(m_pTexPassIn1->GetSRV());
+	auto srvHandle0 = pShaderVisibleDescriptorHeap->SetFluidDescriptor(m_pTexPassIn0->GetSRV());
+	pShaderVisibleDescriptorHeap->SetFluidDescriptor(m_pTexPassIn1->GetSRV());
 
 	pCmdList->SetGraphicsRootSignature(m_pRootSig.Get());
 	pCmdList->SetPipelineState(m_pPSO.Get());

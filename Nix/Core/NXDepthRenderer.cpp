@@ -57,11 +57,10 @@ void NXDepthRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 	pCmdList->SetGraphicsRootSignature(m_pRootSig.Get());
 	pCmdList->SetPipelineState(m_pPSO.Get());
 
-	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
-	auto srvHandle = pShaderVisibleDescriptorHeap->Append(m_pTexPassIn->GetSRV());
+	auto srvHandle0 = NXGPUHandleHeap->SetFluidDescriptor(m_pTexPassIn->GetSRV());
 
 	pCmdList->OMSetStencilRef(0x01);
-	pCmdList->SetGraphicsRootDescriptorTable(0, srvHandle);
+	pCmdList->SetGraphicsRootDescriptorTable(0, srvHandle0);
 
 	const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_RenderTarget");
 	pCmdList->IASetVertexBuffers(0, 1, &meshView.vbv);

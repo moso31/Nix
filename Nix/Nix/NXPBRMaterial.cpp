@@ -99,9 +99,7 @@ void NXEasyMaterial::Render(ID3D12GraphicsCommandList* pCommandList)
 	pCommandList->SetGraphicsRootSignature(m_pRootSig.Get());
 	pCommandList->SetPipelineState(m_pPSO.Get());
 
-	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
-	auto srvHandle = pShaderVisibleDescriptorHeap->Append(m_pTexture->GetSRV());
-
+	auto srvHandle = NXGPUHandleHeap->SetFluidDescriptor(m_pTexture->GetSRV());
 	pCommandList->SetGraphicsRootDescriptorTable(1, srvHandle);
 }
 
@@ -332,17 +330,17 @@ void NXCustomMaterial::Render(ID3D12GraphicsCommandList* pCommandList)
 	pCommandList->SetGraphicsRootSignature(m_pRootSig.Get());
 	pCommandList->SetPipelineState(m_pPSO.Get());
 
-	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
+	if (m_texInfos.empty()) return;
 
-	UINT srvHandle = pShaderVisibleDescriptorHeap->GetCurrOffset();
+	auto& srvHandle0 = NXGPUHandleHeap->SetFluidDescriptor(m_texInfos[0].pTexture->GetSRV());
 	for (auto& texInfo : m_texInfos)
 	{
 		if (texInfo.pTexture.IsValid())
 		{
-			pShaderVisibleDescriptorHeap->Append(texInfo.pTexture->GetSRV());
+			NXGPUHandleHeap->SetFluidDescriptor(texInfo.pTexture->GetSRV());
 		}
 	}
-	pCommandList->SetGraphicsRootDescriptorTable(1, pShaderVisibleDescriptorHeap->GetGPUHandle(srvHandle)); // t0~tN.
+	pCommandList->SetGraphicsRootDescriptorTable(1, srvHandle0); // t0~tN.
 }
 
 void NXCustomMaterial::Update()

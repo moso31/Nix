@@ -1,6 +1,6 @@
 #include "NXShaderVisibleDescriptorHeap.h"
 
-NXShaderVisibleDescriptorHeap::NXShaderVisibleDescriptorHeap(ID3D12Device* pDevice) :
+NXShaderVisibleDescriptorHeap::NXShaderVisibleDescriptorHeap(ID3D12Device* pDevice, UINT stableIndex) :
 	m_pDevice(pDevice),
 	m_maxDescriptors(10000),
 	m_descriptorByteSize(pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV))
@@ -12,45 +12,49 @@ NXShaderVisibleDescriptorHeap::NXShaderVisibleDescriptorHeap(ID3D12Device* pDevi
 	desc.NumDescriptors = m_maxDescriptors;
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	m_pDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_shaderVisibleHeap));
+
+	m_stableCount = stableIndex;
+	m_fluidIndex = m_stableCount; 
 }
 
-const UINT NXShaderVisibleDescriptorHeap::Append(const size_t* cpuHandles, const size_t cpuHandlesSize)
+const D3D12_GPU_DESCRIPTOR_HANDLE NXShaderVisibleDescriptorHeap::SetStableDescriptor(const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle, UINT index)
 {
-	UINT heapOffset = m_shaderVisibleHeapOffset;
-	D3D12_CPU_DESCRIPTOR_HANDLE destHandle = { m_shaderVisibleHeap->GetCPUDescriptorHandleForHeapStart().ptr + heapOffset * m_descriptorByteSize };
-
-	for (size_t i = 0; i < cpuHandlesSize; i++)
+	if (index >= m_stableCount)
 	{
-		D3D12_CPU_DESCRIPTOR_HANDLE srcHandle = { cpuHandles[i] };
-		m_pDevice->CopyDescriptorsSimple(1, destHandle, srcHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-		m_shaderVisibleHeapOffset = (m_shaderVisibleHeapOffset + 1) % m_maxDescriptors;
-		destHandle.ptr += m_descriptorByteSize;
+		assert(false);
+		return { 0 };
 	}
 
-	return heapOffset;
-}
-
-const D3D12_GPU_DESCRIPTOR_HANDLE NXShaderVisibleDescriptorHeap::Append(const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
-{
-	UINT heapOffset = m_shaderVisibleHeapOffset;
-	D3D12_CPU_DESCRIPTOR_HANDLE destHandle = { m_shaderVisibleHeap->GetCPUDescriptorHandleForHeapStart().ptr + heapOffset * m_descriptorByteSize };
-
 	D3D12_CPU_DESCRIPTOR_HANDLE srcHandle = { cpuHandle };
+	D3D12_CPU_DESCRIPTOR_HANDLE destHandle = { m_shaderVisibleHeap->GetCPUDescriptorHandleForHeapStart().ptr + index * m_descriptorByteSize };
 	m_pDevice->CopyDescriptorsSimple(1, destHandle, srcHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-	m_shaderVisibleHeapOffset = (m_shaderVisibleHeapOffset + 1) % m_maxDescriptors;
-
-	D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = { m_shaderVisibleHeap->GetGPUDescriptorHandleForHeapStart().ptr + heapOffset * m_descriptorByteSize };
+	D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = { m_shaderVisibleHeap->GetGPUDescriptorHandleForHeapStart().ptr + index * m_descriptorByteSize };
 	return gpuHandle;
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE NXShaderVisibleDescriptorHeap::GetCPUHandle(UINT offset)
+const D3D12_GPU_DESCRIPTOR_HANDLE NXShaderVisibleDescriptorHeap::SetFluidDescriptor(const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
 {
-	return { m_shaderVisibleHeap->GetCPUDescriptorHandleForHeapStart().ptr + offset * m_descriptorByteSize };
+	D3D12_CPU_DESCRIPTOR_HANDLE srcHandle = { cpuHandle };
+	D3D12_CPU_DESCRIPTOR_HANDLE destHandle = { m_shaderVisibleHeap->GetCPUDescriptorHandleForHeapStart().ptr + m_fluidIndex * m_descriptorByteSize };
+	m_pDevice->CopyDescriptorsSimple(1, destHandle, srcHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+	D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = { m_shaderVisibleHeap->GetGPUDescriptorHandleForHeapStart().ptr + m_fluidIndex * m_descriptorByteSize };
+	
+	if (++m_fluidIndex >= m_maxDescriptors)
+	{
+		m_fluidIndex = m_stableCount;
+	}
+
+	return gpuHandle;
 }
 
-D3D12_GPU_DESCRIPTOR_HANDLE NXShaderVisibleDescriptorHeap::GetGPUHandle(UINT offset)
+D3D12_CPU_DESCRIPTOR_HANDLE NXShaderVisibleDescriptorHeap::GetCPUHandle(UINT index)
 {
-	return { m_shaderVisibleHeap->GetGPUDescriptorHandleForHeapStart().ptr + offset * m_descriptorByteSize };
+	return { m_shaderVisibleHeap->GetCPUDescriptorHandleForHeapStart().ptr + index * m_descriptorByteSize };
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE NXShaderVisibleDescriptorHeap::GetGPUHandle(UINT index)
+{
+	return { m_shaderVisibleHeap->GetGPUDescriptorHandleForHeapStart().ptr + index * m_descriptorByteSize };
 }

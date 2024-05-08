@@ -154,10 +154,9 @@ Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)
 
 	m_pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
-	auto gpuHandle = pShaderVisibleDescriptorHeap->Append(pTexHDR->GetSRV());
+	auto gpuHandle = NXGPUHandleHeap->SetFluidDescriptor(pTexHDR->GetSRV());
 
-	ID3D12DescriptorHeap* ppHeaps[] = { pShaderVisibleDescriptorHeap->GetHeap() };
+	ID3D12DescriptorHeap* ppHeaps[] = { NXGPUHandleHeap->GetHeap() };
 	m_pCommandList->SetDescriptorHeaps(1, ppHeaps);
 
 	m_pCommandList->SetGraphicsRootSignature(m_pRootSigCubeMap.Get());
@@ -533,10 +532,8 @@ void NXCubeMap::GeneratePreFilterMap()
 
 	m_pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	auto pShaderVisibleDescriptorHeap = NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap();
-	UINT srvHandle = pShaderVisibleDescriptorHeap->Append(m_pTexCubeMap->GetSRVArray(), m_pTexCubeMap->GetSRVs());
-
-	ID3D12DescriptorHeap* ppHeaps[] = { pShaderVisibleDescriptorHeap->GetHeap() };
+	auto& srvHandle = NXGPUHandleHeap->SetFluidDescriptor(m_pTexCubeMap->GetSRV());
+	ID3D12DescriptorHeap* ppHeaps[] = { NXGPUHandleHeap->GetHeap() };
 	m_pCommandList->SetDescriptorHeaps(1, ppHeaps);
 
 	m_pCommandList->SetGraphicsRootSignature(m_pRootSigPreFilterMap.Get());
@@ -569,7 +566,7 @@ void NXCubeMap::GeneratePreFilterMap()
 
 			m_pCommandList->SetGraphicsRootConstantBufferView(0, cbCubeCamera.GetGPUHandle());
 			m_pCommandList->SetGraphicsRootConstantBufferView(1, cbRoughness.GetGPUHandle());
-			m_pCommandList->SetGraphicsRootDescriptorTable(2, pShaderVisibleDescriptorHeap->GetGPUHandle(srvHandle));
+			m_pCommandList->SetGraphicsRootDescriptorTable(2, srvHandle);
 
 			const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_CubeMapBox");
 			m_pCommandList->IASetVertexBuffers(0, 1, &meshView.vbv);
