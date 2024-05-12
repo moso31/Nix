@@ -253,7 +253,7 @@ void NXScene::Init()
 		m_rtSize
 	);
 
-	NXCubeMap* pSky = NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\rural_asphalt_road_1k.hdr");
+	NXCubeMap* pSky = NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\ballroom_4k.hdr");	//NXCubeMap* pSky = NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\rural_asphalt_road_1k.hdr");
 	pSky->SetIntensity(1.0f);
 
 	InitBoundingStructures();
@@ -269,7 +269,7 @@ void NXScene::Init()
 		NXPBRSpotLight* pSpotLight;
 		//pSpotLight = NXResourceManager::GetInstance()->GetLightManager()->CreatePBRSpotLight(Vector3(0.0f, 2.0f, 0.0f), Vector3(0.0f, -1.0f, 0.0f), Vector3(1.0f), 1.0f, 30.0f, 50.0f, 100.0f);
 
-		m_cbDataLights.Create(NXCBufferAllocator, NXDescriptorAllocator, true);
+		m_cbDataLights.CreateFrameBuffers(NXCBufferAllocator, NXDescriptorAllocator);
 		for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 		{
 			m_cbDataLights.Get(i).pointLight[0] = pPointLight->GetConstantBuffer();

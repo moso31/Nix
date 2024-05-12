@@ -58,7 +58,7 @@ void NXShadowMapRenderer::Init()
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
 
-	m_cbShadowMapObject.Create(NXCBufferAllocator, NXDescriptorAllocator, true);
+	m_cbShadowMapObject.CreateFrameBuffers(NXCBufferAllocator, NXDescriptorAllocator);
 
 	SetCascadeCount(m_cascadeCount);
 	SetShadowDistance(m_shadowDistance);

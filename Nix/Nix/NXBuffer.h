@@ -3,6 +3,11 @@
 #include "BaseDefs/NixCore.h"
 #include <memory>
 
+// 2024.5.12 NXBuffer<T> 模板类
+// 对标 DX11 cbuffer。这里有分配内存的接口，分配出来的内存在底层交给XAllocator管理。
+// 【TODO：资源释放。目前的设想是尽量交给 XAllocator处理，NXBuffer不管资源释放】
+// 注意 NXBuffer 管理的是一个 T 数组，而不是单个 T。
+// 这在很多情况下都是有用的，比如如果是FrameResource，就分配3份；GenerateCubeMap/PrefilterMap也会分配6份/30份内存，避免数据竞争；
 template <typename T>
 class NXBuffer
 {
@@ -21,61 +26,44 @@ public:
 	NXBuffer() {}
 	~NXBuffer() {}
 
-	void Create(CommittedAllocator* pCBAllocator, DescriptorAllocator* pDescriptorAllocator, bool isMultiFrame)
+	void CreateFrameBuffers(CommittedAllocator* pCBAllocator, DescriptorAllocator* pDescriptorAllocator)
 	{
-		Create(sizeof(T), pCBAllocator, pDescriptorAllocator, isMultiFrame);
+		Create(sizeof(T), pCBAllocator, pDescriptorAllocator, true, MultiFrameSets_swapChainCount);
 	}
 
-	void Create(UINT byteSize, CommittedAllocator* pCBAllocator, DescriptorAllocator* pDescriptorAllocator, bool isMultiFrame)
+	void CreateFrameBuffers(UINT customByteSize, CommittedAllocator* pCBAllocator, DescriptorAllocator* pDescriptorAllocator)
 	{
-		// TODO: 光Alloc不行，还得在合适的时间Remove
-		// Remove的配套机制需要XAllocator实现
+		Create(customByteSize, pCBAllocator, pDescriptorAllocator, true, MultiFrameSets_swapChainCount);
+	}
 
-		// lazy-Init
-		m_pDevice = pCBAllocator->GetD3DDevice();
-		m_pCBAllocator = pCBAllocator;
-		m_pDescriptorAllocator = pDescriptorAllocator;
-		m_isMultiFrame = isMultiFrame;
+	void CreateBuffers(CommittedAllocator* pCBAllocator, DescriptorAllocator* pDescriptorAllocator, UINT bufferCount)
+	{
+		Create(sizeof(T), pCBAllocator, pDescriptorAllocator, false, bufferCount);
+	}
 
-		UINT arrSize = isMultiFrame ? MultiFrameSets_swapChainCount : 1;
-		// Create
-		m_buffers = std::make_unique<NXBufferData[]>(arrSize);
-
-		for (UINT i = 0; i < arrSize; i++)
-		{
-			NXBufferData& buffer = m_buffers[i];
-
-			// 分配显存，返回对应GPU地址，和索引（在该CBAllocator下的第几页的第几偏移量）
-			m_pCBAllocator->Alloc(byteSize, ResourceType_Upload, buffer.GPUVirtualAddr, buffer.pageIndex, buffer.pageOffset);
-
-			// 分配描述符
-			D3D12_CPU_DESCRIPTOR_HANDLE cbvHandle;
-			m_pDescriptorAllocator->Alloc(DescriptorType_CBV, cbvHandle);
-
-			D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
-			cbvDesc.BufferLocation = buffer.GPUVirtualAddr;
-			cbvDesc.SizeInBytes = (byteSize + 255) & ~255;
-			m_pDevice->CreateConstantBufferView(&cbvDesc, cbvHandle);
-			
-			buffer.byteSize = byteSize;
-		}
+	void CreateBuffers(UINT customByteSize, CommittedAllocator* pCBAllocator, DescriptorAllocator* pDescriptorAllocator, UINT bufferCount)
+	{
+		Create(customByteSize, pCBAllocator, pDescriptorAllocator, false, bufferCount);
 	}
 
 	// like updatesubresource in dx11.
-	void UpdateBuffer()
+	void UpdateBuffer(UINT index = -1)
 	{
-		NXBufferData& currBuffer = m_isMultiFrame ? m_buffers[MultiFrameSets::swapChainIndex] : m_buffers[0];
+		assert(m_isFrameResource || index != -1);
+		NXBufferData& currBuffer = m_isFrameResource ? m_buffers[MultiFrameSets::swapChainIndex] : m_buffers[index];
 		m_pCBAllocator->UpdateData(&currBuffer.data, currBuffer.byteSize, currBuffer.pageIndex, currBuffer.pageOffset);
 	}
 
-	const D3D12_GPU_VIRTUAL_ADDRESS& GetGPUHandle()
+	const D3D12_GPU_VIRTUAL_ADDRESS& GetGPUHandle(UINT index = -1)
 	{
-		return m_isMultiFrame ? m_buffers[MultiFrameSets::swapChainIndex].GPUVirtualAddr : m_buffers[0].GPUVirtualAddr;
+		assert(m_isFrameResource || index != -1);
+		return m_isFrameResource ? m_buffers[MultiFrameSets::swapChainIndex].GPUVirtualAddr : m_buffers[index].GPUVirtualAddr;
 	}
 
 	T& Current()
 	{
-		return m_isMultiFrame ? m_buffers[MultiFrameSets::swapChainIndex].data : m_buffers[0].data;
+		assert(m_isFrameResource);
+		return m_buffers[MultiFrameSets::swapChainIndex].data;
 	}
 
 	T& Get(UINT index)
@@ -85,7 +73,7 @@ public:
 
 	void Set(const T& data)
 	{
-		if (m_isMultiFrame)
+		if (m_isFrameResource)
 		{
 			for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 				m_buffers[i].data = data;
@@ -102,10 +90,55 @@ public:
 	}
 
 private:
+	void Create(UINT byteSize, CommittedAllocator* pCBAllocator, DescriptorAllocator* pDescriptorAllocator, bool isFrameResource, UINT bufferCount)
+	{
+		// TODO: 光Alloc不行，还得在合适的时间Remove
+		// Remove的配套机制需要XAllocator实现
+
+		// lazy-Init
+		m_pDevice = pCBAllocator->GetD3DDevice();
+		m_pCBAllocator = pCBAllocator;
+		m_pDescriptorAllocator = pDescriptorAllocator;
+		m_isFrameResource = isFrameResource;
+
+		if (isFrameResource)
+		{
+			assert(bufferCount == MultiFrameSets_swapChainCount);
+		}
+
+		// Create
+		m_bufferCount = bufferCount;
+		m_buffers = std::make_unique<NXBufferData[]>(m_bufferCount);
+
+		for (UINT i = 0; i < m_bufferCount; i++)
+		{
+			NXBufferData& buffer = m_buffers[i];
+
+			// 分配显存，返回对应GPU地址，和索引（在该CBAllocator下的第几页的第几偏移量）
+			m_pCBAllocator->Alloc(byteSize, ResourceType_Upload, buffer.GPUVirtualAddr, buffer.pageIndex, buffer.pageOffset);
+
+			// 分配描述符
+			D3D12_CPU_DESCRIPTOR_HANDLE cbvHandle;
+			m_pDescriptorAllocator->Alloc(DescriptorType_CBV, cbvHandle);
+
+			D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+			cbvDesc.BufferLocation = buffer.GPUVirtualAddr;
+			cbvDesc.SizeInBytes = (byteSize + 255) & ~255;
+			m_pDevice->CreateConstantBufferView(&cbvDesc, cbvHandle);
+
+			buffer.byteSize = byteSize;
+		}
+	}
+
+private:
 	ID3D12Device*			m_pDevice;
 	CommittedAllocator*		m_pCBAllocator;
 	DescriptorAllocator*	m_pDescriptorAllocator;
 
+	// CBuffer本体
 	std::unique_ptr<NXBufferData[]> m_buffers;
-	bool m_isMultiFrame;
+
+	// 是否是 FrameResource，如果是FrameResource，bufferCount必须=3，并且Current()会根据交换链的帧索引判断使用哪张buffer
+	bool m_isFrameResource;
+	UINT m_bufferCount;
 };

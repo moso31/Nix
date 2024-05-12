@@ -59,7 +59,7 @@ void NXDebugLayerRenderer::Init(const Vector2& rtSize)
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
 
-	m_cbParams.Create(NXCBufferAllocator, NXDescriptorAllocator, true);
+	m_cbParams.CreateFrameBuffers(NXCBufferAllocator, NXDescriptorAllocator);
 }
 
 void NXDebugLayerRenderer::OnResize(const Vector2& rtSize)

@@ -143,7 +143,7 @@ void NXCamera::Init(float fovY, float zNear, float zFar, Vector3 cameraPosition,
 	SetLookAt(cameraLookAt);
 	m_up = cameraLookUp;
 
-	NXGlobalBuffer::cbCamera.Create(NXCBufferAllocator, NXDescriptorAllocator, true);
+	NXGlobalBuffer::cbCamera.CreateFrameBuffers(NXCBufferAllocator, NXDescriptorAllocator);
 
 	OnResize(rtSize);
 }

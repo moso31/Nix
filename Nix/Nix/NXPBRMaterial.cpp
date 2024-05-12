@@ -316,7 +316,7 @@ void NXCustomMaterial::UpdateCBData()
 	while (cbData.size() % 4 != 0) cbData.push_back(0); // 16 bytes align
 
 	// 重建整个CBuffer
-	m_cbData.Create((UINT)(cbData.size() * sizeof(float)), NXCBufferAllocator, NXDescriptorAllocator, true);
+	m_cbData.CreateFrameBuffers((UINT)(cbData.size() * sizeof(float)), NXCBufferAllocator, NXDescriptorAllocator);
 	m_cbData.Set(cbData);
 }
 

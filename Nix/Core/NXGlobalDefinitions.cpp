@@ -31,9 +31,9 @@ NXBuffer<ConstantBufferShadowTest>	NXGlobalBuffer::cbShadowTest;
 
 void NXGlobalBuffer::Init()
 {
-	cbObject.Create(NXCBufferAllocator, NXDescriptorAllocator, true);
-	cbCamera.Create(NXCBufferAllocator, NXDescriptorAllocator, true);
-	cbShadowTest.Create(NXCBufferAllocator, NXDescriptorAllocator, true);
+	cbObject.CreateFrameBuffers(NXCBufferAllocator, NXDescriptorAllocator);
+	cbCamera.CreateFrameBuffers(NXCBufferAllocator, NXDescriptorAllocator);
+	cbShadowTest.CreateFrameBuffers(NXCBufferAllocator, NXDescriptorAllocator);
 }
 
 D3D12_INPUT_LAYOUT_DESC	NXGlobalInputLayout::layoutP;

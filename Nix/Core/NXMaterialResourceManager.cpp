@@ -18,7 +18,7 @@ void NXMaterialResourceManager::Init()
 
 	m_defaultDiffuseProfile = new NXSSSDiffuseProfile();
 
-	m_cbDiffuseProfile.Create(NXCBufferAllocator, NXDescriptorAllocator, true);
+	m_cbDiffuseProfile.CreateFrameBuffers(NXCBufferAllocator, NXDescriptorAllocator);
 }
 
 void NXMaterialResourceManager::RegisterMaterial(NXMaterial* newMaterial)
