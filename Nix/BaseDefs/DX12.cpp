@@ -121,19 +121,19 @@ D3D12_CLEAR_VALUE NX12Util::CreateClearValue(float depth, UINT8 stencil, DXGI_FO
 
 void NX12Util::CopyTextureRegion(ID3D12GraphicsCommandList* pCommandList, ID3D12Resource* pTexture, ID3D12Resource* pTextureUploadBuffer, UINT layoutSize, const D3D12_PLACED_SUBRESOURCE_FOOTPRINT* pLayouts)
 {
+	D3D12_TEXTURE_COPY_LOCATION dst = {};
+	dst.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+	dst.pResource = pTexture;
+
+	D3D12_TEXTURE_COPY_LOCATION src = {};
+	src.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+
+	src.pResource = pTextureUploadBuffer;
+
 	for (UINT idx = 0; idx < layoutSize; ++idx)
 	{
-		D3D12_TEXTURE_COPY_LOCATION dst = {};
-		dst.SubresourceIndex = idx;
-		dst.PlacedFootprint = {};
-		dst.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
-		dst.pResource = pTexture;
-
-		D3D12_TEXTURE_COPY_LOCATION src = {};
-		src.SubresourceIndex = 0;
 		src.PlacedFootprint = pLayouts[idx];
-		src.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-		src.pResource = pTextureUploadBuffer;
+		dst.SubresourceIndex = idx;
 
 		pCommandList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
 	}
