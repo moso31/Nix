@@ -546,6 +546,16 @@ void NXCubeMap::GeneratePreFilterMap()
 		cbCubeCamera.Get(i).projection = m_mxCubeMapProj.Transpose();
 	}
 
+	NXBuffer<ConstantBufferFloat> cbRoughness;
+	cbRoughness.CreateBuffers(m_cbAllocator, NXDescriptorAllocator, 5);
+
+	float rough[] = { 0.0f, 0.25f, 0.5f, 0.75f, 1.0f };
+	for (int i = 0; i < _countof(rough); i++)
+	{
+		float mipSize = (float)((UINT)mapSize >> i);
+		cbRoughness.Get(i).value = rough[i] * rough[i];
+	}
+
 	m_pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	auto& srvHandle = NXGPUHandleHeap->SetFluidDescriptor(m_pTexCubeMap->GetSRV());
@@ -556,19 +566,16 @@ void NXCubeMap::GeneratePreFilterMap()
 	m_pCommandList->SetPipelineState(m_pPSOPreFilterMap.Get());
 
 	m_pTexPreFilterMap->SetResourceState(m_pCommandList.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET);
-	float rough[] = { 0.0f, 0.25f, 0.5f, 0.75f, 1.0f };
+
 	for (int i = 0; i < _countof(rough); i++)
 	{
 		float mipSize = (float)((UINT)mapSize >> i);
 
-		NXBuffer<ConstantBufferFloat> cbRoughness;
-		cbRoughness.CreateBuffers(m_cbAllocator, NXDescriptorAllocator, 5);
-		cbRoughness.Get(i).value = rough[i] * rough[i];
-		cbRoughness.UpdateBuffer(i);
-
 		auto vp = NX12Util::ViewPort(mipSize, mipSize);
 		m_pCommandList->RSSetViewports(1, &vp);
 		m_pCommandList->RSSetScissorRects(1, &NX12Util::ScissorRect(vp));
+
+		cbRoughness.UpdateBuffer(i);
 
 		for (int j = 0; j < 6; j++)
 		{
@@ -587,7 +594,7 @@ void NXCubeMap::GeneratePreFilterMap()
 			const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_CubeMapBox");
 			m_pCommandList->IASetVertexBuffers(0, 1, &meshView.vbv);
 			m_pCommandList->IASetIndexBuffer(&meshView.ibv);
-			m_pCommandList->DrawIndexedInstanced(6, 1, i * 6, 0, 0);
+			m_pCommandList->DrawIndexedInstanced(6, 1, j * 6, 0, 0);
 		}
 	}
 
