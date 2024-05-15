@@ -8,6 +8,9 @@
 #include "Ntr.h"
 #include "NXBuffer.h"
 
+#define NXCUBEMAP_FACE_COUNT 6
+#define NXROUGHNESS_FILTER_COUNT 5
+
 struct ConstantBufferImageData
 {
 	Vector4 currImgSize; // xy: size zw: sizeInv
@@ -115,8 +118,6 @@ private:
 	size_t	m_pSRVIrradianceSH;
 
 	ComPtr<ID3D12CommandQueue> m_pCommandQueue;
-	ComPtr<ID3D12CommandAllocator> m_pCommandAllocator;
-	ComPtr<ID3D12GraphicsCommandList> m_pCommandList;
 
 	ComPtr<ID3D12RootSignature> m_pRootSigCubeMap;
 	ComPtr<ID3D12PipelineState> m_pPSOCubeMap;
