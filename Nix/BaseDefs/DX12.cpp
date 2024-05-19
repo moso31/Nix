@@ -4,12 +4,13 @@ UINT8 MultiFrameSets::swapChainIndex = 0; // 初始化静态变量
 
 void NX12Util::CreateCommands(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE type, ID3D12CommandQueue** oCmdQueue, ID3D12CommandAllocator** oCmdAllocator, ID3D12GraphicsCommandList** oCmdList, bool disableGPUTimeOut, bool closeCmdListAtFirst)
 {
-	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
-	queueDesc.Type = type;
-	queueDesc.Flags = disableGPUTimeOut ? D3D12_COMMAND_QUEUE_FLAG_DISABLE_GPU_TIMEOUT : D3D12_COMMAND_QUEUE_FLAG_NONE;
+	*oCmdQueue = CreateCommandQueue(pDevice, type, disableGPUTimeOut);
+	CreateCommands(pDevice, type, oCmdAllocator, oCmdList, closeCmdListAtFirst);
+}
 
+void NX12Util::CreateCommands(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE type, ID3D12CommandAllocator** oCmdAllocator, ID3D12GraphicsCommandList** oCmdList, bool closeCmdListAtFirst)
+{
 	HRESULT hr;
-	hr = pDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(oCmdQueue));
 	hr = pDevice->CreateCommandAllocator(type, IID_PPV_ARGS(oCmdAllocator));
 	hr = pDevice->CreateCommandList(0, type, *oCmdAllocator, nullptr, IID_PPV_ARGS(oCmdList));
 

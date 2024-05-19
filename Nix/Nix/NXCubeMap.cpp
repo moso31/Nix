@@ -28,6 +28,8 @@ NXCubeMap::NXCubeMap(NXScene* pScene) :
 bool NXCubeMap::Init(const std::filesystem::path& filePath)
 {
 	NXGlobalDX::GetDevice()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_pFence));
+	m_pCommandQueue = NX12Util::CreateCommandQueue(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, true);
+	m_pCommandQueue->SetName(L"CubeMap Building Command Queue");
 
 	// create vertex
 	InitVertex();
@@ -154,7 +156,7 @@ Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)
 	{
 		auto& pCmdAllocator = pCmdAllocators[i];
 		auto& pCmdList = pCmdLists[i];
-		NX12Util::CreateCommands(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.GetAddressOf(), pCmdAllocator.GetAddressOf(), pCmdList.GetAddressOf(), true);
+		NX12Util::CreateCommands(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, pCmdAllocator.GetAddressOf(), pCmdList.GetAddressOf());
 		pCmdList->Reset(pCmdAllocator.Get(), nullptr);
 
 		std::string str = "Generate Cube Map " + std::to_string(i);
@@ -578,7 +580,7 @@ void NXCubeMap::GeneratePreFilterMap()
 		{
 			auto& pCmdList = pCmdLists[i * 6 + j];
 			auto& pCmdAllocator = pCmdAllocators[i * 6 + j];
-			NX12Util::CreateCommands(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.GetAddressOf(), pCmdAllocator.GetAddressOf(), pCmdList.GetAddressOf(), true);
+			NX12Util::CreateCommands(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, pCmdAllocator.GetAddressOf(), pCmdList.GetAddressOf());
 			pCmdList->Reset(pCmdAllocator.Get(), nullptr);
 
 			NX12Util::BeginEvent(pCmdList.Get(), "Generate PreFilter Map");

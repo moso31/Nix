@@ -20,6 +20,7 @@ void NXSubMeshGeometryEditor::Init(ID3D12Device* pDevice)
 	m_ibAllocator = new CommittedAllocator(m_pDevice.Get());
 
 	NX12Util::CreateCommands(m_pDevice.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.GetAddressOf(), m_pCommandAllocator.GetAddressOf(), m_pCommandList.GetAddressOf());
+	m_pCommandQueue->SetName(L"NXSubMeshGeometryEditor Command Queue");
 
 	InitCommonMeshes();
 }

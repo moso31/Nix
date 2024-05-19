@@ -14,6 +14,7 @@ void NXGlobalDX::Init(IDXGIAdapter4* pAdapter)
 {
 	HRESULT hr = D3D12CreateDevice(pAdapter, D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&s_device));
 	s_cmdQueue = NX12Util::CreateCommandQueue(s_device.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT, false);
+	s_cmdQueue->SetName(L"Global Static Command Queue");
 
 	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 	{

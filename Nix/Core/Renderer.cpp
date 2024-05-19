@@ -36,6 +36,7 @@ void Renderer::Init()
 	NXTexture::Init();
 
 	NX12Util::CreateCommands(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.GetAddressOf(), m_pCommandAllocator.GetAddressOf(), m_pCommandList.GetAddressOf());
+	m_pCommandQueue->SetName(L"Main Renderer Command Queue");
 
 	// äÖÈ¾Æ÷
 	InitRenderer();
