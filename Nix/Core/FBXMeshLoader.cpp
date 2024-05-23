@@ -243,7 +243,7 @@ void FBXMeshLoader::EncodePrimitiveData(FbxNode* pNode, NXPrimitive* pPrimitive,
 		for (UINT i = 0; i < subMeshCount; i++)
 		{
 			NXSubMeshBase* pSubMesh = pPrimitive->GetSubMesh(i);
-			pSubMesh->UpdateVBIB();
+			pSubMesh->TryAddBuffers();
 		}
 	}
 }

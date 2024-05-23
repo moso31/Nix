@@ -83,9 +83,10 @@ void NXSubMesh<TVertex>::CalcLocalAABB()
 }
 
 template<class TVertex>
-void NXSubMesh<TVertex>::UpdateVBIB()
+void NXSubMesh<TVertex>::TryAddBuffers()
 {
 	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(m_vertices, m_indices, m_subMeshName, true);
+	m_cbObject.CreateFrameBuffers(NXCBufferAllocator, NXDescriptorAllocator);
 }
 
 void NXSubMeshStandard::CalculateTangents(bool bUpdateVBIB)
@@ -119,7 +120,7 @@ void NXSubMeshStandard::CalculateTangents(bool bUpdateVBIB)
 
 	if (bUpdateVBIB)
 	{
-		UpdateVBIB();
+		TryAddBuffers();
 	}
 }
 

@@ -26,7 +26,7 @@ public:
 	virtual void Render(ID3D12GraphicsCommandList* pCommandList) = 0;
 
 	virtual bool RayCastLocal(const Ray& localRay, NXHit& outHitInfo, float& outDist) = 0;
-	virtual void UpdateVBIB() = 0;
+	virtual void TryAddBuffers() = 0;
 
 	// 自动计算顶点的切线数据。
 	// bUpdateVBIB: 是否同时更新VBIB
@@ -77,7 +77,7 @@ public:
 	virtual bool RayCastLocal(const Ray& localRay, NXHit& outHitInfo, float& outDist);
 
 	virtual void CalculateTangents(bool bUpdateVBIB = false) = 0;
-	void UpdateVBIB() override;
+	void TryAddBuffers() override;
 
 	UINT GetIndexCount()	{ return (UINT)m_indices.size(); }
 	UINT GetVertexCount()	{ return (UINT)m_vertices.size(); }
@@ -85,9 +85,11 @@ public:
 	void CalcLocalAABB() override;
 
 protected:
-	std::string					m_subMeshName;
-	std::vector<TVertex>		m_vertices;
-	std::vector<UINT>			m_indices;
+	std::string						m_subMeshName;
+	std::vector<TVertex>			m_vertices;
+	std::vector<UINT>				m_indices; 
+
+	NXBuffer<ConstantBufferObject>	m_cbObject;
 };
 
 class NXSubMeshStandard : public NXSubMesh<VertexPNTT>

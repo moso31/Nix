@@ -98,7 +98,7 @@ void NXSubMeshGeometryEditor::CreateBox(NXPrimitive* pMesh, float x, float y, fl
 		20, 22, 23
 	};
 
-	pSubMesh->UpdateVBIB();
+	pSubMesh->TryAddBuffers();
 
 	pMesh->AddSubMesh(pSubMesh);
 }
@@ -238,7 +238,7 @@ void NXSubMeshGeometryEditor::CreateCylinder(NXPrimitive* pMesh, float radius, f
 		currVertIdx += 2;
 	}
 
-	pSubMesh->UpdateVBIB();
+	pSubMesh->TryAddBuffers();
 
 	pMesh->AddSubMesh(pSubMesh);
 }
@@ -313,7 +313,7 @@ void NXSubMeshGeometryEditor::CreatePlane(NXPrimitive* pMesh, float width, float
 		0,  2,  3
 	};
 
-	pSubMesh->UpdateVBIB();
+	pSubMesh->TryAddBuffers();
 
 	pMesh->AddSubMesh(pSubMesh);
 }
@@ -394,7 +394,7 @@ void NXSubMeshGeometryEditor::CreateSphere(NXPrimitive* pMesh, float radius, int
 		}
 	}
 
-	pSubMesh->UpdateVBIB();
+	pSubMesh->TryAddBuffers();
 
 	pMesh->AddSubMesh(pSubMesh);
 }
@@ -491,7 +491,7 @@ void NXSubMeshGeometryEditor::CreateSHSphere(NXPrimitive* pMesh, int basis_l, in
 		}
 	}
 
-	pSubMesh->UpdateVBIB();
+	pSubMesh->TryAddBuffers();
 
 	pMesh->AddSubMesh(pSubMesh);
 }
@@ -562,7 +562,7 @@ void NXSubMeshGeometryEditor::CreateMoveArrows(NXPrimitive* pMesh)
 			currVertIdx += 4;
 		}
 
-		pSubMesh->UpdateVBIB();
+		pSubMesh->TryAddBuffers();
 		pMesh->AddSubMesh(pSubMesh);
 	}
 
@@ -616,7 +616,7 @@ void NXSubMeshGeometryEditor::CreateMoveArrows(NXPrimitive* pMesh)
 			currVertIdx += 3;
 		}
 
-		pSubMesh->UpdateVBIB();
+		pSubMesh->TryAddBuffers();
 		pMesh->AddSubMesh(pSubMesh);
 	}
 
@@ -668,7 +668,7 @@ void NXSubMeshGeometryEditor::CreateMoveArrows(NXPrimitive* pMesh)
 
 		currVertIdx += 4;
 
-		pSubMesh->UpdateVBIB();
+		pSubMesh->TryAddBuffers();
 		pMesh->AddSubMesh(pSubMesh);
 	}
 }

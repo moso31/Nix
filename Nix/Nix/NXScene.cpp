@@ -229,7 +229,8 @@ void NXScene::Init()
 
 	m_pTestCustomMat = NXResourceManager::GetInstance()->GetMaterialManager()->CreateCustomMaterial("TestCustomMat", "D:\\NixAssets\\Materials\\mat.nsl");
 
-	NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\boxes.fbx", false);
+	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\boxes.fbx", false);
+	NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\TestBall.fbx", false);
 	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\shadowMapTest.fbx", false);
 	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\EditorObjTest.fbx", false);
 	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\lury.fbx", false);
@@ -253,7 +254,8 @@ void NXScene::Init()
 		m_rtSize
 	);
 
-	NXCubeMap* pSky = NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\ballroom_4k.hdr");	//NXCubeMap* pSky = NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\rural_asphalt_road_1k.hdr");
+	//NXCubeMap* pSky = NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\ballroom_4k.hdr");	
+	NXCubeMap* pSky = NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\rural_asphalt_road_1k.hdr");
 	pSky->SetIntensity(1.0f);
 
 	InitBoundingStructures();
