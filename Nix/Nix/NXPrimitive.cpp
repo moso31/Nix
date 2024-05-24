@@ -7,22 +7,6 @@ NXPrimitive::NXPrimitive()
 {
 }
 
-void NXPrimitive::UpdateViewParams()
-{
-	auto& cbDataObject = NXGlobalBuffer::cbObject.Current();
-
-	auto& mxView = cbDataObject.view.Transpose();
-	auto& mxWorld = m_worldMatrix.Transpose();
-	auto& mxWorldView = (m_worldMatrix * mxView).Transpose();
-
-	cbDataObject.world = mxWorld;
-	cbDataObject.worldInverseTranspose = m_worldMatrix.Invert(); // it actually = m_worldMatrix.Invert().Transpose().Transpose();
-	cbDataObject.worldViewInverseTranspose = (m_worldMatrix * mxView).Invert();
-	cbDataObject.worldView = mxWorldView;
-
-	NXGlobalBuffer::cbObject.UpdateBuffer();
-}
-
 void NXPrimitive::CalculateTangents(bool bUpdateVBIB)
 {
 	for (UINT i = 0; i < GetSubMeshCount(); i++)

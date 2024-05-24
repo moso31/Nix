@@ -69,8 +69,7 @@ void NXGBufferRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 					if (bIsVisible)
 					{
 						pSubMesh->UpdateViewParams();
-						pCmdList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbObject.GetGPUHandle());
-						pSubMesh->Update();
+						pSubMesh->Update(pCmdList);
 						pSubMesh->Render(pCmdList);
 					}
 				}
@@ -96,8 +95,7 @@ void NXGBufferRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 						if (bIsVisible)
 						{
 							pSubMesh->UpdateViewParams();
-							pCmdList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbObject.GetGPUHandle());
-							pSubMesh->Update();
+							pSubMesh->Update(pCmdList);
 							pSubMesh->Render(pCmdList);
 						}
 					}
@@ -115,8 +113,7 @@ void NXGBufferRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 						if (bIsVisible)
 						{
 							pSubMesh->UpdateViewParams();
-							pCmdList->SetGraphicsRootConstantBufferView(0, NXGlobalBuffer::cbObject.GetGPUHandle());
-							pSubMesh->Update();
+							pSubMesh->Update(pCmdList);
 							pSubMesh->Render(pCmdList);
 						}
 					}

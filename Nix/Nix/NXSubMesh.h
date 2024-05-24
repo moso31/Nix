@@ -2,6 +2,7 @@
 #include "ShaderStructures.h"
 #include "NXPBRMaterial.h"
 #include "NXIntersection.h"
+#include "NXBuffer.h"
 
 enum NXSubMeshReloadState
 {
@@ -22,7 +23,7 @@ public:
 
 	void UpdateViewParams();
 
-	void Update() { if (m_pMaterial) m_pMaterial->Update(); }
+	void Update(ID3D12GraphicsCommandList* pCommandList);
 	virtual void Render(ID3D12GraphicsCommandList* pCommandList) = 0;
 
 	virtual bool RayCastLocal(const Ray& localRay, NXHit& outHitInfo, float& outDist) = 0;
@@ -63,6 +64,8 @@ protected:
 	NXSubMeshReloadState m_nMatReloadingState;
 	std::filesystem::path m_strReplacingPath;
 	NXMaterial* m_pReplacingMaterial;
+
+	NXBuffer<ConstantBufferObject>	m_cbObject;
 };
 
 template<class TVertex>
@@ -88,8 +91,6 @@ protected:
 	std::string						m_subMeshName;
 	std::vector<TVertex>			m_vertices;
 	std::vector<UINT>				m_indices; 
-
-	NXBuffer<ConstantBufferObject>	m_cbObject;
 };
 
 class NXSubMeshStandard : public NXSubMesh<VertexPNTT>

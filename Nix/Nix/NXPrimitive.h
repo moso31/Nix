@@ -10,8 +10,6 @@ public:
 
 	virtual NXPrimitive* IsPrimitive() override { return this; }
 
-	virtual void UpdateViewParams();
-
 	// 自动计算SubMesh下所有顶点的切线数据。
 	void CalculateTangents(bool bUpdateVertexIndexBuffer = false);
 

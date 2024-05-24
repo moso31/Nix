@@ -178,10 +178,7 @@ void Renderer::UpdateSceneData()
 
 void Renderer::UpdateTime()
 {
-	size_t globalTime = NXGlobalApp::Timer->GetGlobalTime();
-	float fGlobalTime = globalTime / 1000.0f;
-
-	NXGlobalBuffer::cbObject.Current().globalData.time = fGlobalTime;
+	NXGlobalBuffer::cbObject.Current().globalData.time = NXGlobalApp::Timer->GetGlobalTimeSeconds();
 }
 
 void Renderer::RenderFrame()

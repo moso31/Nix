@@ -9,6 +9,7 @@ public:
 	NXTimer();
 	~NXTimer();
 
+	float GetGlobalTimeSeconds();
 	int64_t GetTimeDelta();
 	int64_t GetGlobalTime();
 	void Tick();

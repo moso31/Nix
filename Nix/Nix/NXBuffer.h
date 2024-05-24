@@ -46,7 +46,8 @@ public:
 		Create(customByteSize, pCBAllocator, pDescriptorAllocator, false, bufferCount);
 	}
 
-	// like updatesubresource in dx11.
+	// 类似 dx11 updatesubresource.
+	// index：仅对非FrameResource有效，指定更新哪个buffer。如果是FrameResource不需要提供index.
 	void UpdateBuffer(UINT index = -1)
 	{
 		assert(m_isFrameResource || index != -1);
