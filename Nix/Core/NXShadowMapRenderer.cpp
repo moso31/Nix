@@ -274,7 +274,7 @@ void NXShadowMapRenderer::UpdateShadowMapBuffer(ID3D12GraphicsCommandList* pCmdL
 		NXGlobalBuffer::cbShadowTest.Current().view[i] = m_cbShadowMapObject.Current().view;
 		NXGlobalBuffer::cbShadowTest.Current().projection[i] = m_cbShadowMapObject.Current().projection;
 
-		pCmdList->ClearDepthStencilView(m_pShadowMapDepth->GetDSV(i), D3D12_CLEAR_FLAG_DEPTH, 0.0f, 0x0, 0, nullptr);
+		pCmdList->ClearDepthStencilView(m_pShadowMapDepth->GetDSV(i), D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0x0, 0, nullptr);
 		pCmdList->OMSetRenderTargets(0, nullptr, false, &m_pShadowMapDepth->GetDSV(i));
 
 		// 更新当前 cascade 层 的 ShadowMap world 绘制矩阵，并绘制
