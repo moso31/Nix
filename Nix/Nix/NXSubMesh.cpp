@@ -13,13 +13,14 @@ void NXSubMeshBase::UpdateViewParams()
 	auto* pCamera = NXResourceManager::GetInstance()->GetCameraManager()->GetCamera("Main Camera");
 	auto& mxView = pCamera->GetViewMatrix();
 	auto& mxWorld = m_pPrimitive->GetWorldMatrix();
-	auto& mxWorldView = (mxWorld * mxView).Transpose();
+	auto& mxWorldView = mxWorld * mxView;
 
 	auto& cbDataObject = m_cbObject.Current();
-	cbDataObject.world = mxWorld;
+	cbDataObject.world = mxWorld.Transpose();
 	cbDataObject.worldInverseTranspose = mxWorld.Invert(); // it actually = m_worldMatrix.Invert().Transpose().Transpose();
-	cbDataObject.worldViewInverseTranspose = (mxWorld * mxView).Invert();
-	cbDataObject.worldView = mxWorldView;
+
+	cbDataObject.worldView = mxWorldView.Transpose();
+	cbDataObject.worldViewInverseTranspose = (mxWorldView).Invert();
 
 	// TODO: 以下这些参数并不依赖当前SubMeshBase。应该放在这里吗？
 	{

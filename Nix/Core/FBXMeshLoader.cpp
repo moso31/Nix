@@ -186,12 +186,23 @@ void FBXMeshLoader::EncodePrimitiveData(FbxNode* pNode, NXPrimitive* pPrimitive,
 		FbxNode* pNode = pMesh->GetNode();
 		if (pNode) materialCount = max(pNode->GetMaterialCount(), 1);	// 有时候3ds中没有指定材质，这种情况下填充一个默认submesh（至少保证有一个submesh）。
 
+		static int noNameMaterialIdx = 0;
 		std::vector<NXSubMeshBase*> pSubMeshes;
 		pSubMeshes.reserve(materialCount);
 		for (int i = 0; i < materialCount; i++)
 		{
 			auto fbxMaterial = pNode->GetMaterial(i);
-			std::string subMeshName(fbxMaterial ? fbxMaterial->GetName() + '_' + std::to_string(i) : "nixGen_" + std::to_string(i));
+
+			std::string subMeshName;
+			if (fbxMaterial)
+			{
+				fbxMaterial->GetName() + '_' + std::to_string(i);
+			}
+			else
+			{
+				subMeshName = "Material_" + std::to_string(noNameMaterialIdx) + "_" + std::to_string(i);
+				noNameMaterialIdx++;
+			}
 			pSubMeshes.push_back(new NXSubMeshStandard(pPrimitive, subMeshName));
 		}
 
