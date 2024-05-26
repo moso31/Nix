@@ -487,6 +487,9 @@
     <ClCompile Include="Nix\NXBuffer.cpp">
       <Filter>Nix\TextureBuffer</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXRendererPass.cpp">
+      <Filter>Core\DirectX\Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -797,6 +800,9 @@
     </ClInclude>
     <ClInclude Include="Nix\NXBuffer.h">
       <Filter>Nix\TextureBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXRendererPass.h">
+      <Filter>Core\DirectX\Renderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

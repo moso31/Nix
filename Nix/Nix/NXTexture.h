@@ -109,9 +109,9 @@ public:
     void SetSerializationData(const NXTextureSerializationData& data) { m_serializationData = data; }
 
 protected:
-    // 创建纹理，程序生成    // TODO：允许被PlaceResource统一管理
+    // 创建纹理，程序生成
     // m_pTexture 独立存储在NXTexture成员上
-    void CreateInternal(D3D12_RESOURCE_FLAGS flags);
+    void CreateRenderTextureInternal(D3D12_RESOURCE_FLAGS flags);
 
     // 创建纹理，从文件读取
     // m_pTexture 存储在全局分配器g_pTextureAllocator，并作为大PlaceResource的一部分被统一管理。
@@ -161,7 +161,7 @@ public:
     ~NXTexture2D() {}
 
     Ntr<NXTexture2D> Create(const std::string& DebugName, const std::filesystem::path& FilePath, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
-    Ntr<NXTexture2D> CreateTexture2D(const std::string& debugName, DXGI_FORMAT fmt, UINT width, UINT height, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
+    Ntr<NXTexture2D> CreateRenderTexture(const std::string& debugName, DXGI_FORMAT fmt, UINT width, UINT height, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
     Ntr<NXTexture2D> CreateSolid(const std::string& DebugName, UINT TexSize, const Vector4& Color, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
     Ntr<NXTexture2D> CreateNoise(const std::string& DebugName, UINT TexSize, UINT Dimension, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
 

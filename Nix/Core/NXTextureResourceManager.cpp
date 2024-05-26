@@ -13,51 +13,51 @@ void NXTextureResourceManager::ResizeCommonRT(const Vector2& rtSize)
 	m_pCommonRT.clear();
 	m_pCommonRT.resize(NXCommonRT_SIZE);
 
-	m_pCommonRT[NXCommonRT_DepthZ] = CreateTexture2D("Scene DepthZ RT", DXGI_FORMAT_R24G8_TYPELESS, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
+	m_pCommonRT[NXCommonRT_DepthZ] = CreateRenderTexture("Scene DepthZ RT", DXGI_FORMAT_R24G8_TYPELESS, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
 	m_pCommonRT[NXCommonRT_DepthZ]->AddDSV();
 	m_pCommonRT[NXCommonRT_DepthZ]->AddSRV();
 
-	m_pCommonRT[NXCommonRT_DepthZ_R32] = CreateTexture2D("Scene DepthZ R32 RT", DXGI_FORMAT_R32_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+	m_pCommonRT[NXCommonRT_DepthZ_R32] = CreateRenderTexture("Scene DepthZ R32 RT", DXGI_FORMAT_R32_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 	m_pCommonRT[NXCommonRT_DepthZ_R32]->AddRTV();
 	m_pCommonRT[NXCommonRT_DepthZ_R32]->AddSRV();
 
-	m_pCommonRT[NXCommonRT_Lighting0] = CreateTexture2D("Lighting RT0", DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+	m_pCommonRT[NXCommonRT_Lighting0] = CreateRenderTexture("Lighting RT0", DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 	m_pCommonRT[NXCommonRT_Lighting0]->AddRTV();
 	m_pCommonRT[NXCommonRT_Lighting0]->AddSRV();
 
-	m_pCommonRT[NXCommonRT_Lighting1] = CreateTexture2D("Lighting RT1", DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+	m_pCommonRT[NXCommonRT_Lighting1] = CreateRenderTexture("Lighting RT1", DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 	m_pCommonRT[NXCommonRT_Lighting1]->AddRTV();
 	m_pCommonRT[NXCommonRT_Lighting1]->AddSRV();
 
-	m_pCommonRT[NXCommonRT_Lighting2] = CreateTexture2D("Lighting RT2", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+	m_pCommonRT[NXCommonRT_Lighting2] = CreateRenderTexture("Lighting RT2", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 	m_pCommonRT[NXCommonRT_Lighting2]->AddRTV();
 	m_pCommonRT[NXCommonRT_Lighting2]->AddSRV();
 
-	m_pCommonRT[NXCommonRT_SSSLighting] = CreateTexture2D("SSS Lighting RT", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+	m_pCommonRT[NXCommonRT_SSSLighting] = CreateRenderTexture("SSS Lighting RT", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 	m_pCommonRT[NXCommonRT_SSSLighting]->AddRTV();
 	m_pCommonRT[NXCommonRT_SSSLighting]->AddSRV();
 
-	m_pCommonRT[NXCommonRT_ShadowTest] = CreateTexture2D("Shadow Test RT", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+	m_pCommonRT[NXCommonRT_ShadowTest] = CreateRenderTexture("Shadow Test RT", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 	m_pCommonRT[NXCommonRT_ShadowTest]->AddRTV();
 	m_pCommonRT[NXCommonRT_ShadowTest]->AddSRV();
 
-	m_pCommonRT[NXCommonRT_GBuffer0] = CreateTexture2D("GBuffer RT0", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+	m_pCommonRT[NXCommonRT_GBuffer0] = CreateRenderTexture("GBuffer RT0", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 	m_pCommonRT[NXCommonRT_GBuffer0]->AddRTV();
 	m_pCommonRT[NXCommonRT_GBuffer0]->AddSRV();
 
-	m_pCommonRT[NXCommonRT_GBuffer1] = CreateTexture2D("GBuffer RT1", DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+	m_pCommonRT[NXCommonRT_GBuffer1] = CreateRenderTexture("GBuffer RT1", DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 	m_pCommonRT[NXCommonRT_GBuffer1]->AddRTV();
 	m_pCommonRT[NXCommonRT_GBuffer1]->AddSRV();
 
-	m_pCommonRT[NXCommonRT_GBuffer2] = CreateTexture2D("GBuffer RT2", DXGI_FORMAT_R10G10B10A2_UNORM, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+	m_pCommonRT[NXCommonRT_GBuffer2] = CreateRenderTexture("GBuffer RT2", DXGI_FORMAT_R10G10B10A2_UNORM, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 	m_pCommonRT[NXCommonRT_GBuffer2]->AddRTV();
 	m_pCommonRT[NXCommonRT_GBuffer2]->AddSRV();
 
-	m_pCommonRT[NXCommonRT_GBuffer3] = CreateTexture2D("GBuffer RT3", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+	m_pCommonRT[NXCommonRT_GBuffer3] = CreateRenderTexture("GBuffer RT3", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 	m_pCommonRT[NXCommonRT_GBuffer3]->AddRTV();
 	m_pCommonRT[NXCommonRT_GBuffer3]->AddSRV();
 
-	m_pCommonRT[NXCommonRT_PostProcessing] = CreateTexture2D("Post Processing", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+	m_pCommonRT[NXCommonRT_PostProcessing] = CreateRenderTexture("Post Processing", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 	m_pCommonRT[NXCommonRT_PostProcessing]->AddRTV();
 	m_pCommonRT[NXCommonRT_PostProcessing]->AddSRV();
 }
@@ -161,10 +161,10 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D(const std::string& na
 	return pTexture2D;
 }
 
-Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D(const std::string& name, DXGI_FORMAT fmt, UINT width, UINT height, D3D12_RESOURCE_FLAGS flags)
+Ntr<NXTexture2D> NXTextureResourceManager::CreateRenderTexture(const std::string& name, DXGI_FORMAT fmt, UINT width, UINT height, D3D12_RESOURCE_FLAGS flags)
 {
 	Ntr<NXTexture2D> pTexture2D(new NXTexture2D());
-	pTexture2D->CreateTexture2D(name, fmt, width, height, flags);
+	pTexture2D->CreateRenderTexture(name, fmt, width, height, flags);
 	m_pTextureArrayInternal.push_back(pTexture2D);
 	return pTexture2D;
 }

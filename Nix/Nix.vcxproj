@@ -222,6 +222,7 @@
     <ClCompile Include="Core\NXGUIDiffuseProfile.cpp" />
     <ClCompile Include="Core\NXGUIInspector.cpp" />
     <ClCompile Include="Core\NXLog.cpp" />
+    <ClCompile Include="Core\NXRendererPass.cpp" />
     <ClCompile Include="Core\NXSamplerManager.cpp" />
     <ClCompile Include="Core\NXGUIMaterialShaderEditor.cpp" />
     <ClCompile Include="Core\NXGUIView.cpp" />
@@ -321,6 +322,7 @@
     <ClInclude Include="Core\NXGUIDiffuseProfile.h" />
     <ClInclude Include="Core\NXGUIInspector.h" />
     <ClInclude Include="Core\NXLog.h" />
+    <ClInclude Include="Core\NXRendererPass.h" />
     <ClInclude Include="Core\NXSamplerManager.h" />
     <ClInclude Include="Core\NXGUIMaterialShaderEditor.h" />
     <ClInclude Include="Core\NXGUIView.h" />

@@ -68,10 +68,10 @@ void NXTexture::SwapToReloadingTexture()
 	}
 }
 
-void NXTexture::CreateInternal(D3D12_RESOURCE_FLAGS flags)
+void NXTexture::CreateRenderTextureInternal(D3D12_RESOURCE_FLAGS flags)
 {
-	// 创建非文件格式的纹理。
-	// 创建这类纹理时，没有从文件读取资源的需求，不需要提供上传堆资源。
+	// 创建RT纹理时，没有从文件读取资源的需求，不需要提供上传堆资源。
+	// 不走任何Allocator，直接创建资源；ComPtr自己管理资源m_pTexture的生命周期
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = GetResourceDimentionFromType();
 	desc.Width = m_width;
@@ -431,7 +431,7 @@ Ntr<NXTexture2D> NXTexture2D::Create(const std::string& debugName, const std::fi
 	return this;
 }
 
-Ntr<NXTexture2D> NXTexture2D::CreateTexture2D(const std::string& debugName, DXGI_FORMAT fmt, UINT width, UINT height, D3D12_RESOURCE_FLAGS flags)
+Ntr<NXTexture2D> NXTexture2D::CreateRenderTexture(const std::string& debugName, DXGI_FORMAT fmt, UINT width, UINT height, D3D12_RESOURCE_FLAGS flags)
 {
 	m_texFilePath = "[Render Target: " + debugName + "]";
 	m_name = debugName;
@@ -440,7 +440,7 @@ Ntr<NXTexture2D> NXTexture2D::CreateTexture2D(const std::string& debugName, DXGI
 	m_arraySize = 1;
 	m_mipLevels = 1;
 	m_texFormat = fmt;
-	CreateInternal(flags);
+	CreateRenderTextureInternal(flags);
 
 	return this;
 }
@@ -610,7 +610,7 @@ void NXTextureCube::Create(const std::string& debugName, DXGI_FORMAT texFormat, 
 	m_texFormat = texFormat;
 	m_mipLevels = mipLevels;
 
-	CreateInternal(flags);
+	CreateRenderTextureInternal(flags);
 }
 
 void NXTextureCube::Create(const std::string& debugName, const std::wstring& filePath, size_t width, size_t height, D3D12_RESOURCE_FLAGS flags)
@@ -788,7 +788,7 @@ void NXTexture2DArray::Create(const std::string& debugName, DXGI_FORMAT texForma
 	this->m_arraySize = arraySize;
 	this->m_texFormat = texFormat;
 	this->m_mipLevels = mipLevels;
-	CreateInternal(flags);
+	CreateRenderTextureInternal(flags);
 }
 
 void NXTexture2DArray::AddSRV(UINT firstArraySlice, UINT arraySize)

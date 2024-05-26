@@ -21,8 +21,8 @@ bool RTVAllocator::Alloc(UINT size, UINT& oPageIdx, UINT& oFirstIdx, D3D12_CPU_D
 {
 	if (RTVAllocatorBase::Alloc(size, oPageIdx, oFirstIdx))
 	{
-		auto& pDescriptor = m_pages[oPageIdx].data;
-		oHandle = pDescriptor->GetCPUDescriptorHandleForHeapStart();
+		auto& pDescriptorHeap = m_pages[oPageIdx].data;
+		oHandle = pDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 		oHandle.ptr += oFirstIdx * m_descriptorByteSize;
 		return true;
 	}

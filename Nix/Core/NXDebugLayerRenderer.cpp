@@ -22,7 +22,7 @@ void NXDebugLayerRenderer::Init(const Vector2& rtSize)
 	m_pTexPassIn0 = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_PostProcessing);
 	m_pTexPassIn1 = m_pShadowMapRenderer->GetShadowMapDepthTex();
 
-	m_pTexPassOut = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("Debug Layer Out RT", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+	m_pTexPassOut = NXResourceManager::GetInstance()->GetTextureManager()->CreateRenderTexture("Debug Layer Out RT", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 	m_pTexPassOut->AddRTV();
 	m_pTexPassOut->AddSRV();
 
@@ -64,7 +64,7 @@ void NXDebugLayerRenderer::Init(const Vector2& rtSize)
 
 void NXDebugLayerRenderer::OnResize(const Vector2& rtSize)
 {
-	m_pTexPassOut = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("Debug Layer Out RT", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+	m_pTexPassOut = NXResourceManager::GetInstance()->GetTextureManager()->CreateRenderTexture("Debug Layer Out RT", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 	m_pTexPassOut->AddRTV();
 	m_pTexPassOut->AddSRV();
 
