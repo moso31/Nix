@@ -315,6 +315,7 @@
     <ClInclude Include="Core\imfilebrowser.h" />
     <ClInclude Include="Core\Ntr.h" />
     <ClInclude Include="Core\NXAllocatorManager.h" />
+    <ClInclude Include="Core\NXCommonTexDefinition.h" />
     <ClInclude Include="Core\NXDepthRenderer.h" />
     <ClInclude Include="Core\NXFileSystemHelper.h" />
     <ClInclude Include="Core\NXGlobalDefinitions.h" />

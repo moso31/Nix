@@ -106,7 +106,7 @@ void Renderer::OnResize(const Vector2& rtSize)
 	m_viewRTSize = rtSize;
 
 	NXResourceManager::GetInstance()->GetTextureManager()->ResizeCommonRT(m_viewRTSize);
-	m_pDeferredRenderer->OnResize(m_viewRTSize);
+	//m_pDeferredRenderer->OnResize(m_viewRTSize);
 	//m_pDepthPrepass->OnResize(m_viewRTSize);
 	//m_pSSAO->OnResize(m_viewRTSize);
 	//m_pDepthPeelingRenderer->OnResize(m_viewRTSize);

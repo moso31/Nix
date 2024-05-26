@@ -804,6 +804,9 @@
     <ClInclude Include="Core\NXRendererPass.h">
       <Filter>Core\DirectX\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="Core\NXCommonTexDefinition.h">
+      <Filter>Core\DirectX</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="杂七杂八的编码规范.txt" />
