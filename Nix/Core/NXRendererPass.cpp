@@ -16,17 +16,17 @@ NXRendererPass::NXRendererPass() :
 
 void NXRendererPass::AddInputTex(NXCommonRTEnum eCommonTex)
 {
-	m_pInTexs.push_back(NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(eCommonTex));
+	m_pInTexs.push_back(NXPassTexture(NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(eCommonTex), eCommonTex));
 }
 
 void NXRendererPass::AddOutputRT(NXCommonRTEnum eCommonTex)
 {
-	m_pOutRTs.push_back(NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(eCommonTex));
+	m_pOutRTs.push_back(NXPassTexture(NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(eCommonTex), eCommonTex));
 }
 
 void NXRendererPass::SetOutputDS(NXCommonRTEnum eCommonTex)
 {
-	m_pOutDS = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(eCommonTex);
+	m_pOutDS = NXPassTexture(NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(eCommonTex), eCommonTex);
 }
 
 void NXRendererPass::AddInputTex(const Ntr<NXTexture>& pTex)
@@ -193,4 +193,22 @@ void NXRendererPass::AddStaticSampler(D3D12_FILTER filter, D3D12_TEXTURE_ADDRESS
 {
 	auto& samplerDesc = NXSamplerManager::GetInstance()->CreateIso((int)m_staticSamplers.size(), 0, D3D12_SHADER_VISIBILITY_ALL, filter, addrUVW);
 	m_staticSamplers.push_back(samplerDesc);
+}
+
+void NXRendererPass::OnResize()
+{
+	for (auto& pTex : m_pInTexs)
+	{
+		if (pTex.IsCommonRT())
+			pTex.pTexture = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(pTex.rtType);
+	}
+
+	for (auto& pTex : m_pOutRTs)
+	{
+		if (pTex.IsCommonRT())
+			pTex.pTexture = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(pTex.rtType);
+	}
+
+	if (m_pOutDS.IsCommonRT())
+		m_pOutDS.pTexture = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(m_pOutDS.rtType);
 }

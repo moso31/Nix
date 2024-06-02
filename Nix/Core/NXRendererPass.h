@@ -3,6 +3,7 @@
 #include <filesystem>
 #include "Ntr.h"
 #include "NXCommonTexDefinition.h"
+#include "NXTexture.h"
 
 struct NXRenderPassRegisterStates
 {
@@ -46,7 +47,27 @@ struct NXRenderPassRegisterStates
 	int srvUavNum;
 };
 
-class NXTexture;
+// 记录Pass用到的纹理
+struct NXPassTexture
+{
+	NXPassTexture() : pTexture(nullptr), rtType(NXCommonRTEnum::NXCommonRT_None) {}
+	NXPassTexture(const Ntr<NXTexture>& pTex) : pTexture(pTex), rtType(NXCommonRTEnum::NXCommonRT_None) {}
+	NXPassTexture(const Ntr<NXTexture>& pTex, NXCommonRTEnum eCommonTex) : pTexture(pTex), rtType(eCommonTex) {}
+
+	NXTexture* operator->() { return pTexture.Ptr(); }
+
+	bool IsValid() { return pTexture.IsValid(); }
+	bool IsNull() { return pTexture.IsNull(); }
+	bool IsCommonRT() { return rtType != NXCommonRT_None; }
+
+	// 纹理指针
+	Ntr<NXTexture> pTexture;
+	
+	// 纹理是否是通用RT，如果是，在这里记录一下
+	// OnResize() 依赖这个参数
+	NXCommonRTEnum rtType;
+};
+
 class NXRendererPass
 {
 public:
@@ -81,6 +102,9 @@ public:
 	void AddStaticSampler(D3D12_FILTER filter, D3D12_TEXTURE_ADDRESS_MODE addrUVW);
 
 	virtual void Init() = 0;
+
+	// OnResize 会在窗口大小变化时被调用
+	// 用于更新Pass 关联的 RT的引用状态
 	void OnResize();
 	void Render(ID3D12GraphicsCommandList* pCmdList);
 
@@ -97,9 +121,9 @@ protected:
 	ComPtr<ID3D12PipelineState>				m_pPSO;
 	ComPtr<ID3D12RootSignature>				m_pRootSig;
 
-	std::vector<Ntr<NXTexture>>				m_pInTexs;
-	std::vector<Ntr<NXTexture>>				m_pOutRTs;
-	Ntr<NXTexture>							m_pOutDS;
+	std::vector<NXPassTexture>				m_pInTexs;
+	std::vector<NXPassTexture>				m_pOutRTs;
+	NXPassTexture							m_pOutDS;
 
 	std::filesystem::path					m_shaderFilePath;
 
