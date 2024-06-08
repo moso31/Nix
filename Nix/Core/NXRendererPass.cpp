@@ -11,6 +11,15 @@
 NXRendererPass::NXRendererPass() :
 	m_psoDesc({})
 {
+	m_psoDesc.InputLayout = NXGlobalInputLayout::layoutPT;
+	m_psoDesc.BlendState = NXBlendState<>::Create();
+	m_psoDesc.RasterizerState = NXRasterizerState<>::Create();
+	m_psoDesc.DepthStencilState = NXDepthStencilState<>::Create();
+	m_psoDesc.SampleDesc.Count = 1;
+	m_psoDesc.SampleDesc.Quality = 0;
+	m_psoDesc.SampleMask = UINT_MAX;
+	m_psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+
 	m_srvUavRanges.reserve(1);
 }
 
@@ -105,15 +114,6 @@ void NXRendererPass::InitPSO()
 	m_psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	m_psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 
-	m_psoDesc.InputLayout = NXGlobalInputLayout::layoutPT;
-	m_psoDesc.BlendState = NXBlendState<>::Create();
-	m_psoDesc.RasterizerState = NXRasterizerState<>::Create();
-	m_psoDesc.DepthStencilState = NXDepthStencilState<>::Create();
-	m_psoDesc.SampleDesc.Count = 1;
-	m_psoDesc.SampleDesc.Quality = 0;
-	m_psoDesc.SampleMask = UINT_MAX;
-	m_psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-
 	m_psoDesc.NumRenderTargets = (UINT)m_pOutRTs.size();
 	for (UINT i = 0; i < m_psoDesc.NumRenderTargets; i++)
 		m_psoDesc.RTVFormats[i] = m_pOutRTs[i]->GetFormat();
@@ -124,8 +124,6 @@ void NXRendererPass::InitPSO()
 
 void NXRendererPass::RenderBegin(ID3D12GraphicsCommandList* pCmdList)
 {
-	NX12Util::BeginEvent(pCmdList, m_passName.c_str());
-
 	std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> ppRTVs;
 	for (auto& pTex : m_pOutRTs) ppRTVs.push_back(pTex->GetRTV());
 
@@ -153,8 +151,6 @@ void NXRendererPass::RenderEnd(ID3D12GraphicsCommandList* pCmdList)
 	pCmdList->IASetVertexBuffers(0, 1, &meshView.vbv);
 	pCmdList->IASetIndexBuffer(&meshView.ibv);
 	pCmdList->DrawIndexedInstanced(meshView.indexCount, 1, 0, 0, 0);
-
-	NX12Util::EndEvent(pCmdList);
 }
 
 void NXRendererPass::SetRootParams(int CBVNum, int SRVUAVNum)

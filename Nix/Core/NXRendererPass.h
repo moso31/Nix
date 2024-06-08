@@ -60,7 +60,7 @@ struct NXPassTexture
 	bool IsNull() { return pTexture.IsNull(); }
 	bool IsCommonRT() { return rtType != NXCommonRT_None; }
 
-	// 纹理指针
+	// 纹理指针，可能是 RT 类型，也可能是自定义的任意 tex
 	Ntr<NXTexture> pTexture;
 	
 	// 纹理是否是通用RT，如果是，在这里记录一下
@@ -73,8 +73,6 @@ class NXRendererPass
 public:
 	NXRendererPass();
 	~NXRendererPass() {}
-
-	void SetPassName(const std::string& passName) { m_passName = passName; }
 
 	void AddInputTex(NXCommonRTEnum eCommonTex);
 	void AddOutputRT(NXCommonRTEnum eCommonTex);
@@ -116,7 +114,6 @@ protected:
 	void RenderEnd(ID3D12GraphicsCommandList* pCmdList);
 
 protected:
-	std::string								m_passName;
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC		m_psoDesc;
 	ComPtr<ID3D12PipelineState>				m_pPSO;
 	ComPtr<ID3D12RootSignature>				m_pRootSig;

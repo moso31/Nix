@@ -1,10 +1,8 @@
 #pragma once
-#include "BaseDefs/DX12.h"
-#include "Ntr.h"
-#include "ShaderStructures.h"
+#include "NXRendererPass.h"
 
 class NXTexture2D;
-class NXDepthRenderer
+class NXDepthRenderer : public NXRendererPass
 {
 public:
 	NXDepthRenderer() {}
@@ -14,11 +12,4 @@ public:
 	void Render(ID3D12GraphicsCommandList* pCmdList);
 
 	void Release();
-
-private:
-	ComPtr<ID3D12PipelineState>			m_pPSO;
-	ComPtr<ID3D12RootSignature>			m_pRootSig;
-
-	Ntr<NXTexture2D> 					m_pTexPassIn;
-	Ntr<NXTexture2D> 					m_pTexPassOut;
 };

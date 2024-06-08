@@ -24,8 +24,6 @@ NXDeferredRenderer::~NXDeferredRenderer()
 
 void NXDeferredRenderer::Init()
 {
-	SetPassName("Deferred Rendering");
-
 	AddInputTex(NXCommonRT_GBuffer0);
 	AddInputTex(NXCommonRT_GBuffer1);
 	AddInputTex(NXCommonRT_GBuffer2);
@@ -45,7 +43,7 @@ void NXDeferredRenderer::Init()
 	SetDepthStencilState(NXDepthStencilState<true, false, D3D12_COMPARISON_FUNC_LESS_EQUAL>::Create());
 
 	// t0~t8, s0~s1, b0~b4.
-	SetRootParams(5, 9);
+	SetRootParams(5, 9); // param 0~4 = b0~b4, param 5 = t0~t8
 	SetRootParamCBV(0, NXGlobalBuffer::cbObject.GetGPUHandle());
 	SetRootParamCBV(1, NXGlobalBuffer::cbCamera.GetGPUHandle());
 	SetRootParamCBV(2, m_pScene->GetConstantBufferLights());
@@ -59,8 +57,10 @@ void NXDeferredRenderer::Init()
 
 void NXDeferredRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 {
+	NX12Util::BeginEvent(pCmdList, "Deferred Rendering");
 	NXRendererPass::RenderBegin(pCmdList);
 	NXRendererPass::RenderEnd(pCmdList);
+	NX12Util::EndEvent(pCmdList);
 }
 
 void NXDeferredRenderer::Release()
