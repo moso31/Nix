@@ -9,7 +9,9 @@
 #include "NXSubMeshGeometryEditor.h"
 
 NXRendererPass::NXRendererPass() :
-	m_psoDesc({})
+	m_psoDesc({}),
+	m_passName("Unnamed Pass"),
+	m_stencilRef(0x0)
 {
 	m_psoDesc.InputLayout = NXGlobalInputLayout::layoutPT;
 	m_psoDesc.BlendState = NXBlendState<>::Create();
@@ -41,43 +43,36 @@ void NXRendererPass::SetOutputDS(NXCommonRTEnum eCommonTex)
 void NXRendererPass::AddInputTex(const Ntr<NXTexture>& pTex)
 {
 	m_pInTexs.push_back(pTex);
-	m_checkStates.inTexNum++;
 }
 
 void NXRendererPass::AddOutputRT(const Ntr<NXTexture>& pTex)
 {
 	m_pOutRTs.push_back(pTex);
-	m_checkStates.outRTNum++;
 }
 
 void NXRendererPass::SetOutputDS(const Ntr<NXTexture>& pTex)
 {
 	m_pOutDS = pTex;
-	m_checkStates.outDS = m_pOutDS.IsValid();
 }
 
 void NXRendererPass::SetInputLayout(const D3D12_INPUT_LAYOUT_DESC& desc)
 {
 	m_psoDesc.InputLayout = desc;
-	m_checkStates.bInputLayout = true;
 }
 
 void NXRendererPass::SetBlendState(const D3D12_BLEND_DESC& desc)
 {
 	m_psoDesc.BlendState = desc;
-	m_checkStates.bBlendState = true;
 }
 
 void NXRendererPass::SetRasterizerState(const D3D12_RASTERIZER_DESC& desc)
 {
 	m_psoDesc.RasterizerState = desc;
-	m_checkStates.bRasterizerState = true;
 }
 
 void NXRendererPass::SetDepthStencilState(const D3D12_DEPTH_STENCIL_DESC& desc)
 {
 	m_psoDesc.DepthStencilState = desc;
-	m_checkStates.bDepthStencilState = true;
 }
 
 void NXRendererPass::SetSampleDescAndMask(UINT Count, UINT Quality, UINT Mask)
@@ -85,25 +80,20 @@ void NXRendererPass::SetSampleDescAndMask(UINT Count, UINT Quality, UINT Mask)
 	m_psoDesc.SampleDesc.Count = Count;
 	m_psoDesc.SampleDesc.Quality = Quality;
 	m_psoDesc.SampleMask = Mask;
-	m_checkStates.bSampleDescAndMask = true;
 }
 
 void NXRendererPass::SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE type)
 {
 	m_psoDesc.PrimitiveTopologyType = type;
-	m_checkStates.bPrimitiveTopologyType = true;
 }
 
 void NXRendererPass::SetShaderFilePath(const std::filesystem::path& shaderFilePath)
 {
 	m_shaderFilePath = shaderFilePath;
-	m_checkStates.bShaderFilePath = true;
 }
 
 void NXRendererPass::InitPSO()
 {
-	assert(m_checkStates.Check());
-
 	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::GetDevice(), m_rootParams, m_staticSamplers);
 
 	ComPtr<ID3DBlob> pVSBlob, pPSBlob;
@@ -122,17 +112,20 @@ void NXRendererPass::InitPSO()
 	NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&m_psoDesc, IID_PPV_ARGS(&m_pPSO));
 }
 
-void NXRendererPass::RenderBegin(ID3D12GraphicsCommandList* pCmdList)
+void NXRendererPass::Render(ID3D12GraphicsCommandList* pCmdList)
 {
+	NX12Util::BeginEvent(pCmdList, m_passName.c_str());
+
 	std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> ppRTVs;
 	for (auto& pTex : m_pOutRTs) ppRTVs.push_back(pTex->GetRTV());
 
 	pCmdList->OMSetRenderTargets((UINT)ppRTVs.size(), ppRTVs.data(), true, m_pOutDS.IsNull() ? nullptr : &m_pOutDS->GetDSV());
+	pCmdList->OMSetStencilRef(m_stencilRef);
 
 	pCmdList->SetGraphicsRootSignature(m_pRootSig.Get());
 	pCmdList->SetPipelineState(m_pPSO.Get());
 
-	for (int i = 0; i < m_checkStates.cbvNum; i++)
+	for (int i = 0; i < (int)m_cbvGpuVirtAddrs.size(); i++)
 		pCmdList->SetGraphicsRootConstantBufferView(i, m_cbvGpuVirtAddrs[i]);
 
 	D3D12_GPU_DESCRIPTOR_HANDLE srvHandle0;
@@ -141,16 +134,18 @@ void NXRendererPass::RenderBegin(ID3D12GraphicsCommandList* pCmdList)
 		srvHandle0 = NXGPUHandleHeap->SetFluidDescriptor(m_pInTexs[0]->GetSRV());
 		for (int i = 1; i < (int)m_pInTexs.size(); i++) NXGPUHandleHeap->SetFluidDescriptor(m_pInTexs[i]->GetSRV());
 
-		pCmdList->SetGraphicsRootDescriptorTable(m_checkStates.cbvNum, srvHandle0);
+		// 2024.6.8
+		// 根据目前在.h中的根参数-寄存器布局规定，
+		// m_cbvGpuVirtAddrs 中 元素的数量就是 Table 的 slot 索引。
+		pCmdList->SetGraphicsRootDescriptorTable((UINT)m_cbvGpuVirtAddrs.size(), srvHandle0);
 	}
-}
 
-void NXRendererPass::RenderEnd(ID3D12GraphicsCommandList* pCmdList)
-{
 	const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_RenderTarget");
 	pCmdList->IASetVertexBuffers(0, 1, &meshView.vbv);
 	pCmdList->IASetIndexBuffer(&meshView.ibv);
 	pCmdList->DrawIndexedInstanced(meshView.indexCount, 1, 0, 0, 0);
+
+	NX12Util::EndEvent(pCmdList);
 }
 
 void NXRendererPass::SetRootParams(int CBVNum, int SRVUAVNum)
@@ -170,13 +165,11 @@ void NXRendererPass::SetRootParams(int CBVNum, int SRVUAVNum)
 	}
 
 	m_cbvGpuVirtAddrs.resize(CBVNum);
-	m_checkStates.cbvNum = CBVNum;
-	m_checkStates.srvUavNum = SRVUAVNum;
 }
 
 void NXRendererPass::SetRootParamCBV(int rootParamIndex, D3D12_GPU_VIRTUAL_ADDRESS gpuVirtAddr)
 {
-	assert(rootParamIndex >= 0 && rootParamIndex < m_checkStates.cbvNum);
+	assert(rootParamIndex >= 0 && rootParamIndex < (int)m_cbvGpuVirtAddrs.size());
 	m_cbvGpuVirtAddrs[rootParamIndex] = gpuVirtAddr;
 }
 

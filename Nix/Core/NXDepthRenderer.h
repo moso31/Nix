@@ -9,7 +9,4 @@ public:
 	~NXDepthRenderer() {}
 
 	void Init();
-	void Render(ID3D12GraphicsCommandList* pCmdList);
-
-	void Release();
 };

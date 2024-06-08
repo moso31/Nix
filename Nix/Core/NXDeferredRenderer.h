@@ -14,9 +14,6 @@ public:
 	~NXDeferredRenderer();
 
 	void Init();
-	void Render(ID3D12GraphicsCommandList* pCmdList);
-
-	void Release();
 
 private:
 	NXBRDFLut* m_pBRDFLut;

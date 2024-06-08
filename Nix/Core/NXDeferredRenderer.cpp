@@ -24,6 +24,8 @@ NXDeferredRenderer::~NXDeferredRenderer()
 
 void NXDeferredRenderer::Init()
 {
+	SetPassName("Deferred Rendering");
+
 	AddInputTex(NXCommonRT_GBuffer0);
 	AddInputTex(NXCommonRT_GBuffer1);
 	AddInputTex(NXCommonRT_GBuffer2);
@@ -53,16 +55,4 @@ void NXDeferredRenderer::Init()
 	AddStaticSampler(D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
 
 	InitPSO();
-}
-
-void NXDeferredRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
-{
-	NX12Util::BeginEvent(pCmdList, "Deferred Rendering");
-	NXRendererPass::RenderBegin(pCmdList);
-	NXRendererPass::RenderEnd(pCmdList);
-	NX12Util::EndEvent(pCmdList);
-}
-
-void NXDeferredRenderer::Release()
-{
 }

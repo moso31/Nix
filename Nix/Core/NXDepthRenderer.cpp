@@ -10,6 +10,8 @@
 
 void NXDepthRenderer::Init()
 {
+	SetPassName("Depth Copy");
+
 	AddInputTex(NXCommonRT_DepthZ);
 	AddOutputRT(NXCommonRT_DepthZ_R32);
 
@@ -20,19 +22,7 @@ void NXDepthRenderer::Init()
 
 	SetDepthStencilState(NXDepthStencilState<false, false, D3D12_COMPARISON_FUNC_LESS, true, 0xFF, 0xFF, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_COMPARISON_FUNC_EQUAL>::Create());
 
+	SetStencilRef(0x1);
+
 	InitPSO();
-}
-
-void NXDepthRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
-{
-	NX12Util::BeginEvent(pCmdList, "Depth Copy");
-	RenderBegin(pCmdList);
-	pCmdList->OMSetStencilRef(0x01);
-	RenderEnd(pCmdList);
-	pCmdList->OMSetStencilRef(0x00);
-	NX12Util::EndEvent(pCmdList);
-}
-
-void NXDepthRenderer::Release()
-{
 }
