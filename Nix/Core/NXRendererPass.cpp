@@ -30,6 +30,11 @@ void NXRendererPass::AddInputTex(NXCommonRTEnum eCommonTex)
 	m_pInTexs.push_back(NXPassTexture(NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(eCommonTex), eCommonTex));
 }
 
+void NXRendererPass::AddInputTex(NXCommonTexEnum eCommonTex)
+{
+	m_pInTexs.push_back(NXPassTexture(NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(eCommonTex)));
+}
+
 void NXRendererPass::AddOutputRT(NXCommonRTEnum eCommonTex)
 {
 	m_pOutRTs.push_back(NXPassTexture(NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(eCommonTex), eCommonTex));
@@ -154,6 +159,7 @@ void NXRendererPass::SetRootParams(int CBVNum, int SRVUAVNum)
 	m_rootParams.clear();
 	for (int i = 0; i < CBVNum; i++)
 	{
+		// 默认slotIndex = i，可以通过 SetRootParamCBV(, slotIdx, ) 方法修改
 		m_rootParams.push_back(NX12Util::CreateRootParameterCBV(i, 0, D3D12_SHADER_VISIBILITY_ALL));
 	};
 
@@ -171,6 +177,15 @@ void NXRendererPass::SetRootParamCBV(int rootParamIndex, D3D12_GPU_VIRTUAL_ADDRE
 {
 	assert(rootParamIndex >= 0 && rootParamIndex < (int)m_cbvGpuVirtAddrs.size());
 	m_cbvGpuVirtAddrs[rootParamIndex] = gpuVirtAddr;
+}
+
+void NXRendererPass::SetRootParamCBV(int rootParamIndex, int slotIndex, D3D12_GPU_VIRTUAL_ADDRESS gpuVirtAddr)
+{
+	assert(rootParamIndex >= 0 && rootParamIndex < (int)m_cbvGpuVirtAddrs.size());
+
+	m_cbvGpuVirtAddrs[rootParamIndex] = gpuVirtAddr;
+
+	m_rootParams[rootParamIndex].Descriptor.ShaderRegister = slotIndex;
 }
 
 void NXRendererPass::AddStaticSampler(const D3D12_STATIC_SAMPLER_DESC& samplerDesc)

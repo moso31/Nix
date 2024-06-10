@@ -79,7 +79,7 @@ void Renderer::Init()
 	m_pDeferredRenderer = new NXDeferredRenderer(m_scene, m_pBRDFLut);
 	m_pDeferredRenderer->Init();
 
-	m_pSubSurfaceRenderer = new NXSubSurfaceRenderer(m_scene);
+	m_pSubSurfaceRenderer = new NXSubSurfaceRenderer();
 	m_pSubSurfaceRenderer->Init();
 
 	//m_pForwardRenderer = new NXForwardRenderer(m_scene, m_pBRDFLut);
@@ -107,6 +107,7 @@ void Renderer::OnResize(const Vector2& rtSize)
 
 	NXResourceManager::GetInstance()->GetTextureManager()->ResizeCommonRT(m_viewRTSize);
 	m_pDeferredRenderer->OnResize();
+	m_pSubSurfaceRenderer->OnResize();
 	//m_pDepthPrepass->OnResize(m_viewRTSize);
 	//m_pSSAO->OnResize(m_viewRTSize);
 	//m_pDepthPeelingRenderer->OnResize(m_viewRTSize);

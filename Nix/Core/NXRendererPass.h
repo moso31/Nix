@@ -35,10 +35,11 @@ public:
 	void SetPassName(const std::string& passName) { m_passName = passName; }
 
 	void AddInputTex(NXCommonRTEnum eCommonTex);
-	void AddOutputRT(NXCommonRTEnum eCommonTex);
-	void SetOutputDS(NXCommonRTEnum eCommonTex);
+	void AddInputTex(NXCommonTexEnum eCommonTex);
 	void AddInputTex(const Ntr<NXTexture>& pTex);
+	void AddOutputRT(NXCommonRTEnum eCommonTex);
 	void AddOutputRT(const Ntr<NXTexture>& pTex);
+	void SetOutputDS(NXCommonRTEnum eCommonTex);
 	void SetOutputDS(const Ntr<NXTexture>& pTex);
 
 	void SetInputLayout(const D3D12_INPUT_LAYOUT_DESC& desc);
@@ -58,6 +59,7 @@ public:
 	// 4. 采样器始终使用StaticSampler，不考虑动态Sampler，目前够用了
 	void SetRootParams(int CBVNum, int SRVUAVNum);
 	void SetRootParamCBV(int rootParamIndex, D3D12_GPU_VIRTUAL_ADDRESS gpuVirtAddr);
+	void SetRootParamCBV(int rootParamIndex, int slotIndex, D3D12_GPU_VIRTUAL_ADDRESS gpuVirtAddr);
 	void AddStaticSampler(const D3D12_STATIC_SAMPLER_DESC& staticSampler);
 	void AddStaticSampler(D3D12_FILTER filter, D3D12_TEXTURE_ADDRESS_MODE addrUVW);
 

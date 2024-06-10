@@ -1,7 +1,6 @@
 #pragma once
 #include "NXRendererPass.h"
 
-class NXTexture2D;
 class NXDepthRenderer : public NXRendererPass
 {
 public:

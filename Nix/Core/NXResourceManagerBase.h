@@ -4,14 +4,6 @@
 #include "BaseDefs/CppSTLFully.h"
 #include "NXCommonTexDefinition.h"
 
-enum NXCommonTexEnum
-{
-    NXCommonTex_White,
-    NXCommonTex_Normal,
-    NXCommonTex_Noise2DGray_64x64,
-    NXCommonTex_SIZE,
-};
-
 // Nix认为，宇宙万法的那个源头
 class NXObject;
 

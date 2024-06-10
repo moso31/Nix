@@ -30,3 +30,11 @@ enum NXCommonRTEnum
 
     NXCommonRT_SIZE,
 };
+
+enum NXCommonTexEnum
+{
+    NXCommonTex_White,
+    NXCommonTex_Normal,
+    NXCommonTex_Noise2DGray_64x64,
+    NXCommonTex_SIZE,
+};
