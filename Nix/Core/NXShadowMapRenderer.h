@@ -7,7 +7,6 @@
 
 struct CBufferShadowMapObject
 {
-	Matrix world;
 	Matrix view;
 	Matrix projection;
 };
@@ -47,7 +46,7 @@ public:
 	void	SetCascadeExponentScale(float value)	{ m_cascadeExponentScale = value; }
 
 private:
-	void UpdateShadowMapBuffer(ID3D12GraphicsCommandList* pCmdList, NXPBRDistantLight* pDirLight);
+	void RenderCSMPerLight(ID3D12GraphicsCommandList* pCmdList, NXPBRDistantLight* pDirLight);
 
 private:
 	ComPtr<ID3D12PipelineState>			m_pPSO;
@@ -58,7 +57,7 @@ private:
 	// 2022.5.10 阴影贴图（目前仅用于平行光）
 	Ntr<NXTexture2DArray>				m_pShadowMapDepth;
 
-	NXBuffer<CBufferShadowMapObject>	m_cbShadowMapObject;
+	NXBuffer<CBufferShadowMapObject>	m_CSMViewProj;
 
 	// cascade 级联数量
 	UINT m_cascadeCount;

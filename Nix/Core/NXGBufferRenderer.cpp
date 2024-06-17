@@ -68,7 +68,7 @@ void NXGBufferRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 					bool bIsVisible = pSubMesh->GetPrimitive()->GetVisible();
 					if (bIsVisible)
 					{
-						pSubMesh->UpdateViewParams();
+						pSubMesh->GetPrimitive()->Update(pCmdList);
 						pSubMesh->Update(pCmdList);
 						pSubMesh->Render(pCmdList);
 					}
@@ -94,7 +94,7 @@ void NXGBufferRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 						bool bIsVisible = pSubMesh->GetPrimitive()->GetVisible();
 						if (bIsVisible)
 						{
-							pSubMesh->UpdateViewParams();
+							pSubMesh->GetPrimitive()->Update(pCmdList);
 							pSubMesh->Update(pCmdList);
 							pSubMesh->Render(pCmdList);
 						}
@@ -112,7 +112,7 @@ void NXGBufferRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 						bool bIsVisible = pSubMesh->GetPrimitive()->GetVisible();
 						if (bIsVisible)
 						{
-							pSubMesh->UpdateViewParams();
+							pSubMesh->GetPrimitive()->Update(pCmdList);
 							pSubMesh->Update(pCmdList);
 							pSubMesh->Render(pCmdList);
 						}

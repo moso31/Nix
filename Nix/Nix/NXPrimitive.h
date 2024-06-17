@@ -24,7 +24,10 @@ public:
 	void ReloadSubMesh(UINT index, NXSubMeshBase* pSubMesh);
 
 	void InitAABB() override;
+	void InitCBData();
+	void Update(ID3D12GraphicsCommandList* pCmdList);
 
 protected:
 	std::vector<std::shared_ptr<NXSubMeshBase>> m_pSubMeshes;
+	NXBuffer<ConstantBufferObject>	m_cbObject;
 };

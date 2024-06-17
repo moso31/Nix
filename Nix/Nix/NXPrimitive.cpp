@@ -2,9 +2,12 @@
 #include "NXGlobalDefinitions.h"
 #include "NXScene.h"
 #include "NXAllocatorManager.h"
+#include "NXCamera.h"
+#include "NXTimer.h"
 
 NXPrimitive::NXPrimitive()
 {
+	InitCBData();
 }
 
 void NXPrimitive::CalculateTangents(bool bUpdateVBIB)
@@ -83,4 +86,37 @@ void NXPrimitive::InitAABB()
 	}
 
 	NXRenderableObject::InitAABB();
+}
+
+void NXPrimitive::InitCBData()
+{
+	m_cbObject.CreateFrameBuffers(NXCBufferAllocator, NXDescriptorAllocator);
+}
+
+void NXPrimitive::Update(ID3D12GraphicsCommandList* pCmdList)
+{
+	auto* pCamera = NXResourceManager::GetInstance()->GetCameraManager()->GetCamera("Main Camera");
+	auto& mxView = pCamera->GetViewMatrix();
+	auto& mxWorld = m_worldMatrix;
+	auto& mxWorldView = mxWorld * mxView;
+
+	auto& cbDataObject = m_cbObject.Current();
+	cbDataObject.world = mxWorld.Transpose();
+	cbDataObject.worldInverseTranspose = mxWorld.Invert(); // it actually = m_worldMatrix.Invert().Transpose().Transpose();
+
+	cbDataObject.worldView = mxWorldView.Transpose();
+	cbDataObject.worldViewInverseTranspose = (mxWorldView).Invert();
+
+	cbDataObject.view = mxView.Transpose();
+	cbDataObject.viewInverse = mxView.Invert().Transpose();
+	cbDataObject.viewTranspose = mxView;
+	cbDataObject.viewInverseTranspose = mxView.Invert();
+	cbDataObject.projection = pCamera->GetProjectionMatrix().Transpose();
+	cbDataObject.projectionInverse = pCamera->GetProjectionMatrix().Invert().Transpose();
+
+	cbDataObject.globalData.time = NXGlobalApp::Timer->GetGlobalTimeSeconds();
+
+	m_cbObject.UpdateBuffer();
+
+	pCmdList->SetGraphicsRootConstantBufferView(0, m_cbObject.GetGPUHandle());
 }

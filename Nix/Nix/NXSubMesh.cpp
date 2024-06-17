@@ -8,38 +8,8 @@
 template class NXSubMesh<VertexPNTT>;
 template class NXSubMesh<VertexEditorObjects>;
 
-void NXSubMeshBase::UpdateViewParams() 
-{
-	auto* pCamera = NXResourceManager::GetInstance()->GetCameraManager()->GetCamera("Main Camera");
-	auto& mxView = pCamera->GetViewMatrix();
-	auto& mxWorld = m_pPrimitive->GetWorldMatrix();
-	auto& mxWorldView = mxWorld * mxView;
-
-	auto& cbDataObject = m_cbObject.Current();
-	cbDataObject.world = mxWorld.Transpose();
-	cbDataObject.worldInverseTranspose = mxWorld.Invert(); // it actually = m_worldMatrix.Invert().Transpose().Transpose();
-
-	cbDataObject.worldView = mxWorldView.Transpose();
-	cbDataObject.worldViewInverseTranspose = (mxWorldView).Invert();
-
-	// TODO: 以下这些参数并不依赖当前SubMeshBase。应该放在这里吗？
-	{
-		cbDataObject.view = mxView.Transpose();
-		cbDataObject.viewInverse = mxView.Invert().Transpose();
-		cbDataObject.viewTranspose = mxView;
-		cbDataObject.viewInverseTranspose = mxView.Invert();
-		cbDataObject.projection = pCamera->GetProjectionMatrix().Transpose();
-		cbDataObject.projectionInverse = pCamera->GetProjectionMatrix().Invert().Transpose();
-
-		cbDataObject.globalData.time = NXGlobalApp::Timer->GetGlobalTimeSeconds();
-	}
-
-	m_cbObject.UpdateBuffer();
-}
-
 void NXSubMeshBase::Update(ID3D12GraphicsCommandList* pCommandList)
 {
-	pCommandList->SetGraphicsRootConstantBufferView(0, m_cbObject.GetGPUHandle());
 	if (m_pMaterial) m_pMaterial->Update();
 }
 
@@ -118,7 +88,6 @@ template<class TVertex>
 void NXSubMesh<TVertex>::TryAddBuffers()
 {
 	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(m_vertices, m_indices, m_subMeshName, true);
-	m_cbObject.CreateFrameBuffers(NXCBufferAllocator, NXDescriptorAllocator);
 }
 
 void NXSubMeshStandard::CalculateTangents(bool bUpdateVBIB)

@@ -21,8 +21,6 @@ public:
 	NXSubMeshBase(NXPrimitive* pPrimitive) : m_pPrimitive(pPrimitive), m_pMaterial(nullptr), m_pReplacingMaterial(nullptr), m_nMatReloadingState(NXSubMeshReloadState::None) {}
 	virtual ~NXSubMeshBase() {}
 
-	void UpdateViewParams();
-
 	void Update(ID3D12GraphicsCommandList* pCommandList);
 	virtual void Render(ID3D12GraphicsCommandList* pCommandList) = 0;
 
@@ -64,8 +62,6 @@ protected:
 	NXSubMeshReloadState m_nMatReloadingState;
 	std::filesystem::path m_strReplacingPath;
 	NXMaterial* m_pReplacingMaterial;
-
-	NXBuffer<ConstantBufferObject>	m_cbObject;
 };
 
 template<class TVertex>

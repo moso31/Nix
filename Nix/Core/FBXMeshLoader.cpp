@@ -196,7 +196,7 @@ void FBXMeshLoader::EncodePrimitiveData(FbxNode* pNode, NXPrimitive* pPrimitive,
 			std::string subMeshName;
 			if (fbxMaterial)
 			{
-				fbxMaterial->GetName() + '_' + std::to_string(i);
+				subMeshName = fbxMaterial->GetName() + '_' + std::to_string(i);
 			}
 			else
 			{

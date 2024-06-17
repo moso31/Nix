@@ -1,8 +1,10 @@
-cbuffer ConstantBufferShadowMapObject : register(b0)
+#include "common.fx"
+
+// shadow map 使用独立的 viewproj 矩阵
+cbuffer ConstantBufferShadowMap : register(b2)
 {
-	matrix m_world;
-	matrix m_view;
-	matrix m_projection;
+	matrix m_csmView;
+	matrix m_csmProj;
 }
 
 struct VS_INPUT
@@ -21,8 +23,8 @@ PS_INPUT VS(VS_INPUT input)
 {
 	PS_INPUT output = (PS_INPUT)0;
 	output.posH = mul(input.pos, m_world);
-	output.posH = mul(output.posH, m_view);
-	output.posH = mul(output.posH, m_projection);
+	output.posH = mul(output.posH, m_csmView);
+	output.posH = mul(output.posH, m_csmProj);
 	output.tex = input.tex;
 
 	return output;

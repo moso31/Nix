@@ -76,6 +76,8 @@ void NXEditorObjectRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 	{
 		if (pEditObj->GetVisible()) // if bIsVisible
 		{
+			pEditObj->Update(pCmdList);
+
 			for (UINT i = 0; i < pEditObj->GetSubMeshCount(); i++)
 			{
 				auto pSubMesh = pEditObj->GetSubMesh(i);
@@ -91,7 +93,6 @@ void NXEditorObjectRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 						pCmdList->SetGraphicsRootConstantBufferView(2, m_cbParams.GetGPUHandle());
 					}
 
-					pSubMeshEditorObj->UpdateViewParams();
 					pSubMeshEditorObj->Update(pCmdList);
 					pSubMeshEditorObj->Render(pCmdList);
 				}

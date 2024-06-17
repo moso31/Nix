@@ -34,6 +34,7 @@ void NXShadowMapRenderer::Init()
 
 	std::vector<D3D12_ROOT_PARAMETER> rootParams;
 	rootParams.push_back(NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL)); // b0
+	rootParams.push_back(NX12Util::CreateRootParameterCBV(2, 0, D3D12_SHADER_VISIBILITY_ALL)); // b2
 	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::GetDevice(), rootParams);
 
 	m_pShadowMapDepth = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DArray("Shadow DepthZ RT", DXGI_FORMAT_R32_TYPELESS, m_shadowMapRTSize, m_shadowMapRTSize, m_cascadeCount, 1, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
@@ -58,7 +59,7 @@ void NXShadowMapRenderer::Init()
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
 
-	m_cbShadowMapObject.CreateFrameBuffers(NXCBufferAllocator, NXDescriptorAllocator);
+	m_CSMViewProj.CreateFrameBuffers(NXCBufferAllocator, NXDescriptorAllocator);
 
 	SetCascadeCount(m_cascadeCount);
 	SetShadowDistance(m_shadowDistance);
@@ -89,7 +90,7 @@ void NXShadowMapRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 		if (pLight->GetType() == NXLightTypeEnum::NXLight_Distant)
 		{
 			NXPBRDistantLight* pDirLight = static_cast<NXPBRDistantLight*>(pLight);
-			UpdateShadowMapBuffer(pCmdList, pDirLight);
+			RenderCSMPerLight(pCmdList, pDirLight);
 		}
 	}
 
@@ -101,10 +102,7 @@ void NXShadowMapRenderer::RenderSingleObject(ID3D12GraphicsCommandList* pCmdList
 	NXPrimitive* pPrimitive = pRenderableObject->IsPrimitive();
 	if (pPrimitive)
 	{
-		m_cbShadowMapObject.Current().world = pPrimitive->GetWorldMatrix().Transpose();
-		m_cbShadowMapObject.UpdateBuffer();
-
-		pCmdList->SetGraphicsRootConstantBufferView(0, m_cbShadowMapObject.GetGPUHandle());
+		pPrimitive->Update(pCmdList);
 
 		for (UINT i = 0; i < pPrimitive->GetSubMeshCount(); i++)
 		{
@@ -166,7 +164,7 @@ void NXShadowMapRenderer::SetCascadeTransitionScale(float value)
 	}
 }
 
-void NXShadowMapRenderer::UpdateShadowMapBuffer(ID3D12GraphicsCommandList* pCmdList, NXPBRDistantLight* pDirLight)
+void NXShadowMapRenderer::RenderCSMPerLight(ID3D12GraphicsCommandList* pCmdList, NXPBRDistantLight* pDirLight)
 {
 	Vector3 lightDirection = pDirLight->GetDirection();
 	lightDirection = lightDirection.IsZero() ? Vector3(0.0f, 0.0f, 1.0f) : lightDirection;
@@ -269,13 +267,15 @@ void NXShadowMapRenderer::UpdateShadowMapBuffer(ID3D12GraphicsCommandList* pCmdL
 		Matrix mxShadowProj = XMMatrixOrthographicOffCenterLH(-sphereRadius, sphereRadius, -sphereRadius, sphereRadius, 0.0f, backDistance * 2.0f);
 
 		// 更新当前 cascade 层 的 ShadowMap view proj 绘制矩阵
-		m_cbShadowMapObject.Current().view = mxShadowView.Transpose();
-		m_cbShadowMapObject.Current().projection = mxShadowProj.Transpose();
-		NXGlobalBuffer::cbShadowTest.Current().view[i] = m_cbShadowMapObject.Current().view;
-		NXGlobalBuffer::cbShadowTest.Current().projection[i] = m_cbShadowMapObject.Current().projection;
+		m_CSMViewProj.Current().view = mxShadowView.Transpose();
+		m_CSMViewProj.Current().projection = mxShadowProj.Transpose();
+		m_CSMViewProj.UpdateBuffer();
+		NXGlobalBuffer::cbShadowTest.Current().view[i] = m_CSMViewProj.Current().view;
+		NXGlobalBuffer::cbShadowTest.Current().projection[i] = m_CSMViewProj.Current().projection;
 
 		pCmdList->ClearDepthStencilView(m_pShadowMapDepth->GetDSV(i), D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0x0, 0, nullptr);
 		pCmdList->OMSetRenderTargets(0, nullptr, false, &m_pShadowMapDepth->GetDSV(i));
+		pCmdList->SetGraphicsRootConstantBufferView(1, m_CSMViewProj.GetGPUHandle());
 
 		// 更新当前 cascade 层 的 ShadowMap world 绘制矩阵，并绘制
 		for (auto pRenderableObj : m_pScene->GetRenderableObjects())
