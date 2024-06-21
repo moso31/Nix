@@ -109,6 +109,7 @@ void Renderer::OnResize(const Vector2& rtSize)
 	m_pDeferredRenderer->OnResize();
 	m_pDepthRenderer->OnResize();
 	m_pSubSurfaceRenderer->OnResize();
+	m_pSkyRenderer->OnResize();
 	//m_pDepthPrepass->OnResize(m_viewRTSize);
 	//m_pSSAO->OnResize(m_viewRTSize);
 	//m_pDepthPeelingRenderer->OnResize(m_viewRTSize);

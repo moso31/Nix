@@ -37,6 +37,13 @@ struct ConstantBufferCubeMap
 	Vector4 irradMode;
 };
 
+struct ConstantBufferBaseWVP
+{
+	Matrix world;
+	Matrix view;
+	Matrix projection;
+};
+
 class NXScene;
 class NXTextureCube;
 class NXCubeMap : public NXTransform
@@ -78,6 +85,7 @@ public:
 	Ntr<NXTexture2D> GetIrradianceMap() { return m_pTexIrradianceMap; }
 	Ntr<NXTexture2D> GetPreFilterMap() { return m_pTexPreFilterMap; }
 
+	const D3D12_GPU_VIRTUAL_ADDRESS& GetCBObjectParams() { return m_cbObject.GetGPUHandle(); }
 	const D3D12_GPU_VIRTUAL_ADDRESS& GetCBDataParams() { return m_cbData.GetGPUHandle(); }
 
 	void SetIntensity(float val);
@@ -113,6 +121,7 @@ private:
 
 	// 生成使用独立的 allocator 来管理 CubeMap 的 cb
 	CommittedAllocator* m_cbAllocator;
+	NXBuffer<ConstantBufferBaseWVP> m_cbObject[6];  // [6] for 6 faces。虽然NXBuffer<>::CreateBuffer也支持一次性创建6个，但
 	NXBuffer<ConstantBufferCubeMap> m_cbData;
 
 	size_t	m_pSRVIrradianceSH;

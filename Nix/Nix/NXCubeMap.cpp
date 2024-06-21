@@ -43,6 +43,8 @@ bool NXCubeMap::Init(const std::filesystem::path& filePath)
 	m_mxCubeMapView[4] = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 1.0f), Vector3(0.0f, 1.0f, 0.0f));
 	m_mxCubeMapView[5] = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, -1.0f), Vector3(0.0f, 1.0f, 0.0f));
 
+	m_cbObject.CreateBuffers(m_cbAllocator, NXDescriptorAllocator, NXCUBEMAP_FACE_COUNT);
+
 	std::string strExtension = NXConvert::s2lower(filePath.extension().string().c_str());
 
 	if (strExtension == ".dds")
@@ -144,9 +146,6 @@ Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSOCubeMap));
 
-	NXBuffer<ConstantBufferObject> cbData;
-	cbData.CreateBuffers(m_cbAllocator, NXDescriptorAllocator, NXCUBEMAP_FACE_COUNT);
-
 	pTexCubeMap->AddSRV();
 	for (int i = 0; i < 6; i++) pTexCubeMap->AddRTV(0, i, 1);
 
@@ -175,15 +174,15 @@ Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)
 
 		pTexCubeMap->SetResourceState(pCmdList.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-		cbData.Get(i).world = Matrix::Identity();
-		cbData.Get(i).projection = m_mxCubeMapProj.Transpose();
-		cbData.Get(i).view = m_mxCubeMapView[i].Transpose();
-		cbData.UpdateBuffer(i);
+		m_cbObject.Get(i).world = Matrix::Identity();
+		m_cbObject.Get(i).projection = m_mxCubeMapProj.Transpose();
+		m_cbObject.Get(i).view = m_mxCubeMapView[i].Transpose();
+		m_cbObject.UpdateBuffer(i);
 
 		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = pTexCubeMap->GetRTV(i);
 		pCmdList->OMSetRenderTargets(1, &rtvHandle, false, nullptr);
 
-		pCmdList->SetGraphicsRootConstantBufferView(0, cbData.GetGPUHandle(i));
+		pCmdList->SetGraphicsRootConstantBufferView(0, m_cbObject.GetGPUHandle(i));
 		pCmdList->SetGraphicsRootDescriptorTable(1, gpuHandle);
 
 		const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_CubeMapBox");
