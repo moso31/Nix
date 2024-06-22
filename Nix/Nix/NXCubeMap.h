@@ -65,7 +65,6 @@ public:
 	//		2. for 循环 渲染30个RTV，并依次绘制
 	bool Init(const std::filesystem::path& filePath);
 	void Update() override;
-	void UpdateViewParams();
 	void Release() override;
 
 	Ntr<NXTextureCube> GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR);
@@ -84,8 +83,8 @@ public:
 	Ntr<NXTexture2D> GetIrradianceMap() { return m_pTexIrradianceMap; }
 	Ntr<NXTexture2D> GetPreFilterMap() { return m_pTexPreFilterMap; }
 
-	const D3D12_GPU_VIRTUAL_ADDRESS& GetCBObjectParams() { return m_cbObject.GetGPUHandle(); }
-	const D3D12_GPU_VIRTUAL_ADDRESS& GetCBDataParams() { return m_cbData.GetGPUHandle(); }
+	const std::vector<D3D12_GPU_VIRTUAL_ADDRESS>& GetCBObjectParams() { return m_cbObject.GetGPUHandleArray(); }
+	const std::vector<D3D12_GPU_VIRTUAL_ADDRESS>& GetCBDataParams() { return m_cbData.GetGPUHandleArray(); }
 
 	void SetIntensity(float val);
 	float* GetIntensity() { return &m_cbData.Get().intensity; }

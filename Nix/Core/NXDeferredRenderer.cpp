@@ -46,8 +46,8 @@ void NXDeferredRenderer::Init()
 
 	// t0~t8, s0~s1, b0~b4.
 	SetRootParams(5, 9); // param 0~4 = b0~b4, param 5 = t0~t8
-	SetRootParamCBV(0, NXGlobalBuffer::cbObject.GetGPUHandle());
-	SetRootParamCBV(1, NXGlobalBuffer::cbCamera.GetGPUHandle());
+	SetRootParamCBV(0, NXGlobalBuffer::cbObject.GetGPUHandleArray());
+	SetRootParamCBV(1, NXGlobalBuffer::cbCamera.GetGPUHandleArray());
 	SetRootParamCBV(2, m_pScene->GetConstantBufferLights());
 	SetRootParamCBV(3, m_pScene->GetCubeMap()->GetCBDataParams());
 	SetRootParamCBV(4, NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfile());

@@ -34,7 +34,7 @@ void NXSubSurfaceRenderer::Init()
 
 	// t0~t5, s0, b3
 	SetRootParams(2, 6);
-	SetRootParamCBV(0, 1, NXGlobalBuffer::cbCamera.GetGPUHandle());
+	SetRootParamCBV(0, 1, NXGlobalBuffer::cbCamera.GetGPUHandleArray());
 	SetRootParamCBV(1, 3, NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfile());
 	AddStaticSampler(D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
 

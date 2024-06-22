@@ -6,6 +6,12 @@
 // 2024.5.12 NXBuffer<T> 模板类
 // 对标 DX11 cbuffer。这里有分配内存的接口，分配出来的内存在底层交给XAllocator管理。
 // 【TODO：资源释放。目前的设想是尽量交给 XAllocator处理，NXBuffer不管资源释放】
+
+// 允许存储多个资源，支持FrameResources
+// 内存布局，以一个存储了6份数据，并且是FrameResource（交换链是三缓冲）的资源为例：
+// m_buffers[0 ~ 5] = 第一帧的数据
+// m_buffers[6 ~ 11] = 第二帧的数据
+// m_buffers[12 ~ 17] = 第三帧的数据
 template <typename T>
 class NXBuffer
 {
@@ -28,12 +34,12 @@ public:
 	// FrameResource会存储交换链页数份(MultiFrameSets_swapChainCount)的数据，每一帧都会更新其中一份。
 	void CreateFrameBuffers(CommittedAllocator* pCBAllocator, DescriptorAllocator* pDescriptorAllocator, UINT bufferCount = 1)
 	{
-		Create(sizeof(T), pCBAllocator, pDescriptorAllocator, true, MultiFrameSets_swapChainCount * bufferCount);
+		Create(sizeof(T), pCBAllocator, pDescriptorAllocator, true, bufferCount);
 	}
 
 	void CreateFrameBuffers(UINT customByteSize, CommittedAllocator* pCBAllocator, DescriptorAllocator* pDescriptorAllocator, UINT bufferCount = 1)
 	{
-		Create(customByteSize, pCBAllocator, pDescriptorAllocator, true, MultiFrameSets_swapChainCount * bufferCount);
+		Create(customByteSize, pCBAllocator, pDescriptorAllocator, true, bufferCount);
 	}
 
 	// 创建一个普通的NXBuffer。
@@ -60,9 +66,21 @@ public:
 		return m_isFrameResource ? m_buffers[MultiFrameSets::swapChainIndex * m_singleBufferCount + index].GPUVirtualAddr : m_buffers[index].GPUVirtualAddr;
 	}
 
+	// 获取所有GPUHandle。
+	// 一般在设置根参数的时候使用
+	const std::vector<D3D12_GPU_VIRTUAL_ADDRESS>& GetGPUHandleArray() { return m_buffersGPUHandles; }
+
+	// 获取当前帧的buffer
 	T& Get(UINT index = 0)
 	{
 		return m_isFrameResource ? m_buffers[MultiFrameSets::swapChainIndex * m_singleBufferCount + index].data : m_buffers[index].data;
+	}
+
+	// 获取指定帧的buffer
+	T& Get(UINT frameIndex, UINT bufferIndex)
+	{
+		assert(m_isFrameResource);
+		return m_buffers[frameIndex * m_singleBufferCount + bufferIndex].data;
 	}
 
 	void Set(T& data)
@@ -73,7 +91,8 @@ public:
 
 	void Set(T& data, UINT index)
 	{
-		m_buffers[index].data = data;
+		for (UINT i = 0; i < MultiFrameSets_swapChainCount; i++)
+			m_buffers[i * m_singleBufferCount + index].data = data;
 	}
 
 	bool IsNull()
@@ -97,6 +116,7 @@ private:
 		m_singleBufferCount = bufferCount;
 		m_actualBufferCount = m_isFrameResource ? MultiFrameSets_swapChainCount * bufferCount : bufferCount;
 		m_buffers = std::make_unique<NXBufferData[]>(m_actualBufferCount);
+		m_buffersGPUHandles.reserve(m_actualBufferCount);
 
 		for (UINT i = 0; i < m_actualBufferCount; i++)
 		{
@@ -115,6 +135,9 @@ private:
 			m_pDevice->CreateConstantBufferView(&cbvDesc, cbvHandle);
 
 			buffer.byteSize = byteSize;
+
+			// GPUHandle 单独存一份数组
+			m_buffersGPUHandles.push_back(buffer.GPUVirtualAddr);
 		}
 	}
 
@@ -125,6 +148,10 @@ private:
 
 	// CBuffer本体
 	std::unique_ptr<NXBufferData[]> m_buffers;
+
+	// 使用一个独立数组存一下 所有 buffer 的 GPUHandles
+	// 也可以通过m_buffers中拿这个值，但调用起来不方便
+	std::vector<D3D12_GPU_VIRTUAL_ADDRESS> m_buffersGPUHandles;
 
 	// 是否是 FrameResource，如果是FrameResource，bufferCount必须=3，并且Current()会根据交换链的帧索引判断使用哪张buffer
 	bool m_isFrameResource;

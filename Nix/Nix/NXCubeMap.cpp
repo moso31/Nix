@@ -45,6 +45,16 @@ bool NXCubeMap::Init(const std::filesystem::path& filePath)
 
 	m_cbObject.CreateFrameBuffers(m_cbAllocator, NXDescriptorAllocator, NXCUBEMAP_FACE_COUNT);
 
+	ConstantBufferBaseWVP wvp;
+	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
+	{
+		for (int j = 0; j < NXCUBEMAP_FACE_COUNT; j++)
+		{
+			m_cbObject.Get(i, j).view = m_mxCubeMapView[j].Transpose();
+			m_cbObject.Get(i, j).projection = m_mxCubeMapProj.Transpose();
+		}
+	}
+
 	std::string strExtension = NXConvert::s2lower(filePath.extension().string().c_str());
 
 	if (strExtension == ".dds")
@@ -93,14 +103,11 @@ D3D12_CPU_DESCRIPTOR_HANDLE NXCubeMap::GetSRVPreFilterMap()
 void NXCubeMap::Update()
 {
 	m_cbData.UpdateBuffer();
-}
 
-void NXCubeMap::UpdateViewParams()
-{
 	auto pCamera = m_pScene->GetMainCamera();
-
-	NXGlobalBuffer::cbObject.Get().world = Matrix::CreateTranslation(pCamera->GetTranslation()).Transpose();
-	NXGlobalBuffer::cbObject.UpdateBuffer();
+	for (int i = 0; i < NXCUBEMAP_FACE_COUNT; i++)
+		m_cbObject.Get(i).world = Matrix::CreateTranslation(pCamera->GetTranslation()).Transpose();
+	m_cbObject.UpdateBuffer();
 }
 
 void NXCubeMap::Release()
@@ -139,7 +146,7 @@ Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)
 	NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSOCubeMap));
 
 	pTexCubeMap->AddSRV();
-	for (int i = 0; i < 6; i++) pTexCubeMap->AddRTV(0, i, 1);
+	for (int i = 0; i < NXCUBEMAP_FACE_COUNT; i++) pTexCubeMap->AddRTV(0, i, 1);
 
 	auto gpuHandle = NXGPUHandleHeap->SetFluidDescriptor(pTexHDR->GetSRV());
 
@@ -166,10 +173,7 @@ Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)
 
 		pTexCubeMap->SetResourceState(pCmdList.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-		m_cbObject.Get(i).world = Matrix::Identity();
-		m_cbObject.Get(i).projection = m_mxCubeMapProj.Transpose();
-		m_cbObject.Get(i).view = m_mxCubeMapView[i].Transpose();
-		m_cbObject.UpdateBuffer(i);
+		m_cbObject.UpdateBuffer();
 
 		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = pTexCubeMap->GetRTV(i);
 		pCmdList->OMSetRenderTargets(1, &rtvHandle, false, nullptr);

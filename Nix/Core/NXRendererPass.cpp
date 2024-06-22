@@ -132,8 +132,9 @@ void NXRendererPass::Render(ID3D12GraphicsCommandList* pCmdList)
 	pCmdList->SetGraphicsRootSignature(m_pRootSig.Get());
 	pCmdList->SetPipelineState(m_pPSO.Get());
 
-	for (int i = 0; i < (int)m_cbvGpuVirtAddrs.size(); i++)
-		pCmdList->SetGraphicsRootConstantBufferView(i, m_cbvGpuVirtAddrs[i]);
+	auto cbvGpuVirtAddrs = m_cbvGpuVirtAddrs.Current();
+	for (int i = 0; i < (int)cbvGpuVirtAddrs.size(); i++)
+		pCmdList->SetGraphicsRootConstantBufferView(i, cbvGpuVirtAddrs[i]);
 
 	D3D12_GPU_DESCRIPTOR_HANDLE srvHandle0;
 	if (!m_pInTexs.empty())
@@ -144,7 +145,7 @@ void NXRendererPass::Render(ID3D12GraphicsCommandList* pCmdList)
 		// 2024.6.8
 		// 根据目前在.h中的根参数-寄存器布局规定，
 		// m_cbvGpuVirtAddrs 中 元素的数量就是 Table 的 slot 索引。
-		pCmdList->SetGraphicsRootDescriptorTable((UINT)m_cbvGpuVirtAddrs.size(), srvHandle0);
+		pCmdList->SetGraphicsRootDescriptorTable((UINT)cbvGpuVirtAddrs.size(), srvHandle0);
 	}
 
 	const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews(m_rtSubMeshName);
@@ -172,21 +173,19 @@ void NXRendererPass::SetRootParams(int CBVNum, int SRVUAVNum)
 		m_rootParams.push_back(NX12Util::CreateRootParameterTable(m_srvUavRanges, D3D12_SHADER_VISIBILITY_ALL));
 	}
 
-	m_cbvGpuVirtAddrs.resize(CBVNum);
+	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
+		m_cbvGpuVirtAddrs[i].resize(CBVNum);
 }
 
-void NXRendererPass::SetRootParamCBV(int rootParamIndex, D3D12_GPU_VIRTUAL_ADDRESS gpuVirtAddr)
+void NXRendererPass::SetRootParamCBV(int rootParamIndex, const std::vector<D3D12_GPU_VIRTUAL_ADDRESS>& gpuVirtAddrs)
 {
-	assert(rootParamIndex >= 0 && rootParamIndex < (int)m_cbvGpuVirtAddrs.size());
-	m_cbvGpuVirtAddrs[rootParamIndex] = gpuVirtAddr;
+	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
+		m_cbvGpuVirtAddrs[i][rootParamIndex] = gpuVirtAddrs[i];
 }
 
-void NXRendererPass::SetRootParamCBV(int rootParamIndex, int slotIndex, D3D12_GPU_VIRTUAL_ADDRESS gpuVirtAddr)
+void NXRendererPass::SetRootParamCBV(int rootParamIndex, int slotIndex, const std::vector<D3D12_GPU_VIRTUAL_ADDRESS>& gpuVirtAddrs)
 {
-	assert(rootParamIndex >= 0 && rootParamIndex < (int)m_cbvGpuVirtAddrs.size());
-
-	m_cbvGpuVirtAddrs[rootParamIndex] = gpuVirtAddr;
-
+	SetRootParamCBV(rootParamIndex, gpuVirtAddrs);
 	m_rootParams[rootParamIndex].Descriptor.ShaderRegister = slotIndex;
 }
 

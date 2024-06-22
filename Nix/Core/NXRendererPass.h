@@ -58,8 +58,8 @@ public:
 	// 3. 任何情况下都不使用根常量
 	// 4. 采样器始终使用StaticSampler，不考虑动态Sampler，目前够用了
 	void SetRootParams(int CBVNum, int SRVUAVNum);
-	void SetRootParamCBV(int rootParamIndex, D3D12_GPU_VIRTUAL_ADDRESS gpuVirtAddr);
-	void SetRootParamCBV(int rootParamIndex, int slotIndex, D3D12_GPU_VIRTUAL_ADDRESS gpuVirtAddr);
+	void SetRootParamCBV(int rootParamIndex, const std::vector<D3D12_GPU_VIRTUAL_ADDRESS>& gpuVirtAddrs);
+	void SetRootParamCBV(int rootParamIndex, int slotIndex, const std::vector<D3D12_GPU_VIRTUAL_ADDRESS>& gpuVirtAddr);
 	void AddStaticSampler(const D3D12_STATIC_SAMPLER_DESC& staticSampler);
 	void AddStaticSampler(D3D12_FILTER filter, D3D12_TEXTURE_ADDRESS_MODE addrUVW);
 
@@ -88,11 +88,18 @@ private:
 
 	std::filesystem::path					m_shaderFilePath;
 
-	std::vector<D3D12_DESCRIPTOR_RANGE>		m_srvUavRanges;
+	// pass 使用的根参数
 	std::vector<D3D12_ROOT_PARAMETER>		m_rootParams;
+
+	// pass 使用的 srv/uav 描述符表
+	std::vector<D3D12_DESCRIPTOR_RANGE>		m_srvUavRanges;
+
+	// pass 使用的静态采样器
 	std::vector<D3D12_STATIC_SAMPLER_DESC>	m_staticSamplers;
 
-	std::vector<D3D12_GPU_VIRTUAL_ADDRESS>	m_cbvGpuVirtAddrs;
+	// pass 使用的 cbv gpu 虚拟地址
+	// cbv需要按帧资源区分，所以用了MultiFrame
+	MultiFrame<std::vector<D3D12_GPU_VIRTUAL_ADDRESS>>	m_cbvGpuVirtAddrs;
 
 	// rt 使用的 subMesh 的名称。
 	// 实际渲染时根据这个名字确定使用 NXSubMeshGeometryEditor 的哪个 subMesh 作为 RT.
