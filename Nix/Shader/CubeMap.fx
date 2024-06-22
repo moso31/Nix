@@ -1,6 +1,4 @@
-#include "Common.fx"
-#include "BRDF.fx"
-
+#include "CubeMapCommon.fx"
 #include "SHIrradianceCommon.fx"
 
 struct ConstantBufferIrradSH

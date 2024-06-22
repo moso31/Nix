@@ -100,7 +100,7 @@ void NXPrimitive::Update(ID3D12GraphicsCommandList* pCmdList)
 	auto& mxWorld = m_worldMatrix;
 	auto& mxWorldView = mxWorld * mxView;
 
-	auto& cbDataObject = m_cbObject.Current();
+	auto& cbDataObject = m_cbObject.Get();
 	cbDataObject.world = mxWorld.Transpose();
 	cbDataObject.worldInverseTranspose = mxWorld.Invert(); // it actually = m_worldMatrix.Invert().Transpose().Transpose();
 

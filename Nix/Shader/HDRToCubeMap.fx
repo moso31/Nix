@@ -1,4 +1,4 @@
-#include "Common.fx"
+#include "CubeMapCommon.fx"
 
 Texture2D txHDRMap : register(t0);
 

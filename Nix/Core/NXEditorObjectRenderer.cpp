@@ -88,7 +88,7 @@ void NXEditorObjectRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 					// 判断当前SubMesh是否高亮显示
 					{
 						bool bIsHighLight = pSubMeshEditorObj->GetEditorObjectID() == m_pScene->GetEditorObjManager()->GetHighLightID();
-						m_cbParams.Current().value.x = bIsHighLight ? 1.0f : 0.0f;
+						m_cbParams.Get().value.x = bIsHighLight ? 1.0f : 0.0f;
 						m_cbParams.UpdateBuffer();
 						pCmdList->SetGraphicsRootConstantBufferView(2, m_cbParams.GetGPUHandle());
 					}

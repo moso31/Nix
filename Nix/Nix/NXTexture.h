@@ -6,6 +6,7 @@
 #include "NXSerializable.h"
 #include "NXTextureDefinitions.h"
 #include "NXTextureReloadTesk.h"
+#include "NXConverter.h"
 
 using namespace Microsoft::WRL;
 using namespace SimpleMath;
@@ -94,6 +95,7 @@ public:
     UINT            GetArraySize() { return m_arraySize; }
     UINT            GetMipLevels() { return m_mipLevels; }
     DXGI_FORMAT     GetFormat() { return m_texFormat; }
+    DXGI_FORMAT     GetDSVFormat() { return NXConvert::TypelessToDSVFormat(m_texFormat); }
 
     void Release();
 

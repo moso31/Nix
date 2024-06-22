@@ -66,7 +66,6 @@ public:
 	bool Init(const std::filesystem::path& filePath);
 	void Update() override;
 	void UpdateViewParams();
-	void Render(ID3D12GraphicsCommandList* pCmdList);
 	void Release() override;
 
 	Ntr<NXTextureCube> GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR);
@@ -89,7 +88,7 @@ public:
 	const D3D12_GPU_VIRTUAL_ADDRESS& GetCBDataParams() { return m_cbData.GetGPUHandle(); }
 
 	void SetIntensity(float val);
-	float* GetIntensity() { return &m_cbData.Current().intensity; }
+	float* GetIntensity() { return &m_cbData.Get().intensity; }
 
 	void SetIrradMode(int val);
 
@@ -121,7 +120,7 @@ private:
 
 	// 生成使用独立的 allocator 来管理 CubeMap 的 cb
 	CommittedAllocator* m_cbAllocator;
-	NXBuffer<ConstantBufferBaseWVP> m_cbObject[6];  // [6] for 6 faces。虽然NXBuffer<>::CreateBuffer也支持一次性创建6个，但
+	NXBuffer<ConstantBufferBaseWVP> m_cbObject;
 	NXBuffer<ConstantBufferCubeMap> m_cbData;
 
 	size_t	m_pSRVIrradianceSH;

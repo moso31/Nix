@@ -43,7 +43,7 @@ bool NXCubeMap::Init(const std::filesystem::path& filePath)
 	m_mxCubeMapView[4] = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 1.0f), Vector3(0.0f, 1.0f, 0.0f));
 	m_mxCubeMapView[5] = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, -1.0f), Vector3(0.0f, 1.0f, 0.0f));
 
-	m_cbObject.CreateBuffers(m_cbAllocator, NXDescriptorAllocator, NXCUBEMAP_FACE_COUNT);
+	m_cbObject.CreateFrameBuffers(m_cbAllocator, NXDescriptorAllocator, NXCUBEMAP_FACE_COUNT);
 
 	std::string strExtension = NXConvert::s2lower(filePath.extension().string().c_str());
 
@@ -99,16 +99,8 @@ void NXCubeMap::UpdateViewParams()
 {
 	auto pCamera = m_pScene->GetMainCamera();
 
-	NXGlobalBuffer::cbObject.Current().world = Matrix::CreateTranslation(pCamera->GetTranslation()).Transpose();
+	NXGlobalBuffer::cbObject.Get().world = Matrix::CreateTranslation(pCamera->GetTranslation()).Transpose();
 	NXGlobalBuffer::cbObject.UpdateBuffer();
-}
-
-void NXCubeMap::Render(ID3D12GraphicsCommandList* pCmdList)
-{
-	const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_CubeMapSphere");
-	pCmdList->IASetVertexBuffers(0, 1, &meshView.vbv);
-	pCmdList->IASetIndexBuffer(&meshView.ibv);
-	pCmdList->DrawIndexedInstanced((UINT)meshView.indexCount, 1, 0, 0, 0);
 }
 
 void NXCubeMap::Release()

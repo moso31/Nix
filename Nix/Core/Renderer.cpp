@@ -182,7 +182,7 @@ void Renderer::UpdateSceneData()
 
 void Renderer::UpdateTime()
 {
-	NXGlobalBuffer::cbObject.Current().globalData.time = NXGlobalApp::Timer->GetGlobalTimeSeconds();
+	NXGlobalBuffer::cbObject.Get().globalData.time = NXGlobalApp::Timer->GetGlobalTimeSeconds();
 }
 
 void Renderer::RenderFrame()

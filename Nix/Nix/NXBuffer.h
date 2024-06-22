@@ -6,8 +6,6 @@
 // 2024.5.12 NXBuffer<T> 模板类
 // 对标 DX11 cbuffer。这里有分配内存的接口，分配出来的内存在底层交给XAllocator管理。
 // 【TODO：资源释放。目前的设想是尽量交给 XAllocator处理，NXBuffer不管资源释放】
-// 注意 NXBuffer 管理的是一个 T 数组，而不是单个 T。
-// 这在很多情况下都是有用的，比如如果是FrameResource，就分配3份；GenerateCubeMap/PrefilterMap也会分配6份/30份内存，避免数据竞争；
 template <typename T>
 class NXBuffer
 {
@@ -26,63 +24,56 @@ public:
 	NXBuffer() {}
 	~NXBuffer() {}
 
-	void CreateFrameBuffers(CommittedAllocator* pCBAllocator, DescriptorAllocator* pDescriptorAllocator)
+	// 创建一个FrameResource类型的NXBuffer。
+	// FrameResource会存储交换链页数份(MultiFrameSets_swapChainCount)的数据，每一帧都会更新其中一份。
+	void CreateFrameBuffers(CommittedAllocator* pCBAllocator, DescriptorAllocator* pDescriptorAllocator, UINT bufferCount = 1)
 	{
-		Create(sizeof(T), pCBAllocator, pDescriptorAllocator, true, MultiFrameSets_swapChainCount);
+		Create(sizeof(T), pCBAllocator, pDescriptorAllocator, true, MultiFrameSets_swapChainCount * bufferCount);
 	}
 
-	void CreateFrameBuffers(UINT customByteSize, CommittedAllocator* pCBAllocator, DescriptorAllocator* pDescriptorAllocator)
+	void CreateFrameBuffers(UINT customByteSize, CommittedAllocator* pCBAllocator, DescriptorAllocator* pDescriptorAllocator, UINT bufferCount = 1)
 	{
-		Create(customByteSize, pCBAllocator, pDescriptorAllocator, true, MultiFrameSets_swapChainCount);
+		Create(customByteSize, pCBAllocator, pDescriptorAllocator, true, MultiFrameSets_swapChainCount * bufferCount);
 	}
 
-	void CreateBuffers(CommittedAllocator* pCBAllocator, DescriptorAllocator* pDescriptorAllocator, UINT bufferCount)
+	// 创建一个普通的NXBuffer。
+	void CreateBuffers(CommittedAllocator* pCBAllocator, DescriptorAllocator* pDescriptorAllocator, UINT bufferCount = 1)
 	{
 		Create(sizeof(T), pCBAllocator, pDescriptorAllocator, false, bufferCount);
 	}
 
-	void CreateBuffers(UINT customByteSize, CommittedAllocator* pCBAllocator, DescriptorAllocator* pDescriptorAllocator, UINT bufferCount)
+	void CreateBuffers(UINT customByteSize, CommittedAllocator* pCBAllocator, DescriptorAllocator* pDescriptorAllocator, UINT bufferCount = 1)
 	{
 		Create(customByteSize, pCBAllocator, pDescriptorAllocator, false, bufferCount);
 	}
 
 	// 类似 dx11 updatesubresource.
-	// index：仅对非FrameResource有效，指定更新哪个buffer。如果是FrameResource不需要提供index.
-	void UpdateBuffer(UINT index = -1)
+	// index：指定更新哪个buffer。如果是FrameResource
+	void UpdateBuffer(UINT index = 0)
 	{
-		assert(m_isFrameResource || index != -1);
-		NXBufferData& currBuffer = m_isFrameResource ? m_buffers[MultiFrameSets::swapChainIndex] : m_buffers[index];
+		NXBufferData& currBuffer = m_isFrameResource ? m_buffers[MultiFrameSets::swapChainIndex * m_singleBufferCount + index] : m_buffers[index];
 		m_pCBAllocator->UpdateData(&currBuffer.data, currBuffer.byteSize, currBuffer.pageIndex, currBuffer.pageOffset);
 	}
 
-	const D3D12_GPU_VIRTUAL_ADDRESS& GetGPUHandle(UINT index = -1)
+	const D3D12_GPU_VIRTUAL_ADDRESS& GetGPUHandle(UINT index = 0)
 	{
-		assert(m_isFrameResource || index != -1);
-		return m_isFrameResource ? m_buffers[MultiFrameSets::swapChainIndex].GPUVirtualAddr : m_buffers[index].GPUVirtualAddr;
+		return m_isFrameResource ? m_buffers[MultiFrameSets::swapChainIndex * m_singleBufferCount + index].GPUVirtualAddr : m_buffers[index].GPUVirtualAddr;
 	}
 
-	T& Current()
+	T& Get(UINT index = 0)
 	{
-		assert(m_isFrameResource);
-		return m_buffers[MultiFrameSets::swapChainIndex].data;
+		return m_isFrameResource ? m_buffers[MultiFrameSets::swapChainIndex * m_singleBufferCount + index].data : m_buffers[index].data;
 	}
 
-	T& Get(UINT index)
+	void Set(T& data)
 	{
-		return m_buffers[index].data;
+		for (UINT i = 0; i < m_actualBufferCount; i++)
+			m_buffers[i].data = data;
 	}
 
-	void Set(const T& data)
+	void Set(T& data, UINT index)
 	{
-		if (m_isFrameResource)
-		{
-			for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
-				m_buffers[i].data = data;
-		}
-		else
-		{
-			m_buffers[0].data = data;
-		}
+		m_buffers[index].data = data;
 	}
 
 	bool IsNull()
@@ -102,16 +93,12 @@ private:
 		m_pDescriptorAllocator = pDescriptorAllocator;
 		m_isFrameResource = isFrameResource;
 
-		if (isFrameResource)
-		{
-			assert(bufferCount == MultiFrameSets_swapChainCount);
-		}
-
 		// Create
-		m_bufferCount = bufferCount;
-		m_buffers = std::make_unique<NXBufferData[]>(m_bufferCount);
+		m_singleBufferCount = bufferCount;
+		m_actualBufferCount = m_isFrameResource ? MultiFrameSets_swapChainCount * bufferCount : bufferCount;
+		m_buffers = std::make_unique<NXBufferData[]>(m_actualBufferCount);
 
-		for (UINT i = 0; i < m_bufferCount; i++)
+		for (UINT i = 0; i < m_actualBufferCount; i++)
 		{
 			NXBufferData& buffer = m_buffers[i];
 
@@ -141,5 +128,12 @@ private:
 
 	// 是否是 FrameResource，如果是FrameResource，bufferCount必须=3，并且Current()会根据交换链的帧索引判断使用哪张buffer
 	bool m_isFrameResource;
-	UINT m_bufferCount;
+
+	// buffer数量
+	UINT m_singleBufferCount;
+
+	// 考虑FrameResource的总buffer数量
+	// 如果是FrameResource，则m_actualBufferCount=m_singleBufferCount * MultiFrameSets_swapChainCount.
+	// 如果不是FrameResource，则m_actualBufferCount=m_singleBufferCount.
+	UINT m_actualBufferCount;
 };

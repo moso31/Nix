@@ -83,7 +83,7 @@ void NXShadowMapRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 	pCmdList->SetGraphicsRootSignature(m_pRootSig.Get());
 	pCmdList->SetPipelineState(m_pPSO.Get());
 
-	NXGlobalBuffer::cbShadowTest.Current().test_transition = m_test_transition;
+	NXGlobalBuffer::cbShadowTest.Get().test_transition = m_test_transition;
 
 	for (auto pLight : m_pScene->GetPBRLights())
 	{
@@ -212,7 +212,7 @@ void NXShadowMapRenderer::RenderCSMPerLight(ID3D12GraphicsCommandList* pCmdList,
 
 		zCascadeLength += zLastCascadeTransitionLength;
 
-		NXGlobalBuffer::cbShadowTest.Current().frustumParams[i] = Vector4(zCascadeFar, zLastCascadeTransitionLength, 0.0f, 0.0f);
+		NXGlobalBuffer::cbShadowTest.Get().frustumParams[i] = Vector4(zCascadeFar, zLastCascadeTransitionLength, 0.0f, 0.0f);
 
 		float zCascadeNearProj = (zCascadeNear * mxCamProj._33 + mxCamProj._43) / zCascadeNear;
 		float zCascadeFarProj  = (zCascadeFar  * mxCamProj._33 + mxCamProj._43) / zCascadeFar;
@@ -267,11 +267,11 @@ void NXShadowMapRenderer::RenderCSMPerLight(ID3D12GraphicsCommandList* pCmdList,
 		Matrix mxShadowProj = XMMatrixOrthographicOffCenterLH(-sphereRadius, sphereRadius, -sphereRadius, sphereRadius, 0.0f, backDistance * 2.0f);
 
 		// 更新当前 cascade 层 的 ShadowMap view proj 绘制矩阵
-		m_CSMViewProj.Current().view = mxShadowView.Transpose();
-		m_CSMViewProj.Current().projection = mxShadowProj.Transpose();
+		m_CSMViewProj.Get().view = mxShadowView.Transpose();
+		m_CSMViewProj.Get().projection = mxShadowProj.Transpose();
 		m_CSMViewProj.UpdateBuffer();
-		NXGlobalBuffer::cbShadowTest.Current().view[i] = m_CSMViewProj.Current().view;
-		NXGlobalBuffer::cbShadowTest.Current().projection[i] = m_CSMViewProj.Current().projection;
+		NXGlobalBuffer::cbShadowTest.Get().view[i] = m_CSMViewProj.Get().view;
+		NXGlobalBuffer::cbShadowTest.Get().projection[i] = m_CSMViewProj.Get().projection;
 
 		pCmdList->ClearDepthStencilView(m_pShadowMapDepth->GetDSV(i), D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0x0, 0, nullptr);
 		pCmdList->OMSetRenderTargets(0, nullptr, false, &m_pShadowMapDepth->GetDSV(i));

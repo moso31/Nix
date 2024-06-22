@@ -285,6 +285,20 @@ switch (fmt)
 	}
 }
 
+DXGI_FORMAT TypelessToDSVFormat(DXGI_FORMAT fmt)
+{
+	switch (fmt)
+	{
+	case DXGI_FORMAT_R24G8_TYPELESS:
+	case DXGI_FORMAT_R24_UNORM_X8_TYPELESS:
+		return DXGI_FORMAT_D24_UNORM_S8_UINT;
+	case DXGI_FORMAT_R32_FLOAT:
+		return DXGI_FORMAT_D32_FLOAT;
+	default:
+		return DXGI_FORMAT_UNKNOWN;
+	}
+}
+
 DXGI_FORMAT ForceSRGB(DXGI_FORMAT fmt)
 {
 	switch (fmt)

@@ -171,7 +171,7 @@ void NXCamera::UpdateTransform()
 
 void NXCamera::Update()
 {
-	auto& cbDataObject = NXGlobalBuffer::cbObject.Current();
+	auto& cbDataObject = NXGlobalBuffer::cbObject.Get();
 	cbDataObject.view = m_mxView.Transpose();
 	cbDataObject.viewInverse = m_mxViewInv.Transpose();
 	cbDataObject.viewInverseTranspose = m_mxViewInv;
@@ -180,7 +180,7 @@ void NXCamera::Update()
 	cbDataObject.projectionInverse = m_mxProjectionInv.Transpose();
 	NXGlobalBuffer::cbObject.UpdateBuffer();
 
-	auto& cbDataCamera = NXGlobalBuffer::cbCamera.Current();
+	auto& cbDataCamera = NXGlobalBuffer::cbCamera.Get();
 	float invN2F = 1.0f / (m_far - m_near);
 	cbDataCamera.Params0 = Vector4(m_rtSize.x, m_rtSize.y, 1.0f / m_rtSize.x, 1.0f / m_rtSize.y);
 	cbDataCamera.Params1 = Vector4(m_near, m_far, m_far * invN2F, -m_far * m_near * invN2F);

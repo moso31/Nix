@@ -42,7 +42,7 @@ public:
 	void SetOutputDS(NXCommonRTEnum eCommonTex);
 	void SetOutputDS(const Ntr<NXTexture>& pTex);
 
-	void SetInputLayout(const D3D12_INPUT_LAYOUT_DESC& desc);
+	void SetInputLayoutAndRTMesh(const D3D12_INPUT_LAYOUT_DESC& desc, const std::string& rtSubMeshName);
 	void SetBlendState(const D3D12_BLEND_DESC& desc);
 	void SetRasterizerState(const D3D12_RASTERIZER_DESC& desc);
 	void SetDepthStencilState(const D3D12_DEPTH_STENCIL_DESC& desc);
@@ -93,4 +93,10 @@ private:
 	std::vector<D3D12_STATIC_SAMPLER_DESC>	m_staticSamplers;
 
 	std::vector<D3D12_GPU_VIRTUAL_ADDRESS>	m_cbvGpuVirtAddrs;
+
+	// rt 使用的 subMesh 的名称。
+	// 实际渲染时根据这个名字确定使用 NXSubMeshGeometryEditor 的哪个 subMesh 作为 RT.
+	// 一般不需要设置，就用默认的 "_RenderTarget" 就行，但也有特殊情况，
+	// 比如渲染 CubeMap 的 Pass，需要设置为 "_CubeMapSphere"，使用一张圆形的 RT。
+	std::string								m_rtSubMeshName;
 };

@@ -11,7 +11,8 @@
 NXRendererPass::NXRendererPass() :
 	m_psoDesc({}),
 	m_passName("Unnamed Pass"),
-	m_stencilRef(0x0)
+	m_stencilRef(0x0),
+	m_rtSubMeshName("_RenderTarget")
 {
 	m_psoDesc.InputLayout = NXGlobalInputLayout::layoutPT;
 	m_psoDesc.BlendState = NXBlendState<>::Create();
@@ -60,9 +61,10 @@ void NXRendererPass::SetOutputDS(const Ntr<NXTexture>& pTex)
 	m_pOutDS = pTex;
 }
 
-void NXRendererPass::SetInputLayout(const D3D12_INPUT_LAYOUT_DESC& desc)
+void NXRendererPass::SetInputLayoutAndRTMesh(const D3D12_INPUT_LAYOUT_DESC& desc, const std::string& rtSubMeshName)
 {
 	m_psoDesc.InputLayout = desc;
+	m_rtSubMeshName = rtSubMeshName;
 }
 
 void NXRendererPass::SetBlendState(const D3D12_BLEND_DESC& desc)
@@ -112,7 +114,7 @@ void NXRendererPass::InitPSO()
 	m_psoDesc.NumRenderTargets = (UINT)m_pOutRTs.size();
 	for (UINT i = 0; i < m_psoDesc.NumRenderTargets; i++)
 		m_psoDesc.RTVFormats[i] = m_pOutRTs[i]->GetFormat();
-	m_psoDesc.DSVFormat = m_pOutDS.IsNull() ? DXGI_FORMAT_UNKNOWN : m_pOutDS->GetFormat();
+	m_psoDesc.DSVFormat = m_pOutDS.IsNull() ? DXGI_FORMAT_UNKNOWN : m_pOutDS->GetDSVFormat();
 
 	NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&m_psoDesc, IID_PPV_ARGS(&m_pPSO));
 }
@@ -145,7 +147,7 @@ void NXRendererPass::Render(ID3D12GraphicsCommandList* pCmdList)
 		pCmdList->SetGraphicsRootDescriptorTable((UINT)m_cbvGpuVirtAddrs.size(), srvHandle0);
 	}
 
-	const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_RenderTarget");
+	const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews(m_rtSubMeshName);
 	pCmdList->IASetVertexBuffers(0, 1, &meshView.vbv);
 	pCmdList->IASetIndexBuffer(&meshView.ibv);
 	pCmdList->DrawIndexedInstanced(meshView.indexCount, 1, 0, 0, 0);

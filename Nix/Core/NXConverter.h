@@ -39,6 +39,11 @@ DXGI_FORMAT SafeDXGIFormat(DXGI_FORMAT fmt);
 // DX12建议创建资源时指定clearValue，而clearValue的格式不能是Typeless类型
 DXGI_FORMAT DXGINoTypeless(DXGI_FORMAT fmt, bool isDepthStencil = false);
 
+// 2024.6.22
+// 从一个fmt格式转换成DSVFormat可以使用的格式
+// 如果fmt不是DepthStencil支持的类型，返回DXGI_FORMAT_UNKNOWN
+DXGI_FORMAT TypelessToDSVFormat(DXGI_FORMAT fmt);
+
 DXGI_FORMAT ForceSRGB(DXGI_FORMAT fmt);
 DXGI_FORMAT ForceLinear(DXGI_FORMAT fmt);
 

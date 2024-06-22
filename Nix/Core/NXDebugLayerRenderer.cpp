@@ -83,8 +83,8 @@ void NXDebugLayerRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 	NX12Util::BeginEvent(pCmdList, "Debug Layer");
 
 	// Update LayerParams
-	m_cbParams.Current().LayerParam0.x = (float)m_bEnableShadowMapDebugLayer;
-	m_cbParams.Current().LayerParam0.y = m_fShadowMapZoomScale;
+	m_cbParams.Get().LayerParam0.x = (float)m_bEnableShadowMapDebugLayer;
+	m_cbParams.Get().LayerParam0.y = m_fShadowMapZoomScale;
 	m_cbParams.UpdateBuffer();
 
 	auto srvHandle0 = NXGPUHandleHeap->SetFluidDescriptor(m_pTexPassIn0->GetSRV());

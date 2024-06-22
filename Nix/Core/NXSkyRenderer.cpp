@@ -23,7 +23,7 @@ void NXSkyRenderer::Init()
 	SetOutputDS(NXCommonRT_DepthZ);
 
 	SetShaderFilePath("Shader\\CubeMap.fx");
-	SetInputLayout(NXGlobalInputLayout::layoutP);
+	SetInputLayoutAndRTMesh(NXGlobalInputLayout::layoutP, "_CubeMapSphere");
 	SetDepthStencilState(NXDepthStencilState<true, false, D3D12_COMPARISON_FUNC_LESS_EQUAL>::Create());
 
 	SetRootParams(2, 1);

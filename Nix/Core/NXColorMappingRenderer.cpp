@@ -67,7 +67,7 @@ void NXColorMappingRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 {
 	NX12Util::BeginEvent(pCmdList, "Post Processing");
 
-	m_cbParams.Current().param0.x = m_bEnablePostProcessing ? 1.0f : 0.0f;
+	m_cbParams.Get().param0.x = m_bEnablePostProcessing ? 1.0f : 0.0f;
 	m_cbParams.UpdateBuffer();
 
 	NX12Util::BeginEvent(pCmdList, "Color Mapping");
