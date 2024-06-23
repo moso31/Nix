@@ -54,7 +54,8 @@ public:
 	}
 
 	// 类似 dx11 updatesubresource.
-	// index：指定更新哪个buffer。如果是FrameResource
+	// 如果是FrameResource，更新当前帧的对应index的buffer
+	// 如果不是FrameResource，更新对应index的buffer
 	void UpdateBuffer(UINT index = 0)
 	{
 		NXBufferData& currBuffer = m_isFrameResource ? m_buffers[MultiFrameSets::swapChainIndex * m_singleBufferCount + index] : m_buffers[index];
@@ -70,7 +71,8 @@ public:
 	// 一般在设置根参数的时候使用
 	const std::vector<D3D12_GPU_VIRTUAL_ADDRESS>& GetGPUHandleArray() { return m_buffersGPUHandles; }
 
-	// 获取当前帧的buffer
+	// 如果是FrameResource，获取当前帧的对应index的buffer
+	// 如果不是FrameResource，获取对应index的buffer
 	T& Get(UINT index = 0)
 	{
 		return m_isFrameResource ? m_buffers[MultiFrameSets::swapChainIndex * m_singleBufferCount + index].data : m_buffers[index].data;

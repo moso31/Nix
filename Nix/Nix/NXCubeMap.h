@@ -119,8 +119,8 @@ private:
 
 	// 生成使用独立的 allocator 来管理 CubeMap 的 cb
 	CommittedAllocator* m_cbAllocator;
-	NXBuffer<ConstantBufferBaseWVP> m_cbObject;
 	NXBuffer<ConstantBufferCubeMap> m_cbData;
+	NXBuffer<ConstantBufferBaseWVP> m_cbObject;
 
 	size_t	m_pSRVIrradianceSH;
 
