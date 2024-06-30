@@ -1,7 +1,5 @@
 #pragma once
-#include "BaseDefs/DX12.h"
-#include "ShaderStructures.h"
-#include "Ntr.h"
+#include "NXRendererPass.h"
 #include "NXBuffer.h"
 
 struct CBufferColorMapping
@@ -9,8 +7,7 @@ struct CBufferColorMapping
 	Vector4 param0; // x: enable
 };
 
-class NXTexture2D;
-class NXColorMappingRenderer
+class NXColorMappingRenderer : public NXRendererPass
 {
 public:
 	NXColorMappingRenderer();
@@ -26,11 +23,6 @@ public:
 
 private:
 	bool m_bEnablePostProcessing;
-	Ntr<NXTexture2D>	m_pTexPassIn;
-	Ntr<NXTexture2D>	m_pTexPassOut;
 
 	NXBuffer<CBufferColorMapping> m_cbParams;
-
-	ComPtr<ID3D12PipelineState> m_pPSO;
-	ComPtr<ID3D12RootSignature> m_pRootSig;
 };

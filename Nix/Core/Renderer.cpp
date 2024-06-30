@@ -113,6 +113,7 @@ void Renderer::OnResize(const Vector2& rtSize)
 	//m_pDepthPrepass->OnResize(m_viewRTSize);
 	//m_pSSAO->OnResize(m_viewRTSize);
 	//m_pDepthPeelingRenderer->OnResize(m_viewRTSize);
+	m_pColorMappingRenderer->OnResize();
 	m_pDebugLayerRenderer->OnResize(m_viewRTSize);
 	m_pEditorObjectRenderer->OnResize(m_viewRTSize);
 
