@@ -35,8 +35,6 @@ public:
 	void Release();
 
 private:
-	NXShaderVisibleDescriptorHeap*	m_pImguiDescHeap;
-
 	MultiFrame<ComPtr<ID3D12GraphicsCommandList>>	m_pCmdList;
 	MultiFrame<ComPtr<ID3D12CommandAllocator>>		m_pCmdAllocator;
 

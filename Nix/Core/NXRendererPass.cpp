@@ -139,8 +139,20 @@ void NXRendererPass::Render(ID3D12GraphicsCommandList* pCmdList)
 	D3D12_GPU_DESCRIPTOR_HANDLE srvHandle0;
 	if (!m_pInTexs.empty())
 	{
-		srvHandle0 = NXGPUHandleHeap->SetFluidDescriptor(m_pInTexs[0]->GetSRV());
-		for (int i = 1; i < (int)m_pInTexs.size(); i++) NXGPUHandleHeap->SetFluidDescriptor(m_pInTexs[i]->GetSRV());
+		for (int i = 0; i < (int)m_pInTexs.size(); i++)
+		{
+			if (i == 0) srvHandle0 = NXGPUHandleHeap->SetFluidDescriptor(m_pInTexs[0]->GetSRV());
+			else NXGPUHandleHeap->SetFluidDescriptor(m_pInTexs[i]->GetSRV());
+
+			// DX12需要及时更新纹理的资源状态
+			m_pInTexs[i]->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE); 
+		}
+
+		for (int i = 0; i < (int)m_pOutRTs.size(); i++)
+		{
+			// DX12需要及时更新纹理的资源状态
+			m_pOutRTs[i]->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		}
 
 		// 2024.6.8
 		// 根据目前在.h中的根参数-寄存器布局规定，

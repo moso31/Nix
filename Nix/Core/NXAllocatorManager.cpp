@@ -10,7 +10,9 @@ void NXAllocatorManager::Init()
 	m_pRTVAllocator = new RTVAllocator(pDevice);
 	m_pDSVAllocator = new DSVAllocator(pDevice);
 
-	m_pShaderVisibleDescriptorHeap = new NXShaderVisibleDescriptorHeap(pDevice);
+	// Shader visible heap 预留10个静态描述符。目前这么做的原因暂时只有一个：imgui
+	// 在imgui DX12中，必须使用描述符堆中固定位置的索引，作为字体纹理的描述符堆
+	m_pShaderVisibleDescriptorHeap = new NXShaderVisibleDescriptorHeap(pDevice, 10);
 	m_pShaderVisibleDescriptorHeap->GetHeap()->SetName(L"NXGlobal shader visible heap");
 }
 

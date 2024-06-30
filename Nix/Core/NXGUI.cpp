@@ -60,12 +60,12 @@ void NXGUI::Init()
 		m_pCmdList[i] = NX12Util::CreateGraphicsCommandList(NXGlobalDX::GetDevice(), m_pCmdAllocator.Get(i).Get(), D3D12_COMMAND_LIST_TYPE_DIRECT);
 	}
 
-	m_pImguiDescHeap = new NXShaderVisibleDescriptorHeap(NXGlobalDX::GetDevice(), 10);
-	m_pImguiDescHeap->GetHeap()->SetName(L"ImGui shader visible heap");
-	ImGui_ImplDX12_Init(NXGlobalDX::GetDevice(), MultiFrameSets_swapChainCount, DXGI_FORMAT_R8G8B8A8_UNORM, m_pImguiDescHeap->GetHeap(), m_pImguiDescHeap->GetCPUHandle(0), m_pImguiDescHeap->GetGPUHandle(0));
+	// ImGUI的字体纹理，将始终使用 ShaderVisibleHeap（NXGPUHandleHeap）中的静态描述符区。静态描述符是Nix的概念，详见该类中的注释说明。
+	// 换言之即这里的：
+	//		NXGPUHandleHeap->GetGPUHandle(0).
+	ImGui_ImplDX12_Init(NXGlobalDX::GetDevice(), MultiFrameSets_swapChainCount, DXGI_FORMAT_R8G8B8A8_UNORM, NXGPUHandleHeap->GetHeap(), NXGPUHandleHeap->GetCPUHandle(0), NXGPUHandleHeap->GetGPUHandle(0));
 
 	// 设置字体
-
 	ImGui_ImplWin32_Init(NXGlobalWindows::hWnd);
 	g_imgui_font_general = io.Fonts->AddFontFromFileTTF("./Resource/fonts/JetBrainsMono-Bold.ttf", 16);
 
@@ -138,7 +138,7 @@ void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT, const NXSwapChainBuffer& swapCha
 
 	if (m_pGUIView->GetViewRT() != pGUIViewRT)
 		m_pGUIView->SetViewRT(pGUIViewRT);
-	m_pGUIView->Render(m_pImguiDescHeap);
+	m_pGUIView->Render(NXGPUHandleHeap);
 
 	static bool show_demo_window = true;
 	static bool show_another_window = false;
@@ -161,7 +161,7 @@ void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT, const NXSwapChainBuffer& swapCha
 
 	NX12Util::BeginEvent(pCmdList, "dear-imgui");
 
-	auto pDescHeap = m_pImguiDescHeap->GetHeap();
+	auto pDescHeap = NXGPUHandleHeap->GetHeap();
 	pCmdList->SetDescriptorHeaps(1, &pDescHeap);
 
 	D3D12_RESOURCE_BARRIER barrier = {};
