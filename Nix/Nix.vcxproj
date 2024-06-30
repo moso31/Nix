@@ -415,6 +415,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Text Include="DX12专属问题集.txt" />
     <Text Include="八字无撇的待办事项.txt" />
     <Text Include="杂七杂八的编码规范.txt" />
   </ItemGroup>

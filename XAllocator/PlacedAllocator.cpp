@@ -11,7 +11,7 @@ bool PlacedAllocator::Alloc(const D3D12_RESOURCE_DESC& resourceDesc, ID3D12Resou
 
 	size_t blockByteMask = m_blockByteSize - 1;
 	UINT dataByteSize = (UINT)((totalBytes + blockByteMask) & ~blockByteMask);
-	UINT blockSize = (UINT)totalBytes / m_blockByteSize;
+	UINT blockSize = (UINT)(totalBytes + blockByteMask) / m_blockByteSize;
 
 	UINT oPageIdx, oFirstIdx;
 	if (PlacedAllocatorBase::Alloc(blockSize, oPageIdx, oFirstIdx))
