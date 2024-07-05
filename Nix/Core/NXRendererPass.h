@@ -26,6 +26,18 @@ struct NXPassTexture
 	NXCommonRTEnum rtType;
 };
 
+struct NXCBVManagement
+{
+	// pass 使用的 cbv gpu 虚拟地址
+	// cbv需要按帧资源区分，所以用了MultiFrame
+	MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS> multiFrameGpuVirtAddr;
+
+	// 用于记录每帧 cmdList如何接收 cbv gpu 虚拟地址。
+	// true: 使用 m_cbvGpuVirtAddrs 中的地址；
+	// false: 派生类手动更新，这里不用管。
+	bool autoUpdate = false;
+};
+
 class NXRendererPass
 {
 public:
@@ -42,7 +54,8 @@ public:
 	void SetOutputDS(NXCommonRTEnum eCommonTex);
 	void SetOutputDS(const Ntr<NXTexture>& pTex);
 
-	void SetInputLayoutAndRTMesh(const D3D12_INPUT_LAYOUT_DESC& desc, const std::string& rtSubMeshName);
+	void SetInputLayout(const D3D12_INPUT_LAYOUT_DESC& desc);
+	void SetRenderTargetMesh(const std::string& rtSubMeshName);
 	void SetBlendState(const D3D12_BLEND_DESC& desc);
 	void SetRasterizerState(const D3D12_RASTERIZER_DESC& desc);
 	void SetDepthStencilState(const D3D12_DEPTH_STENCIL_DESC& desc);
@@ -54,7 +67,8 @@ public:
 
 	// 2024.5.26 当前 Nix 的根参数（和采样器）-寄存器的布局规则：
 	// 1. 每个CBV占用一个根参数
-	// 2. 若存在SRV/UAV，则这些SRV/UAV都将放到一个描述符Table里。且该Table将始终占用最后一个根参数。
+	// 2. 若存在SRV，则这些SRV都将放到一个描述符Table里。且该Table将始终占用最后一个根参数。
+	// （2+. UAV 目前暂时还没涉及到，用到了再说）
 	// 3. 任何情况下都不使用根常量
 	// 4. 采样器始终使用StaticSampler，不考虑动态Sampler，目前够用了
 	void SetRootParams(int CBVNum, int SRVUAVNum);
@@ -68,6 +82,8 @@ public:
 	// OnResize 会在窗口大小变化时被调用
 	// 用于更新Pass 关联的 RT的引用状态
 	void OnResize();
+
+	void RenderBefore(ID3D12GraphicsCommandList* pCmdList);
 	void Render(ID3D12GraphicsCommandList* pCmdList);
 
 	void Release() {}
@@ -98,8 +114,7 @@ private:
 	std::vector<D3D12_STATIC_SAMPLER_DESC>	m_staticSamplers;
 
 	// pass 使用的 cbv gpu 虚拟地址
-	// cbv需要按帧资源区分，所以用了MultiFrame
-	MultiFrame<std::vector<D3D12_GPU_VIRTUAL_ADDRESS>>	m_cbvGpuVirtAddrs;
+	std::vector<NXCBVManagement>			m_cbvManagements;
 
 	// rt 使用的 subMesh 的名称。
 	// 实际渲染时根据这个名字确定使用 NXSubMeshGeometryEditor 的哪个 subMesh 作为 RT.

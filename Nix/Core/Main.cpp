@@ -170,7 +170,7 @@ HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow)
 
 	NXGlobalWindows::hWnd = CreateWindow(L"NixWindowClass", L"Nix",
 		WS_OVERLAPPEDWINDOW,
-		0, 0, rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr, hInstance,
+		1920, 0, rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr, hInstance,
 		nullptr);
 
 	//SetWindowLong(NXGlobalWindows::hWnd, GWL_STYLE, 5);

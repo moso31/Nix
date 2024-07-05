@@ -61,9 +61,13 @@ void NXRendererPass::SetOutputDS(const Ntr<NXTexture>& pTex)
 	m_pOutDS = pTex;
 }
 
-void NXRendererPass::SetInputLayoutAndRTMesh(const D3D12_INPUT_LAYOUT_DESC& desc, const std::string& rtSubMeshName)
+void NXRendererPass::SetInputLayout(const D3D12_INPUT_LAYOUT_DESC& desc)
 {
 	m_psoDesc.InputLayout = desc;
+}
+
+void NXRendererPass::SetRenderTargetMesh(const std::string& rtSubMeshName)
+{
 	m_rtSubMeshName = rtSubMeshName;
 }
 
@@ -119,10 +123,8 @@ void NXRendererPass::InitPSO()
 	NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&m_psoDesc, IID_PPV_ARGS(&m_pPSO));
 }
 
-void NXRendererPass::Render(ID3D12GraphicsCommandList* pCmdList)
+void NXRendererPass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 {
-	NX12Util::BeginEvent(pCmdList, m_passName.c_str());
-
 	std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> ppRTVs;
 	for (auto& pTex : m_pOutRTs) ppRTVs.push_back(pTex->GetRTV());
 
@@ -132,9 +134,14 @@ void NXRendererPass::Render(ID3D12GraphicsCommandList* pCmdList)
 	pCmdList->SetGraphicsRootSignature(m_pRootSig.Get());
 	pCmdList->SetPipelineState(m_pPSO.Get());
 
-	auto cbvGpuVirtAddrs = m_cbvGpuVirtAddrs.Current();
-	for (int i = 0; i < (int)cbvGpuVirtAddrs.size(); i++)
-		pCmdList->SetGraphicsRootConstantBufferView(i, cbvGpuVirtAddrs[i]);
+	for (int i = 0; i < (int)m_cbvManagements.size(); i++)
+	{
+		if (m_cbvManagements[i].autoUpdate)
+		{
+			D3D12_GPU_VIRTUAL_ADDRESS gpuVirtAddr = m_cbvManagements[i].multiFrameGpuVirtAddr.Current();
+			pCmdList->SetGraphicsRootConstantBufferView(i, gpuVirtAddr);
+		}
+	}
 
 	D3D12_GPU_DESCRIPTOR_HANDLE srvHandle0;
 	if (!m_pInTexs.empty())
@@ -145,7 +152,7 @@ void NXRendererPass::Render(ID3D12GraphicsCommandList* pCmdList)
 			else NXGPUHandleHeap->SetFluidDescriptor(m_pInTexs[i]->GetSRV());
 
 			// DX12需要及时更新纹理的资源状态
-			m_pInTexs[i]->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE); 
+			m_pInTexs[i]->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		}
 
 		for (int i = 0; i < (int)m_pOutRTs.size(); i++)
@@ -156,9 +163,16 @@ void NXRendererPass::Render(ID3D12GraphicsCommandList* pCmdList)
 
 		// 2024.6.8
 		// 根据目前在.h中的根参数-寄存器布局规定，
-		// m_cbvGpuVirtAddrs 中 元素的数量就是 Table 的 slot 索引。
-		pCmdList->SetGraphicsRootDescriptorTable((UINT)cbvGpuVirtAddrs.size(), srvHandle0);
+		// m_cbvManagements 中 元素的数量就是 Table 的 slot 索引。
+		pCmdList->SetGraphicsRootDescriptorTable((UINT)m_cbvManagements.size(), srvHandle0);
 	}
+}
+
+void NXRendererPass::Render(ID3D12GraphicsCommandList* pCmdList)
+{
+	NX12Util::BeginEvent(pCmdList, m_passName.c_str());
+
+	RenderBefore(pCmdList);
 
 	const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews(m_rtSubMeshName);
 	pCmdList->IASetVertexBuffers(0, 1, &meshView.vbv);
@@ -185,14 +199,14 @@ void NXRendererPass::SetRootParams(int CBVNum, int SRVUAVNum)
 		m_rootParams.push_back(NX12Util::CreateRootParameterTable(m_srvUavRanges, D3D12_SHADER_VISIBILITY_ALL));
 	}
 
-	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
-		m_cbvGpuVirtAddrs[i].resize(CBVNum);
+	m_cbvManagements.resize(CBVNum);
 }
 
 void NXRendererPass::SetRootParamCBV(int rootParamIndex, const std::vector<D3D12_GPU_VIRTUAL_ADDRESS>& gpuVirtAddrs)
 {
+	m_cbvManagements[rootParamIndex].autoUpdate = true;
 	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
-		m_cbvGpuVirtAddrs[i][rootParamIndex] = gpuVirtAddrs[i];
+		m_cbvManagements[rootParamIndex].multiFrameGpuVirtAddr[i] = gpuVirtAddrs[i];
 }
 
 void NXRendererPass::SetRootParamCBV(int rootParamIndex, int slotIndex, const std::vector<D3D12_GPU_VIRTUAL_ADDRESS>& gpuVirtAddrs)

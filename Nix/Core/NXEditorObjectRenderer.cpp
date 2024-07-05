@@ -1,5 +1,4 @@
 #include "BaseDefs/NixCore.h"
-
 #include "NXEditorObjectRenderer.h"
 #include "ShaderComplier.h"
 #include "NXRenderStates.h"
@@ -23,60 +22,35 @@ NXEditorObjectRenderer::~NXEditorObjectRenderer()
 
 void NXEditorObjectRenderer::Init()
 {
-	m_pTexPassOut = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_PostProcessing);
+	SetPassName("Editor Objects");
+	AddOutputRT(NXCommonRT_PostProcessing);
 
-	ComPtr<ID3DBlob> pVSBlob, pPSBlob;
-	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\EditorObjects.fx", "VS", pVSBlob.GetAddressOf());
-	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\EditorObjects.fx", "PS", pPSBlob.GetAddressOf());
-
-	std::vector<D3D12_ROOT_PARAMETER> rootParams;
-	rootParams.push_back(NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL));
-	rootParams.push_back(NX12Util::CreateRootParameterCBV(1, 0, D3D12_SHADER_VISIBILITY_ALL));
-	rootParams.push_back(NX12Util::CreateRootParameterCBV(2, 0, D3D12_SHADER_VISIBILITY_ALL));
-
-	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::GetDevice(), rootParams);
-
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-	psoDesc.pRootSignature = m_pRootSig.Get();
-	psoDesc.InputLayout = NXGlobalInputLayout::layoutEditorObject;
-	psoDesc.BlendState = NXBlendState<false, false, true, false, D3D12_BLEND_SRC_ALPHA, D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_OP_ADD>::Create();
-	psoDesc.RasterizerState = NXRasterizerState<D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_NONE>::Create();
-	psoDesc.DepthStencilState = NXDepthStencilState<false, false, D3D12_COMPARISON_FUNC_LESS>::Create();
-	psoDesc.SampleDesc.Count = 1;
-	psoDesc.SampleDesc.Quality = 0;
-	psoDesc.SampleMask = UINT_MAX;
-	psoDesc.NumRenderTargets = 1;
-	psoDesc.RTVFormats[0] = m_pTexPassOut->GetFormat();
-	psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
-	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
-	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
-	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
+	SetShaderFilePath(L"Shader\\EditorObjects.fx");
+	SetBlendState(NXBlendState<false, false, true, false, D3D12_BLEND_SRC_ALPHA, D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_OP_ADD>::Create());
+	SetRasterizerState(NXRasterizerState<D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_NONE>::Create());
+	SetDepthStencilState(NXDepthStencilState<false, false, D3D12_COMPARISON_FUNC_LESS>::Create());
+	SetInputLayout(NXGlobalInputLayout::layoutEditorObject);
 
 	m_cbParams.CreateFrameBuffers(NXCBufferAllocator, NXDescriptorAllocator);
-}
 
-void NXEditorObjectRenderer::OnResize(const Vector2& rtSize)
-{
+	SetRootParams(3, 0); // b0~b2. (actually do not need b1.)
+	SetRootParamCBV(1, NXGlobalBuffer::cbCamera.GetGPUHandleArray());
+
+	InitPSO();
 }
 
 void NXEditorObjectRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 {
 	NX12Util::BeginEvent(pCmdList, "Editor objects");
 
-	pCmdList->SetGraphicsRootConstantBufferView(1, NXGlobalBuffer::cbCamera.GetGPUHandle());
-
-	pCmdList->SetGraphicsRootSignature(m_pRootSig.Get());
-	pCmdList->SetPipelineState(m_pPSO.Get());
-
-	pCmdList->OMSetRenderTargets(1, &m_pTexPassOut->GetRTV(), false, nullptr);
+	NXRendererPass::RenderBefore(pCmdList);
 
   	NXEditorObjectManager* pEditorObjManager = m_pScene->GetEditorObjManager();
 	for (auto pEditObj : pEditorObjManager->GetEditableObjects())
 	{
 		if (pEditObj->GetVisible()) // if bIsVisible
 		{
-			pEditObj->Update(pCmdList);
+			pEditObj->Update(pCmdList); // b0 update in here.
 
 			for (UINT i = 0; i < pEditObj->GetSubMeshCount(); i++)
 			{
@@ -90,7 +64,7 @@ void NXEditorObjectRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 						bool bIsHighLight = pSubMeshEditorObj->GetEditorObjectID() == m_pScene->GetEditorObjManager()->GetHighLightID();
 						m_cbParams.Get().value.x = bIsHighLight ? 1.0f : 0.0f;
 						m_cbParams.UpdateBuffer();
-						pCmdList->SetGraphicsRootConstantBufferView(2, m_cbParams.GetGPUHandle());
+						pCmdList->SetGraphicsRootConstantBufferView(2, m_cbParams.GetGPUHandle()); // b2 update.
 					}
 
 					pSubMeshEditorObj->Update(pCmdList);
