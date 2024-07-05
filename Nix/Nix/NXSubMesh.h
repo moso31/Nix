@@ -124,7 +124,7 @@ class NXSubMeshEditorObjects : public NXSubMesh<VertexEditorObjects>
 	friend class NXSubMeshGeometryEditor;
 
 public:
-	NXSubMeshEditorObjects(NXPrimitive* pPrimitive, const std::string& subMeshName, EditorObjectID id) : NXSubMesh<VertexEditorObjects>(pPrimitive, subMeshName), m_editorObjID(id) {}
+	NXSubMeshEditorObjects(NXPrimitive* pPrimitive, const std::string& subMeshName, EditorObjectID id);
 	virtual ~NXSubMeshEditorObjects() {}
 
 	virtual bool IsSubMeshEditorObject() override { return true; }
@@ -134,6 +134,9 @@ public:
 	void CalculateTangents(bool bUpdateVBIB = false) override {}
 	bool RayCastLocal(const Ray& localRay, NXHit& outHitInfo, float& outDist) override;
 
+	void Update(ID3D12GraphicsCommandList* pCmdList, bool isHighLight);
+
 private:
 	EditorObjectID m_editorObjID;
+	NXBuffer<ConstantBufferVector4>		m_cbParams;
 };

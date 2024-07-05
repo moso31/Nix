@@ -21,6 +21,4 @@ public:
 private:
 	bool m_bEnable;
 	NXScene* m_pScene;
-
-	NXBuffer<ConstantBufferVector4>		m_cbParams;
 };

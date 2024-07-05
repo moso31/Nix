@@ -31,8 +31,6 @@ void NXEditorObjectRenderer::Init()
 	SetDepthStencilState(NXDepthStencilState<false, false, D3D12_COMPARISON_FUNC_LESS>::Create());
 	SetInputLayout(NXGlobalInputLayout::layoutEditorObject);
 
-	m_cbParams.CreateFrameBuffers(NXCBufferAllocator, NXDescriptorAllocator);
-
 	SetRootParams(3, 0); // b0~b2. (actually do not need b1.)
 	SetRootParamCBV(1, NXGlobalBuffer::cbCamera.GetGPUHandleArray());
 
@@ -58,16 +56,8 @@ void NXEditorObjectRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 				if (pSubMesh->IsSubMeshEditorObject())
 				{
 					NXSubMeshEditorObjects* pSubMeshEditorObj = (NXSubMeshEditorObjects*)pSubMesh;
-
-					// 判断当前SubMesh是否高亮显示
-					{
-						bool bIsHighLight = pSubMeshEditorObj->GetEditorObjectID() == m_pScene->GetEditorObjManager()->GetHighLightID();
-						m_cbParams.Get().value.x = bIsHighLight ? 1.0f : 0.0f;
-						m_cbParams.UpdateBuffer();
-						pCmdList->SetGraphicsRootConstantBufferView(2, m_cbParams.GetGPUHandle()); // b2 update.
-					}
-
-					pSubMeshEditorObj->Update(pCmdList);
+					bool bIsHighLight = pSubMeshEditorObj->GetEditorObjectID() == m_pScene->GetEditorObjManager()->GetHighLightID();
+					pSubMeshEditorObj->Update(pCmdList, bIsHighLight);
 					pSubMeshEditorObj->Render(pCmdList);
 				}
 			}

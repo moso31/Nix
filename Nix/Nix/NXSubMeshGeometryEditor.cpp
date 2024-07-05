@@ -507,12 +507,13 @@ void NXSubMeshGeometryEditor::CreateMoveArrows(NXPrimitive* pMesh)
 	float fCylinderLo = -fRadius;
 	float fCylinderHi = 1.0f;
 
+	int meshId = 0;
 	for (int i = 0; i < 3; i++)
 	{
 		UINT currVertIdx = 0;
 
 		EditorObjectID objId = i == 0 ? EditorObjectID::TRANSLATE_X : i == 1 ? EditorObjectID::TRANSLATE_Y : EditorObjectID::TRANSLATE_Z;
-		NXSubMeshEditorObjects* pSubMesh = new NXSubMeshEditorObjects(pMesh, "_MoveArrows_1", objId);
+		NXSubMeshEditorObjects* pSubMesh = new NXSubMeshEditorObjects(pMesh, "_MoveArrows_" + std::to_string(meshId++), objId);
 		for (int segIdx = 0; segIdx < 16; segIdx++)
 		{
 			float angleCurr = (float)(segIdx + 0) * fSegmentCircleInv * XM_2PI;
@@ -573,7 +574,7 @@ void NXSubMeshGeometryEditor::CreateMoveArrows(NXPrimitive* pMesh)
 	{
 		UINT currVertIdx = 0;
 		EditorObjectID objId = i == 0 ? EditorObjectID::TRANSLATE_X : i == 1 ? EditorObjectID::TRANSLATE_Y : EditorObjectID::TRANSLATE_Z;
-		NXSubMeshEditorObjects* pSubMesh = new NXSubMeshEditorObjects(pMesh, "_MoveArrows_2", objId);
+		NXSubMeshEditorObjects* pSubMesh = new NXSubMeshEditorObjects(pMesh, "_MoveArrows" + std::to_string(meshId++), objId);
 		for (int segIdx = 0; segIdx < 16; segIdx++)
 		{
 			float angleCurr = (float)(segIdx + 0) * fSegmentCircleInv * XM_2PI;
@@ -628,7 +629,7 @@ void NXSubMeshGeometryEditor::CreateMoveArrows(NXPrimitive* pMesh)
 	{
 		UINT currVertIdx = 0;
 		EditorObjectID objId = i == 0 ? EditorObjectID::TRANSLATE_XY : i == 1 ? EditorObjectID::TRANSLATE_XZ : EditorObjectID::TRANSLATE_YZ;
-		NXSubMeshEditorObjects* pSubMesh = new NXSubMeshEditorObjects(pMesh, "_MoveArrows_3", objId);
+		NXSubMeshEditorObjects* pSubMesh = new NXSubMeshEditorObjects(pMesh, "_MoveArrows" + std::to_string(meshId++), objId);
 
 		Vector4 color(0.8f, 0.8f, 0.7f, 0.5f);
 		Vector3 p0, p1, p2, p3;
