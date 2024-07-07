@@ -175,8 +175,8 @@ void NXCustomMaterial::ConvertGUIDataToHLSL(std::string& oHLSLHead, std::vector<
 void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::string& oErrorMessageVS, std::string& oErrorMessagePS)
 {
 	ComPtr<ID3DBlob> pVSBlob, pPSBlob;
-	HRESULT hrVS = NXShaderComplier::GetInstance()->CompileVS(strGBufferShader, "VS", pVSBlob.GetAddressOf(), oErrorMessageVS);
-	HRESULT hrPS = NXShaderComplier::GetInstance()->CompilePS(strGBufferShader, "PS", pPSBlob.GetAddressOf(), oErrorMessagePS);
+	HRESULT hrVS = NXShaderComplier::GetInstance()->CompileVSByCode(strGBufferShader, "VS", pVSBlob.GetAddressOf(), oErrorMessageVS);
+	HRESULT hrPS = NXShaderComplier::GetInstance()->CompilePSByCode(strGBufferShader, "PS", pPSBlob.GetAddressOf(), oErrorMessagePS);
 	m_bCompileSuccess = SUCCEEDED(hrVS) && SUCCEEDED(hrPS);
 	
 	// 如果JIT编译OK，就可以构建shader了。首先重新构建根签名和PSO。
@@ -222,7 +222,7 @@ void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::s
 		psoDesc.SampleDesc.Count = 1;
 		psoDesc.SampleDesc.Quality = 0;
 		psoDesc.SampleMask = UINT_MAX;
-		psoDesc.NumRenderTargets = 1;
+		psoDesc.NumRenderTargets = _countof(pGBuffers);
 		for (int i = 0; i < _countof(pGBuffers); i++)
 			psoDesc.RTVFormats[i] = pGBuffers[i]->GetFormat();
 		psoDesc.DSVFormat = pDepthZ->GetFormat();
