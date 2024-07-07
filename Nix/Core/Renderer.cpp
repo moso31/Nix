@@ -95,7 +95,7 @@ void Renderer::Init()
 	m_pColorMappingRenderer->Init();
 
 	m_pDebugLayerRenderer = new NXDebugLayerRenderer(m_pShadowMapRenderer);
-	m_pDebugLayerRenderer->Init(m_viewRTSize);
+	m_pDebugLayerRenderer->Init();
 
 	m_pEditorObjectRenderer = new NXEditorObjectRenderer(m_scene);
 	m_pEditorObjectRenderer->Init();
@@ -254,7 +254,7 @@ void Renderer::RenderFrame()
 
 	// 判断 GUIView 使用哪张纹理RT 作为 Input
 	bool bEnableDebugLayer = m_pDebugLayerRenderer->GetEnableDebugLayer();
-	m_pFinalRT = bEnableDebugLayer ? m_pDebugLayerRenderer->GetDebugLayerTex() :
+	m_pFinalRT = bEnableDebugLayer ? NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DebugLayer) :
 		NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_PostProcessing);
 
 	NX12Util::EndEvent(m_pCommandList.Get());

@@ -60,6 +60,10 @@ void NXTextureResourceManager::ResizeCommonRT(const Vector2& rtSize)
 	m_pCommonRT[NXCommonRT_PostProcessing] = CreateRenderTexture("Post Processing", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 	m_pCommonRT[NXCommonRT_PostProcessing]->AddRTV();
 	m_pCommonRT[NXCommonRT_PostProcessing]->AddSRV();
+
+	m_pCommonRT[NXCommonRT_DebugLayer] = CreateRenderTexture("Debug Layer Out RT", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+	m_pCommonRT[NXCommonRT_DebugLayer]->AddRTV();
+	m_pCommonRT[NXCommonRT_DebugLayer]->AddSRV();
 }
 
 Ntr<NXTexture2D> NXTextureResourceManager::GetCommonRT(NXCommonRTEnum eRT)

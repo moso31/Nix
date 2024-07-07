@@ -32,11 +32,4 @@ private:
     std::vector<Ntr<NXTexture2D>> m_pCommonRT;
 
     std::vector<Ntr<NXTexture>> m_pTextureArrayInternal;
-
-	ComPtr<ID3D12DescriptorHeap> m_pSRVHeapTex;
-	ComPtr<ID3D12DescriptorHeap> m_pUAVHeapTex;
-	ComPtr<ID3D12DescriptorHeap> m_pSRVHeapRT;
-	ComPtr<ID3D12DescriptorHeap> m_pUAVHeapRT;
-	ComPtr<ID3D12DescriptorHeap> m_pRTVHeapRT;
-	ComPtr<ID3D12DescriptorHeap> m_pDSVHeapRT;
 };
