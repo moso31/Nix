@@ -26,7 +26,7 @@ bool CommittedAllocator::Alloc(UINT byteSize, ResourceType resourceType, D3D12_G
 	return false;
 }
 
-void CommittedAllocator::UpdateData(void* data, UINT dataSize, UINT pageIdx, UINT pageByteOffset)
+void CommittedAllocator::UpdateData(const void* data, UINT dataSize, UINT pageIdx, UINT pageByteOffset)
 {
 	auto& pResource = m_pages[pageIdx].data.pResource;
 

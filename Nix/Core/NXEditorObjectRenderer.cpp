@@ -32,7 +32,7 @@ void NXEditorObjectRenderer::Init()
 	SetInputLayout(NXGlobalInputLayout::layoutEditorObject);
 
 	SetRootParams(3, 0); // b0~b2. (actually do not need b1.)
-	SetRootParamCBV(1, NXGlobalBuffer::cbCamera.GetGPUHandleArray());
+	SetStaticRootParamCBV(1, NXGlobalBuffer::cbCamera.GetGPUHandleArray());
 
 	InitPSO();
 }

@@ -13,8 +13,9 @@
 // m_buffers[6 ~ 11] = 第二帧的数据
 // m_buffers[12 ~ 17] = 第三帧的数据
 template <typename T>
-class NXBuffer
+class NXBufferBase
 {
+protected:
 	struct NXBufferData
 	{
 		T data;
@@ -27,8 +28,8 @@ class NXBuffer
 	};
 
 public:
-	NXBuffer() {}
-	~NXBuffer() {}
+	NXBufferBase() {}
+	~NXBufferBase() {}
 
 	// 创建一个FrameResource类型的NXBuffer。
 	// FrameResource会存储交换链页数份(MultiFrameSets_swapChainCount)的数据，每一帧都会更新其中一份。
@@ -53,13 +54,16 @@ public:
 		Create(customByteSize, pCBAllocator, pDescriptorAllocator, false, bufferCount);
 	}
 
-	// 类似 dx11 updatesubresource.
-	// 如果是FrameResource，更新当前帧的对应index的buffer
-	// 如果不是FrameResource，更新对应index的buffer
-	void UpdateBuffer(UINT index = 0)
+	void Set(const T& data)
 	{
-		NXBufferData& currBuffer = m_isFrameResource ? m_buffers[MultiFrameSets::swapChainIndex * m_singleBufferCount + index] : m_buffers[index];
-		m_pCBAllocator->UpdateData(&currBuffer.data, currBuffer.byteSize, currBuffer.pageIndex, currBuffer.pageOffset);
+		for (UINT i = 0; i < m_actualBufferCount; i++)
+			m_buffers[i].data = data;
+	}
+
+	void Set(const T& data, UINT index)
+	{
+		for (UINT i = 0; i < MultiFrameSets_swapChainCount; i++)
+			m_buffers[i * m_singleBufferCount + index].data = data;
 	}
 
 	const D3D12_GPU_VIRTUAL_ADDRESS& GetGPUHandle(UINT index = 0)
@@ -85,24 +89,12 @@ public:
 		return m_buffers[frameIndex * m_singleBufferCount + bufferIndex].data;
 	}
 
-	void Set(T& data)
-	{
-		for (UINT i = 0; i < m_actualBufferCount; i++)
-			m_buffers[i].data = data;
-	}
-
-	void Set(T& data, UINT index)
-	{
-		for (UINT i = 0; i < MultiFrameSets_swapChainCount; i++)
-			m_buffers[i * m_singleBufferCount + index].data = data;
-	}
-
 	bool IsNull()
 	{
 		return m_buffers.get() == nullptr;
 	}
 
-private:
+protected:
 	void Create(UINT byteSize, CommittedAllocator* pCBAllocator, DescriptorAllocator* pDescriptorAllocator, bool isFrameResource, UINT bufferCount)
 	{
 		// TODO: 光Alloc不行，还得在合适的时间Remove
@@ -143,7 +135,7 @@ private:
 		}
 	}
 
-private:
+protected:
 	ID3D12Device*			m_pDevice;
 	CommittedAllocator*		m_pCBAllocator;
 	DescriptorAllocator*	m_pDescriptorAllocator;
@@ -165,4 +157,37 @@ private:
 	// 如果是FrameResource，则m_actualBufferCount=m_singleBufferCount * MultiFrameSets_swapChainCount.
 	// 如果不是FrameResource，则m_actualBufferCount=m_singleBufferCount.
 	UINT m_actualBufferCount;
+};
+
+template <typename T>
+class NXBuffer : public NXBufferBase<T>
+{
+public:
+	NXBuffer() {}
+	~NXBuffer() {}
+
+	// 类似 dx11 updatesubresource.
+	// 如果是FrameResource，更新当前帧的对应index的buffer
+	// 如果不是FrameResource，更新对应index的buffer
+	void UpdateBuffer(UINT index = 0)
+	{
+		NXBufferData& currBuffer = m_isFrameResource ? m_buffers[MultiFrameSets::swapChainIndex * m_singleBufferCount + index] : m_buffers[index];
+		m_pCBAllocator->UpdateData(&currBuffer.data, currBuffer.byteSize, currBuffer.pageIndex, currBuffer.pageOffset);
+	}
+};
+
+// 特化 std::vector，因为Set方法总是需要深拷贝。
+// 目前只有 NXCustomMaterial::m_cbData 使用此特化。
+template <typename T>
+class NXBuffer<std::vector<T>> : public NXBufferBase<std::vector<T>>
+{
+public:
+	NXBuffer<std::vector<T>>() {}
+	~NXBuffer<std::vector<T>>() {}
+
+	void UpdateBuffer(UINT index = 0)
+	{
+		NXBufferData& currBuffer = m_isFrameResource ? m_buffers[MultiFrameSets::swapChainIndex * m_singleBufferCount + index] : m_buffers[index];
+		m_pCBAllocator->UpdateData(currBuffer.data.data(), currBuffer.byteSize, currBuffer.pageIndex, currBuffer.pageOffset);
+	}
 };

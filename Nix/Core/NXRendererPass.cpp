@@ -188,7 +188,7 @@ void NXRendererPass::SetRootParams(int CBVNum, int SRVUAVNum)
 	m_rootParams.clear();
 	for (int i = 0; i < CBVNum; i++)
 	{
-		// 默认slotIndex = i，可以通过 SetRootParamCBV(, slotIdx, ) 方法修改
+		// 默认slotIndex = i，可以通过 SetStaticRootParamCBV(, slotIdx, ) 方法修改
 		m_rootParams.push_back(NX12Util::CreateRootParameterCBV(i, 0, D3D12_SHADER_VISIBILITY_ALL));
 	};
 
@@ -202,16 +202,16 @@ void NXRendererPass::SetRootParams(int CBVNum, int SRVUAVNum)
 	m_cbvManagements.resize(CBVNum);
 }
 
-void NXRendererPass::SetRootParamCBV(int rootParamIndex, const std::vector<D3D12_GPU_VIRTUAL_ADDRESS>& gpuVirtAddrs)
+void NXRendererPass::SetStaticRootParamCBV(int rootParamIndex, const std::vector<D3D12_GPU_VIRTUAL_ADDRESS>& gpuVirtAddrs)
 {
 	m_cbvManagements[rootParamIndex].autoUpdate = true;
 	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 		m_cbvManagements[rootParamIndex].multiFrameGpuVirtAddr[i] = gpuVirtAddrs[i];
 }
 
-void NXRendererPass::SetRootParamCBV(int rootParamIndex, int slotIndex, const std::vector<D3D12_GPU_VIRTUAL_ADDRESS>& gpuVirtAddrs)
+void NXRendererPass::SetStaticRootParamCBV(int rootParamIndex, int slotIndex, const std::vector<D3D12_GPU_VIRTUAL_ADDRESS>& gpuVirtAddrs)
 {
-	SetRootParamCBV(rootParamIndex, gpuVirtAddrs);
+	SetStaticRootParamCBV(rootParamIndex, gpuVirtAddrs);
 	m_rootParams[rootParamIndex].Descriptor.ShaderRegister = slotIndex;
 }
 

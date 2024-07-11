@@ -39,7 +39,7 @@ public:
 	 
 	// 更新资源池中的内存。
 	// NOTE：仅 ResourceType_Upload 类型的 Page 可以使用此方法！
-	void UpdateData(void* data, UINT dataSize, UINT pageIdx, UINT pageByteOffset);
+	void UpdateData(const void* data, UINT dataSize, UINT pageIdx, UINT pageByteOffset);
 
 	// 更新资源池中的内存。
 	// NOTE：仅 ResourceType_Default 类型的 Page 可以使用此方法！

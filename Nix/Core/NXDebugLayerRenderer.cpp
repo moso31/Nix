@@ -30,7 +30,7 @@ void NXDebugLayerRenderer::Init()
 	m_cbParams.CreateFrameBuffers(NXCBufferAllocator, NXDescriptorAllocator);
 
 	SetRootParams(1, 2); // b2, t0~t1
-	SetRootParamCBV(0, 2, m_cbParams.GetGPUHandleArray());
+	SetStaticRootParamCBV(0, 2, m_cbParams.GetGPUHandleArray());
 	AddStaticSampler(D3D12_FILTER_MIN_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_CLAMP); // s0
 
 	InitPSO();

@@ -26,16 +26,17 @@ struct NXPassTexture
 	NXCommonRTEnum rtType;
 };
 
+// 在DX12要绑定CB，需要提供对应CBV的gpuHandle。
+// cmdList将使用gpuHandle。
 struct NXCBVManagement
 {
-	// pass 使用的 cbv gpu 虚拟地址
-	// cbv需要按帧资源区分，所以用了MultiFrame
-	MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS> multiFrameGpuVirtAddr;
-
 	// 用于记录每帧 cmdList如何接收 cbv gpu 虚拟地址。
-	// true: 使用 m_cbvGpuVirtAddrs 中的地址；
+	// true: 使用 multiFrameGpuVirtAddr 中的地址；
 	// false: 派生类手动更新，这里不用管。
 	bool autoUpdate = false;
+
+	// 如果启用autoUpdate，使用这里的gpuHandle（D3D12_GPU_VIRTUAL_ADDRESS）。
+	MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS> multiFrameGpuVirtAddr;
 };
 
 class NXRendererPass
@@ -72,8 +73,16 @@ public:
 	// 3. 任何情况下都不使用根常量
 	// 4. 采样器始终使用StaticSampler，不考虑动态Sampler，目前够用了
 	void SetRootParams(int CBVNum, int SRVUAVNum);
-	void SetRootParamCBV(int rootParamIndex, const std::vector<D3D12_GPU_VIRTUAL_ADDRESS>& gpuVirtAddrs);
-	void SetRootParamCBV(int rootParamIndex, int slotIndex, const std::vector<D3D12_GPU_VIRTUAL_ADDRESS>& gpuVirtAddr);
+
+	// 设置静态CBV。
+	// 注意：对一个Pass，如果设置成静态CBV，那么这个CBV的映射地址整个Pass的生命周期内不会改变。
+	// 应该根据Pass实际情况决定是否设置，而不是盲目全部设置。
+	// rootParamIndex: 根参数的索引
+	// slotIndex: 描述符表的索引，如果不提供，则和rootParamIndex相同。
+	// gpuVirtAddr: CBV的gpu虚拟地址
+	void SetStaticRootParamCBV(int rootParamIndex, const std::vector<D3D12_GPU_VIRTUAL_ADDRESS>& gpuVirtAddrs);
+	void SetStaticRootParamCBV(int rootParamIndex, int slotIndex, const std::vector<D3D12_GPU_VIRTUAL_ADDRESS>& gpuVirtAddr);
+
 	void AddStaticSampler(const D3D12_STATIC_SAMPLER_DESC& staticSampler);
 	void AddStaticSampler(D3D12_FILTER filter, D3D12_TEXTURE_ADDRESS_MODE addrUVW);
 
@@ -113,7 +122,7 @@ private:
 	// pass 使用的静态采样器
 	std::vector<D3D12_STATIC_SAMPLER_DESC>	m_staticSamplers;
 
-	// pass 使用的 cbv gpu 虚拟地址
+	// Pass总是需要开发者描述这个Pass依赖哪些CB。
 	std::vector<NXCBVManagement>			m_cbvManagements;
 
 	// rt 使用的 subMesh 的名称。

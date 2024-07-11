@@ -182,23 +182,27 @@ void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::s
 	// 如果JIT编译OK，就可以构建shader了。首先重新构建根签名和PSO。
 	if (m_bCompileSuccess)
 	{ 
-		// b3, t0~tN, s0~sN.
+		// b3, t0..., s...
+		// t0~tN：nsl材质文件生成的所有纹理
+		// s0~sM：nsl材质文件生成的所有纹理
 		std::vector<D3D12_DESCRIPTOR_RANGE> ranges;
 		ranges.reserve(m_texInfos.size());
 
-		// t0~tN. 每张tex指定了slotIndex 所以还是得用for循环
+		// 每张tex指定了slotIndex 所以还是得用for循环
 		for (const auto &texInfo : m_texInfos)
 			ranges.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, texInfo.slotIndex));
 
 		std::vector<D3D12_ROOT_PARAMETER> rootParams = {
+			NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL), // b0
+			NX12Util::CreateRootParameterCBV(1, 0, D3D12_SHADER_VISIBILITY_ALL), // b1
 			NX12Util::CreateRootParameterCBV(3, 0, D3D12_SHADER_VISIBILITY_ALL), // b3
-			NX12Util::CreateRootParameterTable(ranges, D3D12_SHADER_VISIBILITY_ALL), // t0~tN
+			NX12Util::CreateRootParameterTable(ranges, D3D12_SHADER_VISIBILITY_ALL), // t...
 		};
 
 		std::vector<D3D12_STATIC_SAMPLER_DESC> staticSamplers;
 		staticSamplers.reserve(m_samplerInfos.size());
 		for (int i = 0; i < m_samplerInfos.size(); i++)
-			NXSamplerManager::GetInstance()->Create(i, 0, D3D12_SHADER_VISIBILITY_ALL, m_samplerInfos[i]); // s0~sN
+			staticSamplers.push_back(NXSamplerManager::GetInstance()->Create(i, 0, D3D12_SHADER_VISIBILITY_ALL, m_samplerInfos[i])); // s...
 
 		m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::GetDevice(), rootParams, staticSamplers);
 
@@ -332,15 +336,25 @@ void NXCustomMaterial::Render(ID3D12GraphicsCommandList* pCommandList)
 
 	if (m_texInfos.empty()) return;
 
-	auto& srvHandle0 = NXGPUHandleHeap->SetFluidDescriptor(m_texInfos[0].pTexture->GetSRV());
-	for (auto& texInfo : m_texInfos)
+	if (m_texInfos.size() > 0)
 	{
-		if (texInfo.pTexture.IsValid())
+		auto& srvHandle0 = NXGPUHandleHeap->SetFluidDescriptor(m_texInfos[0].pTexture->GetSRV());
+		for (int i = 1; i < m_texInfos.size(); i++)
 		{
-			NXGPUHandleHeap->SetFluidDescriptor(texInfo.pTexture->GetSRV());
+			auto& texInfo = m_texInfos[i];
+			if (texInfo.pTexture.IsValid())
+			{
+				NXGPUHandleHeap->SetFluidDescriptor(texInfo.pTexture->GetSRV());
+			}
 		}
+		pCommandList->SetGraphicsRootDescriptorTable(3, srvHandle0); // t...
 	}
-	pCommandList->SetGraphicsRootDescriptorTable(1, srvHandle0); // t0~tN.
+
+	if (!m_bIsDirty)
+	{
+		auto gpuHandle = m_cbData.GetGPUHandle();
+		pCommandList->SetGraphicsRootConstantBufferView(2, gpuHandle); // b3.
+	}
 }
 
 void NXCustomMaterial::Update()
@@ -683,7 +697,7 @@ void NXCustomMaterial::ProcessShaderParameters(const std::string& nslParams, std
 
 	std::map<std::string, UINT> typeToRegisterIndex
 	{
-		{"Tex2D", 1},
+		{"Tex2D", 0},
 		{"SamplerState", 0},
 		{"CBuffer", 3}
 	};
