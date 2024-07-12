@@ -28,7 +28,7 @@ protected:
 	};
 
 public:
-	NXBufferBase() {}
+	NXBufferBase() : m_isCreated(false) {}
 	~NXBufferBase() {}
 
 	// 创建一个FrameResource类型的NXBuffer。
@@ -100,11 +100,20 @@ protected:
 		// TODO: 光Alloc不行，还得在合适的时间Remove
 		// Remove的配套机制需要XAllocator实现
 
+		if (m_isCreated)
+		{
+			// 【TODO：启用这段逻辑。Remove没跟上之前，暂时没办法用】
+			//std::wstring errMsg = L"NXBuffer create FAILED. It has been created.";
+			//MessageBox(NULL, errMsg.c_str(), L"Error", MB_OK | MB_ICONERROR);
+			//return;
+		}
+
 		// lazy-Init
 		m_pDevice = pCBAllocator->GetD3DDevice();
 		m_pCBAllocator = pCBAllocator;
 		m_pDescriptorAllocator = pDescriptorAllocator;
 		m_isFrameResource = isFrameResource;
+		m_isCreated = true;
 
 		// Create
 		m_singleBufferCount = bufferCount;
@@ -139,6 +148,10 @@ protected:
 	ID3D12Device*			m_pDevice;
 	CommittedAllocator*		m_pCBAllocator;
 	DescriptorAllocator*	m_pDescriptorAllocator;
+
+	// 纯检测成员变量，检测是否已经调用Created方法分配内存
+	// 2024.7.12 一个NXBuffer只允许Create一次
+	bool m_isCreated;
 
 	// CBuffer本体
 	std::unique_ptr<NXBufferData[]> m_buffers;

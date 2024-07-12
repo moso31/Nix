@@ -165,12 +165,12 @@ HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow)
 	// Create window
 	NXGlobalWindows::hInst = hInstance;
 	LONG offset = 50;
-	RECT rc = { 0 + offset, 0 + offset, 1600 + offset, 900 + offset };
+	RECT rc = { 0 + offset, 0 + offset, 1280 + offset, 720 + offset };
 	//RECT rc = { 0, 0, 120, 90 };
 
 	NXGlobalWindows::hWnd = CreateWindow(L"NixWindowClass", L"Nix",
 		WS_OVERLAPPEDWINDOW,
-		1920, 0, rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr, hInstance,
+		0, 0, rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr, hInstance,
 		nullptr);
 
 	//SetWindowLong(NXGlobalWindows::hWnd, GWL_STYLE, 5);
