@@ -271,7 +271,7 @@ void NXShadowMapRenderer::RenderCSMPerLight(ID3D12GraphicsCommandList* pCmdList,
 		m_CSMViewProj.Get(i).projection = mxShadowProj.Transpose();
 		m_CSMViewProj.UpdateBuffer(i);
 		NXGlobalBuffer::cbShadowTest.Get().view[i] = mxShadowView.Transpose();
-		NXGlobalBuffer::cbShadowTest.Get().projection[i] = mxShadowView.Transpose();
+		NXGlobalBuffer::cbShadowTest.Get().projection[i] = mxShadowProj.Transpose();
 
 		pCmdList->ClearDepthStencilView(m_pShadowMapDepth->GetDSV(i), D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0x0, 0, nullptr);
 		pCmdList->OMSetRenderTargets(0, nullptr, false, &m_pShadowMapDepth->GetDSV(i));

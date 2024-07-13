@@ -73,8 +73,24 @@ void Renderer::Init()
 	m_pShadowMapRenderer = new NXShadowMapRenderer(m_scene);
 	m_pShadowMapRenderer->Init();
 
+	// 2024.7.13 思路转变，将Pass视作渲染流程图的一个节点
+	// 允许实时修改这些参数、比如使用哪些纹理、使用哪个Shader、State的设置等。
+	// 虽然现在没有RenderGraph，但可以基于这个思想去设计代码。
 	m_pShadowTestRenderer = new NXShadowTestRenderer();
-	m_pShadowTestRenderer->Init();
+	m_pShadowTestRenderer->SetPassName("Shadow Test");
+	m_pShadowTestRenderer->RegisterTextures(2, 1);
+	m_pShadowTestRenderer->SetInputTex(0, NXCommonRT_DepthZ);
+	m_pShadowTestRenderer->SetInputTex(1, m_pShadowMapRenderer->GetShadowMapDepthTex());
+	m_pShadowTestRenderer->SetOutputRT(0, NXCommonRT_ShadowTest);
+	m_pShadowTestRenderer->SetShaderFilePath("Shader\\ShadowTest.fx");
+	m_pShadowTestRenderer->SetRasterizerState(NXRasterizerState<D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_BACK, 0, 0, 1000.0f>::Create());
+	m_pShadowTestRenderer->SetDepthStencilState(NXDepthStencilState<true, false, D3D12_COMPARISON_FUNC_ALWAYS>::Create());
+	m_pShadowTestRenderer->SetRootParams(3, 2); 
+	m_pShadowTestRenderer->SetStaticRootParamCBV(0, NXGlobalBuffer::cbObject.GetGPUHandleArray());
+	m_pShadowTestRenderer->SetStaticRootParamCBV(1, NXGlobalBuffer::cbCamera.GetGPUHandleArray());
+	m_pShadowTestRenderer->SetStaticRootParamCBV(2, NXGlobalBuffer::cbShadowTest.GetGPUHandleArray());
+	m_pShadowTestRenderer->AddStaticSampler(D3D12_FILTER_MIN_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
+	m_pShadowTestRenderer->InitPSO();
 
 	m_pDeferredRenderer = new NXDeferredRenderer(m_scene, m_pBRDFLut);
 	m_pDeferredRenderer->Init();
@@ -113,6 +129,7 @@ void Renderer::OnResize(const Vector2& rtSize)
 	//m_pDepthPrepass->OnResize(m_viewRTSize);
 	//m_pSSAO->OnResize(m_viewRTSize);
 	//m_pDepthPeelingRenderer->OnResize(m_viewRTSize);
+	m_pShadowTestRenderer->OnResize();
 	m_pColorMappingRenderer->OnResize();
 	m_pDebugLayerRenderer->OnResize(m_viewRTSize);
 	m_pEditorObjectRenderer->OnResize();
@@ -223,7 +240,6 @@ void Renderer::RenderFrame()
 	m_pShadowMapRenderer->Render(m_pCommandList.Get());
 	m_pCommandList->RSSetViewports(1, &vpCamera);
 	m_pCommandList->RSSetScissorRects(1, &NX12Util::ScissorRect(vpCamera));
-	m_pShadowTestRenderer->SetShadowMapDepth(m_pShadowMapRenderer->GetShadowMapDepthTex());
 	m_pShadowTestRenderer->Render(m_pCommandList.Get());
 
 	// Deferred opaque shading

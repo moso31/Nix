@@ -17,9 +17,10 @@ void NXSkyRenderer::Init()
 {
 	SetPassName("Sky (CubeMap IBL)");
 
+	RegisterTextures(1, 1);
 	auto pCubeMap = m_pScene->GetCubeMap();
-	AddInputTex(pCubeMap->GetCubeMap());
-	AddOutputRT(NXCommonRT_SSSLighting);
+	SetInputTex(0, pCubeMap->GetCubeMap());
+	SetOutputRT(0, NXCommonRT_SSSLighting);
 	SetOutputDS(NXCommonRT_DepthZ);
 
 	SetShaderFilePath("Shader\\CubeMap.fx");

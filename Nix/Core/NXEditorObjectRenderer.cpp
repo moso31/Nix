@@ -23,7 +23,8 @@ NXEditorObjectRenderer::~NXEditorObjectRenderer()
 void NXEditorObjectRenderer::Init()
 {
 	SetPassName("Editor Objects");
-	AddOutputRT(NXCommonRT_PostProcessing);
+	RegisterTextures(0, 1);
+	SetOutputRT(0, NXCommonRT_PostProcessing);
 
 	SetShaderFilePath(L"Shader\\EditorObjects.fx");
 	SetBlendState(NXBlendState<false, false, true, false, D3D12_BLEND_SRC_ALPHA, D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_OP_ADD>::Create());

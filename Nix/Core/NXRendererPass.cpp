@@ -26,39 +26,52 @@ NXRendererPass::NXRendererPass() :
 	m_srvUavRanges.reserve(1);
 }
 
-void NXRendererPass::AddInputTex(NXCommonRTEnum eCommonTex)
+void NXRendererPass::RegisterTextures(int inputTexNum, int outputRTNum)
 {
-	m_pInTexs.push_back(NXPassTexture(NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(eCommonTex), eCommonTex));
+	m_pInTexs.resize(inputTexNum);
+	m_pOutRTs.resize(outputRTNum);
 }
 
-void NXRendererPass::AddInputTex(NXCommonTexEnum eCommonTex)
+void NXRendererPass::SetInputTex(int index, NXCommonRTEnum eCommonTex)
 {
-	m_pInTexs.push_back(NXPassTexture(NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(eCommonTex)));
+	m_pInTexs[index].pTexture = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(eCommonTex);
+	m_pInTexs[index].rtType = eCommonTex;
 }
 
-void NXRendererPass::AddOutputRT(NXCommonRTEnum eCommonTex)
+void NXRendererPass::SetInputTex(int index, NXCommonTexEnum eCommonTex)
 {
-	m_pOutRTs.push_back(NXPassTexture(NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(eCommonTex), eCommonTex));
+	m_pInTexs[index].pTexture = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(eCommonTex);
+	m_pInTexs[index].rtType = NXCommonRT_None;
+}
+
+void NXRendererPass::SetOutputRT(int index, NXCommonRTEnum eCommonTex)
+{
+	m_pOutRTs[index].pTexture = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(eCommonTex);
+	m_pOutRTs[index].rtType = eCommonTex;
 }
 
 void NXRendererPass::SetOutputDS(NXCommonRTEnum eCommonTex)
 {
-	m_pOutDS = NXPassTexture(NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(eCommonTex), eCommonTex);
+	m_pOutDS.pTexture = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(eCommonTex);
+	m_pOutDS.rtType = eCommonTex;
 }
 
-void NXRendererPass::AddInputTex(const Ntr<NXTexture>& pTex)
+void NXRendererPass::SetInputTex(int index, const Ntr<NXTexture>& pTex)
 {
-	m_pInTexs.push_back(pTex);
+	m_pInTexs[index].pTexture = pTex;
+	m_pInTexs[index].rtType = NXCommonRT_None;
 }
 
-void NXRendererPass::AddOutputRT(const Ntr<NXTexture>& pTex)
+void NXRendererPass::SetOutputRT(int index, const Ntr<NXTexture>& pTex)
 {
-	m_pOutRTs.push_back(pTex);
+	m_pOutRTs[index].pTexture = pTex;
+	m_pOutRTs[index].rtType = NXCommonRT_None;
 }
 
 void NXRendererPass::SetOutputDS(const Ntr<NXTexture>& pTex)
 {
-	m_pOutDS = pTex;
+	m_pOutDS.pTexture = pTex;
+	m_pOutDS.rtType = NXCommonRT_None;
 }
 
 void NXRendererPass::SetInputLayout(const D3D12_INPUT_LAYOUT_DESC& desc)

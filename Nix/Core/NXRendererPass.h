@@ -47,11 +47,13 @@ public:
 
 	void SetPassName(const std::string& passName) { m_passName = passName; }
 
-	void AddInputTex(NXCommonRTEnum eCommonTex);
-	void AddInputTex(NXCommonTexEnum eCommonTex);
-	void AddInputTex(const Ntr<NXTexture>& pTex);
-	void AddOutputRT(NXCommonRTEnum eCommonTex);
-	void AddOutputRT(const Ntr<NXTexture>& pTex);
+	void RegisterTextures(int inputTexNum, int outputRTNum);
+
+	void SetInputTex(int index, NXCommonRTEnum eCommonTex);
+	void SetInputTex(int index, NXCommonTexEnum eCommonTex);
+	void SetInputTex(int index, const Ntr<NXTexture>& pTex);
+	void SetOutputRT(int index, NXCommonRTEnum eCommonTex);
+	void SetOutputRT(int index, const Ntr<NXTexture>& pTex);
 	void SetOutputDS(NXCommonRTEnum eCommonTex);
 	void SetOutputDS(const Ntr<NXTexture>& pTex);
 
@@ -86,7 +88,9 @@ public:
 	void AddStaticSampler(const D3D12_STATIC_SAMPLER_DESC& staticSampler);
 	void AddStaticSampler(D3D12_FILTER filter, D3D12_TEXTURE_ADDRESS_MODE addrUVW);
 
-	virtual void Init() = 0;
+	// 设置PSO
+	// 在所有内容设置完毕后，再调用这个函数，创建PSO
+	void InitPSO();
 
 	// OnResize 会在窗口大小变化时被调用
 	// 用于更新Pass 关联的 RT的引用状态
@@ -96,9 +100,6 @@ public:
 	void Render(ID3D12GraphicsCommandList* pCmdList);
 
 	void Release() {}
-
-protected:
-	void InitPSO();
 
 private:
 	std::string	m_passName;

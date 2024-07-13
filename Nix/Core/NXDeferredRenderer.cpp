@@ -26,20 +26,21 @@ void NXDeferredRenderer::Init()
 {
 	SetPassName("Deferred Rendering");
 
-	AddInputTex(NXCommonRT_GBuffer0);
-	AddInputTex(NXCommonRT_GBuffer1);
-	AddInputTex(NXCommonRT_GBuffer2);
-	AddInputTex(NXCommonRT_GBuffer3);
-	AddInputTex(NXCommonRT_DepthZ);
-	AddInputTex(m_pScene->GetCubeMap()->GetCubeMap());
-	AddInputTex(m_pScene->GetCubeMap()->GetPreFilterMap());
-	AddInputTex(m_pBRDFLut->GetTex());
-	AddInputTex(NXCommonRT_ShadowTest);
+	RegisterTextures(9, 4);
+	SetInputTex(0, NXCommonRT_GBuffer0);
+	SetInputTex(1, NXCommonRT_GBuffer1);
+	SetInputTex(2, NXCommonRT_GBuffer2);
+	SetInputTex(3, NXCommonRT_GBuffer3);
+	SetInputTex(4, NXCommonRT_DepthZ);
+	SetInputTex(5, m_pScene->GetCubeMap()->GetCubeMap());
+	SetInputTex(6, m_pScene->GetCubeMap()->GetPreFilterMap());
+	SetInputTex(7, m_pBRDFLut->GetTex());
+	SetInputTex(8, NXCommonRT_ShadowTest);
 
-	AddOutputRT(NXCommonRT_Lighting0);
-	AddOutputRT(NXCommonRT_Lighting1);
-	AddOutputRT(NXCommonRT_Lighting2);
-	AddOutputRT(NXCommonRT_SSSLighting);
+	SetOutputRT(0, NXCommonRT_Lighting0);
+	SetOutputRT(1, NXCommonRT_Lighting1);
+	SetOutputRT(2, NXCommonRT_Lighting2);
+	SetOutputRT(3, NXCommonRT_SSSLighting);
 
 	SetShaderFilePath("Shader\\DeferredRender.fx");
 	SetDepthStencilState(NXDepthStencilState<true, false, D3D12_COMPARISON_FUNC_LESS_EQUAL>::Create());

@@ -20,13 +20,14 @@ NXSubSurfaceRenderer::~NXSubSurfaceRenderer()
 void NXSubSurfaceRenderer::Init()
 {
 	SetPassName("Burley 3S");
-	AddInputTex(NXCommonRT_Lighting0);
-	AddInputTex(NXCommonRT_Lighting1);
-	AddInputTex(NXCommonRT_Lighting2);
-	AddInputTex(NXCommonRT_GBuffer1);
-	AddInputTex(NXCommonRT_DepthZ_R32);
-	AddInputTex(NXCommonTex_Noise2DGray_64x64);
-	AddOutputRT(NXCommonRT_SSSLighting);
+	RegisterTextures(6, 1);
+	SetInputTex(0, NXCommonRT_Lighting0);
+	SetInputTex(1, NXCommonRT_Lighting1);
+	SetInputTex(2, NXCommonRT_Lighting2);
+	SetInputTex(3, NXCommonRT_GBuffer1);
+	SetInputTex(4, NXCommonRT_DepthZ_R32);
+	SetInputTex(5, NXCommonTex_Noise2DGray_64x64);
+	SetOutputRT(0, NXCommonRT_SSSLighting);
 	SetOutputDS(NXCommonRT_DepthZ);
 
 	SetShaderFilePath(L"Shader\\SSSSSRenderer.fx");

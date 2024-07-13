@@ -20,9 +20,10 @@ NXDebugLayerRenderer::NXDebugLayerRenderer(NXShadowMapRenderer* pShadowMapRender
 void NXDebugLayerRenderer::Init()
 {
 	SetPassName("Debug Layer");
-	AddInputTex(NXCommonRT_PostProcessing);
-	AddInputTex(m_pShadowMapRenderer->GetShadowMapDepthTex());
-	AddOutputRT(NXCommonRT_DebugLayer);
+	RegisterTextures(2, 1);
+	SetInputTex(0, NXCommonRT_PostProcessing);
+	SetInputTex(1, m_pShadowMapRenderer->GetShadowMapDepthTex());
+	SetOutputRT(0, NXCommonRT_DebugLayer);
 
 	SetShaderFilePath(L"Shader\\DebugLayer.fx");
 	SetDepthStencilState(NXDepthStencilState<true, false, D3D12_COMPARISON_FUNC_ALWAYS>::Create());

@@ -12,8 +12,9 @@ void NXDepthRenderer::Init()
 {
 	SetPassName("Depth Copy");
 
-	AddInputTex(NXCommonRT_DepthZ);
-	AddOutputRT(NXCommonRT_DepthZ_R32);
+	RegisterTextures(1, 1);
+	SetInputTex(0, NXCommonRT_DepthZ);
+	SetOutputRT(0, NXCommonRT_DepthZ_R32);
 
 	// t0, s0, b is empty
 	SetShaderFilePath(L"Shader\\Depth.fx");
