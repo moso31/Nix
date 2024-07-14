@@ -14,6 +14,7 @@ NXBRDFLut::NXBRDFLut()
 
 void NXBRDFLut::Init()
 {
+	NXGlobalDX::GetDevice()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_pFence));
 	NX12Util::CreateCommands(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.GetAddressOf(), m_pCommandAllocator.GetAddressOf(), m_pCommandList.GetAddressOf());
 	m_pCommandQueue->SetName(L"BRDF LUT Command Queue");
 
@@ -105,4 +106,16 @@ void NXBRDFLut::DrawBRDFLUT()
 	m_pCommandList->Close();
 	ID3D12CommandList* pCmdLists[] = { m_pCommandList.Get() };
 	m_pCommandQueue->ExecuteCommandLists(1, pCmdLists);
+
+	m_fenceValue++;
+	m_pCommandQueue->Signal(m_pFence.Get(), m_fenceValue);
+
+	// 等待围栏完成
+	if (m_pFence->GetCompletedValue() < m_fenceValue)
+	{
+		HANDLE fenceEvent = CreateEvent(nullptr, false, false, nullptr);
+		m_pFence->SetEventOnCompletion(m_fenceValue, fenceEvent);
+		WaitForSingleObject(fenceEvent, INFINITE);  // 等待围栏信号完成
+		CloseHandle(fenceEvent);
+	}
 }

@@ -29,4 +29,7 @@ private:
 
 	ComPtr<ID3D12PipelineState> m_pPSO;
 	ComPtr<ID3D12RootSignature> m_pRootSig;
+
+	ComPtr<ID3D12Fence> m_pFence;
+	UINT64 m_fenceValue;
 };
