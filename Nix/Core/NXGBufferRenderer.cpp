@@ -42,6 +42,12 @@ void NXGBufferRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 	};
 	Ntr<NXTexture2D> pDepthZ = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
 
+	// 手动设置资源状态
+	for (auto& pGBuffer : pGBuffers)
+	{
+		pGBuffer->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	}
+
 	D3D12_CPU_DESCRIPTOR_HANDLE pRTs[] = { pGBuffers[0]->GetRTV(), pGBuffers[1]->GetRTV(), pGBuffers[2]->GetRTV(), pGBuffers[3]->GetRTV() };
 	pCmdList->ClearDepthStencilView(pDepthZ->GetDSV(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0x0, 0, nullptr);
 	for (int i = 0; i < _countof(pRTs); i++)

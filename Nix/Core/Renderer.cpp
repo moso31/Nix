@@ -207,16 +207,12 @@ void Renderer::RenderFrame()
 {
 	m_pCommandList->Reset(m_pCommandAllocator.Get(), nullptr);
 
-	auto& pSceneRT = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting0);
-	if (pSceneRT.IsNull()) return;
-
 	NX12Util::BeginEvent(m_pCommandList.Get(), "Render Scene");
 
 	// ÉèÖÃÊÓ¿Ú
 	auto vpCamera = NX12Util::ViewPort(m_viewRTSize.x, m_viewRTSize.y);
 	m_pCommandList->RSSetViewports(1, &vpCamera);
 	m_pCommandList->RSSetScissorRects(1, &NX12Util::ScissorRect(vpCamera));
-	m_pCommandList->ClearRenderTargetView(pSceneRT->GetRTV(), Colors::Black, 0, nullptr);
 
 	ID3D12DescriptorHeap* ppHeaps[] = { NXGPUHandleHeap->GetHeap() };
 	m_pCommandList->SetDescriptorHeaps(1, ppHeaps);

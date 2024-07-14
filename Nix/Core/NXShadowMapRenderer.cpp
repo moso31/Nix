@@ -79,6 +79,8 @@ void NXShadowMapRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 {
 	NX12Util::BeginEvent(pCmdList, "Shadow Map");
 
+	m_pShadowMapDepth->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+
 	pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	pCmdList->SetGraphicsRootSignature(m_pRootSig.Get());
 	pCmdList->SetPipelineState(m_pPSO.Get());

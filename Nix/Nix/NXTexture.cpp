@@ -94,12 +94,12 @@ void NXTexture::CreateRenderTextureInternal(D3D12_RESOURCE_FLAGS flags)
 	else if (flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
 	{
 		m_resourceState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
-		SetClearValue(0.0f, 0x00);
+		SetClearValue(1.0f, 0x00);
 	}
 	else
 	{
 		m_resourceState = D3D12_RESOURCE_STATE_COMMON;
-		SetClearValue(0.0f, 0x00);
+		SetClearValue(1.0f, 0x00);
 	}
 
 	hr = NXGlobalDX::GetDevice()->CreateCommittedResource(

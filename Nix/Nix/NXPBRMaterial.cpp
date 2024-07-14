@@ -229,7 +229,7 @@ void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::s
 		psoDesc.NumRenderTargets = _countof(pGBuffers);
 		for (int i = 0; i < _countof(pGBuffers); i++)
 			psoDesc.RTVFormats[i] = pGBuffers[i]->GetFormat();
-		psoDesc.DSVFormat = pDepthZ->GetFormat();
+		psoDesc.DSVFormat = NXConvert::DXGINoTypeless(pDepthZ->GetFormat(), true);
 		psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 		psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 		psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;

@@ -174,6 +174,11 @@ void NXRendererPass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 			m_pOutRTs[i]->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_RENDER_TARGET);
 		}
 
+		if (m_pOutDS.IsValid())
+		{
+			m_pOutDS->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+		}
+
 		// 2024.6.8
 		// 根据目前在.h中的根参数-寄存器布局规定，
 		// m_cbvManagements 中 元素的数量就是 Table 的 slot 索引。
