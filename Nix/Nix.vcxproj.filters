@@ -493,6 +493,9 @@
     <ClCompile Include="Core\NXRendererPass.cpp">
       <Filter>Core\DirectX\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXPSOManager.cpp">
+      <Filter>Core\DirectX\Manager</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -809,6 +812,9 @@
     </ClInclude>
     <ClInclude Include="Core\NXCommonTexDefinition.h">
       <Filter>Core\DirectX</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXPSOManager.h">
+      <Filter>Core\DirectX\Manager</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

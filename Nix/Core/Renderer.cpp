@@ -15,6 +15,7 @@
 #include "NXSimpleSSAO.h"
 #include "NXAllocatorManager.h"
 #include "NXSubMeshGeometryEditor.h"
+#include "NXPSOManager.h"
 
 Renderer::Renderer(const Vector2& rtSize) :
 	m_bRenderGUI(true),
@@ -37,6 +38,9 @@ void Renderer::Init()
 
 	NX12Util::CreateCommands(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.GetAddressOf(), m_pCommandAllocator.GetAddressOf(), m_pCommandList.GetAddressOf());
 	m_pCommandQueue->SetName(L"Main Renderer Command Queue");
+
+	// PSOManager
+	NXPSOManager::GetInstance()->Init(NXGlobalDX::GetDevice(), m_pCommandQueue.Get());
 
 	// äÖÈ¾Æ÷
 	InitRenderer();
@@ -274,6 +278,9 @@ void Renderer::RenderFrame()
 	m_pCommandList->Close();
 	ID3D12CommandList* pCmdLists[] = { m_pCommandList.Get() };
 	m_pCommandQueue->ExecuteCommandLists(1, pCmdLists);
+
+	// ¸üÐÂPSOManager×´Ì¬
+	NXPSOManager::GetInstance()->FrameCleanup();
 }
 
 void Renderer::RenderGUI(const NXSwapChainBuffer& swapChainBuffer)

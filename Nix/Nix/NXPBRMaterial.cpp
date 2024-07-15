@@ -15,6 +15,7 @@
 #include "NXGUIMaterial.h"
 #include "NXGUICommon.h"
 #include "NXSSSDiffuseProfile.h"
+#include "NXPSOManager.h"
 
 NXMaterial::NXMaterial(const std::string& name, const std::filesystem::path& filePath) :
 	NXObject(name),
@@ -91,7 +92,8 @@ void NXEasyMaterial::Init()
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
+
+	m_pPSO = NXPSOManager::GetInstance()->Create(psoDesc, m_name + "_PSO");
 }
 
 void NXEasyMaterial::Render(ID3D12GraphicsCommandList* pCommandList)
@@ -233,7 +235,8 @@ void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::s
 		psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 		psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 		psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-		NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
+
+		m_pPSO = NXPSOManager::GetInstance()->Create(psoDesc, m_name + "_PSO");
 	}
 }
 

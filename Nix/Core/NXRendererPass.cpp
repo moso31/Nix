@@ -134,6 +134,9 @@ void NXRendererPass::InitPSO()
 	m_psoDesc.DSVFormat = m_pOutDS.IsNull() ? DXGI_FORMAT_UNKNOWN : m_pOutDS->GetDSVFormat();
 
 	NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&m_psoDesc, IID_PPV_ARGS(&m_pPSO));
+
+	std::wstring psoName(NXConvert::s2ws(m_passName) + L" PSO");
+	m_pPSO->SetName(psoName.c_str());
 }
 
 void NXRendererPass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
