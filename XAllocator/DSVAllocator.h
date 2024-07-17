@@ -20,6 +20,8 @@ public:
 
 	void CreateNewPage(DSVAllocatorBase::Page& newPage) override;
 
+	void Clear() override;
+
 private:
 	const UINT m_descriptorByteSize;
 	ID3D12Device* m_pDevice;

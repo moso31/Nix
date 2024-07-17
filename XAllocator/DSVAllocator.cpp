@@ -97,3 +97,17 @@ void DSVAllocator::CreateNewPage(DSVAllocatorBase::Page& newPage)
 
 	HRESULT hr = m_pDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&newPage.data));
 }
+
+void DSVAllocator::Clear()
+{
+	for (UINT i = 0; i < (UINT)m_pages.size(); ++i)
+	{
+		ClearPage(i);
+
+		auto& page = m_pages[i];
+		if (page.data)
+			page.data->Release();
+	}
+
+	m_pages.clear();
+}

@@ -14,7 +14,7 @@ enum DescriptorType
 
 struct DescriptorPage
 {
-	ID3D12DescriptorHeap* data = nullptr;
+	ID3D12DescriptorHeap* descHeap = nullptr;
 	DescriptorType type;
 };
 
@@ -34,6 +34,8 @@ public:
 	void Remove(UINT pageIdx, UINT start, UINT size);
 
 	void CreateNewPage(DescriptorAllocatorBase::Page& newPage) override;
+
+	void Clear() override;
 
 private:
 	const UINT m_descriptorByteSize;

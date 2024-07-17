@@ -44,3 +44,17 @@ void PlacedAllocator::CreateNewPage(PlacedAllocatorBase::Page& newPage)
 	std::wstring debugName = L"PlacedAllocatorPool_" + std::to_wstring(m_pages.size() - 1);
 	newPage.data->SetName(debugName.c_str());
 }
+
+void PlacedAllocator::Clear()
+{
+	for (UINT i = 0; i < (UINT)m_pages.size(); ++i)
+	{
+		ClearPage(i);
+
+		auto& page = m_pages[i];
+		if (page.data)
+			page.data->Release();
+	}
+
+	m_pages.clear();
+}

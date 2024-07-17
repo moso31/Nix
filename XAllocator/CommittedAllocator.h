@@ -48,7 +48,11 @@ public:
 	// 设置资源状态
 	void SetResourceState(ID3D12GraphicsCommandList* ID3D12GraphicsCommandList, UINT pageIdx, const D3D12_RESOURCE_STATES& state);
 
+	// 新分配一个Page
 	void CreateNewPage(CommittedAllocatorBase::Page& newPage) override;
+
+	// 释放资源池中的所有资源
+	void Clear() override;
 
 private:
 	ID3D12Device* m_pDevice;

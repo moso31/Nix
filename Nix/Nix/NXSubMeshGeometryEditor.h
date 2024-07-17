@@ -124,6 +124,8 @@ public:
 
 	const NXMeshViews& GetMeshViews(const std::string& name);
 
+	void Release();
+
 private:
 	void InitCommonMeshes();
 
@@ -138,6 +140,8 @@ private:
 	ComPtr<ID3D12CommandQueue> m_pCommandQueue;
 	ComPtr<ID3D12CommandAllocator> m_pCommandAllocator; 
 	ComPtr<ID3D12GraphicsCommandList> m_pCommandList;
+	ComPtr<ID3D12Fence>	m_pFence;
+	UINT64 m_fenceValue;
 
 	// 临时资源存放列表
 	// 用于存放临时的上传堆资源，等待拷贝到默认堆

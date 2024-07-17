@@ -15,6 +15,8 @@ public:
 
 	void CreateNewPage(PlacedAllocatorBase::Page& newPage) override;
 
+	void Clear() override;
+
 private:
 	ID3D12Device* m_pDevice;
 

@@ -18,6 +18,12 @@ void NXAllocatorManager::Init()
 
 void NXAllocatorManager::Release()
 {
+	m_pCBufferAllocator->Clear();
+	m_pTextureAllocator->Clear();
+	m_pDescriptorAllocator->Clear();
+	m_pRTVAllocator->Clear();
+	m_pDSVAllocator->Clear();
+
 	delete m_pCBufferAllocator;
 	delete m_pTextureAllocator;
 	delete m_pDescriptorAllocator;

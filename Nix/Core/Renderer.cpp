@@ -322,6 +322,9 @@ void Renderer::Release()
 
 	SafeRelease(m_pBRDFLut);
 	SafeRelease(m_scene);
+
+	NXAllocatorManager::GetInstance()->Release();
+	NXSubMeshGeometryEditor::GetInstance()->Release();
 }
 
 void Renderer::ClearAllPSResources()

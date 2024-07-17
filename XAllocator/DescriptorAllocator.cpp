@@ -30,7 +30,7 @@ bool DescriptorAllocator::Alloc(DescriptorType type, UINT size, UINT& oPageIdx, 
 	if (DescriptorAllocatorBase::Alloc(size, oPageIdx, oFirstIdx, predicate, onCreate))
 	{
 		auto& pDescriptor = m_pages[oPageIdx].data;
-		oHandles = pDescriptor.data->GetCPUDescriptorHandleForHeapStart();
+		oHandles = pDescriptor.descHeap->GetCPUDescriptorHandleForHeapStart();
 		oHandles.ptr += oFirstIdx * m_descriptorByteSize;
 		return true;
 	}
@@ -109,8 +109,22 @@ void DescriptorAllocator::CreateNewPage(DescriptorAllocatorBase::Page& newPage)
 	desc.NumDescriptors = m_eachPageDataNum;
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV; // 此 allocator 只支持 CBVSRVUAV 这一种类型.
 
-	HRESULT hr = m_pDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&newPage.data.data));
+	HRESULT hr = m_pDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&newPage.data.descHeap));
 
 	std::wstring debugName = L"DescriptorAllocatorPool_" + std::to_wstring(m_pages.size() - 1);
-	newPage.data.data->SetName(debugName.c_str());
+	newPage.data.descHeap->SetName(debugName.c_str());
+}
+
+void DescriptorAllocator::Clear()
+{
+	for (UINT i = 0; i < (UINT)m_pages.size(); ++i)
+	{
+		ClearPage(i);
+
+		auto& page = m_pages[i];
+		if (page.data.descHeap)
+			page.data.descHeap->Release();
+	}
+
+	m_pages.clear();
 }

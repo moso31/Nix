@@ -108,3 +108,17 @@ void CommittedAllocator::CreateNewPage(CommittedAllocatorBase::Page& newPage)
 	std::wstring debugName = L"CBuffer Resources Pool_" + strType + L"_" + std::to_wstring(m_pages.size() - 1);
 	newPage.data.pResource->SetName(debugName.c_str());
 }
+
+void CommittedAllocator::Clear()
+{
+	for (UINT i = 0; i < (UINT)m_pages.size(); ++i)
+	{
+		ClearPage(i);
+
+		auto& page = m_pages[i];
+		if (page.data.pResource)
+			page.data.pResource->Release();
+	}
+
+	m_pages.clear();
+}

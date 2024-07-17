@@ -19,6 +19,7 @@ public:
 	static ID3D12CommandQueue* GetCmdQueue() { return s_cmdQueue.Get(); }
 	static ID3D12GraphicsCommandList* CurrentCmdList() { return s_cmdList.Current().Get(); }
 	static ID3D12CommandAllocator* CurrentCmdAllocator() { return s_cmdAllocator.Current().Get(); }
+	static void Release();
 
 	static ComPtr<ID3D12Device8>							s_device;
 	static ComPtr<ID3D12CommandQueue>						s_cmdQueue;

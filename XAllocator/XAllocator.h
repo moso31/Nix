@@ -87,8 +87,6 @@ protected:
 		return true;
 	}
 
-	virtual void CreateNewPage(Page& newPage) = 0;
-
 	// 移除 pageIdx 页面的，从 start 开始长度为 size 的内存块
 	void Remove(UINT pageIdx, UINT start, UINT size)
 	{
@@ -146,6 +144,14 @@ protected:
 		freeIntervals.insert(adjust);
 		for (auto& space : removing) freeIntervals.erase(space);
 	}
+
+	void ClearPage(UINT pageIdx)
+	{
+		Remove(pageIdx, 0, m_eachPageDataNum);
+	}
+
+	virtual void CreateNewPage(Page& newPage) = 0;
+	virtual void Clear() = 0;
 
 	//void Print()
 	//{

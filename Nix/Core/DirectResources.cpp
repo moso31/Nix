@@ -132,4 +132,16 @@ void DirectResources::FrameEnd()
 
 void DirectResources::Release()
 {
+	m_currFenceValue++;
+	NXGlobalDX::GetCmdQueue()->Signal(m_pFence.Get(), m_currFenceValue);
+	while (m_currFenceValue - m_pFence->GetCompletedValue() > 0)
+	{
+		HANDLE fenceEvent = CreateEvent(nullptr, false, false, nullptr);
+		m_pFence->SetEventOnCompletion(m_currFenceValue, fenceEvent);
+
+		WaitForSingleObject(fenceEvent, INFINITE);
+		CloseHandle(fenceEvent);
+	}
+
+	NXGlobalDX::Release();
 }

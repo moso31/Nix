@@ -19,8 +19,17 @@ void NXGlobalDX::Init(IDXGIAdapter4* pAdapter)
 	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 	{
 		s_cmdAllocator[i] = NX12Util::CreateCommandAllocator(s_device.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT);
+		std::wstring strDbgName = L"Global Static Command Allocator " + std::to_wstring(i);
+		s_cmdAllocator[i]->SetName(strDbgName.c_str());
+
 		s_cmdList[i] = NX12Util::CreateGraphicsCommandList(s_device.Get(), s_cmdAllocator.Get(i).Get(), D3D12_COMMAND_LIST_TYPE_DIRECT);
+		strDbgName = L"Global Static Command List " + std::to_wstring(i);
+		s_cmdList[i]->SetName(strDbgName.c_str());
 	}
+}
+
+void NXGlobalDX::Release()
+{
 }
 
 App*		NXGlobalApp::App;
