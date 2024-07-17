@@ -24,14 +24,14 @@ public:
 	{
 		if (--m_refCount == 0)
 		{
-			DEBUG_ACTION(if (!m_refCountDebug.empty()) printf("%s removing.\n", m_refCountDebug.c_str()));
+			DEBUG_ACTION(if (!m_refCountDebug.empty()) printf_s("%s removing.\n", m_refCountDebug.c_str()));
 			delete this;
 		}
 	}
 
 	inline void SetRefCountDebugName(const std::string& debugName) 
 	{
-		DEBUG_ACTION(m_refCountDebug = m_refCountDebug);
+		DEBUG_ACTION(m_refCountDebug = debugName);
 	}
 
 private:

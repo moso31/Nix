@@ -113,6 +113,7 @@ void NXTexture::CreateRenderTextureInternal(D3D12_RESOURCE_FLAGS flags)
 
 	std::wstring wName(m_name.begin(), m_name.end());
 	m_pTexture->SetName(wName.c_str());
+	SetRefCountDebugName(m_name);
 
 	if (FAILED(hr))
 	{
@@ -145,6 +146,7 @@ void NXTexture::CreateInternal(const std::unique_ptr<DirectX::ScratchImage>& pIm
 	if (NXTextureAllocator->Alloc(desc, m_pTexture.GetAddressOf()))
 	{
 		m_pTexture->SetName(NXConvert::s2ws(m_name).c_str());
+		SetRefCountDebugName(m_name);
 		m_resourceState = D3D12_RESOURCE_STATE_COPY_DEST; // 和 NXTextureAllocator->Alloc 内部的逻辑保持同步
 
 		m_pTextureUpload = NX12Util::CreateBuffer(NXGlobalDX::GetDevice(), "textureUploadHeap temp", (UINT)totalBytes, D3D12_HEAP_TYPE_UPLOAD);

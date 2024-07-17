@@ -307,7 +307,7 @@ void Renderer::Release()
 	SafeRelease(m_pGUI);
 
 	//SafeRelease(m_pSSAO);
-	SafeDelete(m_pDepthPrepass);
+	//SafeDelete(m_pDepthPrepass);
 
 	SafeRelease(m_pDepthRenderer);
 	SafeRelease(m_pGBufferRenderer);
