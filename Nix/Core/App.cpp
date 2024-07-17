@@ -69,7 +69,7 @@ void App::Reload()
 	m_pRenderer->ResourcesReloading();
 }
 
-void App::Update()
+void App::Update()	
 {
 	m_pRenderer->Update();
 }

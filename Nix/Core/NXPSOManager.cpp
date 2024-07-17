@@ -4,14 +4,10 @@
 
 void NXPSOManager::Init(ID3D12Device* pDevice, ID3D12CommandQueue* pCmdQueue)
 {
-	m_pCmdQueue = (ID3D12CommandQueue*)pCmdQueue;
+	m_pCmdQueue = pCmdQueue;
 	m_nFenceValue = 0;
 
-	HRESULT hr = pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_pFence));
-	if (FAILED(hr))
-	{
-		MessageBox(NULL, L"Create fence FAILED in NXPSOManager.", L"Error", MB_OK);
-	}
+	m_pFence = NX12Util::CreateFence(pDevice, L"Create fence FAILED in NXPSOManager.");
 }
 
 ID3D12PipelineState* NXPSOManager::Create(const D3D12_GRAPHICS_PIPELINE_STATE_DESC& psoDesc, const std::string& name)

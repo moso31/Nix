@@ -36,11 +36,19 @@ void Renderer::Init()
 
 	NXTexture::Init();
 
-	NX12Util::CreateCommands(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.GetAddressOf(), m_pCommandAllocator.GetAddressOf(), m_pCommandList.GetAddressOf());
-	m_pCommandQueue->SetName(L"Main Renderer Command Queue");
+	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
+	{
+		m_pCommandAllocator.Get(i) = NX12Util::CreateCommandAllocator(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT);
+		std::wstring strCmdAllocatorName(L"Main Renderer Command Allocator" + std::to_wstring(i));
+		m_pCommandAllocator.Get(i)->SetName(strCmdAllocatorName.c_str());
+
+		m_pCommandList.Get(i) = NX12Util::CreateGraphicsCommandList(NXGlobalDX::GetDevice(), m_pCommandAllocator.Get(i).Get(), D3D12_COMMAND_LIST_TYPE_DIRECT);
+		std::wstring strCmdListName(L"Main Renderer Command List" + std::to_wstring(i));
+		m_pCommandList.Get(i)->SetName(strCmdListName.c_str());
+	}
 
 	// PSOManager
-	NXPSOManager::GetInstance()->Init(NXGlobalDX::GetDevice(), m_pCommandQueue.Get());
+	NXPSOManager::GetInstance()->Init(NXGlobalDX::GetDevice(), NXGlobalDX::GetCmdQueue());
 
 	// 渲染器
 	InitRenderer();
@@ -209,47 +217,51 @@ void Renderer::UpdateTime()
 
 void Renderer::RenderFrame()
 {
-	m_pCommandList->Reset(m_pCommandAllocator.Get(), nullptr);
+	auto& pCommandAllocator = m_pCommandAllocator.Current();
+	auto& pCommandList = m_pCommandList.Current();
 
-	NX12Util::BeginEvent(m_pCommandList.Get(), "Render Scene");
+	pCommandAllocator->Reset();
+	pCommandList->Reset(pCommandAllocator.Get(), nullptr);
+
+	NX12Util::BeginEvent(pCommandList.Get(), "Render Scene");
 
 	// 设置视口
 	auto vpCamera = NX12Util::ViewPort(m_viewRTSize.x, m_viewRTSize.y);
-	m_pCommandList->RSSetViewports(1, &vpCamera);
-	m_pCommandList->RSSetScissorRects(1, &NX12Util::ScissorRect(vpCamera));
+	pCommandList->RSSetViewports(1, &vpCamera);
+	pCommandList->RSSetScissorRects(1, &NX12Util::ScissorRect(vpCamera));
 
 	ID3D12DescriptorHeap* ppHeaps[] = { NXGPUHandleHeap->GetHeap() };
-	m_pCommandList->SetDescriptorHeaps(1, ppHeaps);
+	pCommandList->SetDescriptorHeaps(1, ppHeaps);
 
 	//m_pDepthPrepass->Render();
 
 	// GBuffer
-	m_pGBufferRenderer->Render(m_pCommandList.Get());
+	m_pGBufferRenderer->Render(pCommandList.Get());
 
 	// Depth Copy 2023.10.26
 	// Burley SSS 既需要将 Depth 的模板缓存绑定到output，又需要深度信息作为input，这就会导致资源绑定冲突。
 	// 所以这里 Copy 一份记录到 GBuffer 为止的 Depth 到 DepthR32。
 	// 遇到需要避免资源绑定冲突的情况，就使用复制的这张作为input。
 	// 【未来如有需要可升级成 Hi-Z】
-	m_pDepthRenderer->Render(m_pCommandList.Get());
+	m_pDepthRenderer->Render(pCommandList.Get());
 
 	// Shadow Map
 	auto vpShadow = NX12Util::ViewPort(2048, 2048);
-	m_pCommandList->RSSetViewports(1, &vpShadow);
-	m_pCommandList->RSSetScissorRects(1, &NX12Util::ScissorRect(vpShadow));
-	m_pShadowMapRenderer->Render(m_pCommandList.Get());
-	m_pCommandList->RSSetViewports(1, &vpCamera);
-	m_pCommandList->RSSetScissorRects(1, &NX12Util::ScissorRect(vpCamera));
-	m_pShadowTestRenderer->Render(m_pCommandList.Get());
+	pCommandList->RSSetViewports(1, &vpShadow);
+	pCommandList->RSSetScissorRects(1, &NX12Util::ScissorRect(vpShadow));
+	m_pShadowMapRenderer->Render(pCommandList.Get());
+	pCommandList->RSSetViewports(1, &vpCamera);
+	pCommandList->RSSetScissorRects(1, &NX12Util::ScissorRect(vpCamera));
+	m_pShadowTestRenderer->Render(pCommandList.Get());
 
 	// Deferred opaque shading
-	m_pDeferredRenderer->Render(m_pCommandList.Get());
+	m_pDeferredRenderer->Render(pCommandList.Get());
 
 	// Burley SSS (2015)
-	m_pSubSurfaceRenderer->Render(m_pCommandList.Get());
+	m_pSubSurfaceRenderer->Render(pCommandList.Get());
 
 	// CubeMap
-	m_pSkyRenderer->Render(m_pCommandList.Get());
+	m_pSkyRenderer->Render(pCommandList.Get());
 
 	// Forward translucent shading
 	// 2023.8.20 前向渲染暂时停用，等 3S 搞完的
@@ -260,24 +272,24 @@ void Renderer::RenderFrame()
 	//m_pSSAO->Render(pSRVNormal, pSRVPosition, pSRVDepthPrepass);
 
 	// post processing
-	m_pColorMappingRenderer->Render(m_pCommandList.Get());
+	m_pColorMappingRenderer->Render(pCommandList.Get());
 
 	// 绘制编辑器对象
-	m_pEditorObjectRenderer->Render(m_pCommandList.Get());
+	m_pEditorObjectRenderer->Render(pCommandList.Get());
 
 	// 绘制调试信息层（如果有的话）
-	m_pDebugLayerRenderer->Render(m_pCommandList.Get());
+	m_pDebugLayerRenderer->Render(pCommandList.Get());
 
 	// 判断 GUIView 使用哪张纹理RT 作为 Input
 	bool bEnableDebugLayer = m_pDebugLayerRenderer->GetEnableDebugLayer();
 	m_pFinalRT = bEnableDebugLayer ? NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DebugLayer) :
 		NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_PostProcessing);
 
-	NX12Util::EndEvent(m_pCommandList.Get());
+	NX12Util::EndEvent(pCommandList.Get());
 
-	m_pCommandList->Close();
-	ID3D12CommandList* pCmdLists[] = { m_pCommandList.Get() };
-	m_pCommandQueue->ExecuteCommandLists(1, pCmdLists);
+	pCommandList->Close();
+	ID3D12CommandList* pCmdLists[] = { pCommandList.Get() };
+	NXGlobalDX::GetCmdQueue()->ExecuteCommandLists(1, pCmdLists);
 
 	// 更新PSOManager状态
 	NXPSOManager::GetInstance()->FrameCleanup();

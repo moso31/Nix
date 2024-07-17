@@ -35,12 +35,24 @@ ID3D12CommandAllocator* NX12Util::CreateCommandAllocator(ID3D12Device* pDevice, 
 	return pCmdAllocator;
 }
 
-ID3D12GraphicsCommandList* NX12Util::CreateGraphicsCommandList(ID3D12Device* pDevice, ID3D12CommandAllocator* oCmdAllocator, D3D12_COMMAND_LIST_TYPE type, UINT nodeMask, ID3D12PipelineState* InitState, bool closeCmdListAtFirst)
+ID3D12GraphicsCommandList* NX12Util::CreateGraphicsCommandList(ID3D12Device* pDevice, ID3D12CommandAllocator* pCmdAllocator, D3D12_COMMAND_LIST_TYPE type, UINT nodeMask, ID3D12PipelineState* InitState, bool closeCmdListAtFirst)
 {
 	ID3D12GraphicsCommandList* pCmdList;
-	HRESULT hr = pDevice->CreateCommandList(nodeMask, type, oCmdAllocator, InitState, IID_PPV_ARGS(&pCmdList));
+	HRESULT hr = pDevice->CreateCommandList(nodeMask, type, pCmdAllocator, InitState, IID_PPV_ARGS(&pCmdList));
 	if (closeCmdListAtFirst) pCmdList->Close();
 	return pCmdList;
+}
+
+ID3D12Fence* NX12Util::CreateFence(ID3D12Device* pDevice, const std::wstring& errInfo)
+{
+	ID3D12Fence* pFence;
+	HRESULT hr = pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&pFence));
+	if (FAILED(hr))
+	{
+		MessageBox(NULL, errInfo.c_str(), L"Error", MB_OK);
+	}
+
+	return pFence;
 }
 
 ID3D12Resource* NX12Util::CreateBuffer(ID3D12Device* pDevice, const std::string& name, UINT sizeOfByte, D3D12_HEAP_TYPE heapType)

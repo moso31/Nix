@@ -21,7 +21,6 @@ public:
 	void	FrameBegin();
 	void	OnResize(UINT width, UINT height);
 	void	FrameEnd();
-	void	FlushCommands();
 
 	void	Release();
 
@@ -35,7 +34,7 @@ private:
 private:
 	ComPtr<IDXGIFactory7>		m_pDXGIFactory;
 	ComPtr<IDXGISwapChain4>		m_pSwapChain;
-	ComPtr<ID3D12Fence1>		m_pFence;
+	ComPtr<ID3D12Fence>		m_pFence;
 
 	MultiFrame<NXSwapChainBuffer>	m_pSwapChainBuffer;
 	DXGI_FORMAT m_pSwapChainBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;

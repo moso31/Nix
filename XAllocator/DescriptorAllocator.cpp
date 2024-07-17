@@ -110,4 +110,7 @@ void DescriptorAllocator::CreateNewPage(DescriptorAllocatorBase::Page& newPage)
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV; // 此 allocator 只支持 CBVSRVUAV 这一种类型.
 
 	HRESULT hr = m_pDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&newPage.data.data));
+
+	std::wstring debugName = L"DescriptorAllocatorPool_" + std::to_wstring(m_pages.size() - 1);
+	newPage.data.data->SetName(debugName.c_str());
 }

@@ -21,7 +21,7 @@ void DirectResources::InitDevice()
 
 	NXGlobalDX::Init(pAdapter4.Get());
 
-	hr = NXGlobalDX::GetDevice()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_pFence));
+	m_pFence = NX12Util::CreateFence(NXGlobalDX::GetDevice(), L"Create fence FAILED in DirectResources::InitDevice().");
 
 	RECT rc;
 	GetClientRect(NXGlobalWindows::hWnd, &rc);
@@ -130,18 +130,6 @@ void DirectResources::FrameEnd()
 	}
 }
 
-void DirectResources::FlushCommands()
-{
-	// 此方法暂时没啥用
-
-	HANDLE fenceEvent = CreateEvent(nullptr, false, false, nullptr);
-	m_pFence->SetEventOnCompletion(m_currFenceValue, fenceEvent);
-	WaitForSingleObject(fenceEvent, INFINITE);
-	CloseHandle(fenceEvent);
-}
-
 void DirectResources::Release()
 {
-	// 2023.12.11 好像没啥用，先注掉，等跑通了再看
-	//g_pCommandList->ClearState(nullptr);
 }

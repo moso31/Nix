@@ -27,7 +27,7 @@ NXCubeMap::NXCubeMap(NXScene* pScene) :
 
 bool NXCubeMap::Init(const std::filesystem::path& filePath)
 {
-	NXGlobalDX::GetDevice()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_pFence));
+	m_pFence = NX12Util::CreateFence(NXGlobalDX::GetDevice(), L"Create fence FAILED in NXCubeMap.");
 	m_pCommandQueue = NX12Util::CreateCommandQueue(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, true);
 	m_pCommandQueue->SetName(L"CubeMap Building Command Queue");
 

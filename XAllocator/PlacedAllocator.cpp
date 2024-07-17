@@ -20,6 +20,7 @@ bool PlacedAllocator::Alloc(const D3D12_RESOURCE_DESC& resourceDesc, ID3D12Resou
 		UINT heapByteOffset = m_blockByteSize * oFirstIdx;
 
 		HRESULT hr = m_pDevice->CreatePlacedResource(pHeap, heapByteOffset, &resourceDesc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(pOutResource));
+		(*pOutResource)->SetName(L"PlacedAllocatorResource");
 		return SUCCEEDED(hr);
 	}
 
@@ -39,4 +40,7 @@ void PlacedAllocator::CreateNewPage(PlacedAllocatorBase::Page& newPage)
 	desc.SizeInBytes = m_blockByteSize * m_eachPageDataNum;
 
 	m_pDevice->CreateHeap(&desc, IID_PPV_ARGS(&newPage.data));
+
+	std::wstring debugName = L"PlacedAllocatorPool_" + std::to_wstring(m_pages.size() - 1);
+	newPage.data->SetName(debugName.c_str());
 }
