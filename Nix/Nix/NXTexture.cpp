@@ -179,6 +179,10 @@ void NXTexture::CreateInternal(const std::unique_ptr<DirectX::ScratchImage>& pIm
 
 		ID3D12CommandList* pCmdLists[] = { s_pCmdList.Get() };
 		NXGlobalDX::GetCmdQueue()->ExecuteCommandLists(1, pCmdLists);
+
+		delete[] layouts;
+		delete[] numRow;
+		delete[] numRowSizeInBytes;
 	}
 }
 

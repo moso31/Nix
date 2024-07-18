@@ -701,6 +701,11 @@ void NXSubMeshGeometryEditor::Release()
 		WaitForSingleObject(eventHandle, INFINITE);
 		CloseHandle(eventHandle);
 	}
+
+	m_vbAllocator->Clear();
+	m_ibAllocator->Clear();
+	delete m_vbAllocator;
+	delete m_ibAllocator;
 }
 
 void NXSubMeshGeometryEditor::InitCommonMeshes()

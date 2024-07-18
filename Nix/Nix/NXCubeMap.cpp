@@ -104,6 +104,9 @@ void NXCubeMap::Update()
 void NXCubeMap::Release()
 {
 	NXTransform::Release();
+
+	m_cbAllocator->Clear();
+	delete m_cbAllocator;
 }
 
 Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)

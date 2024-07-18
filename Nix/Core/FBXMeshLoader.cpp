@@ -39,6 +39,10 @@ void FBXMeshLoader::LoadFBXFile(std::string filepath, NXPrefab* pOutPrefab, bool
 			LoadRenderableObjects(pChildNode, pOutPrefab, bAutoCalcTangents);
 		}
 	}
+
+	lNode->Destroy(true);
+	lScene->Destroy();
+	lSdkManager->Destroy();
 }
 
 void FBXMeshLoader::LoadRenderableObjects(FbxNode* pNode, NXRenderableObject* pParentMesh, bool bAutoCalcTangents)
