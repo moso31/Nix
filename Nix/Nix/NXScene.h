@@ -21,7 +21,7 @@ class NXScene : public NXObject
 {
 public:
 	NXScene();
-	~NXScene();
+	virtual ~NXScene();
 
 	void OnMouseDown(NXEventArgMouse eArg);
 	void OnMouseMove(NXEventArgMouse eArg);

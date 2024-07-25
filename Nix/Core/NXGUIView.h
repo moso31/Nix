@@ -18,7 +18,7 @@ class NXGUIView
 
 public:
 	NXGUIView() : m_viewMode(ViewMode::Auto) {}
-	~NXGUIView() {}
+	virtual ~NXGUIView() {}
 
 	void SetViewRT(Ntr<NXTexture2D> pTexture2D);
 	Ntr<NXTexture2D> GetViewRT() { return m_pViewRT; }

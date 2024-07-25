@@ -6,7 +6,7 @@ class NXPrimitive : public NXRenderableObject
 {
 public:
 	NXPrimitive();
-	~NXPrimitive() {}
+	virtual ~NXPrimitive() {}
 
 	virtual NXPrimitive* IsPrimitive() override { return this; }
 

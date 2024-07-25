@@ -19,6 +19,9 @@ public:
 class NXRefCountable : public IRefCountable
 {
 public:
+	NXRefCountable() {}
+	virtual ~NXRefCountable() {}
+
 	void IncRef() { ++m_refCount; }
 	void DecRef()
 	{

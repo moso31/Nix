@@ -5,7 +5,7 @@ class NXGUISSAO
 {
 public:
 	NXGUISSAO(NXSimpleSSAO* pSSAO);
-	~NXGUISSAO() {}
+	virtual ~NXGUISSAO() {}
 
 	void Render();
 

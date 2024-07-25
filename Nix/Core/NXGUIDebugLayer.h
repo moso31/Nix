@@ -7,7 +7,7 @@ class NXGUIDebugLayer
 {
 public:
 	NXGUIDebugLayer(NXDebugLayerRenderer* pDebugLayer) : m_pDebugLayer(pDebugLayer) {}
-	~NXGUIDebugLayer() {}
+	virtual ~NXGUIDebugLayer() {}
 
 	void Render();
 

@@ -10,7 +10,7 @@ class NXGUIMaterial
 {
 public:
 	NXGUIMaterial(NXScene* pScene);
-	~NXGUIMaterial() {}
+	virtual ~NXGUIMaterial() {}
 
 	void SetCurrentScene(NXScene* pScene) { m_pCurrentScene = pScene; }
 	void Render();

@@ -34,7 +34,7 @@ struct HBVHTreeNode
 		aabb.Extents = Vector3(0.0f);
 	}
 
-	~HBVHTreeNode()	{}
+	virtual ~HBVHTreeNode()	{}
 
 	HBVHTreeNode* child[2];
 	AABB aabb;
@@ -64,7 +64,7 @@ class HBVHTree
 {
 public:
 	HBVHTree(NXScene* scene);
-	~HBVHTree() {}
+	virtual ~HBVHTree() {}
 
 	// 根据场景信息，生成构建BVH树所需要的信息。
 	void BuildTreesWithScene(HBVHSplitMode mode);

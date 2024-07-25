@@ -8,6 +8,9 @@ bool PlacedAllocator::Alloc(const D3D12_RESOURCE_DESC& resourceDesc, ID3D12Resou
 	UINT64* numRowSizeInBytes = new UINT64[layoutSize];
 	size_t totalBytes;
 	m_pDevice->GetCopyableFootprints(&resourceDesc, 0, layoutSize, 0, layouts, numRow, numRowSizeInBytes, &totalBytes);
+	delete[] layouts;
+	delete[] numRow;
+	delete[] numRowSizeInBytes;
 
 	size_t blockByteMask = m_blockByteSize - 1;
 	UINT dataByteSize = (UINT)((totalBytes + blockByteMask) & ~blockByteMask);

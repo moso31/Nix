@@ -16,7 +16,7 @@ class NXResourceReloader : public NXInstance<NXResourceReloader>
 {
 public:
 	NXResourceReloader() {}
-	~NXResourceReloader() {}
+	virtual ~NXResourceReloader() {}
 
 	void Push(NXResourceReloadCommand* pCommand);
 

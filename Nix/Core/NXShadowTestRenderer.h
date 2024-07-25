@@ -6,5 +6,5 @@ class NXShadowTestRenderer : public NXRendererPass
 {
 public:
 	NXShadowTestRenderer() = default;
-	~NXShadowTestRenderer() {};
+	virtual ~NXShadowTestRenderer() {};
 };

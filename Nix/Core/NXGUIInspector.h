@@ -19,7 +19,7 @@ class NXGUIInspector
 {
 public:
 	NXGUIInspector();
-	~NXGUIInspector() {}
+	virtual ~NXGUIInspector() {}
 
 	void InitGUI(NXScene* pScene, NXGUIMaterialShaderEditor* pMaterialShaderEditor);
 

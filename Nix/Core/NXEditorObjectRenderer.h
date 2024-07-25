@@ -8,7 +8,7 @@ class NXEditorObjectRenderer : public NXRendererPass
 {
 public:
 	NXEditorObjectRenderer(NXScene* pScene);
-	~NXEditorObjectRenderer();
+	virtual ~NXEditorObjectRenderer();
 
 	void Init();
 	void Render(ID3D12GraphicsCommandList* pCmdList);

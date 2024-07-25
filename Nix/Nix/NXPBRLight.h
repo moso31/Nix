@@ -55,7 +55,7 @@ class NXPBRPointLight : public NXPBRLight
 {
 public:
 	NXPBRPointLight(const Vector3& position, const Vector3& color, const float intensity, const float influenceRadius);
-	~NXPBRPointLight() {}
+	virtual ~NXPBRPointLight() {}
 
 	// DirectX
 	ConstantBufferPointLight GetConstantBuffer();

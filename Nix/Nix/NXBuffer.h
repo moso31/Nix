@@ -29,7 +29,7 @@ protected:
 
 public:
 	NXBufferBase() : m_isCreated(false) {}
-	~NXBufferBase() {}
+	virtual ~NXBufferBase() {}
 
 	// 创建一个FrameResource类型的NXBuffer。
 	// FrameResource会存储交换链页数份(MultiFrameSets_swapChainCount)的数据，每一帧都会更新其中一份。
@@ -177,7 +177,7 @@ class NXBuffer : public NXBufferBase<T>
 {
 public:
 	NXBuffer() {}
-	~NXBuffer() {}
+	virtual ~NXBuffer() {}
 
 	// 类似 dx11 updatesubresource.
 	// 如果是FrameResource，更新当前帧的对应index的buffer
@@ -196,7 +196,7 @@ class NXBuffer<std::vector<T>> : public NXBufferBase<std::vector<T>>
 {
 public:
 	NXBuffer<std::vector<T>>() {}
-	~NXBuffer<std::vector<T>>() {}
+	virtual ~NXBuffer<std::vector<T>>() {}
 
 	void UpdateBuffer(UINT index = 0)
 	{

@@ -7,7 +7,7 @@ class NXRenderableObject : public NXTransform
 {
 public:
 	NXRenderableObject();
-	~NXRenderableObject() {}
+	virtual ~NXRenderableObject() {}
 
 	virtual NXRenderableObject* IsRenderableObject() override { return this; }
 

@@ -28,7 +28,7 @@ class NXSerializer
 {
 public:
 	NXSerializer() : m_writer(m_stringBuffer) {}
-	~NXSerializer() = default;
+	virtual ~NXSerializer() {};
 
 	void StartObject();
 	void EndObject();
@@ -63,7 +63,7 @@ class NXDeserializer
 {
 public:
 	NXDeserializer() {};
-	~NXDeserializer() {};
+	virtual ~NXDeserializer() {};
 
 	std::string String(const std::string& key, const std::string& defaultValue = "");
 	bool Bool(const std::string& key, const bool defaultValue = false);

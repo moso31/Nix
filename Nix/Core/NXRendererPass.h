@@ -43,7 +43,7 @@ class NXRendererPass
 {
 public:
 	NXRendererPass();
-	~NXRendererPass() {}
+	virtual ~NXRendererPass() {}
 
 	void SetPassName(const std::string& passName) { m_passName = passName; }
 

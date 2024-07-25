@@ -6,7 +6,7 @@ class NSTest : public NXScript
 {
 public:
 	NSTest();
-	~NSTest();
+	virtual ~NSTest();
 
 	void Update();
 

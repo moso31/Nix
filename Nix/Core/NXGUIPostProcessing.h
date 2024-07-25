@@ -5,7 +5,7 @@ class NXGUIPostProcessing
 {
 public:
 	NXGUIPostProcessing(NXColorMappingRenderer* pPostProcessingRenderer = nullptr);
-	~NXGUIPostProcessing() {}
+	virtual ~NXGUIPostProcessing() {}
 
 	void Render();
 

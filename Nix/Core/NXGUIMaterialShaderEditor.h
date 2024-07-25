@@ -31,7 +31,7 @@ private:
 
 public:
 	NXGUIMaterialShaderEditor();
-	~NXGUIMaterialShaderEditor() {};
+	virtual ~NXGUIMaterialShaderEditor() {};
 
 	void SetMaterial(NXCustomMaterial* pMaterial) { m_pMaterial = pMaterial; }
 

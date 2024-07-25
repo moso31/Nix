@@ -7,7 +7,7 @@ class NXTimer
 {
 public:
 	NXTimer();
-	~NXTimer();
+	virtual ~NXTimer();
 
 	float GetGlobalTimeSeconds();
 	int64_t GetTimeDelta();

@@ -11,7 +11,7 @@ class NXDeferredRenderer : public NXRendererPass
 {
 public:
 	NXDeferredRenderer(NXScene* pScene, NXBRDFLut* pBRDFLut);
-	~NXDeferredRenderer();
+	virtual ~NXDeferredRenderer();
 
 	void Init();
 

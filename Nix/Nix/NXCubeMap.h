@@ -50,7 +50,7 @@ class NXCubeMap : public NXTransform
 {
 public:
 	NXCubeMap(NXScene* pScene);
-	~NXCubeMap() {}
+	virtual ~NXCubeMap() {}
 
 	// 1. 顶点初始化
 	// 2. 构建相机

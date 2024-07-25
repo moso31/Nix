@@ -5,7 +5,7 @@ class NXGUIWorkspace
 {
 public:
 	NXGUIWorkspace() : m_bOpen(true) {}
-	~NXGUIWorkspace() {}
+	virtual ~NXGUIWorkspace() {}
 
 	void Init();
 	void Render();

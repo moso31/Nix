@@ -11,7 +11,7 @@ class NXTransform : public NXObject, public NXScriptable
 public:
 	NXTransform();
 	NXTransform(const std::string& name);
-	~NXTransform() {}
+	virtual ~NXTransform() {}
 
 	virtual NXTransform* IsTransform() override { return this; }
 

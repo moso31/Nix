@@ -9,7 +9,7 @@ private:
 	explicit NXGBufferRenderer() = default;
 public:
 	NXGBufferRenderer(NXScene* pScene);
-	~NXGBufferRenderer();
+	virtual ~NXGBufferRenderer();
 
 	void Init();
 	void Render(ID3D12GraphicsCommandList* pCmdList);

@@ -5,7 +5,7 @@ class NXPrefab : public NXRenderableObject
 {
 public:
 	NXPrefab();
-	~NXPrefab() {}
+	virtual ~NXPrefab() {}
 
 	virtual NXPrefab* IsPrefab() override { return this; }
 

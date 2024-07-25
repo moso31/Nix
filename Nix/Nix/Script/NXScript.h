@@ -18,6 +18,7 @@ public:
 	void SetObject(NXScriptable* pObject);
 
 	virtual void Update() = 0;
+	virtual void Release();
 
 protected:
 	NXScriptable* m_pObject;

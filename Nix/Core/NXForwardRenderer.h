@@ -10,7 +10,7 @@ class NXForwardRenderer
 {
 public:
 	NXForwardRenderer(NXScene* pScene, NXBRDFLut* pBRDFLut);
-	~NXForwardRenderer();
+	virtual ~NXForwardRenderer();
 
 	void Init();
 	void Render();

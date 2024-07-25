@@ -7,7 +7,7 @@ class NXTextureResourceManager : public NXResourceManagerBase
 {
 public:
 	NXTextureResourceManager() {};
-	~NXTextureResourceManager() {};
+    virtual ~NXTextureResourceManager() {};
 
     void InitCommonRT(const Vector2& rtSize);
     void ResizeCommonRT(const Vector2& rtSize);

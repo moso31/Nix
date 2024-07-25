@@ -6,7 +6,7 @@ class NXLightResourceManager : public NXResourceManagerBase
 {
 public:
 	NXLightResourceManager() : m_pWorkingScene(nullptr) {}
-	~NXLightResourceManager() {}
+	virtual ~NXLightResourceManager() {}
 
 	void SetWorkingScene(NXScene* pScene);
 

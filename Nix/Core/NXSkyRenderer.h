@@ -6,7 +6,7 @@ class NXSkyRenderer : public NXRendererPass
 {
 public:
 	NXSkyRenderer(NXScene* pScene);
-	~NXSkyRenderer();
+	virtual ~NXSkyRenderer();
 
 	void Init();
 

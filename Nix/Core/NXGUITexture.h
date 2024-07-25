@@ -8,7 +8,7 @@ class NXGUITexture
 {
 public:
 	NXGUITexture();
-	~NXGUITexture() {}
+	virtual ~NXGUITexture() {}
 
 	void Render();
 	void Release();

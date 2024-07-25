@@ -7,7 +7,7 @@ class NXBRDFLut
 {
 public:
 	NXBRDFLut();
-	~NXBRDFLut() {}
+	virtual ~NXBRDFLut() {}
 
 	void Init();
 	void Release();

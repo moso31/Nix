@@ -8,7 +8,7 @@ class NSFirstPersonalCamera : public NXScript
 {
 public:
 	NSFirstPersonalCamera();
-	~NSFirstPersonalCamera();
+	virtual ~NSFirstPersonalCamera();
 
 	void Update();
 

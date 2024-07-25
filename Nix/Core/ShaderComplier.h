@@ -13,7 +13,7 @@ struct CD3D_SHADER_MACRO : public D3D_SHADER_MACRO
 		Name = name;
 		Definition = definition;
 	}
-	~CD3D_SHADER_MACRO() {}
+	virtual ~CD3D_SHADER_MACRO() {}
 	operator const D3D_SHADER_MACRO& () const { return *this; }
 };
 
@@ -21,7 +21,7 @@ class NXShaderComplier : public NXInstance<NXShaderComplier>
 {
 public:
 	NXShaderComplier();
-	~NXShaderComplier();
+	virtual ~NXShaderComplier();
 
 	HRESULT CompileVS(const std::filesystem::path& shaderFilePath, const std::string& mainFuncEntryPoint, ID3DBlob** pVSBlob, std::string& oErrorMessage = std::string(), bool clearDefineMacros = true);
 	HRESULT CompilePS(const std::filesystem::path& shaderFilePath, const std::string& mainFuncEntryPoint, ID3DBlob** pPSBlob, std::string& oErrorMessage = std::string(), bool clearDefineMacros = true);

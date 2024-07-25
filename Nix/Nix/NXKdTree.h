@@ -15,7 +15,7 @@ template <typename T>
 struct NXKdTreeNode
 {
 	NXKdTreeNode() : lc(nullptr), rc(nullptr) {}
-	~NXKdTreeNode() {}
+	virtual ~NXKdTreeNode() {}
 
 	void Release()
 	{
@@ -35,7 +35,7 @@ class NXKdTree
 {
 public:
 	NXKdTree() {}
-	~NXKdTree() {}
+	virtual ~NXKdTree() {}
 
 	// 创建初始即平衡的kd树。
 	void BuildBalanceTree(std::vector<T>& data)

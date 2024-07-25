@@ -19,7 +19,7 @@ class NXShaderVisibleDescriptorHeap
 {
 public:
 	NXShaderVisibleDescriptorHeap(ID3D12Device* pDevice, UINT stableIndex = 0);
-	~NXShaderVisibleDescriptorHeap() {}
+	virtual ~NXShaderVisibleDescriptorHeap() {}
 
 	// 将 non-shader-visible 的描述符拷贝到 shader-Visible Heap 的 Stable 区域
 	// 需要手动指定具体的索引。

@@ -1,6 +1,11 @@
 #include "NXScriptable.h"
 #include "NXScript.h"
 
+NXScriptable::~NXScriptable()
+{
+	Destroy();
+}
+
 void NXScriptable::AddScript(NXScript* script)
 {
 	script->SetObject(this);

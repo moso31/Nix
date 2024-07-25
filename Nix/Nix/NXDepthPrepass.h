@@ -7,7 +7,7 @@ class NXDepthPrepass
 {
 public:
 	NXDepthPrepass(NXScene* pScene) {}
-	~NXDepthPrepass() {}
+	virtual ~NXDepthPrepass() {}
 
 //	void Init();
 //	void OnResize(const Vector2& rtSize);

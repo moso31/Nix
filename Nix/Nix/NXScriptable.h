@@ -5,6 +5,9 @@ class NXScript;
 class NXScriptable
 {
 public:
+	NXScriptable() {}
+	virtual ~NXScriptable();
+
 	void AddScript(NXScript* script);
 	std::vector<NXScript*> GetScripts();
 

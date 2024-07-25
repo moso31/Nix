@@ -8,7 +8,7 @@ class NXCamera : public NXTransform
 {
 public:
 	NXCamera(const std::string& name);
-	~NXCamera() {}
+	virtual ~NXCamera() {}
 
 	void SetTranslation(const Vector3& value) override;
 	void SetRotation(const Vector3& value) override;

@@ -5,7 +5,7 @@ class NXSubSurfaceRenderer : public NXRendererPass
 {
 public:
 	NXSubSurfaceRenderer();
-	~NXSubSurfaceRenderer();
+	virtual ~NXSubSurfaceRenderer();
 
 	void Init();
 };

@@ -17,7 +17,7 @@
 struct FBXMeshVertexData
 {
 	FBXMeshVertexData() = default;
-	~FBXMeshVertexData() {}
+	virtual ~FBXMeshVertexData() {}
 
 	Vector3 Position;
 	std::vector<Vector4> VertexColors;

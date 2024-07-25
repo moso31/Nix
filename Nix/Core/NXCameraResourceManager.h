@@ -6,7 +6,7 @@ class NXCameraResourceManager : public NXResourceManagerBase
 {
 public:
 	NXCameraResourceManager() : m_pWorkingScene(nullptr) {}
-	~NXCameraResourceManager() {}
+	virtual ~NXCameraResourceManager() {}
 
 	void SetWorkingScene(NXScene* pScene);
 

@@ -24,7 +24,7 @@ public:
         if (data) data->IncRef();
     }
 
-    ~Ntr()
+    virtual ~Ntr()
     {
         if (data) data->DecRef();
     }

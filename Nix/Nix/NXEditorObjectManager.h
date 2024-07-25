@@ -10,7 +10,7 @@ class NXEditorObjectManager
 {
 public:
 	NXEditorObjectManager(NXScene* pScene);
-	~NXEditorObjectManager();
+	virtual ~NXEditorObjectManager();
 
 	void Init();
 	void InitBoundingStructures();

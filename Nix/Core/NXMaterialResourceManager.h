@@ -28,7 +28,7 @@ class NXMaterialResourceManager : public NXResourceManagerBase
 {
 public:
 	NXMaterialResourceManager() {}
-	~NXMaterialResourceManager() {}
+    virtual ~NXMaterialResourceManager() {}
 
     void Init();
 

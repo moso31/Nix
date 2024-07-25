@@ -66,7 +66,7 @@ class NXGUICodeEditor
             }
         }
 
-        ~ThreadPool() { Shutdown(); }
+        virtual ~ThreadPool() { Shutdown(); }
 
     private:
         std::vector<std::thread> m_threads;
@@ -213,7 +213,7 @@ class NXGUICodeEditor
 
 public:
     NXGUICodeEditor(ImFont* pFont);
-    ~NXGUICodeEditor() {}
+    virtual ~NXGUICodeEditor() {}
 
     void Load(const std::filesystem::path& filePath, bool bRefreshHighLight = false);
     void Load(const std::string& text, bool bRefreshHighLight = false, const std::string& name = "New File");

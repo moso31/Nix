@@ -6,7 +6,7 @@ class NXHLSLGenerator : public NXInstance<NXHLSLGenerator>
 {
 public:
 	NXHLSLGenerator();
-	~NXHLSLGenerator();
+	virtual ~NXHLSLGenerator();
 
 	// 获取一个 std::string 有多少行
 	int GetLineCount(const std::string& str);

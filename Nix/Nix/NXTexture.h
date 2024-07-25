@@ -160,7 +160,7 @@ class NXTexture2D : public NXTexture
 public:
     NXTexture2D() : NXTexture(TextureType_2D) {}
     NXTexture2D(const NXTexture2D& other) = delete;
-    ~NXTexture2D() {}
+    virtual ~NXTexture2D() {}
 
     Ntr<NXTexture2D> Create(const std::string& DebugName, const std::filesystem::path& FilePath, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
     Ntr<NXTexture2D> CreateRenderTexture(const std::string& debugName, DXGI_FORMAT fmt, UINT width, UINT height, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
@@ -177,7 +177,7 @@ class NXTextureCube : public NXTexture
 {
 public:
     NXTextureCube() : NXTexture(TextureType_Cube) {}
-    ~NXTextureCube() {}
+    virtual ~NXTextureCube() {}
 
     void Create(const std::string& debugName, DXGI_FORMAT texFormat, UINT width, UINT height, UINT mipLevels, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
     void Create(const std::string& debugName, const std::wstring& filePath, size_t width = 0, size_t height = 0, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
@@ -198,7 +198,7 @@ class NXTexture2DArray : public NXTexture
 {
 public:
     NXTexture2DArray() : NXTexture(TextureType_2DArray) {}
-    ~NXTexture2DArray() {}
+    virtual ~NXTexture2DArray() {}
 
     void Create(const std::string& debugName, DXGI_FORMAT texFormat, UINT width, UINT height, UINT arraySize, UINT mipLevels, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
 

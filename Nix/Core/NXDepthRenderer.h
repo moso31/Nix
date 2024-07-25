@@ -5,7 +5,7 @@ class NXDepthRenderer : public NXRendererPass
 {
 public:
 	NXDepthRenderer() {}
-	~NXDepthRenderer() {}
+	virtual ~NXDepthRenderer() {}
 
 	void Init();
 };

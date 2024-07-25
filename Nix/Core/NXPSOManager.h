@@ -25,7 +25,7 @@ class NXPSOManager : public NXInstance<NXPSOManager>
 {
 public:
 	NXPSOManager() : m_nFenceValue(0) {}
-	~NXPSOManager() {}
+	virtual ~NXPSOManager() {}
 
 	void Init(ID3D12Device* pDevice, ID3D12CommandQueue* pCmdQueue);
 

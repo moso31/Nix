@@ -10,7 +10,7 @@ class NXGUICubeMap
 {
 public:
 	NXGUICubeMap(NXScene* pScene = nullptr, NXGUIFileBrowser* pFileBrowser = nullptr);
-	~NXGUICubeMap() {}
+	virtual ~NXGUICubeMap() {}
 
 	void SetCurrentScene(NXScene* pScene) { m_pCurrentScene = pScene; }
 	void Render();

@@ -18,7 +18,7 @@ class NXMeshResourceManager : public NXResourceManagerBase
 {
 public:
 	NXMeshResourceManager() : m_pWorkingScene(nullptr) {}
-	~NXMeshResourceManager() {}
+	virtual ~NXMeshResourceManager() {}
 
 	void Init(NXScene* pScene);
 

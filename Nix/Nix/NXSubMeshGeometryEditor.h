@@ -36,7 +36,7 @@ class NXSubMeshGeometryEditor : public NXInstance<NXSubMeshGeometryEditor>
 {
 public:
 	NXSubMeshGeometryEditor();
-	~NXSubMeshGeometryEditor();
+	virtual ~NXSubMeshGeometryEditor();
 
 	void Init(ID3D12Device* pDevice);
 

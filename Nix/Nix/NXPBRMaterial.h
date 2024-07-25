@@ -83,7 +83,7 @@ class NXCustomMaterial : public NXMaterial
 public:
 	explicit NXCustomMaterial() = default;
 	NXCustomMaterial(const std::string& name, const std::filesystem::path& path);
-	~NXCustomMaterial() {}
+	virtual ~NXCustomMaterial() {}
 	NXCustomMaterial* IsCustomMat() override { return this; }
 
 	void LoadAndCompile(const std::filesystem::path& nslFilePath);

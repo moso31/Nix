@@ -15,7 +15,7 @@ class NXGUIContentExplorer
 {
 public:
 	NXGUIContentExplorer(NXScene* pScene);
-	~NXGUIContentExplorer() {}
+	virtual ~NXGUIContentExplorer() {}
 
 	void Render();
 

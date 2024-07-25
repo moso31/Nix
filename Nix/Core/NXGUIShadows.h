@@ -5,7 +5,7 @@ class NXGUIShadows
 {
 public:
 	NXGUIShadows(NXShadowMapRenderer* pShadowMap) : m_pShadowMap(pShadowMap) {}
-	~NXGUIShadows() {}
+	virtual ~NXGUIShadows() {}
 
 	void Render();
 

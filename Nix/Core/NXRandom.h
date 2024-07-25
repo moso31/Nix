@@ -10,7 +10,7 @@ class NXRandom : public	NXInstance<NXRandom>
 {
 public:
 	NXRandom();
-	~NXRandom();
+	virtual ~NXRandom();
 
 	int CreateInt(int minValue, int maxValue);
 	float CreateFloat(float minValue = 0.0f, float maxValue = 1.0f);

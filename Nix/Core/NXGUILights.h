@@ -6,7 +6,7 @@ class NXGUILights
 {
 public:
 	NXGUILights(NXScene* pScene = nullptr);
-	~NXGUILights() {}
+	virtual ~NXGUILights() {}
 
 	void Render();
 

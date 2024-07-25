@@ -8,7 +8,7 @@ class NXGUIDiffuseProfile
 {
 public:
 	NXGUIDiffuseProfile();
-	~NXGUIDiffuseProfile() {}
+	virtual ~NXGUIDiffuseProfile() {}
 
 	void Render();
 	void Release();

@@ -16,7 +16,7 @@ class NXResourceManager : public NXInstance<NXResourceManager>
 {
 public:
     NXResourceManager();
-    ~NXResourceManager();
+    virtual ~NXResourceManager();
 
     NXTextureResourceManager* GetTextureManager() { return m_pTextureManager; }
     NXMaterialResourceManager* GetMaterialManager() { return m_pMaterialManager; }

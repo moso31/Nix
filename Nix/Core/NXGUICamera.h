@@ -6,7 +6,7 @@ class NXGUICamera
 {
 public:
 	NXGUICamera(NXScene* pScene = nullptr);
-	~NXGUICamera() {}
+	virtual ~NXGUICamera() {}
 
 	void Render();
 

@@ -27,7 +27,7 @@ class NXGUI
 {
 public:
 	NXGUI(NXScene* pScene, Renderer* pRenderer);
-	~NXGUI();
+	virtual ~NXGUI();
 
 	void Init();
 	void ExecuteDeferredCommands();

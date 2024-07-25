@@ -8,7 +8,7 @@ class NXScriptResourceManager : public NXResourceManagerBase
 {
 public:
 	NXScriptResourceManager() {}
-	~NXScriptResourceManager() {}
+	virtual ~NXScriptResourceManager() {}
 
 	static NXScript* CreateScript(const NXScriptType scriptType, NXScriptable* pObject);
 

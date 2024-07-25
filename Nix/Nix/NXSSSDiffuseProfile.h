@@ -6,7 +6,7 @@ class NXSSSDiffuseProfile : public NXObject, public NXSerializable
 {
 public:
 	NXSSSDiffuseProfile() {}
-	~NXSSSDiffuseProfile() {}
+	virtual ~NXSSSDiffuseProfile() {}
 
 	virtual void Serialize() override;
 	virtual void Deserialize() override;

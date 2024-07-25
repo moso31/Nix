@@ -21,7 +21,7 @@ private:
 	explicit NXShadowMapRenderer() = default;
 public:
 	NXShadowMapRenderer(NXScene* pScene);
-	~NXShadowMapRenderer();
+	virtual ~NXShadowMapRenderer();
 
 	void Init();
 	void Render(ID3D12GraphicsCommandList* pCmdList);

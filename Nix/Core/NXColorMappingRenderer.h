@@ -11,7 +11,7 @@ class NXColorMappingRenderer : public NXRendererPass
 {
 public:
 	NXColorMappingRenderer();
-	~NXColorMappingRenderer();
+	virtual ~NXColorMappingRenderer();
 
 	void Init();
 	void Render(ID3D12GraphicsCommandList* pCmdList);

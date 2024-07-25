@@ -7,7 +7,7 @@ class NXInput : public NXInstance<NXInput>
 {
 public:
 	NXInput();
-	~NXInput();
+	virtual ~NXInput();
 
 	XMINT2 MousePosition();	// 获取鼠标在当前客户端的位置（左上角0,0）
 	void RestoreData();
