@@ -1,6 +1,6 @@
 # Nix
 
-Selfmade DX11 renderer.
+Selfmade DX12 renderer.
 
 ## Features
 ### Standard PBR
@@ -14,9 +14,11 @@ Selfmade DX11 renderer.
 ### Burley SSS + approx SSS BTDF
 ![image](https://github.com/moso31/Nix/assets/15684115/e08205c6-4929-4d25-8019-bcbb7c6a278e)
 ![transition_animation](https://github.com/moso31/Nix/assets/15684115/d13bae94-fe1c-4c53-8d0a-be8ed776f075)
+### XAllocator
+
+XAllocator is a memory allocator used for Nix DX12 to allocate TextureResources/CBuffers/RTViews/DSViews/Descriptors memory.
 
 ## Intending...
-- [ ] DX12
 - [ ] Anti-Aliasing(TAA SMAA FXAA...)
 - [ ] Screen Space Ambient Occlusion(HBAO GTAO...)
 - [ ] SSR
