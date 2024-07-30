@@ -37,7 +37,7 @@ class NXRenderableObject;
 class FBXMeshLoader
 {
 public:
-	static void LoadFBXFile(std::string filepath, NXPrefab* pOutPrefab, bool bAutoCalcTangents);
+	static void LoadFBXFile(const std::string& filepath, NXPrefab* pOutPrefab, bool bAutoCalcTangents);
 	static void LoadRenderableObjects(FbxNode* pNode, NXRenderableObject* pParentMesh, bool bAutoCalcTangents);
 
 private:

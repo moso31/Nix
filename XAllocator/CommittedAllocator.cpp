@@ -26,6 +26,16 @@ bool CommittedAllocator::Alloc(UINT byteSize, ResourceType resourceType, D3D12_G
 	return false;
 }
 
+void CommittedAllocator::Remove(UINT pageIdx, UINT pageByteOffset, UINT byteSize)
+{
+	size_t blockByteMask = m_blockByteSize - 1;
+	UINT dataByteSize = (UINT)((byteSize + blockByteMask) & ~blockByteMask);
+	UINT blockSize = dataByteSize / m_blockByteSize; // 这次remove需要移除多少个Block
+	UINT stBlockIdx = pageByteOffset / m_blockByteSize;
+
+	CommittedAllocatorBase::Remove(pageIdx, stBlockIdx, blockSize);
+}
+
 void CommittedAllocator::UpdateData(const void* data, UINT dataSize, UINT pageIdx, UINT pageByteOffset)
 {
 	auto& pResource = m_pages[pageIdx].data.pResource;

@@ -9,7 +9,7 @@
 	#define IOS_REF (*(pManager->GetIOSettings()))
 #endif
 
-void FBXMeshLoader::LoadFBXFile(std::string filepath, NXPrefab* pOutPrefab, bool bAutoCalcTangents)
+void FBXMeshLoader::LoadFBXFile(const std::string& filepath, NXPrefab* pOutPrefab, bool bAutoCalcTangents)
 {
 	FbxManager* lSdkManager = NULL;
 	FbxScene* lScene = NULL;
