@@ -141,7 +141,7 @@ public:
 	void GenerateInfoBackup();
 	void RecoverInfosBackup();
 
-	void RequestUpdateCBufferData() { m_bIsDirty = true; }
+	void RequestUpdateCBufferData(bool bNeedRebuildCB);
 
 	// 将当前的 param, code, funcs[] 重新整合成 nsl 文件，
 	// 一般在保存时调用此方法。
@@ -181,10 +181,11 @@ private:
 	// 将 nsl 的其它函数 转换成 DX 可以编译的 hlsl 代码，
 	void ProcessShaderFunctions(const std::vector<std::string>& nslFuncs, std::vector<std::string>& oHLSLFuncCode);
 
-	void UpdateCBData();
+	void UpdateCBData(bool rebuildCB);
 
 private:
-	bool m_bIsDirty;
+	bool m_bIsDirty = true;
+	bool m_bNeedRebuildCB = false;
 	bool m_bCompileSuccess = false;
 
 private:

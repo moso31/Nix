@@ -276,10 +276,10 @@ void NXCustomMaterial::InitShaderResources()
 	Deserialize();
 
 	// 请求更新一次CBufferData
-	RequestUpdateCBufferData();
+	RequestUpdateCBufferData(true);
 }
 
-void NXCustomMaterial::UpdateCBData()
+void NXCustomMaterial::UpdateCBData(bool rebuildCB)
 {
 	auto& cbElems = m_cbInfo.elems;
 	auto& cbSets = m_cbInfo.sets;
@@ -323,7 +323,11 @@ void NXCustomMaterial::UpdateCBData()
 	while (cbData.size() % 4 != 0) cbData.push_back(0); // 16 bytes align
 
 	// 重建整个CBuffer
-	m_cbData.CreateFrameBuffers((UINT)(cbData.size() * sizeof(float)), NXCBufferAllocator, NXDescriptorAllocator);
+	if (rebuildCB)
+	{
+		m_cbData.CreateFrameBuffers((UINT)(cbData.size() * sizeof(float)), NXCBufferAllocator, NXDescriptorAllocator);
+	}
+
 	m_cbData.Set(cbData);
 }
 
@@ -364,7 +368,7 @@ void NXCustomMaterial::Update()
 {
 	if (m_bIsDirty)
 	{
-		UpdateCBData();
+		UpdateCBData(m_bNeedRebuildCB);
 		m_bIsDirty = false;
 	}
 	else
@@ -402,7 +406,7 @@ void NXCustomMaterial::SetCBInfoMemoryData(UINT memoryIndex, UINT count, const f
 	count = min(count, (UINT)m_cbInfoMemory.size() - memoryIndex);
 	std::copy(newData, newData + count, m_cbInfoMemory.begin() + memoryIndex);
 
-	RequestUpdateCBufferData();
+	RequestUpdateCBufferData(false);
 }
 
 void NXCustomMaterial::GenerateInfoBackup()
@@ -438,6 +442,12 @@ void NXCustomMaterial::RecoverInfosBackup()
 		m_samplerInfosBackup.clear();
 		m_nslFuncsBackup.clear();
 	}
+}
+
+void NXCustomMaterial::RequestUpdateCBufferData(bool bNeedRebuildCB)
+{
+	m_bIsDirty = true;
+	m_bNeedRebuildCB = bNeedRebuildCB;
 }
 
 void NXCustomMaterial::SaveToNSLFile()

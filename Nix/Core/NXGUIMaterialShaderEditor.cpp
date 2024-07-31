@@ -205,7 +205,7 @@ void NXGUIMaterialShaderEditor::OnBtnRevertParamClicked(NXCustomMaterial* pMater
 				pMaterial->SetCBInfoMemoryData(cbDisplay.memoryIndex, actualByteCount, cbDisplay.data);
 
 				// 通知材质下一帧更新 CBuffer
-				pMaterial->RequestUpdateCBufferData();
+				pMaterial->RequestUpdateCBufferData(true);
 			}
 		}
 	}
@@ -244,7 +244,7 @@ bool NXGUIMaterialShaderEditor::OnBtnCompileClicked(NXCustomMaterial* pMaterial)
 
 		// 若编译成功，对 GUI材质类、GUI ShaderEditor、材质类 都 MakeDirty，
 		// 确保下一帧一定会更新一次材质数据。
-		pMaterial->RequestUpdateCBufferData();
+		pMaterial->RequestUpdateCBufferData(true);
 		RequestSyncMaterialData();
 
 		// 重新生成数据备份以用于Revert
@@ -608,7 +608,7 @@ void NXGUIMaterialShaderEditor::Render_Params_ResourceOps(const std::string& str
 	if (ImGui::Button(strNameIdRevert.c_str(), ImVec2(0.0f, btnSize)))
 	{
 		OnBtnRevertParamClicked(pMaterial, btnParamType, index);
-		pMaterial->RequestUpdateCBufferData();
+		pMaterial->RequestUpdateCBufferData(true);
 	}
 }
 

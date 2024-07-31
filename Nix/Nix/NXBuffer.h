@@ -3,9 +3,15 @@
 #include "BaseDefs/NixCore.h"
 #include <memory>
 
+struct NXCPUDescriptorData
+{
+	D3D12_CPU_DESCRIPTOR_HANDLE data;
+	UINT pageIndex;
+	UINT firstIndex;
+};
+
 // 2024.5.12 NXBuffer<T> 模板类
 // 对标 DX11 cbuffer。这里有分配内存的接口，分配出来的内存在底层交给XAllocator管理。
-// 【TODO：资源释放。目前的设想是尽量交给 XAllocator处理，NXBuffer不管资源释放】
 
 // 允许存储多个资源，支持FrameResources
 // 内存布局，以一个存储了6份数据，并且是FrameResource（交换链是三缓冲）的资源为例：
@@ -21,10 +27,9 @@ protected:
 		T data;
 
 		D3D12_GPU_VIRTUAL_ADDRESS GPUVirtualAddr; // 记录该数据的 GPU 虚拟地址
-		UINT pageIndex;
-		UINT pageOffset;
-
-		UINT byteSize;
+		UINT pageIndex; // 放在第几页
+		UINT pageOffset; // 数据在该页的起始字节偏移量
+		UINT byteSize; // 数据大小
 	};
 
 public:
@@ -97,51 +102,57 @@ public:
 protected:
 	void Create(UINT byteSize, CommittedAllocator* pCBAllocator, DescriptorAllocator* pDescriptorAllocator, bool isFrameResource, UINT bufferCount)
 	{
-		// TODO: 光Alloc不行，还得在合适的时间Remove
-		// Remove的配套机制需要XAllocator实现
-
-		if (m_isCreated)
-		{
-			// 【TODO：启用这段逻辑。Remove没跟上之前，暂时没办法用】
-			//std::wstring errMsg = L"NXBuffer create FAILED. It has been created.";
-			//MessageBox(NULL, errMsg.c_str(), L"Error", MB_OK | MB_ICONERROR);
-			//return;
-		}
-
 		// lazy-Init
 		m_pDevice = pCBAllocator->GetD3DDevice();
 		m_pCBAllocator = pCBAllocator;
 		m_pDescriptorAllocator = pDescriptorAllocator;
 		m_isFrameResource = isFrameResource;
-		m_isCreated = true;
+
+		// 如果已经创建过，先释放之前的资源
+		if (m_isCreated)
+		{
+			for (UINT i = 0; i < m_actualBufferCount; i++)
+			{
+				NXBufferData& buffer = m_buffers[i];
+				NXCPUDescriptorData& cbView = m_cbViews[i];
+				m_pCBAllocator->Remove(buffer.pageIndex, buffer.pageOffset, buffer.byteSize);
+				m_pDescriptorAllocator->Remove(cbView.pageIndex, cbView.firstIndex, 1);
+			}
+
+			m_buffers.reset();
+			m_cbViews.reset();
+			m_buffersGPUHandles.clear();
+		}
 
 		// Create
 		m_singleBufferCount = bufferCount;
 		m_actualBufferCount = m_isFrameResource ? MultiFrameSets_swapChainCount * bufferCount : bufferCount;
 		m_buffers = std::make_unique<NXBufferData[]>(m_actualBufferCount);
+		m_cbViews = std::make_unique<NXCPUDescriptorData[]>(m_actualBufferCount);
 		m_buffersGPUHandles.reserve(m_actualBufferCount);
 
 		for (UINT i = 0; i < m_actualBufferCount; i++)
 		{
 			NXBufferData& buffer = m_buffers[i];
+			NXCPUDescriptorData& cbView = m_cbViews[i];
 
 			// 分配显存，返回对应GPU地址，和索引（在该CBAllocator下的第几页的第几偏移量）
 			m_pCBAllocator->Alloc(byteSize, ResourceType_Upload, buffer.GPUVirtualAddr, buffer.pageIndex, buffer.pageOffset);
+			buffer.byteSize = byteSize;
 
 			// 分配描述符
-			D3D12_CPU_DESCRIPTOR_HANDLE cbvHandle;
-			m_pDescriptorAllocator->Alloc(DescriptorType_CBV, cbvHandle);
+			m_pDescriptorAllocator->Alloc(DescriptorType_CBV, 1, cbView.pageIndex, cbView.firstIndex, cbView.data);
 
 			D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
 			cbvDesc.BufferLocation = buffer.GPUVirtualAddr;
 			cbvDesc.SizeInBytes = (byteSize + 255) & ~255;
-			m_pDevice->CreateConstantBufferView(&cbvDesc, cbvHandle);
-
-			buffer.byteSize = byteSize;
+			m_pDevice->CreateConstantBufferView(&cbvDesc, cbView.data);
 
 			// GPUHandle 单独存一份数组
 			m_buffersGPUHandles.push_back(buffer.GPUVirtualAddr);
 		}
+
+		m_isCreated = true;
 	}
 
 protected:
@@ -155,6 +166,9 @@ protected:
 
 	// CBuffer本体
 	std::unique_ptr<NXBufferData[]> m_buffers;
+
+	// 描述符句柄本体
+	std::unique_ptr<NXCPUDescriptorData[]> m_cbViews;
 
 	// 使用一个独立数组存一下 所有 buffer 的 GPUHandles
 	// 也可以通过m_buffers中拿这个值，但调用起来不方便
