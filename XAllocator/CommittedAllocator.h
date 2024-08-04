@@ -10,6 +10,7 @@ enum ResourceType
 struct CommittedResourcePage
 {
 	ID3D12Resource* pResource;
+	UINT8* pResourceMap; // ResourceType_Upload use only.
 	ResourceType type;
 	D3D12_RESOURCE_STATES resourceState;
 };
@@ -19,8 +20,7 @@ struct CommittedResourcePage
 class CommittedAllocator : public CommittedAllocatorBase
 {
 public:
-	CommittedAllocator(ID3D12Device* pDevice, UINT blockByteSize = 256) : 
-		CommittedAllocatorBase(1000000, 100), m_pDevice(pDevice), m_blockByteSize(blockByteSize) {}
+	CommittedAllocator(ID3D12Device* pDevice, UINT blockByteSize = 256);
 	~CommittedAllocator() {}
 
 	ID3D12Device* GetD3DDevice() { return m_pDevice; }

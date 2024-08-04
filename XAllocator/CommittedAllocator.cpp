@@ -1,5 +1,10 @@
 #include "CommittedAllocator.h"
 
+CommittedAllocator::CommittedAllocator(ID3D12Device* pDevice, UINT blockByteSize) :
+	CommittedAllocatorBase(1000000, 100), m_pDevice(pDevice), m_blockByteSize(blockByteSize)
+{
+}
+
 bool CommittedAllocator::Alloc(UINT byteSize, ResourceType resourceType, D3D12_GPU_VIRTUAL_ADDRESS& oGPUVirtualAddr, UINT& oPageIdx, UINT& oPageByteOffset)
 {
 	size_t blockByteMask = m_blockByteSize - 1;
@@ -38,17 +43,7 @@ void CommittedAllocator::Remove(UINT pageIdx, UINT pageByteOffset, UINT byteSize
 
 void CommittedAllocator::UpdateData(const void* data, UINT dataSize, UINT pageIdx, UINT pageByteOffset)
 {
-	auto& pResource = m_pages[pageIdx].data.pResource;
-
-	// 只 Map 要修改的那一段即可
-	D3D12_RANGE mapRange;
-	mapRange.Begin = pageByteOffset;
-	mapRange.End = pageByteOffset + dataSize;
-
-	UINT8* pSrc;
-	HRESULT hr = pResource->Map(0, &mapRange, reinterpret_cast<void**>(&pSrc));
-
-	UINT8* pDest = pSrc + pageByteOffset;
+	UINT8* pDest = m_pages[pageIdx].data.pResourceMap + pageByteOffset;
 	memcpy(pDest, data, dataSize);
 }
 
@@ -117,6 +112,9 @@ void CommittedAllocator::CreateNewPage(CommittedAllocatorBase::Page& newPage)
 	std::wstring strType = newPage.data.type == ResourceType_Default ? L"Default" : L"Upload";
 	std::wstring debugName = L"CBuffer Resources Pool_" + strType + L"_" + std::to_wstring(m_pages.size() - 1);
 	newPage.data.pResource->SetName(debugName.c_str());
+
+	if (newPage.data.type == ResourceType_Upload)
+		hr = newPage.data.pResource->Map(0, nullptr, reinterpret_cast<void**>(&newPage.data.pResourceMap));
 }
 
 void CommittedAllocator::Clear()
