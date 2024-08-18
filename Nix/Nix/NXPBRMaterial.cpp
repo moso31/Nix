@@ -371,10 +371,8 @@ void NXCustomMaterial::Update()
 		UpdateCBData(m_bNeedRebuildCB);
 		m_bIsDirty = false;
 	}
-	else
-	{
-		m_cbData.UpdateBuffer();
-	}
+
+	m_cbData.UpdateBuffer();
 }
 
 void NXCustomMaterial::SetTexture(const Ntr<NXTexture>& pTexture, const std::filesystem::path& texFilePath)

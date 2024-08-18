@@ -64,6 +64,12 @@ void NXGBufferRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 		auto pCustomMat = pMat ? pMat->IsCustomMat() : nullptr;
 		pCmdList->OMSetStencilRef(0x0);
 
+		if (pMat)
+		{
+			// ¸üÐÂ²ÄÖÊCB
+			pMat->Update(); 
+		}
+
 		if (pEasyMat)
 		{
 			pEasyMat->Render(pCmdList);
@@ -75,7 +81,6 @@ void NXGBufferRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 					if (bIsVisible)
 					{
 						pSubMesh->GetPrimitive()->Update(pCmdList);
-						pSubMesh->Update(pCmdList);
 						pSubMesh->Render(pCmdList);
 					}
 				}
@@ -101,7 +106,6 @@ void NXGBufferRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 						if (bIsVisible)
 						{
 							pSubMesh->GetPrimitive()->Update(pCmdList);
-							pSubMesh->Update(pCmdList);
 							pSubMesh->Render(pCmdList);
 						}
 					}
@@ -119,7 +123,6 @@ void NXGBufferRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 						if (bIsVisible)
 						{
 							pSubMesh->GetPrimitive()->Update(pCmdList);
-							pSubMesh->Update(pCmdList);
 							pSubMesh->Render(pCmdList);
 						}
 					}

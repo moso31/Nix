@@ -10,7 +10,6 @@ template class NXSubMesh<VertexEditorObjects>;
 
 void NXSubMeshBase::Update(ID3D12GraphicsCommandList* pCommandList)
 {
-	if (m_pMaterial) m_pMaterial->Update();
 }
 
 void NXSubMeshBase::MarkReplacing(const std::filesystem::path& replaceMaterialPath)
