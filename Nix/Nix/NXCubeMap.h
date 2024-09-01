@@ -6,24 +6,24 @@
 #include "DirectXTex.h"
 #include "ShaderStructures.h"
 #include "Ntr.h"
-#include "NXBuffer.h"
+#include "NXConstantBuffer.h"
 
 #define NXCUBEMAP_FACE_COUNT 6
 #define NXROUGHNESS_FILTER_COUNT 5
 
-struct ConstantBufferImageData
+struct_cbuffer ConstantBufferImageData
 {
 	Vector4 currImgSize; // xy: size zw: sizeInv
 	Vector4 nextImgSize; // xy: size zw: sizeInv
 };
 
-struct ConstantBufferIrradSH
+struct_cbuffer ConstantBufferIrradSH
 {
 	ConstantBufferIrradSH() {}
 	Vector4 irradSH[9];
 };
 
-struct ConstantBufferCubeMap
+struct_cbuffer ConstantBufferCubeMap
 {
 	ConstantBufferCubeMap() : intensity(1.0f), irradMode(0.0f) {}
 	Vector4 irradSH0123x;
@@ -37,7 +37,7 @@ struct ConstantBufferCubeMap
 	Vector4 irradMode;
 };
 
-struct ConstantBufferBaseWVP
+struct_cbuffer ConstantBufferBaseWVP
 {
 	Matrix world;
 	Matrix view;
@@ -67,29 +67,34 @@ public:
 	void Update() override;
 	void Release() override;
 
-	Ntr<NXTextureCube> GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR);
-	void GenerateIrradianceSHFromHDRI(Ntr<NXTexture2D>& pTexHDR);
+	using GenerateCubeMapCallback = std::function<void()>;
+	void GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR, GenerateCubeMapCallback pCubeMapCallBack);
+	void GenerateIrradianceSHFromHDRI(Ntr<NXTexture2D> pTexHDR);
 	void GenerateIrradianceSHFromCubeMap();
 
 	void GenerateIrradianceMap();
 	void GeneratePreFilterMap();
+
+	void WaitForCubeMapTexsReady();
 
 	D3D12_CPU_DESCRIPTOR_HANDLE GetSRVCubeMap();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetSRVCubeMapPreview2D();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetSRVIrradianceMap();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetSRVPreFilterMap();
 
-	Ntr<NXTexture2D> GetCubeMap() { return m_pTexCubeMap; }
-	Ntr<NXTexture2D> GetIrradianceMap() { return m_pTexIrradianceMap; }
-	Ntr<NXTexture2D> GetPreFilterMap() { return m_pTexPreFilterMap; }
+	Ntr<NXTexture2D> GetCubeMap();
+	Ntr<NXTexture2D> GetIrradianceMap();
+	Ntr<NXTexture2D> GetPreFilterMap();
 
-	const std::vector<D3D12_GPU_VIRTUAL_ADDRESS>& GetCBObjectParams() { return m_cbObject.GetGPUHandleArray(); }
-	const std::vector<D3D12_GPU_VIRTUAL_ADDRESS>& GetCBDataParams() { return m_cbData.GetGPUHandleArray(); }
+	const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>& GetCBObjectParams() { return m_cbCubeWVPMatrix.GetFrameGPUAddresses(); }
+	const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>& GetCBDataParams() { return m_cbCubeMap.GetFrameGPUAddresses(); }
 
 	void SetIntensity(float val);
-	float* GetIntensity() { return &m_cbData.Get().intensity; }
+	float GetIntensity() { return m_cbDataCubeMap.intensity; }
 
 	void SetIrradMode(int val);
+
+	void SetSHValues(const Vector3* shIrradValues);
 
 	void SaveHDRAsDDS(Ntr<NXTextureCube>& pTexture, const std::filesystem::path& filePath);
 	void LoadDDS(const std::filesystem::path& filePath);
@@ -99,6 +104,9 @@ private:
 	void InitRootSignature();
 
 private:
+	const int m_shDDSCubeMapWidth = 128;
+	const int m_shHDRCubeMapWidth = 256;
+
 	NXScene* m_pScene;
 
 	Matrix m_mxCubeMapProj;
@@ -115,16 +123,20 @@ private:
 	Ntr<NXTextureCube>			m_pTexPreFilterMap;
 
 	Vector3 m_shIrradianceMap[9];
-	Vector3 m_shIrradianceMap_CPU[9];
 
-	// 生成使用独立的 allocator 来管理 CubeMap 的 cb
-	CommittedAllocator* m_cbAllocator;
-	NXBuffer<ConstantBufferCubeMap> m_cbData;
-	NXBuffer<ConstantBufferBaseWVP> m_cbObject;
+	ConstantBufferCubeMap m_cbDataCubeMap;
+	NXConstantBuffer<ConstantBufferCubeMap> m_cbCubeMap;
+	ConstantBufferBaseWVP m_cbDataCubeWVPMatrix;
+	NXConstantBuffer<ConstantBufferBaseWVP> m_cbCubeWVPMatrix;
 
 	size_t	m_pSRVIrradianceSH;
 
+	float m_prefilterMapSize;
+	float m_cubeMapSize;
+
 	ComPtr<ID3D12CommandQueue> m_pCommandQueue;
+	ComPtr<ID3D12Fence> m_pFence;
+	uint64_t m_nFenceValue;
 
 	ComPtr<ID3D12RootSignature> m_pRootSigCubeMap;
 	ComPtr<ID3D12PipelineState> m_pPSOCubeMap;
@@ -132,8 +144,8 @@ private:
 	ComPtr<ID3D12RootSignature> m_pRootSigPreFilterMap;
 	ComPtr<ID3D12PipelineState> m_pPSOPreFilterMap;
 
-	ComPtr<ID3D12Fence> m_pFence;
-	UINT64 m_fenceValue;
+	std::promise<void> m_promiseCubeMapTexsReady;
+	std::future<void> m_futureCubeMapTexsReady;
 
 public:
 	void GenerateIrradianceSHFromHDRI_Deprecated(NXTexture2D* pTexHDR);

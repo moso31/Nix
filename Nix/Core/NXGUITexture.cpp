@@ -22,7 +22,8 @@ void NXGUITexture::Render()
 	}
 
 	float fTexSize = ImGui::GetContentRegionAvail().x * 0.7f;
-	auto& srvHandle = NXGPUHandleHeap->SetFluidDescriptor(m_pTexImage->GetSRV());
+	NXShVisDescHeap->PushFluid(m_pTexImage->GetSRV());
+	auto& srvHandle = NXShVisDescHeap->Submit();
 	const ImTextureID& ImTexID = (ImTextureID)srvHandle.ptr;
 	ImGui::Image(ImTexID, ImVec2(fTexSize, fTexSize));
 
@@ -38,11 +39,14 @@ void NXGUITexture::Render()
 
 	if (ImGui::Button("Apply##Texture"))
 	{
+		// 根据GUI参数更新序列化相关数据
 		m_pTexImage->SetSerializationData(m_texData);
 
-		// 保存NXInfo文件
+		// 序列化，保存成n0文件
 		m_pTexImage->Serialize();
-		m_pTexImage->MarkReload();
+
+		// 进行异步重载
+		m_pTexImage->MarkReload(m_pTexImage->GetFilePath());
 	}
 }
 

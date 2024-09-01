@@ -90,7 +90,6 @@ void NXPrimitive::InitAABB()
 
 void NXPrimitive::InitCBData()
 {
-	m_cbObject.CreateFrameBuffers(NXCBufferAllocator, NXDescriptorAllocator);
 }
 
 void NXPrimitive::Update(ID3D12GraphicsCommandList* pCmdList)
@@ -100,23 +99,13 @@ void NXPrimitive::Update(ID3D12GraphicsCommandList* pCmdList)
 	auto& mxWorld = m_worldMatrix;
 	auto& mxWorldView = mxWorld * mxView;
 
-	auto& cbDataObject = m_cbObject.Get();
-	cbDataObject.world = mxWorld.Transpose();
-	cbDataObject.worldInverseTranspose = mxWorld.Invert(); // it actually = m_worldMatrix.Invert().Transpose().Transpose();
+	m_cbDataObject.world = mxWorld.Transpose();
+	m_cbDataObject.worldInverseTranspose = mxWorld.Invert(); // it actually = m_worldMatrix.Invert().Transpose().Transpose();
+	m_cbDataObject.worldView = mxWorldView.Transpose();
+	m_cbDataObject.worldViewInverseTranspose = (mxWorldView).Invert();
+	m_cbDataObject.globalData.time = NXGlobalApp::Timer->GetGlobalTimeSeconds();
 
-	cbDataObject.worldView = mxWorldView.Transpose();
-	cbDataObject.worldViewInverseTranspose = (mxWorldView).Invert();
+	m_cbObject.Update(m_cbDataObject);
 
-	cbDataObject.view = mxView.Transpose();
-	cbDataObject.viewInverse = mxView.Invert().Transpose();
-	cbDataObject.viewTranspose = mxView;
-	cbDataObject.viewInverseTranspose = mxView.Invert();
-	cbDataObject.projection = pCamera->GetProjectionMatrix().Transpose();
-	cbDataObject.projectionInverse = pCamera->GetProjectionMatrix().Invert().Transpose();
-
-	cbDataObject.globalData.time = NXGlobalApp::Timer->GetGlobalTimeSeconds();
-
-	m_cbObject.UpdateBuffer();
-
-	pCmdList->SetGraphicsRootConstantBufferView(0, m_cbObject.GetGPUHandle());
+	pCmdList->SetGraphicsRootConstantBufferView(0, m_cbObject.CurrentGPUAddress());
 }

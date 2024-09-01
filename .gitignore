@@ -21,4 +21,6 @@
 *.idb
 *.lastcodeanalysissucceeded
 /Nix/logs/Log.txt
+/NXDebugLogOutput/x64
 /XAllocator/x64/Release
+/FunctionTest/x64/Debug

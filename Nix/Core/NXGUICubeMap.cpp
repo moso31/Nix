@@ -22,13 +22,18 @@ void NXGUICubeMap::Render()
 
 	ImGui::Begin("CubeMap");
 
-	auto& srvHandle = NXGPUHandleHeap->SetFluidDescriptor(pCubeMap->GetSRVCubeMapPreview2D());
+	NXShVisDescHeap->PushFluid(pCubeMap->GetSRVCubeMapPreview2D());
+	auto& srvHandle = NXShVisDescHeap->Submit();
 	RenderSmallTextureIcon(srvHandle, m_pFileBrowser, std::bind(&NXGUICubeMap::OnCubeMapTexChange, this, pCubeMap), nullptr, std::bind(&NXGUICubeMap::OnCubeMapTexDrop, this, pCubeMap, std::placeholders::_1));
 
-	ImGui::SliderFloat("Intensity", pCubeMap->GetIntensity(), 0.0f, 10.0f);
+	static float intensity = pCubeMap->GetIntensity();
+	if (ImGui::SliderFloat("Intensity", &intensity, 0.0f, 10.0f))
+	{
+		pCubeMap->SetIntensity(intensity);
+	}
 
-	static int x = 0;
 	static const char* items[] = { "Cube Map", "Irradiance Map"};
+	static int x = 0;
 	ImGui::Combo("Material Type", &x, items, IM_ARRAYSIZE(items));
 	pCubeMap->SetIrradMode(x);
 

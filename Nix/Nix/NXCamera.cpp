@@ -1,6 +1,6 @@
 #include "NXCamera.h"
 #include "BaseDefs/NixCore.h"
-#include "NXGlobalDefinitions.h"
+#include "NXGlobalBuffers.h"
 #include "DirectResources.h"
 #include "NSFirstPersonalCamera.h"
 #include "NXAllocatorManager.h"
@@ -169,25 +169,23 @@ void NXCamera::UpdateTransform()
 
 void NXCamera::Update()
 {
-	auto& cbDataObject = NXGlobalBuffer::cbObject.Get();
-	cbDataObject.view = m_mxView.Transpose();
-	cbDataObject.viewInverse = m_mxViewInv.Transpose();
-	cbDataObject.viewInverseTranspose = m_mxViewInv;
-	cbDataObject.viewTranspose = m_mxView;
-	cbDataObject.projection = m_mxProjection.Transpose();
-	cbDataObject.projectionInverse = m_mxProjectionInv.Transpose();
-	NXGlobalBuffer::cbObject.UpdateBuffer();
-
-	auto& cbDataCamera = NXGlobalBuffer::cbCamera.Get();
+	auto& cbDataCamera = g_cbDataCamera;
 	float invN2F = 1.0f / (m_far - m_near);
 	cbDataCamera.Params0 = Vector4(m_rtSize.x, m_rtSize.y, 1.0f / m_rtSize.x, 1.0f / m_rtSize.y);
 	cbDataCamera.Params1 = Vector4(m_near, m_far, m_far * invN2F, -m_far * m_near * invN2F);
 	cbDataCamera.Params2 = Vector4(m_mxProjection._11, m_mxProjection._22, 1.0f / m_mxProjection._11, 1.0f / m_mxProjection._22);
-	NXGlobalBuffer::cbCamera.UpdateBuffer();
+	cbDataCamera.view = m_mxView.Transpose();
+	cbDataCamera.viewInverse = m_mxViewInv.Transpose();
+	cbDataCamera.viewInverseTranspose = m_mxViewInv;
+	cbDataCamera.viewTranspose = m_mxView;
+	cbDataCamera.projection = m_mxProjection.Transpose();
+	cbDataCamera.projectionInverse = m_mxProjectionInv.Transpose();
+	g_cbCamera.Update(cbDataCamera);
 }
 
-void NXCamera::Render()
+void NXCamera::Render(ID3D12GraphicsCommandList* pCmdList)
 {
+	pCmdList->SetGraphicsRootConstantBufferView(1, g_cbCamera.CurrentGPUAddress());
 }
 
 void NXCamera::Release()

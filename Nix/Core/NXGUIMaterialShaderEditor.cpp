@@ -41,7 +41,7 @@ void NXGUIMaterialShaderEditor::Render()
 	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.1f, 0.1f, 0.1f, 0.1f));
 
 	ImVec2 childWindowFullSize(ImGui::GetContentRegionAvail());
-	ImVec2 childWindowTableSize(childWindowFullSize.x, min(childWindowFullSize.x * 0.6667f, childWindowFullSize.y - 100.0f));
+	ImVec2 childWindowTableSize(childWindowFullSize.x, std::min(childWindowFullSize.x * 0.6667f, childWindowFullSize.y - 100.0f));
 	ImGui::BeginChild("##material_shader_editor_table_div", childWindowTableSize);
 	if (ImGui::BeginTable("##material_shader_editor_table", 2, ImGuiTableFlags_Resizable))
 	{
@@ -371,7 +371,7 @@ void NXGUIMaterialShaderEditor::Render_Code(NXCustomMaterial* pMaterial)
 
 		if (m_pGUICodeEditor->RemoveFile(m_showFuncIndex))
 		{
-			m_showFuncIndex = min(m_showFuncIndex, (int)m_nslFuncs.size() - 1);
+			m_showFuncIndex = std::min(m_showFuncIndex, (int)m_nslFuncs.size() - 1);
 			m_pGUICodeEditor->SwitchFile(m_showFuncIndex);
 			m_pGUICodeEditor->GetFocus();
 		}
@@ -386,7 +386,7 @@ void NXGUIMaterialShaderEditor::Render_Code(NXCustomMaterial* pMaterial)
 	float fEachTextLineHeight = ImGui::GetTextLineHeight();
 	static ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput;
 	// 规定 UI 至少留出 10 行代码的高度
-	float fTextEditorHeight = max(10.0f, ImGui::GetContentRegionAvail().y / fEachTextLineHeight) * fEachTextLineHeight;
+	float fTextEditorHeight = std::max(10.0f, ImGui::GetContentRegionAvail().y / fEachTextLineHeight) * fEachTextLineHeight;
 	m_pGUICodeEditor->Render();
 }
 
@@ -711,9 +711,9 @@ void NXGUIMaterialShaderEditor::Render_Params_TextureItem(const int texParamId, 
 		ImVec4 bg_col = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);         // Black background
 		ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);       // No tint
 
-		auto& srvHandle = NXGPUHandleHeap->SetFluidDescriptor(pTex->GetSRV());
-		const ImTextureID& ImTexID = (ImTextureID)srvHandle.ptr;
-		if (ImGui::ImageButton(ImTexID, size, uv0, uv1, frame_padding, bg_col, tint_col))
+		NXShVisDescHeap->PushFluid(pTex->GetSRV());
+		auto& srvHandle = NXShVisDescHeap->Submit();
+		if (ImGui::ImageButton("##", (ImTextureID)srvHandle.ptr, size, uv0, uv1, bg_col, tint_col))
 		{
 			// 2023.11.14 TODO: Add a popup to switch texture...
 		}
@@ -738,12 +738,10 @@ void NXGUIMaterialShaderEditor::Render_Params_TextureItem(const int texParamId, 
 
 		std::string strChildId = "##material_shader_editor_imgbtn_rightside" + std::to_string(texParamId);
 		ImGui::BeginChild(strChildId.c_str(), ImVec2(200.0f, texSize));
-		ImGui::PushID(ImTexID);
-		if (ImGui::Button("Reset"))
+		if (ImGui::Button("Reset##"))
 		{
 			pTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(texDisplay.texType == NXGUITextureMode::Normal ? NXCommonTex_Normal : NXCommonTex_White);
 		}
-		ImGui::PopID();
 
 		const static char* textureTypes[] = { "Default", "Normal" };
 		if (ImGui::BeginCombo("Type##material_shader_editor_texture_combo", textureTypes[(int)texDisplay.texType]))

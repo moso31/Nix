@@ -84,33 +84,33 @@ void FBXMeshLoader::LoadRenderableObjects(FbxNode* pNode, NXRenderableObject* pP
 		EFbxRotationOrder lRotationOrder;
 		pNode->GetRotationOrder(FbxNode::eSourcePivot, lRotationOrder);
 
-		switch (lRotationOrder)
-		{
-		case eEulerXYZ:
-			FBXSDK_printf("Euler XYZ\n");
-			break;
-		case eEulerXZY:
-			FBXSDK_printf("Euler XZY\n");
-			break;
-		case eEulerYZX:
-			FBXSDK_printf("Euler YZX\n");
-			break;
-		case eEulerYXZ:
-			FBXSDK_printf("Euler YXZ\n");
-			break;
-		case eEulerZXY:
-			FBXSDK_printf("Euler ZXY\n");
-			break;
-		case eEulerZYX:
-			FBXSDK_printf("Euler ZYX\n");
-			break;
-		case eSphericXYZ:
-			FBXSDK_printf("Spheric XYZ\n");
-			break;
-		default:
-			FBXSDK_printf("NONE\n");
-			break;
-		}
+		//switch (lRotationOrder)
+		//{
+		//case eEulerXYZ:
+		//	FBXSDK_printf("Euler XYZ\n");
+		//	break;
+		//case eEulerXZY:
+		//	FBXSDK_printf("Euler XZY\n");
+		//	break;
+		//case eEulerYZX:
+		//	FBXSDK_printf("Euler YZX\n");
+		//	break;
+		//case eEulerYXZ:
+		//	FBXSDK_printf("Euler YXZ\n");
+		//	break;
+		//case eEulerZXY:
+		//	FBXSDK_printf("Euler ZXY\n");
+		//	break;
+		//case eEulerZYX:
+		//	FBXSDK_printf("Euler ZYX\n");
+		//	break;
+		//case eSphericXYZ:
+		//	FBXSDK_printf("Spheric XYZ\n");
+		//	break;
+		//default:
+		//	FBXSDK_printf("NONE\n");
+		//	break;
+		//}
 
 		SetGeometricTransform(pNode, pRenderableObject);
 	}
@@ -159,9 +159,9 @@ void FBXMeshLoader::SetGeometricTransform(FbxNode* pNode, NXRenderableObject* pR
 	lTmpVector = pNode->GetGeometricScaling(FbxNode::eSourcePivot);
 	scale = Vector3((float)lTmpVector[0], (float)lTmpVector[2], (float)lTmpVector[1]);
 
-	printf("        geoTranslation: %f %f %f\n", translation.x, translation.y, translation.z);
-	printf("        geoRotation: %f %f %f\n", rotation.x, rotation.y, rotation.z);
-	printf("        geoScale: %f %f %f\n", scale.x, scale.y, scale.z);
+	//printf("        geoTranslation: %f %f %f\n", translation.x, translation.y, translation.z);
+	//printf("        geoRotation: %f %f %f\n", rotation.x, rotation.y, rotation.z);
+	//printf("        geoScale: %f %f %f\n", scale.x, scale.y, scale.z);
 	
 	// geoMatrix = geoS * geoR * geoT
 	pRenderableObject->SetGeoTransform(
@@ -188,7 +188,7 @@ void FBXMeshLoader::EncodePrimitiveData(FbxNode* pNode, NXPrimitive* pPrimitive,
 
 		// 确定 SubMesh 个数
 		FbxNode* pNode = pMesh->GetNode();
-		if (pNode) materialCount = max(pNode->GetMaterialCount(), 1);	// 有时候3ds中没有指定材质，这种情况下填充一个默认submesh（至少保证有一个submesh）。
+		if (pNode) materialCount = std::max(pNode->GetMaterialCount(), 1);	// 有时候3ds中没有指定材质，这种情况下填充一个默认submesh（至少保证有一个submesh）。
 
 		static int noNameMaterialIdx = 0;
 		std::vector<NXSubMeshBase*> pSubMeshes;

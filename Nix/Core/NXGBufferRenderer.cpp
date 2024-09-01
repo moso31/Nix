@@ -8,6 +8,7 @@
 #include "NXResourceManager.h"
 
 #include "NXScene.h"
+#include "NXCamera.h"
 #include "NXPrimitive.h"
 #include "NXCubeMap.h"
 #include "NXRenderStates.h"
@@ -27,6 +28,11 @@ NXGBufferRenderer::~NXGBufferRenderer()
 
 void NXGBufferRenderer::Init()
 {
+}
+
+void NXGBufferRenderer::SetCamera(NXCamera* pCamera)
+{
+	m_pCamera = pCamera;
 }
 
 void NXGBufferRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
@@ -73,6 +79,7 @@ void NXGBufferRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 		if (pEasyMat)
 		{
 			pEasyMat->Render(pCmdList);
+			m_pCamera->Render(pCmdList);
 			for (auto pSubMesh : pEasyMat->GetRefSubMeshes())
 			{
 				if (pSubMesh)
@@ -97,6 +104,7 @@ void NXGBufferRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 				}
 
 				pCustomMat->Render(pCmdList);
+				m_pCamera->Render(pCmdList);
 
 				for (auto pSubMesh : pCustomMat->GetRefSubMeshes())
 				{
@@ -114,6 +122,7 @@ void NXGBufferRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 			else
 			{
 				pErrorMat->Render(pCmdList);
+				m_pCamera->Render(pCmdList);
 
 				for (auto pSubMesh : pCustomMat->GetRefSubMeshes())
 				{

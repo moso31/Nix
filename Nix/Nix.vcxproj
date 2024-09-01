@@ -106,17 +106,17 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_WINDOWS;FBXSDK_SHARED;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WINDOWS;FBXSDK_SHARED;NOMINMAX;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
-      <AdditionalIncludeDirectories>.\;..\;..\DirectxTex\DirectxTex\;..\XAllocator\;..\NixMath\;..\IMGUI\;..\NixTools\Include\;..\NixTools\Include\FBXSDK\;.\Core;.\Nix;.\Nix\Script;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\;..\NXDebugLogOutput\;..\DirectxTex\DirectxTex\;..\XAllocator\;..\NixMath\;..\IMGUI\;..\NixTools\Include\;..\NixTools\Include\FBXSDK\;.\Core;.\Nix;.\Nix\Script;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OpenMPSupport>true</OpenMPSupport>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;dxguid.lib;winmm.lib;comctl32.lib;NixMath.lib;DirectXTex.lib;IMGUI.lib;libfbxsdk.lib;XAllocator.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\NixMath\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\DirectXTex\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\IMGUI\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\FBXSDK\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\XAllocator\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;dxguid.lib;winmm.lib;comctl32.lib;NixMath.lib;DirectXTex.lib;IMGUI.lib;libfbxsdk.lib;XAllocator.lib;NXDebugLogOutput.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\NixMath\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\DirectXTex\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\IMGUI\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\FBXSDK\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\XAllocator\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\NXDebugLogOutput\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
     <PostBuildEvent>
@@ -151,9 +151,9 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_WINDOWS;FBXSDK_SHARED;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WINDOWS;FBXSDK_SHARED;NOMINMAX;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
-      <AdditionalIncludeDirectories>.\;..\;..\DirectxTex\DirectxTex\;..\XAllocator\;..\NixMath\;..\IMGUI\;..\NixTools\Include\;..\NixTools\Include\FBXSDK\;.\Core;.\Nix;.\Nix\Script;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\;..\NXDebugLogOutput\;..\DirectxTex\DirectxTex\;..\XAllocator\;..\NixMath\;..\IMGUI\;..\NixTools\Include\;..\NixTools\Include\FBXSDK\;.\Core;.\Nix;.\Nix\Script;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OpenMPSupport>true</OpenMPSupport>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
@@ -162,8 +162,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;dxguid.lib;winmm.lib;comctl32.lib;NixMath.lib;DirectXTex.lib;IMGUI.lib;libfbxsdk.lib;XAllocator.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\NixMath\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\DirectXTex\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\IMGUI\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\FBXSDK\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\XAllocator\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;dxguid.lib;winmm.lib;comctl32.lib;NixMath.lib;DirectXTex.lib;IMGUI.lib;libfbxsdk.lib;XAllocator.lib;NXDebugLogOutput.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\NixMath\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\DirectXTex\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\IMGUI\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\FBXSDK\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\XAllocator\;$(SolutionDir)NixTools\lib\$(Platform)\$(Configuration)\NXDebugLogOutput\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
     <PostBuildEvent>
@@ -221,7 +221,6 @@
     <ClCompile Include="Core\NXGUICommandManager.cpp" />
     <ClCompile Include="Core\NXGUIDiffuseProfile.cpp" />
     <ClCompile Include="Core\NXGUIInspector.cpp" />
-    <ClCompile Include="Core\NXLog.cpp" />
     <ClCompile Include="Core\NXPSOManager.cpp" />
     <ClCompile Include="Core\NXRendererPass.cpp" />
     <ClCompile Include="Core\NXSamplerManager.cpp" />
@@ -271,6 +270,7 @@
     <ClCompile Include="Core\NXSkyRenderer.cpp" />
     <ClCompile Include="Core\NXGUICodeEditor.cpp" />
     <ClCompile Include="Core\NXSubSurfaceRenderer.cpp" />
+    <ClCompile Include="Core\NXTextureLoader.cpp" />
     <ClCompile Include="Core\NXTextureReloadTesk.cpp" />
     <ClCompile Include="Core\NXTextureResourceManager.cpp" />
     <ClCompile Include="Core\NXTimer.cpp" />
@@ -307,6 +307,7 @@
     <ClInclude Include="BaseDefs\CppSTLFully.h" />
     <ClInclude Include="BaseDefs\CrtDbg.h" />
     <ClInclude Include="BaseDefs\DX12.h" />
+    <ClInclude Include="BaseDefs\MultiThread.h" />
     <ClInclude Include="BaseDefs\NixCore.h" />
     <ClInclude Include="BaseDefs\DearImGui.h" />
     <ClInclude Include="BaseDefs\Math.h" />
@@ -319,11 +320,11 @@
     <ClInclude Include="Core\NXCommonTexDefinition.h" />
     <ClInclude Include="Core\NXDepthRenderer.h" />
     <ClInclude Include="Core\NXFileSystemHelper.h" />
+    <ClInclude Include="Core\NXGlobalBuffers.h" />
     <ClInclude Include="Core\NXGlobalDefinitions.h" />
     <ClInclude Include="Core\NXGUICommandManager.h" />
     <ClInclude Include="Core\NXGUIDiffuseProfile.h" />
     <ClInclude Include="Core\NXGUIInspector.h" />
-    <ClInclude Include="Core\NXLog.h" />
     <ClInclude Include="Core\NXPSOManager.h" />
     <ClInclude Include="Core\NXRendererPass.h" />
     <ClInclude Include="Core\NXSamplerManager.h" />
@@ -375,6 +376,7 @@
     <ClInclude Include="Core\NXSkyRenderer.h" />
     <ClInclude Include="Core\NXGUICodeEditor.h" />
     <ClInclude Include="Core\NXSubSurfaceRenderer.h" />
+    <ClInclude Include="Core\NXTextureLoader.h" />
     <ClInclude Include="Core\NXTextureReloadTesk.h" />
     <ClInclude Include="Core\NXTextureResourceManager.h" />
     <ClInclude Include="Core\NXTimer.h" />
@@ -384,6 +386,7 @@
     <ClInclude Include="Core\NXShaderVisibleDescriptorHeap.h" />
     <ClInclude Include="Nix\HBVH.h" />
     <ClInclude Include="Nix\NXBuffer.h" />
+    <ClInclude Include="Nix\NXConstantBuffer.h" />
     <ClInclude Include="Nix\NXDepthPrepass.h" />
     <ClInclude Include="Nix\NXSSSDiffuseProfile.h" />
     <ClInclude Include="Nix\NXEditorObjectManager.h" />
@@ -396,6 +399,7 @@
     <ClInclude Include="Nix\NXRefCountable.h" />
     <ClInclude Include="Nix\NXRenderableObject.h" />
     <ClInclude Include="Nix\NXScriptable.h" />
+    <ClInclude Include="Nix\NXStructuredBuffer.h" />
     <ClInclude Include="Nix\NXTextureDefinitions.h" />
     <ClInclude Include="Nix\NXSimpleSSAO.h" />
     <ClInclude Include="Nix\NXSubMesh.h" />
@@ -417,9 +421,8 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="DX12专属问题集.txt" />
+    <Text Include="快速规划.txt" />
     <Text Include="八字无撇的待办事项.txt" />
-    <Text Include="杂七杂八的编码规范.txt" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\CubeMap.fx">

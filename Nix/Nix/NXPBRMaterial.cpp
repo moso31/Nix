@@ -36,6 +36,13 @@ void NXMaterial::AddSubMesh(NXSubMeshBase* pSubMesh)
 	m_pRefSubMeshes.push_back(pSubMesh);
 }
 
+void NXMaterial::UpdatePSORenderStates(D3D12_GRAPHICS_PIPELINE_STATE_DESC& oPSODesc)
+{
+	oPSODesc.DepthStencilState = NXDepthStencilState<>::Create();
+	oPSODesc.BlendState = NXBlendState<>::Create();
+	oPSODesc.RasterizerState = NXRasterizerState<>::Create();
+}
+
 NXEasyMaterial::NXEasyMaterial(const std::string& name, const std::filesystem::path& filePath) :
 	NXMaterial(name, filePath)
 {
@@ -56,6 +63,7 @@ void NXEasyMaterial::Init()
 
 	std::vector<D3D12_ROOT_PARAMETER> rootParams = {
 		NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL),
+		NX12Util::CreateRootParameterCBV(1, 0, D3D12_SHADER_VISIBILITY_ALL),
 		NX12Util::CreateRootParameterTable(ranges, D3D12_SHADER_VISIBILITY_ALL)
 	};
 
@@ -79,9 +87,6 @@ void NXEasyMaterial::Init()
 	psoDesc.InputLayout = NXGlobalInputLayout::layoutPNTT;
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() }; 
-	psoDesc.RasterizerState = NXRasterizerState<>::Create();
-	psoDesc.BlendState = NXBlendState<>::Create();
-	psoDesc.DepthStencilState = NXDepthStencilState<>::Create();
 	psoDesc.SampleDesc.Count = 1;
 	psoDesc.SampleDesc.Quality = 0;
 	psoDesc.SampleMask = UINT_MAX;
@@ -92,6 +97,7 @@ void NXEasyMaterial::Init()
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	UpdatePSORenderStates(psoDesc);
 
 	m_pPSO = NXPSOManager::GetInstance()->Create(psoDesc, m_name + "_PSO");
 }
@@ -101,8 +107,9 @@ void NXEasyMaterial::Render(ID3D12GraphicsCommandList* pCommandList)
 	pCommandList->SetGraphicsRootSignature(m_pRootSig.Get());
 	pCommandList->SetPipelineState(m_pPSO.Get());
 
-	auto srvHandle = NXGPUHandleHeap->SetFluidDescriptor(m_pTexture->GetSRV());
-	pCommandList->SetGraphicsRootDescriptorTable(1, srvHandle);
+	NXShVisDescHeap->PushFluid(m_pTexture->GetSRV());
+	auto& srvHandle = NXShVisDescHeap->Submit();
+	pCommandList->SetGraphicsRootDescriptorTable(2, srvHandle);
 }
 
 void NXCustomMaterial::LoadAndCompile(const std::filesystem::path& nslFilePath)
@@ -222,9 +229,6 @@ void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::s
 		psoDesc.InputLayout = NXGlobalInputLayout::layoutPNTT;
 		psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 		psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
-		psoDesc.RasterizerState = NXRasterizerState<>::Create();
-		psoDesc.BlendState = NXBlendState<>::Create();
-		psoDesc.DepthStencilState = NXDepthStencilState<>::Create();
 		psoDesc.SampleDesc.Count = 1;
 		psoDesc.SampleDesc.Quality = 0;
 		psoDesc.SampleMask = UINT_MAX;
@@ -235,6 +239,7 @@ void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::s
 		psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 		psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 		psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+		UpdatePSORenderStates(psoDesc);
 
 		m_pPSO = NXPSOManager::GetInstance()->Create(psoDesc, m_name + "_PSO");
 	}
@@ -325,10 +330,30 @@ void NXCustomMaterial::UpdateCBData(bool rebuildCB)
 	// 重建整个CBuffer
 	if (rebuildCB)
 	{
-		m_cbData.CreateFrameBuffers((UINT)(cbData.size() * sizeof(float)), NXCBufferAllocator, NXDescriptorAllocator);
+		m_cbData.Recreate(cbData.size());
 	}
 
 	m_cbData.Set(cbData);
+}
+
+void NXCustomMaterial::UpdatePSORenderStates(D3D12_GRAPHICS_PIPELINE_STATE_DESC& oPSODesc)
+{
+	// TODO: 根据材质的属性，设置各种渲染状态
+	// 现在的材质系统非常简单，只基于 ShadingModel 设了个模板状态=Replace（因为3S用的着），其他的就啥都没管了……
+	// 将来会有更多的属性，比如alphaTest blend、双面、深度是否写入等等
+
+	NXShadingModel shadingModel = GetShadingModel();
+	if (shadingModel == NXShadingModel::SubSurface)
+	{
+		oPSODesc.DepthStencilState = NXDepthStencilState<true, true, D3D12_COMPARISON_FUNC_LESS, true, 0xff, 0xff, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_REPLACE, D3D12_COMPARISON_FUNC_ALWAYS, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_COMPARISON_FUNC_ALWAYS>::Create();
+	}
+	else
+	{
+		oPSODesc.DepthStencilState = NXDepthStencilState<>::Create();
+	}
+
+	oPSODesc.BlendState = NXBlendState<>::Create();
+	oPSODesc.RasterizerState = NXRasterizerState<>::Create();
 }
 
 NXCustomMaterial::NXCustomMaterial(const std::string& name, const std::filesystem::path& path) :
@@ -345,21 +370,19 @@ void NXCustomMaterial::Render(ID3D12GraphicsCommandList* pCommandList)
 
 	if (m_texInfos.size() > 0)
 	{
-		auto& srvHandle0 = NXGPUHandleHeap->SetFluidDescriptor(m_texInfos[0].pTexture->GetSRV());
-		for (int i = 1; i < m_texInfos.size(); i++)
+		for (auto& tex : m_texInfos)
 		{
-			auto& texInfo = m_texInfos[i];
-			if (texInfo.pTexture.IsValid())
-			{
-				NXGPUHandleHeap->SetFluidDescriptor(texInfo.pTexture->GetSRV());
-			}
+			if (tex.pTexture.IsValid()) 
+				NXShVisDescHeap->PushFluid(tex.pTexture->GetSRV());
 		}
-		pCommandList->SetGraphicsRootDescriptorTable(3, srvHandle0); // t...
+		auto& srvHandle = NXShVisDescHeap->Submit();
+
+		pCommandList->SetGraphicsRootDescriptorTable(3, srvHandle); // t...
 	}
 
 	if (!m_bIsDirty)
 	{
-		auto gpuHandle = m_cbData.GetGPUHandle();
+		auto gpuHandle = m_cbData.CurrentGPUAddress();
 		pCommandList->SetGraphicsRootConstantBufferView(2, gpuHandle); // b3.
 	}
 }
@@ -371,8 +394,6 @@ void NXCustomMaterial::Update()
 		UpdateCBData(m_bNeedRebuildCB);
 		m_bIsDirty = false;
 	}
-
-	m_cbData.UpdateBuffer();
 }
 
 void NXCustomMaterial::SetTexture(const Ntr<NXTexture>& pTexture, const std::filesystem::path& texFilePath)
@@ -401,7 +422,7 @@ void NXCustomMaterial::RemoveTexture(const Ntr<NXTexture>& pTexture)
 
 void NXCustomMaterial::SetCBInfoMemoryData(UINT memoryIndex, UINT count, const float* newData)
 {
-	count = min(count, (UINT)m_cbInfoMemory.size() - memoryIndex);
+	count = std::min(count, (UINT)m_cbInfoMemory.size() - memoryIndex);
 	std::copy(newData, newData + count, m_cbInfoMemory.begin() + memoryIndex);
 
 	RequestUpdateCBufferData(false);

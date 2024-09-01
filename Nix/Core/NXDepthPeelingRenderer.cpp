@@ -116,8 +116,8 @@
 //		pSampler = NXSamplerManager::Get(NXSamplerFilter::Point, NXSamplerAddressMode::Clamp);
 //		g_pContext->PSSetSamplers(2, 1, &pSampler);
 //
-//		g_pContext->VSSetConstantBuffers(1, 1, NXGlobalBuffer::cbCamera.GetAddressOf());
-//		g_pContext->PSSetConstantBuffers(1, 1, NXGlobalBuffer::cbCamera.GetAddressOf());
+//		g_pContext->VSSetConstantBuffers(1, 1, g_cbCamera.GetAddressOf());
+//		g_pContext->PSSetConstantBuffers(1, 1, g_cbCamera.GetAddressOf());
 //
 //		auto pCbLights = m_pScene->GetConstantBufferLights();
 //		auto pCubeMap = m_pScene->GetCubeMap();

@@ -5,7 +5,7 @@
 #include "SphereHarmonics.h"
 #include "NXSubMesh.h" // include this .h for EditorObjectID only.
 
-NXSubMeshGeometryEditor::NXSubMeshGeometryEditor()
+NXSubMeshGeometryEditor::NXSubMeshGeometryEditor() 
 {
 }
 
@@ -15,14 +15,6 @@ NXSubMeshGeometryEditor::~NXSubMeshGeometryEditor()
 
 void NXSubMeshGeometryEditor::Init(ID3D12Device* pDevice)
 {
-	m_pDevice = pDevice;
-	m_vbAllocator = new CommittedAllocator(m_pDevice.Get());
-	m_ibAllocator = new CommittedAllocator(m_pDevice.Get());
-
-	NX12Util::CreateCommands(m_pDevice.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.GetAddressOf(), m_pCommandAllocator.GetAddressOf(), m_pCommandList.GetAddressOf());
-	m_pCommandQueue->SetName(L"NXSubMeshGeometryEditor Command Queue");
-	m_pFence = NX12Util::CreateFence(m_pDevice.Get());
-
 	InitCommonMeshes();
 }
 
@@ -680,44 +672,35 @@ const NXMeshViews& NXSubMeshGeometryEditor::GetMeshViews(const std::string& name
 	auto it = m_data.find(name);
 	if (it != m_data.end())
 	{
-		return it->second;
+		it->second->WaitLoadComplete();
+		return *(it->second);
 	}
 	else
 	{
-		return m_data["_Unknown"]; 
+		return *m_data["_Unknown"]; 
 	}
 }
 
 void NXSubMeshGeometryEditor::Release()
 {
-	// m_fenceValue
-	m_fenceValue++;
-	m_pCommandQueue->Signal(m_pFence.Get(), m_fenceValue);
-
-	if (m_pFence->GetCompletedValue() < m_fenceValue)
+	for (auto& [_, pMeshView] : m_data)
 	{
-		HANDLE eventHandle = CreateEventEx(nullptr, false, false, EVENT_ALL_ACCESS);
-		m_pFence->SetEventOnCompletion(m_fenceValue, eventHandle);
-		WaitForSingleObject(eventHandle, INFINITE);
-		CloseHandle(eventHandle);
+		delete pMeshView;
 	}
-
-	m_vbAllocator->Clear();
-	m_ibAllocator->Clear();
-	delete m_vbAllocator;
-	delete m_ibAllocator;
+	m_data.clear();
 }
 
 void NXSubMeshGeometryEditor::InitCommonMeshes()
 {
-	std::vector<float> verticesUnknown = { 2.0f };
-	std::vector<UINT> indicesUnknown = { 0 };
-	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(verticesUnknown, indicesUnknown, "_Unknown");
+	m_verticesUnknown = { 2.0f };
+	m_indicesUnknown = { 0 };
+	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(m_verticesUnknown, m_indicesUnknown, "_Unknown");
+	m_data["_Unknown"]->WaitLoadComplete();
 
 	float scale = 1.0f;
 
 	// Create vertex buffer
-	std::vector<VertexPT> verticesRT =
+	m_verticesRT =
 	{
 		// -Z
 		{ Vector3(-scale, +scale, 0.0f), Vector2(0.0f, 0.0f) },
@@ -726,11 +709,11 @@ void NXSubMeshGeometryEditor::InitCommonMeshes()
 		{ Vector3(-scale, -scale, 0.0f), Vector2(0.0f, 1.0f) },
 	};
 
-	std::vector<UINT> indicesRT =
+	m_indicesRT =
 	{
 		0,  1,  2,
 		0,  2,  3
 	};
 
-	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(verticesRT, indicesRT, "_RenderTarget");
+	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(m_verticesRT, m_indicesRT, "_RenderTarget");
 }

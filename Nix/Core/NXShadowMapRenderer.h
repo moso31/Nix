@@ -3,7 +3,7 @@
 #include "BaseDefs/Math.h"
 #include "BaseDefs/NixCore.h"
 #include "ShaderStructures.h"
-#include "NXBuffer.h"
+#include "NXConstantBuffer.h"
 
 struct CBufferShadowMapObject
 {
@@ -57,7 +57,8 @@ private:
 	// 2022.5.10 阴影贴图（目前仅用于平行光）
 	Ntr<NXTexture2DArray>				m_pShadowMapDepth;
 
-	NXBuffer<CBufferShadowMapObject>	m_CSMViewProj;
+	CBufferShadowMapObject m_cbDataCSMViewProj[8];
+	NXConstantBuffer<CBufferShadowMapObject> m_cbCSMViewProj[8];
 
 	// cascade 级联数量
 	UINT m_cascadeCount;

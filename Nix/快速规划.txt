@@ -1,0 +1,58 @@
+Nix, 早期核心目标：
+
+---Buffer、纹理---
+1. 保持XAllocator内存池特性，但应该进行重分类：
+cb分配器，应该明确分为：
+CB：cpu可访问、动态
+sCB：cpu不可访问，静态
+VBIB：cpu不可访问、静态
+DVBIB：cpu可访问、动态
+
+对DX12 Buffer和纹理，从读写性角度出发，一般可排列出以下四种情况：
+1. cpu可访问+动态：上传堆，2x内存
+2. cpu可访问+静态：上传堆，1x内存，不常见。
+3. cpu不可访问+动态：几乎不存在这种情况。
+4. cpu不可访问+静态：默认堆，1x内存
+
+对Nix而言，应该从简考虑。Buffer仅使用情况1.和4.
+    从这个方向出发，可以为CB、VBIB分别设计两个独立池：CB/VBIB 动态/静态池。
+Texture 目前情况4.就足够应对需求了。
+从这个方向出发，可以根据纹理的使用类型来设计一个纹理池。
+    所有常规纹理使用一个PlacedResources纹理池；但从文件加载需要读取后拷贝。
+    RT、DS使用独立的CommittedResource。
+另外命名时需要考虑对未来的扩展：
+    CBDynamic/StaticPool
+    SBDynamic/StaticPool
+    TexturePool
+    RenderTexturePool
+
+---描述符堆---
+在Nix中，使用描述符堆创建描述符。
+DX12是这样的：描述符堆相当于一堆Handles的容器（一个Handles={CPUHandle, GPUHandle?}的集合）
+创建描述符堆时，会暴露CPU地址，基于这个地址就可以索引堆上任意位置的Handles。
+创建SRV/CBV等各种View时，必须使用这些Handles.CPUHandle进行各种View的储存。渲染该View时，也要用对应的Handles.GPUHandle进行渲染。
+
+---修改方案---
+对描述符堆，拆分成下面几种类型：
+1. ShaderVisibleDescriptorAllocator，着色器可见的，SRV/CBV/UAV描述符堆。
+2. NonVisibleDescriptorAllocator，着色器不可见的，SRV/CBV/UAV描述符堆。
+3. RTVAllocator
+4. DSVAllocator
+基于DeadListAllocator实现。
+
+原有的NXShaderVisibleDescriptorHeap废弃，因为它专门创建了一个独立的ShaderVisibleHeap，每帧都从另一个不可见的NXDescriptorAllocator拷贝过来。这一设计是早期参考网上教程实现的，没什么自己的思考。现阶段来看，这暂时是一个没有必要的操作。
+
+对纹理，现在实际上只有四种存储方式：
+CB：动态/静态Buffer，统一存储在CBufferAllocator上传页
+VBIB：目前只有静态Buffer，将来需要动态。统一存储在CBufferAllocator默认页。
+Texture：目前只有静态，将来需要动态。实际现在不管静态还是动态，两份内存全都保留了。默认堆存储在PlacedAllocator中，上传堆存储在Buffer下。
+RenderTexture：仅需静态。仅创建默认堆，单独存储在纹理下。
+
+下一版修改后，调整为：
+DynamicPool设计成一个【按帧分页】的内存池（这么做是方便每帧仅调用对应帧的资源，以加快寻址速度）
+StaticPool同样设计成分页内存池（应该是最常用的）。
+1. CB动态存储在CBDynamicPool中。CB静态存储在CBPool中。
+2. 动态VBIB存储在SBDynamicPool中。静态VBIB存储在SBPool中。
+3. 动态Texture存储在TextureDynamicPool纹理池中。
+4. 静态Texture存储在TexturePool纹理池中
+4. RenderTexture通常一共也没多少张，单独存储

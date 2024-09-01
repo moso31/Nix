@@ -1,6 +1,7 @@
 #pragma once
 #include "BaseDefs/DX12.h"
 #include "Ntr.h"
+#include "ShaderStructures.h"
 
 class NXTexture2D;
 class NXBRDFLut
@@ -11,7 +12,8 @@ public:
 
 	void Init();
 	void Release();
-
+	ID3D12Fence* GlobalFence();
+	uint64_t GetFenceValue();
 	const Ntr<NXTexture2D> GetTex() const { return m_pTexBRDFLUT; }
 
 private:
@@ -32,4 +34,7 @@ private:
 
 	ComPtr<ID3D12Fence> m_pFence;
 	UINT64 m_fenceValue;
+
+	std::vector<VertexPT> m_vertices;
+	std::vector<UINT> m_indices;
 };

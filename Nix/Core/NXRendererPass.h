@@ -36,7 +36,7 @@ struct NXCBVManagement
 	bool autoUpdate = false;
 
 	// 如果启用autoUpdate，使用这里的gpuHandle（D3D12_GPU_VIRTUAL_ADDRESS）。
-	MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS> multiFrameGpuVirtAddr;
+	const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>* multiFrameGpuVirtAddr;
 };
 
 class NXRendererPass
@@ -82,8 +82,8 @@ public:
 	// rootParamIndex: 根参数的索引
 	// slotIndex: 描述符表的索引，如果不提供，则和rootParamIndex相同。
 	// gpuVirtAddr: CBV的gpu虚拟地址
-	void SetStaticRootParamCBV(int rootParamIndex, const std::vector<D3D12_GPU_VIRTUAL_ADDRESS>& gpuVirtAddrs);
-	void SetStaticRootParamCBV(int rootParamIndex, int slotIndex, const std::vector<D3D12_GPU_VIRTUAL_ADDRESS>& gpuVirtAddr);
+	void SetStaticRootParamCBV(int rootParamIndex, const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>* gpuVirtAddrs);
+	void SetStaticRootParamCBV(int rootParamIndex, int slotIndex, const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>* gpuVirtAddrs);
 
 	void AddStaticSampler(const D3D12_STATIC_SAMPLER_DESC& staticSampler);
 	void AddStaticSampler(D3D12_FILTER filter, D3D12_TEXTURE_ADDRESS_MODE addrUVW);

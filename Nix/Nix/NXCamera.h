@@ -1,4 +1,5 @@
 #pragma once
+#include "BaseDefs/DX12.h"
 #include "ShaderStructures.h"
 #include "NXTransform.h"
 
@@ -43,7 +44,7 @@ public:
 	void OnResize(const Vector2& rtSize);
 	void UpdateTransform();
 	void Update();
-	void Render();
+	void Render(ID3D12GraphicsCommandList* pCmdList);
 	void Release();
 
 	NSFirstPersonalCamera* GetFirstPersonalController();

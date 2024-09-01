@@ -19,8 +19,6 @@ void NXBRDFLut::Init()
 	m_pCommandQueue->SetName(L"BRDF LUT Command Queue");
 
 	m_pTexBRDFLUT = NXResourceManager::GetInstance()->GetTextureManager()->CreateRenderTexture("BRDF LUT", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)m_mapSize, (UINT)m_mapSize, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-	m_pTexBRDFLUT->AddSRV();
-	m_pTexBRDFLUT->AddRTV();
 
 	InitVertex();
 	InitRootSignature();
@@ -31,9 +29,19 @@ void NXBRDFLut::Release()
 {
 }
 
+ID3D12Fence* NXBRDFLut::GlobalFence()
+{
+	return m_pFence.Get();
+}
+
+uint64_t NXBRDFLut::GetFenceValue()
+{
+	return m_fenceValue;
+}
+
 void NXBRDFLut::InitVertex()
 {
-	std::vector<VertexPT> vertices =
+	m_vertices =
 	{
 		// +Z
 		{ Vector3(+1.0f, +1.0f, +1.0f), Vector2(1.0f, 1.0f) },
@@ -42,13 +50,13 @@ void NXBRDFLut::InitVertex()
 		{ Vector3(+1.0f, -1.0f, +1.0f), Vector2(0.0f, 1.0f) },
 	};
 
-	std::vector<UINT> indices =
+	m_indices =
 	{
 		0,  2,	1,
 		0,  3,	2,
 	};
 
-	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(vertices, indices, "_PlanePositiveZ");
+	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(m_vertices, m_indices, "_PlanePositiveZ");
 }
 
 void NXBRDFLut::InitRootSignature()
@@ -79,6 +87,8 @@ void NXBRDFLut::InitRootSignature()
 
 void NXBRDFLut::DrawBRDFLUT()
 {
+	m_pTexBRDFLUT->WaitLoadingViewsFinish();
+
 	m_pCommandList->Reset(m_pCommandAllocator.Get(), nullptr);
 
 	NX12Util::BeginEvent(m_pCommandList.Get(), "Generate BRDF 2D LUT");

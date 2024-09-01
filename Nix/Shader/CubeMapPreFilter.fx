@@ -1,6 +1,12 @@
-#include "Common.fx"
 #include "BRDF.fx"
 #include "MathSample.fx"
+
+cbuffer ConstantBufferCubeMapObject : register(b0)
+{
+	matrix m_world;
+	matrix m_view;
+	matrix m_projection;
+}
 
 TextureCube txCubeMap : register(t0);
 

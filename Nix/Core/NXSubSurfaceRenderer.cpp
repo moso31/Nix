@@ -1,7 +1,7 @@
 #include "NXSubSurfaceRenderer.h"
 #include "ShaderComplier.h"
 #include "NXRenderStates.h"
-#include "NXGlobalDefinitions.h"
+#include "NXGlobalBuffers.h"
 #include "NXResourceManager.h"
 #include "NXSamplerManager.h"
 #include "NXTexture.h"
@@ -35,8 +35,8 @@ void NXSubSurfaceRenderer::Init()
 
 	// t0~t5, s0, b3
 	SetRootParams(2, 6);
-	SetStaticRootParamCBV(0, 1, NXGlobalBuffer::cbCamera.GetGPUHandleArray());
-	SetStaticRootParamCBV(1, 3, NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfile());
+	SetStaticRootParamCBV(0, 1, &g_cbCamera.GetFrameGPUAddresses());
+	SetStaticRootParamCBV(1, 3, &NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfile());
 	AddStaticSampler(D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
 
 	SetStencilRef(0x1);

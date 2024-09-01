@@ -6,7 +6,7 @@
 #include "NXBRDFlut.h"
 #include "NXRenderStates.h"
 #include "NXSamplerManager.h"
-#include "NXGlobalDefinitions.h"
+#include "NXGlobalBuffers.h"
 #include "NXScene.h"
 #include "NXPrimitive.h"
 #include "NXCubeMap.h"
@@ -47,11 +47,12 @@ void NXDeferredRenderer::Init()
 
 	// t0~t8, s0~s1, b0~b4.
 	SetRootParams(5, 9); // param 0~4 = b0~b4, param 5 = t0~t8
-	SetStaticRootParamCBV(0, NXGlobalBuffer::cbObject.GetGPUHandleArray());
-	SetStaticRootParamCBV(1, NXGlobalBuffer::cbCamera.GetGPUHandleArray());
-	SetStaticRootParamCBV(2, m_pScene->GetConstantBufferLights());
-	SetStaticRootParamCBV(3, m_pScene->GetCubeMap()->GetCBDataParams());
-	SetStaticRootParamCBV(4, NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfile());
+	SetStaticRootParamCBV(0, &g_cbObject.GetFrameGPUAddresses());
+	SetStaticRootParamCBV(1, &g_cbCamera.GetFrameGPUAddresses());
+	SetStaticRootParamCBV(2, &m_pScene->GetConstantBufferLights());
+	SetStaticRootParamCBV(3, &m_pScene->GetCubeMap()->GetCBDataParams());
+	SetStaticRootParamCBV(4, &NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfile());
+
 	AddStaticSampler(D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
 	AddStaticSampler(D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
 

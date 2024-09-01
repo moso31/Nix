@@ -1,5 +1,15 @@
 #pragma once
 
+enum NXTextureType
+{
+    TextureType_None,
+    TextureType_1D,
+    TextureType_2D,
+    TextureType_Cube,
+    TextureType_2DArray,
+    TextureType_3D,
+};
+
 enum class NXTextureMode
 {
     Raw,			// 使用原生格式

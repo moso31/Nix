@@ -58,12 +58,11 @@ void NXGUI::Init()
 	{
 		m_pCmdAllocator[i] = NX12Util::CreateCommandAllocator(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT);
 		m_pCmdList[i] = NX12Util::CreateGraphicsCommandList(NXGlobalDX::GetDevice(), m_pCmdAllocator.Get(i).Get(), D3D12_COMMAND_LIST_TYPE_DIRECT);
+		m_pCmdList[i]->SetName(std::wstring(L"GUI Command List " + std::to_wstring(i)).c_str());
 	}
 
-	// ImGUI的字体纹理，将始终使用 ShaderVisibleHeap（NXGPUHandleHeap）中的静态描述符区。静态描述符是Nix的概念，详见该类中的注释说明。
-	// 换言之即这里的：
-	//		NXGPUHandleHeap->GetGPUHandle(0).
-	ImGui_ImplDX12_Init(NXGlobalDX::GetDevice(), MultiFrameSets_swapChainCount, DXGI_FORMAT_R8G8B8A8_UNORM, NXGPUHandleHeap->GetHeap(), NXGPUHandleHeap->GetCPUHandle(0), NXGPUHandleHeap->GetGPUHandle(0));
+	// ImGUI的字体纹理，将始终使用 ShaderVisibleHeap（NXShVisDescHeap）中的静态描述符区。静态描述符是Nix的概念，详见该类中的注释说明。
+	ImGui_ImplDX12_Init(NXGlobalDX::GetDevice(), MultiFrameSets_swapChainCount, DXGI_FORMAT_R8G8B8A8_UNORM, NXShVisDescHeap->GetDescriptorHeap(), NXShVisDescHeap->GetStableCPUHandle(0), NXShVisDescHeap->GetStableGPUHandle(0));
 
 	// 设置字体
 	ImGui_ImplWin32_Init(NXGlobalWindows::hWnd);
@@ -138,7 +137,7 @@ void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT, const NXSwapChainBuffer& swapCha
 
 	if (m_pGUIView->GetViewRT() != pGUIViewRT)
 		m_pGUIView->SetViewRT(pGUIViewRT);
-	m_pGUIView->Render(NXGPUHandleHeap);
+	m_pGUIView->Render(NXShVisDescHeap);
 
 	static bool show_demo_window = true;
 	static bool show_another_window = false;
@@ -161,7 +160,7 @@ void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT, const NXSwapChainBuffer& swapCha
 
 	NX12Util::BeginEvent(pCmdList, "dear-imgui");
 
-	auto pDescHeap = NXGPUHandleHeap->GetHeap();
+	auto pDescHeap = NXShVisDescHeap->GetDescriptorHeap();
 	pCmdList->SetDescriptorHeaps(1, &pDescHeap);
 
 	D3D12_RESOURCE_BARRIER barrier = {};
@@ -187,7 +186,7 @@ void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT, const NXSwapChainBuffer& swapCha
 
 	pCmdList->Close();
 	ID3D12CommandList* ppCmdLists[] = { pCmdList };
-	NXGlobalDX::GetCmdQueue()->ExecuteCommandLists(1, ppCmdLists);
+	NXGlobalDX::GlobalCmdQueue()->ExecuteCommandLists(1, ppCmdLists);
 
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)

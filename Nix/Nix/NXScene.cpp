@@ -229,11 +229,11 @@ void NXScene::Init()
 
 	m_pTestCustomMat = NXResourceManager::GetInstance()->GetMaterialManager()->CreateCustomMaterial("TestCustomMat", "D:\\NixAssets\\Materials\\mat.nsl");
 
-	NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\boxes.fbx", false);
+	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\boxes.fbx", false);
 	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\TestBall.fbx", false);
 	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\shadowMapTest.fbx", false);
 	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\EditorObjTest.fbx", false);
-	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\lury.fbx", false);
+	NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\lury.fbx", false);
 	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\testScene.fbx", false);
 	p->SetScale(Vector3(0.1f));
 	NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(p, m_pTestCustomMat);
@@ -254,7 +254,7 @@ void NXScene::Init()
 		m_rtSize
 	);
 
-	//NXCubeMap* pSky = NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\ballroom_4k.hdr");	
+	//NXCubeMap* pSky = NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\Alexs_Apt_2k.hdr");	
 	NXCubeMap* pSky = NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\rural_asphalt_road_1k.hdr");
 	pSky->SetIntensity(0.0f);
 
@@ -271,13 +271,10 @@ void NXScene::Init()
 		NXPBRSpotLight* pSpotLight;
 		//pSpotLight = NXResourceManager::GetInstance()->GetLightManager()->CreatePBRSpotLight(Vector3(0.0f, 2.0f, 0.0f), Vector3(0.0f, -1.0f, 0.0f), Vector3(1.0f), 1.0f, 30.0f, 50.0f, 100.0f);
 
-		m_cbDataLights.CreateFrameBuffers(NXCBufferAllocator, NXDescriptorAllocator);
-		for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
-		{
-			m_cbDataLights.Get(i).pointLight[0] = pPointLight->GetConstantBuffer();
-			m_cbDataLights.Get(i).distantLight[0] = pDirLight->GetConstantBuffer();
-			//m_cbDataLights.Get(i).spotLight[0] = pSpotLight->GetConstantBuffer();
-		}
+		m_cbDataLights.pointLight[0] = pPointLight->GetConstantBuffer();
+		m_cbDataLights.distantLight[0] = pDirLight->GetConstantBuffer();
+		//m_cbDataLights.spotLight[0] = pSpotLight->GetConstantBuffer();
+		m_cbLights.Set(m_cbDataLights);
 	}
 
 	InitScripts();
@@ -364,29 +361,28 @@ void NXScene::UpdateLightData()
 	UINT pointIdx = 0;
 	UINT spotIdx = 0;
 
-	auto& cbLightData = m_cbDataLights.Get();
 	for (auto pLight : GetPBRLights())
 	{
 		switch (pLight->GetType())
 		{
 		case NXLight_Distant:
 			pDirLight = (NXPBRDistantLight*)pLight;
-			cbLightData.distantLight[dirIdx++] = pDirLight->GetConstantBuffer();
+			m_cbDataLights.distantLight[dirIdx++] = pDirLight->GetConstantBuffer();
 			break;
 		case NXLight_Point:
 			pPointLight = (NXPBRPointLight*)pLight;
-			cbLightData.pointLight[pointIdx++] = pPointLight->GetConstantBuffer();
+			m_cbDataLights.pointLight[pointIdx++] = pPointLight->GetConstantBuffer();
 			break;
 		case NXLight_Spot:
 			pSpotLight = (NXPBRSpotLight*)pLight;
-			cbLightData.spotLight[spotIdx++] = pSpotLight->GetConstantBuffer();
+			m_cbDataLights.spotLight[spotIdx++] = pSpotLight->GetConstantBuffer();
 			break;
 		default:
 			break;
 		}
 	}
 
-	m_cbDataLights.UpdateBuffer();
+	m_cbLights.Update(m_cbDataLights);
 }
 
 void NXScene::Release()

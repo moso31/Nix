@@ -18,6 +18,8 @@ Selfmade DX12 renderer.
 
 XAllocator is a memory allocator used for Nix DX12 to allocate TextureResources/CBuffers/RTViews/DSViews/Descriptors memory.
 
+Wiki: https://github.com/moso31/Nix/wiki/XAllocator (not finished yet...)
+
 ## Intending...
 - [ ] Anti-Aliasing(TAA SMAA FXAA...)
 - [ ] Screen Space Ambient Occlusion(HBAO GTAO...)

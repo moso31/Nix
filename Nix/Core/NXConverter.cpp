@@ -390,4 +390,10 @@ bool IsMaterialDefaultPath(const std::string& s)
 	return s == "?";
 }
 
+void GetMipSliceFromLayoutIndex(int layoutIndex, int mipSize, int sliceSize, int& oMip, int& oSlice)
+{
+	oMip = layoutIndex % mipSize;
+	oSlice = (layoutIndex / mipSize) % sliceSize;
+}
+
 }
