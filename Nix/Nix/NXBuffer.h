@@ -7,7 +7,7 @@ struct NXCPUDescriptorData
 {
 	D3D12_CPU_DESCRIPTOR_HANDLE data;
 	UINT pageIndex;
-	UINT firstIndex;
+	UINT descriptorIndex;
 };
 
 // 2024.5.12 NXBuffer<T> Ä£°åÀà
@@ -116,7 +116,7 @@ protected:
 				NXBufferData& buffer = m_buffers[i];
 				NXCPUDescriptorData& cbView = m_cbViews[i];
 				m_pCBAllocator->Remove(buffer.pageIndex, buffer.pageOffset, buffer.byteSize);
-				m_pDescriptorAllocator->Remove(cbView.pageIndex, cbView.firstIndex, 1);
+				m_pDescriptorAllocator->Remove(cbView.pageIndex, cbView.descriptorIndex, 1);
 			}
 
 			m_buffers.reset();
@@ -141,7 +141,7 @@ protected:
 			buffer.byteSize = byteSize;
 
 			// ·ÖÅäÃèÊö·û
-			m_pDescriptorAllocator->Alloc(DescriptorType_CBV, 1, cbView.pageIndex, cbView.firstIndex, cbView.data);
+			m_pDescriptorAllocator->Alloc(DescriptorType_CBV, 1, cbView.pageIndex, cbView.descriptorIndex, cbView.data);
 
 			D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
 			cbvDesc.BufferLocation = buffer.GPUVirtualAddr;
