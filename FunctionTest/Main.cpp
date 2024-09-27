@@ -1,23 +1,24 @@
 #include "MemAllocTest.h"
 #include <vector>
+#include <string>
 
 using namespace ccmem;
 
 int main()
 {
-	BuddyAllocatorTaskQueue queue;
-	BuddyAllocator allocator(&queue);
+	BuddyAllocator taskMan;
 
 	// 保存已分配的内存块信息
 	struct AllocatedBlock
 	{
 		uint8_t* ptr;
 		uint32_t size;
+		BuddyAllocatorPage* allocator;
 	};
 
 	std::vector<AllocatedBlock> allocatedBlocks;
 
-	std::string command;
+	std::string command, command2;
 	const uint32_t MIN_SIZE = 1; // 定义最小分配大小
 	const uint32_t MAX_SIZE = 16; // 定义最大分配大小
 
@@ -28,29 +29,12 @@ int main()
 
 		if (command == "a")
 		{
-			uint32_t requestSize = std::rand() % (MAX_SIZE - MIN_SIZE + 1) + MIN_SIZE;
-			std::cout << "Alloc: " << requestSize << " bytes." << std::endl;
-
-			allocator.AllocAsync(requestSize, [&allocatedBlocks, requestSize](uint8_t* pMem) {
-				if (pMem) allocatedBlocks.push_back({ pMem, requestSize });
-				});
+			std::cin >> command2;
+			uint32_t requestSize = std::stoi(command2); // 将用户输入的字符串转换为整数
+			//uint32_t requestSize = std::rand() % (MAX_SIZE - MIN_SIZE + 1) + MIN_SIZE;
 		}
 		else if (command == "f")
 		{
-			if (allocatedBlocks.empty())
-			{
-				std::cout << "没有可释放的内存块。" << std::endl;
-			}
-			else
-			{
-				int index = std::rand() % allocatedBlocks.size();
-				uint8_t* pMem = allocatedBlocks[index].ptr;
-				uint32_t size = allocatedBlocks[index].size;
-				std::cout << "Free: " << size << " bytes." << std::endl;
-
-				allocator.FreeAsync(pMem);
-				allocatedBlocks.erase(allocatedBlocks.begin() + index);
-			}
 		}
 		else if (command == "e")
 		{
@@ -62,10 +46,10 @@ int main()
 		}
 
 		// 执行任务队列中的任务
-		queue.ExecuteTasks();
+		taskMan.ExecuteTasks();
 
 		// 打印内存分配情况
-		allocator.Print();
+		allocator->Print();
 	}
 
 	return 0;

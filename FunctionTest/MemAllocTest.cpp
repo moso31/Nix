@@ -2,75 +2,184 @@
 
 using namespace ccmem;
 
-void ccmem::BuddyAllocatorTaskQueue::Push(BuddyAllocatorTask task)
+ccmem::BuddyAllocator::BuddyAllocator()
 {
-	m_taskList.push_back(task);
+	// 初始化时自动创建一个Allocator 
+	AddAllocatorInternal(); 
 }
 
-void ccmem::BuddyAllocatorTaskQueue::ExecuteTasks()
+void ccmem::BuddyAllocator::ExecuteTasks()
 {
-	for (auto& task : m_taskList)
+	m_mutex.lock();
+	std::list<BuddyTask> taskList;
+	taskList.swap(m_taskList);
+	m_mutex.unlock();
+
+	// 将低优先级任务队列合并到任务队列中，但放在最后执行
+	taskList.splice(taskList.end(), m_lowPriorTaskList);
+	m_lowPriorTaskList.clear();
+
+	for (auto& task : taskList)
 	{
-		if (!task.pMem)
+		if (!task.pFreeMem) // 分配
 		{
-			uint8_t* pMemory = task.pAllocator->AllocSync(task.byteSize);
-			task.callback(pMemory);
+			uint8_t* pAllocMem = nullptr;
+			task.state = TryAlloc(task, pAllocMem);
 		}
-		else
-			task.pAllocator->FreeSync(task.pMem);
+		else // 释放
+		{
+			task.state = TryFree(task);
+		}
 	}
 
-	m_taskList.clear();
+	// 删除成功的Task，以及释放时没找到对应内存块的Task
+	taskList.remove_if([](const BuddyTask& task) {
+		return task.state == BuddyTask::State::Success || task.state == BuddyTask::State::Failed_Free_NotFind;
+	});
+
+	// 将失败的Task 转移至低优先级任务队列
+	m_lowPriorTaskList.swap(taskList);
 }
 
-ccmem::BuddyAllocator::BuddyAllocator(BuddyAllocatorTaskQueue* pQueue) :
-	m_pTaskQueue(pQueue)
+void ccmem::BuddyAllocator::Print()
+{
+	std::lock_guard<std::mutex> lock(m_mutex);
+	for (auto& pAllocator : m_allocatorPages)
+	{
+		std::cout << "Allocator: " << pAllocator << std::endl;
+		pAllocator->Print();
+	}
+}
+
+BuddyAllocatorPage* ccmem::BuddyAllocator::AddAllocatorInternal()
+{
+	// 这里的锁本来不应该和ExecuteTasks共用，
+	// 不够调用这个方法的机会并不多，共用影响也不大
+	std::lock_guard<std::mutex> lock(m_mutex);
+
+	BuddyAllocatorPage* pAllocator = new BuddyAllocatorPage(this);
+	m_allocatorPages.push_back(pAllocator);
+	return pAllocator;
+}
+
+BuddyTask::State ccmem::BuddyAllocator::TryAlloc(const BuddyTask& task, uint8_t*& pAllocMem)
+{
+	BuddyTask::State result;
+	for (auto& pAllocator : m_allocatorPages)
+	{
+		if (pAllocator->m_freeByteSize >= task.byteSize)
+		{
+			result = pAllocator->AllocSync(task, pAllocMem);
+			
+			// 如果返回未知错误，不接受，直接让它崩溃
+			assert(result != BuddyTask::State::Failed_Unknown);
+
+			// 分配成功时结束循环
+			if (result == BuddyTask::State::Success)
+			{
+				pAllocPage = pAllocator;
+				return result;
+			}
+
+			// 如果返回其它错误（比如内存满），可以尝试下一个Allocator
+		}
+	}
+
+	// 如果走到这里，说明所有的Allocator都满了，创建一个新的Allocator
+	BuddyAllocatorPage* pNewAllocator = AddAllocatorInternal();
+	result = pNewAllocator->AllocSync(task, pAllocMem);
+	if (result == BuddyTask::State::Success)
+	{
+		pAllocPage = pNewAllocator;
+		return result;
+	}
+
+	// 如果返回未知错误，不接受，直接让它崩溃
+	assert(result != BuddyTask::State::Failed_Unknown);
+
+	pAllocPage = nullptr;
+	return result; 
+}
+
+BuddyTask::State ccmem::BuddyAllocator::TryFree(const BuddyTask& task)
+{
+	BuddyTask::State result = BuddyTask::State::Pending;
+	for (auto& pAllocator : m_allocatorPages)
+	{
+		result = pAllocator->FreeSync(task);
+		if (result == BuddyTask::State::Success) 
+			return result;
+	}
+
+	return result;
+}
+
+ccmem::BuddyAllocatorPage::BuddyAllocatorPage(BuddyAllocator* pOwner) :
+	m_pOwner(pOwner)
 {
 	m_pMem = new uint8_t[MAX_LV];
+	m_freeByteSize = MAX_LV;
 
 	m_freeList[0].push_back(m_pMem);
 }
 
-ccmem::BuddyAllocator::~BuddyAllocator()
+ccmem::BuddyAllocatorPage::~BuddyAllocatorPage()
 {
 	for (int i = 0; i < LV_NUM; i++) m_freeList[i].clear();
 	delete[] m_pMem;
 }
 
-uint8_t* ccmem::BuddyAllocator::AllocSync(uint32_t byteSize)
+BuddyTask::State ccmem::BuddyAllocatorPage::AllocSync(const BuddyTask& task, uint8_t*& pAllocMem)
 {
 	// 确定byteSize对应的最小内存块级别
-	int newBlockLevel = GetLevel(byteSize);
+	int newBlockLevel = GetLevel(task.byteSize);
 
 	// 从该级别开始向上查找，找到可用的内存块
 	for (int i = newBlockLevel; i >= 0; i--)
 	{
 		if (!m_freeList[i].empty())
 		{
-			return AllocInternal(newBlockLevel, i);
+			pAllocMem = AllocInternal(newBlockLevel, i);
+			if (pAllocMem)
+			{
+				m_freeByteSize -= GetAlignedByteSize(task.byteSize);
+				return BuddyTask::State::Success; // 分配成功
+			}
+			else
+			{
+				pAllocMem = nullptr;
+				return BuddyTask::State::Failed_Unknown; // 分配失败，目前暂时没有走到这里的情况，先返回个未知错误吧
+			}
 		}
 	}
 
-	return nullptr;
+	// 如果走到这里，说明内存已经满了
+	pAllocMem = nullptr;
+	return BuddyTask::State::Failed_Alloc_FullMemory;
 }
 
-void ccmem::BuddyAllocator::FreeSync(uint8_t* pMem)
+BuddyTask::State ccmem::BuddyAllocatorPage::FreeSync(const BuddyTask& task)
 {
 	// 从used列表中找到该内存块
 	for (int i = 0; i < LV_NUM; i++)
 	{
-		auto it = std::find(m_usedList[i].begin(), m_usedList[i].end(), pMem);
+		auto it = std::find(m_usedList[i].begin(), m_usedList[i].end(), task.pFreeMem);
 		if (it != m_usedList[i].end())
 		{
 			m_usedList[i].erase(it);
-			m_freeList[i].push_back(pMem);
+			m_freeList[i].push_back(task.pFreeMem);
 			FreeInternal(std::prev(m_freeList[i].end()), i);
-			return;
+
+			m_freeByteSize += GetAlignedByteSize(task.byteSize);
+			return BuddyTask::State::Success;
 		}
 	}
+
+	// 如果走到这里，说明该内存块不在used列表中
+	return BuddyTask::State::Failed_Free_NotFind;
 }
 
-void ccmem::BuddyAllocator::Print()
+void ccmem::BuddyAllocatorPage::Print()
 {
 	for (int i = 0; i < LV_NUM; i++)
 	{
@@ -101,29 +210,7 @@ void ccmem::BuddyAllocator::Print()
 	};
 }
 
-void ccmem::BuddyAllocator::AllocAsync(uint32_t byteSize, std::function<void(uint8_t*)> callback)
-{
-	BuddyAllocatorTask task;
-	task.pAllocator = this;
-	task.byteSize = byteSize;
-	task.callback = callback;
-	task.pMem = nullptr;
-
-	m_pTaskQueue->Push(task);
-}
-
-void ccmem::BuddyAllocator::FreeAsync(uint8_t* pMem)
-{
-	BuddyAllocatorTask task;
-	task.pAllocator = this;
-	task.byteSize = 0;
-	task.pMem = pMem;
-	task.callback = nullptr;
-
-	m_pTaskQueue->Push(task);
-}
-
-uint8_t* ccmem::BuddyAllocator::AllocInternal(uint32_t destLevel, uint32_t srcLevel)
+uint8_t* ccmem::BuddyAllocatorPage::AllocInternal(uint32_t destLevel, uint32_t srcLevel)
 {
 	assert(srcLevel < LV_NUM);
 
@@ -156,8 +243,10 @@ uint8_t* ccmem::BuddyAllocator::AllocInternal(uint32_t destLevel, uint32_t srcLe
 	return nullptr;
 }
 
-void ccmem::BuddyAllocator::FreeInternal(std::list<uint8_t*>::iterator itMem, uint32_t level)
+void ccmem::BuddyAllocatorPage::FreeInternal(std::list<uint8_t*>::iterator itMem, uint32_t level)
 {
+	if (level == 0) return;
+
 	// itMem 指向要释放的内存块
 	uint8_t* pMem = *itMem;
 
@@ -184,7 +273,7 @@ void ccmem::BuddyAllocator::FreeInternal(std::list<uint8_t*>::iterator itMem, ui
 	}
 }
 
-uint32_t ccmem::BuddyAllocator::GetLevel(uint32_t byteSize)
+uint32_t ccmem::BuddyAllocatorPage::GetLevel(uint32_t byteSize)
 {
 	assert(byteSize <= MAX_LV);
 
@@ -197,4 +286,11 @@ uint32_t ccmem::BuddyAllocator::GetLevel(uint32_t byteSize)
 	};
 
 	return MAX_LV_LOG2 - std::max(level, MIN_LV_LOG2);
+}
+
+uint32_t ccmem::BuddyAllocatorPage::GetAlignedByteSize(uint32_t byteSize)
+{
+	uint32_t alignedSize = 1;
+	while (alignedSize < byteSize) alignedSize <<= 1;
+	return alignedSize;
 }
