@@ -128,11 +128,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DeadListAllocTest.cpp" />
+    <ClCompile Include="DeadListAllocText.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="MemAllocTest.cpp" />
+    <ClCompile Include="BuddyAllocTest.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="MemAllocTest.h" />
+    <ClInclude Include="BuddyAllocTest.h" />
+    <ClInclude Include="DeadListAllocText.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

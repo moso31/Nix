@@ -36,6 +36,12 @@ namespace ccmem
 
 	class BuddyAllocatorPage;
 
+	struct BuddyTaskResult
+	{
+		BuddyAllocatorPage* pAllocator;
+		uint8_t* pMemory;
+	};
+
 	struct BuddyTask
 	{
 		enum class State
@@ -62,6 +68,9 @@ namespace ccmem
 		// 记录要分配的内存大小
 		uint32_t byteSize = 0;
 
+		// 回调函数
+		std::function<void(const BuddyTaskResult&)> pCallBack = nullptr;
+
 		// 记录task的执行状态
 		BuddyTask::State state = BuddyTask::State::Pending;
 	};
@@ -86,6 +95,8 @@ namespace ccmem
 		uint32_t GetLevel(uint32_t byteSize);
 		uint32_t GetAlignedByteSize(uint32_t byteSize);
 
+		uint32_t GetPageID() const { return m_pageID; }
+
 	private:
 		BuddyAllocator* m_pOwner;
 
@@ -96,14 +107,17 @@ namespace ccmem
 		// 0 级 = 最大的内存块, N-1 级 = 最小的内存块
 		std::list<uint8_t*> m_freeList[LV_NUM];
 		std::list<uint8_t*> m_usedList[LV_NUM];
+
+		uint32_t m_pageID;
 	};
 
-	// 只使用单个BuddyAllocator，无法处理内存分配满的状况；
-	// 所以需要一个Manager，
 	class BuddyAllocator
 	{
 	public:
 		BuddyAllocator();
+
+		void Alloc(uint32_t byteSize, const std::function<void(const BuddyTaskResult&)>& callback);
+		void Free(uint8_t* pFreeMem);
 
 		void ExecuteTasks();
 		void Print();
@@ -114,7 +128,7 @@ namespace ccmem
 	private:
 		std::mutex m_mutex;
 
-		BuddyTask::State TryAlloc(const BuddyTask& task, uint8_t*& pAllocMemory);
+		BuddyTask::State TryAlloc(const BuddyTask& task, BuddyTaskResult& oTaskResult);
 		BuddyTask::State TryFree(const BuddyTask& task);
 
 		// 任务队列，任务首次添加总是添加到这里
