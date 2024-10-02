@@ -8,12 +8,7 @@
 #include <string>
 
 #include "Ntr.h"
-
-#include "CommittedAllocator.h"
-#include "DescriptorAllocator.h"
-#include "PlacedAllocator.h"
-#include "DSVAllocator.h"
-#include "RTVAllocator.h"
+#include "XAllocCommons.h"
 
 #define SafeDeleteArray(x) { delete[] x; x = nullptr; }
 #define SafeDelete(x) { delete x; x = nullptr; }

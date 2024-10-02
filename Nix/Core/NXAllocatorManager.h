@@ -9,15 +9,18 @@
 #define NXDescriptorAllocator		NXAllocatorManager::GetInstance()->GetDescriptorAllocator()
 #define NXGPUHandleHeap				NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap()
 
+using namespace ccmem;
+
 // DX12 ∑÷≈‰∆˜
 class NXAllocatorManager : public NXInstance<NXAllocatorManager>
 {
 public:
 	void Init();
 
-	CommittedAllocator*		GetCBufferAllocator()		{ return m_pCBufferAllocator; }
-	PlacedAllocator*		GetTextureAllocator()		{ return m_pTextureAllocator; }
-	DescriptorAllocator*	GetDescriptorAllocator()	{ return m_pDescriptorAllocator; }
+	ConstantBufferAllocator*	GetCBufferAllocator()		{ return m_pCBufferAllocator; }
+	DescriptorAllocator*		GetDescriptorAllocator()	{ return m_pDescriptorAllocator; }
+
+	PlacedAllocator*		GetTextureAllocator()			{ return m_pTextureAllocator; }
 	RTVAllocator*			GetRTVAllocator()			{ return m_pRTVAllocator; }
 	DSVAllocator*			GetDSVAllocator()			{ return m_pDSVAllocator; }
 
@@ -26,7 +29,8 @@ public:
 	void Release();
 
 private:
-	CommittedAllocator*				m_pCBufferAllocator;
+	ConstantBufferAllocator*		m_pCBufferAllocator;
+
 	PlacedAllocator*				m_pTextureAllocator;
 	DescriptorAllocator*			m_pDescriptorAllocator;
 	RTVAllocator*					m_pRTVAllocator;
