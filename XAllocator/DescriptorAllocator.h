@@ -9,6 +9,12 @@ namespace ccmem
 		D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
 	};
 
+	struct ShaderVisibleDescriptorTaskResult
+	{
+		D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
+		D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle;
+	};
+
 	class NonVisibleDescriptorAllocator : public DeadListAllocator
 	{
 	public:
@@ -16,6 +22,22 @@ namespace ccmem
 		virtual ~NonVisibleDescriptorAllocator() {};
 
 		void Alloc(const std::function<void(NonVisibleDescriptorTaskResult&)>& callback);
+		void Free(uint32_t freeIndex);
+
+	private:
+		ID3D12Device* m_pDevice;
+		ID3D12DescriptorHeap* m_pDescriptorHeap;
+
+		uint32_t m_descriptorIncrementSize;
+	};
+
+	class ShaderVisibleDescriptorAllocator : public DeadListAllocator
+	{
+	public:
+		ShaderVisibleDescriptorAllocator(ID3D12Device* pDevice, uint32_t descriptorSize);
+		virtual ~ShaderVisibleDescriptorAllocator() {};
+
+		void Alloc(const std::function<void(const ShaderVisibleDescriptorTaskResult&)>& callback);
 		void Free(uint32_t freeIndex);
 
 	private:

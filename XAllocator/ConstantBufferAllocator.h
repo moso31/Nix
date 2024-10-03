@@ -4,21 +4,22 @@
 
 namespace ccmem
 {
-	struct ConstantBufferAllocTaskResult
+	struct BufferAllocTaskResult
 	{
-		uint8_t* pMem;
+		uint8_t* cpuAddress;
+		D3D12_GPU_VIRTUAL_ADDRESS gpuAddress;
 	};
 
-	class ConstantBufferAllocator : public BuddyAllocator
+	class CommittedBufferAllocator : public BuddyAllocator
 	{
 	public:
 		// blockByteSize = 单个内存块的大小 fullByteSize = 总内存大小. 要求必须是2的n次幂
 		// 这里约定单个内存块大小是64B，总内存大小是2GB
-		ConstantBufferAllocator(ID3D12Device* pDevice, uint32_t blockByteSize = 64, uint32_t fullByteSize = 2147483648);
-		virtual ~ConstantBufferAllocator() {};
+		CommittedBufferAllocator(ID3D12Device* pDevice, uint32_t blockByteSize = 64, uint32_t fullByteSize = 2147483648);
+		virtual ~CommittedBufferAllocator() {};
 
 		// 分配内存
-		void Alloc(uint32_t byteSize, const std::function<void(const BuddyTaskResult&)>& callback);
+		void Alloc(uint32_t byteSize, const std::function<void(const BufferAllocTaskResult&)>& callback);
 
 		// 释放指定内存pMem
 		// 内存必须是由该Allocator分配的，否则无法释放

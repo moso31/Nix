@@ -2,24 +2,29 @@
 
 using namespace ccmem;
 
-ConstantBufferAllocator::ConstantBufferAllocator(ID3D12Device* pDevice, uint32_t blockByteSize, uint32_t fullByteSize) :
+CommittedBufferAllocator::CommittedBufferAllocator(ID3D12Device* pDevice, uint32_t blockByteSize, uint32_t fullByteSize) :
 	m_fullByteSize(fullByteSize),
 	m_pDevice(pDevice),
 	BuddyAllocator(blockByteSize, fullByteSize)
 {
 }
 
-void ConstantBufferAllocator::Alloc(uint32_t byteSize, const std::function<void(const BuddyTaskResult&)>& callback)
+void CommittedBufferAllocator::Alloc(uint32_t byteSize, const std::function<void(const BufferAllocTaskResult&)>& callback)
 {
-	BuddyAllocator::Alloc(byteSize, callback);
+	BuddyAllocator::Alloc(byteSize, [this, callback](const BuddyTaskResult& taskResult) {
+		BufferAllocTaskResult result;
+		result.cpuAddress = taskResult.pMemory;
+		result.gpuAddress = m_pResource->GetGPUVirtualAddress() + (taskResult.pMemory - m_pResourceData);
+		callback(result);
+	});
 }
 
-void ccmem::ConstantBufferAllocator::Free(uint8_t* pMem)
+void ccmem::CommittedBufferAllocator::Free(uint8_t* pMem)
 {
 	BuddyAllocator::Free(pMem);
 }
 
-void ccmem::ConstantBufferAllocator::OnAllocatorAdded()
+void ccmem::CommittedBufferAllocator::OnAllocatorAdded()
 {
 	D3D12_HEAP_PROPERTIES heapProperties;
 	heapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;

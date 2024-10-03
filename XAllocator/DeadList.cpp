@@ -3,7 +3,7 @@
 ccmem::DeadListAllocator::DeadListAllocator(uint32_t size) 
 {
 	m_deadList.reserve(size);
-	for (size_t i = 0; i < size; i++) m_deadList.push_back(i);
+	for (uint32_t i = 0; i < size; i++) m_deadList.push_back(i);
 	m_currentDeadListIndex = 0;
 }
 
@@ -11,7 +11,7 @@ ccmem::DeadListAllocator::~DeadListAllocator()
 {
 }
 
-void ccmem::DeadListAllocator::Alloc(const std::function<void(DeadListTaskResult&)>& callback)
+void ccmem::DeadListAllocator::Alloc(const std::function<void(const DeadListTaskResult&)>& callback)
 {
 	std::lock_guard<std::mutex> lock(m_mutex);
 

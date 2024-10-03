@@ -28,7 +28,7 @@ namespace ccmem
 		void Print();
 
 	protected:
-		void Alloc(const std::function<void(DeadListTaskResult&)>& callback);
+		void Alloc(const std::function<void(const DeadListTaskResult&)>& callback);
 		void Free(uint32_t index);
 
 	private:

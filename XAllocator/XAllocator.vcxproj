@@ -22,12 +22,14 @@
     <ClCompile Include="Buddy.cpp" />
     <ClCompile Include="ConstantBufferAllocator.cpp" />
     <ClCompile Include="DeadList.cpp" />
+    <ClCompile Include="DescriptorAllocator.cpp" />
     <ClCompile Include="DXIncludes.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buddy.h" />
     <ClInclude Include="ConstantBufferAllocator.h" />
     <ClInclude Include="DeadList.h" />
+    <ClInclude Include="DescriptorAllocator.h" />
     <ClInclude Include="XAllocCommons.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

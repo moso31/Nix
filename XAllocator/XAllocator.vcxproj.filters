@@ -5,11 +5,13 @@
     <ClCompile Include="Buddy.cpp" />
     <ClCompile Include="ConstantBufferAllocator.cpp" />
     <ClCompile Include="DXIncludes.h" />
+    <ClCompile Include="DescriptorAllocator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buddy.h" />
     <ClInclude Include="DeadList.h" />
     <ClInclude Include="ConstantBufferAllocator.h" />
     <ClInclude Include="XAllocCommons.h" />
+    <ClInclude Include="DescriptorAllocator.h" />
   </ItemGroup>
 </Project>
