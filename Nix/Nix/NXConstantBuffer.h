@@ -22,7 +22,7 @@ protected:
 
 		for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 		{
-			NXAllocMng_CB->Alloc(byteSize, [this](const BufferAllocTaskResult& result) {
+			NXAllocMng_CB->Alloc(byteSize, [this](const CommittedBufferAllocTaskResult& result) {
 				m_data[i].cpuAddress = result.cpuAddress;
 				m_data[i].gpuAddress = result.gpuAddress;
 				m_data[i].ptr = reinterpret_cast<T*>(result.cpuAddress);
@@ -64,7 +64,7 @@ protected:
 		{
 			for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 			{
-				NXAllocMng_SB->Alloc(m_byteSize, [this](const BufferAllocTaskResult& result) {
+				NXAllocMng_SB->Alloc(m_byteSize, [this](const CommittedBufferAllocTaskResult& result) {
 					m_data[i].cpuAddress = result.cpuAddress;
 					m_data[i].gpuAddress = result.gpuAddress;
 					m_data[i].ptr = reinterpret_cast<T*>(result.cpuAddress);
@@ -73,7 +73,7 @@ protected:
 		}
 		else
 		{
-			NXAllocMng_SB->Alloc(m_byteSize, [this](const BufferAllocTaskResult& result) {
+			NXAllocMng_SB->Alloc(m_byteSize, [this](const CommittedBufferAllocTaskResult& result) {
 				m_data[0].cpuAddress = result.cpuAddress;
 				m_data[0].gpuAddress = result.gpuAddress;
 				m_data[0].ptr = reinterpret_cast<T*>(result.cpuAddress);

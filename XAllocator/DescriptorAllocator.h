@@ -1,20 +1,9 @@
 #pragma once
-#include "DXIncludes.h"
+#include "XAllocCommon.h"
 #include "DeadList.h"
 
 namespace ccmem
 {
-	struct NonVisibleDescriptorTaskResult
-	{
-		D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
-	};
-
-	struct ShaderVisibleDescriptorTaskResult
-	{
-		D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
-		D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle;
-	};
-
 	class NonVisibleDescriptorAllocator : public DeadListAllocator
 	{
 	public:

@@ -1,21 +1,16 @@
-/*
-* 2024.9.23 Buddy 内存分配器
-* 一个朴素的内存池实现，使用Buddy算法管理内存
-* 
-* 原理：
-*	一上来就分配一个最大的内存块，然后根据需求分割成2的幂次方大小的内存块
-*	同时维护一个freeList和一个usedList，分别记录**空闲内存块**和**已分配内存块**。
-*	初始状态时，只有freeList中有一个最大的内存块
-* 
-*	分配内存时，根据ByteSize，找到对应的**level**。查找freeList[level]下是否有空闲内存块：
-		如果有，直接分配
-		如果没有，向上查找，直到找到一个有空闲内存块的level，
-			然后将其分割成两个更小的内存块，一个用于本次分配，一个放入freeList
-*	
-*	释放内存时，根据内存块的大小，找到对应的level，将其放入freeList
-*		然后XOR检查是否有相邻的空闲内存块，如果有，合并成一个更大的内存块，放入freeList，
-*		并继续向上递归，直到没有相邻的空闲内存块
-*/
+// 2024.10.4 BuddyAllocator 基础管理类 by moso31
+// 描述：
+//		BuddyAllocator 类是基础的内存管理器，
+//		负责管理内存块的分级、任务队列的处理以及内存页（BuddyAllocatorPage）的整体调度。
+// 
+// 逻辑：
+//		内存级别划分：根据最小和最大内存块大小，计算出不同的内存级别，每一级对应特定大小的内存块。
+//		任务管理：维护一个任务队列，包括待分配和待释放的内存操作。通过单线程的 ExecuteTasks 方法来执行这些任务。
+//		分页管理：当现有的内存页无法满足分配需求时，动态添加新的内存页（BuddyAllocatorPage）。
+// 
+// 设计理念：
+//		解耦：将内存管理的通用逻辑与具体的内存分配实现分离，便于扩展和维护。
+//		扩展性：允许派生类根据不同的需求，实现特定的内存分配和释放策略。
 
 #pragma once
 #include <list>
@@ -33,7 +28,7 @@ namespace ccmem
 	struct BuddyTaskResult
 	{
 		BuddyAllocatorPage* pAllocator;
-		uint8_t* pMemory;
+		uint32_t byteOffset;
 	};
 
 	struct BuddyTask
@@ -56,17 +51,24 @@ namespace ccmem
 			Failed_Unknown,
 		};
 
-		// 记录要释放的内存地址
-		uint8_t* pFreeMem = nullptr; 
-
-		// 记录要分配的内存大小
-		uint32_t byteSize = 0;
+		// 这俩字段只会有一个被使用
+		union 
+		{
+			uint32_t offset;	// 记录要释放的内存偏移量
+			uint32_t byteSize = 0;		// 记录要分配的内存大小
+		};
 
 		// 回调函数
 		std::function<void(const BuddyTaskResult&)> pCallBack = nullptr;
 
 		// 记录task的执行状态
 		BuddyTask::State state = BuddyTask::State::Pending;
+
+		// 上下文，用于传递一些额外的信息（比如分配PlacedResource类型时需要提供D3D12_RESOURCE_DESC）
+		void* pTaskContext = nullptr;
+
+		// 释放时 记录要释放的内存所属的内存页指针
+		BuddyAllocatorPage* pFreeAllocator;
 	};
 
 	class BuddyAllocator;
@@ -80,25 +82,22 @@ namespace ccmem
 		void Print();
 
 	private:
-		BuddyTask::State AllocSync(const BuddyTask& task, uint8_t*& pMem);
-		BuddyTask::State FreeSync(const BuddyTask& task);
+		BuddyTask::State AllocSync(const BuddyTask& task, uint32_t& oByteOffset);
+		BuddyTask::State FreeSync(const uint32_t& freeByteOffset);
 
-		uint8_t* AllocInternal(uint32_t destLevel, uint32_t srcLevel);
-		void FreeInternal(std::list<uint8_t*>::iterator itMem, uint32_t level);
+		bool AllocInternal(uint32_t destLevel, uint32_t srcLevel, uint32_t& oByteOffset);
+		void FreeInternal(std::list<uint32_t>::iterator itMem, uint32_t level);
 
 		uint32_t GetPageID() const { return m_pageID; }
 
 	private:
 		BuddyAllocator* m_pOwner;
-
-		// 这个类中 只有这里的内存需要手动管理。
-		uint8_t* m_pMem;
 		std::atomic_uint32_t m_freeByteSize;
 
 		// 按2的幂次将 可分配的内存块大小 划分N级, 每级都用一个链表管理
 		// 0 级 = 最大的内存块, N-1 级 = 最小的内存块
-		std::vector<std::list<uint8_t*>> m_freeList;
-		std::vector<std::list<uint8_t*>> m_usedList;
+		std::vector<std::list<uint32_t>> m_freeList;
+		std::vector<std::list<uint32_t>> m_usedList;
 
 		uint32_t m_pageID;
 	};
@@ -108,9 +107,6 @@ namespace ccmem
 	public:
 		// blockByteSize = 单个内存块的大小 fullByteSize = 总内存大小
 		BuddyAllocator(uint32_t blockByteSize, uint32_t fullByteSize);
-
-		void Alloc(uint32_t byteSize, const std::function<void(const BuddyTaskResult&)>& callback);
-		void Free(uint8_t* pFreeMem);
 
 		void ExecuteTasks();
 		void Print();
@@ -125,16 +121,17 @@ namespace ccmem
 		uint32_t GetAlignedByteSize(uint32_t byteSize);
 
 	protected:
-		virtual void OnAllocatorAdded() = 0;
+		virtual void OnAllocatorAdded(BuddyAllocatorPage* pAllocator) = 0;
+
+		void AddAllocTask(uint32_t byteSize, void* pTaskContext, const std::function<void(const BuddyTaskResult&)>& callback);
+		void AddFreeTask(BuddyAllocatorPage* pAllocator, uint32_t pFreeMem);
 
 	private:
 		BuddyAllocatorPage* AddAllocatorInternal();
-
-	private:
-		std::mutex m_mutex;
-
 		BuddyTask::State TryAlloc(const BuddyTask& task, BuddyTaskResult& oTaskResult);
 		BuddyTask::State TryFree(const BuddyTask& task);
+	private:
+		std::mutex m_mutex;
 
 		// 任务队列，任务首次添加总是添加到这里
 		std::list<BuddyTask> m_taskList;

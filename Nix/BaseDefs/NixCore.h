@@ -8,7 +8,7 @@
 #include <string>
 
 #include "Ntr.h"
-#include "XAllocCommons.h"
+#include "XAllocImpl.h"
 
 #define SafeDeleteArray(x) { delete[] x; x = nullptr; }
 #define SafeDelete(x) { delete x; x = nullptr; }

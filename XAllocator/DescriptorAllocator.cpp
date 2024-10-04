@@ -19,7 +19,7 @@ NonVisibleDescriptorAllocator::NonVisibleDescriptorAllocator(ID3D12Device* pDevi
 
 void ccmem::NonVisibleDescriptorAllocator::Alloc(const std::function<void(NonVisibleDescriptorTaskResult&)>& callback)
 {
-	DeadListAllocator::Alloc([this, callback](DeadListTaskResult& result) {
+	DeadListAllocator::Alloc([this, callback](const DeadListTaskResult& result) {
 		NonVisibleDescriptorTaskResult taskResult;
 		taskResult.cpuHandle = m_pDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 		taskResult.cpuHandle.ptr += result * m_descriptorIncrementSize;
