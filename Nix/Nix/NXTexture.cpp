@@ -143,6 +143,10 @@ void NXTexture::CreateInternal(const std::unique_ptr<DirectX::ScratchImage>& pIm
 	size_t totalBytes;
 	NXGlobalDX::GetDevice()->GetCopyableFootprints(&desc, 0, layoutSize, 0, layouts, numRow, numRowSizeInBytes, &totalBytes);
 
+	NXAllocMng_Tex->Alloc(&desc, totalBytes, [this](const PlacedBufferAllocTaskResult& result) {
+		m_pTexture = result.pResource;
+	}); 
+
 	if (NXTextureAllocator->Alloc(desc, m_pTexture.GetAddressOf()))
 	{
 		m_pTexture->SetName(NXConvert::s2ws(m_name).c_str());

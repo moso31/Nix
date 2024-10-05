@@ -7,6 +7,7 @@
     <ClCompile Include="DescriptorAllocator.cpp" />
     <ClCompile Include="PlacedBufferAllocator.cpp" />
     <ClCompile Include="XAllocCommon.h" />
+    <ClCompile Include="UploadSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buddy.h" />
@@ -15,5 +16,6 @@
     <ClInclude Include="XAllocImpl.h" />
     <ClInclude Include="DescriptorAllocator.h" />
     <ClInclude Include="PlacedBufferAllocator.h" />
+    <ClInclude Include="UploadSystem.h" />
   </ItemGroup>
 </Project>

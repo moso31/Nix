@@ -24,6 +24,7 @@
     <ClCompile Include="DeadList.cpp" />
     <ClCompile Include="DescriptorAllocator.cpp" />
     <ClCompile Include="PlacedBufferAllocator.cpp" />
+    <ClCompile Include="UploadSystem.cpp" />
     <ClCompile Include="XAllocCommon.h" />
   </ItemGroup>
   <ItemGroup>
@@ -32,6 +33,7 @@
     <ClInclude Include="DeadList.h" />
     <ClInclude Include="DescriptorAllocator.h" />
     <ClInclude Include="PlacedBufferAllocator.h" />
+    <ClInclude Include="UploadSystem.h" />
     <ClInclude Include="XAllocImpl.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

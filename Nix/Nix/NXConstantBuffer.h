@@ -37,6 +37,15 @@ public:
 		memcpy(currentData, &newData, m_byteSize);
 	}
 
+	void Set(const T& newData)
+	{
+		for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
+		{
+			T* currentData = m_data[i].ptr;
+			memcpy(currentData, &newData, m_byteSize);
+		}
+	}
+
 private:
 	MultiFrame<Data> m_data;
 	UINT m_byteSize;
@@ -82,6 +91,7 @@ protected:
 	}
 
 private:
+	// TODO进一步完善动态情况的处理
 	bool m_isDynamic = false;
 
 	// 允许动态和静态两种情况；
