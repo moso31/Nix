@@ -9,12 +9,13 @@
 //#define NXDescriptorAllocator		NXAllocatorManager::GetInstance()->GetDescriptorAllocator()
 //#define NXGPUHandleHeap				NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap()
 
-#define NXAllocMng_CB			 NXAllocatorManager::GetInstance()->GetCBAllocator()
-#define NXAllocMng_SB			 NXAllocatorManager::GetInstance()->GetSBAllocator()
-#define NXAllocMng_Tex			 NXAllocatorManager::GetInstance()->GetTextureAllocator()
-#define NXAllocMng_SRV			 NXAllocatorManager::GetInstance()->GetSRVAllocator()
-#define NXAllocMng_RTV			 NXAllocatorManager::GetInstance()->GetRTVAllocator()
-#define NXAllocMng_DSV			 NXAllocatorManager::GetInstance()->GetDSVAllocator()
+#define NXAllocator_CB		NXAllocatorManager::GetInstance()->GetCBAllocator()
+#define NXAllocator_SB		NXAllocatorManager::GetInstance()->GetSBAllocator()
+#define NXAllocator_Tex		NXAllocatorManager::GetInstance()->GetTextureAllocator()
+#define NXAllocator_SRV		NXAllocatorManager::GetInstance()->GetSRVAllocator()
+#define NXAllocator_RTV		NXAllocatorManager::GetInstance()->GetRTVAllocator()
+#define NXAllocator_DSV		NXAllocatorManager::GetInstance()->GetDSVAllocator()
+#define NXUploadSystem		NXAllocatorManager::GetInstance()->GetUploadSystem()
 
 using namespace ccmem;
 
@@ -27,6 +28,8 @@ public:
 	CommittedBufferAllocator*			GetCBAllocator()		{ return m_pCBAllocator; }
 	CommittedBufferAllocator*			GetSBAllocator()		{ return m_pSBAllocator; }
 	PlacedBufferAllocator*				GetTextureAllocator()	{ return m_pTextureAllocator; }
+	UploadSystem*						GetUploadSystem()		{ return m_pUpdateSystem; }
+
 	ShaderVisibleDescriptorAllocator*	GetSRVAllocator()		{ return m_pSRVAllocator; }
 	NonVisibleDescriptorAllocator*		GetRTVAllocator()		{ return m_pRTVAllocator; }
 	NonVisibleDescriptorAllocator*		GetDSVAllocator()		{ return m_pDSVAllocator; }
@@ -37,6 +40,8 @@ private:
 	CommittedBufferAllocator*			m_pCBAllocator;
 	CommittedBufferAllocator*			m_pSBAllocator;
 	PlacedBufferAllocator*				m_pTextureAllocator;
+	UploadSystem*						m_pUpdateSystem;
+
 	ShaderVisibleDescriptorAllocator*	m_pSRVAllocator;
 	NonVisibleDescriptorAllocator* 		m_pRTVAllocator;
 	NonVisibleDescriptorAllocator* 		m_pDSVAllocator;

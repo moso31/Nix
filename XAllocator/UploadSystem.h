@@ -3,37 +3,36 @@
 
 namespace ccmem
 {
+    struct UploadTaskContext;
     struct UploadTask
     {
         void Reset()
         {
-            isWorking = false;
-            ringPos = 0;
-            byteSize = 0;
-            fenceValue = 0;
-        }
+			ringPos = 0;
+			byteSize = 0;
+			fenceValue = 0;
+		}
 
-        ID3D12GraphicsCommandList* pCmdList;
-        ID3D12CommandAllocator* pCmdAllocator;
+		ID3D12GraphicsCommandList* pCmdList = nullptr;
+		ID3D12CommandAllocator* pCmdAllocator = nullptr;
 
-        // 记录 task 的fenceValue
-	    // 起手 BuildTask()时，fenceValue = -1（表示未完成）
-	    // 完成时 FinishTask() 方法会刷新这个值为一个正常的值，
-        // 然后每帧 Update() 时，GPU才能将其移除
-        uint64_t fenceValue;
+		// 记录 task 的fenceValue
+		// 起手 BuildTask()时，fenceValue = -1（表示未完成）
+		// 完成时 FinishTask() 方法会刷新这个值为一个正常的值，
+		// 然后每帧 Update() 时，GPU才能将其移除
+		uint64_t fenceValue = 0;
 
-        // 在RingBuffer中的位置和大小
-        uint32_t ringPos;   
-        uint32_t byteSize;
+		// 在RingBuffer中的位置和大小
+		uint32_t ringPos = 0;
+		uint32_t byteSize = 0;
+	};
 
-        bool isWorking = false;
-    };
-
-    struct UploadTaskContext
+	struct UploadTaskContext
     {
-        UploadTask* inputTask = nullptr;
+        UploadTask* pOwner = nullptr;
 		ID3D12Resource* pResource = nullptr;
 		uint8_t* pResourceData = nullptr;
+        uint32_t pResourceOffset = 0;
 	};
 
     class UploadRingBuffer
@@ -68,7 +67,7 @@ namespace ccmem
         UploadSystem(ID3D12Device* pDevice);
         ~UploadSystem();
 
-        bool BuildTask(int byteSize, UploadTaskContext& result);
+        bool BuildTask(int byteSize, UploadTaskContext& taskResult);
         void FinishTask(const UploadTaskContext& result);
         void Update();
 

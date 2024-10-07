@@ -50,10 +50,7 @@ bool ccmem::UploadRingBuffer::BuildTask(uint32_t byteSize, UploadTask& oTask)
 		// case 1.1. 加入新地址以后，依然没有达到环尾
 		if (m_usedEnd + byteSize < m_size)
 		{
-			oTask.isWorking = true;
 			oTask.ringPos = m_usedEnd;
-			oTask.byteSize = byteSize;
-
 			m_usedEnd += byteSize;
 		}
 		// case 1.2. 加入新地址以后会超过环尾（改成在环头创建）
@@ -62,10 +59,7 @@ bool ccmem::UploadRingBuffer::BuildTask(uint32_t byteSize, UploadTask& oTask)
 			// 检测是否有足够空间
 			if (byteSize <= m_usedStart)
 			{
-				oTask.isWorking = true;
 				oTask.ringPos = 0;
-				oTask.byteSize = byteSize;
-
 				m_usedEnd = byteSize;
 			}
 			else
@@ -81,10 +75,7 @@ bool ccmem::UploadRingBuffer::BuildTask(uint32_t byteSize, UploadTask& oTask)
 		// case 2.1. 加入新地址之后，依然没有超过st
 		if (m_usedEnd + byteSize < m_usedStart)
 		{
-			oTask.isWorking = true;
 			oTask.ringPos = m_usedEnd;
-			oTask.byteSize = byteSize;
-
 			m_usedEnd += byteSize;
 		}
 		// case 2.2. 加入新地址之后，超过了st（没有剩余空间了）
@@ -94,6 +85,8 @@ bool ccmem::UploadRingBuffer::BuildTask(uint32_t byteSize, UploadTask& oTask)
 		}
 	}
 
+	// 能走到这里都是分配成功的情况
+	oTask.byteSize = byteSize;
 	oTask.fenceValue = UINT64_MAX;
 	return true;
 }
@@ -159,9 +152,10 @@ bool ccmem::UploadSystem::BuildTask(int byteSize, UploadTaskContext& taskResult)
 		task.pCmdAllocator->Reset();
 		task.pCmdList->Reset(task.pCmdAllocator, nullptr);
 
-		taskResult.inputTask = &task;
+		taskResult.pOwner = &task;
 		taskResult.pResource = m_ringBuffer.GetResource();
 		taskResult.pResourceData = m_ringBuffer.GetResourceMappedData();
+		taskResult.pResourceOffset = task.ringPos;
 
 		return true;
 	}
@@ -173,7 +167,7 @@ void ccmem::UploadSystem::FinishTask(const UploadTaskContext& result)
 {
 	std::lock_guard<std::mutex> lock(m_mutex);
 
-	UploadTask* task = result.inputTask;
+	UploadTask* task = result.pOwner;
 
 	task->pCmdList->Close();
 	ID3D12CommandList* cmdLists[] = { task->pCmdList };
