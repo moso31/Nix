@@ -34,6 +34,8 @@ namespace ccmem
 		// 每次添加一个Allocator时，调用这个函数
 		void OnAllocatorAdded(BuddyAllocatorPage* pAllocator) override;
 
+		ID3D12Device* GetDevice() { return m_pDevice; }
+
 	private:
 		ID3D12Device* m_pDevice;
 		std::unordered_map<BuddyAllocatorPage*, AllocatorData> m_allocatorPageData;

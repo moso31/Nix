@@ -9,31 +9,24 @@ class NXConstantBufferImpl
 public:
 	struct Data
 	{
-		T* ptr;
-		uint8_t* cpuAddress;
+		T* cpuAddress;
 		D3D12_GPU_VIRTUAL_ADDRESS gpuAddress;
 	};
 
-protected:
-	void Create(UINT byteSize)
-	{
-		m_byteSize = byteSize;
-		m_allByteSize = byteSize * MultiFrameSets_swapChainCount;
-
-		for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
-		{
-			NXAllocMng_CB->Alloc(byteSize, [this](const CommittedBufferAllocTaskResult& result) {
-				m_data[i].cpuAddress = result.cpuAddress;
-				m_data[i].gpuAddress = result.gpuAddress;
-				m_data[i].ptr = reinterpret_cast<T*>(result.cpuAddress);
-			});
-		}
-	}
+	typedef ShaderVisibleDescriptorTaskResult ViewData;
 
 public:
+	virtual void Create() { assert(false); };
+	virtual void Create(uint32_t arraySize) { assert(false); };
+
+	const T& Current()
+	{
+		return *m_data.Current().cpuAddress;
+	}
+
 	void Update(const T& newData)
 	{
-		T* currentData = m_data.Current().ptr;
+		T* currentData = m_data.Current().cpuAddress;
 		memcpy(currentData, &newData, m_byteSize);
 	}
 
@@ -41,61 +34,65 @@ public:
 	{
 		for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 		{
-			T* currentData = m_data[i].ptr;
+			T* currentData = m_data[i].cpuAddress;
 			memcpy(currentData, &newData, m_byteSize);
 		}
 	}
 
-private:
+protected:
+	void CreateInternal(UINT byteSize)
+	{
+		byteSize = (byteSize + 255) & ~255;
+
+		m_byteSize = byteSize;
+		m_allByteSize = byteSize * MultiFrameSets_swapChainCount;
+
+		for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
+		{
+			NXAllocator_CB->Alloc(byteSize, [this](const CommittedBufferAllocTaskResult& result) {
+				Data& data = m_data[i];
+				data.cpuAddress = reinterpret_cast<T*>(result.cpuAddress);
+				data.gpuAddress = result.gpuAddress;
+
+				NXAllocator_SRV->Alloc([data, byteSize](const ShaderVisibleDescriptorTaskResult& taskResult) {
+					m_cbView = taskResult;
+					D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+					cbvDesc.BufferLocation = data.gpuAddress;
+					cbvDesc.SizeInBytes = byteSize;
+					NXAllocator_CB->GetDevice()->CreateConstantBufferView(&cbvDesc, m_cbView.cpuHandle);
+					});
+				});
+		}
+	}
+
+protected:
 	MultiFrame<Data> m_data;
+	MultiFrame<ViewData> m_cbView;
 	UINT m_byteSize;
 	UINT m_allByteSize;
 };
 
 template<typename T>
-class NXStructuredBufferImpl
+class NXConstantBuffer : public NXConstantBufferImpl<T>
 {
 public:
-	struct Data
+	void Create() override
 	{
-		T* ptr;
-		uint8_t* cpuAddress;
-		D3D12_GPU_VIRTUAL_ADDRESS gpuAddress;
-	};
+		CreateInternal(sizeof(T));
+	}
+};
 
-protected:
-	void Create(UINT byteSize, bool isDynamic = false)
+template<typename T>
+class NXConstantBuffer<std::vector<T>> : public NXConstantBufferImpl<std::vector<T>>
+{
+public:
+	void Create(uint32_t arraySize) override
 	{
-		m_isDynamic = isDynamic;
-		m_byteSize = byteSize;
-
-		if (isDynamic)
-		{
-			for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
-			{
-				NXAllocMng_SB->Alloc(m_byteSize, [this](const CommittedBufferAllocTaskResult& result) {
-					m_data[i].cpuAddress = result.cpuAddress;
-					m_data[i].gpuAddress = result.gpuAddress;
-					m_data[i].ptr = reinterpret_cast<T*>(result.cpuAddress);
-				});
-			}
-		}
-		else
-		{
-			NXAllocMng_SB->Alloc(m_byteSize, [this](const CommittedBufferAllocTaskResult& result) {
-				m_data[0].cpuAddress = result.cpuAddress;
-				m_data[0].gpuAddress = result.gpuAddress;
-				m_data[0].ptr = reinterpret_cast<T*>(result.cpuAddress);
-			});
-		}
+		CreateInternal(sizeof(T) * arraySize);
 	}
 
-private:
-	// TODO进一步完善动态情况的处理
-	bool m_isDynamic = false;
-
-	// 允许动态和静态两种情况；
-	// 动态的话使用MultiFrame，静态的话只使用m_data[0]
-	MultiFrame<Data> m_data;
-	UINT m_byteSize;
+	void Set(uint32_t index, const T& newData)
+	{
+		m_data[index] = newData;
+	}
 };

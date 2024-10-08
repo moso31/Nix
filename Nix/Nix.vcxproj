@@ -279,7 +279,6 @@
     <ClCompile Include="Core\NXShaderVisibleDescriptorHeap.cpp" />
     <ClCompile Include="Nix\HBVH.cpp" />
     <ClCompile Include="Nix\NXBuffer.cpp" />
-    <ClCompile Include="Nix\NXConstantBuffer.cpp" />
     <ClCompile Include="Nix\NXDepthPrepass.cpp" />
     <ClCompile Include="Nix\NXSSSDiffuseProfile.cpp" />
     <ClCompile Include="Nix\NXEditorObjectManager.cpp" />
@@ -398,6 +397,7 @@
     <ClInclude Include="Nix\NXRefCountable.h" />
     <ClInclude Include="Nix\NXRenderableObject.h" />
     <ClInclude Include="Nix\NXScriptable.h" />
+    <ClInclude Include="Nix\NXStructuredBuffer.h" />
     <ClInclude Include="Nix\NXTextureDefinitions.h" />
     <ClInclude Include="Nix\NXSimpleSSAO.h" />
     <ClInclude Include="Nix\NXSubMesh.h" />

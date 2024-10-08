@@ -13,7 +13,7 @@ void CommittedBufferAllocator::Alloc(uint32_t byteSize, const std::function<void
 {
 	BuddyAllocator::AddAllocTask(byteSize, nullptr, [this, callback](const BuddyTaskResult& taskResult) {
 		CommittedBufferAllocTaskResult result;
-		result.cpuAddress = m_allocatorPageData[taskResult.pAllocator].m_pResourceData;
+		result.cpuAddress = m_allocatorPageData[taskResult.pAllocator].m_pResourceData + taskResult.byteOffset;
 		result.gpuAddress = m_allocatorPageData[taskResult.pAllocator].m_pResource->GetGPUVirtualAddress() + taskResult.byteOffset;
 
 		m_freeMap[result.cpuAddress] = taskResult;

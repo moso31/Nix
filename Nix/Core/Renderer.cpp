@@ -178,6 +178,8 @@ void Renderer::Update()
 {
 	UpdateGUI();
 	UpdateSceneData();
+
+	NXAllocatorManager::GetInstance()->Update();
 }
 
 void Renderer::UpdateGUI()

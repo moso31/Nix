@@ -496,9 +496,6 @@
     <ClCompile Include="Core\NXPSOManager.cpp">
       <Filter>Core\DirectX\Manager</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\NXConstantBuffer.cpp">
-      <Filter>Nix\TextureBuffer</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -820,6 +817,9 @@
       <Filter>Core\DirectX\Manager</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXConstantBuffer.h">
+      <Filter>Nix\TextureBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXStructuredBuffer.h">
       <Filter>Nix\TextureBuffer</Filter>
     </ClInclude>
   </ItemGroup>

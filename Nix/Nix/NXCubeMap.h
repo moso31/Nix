@@ -6,7 +6,7 @@
 #include "DirectXTex.h"
 #include "ShaderStructures.h"
 #include "Ntr.h"
-#include "NXBuffer.h"
+#include "NXConstantBuffer.h"
 
 #define NXCUBEMAP_FACE_COUNT 6
 #define NXROUGHNESS_FILTER_COUNT 5
@@ -117,10 +117,8 @@ private:
 	Vector3 m_shIrradianceMap[9];
 	Vector3 m_shIrradianceMap_CPU[9];
 
-	// 生成使用独立的 allocator 来管理 CubeMap 的 cb
-	CommittedAllocator* m_cbAllocator;
-	NXBuffer<ConstantBufferCubeMap> m_cbData;
-	NXBuffer<ConstantBufferBaseWVP> m_cbObject;
+	NXConstantBuffer<ConstantBufferCubeMap> m_cbData;
+	NXConstantBuffer<ConstantBufferBaseWVP> m_cbObject;
 
 	size_t	m_pSRVIrradianceSH;
 

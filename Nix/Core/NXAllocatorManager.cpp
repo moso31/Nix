@@ -4,31 +4,37 @@
 void NXAllocatorManager::Init()
 {
 	auto pDevice = NXGlobalDX::GetDevice();
-	m_pConstantBufferAllocator = new CommittedAllocator(pDevice);
-	m_pTextureAllocator = new PlacedAllocator(pDevice);
-	m_pDescriptorAllocator = new DescriptorAllocator(pDevice);
-	m_pRTVAllocator = new RTVAllocator(pDevice);
-	m_pDSVAllocator = new DSVAllocator(pDevice);
 
-	// Shader visible heap 预留10个静态描述符。目前这么做的原因暂时只有一个：imgui
-	// 在imgui DX12中，必须使用描述符堆中固定位置的索引，作为字体纹理的描述符堆
-	m_pShaderVisibleDescriptorHeap = new NXShaderVisibleDescriptorHeap(pDevice, 10);
-	m_pShaderVisibleDescriptorHeap->GetHeap()->SetName(L"NXGlobal shader visible heap");
+	m_pCBAllocator = new CommittedBufferAllocator(pDevice);
+	m_pSBAllocator = new CommittedBufferAllocator(pDevice);
+	m_pTextureAllocator = new PlacedBufferAllocator(pDevice);
+
+	m_pUpdateSystem = new UploadSystem(pDevice);
+
+	m_pSRVAllocator = new ShaderVisibleDescriptorAllocator(pDevice, 1000000);
+	m_pRTVAllocator = new NonVisibleDescriptorAllocator(pDevice, 4096);
+	m_pDSVAllocator = new NonVisibleDescriptorAllocator(pDevice, 4096);
+}
+
+void NXAllocatorManager::Update()
+{
+	m_pUpdateSystem->Update();
+
+	m_pCBAllocator->ExecuteTasks();
+	m_pSBAllocator->ExecuteTasks();
+	m_pTextureAllocator->ExecuteTasks();
+	m_pSRVAllocator->ExecuteTasks();
+	m_pRTVAllocator->ExecuteTasks();
+	m_pDSVAllocator->ExecuteTasks();
 }
 
 void NXAllocatorManager::Release()
 {
-	m_pConstantBufferAllocator->Clear();
-	m_pTextureAllocator->Clear();
-	m_pDescriptorAllocator->Clear();
-	m_pRTVAllocator->Clear();
-	m_pDSVAllocator->Clear();
-
-	delete m_pConstantBufferAllocator;
-	delete m_pTextureAllocator;
-	delete m_pDescriptorAllocator;
-	delete m_pRTVAllocator;
-	delete m_pDSVAllocator;
-
-	delete m_pShaderVisibleDescriptorHeap;
+	SafeDelete(m_pCBAllocator);
+	SafeDelete(m_pSBAllocator);
+	SafeDelete(m_pTextureAllocator);
+	SafeDelete(m_pUpdateSystem);
+	SafeDelete(m_pSRVAllocator);
+	SafeDelete(m_pRTVAllocator);
+	SafeDelete(m_pDSVAllocator);
 }

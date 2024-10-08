@@ -34,6 +34,8 @@ public:
 	NonVisibleDescriptorAllocator*		GetRTVAllocator()		{ return m_pRTVAllocator; }
 	NonVisibleDescriptorAllocator*		GetDSVAllocator()		{ return m_pDSVAllocator; }
 
+	void Update();
+
 	void Release();
 
 private:

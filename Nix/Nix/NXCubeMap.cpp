@@ -20,8 +20,8 @@ using namespace DirectX::SimpleMath::SH;
 NXCubeMap::NXCubeMap(NXScene* pScene) :
 	m_pScene(pScene)
 {
-	m_cbAllocator = new CommittedAllocator(NXGlobalDX::GetDevice(), 256);
-	m_cbData.CreateFrameBuffers(m_cbAllocator, NXDescriptorAllocator);
+	m_cbData.Create();
+
 	m_fenceValue = 0;
 }
 
@@ -43,7 +43,7 @@ bool NXCubeMap::Init(const std::filesystem::path& filePath)
 	m_mxCubeMapView[4] = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 1.0f), Vector3(0.0f, 1.0f, 0.0f));
 	m_mxCubeMapView[5] = XMMatrixLookAtLH(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, -1.0f), Vector3(0.0f, 1.0f, 0.0f));
 
-	m_cbObject.CreateFrameBuffers(NXCBufferAllocator, NXDescriptorAllocator);
+	m_cbObject.Create();
 
 	std::string strExtension = NXConvert::s2lower(filePath.extension().string().c_str());
 
@@ -92,21 +92,17 @@ D3D12_CPU_DESCRIPTOR_HANDLE NXCubeMap::GetSRVPreFilterMap()
 
 void NXCubeMap::Update()
 {
-	m_cbData.UpdateBuffer();
-
 	auto pCamera = m_pScene->GetMainCamera();
-	m_cbObject.Get().world = Matrix::CreateTranslation(pCamera->GetTranslation()).Transpose();
-	m_cbObject.Get().view = pCamera->GetViewMatrix().Transpose();
-	m_cbObject.Get().projection = pCamera->GetProjectionMatrix().Transpose();
-	m_cbObject.UpdateBuffer();
+	ConstantBufferBaseWVP cbWVP;
+	cbWVP.world = Matrix::CreateTranslation(pCamera->GetTranslation()).Transpose();
+	cbWVP.view = pCamera->GetViewMatrix().Transpose();
+	cbWVP.projection = pCamera->GetProjectionMatrix().Transpose();
+	m_cbObject.Set(cbWVP);
 }
 
 void NXCubeMap::Release()
 {
 	NXTransform::Release();
-
-	m_cbAllocator->Clear();
-	delete m_cbAllocator;
 }
 
 Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)
@@ -114,14 +110,15 @@ Ntr<NXTextureCube> NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR)
 	ComPtr<ID3D12CommandAllocator> pCmdAllocators[NXCUBEMAP_FACE_COUNT];
 	ComPtr<ID3D12GraphicsCommandList> pCmdLists[NXCUBEMAP_FACE_COUNT];
 
-	NXBuffer<ConstantBufferBaseWVP> cbCubeGenerator;
-	cbCubeGenerator.CreateBuffers(m_cbAllocator, NXDescriptorAllocator, NXCUBEMAP_FACE_COUNT);
+	NXConstantBuffer<std::vector<ConstantBufferBaseWVP>> cbCubeGenerator;
+	cbCubeGenerator.Create(NXCUBEMAP_FACE_COUNT);
 	for (int i = 0; i < NXCUBEMAP_FACE_COUNT; i++)
 	{
-		cbCubeGenerator.Get(i).world = Matrix::Identity();
-		cbCubeGenerator.Get(i).view = m_mxCubeMapView[i].Transpose();
-		cbCubeGenerator.Get(i).projection = m_mxCubeMapProj.Transpose();
-		cbCubeGenerator.UpdateBuffer(i);
+		ConstantBufferBaseWVP cbWVP;
+		cbWVP.world = Matrix::Identity();
+		cbWVP.view = m_mxCubeMapView[i].Transpose();
+		cbWVP.projection = m_mxCubeMapProj.Transpose();
+		cbCubeGenerator.Set(i, cbWVP);
 	}
 
 	const static float mapSize = 1024;
@@ -431,8 +428,7 @@ void NXCubeMap::GenerateIrradianceSHFromCubeMap()
 
 	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 	{
-		auto& cbData = m_cbData.Get(i);
-
+		ConstantBufferCubeMap cbData = m_cbData.Current();
 		cbData.irradSH0123x = Vector4(m_shIrradianceMap[0].x, m_shIrradianceMap[1].x, m_shIrradianceMap[2].x, m_shIrradianceMap[3].x);
 		cbData.irradSH0123y = Vector4(m_shIrradianceMap[0].y, m_shIrradianceMap[1].y, m_shIrradianceMap[2].y, m_shIrradianceMap[3].y);
 		cbData.irradSH0123z = Vector4(m_shIrradianceMap[0].z, m_shIrradianceMap[1].z, m_shIrradianceMap[2].z, m_shIrradianceMap[3].z);
@@ -440,6 +436,7 @@ void NXCubeMap::GenerateIrradianceSHFromCubeMap()
 		cbData.irradSH4567y = Vector4(m_shIrradianceMap[4].y, m_shIrradianceMap[5].y, m_shIrradianceMap[6].y, m_shIrradianceMap[7].y);
 		cbData.irradSH4567z = Vector4(m_shIrradianceMap[4].z, m_shIrradianceMap[5].z, m_shIrradianceMap[6].z, m_shIrradianceMap[7].z);
 		cbData.irradSH8xyz = m_shIrradianceMap[8];
+		m_cbData.Set(cbData);
 	}
 }
 

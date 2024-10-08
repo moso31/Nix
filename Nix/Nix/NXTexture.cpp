@@ -264,12 +264,18 @@ void NXTexture::CreateTextureInternal(D3D12_RESOURCE_FLAGS flags)
 				else
 					hr = LoadFromWICFile(m_texFilePath.c_str(), WIC_FLAGS_NONE, &metadata, *pImage);
 
+				m_width = (UINT)metadata.width;
+				m_height = (UINT)metadata.height;
+				m_arraySize = (UINT)metadata.arraySize;
+				m_mipLevels = (UINT)metadata.mipLevels;
+				m_texFormat = metadata.format;
+
 				if (FAILED(hr))
 				{
 					std::wstring errMsg = L"Failed to load texture file." + m_texFilePath.wstring();
 					MessageBox(NULL, errMsg.c_str(), L"Error", MB_OK | MB_ICONERROR);
 					pImage.reset();
-					return nullptr;
+					return;
 				}
 
 				// 如果读取的是arraySize/TextureCube，就只读取ArraySize[0]/X+面。
@@ -387,9 +393,20 @@ void NXTexture::CreateTextureInternal(D3D12_RESOURCE_FLAGS flags)
 						}
 					}
 				}
+
+				delete[] layouts;
+				delete[] numRow;
+				delete[] numRowSizeInBytes;
+
+				pImage.reset();
 			}
 
 			NXUploadSystem->FinishTask(taskContext);
+		}
+		else
+		{
+			// 抛出异常
+			printf("Error: [NXUploadSystem::BuildTask] failed when loading NXTexture2D: %s\n", m_texFilePath.string().c_str());
 		}
 	});
 }
@@ -512,20 +529,11 @@ void NXTexture::Deserialize()
 
 Ntr<NXTexture2D> NXTexture2D::Create(const std::string& debugName, const std::filesystem::path& filePath, D3D12_RESOURCE_FLAGS flags)
 {
-	m_texFilePath = filePath;
 	Deserialize();
-
 	m_texFilePath = filePath;
 	m_name = debugName;
-	m_width = (UINT)metadata.width;
-	m_height = (UINT)metadata.height;
-	m_arraySize = (UINT)metadata.arraySize;
-	m_mipLevels = (UINT)metadata.mipLevels;
-	m_texFormat = metadata.format;
 
-	CreateInternal(pImage, flags);
-
-	pImage.reset();
+	CreateTextureInternal(flags);
 	return this;
 }
 
