@@ -15,6 +15,8 @@
 #define SafeReleaseCOM(x) { if (x) { x->Release(); x = nullptr; } }
 #define SafeRelease(x) { if (x) { x->Release(); SafeDelete(x); } }
 
+#define struct_cbuffer struct alignas(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT)
+
 namespace NX
 {
 	inline void ThrowIfFailed(HRESULT hr) { if (FAILED(hr)) throw(hr); }

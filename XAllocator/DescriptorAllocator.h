@@ -29,6 +29,8 @@ namespace ccmem
 		void Alloc(const std::function<void(const ShaderVisibleDescriptorTaskResult&)>& callback);
 		void Free(uint32_t freeIndex);
 
+		ID3D12DescriptorHeap* GetDescriptorHeap() const { return m_pDescriptorHeap; }
+
 	private:
 		ID3D12Device* m_pDevice;
 		ID3D12DescriptorHeap* m_pDescriptorHeap;

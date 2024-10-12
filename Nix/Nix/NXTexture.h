@@ -1,5 +1,6 @@
 #pragma once
 #include "BaseDefs/DX12.h"
+#include <future>
 #include "SimpleMath.h"
 #include "Ntr.h"
 #include "NXObject.h"
@@ -11,6 +12,7 @@
 using namespace Microsoft::WRL;
 using namespace SimpleMath;
 using namespace DirectX;
+using namespace ccmem;
 
 enum NXTextureReloadingState
 {
@@ -50,7 +52,9 @@ public:
         m_mipLevels(-1),
         m_texFilePath(""),
         m_type(type),
-        m_resourceState(D3D12_RESOURCE_STATE_COPY_DEST)
+        m_resourceState(D3D12_RESOURCE_STATE_COPY_DEST),
+        m_loadingViews(0),
+        m_futureLoadingViews(m_promiseLoadingViews.get_future())
     {}
 
     virtual ~NXTexture();
@@ -59,10 +63,10 @@ public:
 
     ID3D12Resource* GetTex() const { return m_pTexture.Get(); }
 
-    const D3D12_CPU_DESCRIPTOR_HANDLE GetSRV(UINT index = 0) const { return { m_pSRVs[index] }; }
-    const D3D12_CPU_DESCRIPTOR_HANDLE GetRTV(UINT index = 0) const { return { m_pRTVs[index] }; }
-    const D3D12_CPU_DESCRIPTOR_HANDLE GetDSV(UINT index = 0) const { return { m_pDSVs[index] }; }
-    const D3D12_CPU_DESCRIPTOR_HANDLE GetUAV(UINT index = 0) const { return { m_pUAVs[index] }; }
+    const ShaderVisibleDescriptorTaskResult& GetSRV(uint32_t index = 0) const { return { m_pSRVs[index] }; }
+    const NonVisibleDescriptorTaskResult& GetRTV(uint32_t index = 0) const { return { m_pRTVs[index] }; }
+    const NonVisibleDescriptorTaskResult& GetDSV(uint32_t index = 0) const { return { m_pDSVs[index] }; }
+    const ShaderVisibleDescriptorTaskResult& GetUAV(uint32_t index = 0) const { return { m_pUAVs[index] }; }
     const size_t GetSRVs() const { return m_pSRVs.size(); }
     const size_t GetRTVs() const { return m_pRTVs.size(); }
     const size_t GetDSVs() const { return m_pDSVs.size(); }
@@ -72,9 +76,14 @@ public:
     const size_t* GetDSVArray() { return m_pDSVs.data(); }
     const size_t* GetUAVArray() { return m_pUAVs.data(); }
 
+    void SetViews(uint32_t srvNum, uint32_t rtvNum, uint32_t dsvNum, uint32_t uavNum, bool bAutoSubmitViews = true);
+    void SubmitLoadingViews(int asyncLoadingViewsCount);
+    void ProcessLoadingViews();
+    void WaitLoadingViewsFinish();
+
     const D3D12_CLEAR_VALUE& GetClearValue() { return m_clearValue; }
     void SetClearValue(float R, float G, float B, float A);
-    void SetClearValue(float depth, UINT stencilRef);
+    void SetClearValue(float depth, uint32_t stencilRef);
 
     const D3D12_RESOURCE_STATES& GetResourceState() { return m_resourceState; }
     const void SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D3D12_RESOURCE_STATES& state);
@@ -90,10 +99,10 @@ public:
     NXTextureReloadTask LoadTextureAsync();
     void LoadTextureSync();
 
-    UINT            GetWidth() { return m_width; }
-    UINT            GetHeight() { return m_height; }
-    UINT            GetArraySize() { return m_arraySize; }
-    UINT            GetMipLevels() { return m_mipLevels; }
+    uint32_t            GetWidth() { return m_width; }
+    uint32_t            GetHeight() { return m_height; }
+    uint32_t            GetArraySize() { return m_arraySize; }
+    uint32_t            GetMipLevels() { return m_mipLevels; }
     DXGI_FORMAT     GetFormat() { return m_texFormat; }
     DXGI_FORMAT     GetDSVFormat() { return NXConvert::TypelessToDSVFormat(m_texFormat); }
 
@@ -133,17 +142,21 @@ protected:
     D3D12_RESOURCE_STATES m_resourceState;
     std::filesystem::path m_texFilePath;
 
-    std::vector<UINT64> m_pSRVs;
-    std::vector<UINT64> m_pRTVs;
-    std::vector<UINT64> m_pDSVs;
-    std::vector<UINT64> m_pUAVs;
+    std::atomic<int> m_loadingViews;
+    std::promise<void> m_promiseLoadingViews;
+    std::future<void> m_futureLoadingViews;
+
+    std::vector<ShaderVisibleDescriptorTaskResult> m_pSRVs;
+    std::vector<NonVisibleDescriptorTaskResult> m_pRTVs;
+    std::vector<NonVisibleDescriptorTaskResult> m_pDSVs;
+    std::vector<ShaderVisibleDescriptorTaskResult> m_pUAVs;
 
     NXTextureType m_type;
     DXGI_FORMAT m_texFormat;
-    UINT m_width;
-    UINT m_height;
-    UINT m_arraySize;
-    UINT m_mipLevels;
+    uint32_t m_width;
+    uint32_t m_height;
+    uint32_t m_arraySize;
+    uint32_t m_mipLevels;
 
     // 序列化数据
     NXTextureSerializationData m_serializationData;
@@ -163,14 +176,14 @@ public:
     virtual ~NXTexture2D() {}
 
     Ntr<NXTexture2D> Create(const std::string& DebugName, const std::filesystem::path& FilePath, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
-    Ntr<NXTexture2D> CreateRenderTexture(const std::string& debugName, DXGI_FORMAT fmt, UINT width, UINT height, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
-    Ntr<NXTexture2D> CreateSolid(const std::string& DebugName, UINT TexSize, const Vector4& Color, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
-    Ntr<NXTexture2D> CreateNoise(const std::string& DebugName, UINT TexSize, UINT Dimension, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
+    Ntr<NXTexture2D> CreateRenderTexture(const std::string& debugName, DXGI_FORMAT fmt, uint32_t width, uint32_t height, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
+    Ntr<NXTexture2D> CreateSolid(const std::string& DebugName, uint32_t TexSize, const Vector4& Color, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
+    Ntr<NXTexture2D> CreateNoise(const std::string& DebugName, uint32_t TexSize, uint32_t Dimension, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
 
-    void AddSRV();
-    void AddRTV();
-    void AddDSV();
-    void AddUAV();
+    void SetSRV(uint32_t index);
+    void SetRTV(uint32_t index);
+    void SetDSV(uint32_t index);
+    void SetUAV(uint32_t index);
 };
 
 class NXTextureCube : public NXTexture
@@ -179,19 +192,19 @@ public:
     NXTextureCube() : NXTexture(TextureType_Cube) {}
     virtual ~NXTextureCube() {}
 
-    void Create(const std::string& debugName, DXGI_FORMAT texFormat, UINT width, UINT height, UINT mipLevels, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
+    void Create(const std::string& debugName, DXGI_FORMAT texFormat, uint32_t width, uint32_t height, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
     void Create(const std::string& debugName, const std::wstring& filePath, size_t width = 0, size_t height = 0, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
 
-    void AddSRV();
-    void AddSRVPreview2D();
-    void AddRTV(UINT mipSlice = -1, UINT firstArraySlice = 0, UINT arraySize = -1);
-    void AddDSV(UINT mipSlice = -1, UINT firstArraySlice = 0, UINT arraySize = -1);
-    void AddUAV(UINT mipSlice = -1, UINT firstArraySlice = 0, UINT arraySize = -1);
+    void SetSRV(uint32_t index);
+    void SetSRVPreview2D();
+    void SetRTV(uint32_t index, uint32_t mipSlice = -1, uint32_t firstArraySlice = 0, uint32_t arraySize = -1);
+    void SetDSV(uint32_t index, uint32_t mipSlice = -1, uint32_t firstArraySlice = 0, uint32_t arraySize = -1);
+    void SetUAV(uint32_t index, uint32_t mipSlice = -1, uint32_t firstArraySlice = 0, uint32_t arraySize = -1);
 
     D3D12_CPU_DESCRIPTOR_HANDLE GetSRVPreview2D() { return { m_pSRVPreview2D }; }
 
 private:
-    size_t m_pSRVPreview2D = 0;
+    ShaderVisibleDescriptorTaskResult m_pSRVPreview2D;
 };
 
 class NXTexture2DArray : public NXTexture
@@ -200,10 +213,10 @@ public:
     NXTexture2DArray() : NXTexture(TextureType_2DArray) {}
     virtual ~NXTexture2DArray() {}
 
-    void Create(const std::string& debugName, DXGI_FORMAT texFormat, UINT width, UINT height, UINT arraySize, UINT mipLevels, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
+    void Create(const std::string& debugName, DXGI_FORMAT texFormat, uint32_t width, uint32_t height, uint32_t arraySize, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
 
-    void AddSRV(UINT firstArraySlice = 0, UINT arraySize = -1);
-    void AddRTV(UINT firstArraySlice = 0, UINT arraySize = -1);
-    void AddDSV(UINT firstArraySlice = 0, UINT arraySize = -1);
-    void AddUAV(UINT firstArraySlice = 0, UINT arraySize = -1);
+    void SetSRV(uint32_t index, uint32_t firstArraySlice = 0, uint32_t arraySize = -1);
+    void SetRTV(uint32_t index, uint32_t firstArraySlice = 0, uint32_t arraySize = -1);
+    void SetDSV(uint32_t index, uint32_t firstArraySlice = 0, uint32_t arraySize = -1);
+    void SetUAV(uint32_t index, uint32_t firstArraySlice = 0, uint32_t arraySize = -1);
 };

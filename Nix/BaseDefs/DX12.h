@@ -9,6 +9,9 @@
 #include <pix3.h>
 #endif
 
+#include <vector>
+#include <string>
+
 using namespace DirectX;
 using namespace Microsoft::WRL;
 
@@ -34,9 +37,6 @@ public:
 protected:
 	T data[MultiFrameSets_swapChainCount];
 };
-
-#include <vector>
-#include <string>
 
 class NX12Util
 {

@@ -11,19 +11,19 @@
 #define NXCUBEMAP_FACE_COUNT 6
 #define NXROUGHNESS_FILTER_COUNT 5
 
-struct ConstantBufferImageData
+struct_cbuffer ConstantBufferImageData
 {
 	Vector4 currImgSize; // xy: size zw: sizeInv
 	Vector4 nextImgSize; // xy: size zw: sizeInv
 };
 
-struct ConstantBufferIrradSH
+struct_cbuffer ConstantBufferIrradSH
 {
 	ConstantBufferIrradSH() {}
 	Vector4 irradSH[9];
 };
 
-struct ConstantBufferCubeMap
+struct_cbuffer ConstantBufferCubeMap
 {
 	ConstantBufferCubeMap() : intensity(1.0f), irradMode(0.0f) {}
 	Vector4 irradSH0123x;
@@ -37,7 +37,7 @@ struct ConstantBufferCubeMap
 	Vector4 irradMode;
 };
 
-struct ConstantBufferBaseWVP
+struct_cbuffer ConstantBufferBaseWVP
 {
 	Matrix world;
 	Matrix view;
@@ -67,7 +67,8 @@ public:
 	void Update() override;
 	void Release() override;
 
-	Ntr<NXTextureCube> GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR);
+	using GenerateCubeMapCallback = std::function<void(Ntr<NXTextureCube>&)>;
+	void GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR, GenerateCubeMapCallback pCallBack);
 	void GenerateIrradianceSHFromHDRI(Ntr<NXTexture2D>& pTexHDR);
 	void GenerateIrradianceSHFromCubeMap();
 
@@ -87,7 +88,7 @@ public:
 	const std::vector<D3D12_GPU_VIRTUAL_ADDRESS>& GetCBDataParams() { return m_cbData.GetGPUHandleArray(); }
 
 	void SetIntensity(float val);
-	float* GetIntensity() { return &m_cbData.Get().intensity; }
+	float GetIntensity() { return m_cbData.Current().intensity; }
 
 	void SetIrradMode(int val);
 
