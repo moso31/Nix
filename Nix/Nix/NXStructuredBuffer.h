@@ -1,4 +1,9 @@
 #pragma once
+#include "BaseDefs/DX12.h"
+#include "BaseDefs/NixCore.h"
+#include "NXAllocatorManager.h"
+#include <future>
+#include <atomic>
 
 template<typename T>
 class NXStructuredBufferImpl
@@ -6,8 +11,7 @@ class NXStructuredBufferImpl
 public:
 	struct Data
 	{
-		T* ptr;
-		uint8_t* cpuAddress;
+		T* cpuAddress;
 		D3D12_GPU_VIRTUAL_ADDRESS gpuAddress;
 	};
 
@@ -39,6 +43,9 @@ protected:
 	}
 
 private:
+	std::promise<void> m_promiseCB;
+	std::future<void> m_futureCB;
+
 	// TODO进一步完善动态情况的处理
 	bool m_isDynamic = false;
 

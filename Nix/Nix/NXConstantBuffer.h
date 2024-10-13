@@ -128,6 +128,7 @@ public:
 
 	const D3D12_GPU_VIRTUAL_ADDRESS& CurrentGPUAddress(size_t subOffset = 0)
 	{
+		WaitCreateComplete();
 		return m_data.Current().gpuAddress + subOffset;
 	}
 

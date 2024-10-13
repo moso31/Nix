@@ -1,5 +1,6 @@
 #pragma once
 #include "BaseDefs/DX12.h"
+#include "BaseDefs/NixCore.h"
 #include <future>
 #include "SimpleMath.h"
 #include "Ntr.h"
@@ -62,11 +63,10 @@ public:
     static void Init();
 
     ID3D12Resource* GetTex() const { return m_pTexture.Get(); }
-
-    const ShaderVisibleDescriptorTaskResult& GetSRV(uint32_t index = 0) const { return { m_pSRVs[index] }; }
-    const NonVisibleDescriptorTaskResult& GetRTV(uint32_t index = 0) const { return { m_pRTVs[index] }; }
-    const NonVisibleDescriptorTaskResult& GetDSV(uint32_t index = 0) const { return { m_pDSVs[index] }; }
-    const ShaderVisibleDescriptorTaskResult& GetUAV(uint32_t index = 0) const { return { m_pUAVs[index] }; }
+    const ShaderVisibleDescriptorTaskResult& GetSRV(uint32_t index = 0);
+    const NonVisibleDescriptorTaskResult& GetRTV(uint32_t index = 0);
+    const NonVisibleDescriptorTaskResult& GetDSV(uint32_t index = 0);
+    const ShaderVisibleDescriptorTaskResult& GetUAV(uint32_t index = 0);
     const size_t GetSRVs() const { return m_pSRVs.size(); }
     const size_t GetRTVs() const { return m_pRTVs.size(); }
     const size_t GetDSVs() const { return m_pDSVs.size(); }
@@ -76,10 +76,11 @@ public:
     const size_t* GetDSVArray() { return m_pDSVs.data(); }
     const size_t* GetUAVArray() { return m_pUAVs.data(); }
 
-    void SetViews(uint32_t srvNum, uint32_t rtvNum, uint32_t dsvNum, uint32_t uavNum, bool bAutoSubmitViews = true);
-    void SubmitLoadingViews(int asyncLoadingViewsCount);
-    void ProcessLoadingViews();
-    void WaitLoadingViewsFinish();
+    // 异步加载Views相关
+    void SetViews(uint32_t srvNum, uint32_t rtvNum, uint32_t dsvNum, uint32_t uavNum, bool bAutoSubmitViews = true); // 设置View数量
+    void SubmitLoadingViews(int asyncLoadingViewsCount); // 设置View数量（异步计数）
+    void ProcessLoadingViews(); // 计数--，每加载好一个View，调用一次
+    void WaitLoadingViewsFinish(); // 等待所有View都加载完成，渲染传View时调用
 
     const D3D12_CLEAR_VALUE& GetClearValue() { return m_clearValue; }
     void SetClearValue(float R, float G, float B, float A);

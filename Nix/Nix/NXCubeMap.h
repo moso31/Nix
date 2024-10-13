@@ -131,9 +131,6 @@ private:
 	ComPtr<ID3D12RootSignature> m_pRootSigPreFilterMap;
 	ComPtr<ID3D12PipelineState> m_pPSOPreFilterMap;
 
-	ComPtr<ID3D12Fence> m_pFence;
-	UINT64 m_fenceValue;
-
 public:
 	void GenerateIrradianceSHFromHDRI_Deprecated(NXTexture2D* pTexHDR);
 	size_t GetSRVIrradianceSH() { return m_pSRVIrradianceSH; }

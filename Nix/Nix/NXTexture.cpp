@@ -21,6 +21,30 @@ void NXTexture::Init()
 	s_pCmdList = NX12Util::CreateGraphicsCommandList(NXGlobalDX::GetDevice(), s_pCmdAllocator.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT);
 }
 
+const ShaderVisibleDescriptorTaskResult& NXTexture::GetSRV(uint32_t index) 
+{
+	WaitLoadingViewsFinish();
+	return m_pSRVs[index];
+}
+
+const NonVisibleDescriptorTaskResult& NXTexture::GetRTV(uint32_t index)
+{
+	WaitLoadingViewsFinish();
+	return m_pRTVs[index];
+}
+
+const NonVisibleDescriptorTaskResult& NXTexture::GetDSV(uint32_t index)
+{
+	WaitLoadingViewsFinish();
+	return m_pDSVs[index];
+}
+
+const ShaderVisibleDescriptorTaskResult& NXTexture::GetUAV(uint32_t index)
+{
+	WaitLoadingViewsFinish();
+	return m_pUAVs[index];
+}
+
 void NXTexture::SetViews(uint32_t srvNum, uint32_t rtvNum, uint32_t dsvNum, uint32_t uavNum, bool bAutoSubmitViews)
 {
 	m_pSRVs.resize(srvNum);
