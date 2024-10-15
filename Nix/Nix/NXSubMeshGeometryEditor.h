@@ -4,6 +4,7 @@
 #include "NXAllocatorManager.h"
 #include "ShaderStructures.h"
 #include "NXInstance.h"
+#include "NXStructuredBuffer.h"
 
 struct NXMeshData
 {
@@ -63,63 +64,56 @@ public:
 			}
 		}
 
-		UINT vbSize = (UINT)vertices.size() * sizeof(TVertex);
-		UINT ibSize = (UINT)indices.size() * sizeof(UINT);
+		NXStructuredBufferArray<TVertex> pVB(vertices.size());
+		NXStructuredBufferArray<UINT> pIB(indices.size());
 
-		// 1. 在默认堆中分配这个Mesh的顶点和索引内存
-		NXMeshData vbData, ibData;
-		bool vbAlloc = m_vbAllocator->Alloc(vbSize, ResourceType_Default, vbData.GPUVirtualAddress, vbData.pageIndex, vbData.pageByteOffset);
-		bool ibAlloc = m_ibAllocator->Alloc(ibSize, ResourceType_Default, ibData.GPUVirtualAddress, ibData.pageIndex, ibData.pageByteOffset);
+		std::thread([&]() {
+			pVB.WaitCreateComplete();
+			pIB.WaitCreateComplete();
 
-		if (vbAlloc && ibAlloc)
-		{
-			UINT vbDataSize = (UINT)(sizeof(TVertex) * vertices.size());
-			UINT ibDataSize = (UINT)(sizeof(UINT) * indices.size());
-
-			// 2. 将顶点和索引数据拷贝到默认堆中，但这需要先准备上传堆，然后从上传堆拷贝到默认堆。
-			NX12Util::CreateHeapProperties(D3D12_HEAP_TYPE_UPLOAD);
-
-			ComPtr<ID3D12Resource> uploadVB = NX12Util::CreateBuffer(m_pDevice.Get(), "Temp uploadVB", vbDataSize, D3D12_HEAP_TYPE_UPLOAD);
-			ComPtr<ID3D12Resource> uploadIB = NX12Util::CreateBuffer(m_pDevice.Get(), "Temp uploadIB", ibDataSize, D3D12_HEAP_TYPE_UPLOAD);
-
-			m_tempUploadList.emplace_back(uploadVB);
-			m_tempUploadList.emplace_back(uploadIB);
-
-			// 2.2 将顶点和索引数据拷贝到上传堆
-			void* mappedData;
-			uploadVB->Map(0, nullptr, &mappedData);
-			memcpy(mappedData, vertices.data(), vbDataSize);
-			uploadVB->Unmap(0, nullptr);
-
-			uploadIB->Map(0, nullptr, &mappedData);
-			memcpy(mappedData, indices.data(), ibDataSize);
-			uploadIB->Unmap(0, nullptr);
-			
-			// 2.3 从上传堆拷贝到默认堆
-			m_pCommandList->Reset(m_pCommandAllocator.Get(), nullptr);
-			m_vbAllocator->SetResourceState(m_pCommandList.Get(), vbData.pageIndex, D3D12_RESOURCE_STATE_COPY_DEST);
-			m_vbAllocator->UpdateData(m_pCommandList.Get(), uploadVB.Get(), 0, vbDataSize, vbData.pageIndex, vbData.pageByteOffset);
-			m_vbAllocator->SetResourceState(m_pCommandList.Get(), vbData.pageIndex, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
-			m_ibAllocator->SetResourceState(m_pCommandList.Get(), ibData.pageIndex, D3D12_RESOURCE_STATE_COPY_DEST);
-			m_ibAllocator->UpdateData(m_pCommandList.Get(), uploadIB.Get(), 0, ibDataSize, ibData.pageIndex, ibData.pageByteOffset);
-			m_ibAllocator->SetResourceState(m_pCommandList.Get(), ibData.pageIndex, D3D12_RESOURCE_STATE_INDEX_BUFFER);
-
-			// 3. 将Mesh数据存储到m_data中
 			NXMeshViews views;
-			views.vbv.BufferLocation = vbData.GPUVirtualAddress;
+			views.vbv.BufferLocation = pVB.CurrentGPUAddress();
 			views.vbv.SizeInBytes = vbDataSize;
 			views.vbv.StrideInBytes = sizeof(TVertex);
-			views.ibv.BufferLocation = ibData.GPUVirtualAddress;
+			views.ibv.BufferLocation = pIB.CurrentGPUAddress();
 			views.ibv.SizeInBytes = ibDataSize;
 			views.ibv.Format = DXGI_FORMAT_R32_UINT;
 			views.indexCount = (UINT)indices.size();
 			views.vertexCount = (UINT)vertices.size();
-			m_data[name] = std::move(views);
 
-			m_pCommandList->Close();
-			ID3D12CommandList* pCmdLists[] = { m_pCommandList.Get() };
-			m_pCommandQueue->ExecuteCommandLists(1, pCmdLists);
-		}
+			m_mutex.lock();
+			m_data[name] = std::move(views);
+			m_mutex.unlock();
+
+			UINT vbSize = (UINT)vertices.size() * sizeof(TVertex);
+			UINT ibSize = (UINT)indices.size() * sizeof(UINT);
+
+			UploadTaskContext vbTaskContext;
+			UploadTaskContext ibTaskContext;
+
+			if (NXUploadSystem->BuildTask(vbSize, vbTaskContext))
+			{
+				uint8_t* pDst = vbTaskContext.pResourceData + vbTaskContext.pResourceOffset;
+				memcpy(pDst, vertices.data(), vbDataSize);
+				NXUploadSystem->FinishTask(vbTaskContext);
+			}
+			else
+			{
+				throw std::exception("Failed to build upload task for vertex buffer.");
+			}
+
+			if (NXUploadSystem->BuildTask(ibSize, ibTaskContext))
+			{
+				uint8_t* pDst = ibTaskContext.pResourceData + ibTaskContext.pResourceOffset;
+				memcpy(pDst, indices.data(), ibDataSize);
+				NXUploadSystem->FinishTask(ibTaskContext);
+			}
+			else
+			{
+				throw std::exception("Failed to build upload task for index buffer.");
+			}
+
+			}).detach();
 	}
 
 	const NXMeshViews& GetMeshViews(const std::string& name);
@@ -130,22 +124,8 @@ private:
 	void InitCommonMeshes();
 
 private:
-	// 最重要的Mesh数据存储
+	// Mesh data
 	std::unordered_map<std::string, NXMeshViews> m_data; 
 
-	CommittedAllocator* m_vbAllocator;
-	CommittedAllocator* m_ibAllocator;
-
-	ComPtr<ID3D12Device> m_pDevice;
-	ComPtr<ID3D12CommandQueue> m_pCommandQueue;
-	ComPtr<ID3D12CommandAllocator> m_pCommandAllocator; 
-	ComPtr<ID3D12GraphicsCommandList> m_pCommandList;
-	ComPtr<ID3D12Fence>	m_pFence;
-	UINT64 m_fenceValue;
-
-	// 临时资源存放列表
-	// 用于存放临时的上传堆资源，等待拷贝到默认堆
-	// todo：找合适的时机清空此资源队列。
-	std::vector<ComPtr<ID3D12Resource>> m_tempUploadList;
-
+	std::mutex m_mutex;
 };

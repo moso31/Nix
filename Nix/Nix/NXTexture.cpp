@@ -179,7 +179,7 @@ void NXTexture::CreateRenderTextureInternal(D3D12_RESOURCE_FLAGS flags)
 	}
 }
 
-void NXTexture::CreateInternal(const std::unique_ptr<DirectX::ScratchImage>& pImage, D3D12_RESOURCE_FLAGS flags)
+void NXTexture::CreateInternal(std::unique_ptr<DirectX::ScratchImage> pImage, D3D12_RESOURCE_FLAGS flags)
 {
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = GetResourceDimentionFromType();
@@ -200,82 +200,41 @@ void NXTexture::CreateInternal(const std::unique_ptr<DirectX::ScratchImage>& pIm
 	size_t totalBytes;
 	NXGlobalDX::GetDevice()->GetCopyableFootprints(&desc, 0, layoutSize, 0, layouts, numRow, numRowSizeInBytes, &totalBytes);
 
-	NXAllocator_Tex->Alloc(&desc, totalBytes, [this, layouts, numRow, numRowSizeInBytes, totalBytes](const PlacedBufferAllocTaskResult& result) {
+	NXAllocator_Tex->Alloc(&desc, totalBytes, [this, layouts, numRow, numRowSizeInBytes, totalBytes, pImage = std::move(pImage)](const PlacedBufferAllocTaskResult& result) {
 		m_pTexture = result.pResource;
 
 		UploadTaskContext taskContext;
 		if (NXUploadSystem->BuildTask((int)totalBytes, taskContext))
 		{
-			// TODO: 异步
+			// 更新纹理资源
+			m_pTexture->SetName(NXConvert::s2ws(m_name).c_str());
+			SetRefCountDebugName(m_name);
+			m_resourceState = D3D12_RESOURCE_STATE_COPY_DEST; // 和 NXAllocator_Tex->Alloc 内部的逻辑保持同步
+
+			auto texDesc = m_pTexture->GetDesc();
+			for (uint32_t face = 0, index = 0; face < texDesc.DepthOrArraySize; face++)
 			{
-				// 更新纹理资源
-				m_pTexture->SetName(NXConvert::s2ws(m_name).c_str());
-				SetRefCountDebugName(m_name);
-				m_resourceState = D3D12_RESOURCE_STATE_COPY_DEST; // 和 NXAllocator_Tex->Alloc 内部的逻辑保持同步
-
-				auto texDesc = m_pTexture->GetDesc();
-				for (uint32_t face = 0, index = 0; face < texDesc.DepthOrArraySize; face++)
+				for (uint32_t mip = 0; mip < texDesc.MipLevels; mip++, index++)
 				{
-					for (uint32_t mip = 0; mip < texDesc.MipLevels; mip++, index++)
-					{
-						const Image* pImg = pImage->GetImage(mip, face, 0);
-						const BYTE* pSrcData = pImg->pixels;
-						BYTE* pMappedRingBufferData = taskContext.pResourceData + taskContext.pResourceOffset;
-						BYTE* pDstData = pMappedRingBufferData + layouts[index].Offset;
+					const Image* pImg = pImage->GetImage(mip, face, 0);
+					const BYTE* pSrcData = pImg->pixels;
+					BYTE* pMappedRingBufferData = taskContext.pResourceData + taskContext.pResourceOffset;
+					BYTE* pDstData = pMappedRingBufferData + layouts[index].Offset;
 
-						for (uint32_t y = 0; y < numRow[index]; y++)
-						{
-							memcpy(pDstData + layouts[index].Footprint.RowPitch * y, pSrcData + pImg->rowPitch * y, numRowSizeInBytes[index]);
-						}
+					for (uint32_t y = 0; y < numRow[index]; y++)
+					{
+						memcpy(pDstData + layouts[index].Footprint.RowPitch * y, pSrcData + pImg->rowPitch * y, numRowSizeInBytes[index]);
 					}
 				}
 			}
 
 			NXUploadSystem->FinishTask(taskContext);
+
+			delete[] layouts;
+			delete[] numRow;
+			delete[] numRowSizeInBytes;
 		}
 	}); 
-
-	if (NXTextureAllocator->Alloc(desc, m_pTexture.GetAddressOf()))
-	{
-		m_pTexture->SetName(NXConvert::s2ws(m_name).c_str());
-		SetRefCountDebugName(m_name);
-		m_resourceState = D3D12_RESOURCE_STATE_COPY_DEST; // 和 NXTextureAllocator->Alloc 内部的逻辑保持同步
-
-		m_pTextureUpload = NX12Util::CreateBuffer(NXGlobalDX::GetDevice(), "textureUploadHeap temp", (uint32_t)totalBytes, D3D12_HEAP_TYPE_UPLOAD);
-		void* mappedData;
-		m_pTextureUpload->Map(0, nullptr, &mappedData);
-
-		auto texDesc = m_pTexture->GetDesc();
-		for (uint32_t face = 0, index = 0; face < texDesc.DepthOrArraySize; face++)
-		{
-			for (uint32_t mip = 0; mip < texDesc.MipLevels; mip++, index++)
-			{
-				const Image* pImg = pImage->GetImage(mip, face, 0);
-				const BYTE* pSrcData = pImg->pixels;
-				BYTE* pDstData = reinterpret_cast<BYTE*>(mappedData) + layouts[index].Offset;
-
-				for (uint32_t y = 0; y < numRow[index]; y++)
-				{
-					memcpy(pDstData + layouts[index].Footprint.RowPitch * y, pSrcData + pImg->rowPitch * y, numRowSizeInBytes[index]);
-				}
-			}
-		}
-
-		m_pTextureUpload->Unmap(0, nullptr);
-
-		s_pCmdList->Reset(s_pCmdAllocator.Get(), nullptr);
-		SetResourceState(s_pCmdList.Get(), D3D12_RESOURCE_STATE_COPY_DEST);
-		NX12Util::CopyTextureRegion(s_pCmdList.Get(), m_pTexture.Get(), m_pTextureUpload.Get(), layoutSize, layouts);
-		SetResourceState(s_pCmdList.Get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-		s_pCmdList->Close();
-
-		ID3D12CommandList* pCmdLists[] = { s_pCmdList.Get() };
-		NXGlobalDX::GetCmdQueue()->ExecuteCommandLists(1, pCmdLists);
-
-		delete[] layouts;
-		delete[] numRow;
-		delete[] numRowSizeInBytes;
-	}
 }
 
 void NXTexture::CreateTextureInternal(D3D12_RESOURCE_FLAGS flags)
@@ -305,7 +264,7 @@ void NXTexture::CreateTextureInternal(D3D12_RESOURCE_FLAGS flags)
 		UploadTaskContext taskContext;
 		if (NXUploadSystem->BuildTask((int)totalBytes, taskContext))
 		{
-			// TODO: 异步
+			// TODO: 异步 // 不用了 其实已经是异步了……
 			{
 				TexMetadata metadata;
 				std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>();
@@ -642,7 +601,7 @@ Ntr<NXTexture2D> NXTexture2D::CreateSolid(const std::string& debugName, uint32_t
 	m_mipLevels = 1;
 	m_texFormat = fmt;
 
-	CreateInternal(pImage, flags);
+	CreateInternal(std::move(pImage), flags);
 
 	pImage.reset();
 	return this;
@@ -693,7 +652,7 @@ Ntr<NXTexture2D> NXTexture2D::CreateNoise(const std::string& debugName, uint32_t
 	m_mipLevels = 1;
 	m_texFormat = fmt;
 
-	CreateInternal(pImage, flags);
+	CreateInternal(std::move(pImage), flags);
 
 	pImage.reset();
 	return this;
@@ -844,7 +803,7 @@ void NXTextureCube::Create(const std::string& debugName, const std::wstring& fil
 	this->m_texFormat = metadata.format;
 	this->m_mipLevels = (uint32_t)metadata.mipLevels;
 
-	CreateInternal(pImage, flags);
+	CreateInternal(std::move(pImage), flags);
 
 	SetSRVPreview2D();
 }

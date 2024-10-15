@@ -49,7 +49,7 @@ namespace ccmem
     private:
         uint32_t m_size;
 
-        // 已分配范围指示器。
+        // 记录ring中的已分配范围
         uint32_t m_usedStart;
         uint32_t m_usedEnd;
 

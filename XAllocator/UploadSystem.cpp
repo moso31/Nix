@@ -41,8 +41,8 @@ ccmem::UploadRingBuffer::~UploadRingBuffer()
 
 bool ccmem::UploadRingBuffer::BuildTask(uint32_t byteSize, UploadTask& oTask)
 {
-	// 注意：Start == End 表示整个RingBuffer为空
-	// 换句话说 RingBuffer 是 不允许填满 的。对内存状态频繁变化的分配器而言，影响不大
+	// case 0. 注意：Start == End 只表示：整个RingBuffer为空
+	// 换句话说 RingBuffer 是【不允许填满！】的。对内存状态频繁变化的分配器而言，影响不大
 
 	// case 1: ed 在 st 的后面(<) 或没有任务(=)
 	if (m_usedStart <= m_usedEnd)
@@ -65,6 +65,7 @@ bool ccmem::UploadRingBuffer::BuildTask(uint32_t byteSize, UploadTask& oTask)
 			else
 			{
 				// 剩余空间不够说明分配不了，啥都别做
+				throw std::exception("RingBuffer is full!");
 				return false;
 			}
 		}
@@ -81,6 +82,7 @@ bool ccmem::UploadRingBuffer::BuildTask(uint32_t byteSize, UploadTask& oTask)
 		// case 2.2. 加入新地址之后，超过了st（没有剩余空间了）
 		else
 		{
+			throw std::exception("RingBuffer is full!");
 			return false;
 		}
 	}

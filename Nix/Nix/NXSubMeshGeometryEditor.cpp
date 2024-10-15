@@ -15,14 +15,6 @@ NXSubMeshGeometryEditor::~NXSubMeshGeometryEditor()
 
 void NXSubMeshGeometryEditor::Init(ID3D12Device* pDevice)
 {
-	m_pDevice = pDevice;
-	m_vbAllocator = new CommittedAllocator(m_pDevice.Get());
-	m_ibAllocator = new CommittedAllocator(m_pDevice.Get());
-
-	NX12Util::CreateCommands(m_pDevice.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT, m_pCommandQueue.GetAddressOf(), m_pCommandAllocator.GetAddressOf(), m_pCommandList.GetAddressOf());
-	m_pCommandQueue->SetName(L"NXSubMeshGeometryEditor Command Queue");
-	m_pFence = NX12Util::CreateFence(m_pDevice.Get());
-
 	InitCommonMeshes();
 }
 
@@ -690,22 +682,6 @@ const NXMeshViews& NXSubMeshGeometryEditor::GetMeshViews(const std::string& name
 
 void NXSubMeshGeometryEditor::Release()
 {
-	// m_fenceValue
-	m_fenceValue++;
-	m_pCommandQueue->Signal(m_pFence.Get(), m_fenceValue);
-
-	if (m_pFence->GetCompletedValue() < m_fenceValue)
-	{
-		HANDLE eventHandle = CreateEventEx(nullptr, false, false, EVENT_ALL_ACCESS);
-		m_pFence->SetEventOnCompletion(m_fenceValue, eventHandle);
-		WaitForSingleObject(eventHandle, INFINITE);
-		CloseHandle(eventHandle);
-	}
-
-	m_vbAllocator->Clear();
-	m_ibAllocator->Clear();
-	delete m_vbAllocator;
-	delete m_ibAllocator;
 }
 
 void NXSubMeshGeometryEditor::InitCommonMeshes()

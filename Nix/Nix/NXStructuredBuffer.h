@@ -15,30 +15,32 @@ public:
 		D3D12_GPU_VIRTUAL_ADDRESS gpuAddress;
 	};
 
-protected:
-	void Create(UINT byteSize, bool isDynamic = false)
+public:
+	void WaitCreateComplete()
 	{
-		m_isDynamic = isDynamic;
+		m_futureCB.wait();
+	}
+
+protected:
+	void CreateInternal(UINT byteSize)
+	{
 		m_byteSize = byteSize;
 
-		if (isDynamic)
+		m_futureCB = m_promiseCB.get_future();
+		NXAllocator_SB->Alloc(m_byteSize, [this](const CommittedBufferAllocTaskResult& result) {
+			m_data.cpuAddress = result.cpuAddress;
+			m_data.gpuAddress = result.gpuAddress;
+			m_data.ptr = reinterpret_cast<T*>(result.cpuAddress);
+
+			m_promiseCB.set_value();
+			});
+	}
+
+	void FreeInternal()
+	{
+		for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 		{
-			for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
-			{
-				NXAllocMng_SB->Alloc(m_byteSize, [this](const CommittedBufferAllocTaskResult& result) {
-					m_data[i].cpuAddress = result.cpuAddress;
-					m_data[i].gpuAddress = result.gpuAddress;
-					m_data[i].ptr = reinterpret_cast<T*>(result.cpuAddress);
-					});
-			}
-		}
-		else
-		{
-			NXAllocMng_SB->Alloc(m_byteSize, [this](const CommittedBufferAllocTaskResult& result) {
-				m_data[0].cpuAddress = result.cpuAddress;
-				m_data[0].gpuAddress = result.gpuAddress;
-				m_data[0].ptr = reinterpret_cast<T*>(result.cpuAddress);
-				});
+			NXAllocator_CB->Free(m_data[i].cpuAddress);
 		}
 	}
 
@@ -46,11 +48,30 @@ private:
 	std::promise<void> m_promiseCB;
 	std::future<void> m_futureCB;
 
-	// TODO进一步完善动态情况的处理
-	bool m_isDynamic = false;
-
-	// 允许动态和静态两种情况；
-	// 动态的话使用MultiFrame，静态的话只使用m_data[0]
-	MultiFrame<Data> m_data;
+	Data m_data;
 	UINT m_byteSize;
 };
+
+template<typename T>
+class NXStructuredBufferArray : public NXStructuredBufferImpl<UINT>
+{
+public:
+	NXStructuredBuffer(uint32_t arraySize)
+	{
+		m_arraySize = arraySize;
+		CreateInternal(sizeof(T) * m_arraySize);
+	}
+
+	const T& Current()
+	{
+		return *m_data.Current().cpuAddress;
+	}
+
+	const D3D12_GPU_VIRTUAL_ADDRESS& CurrentGPUAddress(size_t subOffset = 0)
+	{
+		return m_data.Current().gpuAddress + subOffset;
+	}
+
+protected:
+	uint32_t m_arraySize;
+}

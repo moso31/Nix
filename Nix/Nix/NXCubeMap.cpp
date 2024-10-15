@@ -496,7 +496,7 @@ void NXCubeMap::GenerateIrradianceMap()
 void NXCubeMap::GeneratePreFilterMap()
 {
 	float mapSize = 512.0f;
-	m_pTexPreFilterMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTextureCube("PreFilter Map", m_pTexCubeMap->GetFormat(), (UINT)mapSize, (UINT)mapSize, 5, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+	m_pTexPreFilterMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTextureCube("PreFilter Map", m_pTexCubeMap->GetFormat(), (UINT)mapSize, (UINT)mapSize, NXROUGHNESS_FILTER_COUNT, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 	m_pTexPreFilterMap->SetViews(1, NXCUBEMAP_FACE_COUNT * NXROUGHNESS_FILTER_COUNT, 0, 0);
 	m_pTexPreFilterMap->SetSRV(0);
 

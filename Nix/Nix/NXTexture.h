@@ -127,7 +127,7 @@ protected:
 
     // 创建纹理，从文件读取
     // m_pTexture 存储在全局分配器g_pTextureAllocator，并作为大PlaceResource的一部分被统一管理。
-    void CreateInternal(const std::unique_ptr<DirectX::ScratchImage>& pImage, D3D12_RESOURCE_FLAGS flags);
+    void CreateInternal(std::unique_ptr<DirectX::ScratchImage> pImage, D3D12_RESOURCE_FLAGS flags);
     void CreateTextureInternal(D3D12_RESOURCE_FLAGS flags);
 
 private:
@@ -142,6 +142,9 @@ protected:
 
     D3D12_RESOURCE_STATES m_resourceState;
     std::filesystem::path m_texFilePath;
+
+    std::promise<void> m_promiseLoadingTextures;
+    std::future<void> m_futureLoadingTextures;
 
     std::atomic<int> m_loadingViews;
     std::promise<void> m_promiseLoadingViews;
