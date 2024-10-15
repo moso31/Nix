@@ -5,7 +5,7 @@
 #include "SphereHarmonics.h"
 #include "NXSubMesh.h" // include this .h for EditorObjectID only.
 
-NXSubMeshGeometryEditor::NXSubMeshGeometryEditor()
+NXSubMeshGeometryEditor::NXSubMeshGeometryEditor() 
 {
 }
 
@@ -672,10 +672,12 @@ const NXMeshViews& NXSubMeshGeometryEditor::GetMeshViews(const std::string& name
 	auto it = m_data.find(name);
 	if (it != m_data.end())
 	{
+		it->second.WaitLoadComplete();
 		return it->second;
 	}
 	else
 	{
+		m_data["_Unknown"].WaitLoadComplete();
 		return m_data["_Unknown"]; 
 	}
 }
@@ -688,7 +690,7 @@ void NXSubMeshGeometryEditor::InitCommonMeshes()
 {
 	std::vector<float> verticesUnknown = { 2.0f };
 	std::vector<UINT> indicesUnknown = { 0 };
-	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(verticesUnknown, indicesUnknown, "_Unknown");
+	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(std::move(verticesUnknown), std::move(indicesUnknown), "_Unknown");
 
 	float scale = 1.0f;
 
@@ -708,5 +710,5 @@ void NXSubMeshGeometryEditor::InitCommonMeshes()
 		0,  2,  3
 	};
 
-	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(verticesRT, indicesRT, "_RenderTarget");
+	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(std::move(verticesRT), std::move(indicesRT), "_RenderTarget");
 }

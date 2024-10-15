@@ -165,18 +165,19 @@ bool ccmem::UploadSystem::BuildTask(int byteSize, UploadTaskContext& taskResult)
 	return false;
 }
 
-void ccmem::UploadSystem::FinishTask(const UploadTaskContext& result)
+void ccmem::UploadSystem::FinishTask(const UploadTaskContext& result, const std::function<void()>& pCallBack)
 {
 	std::lock_guard<std::mutex> lock(m_mutex);
 
 	UploadTask* task = result.pOwner;
+	task->pCallback = pCallBack;
 
 	task->pCmdList->Close();
 	ID3D12CommandList* cmdLists[] = { task->pCmdList };
 	m_pCmdQueue->ExecuteCommandLists(1, cmdLists);
 	
 	m_fenceValue++;
-	m_pFence->Signal(m_fenceValue); // GPU fence == N 
+	m_pCmdQueue->Signal(m_pFence, m_fenceValue); // GPU fence == N 
 
 	task->fenceValue = m_fenceValue; 
 }
@@ -196,6 +197,8 @@ void ccmem::UploadSystem::Update()
 		// 这里 >= 说明task在GPU一侧也已经执行完了，可以被移除了
 		if (m_pFence->GetCompletedValue() >= task.fenceValue)
 		{
+			task.pCallback(); 
+
 			m_taskStart = (m_taskStart + 1) % UPLOADTASK_NUM;
 			m_taskUsed--;
 			task.Reset();

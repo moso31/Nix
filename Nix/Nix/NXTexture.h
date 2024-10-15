@@ -79,7 +79,7 @@ public:
     // 异步加载Views相关
     void SetViews(uint32_t srvNum, uint32_t rtvNum, uint32_t dsvNum, uint32_t uavNum, bool bAutoSubmitViews = true); // 设置View数量
     void SubmitLoadingViews(int asyncLoadingViewsCount); // 设置View数量（异步计数）
-    void ProcessLoadingViews(); // 计数--，每加载好一个View，调用一次
+    void ProcessLoadingBuffers(); // 计数--，每加载好一个View，调用一次
     void WaitLoadingViewsFinish(); // 等待所有View都加载完成，渲染传View时调用
 
     const D3D12_CLEAR_VALUE& GetClearValue() { return m_clearValue; }

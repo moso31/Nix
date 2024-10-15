@@ -22,6 +22,9 @@ namespace ccmem
 		// 然后每帧 Update() 时，GPU才能将其移除
 		uint64_t fenceValue = 0;
 
+        // 任务完成后的回调
+        std::function<void()> pCallback = nullptr;
+
 		// 在RingBuffer中的位置和大小
 		uint32_t ringPos = 0;
 		uint32_t byteSize = 0;
@@ -68,7 +71,7 @@ namespace ccmem
         ~UploadSystem();
 
         bool BuildTask(int byteSize, UploadTaskContext& taskResult);
-        void FinishTask(const UploadTaskContext& result);
+        void FinishTask(const UploadTaskContext& result, const std::function<void()>& pCallBack = nullptr);
         void Update();
 
     private:

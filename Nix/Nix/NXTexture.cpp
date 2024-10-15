@@ -63,7 +63,7 @@ void NXTexture::SubmitLoadingViews(int asyncLoadingViewsCount)
 	m_loadingViews = asyncLoadingViewsCount;
 }
 
-void NXTexture::ProcessLoadingViews()
+void NXTexture::ProcessLoadingBuffers()
 {
 	m_loadingViews.fetch_add(-1);
 
@@ -678,7 +678,7 @@ void NXTexture2D::SetSRV(uint32_t index)
 
 		NXGlobalDX::GetDevice()->CreateShaderResourceView(m_pTexture.Get(), &srvDesc, m_pSRVs[index].cpuHandle);
 
-		ProcessLoadingViews();
+		ProcessLoadingBuffers();
 		});
 }
 
@@ -687,7 +687,7 @@ void NXTexture2D::SetRTV(uint32_t index)
 	NXAllocator_RTV->Alloc([this, index](const NonVisibleDescriptorTaskResult& result) {
 		m_pRTVs[index] = result;
 		NXGlobalDX::GetDevice()->CreateRenderTargetView(m_pTexture.Get(), nullptr, m_pRTVs[index].cpuHandle);
-		ProcessLoadingViews();
+		ProcessLoadingBuffers();
 		});
 }
 
@@ -710,7 +710,7 @@ void NXTexture2D::SetDSV(uint32_t index)
 
 		NXGlobalDX::GetDevice()->CreateDepthStencilView(m_pTexture.Get(), nullptr, m_pDSVs[index].cpuHandle);
 
-		ProcessLoadingViews();
+		ProcessLoadingBuffers();
 		});
 }
 
@@ -719,7 +719,7 @@ void NXTexture2D::SetUAV(uint32_t index)
 	NXAllocator_SRV->Alloc([this, index](const ShaderVisibleDescriptorTaskResult& result) {
 		m_pUAVs[index] = result;
 		NXGlobalDX::GetDevice()->CreateUnorderedAccessView(m_pTexture.Get(), nullptr, nullptr, m_pUAVs[index].cpuHandle);
-		ProcessLoadingViews();
+		ProcessLoadingBuffers();
 		});
 }
 
@@ -823,7 +823,7 @@ void NXTextureCube::SetSRV(uint32_t index)
 
 		NXGlobalDX::GetDevice()->CreateShaderResourceView(m_pTexture.Get(), &srvDesc, m_pSRVs[index].cpuHandle);
 
-		ProcessLoadingViews();
+		ProcessLoadingBuffers();
 		});
 }
 
@@ -863,7 +863,7 @@ void NXTextureCube::SetRTV(uint32_t index, uint32_t mipSlice, uint32_t firstArra
 
 		NXGlobalDX::GetDevice()->CreateRenderTargetView(m_pTexture.Get(), &rtvDesc, m_pRTVs[index].cpuHandle);
 
-		ProcessLoadingViews();
+		ProcessLoadingBuffers();
 		});
 }
 
@@ -882,7 +882,7 @@ void NXTextureCube::SetDSV(uint32_t index, uint32_t mipSlice, uint32_t firstArra
 
 		NXGlobalDX::GetDevice()->CreateDepthStencilView(m_pTexture.Get(), &dsvDesc, m_pDSVs[index].cpuHandle);
 
-		ProcessLoadingViews();
+		ProcessLoadingBuffers();
 		});
 }
 
@@ -901,7 +901,7 @@ void NXTextureCube::SetUAV(uint32_t index, uint32_t mipSlice, uint32_t firstArra
 
 		NXGlobalDX::GetDevice()->CreateUnorderedAccessView(m_pTexture.Get(), nullptr, &uavDesc, m_pUAVs[index].cpuHandle);
 
-		ProcessLoadingViews();
+		ProcessLoadingBuffers();
 		});
 }
 
@@ -940,7 +940,7 @@ void NXTexture2DArray::SetSRV(uint32_t index, uint32_t firstArraySlice, uint32_t
 
 		NXGlobalDX::GetDevice()->CreateShaderResourceView(m_pTexture.Get(), &srvDesc, m_pSRVs[index].cpuHandle);
 
-		ProcessLoadingViews();
+		ProcessLoadingBuffers();
 		});
 }
 
@@ -959,7 +959,7 @@ void NXTexture2DArray::SetRTV(uint32_t index, uint32_t firstArraySlice, uint32_t
 
 		NXGlobalDX::GetDevice()->CreateRenderTargetView(m_pTexture.Get(), &rtvDesc, m_pRTVs[index].cpuHandle);
 
-		ProcessLoadingViews();
+		ProcessLoadingBuffers();
 		});
 }
 
@@ -984,7 +984,7 @@ void NXTexture2DArray::SetDSV(uint32_t index, uint32_t firstArraySlice, uint32_t
 
 		NXGlobalDX::GetDevice()->CreateDepthStencilView(m_pTexture.Get(), &dsvDesc, m_pDSVs[index].cpuHandle);
 
-		ProcessLoadingViews();
+		ProcessLoadingBuffers();
 		});
 }
 
@@ -1002,6 +1002,6 @@ void NXTexture2DArray::SetUAV(uint32_t index, uint32_t firstArraySlice, uint32_t
 
 		NXGlobalDX::GetDevice()->CreateUnorderedAccessView(m_pTexture.Get(), nullptr, &uavDesc, m_pUAVs[index].cpuHandle);
 
-		ProcessLoadingViews();
+		ProcessLoadingBuffers();
 		});
 }
