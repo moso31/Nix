@@ -179,7 +179,7 @@ void NXTexture::CreateRenderTextureInternal(D3D12_RESOURCE_FLAGS flags)
 	}
 }
 
-void NXTexture::CreateInternal(std::unique_ptr<DirectX::ScratchImage> pImage, D3D12_RESOURCE_FLAGS flags)
+void NXTexture::CreateInternal(std::unique_ptr<DirectX::ScratchImage>&& pImage, D3D12_RESOURCE_FLAGS flags)
 {
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = GetResourceDimentionFromType();
@@ -200,7 +200,7 @@ void NXTexture::CreateInternal(std::unique_ptr<DirectX::ScratchImage> pImage, D3
 	size_t totalBytes;
 	NXGlobalDX::GetDevice()->GetCopyableFootprints(&desc, 0, layoutSize, 0, layouts, numRow, numRowSizeInBytes, &totalBytes);
 
-	NXAllocator_Tex->Alloc(&desc, totalBytes, [this, layouts, numRow, numRowSizeInBytes, totalBytes, pImage = std::move(pImage)](const PlacedBufferAllocTaskResult& result) {
+	NXAllocator_Tex->Alloc(&desc, totalBytes, [this, layouts, numRow, numRowSizeInBytes, totalBytes, pImage = std::move(pImage)](const PlacedBufferAllocTaskResult& result) mutable {
 		m_pTexture = result.pResource;
 
 		UploadTaskContext taskContext;
@@ -233,12 +233,23 @@ void NXTexture::CreateInternal(std::unique_ptr<DirectX::ScratchImage> pImage, D3
 			delete[] layouts;
 			delete[] numRow;
 			delete[] numRowSizeInBytes;
+
+			pImage.reset();
 		}
 	}); 
 }
 
-void NXTexture::CreateTextureInternal(D3D12_RESOURCE_FLAGS flags)
+void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath, D3D12_RESOURCE_FLAGS flags)
 {
+	// 主线程加载一次metadata，需要获取基本的信息，不然后面纹理没法算
+	TexMetadata metadata;
+	GetMetadataFromFile(filePath, metadata);
+	m_width = (uint32_t)metadata.width;
+	m_height = (uint32_t)metadata.height;
+	m_arraySize = (uint32_t)metadata.arraySize;
+	m_mipLevels = (uint32_t)metadata.mipLevels;
+	m_texFormat = metadata.format;
+
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = GetResourceDimentionFromType();
 	desc.Width = m_width;
@@ -258,7 +269,7 @@ void NXTexture::CreateTextureInternal(D3D12_RESOURCE_FLAGS flags)
 	size_t totalBytes;
 	NXGlobalDX::GetDevice()->GetCopyableFootprints(&desc, 0, layoutSize, 0, layouts, numRow, numRowSizeInBytes, &totalBytes);
 
-	NXAllocator_Tex->Alloc(&desc, totalBytes, [this, layouts, numRow, numRowSizeInBytes, totalBytes](const PlacedBufferAllocTaskResult& result) {
+	NXAllocator_Tex->Alloc(&desc, totalBytes, [this, filePath, layouts, numRow, numRowSizeInBytes, totalBytes](const PlacedBufferAllocTaskResult& result) {
 		m_pTexture = result.pResource;
 
 		UploadTaskContext taskContext;
@@ -270,32 +281,26 @@ void NXTexture::CreateTextureInternal(D3D12_RESOURCE_FLAGS flags)
 				std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>();
 
 				HRESULT hr;
-				std::string strExtension = NXConvert::s2lower(m_texFilePath.extension().string());
+				std::string strExtension = NXConvert::s2lower(filePath.extension().string());
 				if (strExtension == ".hdr")
-					hr = LoadFromHDRFile(m_texFilePath.c_str(), &metadata, *pImage);
+					hr = LoadFromHDRFile(filePath.c_str(), &metadata, *pImage);
 				else if (strExtension == ".dds")
-					hr = LoadFromDDSFile(m_texFilePath.c_str(), DDS_FLAGS_NONE, &metadata, *pImage);
+					hr = LoadFromDDSFile(filePath.c_str(), DDS_FLAGS_NONE, &metadata, *pImage);
 				else if (strExtension == ".tga")
-					hr = LoadFromTGAFile(m_texFilePath.c_str(), &metadata, *pImage);
+					hr = LoadFromTGAFile(filePath.c_str(), &metadata, *pImage);
 				else
-					hr = LoadFromWICFile(m_texFilePath.c_str(), WIC_FLAGS_NONE, &metadata, *pImage);
-
-				m_width = (uint32_t)metadata.width;
-				m_height = (uint32_t)metadata.height;
-				m_arraySize = (uint32_t)metadata.arraySize;
-				m_mipLevels = (uint32_t)metadata.mipLevels;
-				m_texFormat = metadata.format;
+					hr = LoadFromWICFile(filePath.c_str(), WIC_FLAGS_NONE, &metadata, *pImage);
 
 				if (FAILED(hr))
 				{
-					std::wstring errMsg = L"Failed to load texture file." + m_texFilePath.wstring();
+					std::wstring errMsg = L"Failed to load texture file." + filePath.wstring();
 					MessageBox(NULL, errMsg.c_str(), L"Error", MB_OK | MB_ICONERROR);
 					pImage.reset();
 					return;
 				}
 
-				// 如果读取的是arraySize/TextureCube，就只读取ArraySize[0]/X+面。
-				if (metadata.arraySize > 1)
+				// 如果是Texture2D纹理，并且读取的是arraySize/TextureCube 类型的文件，就只加载第一面。
+				if (metadata.arraySize > 1 && m_type == TextureType_2D)
 				{
 					std::unique_ptr<ScratchImage> timage(new ScratchImage);
 					timage->InitializeFromImage(*pImage->GetImage(0, 0, 0));
@@ -410,14 +415,14 @@ void NXTexture::CreateTextureInternal(D3D12_RESOURCE_FLAGS flags)
 					}
 				}
 
+				NXUploadSystem->FinishTask(taskContext);
+
 				delete[] layouts;
 				delete[] numRow;
 				delete[] numRowSizeInBytes;
 
 				pImage.reset();
 			}
-
-			NXUploadSystem->FinishTask(taskContext);
 		}
 		else
 		{
@@ -425,6 +430,23 @@ void NXTexture::CreateTextureInternal(D3D12_RESOURCE_FLAGS flags)
 			printf("Error: [NXUploadSystem::BuildTask] failed when loading NXTexture2D: %s\n", m_texFilePath.string().c_str());
 		}
 	});
+}
+
+bool NXTexture::GetMetadataFromFile(const std::filesystem::path& path, TexMetadata& oMetaData)
+{
+	HRESULT hr;
+	TexMetadata metadata;
+	std::string strExtension = NXConvert::s2lower(path.extension().string());
+	if (strExtension == ".hdr")
+		hr = GetMetadataFromHDRFile(path.wstring().c_str(), metadata);
+	else if (strExtension == ".dds")
+		hr = GetMetadataFromDDSFile(path.wstring().c_str(), DDS_FLAGS_NONE, metadata);
+	else if (strExtension == ".tga")
+		hr = GetMetadataFromTGAFile(path.wstring().c_str(), metadata);
+	else
+		hr = GetMetadataFromWICFile(path.wstring().c_str(), WIC_FLAGS_NONE, metadata);
+
+	return SUCCEEDED(hr);
 }
 
 void NXTexture::InternalReload(Ntr<NXTexture> pReloadTexture)
@@ -549,7 +571,7 @@ Ntr<NXTexture2D> NXTexture2D::Create(const std::string& debugName, const std::fi
 	m_texFilePath = filePath;
 	m_name = debugName;
 
-	CreateTextureInternal(flags);
+	CreatePathTextureInternal(m_texFilePath, flags);
 	return this;
 }
 
@@ -562,6 +584,8 @@ Ntr<NXTexture2D> NXTexture2D::CreateRenderTexture(const std::string& debugName, 
 	m_arraySize = 1;
 	m_mipLevels = 1;
 	m_texFormat = fmt;
+
+	NXConvert::GetImageByteSize(fmt, width, height);
 	CreateRenderTextureInternal(flags);
 
 	return this;
@@ -737,73 +761,10 @@ void NXTextureCube::Create(const std::string& debugName, DXGI_FORMAT texFormat, 
 
 void NXTextureCube::Create(const std::string& debugName, const std::wstring& filePath, size_t width, size_t height, D3D12_RESOURCE_FLAGS flags)
 {
-	TexMetadata metadata;
-	std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>();
-	LoadFromDDSFile(filePath.c_str(), DDS_FLAGS_NONE, &metadata, *pImage);
-	if (IsCompressed(metadata.format))
-	{
-		auto img = pImage->GetImage(0, 0, 0);
-		size_t nimg = pImage->GetImageCount();
+	m_texFilePath = filePath.c_str();
+	m_name = debugName;
 
-		std::unique_ptr<ScratchImage> dcImage = std::make_unique<ScratchImage>();
-		HRESULT hr = Decompress(img, nimg, metadata, DXGI_FORMAT_UNKNOWN /* picks good default */, *dcImage);
-		if (SUCCEEDED(hr))
-		{
-			if (dcImage && dcImage->GetPixels())
-				pImage.swap(dcImage);
-		}
-		else
-		{
-			printf("Warning: [Decompress] failure when loading NXTextureCube file: %ws\n", filePath.c_str());
-		}
-	}
-
-	bool bResize = width && height && width != metadata.width && height != metadata.height;
-	if (bResize)
-	{
-		std::unique_ptr<ScratchImage> timage = std::make_unique<ScratchImage>();
-		HRESULT hr = Resize(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), width, height, TEX_FILTER_DEFAULT, *timage);
-		if (SUCCEEDED(hr))
-		{
-			auto& tinfo = timage->GetMetadata();
-
-			metadata.width = tinfo.width;
-			metadata.height = tinfo.height;
-			metadata.mipLevels = 1;
-
-			pImage.swap(timage);
-		}
-		else
-		{
-			printf("Warning: [Resize] failure when loading NXTextureCube file: %ws\n", filePath.c_str());
-		}
-	}
-
-	bool bGenerateMipMap = false;
-	if (bGenerateMipMap)
-	{
-		std::unique_ptr<ScratchImage> pImageMip = std::make_unique<ScratchImage>();
-		HRESULT hr = GenerateMipMaps(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), TEX_FILTER_DEFAULT, 0, *pImageMip);
-		if (SUCCEEDED(hr))
-		{
-			metadata.mipLevels = pImageMip->GetMetadata().mipLevels;
-			pImage.swap(pImageMip);
-		}
-		else
-		{
-			printf("Warning: [GenerateMipMaps] failure when loading NXTextureCube file: %ws\n", filePath.c_str());
-		}
-	}
-
-	this->m_texFilePath = filePath.c_str();
-	this->m_name = debugName;
-	this->m_width = (uint32_t)metadata.width;
-	this->m_height = (uint32_t)metadata.height;
-	this->m_arraySize = (uint32_t)metadata.arraySize;
-	this->m_texFormat = metadata.format;
-	this->m_mipLevels = (uint32_t)metadata.mipLevels;
-
-	CreateInternal(std::move(pImage), flags);
+	CreatePathTextureInternal(m_texFilePath, flags);
 
 	SetSRVPreview2D();
 }

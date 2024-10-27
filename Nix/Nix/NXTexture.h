@@ -120,17 +120,23 @@ public:
     const NXTextureSerializationData& GetSerializationData() { return m_serializationData; }
     void SetSerializationData(const NXTextureSerializationData& data) { m_serializationData = data; }
 
-protected:
-    // 创建纹理，程序生成
-    // m_pTexture 独立存储在NXTexture成员上
+protected:    
+    // 创建 RT 类型的Texture2D，调用这个方法
+    // 创建 RT 类型的Texture2DArray，调用这个方法
+    // 创建 RT 类型的Texture2DCube，调用这个方法
     void CreateRenderTextureInternal(D3D12_RESOURCE_FLAGS flags);
 
-    // 创建纹理，从文件读取
-    // m_pTexture 存储在全局分配器g_pTextureAllocator，并作为大PlaceResource的一部分被统一管理。
-    void CreateInternal(std::unique_ptr<DirectX::ScratchImage> pImage, D3D12_RESOURCE_FLAGS flags);
-    void CreateTextureInternal(D3D12_RESOURCE_FLAGS flags);
+    // Texture2D Solid/Noise纹理生成，
+    // CubeMap 从文件创建
+    // 调用这个方法
+    void CreateInternal(std::unique_ptr<DirectX::ScratchImage>&& pImage, D3D12_RESOURCE_FLAGS flags);
+
+    // Texture2D 从文件创建，调用这个方法
+    void CreatePathTextureInternal(const std::filesystem::path& filePath, D3D12_RESOURCE_FLAGS flags);
 
 private:
+    bool GetMetadataFromFile(const std::filesystem::path& path, TexMetadata& oMetaData);
+
     void InternalReload(Ntr<NXTexture> pReloadTexture);
     D3D12_RESOURCE_DIMENSION GetResourceDimentionFromType();
 
