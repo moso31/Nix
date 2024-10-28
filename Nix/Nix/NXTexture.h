@@ -63,10 +63,10 @@ public:
     static void Init();
 
     ID3D12Resource* GetTex() const { return m_pTexture.Get(); }
-    const ShaderVisibleDescriptorTaskResult& GetSRV(uint32_t index = 0);
-    const NonVisibleDescriptorTaskResult& GetRTV(uint32_t index = 0);
-    const NonVisibleDescriptorTaskResult& GetDSV(uint32_t index = 0);
-    const ShaderVisibleDescriptorTaskResult& GetUAV(uint32_t index = 0);
+    const XShaderDescriptor& GetSRV(uint32_t index = 0);
+    const XDescriptor& GetRTV(uint32_t index = 0);
+    const XDescriptor& GetDSV(uint32_t index = 0);
+    const XShaderDescriptor& GetUAV(uint32_t index = 0);
     const size_t GetSRVs() const { return m_pSRVs.size(); }
     const size_t GetRTVs() const { return m_pRTVs.size(); }
     const size_t GetDSVs() const { return m_pDSVs.size(); }
@@ -156,10 +156,10 @@ protected:
     std::promise<void> m_promiseLoadingViews;
     std::future<void> m_futureLoadingViews;
 
-    std::vector<ShaderVisibleDescriptorTaskResult> m_pSRVs;
-    std::vector<NonVisibleDescriptorTaskResult> m_pRTVs;
-    std::vector<NonVisibleDescriptorTaskResult> m_pDSVs;
-    std::vector<ShaderVisibleDescriptorTaskResult> m_pUAVs;
+    std::vector<XShaderDescriptor> m_pSRVs;
+    std::vector<XDescriptor> m_pRTVs;
+    std::vector<XDescriptor> m_pDSVs;
+    std::vector<XShaderDescriptor> m_pUAVs;
 
     NXTextureType m_type;
     DXGI_FORMAT m_texFormat;
@@ -211,10 +211,10 @@ public:
     void SetDSV(uint32_t index, uint32_t mipSlice = -1, uint32_t firstArraySlice = 0, uint32_t arraySize = -1);
     void SetUAV(uint32_t index, uint32_t mipSlice = -1, uint32_t firstArraySlice = 0, uint32_t arraySize = -1);
 
-    D3D12_CPU_DESCRIPTOR_HANDLE GetSRVPreview2D() { return { m_pSRVPreview2D }; }
+    XShaderDescriptor GetSRVPreview2D() { return { m_pSRVPreview2D }; }
 
 private:
-    ShaderVisibleDescriptorTaskResult m_pSRVPreview2D;
+    XShaderDescriptor m_pSRVPreview2D;
 };
 
 class NXTexture2DArray : public NXTexture

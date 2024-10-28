@@ -68,17 +68,17 @@ public:
 	void Release() override;
 
 	using GenerateCubeMapCallback = std::function<void(Ntr<NXTextureCube>&)>;
-	void GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR, GenerateCubeMapCallback pCallBack);
+	void GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR, GenerateCubeMapCallback pCubeMapCallBack);
 	void GenerateIrradianceSHFromHDRI(Ntr<NXTexture2D>& pTexHDR);
 	void GenerateIrradianceSHFromCubeMap();
 
 	void GenerateIrradianceMap();
 	void GeneratePreFilterMap();
 
-	D3D12_CPU_DESCRIPTOR_HANDLE GetSRVCubeMap();
-	D3D12_CPU_DESCRIPTOR_HANDLE GetSRVCubeMapPreview2D();
-	D3D12_CPU_DESCRIPTOR_HANDLE GetSRVIrradianceMap();
-	D3D12_CPU_DESCRIPTOR_HANDLE GetSRVPreFilterMap();
+	const XShaderDescriptor& GetSRVCubeMap();
+	const XShaderDescriptor& GetSRVCubeMapPreview2D();
+	const XShaderDescriptor& GetSRVIrradianceMap();
+	const XShaderDescriptor& GetSRVPreFilterMap();
 
 	Ntr<NXTexture2D> GetCubeMap() { return m_pTexCubeMap; }
 	Ntr<NXTexture2D> GetIrradianceMap() { return m_pTexIrradianceMap; }
@@ -124,6 +124,8 @@ private:
 	size_t	m_pSRVIrradianceSH;
 
 	ComPtr<ID3D12CommandQueue> m_pCommandQueue;
+	ComPtr<ID3D12Fence> m_pFence;
+	uint64_t m_nFenceValue;
 
 	ComPtr<ID3D12RootSignature> m_pRootSigCubeMap;
 	ComPtr<ID3D12PipelineState> m_pPSOCubeMap;

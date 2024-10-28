@@ -17,10 +17,10 @@ NonVisibleDescriptorAllocator::NonVisibleDescriptorAllocator(ID3D12Device* pDevi
 	m_pDescriptorHeap->SetName(L"NonVisibleDescriptor");
 }
 
-void ccmem::NonVisibleDescriptorAllocator::Alloc(const std::function<void(NonVisibleDescriptorTaskResult&)>& callback)
+void ccmem::NonVisibleDescriptorAllocator::Alloc(const std::function<void(XDescriptor&)>& callback)
 {
 	DeadListAllocator::Alloc([this, callback](const DeadListTaskResult& result) {
-		NonVisibleDescriptorTaskResult taskResult;
+		XDescriptor taskResult;
 		taskResult.cpuHandle = m_pDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 		taskResult.cpuHandle.ptr += result * m_descriptorIncrementSize;
 		callback(taskResult);
@@ -47,10 +47,10 @@ ccmem::ShaderVisibleDescriptorAllocator::ShaderVisibleDescriptorAllocator(ID3D12
 	m_pDescriptorHeap->SetName(L"ShaderVisibleDescriptor");
 }
 
-void ccmem::ShaderVisibleDescriptorAllocator::Alloc(const std::function<void(const ShaderVisibleDescriptorTaskResult&)>& callback)
+void ccmem::ShaderVisibleDescriptorAllocator::Alloc(const std::function<void(const XShaderDescriptor&)>& callback)
 {
 	DeadListAllocator::Alloc([this, callback](const DeadListTaskResult& result) {
-		ShaderVisibleDescriptorTaskResult taskResult;
+		XShaderDescriptor taskResult;
 		taskResult.cpuHandle = m_pDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 		taskResult.cpuHandle.ptr += result * m_descriptorIncrementSize;
 		taskResult.gpuHandle = m_pDescriptorHeap->GetGPUDescriptorHandleForHeapStart();

@@ -49,20 +49,9 @@ bool NXCubeMap::Init(const std::filesystem::path& filePath)
 	}
 	else if (strExtension == ".hdr")
 	{
-		// 1. HDR纹理
 		Ntr<NXTexture2D> pTexHDR = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("HDR Temp Texture", filePath);
-		pTexHDR->SetViews(1, 0, 0, 0);
-		pTexHDR->SetSRV(0);
-
-		// 2. 先使用HDR->DDS，然后将DDS保存为本地文件，再读取DDS本地文件作为实际CubeMap。
-		// 直接用HDR->DDS然后作为CubeMap的话，不知道什么原因GPU队列会严重阻塞，导致加载速度大幅减慢。
 		GenerateCubeMap(pTexHDR, [&](Ntr<NXTextureCube> pTexCubeMap) {
-			//SaveHDRAsDDS(pTexCubeMap, filePath);
-			//LoadDDS(filePath);
-			
-			// 2+. 改 DX12 还会有这个问题吗？先改回来试试看
 			m_pTexCubeMap = pTexCubeMap;
-			GenerateIrradianceSHFromCubeMap();
 			GeneratePreFilterMap();
 			});
 	}
@@ -70,22 +59,22 @@ bool NXCubeMap::Init(const std::filesystem::path& filePath)
 	return true;
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE NXCubeMap::GetSRVCubeMap()
+const XShaderDescriptor& NXCubeMap::GetSRVCubeMap()
 {
 	return m_pTexCubeMap->GetSRV();
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE NXCubeMap::GetSRVCubeMapPreview2D()
+const XShaderDescriptor& NXCubeMap::GetSRVCubeMapPreview2D()
 {
 	return m_pTexCubeMap->GetSRVPreview2D();
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE NXCubeMap::GetSRVIrradianceMap()
+const XShaderDescriptor& NXCubeMap::GetSRVIrradianceMap()
 {
 	return m_pTexIrradianceMap->GetSRV();
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE NXCubeMap::GetSRVPreFilterMap()
+const XShaderDescriptor& NXCubeMap::GetSRVPreFilterMap()
 {
 	return m_pTexPreFilterMap->GetSRV();
 }
@@ -105,12 +94,12 @@ void NXCubeMap::Release()
 	NXTransform::Release();
 }
 
-void NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR, GenerateCubeMapCallback pCallBack)
+void NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR, GenerateCubeMapCallback pCubeMapCallBack)
 {
 	const static float mapSize = 1024;
 	auto vp = NX12Util::ViewPort(mapSize, mapSize);
-	Ntr<NXTextureCube> pTexCubeMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTextureCube("Main CubeMap", DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)mapSize, (UINT)mapSize, 1, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 
+	Ntr<NXTextureCube> pTexCubeMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTextureCube("Main CubeMap", DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)mapSize, (UINT)mapSize, 1, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, false);
 	pTexCubeMap->SetViews(1, NXCUBEMAP_FACE_COUNT, 0, 0);
 	pTexCubeMap->SetSRV(0);
 	for (int i = 0; i < NXCUBEMAP_FACE_COUNT; i++)
@@ -191,8 +180,19 @@ void NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR, GenerateCubeMapCallba
 			m_pCommandQueue->ExecuteCommandLists(1, ppCmdList);
 		}
 
-		if (pCallBack)
-			pCallBack(pTexCubeMap);
+		// 等待渲染完再CallBack，不然 pTexCubeMap 的数据还没写入
+		HANDLE fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+		m_nFenceValue++;
+		m_pCommandQueue->Signal(m_pFence.Get(), m_nFenceValue);
+
+		if (m_pFence->GetCompletedValue() < m_nFenceValue)
+		{
+			m_pFence->SetEventOnCompletion(m_nFenceValue, fenceEvent);
+			WaitForSingleObject(fenceEvent, INFINITE);
+		}
+
+		if (pCubeMapCallBack)
+			pCubeMapCallBack(pTexCubeMap);
 
 		}).detach();
 }
@@ -298,8 +298,7 @@ void NXCubeMap::GenerateIrradianceSHFromHDRI(Ntr<NXTexture2D>& pTexHDR)
 
 void NXCubeMap::GenerateIrradianceSHFromCubeMap()
 {
-	// 2023.3.15 按现阶段对NXResourceManager的设计，是没办法拿到具体每个纹理像素的值的
-	// 所以暂时先手动控制Irradiance的加载逻辑
+	// 读取CubeMap
 	size_t nIrradTexSize = 128;
 	const std::wstring& strFilePath = m_pTexCubeMap->GetFilePath();
 	TexMetadata metadata;
@@ -496,7 +495,7 @@ void NXCubeMap::GenerateIrradianceMap()
 void NXCubeMap::GeneratePreFilterMap()
 {
 	float mapSize = 512.0f;
-	m_pTexPreFilterMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTextureCube("PreFilter Map", m_pTexCubeMap->GetFormat(), (UINT)mapSize, (UINT)mapSize, NXROUGHNESS_FILTER_COUNT, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+	m_pTexPreFilterMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTextureCube("PreFilter Map", m_pTexCubeMap->GetFormat(), (UINT)mapSize, (UINT)mapSize, NXROUGHNESS_FILTER_COUNT, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, false);
 	m_pTexPreFilterMap->SetViews(1, NXCUBEMAP_FACE_COUNT * NXROUGHNESS_FILTER_COUNT, 0, 0);
 	m_pTexPreFilterMap->SetSRV(0);
 
@@ -602,7 +601,7 @@ void NXCubeMap::GeneratePreFilterMap()
 				m_pCommandQueue->ExecuteCommandLists(1, ppCmdList);
 			}
 		}
-		});
+		}).detach();
 }
 
 void NXCubeMap::SetIntensity(float val)
@@ -637,8 +636,6 @@ void NXCubeMap::LoadDDS(const std::filesystem::path& filePath)
 	strPath.replace_extension(".dds");
 
 	m_pTexCubeMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTextureCube("CubeMap Texture", strPath.wstring());
-	m_pTexCubeMap->SetViews(1, 0, 0, 0);
-	m_pTexCubeMap->SetSRV(0);
 }
 
 void NXCubeMap::InitVertex()
@@ -748,8 +745,8 @@ void NXCubeMap::InitVertex()
 		20, 23,	22,
 	};
 
-	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(m_vertices, m_indices, "_CubeMapSphere");
-	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(m_verticesCubeBox, m_indicesCubeBox, "_CubeMapBox");
+	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(std::move(m_vertices), std::move(m_indices), "_CubeMapSphere");
+	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(std::move(m_verticesCubeBox), std::move(m_indicesCubeBox), "_CubeMapBox");
 }
 
 void NXCubeMap::InitRootSignature()

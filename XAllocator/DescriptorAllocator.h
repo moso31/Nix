@@ -10,7 +10,7 @@ namespace ccmem
 		NonVisibleDescriptorAllocator(ID3D12Device* pDevice, uint32_t descriptorSize);
 		virtual ~NonVisibleDescriptorAllocator() {};
 
-		void Alloc(const std::function<void(NonVisibleDescriptorTaskResult&)>& callback);
+		void Alloc(const std::function<void(XDescriptor&)>& callback);
 		void Free(uint32_t freeIndex);
 
 	private:
@@ -26,7 +26,7 @@ namespace ccmem
 		ShaderVisibleDescriptorAllocator(ID3D12Device* pDevice, uint32_t descriptorSize);
 		virtual ~ShaderVisibleDescriptorAllocator() {};
 
-		void Alloc(const std::function<void(const ShaderVisibleDescriptorTaskResult&)>& callback);
+		void Alloc(const std::function<void(const XShaderDescriptor&)>& callback);
 		void Free(uint32_t freeIndex);
 
 		ID3D12DescriptorHeap* GetDescriptorHeap() const { return m_pDescriptorHeap; }

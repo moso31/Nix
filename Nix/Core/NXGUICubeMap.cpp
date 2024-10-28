@@ -22,7 +22,7 @@ void NXGUICubeMap::Render()
 
 	ImGui::Begin("CubeMap");
 
-	auto& srvHandle = NXGPUHandleHeap->SetFluidDescriptor(pCubeMap->GetSRVCubeMapPreview2D());
+	auto& srvHandle = pCubeMap->GetSRVCubeMapPreview2D();
 	RenderSmallTextureIcon(srvHandle, m_pFileBrowser, std::bind(&NXGUICubeMap::OnCubeMapTexChange, this, pCubeMap), nullptr, std::bind(&NXGUICubeMap::OnCubeMapTexDrop, this, pCubeMap, std::placeholders::_1));
 
 	ImGui::SliderFloat("Intensity", pCubeMap->GetIntensity(), 0.0f, 10.0f);

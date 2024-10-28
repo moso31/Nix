@@ -21,25 +21,25 @@ void NXTexture::Init()
 	s_pCmdList = NX12Util::CreateGraphicsCommandList(NXGlobalDX::GetDevice(), s_pCmdAllocator.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT);
 }
 
-const ShaderVisibleDescriptorTaskResult& NXTexture::GetSRV(uint32_t index) 
+const XShaderDescriptor& NXTexture::GetSRV(uint32_t index) 
 {
 	WaitLoadingViewsFinish();
 	return m_pSRVs[index];
 }
 
-const NonVisibleDescriptorTaskResult& NXTexture::GetRTV(uint32_t index)
+const XDescriptor& NXTexture::GetRTV(uint32_t index)
 {
 	WaitLoadingViewsFinish();
 	return m_pRTVs[index];
 }
 
-const NonVisibleDescriptorTaskResult& NXTexture::GetDSV(uint32_t index)
+const XDescriptor& NXTexture::GetDSV(uint32_t index)
 {
 	WaitLoadingViewsFinish();
 	return m_pDSVs[index];
 }
 
-const ShaderVisibleDescriptorTaskResult& NXTexture::GetUAV(uint32_t index)
+const XShaderDescriptor& NXTexture::GetUAV(uint32_t index)
 {
 	WaitLoadingViewsFinish();
 	return m_pUAVs[index];
@@ -585,7 +585,6 @@ Ntr<NXTexture2D> NXTexture2D::CreateRenderTexture(const std::string& debugName, 
 	m_mipLevels = 1;
 	m_texFormat = fmt;
 
-	NXConvert::GetImageByteSize(fmt, width, height);
 	CreateRenderTextureInternal(flags);
 
 	return this;
@@ -684,7 +683,7 @@ Ntr<NXTexture2D> NXTexture2D::CreateNoise(const std::string& debugName, uint32_t
 
 void NXTexture2D::SetSRV(uint32_t index)
 {
-	NXAllocator_SRV->Alloc([this, index](const ShaderVisibleDescriptorTaskResult& result) {
+	NXAllocator_SRV->Alloc([this, index](const XShaderDescriptor& result) {
 		m_pSRVs[index] = result;
 
 		DXGI_FORMAT SRVFormat = m_texFormat;
@@ -708,7 +707,7 @@ void NXTexture2D::SetSRV(uint32_t index)
 
 void NXTexture2D::SetRTV(uint32_t index)
 {
-	NXAllocator_RTV->Alloc([this, index](const NonVisibleDescriptorTaskResult& result) {
+	NXAllocator_RTV->Alloc([this, index](const XDescriptor& result) {
 		m_pRTVs[index] = result;
 		NXGlobalDX::GetDevice()->CreateRenderTargetView(m_pTexture.Get(), nullptr, m_pRTVs[index].cpuHandle);
 		ProcessLoadingBuffers();
@@ -717,7 +716,7 @@ void NXTexture2D::SetRTV(uint32_t index)
 
 void NXTexture2D::SetDSV(uint32_t index)
 {
-	NXAllocator_DSV->Alloc([this, index](const NonVisibleDescriptorTaskResult& result) {
+	NXAllocator_DSV->Alloc([this, index](const XDescriptor& result) {
 		m_pDSVs[index] = result;
 
 		DXGI_FORMAT DSVFormat = m_texFormat;
@@ -740,7 +739,7 @@ void NXTexture2D::SetDSV(uint32_t index)
 
 void NXTexture2D::SetUAV(uint32_t index)
 {
-	NXAllocator_SRV->Alloc([this, index](const ShaderVisibleDescriptorTaskResult& result) {
+	NXAllocator_SRV->Alloc([this, index](const XShaderDescriptor& result) {
 		m_pUAVs[index] = result;
 		NXGlobalDX::GetDevice()->CreateUnorderedAccessView(m_pTexture.Get(), nullptr, nullptr, m_pUAVs[index].cpuHandle);
 		ProcessLoadingBuffers();
@@ -771,7 +770,7 @@ void NXTextureCube::Create(const std::string& debugName, const std::wstring& fil
 
 void NXTextureCube::SetSRV(uint32_t index)
 {
-	NXAllocator_SRV->Alloc([this, index](const ShaderVisibleDescriptorTaskResult& result) {
+	NXAllocator_SRV->Alloc([this, index](const XShaderDescriptor& result) {
 		m_pSRVs[index] = result;
 
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
@@ -790,7 +789,7 @@ void NXTextureCube::SetSRV(uint32_t index)
 
 void NXTextureCube::SetSRVPreview2D()
 {
-	NXAllocator_SRV->Alloc([this](const ShaderVisibleDescriptorTaskResult& result) {
+	NXAllocator_SRV->Alloc([this](const XShaderDescriptor& result) {
 		m_pSRVPreview2D = result;
 
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -811,7 +810,7 @@ void NXTextureCube::SetSRVPreview2D()
 
 void NXTextureCube::SetRTV(uint32_t index, uint32_t mipSlice, uint32_t firstArraySlice, uint32_t arraySize)
 {
-	NXAllocator_RTV->Alloc([this, index, mipSlice, firstArraySlice, arraySize](const NonVisibleDescriptorTaskResult& result) {
+	NXAllocator_RTV->Alloc([this, index, mipSlice, firstArraySlice, arraySize](const XDescriptor& result) {
 		m_pRTVs[index] = result;
 
 		D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
@@ -830,7 +829,7 @@ void NXTextureCube::SetRTV(uint32_t index, uint32_t mipSlice, uint32_t firstArra
 
 void NXTextureCube::SetDSV(uint32_t index, uint32_t mipSlice, uint32_t firstArraySlice, uint32_t arraySize)
 {
-	NXAllocator_DSV->Alloc([this, index, mipSlice, firstArraySlice, arraySize](const NonVisibleDescriptorTaskResult& result) {
+	NXAllocator_DSV->Alloc([this, index, mipSlice, firstArraySlice, arraySize](const XDescriptor& result) {
 		m_pDSVs[index] = result;
 
 		D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc;
@@ -849,7 +848,7 @@ void NXTextureCube::SetDSV(uint32_t index, uint32_t mipSlice, uint32_t firstArra
 
 void NXTextureCube::SetUAV(uint32_t index, uint32_t mipSlice, uint32_t firstArraySlice, uint32_t arraySize)
 {
-	NXAllocator_SRV->Alloc([this, index, mipSlice, firstArraySlice, arraySize](const ShaderVisibleDescriptorTaskResult& result) {
+	NXAllocator_SRV->Alloc([this, index, mipSlice, firstArraySlice, arraySize](const XShaderDescriptor& result) {
 		m_pUAVs[index] = result;
 
 		D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
@@ -879,7 +878,7 @@ void NXTexture2DArray::Create(const std::string& debugName, DXGI_FORMAT texForma
 
 void NXTexture2DArray::SetSRV(uint32_t index, uint32_t firstArraySlice, uint32_t arraySize)
 {
-	NXAllocator_SRV->Alloc([this, index, firstArraySlice, arraySize](const ShaderVisibleDescriptorTaskResult& result) {
+	NXAllocator_SRV->Alloc([this, index, firstArraySlice, arraySize](const XShaderDescriptor& result) {
 		m_pSRVs[index] = result;
 
 		DXGI_FORMAT SRVFormat = m_texFormat;
@@ -907,7 +906,7 @@ void NXTexture2DArray::SetSRV(uint32_t index, uint32_t firstArraySlice, uint32_t
 
 void NXTexture2DArray::SetRTV(uint32_t index, uint32_t firstArraySlice, uint32_t arraySize)
 {
-	NXAllocator_RTV->Alloc([this, index, firstArraySlice, arraySize](const NonVisibleDescriptorTaskResult& result) {
+	NXAllocator_RTV->Alloc([this, index, firstArraySlice, arraySize](const XDescriptor& result) {
 		m_pRTVs[index] = result;
 
 		D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
@@ -926,7 +925,7 @@ void NXTexture2DArray::SetRTV(uint32_t index, uint32_t firstArraySlice, uint32_t
 
 void NXTexture2DArray::SetDSV(uint32_t index, uint32_t firstArraySlice, uint32_t arraySize)
 {
-	NXAllocator_DSV->Alloc([this, index, firstArraySlice, arraySize](const NonVisibleDescriptorTaskResult& result) {
+	NXAllocator_DSV->Alloc([this, index, firstArraySlice, arraySize](const XDescriptor& result) {
 		m_pDSVs[index] = result;
 
 		DXGI_FORMAT DSVFormat = m_texFormat;
@@ -951,7 +950,7 @@ void NXTexture2DArray::SetDSV(uint32_t index, uint32_t firstArraySlice, uint32_t
 
 void NXTexture2DArray::SetUAV(uint32_t index, uint32_t firstArraySlice, uint32_t arraySize)
 {
-	NXAllocator_SRV->Alloc([this, index, firstArraySlice, arraySize](const ShaderVisibleDescriptorTaskResult& result) {
+	NXAllocator_SRV->Alloc([this, index, firstArraySlice, arraySize](const XShaderDescriptor& result) {
 		m_pUAVs[index] = result;
 
 		D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};

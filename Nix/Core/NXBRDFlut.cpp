@@ -19,9 +19,6 @@ void NXBRDFLut::Init()
 	m_pCommandQueue->SetName(L"BRDF LUT Command Queue");
 
 	m_pTexBRDFLUT = NXResourceManager::GetInstance()->GetTextureManager()->CreateRenderTexture("BRDF LUT", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)m_mapSize, (UINT)m_mapSize, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-	m_pTexBRDFLUT->SetViews(1, 1, 0, 0);
-	m_pTexBRDFLUT->SetSRV(0);
-	m_pTexBRDFLUT->SetRTV(0);
 
 	InitVertex();
 	InitRootSignature();
