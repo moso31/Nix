@@ -17,8 +17,6 @@ void NXMaterialResourceManager::Init()
 	RegisterMaterial(m_pErrorMaterial);
 
 	m_defaultDiffuseProfile = new NXSSSDiffuseProfile();
-
-	m_cbDiffuseProfile.CreateFrameBuffers(NXCBufferAllocator, NXDescriptorAllocator);
 }
 
 void NXMaterialResourceManager::RegisterMaterial(NXMaterial* newMaterial)
@@ -157,10 +155,9 @@ void NXMaterialResourceManager::AdjustDiffuseProfileRenderData(PathHashValue pat
 	Vector3 scatterDistance = pProfile->GetScatter() * pProfile->GetScatterDistance() * scaleFactor;
 	float maxScatterDistance = scatterDistance.MaxComponent();
 	
-	m_cbDiffuseProfile.Get().sssProfData[sssGBufferIndex].scatterParam = scatterDistance.Reciprocal();
-	m_cbDiffuseProfile.Get().sssProfData[sssGBufferIndex].maxScatterDist = 1.0f / maxScatterDistance; // is rcp of dist actually!
-	m_cbDiffuseProfile.Get().sssProfData[sssGBufferIndex].transmit = pProfile->GetTransmit();
-	m_cbDiffuseProfile.Get().sssProfData[sssGBufferIndex].transmitStrength = pProfile->GetTransmitStrength();
-
-	m_cbDiffuseProfile.UpdateBuffer();
+	m_diffuseProfileData.sssProfData[sssGBufferIndex].scatterParam = scatterDistance.Reciprocal();
+	m_diffuseProfileData.sssProfData[sssGBufferIndex].maxScatterDist = 1.0f / maxScatterDistance; // is rcp of dist actually!
+	m_diffuseProfileData.sssProfData[sssGBufferIndex].transmit = pProfile->GetTransmit();
+	m_diffuseProfileData.sssProfData[sssGBufferIndex].transmitStrength = pProfile->GetTransmitStrength();
+	m_cbDiffuseProfile.Update(m_diffuseProfileData);
 }

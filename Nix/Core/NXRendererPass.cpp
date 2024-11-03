@@ -142,9 +142,9 @@ void NXRendererPass::InitPSO()
 void NXRendererPass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 {
 	std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> ppRTVs;
-	for (auto& pTex : m_pOutRTs) ppRTVs.push_back(pTex->GetRTV());
+	for (auto& pTex : m_pOutRTs) ppRTVs.push_back(pTex->GetRTV().cpuHandle);
 
-	pCmdList->OMSetRenderTargets((UINT)ppRTVs.size(), ppRTVs.data(), true, m_pOutDS.IsNull() ? nullptr : &m_pOutDS->GetDSV());
+	pCmdList->OMSetRenderTargets((UINT)ppRTVs.size(), ppRTVs.data(), true, m_pOutDS.IsNull() ? nullptr : &m_pOutDS->GetDSV().cpuHandle);
 	pCmdList->OMSetStencilRef(m_stencilRef);
 
 	pCmdList->SetGraphicsRootSignature(m_pRootSig.Get());
@@ -154,7 +154,7 @@ void NXRendererPass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 	{
 		if (m_cbvManagements[i].autoUpdate)
 		{
-			D3D12_GPU_VIRTUAL_ADDRESS gpuVirtAddr = m_cbvManagements[i].multiFrameGpuVirtAddr.Current();
+			D3D12_GPU_VIRTUAL_ADDRESS gpuVirtAddr = m_cbvManagements[i].multiFrameGpuVirtAddr->Current();
 			pCmdList->SetGraphicsRootConstantBufferView(i, gpuVirtAddr);
 		}
 	}
@@ -223,14 +223,13 @@ void NXRendererPass::SetRootParams(int CBVNum, int SRVUAVNum)
 	m_cbvManagements.resize(CBVNum);
 }
 
-void NXRendererPass::SetStaticRootParamCBV(int rootParamIndex, const std::vector<D3D12_GPU_VIRTUAL_ADDRESS>& gpuVirtAddrs)
+void NXRendererPass::SetStaticRootParamCBV(int rootParamIndex, const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>* gpuVirtAddrs)
 {
 	m_cbvManagements[rootParamIndex].autoUpdate = true;
-	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
-		m_cbvManagements[rootParamIndex].multiFrameGpuVirtAddr[i] = gpuVirtAddrs[i];
+	m_cbvManagements[rootParamIndex].multiFrameGpuVirtAddr = gpuVirtAddrs;
 }
 
-void NXRendererPass::SetStaticRootParamCBV(int rootParamIndex, int slotIndex, const std::vector<D3D12_GPU_VIRTUAL_ADDRESS>& gpuVirtAddrs)
+void NXRendererPass::SetStaticRootParamCBV(int rootParamIndex, int slotIndex, const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>* gpuVirtAddrs)
 {
 	SetStaticRootParamCBV(rootParamIndex, gpuVirtAddrs);
 	m_rootParams[rootParamIndex].Descriptor.ShaderRegister = slotIndex;

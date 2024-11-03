@@ -9,13 +9,6 @@ template<typename T>
 class NXConstantBufferImpl
 {
 public:
-	struct Data
-	{
-		T* cpuAddress;
-		D3D12_GPU_VIRTUAL_ADDRESS gpuAddress;
-	};
-
-public:
 	void WaitCreateComplete()
 	{
 		m_futureCB.wait();
@@ -37,9 +30,8 @@ protected:
 			NXAllocator_CB->Alloc(byteSize, [this](const CommittedBufferAllocTaskResult& result) {
 				// lambda内可能是另一个线程A
 				// 获取Alloc的上传堆cpu地址。
-				Data& data = m_data[i];
-				data.cpuAddress = reinterpret_cast<T*>(result.cpuAddress);
-				data.gpuAddress = result.gpuAddress;
+				m_cpuAddrs[i] = reinterpret_cast<T*>(result.cpuAddress);
+				m_gpuAddrs[i] = result.gpuAddress;
 
 				if (--counter == 0)
 				{
@@ -54,7 +46,7 @@ protected:
 	{
 		for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 		{
-			NXAllocator_CB->Free(m_data[i].cpuAddress);
+			NXAllocator_CB->Free(m_cpuAddrs[i]);
 		}
 	}
 
@@ -62,7 +54,8 @@ protected:
 	std::promise<void> m_promiseCB;
 	std::future<void> m_futureCB;
 
-	MultiFrame<Data> m_data;
+	MultiFrame<T*> m_cpuAddrs;
+	MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS> m_gpuAddrs;
 	UINT m_byteSize;
 };
 
@@ -82,71 +75,30 @@ public:
 
 	const T& Current()
 	{
-		return *m_data.Current().cpuAddress;
+		return *m_cpuAddrs.Current();
 	}
 
 	const D3D12_GPU_VIRTUAL_ADDRESS& CurrentGPUAddress(size_t subOffset = 0)
 	{
-		return m_data.Current().gpuAddress + subOffset;
+		WaitCreateComplete();
+		return m_gpuAddrs.Current() + subOffset;
+	}
+
+	const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>& GetFrameGPUAddresses()
+	{
+		return m_gpuAddrs;
 	}
 
 	void Update(const T& newData)
 	{
-		T* currentData = m_data.Current().cpuAddress;
-		memcpy(currentData, &newData, m_byteSize);
+		memcpy(m_cpuAddrs.Current(), &newData, m_byteSize);
 	}
 
 	void Set(const T& newData)
 	{
 		for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 		{
-			T* currentData = m_data[i].cpuAddress;
-			memcpy(currentData, &newData, m_byteSize);
+			memcpy(m_cpuAddrs[i], &newData, m_byteSize);
 		}
 	}
-};
-
-template<typename T>
-class NXConstantBufferArray : public NXConstantBufferImpl<T>
-{
-public:
-	NXConstantBufferArray(uint32_t arraySize)
-	{
-		m_arraySize = arraySize;
-		CreateInternal(sizeof(T) * m_arraySize);
-	}
-
-	~NXConstantBufferArray()
-	{
-		FreeInternal();
-	}
-
-	const T& Current()
-	{
-		return *m_data.Current().cpuAddress;
-	}
-
-	const D3D12_GPU_VIRTUAL_ADDRESS& CurrentGPUAddress(size_t subOffset = 0)
-	{
-		WaitCreateComplete();
-		return m_data.Current().gpuAddress + subOffset;
-	}
-
-	void Update(const T* newDataArray)
-	{
-		T* currentData = m_data.Current().cpuAddress;
-		memcpy(currentData, newData, m_byteSize);
-	}
-
-	void Set(const T* newDataArray)
-	{
-		for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
-		{
-			T* currentData = m_data[i].cpuAddress;
-			memcpy(currentData, newDataArray, m_byteSize);
-		}
-	}
-
-protected:
-	uint32_t m_arraySize;
 };

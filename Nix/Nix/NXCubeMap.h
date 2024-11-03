@@ -75,17 +75,17 @@ public:
 	void GenerateIrradianceMap();
 	void GeneratePreFilterMap();
 
-	const XShaderDescriptor& GetSRVCubeMap();
-	const XShaderDescriptor& GetSRVCubeMapPreview2D();
-	const XShaderDescriptor& GetSRVIrradianceMap();
-	const XShaderDescriptor& GetSRVPreFilterMap();
+	const D3D12_CPU_DESCRIPTOR_HANDLE& GetSRVCubeMap();
+	const D3D12_CPU_DESCRIPTOR_HANDLE& GetSRVCubeMapPreview2D();
+	const D3D12_CPU_DESCRIPTOR_HANDLE& GetSRVIrradianceMap();
+	const D3D12_CPU_DESCRIPTOR_HANDLE& GetSRVPreFilterMap();
 
 	Ntr<NXTexture2D> GetCubeMap() { return m_pTexCubeMap; }
 	Ntr<NXTexture2D> GetIrradianceMap() { return m_pTexIrradianceMap; }
 	Ntr<NXTexture2D> GetPreFilterMap() { return m_pTexPreFilterMap; }
 
-	const std::vector<D3D12_GPU_VIRTUAL_ADDRESS>& GetCBObjectParams() { return m_cbObject.GetGPUHandleArray(); }
-	const std::vector<D3D12_GPU_VIRTUAL_ADDRESS>& GetCBDataParams() { return m_cbData.GetGPUHandleArray(); }
+	const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>& GetCBObjectParams() { return m_cbObject.GetGPUHandleArray(); }
+	const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>& GetCBDataParams() { return m_cbData.GetGPUHandleArray(); }
 
 	void SetIntensity(float val);
 	float GetIntensity() { return m_cbData.Current().intensity; }
@@ -118,8 +118,10 @@ private:
 	Vector3 m_shIrradianceMap[9];
 	Vector3 m_shIrradianceMap_CPU[9];
 
-	NXConstantBuffer<ConstantBufferCubeMap> m_cbData;
-	NXConstantBuffer<ConstantBufferBaseWVP> m_cbObject;
+	ConstantBufferCubeMap m_cbDataCubeMap;
+	NXConstantBuffer<ConstantBufferCubeMap> m_cbCubeMap;
+	ConstantBufferBaseWVP m_cbDataCubeWVPMatrix;
+	NXConstantBuffer<ConstantBufferBaseWVP> m_cbCubeWVPMatrix;
 
 	size_t	m_pSRVIrradianceSH;
 

@@ -35,15 +35,12 @@ void NXGlobalDX::Release()
 App*		NXGlobalApp::App;
 NXTimer*	NXGlobalApp::Timer;
 
-NXBuffer<ConstantBufferObject>		NXGlobalBuffer::cbObject;
-NXBuffer<ConstantBufferCamera>		NXGlobalBuffer::cbCamera;
-NXBuffer<ConstantBufferShadowTest>	NXGlobalBuffer::cbShadowTest;
+NXConstantBuffer<ConstantBufferObject>		NXGlobalBuffer::cbObject;
+NXConstantBuffer<ConstantBufferCamera>		NXGlobalBuffer::cbCamera;
+NXConstantBuffer<ConstantBufferShadowTest>	NXGlobalBuffer::cbShadowTest;
 
 void NXGlobalBuffer::Init()
 {
-	cbObject.CreateFrameBuffers(NXCBufferAllocator, NXDescriptorAllocator);
-	cbCamera.CreateFrameBuffers(NXCBufferAllocator, NXDescriptorAllocator);
-	cbShadowTest.CreateFrameBuffers(NXCBufferAllocator, NXDescriptorAllocator);
 }
 
 D3D12_INPUT_LAYOUT_DESC	NXGlobalInputLayout::layoutP;

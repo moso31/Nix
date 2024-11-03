@@ -31,19 +31,17 @@ void NXColorMappingRenderer::Init()
 	SetDepthStencilState(NXDepthStencilState<false, false, D3D12_COMPARISON_FUNC_ALWAYS>::Create());
 
 	SetRootParams(1, 1); // b2, t0
-	SetStaticRootParamCBV(0, 2, NXGlobalBuffer::cbCamera.GetGPUHandleArray());
+	SetStaticRootParamCBV(0, 2, &m_cb.GetFrameGPUAddresses());
 
 	AddStaticSampler(D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
-
-	m_cbParams.CreateFrameBuffers(NXCBufferAllocator, NXDescriptorAllocator);
 
 	InitPSO();
 }
 
 void NXColorMappingRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 {
-	m_cbParams.Get().param0.x = m_bEnablePostProcessing ? 1.0f : 0.0f;
-	m_cbParams.UpdateBuffer();
+	m_cbData.param0.x = m_bEnablePostProcessing ? 1.0f : 0.0f;
+	m_cb.Update(m_cbData);
 
 	NXRendererPass::Render(pCmdList);
 }

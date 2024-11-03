@@ -1,6 +1,6 @@
 #pragma once
 #include "NXRendererPass.h"
-#include "NXBuffer.h"
+#include "NXConstantBuffer.h"
 
 struct CBufferColorMapping
 {
@@ -24,5 +24,6 @@ public:
 private:
 	bool m_bEnablePostProcessing;
 
-	NXBuffer<CBufferColorMapping> m_cbParams;
+	CBufferColorMapping m_cbData;
+	NXConstantBuffer<CBufferColorMapping> m_cb;
 };

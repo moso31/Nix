@@ -63,10 +63,10 @@ public:
     static void Init();
 
     ID3D12Resource* GetTex() const { return m_pTexture.Get(); }
-    const XShaderDescriptor& GetSRV(uint32_t index = 0);
-    const XDescriptor& GetRTV(uint32_t index = 0);
-    const XDescriptor& GetDSV(uint32_t index = 0);
-    const XShaderDescriptor& GetUAV(uint32_t index = 0);
+    const D3D12_CPU_DESCRIPTOR_HANDLE& GetSRV(uint32_t index = 0);
+    const D3D12_CPU_DESCRIPTOR_HANDLE& GetRTV(uint32_t index = 0);
+    const D3D12_CPU_DESCRIPTOR_HANDLE& GetDSV(uint32_t index = 0);
+    const D3D12_CPU_DESCRIPTOR_HANDLE& GetUAV(uint32_t index = 0);
     const size_t GetSRVs() const { return m_pSRVs.size(); }
     const size_t GetRTVs() const { return m_pRTVs.size(); }
     const size_t GetDSVs() const { return m_pDSVs.size(); }
@@ -156,10 +156,10 @@ protected:
     std::promise<void> m_promiseLoadingViews;
     std::future<void> m_futureLoadingViews;
 
-    std::vector<XShaderDescriptor> m_pSRVs;
-    std::vector<XDescriptor> m_pRTVs;
-    std::vector<XDescriptor> m_pDSVs;
-    std::vector<XShaderDescriptor> m_pUAVs;
+    std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> m_pSRVs;
+    std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> m_pRTVs;
+    std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> m_pDSVs;
+    std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> m_pUAVs;
 
     NXTextureType m_type;
     DXGI_FORMAT m_texFormat;
@@ -211,10 +211,10 @@ public:
     void SetDSV(uint32_t index, uint32_t mipSlice = -1, uint32_t firstArraySlice = 0, uint32_t arraySize = -1);
     void SetUAV(uint32_t index, uint32_t mipSlice = -1, uint32_t firstArraySlice = 0, uint32_t arraySize = -1);
 
-    XShaderDescriptor GetSRVPreview2D() { return { m_pSRVPreview2D }; }
+    D3D12_CPU_DESCRIPTOR_HANDLE GetSRVPreview2D() { return { m_pSRVPreview2D }; }
 
 private:
-    XShaderDescriptor m_pSRVPreview2D;
+    D3D12_CPU_DESCRIPTOR_HANDLE m_pSRVPreview2D;
 };
 
 class NXTexture2DArray : public NXTexture

@@ -64,12 +64,12 @@ public:
 
 	const T& Current()
 	{
-		return *m_data.Current().cpuAddress;
+		return *m_data.cpuAddress;
 	}
 
 	const D3D12_GPU_VIRTUAL_ADDRESS& CurrentGPUAddress(size_t subOffset = 0)
 	{
-		return m_data.Current().gpuAddress + subOffset;
+		return m_data.gpuAddress + subOffset;
 	}
 
 protected:
