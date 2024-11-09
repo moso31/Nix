@@ -92,7 +92,7 @@ void NXBRDFLut::DrawBRDFLUT()
 	m_pCommandList->SetPipelineState(m_pPSO.Get());
 
 	m_pTexBRDFLUT->SetResourceState(m_pCommandList.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET);
-	m_pCommandList->OMSetRenderTargets(1, &m_pTexBRDFLUT->GetRTV().cpuHandle, false, nullptr);
+	m_pCommandList->OMSetRenderTargets(1, &m_pTexBRDFLUT->GetRTV(), false, nullptr);
 
 	const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_PlanePositiveZ");
 	m_pCommandList->IASetVertexBuffers(0, 1, &meshView.vbv);

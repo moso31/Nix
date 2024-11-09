@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include "BaseDefs/NixCore.h"
 #include "BaseDefs/Math.h"
 #include "Ntr.h"
 
@@ -23,7 +24,7 @@ public:
 	void SetViewRT(Ntr<NXTexture2D> pTexture2D);
 	Ntr<NXTexture2D> GetViewRT() { return m_pViewRT; }
 
-	void Render(NXShaderVisibleDescriptorHeap* pImguiHeap);
+	void Render(ccmem::DescriptorAllocator<true>* pImguiHeap);
 
 private:
 	const std::string GetViewModeString() const;

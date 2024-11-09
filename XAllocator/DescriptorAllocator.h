@@ -41,26 +41,29 @@ namespace ccmem
 	class DescriptorAllocator<true>
 	{
 	public:
-		DescriptorAllocator(ID3D12Device* pDevice, D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t fullCount = 1000000, uint32_t stableCount = 10);
+		DescriptorAllocator(ID3D12Device* pDevice, uint32_t fullCount = 1000000, uint32_t stableCount = 10);
 
-		virtual ~DescriptorAllocator() {};
+		virtual ~DescriptorAllocator();
 
 		ID3D12DescriptorHeap* GetDescriptorHeap() const { return m_pDescriptorHeap; }
 
-		// SetStable是立即生效的，不需要等待。
+		// 在上图 Stable Region 内生成一个静态描述符。
+		// 是立即生效的，不需要等待。
 		D3D12_GPU_DESCRIPTOR_HANDLE SetStable(uint32_t stableIndex, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle);
 
-		// Push不是立即生效的，需要等待Submit
+		// 在上图 Fluid Region 内生成一个动态描述符。
+		// 注意 PushFluid() 只是预处理，还需要Submit()，才能实际添加到 Fluid Region 中。
 		void PushFluid(const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle);
-
-		// 提交变化区域的描述符，返回首个描述符的GPU句柄（方便传描述符表）
 		D3D12_GPU_DESCRIPTOR_HANDLE Submit();
+
+		// 获取 Stable Region 的 CPU 和 GPU 描述符
+		D3D12_CPU_DESCRIPTOR_HANDLE GetStableCPUHandle(uint32_t stableIndex) const;
+		D3D12_GPU_DESCRIPTOR_HANDLE GetStableGPUHandle(uint32_t stableIndex) const;
 
 	private:
 		ID3D12Device* m_pDevice;
 		ID3D12DescriptorHeap* m_pDescriptorHeap;
 
-		D3D12_DESCRIPTOR_HEAP_TYPE m_eDescriptorType;
 		uint32_t m_descriptorIncrementSize;
 		uint32_t m_maxDescriptors;
 		uint32_t m_stableCount;

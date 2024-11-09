@@ -45,22 +45,14 @@ const D3D12_CPU_DESCRIPTOR_HANDLE& NXTexture::GetUAV(uint32_t index)
 	return m_pUAVs[index];
 }
 
-void NXTexture::SetViews(uint32_t srvNum, uint32_t rtvNum, uint32_t dsvNum, uint32_t uavNum, bool bAutoSubmitViews)
+void NXTexture::SetViews(uint32_t srvNum, uint32_t rtvNum, uint32_t dsvNum, uint32_t uavNum)
 {
 	m_pSRVs.resize(srvNum);
 	m_pRTVs.resize(rtvNum);
 	m_pDSVs.resize(dsvNum);
 	m_pUAVs.resize(uavNum);
 
-	if (bAutoSubmitViews)
-	{
-		SubmitLoadingViews(srvNum + rtvNum + dsvNum + uavNum);
-	}
-}
-
-void NXTexture::SubmitLoadingViews(int asyncLoadingViewsCount)
-{
-	m_loadingViews = asyncLoadingViewsCount;
+	m_loadingViews = srvNum + rtvNum + dsvNum + uavNum;
 }
 
 void NXTexture::ProcessLoadingBuffers()
@@ -435,16 +427,15 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 bool NXTexture::GetMetadataFromFile(const std::filesystem::path& path, TexMetadata& oMetaData)
 {
 	HRESULT hr;
-	TexMetadata metadata;
 	std::string strExtension = NXConvert::s2lower(path.extension().string());
 	if (strExtension == ".hdr")
-		hr = GetMetadataFromHDRFile(path.wstring().c_str(), metadata);
+		hr = GetMetadataFromHDRFile(path.wstring().c_str(), oMetaData);
 	else if (strExtension == ".dds")
-		hr = GetMetadataFromDDSFile(path.wstring().c_str(), DDS_FLAGS_NONE, metadata);
+		hr = GetMetadataFromDDSFile(path.wstring().c_str(), DDS_FLAGS_NONE, oMetaData);
 	else if (strExtension == ".tga")
-		hr = GetMetadataFromTGAFile(path.wstring().c_str(), metadata);
+		hr = GetMetadataFromTGAFile(path.wstring().c_str(), oMetaData);
 	else
-		hr = GetMetadataFromWICFile(path.wstring().c_str(), WIC_FLAGS_NONE, metadata);
+		hr = GetMetadataFromWICFile(path.wstring().c_str(), WIC_FLAGS_NONE, oMetaData);
 
 	return SUCCEEDED(hr);
 }

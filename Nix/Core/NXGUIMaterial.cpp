@@ -293,7 +293,8 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMateri
 				};
 
 				ImGui::PushID(paramCnt);
-				auto& srvHandle = NXGPUHandleHeap->SetFluidDescriptor(pTex->GetSRV());
+				NXShVisDescHeap->PushFluid(pTex->GetSRV());
+				auto& srvHandle = NXShVisDescHeap->Submit();
 				RenderSmallTextureIcon(srvHandle, nullptr, onTexChange, onTexRemove, onTexDrop);
 				ImGui::PopID();
 

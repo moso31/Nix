@@ -35,8 +35,11 @@ void NXGlobalDX::Release()
 App*		NXGlobalApp::App;
 NXTimer*	NXGlobalApp::Timer;
 
+ConstantBufferObject NXGlobalBuffer::cbDataObject;
 NXConstantBuffer<ConstantBufferObject>		NXGlobalBuffer::cbObject;
+ConstantBufferCamera NXGlobalBuffer::cbDataCamera;
 NXConstantBuffer<ConstantBufferCamera>		NXGlobalBuffer::cbCamera;
+ConstantBufferShadowTest NXGlobalBuffer::cbDataShadowTest;
 NXConstantBuffer<ConstantBufferShadowTest>	NXGlobalBuffer::cbShadowTest;
 
 void NXGlobalBuffer::Init()

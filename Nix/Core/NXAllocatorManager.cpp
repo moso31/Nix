@@ -11,9 +11,11 @@ void NXAllocatorManager::Init()
 
 	m_pUpdateSystem = new UploadSystem(pDevice);
 
-	m_pSRVAllocator = new ShaderVisibleDescriptorAllocator(pDevice, 1000000);
-	m_pRTVAllocator = new NonVisibleDescriptorAllocator(pDevice, 4096);
-	m_pDSVAllocator = new NonVisibleDescriptorAllocator(pDevice, 4096);
+	m_pSRVAllocator = new DescriptorAllocator<false>(pDevice, 1000000);
+	m_pRTVAllocator = new DescriptorAllocator<false>(pDevice, 4096);
+	m_pDSVAllocator = new DescriptorAllocator<false>(pDevice, 4096);
+
+	m_pShaderVisibleDescAllocator = new DescriptorAllocator<true>(pDevice, 1000000, 10);
 }
 
 void NXAllocatorManager::Update()
@@ -37,4 +39,6 @@ void NXAllocatorManager::Release()
 	SafeDelete(m_pSRVAllocator);
 	SafeDelete(m_pRTVAllocator);
 	SafeDelete(m_pDSVAllocator);
+
+	SafeDelete(m_pShaderVisibleDescAllocator);
 }

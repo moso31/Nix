@@ -2,7 +2,7 @@
 #include "ShaderStructures.h"
 #include "NXPBRMaterial.h"
 #include "NXIntersection.h"
-#include "NXBuffer.h"
+#include "NXConstantBuffer.h"
 
 enum NXSubMeshReloadState
 {
@@ -138,5 +138,7 @@ public:
 
 private:
 	EditorObjectID m_editorObjID;
-	NXBuffer<ConstantBufferVector4>		m_cbParams;
+	
+	ConstantBufferVector4 m_cbDataParams;
+	NXConstantBuffer<ConstantBufferVector4>	m_cbParams;
 };

@@ -2,7 +2,7 @@
 
 using namespace ccmem;
 
-// false false false: non-visible descriptor
+// <false>: non-visible descriptor
 
 DescriptorAllocator<false>::DescriptorAllocator(ID3D12Device* pDevice, uint32_t descriptorSize) :
 	m_pDevice(pDevice),
@@ -31,13 +31,14 @@ void ccmem::DescriptorAllocator<false>::Alloc(const std::function<void(D3D12_CPU
 
 void ccmem::DescriptorAllocator<false>::Free(uint32_t freeIndex)
 {
-	DescriptorAllocator<false>::Free(freeIndex);
+	DeadListAllocator::Free(freeIndex);
 }
 
-DescriptorAllocator<true>::DescriptorAllocator(ID3D12Device* pDevice, D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t fullCount, uint32_t stableCount) :
+// <true>: shader-visible descriptor
+
+DescriptorAllocator<true>::DescriptorAllocator(ID3D12Device* pDevice, uint32_t fullCount, uint32_t stableCount) :
 	m_pDevice(pDevice),
-	m_eDescriptorType(type),
-	m_descriptorIncrementSize(pDevice->GetDescriptorHandleIncrementSize(type)),
+	m_descriptorIncrementSize(pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)),
 	m_maxDescriptors(fullCount),
 	m_stableCount(stableCount),
 	m_pendingStart(m_stableCount),
@@ -45,15 +46,19 @@ DescriptorAllocator<true>::DescriptorAllocator(ID3D12Device* pDevice, D3D12_DESC
 {
 	D3D12_DESCRIPTOR_HEAP_DESC desc = {};
 	desc.NumDescriptors = fullCount;
-	desc.Type = type;
+	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	desc.NodeMask = 0;
 	pDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_pDescriptorHeap));
 }
 
-// false false false: non-visible descriptor
-
-// true true true: shader-visible descriptor
+DescriptorAllocator<true>::~DescriptorAllocator()
+{
+	if (m_pDescriptorHeap)
+	{
+		m_pDescriptorHeap->Release();
+	}
+}
 
 D3D12_GPU_DESCRIPTOR_HANDLE ccmem::DescriptorAllocator<true>::SetStable(uint32_t stableIndex, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
 {
@@ -112,4 +117,24 @@ D3D12_GPU_DESCRIPTOR_HANDLE ccmem::DescriptorAllocator<true>::Submit()
 	return { m_pDescriptorHeap->GetGPUDescriptorHandleForHeapStart().ptr + m_pendingStart * m_descriptorIncrementSize };
 }
 
-// true true true: shader-visible descriptor
+D3D12_CPU_DESCRIPTOR_HANDLE ccmem::DescriptorAllocator<true>::GetStableCPUHandle(uint32_t stableIndex) const
+{
+	if (stableIndex >= m_stableCount)
+	{
+		return { 0 };
+	}
+
+	return { m_pDescriptorHeap->GetCPUDescriptorHandleForHeapStart().ptr + stableIndex * m_descriptorIncrementSize };
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE ccmem::DescriptorAllocator<true>::GetStableGPUHandle(uint32_t stableIndex) const
+{
+	if (stableIndex >= m_stableCount)
+	{
+		return { 0 };
+	}
+
+	return { m_pDescriptorHeap->GetGPUDescriptorHandleForHeapStart().ptr + stableIndex * m_descriptorIncrementSize };
+}
+
+// <true>: shader-visible descriptor

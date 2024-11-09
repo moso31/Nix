@@ -101,7 +101,8 @@ void NXEasyMaterial::Render(ID3D12GraphicsCommandList* pCommandList)
 	pCommandList->SetGraphicsRootSignature(m_pRootSig.Get());
 	pCommandList->SetPipelineState(m_pPSO.Get());
 
-	auto srvHandle = NXGPUHandleHeap->SetFluidDescriptor(m_pTexture->GetSRV());
+	NXShVisDescHeap->PushFluid(m_pTexture->GetSRV());
+	auto& srvHandle = NXShVisDescHeap->Submit();
 	pCommandList->SetGraphicsRootDescriptorTable(1, srvHandle);
 }
 
@@ -325,7 +326,7 @@ void NXCustomMaterial::UpdateCBData(bool rebuildCB)
 	// 重建整个CBuffer
 	if (rebuildCB)
 	{
-		m_cbData.CreateFrameBuffers((UINT)(cbData.size() * sizeof(float)), NXCBufferAllocator, NXDescriptorAllocator);
+		m_cbData.Recreate(cbData.size());
 	}
 
 	m_cbData.Set(cbData);
@@ -345,21 +346,19 @@ void NXCustomMaterial::Render(ID3D12GraphicsCommandList* pCommandList)
 
 	if (m_texInfos.size() > 0)
 	{
-		auto& srvHandle0 = NXGPUHandleHeap->SetFluidDescriptor(m_texInfos[0].pTexture->GetSRV());
-		for (int i = 1; i < m_texInfos.size(); i++)
+		for (auto& tex : m_texInfos)
 		{
-			auto& texInfo = m_texInfos[i];
-			if (texInfo.pTexture.IsValid())
-			{
-				NXGPUHandleHeap->SetFluidDescriptor(texInfo.pTexture->GetSRV());
-			}
+			if (tex.pTexture.IsValid()) 
+				NXShVisDescHeap->PushFluid(tex.pTexture->GetSRV());
 		}
-		pCommandList->SetGraphicsRootDescriptorTable(3, srvHandle0); // t...
+		auto& srvHandle = NXShVisDescHeap->Submit();
+
+		pCommandList->SetGraphicsRootDescriptorTable(3, srvHandle); // t...
 	}
 
 	if (!m_bIsDirty)
 	{
-		auto gpuHandle = m_cbData.GetGPUHandle();
+		auto gpuHandle = m_cbData.CurrentGPUAddress();
 		pCommandList->SetGraphicsRootConstantBufferView(2, gpuHandle); // b3.
 	}
 }
@@ -371,8 +370,6 @@ void NXCustomMaterial::Update()
 		UpdateCBData(m_bNeedRebuildCB);
 		m_bIsDirty = false;
 	}
-
-	m_cbData.UpdateBuffer();
 }
 
 void NXCustomMaterial::SetTexture(const Ntr<NXTexture>& pTexture, const std::filesystem::path& texFilePath)

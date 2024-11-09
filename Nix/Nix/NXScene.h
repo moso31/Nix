@@ -7,7 +7,7 @@
 #include "NXObject.h"
 #include "HBVH.h"
 #include "ShaderStructures.h"
-#include "NXBuffer.h"
+#include "NXConstantBuffer.h"
 
 class NXCamera;
 class NXPBRLight;

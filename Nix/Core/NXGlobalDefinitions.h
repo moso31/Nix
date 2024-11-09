@@ -44,8 +44,11 @@ class NXGlobalBuffer
 public:
 	static void Init();
 
+	static ConstantBufferObject cbDataObject;
 	static NXConstantBuffer<ConstantBufferObject>		cbObject;
+	static ConstantBufferCamera cbDataCamera;
 	static NXConstantBuffer<ConstantBufferCamera>		cbCamera;
+	static ConstantBufferShadowTest cbDataShadowTest;
 	static NXConstantBuffer<ConstantBufferShadowTest>	cbShadowTest;
 };
 

@@ -142,9 +142,9 @@ void NXRendererPass::InitPSO()
 void NXRendererPass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 {
 	std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> ppRTVs;
-	for (auto& pTex : m_pOutRTs) ppRTVs.push_back(pTex->GetRTV().cpuHandle);
+	for (auto& pTex : m_pOutRTs) ppRTVs.push_back(pTex->GetRTV());
 
-	pCmdList->OMSetRenderTargets((UINT)ppRTVs.size(), ppRTVs.data(), true, m_pOutDS.IsNull() ? nullptr : &m_pOutDS->GetDSV().cpuHandle);
+	pCmdList->OMSetRenderTargets((UINT)ppRTVs.size(), ppRTVs.data(), true, m_pOutDS.IsNull() ? nullptr : &m_pOutDS->GetDSV());
 	pCmdList->OMSetStencilRef(m_stencilRef);
 
 	pCmdList->SetGraphicsRootSignature(m_pRootSig.Get());
@@ -154,7 +154,7 @@ void NXRendererPass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 	{
 		if (m_cbvManagements[i].autoUpdate)
 		{
-			D3D12_GPU_VIRTUAL_ADDRESS gpuVirtAddr = m_cbvManagements[i].multiFrameGpuVirtAddr->Current();
+			const D3D12_GPU_VIRTUAL_ADDRESS gpuVirtAddr = m_cbvManagements[i].multiFrameGpuVirtAddr->Current();
 			pCmdList->SetGraphicsRootConstantBufferView(i, gpuVirtAddr);
 		}
 	}
@@ -162,18 +162,17 @@ void NXRendererPass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 	D3D12_GPU_DESCRIPTOR_HANDLE srvHandle0;
 	if (!m_pInTexs.empty())
 	{
+		for (int i = 0; i < (int)m_pInTexs.size(); i++) NXShVisDescHeap->PushFluid(m_pInTexs[i]->GetSRV());
+		NXShVisDescHeap->Submit();
+
+		// DX12需要及时更新纹理的资源状态
 		for (int i = 0; i < (int)m_pInTexs.size(); i++)
 		{
-			if (i == 0) srvHandle0 = NXGPUHandleHeap->SetFluidDescriptor(m_pInTexs[0]->GetSRV());
-			else NXGPUHandleHeap->SetFluidDescriptor(m_pInTexs[i]->GetSRV());
-
-			// DX12需要及时更新纹理的资源状态
 			m_pInTexs[i]->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		}
 
 		for (int i = 0; i < (int)m_pOutRTs.size(); i++)
 		{
-			// DX12需要及时更新纹理的资源状态
 			m_pOutRTs[i]->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_RENDER_TARGET);
 		}
 

@@ -1,7 +1,7 @@
 #pragma once
 #include "NXRenderableObject.h"
 #include "NXSubMesh.h"
-
+#include "NXConstantBuffer.h"
 class NXPrimitive : public NXRenderableObject
 {
 public:
@@ -29,5 +29,7 @@ public:
 
 protected:
 	std::vector<std::shared_ptr<NXSubMeshBase>> m_pSubMeshes;
-	NXBuffer<ConstantBufferObject>	m_cbObject;
+
+	ConstantBufferObject m_cbDataObject;
+	NXConstantBuffer<ConstantBufferObject>	m_cbObject;
 };

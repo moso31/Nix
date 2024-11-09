@@ -35,7 +35,8 @@ enum NXTextureType
 
 namespace DirectX
 {
-    class ScratchImage;
+    class ScratchImage; 
+    struct TexMetadata;
 }
 
 class NXTexture2D;
@@ -67,18 +68,9 @@ public:
     const D3D12_CPU_DESCRIPTOR_HANDLE& GetRTV(uint32_t index = 0);
     const D3D12_CPU_DESCRIPTOR_HANDLE& GetDSV(uint32_t index = 0);
     const D3D12_CPU_DESCRIPTOR_HANDLE& GetUAV(uint32_t index = 0);
-    const size_t GetSRVs() const { return m_pSRVs.size(); }
-    const size_t GetRTVs() const { return m_pRTVs.size(); }
-    const size_t GetDSVs() const { return m_pDSVs.size(); }
-    const size_t GetUAVs() const { return m_pUAVs.size(); }
-    const size_t* GetSRVArray() { return m_pSRVs.data(); }
-    const size_t* GetRTVArray() { return m_pRTVs.data(); }
-    const size_t* GetDSVArray() { return m_pDSVs.data(); }
-    const size_t* GetUAVArray() { return m_pUAVs.data(); }
 
     // 异步加载Views相关
-    void SetViews(uint32_t srvNum, uint32_t rtvNum, uint32_t dsvNum, uint32_t uavNum, bool bAutoSubmitViews = true); // 设置View数量
-    void SubmitLoadingViews(int asyncLoadingViewsCount); // 设置View数量（异步计数）
+    void SetViews(uint32_t srvNum, uint32_t rtvNum, uint32_t dsvNum, uint32_t uavNum); // 设置View数量
     void ProcessLoadingBuffers(); // 计数--，每加载好一个View，调用一次
     void WaitLoadingViewsFinish(); // 等待所有View都加载完成，渲染传View时调用
 
@@ -135,7 +127,7 @@ protected:
     void CreatePathTextureInternal(const std::filesystem::path& filePath, D3D12_RESOURCE_FLAGS flags);
 
 private:
-    bool GetMetadataFromFile(const std::filesystem::path& path, TexMetadata& oMetaData);
+    bool GetMetadataFromFile(const std::filesystem::path& path, DirectX::TexMetadata& oMetaData);
 
     void InternalReload(Ntr<NXTexture> pReloadTexture);
     D3D12_RESOURCE_DIMENSION GetResourceDimentionFromType();

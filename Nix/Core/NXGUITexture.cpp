@@ -22,7 +22,8 @@ void NXGUITexture::Render()
 	}
 
 	float fTexSize = ImGui::GetContentRegionAvail().x * 0.7f;
-	auto& srvHandle = NXGPUHandleHeap->SetFluidDescriptor(m_pTexImage->GetSRV());
+	NXShVisDescHeap->PushFluid(m_pTexImage->GetSRV());
+	auto& srvHandle = NXShVisDescHeap->Submit();
 	const ImTextureID& ImTexID = (ImTextureID)srvHandle.ptr;
 	ImGui::Image(ImTexID, ImVec2(fTexSize, fTexSize));
 

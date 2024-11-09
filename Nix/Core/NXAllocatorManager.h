@@ -15,7 +15,7 @@
 #define NXAllocator_SRV		NXAllocatorManager::GetInstance()->GetSRVAllocator()
 #define NXAllocator_RTV		NXAllocatorManager::GetInstance()->GetRTVAllocator()
 #define NXAllocator_DSV		NXAllocatorManager::GetInstance()->GetDSVAllocator()
-#define NXShaderDescHeap	NXAllocatorManager::GetInstance()->GetShaderDescriptorHeap()
+#define NXShVisDescHeap		NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorAllocator()
 #define NXUploadSystem		NXAllocatorManager::GetInstance()->GetUploadSystem()
 
 using namespace ccmem;
@@ -35,7 +35,7 @@ public:
 	DescriptorAllocator<false>*			GetRTVAllocator()			{ return m_pRTVAllocator; }
 	DescriptorAllocator<false>*			GetDSVAllocator()			{ return m_pDSVAllocator; }
 
-	DescriptorAllocator<true>*			GetShaderDescriptorHeap()	{ return m_pShaderDescriptorHeap; }
+	DescriptorAllocator<true>*			GetShaderVisibleDescriptorAllocator()	{ return m_pShaderVisibleDescAllocator; }
 
 	void Update();
 
@@ -51,5 +51,6 @@ private:
 	DescriptorAllocator<false>* 		m_pRTVAllocator;
 	DescriptorAllocator<false>* 		m_pDSVAllocator;
 
-	DescriptorAllocator<true>* 			m_pShaderDescriptorHeap;
+	// shader-visible descriptor allocator
+	DescriptorAllocator<true>* 			m_pShaderVisibleDescAllocator;
 };

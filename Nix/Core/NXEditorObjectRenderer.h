@@ -1,6 +1,5 @@
 #pragma once
 #include "NXRendererPass.h"
-#include "NXBuffer.h"
 #include "ShaderStructures.h"
 
 class NXScene;

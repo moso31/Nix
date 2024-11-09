@@ -32,6 +32,7 @@ public:
 
 	void Reset(const T& val) { for (int i = 0; i < MultiFrameSets_swapChainCount; i++) data[i] = val; }
 	T& Current() { return data[MultiFrameSets::swapChainIndex]; }
+	const T& Current() const { return data[MultiFrameSets::swapChainIndex]; }
 	T& Get(UINT8 index) { return data[index]; }
 
 protected:

@@ -150,7 +150,7 @@ void NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR, GenerateCubeMapCallba
 
 			pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-			ID3D12DescriptorHeap* ppHeaps[] = { NXShaderDescHeap->GetDescriptorHeap() };
+			ID3D12DescriptorHeap* ppHeaps[] = { NXShVisDescHeap->GetDescriptorHeap() };
 			pCmdList->SetDescriptorHeaps(1, ppHeaps);
 
 			pCmdList->SetGraphicsRootSignature(m_pRootSigCubeMap.Get());
@@ -161,8 +161,8 @@ void NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR, GenerateCubeMapCallba
 			D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = pTexCubeMap->GetRTV(i);
 			pCmdList->OMSetRenderTargets(1, &rtvHandle, false, nullptr);
 
-			NXShaderDescHeap->PushFluid(pTexHDR->GetSRV(0));
-			D3D12_GPU_DESCRIPTOR_HANDLE gpuHandles = NXShaderDescHeap->Submit();
+			NXShVisDescHeap->PushFluid(pTexHDR->GetSRV(0));
+			D3D12_GPU_DESCRIPTOR_HANDLE gpuHandles = NXShVisDescHeap->Submit();
 
 			pCmdList->SetGraphicsRootConstantBufferView(0, cbCubeWVP.CurrentGPUAddress());
 			pCmdList->SetGraphicsRootDescriptorTable(1, gpuHandles);
@@ -564,7 +564,7 @@ void NXCubeMap::GeneratePreFilterMap()
 
 				pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-				ID3D12DescriptorHeap* ppHeaps[] = { NXShaderDescHeap->GetDescriptorHeap() };
+				ID3D12DescriptorHeap* ppHeaps[] = { NXShVisDescHeap->GetDescriptorHeap() };
 				pCmdList->SetDescriptorHeaps(1, ppHeaps);
 
 				pCmdList->SetGraphicsRootSignature(m_pRootSigPreFilterMap.Get());
@@ -583,8 +583,8 @@ void NXCubeMap::GeneratePreFilterMap()
 				D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_pTexPreFilterMap->GetRTV(i * 6 + j);
 				pCmdList->OMSetRenderTargets(1, &rtvHandle, false, nullptr);
 
-				NXShaderDescHeap->PushFluid(m_pTexCubeMap->GetSRV(0));
-				D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = NXShaderDescHeap->Submit();
+				NXShVisDescHeap->PushFluid(m_pTexCubeMap->GetSRV(0));
+				D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = NXShVisDescHeap->Submit();
 
 				pCmdList->SetGraphicsRootConstantBufferView(0, cbCubeCamera[j].CurrentGPUAddress());
 				pCmdList->SetGraphicsRootConstantBufferView(1, cbRoughness[i].CurrentGPUAddress());

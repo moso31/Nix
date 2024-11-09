@@ -98,9 +98,9 @@ void Renderer::Init()
 	m_pShadowTestRenderer->SetRasterizerState(NXRasterizerState<D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_BACK, 0, 0, 1000.0f>::Create());
 	m_pShadowTestRenderer->SetDepthStencilState(NXDepthStencilState<true, false, D3D12_COMPARISON_FUNC_ALWAYS>::Create());
 	m_pShadowTestRenderer->SetRootParams(3, 2); 
-	m_pShadowTestRenderer->SetStaticRootParamCBV(0, NXGlobalBuffer::cbObject.GetGPUHandleArray());
-	m_pShadowTestRenderer->SetStaticRootParamCBV(1, NXGlobalBuffer::cbCamera.GetGPUHandleArray());
-	m_pShadowTestRenderer->SetStaticRootParamCBV(2, NXGlobalBuffer::cbShadowTest.GetGPUHandleArray());
+	m_pShadowTestRenderer->SetStaticRootParamCBV(0, &NXGlobalBuffer::cbObject.GetFrameGPUAddresses());
+	m_pShadowTestRenderer->SetStaticRootParamCBV(1, &NXGlobalBuffer::cbCamera.GetFrameGPUAddresses());
+	m_pShadowTestRenderer->SetStaticRootParamCBV(2, &NXGlobalBuffer::cbShadowTest.GetFrameGPUAddresses());
 	m_pShadowTestRenderer->AddStaticSampler(D3D12_FILTER_MIN_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
 	m_pShadowTestRenderer->InitPSO();
 
@@ -214,7 +214,7 @@ void Renderer::UpdateSceneData()
 
 void Renderer::UpdateTime()
 {
-	NXGlobalBuffer::cbObject.Get().globalData.time = NXGlobalApp::Timer->GetGlobalTimeSeconds();
+	NXGlobalBuffer::cbDataObject.globalData.time = NXGlobalApp::Timer->GetGlobalTimeSeconds();
 }
 
 void Renderer::RenderFrame()
@@ -232,7 +232,7 @@ void Renderer::RenderFrame()
 	pCommandList->RSSetViewports(1, &vpCamera);
 	pCommandList->RSSetScissorRects(1, &NX12Util::ScissorRect(vpCamera));
 
-	ID3D12DescriptorHeap* ppHeaps[] = { NXGPUHandleHeap->GetHeap() };
+	ID3D12DescriptorHeap* ppHeaps[] = { NXShVisDescHeap->GetDescriptorHeap() };
 	pCommandList->SetDescriptorHeaps(1, ppHeaps);
 
 	//m_pDepthPrepass->Render();

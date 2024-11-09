@@ -6,13 +6,6 @@
 #include "NXInstance.h"
 #include "NXStructuredBuffer.h"
 
-struct NXMeshData
-{
-	D3D12_GPU_VIRTUAL_ADDRESS GPUVirtualAddress;
-	UINT pageIndex;
-	UINT pageByteOffset;
-};
-
 struct NXMeshViews
 {
 	NXMeshViews() : loadFuture(loadPromise.get_future()), loadCounter(0) {}
@@ -87,8 +80,8 @@ public:
 		}
 
 		std::thread([vertices = std::move(vertices), indices = std::move(indices), name, this]() {
-			NXStructuredBufferArray<TVertex> pVB(vertices.size());
-			NXStructuredBufferArray<UINT> pIB(indices.size());
+			NXStructuredBuffer<TVertex> pVB(vertices.size());
+			NXStructuredBuffer<UINT> pIB(indices.size());
 
 			pVB.WaitCreateComplete();
 			pIB.WaitCreateComplete();

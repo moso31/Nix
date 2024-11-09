@@ -84,11 +84,11 @@ public:
 	Ntr<NXTexture2D> GetIrradianceMap() { return m_pTexIrradianceMap; }
 	Ntr<NXTexture2D> GetPreFilterMap() { return m_pTexPreFilterMap; }
 
-	const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>& GetCBObjectParams() { return m_cbObject.GetGPUHandleArray(); }
-	const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>& GetCBDataParams() { return m_cbData.GetGPUHandleArray(); }
+	const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>& GetCBObjectParams() { return m_cbCubeWVPMatrix.GetFrameGPUAddresses(); }
+	const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>& GetCBDataParams() { return m_cbCubeMap.GetFrameGPUAddresses(); }
 
 	void SetIntensity(float val);
-	float GetIntensity() { return m_cbData.Current().intensity; }
+	float GetIntensity() { return m_cbDataCubeMap.intensity; }
 
 	void SetIrradMode(int val);
 

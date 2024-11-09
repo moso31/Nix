@@ -3,7 +3,7 @@
 #include "BaseDefs/NixCore.h"
 #include "BaseDefs/Math.h"
 #include "NXResourceManagerBase.h"
-#include "NXBuffer.h"
+#include "NXConstantBuffer.h"
 
 using namespace DirectX::SimpleMath;
 
