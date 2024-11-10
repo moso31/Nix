@@ -26,6 +26,16 @@ public:
 		m_futureCB.wait();
 	}
 
+	const T& GetCPUAddress()
+	{
+		return *m_data.cpuAddress;
+	}
+
+	const D3D12_GPU_VIRTUAL_ADDRESS& GetGPUAddress()
+	{
+		return m_data.gpuAddress;
+	}
+
 protected:
 	void CreateInternal(UINT byteSize)
 	{
@@ -42,16 +52,6 @@ protected:
 	void FreeInternal()
 	{
 		NXAllocator_SB->Free(reinterpret_cast<uint8_t*>(m_data.cpuAddress));
-	}
-
-	const T& GetCPUAddress()
-	{
-		return *m_data.cpuAddress;
-	}
-
-	const D3D12_GPU_VIRTUAL_ADDRESS& GetGPUAddress()
-	{
-		return m_data.gpuAddress;
 	}
 
 private:

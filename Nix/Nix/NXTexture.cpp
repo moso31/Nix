@@ -228,7 +228,7 @@ void NXTexture::CreateInternal(std::unique_ptr<DirectX::ScratchImage>&& pImage, 
 
 			pImage.reset();
 		}
-	}); 
+		});
 }
 
 void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath, D3D12_RESOURCE_FLAGS flags)

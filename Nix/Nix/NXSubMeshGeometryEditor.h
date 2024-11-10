@@ -68,57 +68,64 @@ public:
 	// 因为这里需要确保顶点/索引生命周期完整覆盖多线程，
 	// 所以约定上层接口调用CreateVBIB时，必须放弃std::vector<>的生命周期控制权。（所以用了右值引用） 
 	template<class TVertex>
-	void CreateVBIB(std::vector<TVertex>&& vertices, std::vector<UINT>&& indices, const std::string& name, bool forceCreate = false)
+	void CreateVBIB(const std::vector<TVertex>& vertices, std::vector<UINT>& indices, const std::string& name)
 	{
-		if (m_data.find(name) != m_data.end())
-		{
-			if (!forceCreate)
-			{
-				//throw std::exception("Mesh name already exists.");
+		// 读写操作需要加锁，避免两个线程同时创建同一个mesh
+		// TODO：改成读写锁
+		{	
+			std::lock_guard<std::mutex> lock(m_mutex);
+
+			if (m_data.find(name) != m_data.end())
 				return;
-			}
+
+			if (m_data[name].loadCounter != 0)
+				return;
+
+			m_data[name].loadCounter = 2; // vb + ib.
 		}
 
-		std::thread([vertices = std::move(vertices), indices = std::move(indices), name, this]() {
+		// 异步创建顶点索引数据和vbv/ibv，并上传
+		std::thread([&vertices, &indices, name, this]() {
+			// 首先在线程A分配内存
 			NXStructuredBuffer<TVertex> pVB(vertices.size());
 			NXStructuredBuffer<UINT> pIB(indices.size());
 
+			// 上面的内存分配是另一个异步线程B，等待线程B分配完成
 			pVB.WaitCreateComplete();
 			pIB.WaitCreateComplete();
 
 			UINT vbDataSize = (UINT)(vertices.size() * sizeof(TVertex));
 			UINT ibDataSize = (UINT)(indices.size() * sizeof(UINT));
 
-			NXMeshViews views;
-			views.vbv.BufferLocation = pVB.CurrentGPUAddress();
+			NXMeshViews& views = m_data[name];
+			views.vbv.BufferLocation = pVB.GetGPUAddress();
 			views.vbv.SizeInBytes = vbDataSize;
 			views.vbv.StrideInBytes = sizeof(TVertex);
-			views.ibv.BufferLocation = pIB.CurrentGPUAddress();
+			views.ibv.BufferLocation = pIB.GetGPUAddress();
 			views.ibv.SizeInBytes = ibDataSize;
 			views.ibv.Format = DXGI_FORMAT_R32_UINT;
 			views.indexCount = (UINT)indices.size();
 			views.vertexCount = (UINT)vertices.size();
-			views.loadCounter = 2; // vb + ib.
 
-			{ 
-				std::lock_guard<std::mutex> lock(m_mutex);
-				m_data[name] = std::move(views);
-			}
-
+			// 上传数据并同步到gpu，其内部是一个异步线程C
 			UploadTaskContext vbTaskContext;
 			UploadTaskContext ibTaskContext;
 			if (NXUploadSystem->BuildTask(vbDataSize, vbTaskContext))
 			{
 				uint8_t* pDst = vbTaskContext.pResourceData + vbTaskContext.pResourceOffset;
 				memcpy(pDst, vertices.data(), vbDataSize);
-				NXUploadSystem->FinishTask(vbTaskContext, [this, name]() { m_data[name].ProcessOne(); });
+				NXUploadSystem->FinishTask(vbTaskContext, [this, name]() {
+					m_data[name].ProcessOne(); // 顶点数据上传完成，通知 loadCounter - 1
+					});
 			}
 
 			if (NXUploadSystem->BuildTask(ibDataSize, ibTaskContext))
 			{
 				uint8_t* pDst = ibTaskContext.pResourceData + ibTaskContext.pResourceOffset;
 				memcpy(pDst, indices.data(), ibDataSize);
-				NXUploadSystem->FinishTask(ibTaskContext, [this, name]() { m_data[name].ProcessOne(); });
+				NXUploadSystem->FinishTask(ibTaskContext, [this, name]() {
+					m_data[name].ProcessOne(); // 索引数据上传完成，通知 loadCounter - 1
+					});
 			}
 
 			}).detach();

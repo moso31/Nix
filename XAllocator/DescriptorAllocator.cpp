@@ -103,7 +103,7 @@ D3D12_GPU_DESCRIPTOR_HANDLE ccmem::DescriptorAllocator<true>::Submit()
 		m_pendingEnd = m_stableCount + descCount;
 	}
 
-	for (int i = 0; i < descCount; i++)
+	for (uint32_t i = 0; i < descCount; i++)
 	{
 		D3D12_CPU_DESCRIPTOR_HANDLE srcHandle = m_submitDescriptors[i];
 		D3D12_CPU_DESCRIPTOR_HANDLE destHandle = { m_pDescriptorHeap->GetCPUDescriptorHandleForHeapStart().ptr + (m_pendingStart + i) * m_descriptorIncrementSize };

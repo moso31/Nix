@@ -159,11 +159,10 @@ void NXRendererPass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 		}
 	}
 
-	D3D12_GPU_DESCRIPTOR_HANDLE srvHandle0;
 	if (!m_pInTexs.empty())
 	{
 		for (int i = 0; i < (int)m_pInTexs.size(); i++) NXShVisDescHeap->PushFluid(m_pInTexs[i]->GetSRV());
-		NXShVisDescHeap->Submit();
+		D3D12_GPU_DESCRIPTOR_HANDLE srvHandle0 = NXShVisDescHeap->Submit();
 
 		// DX12需要及时更新纹理的资源状态
 		for (int i = 0; i < (int)m_pInTexs.size(); i++)
