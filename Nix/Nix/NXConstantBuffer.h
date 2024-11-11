@@ -152,7 +152,7 @@ public:
 
 	void Recreate(size_t arraySize) 
 	{
-		m_arraySize = arraySize;
+		m_arraySize = (uint32_t)arraySize;
 		FreeInternal();
 		CreateInternal(sizeof(T) * m_arraySize);
 	}

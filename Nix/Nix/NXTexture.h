@@ -121,7 +121,7 @@ protected:
     // Texture2D Solid/Noise纹理生成，
     // CubeMap 从文件创建
     // 调用这个方法
-    void CreateInternal(std::unique_ptr<DirectX::ScratchImage>&& pImage, D3D12_RESOURCE_FLAGS flags);
+    void CreateInternal(const std::shared_ptr<DirectX::ScratchImage>& pImage, D3D12_RESOURCE_FLAGS flags);
 
     // Texture2D 从文件创建，调用这个方法
     void CreatePathTextureInternal(const std::filesystem::path& filePath, D3D12_RESOURCE_FLAGS flags);

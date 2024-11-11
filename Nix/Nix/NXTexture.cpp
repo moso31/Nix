@@ -171,7 +171,7 @@ void NXTexture::CreateRenderTextureInternal(D3D12_RESOURCE_FLAGS flags)
 	}
 }
 
-void NXTexture::CreateInternal(std::unique_ptr<DirectX::ScratchImage>&& pImage, D3D12_RESOURCE_FLAGS flags)
+void NXTexture::CreateInternal(const std::shared_ptr<DirectX::ScratchImage>& pImage, D3D12_RESOURCE_FLAGS flags)
 {
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = GetResourceDimentionFromType();
@@ -192,7 +192,7 @@ void NXTexture::CreateInternal(std::unique_ptr<DirectX::ScratchImage>&& pImage, 
 	size_t totalBytes;
 	NXGlobalDX::GetDevice()->GetCopyableFootprints(&desc, 0, layoutSize, 0, layouts, numRow, numRowSizeInBytes, &totalBytes);
 
-	NXAllocator_Tex->Alloc(&desc, totalBytes, [this, layouts, numRow, numRowSizeInBytes, totalBytes, pImage = std::move(pImage)](const PlacedBufferAllocTaskResult& result) mutable {
+	NXAllocator_Tex->Alloc(&desc, (uint32_t)totalBytes, [this, layouts, numRow, numRowSizeInBytes, totalBytes, pImage](const PlacedBufferAllocTaskResult& result) mutable {
 		m_pTexture = result.pResource;
 
 		UploadTaskContext taskContext;
@@ -225,8 +225,6 @@ void NXTexture::CreateInternal(std::unique_ptr<DirectX::ScratchImage>&& pImage, 
 			delete[] layouts;
 			delete[] numRow;
 			delete[] numRowSizeInBytes;
-
-			pImage.reset();
 		}
 		});
 }
@@ -261,7 +259,7 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 	size_t totalBytes;
 	NXGlobalDX::GetDevice()->GetCopyableFootprints(&desc, 0, layoutSize, 0, layouts, numRow, numRowSizeInBytes, &totalBytes);
 
-	NXAllocator_Tex->Alloc(&desc, totalBytes, [this, filePath, layouts, numRow, numRowSizeInBytes, totalBytes](const PlacedBufferAllocTaskResult& result) {
+	NXAllocator_Tex->Alloc(&desc, (uint32_t)totalBytes, [this, filePath, layouts, numRow, numRowSizeInBytes, totalBytes](const PlacedBufferAllocTaskResult& result) {
 		m_pTexture = result.pResource;
 
 		UploadTaskContext taskContext;
@@ -270,7 +268,7 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 			// TODO: 异步 // 不用了 其实已经是异步了……
 			{
 				TexMetadata metadata;
-				std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>();
+				std::shared_ptr<ScratchImage> pImage = std::make_shared<ScratchImage>();
 
 				HRESULT hr;
 				std::string strExtension = NXConvert::s2lower(filePath.extension().string());
@@ -294,7 +292,7 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 				// 如果是Texture2D纹理，并且读取的是arraySize/TextureCube 类型的文件，就只加载第一面。
 				if (metadata.arraySize > 1 && m_type == TextureType_2D)
 				{
-					std::unique_ptr<ScratchImage> timage(new ScratchImage);
+					std::shared_ptr<ScratchImage> timage(new ScratchImage);
 					timage->InitializeFromImage(*pImage->GetImage(0, 0, 0));
 					metadata = timage->GetMetadata();
 					pImage.swap(timage);
@@ -305,7 +303,7 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 					DXGI_FORMAT safeFormat = NXConvert::SafeDXGIFormat(metadata.format);
 					if (metadata.format != safeFormat)
 					{
-						std::unique_ptr<ScratchImage> timage(new ScratchImage);
+						std::shared_ptr<ScratchImage> timage(new ScratchImage);
 						hr = Convert(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), safeFormat, TEX_FILTER_DEFAULT, TEX_THRESHOLD_DEFAULT, *timage);
 						if (SUCCEEDED(hr))
 						{
@@ -326,7 +324,7 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 					DXGI_FORMAT tFormat = bIsSRGB ? NXConvert::ForceSRGB(metadata.format) : NXConvert::ForceLinear(metadata.format);
 					if (metadata.format != tFormat)
 					{
-						std::unique_ptr<ScratchImage> timage(new ScratchImage);
+						std::shared_ptr<ScratchImage> timage(new ScratchImage);
 
 						TEX_FILTER_FLAGS texFlags = bIsSRGB ? TEX_FILTER_SRGB_IN : TEX_FILTER_DEFAULT;
 						hr = Convert(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), tFormat, texFlags, TEX_THRESHOLD_DEFAULT, *timage);
@@ -345,7 +343,7 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 				// --- Invert Y Channel --------------------------------------------------------
 				if (m_serializationData.m_bInvertNormalY)
 				{
-					std::unique_ptr<ScratchImage> timage(new ScratchImage);
+					std::shared_ptr<ScratchImage> timage(new ScratchImage);
 
 					HRESULT hr = TransformImage(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(),
 						[&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t w, size_t y)
@@ -371,7 +369,7 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 
 				if (m_serializationData.m_bGenerateMipMap && metadata.width >= 2 && metadata.height >= 2 && metadata.mipLevels == 1)
 				{
-					std::unique_ptr<ScratchImage> pImageMip = std::make_unique<ScratchImage>();
+					std::shared_ptr<ScratchImage> pImageMip = std::make_shared<ScratchImage>();
 					HRESULT hr = GenerateMipMaps(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), TEX_FILTER_DEFAULT, 0, *pImageMip);
 					if (SUCCEEDED(hr))
 					{
@@ -584,7 +582,7 @@ Ntr<NXTexture2D> NXTexture2D::CreateRenderTexture(const std::string& debugName, 
 Ntr<NXTexture2D> NXTexture2D::CreateSolid(const std::string& debugName, uint32_t texSize, const Vector4& color, D3D12_RESOURCE_FLAGS flags)
 {
 	// 创建大小为 texSize * texSize 的纯色纹理
-	std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>();
+	std::shared_ptr<ScratchImage> pImage = std::make_shared<ScratchImage>();
 	DXGI_FORMAT fmt = DXGI_FORMAT_R8G8B8A8_UNORM;
 	pImage->Initialize2D(fmt, texSize, texSize, 1, 1);
 
@@ -615,7 +613,7 @@ Ntr<NXTexture2D> NXTexture2D::CreateSolid(const std::string& debugName, uint32_t
 	m_mipLevels = 1;
 	m_texFormat = fmt;
 
-	CreateInternal(std::move(pImage), flags);
+	CreateInternal(pImage, flags);
 
 	pImage.reset();
 	return this;
@@ -643,7 +641,7 @@ Ntr<NXTexture2D> NXTexture2D::CreateNoise(const std::string& debugName, uint32_t
 
 	uint32_t bytePerPixel = sizeof(float) * dimension; // 2023.10.26 现阶段只支持 32-bit float 纹理，所以每个像素占 sizeof(float) * Dimension 字节
 
-	std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>();
+	std::shared_ptr<ScratchImage> pImage = std::make_shared<ScratchImage>();
 	pImage->Initialize2D(fmt, texSize, texSize, 1, 1);
 
 	NXRandom* randInst = NXRandom::GetInstance();
@@ -666,7 +664,7 @@ Ntr<NXTexture2D> NXTexture2D::CreateNoise(const std::string& debugName, uint32_t
 	m_mipLevels = 1;
 	m_texFormat = fmt;
 
-	CreateInternal(std::move(pImage), flags);
+	CreateInternal(pImage, flags);
 
 	pImage.reset();
 	return this;

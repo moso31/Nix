@@ -15,9 +15,9 @@ class NXStructuredBuffer
 	};
 
 public:
-	NXStructuredBuffer(uint32_t arraySize)
+	NXStructuredBuffer(size_t arraySize)
 	{
-		m_arraySize = arraySize;
+		m_arraySize = (uint32_t)arraySize;
 		CreateInternal(sizeof(T) * m_arraySize);
 	}
 
@@ -37,7 +37,7 @@ public:
 	}
 
 protected:
-	void CreateInternal(UINT byteSize)
+	void CreateInternal(uint32_t byteSize)
 	{
 		m_byteSize = byteSize;
 
@@ -61,5 +61,5 @@ private:
 	uint32_t m_arraySize;
 
 	Data m_data;
-	UINT m_byteSize;
+	uint32_t m_byteSize;
 };
