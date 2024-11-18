@@ -1,5 +1,6 @@
 #include "NXShadowMapRenderer.h"
 #include "NXGlobalDefinitions.h"
+#include "NXGlobalBuffers.h"
 #include "ShaderComplier.h"
 #include "NXRenderStates.h"
 #include "NXResourceManager.h"
@@ -67,7 +68,7 @@ void NXShadowMapRenderer::Init()
 
 	for (int j = 0; j < 8; j++)
 	{
-		NXGlobalBuffer::cbDataShadowTest.frustumParams[j] = Vector4(0.0f);
+		g_cbDataShadowTest.frustumParams[j] = Vector4(0.0f);
 	}
 }
 
@@ -81,7 +82,7 @@ void NXShadowMapRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 	pCmdList->SetGraphicsRootSignature(m_pRootSig.Get());
 	pCmdList->SetPipelineState(m_pPSO.Get());
 
-	NXGlobalBuffer::cbDataShadowTest.test_transition = m_test_transition;
+	g_cbDataShadowTest.test_transition = m_test_transition;
 
 	for (auto pLight : m_pScene->GetPBRLights())
 	{
@@ -129,25 +130,25 @@ Ntr<NXTexture2DArray> NXShadowMapRenderer::GetShadowMapDepthTex()
 void NXShadowMapRenderer::SetCascadeCount(UINT value)
 {
 	m_cascadeCount = value;
-	NXGlobalBuffer::cbDataShadowTest.cascadeCount = (float)m_cascadeCount;
+	g_cbDataShadowTest.cascadeCount = (float)m_cascadeCount;
 }
 
 void NXShadowMapRenderer::SetDepthBias(int value)
 {
 	m_depthBias = value;
-	NXGlobalBuffer::cbDataShadowTest.depthBias = m_depthBias;
+	g_cbDataShadowTest.depthBias = m_depthBias;
 }
 
 void NXShadowMapRenderer::SetShadowDistance(float value)
 {
 	m_shadowDistance = value;
-	NXGlobalBuffer::cbDataShadowTest.shadowDistance = m_shadowDistance;
+	g_cbDataShadowTest.shadowDistance = m_shadowDistance;
 }
 
 void NXShadowMapRenderer::SetCascadeTransitionScale(float value)
 {
 	m_cascadeTransitionScale = value;
-	NXGlobalBuffer::cbDataShadowTest.cascadeTransitionScale = m_cascadeTransitionScale;
+	g_cbDataShadowTest.cascadeTransitionScale = m_cascadeTransitionScale;
 }
 
 void NXShadowMapRenderer::RenderCSMPerLight(ID3D12GraphicsCommandList* pCmdList, NXPBRDistantLight* pDirLight)
@@ -198,7 +199,7 @@ void NXShadowMapRenderer::RenderCSMPerLight(ID3D12GraphicsCommandList* pCmdList,
 
 		zCascadeLength += zLastCascadeTransitionLength;
 
-		NXGlobalBuffer::cbDataShadowTest.frustumParams[i] = Vector4(zCascadeFar, zLastCascadeTransitionLength, 0.0f, 0.0f);
+		g_cbDataShadowTest.frustumParams[i] = Vector4(zCascadeFar, zLastCascadeTransitionLength, 0.0f, 0.0f);
 
 		float zCascadeNearProj = (zCascadeNear * mxCamProj._33 + mxCamProj._43) / zCascadeNear;
 		float zCascadeFarProj  = (zCascadeFar  * mxCamProj._33 + mxCamProj._43) / zCascadeFar;
@@ -255,8 +256,8 @@ void NXShadowMapRenderer::RenderCSMPerLight(ID3D12GraphicsCommandList* pCmdList,
 		// 更新当前 cascade 层 的 ShadowMap view proj 绘制矩阵
 		m_cbDataCSMViewProj[i].view = mxShadowView.Transpose();
 		m_cbDataCSMViewProj[i].projection = mxShadowProj.Transpose();
-		NXGlobalBuffer::cbDataShadowTest.view[i] = mxShadowView.Transpose();
-		NXGlobalBuffer::cbDataShadowTest.projection[i] = mxShadowProj.Transpose();
+		g_cbDataShadowTest.view[i] = mxShadowView.Transpose();
+		g_cbDataShadowTest.projection[i] = mxShadowProj.Transpose();
 		m_cbCSMViewProj[i].Update(m_cbDataCSMViewProj[i]);
 
 		pCmdList->ClearDepthStencilView(m_pShadowMapDepth->GetDSV(i), D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0x0, 0, nullptr);
@@ -271,5 +272,5 @@ void NXShadowMapRenderer::RenderCSMPerLight(ID3D12GraphicsCommandList* pCmdList,
 	}
 
 	// Shadow Test
-	NXGlobalBuffer::cbShadowTest.Update(NXGlobalBuffer::cbDataShadowTest);
+	g_cbShadowTest.Update(g_cbDataShadowTest);
 }

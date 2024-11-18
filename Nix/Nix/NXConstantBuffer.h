@@ -142,7 +142,7 @@ public:
 	NXConstantBuffer(size_t arraySize) :
 		m_arraySize(arraySize)
 	{
-		CreateInternal(sizeof(T) * m_arraySize);
+		CreateInternal((UINT)(sizeof(T) * m_arraySize));
 	}
 
 	~NXConstantBuffer()

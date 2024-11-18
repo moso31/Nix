@@ -3,7 +3,6 @@
 #include "ShaderComplier.h"
 #include "NXRenderStates.h"
 #include "NXSamplerManager.h"
-#include "NXGlobalDefinitions.h"
 #include "NXResourceManager.h"
 #include "DirectResources.h"
 #include "NXTexture.h"

@@ -319,6 +319,7 @@
     <ClInclude Include="Core\NXCommonTexDefinition.h" />
     <ClInclude Include="Core\NXDepthRenderer.h" />
     <ClInclude Include="Core\NXFileSystemHelper.h" />
+    <ClInclude Include="Core\NXGlobalBuffers.h" />
     <ClInclude Include="Core\NXGlobalDefinitions.h" />
     <ClInclude Include="Core\NXGUICommandManager.h" />
     <ClInclude Include="Core\NXGUIDiffuseProfile.h" />

@@ -822,6 +822,9 @@
     <ClInclude Include="Nix\NXStructuredBuffer.h">
       <Filter>Nix\TextureBuffer</Filter>
     </ClInclude>
+    <ClInclude Include="Core\NXGlobalBuffers.h">
+      <Filter>Core\DirectX</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="杂七杂八的编码规范.txt" />

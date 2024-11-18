@@ -1,5 +1,4 @@
 #include "BaseDefs/NixCore.h"
-#include "NXGlobalDefinitions.h"
 
 #include "NXColorMappingRenderer.h"
 #include "ShaderComplier.h"

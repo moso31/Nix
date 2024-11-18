@@ -1,13 +1,7 @@
 #pragma once
-#include "BaseDefs/DX12.h"
 #include "BaseDefs/NixCore.h"
 #include "NXInstance.h"
 #include "NXShaderVisibleDescriptorHeap.h"
-
-//#define NXCBufferAllocator			NXAllocatorManager::GetInstance()->GetCBufferAllocator()
-//#define NXTextureAllocator			NXAllocatorManager::GetInstance()->GetTextureAllocator()
-//#define NXDescriptorAllocator		NXAllocatorManager::GetInstance()->GetDescriptorAllocator()
-//#define NXGPUHandleHeap				NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorHeap()
 
 #define NXAllocator_CB		NXAllocatorManager::GetInstance()->GetCBAllocator()
 #define NXAllocator_SB		NXAllocatorManager::GetInstance()->GetSBAllocator()
@@ -20,7 +14,6 @@
 
 using namespace ccmem;
 
-// DX12 ∑÷≈‰∆˜
 class NXAllocatorManager : public NXInstance<NXAllocatorManager>
 {
 public:

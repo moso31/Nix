@@ -1,6 +1,6 @@
 #include "Renderer.h"
 #include "NXTimer.h"
-#include "NXGlobalDefinitions.h"
+#include "NXGlobalBuffers.h"
 #include "DirectResources.h"
 #include "ShaderComplier.h"
 #include "NXEvent.h"
@@ -28,11 +28,8 @@ void Renderer::Init()
 	// 输入事件
 	InitEvents();
 
-	// 创建各种DX12资源分配器
 	NXAllocatorManager::GetInstance()->Init();
-
 	NXGlobalInputLayout::Init();
-	NXGlobalBuffer::Init();
 
 	NXTexture::Init();
 
@@ -98,9 +95,9 @@ void Renderer::Init()
 	m_pShadowTestRenderer->SetRasterizerState(NXRasterizerState<D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_BACK, 0, 0, 1000.0f>::Create());
 	m_pShadowTestRenderer->SetDepthStencilState(NXDepthStencilState<true, false, D3D12_COMPARISON_FUNC_ALWAYS>::Create());
 	m_pShadowTestRenderer->SetRootParams(3, 2); 
-	m_pShadowTestRenderer->SetStaticRootParamCBV(0, &NXGlobalBuffer::cbObject.GetFrameGPUAddresses());
-	m_pShadowTestRenderer->SetStaticRootParamCBV(1, &NXGlobalBuffer::cbCamera.GetFrameGPUAddresses());
-	m_pShadowTestRenderer->SetStaticRootParamCBV(2, &NXGlobalBuffer::cbShadowTest.GetFrameGPUAddresses());
+	m_pShadowTestRenderer->SetStaticRootParamCBV(0, &g_cbObject.GetFrameGPUAddresses());
+	m_pShadowTestRenderer->SetStaticRootParamCBV(1, &g_cbCamera.GetFrameGPUAddresses());
+	m_pShadowTestRenderer->SetStaticRootParamCBV(2, &g_cbShadowTest.GetFrameGPUAddresses());
 	m_pShadowTestRenderer->AddStaticSampler(D3D12_FILTER_MIN_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
 	m_pShadowTestRenderer->InitPSO();
 
@@ -214,7 +211,7 @@ void Renderer::UpdateSceneData()
 
 void Renderer::UpdateTime()
 {
-	NXGlobalBuffer::cbDataObject.globalData.time = NXGlobalApp::Timer->GetGlobalTimeSeconds();
+	g_cbDataObject.globalData.time = NXGlobalApp::Timer->GetGlobalTimeSeconds();
 }
 
 void Renderer::RenderFrame()

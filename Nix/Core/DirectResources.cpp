@@ -142,6 +142,4 @@ void DirectResources::Release()
 		WaitForSingleObject(fenceEvent, INFINITE);
 		CloseHandle(fenceEvent);
 	}
-
-	NXGlobalDX::Release();
 }

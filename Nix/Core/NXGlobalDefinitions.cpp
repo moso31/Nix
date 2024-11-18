@@ -28,23 +28,8 @@ void NXGlobalDX::Init(IDXGIAdapter4* pAdapter)
 	}
 }
 
-void NXGlobalDX::Release()
-{
-}
-
 App*		NXGlobalApp::App;
 NXTimer*	NXGlobalApp::Timer;
-
-ConstantBufferObject NXGlobalBuffer::cbDataObject;
-NXConstantBuffer<ConstantBufferObject>		NXGlobalBuffer::cbObject;
-ConstantBufferCamera NXGlobalBuffer::cbDataCamera;
-NXConstantBuffer<ConstantBufferCamera>		NXGlobalBuffer::cbCamera;
-ConstantBufferShadowTest NXGlobalBuffer::cbDataShadowTest;
-NXConstantBuffer<ConstantBufferShadowTest>	NXGlobalBuffer::cbShadowTest;
-
-void NXGlobalBuffer::Init()
-{
-}
 
 D3D12_INPUT_LAYOUT_DESC	NXGlobalInputLayout::layoutP;
 D3D12_INPUT_LAYOUT_DESC	NXGlobalInputLayout::layoutPT;

@@ -48,7 +48,7 @@
 //	g_pUDA->BeginEvent(L"Simple SSAO");
 //	g_pContext->CSSetShader(m_pComputeShader.Get(), nullptr, 0);
 //	
-//	g_pContext->CSSetConstantBuffers(0, 1, NXGlobalBuffer::cbCamera.GetAddressOf());
+//	g_pContext->CSSetConstantBuffers(0, 1, g_cbCamera.GetAddressOf());
 //	g_pContext->CSSetConstantBuffers(1, 1, m_pCBSamplePositions.GetAddressOf());
 //	g_pContext->CSSetConstantBuffers(2, 1, m_pCBSSAOParams.GetAddressOf());
 //
