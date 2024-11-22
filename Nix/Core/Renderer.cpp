@@ -28,24 +28,8 @@ void Renderer::Init()
 	// 输入事件
 	InitEvents();
 
-	NXAllocatorManager::GetInstance()->Init();
-	NXGlobalInputLayout::Init();
-
-	NXTexture::Init();
-
-	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
-	{
-		m_pCommandAllocator.Get(i) = NX12Util::CreateCommandAllocator(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT);
-		std::wstring strCmdAllocatorName(L"Main Renderer Command Allocator" + std::to_wstring(i));
-		m_pCommandAllocator.Get(i)->SetName(strCmdAllocatorName.c_str());
-
-		m_pCommandList.Get(i) = NX12Util::CreateGraphicsCommandList(NXGlobalDX::GetDevice(), m_pCommandAllocator.Get(i).Get(), D3D12_COMMAND_LIST_TYPE_DIRECT);
-		std::wstring strCmdListName(L"Main Renderer Command List" + std::to_wstring(i));
-		m_pCommandList.Get(i)->SetName(strCmdListName.c_str());
-	}
-
-	// PSOManager
-	NXPSOManager::GetInstance()->Init(NXGlobalDX::GetDevice(), NXGlobalDX::GetCmdQueue());
+	// 初始化资源
+	InitGlobalResources();
 
 	// 渲染器
 	InitRenderer();
@@ -124,6 +108,8 @@ void Renderer::Init()
 
 	m_pEditorObjectRenderer = new NXEditorObjectRenderer(m_scene);
 	m_pEditorObjectRenderer->Init();
+
+	InitGUI();
 }
 
 void Renderer::OnResize(const Vector2& rtSize)
@@ -163,6 +149,26 @@ void Renderer::InitRenderer()
 void Renderer::InitEvents()
 {
 	NXEventKeyDown::GetInstance()->AddListener(std::bind(&Renderer::OnKeyDown, this, std::placeholders::_1));
+}
+
+void Renderer::InitGlobalResources()
+{
+	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
+	{
+		m_pCommandAllocator.Get(i) = NX12Util::CreateCommandAllocator(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT);
+		std::wstring strCmdAllocatorName(L"Main Renderer Command Allocator" + std::to_wstring(i));
+		m_pCommandAllocator.Get(i)->SetName(strCmdAllocatorName.c_str());
+
+		m_pCommandList.Get(i) = NX12Util::CreateGraphicsCommandList(NXGlobalDX::GetDevice(), m_pCommandAllocator.Get(i).Get(), D3D12_COMMAND_LIST_TYPE_DIRECT);
+		std::wstring strCmdListName(L"Main Renderer Command List" + std::to_wstring(i));
+		m_pCommandList.Get(i)->SetName(strCmdListName.c_str());
+	}
+
+	NXAllocatorManager::GetInstance()->Init();
+	NXGlobalInputLayout::Init();
+
+	// PSOManager
+	NXPSOManager::GetInstance()->Init(NXGlobalDX::GetDevice(), NXGlobalDX::GetCmdQueue());
 }
 
 void Renderer::ResourcesReloading()

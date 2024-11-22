@@ -61,8 +61,6 @@ public:
 
     virtual ~NXTexture();
 
-    static void Init();
-
     ID3D12Resource* GetTex() const { return m_pTexture.Get(); }
     const D3D12_CPU_DESCRIPTOR_HANDLE& GetSRV(uint32_t index = 0);
     const D3D12_CPU_DESCRIPTOR_HANDLE& GetRTV(uint32_t index = 0);
@@ -131,9 +129,6 @@ private:
 
     void InternalReload(Ntr<NXTexture> pReloadTexture);
     D3D12_RESOURCE_DIMENSION GetResourceDimentionFromType();
-
-    static ComPtr<ID3D12CommandAllocator> s_pCmdAllocator;
-    static ComPtr<ID3D12GraphicsCommandList> s_pCmdList;
 
 protected:
     ComPtr<ID3D12Resource> m_pTexture;

@@ -7,18 +7,9 @@
 #include "NXRandom.h"
 #include "NXAllocatorManager.h"
 
-ComPtr<ID3D12CommandAllocator> NXTexture::s_pCmdAllocator = nullptr;
-ComPtr<ID3D12GraphicsCommandList> NXTexture::s_pCmdList = nullptr;
-
 NXTexture::~NXTexture()
 {
 	//NXLog::LogWithStackTrace("[%s : size=(%dx%d)x%d, mip=%d, path=%s] Deleted. remain RefCount: %d", m_name.c_str(), m_width, m_height, m_arraySize, m_mipLevels, m_texFilePath.string().c_str(), m_nRefCount);
-}
-
-void NXTexture::Init()
-{
-	s_pCmdAllocator = NX12Util::CreateCommandAllocator(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT);
-	s_pCmdList = NX12Util::CreateGraphicsCommandList(NXGlobalDX::GetDevice(), s_pCmdAllocator.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT);
 }
 
 const D3D12_CPU_DESCRIPTOR_HANDLE& NXTexture::GetSRV(uint32_t index)

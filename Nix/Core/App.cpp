@@ -24,8 +24,6 @@ void App::Init()
 
 	m_pRenderer = new Renderer(m_viewSize);
 	m_pRenderer->Init();
-
-	m_pRenderer->InitGUI();
 }
 
 void App::OnWindowResize(UINT width, UINT height)

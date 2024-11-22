@@ -68,11 +68,13 @@ public:
 
 	void Update(const T& newData)
 	{
+		WaitCreateComplete();
 		memcpy(m_cpuAddrs.Current(), &newData, m_byteSize);
 	}
 
 	void Set(const T& newData)
 	{
+		WaitCreateComplete();
 		for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 		{
 			memcpy(m_cpuAddrs[i], &newData, m_byteSize);
@@ -154,7 +156,7 @@ public:
 	{
 		m_arraySize = (uint32_t)arraySize;
 		FreeInternal();
-		CreateInternal(sizeof(T) * m_arraySize);
+		CreateInternal((UINT)(sizeof(T) * m_arraySize));
 	}
 
 	T* Current()
@@ -178,12 +180,14 @@ public:
 	// 更新整个数组
 	void Update(const std::vector<T>& newData)
 	{
+		WaitCreateComplete();
 		memcpy(m_cpuAddrs.Current(), newData.data(), sizeof(T) * newData.size());
 	}
 
 	// 设置所有MultiFrame的数组数据
 	void Set(const std::vector<T>& newData)
 	{
+		WaitCreateComplete();
 		for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 		{
 			memcpy(m_cpuAddrs[i], newData.data(), sizeof(T) * newData.size());
