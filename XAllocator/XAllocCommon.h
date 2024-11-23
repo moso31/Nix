@@ -1,4 +1,6 @@
 #pragma once
+#define NOMINMAX
+
 #include <d3d12.h>
 #include <dxgi1_6.h>
 #include <wrl.h>
@@ -7,7 +9,19 @@
 
 #include <set>
 #include <functional>
+#include <algorithm>
 #include <vector>
+#include <list>
 #include <string>
 #include <mutex>
+#include <cassert>
+#include <iostream>
+#include <atomic>
 
+#include "Log.h"
+
+namespace ccmem
+{
+	// 全局ID生成器
+	uint64_t GenerateUniqueTaskID();
+}

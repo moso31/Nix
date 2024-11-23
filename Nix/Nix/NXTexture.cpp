@@ -3,13 +3,11 @@
 #include "DirectXTex.h"
 #include "NXResourceManager.h"
 #include "NXConverter.h"
-#include "NXLog.h"
 #include "NXRandom.h"
 #include "NXAllocatorManager.h"
 
 NXTexture::~NXTexture()
 {
-	//NXLog::LogWithStackTrace("[%s : size=(%dx%d)x%d, mip=%d, path=%s] Deleted. remain RefCount: %d", m_name.c_str(), m_width, m_height, m_arraySize, m_mipLevels, m_texFilePath.string().c_str(), m_nRefCount);
 }
 
 const D3D12_CPU_DESCRIPTOR_HANDLE& NXTexture::GetSRV(uint32_t index)
@@ -374,6 +372,7 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 				}
 
 
+				NXPrint::Write("Loading Texture: %s\n", m_texFilePath.string().c_str());
 				// 更新纹理资源
 				m_pTexture->SetName(NXConvert::s2ws(m_name).c_str());
 				SetRefCountDebugName(m_name);
@@ -663,6 +662,7 @@ Ntr<NXTexture2D> NXTexture2D::CreateNoise(const std::string& debugName, uint32_t
 
 void NXTexture2D::SetSRV(uint32_t index)
 {
+	NXPrint::Write("SetSRV: %s\n", m_name.c_str());
 	NXAllocator_SRV->Alloc([this, index](const D3D12_CPU_DESCRIPTOR_HANDLE& result) {
 		m_pSRVs[index] = result;
 
@@ -687,6 +687,7 @@ void NXTexture2D::SetSRV(uint32_t index)
 
 void NXTexture2D::SetRTV(uint32_t index)
 {
+	NXPrint::Write("SetRTV: %s\n", m_name.c_str());
 	NXAllocator_RTV->Alloc([this, index](const D3D12_CPU_DESCRIPTOR_HANDLE& result) {
 		m_pRTVs[index] = result;
 		NXGlobalDX::GetDevice()->CreateRenderTargetView(m_pTexture.Get(), nullptr, m_pRTVs[index]);
@@ -696,6 +697,7 @@ void NXTexture2D::SetRTV(uint32_t index)
 
 void NXTexture2D::SetDSV(uint32_t index)
 {
+	NXPrint::Write("SetDSV: %s\n", m_name.c_str());
 	NXAllocator_DSV->Alloc([this, index](const D3D12_CPU_DESCRIPTOR_HANDLE& result) {
 		m_pDSVs[index] = result;
 

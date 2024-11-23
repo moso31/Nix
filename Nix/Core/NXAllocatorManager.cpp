@@ -7,7 +7,7 @@ void NXAllocatorManager::Init()
 
 	m_pCBAllocator = new CommittedBufferAllocator(pDevice);
 	m_pSBAllocator = new CommittedBufferAllocator(pDevice);
-	m_pTextureAllocator = new PlacedBufferAllocator(pDevice);
+	m_pTextureAllocator = new PlacedBufferAllocator(pDevice, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
 
 	m_pUpdateSystem = new UploadSystem(pDevice);
 
@@ -16,6 +16,14 @@ void NXAllocatorManager::Init()
 	m_pDSVAllocator = new DescriptorAllocator<false>(pDevice, 4096);
 
 	m_pShaderVisibleDescAllocator = new DescriptorAllocator<true>(pDevice, 1000000, 10);
+
+	std::thread([this]() {
+		while (true)
+		{
+			Update();
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		}
+	}).detach();
 }
 
 void NXAllocatorManager::Update()

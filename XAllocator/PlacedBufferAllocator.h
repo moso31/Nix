@@ -16,10 +16,15 @@ namespace ccmem
 			ID3D12Heap* pHeap;
 		};
 
+		struct FreeData
+		{
+			BuddyAllocatorPage* pAllocator;
+			uint32_t byteOffset;
+		};;
+
 	public:
 		// pageBlockByteSize = 单个内存块的大小 pageFullByteSize = 单个Allocator内存大小. 要求必须是2的n次幂
-		// 这里约定单个内存块大小是64B，总内存大小是2GB
-		// 另：64B = 一个4x4分辨率的R8G8B8A8纹理。
+		// 默认单个内存块大小是64B，总内存大小是2GB
 		PlacedBufferAllocator(ID3D12Device* pDevice, uint32_t pageBlockByteSize = 64, uint32_t pageFullByteSize = 2147483648);
 		virtual ~PlacedBufferAllocator() {};
 
@@ -34,7 +39,7 @@ namespace ccmem
 	private:
 		ID3D12Device* m_pDevice;
 		std::unordered_map<BuddyAllocatorPage*, AllocatorData> m_allocatorPageData;
-		std::unordered_map<ID3D12Resource*, BuddyTaskResult> m_freeMap;
+		std::unordered_map<ID3D12Resource*, FreeData> m_freeMap;
 
 		uint32_t m_pageFullByteSize;
 	};

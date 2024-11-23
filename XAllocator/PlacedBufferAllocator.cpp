@@ -11,11 +11,13 @@ ccmem::PlacedBufferAllocator::PlacedBufferAllocator(ID3D12Device* pDevice, uint3
 
 void ccmem::PlacedBufferAllocator::Alloc(D3D12_RESOURCE_DESC* desc, uint32_t byteSize, const std::function<void(const PlacedBufferAllocTaskResult&)>& callback)
 {
-	BuddyAllocator::AddAllocTask(byteSize, desc, [this, desc, callback](const BuddyTaskResult& taskResult) {
+	BuddyAllocator::AddAllocTask(byteSize, desc, sizeof(D3D12_RESOURCE_DESC), [this, callback](const BuddyTaskResult& taskResult) {
 		PlacedBufferAllocTaskResult result;
-		m_pDevice->CreatePlacedResource(m_allocatorPageData[taskResult.pAllocator].pHeap, taskResult.byteOffset, desc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&result.pResource));
+		D3D12_RESOURCE_DESC* texDesc = reinterpret_cast<D3D12_RESOURCE_DESC*>(taskResult.pTaskContext);
+		m_pDevice->CreatePlacedResource(m_allocatorPageData[taskResult.pAllocator].pHeap, taskResult.byteOffset, texDesc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&result.pResource));
 
-		m_freeMap[result.pResource] = taskResult;
+		m_freeMap[result.pResource].byteOffset = taskResult.byteOffset;
+		m_freeMap[result.pResource].pAllocator = taskResult.pAllocator;
 		callback(result);
 	});
 }
@@ -43,7 +45,7 @@ void ccmem::PlacedBufferAllocator::OnAllocatorAdded(BuddyAllocatorPage* pAllocat
 	desc.Properties.VisibleNodeMask = 1; // Assuming single GPU node
 	desc.SizeInBytes = m_pageFullByteSize;
 
-	AllocatorData newData = m_allocatorPageData[pAllocator];
+	AllocatorData& newData = m_allocatorPageData[pAllocator];
 
 	m_pDevice->CreateHeap(&desc, IID_PPV_ARGS(&newData.pHeap));
 	newData.pHeap->SetName(L"Heap");

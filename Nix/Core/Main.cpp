@@ -7,7 +7,7 @@
 #include "NXInput.h"
 #include "NXTimer.h"
 #include "NXGUI.h"
-#include "NXLog.h"
+#include "Log.h"
 
 //#define ENABLE_SPLASH_SCREEN
 
@@ -204,9 +204,6 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
 	CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 
-	NXLog::Init();
-	NXLog::Log("-----Init-----");
-
 	NXGlobalApp::App = new App();
 	NXGlobalApp::App->Init();
 
@@ -255,12 +252,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 		}
 	}
 
-	NXLog::Log("-----Release-----");
-
 	SafeDelete(NXGlobalApp::Timer);
 	SafeRelease(NXGlobalApp::App);
-
-	NXLog::Release();
 
 	CoUninitialize();
 	return (int)msg.wParam;

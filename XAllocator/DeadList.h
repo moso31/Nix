@@ -1,17 +1,25 @@
 #pragma once
-#include <vector>
-#include <list>
-#include <functional>
-#include <mutex>
-#include <cassert>
-#include <iostream>
+#include "XAllocCommon.h"
 
 namespace ccmem
 {
-	typedef uint32_t DeadListTaskResult;
+	struct DeadListTask;
+	struct DeadListTaskResult
+	{
+		DeadListTaskResult(const DeadListTask& connectTask);
+
+		uint64_t selfID;
+		uint64_t connectTaskID;
+
+		uint32_t index;
+	};
 
 	struct DeadListTask
 	{
+		DeadListTask();
+
+		uint64_t selfID;
+
 		std::function<void(DeadListTaskResult&)> pCallback;
 		uint32_t freeIndex;
 	};

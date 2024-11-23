@@ -11,12 +11,13 @@ CommittedBufferAllocator::CommittedBufferAllocator(ID3D12Device* pDevice, uint32
 
 void CommittedBufferAllocator::Alloc(uint32_t byteSize, const std::function<void(const CommittedBufferAllocTaskResult&)>& callback)
 {
-	BuddyAllocator::AddAllocTask(byteSize, nullptr, [this, callback](const BuddyTaskResult& taskResult) {
+	BuddyAllocator::AddAllocTask(byteSize, nullptr, 0, [this, callback](const BuddyTaskResult& taskResult) {
 		CommittedBufferAllocTaskResult result;
 		result.cpuAddress = m_allocatorPageData[taskResult.pAllocator].m_pResourceData + taskResult.byteOffset;
 		result.gpuAddress = m_allocatorPageData[taskResult.pAllocator].m_pResource->GetGPUVirtualAddress() + taskResult.byteOffset;
 
-		m_freeMap[result.cpuAddress] = taskResult;
+		m_freeMap[result.cpuAddress].byteOffset = taskResult.byteOffset;
+		m_freeMap[result.cpuAddress].pAllocator = taskResult.pAllocator;
 		callback(result);
 	});
 }
@@ -54,7 +55,7 @@ void ccmem::CommittedBufferAllocator::OnAllocatorAdded(BuddyAllocatorPage* pAllo
 	cbDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR; 
 	cbDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-	AllocatorData newData = m_allocatorPageData[pAllocator];
+	AllocatorData& newData = m_allocatorPageData[pAllocator];
 
 	HRESULT hr = m_pDevice->CreateCommittedResource(
 		&heapProperties,

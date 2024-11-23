@@ -1,5 +1,19 @@
 #include "DeadList.h"
 
+ccmem::DeadListTaskResult::DeadListTaskResult(const DeadListTask& connectTask)
+{
+	selfID = ccmem::GenerateUniqueTaskID();
+	connectTaskID = connectTask.selfID;
+
+	NXPrint::Write("deadlist+ selfID: %lld, connectTaskID: %lld\n", selfID, connectTaskID);
+}
+
+ccmem::DeadListTask::DeadListTask()
+{
+	selfID = ccmem::GenerateUniqueTaskID();
+	NXPrint::Write("deadlist+ Task ID: %lld\n", selfID);
+}
+
 ccmem::DeadListAllocator::DeadListAllocator(uint32_t size) 
 {
 	m_deadList.reserve(size);
@@ -50,7 +64,9 @@ void ccmem::DeadListAllocator::ExecuteTasks()
 				break;
 			}
 
-			DeadListTaskResult result = m_deadList[m_currentDeadListIndex];
+			DeadListTaskResult result(task);
+			result.index = m_deadList[m_currentDeadListIndex];
+
 			m_currentDeadListIndex++;
 			task.pCallback(result);
 		}

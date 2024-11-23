@@ -8,6 +8,7 @@
     <ClCompile Include="PlacedBufferAllocator.cpp" />
     <ClCompile Include="XAllocCommon.h" />
     <ClCompile Include="UploadSystem.cpp" />
+    <ClCompile Include="XAllocCommon.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buddy.h" />

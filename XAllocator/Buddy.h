@@ -13,26 +13,30 @@
 //		扩展性：允许派生类根据不同的需求，实现特定的内存分配和释放策略。
 
 #pragma once
-#include <list>
-#include <mutex>
-#include <atomic>
-#include <cassert>
-#include <iostream>
-#include <functional>
-#include <algorithm>
+#include "XAllocCommon.h"
 
 namespace ccmem
 {
 	class BuddyAllocatorPage;
+	struct BuddyTask;
 
 	struct BuddyTaskResult
 	{
+		BuddyTaskResult(const BuddyTask& connectTask);
+		~BuddyTaskResult();
+
+		uint64_t selfID;
+		uint64_t connectTaskID;
+
 		BuddyAllocatorPage* pAllocator;
 		uint32_t byteOffset;
+		uint8_t* pTaskContext;
 	};
 
 	struct BuddyTask
 	{
+		BuddyTask();
+
 		enum class State
 		{
 			// 等待执行
@@ -51,11 +55,13 @@ namespace ccmem
 			Failed_Unknown,
 		};
 
+		uint64_t selfID;
+
 		// 这俩字段只会有一个被使用
 		union 
 		{
-			uint32_t offset;	// 记录要释放的内存偏移量
-			uint32_t byteSize = 0;		// 记录要分配的内存大小
+			uint32_t byteSize = 0;	// 要么记录Alloc的内存大小
+			uint32_t offset;		// 要么记录Free 的内存偏移量
 		};
 
 		// 回调函数
@@ -65,7 +71,8 @@ namespace ccmem
 		BuddyTask::State state = BuddyTask::State::Pending;
 
 		// 上下文，用于传递一些额外的信息（比如分配PlacedResource类型时需要提供D3D12_RESOURCE_DESC）
-		void* pTaskContext = nullptr;
+		uint8_t* pTaskContext;
+		uint32_t pTaskContextSize = 0;
 
 		// 释放时 记录要释放的内存所属的内存页指针
 		BuddyAllocatorPage* pFreeAllocator;
@@ -123,7 +130,10 @@ namespace ccmem
 	protected:
 		virtual void OnAllocatorAdded(BuddyAllocatorPage* pAllocator) = 0;
 
-		void AddAllocTask(uint32_t byteSize, void* pTaskContext, const std::function<void(const BuddyTaskResult&)>& callback);
+		// 添加一个分配任务，异步执行
+		// byteSize: 分配的内存大小
+		// pTaskContext, pTaskContextSize: 任务上下文信息及大小
+		void AddAllocTask(uint32_t byteSize, void* pTaskContext, uint32_t pTaskContextSize, const std::function<void(const BuddyTaskResult&)>& callback);
 		void AddFreeTask(BuddyAllocatorPage* pAllocator, uint32_t pFreeMem);
 
 	private:

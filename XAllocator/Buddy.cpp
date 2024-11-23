@@ -2,6 +2,29 @@
 
 using namespace ccmem;
 
+ccmem::BuddyTaskResult::BuddyTaskResult(const BuddyTask& connectTask)
+{
+	selfID = ccmem::GenerateUniqueTaskID();
+	connectTaskID = connectTask.selfID;
+
+	NXPrint::Write("buddy+ selfID: %lld, connectTaskID: %lld\n", selfID, connectTaskID);
+}
+
+ccmem::BuddyTaskResult::~BuddyTaskResult()
+{
+	if (pTaskContext)
+	{
+		delete[] pTaskContext;
+		pTaskContext = nullptr;
+	}
+}
+
+ccmem::BuddyTask::BuddyTask()
+{
+	selfID = ccmem::GenerateUniqueTaskID();
+	NXPrint::Write("buddy+ Task ID: %lld\n", selfID);
+}
+
 ccmem::BuddyAllocator::BuddyAllocator(uint32_t blockByteSize, uint32_t fullByteSize) :
 	MIN_LV(blockByteSize),
 	MAX_LV(fullByteSize)
@@ -12,13 +35,15 @@ ccmem::BuddyAllocator::BuddyAllocator(uint32_t blockByteSize, uint32_t fullByteS
 	LV_NUM = MAX_LV_LOG2 - MIN_LV_LOG2 + 1;
 }
 
-void ccmem::BuddyAllocator::AddAllocTask(uint32_t byteSize, void* pTaskContext, const std::function<void(const BuddyTaskResult&)>& callback)
+void ccmem::BuddyAllocator::AddAllocTask(uint32_t byteSize, void* pTaskContext, uint32_t pTaskContextSize, const std::function<void(const BuddyTaskResult&)>& callback)
 {
 	BuddyTask task;
 	task.byteSize = byteSize;
 	task.pCallBack = callback;
 	task.state = BuddyTask::State::Pending;
-	task.pTaskContext = pTaskContext;
+	task.pTaskContextSize = pTaskContextSize;
+	task.pTaskContext = new uint8_t[pTaskContextSize];
+	memcpy(task.pTaskContext, pTaskContext, pTaskContextSize);
 
 	m_mutex.lock();
 	m_taskList.push_back(task);
@@ -52,12 +77,17 @@ void ccmem::BuddyAllocator::ExecuteTasks()
 	{
 		if (task.pCallBack) // is alloc
 		{
-			BuddyTaskResult taskResult;
+			BuddyTaskResult taskResult(task);
 			task.state = TryAlloc(task, taskResult);
 
 			// 如果分配成功，触发回调函数
 			if (task.state == BuddyTask::State::Success)
+			{
+				// 移交pTaskContext所有权给taskResult
+				taskResult.pTaskContext = task.pTaskContext;
+				task.pTaskContext = nullptr; // 防止重复释放
 				task.pCallBack(taskResult);
+			}
 		}
 		else // is free
 		{
@@ -94,7 +124,7 @@ uint32_t ccmem::BuddyAllocator::GetLevel(uint32_t byteSize)
 	{
 		byteSize >>= 1;
 		level++;
-	};
+	}
 
 	return MAX_LV_LOG2 - std::max(level, MIN_LV_LOG2);
 }

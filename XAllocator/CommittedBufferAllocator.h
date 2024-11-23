@@ -18,6 +18,12 @@ namespace ccmem
 			uint8_t* m_pResourceData;
 		};
 
+		struct FreeData
+		{
+			BuddyAllocatorPage* pAllocator;
+			uint32_t byteOffset;
+		};
+
 	public:
 		// pageBlockByteSize = 单个内存块的大小 pageFullByteSize = 单个Allocator内存大小. 要求必须是2的n次幂
 		// 这里约定单个内存块大小是64B，总内存大小是2GB
@@ -39,7 +45,7 @@ namespace ccmem
 	private:
 		ID3D12Device* m_pDevice;
 		std::unordered_map<BuddyAllocatorPage*, AllocatorData> m_allocatorPageData;
-		std::unordered_map<uint8_t*, BuddyTaskResult> m_freeMap;
+		std::unordered_map<uint8_t*, FreeData> m_freeMap;
 
 		uint32_t m_pageFullByteSize; // 每个Allocator的总内存大小
 	};

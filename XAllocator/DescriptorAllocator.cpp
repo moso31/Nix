@@ -17,6 +17,8 @@ DescriptorAllocator<false>::DescriptorAllocator(ID3D12Device* pDevice, uint32_t 
 
 	HRESULT hr = m_pDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_pDescriptorHeap));
 	m_pDescriptorHeap->SetName(L"NonVisibleDescriptor");
+
+	NXPrint::Write("DescriptorAllocator<false> created\n");
 }
 
 void ccmem::DescriptorAllocator<false>::Alloc(const std::function<void(D3D12_CPU_DESCRIPTOR_HANDLE&)>& callback)
@@ -24,7 +26,7 @@ void ccmem::DescriptorAllocator<false>::Alloc(const std::function<void(D3D12_CPU
 	DeadListAllocator::Alloc([this, callback](const DeadListTaskResult& result) {
 		D3D12_CPU_DESCRIPTOR_HANDLE taskResult;
 		taskResult = m_pDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
-		taskResult.ptr += result * m_descriptorIncrementSize;
+		taskResult.ptr += result.index * m_descriptorIncrementSize;
 		callback(taskResult);
 	});
 }

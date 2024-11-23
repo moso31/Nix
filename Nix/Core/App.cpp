@@ -7,7 +7,6 @@
 #include "NXResourceManager.h"
 #include "ShaderComplier.h"
 #include "NXEvent.h"
-#include "NXLog.h"
 
 App::App() :
 	m_pRenderer(nullptr),
@@ -37,14 +36,10 @@ void App::OnWindowResize(UINT width, UINT height)
 
 void App::OnResize(const Vector2& rtSize)
 {
-	NXLog::Log("-----OnResize-----");
-
 	if ((UINT)rtSize.x & (UINT)rtSize.y)
 	{
 		m_pRenderer->OnResize(rtSize);
 	}
-
-	NXLog::Log("-----OnResize(End)-----");
 }
 
 void App::FrameBegin()
