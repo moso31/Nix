@@ -4,16 +4,16 @@ using namespace ccmem;
 
 // <false>: non-visible descriptor
 
-DescriptorAllocator<false>::DescriptorAllocator(ID3D12Device* pDevice, uint32_t descriptorSize) :
+DescriptorAllocator<false>::DescriptorAllocator(ID3D12Device* pDevice, uint32_t descriptorSize, D3D12_DESCRIPTOR_HEAP_TYPE descriptorType) :
 	m_pDevice(pDevice),
 	DeadListAllocator(descriptorSize),
-	m_descriptorIncrementSize(pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV))
+	m_descriptorIncrementSize(pDevice->GetDescriptorHandleIncrementSize(descriptorType))
 {
 	D3D12_DESCRIPTOR_HEAP_DESC desc = {};
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE; // non-shader-visible.
 	desc.NodeMask = 0;
 	desc.NumDescriptors = descriptorSize;
-	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV; 
+	desc.Type = descriptorType;
 
 	HRESULT hr = m_pDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_pDescriptorHeap));
 	m_pDescriptorHeap->SetName(L"NonVisibleDescriptor");
@@ -27,6 +27,7 @@ void ccmem::DescriptorAllocator<false>::Alloc(const std::function<void(D3D12_CPU
 		D3D12_CPU_DESCRIPTOR_HANDLE taskResult;
 		taskResult = m_pDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 		taskResult.ptr += result.index * m_descriptorIncrementSize;
+		NXPrint::Write("deadListTaskIndex: %d, ptr: %p\n", result.index, taskResult.ptr);
 		callback(taskResult);
 	});
 }

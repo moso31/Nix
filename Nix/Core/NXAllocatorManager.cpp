@@ -11,9 +11,9 @@ void NXAllocatorManager::Init()
 
 	m_pUpdateSystem = new UploadSystem(pDevice);
 
-	m_pSRVAllocator = new DescriptorAllocator<false>(pDevice, 1000000);
-	m_pRTVAllocator = new DescriptorAllocator<false>(pDevice, 4096);
-	m_pDSVAllocator = new DescriptorAllocator<false>(pDevice, 4096);
+	m_pSRVAllocator = new DescriptorAllocator<false>(pDevice, 1000000, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	m_pRTVAllocator = new DescriptorAllocator<false>(pDevice, 4096, D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	m_pDSVAllocator = new DescriptorAllocator<false>(pDevice, 4096, D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 
 	m_pShaderVisibleDescAllocator = new DescriptorAllocator<true>(pDevice, 1000000, 10);
 

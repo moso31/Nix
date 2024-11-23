@@ -64,6 +64,7 @@ void ccmem::BuddyAllocator::AddFreeTask(BuddyAllocatorPage* pAllocator, uint32_t
 
 void ccmem::BuddyAllocator::ExecuteTasks()
 {
+	NXPrint::Write("ExecuteTasks()\n");
 	m_mutex.lock();
 	std::list<BuddyTask> taskList;
 	taskList.swap(m_taskList);

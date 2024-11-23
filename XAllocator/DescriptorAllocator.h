@@ -11,7 +11,7 @@ namespace ccmem
 	class DescriptorAllocator<false> : public DeadListAllocator
 	{
 	public:
-		DescriptorAllocator(ID3D12Device* pDevice, uint32_t descriptorSize);
+		DescriptorAllocator(ID3D12Device* pDevice, uint32_t descriptorSize, D3D12_DESCRIPTOR_HEAP_TYPE descriptorType);
 		virtual ~DescriptorAllocator() {};
 
 		void Alloc(const std::function<void(D3D12_CPU_DESCRIPTOR_HANDLE&)>& callback);

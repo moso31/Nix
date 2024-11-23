@@ -713,7 +713,7 @@ void NXTexture2D::SetDSV(uint32_t index)
 		dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 		dsvDesc.Texture2D.MipSlice = 0;
 
-		NXGlobalDX::GetDevice()->CreateDepthStencilView(m_pTexture.Get(), nullptr, m_pDSVs[index]);
+		NXGlobalDX::GetDevice()->CreateDepthStencilView(m_pTexture.Get(), &dsvDesc, m_pDSVs[index]);
 
 		ProcessLoadingBuffers();
 		});
