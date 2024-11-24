@@ -64,9 +64,6 @@ public:
 	// Editor objects
 	void CreateMoveArrows(NXPrimitive* pMesh);
 
-	// 2024.10.15 
-	// 因为这里需要确保顶点/索引生命周期完整覆盖多线程，
-	// 所以约定上层接口调用CreateVBIB时，必须放弃std::vector<>的生命周期控制权。（所以用了右值引用） 
 	template<class TVertex>
 	void CreateVBIB(const std::vector<TVertex>& vertices, std::vector<UINT>& indices, const std::string& name)
 	{
@@ -143,4 +140,10 @@ private:
 	std::unordered_map<std::string, NXMeshViews> m_data; 
 
 	std::mutex m_mutex;
+
+	std::vector<float> m_verticesUnknown;
+	std::vector<UINT> m_indicesUnknown;
+
+	std::vector<VertexPT> m_verticesRT;
+	std::vector<UINT> m_indicesRT;
 };

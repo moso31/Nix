@@ -45,6 +45,8 @@ void ccmem::BuddyAllocator::AddAllocTask(uint32_t byteSize, void* pTaskContext, 
 	task.pTaskContext = new uint8_t[pTaskContextSize];
 	memcpy(task.pTaskContext, pTaskContext, pTaskContextSize);
 
+	NXPrint::Write("taskID: %d, task.byteSize: %d\n", task.selfID, task.byteSize);
+
 	m_mutex.lock();
 	m_taskList.push_back(task);
 	m_mutex.unlock();

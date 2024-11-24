@@ -744,8 +744,8 @@ void NXCubeMap::InitVertex()
 		20, 23,	22,
 	};
 
-	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(std::move(m_vertices), std::move(m_indices), "_CubeMapSphere");
-	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(std::move(m_verticesCubeBox), std::move(m_indicesCubeBox), "_CubeMapBox");
+	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(m_vertices, m_indices, "_CubeMapSphere");
+	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(m_verticesCubeBox, m_indicesCubeBox, "_CubeMapBox");
 }
 
 void NXCubeMap::InitRootSignature()

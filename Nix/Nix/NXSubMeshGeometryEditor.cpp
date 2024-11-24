@@ -688,14 +688,14 @@ void NXSubMeshGeometryEditor::Release()
 
 void NXSubMeshGeometryEditor::InitCommonMeshes()
 {
-	std::vector<float> verticesUnknown = { 2.0f };
-	std::vector<UINT> indicesUnknown = { 0 };
-	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(std::move(verticesUnknown), std::move(indicesUnknown), "_Unknown");
+	m_verticesUnknown = { 2.0f };
+	m_indicesUnknown = { 0 };
+	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(m_verticesUnknown, m_indicesUnknown, "_Unknown");
 
 	float scale = 1.0f;
 
 	// Create vertex buffer
-	std::vector<VertexPT> verticesRT =
+	m_verticesRT =
 	{
 		// -Z
 		{ Vector3(-scale, +scale, 0.0f), Vector2(0.0f, 0.0f) },
@@ -704,11 +704,11 @@ void NXSubMeshGeometryEditor::InitCommonMeshes()
 		{ Vector3(-scale, -scale, 0.0f), Vector2(0.0f, 1.0f) },
 	};
 
-	std::vector<UINT> indicesRT =
+	m_indicesRT =
 	{
 		0,  1,  2,
 		0,  2,  3
 	};
 
-	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(std::move(verticesRT), std::move(indicesRT), "_RenderTarget");
+	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(m_verticesRT, m_indicesRT, "_RenderTarget");
 }

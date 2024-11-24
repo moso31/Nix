@@ -197,7 +197,8 @@ void ccmem::UploadSystem::Update()
 		// 这里 >= 说明task在GPU一侧也已经执行完了，可以被移除了
 		if (m_pFence->GetCompletedValue() >= task.fenceValue)
 		{
-			task.pCallback(); 
+			if (task.pCallback)
+				task.pCallback(); 
 
 			m_taskStart = (m_taskStart + 1) % UPLOADTASK_NUM;
 			m_taskUsed--;

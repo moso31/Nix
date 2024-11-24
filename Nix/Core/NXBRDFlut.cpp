@@ -46,7 +46,7 @@ void NXBRDFLut::InitVertex()
 		0,  3,	2,
 	};
 
-	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(std::move(vertices), std::move(indices), "_PlanePositiveZ");
+	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(vertices, indices, "_PlanePositiveZ");
 }
 
 void NXBRDFLut::InitRootSignature()
