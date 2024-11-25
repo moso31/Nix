@@ -59,22 +59,22 @@ bool NXCubeMap::Init(const std::filesystem::path& filePath)
 	return true;
 }
 
-const D3D12_CPU_DESCRIPTOR_HANDLE& NXCubeMap::GetSRVCubeMap()
+D3D12_CPU_DESCRIPTOR_HANDLE NXCubeMap::GetSRVCubeMap()
 {
 	return m_pTexCubeMap->GetSRV();
 }
 
-const D3D12_CPU_DESCRIPTOR_HANDLE& NXCubeMap::GetSRVCubeMapPreview2D()
+D3D12_CPU_DESCRIPTOR_HANDLE NXCubeMap::GetSRVCubeMapPreview2D()
 {
 	return m_pTexCubeMap->GetSRVPreview2D();
 }
 
-const D3D12_CPU_DESCRIPTOR_HANDLE& NXCubeMap::GetSRVIrradianceMap()
+D3D12_CPU_DESCRIPTOR_HANDLE NXCubeMap::GetSRVIrradianceMap()
 {
 	return m_pTexIrradianceMap->GetSRV();
 }
 
-const D3D12_CPU_DESCRIPTOR_HANDLE& NXCubeMap::GetSRVPreFilterMap()
+D3D12_CPU_DESCRIPTOR_HANDLE NXCubeMap::GetSRVPreFilterMap()
 {
 	return m_pTexPreFilterMap->GetSRV();
 }
@@ -129,7 +129,7 @@ void NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR, GenerateCubeMapCallba
 	cbWVP.world = Matrix::Identity();
 	cbWVP.projection = m_mxCubeMapProj.Transpose();
 
-	std::thread([&]() {
+	std::thread([&, pTexHDR, pTexCubeMap]() mutable {
 		for (int i = 0; i < NXCUBEMAP_FACE_COUNT; i++)
 		{
 			NXConstantBuffer<ConstantBufferBaseWVP> cbCubeWVP;

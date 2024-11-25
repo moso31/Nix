@@ -62,10 +62,10 @@ public:
     virtual ~NXTexture();
 
     ID3D12Resource* GetTex() const { return m_pTexture.Get(); }
-    const D3D12_CPU_DESCRIPTOR_HANDLE& GetSRV(uint32_t index = 0);
-    const D3D12_CPU_DESCRIPTOR_HANDLE& GetRTV(uint32_t index = 0);
-    const D3D12_CPU_DESCRIPTOR_HANDLE& GetDSV(uint32_t index = 0);
-    const D3D12_CPU_DESCRIPTOR_HANDLE& GetUAV(uint32_t index = 0);
+    D3D12_CPU_DESCRIPTOR_HANDLE GetSRV(uint32_t index = 0);
+    D3D12_CPU_DESCRIPTOR_HANDLE GetRTV(uint32_t index = 0);
+    D3D12_CPU_DESCRIPTOR_HANDLE GetDSV(uint32_t index = 0);
+    D3D12_CPU_DESCRIPTOR_HANDLE GetUAV(uint32_t index = 0);
 
     // 异步加载Views相关
     void SetViews(uint32_t srvNum, uint32_t rtvNum, uint32_t dsvNum, uint32_t uavNum); // 设置View数量
@@ -77,7 +77,7 @@ public:
     void SetClearValue(float depth, uint32_t stencilRef);
 
     const D3D12_RESOURCE_STATES& GetResourceState() { return m_resourceState; }
-    const void SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D3D12_RESOURCE_STATES& state);
+    void SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D3D12_RESOURCE_STATES& state);
 
     NXTextureReloadingState GetReloadingState() { return m_reloadingState; }
     void SetReloadingState(NXTextureReloadingState state) { m_reloadingState = state; }

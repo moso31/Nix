@@ -75,10 +75,10 @@ public:
 	void GenerateIrradianceMap();
 	void GeneratePreFilterMap();
 
-	const D3D12_CPU_DESCRIPTOR_HANDLE& GetSRVCubeMap();
-	const D3D12_CPU_DESCRIPTOR_HANDLE& GetSRVCubeMapPreview2D();
-	const D3D12_CPU_DESCRIPTOR_HANDLE& GetSRVIrradianceMap();
-	const D3D12_CPU_DESCRIPTOR_HANDLE& GetSRVPreFilterMap();
+	D3D12_CPU_DESCRIPTOR_HANDLE GetSRVCubeMap();
+	D3D12_CPU_DESCRIPTOR_HANDLE GetSRVCubeMapPreview2D();
+	D3D12_CPU_DESCRIPTOR_HANDLE GetSRVIrradianceMap();
+	D3D12_CPU_DESCRIPTOR_HANDLE GetSRVPreFilterMap();
 
 	Ntr<NXTexture2D> GetCubeMap() { return m_pTexCubeMap; }
 	Ntr<NXTexture2D> GetIrradianceMap() { return m_pTexIrradianceMap; }

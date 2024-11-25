@@ -10,25 +10,25 @@ NXTexture::~NXTexture()
 {
 }
 
-const D3D12_CPU_DESCRIPTOR_HANDLE& NXTexture::GetSRV(uint32_t index)
+D3D12_CPU_DESCRIPTOR_HANDLE NXTexture::GetSRV(uint32_t index)
 {
 	WaitLoadingViewsFinish();
 	return m_pSRVs[index];
 }
 
-const D3D12_CPU_DESCRIPTOR_HANDLE& NXTexture::GetRTV(uint32_t index)
+D3D12_CPU_DESCRIPTOR_HANDLE NXTexture::GetRTV(uint32_t index)
 {
 	WaitLoadingViewsFinish();
 	return m_pRTVs[index];
 }
 
-const D3D12_CPU_DESCRIPTOR_HANDLE& NXTexture::GetDSV(uint32_t index)
+D3D12_CPU_DESCRIPTOR_HANDLE NXTexture::GetDSV(uint32_t index)
 {
 	WaitLoadingViewsFinish();
 	return m_pDSVs[index];
 }
 
-const D3D12_CPU_DESCRIPTOR_HANDLE& NXTexture::GetUAV(uint32_t index)
+D3D12_CPU_DESCRIPTOR_HANDLE NXTexture::GetUAV(uint32_t index)
 {
 	WaitLoadingViewsFinish();
 	return m_pUAVs[index];
@@ -75,7 +75,7 @@ void NXTexture::SetClearValue(float depth, uint32_t stencilRef)
 	m_clearValue.Format = NXConvert::DXGINoTypeless(m_texFormat, true);
 }
 
-const void NXTexture::SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D3D12_RESOURCE_STATES& state)
+void NXTexture::SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D3D12_RESOURCE_STATES& state)
 {
 	if (m_resourceState == state)
 		return;
