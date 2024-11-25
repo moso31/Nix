@@ -82,6 +82,7 @@ public:
 		}
 
 		// 异步创建顶点索引数据和vbv/ibv，并上传
+		// TODO: 目前传过来的vertices indices 都是成员变量，所以这里不需要担心生命周期问题，但将来不好说……
 		std::thread([&vertices, &indices, name, this]() {
 			// 首先在线程A分配内存
 			NXStructuredBuffer<TVertex> pVB(vertices.size());

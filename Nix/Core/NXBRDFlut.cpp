@@ -31,7 +31,7 @@ void NXBRDFLut::Release()
 
 void NXBRDFLut::InitVertex()
 {
-	std::vector<VertexPT> vertices =
+	m_vertices =
 	{
 		// +Z
 		{ Vector3(+1.0f, +1.0f, +1.0f), Vector2(1.0f, 1.0f) },
@@ -40,13 +40,13 @@ void NXBRDFLut::InitVertex()
 		{ Vector3(+1.0f, -1.0f, +1.0f), Vector2(0.0f, 1.0f) },
 	};
 
-	std::vector<UINT> indices =
+	m_indices =
 	{
 		0,  2,	1,
 		0,  3,	2,
 	};
 
-	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(vertices, indices, "_PlanePositiveZ");
+	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(m_vertices, m_indices, "_PlanePositiveZ");
 }
 
 void NXBRDFLut::InitRootSignature()
