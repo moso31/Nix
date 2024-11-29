@@ -27,6 +27,8 @@ bool NXCubeMap::Init(const std::filesystem::path& filePath)
 	m_pCommandQueue = NX12Util::CreateCommandQueue(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, true);
 	m_pCommandQueue->SetName(L"CubeMap Building Command Queue");
 
+	m_pFence = NX12Util::CreateFence(NXGlobalDX::GetDevice());
+
 	// create vertex
 	InitVertex();
 	InitRootSignature();
@@ -96,8 +98,6 @@ void NXCubeMap::Release()
 void NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR, GenerateCubeMapCallback pCubeMapCallBack)
 {
 	const static float mapSize = 1024;
-	auto vp = NX12Util::ViewPort(mapSize, mapSize);
-
 	Ntr<NXTextureCube> pTexCubeMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTextureCube("Main CubeMap", DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)mapSize, (UINT)mapSize, 1, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, false);
 	pTexCubeMap->SetViews(1, NXCUBEMAP_FACE_COUNT, 0, 0);
 	pTexCubeMap->SetSRV(0);
@@ -125,11 +125,11 @@ void NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR, GenerateCubeMapCallba
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSOCubeMap));
 
-	ConstantBufferBaseWVP cbWVP;
-	cbWVP.world = Matrix::Identity();
-	cbWVP.projection = m_mxCubeMapProj.Transpose();
+	std::thread([this, pTexHDR, pTexCubeMap, pCubeMapCallBack]() mutable {
+		ConstantBufferBaseWVP cbWVP;
+		cbWVP.world = Matrix::Identity();
+		cbWVP.projection = m_mxCubeMapProj.Transpose();
 
-	std::thread([&, pTexHDR, pTexCubeMap]() mutable {
 		for (int i = 0; i < NXCUBEMAP_FACE_COUNT; i++)
 		{
 			NXConstantBuffer<ConstantBufferBaseWVP> cbCubeWVP;
@@ -145,6 +145,7 @@ void NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR, GenerateCubeMapCallba
 			std::string str = "Generate Cube Map " + std::to_string(i);
 			NX12Util::BeginEvent(pCmdList.Get(), str.c_str());
 
+			auto vp = NX12Util::ViewPort(mapSize, mapSize);
 			pCmdList->RSSetViewports(1, &vp);
 			pCmdList->RSSetScissorRects(1, &NX12Util::ScissorRect(vp));
 
@@ -177,17 +178,16 @@ void NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR, GenerateCubeMapCallba
 			pCmdList->Close();
 			ID3D12CommandList* ppCmdList[] = { pCmdList.Get() };
 			m_pCommandQueue->ExecuteCommandLists(1, ppCmdList);
-		}
 
-		// 等待渲染完再CallBack，不然 pTexCubeMap 的数据还没写入
-		HANDLE fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-		m_nFenceValue++;
-		m_pCommandQueue->Signal(m_pFence.Get(), m_nFenceValue);
+			HANDLE fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+			m_nFenceValue++;
+			m_pCommandQueue->Signal(m_pFence.Get(), m_nFenceValue);
 
-		if (m_pFence->GetCompletedValue() < m_nFenceValue)
-		{
-			m_pFence->SetEventOnCompletion(m_nFenceValue, fenceEvent);
-			WaitForSingleObject(fenceEvent, INFINITE);
+			if (m_pFence->GetCompletedValue() < m_nFenceValue)
+			{
+				m_pFence->SetEventOnCompletion(m_nFenceValue, fenceEvent);
+				WaitForSingleObject(fenceEvent, INFINITE);
+			}
 		}
 
 		if (pCubeMapCallBack)
@@ -529,28 +529,27 @@ void NXCubeMap::GeneratePreFilterMap()
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSOPreFilterMap));
 
-
-	NXConstantBuffer<ConstantBufferObject> cbCubeCamera[NXCUBEMAP_FACE_COUNT];
-	for (int i = 0; i < NXCUBEMAP_FACE_COUNT; i++)
-	{
-		ConstantBufferObject cbData;
-		cbData.world = Matrix::Identity();
-		cbData.projection = m_mxCubeMapProj.Transpose();
-		cbData.view = m_mxCubeMapView[i].Transpose();
-		cbCubeCamera[i].Set(cbData);
-	}
-
-	float rough[NXROUGHNESS_FILTER_COUNT] = { 0.0f, 0.25f, 0.5f, 0.75f, 1.0f };
-
-	NXConstantBuffer<ConstantBufferFloat> cbRoughness[NXROUGHNESS_FILTER_COUNT];
-	for (int i = 0; i < NXROUGHNESS_FILTER_COUNT; i++)
-	{
-		ConstantBufferFloat cbData;
-		cbData.value = rough[i] * rough[i];
-		cbRoughness[i].Set(cbData);
-	}
-
 	std::thread([&]() {
+		NXConstantBuffer<ConstantBufferObject> cbCubeCamera[NXCUBEMAP_FACE_COUNT];
+		for (int i = 0; i < NXCUBEMAP_FACE_COUNT; i++)
+		{
+			ConstantBufferObject cbData;
+			cbData.world = Matrix::Identity();
+			cbData.projection = m_mxCubeMapProj.Transpose();
+			cbData.view = m_mxCubeMapView[i].Transpose();
+			cbCubeCamera[i].Set(cbData);
+		}
+
+		float rough[NXROUGHNESS_FILTER_COUNT] = { 0.0f, 0.25f, 0.5f, 0.75f, 1.0f };
+
+		NXConstantBuffer<ConstantBufferFloat> cbRoughness[NXROUGHNESS_FILTER_COUNT];
+		for (int i = 0; i < NXROUGHNESS_FILTER_COUNT; i++)
+		{
+			ConstantBufferFloat cbData;
+			cbData.value = rough[i] * rough[i];
+			cbRoughness[i].Set(cbData);
+		}
+
 		for (int i = 0; i < NXROUGHNESS_FILTER_COUNT; i++)
 		{
 			for (int j = 0; j < NXCUBEMAP_FACE_COUNT; j++)
