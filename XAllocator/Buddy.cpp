@@ -6,8 +6,6 @@ ccmem::BuddyTaskResult::BuddyTaskResult(const BuddyTask& connectTask)
 {
 	selfID = ccmem::GenerateUniqueTaskID();
 	connectTaskID = connectTask.selfID;
-
-	NXPrint::Write("buddy+ selfID: %lld, connectTaskID: %lld\n", selfID, connectTaskID);
 }
 
 ccmem::BuddyTaskResult::~BuddyTaskResult()
@@ -22,7 +20,6 @@ ccmem::BuddyTaskResult::~BuddyTaskResult()
 ccmem::BuddyTask::BuddyTask()
 {
 	selfID = ccmem::GenerateUniqueTaskID();
-	NXPrint::Write("buddy+ Task ID: %lld\n", selfID);
 }
 
 ccmem::BuddyAllocator::BuddyAllocator(uint32_t blockByteSize, uint32_t fullByteSize) :
@@ -45,8 +42,6 @@ void ccmem::BuddyAllocator::AddAllocTask(uint32_t byteSize, void* pTaskContext, 
 	task.pTaskContext = new uint8_t[pTaskContextSize];
 	memcpy(task.pTaskContext, pTaskContext, pTaskContextSize);
 
-	NXPrint::Write("taskID: %d, task.byteSize: %d\n", task.selfID, task.byteSize);
-
 	m_mutex.lock();
 	m_taskList.push_back(task);
 	m_mutex.unlock();
@@ -66,7 +61,6 @@ void ccmem::BuddyAllocator::AddFreeTask(BuddyAllocatorPage* pAllocator, uint32_t
 
 void ccmem::BuddyAllocator::ExecuteTasks()
 {
-	NXPrint::Write("ExecuteTasks()\n");
 	m_mutex.lock();
 	std::list<BuddyTask> taskList;
 	taskList.swap(m_taskList);

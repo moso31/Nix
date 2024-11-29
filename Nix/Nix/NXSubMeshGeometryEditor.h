@@ -8,7 +8,10 @@
 
 struct NXMeshViews
 {
-	NXMeshViews() : loadFuture(loadPromise.get_future()), loadCounter(0) {}
+	NXMeshViews(const std::string& name) : 
+		name(name),
+		loadFuture(loadPromise.get_future()), 
+		loadCounter(0) {}
 
 	void ProcessOne()
 	{
@@ -22,6 +25,8 @@ struct NXMeshViews
 	{
 		loadFuture.wait();
 	}
+
+	std::string name;
 
 	std::atomic<int> loadCounter;
 	std::promise<void> loadPromise;
@@ -67,7 +72,7 @@ public:
 	template<class TVertex>
 	void CreateVBIB(const std::vector<TVertex>& vertices, std::vector<UINT>& indices, const std::string& name)
 	{
-		// 读写操作需要加锁，避免两个线程同时创建同一个mesh
+		// 读写操作需要加锁，避免两个线程同时创建同一个mesh的VBIB
 		// TODO：改成读写锁
 		{	
 			std::lock_guard<std::mutex> lock(m_mutex);
@@ -75,10 +80,9 @@ public:
 			if (m_data.find(name) != m_data.end())
 				return;
 
-			if (m_data[name].loadCounter != 0)
-				return;
-
-			m_data[name].loadCounter = 2; // vb + ib.
+			NXMeshViews* pMeshView = new NXMeshViews(name);
+			pMeshView->loadCounter = 2;
+			m_data.emplace(name, pMeshView);
 		}
 
 		// 异步创建顶点索引数据和vbv/ibv，并上传
@@ -95,15 +99,15 @@ public:
 			UINT vbDataSize = (UINT)(vertices.size() * sizeof(TVertex));
 			UINT ibDataSize = (UINT)(indices.size() * sizeof(UINT));
 
-			NXMeshViews& views = m_data[name];
-			views.vbv.BufferLocation = pVB.GetGPUAddress();
-			views.vbv.SizeInBytes = vbDataSize;
-			views.vbv.StrideInBytes = sizeof(TVertex);
-			views.ibv.BufferLocation = pIB.GetGPUAddress();
-			views.ibv.SizeInBytes = ibDataSize;
-			views.ibv.Format = DXGI_FORMAT_R32_UINT;
-			views.indexCount = (UINT)indices.size();
-			views.vertexCount = (UINT)vertices.size();
+			NXMeshViews* views = m_data[name];
+			views->vbv.BufferLocation = pVB.GetGPUAddress();
+			views->vbv.SizeInBytes = vbDataSize;
+			views->vbv.StrideInBytes = sizeof(TVertex);
+			views->ibv.BufferLocation = pIB.GetGPUAddress();
+			views->ibv.SizeInBytes = ibDataSize;
+			views->ibv.Format = DXGI_FORMAT_R32_UINT;
+			views->indexCount = (UINT)indices.size();
+			views->vertexCount = (UINT)vertices.size();
 
 			// 上传数据并同步到gpu，其内部是一个异步线程C
 			UploadTaskContext vbTaskContext;
@@ -113,7 +117,9 @@ public:
 				uint8_t* pDst = vbTaskContext.pResourceData + vbTaskContext.pResourceOffset;
 				memcpy(pDst, vertices.data(), vbDataSize);
 				NXUploadSystem->FinishTask(vbTaskContext, [this, name]() {
-					m_data[name].ProcessOne(); // 顶点数据上传完成，通知 loadCounter - 1
+					NXPrint::Write(0, "name: %s, %d", name.c_str(), m_data[name]->loadCounter.load());
+					m_data[name]->ProcessOne(); // 顶点数据上传完成，通知 loadCounter - 1
+					NXPrint::Write(0, "-> %d\n", m_data[name]->loadCounter.load());
 					});
 			}
 
@@ -122,7 +128,9 @@ public:
 				uint8_t* pDst = ibTaskContext.pResourceData + ibTaskContext.pResourceOffset;
 				memcpy(pDst, indices.data(), ibDataSize);
 				NXUploadSystem->FinishTask(ibTaskContext, [this, name]() {
-					m_data[name].ProcessOne(); // 索引数据上传完成，通知 loadCounter - 1
+					NXPrint::Write(0, "name: %s, %d", name.c_str(), m_data[name]->loadCounter.load());
+					m_data[name]->ProcessOne(); // 索引数据上传完成，通知 loadCounter - 1
+					NXPrint::Write(0, "-> %d\n", m_data[name]->loadCounter.load());
 					});
 			}
 
@@ -138,7 +146,7 @@ private:
 
 private:
 	// Mesh data
-	std::unordered_map<std::string, NXMeshViews> m_data; 
+	std::unordered_map<std::string, NXMeshViews*> m_data; 
 
 	std::mutex m_mutex;
 

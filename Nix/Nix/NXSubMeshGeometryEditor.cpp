@@ -672,18 +672,22 @@ const NXMeshViews& NXSubMeshGeometryEditor::GetMeshViews(const std::string& name
 	auto it = m_data.find(name);
 	if (it != m_data.end())
 	{
-		it->second.WaitLoadComplete();
-		return it->second;
+		it->second->WaitLoadComplete();
+		return *(it->second);
 	}
 	else
 	{
-		m_data["_Unknown"].WaitLoadComplete();
-		return m_data["_Unknown"]; 
+		return *m_data["_Unknown"]; 
 	}
 }
 
 void NXSubMeshGeometryEditor::Release()
 {
+	for (auto& [_, pMeshView] : m_data)
+	{
+		delete pMeshView;
+	}
+	m_data.clear();
 }
 
 void NXSubMeshGeometryEditor::InitCommonMeshes()
@@ -691,6 +695,7 @@ void NXSubMeshGeometryEditor::InitCommonMeshes()
 	m_verticesUnknown = { 2.0f };
 	m_indicesUnknown = { 0 };
 	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(m_verticesUnknown, m_indicesUnknown, "_Unknown");
+	m_data["_Unknown"]->WaitLoadComplete();
 
 	float scale = 1.0f;
 

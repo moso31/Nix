@@ -6,8 +6,16 @@ void NXPrint::Init()
 
 }
 
-void NXPrint::Write(const char* format, ...)
+bool NXPrint::WriteCondition(const int id)
 {
+    return id == 0;
+}
+
+void NXPrint::Write(const int id, const char* format, ...)
+{
+    if (!WriteCondition(id))
+        return;
+
     static std::mutex logMutex; // 确保线程安全
     std::lock_guard<std::mutex> lock(logMutex);
 

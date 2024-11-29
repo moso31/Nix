@@ -10,5 +10,7 @@ class NXPrint
 public:
     static void Init();
 
-    static void Write(const char* format, ...);
+    static bool WriteCondition(const int id);
+
+    static void Write(const int id, const char* format, ...);
 };
