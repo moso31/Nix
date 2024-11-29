@@ -18,7 +18,9 @@ using namespace DirectX::SamplerMath;
 using namespace DirectX::SimpleMath::SH;
 
 NXCubeMap::NXCubeMap(NXScene* pScene) :
-	m_pScene(pScene)
+	m_pScene(pScene),
+	m_prefilterMapSize(512.0f),
+	m_cubeMapSize(512.0f)
 {
 }
 
@@ -97,8 +99,7 @@ void NXCubeMap::Release()
 
 void NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR, GenerateCubeMapCallback pCubeMapCallBack)
 {
-	const static float mapSize = 1024;
-	Ntr<NXTextureCube> pTexCubeMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTextureCube("Main CubeMap", DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)mapSize, (UINT)mapSize, 1, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, false);
+	Ntr<NXTextureCube> pTexCubeMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTextureCube("Main CubeMap", DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)m_cubeMapSize, (UINT)m_cubeMapSize, 1, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, false);
 	pTexCubeMap->SetViews(1, NXCUBEMAP_FACE_COUNT, 0, 0);
 	pTexCubeMap->SetSRV(0);
 	for (int i = 0; i < NXCUBEMAP_FACE_COUNT; i++)
@@ -145,7 +146,7 @@ void NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR, GenerateCubeMapCallba
 			std::string str = "Generate Cube Map " + std::to_string(i);
 			NX12Util::BeginEvent(pCmdList.Get(), str.c_str());
 
-			auto vp = NX12Util::ViewPort(mapSize, mapSize);
+			auto vp = NX12Util::ViewPort(m_cubeMapSize, m_cubeMapSize);
 			pCmdList->RSSetViewports(1, &vp);
 			pCmdList->RSSetScissorRects(1, &NX12Util::ScissorRect(vp));
 
@@ -493,8 +494,7 @@ void NXCubeMap::GenerateIrradianceMap()
 
 void NXCubeMap::GeneratePreFilterMap()
 {
-	float mapSize = 512.0f;
-	m_pTexPreFilterMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTextureCube("PreFilter Map", m_pTexCubeMap->GetFormat(), (UINT)mapSize, (UINT)mapSize, NXROUGHNESS_FILTER_COUNT, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, false);
+	m_pTexPreFilterMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTextureCube("PreFilter Map", m_pTexCubeMap->GetFormat(), (UINT)m_prefilterMapSize, (UINT)m_prefilterMapSize, NXROUGHNESS_FILTER_COUNT, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, false);
 	m_pTexPreFilterMap->SetViews(1, NXCUBEMAP_FACE_COUNT * NXROUGHNESS_FILTER_COUNT, 0, 0);
 	m_pTexPreFilterMap->SetSRV(0);
 
@@ -529,7 +529,7 @@ void NXCubeMap::GeneratePreFilterMap()
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSOPreFilterMap));
 
-	std::thread([&]() {
+	std::thread([this]() {
 		NXConstantBuffer<ConstantBufferObject> cbCubeCamera[NXCUBEMAP_FACE_COUNT];
 		for (int i = 0; i < NXCUBEMAP_FACE_COUNT; i++)
 		{
@@ -573,7 +573,7 @@ void NXCubeMap::GeneratePreFilterMap()
 
 				//////
 
-				float mipSize = (float)((UINT)mapSize >> i);
+				float mipSize = (float)((UINT)m_prefilterMapSize >> i);
 
 				auto vp = NX12Util::ViewPort(mipSize, mipSize);
 				pCmdList->RSSetViewports(1, &vp);
@@ -599,6 +599,16 @@ void NXCubeMap::GeneratePreFilterMap()
 				pCmdList->Close();
 				ID3D12CommandList* ppCmdList[] = { pCmdList.Get() };
 				m_pCommandQueue->ExecuteCommandLists(1, ppCmdList);
+
+				HANDLE fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+				m_nFenceValue++;
+				m_pCommandQueue->Signal(m_pFence.Get(), m_nFenceValue);
+
+				if (m_pFence->GetCompletedValue() < m_nFenceValue)
+				{
+					m_pFence->SetEventOnCompletion(m_nFenceValue, fenceEvent);
+					WaitForSingleObject(fenceEvent, INFINITE);
+				}
 			}
 		}
 		}).detach();

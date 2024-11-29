@@ -125,6 +125,9 @@ private:
 
 	size_t	m_pSRVIrradianceSH;
 
+	float m_prefilterMapSize;
+	float m_cubeMapSize;
+
 	ComPtr<ID3D12CommandQueue> m_pCommandQueue;
 	ComPtr<ID3D12Fence> m_pFence;
 	uint64_t m_nFenceValue;

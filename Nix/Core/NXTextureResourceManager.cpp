@@ -35,16 +35,17 @@ Ntr<NXTexture2D> NXTextureResourceManager::GetCommonRT(NXCommonRTEnum eRT)
 
 void NXTextureResourceManager::InitCommonTextures()
 {
-	m_pCommonTex.reserve(NXCommonTex_SIZE);
+	m_pCommonTex.resize(NXCommonTex_SIZE);
 
-	CreateTexture2D("White Texture", g_defaultTex_white_wstr);
-	CreateTexture2D("Normal Texture", g_defaultTex_normal_wstr);
+	m_pCommonTex[NXCommonTex_White] = CreateTexture2D("White Texture", g_defaultTex_white_wstr);
+	m_pCommonTex[NXCommonTex_Normal] = CreateTexture2D("Normal Texture", g_defaultTex_normal_wstr);
 
 	// Noise 2D Gray, 64x64
-	auto pTex = m_pCommonTex.emplace_back(new NXTexture2D());
+	Ntr<NXTexture2D> pTex(new NXTexture2D());
 	pTex->CreateNoise("Noise2DGray 64x64", 64, 1);
 	pTex->SetViews(1, 0, 0, 0);
 	pTex->SetSRV(0);
+	m_pCommonTex[NXCommonTex_Noise2DGray_64x64] = pTex;
 }
 
 Ntr<NXTexture2D> NXTextureResourceManager::GetCommonTextures(NXCommonTexEnum eTex)
