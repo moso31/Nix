@@ -29,6 +29,16 @@ void NXBRDFLut::Release()
 {
 }
 
+ID3D12Fence* NXBRDFLut::GetFence()
+{
+	return m_pFence.Get();
+}
+
+uint64_t NXBRDFLut::GetFenceValue()
+{
+	return m_fenceValue;
+}
+
 void NXBRDFLut::InitVertex()
 {
 	m_vertices =
@@ -107,17 +117,15 @@ void NXBRDFLut::DrawBRDFLUT()
 	ID3D12CommandList* pCmdLists[] = { m_pCommandList.Get() };
 	m_pCommandQueue->ExecuteCommandLists(1, pCmdLists);
 
-	// 有必要等待吗？先注掉
-	// 
-	//m_fenceValue++;
-	//m_pCommandQueue->Signal(m_pFence.Get(), m_fenceValue);
+	m_fenceValue++;
+	m_pCommandQueue->Signal(m_pFence.Get(), m_fenceValue);
 
-	//// 等待围栏完成
-	//if (m_pFence->GetCompletedValue() < m_fenceValue)
-	//{
-	//	HANDLE fenceEvent = CreateEvent(nullptr, false, false, nullptr);
-	//	m_pFence->SetEventOnCompletion(m_fenceValue, fenceEvent);
-	//	WaitForSingleObject(fenceEvent, INFINITE);  // 等待围栏信号完成
-	//	CloseHandle(fenceEvent);
-	//}
+	// 等待围栏完成
+	if (m_pFence->GetCompletedValue() < m_fenceValue)
+	{
+		HANDLE fenceEvent = CreateEvent(nullptr, false, false, nullptr);
+		m_pFence->SetEventOnCompletion(m_fenceValue, fenceEvent);
+		WaitForSingleObject(fenceEvent, INFINITE);  // 等待围栏信号完成
+		CloseHandle(fenceEvent);
+	}
 }

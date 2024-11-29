@@ -291,6 +291,10 @@ void Renderer::RenderFrame()
 	NX12Util::EndEvent(pCommandList.Get());
 
 	pCommandList->Close();
+
+	// BRDF 2D LUT 可能还没加载完，等待一下。
+	WaitForBRDF2DLUTFinish();
+
 	ID3D12CommandList* pCmdLists[] = { pCommandList.Get() };
 	NXGlobalDX::GetCmdQueue()->ExecuteCommandLists(1, pCmdLists);
 
@@ -344,4 +348,9 @@ void Renderer::OnKeyDown(NXEventArgKey eArg)
 	//{
 	//	m_bRenderGUI = !m_bRenderGUI;
 	//}
+}
+
+void Renderer::WaitForBRDF2DLUTFinish()
+{
+	NXGlobalDX::GetCmdQueue()->Wait(m_pBRDFLut->GetFence(), m_pBRDFLut->GetFenceValue());
 }

@@ -70,6 +70,8 @@ private:
 	void DrawDepthPrepass();
 	void OnKeyDown(NXEventArgKey eArg);
 
+	void WaitForBRDF2DLUTFinish();
+
 private:
 	MultiFrame<ComPtr<ID3D12CommandAllocator>>		m_pCommandAllocator;
 	MultiFrame<ComPtr<ID3D12GraphicsCommandList>>	m_pCommandList;
