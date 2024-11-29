@@ -34,14 +34,14 @@ D3D12_CPU_DESCRIPTOR_HANDLE NXTexture::GetUAV(uint32_t index)
 	return m_pUAVs[index];
 }
 
-void NXTexture::SetViews(uint32_t srvNum, uint32_t rtvNum, uint32_t dsvNum, uint32_t uavNum)
+void NXTexture::SetViews(uint32_t srvNum, uint32_t rtvNum, uint32_t dsvNum, uint32_t uavNum, uint32_t otherNum)
 {
 	m_pSRVs.resize(srvNum);
 	m_pRTVs.resize(rtvNum);
 	m_pDSVs.resize(dsvNum);
 	m_pUAVs.resize(uavNum);
 
-	m_loadingViews = srvNum + rtvNum + dsvNum + uavNum;
+	m_loadingViews = srvNum + rtvNum + dsvNum + uavNum + otherNum;
 }
 
 void NXTexture::ProcessLoadingBuffers()
@@ -728,6 +728,16 @@ void NXTexture2D::SetUAV(uint32_t index)
 		});
 }
 
+void NXTextureCube::ProcessLoading2DPreview()
+{
+	m_promiseLoading2DPreview.set_value();
+}
+
+void NXTextureCube::WaitLoading2DPreviewFinish()
+{
+	m_futureLoading2DPreview.wait();
+}
+
 void NXTextureCube::Create(const std::string& debugName, DXGI_FORMAT texFormat, uint32_t width, uint32_t height, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags)
 {
 	m_name = debugName;
@@ -738,6 +748,8 @@ void NXTextureCube::Create(const std::string& debugName, DXGI_FORMAT texFormat, 
 	m_mipLevels = mipLevels;
 
 	CreateRenderTextureInternal(flags);
+
+	SetSRVPreview2D();
 }
 
 void NXTextureCube::Create(const std::string& debugName, const std::wstring& filePath, size_t width, size_t height, D3D12_RESOURCE_FLAGS flags)
@@ -787,6 +799,7 @@ void NXTextureCube::SetSRVPreview2D()
 		srvDesc.Texture2DArray.ResourceMinLODClamp = 0.0f;
 
 		NXGlobalDX::GetDevice()->CreateShaderResourceView(m_pTexture.Get(), &srvDesc, m_pSRVPreview2D);
+		ProcessLoading2DPreview();
 		});
 }
 
@@ -845,6 +858,12 @@ void NXTextureCube::SetUAV(uint32_t index, uint32_t mipSlice, uint32_t firstArra
 
 		ProcessLoadingBuffers();
 		});
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE NXTextureCube::GetSRVPreview2D()
+{
+	WaitLoading2DPreviewFinish();
+	return { m_pSRVPreview2D };
 }
 
 void NXTexture2DArray::Create(const std::string& debugName, DXGI_FORMAT texFormat, uint32_t width, uint32_t height, uint32_t arraySize, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags)

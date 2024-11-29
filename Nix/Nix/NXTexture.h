@@ -68,7 +68,7 @@ public:
     D3D12_CPU_DESCRIPTOR_HANDLE GetUAV(uint32_t index = 0);
 
     // 异步加载Views相关
-    void SetViews(uint32_t srvNum, uint32_t rtvNum, uint32_t dsvNum, uint32_t uavNum); // 设置View数量
+    void SetViews(uint32_t srvNum, uint32_t rtvNum, uint32_t dsvNum, uint32_t uavNum, uint32_t otherNum = 0); // 设置View数量
     void ProcessLoadingBuffers(); // 计数--，每加载好一个View，调用一次
     void WaitLoadingViewsFinish(); // 等待所有View都加载完成，渲染传View时调用
 
@@ -186,8 +186,13 @@ public:
 class NXTextureCube : public NXTexture
 {
 public:
-    NXTextureCube() : NXTexture(TextureType_Cube) {}
+    NXTextureCube() : 
+        NXTexture(TextureType_Cube),
+        m_futureLoading2DPreview(m_promiseLoading2DPreview.get_future()) {}
     virtual ~NXTextureCube() {}
+
+    void ProcessLoading2DPreview(); // 计数--，每加载好一个View，调用一次
+    void WaitLoading2DPreviewFinish(); // 等待所有View都加载完成，渲染传View时调用
 
     void Create(const std::string& debugName, DXGI_FORMAT texFormat, uint32_t width, uint32_t height, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
     void Create(const std::string& debugName, const std::wstring& filePath, size_t width = 0, size_t height = 0, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
@@ -198,9 +203,11 @@ public:
     void SetDSV(uint32_t index, uint32_t mipSlice = -1, uint32_t firstArraySlice = 0, uint32_t arraySize = -1);
     void SetUAV(uint32_t index, uint32_t mipSlice = -1, uint32_t firstArraySlice = 0, uint32_t arraySize = -1);
 
-    D3D12_CPU_DESCRIPTOR_HANDLE GetSRVPreview2D() { return { m_pSRVPreview2D }; }
+    D3D12_CPU_DESCRIPTOR_HANDLE GetSRVPreview2D();
 
 private:
+    std::promise<void> m_promiseLoading2DPreview;
+    std::future<void> m_futureLoading2DPreview;
     D3D12_CPU_DESCRIPTOR_HANDLE m_pSRVPreview2D;
 };
 

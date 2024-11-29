@@ -110,6 +110,9 @@ D3D12_GPU_DESCRIPTOR_HANDLE ccmem::DescriptorAllocator<true>::Submit()
 	{
 		D3D12_CPU_DESCRIPTOR_HANDLE srcHandle = m_submitDescriptors[i];
 		D3D12_CPU_DESCRIPTOR_HANDLE destHandle = { m_pDescriptorHeap->GetCPUDescriptorHandleForHeapStart().ptr + (m_pendingStart + i) * m_descriptorIncrementSize };
+
+		NXPrint::Write("src: %lld, dst: %lld\n", srcHandle.ptr, destHandle.ptr);
+
 		m_pDevice->CopyDescriptorsSimple(1, destHandle, srcHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	}
 
