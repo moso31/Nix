@@ -109,28 +109,29 @@ public:
 			views->indexCount = (UINT)indices.size();
 			views->vertexCount = (UINT)vertices.size();
 
-			// 上传数据并同步到gpu，其内部是一个异步线程C
-			UploadTaskContext vbTaskContext;
-			UploadTaskContext ibTaskContext;
+			UploadTaskContext vbTaskContext(name + "_VB");
+			UploadTaskContext ibTaskContext(name + "_IB");
 			if (NXUploadSystem->BuildTask(vbDataSize, vbTaskContext))
 			{
+				NXPrint::Write(0, "name: %s Build VB Task: %lld\n", name.c_str(), vbTaskContext.pOwner->selfID);
 				uint8_t* pDst = vbTaskContext.pResourceData + vbTaskContext.pResourceOffset;
 				memcpy(pDst, vertices.data(), vbDataSize);
-				NXUploadSystem->FinishTask(vbTaskContext, [this, name]() {
-					NXPrint::Write(0, "name: %s, %d", name.c_str(), m_data[name]->loadCounter.load());
+
+				// 上传数据并同步到gpu，其内部是一个异步线程C
+				NXUploadSystem->FinishTask(vbTaskContext, [this, name, taskID = vbTaskContext.pOwner->selfID]() {
 					m_data[name]->ProcessOne(); // 顶点数据上传完成，通知 loadCounter - 1
-					NXPrint::Write(0, "-> %d\n", m_data[name]->loadCounter.load());
+					NXPrint::Write(0, "name: %s, %d, Task: %lld\n", name.c_str(), m_data[name]->loadCounter.load(), taskID);
 					});
 			}
 
 			if (NXUploadSystem->BuildTask(ibDataSize, ibTaskContext))
 			{
+				NXPrint::Write(0, "name: %s Build IB Task: %lld\n", name.c_str(), ibTaskContext.pOwner->selfID);
 				uint8_t* pDst = ibTaskContext.pResourceData + ibTaskContext.pResourceOffset;
 				memcpy(pDst, indices.data(), ibDataSize);
-				NXUploadSystem->FinishTask(ibTaskContext, [this, name]() {
-					NXPrint::Write(0, "name: %s, %d", name.c_str(), m_data[name]->loadCounter.load());
+				NXUploadSystem->FinishTask(ibTaskContext, [this, name, taskID = ibTaskContext.pOwner->selfID]() {
 					m_data[name]->ProcessOne(); // 索引数据上传完成，通知 loadCounter - 1
-					NXPrint::Write(0, "-> %d\n", m_data[name]->loadCounter.load());
+					NXPrint::Write(0, "name: %s, %d, Task: %lld\n", name.c_str(), m_data[name]->loadCounter.load(), taskID);
 					});
 			}
 

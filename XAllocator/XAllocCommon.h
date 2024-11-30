@@ -17,6 +17,7 @@
 #include <cassert>
 #include <iostream>
 #include <atomic>
+#include <condition_variable>
 
 #include "Log.h"
 

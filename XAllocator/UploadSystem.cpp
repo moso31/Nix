@@ -2,6 +2,11 @@
 
 using namespace ccmem;
 
+ccmem::UploadTask::UploadTask()
+{
+	selfID = GenerateUniqueTaskID();
+}
+
 ccmem::UploadRingBuffer::UploadRingBuffer(ID3D12Device* pDevice, uint32_t bufferSize):
 	m_pDevice(pDevice),
 	m_size(bufferSize),
@@ -139,16 +144,15 @@ ccmem::UploadSystem::~UploadSystem()
 bool ccmem::UploadSystem::BuildTask(int byteSize, UploadTaskContext& taskResult)
 {
 	std::lock_guard<std::mutex> lock(m_mutex);
+	//std::unique_lock<std::mutex> lock(m_mutex);
 
-	if (m_taskUsed > UPLOADTASK_NUM)
-	{
-		return false;
-	}
+	//m_condition.wait(lock, [this]() { return m_taskUsed <= UPLOADTASK_NUM; });
 
 	uint32_t idx = (m_taskStart + m_taskUsed) % UPLOADTASK_NUM;
 	auto& task = m_uploadTask[idx];
 	if (m_ringBuffer.BuildTask(byteSize, task))
 	{
+		NXPrint::Write(0, "Task %s build at %d, %d\n", taskResult.name.c_str(), task.ringPos, task.byteSize);
 		m_taskUsed++;
 
 		task.pCmdAllocator->Reset();

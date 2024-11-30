@@ -184,7 +184,7 @@ void NXTexture::CreateInternal(const std::shared_ptr<DirectX::ScratchImage>& pIm
 	NXAllocator_Tex->Alloc(&desc, (uint32_t)totalBytes, [this, layouts, numRow, numRowSizeInBytes, totalBytes, pImage](const PlacedBufferAllocTaskResult& result) mutable {
 		m_pTexture = result.pResource;
 
-		UploadTaskContext taskContext;
+		UploadTaskContext taskContext(m_name);
 		if (NXUploadSystem->BuildTask((int)totalBytes, taskContext))
 		{
 			// 更新纹理资源
@@ -251,7 +251,7 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 	NXAllocator_Tex->Alloc(&desc, (uint32_t)totalBytes, [this, filePath, layouts, numRow, numRowSizeInBytes, totalBytes](const PlacedBufferAllocTaskResult& result) {
 		m_pTexture = result.pResource;
 
-		UploadTaskContext taskContext;
+		UploadTaskContext taskContext(m_name);
 		if (NXUploadSystem->BuildTask((int)totalBytes, taskContext))
 		{
 			// TODO: 异步 // 不用了 其实已经是异步了……

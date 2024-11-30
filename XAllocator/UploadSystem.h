@@ -6,6 +6,8 @@ namespace ccmem
     struct UploadTaskContext;
     struct UploadTask
     {
+        UploadTask();
+
         void Reset()
         {
 			ringPos = 0;
@@ -28,14 +30,19 @@ namespace ccmem
 		// 在RingBuffer中的位置和大小
 		uint32_t ringPos = 0;
 		uint32_t byteSize = 0;
+
+        uint64_t selfID;
 	};
 
 	struct UploadTaskContext
     {
+        UploadTaskContext(const std::string& name) : name(name) {}
+
         UploadTask* pOwner = nullptr;
 		ID3D12Resource* pResource = nullptr;
 		uint8_t* pResourceData = nullptr;
         uint32_t pResourceOffset = 0;
+        std::string name;
 	};
 
     class UploadRingBuffer
@@ -90,5 +97,6 @@ namespace ccmem
         // 这里的锁策略是比较简单粗暴的，每个方法都加锁，这些方法的开销都不大。
         // 上传系统的大头开销在BeginTask()结束后，FinishTask()开始前这段时间的各种操作上，而这些操作是暴露在上层，允许多线程同时调用的。
         std::mutex m_mutex;
+        std::condition_variable m_condition;
     };
 }
