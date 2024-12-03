@@ -143,10 +143,9 @@ ccmem::UploadSystem::~UploadSystem()
 
 bool ccmem::UploadSystem::BuildTask(int byteSize, UploadTaskContext& taskResult)
 {
-	std::lock_guard<std::mutex> lock(m_mutex);
-	//std::unique_lock<std::mutex> lock(m_mutex);
+	std::unique_lock<std::mutex> lock(m_mutex);
 
-	//m_condition.wait(lock, [this]() { return m_taskUsed <= UPLOADTASK_NUM; });
+	m_condition.wait(lock, [this]() { return m_taskUsed < UPLOADTASK_NUM; });
 
 	uint32_t idx = (m_taskStart + m_taskUsed) % UPLOADTASK_NUM;
 	auto& task = m_uploadTask[idx];
@@ -207,6 +206,8 @@ void ccmem::UploadSystem::Update()
 			m_taskStart = (m_taskStart + 1) % UPLOADTASK_NUM;
 			m_taskUsed--;
 			task.Reset();
+
+			m_condition.notify_one();
 		}
 		else
 		{

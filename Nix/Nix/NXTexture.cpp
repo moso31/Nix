@@ -254,154 +254,151 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 		UploadTaskContext taskContext(m_name);
 		if (NXUploadSystem->BuildTask((int)totalBytes, taskContext))
 		{
-			// TODO: 异步 // 不用了 其实已经是异步了……
+			TexMetadata metadata;
+			std::shared_ptr<ScratchImage> pImage = std::make_shared<ScratchImage>();
+
+			HRESULT hr;
+			std::string strExtension = NXConvert::s2lower(filePath.extension().string());
+			if (strExtension == ".hdr")
+				hr = LoadFromHDRFile(filePath.c_str(), &metadata, *pImage);
+			else if (strExtension == ".dds")
+				hr = LoadFromDDSFile(filePath.c_str(), DDS_FLAGS_NONE, &metadata, *pImage);
+			else if (strExtension == ".tga")
+				hr = LoadFromTGAFile(filePath.c_str(), &metadata, *pImage);
+			else
+				hr = LoadFromWICFile(filePath.c_str(), WIC_FLAGS_NONE, &metadata, *pImage);
+
+			if (FAILED(hr))
 			{
-				TexMetadata metadata;
-				std::shared_ptr<ScratchImage> pImage = std::make_shared<ScratchImage>();
+				std::wstring errMsg = L"Failed to load texture file." + filePath.wstring();
+				MessageBox(NULL, errMsg.c_str(), L"Error", MB_OK | MB_ICONERROR);
+				pImage.reset();
+				return;
+			}
 
-				HRESULT hr;
-				std::string strExtension = NXConvert::s2lower(filePath.extension().string());
-				if (strExtension == ".hdr")
-					hr = LoadFromHDRFile(filePath.c_str(), &metadata, *pImage);
-				else if (strExtension == ".dds")
-					hr = LoadFromDDSFile(filePath.c_str(), DDS_FLAGS_NONE, &metadata, *pImage);
-				else if (strExtension == ".tga")
-					hr = LoadFromTGAFile(filePath.c_str(), &metadata, *pImage);
-				else
-					hr = LoadFromWICFile(filePath.c_str(), WIC_FLAGS_NONE, &metadata, *pImage);
+			// 如果是Texture2D纹理，并且读取的是arraySize/TextureCube 类型的文件，就只加载第一面。
+			if (metadata.arraySize > 1 && m_type == TextureType_2D)
+			{
+				std::shared_ptr<ScratchImage> timage(new ScratchImage);
+				timage->InitializeFromImage(*pImage->GetImage(0, 0, 0));
+				metadata = timage->GetMetadata();
+				pImage.swap(timage);
+			}
 
-				if (FAILED(hr))
-				{
-					std::wstring errMsg = L"Failed to load texture file." + filePath.wstring();
-					MessageBox(NULL, errMsg.c_str(), L"Error", MB_OK | MB_ICONERROR);
-					pImage.reset();
-					return;
-				}
-
-				// 如果是Texture2D纹理，并且读取的是arraySize/TextureCube 类型的文件，就只加载第一面。
-				if (metadata.arraySize > 1 && m_type == TextureType_2D)
+			if (NXConvert::IsUnormFormat(metadata.format))
+			{
+				DXGI_FORMAT safeFormat = NXConvert::SafeDXGIFormat(metadata.format);
+				if (metadata.format != safeFormat)
 				{
 					std::shared_ptr<ScratchImage> timage(new ScratchImage);
-					timage->InitializeFromImage(*pImage->GetImage(0, 0, 0));
-					metadata = timage->GetMetadata();
-					pImage.swap(timage);
-				}
-
-				if (NXConvert::IsUnormFormat(metadata.format))
-				{
-					DXGI_FORMAT safeFormat = NXConvert::SafeDXGIFormat(metadata.format);
-					if (metadata.format != safeFormat)
-					{
-						std::shared_ptr<ScratchImage> timage(new ScratchImage);
-						hr = Convert(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), safeFormat, TEX_FILTER_DEFAULT, TEX_THRESHOLD_DEFAULT, *timage);
-						if (SUCCEEDED(hr))
-						{
-							metadata.format = safeFormat;
-						}
-						else
-						{
-							printf("Warning: [Convert] failed when loading NXTexture2D: %s.\n", m_texFilePath.string().c_str());
-						}
-						pImage.swap(timage);
-					}
-				}
-
-				// 如果序列化的文件里记录了sRGB/Linear类型，就做对应的转换
-				if (m_serializationData.m_textureType == NXTextureMode::sRGB || m_serializationData.m_textureType == NXTextureMode::Linear)
-				{
-					bool bIsSRGB = m_serializationData.m_textureType == NXTextureMode::sRGB;
-					DXGI_FORMAT tFormat = bIsSRGB ? NXConvert::ForceSRGB(metadata.format) : NXConvert::ForceLinear(metadata.format);
-					if (metadata.format != tFormat)
-					{
-						std::shared_ptr<ScratchImage> timage(new ScratchImage);
-
-						TEX_FILTER_FLAGS texFlags = bIsSRGB ? TEX_FILTER_SRGB_IN : TEX_FILTER_DEFAULT;
-						hr = Convert(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), tFormat, texFlags, TEX_THRESHOLD_DEFAULT, *timage);
-						if (SUCCEEDED(hr))
-						{
-							metadata.format = tFormat;
-						}
-						else
-						{
-							printf("Warning: [Convert] failed when loading NXTexture2D: %s\n", m_texFilePath.string().c_str());
-						}
-						pImage.swap(timage);
-					}
-				}
-
-				// --- Invert Y Channel --------------------------------------------------------
-				if (m_serializationData.m_bInvertNormalY)
-				{
-					std::shared_ptr<ScratchImage> timage(new ScratchImage);
-
-					HRESULT hr = TransformImage(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(),
-						[&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t w, size_t y)
-						{
-							static const XMVECTORU32 s_selecty = { { { XM_SELECT_0, XM_SELECT_1, XM_SELECT_0, XM_SELECT_0 } } };
-							UNREFERENCED_PARAMETER(y);
-
-							for (size_t j = 0; j < w; ++j)
-							{
-								const XMVECTOR value = inPixels[j];
-								const XMVECTOR inverty = XMVectorSubtract(g_XMOne, value);
-								outPixels[j] = XMVectorSelect(value, inverty, s_selecty);
-							}
-						}, *timage);
-
-					if (FAILED(hr))
-					{
-						printf("Warning: [InvertNormalY] failed when loading NXTexture2D: %s\n", m_texFilePath.string().c_str());
-					}
-
-					pImage.swap(timage);
-				}
-
-				if (m_serializationData.m_bGenerateMipMap && metadata.width >= 2 && metadata.height >= 2 && metadata.mipLevels == 1)
-				{
-					std::shared_ptr<ScratchImage> pImageMip = std::make_shared<ScratchImage>();
-					HRESULT hr = GenerateMipMaps(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), TEX_FILTER_DEFAULT, 0, *pImageMip);
+					hr = Convert(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), safeFormat, TEX_FILTER_DEFAULT, TEX_THRESHOLD_DEFAULT, *timage);
 					if (SUCCEEDED(hr))
 					{
-						metadata.mipLevels = pImageMip->GetMetadata().mipLevels;
-						pImage.swap(pImageMip);
+						metadata.format = safeFormat;
 					}
 					else
 					{
-						printf("Warning: [GenerateMipMap] failed when loading NXTexture2D: %s\n", m_texFilePath.string().c_str());
+						printf("Warning: [Convert] failed when loading NXTexture2D: %s.\n", m_texFilePath.string().c_str());
 					}
+					pImage.swap(timage);
 				}
-
-
-				// 更新纹理资源
-				m_pTexture->SetName(NXConvert::s2ws(m_name).c_str());
-				SetRefCountDebugName(m_name);
-				m_resourceState = D3D12_RESOURCE_STATE_COPY_DEST; // 和 NXAllocator_Tex->Alloc 内部的逻辑保持同步
-
-				auto texDesc = m_pTexture->GetDesc();
-				for (uint32_t face = 0, index = 0; face < texDesc.DepthOrArraySize; face++)
-				{
-					for (uint32_t mip = 0; mip < texDesc.MipLevels; mip++, index++)
-					{
-						const Image* pImg = pImage->GetImage(mip, face, 0);
-						const BYTE* pSrcData = pImg->pixels;
-						BYTE* pMappedRingBufferData = taskContext.pResourceData + taskContext.pResourceOffset;
-						BYTE* pDstData = pMappedRingBufferData + layouts[index].Offset;
-
-						for (uint32_t y = 0; y < numRow[index]; y++)
-						{
-							memcpy(pDstData + layouts[index].Footprint.RowPitch * y, pSrcData + pImg->rowPitch * y, numRowSizeInBytes[index]);
-						}
-					}
-				}
-
-				NXUploadSystem->FinishTask(taskContext);
-
-				delete[] layouts;
-				delete[] numRow;
-				delete[] numRowSizeInBytes;
-
-				pImage.reset();
 			}
+
+			// 如果序列化的文件里记录了sRGB/Linear类型，就做对应的转换
+			if (m_serializationData.m_textureType == NXTextureMode::sRGB || m_serializationData.m_textureType == NXTextureMode::Linear)
+			{
+				bool bIsSRGB = m_serializationData.m_textureType == NXTextureMode::sRGB;
+				DXGI_FORMAT tFormat = bIsSRGB ? NXConvert::ForceSRGB(metadata.format) : NXConvert::ForceLinear(metadata.format);
+				if (metadata.format != tFormat)
+				{
+					std::shared_ptr<ScratchImage> timage(new ScratchImage);
+
+					TEX_FILTER_FLAGS texFlags = bIsSRGB ? TEX_FILTER_SRGB_IN : TEX_FILTER_DEFAULT;
+					hr = Convert(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), tFormat, texFlags, TEX_THRESHOLD_DEFAULT, *timage);
+					if (SUCCEEDED(hr))
+					{
+						metadata.format = tFormat;
+					}
+					else
+					{
+						printf("Warning: [Convert] failed when loading NXTexture2D: %s\n", m_texFilePath.string().c_str());
+					}
+					pImage.swap(timage);
+				}
+			}
+
+			// --- Invert Y Channel --------------------------------------------------------
+			if (m_serializationData.m_bInvertNormalY)
+			{
+				std::shared_ptr<ScratchImage> timage(new ScratchImage);
+
+				HRESULT hr = TransformImage(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(),
+					[&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t w, size_t y)
+					{
+						static const XMVECTORU32 s_selecty = { { { XM_SELECT_0, XM_SELECT_1, XM_SELECT_0, XM_SELECT_0 } } };
+						UNREFERENCED_PARAMETER(y);
+
+						for (size_t j = 0; j < w; ++j)
+						{
+							const XMVECTOR value = inPixels[j];
+							const XMVECTOR inverty = XMVectorSubtract(g_XMOne, value);
+							outPixels[j] = XMVectorSelect(value, inverty, s_selecty);
+						}
+					}, *timage);
+
+				if (FAILED(hr))
+				{
+					printf("Warning: [InvertNormalY] failed when loading NXTexture2D: %s\n", m_texFilePath.string().c_str());
+				}
+
+				pImage.swap(timage);
+			}
+
+			if (m_serializationData.m_bGenerateMipMap && metadata.width >= 2 && metadata.height >= 2 && metadata.mipLevels == 1)
+			{
+				std::shared_ptr<ScratchImage> pImageMip = std::make_shared<ScratchImage>();
+				HRESULT hr = GenerateMipMaps(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), TEX_FILTER_DEFAULT, 0, *pImageMip);
+				if (SUCCEEDED(hr))
+				{
+					metadata.mipLevels = pImageMip->GetMetadata().mipLevels;
+					pImage.swap(pImageMip);
+				}
+				else
+				{
+					printf("Warning: [GenerateMipMap] failed when loading NXTexture2D: %s\n", m_texFilePath.string().c_str());
+				}
+			}
+
+
+			// 更新纹理资源
+			m_pTexture->SetName(NXConvert::s2ws(m_name).c_str());
+			SetRefCountDebugName(m_name);
+			m_resourceState = D3D12_RESOURCE_STATE_COPY_DEST; // 和 NXAllocator_Tex->Alloc 内部的逻辑保持同步
+
+			auto texDesc = m_pTexture->GetDesc();
+			for (uint32_t face = 0, index = 0; face < texDesc.DepthOrArraySize; face++)
+			{
+				for (uint32_t mip = 0; mip < texDesc.MipLevels; mip++, index++)
+				{
+					const Image* pImg = pImage->GetImage(mip, face, 0);
+					const BYTE* pSrcData = pImg->pixels;
+					BYTE* pMappedRingBufferData = taskContext.pResourceData + taskContext.pResourceOffset;
+					BYTE* pDstData = pMappedRingBufferData + layouts[index].Offset;
+
+					for (uint32_t y = 0; y < numRow[index]; y++)
+					{
+						memcpy(pDstData + layouts[index].Footprint.RowPitch * y, pSrcData + pImg->rowPitch * y, numRowSizeInBytes[index]);
+					}
+				}
+			}
+
+			NXUploadSystem->FinishTask(taskContext);
+
+			delete[] layouts;
+			delete[] numRow;
+			delete[] numRowSizeInBytes;
+
+			pImage.reset();
 		}
 		else
 		{
