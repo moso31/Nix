@@ -145,14 +145,18 @@ bool ccmem::UploadSystem::BuildTask(int byteSize, UploadTaskContext& taskResult)
 {
 	std::unique_lock<std::mutex> lock(m_mutex);
 
-	m_condition.wait(lock, [this]() { return m_taskUsed < UPLOADTASK_NUM; });
+	m_condition.wait(lock, [this]() { 
+		bool c = m_taskUsed < UPLOADTASK_NUM; 
+		if (!c) NXPrint::Write(1, "Trying BuildTask...[wait()], task is full. m_start: %d, m_used: %d\n", m_taskStart, m_taskUsed);
+		return c;
+		});
 
 	uint32_t idx = (m_taskStart + m_taskUsed) % UPLOADTASK_NUM;
 	auto& task = m_uploadTask[idx];
 	if (m_ringBuffer.BuildTask(byteSize, task))
 	{
-		NXPrint::Write(0, "Task %s build at %d, %d\n", taskResult.name.c_str(), task.ringPos, task.byteSize);
 		m_taskUsed++;
+		NXPrint::Write(1, "Trying BuildTask...[BuildTask %s], used++. m_start: %d, m_used: %d\n", taskResult.name.c_str(), m_taskStart, m_taskUsed);
 
 		task.pCmdAllocator->Reset();
 		task.pCmdList->Reset(task.pCmdAllocator, nullptr);
@@ -189,9 +193,6 @@ void ccmem::UploadSystem::Update()
 {
 	std::lock_guard<std::mutex> lock(m_mutex);
 
-	// Ã¿Ö¡¼ì²é
-	bool checkNext = true;
-
 	while (m_taskUsed)
 	{
 		auto& task = m_uploadTask[m_taskStart];
@@ -201,13 +202,14 @@ void ccmem::UploadSystem::Update()
 		if (m_pFence->GetCompletedValue() >= task.fenceValue)
 		{
 			if (task.pCallback)
-				task.pCallback(); 
+				task.pCallback();
 
 			m_taskStart = (m_taskStart + 1) % UPLOADTASK_NUM;
 			m_taskUsed--;
 			task.Reset();
 
 			m_condition.notify_one();
+			NXPrint::Write(1, "[notify_one()], task++, used--. m_start: %d, m_used: %d\n", m_taskStart, m_taskUsed);
 		}
 		else
 		{

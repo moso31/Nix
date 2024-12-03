@@ -20,6 +20,16 @@ void NXAllocatorManager::Init()
 	std::thread([this]() {
 		while (true)
 		{
+			// 上传系统需使用独立线程，不能和下面的分配器混用
+			// 下面分配器的task可能回调UploadSystem的方法，可能诱发死锁。
+			m_pUpdateSystem->Update();
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		}
+	}).detach();
+
+	std::thread([this]() {
+		while (true)
+		{
 			Update();
 			std::this_thread::sleep_for(std::chrono::milliseconds(1));
 		}
@@ -28,8 +38,6 @@ void NXAllocatorManager::Init()
 
 void NXAllocatorManager::Update()
 {
-	m_pUpdateSystem->Update();
-
 	m_pCBAllocator->ExecuteTasks();
 	m_pSBAllocator->ExecuteTasks();
 	m_pTextureAllocator->ExecuteTasks();
