@@ -8,7 +8,7 @@ void NXPrint::Init()
 
 bool NXPrint::WriteCondition(const int id)
 {
-    return id == 1;
+    return id == 2;
 }
 
 void NXPrint::Write(const int id, const char* format, ...)

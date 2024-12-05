@@ -819,6 +819,9 @@
     <ClInclude Include="Core\NXGlobalBuffers.h">
       <Filter>Core\DirectX</Filter>
     </ClInclude>
+    <ClInclude Include="BaseDefs\MultiThread.h">
+      <Filter>BaseDefs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="杂七杂八的编码规范.txt" />

@@ -306,6 +306,7 @@
     <ClInclude Include="BaseDefs\CppSTLFully.h" />
     <ClInclude Include="BaseDefs\CrtDbg.h" />
     <ClInclude Include="BaseDefs\DX12.h" />
+    <ClInclude Include="BaseDefs\MultiThread.h" />
     <ClInclude Include="BaseDefs\NixCore.h" />
     <ClInclude Include="BaseDefs\DearImGui.h" />
     <ClInclude Include="BaseDefs\Math.h" />

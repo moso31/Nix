@@ -67,7 +67,7 @@ public:
 	void Update() override;
 	void Release() override;
 
-	using GenerateCubeMapCallback = std::function<void(Ntr<NXTextureCube>&)>;
+	using GenerateCubeMapCallback = std::function<void()>;
 	void GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR, GenerateCubeMapCallback pCubeMapCallBack);
 	void GenerateIrradianceSHFromHDRI(Ntr<NXTexture2D>& pTexHDR);
 	void GenerateIrradianceSHFromCubeMap();
@@ -75,14 +75,16 @@ public:
 	void GenerateIrradianceMap();
 	void GeneratePreFilterMap();
 
+	void WaitForCubeMapTexsReady();
+
 	D3D12_CPU_DESCRIPTOR_HANDLE GetSRVCubeMap();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetSRVCubeMapPreview2D();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetSRVIrradianceMap();
 	D3D12_CPU_DESCRIPTOR_HANDLE GetSRVPreFilterMap();
 
-	Ntr<NXTexture2D> GetCubeMap() { return m_pTexCubeMap; }
-	Ntr<NXTexture2D> GetIrradianceMap() { return m_pTexIrradianceMap; }
-	Ntr<NXTexture2D> GetPreFilterMap() { return m_pTexPreFilterMap; }
+	Ntr<NXTexture2D> GetCubeMap();
+	Ntr<NXTexture2D> GetIrradianceMap();
+	Ntr<NXTexture2D> GetPreFilterMap();
 
 	const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>& GetCBObjectParams() { return m_cbCubeWVPMatrix.GetFrameGPUAddresses(); }
 	const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>& GetCBDataParams() { return m_cbCubeMap.GetFrameGPUAddresses(); }
@@ -137,6 +139,9 @@ private:
 
 	ComPtr<ID3D12RootSignature> m_pRootSigPreFilterMap;
 	ComPtr<ID3D12PipelineState> m_pPSOPreFilterMap;
+
+	std::promise<void> m_promiseCubeMapTexsReady;
+	std::future<void> m_futureCubeMapTexsReady;
 
 public:
 	void GenerateIrradianceSHFromHDRI_Deprecated(NXTexture2D* pTexHDR);
