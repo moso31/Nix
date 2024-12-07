@@ -113,8 +113,16 @@ public:
 			UploadTaskContext ibTaskContext(name + "_IB");
 			if (NXUploadSystem->BuildTask(vbDataSize, vbTaskContext))
 			{
+				// vbTaskContext.pResourceData/pResourceOffset是 上传系统的UploadRingBuffer 的临时资源和偏移量
+				// pVB.GetD3DResourceAndOffset(byteOffset) 是 D3D本体 的实际资源和偏移量
+				// 不要搞混了
+
 				uint8_t* pDst = vbTaskContext.pResourceData + vbTaskContext.pResourceOffset;
 				memcpy(pDst, vertices.data(), vbDataSize);
+
+				uint64_t byteOffset = 0;
+				ID3D12Resource* pDstResource = pVB.GetD3DResourceAndOffset(byteOffset);
+				vbTaskContext.pOwner->pCmdList->CopyBufferRegion(pDstResource, byteOffset, vbTaskContext.pResource, vbTaskContext.pResourceOffset, vbDataSize);
 
 				// 上传数据并同步到gpu，其内部是一个异步线程C
 				NXUploadSystem->FinishTask(vbTaskContext, [this, name, taskID = vbTaskContext.pOwner->selfID]() {
@@ -127,6 +135,11 @@ public:
 			{
 				uint8_t* pDst = ibTaskContext.pResourceData + ibTaskContext.pResourceOffset;
 				memcpy(pDst, indices.data(), ibDataSize);
+
+				uint64_t byteOffset = 0;
+				ID3D12Resource* pDstResource = pIB.GetD3DResourceAndOffset(byteOffset);
+				ibTaskContext.pOwner->pCmdList->CopyBufferRegion(pDstResource, byteOffset, ibTaskContext.pResource, ibTaskContext.pResourceOffset, ibDataSize);
+
 				NXUploadSystem->FinishTask(ibTaskContext, [this, name, taskID = ibTaskContext.pOwner->selfID]() {
 					m_data[name]->ProcessOne(); // 索引数据上传完成，通知 loadCounter - 1
 					NXPrint::Write(0, "ProcessOne(): name: %s, %d, Task: %lld\n", name.c_str(), m_data[name]->loadCounter.load(), taskID);

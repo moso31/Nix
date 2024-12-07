@@ -12,25 +12,19 @@ ccmem::PlacedBufferAllocator::PlacedBufferAllocator(ID3D12Device* pDevice, uint3
 void ccmem::PlacedBufferAllocator::Alloc(D3D12_RESOURCE_DESC* desc, uint32_t byteSize, const std::function<void(const PlacedBufferAllocTaskResult&)>& callback)
 {
 	BuddyAllocator::AddAllocTask(byteSize, desc, sizeof(D3D12_RESOURCE_DESC), [this, callback](const BuddyTaskResult& taskResult) {
+		const auto& memData = taskResult.memData;
 		PlacedBufferAllocTaskResult result;
 		D3D12_RESOURCE_DESC* texDesc = reinterpret_cast<D3D12_RESOURCE_DESC*>(taskResult.pTaskContext);
-		m_pDevice->CreatePlacedResource(m_allocatorPageData[taskResult.pAllocator].pHeap, taskResult.byteOffset, texDesc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&result.pResource));
-
-		m_freeMap[result.pResource].byteOffset = taskResult.byteOffset;
-		m_freeMap[result.pResource].pAllocator = taskResult.pAllocator;
+		m_pDevice->CreatePlacedResource(m_allocatorMap[memData.pAllocator].pHeap, memData.byteOffset, texDesc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&result.pResource));
+		result.memData = memData;
 		callback(result);
 	});
 }
 
-void ccmem::PlacedBufferAllocator::Free(ID3D12Resource* pFreeResource)
+void ccmem::PlacedBufferAllocator::Free(const XBuddyTaskMemData& memData)
 {
 	// 找到对应的内存块，然后标记为可以重新分配
-	if (m_freeMap.find(pFreeResource) != m_freeMap.end())
-	{
-		auto& data = m_freeMap[pFreeResource];
-		BuddyAllocator::AddFreeTask(data.pAllocator, data.byteOffset);
-		m_freeMap.erase(pFreeResource);
-	}
+	BuddyAllocator::AddFreeTask(memData.pAllocator, memData.byteOffset);
 }
 
 void ccmem::PlacedBufferAllocator::OnAllocatorAdded(BuddyAllocatorPage* pAllocator)
@@ -45,7 +39,7 @@ void ccmem::PlacedBufferAllocator::OnAllocatorAdded(BuddyAllocatorPage* pAllocat
 	desc.Properties.VisibleNodeMask = 1; // Assuming single GPU node
 	desc.SizeInBytes = m_pageFullByteSize;
 
-	AllocatorData& newData = m_allocatorPageData[pAllocator];
+	AllocatorData& newData = m_allocatorMap[pAllocator];
 
 	m_pDevice->CreateHeap(&desc, IID_PPV_ARGS(&newData.pHeap));
 	newData.pHeap->SetName(L"Heap");

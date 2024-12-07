@@ -58,6 +58,7 @@ void NXGUI::Init()
 	{
 		m_pCmdAllocator[i] = NX12Util::CreateCommandAllocator(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT);
 		m_pCmdList[i] = NX12Util::CreateGraphicsCommandList(NXGlobalDX::GetDevice(), m_pCmdAllocator.Get(i).Get(), D3D12_COMMAND_LIST_TYPE_DIRECT);
+		m_pCmdList[i]->SetName(std::wstring(L"GUI Command List " + std::to_wstring(i)).c_str());
 	}
 
 	// ImGUI的字体纹理，将始终使用 ShaderVisibleHeap（NXShVisDescHeap）中的静态描述符区。静态描述符是Nix的概念，详见该类中的注释说明。

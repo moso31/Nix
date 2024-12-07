@@ -7,6 +7,7 @@ namespace ccmem
 	struct PlacedBufferAllocTaskResult
 	{
 		ID3D12Resource* pResource;
+		XBuddyTaskMemData memData;
 	};
 
 	class PlacedBufferAllocator : public BuddyAllocator
@@ -32,14 +33,13 @@ namespace ccmem
 		void Alloc(D3D12_RESOURCE_DESC* desc, uint32_t byteSize, const std::function<void(const PlacedBufferAllocTaskResult&)>& callback);
 
 		// 释放指定内存
-		void Free(ID3D12Resource* pFreeResource);
+		void Free(const XBuddyTaskMemData& memData);
 
 		void OnAllocatorAdded(BuddyAllocatorPage* pAllocator) override;
 
 	private:
 		ID3D12Device* m_pDevice;
-		std::unordered_map<BuddyAllocatorPage*, AllocatorData> m_allocatorPageData;
-		std::unordered_map<ID3D12Resource*, FreeData> m_freeMap;
+		std::unordered_map<BuddyAllocatorPage*, AllocatorData> m_allocatorMap;
 
 		uint32_t m_pageFullByteSize;
 	};

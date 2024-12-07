@@ -75,7 +75,7 @@ void ccmem::BuddyAllocator::ExecuteTasks()
 		if (task.pCallBack) // is alloc
 		{
 			BuddyTaskResult taskResult(task);
-			task.state = TryAlloc(task, taskResult);
+			task.state = TryAlloc(task, taskResult.memData);
 
 			// 如果分配成功，触发回调函数
 			if (task.state == BuddyTask::State::Success)
@@ -147,14 +147,14 @@ BuddyAllocatorPage* ccmem::BuddyAllocator::AddAllocatorInternal()
 	return pAllocator;
 }
 
-BuddyTask::State ccmem::BuddyAllocator::TryAlloc(const BuddyTask& task, BuddyTaskResult& oTaskResult)
+BuddyTask::State ccmem::BuddyAllocator::TryAlloc(const BuddyTask& task, XBuddyTaskMemData& oTaskMemData)
 {
 	BuddyTask::State result;
 	for (auto& pAllocator : m_allocatorPages)
 	{
 		if (pAllocator->m_freeByteSize >= task.byteSize)
 		{
-			result = pAllocator->AllocSync(task, oTaskResult.byteOffset);
+			result = pAllocator->AllocSync(task, oTaskMemData.byteOffset);
 
 			// 如果返回未知错误，不接受，直接让它崩溃
 			assert(result != BuddyTask::State::Failed_Unknown);
@@ -162,7 +162,7 @@ BuddyTask::State ccmem::BuddyAllocator::TryAlloc(const BuddyTask& task, BuddyTas
 			// 分配成功时结束循环
 			if (result == BuddyTask::State::Success)
 			{
-				oTaskResult.pAllocator = pAllocator;
+				oTaskMemData.pAllocator = pAllocator;
 				return result;
 			}
 		}
@@ -170,10 +170,10 @@ BuddyTask::State ccmem::BuddyAllocator::TryAlloc(const BuddyTask& task, BuddyTas
 
 	// 如果走到这里，说明所有的Allocator都满了，创建一个新的Allocator
 	BuddyAllocatorPage* pNewAllocator = AddAllocatorInternal();
-	result = pNewAllocator->AllocSync(task, oTaskResult.byteOffset);
+	result = pNewAllocator->AllocSync(task, oTaskMemData.byteOffset);
 	if (result == BuddyTask::State::Success)
 	{
-		oTaskResult.pAllocator = pNewAllocator;
+		oTaskMemData.pAllocator = pNewAllocator;
 		return result;
 	}
 

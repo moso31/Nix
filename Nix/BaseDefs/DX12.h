@@ -78,6 +78,8 @@ public:
 	static UINT GetRequiredIntermediateSize(ID3D12Device* pDevice, ID3D12Resource* pResource);
 	static UINT GetRequiredIntermediateLayoutInfos(ID3D12Device* pDevice, ID3D12Resource* pResource, D3D12_PLACED_SUBRESOURCE_FOOTPRINT* oLayouts, UINT* oNumRows, UINT64* oRowSizeInBytes);
 
+	static void Transition(ID3D12GraphicsCommandList* pCmdList, ID3D12Resource* pDstResource, D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after);
+
 	static void BeginEvent(ID3D12GraphicsCommandList* pCmdList, PCSTR fmt);
 	static void EndEvent(ID3D12GraphicsCommandList* pCmdList);
 };

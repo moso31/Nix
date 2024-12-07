@@ -13,6 +13,7 @@ public:
 	void WaitCreateComplete()
 	{
 		m_futureCB.wait();
+		m_isCreating = false;
 	}
 
 protected:
@@ -25,6 +26,7 @@ protected:
 
 	std::atomic<int> m_counter = MultiFrameSets_swapChainCount;
 	std::atomic<bool> m_isCreating = false;
+	std::atomic<bool> m_inited = false;
 	UINT m_byteSize;
 };
 
@@ -37,9 +39,9 @@ public:
 		CreateInternal(sizeof(T));
 	}
 
-	~NXConstantBuffer()
+	virtual ~NXConstantBuffer()
 	{
-		FreeInternal();
+		//FreeInternal();
 	}
 
 	void Recreate() 
@@ -105,6 +107,7 @@ private:
 				// 获取Alloc的上传堆cpu地址。
 				m_cpuAddrs[i] = reinterpret_cast<T*>(result.cpuAddress);
 				m_gpuAddrs[i] = result.gpuAddress;
+				m_memData[i] = result.memData;
 
 				if (--m_counter == 0)
 				{
@@ -112,6 +115,8 @@ private:
 				}
 				});
 		}
+
+		m_inited = true;
 	}
 
 	void FreeInternal() override
@@ -121,17 +126,22 @@ private:
 			WaitCreateComplete();
 		}
 
+		if (!m_inited) return;
+
 		for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 		{
-			NXAllocator_CB->Free(reinterpret_cast<uint8_t*>(m_cpuAddrs[i]));
+			NXAllocator_CB->Free(m_memData[i]);
 			m_cpuAddrs[i] = nullptr;
 			m_gpuAddrs[i] = 0;
+			m_memData[i].pAllocator = nullptr;
+			m_memData[i].byteOffset = 0;
 		}
 	}
 
 private:
 	MultiFrame<T*> m_cpuAddrs;
 	MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS> m_gpuAddrs;
+	XBuddyTaskMemData m_memData[MultiFrameSets_swapChainCount];
 };
 
 template<typename T>
@@ -139,7 +149,9 @@ class NXConstantBuffer<std::vector<T>> : public NXConstantBufferImpl<std::vector
 {
 public:
 	// 允许空构造函数，但是需要手动调用Recreate
-	NXConstantBuffer() {}
+	NXConstantBuffer() 
+	{
+	}
 
 	NXConstantBuffer(size_t arraySize) :
 		m_arraySize(arraySize)
@@ -218,6 +230,7 @@ private:
 				// 获取Alloc的上传堆cpu地址。
 				m_cpuAddrs[i] = reinterpret_cast<T*>(result.cpuAddress);
 				m_gpuAddrs[i] = result.gpuAddress;
+				m_memData[i] = result.memData;
 
 				if (--m_counter == 0)
 				{
@@ -234,11 +247,15 @@ private:
 			WaitCreateComplete();
 		}
 
+		if (!m_inited) return;
+
 		for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 		{
-			NXAllocator_CB->Free(reinterpret_cast<uint8_t*>(m_cpuAddrs[i]));
+			NXAllocator_CB->Free(m_memData[i]);
 			m_cpuAddrs[i] = nullptr;
 			m_gpuAddrs[i] = 0;
+			m_memData[i].pAllocator = nullptr;
+			m_memData[i].byteOffset = 0;
 		}
 	}
 
@@ -247,4 +264,5 @@ private:
 
 	MultiFrame<T*> m_cpuAddrs;
 	MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS> m_gpuAddrs;
+	XBuddyTaskMemData m_memData[MultiFrameSets_swapChainCount];
 };

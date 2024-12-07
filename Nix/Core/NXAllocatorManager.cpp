@@ -5,8 +5,8 @@ void NXAllocatorManager::Init()
 {
 	auto pDevice = NXGlobalDX::GetDevice();
 
-	m_pCBAllocator = new CommittedBufferAllocator(pDevice);
-	m_pSBAllocator = new CommittedBufferAllocator(pDevice);
+	m_pCBAllocator = new CommittedBufferAllocator(pDevice, true);
+	m_pSBAllocator = new CommittedBufferAllocator(pDevice, false);
 	m_pTextureAllocator = new PlacedBufferAllocator(pDevice, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
 
 	m_pUpdateSystem = new UploadSystem(pDevice);

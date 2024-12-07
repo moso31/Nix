@@ -8,12 +8,6 @@
 template<typename T>
 class NXStructuredBuffer
 {
-	struct Data
-	{
-		T* cpuAddress;
-		D3D12_GPU_VIRTUAL_ADDRESS gpuAddress;
-	};
-
 public:
 	NXStructuredBuffer(size_t arraySize)
 	{
@@ -26,14 +20,15 @@ public:
 		m_futureCB.wait();
 	}
 
-	const T& GetCPUAddress()
-	{
-		return *m_data.cpuAddress;
-	}
-
 	const D3D12_GPU_VIRTUAL_ADDRESS& GetGPUAddress()
 	{
-		return m_data.gpuAddress;
+		return m_gpuAddress;
+	}
+
+	ID3D12Resource* GetD3DResourceAndOffset(uint64_t& byteOffset)
+	{
+		byteOffset = (uint64_t)m_memData.byteOffset;
+		return NXAllocator_SB->GetD3DResource(m_memData.pAllocator);
 	}
 
 protected:
@@ -43,15 +38,15 @@ protected:
 
 		m_futureCB = m_promiseCB.get_future();
 		NXAllocator_SB->Alloc(m_byteSize, [this](const CommittedBufferAllocTaskResult& result) {
-			m_data.cpuAddress = reinterpret_cast<T*>(result.cpuAddress);
-			m_data.gpuAddress = result.gpuAddress;
+			m_gpuAddress = result.gpuAddress;
+			m_memData = result.memData;
 			m_promiseCB.set_value();
 			});
 	}
 
 	void FreeInternal()
 	{
-		NXAllocator_SB->Free(reinterpret_cast<uint8_t*>(m_data.cpuAddress));
+		NXAllocator_SB->Free(m_memData);
 	}
 
 private:
@@ -59,7 +54,9 @@ private:
 	std::future<void> m_futureCB;
 
 	uint32_t m_arraySize;
-
-	Data m_data;
 	uint32_t m_byteSize;
+
+	T* m_cpuAddress;
+	D3D12_GPU_VIRTUAL_ADDRESS m_gpuAddress;
+	XBuddyTaskMemData m_memData;
 };

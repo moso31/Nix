@@ -2,7 +2,8 @@
 
 using namespace ccmem;
 
-CommittedBufferAllocator::CommittedBufferAllocator(ID3D12Device* pDevice, uint32_t pageBlockByteSize, uint32_t pageFullByteSize) :
+CommittedBufferAllocator::CommittedBufferAllocator(ID3D12Device* pDevice, bool cpuAccessable, uint32_t pageBlockByteSize, uint32_t pageFullByteSize) :
+	m_cpuAccessable(cpuAccessable),
 	m_pageFullByteSize(pageFullByteSize),
 	m_pDevice(pDevice),
 	BuddyAllocator(pageBlockByteSize, pageFullByteSize)
@@ -12,35 +13,36 @@ CommittedBufferAllocator::CommittedBufferAllocator(ID3D12Device* pDevice, uint32
 void CommittedBufferAllocator::Alloc(uint32_t byteSize, const std::function<void(const CommittedBufferAllocTaskResult&)>& callback)
 {
 	BuddyAllocator::AddAllocTask(byteSize, nullptr, 0, [this, callback](const BuddyTaskResult& taskResult) {
+		const auto& memData = taskResult.memData;
 		CommittedBufferAllocTaskResult result;
-		result.cpuAddress = m_allocatorPageData[taskResult.pAllocator].m_pResourceData + taskResult.byteOffset;
-		result.gpuAddress = m_allocatorPageData[taskResult.pAllocator].m_pResource->GetGPUVirtualAddress() + taskResult.byteOffset;
-
-		m_freeMap[result.cpuAddress].byteOffset = taskResult.byteOffset;
-		m_freeMap[result.cpuAddress].pAllocator = taskResult.pAllocator;
+		result.cpuAddress = m_cpuAccessable ? m_allocatorMap[memData.pAllocator].m_pResourceData + memData.byteOffset : nullptr; // 如果buffer CPU不可读，返回nullptr!
+		result.gpuAddress = m_allocatorMap[memData.pAllocator].m_pResource->GetGPUVirtualAddress() + memData.byteOffset; 
+		result.memData = memData;
 		callback(result);
 	});
 }
 
-void ccmem::CommittedBufferAllocator::Free(uint8_t* pMem)
+void ccmem::CommittedBufferAllocator::Free(const XBuddyTaskMemData& memData)
 {
 	// 找到对应的内存块，然后标记为可以重新分配
-	if (m_freeMap.find(pMem) != m_freeMap.end())
-	{
-		auto& data = m_freeMap[pMem];
-		BuddyAllocator::AddFreeTask(data.pAllocator, data.byteOffset);
-		m_freeMap.erase(pMem);
-	}
+	BuddyAllocator::AddFreeTask(memData.pAllocator, memData.byteOffset);
 }
 
 void ccmem::CommittedBufferAllocator::OnAllocatorAdded(BuddyAllocatorPage* pAllocator)
 {
-	D3D12_HEAP_PROPERTIES heapProperties;
-	heapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;
-	heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-	heapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-	heapProperties.CreationNodeMask = 1;
-	heapProperties.VisibleNodeMask = 1;
+	D3D12_HEAP_PROPERTIES uploadHeapProps;
+	uploadHeapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+	uploadHeapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+	uploadHeapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+	uploadHeapProps.CreationNodeMask = 1;
+	uploadHeapProps.VisibleNodeMask = 1;
+
+	D3D12_HEAP_PROPERTIES defaultHeapProps;
+	defaultHeapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
+	defaultHeapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+	defaultHeapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+	defaultHeapProps.CreationNodeMask = 1;
+	defaultHeapProps.VisibleNodeMask = 1;
 
 	D3D12_RESOURCE_DESC cbDesc;
 	cbDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
@@ -55,20 +57,28 @@ void ccmem::CommittedBufferAllocator::OnAllocatorAdded(BuddyAllocatorPage* pAllo
 	cbDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR; 
 	cbDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-	AllocatorData& newData = m_allocatorPageData[pAllocator];
+	AllocatorData& newData = m_allocatorMap[pAllocator];
 
 	HRESULT hr = m_pDevice->CreateCommittedResource(
-		&heapProperties,
+		m_cpuAccessable ? &uploadHeapProps : &defaultHeapProps,
 		D3D12_HEAP_FLAG_NONE,
 		&cbDesc, // 资源描述
-		D3D12_RESOURCE_STATE_GENERIC_READ,
+		m_cpuAccessable ? D3D12_RESOURCE_STATE_GENERIC_READ : D3D12_RESOURCE_STATE_COMMON,
 		nullptr,
 		IID_PPV_ARGS(&newData.m_pResource)
 	);
 
-	// 构建映射地址
-	newData.m_pResource->Map(0, nullptr, reinterpret_cast<void**>(&newData.m_pResourceData));
+	if (m_cpuAccessable)
+	{
+		// 如果cpu可访问，构建映射地址
+		newData.m_pResource->Map(0, nullptr, reinterpret_cast<void**>(&newData.m_pResourceData));
+	}
 
 	// 设置调试用资源名称
 	newData.m_pResource->SetName(L"CBuffer");
+}
+
+ID3D12Resource* ccmem::CommittedBufferAllocator::GetD3DResource(BuddyAllocatorPage* pAllocator)
+{
+	return m_allocatorMap[pAllocator].m_pResource;
 }

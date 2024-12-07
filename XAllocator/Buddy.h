@@ -20,6 +20,12 @@ namespace ccmem
 	class BuddyAllocatorPage;
 	struct BuddyTask;
 
+	struct XBuddyTaskMemData
+	{
+		BuddyAllocatorPage* pAllocator;
+		uint32_t byteOffset;
+	};
+
 	struct BuddyTaskResult
 	{
 		BuddyTaskResult(const BuddyTask& connectTask);
@@ -28,9 +34,8 @@ namespace ccmem
 		uint64_t selfID;
 		uint64_t connectTaskID;
 
-		BuddyAllocatorPage* pAllocator;
-		uint32_t byteOffset;
 		uint8_t* pTaskContext;
+		XBuddyTaskMemData memData;
 	};
 
 	struct BuddyTask
@@ -138,7 +143,7 @@ namespace ccmem
 
 	private:
 		BuddyAllocatorPage* AddAllocatorInternal();
-		BuddyTask::State TryAlloc(const BuddyTask& task, BuddyTaskResult& oTaskResult);
+		BuddyTask::State TryAlloc(const BuddyTask& task, XBuddyTaskMemData& oTaskMemData);
 		BuddyTask::State TryFree(const BuddyTask& task);
 	private:
 		std::mutex m_mutex;

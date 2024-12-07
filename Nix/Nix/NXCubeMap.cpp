@@ -168,6 +168,7 @@ void NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR, GenerateCubeMapCallba
 		ComPtr<ID3D12GraphicsCommandList> pCmdList;
 
 		NX12Util::CreateCommands(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, pCmdAllocator.GetAddressOf(), pCmdList.GetAddressOf());
+		pCmdList->SetName(L"Generate CubeMap Command List");
 		pCmdList->Reset(pCmdAllocator.Get(), nullptr);
 
 		std::string str = "Generate Cube Map " + std::to_string(i);
@@ -581,6 +582,7 @@ void NXCubeMap::GeneratePreFilterMap()
 			ComPtr<ID3D12CommandAllocator> pCmdAllocator;
 			ComPtr<ID3D12GraphicsCommandList> pCmdList;
 			NX12Util::CreateCommands(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT, pCmdAllocator.GetAddressOf(), pCmdList.GetAddressOf());
+			pCmdList->SetName(L"Generate PreFilter Map Command List");
 			pCmdList->Reset(pCmdAllocator.Get(), nullptr);
 
 			NX12Util::BeginEvent(pCmdList.Get(), "Generate PreFilter Map");

@@ -17,6 +17,8 @@
 #include <cassert>
 #include <iostream>
 #include <atomic>
+#include <unordered_map>
+#include <unordered_set>
 #include <condition_variable>
 
 #include "Log.h"

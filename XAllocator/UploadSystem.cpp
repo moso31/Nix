@@ -109,10 +109,12 @@ ccmem::UploadSystem::UploadSystem(ID3D12Device* pDevice) :
 
 	m_pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_pFence));
 
-	for (auto& task : m_uploadTask)
+	for (int i = 0; i < UPLOADTASK_NUM; i++)
 	{
+		auto& task = m_uploadTask[i];
 		m_pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_COPY, IID_PPV_ARGS(&task.pCmdAllocator));
 		m_pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_COPY, task.pCmdAllocator, nullptr, IID_PPV_ARGS(&task.pCmdList));
+		task.pCmdList->SetName(std::wstring(L"UploadTask" + std::to_wstring(i)).c_str());
 		task.pCmdList->Close();
 	}
 }
