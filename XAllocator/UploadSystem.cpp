@@ -46,6 +46,9 @@ ccmem::UploadRingBuffer::~UploadRingBuffer()
 
 bool ccmem::UploadRingBuffer::BuildTask(uint32_t byteSize, UploadTask& oTask)
 {
+	// byteSize 做字节对齐处理，以DX12的纹理数据对齐方式为准（不得小于512字节）
+	byteSize = (byteSize + D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT) & ~(D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT - 1);
+
 	// case 0. 注意：Start == End 只表示：整个RingBuffer为空
 	// 换句话说 RingBuffer 是【不允许填满！】的。对内存状态频繁变化的分配器而言，影响不大
 
@@ -149,7 +152,6 @@ bool ccmem::UploadSystem::BuildTask(int byteSize, UploadTaskContext& taskResult)
 
 	m_condition.wait(lock, [this]() { 
 		bool c = m_taskUsed < UPLOADTASK_NUM; 
-		if (!c) NXPrint::Write(1, "Trying BuildTask...[wait()], task is full. m_start: %d, m_used: %d\n", m_taskStart, m_taskUsed);
 		return c;
 		});
 
@@ -158,7 +160,6 @@ bool ccmem::UploadSystem::BuildTask(int byteSize, UploadTaskContext& taskResult)
 	if (m_ringBuffer.BuildTask(byteSize, task))
 	{
 		m_taskUsed++;
-		NXPrint::Write(1, "Trying BuildTask...[BuildTask %s], used++. m_start: %d, m_used: %d\n", taskResult.name.c_str(), m_taskStart, m_taskUsed);
 
 		task.pCmdAllocator->Reset();
 		task.pCmdList->Reset(task.pCmdAllocator, nullptr);
@@ -211,7 +212,6 @@ void ccmem::UploadSystem::Update()
 			task.Reset();
 
 			m_condition.notify_one();
-			NXPrint::Write(1, "[notify_one()], task++, used--. m_start: %d, m_used: %d\n", m_taskStart, m_taskUsed);
 		}
 		else
 		{

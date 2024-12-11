@@ -111,11 +111,12 @@ D3D12_GPU_DESCRIPTOR_HANDLE ccmem::DescriptorAllocator<true>::Submit()
 		m_pDevice->CopyDescriptorsSimple(1, destHandle, srcHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	}
 
-	m_pendingStart = m_pendingEnd;
+	D3D12_GPU_DESCRIPTOR_HANDLE result = { m_pDescriptorHeap->GetGPUDescriptorHandleForHeapStart().ptr + m_pendingStart * m_descriptorIncrementSize };
 
+	m_pendingStart = m_pendingEnd;
 	m_submitDescriptors.clear();
 
-	return { m_pDescriptorHeap->GetGPUDescriptorHandleForHeapStart().ptr + m_pendingStart * m_descriptorIncrementSize };
+	return result;
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE ccmem::DescriptorAllocator<true>::GetStableCPUHandle(uint32_t stableIndex) const

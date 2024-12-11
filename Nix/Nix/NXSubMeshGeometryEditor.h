@@ -127,7 +127,6 @@ public:
 				// 上传数据并同步到gpu，其内部是一个异步线程C
 				NXUploadSystem->FinishTask(vbTaskContext, [this, name, taskID = vbTaskContext.pOwner->selfID]() {
 					m_data[name]->ProcessOne(); // 顶点数据上传完成，通知 loadCounter - 1
-					NXPrint::Write(0, "ProcessOne(): name: %s, %d, Task: %lld\n", name.c_str(), m_data[name]->loadCounter.load(), taskID);
 					});
 			}
 
@@ -142,7 +141,6 @@ public:
 
 				NXUploadSystem->FinishTask(ibTaskContext, [this, name, taskID = ibTaskContext.pOwner->selfID]() {
 					m_data[name]->ProcessOne(); // 索引数据上传完成，通知 loadCounter - 1
-					NXPrint::Write(0, "ProcessOne(): name: %s, %d, Task: %lld\n", name.c_str(), m_data[name]->loadCounter.load(), taskID);
 					});
 			}
 

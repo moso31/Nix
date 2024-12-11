@@ -56,7 +56,8 @@ public:
         m_type(type),
         m_resourceState(D3D12_RESOURCE_STATE_COPY_DEST),
         m_loadingViews(0),
-        m_futureLoadingViews(m_promiseLoadingViews.get_future())
+        m_futureLoadingViews(m_promiseLoadingViews.get_future()),
+        m_futureLoadingTextures(m_promiseLoadingTextures.get_future())
     {}
 
     virtual ~NXTexture();
@@ -66,6 +67,9 @@ public:
     D3D12_CPU_DESCRIPTOR_HANDLE GetRTV(uint32_t index = 0);
     D3D12_CPU_DESCRIPTOR_HANDLE GetDSV(uint32_t index = 0);
     D3D12_CPU_DESCRIPTOR_HANDLE GetUAV(uint32_t index = 0);
+
+    // 异步加载纹理资源相关
+    void WaitLoadingTexturesFinish();
 
     // 异步加载Views相关
     void SetViews(uint32_t srvNum, uint32_t rtvNum, uint32_t dsvNum, uint32_t uavNum, uint32_t otherNum = 0); // 设置View数量

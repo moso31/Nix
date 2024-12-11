@@ -55,10 +55,12 @@ bool NXCubeMap::Init(const std::filesystem::path& filePath)
 	}
 	else if (strExtension == ".hdr")
 	{
+		NXPrint::Write(0, "loading hdr file... %s\n", filePath.string().c_str());
 		Ntr<NXTexture2D> pTexHDR = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("HDR Temp Texture", filePath);
 
 		// 主线程
 		std::thread([this, pTexHDR]() mutable {
+			pTexHDR->WaitLoadingTexturesFinish();
 			// 子线程1
 			GenerateCubeMap(pTexHDR, [this]() {
 				GeneratePreFilterMap();
@@ -191,6 +193,7 @@ void NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR, GenerateCubeMapCallba
 		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_pTexCubeMap->GetRTV(i);
 		pCmdList->OMSetRenderTargets(1, &rtvHandle, false, nullptr);
 
+		NXPrint::Write(0, "NXShVisDescHeap->PushFluid(), p %p\n", pTexHDR.Ptr());
 		NXShVisDescHeap->PushFluid(pTexHDR->GetSRV(0));
 		D3D12_GPU_DESCRIPTOR_HANDLE gpuHandles = NXShVisDescHeap->Submit();
 
@@ -217,6 +220,8 @@ void NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR, GenerateCubeMapCallba
 			m_pFence->SetEventOnCompletion(m_nFenceValue, fenceEvent);
 			WaitForSingleObject(fenceEvent, INFINITE);
 		}
+
+		NXPrint::Write(0, "Generate CubeMap %d\n", i);
 	}
 
 	if (pCubeMapCallBack)
