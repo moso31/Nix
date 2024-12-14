@@ -15,14 +15,6 @@ using namespace SimpleMath;
 using namespace DirectX;
 using namespace ccmem;
 
-enum NXTextureReloadingState
-{
-    Texture_None, // 正常状态
-    Texture_StartReload, // A->Default 状态
-    Texture_Reloading,  // Default->B 状态
-    Texture_FinishReload,  // B 状态
-};
-
 enum NXTextureType
 {
     TextureType_None,
@@ -39,6 +31,14 @@ namespace DirectX
     struct TexMetadata;
 }
 
+struct NXTextureReload
+{
+    bool m_needReload = false;
+    bool m_isReloading = false;
+    std::filesystem::path m_newTexPath = "";
+    Ntr<NXTexture> m_pReloadTex;
+};
+
 class NXTexture2D;
 class NXTexture2DArray;
 class NXTextureCube;
@@ -46,7 +46,6 @@ class NXTexture : public NXObject, public NXSerializable
 {
 public:
     NXTexture(NXTextureType type) :
-        m_reloadingState(Texture_None),
         m_width(-1),
         m_height(-1),
         m_arraySize(-1),
@@ -83,29 +82,20 @@ public:
     const D3D12_RESOURCE_STATES& GetResourceState() { return m_resourceState; }
     void SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D3D12_RESOURCE_STATES& state);
 
-    NXTextureReloadingState GetReloadingState() { return m_reloadingState; }
-    void SetReloadingState(NXTextureReloadingState state) { m_reloadingState = state; }
-
-    Ntr<NXTexture> GetReloadingTexture() { return m_pReloadingTexture; }
-    void SwapToReloadingTexture();
-
     const std::filesystem::path& GetFilePath() const { return m_texFilePath; }
 
-    NXTextureReloadTask LoadTextureAsync();
-    void LoadTextureSync();
-
-    uint32_t            GetWidth() { return m_width; }
-    uint32_t            GetHeight() { return m_height; }
-    uint32_t            GetArraySize() { return m_arraySize; }
-    uint32_t            GetMipLevels() { return m_mipLevels; }
+    uint32_t        GetWidth() { return m_width; }
+    uint32_t        GetHeight() { return m_height; }
+    uint32_t        GetArraySize() { return m_arraySize; }
+    uint32_t        GetMipLevels() { return m_mipLevels; }
     DXGI_FORMAT     GetFormat() { return m_texFormat; }
     DXGI_FORMAT     GetDSVFormat() { return NXConvert::TypelessToDSVFormat(m_texFormat); }
 
     void Release();
 
     // 当出现需要重新加载m_pTexture纹理的事件时（比如纹理属性Apply、Mesh材质变更）会触发这里的逻辑。
-    void MarkReload();
-    void OnReloadFinish();
+    void MarkReload(const std::filesystem::path& newTexPath);
+    void ReloadCheck();
 
     // 序列化和反序列化
 	virtual void Serialize() override; 
@@ -164,9 +154,7 @@ protected:
 
     D3D12_CLEAR_VALUE m_clearValue;
 
-private:
-    NXTextureReloadingState m_reloadingState;
-    Ntr<NXTexture> m_pReloadingTexture;
+    NXTextureReload m_reload;
 };
 
 class NXTexture2D : public NXTexture

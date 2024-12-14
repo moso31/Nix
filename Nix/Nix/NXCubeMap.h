@@ -69,7 +69,7 @@ public:
 
 	using GenerateCubeMapCallback = std::function<void()>;
 	void GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR, GenerateCubeMapCallback pCubeMapCallBack);
-	void GenerateIrradianceSHFromHDRI(Ntr<NXTexture2D>& pTexHDR);
+	void GenerateIrradianceSHFromHDRI(Ntr<NXTexture2D> pTexHDR);
 	void GenerateIrradianceSHFromCubeMap();
 
 	void GenerateIrradianceMap();
@@ -94,6 +94,8 @@ public:
 
 	void SetIrradMode(int val);
 
+	void SetSHValues(const Vector3* shIrradValues);
+
 	void SaveHDRAsDDS(Ntr<NXTextureCube>& pTexture, const std::filesystem::path& filePath);
 	void LoadDDS(const std::filesystem::path& filePath);
 
@@ -102,6 +104,9 @@ private:
 	void InitRootSignature();
 
 private:
+	const int m_shDDSCubeMapWidth = 128;
+	const int m_shHDRCubeMapWidth = 256;
+
 	NXScene* m_pScene;
 
 	Matrix m_mxCubeMapProj;
@@ -118,7 +123,6 @@ private:
 	Ntr<NXTextureCube>			m_pTexPreFilterMap;
 
 	Vector3 m_shIrradianceMap[9];
-	Vector3 m_shIrradianceMap_CPU[9];
 
 	ConstantBufferCubeMap m_cbDataCubeMap;
 	NXConstantBuffer<ConstantBufferCubeMap> m_cbCubeMap;

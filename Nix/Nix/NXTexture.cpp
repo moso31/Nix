@@ -97,20 +97,6 @@ void NXTexture::SetResourceState(ID3D12GraphicsCommandList* pCommandList, const 
 	m_resourceState = state;
 }
 
-void NXTexture::SwapToReloadingTexture()
-{
-	if (m_reloadingState == NXTextureReloadingState::Texture_StartReload)
-	{
-		InternalReload(NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_White));
-	}
-
-	if (m_reloadingState == NXTextureReloadingState::Texture_FinishReload)
-	{
-		InternalReload(m_pReloadingTexture);
-		m_pReloadingTexture = nullptr;
-	}
-}
-
 void NXTexture::CreateRenderTextureInternal(D3D12_RESOURCE_FLAGS flags)
 {
 	// 创建RT纹理时，没有从文件读取资源的需求，不需要提供上传堆资源。
@@ -492,36 +478,36 @@ D3D12_RESOURCE_DIMENSION NXTexture::GetResourceDimentionFromType()
 	}
 }
 
-NXTextureReloadTask NXTexture::LoadTextureAsync()
-{
-	co_await NXTextureAwaiter();
-
-	// 从这里开始异步加载...
-	LoadTextureSync();
-}
-
-void NXTexture::LoadTextureSync()
-{
-	auto pOldTex = m_pReloadingTexture;
-	m_pReloadingTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(m_name, m_texFilePath, true); 
-}
-
 void NXTexture::Release()
 {
 }
 
-void NXTexture::MarkReload()
+void NXTexture::MarkReload(const std::filesystem::path& newTexPath)
 {
-	if (m_reloadingState == NXTextureReloadingState::Texture_None)
-	{
-		m_reloadingState = NXTextureReloadingState::Texture_StartReload;
-		return;
-	}
+	m_reload.m_needReload = true;
+	m_reload.m_newTexPath = newTexPath;
 }
 
-void NXTexture::OnReloadFinish()
+void NXTexture::ReloadCheck()
 {
-	m_reloadingState = NXTextureReloadingState::Texture_FinishReload;
+	if (!m_reload.m_needReload)
+		return;
+
+	// 即时替换成过渡纹理，并开始异步加载新纹理
+	// 过渡纹理这时肯定加载好了，不需要调用Wait相关方法.
+	m_reload.m_isReloading = true;
+	m_reload.m_needReload = false;
+	InternalReload(NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_White));
+
+	// 异步加载新纹理
+	m_reload.m_pReloadTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(m_name, m_reload.m_newTexPath, true);
+	std::thread([this]() mutable {
+		auto& pNewTex = m_reload.m_pReloadTex;
+		pNewTex->WaitLoadingTexturesFinish();
+		pNewTex->WaitLoadingViewsFinish();
+		m_reload.m_isReloading = false;
+		InternalReload(pNewTex);
+	}).detach();
 }
 
 void NXTexture::Serialize()

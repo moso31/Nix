@@ -2,6 +2,7 @@
 #include "BaseDefs/NixCore.h"
 #include "NXTexture.h"
 #include "DirectResources.h"
+#include "NXResourceManager.h"
 
 void NXTextureResourceManager::InitCommonRT(const Vector2& rtSize)
 {
@@ -62,33 +63,7 @@ void NXTextureResourceManager::OnReload()
 		// 2023.3.25 目前仅支持 Texture2D 的 Reload
 		if (pTex.As<NXTexture2D>().IsNull()) continue;
 
-		if (pTex->GetReloadingState() == NXTextureReloadingState::Texture_StartReload)
-		{
-			pTex->SwapToReloadingTexture();
-			pTex->SetReloadingState(NXTextureReloadingState::Texture_Reloading);
-
-			bool bAsync = true;
-			if (bAsync)
-			{
-				auto LoadTextureAsyncTask = pTex->LoadTextureAsync(); // 异步加载纹理。
-
-				LoadTextureAsyncTask.m_handle.promise().m_callbackFunc = [&pTex]() { pTex->OnReloadFinish(); };
-			}
-			else
-			{
-				pTex->LoadTextureSync();
-				pTex->OnReloadFinish();
-			}
-
-			continue;
-		}
-
-		if (pTex->GetReloadingState() == NXTextureReloadingState::Texture_FinishReload)
-		{
-			pTex->SwapToReloadingTexture();
-			pTex->SetReloadingState(NXTextureReloadingState::Texture_None);
-			continue;
-		}
+		pTex->ReloadCheck();
 	}
 }
 

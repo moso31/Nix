@@ -29,7 +29,7 @@ void NXGUICubeMap::Render()
 	static float intensity = pCubeMap->GetIntensity();
 	if (ImGui::SliderFloat("Intensity", &intensity, 0.0f, 10.0f))
 	{
-		pCubeMap->SetIntensity(pCubeMap->GetIntensity());
+		pCubeMap->SetIntensity(intensity);
 	}
 
 	static const char* items[] = { "Cube Map", "Irradiance Map"};

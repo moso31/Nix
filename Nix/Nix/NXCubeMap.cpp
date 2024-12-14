@@ -62,7 +62,8 @@ bool NXCubeMap::Init(const std::filesystem::path& filePath)
 		std::thread([this, pTexHDR]() mutable {
 			pTexHDR->WaitLoadingTexturesFinish();
 			// 子线程1
-			GenerateCubeMap(pTexHDR, [this]() {
+			GenerateCubeMap(pTexHDR, [this, pTexHDR]() {
+				GenerateIrradianceSHFromHDRI(pTexHDR);
 				GeneratePreFilterMap();
 				});
 			}).detach();
@@ -228,8 +229,9 @@ void NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR, GenerateCubeMapCallba
 		pCubeMapCallBack();
 }
 
-void NXCubeMap::GenerateIrradianceSHFromHDRI(Ntr<NXTexture2D>& pTexHDR)
+void NXCubeMap::GenerateIrradianceSHFromHDRI(Ntr<NXTexture2D> pTexHDR)
 {
+	int nIrradTexSize = m_shHDRCubeMapWidth;
 	TexMetadata metadata;
 	const std::wstring& strFilePath = pTexHDR->GetFilePath();
 	std::unique_ptr<ScratchImage> pHDRImage = std::make_unique<ScratchImage>();
@@ -240,7 +242,7 @@ void NXCubeMap::GenerateIrradianceSHFromHDRI(Ntr<NXTexture2D>& pTexHDR)
 	if (bResize)
 	{
 		std::unique_ptr<ScratchImage> timage = std::make_unique<ScratchImage>();
-		HRESULT hr = Resize(pHDRImage->GetImages(), pHDRImage->GetImageCount(), pHDRImage->GetMetadata(), 256, 128, TEX_FILTER_DEFAULT, *timage);
+		HRESULT hr = Resize(pHDRImage->GetImages(), pHDRImage->GetImageCount(), pHDRImage->GetMetadata(), nIrradTexSize, nIrradTexSize / 2, TEX_FILTER_DEFAULT, *timage);
 		if (SUCCEEDED(hr))
 		{
 			auto& tinfo = timage->GetMetadata();
@@ -263,7 +265,7 @@ void NXCubeMap::GenerateIrradianceSHFromHDRI(Ntr<NXTexture2D>& pTexHDR)
 	// HDRI 纹理加载
 	auto pData = reinterpret_cast<float*>(pHDRImage->GetImage(0, 0, 0)->pixels);
 	float solidAnglePdf = 0.0;
-	memset(m_shIrradianceMap_CPU, 0, sizeof(m_shIrradianceMap_CPU));
+	memset(m_shIrradianceMap, 0, sizeof(m_shIrradianceMap));
 
 	// 像素个数
 	size_t pixelCount = pHDRImage->GetPixelsSize() >> 4;
@@ -306,7 +308,7 @@ void NXCubeMap::GenerateIrradianceSHFromHDRI(Ntr<NXTexture2D>& pTexHDR)
 
 					//printf("%d | %d, %d | %f, %f, %f\n", idx, l, m, Llm.x, Llm.y, Llm.z);
 					{
-						m_shIrradianceMap_CPU[l * l + l + m] += Llm;
+						m_shIrradianceMap[l * l + l + m] += Llm;
 					}
 				}
 			}
@@ -322,15 +324,17 @@ void NXCubeMap::GenerateIrradianceSHFromHDRI(Ntr<NXTexture2D>& pTexHDR)
 		for (int m = -l; m <= l; m++)
 		{
 			// 求 E_l^m
-			m_shIrradianceMap_CPU[k++] *= sqrt(XM_4PI / (2.0f * l + 1.0f)) * T[l] * XM_1DIVPI;
+			m_shIrradianceMap[k++] *= sqrt(XM_4PI / (2.0f * l + 1.0f)) * T[l] * XM_1DIVPI;
 		}
 	}
+
+	SetSHValues(m_shIrradianceMap);
 }
 
 void NXCubeMap::GenerateIrradianceSHFromCubeMap()
 {
 	// 读取CubeMap
-	size_t nIrradTexSize = 128;
+	size_t nIrradTexSize = m_shDDSCubeMapWidth;
 	const std::wstring& strFilePath = m_pTexCubeMap->GetFilePath();
 	TexMetadata metadata;
 	std::unique_ptr<ScratchImage> pImage = std::make_unique<ScratchImage>();
@@ -446,18 +450,7 @@ void NXCubeMap::GenerateIrradianceSHFromCubeMap()
 		}
 	}
 
-	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
-	{
-		ConstantBufferCubeMap cbData = m_cbDataCubeMap;
-		cbData.irradSH0123x = Vector4(m_shIrradianceMap[0].x, m_shIrradianceMap[1].x, m_shIrradianceMap[2].x, m_shIrradianceMap[3].x);
-		cbData.irradSH0123y = Vector4(m_shIrradianceMap[0].y, m_shIrradianceMap[1].y, m_shIrradianceMap[2].y, m_shIrradianceMap[3].y);
-		cbData.irradSH0123z = Vector4(m_shIrradianceMap[0].z, m_shIrradianceMap[1].z, m_shIrradianceMap[2].z, m_shIrradianceMap[3].z);
-		cbData.irradSH4567x = Vector4(m_shIrradianceMap[4].x, m_shIrradianceMap[5].x, m_shIrradianceMap[6].x, m_shIrradianceMap[7].x);
-		cbData.irradSH4567y = Vector4(m_shIrradianceMap[4].y, m_shIrradianceMap[5].y, m_shIrradianceMap[6].y, m_shIrradianceMap[7].y);
-		cbData.irradSH4567z = Vector4(m_shIrradianceMap[4].z, m_shIrradianceMap[5].z, m_shIrradianceMap[6].z, m_shIrradianceMap[7].z);
-		cbData.irradSH8xyz = m_shIrradianceMap[8];
-		m_cbCubeMap.Set(m_cbDataCubeMap);
-	}
+	SetSHValues(m_shIrradianceMap);
 }
 
 // ps. DX11 升级 DX12 期间暂时禁用
@@ -660,6 +653,18 @@ void NXCubeMap::SetIntensity(float val)
 void NXCubeMap::SetIrradMode(int val)
 {
 	m_cbDataCubeMap.irradMode = Vector4((float)val);
+	m_cbCubeMap.Set(m_cbDataCubeMap);
+}
+
+void NXCubeMap::SetSHValues(const Vector3* shIrradValues)
+{
+	m_cbDataCubeMap.irradSH0123x = Vector4(shIrradValues[0].x, shIrradValues[1].x, shIrradValues[2].x, shIrradValues[3].x);
+	m_cbDataCubeMap.irradSH0123y = Vector4(shIrradValues[0].y, shIrradValues[1].y, shIrradValues[2].y, shIrradValues[3].y);
+	m_cbDataCubeMap.irradSH0123z = Vector4(shIrradValues[0].z, shIrradValues[1].z, shIrradValues[2].z, shIrradValues[3].z);
+	m_cbDataCubeMap.irradSH4567x = Vector4(shIrradValues[4].x, shIrradValues[5].x, shIrradValues[6].x, shIrradValues[7].x);
+	m_cbDataCubeMap.irradSH4567y = Vector4(shIrradValues[4].y, shIrradValues[5].y, shIrradValues[6].y, shIrradValues[7].y);
+	m_cbDataCubeMap.irradSH4567z = Vector4(shIrradValues[4].z, shIrradValues[5].z, shIrradValues[6].z, shIrradValues[7].z);
+	m_cbDataCubeMap.irradSH8xyz = shIrradValues[8];
 	m_cbCubeMap.Set(m_cbDataCubeMap);
 }
 
