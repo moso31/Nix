@@ -47,7 +47,7 @@ ccmem::UploadRingBuffer::~UploadRingBuffer()
 bool ccmem::UploadRingBuffer::BuildTask(uint32_t byteSize, UploadTask& oTask)
 {
 	// byteSize 做字节对齐处理，以DX12的纹理数据对齐方式为准（不得小于512字节）
-	byteSize = (byteSize + D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT) & ~(D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT - 1);
+	byteSize = (byteSize + D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT - 1) & ~(D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT - 1);
 
 	// case 0. 注意：Start == End 只表示：整个RingBuffer为空
 	// 换句话说 RingBuffer 是【不允许填满！】的。对内存状态频繁变化的分配器而言，影响不大
