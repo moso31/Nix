@@ -555,9 +555,9 @@ void NXTexture::Deserialize()
 
 Ntr<NXTexture2D> NXTexture2D::Create(const std::string& debugName, const std::filesystem::path& filePath, D3D12_RESOURCE_FLAGS flags)
 {
-	Deserialize();
 	m_texFilePath = filePath;
 	m_name = debugName;
+	Deserialize();
 
 	CreatePathTextureInternal(m_texFilePath, flags);
 	return this;
