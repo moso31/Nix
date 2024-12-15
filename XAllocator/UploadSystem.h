@@ -52,6 +52,7 @@ namespace ccmem
         ~UploadRingBuffer();
 
         bool BuildTask(uint32_t byteSize, UploadTask& oTask);
+        void FinishTask(const UploadTask& task);
         
         ID3D12Resource* GetResource() { return m_pResource; }
         uint8_t* GetResourceMappedData() { return m_pResourceData; }

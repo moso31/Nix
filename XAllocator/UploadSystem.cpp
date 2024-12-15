@@ -101,6 +101,15 @@ bool ccmem::UploadRingBuffer::BuildTask(uint32_t byteSize, UploadTask& oTask)
 	return true;
 }
 
+void ccmem::UploadRingBuffer::FinishTask(const UploadTask& task)
+{
+	// 任务完成后，只需要将usedStart向前移动即可
+	m_usedStart = task.ringPos + task.byteSize;
+
+	// 见 BuildTask() case 1.2，如果超过环尾，需要回环
+	m_usedStart %= m_size;
+}
+
 ccmem::UploadSystem::UploadSystem(ID3D12Device* pDevice) :
 	m_pDevice(pDevice),
 	m_ringBuffer(UploadRingBuffer(pDevice, 64 * 1024 * 1024)) // 64MB ring buffer.
@@ -200,13 +209,14 @@ void ccmem::UploadSystem::Update()
 	{
 		auto& task = m_uploadTask[m_taskStart];
 
-		// fenceValue 的作用见 task.fenceValue 在头文件的解释
-		// 这里 >= 说明task在GPU一侧也已经执行完了，可以被移除了
+		// 等待GPU侧的任务完成
 		if (m_pFence->GetCompletedValue() >= task.fenceValue)
 		{
 			if (task.pCallback)
-				task.pCallback();
+				task.pCallback(); // 触发完成后callback
 
+			// 任务完成，回收资源
+			m_ringBuffer.FinishTask(task);
 			m_taskStart = (m_taskStart + 1) % UPLOADTASK_NUM;
 			m_taskUsed--;
 			task.Reset();
