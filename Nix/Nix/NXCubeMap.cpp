@@ -798,7 +798,7 @@ void NXCubeMap::InitVertex()
 void NXCubeMap::InitRootSignature()
 {
 	std::vector<D3D12_STATIC_SAMPLER_DESC> pSamplers = {
-		NXSamplerManager::GetInstance()->CreateIso(0, 0, D3D12_SHADER_VISIBILITY_ALL) // s0
+		NXSamplerManager::GetInstance()->Create(0, 0, D3D12_SHADER_VISIBILITY_PIXEL, D3D12_FILTER_ANISOTROPIC, D3D12_TEXTURE_ADDRESS_MODE_WRAP, D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_WRAP, D3D12_COMPARISON_FUNC_NEVER, 0.0f, 16u) // s0
 	};
 
 	// cubemap
