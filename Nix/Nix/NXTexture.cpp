@@ -46,9 +46,9 @@ void NXTexture::SetViews(uint32_t srvNum, uint32_t rtvNum, uint32_t dsvNum, uint
 
 void NXTexture::ProcessLoadingBuffers()
 {
-	m_loadingViews.fetch_add(-1);
+	int oldVal = m_loadingViews.fetch_sub(1);
 
-	if (m_loadingViews == 0)
+	if (oldVal == 1) // don't use m_loadingViews == 0. It will be fucked up.
 	{
 		m_promiseLoadingViews.set_value();
 	}
