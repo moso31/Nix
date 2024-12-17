@@ -493,6 +493,9 @@
     <ClCompile Include="Core\NXPSOManager.cpp">
       <Filter>Core\DirectX\Manager</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXTextureLoader.cpp">
+      <Filter>Core\DirectX\Manager</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -821,6 +824,9 @@
     </ClInclude>
     <ClInclude Include="BaseDefs\MultiThread.h">
       <Filter>BaseDefs</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXTextureLoader.h">
+      <Filter>Core\DirectX\Manager</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

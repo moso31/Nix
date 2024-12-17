@@ -15,16 +15,6 @@ using namespace SimpleMath;
 using namespace DirectX;
 using namespace ccmem;
 
-enum NXTextureType
-{
-    TextureType_None,
-    TextureType_1D,
-    TextureType_2D,
-    TextureType_Cube,
-    TextureType_2DArray,
-    TextureType_3D,
-};
-
 namespace DirectX
 {
     class ScratchImage; 
@@ -105,17 +95,13 @@ public:
     void SetSerializationData(const NXTextureSerializationData& data) { m_serializationData = data; }
 
 protected:    
-    // 创建 RT 类型的Texture2D，调用这个方法
-    // 创建 RT 类型的Texture2DArray，调用这个方法
-    // 创建 RT 类型的Texture2DCube，调用这个方法
+    // 创建 RT 类型的Texture，调用这个方法
     void CreateRenderTextureInternal(D3D12_RESOURCE_FLAGS flags);
 
-    // Texture2D Solid/Noise纹理生成，
-    // CubeMap 从文件创建
-    // 调用这个方法
+    // 程序化生成 Texture，调用这个方法
     void CreateInternal(const std::shared_ptr<DirectX::ScratchImage>& pImage, D3D12_RESOURCE_FLAGS flags);
 
-    // Texture2D 从文件创建，调用这个方法
+    // 从文件创建 Texture，调用这个方法
     void CreatePathTextureInternal(const std::filesystem::path& filePath, D3D12_RESOURCE_FLAGS flags);
 
 private:

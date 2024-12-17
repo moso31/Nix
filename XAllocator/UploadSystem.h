@@ -39,6 +39,8 @@ namespace ccmem
         UploadTaskContext(const std::string& name) : name(name) {}
 
         UploadTask* pOwner = nullptr;
+
+        // ringBuffer的临时资源本体、临时资源上传堆映射、临时资源上传堆偏移量
 		ID3D12Resource* pResource = nullptr;
 		uint8_t* pResourceData = nullptr;
         uint32_t pResourceOffset = 0;
