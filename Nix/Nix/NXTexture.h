@@ -29,6 +29,11 @@ struct NXTextureReload
     Ntr<NXTexture> m_pReloadTex;
 };
 
+struct NXTextureUploadChunk
+{
+    
+};
+
 class NXTexture2D;
 class NXTexture2DArray;
 class NXTextureCube;
@@ -109,6 +114,8 @@ private:
 
     void InternalReload(Ntr<NXTexture> pReloadTexture);
     D3D12_RESOURCE_DIMENSION GetResourceDimentionFromType();
+
+    void GenerateUploadChunks(uint32_t layoutSize, uint32_t* numRow, uint64_t* numRowSizeInBytes, uint64_t totalBytes);
 
 protected:
     ComPtr<ID3D12Resource> m_pTexture;

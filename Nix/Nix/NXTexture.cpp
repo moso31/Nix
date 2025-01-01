@@ -259,6 +259,8 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 		size_t totalBytes;
 		NXGlobalDX::GetDevice()->GetCopyableFootprints(&desc, 0, layoutSize, 0, layouts, numRow, numRowSizeInBytes, &totalBytes);
 
+		GenerateUploadChunks(layoutSize, numRow, numRowSizeInBytes, totalBytes);
+
 		std::filesystem::path filePath = filePath;
 		NXAllocator_Tex->Alloc(&desc, (uint32_t)totalBytes, [this, name = m_name, result, filePath, layouts, numRow, numRowSizeInBytes, totalBytes, layoutSize](const PlacedBufferAllocTaskResult& taskResult) {
 			UploadTaskContext taskContext("Upload Texture Task");
@@ -332,6 +334,27 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 			});
 		};
 	NXTexLoader->AddTask(task);
+}
+
+void NXTexture::GenerateUploadChunks(uint32_t layoutSize, uint32_t* numRow, uint64_t* numRowSizeInBytes, uint64_t totalBytes)
+{
+	// 作用：根据纹理布局，将上传任务划分成若干个块上传，避免NXUploadSystem一次性上传过大的数据直接崩溃
+	// 思路：
+	// 一个纹理的subresource是三维的，face, mip, slice；DX已经根据这个布局自动安排layout的索引。
+	// 所以这里按照这个layout索引，生成上传任务，假设layout序列是0~n，
+	// 那么遍历它们，在遍历的过程中
+	//	1. 如果单个layout大小超过了这个阈值，就需要拆分成多个任务。
+	//	2. 否则持续累积bytes，每当累积的bytes超过了一个阈值，就生成一个上传任务。
+
+	uint64_t ringBufferLimit = 32 * 1024 * 1024; // 32MB
+	for (uint32_t i = 0; i < layoutSize;)
+	{
+		uint64_t byteSize = numRow[i] * numRowSizeInBytes[i];
+		if (byteSize > ringBufferLimit)
+		{
+
+		}
+	}
 }
 
 bool NXTexture::GetMetadataFromFile(const std::filesystem::path& path, TexMetadata& oMetaData)
