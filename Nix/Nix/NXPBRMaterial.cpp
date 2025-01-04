@@ -398,7 +398,7 @@ void NXCustomMaterial::RemoveTexture(const Ntr<NXTexture>& pTexture)
 
 void NXCustomMaterial::SetCBInfoMemoryData(UINT memoryIndex, UINT count, const float* newData)
 {
-	count = min(count, (UINT)m_cbInfoMemory.size() - memoryIndex);
+	count = std::min(count, (UINT)m_cbInfoMemory.size() - memoryIndex);
 	std::copy(newData, newData + count, m_cbInfoMemory.begin() + memoryIndex);
 
 	RequestUpdateCBufferData(false);

@@ -31,7 +31,20 @@ struct NXTextureReload
 
 struct NXTextureUploadChunk
 {
-    
+    NXTextureUploadChunk() = default;
+
+    // chunk大小
+    int chunkBytes; 
+
+    // layout索引（第几个face的mip的slice）
+    // 从第几个layout到第几个layout
+    int layoutIndexStart;
+    int layoutIndexSize;
+
+    // chunk从当前layout第几行开始到第几行结束
+    // 仅在layoutIndexSize == 1时有效
+    int rowStart; 
+    int rowSize;
 };
 
 class NXTexture2D;
@@ -115,7 +128,7 @@ private:
     void InternalReload(Ntr<NXTexture> pReloadTexture);
     D3D12_RESOURCE_DIMENSION GetResourceDimentionFromType();
 
-    void GenerateUploadChunks(uint32_t layoutSize, uint32_t* numRow, uint64_t* numRowSizeInBytes, uint64_t totalBytes);
+    void GenerateUploadChunks(uint32_t layoutSize, uint32_t* numRow, uint64_t* numRowSizeInBytes, uint64_t totalBytes, std::vector<NXTextureUploadChunk>& oChunks);
 
 protected:
     ComPtr<ID3D12Resource> m_pTexture;

@@ -81,7 +81,7 @@ void NXGUIMaterial::Render()
 	ImGui::Separator();
 
 	float fBtnSize = 45.0f;
-	ImGui::BeginChild("##material_iconbtn", ImVec2(fBtnSize, max(ImGui::GetContentRegionAvail().y * 0.1f, fBtnSize)));
+	ImGui::BeginChild("##material_iconbtn", ImVec2(fBtnSize, std::max(ImGui::GetContentRegionAvail().y * 0.1f, fBtnSize)));
 	ImGui::Button(".nsl##iconbtn", ImVec2(fBtnSize, fBtnSize));
 
 	if (ImGui::BeginDragDropTarget())
@@ -104,7 +104,7 @@ void NXGUIMaterial::Render()
 
 	if (pCommonMaterial)
 	{
-		ImGui::BeginChild("##material_description", ImVec2(ImGui::GetContentRegionAvail().x, max(ImGui::GetContentRegionAvail().y * 0.1f, fBtnSize)));
+		ImGui::BeginChild("##material_description", ImVec2(ImGui::GetContentRegionAvail().x, std::max(ImGui::GetContentRegionAvail().y * 0.1f, fBtnSize)));
 		std::string strMatName = pCommonMaterial->GetName().c_str();
 		if (ImGui::InputText("Material", &strMatName))
 		{

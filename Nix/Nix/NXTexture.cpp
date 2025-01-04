@@ -259,100 +259,185 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 		size_t totalBytes;
 		NXGlobalDX::GetDevice()->GetCopyableFootprints(&desc, 0, layoutSize, 0, layouts, numRow, numRowSizeInBytes, &totalBytes);
 
-		GenerateUploadChunks(layoutSize, numRow, numRowSizeInBytes, totalBytes);
+		std::vector<NXTextureUploadChunk> chunks;
+		GenerateUploadChunks(layoutSize, numRow, numRowSizeInBytes, totalBytes, chunks);
 
 		std::filesystem::path filePath = filePath;
-		NXAllocator_Tex->Alloc(&desc, (uint32_t)totalBytes, [this, name = m_name, result, filePath, layouts, numRow, numRowSizeInBytes, totalBytes, layoutSize](const PlacedBufferAllocTaskResult& taskResult) {
-			UploadTaskContext taskContext("Upload Texture Task");
-			if (NXUploadSystem->BuildTask((int)totalBytes, taskContext))
+		NXAllocator_Tex->Alloc(&desc, (uint32_t)totalBytes, [this, name = m_name, result, filePath, layouts, numRow, numRowSizeInBytes, layoutSize, chunks = std::move(chunks)](const PlacedBufferAllocTaskResult& taskResult) {
+			auto& metadata = result.metadata;
+			std::shared_ptr<ScratchImage> pImage = result.pImage;
+
+			m_width = (uint32_t)metadata.width;
+			m_height = (uint32_t)metadata.height;
+			m_arraySize = (uint32_t)metadata.arraySize;
+			m_mipLevels = (uint32_t)metadata.mipLevels;
+			m_texFormat = metadata.format;
+			m_pTexture = taskResult.pResource;
+
+			m_pTexture->SetName(NXConvert::s2ws(name).c_str());
+			SetRefCountDebugName(name);
+			m_resourceState = D3D12_RESOURCE_STATE_COPY_DEST; // 和 NXAllocator_Tex->Alloc 内部的逻辑保持同步
+
+			for (auto& texChunk : chunks)
 			{
-				auto& metadata = result.metadata;
-				std::shared_ptr<ScratchImage> pImage = result.pImage;
-
-				m_width = (uint32_t)metadata.width;
-				m_height = (uint32_t)metadata.height;
-				m_arraySize = (uint32_t)metadata.arraySize;
-				m_mipLevels = (uint32_t)metadata.mipLevels;
-				m_texFormat = metadata.format;
-				m_pTexture = taskResult.pResource;
-
-				m_pTexture->SetName(NXConvert::s2ws(name).c_str());
-				SetRefCountDebugName(name);
-				m_resourceState = D3D12_RESOURCE_STATE_COPY_DEST; // 和 NXAllocator_Tex->Alloc 内部的逻辑保持同步
-
-				auto texDesc = m_pTexture->GetDesc();
-				for (uint32_t face = 0, index = 0; face < texDesc.DepthOrArraySize; face++)
+				UploadTaskContext taskContext("Upload Texture Task");
+				if (NXUploadSystem->BuildTask(texChunk.chunkBytes, taskContext))
 				{
-					for (uint32_t mip = 0; mip < texDesc.MipLevels; mip++, index++)
+					int mip, slice;
+					auto texDesc = m_pTexture->GetDesc();
+
+					if (texChunk.layoutIndexSize == -1)
 					{
-						const Image* pImg = pImage->GetImage(mip, face, 0);
+						// chunk里只有单个layout，拆分处理
+						int index = texChunk.layoutIndexStart;
+
+						NXConvert::GetMipSliceFromLayoutIndex(index, texDesc.MipLevels, texDesc.DepthOrArraySize, mip, slice);
+
+						const Image* pImg = pImage->GetImage(mip, slice, 0);
 						const BYTE* pSrcData = pImg->pixels;
 						BYTE* pMappedRingBufferData = taskContext.pResourceData + taskContext.pResourceOffset;
 						BYTE* pDstData = pMappedRingBufferData + layouts[index].Offset;
 
-						for (uint32_t y = 0; y < numRow[index]; y++)
+						uint32_t rowSt = numRow[texChunk.rowStart];
+						uint32_t rowEd = numRow[texChunk.rowStart + texChunk.rowSize];
+						for (uint32_t y = rowSt; y < rowEd; y++)
 						{
 							memcpy(pDstData + layouts[index].Footprint.RowPitch * y, pSrcData + pImg->rowPitch * y, numRowSizeInBytes[index]);
 						}
+
+						// NXUploadSystem 从RingBuffer同步到实际GPU资源
+						D3D12_TEXTURE_COPY_LOCATION src = {};
+						src.pResource = taskContext.pResource;
+						src.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+						src.PlacedFootprint = layouts[index];
+						src.PlacedFootprint.Footprint.Height = texChunk.rowSize; // src = 上传堆中的内存段，明确chunk对应的大小即可
+						src.PlacedFootprint.Offset = taskContext.pResourceOffset;
+
+						D3D12_TEXTURE_COPY_LOCATION dst = {}; // dst = 目标，默认堆gpu资源。
+						dst.pResource = m_pTexture.Get();
+						dst.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+						dst.SubresourceIndex = index;
+
+						uint32_t dstX = 0;
+						uint32_t dstY = rowSt;
+						uint32_t dstZ = 0;
+						taskContext.pOwner->pCmdList->CopyTextureRegion(&dst, dstX, dstY, dstZ, &src, nullptr);
+
+						NXUploadSystem->FinishTask(taskContext, [this]() {
+							// 任务完成后的回调
+							m_promiseLoadingTextures.set_value();
+							});
+					}
+					else
+					{
+						// chunk里有多个layout，拆分处理
+						for (int index = texChunk.layoutIndexStart; index < texChunk.layoutIndexSize; index++)
+						{
+							NXConvert::GetMipSliceFromLayoutIndex(index, texDesc.MipLevels, texDesc.DepthOrArraySize, mip, slice);
+
+							const Image* pImg = pImage->GetImage(mip, slice, 0);
+							const BYTE* pSrcData = pImg->pixels;
+							BYTE* pMappedRingBufferData = taskContext.pResourceData + taskContext.pResourceOffset;
+							BYTE* pDstData = pMappedRingBufferData + layouts[index].Offset;
+
+							for (uint32_t y = 0; y < numRow[index]; y++)
+							{
+								memcpy(pDstData + layouts[index].Footprint.RowPitch * y, pSrcData + pImg->rowPitch * y, numRowSizeInBytes[index]);
+							}
+
+							// NXUploadSystem 从RingBuffer同步到实际GPU资源
+							for (uint32_t i = texChunk.layoutIndexStart; i < texChunk.layoutIndexStart + texChunk.layoutIndexSize; i++)
+							{
+								D3D12_TEXTURE_COPY_LOCATION src = {}; // src = 上传堆中的内存段
+								src.pResource = taskContext.pResource;
+								src.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+								src.PlacedFootprint = layouts[i];
+								src.PlacedFootprint.Offset = taskContext.pResourceOffset;
+
+								D3D12_TEXTURE_COPY_LOCATION dst = {}; // dst = 目标，默认堆gpu资源。
+								dst.pResource = m_pTexture.Get();
+								dst.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+								dst.SubresourceIndex = i;
+
+								uint32_t dstX = 0;
+								uint32_t dstY = 0;
+								uint32_t dstZ = 0;
+								taskContext.pOwner->pCmdList->CopyTextureRegion(&dst, dstX, dstY, dstZ, &src, nullptr);
+							}
+
+							NXUploadSystem->FinishTask(taskContext, [this]() {
+								// 任务完成后的回调
+								m_promiseLoadingTextures.set_value();
+								});
+						}
 					}
 				}
-
-				// NXUploadSystem 从RingBuffer同步到实际GPU资源
-				for (uint32_t i = 0; i < layoutSize; i++)
+				else
 				{
-					D3D12_TEXTURE_COPY_LOCATION src = {};
-					src.pResource = taskContext.pResource;
-					src.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-					src.PlacedFootprint = layouts[i];
-					src.PlacedFootprint.Offset = taskContext.pResourceOffset;
-
-					D3D12_TEXTURE_COPY_LOCATION dst = {};
-					dst.pResource = m_pTexture.Get();
-					dst.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
-					dst.SubresourceIndex = i;
-
-					taskContext.pOwner->pCmdList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
+					// 抛出异常
+					printf("Error: [NXUploadSystem::BuildTask] failed when loading NXTexture2D: %s\n", filePath.string().c_str());
 				}
-
-				NXUploadSystem->FinishTask(taskContext, [this]() {
-					// 任务完成后的回调
-					m_promiseLoadingTextures.set_value();
-					});
-
-				delete[] layouts;
-				delete[] numRow;
-				delete[] numRowSizeInBytes;
-
-				pImage.reset();
 			}
-			else
-			{
-				// 抛出异常
-				printf("Error: [NXUploadSystem::BuildTask] failed when loading NXTexture2D: %s\n", filePath.string().c_str());
-			}
-
 			});
 		};
 	NXTexLoader->AddTask(task);
 }
 
-void NXTexture::GenerateUploadChunks(uint32_t layoutSize, uint32_t* numRow, uint64_t* numRowSizeInBytes, uint64_t totalBytes)
+void NXTexture::GenerateUploadChunks(uint32_t layoutSize, uint32_t* numRow, uint64_t* numRowSizeInBytes, uint64_t totalBytes, std::vector<NXTextureUploadChunk>& oChunks)
 {
 	// 作用：根据纹理布局，将上传任务划分成若干个块上传，避免NXUploadSystem一次性上传过大的数据直接崩溃
-	// 思路：
-	// 一个纹理的subresource是三维的，face, mip, slice；DX已经根据这个布局自动安排layout的索引。
-	// 所以这里按照这个layout索引，生成上传任务，假设layout序列是0~n，
-	// 那么遍历它们，在遍历的过程中
-	//	1. 如果单个layout大小超过了这个阈值，就需要拆分成多个任务。
+	// 思路：按layout遍历
+	//	1. layout大小超过了这个阈值，就需要拆分成多个任务。
 	//	2. 否则持续累积bytes，每当累积的bytes超过了一个阈值，就生成一个上传任务。
 
-	uint64_t ringBufferLimit = 32 * 1024 * 1024; // 32MB
-	for (uint32_t i = 0; i < layoutSize;)
+	uint64_t ringBufferLimit = 8 * 1024 * 1024; // 8MB，ringbuffer有64M限制且不允许满载，这里取8M
+	for (uint32_t i = 0; i < layoutSize; )
 	{
-		uint64_t byteSize = numRow[i] * numRowSizeInBytes[i];
-		if (byteSize > ringBufferLimit)
+		uint64_t layoutByteSize = numRow[i] * numRowSizeInBytes[i];
+		if (layoutByteSize > ringBufferLimit)
 		{
+			// 1. layout大小超过了这个阈值，就需要拆分成多个任务。
 
+			// 根据行数拆分，不要直接算字节，DX需要按行对齐
+			uint32_t rowLimit = (uint32_t)(ringBufferLimit / numRowSizeInBytes[i]); // 拆分模式下 每个chunk最多多少行
+			for (uint32_t j = 0; j < numRow[i]; j += rowLimit)
+			{
+				NXTextureUploadChunk chunk = {};
+				chunk.chunkBytes = chunk.rowSize * (int)numRowSizeInBytes[i];
+				chunk.layoutIndexStart = i;
+				chunk.layoutIndexSize = -1; // 拆分模式下只有一个layout
+				chunk.rowStart = j;
+				chunk.rowSize = std::min(rowLimit, numRow[i] - j);
+
+				oChunks.push_back(chunk);
+			}
+			i++;
+		}
+		else
+		{
+			// 2. 否则持续累积bytes，每当累积的bytes超过了一个阈值，就生成一个上传任务。
+			NXTextureUploadChunk chunk = {};
+			chunk.chunkBytes = (int)layoutByteSize;
+			chunk.layoutIndexStart = i;
+			chunk.layoutIndexSize = 1;
+			chunk.rowStart = -1; // 累积模式下只可能包含完整的layout，所以row参数没用
+			chunk.rowSize = -1;
+
+			i++;
+
+			while (i < layoutSize)
+			{
+				uint64_t layoutByteSize = numRow[i] * numRowSizeInBytes[i];
+				if (chunk.chunkBytes + layoutByteSize >= ringBufferLimit)
+				{
+					break;
+				}
+
+				chunk.layoutIndexSize++;
+				i++;
+			}
+
+			oChunks.push_back(chunk);
 		}
 	}
 }

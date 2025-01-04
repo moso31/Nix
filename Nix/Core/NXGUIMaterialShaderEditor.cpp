@@ -41,7 +41,7 @@ void NXGUIMaterialShaderEditor::Render()
 	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.1f, 0.1f, 0.1f, 0.1f));
 
 	ImVec2 childWindowFullSize(ImGui::GetContentRegionAvail());
-	ImVec2 childWindowTableSize(childWindowFullSize.x, min(childWindowFullSize.x * 0.6667f, childWindowFullSize.y - 100.0f));
+	ImVec2 childWindowTableSize(childWindowFullSize.x, std::min(childWindowFullSize.x * 0.6667f, childWindowFullSize.y - 100.0f));
 	ImGui::BeginChild("##material_shader_editor_table_div", childWindowTableSize);
 	if (ImGui::BeginTable("##material_shader_editor_table", 2, ImGuiTableFlags_Resizable))
 	{
@@ -371,7 +371,7 @@ void NXGUIMaterialShaderEditor::Render_Code(NXCustomMaterial* pMaterial)
 
 		if (m_pGUICodeEditor->RemoveFile(m_showFuncIndex))
 		{
-			m_showFuncIndex = min(m_showFuncIndex, (int)m_nslFuncs.size() - 1);
+			m_showFuncIndex = std::min(m_showFuncIndex, (int)m_nslFuncs.size() - 1);
 			m_pGUICodeEditor->SwitchFile(m_showFuncIndex);
 			m_pGUICodeEditor->GetFocus();
 		}
@@ -386,7 +386,7 @@ void NXGUIMaterialShaderEditor::Render_Code(NXCustomMaterial* pMaterial)
 	float fEachTextLineHeight = ImGui::GetTextLineHeight();
 	static ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput;
 	// 规定 UI 至少留出 10 行代码的高度
-	float fTextEditorHeight = max(10.0f, ImGui::GetContentRegionAvail().y / fEachTextLineHeight) * fEachTextLineHeight;
+	float fTextEditorHeight = std::max(10.0f, ImGui::GetContentRegionAvail().y / fEachTextLineHeight) * fEachTextLineHeight;
 	m_pGUICodeEditor->Render();
 }
 

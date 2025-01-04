@@ -55,4 +55,6 @@ void getline_safe(std::ifstream& ifs, std::string& s);
 
 bool IsMaterialDefaultPath(const std::string& s);
 
+void GetMipSliceFromLayoutIndex(int layoutIndex, int mipSize, int sliceSize, int& oMip, int& oSlice);
+
 }

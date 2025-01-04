@@ -159,6 +159,8 @@ bool ccmem::UploadSystem::BuildTask(int byteSize, UploadTaskContext& taskResult)
 {
 	std::unique_lock<std::mutex> lock(m_mutex);
 
+	// 不满足以下条件时，持续等待
+	// update() 每完成一个任务，就会notify_one()，唤醒一个正在这里持续等待的线程（如果有的话）
 	m_condition.wait(lock, [this]() { 
 		bool c = m_taskUsed < UPLOADTASK_NUM; 
 		return c;
