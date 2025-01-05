@@ -353,7 +353,7 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 					}
 					else
 					{
-						// chunk里有多个layout，拆分处理
+						// chunk里有多个layout，累积处理
 						for (int index = texChunk.layoutIndexStart; index < texChunk.layoutIndexSize; index++)
 						{
 							NXConvert::GetMipSliceFromLayoutIndex(index, texDesc.MipLevels, texDesc.DepthOrArraySize, mip, slice);
@@ -414,17 +414,18 @@ void NXTexture::GenerateUploadChunks(uint32_t layoutSize, uint32_t* numRow, uint
 	uint64_t ringBufferLimit = 8 * 1024 * 1024; // 8MB，ringbuffer有64M限制且不允许满载，这里取8M
 	for (uint32_t i = 0; i < layoutSize; )
 	{
-		uint64_t layoutByteSize = numRow[i] * numRowSizeInBytes[i];
+		uint64_t numRowSizeInByteAlign256 = (numRowSizeInBytes[i] + 255) & ~255; // DX12的纹理需要每行按256字节对齐
+		uint64_t layoutByteSize = numRow[i] * numRowSizeInByteAlign256;
 		if (layoutByteSize > ringBufferLimit)
 		{
 			// 1. layout大小超过了这个阈值，就需要拆分成多个任务。
 
 			// 根据行数拆分，不要直接算字节，DX需要按行对齐
-			uint32_t rowLimit = (uint32_t)(ringBufferLimit / numRowSizeInBytes[i]); // 拆分模式下 每个chunk最多多少行
+			uint32_t rowLimit = (uint32_t)(ringBufferLimit / numRowSizeInByteAlign256); // 拆分模式下 每个chunk最多多少行
 			for (uint32_t j = 0; j < numRow[i]; j += rowLimit)
 			{
 				NXTextureUploadChunk chunk = {};
-				chunk.chunkBytes = chunk.rowSize * (int)numRowSizeInBytes[i];
+				chunk.chunkBytes = chunk.rowSize * (int)numRowSizeInByteAlign256;
 				chunk.layoutIndexStart = i;
 				chunk.layoutIndexSize = -1; // 拆分模式下只有一个layout
 				chunk.rowStart = j;
@@ -448,12 +449,14 @@ void NXTexture::GenerateUploadChunks(uint32_t layoutSize, uint32_t* numRow, uint
 
 			while (i < layoutSize)
 			{
-				uint64_t layoutByteSize = numRow[i] * numRowSizeInBytes[i];
+				uint64_t numRowSizeInByteAlign256 = (numRowSizeInBytes[i] + 255) & ~255; // DX12的纹理需要每行按256字节对齐
+				uint64_t layoutByteSize = numRow[i] * numRowSizeInByteAlign256;
 				if (chunk.chunkBytes + layoutByteSize >= ringBufferLimit)
 				{
 					break;
 				}
 
+				chunk.chunkBytes += (int)layoutByteSize;
 				chunk.layoutIndexSize++;
 				i++;
 			}
