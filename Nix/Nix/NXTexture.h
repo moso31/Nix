@@ -64,7 +64,7 @@ public:
         m_resourceState(D3D12_RESOURCE_STATE_COPY_DEST),
         m_loadingViews(0),
         m_futureLoadingViews(m_promiseLoadingViews.get_future()),
-        m_futureLoadingTextures(m_promiseLoadingTextures.get_future())
+        m_futureLoadingTexChunks(m_promiseLoadingTexChunks.get_future())
     {}
 
     virtual ~NXTexture();
@@ -76,6 +76,8 @@ public:
     D3D12_CPU_DESCRIPTOR_HANDLE GetUAV(uint32_t index = 0);
 
     // 异步加载纹理资源相关
+    void SetTexChunks(int chunks); // 设置纹理加载的chunk数量
+    void ProcessLoadingTexChunks(); // 计数--，每加载好一个chunk，调用一次
     void WaitLoadingTexturesFinish();
 
     // 异步加载Views相关
@@ -136,8 +138,9 @@ protected:
     D3D12_RESOURCE_STATES m_resourceState;
     std::filesystem::path m_texFilePath;
 
-    std::promise<void> m_promiseLoadingTextures;
-    std::future<void> m_futureLoadingTextures;
+    std::atomic<int> m_loadingTexChunks;
+    std::promise<void> m_promiseLoadingTexChunks;
+    std::future<void> m_futureLoadingTexChunks;
 
     std::atomic<int> m_loadingViews;
     std::promise<void> m_promiseLoadingViews;

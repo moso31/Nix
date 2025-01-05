@@ -34,6 +34,21 @@ D3D12_CPU_DESCRIPTOR_HANDLE NXTexture::GetUAV(uint32_t index)
 	return m_pUAVs[index];
 }
 
+void NXTexture::SetTexChunks(int chunks)
+{
+	m_loadingTexChunks = chunks;
+}
+
+void NXTexture::ProcessLoadingTexChunks()
+{
+	int oldVal = m_loadingTexChunks.fetch_sub(1);
+
+	if (oldVal == 1) // don't use m_loadingTexChunks == 0. It will be fucked up.
+	{
+		m_promiseLoadingTexChunks.set_value();
+	}
+}
+
 void NXTexture::SetViews(uint32_t srvNum, uint32_t rtvNum, uint32_t dsvNum, uint32_t uavNum, uint32_t otherNum)
 {
 	m_pSRVs.resize(srvNum);
@@ -56,7 +71,7 @@ void NXTexture::ProcessLoadingBuffers()
 
 void NXTexture::WaitLoadingTexturesFinish()
 {
-	m_futureLoadingTextures.wait();
+	m_futureLoadingTexChunks.wait();
 }
 
 void NXTexture::WaitLoadingViewsFinish()
@@ -150,7 +165,8 @@ void NXTexture::CreateRenderTextureInternal(D3D12_RESOURCE_FLAGS flags)
 		return;
 	}
 
-	m_promiseLoadingTextures.set_value();
+	SetTexChunks(1);
+	ProcessLoadingTexChunks();
 }
 
 void NXTexture::CreateInternal(const std::shared_ptr<DirectX::ScratchImage>& pImage, D3D12_RESOURCE_FLAGS flags)
@@ -174,6 +190,7 @@ void NXTexture::CreateInternal(const std::shared_ptr<DirectX::ScratchImage>& pIm
 	size_t totalBytes;
 	NXGlobalDX::GetDevice()->GetCopyableFootprints(&desc, 0, layoutSize, 0, layouts, numRow, numRowSizeInBytes, &totalBytes);
 
+	SetTexChunks(1);
 	NXAllocator_Tex->Alloc(&desc, (uint32_t)totalBytes, [this, layouts, numRow, numRowSizeInBytes, layoutSize, totalBytes, pImage](const PlacedBufferAllocTaskResult& result) mutable {
 		m_pTexture = result.pResource;
 
@@ -192,36 +209,32 @@ void NXTexture::CreateInternal(const std::shared_ptr<DirectX::ScratchImage>& pIm
 				{
 					const Image* pImg = pImage->GetImage(mip, face, 0);
 					const BYTE* pSrcData = pImg->pixels;
-					BYTE* pMappedRingBufferData = taskContext.pResourceData + taskContext.pResourceOffset;
-					BYTE* pDstData = pMappedRingBufferData + layouts[index].Offset;
+					BYTE* pMappedRingBufferData = taskContext.pResourceData;
+					uint64_t bytesOffset = taskContext.pResourceOffset + layouts[index].Offset;
+					BYTE* pDstData = pMappedRingBufferData + bytesOffset;
 
 					for (uint32_t y = 0; y < numRow[index]; y++)
 					{
 						memcpy(pDstData + layouts[index].Footprint.RowPitch * y, pSrcData + pImg->rowPitch * y, numRowSizeInBytes[index]);
 					}
+
+					D3D12_TEXTURE_COPY_LOCATION src = {};
+					src.pResource = taskContext.pResource;
+					src.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+					src.PlacedFootprint = layouts[index];
+					src.PlacedFootprint.Offset = bytesOffset;
+
+					D3D12_TEXTURE_COPY_LOCATION dst = {};
+					dst.pResource = m_pTexture.Get();
+					dst.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+					dst.SubresourceIndex = index;
+
+					taskContext.pOwner->pCmdList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
 				}
 			}
 
-			// NXUploadSystem 从RingBuffer同步到实际GPU资源
-			for (uint32_t i = 0; i < layoutSize; i++)
-			{
-				D3D12_TEXTURE_COPY_LOCATION src = {};
-				src.pResource = taskContext.pResource;
-				src.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-				src.PlacedFootprint = layouts[i];
-				src.PlacedFootprint.Offset = taskContext.pResourceOffset;
-
-				D3D12_TEXTURE_COPY_LOCATION dst = {};
-				dst.pResource = m_pTexture.Get();
-				dst.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
-				dst.SubresourceIndex = i;
-
-				taskContext.pOwner->pCmdList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
-			}
-
 			NXUploadSystem->FinishTask(taskContext, [this]() {
-				// 任务完成后的回调
-				m_promiseLoadingTextures.set_value();
+				ProcessLoadingTexChunks();
 				});
 
 			delete[] layouts;
@@ -262,6 +275,8 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 		std::vector<NXTextureUploadChunk> chunks;
 		GenerateUploadChunks(layoutSize, numRow, numRowSizeInBytes, totalBytes, chunks);
 
+		SetTexChunks((int)chunks.size());
+
 		std::filesystem::path filePath = filePath;
 		NXAllocator_Tex->Alloc(&desc, (uint32_t)totalBytes, [this, name = m_name, result, filePath, layouts, numRow, numRowSizeInBytes, layoutSize, chunks = std::move(chunks)](const PlacedBufferAllocTaskResult& taskResult) {
 			auto& metadata = result.metadata;
@@ -295,11 +310,11 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 
 						const Image* pImg = pImage->GetImage(mip, slice, 0);
 						const BYTE* pSrcData = pImg->pixels;
-						BYTE* pMappedRingBufferData = taskContext.pResourceData + taskContext.pResourceOffset;
-						BYTE* pDstData = pMappedRingBufferData + layouts[index].Offset;
+						BYTE* pMappedRingBufferData = taskContext.pResourceData;
+						BYTE* pDstData = pMappedRingBufferData + taskContext.pResourceOffset;
 
-						uint32_t rowSt = numRow[texChunk.rowStart];
-						uint32_t rowEd = numRow[texChunk.rowStart + texChunk.rowSize];
+						uint32_t rowSt = texChunk.rowStart;
+						uint32_t rowEd = texChunk.rowStart + texChunk.rowSize;
 						for (uint32_t y = rowSt; y < rowEd; y++)
 						{
 							memcpy(pDstData + layouts[index].Footprint.RowPitch * y, pSrcData + pImg->rowPitch * y, numRowSizeInBytes[index]);
@@ -311,7 +326,7 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 						src.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
 						src.PlacedFootprint = layouts[index];
 						src.PlacedFootprint.Footprint.Height = texChunk.rowSize; // src = 上传堆中的内存段，明确chunk对应的大小即可
-						src.PlacedFootprint.Offset = taskContext.pResourceOffset;
+						src.PlacedFootprint.Offset = taskContext.pResourceOffset + texChunk.rowStart * numRowSizeInBytes[index];
 
 						D3D12_TEXTURE_COPY_LOCATION dst = {}; // dst = 目标，默认堆gpu资源。
 						dst.pResource = m_pTexture.Get();
@@ -321,11 +336,19 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 						uint32_t dstX = 0;
 						uint32_t dstY = rowSt;
 						uint32_t dstZ = 0;
-						taskContext.pOwner->pCmdList->CopyTextureRegion(&dst, dstX, dstY, dstZ, &src, nullptr);
+
+						D3D12_BOX box = {};
+						box.left = 0;
+						box.right = src.PlacedFootprint.Footprint.Width;
+						box.top = 0;
+						box.bottom = rowEd - rowSt;
+						box.front = 0;
+						box.back = 1;
+						taskContext.pOwner->pCmdList->CopyTextureRegion(&dst, dstX, dstY, dstZ, &src, &box);
 
 						NXUploadSystem->FinishTask(taskContext, [this]() {
 							// 任务完成后的回调
-							m_promiseLoadingTextures.set_value();
+							ProcessLoadingTexChunks();
 							});
 					}
 					else
@@ -336,9 +359,11 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 							NXConvert::GetMipSliceFromLayoutIndex(index, texDesc.MipLevels, texDesc.DepthOrArraySize, mip, slice);
 
 							const Image* pImg = pImage->GetImage(mip, slice, 0);
+
 							const BYTE* pSrcData = pImg->pixels;
-							BYTE* pMappedRingBufferData = taskContext.pResourceData + taskContext.pResourceOffset;
-							BYTE* pDstData = pMappedRingBufferData + layouts[index].Offset;
+							BYTE* pMappedRingBufferData = taskContext.pResourceData;
+							uint64_t bytesOffset = taskContext.pResourceOffset + layouts[index].Offset - layouts[texChunk.layoutIndexStart].Offset;
+							BYTE* pDstData = pMappedRingBufferData + bytesOffset;
 
 							for (uint32_t y = 0; y < numRow[index]; y++)
 							{
@@ -346,30 +371,26 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 							}
 
 							// NXUploadSystem 从RingBuffer同步到实际GPU资源
-							for (uint32_t i = texChunk.layoutIndexStart; i < texChunk.layoutIndexStart + texChunk.layoutIndexSize; i++)
-							{
-								D3D12_TEXTURE_COPY_LOCATION src = {}; // src = 上传堆中的内存段
-								src.pResource = taskContext.pResource;
-								src.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-								src.PlacedFootprint = layouts[i];
-								src.PlacedFootprint.Offset = taskContext.pResourceOffset;
+							D3D12_TEXTURE_COPY_LOCATION src = {}; // src = 上传堆中的内存段
+							src.pResource = taskContext.pResource;
+							src.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+							src.PlacedFootprint = layouts[index];
+							src.PlacedFootprint.Offset = bytesOffset;
 
-								D3D12_TEXTURE_COPY_LOCATION dst = {}; // dst = 目标，默认堆gpu资源。
-								dst.pResource = m_pTexture.Get();
-								dst.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
-								dst.SubresourceIndex = i;
+							D3D12_TEXTURE_COPY_LOCATION dst = {}; // dst = 目标，默认堆gpu资源。
+							dst.pResource = m_pTexture.Get();
+							dst.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+							dst.SubresourceIndex = index;
 
-								uint32_t dstX = 0;
-								uint32_t dstY = 0;
-								uint32_t dstZ = 0;
-								taskContext.pOwner->pCmdList->CopyTextureRegion(&dst, dstX, dstY, dstZ, &src, nullptr);
-							}
-
-							NXUploadSystem->FinishTask(taskContext, [this]() {
-								// 任务完成后的回调
-								m_promiseLoadingTextures.set_value();
-								});
+							uint32_t dstX = 0;
+							uint32_t dstY = 0;
+							uint32_t dstZ = 0;
+							taskContext.pOwner->pCmdList->CopyTextureRegion(&dst, dstX, dstY, dstZ, &src, nullptr);
 						}
+
+						NXUploadSystem->FinishTask(taskContext, [this]() {
+							ProcessLoadingTexChunks();
+							});
 					}
 				}
 				else
