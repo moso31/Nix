@@ -529,6 +529,9 @@ void NXTexture::Release()
 
 void NXTexture::MarkReload(const std::filesystem::path& newTexPath)
 {
+	if (m_reload.m_isReloading)
+		return;
+
 	m_reload.m_needReload = true;
 	m_reload.m_newTexPath = newTexPath;
 }
