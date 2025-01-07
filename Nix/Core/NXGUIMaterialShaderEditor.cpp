@@ -713,8 +713,7 @@ void NXGUIMaterialShaderEditor::Render_Params_TextureItem(const int texParamId, 
 
 		NXShVisDescHeap->PushFluid(pTex->GetSRV());
 		auto& srvHandle = NXShVisDescHeap->Submit();
-		const ImTextureID& ImTexID = (ImTextureID)srvHandle.ptr;
-		if (ImGui::ImageButton(ImTexID, size, uv0, uv1, frame_padding, bg_col, tint_col))
+		if (ImGui::ImageButton("##", (ImTextureID)srvHandle.ptr, size, uv0, uv1, bg_col, tint_col))
 		{
 			// 2023.11.14 TODO: Add a popup to switch texture...
 		}
@@ -739,12 +738,10 @@ void NXGUIMaterialShaderEditor::Render_Params_TextureItem(const int texParamId, 
 
 		std::string strChildId = "##material_shader_editor_imgbtn_rightside" + std::to_string(texParamId);
 		ImGui::BeginChild(strChildId.c_str(), ImVec2(200.0f, texSize));
-		ImGui::PushID(ImTexID);
-		if (ImGui::Button("Reset"))
+		if (ImGui::Button("Reset##"))
 		{
 			pTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(texDisplay.texType == NXGUITextureMode::Normal ? NXCommonTex_Normal : NXCommonTex_White);
 		}
-		ImGui::PopID();
 
 		const static char* textureTypes[] = { "Default", "Normal" };
 		if (ImGui::BeginCombo("Type##material_shader_editor_texture_combo", textureTypes[(int)texDisplay.texType]))
