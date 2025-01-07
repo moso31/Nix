@@ -480,7 +480,7 @@ void NXCubeMap::GenerateIrradianceMap()
 	//D3D11_BUFFER_DESC bufferDesc;
 	//ZeroMemory(&bufferDesc, sizeof(bufferDesc));
 	//bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	//bufferDesc.ByteWidth = sizeof(ConstantBufferObject);
+	//bufferDesc.ByteWidth = sizeof(ConstantBufferCubeMapObject);
 	//bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	//bufferDesc.CPUAccessFlags = 0;
 	//NX::ThrowIfFailed(NXGlobalDX::GetDevice()->CreateBuffer(&bufferDesc, nullptr, &cb));
@@ -489,7 +489,7 @@ void NXCubeMap::GenerateIrradianceMap()
 	//g_pContext->PSSetShaderResources(0, 1, &pSRVCubeMap);
 	//g_pContext->VSSetConstantBuffers(0, 1, cb.GetAddressOf());
 
-	//ConstantBufferObject cbData;
+	//ConstantBufferCubeMapObject cbData;
 	//cbData.world = Matrix::Identity();
 	//cbData.projection = m_mxCubeMapProj.Transpose();
 
@@ -549,10 +549,10 @@ void NXCubeMap::GeneratePreFilterMap()
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSOPreFilterMap));
 
-	NXConstantBuffer<ConstantBufferObject> cbCubeCamera[NXCUBEMAP_FACE_COUNT];
+	NXConstantBuffer<ConstantBufferCubeMapObject> cbCubeCamera[NXCUBEMAP_FACE_COUNT];
 	for (int i = 0; i < NXCUBEMAP_FACE_COUNT; i++)
 	{
-		ConstantBufferObject cbData;
+		ConstantBufferCubeMapObject cbData;
 		cbData.world = Matrix::Identity();
 		cbData.projection = m_mxCubeMapProj.Transpose();
 		cbData.view = m_mxCubeMapView[i].Transpose();

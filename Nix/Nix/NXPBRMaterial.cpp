@@ -56,6 +56,7 @@ void NXEasyMaterial::Init()
 
 	std::vector<D3D12_ROOT_PARAMETER> rootParams = {
 		NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL),
+		NX12Util::CreateRootParameterCBV(1, 0, D3D12_SHADER_VISIBILITY_ALL),
 		NX12Util::CreateRootParameterTable(ranges, D3D12_SHADER_VISIBILITY_ALL)
 	};
 
@@ -103,7 +104,7 @@ void NXEasyMaterial::Render(ID3D12GraphicsCommandList* pCommandList)
 
 	NXShVisDescHeap->PushFluid(m_pTexture->GetSRV());
 	auto& srvHandle = NXShVisDescHeap->Submit();
-	pCommandList->SetGraphicsRootDescriptorTable(1, srvHandle);
+	pCommandList->SetGraphicsRootDescriptorTable(2, srvHandle);
 }
 
 void NXCustomMaterial::LoadAndCompile(const std::filesystem::path& nslFilePath)

@@ -3,6 +3,7 @@
 #include "ShaderStructures.h"
 
 class NXScene;
+class NXCamera;
 class NXGBufferRenderer
 {
 private:
@@ -12,10 +13,12 @@ public:
 	virtual ~NXGBufferRenderer();
 
 	void Init();
+	void SetCamera(NXCamera* pCamera);
 	void Render(ID3D12GraphicsCommandList* pCmdList);
 
 	void Release();
 
 private:
 	NXScene* m_pScene;
+	NXCamera* m_pCamera;
 };

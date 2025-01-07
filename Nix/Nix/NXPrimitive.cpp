@@ -103,12 +103,6 @@ void NXPrimitive::Update(ID3D12GraphicsCommandList* pCmdList)
 	m_cbDataObject.worldInverseTranspose = mxWorld.Invert(); // it actually = m_worldMatrix.Invert().Transpose().Transpose();
 	m_cbDataObject.worldView = mxWorldView.Transpose();
 	m_cbDataObject.worldViewInverseTranspose = (mxWorldView).Invert();
-	m_cbDataObject.view = mxView.Transpose();
-	m_cbDataObject.viewInverse = mxView.Invert().Transpose();
-	m_cbDataObject.viewTranspose = mxView;
-	m_cbDataObject.viewInverseTranspose = mxView.Invert();
-	m_cbDataObject.projection = pCamera->GetProjectionMatrix().Transpose();
-	m_cbDataObject.projectionInverse = pCamera->GetProjectionMatrix().Invert().Transpose();
 	m_cbDataObject.globalData.time = NXGlobalApp::Timer->GetGlobalTimeSeconds();
 
 	m_cbObject.Update(m_cbDataObject);

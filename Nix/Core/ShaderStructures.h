@@ -90,17 +90,16 @@ struct ConstantBufferObject
 {
 	Matrix world;
 	Matrix worldInverseTranspose;
-	Matrix view;
-	Matrix viewInverse;
-	Matrix viewTranspose;
-	Matrix viewInverseTranspose;
-
 	Matrix worldView;
 	Matrix worldViewInverseTranspose;
-	Matrix projection;
-	Matrix projectionInverse;
-
 	ConstantBufferGlobalData globalData;
+};
+
+struct ConstantBufferCubeMapObject
+{
+	Matrix world;
+	Matrix view;
+	Matrix projection;
 };
 
 struct ConstantBufferShadowTest
@@ -160,4 +159,10 @@ struct ConstantBufferCamera
 	Vector4 Params0;
 	Vector4 Params1;
 	Vector4 Params2;
+	Matrix view;
+	Matrix viewInverse;
+	Matrix viewTranspose;
+	Matrix viewInverseTranspose;
+	Matrix projection;
+	Matrix projectionInverse;
 };

@@ -59,6 +59,7 @@ void Renderer::Init()
 
 	m_pGBufferRenderer = new NXGBufferRenderer(m_scene);
 	m_pGBufferRenderer->Init();
+	m_pGBufferRenderer->SetCamera(m_scene->GetMainCamera());
 
 	//m_pSSAO = new NXSimpleSSAO();
 	//m_pSSAO->Init();
