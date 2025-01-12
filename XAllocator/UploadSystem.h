@@ -53,6 +53,7 @@ namespace ccmem
         UploadRingBuffer(ID3D12Device* pDevice, uint32_t bufferSize);
         ~UploadRingBuffer();
 
+        bool CanAlloc(uint32_t byteSize);
         bool BuildTask(uint32_t byteSize, UploadTask& oTask);
         void FinishTask(const UploadTask& task);
         

@@ -317,7 +317,7 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 						uint32_t rowEd = texChunk.rowStart + texChunk.rowSize;
 						for (uint32_t y = rowSt; y < rowEd; y++)
 						{
-							memcpy(pDstData + layouts[index].Footprint.RowPitch * y, pSrcData + pImg->rowPitch * y, numRowSizeInBytes[index]);
+							memcpy(pDstData + layouts[index].Footprint.RowPitch * (y - rowSt), pSrcData + pImg->rowPitch * y, numRowSizeInBytes[index]);
 						}
 
 						// NXUploadSystem 从RingBuffer同步到实际GPU资源
@@ -326,7 +326,7 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 						src.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
 						src.PlacedFootprint = layouts[index];
 						src.PlacedFootprint.Footprint.Height = texChunk.rowSize; // src = 上传堆中的内存段，明确chunk对应的大小即可
-						src.PlacedFootprint.Offset = taskContext.pResourceOffset + texChunk.rowStart * numRowSizeInBytes[index];
+						src.PlacedFootprint.Offset = taskContext.pResourceOffset;
 
 						D3D12_TEXTURE_COPY_LOCATION dst = {}; // dst = 目标，默认堆gpu资源。
 						dst.pResource = m_pTexture.Get();
@@ -425,11 +425,11 @@ void NXTexture::GenerateUploadChunks(uint32_t layoutSize, uint32_t* numRow, uint
 			for (uint32_t j = 0; j < numRow[i]; j += rowLimit)
 			{
 				NXTextureUploadChunk chunk = {};
-				chunk.chunkBytes = chunk.rowSize * (int)numRowSizeInByteAlign256;
 				chunk.layoutIndexStart = i;
 				chunk.layoutIndexSize = -1; // 拆分模式下只有一个layout
 				chunk.rowStart = j;
 				chunk.rowSize = std::min(rowLimit, numRow[i] - j);
+				chunk.chunkBytes = chunk.rowSize * (int)numRowSizeInByteAlign256;
 
 				oChunks.push_back(chunk);
 			}

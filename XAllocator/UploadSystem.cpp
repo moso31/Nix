@@ -44,8 +44,36 @@ ccmem::UploadRingBuffer::~UploadRingBuffer()
 	m_pResource = nullptr;
 }
 
+bool ccmem::UploadRingBuffer::CanAlloc(uint32_t byteSize)
+{
+	// byteSize 做字节对齐处理，以DX12的纹理数据对齐方式为准（不得小于512字节）
+	byteSize = (byteSize + D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT - 1) & ~(D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT - 1);
+
+	// case 1: ed 在 st 的后面(<) 或没有任务(=)
+	if (m_usedStart <= m_usedEnd)
+	{
+		// case 1.1. 加入新地址以后，依然没有达到环尾
+		if (m_usedEnd + byteSize < m_size)
+		{
+			return true;
+		}
+		// case 1.2. 加入新地址以后会超过环尾（改成在环头创建）
+		else
+		{
+			return byteSize <= m_usedStart;
+		}
+	}
+	// case 2: ed 在 st 的前面(>)
+	else // if (m_usedEnd < m_usedStart)
+	{
+		return m_usedEnd + byteSize < m_usedStart;
+	}
+}
+
 bool ccmem::UploadRingBuffer::BuildTask(uint32_t byteSize, UploadTask& oTask)
 {
+	NXPrint::Write(0, "BuildTask(Begin), usedstart: %d, end: %d\n", m_usedStart, m_usedEnd);
+
 	// byteSize 做字节对齐处理，以DX12的纹理数据对齐方式为准（不得小于512字节）
 	byteSize = (byteSize + D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT - 1) & ~(D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT - 1);
 
@@ -98,6 +126,7 @@ bool ccmem::UploadRingBuffer::BuildTask(uint32_t byteSize, UploadTask& oTask)
 	// 能走到这里都是分配成功的情况
 	oTask.byteSize = byteSize;
 	oTask.fenceValue = UINT64_MAX;
+	NXPrint::Write(0, "BuildTask(End  ), usedstart: %d, end: %d\n", m_usedStart, m_usedEnd);
 	return true;
 }
 
@@ -161,9 +190,10 @@ bool ccmem::UploadSystem::BuildTask(int byteSize, UploadTaskContext& taskResult)
 
 	// 不满足以下条件时，持续等待
 	// update() 每完成一个任务，就会notify_one()，唤醒一个正在这里持续等待的线程（如果有的话）
-	m_condition.wait(lock, [this]() { 
-		bool c = m_taskUsed < UPLOADTASK_NUM; 
-		return c;
+	m_condition.wait(lock, [this, byteSize]() { 
+		bool taskOK = m_taskUsed < UPLOADTASK_NUM;
+		bool ringBufferOK = m_ringBuffer.CanAlloc(byteSize);
+		return taskOK && ringBufferOK;
 		});
 
 	uint32_t idx = (m_taskStart + m_taskUsed) % UPLOADTASK_NUM;
