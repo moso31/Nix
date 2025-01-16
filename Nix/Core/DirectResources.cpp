@@ -103,6 +103,7 @@ void DirectResources::OnResize(UINT width, UINT height)
 {
 	if (m_pSwapChain.Get())
 	{
+		Flush();
 		RemoveSwapChainRTVHeap();
 
 		HRESULT hr = m_pSwapChain->ResizeBuffers(MultiFrameSets_swapChainCount, width, height, m_pSwapChainBufferFormat, 0);
@@ -130,7 +131,7 @@ void DirectResources::FrameEnd()
 	}
 }
 
-void DirectResources::Release()
+void DirectResources::Flush()
 {
 	m_currFenceValue++;
 	NXGlobalDX::GetCmdQueue()->Signal(m_pFence.Get(), m_currFenceValue);
@@ -142,4 +143,9 @@ void DirectResources::Release()
 		WaitForSingleObject(fenceEvent, INFINITE);
 		CloseHandle(fenceEvent);
 	}
+}
+
+void DirectResources::Release()
+{
+	Flush();
 }

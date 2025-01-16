@@ -22,6 +22,7 @@ public:
 	void	OnResize(UINT width, UINT height);
 	void	FrameEnd();
 
+	void	Flush();
 	void	Release();
 
 	const NXSwapChainBuffer& GetCurrentSwapChain() { return m_pSwapChainBuffer.Current(); }
@@ -34,12 +35,11 @@ private:
 private:
 	ComPtr<IDXGIFactory7>		m_pDXGIFactory;
 	ComPtr<IDXGISwapChain4>		m_pSwapChain;
-	ComPtr<ID3D12Fence>		m_pFence;
+	ComPtr<ID3D12Fence>			m_pFence;
+	UINT64						m_currFenceValue = 0;
 
 	MultiFrame<NXSwapChainBuffer>	m_pSwapChainBuffer;
 	DXGI_FORMAT m_pSwapChainBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
-
-	UINT64 m_currFenceValue = 0;
 	 
 	ComPtr<ID3D12Resource>			m_pDepthStencilBuffer;
 	ComPtr<ID3D12DescriptorHeap>	m_pRTVHeap;
