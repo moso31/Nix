@@ -169,7 +169,7 @@ void Renderer::InitGlobalResources()
 	NXGlobalInputLayout::Init();
 
 	// PSOManager
-	NXPSOManager::GetInstance()->Init(NXGlobalDX::GetDevice(), NXGlobalDX::GetCmdQueue());
+	NXPSOManager::GetInstance()->Init(NXGlobalDX::GetDevice(), NXGlobalDX::GlobalCmdQueue());
 }
 
 void Renderer::ResourcesReloading()
@@ -297,7 +297,7 @@ void Renderer::RenderFrame()
 	WaitForBRDF2DLUTFinish();
 
 	ID3D12CommandList* pCmdLists[] = { pCommandList.Get() };
-	NXGlobalDX::GetCmdQueue()->ExecuteCommandLists(1, pCmdLists);
+	NXGlobalDX::GlobalCmdQueue()->ExecuteCommandLists(1, pCmdLists);
 
 	// ¸üÐÂPSOManager×´Ì¬
 	NXPSOManager::GetInstance()->FrameCleanup();
@@ -353,5 +353,5 @@ void Renderer::OnKeyDown(NXEventArgKey eArg)
 
 void Renderer::WaitForBRDF2DLUTFinish()
 {
-	NXGlobalDX::GetCmdQueue()->Wait(m_pBRDFLut->GetFence(), m_pBRDFLut->GetFenceValue());
+	NXGlobalDX::GlobalCmdQueue()->Wait(m_pBRDFLut->GlobalFence(), m_pBRDFLut->GetFenceValue());
 }

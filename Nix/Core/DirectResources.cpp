@@ -21,8 +21,6 @@ void DirectResources::InitDevice()
 
 	NXGlobalDX::Init(pAdapter4.Get());
 
-	m_pFence = NX12Util::CreateFence(NXGlobalDX::GetDevice(), L"Create fence FAILED in DirectResources::InitDevice().");
-
 	RECT rc;
 	GetClientRect(NXGlobalWindows::hWnd, &rc);
 	UINT width = rc.right - rc.left;
@@ -49,7 +47,7 @@ void DirectResources::CreateSwapChain(UINT width, UINT height)
 	swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH; // ÔÊÐíÈ«ÆÁÇÐ»»
 
 	ComPtr<IDXGISwapChain> pSwapChain;
-	hr = m_pDXGIFactory->CreateSwapChain(NXGlobalDX::GetCmdQueue(), &swapChainDesc, &pSwapChain);
+	hr = m_pDXGIFactory->CreateSwapChain(NXGlobalDX::GlobalCmdQueue(), &swapChainDesc, &pSwapChain);
 	hr = pSwapChain.As(&m_pSwapChain);
 
 	CreateSwapChainRTVHeap();
@@ -116,15 +114,13 @@ void DirectResources::FrameEnd()
 {
 	m_pSwapChain->Present(0, 0);
 
-	m_currFenceValue++;
-	NXGlobalDX::GetCmdQueue()->Signal(m_pFence.Get(), m_currFenceValue);
+	NXGlobalDX::s_globalfenceValue++;
+	NXGlobalDX::GlobalCmdQueue()->Signal(NXGlobalDX::s_globalfence.Get(), NXGlobalDX::s_globalfenceValue);
 
-	if (m_currFenceValue - m_pFence->GetCompletedValue() > MultiFrameSets_swapChainCount - 1)
+	if (NXGlobalDX::s_globalfenceValue - NXGlobalDX::s_globalfence->GetCompletedValue() > MultiFrameSets_swapChainCount - 1)
 	{
-		//printf("%lld, %lld\n", m_currFenceValue, m_pFence->GetCompletedValue());
-
 		HANDLE fenceEvent = CreateEvent(nullptr, false, false, nullptr);
-		m_pFence->SetEventOnCompletion(m_currFenceValue - MultiFrameSets_swapChainCount + 1, fenceEvent);
+		NXGlobalDX::s_globalfence->SetEventOnCompletion(NXGlobalDX::s_globalfenceValue - MultiFrameSets_swapChainCount + 1, fenceEvent);
 
 		WaitForSingleObject(fenceEvent, INFINITE);
 		CloseHandle(fenceEvent);
@@ -133,12 +129,12 @@ void DirectResources::FrameEnd()
 
 void DirectResources::Flush()
 {
-	m_currFenceValue++;
-	NXGlobalDX::GetCmdQueue()->Signal(m_pFence.Get(), m_currFenceValue);
-	while (m_currFenceValue - m_pFence->GetCompletedValue() > 0)
+	NXGlobalDX::s_globalfenceValue++;
+	NXGlobalDX::GlobalCmdQueue()->Signal(NXGlobalDX::s_globalfence.Get(), NXGlobalDX::s_globalfenceValue);
+	while (NXGlobalDX::s_globalfenceValue - NXGlobalDX::s_globalfence->GetCompletedValue() > 0)
 	{
 		HANDLE fenceEvent = CreateEvent(nullptr, false, false, nullptr);
-		m_pFence->SetEventOnCompletion(m_currFenceValue, fenceEvent);
+		NXGlobalDX::s_globalfence->SetEventOnCompletion(NXGlobalDX::s_globalfenceValue, fenceEvent);
 
 		WaitForSingleObject(fenceEvent, INFINITE);
 		CloseHandle(fenceEvent);

@@ -29,7 +29,7 @@ void NXBRDFLut::Release()
 {
 }
 
-ID3D12Fence* NXBRDFLut::GetFence()
+ID3D12Fence* NXBRDFLut::GlobalFence()
 {
 	return m_pFence.Get();
 }

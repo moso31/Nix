@@ -186,7 +186,7 @@ void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT, const NXSwapChainBuffer& swapCha
 
 	pCmdList->Close();
 	ID3D12CommandList* ppCmdLists[] = { pCmdList };
-	NXGlobalDX::GetCmdQueue()->ExecuteCommandLists(1, ppCmdLists);
+	NXGlobalDX::GlobalCmdQueue()->ExecuteCommandLists(1, ppCmdLists);
 
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)

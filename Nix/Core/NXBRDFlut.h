@@ -12,7 +12,7 @@ public:
 
 	void Init();
 	void Release();
-	ID3D12Fence* GetFence();
+	ID3D12Fence* GlobalFence();
 	uint64_t GetFenceValue();
 	const Ntr<NXTexture2D> GetTex() const { return m_pTexBRDFLUT; }
 
