@@ -40,6 +40,8 @@ public:
 	virtual void Serialize() {}
 	virtual void Deserialize() {}
 
+	virtual void UpdatePSORenderStates(D3D12_GRAPHICS_PIPELINE_STATE_DESC& oPSODesc);
+
 public:
 	std::vector<NXSubMeshBase*> GetRefSubMeshes() { return m_pRefSubMeshes; }
 	void RemoveSubMesh(NXSubMeshBase* pRemoveSubmesh);
@@ -155,6 +157,9 @@ public:
 	void Deserialize() override;
 
 	bool GetCompileSuccess() { return m_bCompileSuccess; }
+
+	// 获取 pso RS BS DS 三大状态
+	void UpdatePSORenderStates(D3D12_GRAPHICS_PIPELINE_STATE_DESC& oPSODesc) override;
 
 private:
 	// 读取 nsl 文件，获取 nsl shader.

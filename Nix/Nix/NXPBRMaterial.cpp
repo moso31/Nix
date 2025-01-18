@@ -36,6 +36,13 @@ void NXMaterial::AddSubMesh(NXSubMeshBase* pSubMesh)
 	m_pRefSubMeshes.push_back(pSubMesh);
 }
 
+void NXMaterial::UpdatePSORenderStates(D3D12_GRAPHICS_PIPELINE_STATE_DESC& oPSODesc)
+{
+	oPSODesc.DepthStencilState = NXDepthStencilState<>::Create();
+	oPSODesc.BlendState = NXBlendState<>::Create();
+	oPSODesc.RasterizerState = NXRasterizerState<>::Create();
+}
+
 NXEasyMaterial::NXEasyMaterial(const std::string& name, const std::filesystem::path& filePath) :
 	NXMaterial(name, filePath)
 {
@@ -80,9 +87,6 @@ void NXEasyMaterial::Init()
 	psoDesc.InputLayout = NXGlobalInputLayout::layoutPNTT;
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() }; 
-	psoDesc.RasterizerState = NXRasterizerState<>::Create();
-	psoDesc.BlendState = NXBlendState<>::Create();
-	psoDesc.DepthStencilState = NXDepthStencilState<>::Create();
 	psoDesc.SampleDesc.Count = 1;
 	psoDesc.SampleDesc.Quality = 0;
 	psoDesc.SampleMask = UINT_MAX;
@@ -93,6 +97,7 @@ void NXEasyMaterial::Init()
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	UpdatePSORenderStates(psoDesc);
 
 	m_pPSO = NXPSOManager::GetInstance()->Create(psoDesc, m_name + "_PSO");
 }
@@ -224,9 +229,6 @@ void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::s
 		psoDesc.InputLayout = NXGlobalInputLayout::layoutPNTT;
 		psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 		psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
-		psoDesc.RasterizerState = NXRasterizerState<>::Create();
-		psoDesc.BlendState = NXBlendState<>::Create();
-		psoDesc.DepthStencilState = NXDepthStencilState<>::Create();
 		psoDesc.SampleDesc.Count = 1;
 		psoDesc.SampleDesc.Quality = 0;
 		psoDesc.SampleMask = UINT_MAX;
@@ -237,6 +239,7 @@ void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::s
 		psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 		psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 		psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+		UpdatePSORenderStates(psoDesc);
 
 		m_pPSO = NXPSOManager::GetInstance()->Create(psoDesc, m_name + "_PSO");
 	}
@@ -331,6 +334,26 @@ void NXCustomMaterial::UpdateCBData(bool rebuildCB)
 	}
 
 	m_cbData.Set(cbData);
+}
+
+void NXCustomMaterial::UpdatePSORenderStates(D3D12_GRAPHICS_PIPELINE_STATE_DESC& oPSODesc)
+{
+	// TODO: 根据材质的属性，设置各种渲染状态
+	// 现在的材质系统非常简单，只基于 ShadingModel 设了个模板状态=Replace（因为3S用的着），其他的就啥都没管了……
+	// 将来会有更多的属性，比如alphaTest blend、双面、深度是否写入等等
+
+	NXShadingModel shadingModel = GetShadingModel();
+	if (shadingModel == NXShadingModel::SubSurface)
+	{
+		oPSODesc.DepthStencilState = NXDepthStencilState<true, true, D3D12_COMPARISON_FUNC_LESS, true, 0xff, 0xff, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_REPLACE, D3D12_COMPARISON_FUNC_ALWAYS, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_COMPARISON_FUNC_ALWAYS>::Create();
+	}
+	else
+	{
+		oPSODesc.DepthStencilState = NXDepthStencilState<>::Create();
+	}
+
+	oPSODesc.BlendState = NXBlendState<>::Create();
+	oPSODesc.RasterizerState = NXRasterizerState<>::Create();
 }
 
 NXCustomMaterial::NXCustomMaterial(const std::string& name, const std::filesystem::path& path) :

@@ -80,8 +80,12 @@ private:
 	NXBRDFLut*							m_pBRDFLut;
 
 	NXScene*							m_scene;
-	NXDepthPrepass*						m_pDepthPrepass;
+
+	// 注：和其他 Renderer 不同，GBufferRenderer 不像其他Renderer那样从 NXRendererPass派生。
+	// 它比较特殊（需要按Mesh绘制且每个Mesh材质的cmdlist参数都不同）
 	NXGBufferRenderer*					m_pGBufferRenderer;
+
+	NXDepthPrepass*						m_pDepthPrepass;
 	NXDepthRenderer*					m_pDepthRenderer;
 	NXShadowMapRenderer*				m_pShadowMapRenderer;
 	NXShadowTestRenderer*				m_pShadowTestRenderer;
