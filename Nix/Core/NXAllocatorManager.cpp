@@ -4,94 +4,43 @@
 void NXAllocatorManager::Init()
 {
 	auto pDevice = NXGlobalDX::GetDevice();
+	m_bRunning.store(true);
 
-	m_pCBAllocator = new CommittedBufferAllocator(pDevice, true);
-	m_pSBAllocator = new CommittedBufferAllocator(pDevice, false);
-	m_pTextureAllocator = new PlacedBufferAllocator(pDevice, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
+	m_pCBAllocator = std::make_unique<CommittedBufferAllocator>(pDevice, true, 64u, 0x10000000u);
+	m_pSBAllocator = std::make_unique<CommittedBufferAllocator>(pDevice, false, 64u, 0x10000000u);
+	m_pTextureAllocator = std::make_unique<PlacedBufferAllocator>(pDevice, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT, 0x10000000u);
 
-	m_pUpdateSystem = new UploadSystem(pDevice);
-	m_pTextureLoader = new NXTextureLoader();
+	m_pUpdateSystem = std::make_unique<UploadSystem>(pDevice);
+	m_pTextureLoader = std::make_unique<NXTextureLoader>();
 
-	m_pSRVAllocator = new DescriptorAllocator<false>(pDevice, 1000000, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	m_pRTVAllocator = new DescriptorAllocator<false>(pDevice, 4096, D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	m_pDSVAllocator = new DescriptorAllocator<false>(pDevice, 4096, D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	m_pSRVAllocator = std::make_unique<DescriptorAllocator<false>>(pDevice, 1000000, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	m_pRTVAllocator = std::make_unique<DescriptorAllocator<false>>(pDevice, 4096, D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	m_pDSVAllocator = std::make_unique<DescriptorAllocator<false>>(pDevice, 4096, D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 
-	m_pShaderVisibleDescAllocator = new DescriptorAllocator<true>(pDevice, 1000000, 10);
+	m_pShaderVisibleDescAllocator = std::make_unique<DescriptorAllocator<true>>(pDevice, 1000000, 10);
 
-	// 使用独立线程，不能和其它分配器混用
-	// 一旦混用可能会从其它分配器回调这里的方法-诱发死锁。
+	// 各分配器独立线程，不能和其它分配器混用 // 混用=死锁。// taskFunction = lambda.
+	auto addThread = [this](auto taskFunction, const char* name, int sleepMS = 1) {
+		std::thread t([this, taskFunction, name, sleepMS]() {
+			NXPrint::Write(0, name);
+			while (m_bRunning)
+			{
+				taskFunction();
+				std::this_thread::sleep_for(std::chrono::milliseconds(sleepMS));
+			}
+		});
 
-	std::thread([this]() {
-		NXPrint::Write(0, "NXUploadSystem\n");
-		while (true)
-		{
-			m_pUpdateSystem->Update();
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
-		}
-	}).detach();
+		m_threads.push_back(std::move(t));
+	};
 
-	std::thread([this]() {
-		NXPrint::Write(0, "NXTextureLoader\n");
-		while (true)
-		{
-			m_pTextureLoader->Update();
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
-		}
-	}).detach();
-
-	std::thread([this]() {
-		NXPrint::Write(0, "NXCBAllocator\n");
-		while (true)
-		{
-			m_pCBAllocator->ExecuteTasks();
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
-		}
-	}).detach();
-
-	std::thread([this]() {
-		NXPrint::Write(0, "NXSBAllocator\n");
-		while (true)
-		{
-			m_pSBAllocator->ExecuteTasks();
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
-		}
-	}).detach();
-
-	std::thread([this]() {
-		NXPrint::Write(0, "NXTextureAllocator\n");
-		while (true)
-		{
-			m_pTextureAllocator->ExecuteTasks();
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
-		}
-	}).detach();
-
-	std::thread([this]() {
-		NXPrint::Write(0, "NXSRVAllocator\n");
-		while (true)
-		{
-			m_pSRVAllocator->ExecuteTasks();
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
-		}
-	}).detach();
-
-	std::thread([this]() {
-		NXPrint::Write(0, "NXRTVAllocator\n");
-		while (true)
-		{
-			m_pRTVAllocator->ExecuteTasks();
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
-		}
-	}).detach();
-
-	std::thread([this]() {
-		NXPrint::Write(0, "NXDSVAllocator\n");
-		while (true)
-		{
-			m_pDSVAllocator->ExecuteTasks();
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
-		}
-	}).detach();
+	addThread([this]() { m_pUpdateSystem->Update(); }, "NXUploadSystem\n");
+	addThread([this]() { m_pTextureLoader->Update(); }, "NXTextureLoader\n");
+	addThread([this]() { m_pCBAllocator->ExecuteTasks(); }, "NXCBAllocator\n");
+	addThread([this]() { m_pSBAllocator->ExecuteTasks(); }, "NXSBAllocator\n");
+	addThread([this]() { m_pTextureAllocator->ExecuteTasks(); }, "NXTextureAllocator\n");
+	addThread([this]() { m_pSRVAllocator->ExecuteTasks(); }, "NXSRVAllocator\n");
+	addThread([this]() { m_pRTVAllocator->ExecuteTasks(); }, "NXRTVAllocator\n");
+	addThread([this]() { m_pDSVAllocator->ExecuteTasks(); }, "NXDSVAllocator\n");
 }
 
 void NXAllocatorManager::Update()
@@ -100,13 +49,10 @@ void NXAllocatorManager::Update()
 
 void NXAllocatorManager::Release()
 {
-	SafeDelete(m_pCBAllocator);
-	SafeDelete(m_pSBAllocator);
-	SafeDelete(m_pTextureAllocator);
-	SafeDelete(m_pUpdateSystem);
-	SafeDelete(m_pSRVAllocator);
-	SafeDelete(m_pRTVAllocator);
-	SafeDelete(m_pDSVAllocator);
-
-	SafeDelete(m_pShaderVisibleDescAllocator);
+	m_bRunning.store(false);
+	for (auto& t : m_threads)
+	{
+		if (t.joinable())
+			t.join();
+	}
 }

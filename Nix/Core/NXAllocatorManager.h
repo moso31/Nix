@@ -21,35 +21,38 @@ class NXAllocatorManager : public NXInstance<NXAllocatorManager>
 public:
 	void Init();
 
-	CommittedBufferAllocator*			GetCBAllocator()			{ return m_pCBAllocator; }
-	CommittedBufferAllocator*			GetSBAllocator()			{ return m_pSBAllocator; }
-	PlacedBufferAllocator*				GetTextureAllocator()		{ return m_pTextureAllocator; }
+	CommittedBufferAllocator*			GetCBAllocator()			{ return m_pCBAllocator.get(); }
+	CommittedBufferAllocator*			GetSBAllocator()			{ return m_pSBAllocator.get(); }
+	PlacedBufferAllocator*				GetTextureAllocator()		{ return m_pTextureAllocator.get(); }
 
-	DescriptorAllocator<false>*			GetSRVAllocator()			{ return m_pSRVAllocator; }
-	DescriptorAllocator<false>*			GetRTVAllocator()			{ return m_pRTVAllocator; }
-	DescriptorAllocator<false>*			GetDSVAllocator()			{ return m_pDSVAllocator; }
+	DescriptorAllocator<false>*			GetSRVAllocator()			{ return m_pSRVAllocator.get(); }
+	DescriptorAllocator<false>*			GetRTVAllocator()			{ return m_pRTVAllocator.get(); }
+	DescriptorAllocator<false>*			GetDSVAllocator()			{ return m_pDSVAllocator.get(); }
 
-	UploadSystem*		GetUploadSystem()	{ return m_pUpdateSystem; }
-	NXTextureLoader*	GetTextureLoader()	{ return m_pTextureLoader; }
+	UploadSystem*		GetUploadSystem()	{ return m_pUpdateSystem.get(); }
+	NXTextureLoader*	GetTextureLoader()	{ return m_pTextureLoader.get(); }
 
-	DescriptorAllocator<true>*			GetShaderVisibleDescriptorAllocator()	{ return m_pShaderVisibleDescAllocator; }
+	DescriptorAllocator<true>*			GetShaderVisibleDescriptorAllocator()	{ return m_pShaderVisibleDescAllocator.get(); }
 
 	void Update();
 
 	void Release();
 
 private:
-	CommittedBufferAllocator*			m_pCBAllocator;
-	CommittedBufferAllocator*			m_pSBAllocator;
-	PlacedBufferAllocator*				m_pTextureAllocator;
+	std::unique_ptr<CommittedBufferAllocator>	m_pCBAllocator;	
+	std::unique_ptr<CommittedBufferAllocator>	m_pSBAllocator;
+	std::unique_ptr<PlacedBufferAllocator>		m_pTextureAllocator;
+	std::unique_ptr<DescriptorAllocator<false>>	m_pSRVAllocator;
+	std::unique_ptr<DescriptorAllocator<false>>	m_pRTVAllocator;
+	std::unique_ptr<DescriptorAllocator<false>>	m_pDSVAllocator;
 
-	DescriptorAllocator<false>*			m_pSRVAllocator;
-	DescriptorAllocator<false>* 		m_pRTVAllocator;
-	DescriptorAllocator<false>* 		m_pDSVAllocator;
-
-	UploadSystem* m_pUpdateSystem;
-	NXTextureLoader* m_pTextureLoader;
+	std::unique_ptr<UploadSystem>				m_pUpdateSystem;
+	std::unique_ptr<NXTextureLoader>			m_pTextureLoader;
 
 	// shader-visible descriptor allocator
-	DescriptorAllocator<true>* 			m_pShaderVisibleDescAllocator;
+	std::unique_ptr<DescriptorAllocator<true>> 	m_pShaderVisibleDescAllocator;
+
+	// 以上所有都使用独立线程运行，使用一个线程容器管理它们
+	std::vector<std::thread> m_threads;
+	std::atomic<bool> m_bRunning;
 };
