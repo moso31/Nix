@@ -16,6 +16,7 @@
 #include <cassert>
 #include <iostream>
 #include <atomic>
+#include <map>
 #include <unordered_map>
 #include <unordered_set>
 #include <condition_variable>

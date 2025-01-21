@@ -83,6 +83,12 @@ namespace ccmem
 		BuddyAllocatorPage* pFreeAllocator;
 	};
 
+	struct BuddyMemoryBlock
+	{
+		uint8_t level;
+		bool bUsed;
+	};
+
 	class BuddyAllocator;
 	class BuddyAllocatorPage
 	{
@@ -97,19 +103,14 @@ namespace ccmem
 		BuddyTask::State AllocSync(const BuddyTask& task, uint32_t& oByteOffset);
 		BuddyTask::State FreeSync(const uint32_t& freeByteOffset);
 
-		bool AllocInternal(uint32_t destLevel, uint32_t srcLevel, uint32_t& oByteOffset);
-		void FreeInternal(std::list<uint32_t>::iterator itMem, uint32_t level);
-
 		uint32_t GetPageID() const { return m_pageID; }
 
 	private:
 		BuddyAllocator* m_pOwner;
 		std::atomic_uint32_t m_freeByteSize;
 
-		// 按2的幂次将 可分配的内存块大小 划分N级, 每级都用一个链表管理
-		// 0 级 = 最大的内存块, N-1 级 = 最小的内存块
-		std::vector<std::list<uint32_t>> m_freeList;
-		std::vector<std::list<uint32_t>> m_usedList;
+		// m_memory 负责记录当前页的内存使用状态
+		std::map<uint32_t, BuddyMemoryBlock> m_memory;
 
 		uint32_t m_pageID;
 	};
@@ -131,6 +132,7 @@ namespace ccmem
 
 		uint32_t GetLevel(uint32_t byteSize);
 		uint32_t GetAlignedByteSize(uint32_t byteSize);
+		uint32_t GetByteSizeFromLevel(uint32_t level);
 
 	protected:
 		virtual void OnAllocatorAdded(BuddyAllocatorPage* pAllocator) = 0;

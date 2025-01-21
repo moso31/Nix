@@ -133,6 +133,11 @@ uint32_t ccmem::BuddyAllocator::GetAlignedByteSize(uint32_t byteSize)
 	return alignedSize;
 }
 
+uint32_t ccmem::BuddyAllocator::GetByteSizeFromLevel(uint32_t level)
+{
+	return 1 << (MAX_LV_LOG2 - level);
+}
+
 BuddyAllocatorPage* ccmem::BuddyAllocator::AddAllocatorInternal()
 {
 	// 这里的锁本来不应该和ExecuteTasks共用，
@@ -200,152 +205,134 @@ ccmem::BuddyAllocatorPage::BuddyAllocatorPage(BuddyAllocator* pOwner) :
 
 	m_freeByteSize = pOwner->GetMaxLevel();
 
-	m_freeList.resize(pOwner->GetLevelNum());
-	m_freeList[0].push_back(0);
-
-	m_usedList.resize(pOwner->GetLevelNum());
+	BuddyMemoryBlock block;
+	block.level = 0;
+	block.bUsed = false;
+	m_memory.insert({ 0, block });
 }
 
 ccmem::BuddyAllocatorPage::~BuddyAllocatorPage()
 {
-	for (int i = 0; i < m_freeList.size(); i++) m_freeList[i].clear();
-	for (int i = 0; i < m_usedList.size(); i++) m_usedList[i].clear();
 }
 
 BuddyTask::State ccmem::BuddyAllocatorPage::AllocSync(const BuddyTask& task, uint32_t& oByteOffset)
 {
-	// 确定byteSize对应的最小内存块级别
-	int newBlockLevel = m_pOwner->GetLevel(task.byteSize);
+	// 定级：确定byteSize对应的最小内存块级别
+	uint32_t newBlockLevel = m_pOwner->GetLevel(task.byteSize);
 
-	// 从该级别开始向上查找，找到可用的内存块
-	for (int i = newBlockLevel; i >= 0; i--)
+	bool hasMinBlock = false;
+	uint32_t minBlockByteOffset;
+	BuddyMemoryBlock pMinBlock;
+
+	// 检查内存块，如果已经有同级内存块，可直接使用
+	for (auto& [byteOffset, blockData] : m_memory)
 	{
-		if (!m_freeList[i].empty())
+		if (!blockData.bUsed)
 		{
-			bool bAlloc = AllocInternal(newBlockLevel, i, oByteOffset);
-			if (bAlloc)
+			if (blockData.level == newBlockLevel)
 			{
-				m_freeByteSize -= m_pOwner->GetAlignedByteSize(task.byteSize);
-				return BuddyTask::State::Success; // 分配成功
+				blockData.bUsed = true;
+				oByteOffset = byteOffset;
+				return BuddyTask::State::Success;
 			}
-			else
+
+			// 如果没有同级内存块，找到一个比定级更大，但最小的内存块（等级越小，内存块越大）
+			if (blockData.level < newBlockLevel) 
 			{
-				return BuddyTask::State::Failed_Unknown; // 分配失败，目前暂时没有走到这里的情况，先返回个未知错误吧
+				if (!hasMinBlock || blockData.level > pMinBlock.level)
+				{
+					hasMinBlock = true;
+					minBlockByteOffset = byteOffset;
+					pMinBlock = blockData;
+				}
 			}
 		}
 	}
 
-	// 如果走到这里，说明内存已经满了
-	return BuddyTask::State::Failed_Alloc_FullMemory;
+	// 如果找到了大于定级的最小内存块，将其分割成定级的内存块
+	if (hasMinBlock)
+	{
+		m_memory.erase(minBlockByteOffset);
+
+		// for 逐级拆分
+		for (uint32_t i = pMinBlock.level; i < newBlockLevel; i++)
+		{
+			// 永远只将右子块拆分出去
+			BuddyMemoryBlock halfBlock;
+			halfBlock.level = i + 1;
+			halfBlock.bUsed = false;
+
+			uint32_t halfByteOffset = minBlockByteOffset + m_pOwner->GetByteSizeFromLevel(i + 1);
+			m_memory.insert({ halfByteOffset, halfBlock });
+
+			// 拆分到定级时，将左子块标记为已使用
+			if (i + 1 == newBlockLevel)
+			{
+				halfBlock.bUsed = true;
+				oByteOffset = minBlockByteOffset;
+				m_memory.insert({ oByteOffset , halfBlock });
+
+				// 分配成功，并且后面没有逻辑，可以直接返回了
+				return BuddyTask::State::Success; 
+			}
+		}
+	}
+	
+	// 找不到说明内存已满
+	return BuddyTask::State::Failed_Alloc_FullMemory; 
 }
 
 BuddyTask::State ccmem::BuddyAllocatorPage::FreeSync(const uint32_t& freeByteOffset)
 {
-	// 从used列表中找到该内存块
-	for (uint32_t i = 0; i < m_pOwner->GetLevelNum(); i++)
+	auto it = m_memory.find(freeByteOffset);
+	if (it == m_memory.end())
 	{
-		auto it = std::find(m_usedList[i].begin(), m_usedList[i].end(), freeByteOffset);
-		if (it != m_usedList[i].end())
-		{
-			m_usedList[i].erase(it);
-			m_freeList[i].push_back(freeByteOffset);
-			FreeInternal(std::prev(m_freeList[i].end()), i);
+		return BuddyTask::State::Failed_Free_NotFind;
+	}
 
-			m_freeByteSize += 1 << (m_pOwner->GetMaxLevelLog2() - i);
-			return BuddyTask::State::Success;
+	if (it->second.bUsed == false)
+	{
+		return BuddyTask::State::Failed_Unknown;
+	}
+
+	it->second.bUsed = false;
+
+	// 逐级合并
+	for (uint32_t i = it->second.level; i > 0; i--)
+	{
+		// 当前内存块的字节大小
+		uint32_t freeByteSize = m_pOwner->GetByteSizeFromLevel(i);
+
+		// xor 计算伙伴内存偏移量
+		uint32_t buddyByteOffset = freeByteOffset ^ freeByteSize;
+
+		uint32_t parentByteOffset = std::min(freeByteOffset, buddyByteOffset);
+
+		auto it = m_memory.find(buddyByteOffset);
+		if (it == m_memory.end())
+			throw std::runtime_error("buddy not found."); // 直接抛异常，不应该找不到buddy
+		
+		if (it->second.bUsed == false)
+		{
+			// 实际的合并行为
+			m_memory.erase(freeByteOffset);
+			m_memory.erase(buddyByteOffset);
+
+			BuddyMemoryBlock block;
+			block.level = i - 1;
+			block.bUsed = false;
+			m_memory.insert({ parentByteOffset, block });
+		}
+		else
+		{
+			// 走到这里说明伙伴内存块被占用，不再继续向上合并
+			break;
 		}
 	}
 
-	// 如果走到这里，说明该内存块不在used列表中
-	return BuddyTask::State::Failed_Free_NotFind;
+	return BuddyTask::State::Success;
 }
 
 void ccmem::BuddyAllocatorPage::Print()
 {
-	for (uint32_t i = 0; i < m_pOwner->GetLevelNum(); i++)
-	{
-		uint32_t blockSize = 1 << (m_pOwner->GetMaxLevelLog2() - i);
-		std::cout << "  Free " << i << "(size=" << blockSize << "): ";
-
-		for (auto& freeBlock : m_freeList[i])
-		{
-			std::cout << freeBlock << " ";
-		}
-
-		std::cout << std::endl;
-	};
-
-	for (uint32_t i = 0; i < m_pOwner->GetLevelNum(); i++)
-	{
-		uint32_t blockSize = 1 << (m_pOwner->GetMaxLevelLog2() - i);
-		std::cout << "  used " << i << "(size=" << blockSize << "): ";
-
-		for (auto& usedBlock : m_usedList[i])
-		{
-			std::cout << usedBlock << " ";
-		}
-
-		std::cout << std::endl;
-	};
-}
-
-bool ccmem::BuddyAllocatorPage::AllocInternal(uint32_t destLevel, uint32_t srcLevel, uint32_t& oByteOffset)
-{
-	assert(srcLevel < m_pOwner->GetLevelNum());
-
-	// 如果有该级别的内存块可用，直接使用
-	if (destLevel == srcLevel)
-	{
-		// 获取该列表的第一个元素，即可用的内存块
-		oByteOffset = m_freeList[destLevel].front();
-		m_freeList[destLevel].pop_front(); // 从free列表中删除该元素
-		m_usedList[destLevel].push_back(oByteOffset); // 在used列表中添加该元素
-		return true;
-	}
-
-	// 整体机制决定了srcLevel里一定有合适的内存块（除非内存满了）
-	if (!m_freeList[srcLevel].empty())
-	{
-		// 从该级别的空闲列表中取出一个内存块
-		uint32_t p = m_freeList[srcLevel].front();
-		m_freeList[srcLevel].pop_front();
-
-		// 将该内存块一分为二，都放入下一级别的空闲列表
-		uint32_t halfBlockSize = 1 << (m_pOwner->GetMaxLevelLog2() - srcLevel - 1);
-		m_freeList[srcLevel + 1].push_back(p);
-		m_freeList[srcLevel + 1].push_back(p + halfBlockSize);
-
-		// 递归查下一级别，直到找到合适的内存块
-		return AllocInternal(destLevel, srcLevel + 1, oByteOffset);
-	}
-
-	return false;
-}
-
-void ccmem::BuddyAllocatorPage::FreeInternal(std::list<uint32_t>::iterator itMem, uint32_t level)
-{
-	if (level == 0) return;
-
-	uint32_t pByteOffset = *itMem; // itMem的内存偏移量
-
-	// 检查该内存块的buddy是否都在free列表中，如果存在就合并成一个更大的块
-	// 使用XOR操作找到buddy
-	uint32_t blockSize = 1 << (m_pOwner->GetMaxLevelLog2() - level);
-	uint32_t pBuddyByteOffset = pByteOffset ^ blockSize; // buddy的内存偏移量
-
-	// 从free列表中找到buddy
-	auto itBuddyMem = std::find(m_freeList[level].begin(), m_freeList[level].end(), pBuddyByteOffset);
-	if (itBuddyMem != m_freeList[level].end())
-	{
-		// 合并
-		m_freeList[level].erase(itMem);
-		m_freeList[level].erase(itBuddyMem);
-
-		uint32_t pMergedMem = std::min(pByteOffset, pBuddyByteOffset);
-		m_freeList[level - 1].push_back(pMergedMem);
-
-		// 递归处理更大一级的内存块
-		FreeInternal(std::prev(m_freeList[level - 1].end()), level - 1);
-	}
-
 }
