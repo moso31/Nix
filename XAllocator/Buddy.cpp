@@ -32,6 +32,15 @@ ccmem::BuddyAllocator::BuddyAllocator(uint32_t blockByteSize, uint32_t fullByteS
 	LV_NUM = MAX_LV_LOG2 - MIN_LV_LOG2 + 1;
 }
 
+ccmem::BuddyAllocator::~BuddyAllocator()
+{
+	for (auto& pAllocator : m_allocatorPages)
+	{
+		delete pAllocator;
+	}
+	m_allocatorPages.clear();
+}
+
 void ccmem::BuddyAllocator::AddAllocTask(uint32_t byteSize, void* pTaskContext, uint32_t pTaskContextSize, const std::function<void(const BuddyTaskResult&)>& callback)
 {
 	BuddyTask task;

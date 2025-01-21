@@ -184,11 +184,11 @@ void NXTexture::CreateInternal(const std::shared_ptr<DirectX::ScratchImage>& pIm
 	desc.Flags = flags;
 
 	uint32_t layoutSize = desc.DepthOrArraySize * desc.MipLevels;
-	D3D12_PLACED_SUBRESOURCE_FOOTPRINT* layouts = new D3D12_PLACED_SUBRESOURCE_FOOTPRINT[layoutSize];
-	uint32_t* numRow = new uint32_t[layoutSize];
-	UINT64* numRowSizeInBytes = new UINT64[layoutSize];
+	std::shared_ptr<D3D12_PLACED_SUBRESOURCE_FOOTPRINT[]> layouts = std::make_shared<D3D12_PLACED_SUBRESOURCE_FOOTPRINT[]>(layoutSize);
+	std::shared_ptr<uint32_t[]> numRow = std::make_shared<uint32_t[]>(layoutSize);
+	std::shared_ptr<uint64_t[]> numRowSizeInBytes = std::make_shared<uint64_t[]>(layoutSize);
 	size_t totalBytes;
-	NXGlobalDX::GetDevice()->GetCopyableFootprints(&desc, 0, layoutSize, 0, layouts, numRow, numRowSizeInBytes, &totalBytes);
+	NXGlobalDX::GetDevice()->GetCopyableFootprints(&desc, 0, layoutSize, 0, layouts.get(), numRow.get(), numRowSizeInBytes.get(), &totalBytes);
 
 	SetTexChunks(1);
 	NXAllocator_Tex->Alloc(&desc, (uint32_t)totalBytes, [this, layouts, numRow, numRowSizeInBytes, layoutSize, totalBytes, pImage](const PlacedBufferAllocTaskResult& result) mutable {
@@ -236,10 +236,6 @@ void NXTexture::CreateInternal(const std::shared_ptr<DirectX::ScratchImage>& pIm
 			NXUploadSystem->FinishTask(taskContext, [this]() {
 				ProcessLoadingTexChunks();
 				});
-
-			delete[] layouts;
-			delete[] numRow;
-			delete[] numRowSizeInBytes;
 		}
 		});
 }
@@ -266,14 +262,14 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 		desc.Flags = flags;
 
 		uint32_t layoutSize = desc.DepthOrArraySize * desc.MipLevels;
-		D3D12_PLACED_SUBRESOURCE_FOOTPRINT* layouts = new D3D12_PLACED_SUBRESOURCE_FOOTPRINT[layoutSize];
-		uint32_t* numRow = new uint32_t[layoutSize];
-		UINT64* numRowSizeInBytes = new UINT64[layoutSize];
+		std::shared_ptr<D3D12_PLACED_SUBRESOURCE_FOOTPRINT[]> layouts = std::make_shared<D3D12_PLACED_SUBRESOURCE_FOOTPRINT[]>(layoutSize);
+		std::shared_ptr<uint32_t[]> numRow = std::make_shared<uint32_t[]>(layoutSize);
+		std::shared_ptr<uint64_t[]> numRowSizeInBytes = std::make_shared<uint64_t[]>(layoutSize);
 		size_t totalBytes;
-		NXGlobalDX::GetDevice()->GetCopyableFootprints(&desc, 0, layoutSize, 0, layouts, numRow, numRowSizeInBytes, &totalBytes);
+		NXGlobalDX::GetDevice()->GetCopyableFootprints(&desc, 0, layoutSize, 0, layouts.get(), numRow.get(), numRowSizeInBytes.get(), &totalBytes);
 
 		std::vector<NXTextureUploadChunk> chunks;
-		GenerateUploadChunks(layoutSize, numRow, numRowSizeInBytes, totalBytes, chunks);
+		GenerateUploadChunks(layoutSize, numRow.get(), numRowSizeInBytes.get(), totalBytes, chunks);
 
 		SetTexChunks((int)chunks.size());
 

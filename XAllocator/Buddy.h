@@ -120,6 +120,7 @@ namespace ccmem
 	public:
 		// blockByteSize = 单个内存块的大小 fullByteSize = 总内存大小
 		BuddyAllocator(uint32_t blockByteSize, uint32_t fullByteSize);
+		~BuddyAllocator();
 
 		void ExecuteTasks();
 		void Print();
