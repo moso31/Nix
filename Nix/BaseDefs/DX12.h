@@ -9,6 +9,9 @@
 #include <pix3.h>
 #endif
 
+#include <vector>
+#include <string>
+
 using namespace DirectX;
 using namespace Microsoft::WRL;
 
@@ -29,14 +32,12 @@ public:
 
 	void Reset(const T& val) { for (int i = 0; i < MultiFrameSets_swapChainCount; i++) data[i] = val; }
 	T& Current() { return data[MultiFrameSets::swapChainIndex]; }
+	const T& Current() const { return data[MultiFrameSets::swapChainIndex]; }
 	T& Get(UINT8 index) { return data[index]; }
 
 protected:
 	T data[MultiFrameSets_swapChainCount];
 };
-
-#include <vector>
-#include <string>
 
 class NX12Util
 {
@@ -76,6 +77,8 @@ public:
 	static UINT ByteAlign256(UINT sizeInBytes);
 	static UINT GetRequiredIntermediateSize(ID3D12Device* pDevice, ID3D12Resource* pResource);
 	static UINT GetRequiredIntermediateLayoutInfos(ID3D12Device* pDevice, ID3D12Resource* pResource, D3D12_PLACED_SUBRESOURCE_FOOTPRINT* oLayouts, UINT* oNumRows, UINT64* oRowSizeInBytes);
+
+	static void Transition(ID3D12GraphicsCommandList* pCmdList, ID3D12Resource* pDstResource, D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after);
 
 	static void BeginEvent(ID3D12GraphicsCommandList* pCmdList, PCSTR fmt);
 	static void EndEvent(ID3D12GraphicsCommandList* pCmdList);

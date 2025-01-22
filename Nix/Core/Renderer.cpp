@@ -1,6 +1,6 @@
 #include "Renderer.h"
 #include "NXTimer.h"
-#include "NXGlobalDefinitions.h"
+#include "NXGlobalBuffers.h"
 #include "DirectResources.h"
 #include "ShaderComplier.h"
 #include "NXEvent.h"
@@ -28,27 +28,8 @@ void Renderer::Init()
 	// 输入事件
 	InitEvents();
 
-	// 创建各种DX12资源分配器
-	NXAllocatorManager::GetInstance()->Init();
-
-	NXGlobalInputLayout::Init();
-	NXGlobalBuffer::Init();
-
-	NXTexture::Init();
-
-	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
-	{
-		m_pCommandAllocator.Get(i) = NX12Util::CreateCommandAllocator(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT);
-		std::wstring strCmdAllocatorName(L"Main Renderer Command Allocator" + std::to_wstring(i));
-		m_pCommandAllocator.Get(i)->SetName(strCmdAllocatorName.c_str());
-
-		m_pCommandList.Get(i) = NX12Util::CreateGraphicsCommandList(NXGlobalDX::GetDevice(), m_pCommandAllocator.Get(i).Get(), D3D12_COMMAND_LIST_TYPE_DIRECT);
-		std::wstring strCmdListName(L"Main Renderer Command List" + std::to_wstring(i));
-		m_pCommandList.Get(i)->SetName(strCmdListName.c_str());
-	}
-
-	// PSOManager
-	NXPSOManager::GetInstance()->Init(NXGlobalDX::GetDevice(), NXGlobalDX::GetCmdQueue());
+	// 初始化资源
+	InitGlobalResources();
 
 	// 渲染器
 	InitRenderer();
@@ -78,6 +59,7 @@ void Renderer::Init()
 
 	m_pGBufferRenderer = new NXGBufferRenderer(m_scene);
 	m_pGBufferRenderer->Init();
+	m_pGBufferRenderer->SetCamera(m_scene->GetMainCamera());
 
 	//m_pSSAO = new NXSimpleSSAO();
 	//m_pSSAO->Init();
@@ -98,9 +80,9 @@ void Renderer::Init()
 	m_pShadowTestRenderer->SetRasterizerState(NXRasterizerState<D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_BACK, 0, 0, 1000.0f>::Create());
 	m_pShadowTestRenderer->SetDepthStencilState(NXDepthStencilState<true, false, D3D12_COMPARISON_FUNC_ALWAYS>::Create());
 	m_pShadowTestRenderer->SetRootParams(3, 2); 
-	m_pShadowTestRenderer->SetStaticRootParamCBV(0, NXGlobalBuffer::cbObject.GetGPUHandleArray());
-	m_pShadowTestRenderer->SetStaticRootParamCBV(1, NXGlobalBuffer::cbCamera.GetGPUHandleArray());
-	m_pShadowTestRenderer->SetStaticRootParamCBV(2, NXGlobalBuffer::cbShadowTest.GetGPUHandleArray());
+	m_pShadowTestRenderer->SetStaticRootParamCBV(0, &g_cbObject.GetFrameGPUAddresses());
+	m_pShadowTestRenderer->SetStaticRootParamCBV(1, &g_cbCamera.GetFrameGPUAddresses());
+	m_pShadowTestRenderer->SetStaticRootParamCBV(2, &g_cbShadowTest.GetFrameGPUAddresses());
 	m_pShadowTestRenderer->AddStaticSampler(D3D12_FILTER_MIN_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
 	m_pShadowTestRenderer->InitPSO();
 
@@ -127,6 +109,8 @@ void Renderer::Init()
 
 	m_pEditorObjectRenderer = new NXEditorObjectRenderer(m_scene);
 	m_pEditorObjectRenderer->Init();
+
+	InitGUI();
 }
 
 void Renderer::OnResize(const Vector2& rtSize)
@@ -166,6 +150,26 @@ void Renderer::InitRenderer()
 void Renderer::InitEvents()
 {
 	NXEventKeyDown::GetInstance()->AddListener(std::bind(&Renderer::OnKeyDown, this, std::placeholders::_1));
+}
+
+void Renderer::InitGlobalResources()
+{
+	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
+	{
+		m_pCommandAllocator.Get(i) = NX12Util::CreateCommandAllocator(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT);
+		std::wstring strCmdAllocatorName(L"Main Renderer Command Allocator" + std::to_wstring(i));
+		m_pCommandAllocator.Get(i)->SetName(strCmdAllocatorName.c_str());
+
+		m_pCommandList.Get(i) = NX12Util::CreateGraphicsCommandList(NXGlobalDX::GetDevice(), m_pCommandAllocator.Get(i).Get(), D3D12_COMMAND_LIST_TYPE_DIRECT);
+		std::wstring strCmdListName(L"Main Renderer Command List" + std::to_wstring(i));
+		m_pCommandList.Get(i)->SetName(strCmdListName.c_str());
+	}
+
+	NXAllocatorManager::GetInstance()->Init();
+	NXGlobalInputLayout::Init();
+
+	// PSOManager
+	NXPSOManager::GetInstance()->Init(NXGlobalDX::GetDevice(), NXGlobalDX::GlobalCmdQueue());
 }
 
 void Renderer::ResourcesReloading()
@@ -212,7 +216,7 @@ void Renderer::UpdateSceneData()
 
 void Renderer::UpdateTime()
 {
-	NXGlobalBuffer::cbObject.Get().globalData.time = NXGlobalApp::Timer->GetGlobalTimeSeconds();
+	g_cbDataObject.globalData.time = NXGlobalApp::Timer->GetGlobalTimeSeconds();
 }
 
 void Renderer::RenderFrame()
@@ -230,7 +234,7 @@ void Renderer::RenderFrame()
 	pCommandList->RSSetViewports(1, &vpCamera);
 	pCommandList->RSSetScissorRects(1, &NX12Util::ScissorRect(vpCamera));
 
-	ID3D12DescriptorHeap* ppHeaps[] = { NXGPUHandleHeap->GetHeap() };
+	ID3D12DescriptorHeap* ppHeaps[] = { NXShVisDescHeap->GetDescriptorHeap() };
 	pCommandList->SetDescriptorHeaps(1, ppHeaps);
 
 	//m_pDepthPrepass->Render();
@@ -288,8 +292,12 @@ void Renderer::RenderFrame()
 	NX12Util::EndEvent(pCommandList.Get());
 
 	pCommandList->Close();
+
+	// BRDF 2D LUT 可能还没加载完，等待一下。
+	WaitForBRDF2DLUTFinish();
+
 	ID3D12CommandList* pCmdLists[] = { pCommandList.Get() };
-	NXGlobalDX::GetCmdQueue()->ExecuteCommandLists(1, pCmdLists);
+	NXGlobalDX::GlobalCmdQueue()->ExecuteCommandLists(1, pCmdLists);
 
 	// 更新PSOManager状态
 	NXPSOManager::GetInstance()->FrameCleanup();
@@ -341,4 +349,9 @@ void Renderer::OnKeyDown(NXEventArgKey eArg)
 	//{
 	//	m_bRenderGUI = !m_bRenderGUI;
 	//}
+}
+
+void Renderer::WaitForBRDF2DLUTFinish()
+{
+	NXGlobalDX::GlobalCmdQueue()->Wait(m_pBRDFLut->GlobalFence(), m_pBRDFLut->GetFenceValue());
 }

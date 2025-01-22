@@ -40,15 +40,8 @@ SSAO可以升级成GTAO或者HBAO
 
 【已完成的】（已移至 https://github.com/moso31/Nix/issues/，以后不再添加）
 
-【临时想法】
-1. XAllocator的页面分配是固定的，这在大多数小Buffer需求下是比较浪费显存的做法。改成可调整的。
-2. 创建CubeMap的时候，使用的描述符分配器是全局的，是否有必要单独提取出来。
-	这需要修改NXTexture基类，使其在创建纹理时可以手动指定描述符分配器（现在是全局的）。
-3. D3D12_SHADER_VISIBILITY_ALL 优化。
-4. D3D12_RESOURCE_STATE_COMMON 优化、管理。
-5. GetShaderVisibleDescriptorHeap（ringBuffer），目前在Nix下不完善。需要进行部分重新设计。
-6. m_pCommandList->SetDescriptorHeaps 优化（不要每个pass都调用？每帧只调用一次？）
-7. NXBuffer 的资源释放。目前的设想是尽量交给 XAllocator处理，NXBuffer不管资源释放
+tmp q:
+点光源的数据会闪，不知道为啥
 
 【里程碑】
 2023.5.24			即时编译Shader

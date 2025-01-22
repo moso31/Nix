@@ -7,7 +7,7 @@
 #include "NXObject.h"
 #include "HBVH.h"
 #include "ShaderStructures.h"
-#include "NXBuffer.h"
+#include "NXConstantBuffer.h"
 
 class NXCamera;
 class NXPBRLight;
@@ -71,7 +71,7 @@ public:
 	// 目前只对第一个光源创建Parallel ShadowMap。
 	//void InitShadowMapTransformInfo(ConstantBufferShadowMapTransform& out_cb);
 
-	const std::vector<D3D12_GPU_VIRTUAL_ADDRESS>& GetConstantBufferLights() { return m_cbDataLights.GetGPUHandleArray(); }
+	const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>& GetConstantBufferLights() { return m_cbLights.GetFrameGPUAddresses(); }
 
 	// 更新场景BVH树
 	void BuildBVHTrees(const HBVHSplitMode SplitMode);
@@ -90,7 +90,8 @@ private:
 	void InitBoundingStructures();
 
 private:
-	NXBuffer<ConstantBufferLight> m_cbDataLights;
+	ConstantBufferLight m_cbDataLights;
+	NXConstantBuffer<ConstantBufferLight> m_cbLights;
 
 	AABB m_aabb;
 	BoundingSphere m_boundingSphere;

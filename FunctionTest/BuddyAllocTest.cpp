@@ -1,11 +1,35 @@
-#include "MemAllocTest.h"
+#include "BuddyAllocTest.h"
 
 using namespace ccmem;
 
 ccmem::BuddyAllocator::BuddyAllocator()
 {
 	// 初始化时自动创建一个Allocator 
-	AddAllocatorInternal(); 
+	AddAllocatorInternal();
+}
+
+void ccmem::BuddyAllocator::Alloc(uint32_t byteSize, const std::function<void(const BuddyTaskResult&)>& callback)
+{
+	BuddyTask task;
+	task.byteSize = byteSize;
+	task.pFreeMem = nullptr;
+	task.pCallBack = callback;
+
+	m_mutex.lock();
+	m_taskList.push_back(task);
+	m_mutex.unlock();
+}
+
+void ccmem::BuddyAllocator::Free(uint8_t* pFreeMem)
+{
+	BuddyTask task;
+	task.byteSize = 0;
+	task.pFreeMem = pFreeMem;
+	task.pCallBack = nullptr;
+
+	m_mutex.lock();
+	m_taskList.push_back(task);
+	m_mutex.unlock();
 }
 
 void ccmem::BuddyAllocator::ExecuteTasks()
@@ -23,8 +47,12 @@ void ccmem::BuddyAllocator::ExecuteTasks()
 	{
 		if (!task.pFreeMem) // 分配
 		{
-			uint8_t* pAllocMem = nullptr;
-			task.state = TryAlloc(task, pAllocMem);
+			BuddyTaskResult taskResult;
+			task.state = TryAlloc(task, taskResult);
+
+			// 如果分配成功，触发回调函数
+			if (task.state == BuddyTask::State::Success)
+				task.pCallBack(taskResult);
 		}
 		else // 释放
 		{
@@ -35,7 +63,7 @@ void ccmem::BuddyAllocator::ExecuteTasks()
 	// 删除成功的Task，以及释放时没找到对应内存块的Task
 	taskList.remove_if([](const BuddyTask& task) {
 		return task.state == BuddyTask::State::Success || task.state == BuddyTask::State::Failed_Free_NotFind;
-	});
+		});
 
 	// 将失败的Task 转移至低优先级任务队列
 	m_lowPriorTaskList.swap(taskList);
@@ -46,7 +74,7 @@ void ccmem::BuddyAllocator::Print()
 	std::lock_guard<std::mutex> lock(m_mutex);
 	for (auto& pAllocator : m_allocatorPages)
 	{
-		std::cout << "Allocator: " << pAllocator << std::endl;
+		std::cout << "Allocator: " << pAllocator->GetPageID() << std::endl;
 		pAllocator->Print();
 	}
 }
@@ -62,43 +90,42 @@ BuddyAllocatorPage* ccmem::BuddyAllocator::AddAllocatorInternal()
 	return pAllocator;
 }
 
-BuddyTask::State ccmem::BuddyAllocator::TryAlloc(const BuddyTask& task, uint8_t*& pAllocMem)
+BuddyTask::State ccmem::BuddyAllocator::TryAlloc(const BuddyTask& task, BuddyTaskResult& oTaskResult)
 {
 	BuddyTask::State result;
 	for (auto& pAllocator : m_allocatorPages)
 	{
 		if (pAllocator->m_freeByteSize >= task.byteSize)
 		{
-			result = pAllocator->AllocSync(task, pAllocMem);
-			
+			result = pAllocator->AllocSync(task, oTaskResult.pMemory);
+
 			// 如果返回未知错误，不接受，直接让它崩溃
 			assert(result != BuddyTask::State::Failed_Unknown);
 
 			// 分配成功时结束循环
 			if (result == BuddyTask::State::Success)
 			{
-				pAllocPage = pAllocator;
+				oTaskResult.pAllocator = pAllocator;
 				return result;
 			}
-
-			// 如果返回其它错误（比如内存满），可以尝试下一个Allocator
 		}
 	}
 
 	// 如果走到这里，说明所有的Allocator都满了，创建一个新的Allocator
 	BuddyAllocatorPage* pNewAllocator = AddAllocatorInternal();
-	result = pNewAllocator->AllocSync(task, pAllocMem);
+	result = pNewAllocator->AllocSync(task, oTaskResult.pMemory);
 	if (result == BuddyTask::State::Success)
 	{
-		pAllocPage = pNewAllocator;
+		oTaskResult.pAllocator = pNewAllocator;
 		return result;
 	}
 
 	// 如果返回未知错误，不接受，直接让它崩溃
 	assert(result != BuddyTask::State::Failed_Unknown);
 
-	pAllocPage = nullptr;
-	return result; 
+	oTaskResult.pMemory = nullptr;
+	oTaskResult.pAllocator = nullptr;
+	return result;
 }
 
 BuddyTask::State ccmem::BuddyAllocator::TryFree(const BuddyTask& task)
@@ -107,7 +134,7 @@ BuddyTask::State ccmem::BuddyAllocator::TryFree(const BuddyTask& task)
 	for (auto& pAllocator : m_allocatorPages)
 	{
 		result = pAllocator->FreeSync(task);
-		if (result == BuddyTask::State::Success) 
+		if (result == BuddyTask::State::Success)
 			return result;
 	}
 
@@ -117,6 +144,10 @@ BuddyTask::State ccmem::BuddyAllocator::TryFree(const BuddyTask& task)
 ccmem::BuddyAllocatorPage::BuddyAllocatorPage(BuddyAllocator* pOwner) :
 	m_pOwner(pOwner)
 {
+	static uint32_t s_pageID = 0;
+	assert(s_pageID < UINT_MAX);
+	m_pageID = s_pageID++;
+
 	m_pMem = new uint8_t[MAX_LV];
 	m_freeByteSize = MAX_LV;
 
@@ -170,7 +201,7 @@ BuddyTask::State ccmem::BuddyAllocatorPage::FreeSync(const BuddyTask& task)
 			m_freeList[i].push_back(task.pFreeMem);
 			FreeInternal(std::prev(m_freeList[i].end()), i);
 
-			m_freeByteSize += GetAlignedByteSize(task.byteSize);
+			m_freeByteSize += 1 << (MAX_LV_LOG2 - i);
 			return BuddyTask::State::Success;
 		}
 	}
@@ -266,7 +297,7 @@ void ccmem::BuddyAllocatorPage::FreeInternal(std::list<uint8_t*>::iterator itMem
 		m_freeList[level].erase(itBuddyMem);
 
 		uint8_t* pMergedMem = std::min(pMem, pBuddyMem);
-		m_freeList[level - 1].push_back(pMergedMem); 
+		m_freeList[level - 1].push_back(pMergedMem);
 
 		// 递归处理更大一级的内存块
 		FreeInternal(std::prev(m_freeList[level - 1].end()), level - 1);

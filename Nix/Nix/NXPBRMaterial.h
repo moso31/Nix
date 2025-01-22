@@ -1,7 +1,7 @@
 #pragma once
 #include "ShaderStructures.h"
 #include "NXResourceManager.h"
-#include "NXBuffer.h"
+#include "NXConstantBuffer.h"
 #include "NXTexture.h"
 #include "NXShaderDefinitions.h"
 
@@ -39,6 +39,8 @@ public:
 
 	virtual void Serialize() {}
 	virtual void Deserialize() {}
+
+	virtual void UpdatePSORenderStates(D3D12_GRAPHICS_PIPELINE_STATE_DESC& oPSODesc);
 
 public:
 	std::vector<NXSubMeshBase*> GetRefSubMeshes() { return m_pRefSubMeshes; }
@@ -156,6 +158,9 @@ public:
 
 	bool GetCompileSuccess() { return m_bCompileSuccess; }
 
+	// 获取 pso RS BS DS 三大状态
+	void UpdatePSORenderStates(D3D12_GRAPHICS_PIPELINE_STATE_DESC& oPSODesc) override;
+
 private:
 	// 读取 nsl 文件，获取 nsl shader.
 	bool LoadShaderStringFromFile(std::string& shaderContent);
@@ -198,7 +203,7 @@ private:
 	std::vector<float>						m_cbInfoMemory;
 	std::vector<int>						m_cbSortedIndex;
 
-	NXBuffer<std::vector<float>>			m_cbData;
+	NXConstantBuffer<std::vector<float>>	m_cbData;
 
 	// backup datas
 	std::vector<NXMaterialSamplerInfo>		m_samplerInfosBackup;

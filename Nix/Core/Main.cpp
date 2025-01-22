@@ -7,7 +7,7 @@
 #include "NXInput.h"
 #include "NXTimer.h"
 #include "NXGUI.h"
-#include "NXLog.h"
+#include "Log.h"
 
 //#define ENABLE_SPLASH_SCREEN
 
@@ -165,8 +165,8 @@ HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow)
 	// Create window
 	NXGlobalWindows::hInst = hInstance;
 	LONG offset = 50;
-	RECT rc = { 0 + offset, 0 + offset, 1280 + offset, 720 + offset };
-	//RECT rc = { 0, 0, 120, 90 };
+	//RECT rc = { 0 + offset, 0 + offset, 1280 + offset, 720 + offset };
+	RECT rc = { 0, 0, 320, 180 };
 
 	NXGlobalWindows::hWnd = CreateWindow(L"NixWindowClass", L"Nix",
 		WS_OVERLAPPEDWINDOW,
@@ -204,9 +204,6 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
 	CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 
-	NXLog::Init();
-	NXLog::Log("-----Init-----");
-
 	NXGlobalApp::App = new App();
 	NXGlobalApp::App->Init();
 
@@ -242,7 +239,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
 			if (!IsWindowVisible(NXGlobalWindows::hWnd))
 			{
-				ShowWindow(NXGlobalWindows::hWnd, SW_SHOWMAXIMIZED);
+				//ShowWindow(NXGlobalWindows::hWnd, SW_SHOWMAXIMIZED);
+				ShowWindow(NXGlobalWindows::hWnd, SW_SHOW);
 				SetForegroundWindow(NXGlobalWindows::hWnd);
 			}
 
@@ -255,12 +253,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 		}
 	}
 
-	NXLog::Log("-----Release-----");
-
 	SafeDelete(NXGlobalApp::Timer);
 	SafeRelease(NXGlobalApp::App);
-
-	NXLog::Release();
 
 	CoUninitialize();
 	return (int)msg.wParam;

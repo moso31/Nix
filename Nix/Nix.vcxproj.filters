@@ -448,9 +448,6 @@
     <ClCompile Include="Core\NXSubSurfaceRenderer.cpp">
       <Filter>Core\DirectX\Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="Core\NXLog.cpp">
-      <Filter>Core\Helper</Filter>
-    </ClCompile>
     <ClCompile Include="Nix\NXScriptable.cpp">
       <Filter>Nix\Object</Filter>
     </ClCompile>
@@ -494,6 +491,9 @@
       <Filter>Core\DirectX\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXPSOManager.cpp">
+      <Filter>Core\DirectX\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXTextureLoader.cpp">
       <Filter>Core\DirectX\Manager</Filter>
     </ClCompile>
   </ItemGroup>
@@ -744,9 +744,6 @@
     <ClInclude Include="Core\NXSubSurfaceRenderer.h">
       <Filter>Core\DirectX\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="Core\NXLog.h">
-      <Filter>Core\Helper</Filter>
-    </ClInclude>
     <ClInclude Include="Core\Ntr.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -816,9 +813,23 @@
     <ClInclude Include="Core\NXPSOManager.h">
       <Filter>Core\DirectX\Manager</Filter>
     </ClInclude>
+    <ClInclude Include="Nix\NXConstantBuffer.h">
+      <Filter>Nix\TextureBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXStructuredBuffer.h">
+      <Filter>Nix\TextureBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXGlobalBuffers.h">
+      <Filter>Core\DirectX</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseDefs\MultiThread.h">
+      <Filter>BaseDefs</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXTextureLoader.h">
+      <Filter>Core\DirectX\Manager</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="杂七杂八的编码规范.txt" />
     <Text Include="八字无撇的待办事项.txt" />
     <Text Include="快速规划.txt" />
   </ItemGroup>

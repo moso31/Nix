@@ -3,7 +3,7 @@
 #include "BaseDefs/NixCore.h"
 #include "BaseDefs/Math.h"
 #include "NXResourceManagerBase.h"
-#include "NXBuffer.h"
+#include "NXConstantBuffer.h"
 
 using namespace DirectX::SimpleMath;
 
@@ -57,7 +57,7 @@ public:
 	NXCustomMaterial* CreateCustomMaterial(const std::string& name, const std::filesystem::path& nslFilePath);
 
     Ntr<NXSSSDiffuseProfile> GetOrAddSSSProfile(const std::filesystem::path& sssProfFilePath);
-    const std::vector<D3D12_GPU_VIRTUAL_ADDRESS>& GetCBufferDiffuseProfile() { return m_cbDiffuseProfile.GetGPUHandleArray(); }
+    const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>& GetCBufferDiffuseProfile() { return m_cbDiffuseProfile.GetFrameGPUAddresses(); }
 
 	void OnReload() override;
 	void Release() override;
@@ -86,5 +86,6 @@ private:
     std::map<PathHashValue, UINT8> m_sssProfileGBufferIndexMap;
 
     // SSS profile CBuffer
-    NXBuffer<CBufferDiffuseProfileData> m_cbDiffuseProfile;
+    CBufferDiffuseProfileData m_diffuseProfileData;
+    NXConstantBuffer<CBufferDiffuseProfileData> m_cbDiffuseProfile;
 };

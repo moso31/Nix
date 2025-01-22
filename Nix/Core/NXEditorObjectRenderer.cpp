@@ -3,6 +3,7 @@
 #include "ShaderComplier.h"
 #include "NXRenderStates.h"
 #include "NXGlobalDefinitions.h"
+#include "NXGlobalBuffers.h"
 #include "NXSubMeshGeometryEditor.h"
 #include "NXAllocatorManager.h"
 #include "NXScene.h"
@@ -33,7 +34,7 @@ void NXEditorObjectRenderer::Init()
 	SetInputLayout(NXGlobalInputLayout::layoutEditorObject);
 
 	SetRootParams(3, 0); // b0~b2. (actually do not need b1.)
-	SetStaticRootParamCBV(1, NXGlobalBuffer::cbCamera.GetGPUHandleArray());
+	SetStaticRootParamCBV(1, &g_cbCamera.GetFrameGPUAddresses());
 
 	InitPSO();
 }

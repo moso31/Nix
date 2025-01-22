@@ -2,9 +2,11 @@
 
 Texture2D txHDRMap : register(t0);
 
-SamplerState ssLinearWrap : register(s0);
+SamplerState ssAniso : register(s0);
 
-static const float2 invAtan = float2(0.1591f, 0.3183f);
+#define PI 3.14159265359
+
+static const float2 invAtan = float2(1.0 / (2.0 * PI), 1.0 / PI);
 float2 SampleSphericalMap(float3 v)
 {
 	float2 uv = float2(atan2(v.z, v.x), asin(v.y));
@@ -38,6 +40,7 @@ PS_INPUT VS(VS_INPUT input)
 float4 PS(PS_INPUT input) : SV_Target
 {
 	float2 uv = SampleSphericalMap(normalize(input.posOS)); // make sure to normalize localPos
-	float3 color = txHDRMap.Sample(ssLinearWrap, float2(1.0 - uv.x, uv.y)).rgb;
+	uv.x = 1.0 - uv.x;
+	float3 color = txHDRMap.SampleLevel(ssAniso, uv, 0).rgb;
 	return float4(color, 1.0);
 }

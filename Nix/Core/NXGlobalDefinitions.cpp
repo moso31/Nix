@@ -6,15 +6,19 @@ HINSTANCE	NXGlobalWindows::hInst;
 HWND		NXGlobalWindows::hWnd;
 
 ComPtr<ID3D12Device8>							NXGlobalDX::s_device;
-ComPtr<ID3D12CommandQueue>						NXGlobalDX::s_cmdQueue;
+ComPtr<ID3D12CommandQueue>						NXGlobalDX::s_globalCmdQueue;
+ComPtr<ID3D12Fence>								NXGlobalDX::s_globalfence;
+UINT64											NXGlobalDX::s_globalfenceValue = 0;
 MultiFrame<ComPtr<ID3D12GraphicsCommandList>>	NXGlobalDX::s_cmdList;
 MultiFrame<ComPtr<ID3D12CommandAllocator>>		NXGlobalDX::s_cmdAllocator;
 
 void NXGlobalDX::Init(IDXGIAdapter4* pAdapter)
 {
 	HRESULT hr = D3D12CreateDevice(pAdapter, D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&s_device));
-	s_cmdQueue = NX12Util::CreateCommandQueue(s_device.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT, false);
-	s_cmdQueue->SetName(L"Global Static Command Queue");
+	s_globalCmdQueue = NX12Util::CreateCommandQueue(s_device.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT, false);
+	s_globalCmdQueue->SetName(L"Global Static Command Queue");
+
+	s_globalfence = NX12Util::CreateFence(s_device.Get(), L"Create fence FAILED in NXGlobalDX::Init().");
 
 	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 	{
@@ -28,23 +32,8 @@ void NXGlobalDX::Init(IDXGIAdapter4* pAdapter)
 	}
 }
 
-void NXGlobalDX::Release()
-{
-}
-
 App*		NXGlobalApp::App;
 NXTimer*	NXGlobalApp::Timer;
-
-NXBuffer<ConstantBufferObject>		NXGlobalBuffer::cbObject;
-NXBuffer<ConstantBufferCamera>		NXGlobalBuffer::cbCamera;
-NXBuffer<ConstantBufferShadowTest>	NXGlobalBuffer::cbShadowTest;
-
-void NXGlobalBuffer::Init()
-{
-	cbObject.CreateFrameBuffers(NXCBufferAllocator, NXDescriptorAllocator);
-	cbCamera.CreateFrameBuffers(NXCBufferAllocator, NXDescriptorAllocator);
-	cbShadowTest.CreateFrameBuffers(NXCBufferAllocator, NXDescriptorAllocator);
-}
 
 D3D12_INPUT_LAYOUT_DESC	NXGlobalInputLayout::layoutP;
 D3D12_INPUT_LAYOUT_DESC	NXGlobalInputLayout::layoutPT;

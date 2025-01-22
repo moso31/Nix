@@ -35,8 +35,8 @@
 //
 //	g_pContext->IASetInputLayout(m_pInputLayout.Get());
 //
-//	g_pContext->VSSetConstantBuffers(1, 1, NXGlobalBuffer::cbCamera.GetAddressOf());
-//	g_pContext->PSSetConstantBuffers(1, 1, NXGlobalBuffer::cbCamera.GetAddressOf());
+//	g_pContext->VSSetConstantBuffers(1, 1, g_cbCamera.GetAddressOf());
+//	g_pContext->PSSetConstantBuffers(1, 1, g_cbCamera.GetAddressOf());
 //
 //	auto& pDepthZ = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
 //	auto& pGBufferRTA = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer0);

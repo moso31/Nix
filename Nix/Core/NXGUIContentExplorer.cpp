@@ -89,7 +89,7 @@ void NXGUIContentExplorer::Render()
             if (ImGui::BeginChild("##content_preview_div", ImVec2(0, 0), true, ImGuiWindowFlags_None))
             {
                 float fAllElementsWidth = ImGui::GetColumnWidth();
-                int iColumns = max((int)(fAllElementsWidth / fElementSize), 1);
+                int iColumns = std::max((int)(fAllElementsWidth / fElementSize), 1);
                 float fActualSize = fAllElementsWidth / (float)iColumns;
                 if (ImGui::BeginTable("##content_preview_table", iColumns, ImGuiTableFlags_Resizable | ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_NoBordersInBody))
                 {
@@ -198,7 +198,7 @@ void NXGUIContentExplorer::Render()
                                 std::string subElemFileName = subElem.path().stem().string().c_str();
                                 float textWidth = ImGui::CalcTextSize(subElemFileName.c_str()).x;
                                 float posX = ImGui::GetCursorPosX();
-                                float textOffset = max(0.0f, (fActualSize - textWidth) * 0.5f);
+                                float textOffset = std::max(0.0f, (fActualSize - textWidth) * 0.5f);
                                 ImGui::SetCursorPosX(posX + textOffset);
                                 ImGui::Text(subElemFileName.c_str());
                             }

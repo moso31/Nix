@@ -86,7 +86,7 @@ void NXSubMesh<TVertex>::CalcLocalAABB()
 template<class TVertex>
 void NXSubMesh<TVertex>::TryAddBuffers()
 {
-	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(m_vertices, m_indices, m_subMeshName, true);
+	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(m_vertices, m_indices, m_subMeshName);
 }
 
 void NXSubMeshStandard::CalculateTangents(bool bUpdateVBIB)
@@ -128,7 +128,6 @@ NXSubMeshEditorObjects::NXSubMeshEditorObjects(NXPrimitive* pPrimitive, const st
 	NXSubMesh<VertexEditorObjects>(pPrimitive, subMeshName), 
 	m_editorObjID(id) 
 {
-	m_cbParams.CreateFrameBuffers(NXCBufferAllocator, NXDescriptorAllocator);
 }
 
 bool NXSubMeshEditorObjects::RayCastLocal(const Ray& localRay, NXHit& outHitInfo, float& outDist)
@@ -153,7 +152,8 @@ bool NXSubMeshEditorObjects::RayCastLocal(const Ray& localRay, NXHit& outHitInfo
 void NXSubMeshEditorObjects::Update(ID3D12GraphicsCommandList* pCmdList, bool isHighLight)
 {
 	// 判断当前SubMesh是否高亮显示
-	m_cbParams.Get().value.x = isHighLight ? 1.0f : 0.0f;
-	m_cbParams.UpdateBuffer();
-	pCmdList->SetGraphicsRootConstantBufferView(2, m_cbParams.GetGPUHandle()); // b2 update.
+	m_cbDataParams.value.x = isHighLight ? 1.0f : 0.0f;
+	m_cbParams.Set(m_cbDataParams);
+
+	pCmdList->SetGraphicsRootConstantBufferView(2, m_cbParams.CurrentGPUAddress()); // b2 update.
 }

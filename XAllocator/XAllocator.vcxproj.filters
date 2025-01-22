@@ -1,19 +1,22 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="CommittedAllocator.cpp" />
+    <ClCompile Include="DeadList.cpp" />
+    <ClCompile Include="Buddy.cpp" />
+    <ClCompile Include="CommittedBufferAllocator.cpp" />
     <ClCompile Include="DescriptorAllocator.cpp" />
-    <ClCompile Include="PlacedAllocator.cpp" />
-    <ClCompile Include="RTVAllocator.cpp" />
-    <ClCompile Include="DSVAllocator.cpp" />
+    <ClCompile Include="PlacedBufferAllocator.cpp" />
+    <ClCompile Include="XAllocCommon.h" />
+    <ClCompile Include="UploadSystem.cpp" />
+    <ClCompile Include="XAllocCommon.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CommittedAllocator.h" />
+    <ClInclude Include="Buddy.h" />
+    <ClInclude Include="DeadList.h" />
+    <ClInclude Include="CommittedBufferAllocator.h" />
+    <ClInclude Include="XAllocImpl.h" />
     <ClInclude Include="DescriptorAllocator.h" />
-    <ClInclude Include="PlacedAllocator.h" />
-    <ClInclude Include="XAllocator.h" />
-    <ClInclude Include="DXIncludes.h" />
-    <ClInclude Include="RTVAllocator.h" />
-    <ClInclude Include="DSVAllocator.h" />
+    <ClInclude Include="PlacedBufferAllocator.h" />
+    <ClInclude Include="UploadSystem.h" />
   </ItemGroup>
 </Project>

@@ -1,130 +1,142 @@
 #include "DescriptorAllocator.h"
 
-DescriptorAllocator::DescriptorAllocator(ID3D12Device* pDevice) : 
-	DescriptorAllocator(pDevice, DESCRIPTOR_NUM_PER_HEAP_MAXLIMIT, 100)
-{
-}
+using namespace ccmem;
 
-DescriptorAllocator::DescriptorAllocator(ID3D12Device* pDevice, UINT pageNumLimit, UINT pageSizeLimit) :
+// <false>: non-visible descriptor
+
+DescriptorAllocator<false>::DescriptorAllocator(ID3D12Device* pDevice, uint32_t descriptorSize, D3D12_DESCRIPTOR_HEAP_TYPE descriptorType) :
 	m_pDevice(pDevice),
-	m_descriptorByteSize(pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)),
-	DescriptorAllocatorBase(pageNumLimit, pageSizeLimit)
-{
-}
-
-// 分配一个大小为 size 的内存块
-// size: 要分配的内存块的大小
-// oPageIdx: 分配到的页的下标
-// oFirstIdx: 分配到的页中的第一个内存块的下标
-// oHandles: 返回分配的首个 cpu descriptor handle 的地址
-bool DescriptorAllocator::Alloc(DescriptorType type, UINT size, UINT& oPageIdx, UINT& oFirstIdx, D3D12_CPU_DESCRIPTOR_HANDLE& oHandles)
-{
-	auto predicate = [type](Page& page){
-		return page.data.type == type;
-	};
-
-	auto onCreate = [type](Page& newPage) {
-		newPage.data.type = type;
-	};
-
-	if (DescriptorAllocatorBase::Alloc(size, oPageIdx, oFirstIdx, predicate, onCreate))
-	{
-		auto& pDescriptor = m_pages[oPageIdx].data;
-		oHandles = pDescriptor.descHeap->GetCPUDescriptorHandleForHeapStart();
-		oHandles.ptr += oFirstIdx * m_descriptorByteSize;
-		return true;
-	}
-
-	return false;
-}
-
-bool DescriptorAllocator::Alloc(DescriptorType type, D3D12_CPU_DESCRIPTOR_HANDLE& oHandle)
-{
-	UINT nouse[2];
-	return Alloc(type, 1, nouse[0], nouse[1], oHandle);
-}
-
-void DescriptorAllocator::Remove(UINT pageIdx, UINT start, UINT size)
-{
-	auto& freeIntervals = m_pages[pageIdx].freeIntervals;
-
-	UINT end = min(start + size - 1, m_eachPageDataNum - 1);
-
-	AllocatorRangeInterval adjust(start, end);
-	std::set<AllocatorRangeInterval> removing;
-	for (auto& space : freeIntervals)
-	{
-		bool bCombine = false;
-		if (space.st >= start && space.ed <= end)
-		{
-			// 如果 space 是子集，删除
-			removing.insert(space);
-		}
-		else if (space.st <= end && start <= space.ed)
-		{
-			// 如果 space 是交集，合并
-			removing.insert(space);
-			bCombine = true;
-		}
-		else if (space.st < start || space.ed > end)
-		{
-			// 如果 space 是父集，什么都不做
-		}
-		else bCombine = true;
-
-		if (bCombine)
-		{
-			adjust.st = min(adjust.st, space.st);
-			adjust.ed = max(adjust.ed, space.ed);
-		}
-	}
-
-	for (auto& space : removing) freeIntervals.erase(space);
-
-	// 如果 adjust 和 m_freeInterval 形成连号，需要再合并一次。
-	removing.clear();
-	for (auto& space : freeIntervals)
-	{
-		if (space.st == adjust.ed + 1)
-		{
-			adjust.ed = space.ed;
-			removing.insert(space);
-		}
-		else if (space.ed == adjust.st - 1)
-		{
-			adjust.st = space.st;
-			removing.insert(space);
-		}
-	}
-
-	freeIntervals.insert(adjust);
-	for (auto& space : removing) freeIntervals.erase(space);
-}
-
-void DescriptorAllocator::CreateNewPage(DescriptorAllocatorBase::Page& newPage)
+	DeadListAllocator(descriptorSize),
+	m_descriptorIncrementSize(pDevice->GetDescriptorHandleIncrementSize(descriptorType))
 {
 	D3D12_DESCRIPTOR_HEAP_DESC desc = {};
-	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE; // cpu heap, 默认 FLAG_NONE = non-shader-visible.
+	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE; // non-shader-visible.
 	desc.NodeMask = 0;
-	desc.NumDescriptors = m_eachPageDataNum;
-	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV; // 此 allocator 只支持 CBVSRVUAV 这一种类型.
+	desc.NumDescriptors = descriptorSize;
+	desc.Type = descriptorType;
 
-	HRESULT hr = m_pDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&newPage.data.descHeap));
-
-	std::wstring debugName = L"DescriptorAllocatorPool_" + std::to_wstring(m_pages.size() - 1);
-	newPage.data.descHeap->SetName(debugName.c_str());
+	HRESULT hr = m_pDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_pDescriptorHeap));
+	m_pDescriptorHeap->SetName(L"NonVisibleDescriptor");
 }
 
-void DescriptorAllocator::Clear()
+void ccmem::DescriptorAllocator<false>::Alloc(const std::function<void(D3D12_CPU_DESCRIPTOR_HANDLE&)>& callback)
 {
-	for (UINT i = 0; i < (UINT)m_pages.size(); ++i)
-	{
-		ClearPage(i);
+	DeadListAllocator::Alloc([this, callback](const DeadListTaskResult& result) {
+		D3D12_CPU_DESCRIPTOR_HANDLE taskResult;
+		taskResult = m_pDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+		taskResult.ptr += result.index * m_descriptorIncrementSize;
+		callback(taskResult);
+	});
+}
 
-		auto& page = m_pages[i];
-		if (page.data.descHeap)
-			page.data.descHeap->Release();
+void ccmem::DescriptorAllocator<false>::Free(uint32_t freeIndex)
+{
+	DeadListAllocator::Free(freeIndex);
+}
+
+// <true>: shader-visible descriptor
+
+DescriptorAllocator<true>::DescriptorAllocator(ID3D12Device* pDevice, uint32_t fullCount, uint32_t stableCount) :
+	m_pDevice(pDevice),
+	m_descriptorIncrementSize(pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)),
+	m_maxDescriptors(fullCount),
+	m_stableCount(stableCount),
+	m_pendingStart(m_stableCount),
+	m_pendingEnd(m_stableCount)
+{
+	D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+	desc.NumDescriptors = fullCount;
+	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	desc.NodeMask = 0;
+	pDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_pDescriptorHeap));
+}
+
+DescriptorAllocator<true>::~DescriptorAllocator()
+{
+	if (m_pDescriptorHeap)
+	{
+		m_pDescriptorHeap->Release();
+	}
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE ccmem::DescriptorAllocator<true>::SetStable(uint32_t stableIndex, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
+{
+	if (stableIndex >= m_stableCount)
+	{
+		return { 0 };
 	}
 
-	m_pages.clear();
+	D3D12_CPU_DESCRIPTOR_HANDLE srcHandle = { cpuHandle };
+	D3D12_CPU_DESCRIPTOR_HANDLE destHandle = { m_pDescriptorHeap->GetCPUDescriptorHandleForHeapStart().ptr + stableIndex * m_descriptorIncrementSize };
+	m_pDevice->CopyDescriptorsSimple(1, destHandle, srcHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+	D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = { m_pDescriptorHeap->GetGPUDescriptorHandleForHeapStart().ptr + stableIndex * m_descriptorIncrementSize };
+	return gpuHandle;
 }
+
+void ccmem::DescriptorAllocator<true>::PushFluid(const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle)
+{
+	if ((uint32_t)m_submitDescriptors.size() >= m_maxDescriptors)
+	{
+		return;
+	}
+
+	m_submitDescriptors.push_back(cpuHandle);
+	m_pendingEnd++;
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE ccmem::DescriptorAllocator<true>::Submit()
+{
+	if (m_submitDescriptors.empty())
+	{
+		return { 0 };
+	}
+
+	uint32_t descCount = (uint32_t)m_submitDescriptors.size();
+
+	// 如果超过了最大描述符数量，就从头开始
+	// 不用考虑开头是否还在使用，size非常大，一般认为已经足够安全
+	if (m_pendingEnd > m_maxDescriptors)
+	{
+		m_pendingStart = m_stableCount;
+		m_pendingEnd = m_stableCount + descCount;
+	}
+
+	for (uint32_t i = 0; i < descCount; i++)
+	{
+		D3D12_CPU_DESCRIPTOR_HANDLE srcHandle = m_submitDescriptors[i];
+		D3D12_CPU_DESCRIPTOR_HANDLE destHandle = { m_pDescriptorHeap->GetCPUDescriptorHandleForHeapStart().ptr + (m_pendingStart + i) * m_descriptorIncrementSize };
+
+		m_pDevice->CopyDescriptorsSimple(1, destHandle, srcHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	}
+
+	D3D12_GPU_DESCRIPTOR_HANDLE result = { m_pDescriptorHeap->GetGPUDescriptorHandleForHeapStart().ptr + m_pendingStart * m_descriptorIncrementSize };
+
+	m_pendingStart = m_pendingEnd;
+	m_submitDescriptors.clear();
+
+	return result;
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE ccmem::DescriptorAllocator<true>::GetStableCPUHandle(uint32_t stableIndex) const
+{
+	if (stableIndex >= m_stableCount)
+	{
+		return { 0 };
+	}
+
+	return { m_pDescriptorHeap->GetCPUDescriptorHandleForHeapStart().ptr + stableIndex * m_descriptorIncrementSize };
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE ccmem::DescriptorAllocator<true>::GetStableGPUHandle(uint32_t stableIndex) const
+{
+	if (stableIndex >= m_stableCount)
+	{
+		return { 0 };
+	}
+
+	return { m_pDescriptorHeap->GetGPUDescriptorHandleForHeapStart().ptr + stableIndex * m_descriptorIncrementSize };
+}
+
+// <true>: shader-visible descriptor

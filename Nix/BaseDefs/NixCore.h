@@ -8,17 +8,15 @@
 #include <string>
 
 #include "Ntr.h"
-
-#include "CommittedAllocator.h"
-#include "DescriptorAllocator.h"
-#include "PlacedAllocator.h"
-#include "DSVAllocator.h"
-#include "RTVAllocator.h"
+#include "XAllocImpl.h"
+#include "Log.h"
 
 #define SafeDeleteArray(x) { delete[] x; x = nullptr; }
 #define SafeDelete(x) { delete x; x = nullptr; }
 #define SafeReleaseCOM(x) { if (x) { x->Release(); x = nullptr; } }
 #define SafeRelease(x) { if (x) { x->Release(); SafeDelete(x); } }
+
+#define struct_cbuffer struct alignas(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT)
 
 namespace NX
 {

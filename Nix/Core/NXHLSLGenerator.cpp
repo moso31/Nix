@@ -70,6 +70,8 @@ void EncodeGBuffer(NXGBufferParams gBuffer, PS_INPUT input, out PS_OUTPUT Output
 	if (uShadingModel == 2) // burley SSS
 	{
 		Output.GBufferB = float4(normalVS, m.customData0.x);
+		Output.GBufferC = float4(gBuffer.albedo, 1.0f);
+		Output.GBufferD = float4(gBuffer.roughness, gBuffer.metallic, gBuffer.ao, (float)uShadingModel / 255.0f);
 	}
 	else if (uShadingModel == 1)
 	{

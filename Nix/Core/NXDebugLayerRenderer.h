@@ -1,6 +1,6 @@
 #pragma once
 #include "NXRendererPass.h"
-#include "NXBuffer.h"
+#include "NXConstantBuffer.h"
 
 struct CBufferDebugLayer
 {
@@ -27,8 +27,10 @@ public:
 	void	SetShadowMapDebugLayerZoomScale(float value)	{ m_fShadowMapZoomScale = value; }
 
 private:
-	NXShadowMapRenderer*				m_pShadowMapRenderer;
-	NXBuffer<CBufferDebugLayer> 		m_cbParams;
+	NXShadowMapRenderer*					m_pShadowMapRenderer;
+
+	CBufferDebugLayer						m_cbData;
+	NXConstantBuffer<CBufferDebugLayer>		m_cb;
 
 	bool m_bEnableDebugLayer;
 	bool m_bEnableShadowMapDebugLayer;

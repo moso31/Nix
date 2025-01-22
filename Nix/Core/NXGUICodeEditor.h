@@ -1,8 +1,6 @@
 ﻿#pragma once
-#define NOMINMAX
 #include "BaseDefs/CppSTLFully.h"
 #include "BaseDefs/DearImGui.h"
-#undef NOMINMAX
 
 class NXGUICodeEditor
 {
