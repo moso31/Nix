@@ -18,6 +18,7 @@
 #include "NXGUI.h"
 #include "NXDebugLayerRenderer.h"
 #include "NXEditorObjectRenderer.h"
+#include "NXRenderGraph.h"
 
 struct NXEventArgKey;
 class Renderer
@@ -55,6 +56,7 @@ private:
 	void InitEvents();
 	void InitGlobalResources();
 	void InitRenderer();
+	void InitRenderGraph();
 	void InitGUI();
 
 	// 2023.11.5 Nix 的 GUI 控制参数目前暂时使用两种方式：即时更新 和 延迟更新
@@ -98,6 +100,8 @@ private:
 	NXSimpleSSAO*						m_pSSAO;
 	NXDebugLayerRenderer*				m_pDebugLayerRenderer;
 	NXEditorObjectRenderer*				m_pEditorObjectRenderer;
+
+	NXRenderGraph*						m_pRenderGraph;
 
 	Ntr<NXTexture2D>					m_pFinalRT;
 

@@ -67,9 +67,6 @@ void Renderer::Init()
 	m_pShadowMapRenderer = new NXShadowMapRenderer(m_scene);
 	m_pShadowMapRenderer->Init();
 
-	// 2024.7.13 思路转变，将Pass视作渲染流程图的一个节点
-	// 允许实时修改这些参数、比如使用哪些纹理、使用哪个Shader、State的设置等。
-	// 虽然现在没有RenderGraph，但可以基于这个思想去设计代码。
 	m_pShadowTestRenderer = new NXShadowTestRenderer();
 	m_pShadowTestRenderer->SetPassName("Shadow Test");
 	m_pShadowTestRenderer->RegisterTextures(2, 1);
@@ -145,6 +142,10 @@ void Renderer::InitRenderer()
 
 	// 2024.4.9 【InitCommonRT 和 OnResize 会导致不必要的重复创建RT。需要优化】
 	NXResourceManager::GetInstance()->GetTextureManager()->InitCommonRT(m_viewRTSize);
+}
+
+void Renderer::InitRenderGraph()
+{
 }
  
 void Renderer::InitEvents()

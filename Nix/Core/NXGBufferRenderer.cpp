@@ -66,7 +66,6 @@ void NXGBufferRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 	auto pMaterialsArray = NXResourceManager::GetInstance()->GetMaterialManager()->GetMaterials();
 	for (auto pMat : pMaterialsArray)
 	{
-		auto pEasyMat = pMat ? pMat->IsEasyMat() : nullptr;
 		auto pCustomMat = pMat ? pMat->IsCustomMat() : nullptr;
 		pCmdList->OMSetStencilRef(0x0);
 
@@ -76,65 +75,26 @@ void NXGBufferRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 			pMat->Update(); 
 		}
 
-		if (pEasyMat)
+		if (pCustomMat && pCustomMat->GetCompileSuccess())
 		{
-			pEasyMat->Render(pCmdList);
-			m_pCamera->Render(pCmdList);
-			for (auto pSubMesh : pEasyMat->GetRefSubMeshes())
+			if (pCustomMat->GetShadingModel() == NXShadingModel::SubSurface)
 			{
-				if (pSubMesh)
-				{
-					bool bIsVisible = pSubMesh->GetPrimitive()->GetVisible();
-					if (bIsVisible)
-					{
-						pSubMesh->GetPrimitive()->Update(pCmdList);
-						pSubMesh->Render(pCmdList);
-					}
-				}
+				// 3S材质需要写模板缓存
+				pCmdList->OMSetStencilRef(0x1);
 			}
 		}
-		else if (pCustomMat)
+
+		pMat->Render(pCmdList);
+		m_pCamera->Render(pCmdList);
+		for (auto pSubMesh : pMat->GetRefSubMeshes())
 		{
-			if (pCustomMat->GetCompileSuccess())
+			if (pSubMesh)
 			{
-				if (pCustomMat->GetShadingModel() == NXShadingModel::SubSurface)
+				bool bIsVisible = pSubMesh->GetPrimitive()->GetVisible();
+				if (bIsVisible)
 				{
-					// 3S材质需要写模板缓存
-					pCmdList->OMSetStencilRef(0x1);
-				}
-
-				pCustomMat->Render(pCmdList);
-				m_pCamera->Render(pCmdList);
-
-				for (auto pSubMesh : pCustomMat->GetRefSubMeshes())
-				{
-					if (pSubMesh)
-					{
-						bool bIsVisible = pSubMesh->GetPrimitive()->GetVisible();
-						if (bIsVisible)
-						{
-							pSubMesh->GetPrimitive()->Update(pCmdList);
-							pSubMesh->Render(pCmdList);
-						}
-					}
-				}
-			}
-			else
-			{
-				pErrorMat->Render(pCmdList);
-				m_pCamera->Render(pCmdList);
-
-				for (auto pSubMesh : pCustomMat->GetRefSubMeshes())
-				{
-					if (pSubMesh)
-					{
-						bool bIsVisible = pSubMesh->GetPrimitive()->GetVisible();
-						if (bIsVisible)
-						{
-							pSubMesh->GetPrimitive()->Update(pCmdList);
-							pSubMesh->Render(pCmdList);
-						}
-					}
+					pSubMesh->GetPrimitive()->Update(pCmdList);
+					pSubMesh->Render(pCmdList);
 				}
 			}
 		}

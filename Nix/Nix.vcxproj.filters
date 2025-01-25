@@ -496,6 +496,9 @@
     <ClCompile Include="Core\NXTextureLoader.cpp">
       <Filter>Core\DirectX\Manager</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXRenderGraph.cpp">
+      <Filter>Core\DirectX\Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -827,6 +830,9 @@
     </ClInclude>
     <ClInclude Include="Core\NXTextureLoader.h">
       <Filter>Core\DirectX\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXRenderGraph.h">
+      <Filter>Core\DirectX\Renderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -4,6 +4,7 @@
 #include "BaseDefs/NixCore.h"
 #include "ShaderStructures.h"
 #include "NXConstantBuffer.h"
+#include "NXRendererPass.h"
 
 struct CBufferShadowMapObject
 {
@@ -15,7 +16,7 @@ class NXScene;
 class NXRenderableObject;
 class NXTexture2DArray;
 class NXPBRDistantLight;
-class NXShadowMapRenderer
+class NXShadowMapRenderer : public NXRendererPass
 {
 private:
 	explicit NXShadowMapRenderer() = default;
@@ -49,9 +50,6 @@ private:
 	void RenderCSMPerLight(ID3D12GraphicsCommandList* pCmdList, NXPBRDistantLight* pDirLight);
 
 private:
-	ComPtr<ID3D12PipelineState>			m_pPSO;
-	ComPtr<ID3D12RootSignature>			m_pRootSig;
-
 	NXScene*							m_pScene;
 
 	// 2022.5.10 阴影贴图（目前仅用于平行光）

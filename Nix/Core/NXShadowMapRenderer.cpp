@@ -29,37 +29,19 @@ NXShadowMapRenderer::~NXShadowMapRenderer()
 
 void NXShadowMapRenderer::Init()
 {
-	ComPtr<ID3DBlob> pVSBlob, pPSBlob;
-	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\ShadowMap.fx", "VS", pVSBlob.GetAddressOf());
-	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\ShadowMap.fx", "PS", pPSBlob.GetAddressOf());
-
-	std::vector<D3D12_ROOT_PARAMETER> rootParams;
-	rootParams.push_back(NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL)); // b0
-	rootParams.push_back(NX12Util::CreateRootParameterCBV(2, 0, D3D12_SHADER_VISIBILITY_ALL)); // b2
-	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::GetDevice(), rootParams);
+	SetShaderFilePath("Shader\\ShadowMap.fx");
+	SetRootParams(2, 0);
+	SetStaticRootParamCBV(0, 0, &g_cbObject.GetFrameGPUAddresses()); // b0
+	SetStaticRootParamCBV(1, 2, &g_cbShadowTest.GetFrameGPUAddresses()); // b2
 
 	m_pShadowMapDepth = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DArray("Shadow DepthZ RT", DXGI_FORMAT_R32_TYPELESS, m_shadowMapRTSize, m_shadowMapRTSize, m_cascadeCount, 1, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL, false);
 	m_pShadowMapDepth->SetViews(1, 0, m_cascadeCount, 0);
 	for (UINT i = 0; i < m_cascadeCount; i++)
 		m_pShadowMapDepth->SetDSV(i, i, 1);	// DSV 单张切片（每次写cascade深度 只写一片）
 	m_pShadowMapDepth->SetSRV(0, 0, m_cascadeCount); // SRV 读取整个纹理数组（ShadowTest时使用）
+	SetOutputDS(m_pShadowMapDepth);
 
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-	psoDesc.pRootSignature = m_pRootSig.Get();
-	psoDesc.InputLayout = NXGlobalInputLayout::layoutPT;
-	psoDesc.BlendState = NXBlendState<>::Create();
-	psoDesc.RasterizerState = NXRasterizerState<>::Create();
-	psoDesc.DepthStencilState = NXDepthStencilState<true, true, D3D12_COMPARISON_FUNC_LESS>::Create();
-	psoDesc.SampleDesc.Count = 1;
-	psoDesc.SampleDesc.Quality = 0;
-	psoDesc.SampleMask = UINT_MAX;
-	psoDesc.NumRenderTargets = 0;
-	//psoDesc.RTVFormats[0] = DXGI_FORMAT_UNKNOWN; // shadowmap 不需要RTV，写DSV就够了。但不在PSO里至少绑一个RTV的话，会报警告……
-	psoDesc.DSVFormat = NXConvert::DXGINoTypeless(m_pShadowMapDepth->GetFormat(), true);
-	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
-	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
-	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pPSO));
+	InitPSO();
 
 	SetCascadeCount(m_cascadeCount);
 	SetShadowDistance(m_shadowDistance);
@@ -76,11 +58,7 @@ void NXShadowMapRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 {
 	NX12Util::BeginEvent(pCmdList, "Shadow Map");
 
-	m_pShadowMapDepth->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-
-	pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	pCmdList->SetGraphicsRootSignature(m_pRootSig.Get());
-	pCmdList->SetPipelineState(m_pPSO.Get());
+	RenderBefore(pCmdList);
 
 	g_cbDataShadowTest.test_transition = m_test_transition;
 
