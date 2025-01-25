@@ -1,14 +1,14 @@
 #pragma once
+#include "Renderer.h"
 
-class NXShadowMapRenderer;
 class NXGUIShadows
 {
 public:
-	NXGUIShadows(NXShadowMapRenderer* pShadowMap) : m_pShadowMap(pShadowMap) {}
+	NXGUIShadows(Renderer* pRenderer) : m_pRenderer(pRenderer) {}
 	virtual ~NXGUIShadows() {}
 
 	void Render();
 
 private:
-	NXShadowMapRenderer* m_pShadowMap;
+	Renderer* m_pRenderer;
 };

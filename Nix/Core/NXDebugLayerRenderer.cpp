@@ -8,21 +8,16 @@
 #include "NXTexture.h"
 #include "NXSubMeshGeometryEditor.h"
 
-NXDebugLayerRenderer::NXDebugLayerRenderer(NXShadowMapRenderer* pShadowMapRenderer) :
-	m_pShadowMapRenderer(pShadowMapRenderer),
+NXDebugLayerRenderer::NXDebugLayerRenderer() :
 	m_bEnableDebugLayer(false),
 	m_bEnableShadowMapDebugLayer(false),
 	m_fShadowMapZoomScale(1.0f)
 {
 }
 
-void NXDebugLayerRenderer::Init()
+void NXDebugLayerRenderer::SetupInternal()
 {
 	SetPassName("Debug Layer");
-	RegisterTextures(2, 1);
-	SetInputTex(0, NXCommonRT_PostProcessing);
-	SetInputTex(1, m_pShadowMapRenderer->GetShadowMapDepthTex());
-	SetOutputRT(0, NXCommonRT_DebugLayer);
 
 	SetShaderFilePath(L"Shader\\DebugLayer.fx");
 	SetDepthStencilState(NXDepthStencilState<true, false, D3D12_COMPARISON_FUNC_ALWAYS>::Create());
@@ -40,8 +35,6 @@ void NXDebugLayerRenderer::OnResize(const Vector2& rtSize)
 		Vector4(rtSize.x, rtSize.y, 1.0f / rtSize.x, 1.0f / rtSize.y),
 		Vector4(1.0f, 0.0f, 0.0f, 0.0f)
 	};
-
-	NXRendererPass::OnResize();
 }
 
 void NXDebugLayerRenderer::Render(ID3D12GraphicsCommandList* pCmdList)

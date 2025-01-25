@@ -1,16 +1,15 @@
 #pragma once
+#include "Renderer.h"
 
-class NXSimpleSSAO;
 class NXGUISSAO
 {
 public:
-	NXGUISSAO(NXSimpleSSAO* pSSAO);
+	NXGUISSAO(Renderer* pRenderer);
 	virtual ~NXGUISSAO() {}
 
 	void Render();
 
 private:
-	NXSimpleSSAO* m_pSSAO;
-
+	Renderer* m_pRenderer;
 	bool m_bDirty;
 };

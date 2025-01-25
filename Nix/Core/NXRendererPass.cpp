@@ -26,52 +26,28 @@ NXRendererPass::NXRendererPass() :
 	m_srvUavRanges.reserve(1);
 }
 
-void NXRendererPass::RegisterTextures(int inputTexNum, int outputRTNum)
+void NXRendererPass::SetInputTex(NXCommonTexEnum eCommonTex, uint32_t slotIndex)
 {
-	m_pInTexs.resize(inputTexNum);
-	m_pOutRTs.resize(outputRTNum);
+	auto pTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(eCommonTex);
+	if (m_pInTexs.size() <= slotIndex) m_pInTexs.resize(slotIndex + 1);
+	m_pInTexs[slotIndex] = pTex;
 }
 
-void NXRendererPass::SetInputTex(int index, NXCommonRTEnum eCommonTex)
+void NXRendererPass::SetInputTex(const Ntr<NXTexture>& pTex, uint32_t slotIndex)
 {
-	m_pInTexs[index].pTexture = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(eCommonTex);
-	m_pInTexs[index].rtType = eCommonTex;
+	if (m_pInTexs.size() <= slotIndex) m_pInTexs.resize(slotIndex + 1);
+	m_pInTexs[slotIndex] = pTex;
 }
 
-void NXRendererPass::SetInputTex(int index, NXCommonTexEnum eCommonTex)
+void NXRendererPass::SetOutputRT(const Ntr<NXTexture>& pTex, uint32_t rtIndex)
 {
-	m_pInTexs[index].pTexture = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(eCommonTex);
-	m_pInTexs[index].rtType = NXCommonRT_None;
-}
-
-void NXRendererPass::SetOutputRT(int index, NXCommonRTEnum eCommonTex)
-{
-	m_pOutRTs[index].pTexture = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(eCommonTex);
-	m_pOutRTs[index].rtType = eCommonTex;
-}
-
-void NXRendererPass::SetOutputDS(NXCommonRTEnum eCommonTex)
-{
-	m_pOutDS.pTexture = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(eCommonTex);
-	m_pOutDS.rtType = eCommonTex;
-}
-
-void NXRendererPass::SetInputTex(int index, const Ntr<NXTexture>& pTex)
-{
-	m_pInTexs[index].pTexture = pTex;
-	m_pInTexs[index].rtType = NXCommonRT_None;
-}
-
-void NXRendererPass::SetOutputRT(int index, const Ntr<NXTexture>& pTex)
-{
-	m_pOutRTs[index].pTexture = pTex;
-	m_pOutRTs[index].rtType = NXCommonRT_None;
+	if (m_pOutRTs.size() <= rtIndex) m_pOutRTs.resize(rtIndex + 1);
+	m_pOutRTs[rtIndex] = pTex;
 }
 
 void NXRendererPass::SetOutputDS(const Ntr<NXTexture>& pTex)
 {
-	m_pOutDS.pTexture = pTex;
-	m_pOutDS.rtType = NXCommonRT_None;
+	m_pOutDS = pTex;
 }
 
 void NXRendererPass::SetInputLayout(const D3D12_INPUT_LAYOUT_DESC& desc)
@@ -139,12 +115,23 @@ void NXRendererPass::InitPSO()
 	m_pPSO->SetName(psoName.c_str());
 }
 
-void NXRendererPass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
+void NXRendererPass::RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList)
 {
 	std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> ppRTVs;
 	for (auto& pTex : m_pOutRTs) ppRTVs.push_back(pTex->GetRTV());
-
 	pCmdList->OMSetRenderTargets((UINT)ppRTVs.size(), ppRTVs.data(), true, m_pOutDS.IsNull() ? nullptr : &m_pOutDS->GetDSV());
+
+	// DX12需要及时更新纹理的资源状态
+	for (int i = 0; i < (int)m_pInTexs.size(); i++)
+		m_pInTexs[i]->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	for (int i = 0; i < (int)m_pOutRTs.size(); i++)
+		m_pOutRTs[i]->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	if (m_pOutDS.IsValid())
+		m_pOutDS->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+}
+
+void NXRendererPass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
+{
 	pCmdList->OMSetStencilRef(m_stencilRef);
 
 	pCmdList->SetGraphicsRootSignature(m_pRootSig.Get());
@@ -164,22 +151,6 @@ void NXRendererPass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 		for (int i = 0; i < (int)m_pInTexs.size(); i++) NXShVisDescHeap->PushFluid(m_pInTexs[i]->GetSRV());
 		D3D12_GPU_DESCRIPTOR_HANDLE srvHandle0 = NXShVisDescHeap->Submit();
 
-		// DX12需要及时更新纹理的资源状态
-		for (int i = 0; i < (int)m_pInTexs.size(); i++)
-		{
-			m_pInTexs[i]->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-		}
-
-		for (int i = 0; i < (int)m_pOutRTs.size(); i++)
-		{
-			m_pOutRTs[i]->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_RENDER_TARGET);
-		}
-
-		if (m_pOutDS.IsValid())
-		{
-			m_pOutDS->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-		}
-
 		// 2024.6.8
 		// 根据目前在.h中的根参数-寄存器布局规定，
 		// m_cbvManagements 中 元素的数量就是 Table 的 slot 索引。
@@ -191,6 +162,7 @@ void NXRendererPass::Render(ID3D12GraphicsCommandList* pCmdList)
 {
 	NX12Util::BeginEvent(pCmdList, m_passName.c_str());
 
+	RenderSetTargetAndState(pCmdList);
 	RenderBefore(pCmdList);
 
 	const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews(m_rtSubMeshName);
@@ -242,22 +214,4 @@ void NXRendererPass::AddStaticSampler(D3D12_FILTER filter, D3D12_TEXTURE_ADDRESS
 {
 	auto& samplerDesc = NXSamplerManager::GetInstance()->CreateIso((int)m_staticSamplers.size(), 0, D3D12_SHADER_VISIBILITY_ALL, filter, addrUVW);
 	m_staticSamplers.push_back(samplerDesc);
-}
-
-void NXRendererPass::OnResize()
-{
-	for (auto& pTex : m_pInTexs)
-	{
-		if (pTex.IsCommonRT())
-			pTex.pTexture = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(pTex.rtType);
-	}
-
-	for (auto& pTex : m_pOutRTs)
-	{
-		if (pTex.IsCommonRT())
-			pTex.pTexture = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(pTex.rtType);
-	}
-
-	if (m_pOutDS.IsCommonRT())
-		m_pOutDS.pTexture = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(m_pOutDS.rtType);
 }

@@ -18,6 +18,7 @@
 #include "NXGUI.h"
 #include "NXDebugLayerRenderer.h"
 #include "NXEditorObjectRenderer.h"
+#include "NXRenderGraph.h"
 
 struct NXEventArgKey;
 class Renderer
@@ -45,16 +46,14 @@ public:
 
 	void ClearAllPSResources();
 
-	NXSimpleSSAO*			GetSSAORenderer()			{ return m_pSSAO; }
-	NXShadowMapRenderer*	GetShadowMapRenderer()		{ return m_pShadowMapRenderer; }
-	// 2023.3.10 目前 PostProcessing 只有 ColorMapping…… 所以这两个暂时算是同义词。
-	NXColorMappingRenderer* GetColorMappingRenderer()   { return m_pColorMappingRenderer; }
-	NXDebugLayerRenderer*	GetDebugLayerRenderer()		{ return m_pDebugLayerRenderer; }
+	NXRenderGraph* GetRenderGraph()				{ return m_pRenderGraph; }
+	bool	GetEnableDebugLayer()				{ return m_bEnableDebugLayer; }
+	void	SetEnableDebugLayer(bool value)		{ m_bEnableDebugLayer = value; }
 
 private:
 	void InitEvents();
 	void InitGlobalResources();
-	void InitRenderer();
+	void InitRenderGraph();
 	void InitGUI();
 
 	// 2023.11.5 Nix 的 GUI 控制参数目前暂时使用两种方式：即时更新 和 延迟更新
@@ -76,31 +75,16 @@ private:
 	MultiFrame<ComPtr<ID3D12CommandAllocator>>		m_pCommandAllocator;
 	MultiFrame<ComPtr<ID3D12GraphicsCommandList>>	m_pCommandList;
 
-	Vector2								m_viewRTSize;
-	NXBRDFLut*							m_pBRDFLut;
+	Vector2				m_viewRTSize;
+	NXBRDFLut*			m_pBRDFLut;
 
-	NXScene*							m_scene;
+	NXScene*			m_scene;
 
-	// 注：和其他 Renderer 不同，GBufferRenderer 不像其他Renderer那样从 NXRendererPass派生。
-	// 它比较特殊（需要按Mesh绘制且每个Mesh材质的cmdlist参数都不同）
-	NXGBufferRenderer*					m_pGBufferRenderer;
+	NXRenderGraph*		m_pRenderGraph;
+	Ntr<NXTexture2D>	m_pFinalRT;
 
-	NXDepthPrepass*						m_pDepthPrepass;
-	NXDepthRenderer*					m_pDepthRenderer;
-	NXShadowMapRenderer*				m_pShadowMapRenderer;
-	NXShadowTestRenderer*				m_pShadowTestRenderer;
-	NXDeferredRenderer*					m_pDeferredRenderer;
-	NXSubSurfaceRenderer*				m_pSubSurfaceRenderer;
-	NXForwardRenderer*					m_pForwardRenderer;
-	//NXDepthPeelingRenderer*				m_pDepthPeelingRenderer;
-	NXSkyRenderer*						m_pSkyRenderer;
-	NXColorMappingRenderer*				m_pColorMappingRenderer;
-	NXSimpleSSAO*						m_pSSAO;
-	NXDebugLayerRenderer*				m_pDebugLayerRenderer;
-	NXEditorObjectRenderer*				m_pEditorObjectRenderer;
+	bool				m_bEnableDebugLayer;
 
-	Ntr<NXTexture2D>					m_pFinalRT;
-
-	NXGUI*								m_pGUI;
-	bool								m_bRenderGUI;
+	NXGUI*				m_pGUI;
+	bool				m_bRenderGUI;
 };

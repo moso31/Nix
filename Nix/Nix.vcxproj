@@ -223,6 +223,7 @@
     <ClCompile Include="Core\NXGUIInspector.cpp" />
     <ClCompile Include="Core\NXPSOManager.cpp" />
     <ClCompile Include="Core\NXRendererPass.cpp" />
+    <ClCompile Include="Core\NXRenderGraph.cpp" />
     <ClCompile Include="Core\NXSamplerManager.cpp" />
     <ClCompile Include="Core\NXGUIMaterialShaderEditor.cpp" />
     <ClCompile Include="Core\NXGUIView.cpp" />
@@ -277,6 +278,11 @@
     <ClCompile Include="Core\Renderer.cpp" />
     <ClCompile Include="Core\ShaderComplier.cpp" />
     <ClCompile Include="Core\NXShaderVisibleDescriptorHeap.cpp" />
+    <ClCompile Include="NXGUIRenderGraph.cpp" />
+    <ClCompile Include="NXRefCountable.cpp" />
+    <ClCompile Include="NXRGBuilder.cpp" />
+    <ClCompile Include="NXRGHandle.cpp" />
+    <ClCompile Include="NXRGPassNode.cpp" />
     <ClCompile Include="Nix\HBVH.cpp" />
     <ClCompile Include="Nix\NXBuffer.cpp" />
     <ClCompile Include="Nix\NXDepthPrepass.cpp" />
@@ -302,6 +308,7 @@
     <ClCompile Include="Nix\NXScene.cpp" />
     <ClCompile Include="Nix\Script\NXScript.cpp" />
     <ClCompile Include="Nix\NXTransform.cpp" />
+    <ClCompile Include="NXRGResource.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BaseDefs\CppSTLFully.h" />
@@ -327,6 +334,7 @@
     <ClInclude Include="Core\NXGUIInspector.h" />
     <ClInclude Include="Core\NXPSOManager.h" />
     <ClInclude Include="Core\NXRendererPass.h" />
+    <ClInclude Include="Core\NXRenderGraph.h" />
     <ClInclude Include="Core\NXSamplerManager.h" />
     <ClInclude Include="Core\NXGUIMaterialShaderEditor.h" />
     <ClInclude Include="Core\NXGUIView.h" />
@@ -414,6 +422,11 @@
     <ClInclude Include="Nix\Script\NXScript.h" />
     <ClInclude Include="Nix\Script\NXScriptType.h" />
     <ClInclude Include="Nix\NXTransform.h" />
+    <ClInclude Include="NXGUIRenderGraph.h" />
+    <ClInclude Include="NXRGBuilder.h" />
+    <ClInclude Include="NXRGPassNode.h" />
+    <ClInclude Include="NXRGHandle.h" />
+    <ClInclude Include="NXRGResource.h" />
     <None Include="Shader\BRDFCommon.fx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>

@@ -17,18 +17,9 @@ NXSubSurfaceRenderer::~NXSubSurfaceRenderer()
 {
 }
 
-void NXSubSurfaceRenderer::Init()
+void NXSubSurfaceRenderer::SetupInternal()
 {
 	SetPassName("Burley 3S");
-	RegisterTextures(6, 1);
-	SetInputTex(0, NXCommonRT_Lighting0);
-	SetInputTex(1, NXCommonRT_Lighting1);
-	SetInputTex(2, NXCommonRT_Lighting2);
-	SetInputTex(3, NXCommonRT_GBuffer1);
-	SetInputTex(4, NXCommonRT_DepthZ_R32);
-	SetInputTex(5, NXCommonTex_Noise2DGray_64x64);
-	SetOutputRT(0, NXCommonRT_SSSLighting);
-	SetOutputDS(NXCommonRT_DepthZ);
 
 	SetShaderFilePath(L"Shader\\SSSSSRenderer.fx");
 	SetDepthStencilState(NXDepthStencilState<false, false, D3D12_COMPARISON_FUNC_LESS, true, 0xFF, 0xFF, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_COMPARISON_FUNC_EQUAL>::Create());

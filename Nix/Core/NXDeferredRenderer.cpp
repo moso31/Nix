@@ -3,7 +3,6 @@
 #include "DirectResources.h"
 #include "NXResourceManager.h"
 
-#include "NXBRDFlut.h"
 #include "NXRenderStates.h"
 #include "NXSamplerManager.h"
 #include "NXGlobalBuffers.h"
@@ -12,8 +11,7 @@
 #include "NXCubeMap.h"
 #include "NXSubMeshGeometryEditor.h"
 
-NXDeferredRenderer::NXDeferredRenderer(NXScene* pScene, NXBRDFLut* pBRDFLut) :
-	m_pBRDFLut(pBRDFLut),
+NXDeferredRenderer::NXDeferredRenderer(NXScene* pScene) :
 	m_pScene(pScene)
 {
 }
@@ -22,25 +20,9 @@ NXDeferredRenderer::~NXDeferredRenderer()
 {
 }
 
-void NXDeferredRenderer::Init()
+void NXDeferredRenderer::SetupInternal()
 {
 	SetPassName("Deferred Rendering");
-
-	RegisterTextures(9, 4);
-	SetInputTex(0, NXCommonRT_GBuffer0);
-	SetInputTex(1, NXCommonRT_GBuffer1);
-	SetInputTex(2, NXCommonRT_GBuffer2);
-	SetInputTex(3, NXCommonRT_GBuffer3);
-	SetInputTex(4, NXCommonRT_DepthZ);
-	SetInputTex(5, m_pScene->GetCubeMap()->GetCubeMap());
-	SetInputTex(6, m_pScene->GetCubeMap()->GetPreFilterMap());
-	SetInputTex(7, m_pBRDFLut->GetTex());
-	SetInputTex(8, NXCommonRT_ShadowTest);
-
-	SetOutputRT(0, NXCommonRT_Lighting0);
-	SetOutputRT(1, NXCommonRT_Lighting1);
-	SetOutputRT(2, NXCommonRT_Lighting2);
-	SetOutputRT(3, NXCommonRT_SSSLighting);
 
 	SetShaderFilePath("Shader\\DeferredRender.fx");
 	SetDepthStencilState(NXDepthStencilState<true, false, D3D12_COMPARISON_FUNC_LESS_EQUAL>::Create());

@@ -73,14 +73,14 @@ void NXEasyMaterial::Init()
 
 	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::GetDevice(), rootParams, staticSamplers);
 
-	Ntr<NXTexture2D> pGBuffers[] =
+	DXGI_FORMAT fmtGBuffers[] =
 	{
-		NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer0),
-		NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer1),
-		NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer2),
-		NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer3),
+		DXGI_FORMAT_R8G8B8A8_UNORM,
+		DXGI_FORMAT_R32G32B32A32_FLOAT,
+		DXGI_FORMAT_R10G10B10A2_UNORM,
+		DXGI_FORMAT_R8G8B8A8_UNORM
 	};
-	Ntr<NXTexture2D> pDepthZ = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
+	DXGI_FORMAT fmtDepthZ = DXGI_FORMAT_R24G8_TYPELESS;
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.pRootSignature = m_pRootSig.Get();
@@ -90,10 +90,10 @@ void NXEasyMaterial::Init()
 	psoDesc.SampleDesc.Count = 1;
 	psoDesc.SampleDesc.Quality = 0;
 	psoDesc.SampleMask = UINT_MAX;
-	psoDesc.NumRenderTargets = _countof(pGBuffers);
-	for (int i = 0; i < _countof(pGBuffers); i++) 
-		psoDesc.RTVFormats[i] = pGBuffers[i]->GetFormat();
-	psoDesc.DSVFormat = NXConvert::DXGINoTypeless(pDepthZ->GetFormat(), true);
+	psoDesc.NumRenderTargets = _countof(fmtGBuffers);
+	for (int i = 0; i < _countof(fmtGBuffers); i++)
+		psoDesc.RTVFormats[i] = fmtGBuffers[i];
+	psoDesc.DSVFormat = NXConvert::DXGINoTypeless(fmtDepthZ, true);
 	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -215,14 +215,14 @@ void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::s
 
 		m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::GetDevice(), rootParams, staticSamplers);
 
-		Ntr<NXTexture2D> pGBuffers[] =
+		DXGI_FORMAT fmtGBuffers[] =
 		{
-			NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer0),
-			NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer1),
-			NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer2),
-			NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_GBuffer3),
+			DXGI_FORMAT_R8G8B8A8_UNORM,
+			DXGI_FORMAT_R32G32B32A32_FLOAT,
+			DXGI_FORMAT_R10G10B10A2_UNORM,
+			DXGI_FORMAT_R8G8B8A8_UNORM
 		};
-		Ntr<NXTexture2D> pDepthZ = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
+		DXGI_FORMAT fmtDepthZ = DXGI_FORMAT_R24G8_TYPELESS;
 
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 		psoDesc.pRootSignature = m_pRootSig.Get();
@@ -232,10 +232,10 @@ void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::s
 		psoDesc.SampleDesc.Count = 1;
 		psoDesc.SampleDesc.Quality = 0;
 		psoDesc.SampleMask = UINT_MAX;
-		psoDesc.NumRenderTargets = _countof(pGBuffers);
-		for (int i = 0; i < _countof(pGBuffers); i++)
-			psoDesc.RTVFormats[i] = pGBuffers[i]->GetFormat();
-		psoDesc.DSVFormat = NXConvert::DXGINoTypeless(pDepthZ->GetFormat(), true);
+		psoDesc.NumRenderTargets = _countof(fmtGBuffers);
+		for (int i = 0; i < _countof(fmtGBuffers); i++)
+			psoDesc.RTVFormats[i] = fmtGBuffers[i];
+		psoDesc.DSVFormat = NXConvert::DXGINoTypeless(fmtDepthZ, true);
 		psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 		psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 		psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;

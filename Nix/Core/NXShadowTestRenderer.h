@@ -7,4 +7,6 @@ class NXShadowTestRenderer : public NXRendererPass
 public:
 	NXShadowTestRenderer() = default;
 	virtual ~NXShadowTestRenderer() {};
+
+	virtual void SetupInternal() override;
 };

@@ -11,24 +11,19 @@ struct CBufferDebugLayer
 class NXShadowMapRenderer;
 class NXDebugLayerRenderer : public NXRendererPass
 {
-	NXDebugLayerRenderer() = default;
 public:
-	NXDebugLayerRenderer(NXShadowMapRenderer* m_pShadowMapRenderer);
+	NXDebugLayerRenderer();
 
-	void Init();
+	virtual void SetupInternal() override;
 	void OnResize(const Vector2& rtSize);
-	void Render(ID3D12GraphicsCommandList* pCmdList);
+	virtual void Render(ID3D12GraphicsCommandList* pCmdList) override;
 
-	bool	GetEnableDebugLayer()							{ return m_bEnableDebugLayer; }
 	bool	GetEnableShadowMapDebugLayer()					{ return m_bEnableShadowMapDebugLayer; }
 	float	GetShadowMapDebugLayerZoomScale()				{ return m_fShadowMapZoomScale; }
-	void	SetEnableDebugLayer(bool value)					{ m_bEnableDebugLayer = value; }
 	void	SetEnableShadowMapDebugLayer(bool value)		{ m_bEnableShadowMapDebugLayer = value; }
 	void	SetShadowMapDebugLayerZoomScale(float value)	{ m_fShadowMapZoomScale = value; }
 
 private:
-	NXShadowMapRenderer*					m_pShadowMapRenderer;
-
 	CBufferDebugLayer						m_cbData;
 	NXConstantBuffer<CBufferDebugLayer>		m_cb;
 

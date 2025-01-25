@@ -4,36 +4,6 @@
 #include "DirectResources.h"
 #include "NXResourceManager.h"
 
-void NXTextureResourceManager::InitCommonRT(const Vector2& rtSize)
-{
-	ResizeCommonRT(rtSize);
-}
-
-void NXTextureResourceManager::ResizeCommonRT(const Vector2& rtSize)
-{
-	m_pCommonRT.clear();
-	m_pCommonRT.resize(NXCommonRT_SIZE);
-
-	m_pCommonRT[NXCommonRT_DepthZ] = CreateRenderTexture("Scene DepthZ RT", DXGI_FORMAT_R24G8_TYPELESS, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
-	m_pCommonRT[NXCommonRT_DepthZ_R32] = CreateRenderTexture("Scene DepthZ R32 RT", DXGI_FORMAT_R32_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-	m_pCommonRT[NXCommonRT_Lighting0] = CreateRenderTexture("Lighting RT0", DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-	m_pCommonRT[NXCommonRT_Lighting1] = CreateRenderTexture("Lighting RT1", DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-	m_pCommonRT[NXCommonRT_Lighting2] = CreateRenderTexture("Lighting RT2", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-	m_pCommonRT[NXCommonRT_SSSLighting] = CreateRenderTexture("SSS Lighting RT", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-	m_pCommonRT[NXCommonRT_ShadowTest] = CreateRenderTexture("Shadow Test RT", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-	m_pCommonRT[NXCommonRT_GBuffer0] = CreateRenderTexture("GBuffer RT0", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-	m_pCommonRT[NXCommonRT_GBuffer1] = CreateRenderTexture("GBuffer RT1", DXGI_FORMAT_R32G32B32A32_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-	m_pCommonRT[NXCommonRT_GBuffer2] = CreateRenderTexture("GBuffer RT2", DXGI_FORMAT_R10G10B10A2_UNORM, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-	m_pCommonRT[NXCommonRT_GBuffer3] = CreateRenderTexture("GBuffer RT3", DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-	m_pCommonRT[NXCommonRT_PostProcessing] = CreateRenderTexture("Post Processing", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-	m_pCommonRT[NXCommonRT_DebugLayer] = CreateRenderTexture("Debug Layer Out RT", DXGI_FORMAT_R11G11B10_FLOAT, (UINT)rtSize.x, (UINT)rtSize.y, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-}
-
-Ntr<NXTexture2D> NXTextureResourceManager::GetCommonRT(NXCommonRTEnum eRT)
-{
-	return m_pCommonRT.empty() ? nullptr : m_pCommonRT[eRT];
-}
-
 void NXTextureResourceManager::InitCommonTextures()
 {
 	m_pCommonTex.resize(NXCommonTex_SIZE);

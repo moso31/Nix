@@ -1,10 +1,9 @@
 #pragma once
-#include "BaseDefs/DX12.h"
-#include "ShaderStructures.h"
+#include "NXRendererPass.h"
 
 class NXScene;
 class NXCamera;
-class NXGBufferRenderer
+class NXGBufferRenderer : public NXRendererPass
 {
 private:
 	explicit NXGBufferRenderer() = default;
@@ -12,9 +11,10 @@ public:
 	NXGBufferRenderer(NXScene* pScene);
 	virtual ~NXGBufferRenderer();
 
-	void Init();
+	virtual void SetupInternal() override {}
+	virtual void Render(ID3D12GraphicsCommandList* pCmdList) override;
+
 	void SetCamera(NXCamera* pCamera);
-	void Render(ID3D12GraphicsCommandList* pCmdList);
 
 	void Release();
 

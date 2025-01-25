@@ -9,10 +9,6 @@ public:
 	NXTextureResourceManager() {};
     virtual ~NXTextureResourceManager() {};
 
-    void InitCommonRT(const Vector2& rtSize);
-    void ResizeCommonRT(const Vector2& rtSize);
-    Ntr<NXTexture2D> GetCommonRT(NXCommonRTEnum eRT);
-
     void InitCommonTextures();
     Ntr<NXTexture2D> GetCommonTextures(NXCommonTexEnum eTex);
 
@@ -29,7 +25,5 @@ public:
 
 private:
     std::vector<Ntr<NXTexture2D>> m_pCommonTex;
-    std::vector<Ntr<NXTexture2D>> m_pCommonRT;
-
     std::vector<Ntr<NXTexture>> m_pTextureArrayInternal;
 };

@@ -9,8 +9,8 @@ public:
 	NXEditorObjectRenderer(NXScene* pScene);
 	virtual ~NXEditorObjectRenderer();
 
-	void Init();
-	void Render(ID3D12GraphicsCommandList* pCmdList);
+	virtual void SetupInternal() override;
+	virtual void Render(ID3D12GraphicsCommandList* pCmdList) override;
 
 	void Release();
 

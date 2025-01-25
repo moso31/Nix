@@ -7,5 +7,5 @@ public:
 	NXSubSurfaceRenderer();
 	virtual ~NXSubSurfaceRenderer();
 
-	void Init();
+	virtual void SetupInternal() override;
 };
