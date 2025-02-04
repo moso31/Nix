@@ -1,16 +1,27 @@
 #pragma once
-#include "NXRendererPass.h"
+#include "BaseDefs/NixCore.h"
 
+class NXRGHandle;
+class NXRGPassNode;
+class NXRGResource;
+class NXRGDescription;
+class NXTexture;
 class NXRenderGraph
 {
 public:
 	NXRenderGraph();
 	virtual ~NXRenderGraph();
 
-	void AddPass(NXRendererPass* pPass);
-	void Sort();
+	void AddPass(NXRGPassNode* pPassNode, std::function<void()> setup, std::function<void()> execute);
+	void Compile();
 	void Execute();
 
+	void AddResource(NXRGResource* pResources);
+
 private:
-	std::vector<NXRendererPass*> m_Passes;
+	// 图依赖的所有pass
+	std::vector<NXRGPassNode*> m_passNodes;
+
+	// 图依赖的资源RT
+	std::vector<NXRGResource*> m_resources;
 };

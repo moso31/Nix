@@ -112,6 +112,9 @@
     <Filter Include="Nix\TextureBuffer">
       <UniqueIdentifier>{d5d9ef4c-09ae-4295-aecb-257ddc7dbfba}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Core\DirectX\Renderer\RenderGraph">
+      <UniqueIdentifier>{7364bf99-9d72-4455-9833-5e144ff234c4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Common.fx">
@@ -497,7 +500,13 @@
       <Filter>Core\DirectX\Manager</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXRenderGraph.cpp">
-      <Filter>Core\DirectX\Renderer</Filter>
+      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="NXRGResource.cpp">
+      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="NXRGPassNode.cpp">
+      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -832,7 +841,16 @@
       <Filter>Core\DirectX\Manager</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXRenderGraph.h">
-      <Filter>Core\DirectX\Renderer</Filter>
+      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="NXRGResource.h">
+      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="NXRGHandle.h">
+      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="NXRGPassNode.h">
+      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

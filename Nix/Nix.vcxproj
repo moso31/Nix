@@ -278,6 +278,7 @@
     <ClCompile Include="Core\Renderer.cpp" />
     <ClCompile Include="Core\ShaderComplier.cpp" />
     <ClCompile Include="Core\NXShaderVisibleDescriptorHeap.cpp" />
+    <ClCompile Include="NXRGPassNode.cpp" />
     <ClCompile Include="Nix\HBVH.cpp" />
     <ClCompile Include="Nix\NXBuffer.cpp" />
     <ClCompile Include="Nix\NXDepthPrepass.cpp" />
@@ -303,6 +304,7 @@
     <ClCompile Include="Nix\NXScene.cpp" />
     <ClCompile Include="Nix\Script\NXScript.cpp" />
     <ClCompile Include="Nix\NXTransform.cpp" />
+    <ClCompile Include="NXRGResource.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BaseDefs\CppSTLFully.h" />
@@ -416,6 +418,9 @@
     <ClInclude Include="Nix\Script\NXScript.h" />
     <ClInclude Include="Nix\Script\NXScriptType.h" />
     <ClInclude Include="Nix\NXTransform.h" />
+    <ClInclude Include="NXRGPassNode.h" />
+    <ClInclude Include="NXRGHandle.h" />
+    <ClInclude Include="NXRGResource.h" />
     <None Include="Shader\BRDFCommon.fx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
