@@ -4,7 +4,7 @@
 enum NXRGHandleType
 {
 	RG_Texture2D,
-	RG_TextureArray
+	RG_Texture2DArray
 };
 
 enum NXRGHandleFlags
@@ -15,10 +15,17 @@ enum NXRGHandleFlags
 
 struct NXRGDescription
 {
+	// 纹理的size
 	uint32_t width;
 	uint32_t height;
+
+	// 纹理的DXGI格式
 	DXGI_FORMAT format;
+
+	// 纹理是RT还是DS，如果是RT运行多张；如果是DS只能放一张
 	NXRGHandleFlags handleFlags;
+
+	// 纹理类型【TODO 真的有用吗？】
 	NXRGHandleType handleType;
 };
 

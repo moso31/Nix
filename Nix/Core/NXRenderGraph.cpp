@@ -14,6 +14,8 @@ NXRenderGraph::~NXRenderGraph()
 
 void NXRenderGraph::AddPass(NXRGPassNode* pPassNode, std::function<void()> setup, std::function<void()> execute)
 {
+	pPassNode->RegisterSetupFunc(setup);
+	pPassNode->RegisterExecuteFunc(execute);
 	m_passNodes.push_back(pPassNode);
 }
 
@@ -40,6 +42,11 @@ void NXRenderGraph::Compile()
 		pTexture2D->SetSRV(0);
 
 		pResource->SetResource(pTexture2D);
+	}
+
+	for (auto pass : m_passNodes)
+	{
+		pass->Compile();
 	}
 }
 

@@ -1,15 +1,15 @@
 #include "NXRGPassNode.h"
 #include "NXRGHandle.h"
+#include "NXRendererPass.h"
 
 NXRGResource* NXRGPassNode::Create(const NXRGDescription& desc)
 {
 	m_pRenderGraph->AddResource(new NXRGResource(desc));
 }
 
-NXRGResource* NXRGPassNode::Read(NXRGResource* pResource)
+void NXRGPassNode::Read(NXRGResource* pResource)
 {
 	m_inputs.push_back(pResource);
-	return pResource;
 }
 
 NXRGResource* NXRGPassNode::Write(NXRGResource* pResource)
@@ -26,8 +26,33 @@ NXRGResource* NXRGPassNode::Write(NXRGResource* pResource)
 		// 创建新版本
 		NXRGResource* pNewVersionResource = new NXRGResource(pResource->GetHandle());
 		m_outputs.push_back(pNewVersionResource);
+		pNewVersionResource->MakeWriteConnect(); // 标记为已写入
+		m_pRenderGraph->AddResource(pNewVersionResource); // 添加到graph中
 		return pNewVersionResource;
 	}
+}
+
+void NXRGPassNode::Compile()
+{
+	for (int i = 0; i < m_inputs.size(); i++)
+	{
+		m_pPass->SetInputTex(i, m_inputs[i]->GetResource());
+	}
+
+	for (int i = 0; i < m_outputs.size(); i++)
+	{
+		auto flag = m_outputs[i]->GetDescription().handleFlags;
+		if (flag == RG_RenderTarget)
+		{
+			m_pPass->SetOutputRT(i, m_outputs[i]->GetResource());
+		}
+		else if (flag == RG_DepthStencil)
+		{
+			m_pPass->SetOutputDS(m_outputs[i]->GetResource());
+		}
+	}
+
+	m_setupFunc();
 }
 
 void NXRGPassNode::Execute()
