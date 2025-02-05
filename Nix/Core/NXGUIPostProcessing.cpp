@@ -1,10 +1,8 @@
 #include "BaseDefs/DearImGui.h"
-
 #include "NXGUIPostProcessing.h"
-#include "NXColorMappingRenderer.h"
 
-NXGUIPostProcessing::NXGUIPostProcessing(NXColorMappingRenderer* pPostProcessingRenderer) :
-    m_pPostProcessingRenderer(pPostProcessingRenderer)
+NXGUIPostProcessing::NXGUIPostProcessing(Renderer* pRenderer) :
+    m_pRenderer(pRenderer)
 {
 }
 
@@ -12,10 +10,18 @@ void NXGUIPostProcessing::Render()
 {
 	ImGui::Begin("Post Processing");
 
-    bool bPostProcessingEnable = m_pPostProcessingRenderer->GetEnable();
+	NXColorMappingRenderer* pPass = (NXColorMappingRenderer*)m_pRenderer->GetRenderGraph()->GetPass("PostProcessing");
+	if (!pPass)
+	{
+		ImGui::Text("Debug Layer Renderer is not found.");
+		ImGui::End();
+		return;
+	}
+
+    bool bPostProcessingEnable = pPass->GetEnable();
     if (ImGui::Checkbox("Enable##post_processing", &bPostProcessingEnable))
     {
-        m_pPostProcessingRenderer->SetEnable(bPostProcessingEnable);
+		pPass->SetEnable(bPostProcessingEnable);
     }
 
 	ImGui::End();

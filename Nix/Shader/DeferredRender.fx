@@ -8,10 +8,10 @@ Texture2D txRT1 : register(t1);
 Texture2D txRT2 : register(t2);
 Texture2D txRT3 : register(t3);
 Texture2D txRTDepth : register(t4);
-TextureCube txCubeMap : register(t5);
-TextureCube txPreFilterMap : register(t6);
-Texture2D txBRDF2DLUT : register(t7);
-Texture2D txShadowTest : register(t8);
+Texture2D txShadowTest : register(t5);
+TextureCube txCubeMap : register(t6);
+TextureCube txPreFilterMap : register(t7);
+Texture2D txBRDF2DLUT : register(t8);
 
 SamplerState ssLinearWrap : register(s0);
 SamplerState ssLinearClamp : register(s1);
@@ -63,7 +63,6 @@ struct DeferredRenderingResult
 {
 	float4 Lighting				: SV_Target0;
 	float4 LightingEx			: SV_Target1;
-	float4 LightingSSSTransmit	: SV_Target2;
 	float4 LightingCopy			: SV_Target3;
 };
 
@@ -231,5 +230,4 @@ void PS(PS_INPUT input, out DeferredRenderingResult output)
 		output.LightingEx = float4(0.0f, 0.0f, 0.0f, 1.0f);
 	}
 	output.LightingCopy = output.Lighting;
-	output.LightingSSSTransmit = float4(0.0f, 0.0f, 0.0f, 1.0f);
 }

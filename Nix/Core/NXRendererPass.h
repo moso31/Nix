@@ -28,12 +28,9 @@ public:
 
 	void SetPassName(const std::string& passName) { m_passName = passName; }
 
-	void PushInputTex(NXCommonRTEnum eCommonTex);
 	void PushInputTex(NXCommonTexEnum eCommonTex);
 	void PushInputTex(const Ntr<NXTexture>& pTex);
-	void PushOutputRT(NXCommonRTEnum eCommonTex);
 	void PushOutputRT(const Ntr<NXTexture>& pTex);
-	void SetOutputDS(NXCommonRTEnum eCommonTex);
 	void SetOutputDS(const Ntr<NXTexture>& pTex);
 
 	void SetInputLayout(const D3D12_INPUT_LAYOUT_DESC& desc);
@@ -71,6 +68,7 @@ public:
 	// 在所有内容设置完毕后，再调用这个函数，创建PSO
 	void InitPSO();
 
+	virtual void RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList);
 	virtual void RenderBefore(ID3D12GraphicsCommandList* pCmdList);
 	virtual void Render(ID3D12GraphicsCommandList* pCmdList);
 

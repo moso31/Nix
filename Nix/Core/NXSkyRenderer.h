@@ -8,7 +8,7 @@ public:
 	NXSkyRenderer(NXScene* pScene);
 	virtual ~NXSkyRenderer();
 
-	void Init();
+	virtual void SetupInternal() override;
 
 	void Release() {}
 

@@ -1,16 +1,14 @@
 #pragma once
-#include "NXDebugLayerRenderer.h"
-
-class NXDebugLayerRenderer;
+#include "Renderer.h"
 
 class NXGUIDebugLayer
 {
 public:
-	NXGUIDebugLayer(NXDebugLayerRenderer* pDebugLayer) : m_pDebugLayer(pDebugLayer) {}
+	NXGUIDebugLayer(Renderer* pRenderer) : m_pRenderer(pRenderer) {}
 	virtual ~NXGUIDebugLayer() {}
 
 	void Render();
 
 private:
-	NXDebugLayerRenderer* m_pDebugLayer;
+	Renderer* m_pRenderer;
 };

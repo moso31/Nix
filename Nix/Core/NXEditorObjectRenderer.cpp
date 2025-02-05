@@ -21,11 +21,9 @@ NXEditorObjectRenderer::~NXEditorObjectRenderer()
 {
 }
 
-void NXEditorObjectRenderer::Init()
+void NXEditorObjectRenderer::SetupInternal()
 {
 	SetPassName("Editor Objects");
-	RegisterTextures(0, 1);
-	SetOutputRT(0, NXCommonRT_PostProcessing);
 
 	SetShaderFilePath(L"Shader\\EditorObjects.fx");
 	SetBlendState(NXBlendState<false, false, true, false, D3D12_BLEND_SRC_ALPHA, D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_OP_ADD>::Create());
@@ -43,6 +41,7 @@ void NXEditorObjectRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 {
 	NX12Util::BeginEvent(pCmdList, "Editor objects");
 
+	NXRendererPass::RenderSetTargetAndState(pCmdList);
 	NXRendererPass::RenderBefore(pCmdList);
 
   	NXEditorObjectManager* pEditorObjManager = m_pScene->GetEditorObjManager();

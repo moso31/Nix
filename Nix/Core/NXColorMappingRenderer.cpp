@@ -18,14 +18,10 @@ NXColorMappingRenderer::~NXColorMappingRenderer()
 {
 }
 
-void NXColorMappingRenderer::Init()
+void NXColorMappingRenderer::SetupInternal()
 {
 	SetPassName("Color Mapping");
 	SetShaderFilePath(L"Shader\\ColorMapping.fx");
-
-	RegisterTextures(1, 1);
-	SetInputTex(0, NXCommonRT_SSSLighting);
-	SetOutputRT(0, NXCommonRT_PostProcessing);
 
 	SetDepthStencilState(NXDepthStencilState<false, false, D3D12_COMPARISON_FUNC_ALWAYS>::Create());
 

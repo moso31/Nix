@@ -90,10 +90,10 @@ void NXGUI::Init()
 	m_pGUILights = new NXGUILights(m_pCurrentScene);
 	m_pGUICubeMap = new NXGUICubeMap(m_pCurrentScene, m_pFileBrowser);
 
-	m_pGUISSAO = new NXGUISSAO(m_pRenderer->GetSSAORenderer());
-	m_pGUIShadows = new NXGUIShadows(m_pRenderer->GetShadowMapRenderer());
-	m_pGUIPostProcessing = new NXGUIPostProcessing(m_pRenderer->GetColorMappingRenderer());
-	m_pGUIDebugLayer = new NXGUIDebugLayer(m_pRenderer->GetDebugLayerRenderer());
+	m_pGUISSAO = new NXGUISSAO(m_pRenderer);
+	m_pGUIShadows = new NXGUIShadows(m_pRenderer);
+	m_pGUIPostProcessing = new NXGUIPostProcessing(m_pRenderer);
+	m_pGUIDebugLayer = new NXGUIDebugLayer(m_pRenderer);
 
 	m_pGUIView = new NXGUIView();
 

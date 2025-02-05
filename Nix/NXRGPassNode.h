@@ -6,7 +6,10 @@ class NXRendererPass;
 class NXRGPassNode
 {
 public:
-	NXRGPassNode(NXRenderGraph* pRenderGraph, NXRendererPass* pPass) : m_pRenderGraph(pRenderGraph), m_pPass(pPass) {}
+	NXRGPassNode(NXRenderGraph* pRenderGraph, const std::string& passName, NXRendererPass* pPass) : 
+		m_pRenderGraph(pRenderGraph), m_passName(passName), m_pPass(pPass) {}
+
+	const std::string& GetName() { return m_passName; }
 
 	// 声明一个RenderGraph使用的资源。
 	NXRGResource* Create(const NXRGDescription& desc);
@@ -29,6 +32,7 @@ public:
 	void RegisterExecuteFunc(std::function<void(ID3D12GraphicsCommandList* pCmdList)> func) { m_executeFunc = func; }
 
 private:
+	std::string m_passName;
 	NXRenderGraph* m_pRenderGraph;
 	NXRendererPass* m_pPass;
 

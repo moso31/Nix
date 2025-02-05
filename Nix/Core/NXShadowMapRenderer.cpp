@@ -27,7 +27,7 @@ NXShadowMapRenderer::~NXShadowMapRenderer()
 {
 }
 
-void NXShadowMapRenderer::Init()
+void NXShadowMapRenderer::SetupInternal()
 {
 	SetShaderFilePath("Shader\\ShadowMap.fx");
 	SetRootParams(2, 0);
@@ -58,7 +58,8 @@ void NXShadowMapRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 {
 	NX12Util::BeginEvent(pCmdList, "Shadow Map");
 
-	RenderBefore(pCmdList);
+	NXRendererPass::RenderSetTargetAndState(pCmdList);
+	NXRendererPass::RenderBefore(pCmdList);
 
 	g_cbDataShadowTest.test_transition = m_test_transition;
 

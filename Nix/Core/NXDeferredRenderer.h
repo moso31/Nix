@@ -10,12 +10,11 @@ class NXRenderTarget;
 class NXDeferredRenderer : public NXRendererPass
 {
 public:
-	NXDeferredRenderer(NXScene* pScene, NXBRDFLut* pBRDFLut);
+	NXDeferredRenderer(NXScene* pScene);
 	virtual ~NXDeferredRenderer();
 
-	void Init();
+	virtual void SetupInternal() override {}
 
 private:
-	NXBRDFLut* m_pBRDFLut;
 	NXScene* m_pScene;
 };

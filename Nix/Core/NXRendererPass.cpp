@@ -26,11 +26,6 @@ NXRendererPass::NXRendererPass() :
 	m_srvUavRanges.reserve(1);
 }
 
-void NXRendererPass::PushInputTex(NXCommonRTEnum eCommonTex)
-{
-	m_pInTexs.push_back(NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(eCommonTex));
-}
-
 void NXRendererPass::PushInputTex(NXCommonTexEnum eCommonTex)
 {
 	m_pInTexs.push_back(NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(eCommonTex));
@@ -41,20 +36,9 @@ void NXRendererPass::PushInputTex(const Ntr<NXTexture>& pTex)
 	m_pInTexs.push_back(pTex);
 }
 
-void NXRendererPass::PushOutputRT(NXCommonRTEnum eCommonTex)
-{
-	auto& pRT = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(eCommonTex);
-	m_pOutRTs.push_back(pRT);
-}
-
 void NXRendererPass::PushOutputRT(const Ntr<NXTexture>& pTex)
 {
 	m_pOutRTs.push_back(pTex);
-}
-
-void NXRendererPass::SetOutputDS(NXCommonRTEnum eCommonTex)
-{
-	m_pOutDS = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(eCommonTex);
 }
 
 void NXRendererPass::SetOutputDS(const Ntr<NXTexture>& pTex)
@@ -127,33 +111,23 @@ void NXRendererPass::InitPSO()
 	m_pPSO->SetName(psoName.c_str());
 }
 
-void NXRendererPass::ClearRTAndDS(ID3D12GraphicsCommandList* pCmdList)
+void NXRendererPass::RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList)
 {
 	std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> ppRTVs;
+	for (auto& pTex : m_pOutRTs) ppRTVs.push_back(pTex->GetRTV());
+	pCmdList->OMSetRenderTargets((UINT)ppRTVs.size(), ppRTVs.data(), true, m_pOutDS.IsNull() ? nullptr : &m_pOutDS->GetDSV());
+
+	// DX12需要及时更新纹理的资源状态
+	for (int i = 0; i < (int)m_pInTexs.size(); i++)
+		m_pInTexs[i]->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	for (int i = 0; i < (int)m_pOutRTs.size(); i++)
-	{
-		if (m_pNeedClearRTs[i] && m_pOutRTs[i].IsValid())
-			ppRTVs.push_back(m_pOutRTs[i]->GetRTV());
-	}
-
-	if (!ppRTVs.empty())
-	{
-		for (int i = 0; i < (int)ppRTVs.size(); i++)
-			pCmdList->ClearRenderTargetView(ppRTVs[i], Colors::Black, 0, nullptr);
-	}
-
-	if (m_pNeedClearDS && m_pOutDS.IsValid())
-	{
-		pCmdList->ClearDepthStencilView(m_pOutDS->GetDSV(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0x0, 0, nullptr);
-	}
+		m_pOutRTs[i]->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	if (m_pOutDS.IsValid())
+		m_pOutDS->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 }
 
 void NXRendererPass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 {
-	std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> ppRTVs;
-	for (auto& pTex : m_pOutRTs) ppRTVs.push_back(pTex->GetRTV());
-
-	pCmdList->OMSetRenderTargets((UINT)ppRTVs.size(), ppRTVs.data(), true, m_pOutDS.IsNull() ? nullptr : &m_pOutDS->GetDSV());
 	pCmdList->OMSetStencilRef(m_stencilRef);
 
 	pCmdList->SetGraphicsRootSignature(m_pRootSig.Get());
@@ -173,22 +147,6 @@ void NXRendererPass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 		for (int i = 0; i < (int)m_pInTexs.size(); i++) NXShVisDescHeap->PushFluid(m_pInTexs[i]->GetSRV());
 		D3D12_GPU_DESCRIPTOR_HANDLE srvHandle0 = NXShVisDescHeap->Submit();
 
-		// DX12需要及时更新纹理的资源状态
-		for (int i = 0; i < (int)m_pInTexs.size(); i++)
-		{
-			m_pInTexs[i]->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-		}
-
-		for (int i = 0; i < (int)m_pOutRTs.size(); i++)
-		{
-			m_pOutRTs[i]->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_RENDER_TARGET);
-		}
-
-		if (m_pOutDS.IsValid())
-		{
-			m_pOutDS->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-		}
-
 		// 2024.6.8
 		// 根据目前在.h中的根参数-寄存器布局规定，
 		// m_cbvManagements 中 元素的数量就是 Table 的 slot 索引。
@@ -200,6 +158,7 @@ void NXRendererPass::Render(ID3D12GraphicsCommandList* pCmdList)
 {
 	NX12Util::BeginEvent(pCmdList, m_passName.c_str());
 
+	RenderSetTargetAndState(pCmdList);
 	RenderBefore(pCmdList);
 
 	const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews(m_rtSubMeshName);

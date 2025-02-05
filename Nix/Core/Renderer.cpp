@@ -22,7 +22,8 @@
 
 Renderer::Renderer(const Vector2& rtSize) :
 	m_bRenderGUI(true),
-	m_viewRTSize(rtSize)
+	m_viewRTSize(rtSize),
+	m_bEnableDebugLayer(false)
 {
 }
 
@@ -34,8 +35,8 @@ void Renderer::Init()
 	// 初始化资源
 	InitGlobalResources();
 
-	// 渲染器
-	InitRenderer();
+	// 全局通用纹理
+	NXResourceManager::GetInstance()->GetTextureManager()->InitCommonTextures();
 
 	NXSubMeshGeometryEditor::GetInstance()->Init(NXGlobalDX::GetDevice());
 
@@ -54,61 +55,7 @@ void Renderer::Init()
 	m_pBRDFLut = new NXBRDFLut();
 	m_pBRDFLut->Init();
 
-	//m_pDepthPrepass = new NXDepthPrepass(m_scene);
-	//m_pDepthPrepass->Init();
-
-	m_pDepthRenderer = new NXDepthRenderer();
-	m_pDepthRenderer->Init();
-
-	m_pGBufferRenderer = new NXGBufferRenderer(m_scene);
-	m_pGBufferRenderer->Init();
-	m_pGBufferRenderer->SetCamera(m_scene->GetMainCamera());
-
-	//m_pSSAO = new NXSimpleSSAO();
-	//m_pSSAO->Init();
-
-	m_pShadowMapRenderer = new NXShadowMapRenderer(m_scene);
-	m_pShadowMapRenderer->Init();
-
-	m_pShadowTestRenderer = new NXShadowTestRenderer();
-	m_pShadowTestRenderer->SetPassName("Shadow Test");
-	m_pShadowTestRenderer->RegisterTextures(2, 1);
-	m_pShadowTestRenderer->SetInputTex(0, NXCommonRT_DepthZ);
-	m_pShadowTestRenderer->SetInputTex(1, m_pShadowMapRenderer->GetShadowMapDepthTex());
-	m_pShadowTestRenderer->SetOutputRT(0, NXCommonRT_ShadowTest);
-	m_pShadowTestRenderer->SetShaderFilePath("Shader\\ShadowTest.fx");
-	m_pShadowTestRenderer->SetRasterizerState(NXRasterizerState<D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_BACK, 0, 0, 1000.0f>::Create());
-	m_pShadowTestRenderer->SetDepthStencilState(NXDepthStencilState<true, false, D3D12_COMPARISON_FUNC_ALWAYS>::Create());
-	m_pShadowTestRenderer->SetRootParams(3, 2); 
-	m_pShadowTestRenderer->SetStaticRootParamCBV(0, &g_cbObject.GetFrameGPUAddresses());
-	m_pShadowTestRenderer->SetStaticRootParamCBV(1, &g_cbCamera.GetFrameGPUAddresses());
-	m_pShadowTestRenderer->SetStaticRootParamCBV(2, &g_cbShadowTest.GetFrameGPUAddresses());
-	m_pShadowTestRenderer->AddStaticSampler(D3D12_FILTER_MIN_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
-	m_pShadowTestRenderer->InitPSO();
-
-	m_pDeferredRenderer = new NXDeferredRenderer(m_scene, m_pBRDFLut);
-	m_pDeferredRenderer->Init();
-
-	m_pSubSurfaceRenderer = new NXSubSurfaceRenderer();
-	m_pSubSurfaceRenderer->Init();
-
-	//m_pForwardRenderer = new NXForwardRenderer(m_scene, m_pBRDFLut);
-	//m_pForwardRenderer->Init();
-
-	//m_pDepthPeelingRenderer = new NXDepthPeelingRenderer(m_scene, m_pBRDFLut);
-	//m_pDepthPeelingRenderer->Init();
-
-	m_pSkyRenderer = new NXSkyRenderer(m_scene);
-	m_pSkyRenderer->Init();
-
-	m_pColorMappingRenderer = new NXColorMappingRenderer();
-	m_pColorMappingRenderer->Init();
-
-	m_pDebugLayerRenderer = new NXDebugLayerRenderer(m_pShadowMapRenderer);
-	m_pDebugLayerRenderer->Init();
-
-	m_pEditorObjectRenderer = new NXEditorObjectRenderer(m_scene);
-	m_pEditorObjectRenderer->Init();
+	InitRenderGraph();
 
 	InitGUI();
 }
@@ -117,18 +64,8 @@ void Renderer::OnResize(const Vector2& rtSize)
 {
 	m_viewRTSize = rtSize;
 
-	NXResourceManager::GetInstance()->GetTextureManager()->ResizeCommonRT(m_viewRTSize);
-	m_pDeferredRenderer->OnResize();
-	m_pDepthRenderer->OnResize();
-	m_pSubSurfaceRenderer->OnResize();
-	m_pSkyRenderer->OnResize();
-	//m_pDepthPrepass->OnResize(m_viewRTSize);
-	//m_pSSAO->OnResize(m_viewRTSize);
-	//m_pDepthPeelingRenderer->OnResize(m_viewRTSize);
-	m_pShadowTestRenderer->OnResize();
-	m_pColorMappingRenderer->OnResize();
-	m_pDebugLayerRenderer->OnResize(m_viewRTSize);
-	m_pEditorObjectRenderer->OnResize();
+	m_pRenderGraph->SetViewResolution(m_viewRTSize);
+	m_pRenderGraph->Compile();
 
 	m_scene->OnResize(rtSize);
 }
@@ -139,16 +76,11 @@ void Renderer::InitGUI()
 	m_pGUI->Init();
 }
 
-void Renderer::InitRenderer()
-{
-	NXResourceManager::GetInstance()->GetTextureManager()->InitCommonTextures();
-
-	// 2024.4.9 【InitCommonRT 和 OnResize 会导致不必要的重复创建RT。需要优化】
-	NXResourceManager::GetInstance()->GetTextureManager()->InitCommonRT(m_viewRTSize);
-}
-
 void Renderer::InitRenderGraph()
 {
+	m_pRenderGraph = new NXRenderGraph();
+	m_pRenderGraph->SetViewResolution(m_viewRTSize);
+
 	struct 
 	{
 		NXRGResource* depth;
@@ -157,7 +89,7 @@ void Renderer::InitRenderGraph()
 		NXRGResource* rt2;
 		NXRGResource* rt3;
 	} gBufferPassData;
-	NXRGPassNode* gBufferPass = new NXRGPassNode(m_pRenderGraph, new NXGBufferRenderer(m_scene));
+	NXRGPassNode* gBufferPass = new NXRGPassNode(m_pRenderGraph, "GBufferPass", new NXGBufferRenderer(m_scene));
 	m_pRenderGraph->AddPass(gBufferPass, 
 		[&]() {
 			NXGBufferRenderer* p = (NXGBufferRenderer*)gBufferPass->GetRenderPass();
@@ -170,11 +102,11 @@ void Renderer::InitRenderGraph()
 			gBufferPass->ClearRT(pCmdList, gBufferPassData.rt2);
 			gBufferPass->ClearRT(pCmdList, gBufferPassData.rt3);
 		});
-	gBufferPassData.rt0 = gBufferPass->Create({ .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget, .handleType = RG_Texture2D });
-	gBufferPassData.rt1 = gBufferPass->Create({ .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget, .handleType = RG_Texture2D });
-	gBufferPassData.rt2 = gBufferPass->Create({ .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget, .handleType = RG_Texture2D });
-	gBufferPassData.rt3 = gBufferPass->Create({ .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget, .handleType = RG_Texture2D });
-	gBufferPassData.depth = gBufferPass->Create({ .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_DepthStencil, .handleType = RG_Texture2D });
+	gBufferPassData.rt0 = gBufferPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
+	gBufferPassData.rt1 = gBufferPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
+	gBufferPassData.rt2 = gBufferPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
+	gBufferPassData.rt3 = gBufferPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
+	gBufferPassData.depth = gBufferPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_DepthStencil });
 	gBufferPassData.rt0 = gBufferPass->Write(gBufferPassData.rt0);
 	gBufferPassData.rt1 = gBufferPass->Write(gBufferPassData.rt1);
 	gBufferPassData.rt2 = gBufferPass->Write(gBufferPassData.rt2);
@@ -185,42 +117,46 @@ void Renderer::InitRenderGraph()
 	{
 		NXRGResource* depthCopy;
 	} depthCopyPassData;
-	NXRGPassNode* depthCopyPass = new NXRGPassNode(m_pRenderGraph, new NXDepthRenderer());
+	NXRGPassNode* depthCopyPass = new NXRGPassNode(m_pRenderGraph, "DepthCopy", new NXDepthRenderer());
 	m_pRenderGraph->AddPass(depthCopyPass, 
 		[&]() {
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList) {
 		});
-	depthCopyPassData.depthCopy = depthCopyPass->Create({ .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget, .handleType = RG_Texture2D });
+	depthCopyPassData.depthCopy = depthCopyPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
 	depthCopyPass->Read(gBufferPassData.depth);
 	depthCopyPassData.depthCopy = depthCopyPass->Write(gBufferPassData.depth);
 
 	struct 
 	{
-		NXRGResource* shadowMap;
+		//NXRGResource* shadowMap;
 	} shadowMapPassData;
-	NXRGPassNode* shadowMapPass = new NXRGPassNode(m_pRenderGraph, new NXShadowMapRenderer(m_scene));
+	NXRGPassNode* shadowMapPass = new NXRGPassNode(m_pRenderGraph, "ShadowMap", new NXShadowMapRenderer(m_scene));
 	m_pRenderGraph->AddPass(shadowMapPass,
 		[&]() {
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList) {
 		});
-	shadowMapPassData.shadowMap = shadowMapPass->Create({ .width = 1024, .height = 1024, .format = DXGI_FORMAT_R32_TYPELESS, .handleFlags = RG_DepthStencil, .handleType = RG_Texture2D });
-	shadowMapPassData.shadowMap = shadowMapPass->Write(shadowMapPassData.shadowMap);
+	// TODO: shadowMap 纹理目前直接写死在NXShadowMapRenderer，改成可配置的
+	//shadowMapPassData.shadowMap = shadowMapPass->Create({ .width = 1024, .height = 1024, .format = DXGI_FORMAT_R32_TYPELESS, .handleFlags = RG_DepthStencil });
+	//shadowMapPassData.shadowMap = shadowMapPass->Write(shadowMapPassData.shadowMap);
+	auto pShadowMapPass = (NXShadowMapRenderer*)shadowMapPass->GetRenderPass();
+	auto pCSMDepth = pShadowMapPass->GetShadowMapDepthTex(); // 现在先临时直接调用
 
 	struct 
 	{
 		NXRGResource* shadowTest;
 	} shadowTestPassData;
-	NXRGPassNode* shadowTestPass = new NXRGPassNode(m_pRenderGraph, new NXShadowTestRenderer());
+	NXRGPassNode* shadowTestPass = new NXRGPassNode(m_pRenderGraph, "ShadowTest", new NXShadowTestRenderer());
 	m_pRenderGraph->AddPass(shadowTestPass,
 		[&]() {
+			shadowTestPass->GetRenderPass()->PushInputTex(pCSMDepth);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList) {
 		});
-	shadowTestPassData.shadowTest = shadowTestPass->Create({ .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget, .handleType = RG_Texture2D });
-	shadowTestPass->Read(shadowMapPassData.shadowMap);
+	shadowTestPassData.shadowTest = shadowTestPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
 	shadowTestPass->Read(gBufferPassData.depth);
+	//shadowTestPass->Read(shadowMapPassData.shadowMap);
 	shadowTestPassData.shadowTest = shadowTestPass->Write(shadowTestPassData.shadowTest);
 
 	struct 
@@ -228,47 +164,50 @@ void Renderer::InitRenderGraph()
 		NXRGResource* lighting;
 		NXRGResource* lightingSpec;
 		NXRGResource* lightingCopy;
-		NXRGResource* lightingNoUse;
 	} litData;
-	NXRGPassNode* litPass = new NXRGPassNode(m_pRenderGraph, new NXDeferredRenderer(m_scene));
+	NXRGPassNode* litPass = new NXRGPassNode(m_pRenderGraph, "DeferredLighting", new NXDeferredRenderer(m_scene));
 	m_pRenderGraph->AddPass(litPass,
 		[&]() {
+			auto pCubeMap = m_scene->GetCubeMap()->GetCubeMap();
+			auto pPreFilterMap = m_scene->GetCubeMap()->GetPreFilterMap();
+			auto pBRDFLut = m_pBRDFLut->GetTex();
+			litPass->GetRenderPass()->PushInputTex(pCubeMap); // t6
+			litPass->GetRenderPass()->PushInputTex(pPreFilterMap); // t7
+			litPass->GetRenderPass()->PushInputTex(pBRDFLut); // t8
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList) {
 		});
-	litData.lighting = litPass->Create({ .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget, .handleType = RG_Texture2D });
-	litData.lightingSpec = litPass->Create({ .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget, .handleType = RG_Texture2D });
-	litData.lightingCopy = litPass->Create({ .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget, .handleType = RG_Texture2D });
-	litData.lightingNoUse = litPass->Create({ .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget, .handleType = RG_Texture2D });
-	litPass->Read(gBufferPassData.rt0);
-	litPass->Read(gBufferPassData.rt1);
-	litPass->Read(gBufferPassData.rt2);
-	litPass->Read(gBufferPassData.rt3);
-	litPass->Read(gBufferPassData.depth);
-	// todo BRDFLUT, skymap...
-	litPass->Read(shadowTestPassData.shadowTest);
+	litData.lighting = litPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
+	litData.lightingSpec = litPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
+	litData.lightingCopy = litPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
+	litPass->Read(gBufferPassData.rt0); // t0
+	litPass->Read(gBufferPassData.rt1); // t1
+	litPass->Read(gBufferPassData.rt2); // t2
+	litPass->Read(gBufferPassData.rt3); // t3
+	litPass->Read(gBufferPassData.depth); // t4
+	litPass->Read(shadowTestPassData.shadowTest); // t5
 	litData.lighting = litPass->Write(litData.lighting);
 	litData.lightingSpec = litPass->Write(litData.lightingSpec);
 	litData.lightingCopy = litPass->Write(litData.lightingCopy);
-	litData.lightingNoUse = litPass->Write(litData.lightingNoUse);
 
 	struct 
 	{
 		NXRGResource* buf;
 	} sssData;
-	NXRGPassNode* sssPass = new NXRGPassNode(m_pRenderGraph, new NXSubSurfaceRenderer());
+	NXRGPassNode* sssPass = new NXRGPassNode(m_pRenderGraph, "Subsurface", new NXSubSurfaceRenderer());
 	m_pRenderGraph->AddPass(sssPass,
 		[&]() {
+			auto pNoise64 = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_Noise2DGray_64x64);
+			sssPass->GetRenderPass()->PushInputTex(pNoise64);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList) {
 		});
-	sssData.buf = sssPass->Create({ .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget, .handleType = RG_Texture2D });
+	sssData.buf = sssPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
 	sssPass->Read(litData.lighting);
 	sssPass->Read(litData.lightingSpec);
 	sssPass->Read(litData.lightingCopy);
 	sssPass->Read(gBufferPassData.rt1);
 	sssPass->Read(gBufferPassData.depth);
-	// todo noise64x64...
 	sssData.buf = sssPass->Write(sssData.buf);
 
 	struct
@@ -276,13 +215,14 @@ void Renderer::InitRenderGraph()
 		NXRGResource* buf;
 		NXRGResource* depth;
 	} skyPassData;
-	NXRGPassNode* skyPass = new NXRGPassNode(m_pRenderGraph, new NXSkyRenderer(m_scene));
+	NXRGPassNode* skyPass = new NXRGPassNode(m_pRenderGraph, "SkyLighting", new NXSkyRenderer(m_scene));
 	m_pRenderGraph->AddPass(skyPass,
 		[&]() {
+			auto pCubeMap = m_scene->GetCubeMap()->GetCubeMap();
+			skyPass->GetRenderPass()->PushInputTex(pCubeMap);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList) {
 		});
-	// todo cube...
 	skyPassData.buf = skyPass->Write(sssData.buf);
 	skyPassData.depth = skyPass->Write(gBufferPassData.depth);
 
@@ -290,13 +230,13 @@ void Renderer::InitRenderGraph()
 	{
 		NXRGResource* out;
 	} postProcessPassData;
-	NXRGPassNode* postProcessPass = new NXRGPassNode(m_pRenderGraph, new NXColorMappingRenderer());
+	NXRGPassNode* postProcessPass = new NXRGPassNode(m_pRenderGraph, "PostProcessing", new NXColorMappingRenderer());
 	m_pRenderGraph->AddPass(postProcessPass,
 		[&]() {
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList) {
 		});
-	postProcessPassData.out = postProcessPass->Create({ .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget, .handleType = RG_Texture2D });
+	postProcessPassData.out = postProcessPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
 	postProcessPass->Read(skyPassData.buf);
 	postProcessPassData.out = postProcessPass->Write(postProcessPassData.out);
 
@@ -304,31 +244,35 @@ void Renderer::InitRenderGraph()
 	{
 		NXRGResource* out;
 	} debugLayerPassData;
-	NXRGPassNode* debugLayerPass = new NXRGPassNode(m_pRenderGraph, new NXDebugLayerRenderer());
+	NXRGPassNode* debugLayerPass = new NXRGPassNode(m_pRenderGraph, "DebugLayer", new NXDebugLayerRenderer());
 	m_pRenderGraph->AddPass(debugLayerPass,
 		[&]() {
+			auto* p = (NXDebugLayerRenderer*)debugLayerPass->GetRenderPass();
+			p->OnResize(m_viewRTSize);
+			shadowTestPass->GetRenderPass()->PushInputTex(pCSMDepth);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList) {
 		});
-	debugLayerPassData.out = debugLayerPass->Create({ .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget, .handleType = RG_Texture2D });
+	debugLayerPassData.out = debugLayerPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
 	debugLayerPass->Read(postProcessPassData.out);
-	debugLayerPass->Read(shadowMapPassData.shadowMap);
+	//debugLayerPass->Read(shadowMapPassData.shadowMap);
 	debugLayerPassData.out = debugLayerPass->Write(debugLayerPassData.out);
 
 	struct
 	{
 		NXRGResource* out;
 	} gizmosPassData;
-	NXRGPassNode* gizmosPass = new NXRGPassNode(m_pRenderGraph, new NXEditorObjectRenderer(m_scene));
+	NXRGPassNode* gizmosPass = new NXRGPassNode(m_pRenderGraph, "Gizmos", new NXEditorObjectRenderer(m_scene));
 	m_pRenderGraph->AddPass(gizmosPass,
 		[&]() {
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList) {
 		});
-	gizmosPassData.out = gizmosPass->Create({ .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget, .handleType = RG_Texture2D });
-	gizmosPass->Read(debugLayerPassData.out);
+	gizmosPassData.out = gizmosPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
+	gizmosPass->Read(m_bEnableDebugLayer ? debugLayerPassData.out : postProcessPassData.out);
 	gizmosPassData.out = gizmosPass->Write(debugLayerPassData.out);
 
+	m_pRenderGraph->SetPresent(gizmosPassData.out);
 	m_pRenderGraph->Compile();
 }
  
@@ -471,8 +415,8 @@ void Renderer::RenderFrame()
 	// 绘制调试信息层（如果有的话）
 	m_pDebugLayerRenderer->Render(pCommandList.Get());
 
-	// 判断 GUIView 使用哪张纹理RT 作为 Input
-	bool bEnableDebugLayer = m_pDebugLayerRenderer->GetEnableDebugLayer();
+	// 设置Present RT
+	m_pFinalRT = m_pRenderGraph->GetPresent();
 	m_pFinalRT = bEnableDebugLayer ? NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DebugLayer) :
 		NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_PostProcessing);
 

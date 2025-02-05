@@ -1,40 +1,46 @@
 #include "BaseDefs/DearImGui.h"
-
 #include "NXGUIShadows.h"
-#include "NXShadowMapRenderer.h"
 
 void NXGUIShadows::Render()
 {
 	ImGui::Begin("Shadows");
 
-	float shadowDistance = m_pShadowMap->GetShadowDistance();
+	NXShadowMapRenderer* pShadowMap = (NXShadowMapRenderer*)m_pRenderer->GetRenderGraph()->GetPass("ShadowMap");
+	if (pShadowMap == nullptr)
+	{
+		ImGui::Text("ShadowMap pass not found");
+		ImGui::End();
+		return;
+	}
+
+	float shadowDistance = pShadowMap->GetShadowDistance();
 	if (ImGui::DragFloat("Distance", &shadowDistance, 1.0f, 0.0f, 100000.0f))
 	{
-		m_pShadowMap->SetShadowDistance(shadowDistance);
+		pShadowMap->SetShadowDistance(shadowDistance);
 	}
 
-	float shadowExponent = m_pShadowMap->GetCascadeExponentScale();
+	float shadowExponent = pShadowMap->GetCascadeExponentScale();
 	if (ImGui::DragFloat("Exponent", &shadowExponent, 0.01f, 1.0f, 10.0f))
 	{
-		m_pShadowMap->SetCascadeExponentScale(shadowExponent);
+		pShadowMap->SetCascadeExponentScale(shadowExponent);
 	}
 
-	float cascadeTransition = m_pShadowMap->GetCascadeTransitionScale();
+	float cascadeTransition = pShadowMap->GetCascadeTransitionScale();
 	if (ImGui::DragFloat("Transition scale", &cascadeTransition, 0.01f, 0.0f, 0.5f))
 	{
-		m_pShadowMap->SetCascadeTransitionScale(cascadeTransition);
+		pShadowMap->SetCascadeTransitionScale(cascadeTransition);
 	}
 
-	float t = m_pShadowMap->m_test_transition;
+	float t = pShadowMap->m_test_transition;
 	if (ImGui::DragFloat("Use Transition", &t, 1.0f, 0.0f, 1.0f))
 	{
-		m_pShadowMap->m_test_transition = t;
+		pShadowMap->m_test_transition = t;
 	}
 
-	float depthBias = (float)m_pShadowMap->GetDepthBias();
+	float depthBias = (float)pShadowMap->GetDepthBias();
 	if (ImGui::DragFloat("Depth Bias", &depthBias, 1.0f, -100000.0f, 100000.0f))
 	{
-		m_pShadowMap->SetDepthBias((int)depthBias);
+		pShadowMap->SetDepthBias((int)depthBias);
 	}
 
 	ImGui::End();

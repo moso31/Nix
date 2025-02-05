@@ -1,10 +1,8 @@
 #include "BaseDefs/DearImGui.h"
-
 #include "NXGUISSAO.h"
-#include "NXSimpleSSAO.h"
 
-NXGUISSAO::NXGUISSAO(NXSimpleSSAO* pSSAO) :
-	m_pSSAO(pSSAO),
+NXGUISSAO::NXGUISSAO(Renderer* pRenderer) :
+	m_pRenderer(pRenderer),
 	m_bDirty(false)
 {
 }
@@ -13,6 +11,14 @@ void NXGUISSAO::Render()
 {
 	m_bDirty = false;
 	ImGui::Begin("SSAO");
+
+	auto pSSAO = m_pRenderer->GetRenderGraph()->GetPass("SSAO");
+	if (pSSAO == nullptr)
+	{
+		ImGui::Text("SSAO is not enabled.");
+		ImGui::End();
+		return;
+	}
 
 	//float SSAORadius = m_pSSAO->GetRadius();
 	//if (ImGui::DragFloat("Radius", &SSAORadius, 0.01f, 0.05f, 5.0f))

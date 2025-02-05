@@ -13,8 +13,8 @@ public:
 	NXColorMappingRenderer();
 	virtual ~NXColorMappingRenderer();
 
-	void Init();
-	void Render(ID3D12GraphicsCommandList* pCmdList);
+	virtual void SetupInternal() override;
+	virtual void Render(ID3D12GraphicsCommandList* pCmdList) override;
 
 	bool GetEnable() const { return m_bEnablePostProcessing; }
 	void SetEnable(bool value) { m_bEnablePostProcessing = value; }

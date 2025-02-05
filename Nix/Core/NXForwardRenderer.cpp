@@ -32,8 +32,8 @@ void NXForwardRenderer::Init()
 	m_pTexPassIn[7] = m_pBRDFLut->GetTex();
 	//m_pTexPassIn[8] = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(); // depthPeeling
 
-	m_pTexPassOut = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting0);
-	m_pTexDepth = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
+	//m_pTexPassOut = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting0);
+	//m_pTexDepth = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
 
 	ComPtr<ID3DBlob> pVSBlob, pPSBlob;
 	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\ForwardTranslucent.fx", "VS", pVSBlob.GetAddressOf());
