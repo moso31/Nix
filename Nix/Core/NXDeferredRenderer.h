@@ -13,7 +13,7 @@ public:
 	NXDeferredRenderer(NXScene* pScene);
 	virtual ~NXDeferredRenderer();
 
-	virtual void SetupInternal() override {}
+	virtual void SetupInternal() override;
 
 private:
 	NXScene* m_pScene;

@@ -101,6 +101,7 @@ void Renderer::InitRenderGraph()
 			gBufferPass->ClearRT(pCmdList, gBufferPassData.rt1);
 			gBufferPass->ClearRT(pCmdList, gBufferPassData.rt2);
 			gBufferPass->ClearRT(pCmdList, gBufferPassData.rt3);
+			gBufferPass->SetViewPortAndScissorRect(pCmdList, m_viewRTSize); // 第一个pass设置ViewPort
 		});
 	gBufferPassData.rt0 = gBufferPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
 	gBufferPassData.rt1 = gBufferPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
@@ -136,6 +137,7 @@ void Renderer::InitRenderGraph()
 		[&]() {
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList) {
+			gBufferPass->SetViewPortAndScissorRect(pCmdList, Vector2(2048, 2048)); // CSM ShadowMap的ViewPort
 		});
 	// TODO: shadowMap 纹理目前直接写死在NXShadowMapRenderer，改成可配置的
 	//shadowMapPassData.shadowMap = shadowMapPass->Create({ .width = 1024, .height = 1024, .format = DXGI_FORMAT_R32_TYPELESS, .handleFlags = RG_DepthStencil });
@@ -153,6 +155,7 @@ void Renderer::InitRenderGraph()
 			shadowTestPass->GetRenderPass()->PushInputTex(pCSMDepth);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList) {
+			gBufferPass->SetViewPortAndScissorRect(pCmdList, m_viewRTSize); // pass设置ViewPort
 		});
 	shadowTestPassData.shadowTest = shadowTestPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
 	shadowTestPass->Read(gBufferPassData.depth);
@@ -358,73 +361,17 @@ void Renderer::RenderFrame()
 
 	NX12Util::BeginEvent(pCommandList.Get(), "Render Scene");
 
-	m_pRenderGraph->Execute(pCommandList.Get());
-
-	// 设置视口
-	auto vpCamera = NX12Util::ViewPort(m_viewRTSize.x, m_viewRTSize.y);
-	pCommandList->RSSetViewports(1, &vpCamera);
-	pCommandList->RSSetScissorRects(1, &NX12Util::ScissorRect(vpCamera));
-
 	ID3D12DescriptorHeap* ppHeaps[] = { NXShVisDescHeap->GetDescriptorHeap() };
 	pCommandList->SetDescriptorHeaps(1, ppHeaps);
 
-	//m_pDepthPrepass->Render();
-
-	// GBuffer
-	m_pGBufferRenderer->Render(pCommandList.Get());
-
-	// Depth Copy 2023.10.26
-	// Burley SSS 既需要将 Depth 的模板缓存绑定到output，又需要深度信息作为input，这就会导致资源绑定冲突。
-	// 所以这里 Copy 一份记录到 GBuffer 为止的 Depth 到 DepthR32。
-	// 遇到需要避免资源绑定冲突的情况，就使用复制的这张作为input。
-	// 【未来如有需要可升级成 Hi-Z】
-	m_pDepthRenderer->Render(pCommandList.Get());
-
-	// Shadow Map
-	auto vpShadow = NX12Util::ViewPort(2048, 2048);
-	pCommandList->RSSetViewports(1, &vpShadow);
-	pCommandList->RSSetScissorRects(1, &NX12Util::ScissorRect(vpShadow));
-	m_pShadowMapRenderer->Render(pCommandList.Get());
-	pCommandList->RSSetViewports(1, &vpCamera);
-	pCommandList->RSSetScissorRects(1, &NX12Util::ScissorRect(vpCamera));
-	m_pShadowTestRenderer->Render(pCommandList.Get());
-
-	// Deferred opaque shading
-	m_pDeferredRenderer->Render(pCommandList.Get());
-
-	// Burley SSS (2015)
-	m_pSubSurfaceRenderer->Render(pCommandList.Get());
-
-	// CubeMap
-	m_pSkyRenderer->Render(pCommandList.Get());
-
-	// Forward translucent shading
-	// 2023.8.20 前向渲染暂时停用，等 3S 搞完的
-	//m_pForwardRenderer->Render();
-	//m_pDepthPeelingRenderer->Render(bSSSEnable);
-
-	//// SSAO
-	//m_pSSAO->Render(pSRVNormal, pSRVPosition, pSRVDepthPrepass);
-
-	// post processing
-	m_pColorMappingRenderer->Render(pCommandList.Get());
-
-	// 绘制编辑器对象
-	m_pEditorObjectRenderer->Render(pCommandList.Get());
-
-	// 绘制调试信息层（如果有的话）
-	m_pDebugLayerRenderer->Render(pCommandList.Get());
-
-	// 设置Present RT
-	m_pFinalRT = m_pRenderGraph->GetPresent();
-	m_pFinalRT = bEnableDebugLayer ? NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DebugLayer) :
-		NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_PostProcessing);
+	// 执行RenderGraph!
+	m_pRenderGraph->Execute(pCommandList.Get());
 
 	NX12Util::EndEvent(pCommandList.Get());
 
 	pCommandList->Close();
 
-	// BRDF 2D LUT 可能还没加载完，等待一下。
+	// 确保BRDF 2D LUT 异步加载完成
 	WaitForBRDF2DLUTFinish();
 
 	ID3D12CommandList* pCmdLists[] = { pCommandList.Get() };
@@ -441,24 +388,9 @@ void Renderer::RenderGUI(const NXSwapChainBuffer& swapChainBuffer)
 
 void Renderer::Release()
 {
-	SafeRelease(m_pEditorObjectRenderer);
-	SafeRelease(m_pDebugLayerRenderer);
+	// TODO: m_renderGraph release.
+
 	SafeRelease(m_pGUI);
-
-	//SafeRelease(m_pSSAO);
-	//SafeDelete(m_pDepthPrepass);
-
-	SafeRelease(m_pDepthRenderer);
-	SafeRelease(m_pGBufferRenderer);
-	SafeRelease(m_pShadowMapRenderer);
-	SafeRelease(m_pShadowTestRenderer);
-	SafeRelease(m_pDeferredRenderer);
-	SafeRelease(m_pSubSurfaceRenderer);
-	//SafeRelease(m_pForwardRenderer);
-	//SafeRelease(m_pDepthPeelingRenderer);
-	SafeRelease(m_pSkyRenderer);
-	SafeRelease(m_pColorMappingRenderer);
-
 	SafeRelease(m_pBRDFLut);
 	SafeRelease(m_scene);
 

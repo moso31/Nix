@@ -4,7 +4,9 @@
 
 NXRGResource* NXRGPassNode::Create(const NXRGDescription& desc)
 {
-	m_pRenderGraph->AddResource(new NXRGResource(desc));
+	NXRGResource* pResource = new NXRGResource(desc);
+	m_pRenderGraph->AddResource(pResource);
+	return pResource;
 }
 
 void NXRGPassNode::Read(NXRGResource* pResource)
@@ -46,6 +48,13 @@ void NXRGPassNode::ClearRT(ID3D12GraphicsCommandList* pCmdList, NXRGResource* pR
 		pCmdList->ClearDepthStencilView(pResource->GetResource()->GetDSV(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0x0, 0, nullptr);
 		return;
 	}
+}
+
+void NXRGPassNode::SetViewPortAndScissorRect(ID3D12GraphicsCommandList* pCmdList, const Vector2& size)
+{
+	auto vpCamera = NX12Util::ViewPort(size.x, size.y);
+	pCmdList->RSSetViewports(1, &vpCamera);
+	pCmdList->RSSetScissorRects(1, &NX12Util::ScissorRect(vpCamera));
 }
 
 void NXRGPassNode::Compile()

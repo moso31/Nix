@@ -80,6 +80,7 @@ private:
 	ComPtr<ID3D12PipelineState>				m_pPSO;
 	ComPtr<ID3D12RootSignature>				m_pRootSig;
 	UINT m_stencilRef;
+	Vector2 m_viewPortSize;
 
 	std::vector<Ntr<NXTexture>>				m_pInTexs;
 	std::vector<Ntr<NXTexture>>				m_pOutRTs;

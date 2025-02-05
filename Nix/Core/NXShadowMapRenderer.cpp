@@ -29,17 +29,17 @@ NXShadowMapRenderer::~NXShadowMapRenderer()
 
 void NXShadowMapRenderer::SetupInternal()
 {
-	SetShaderFilePath("Shader\\ShadowMap.fx");
-	SetRootParams(2, 0);
-	SetStaticRootParamCBV(0, 0, &g_cbObject.GetFrameGPUAddresses()); // b0
-	SetStaticRootParamCBV(1, 2, &g_cbShadowTest.GetFrameGPUAddresses()); // b2
-
 	m_pShadowMapDepth = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DArray("Shadow DepthZ RT", DXGI_FORMAT_R32_TYPELESS, m_shadowMapRTSize, m_shadowMapRTSize, m_cascadeCount, 1, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL, false);
 	m_pShadowMapDepth->SetViews(1, 0, m_cascadeCount, 0);
 	for (UINT i = 0; i < m_cascadeCount; i++)
 		m_pShadowMapDepth->SetDSV(i, i, 1);	// DSV 单张切片（每次写cascade深度 只写一片）
 	m_pShadowMapDepth->SetSRV(0, 0, m_cascadeCount); // SRV 读取整个纹理数组（ShadowTest时使用）
 	SetOutputDS(m_pShadowMapDepth);
+
+	SetShaderFilePath("Shader\\ShadowMap.fx");
+	SetRootParams(2, 0);
+	SetStaticRootParamCBV(0, 0, &g_cbObject.GetFrameGPUAddresses()); // b0
+	SetStaticRootParamCBV(1, 2, &g_cbShadowTest.GetFrameGPUAddresses()); // b2
 
 	InitPSO();
 

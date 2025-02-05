@@ -1,10 +1,12 @@
 #pragma once
 #include "BaseDefs/NixCore.h"
+#include "BaseDefs/DX12.h"
+#include "BaseDefs/Math.h"
 
 class NXRGHandle;
 class NXRGPassNode;
 class NXRGResource;
-class NXRGDescription;
+struct NXRGDescription;
 class NXRendererPass;
 class NXTexture;
 class NXRenderGraph
@@ -17,7 +19,7 @@ public:
 	void Compile();
 	void Execute(ID3D12GraphicsCommandList* pCmdList);
 
-	Ntr<NXTexture> GetPresent() { return m_presentResource->GetResource(); }
+	Ntr<NXTexture> GetPresent();
 	void SetPresent(NXRGResource* pResource) { m_presentResource = pResource; }
 
 	void AddResource(NXRGResource* pResources);

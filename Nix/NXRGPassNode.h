@@ -27,6 +27,7 @@ public:
 
 	// 调用dx层API清空RT。只能在m_executeFunc中调用。
 	void ClearRT(ID3D12GraphicsCommandList* pCmdList, NXRGResource* pResource);
+	void SetViewPortAndScissorRect(ID3D12GraphicsCommandList* pCmdList, const Vector2& size);
 
 	void RegisterSetupFunc(std::function<void()> func) { m_setupFunc = func; }
 	void RegisterExecuteFunc(std::function<void(ID3D12GraphicsCommandList* pCmdList)> func) { m_executeFunc = func; }

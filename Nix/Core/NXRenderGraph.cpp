@@ -70,6 +70,11 @@ void NXRenderGraph::Execute(ID3D12GraphicsCommandList* pCmdList)
 	}
 }
 
+Ntr<NXTexture> NXRenderGraph::GetPresent()
+{
+	return m_presentResource->GetResource();
+}
+
 void NXRenderGraph::AddResource(NXRGResource* pResource)
 {
 	m_resources.emplace_back(pResource);

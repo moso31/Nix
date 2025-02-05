@@ -51,7 +51,7 @@ public:
 	const NXRGDescription& GetDescription() { return m_description; }
 
 	bool HasWrited() { return m_bHasWrited; }
-	bool MakeWriteConnect() { m_bHasWrited = true; }
+	void MakeWriteConnect() { m_bHasWrited = true; }
 
 	void SetResource(Ntr<NXTexture> pResource) { m_pResource = pResource; }
 	Ntr<NXTexture> GetResource() { return m_pResource; }
