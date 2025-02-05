@@ -28,7 +28,10 @@ public:
 		s_indexToVersion.clear();
 	}
 
+	uint32_t GetIndex() const { return m_index; }
+	uint32_t GetVersion() const { return m_version; }
+
 private:
-	uint16_t m_index;
-	uint16_t m_version;
+	uint32_t m_index;
+	uint32_t m_version;
 };

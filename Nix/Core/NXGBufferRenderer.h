@@ -11,7 +11,8 @@ public:
 	NXGBufferRenderer(NXScene* pScene);
 	virtual ~NXGBufferRenderer();
 
-	void Init();
+	void SetupInternal() override {}
+
 	void SetCamera(NXCamera* pCamera);
 	void Render(ID3D12GraphicsCommandList* pCmdList);
 

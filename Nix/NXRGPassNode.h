@@ -20,10 +20,13 @@ public:
 	NXRendererPass* GetRenderPass() { return m_pPass; }
 
 	void Compile();
-	void Execute();
+	void Execute(ID3D12GraphicsCommandList* pCmdList);
+
+	// 调用dx层API清空RT。只能在m_executeFunc中调用。
+	void ClearRT(ID3D12GraphicsCommandList* pCmdList, NXRGResource* pResource);
 
 	void RegisterSetupFunc(std::function<void()> func) { m_setupFunc = func; }
-	void RegisterExecuteFunc(std::function<void()> func) { m_executeFunc = func; }
+	void RegisterExecuteFunc(std::function<void(ID3D12GraphicsCommandList* pCmdList)> func) { m_executeFunc = func; }
 
 private:
 	NXRenderGraph* m_pRenderGraph;
@@ -32,6 +35,9 @@ private:
 	std::vector<NXRGResource*> m_inputs;
 	std::vector<NXRGResource*> m_outputs;
 
+	// 如果需要设置pass的各种附加信息（比如gbuffer依赖的camera），可使用此方法的lambda。
 	std::function<void()> m_setupFunc;
-	std::function<void()> m_executeFunc;
+
+	// 如果需要在执行前进行一些pass操作（比如clearRT），可使用此方法的lambda。
+	std::function<void(ID3D12GraphicsCommandList* pCmdList)> m_executeFunc;
 };

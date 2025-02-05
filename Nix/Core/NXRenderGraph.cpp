@@ -12,7 +12,7 @@ NXRenderGraph::~NXRenderGraph()
 {
 }
 
-void NXRenderGraph::AddPass(NXRGPassNode* pPassNode, std::function<void()> setup, std::function<void()> execute)
+void NXRenderGraph::AddPass(NXRGPassNode* pPassNode, std::function<void()> setup, std::function<void(ID3D12GraphicsCommandList* pCmdList)> execute)
 {
 	pPassNode->RegisterSetupFunc(setup);
 	pPassNode->RegisterExecuteFunc(execute);
@@ -50,10 +50,11 @@ void NXRenderGraph::Compile()
 	}
 }
 
-void NXRenderGraph::Execute()
+void NXRenderGraph::Execute(ID3D12GraphicsCommandList* pCmdList)
 {
 	for (auto pass : m_passNodes)
 	{
+		pass->Execute(pCmdList);
 	}
 }
 

@@ -9,8 +9,8 @@ enum NXRGHandleType
 
 enum NXRGHandleFlags
 {
-	RG_RenderTarget,
-	RG_DepthStencil
+	RG_RenderTarget = 1 << 0,
+	RG_DepthStencil = 1 << 1
 };
 
 struct NXRGDescription
@@ -33,7 +33,7 @@ class NXTexture;
 class NXRGResource
 {
 public:
-	NXRGResource(NXRGHandle* handle);
+	NXRGResource(NXRGResource* pOldResource);
 	NXRGResource(const NXRGDescription& description);
 
 	NXRGHandle* GetHandle() { return m_handle; }

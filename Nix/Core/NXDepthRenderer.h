@@ -7,5 +7,5 @@ public:
 	NXDepthRenderer() {}
 	virtual ~NXDepthRenderer() {}
 
-	void Init();
+	virtual void SetupInternal() override;
 };

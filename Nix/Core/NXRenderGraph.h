@@ -12,9 +12,9 @@ public:
 	NXRenderGraph();
 	virtual ~NXRenderGraph();
 
-	void AddPass(NXRGPassNode* pPassNode, std::function<void()> setup, std::function<void()> execute);
+	void AddPass(NXRGPassNode* pPassNode, std::function<void()> setup, std::function<void(ID3D12GraphicsCommandList* pCmdList)> execute);
 	void Compile();
-	void Execute();
+	void Execute(ID3D12GraphicsCommandList* pCmdList);
 
 	void AddResource(NXRGResource* pResources);
 

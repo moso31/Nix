@@ -24,7 +24,7 @@ NXRGResource* NXRGPassNode::Write(NXRGResource* pResource)
 	else
 	{
 		// 创建新版本
-		NXRGResource* pNewVersionResource = new NXRGResource(pResource->GetHandle());
+		NXRGResource* pNewVersionResource = new NXRGResource(pResource);
 		m_outputs.push_back(pNewVersionResource);
 		pNewVersionResource->MakeWriteConnect(); // 标记为已写入
 		m_pRenderGraph->AddResource(pNewVersionResource); // 添加到graph中
@@ -32,29 +32,48 @@ NXRGResource* NXRGPassNode::Write(NXRGResource* pResource)
 	}
 }
 
-void NXRGPassNode::Compile()
+void NXRGPassNode::ClearRT(ID3D12GraphicsCommandList* pCmdList, NXRGResource* pResource)
 {
-	for (int i = 0; i < m_inputs.size(); i++)
+	auto& pResDesc = pResource->GetDescription();
+	if (pResDesc.handleFlags == RG_RenderTarget)
 	{
-		m_pPass->SetInputTex(i, m_inputs[i]->GetResource());
+		pCmdList->ClearRenderTargetView(pResource->GetResource()->GetRTV(), Colors::Black, 0, nullptr);
+		return;
 	}
 
-	for (int i = 0; i < m_outputs.size(); i++)
+	if (pResDesc.handleFlags == RG_DepthStencil)
 	{
-		auto flag = m_outputs[i]->GetDescription().handleFlags;
+		pCmdList->ClearDepthStencilView(pResource->GetResource()->GetDSV(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0x0, 0, nullptr);
+		return;
+	}
+}
+
+void NXRGPassNode::Compile()
+{
+	for (auto pInRes : m_inputs)
+	{
+		m_pPass->PushInputTex(pInRes->GetResource());
+	}
+
+	for (auto pOutRes : m_outputs)
+	{
+		auto flag = pOutRes->GetDescription().handleFlags;
 		if (flag == RG_RenderTarget)
 		{
-			m_pPass->SetOutputRT(i, m_outputs[i]->GetResource());
+			m_pPass->PushOutputRT(pOutRes->GetResource());
 		}
 		else if (flag == RG_DepthStencil)
 		{
-			m_pPass->SetOutputDS(m_outputs[i]->GetResource());
+			m_pPass->SetOutputDS(pOutRes->GetResource());
 		}
 	}
 
 	m_setupFunc();
+	m_pPass->SetupInternal();
 }
 
-void NXRGPassNode::Execute()
+void NXRGPassNode::Execute(ID3D12GraphicsCommandList* pCmdList)
 {
+	m_executeFunc(pCmdList);
+	m_pPass->Render(pCmdList);
 }

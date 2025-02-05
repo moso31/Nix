@@ -8,13 +8,9 @@
 #include "NXAllocatorManager.h"
 #include "NXSubMeshGeometryEditor.h"
 
-void NXDepthRenderer::Init()
+void NXDepthRenderer::SetupInternal()
 {
 	SetPassName("Depth Copy");
-
-	RegisterTextures(1, 1);
-	SetInputTex(0, NXCommonRT_DepthZ);
-	SetOutputRT(0, NXCommonRT_DepthZ_R32);
 
 	// t0, s0, b is empty
 	SetShaderFilePath(L"Shader\\Depth.fx");

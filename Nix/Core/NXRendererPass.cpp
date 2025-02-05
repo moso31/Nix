@@ -26,52 +26,40 @@ NXRendererPass::NXRendererPass() :
 	m_srvUavRanges.reserve(1);
 }
 
-void NXRendererPass::RegisterTextures(int inputTexNum, int outputRTNum)
+void NXRendererPass::PushInputTex(NXCommonRTEnum eCommonTex)
 {
-	m_pInTexs.resize(inputTexNum);
-	m_pOutRTs.resize(outputRTNum);
+	m_pInTexs.push_back(NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(eCommonTex));
 }
 
-void NXRendererPass::SetInputTex(int index, NXCommonRTEnum eCommonTex)
+void NXRendererPass::PushInputTex(NXCommonTexEnum eCommonTex)
 {
-	m_pInTexs[index].pTexture = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(eCommonTex);
-	m_pInTexs[index].rtType = eCommonTex;
+	m_pInTexs.push_back(NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(eCommonTex));
 }
 
-void NXRendererPass::SetInputTex(int index, NXCommonTexEnum eCommonTex)
+void NXRendererPass::PushInputTex(const Ntr<NXTexture>& pTex)
 {
-	m_pInTexs[index].pTexture = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(eCommonTex);
-	m_pInTexs[index].rtType = NXCommonRT_None;
+	m_pInTexs.push_back(pTex);
 }
 
-void NXRendererPass::SetOutputRT(int index, NXCommonRTEnum eCommonTex)
+void NXRendererPass::PushOutputRT(NXCommonRTEnum eCommonTex)
 {
-	m_pOutRTs[index].pTexture = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(eCommonTex);
-	m_pOutRTs[index].rtType = eCommonTex;
+	auto& pRT = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(eCommonTex);
+	m_pOutRTs.push_back(pRT);
+}
+
+void NXRendererPass::PushOutputRT(const Ntr<NXTexture>& pTex)
+{
+	m_pOutRTs.push_back(pTex);
 }
 
 void NXRendererPass::SetOutputDS(NXCommonRTEnum eCommonTex)
 {
-	m_pOutDS.pTexture = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(eCommonTex);
-	m_pOutDS.rtType = eCommonTex;
-}
-
-void NXRendererPass::SetInputTex(int index, const Ntr<NXTexture>& pTex)
-{
-	m_pInTexs[index].pTexture = pTex;
-	m_pInTexs[index].rtType = NXCommonRT_None;
-}
-
-void NXRendererPass::SetOutputRT(int index, const Ntr<NXTexture>& pTex)
-{
-	m_pOutRTs[index].pTexture = pTex;
-	m_pOutRTs[index].rtType = NXCommonRT_None;
+	m_pOutDS = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(eCommonTex);
 }
 
 void NXRendererPass::SetOutputDS(const Ntr<NXTexture>& pTex)
 {
-	m_pOutDS.pTexture = pTex;
-	m_pOutDS.rtType = NXCommonRT_None;
+	m_pOutDS = pTex;
 }
 
 void NXRendererPass::SetInputLayout(const D3D12_INPUT_LAYOUT_DESC& desc)
@@ -137,6 +125,27 @@ void NXRendererPass::InitPSO()
 
 	std::wstring psoName(NXConvert::s2ws(m_passName) + L" PSO");
 	m_pPSO->SetName(psoName.c_str());
+}
+
+void NXRendererPass::ClearRTAndDS(ID3D12GraphicsCommandList* pCmdList)
+{
+	std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> ppRTVs;
+	for (int i = 0; i < (int)m_pOutRTs.size(); i++)
+	{
+		if (m_pNeedClearRTs[i] && m_pOutRTs[i].IsValid())
+			ppRTVs.push_back(m_pOutRTs[i]->GetRTV());
+	}
+
+	if (!ppRTVs.empty())
+	{
+		for (int i = 0; i < (int)ppRTVs.size(); i++)
+			pCmdList->ClearRenderTargetView(ppRTVs[i], Colors::Black, 0, nullptr);
+	}
+
+	if (m_pNeedClearDS && m_pOutDS.IsValid())
+	{
+		pCmdList->ClearDepthStencilView(m_pOutDS->GetDSV(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0x0, 0, nullptr);
+	}
 }
 
 void NXRendererPass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
@@ -242,22 +251,4 @@ void NXRendererPass::AddStaticSampler(D3D12_FILTER filter, D3D12_TEXTURE_ADDRESS
 {
 	auto& samplerDesc = NXSamplerManager::GetInstance()->CreateIso((int)m_staticSamplers.size(), 0, D3D12_SHADER_VISIBILITY_ALL, filter, addrUVW);
 	m_staticSamplers.push_back(samplerDesc);
-}
-
-void NXRendererPass::OnResize()
-{
-	for (auto& pTex : m_pInTexs)
-	{
-		if (pTex.IsCommonRT())
-			pTex.pTexture = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(pTex.rtType);
-	}
-
-	for (auto& pTex : m_pOutRTs)
-	{
-		if (pTex.IsCommonRT())
-			pTex.pTexture = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(pTex.rtType);
-	}
-
-	if (m_pOutDS.IsCommonRT())
-		m_pOutDS.pTexture = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(m_pOutDS.rtType);
 }

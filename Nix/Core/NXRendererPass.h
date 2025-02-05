@@ -5,27 +5,6 @@
 #include "NXCommonTexDefinition.h"
 #include "NXTexture.h"
 
-// 记录Pass用到的纹理
-struct NXPassTexture
-{
-	NXPassTexture() : pTexture(nullptr), rtType(NXCommonRTEnum::NXCommonRT_None) {}
-	NXPassTexture(const Ntr<NXTexture>& pTex) : pTexture(pTex), rtType(NXCommonRTEnum::NXCommonRT_None) {}
-	NXPassTexture(const Ntr<NXTexture>& pTex, NXCommonRTEnum eCommonTex) : pTexture(pTex), rtType(eCommonTex) {}
-
-	NXTexture* operator->() { return pTexture.Ptr(); }
-
-	bool IsValid() { return pTexture.IsValid(); }
-	bool IsNull() { return pTexture.IsNull(); }
-	bool IsCommonRT() { return rtType != NXCommonRT_None; }
-
-	// 纹理指针，可能是 RT 类型，也可能是自定义的任意 tex
-	Ntr<NXTexture> pTexture;
-	
-	// 纹理是否是通用RT，如果是，在这里记录一下
-	// OnResize() 依赖这个参数
-	NXCommonRTEnum rtType;
-};
-
 // 在DX12要绑定CB，需要提供对应CBV的gpuHandle。
 // cmdList将使用gpuHandle。
 struct NXCBVManagement
@@ -45,15 +24,15 @@ public:
 	NXRendererPass();
 	virtual ~NXRendererPass() {}
 
+	virtual void SetupInternal() = 0;
+
 	void SetPassName(const std::string& passName) { m_passName = passName; }
 
-	void RegisterTextures(int inputTexNum, int outputRTNum);
-
-	void SetInputTex(int index, NXCommonRTEnum eCommonTex);
-	void SetInputTex(int index, NXCommonTexEnum eCommonTex);
-	void SetInputTex(int index, const Ntr<NXTexture>& pTex);
-	void SetOutputRT(int index, NXCommonRTEnum eCommonTex);
-	void SetOutputRT(int index, const Ntr<NXTexture>& pTex);
+	void PushInputTex(NXCommonRTEnum eCommonTex);
+	void PushInputTex(NXCommonTexEnum eCommonTex);
+	void PushInputTex(const Ntr<NXTexture>& pTex);
+	void PushOutputRT(NXCommonRTEnum eCommonTex);
+	void PushOutputRT(const Ntr<NXTexture>& pTex);
 	void SetOutputDS(NXCommonRTEnum eCommonTex);
 	void SetOutputDS(const Ntr<NXTexture>& pTex);
 
@@ -92,12 +71,8 @@ public:
 	// 在所有内容设置完毕后，再调用这个函数，创建PSO
 	void InitPSO();
 
-	// OnResize 会在窗口大小变化时被调用
-	// 用于更新Pass 关联的 RT的引用状态
-	void OnResize();
-
-	void RenderBefore(ID3D12GraphicsCommandList* pCmdList);
-	void Render(ID3D12GraphicsCommandList* pCmdList);
+	virtual void RenderBefore(ID3D12GraphicsCommandList* pCmdList);
+	virtual void Render(ID3D12GraphicsCommandList* pCmdList);
 
 	void Release() {}
 
@@ -108,9 +83,9 @@ private:
 	ComPtr<ID3D12RootSignature>				m_pRootSig;
 	UINT m_stencilRef;
 
-	std::vector<NXPassTexture>				m_pInTexs;
-	std::vector<NXPassTexture>				m_pOutRTs;
-	NXPassTexture							m_pOutDS;
+	std::vector<Ntr<NXTexture>>				m_pInTexs;
+	std::vector<Ntr<NXTexture>>				m_pOutRTs;
+	Ntr<NXTexture>							m_pOutDS;
 
 	std::filesystem::path					m_shaderFilePath;
 

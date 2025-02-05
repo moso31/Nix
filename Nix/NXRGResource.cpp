@@ -1,8 +1,9 @@
 #include "NXRGResource.h"
 
-NXRGResource::NXRGResource(NXRGHandle* handle)
+NXRGResource::NXRGResource(NXRGResource* pOldResource)
 {
-	m_handle = new NXRGHandle(handle);
+	m_handle = new NXRGHandle(pOldResource->GetHandle());
+	m_description = pOldResource->GetDescription();
 }
 
 NXRGResource::NXRGResource(const NXRGDescription& description) :
