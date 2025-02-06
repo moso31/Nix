@@ -26,6 +26,13 @@ NXRendererPass::NXRendererPass() :
 	m_srvUavRanges.reserve(1);
 }
 
+void NXRendererPass::ClearInOutTexs()
+{
+	m_pInTexs.clear();
+	m_pOutRTs.clear();
+	m_pOutDS = nullptr;
+}
+
 void NXRendererPass::PushInputTex(NXCommonTexEnum eCommonTex)
 {
 	m_pInTexs.push_back(NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(eCommonTex));

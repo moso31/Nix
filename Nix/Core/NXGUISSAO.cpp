@@ -12,7 +12,7 @@ void NXGUISSAO::Render()
 	m_bDirty = false;
 	ImGui::Begin("SSAO");
 
-	auto pSSAO = m_pRenderer->GetRenderGraph()->GetPass("SSAO");
+	auto pSSAO = m_pRenderer->GetRenderGraph()->GetRenderPass("SSAO");
 	if (pSSAO == nullptr)
 	{
 		ImGui::Text("SSAO is not enabled.");

@@ -28,6 +28,7 @@ public:
 
 	void SetPassName(const std::string& passName) { m_passName = passName; }
 
+	void ClearInOutTexs();
 	void PushInputTex(NXCommonTexEnum eCommonTex);
 	void PushInputTex(const Ntr<NXTexture>& pTex);
 	void PushOutputRT(const Ntr<NXTexture>& pTex);

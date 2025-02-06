@@ -15,7 +15,14 @@ public:
 	NXRenderGraph();
 	virtual ~NXRenderGraph();
 
-	void AddPass(NXRGPassNode* pPassNode, std::function<void()> setup, std::function<void(ID3D12GraphicsCommandList* pCmdList)> execute);
+	template<typename PassData>
+	void AddPass(NXRGPassNode* pPassNode, PassData& passData, std::function<void()> setup, std::function<void(ID3D12GraphicsCommandList* pCmdList)> execute)
+	{
+		pPassNode->RegisterSetupFunc(setup);
+		pPassNode->RegisterExecuteFunc(execute);
+		m_passNodes.push_back(pPassNode);
+	}
+
 	void Compile();
 	void Execute(ID3D12GraphicsCommandList* pCmdList);
 
@@ -25,7 +32,12 @@ public:
 	void AddResource(NXRGResource* pResources);
 	void SetViewResolution(const Vector2& resolution) { m_viewResolution = resolution; }
 
-	NXRendererPass* GetPass(const std::string& passName);
+	NXRendererPass* GetRenderPass(const std::string& passName);
+	NXRGPassNode* GetPassNode(const std::string& passName);
+
+	// 调用dx层API清空RT。只能在 Execute() lambda 中调用。
+	void ClearRT(ID3D12GraphicsCommandList* pCmdList, NXRGResource* pResource);
+	void SetViewPortAndScissorRect(ID3D12GraphicsCommandList* pCmdList, const Vector2& size);
 
 private:
 	// 图依赖的所有pass

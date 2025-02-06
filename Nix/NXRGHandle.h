@@ -19,7 +19,7 @@ public:
 	NXRGHandle(NXRGHandle* handle) 
 	{
 		m_index = handle->m_index;
-		m_version = s_indexToVersion[m_index];
+		m_version = ++s_indexToVersion[m_index];
 	}
 
 	static void Reset()

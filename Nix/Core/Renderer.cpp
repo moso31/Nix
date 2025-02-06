@@ -81,7 +81,7 @@ void Renderer::InitRenderGraph()
 	m_pRenderGraph = new NXRenderGraph();
 	m_pRenderGraph->SetViewResolution(m_viewRTSize);
 
-	struct 
+	struct GBufferData
 	{
 		NXRGResource* depth;
 		NXRGResource* rt0;
@@ -90,24 +90,24 @@ void Renderer::InitRenderGraph()
 		NXRGResource* rt3;
 	} gBufferPassData;
 	NXRGPassNode* gBufferPass = new NXRGPassNode(m_pRenderGraph, "GBufferPass", new NXGBufferRenderer(m_scene));
-	m_pRenderGraph->AddPass(gBufferPass, 
+	m_pRenderGraph->AddPass(gBufferPass, gBufferPassData,
 		[&]() {
-			NXGBufferRenderer* p = (NXGBufferRenderer*)gBufferPass->GetRenderPass();
+			NXGBufferRenderer* p = (NXGBufferRenderer*)m_pRenderGraph->GetRenderPass("GBufferPass");
 			p->SetCamera(m_scene->GetMainCamera());
 		}, 
-		[&](ID3D12GraphicsCommandList* pCmdList) {
-			gBufferPass->ClearRT(pCmdList, gBufferPassData.depth);
-			gBufferPass->ClearRT(pCmdList, gBufferPassData.rt0);
-			gBufferPass->ClearRT(pCmdList, gBufferPassData.rt1);
-			gBufferPass->ClearRT(pCmdList, gBufferPassData.rt2);
-			gBufferPass->ClearRT(pCmdList, gBufferPassData.rt3);
-			gBufferPass->SetViewPortAndScissorRect(pCmdList, m_viewRTSize); // 第一个pass设置ViewPort
+		[=](ID3D12GraphicsCommandList* pCmdList) {
+			m_pRenderGraph->ClearRT(pCmdList, gBufferPassData.depth);
+			m_pRenderGraph->ClearRT(pCmdList, gBufferPassData.rt0);
+			m_pRenderGraph->ClearRT(pCmdList, gBufferPassData.rt1);
+			m_pRenderGraph->ClearRT(pCmdList, gBufferPassData.rt2);
+			m_pRenderGraph->ClearRT(pCmdList, gBufferPassData.rt3);
+			m_pRenderGraph->SetViewPortAndScissorRect(pCmdList, m_viewRTSize); // 第一个pass设置ViewPort
 		});
 	gBufferPassData.rt0 = gBufferPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
-	gBufferPassData.rt1 = gBufferPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
-	gBufferPassData.rt2 = gBufferPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
+	gBufferPassData.rt1 = gBufferPass->Create({ .format = DXGI_FORMAT_R32G32B32A32_FLOAT, .handleFlags = RG_RenderTarget });
+	gBufferPassData.rt2 = gBufferPass->Create({ .format = DXGI_FORMAT_R10G10B10A2_UNORM, .handleFlags = RG_RenderTarget });
 	gBufferPassData.rt3 = gBufferPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
-	gBufferPassData.depth = gBufferPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_DepthStencil });
+	gBufferPassData.depth = gBufferPass->Create({ .format = DXGI_FORMAT_R24G8_TYPELESS, .handleFlags = RG_DepthStencil });
 	gBufferPassData.rt0 = gBufferPass->Write(gBufferPassData.rt0);
 	gBufferPassData.rt1 = gBufferPass->Write(gBufferPassData.rt1);
 	gBufferPassData.rt2 = gBufferPass->Write(gBufferPassData.rt2);
@@ -124,7 +124,7 @@ void Renderer::InitRenderGraph()
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList) {
 		});
-	depthCopyPassData.depthCopy = depthCopyPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
+	depthCopyPassData.depthCopy = depthCopyPass->Create({ .format = DXGI_FORMAT_R32_FLOAT, .handleFlags = RG_RenderTarget });
 	depthCopyPass->Read(gBufferPassData.depth);
 	depthCopyPassData.depthCopy = depthCopyPass->Write(gBufferPassData.depth);
 
@@ -137,13 +137,11 @@ void Renderer::InitRenderGraph()
 		[&]() {
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList) {
-			gBufferPass->SetViewPortAndScissorRect(pCmdList, Vector2(2048, 2048)); // CSM ShadowMap的ViewPort
+			m_pRenderGraph->SetViewPortAndScissorRect(pCmdList, Vector2(2048, 2048)); // CSM ShadowMap的ViewPort
 		});
 	// TODO: shadowMap 纹理目前直接写死在NXShadowMapRenderer，改成可配置的
 	//shadowMapPassData.shadowMap = shadowMapPass->Create({ .width = 1024, .height = 1024, .format = DXGI_FORMAT_R32_TYPELESS, .handleFlags = RG_DepthStencil });
 	//shadowMapPassData.shadowMap = shadowMapPass->Write(shadowMapPassData.shadowMap);
-	auto pShadowMapPass = (NXShadowMapRenderer*)shadowMapPass->GetRenderPass();
-	auto pCSMDepth = pShadowMapPass->GetShadowMapDepthTex(); // 现在先临时直接调用
 
 	struct 
 	{
@@ -152,10 +150,12 @@ void Renderer::InitRenderGraph()
 	NXRGPassNode* shadowTestPass = new NXRGPassNode(m_pRenderGraph, "ShadowTest", new NXShadowTestRenderer());
 	m_pRenderGraph->AddPass(shadowTestPass,
 		[&]() {
-			shadowTestPass->GetRenderPass()->PushInputTex(pCSMDepth);
+			auto pShadowMapPass = (NXShadowMapRenderer*)m_pRenderGraph->GetRenderPass("ShadowMap");
+			auto pCSMDepth = pShadowMapPass->GetShadowMapDepthTex();
+			m_pRenderGraph->GetRenderPass("ShadowTest")->PushInputTex(pCSMDepth);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList) {
-			gBufferPass->SetViewPortAndScissorRect(pCmdList, m_viewRTSize); // pass设置ViewPort
+			m_pRenderGraph->SetViewPortAndScissorRect(pCmdList, m_viewRTSize); // pass设置ViewPort
 		});
 	shadowTestPassData.shadowTest = shadowTestPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
 	shadowTestPass->Read(gBufferPassData.depth);
@@ -174,15 +174,16 @@ void Renderer::InitRenderGraph()
 			auto pCubeMap = m_scene->GetCubeMap()->GetCubeMap();
 			auto pPreFilterMap = m_scene->GetCubeMap()->GetPreFilterMap();
 			auto pBRDFLut = m_pBRDFLut->GetTex();
-			litPass->GetRenderPass()->PushInputTex(pCubeMap); // t6
-			litPass->GetRenderPass()->PushInputTex(pPreFilterMap); // t7
-			litPass->GetRenderPass()->PushInputTex(pBRDFLut); // t8
+			auto pass = (NXDeferredRenderer*)m_pRenderGraph->GetRenderPass("DeferredLighting");
+			pass->PushInputTex(pCubeMap); // t6
+			pass->PushInputTex(pPreFilterMap); // t7
+			pass->PushInputTex(pBRDFLut); // t8
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList) {
 		});
-	litData.lighting = litPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
-	litData.lightingSpec = litPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
-	litData.lightingCopy = litPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
+	litData.lighting = litPass->Create({ .format = DXGI_FORMAT_R32G32B32A32_FLOAT, .handleFlags = RG_RenderTarget });
+	litData.lightingSpec = litPass->Create({ .format = DXGI_FORMAT_R32G32B32A32_FLOAT, .handleFlags = RG_RenderTarget });
+	litData.lightingCopy = litPass->Create({ .format = DXGI_FORMAT_R11G11B10_FLOAT, .handleFlags = RG_RenderTarget });
 	litPass->Read(gBufferPassData.rt0); // t0
 	litPass->Read(gBufferPassData.rt1); // t1
 	litPass->Read(gBufferPassData.rt2); // t2
@@ -201,11 +202,12 @@ void Renderer::InitRenderGraph()
 	m_pRenderGraph->AddPass(sssPass,
 		[&]() {
 			auto pNoise64 = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_Noise2DGray_64x64);
-			sssPass->GetRenderPass()->PushInputTex(pNoise64);
+			auto pass = (NXSubSurfaceRenderer*)m_pRenderGraph->GetRenderPass("Subsurface");
+			pass->PushInputTex(pNoise64);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList) {
 		});
-	sssData.buf = sssPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
+	sssData.buf = sssPass->Create({ .format = DXGI_FORMAT_R11G11B10_FLOAT, .handleFlags = RG_RenderTarget });
 	sssPass->Read(litData.lighting);
 	sssPass->Read(litData.lightingSpec);
 	sssPass->Read(litData.lightingCopy);
@@ -222,7 +224,8 @@ void Renderer::InitRenderGraph()
 	m_pRenderGraph->AddPass(skyPass,
 		[&]() {
 			auto pCubeMap = m_scene->GetCubeMap()->GetCubeMap();
-			skyPass->GetRenderPass()->PushInputTex(pCubeMap);
+			auto pass = (NXSubSurfaceRenderer*)m_pRenderGraph->GetRenderPass("SkyLighting");
+			pass->PushInputTex(pCubeMap);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList) {
 		});
@@ -239,7 +242,7 @@ void Renderer::InitRenderGraph()
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList) {
 		});
-	postProcessPassData.out = postProcessPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
+	postProcessPassData.out = postProcessPass->Create({ .format = DXGI_FORMAT_R11G11B10_FLOAT, .handleFlags = RG_RenderTarget });
 	postProcessPass->Read(skyPassData.buf);
 	postProcessPassData.out = postProcessPass->Write(postProcessPassData.out);
 
@@ -250,13 +253,16 @@ void Renderer::InitRenderGraph()
 	NXRGPassNode* debugLayerPass = new NXRGPassNode(m_pRenderGraph, "DebugLayer", new NXDebugLayerRenderer());
 	m_pRenderGraph->AddPass(debugLayerPass,
 		[&]() {
-			auto* p = (NXDebugLayerRenderer*)debugLayerPass->GetRenderPass();
-			p->OnResize(m_viewRTSize);
-			shadowTestPass->GetRenderPass()->PushInputTex(pCSMDepth);
+			auto* pDebugLayerPass = (NXDebugLayerRenderer*)m_pRenderGraph->GetRenderPass("DebugLayer");
+			pDebugLayerPass->OnResize(m_viewRTSize);
+
+			auto pShadowMapPass = (NXShadowMapRenderer*)m_pRenderGraph->GetRenderPass("ShadowMap");
+			auto pCSMDepth = pShadowMapPass->GetShadowMapDepthTex();
+			m_pRenderGraph->GetRenderPass("ShadowTest")->PushInputTex(pCSMDepth);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList) {
 		});
-	debugLayerPassData.out = debugLayerPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
+	debugLayerPassData.out = debugLayerPass->Create({ .format = DXGI_FORMAT_R11G11B10_FLOAT, .handleFlags = RG_RenderTarget });
 	debugLayerPass->Read(postProcessPassData.out);
 	//debugLayerPass->Read(shadowMapPassData.shadowMap);
 	debugLayerPassData.out = debugLayerPass->Write(debugLayerPassData.out);

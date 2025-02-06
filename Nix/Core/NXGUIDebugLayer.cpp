@@ -7,7 +7,7 @@ void NXGUIDebugLayer::Render()
 {
 	ImGui::Begin("Debug Layer");
 
-	NXDebugLayerRenderer* pDebugLayer = (NXDebugLayerRenderer*)m_pRenderer->GetRenderGraph()->GetPass("DebugLayer");
+	NXDebugLayerRenderer* pDebugLayer = (NXDebugLayerRenderer*)m_pRenderer->GetRenderGraph()->GetRenderPass("DebugLayer");
 	if (!pDebugLayer)
 	{
 		ImGui::Text("Debug Layer Renderer is not found.");

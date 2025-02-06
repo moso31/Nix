@@ -5,7 +5,7 @@ void NXGUIShadows::Render()
 {
 	ImGui::Begin("Shadows");
 
-	NXShadowMapRenderer* pShadowMap = (NXShadowMapRenderer*)m_pRenderer->GetRenderGraph()->GetPass("ShadowMap");
+	NXShadowMapRenderer* pShadowMap = (NXShadowMapRenderer*)m_pRenderer->GetRenderGraph()->GetRenderPass("ShadowMap");
 	if (pShadowMap == nullptr)
 	{
 		ImGui::Text("ShadowMap pass not found");
