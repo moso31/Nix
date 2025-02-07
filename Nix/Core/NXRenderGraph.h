@@ -15,13 +15,7 @@ public:
 	NXRenderGraph();
 	virtual ~NXRenderGraph();
 
-	template<typename PassData>
-	void AddPass(NXRGPassNode* pPassNode, PassData& passData, std::function<void()> setup, std::function<void(ID3D12GraphicsCommandList* pCmdList)> execute)
-	{
-		pPassNode->RegisterSetupFunc(setup);
-		pPassNode->RegisterExecuteFunc(execute);
-		m_passNodes.push_back(pPassNode);
-	}
+	void AddPass(NXRGPassNode* pPassNode, std::function<void()> setup, std::function<void(ID3D12GraphicsCommandList* pCmdList)> execute);
 
 	void Compile();
 	void Execute(ID3D12GraphicsCommandList* pCmdList);

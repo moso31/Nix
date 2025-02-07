@@ -16,15 +16,15 @@ enum NXRGHandleFlags
 struct NXRGDescription
 {
 	// 是否使用view的分辨率
-	bool useViewResolution = true;
+	bool isDynamicResolution = true;
 
 	union
 	{
-		// useViewResolution == true 时
+		// isDynamicResolution == true 时
 		// 分辨率比例。允许pass的分辨率缩放到0.5x, 0.25x等
-		float viewResolutionRatio = 1.0f;
+		float dynamicResolutionRatio = 1.0f;
 
-		// useViewResolution == false 时
+		// isDynamicResolution == false 时
 		struct
 		{
 			// 纹理的size

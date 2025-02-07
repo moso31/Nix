@@ -13,21 +13,28 @@ NXRenderGraph::~NXRenderGraph()
 {
 }
 
+void NXRenderGraph::AddPass(NXRGPassNode* pPassNode, std::function<void()> setup, std::function<void(ID3D12GraphicsCommandList* pCmdList)> execute)
+{
+	pPassNode->RegisterSetupFunc(setup);
+	pPassNode->RegisterExecuteFunc(execute);
+	m_passNodes.push_back(pPassNode);
+}
+
 void NXRenderGraph::Compile()
 {
 	// 2025.2.5 目前RenderGraph会为每个Handle Version都创建一个RT。
 	for (auto pResource : m_resources)
 	{
 		auto& desc = pResource->GetDescription();
-		if (desc.useViewResolution)
+		if (desc.isDynamicResolution)
 		{
 			D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE;
 			desc.handleFlags == RG_RenderTarget ? flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET : 0;
 			desc.handleFlags == RG_DepthStencil ? flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL : 0;
 
 			Ntr<NXTexture2D> pTexture2D(new NXTexture2D());
-			uint32_t width = static_cast<uint32_t>(m_viewResolution.x * desc.viewResolutionRatio);
-			uint32_t height = static_cast<uint32_t>(m_viewResolution.y * desc.viewResolutionRatio);
+			uint32_t width = static_cast<uint32_t>(m_viewResolution.x * desc.dynamicResolutionRatio);
+			uint32_t height = static_cast<uint32_t>(m_viewResolution.y * desc.dynamicResolutionRatio);
 			pTexture2D->CreateRenderTexture("", desc.format, width, height, flags);
 
 			uint32_t rtvCount = flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET ? 1 : 0;

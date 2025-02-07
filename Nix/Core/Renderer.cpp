@@ -81,7 +81,7 @@ void Renderer::InitRenderGraph()
 	m_pRenderGraph = new NXRenderGraph();
 	m_pRenderGraph->SetViewResolution(m_viewRTSize);
 
-	struct GBufferData
+	struct
 	{
 		NXRGResource* depth;
 		NXRGResource* rt0;
@@ -90,7 +90,17 @@ void Renderer::InitRenderGraph()
 		NXRGResource* rt3;
 	} gBufferPassData;
 	NXRGPassNode* gBufferPass = new NXRGPassNode(m_pRenderGraph, "GBufferPass", new NXGBufferRenderer(m_scene));
-	m_pRenderGraph->AddPass(gBufferPass, gBufferPassData,
+	gBufferPassData.rt0 = gBufferPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
+	gBufferPassData.rt1 = gBufferPass->Create({ .format = DXGI_FORMAT_R32G32B32A32_FLOAT, .handleFlags = RG_RenderTarget });
+	gBufferPassData.rt2 = gBufferPass->Create({ .format = DXGI_FORMAT_R10G10B10A2_UNORM, .handleFlags = RG_RenderTarget });
+	gBufferPassData.rt3 = gBufferPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
+	gBufferPassData.depth = gBufferPass->Create({ .format = DXGI_FORMAT_R24G8_TYPELESS, .handleFlags = RG_DepthStencil });
+	gBufferPassData.rt0 = gBufferPass->Write(gBufferPassData.rt0);
+	gBufferPassData.rt1 = gBufferPass->Write(gBufferPassData.rt1);
+	gBufferPassData.rt2 = gBufferPass->Write(gBufferPassData.rt2);
+	gBufferPassData.rt3 = gBufferPass->Write(gBufferPassData.rt3);
+	gBufferPassData.depth = gBufferPass->Write(gBufferPassData.depth);
+	m_pRenderGraph->AddPass(gBufferPass,
 		[&]() {
 			NXGBufferRenderer* p = (NXGBufferRenderer*)m_pRenderGraph->GetRenderPass("GBufferPass");
 			p->SetCamera(m_scene->GetMainCamera());
@@ -103,16 +113,6 @@ void Renderer::InitRenderGraph()
 			m_pRenderGraph->ClearRT(pCmdList, gBufferPassData.rt3);
 			m_pRenderGraph->SetViewPortAndScissorRect(pCmdList, m_viewRTSize); // 第一个pass设置ViewPort
 		});
-	gBufferPassData.rt0 = gBufferPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
-	gBufferPassData.rt1 = gBufferPass->Create({ .format = DXGI_FORMAT_R32G32B32A32_FLOAT, .handleFlags = RG_RenderTarget });
-	gBufferPassData.rt2 = gBufferPass->Create({ .format = DXGI_FORMAT_R10G10B10A2_UNORM, .handleFlags = RG_RenderTarget });
-	gBufferPassData.rt3 = gBufferPass->Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
-	gBufferPassData.depth = gBufferPass->Create({ .format = DXGI_FORMAT_R24G8_TYPELESS, .handleFlags = RG_DepthStencil });
-	gBufferPassData.rt0 = gBufferPass->Write(gBufferPassData.rt0);
-	gBufferPassData.rt1 = gBufferPass->Write(gBufferPassData.rt1);
-	gBufferPassData.rt2 = gBufferPass->Write(gBufferPassData.rt2);
-	gBufferPassData.rt3 = gBufferPass->Write(gBufferPassData.rt3);
-	gBufferPassData.depth = gBufferPass->Write(gBufferPassData.depth);
 
 	struct 
 	{
