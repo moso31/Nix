@@ -13,13 +13,6 @@ NXRenderGraph::~NXRenderGraph()
 {
 }
 
-void NXRenderGraph::AddPass(NXRGPassNode* pPassNode, std::function<void()> setup, std::function<void(ID3D12GraphicsCommandList* pCmdList)> execute)
-{
-	pPassNode->RegisterSetupFunc(setup);
-	pPassNode->RegisterExecuteFunc(execute);
-	m_passNodes.push_back(pPassNode);
-}
-
 void NXRenderGraph::Compile()
 {
 	// 2025.2.5 目前RenderGraph会为每个Handle Version都创建一个RT。
@@ -82,24 +75,12 @@ void NXRenderGraph::AddResource(NXRGResource* pResource)
 
 NXRendererPass* NXRenderGraph::GetRenderPass(const std::string& passName)
 {
-	auto it = std::find_if(m_passNodes.begin(), m_passNodes.end(), [&](NXRGPassNode* passNode) {
+	auto it = std::find_if(m_passNodes.begin(), m_passNodes.end(), [&](NXRGPassNodeBase* passNode) {
 		return passNode->GetName() == passName;
 	});
 
 	if (it != m_passNodes.end())
 		return (*it)->GetRenderPass();
-
-	return nullptr;
-}
-
-NXRGPassNode* NXRenderGraph::GetPassNode(const std::string& passName)
-{
-	auto it = std::find_if(m_passNodes.begin(), m_passNodes.end(), [&](NXRGPassNode* passNode) {
-		return passNode->GetName() == passName;
-	});
-
-	if (it != m_passNodes.end())
-		return *it;
 
 	return nullptr;
 }

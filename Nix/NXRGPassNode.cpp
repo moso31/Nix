@@ -1,20 +1,19 @@
 #include "NXRGPassNode.h"
-#include "NXRGHandle.h"
-#include "NXRendererPass.h"
+#include "NXRenderGraph.h"
 
-NXRGResource* NXRGPassNode::Create(const NXRGDescription& desc)
+NXRGResource* NXRGPassNodeBase::Create(const NXRGDescription& desc)
 {
 	NXRGResource* pResource = new NXRGResource(desc);
 	m_pRenderGraph->AddResource(pResource);
 	return pResource;
 }
 
-void NXRGPassNode::Read(NXRGResource* pResource)
+void NXRGPassNodeBase::Read(NXRGResource* pResource)
 {
 	m_inputs.push_back(pResource);
 }
 
-NXRGResource* NXRGPassNode::Write(NXRGResource* pResource)
+NXRGResource* NXRGPassNodeBase::Write(NXRGResource* pResource)
 {
 	if (!pResource->HasWrited())
 	{
@@ -34,7 +33,7 @@ NXRGResource* NXRGPassNode::Write(NXRGResource* pResource)
 	}
 }
 
-void NXRGPassNode::Compile()
+void NXRGPassNodeBase::Compile()
 {
 	m_pPass->ClearInOutTexs();
 
@@ -56,12 +55,5 @@ void NXRGPassNode::Compile()
 		}
 	}
 
-	m_setupFunc();
 	m_pPass->SetupInternal();
-}
-
-void NXRGPassNode::Execute(ID3D12GraphicsCommandList* pCmdList)
-{
-	m_executeFunc(pCmdList);
-	m_pPass->Render(pCmdList);
 }

@@ -511,6 +511,9 @@
     <ClCompile Include="NXRGHandle.cpp">
       <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClCompile>
+    <ClCompile Include="NXRGBuilder.cpp">
+      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -853,6 +856,9 @@
       <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClInclude>
     <ClInclude Include="NXRGPassNode.h">
+      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="NXRGBuilder.h">
       <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClInclude>
   </ItemGroup>

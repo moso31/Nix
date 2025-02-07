@@ -1,12 +1,12 @@
 #pragma once
-#include "NXRenderGraph.h"
+#include "NXRendererPass.h"
 #include "NXRGResource.h"
 
-class NXRendererPass;
-class NXRGPassNode
+class NXRenderGraph;
+class NXRGPassNodeBase
 {
 public:
-	NXRGPassNode(NXRenderGraph* pRenderGraph, const std::string& passName, NXRendererPass* pPass) : 
+	NXRGPassNodeBase(NXRenderGraph* pRenderGraph, const std::string& passName, NXRendererPass* pPass) :
 		m_pRenderGraph(pRenderGraph), m_passName(passName), m_pPass(pPass) {}
 
 	const std::string& GetName() { return m_passName; }
@@ -23,22 +23,37 @@ public:
 	NXRendererPass* GetRenderPass() { return m_pPass; }
 
 	void Compile();
-	void Execute(ID3D12GraphicsCommandList* pCmdList);
+	virtual void Execute(ID3D12GraphicsCommandList* pCmdList) = 0;
 
-	void RegisterSetupFunc(std::function<void()> func) { m_setupFunc = func; }
-	void RegisterExecuteFunc(std::function<void(ID3D12GraphicsCommandList* pCmdList)> func) { m_executeFunc = func; }
-
-private:
+protected:
 	std::string m_passName;
 	NXRenderGraph* m_pRenderGraph;
 	NXRendererPass* m_pPass;
 
+	// Pass记录自己依赖的资源，但声明周期由NXRenderGraph*管理。
 	std::vector<NXRGResource*> m_inputs;
 	std::vector<NXRGResource*> m_outputs;
+};
 
-	// 如果需要设置pass的各种附加信息（比如gbuffer依赖的camera），可使用此方法的lambda。
-	std::function<void()> m_setupFunc;
+template<typename NXRGPassData>
+class NXRGPassNode : public NXRGPassNodeBase
+{
+public:
+	NXRGPassNode(NXRenderGraph* pRenderGraph, const std::string& passName, NXRendererPass* pPass) : NXRGPassNodeBase(pRenderGraph, passName, pPass), m_passData(NXRGPassData()) {}
+
+	NXRGPassData& GetData() { return m_passData; }
+
+	void Execute(ID3D12GraphicsCommandList* pCmdList) override
+	{
+		m_executeFunc(pCmdList, m_passData);
+		m_pPass->Render(pCmdList);
+	}
+
+	void RegisterExecuteFunc(std::function<void(ID3D12GraphicsCommandList* pCmdList, NXRGPassData& data)> func) { m_executeFunc = func; }
+
+private:
+	NXRGPassData m_passData;
 
 	// 如果需要在执行前进行一些pass操作（比如clearRT），可使用此方法的lambda。
-	std::function<void(ID3D12GraphicsCommandList* pCmdList)> m_executeFunc;
+	std::function<void(ID3D12GraphicsCommandList* pCmdList, NXRGPassData& data)> m_executeFunc;
 };

@@ -3,19 +3,27 @@
 #include "BaseDefs/DX12.h"
 #include "BaseDefs/Math.h"
 
-class NXRGHandle;
-class NXRGPassNode;
-class NXRGResource;
-struct NXRGDescription;
-class NXRendererPass;
-class NXTexture;
+#include "NXRGBuilder.h"
+#include "NXRGPassNode.h"
+#include "NXRendererPass.h"
+
 class NXRenderGraph
 {
 public:
 	NXRenderGraph();
 	virtual ~NXRenderGraph();
 
-	void AddPass(NXRGPassNode* pPassNode, std::function<void()> setup, std::function<void(ID3D12GraphicsCommandList* pCmdList)> execute);
+	template<typename NXRGPassData>
+	NXRGPassNode<NXRGPassData>* AddPass(const std::string& name, NXRendererPass* pRendererPass, std::function<void(NXRGBuilder& pBuilder, NXRGPassData& data)> setup, std::function<void(ID3D12GraphicsCommandList* pCmdList, NXRGPassData& data)> execute)
+	{
+		auto pPassNode = new NXRGPassNode<NXRGPassData>(this, name, pRendererPass);
+		NXRGBuilder pBuilder(this, pPassNode);
+		setup(pBuilder, pPassNode->GetData());
+
+		pPassNode->RegisterExecuteFunc(execute);
+		m_passNodes.push_back(pPassNode);
+		return pPassNode;
+	}
 
 	void Compile();
 	void Execute(ID3D12GraphicsCommandList* pCmdList);
@@ -27,7 +35,6 @@ public:
 	void SetViewResolution(const Vector2& resolution) { m_viewResolution = resolution; }
 
 	NXRendererPass* GetRenderPass(const std::string& passName);
-	NXRGPassNode* GetPassNode(const std::string& passName);
 
 	// 调用dx层API清空RT。只能在 Execute() lambda 中调用。
 	void ClearRT(ID3D12GraphicsCommandList* pCmdList, NXRGResource* pResource);
@@ -35,7 +42,7 @@ public:
 
 private:
 	// 图依赖的所有pass
-	std::vector<NXRGPassNode*> m_passNodes;
+	std::vector<NXRGPassNodeBase*> m_passNodes;
 
 	// 图依赖的资源RT
 	std::vector<NXRGResource*> m_resources;
