@@ -26,22 +26,23 @@ NXRendererPass::NXRendererPass() :
 	m_srvUavRanges.reserve(1);
 }
 
-void NXRendererPass::PushInputTex(NXCommonTexEnum eCommonTex, uint32_t slotIndex)
+void NXRendererPass::SetInputTex(NXCommonTexEnum eCommonTex, uint32_t slotIndex)
 {
 	auto pTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(eCommonTex);
 	if (m_pInTexs.size() <= slotIndex) m_pInTexs.resize(slotIndex + 1);
 	m_pInTexs[slotIndex] = pTex;
 }
 
-void NXRendererPass::PushInputTex(const Ntr<NXTexture>& pTex, uint32_t slotIndex)
+void NXRendererPass::SetInputTex(const Ntr<NXTexture>& pTex, uint32_t slotIndex)
 {
 	if (m_pInTexs.size() <= slotIndex) m_pInTexs.resize(slotIndex + 1);
 	m_pInTexs[slotIndex] = pTex;
 }
 
-void NXRendererPass::PushOutputRT(const Ntr<NXTexture>& pTex)
+void NXRendererPass::SetOutputRT(const Ntr<NXTexture>& pTex, uint32_t rtIndex)
 {
-	m_pOutRTs.push_back(pTex);
+	if (m_pOutRTs.size() <= rtIndex) m_pOutRTs.resize(rtIndex + 1);
+	m_pOutRTs[rtIndex] = pTex;
 }
 
 void NXRendererPass::SetOutputDS(const Ntr<NXTexture>& pTex)

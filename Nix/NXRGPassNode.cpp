@@ -13,12 +13,12 @@ void NXRGPassNodeBase::Read(NXRGResource* pResource, uint32_t passSlotIndex)
 	m_inputs.push_back({ pResource, passSlotIndex });
 }
 
-NXRGResource* NXRGPassNodeBase::Write(NXRGResource* pResource)
+NXRGResource* NXRGPassNodeBase::Write(NXRGResource* pResource, uint32_t outRTIndex)
 {
 	if (!pResource->HasWrited())
 	{
 		// 如果之前没被写入过，可以直接用
-		m_outputs.push_back(pResource);
+		m_outputs.push_back({ pResource, outRTIndex });
 		pResource->MakeWriteConnect(); // 标记为已写入
 		return pResource;
 	}
@@ -26,7 +26,7 @@ NXRGResource* NXRGPassNodeBase::Write(NXRGResource* pResource)
 	{
 		// 创建新版本
 		NXRGResource* pNewVersionResource = new NXRGResource(pResource);
-		m_outputs.push_back(pNewVersionResource);
+		m_outputs.push_back({ pNewVersionResource, outRTIndex });
 		pNewVersionResource->MakeWriteConnect(); // 标记为已写入
 		m_pRenderGraph->AddResource(pNewVersionResource); // 添加到graph中
 		return pNewVersionResource;
@@ -35,17 +35,18 @@ NXRGResource* NXRGPassNodeBase::Write(NXRGResource* pResource)
 
 void NXRGPassNodeBase::Compile()
 {
-	for (auto pInRes : m_inputs)
+	for (auto pInResSlot : m_inputs)
 	{
-		m_pPass->PushInputTex(pInRes.resource->GetResource(), pInRes.slot);
+		m_pPass->SetInputTex(pInResSlot.resource->GetResource(), pInResSlot.slot);
 	}
 
-	for (auto pOutRes : m_outputs)
+	for (auto pOutResSlot : m_outputs)
 	{
+		auto pOutRes = pOutResSlot.resource;
 		auto flag = pOutRes->GetDescription().handleFlags;
 		if (flag == RG_RenderTarget)
 		{
-			m_pPass->PushOutputRT(pOutRes->GetResource());
+			m_pPass->SetOutputRT(pOutRes->GetResource(), pOutResSlot.slot);
 		}
 		else if (flag == RG_DepthStencil)
 		{

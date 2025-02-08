@@ -11,7 +11,7 @@ void NXRGBuilder::Read(NXRGResource* pResource, uint32_t passSlotIndex)
 	return m_pPassNode->Read(pResource, passSlotIndex);
 }
 
-NXRGResource* NXRGBuilder::Write(NXRGResource* pResource)
+NXRGResource* NXRGBuilder::Write(NXRGResource* pResource, uint32_t outRTIndex)
 {
-	return m_pPassNode->Write(pResource);
+	return m_pPassNode->Write(pResource, outRTIndex);
 }

@@ -19,10 +19,12 @@ public:
 	NXRGResource* Create(const NXRGDescription& desc);
 
 	// 设置Pass输入资源。
+	// passSlotIndex = 最终pass shader使用的slot索引。
 	void Read(NXRGResource* pResource, uint32_t passSlotIndex);
 
 	// 设置pass输出RT/DS。
-	NXRGResource* Write(NXRGResource* pResource);
+	// outRTIndex = pass shader 输出的RT索引（DS忽略此参数）
+	NXRGResource* Write(NXRGResource* pResource, uint32_t outRTIndex = -1);
 
 	NXRGPassNodeBase* GetPassNode() { return m_pPassNode; }
 

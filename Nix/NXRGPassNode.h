@@ -24,7 +24,7 @@ public:
 	void Read(NXRGResource* pResource, uint32_t passSlotIndex);
 
 	// 设置pass输出RT。
-	NXRGResource* Write(NXRGResource* pResource);
+	NXRGResource* Write(NXRGResource* pResource, uint32_t outRTIndex = -1);
 
 	NXRendererPass* GetRenderPass() { return m_pPass; }
 
@@ -38,7 +38,7 @@ protected:
 
 	// Pass记录自己依赖的资源，但生命周期由NXRenderGraph*管理；
 	std::vector<NXRGResourceSlot> m_inputs; 
-	std::vector<NXRGResource*> m_outputs;
+	std::vector<NXRGResourceSlot> m_outputs;
 };
 
 template<typename NXRGPassData>

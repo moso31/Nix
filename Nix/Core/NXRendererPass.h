@@ -38,9 +38,9 @@ public:
 
 	void SetPassName(const std::string& passName) { m_passName = passName; }
 
-	void PushInputTex(NXCommonTexEnum eCommonTex, uint32_t slotIndex);
-	void PushInputTex(const Ntr<NXTexture>& pTex, uint32_t slotIndex);
-	void PushOutputRT(const Ntr<NXTexture>& pTex);
+	void SetInputTex(NXCommonTexEnum eCommonTex, uint32_t slotIndex);
+	void SetInputTex(const Ntr<NXTexture>& pTex, uint32_t slotIndex);
+	void SetOutputRT(const Ntr<NXTexture>& pTex, uint32_t rtIndex);
 	void SetOutputDS(const Ntr<NXTexture>& pTex);
 
 	void SetInputLayout(const D3D12_INPUT_LAYOUT_DESC& desc);

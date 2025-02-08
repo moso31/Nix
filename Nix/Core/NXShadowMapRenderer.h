@@ -24,6 +24,7 @@ public:
 	NXShadowMapRenderer(NXScene* pScene);
 	virtual ~NXShadowMapRenderer();
 
+	void InitShadowMapDepthTex();
 	virtual void SetupInternal() override;
 	virtual void Render(ID3D12GraphicsCommandList* pCmdList) override;
 	void RenderSingleObject(ID3D12GraphicsCommandList* pCmdList, NXRenderableObject* pRenderableObject);
