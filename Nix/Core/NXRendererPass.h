@@ -5,6 +5,16 @@
 #include "NXCommonTexDefinition.h"
 #include "NXTexture.h"
 
+class NXPassTexture
+{
+public:
+	NXPassTexture(Ntr<NXTexture> pTexture, uint32_t passSlotIndex = -1) :
+		pTexture(pTexture), slotIndex(passSlotIndex) {}
+
+	Ntr<NXTexture> pTexture;
+	uint32_t slotIndex = -1;
+};
+
 // 在DX12要绑定CB，需要提供对应CBV的gpuHandle。
 // cmdList将使用gpuHandle。
 struct NXCBVManagement
@@ -28,9 +38,8 @@ public:
 
 	void SetPassName(const std::string& passName) { m_passName = passName; }
 
-	void ClearInOutTexs();
-	void PushInputTex(NXCommonTexEnum eCommonTex);
-	void PushInputTex(const Ntr<NXTexture>& pTex);
+	void PushInputTex(NXCommonTexEnum eCommonTex, uint32_t slotIndex);
+	void PushInputTex(const Ntr<NXTexture>& pTex, uint32_t slotIndex);
 	void PushOutputRT(const Ntr<NXTexture>& pTex);
 	void SetOutputDS(const Ntr<NXTexture>& pTex);
 

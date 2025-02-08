@@ -1,4 +1,5 @@
 #pragma once
+#include "BaseDefs/NixCore.h"
 
 class NXRenderGraph;
 class NXRGResource;
@@ -18,9 +19,9 @@ public:
 	NXRGResource* Create(const NXRGDescription& desc);
 
 	// 设置Pass输入资源。
-	void Read(NXRGResource* pResource);
+	void Read(NXRGResource* pResource, uint32_t passSlotIndex);
 
-	// 设置pass输出RT。
+	// 设置pass输出RT/DS。
 	NXRGResource* Write(NXRGResource* pResource);
 
 	NXRGPassNodeBase* GetPassNode() { return m_pPassNode; }

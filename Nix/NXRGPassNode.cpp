@@ -8,9 +8,9 @@ NXRGResource* NXRGPassNodeBase::Create(const NXRGDescription& desc)
 	return pResource;
 }
 
-void NXRGPassNodeBase::Read(NXRGResource* pResource)
+void NXRGPassNodeBase::Read(NXRGResource* pResource, uint32_t passSlotIndex)
 {
-	m_inputs.push_back(pResource);
+	m_inputs.push_back({ pResource, passSlotIndex });
 }
 
 NXRGResource* NXRGPassNodeBase::Write(NXRGResource* pResource)
@@ -35,11 +35,9 @@ NXRGResource* NXRGPassNodeBase::Write(NXRGResource* pResource)
 
 void NXRGPassNodeBase::Compile()
 {
-	m_pPass->ClearInOutTexs();
-
 	for (auto pInRes : m_inputs)
 	{
-		m_pPass->PushInputTex(pInRes->GetResource());
+		m_pPass->PushInputTex(pInRes.resource->GetResource(), pInRes.slot);
 	}
 
 	for (auto pOutRes : m_outputs)

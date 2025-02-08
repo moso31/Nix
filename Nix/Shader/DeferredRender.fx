@@ -63,7 +63,7 @@ struct DeferredRenderingResult
 {
 	float4 Lighting				: SV_Target0;
 	float4 LightingEx			: SV_Target1;
-	float4 LightingCopy			: SV_Target3;
+	float4 LightingCopy			: SV_Target2;
 };
 
 PS_INPUT VS(VS_INPUT input)

@@ -2,6 +2,12 @@
 #include "NXRendererPass.h"
 #include "NXRGResource.h"
 
+struct NXRGResourceSlot
+{
+	NXRGResource* resource;
+	uint32_t slot;
+};
+
 class NXRenderGraph;
 class NXRGPassNodeBase
 {
@@ -15,7 +21,7 @@ public:
 	NXRGResource* Create(const NXRGDescription& desc);
 
 	// 设置Pass输入资源。
-	void Read(NXRGResource* pResource);
+	void Read(NXRGResource* pResource, uint32_t passSlotIndex);
 
 	// 设置pass输出RT。
 	NXRGResource* Write(NXRGResource* pResource);
@@ -30,8 +36,8 @@ protected:
 	NXRenderGraph* m_pRenderGraph;
 	NXRendererPass* m_pPass;
 
-	// Pass记录自己依赖的资源，但声明周期由NXRenderGraph*管理。
-	std::vector<NXRGResource*> m_inputs;
+	// Pass记录自己依赖的资源，但生命周期由NXRenderGraph*管理；
+	std::vector<NXRGResourceSlot> m_inputs; 
 	std::vector<NXRGResource*> m_outputs;
 };
 

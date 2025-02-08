@@ -6,9 +6,9 @@ NXRGResource* NXRGBuilder::Create(const NXRGDescription& desc)
 	return m_pPassNode->Create(desc);
 }
 
-void NXRGBuilder::Read(NXRGResource* pResource)
+void NXRGBuilder::Read(NXRGResource* pResource, uint32_t passSlotIndex)
 {
-	return m_pPassNode->Read(pResource);
+	return m_pPassNode->Read(pResource, passSlotIndex);
 }
 
 NXRGResource* NXRGBuilder::Write(NXRGResource* pResource)

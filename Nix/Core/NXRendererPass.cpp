@@ -26,21 +26,17 @@ NXRendererPass::NXRendererPass() :
 	m_srvUavRanges.reserve(1);
 }
 
-void NXRendererPass::ClearInOutTexs()
+void NXRendererPass::PushInputTex(NXCommonTexEnum eCommonTex, uint32_t slotIndex)
 {
-	m_pInTexs.clear();
-	m_pOutRTs.clear();
-	m_pOutDS = nullptr;
+	auto pTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(eCommonTex);
+	if (m_pInTexs.size() <= slotIndex) m_pInTexs.resize(slotIndex + 1);
+	m_pInTexs[slotIndex] = pTex;
 }
 
-void NXRendererPass::PushInputTex(NXCommonTexEnum eCommonTex)
+void NXRendererPass::PushInputTex(const Ntr<NXTexture>& pTex, uint32_t slotIndex)
 {
-	m_pInTexs.push_back(NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(eCommonTex));
-}
-
-void NXRendererPass::PushInputTex(const Ntr<NXTexture>& pTex)
-{
-	m_pInTexs.push_back(pTex);
+	if (m_pInTexs.size() <= slotIndex) m_pInTexs.resize(slotIndex + 1);
+	m_pInTexs[slotIndex] = pTex;
 }
 
 void NXRendererPass::PushOutputRT(const Ntr<NXTexture>& pTex)
