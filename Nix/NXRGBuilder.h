@@ -16,7 +16,7 @@ public:
 		m_pRenderGraph(pRenderGraph), m_pPassNode(pPassNode) {}
 
 	// 声明一个RenderGraph使用的资源。
-	NXRGResource* Create(const NXRGDescription& desc);
+	NXRGResource* Create(const std::string& resourceName, const NXRGDescription& desc);
 
 	// 设置Pass输入资源。
 	// passSlotIndex = 最终pass shader使用的slot索引。
@@ -24,7 +24,8 @@ public:
 
 	// 设置pass输出RT/DS。
 	// outRTIndex = pass shader 输出的RT索引（DS忽略此参数）
-	NXRGResource* Write(NXRGResource* pResource, uint32_t outRTIndex = -1);
+	NXRGResource* WriteRT(NXRGResource* pResource, uint32_t outRTIndex, bool keep = false);
+	NXRGResource* WriteDS(NXRGResource* pResource, bool keep = false);
 
 	NXRGPassNodeBase* GetPassNode() { return m_pPassNode; }
 

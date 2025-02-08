@@ -1,9 +1,9 @@
 #include "NXRGBuilder.h"
 #include "NXRGPassNode.h"
 
-NXRGResource* NXRGBuilder::Create(const NXRGDescription& desc)
+NXRGResource* NXRGBuilder::Create(const std::string& resourceName, const NXRGDescription& desc)
 {
-	return m_pPassNode->Create(desc);
+	return m_pPassNode->Create(resourceName, desc);
 }
 
 void NXRGBuilder::Read(NXRGResource* pResource, uint32_t passSlotIndex)
@@ -11,7 +11,13 @@ void NXRGBuilder::Read(NXRGResource* pResource, uint32_t passSlotIndex)
 	return m_pPassNode->Read(pResource, passSlotIndex);
 }
 
-NXRGResource* NXRGBuilder::Write(NXRGResource* pResource, uint32_t outRTIndex)
+NXRGResource* NXRGBuilder::WriteRT(NXRGResource* pResource, uint32_t outRTIndex, bool keep)
 {
-	return m_pPassNode->Write(pResource, outRTIndex);
+	return m_pPassNode->WriteRT(pResource, outRTIndex, keep);
 }
+
+NXRGResource* NXRGBuilder::WriteDS(NXRGResource* pResource, bool keep)
+{
+	return m_pPassNode->WriteDS(pResource, keep);
+}
+

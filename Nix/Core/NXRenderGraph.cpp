@@ -28,7 +28,7 @@ void NXRenderGraph::Compile()
 			Ntr<NXTexture2D> pTexture2D(new NXTexture2D());
 			uint32_t width = static_cast<uint32_t>(m_viewResolution.x * desc.dynamicResolutionRatio);
 			uint32_t height = static_cast<uint32_t>(m_viewResolution.y * desc.dynamicResolutionRatio);
-			pTexture2D->CreateRenderTexture("", desc.format, width, height, flags);
+			pTexture2D->CreateRenderTexture(pResource->GetName(), desc.format, width, height, flags);
 
 			uint32_t rtvCount = flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET ? 1 : 0;
 			uint32_t dsvCount = flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL ? 1 : 0;
@@ -90,12 +90,14 @@ void NXRenderGraph::ClearRT(ID3D12GraphicsCommandList* pCmdList, NXRGResource* p
 	auto& pResDesc = pResource->GetDescription();
 	if (pResDesc.handleFlags == RG_RenderTarget)
 	{
+		pResource->GetResource()->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_RENDER_TARGET); // dx12 需要及时更新资源状态
 		pCmdList->ClearRenderTargetView(pResource->GetResource()->GetRTV(), Colors::Black, 0, nullptr);
 		return;
 	}
 
 	if (pResDesc.handleFlags == RG_DepthStencil)
 	{
+		pResource->GetResource()->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_DEPTH_WRITE); // dx12 需要及时更新资源状态
 		pCmdList->ClearDepthStencilView(pResource->GetResource()->GetDSV(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0x0, 0, nullptr);
 		return;
 	}

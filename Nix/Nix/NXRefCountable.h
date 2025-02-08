@@ -22,15 +22,8 @@ public:
 	NXRefCountable() {}
 	virtual ~NXRefCountable() {}
 
-	void IncRef() { ++m_refCount; }
-	void DecRef()
-	{
-		if (--m_refCount == 0)
-		{
-			DEBUG_ACTION(if (!m_refCountDebug.empty()) printf_s("%s removing.\n", m_refCountDebug.c_str()));
-			delete this;
-		}
-	}
+	void IncRef();
+	void DecRef();
 
 	inline void SetRefCountDebugName(const std::string& debugName) 
 	{

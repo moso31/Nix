@@ -278,6 +278,7 @@
     <ClCompile Include="Core\Renderer.cpp" />
     <ClCompile Include="Core\ShaderComplier.cpp" />
     <ClCompile Include="Core\NXShaderVisibleDescriptorHeap.cpp" />
+    <ClCompile Include="NXRefCountable.cpp" />
     <ClCompile Include="NXRGBuilder.cpp" />
     <ClCompile Include="NXRGHandle.cpp" />
     <ClCompile Include="NXRGPassNode.cpp" />

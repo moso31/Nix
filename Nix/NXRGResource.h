@@ -45,7 +45,9 @@ class NXRGResource
 {
 public:
 	NXRGResource(NXRGResource* pOldResource);
-	NXRGResource(const NXRGDescription& description);
+	NXRGResource(const std::string& name, const NXRGDescription& description);
+
+	const std::string& GetName() { return m_name; }
 
 	NXRGHandle* GetHandle() { return m_handle; }
 	const NXRGDescription& GetDescription() { return m_description; }
@@ -57,6 +59,7 @@ public:
 	Ntr<NXTexture> GetResource() { return m_pResource; }
 
 private:
+	std::string m_name;
 	bool m_bHasWrited;
 
 	NXRGHandle* m_handle;

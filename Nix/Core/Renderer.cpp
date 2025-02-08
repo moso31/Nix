@@ -95,16 +95,16 @@ void Renderer::InitRenderGraph()
 			NXGBufferRenderer* p = (NXGBufferRenderer*)pBuilder.GetPassNode()->GetRenderPass();
 			p->SetCamera(m_scene->GetMainCamera());
 
-			data.rt0 = pBuilder.Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
-			data.rt1 = pBuilder.Create({ .format = DXGI_FORMAT_R32G32B32A32_FLOAT, .handleFlags = RG_RenderTarget });
-			data.rt2 = pBuilder.Create({ .format = DXGI_FORMAT_R10G10B10A2_UNORM, .handleFlags = RG_RenderTarget });
-			data.rt3 = pBuilder.Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
-			data.depth = pBuilder.Create({ .format = DXGI_FORMAT_R24G8_TYPELESS, .handleFlags = RG_DepthStencil });
-			data.rt0 = pBuilder.Write(data.rt0, 0);
-			data.rt1 = pBuilder.Write(data.rt1, 1);
-			data.rt2 = pBuilder.Write(data.rt2, 2);
-			data.rt3 = pBuilder.Write(data.rt3, 3);
-			data.depth = pBuilder.Write(data.depth);
+			data.rt0 = pBuilder.Create("GBuffer RT0", { .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
+			data.rt1 = pBuilder.Create("GBuffer RT1", { .format = DXGI_FORMAT_R32G32B32A32_FLOAT, .handleFlags = RG_RenderTarget });
+			data.rt2 = pBuilder.Create("GBuffer RT2", { .format = DXGI_FORMAT_R10G10B10A2_UNORM, .handleFlags = RG_RenderTarget });
+			data.rt3 = pBuilder.Create("GBuffer RT3", { .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
+			data.depth = pBuilder.Create("DepthZ", { .format = DXGI_FORMAT_R24G8_TYPELESS, .handleFlags = RG_DepthStencil });
+			data.rt0 = pBuilder.WriteRT(data.rt0, 0);
+			data.rt1 = pBuilder.WriteRT(data.rt1, 1);
+			data.rt2 = pBuilder.WriteRT(data.rt2, 2);
+			data.rt3 = pBuilder.WriteRT(data.rt3, 3);
+			data.depth = pBuilder.WriteDS(data.depth);
 		}, 
 		[=](ID3D12GraphicsCommandList* pCmdList, GBufferData& data) {
 			m_pRenderGraph->ClearRT(pCmdList, data.depth);
@@ -122,9 +122,9 @@ void Renderer::InitRenderGraph()
 	auto depthCopyPassData = 
 	m_pRenderGraph->AddPass<DepthCopyData>("DepthCopy", new NXDepthRenderer(),
 		[&](NXRGBuilder& builder, DepthCopyData& data) {
-			data.depthCopy = builder.Create({ .format = DXGI_FORMAT_R32_FLOAT, .handleFlags = RG_RenderTarget });
+			data.depthCopy = builder.Create("DepthR32", { .format = DXGI_FORMAT_R32_FLOAT, .handleFlags = RG_RenderTarget });
 			builder.Read(gBufferPassData->GetData().depth, 0);
-			data.depthCopy = builder.Write(data.depthCopy, 0);
+			data.depthCopy = builder.WriteRT(data.depthCopy, 0);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, DepthCopyData& data) {
 		});
@@ -154,9 +154,9 @@ void Renderer::InitRenderGraph()
 	};
 	auto shadowTestPassData = m_pRenderGraph->AddPass<ShadowTestData>("ShadowTest", new NXShadowTestRenderer(),
 		[&](NXRGBuilder& builder, ShadowTestData& data) {
-			data.shadowTest = builder.Create({ .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
+			data.shadowTest = builder.Create("ShadowTest RT", {.format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
 			builder.Read(gBufferPassData->GetData().depth, 0); 
-			data.shadowTest = builder.Write(data.shadowTest, 0); 
+			data.shadowTest = builder.WriteRT(data.shadowTest, 0); 
 
 			// 从 ShadowMap Pass 获取 CSM 深度纹理，并推入当前 Pass 的输入
 			auto pShadowMapPass = static_cast<NXShadowMapRenderer*>(m_pRenderGraph->GetRenderPass("ShadowMap"));
@@ -176,9 +176,9 @@ void Renderer::InitRenderGraph()
 	};
 	auto litPassData = m_pRenderGraph->AddPass<DeferredLightingData>("DeferredLighting", new NXDeferredRenderer(m_scene),
 		[&](NXRGBuilder& builder, DeferredLightingData& data) {
-			data.lighting = builder.Create({ .format = DXGI_FORMAT_R32G32B32A32_FLOAT, .handleFlags = RG_RenderTarget });
-			data.lightingSpec = builder.Create({ .format = DXGI_FORMAT_R32G32B32A32_FLOAT, .handleFlags = RG_RenderTarget });
-			data.lightingCopy = builder.Create({ .format = DXGI_FORMAT_R11G11B10_FLOAT,    .handleFlags = RG_RenderTarget });
+			data.lighting = builder.Create("Lighting RT0", {.format = DXGI_FORMAT_R32G32B32A32_FLOAT, .handleFlags = RG_RenderTarget });
+			data.lightingSpec = builder.Create("Lighting RT1", {.format = DXGI_FORMAT_R32G32B32A32_FLOAT, .handleFlags = RG_RenderTarget });
+			data.lightingCopy = builder.Create("Lighting RT Copy", {.format = DXGI_FORMAT_R11G11B10_FLOAT, .handleFlags = RG_RenderTarget });
 
 			builder.Read(gBufferPassData->GetData().rt0, 0); // register t0
 			builder.Read(gBufferPassData->GetData().rt1, 1); // t1
@@ -187,9 +187,9 @@ void Renderer::InitRenderGraph()
 			builder.Read(gBufferPassData->GetData().depth, 4); // t4
 			builder.Read(shadowTestPassData->GetData().shadowTest, 5); // t5
 
-			data.lighting = builder.Write(data.lighting, 0); 
-			data.lightingSpec = builder.Write(data.lightingSpec, 1); 
-			data.lightingCopy = builder.Write(data.lightingCopy, 2); 
+			data.lighting = builder.WriteRT(data.lighting, 0); 
+			data.lightingSpec = builder.WriteRT(data.lightingSpec, 1); 
+			data.lightingCopy = builder.WriteRT(data.lightingCopy, 2); 
 
 			auto pCubeMap = m_scene->GetCubeMap()->GetCubeMap();
 			auto pPreFilter = m_scene->GetCubeMap()->GetPreFilterMap();
@@ -205,17 +205,18 @@ void Renderer::InitRenderGraph()
 	struct SubsurfaceData
 	{
 		NXRGResource* buf;
+		NXRGResource* depth;
 	};
 	auto sssPassData = m_pRenderGraph->AddPass<SubsurfaceData>("Subsurface", new NXSubSurfaceRenderer(),
 		[&](NXRGBuilder& builder, SubsurfaceData& data) {
-			data.buf = builder.Create({ .format = DXGI_FORMAT_R11G11B10_FLOAT, .handleFlags = RG_RenderTarget });
 			builder.Read(litPassData->GetData().lighting, 0);
 			builder.Read(litPassData->GetData().lightingSpec, 1);
 			builder.Read(litPassData->GetData().lightingCopy, 2);
 			builder.Read(gBufferPassData->GetData().rt1, 3);
 			builder.Read(gBufferPassData->GetData().depth, 4);
 
-			data.buf = builder.Write(data.buf, 0);
+			data.buf = builder.WriteRT(litPassData->GetData().lighting, 0, true);
+			data.depth = builder.WriteDS(gBufferPassData->GetData().depth, true);
 
 			auto pNoise64 = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_Noise2DGray_64x64);
 			auto renderer = static_cast<NXSubSurfaceRenderer*>(builder.GetPassNode()->GetRenderPass());
@@ -231,8 +232,8 @@ void Renderer::InitRenderGraph()
 	};
 	auto skyPassData = m_pRenderGraph->AddPass<SkyLightingData>("SkyLighting", new NXSkyRenderer(m_scene),
 		[&](NXRGBuilder& builder, SkyLightingData& data) {
-			data.buf = builder.Write(sssPassData->GetData().buf, 0);
-			data.depth = builder.Write(gBufferPassData->GetData().depth);
+			data.buf = builder.WriteRT(sssPassData->GetData().buf, 0, true);
+			data.depth = builder.WriteDS(gBufferPassData->GetData().depth, true);
 
 			auto pCubeMap = m_scene->GetCubeMap()->GetCubeMap();
 			auto renderer = static_cast<NXSkyRenderer*>(builder.GetPassNode()->GetRenderPass());
@@ -247,9 +248,9 @@ void Renderer::InitRenderGraph()
 	};
 	auto postProcessPassData = m_pRenderGraph->AddPass<PostProcessingData>("PostProcessing", new NXColorMappingRenderer(),
 		[&](NXRGBuilder& builder, PostProcessingData& data) {
-			data.out = builder.Create({ .format = DXGI_FORMAT_R11G11B10_FLOAT, .handleFlags = RG_RenderTarget });
+			data.out = builder.Create("PostProcessing RT", {.format = DXGI_FORMAT_R11G11B10_FLOAT, .handleFlags = RG_RenderTarget });
 			builder.Read(skyPassData->GetData().buf, 0);
-			data.out = builder.Write(data.out, 0);
+			data.out = builder.WriteRT(data.out, 0);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, PostProcessingData& data) {
 		});
@@ -263,9 +264,9 @@ void Renderer::InitRenderGraph()
 			auto renderer = static_cast<NXDebugLayerRenderer*>(builder.GetPassNode()->GetRenderPass());
 			renderer->OnResize(m_viewRTSize);
 
-			data.out = builder.Create({ .format = DXGI_FORMAT_R11G11B10_FLOAT, .handleFlags = RG_RenderTarget });
+			data.out = builder.Create("Debug Layer RT", { .format = DXGI_FORMAT_R11G11B10_FLOAT, .handleFlags = RG_RenderTarget });
 			builder.Read(postProcessPassData->GetData().out, 0);
-			data.out = builder.Write(data.out, 0);
+			data.out = builder.WriteRT(data.out, 0);
 
 			auto pShadowMapPass = static_cast<NXShadowMapRenderer*>(m_pRenderGraph->GetRenderPass("ShadowMap"));
 			auto pCSMDepth = pShadowMapPass->GetShadowMapDepthTex();
@@ -280,7 +281,7 @@ void Renderer::InitRenderGraph()
 	};
 	auto gizmosPassData = m_pRenderGraph->AddPass<GizmosData>("Gizmos", new NXEditorObjectRenderer(m_scene),
 		[&](NXRGBuilder& builder, GizmosData& data) {
-			data.out = builder.Write(m_bEnableDebugLayer ? debugLayerPassData->GetData().out : postProcessPassData->GetData().out, 0);
+			data.out = builder.WriteRT(m_bEnableDebugLayer ? debugLayerPassData->GetData().out : postProcessPassData->GetData().out, 0, true);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, GizmosData& data) {
 		});
