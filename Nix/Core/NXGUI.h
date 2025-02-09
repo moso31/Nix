@@ -22,6 +22,7 @@ class NXGUIDebugLayer;
 class NXGUIView;
 class NXGUIWorkspace;
 class NXGUIInspector;
+class NXGUIRenderGraph;
 
 class NXGUI
 {
@@ -54,6 +55,7 @@ private:
 	NXGUIWorkspace*				m_pGUIWorkspace;
 	NXGUIInspector*				m_pGUIInspector;
 	NXGUIMaterialShaderEditor*	m_pGUIMaterialShaderEditor;
+	NXGUIRenderGraph* 			m_pGUIRenderGraph;
 
 	NXGUIDebugLayer*			m_pGUIDebugLayer;
 };

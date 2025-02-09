@@ -36,6 +36,10 @@ public:
 
 	NXRendererPass* GetRenderPass(const std::string& passName);
 
+	// 获取资源和pass的接口
+	const std::vector<NXRGResource*>& GetResources() { return m_resources; }
+	const std::vector<NXRGPassNodeBase*>& GetPassNodes() { return m_passNodes; }
+
 	// 调用dx层API清空RT。只能在 Execute() lambda 中调用。
 	void ClearRT(ID3D12GraphicsCommandList* pCmdList, NXRGResource* pResource);
 	void SetViewPortAndScissorRect(ID3D12GraphicsCommandList* pCmdList, const Vector2& size);

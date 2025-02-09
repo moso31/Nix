@@ -278,6 +278,7 @@
     <ClCompile Include="Core\Renderer.cpp" />
     <ClCompile Include="Core\ShaderComplier.cpp" />
     <ClCompile Include="Core\NXShaderVisibleDescriptorHeap.cpp" />
+    <ClCompile Include="NXGUIRenderGraph.cpp" />
     <ClCompile Include="NXRefCountable.cpp" />
     <ClCompile Include="NXRGBuilder.cpp" />
     <ClCompile Include="NXRGHandle.cpp" />
@@ -421,6 +422,7 @@
     <ClInclude Include="Nix\Script\NXScript.h" />
     <ClInclude Include="Nix\Script\NXScriptType.h" />
     <ClInclude Include="Nix\NXTransform.h" />
+    <ClInclude Include="NXGUIRenderGraph.h" />
     <ClInclude Include="NXRGBuilder.h" />
     <ClInclude Include="NXRGPassNode.h" />
     <ClInclude Include="NXRGHandle.h" />

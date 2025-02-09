@@ -28,6 +28,11 @@ public:
 		s_indexToVersion.clear();
 	}
 
+	bool operator==(const NXRGHandle& other) const
+	{
+		return m_index == other.m_index && m_version == other.m_version;
+	}
+
 	uint32_t GetIndex() const { return m_index; }
 	uint32_t GetVersion() const { return m_version; }
 

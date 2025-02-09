@@ -32,6 +32,10 @@ public:
 	void Compile();
 	virtual void Execute(ID3D12GraphicsCommandList* pCmdList) = 0;
 
+	// 获取pass关联资源
+	const std::vector<NXRGResourceSlot>& GetInputs() { return m_inputs; }
+	const std::vector<NXRGResourceSlot>& GetOutputs() { return m_outputs; }
+
 protected:
 	std::string m_passName;
 	NXRenderGraph* m_pRenderGraph;

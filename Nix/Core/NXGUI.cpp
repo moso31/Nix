@@ -21,6 +21,7 @@
 #include "NXGUIContentExplorer.h"
 #include "NXGUITexture.h"
 #include "NXGUIView.h"
+#include "NXGUIRenderGraph.h"
 #include "NXGUIWorkspace.h"
 #include "NXGUICommandManager.h"
 
@@ -37,6 +38,7 @@ NXGUI::NXGUI(NXScene* pScene, Renderer* pRenderer) :
 	m_pGUIPostProcessing(nullptr),
 	m_pGUIDebugLayer(nullptr),
 	m_pGUIContentExplorer(nullptr),
+	m_pGUIRenderGraph(nullptr),
 	m_pGUIView(nullptr),
 	m_pGUIWorkspace(nullptr)
 {
@@ -97,6 +99,8 @@ void NXGUI::Init()
 
 	m_pGUIView = new NXGUIView();
 
+	m_pGUIRenderGraph = new NXGUIRenderGraph(m_pRenderer);
+
 	m_pGUIWorkspace = new NXGUIWorkspace();
 	m_pGUIWorkspace->Init();
 
@@ -134,6 +138,7 @@ void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT, const NXSwapChainBuffer& swapCha
 	m_pGUIShadows->Render();
 	m_pGUIPostProcessing->Render();
 	m_pGUIDebugLayer->Render();
+	m_pGUIRenderGraph->Render();
 
 	if (m_pGUIView->GetViewRT() != pGUIViewRT)
 		m_pGUIView->SetViewRT(pGUIViewRT);
@@ -213,6 +218,7 @@ void NXGUI::Release()
 	SafeDelete(m_pGUIPostProcessing);
 	SafeDelete(m_pGUIDebugLayer);
 	SafeDelete(m_pGUIContentExplorer);
+	SafeDelete(m_pGUIRenderGraph);
 
 	ImGui_ImplDX12_Shutdown();
 	ImGui_ImplWin32_Shutdown();

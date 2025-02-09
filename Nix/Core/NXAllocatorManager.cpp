@@ -8,7 +8,7 @@ void NXAllocatorManager::Init()
 
 	m_pCBAllocator = std::make_unique<CommittedBufferAllocator>(pDevice, true, 64u, 0x10000000u);
 	m_pSBAllocator = std::make_unique<CommittedBufferAllocator>(pDevice, false, 64u, 0x10000000u);
-	m_pTextureAllocator = std::make_unique<PlacedBufferAllocator>(pDevice, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT, 0x10000000u);
+	m_pTextureAllocator = std::make_unique<PlacedBufferAllocator>(pDevice, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT, 0x20000000u);
 
 	m_pUpdateSystem = std::make_unique<UploadSystem>(pDevice);
 	m_pTextureLoader = std::make_unique<NXTextureLoader>();
