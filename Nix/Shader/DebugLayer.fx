@@ -1,10 +1,11 @@
+#include "Common.fx"
+
 Texture2D txRenderResult : register(t0);
 Texture2DArray txShadowMapDepth : register(t1);
 SamplerState ssPointClamp : register(s0);
 
 cbuffer CBufferParams : register(b2)
 {
-	float4 RTSize;
 	float4 LayerParam0;
 }
 
@@ -34,6 +35,7 @@ PS_INPUT VS(VS_INPUT input)
 
 float4 DrawCascadeShadowMap(float2 InputUV, float4 InputColor)
 {
+	float4 RTSize = cameraParams0;
 	float2 NormalizedUV = InputUV * RTSize.xy * RTSize.ww;
 	float2 ImageUV = NormalizedUV * 4.0f;
 	float2 ZoomUV = ImageUV / CascadeShadowMap_ZoomScale + (CascadeShadowMap_ZoomScale - 1.0f) / (2.0f * CascadeShadowMap_ZoomScale);

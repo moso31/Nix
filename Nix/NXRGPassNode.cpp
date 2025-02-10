@@ -50,7 +50,7 @@ NXRGResource* NXRGPassNodeBase::WriteDS(NXRGResource* pResource, bool keepPixel)
 	return pNewVersionResource;
 }
 
-void NXRGPassNodeBase::Compile()
+void NXRGPassNodeBase::Compile(bool isResize)
 {
 	for (auto pInResSlot : m_inputs)
 	{
@@ -71,5 +71,6 @@ void NXRGPassNodeBase::Compile()
 		}
 	}
 
-	m_pPass->SetupInternal();
+	if (!isResize)
+		m_pPass->SetupInternal();
 }

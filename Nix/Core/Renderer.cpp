@@ -66,7 +66,7 @@ void Renderer::OnResize(const Vector2& rtSize)
 	m_viewRTSize = rtSize;
 
 	m_pRenderGraph->SetViewResolution(m_viewRTSize);
-	m_pRenderGraph->Compile();
+	m_pRenderGraph->Compile(true);
 
 	m_scene->OnResize(rtSize);
 }
@@ -262,17 +262,19 @@ void Renderer::InitRenderGraph()
 	auto debugLayerPassData = m_pRenderGraph->AddPass<DebugLayerData>("DebugLayer", new NXDebugLayerRenderer(),
 		[&](NXRGBuilder& builder, DebugLayerData& data) {
 			auto renderer = static_cast<NXDebugLayerRenderer*>(builder.GetPassNode()->GetRenderPass());
-			renderer->OnResize(m_viewRTSize);
 
 			data.out = builder.Create("Debug Layer RT", { .format = DXGI_FORMAT_R11G11B10_FLOAT, .handleFlags = RG_RenderTarget });
 			builder.Read(postProcessPassData->GetData().out, 0);
 			data.out = builder.WriteRT(data.out, 0);
-
+			
 			auto pShadowMapPass = static_cast<NXShadowMapRenderer*>(m_pRenderGraph->GetRenderPass("ShadowMap"));
 			auto pCSMDepth = pShadowMapPass->GetShadowMapDepthTex();
-			m_pRenderGraph->GetRenderPass("ShadowTest")->SetInputTex(pCSMDepth, 1);
+
+			builder.GetPassNode()->GetRenderPass()->SetInputTex(pCSMDepth, 1); 
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, DebugLayerData& data) {
+			auto pDebugLayer = static_cast<NXDebugLayerRenderer*>(m_pRenderGraph->GetRenderPass("DebugLayer"));
+			pDebugLayer->SetEnableDebugLayer(m_bEnableDebugLayer);
 		});
 
 	struct GizmosData
@@ -281,7 +283,7 @@ void Renderer::InitRenderGraph()
 	};
 	auto gizmosPassData = m_pRenderGraph->AddPass<GizmosData>("Gizmos", new NXEditorObjectRenderer(m_scene),
 		[&](NXRGBuilder& builder, GizmosData& data) {
-			data.out = builder.WriteRT(m_bEnableDebugLayer ? debugLayerPassData->GetData().out : postProcessPassData->GetData().out, 0, true);
+			data.out = builder.WriteRT(debugLayerPassData->GetData().out, 0, true);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, GizmosData& data) {
 		});

@@ -4,7 +4,6 @@
 
 struct CBufferDebugLayer
 {
-	Vector4 RTSize; // xy: size zw: invsize
 	Vector4 LayerParam0; // x: EnableShadowMap, y: ZoomScale
 };
 
@@ -15,9 +14,9 @@ public:
 	NXDebugLayerRenderer();
 
 	virtual void SetupInternal() override;
-	void OnResize(const Vector2& rtSize);
 	virtual void Render(ID3D12GraphicsCommandList* pCmdList) override;
 
+	void	SetEnableDebugLayer(bool value)					{ m_bEnableDebugLayer = value; }
 	bool	GetEnableShadowMapDebugLayer()					{ return m_bEnableShadowMapDebugLayer; }
 	float	GetShadowMapDebugLayerZoomScale()				{ return m_fShadowMapZoomScale; }
 	void	SetEnableShadowMapDebugLayer(bool value)		{ m_bEnableShadowMapDebugLayer = value; }

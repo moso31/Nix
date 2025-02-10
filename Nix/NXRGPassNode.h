@@ -29,7 +29,7 @@ public:
 
 	NXRendererPass* GetRenderPass() { return m_pPass; }
 
-	void Compile();
+	void Compile(bool isResize);
 	virtual void Execute(ID3D12GraphicsCommandList* pCmdList) = 0;
 
 	// 获取pass关联资源
