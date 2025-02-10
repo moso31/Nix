@@ -13,7 +13,7 @@ NXRenderGraph::~NXRenderGraph()
 {
 }
 
-void NXRenderGraph::Compile()
+void NXRenderGraph::Compile(bool isResize)
 {
 	// 2025.2.5 目前RenderGraph会为每个Handle Version都创建一个RT。
 	for (auto pResource : m_resources)
@@ -51,7 +51,7 @@ void NXRenderGraph::Compile()
 
 	for (auto pass : m_passNodes)
 	{
-		pass->Compile();
+		pass->Compile(isResize);
 	}
 }
 

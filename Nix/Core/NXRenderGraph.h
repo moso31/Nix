@@ -25,7 +25,7 @@ public:
 		return pPassNode;
 	}
 
-	void Compile();
+	void Compile(bool isResize = false);
 	void Execute(ID3D12GraphicsCommandList* pCmdList);
 
 	Ntr<NXTexture> GetPresent();
