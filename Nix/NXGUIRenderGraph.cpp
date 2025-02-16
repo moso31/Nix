@@ -1,7 +1,8 @@
 #include "NXGUIRenderGraph.h"
 
-NXGUIRenderGraph::NXGUIRenderGraph(Renderer* pRenderer)
-    : m_pRenderer(pRenderer)
+NXGUIRenderGraph::NXGUIRenderGraph(Renderer* pRenderer) : 
+    m_pRenderer(pRenderer),
+    m_pShowResource(nullptr)
 {
 }
 
@@ -28,17 +29,23 @@ void NXGUIRenderGraph::Render()
         return;
     }
 
+    ImVec2 totalSize = ImGui::GetContentRegionAvail();
+    float tableWidth = totalSize.x * 0.7f;
+    float imageWidth = totalSize.x - tableWidth;
+
+    ImGui::BeginChild("TableRegion", ImVec2(tableWidth, 0), false);
+
     // 列=Pass，行=Resource
     int columnCount = 1 + static_cast<int>(passNodes.size());
     if (ImGui::BeginTable("RenderGraphTableFlipped", columnCount, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
     {
         // 表头
-        ImGui::TableSetupColumn("Resource");
+        ImGui::TableSetupColumn("Resource", ImGuiTableColumnFlags_WidthFixed, 200.0f);
 
         // 每个Pass
         for (auto* pass : passNodes)
         {
-            ImGui::TableSetupColumn(pass->GetName().c_str());
+            ImGui::TableSetupColumn(pass->GetName().c_str(), ImGuiTableColumnFlags_WidthStretch, 1.0f);
         }
         ImGui::TableHeadersRow();
 
@@ -49,7 +56,11 @@ void NXGUIRenderGraph::Render()
 
             // 第一列对应资源名
             ImGui::TableSetColumnIndex(0);
-            ImGui::TextUnformatted(pRes->GetName().c_str());
+            ImGui::SameLine();
+            if (ImGui::SmallButton(pRes->GetName().c_str()))
+            {
+                m_pShowResource = pRes->GetResource();
+            }
 
             // 后面的列对应每个Pass
             for (int passIndex = 0; passIndex < passNodes.size(); ++passIndex)
@@ -102,6 +113,19 @@ void NXGUIRenderGraph::Render()
 
         ImGui::EndTable();
     }
+    ImGui::EndChild();
+
+    ImGui::SameLine();
+
+    ImGui::BeginChild("ImageRegion", ImVec2(0, 0), false);
+    if (m_pShowResource.IsValid())
+    {
+        NXShVisDescHeap->PushFluid(m_pShowResource->GetSRV());
+        auto& srvHandle = NXShVisDescHeap->Submit();
+        const ImTextureID& ImTexID = (ImTextureID)srvHandle.ptr;
+        ImGui::Image(ImTexID, ImVec2(300, 200));
+    }
+    ImGui::EndChild();
 
     ImGui::End();
 }
