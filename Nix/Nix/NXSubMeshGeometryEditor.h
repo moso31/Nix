@@ -114,7 +114,7 @@ public:
 			if (NXUploadSystem->BuildTask(vbDataSize, vbTaskContext))
 			{
 				// vbTaskContext.pResourceData/pResourceOffset是 上传系统的UploadRingBuffer 的临时资源和偏移量
-				// pVB.GetD3DResourceAndOffset(byteOffset) 是 D3D本体 的实际资源和偏移量
+				// pVB.GetD3DResourceAndOffset(byteOffset) 是 D3D默认堆上 的偏移量，也就是GPU资源
 				// 不要搞混了
 
 				uint8_t* pDst = vbTaskContext.pResourceData + vbTaskContext.pResourceOffset;

@@ -12,7 +12,7 @@ NXTimer::~NXTimer()
 
 float NXTimer::GetGlobalTimeSeconds()
 {
-	return m_timeDelta / 1000.0f;
+	return (float)m_globalTime / 1000.0f;
 }
 
 int64_t NXTimer::GetTimeDelta()
