@@ -26,6 +26,7 @@ class NXSubMeshBase;
 class NXRenderableObject;
 class NXPrefab;
 class NXPrimitive;
+class NXTerrain;
 
 // Camera
 class NXCamera;

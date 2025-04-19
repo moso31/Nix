@@ -18,7 +18,7 @@ class NXSubMeshBase
 	friend class NXMeshResourceManager;
 	friend class NXMaterialResourceManager;
 public:
-	NXSubMeshBase(NXPrimitive* pPrimitive) : m_pPrimitive(pPrimitive), m_pMaterial(nullptr), m_pReplacingMaterial(nullptr), m_nMatReloadingState(NXSubMeshReloadState::None) {}
+	NXSubMeshBase(NXRenderableObject* pRenderableObject) : m_pRenderableObject(pRenderableObject), m_pMaterial(nullptr), m_pReplacingMaterial(nullptr), m_nMatReloadingState(NXSubMeshReloadState::None) {}
 	virtual ~NXSubMeshBase() {}
 
 	void Update(ID3D12GraphicsCommandList* pCommandList);
@@ -31,13 +31,14 @@ public:
 	// bUpdateVBIB: 是否同时更新VBIB
 	virtual void CalculateTangents(bool bUpdateVBIB) = 0;
 
-	NXPrimitive* GetPrimitive() { return m_pPrimitive; }
+	NXRenderableObject* GetRenderableObject() { return m_pRenderableObject; }
 	NXMaterial* GetMaterial() const { return m_pMaterial; }
 
 	virtual void CalcLocalAABB() = 0;
 	AABB GetLocalAABB() { return m_localAABB; }
 
 	virtual bool IsSubMeshStandard()		{ return false; }
+	virtual bool IsSubMeshTerrain()			{ return false; }
 	virtual bool IsSubMeshEditorObject()	{ return false; }
 
 	void MarkReplacing(const std::filesystem::path& replaceMaterialPath);
@@ -54,7 +55,7 @@ private:
 	void SetMaterial(NXMaterial* mat) { m_pMaterial = mat; }
 
 protected:
-	NXPrimitive* m_pPrimitive;
+	NXRenderableObject* m_pRenderableObject;
 	NXMaterial* m_pMaterial;
 
 	AABB m_localAABB;
@@ -68,15 +69,18 @@ template<class TVertex>
 class NXSubMesh : public NXSubMeshBase
 {
 public:
-	NXSubMesh(NXPrimitive* pPrimitive, const std::string& subMeshName) : NXSubMeshBase(pPrimitive), m_subMeshName(subMeshName) {}
+	NXSubMesh(NXRenderableObject* pRenderableObject, const std::string& subMeshName) : NXSubMeshBase(pRenderableObject), m_subMeshName(subMeshName) {}
 	virtual ~NXSubMesh() {}
+
+	void AppendVertices(std::vector<TVertex>&& vertices) { m_vertices.insert(m_vertices.end(), vertices.begin(), vertices.end()); }
+	void AppendIndices(std::vector<UINT>&& indices) { m_indices.insert(m_indices.end(), indices.begin(), indices.end()); }
 
 	void Render(ID3D12GraphicsCommandList* pCommandList) override;
 
 	virtual bool RayCastLocal(const Ray& localRay, NXHit& outHitInfo, float& outDist);
 
-	virtual void CalculateTangents(bool bUpdateVBIB = false) = 0;
-	void TryAddBuffers() override;
+	virtual void CalculateTangents(bool bUpdateVBIB = false) {}
+	virtual void TryAddBuffers() override;
 
 	UINT GetIndexCount()	{ return (UINT)m_indices.size(); }
 	UINT GetVertexCount()	{ return (UINT)m_vertices.size(); }
@@ -89,13 +93,27 @@ protected:
 	std::vector<UINT>				m_indices; 
 };
 
+template<class TVertex, class TInstanceData>
+class NXSubMeshInstanced : public NXSubMesh<TVertex>
+{
+public:
+	NXSubMeshInstanced(NXRenderableObject* pRenderableObject, const std::string& subMeshName) : NXSubMesh<TVertex>(pRenderableObject, subMeshName) {}
+	virtual ~NXSubMeshInstanced() {}
+
+	void AppendInstanceData(std::vector<TInstanceData>&& instanceData) { m_instanceData.insert(m_instanceData.end(), instanceData.begin(), instanceData.end()); }
+	virtual void TryAddBuffers() override;
+
+	void Render(ID3D12GraphicsCommandList* pCmdList) override;
+	uint32_t GetInstanceCount() { return (uint32_t)m_instanceData.size(); }
+
+protected:
+	std::vector<TInstanceData>	m_instanceData;
+};
+
 class NXSubMeshStandard : public NXSubMesh<VertexPNTT>
 {
-	friend class FBXMeshLoader;
-	friend class NXSubMeshGeometryEditor;
-	
 public:
-	NXSubMeshStandard(NXPrimitive* pPrimitive, const std::string& subMeshName) : NXSubMesh<VertexPNTT>(pPrimitive, subMeshName) {}
+	NXSubMeshStandard(NXRenderableObject* pRenderableObject, const std::string& subMeshName) : NXSubMesh<VertexPNTT>(pRenderableObject, subMeshName) {}
 	virtual ~NXSubMeshStandard() {}
 
 	virtual bool IsSubMeshStandard()	 override { return true; }
@@ -103,9 +121,14 @@ public:
 	void CalculateTangents(bool bUpdateVBIB = false) override;
 };
 
-/////////////////////////////////////////////////////////////////////////////
-// Editor Objects
-/////////////////////////////////////////////////////////////////////////////
+class NXSubMeshTerrain : public NXSubMeshInstanced<VertexPNTC, InstanceData>
+{
+public:
+	NXSubMeshTerrain(NXRenderableObject* pRenderableObject, const std::string& subMeshName) : NXSubMeshInstanced<VertexPNTC, InstanceData>(pRenderableObject, subMeshName) {}
+	virtual ~NXSubMeshTerrain() {}
+
+	virtual bool IsSubMeshTerrain()		 override { return true; }
+};
 
 enum EditorObjectID
 {
@@ -121,17 +144,14 @@ enum EditorObjectID
 
 class NXSubMeshEditorObjects : public NXSubMesh<VertexEditorObjects>
 {
-	friend class NXSubMeshGeometryEditor;
-
 public:
-	NXSubMeshEditorObjects(NXPrimitive* pPrimitive, const std::string& subMeshName, EditorObjectID id);
+	NXSubMeshEditorObjects(NXRenderableObject* pRenderableObject, const std::string& subMeshName, EditorObjectID id);
 	virtual ~NXSubMeshEditorObjects() {}
 
 	virtual bool IsSubMeshEditorObject() override { return true; }
 
 	EditorObjectID GetEditorObjectID() { return m_editorObjID; }
 
-	void CalculateTangents(bool bUpdateVBIB = false) override {}
 	bool RayCastLocal(const Ray& localRay, NXHit& outHitInfo, float& outDist) override;
 
 	void Update(ID3D12GraphicsCommandList* pCmdList, bool isHighLight);

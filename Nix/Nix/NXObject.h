@@ -7,6 +7,7 @@ class NXTransform;
 class NXRenderableObject;
 class NXPrimitive;
 class NXPrefab;
+class NXTerrain;
 class NXScript;
 class NXTexture;
 class NXTexture2D;
@@ -36,7 +37,7 @@ public:
 	// 检测pObject是否是当前节点的子节点。
 	bool IsChild(NXObject* pObject);
 
-	virtual void Update() {};
+	virtual void Update(ID3D12GraphicsCommandList* pCmdList) {};
 	virtual void Release();
 
 protected:

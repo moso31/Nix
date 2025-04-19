@@ -1,9 +1,11 @@
 #include "NXSubMeshGeometryEditor.h"
 #include "NXPrimitive.h"
 #include "NXPrefab.h"
+#include "NXTerrain.h"
 #include "FBXMeshLoader.h"
 #include "SphereHarmonics.h"
 #include "NXSubMesh.h" // include this .h for EditorObjectID only.
+#include "NXTerrainConfig.h"
 
 NXSubMeshGeometryEditor::NXSubMeshGeometryEditor() 
 {
@@ -31,7 +33,7 @@ void NXSubMeshGeometryEditor::CreateBox(NXPrimitive* pMesh, float x, float y, fl
 
 	pMesh->ClearSubMeshes();
 	NXSubMeshStandard* pSubMesh = new NXSubMeshStandard(pMesh, "_Box");
-	pSubMesh->m_vertices =
+	std::vector<VertexPNTT> vertices =
 	{
 		// -X
 		{ Vector3(-x, -y, +z), Vector3(-1.0f, 0.0f, 0.0f),	Vector2(0.0f, 1.0f), Vector3(0.0f, 0.0f, -1.0f) },
@@ -70,7 +72,7 @@ void NXSubMeshGeometryEditor::CreateBox(NXPrimitive* pMesh, float x, float y, fl
 		{ Vector3(-x, +y, +z), Vector3(0.0f, 0.0f, 1.0f),	Vector2(1.0f, 0.0f), Vector3(-1.0f, 0.0f, 0.0f)  },
 	};
 
-	pSubMesh->m_indices =
+	std::vector<uint32_t> m_indices =
 	{
 		0,  1,  2,
 		0,  2,  3,
@@ -90,6 +92,9 @@ void NXSubMeshGeometryEditor::CreateBox(NXPrimitive* pMesh, float x, float y, fl
 		20, 21, 22,
 		20, 22, 23
 	};
+
+	pSubMesh->AppendVertices(std::move(vertices));
+	pSubMesh->AppendIndices(std::move(m_indices));
 
 	pSubMesh->TryAddBuffers();
 
@@ -114,7 +119,9 @@ void NXSubMeshGeometryEditor::CreateCylinder(NXPrimitive* pMesh, float radius, f
 	Vector2 uvBottomTop(0.5f, 0.5f);
 
 	Vector3 tSide = Vector3(1.0f, 0.0f, 0.0f);	// 上下两个盖子的切线方向
-	pSubMesh->m_vertices.push_back({ pBottom, nBottom, uvBottomTop, tSide });
+	std::vector<VertexPNTT> vertices;
+	std::vector<uint32_t> indices;
+	vertices.push_back({ pBottom, nBottom, uvBottomTop, tSide });
 	currVertIdx++;
 	float segmentCircleInv = 1.0f / (float)segmentCircle;
 	for (int i = 0; i < segmentCircle; i++)
@@ -134,12 +141,12 @@ void NXSubMeshGeometryEditor::CreateCylinder(NXPrimitive* pMesh, float radius, f
 
 		Vector2 uvNow((xNow + 1.0f) * 0.5f, (zNow + 1.0f) * 0.5f);
 		Vector2 uvNext((xNext + 1.0f) * 0.5f, (zNext + 1.0f) * 0.5f);
-		pSubMesh->m_vertices.push_back({ pNow, nBottom, uvNow, tSide });
-		pSubMesh->m_vertices.push_back({ pNext, nBottom, uvNext, tSide });
+		vertices.push_back({ pNow, nBottom, uvNow, tSide });
+		vertices.push_back({ pNext, nBottom, uvNext, tSide });
 
-		pSubMesh->m_indices.push_back(0);
-		pSubMesh->m_indices.push_back(currVertIdx + 1);
-		pSubMesh->m_indices.push_back(currVertIdx);
+		indices.push_back(0);
+		indices.push_back(currVertIdx + 1);
+		indices.push_back(currVertIdx);
 
 		currVertIdx += 2;
 	}
@@ -185,24 +192,24 @@ void NXSubMeshGeometryEditor::CreateCylinder(NXPrimitive* pMesh, float radius, f
 			Vector3 tNextUp = vNext.Cross(nTop);
 			Vector3 tNowDown = vNow.Cross(nTop);
 			Vector3 tNextDown = vNext.Cross(nTop);
-			pSubMesh->m_vertices.push_back({ pNowUp,		nNow,	uvNowUp,	 tNowUp });
-			pSubMesh->m_vertices.push_back({ pNextUp,		nNext,	uvNextUp,	 tNextUp });
-			pSubMesh->m_vertices.push_back({ pNowDown,	nNow,	uvNowDown,	 tNowDown });
-			pSubMesh->m_vertices.push_back({ pNextDown,	nNext,	uvNextDown,	 tNextDown });
+			vertices.push_back({ pNowUp,		nNow,	uvNowUp,	 tNowUp });
+			vertices.push_back({ pNextUp,		nNext,	uvNextUp,	 tNextUp });
+			vertices.push_back({ pNowDown,	nNow,	uvNowDown,	 tNowDown });
+			vertices.push_back({ pNextDown,	nNext,	uvNextDown,	 tNextDown });
 
-			pSubMesh->m_indices.push_back(currVertIdx);
-			pSubMesh->m_indices.push_back(currVertIdx + 2);
-			pSubMesh->m_indices.push_back(currVertIdx + 1);
-			pSubMesh->m_indices.push_back(currVertIdx + 1);
-			pSubMesh->m_indices.push_back(currVertIdx + 2);
-			pSubMesh->m_indices.push_back(currVertIdx + 3);
+			indices.push_back(currVertIdx);
+			indices.push_back(currVertIdx + 2);
+			indices.push_back(currVertIdx + 1);
+			indices.push_back(currVertIdx + 1);
+			indices.push_back(currVertIdx + 2);
+			indices.push_back(currVertIdx + 3);
 
 			currVertIdx += 4;
 		}
 	}
 
 	// 圆柱顶部
-	pSubMesh->m_vertices.push_back({ pTop, nTop, uvBottomTop, tSide });
+	vertices.push_back({ pTop, nTop, uvBottomTop, tSide });
 	int SaveIdx = currVertIdx++;
 	for (int i = 0; i < segmentCircle; i++)
 	{
@@ -221,16 +228,18 @@ void NXSubMeshGeometryEditor::CreateCylinder(NXPrimitive* pMesh, float radius, f
 
 		Vector2 uvNow((xNow + 1.0f) * 0.5f, (1.0f - zNow) * 0.5f);
 		Vector2 uvNext((xNext + 1.0f) * 0.5f, (1.0f - zNext) * 0.5f);
-		pSubMesh->m_vertices.push_back({ pNow, nTop, uvNow, tSide });
-		pSubMesh->m_vertices.push_back({ pNext, nTop, uvNext, tSide });
+		vertices.push_back({ pNow, nTop, uvNow, tSide });
+		vertices.push_back({ pNext, nTop, uvNext, tSide });
 
-		pSubMesh->m_indices.push_back(SaveIdx);
-		pSubMesh->m_indices.push_back(currVertIdx);
-		pSubMesh->m_indices.push_back(currVertIdx + 1);
+		indices.push_back(SaveIdx);
+		indices.push_back(currVertIdx);
+		indices.push_back(currVertIdx + 1);
 
 		currVertIdx += 2;
 	}
 
+	pSubMesh->AppendVertices(std::move(vertices));
+	pSubMesh->AppendIndices(std::move(indices));
 	pSubMesh->TryAddBuffers();
 
 	pMesh->AddSubMesh(pSubMesh);
@@ -241,11 +250,12 @@ void NXSubMeshGeometryEditor::CreatePlane(NXPrimitive* pMesh, float width, float
 	pMesh->ClearSubMeshes();
 	NXSubMeshStandard* pSubMesh = new NXSubMeshStandard(pMesh, "_Plane");
 
+	std::vector<VertexPNTT> vertices;
 	float w = width * 0.5f, h = height * 0.5f;
 	switch (Axis)
 	{
 	case POSITIVE_X:
-		pSubMesh->m_vertices =
+		vertices =
 		{
 			{ Vector3(+0.0f, -w, -h), Vector3(1.0f, 0.0f, 0.0f), Vector2(0.0f, 1.0f), Vector3(0.0f, 0.0f, 1.0f) },
 			{ Vector3(+0.0f, +w, -h), Vector3(1.0f, 0.0f, 0.0f), Vector2(0.0f, 0.0f), Vector3(0.0f, 0.0f, 1.0f) },
@@ -254,7 +264,7 @@ void NXSubMeshGeometryEditor::CreatePlane(NXPrimitive* pMesh, float width, float
 		};
 		break;
 	case POSITIVE_Y:
-		pSubMesh->m_vertices =
+		vertices =
 		{
 			{ Vector3(-w, +0.0f, +h), Vector3(0.0f, 1.0f, 0.0f), Vector2(0.0f, 0.0f), Vector3(1.0f, 0.0f, 0.0f) },
 			{ Vector3(+w, +0.0f, +h), Vector3(0.0f, 1.0f, 0.0f), Vector2(1.0f, 0.0f), Vector3(1.0f, 0.0f, 0.0f) },
@@ -263,7 +273,7 @@ void NXSubMeshGeometryEditor::CreatePlane(NXPrimitive* pMesh, float width, float
 		};
 		break;
 	case POSITIVE_Z:
-		pSubMesh->m_vertices =
+		vertices =
 		{
 			{ Vector3(-w, -h, +0.0f), Vector3(0.0f, 0.0f, 1.0f), Vector2(1.0f, 1.0f), Vector3(-1.0f, 0.0f, 0.0f) },
 			{ Vector3(+w, -h, +0.0f), Vector3(0.0f, 0.0f, 1.0f), Vector2(0.0f, 1.0f), Vector3(-1.0f, 0.0f, 0.0f) },
@@ -272,7 +282,7 @@ void NXSubMeshGeometryEditor::CreatePlane(NXPrimitive* pMesh, float width, float
 		};
 		break;
 	case NEGATIVE_X:
-		pSubMesh->m_vertices =
+		vertices =
 		{
 			{ Vector3(0.0f, -w, +h), Vector3(-1.0f, 0.0f, 0.0f), Vector2(0.0f, 1.0f), Vector3(0.0f, 0.0f, -1.0f) },
 			{ Vector3(0.0f, +w, +h), Vector3(-1.0f, 0.0f, 0.0f), Vector2(0.0f, 0.0f), Vector3(0.0f, 0.0f, -1.0f) },
@@ -281,7 +291,7 @@ void NXSubMeshGeometryEditor::CreatePlane(NXPrimitive* pMesh, float width, float
 		};
 		break;
 	case NEGATIVE_Y:
-		pSubMesh->m_vertices =
+		vertices =
 		{
 			{ Vector3(-w, -0.0f, -h), Vector3(0.0f, -1.0f, 0.0f), Vector2(0.0f, 0.0f), Vector3(1.0f, 0.0f, 0.0f) },
 			{ Vector3(+w, -0.0f, -h), Vector3(0.0f, -1.0f, 0.0f), Vector2(1.0f, 0.0f), Vector3(1.0f, 0.0f, 0.0f) },
@@ -290,7 +300,7 @@ void NXSubMeshGeometryEditor::CreatePlane(NXPrimitive* pMesh, float width, float
 		};
 		break;
 	case NEGATIVE_Z:
-		pSubMesh->m_vertices =
+		vertices =
 		{
 			{ Vector3(-w, +h, -0.0f), Vector3(0.0f, 0.0f, -1.0f), Vector2(0.0f, 0.0f), Vector3(1.0f, 0.0f, 0.0f) },
 			{ Vector3(+w, +h, -0.0f), Vector3(0.0f, 0.0f, -1.0f), Vector2(1.0f, 0.0f), Vector3(1.0f, 0.0f, 0.0f) },
@@ -300,12 +310,14 @@ void NXSubMeshGeometryEditor::CreatePlane(NXPrimitive* pMesh, float width, float
 		break;
 	}
 
-	pSubMesh->m_indices =
+	std::vector<uint32_t> indices =
 	{
 		0,  1,  2,
 		0,  2,  3
 	};
 
+	pSubMesh->AppendVertices(std::move(vertices));
+	pSubMesh->AppendIndices(std::move(indices));
 	pSubMesh->TryAddBuffers();
 
 	pMesh->AddSubMesh(pSubMesh);
@@ -315,6 +327,9 @@ void NXSubMeshGeometryEditor::CreateSphere(NXPrimitive* pMesh, float radius, int
 {
 	pMesh->ClearSubMeshes();
 	NXSubMeshStandard* pSubMesh = new NXSubMeshStandard(pMesh, "_Sphere");
+
+	std::vector<VertexPNTT> vertices;
+	std::vector<uint32_t> indices;
 
 	Vector3 vTop(0.0f, 1.0f, 0.0f);
 	Vector3 vBottom(0.0f, -1.0f, 0.0f);
@@ -371,22 +386,24 @@ void NXSubMeshGeometryEditor::CreateSphere(NXPrimitive* pMesh, float radius, int
 			tNowDown.Normalize();
 			tNextDown.Normalize();
 
-			pSubMesh->m_vertices.push_back({ pNowUp,	nNowUp,		uvNowUp,	tNowUp });
-			pSubMesh->m_vertices.push_back({ pNextUp,	nNextUp,	uvNextUp,	tNextUp });
-			pSubMesh->m_vertices.push_back({ pNextDown,	nNextDown,	uvNextDown, tNextDown });
-			pSubMesh->m_vertices.push_back({ pNowDown,	nNowDown,	uvNowDown,	tNowDown });
+			vertices.push_back({ pNowUp,	nNowUp,		uvNowUp,	tNowUp });
+			vertices.push_back({ pNextUp,	nNextUp,	uvNextUp,	tNextUp });
+			vertices.push_back({ pNextDown,	nNextDown,	uvNextDown, tNextDown });
+			vertices.push_back({ pNowDown,	nNowDown,	uvNowDown,	tNowDown });
 
-			pSubMesh->m_indices.push_back(currVertIdx);
-			pSubMesh->m_indices.push_back(currVertIdx + 1);
-			pSubMesh->m_indices.push_back(currVertIdx + 2);
-			pSubMesh->m_indices.push_back(currVertIdx);
-			pSubMesh->m_indices.push_back(currVertIdx + 2);
-			pSubMesh->m_indices.push_back(currVertIdx + 3);
+			indices.push_back(currVertIdx);
+			indices.push_back(currVertIdx + 1);
+			indices.push_back(currVertIdx + 2);
+			indices.push_back(currVertIdx);
+			indices.push_back(currVertIdx + 2);
+			indices.push_back(currVertIdx + 3);
 
 			currVertIdx += 4;
 		}
 	}
 
+	pSubMesh->AppendVertices(std::move(vertices));
+	pSubMesh->AppendIndices(std::move(indices));
 	pSubMesh->TryAddBuffers();
 
 	pMesh->AddSubMesh(pSubMesh);
@@ -396,6 +413,9 @@ void NXSubMeshGeometryEditor::CreateSHSphere(NXPrimitive* pMesh, int basis_l, in
 {
 	pMesh->ClearSubMeshes();
 	NXSubMeshStandard* pSubMesh = new NXSubMeshStandard(pMesh, "_SHSphere");
+
+	std::vector<VertexPNTT> vertices;
+	std::vector<uint32_t> indices;
 
 	Vector3 vTop(0.0f, 1.0f, 0.0f);
 	Vector3 vBottom(0.0f, -1.0f, 0.0f);
@@ -468,25 +488,126 @@ void NXSubMeshGeometryEditor::CreateSHSphere(NXPrimitive* pMesh, int basis_l, in
 			tNowDown.Normalize();
 			tNextDown.Normalize();
 
-			pSubMesh->m_vertices.push_back({ pNowUp,	nNowUp,		uvNowUp,	tNowUp });
-			pSubMesh->m_vertices.push_back({ pNextUp,	nNextUp,	uvNextUp,	tNextUp });
-			pSubMesh->m_vertices.push_back({ pNextDown,	nNextDown,	uvNextDown, tNextDown });
-			pSubMesh->m_vertices.push_back({ pNowDown,	nNowDown,	uvNowDown,	tNowDown });
+			vertices.push_back({ pNowUp,	nNowUp,		uvNowUp,	tNowUp });
+			vertices.push_back({ pNextUp,	nNextUp,	uvNextUp,	tNextUp });
+			vertices.push_back({ pNextDown,	nNextDown,	uvNextDown, tNextDown });
+			vertices.push_back({ pNowDown,	nNowDown,	uvNowDown,	tNowDown });
 
-			pSubMesh->m_indices.push_back(currVertIdx);
-			pSubMesh->m_indices.push_back(currVertIdx + 1);
-			pSubMesh->m_indices.push_back(currVertIdx + 2);
-			pSubMesh->m_indices.push_back(currVertIdx);
-			pSubMesh->m_indices.push_back(currVertIdx + 2);
-			pSubMesh->m_indices.push_back(currVertIdx + 3);
+			indices.push_back(currVertIdx);
+			indices.push_back(currVertIdx + 1);
+			indices.push_back(currVertIdx + 2);
+			indices.push_back(currVertIdx);
+			indices.push_back(currVertIdx + 2);
+			indices.push_back(currVertIdx + 3);
 
 			currVertIdx += 4;
 		}
 	}
 
+	pSubMesh->AppendVertices(std::move(vertices));
+	pSubMesh->AppendIndices(std::move(indices));
 	pSubMesh->TryAddBuffers();
 
 	pMesh->AddSubMesh(pSubMesh);
+}
+
+void NXSubMeshGeometryEditor::CreateTerrain(NXTerrain* pTerrain, int rawSize, int gridSize, int worldSize, const std::filesystem::path& rawFile)
+{
+	auto& rawFileData = pTerrain->m_rawData;
+
+	std::ifstream file(rawFile, std::ios::binary);
+	if (!file) 
+		throw std::runtime_error("无法打开文件: " + rawFile.string());
+
+	// 直接读数据就行，必须是16bit
+	file.read(reinterpret_cast<char*>(rawFileData.data()), rawSize * rawSize * sizeof(uint16_t));
+
+	if (!file)
+		throw std::runtime_error("读取数据失败: " + rawFile.string());
+
+	if ((rawSize - 1) % g_configTerrain.sectorSize != 0)
+		throw std::runtime_error("地形数据大小不符合要求；rawSize 必须是 g_configTerrain.sectorSize 的整数倍)");
+
+	if (gridSize % g_configTerrain.sectorSize != 0)
+		throw std::runtime_error("地形数据大小不符合要求；gridSize 必须是 g_configTerrain.sectorSize 的整数倍)");
+
+	// 然后构建SubMesh
+	// 基于sectorSize 构建基本的面片，使用FarCry5的米字形）
+	std::string subMeshName("_terrainMesh_grid" + std::to_string(pTerrain->m_gridSize) + "_world" + std::to_string(pTerrain->m_worldSize));
+	NXSubMeshTerrain* pSubMesh = new NXSubMeshTerrain(pTerrain, subMeshName);
+	std::vector<VertexPNTC> vertices;
+	std::vector<uint32_t> indices;
+
+	int gSectorSize = g_configTerrain.sectorSize;
+	for (int x = 0; x <= gSectorSize; x++)
+	{
+		for (int y = 0; y <= gSectorSize; y++)
+		{
+			float vertScale = (float)gridSize / (float)worldSize;
+			Vector3 p(vertScale * (float)x, 0.0f, vertScale * (float)y);
+			Vector3 n(0, 1, 0);
+			Vector2 uv(0, 0); 
+			Vector4 c(1, 1, 1, 1); 
+			vertices.push_back({ p, n, uv, c });
+		}
+	}
+
+	float gRowSize = gSectorSize + 1;
+	for (int x = 0; x < gSectorSize; x += 2)
+	{
+		for (int y = 0; y < gSectorSize; y += 2)
+		{
+			// FarCry5的米字形填充布局
+			// 0---1---2
+			// | \ | / |
+			// 3---4---5
+			// | / | \ |
+			// 6---7---8
+
+			uint32_t _0 = gRowSize * y + x;
+			uint32_t _1 = gRowSize * y + x + 1;
+			uint32_t _2 = gRowSize * y + x + 2;
+			uint32_t _3 = gRowSize * (y + 1) + x;
+			uint32_t _4 = gRowSize * (y + 1) + x + 1;
+			uint32_t _5 = gRowSize * (y + 1) + x + 2;
+			uint32_t _6 = gRowSize * (y + 2) + x;
+			uint32_t _7 = gRowSize * (y + 2) + x + 1;
+			uint32_t _8 = gRowSize * (y + 2) + x + 2;
+
+			indices.insert(indices.end(), {
+				_0, _1, _4,
+				_0, _4, _3,
+				_1, _2, _4,
+				_2, _5, _4,
+				_3, _4, _6,
+				_4, _7, _6,
+				_4, _5, _8,
+				_4, _8, _7
+			});
+		}
+	}
+
+	pSubMesh->AppendVertices(std::move(vertices));
+	pSubMesh->AppendIndices(std::move(indices));
+
+	// 添加instance数据
+	// 第一版先进行完全加载，将来再考虑gpu-driven剔除啥的
+	std::vector<InstanceData> insDatas;
+	for (int x = 0; x <= gSectorSize; x++)
+	{
+		for (int y = 0; y <= gSectorSize; y++)
+		{
+			float vertScale = (float)gridSize / (float)worldSize;
+			Vector3 p(vertScale * (float)x, 0.0f, vertScale * (float)y);
+
+			insDatas.push_back({ Matrix::CreateTranslation(p) });
+		}
+	}
+
+	pSubMesh->AppendInstanceData(std::move(insDatas));
+
+	pSubMesh->TryAddBuffers();
+	pTerrain->AddSubMesh(pSubMesh);
 }
 
 void NXSubMeshGeometryEditor::CreateMoveArrows(NXPrimitive* pMesh)
@@ -507,6 +628,10 @@ void NXSubMeshGeometryEditor::CreateMoveArrows(NXPrimitive* pMesh)
 
 		EditorObjectID objId = i == 0 ? EditorObjectID::TRANSLATE_X : i == 1 ? EditorObjectID::TRANSLATE_Y : EditorObjectID::TRANSLATE_Z;
 		NXSubMeshEditorObjects* pSubMesh = new NXSubMeshEditorObjects(pMesh, "_MoveArrows_" + std::to_string(meshId++), objId);
+
+		std::vector<VertexEditorObjects> vertices;
+		std::vector<uint32_t> indices;
+
 		for (int segIdx = 0; segIdx < 16; segIdx++)
 		{
 			float angleCurr = (float)(segIdx + 0) * fSegmentCircleInv * XM_2PI;
@@ -541,21 +666,23 @@ void NXSubMeshGeometryEditor::CreateMoveArrows(NXPrimitive* pMesh)
 			}
 
 			Vector4 color = (i == 0 ? colorX : i == 1 ? colorY : colorZ);
-			pSubMesh->m_vertices.push_back({ p00, color });
-			pSubMesh->m_vertices.push_back({ p01, color });
-			pSubMesh->m_vertices.push_back({ p10, color });
-			pSubMesh->m_vertices.push_back({ p11, color });
+			vertices.push_back({ p00, color });
+			vertices.push_back({ p01, color });
+			vertices.push_back({ p10, color });
+			vertices.push_back({ p11, color });
 
-			pSubMesh->m_indices.push_back(currVertIdx);
-			pSubMesh->m_indices.push_back(currVertIdx + 2);
-			pSubMesh->m_indices.push_back(currVertIdx + 1);
-			pSubMesh->m_indices.push_back(currVertIdx + 1);
-			pSubMesh->m_indices.push_back(currVertIdx + 2);
-			pSubMesh->m_indices.push_back(currVertIdx + 3);
+			indices.push_back(currVertIdx);
+			indices.push_back(currVertIdx + 2);
+			indices.push_back(currVertIdx + 1);
+			indices.push_back(currVertIdx + 1);
+			indices.push_back(currVertIdx + 2);
+			indices.push_back(currVertIdx + 3);
 
 			currVertIdx += 4;
 		}
 
+		pSubMesh->AppendVertices(std::move(vertices));
+		pSubMesh->AppendIndices(std::move(indices));
 		pSubMesh->TryAddBuffers();
 		pMesh->AddSubMesh(pSubMesh);
 	}
@@ -568,6 +695,9 @@ void NXSubMeshGeometryEditor::CreateMoveArrows(NXPrimitive* pMesh)
 		UINT currVertIdx = 0;
 		EditorObjectID objId = i == 0 ? EditorObjectID::TRANSLATE_X : i == 1 ? EditorObjectID::TRANSLATE_Y : EditorObjectID::TRANSLATE_Z;
 		NXSubMeshEditorObjects* pSubMesh = new NXSubMeshEditorObjects(pMesh, "_MoveArrows" + std::to_string(meshId++), objId);
+		std::vector<VertexEditorObjects> vertices;
+		std::vector<uint32_t> indices;
+
 		for (int segIdx = 0; segIdx < 16; segIdx++)
 		{
 			float angleCurr = (float)(segIdx + 0) * fSegmentCircleInv * XM_2PI;
@@ -599,17 +729,19 @@ void NXSubMeshGeometryEditor::CreateMoveArrows(NXPrimitive* pMesh)
 			}
 
 			Vector4 color = (i == 0 ? colorX : i == 1 ? colorY : colorZ);
-			pSubMesh->m_vertices.push_back({ p0, color });
-			pSubMesh->m_vertices.push_back({ p1, color });
-			pSubMesh->m_vertices.push_back({ p2, color });
+			vertices.push_back({ p0, color });
+			vertices.push_back({ p1, color });
+			vertices.push_back({ p2, color });
 
-			pSubMesh->m_indices.push_back(currVertIdx);
-			pSubMesh->m_indices.push_back(currVertIdx + 2);
-			pSubMesh->m_indices.push_back(currVertIdx + 1);
+			indices.push_back(currVertIdx);
+			indices.push_back(currVertIdx + 2);
+			indices.push_back(currVertIdx + 1);
 
 			currVertIdx += 3;
 		}
 
+		pSubMesh->AppendVertices(std::move(vertices));
+		pSubMesh->AppendIndices(std::move(indices));
 		pSubMesh->TryAddBuffers();
 		pMesh->AddSubMesh(pSubMesh);
 	}
@@ -623,6 +755,8 @@ void NXSubMeshGeometryEditor::CreateMoveArrows(NXPrimitive* pMesh)
 		UINT currVertIdx = 0;
 		EditorObjectID objId = i == 0 ? EditorObjectID::TRANSLATE_XY : i == 1 ? EditorObjectID::TRANSLATE_XZ : EditorObjectID::TRANSLATE_YZ;
 		NXSubMeshEditorObjects* pSubMesh = new NXSubMeshEditorObjects(pMesh, "_MoveArrows" + std::to_string(meshId++), objId);
+		std::vector<VertexEditorObjects> vertices;
+		std::vector<uint32_t> indices;
 
 		Vector4 color(0.8f, 0.8f, 0.7f, 0.5f);
 		Vector3 p0, p1, p2, p3;
@@ -648,23 +782,31 @@ void NXSubMeshGeometryEditor::CreateMoveArrows(NXPrimitive* pMesh)
 			p3 = Vector3(0.0f, B, B);
 		}
 
-		pSubMesh->m_vertices.push_back({ p0, color });
-		pSubMesh->m_vertices.push_back({ p1, color });
-		pSubMesh->m_vertices.push_back({ p2, color });
-		pSubMesh->m_vertices.push_back({ p3, color });
+		vertices.push_back({ p0, color });
+		vertices.push_back({ p1, color });
+		vertices.push_back({ p2, color });
+		vertices.push_back({ p3, color });
 
-		pSubMesh->m_indices.push_back(currVertIdx);
-		pSubMesh->m_indices.push_back(currVertIdx + 2);
-		pSubMesh->m_indices.push_back(currVertIdx + 1);
-		pSubMesh->m_indices.push_back(currVertIdx + 1);
-		pSubMesh->m_indices.push_back(currVertIdx + 2);
-		pSubMesh->m_indices.push_back(currVertIdx + 3);
+		indices.push_back(currVertIdx);
+		indices.push_back(currVertIdx + 2);
+		indices.push_back(currVertIdx + 1);
+		indices.push_back(currVertIdx + 1);
+		indices.push_back(currVertIdx + 2);
+		indices.push_back(currVertIdx + 3);
 
 		currVertIdx += 4;
 
+		pSubMesh->AppendVertices(std::move(vertices));
+		pSubMesh->AppendIndices(std::move(indices));
 		pSubMesh->TryAddBuffers();
 		pMesh->AddSubMesh(pSubMesh);
 	}
+}
+
+
+void NXSubMeshGeometryEditor::CreateBuffer(const NXMeshViewDesc& desc)
+{
+	
 }
 
 const NXMeshViews& NXSubMeshGeometryEditor::GetMeshViews(const std::string& name)

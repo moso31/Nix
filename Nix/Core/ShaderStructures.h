@@ -57,6 +57,11 @@ struct VertexEditorObjects
 	Vector4 color;
 };
 
+struct InstanceData
+{
+	Matrix mxWorld;
+};
+
 struct ConstantBufferFloat
 {
 	float value;

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -221,9 +221,14 @@
     <ClCompile Include="Core\NXGUICommandManager.cpp" />
     <ClCompile Include="Core\NXGUIDiffuseProfile.cpp" />
     <ClCompile Include="Core\NXGUIInspector.cpp" />
+    <ClCompile Include="Core\NXGUIRenderGraph.cpp" />
     <ClCompile Include="Core\NXPSOManager.cpp" />
     <ClCompile Include="Core\NXRendererPass.cpp" />
     <ClCompile Include="Core\NXRenderGraph.cpp" />
+    <ClCompile Include="Core\NXRGBuilder.cpp" />
+    <ClCompile Include="Core\NXRGHandle.cpp" />
+    <ClCompile Include="Core\NXRGPassNode.cpp" />
+    <ClCompile Include="Core\NXRGResource.cpp" />
     <ClCompile Include="Core\NXSamplerManager.cpp" />
     <ClCompile Include="Core\NXGUIMaterialShaderEditor.cpp" />
     <ClCompile Include="Core\NXGUIView.cpp" />
@@ -278,11 +283,9 @@
     <ClCompile Include="Core\Renderer.cpp" />
     <ClCompile Include="Core\ShaderComplier.cpp" />
     <ClCompile Include="Core\NXShaderVisibleDescriptorHeap.cpp" />
-    <ClCompile Include="NXGUIRenderGraph.cpp" />
-    <ClCompile Include="NXRefCountable.cpp" />
-    <ClCompile Include="NXRGBuilder.cpp" />
-    <ClCompile Include="NXRGHandle.cpp" />
-    <ClCompile Include="NXRGPassNode.cpp" />
+    <ClCompile Include="Nix\NXQuadTree.cpp" />
+    <ClCompile Include="Nix\NXRefCountable.cpp" />
+    <ClCompile Include="Nix\NXTerrain.cpp" />
     <ClCompile Include="Nix\HBVH.cpp" />
     <ClCompile Include="Nix\NXBuffer.cpp" />
     <ClCompile Include="Nix\NXDepthPrepass.cpp" />
@@ -308,7 +311,6 @@
     <ClCompile Include="Nix\NXScene.cpp" />
     <ClCompile Include="Nix\Script\NXScript.cpp" />
     <ClCompile Include="Nix\NXTransform.cpp" />
-    <ClCompile Include="NXRGResource.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BaseDefs\CppSTLFully.h" />
@@ -332,9 +334,14 @@
     <ClInclude Include="Core\NXGUICommandManager.h" />
     <ClInclude Include="Core\NXGUIDiffuseProfile.h" />
     <ClInclude Include="Core\NXGUIInspector.h" />
+    <ClInclude Include="Core\NXGUIRenderGraph.h" />
     <ClInclude Include="Core\NXPSOManager.h" />
     <ClInclude Include="Core\NXRendererPass.h" />
     <ClInclude Include="Core\NXRenderGraph.h" />
+    <ClInclude Include="Core\NXRGBuilder.h" />
+    <ClInclude Include="Core\NXRGHandle.h" />
+    <ClInclude Include="Core\NXRGPassNode.h" />
+    <ClInclude Include="Core\NXRGResource.h" />
     <ClInclude Include="Core\NXSamplerManager.h" />
     <ClInclude Include="Core\NXGUIMaterialShaderEditor.h" />
     <ClInclude Include="Core\NXGUIView.h" />
@@ -396,6 +403,7 @@
     <ClInclude Include="Nix\NXBuffer.h" />
     <ClInclude Include="Nix\NXConstantBuffer.h" />
     <ClInclude Include="Nix\NXDepthPrepass.h" />
+    <ClInclude Include="Nix\NXQuadTree.h" />
     <ClInclude Include="Nix\NXSSSDiffuseProfile.h" />
     <ClInclude Include="Nix\NXEditorObjectManager.h" />
     <ClInclude Include="Nix\NXIntersection.h" />
@@ -408,6 +416,7 @@
     <ClInclude Include="Nix\NXRenderableObject.h" />
     <ClInclude Include="Nix\NXScriptable.h" />
     <ClInclude Include="Nix\NXStructuredBuffer.h" />
+    <ClInclude Include="Nix\NXTerrain.h" />
     <ClInclude Include="Nix\NXTextureDefinitions.h" />
     <ClInclude Include="Nix\NXSimpleSSAO.h" />
     <ClInclude Include="Nix\NXSubMesh.h" />
@@ -422,11 +431,7 @@
     <ClInclude Include="Nix\Script\NXScript.h" />
     <ClInclude Include="Nix\Script\NXScriptType.h" />
     <ClInclude Include="Nix\NXTransform.h" />
-    <ClInclude Include="NXGUIRenderGraph.h" />
-    <ClInclude Include="NXRGBuilder.h" />
-    <ClInclude Include="NXRGPassNode.h" />
-    <ClInclude Include="NXRGHandle.h" />
-    <ClInclude Include="NXRGResource.h" />
+    <ClInclude Include="NXTerrainConfig.h" />
     <None Include="Shader\BRDFCommon.fx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>

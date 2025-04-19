@@ -1,6 +1,6 @@
 #include "NXSubMesh.h"
 #include "NXGlobalDefinitions.h"
-#include "NXPrimitive.h"
+#include "NXRenderableObject.h"
 #include "NXSubMeshGeometryEditor.h"
 #include "NXCamera.h"
 #include "NXTimer.h"
@@ -86,6 +86,14 @@ void NXSubMesh<TVertex>::CalcLocalAABB()
 template<class TVertex>
 void NXSubMesh<TVertex>::TryAddBuffers()
 {
+	std::span<const TVertex> spanVerts(m_vertices.data(), m_vertices.size());
+
+	NXMeshViewDesc desc;
+	desc.bytes = std::as_bytes(spanVerts);
+	desc.stride = sizeof(TVertex);
+
+	NXSubMeshGeometryEditor::GetInstance()->CreateBuffer(desc);
+
 	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(m_vertices, m_indices, m_subMeshName);
 }
 
@@ -124,8 +132,8 @@ void NXSubMeshStandard::CalculateTangents(bool bUpdateVBIB)
 	}
 }
 
-NXSubMeshEditorObjects::NXSubMeshEditorObjects(NXPrimitive* pPrimitive, const std::string& subMeshName, EditorObjectID id) : 
-	NXSubMesh<VertexEditorObjects>(pPrimitive, subMeshName), 
+NXSubMeshEditorObjects::NXSubMeshEditorObjects(NXRenderableObject* pRenderableObject, const std::string& subMeshName, EditorObjectID id) : 
+	NXSubMesh<VertexEditorObjects>(pRenderableObject, subMeshName),
 	m_editorObjID(id) 
 {
 }
@@ -156,4 +164,19 @@ void NXSubMeshEditorObjects::Update(ID3D12GraphicsCommandList* pCmdList, bool is
 	m_cbParams.Set(m_cbDataParams);
 
 	pCmdList->SetGraphicsRootConstantBufferView(2, m_cbParams.CurrentGPUAddress()); // b2 update.
+}
+
+template<class TVertex, class TInstanceData>
+void NXSubMeshInstanced<TVertex, TInstanceData>::TryAddBuffers()
+{
+	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(m_vertices, m_indices, m_subMeshName);
+}
+
+template<class TVertex, class TInstanceData>
+inline void NXSubMeshInstanced<TVertex, TInstanceData>::Render(ID3D12GraphicsCommandList* pCmdList)
+{
+	auto& subMeshViews = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews(m_subMeshName);
+	pCmdList->IASetVertexBuffers(0, 1, &subMeshViews.vbv);
+	pCmdList->IASetIndexBuffer(&subMeshViews.ibv);
+	pCmdList->DrawIndexedInstanced(subMeshViews.indexCount, 1, 0, 0, 0);
 }

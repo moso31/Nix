@@ -118,6 +118,9 @@
     <Filter Include="Core\DirectX\Renderer\Renderers">
       <UniqueIdentifier>{6701371a-c5d5-4caa-88b9-084db4c46717}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Core\Config">
+      <UniqueIdentifier>{58b2859a-c6d2-494a-8484-ea9fc399b188}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Common.fx">
@@ -469,21 +472,6 @@
     <ClCompile Include="Core\NXRenderGraph.cpp">
       <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClCompile>
-    <ClCompile Include="NXRGResource.cpp">
-      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
-    </ClCompile>
-    <ClCompile Include="NXRGPassNode.cpp">
-      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
-    </ClCompile>
-    <ClCompile Include="NXRGHandle.cpp">
-      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
-    </ClCompile>
-    <ClCompile Include="NXRGBuilder.cpp">
-      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
-    </ClCompile>
-    <ClCompile Include="NXRefCountable.cpp">
-      <Filter>Nix\Object</Filter>
-    </ClCompile>
     <ClCompile Include="Core\NXBRDFlut.cpp">
       <Filter>Core\DirectX\Renderer\Renderers</Filter>
     </ClCompile>
@@ -520,8 +508,29 @@
     <ClCompile Include="Core\NXSubSurfaceRenderer.cpp">
       <Filter>Core\DirectX\Renderer\Renderers</Filter>
     </ClCompile>
-    <ClCompile Include="NXGUIRenderGraph.cpp">
+    <ClCompile Include="Nix\NXTerrain.cpp">
+      <Filter>Nix\Object\Transform\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXRefCountable.cpp">
+      <Filter>Nix\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXGUIRenderGraph.cpp">
       <Filter>Core\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXQuadTree.cpp">
+      <Filter>Nix\Accelerator</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXRGPassNode.cpp">
+      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXRGResource.cpp">
+      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXRGBuilder.cpp">
+      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXRGHandle.cpp">
+      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -822,18 +831,6 @@
     <ClInclude Include="Core\NXRenderGraph.h">
       <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClInclude>
-    <ClInclude Include="NXRGResource.h">
-      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
-    </ClInclude>
-    <ClInclude Include="NXRGHandle.h">
-      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
-    </ClInclude>
-    <ClInclude Include="NXRGPassNode.h">
-      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
-    </ClInclude>
-    <ClInclude Include="NXRGBuilder.h">
-      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
-    </ClInclude>
     <ClInclude Include="Core\NXBRDFlut.h">
       <Filter>Core\DirectX\Renderer\Renderers</Filter>
     </ClInclude>
@@ -870,8 +867,29 @@
     <ClInclude Include="Core\NXSubSurfaceRenderer.h">
       <Filter>Core\DirectX\Renderer\Renderers</Filter>
     </ClInclude>
-    <ClInclude Include="NXGUIRenderGraph.h">
+    <ClInclude Include="Nix\NXTerrain.h">
+      <Filter>Nix\Object\Transform\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="NXTerrainConfig.h">
+      <Filter>Core\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXGUIRenderGraph.h">
       <Filter>Core\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXQuadTree.h">
+      <Filter>Nix\Accelerator</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXRGPassNode.h">
+      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXRGResource.h">
+      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXRGBuilder.h">
+      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXRGHandle.h">
+      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

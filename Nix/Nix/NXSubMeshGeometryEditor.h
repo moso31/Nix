@@ -1,41 +1,53 @@
 #pragma once
 #include <string>
+#include <span>
 #include "BaseDefs/DX12.h"
 #include "NXAllocatorManager.h"
 #include "ShaderStructures.h"
 #include "NXInstance.h"
 #include "NXStructuredBuffer.h"
 
+struct NXMeshViewDesc
+{
+	std::span<const byte> bytes; // 将 T 强转成 byte*，并记录size
+	uint32_t stride; // sizeof(T)
+};
+
 struct NXMeshViews
 {
-	NXMeshViews(const std::string& name) : 
-		name(name),
-		loadFuture(loadPromise.get_future()), 
-		loadCounter(0) {}
+	//NXMeshViews(const std::string& name) : 
+	//	name(name),
+	//	loadFuture(loadPromise.get_future()), 
+	//	loadCounter(0) {}
 
-	void ProcessOne()
-	{
-		if (--loadCounter == 0)
-		{
-			loadPromise.set_value();
-		}
-	}
+	//void ProcessOne()
+	//{
+	//	if (--loadCounter == 0)
+	//	{
+	//		loadPromise.set_value();
+	//	}
+	//}
 
-	void WaitLoadComplete()
-	{
-		loadFuture.wait();
-	}
+	//void WaitLoadComplete()
+	//{
+	//	loadFuture.wait();
+	//}
 
 	std::string name;
 
-	std::atomic<int> loadCounter;
-	std::promise<void> loadPromise;
-	std::future<void> loadFuture;
+	//std::atomic<int> loadCounter;
+	//std::promise<void> loadPromise;
+	//std::future<void> loadFuture;
 
-	D3D12_VERTEX_BUFFER_VIEW vbv;
-	D3D12_INDEX_BUFFER_VIEW ibv;
-	UINT vertexCount;
-	UINT indexCount;
+	//D3D12_VERTEX_BUFFER_VIEW vbv;
+	//D3D12_INDEX_BUFFER_VIEW ibv;
+	//UINT vertexCount;
+	//UINT indexCount;
+
+	NXMeshViews(const std::string& name) : name(name), pending(0) {}
+
+	std::span<NXMeshViewDesc> m_views;
+	std::atomic<int> pending;
 };
 
 enum NXPlaneAxis
@@ -50,6 +62,7 @@ enum NXPlaneAxis
 
 class NXPrefab;
 class NXPrimitive;
+class NXTerrain;
 class NXSubMeshGeometryEditor : public NXInstance<NXSubMeshGeometryEditor>
 {
 public:
@@ -65,9 +78,12 @@ public:
 	void CreatePlane(NXPrimitive* pMesh, float width = 0.5f, float height = 0.5f, NXPlaneAxis Axis = POSITIVE_Y);
 	void CreateSphere(NXPrimitive* pMesh, float radius = 1.0f, int segmentHorizontal = 16, int segmentVertical = 16);
 	void CreateSHSphere(NXPrimitive* pMesh, int basis_l, int basis_m, float radius = 1.0f, int segmentHorizontal = 64, int segmentVertical = 64);
+	void CreateTerrain(NXTerrain* pTerrain, int rawSize, int gridSize, int worldSize, const std::filesystem::path& rawFile);
 
 	// Editor objects
 	void CreateMoveArrows(NXPrimitive* pMesh);
+
+	void CreateBuffer(const NXMeshViewDesc& desc);
 
 	template<class TVertex>
 	void CreateVBIB(const std::vector<TVertex>& vertices, std::vector<UINT>& indices, const std::string& name)

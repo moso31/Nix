@@ -79,6 +79,7 @@ public:
 	void RegisterCubeMap(NXCubeMap* newCubeMap);
 	void RegisterPrimitive(NXPrimitive* newPrimitive, NXObject* pParent = nullptr);
 	void RegisterPrefab(NXPrefab* newPrefab, NXObject* pParent = nullptr);
+	void RegisterTerrain(NXTerrain* newTerrain, NXObject* pParent = nullptr);
 	void RegisterCamera(NXCamera* newCamera, bool isMainCamera, NXObject* pParent = nullptr);
 	void RegisterLight(NXPBRLight* newLight, NXObject* pParent = nullptr);
 
@@ -109,7 +110,7 @@ private:
 
 	// 当前选中的SubMesh和对应的Objects
 	std::vector<NXSubMeshBase*> m_pSelectedSubMeshes;
-	std::vector<NXPrimitive*> m_pSelectedObjects; 
+	std::vector<NXRenderableObject*> m_pSelectedObjects; 
 	bool m_bMultiSelectKeyHolding; // 是否处于多选状态(LCtrl)
 
 	NXEditorObjectManager* m_pEditorObjManager = nullptr;

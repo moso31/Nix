@@ -4,7 +4,7 @@
 #include "NXGUICommon.h"
 #include "NXConverter.h"
 #include "NXScene.h"
-#include "NXPrimitive.h"
+#include "NXRenderableObject.h"
 #include "NXAllocatorManager.h"
 #include "NXGUICommandManager.h"
 
@@ -36,7 +36,7 @@ void NXGUIMaterial::Render()
 	bool bIsReadOnlyTransform = pPickingSubMeshes.size() != 1;
 	if (bIsReadOnlyTransform) ImGui::BeginDisabled();
 
-	NXPrimitive* pObject = pPickingSubMeshes[0]->GetPrimitive();
+	NXRenderableObject* pObject = pPickingSubMeshes[0]->GetRenderableObject();
 	NXMaterial* pMaterial = pPickingSubMeshes[0]->GetMaterial();
 
 	std::string strName = bIsReadOnlyTransform ? "-" : pObject->GetName().c_str();

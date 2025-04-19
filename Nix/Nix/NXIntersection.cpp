@@ -1,6 +1,6 @@
 #include "NXIntersection.h"
 #include "NXScene.h"
-#include "NXPrimitive.h"
+#include "NXRenderableObject.h"
 
 NXHit::NXHit(NXSubMeshBase* pSubMesh, const Vector3& position, const Vector2& uv, const Vector3& direction, const Vector3& dpdu, const Vector3& dpdv) :
 	pSubMesh(pSubMesh),
@@ -17,7 +17,7 @@ NXHit::NXHit(NXSubMeshBase* pSubMesh, const Vector3& position, const Vector2& uv
 
 void NXHit::LocalToWorld()
 {
-	Matrix mxWorld = pSubMesh->GetPrimitive()->GetWorldMatrix();
+	Matrix mxWorld = pSubMesh->GetRenderableObject()->GetWorldMatrix();
 	position = Vector3::Transform(position, mxWorld);
 	Vector3::TransformNormal(direction, mxWorld).Normalize(direction);
 	Vector3::TransformNormal(normal, mxWorld).Normalize(normal);

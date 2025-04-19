@@ -67,10 +67,10 @@ void NXGBufferRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 		{
 			if (pSubMesh)
 			{
-				bool bIsVisible = pSubMesh->GetPrimitive()->GetVisible();
+				bool bIsVisible = pSubMesh->GetRenderableObject()->GetVisible();
 				if (bIsVisible)
 				{
-					pSubMesh->GetPrimitive()->Update(pCmdList);
+					pSubMesh->GetRenderableObject()->Update(pCmdList); // 永远优先调用派生类的Update 
 					pSubMesh->Render(pCmdList);
 				}
 			}

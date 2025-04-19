@@ -6,6 +6,7 @@
 #include "NXRandom.h"
 #include "NXPrefab.h"
 #include "NXPrimitive.h"
+#include "NXTerrain.h"
 #include "NXCamera.h"
 #include "NXPBRLight.h"
 #include "NXPBRMaterial.h"
@@ -107,8 +108,8 @@ void NXScene::OnMouseMove(NXEventArgMouse eArg)
 		{
 			// MoveArrow 也跟着移动位置
 			// 2023.3.11 暂时使用第一个选中的Primitive的Translation计算移动量
-			NXPrimitive* pFirstSelectedPrimitive = m_pSelectedObjects[0];
-			m_pEditorObjManager->MoveTranslatorTo(pFirstSelectedPrimitive->GetAABBWorld().Center);
+			NXRenderableObject* pFirstSelectedObj = m_pSelectedObjects[0];
+			m_pEditorObjManager->MoveTranslatorTo(pFirstSelectedObj->GetAABBWorld().Center);
 		}
 	}
 
@@ -229,14 +230,16 @@ void NXScene::Init()
 
 	m_pTestCustomMat = NXResourceManager::GetInstance()->GetMaterialManager()->CreateCustomMaterial("TestCustomMat", "D:\\NixAssets\\Materials\\mat.nsl");
 
-	NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\boxes.fbx", false);
+	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\boxes.fbx", false);
 	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\TestBall.fbx", false);
 	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\shadowMapTest.fbx", false);
 	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\EditorObjTest.fbx", false);
-	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\lury.fbx", false);
-	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\testScene.fbx", false);
+	//NXPrefab* p2 = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\lury.fbx", false);
+	NXTerrain* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateTerrain("myTerrain", 512, "D:\\NixAssets\\Terrain.raw");
 	p->SetScale(Vector3(0.1f));
+	//p2->SetScale(Vector3(0.1f));
 	NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(p, m_pTestCustomMat);
+	//NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(p2, m_pTestCustomMat);
 
 	std::vector<NXPrimitive*> pMeshes;
 	{
@@ -395,7 +398,7 @@ void NXScene::Release()
 
 void NXScene::AddPickingSubMesh(NXSubMeshBase* pPickingSubMesh)
 {
-	NXPrimitive* pPickingObj = pPickingSubMesh->GetPrimitive();
+	NXRenderableObject* pPickingObj = pPickingSubMesh->GetRenderableObject();
 	if (m_pSelectedObjects.empty() || std::find(m_pSelectedObjects.begin(), m_pSelectedObjects.end(), pPickingObj) == m_pSelectedObjects.end())
 	{
 		m_pSelectedObjects.push_back(pPickingObj);
@@ -407,9 +410,9 @@ void NXScene::AddPickingSubMesh(NXSubMeshBase* pPickingSubMesh)
 		m_pSelectedSubMeshes.push_back(pPickingSubMesh);
 	}
 
-	// 2023.3.11 暂时使用第一个选中的Primitive的Translation计算移动量
-	NXPrimitive* pFirstSelectedPrimitive = m_pSelectedSubMeshes[0]->GetPrimitive();
-	m_pEditorObjManager->MoveTranslatorTo(pFirstSelectedPrimitive->GetAABBWorld().Center);
+	// 2023.3.11 暂时使用第一个选中的NXRenderableObject的Translation计算移动量
+	NXRenderableObject* pFirstSelectedObj = m_pSelectedSubMeshes[0]->GetRenderableObject();
+	m_pEditorObjManager->MoveTranslatorTo(pFirstSelectedObj->GetAABBWorld().Center);
 }
 
 bool NXScene::RayCast(const Ray& ray, NXHit& outHitInfo, float tMax)
@@ -494,6 +497,15 @@ void NXScene::RegisterPrefab(NXPrefab* newPrefab, NXObject* pParent)
 	m_objects.push_back(newPrefab);
 
 	newPrefab->SetParent(pParent ? pParent : m_pRootObject);
+}
+
+void NXScene::RegisterTerrain(NXTerrain* newTerrain, NXObject* pParent)
+{
+	m_scriptableObjects.push_back(newTerrain);
+	m_renderableObjects.push_back(newTerrain);
+	m_objects.push_back(newTerrain);
+
+	newTerrain->SetParent(pParent ? pParent : m_pRootObject);
 }
 
 void NXScene::RegisterCamera(NXCamera* newCamera, bool isMainCamera, NXObject* pParent)
