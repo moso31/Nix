@@ -7,7 +7,7 @@
 #include "NXSubMesh.h" // include this .h for EditorObjectID only.
 #include "NXTerrainConfig.h"
 
-NXSubMeshGeometryEditor::NXSubMeshGeometryEditor() 
+NXSubMeshGeometryEditor::NXSubMeshGeometryEditor()
 {
 }
 
@@ -552,7 +552,7 @@ void NXSubMeshGeometryEditor::CreateTerrain(NXTerrain* pTerrain, int rawSize, in
 		}
 	}
 
-	float gRowSize = gSectorSize + 1;
+	float gRowSize = (float)(gSectorSize + 1);
 	for (int x = 0; x < gSectorSize; x += 2)
 	{
 		for (int y = 0; y < gSectorSize; y += 2)
@@ -564,15 +564,15 @@ void NXSubMeshGeometryEditor::CreateTerrain(NXTerrain* pTerrain, int rawSize, in
 			// | / | \ |
 			// 6---7---8
 
-			uint32_t _0 = gRowSize * y + x;
-			uint32_t _1 = gRowSize * y + x + 1;
-			uint32_t _2 = gRowSize * y + x + 2;
-			uint32_t _3 = gRowSize * (y + 1) + x;
-			uint32_t _4 = gRowSize * (y + 1) + x + 1;
-			uint32_t _5 = gRowSize * (y + 1) + x + 2;
-			uint32_t _6 = gRowSize * (y + 2) + x;
-			uint32_t _7 = gRowSize * (y + 2) + x + 1;
-			uint32_t _8 = gRowSize * (y + 2) + x + 2;
+			uint32_t _0 = (uint32_t)(gRowSize * y + x);
+			uint32_t _1 = (uint32_t)(gRowSize * y + x + 1);
+			uint32_t _2 = (uint32_t)(gRowSize * y + x + 2);
+			uint32_t _3 = (uint32_t)(gRowSize * (y + 1) + x);
+			uint32_t _4 = (uint32_t)(gRowSize * (y + 1) + x + 1);
+			uint32_t _5 = (uint32_t)(gRowSize * (y + 1) + x + 2);
+			uint32_t _6 = (uint32_t)(gRowSize * (y + 2) + x);
+			uint32_t _7 = (uint32_t)(gRowSize * (y + 2) + x + 1);
+			uint32_t _8 = (uint32_t)(gRowSize * (y + 2) + x + 2);
 
 			indices.insert(indices.end(), {
 				_0, _1, _4,
@@ -803,12 +803,6 @@ void NXSubMeshGeometryEditor::CreateMoveArrows(NXPrimitive* pMesh)
 	}
 }
 
-
-void NXSubMeshGeometryEditor::CreateBuffer(const NXMeshViewDesc& desc)
-{
-	
-}
-
 const NXMeshViews& NXSubMeshGeometryEditor::GetMeshViews(const std::string& name)
 {
 	auto it = m_data.find(name);
@@ -825,6 +819,9 @@ const NXMeshViews& NXSubMeshGeometryEditor::GetMeshViews(const std::string& name
 
 void NXSubMeshGeometryEditor::Release()
 {
+	SafeDelete(m_subMeshUnknown);
+	SafeDelete(m_subMeshRT);
+
 	for (auto& [_, pMeshView] : m_data)
 	{
 		delete pMeshView;
@@ -834,28 +831,29 @@ void NXSubMeshGeometryEditor::Release()
 
 void NXSubMeshGeometryEditor::InitCommonMeshes()
 {
-	m_verticesUnknown = { 2.0f };
-	m_indicesUnknown = { 0 };
-	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(m_verticesUnknown, m_indicesUnknown, "_Unknown");
+	m_subMeshUnknown = new NXSubMesh<float>(nullptr, "_Unknown");
+	m_subMeshRT = new NXSubMesh<VertexPT>(nullptr, "_RenderTarget");
+
+	m_subMeshUnknown->AppendVertices({ 114.514f });
+	m_subMeshUnknown->AppendIndices({ 0 });
+	m_subMeshUnknown->TryAddBuffers();
+
 	m_data["_Unknown"]->WaitLoadComplete();
 
 	float scale = 1.0f;
-
-	// Create vertex buffer
-	m_verticesRT =
+	m_subMeshRT->AppendVertices(
 	{
 		// -Z
 		{ Vector3(-scale, +scale, 0.0f), Vector2(0.0f, 0.0f) },
 		{ Vector3(+scale, +scale, 0.0f), Vector2(1.0f, 0.0f) },
 		{ Vector3(+scale, -scale, 0.0f), Vector2(1.0f, 1.0f) },
 		{ Vector3(-scale, -scale, 0.0f), Vector2(0.0f, 1.0f) },
-	};
-
-	m_indicesRT =
+	});
+	m_subMeshRT->AppendIndices(
 	{
 		0,  1,  2,
 		0,  2,  3
-	};
-
-	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(m_verticesRT, m_indicesRT, "_RenderTarget");
+	});
+	m_subMeshRT->TryAddBuffers();
+	m_data["_RenderTarget"]->WaitLoadComplete();
 }

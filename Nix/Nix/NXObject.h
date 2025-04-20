@@ -1,6 +1,7 @@
 #pragma once
 #include <list>
 #include <string>
+#include "BaseDefs/DX12.h"
 #include "NXRefCountable.h"
 
 class NXTransform;

@@ -5,14 +5,16 @@
 #include <future>
 #include <atomic>
 
-template<typename T>
 class NXStructuredBuffer
 {
 public:
-	NXStructuredBuffer(size_t arraySize)
+	using OnCreateCompleteCallback = std::function<void(NXStructuredBuffer*)>;
+
+	NXStructuredBuffer(size_t stride, size_t arraySize, OnCreateCompleteCallback onCreateComplete = nullptr) :
+		m_stride(stride),
+		m_onCreateComplete(std::move(onCreateComplete))
 	{
-		m_arraySize = (uint32_t)arraySize;
-		CreateInternal(sizeof(T) * m_arraySize);
+		CreateInternal(stride * arraySize);
 	}
 
 	void WaitCreateComplete()
@@ -41,6 +43,11 @@ protected:
 			m_gpuAddress = result.gpuAddress;
 			m_memData = result.memData;
 			m_promiseCB.set_value();
+
+			if (m_onCreateComplete)
+			{
+				m_onCreateComplete(this);
+			}
 			});
 	}
 
@@ -53,10 +60,12 @@ private:
 	std::promise<void> m_promiseCB;
 	std::future<void> m_futureCB;
 
-	uint32_t m_arraySize;
+	// 这俩成员存了一份 但暂时没啥用……
+	uint32_t m_stride;
 	uint32_t m_byteSize;
 
-	T* m_cpuAddress;
 	D3D12_GPU_VIRTUAL_ADDRESS m_gpuAddress;
 	XBuddyTaskMemData m_memData;
+
+	OnCreateCompleteCallback m_onCreateComplete;
 };

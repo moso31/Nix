@@ -5,9 +5,6 @@
 #include "NXCamera.h"
 #include "NXTimer.h"
 
-template class NXSubMesh<VertexPNTT>;
-template class NXSubMesh<VertexEditorObjects>;
-
 void NXSubMeshBase::Update(ID3D12GraphicsCommandList* pCommandList)
 {
 }
@@ -39,62 +36,6 @@ void NXSubMeshBase::OnReplaceFinish()
 {
 	m_nMatReloadingState = NXSubMeshReloadState::Finish;
 	NXResourceManager::GetInstance()->GetMeshManager()->AddReplacingSubMesh(this);
-}
-
-template<class TVertex>
-void NXSubMesh<TVertex>::Render(ID3D12GraphicsCommandList* pCommandList)
-{
-	auto& subMeshViews = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews(m_subMeshName);
-	pCommandList->IASetVertexBuffers(0, 1, &subMeshViews.vbv);
-	pCommandList->IASetIndexBuffer(&subMeshViews.ibv);
-	pCommandList->DrawIndexedInstanced(subMeshViews.indexCount, 1, 0, 0, 0);
-}
-
-template<class TVertex>
-bool NXSubMesh<TVertex>::RayCastLocal(const Ray& localRay, NXHit& outHitInfo, float& outDist)
-{
-	bool bSuccess = false;
-	for (UINT i = 0, faceId = 0; i < m_indices.size(); i += 3, faceId++)
-	{
-		Triangle face(m_vertices[m_indices[i + 0]].pos, m_vertices[m_indices[i + 1]].pos, m_vertices[m_indices[i + 2]].pos);
-		if (face.Intersects(localRay, outHitInfo.position, outDist))
-		{
-			outHitInfo.pSubMesh = this;
-			outHitInfo.faceIndex = faceId;
-			bSuccess = true;
-		}
-	}
-
-	return bSuccess;
-}
-
-template<class TVertex>
-void NXSubMesh<TVertex>::CalcLocalAABB()
-{
-	Vector3 vMin(+FLT_MAX);
-	Vector3 vMax(-FLT_MAX);
-
-	for (int i = 0; i < m_vertices.size(); i++)
-	{
-		vMin = Vector3::Min(vMin, m_vertices[i].pos);
-		vMax = Vector3::Max(vMax, m_vertices[i].pos);
-	}
-
-	m_localAABB = AABB(vMin, vMax);
-}
-
-template<class TVertex>
-void NXSubMesh<TVertex>::TryAddBuffers()
-{
-	std::span<const TVertex> spanVerts(m_vertices.data(), m_vertices.size());
-
-	NXMeshViewDesc desc;
-	desc.bytes = std::as_bytes(spanVerts);
-	desc.stride = sizeof(TVertex);
-
-	NXSubMeshGeometryEditor::GetInstance()->CreateBuffer(desc);
-
-	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(m_vertices, m_indices, m_subMeshName);
 }
 
 void NXSubMeshStandard::CalculateTangents(bool bUpdateVBIB)
@@ -132,6 +73,37 @@ void NXSubMeshStandard::CalculateTangents(bool bUpdateVBIB)
 	}
 }
 
+bool NXSubMeshStandard::RayCastLocal(const Ray& localRay, NXHit& outHitInfo, float& outDist)
+{
+	bool bSuccess = false;
+	for (UINT i = 0, faceId = 0; i < m_indices.size(); i += 3, faceId++)
+	{
+		Triangle face(m_vertices[m_indices[i + 0]].pos, m_vertices[m_indices[i + 1]].pos, m_vertices[m_indices[i + 2]].pos);
+		if (face.Intersects(localRay, outHitInfo.position, outDist))
+		{
+			outHitInfo.pSubMesh = this;
+			outHitInfo.faceIndex = faceId;
+			bSuccess = true;
+		}
+	}
+
+	return bSuccess;
+}
+
+void NXSubMeshStandard::CalcLocalAABB() 
+{
+	Vector3 vMin(+FLT_MAX);
+	Vector3 vMax(-FLT_MAX);
+
+	for (int i = 0; i < m_vertices.size(); i++)
+	{
+		vMin = Vector3::Min(vMin, m_vertices[i].pos);
+		vMax = Vector3::Max(vMax, m_vertices[i].pos);
+	}
+
+	m_localAABB = AABB(vMin, vMax);
+}
+
 NXSubMeshEditorObjects::NXSubMeshEditorObjects(NXRenderableObject* pRenderableObject, const std::string& subMeshName, EditorObjectID id) : 
 	NXSubMesh<VertexEditorObjects>(pRenderableObject, subMeshName),
 	m_editorObjID(id) 
@@ -164,19 +136,4 @@ void NXSubMeshEditorObjects::Update(ID3D12GraphicsCommandList* pCmdList, bool is
 	m_cbParams.Set(m_cbDataParams);
 
 	pCmdList->SetGraphicsRootConstantBufferView(2, m_cbParams.CurrentGPUAddress()); // b2 update.
-}
-
-template<class TVertex, class TInstanceData>
-void NXSubMeshInstanced<TVertex, TInstanceData>::TryAddBuffers()
-{
-	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(m_vertices, m_indices, m_subMeshName);
-}
-
-template<class TVertex, class TInstanceData>
-inline void NXSubMeshInstanced<TVertex, TInstanceData>::Render(ID3D12GraphicsCommandList* pCmdList)
-{
-	auto& subMeshViews = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews(m_subMeshName);
-	pCmdList->IASetVertexBuffers(0, 1, &subMeshViews.vbv);
-	pCmdList->IASetIndexBuffer(&subMeshViews.ibv);
-	pCmdList->DrawIndexedInstanced(subMeshViews.indexCount, 1, 0, 0, 0);
 }

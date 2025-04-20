@@ -1,64 +1,9 @@
 #pragma once
-#include <string>
-#include <span>
-#include "BaseDefs/DX12.h"
+#include "NXSubMeshCommon.h"
 #include "NXAllocatorManager.h"
 #include "ShaderStructures.h"
 #include "NXInstance.h"
 #include "NXStructuredBuffer.h"
-
-struct NXMeshViewDesc
-{
-	std::span<const byte> bytes; // 将 T 强转成 byte*，并记录size
-	uint32_t stride; // sizeof(T)
-};
-
-struct NXMeshViews
-{
-	//NXMeshViews(const std::string& name) : 
-	//	name(name),
-	//	loadFuture(loadPromise.get_future()), 
-	//	loadCounter(0) {}
-
-	//void ProcessOne()
-	//{
-	//	if (--loadCounter == 0)
-	//	{
-	//		loadPromise.set_value();
-	//	}
-	//}
-
-	//void WaitLoadComplete()
-	//{
-	//	loadFuture.wait();
-	//}
-
-	std::string name;
-
-	//std::atomic<int> loadCounter;
-	//std::promise<void> loadPromise;
-	//std::future<void> loadFuture;
-
-	//D3D12_VERTEX_BUFFER_VIEW vbv;
-	//D3D12_INDEX_BUFFER_VIEW ibv;
-	//UINT vertexCount;
-	//UINT indexCount;
-
-	NXMeshViews(const std::string& name) : name(name), pending(0) {}
-
-	std::span<NXMeshViewDesc> m_views;
-	std::atomic<int> pending;
-};
-
-enum NXPlaneAxis
-{
-	POSITIVE_X,
-	POSITIVE_Y,
-	POSITIVE_Z,
-	NEGATIVE_X,
-	NEGATIVE_Y,
-	NEGATIVE_Z
-};
 
 class NXPrefab;
 class NXPrimitive;
@@ -83,84 +28,64 @@ public:
 	// Editor objects
 	void CreateMoveArrows(NXPrimitive* pMesh);
 
-	void CreateBuffer(const NXMeshViewDesc& desc);
-
-	template<class TVertex>
-	void CreateVBIB(const std::vector<TVertex>& vertices, std::vector<UINT>& indices, const std::string& name)
+	void CreateBuffers(std::vector<NXRawMeshView>& rawViews, const std::string& name)
 	{
-		// 读写操作需要加锁，避免两个线程同时创建同一个mesh的VBIB
-		// TODO：改成读写锁
-		{	
+		NXMeshViews* pMeshView = nullptr;
+		{
 			std::lock_guard<std::mutex> lock(m_mutex);
 
 			if (m_data.find(name) != m_data.end())
 				return;
 
-			NXMeshViews* pMeshView = new NXMeshViews(name);
-			pMeshView->loadCounter = 2;
+			pMeshView = new NXMeshViews(name, rawViews);
 			m_data.emplace(name, pMeshView);
 		}
 
-		// 异步创建顶点索引数据和vbv/ibv，并上传
-		// TODO: 目前传过来的vertices indices 都是成员变量，所以这里不需要担心生命周期问题，但将来不好说……
-		std::thread([&vertices, &indices, name, this]() {
-			// 首先在线程A分配内存
-			NXStructuredBuffer<TVertex> pVB(vertices.size());
-			NXStructuredBuffer<UINT> pIB(indices.size());
+		if (!pMeshView)
+			return;
 
-			// 上面的内存分配是另一个异步线程B，等待线程B分配完成
-			pVB.WaitCreateComplete();
-			pIB.WaitCreateComplete();
-
-			UINT vbDataSize = (UINT)(vertices.size() * sizeof(TVertex));
-			UINT ibDataSize = (UINT)(indices.size() * sizeof(UINT));
-
-			NXMeshViews* views = m_data[name];
-			views->vbv.BufferLocation = pVB.GetGPUAddress();
-			views->vbv.SizeInBytes = vbDataSize;
-			views->vbv.StrideInBytes = sizeof(TVertex);
-			views->ibv.BufferLocation = pIB.GetGPUAddress();
-			views->ibv.SizeInBytes = ibDataSize;
-			views->ibv.Format = DXGI_FORMAT_R32_UINT;
-			views->indexCount = (UINT)indices.size();
-			views->vertexCount = (UINT)vertices.size();
-
-			UploadTaskContext vbTaskContext(name + "_VB");
-			UploadTaskContext ibTaskContext(name + "_IB");
-			if (NXUploadSystem->BuildTask(vbDataSize, vbTaskContext))
+		// 异步创建rawViews：顶点/索引/instanceData等数据的vbv/ibv，并上传
+		// 上层目前还能确保rawViews 都是成员变量，所以这里不需要担心生命周期问题，但将来不好说……
+		
+		// 线程A 执行 std::thread
+		printf("主线程%s\n", name.c_str());
+		std::thread([&rawViews, name, pMeshView]() { 
+			for (auto& view : rawViews)
 			{
-				// vbTaskContext.pResourceData/pResourceOffset是 上传系统的UploadRingBuffer 的临时资源和偏移量
-				// pVB.GetD3DResourceAndOffset(byteOffset) 是 D3D默认堆上 的偏移量，也就是GPU资源
-				// 不要搞混了
+				printf("子线程(std::thread)%s\n", name.c_str());
+				// 内有异步分配逻辑，由线程B执行
+				NXStructuredBuffer pBuffer(view.stride, view.span.size(), [&view, name, pMeshView](NXStructuredBuffer* pBuffer) {
+					printf("子线程(NXAllocator_SB分配完成)%s\n", name.c_str());
+					// 等待线程B完成分配 get GPUAddress.
+					view.gpuAddress = pBuffer->GetGPUAddress();
 
-				uint8_t* pDst = vbTaskContext.pResourceData + vbTaskContext.pResourceOffset;
-				memcpy(pDst, vertices.data(), vbDataSize);
+					uint32_t byteSize = view.span.size_bytes();
+					UploadTaskContext ctx(name + "_VB");
+					if (NXUploadSystem->BuildTask(byteSize, ctx))
+					{
+						// ctx.pResourceData/pResourceOffset是 上传系统的UploadRingBuffer 的临时资源和偏移量
+						// pVB.GetD3DResourceAndOffset(byteOffset) 是 D3D默认堆上 的偏移量，也就是GPU资源
+						// 不要搞混了
 
-				uint64_t byteOffset = 0;
-				ID3D12Resource* pDstResource = pVB.GetD3DResourceAndOffset(byteOffset);
-				vbTaskContext.pOwner->pCmdList->CopyBufferRegion(pDstResource, byteOffset, vbTaskContext.pResource, vbTaskContext.pResourceOffset, vbDataSize);
+						uint8_t* pDst = ctx.pResourceData + ctx.pResourceOffset;
+						
+						// 拷贝到上传堆
+						memcpy(pDst, view.span.data(), byteSize);
 
-				// 上传数据并同步到gpu，其内部是一个异步线程C
-				NXUploadSystem->FinishTask(vbTaskContext, [this, name, taskID = vbTaskContext.pOwner->selfID]() {
-					m_data[name]->ProcessOne(); // 顶点数据上传完成，通知 loadCounter - 1
-					});
+						// 从上传堆拷贝到默认堆
+						uint64_t byteOffset = 0;
+						ID3D12Resource* pDstResource = pBuffer->GetD3DResourceAndOffset(byteOffset);
+						ctx.pOwner->pCmdList->CopyBufferRegion(pDstResource, byteOffset, ctx.pResource, ctx.pResourceOffset, byteSize);
+
+						// 上传数据并同步到gpu，异步线程C 负责执行
+						NXUploadSystem->FinishTask(ctx, [pMeshView, name, taskID = ctx.pOwner->selfID]() {
+							pMeshView->ProcessOne(); // 顶点数据上传完成，通知 loadCounter - 1
+							printf("子线程(loadCounter-1)%s\n", name.c_str());
+						});
+					}
+				});
 			}
-
-			if (NXUploadSystem->BuildTask(ibDataSize, ibTaskContext))
-			{
-				uint8_t* pDst = ibTaskContext.pResourceData + ibTaskContext.pResourceOffset;
-				memcpy(pDst, indices.data(), ibDataSize);
-
-				uint64_t byteOffset = 0;
-				ID3D12Resource* pDstResource = pIB.GetD3DResourceAndOffset(byteOffset);
-				ibTaskContext.pOwner->pCmdList->CopyBufferRegion(pDstResource, byteOffset, ibTaskContext.pResource, ibTaskContext.pResourceOffset, ibDataSize);
-
-				NXUploadSystem->FinishTask(ibTaskContext, [this, name, taskID = ibTaskContext.pOwner->selfID]() {
-					m_data[name]->ProcessOne(); // 索引数据上传完成，通知 loadCounter - 1
-					});
-			}
-
-			}).detach();
+		}).detach();
 	}
 
 	const NXMeshViews& GetMeshViews(const std::string& name);
@@ -176,9 +101,6 @@ private:
 
 	std::mutex m_mutex;
 
-	std::vector<float> m_verticesUnknown;
-	std::vector<UINT> m_indicesUnknown;
-
-	std::vector<VertexPT> m_verticesRT;
-	std::vector<UINT> m_indicesRT;
+	NXSubMesh<float>* m_subMeshUnknown;
+	NXSubMesh<VertexPT>* m_subMeshRT;
 };

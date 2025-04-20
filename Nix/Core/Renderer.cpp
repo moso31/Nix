@@ -353,7 +353,7 @@ void Renderer::UpdateSceneData()
 	auto pCubeMap = m_scene->GetCubeMap();
 	if (pCubeMap)
 	{
-		pCubeMap->Update();
+		pCubeMap->Update(nullptr);
 	}
 
 	//m_pSSAO->Update();

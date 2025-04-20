@@ -7,6 +7,7 @@
 #include "ShaderStructures.h"
 #include "Ntr.h"
 #include "NXConstantBuffer.h"
+#include "NXSubMesh.h"
 
 #define NXCUBEMAP_FACE_COUNT 6
 #define NXROUGHNESS_FILTER_COUNT 5
@@ -64,7 +65,7 @@ public:
 	//		1. 创建一个CubeMap + SRV，同时准备shader和渲染管线相关的内容
 	//		2. for 循环 渲染30个RTV，并依次绘制
 	bool Init(const std::filesystem::path& filePath);
-	void Update() override;
+	void Update(ID3D12GraphicsCommandList* pCmdList) override;
 	void Release() override;
 
 	using GenerateCubeMapCallback = std::function<void()>;
@@ -112,11 +113,8 @@ private:
 	Matrix m_mxCubeMapProj;
 	Matrix m_mxCubeMapView[6];
 
-	std::vector<VertexP>		m_vertices;
-	std::vector<UINT>			m_indices;
-
-	std::vector<VertexP>		m_verticesCubeBox;
-	std::vector<UINT>			m_indicesCubeBox;
+	NXSubMesh<VertexP>			m_subMesh;
+	NXSubMesh<VertexP>			m_subMeshCubeBox;
 
 	Ntr<NXTextureCube>			m_pTexCubeMap;
 	Ntr<NXTextureCube>			m_pTexIrradianceMap;

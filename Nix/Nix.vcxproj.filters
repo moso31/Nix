@@ -891,6 +891,9 @@
     <ClInclude Include="Core\NXRGHandle.h">
       <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClInclude>
+    <ClInclude Include="Nix\NXSubMeshCommon.h">
+      <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="八字无撇的待办事项.txt" />

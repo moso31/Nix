@@ -166,9 +166,13 @@ void NXRendererPass::Render(ID3D12GraphicsCommandList* pCmdList)
 	RenderBefore(pCmdList);
 
 	const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews(m_rtSubMeshName);
-	pCmdList->IASetVertexBuffers(0, 1, &meshView.vbv);
-	pCmdList->IASetIndexBuffer(&meshView.ibv);
-	pCmdList->DrawIndexedInstanced(meshView.indexCount, 1, 0, 0, 0);
+	D3D12_VERTEX_BUFFER_VIEW vbv;
+	if (meshView.GetVBV(0, vbv))
+		pCmdList->IASetVertexBuffers(0, 1, &vbv);
+	D3D12_INDEX_BUFFER_VIEW ibv;
+	if (meshView.GetIBV(1, ibv))
+		pCmdList->IASetIndexBuffer(&ibv);
+	pCmdList->DrawIndexedInstanced(meshView.GetIndexCount(), 1, 0, 0, 0);
 
 	NX12Util::EndEvent(pCmdList);
 }

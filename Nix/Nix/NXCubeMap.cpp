@@ -22,7 +22,9 @@ NXCubeMap::NXCubeMap(NXScene* pScene) :
 	m_prefilterMapSize(512.0f),
 	m_cubeMapSize(512.0f),
 	m_nFenceValue(0),
-	m_futureCubeMapTexsReady(m_promiseCubeMapTexsReady.get_future())
+	m_futureCubeMapTexsReady(m_promiseCubeMapTexsReady.get_future()),
+	m_subMesh(nullptr, "_CubeMapSphere"),
+	m_subMeshCubeBox(nullptr, "_CubeMapBox")
 {
 }
 
@@ -113,7 +115,7 @@ Ntr<NXTexture2D> NXCubeMap::GetPreFilterMap()
 	return m_pTexPreFilterMap;
 }
 
-void NXCubeMap::Update()
+void NXCubeMap::Update(ID3D12GraphicsCommandList* pCmdList)
 {
 	auto pCamera = m_pScene->GetMainCamera();
 	m_cbDataCubeWVPMatrix.world = Matrix::CreateTranslation(pCamera->GetTranslation()).Transpose();
@@ -200,8 +202,13 @@ void NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR, GenerateCubeMapCallba
 		pCmdList->SetGraphicsRootDescriptorTable(1, gpuHandles);
 
 		const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_CubeMapBox");
-		pCmdList->IASetVertexBuffers(0, 1, &meshView.vbv);
-		pCmdList->IASetIndexBuffer(&meshView.ibv);
+		D3D12_VERTEX_BUFFER_VIEW vbv;
+		if (meshView.GetVBV(0, vbv))
+			pCmdList->IASetVertexBuffers(0, 1, &vbv);
+		D3D12_INDEX_BUFFER_VIEW ibv;
+		if (meshView.GetIBV(1, ibv))
+			pCmdList->IASetIndexBuffer(&ibv);
+
 		pCmdList->DrawIndexedInstanced(6, 1, i * 6, 0, 0);
 
 		NX12Util::EndEvent(pCmdList.Get());
@@ -610,8 +617,13 @@ void NXCubeMap::GeneratePreFilterMap()
 			pCmdList->SetGraphicsRootDescriptorTable(2, gpuHandle);
 
 			const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_CubeMapBox");
-			pCmdList->IASetVertexBuffers(0, 1, &meshView.vbv);
-			pCmdList->IASetIndexBuffer(&meshView.ibv);
+			D3D12_VERTEX_BUFFER_VIEW vbv;
+			if (meshView.GetVBV(0, vbv))
+				pCmdList->IASetVertexBuffers(0, 1, &vbv);
+			D3D12_INDEX_BUFFER_VIEW ibv;
+			if (meshView.GetIBV(1, ibv))
+				pCmdList->IASetIndexBuffer(&ibv);
+
 			pCmdList->DrawIndexedInstanced(6, 1, j * 6, 0, 0);
 
 			NX12Util::EndEvent(pCmdList.Get());
@@ -686,6 +698,9 @@ void NXCubeMap::LoadDDS(const std::filesystem::path& filePath)
 
 void NXCubeMap::InitVertex()
 {
+	std::vector<VertexP> vertices;
+	std::vector<uint32_t> indices;
+
 	int currVertIdx = 0;
 	int segmentVertical = 32;
 	int segmentHorizontal = 32;
@@ -715,23 +730,27 @@ void NXCubeMap::InitVertex()
 			Vector3 pNowDown = { xNow * radiusDown, yDown, zNow * radiusDown };
 			Vector3 pNextDown = { xNext * radiusDown, yDown, zNext * radiusDown };
 
-			m_vertices.push_back(pNowUp);
-			m_vertices.push_back(pNextUp);
-			m_vertices.push_back(pNextDown);
-			m_vertices.push_back(pNowDown);
+			vertices.push_back(pNowUp);
+			vertices.push_back(pNextUp);
+			vertices.push_back(pNextDown);
+			vertices.push_back(pNowDown);
 
-			m_indices.push_back(currVertIdx);
-			m_indices.push_back(currVertIdx + 2);
-			m_indices.push_back(currVertIdx + 1);
-			m_indices.push_back(currVertIdx);
-			m_indices.push_back(currVertIdx + 3);
-			m_indices.push_back(currVertIdx + 2);
+			indices.push_back(currVertIdx);
+			indices.push_back(currVertIdx + 2);
+			indices.push_back(currVertIdx + 1);
+			indices.push_back(currVertIdx);
+			indices.push_back(currVertIdx + 3);
+			indices.push_back(currVertIdx + 2);
 
 			currVertIdx += 4;
 		}
 	}
 
-	m_verticesCubeBox =
+	m_subMesh.AppendVertices(std::move(vertices));
+	m_subMesh.AppendIndices(std::move(indices));
+	m_subMesh.TryAddBuffers();
+
+	vertices =
 	{
 		// +X
 		{ Vector3(+0.5f, +0.5f, -0.5f) },
@@ -770,7 +789,7 @@ void NXCubeMap::InitVertex()
 		{ Vector3(-0.5f, -0.5f, -0.5f) },
 	};
 
-	m_indicesCubeBox =
+	indices =
 	{
 		0,  2,	1,
 		0,  3,	2,
@@ -791,8 +810,9 @@ void NXCubeMap::InitVertex()
 		20, 23,	22,
 	};
 
-	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(m_vertices, m_indices, "_CubeMapSphere");
-	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(m_verticesCubeBox, m_indicesCubeBox, "_CubeMapBox");
+	m_subMeshCubeBox.AppendVertices(std::move(vertices));
+	m_subMeshCubeBox.AppendIndices(std::move(indices));
+	m_subMeshCubeBox.TryAddBuffers();
 }
 
 void NXCubeMap::InitRootSignature()

@@ -1,6 +1,7 @@
 #include "NXIntersection.h"
 #include "NXScene.h"
 #include "NXRenderableObject.h"
+#include "NXSubMesh.h"
 
 NXHit::NXHit(NXSubMeshBase* pSubMesh, const Vector3& position, const Vector2& uv, const Vector3& direction, const Vector3& dpdu, const Vector3& dpdv) :
 	pSubMesh(pSubMesh),

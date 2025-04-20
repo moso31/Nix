@@ -2,6 +2,7 @@
 #include "BaseDefs/DX12.h"
 #include "Ntr.h"
 #include "ShaderStructures.h"
+#include "NXSubMesh.h"
 
 class NXTexture2D;
 class NXBRDFLut
@@ -35,6 +36,6 @@ private:
 	ComPtr<ID3D12Fence> m_pFence;
 	UINT64 m_fenceValue;
 
-	std::vector<VertexPT> m_vertices;
-	std::vector<UINT> m_indices;
+	NXSubMesh<VertexPT>			m_subMesh;
+	std::vector<NXRawMeshView>	m_rawViews;
 };

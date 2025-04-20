@@ -301,25 +301,30 @@ void FBXMeshLoader::EncodePolygonData(FbxMesh* pMesh, NXSubMeshBase* pSubMesh, i
 
 	// 将多边形拆分成若干三角形
 	// polygonSize = vertexDataArray.size()
+	std::vector<VertexPNTT> vertices;
+	std::vector<uint32_t> indices;
 	for (int i = 1; i < polygonSize - 1; i++)
 	{
-		pSubMeshFBX->m_vertices.push_back(vertexDataArray[0]);
-		pSubMeshFBX->m_vertices.push_back(vertexDataArray[i]);
-		pSubMeshFBX->m_vertices.push_back(vertexDataArray[i + 1]);
+		vertices.push_back(vertexDataArray[0]);
+		vertices.push_back(vertexDataArray[i]);
+		vertices.push_back(vertexDataArray[i + 1]);
 
-		UINT lastIndex = (UINT)pSubMeshFBX->m_indices.size();
-		pSubMeshFBX->m_indices.push_back(lastIndex);
+		uint32_t lastIndex = (uint32_t)indices.size();
+		indices.push_back(lastIndex);
 		if (bFlipPolygon)
 		{
-			pSubMeshFBX->m_indices.push_back(lastIndex + 1);
-			pSubMeshFBX->m_indices.push_back(lastIndex + 2);
+			indices.push_back(lastIndex + 1);
+			indices.push_back(lastIndex + 2);
 		}
 		else
 		{
-			pSubMeshFBX->m_indices.push_back(lastIndex + 2);
-			pSubMeshFBX->m_indices.push_back(lastIndex + 1);
+			indices.push_back(lastIndex + 2);
+			indices.push_back(lastIndex + 1);
 		}
 	}
+
+	pSubMeshFBX->AppendVertices(std::move(vertices));
+	pSubMeshFBX->AppendIndices(std::move(indices));
 }
 
 void FBXMeshLoader::EncodeVertexPosition(FBXMeshVertexData& inoutVertexData, FbxMesh* pMesh, FbxVector4* pControlPoints, int controlPointIndex)

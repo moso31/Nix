@@ -1,16 +1,10 @@
 #pragma once
 #include "ShaderStructures.h"
+#include "NXSubMeshCommon.h"
 #include "NXPBRMaterial.h"
 #include "NXIntersection.h"
 #include "NXConstantBuffer.h"
-
-enum NXSubMeshReloadState
-{
-	None,		// 正常状态
-	Start,		// A->Default 状态
-	Replacing,  // Default->B 状态
-	Finish,		// B 状态
-};
+#include "NXSubMeshGeometryEditor.h"
 
 class NXPrimitive;
 class NXSubMeshBase
@@ -18,7 +12,13 @@ class NXSubMeshBase
 	friend class NXMeshResourceManager;
 	friend class NXMaterialResourceManager;
 public:
-	NXSubMeshBase(NXRenderableObject* pRenderableObject) : m_pRenderableObject(pRenderableObject), m_pMaterial(nullptr), m_pReplacingMaterial(nullptr), m_nMatReloadingState(NXSubMeshReloadState::None) {}
+	NXSubMeshBase(NXRenderableObject* pRenderableObject, const std::string& subMeshName) : 
+		m_pRenderableObject(pRenderableObject), 
+		m_subMeshName(subMeshName),
+		m_pMaterial(nullptr), 
+		m_pReplacingMaterial(nullptr), 
+		m_nMatReloadingState(NXSubMeshReloadState::None)
+	{}
 	virtual ~NXSubMeshBase() {}
 
 	void Update(ID3D12GraphicsCommandList* pCommandList);
@@ -55,6 +55,8 @@ private:
 	void SetMaterial(NXMaterial* mat) { m_pMaterial = mat; }
 
 protected:
+	std::string	m_subMeshName;
+
 	NXRenderableObject* m_pRenderableObject;
 	NXMaterial* m_pMaterial;
 
@@ -63,34 +65,64 @@ protected:
 	NXSubMeshReloadState m_nMatReloadingState;
 	std::filesystem::path m_strReplacingPath;
 	NXMaterial* m_pReplacingMaterial;
+
+	// 派生成员等（如vertices indices instancedata）的字节视图
+	std::vector<NXRawMeshView>	m_rawViews;
 };
 
 template<class TVertex>
 class NXSubMesh : public NXSubMeshBase
 {
 public:
-	NXSubMesh(NXRenderableObject* pRenderableObject, const std::string& subMeshName) : NXSubMeshBase(pRenderableObject), m_subMeshName(subMeshName) {}
+	NXSubMesh(NXRenderableObject* pRenderableObject, const std::string& subMeshName) : NXSubMeshBase(pRenderableObject, subMeshName) {}
 	virtual ~NXSubMesh() {}
 
-	void AppendVertices(std::vector<TVertex>&& vertices) { m_vertices.insert(m_vertices.end(), vertices.begin(), vertices.end()); }
-	void AppendIndices(std::vector<UINT>&& indices) { m_indices.insert(m_indices.end(), indices.begin(), indices.end()); }
+	void AppendVertices(std::vector<TVertex>&& vertices)
+	{
+		m_vertices.insert(m_vertices.end(), vertices.begin(), vertices.end());
 
-	void Render(ID3D12GraphicsCommandList* pCommandList) override;
+		auto rawBytes = std::as_bytes(std::span(m_vertices));
+		m_rawViews.push_back(NXRawMeshView(rawBytes, sizeof(TVertex), NXMeshViewType::VERTEX));
+	}
 
-	virtual bool RayCastLocal(const Ray& localRay, NXHit& outHitInfo, float& outDist);
+	void AppendIndices(std::vector<uint32_t>&& indices)
+	{
+		m_indices.insert(m_indices.end(), indices.begin(), indices.end());
+
+		auto rawBytes = std::as_bytes(std::span(m_indices));
+		m_rawViews.push_back(NXRawMeshView(rawBytes, sizeof(uint32_t), NXMeshViewType::INDEX));
+	}
+
+	void Render(ID3D12GraphicsCommandList* pCommandList) override
+	{
+		auto& subMeshViews = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews(m_subMeshName);
+
+		D3D12_VERTEX_BUFFER_VIEW vbv;
+		if (subMeshViews.GetVBV(0, vbv))
+			pCommandList->IASetVertexBuffers(0, 1, &vbv);
+
+		D3D12_INDEX_BUFFER_VIEW ibv;
+		if (subMeshViews.GetIBV(1, ibv))
+			pCommandList->IASetIndexBuffer(&ibv);
+
+		pCommandList->DrawIndexedInstanced(subMeshViews.GetIndexCount(), 1, 0, 0, 0);
+	}
+
+	virtual bool RayCastLocal(const Ray& localRay, NXHit& outHitInfo, float& outDist) { return false; }
+	virtual void CalcLocalAABB() {}
 
 	virtual void CalculateTangents(bool bUpdateVBIB = false) {}
-	virtual void TryAddBuffers() override;
+	virtual void TryAddBuffers() override
+	{
+		NXSubMeshGeometryEditor::GetInstance()->CreateBuffers(m_rawViews, m_subMeshName);
+	}
 
 	UINT GetIndexCount()	{ return (UINT)m_indices.size(); }
 	UINT GetVertexCount()	{ return (UINT)m_vertices.size(); }
 
-	void CalcLocalAABB() override;
-
 protected:
-	std::string						m_subMeshName;
-	std::vector<TVertex>			m_vertices;
-	std::vector<UINT>				m_indices; 
+	std::vector<TVertex>	m_vertices;
+	std::vector<UINT>		m_indices; 
 };
 
 template<class TVertex, class TInstanceData>
@@ -100,10 +132,34 @@ public:
 	NXSubMeshInstanced(NXRenderableObject* pRenderableObject, const std::string& subMeshName) : NXSubMesh<TVertex>(pRenderableObject, subMeshName) {}
 	virtual ~NXSubMeshInstanced() {}
 
-	void AppendInstanceData(std::vector<TInstanceData>&& instanceData) { m_instanceData.insert(m_instanceData.end(), instanceData.begin(), instanceData.end()); }
-	virtual void TryAddBuffers() override;
+	void AppendInstanceData(std::vector<TInstanceData>&& instanceData)
+	{
+		m_instanceData.insert(m_instanceData.end(), instanceData.begin(), instanceData.end());
 
-	void Render(ID3D12GraphicsCommandList* pCmdList) override;
+		auto rawBytes = std::as_bytes(std::span(m_instanceData));
+		m_rawViews.push_back(NXRawMeshView(rawBytes, sizeof(TInstanceData), NXMeshViewType::VERTEX));
+	}
+
+	virtual void TryAddBuffers() override
+	{
+		NXSubMeshGeometryEditor::GetInstance()->CreateBuffers(m_rawViews, m_subMeshName);
+	}
+
+	void Render(ID3D12GraphicsCommandList* pCommandList) override
+	{
+		auto& subMeshViews = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews(m_subMeshName);
+
+		D3D12_VERTEX_BUFFER_VIEW vbv;
+		if (subMeshViews.GetVBV(0, vbv))
+			pCommandList->IASetVertexBuffers(0, 1, &vbv);
+
+		D3D12_INDEX_BUFFER_VIEW ibv;
+		if (subMeshViews.GetIBV(1, ibv))
+			pCommandList->IASetIndexBuffer(&ibv);
+
+		pCommandList->DrawIndexedInstanced(subMeshViews.GetIndexCount(), 1, 0, 0, 0);
+	}
+
 	uint32_t GetInstanceCount() { return (uint32_t)m_instanceData.size(); }
 
 protected:
@@ -119,6 +175,8 @@ public:
 	virtual bool IsSubMeshStandard()	 override { return true; }
 
 	void CalculateTangents(bool bUpdateVBIB = false) override;
+	bool RayCastLocal(const Ray& localRay, NXHit& outHitInfo, float& outDist) override;
+	void CalcLocalAABB() override;
 };
 
 class NXSubMeshTerrain : public NXSubMeshInstanced<VertexPNTC, InstanceData>

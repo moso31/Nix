@@ -8,7 +8,8 @@
 #include "NXRenderStates.h"
 #include "NXSubMeshGeometryEditor.h"
 
-NXBRDFLut::NXBRDFLut() 
+NXBRDFLut::NXBRDFLut() :
+	m_subMesh(nullptr, "_PlanePositiveZ")
 {
 }
 
@@ -41,22 +42,22 @@ uint64_t NXBRDFLut::GetFenceValue()
 
 void NXBRDFLut::InitVertex()
 {
-	m_vertices =
+	m_subMesh.AppendVertices(
 	{
 		// +Z
 		{ Vector3(+1.0f, +1.0f, +1.0f), Vector2(1.0f, 1.0f) },
 		{ Vector3(-1.0f, +1.0f, +1.0f), Vector2(1.0f, 0.0f) },
 		{ Vector3(-1.0f, -1.0f, +1.0f), Vector2(0.0f, 0.0f) },
 		{ Vector3(+1.0f, -1.0f, +1.0f), Vector2(0.0f, 1.0f) },
-	};
+	});
 
-	m_indices =
+	m_subMesh.AppendIndices(
 	{
 		0,  2,	1,
 		0,  3,	2,
-	};
+	});
 
-	NXSubMeshGeometryEditor::GetInstance()->CreateVBIB(m_vertices, m_indices, "_PlanePositiveZ");
+	m_subMesh.TryAddBuffers();
 }
 
 void NXBRDFLut::InitRootSignature()
@@ -105,9 +106,15 @@ void NXBRDFLut::DrawBRDFLUT()
 	m_pCommandList->OMSetRenderTargets(1, &m_pTexBRDFLUT->GetRTV(), false, nullptr);
 
 	const NXMeshViews& meshView = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews("_PlanePositiveZ");
-	m_pCommandList->IASetVertexBuffers(0, 1, &meshView.vbv);
-	m_pCommandList->IASetIndexBuffer(&meshView.ibv);
-	m_pCommandList->DrawIndexedInstanced(meshView.indexCount, 1, 0, 0, 0);
+	D3D12_VERTEX_BUFFER_VIEW vbv;
+	if (meshView.GetVBV(0, vbv))
+		m_pCommandList->IASetVertexBuffers(0, 1, &vbv);
+
+	D3D12_INDEX_BUFFER_VIEW ibv;
+	if (meshView.GetIBV(1, ibv))
+		m_pCommandList->IASetIndexBuffer(&ibv);
+
+	m_pCommandList->DrawIndexedInstanced(meshView.GetIndexCount(), 1, 0, 0, 0);
 
 	m_pTexBRDFLUT->SetResourceState(m_pCommandList.Get(), D3D12_RESOURCE_STATE_COMMON);
 

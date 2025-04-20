@@ -4,6 +4,7 @@
 #include "NXGUICommon.h"
 #include "NXConverter.h"
 #include "NXScene.h"
+#include "NXSubMesh.h"
 #include "NXRenderableObject.h"
 #include "NXAllocatorManager.h"
 #include "NXGUICommandManager.h"
