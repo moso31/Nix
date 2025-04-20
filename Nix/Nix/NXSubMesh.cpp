@@ -129,6 +129,20 @@ bool NXSubMeshEditorObjects::RayCastLocal(const Ray& localRay, NXHit& outHitInfo
 	return bSuccess;
 }
 
+void NXSubMeshEditorObjects::CalcLocalAABB()
+{
+	Vector3 vMin(+FLT_MAX);
+	Vector3 vMax(-FLT_MAX);
+
+	for (int i = 0; i < m_vertices.size(); i++)
+	{
+		vMin = Vector3::Min(vMin, m_vertices[i].pos);
+		vMax = Vector3::Max(vMax, m_vertices[i].pos);
+	}
+
+	m_localAABB = AABB(vMin, vMax);
+}
+
 void NXSubMeshEditorObjects::Update(ID3D12GraphicsCommandList* pCmdList, bool isHighLight)
 {
 	// 判断当前SubMesh是否高亮显示

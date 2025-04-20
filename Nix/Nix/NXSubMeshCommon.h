@@ -53,7 +53,7 @@ public:
 		for (auto view : m_views)
 		{
 			if (view.GPUDataType == NXMeshViewType::INDEX)
-				m_indexCount += view.stride; 
+				m_indexCount += view.span.size_bytes() / view.stride;
 		}
 	}
 
@@ -65,7 +65,7 @@ public:
 		}
 	}
 
-	void WaitLoadComplete()
+	void WaitLoadComplete() const
 	{
 		m_loadFuture.wait();
 	}
@@ -75,6 +75,7 @@ public:
 		if (index >= m_views.size() || m_views[index].GPUDataType != NXMeshViewType::VERTEX)
 			return false;
 
+		WaitLoadComplete();
 		auto& view = m_views[index];
 		out.BufferLocation = view.gpuAddress;
 		out.StrideInBytes = view.stride;
@@ -87,6 +88,7 @@ public:
 		if (index >= m_views.size() || m_views[index].GPUDataType != NXMeshViewType::INDEX)
 			return false;
 
+		WaitLoadComplete();
 		auto& view = m_views[index];
 		out.BufferLocation = view.gpuAddress;
 		out.Format = DXGI_FORMAT_R32_UINT; // 目前只支持R32_UINT，将来有16的需求再说

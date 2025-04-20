@@ -210,17 +210,19 @@ void FBXMeshLoader::EncodePrimitiveData(FbxNode* pNode, NXPrimitive* pPrimitive,
 			pSubMeshes.push_back(new NXSubMeshStandard(pPrimitive, subMeshName));
 		}
 
+		std::vector<std::vector<VertexPNTT>> vertices(materialCount);
+		std::vector<std::vector<uint32_t>> indices(materialCount);
+
 		if (materialCount == 1)
 		{
 			int polygonCount = pMesh->GetPolygonCount();
 			for (int polygonIndex = 0; polygonIndex < polygonCount; polygonIndex++)
 			{
-				EncodePolygonData(pMesh, pSubMeshes[0], polygonIndex, vertexId, bFlipPolygon);
+				EncodePolygonData(pMesh, vertices[0], indices[0], polygonIndex, vertexId, bFlipPolygon);
 			}
 		}
 		else
 		{
-
 			int polygonCount = pMesh->GetPolygonCount();
 			for (int polygonIndex = 0; polygonIndex < polygonCount; polygonIndex++)
 			{
@@ -240,7 +242,7 @@ void FBXMeshLoader::EncodePrimitiveData(FbxNode* pNode, NXPrimitive* pPrimitive,
 					//	DisplayMaterialTextureConnections(lMaterial, header, lMatId, elementMaterialIndex);
 					//}
 
-					EncodePolygonData(pMesh, pSubMeshes[lMatId], polygonIndex, vertexId, bFlipPolygon);
+					EncodePolygonData(pMesh, vertices[lMatId], indices[lMatId], polygonIndex, vertexId, bFlipPolygon);
 				}
 			}
 		}
@@ -258,17 +260,19 @@ void FBXMeshLoader::EncodePrimitiveData(FbxNode* pNode, NXPrimitive* pPrimitive,
 		for (UINT i = 0; i < subMeshCount; i++)
 		{
 			NXSubMeshBase* pSubMesh = pPrimitive->GetSubMesh(i);
-			pSubMesh->TryAddBuffers();
+			NXSubMeshStandard* pSubMeshFBX = dynamic_cast<NXSubMeshStandard*>(pSubMesh);
+			if (pSubMesh)
+			{
+				pSubMeshFBX->AppendVertices(std::move(vertices[i]));
+				pSubMeshFBX->AppendIndices(std::move(indices[i]));
+				pSubMeshFBX->TryAddBuffers();
+			}
 		}
 	}
 }
 
-void FBXMeshLoader::EncodePolygonData(FbxMesh* pMesh, NXSubMeshBase* pSubMesh, int polygonIndex, int& vertexId, bool bFlipPolygon)
+void FBXMeshLoader::EncodePolygonData(FbxMesh* pMesh, std::vector<VertexPNTT>& vertices, std::vector<uint32_t>& indices, int polygonIndex, int& vertexId, bool bFlipPolygon)
 {
-	NXSubMeshStandard* pSubMeshFBX = dynamic_cast<NXSubMeshStandard*>(pSubMesh);
-	if (!pSubMeshFBX)
-		return;
-
 	int polygonSize = pMesh->GetPolygonSize(polygonIndex);
 
 	std::vector<VertexPNTT> vertexDataArray;
@@ -301,15 +305,13 @@ void FBXMeshLoader::EncodePolygonData(FbxMesh* pMesh, NXSubMeshBase* pSubMesh, i
 
 	// 将多边形拆分成若干三角形
 	// polygonSize = vertexDataArray.size()
-	std::vector<VertexPNTT> vertices;
-	std::vector<uint32_t> indices;
 	for (int i = 1; i < polygonSize - 1; i++)
 	{
 		vertices.push_back(vertexDataArray[0]);
 		vertices.push_back(vertexDataArray[i]);
 		vertices.push_back(vertexDataArray[i + 1]);
 
-		uint32_t lastIndex = (uint32_t)indices.size();
+		UINT lastIndex = (UINT)indices.size();
 		indices.push_back(lastIndex);
 		if (bFlipPolygon)
 		{
@@ -322,9 +324,6 @@ void FBXMeshLoader::EncodePolygonData(FbxMesh* pMesh, NXSubMeshBase* pSubMesh, i
 			indices.push_back(lastIndex + 1);
 		}
 	}
-
-	pSubMeshFBX->AppendVertices(std::move(vertices));
-	pSubMeshFBX->AppendIndices(std::move(indices));
 }
 
 void FBXMeshLoader::EncodeVertexPosition(FBXMeshVertexData& inoutVertexData, FbxMesh* pMesh, FbxVector4* pControlPoints, int controlPointIndex)

@@ -80,17 +80,11 @@ public:
 	void AppendVertices(std::vector<TVertex>&& vertices)
 	{
 		m_vertices.insert(m_vertices.end(), vertices.begin(), vertices.end());
-
-		auto rawBytes = std::as_bytes(std::span(m_vertices));
-		m_rawViews.push_back(NXRawMeshView(rawBytes, sizeof(TVertex), NXMeshViewType::VERTEX));
 	}
 
 	void AppendIndices(std::vector<uint32_t>&& indices)
 	{
 		m_indices.insert(m_indices.end(), indices.begin(), indices.end());
-
-		auto rawBytes = std::as_bytes(std::span(m_indices));
-		m_rawViews.push_back(NXRawMeshView(rawBytes, sizeof(uint32_t), NXMeshViewType::INDEX));
 	}
 
 	void Render(ID3D12GraphicsCommandList* pCommandList) override
@@ -114,6 +108,10 @@ public:
 	virtual void CalculateTangents(bool bUpdateVBIB = false) {}
 	virtual void TryAddBuffers() override
 	{
+		auto rawBytes = std::as_bytes(std::span(m_vertices));
+		m_rawViews.push_back(NXRawMeshView(rawBytes, sizeof(TVertex), NXMeshViewType::VERTEX));
+		rawBytes = std::as_bytes(std::span(m_indices));
+		m_rawViews.push_back(NXRawMeshView(rawBytes, sizeof(uint32_t), NXMeshViewType::INDEX));
 		NXSubMeshGeometryEditor::GetInstance()->CreateBuffers(m_rawViews, m_subMeshName);
 	}
 
@@ -135,13 +133,16 @@ public:
 	void AppendInstanceData(std::vector<TInstanceData>&& instanceData)
 	{
 		m_instanceData.insert(m_instanceData.end(), instanceData.begin(), instanceData.end());
-
-		auto rawBytes = std::as_bytes(std::span(m_instanceData));
-		m_rawViews.push_back(NXRawMeshView(rawBytes, sizeof(TInstanceData), NXMeshViewType::VERTEX));
 	}
 
 	virtual void TryAddBuffers() override
 	{
+		auto rawBytes = std::as_bytes(std::span(m_vertices));
+		m_rawViews.push_back(NXRawMeshView(rawBytes, sizeof(TVertex), NXMeshViewType::VERTEX));
+		rawBytes = std::as_bytes(std::span(m_indices));
+		m_rawViews.push_back(NXRawMeshView(rawBytes, sizeof(uint32_t), NXMeshViewType::INDEX));
+		rawBytes = std::as_bytes(std::span(m_instanceData));
+		m_rawViews.push_back(NXRawMeshView(rawBytes, sizeof(TInstanceData), NXMeshViewType::VERTEX));
 		NXSubMeshGeometryEditor::GetInstance()->CreateBuffers(m_rawViews, m_subMeshName);
 	}
 
@@ -211,6 +212,7 @@ public:
 	EditorObjectID GetEditorObjectID() { return m_editorObjID; }
 
 	bool RayCastLocal(const Ray& localRay, NXHit& outHitInfo, float& outDist) override;
+	void CalcLocalAABB() override;
 
 	void Update(ID3D12GraphicsCommandList* pCmdList, bool isHighLight);
 

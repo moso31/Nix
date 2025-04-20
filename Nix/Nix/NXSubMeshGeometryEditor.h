@@ -52,38 +52,36 @@ public:
 		std::thread([&rawViews, name, pMeshView]() { 
 			for (auto& view : rawViews)
 			{
-				printf("子线程(std::thread)%s\n", name.c_str());
 				// 内有异步分配逻辑，由线程B执行
-				NXStructuredBuffer pBuffer(view.stride, view.span.size(), [&view, name, pMeshView](NXStructuredBuffer* pBuffer) {
-					printf("子线程(NXAllocator_SB分配完成)%s\n", name.c_str());
-					// 等待线程B完成分配 get GPUAddress.
-					view.gpuAddress = pBuffer->GetGPUAddress();
+				NXStructuredBuffer pBuffer(view.stride, view.span.size());
+				// 等待线程B完成分配 get GPUAddress.
+				pBuffer.WaitCreateComplete();
 
-					uint32_t byteSize = view.span.size_bytes();
-					UploadTaskContext ctx(name + "_VB");
-					if (NXUploadSystem->BuildTask(byteSize, ctx))
-					{
-						// ctx.pResourceData/pResourceOffset是 上传系统的UploadRingBuffer 的临时资源和偏移量
-						// pVB.GetD3DResourceAndOffset(byteOffset) 是 D3D默认堆上 的偏移量，也就是GPU资源
-						// 不要搞混了
+				view.gpuAddress = pBuffer.GetGPUAddress();
 
-						uint8_t* pDst = ctx.pResourceData + ctx.pResourceOffset;
-						
-						// 拷贝到上传堆
-						memcpy(pDst, view.span.data(), byteSize);
+				uint32_t byteSize = view.span.size_bytes();
+				UploadTaskContext ctx(name + "_VB");
+				if (NXUploadSystem->BuildTask(byteSize, ctx))
+				{
+					// ctx.pResourceData/pResourceOffset是 上传系统的UploadRingBuffer 的临时资源和偏移量
+					// pVB.GetD3DResourceAndOffset(byteOffset) 是 D3D默认堆上 的偏移量，也就是GPU资源
+					// 不要搞混了
 
-						// 从上传堆拷贝到默认堆
-						uint64_t byteOffset = 0;
-						ID3D12Resource* pDstResource = pBuffer->GetD3DResourceAndOffset(byteOffset);
-						ctx.pOwner->pCmdList->CopyBufferRegion(pDstResource, byteOffset, ctx.pResource, ctx.pResourceOffset, byteSize);
+					uint8_t* pDst = ctx.pResourceData + ctx.pResourceOffset;
 
-						// 上传数据并同步到gpu，异步线程C 负责执行
-						NXUploadSystem->FinishTask(ctx, [pMeshView, name, taskID = ctx.pOwner->selfID]() {
-							pMeshView->ProcessOne(); // 顶点数据上传完成，通知 loadCounter - 1
-							printf("子线程(loadCounter-1)%s\n", name.c_str());
+					// 拷贝到上传堆
+					memcpy(pDst, view.span.data(), byteSize);
+
+					// 从上传堆拷贝到默认堆
+					uint64_t byteOffset = 0;
+					ID3D12Resource* pDstResource = pBuffer.GetD3DResourceAndOffset(byteOffset);
+					ctx.pOwner->pCmdList->CopyBufferRegion(pDstResource, byteOffset, ctx.pResource, ctx.pResourceOffset, byteSize);
+
+					// 上传数据并同步到gpu，异步线程C 负责执行
+					NXUploadSystem->FinishTask(ctx, [pMeshView, name, taskID = ctx.pOwner->selfID]() {
+						pMeshView->ProcessOne(); // 顶点数据上传完成，通知 loadCounter - 1
 						});
-					}
-				});
+				}
 			}
 		}).detach();
 	}
