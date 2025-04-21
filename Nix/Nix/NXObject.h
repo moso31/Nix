@@ -26,6 +26,7 @@ public:
 	virtual NXTransform* IsTransform() { return nullptr; }
 	virtual NXRenderableObject* IsRenderableObject() { return nullptr; }
 	virtual NXPrimitive* IsPrimitive() { return nullptr; }
+	virtual NXTerrain* IsTerrain() { return nullptr; }
 	virtual NXPrefab* IsPrefab() { return nullptr; }
 
 	NXObject* GetParent();

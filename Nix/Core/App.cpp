@@ -38,6 +38,7 @@ void App::OnResize(const Vector2& rtSize)
 {
 	if ((UINT)rtSize.x & (UINT)rtSize.y)
 	{
+		m_pDXResources->Flush();
 		m_pRenderer->OnResize(rtSize);
 	}
 }
@@ -73,8 +74,6 @@ void App::Draw()
 
 	// »­UI
 	m_pRenderer->RenderGUI(m_pDXResources->GetCurrentSwapChain());
-
-	m_pRenderer->ClearAllPSResources();
 }
 
 void App::FrameEnd()

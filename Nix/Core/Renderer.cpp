@@ -411,14 +411,6 @@ void Renderer::Release()
 	NXSubMeshGeometryEditor::GetInstance()->Release();
 }
 
-void Renderer::ClearAllPSResources()
-{
-}
-
-void Renderer::DrawDepthPrepass()
-{
-}
-
 void Renderer::OnKeyDown(NXEventArgKey eArg)
 {
 	//if (eArg.VKey == 'H')

@@ -44,8 +44,6 @@ public:
 
 	void Release();
 
-	void ClearAllPSResources();
-
 	NXRenderGraph* GetRenderGraph()				{ return m_pRenderGraph; }
 	bool	GetEnableDebugLayer()				{ return m_bEnableDebugLayer; }
 	void	SetEnableDebugLayer(bool value)		{ m_bEnableDebugLayer = value; }
@@ -66,7 +64,6 @@ private:
 	// ¸üÐÂ NXScene ³¡¾°
 	void UpdateSceneData();
 
-	void DrawDepthPrepass();
 	void OnKeyDown(NXEventArgKey eArg);
 
 	void WaitForBRDF2DLUTFinish();

@@ -30,7 +30,8 @@ public:
 	NXPrefab* CreateFBXPrefab(const std::string& name, const std::string filePath, bool bAutoCalcTangents = true);
 
 	// 创建地形
-	// rawSize: rawFile 的具体格式，目前只支持16bit
+	// rawSize: rawFile 的具体格式，目前只支持16bit			
+	// 注意：rawsize的值通常是2^n+1，比如513、1025、2049....
 	// gridSize: 地形网格大小分辨率（不需要控制lod，每个terrain自带四叉树）
 	// worldSize: 实际尺寸大小
 	NXTerrain* CreateTerrain(const std::string& name, int rawSize, int gridSize, int worldSize, const std::filesystem::path& rawFile);

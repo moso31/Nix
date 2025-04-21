@@ -139,10 +139,10 @@ public:
 	{
 		auto rawBytes = std::as_bytes(std::span(m_vertices));
 		m_rawViews.push_back(NXRawMeshView(rawBytes, sizeof(TVertex), NXMeshViewType::VERTEX));
-		rawBytes = std::as_bytes(std::span(m_indices));
-		m_rawViews.push_back(NXRawMeshView(rawBytes, sizeof(uint32_t), NXMeshViewType::INDEX));
 		rawBytes = std::as_bytes(std::span(m_instanceData));
 		m_rawViews.push_back(NXRawMeshView(rawBytes, sizeof(TInstanceData), NXMeshViewType::VERTEX));
+		rawBytes = std::as_bytes(std::span(m_indices));
+		m_rawViews.push_back(NXRawMeshView(rawBytes, sizeof(uint32_t), NXMeshViewType::INDEX));
 		NXSubMeshGeometryEditor::GetInstance()->CreateBuffers(m_rawViews, m_subMeshName);
 	}
 
@@ -150,15 +150,15 @@ public:
 	{
 		auto& subMeshViews = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews(m_subMeshName);
 
-		D3D12_VERTEX_BUFFER_VIEW vbv;
-		if (subMeshViews.GetVBV(0, vbv))
-			pCommandList->IASetVertexBuffers(0, 1, &vbv);
+		D3D12_VERTEX_BUFFER_VIEW vbv[2];
+		if (subMeshViews.GetVBV(0, vbv[0]) && subMeshViews.GetVBV(1, vbv[1]))
+			pCommandList->IASetVertexBuffers(0, 2, vbv);
 
 		D3D12_INDEX_BUFFER_VIEW ibv;
-		if (subMeshViews.GetIBV(1, ibv))
+		if (subMeshViews.GetIBV(2, ibv))
 			pCommandList->IASetIndexBuffer(&ibv);
 
-		pCommandList->DrawIndexedInstanced(subMeshViews.GetIndexCount(), 1, 0, 0, 0);
+		pCommandList->DrawIndexedInstanced(subMeshViews.GetIndexCount(), m_instanceData.size(), 0, 0, 0);
 	}
 
 	uint32_t GetInstanceCount() { return (uint32_t)m_instanceData.size(); }

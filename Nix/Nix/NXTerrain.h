@@ -11,7 +11,9 @@ public:
 	NXTerrain(int rawSize, int gridSize, int worldSize, const std::filesystem::path& rawFile);
 	virtual ~NXTerrain() {}
 
+	virtual NXTerrain* IsTerrain() { return this; }
 	void AddSubMesh(NXSubMeshBase* pSubMesh);
+	NXSubMeshBase* GetSubMesh() { return m_pSubMesh.get(); }
 
 	void InitAABB() override;
 	void Update(ID3D12GraphicsCommandList* pCmdList);

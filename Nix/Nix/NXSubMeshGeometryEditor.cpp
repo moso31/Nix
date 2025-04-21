@@ -592,10 +592,11 @@ void NXSubMeshGeometryEditor::CreateTerrain(NXTerrain* pTerrain, int rawSize, in
 
 	// 添加instance数据
 	// 第一版先进行完全加载，将来再考虑gpu-driven剔除啥的
+	int gSectorNum = worldSize / gSectorSize;
 	std::vector<InstanceData> insDatas;
-	for (int x = 0; x <= gSectorSize; x++)
+	for (int x = 0; x < gSectorNum; x++)
 	{
-		for (int y = 0; y <= gSectorSize; y++)
+		for (int y = 0; y < gSectorNum; y++)
 		{
 			float vertScale = (float)gridSize / (float)worldSize;
 			Vector3 p(vertScale * (float)x, 0.0f, vertScale * (float)y);
