@@ -8,7 +8,6 @@
 #include "NXAllocatorManager.h"
 
 #include "ShaderComplier.h"
-#include "NXHLSLGenerator.h"
 #include "NXGlobalDefinitions.h"
 #include "NXSamplerManager.h"
 #include "NXRenderStates.h"
@@ -116,17 +115,15 @@ void NXCustomMaterial::LoadAndCompile(const std::filesystem::path& nslFilePath)
 {
 	if (LoadShaderCode())
 	{
-		std::string strHLSLHead, strHLSLBody;
-		std::vector<std::string> strHLSLFuncs;
-		ConvertNSLToHLSL(strHLSLHead, strHLSLFuncs, strHLSLBody);
+		NXHLSLGeneratorGBufferStrings strBlocks;
+		ConvertNSLToHLSL(strBlocks);
 
-		std::vector<std::string> strHLSLTitles;
-		strHLSLTitles.push_back("main()");
-		for (int i = 0; i < strHLSLFuncs.size(); i++)
-			strHLSLTitles.push_back(NXConvert::GetTitleOfFunctionData(strHLSLFuncs[i]));
+		strBlocks.Titles.push_back("main()");
+		for (auto& strHLSLFunc: strBlocks.Funcs)
+			strBlocks.Titles.push_back(NXConvert::GetTitleOfFunctionData(strHLSLFunc));
 
 		std::string strGBufferShader;
-		NXHLSLGenerator::GetInstance()->EncodeToGBufferShader(strHLSLHead, strHLSLFuncs, strHLSLTitles, strHLSLBody, strGBufferShader, std::vector<NXHLSLCodeRegion>());
+		NXHLSLGenerator::GetInstance()->EncodeToGBufferShader(strBlocks, strGBufferShader, std::vector<NXHLSLCodeRegion>());
 
 		std::string strErrMsgVS, strErrMsgPS;
 		CompileShader(strGBufferShader, strErrMsgVS, strErrMsgPS);
@@ -155,30 +152,30 @@ bool NXCustomMaterial::LoadShaderCode()
 	return bLoadSuccess;
 }
 
-void NXCustomMaterial::ConvertNSLToHLSL(std::string& oHLSLHead, std::vector<std::string>& oHLSLFuncs, std::string& oHLSLBody)
+void NXCustomMaterial::ConvertNSLToHLSL(NXHLSLGeneratorGBufferStrings& strBlocks)
 {
 	// 将 nsl params 转换成 DX 可以编译的 hlsl 代码，
 	// 同时对其进行分拣，将 cb 储存到 m_cbInfo，纹理储存到 m_texInfoMap，采样器储存到 m_ssInfoMap
-	ProcessShaderParameters(m_nslParams, oHLSLHead);
+	ProcessShaderParameters(m_nslParams, strBlocks.Param);
 
 	// 将 nsl funcs 转换成 DX 可以编译的 hlsl 代码
-	ProcessShaderFunctions(m_nslFuncs, oHLSLFuncs);
+	ProcessShaderFunctions(m_nslFuncs, strBlocks.Funcs);
 
 	// 将 nsl code 转换成 DX 可以编译的 hlsl 代码
-	ProcessShaderMainFunc(oHLSLBody);
+	ProcessShaderMainFunc(strBlocks.BodyPS);
 }
 
-void NXCustomMaterial::ConvertGUIDataToHLSL(std::string& oHLSLHead, std::vector<std::string>& oHLSLFuncs, std::string& oHLSLBody, const std::vector<NXGUICBufferData>& cbDefaultValues, const NXGUICBufferSetsData& cbSettingsDataGUI, const std::vector<NXGUITextureData>& texDefaultValues, const std::vector<NXGUISamplerData>& samplerDefaultValues)
+void NXCustomMaterial::ConvertGUIDataToHLSL(NXHLSLGeneratorGBufferStrings& strBlocks, const std::vector<NXGUICBufferData>& cbDefaultValues, const NXGUICBufferSetsData& cbSettingsDataGUI, const std::vector<NXGUITextureData>& texDefaultValues, const std::vector<NXGUISamplerData>& samplerDefaultValues)
 {
 	// 将 nsl params 转换成 DX 可以编译的 hlsl 代码，
 	// 同时对其进行分拣，将 cb 储存到 m_cbInfo，纹理储存到 m_texInfoMap，采样器储存到 m_ssInfoMap
-	ProcessShaderParameters(m_nslParams, oHLSLHead, cbDefaultValues, cbSettingsDataGUI, texDefaultValues, samplerDefaultValues);
+	ProcessShaderParameters(m_nslParams, strBlocks.Param, cbDefaultValues, cbSettingsDataGUI, texDefaultValues, samplerDefaultValues);
 
 	// 将 nsl funcs 转换成 DX 可以编译的 hlsl 代码
-	ProcessShaderFunctions(m_nslFuncs, oHLSLFuncs);
+	ProcessShaderFunctions(m_nslFuncs, strBlocks.Funcs);
 
 	// 将 nsl code 转换成 DX 可以编译的 hlsl 代码
-	ProcessShaderMainFunc(oHLSLBody);
+	ProcessShaderMainFunc(strBlocks.BodyPS);
 }
 
 void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::string& oErrorMessageVS, std::string& oErrorMessagePS)
@@ -257,13 +254,12 @@ bool NXCustomMaterial::Recompile(const std::string& nslParams, const std::vector
 	m_nslFuncs.assign(nslFuncs.begin(), nslFuncs.end());
 
 	// 将 NSL 转换成 HLSL
-	std::string strHLSLHead, strHLSLBody;
-	std::vector<std::string> strHLSLFuncs;
-	ConvertGUIDataToHLSL(strHLSLHead, strHLSLFuncs, strHLSLBody, cbDefaultValues, cbSettingDefaultValues, texDefaultValues, samplerDefaultValues);
+	NXHLSLGeneratorGBufferStrings strBlocks;
+	ConvertGUIDataToHLSL(strBlocks, cbDefaultValues, cbSettingDefaultValues, texDefaultValues, samplerDefaultValues);
 
 	// 将 HLSL 组合成 GBuffer!
 	std::string strGBufferShader;
-	NXHLSLGenerator::GetInstance()->EncodeToGBufferShader(strHLSLHead, strHLSLFuncs, nslTitles, strHLSLBody, strGBufferShader, oShaderFuncRegions);
+	NXHLSLGenerator::GetInstance()->EncodeToGBufferShader(strBlocks, strGBufferShader, oShaderFuncRegions);
 
 	// 最后编译
 	CompileShader(strGBufferShader, oErrorMessageVS, oErrorMessagePS);
@@ -658,8 +654,10 @@ bool NXCustomMaterial::LoadShaderStringFromFile(std::string& oShader)
 
 void NXCustomMaterial::ExtractShaderData(const std::string& shader, std::string& nslParams, std::vector<std::string>& nslFuncs)
 {
-	// 查找 Params 和 主函数 的开始和结束位置
+	// 查找 各个模块 的开始和结束位置
 	size_t paramsStart = shader.find("Params");
+	size_t layoutVSStart = shader.find("Layout_VS");
+	size_t layoutPSStart = shader.find("Layout_PS");
 	size_t codeStart = shader.find("Code");
 	size_t funcStart = shader.find("Func:");
 	size_t paramsEnd = codeStart - 1;
