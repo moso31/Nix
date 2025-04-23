@@ -218,6 +218,7 @@
     <ClCompile Include="Core\FBXMeshLoader.cpp" />
     <ClCompile Include="Core\NXAllocatorManager.cpp" />
     <ClCompile Include="Core\NXCodeProcessHelper.cpp" />
+    <ClCompile Include="Core\NXConvertString.cpp" />
     <ClCompile Include="Core\NXDepthRenderer.cpp" />
     <ClCompile Include="Core\NXFileSystemHelper.cpp" />
     <ClCompile Include="Core\NXGlobalDefinitions.cpp" />
@@ -331,6 +332,7 @@
     <ClInclude Include="Core\NXAllocatorManager.h" />
     <ClInclude Include="Core\NXCodeProcessHelper.h" />
     <ClInclude Include="Core\NXCommonTexDefinition.h" />
+    <ClInclude Include="Core\NXConvertString.h" />
     <ClInclude Include="Core\NXDepthRenderer.h" />
     <ClInclude Include="Core\NXFileSystemHelper.h" />
     <ClInclude Include="Core\NXGlobalBuffers.h" />

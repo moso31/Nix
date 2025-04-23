@@ -15,6 +15,7 @@
 #include "NXGUICommon.h"
 #include "NXSSSDiffuseProfile.h"
 #include "NXPSOManager.h"
+#include "NXCodeProcessHelper.h"
 
 NXMaterial::NXMaterial(const std::string& name, const std::filesystem::path& filePath) :
 	NXObject(name),
@@ -145,6 +146,9 @@ bool NXCustomMaterial::LoadShaderCode()
 
 	if (bLoadSuccess)
 	{
+		NXShaderCode outShaderCodeData;
+		NXCodeProcessHelper::ExtractShader(strShader, outShaderCodeData);
+
 		// 将 nsl shader 拆成 params 和 code 两部分
 		ExtractShaderData(strShader, m_nslParams, m_nslFuncs);
 	}
