@@ -236,7 +236,7 @@ void NXScene::Init()
 	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\EditorObjTest.fbx", false);
 	//NXPrefab* p2 = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\lury.fbx", false);
 	
-	//NXTerrain* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateTerrain("myTerrain", 512, "D:\\NixAssets\\Terrain.raw");
+	//NXTerrain* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateTerrain("myTerrain", 513, 2048, 2048, "D:\\NixAssets\\Terrain.raw");
 	p->SetScale(Vector3(0.1f));
 	//p2->SetScale(Vector3(0.1f));
 	NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(p, m_pTestCustomMat);
@@ -258,8 +258,8 @@ void NXScene::Init()
 		m_rtSize
 	);
 
-	NXCubeMap* pSky = NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\Alexs_Apt_2k.hdr");	
-	//NXCubeMap* pSky = NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\rural_asphalt_road_1k.hdr");
+	//NXCubeMap* pSky = NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\Alexs_Apt_2k.hdr");	
+	NXCubeMap* pSky = NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\rural_asphalt_road_1k.hdr");
 	pSky->SetIntensity(0.0f);
 
 	InitBoundingStructures();

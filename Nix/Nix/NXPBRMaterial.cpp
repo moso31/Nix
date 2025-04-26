@@ -116,18 +116,11 @@ void NXCustomMaterial::LoadAndCompile(const std::filesystem::path& nslFilePath)
 {
 	if (LoadShaderCode())
 	{
-		NXHLSLGeneratorGBufferStrings strBlocks;
-		ConvertNSLToHLSL(strBlocks);
-
-		strBlocks.Titles.push_back("main()");
-		for (auto& strHLSLFunc: strBlocks.Funcs)
-			strBlocks.Titles.push_back(NXConvert::GetTitleOfFunctionData(strHLSLFunc));
-
-		std::string strGBufferShader;
-		NXHLSLGenerator::GetInstance()->EncodeToGBufferShader(strBlocks, strGBufferShader, std::vector<NXHLSLCodeRegion>());
+		NXShaderBlock blocks;
+		std::string strHLSL = NXCodeProcessHelper::BuildHLSL(nslFilePath, blocks, this);
 
 		std::string strErrMsgVS, strErrMsgPS;
-		CompileShader(strGBufferShader, strErrMsgVS, strErrMsgPS);
+		CompileShader(strHLSL, strErrMsgVS, strErrMsgPS);
 
 		InitShaderResources();
 	}
@@ -141,16 +134,13 @@ bool NXCustomMaterial::LoadShaderCode()
 {
 	std::string strShader;
 
-	// 读取 nsl 文件，获取 nsl shader.
+	// 读取 nsl 文件
 	bool bLoadSuccess = LoadShaderStringFromFile(strShader);
 
 	if (bLoadSuccess)
 	{
-		NXShaderCode outShaderCodeData;
-		NXCodeProcessHelper::ExtractShader(strShader, outShaderCodeData);
-
-		// 将 nsl shader 拆成 params 和 code 两部分
-		ExtractShaderData(strShader, m_nslParams, m_nslFuncs);
+		// 解析 nsl 文件，数据存在 m_shaderCodeData
+		NXCodeProcessHelper::ExtractShader(strShader, m_shaderCodeData);
 	}
 
 	return bLoadSuccess;
@@ -432,8 +422,6 @@ void NXCustomMaterial::GenerateInfoBackup()
 {
 	m_cbInfoBackup.elems.assign(m_cbInfo.elems.begin(), m_cbInfo.elems.end());
 	m_cbInfoBackup.slotIndex = m_cbInfo.slotIndex;
-	m_cbInfoMemoryBackup.assign(m_cbInfoMemory.begin(), m_cbInfoMemory.end());
-	m_cbSortedIndexBackup.assign(m_cbSortedIndex.begin(), m_cbSortedIndex.end());
 	m_texInfosBackup.assign(m_texInfos.begin(), m_texInfos.end());
 	m_samplerInfosBackup.assign(m_samplerInfos.begin(), m_samplerInfos.end());
 
@@ -444,8 +432,6 @@ void NXCustomMaterial::RecoverInfosBackup()
 {
 	std::swap(m_cbInfo.slotIndex, m_cbInfoBackup.slotIndex);
 	m_cbInfo.elems.swap(m_cbInfoBackup.elems);
-	m_cbInfoMemory.swap(m_cbInfoMemoryBackup);
-	m_cbSortedIndex.swap(m_cbSortedIndexBackup);
 	m_texInfos.swap(m_texInfosBackup);
 	m_samplerInfos.swap(m_samplerInfosBackup);
 	m_nslFuncs.swap(m_nslFuncsBackup);
@@ -509,7 +495,6 @@ void NXCustomMaterial::Serialize()
 		serializer.String("name", texInfo.name);
 		serializer.String("path", texInfo.pTexture->GetFilePath().string());
 		serializer.Uint("slotIndex", texInfo.slotIndex);
-		serializer.Int("guiType", (int)texInfo.guiType);
 		serializer.EndObject();
 	}
 	serializer.EndArray();
@@ -580,7 +565,6 @@ void NXCustomMaterial::Deserialize()
 			auto texInfo = std::find_if(m_texInfos.begin(), m_texInfos.end(), [objName](const NXMaterialTextureInfo& texInfo) { return texInfo.name == objName; });
 			if (texInfo == m_texInfos.end()) continue;
 
-			texInfo->guiType = (NXGUITextureMode)deserializer.Int(tex, "guiType", (int)NXGUITextureMode::Unknown);
 			SetTexture(texInfo->pTexture, objPath);
 		}
 
@@ -654,57 +638,6 @@ bool NXCustomMaterial::LoadShaderStringFromFile(std::string& oShader)
 	oShader = std::string(std::istreambuf_iterator<char>(shaderFile), std::istreambuf_iterator<char>());
 	shaderFile.close();
 	return true;
-}
-
-void NXCustomMaterial::ExtractShaderData(const std::string& shader, std::string& nslParams, std::vector<std::string>& nslFuncs)
-{
-	// 查找 各个模块 的开始和结束位置
-	size_t paramsStart = shader.find("Params");
-	size_t layoutVSStart = shader.find("Layout_VS");
-	size_t layoutPSStart = shader.find("Layout_PS");
-	size_t codeStart = shader.find("Code");
-	size_t funcStart = shader.find("Func:");
-	size_t paramsEnd = codeStart - 1;
-	size_t codeEnd = funcStart - 1;
-
-	// 提取 Params 和 Funcs
-	nslParams = shader.substr(paramsStart, paramsEnd - paramsStart);
-	nslFuncs.push_back(shader.substr(codeStart, codeEnd - codeStart)); // 提取第一个函数。必然是主函数
-
-	// 查找 Func 块
-	// 并跳过函数之前的 Funcs: 和 空白字符
-	while (funcStart != std::string::npos)
-	{
-		funcStart += 5; // 5 == sizeof("Func:")
-		while (std::isspace(shader[funcStart])) funcStart++;
-
-		size_t openBraceCount = 0;
-		size_t closeBraceCount = 0;
-		size_t endPos = funcStart;
-
-		for (; endPos < shader.size(); ++endPos)
-		{
-			if (shader[endPos] == '{')
-			{
-				openBraceCount++;
-			}
-			else if (shader[endPos] == '}')
-			{
-				closeBraceCount++;
-
-				if (openBraceCount == closeBraceCount)
-				{
-					break;
-				}
-			}
-		}
-
-		// 提取 Func 块
-		nslFuncs.push_back(shader.substr(funcStart, endPos - funcStart + 1));
-
-		// 查找下一个 Func 块
-		funcStart = shader.find("Func:", endPos + 1);
-	}
 }
 
 void NXCustomMaterial::ProcessShaderParameters(const std::string& nslParams, std::string& oHLSLHeadCode, const std::vector<NXGUICBufferData>& cbDefaultValues, const NXGUICBufferSetsData& cbSettingDefaultValues, const std::vector<NXGUITextureData>& texDefaultValues, const std::vector<NXGUISamplerData>& samplerDefaultValues)
@@ -805,7 +738,6 @@ void NXCustomMaterial::ProcessShaderParameters(const std::string& nslParams, std
 			{
 				// 如果默认值vector中存储的纹理信息不是空的，就优先在vector中匹配同名的NXTexture指针
 				Ntr<NXTexture> pTexValue;
-				NXGUITextureMode guiType = NXGUITextureMode::Unknown;
 				if (!texDefaultValues.empty())
 				{
 					auto it = std::find_if(texDefaultValues.begin(), texDefaultValues.end(),
@@ -818,12 +750,11 @@ void NXCustomMaterial::ProcessShaderParameters(const std::string& nslParams, std
 						if (it->pTexture.IsValid())
 						{
 							pTexValue = it->pTexture;
-							guiType = it->texType;
 						}
 					}
 				}
 
-				m_texInfos.push_back({ name, pTexValue, typeToRegisterIndex[type], guiType });
+				m_texInfos.push_back({ name, pTexValue, typeToRegisterIndex[type] });
 
 				out << typeToPrefix[type] << " " << name << " : register(" << typeToRegisterPrefix[type] << typeToRegisterIndex[type]++ << ")";
 				out << ";\n";
@@ -1098,8 +1029,7 @@ void NXCustomMaterial::ProcessShaderMainFunc(std::string& oHLSLBodyCode)
 		out << line << "\n";
 	}
 
-	oHLSLBodyCode += std::move(out.str());
-}
+	oHLSLBodyCode += std::move(out.str());}
 
 void NXCustomMaterial::ProcessShaderFunctions(const std::vector<std::string>& nslFuncs, std::vector<std::string>& oHLSLBodyFuncs)
 {
@@ -1126,76 +1056,4 @@ void NXCustomMaterial::SetNSLMainFunc(const std::string& nslFunc)
 {
 	if (m_nslFuncs.empty()) m_nslFuncs.emplace_back(nslFunc);
 	else m_nslFuncs[0] = nslFunc;
-}
-
-void NXCustomMaterial::SortShaderCBufferParam()
-{
-	auto& cbElems = m_cbInfo.elems;
-
-	m_cbSortedIndex.clear();
-	m_cbSortedIndex.reserve(cbElems.size());
-
-#if DEBUG
-	std::vector<std::string> cbSortedName;
-	cbSortedName.reserve(cbElems.size());
-#endif
-
-	auto push_back_cbSortedFunc = [&](int index)
-	{
-		m_cbSortedIndex.push_back(index);
-#if DEBUG
-		cbSortedName.push_back(cbElems[index].name);
-#endif
-	};
-
-	auto insert_cbSortedFunc = [&](int insertIndex, int index)
-	{
-		m_cbSortedIndex.insert(m_cbSortedIndex.begin() + insertIndex, index);
-#if DEBUG
-		cbSortedName.insert(cbSortedName.begin() + insertIndex, cbElems[index].name);
-#endif
-	};
-
-	// 2023.5.14
-	// 采用三轮遍历的方法，第一轮填充float3/float4, 第二轮填充float2, 第三轮填充float。
-
-	// 第一轮遍历
-	std::vector<int> float3Indices; // 记录一下 float3 的索引，第三轮遍历要用。
-	int traverse_1st_count = 0;
-	for (int i = 0; i < cbElems.size(); i++)
-	{
-		auto& elem = cbElems[i];
-		if (elem.type > NXCBufferInputType::Float2)
-		{
-			if (elem.type == NXCBufferInputType::Float3)
-				float3Indices.push_back(traverse_1st_count);
-			push_back_cbSortedFunc(i);
-			traverse_1st_count++;
-		}
-	}
-
-	// 第二轮遍历
-	for (int i = 0; i < cbElems.size(); i++)
-	{
-		auto& elem = cbElems[i];
-		if (elem.type == NXCBufferInputType::Float2)
-			push_back_cbSortedFunc(i);
-	}
-
-	// 第三轮遍历
-	int traverse_3rd_count = 0;
-	int offset = 1;
-	for (int i = 0; i < cbElems.size(); i++)
-	{
-		auto& elem = cbElems[i];
-		if (elem.type == NXCBufferInputType::Float)
-		{
-			// 优先填充 Vector3 的剩余内存
-			if (traverse_3rd_count < float3Indices.size())
-				insert_cbSortedFunc(float3Indices[traverse_3rd_count] + offset++, i);
-			else push_back_cbSortedFunc(i);
-
-			traverse_3rd_count++;
-		}
-	}
 }

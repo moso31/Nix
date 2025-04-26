@@ -127,7 +127,7 @@ void NXGUIMaterialShaderEditor::OnBtnAddParamClicked(NXCustomMaterial* pMaterial
 void NXGUIMaterialShaderEditor::OnBtnAddTextureClicked(NXCustomMaterial* pMaterial)
 {
 	auto pTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_White);
-	m_texInfosDisplay.push_back({ "newTexture", NXGUITextureMode::Default, pTex });
+	m_texInfosDisplay.push_back({ "newTexture", pTex });
 	RequestGenerateBackup();
 }
 
@@ -726,10 +726,6 @@ void NXGUIMaterialShaderEditor::Render_Params_TextureItem(const int texParamId, 
 				if (NXConvert::IsImageFileExtension(pDropData->srcPath.extension().string()))
 				{
 					pTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(pTex->GetName().c_str(), pDropData->srcPath);
-
-					texDisplay.texType = pMaterial->GetTextureGUIType(texIndex);
-					if (texDisplay.texType == NXGUITextureMode::Unknown)
-						texDisplay.texType = pTex->GetSerializationData().m_textureType == NXTextureMode::NormalMap ? NXGUITextureMode::Normal : NXGUITextureMode::Default;
 				}
 			}
 			ImGui::EndDragDropTarget();
@@ -740,21 +736,7 @@ void NXGUIMaterialShaderEditor::Render_Params_TextureItem(const int texParamId, 
 		ImGui::BeginChild(strChildId.c_str(), ImVec2(200.0f, texSize));
 		if (ImGui::Button("Reset##"))
 		{
-			pTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(texDisplay.texType == NXGUITextureMode::Normal ? NXCommonTex_Normal : NXCommonTex_White);
-		}
-
-		const static char* textureTypes[] = { "Default", "Normal" };
-		if (ImGui::BeginCombo("Type##material_shader_editor_texture_combo", textureTypes[(int)texDisplay.texType]))
-		{
-			for (int item = 0; item < IM_ARRAYSIZE(textureTypes); item++)
-			{
-				if (ImGui::Selectable(textureTypes[item]))
-				{
-					texDisplay.texType = (NXGUITextureMode)item;
-					break;
-				}
-			}
-			ImGui::EndCombo();
+			pTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_White);
 		}
 
 		ImGui::EndChild();
@@ -987,16 +969,7 @@ void NXGUIMaterialShaderEditor::SyncMaterialData(NXCustomMaterial* pMaterial)
 	{
 		auto& pTex = pMaterial->GetTexture(i);
 		if (pTex.IsNull()) pTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_White);
-		if (pTex.IsValid())
-		{
-			NXGUITextureMode texType = pMaterial->GetTextureGUIType(i);
-			if (texType == NXGUITextureMode::Unknown)
-				texType = pTex->GetSerializationData().m_textureType == NXTextureMode::NormalMap ? NXGUITextureMode::Normal : NXGUITextureMode::Default;
-
-			m_texInfosDisplay.push_back({ pMaterial->GetTextureName(i), texType, pTex });
-		}
-		else
-			m_texInfosDisplay.push_back({ pMaterial->GetTextureName(i), NXGUITextureMode::Default, pTex });
+		m_texInfosDisplay.push_back({ pMaterial->GetTextureName(i), pTex });
 	}
 
 	m_ssInfosDisplay.clear();

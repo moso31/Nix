@@ -3,64 +3,6 @@
 #include "Ntr.h"
 #include <string>
 
-enum class NXShaderInputType
-{
-    Unknown,
-    CBuffer,
-    Texture,
-    Sampler,
-};
-
-enum class NXCBufferInputType
-{
-    Float = 1,
-    Float2 = 2,
-    Float3 = 3,
-    Float4 = 4,
-};
-
-// 在 GUI 中的显示 Style
-enum class NXGUICBufferStyle
-{
-	Value,
-	Value2,
-	Value3,
-	Value4,
-	Slider,
-	Slider2,
-	Slider3,
-	Slider4,
-	Color3,
-	Color4,
-	Unknown
-};
-
-// 专门用于在材质编辑器下显示纹理类型的枚举，只有 Default 和 Normal 两种选项
-enum class NXGUITextureMode
-{
-	Default,
-	Normal,
-	Unknown
-};
-
-enum class NXSamplerFilter
-{
-	Point,
-	Linear,
-	Anisotropic,
-	Unknown
-};
-
-enum class NXSamplerAddressMode
-{
-	Wrap,
-	Mirror,
-	Clamp,
-	Border,
-	MirrorOnce,
-	Unknown
-};
-
 struct NXCBufferElem
 {
     std::string name;
@@ -68,11 +10,6 @@ struct NXCBufferElem
     int memoryIndex;
 	NXGUICBufferStyle style;
 	Vector2 guiParams; // gui拖动参数附加属性，drugspeed, sliderMin/Max
-};
-
-struct NXCBufferSets
-{
-	UINT shadingModel = 0;
 };
 
 struct NXMaterialCBufferInfo
@@ -94,7 +31,6 @@ struct NXMaterialTextureInfo
     std::string name;
     Ntr<NXTexture> pTexture;
     UINT slotIndex;
-	NXGUITextureMode guiType;
 };
 
 struct NXMaterialSamplerInfo
@@ -142,7 +78,6 @@ struct NXGUICBufferSetsData
 struct NXGUITextureData
 {
 	std::string name;
-	NXGUITextureMode texType;
 	Ntr<NXTexture> pTexture;
 
 	int backupIndex = -1;

@@ -121,6 +121,9 @@
     <Filter Include="Core\Config">
       <UniqueIdentifier>{58b2859a-c6d2-494a-8484-ea9fc399b188}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Core\Helper\NXCodeProcess">
+      <UniqueIdentifier>{21aaf577-435a-4061-bf33-9b62745d6e28}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Common.fx">
@@ -532,12 +535,13 @@
     <ClCompile Include="Core\NXRGHandle.cpp">
       <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClCompile>
-    <ClCompile Include="Core\NXCodeProcessHelper.cpp">
-      <Filter>Core\Helper</Filter>
-    </ClCompile>
     <ClCompile Include="Core\NXConvertString.cpp">
       <Filter>Core\Helper</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXCodeProcessHelper.cpp">
+      <Filter>Core\Helper\NXCodeProcess</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXCodeProcessHeader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -900,11 +904,14 @@
     <ClInclude Include="Nix\NXSubMeshCommon.h">
       <Filter>Nix\Object\Transform\Primitive\Shape</Filter>
     </ClInclude>
-    <ClInclude Include="Core\NXCodeProcessHelper.h">
-      <Filter>Core\Helper</Filter>
-    </ClInclude>
     <ClInclude Include="Core\NXConvertString.h">
       <Filter>Core\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXCodeProcessHelper.h">
+      <Filter>Core\Helper\NXCodeProcess</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXCodeProcessHeader.h">
+      <Filter>Core\Helper\NXCodeProcess</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

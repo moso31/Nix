@@ -217,6 +217,7 @@
     <ClCompile Include="Core\DirectResources.cpp" />
     <ClCompile Include="Core\FBXMeshLoader.cpp" />
     <ClCompile Include="Core\NXAllocatorManager.cpp" />
+    <ClCompile Include="Core\NXCodeProcessHeader.cpp" />
     <ClCompile Include="Core\NXCodeProcessHelper.cpp" />
     <ClCompile Include="Core\NXConvertString.cpp" />
     <ClCompile Include="Core\NXDepthRenderer.cpp" />
@@ -330,6 +331,7 @@
     <ClInclude Include="Core\imfilebrowser.h" />
     <ClInclude Include="Core\Ntr.h" />
     <ClInclude Include="Core\NXAllocatorManager.h" />
+    <ClInclude Include="Core\NXCodeProcessHeader.h" />
     <ClInclude Include="Core\NXCodeProcessHelper.h" />
     <ClInclude Include="Core\NXCommonTexDefinition.h" />
     <ClInclude Include="Core\NXConvertString.h" />

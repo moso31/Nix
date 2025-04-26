@@ -215,13 +215,7 @@ void NXGUIMaterial::SyncMaterialData(NXCustomMaterial* pMaterial)
 	for (UINT i = 0; i < pMaterial->GetTextureCount(); i++)
 	{
 		auto& pTex = pMaterial->GetTexture(i);
-		if (pTex.IsValid())
-		{
-			NXGUITextureMode texType = pTex->GetSerializationData().m_textureType == NXTextureMode::NormalMap ? NXGUITextureMode::Normal : NXGUITextureMode::Default;
-			m_texInfosDisplay.push_back({ pMaterial->GetTextureName(i), texType, pTex });
-		}
-		else
-			m_texInfosDisplay.push_back({ pMaterial->GetTextureName(i), NXGUITextureMode::Default, pTex });
+		m_texInfosDisplay.push_back({ pMaterial->GetTextureName(i), pTex });
 	}
 
 
