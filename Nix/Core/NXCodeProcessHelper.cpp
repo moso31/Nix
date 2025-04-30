@@ -1,5 +1,6 @@
 #include "NXCodeProcessHelper.h"
 #include "NXConvertString.h"
+#include "NXTexture.h"
 
 using namespace NXConvert;
 
@@ -50,6 +51,54 @@ std::string NXCodeProcessHelper::RemoveHLSLComment(const std::string& strCode)
 	}
 
 	return result;
+}
+
+NXCBufferInputType NXCodeProcessHelper::GetCBufferType(const std::string& strType)
+{
+	if (strType == "float") return NXCBufferInputType::Float;
+	else if (strType == "float2") return NXCBufferInputType::Float2;
+	else if (strType == "float3") return NXCBufferInputType::Float3;
+	else if (strType == "float4") return NXCBufferInputType::Float4;
+	return NXCBufferInputType::None;
+}
+
+NXGUIStyle_CBufferItem NXCodeProcessHelper::GetDefaultCBufferStyle(NXCBufferInputType type)
+{
+	NXGUIStyle_CBufferItem result;
+	switch (type)
+	{
+	case NXCBufferInputType::Float:  result.style = NXGUIStyle_CBufferType::Value;  break;
+	case NXCBufferInputType::Float2: result.style = NXGUIStyle_CBufferType::Value2; break;
+	case NXCBufferInputType::Float3: result.style = NXGUIStyle_CBufferType::Value3; break;
+	case NXCBufferInputType::Float4: result.style = NXGUIStyle_CBufferType::Value4; break;
+	default: result.style = NXGUIStyle_CBufferType::Unknown; break;
+	}
+
+	SetDefaultCBufferGUIParam(result);
+	return result;
+}
+
+void NXCodeProcessHelper::SetDefaultCBufferGUIParam(NXGUIStyle_CBufferItem& guiStyle)
+{
+	switch (guiStyle.style)
+	{
+	case NXGUIStyle_CBufferType::Value:
+	case NXGUIStyle_CBufferType::Value2:
+	case NXGUIStyle_CBufferType::Value3:
+	case NXGUIStyle_CBufferType::Value4:
+	default:
+		guiStyle.guiParams0 = 0.01f; // speed
+		guiStyle.guiParams1 = 0.0f;  // --- (unused)
+
+	case NXGUIStyle_CBufferType::Slider:
+	case NXGUIStyle_CBufferType::Slider2:
+	case NXGUIStyle_CBufferType::Slider3:
+	case NXGUIStyle_CBufferType::Slider4:
+	case NXGUIStyle_CBufferType::Color3:
+	case NXGUIStyle_CBufferType::Color4:
+		guiStyle.guiParams0 = 0.0f; // min
+		guiStyle.guiParams1 = 1.0f; // max
+	}
 }
 
 bool NXCodeProcessHelper::MoveToNextBranketIn(std::istringstream& iss, std::stack<std::string>& stackBrackets, const std::string& branketName)
@@ -382,6 +431,12 @@ std::string NXCodeProcessHelper::BuildHLSL_Params(const std::filesystem::path& n
 	{
 		str += "\t" + cb.type + " " + cb.name + ";\n";
 	}
+	bool bIsGBuffer = true; // todo: 扩展其他pass
+	if (bIsGBuffer)
+	{
+		str += "\tfloat shadingModel;\n";
+		str += "\tfloat4 customData0;\n"; // 自定义数据，后续可以扩展
+	}
 	str += "};\n";
 
 	str += "cbuffer " + strMatName + " : register(b" + strSlotCB + ")\n";
@@ -520,4 +575,30 @@ void PS(PS_INPUT input, out PS_OUTPUT Output)
 	str += strPSEnd;
 
 	return str;
+}
+
+void NXCodeProcessHelper::BuildMaterial(const std::filesystem::path& nslPath, const NXShaderBlock& shaderCode, NXMaterialData& oMaterialElement)
+{
+	oMaterialElement.Clear();
+
+	const auto& shaderParams = shaderCode.params;
+	for (auto& cbValues : shaderParams.cbuffer.values)
+	{
+		for (auto& cb : oMaterialElement.cbuffer.elems)
+		{
+			cb.name = cbValues.name;
+			cb.type = GetCBufferType(cbValues.type);
+			//cb.value = 等等，好像不用重新赋值哎
+			cb.guiStyle = GetDefaultCBufferStyle(cb.type);
+		}
+	}
+	oMaterialElement.cbuffer.sets.shadingModel = ? ;
+
+	for (auto& tex : shaderParams.textures)
+	{
+		NXMaterialData_Texture newTexture;
+		newTexture.name = tex.name;
+		//newTexture.pTexture = 等等，好像不用重新赋值哎
+		oMaterialElement.textures.push_back(newTexture);
+	}
 }

@@ -101,6 +101,12 @@ struct NXMaterialData_CBufferItem
 {
 	std::string name;
 	NXCBufferInputType type;
+
+	// 记录 gui的 CB，但每个数据都使用最大的 Vec4 储存。
+	// 这么做是为了避免 GUI 增量改变数据格式时，产生额外的内存分配。
+	float value[4];
+
+	NXGUIStyle_CBufferItem guiStyle;
 };
 
 struct NXMaterialData_CBufferSets
@@ -144,12 +150,7 @@ struct NXMaterialData
 	NXMaterialData_CBuffer cbuffer;
 };
 
-// ShaderGUI
-// 用于控制材质编辑器的UI显示。
-// 比如同样是float3的参数，在GUI中可能想要显示成不同的drag，slider，EditColor
-// 早期图方便，直接集成在NXMaterialData，现在将它们职责分离开了
-
-enum class NXGUICBufferStyle
+enum class NXGUIStyle_CBufferType
 {
 	Value,
 	Value2,
@@ -164,27 +165,11 @@ enum class NXGUICBufferStyle
 	Unknown
 };
 
-struct NXShaderGUI_CBufferItem
+struct NXGUIStyle_CBufferItem
 {
-	NXGUICBufferStyle style;
+	NXGUIStyle_CBufferType style;
 
-	// gui拖动参数附加属性，drugspeed, sliderMin/Max
+	// gui拖动参数附加属性，like drugspeed, sliderMin/Max..
 	float guiParams0;
 	float guiParams1;
-};
-
-struct NXShaderGUI_CBuffer
-{
-	std::vector<NXShaderGUI_CBufferItem> elems;
-};
-
-struct NXShaderGUI
-{
-	void Clear()
-	{
-		cbuffer.elems.clear();
-	}
-
-	std::string name;
-	NXShaderGUI_CBuffer cbuffer;
 };

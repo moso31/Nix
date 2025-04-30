@@ -11,6 +11,9 @@ class NXCustomMaterial;
 namespace NXCodeProcessHelper
 {
 	std::string RemoveHLSLComment(const std::string& strCode);
+	NXCBufferInputType GetCBufferType(const std::string& strType);
+	NXGUIStyle_CBufferItem GetDefaultCBufferStyle(NXCBufferInputType type);
+	void SetDefaultCBufferGUIParam(NXGUIStyle_CBufferItem& guiStyle);
 
 	bool MoveToNextBranketIn(std::istringstream& iss, std::stack<std::string>& stackBrackets, const std::string& branketName);
 	bool MoveToNextBranketOut(std::stack<std::string>& stackBrackets, const std::string& branketName);
