@@ -1,5 +1,6 @@
 #pragma once
 #include "NXShaderDefinitions.h"
+#include "NXCodeProcessHeader.h"
 
 // 显示Shader的错误信息，最多不允许超过 NXGUI_ERROR_MESSAGE_MAXLIMIT 条
 #define NXGUI_ERROR_MESSAGE_MAXLIMIT 50
@@ -54,29 +55,28 @@ private:
 	void OnBtnNewFunctionClicked(NXCustomMaterial* pMaterial);
 	void OnBtnRemoveFunctionClicked(NXCustomMaterial* pMaterial, UINT index);
 
-	void OnBtnAddParamClicked(NXCustomMaterial* pMaterial, NXGUICBufferStyle guiStyle);
+	void OnBtnAddParamClicked(NXCustomMaterial* pMaterial, NXMSE_CBufferStyle guiStyle);
 	void OnBtnAddTextureClicked(NXCustomMaterial* pMaterial);
 	void OnBtnAddSamplerClicked(NXCustomMaterial* pMaterial);
 
-	void OnBtnRemoveParamClicked(BtnParamType btnParamType, int index);
-	void OnBtnMoveParamToPrevClicked(BtnParamType btnParamType, int index);
-	void OnBtnMoveParamToNextClicked(BtnParamType btnParamType, int index);
-	void OnBtnMoveParamToFirstClicked(BtnParamType btnParamType, int index);
-	void OnBtnMoveParamToLastClicked(BtnParamType btnParamType, int index);
-	void OnBtnRevertParamClicked(NXCustomMaterial* pMaterial, BtnParamType btnParamType, int index);
+	void OnBtnRemoveParamClicked(BtnParamType btnParamType, NXMSE_BaseData* pData);
+	void OnBtnMoveParamToPrevClicked(BtnParamType btnParamType, NXMSE_BaseData* pData);
+	void OnBtnMoveParamToNextClicked(BtnParamType btnParamType, NXMSE_BaseData* pData);
+	void OnBtnMoveParamToFirstClicked(BtnParamType btnParamType, NXMSE_BaseData* pData);
+	void OnBtnMoveParamToLastClicked(BtnParamType btnParamType, NXMSE_BaseData* pData);
+	void OnBtnRevertParamClicked(NXCustomMaterial* pMaterial, NXMSE_BaseData* pData);
 	bool OnBtnCompileClicked(NXCustomMaterial* pMaterial);
 	void OnBtnSaveClicked(NXCustomMaterial* pMaterial);
-	void OnComboGUIStyleChanged(int selectIndex, NXGUICBufferData& cbDisplayData);
 	void OnShowFuncIndexChanged(int showFuncIndex);
 
 	void Render_Code(NXCustomMaterial* pMaterial);
 	void Render_FeaturePanel(NXCustomMaterial* pMaterial);
 	void Render_Complies(NXCustomMaterial* pMaterial);
 	void Render_Params(NXCustomMaterial* pMaterial);
-	void Render_Params_ResourceOps(const std::string& strNameId, NXCustomMaterial* pMaterial, BtnParamType btnParamType, int cbIndex);
-	void Render_Params_CBufferItem(const std::string& strId, NXCustomMaterial* pMaterial, NXGUICBufferData& cbDisplay);
-	void Render_Params_TextureItem(const int strId, NXCustomMaterial* pMaterial, NXGUITextureData& texDisplay, int texIndex);
-	void Render_Params_SamplerItem(const int strId, NXCustomMaterial* pMaterial, NXGUISamplerData& ssDisplay, int ssIndex);
+	void Render_Params_ResourceOps(const std::string& strNameId, NXCustomMaterial* pMaterial, BtnParamType btnParamType, std::string& name, NXMSE_BaseData* pData);
+	void Render_Params_CBufferItem(const std::string& strId, NXCustomMaterial* pMaterial, NXMSE_CBufferData* pCBuffer);
+	void Render_Params_TextureItem(const int strId, NXCustomMaterial* pMaterial, NXMSE_TextureData* pTexture);
+	void Render_Params_SamplerItem(const int strId, NXCustomMaterial* pMaterial, NXMSE_SamplerData* pSampler);
 	void Render_Settings(NXCustomMaterial* pMaterial);
 	void Render_ErrorMessages();
 
@@ -85,31 +85,24 @@ private:
 	void UpdateNSLFunctions();
 	std::string GenerateNSLFunctionTitle(int index); // 生成 nslFunc[index] 的 title（用于 combo 显示）
 
-	bool FindCBGUIData(const std::string& name, std::vector<NXGUICBufferData>::iterator& oIterator);
 	std::string GetAddressModeText(const NXSamplerAddressMode addrU, const NXSamplerAddressMode addrV, const NXSamplerAddressMode addrW);
 
 	void GenerateBackupData();
+	void ReleaseBackupData();
 
 private:
 	bool m_bShowWindow = false;
 	NXCustomMaterial* m_pMaterial = nullptr;
 	NXGUICodeEditor* m_pGUICodeEditor = nullptr;
-
-	std::vector<std::string> m_nslFuncs;	// 记录 NSL 函数
-	std::vector<std::string> m_nslTitles;	// 额外用一份内存记录 NSL 函数的标头
-	std::vector<NXHLSLCodeRegion> m_HLSLFuncRegions; // 记录 NSL 函数转换到 HLSL 后，在 HLSL 中对应的行号位置。（方便在编译错误时给 CodeEditor 做跳转）
 	int m_showFuncIndex = 0; // 用于显示的函数索引
 
-	std::vector<NXGUICBufferData> m_cbInfosDisplay;
-	NXGUICBufferSetsData m_cbSettingsDisplay;
-	std::vector<NXGUITextureData> m_texInfosDisplay;
-	std::vector<NXGUISamplerData> m_ssInfosDisplay;
+	// 材质参数
+	NXMSEPackDatas m_guiDatas;
+	NXMSEPackDatas m_guiDatasBackup;
 
-	// ShaderEditor 中复制一份 原始GUI类的 cb, tex, ss参数。
-	// 用于单个参数的 小Revert 按钮。
-	std::vector<NXGUICBufferData> m_cbInfosDisplayBackup;
-	std::vector<NXGUITextureData> m_texInfosDisplayBackup;
-	std::vector<NXGUISamplerData> m_ssInfosDisplayBackup;
+	// 材质代码
+	NXMaterialCode m_guiCodes;
+	NXMaterialCode m_guiCodesBackup;
 
 	// 显示Shader的错误信息
 	NXGUIShaderErrorMessage m_shaderErrMsgs[NXGUI_ERROR_MESSAGE_MAXLIMIT];

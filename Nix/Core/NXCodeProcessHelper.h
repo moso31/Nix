@@ -11,35 +11,40 @@ class NXCustomMaterial;
 namespace NXCodeProcessHelper
 {
 	std::string RemoveHLSLComment(const std::string& strCode);
-	NXCBufferInputType GetCBufferType(const std::string& strType);
-	NXGUIStyle_CBufferItem GetDefaultCBufferStyle(NXCBufferInputType type);
 	void SetDefaultCBufferGUIParam(NXGUIStyle_CBufferItem& guiStyle);
 
 	bool MoveToNextBranketIn(std::istringstream& iss, std::stack<std::string>& stackBrackets, const std::string& branketName);
 	bool MoveToNextBranketOut(std::stack<std::string>& stackBrackets, const std::string& branketName);
 
-	// 从nsl文件中提取出shaderBlock
-	void ExtractShader(const std::string& strCode, NXShaderBlock& oShaderData);
-	void ExtractShader_NXShader(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXShaderBlock& oShaderData);
-	void ExtractShader_Params(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXShaderBlockParams& oShaderParams);
-	void ExtractShader_Params_CBuffer(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXShaderBlockConstantBuffer& oShaderCBuffer);
-	void ExtractShader_GlobalFuncs(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXShaderBlockFunctions& oShaderGlobalFuncs);
-	void ExtractShader_GlobalFuncBody(std::istringstream& iss, std::stack<std::string>& stackBrackets, const std::string& strEndBlock, NXShaderBlockFuncBody& oShaderFuncBody);
-	void ExtractShader_SubShader(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXShaderBlockSubShader& oShaderSubShader);
-	void ExtractShader_SubShader_Pass(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXShaderBlockPass& oShaderSubShaderPass);
-	void ExtractShader_SubShader_Pass_Entry(std::istringstream& iss, std::stack<std::string>& stackBrackets, const std::string& strEndBlock, std::string& oShaderSubShaderPassEntry);
+	// 从MSE/GUI参数生成nsl
+	std::string GenerateNSL(const NXMSEPackDatas& data);
 
-	// 将shaderBlock转换为HLSL代码
-	std::string BuildHLSL(const std::filesystem::path& nslPath, const NXShaderBlock& shaderCode, NXCustomMaterial* pMat);
-	std::string BuildHLSL_Include(NXCustomMaterial* pMat);
-	std::string BuildHLSL_Params(const std::filesystem::path& nslPath, const NXShaderBlock& shaderCode, NXCustomMaterial* pMat);
-	std::string BuildHLSL_GlobalFuncs(const NXShaderBlock& shaderCode, NXCustomMaterial* pMat);
-	std::string BuildHLSL_Structs(const NXShaderBlock& shaderCode, NXCustomMaterial* pMat);
-	std::string BuildHLSL_PassFuncs(const NXShaderBlock& shaderCode, NXCustomMaterial* pMat);
-	std::string BuildHLSL_Entry(const NXShaderBlock& shaderCode, NXCustomMaterial* pMat);
-	std::string BuildHLSL_Entry_VS(const NXShaderBlock& shaderCode, NXCustomMaterial* pMat);
-	std::string BuildHLSL_Entry_PS(const NXShaderBlock& shaderCode, NXCustomMaterial* pMat);
+	// 从nsl文件中提取出数据和代码块
+	void ExtractShader(const std::string& strCode, NXMaterialData& oMatData, NXMSEPackDatas& oGUIData, NXMaterialCode& oMatCode);
+	void ExtractShader_NXShader(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXMaterialData& oMatData, NXMSEPackDatas& oGUIData, NXMaterialCode& oMatCode);
+	void ExtractShader_Params(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXMaterialData& oMatData, NXMSEPackDatas& oGUIData, NXMaterialCode& oMatCode);
+	void ExtractShader_Params_CBuffer(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXMaterialData& oMatData, NXMSEPackDatas& oGUIData, NXMaterialCode& oMatCode);
+	void ExtractShader_GlobalFuncs(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXMaterialCode& oMatCode);
+	void ExtractShader_GlobalFuncBody(std::istringstream& iss, std::stack<std::string>& stackBrackets, const std::string& strEndBlock, NXMaterialCode& oMatCode);
+	void ExtractShader_SubShader(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXMaterialCode& oMatCode);
+	void ExtractShader_SubShader_Pass(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXMaterialPassCode& oMatPassCode);
+	void ExtractShader_SubShader_Pass_Entry(std::istringstream& iss, std::stack<std::string>& stackBrackets, const std::string& strEndBlock, std::string& oStrPassEntryCode);
 
-	// 将shaderBlock转换为材质球属性
-	void BuildMaterial(const std::filesystem::path& nslPath, const NXShaderBlock& shaderCode, NXMaterialData& oMaterialElement);
+	// 将材质数据和代码块转换为HLSL代码
+	std::string BuildHLSL(const std::filesystem::path& nslPath, const NXMaterialData& oMatData, const NXMaterialCode& shaderCode);
+	std::string BuildHLSL_Include();
+	std::string BuildHLSL_Params(const std::filesystem::path& nslPath, const NXMaterialData& oMatData, const NXMaterialCode& shaderCode);
+	std::string BuildHLSL_GlobalFuncs(const NXMaterialData& oMatData, const NXMaterialCode& shaderCode);
+	std::string BuildHLSL_Structs(const NXMaterialData& oMatData, const NXMaterialCode& shaderCode);
+	std::string BuildHLSL_PassFuncs(const NXMaterialData& oMatData, const NXMaterialCode& shaderCode);
+	std::string BuildHLSL_Entry(const NXMaterialData& oMatData, const NXMaterialCode& shaderCode);
+	std::string BuildHLSL_Entry_VS(const NXMaterialData& oMatData, const NXMaterialCode& shaderCode);
+	std::string BuildHLSL_Entry_PS(const NXMaterialData& oMatData, const NXMaterialCode& shaderCode);
+
+	// MSEPackDatas -> NXMaterialData
+	// 后者是前者的子集所以一定能转换
+	NXMaterialData BuildMaterialData(const NXMSEPackDatas& guiData);
+
+	// 将材质数据和代码块转换为HLSL代码
+	void SaveToNSLFile(const std::filesystem::path& nslPath, const NXMaterialData& oMatData, const NXMaterialCode& shaderCode);
 }

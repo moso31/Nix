@@ -541,7 +541,6 @@
     <ClCompile Include="Core\NXCodeProcessHelper.cpp">
       <Filter>Core\Helper\NXCodeProcess</Filter>
     </ClCompile>
-    <ClCompile Include="Core\NXCodeProcessHeader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">

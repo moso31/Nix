@@ -90,15 +90,15 @@ public:
 	virtual ~NXCustomMaterial() {}
 	NXCustomMaterial* IsCustomMat() override { return this; }
 
+	const NXMaterialData& GetMaterialData() { return m_materialDatas; }
+	const NXMSEPackDatas& GetMSEPackData() { return m_guiDatas; }
+	const NXMaterialCode& GetMaterialCode() { return m_codeBlocks; }
+
 	void LoadAndCompile(const std::filesystem::path& nslFilePath);
 
 	bool LoadShaderCode();
-	// 将 NSL 转换为 HLSL。
-	void ConvertNSLToHLSL();
-	// 将 NSL 转换为 HLSL。另外将 GUI 修改后的参数也传了进来，这些 GUI 参数将作为新编译后的 Shader 的默认值。
-	void ConvertGUIDataToHLSL(const std::vector<NXGUICBufferData>& cbDataGUI, const NXGUICBufferSetsData& cbSettingsDataGUI, const std::vector<NXGUITextureData>& texDataGUI, const std::vector<NXGUISamplerData>& samplerDataGUI);
 	void CompileShader(const std::string& strGBufferShader, std::string& oErrorMessageVS, std::string& oErrorMessagePS);
-	bool Recompile(const std::string& nslParams, const std::vector<std::string>& nslFuncs, const std::vector<std::string>& nslTitles, const std::vector<NXGUICBufferData>& cbDefaultValues, const NXGUICBufferSetsData& cbSettingDefaultValues, const std::vector<NXGUITextureData>& texDefaultValues, const std::vector<NXGUISamplerData>& samplerDefaultValues, std::vector<NXHLSLCodeRegion>& oShaderFuncRegions, std::string& oErrorMessageVS, std::string& oErrorMessagePS);
+	bool Recompile(const NXMSEPackDatas& guiData, const NXMaterialCode& code, const NXMSEPackDatas& guiDataBackup, const NXMaterialCode& codeBackup, std::string& oErrorMessageVS, std::string& oErrorMessagePS);
 
 	// 初始化所有着色器资源，包括 cb, tex, sampler
 	void InitShaderResources();
@@ -106,13 +106,6 @@ public:
 	virtual void Update() override;
 	void Render(ID3D12GraphicsCommandList* pCommandList) override;
 	void Release() override {}
-
-	void SetNSLParam(const std::string& nslParams) { m_nslParams = nslParams; }
-
-	const std::vector<std::string>& GetNSLFuncs() { return m_nslFuncs; }
-	const std::string& GetNSLFunc(UINT index);
-	void SetNSLFunc(const std::string& nslFunc, UINT index);
-	void SetNSLMainFunc(const std::string& nslFunc);
 
 	UINT GetCBufferElemCount() { return UINT(m_cbInfo.elems.size()); }
 	const NXCBufferElem& GetCBufferElem(UINT index) { return m_cbInfo.elems[index]; }
@@ -134,13 +127,10 @@ public:
 	NXSamplerAddressMode GetSamplerAddressMode(UINT index, UINT uvwIndex) { return uvwIndex ? uvwIndex == 1 ? m_samplerInfos[index].addressV : m_samplerInfos[index].addressW : m_samplerInfos[index].addressU; }
 
 	const float* GetCBInfoMemoryData(UINT memoryIndex) { return m_cbInfoMemory.data() + memoryIndex; }
-	void SetCBInfoMemoryData(UINT memoryIndex, UINT count, const float* newData);
+	void SetCBInfoMemoryData();
 
-	NXGUICBufferStyle GetCBGUIStyles(UINT index) { return m_cbInfo.elems[index].style; }
+	NXMSE_CBufferStyle GetCBGUIStyles(UINT index) { return m_cbInfo.elems[index].style; }
 	Vector2 GetCBGUIParams(UINT index) { return m_cbInfo.elems[index].guiParams; }
-
-	void GenerateInfoBackup();
-	void RecoverInfosBackup();
 
 	void RequestUpdateCBufferData(bool bNeedRebuildCB);
 
@@ -164,25 +154,6 @@ private:
 	// 读取 nsl 文件
 	bool LoadShaderStringFromFile(std::string& shaderContent);
 
-	// 将 nsl params 转换成 DX 可以编译的 hlsl 代码，
-	// 同时对其进行分拣，将 cb 储存到 m_cbInfo，纹理储存到 m_texInfoMap，采样器储存到 m_ssInfoMap
-	void ProcessShaderParameters(
-		const std::string& nslParams,
-		std::string& oHLSLHeadCode,
-		const std::vector<NXGUICBufferData>& cbDefaultValues = {},
-		const NXGUICBufferSetsData& cbSettingDefaultValues = {},
-		const std::vector<NXGUITextureData>& texDefaultValues = {},
-		const std::vector<NXGUISamplerData>& samplerDefaultValues = {}
-	);
-
-	void ProcessShaderCBufferParam(std::istringstream& in, std::string& outStr, const std::vector<NXGUICBufferData>& cbDefaultValues = {}, const NXGUICBufferSetsData& cbSettingDefaultValues = {});
-
-	// 将 nsl 的主函数 转换成 DX 可以编译的 hlsl 代码，
-	void ProcessShaderMainFunc(std::string& oHLSLBodyCode);
-
-	// 将 nsl 的其它函数 转换成 DX 可以编译的 hlsl 代码，
-	void ProcessShaderFunctions(const std::vector<std::string>& nslFuncs, std::vector<std::string>& oHLSLFuncCode);
-
 	void UpdateCBData(bool rebuildCB);
 
 private:
@@ -191,21 +162,13 @@ private:
 	bool m_bCompileSuccess = false;
 
 private:
-	NXShaderBlock m_shaderCodeData;
-	std::string								m_nslParams;
-	std::vector<std::string>				m_nslFuncs;
-
-	std::vector<NXMaterialSamplerInfo>		m_samplerInfos;
-	std::vector<NXMaterialTextureInfo>		m_texInfos;
-	NXMaterialCBufferInfo					m_cbInfo; 
-
+	std::filesystem::path m_nslPath;
 	NXConstantBuffer<std::vector<float>>	m_cbData;
 
-	// backup datas
-	std::vector<NXMaterialSamplerInfo>		m_samplerInfosBackup;
-	std::vector<NXMaterialTextureInfo>		m_texInfosBackup;
-	NXMaterialCBufferInfo					m_cbInfoBackup;
-	std::vector<std::string>				m_nslFuncsBackup;
+	// 记录材质的基本数据 但存两份
+	NXMaterialData							m_materialDatas; // 一份是实际参数，负责最终渲染效果
+	NXMSEPackDatas							m_guiDatas; // 另一份负责从MSE/硬盘 get值，然后同步到实际参数
+	NXMaterialCode							m_codeBlocks; // 代码也存一份
 
 	// SSS profile 的路径
 	std::filesystem::path					m_sssProfilePath;

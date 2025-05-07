@@ -217,7 +217,6 @@
     <ClCompile Include="Core\DirectResources.cpp" />
     <ClCompile Include="Core\FBXMeshLoader.cpp" />
     <ClCompile Include="Core\NXAllocatorManager.cpp" />
-    <ClCompile Include="Core\NXCodeProcessHeader.cpp" />
     <ClCompile Include="Core\NXCodeProcessHelper.cpp" />
     <ClCompile Include="Core\NXConvertString.cpp" />
     <ClCompile Include="Core\NXDepthRenderer.cpp" />

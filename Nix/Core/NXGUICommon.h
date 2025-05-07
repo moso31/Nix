@@ -1,6 +1,7 @@
 #pragma once
 #include <filesystem>
 #include "NXShaderDefinitions.h"
+#include "NXCodeProcessHeader.h"
 
 struct NXGUIAssetDragData
 {
@@ -13,16 +14,13 @@ namespace NXGUICommon
 	void RenderSmallTextureIcon(D3D12_GPU_DESCRIPTOR_HANDLE srvHandle, NXGUIFileBrowser* pFileBrowser, std::function<void()> onChange, std::function<void()> onRemove, std::function<void(const std::wstring&)> onDrop);
 
 	// 将字符串转换成GUIStyle
-	NXGUICBufferStyle	GetGUIStyleFromString(const std::string& strTypeString);
-
-	// 将CBuffer转换成GUIStyle
-	NXGUICBufferStyle	GetDefaultGUIStyleFromCBufferType(NXCBufferInputType eCBElemType);
+	NXMSE_CBufferStyle	GetGUIStyleFromString(const std::string& strTypeString);
 
 	// 获取GUIStyle对应的向量个数
-	UINT				GetValueNumOfGUIStyle(NXGUICBufferStyle eGuiStyle);
+	UINT				GetValueNumOfGUIStyle(NXMSE_CBufferStyle eGuiStyle);
 
 	// 获取GUIStyle对应的默认值
-	Vector2				GetGUIParamsDefaultValue(NXGUICBufferStyle eGUIStyle);
+	Vector2				GetGUIParamsDefaultValue(NXMSE_CBufferStyle eGUIStyle);
 
 	std::string ConvertShaderResourceDataToNSLParam(const std::vector<NXGUICBufferData>& cbInfosDisplay, const std::vector<NXGUITextureData>& texInfosDisplay, const std::vector<NXGUISamplerData>& ssInfosDisplay);
 

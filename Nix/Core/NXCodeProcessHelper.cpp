@@ -53,49 +53,24 @@ std::string NXCodeProcessHelper::RemoveHLSLComment(const std::string& strCode)
 	return result;
 }
 
-NXCBufferInputType NXCodeProcessHelper::GetCBufferType(const std::string& strType)
-{
-	if (strType == "float") return NXCBufferInputType::Float;
-	else if (strType == "float2") return NXCBufferInputType::Float2;
-	else if (strType == "float3") return NXCBufferInputType::Float3;
-	else if (strType == "float4") return NXCBufferInputType::Float4;
-	return NXCBufferInputType::None;
-}
-
-NXGUIStyle_CBufferItem NXCodeProcessHelper::GetDefaultCBufferStyle(NXCBufferInputType type)
-{
-	NXGUIStyle_CBufferItem result;
-	switch (type)
-	{
-	case NXCBufferInputType::Float:  result.style = NXGUIStyle_CBufferType::Value;  break;
-	case NXCBufferInputType::Float2: result.style = NXGUIStyle_CBufferType::Value2; break;
-	case NXCBufferInputType::Float3: result.style = NXGUIStyle_CBufferType::Value3; break;
-	case NXCBufferInputType::Float4: result.style = NXGUIStyle_CBufferType::Value4; break;
-	default: result.style = NXGUIStyle_CBufferType::Unknown; break;
-	}
-
-	SetDefaultCBufferGUIParam(result);
-	return result;
-}
-
 void NXCodeProcessHelper::SetDefaultCBufferGUIParam(NXGUIStyle_CBufferItem& guiStyle)
 {
 	switch (guiStyle.style)
 	{
-	case NXGUIStyle_CBufferType::Value:
-	case NXGUIStyle_CBufferType::Value2:
-	case NXGUIStyle_CBufferType::Value3:
-	case NXGUIStyle_CBufferType::Value4:
+	case NXMSE_CBufferStyle::Value:
+	case NXMSE_CBufferStyle::Value2:
+	case NXMSE_CBufferStyle::Value3:
+	case NXMSE_CBufferStyle::Value4:
 	default:
 		guiStyle.guiParams0 = 0.01f; // speed
 		guiStyle.guiParams1 = 0.0f;  // --- (unused)
 
-	case NXGUIStyle_CBufferType::Slider:
-	case NXGUIStyle_CBufferType::Slider2:
-	case NXGUIStyle_CBufferType::Slider3:
-	case NXGUIStyle_CBufferType::Slider4:
-	case NXGUIStyle_CBufferType::Color3:
-	case NXGUIStyle_CBufferType::Color4:
+	case NXMSE_CBufferStyle::Slider:
+	case NXMSE_CBufferStyle::Slider2:
+	case NXMSE_CBufferStyle::Slider3:
+	case NXMSE_CBufferStyle::Slider4:
+	case NXMSE_CBufferStyle::Color3:
+	case NXMSE_CBufferStyle::Color4:
 		guiStyle.guiParams0 = 0.0f; // min
 		guiStyle.guiParams1 = 1.0f; // max
 	}
@@ -130,7 +105,63 @@ bool NXCodeProcessHelper::MoveToNextBranketOut(std::stack<std::string>& stackBra
 	return false;
 }
 
-void NXCodeProcessHelper::ExtractShader(const std::string& strCode, NXShaderBlock& oShaderData)
+std::string NXCodeProcessHelper::GenerateNSL(const NXMSEPackDatas& guiDatas)
+{
+	std::string result;
+	result += "NXShader\n";
+	result += "{\n";
+
+	result += "\tParams\n;";
+	result += "\t{\n";
+
+	std::vector<NXMSE_CBufferData*> cbArr;
+	std::vector<NXMSE_TextureData*> txArr;
+	std::vector<NXMSE_SamplerData*> ssArr;
+
+	for (auto* data : guiDatas.datas)
+	{
+		switch (data->pMaterialData->GetType())
+		{
+		case NXMaterialBaseType::CBuffer: cbArr.push_back(static_cast<NXMSE_CBufferData*>(data)); break;
+		case NXMaterialBaseType::Texture: txArr.push_back(static_cast<NXMSE_TextureData*>(data)); break;
+		case NXMaterialBaseType::Sampler: ssArr.push_back(static_cast<NXMSE_SamplerData*>(data)); break;
+		default: break;
+		}
+	}
+
+	for (auto* tx : txArr)
+	{
+		result += "\t\t";
+		result += "Tex2D ";
+		result += tx->MaterialData()->name;
+		result += ";\n";
+	}
+
+	for (auto* ss : ssArr)
+	{
+		result += "\t\t";
+		result += "SamplerState";
+		result += ss->MaterialData()->name;
+		result += ";\n";
+	}
+
+	result += "CBuffer\n";
+	result += "\t\t{\n";
+	for (auto* cb : cbArr)
+	{
+		result += "\t\t\t";
+		result += "float" + std::to_string(cb->MaterialData()->size);
+		result += " ";
+		result += cb->MaterialData()->name;
+		result += ";\n";
+	}
+
+	result += "\t\t}\n"; // CBuffer
+	result += "\t}\n"; // Params
+	result += "}\n";
+}
+
+void NXCodeProcessHelper::ExtractShader(const std::string& strCode, NXMaterialData& oMatData, NXMSEPackDatas& oGUIData, NXMaterialCode& oMatCode)
 {
 	std::string strNoCommentCode = RemoveHLSLComment(strCode); // 去掉注释
 
@@ -156,15 +187,15 @@ void NXCodeProcessHelper::ExtractShader(const std::string& strCode, NXShaderBloc
 
 		if (shaderCheck && nameCheck)
 		{
-			oShaderData.name = vals[1];
+			oMatCode.shaderName = vals[1];
 			MoveToNextBranketIn(iss, stackBrackets, "NXShader");
-			ExtractShader_NXShader(iss, stackBrackets, oShaderData);
+			ExtractShader_NXShader(iss, stackBrackets, oMatData, oGUIData, oMatCode);
 			break;
 		}
 	}
 }
 
-void NXCodeProcessHelper::ExtractShader_NXShader(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXShaderBlock& oShaderData)
+void NXCodeProcessHelper::ExtractShader_NXShader(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXMaterialData& oMatData, NXMSEPackDatas& oGUIData, NXMaterialCode& oMatCode)
 {
 	std::string str;
 	while (std::getline(iss, str))
@@ -176,27 +207,24 @@ void NXCodeProcessHelper::ExtractShader_NXShader(std::istringstream& iss, std::s
 			if (vals[0] == std::string("Params"))
 			{
 				MoveToNextBranketIn(iss, stackBrackets, "Params");
-				ExtractShader_Params(iss, stackBrackets, oShaderData.params);
+				ExtractShader_Params(iss, stackBrackets, oMatData, oGUIData, oMatCode);
 			}
 			else if (vals[0] == std::string("GlobalFuncs"))
 			{
 				MoveToNextBranketIn(iss, stackBrackets, "GlobalFuncs");
-				ExtractShader_GlobalFuncs(iss, stackBrackets, oShaderData.globalFuncs);
+				ExtractShader_GlobalFuncs(iss, stackBrackets, oMatCode);
 			}
 			else if (vals[0] == std::string("SubShader"))
 			{
 				MoveToNextBranketIn(iss, stackBrackets, "SubShader");
-				ExtractShader_SubShader(iss, stackBrackets, oShaderData.subShader);
+				ExtractShader_SubShader(iss, stackBrackets, oMatCode);
 			}
 		}
 	}
 }
 
-void NXCodeProcessHelper::ExtractShader_Params(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXShaderBlockParams& oShaderParams)
+void NXCodeProcessHelper::ExtractShader_Params(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXMaterialData& oMatData, NXMSEPackDatas& oGUIData, NXMaterialCode& oMatCode)
 {
-	oShaderParams.textures.clear();
-	oShaderParams.samplers.clear();
-
 	std::string str;
 	while (std::getline(iss, str))
 	{
@@ -206,7 +234,7 @@ void NXCodeProcessHelper::ExtractShader_Params(std::istringstream& iss, std::sta
 			if (vals[0] == std::string("CBuffer"))
 			{
 				MoveToNextBranketIn(iss, stackBrackets, "CBuffer");
-				ExtractShader_Params_CBuffer(iss, stackBrackets, oShaderParams.cbuffer);
+				ExtractShader_Params_CBuffer(iss, stackBrackets, oMatData, oGUIData, oMatCode);
 			}
 			if (vals[0] == std::string("}"))
 			{
@@ -219,26 +247,28 @@ void NXCodeProcessHelper::ExtractShader_Params(std::istringstream& iss, std::sta
 		{
 			if (vals[0] == std::string("Tex2D"))
 			{
-				NXShaderBlockTexture newTex;
-				newTex.type = vals[0];
-				newTex.name = vals[1];
-				oShaderParams.textures.push_back(newTex);
+				NXMaterialData_Texture* newTex = new NXMaterialData_Texture(vals[1]);
+				oMatData.datas.push_back(newTex);
+
+				NXMSE_TextureData* newTexGUI = new NXMSE_TextureData();
+				newTexGUI->pMaterialLink = newTex;
+				oGUIData.datas.push_back(newTexGUI);
 			}
 			else if (vals[0] == std::string("SamplerState"))
 			{
-				NXShaderBlockSampler newSampler;
-				newSampler.type = vals[0];
-				newSampler.name = vals[1];
-				oShaderParams.samplers.push_back(newSampler);
+				NXMaterialData_Sampler* newSampler = new NXMaterialData_Sampler(vals[1]);
+				oMatData.datas.push_back(newSampler);
+
+				NXMSE_SamplerData* newSamplerGUI = new NXMSE_SamplerData();
+				newSamplerGUI->pMaterialLink = newSampler;
+				oGUIData.datas.push_back(newSamplerGUI);
 			}
 		}
 	}
 }
 
-void NXCodeProcessHelper::ExtractShader_Params_CBuffer(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXShaderBlockConstantBuffer& oShaderCBuffer)
+void NXCodeProcessHelper::ExtractShader_Params_CBuffer(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXMaterialData& oMatData, NXMSEPackDatas& oGUIData, NXMaterialCode& oMatCode)
 {
-	oShaderCBuffer.values.clear();
-
 	std::string str;
 	while (std::getline(iss, str))
 	{
@@ -254,18 +284,18 @@ void NXCodeProcessHelper::ExtractShader_Params_CBuffer(std::istringstream& iss, 
 		}
 		else if (vals.size() == 2)
 		{
-			NXShaderBlockValue newValue;
-			newValue.type = vals[0];
-			newValue.name = vals[1];
-			oShaderCBuffer.values.push_back(newValue);
+			NXMaterialData_CBuffer* newCBuffer = new NXMaterialData_CBuffer(vals[1]);
+			oMatData.datas.push_back(newCBuffer);
+
+			NXMSE_CBufferData* newCBufferGUI = new NXMSE_CBufferData();
+			newCBufferGUI->pMaterialLink = newCBuffer;
+			oGUIData.datas.push_back(newCBufferGUI);
 		}
 	}
 }
 
-void NXCodeProcessHelper::ExtractShader_GlobalFuncs(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXShaderBlockFunctions& oShaderGlobalFuncs)
+void NXCodeProcessHelper::ExtractShader_GlobalFuncs(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXMaterialCode& oMatCode)
 {
-	oShaderGlobalFuncs.bodys.clear();
-
 	std::string str;
 	while (std::getline(iss, str))
 	{
@@ -274,7 +304,7 @@ void NXCodeProcessHelper::ExtractShader_GlobalFuncs(std::istringstream& iss, std
 		{
 			if (vals[0] == std::string("[FUNCBEGIN]"))
 			{
-				ExtractShader_GlobalFuncBody(iss, stackBrackets, "[FUNCEND]", oShaderGlobalFuncs.bodys.emplace_back());
+				ExtractShader_GlobalFuncBody(iss, stackBrackets, "[FUNCEND]", oMatCode);
 			}
 			if (vals[0] == std::string("}"))
 			{
@@ -286,34 +316,38 @@ void NXCodeProcessHelper::ExtractShader_GlobalFuncs(std::istringstream& iss, std
 	}
 }
 
-void NXCodeProcessHelper::ExtractShader_GlobalFuncBody(std::istringstream& iss, std::stack<std::string>& stackBrackets, const std::string& strEndBlock, NXShaderBlockFuncBody& oShaderFuncBody)
+void NXCodeProcessHelper::ExtractShader_GlobalFuncBody(std::istringstream& iss, std::stack<std::string>& stackBrackets, const std::string& strEndBlock, NXMaterialCode& oMatCode)
 {
 	std::string str;
+	std::string strTitle;
+	std::string strCode;
 	while (std::getline(iss, str))
 	{
 		auto& vals = split(str);
 		if (!vals.empty()) // 只要不是空的，就一整行都要
 		{
-			if (vals[0] == strEndBlock) return;
+			if (vals[0] == strEndBlock)
+				break;
 
 			// title：第一行（函数名和参数）
-			if (oShaderFuncBody.title.empty())
-				oShaderFuncBody.title = Trim(str);
+			if (strTitle.empty())
+				strTitle = Trim(str);
 
 			// data：所有内容
-			oShaderFuncBody.data += str + "\n";
+			strCode += str + "\n";
 		}
 		else
 		{
-			oShaderFuncBody.data += "\n";
+			strCode += "\n";
 		}
 	}
+
+	oMatCode.commonFuncs.title.push_back(strTitle);
+	oMatCode.commonFuncs.data.push_back(strCode);
 }
 
-void NXCodeProcessHelper::ExtractShader_SubShader(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXShaderBlockSubShader& oShaderSubShader)
+void NXCodeProcessHelper::ExtractShader_SubShader(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXMaterialCode& oMatCode)
 {
-	oShaderSubShader.passes.clear();
-
 	std::string str;
 	while (std::getline(iss, str))
 	{
@@ -326,13 +360,13 @@ void NXCodeProcessHelper::ExtractShader_SubShader(std::istringstream& iss, std::
 			if (vals[0] == std::string("Pass"))
 			{
 				MoveToNextBranketIn(iss, stackBrackets, "Pass");
-				ExtractShader_SubShader_Pass(iss, stackBrackets, oShaderSubShader.passes.emplace_back());
+				ExtractShader_SubShader_Pass(iss, stackBrackets, oMatCode.passes.emplace_back());
 			}
 		}
 	}
 }
 
-void NXCodeProcessHelper::ExtractShader_SubShader_Pass(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXShaderBlockPass& oShaderSubShaderPass)
+void NXCodeProcessHelper::ExtractShader_SubShader_Pass(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXMaterialPassCode& oMatPassCode)
 {
 	std::string str;
 	while (std::getline(iss, str))
@@ -342,11 +376,11 @@ void NXCodeProcessHelper::ExtractShader_SubShader_Pass(std::istringstream& iss, 
 		{
 			if (vals[0] == std::string("[VSBEGIN]"))
 			{
-				ExtractShader_SubShader_Pass_Entry(iss, stackBrackets, "[VSEND]", oShaderSubShaderPass.vsFunc);
+				ExtractShader_SubShader_Pass_Entry(iss, stackBrackets, "[VSEND]", oMatPassCode.vsFunc);
 			}
 			else if (vals[0] == std::string("[PSBEGIN]"))
 			{
-				ExtractShader_SubShader_Pass_Entry(iss, stackBrackets, "[PSEND]", oShaderSubShaderPass.psFunc);
+				ExtractShader_SubShader_Pass_Entry(iss, stackBrackets, "[PSEND]", oMatPassCode.psFunc);
 			}
 			else if (vals[0] == std::string("}"))
 			{
@@ -358,7 +392,7 @@ void NXCodeProcessHelper::ExtractShader_SubShader_Pass(std::istringstream& iss, 
 	}
 }
 
-void NXCodeProcessHelper::ExtractShader_SubShader_Pass_Entry(std::istringstream& iss, std::stack<std::string>& stackBrackets, const std::string& strEndBlock, std::string& oShaderSubShaderPassEntry)
+void NXCodeProcessHelper::ExtractShader_SubShader_Pass_Entry(std::istringstream& iss, std::stack<std::string>& stackBrackets, const std::string& strEndBlock, std::string& oStrPassEntryCode)
 {
 	std::string str;
 	while (std::getline(iss, str))
@@ -368,26 +402,29 @@ void NXCodeProcessHelper::ExtractShader_SubShader_Pass_Entry(std::istringstream&
 		{
 			if (vals[0] == strEndBlock) return;
 
-			oShaderSubShaderPassEntry += str + "\n";
+			oStrPassEntryCode += str + "\n";
 		}
 		else
 		{
-			oShaderSubShaderPassEntry += "\n";
+			oStrPassEntryCode += "\n";
 		}
 	}
 }
 
-std::string NXCodeProcessHelper::BuildHLSL(const std::filesystem::path& nslPath, const NXShaderBlock& shaderCode, NXCustomMaterial* pMat)
+std::string NXCodeProcessHelper::BuildHLSL(const std::filesystem::path& nslPath, const NXMaterialData& oMatData, const NXMaterialCode& shaderCode)
 {
+	// 注意这个方法不会用nslPath记录的内容构建HLSL；而是使用oMatData+shaderCode。
+	// nslPath在这里唯一作用就是给cbuffer struct生成hash
+
 	std::string str;
-	str += BuildHLSL_Include(pMat);
-	str += BuildHLSL_Params(nslPath, shaderCode, pMat);
-	str += BuildHLSL_PassFuncs(shaderCode, pMat);
-	str += BuildHLSL_GlobalFuncs(shaderCode, pMat);
-	str += BuildHLSL_Structs(shaderCode, pMat);
+	str += BuildHLSL_Include();
+	str += BuildHLSL_Params(nslPath, oMatData, shaderCode);
+	str += BuildHLSL_PassFuncs(oMatData, shaderCode);
+	str += BuildHLSL_GlobalFuncs(oMatData, shaderCode);
+	str += BuildHLSL_Structs(oMatData, shaderCode);
 }
 
-std::string NXCodeProcessHelper::BuildHLSL_Include(NXCustomMaterial* pMat)
+std::string NXCodeProcessHelper::BuildHLSL_Include()
 {
 	std::string str = R"(
 #include "Common.fx"
@@ -396,7 +433,7 @@ std::string NXCodeProcessHelper::BuildHLSL_Include(NXCustomMaterial* pMat)
 	return "";
 }
 
-std::string NXCodeProcessHelper::BuildHLSL_Params(const std::filesystem::path& nslPath, const NXShaderBlock& shaderCode, NXCustomMaterial* pMat)
+std::string NXCodeProcessHelper::BuildHLSL_Params(const std::filesystem::path& nslPath, const NXMaterialData& oMatData, const NXMaterialCode& shaderCode)
 {
 	int slot_tex = 0;
 	int slot_ss = 0;
@@ -408,28 +445,40 @@ std::string NXCodeProcessHelper::BuildHLSL_Params(const std::filesystem::path& n
 
 	std::string str;
 
-	// texture
-	const auto& texArr = shaderCode.params.textures;
-	for (const auto& tex : texArr)
+	std::vector<NXMaterialData_CBuffer*> cbArr;
+	std::vector<NXMaterialData_Texture*> txArr;
+	std::vector<NXMaterialData_Sampler*> ssArr;
+
+	for (auto* data : oMatData.datas)
 	{
-		str += "Texture2D " + tex.name + " : register(t" + std::to_string(slot_tex) + ");\n";
+		switch (data->GetType())
+		{
+		case NXMaterialBaseType::CBuffer: cbArr.push_back(static_cast<NXMaterialData_CBuffer*>(data)); break;
+		case NXMaterialBaseType::Texture: txArr.push_back(static_cast<NXMaterialData_Texture*>(data)); break;
+		case NXMaterialBaseType::Sampler: ssArr.push_back(static_cast<NXMaterialData_Sampler*>(data)); break;
+		default: break;
+		}
+	}
+
+	// texture
+	for (auto* tex : txArr)
+	{
+		str += "Texture2D " + tex->name + " : register(t" + std::to_string(slot_tex) + ");\n";
 	}
 
 	// sampler
-	const auto& ssArr = shaderCode.params.samplers;
-	for (const auto& ss : ssArr)
+	for (auto* ss : ssArr)
 	{
-		str += "SamplerState " + ss.name + " : register(s" + std::to_string(slot_ss) + ");\n";
+		str += "SamplerState " + ss->name + " : register(s" + std::to_string(slot_ss) + ");\n";
 	}
 
 	// cbuffer
-	const auto& cbArr = shaderCode.params.cbuffer;
 	std::string strMatName("Mat_" + std::to_string(std::filesystem::hash_value(nslPath)));
 	str += "struct " + strMatName + "\n";
 	str += "{\n";
-	for (const auto& cb : cbArr.values)
+	for (auto* cb : cbArr)
 	{
-		str += "\t" + cb.type + " " + cb.name + ";\n";
+		str += "\tfloat" + std::to_string(cb->size) + " " + cb->name + ";\n";
 	}
 	bool bIsGBuffer = true; // todo: 扩展其他pass
 	if (bIsGBuffer)
@@ -447,20 +496,19 @@ std::string NXCodeProcessHelper::BuildHLSL_Params(const std::filesystem::path& n
 	return str;
 }
 
-std::string NXCodeProcessHelper::BuildHLSL_GlobalFuncs(const NXShaderBlock& shaderCode, NXCustomMaterial* pMat)
+std::string NXCodeProcessHelper::BuildHLSL_GlobalFuncs(const NXMaterialData& oMatData, const NXMaterialCode& shaderCode)
 {
 	std::string str;
-	auto& shaderBodyArr = shaderCode.globalFuncs.bodys;
-	for (auto& shaderBody : shaderBodyArr)
+	for (auto& shaderBody : shaderCode.commonFuncs.data)
 	{
-		str += shaderBody.data;
+		str += shaderBody;
 		str += "\n";
 	}
 
 	return str;
 }
 
-std::string NXCodeProcessHelper::BuildHLSL_Structs(const NXShaderBlock& shaderCode, NXCustomMaterial* pMat)
+std::string NXCodeProcessHelper::BuildHLSL_Structs(const NXMaterialData& oMatData, const NXMaterialCode& shaderCode)
 {
 	std::string str = R"(
 struct VS_INPUT
@@ -494,7 +542,7 @@ struct PS_OUTPUT
 	return str;
 }
 
-std::string NXCodeProcessHelper::BuildHLSL_PassFuncs(const NXShaderBlock& shaderCode, NXCustomMaterial* pMat)
+std::string NXCodeProcessHelper::BuildHLSL_PassFuncs(const NXMaterialData& oMatData, const NXMaterialCode& shaderCode)
 {
 	std::string str = R"(
 void EncodeGBuffer(NXGBufferParams gBuffer, PS_INPUT input, out PS_OUTPUT Output)
@@ -527,15 +575,15 @@ void EncodeGBuffer(NXGBufferParams gBuffer, PS_INPUT input, out PS_OUTPUT Output
 	return str;
 }
 
-std::string NXCodeProcessHelper::BuildHLSL_Entry(const NXShaderBlock& shaderCode, NXCustomMaterial* pMat)
+std::string NXCodeProcessHelper::BuildHLSL_Entry(const NXMaterialData& oMatData, const NXMaterialCode& shaderCode)
 {
 	std::string str;
-	str += BuildHLSL_Entry_VS(shaderCode, pMat);
-	str += BuildHLSL_Entry_PS(shaderCode, pMat);
+	str += BuildHLSL_Entry_VS(oMatData, shaderCode);
+	str += BuildHLSL_Entry_PS(oMatData, shaderCode);
 	return str;
 }
 
-std::string NXCodeProcessHelper::BuildHLSL_Entry_VS(const NXShaderBlock& shaderCode, NXCustomMaterial* pMat)
+std::string NXCodeProcessHelper::BuildHLSL_Entry_VS(const NXMaterialData& oMatData, const NXMaterialCode& shaderCode)
 {
 	std::string strVSBegin = R"(PS_INPUT VS(VS_INPUT input)
 {)";
@@ -545,13 +593,13 @@ std::string NXCodeProcessHelper::BuildHLSL_Entry_VS(const NXShaderBlock& shaderC
 
 	std::string str;
 	str += strVSBegin;
-	str += shaderCode.subShader.passes[0].vsFunc + "\n";
+	str += shaderCode.passes[0].vsFunc + "\n";
 	str += strVSEnd;
 
 	return str;
 }
 
-std::string NXCodeProcessHelper::BuildHLSL_Entry_PS(const NXShaderBlock& shaderCode, NXCustomMaterial* pMat)
+std::string NXCodeProcessHelper::BuildHLSL_Entry_PS(const NXMaterialData& oMatData, const NXMaterialCode& shaderCode)
 {
 	std::string strPSBegin = R"(
 void PS(PS_INPUT input, out PS_OUTPUT Output)
@@ -571,34 +619,146 @@ void PS(PS_INPUT input, out PS_OUTPUT Output)
 
 	std::string str;
 	str += strPSBegin;
-	str += shaderCode.subShader.passes[0].psFunc + "\n";
+	str += shaderCode.passes[0].psFunc + "\n";
 	str += strPSEnd;
 
 	return str;
 }
 
-void NXCodeProcessHelper::BuildMaterial(const std::filesystem::path& nslPath, const NXShaderBlock& shaderCode, NXMaterialData& oMaterialElement)
+NXMaterialData NXCodeProcessHelper::BuildMaterialData(const NXMSEPackDatas& guiData)
 {
-	oMaterialElement.Clear();
-
-	const auto& shaderParams = shaderCode.params;
-	for (auto& cbValues : shaderParams.cbuffer.values)
+	NXMaterialData result;
+	for (auto* gui : guiData.datas)
 	{
-		for (auto& cb : oMaterialElement.cbuffer.elems)
+		auto type = gui->pMaterialData->GetType();
+		if (type == NXMaterialBaseType::CBuffer)
 		{
-			cb.name = cbValues.name;
-			cb.type = GetCBufferType(cbValues.type);
-			//cb.value = 等等，好像不用重新赋值哎
-			cb.guiStyle = GetDefaultCBufferStyle(cb.type);
+			NXMSE_CBufferData* guiCB = (NXMSE_CBufferData*)gui;
+
+			NXMaterialData_CBuffer* newCBuffer = new NXMaterialData_CBuffer(gui->pMaterialData->name);
+			newCBuffer->data = guiCB->MaterialData()->data;
+			newCBuffer->size = guiCB->MaterialData()->size;
+			result.datas.push_back(newCBuffer);
+		}
+		else if (type == NXMaterialBaseType::Texture)
+		{
+			NXMSE_TextureData* guiTex = (NXMSE_TextureData*)gui;
+
+			NXMaterialData_Texture* newTexture = new NXMaterialData_Texture(gui->pMaterialData->name);
+			newTexture->pTexture = guiTex->MaterialData()->pTexture;
+			result.datas.push_back(newTexture);
+		}
+		else if (type == NXMaterialBaseType::Sampler)
+		{
+			NXMSE_SamplerData* guiSampler = (NXMSE_SamplerData*)gui;
+
+			NXMaterialData_Sampler* newSampler = new NXMaterialData_Sampler(gui->pMaterialData->name);
+			newSampler->filter = guiSampler->MaterialData()->filter;
+			newSampler->addressU = guiSampler->MaterialData()->addressU;
+			newSampler->addressV = guiSampler->MaterialData()->addressV;
+			newSampler->addressW = guiSampler->MaterialData()->addressW;
+			result.datas.push_back(newSampler);
 		}
 	}
-	oMaterialElement.cbuffer.sets.shadingModel = ? ;
 
-	for (auto& tex : shaderParams.textures)
+	result.sets.shadingModel = guiData.settings.shadingModel;
+	return result;
+}
+
+void NXCodeProcessHelper::SaveToNSLFile(const std::filesystem::path& nslPath, const NXMaterialData& oMatData, const NXMaterialCode& shaderCode)
+{
+	std::vector<NXMaterialData_CBuffer*> cbArr;
+	std::vector<NXMaterialData_Texture*> txArr;
+	std::vector<NXMaterialData_Sampler*> ssArr;
+
+	for (auto* data : oMatData.datas)
 	{
-		NXMaterialData_Texture newTexture;
-		newTexture.name = tex.name;
-		//newTexture.pTexture = 等等，好像不用重新赋值哎
-		oMaterialElement.textures.push_back(newTexture);
+		switch (data->GetType())
+		{
+		case NXMaterialBaseType::CBuffer: cbArr.push_back(static_cast<NXMaterialData_CBuffer*>(data)); break;
+		case NXMaterialBaseType::Texture: txArr.push_back(static_cast<NXMaterialData_Texture*>(data)); break;
+		case NXMaterialBaseType::Sampler: ssArr.push_back(static_cast<NXMaterialData_Sampler*>(data)); break;
+		default: break;
+		}
 	}
+
+
+	std::string str;
+	str += "NXShader \"" + shaderCode.shaderName + "\"\n";
+	str += "\n";
+	str += "\tParams\n";
+	str += "\t{\n";
+	
+	for (auto* tx : txArr)
+	{
+		str += "\t\t";
+		str += "Tex2D ";
+		str += tx->name;
+		str += "\n";
+	}
+
+	for (auto* ss : ssArr)
+	{
+		str += "\t\t";
+		str += "SamplerState ";
+		str += ss->name;
+		str += "\n";
+	}
+
+	str += "\t\tCBuffer\n";
+	str += "\t\t{\n";
+	for (auto* cb : cbArr)
+	{
+		str += "\t\t\t";
+		str += "float" + std::to_string(cb->size);
+		str += " ";
+		str += cb->name;
+		str += "\n";
+	}
+
+	str += "\t\t}\n"; // CBuffer
+	str += "\t}\n"; // Params
+
+	str += "\tGlobalFuncs\n";
+	str += "\t{\n";
+
+	for (size_t i = 0; i < shaderCode.commonFuncs.title.size(); ++i)
+	{
+		str += "\t\t[FUNCBEGIN]\n";
+		str += shaderCode.commonFuncs.data[i];
+		str += "\t\t[FUNCEND]\n";
+	}
+
+	str += "\t}\n"; // GlobalFuncs
+
+	str += "\tSubShader\n";
+	str += "\t{\n";
+
+	for (auto& pass : shaderCode.passes)
+	{
+		str += "\t\tPass\n";
+		str += "\t\t{\n";
+
+		str += "\t\t\t[VSBEGIN]\n";
+		str += pass.vsFunc;
+		str += "\t\t\t[VSEND]\n";
+
+		str += "\t\t\t[PSBEGIN]\n";
+		str += pass.psFunc;
+		str += "\t\t\t[PSEND]\n";
+
+		str += "\t\t}\n"; // Pass
+	}
+
+	str += "\t}\n"; // SubShader
+	str += "}\n"; // NXShader
+
+	// save to file
+	std::ofstream file(nslPath);
+	if (!file.is_open())
+	{
+		throw std::runtime_error("Failed to open file: " + nslPath.string());
+	}
+	file << str;
+	file.close();
 }
