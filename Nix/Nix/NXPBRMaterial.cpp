@@ -143,7 +143,7 @@ bool NXCustomMaterial::LoadShaderCode()
 
 	if (bLoadSuccess)
 	{
-		// 解析 nsl 文件，数据存在 m_shaderCodeData
+		// 解析 nsl 文件
 		NXCodeProcessHelper::ExtractShader(strShader, m_materialDatas, m_guiDatas, m_codeBlocks);
 	}
 
@@ -338,19 +338,19 @@ void NXCustomMaterial::Render(ID3D12GraphicsCommandList* pCommandList)
 	pCommandList->SetGraphicsRootSignature(m_pRootSig.Get());
 	pCommandList->SetPipelineState(m_pPSO.Get());
 
-	if (m_texInfos.empty()) return;
-
-	if (m_texInfos.size() > 0)
+	for (auto& matData : m_materialDatas.datas)
 	{
-		for (auto& tex : m_texInfos)
-		{
-			if (tex.pTexture.IsValid()) 
-				NXShVisDescHeap->PushFluid(tex.pTexture->GetSRV());
-		}
-		auto& srvHandle = NXShVisDescHeap->Submit();
+		if (matData->GetType() != NXMaterialBaseType::Texture)
+			continue;
 
-		pCommandList->SetGraphicsRootDescriptorTable(3, srvHandle); // t...
+		auto* texData = (NXMaterialData_Texture*)matData;
+		auto& pTex = texData->pTexture;
+		if (pTex.IsValid())
+			NXShVisDescHeap->PushFluid(pTex->GetSRV());
 	}
+
+	auto& srvHandle = NXShVisDescHeap->Submit();
+	pCommandList->SetGraphicsRootDescriptorTable(3, srvHandle); // t...
 
 	if (!m_bIsDirty)
 	{
@@ -424,53 +424,69 @@ void NXCustomMaterial::SaveToNSLFile()
 
 void NXCustomMaterial::Serialize()
 {
+	// 序列化时GUI数据总是最新的，所以直接用GUI数据（此时不用考虑MaterialData同步不及时的问题）
+	std::vector<NXMSE_CBufferData*> cbArr;
+	std::vector<NXMSE_TextureData*> txArr;
+	std::vector<NXMSE_SamplerData*> ssArr;
+
+	for (auto* data : m_guiDatas.datas)
+	{
+		switch (data->pMaterialData->GetType())
+		{
+		case NXMaterialBaseType::CBuffer: cbArr.push_back(static_cast<NXMSE_CBufferData*>(data)); break;
+		case NXMaterialBaseType::Texture: txArr.push_back(static_cast<NXMSE_TextureData*>(data)); break;
+		case NXMaterialBaseType::Sampler: ssArr.push_back(static_cast<NXMSE_SamplerData*>(data)); break;
+		default: break;
+		}
+	}
+
 	using namespace rapidjson;
 	std::string n0Path = m_filePath.string() + ".n0";
 	NXSerializer serializer;
 	serializer.StartObject();
 
 	serializer.StartArray("textures");
-	for (auto& texInfo : m_texInfos)
+	for (auto& tx : txArr)
 	{
+		auto* texInfo = tx->MaterialData();
 		serializer.StartObject();
-		serializer.String("name", texInfo.name);
-		serializer.String("path", texInfo.pTexture->GetFilePath().string());
-		serializer.Uint("slotIndex", texInfo.slotIndex);
+		serializer.String("name", texInfo->name);
+		serializer.String("path", texInfo->pTexture->GetFilePath().string());
 		serializer.EndObject();
 	}
 	serializer.EndArray();
 
 	serializer.StartArray("samplers");
-	for (auto& ssInfo : m_samplerInfos)
+	for (auto& ss : ssArr)
 	{
+		auto* ssInfo = ss->MaterialData();
 		serializer.StartObject();
-		serializer.String("name", ssInfo.name);
-		serializer.Uint("slotIndex", ssInfo.slotIndex);
-		serializer.Int("filter", (int)ssInfo.filter);
-		serializer.Int("addressU", (int)ssInfo.addressU);
-		serializer.Int("addressV", (int)ssInfo.addressV);
-		serializer.Int("addressW", (int)ssInfo.addressW);
+		serializer.String("name", ssInfo->name);
+		serializer.Int("filter", (int)ssInfo->filter);
+		serializer.Int("addressU", (int)ssInfo->addressU);
+		serializer.Int("addressV", (int)ssInfo->addressV);
+		serializer.Int("addressW", (int)ssInfo->addressW);
 		serializer.EndObject();
 	}
 	serializer.EndArray();
 
 	serializer.StartArray("cbuffer");
-	for (int i = 0; i < m_cbInfo.elems.size(); i++)
+	for (auto& cb : cbArr)
 	{
-		auto& cbInfo = m_cbInfo.elems[i];
+		auto* cbInfo = cb->MaterialData();
 		serializer.StartObject();
-		serializer.String("name", cbInfo.name);
-		serializer.Int("type", (int)cbInfo.type);
-		serializer.Int("guiStyle", (int)cbInfo.style);
+		serializer.String("name", cbInfo->name);
+		serializer.Int("type", (int)cbInfo->size);
+		serializer.Int("guiStyle", (int)cb->guiStyle);
 
 		serializer.StartArray("guiParams");
-		serializer.PushFloat(cbInfo.guiParams[0]);
-		serializer.PushFloat(cbInfo.guiParams[1]);
+		serializer.PushFloat(cb->guiParams[0]);
+		serializer.PushFloat(cb->guiParams[1]);
 		serializer.EndArray();
 
 		serializer.StartArray("values");
-		for (int j = 0; j < (int)cbInfo.type; j++)
-			serializer.PushFloat(m_cbInfoMemory[cbInfo.memoryIndex + j]);
+		for (int j = 0; j < (int)cbInfo->size; j++)
+			serializer.PushFloat(cbInfo->data[j]);
 		serializer.EndArray();
 
 		serializer.EndObject();
@@ -479,7 +495,7 @@ void NXCustomMaterial::Serialize()
 
 	// cbuffer sets
 	{
-		serializer.Uint("shadingModel", m_cbInfo.sets.shadingModel);
+		serializer.Uint("shadingModel", m_guiDatas.settings.shadingModel);
 		serializer.String("sssProfilePath", m_sssProfilePath.string());
 	}
 
