@@ -55,16 +55,16 @@ private:
 	void OnBtnNewFunctionClicked(NXCustomMaterial* pMaterial);
 	void OnBtnRemoveFunctionClicked(NXCustomMaterial* pMaterial, UINT index);
 
-	void OnBtnAddParamClicked(NXCustomMaterial* pMaterial, NXMSE_CBufferStyle guiStyle);
+	void OnBtnAddParamClicked(NXCustomMaterial* pMaterial, NXGUICBufferStyle guiStyle);
 	void OnBtnAddTextureClicked(NXCustomMaterial* pMaterial);
 	void OnBtnAddSamplerClicked(NXCustomMaterial* pMaterial);
 
-	void OnBtnRemoveParamClicked(BtnParamType btnParamType, NXMSE_BaseData* pData);
-	void OnBtnMoveParamToPrevClicked(BtnParamType btnParamType, NXMSE_BaseData* pData);
-	void OnBtnMoveParamToNextClicked(BtnParamType btnParamType, NXMSE_BaseData* pData);
-	void OnBtnMoveParamToFirstClicked(BtnParamType btnParamType, NXMSE_BaseData* pData);
-	void OnBtnMoveParamToLastClicked(BtnParamType btnParamType, NXMSE_BaseData* pData);
-	void OnBtnRevertParamClicked(NXCustomMaterial* pMaterial, NXMSE_BaseData* pData);
+	void OnBtnRemoveParamClicked(NXMatDataBase* pData);
+	void OnBtnMoveParamToPrevClicked(NXMatDataBase* pData);
+	void OnBtnMoveParamToNextClicked(NXMatDataBase* pData);
+	void OnBtnMoveParamToFirstClicked(NXMatDataBase* pData);
+	void OnBtnMoveParamToLastClicked(NXMatDataBase* pData);
+	void OnBtnRevertParamClicked(NXCustomMaterial* pMaterial, NXMatDataBase* pData);
 	bool OnBtnCompileClicked(NXCustomMaterial* pMaterial);
 	void OnBtnSaveClicked(NXCustomMaterial* pMaterial);
 	void OnShowFuncIndexChanged(int showFuncIndex);
@@ -73,10 +73,10 @@ private:
 	void Render_FeaturePanel(NXCustomMaterial* pMaterial);
 	void Render_Complies(NXCustomMaterial* pMaterial);
 	void Render_Params(NXCustomMaterial* pMaterial);
-	void Render_Params_ResourceOps(const std::string& strNameId, NXCustomMaterial* pMaterial, BtnParamType btnParamType, std::string& name, NXMSE_BaseData* pData);
-	void Render_Params_CBufferItem(const std::string& strId, NXCustomMaterial* pMaterial, NXMSE_CBufferData* pCBuffer);
-	void Render_Params_TextureItem(const int strId, NXCustomMaterial* pMaterial, NXMSE_TextureData* pTexture);
-	void Render_Params_SamplerItem(const int strId, NXCustomMaterial* pMaterial, NXMSE_SamplerData* pSampler);
+	void Render_Params_ResourceOps(const std::string& strNameId, NXCustomMaterial* pMaterial, NXMatDataBase* pData);
+	void Render_Params_CBufferItem(const std::string& strId, NXCustomMaterial* pMaterial, NXMatDataCBuffer* pCBuffer);
+	void Render_Params_TextureItem(const int strId, NXCustomMaterial* pMaterial, NXMatDataTexture* pTexture);
+	void Render_Params_SamplerItem(const int strId, NXCustomMaterial* pMaterial, NXMatDataSampler* pSampler);
 	void Render_Settings(NXCustomMaterial* pMaterial);
 	void Render_ErrorMessages();
 
@@ -97,8 +97,8 @@ private:
 	int m_showFuncIndex = 0; // 用于显示的函数索引
 
 	// 材质参数
-	NXMSEPackDatas m_guiDatas;
-	NXMSEPackDatas m_guiDatasBackup;
+	NXMaterialData m_guiData;
+	NXMaterialData m_guiDataBackup;
 
 	// 材质代码
 	NXMaterialCode m_guiCodes;

@@ -371,15 +371,15 @@ void NXCustomMaterial::Update()
 void NXCustomMaterial::SetTexture(const Ntr<NXTexture>& pTexture, const std::filesystem::path& texFilePath)
 {
 	auto it = std::find_if(m_guiDatas.datas.begin(), m_guiDatas.datas.end(),
-		[pTexture](const NXMSE_BaseData* data) { 
-			return data->pMaterialData->GetType() == NXMaterialBaseType::Texture && ((NXMSE_TextureData*)data)->MaterialData()->pTexture == pTexture;
+		[pTexture](const NXMatDataBase* data) { 
+			return data->pMaterialData->GetType() == NXMaterialBaseType::Texture && ((NXMatDataTexture*)data)->MaterialData()->pTexture == pTexture;
 		});
 
 	if (it != m_guiDatas.datas.end())
 	{
 		auto newTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(m_name, texFilePath);
 
-		auto pTexIt = ((NXMSE_TextureData*)*it);
+		auto pTexIt = ((NXMatDataTexture*)*it);
 		pTexIt->MaterialData()->pTexture = newTexture;
 		pTexIt->MaterialLink()->pTexture = newTexture;
 	}
@@ -389,13 +389,13 @@ void NXCustomMaterial::SetTexture(const Ntr<NXTexture>& pTexture, const std::fil
 void NXCustomMaterial::RemoveTexture(const Ntr<NXTexture>& pTexture)
 {
 	auto it = std::find_if(m_guiDatas.datas.begin(), m_guiDatas.datas.end(),
-		[pTexture](const NXMSE_BaseData* data) {
-			return data->pMaterialData->GetType() == NXMaterialBaseType::Texture && ((NXMSE_TextureData*)data)->MaterialData()->pTexture == pTexture;
+		[pTexture](const NXMatDataBase* data) {
+			return data->pMaterialData->GetType() == NXMaterialBaseType::Texture && ((NXMatDataTexture*)data)->MaterialData()->pTexture == pTexture;
 		});
 
 	if (it != m_guiDatas.datas.end())
 	{
-		auto pTexIt = ((NXMSE_TextureData*)*it);
+		auto pTexIt = ((NXMatDataTexture*)*it);
 		auto pTex = pTexIt->MaterialData()->pTexture;
 
 		// Get tex by NXTextureMode
@@ -425,17 +425,17 @@ void NXCustomMaterial::SaveToNSLFile()
 void NXCustomMaterial::Serialize()
 {
 	// 序列化时GUI数据总是最新的，所以直接用GUI数据（此时不用考虑MaterialData同步不及时的问题）
-	std::vector<NXMSE_CBufferData*> cbArr;
-	std::vector<NXMSE_TextureData*> txArr;
-	std::vector<NXMSE_SamplerData*> ssArr;
+	std::vector<NXMatDataCBuffer*> cbArr;
+	std::vector<NXMatDataTexture*> txArr;
+	std::vector<NXMatDataSampler*> ssArr;
 
 	for (auto* data : m_guiDatas.datas)
 	{
 		switch (data->pMaterialData->GetType())
 		{
-		case NXMaterialBaseType::CBuffer: cbArr.push_back(static_cast<NXMSE_CBufferData*>(data)); break;
-		case NXMaterialBaseType::Texture: txArr.push_back(static_cast<NXMSE_TextureData*>(data)); break;
-		case NXMaterialBaseType::Sampler: ssArr.push_back(static_cast<NXMSE_SamplerData*>(data)); break;
+		case NXMaterialBaseType::CBuffer: cbArr.push_back(static_cast<NXMatDataCBuffer*>(data)); break;
+		case NXMaterialBaseType::Texture: txArr.push_back(static_cast<NXMatDataTexture*>(data)); break;
+		case NXMaterialBaseType::Sampler: ssArr.push_back(static_cast<NXMatDataSampler*>(data)); break;
 		default: break;
 		}
 	}
@@ -546,8 +546,8 @@ void NXCustomMaterial::Deserialize()
 					auto objType = deserializer.Int(cb, "type", (int)NXCBufferInputType::Float);
 					if ((int)cbElem.type == objType)
 					{
-						auto objGUIStyle = deserializer.Int(cb, "guiStyle", (int)NXMSE_CBufferStyle::Unknown);
-						cbElem.style = (NXMSE_CBufferStyle)objGUIStyle;
+						auto objGUIStyle = deserializer.Int(cb, "guiStyle", (int)NXGUICBufferStyle::Unknown);
+						cbElem.style = (NXGUICBufferStyle)objGUIStyle;
 
 						auto objValues = deserializer.Array(cb, "values");
 						if (!objValues.Empty())

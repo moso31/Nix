@@ -129,7 +129,7 @@ public:
 	const float* GetCBInfoMemoryData(UINT memoryIndex) { return m_cbInfoMemory.data() + memoryIndex; }
 	void SetCBInfoMemoryData();
 
-	NXMSE_CBufferStyle GetCBGUIStyles(UINT index) { return m_cbInfo.elems[index].style; }
+	NXGUICBufferStyle GetCBGUIStyles(UINT index) { return m_cbInfo.elems[index].style; }
 	Vector2 GetCBGUIParams(UINT index) { return m_cbInfo.elems[index].guiParams; }
 
 	void RequestUpdateCBufferData(bool bNeedRebuildCB);

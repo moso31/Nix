@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include "Ntr.h"
+#include "BaseDefs/Math.h"
 
 class NXTexture;
 
@@ -32,70 +33,7 @@ enum class NXMaterialBaseType
 	Sampler
 };
 
-struct NXMaterialBaseData 
-{
-	NXMaterialBaseData(const std::string& name, NXMaterialBaseType type) : name(name), baseType(type) {}
-	virtual ~NXMaterialBaseData() {}
-
-	std::string name;
-
-	NXMaterialBaseType GetType() const { return baseType; }
-
-protected:
-	NXMaterialBaseType baseType;
-};
-
-struct NXMaterialData_CBuffer : public NXMaterialBaseData
-{
-	NXMaterialData_CBuffer(const std::string& name) : NXMaterialBaseData(name, NXMaterialBaseType::CBuffer), data(0.0f), size(0) {}
-	NXMaterialData_CBuffer(const std::string& name, const Vector4& data, int size) : NXMaterialBaseData(name, NXMaterialBaseType::CBuffer), data(data), size(size) {}
-
-	// 记录 gui的 CB，但每个数据都使用最大的 Vec4 储存。
-	// 这么做是为了避免 GUI 增量改变数据格式时，产生额外的内存分配。
-	Vector4 data;
-	int size;
-};
-
-struct NXMaterialData_Texture : public NXMaterialBaseData
-{
-	NXMaterialData_Texture(const std::string& name) : NXMaterialBaseData(name, NXMaterialBaseType::Texture), pTexture(nullptr) {}
-	NXMaterialData_Texture(const std::string& name, const Ntr<NXTexture>& pTexture) : NXMaterialBaseData(name, NXMaterialBaseType::Texture), pTexture(pTexture) {}
-	Ntr<NXTexture> pTexture;
-};
-
-struct NXMaterialData_Sampler : public NXMaterialBaseData
-{
-	NXMaterialData_Sampler(const std::string& name) : NXMaterialBaseData(name, NXMaterialBaseType::Sampler), filter(NXSamplerFilter::Unknown), addressU(NXSamplerAddressMode::Unknown), addressV(NXSamplerAddressMode::Unknown), addressW(NXSamplerAddressMode::Unknown) {}
-	NXMaterialData_Sampler(const std::string& name, const NXSamplerFilter& filter, const NXSamplerAddressMode& addressU, const NXSamplerAddressMode& addressV, const NXSamplerAddressMode& addressW) : NXMaterialBaseData(name, NXMaterialBaseType::Sampler), filter(filter), addressU(addressU), addressV(addressV), addressW(addressW) {}
-	NXSamplerFilter filter;
-	NXSamplerAddressMode addressU;
-	NXSamplerAddressMode addressV;
-	NXSamplerAddressMode addressW;
-};
-
-struct NXMaterialData_CBufferSets
-{
-	uint32_t shadingModel = 0;
-};
-
-struct NXMaterialData
-{
-	void Destroy()
-	{
-		for (auto& data : datas)
-		{
-			delete data;
-		}
-		datas.clear();
-	}
-
-	std::vector<NXMaterialBaseData*> datas;
-	NXMaterialData_CBufferSets sets;
-};
-
-// NXMSE = NXMaterial Shader Editor(GUI datas)
-
-enum class NXMSE_CBufferStyle
+enum class NXGUICBufferStyle
 {
 	Value,
 	Value2,
@@ -110,106 +48,241 @@ enum class NXMSE_CBufferStyle
 	Unknown
 };
 
-struct NXGUIStyle_CBufferItem
+struct NXGUIDataCBuffer
 {
-	NXMSE_CBufferStyle style;
-
-	// gui拖动参数附加属性，like drugspeed, sliderMin/Max..
-	float guiParams0;
-	float guiParams1;
+	NXGUICBufferStyle style;
+	Vector2 params; // gui拖动参数附加属性，like drugspeed, sliderMin/Max..
 };
 
-struct NXMSE_BaseData
+struct NXMatDataBase
 {
-	virtual NXMSE_BaseData* Clone() = 0;
-	virtual void Destroy()
+	virtual ~NXMatDataBase() = default;
+
+	virtual NXMatDataCBuffer* IsCBuffer() { return nullptr; }
+	virtual NXMatDataTexture* IsTexture() { return nullptr; }
+	virtual NXMatDataSampler* IsSampler() { return nullptr; }
+	virtual void CopyFrom(const NXMatDataBase* pCopy) = 0;
+
+	std::string name;
+};
+
+struct NXMatDataCBuffer : public NXMatDataBase
+{
+	NXMatDataCBuffer* IsCBuffer() override { return this; }
+	virtual void CopyFrom(const NXMatDataBase* pCopy) override
 	{
-		delete pMaterialData;
+		auto* pCBuffer = static_cast<const NXMatDataCBuffer*>(pCopy);
+		*this = *pCBuffer;
 	}
 
-	// MSE/GUI自己的数据，用于编译前的AddParam、backup
-	NXMaterialBaseData* pMaterialData = nullptr;
-
-	// 材质本体使用的数据（MSE/GUI值修改时即时看到效果）
-	NXMaterialBaseData* pMaterialLink = nullptr;
+	Vector4 data;
+	int size;
+	NXGUIDataCBuffer gui;
 };
 
-struct NXMSE_CBufferData : public NXMSE_BaseData
+struct NXMatDataTexture : public NXMatDataBase
 {
-	NXMaterialData_CBuffer* MaterialData() { return (NXMaterialData_CBuffer*)(pMaterialData); }
-	NXMaterialData_CBuffer* MaterialLink() { return (NXMaterialData_CBuffer*)(pMaterialLink); }
-
-	virtual NXMSE_BaseData* Clone() override
+	NXMatDataTexture* IsTexture() override { return this; }
+	virtual void CopyFrom(const NXMatDataBase* pCopy) override
 	{
-		NXMSE_CBufferData* pData = new NXMSE_CBufferData();
-		pData->pMaterialData = new NXMaterialData_CBuffer(MaterialData()->name, MaterialData()->data, MaterialData()->size);
-		pData->pMaterialLink = pMaterialLink;
-		pData->guiStyle = guiStyle;
-		pData->guiParams = guiParams;
-		return pData;
+		auto* pTexture = static_cast<const NXMatDataTexture*>(pCopy);
+		*this = *pTexture;
 	}
 
-	NXMSE_CBufferStyle guiStyle;
-	Vector2 guiParams;
+	Ntr<NXTexture> pTexture;
 };
 
-struct NXMSE_TextureData : public NXMSE_BaseData
+struct NXMatDataSampler : public NXMatDataBase
 {
-	NXMaterialData_Texture* MaterialData() { return (NXMaterialData_Texture*)(pMaterialData); }
-	NXMaterialData_Texture* MaterialLink() { return (NXMaterialData_Texture*)(pMaterialLink); }
-
-	virtual NXMSE_BaseData* Clone() override
+	NXMatDataSampler* IsSampler() override { return this; }
+	virtual void CopyFrom(const NXMatDataBase* pCopy) override
 	{
-		NXMSE_TextureData* pData = new NXMSE_TextureData();
-		pData->pMaterialData = new NXMaterialData_Texture(MaterialData()->name, MaterialData()->pTexture);
-		pData->pMaterialLink = pMaterialLink;
-		return pData;
+		auto* pSampler = static_cast<const NXMatDataSampler*>(pCopy);
+		*this = *pSampler;
 	}
+
+	NXSamplerFilter filter;
+	NXSamplerAddressMode addressU;
+	NXSamplerAddressMode addressV;
+	NXSamplerAddressMode addressW;
 };
 
-struct NXMSE_SamplerData : public NXMSE_BaseData
-{
-	NXMaterialData_Sampler* MaterialData() { return (NXMaterialData_Sampler*)(pMaterialData); }
-	NXMaterialData_Sampler* MaterialLink() { return (NXMaterialData_Sampler*)(pMaterialLink); }
-
-	virtual NXMSE_BaseData* Clone() override
-	{
-		NXMSE_SamplerData* pData = new NXMSE_SamplerData();
-		pData->pMaterialData = new NXMaterialData_Sampler(MaterialData()->name, MaterialData()->filter, MaterialData()->addressU, MaterialData()->addressV, MaterialData()->addressW);
-		pData->pMaterialLink = pMaterialLink;
-		return pData;
-	}
-};
-
-struct NXMSE_SettingsData 
+struct NXMatDataSettings
 {
 	uint32_t shadingModel = 0;
 };
 
-struct NXMSEPackDatas
+class NXMaterialData
 {
-	NXMSEPackDatas Clone() const
+public:
+	void AddCBuffer(NXMatDataCBuffer* cb) { cbArr.push_back(cb); allArr.push_back(cb); }
+	void AddTexture(NXMatDataTexture* tx) { txArr.push_back(tx); allArr.push_back(tx); }
+	void AddSampler(NXMatDataSampler* ss) { ssArr.push_back(ss); allArr.push_back(ss); }
+
+	// clone = 基本深拷贝（除了texture指针等）
+	NXMaterialData Clone()
 	{
-		NXMSEPackDatas clone;
-		for (auto& data : datas)
+		NXMaterialData newData;
+
+		for (auto* cb : cbArr)
 		{
-			clone.datas.push_back(data->Clone());
+			auto newCB = new NXMatDataCBuffer();
+			*newCB = *cb;
+			newData.AddCBuffer(newCB);
 		}
-		clone.settings = settings;
-		return clone;
+		for (auto* tx : txArr)
+		{
+			auto newTX = new NXMatDataTexture();
+			*newTX = *tx;
+			newData.AddTexture(newTX);
+		}
+		for (auto* ss : ssArr)
+		{
+			auto newSS = new NXMatDataSampler();
+			*newSS = *ss;
+			newData.AddSampler(newSS);
+		}
+
+		newData.settings = settings;
+		return newData;
 	}
 
 	void Destroy()
 	{
-		for (auto& data : datas)
-		{
-			data->Destroy();
-		}
-		datas.clear();
+		for (auto& cb : cbArr) delete cb;
+		for (auto& tx : txArr) delete tx;
+		for (auto& ss : ssArr) delete ss;
+		cbArr.clear();
+		txArr.clear();
+		ssArr.clear();
+		allArr.clear();
 	}
 
-	std::vector<NXMSE_BaseData*> datas; // 基本参数
-	NXMSE_SettingsData settings; // 材质实例设置
+	void Remove(NXMatDataBase* data)
+	{
+		if (data->IsCBuffer()) std::erase_if(cbArr, [data](NXMatDataCBuffer* d) { return d == data; });
+		else if (data->IsTexture()) std::erase_if(txArr, [data](NXMatDataTexture* d) { return d == data; });
+		else if (data->IsSampler()) std::erase_if(ssArr, [data](NXMatDataSampler* d) { return d == data; });
+		std::erase_if(allArr, [data](NXMatDataBase* d) { return d == data; });
+		delete data;
+	}
+
+	void MoveToPrev(NXMatDataBase* data)
+	{
+		auto it = std::find_if(allArr.begin(), allArr.end(), [data](NXMatDataBase* d) { return d == data; });
+
+		if (it != allArr.end() && it != allArr.begin())
+		{
+			auto itPrev = it - 1;
+			std::iter_swap(it, itPrev);
+
+			if ((*it)->IsCBuffer() && (*itPrev)->IsCBuffer())
+			{
+				auto it0 = std::find_if(cbArr.begin(), cbArr.end(), [data](NXMatDataCBuffer* d) { return d == data; });
+				std::iter_swap(it0, it0 - 1);
+			}
+			else if ((*it)->IsTexture() && (*itPrev)->IsTexture())
+			{
+				auto it0 = std::find_if(txArr.begin(), txArr.end(), [data](NXMatDataTexture* d) { return d == data; });
+				std::iter_swap(it0, it0 - 1);
+			}
+			else if ((*it)->IsSampler() && (*itPrev)->IsSampler())
+			{
+				auto it0 = std::find_if(ssArr.begin(), ssArr.end(), [data](NXMatDataSampler* d) { return d == data; });
+				std::iter_swap(it0, it0 - 1);
+			}
+		}
+	}
+
+	void MoveToNext(NXMatDataBase* data)
+	{
+		auto it = std::find_if(allArr.begin(), allArr.end(), [data](NXMatDataBase* d) { return d == data; });
+
+		if (it != allArr.end() && it + 1 != allArr.end())
+		{
+			auto itNext = it + 1;
+			std::iter_swap(it, itNext);
+
+			if ((*it)->IsCBuffer() && (*itNext)->IsCBuffer())
+			{
+				auto it0 = std::find_if(cbArr.begin(), cbArr.end(), [data](NXMatDataCBuffer* d) { return d == data; });
+				std::iter_swap(it0, it0 + 1);
+			}
+			else if ((*it)->IsTexture() && (*itNext)->IsTexture())
+			{
+				auto it0 = std::find_if(txArr.begin(), txArr.end(), [data](NXMatDataTexture* d) { return d == data; });
+				std::iter_swap(it0, it0 + 1);
+			}
+			else if ((*it)->IsSampler() && (*itNext)->IsSampler())
+			{
+				auto it0 = std::find_if(ssArr.begin(), ssArr.end(), [data](NXMatDataSampler* d) { return d == data; });
+				std::iter_swap(it0, it0 + 1);
+			}
+		}
+	}
+
+	void MoveToBegin(NXMatDataBase* data)
+	{
+		auto it = std::find_if(allArr.begin(), allArr.end(), [data](NXMatDataBase* d) { return d == data; });
+		if (it != allArr.end() && it != allArr.begin())
+		{
+			std::rotate(allArr.begin(), it, it + 1);
+
+			if ((*it)->IsCBuffer())
+			{
+				auto it0 = std::find_if(cbArr.begin(), cbArr.end(), [data](NXMatDataCBuffer* d) { return d == data; });
+				std::rotate(cbArr.begin(), it0, it0 + 1);
+			}
+			else if ((*it)->IsTexture())
+			{
+				auto it0 = std::find_if(txArr.begin(), txArr.end(), [data](NXMatDataTexture* d) { return d == data; });
+				std::rotate(txArr.begin(), it0, it0 + 1);
+			}
+			else if ((*it)->IsSampler())
+			{
+				auto it0 = std::find_if(ssArr.begin(), ssArr.end(), [data](NXMatDataSampler* d) { return d == data; });
+				std::rotate(ssArr.begin(), it0, it0 + 1);
+			}
+		}
+	}
+
+	void MoveToEnd(NXMatDataBase* data)
+	{
+		auto it = std::find_if(allArr.begin(), allArr.end(), [data](NXMatDataBase* d) { return d == data; });
+		if (it != allArr.end() && it + 1 != allArr.end())
+		{
+			std::rotate(it, it + 1, allArr.end());
+
+			if ((*it)->IsCBuffer())
+			{
+				auto it0 = std::find_if(cbArr.begin(), cbArr.end(), [data](NXMatDataCBuffer* d) { return d == data; });
+				std::rotate(it0, it0 + 1, cbArr.end());
+			}
+			else if ((*it)->IsTexture())
+			{
+				auto it0 = std::find_if(txArr.begin(), txArr.end(), [data](NXMatDataTexture* d) { return d == data; });
+				std::rotate(it0, it0 + 1, txArr.end());
+			}
+			else if ((*it)->IsSampler())
+			{
+				auto it0 = std::find_if(ssArr.begin(), ssArr.end(), [data](NXMatDataSampler* d) { return d == data; });
+				std::rotate(it0, it0 + 1, ssArr.end());
+			}
+		}
+	}
+
+	const std::vector<NXMatDataCBuffer*>& GetCBuffers() { return cbArr; }
+	const std::vector<NXMatDataTexture*>& GetTextures() { return txArr; }
+	const std::vector<NXMatDataSampler*>& GetSamplers() { return ssArr; }
+	const std::vector<NXMatDataBase*>& GetAll() { return allArr; }
+	NXMatDataSettings& Settings() { return settings; }
+
+private:
+	std::vector<NXMatDataCBuffer*> cbArr;
+	std::vector<NXMatDataTexture*> txArr;
+	std::vector<NXMatDataSampler*> ssArr;
+	std::vector<NXMatDataBase*> allArr;
+	NXMatDataSettings settings;
 };
 
 struct NXMaterialPassCode

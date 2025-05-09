@@ -200,7 +200,7 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMateri
 				auto* matData = guiData->pMaterialData;
 				if (matData->GetType() == NXMaterialBaseType::CBuffer)
 				{
-					auto* cbGUI = (NXMSE_CBufferData*)guiData;
+					auto* cbGUI = (NXMatDataCBuffer*)guiData;
 					std::string strId = "##material_custom_child_cbuffer_" + std::to_string(paramCnt++);
 					RenderMaterialUI_Custom_Parameters_CBufferItem(strId, pMaterial, cbGUI);
 				}
@@ -208,7 +208,7 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMateri
 				{
 					std::string strId = "##material_custom_child_texture_" + std::to_string(paramCnt);
 
-					auto* texGUI = (NXMSE_TextureData*)guiData;
+					auto* texGUI = (NXMatDataTexture*)guiData;
 					auto& pTex = texGUI->MaterialData()->pTexture;
 					if (pTex.IsNull()) continue;
 
@@ -249,7 +249,7 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMateri
 	}
 }
 
-void NXGUIMaterial::RenderMaterialUI_Custom_Parameters_CBufferItem(const std::string& strId, NXCustomMaterial* pMaterial, NXMSE_CBufferData* cbData)
+void NXGUIMaterial::RenderMaterialUI_Custom_Parameters_CBufferItem(const std::string& strId, NXCustomMaterial* pMaterial, NXMatDataCBuffer* cbData)
 {
 	using namespace NXGUICommon;
 
@@ -258,23 +258,23 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters_CBufferItem(const std::st
 
 	switch (cbData->guiStyle)
 	{
-	case NXMSE_CBufferStyle::Value:
-	case NXMSE_CBufferStyle::Value2:
-	case NXMSE_CBufferStyle::Value3:
-	case NXMSE_CBufferStyle::Value4:
+	case NXGUICBufferStyle::Value:
+	case NXGUICBufferStyle::Value2:
+	case NXGUICBufferStyle::Value3:
+	case NXGUICBufferStyle::Value4:
 	default:
 		bDraged |= ImGui::DragScalarN(strName.data(), ImGuiDataType_Float, cbData->MaterialData()->data, cbData->MaterialData()->size, cbData->guiParams[0]);
 		break;
-	case NXMSE_CBufferStyle::Slider:
-	case NXMSE_CBufferStyle::Slider2:
-	case NXMSE_CBufferStyle::Slider3:
-	case NXMSE_CBufferStyle::Slider4:
+	case NXGUICBufferStyle::Slider:
+	case NXGUICBufferStyle::Slider2:
+	case NXGUICBufferStyle::Slider3:
+	case NXGUICBufferStyle::Slider4:
 		bDraged |= ImGui::SliderScalarN(strName.data(), ImGuiDataType_Float, cbData->MaterialData()->data, cbData->MaterialData()->size, &cbData->guiParams[0], &cbData->guiParams[1]);
 		break;
-	case NXMSE_CBufferStyle::Color3:
+	case NXGUICBufferStyle::Color3:
 		bDraged |= ImGui::ColorEdit3(strName.data(), cbData->MaterialData()->data);
 		break;
-	case NXMSE_CBufferStyle::Color4:
+	case NXGUICBufferStyle::Color4:
 		bDraged |= ImGui::ColorEdit4(strName.data(), cbData->MaterialData()->data);
 		break;
 	}

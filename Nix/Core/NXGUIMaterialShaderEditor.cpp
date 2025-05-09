@@ -118,92 +118,81 @@ void NXGUIMaterialShaderEditor::UpdateShaderErrorMessages(const std::string& str
 	}
 }
 
-void NXGUIMaterialShaderEditor::OnBtnAddParamClicked(NXCustomMaterial* pMaterial, NXMSE_CBufferStyle eGUIStyle)
+void NXGUIMaterialShaderEditor::OnBtnAddParamClicked(NXCustomMaterial* pMaterial, NXGUICBufferStyle eGUIStyle)
 {
-	NXMSE_CBufferData* pNewData = new NXMSE_CBufferData();
-	pNewData->MaterialData()->name = "newParam";
-	pNewData->MaterialData()->data = Vector4(0.0f);
-	pNewData->MaterialData()->size = NXGUICommon::GetValueNumOfGUIStyle(eGUIStyle);
-	pNewData->guiStyle = eGUIStyle;
-	pNewData->guiParams = NXGUICommon::GetGUIParamsDefaultValue(eGUIStyle);
-	m_guiDatas.datas.push_back(pNewData);
+	NXMatDataCBuffer* cb = new NXMatDataCBuffer();
+	cb->name = "newParam";
+	cb->data = Vector4(0.0f);
+	cb->size = NXGUICommon::GetValueNumOfGUIStyle(eGUIStyle);
+	cb->gui.style = eGUIStyle;
+	cb->gui.params = NXGUICommon::GetGUIParamsDefaultValue(eGUIStyle);
+	m_guiData.AddCBuffer(cb);
 	RequestGenerateBackup();
 }
 
 void NXGUIMaterialShaderEditor::OnBtnAddTextureClicked(NXCustomMaterial* pMaterial)
 {
-	auto pTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_White);
-	NXMSE_TextureData* pNewData = new NXMSE_TextureData();
-	pNewData->MaterialData()->name = "newParam";
-	pNewData->MaterialData()->pTexture = pTex;
-	m_guiDatas.datas.push_back(pNewData);
+	NXMatDataTexture* tx = new NXMatDataTexture();
+	tx->name = "newTexture";
+	tx->pTexture = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_White);
+	m_guiData.AddTexture(tx);
 	RequestGenerateBackup();
 }
 
 void NXGUIMaterialShaderEditor::OnBtnAddSamplerClicked(NXCustomMaterial* pMaterial)
 {
-	NXMSE_SamplerData* pNewData = new NXMSE_SamplerData();
-	pNewData->MaterialData()->name = "newSampler";
-	pNewData->MaterialData()->filter = NXSamplerFilter::Linear;
-	pNewData->MaterialData()->addressU = NXSamplerAddressMode::Wrap;
-	pNewData->MaterialData()->addressV = NXSamplerAddressMode::Wrap;
-	pNewData->MaterialData()->addressW = NXSamplerAddressMode::Wrap;
-	m_guiDatas.datas.push_back(pNewData);
+	NXMatDataSampler* ss = new NXMatDataSampler();
+	ss->name = "newSampler",
+	ss->filter = NXSamplerFilter::Linear;
+	ss->addressU = NXSamplerAddressMode::Wrap;
+	ss->addressV = NXSamplerAddressMode::Wrap;
+	ss->addressW = NXSamplerAddressMode::Wrap;
+	m_guiData.AddSampler(ss);
 	RequestGenerateBackup();
 }
 
-void NXGUIMaterialShaderEditor::OnBtnRemoveParamClicked(BtnParamType btnParamType, NXMSE_BaseData* pData)
+void NXGUIMaterialShaderEditor::OnBtnRemoveParamClicked(NXMatDataBase* pData)
 {
-	std::erase_if(m_guiDatas.datas, [pData](NXMSE_BaseData* data) { return data == pData; });
+	m_guiData.Remove(pData);
 }
 
-void NXGUIMaterialShaderEditor::OnBtnMoveParamToPrevClicked(BtnParamType btnParamType, NXMSE_BaseData* pData)
+void NXGUIMaterialShaderEditor::OnBtnMoveParamToPrevClicked(NXMatDataBase* pData)
 {
-	auto pDataIt = std::find(m_guiDatas.datas.begin(), m_guiDatas.datas.end(), pData);
-	if (pDataIt == m_guiDatas.datas.end()) return;
-	if (pDataIt == m_guiDatas.datas.begin()) return; 
-	std::iter_swap(pDataIt, pDataIt - 1);
+	m_guiData.MoveToPrev(pData);
 }
 
-void NXGUIMaterialShaderEditor::OnBtnMoveParamToNextClicked(BtnParamType btnParamType, NXMSE_BaseData* pData)
+void NXGUIMaterialShaderEditor::OnBtnMoveParamToNextClicked(NXMatDataBase* pData)
 {
-	auto pDataIt = std::find(m_guiDatas.datas.begin(), m_guiDatas.datas.end(), pData);
-	if (pDataIt == m_guiDatas.datas.end()) return;
-	if (pDataIt + 1 == m_guiDatas.datas.end()) return;
-	std::iter_swap(pDataIt, pDataIt + 1);
+	m_guiData.MoveToNext(pData);
 }
 
-void NXGUIMaterialShaderEditor::OnBtnMoveParamToFirstClicked(BtnParamType btnParamType, NXMSE_BaseData* pData)
+void NXGUIMaterialShaderEditor::OnBtnMoveParamToFirstClicked(NXMatDataBase* pData)
 {
-	auto pDataIt = std::find(m_guiDatas.datas.begin(), m_guiDatas.datas.end(), pData); 
-	if (pDataIt == m_guiDatas.datas.end()) return;
-	std::rotate(m_guiDatas.datas.begin(), pDataIt, pDataIt + 1); // 将当前参数移动到第一个位置
+	m_guiData.MoveToBegin(pData);
 }
 
-void NXGUIMaterialShaderEditor::OnBtnMoveParamToLastClicked(BtnParamType btnParamType, NXMSE_BaseData* pData)
+void NXGUIMaterialShaderEditor::OnBtnMoveParamToLastClicked(NXMatDataBase* pData)
 {
-	auto pDataIt = std::find(m_guiDatas.datas.begin(), m_guiDatas.datas.end(), pData);
-	if (pDataIt == m_guiDatas.datas.end()) return;
-	std::rotate(pDataIt, pDataIt + 1, m_guiDatas.datas.end()); // 将当前参数移动到最后一个位置
+	m_guiData.MoveToEnd(pData);
 }
 
-void NXGUIMaterialShaderEditor::OnBtnRevertParamClicked(NXCustomMaterial* pMaterial, NXMSE_BaseData* pData)
+void NXGUIMaterialShaderEditor::OnBtnRevertParamClicked(NXCustomMaterial* pMaterial, NXMatDataBase* pData)
 {
-	auto pBackupIt = std::find_if(m_guiDatasBackup.datas.begin(), m_guiDatasBackup.datas.end(),
-		[pData](const NXMSE_BaseData* backupData) { return backupData->pMaterialData->name == pData->pMaterialData->name; }
-		);
+	auto pBackupIt = std::find_if(m_guiDataBackup.GetAll().begin(), m_guiDataBackup.GetAll().end(),
+		[pData](const NXMatDataBase* backupData) {
+			return backupData->name == pData->name;
+		});
 
-	auto pBackup = (*pBackupIt);
+	auto pBackup = (pBackupIt != m_guiDataBackup.GetAll().end()) ? *pBackupIt : nullptr;
 
-	if (pBackup->pMaterialData->name == pData->pMaterialData->name) // todo: name->guid?
+	if (pBackup->name == pData->name) 
 	{
-		// 将当前参数数据替换为备份数据，但先把之前的销毁掉
-		pData->Destroy();
-		pData = pBackup->Clone();
+		// 将备份数据的内容复制到当前数据中
+		pData->CopyFrom(pBackup);
 
-		if (pBackup->pMaterialData->GetType() == NXMaterialBaseType::CBuffer)
+		if (pData->IsCBuffer())
 		{
-			pMaterial->RequestUpdateCBufferData(true); //如果是CBuffer类型，更新材质
+			pMaterial->RequestUpdateCBufferData(true);
 		}
 	}
 }
@@ -417,7 +406,7 @@ void NXGUIMaterialShaderEditor::Render_Complies(NXCustomMaterial* pMaterial)
 			{
 				if (ImGui::Selectable(g_strCBufferGUIStyle[item], false))
 				{
-					NXMSE_CBufferStyle guiStyle = GetGUIStyleFromString(g_strCBufferGUIStyle[item]);
+					NXGUICBufferStyle guiStyle = GetGUIStyleFromString(g_strCBufferGUIStyle[item]);
 					OnBtnAddParamClicked(pMaterial, guiStyle);
 				}
 			}
@@ -446,38 +435,33 @@ void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
 	ImGui::InputText("Search params", &m_strQuery);
 	ImGui::PopID();
 
-	for (int i = 0; i < m_guiDatas.datas.size(); i++)
+	for (auto* data : m_guiData.GetAll())
 	{
-		auto& data = m_guiDatas.datas[i];
-		auto& name = data->pMaterialData->name;
-
 		// 先排除搜索框以外的
-		if (name.find(NXConvert::s2lower(m_strQuery)) == std::string::npos) continue;
+		if (data->name.find(NXConvert::s2lower(m_strQuery)) == std::string::npos) continue;
 
 		int paramCnt = 0;
-		auto baseType = data->pMaterialData->GetType();
-		if (baseType == NXMaterialBaseType::CBuffer)
+		if (auto* cbData = data->IsCBuffer())
 		{
-			auto pCBuffer = (NXMSE_CBufferData*)data;
-
 			std::string strId = "##material_shader_editor_custom_child_cbuffer_" + std::to_string(paramCnt);
 			ImGui::TableNextColumn();
 
-			Render_Params_ResourceOps(strId, pMaterial, BtnParamType::CBuffer, name, data);
+			Render_Params_ResourceOps(strId, pMaterial, cbData);
+
 
 			ImGui::TableNextColumn();
 			ImGui::PushItemWidth(-1);
-			if (ImGui::BeginCombo(strId.c_str(), g_strCBufferGUIStyle[(int)pCBuffer->guiStyle]))
+			if (ImGui::BeginCombo(strId.c_str(), g_strCBufferGUIStyle[(int)cbData->gui.style]))
 			{
 				for (int item = 0; item < g_strCBufferGUIStyleCount; item++)
 				{
-					if (ImGui::Selectable(g_strCBufferGUIStyle[item]) && item != (int)pCBuffer->guiStyle)
+					if (ImGui::Selectable(g_strCBufferGUIStyle[item]) && item != (int)cbData->gui.style)
 					{
 						// 设置 GUI Style
-						pCBuffer->guiStyle = GetGUIStyleFromString(g_strCBufferGUIStyle[item]);
+						cbData->gui.style = GetGUIStyleFromString(g_strCBufferGUIStyle[item]);
 
 						// 根据 GUI Style 设置GUI的拖动速度或最大最小值
-						pCBuffer->guiParams = GetGUIParamsDefaultValue(pCBuffer->guiStyle);
+						cbData->gui.params = GetGUIParamsDefaultValue(cbData->gui.style);
 						break;
 					}
 				}
@@ -485,72 +469,58 @@ void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
 			}
 			ImGui::PopItemWidth();
 
-			Render_Params_CBufferItem(strId, pMaterial, pCBuffer);
+			Render_Params_CBufferItem(strId, pMaterial, cbData);
 		}
-		else if (baseType == NXMaterialBaseType::Texture)
+		else if (auto* txData = data->IsTexture())
 		{
-			auto pTexture = (NXMSE_TextureData*)data;
-
 			std::string strId = "##material_shader_editor_custom_child_texture_" + std::to_string(paramCnt);
-			Render_Params_ResourceOps(strId, pMaterial, BtnParamType::Texture, name, data);
+			Render_Params_ResourceOps(strId, pMaterial, txData);
 
 			ImGui::TableNextColumn();
-			Render_Params_TextureItem(paramCnt, pMaterial, pTexture);
+			Render_Params_TextureItem(paramCnt, pMaterial, txData);
 		}
-		else if (baseType == NXMaterialBaseType::Sampler)
+		else if (auto* ssData = data->IsSampler())
 		{
-			auto pSampler = (NXMSE_SamplerData*)data;
-
 			std::string strId = "##material_shader_editor_custom_child_sampler_" + std::to_string(paramCnt);
-			Render_Params_ResourceOps(strId, pMaterial, BtnParamType::Sampler, name, data);
+			Render_Params_ResourceOps(strId, pMaterial, ssData);
 
 			ImGui::TableNextColumn();
-			Render_Params_SamplerItem(paramCnt, pMaterial, pSampler);
+			Render_Params_SamplerItem(paramCnt, pMaterial, ssData);
 		}
 
 		paramCnt++;
 	}
+
 	ImGui::EndChild();
 }
 
-void NXGUIMaterialShaderEditor::Render_Params_ResourceOps(const std::string& strId, NXCustomMaterial* pMaterial, BtnParamType btnParamType, std::string& name, NXMSE_BaseData* pData)
+void NXGUIMaterialShaderEditor::Render_Params_ResourceOps(const std::string& strId, NXCustomMaterial* pMaterial, NXMatDataBase* pData)
 {
 	std::string strNameId = strId + "_name";
 
 	ImGui::PushItemWidth(-1);
-	switch (btnParamType)
-	{
-	case BtnParamType::CBuffer:
-		ImGui::InputText(strNameId.c_str(), &name);
-		break;
-	case BtnParamType::Texture:
-		ImGui::InputText(strNameId.c_str(), &name);
-		break;
-	case BtnParamType::Sampler:
-		ImGui::InputText(strNameId.c_str(), &name);
-		break;
-	}
+	ImGui::InputText(strNameId.c_str(), &pData->name);
 	ImGui::PopItemWidth();
 
 	float btnSize = 22.0f;
 	std::string strNameIdRemove = "-" + strNameId + "_remove";
-	if (ImGui::Button(strNameIdRemove.c_str(), ImVec2(btnSize, btnSize))) { OnBtnRemoveParamClicked(btnParamType, pData); }
+	if (ImGui::Button(strNameIdRemove.c_str(), ImVec2(btnSize, btnSize))) { OnBtnRemoveParamClicked(pData); }
 	ImGui::SameLine();
 
 	std::string strNameIdMoveToFirst = "|<" + strNameId + "_move_to_first";
-	if (ImGui::Button(strNameIdMoveToFirst.c_str(), ImVec2(btnSize, btnSize))) { OnBtnMoveParamToFirstClicked(btnParamType, pData); }
+	if (ImGui::Button(strNameIdMoveToFirst.c_str(), ImVec2(btnSize, btnSize))) { OnBtnMoveParamToFirstClicked(pData); }
 	ImGui::SameLine();
 
 	std::string strNameIdMoveToPrev = "<" + strNameId + "_move_to_prev";
-	if (ImGui::Button(strNameIdMoveToPrev.c_str(), ImVec2(btnSize, btnSize))) { OnBtnMoveParamToPrevClicked(btnParamType, pData); }
+	if (ImGui::Button(strNameIdMoveToPrev.c_str(), ImVec2(btnSize, btnSize))) { OnBtnMoveParamToPrevClicked(pData); }
 	ImGui::SameLine();
 
 	std::string strNameIdMoveToNext = ">" + strNameId + "_move_to_next";
-	if (ImGui::Button(strNameIdMoveToNext.c_str(), ImVec2(btnSize, btnSize))) { OnBtnMoveParamToNextClicked(btnParamType, pData); }
+	if (ImGui::Button(strNameIdMoveToNext.c_str(), ImVec2(btnSize, btnSize))) { OnBtnMoveParamToNextClicked(pData); }
 	ImGui::SameLine();
 
 	std::string strNameIdMoveToLast = ">|" + strNameId + "_move_to_last";
-	if (ImGui::Button(strNameIdMoveToLast.c_str(), ImVec2(btnSize, btnSize))) { OnBtnMoveParamToLastClicked(btnParamType, pData); }
+	if (ImGui::Button(strNameIdMoveToLast.c_str(), ImVec2(btnSize, btnSize))) { OnBtnMoveParamToLastClicked(pData); }
 	ImGui::SameLine();
 
 	std::string strNameIdRevert = "Revert" + strNameId + "_revert";
@@ -561,7 +531,7 @@ void NXGUIMaterialShaderEditor::Render_Params_ResourceOps(const std::string& str
 	}
 }
 
-void NXGUIMaterialShaderEditor::Render_Params_CBufferItem(const std::string& strId, NXCustomMaterial* pMaterial, NXMSE_CBufferData* pCBuffer)
+void NXGUIMaterialShaderEditor::Render_Params_CBufferItem(const std::string& strId, NXCustomMaterial* pMaterial, NXMatDataCBuffer* pCBuffer)
 {
 	float paramWidth = ImGui::GetContentRegionAvail().x - 32.0f;
 	auto pMatData = (NXMaterialData_CBuffer*)pCBuffer->pMaterialData;
@@ -572,31 +542,31 @@ void NXGUIMaterialShaderEditor::Render_Params_CBufferItem(const std::string& str
 	int bParamsEditable = 0;
 	switch (pCBuffer->guiStyle)
 	{
-	case NXMSE_CBufferStyle::Value:
-	case NXMSE_CBufferStyle::Value2:
-	case NXMSE_CBufferStyle::Value3:
-	case NXMSE_CBufferStyle::Value4:
+	case NXGUICBufferStyle::Value:
+	case NXGUICBufferStyle::Value2:
+	case NXGUICBufferStyle::Value3:
+	case NXGUICBufferStyle::Value4:
 	default:
 		ImGui::PushItemWidth(paramWidth);
 		bDraged |= ImGui::DragScalarN(strName.data(), ImGuiDataType_Float, pMatData->data, pMatData->size, pCBuffer->guiParams[0]);
 		bParamsEditable = 1;
 		ImGui::PopItemWidth();
 		break;
-	case NXMSE_CBufferStyle::Slider:
-	case NXMSE_CBufferStyle::Slider2:
-	case NXMSE_CBufferStyle::Slider3:
-	case NXMSE_CBufferStyle::Slider4:
+	case NXGUICBufferStyle::Slider:
+	case NXGUICBufferStyle::Slider2:
+	case NXGUICBufferStyle::Slider3:
+	case NXGUICBufferStyle::Slider4:
 		ImGui::PushItemWidth(paramWidth);
 		bDraged |= ImGui::SliderScalarN(strName.data(), ImGuiDataType_Float, pMatData->data, pMatData->size, &pCBuffer->guiParams[0], &pCBuffer->guiParams[1]);
 		bParamsEditable = 2;
 		ImGui::PopItemWidth();
 		break;
-	case NXMSE_CBufferStyle::Color3:
+	case NXGUICBufferStyle::Color3:
 		ImGui::PushItemWidth(-1);
 		bDraged |= ImGui::ColorEdit3(strName.data(), pMatData->data);
 		ImGui::PopItemWidth();
 		break;
-	case NXMSE_CBufferStyle::Color4:
+	case NXGUICBufferStyle::Color4:
 		ImGui::PushItemWidth(-1);
 		bDraged |= ImGui::ColorEdit4(strName.data(), pMatData->data);
 		ImGui::PopItemWidth();
@@ -643,7 +613,7 @@ void NXGUIMaterialShaderEditor::Render_Params_CBufferItem(const std::string& str
 	}
 }
 
-void NXGUIMaterialShaderEditor::Render_Params_TextureItem(const int texParamId, NXCustomMaterial* pMaterial, NXMSE_TextureData* pTexture)
+void NXGUIMaterialShaderEditor::Render_Params_TextureItem(const int texParamId, NXCustomMaterial* pMaterial, NXMatDataTexture* pTexture)
 {
 	auto pTexData = (NXMaterialData_Texture*)pTexture->pMaterialData;
 	auto pTexLink = (NXMaterialData_Texture*)pTexture->pMaterialLink;
@@ -705,7 +675,7 @@ void NXGUIMaterialShaderEditor::Render_Params_TextureItem(const int texParamId, 
 	ImGui::PopID();
 }
 
-void NXGUIMaterialShaderEditor::Render_Params_SamplerItem(const int strId, NXCustomMaterial* pMaterial, NXMSE_SamplerData* pSampler)
+void NXGUIMaterialShaderEditor::Render_Params_SamplerItem(const int strId, NXCustomMaterial* pMaterial, NXMatDataSampler* pSampler)
 {
 	auto pMatData = (NXMaterialData_Sampler*)pSampler->pMaterialData;
 	auto pMatLink = (NXMaterialData_Sampler*)pSampler->pMaterialLink;
@@ -958,7 +928,7 @@ std::string NXGUIMaterialShaderEditor::GetAddressModeText(const NXSamplerAddress
 void NXGUIMaterialShaderEditor::GenerateBackupData()
 {
 	ReleaseBackupData();
-	m_guiDatasBackup = m_guiDatas.Clone();
+	m_guiDatasBackup = m_guiData.Clone();
 }
 
 void NXGUIMaterialShaderEditor::ReleaseBackupData()

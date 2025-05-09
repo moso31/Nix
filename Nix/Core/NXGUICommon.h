@@ -14,13 +14,13 @@ namespace NXGUICommon
 	void RenderSmallTextureIcon(D3D12_GPU_DESCRIPTOR_HANDLE srvHandle, NXGUIFileBrowser* pFileBrowser, std::function<void()> onChange, std::function<void()> onRemove, std::function<void(const std::wstring&)> onDrop);
 
 	// 将字符串转换成GUIStyle
-	NXMSE_CBufferStyle	GetGUIStyleFromString(const std::string& strTypeString);
+	NXGUICBufferStyle	GetGUIStyleFromString(const std::string& strTypeString);
 
 	// 获取GUIStyle对应的向量个数
-	UINT				GetValueNumOfGUIStyle(NXMSE_CBufferStyle eGuiStyle);
+	UINT				GetValueNumOfGUIStyle(NXGUICBufferStyle eGuiStyle);
 
 	// 获取GUIStyle对应的默认值
-	Vector2				GetGUIParamsDefaultValue(NXMSE_CBufferStyle eGUIStyle);
+	Vector2				GetGUIParamsDefaultValue(NXGUICBufferStyle eGUIStyle);
 
 	std::string ConvertShaderResourceDataToNSLParam(const std::vector<NXGUICBufferData>& cbInfosDisplay, const std::vector<NXGUITextureData>& texInfosDisplay, const std::vector<NXGUISamplerData>& ssInfosDisplay);
 

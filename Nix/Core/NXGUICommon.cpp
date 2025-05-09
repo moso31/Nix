@@ -56,38 +56,38 @@ void RenderSmallTextureIcon(D3D12_GPU_DESCRIPTOR_HANDLE srvHandle, NXGUIFileBrow
 	}
 }
 
-NXMSE_CBufferStyle GetGUIStyleFromString(const std::string& strTypeString)
+NXGUICBufferStyle GetGUIStyleFromString(const std::string& strTypeString)
 {
-	if (strTypeString == "Value")		return NXMSE_CBufferStyle::Value;
-	else if (strTypeString == "Value2")		return NXMSE_CBufferStyle::Value2;
-	else if (strTypeString == "Value3")		return NXMSE_CBufferStyle::Value3;
-	else if (strTypeString == "Value4")		return NXMSE_CBufferStyle::Value4;
-	else if (strTypeString == "Slider")		return NXMSE_CBufferStyle::Slider;
-	else if (strTypeString == "Slider2")	return NXMSE_CBufferStyle::Slider2;
-	else if (strTypeString == "Slider3")	return NXMSE_CBufferStyle::Slider3;
-	else if (strTypeString == "Slider4")	return NXMSE_CBufferStyle::Slider4;
-	else if (strTypeString == "Color3")		return NXMSE_CBufferStyle::Color3;
-	else if (strTypeString == "Color4")		return NXMSE_CBufferStyle::Color4;
+	if (strTypeString == "Value")		return NXGUICBufferStyle::Value;
+	else if (strTypeString == "Value2")		return NXGUICBufferStyle::Value2;
+	else if (strTypeString == "Value3")		return NXGUICBufferStyle::Value3;
+	else if (strTypeString == "Value4")		return NXGUICBufferStyle::Value4;
+	else if (strTypeString == "Slider")		return NXGUICBufferStyle::Slider;
+	else if (strTypeString == "Slider2")	return NXGUICBufferStyle::Slider2;
+	else if (strTypeString == "Slider3")	return NXGUICBufferStyle::Slider3;
+	else if (strTypeString == "Slider4")	return NXGUICBufferStyle::Slider4;
+	else if (strTypeString == "Color3")		return NXGUICBufferStyle::Color3;
+	else if (strTypeString == "Color4")		return NXGUICBufferStyle::Color4;
 	else throw std::runtime_error("Invalid GUI style string: " + strTypeString);
 }
 
-Vector2 GetGUIParamsDefaultValue(NXMSE_CBufferStyle eGUIStyle)
+Vector2 GetGUIParamsDefaultValue(NXGUICBufferStyle eGUIStyle)
 {
 	switch (eGUIStyle)
 	{
-	case NXMSE_CBufferStyle::Value:
-	case NXMSE_CBufferStyle::Value2:
-	case NXMSE_CBufferStyle::Value3:
-	case NXMSE_CBufferStyle::Value4:
+	case NXGUICBufferStyle::Value:
+	case NXGUICBufferStyle::Value2:
+	case NXGUICBufferStyle::Value3:
+	case NXGUICBufferStyle::Value4:
 	default:
 		return { 0.01f, 0.0f }; // speed, ---
 
-	case NXMSE_CBufferStyle::Slider:
-	case NXMSE_CBufferStyle::Slider2:
-	case NXMSE_CBufferStyle::Slider3:
-	case NXMSE_CBufferStyle::Slider4:
-	case NXMSE_CBufferStyle::Color3:
-	case NXMSE_CBufferStyle::Color4:
+	case NXGUICBufferStyle::Slider:
+	case NXGUICBufferStyle::Slider2:
+	case NXGUICBufferStyle::Slider3:
+	case NXGUICBufferStyle::Slider4:
+	case NXGUICBufferStyle::Color3:
+	case NXGUICBufferStyle::Color4:
 		return { 0.0f, 1.0f }; // min, max
 	}
 
@@ -125,22 +125,22 @@ std::string ConvertShaderResourceDataToNSLParam(const std::vector<NXGUICBufferDa
 		std::string strCBType;
 		switch (cbDisplay.guiStyle)
 		{
-		case NXMSE_CBufferStyle::Value:
-		case NXMSE_CBufferStyle::Slider:
+		case NXGUICBufferStyle::Value:
+		case NXGUICBufferStyle::Slider:
 			strCBType = "float";
 			break;
-		case NXMSE_CBufferStyle::Value2:
-		case NXMSE_CBufferStyle::Slider2:
+		case NXGUICBufferStyle::Value2:
+		case NXGUICBufferStyle::Slider2:
 			strCBType = "float2";
 			break;
-		case NXMSE_CBufferStyle::Value3:
-		case NXMSE_CBufferStyle::Slider3:
-		case NXMSE_CBufferStyle::Color3:
+		case NXGUICBufferStyle::Value3:
+		case NXGUICBufferStyle::Slider3:
+		case NXGUICBufferStyle::Color3:
 			strCBType = "float3";
 			break;
-		case NXMSE_CBufferStyle::Value4:
-		case NXMSE_CBufferStyle::Slider4:
-		case NXMSE_CBufferStyle::Color4:
+		case NXGUICBufferStyle::Value4:
+		case NXGUICBufferStyle::Slider4:
+		case NXGUICBufferStyle::Color4:
 			strCBType = "float4";
 			break;
 		default: continue;
@@ -199,23 +199,23 @@ std::vector<std::filesystem::path> GetFilesInFolder(const std::filesystem::path&
 	return resultPaths;
 }
 
-UINT GetValueNumOfGUIStyle(NXMSE_CBufferStyle eGuiStyle)
+UINT GetValueNumOfGUIStyle(NXGUICBufferStyle eGuiStyle)
 {
 	switch (eGuiStyle)
 	{
-	case NXMSE_CBufferStyle::Value:
-	case NXMSE_CBufferStyle::Slider:
+	case NXGUICBufferStyle::Value:
+	case NXGUICBufferStyle::Slider:
 		return 1;
-	case NXMSE_CBufferStyle::Value2:
-	case NXMSE_CBufferStyle::Slider2:
+	case NXGUICBufferStyle::Value2:
+	case NXGUICBufferStyle::Slider2:
 		return 2;
-	case NXMSE_CBufferStyle::Value3:
-	case NXMSE_CBufferStyle::Slider3:
-	case NXMSE_CBufferStyle::Color3:
+	case NXGUICBufferStyle::Value3:
+	case NXGUICBufferStyle::Slider3:
+	case NXGUICBufferStyle::Color3:
 		return 3;
-	case NXMSE_CBufferStyle::Value4:
-	case NXMSE_CBufferStyle::Slider4:
-	case NXMSE_CBufferStyle::Color4:
+	case NXGUICBufferStyle::Value4:
+	case NXGUICBufferStyle::Slider4:
+	case NXGUICBufferStyle::Color4:
 	default:
 		return 4;
 	}

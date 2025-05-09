@@ -57,20 +57,20 @@ void NXCodeProcessHelper::SetDefaultCBufferGUIParam(NXGUIStyle_CBufferItem& guiS
 {
 	switch (guiStyle.style)
 	{
-	case NXMSE_CBufferStyle::Value:
-	case NXMSE_CBufferStyle::Value2:
-	case NXMSE_CBufferStyle::Value3:
-	case NXMSE_CBufferStyle::Value4:
+	case NXGUICBufferStyle::Value:
+	case NXGUICBufferStyle::Value2:
+	case NXGUICBufferStyle::Value3:
+	case NXGUICBufferStyle::Value4:
 	default:
 		guiStyle.guiParams0 = 0.01f; // speed
 		guiStyle.guiParams1 = 0.0f;  // --- (unused)
 
-	case NXMSE_CBufferStyle::Slider:
-	case NXMSE_CBufferStyle::Slider2:
-	case NXMSE_CBufferStyle::Slider3:
-	case NXMSE_CBufferStyle::Slider4:
-	case NXMSE_CBufferStyle::Color3:
-	case NXMSE_CBufferStyle::Color4:
+	case NXGUICBufferStyle::Slider:
+	case NXGUICBufferStyle::Slider2:
+	case NXGUICBufferStyle::Slider3:
+	case NXGUICBufferStyle::Slider4:
+	case NXGUICBufferStyle::Color3:
+	case NXGUICBufferStyle::Color4:
 		guiStyle.guiParams0 = 0.0f; // min
 		guiStyle.guiParams1 = 1.0f; // max
 	}
@@ -114,17 +114,17 @@ std::string NXCodeProcessHelper::GenerateNSL(const NXMSEPackDatas& guiDatas)
 	result += "\tParams\n;";
 	result += "\t{\n";
 
-	std::vector<NXMSE_CBufferData*> cbArr;
-	std::vector<NXMSE_TextureData*> txArr;
-	std::vector<NXMSE_SamplerData*> ssArr;
+	std::vector<NXMatDataCBuffer*> cbArr;
+	std::vector<NXMatDataTexture*> txArr;
+	std::vector<NXMatDataSampler*> ssArr;
 
 	for (auto* data : guiDatas.datas)
 	{
 		switch (data->pMaterialData->GetType())
 		{
-		case NXMaterialBaseType::CBuffer: cbArr.push_back(static_cast<NXMSE_CBufferData*>(data)); break;
-		case NXMaterialBaseType::Texture: txArr.push_back(static_cast<NXMSE_TextureData*>(data)); break;
-		case NXMaterialBaseType::Sampler: ssArr.push_back(static_cast<NXMSE_SamplerData*>(data)); break;
+		case NXMaterialBaseType::CBuffer: cbArr.push_back(static_cast<NXMatDataCBuffer*>(data)); break;
+		case NXMaterialBaseType::Texture: txArr.push_back(static_cast<NXMatDataTexture*>(data)); break;
+		case NXMaterialBaseType::Sampler: ssArr.push_back(static_cast<NXMatDataSampler*>(data)); break;
 		default: break;
 		}
 	}
@@ -250,7 +250,7 @@ void NXCodeProcessHelper::ExtractShader_Params(std::istringstream& iss, std::sta
 				NXMaterialData_Texture* newTex = new NXMaterialData_Texture(vals[1]);
 				oMatData.datas.push_back(newTex);
 
-				NXMSE_TextureData* newTexGUI = new NXMSE_TextureData();
+				NXMatDataTexture* newTexGUI = new NXMatDataTexture();
 				newTexGUI->pMaterialLink = newTex;
 				oGUIData.datas.push_back(newTexGUI);
 			}
@@ -259,7 +259,7 @@ void NXCodeProcessHelper::ExtractShader_Params(std::istringstream& iss, std::sta
 				NXMaterialData_Sampler* newSampler = new NXMaterialData_Sampler(vals[1]);
 				oMatData.datas.push_back(newSampler);
 
-				NXMSE_SamplerData* newSamplerGUI = new NXMSE_SamplerData();
+				NXMatDataSampler* newSamplerGUI = new NXMatDataSampler();
 				newSamplerGUI->pMaterialLink = newSampler;
 				oGUIData.datas.push_back(newSamplerGUI);
 			}
@@ -287,7 +287,7 @@ void NXCodeProcessHelper::ExtractShader_Params_CBuffer(std::istringstream& iss, 
 			NXMaterialData_CBuffer* newCBuffer = new NXMaterialData_CBuffer(vals[1]);
 			oMatData.datas.push_back(newCBuffer);
 
-			NXMSE_CBufferData* newCBufferGUI = new NXMSE_CBufferData();
+			NXMatDataCBuffer* newCBufferGUI = new NXMatDataCBuffer();
 			newCBufferGUI->pMaterialLink = newCBuffer;
 			oGUIData.datas.push_back(newCBufferGUI);
 		}
@@ -633,7 +633,7 @@ NXMaterialData NXCodeProcessHelper::BuildMaterialData(const NXMSEPackDatas& guiD
 		auto type = gui->pMaterialData->GetType();
 		if (type == NXMaterialBaseType::CBuffer)
 		{
-			NXMSE_CBufferData* guiCB = (NXMSE_CBufferData*)gui;
+			NXMatDataCBuffer* guiCB = (NXMatDataCBuffer*)gui;
 
 			NXMaterialData_CBuffer* newCBuffer = new NXMaterialData_CBuffer(gui->pMaterialData->name);
 			newCBuffer->data = guiCB->MaterialData()->data;
@@ -642,7 +642,7 @@ NXMaterialData NXCodeProcessHelper::BuildMaterialData(const NXMSEPackDatas& guiD
 		}
 		else if (type == NXMaterialBaseType::Texture)
 		{
-			NXMSE_TextureData* guiTex = (NXMSE_TextureData*)gui;
+			NXMatDataTexture* guiTex = (NXMatDataTexture*)gui;
 
 			NXMaterialData_Texture* newTexture = new NXMaterialData_Texture(gui->pMaterialData->name);
 			newTexture->pTexture = guiTex->MaterialData()->pTexture;
@@ -650,7 +650,7 @@ NXMaterialData NXCodeProcessHelper::BuildMaterialData(const NXMSEPackDatas& guiD
 		}
 		else if (type == NXMaterialBaseType::Sampler)
 		{
-			NXMSE_SamplerData* guiSampler = (NXMSE_SamplerData*)gui;
+			NXMatDataSampler* guiSampler = (NXMatDataSampler*)gui;
 
 			NXMaterialData_Sampler* newSampler = new NXMaterialData_Sampler(gui->pMaterialData->name);
 			newSampler->filter = guiSampler->MaterialData()->filter;
