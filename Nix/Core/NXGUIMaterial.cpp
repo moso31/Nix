@@ -156,7 +156,7 @@ void NXGUIMaterial::SyncMaterialData(NXCustomMaterial* pMaterial)
 {
 	// 不调clone = 核心参数全部浅拷贝，
 	// 修改此ref的核心参数，会直接映射到pMaterial的源数据
-	m_guiDataRef = pMaterial->GetMSEPackData();
+	m_guiData = pMaterial->GetMaterialData();
 	m_pLastMaterial = pMaterial;
 }
 
@@ -195,21 +195,18 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMateri
 		{
 			int paramCnt = 0;
 
-			for (auto* guiData : m_guiDataRef.datas)
+			for (auto* guiData : m_guiData.GetAll())
 			{
-				auto* matData = guiData->pMaterialData;
-				if (matData->GetType() == NXMaterialBaseType::CBuffer)
+				if (auto cbData = guiData->IsCBuffer())
 				{
-					auto* cbGUI = (NXMatDataCBuffer*)guiData;
 					std::string strId = "##material_custom_child_cbuffer_" + std::to_string(paramCnt++);
-					RenderMaterialUI_Custom_Parameters_CBufferItem(strId, pMaterial, cbGUI);
+					RenderMaterialUI_Custom_Parameters_CBufferItem(strId, pMaterial, cbData);
 				}
-				else if (matData->GetType() == NXMaterialBaseType::Texture)
+				else if (auto* txData = guiData->IsTexture())
 				{
 					std::string strId = "##material_custom_child_texture_" + std::to_string(paramCnt);
 
-					auto* texGUI = (NXMatDataTexture*)guiData;
-					auto& pTex = texGUI->MaterialData()->pTexture;
+					auto& pTex = txData->pTexture;
 					if (pTex.IsNull()) continue;
 
 					auto onTexChange = [pMaterial, &pTex, this]()
@@ -224,9 +221,10 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMateri
 							RequestSyncMaterialData();
 						};
 
-					auto onTexDrop = [pMaterial, &pTex, this](const std::wstring& dragPath)
+					auto onTexDrop = [txData, &pTex, this](const std::wstring& dragPath)
 						{
-							pMaterial->SetTexture(pTex, dragPath);
+							txData->pTexture = pTex;
+							txData->SyncLink();
 							RequestSyncMaterialData();
 						};
 
@@ -237,7 +235,7 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMateri
 					ImGui::PopID();
 
 					ImGui::SameLine();
-					ImGui::Text(texGUI->pMaterialData->name.data());
+					ImGui::Text(txData->name.c_str());
 
 					paramCnt++;
 				}
@@ -254,28 +252,28 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters_CBufferItem(const std::st
 	using namespace NXGUICommon;
 
 	bool bDraged = false;
-	std::string strName = cbData->MaterialData()->name + strId + "_cb";
+	std::string strName = cbData->name + strId + "_cb";
 
-	switch (cbData->guiStyle)
+	switch (cbData->gui.style)
 	{
 	case NXGUICBufferStyle::Value:
 	case NXGUICBufferStyle::Value2:
 	case NXGUICBufferStyle::Value3:
 	case NXGUICBufferStyle::Value4:
 	default:
-		bDraged |= ImGui::DragScalarN(strName.data(), ImGuiDataType_Float, cbData->MaterialData()->data, cbData->MaterialData()->size, cbData->guiParams[0]);
+		bDraged |= ImGui::DragScalarN(strName.data(), ImGuiDataType_Float, cbData->data, cbData->size, cbData->gui.params[0]);
 		break;
 	case NXGUICBufferStyle::Slider:
 	case NXGUICBufferStyle::Slider2:
 	case NXGUICBufferStyle::Slider3:
 	case NXGUICBufferStyle::Slider4:
-		bDraged |= ImGui::SliderScalarN(strName.data(), ImGuiDataType_Float, cbData->MaterialData()->data, cbData->MaterialData()->size, &cbData->guiParams[0], &cbData->guiParams[1]);
+		bDraged |= ImGui::SliderScalarN(strName.data(), ImGuiDataType_Float, cbData->data, cbData->size, &cbData->gui.params[0], &cbData->gui.params[1]);
 		break;
 	case NXGUICBufferStyle::Color3:
-		bDraged |= ImGui::ColorEdit3(strName.data(), cbData->MaterialData()->data);
+		bDraged |= ImGui::ColorEdit3(strName.data(), cbData->data);
 		break;
 	case NXGUICBufferStyle::Color4:
-		bDraged |= ImGui::ColorEdit4(strName.data(), cbData->MaterialData()->data);
+		bDraged |= ImGui::ColorEdit4(strName.data(), cbData->data);
 		break;
 	}
 

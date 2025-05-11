@@ -91,14 +91,13 @@ public:
 	NXCustomMaterial* IsCustomMat() override { return this; }
 
 	const NXMaterialData& GetMaterialData() { return m_materialDatas; }
-	const NXMSEPackDatas& GetMSEPackData() { return m_guiDatas; }
 	const NXMaterialCode& GetMaterialCode() { return m_codeBlocks; }
 
 	void LoadAndCompile(const std::filesystem::path& nslFilePath);
 
 	bool LoadShaderCode();
 	void CompileShader(const std::string& strGBufferShader, std::string& oErrorMessageVS, std::string& oErrorMessagePS);
-	bool Recompile(const NXMSEPackDatas& guiData, const NXMaterialCode& code, const NXMSEPackDatas& guiDataBackup, const NXMaterialCode& codeBackup, std::string& oErrorMessageVS, std::string& oErrorMessagePS);
+	bool Recompile(const NXMaterialData& guiData, const NXMaterialCode& code, const NXMaterialData& guiDataBackup, const NXMaterialCode& codeBackup, std::string& oErrorMessageVS, std::string& oErrorMessagePS);
 
 	// 初始化所有着色器资源，包括 cb, tex, sampler
 	void InitShaderResources();
@@ -165,10 +164,8 @@ private:
 	std::filesystem::path m_nslPath;
 	NXConstantBuffer<std::vector<float>>	m_cbData;
 
-	// 记录材质的基本数据 但存两份
-	NXMaterialData							m_materialDatas; // 一份是实际参数，负责最终渲染效果
-	NXMSEPackDatas							m_guiDatas; // 另一份负责从MSE/硬盘 get值，然后同步到实际参数
-	NXMaterialCode							m_codeBlocks; // 代码也存一份
+	NXMaterialData							m_materialDatas; 
+	NXMaterialCode							m_codeBlocks; 
 
 	// SSS profile 的路径
 	std::filesystem::path					m_sssProfilePath;

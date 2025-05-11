@@ -53,29 +53,6 @@ std::string NXCodeProcessHelper::RemoveHLSLComment(const std::string& strCode)
 	return result;
 }
 
-void NXCodeProcessHelper::SetDefaultCBufferGUIParam(NXGUIStyle_CBufferItem& guiStyle)
-{
-	switch (guiStyle.style)
-	{
-	case NXGUICBufferStyle::Value:
-	case NXGUICBufferStyle::Value2:
-	case NXGUICBufferStyle::Value3:
-	case NXGUICBufferStyle::Value4:
-	default:
-		guiStyle.guiParams0 = 0.01f; // speed
-		guiStyle.guiParams1 = 0.0f;  // --- (unused)
-
-	case NXGUICBufferStyle::Slider:
-	case NXGUICBufferStyle::Slider2:
-	case NXGUICBufferStyle::Slider3:
-	case NXGUICBufferStyle::Slider4:
-	case NXGUICBufferStyle::Color3:
-	case NXGUICBufferStyle::Color4:
-		guiStyle.guiParams0 = 0.0f; // min
-		guiStyle.guiParams1 = 1.0f; // max
-	}
-}
-
 bool NXCodeProcessHelper::MoveToNextBranketIn(std::istringstream& iss, std::stack<std::string>& stackBrackets, const std::string& branketName)
 {
 	std::string str;
@@ -105,7 +82,7 @@ bool NXCodeProcessHelper::MoveToNextBranketOut(std::stack<std::string>& stackBra
 	return false;
 }
 
-std::string NXCodeProcessHelper::GenerateNSL(const NXMSEPackDatas& guiDatas)
+std::string NXCodeProcessHelper::GenerateNSL(const NXMaterialData& matData)
 {
 	std::string result;
 	result += "NXShader\n";
@@ -114,45 +91,30 @@ std::string NXCodeProcessHelper::GenerateNSL(const NXMSEPackDatas& guiDatas)
 	result += "\tParams\n;";
 	result += "\t{\n";
 
-	std::vector<NXMatDataCBuffer*> cbArr;
-	std::vector<NXMatDataTexture*> txArr;
-	std::vector<NXMatDataSampler*> ssArr;
-
-	for (auto* data : guiDatas.datas)
-	{
-		switch (data->pMaterialData->GetType())
-		{
-		case NXMaterialBaseType::CBuffer: cbArr.push_back(static_cast<NXMatDataCBuffer*>(data)); break;
-		case NXMaterialBaseType::Texture: txArr.push_back(static_cast<NXMatDataTexture*>(data)); break;
-		case NXMaterialBaseType::Sampler: ssArr.push_back(static_cast<NXMatDataSampler*>(data)); break;
-		default: break;
-		}
-	}
-
-	for (auto* tx : txArr)
+	for (auto* tx : matData.GetTextures())
 	{
 		result += "\t\t";
 		result += "Tex2D ";
-		result += tx->MaterialData()->name;
+		result += tx->name;
 		result += ";\n";
 	}
 
-	for (auto* ss : ssArr)
+	for (auto* ss : matData.GetSamplers())
 	{
 		result += "\t\t";
 		result += "SamplerState";
-		result += ss->MaterialData()->name;
+		result += ss->name;
 		result += ";\n";
 	}
 
 	result += "CBuffer\n";
 	result += "\t\t{\n";
-	for (auto* cb : cbArr)
+	for (auto* cb : matData.GetCBuffers())
 	{
 		result += "\t\t\t";
-		result += "float" + std::to_string(cb->MaterialData()->size);
+		result += "float" + std::to_string(cb->size);
 		result += " ";
-		result += cb->MaterialData()->name;
+		result += cb->name;
 		result += ";\n";
 	}
 
@@ -161,7 +123,7 @@ std::string NXCodeProcessHelper::GenerateNSL(const NXMSEPackDatas& guiDatas)
 	result += "}\n";
 }
 
-void NXCodeProcessHelper::ExtractShader(const std::string& strCode, NXMaterialData& oMatData, NXMSEPackDatas& oGUIData, NXMaterialCode& oMatCode)
+void NXCodeProcessHelper::ExtractShader(const std::string& strCode, NXMaterialData& oMatData, NXMaterialCode& oMatCode)
 {
 	std::string strNoCommentCode = RemoveHLSLComment(strCode); // È¥µô×¢ÊÍ
 
@@ -189,13 +151,13 @@ void NXCodeProcessHelper::ExtractShader(const std::string& strCode, NXMaterialDa
 		{
 			oMatCode.shaderName = vals[1];
 			MoveToNextBranketIn(iss, stackBrackets, "NXShader");
-			ExtractShader_NXShader(iss, stackBrackets, oMatData, oGUIData, oMatCode);
+			ExtractShader_NXShader(iss, stackBrackets, oMatData, oMatCode);
 			break;
 		}
 	}
 }
 
-void NXCodeProcessHelper::ExtractShader_NXShader(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXMaterialData& oMatData, NXMSEPackDatas& oGUIData, NXMaterialCode& oMatCode)
+void NXCodeProcessHelper::ExtractShader_NXShader(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXMaterialData& oMatData, NXMaterialCode& oMatCode)
 {
 	std::string str;
 	while (std::getline(iss, str))
@@ -207,7 +169,7 @@ void NXCodeProcessHelper::ExtractShader_NXShader(std::istringstream& iss, std::s
 			if (vals[0] == std::string("Params"))
 			{
 				MoveToNextBranketIn(iss, stackBrackets, "Params");
-				ExtractShader_Params(iss, stackBrackets, oMatData, oGUIData, oMatCode);
+				ExtractShader_Params(iss, stackBrackets, oMatData, oMatCode);
 			}
 			else if (vals[0] == std::string("GlobalFuncs"))
 			{
@@ -223,7 +185,7 @@ void NXCodeProcessHelper::ExtractShader_NXShader(std::istringstream& iss, std::s
 	}
 }
 
-void NXCodeProcessHelper::ExtractShader_Params(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXMaterialData& oMatData, NXMSEPackDatas& oGUIData, NXMaterialCode& oMatCode)
+void NXCodeProcessHelper::ExtractShader_Params(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXMaterialData& oMatData, NXMaterialCode& oMatCode)
 {
 	std::string str;
 	while (std::getline(iss, str))
@@ -234,7 +196,7 @@ void NXCodeProcessHelper::ExtractShader_Params(std::istringstream& iss, std::sta
 			if (vals[0] == std::string("CBuffer"))
 			{
 				MoveToNextBranketIn(iss, stackBrackets, "CBuffer");
-				ExtractShader_Params_CBuffer(iss, stackBrackets, oMatData, oGUIData, oMatCode);
+				ExtractShader_Params_CBuffer(iss, stackBrackets, oMatData, oMatCode);
 			}
 			if (vals[0] == std::string("}"))
 			{
@@ -247,27 +209,19 @@ void NXCodeProcessHelper::ExtractShader_Params(std::istringstream& iss, std::sta
 		{
 			if (vals[0] == std::string("Tex2D"))
 			{
-				NXMaterialData_Texture* newTex = new NXMaterialData_Texture(vals[1]);
-				oMatData.datas.push_back(newTex);
-
-				NXMatDataTexture* newTexGUI = new NXMatDataTexture();
-				newTexGUI->pMaterialLink = newTex;
-				oGUIData.datas.push_back(newTexGUI);
+				NXMatDataTexture* tx = new NXMatDataTexture();
+				oMatData.AddTexture(tx);
 			}
 			else if (vals[0] == std::string("SamplerState"))
 			{
-				NXMaterialData_Sampler* newSampler = new NXMaterialData_Sampler(vals[1]);
-				oMatData.datas.push_back(newSampler);
-
-				NXMatDataSampler* newSamplerGUI = new NXMatDataSampler();
-				newSamplerGUI->pMaterialLink = newSampler;
-				oGUIData.datas.push_back(newSamplerGUI);
+				NXMatDataSampler* ss = new NXMatDataSampler();
+				oMatData.AddSampler(ss);
 			}
 		}
 	}
 }
 
-void NXCodeProcessHelper::ExtractShader_Params_CBuffer(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXMaterialData& oMatData, NXMSEPackDatas& oGUIData, NXMaterialCode& oMatCode)
+void NXCodeProcessHelper::ExtractShader_Params_CBuffer(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXMaterialData& oMatData, NXMaterialCode& oMatCode)
 {
 	std::string str;
 	while (std::getline(iss, str))
@@ -284,12 +238,8 @@ void NXCodeProcessHelper::ExtractShader_Params_CBuffer(std::istringstream& iss, 
 		}
 		else if (vals.size() == 2)
 		{
-			NXMaterialData_CBuffer* newCBuffer = new NXMaterialData_CBuffer(vals[1]);
-			oMatData.datas.push_back(newCBuffer);
-
-			NXMatDataCBuffer* newCBufferGUI = new NXMatDataCBuffer();
-			newCBufferGUI->pMaterialLink = newCBuffer;
-			oGUIData.datas.push_back(newCBufferGUI);
+			NXMatDataCBuffer* cb = new NXMatDataCBuffer();
+			oMatData.AddCBuffer(cb);
 		}
 	}
 }
@@ -444,30 +394,15 @@ std::string NXCodeProcessHelper::BuildHLSL_Params(const std::filesystem::path& n
 	std::string strSlotCB = std::to_string(slot_cb);
 
 	std::string str;
-
-	std::vector<NXMaterialData_CBuffer*> cbArr;
-	std::vector<NXMaterialData_Texture*> txArr;
-	std::vector<NXMaterialData_Sampler*> ssArr;
-
-	for (auto* data : oMatData.datas)
-	{
-		switch (data->GetType())
-		{
-		case NXMaterialBaseType::CBuffer: cbArr.push_back(static_cast<NXMaterialData_CBuffer*>(data)); break;
-		case NXMaterialBaseType::Texture: txArr.push_back(static_cast<NXMaterialData_Texture*>(data)); break;
-		case NXMaterialBaseType::Sampler: ssArr.push_back(static_cast<NXMaterialData_Sampler*>(data)); break;
-		default: break;
-		}
-	}
-
+	
 	// texture
-	for (auto* tex : txArr)
+	for (auto* tex : oMatData.GetTextures())
 	{
 		str += "Texture2D " + tex->name + " : register(t" + std::to_string(slot_tex) + ");\n";
 	}
 
 	// sampler
-	for (auto* ss : ssArr)
+	for (auto* ss : oMatData.GetSamplers())
 	{
 		str += "SamplerState " + ss->name + " : register(s" + std::to_string(slot_ss) + ");\n";
 	}
@@ -476,7 +411,7 @@ std::string NXCodeProcessHelper::BuildHLSL_Params(const std::filesystem::path& n
 	std::string strMatName("Mat_" + std::to_string(std::filesystem::hash_value(nslPath)));
 	str += "struct " + strMatName + "\n";
 	str += "{\n";
-	for (auto* cb : cbArr)
+	for (auto* cb : oMatData.GetCBuffers())
 	{
 		str += "\tfloat" + std::to_string(cb->size) + " " + cb->name + ";\n";
 	}
@@ -625,71 +560,15 @@ void PS(PS_INPUT input, out PS_OUTPUT Output)
 	return str;
 }
 
-NXMaterialData NXCodeProcessHelper::BuildMaterialData(const NXMSEPackDatas& guiData)
-{
-	NXMaterialData result;
-	for (auto* gui : guiData.datas)
-	{
-		auto type = gui->pMaterialData->GetType();
-		if (type == NXMaterialBaseType::CBuffer)
-		{
-			NXMatDataCBuffer* guiCB = (NXMatDataCBuffer*)gui;
-
-			NXMaterialData_CBuffer* newCBuffer = new NXMaterialData_CBuffer(gui->pMaterialData->name);
-			newCBuffer->data = guiCB->MaterialData()->data;
-			newCBuffer->size = guiCB->MaterialData()->size;
-			result.datas.push_back(newCBuffer);
-		}
-		else if (type == NXMaterialBaseType::Texture)
-		{
-			NXMatDataTexture* guiTex = (NXMatDataTexture*)gui;
-
-			NXMaterialData_Texture* newTexture = new NXMaterialData_Texture(gui->pMaterialData->name);
-			newTexture->pTexture = guiTex->MaterialData()->pTexture;
-			result.datas.push_back(newTexture);
-		}
-		else if (type == NXMaterialBaseType::Sampler)
-		{
-			NXMatDataSampler* guiSampler = (NXMatDataSampler*)gui;
-
-			NXMaterialData_Sampler* newSampler = new NXMaterialData_Sampler(gui->pMaterialData->name);
-			newSampler->filter = guiSampler->MaterialData()->filter;
-			newSampler->addressU = guiSampler->MaterialData()->addressU;
-			newSampler->addressV = guiSampler->MaterialData()->addressV;
-			newSampler->addressW = guiSampler->MaterialData()->addressW;
-			result.datas.push_back(newSampler);
-		}
-	}
-
-	result.sets.shadingModel = guiData.settings.shadingModel;
-	return result;
-}
-
 void NXCodeProcessHelper::SaveToNSLFile(const std::filesystem::path& nslPath, const NXMaterialData& oMatData, const NXMaterialCode& shaderCode)
 {
-	std::vector<NXMaterialData_CBuffer*> cbArr;
-	std::vector<NXMaterialData_Texture*> txArr;
-	std::vector<NXMaterialData_Sampler*> ssArr;
-
-	for (auto* data : oMatData.datas)
-	{
-		switch (data->GetType())
-		{
-		case NXMaterialBaseType::CBuffer: cbArr.push_back(static_cast<NXMaterialData_CBuffer*>(data)); break;
-		case NXMaterialBaseType::Texture: txArr.push_back(static_cast<NXMaterialData_Texture*>(data)); break;
-		case NXMaterialBaseType::Sampler: ssArr.push_back(static_cast<NXMaterialData_Sampler*>(data)); break;
-		default: break;
-		}
-	}
-
-
 	std::string str;
 	str += "NXShader \"" + shaderCode.shaderName + "\"\n";
 	str += "\n";
 	str += "\tParams\n";
 	str += "\t{\n";
 	
-	for (auto* tx : txArr)
+	for (auto* tx : oMatData.GetTextures())
 	{
 		str += "\t\t";
 		str += "Tex2D ";
@@ -697,7 +576,7 @@ void NXCodeProcessHelper::SaveToNSLFile(const std::filesystem::path& nslPath, co
 		str += "\n";
 	}
 
-	for (auto* ss : ssArr)
+	for (auto* ss : oMatData.GetSamplers())
 	{
 		str += "\t\t";
 		str += "SamplerState ";
@@ -707,7 +586,7 @@ void NXCodeProcessHelper::SaveToNSLFile(const std::filesystem::path& nslPath, co
 
 	str += "\t\tCBuffer\n";
 	str += "\t\t{\n";
-	for (auto* cb : cbArr)
+	for (auto* cb : oMatData.GetCBuffers())
 	{
 		str += "\t\t\t";
 		str += "float" + std::to_string(cb->size);

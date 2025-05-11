@@ -33,7 +33,7 @@ private:
 	NXScene* m_pCurrentScene;
 	NXMaterial* m_pLastCommonPickMaterial = nullptr;
 
-	NXMSEPackDatas m_guiDataRef;
+	NXMaterialData m_guiData;
 
 	NXCustomMaterial* m_pLastMaterial = nullptr;
 	bool m_bIsDirty;

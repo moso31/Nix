@@ -118,7 +118,6 @@ void NXCustomMaterial::LoadAndCompile(const std::filesystem::path& nslFilePath)
 
 	// 构建前先释放旧数据
 	m_materialDatas.Destroy();
-	m_guiDatas.Destroy();
 
 	if (LoadShaderCode())
 	{
@@ -144,7 +143,7 @@ bool NXCustomMaterial::LoadShaderCode()
 	if (bLoadSuccess)
 	{
 		// 解析 nsl 文件
-		NXCodeProcessHelper::ExtractShader(strShader, m_materialDatas, m_guiDatas, m_codeBlocks);
+		NXCodeProcessHelper::ExtractShader(strShader, m_materialDatas, m_codeBlocks);
 	}
 
 	return bLoadSuccess;
@@ -160,20 +159,8 @@ void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::s
 	// 如果JIT编译OK，就可以构建shader了。首先重新构建根签名和PSO。
 	if (m_bCompileSuccess)
 	{
-		std::vector<NXMaterialData_CBuffer*> cbArr;
-		std::vector<NXMaterialData_Texture*> txArr;
-		std::vector<NXMaterialData_Sampler*> ssArr;
-
-		for (auto* data : m_materialDatas.datas)
-		{
-			switch (data->GetType())
-			{
-			case NXMaterialBaseType::CBuffer: cbArr.push_back(static_cast<NXMaterialData_CBuffer*>(data)); break;
-			case NXMaterialBaseType::Texture: txArr.push_back(static_cast<NXMaterialData_Texture*>(data)); break;
-			case NXMaterialBaseType::Sampler: ssArr.push_back(static_cast<NXMaterialData_Sampler*>(data)); break;
-			default: break;
-			}
-		}
+		auto& txArr = m_materialDatas.GetTextures();
+		auto& ssArr = m_materialDatas.GetSamplers();
 
 		// b3, t0..., s...
 		// t0~tN：nsl材质文件生成的所有纹理
@@ -229,26 +216,21 @@ void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::s
 	}
 }
 
-bool NXCustomMaterial::Recompile(const NXMSEPackDatas& guiData, const NXMaterialCode& code, const NXMSEPackDatas& guiDataBackup, const NXMaterialCode& codeBackup, std::string& oErrorMessageVS, std::string& oErrorMessagePS)
+bool NXCustomMaterial::Recompile(const NXMaterialData& guiData, const NXMaterialCode& code, const NXMaterialData& guiDataBackup, const NXMaterialCode& codeBackup, std::string& oErrorMessageVS, std::string& oErrorMessagePS)
 {
-	NXMaterialData tempMatData = NXCodeProcessHelper::BuildMaterialData(guiData);
-
-	std::string strHLSL = NXCodeProcessHelper::BuildHLSL(m_nslPath, tempMatData, code);
+	std::string strHLSL = NXCodeProcessHelper::BuildHLSL(m_nslPath, m_materialDatas, code);
 	std::string strErrMsgVS, strErrMsgPS;
 	CompileShader(strHLSL, strErrMsgVS, strErrMsgPS);
 
 	m_materialDatas.Destroy();
-	m_guiDatas.Destroy();
 	if (m_bCompileSuccess)
 	{
-		m_materialDatas = tempMatData;
-		m_guiDatas = guiData.Clone();
+		m_materialDatas = guiData.Clone();
 	}
 	else
 	{
 		// 如果编译失败，则用备份数据恢复材质
-		m_materialDatas = NXCodeProcessHelper::BuildMaterialData(guiDataBackup);
-		m_guiDatas = guiDataBackup.Clone();
+		m_materialDatas = guiDataBackup.Clone();
 	}
 
 	return m_bCompileSuccess;
@@ -268,30 +250,25 @@ void NXCustomMaterial::UpdateCBData(bool rebuildCB)
 	std::vector<float> cbData;
 	int alignCheck = 0;
 
-	for (auto& data : m_materialDatas.datas)
+	for (auto& cb : m_materialDatas.GetCBuffers())
 	{
-		if (data->GetType() == NXMaterialBaseType::CBuffer)
+		if (alignCheck + cb->size <= 4)
 		{
-			auto cb = (NXMaterialData_CBuffer*)data;
-
-			if (alignCheck + cb->size <= 4)
-			{
-				for (int j = 0; j < cb->size; j++) cbData.push_back(cb->data[j]);
-			}
-			else
-			{
-				while (cbData.size() % 4 != 0) cbData.push_back(0); // 16 bytes align
-				for (int j = 0; j < cb->size; j++) cbData.push_back(cb->data[j]);
-			}
-
-			alignCheck = (alignCheck + cb->size) % 4;
+			for (int j = 0; j < cb->size; j++) cbData.push_back(cb->data[j]);
 		}
+		else
+		{
+			while (cbData.size() % 4 != 0) cbData.push_back(0); // 16 bytes align
+			for (int j = 0; j < cb->size; j++) cbData.push_back(cb->data[j]);
+		}
+
+		alignCheck = (alignCheck + cb->size) % 4;
 	}
 
 	while (cbData.size() % 4 != 0) cbData.push_back(0); // 16 bytes align
 
 	// material settings
-	cbData.push_back(reinterpret_cast<float&>(m_materialDatas.sets.shadingModel));
+	cbData.push_back(reinterpret_cast<float&>(m_materialDatas.Settings().shadingModel));
 	while (cbData.size() % 4 != 0) cbData.push_back(0); // 16 bytes align
 
 	// sss Profile
@@ -338,12 +315,8 @@ void NXCustomMaterial::Render(ID3D12GraphicsCommandList* pCommandList)
 	pCommandList->SetGraphicsRootSignature(m_pRootSig.Get());
 	pCommandList->SetPipelineState(m_pPSO.Get());
 
-	for (auto& matData : m_materialDatas.datas)
+	for (auto& texData : m_materialDatas.GetTextures())
 	{
-		if (matData->GetType() != NXMaterialBaseType::Texture)
-			continue;
-
-		auto* texData = (NXMaterialData_Texture*)matData;
 		auto& pTex = texData->pTexture;
 		if (pTex.IsValid())
 			NXShVisDescHeap->PushFluid(pTex->GetSRV());
@@ -370,35 +343,22 @@ void NXCustomMaterial::Update()
 
 void NXCustomMaterial::SetTexture(const Ntr<NXTexture>& pTexture, const std::filesystem::path& texFilePath)
 {
-	auto it = std::find_if(m_guiDatas.datas.begin(), m_guiDatas.datas.end(),
-		[pTexture](const NXMatDataBase* data) { 
-			return data->pMaterialData->GetType() == NXMaterialBaseType::Texture && ((NXMatDataTexture*)data)->MaterialData()->pTexture == pTexture;
-		});
-
-	if (it != m_guiDatas.datas.end())
+	NXMatDataTexture* texData = m_materialDatas.FindTexture(pTexture);
+	if (texData)
 	{
 		auto newTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(m_name, texFilePath);
-
-		auto pTexIt = ((NXMatDataTexture*)*it);
-		pTexIt->MaterialData()->pTexture = newTexture;
-		pTexIt->MaterialLink()->pTexture = newTexture;
+		texData->pTexture = pTexture;
+		texData->SyncLink();
 	}
 }
 
 
 void NXCustomMaterial::RemoveTexture(const Ntr<NXTexture>& pTexture)
 {
-	auto it = std::find_if(m_guiDatas.datas.begin(), m_guiDatas.datas.end(),
-		[pTexture](const NXMatDataBase* data) {
-			return data->pMaterialData->GetType() == NXMaterialBaseType::Texture && ((NXMatDataTexture*)data)->MaterialData()->pTexture == pTexture;
-		});
-
-	if (it != m_guiDatas.datas.end())
+	NXMatDataTexture* texData = m_materialDatas.FindTexture(pTexture);
+	if (texData)
 	{
-		auto pTexIt = ((NXMatDataTexture*)*it);
-		auto pTex = pTexIt->MaterialData()->pTexture;
-
-		// Get tex by NXTextureMode
+		auto pTex = texData->pTexture;
 		if (pTex->GetSerializationData().m_textureType == NXTextureMode::NormalMap)
 			pTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_Normal);
 		else
@@ -424,69 +384,50 @@ void NXCustomMaterial::SaveToNSLFile()
 
 void NXCustomMaterial::Serialize()
 {
-	// 序列化时GUI数据总是最新的，所以直接用GUI数据（此时不用考虑MaterialData同步不及时的问题）
-	std::vector<NXMatDataCBuffer*> cbArr;
-	std::vector<NXMatDataTexture*> txArr;
-	std::vector<NXMatDataSampler*> ssArr;
-
-	for (auto* data : m_guiDatas.datas)
-	{
-		switch (data->pMaterialData->GetType())
-		{
-		case NXMaterialBaseType::CBuffer: cbArr.push_back(static_cast<NXMatDataCBuffer*>(data)); break;
-		case NXMaterialBaseType::Texture: txArr.push_back(static_cast<NXMatDataTexture*>(data)); break;
-		case NXMaterialBaseType::Sampler: ssArr.push_back(static_cast<NXMatDataSampler*>(data)); break;
-		default: break;
-		}
-	}
-
 	using namespace rapidjson;
 	std::string n0Path = m_filePath.string() + ".n0";
 	NXSerializer serializer;
 	serializer.StartObject();
 
 	serializer.StartArray("textures");
-	for (auto& tx : txArr)
+	for (auto& tx : m_materialDatas.GetTextures())
 	{
-		auto* texInfo = tx->MaterialData();
 		serializer.StartObject();
-		serializer.String("name", texInfo->name);
-		serializer.String("path", texInfo->pTexture->GetFilePath().string());
+		serializer.String("name", tx->name);
+		serializer.String("path", tx->pTexture->GetFilePath().string());
 		serializer.EndObject();
 	}
 	serializer.EndArray();
 
 	serializer.StartArray("samplers");
-	for (auto& ss : ssArr)
+	for (auto& ss : m_materialDatas.GetSamplers())
 	{
-		auto* ssInfo = ss->MaterialData();
 		serializer.StartObject();
-		serializer.String("name", ssInfo->name);
-		serializer.Int("filter", (int)ssInfo->filter);
-		serializer.Int("addressU", (int)ssInfo->addressU);
-		serializer.Int("addressV", (int)ssInfo->addressV);
-		serializer.Int("addressW", (int)ssInfo->addressW);
+		serializer.String("name", ss->name);
+		serializer.Int("filter", (int)ss->filter);
+		serializer.Int("addressU", (int)ss->addressU);
+		serializer.Int("addressV", (int)ss->addressV);
+		serializer.Int("addressW", (int)ss->addressW);
 		serializer.EndObject();
 	}
 	serializer.EndArray();
 
 	serializer.StartArray("cbuffer");
-	for (auto& cb : cbArr)
+	for (auto& cb : m_materialDatas.GetCBuffers())
 	{
-		auto* cbInfo = cb->MaterialData();
 		serializer.StartObject();
-		serializer.String("name", cbInfo->name);
-		serializer.Int("type", (int)cbInfo->size);
-		serializer.Int("guiStyle", (int)cb->guiStyle);
+		serializer.String("name", cb->name);
+		serializer.Int("type", (int)cb->size);
+		serializer.Int("guiStyle", (int)cb->gui.style);
 
 		serializer.StartArray("guiParams");
-		serializer.PushFloat(cb->guiParams[0]);
-		serializer.PushFloat(cb->guiParams[1]);
+		serializer.PushFloat(cb->gui.params[0]);
+		serializer.PushFloat(cb->gui.params[1]);
 		serializer.EndArray();
 
 		serializer.StartArray("values");
-		for (int j = 0; j < (int)cbInfo->size; j++)
-			serializer.PushFloat(cbInfo->data[j]);
+		for (int j = 0; j < (int)cb->size; j++)
+			serializer.PushFloat(cb->data[j]);
 		serializer.EndArray();
 
 		serializer.EndObject();
@@ -495,7 +436,7 @@ void NXCustomMaterial::Serialize()
 
 	// cbuffer sets
 	{
-		serializer.Uint("shadingModel", m_guiDatas.settings.shadingModel);
+		serializer.Uint("shadingModel", m_materialDatas.Settings().shadingModel);
 		serializer.String("sssProfilePath", m_sssProfilePath.string());
 	}
 
@@ -513,23 +454,34 @@ void NXCustomMaterial::Deserialize()
 	if (bJsonExist)
 	{
 		// textures
-		auto texArray = deserializer.Array("textures");
+		auto& texArray = deserializer.Array("textures");
 		for (auto& tex : texArray)
 		{
-			auto objName = deserializer.String(tex, "name");
-			auto objPath = deserializer.String(tex, "path");
+			auto& objName = deserializer.String(tex, "name");
+			auto& objPath = deserializer.String(tex, "path");
 
-			auto texInfo = std::find_if(m_texInfos.begin(), m_texInfos.end(), [objName](const NXMaterialTextureInfo& texInfo) { return texInfo.name == objName; });
-			if (texInfo == m_texInfos.end()) continue;
-
-			SetTexture(texInfo->pTexture, objPath);
+			auto* tx = m_materialDatas.FindTextureByName(objName);
+			if (tx)
+			{
+				tx->name = objName;
+				auto newTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(m_name + objName, m_filePath);
+			}
 		}
 
 		// samplers
 		auto ssArray = deserializer.Array("samplers");
 		for (auto& ss : ssArray)
 		{
-			auto objName = deserializer.String(ss, "name");
+			auto& objName = deserializer.String(ss, "name");
+			auto& objFilter = deserializer.String(ss, "filter");
+			auto& objAddressU = deserializer.String(ss, "addressU");
+			auto& objAddressV = deserializer.String(ss, "addressV");
+			auto& objAddressW = deserializer.String(ss, "addressW");
+
+			auto* ss = m_materialDatas.FindSamplerByName(objName);
+			if (ss)
+			{
+			}
 		}
 
 		// cbuffer
@@ -537,6 +489,14 @@ void NXCustomMaterial::Deserialize()
 		for (auto& cb : cbArray)
 		{
 			auto objName = deserializer.String(cb, "name");
+			auto* cb = m_materialDatas.FindCBufferByName(objName);
+			if (cb)
+			{
+				cb->name = objName;
+
+				auto& objValues = deserializer.Array(cb, "values");
+				cb->data
+			}
 
 			for (int i = 0; i < m_cbInfo.elems.size(); i++)
 			{
