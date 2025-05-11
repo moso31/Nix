@@ -406,9 +406,6 @@
     <ClCompile Include="Core\ShaderComplier.cpp">
       <Filter>Core\DirectX\Compile</Filter>
     </ClCompile>
-    <ClCompile Include="Core\NXHLSLGenerator.cpp">
-      <Filter>Core\DirectX\Compile</Filter>
-    </ClCompile>
     <ClCompile Include="Core\NXGUIMaterialShaderEditor.cpp">
       <Filter>Core\UI</Filter>
     </ClCompile>
@@ -727,9 +724,6 @@
       <Filter>Core\DirectX\Manager</Filter>
     </ClInclude>
     <ClInclude Include="Core\ShaderComplier.h">
-      <Filter>Core\DirectX\Compile</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\NXHLSLGenerator.h">
       <Filter>Core\DirectX\Compile</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXShaderIncluder.h">

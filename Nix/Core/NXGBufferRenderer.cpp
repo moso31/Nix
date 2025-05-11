@@ -3,7 +3,6 @@
 #include "Ntr.h"
 
 #include "ShaderComplier.h"
-#include "NXHLSLGenerator.h"
 #include "DirectResources.h"
 #include "NXResourceManager.h"
 

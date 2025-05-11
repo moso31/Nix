@@ -4,7 +4,6 @@
 #include "NXConstantBuffer.h"
 #include "NXTexture.h"
 #include "NXShaderDefinitions.h"
-#include "NXHLSLGenerator.h"
 #include "NXCodeProcessHeader.h"
 
 enum class NXShadingModel
@@ -33,6 +32,7 @@ public:
 	const std::filesystem::path& GetFilePath() { return m_filePath; }
 	size_t GetFilePathHash() { return std::filesystem::hash_value(m_filePath); }
 
+	virtual NXShadingModel GetShadingModel() = 0;
 	virtual void SetShadingModel(NXShadingModel shadingModel) {}
 
 	virtual void Update() = 0;
@@ -74,6 +74,7 @@ public:
 	void Update() override {}
 	void Render(ID3D12GraphicsCommandList* pCommandList) override;
 	void Release() override {}
+	virtual NXShadingModel GetShadingModel() override { return NXShadingModel::Unlit; }
 
 private:
 	Ntr<NXTexture2D> m_pTexture;
@@ -106,30 +107,11 @@ public:
 	void Render(ID3D12GraphicsCommandList* pCommandList) override;
 	void Release() override {}
 
-	UINT GetCBufferElemCount() { return UINT(m_cbInfo.elems.size()); }
-	const NXCBufferElem& GetCBufferElem(UINT index) { return m_cbInfo.elems[index]; }
-
-	NXShadingModel GetShadingModel() { return NXShadingModel(m_cbInfo.sets.shadingModel + 1); }
-	virtual void SetShadingModel(NXShadingModel shadingModel) { m_cbInfo.sets.shadingModel = (UINT)shadingModel; }
-	const NXCBufferSets& GetCBufferSets() { return m_cbInfo.sets; }
-
-	UINT GetTextureCount() { return UINT(m_texInfos.size()); }
-	Ntr<NXTexture> GetTexture(UINT index) { return m_texInfos[index].pTexture; }
-	const std::string& GetTextureName(UINT index) { return m_texInfos[index].name; }
-
 	void SetTexture(const Ntr<NXTexture>& pTexture, const std::filesystem::path& texFilePath);
 	void RemoveTexture(const Ntr<NXTexture>& pTexture);
 
-	UINT GetSamplerCount() { return UINT(m_samplerInfos.size()); }
-	const std::string& GetSamplerName(UINT index) { return m_samplerInfos[index].name; }
-	NXSamplerFilter GetSamplerFilter(UINT index) { return m_samplerInfos[index].filter; }
-	NXSamplerAddressMode GetSamplerAddressMode(UINT index, UINT uvwIndex) { return uvwIndex ? uvwIndex == 1 ? m_samplerInfos[index].addressV : m_samplerInfos[index].addressW : m_samplerInfos[index].addressU; }
-
-	const float* GetCBInfoMemoryData(UINT memoryIndex) { return m_cbInfoMemory.data() + memoryIndex; }
 	void SetCBInfoMemoryData();
-
-	NXGUICBufferStyle GetCBGUIStyles(UINT index) { return m_cbInfo.elems[index].style; }
-	Vector2 GetCBGUIParams(UINT index) { return m_cbInfo.elems[index].guiParams; }
+	virtual NXShadingModel GetShadingModel() override;
 
 	void RequestUpdateCBufferData(bool bNeedRebuildCB);
 

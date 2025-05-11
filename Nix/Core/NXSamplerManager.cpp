@@ -31,7 +31,7 @@ const D3D12_STATIC_SAMPLER_DESC& NXSamplerManager::Create(UINT slot, UINT space,
     return m_samplerDescs.emplace_back(desc);
 }
 
-const D3D12_STATIC_SAMPLER_DESC &NXSamplerManager::Create(UINT slot, UINT space, D3D12_SHADER_VISIBILITY visibility, const NXMaterialData_Sampler* ssInfo)
+const D3D12_STATIC_SAMPLER_DESC &NXSamplerManager::Create(UINT slot, UINT space, D3D12_SHADER_VISIBILITY visibility, const NXMatDataSampler* ssInfo)
 {
     return Create(slot, space, visibility, ToFilterMode(ssInfo->filter), ToAddressMode(ssInfo->addressU), ToAddressMode(ssInfo->addressV), ToAddressMode(ssInfo->addressW), D3D12_COMPARISON_FUNC_NEVER, 0.0f, 1, D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK, -D3D12_FLOAT32_MAX, D3D12_FLOAT32_MAX);
 }

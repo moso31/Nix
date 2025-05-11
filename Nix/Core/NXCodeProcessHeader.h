@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <string>
+#include <algorithm>
 #include "Ntr.h"
 #include "BaseDefs/Math.h"
 
@@ -226,7 +227,7 @@ public:
 
 	NXMatDataTexture* FindTexture(const Ntr<NXTexture>& pTex)
 	{
-		auto it = std::find_if(txArr.begin(), txArr.end(), [pTex](Ntr<NXTexture>& t) { return t == pTex; });
+		auto it = std::find_if(txArr.begin(), txArr.end(), [pTex](NXMatDataTexture* t) { return t->pTexture == pTex; });
 		if (it != txArr.end())
 			return *it;
 		return nullptr;

@@ -237,7 +237,6 @@
     <ClCompile Include="Core\NXGUIMaterialShaderEditor.cpp" />
     <ClCompile Include="Core\NXGUIView.cpp" />
     <ClCompile Include="Core\NXGUIWorkspace.cpp" />
-    <ClCompile Include="Core\NXHLSLGenerator.cpp" />
     <ClCompile Include="Core\ImageGenerator.cpp" />
     <ClCompile Include="Core\Main.cpp" />
     <ClCompile Include="Core\NXBRDFlut.cpp" />
@@ -353,7 +352,6 @@
     <ClInclude Include="Core\NXGUIMaterialShaderEditor.h" />
     <ClInclude Include="Core\NXGUIView.h" />
     <ClInclude Include="Core\NXGUIWorkspace.h" />
-    <ClInclude Include="Core\NXHLSLGenerator.h" />
     <ClInclude Include="Core\ImageGenerator.h" />
     <ClInclude Include="Core\NXBRDFlut.h" />
     <ClInclude Include="Core\NXCameraResourceManager.h" />

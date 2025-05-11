@@ -94,68 +94,6 @@ Vector2 GetGUIParamsDefaultValue(NXGUICBufferStyle eGUIStyle)
 	return { 0.01f, 0.0f }; // speed, ---
 }
 
-std::string ConvertShaderResourceDataToNSLParam(const std::vector<NXGUICBufferData>& cbInfosDisplay, const std::vector<NXGUITextureData>& texInfosDisplay, const std::vector<NXGUISamplerData>& ssInfosDisplay)
-{
-	std::string strNSLParamBegin = "Params\n{\n";
-	std::string strNSLParamEnd = "}\n";
-
-	std::string strNSLParam;
-	for (auto& texDisplay : texInfosDisplay)
-	{
-		strNSLParam += "\t";
-		strNSLParam += "Tex2D";
-		strNSLParam += " : ";
-		strNSLParam += texDisplay.name;
-		strNSLParam += "\n";
-	}
-
-	for (auto& ssDisplay : ssInfosDisplay)
-	{
-		strNSLParam += "\t";
-		strNSLParam += "SamplerState";
-		strNSLParam += " : ";
-		strNSLParam += ssDisplay.name;
-		strNSLParam += "\n";
-	}
-
-	strNSLParam += "\t";
-	strNSLParam += "CBuffer\n\t{\n";
-	for (auto& cbDisplay : cbInfosDisplay)
-	{
-		std::string strCBType;
-		switch (cbDisplay.guiStyle)
-		{
-		case NXGUICBufferStyle::Value:
-		case NXGUICBufferStyle::Slider:
-			strCBType = "float";
-			break;
-		case NXGUICBufferStyle::Value2:
-		case NXGUICBufferStyle::Slider2:
-			strCBType = "float2";
-			break;
-		case NXGUICBufferStyle::Value3:
-		case NXGUICBufferStyle::Slider3:
-		case NXGUICBufferStyle::Color3:
-			strCBType = "float3";
-			break;
-		case NXGUICBufferStyle::Value4:
-		case NXGUICBufferStyle::Slider4:
-		case NXGUICBufferStyle::Color4:
-			strCBType = "float4";
-			break;
-		default: continue;
-		}
-
-		strNSLParam += "\t\t";
-		strNSLParam += strCBType;
-		strNSLParam += " : ";
-		strNSLParam += cbDisplay.name;
-		strNSLParam += "\n";
-	}
-	strNSLParam += "\t}\n";
-	return strNSLParamBegin + strNSLParam + strNSLParamEnd;
-}
-
 std::filesystem::path GenerateAssetNameJudge(const std::filesystem::path& strFolderPath, const std::string& strSuffix, const std::string& strJudge)
 {
 	// 整体思路：

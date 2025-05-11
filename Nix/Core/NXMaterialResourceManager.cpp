@@ -4,7 +4,6 @@
 #include "NXPBRMaterial.h"
 #include "NXConverter.h"
 #include "NXSubMesh.h"
-#include "NXHLSLGenerator.h"
 #include "NXSSSDiffuseProfile.h"
 #include "NXAllocatorManager.h"
 

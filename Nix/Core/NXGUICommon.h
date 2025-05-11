@@ -22,8 +22,6 @@ namespace NXGUICommon
 	// 获取GUIStyle对应的默认值
 	Vector2				GetGUIParamsDefaultValue(NXGUICBufferStyle eGUIStyle);
 
-	std::string ConvertShaderResourceDataToNSLParam(const std::vector<NXGUICBufferData>& cbInfosDisplay, const std::vector<NXGUITextureData>& texInfosDisplay, const std::vector<NXGUISamplerData>& ssInfosDisplay);
-
 	// 用于生成新资产时，ContentExplorer添加文件时确定 具体的序号
 	// 比如某个文件夹下新建了材质，应该叫 "New Material ?"，这个方法就用于确定 ? 是多少。
 	std::filesystem::path GenerateAssetNameJudge(const std::filesystem::path& strFolderPath, const std::string& strSuffix, const std::string& strJudge);

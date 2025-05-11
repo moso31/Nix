@@ -371,6 +371,11 @@ void NXCustomMaterial::SetCBInfoMemoryData()
 	RequestUpdateCBufferData(false);
 }
 
+NXShadingModel NXCustomMaterial::GetShadingModel()
+{
+	return (NXShadingModel)m_materialDatas.Settings().shadingModel;
+}
+
 void NXCustomMaterial::RequestUpdateCBufferData(bool bNeedRebuildCB)
 {
 	m_bIsDirty = true;
@@ -460,11 +465,10 @@ void NXCustomMaterial::Deserialize()
 			auto& objName = deserializer.String(tex, "name");
 			auto& objPath = deserializer.String(tex, "path");
 
-			auto* tx = m_materialDatas.FindTextureByName(objName);
-			if (tx)
+			auto* txData = m_materialDatas.FindTextureByName(objName);
+			if (txData)
 			{
-				tx->name = objName;
-				auto newTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(m_name + objName, m_filePath);
+				txData->pTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(m_name + objName, objPath);
 			}
 		}
 
@@ -473,14 +477,18 @@ void NXCustomMaterial::Deserialize()
 		for (auto& ss : ssArray)
 		{
 			auto& objName = deserializer.String(ss, "name");
-			auto& objFilter = deserializer.String(ss, "filter");
-			auto& objAddressU = deserializer.String(ss, "addressU");
-			auto& objAddressV = deserializer.String(ss, "addressV");
-			auto& objAddressW = deserializer.String(ss, "addressW");
+			auto objFilter = deserializer.Int(ss, "filter");
+			auto objAddressU = deserializer.Int(ss, "addressU");
+			auto objAddressV = deserializer.Int(ss, "addressV");
+			auto objAddressW = deserializer.Int(ss, "addressW");
 
-			auto* ss = m_materialDatas.FindSamplerByName(objName);
-			if (ss)
+			auto* ssData = m_materialDatas.FindSamplerByName(objName);
+			if (ssData)
 			{
+				ssData->filter = (NXSamplerFilter)objFilter;
+				ssData->addressU = (NXSamplerAddressMode)objAddressU;
+				ssData->addressV = (NXSamplerAddressMode)objAddressV;
+				ssData->addressW = (NXSamplerAddressMode)objAddressW;
 			}
 		}
 
@@ -489,45 +497,34 @@ void NXCustomMaterial::Deserialize()
 		for (auto& cb : cbArray)
 		{
 			auto objName = deserializer.String(cb, "name");
-			auto* cb = m_materialDatas.FindCBufferByName(objName);
-			if (cb)
+			auto* cbData = m_materialDatas.FindCBufferByName(objName);
+			if (cbData)
 			{
-				cb->name = objName;
+				cbData->name = objName;
 
 				auto& objValues = deserializer.Array(cb, "values");
-				cb->data
-			}
-
-			for (int i = 0; i < m_cbInfo.elems.size(); i++)
-			{
-				auto& cbElem = m_cbInfo.elems[i];
-				if (cbElem.name == objName)
+				if (!objValues.Empty())
 				{
-					auto objType = deserializer.Int(cb, "type", (int)NXCBufferInputType::Float);
-					if ((int)cbElem.type == objType)
+					cbData->size = objValues.Size();
+					for (int i = 0; i < cbData->size; i++)
 					{
-						auto objGUIStyle = deserializer.Int(cb, "guiStyle", (int)NXGUICBufferStyle::Unknown);
-						cbElem.style = (NXGUICBufferStyle)objGUIStyle;
-
-						auto objValues = deserializer.Array(cb, "values");
-						if (!objValues.Empty())
-						{
-							for (int j = 0; j < (int)cbElem.type; j++)
-								m_cbInfoMemory[cbElem.memoryIndex + j] = objValues[j].GetFloat();
-						}
-
-						auto objParams = deserializer.Array(cb, "guiParams");
-						if (!objParams.Empty())
-						{
-							cbElem.guiParams[0] = objParams[0].GetFloat();
-							cbElem.guiParams[1] = objParams[1].GetFloat();
-						}
+						cbData->data[i] = objValues[i].GetFloat();
 					}
+				}
+
+				auto objGUIStyle = deserializer.Int(cb, "guiStyle", (int)NXGUICBufferStyle::Unknown);
+				cbData->gui.style = (NXGUICBufferStyle)objGUIStyle;
+
+				auto objGUIParams = deserializer.Array(cb, "guiParams");
+				if (!objGUIParams.Empty())
+				{
+					cbData->gui.params[0] = objGUIParams[0].GetFloat();
+					cbData->gui.params[1] = objGUIParams[1].GetFloat();
 				}
 			}
 		}
 
-		auto& cbSets = m_cbInfo.sets;
+		auto& cbSets = m_materialDatas.Settings();
 		cbSets.shadingModel = deserializer.Uint("shadingModel");
 
 		if (cbSets.shadingModel == 2)
