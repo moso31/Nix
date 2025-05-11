@@ -146,6 +146,11 @@ struct NXMatDataSettings
 	uint32_t shadingModel = 0;
 };
 
+struct NXMaterialDataIntermediate
+{
+	int padding = 0;
+};
+
 class NXMaterialData
 {
 public:

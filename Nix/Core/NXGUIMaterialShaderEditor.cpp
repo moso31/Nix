@@ -436,61 +436,65 @@ void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
 	ImGui::InputText("Search params", &m_strQuery);
 	ImGui::PopID();
 
-	for (auto* data : m_guiData.GetAll())
+	ImGui::BeginChild("##material_shader_editor_custom_child");
+	if (ImGui::BeginTable("##material_shader_editor_params_table", 2, ImGuiTableFlags_Resizable))
 	{
-		// 先排除搜索框以外的
-		if (data->name.find(NXConvert::s2lower(m_strQuery)) == std::string::npos) continue;
-
-		int paramCnt = 0;
-		if (auto* cbData = data->IsCBuffer())
+		for (auto* data : m_guiData.GetAll())
 		{
-			std::string strId = "##material_shader_editor_custom_child_cbuffer_" + std::to_string(paramCnt);
-			ImGui::TableNextColumn();
+			// 先排除搜索框以外的
+			if (data->name.find(NXConvert::s2lower(m_strQuery)) == std::string::npos) continue;
 
-			Render_Params_ResourceOps(strId, pMaterial, cbData);
-
-			ImGui::TableNextColumn();
-			ImGui::PushItemWidth(-1);
-			if (ImGui::BeginCombo(strId.c_str(), g_strCBufferGUIStyle[(int)cbData->gui.style]))
+			int paramCnt = 0;
+			if (auto* cbData = data->IsCBuffer())
 			{
-				for (int item = 0; item < g_strCBufferGUIStyleCount; item++)
+				std::string strId = "##material_shader_editor_custom_child_cbuffer_" + std::to_string(paramCnt);
+				ImGui::TableNextColumn();
+
+				Render_Params_ResourceOps(strId, pMaterial, cbData);
+
+				ImGui::TableNextColumn();
+				ImGui::PushItemWidth(-1);
+				if (ImGui::BeginCombo(strId.c_str(), g_strCBufferGUIStyle[(int)cbData->gui.style]))
 				{
-					if (ImGui::Selectable(g_strCBufferGUIStyle[item]) && item != (int)cbData->gui.style)
+					for (int item = 0; item < g_strCBufferGUIStyleCount; item++)
 					{
-						// 设置 GUI Style
-						cbData->gui.style = GetGUIStyleFromString(g_strCBufferGUIStyle[item]);
+						if (ImGui::Selectable(g_strCBufferGUIStyle[item]) && item != (int)cbData->gui.style)
+						{
+							// 设置 GUI Style
+							cbData->gui.style = GetGUIStyleFromString(g_strCBufferGUIStyle[item]);
 
-						// 根据 GUI Style 设置GUI的拖动速度或最大最小值
-						cbData->gui.params = GetGUIParamsDefaultValue(cbData->gui.style);
-						break;
+							// 根据 GUI Style 设置GUI的拖动速度或最大最小值
+							cbData->gui.params = GetGUIParamsDefaultValue(cbData->gui.style);
+							break;
+						}
 					}
+					ImGui::EndCombo();
 				}
-				ImGui::EndCombo();
+				ImGui::PopItemWidth();
+
+				Render_Params_CBufferItem(strId, pMaterial, cbData);
 			}
-			ImGui::PopItemWidth();
+			else if (auto* txData = data->IsTexture())
+			{
+				std::string strId = "##material_shader_editor_custom_child_texture_" + std::to_string(paramCnt);
+				Render_Params_ResourceOps(strId, pMaterial, txData);
 
-			Render_Params_CBufferItem(strId, pMaterial, cbData);
+				ImGui::TableNextColumn();
+				Render_Params_TextureItem(paramCnt, pMaterial, txData);
+			}
+			else if (auto* ssData = data->IsSampler())
+			{
+				std::string strId = "##material_shader_editor_custom_child_sampler_" + std::to_string(paramCnt);
+				Render_Params_ResourceOps(strId, pMaterial, ssData);
+
+				ImGui::TableNextColumn();
+				Render_Params_SamplerItem(paramCnt, pMaterial, ssData);
+			}
+
+			paramCnt++;
 		}
-		else if (auto* txData = data->IsTexture())
-		{
-			std::string strId = "##material_shader_editor_custom_child_texture_" + std::to_string(paramCnt);
-			Render_Params_ResourceOps(strId, pMaterial, txData);
-
-			ImGui::TableNextColumn();
-			Render_Params_TextureItem(paramCnt, pMaterial, txData);
-		}
-		else if (auto* ssData = data->IsSampler())
-		{
-			std::string strId = "##material_shader_editor_custom_child_sampler_" + std::to_string(paramCnt);
-			Render_Params_ResourceOps(strId, pMaterial, ssData);
-
-			ImGui::TableNextColumn();
-			Render_Params_SamplerItem(paramCnt, pMaterial, ssData);
-		}
-
-		paramCnt++;
 	}
-
+	ImGui::EndTable();
 	ImGui::EndChild();
 }
 

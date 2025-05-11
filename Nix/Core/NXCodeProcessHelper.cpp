@@ -125,7 +125,7 @@ std::string NXCodeProcessHelper::GenerateNSL(const NXMaterialData& matData)
 	return result;
 }
 
-void NXCodeProcessHelper::ExtractShader(const std::string& strCode, NXMaterialData& oMatData, NXMaterialCode& oMatCode)
+void NXCodeProcessHelper::ExtractShader(const std::string& strCode, NXMaterialData& oMatData, NXMaterialDataIntermediate& oMatIntermediate, NXMaterialCode& oMatCode)
 {
 	std::string strNoCommentCode = RemoveHLSLComment(strCode); // 去掉注释
 
@@ -153,13 +153,13 @@ void NXCodeProcessHelper::ExtractShader(const std::string& strCode, NXMaterialDa
 		{
 			oMatCode.shaderName = vals[1];
 			MoveToNextBranketIn(iss, stackBrackets, "NXShader");
-			ExtractShader_NXShader(iss, stackBrackets, oMatData, oMatCode);
+			ExtractShader_NXShader(iss, stackBrackets, oMatData, oMatIntermediate, oMatCode);
 			break;
 		}
 	}
 }
 
-void NXCodeProcessHelper::ExtractShader_NXShader(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXMaterialData& oMatData, NXMaterialCode& oMatCode)
+void NXCodeProcessHelper::ExtractShader_NXShader(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXMaterialData& oMatData, NXMaterialDataIntermediate& oMatIntermediate, NXMaterialCode& oMatCode)
 {
 	std::string str;
 	while (std::getline(iss, str))
@@ -171,7 +171,7 @@ void NXCodeProcessHelper::ExtractShader_NXShader(std::istringstream& iss, std::s
 			if (vals[0] == std::string("Params"))
 			{
 				MoveToNextBranketIn(iss, stackBrackets, "Params");
-				ExtractShader_Params(iss, stackBrackets, oMatData, oMatCode);
+				ExtractShader_Params(iss, stackBrackets, oMatData, oMatIntermediate, oMatCode);
 			}
 			else if (vals[0] == std::string("GlobalFuncs"))
 			{
@@ -187,7 +187,7 @@ void NXCodeProcessHelper::ExtractShader_NXShader(std::istringstream& iss, std::s
 	}
 }
 
-void NXCodeProcessHelper::ExtractShader_Params(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXMaterialData& oMatData, NXMaterialCode& oMatCode)
+void NXCodeProcessHelper::ExtractShader_Params(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXMaterialData& oMatData, NXMaterialDataIntermediate& oMatIntermediate, NXMaterialCode& oMatCode)
 {
 	std::string str;
 	while (std::getline(iss, str))
@@ -198,7 +198,7 @@ void NXCodeProcessHelper::ExtractShader_Params(std::istringstream& iss, std::sta
 			if (vals[0] == std::string("CBuffer"))
 			{
 				MoveToNextBranketIn(iss, stackBrackets, "CBuffer");
-				ExtractShader_Params_CBuffer(iss, stackBrackets, oMatData, oMatCode);
+				ExtractShader_Params_CBuffer(iss, stackBrackets, oMatData, oMatIntermediate, oMatCode);
 			}
 			if (vals[0] == std::string("}"))
 			{
@@ -225,7 +225,7 @@ void NXCodeProcessHelper::ExtractShader_Params(std::istringstream& iss, std::sta
 	}
 }
 
-void NXCodeProcessHelper::ExtractShader_Params_CBuffer(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXMaterialData& oMatData, NXMaterialCode& oMatCode)
+void NXCodeProcessHelper::ExtractShader_Params_CBuffer(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXMaterialData& oMatData, NXMaterialDataIntermediate& oMatIntermediate, NXMaterialCode& oMatCode)
 {
 	std::string str;
 	while (std::getline(iss, str))
@@ -236,7 +236,10 @@ void NXCodeProcessHelper::ExtractShader_Params_CBuffer(std::istringstream& iss, 
 			if (vals[0] == std::string("}"))
 			{
 				if (MoveToNextBranketOut(stackBrackets, "CBuffer"))
+				{
+					oMatIntermediate.padding = 4 - oMatIntermediate.padding;
 					return;
+				}
 				throw std::runtime_error("括号不匹配");
 			}
 		}
@@ -245,6 +248,23 @@ void NXCodeProcessHelper::ExtractShader_Params_CBuffer(std::istringstream& iss, 
 			NXMatDataCBuffer* cb = new NXMatDataCBuffer();
 			cb->name = vals[1];
 			oMatData.AddCBuffer(cb);
+
+			// 5 = length of "float"
+			{
+				std::string subStr = vals[0].substr(5, vals[0].size() - 5);
+				if (!subStr.empty() && subStr[0] >= '0' && subStr[0] <= '9')
+				{
+					int ofs = subStr[0] - '0';
+					if (oMatIntermediate.padding + ofs > 4)
+					{
+						oMatIntermediate.padding = ofs;
+					}
+					else
+					{
+						oMatIntermediate.padding = (oMatIntermediate.padding + ofs) % 4;
+					}
+				}
+			}
 		}
 	}
 }
@@ -366,14 +386,14 @@ void NXCodeProcessHelper::ExtractShader_SubShader_Pass_Entry(std::istringstream&
 	}
 }
 
-std::string NXCodeProcessHelper::BuildHLSL(const std::filesystem::path& nslPath, NXMaterialData& oMatData, const NXMaterialCode& shaderCode)
+std::string NXCodeProcessHelper::BuildHLSL(const std::filesystem::path& nslPath, NXMaterialData& oMatData, const NXMaterialDataIntermediate oMatDataIntermediate, const NXMaterialCode& shaderCode)
 {
 	// 注意这个方法不会用nslPath记录的内容构建HLSL；而是使用oMatData+shaderCode。
 	// nslPath在这里唯一作用就是给cbuffer struct生成hash
 
 	std::string str;
 	str += BuildHLSL_Include();
-	str += BuildHLSL_Params(nslPath, oMatData, shaderCode);
+	str += BuildHLSL_Params(nslPath, oMatData, oMatDataIntermediate, shaderCode);
 	str += BuildHLSL_Structs(oMatData, shaderCode);
 	str += BuildHLSL_PassFuncs(oMatData, shaderCode);
 	str += BuildHLSL_GlobalFuncs(oMatData, shaderCode);
@@ -391,11 +411,12 @@ std::string NXCodeProcessHelper::BuildHLSL_Include()
 	return str;
 }
 
-std::string NXCodeProcessHelper::BuildHLSL_Params(const std::filesystem::path& nslPath, NXMaterialData& oMatData, const NXMaterialCode& shaderCode)
+std::string NXCodeProcessHelper::BuildHLSL_Params(const std::filesystem::path& nslPath, NXMaterialData& oMatData, const NXMaterialDataIntermediate oMatDataIntermediate, const NXMaterialCode& shaderCode)
 {
 	int slot_tex = 0;
 	int slot_ss = 0;
 	int slot_cb = 3;
+	int cb_padding = 0;
 
 	std::string str;
 	
@@ -420,6 +441,12 @@ std::string NXCodeProcessHelper::BuildHLSL_Params(const std::filesystem::path& n
 		std::string strFloat = cb->size > 0 ? std::to_string(cb->size) : "";
 		str += "\tfloat" + strFloat + " " + cb->name + ";\n";
 	}
+
+	if (oMatDataIntermediate.padding != 0)
+	{
+		str += "\tfloat" + std::to_string(oMatDataIntermediate.padding) + " _padding" + std::to_string(cb_padding++) + ";\n";
+	}
+
 	bool bIsGBuffer = true; // todo: 扩展其他pass
 	if (bIsGBuffer)
 	{
