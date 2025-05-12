@@ -147,7 +147,6 @@ private:
 	NXConstantBuffer<std::vector<float>>	m_cbData;
 
 	NXMaterialData							m_materialDatas; 
-	NXMaterialDataIntermediate				m_matDataIntermediate;
 	NXMaterialCode							m_codeBlocks; 
 
 	// SSS profile µÄÂ·¾¶

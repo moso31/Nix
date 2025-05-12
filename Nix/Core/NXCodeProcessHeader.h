@@ -146,11 +146,6 @@ struct NXMatDataSettings
 	uint32_t shadingModel = 0;
 };
 
-struct NXMaterialDataIntermediate
-{
-	int padding = 0;
-};
-
 class NXMaterialData
 {
 public:
@@ -159,7 +154,7 @@ public:
 	void AddSampler(NXMatDataSampler* ss) { ssArr.push_back(ss); allArr.push_back(ss); }
 
 	// clone = 基本深拷贝（除了texture指针等）
-	NXMaterialData Clone() const
+	NXMaterialData Clone(bool bLinkTo = false) const
 	{
 		NXMaterialData newData;
 
@@ -167,18 +162,21 @@ public:
 		{
 			auto newCB = new NXMatDataCBuffer();
 			*newCB = *cb;
+			newCB->pFastLink = bLinkTo ? cb : nullptr;
 			newData.AddCBuffer(newCB);
 		}
 		for (auto* tx : txArr)
 		{
 			auto newTX = new NXMatDataTexture();
 			*newTX = *tx;
+			newTX->pFastLink = bLinkTo ? tx : nullptr;
 			newData.AddTexture(newTX);
 		}
 		for (auto* ss : ssArr)
 		{
 			auto newSS = new NXMatDataSampler();
 			*newSS = *ss;
+			newSS->pFastLink = bLinkTo ? ss : nullptr;
 			newData.AddSampler(newSS);
 		}
 

@@ -439,12 +439,12 @@ void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
 	ImGui::BeginChild("##material_shader_editor_custom_child");
 	if (ImGui::BeginTable("##material_shader_editor_params_table", 2, ImGuiTableFlags_Resizable))
 	{
+		int paramCnt = 0;
 		for (auto* data : m_guiData.GetAll())
 		{
 			// 先排除搜索框以外的
 			if (data->name.find(NXConvert::s2lower(m_strQuery)) == std::string::npos) continue;
 
-			int paramCnt = 0;
 			if (auto* cbData = data->IsCBuffer())
 			{
 				std::string strId = "##material_shader_editor_custom_child_cbuffer_" + std::to_string(paramCnt);
@@ -476,6 +476,7 @@ void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
 			}
 			else if (auto* txData = data->IsTexture())
 			{
+				ImGui::TableNextColumn();
 				std::string strId = "##material_shader_editor_custom_child_texture_" + std::to_string(paramCnt);
 				Render_Params_ResourceOps(strId, pMaterial, txData);
 
@@ -484,6 +485,7 @@ void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
 			}
 			else if (auto* ssData = data->IsSampler())
 			{
+				ImGui::TableNextColumn();
 				std::string strId = "##material_shader_editor_custom_child_sampler_" + std::to_string(paramCnt);
 				Render_Params_ResourceOps(strId, pMaterial, ssData);
 
@@ -868,7 +870,7 @@ void NXGUIMaterialShaderEditor::Render_ErrorMessages()
 void NXGUIMaterialShaderEditor::SyncMaterialData(NXCustomMaterial* pMaterial)
 {
 	m_guiData.Destroy();
-	m_guiData = pMaterial->GetMaterialData().Clone();
+	m_guiData = pMaterial->GetMaterialData().Clone(true);
 }
 
 void NXGUIMaterialShaderEditor::SyncMaterialCode(NXCustomMaterial* pMaterial)

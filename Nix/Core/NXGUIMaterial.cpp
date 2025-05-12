@@ -155,7 +155,7 @@ void NXGUIMaterial::OnBtnEditShaderClicked(NXCustomMaterial* pMaterial)
 void NXGUIMaterial::SyncMaterialData(NXCustomMaterial* pMaterial)
 {
 	// 不调clone = 核心参数全部浅拷贝，
-	// 修改此ref的核心参数，会直接映射到pMaterial的源数据
+	// 修改此m_guiData的核心参数，会直接映射到pMaterial的源数据
 	m_guiData = pMaterial->GetMaterialData();
 	m_pLastMaterial = pMaterial;
 }
@@ -279,6 +279,7 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters_CBufferItem(const std::st
 
 	if (bDraged)
 	{
+		//cbData->SyncLink();
 		pMaterial->SetCBInfoMemoryData();
 	}
 }

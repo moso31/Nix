@@ -121,7 +121,7 @@ void NXCustomMaterial::LoadAndCompile(const std::filesystem::path& nslFilePath)
 
 	if (LoadShaderCode())
 	{
-		std::string strHLSL = NXCodeProcessHelper::BuildHLSL(nslFilePath, m_materialDatas, m_matDataIntermediate, m_codeBlocks);
+		std::string strHLSL = NXCodeProcessHelper::BuildHLSL(nslFilePath, m_materialDatas, m_codeBlocks);
 		std::string strErrMsgVS, strErrMsgPS;
 		CompileShader(strHLSL, strErrMsgVS, strErrMsgPS);
 
@@ -143,7 +143,7 @@ bool NXCustomMaterial::LoadShaderCode()
 	if (bLoadSuccess)
 	{
 		// ½âÎö nsl ÎÄ¼þ
-		NXCodeProcessHelper::ExtractShader(strShader, m_materialDatas, m_matDataIntermediate, m_codeBlocks);
+		NXCodeProcessHelper::ExtractShader(strShader, m_materialDatas, m_codeBlocks);
 	}
 
 	return bLoadSuccess;
@@ -218,7 +218,7 @@ void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::s
 
 bool NXCustomMaterial::Recompile(const NXMaterialData& guiData, const NXMaterialCode& code, const NXMaterialData& guiDataBackup, const NXMaterialCode& codeBackup, std::string& oErrorMessageVS, std::string& oErrorMessagePS)
 {
-	std::string strHLSL = NXCodeProcessHelper::BuildHLSL(m_nslPath, m_materialDatas, m_matDataIntermediate, code);
+	std::string strHLSL = NXCodeProcessHelper::BuildHLSL(m_nslPath, m_materialDatas, code);
 	std::string strErrMsgVS, strErrMsgPS;
 	CompileShader(strHLSL, strErrMsgVS, strErrMsgPS);
 
