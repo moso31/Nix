@@ -144,6 +144,7 @@ void NXGUIMaterial::Render()
 
 void NXGUIMaterial::Release()
 {
+	m_guiData.Destroy();
 }
 
 void NXGUIMaterial::OnBtnEditShaderClicked(NXCustomMaterial* pMaterial)
@@ -156,7 +157,8 @@ void NXGUIMaterial::SyncMaterialData(NXCustomMaterial* pMaterial)
 {
 	// 不调clone = 核心参数全部浅拷贝，
 	// 修改此m_guiData的核心参数，会直接映射到pMaterial的源数据
-	m_guiData = pMaterial->GetMaterialData();
+	m_guiData.Destroy();
+	m_guiData = pMaterial->GetMaterialData().Clone(true);
 	m_pLastMaterial = pMaterial;
 }
 

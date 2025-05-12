@@ -186,10 +186,11 @@ void NXGUIMaterialShaderEditor::OnBtnRevertParamClicked(NXCustomMaterial* pMater
 
 	auto pBackup = (pBackupIt != m_guiDataBackup.GetAll().end()) ? *pBackupIt : nullptr;
 
-	if (pBackup->name == pData->name) 
+	if (pBackup && pBackup->name == pData->name)
 	{
 		// 将备份数据的内容复制到当前数据中
 		pData->CopyFrom(pBackup);
+		pData->SyncLink();
 
 		if (pData->IsCBuffer())
 		{
@@ -248,6 +249,11 @@ void NXGUIMaterialShaderEditor::OnBtnSaveClicked(NXCustomMaterial* pMaterial)
 	}
 }
 
+void NXGUIMaterialShaderEditor::OnShowFunc(int passIndex, int entryId)
+{
+
+}
+
 void NXGUIMaterialShaderEditor::OnShowFuncIndexChanged(int showFuncIndex)
 {
 	UpdateNSLFunctions();
@@ -274,6 +280,7 @@ void NXGUIMaterialShaderEditor::RequestGenerateBackup()
 
 void NXGUIMaterialShaderEditor::Release()
 {
+	m_guiData.Destroy();
 	ReleaseBackupData();
 	SafeDelete(m_pGUICodeEditor);
 }
@@ -293,6 +300,31 @@ void NXGUIMaterialShaderEditor::OnBtnRemoveFunctionClicked(NXCustomMaterial* pMa
 void NXGUIMaterialShaderEditor::Render_Code(NXCustomMaterial* pMaterial)
 {
 	ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.6f);
+
+	if (ImGui::BeginCombo("##material_shader_editor_combo_pass", "Passes"))
+	{
+		for (int i = 0; i < m_guiCodes.passes.size(); i++)
+		{
+			ImGui::PushID(i);
+			if (ImGui::Selectable(m_guiCodes.passes[i].name.c_str()))
+			{
+			}
+			ImGui::PopID();
+		}
+	}
+	ImGui::SameLine();
+	if (ImGui::BeginCombo("##material_shader_editor_combo_passEntry", "Entry"))
+	{
+		if (ImGui::Selectable("VS", false))
+		{
+		}
+
+		if (ImGui::Selectable("PS", false))
+		{
+		}
+
+		ImGui::EndCombo();
+	}
 	
 	if (ImGui::BeginCombo("##material_shader_editor_combo_func", m_guiCodes.commonFuncs.title[m_showFuncIndex].c_str()))
 	{
@@ -884,6 +916,13 @@ void NXGUIMaterialShaderEditor::SyncMaterialCode(NXCustomMaterial* pMaterial)
 	{
 		m_guiCodes.commonFuncs.title[i] = GenerateNSLFunctionTitle(i);
 		m_pGUICodeEditor->Load(m_guiCodes.commonFuncs.data[i], false, m_guiCodes.commonFuncs.title[i]);
+	}
+	for (int i = 0; i < m_guiCodes.passes.size(); i++)
+	{
+		std::string strName = "customFunc_pass";
+		strName += std::to_string(i);
+		m_pGUICodeEditor->Load(m_guiCodes.passes[i].vsFunc, false, strName + "VS");
+		m_pGUICodeEditor->Load(m_guiCodes.passes[i].psFunc, false, strName + "PS");
 	}
 	m_pGUICodeEditor->RefreshAllHighLights();
 }

@@ -67,7 +67,6 @@ private:
 	void OnBtnRevertParamClicked(NXCustomMaterial* pMaterial, NXMatDataBase* pData);
 	bool OnBtnCompileClicked(NXCustomMaterial* pMaterial);
 	void OnBtnSaveClicked(NXCustomMaterial* pMaterial);
-	void OnShowFuncIndexChanged(int showFuncIndex);
 
 	void Render_Code(NXCustomMaterial* pMaterial);
 	void Render_FeaturePanel(NXCustomMaterial* pMaterial);
@@ -94,7 +93,11 @@ private:
 	bool m_bShowWindow = false;
 	NXCustomMaterial* m_pMaterial = nullptr;
 	NXGUICodeEditor* m_pGUICodeEditor = nullptr;
-	int m_showFuncIndex = 0; // 用于显示的函数索引
+
+	int pickCodeMode = 0; // 0 : pass code; 1 : custom functions.
+	int pickPassFuncId = 0; // 第几个pass
+	int pickPassEntryId = 0; // 入口点函数类型，0=vs, 1=ps
+	int pickCustomFuncId = 0; // 第几个customFunc
 
 	// 材质参数
 	NXMaterialData m_guiData;

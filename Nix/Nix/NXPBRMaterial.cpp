@@ -218,7 +218,7 @@ void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::s
 
 bool NXCustomMaterial::Recompile(const NXMaterialData& guiData, const NXMaterialCode& code, const NXMaterialData& guiDataBackup, const NXMaterialCode& codeBackup, std::string& oErrorMessageVS, std::string& oErrorMessagePS)
 {
-	std::string strHLSL = NXCodeProcessHelper::BuildHLSL(m_nslPath, m_materialDatas, code);
+	std::string strHLSL = NXCodeProcessHelper::BuildHLSL(m_nslPath, guiData, code);
 	std::string strErrMsgVS, strErrMsgPS;
 	CompileShader(strHLSL, strErrMsgVS, strErrMsgPS);
 

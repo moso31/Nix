@@ -86,8 +86,11 @@ struct NXMatDataCBuffer : public NXMatDataBase
 	};
 	virtual void CopyFrom(const NXMatDataBase* pCopy) override
 	{
-		auto* pCBuffer = static_cast<const NXMatDataCBuffer*>(pCopy);
-		*this = *pCBuffer;
+		auto* pCBData = static_cast<const NXMatDataCBuffer*>(pCopy);
+		name = pCBData->name;
+		data = pCBData->data;
+		size = pCBData->size;
+		gui = pCBData->gui;
 	}
 
 	Vector4 data;
@@ -100,8 +103,9 @@ struct NXMatDataTexture : public NXMatDataBase
 	NXMatDataTexture* IsTexture() override { return this; }
 	virtual void CopyFrom(const NXMatDataBase* pCopy) override
 	{
-		auto* pTexture = static_cast<const NXMatDataTexture*>(pCopy);
-		*this = *pTexture;
+		auto* pTexData = static_cast<const NXMatDataTexture*>(pCopy);
+		name = pTexData->name;
+		pTexture = pTexData->pTexture;
 	}
 	virtual void SyncLink() override // 数据同步到材质
 	{
@@ -120,8 +124,12 @@ struct NXMatDataSampler : public NXMatDataBase
 	NXMatDataSampler* IsSampler() override { return this; }
 	virtual void CopyFrom(const NXMatDataBase* pCopy) override
 	{
-		auto* pSampler = static_cast<const NXMatDataSampler*>(pCopy);
-		*this = *pSampler;
+		auto* pSSData = static_cast<const NXMatDataSampler*>(pCopy);
+		name = pSSData->name;
+		filter = pSSData->filter;
+		addressU = pSSData->addressU;
+		addressV = pSSData->addressV;
+		addressW = pSSData->addressW;
 	}
 	virtual void SyncLink() override // 数据同步到材质
 	{
