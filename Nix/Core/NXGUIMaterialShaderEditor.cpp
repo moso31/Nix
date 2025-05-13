@@ -207,7 +207,7 @@ bool NXGUIMaterialShaderEditor::OnBtnCompileClicked(NXCustomMaterial* pMaterial)
 	std::string nslParams = NXCodeProcessHelper::GenerateNSL(m_guiData);
 
 	// 重新计算 nsl func 和 titles
-	SyncLastPickingDataToEditor();
+	SyncLastPickingData();
 
 	std::string strErrVS, strErrPS;	// 若编译Shader出错，将错误信息记录到此字符串中。
 	bool bCompile = pMaterial->Recompile(m_guiData, m_guiCodes, m_guiDataBackup, m_guiCodesBackup, strErrVS, strErrPS);
@@ -364,12 +364,13 @@ void NXGUIMaterialShaderEditor::Render_Code(NXCustomMaterial* pMaterial)
 	}
 	else if (m_pickingData.mode == 1)
 	{
-		if (ImGui::BeginCombo("##func_id", "Custom Function"))
+		std::string strFunc = m_guiCodes.commonFuncs.title[m_pickingData.customFuncId];
+		if (ImGui::BeginCombo("##func_id", strFunc.c_str()))
 		{
 			for (int i = 0; i < m_guiCodes.commonFuncs.data.size(); i++)
 			{
 				ImGui::PushID(i);
-				if (ImGui::Selectable(m_guiCodes.commonFuncs.title[i].c_str()))
+				if (ImGui::Selectable(strFunc.c_str()))
 				{
 					if (m_pickingData.customFuncId != i)
 					{
@@ -406,7 +407,7 @@ void NXGUIMaterialShaderEditor::Render_Code(NXCustomMaterial* pMaterial)
 
 	if (pickChanged)
 	{
-		SyncLastPickingDataToEditor(); // 将当前界面的code同步到Editor内部数据中
+		SyncLastPickingData(); 
 
 		int idx = GetCodeEditorIndexOfPickingData(m_pickingData);
 		m_pGUICodeEditor->SwitchFile(idx);
@@ -849,9 +850,9 @@ void NXGUIMaterialShaderEditor::Render_Params_SamplerItem(const int strId, NXCus
 				}
 				ImGui::EndCombo();
 			}
-			ImGui::EndPopup();
 
 			ImGui::PopItemWidth();
+			ImGui::EndPopup();
 		}
 
 		if (bChanged)
@@ -986,15 +987,12 @@ void NXGUIMaterialShaderEditor::SyncMaterialCode(NXCustomMaterial* pMaterial)
 
 int NXGUIMaterialShaderEditor::GetCodeEditorIndexOfPickingData(const NXGUICodeEditorPickingData& pickingData)
 {
+	// 获取pickingData在CodeEditor下的实际索引
 	int idx = -1;
 	if (pickingData.mode == 0)
-	{
 		idx = pickingData.passFuncId * GetEntryNum() + pickingData.passEntryId;
-	}
 	else
-	{
 		idx = m_guiCodes.passes.size() * GetEntryNum() + pickingData.customFuncId;
-	}
 
 	return idx;
 }
@@ -1005,29 +1003,31 @@ int NXGUIMaterialShaderEditor::GetEntryNum()
 	return 2;
 } 
 
-void NXGUIMaterialShaderEditor::SyncLastPickingDataToEditor()
+void NXGUIMaterialShaderEditor::SyncLastPickingData()
 {
+	// 获取上次修改的code，并录入到m_guiCodes中
+
 	int idx = GetCodeEditorIndexOfPickingData(m_pickingDataLast);
 
-	if (m_pickingData.mode == 0)
+	if (m_pickingDataLast.mode == 0)
 	{
 		std::string strCode = m_pGUICodeEditor->GetCodeText(idx);
 
-		if (m_pickingData.passEntryId == 0)
+		if (m_pickingDataLast.passEntryId == 0)
 		{
-			m_guiCodes.passes[m_pickingData.passFuncId].vsFunc = strCode;
+			m_guiCodes.passes[m_pickingDataLast.passFuncId].vsFunc = strCode;
 		}
-		else if (m_pickingData.passEntryId == 1)
+		else if (m_pickingDataLast.passEntryId == 1)
 		{
-			m_guiCodes.passes[m_pickingData.passFuncId].psFunc = strCode;
+			m_guiCodes.passes[m_pickingDataLast.passFuncId].psFunc = strCode;
 		}
 	}
 	else
 	{
 		std::string strCode = m_pGUICodeEditor->GetCodeText(idx);
 
-		m_guiCodes.commonFuncs.data[m_pickingData.customFuncId] = strCode;
-		m_guiCodes.commonFuncs.title[m_pickingData.customFuncId] = NXCodeProcessHelper::GetFirstEffectiveLine(strCode);
+		m_guiCodes.commonFuncs.data[m_pickingDataLast.customFuncId] = strCode;
+		m_guiCodes.commonFuncs.title[m_pickingDataLast.customFuncId] = NXCodeProcessHelper::GetFirstEffectiveLine(strCode);
 	}
 
 	m_pickingDataLast = m_pickingData;

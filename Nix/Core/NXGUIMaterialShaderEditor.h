@@ -87,7 +87,7 @@ private:
 
 	int GetCodeEditorIndexOfPickingData(const NXGUICodeEditorPickingData& pickingData);
 	int GetEntryNum();
-	void SyncLastPickingDataToEditor();
+	void SyncLastPickingData();
 	void LoadPickingCodeEditor();
 
 	std::string GetAddressModeText(const NXSamplerAddressMode addrU, const NXSamplerAddressMode addrV, const NXSamplerAddressMode addrW);
