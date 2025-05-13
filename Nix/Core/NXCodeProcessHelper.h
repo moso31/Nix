@@ -11,6 +11,7 @@ class NXCustomMaterial;
 namespace NXCodeProcessHelper
 {
 	std::string RemoveHLSLComment(const std::string& strCode);
+	std::string GetFirstEffectiveLine(const std::string& strCode);
 
 	bool MoveToNextBranketIn(std::istringstream& iss, std::stack<std::string>& stackBrackets, const std::string& branketName);
 	bool MoveToNextBranketOut(std::stack<std::string>& stackBrackets, const std::string& branketName);

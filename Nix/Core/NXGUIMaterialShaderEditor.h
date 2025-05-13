@@ -17,10 +17,12 @@ struct NXGUIShaderErrorMessage
 	int col1 = 0;
 };
 
-struct NXGUIShaderFunctions
+struct NXGUICodeEditorPickingData
 {
-	std::string content;
-	std::string title;
+	int mode = 0; // 0 : pass code; 1 : custom functions.
+	int passFuncId = 0; // 第几个pass
+	int passEntryId = 0; // 入口点函数类型，0=vs, 1=ps
+	int customFuncId = 0; // 第几个customFunc
 };
 
 class NXCustomMaterial;
@@ -82,7 +84,11 @@ private:
 	void SyncMaterialData(NXCustomMaterial* pMaterial);
 	void SyncMaterialCode(NXCustomMaterial* pMaterial);
 	void UpdateNSLFunctions();
-	std::string GenerateNSLFunctionTitle(int index); // 生成 nslFunc[index] 的 title（用于 combo 显示）
+
+	int GetCodeEditorIndexOfPickingData(const NXGUICodeEditorPickingData& pickingData);
+	int GetEntryNum();
+	void SyncLastPickingDataToEditor();
+	void LoadPickingCodeEditor();
 
 	std::string GetAddressModeText(const NXSamplerAddressMode addrU, const NXSamplerAddressMode addrV, const NXSamplerAddressMode addrW);
 
@@ -94,10 +100,8 @@ private:
 	NXCustomMaterial* m_pMaterial = nullptr;
 	NXGUICodeEditor* m_pGUICodeEditor = nullptr;
 
-	int pickCodeMode = 0; // 0 : pass code; 1 : custom functions.
-	int pickPassFuncId = 0; // 第几个pass
-	int pickPassEntryId = 0; // 入口点函数类型，0=vs, 1=ps
-	int pickCustomFuncId = 0; // 第几个customFunc
+	NXGUICodeEditorPickingData m_pickingData;
+	NXGUICodeEditorPickingData m_pickingDataLast;
 
 	// 材质参数
 	NXMaterialData m_guiData;

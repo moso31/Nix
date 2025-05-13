@@ -53,6 +53,28 @@ std::string NXCodeProcessHelper::RemoveHLSLComment(const std::string& strCode)
 	return result;
 }
 
+std::string NXCodeProcessHelper::GetFirstEffectiveLine(const std::string& strCode)
+{	
+	// 先移除注释
+	std::string noCommentCode = RemoveHLSLComment(strCode);
+
+	// 逐行查找第一有效代码行
+	std::istringstream stream(noCommentCode);
+	std::string line;
+	while (std::getline(stream, line))
+	{
+		// 去掉前后空白
+		size_t first = line.find_first_not_of(" \t\r\n");
+		if (first != std::string::npos)
+		{
+			return line.substr(first); // 返回第一有效代码行
+		}
+	}
+
+	// 没有找到有效代码行
+	return "";
+}
+
 bool NXCodeProcessHelper::MoveToNextBranketIn(std::istringstream& iss, std::stack<std::string>& stackBrackets, const std::string& branketName)
 {
 	std::string str;
