@@ -201,12 +201,6 @@ void NXGUIMaterialShaderEditor::OnBtnRevertParamClicked(NXCustomMaterial* pMater
 
 bool NXGUIMaterialShaderEditor::OnBtnCompileClicked(NXCustomMaterial* pMaterial)
 {
-	using namespace NXGUICommon;
-
-	// 构建 NSLParam 代码
-	std::string nslParams = NXCodeProcessHelper::GenerateNSL(m_guiData);
-
-	// 重新计算 nsl func 和 titles
 	SyncLastPickingData();
 
 	std::string strErrVS, strErrPS;	// 若编译Shader出错，将错误信息记录到此字符串中。
@@ -365,12 +359,13 @@ void NXGUIMaterialShaderEditor::Render_Code(NXCustomMaterial* pMaterial)
 	else if (m_pickingData.mode == 1)
 	{
 		std::string strFunc = m_guiCodes.commonFuncs.title[m_pickingData.customFuncId];
-		if (ImGui::BeginCombo("##func_id", strFunc.c_str()))
+		if (ImGui::BeginCombo("##func_id_combo", strFunc.c_str()))
 		{
 			for (int i = 0; i < m_guiCodes.commonFuncs.data.size(); i++)
 			{
 				ImGui::PushID(i);
-				if (ImGui::Selectable(strFunc.c_str()))
+				std::string strFuncId = m_guiCodes.commonFuncs.title[i];
+				if (ImGui::Selectable(strFuncId.c_str()))
 				{
 					if (m_pickingData.customFuncId != i)
 					{

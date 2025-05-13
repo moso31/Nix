@@ -16,9 +16,6 @@ namespace NXCodeProcessHelper
 	bool MoveToNextBranketIn(std::istringstream& iss, std::stack<std::string>& stackBrackets, const std::string& branketName);
 	bool MoveToNextBranketOut(std::stack<std::string>& stackBrackets, const std::string& branketName);
 
-	// 从MSE/GUI参数生成nsl
-	std::string GenerateNSL(const NXMaterialData& data);
-
 	// 从nsl文件中提取出数据和代码块
 	void ExtractShader(const std::string& strCode, NXMaterialData& oMatData, NXMaterialCode& oMatCode);
 	void ExtractShader_NXShader(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXMaterialData& oMatData, NXMaterialCode& oMatCode);
@@ -41,6 +38,7 @@ namespace NXCodeProcessHelper
 	std::string BuildHLSL_Entry_VS(const NXMaterialData& oMatData, const NXMaterialCode& shaderCode);
 	std::string BuildHLSL_Entry_PS(const NXMaterialData& oMatData, const NXMaterialCode& shaderCode);
 
-	// 将材质数据和代码块转换为HLSL代码
+	// 将材质数据和代码块转换为NSL代码
 	void SaveToNSLFile(const std::filesystem::path& nslPath, const NXMaterialData& oMatData, const NXMaterialCode& shaderCode);
+	std::string GenerateNSLParam(const NXMaterialData& data);
 }

@@ -104,50 +104,6 @@ bool NXCodeProcessHelper::MoveToNextBranketOut(std::stack<std::string>& stackBra
 	return false;
 }
 
-std::string NXCodeProcessHelper::GenerateNSL(const NXMaterialData& matData)
-{
-	std::string result;
-	result += "NXShader\n";
-	result += "{\n";
-
-	result += "\tParams\n;";
-	result += "\t{\n";
-
-	for (auto* tx : matData.GetTextures())
-	{
-		result += "\t\t";
-		result += "Tex2D ";
-		result += tx->name;
-		result += ";\n";
-	}
-
-	for (auto* ss : matData.GetSamplers())
-	{
-		result += "\t\t";
-		result += "SamplerState";
-		result += ss->name;
-		result += ";\n";
-	}
-
-	result += "CBuffer\n";
-	result += "\t\t{\n";
-	for (auto* cb : matData.GetCBuffers())
-	{
-		result += "\t\t\t";
-		result += "float";
-		result += cb->size > 0 ? std::to_string(cb->size) : "";
-		result += " ";
-		result += cb->name;
-		result += ";\n";
-	}
-
-	result += "\t\t}\n"; // CBuffer
-	result += "\t}\n"; // Params
-	result += "}\n";
-
-	return result;
-}
-
 void NXCodeProcessHelper::ExtractShader(const std::string& strCode, NXMaterialData& oMatData, NXMaterialCode& oMatCode)
 {
 	std::string strNoCommentCode = RemoveHLSLComment(strCode); // 去掉注释
@@ -180,6 +136,9 @@ void NXCodeProcessHelper::ExtractShader(const std::string& strCode, NXMaterialDa
 			break;
 		}
 	}
+
+	if (!shaderCheck || !nameCheck)
+		throw std::runtime_error("shader无有效名称");
 }
 
 void NXCodeProcessHelper::ExtractShader_NXShader(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXMaterialData& oMatData, NXMaterialCode& oMatCode)
@@ -457,7 +416,7 @@ std::string NXCodeProcessHelper::BuildHLSL_Params(const std::filesystem::path& n
 	str += "{\n";
 	for (auto* cb : oMatData.GetCBuffers())
 	{
-		std::string strFloat = cb->size > 0 ? std::to_string(cb->size) : "";
+		std::string strFloat = cb->size > 1 ? std::to_string(cb->size) : "";
 		str += "\tfloat" + strFloat + " " + cb->name + ";\n";
 
 		if (padSize + cb->size > 4) padSize = cb->size;
@@ -620,49 +579,19 @@ void PS(PS_INPUT input, out PS_OUTPUT Output)
 void NXCodeProcessHelper::SaveToNSLFile(const std::filesystem::path& nslPath, const NXMaterialData& oMatData, const NXMaterialCode& shaderCode)
 {
 	std::string str;
-	str += "NXShader \"" + shaderCode.shaderName + "\"\n";
-	str += "\n";
-	str += "\tParams\n";
-	str += "\t{\n";
-	
-	for (auto* tx : oMatData.GetTextures())
-	{
-		str += "\t\t";
-		str += "Tex2D ";
-		str += tx->name;
-		str += "\n";
-	}
+	str += "NXShader " + shaderCode.shaderName + "\n";
+	str += "{\n";
 
-	for (auto* ss : oMatData.GetSamplers())
-	{
-		str += "\t\t";
-		str += "SamplerState ";
-		str += ss->name;
-		str += "\n";
-	}
-
-	str += "\t\tCBuffer\n";
-	str += "\t\t{\n";
-	for (auto* cb : oMatData.GetCBuffers())
-	{
-		str += "\t\t\t";
-		str += "float" + std::to_string(cb->size);
-		str += " ";
-		str += cb->name;
-		str += "\n";
-	}
-
-	str += "\t\t}\n"; // CBuffer
-	str += "\t}\n"; // Params
+	str += GenerateNSLParam(oMatData);
 
 	str += "\tGlobalFuncs\n";
 	str += "\t{\n";
 
 	for (size_t i = 0; i < shaderCode.commonFuncs.title.size(); ++i)
 	{
-		str += "\t\t[FUNCBEGIN]\n";
+		str += "[FUNCBEGIN]\n";
 		str += shaderCode.commonFuncs.data[i];
-		str += "\t\t[FUNCEND]\n";
+		str += "[FUNCEND]\n";
 	}
 
 	str += "\t}\n"; // GlobalFuncs
@@ -675,13 +604,15 @@ void NXCodeProcessHelper::SaveToNSLFile(const std::filesystem::path& nslPath, co
 		str += "\t\tPass\n";
 		str += "\t\t{\n";
 
-		str += "\t\t\t[VSBEGIN]\n";
+		str += "[VSBEGIN]\n";
 		str += pass.vsFunc;
-		str += "\t\t\t[VSEND]\n";
+		str += "[VSEND]\n";
 
-		str += "\t\t\t[PSBEGIN]\n";
+		str += "\t\t{\n";
+
+		str += "[PSBEGIN]\n";
 		str += pass.psFunc;
-		str += "\t\t\t[PSEND]\n";
+		str += "[PSEND]\n";
 
 		str += "\t\t}\n"; // Pass
 	}
@@ -697,4 +628,44 @@ void NXCodeProcessHelper::SaveToNSLFile(const std::filesystem::path& nslPath, co
 	}
 	file << str;
 	file.close();
+}
+
+std::string NXCodeProcessHelper::GenerateNSLParam(const NXMaterialData& matData)
+{
+	std::string result;
+	result += "\tParams\n";
+	result += "\t{\n";
+
+	for (auto* tx : matData.GetTextures())
+	{
+		result += "\t\t";
+		result += "Tex2D ";
+		result += tx->name;
+		result += "\n";
+	}
+
+	for (auto* ss : matData.GetSamplers())
+	{
+		result += "\t\t";
+		result += "SamplerState ";
+		result += ss->name;
+		result += "\n";
+	}
+
+	result += "\t\tCBuffer\n";
+	result += "\t\t{\n";
+	for (auto* cb : matData.GetCBuffers())
+	{
+		result += "\t\t\t";
+		result += "float";
+		result += cb->size > 1 ? std::to_string(cb->size) : "";
+		result += " ";
+		result += cb->name;
+		result += "\n";
+	}
+
+	result += "\t\t}\n"; // CBuffer
+	result += "\t}\n"; // Params
+
+	return result;
 }
