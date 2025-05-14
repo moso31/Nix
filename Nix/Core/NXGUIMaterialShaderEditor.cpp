@@ -358,28 +358,32 @@ void NXGUIMaterialShaderEditor::Render_Code(NXCustomMaterial* pMaterial)
 	}
 	else if (m_pickingData.mode == 1)
 	{
-		std::string strFunc = m_guiCodes.commonFuncs.title[m_pickingData.customFuncId];
-		if (ImGui::BeginCombo("##func_id_combo", strFunc.c_str()))
+		if (!m_guiCodes.commonFuncs.data.empty())
 		{
-			for (int i = 0; i < m_guiCodes.commonFuncs.data.size(); i++)
+			std::string strFunc = m_guiCodes.commonFuncs.title[m_pickingData.customFuncId];
+			if (ImGui::BeginCombo("##func_id_combo", strFunc.c_str()))
 			{
-				ImGui::PushID(i);
-				std::string strFuncId = m_guiCodes.commonFuncs.title[i];
-				if (ImGui::Selectable(strFuncId.c_str()))
+				for (int i = 0; i < m_guiCodes.commonFuncs.data.size(); i++)
 				{
-					if (m_pickingData.customFuncId != i)
+					ImGui::PushID(i);
+					std::string strFuncId = m_guiCodes.commonFuncs.title[i];
+					if (ImGui::Selectable(strFuncId.c_str()))
 					{
-						m_pickingData.customFuncId = i;
-						pickChanged = true;
+						if (m_pickingData.customFuncId != i)
+						{
+							m_pickingData.customFuncId = i;
+							pickChanged = true;
+						}
 					}
+					ImGui::PopID(); // i
 				}
-				ImGui::PopID(); // i
+
+				ImGui::EndCombo();
 			}
 
-			ImGui::EndCombo();
+			ImGui::SameLine();
 		}
 
-		ImGui::SameLine();
 		if (ImGui::Button("New Function##material_shader_editor_btn_newfunction"))
 		{
 			OnBtnNewFunctionClicked(pMaterial);
@@ -388,15 +392,20 @@ void NXGUIMaterialShaderEditor::Render_Code(NXCustomMaterial* pMaterial)
 			pickChanged = true;
 		}
 
-		ImGui::SameLine();
-		if (ImGui::ButtonEx("Remove Function##material_shader_editor_btn_removefunction"))
+		if (!m_guiCodes.commonFuncs.data.empty())
 		{
-			OnBtnRemoveFunctionClicked(pMaterial, m_pickingData.customFuncId);
-			int idx = GetCodeEditorIndexOfPickingData(m_pickingData);
-			m_pGUICodeEditor->RemoveFile(idx);
+			ImGui::SameLine();
+			if (ImGui::ButtonEx("Remove Function##material_shader_editor_btn_removefunction"))
+			{
+				OnBtnRemoveFunctionClicked(pMaterial, m_pickingData.customFuncId);
+				int idx = GetCodeEditorIndexOfPickingData(m_pickingData);
+				m_pGUICodeEditor->RemoveFile(idx);
 
-			m_pickingData.customFuncId = std::min(m_pickingData.customFuncId, (int)m_guiCodes.commonFuncs.data.size() - 1);
-			pickChanged = true;
+				m_pickingData.customFuncId = std::max(std::min(m_pickingData.customFuncId, (int)m_guiCodes.commonFuncs.data.size() - 1), 0);
+				m_pickingDataLast = m_pickingData; // remove，不需要记录上次数据了
+
+				pickChanged = true;
+			}
 		}
 	}
 
@@ -412,11 +421,18 @@ void NXGUIMaterialShaderEditor::Render_Code(NXCustomMaterial* pMaterial)
 	ImGui::PopID();
 
 	ImGui::PushID("MSE_code_editor");
-	float fEachTextLineHeight = ImGui::GetTextLineHeight();
-	static ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput;
-	// 规定 UI 至少留出 10 行代码的高度
-	float fTextEditorHeight = std::max(10.0f, ImGui::GetContentRegionAvail().y / fEachTextLineHeight) * fEachTextLineHeight;
-	m_pGUICodeEditor->Render();
+	if (m_guiCodes.commonFuncs.data.empty() && m_pickingData.mode == 1)
+	{
+		ImGui::Text("No custom function.");
+	}
+	else
+	{
+		float fEachTextLineHeight = ImGui::GetTextLineHeight();
+		static ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput;
+		// 规定 UI 至少留出 10 行代码的高度
+		float fTextEditorHeight = std::max(10.0f, ImGui::GetContentRegionAvail().y / fEachTextLineHeight) * fEachTextLineHeight;
+		m_pGUICodeEditor->Render();
+	}
 	ImGui::PopID();
 }
 
@@ -1017,7 +1033,7 @@ void NXGUIMaterialShaderEditor::SyncLastPickingData()
 			m_guiCodes.passes[m_pickingDataLast.passFuncId].psFunc = strCode;
 		}
 	}
-	else
+	else if (!m_guiCodes.commonFuncs.data.empty()) // mode == 1(custom func) and custom data not empty.
 	{
 		std::string strCode = m_pGUICodeEditor->GetCodeText(idx);
 
