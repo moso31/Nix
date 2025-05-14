@@ -4,16 +4,8 @@
 
 using namespace NXConvert;
 
-std::string NXCodeProcessHelper::RemoveHLSLComment(const std::string& strCode)
+std::string NXCodeProcessHelper::RemoveHLSLComment(const std::string& strCode, bool removeUserEditable)
 {
-	struct UserBlock { const char* start; const char* end; };
-	static const UserBlock kBlocks[] =
-	{
-		{"[FUNCBEGIN]", "[FUNCEND]"},
-		{"[VSBEGIN]",   "[VSEND]"},
-		{"[PSBEGIN]",   "[PSEND]"},
-	};
-
 	// 移除一个strCode中的所有注释内容（格式必须是HLSL）。
 	// 规则：
 	// 1. 从上往下遍历
@@ -58,6 +50,17 @@ std::string NXCodeProcessHelper::RemoveHLSLComment(const std::string& strCode)
 		}
 	}
 
+	// 如果用户可编辑的注释也要移除，那么这里就可以return了
+	if (removeUserEditable)
+		return result;
+
+	struct UserBlock { const char* start; const char* end; };
+	static const UserBlock kBlocks[] =
+	{
+		{"[FUNCBEGIN]", "[FUNCEND]"},
+		{"[VSBEGIN]",   "[VSEND]"},
+		{"[PSBEGIN]",   "[PSEND]"},
+	};
 
 	std::vector<std::pair<int, int>> kBlocksPos;
 	// 确定kBlocks的起止位置和结束位置
@@ -90,7 +93,7 @@ std::string NXCodeProcessHelper::RemoveHLSLComment(const std::string& strCode)
 std::string NXCodeProcessHelper::GetFirstEffectiveLine(const std::string& strCode)
 {	
 	// 先移除注释
-	std::string noCommentCode = RemoveHLSLComment(strCode);
+	std::string noCommentCode = RemoveHLSLComment(strCode, true);
 
 	// 逐行查找第一有效代码行
 	std::istringstream stream(noCommentCode);
@@ -140,7 +143,7 @@ bool NXCodeProcessHelper::MoveToNextBranketOut(std::stack<std::string>& stackBra
 
 void NXCodeProcessHelper::ExtractShader(const std::string& strCode, NXMaterialData& oMatData, NXMaterialCode& oMatCode)
 {
-	std::string strNoCommentCode = RemoveHLSLComment(strCode); // 去掉注释
+	std::string strNoCommentCode = RemoveHLSLComment(strCode, false); // 去掉注释
 
 	std::istringstream iss(strNoCommentCode);
 	std::string str;
@@ -313,7 +316,11 @@ void NXCodeProcessHelper::ExtractShader_GlobalFuncBody(std::istringstream& iss, 
 		if (!vals.empty()) // 只要不是空的，就一整行都要
 		{
 			if (vals[0] == strEndBlock)
+			{
+				// 去掉最后的换行符，避免每次保存都多一个末尾行
+				strCode.pop_back();
 				break;
+			}
 
 			// title：第一行（函数名和参数）
 			if (strTitle.empty())
@@ -386,7 +393,12 @@ void NXCodeProcessHelper::ExtractShader_SubShader_Pass_Entry(std::istringstream&
 		auto& vals = split(str);
 		if (!vals.empty()) // 只要不是空的，就一整行都要
 		{
-			if (vals[0] == strEndBlock) return;
+			if (vals[0] == strEndBlock)
+			{
+				// 去掉最后的换行符，避免每次保存都多一个末尾行
+				oStrPassEntryCode.pop_back();
+				return;
+			}
 
 			oStrPassEntryCode += str + "\n";
 		}
@@ -644,7 +656,7 @@ void NXCodeProcessHelper::SaveToNSLFile(const std::filesystem::path& nslPath, co
 		str += "\n"; 
 		str += "[VSEND]\n";
 
-		str += "\t\t{\n";
+		str += "\n";
 
 		str += "[PSBEGIN]\n";
 		str += pass.psFunc;

@@ -10,7 +10,10 @@
 class NXCustomMaterial;
 namespace NXCodeProcessHelper
 {
-	std::string RemoveHLSLComment(const std::string& strCode);
+	// 移除整个文本的注释信息。
+	// removeUserEditable: 是否移除[BEGIN][END]区块内的用户可编辑注释
+	std::string RemoveHLSLComment(const std::string& strCode, bool removeUserEditable = false);
+	// 获取第一个有效行
 	std::string GetFirstEffectiveLine(const std::string& strCode);
 
 	bool MoveToNextBranketIn(std::istringstream& iss, std::stack<std::string>& stackBrackets, const std::string& branketName);
