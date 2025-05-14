@@ -218,15 +218,15 @@ void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::s
 
 bool NXCustomMaterial::Recompile(const NXMaterialData& guiData, const NXMaterialCode& code, const NXMaterialData& guiDataBackup, const NXMaterialCode& codeBackup, std::string& oErrorMessageVS, std::string& oErrorMessagePS)
 {
-	std::string strHLSL = NXCodeProcessHelper::BuildHLSL(m_nslPath, guiData, code);
-	std::string strErrMsgVS, strErrMsgPS;
-	CompileShader(strHLSL, strErrMsgVS, strErrMsgPS);
+	auto codeCopy = code;
+	std::string strHLSL = NXCodeProcessHelper::BuildHLSL(m_nslPath, guiData, codeCopy);
+	CompileShader(strHLSL, oErrorMessageVS, oErrorMessagePS);
 
 	m_materialDatas.Destroy();
 	if (m_bCompileSuccess)
 	{
 		m_materialDatas = guiData.Clone();
-		m_codeBlocks = code;
+		m_codeBlocks = codeCopy;
 	}
 	else
 	{

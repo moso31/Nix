@@ -362,16 +362,23 @@ private:
 	NXMatDataSettings settings;
 };
 
+struct NXMaterialCodeBlock
+{
+	std::string data;
+	int hlslLineBegin = -1;
+	int hlslLineEnd = -1;
+};
+
 struct NXMaterialPassCode
 {
 	std::string name;
-	std::string vsFunc;
-	std::string psFunc;
+	NXMaterialCodeBlock vsFunc;
+	NXMaterialCodeBlock psFunc;
 };
 
 struct NXMaterialFunctionsCode
 {
-	std::vector<std::string> data; // 整个函数
+	std::vector<NXMaterialCodeBlock> data; // 整个函数
 	std::vector<std::string> title; // 仅第一行
 };
 

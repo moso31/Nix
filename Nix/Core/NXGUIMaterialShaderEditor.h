@@ -5,24 +5,26 @@
 // 显示Shader的错误信息，最多不允许超过 NXGUI_ERROR_MESSAGE_MAXLIMIT 条
 #define NXGUI_ERROR_MESSAGE_MAXLIMIT 50
 
-struct NXGUIShaderErrorMessage
-{
-	// 具体的编译错误信息
-	std::string data;
-
-	// 出错的函数页，行号，列号左起，列号右至
-	int page = 0;
-	int row = 0;
-	int col0 = 0;
-	int col1 = 0;
-};
-
 struct NXGUICodeEditorPickingData
 {
 	int mode = 0; // 0 : pass code; 1 : custom functions.
 	int passFuncId = 0; // 第几个pass
 	int passEntryId = 0; // 入口点函数类型，0=vs, 1=ps
 	int customFuncId = 0; // 第几个customFunc
+};
+
+struct NXGUIShaderErrorMessage
+{
+	// 具体的编译错误信息
+	std::string data;
+
+	// 出错的具体页面
+	NXGUICodeEditorPickingData page;
+
+	// 出错的，行号，列号左起，列号右至
+	int row = 0;
+	int col0 = 0;
+	int col1 = 0;
 };
 
 class NXCustomMaterial;

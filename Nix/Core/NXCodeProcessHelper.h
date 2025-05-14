@@ -16,6 +16,8 @@ namespace NXCodeProcessHelper
 	// 获取第一个有效行
 	std::string GetFirstEffectiveLine(const std::string& strCode);
 
+	int GetLineCount(const std::string& str);
+
 	bool MoveToNextBranketIn(std::istringstream& iss, std::stack<std::string>& stackBrackets, const std::string& branketName);
 	bool MoveToNextBranketOut(std::stack<std::string>& stackBrackets, const std::string& branketName);
 
@@ -31,15 +33,15 @@ namespace NXCodeProcessHelper
 	void ExtractShader_SubShader_Pass_Entry(std::istringstream& iss, std::stack<std::string>& stackBrackets, const std::string& strEndBlock, std::string& oStrPassEntryCode);
 
 	// 将材质数据和代码块转换为HLSL代码
-	std::string BuildHLSL(const std::filesystem::path& nslPath, const NXMaterialData& oMatData, const NXMaterialCode& shaderCode);
-	std::string BuildHLSL_Include();
-	std::string BuildHLSL_Params(const std::filesystem::path& nslPath, const NXMaterialData& oMatData, const NXMaterialCode& shaderCode);
-	std::string BuildHLSL_GlobalFuncs(const NXMaterialData& oMatData, const NXMaterialCode& shaderCode);
-	std::string BuildHLSL_Structs(const NXMaterialData& oMatData, const NXMaterialCode& shaderCode);
-	std::string BuildHLSL_PassFuncs(const NXMaterialData& oMatData, const NXMaterialCode& shaderCode);
-	std::string BuildHLSL_Entry(const NXMaterialData& oMatData, const NXMaterialCode& shaderCode);
-	std::string BuildHLSL_Entry_VS(const NXMaterialData& oMatData, const NXMaterialCode& shaderCode);
-	std::string BuildHLSL_Entry_PS(const NXMaterialData& oMatData, const NXMaterialCode& shaderCode);
+	std::string BuildHLSL(const std::filesystem::path& nslPath, const NXMaterialData& oMatData, NXMaterialCode& shaderCode);
+	std::string BuildHLSL_Include(int& ioLineCounter);
+	std::string BuildHLSL_Params(int& ioLineCounter, const std::filesystem::path& nslPath, const NXMaterialData& oMatData, const NXMaterialCode& shaderCode);
+	std::string BuildHLSL_GlobalFuncs(int& ioLineCounter, const NXMaterialData& oMatData, NXMaterialCode& shaderCode);
+	std::string BuildHLSL_Structs(int& ioLineCounter, const NXMaterialData& oMatData, const NXMaterialCode& shaderCode);
+	std::string BuildHLSL_PassFuncs(int& ioLineCounter, const NXMaterialData& oMatData, const NXMaterialCode& shaderCode);
+	std::string BuildHLSL_Entry(int& ioLineCounter, const NXMaterialData& oMatData, NXMaterialCode& shaderCode);
+	std::string BuildHLSL_Entry_VS(int& ioLineCounter, const NXMaterialData& oMatData, NXMaterialCode& shaderCode);
+	std::string BuildHLSL_Entry_PS(int& ioLineCounter, const NXMaterialData& oMatData, NXMaterialCode& shaderCode);
 
 	// 将材质数据和代码块转换为NSL代码
 	void SaveToNSLFile(const std::filesystem::path& nslPath, const NXMaterialData& oMatData, const NXMaterialCode& shaderCode);

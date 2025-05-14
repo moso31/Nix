@@ -97,23 +97,39 @@ void NXGUIMaterialShaderEditor::UpdateShaderErrorMessages(const std::string& str
 			errMsg.col0 = std::stoi(strCol0);
 			errMsg.col1 = strCol1.empty() ? errMsg.col0 : std::stoi(strCol1);
 
-			//for (int j = 0; j < m_HLSLFuncRegions.size(); j++)
-			//{
-			//	const auto& funcRegion = m_HLSLFuncRegions[j];
-			//	if (row >= funcRegion.firstRow && row <= funcRegion.lastRow)
-			//	{
-			//		errMsg.page = j;
-			//		errMsg.row = row - funcRegion.firstRow;
-			//		break;
-			//	}
-			//}
-		}
-		else
-		{
-			errMsg.page = 0;
-			errMsg.row = 0;
-			errMsg.col0 = 0;
-			errMsg.col1 = 0;
+			NXGUICodeEditorPickingData tempPickdata;
+			tempPickdata.mode = 0;
+			for (int j = 0; j < m_guiCodes.passes.size(); j++)
+			{
+				tempPickdata.passFuncId = 0;
+
+				auto& pass = m_guiCodes.passes[j];
+				if (row >= pass.vsFunc.hlslLineBegin && row <= pass.vsFunc.hlslLineEnd)
+				{
+					tempPickdata.passEntryId = 0;
+					errMsg.page = tempPickdata;
+					errMsg.row = row - pass.vsFunc.hlslLineBegin + 1;
+				}
+
+				if (row >= pass.psFunc.hlslLineBegin && row <= pass.psFunc.hlslLineEnd)
+				{
+					tempPickdata.passEntryId = 1;
+					errMsg.page = tempPickdata;
+					errMsg.row = row - pass.psFunc.hlslLineBegin + 1;
+				}
+			}
+
+			tempPickdata.mode = 1;
+			for (int j = 0; j < m_guiCodes.commonFuncs.data.size(); j++)
+			{
+				tempPickdata.customFuncId = j;
+				auto& customFunc = m_guiCodes.commonFuncs.data[j];
+				if (row >= customFunc.hlslLineBegin && row <= customFunc.hlslLineEnd)
+				{
+					errMsg.page = tempPickdata;
+					errMsg.row = row - customFunc.hlslLineBegin + 1;
+				}
+			}
 		}
 	}
 }
@@ -267,7 +283,9 @@ void NXGUIMaterialShaderEditor::Release()
 
 void NXGUIMaterialShaderEditor::OnBtnNewFunctionClicked(NXCustomMaterial* pMaterial)
 {
-	m_guiCodes.commonFuncs.data.push_back("void funcs()\n{\n\t\n}");
+	NXMaterialCodeBlock block;
+	block.data = "void funcs()\n{\n\t\n}";
+	m_guiCodes.commonFuncs.data.push_back(block);
 	m_guiCodes.commonFuncs.title.push_back("void funcs()");
 }
 
@@ -387,7 +405,7 @@ void NXGUIMaterialShaderEditor::Render_Code(NXCustomMaterial* pMaterial)
 		if (ImGui::Button("New Function##material_shader_editor_btn_newfunction"))
 		{
 			OnBtnNewFunctionClicked(pMaterial);
-			m_pGUICodeEditor->Load(m_guiCodes.commonFuncs.data.back(), false, m_guiCodes.commonFuncs.title.back());
+			m_pGUICodeEditor->Load(m_guiCodes.commonFuncs.data.back().data, false, m_guiCodes.commonFuncs.title.back());
 			m_pickingData.customFuncId = m_guiCodes.commonFuncs.data.size() - 1;
 			pickChanged = true;
 		}
@@ -950,11 +968,14 @@ void NXGUIMaterialShaderEditor::Render_ErrorMessages()
 
 			if (ImGui::SmallButton(errMsg.data.c_str()))
 			{
+				SyncLastPickingData();
+				m_pickingData = errMsg.page;
+
 				// clear是必须的，SwitchFile 的clear不一定会执行
 				m_pGUICodeEditor->ClearSelection();
 
 				// 在此执行代码高亮标记和跳转
-				int idx = GetCodeEditorIndexOfPickingData(m_pickingData);
+				int idx = GetCodeEditorIndexOfPickingData(errMsg.page);
 				m_pGUICodeEditor->SwitchFile(idx);
 				m_pGUICodeEditor->GetFocus();
 
@@ -985,13 +1006,13 @@ void NXGUIMaterialShaderEditor::SyncMaterialCode(NXCustomMaterial* pMaterial)
 	{
 		std::string strName = "customFunc_pass";
 		strName += std::to_string(i);
-		m_pGUICodeEditor->Load(m_guiCodes.passes[i].vsFunc, false, strName + "VS");
-		m_pGUICodeEditor->Load(m_guiCodes.passes[i].psFunc, false, strName + "PS");
+		m_pGUICodeEditor->Load(m_guiCodes.passes[i].vsFunc.data, false, strName + "VS");
+		m_pGUICodeEditor->Load(m_guiCodes.passes[i].psFunc.data, false, strName + "PS");
 	}
 	for (int i = 0; i < m_guiCodes.commonFuncs.data.size(); i++)
 	{
-		m_guiCodes.commonFuncs.title[i] = NXCodeProcessHelper::GetFirstEffectiveLine(m_guiCodes.commonFuncs.data[i]);
-		m_pGUICodeEditor->Load(m_guiCodes.commonFuncs.data[i], false, m_guiCodes.commonFuncs.title[i]);
+		m_guiCodes.commonFuncs.title[i] = NXCodeProcessHelper::GetFirstEffectiveLine(m_guiCodes.commonFuncs.data[i].data);
+		m_pGUICodeEditor->Load(m_guiCodes.commonFuncs.data[i].data, false, m_guiCodes.commonFuncs.title[i]);
 	}
 	m_pGUICodeEditor->RefreshAllHighLights();
 }
@@ -1026,18 +1047,18 @@ void NXGUIMaterialShaderEditor::SyncLastPickingData()
 
 		if (m_pickingDataLast.passEntryId == 0)
 		{
-			m_guiCodes.passes[m_pickingDataLast.passFuncId].vsFunc = strCode;
+			m_guiCodes.passes[m_pickingDataLast.passFuncId].vsFunc.data = strCode;
 		}
 		else if (m_pickingDataLast.passEntryId == 1)
 		{
-			m_guiCodes.passes[m_pickingDataLast.passFuncId].psFunc = strCode;
+			m_guiCodes.passes[m_pickingDataLast.passFuncId].psFunc.data = strCode;
 		}
 	}
 	else if (!m_guiCodes.commonFuncs.data.empty()) // mode == 1(custom func) and custom data not empty.
 	{
 		std::string strCode = m_pGUICodeEditor->GetCodeText(idx);
 
-		m_guiCodes.commonFuncs.data[m_pickingDataLast.customFuncId] = strCode;
+		m_guiCodes.commonFuncs.data[m_pickingDataLast.customFuncId].data = strCode;
 		m_guiCodes.commonFuncs.title[m_pickingDataLast.customFuncId] = NXCodeProcessHelper::GetFirstEffectiveLine(strCode);
 	}
 

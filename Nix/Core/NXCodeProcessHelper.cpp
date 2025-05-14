@@ -112,6 +112,18 @@ std::string NXCodeProcessHelper::GetFirstEffectiveLine(const std::string& strCod
 	return "";
 }
 
+int NXCodeProcessHelper::GetLineCount(const std::string& str)
+{
+	// 统计换行符的数量
+	int count = 0;
+	for (char c : str)
+	{
+		if (c == '\n')
+			count++;
+	}
+	return count;
+}
+
 bool NXCodeProcessHelper::MoveToNextBranketIn(std::istringstream& iss, std::stack<std::string>& stackBrackets, const std::string& branketName)
 {
 	std::string str;
@@ -335,8 +347,11 @@ void NXCodeProcessHelper::ExtractShader_GlobalFuncBody(std::istringstream& iss, 
 		}
 	}
 
+	NXMaterialCodeBlock block;
+	block.data = strCode;
+
 	oMatCode.commonFuncs.title.push_back(strTitle);
-	oMatCode.commonFuncs.data.push_back(strCode);
+	oMatCode.commonFuncs.data.push_back(block);
 }
 
 void NXCodeProcessHelper::ExtractShader_SubShader(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXMaterialCode& oMatCode)
@@ -369,11 +384,11 @@ void NXCodeProcessHelper::ExtractShader_SubShader_Pass(std::istringstream& iss, 
 		{
 			if (vals[0] == std::string("[VSBEGIN]"))
 			{
-				ExtractShader_SubShader_Pass_Entry(iss, stackBrackets, "[VSEND]", oMatPassCode.vsFunc);
+				ExtractShader_SubShader_Pass_Entry(iss, stackBrackets, "[VSEND]", oMatPassCode.vsFunc.data);
 			}
 			else if (vals[0] == std::string("[PSBEGIN]"))
 			{
-				ExtractShader_SubShader_Pass_Entry(iss, stackBrackets, "[PSEND]", oMatPassCode.psFunc);
+				ExtractShader_SubShader_Pass_Entry(iss, stackBrackets, "[PSEND]", oMatPassCode.psFunc.data);
 			}
 			else if (vals[0] == std::string("}"))
 			{
@@ -409,32 +424,34 @@ void NXCodeProcessHelper::ExtractShader_SubShader_Pass_Entry(std::istringstream&
 	}
 }
 
-std::string NXCodeProcessHelper::BuildHLSL(const std::filesystem::path& nslPath, const NXMaterialData& oMatData, const NXMaterialCode& shaderCode)
+std::string NXCodeProcessHelper::BuildHLSL(const std::filesystem::path& nslPath, const NXMaterialData& oMatData, NXMaterialCode& shaderCode)
 {
-	// 注意这个方法不会用nslPath记录的内容构建HLSL；而是使用oMatData+shaderCode。
+	// 此处nslPath只有文件名有用，文件内容没用！
 	// nslPath在这里唯一作用就是给cbuffer struct生成hash
 
+	int ioLineCounter = 0;
+
 	std::string str;
-	str += BuildHLSL_Include();
-	str += BuildHLSL_Params(nslPath, oMatData, shaderCode);
-	str += BuildHLSL_Structs(oMatData, shaderCode);
-	str += BuildHLSL_PassFuncs(oMatData, shaderCode);
-	str += BuildHLSL_GlobalFuncs(oMatData, shaderCode);
-	str += BuildHLSL_Entry(oMatData, shaderCode);
+	str += BuildHLSL_Include(ioLineCounter);
+	str += BuildHLSL_Params(ioLineCounter, nslPath, oMatData, shaderCode);
+	str += BuildHLSL_Structs(ioLineCounter, oMatData, shaderCode);
+	str += BuildHLSL_PassFuncs(ioLineCounter, oMatData, shaderCode);
+	str += BuildHLSL_GlobalFuncs(ioLineCounter, oMatData, shaderCode);
+	str += BuildHLSL_Entry(ioLineCounter, oMatData, shaderCode);
 
 	return str;
 }
 
-std::string NXCodeProcessHelper::BuildHLSL_Include()
+std::string NXCodeProcessHelper::BuildHLSL_Include(int& ioLineCounter)
 {
-	std::string str = R"(
-#include "Common.fx"
+	std::string str = R"(#include "Common.fx"
 #include "Math.fx"
 )";
+	ioLineCounter += GetLineCount(str);
 	return str;
 }
 
-std::string NXCodeProcessHelper::BuildHLSL_Params(const std::filesystem::path& nslPath, const NXMaterialData& oMatData, const NXMaterialCode& shaderCode)
+std::string NXCodeProcessHelper::BuildHLSL_Params(int& ioLineCounter, const std::filesystem::path& nslPath, const NXMaterialData& oMatData, const NXMaterialCode& shaderCode)
 {
 	int slot_tex = 0;
 	int slot_ss = 0;
@@ -487,22 +504,27 @@ std::string NXCodeProcessHelper::BuildHLSL_Params(const std::filesystem::path& n
 	str += "\t" + strMatName + " m;\n"; // 可编辑材质的成员变量约定命名 m。比如 m.albedo, m.metallic
 	str += "};\n";
 
+	ioLineCounter += GetLineCount(str);
 	return str;
 }
 
-std::string NXCodeProcessHelper::BuildHLSL_GlobalFuncs(const NXMaterialData& oMatData, const NXMaterialCode& shaderCode)
+std::string NXCodeProcessHelper::BuildHLSL_GlobalFuncs(int& ioLineCounter, const NXMaterialData& oMatData, NXMaterialCode& shaderCode)
 {
 	std::string str;
 	for (auto& shaderBody : shaderCode.commonFuncs.data)
 	{
-		str += shaderBody;
-		str += "\n";
+		shaderBody.hlslLineBegin = ioLineCounter + 1;
+		std::string strFunc = shaderBody.data + "\n";
+		ioLineCounter += GetLineCount(strFunc);
+		shaderBody.hlslLineEnd = ioLineCounter + 1;
+
+		str += strFunc;
 	}
 
 	return str;
 }
 
-std::string NXCodeProcessHelper::BuildHLSL_Structs(const NXMaterialData& oMatData, const NXMaterialCode& shaderCode)
+std::string NXCodeProcessHelper::BuildHLSL_Structs(int& ioLineCounter, const NXMaterialData& oMatData, const NXMaterialCode& shaderCode)
 {
 	std::string str = R"(
 struct VS_INPUT
@@ -533,10 +555,11 @@ struct PS_OUTPUT
 };
 )";
 
+	ioLineCounter += GetLineCount(str);
 	return str;
 }
 
-std::string NXCodeProcessHelper::BuildHLSL_PassFuncs(const NXMaterialData& oMatData, const NXMaterialCode& shaderCode)
+std::string NXCodeProcessHelper::BuildHLSL_PassFuncs(int& ioLineCounter, const NXMaterialData& oMatData, const NXMaterialCode& shaderCode)
 {
 	std::string str = R"(
 void EncodeGBuffer(NXGBufferParams gBuffer, PS_INPUT input, out PS_OUTPUT Output)
@@ -566,18 +589,20 @@ void EncodeGBuffer(NXGBufferParams gBuffer, PS_INPUT input, out PS_OUTPUT Output
 	}
 }
 )";
+	ioLineCounter += GetLineCount(str);
 	return str;
 }
 
-std::string NXCodeProcessHelper::BuildHLSL_Entry(const NXMaterialData& oMatData, const NXMaterialCode& shaderCode)
+std::string NXCodeProcessHelper::BuildHLSL_Entry(int& ioLineCounter, const NXMaterialData& oMatData, NXMaterialCode& shaderCode)
 {
 	std::string str;
-	str += BuildHLSL_Entry_VS(oMatData, shaderCode);
-	str += BuildHLSL_Entry_PS(oMatData, shaderCode);
+	str += BuildHLSL_Entry_VS(ioLineCounter, oMatData, shaderCode);
+	str += BuildHLSL_Entry_PS(ioLineCounter, oMatData, shaderCode);
+
 	return str;
 }
 
-std::string NXCodeProcessHelper::BuildHLSL_Entry_VS(const NXMaterialData& oMatData, const NXMaterialCode& shaderCode)
+std::string NXCodeProcessHelper::BuildHLSL_Entry_VS(int& ioLineCounter, const NXMaterialData& oMatData, NXMaterialCode& shaderCode)
 {
 	std::string strVSBegin = R"(PS_INPUT VS(VS_INPUT input)
 {
@@ -590,13 +615,21 @@ std::string NXCodeProcessHelper::BuildHLSL_Entry_VS(const NXMaterialData& oMatDa
 
 	std::string str;
 	str += strVSBegin;
-	str += shaderCode.passes[0].vsFunc;
+	ioLineCounter += GetLineCount(strVSBegin);
+
+	shaderCode.passes[0].vsFunc.hlslLineBegin = ioLineCounter + 1; 
+	std::string strVSFunc = shaderCode.passes[0].vsFunc.data;
+	str += strVSFunc;
+	ioLineCounter += GetLineCount(strVSFunc);
+	shaderCode.passes[0].vsFunc.hlslLineEnd = ioLineCounter + 1; // TODO: 缕清这里的逻辑，为什么vsEntry/psEntry的hlslLineEnd需要+1，其他地方就不用（现在没时间处理，牵扯的逻辑较多，和CodeEditor、SaveToNSLFile、Extract_()的pop_back()都有关联）
+
 	str += strVSEnd;
+	ioLineCounter += GetLineCount(strVSEnd);
 
 	return str;
 }
 
-std::string NXCodeProcessHelper::BuildHLSL_Entry_PS(const NXMaterialData& oMatData, const NXMaterialCode& shaderCode)
+std::string NXCodeProcessHelper::BuildHLSL_Entry_PS(int& ioLineCounter, const NXMaterialData& oMatData, NXMaterialCode& shaderCode)
 {
 	std::string strPSBegin = R"(
 void PS(PS_INPUT input, out PS_OUTPUT Output)
@@ -616,8 +649,16 @@ void PS(PS_INPUT input, out PS_OUTPUT Output)
 
 	std::string str;
 	str += strPSBegin;
-	str += shaderCode.passes[0].psFunc;
+	ioLineCounter += GetLineCount(strPSBegin);
+
+	shaderCode.passes[0].psFunc.hlslLineBegin = ioLineCounter + 1;
+	std::string strPSFunc = shaderCode.passes[0].psFunc.data;
+	str += strPSFunc;
+	ioLineCounter += GetLineCount(strPSFunc);
+	shaderCode.passes[0].psFunc.hlslLineEnd = ioLineCounter + 1;
+
 	str += strPSEnd;
+	ioLineCounter += GetLineCount(strPSEnd);
 
 	return str;
 }
@@ -636,7 +677,7 @@ void NXCodeProcessHelper::SaveToNSLFile(const std::filesystem::path& nslPath, co
 	for (size_t i = 0; i < shaderCode.commonFuncs.title.size(); ++i)
 	{
 		str += "[FUNCBEGIN]\n";
-		str += shaderCode.commonFuncs.data[i];
+		str += shaderCode.commonFuncs.data[i].data;
 		str += "\n";
 		str += "[FUNCEND]\n";
 	}
@@ -652,14 +693,14 @@ void NXCodeProcessHelper::SaveToNSLFile(const std::filesystem::path& nslPath, co
 		str += "\t\t{\n";
 
 		str += "[VSBEGIN]\n";
-		str += pass.vsFunc;
+		str += pass.vsFunc.data;
 		str += "\n"; 
 		str += "[VSEND]\n";
 
 		str += "\n";
 
 		str += "[PSBEGIN]\n";
-		str += pass.psFunc;
+		str += pass.psFunc.data;
 		str += "\n";
 		str += "[PSEND]\n";
 
