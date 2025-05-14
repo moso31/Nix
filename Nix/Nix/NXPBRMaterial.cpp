@@ -226,11 +226,13 @@ bool NXCustomMaterial::Recompile(const NXMaterialData& guiData, const NXMaterial
 	if (m_bCompileSuccess)
 	{
 		m_materialDatas = guiData.Clone();
+		m_codeBlocks = code;
 	}
 	else
 	{
 		// 如果编译失败，则用备份数据恢复材质
 		m_materialDatas = guiDataBackup.Clone();
+		m_codeBlocks = codeBackup;
 	}
 
 	return m_bCompileSuccess;

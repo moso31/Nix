@@ -6,6 +6,14 @@ using namespace NXConvert;
 
 std::string NXCodeProcessHelper::RemoveHLSLComment(const std::string& strCode)
 {
+	struct UserBlock { const char* start; const char* end; };
+	static const UserBlock kBlocks[] =
+	{
+		{"[FUNCBEGIN]", "[FUNCEND]"},
+		{"[VSBEGIN]",   "[VSEND]"},
+		{"[PSBEGIN]",   "[PSEND]"},
+	};
+
 	// 移除一个strCode中的所有注释内容（格式必须是HLSL）。
 	// 规则：
 	// 1. 从上往下遍历
@@ -48,6 +56,32 @@ std::string NXCodeProcessHelper::RemoveHLSLComment(const std::string& strCode)
 			// 没有注释了，直接退出
 			break;
 		}
+	}
+
+
+	std::vector<std::pair<int, int>> kBlocksPos;
+	// 确定kBlocks的起止位置和结束位置
+	for (const auto& block : kBlocks)
+	{
+		size_t left = result.find(block.start, 0);
+		if (left != std::string::npos)
+		{
+			size_t right = result.find(block.end, left);
+			if (right != std::string::npos)
+			{
+				kBlocksPos.push_back({ (int)left, (int)right });
+			}
+		}
+	}
+
+	for (const auto& block : kBlocksPos)
+	{
+		int st = block.first;
+		int ed = block.second;
+
+		// 将kBlocksPos中的内容替换回strCode
+		for (int i = st; i <= ed; ++i)
+			result[i] = strCode[i];
 	}
 
 	return result;
@@ -591,6 +625,7 @@ void NXCodeProcessHelper::SaveToNSLFile(const std::filesystem::path& nslPath, co
 	{
 		str += "[FUNCBEGIN]\n";
 		str += shaderCode.commonFuncs.data[i];
+		str += "\n";
 		str += "[FUNCEND]\n";
 	}
 
@@ -606,12 +641,14 @@ void NXCodeProcessHelper::SaveToNSLFile(const std::filesystem::path& nslPath, co
 
 		str += "[VSBEGIN]\n";
 		str += pass.vsFunc;
+		str += "\n"; 
 		str += "[VSEND]\n";
 
 		str += "\t\t{\n";
 
 		str += "[PSBEGIN]\n";
 		str += pass.psFunc;
+		str += "\n";
 		str += "[PSEND]\n";
 
 		str += "\t\t}\n"; // Pass
