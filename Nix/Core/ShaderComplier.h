@@ -28,18 +28,13 @@ public:
 	void Release();
 
 private:
-	HRESULT CompileInternal(const DxcBuffer& sourceBuffer, const std::wstring& shaderName, const std::wstring& mainFuncEntryPoint, IDxcBlob** pBlob, std::string& oErrorMessage, bool clearDefineMacros);
+	HRESULT CompileInternal(const DxcBuffer& sourceBuffer, const std::wstring& shaderName, const std::wstring& smVersion, const std::wstring& mainFuncEntryPoint, IDxcBlob** pBlob, std::string& oErrorMessage, bool clearDefineMacros);
 
 private:
-	std::vector<NXD3D_SHADER_MACRO> m_defineMacros;
-
-	ID3DInclude* m_pd3dInclude;
-	DWORD m_shaderFlags;
-	DWORD m_shaderFlags2;
-
 	static const std::wstring s_smVersionVS;
 	static const std::wstring s_smVersionPS;
 	static const std::wstring s_smVersionCS;
+	std::vector<NXD3D_SHADER_MACRO> m_defineMacros;
 
 	ComPtr<IDxcUtils> m_pDXCUtils;
 	ComPtr<IDxcCompiler3> m_pDXCCompiler;

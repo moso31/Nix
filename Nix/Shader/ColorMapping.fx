@@ -42,7 +42,7 @@ float3 LinearToSRGB(float3 c)
 	float gamma = 1.0 / 2.4;
 	float3 sRGBLo = c * 12.92;
 	float3 sRGBHi = (max(pow(c, float3(gamma, gamma, gamma)), 0.0) * 1.055) - 0.055;
-	float3 sRGB = (c <= 0.0031308) ? sRGBLo : sRGBHi;
+	float3 sRGB = select(sRGBLo, sRGBHi, c > 0.0031308);
 	return sRGB;
 }
 

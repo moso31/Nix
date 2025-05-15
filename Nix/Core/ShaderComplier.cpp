@@ -1,28 +1,13 @@
 #include "ShaderComplier.h"
 #include "BaseDefs/NixCore.h"
 #include "NXGlobalDefinitions.h"
-#include "NXShaderIncluder.h"
 
-const std::wstring NXShaderComplier::s_smVersionVS = L"vs_6_8";
-const std::wstring NXShaderComplier::s_smVersionPS = L"ps_6_8";
-const std::wstring NXShaderComplier::s_smVersionCS = L"cs_6_8";
+const std::wstring NXShaderComplier::s_smVersionVS = L"vs_6_5";
+const std::wstring NXShaderComplier::s_smVersionPS = L"ps_6_5";
+const std::wstring NXShaderComplier::s_smVersionCS = L"cs_6_5";
 
-NXShaderComplier::NXShaderComplier() :
-	m_shaderFlags2(0),
-	m_pd3dInclude(new NXFullyIncludeHandler())
+NXShaderComplier::NXShaderComplier() 
 {
-	m_shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
-#ifdef _DEBUG
-	// Set the D3DCOMPILE_DEBUG flag to embed debug information in the shaders.
-	// Setting this flag improves the shader debugging experience, but still allows 
-	// the shaders to be optimized and to run exactly the way they will run in 
-	// the release configuration of this program.
-	m_shaderFlags |= D3DCOMPILE_DEBUG;
-
-	// Disable optimizations to further improve shader debugging
-	m_shaderFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;
-#endif
-
 	HRESULT hr = DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&m_pDXCUtils));
 	if (FAILED(hr))
 	{
@@ -65,7 +50,7 @@ HRESULT NXShaderComplier::CompileVS(const std::filesystem::path& shaderFilePath,
 	sourceBuffer.Size = pSrcBlob->GetBufferSize();
 	sourceBuffer.Encoding = DXC_CP_UTF8;
 
-	return CompileInternal(sourceBuffer, shaderFilePath.wstring(), mainFuncEntryPoint, pVSBlob, oErrorMessage, clearDefineMacros);
+	return CompileInternal(sourceBuffer, shaderFilePath.wstring(), s_smVersionVS, mainFuncEntryPoint, pVSBlob, oErrorMessage, clearDefineMacros);
 }
 
 HRESULT NXShaderComplier::CompilePS(const std::filesystem::path& shaderFilePath, const std::wstring& mainFuncEntryPoint, IDxcBlob** pPSBlob, std::string& oErrorMessage, bool clearDefineMacros)
@@ -78,7 +63,7 @@ HRESULT NXShaderComplier::CompilePS(const std::filesystem::path& shaderFilePath,
 	sourceBuffer.Size = pSrcBlob->GetBufferSize();
 	sourceBuffer.Encoding = DXC_CP_UTF8;
 
-	return CompileInternal(sourceBuffer, shaderFilePath.wstring(), mainFuncEntryPoint, pPSBlob, oErrorMessage, clearDefineMacros);
+	return CompileInternal(sourceBuffer, shaderFilePath.wstring(), s_smVersionPS, mainFuncEntryPoint, pPSBlob, oErrorMessage, clearDefineMacros);
 }
 HRESULT NXShaderComplier::CompileVSByCode(const std::string& shaderCode, const std::wstring& mainFuncEntryPoint, IDxcBlob** pVSBlob, std::string& oErrorMessage, bool clearDefineMacros)
 {
@@ -87,7 +72,7 @@ HRESULT NXShaderComplier::CompileVSByCode(const std::string& shaderCode, const s
 	sourceBuffer.Size = shaderCode.size();
 	sourceBuffer.Encoding = DXC_CP_UTF8;
 
-	return CompileInternal(sourceBuffer, L"[Custom Shader]", mainFuncEntryPoint, pVSBlob, oErrorMessage, clearDefineMacros);
+	return CompileInternal(sourceBuffer, L"[Custom Shader]", s_smVersionVS, mainFuncEntryPoint, pVSBlob, oErrorMessage, clearDefineMacros);
 }
 
 HRESULT NXShaderComplier::CompilePSByCode(const std::string& shaderCode, const std::wstring& mainFuncEntryPoint, IDxcBlob** pPSBlob, std::string& oErrorMessage, bool clearDefineMacros)
@@ -97,10 +82,8 @@ HRESULT NXShaderComplier::CompilePSByCode(const std::string& shaderCode, const s
 	sourceBuffer.Size = shaderCode.size();
 	sourceBuffer.Encoding = DXC_CP_UTF8;
 
-	return CompileInternal(sourceBuffer, L"[Custom Shader]", mainFuncEntryPoint, pPSBlob, oErrorMessage, clearDefineMacros);
+	return CompileInternal(sourceBuffer, L"[Custom Shader]", s_smVersionPS, mainFuncEntryPoint, pPSBlob, oErrorMessage, clearDefineMacros);
 }
-
-
 
 void NXShaderComplier::AddMacro(const std::wstring& name, const std::wstring& value)
 {
@@ -114,17 +97,16 @@ void NXShaderComplier::ClearMacros()
 
 void NXShaderComplier::Release()
 {
-	SafeDelete(m_pd3dInclude);
 }
 
-HRESULT NXShaderComplier::CompileInternal(const DxcBuffer& sourceBuffer, const std::wstring& shaderName, const std::wstring& mainFuncEntryPoint, IDxcBlob** pBlob, std::string& oErrorMessage, bool clearDefineMacros)
+HRESULT NXShaderComplier::CompileInternal(const DxcBuffer& sourceBuffer, const std::wstring& shaderName, const std::wstring& smVersion, const std::wstring& mainFuncEntryPoint, IDxcBlob** pBlob, std::string& oErrorMessage, bool clearDefineMacros)
 {
 	// https://github.com/microsoft/DirectXShaderCompiler/wiki/Using-dxc.exe-and-dxcompiler.dll
 	std::vector<LPCWSTR> args =
 	{
 		shaderName.c_str(),					// Optional shader source file name for error reporting and for PIX shader source view.  
 		L"-E", mainFuncEntryPoint.c_str(),  // Entry point.
-		L"-T", s_smVersionVS.c_str(),       // Target.
+		L"-T", smVersion.c_str(),			// Target.
 		L"-Zi"								// Enable debug information
 	};
 
@@ -134,6 +116,10 @@ HRESULT NXShaderComplier::CompileInternal(const DxcBuffer& sourceBuffer, const s
 		std::wstring str = def.name + L"=" + def.value;
 		args.push_back(str.c_str());
 	}
+
+	// Include path
+	args.push_back(L"-I");
+	args.push_back(L"./Shader/");
 
 	// 按照上面的参数编译shader
 	ComPtr<IDxcResult> pResult;
@@ -145,24 +131,21 @@ HRESULT NXShaderComplier::CompileInternal(const DxcBuffer& sourceBuffer, const s
 		return hr;
 	}
 
-	// 如果有Error，输出错误信息
-	ComPtr<IDxcBlobUtf8> pErrors = nullptr;
-	hr = pResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&pErrors), nullptr);
-	if (pErrors != nullptr && pErrors->GetStringLength() != 0)
-	{
-		oErrorMessage = reinterpret_cast<const char*>(pErrors->GetBufferPointer());
-		OutputDebugStringA(oErrorMessage.c_str());
-
-		std::wstring msg = L"shader " + shaderName + L" cannot be compiled.";
-		MessageBox(nullptr, msg.c_str(), L"error", MB_OK);
-	}
-
 	HRESULT hrStatus;
 	pResult->GetStatus(&hrStatus);
 	if (FAILED(hrStatus))
 	{
-		std::wstring msg = L"shader " + shaderName + L" cannot be compiled.";
-		MessageBox(nullptr, msg.c_str(), L"error", MB_OK);
+		ComPtr<IDxcBlobUtf8> pErrors = nullptr;
+		hr = pResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&pErrors), nullptr);
+		if (pErrors != nullptr && pErrors->GetStringLength() != 0)
+		{
+			oErrorMessage = reinterpret_cast<const char*>(pErrors->GetBufferPointer());
+			OutputDebugStringA(oErrorMessage.c_str());
+
+			std::wstring msg = L"shader " + shaderName + L" cannot be compiled.";
+			MessageBox(nullptr, msg.c_str(), L"error", MB_OK);
+		}
+
 		return hrStatus;
 	}
 

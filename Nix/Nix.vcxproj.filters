@@ -726,9 +726,6 @@
     <ClInclude Include="Core\ShaderComplier.h">
       <Filter>Core\DirectX\Compile</Filter>
     </ClInclude>
-    <ClInclude Include="Core\NXShaderIncluder.h">
-      <Filter>Core\DirectX\Compile</Filter>
-    </ClInclude>
     <ClInclude Include="Core\NXShaderDefinitions.h">
       <Filter>Core\DirectX</Filter>
     </ClInclude>
