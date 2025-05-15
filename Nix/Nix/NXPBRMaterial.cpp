@@ -52,9 +52,9 @@ NXEasyMaterial::NXEasyMaterial(const std::string& name, const std::filesystem::p
 
 void NXEasyMaterial::Init()
 {
-	ComPtr<ID3DBlob> pVSBlob, pPSBlob;
-	NXShaderComplier::GetInstance()->CompileVS(".\\Shader\\GBufferEasy.fx", "VS", pVSBlob.GetAddressOf());
-	NXShaderComplier::GetInstance()->CompilePS(".\\Shader\\GBufferEasy.fx", "PS", pPSBlob.GetAddressOf());
+	ComPtr<IDxcBlob> pVSBlob, pPSBlob;
+	NXShaderComplier::GetInstance()->CompileVS(".\\Shader\\GBufferEasy.fx", L"VS", pVSBlob.GetAddressOf());
+	NXShaderComplier::GetInstance()->CompilePS(".\\Shader\\GBufferEasy.fx", L"PS", pPSBlob.GetAddressOf());
 
 	// b0, t1, s0
 	std::vector<D3D12_DESCRIPTOR_RANGE> ranges = {
@@ -94,8 +94,6 @@ void NXEasyMaterial::Init()
 	for (int i = 0; i < _countof(fmtGBuffers); i++)
 		psoDesc.RTVFormats[i] = fmtGBuffers[i];
 	psoDesc.DSVFormat = NXConvert::DXGINoTypeless(fmtDepthZ, true);
-	psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
-	psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	UpdatePSORenderStates(psoDesc);
 
@@ -151,9 +149,9 @@ bool NXCustomMaterial::LoadShaderCode()
 
 void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::string& oErrorMessageVS, std::string& oErrorMessagePS)
 {
-	ComPtr<ID3DBlob> pVSBlob, pPSBlob;
-	HRESULT hrVS = NXShaderComplier::GetInstance()->CompileVSByCode(strGBufferShader, "VS", pVSBlob.GetAddressOf(), oErrorMessageVS);
-	HRESULT hrPS = NXShaderComplier::GetInstance()->CompilePSByCode(strGBufferShader, "PS", pPSBlob.GetAddressOf(), oErrorMessagePS);
+	ComPtr<IDxcBlob> pVSBlob, pPSBlob;
+	HRESULT hrVS = NXShaderComplier::GetInstance()->CompileVSByCode(strGBufferShader, L"VS", pVSBlob.GetAddressOf(), oErrorMessageVS);
+	HRESULT hrPS = NXShaderComplier::GetInstance()->CompilePSByCode(strGBufferShader, L"PS", pPSBlob.GetAddressOf(), oErrorMessagePS);
 	m_bCompileSuccess = SUCCEEDED(hrVS) && SUCCEEDED(hrPS);
 	
 	// 如果JIT编译OK，就可以构建shader了。首先重新构建根签名和PSO。
@@ -173,9 +171,9 @@ void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::s
 			ranges.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, i));
 
 		std::vector<D3D12_ROOT_PARAMETER> rootParams = {
-			NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL), // b0
+			NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL), // b0, space0
 			NX12Util::CreateRootParameterCBV(1, 0, D3D12_SHADER_VISIBILITY_ALL), // b1
-			NX12Util::CreateRootParameterCBV(3, 0, D3D12_SHADER_VISIBILITY_ALL), // b3
+			NX12Util::CreateRootParameterCBV(0, 1, D3D12_SHADER_VISIBILITY_ALL), // b0, space1 用户自定义参数总是放在space1
 			NX12Util::CreateRootParameterTable(ranges, D3D12_SHADER_VISIBILITY_ALL), // t...
 		};
 
@@ -330,7 +328,7 @@ void NXCustomMaterial::Render(ID3D12GraphicsCommandList* pCommandList)
 	if (!m_bIsDirty)
 	{
 		auto gpuHandle = m_cbData.CurrentGPUAddress();
-		pCommandList->SetGraphicsRootConstantBufferView(2, gpuHandle); // b3.
+		pCommandList->SetGraphicsRootConstantBufferView(2, gpuHandle); 
 	}
 }
 

@@ -137,9 +137,9 @@ void NXCubeMap::GenerateCubeMap(Ntr<NXTexture2D>& pTexHDR, GenerateCubeMapCallba
 	for (int i = 0; i < NXCUBEMAP_FACE_COUNT; i++)
 		m_pTexCubeMap->SetRTV(i, 0, i, 1);
 
-	ComPtr<ID3DBlob> pVSBlob, pPSBlob;
-	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\HDRToCubeMap.fx", "VS", pVSBlob.GetAddressOf());
-	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\HDRToCubeMap.fx", "PS", pPSBlob.GetAddressOf());
+	ComPtr<IDxcBlob> pVSBlob, pPSBlob;
+	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\HDRToCubeMap.fx", L"VS", pVSBlob.GetAddressOf());
+	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\HDRToCubeMap.fx", L"PS", pPSBlob.GetAddressOf());
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.pRootSignature = m_pRootSigCubeMap.Get();
@@ -477,8 +477,8 @@ void NXCubeMap::GenerateIrradianceMap()
 	//ComPtr<ID3D11VertexShader> pVertexShader;
 	//ComPtr<ID3D11PixelShader> pPixelShader;
 
-	//NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\CubeMapIrradiance.fx", "VS", &pVertexShader, NXGlobalInputLayout::layoutPNT, ARRAYSIZE(NXGlobalInputLayout::layoutPNT), &pInputLayoutP);
-	//NXShaderComplier::GetInstance()->CompilePS(L"Shader\\CubeMapIrradiance.fx", "PS", &pPixelShader);
+	//NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\CubeMapIrradiance.fx", L"VS", &pVertexShader, NXGlobalInputLayout::layoutPNT, ARRAYSIZE(NXGlobalInputLayout::layoutPNT), &pInputLayoutP);
+	//NXShaderComplier::GetInstance()->CompilePS(L"Shader\\CubeMapIrradiance.fx", L"PS", &pPixelShader);
 	//g_pContext->VSSetShader(pVertexShader.Get(), nullptr, 0);
 	//g_pContext->PSSetShader(pPixelShader.Get(), nullptr, 0);
 	//g_pContext->IASetInputLayout(pInputLayoutP.Get());
@@ -535,9 +535,9 @@ void NXCubeMap::GeneratePreFilterMap()
 		}
 	}
 
-	ComPtr<ID3DBlob> pVSBlob, pPSBlob;
-	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\CubeMapPreFilter.fx", "VS", pVSBlob.GetAddressOf());
-	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\CubeMapPreFilter.fx", "PS", pPSBlob.GetAddressOf());
+	ComPtr<IDxcBlob> pVSBlob, pPSBlob;
+	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\CubeMapPreFilter.fx", L"VS", pVSBlob.GetAddressOf());
+	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\CubeMapPreFilter.fx", L"PS", pPSBlob.GetAddressOf());
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.pRootSignature = m_pRootSigPreFilterMap.Get();

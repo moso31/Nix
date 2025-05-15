@@ -455,7 +455,7 @@ std::string NXCodeProcessHelper::BuildHLSL_Params(int& ioLineCounter, const std:
 {
 	int slot_tex = 0;
 	int slot_ss = 0;
-	int slot_cb = 3;
+	int slot_cb = 0;
 	int cb_padding = 0;
 
 	std::string str;
@@ -499,7 +499,7 @@ std::string NXCodeProcessHelper::BuildHLSL_Params(int& ioLineCounter, const std:
 	}
 	str += "};\n";
 
-	str += "cbuffer " + strMatName + " : register(b" + std::to_string(slot_cb++) + ")\n";
+	str += "cbuffer " + strMatName + " : register(b" + std::to_string(slot_cb++) + ", space1)\n"; // 2025.5.15 以后规定用户自定义参数总是放在space1
 	str += "{\n";
 	str += "\t" + strMatName + " m;\n"; // 可编辑材质的成员变量约定命名 m。比如 m.albedo, m.metallic
 	str += "};\n";

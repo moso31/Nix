@@ -3,7 +3,7 @@
 #include <d3d12.h>
 #include <dxgi1_6.h>
 #include <DirectXColors.h>
-#include <d3dcompiler.h>
+#include <dxcapi.h>
 
 #ifdef DEBUG
 #include <pix3.h>

@@ -44,5 +44,6 @@ public:
 	static D3D12_INPUT_LAYOUT_DESC layoutPT;
 	static D3D12_INPUT_LAYOUT_DESC layoutPNT;
 	static D3D12_INPUT_LAYOUT_DESC layoutPNTT;
+	static D3D12_INPUT_LAYOUT_DESC layoutPNTT_GPUInstancing;
 	static D3D12_INPUT_LAYOUT_DESC layoutEditorObject;
 };

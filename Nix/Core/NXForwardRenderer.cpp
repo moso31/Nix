@@ -35,9 +35,9 @@ void NXForwardRenderer::Init()
 	//m_pTexPassOut = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_Lighting0);
 	//m_pTexDepth = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonRT(NXCommonRT_DepthZ);
 
-	ComPtr<ID3DBlob> pVSBlob, pPSBlob;
-	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\ForwardTranslucent.fx", "VS", pVSBlob.GetAddressOf());
-	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\ForwardTranslucent.fx", "PS", pPSBlob.GetAddressOf());
+	ComPtr<IDxcBlob> pVSBlob, pPSBlob;
+	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\ForwardTranslucent.fx", L"VS", pVSBlob.GetAddressOf());
+	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\ForwardTranslucent.fx", L"PS", pPSBlob.GetAddressOf());
 
 	// t0~t8, s0~s2, b0~b5
 	std::vector<D3D12_DESCRIPTOR_RANGE> ranges = {

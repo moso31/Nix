@@ -62,9 +62,9 @@ void NXBRDFLut::InitVertex()
 
 void NXBRDFLut::InitRootSignature()
 {
-	ComPtr<ID3DBlob> pVSBlob, pPSBlob;
-	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\BRDF2DLUT.fx", "VS", pVSBlob.GetAddressOf());
-	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\BRDF2DLUT.fx", "PS", pPSBlob.GetAddressOf());
+	ComPtr<IDxcBlob> pVSBlob, pPSBlob;
+	NXShaderComplier::GetInstance()->CompileVS(L"Shader\\BRDF2DLUT.fx", L"VS", pVSBlob.GetAddressOf());
+	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\BRDF2DLUT.fx", L"PS", pPSBlob.GetAddressOf());
 
 	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::GetDevice(), 0, nullptr, 0, nullptr);
 

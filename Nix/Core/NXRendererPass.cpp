@@ -96,9 +96,9 @@ void NXRendererPass::InitPSO()
 {
 	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::GetDevice(), m_rootParams, m_staticSamplers);
 
-	ComPtr<ID3DBlob> pVSBlob, pPSBlob;
-	NXShaderComplier::GetInstance()->CompileVS(m_shaderFilePath, "VS", pVSBlob.GetAddressOf());
-	NXShaderComplier::GetInstance()->CompilePS(m_shaderFilePath, "PS", pPSBlob.GetAddressOf());
+	ComPtr<IDxcBlob> pVSBlob, pPSBlob;
+	NXShaderComplier::GetInstance()->CompileVS(m_shaderFilePath, L"VS", pVSBlob.GetAddressOf());
+	NXShaderComplier::GetInstance()->CompilePS(m_shaderFilePath, L"PS", pPSBlob.GetAddressOf());
 
 	m_psoDesc.pRootSignature = m_pRootSig.Get();
 	m_psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };

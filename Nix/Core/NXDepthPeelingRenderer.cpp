@@ -28,17 +28,17 @@
 //	m_pCombineRTData = new NXRenderTarget();
 //	m_pCombineRTData->Init();
 //
-//	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\ForwardTranslucent.fx", "VS", &m_pVertexShader, NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), &m_pInputLayout);
-//	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\ForwardTranslucent.fx", "PS", &m_pPixelShader);
+//	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\ForwardTranslucent.fx", L"VS", &m_pVertexShader, NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), &m_pInputLayout);
+//	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\ForwardTranslucent.fx", L"PS", &m_pPixelShader);
 //
-//	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\ForwardTranslucent.fx", "VS", &m_pVertexShaderDepthPeeling, NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), &m_pInputLayout);
+//	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\ForwardTranslucent.fx", L"VS", &m_pVertexShaderDepthPeeling, NXGlobalInputLayout::layoutPNTT, ARRAYSIZE(NXGlobalInputLayout::layoutPNTT), &m_pInputLayout);
 //
 //	NXShaderComplier::GetInstance()->AddMacro(CD3D_SHADER_MACRO("ENABLE_DEPTH_PEELING", "1"));
-//	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\ForwardTranslucent.fx", "PS", &m_pPixelShaderDepthPeeling);
+//	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\ForwardTranslucent.fx", L"PS", &m_pPixelShaderDepthPeeling);
 //
-//	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\DepthPeelingCombine.fx", "VS", &m_pVertexShaderCombine, NXGlobalInputLayout::layoutPT, ARRAYSIZE(NXGlobalInputLayout::layoutPT), &m_pInputLayoutCombine);
+//	NXShaderComplier::GetInstance()->CompileVSIL(L"Shader\\DepthPeelingCombine.fx", L"VS", &m_pVertexShaderCombine, NXGlobalInputLayout::layoutPT, ARRAYSIZE(NXGlobalInputLayout::layoutPT), &m_pInputLayoutCombine);
 //
-//	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\DepthPeelingCombine.fx", "PS", &m_pPixelShaderCombine);
+//	NXShaderComplier::GetInstance()->CompilePS(L"Shader\\DepthPeelingCombine.fx", L"PS", &m_pPixelShaderCombine);
 //
 //	m_pDepthStencilState = NXDepthStencilState<>::Create();
 //	m_pRasterizerStateFront = NXRasterizerState<D3D11_FILL_SOLID, D3D11_CULL_BACK>::Create();
