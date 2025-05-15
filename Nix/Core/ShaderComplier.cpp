@@ -121,6 +121,12 @@ HRESULT NXShaderComplier::CompileInternal(const DxcBuffer& sourceBuffer, const s
 	args.push_back(L"-I");
 	args.push_back(L"./Shader/");
 
+#ifdef DEBUG
+	// Debug mode
+	args.push_back(L"-Qembed_debug");
+	args.push_back(L"-Qsource_in_debug_module");
+#endif
+
 	// 按照上面的参数编译shader
 	ComPtr<IDxcResult> pResult;
 	HRESULT hr = m_pDXCCompiler->Compile(&sourceBuffer, args.data(), (UINT)args.size(), m_pDXCIncHandler.Get(), IID_PPV_ARGS(&pResult));
