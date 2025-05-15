@@ -199,7 +199,7 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMateri
 
 			for (auto* guiData : m_guiData.GetAll())
 			{
-				if (auto cbData = guiData->IsCBuffer())
+				if (auto* cbData = guiData->IsCBuffer())
 				{
 					std::string strId = "##material_custom_child_cbuffer_" + std::to_string(paramCnt++);
 					RenderMaterialUI_Custom_Parameters_CBufferItem(strId, pMaterial, cbData);
@@ -281,7 +281,7 @@ void NXGUIMaterial::RenderMaterialUI_Custom_Parameters_CBufferItem(const std::st
 
 	if (bDraged)
 	{
-		//cbData->SyncLink();
+		cbData->SyncLink();
 		pMaterial->SetCBInfoMemoryData();
 	}
 }
