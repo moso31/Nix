@@ -598,7 +598,7 @@ void NXSubMeshGeometryEditor::CreateTerrain(NXTerrain* pTerrain, int rawSize, in
 	{
 		for (int y = 0; y < gSectorNum; y++)
 		{
-			float vertScale = (float)gridSize / (float)worldSize;
+			float vertScale = gSectorSize;// (float)gridSize / (float)worldSize;
 			Vector3 p(vertScale * (float)x, 0.0f, vertScale * (float)y);
 
 			insDatas.push_back({ Matrix::CreateTranslation(p) });

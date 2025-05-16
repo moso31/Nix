@@ -433,8 +433,8 @@ std::string NXCodeProcessHelper::BuildHLSL(const std::filesystem::path& nslPath,
 
 	std::string str;
 	str += BuildHLSL_Include(ioLineCounter);
-	str += BuildHLSL_Params(ioLineCounter, nslPath, oMatData, shaderCode);
 	str += BuildHLSL_Structs(ioLineCounter, oMatData, shaderCode);
+	str += BuildHLSL_Params(ioLineCounter, nslPath, oMatData, shaderCode);
 	str += BuildHLSL_PassFuncs(ioLineCounter, oMatData, shaderCode);
 	str += BuildHLSL_GlobalFuncs(ioLineCounter, oMatData, shaderCode);
 	str += BuildHLSL_Entry(ioLineCounter, oMatData, shaderCode);
@@ -533,6 +533,12 @@ struct VS_INPUT
 	float3 norm : NORMAL;
 	float2 tex : TEXCOORD;
 	float3 tangent : TANGENT;
+#ifdef GPU_INSTANCING
+	float4 row0 : GPUINSWORLD0;
+	float4 row1 : GPUINSWORLD1;
+	float4 row2 : GPUINSWORLD2;
+	float4 row3 : GPUINSWORLD3;
+#endif
 };
 
 struct PS_INPUT
@@ -553,6 +559,22 @@ struct PS_OUTPUT
 	float4 GBufferC : SV_Target2;
 	float4 GBufferD : SV_Target3;
 };
+
+matrix GetWorldMatrix(VS_INPUT vin)
+{
+	matrix result;
+#ifdef GPU_INSTANCING
+	matrix mxInstance;
+	mxInstance[0] = vin.row0;
+	mxInstance[1] = vin.row1;
+	mxInstance[2] = vin.row2;
+	mxInstance[3] = vin.row3;
+	result = mul(mxInstance, m_world);
+#else
+    result = m_world;
+#endif
+	return result;
+}
 )";
 
 	ioLineCounter += GetLineCount(str);

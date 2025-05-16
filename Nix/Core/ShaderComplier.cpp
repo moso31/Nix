@@ -102,6 +102,7 @@ void NXShaderComplier::Release()
 HRESULT NXShaderComplier::CompileInternal(const DxcBuffer& sourceBuffer, const std::wstring& shaderName, const std::wstring& smVersion, const std::wstring& mainFuncEntryPoint, IDxcBlob** pBlob, std::string& oErrorMessage, bool clearDefineMacros)
 {
 	// https://github.com/microsoft/DirectXShaderCompiler/wiki/Using-dxc.exe-and-dxcompiler.dll
+	std::vector<std::wstring> macroDefines;
 	std::vector<LPCWSTR> args =
 	{
 		shaderName.c_str(),					// Optional shader source file name for error reporting and for PIX shader source view.  
@@ -113,8 +114,8 @@ HRESULT NXShaderComplier::CompileInternal(const DxcBuffer& sourceBuffer, const s
 	for (auto& def : m_defineMacros)
 	{
 		args.push_back(L"-D");
-		std::wstring str = def.name + L"=" + def.value;
-		args.push_back(str.c_str());
+		macroDefines.push_back(def.name + L"=" + def.value);
+		args.push_back(macroDefines.back().c_str());
 	}
 
 	// Include path

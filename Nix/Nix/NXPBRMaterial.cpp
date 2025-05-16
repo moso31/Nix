@@ -150,7 +150,9 @@ bool NXCustomMaterial::LoadShaderCode()
 void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::string& oErrorMessageVS, std::string& oErrorMessagePS)
 {
 	ComPtr<IDxcBlob> pVSBlob, pPSBlob;
+	NXShaderComplier::GetInstance()->AddMacro(L"GPU_INSTANCING", L"1");
 	HRESULT hrVS = NXShaderComplier::GetInstance()->CompileVSByCode(strGBufferShader, L"VS", pVSBlob.GetAddressOf(), oErrorMessageVS);
+	NXShaderComplier::GetInstance()->AddMacro(L"GPU_INSTANCING", L"1");
 	HRESULT hrPS = NXShaderComplier::GetInstance()->CompilePSByCode(strGBufferShader, L"PS", pPSBlob.GetAddressOf(), oErrorMessagePS);
 	m_bCompileSuccess = SUCCEEDED(hrVS) && SUCCEEDED(hrPS);
 	
@@ -195,7 +197,7 @@ void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::s
 
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 		psoDesc.pRootSignature = m_pRootSig.Get();
-		psoDesc.InputLayout = NXGlobalInputLayout::layoutPNTT;
+		psoDesc.InputLayout = NXGlobalInputLayout::layoutPNTT_GPUInstancing;
 		psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 		psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 		psoDesc.SampleDesc.Count = 1;
