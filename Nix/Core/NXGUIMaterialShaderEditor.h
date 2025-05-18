@@ -82,6 +82,7 @@ private:
 	void Render_Params_SamplerItem(const int strId, NXCustomMaterial* pMaterial, NXMatDataSampler* pSampler);
 	void Render_Settings(NXCustomMaterial* pMaterial);
 	void Render_ErrorMessages();
+	void RemoveGUIDataAfterRender();
 
 	void SyncMaterialData(NXCustomMaterial* pMaterial);
 	void SyncMaterialCode(NXCustomMaterial* pMaterial);
@@ -104,6 +105,9 @@ private:
 
 	NXGUICodeEditorPickingData m_pickingData;
 	NXGUICodeEditorPickingData m_pickingDataLast;
+
+	// 材质参数可能被移除，但不要在render过程中移除正在编辑的数据，等render结束在移除
+	std::vector<NXMatDataBase*> m_guiRemoving;
 
 	// 材质参数
 	NXMaterialData m_guiData;

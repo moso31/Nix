@@ -63,6 +63,8 @@ void NXGUIMaterialShaderEditor::Render()
 
 	ImGui::PopStyleColor();
 	ImGui::End();
+
+	RemoveGUIDataAfterRender();
 }
 
 void NXGUIMaterialShaderEditor::ClearShaderErrorMessages()
@@ -170,7 +172,7 @@ void NXGUIMaterialShaderEditor::OnBtnAddSamplerClicked(NXCustomMaterial* pMateri
 
 void NXGUIMaterialShaderEditor::OnBtnRemoveParamClicked(NXMatDataBase* pData)
 {
-	m_guiData.Remove(pData);
+	m_guiRemoving.push_back(pData);
 }
 
 void NXGUIMaterialShaderEditor::OnBtnMoveParamToPrevClicked(NXMatDataBase* pData)
@@ -991,6 +993,15 @@ void NXGUIMaterialShaderEditor::Render_ErrorMessages()
 
 	ImGui::PopStyleColor();
 	ImGui::PopStyleVar();
+}
+
+void NXGUIMaterialShaderEditor::RemoveGUIDataAfterRender()
+{
+	for (auto* data : m_guiRemoving)
+	{
+		m_guiData.Remove(data);
+	}
+	m_guiRemoving.clear();
 }
 
 void NXGUIMaterialShaderEditor::SyncMaterialData(NXCustomMaterial* pMaterial)
