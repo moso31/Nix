@@ -57,36 +57,15 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D(const std::string& na
 	}
 
 	Ntr<NXTexture2D> pTexture2D(new NXTexture2D());
-	pTexture2D->Create(name, filePath, flags);
-
-	if (bAutoMakeViews)
+	std::string strExt = filePath.extension().string();
+	if (NXConvert::IsImageFileExtension(strExt))
 	{
-		pTexture2D->SetViews(1, 0, 0, 0);
-		pTexture2D->SetSRV(0);
+		pTexture2D->Create(name, filePath, flags);
 	}
-
-	if (!bForce)
-		m_pTextureArrayInternal.push_back(pTexture2D); // 2023.3.26 如果是强制加载，就不应加入到资源数组里面
-	return pTexture2D;
-}
-
-Ntr<NXTexture2D> NXTextureResourceManager::CreateTextureRaw(const std::string& name, const std::filesystem::path& filePath, bool bForce, D3D12_RESOURCE_FLAGS flags, bool bAutoMakeViews)
-{
-	if (!bForce)
+	else if (NXConvert::IsRawFileExtension(strExt))
 	{
-		// 先在已加载纹理里面找当前纹理，有的话就不用Create了
-		for (auto pTexture : m_pTextureArrayInternal)
-		{
-			auto& pTex2D = pTexture.As<NXTexture2D>();
-			if (pTex2D.IsValid() && !filePath.empty() && std::filesystem::hash_value(filePath) == std::filesystem::hash_value(pTexture->GetFilePath()))
-			{
-				return pTex2D;
-			}
-		}
+		pTexture2D->CreateHeightRaw(name, filePath, flags);
 	}
-
-	Ntr<NXTexture2D> pTexture2D(new NXTexture2D());
-	pTexture2D->CreateHeightRaw(name, filePath, flags);
 
 	if (bAutoMakeViews)
 	{

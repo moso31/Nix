@@ -470,15 +470,7 @@ void NXCustomMaterial::Deserialize()
 			auto* txData = m_materialDatas.FindTextureByName(objName);
 			if (txData)
 			{
-				auto& strExt = objPath.extension().string();
-				if (NXConvert::IsImageFileExtension(strExt))
-				{
-					txData->pTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(m_name + objName, objPath);
-				}
-				else if (NXConvert::IsRawFileExtension(strExt))
-				{
-					txData->pTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTextureRaw(m_name + objName, objPath);
-				}
+				txData->pTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(m_name + objName, objPath);
 			}
 		}
 

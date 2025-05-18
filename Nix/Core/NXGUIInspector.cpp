@@ -33,14 +33,7 @@ void NXGUIInspector::DoCommand(const NXGUICommand& cmd)
 			case NXGUIInspector_Texture:
 			{
 				auto path = std::any_cast<std::filesystem::path>(cmd.args[1]);
-				if (path.extension() == ".raw")
-				{
-					m_pGUITexture->SetRawFile(path);
-				}
-				else
-				{
-					m_pGUITexture->SetImage(path);
-				}
+				m_pGUITexture->SetImage(path);
 				break;
 			}
 

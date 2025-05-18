@@ -15,12 +15,10 @@ public:
 
 	// set preview image.
 	void SetImage(const std::filesystem::path& path);
-	void SetRawFile(const std::filesystem::path& path);
 
 private:
 	void Render_Texture();
 	void Render_RawTexture();
-	void Render_Apply();
 
 private:
 	std::filesystem::path m_path;

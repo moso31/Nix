@@ -45,16 +45,6 @@ void NXGUITexture::SetImage(const std::filesystem::path& path)
 	m_texData = m_pTexImage->GetSerializationData();
 }
 
-void NXGUITexture::SetRawFile(const std::filesystem::path& path)
-{
-	if (m_pTexImage.IsValid() && path == m_pTexImage->GetFilePath())
-		return;
-
-	m_path = path;
-	m_pTexImage = NXResourceManager::GetInstance()->GetTextureManager()->CreateTextureRaw("NXGUITexture Preview Image", path);
-	m_texData = m_pTexImage->GetSerializationData();
-}
-
 void NXGUITexture::Render_Texture()
 {
 	float fTexSize = ImGui::GetContentRegionAvail().x * 0.7f;
@@ -109,7 +99,7 @@ void NXGUITexture::Render_RawTexture()
 		// 序列化，保存成n0文件
 		m_pTexImage->Serialize();
 
-		// 重载，这里暂时用同步方案
-		m_pTexImage = NXResourceManager::GetInstance()->GetTextureManager()->CreateTextureRaw("NXGUITexture Preview Image", m_path, true);
+		// 进行异步重载
+		m_pTexImage->MarkReload(m_pTexImage->GetFilePath());
 	}
 }

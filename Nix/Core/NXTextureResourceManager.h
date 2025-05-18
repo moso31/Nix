@@ -16,7 +16,6 @@ public:
     void Release() override;
 
     Ntr<NXTexture2D> CreateTexture2D(const std::string& name, const std::filesystem::path& filePath, bool bForce = false, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE, bool bAutoMakeViews = true);
-    Ntr<NXTexture2D> CreateTextureRaw(const std::string& name, const std::filesystem::path& filePath, bool bForce = false, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE, bool bAutoMakeViews = true);
     Ntr<NXTexture2D> CreateRenderTexture(const std::string& name, DXGI_FORMAT fmt, UINT width, UINT height, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE, bool bAutoMakeViews = true);
 
     Ntr<NXTextureCube> CreateTextureCube(const std::string& name, const std::wstring& filePath, UINT width = 0, UINT height = 0, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE, bool bAutoMakeViews = true);
