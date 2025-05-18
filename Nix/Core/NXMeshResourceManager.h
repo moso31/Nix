@@ -34,7 +34,7 @@ public:
 	// 注意：rawsize的值通常是2^n+1，比如513、1025、2049....
 	// gridSize: 地形网格大小分辨率（不需要控制lod，每个terrain自带四叉树）
 	// worldSize: 实际尺寸大小
-	NXTerrain* CreateTerrain(const std::string& name, int rawSize, int gridSize, int worldSize, const std::filesystem::path& rawFile);
+	NXTerrain* CreateTerrain(const std::string& name, int rawSize, int gridSize, int worldSize, const std::filesystem::path& rawFile, const Vector2& heightRange);
 
 	void BindMaterial(NXRenderableObject* pRenderableObj, NXMaterial* pMaterial);
 	void BindMaterial(NXSubMeshBase* pSubMesh, NXMaterial* pMaterial);

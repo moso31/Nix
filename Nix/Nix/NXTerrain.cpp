@@ -5,12 +5,11 @@
 #include "NXCamera.h"
 #include "NXTimer.h"
 
-NXTerrain::NXTerrain(int rawSize, int gridSize, int worldSize, const std::filesystem::path& rawFile) :
+NXTerrain::NXTerrain(int rawSize, int gridSize, int worldSize) :
 	m_rawSize(rawSize),
 	m_gridSize(gridSize),
 	m_worldSize(worldSize),
-	m_rawPath(rawFile),
-	m_rawData(rawSize * rawSize) 
+	m_heightRange(0, 1000)
 {
 }
 
@@ -19,16 +18,30 @@ void NXTerrain::AddSubMesh(NXSubMeshBase* pSubMesh)
 	m_pSubMesh = std::shared_ptr<NXSubMeshBase>(pSubMesh);
 }
 
+
+bool NXTerrain::RayCastPrimitive(const Ray& worldRay, NXHit& outHitInfo, float& outDist)
+{
+	NXHit hit;
+	hit.pSubMesh = m_pSubMesh.get();
+	outDist = 0.0f;
+	outHitInfo = hit;
+	return true;
+}
+
 void NXTerrain::InitAABB()
 {
-	m_pSubMesh->CalcLocalAABB();
-	AABB::CreateMerged(m_localAABB, m_localAABB, m_pSubMesh->GetLocalAABB());
+	Vector3 vMin(0.0f, m_heightRange.x, 0.0f);
+	Vector3 vMax((float)m_worldSize, m_heightRange.y, (float)m_worldSize);
+	m_localAABB = AABB(vMin, vMax);
 
 	NXRenderableObject::InitAABB();
 }
 
 void NXTerrain::Update(ID3D12GraphicsCommandList* pCmdList)
 {
+	if (!m_bGenerated)
+		std::runtime_error("NXTerrain has not been Generated(). Terrain should be call this method once always.");
+
 	auto* pCamera = NXResourceManager::GetInstance()->GetCameraManager()->GetCamera("Main Camera");
 	auto& mxView = pCamera->GetViewMatrix();
 	auto& mxWorld = m_worldMatrix;

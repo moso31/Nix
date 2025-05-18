@@ -275,6 +275,12 @@ bool IsImageFileExtension(const std::string& strExtension)
 	return s == ".dds" || s == ".png" || s == ".jpg" || s == ".tga" || s == ".bmp" || s == ".hdr";
 }
 
+bool IsRawFileExtension(const std::string& strExtension)
+{
+	std::string s = s2lower(strExtension);
+	return s == ".raw";
+}
+
 bool IsMaterialFileExtension(const std::string& strExtension)
 {
 	std::string s = s2lower(strExtension);

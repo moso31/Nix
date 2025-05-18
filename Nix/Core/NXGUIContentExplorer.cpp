@@ -289,7 +289,7 @@ void NXGUIContentExplorer::OnBtnContentLeftClicked(const std::filesystem::direct
     {
         const auto& strExtension = path.path().extension().string();
 
-        if (NXConvert::IsImageFileExtension(strExtension))
+        if (NXConvert::IsImageFileExtension(strExtension) || NXConvert::IsRawFileExtension(strExtension))
         {
             NXGUICommand e(NXGUICmd_Inspector_SetIdx, { NXGUIInspector_Texture, path.path() });
             NXGUICommandManager::GetInstance()->PushCommand(e);

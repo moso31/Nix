@@ -80,11 +80,11 @@ NXPrefab* NXMeshResourceManager::CreateFBXPrefab(const std::string& name, const 
 	return p;
 }
 
-NXTerrain* NXMeshResourceManager::CreateTerrain(const std::string& name, int rawSize, int gridSize, int worldSize, const std::filesystem::path& rawFile)
+NXTerrain* NXMeshResourceManager::CreateTerrain(const std::string& name, int rawSize, int gridSize, int worldSize, const std::filesystem::path& rawFile, const Vector2& heightRange)
 {
-	auto p = new NXTerrain(rawSize, gridSize, worldSize, rawFile);
+	auto p = new NXTerrain(rawSize, gridSize, worldSize);
 	p->SetName(name);
-	NXSubMeshGeometryEditor::GetInstance()->CreateTerrain(p, rawSize, gridSize, worldSize, rawFile);
+	NXSubMeshGeometryEditor::GetInstance()->CreateTerrain(p, rawSize, gridSize, worldSize, rawFile, heightRange);
 	m_pWorkingScene->RegisterTerrain(p);
 	return p;
 }

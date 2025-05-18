@@ -465,12 +465,20 @@ void NXCustomMaterial::Deserialize()
 		for (auto& tex : texArray)
 		{
 			auto& objName = deserializer.String(tex, "name");
-			auto& objPath = deserializer.String(tex, "path");
+			std::filesystem::path objPath = deserializer.String(tex, "path");
 
 			auto* txData = m_materialDatas.FindTextureByName(objName);
 			if (txData)
 			{
-				txData->pTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(m_name + objName, objPath);
+				auto& strExt = objPath.extension().string();
+				if (NXConvert::IsImageFileExtension(strExt))
+				{
+					txData->pTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(m_name + objName, objPath);
+				}
+				else if (NXConvert::IsRawFileExtension(strExt))
+				{
+					txData->pTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTextureRaw(m_name + objName, objPath);
+				}
 			}
 		}
 

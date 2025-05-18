@@ -560,21 +560,7 @@ struct PS_OUTPUT
 	float4 GBufferD : SV_Target3;
 };
 
-matrix GetWorldMatrix(VS_INPUT vin)
-{
-	matrix result;
-#ifdef GPU_INSTANCING
-	matrix mxInstance;
-	mxInstance[0] = vin.row0;
-	mxInstance[1] = vin.row1;
-	mxInstance[2] = vin.row2;
-	mxInstance[3] = vin.row3;
-	result = mul(mxInstance, m_world);
-#else
-    result = m_world;
-#endif
-	return result;
-}
+#include "Instancing.fx"
 )";
 
 	ioLineCounter += GetLineCount(str);

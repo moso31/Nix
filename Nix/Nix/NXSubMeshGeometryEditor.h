@@ -23,7 +23,7 @@ public:
 	void CreatePlane(NXPrimitive* pMesh, float width = 0.5f, float height = 0.5f, NXPlaneAxis Axis = POSITIVE_Y);
 	void CreateSphere(NXPrimitive* pMesh, float radius = 1.0f, int segmentHorizontal = 16, int segmentVertical = 16);
 	void CreateSHSphere(NXPrimitive* pMesh, int basis_l, int basis_m, float radius = 1.0f, int segmentHorizontal = 64, int segmentVertical = 64);
-	void CreateTerrain(NXTerrain* pTerrain, int rawSize, int gridSize, int worldSize, const std::filesystem::path& rawFile);
+	void CreateTerrain(NXTerrain* pTerrain, int rawSize, int gridSize, int worldSize, const std::filesystem::path& rawFile, const Vector2& heightRange);
 
 	// Editor objects
 	void CreateMoveArrows(NXPrimitive* pMesh);

@@ -32,4 +32,9 @@ struct NXTextureSerializationData
 
     // 是否是立方体贴图
     bool m_bCubeMap = false;
+
+    // 仅.raw文件使用，记录raw格式的宽高和字节大小
+    int m_rawWidth = 1;
+    int m_rawHeight = 1;
+    int m_rawByteSize = 16;
 };

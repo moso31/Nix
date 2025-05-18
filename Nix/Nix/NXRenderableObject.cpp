@@ -4,6 +4,7 @@
 #include "NXIntersection.h"
 #include "NXPrefab.h"
 #include "NXPrimitive.h"
+#include "NXTerrain.h"
 
 NXRenderableObject::NXRenderableObject() :
 	m_transformWorldMatrix(Matrix::Identity()),
@@ -50,6 +51,17 @@ bool NXRenderableObject::RayCast(const Ray& worldRay, NXHit& outHitInfo, float& 
 			if (pPrim)
 			{
 				if (pPrim->RayCastPrimitive(worldRay, hitInfo, dist) && dist < outDist)
+				{
+					outHitInfo = hitInfo;
+					outDist = dist;
+					bSuccess = true;
+				}
+			}
+
+			auto pTerrain = this->IsTerrain();
+			if (pTerrain)
+			{
+				if (pTerrain->RayCastPrimitive(worldRay, hitInfo, dist))
 				{
 					outHitInfo = hitInfo;
 					outDist = dist;

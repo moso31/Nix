@@ -70,6 +70,35 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D(const std::string& na
 	return pTexture2D;
 }
 
+Ntr<NXTexture2D> NXTextureResourceManager::CreateTextureRaw(const std::string& name, const std::filesystem::path& filePath, bool bForce, D3D12_RESOURCE_FLAGS flags, bool bAutoMakeViews)
+{
+	if (!bForce)
+	{
+		// 先在已加载纹理里面找当前纹理，有的话就不用Create了
+		for (auto pTexture : m_pTextureArrayInternal)
+		{
+			auto& pTex2D = pTexture.As<NXTexture2D>();
+			if (pTex2D.IsValid() && !filePath.empty() && std::filesystem::hash_value(filePath) == std::filesystem::hash_value(pTexture->GetFilePath()))
+			{
+				return pTex2D;
+			}
+		}
+	}
+
+	Ntr<NXTexture2D> pTexture2D(new NXTexture2D());
+	pTexture2D->CreateHeightRaw(name, filePath, flags);
+
+	if (bAutoMakeViews)
+	{
+		pTexture2D->SetViews(1, 0, 0, 0);
+		pTexture2D->SetSRV(0);
+	}
+
+	if (!bForce)
+		m_pTextureArrayInternal.push_back(pTexture2D); // 2023.3.26 如果是强制加载，就不应加入到资源数组里面
+	return pTexture2D;
+}
+
 Ntr<NXTexture2D> NXTextureResourceManager::CreateRenderTexture(const std::string& name, DXGI_FORMAT fmt, UINT width, UINT height, D3D12_RESOURCE_FLAGS flags, bool bAutoMakeViews)
 {
 	Ntr<NXTexture2D> pTexture2D(new NXTexture2D());

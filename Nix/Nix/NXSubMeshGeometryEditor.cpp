@@ -511,20 +511,8 @@ void NXSubMeshGeometryEditor::CreateSHSphere(NXPrimitive* pMesh, int basis_l, in
 	pMesh->AddSubMesh(pSubMesh);
 }
 
-void NXSubMeshGeometryEditor::CreateTerrain(NXTerrain* pTerrain, int rawSize, int gridSize, int worldSize, const std::filesystem::path& rawFile)
+void NXSubMeshGeometryEditor::CreateTerrain(NXTerrain* pTerrain, int rawSize, int gridSize, int worldSize, const std::filesystem::path& rawFile, const Vector2& heightRange)
 {
-	auto& rawFileData = pTerrain->m_rawData;
-
-	std::ifstream file(rawFile, std::ios::binary);
-	if (!file) 
-		throw std::runtime_error("无法打开文件: " + rawFile.string());
-
-	// 直接读数据就行，必须是16bit
-	file.read(reinterpret_cast<char*>(rawFileData.data()), rawSize * rawSize * sizeof(uint16_t));
-
-	if (!file)
-		throw std::runtime_error("读取数据失败: " + rawFile.string());
-
 	if ((rawSize - 1) % g_configTerrain.sectorSize != 0)
 		throw std::runtime_error("地形数据大小不符合要求；rawSize 必须是 g_configTerrain.sectorSize 的整数倍)");
 
@@ -598,7 +586,7 @@ void NXSubMeshGeometryEditor::CreateTerrain(NXTerrain* pTerrain, int rawSize, in
 	{
 		for (int y = 0; y < gSectorNum; y++)
 		{
-			float vertScale = gSectorSize;// (float)gridSize / (float)worldSize;
+			float vertScale = (float)gSectorSize;// (float)gridSize / (float)worldSize;
 			Vector3 p(vertScale * (float)x, 0.0f, vertScale * (float)y);
 
 			insDatas.push_back({ Matrix::CreateTranslation(p) });

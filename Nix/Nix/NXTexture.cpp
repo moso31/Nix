@@ -564,18 +564,32 @@ void NXTexture::Serialize()
 		return;
 	}
 
+	NXSerializer serializer;
 	std::string nxInfoPath = m_texFilePath.string() + ".n0";
 
-	// 2023.5.30 纹理资源的序列化: 
-	NXSerializer serializer;
-	serializer.StartObject();
-	serializer.String("NXInfoPath", nxInfoPath);	// 元文件路径
-	serializer.Uint64("PathHashValue", std::filesystem::hash_value(m_texFilePath)); // 纹理文件路径 hash value
-	serializer.Int("TextureType", (int)m_serializationData.m_textureType); // 纹理类型
-	serializer.Bool("IsInvertNormalY", m_serializationData.m_bInvertNormalY); // 是否FlipY法线
-	serializer.Bool("IsGenerateMipMap", m_serializationData.m_bGenerateMipMap); // 是否生成mipmap
-	serializer.Bool("IsCubeMap", m_serializationData.m_bCubeMap); // 是否是立方体贴图
-	serializer.EndObject();
+	std::string str = m_texFilePath.extension().string();
+	if (NXConvert::IsImageFileExtension(str))
+	{
+		// 2023.5.30 纹理资源的序列化: 
+		serializer.StartObject();
+		serializer.String("NXInfoPath", nxInfoPath);	// 元文件路径
+		serializer.Uint64("PathHashValue", std::filesystem::hash_value(m_texFilePath)); // 纹理文件路径 hash value
+		serializer.Int("TextureType", (int)m_serializationData.m_textureType); // 纹理类型
+		serializer.Bool("IsInvertNormalY", m_serializationData.m_bInvertNormalY); // 是否FlipY法线
+		serializer.Bool("IsGenerateMipMap", m_serializationData.m_bGenerateMipMap); // 是否生成mipmap
+		serializer.Bool("IsCubeMap", m_serializationData.m_bCubeMap); // 是否是立方体贴图
+		serializer.EndObject();
+	}
+	else if (NXConvert::IsRawFileExtension(str))
+	{
+		serializer.StartObject();
+		serializer.String("NXInfoPath", nxInfoPath);	// 元文件路径
+		serializer.Uint64("PathHashValue", std::filesystem::hash_value(m_texFilePath)); // 纹理文件路径 hash value
+		serializer.Uint("rawFile_Width", m_serializationData.m_rawWidth);
+		serializer.Uint("rawFile_Height", m_serializationData.m_rawHeight);
+		serializer.Uint("rawFile_ByteSize", m_serializationData.m_rawByteSize);
+		serializer.EndObject();
+	}
 
 	serializer.SaveToFile(nxInfoPath.c_str());
 }
@@ -588,12 +602,22 @@ void NXTexture::Deserialize()
 	bool bJsonExist = deserializer.LoadFromFile(nxInfoPath.c_str());
 	if (bJsonExist)
 	{
-		//std::string strPathInfo;
-		//strPathInfo = deserializer.String("NXInfoPath");
-		m_serializationData.m_textureType = (NXTextureMode)deserializer.Int("TextureType");
-		m_serializationData.m_bInvertNormalY = deserializer.Bool("IsInvertNormalY");
-		m_serializationData.m_bGenerateMipMap = deserializer.Bool("IsGenerateMipMap");
-		m_serializationData.m_bCubeMap = deserializer.Bool("IsCubeMap");
+		std::string str = m_texFilePath.extension().string();
+		if (NXConvert::IsImageFileExtension(str))
+		{
+			//std::string strPathInfo;
+			//strPathInfo = deserializer.String("NXInfoPath");
+			m_serializationData.m_textureType = (NXTextureMode)deserializer.Int("TextureType");
+			m_serializationData.m_bInvertNormalY = deserializer.Bool("IsInvertNormalY");
+			m_serializationData.m_bGenerateMipMap = deserializer.Bool("IsGenerateMipMap");
+			m_serializationData.m_bCubeMap = deserializer.Bool("IsCubeMap");
+		}
+		else if (NXConvert::IsRawFileExtension(str))
+		{
+			m_serializationData.m_rawWidth = deserializer.Uint("rawFile_Width");
+			m_serializationData.m_rawHeight = deserializer.Uint("rawFile_Height");
+			m_serializationData.m_rawByteSize = deserializer.Uint("rawFile_ByteSize");
+		}
 	}
 }
 
@@ -693,7 +717,7 @@ Ntr<NXTexture2D> NXTexture2D::CreateNoise(const std::string& debugName, uint32_t
 	{
 		for (uint32_t j = 0; j < texSize; ++j)
 		{
-			float* pixel = reinterpret_cast<float*>(image.pixels + i * image.rowPitch + j * dimension * sizeof(float));
+			float* pixel = reinterpret_cast<float*>(image.pixels + i * image.rowPitch + j * dimension * bytePerPixel);
 			for(uint32_t dim = 0; dim < dimension; dim++)
 				pixel[dim] = randInst->CreateFloat();
 		}
@@ -703,6 +727,58 @@ Ntr<NXTexture2D> NXTexture2D::CreateNoise(const std::string& debugName, uint32_t
 	m_name = debugName;
 	m_width = texSize;
 	m_height = texSize;
+	m_arraySize = 1;
+	m_mipLevels = 1;
+	m_texFormat = fmt;
+
+	CreateInternal(pImage, flags);
+
+	pImage.reset();
+	return this;
+}
+
+Ntr<NXTexture2D> NXTexture2D::CreateHeightRaw(const std::string& debugName, const std::filesystem::path& rawPath, D3D12_RESOURCE_FLAGS flags)
+{
+	m_texFilePath = rawPath;
+	Deserialize();
+
+	int width = m_serializationData.m_rawWidth;
+	int height = m_serializationData.m_rawHeight;
+
+	std::vector<uint16_t> rawData(width * height);
+
+	// 读取rawPath的文件，并转换成单通道纹理
+	std::ifstream file(rawPath, std::ios::binary);
+	if (!file)
+		throw std::runtime_error("无法打开文件: " + rawPath.string());
+
+	// 直接读数据就行，必须是16bit 
+	// todo: 支持更多格式
+	file.read(reinterpret_cast<char*>(rawData.data()), width * height * sizeof(uint16_t));
+
+	if (!file)
+		throw std::runtime_error("读取数据失败: " + rawPath.string());
+
+
+	uint32_t bytePerPixel = sizeof(uint16_t);
+
+	auto fmt = DXGI_FORMAT_R16_UNORM;
+	std::shared_ptr<ScratchImage> pImage = std::make_shared<ScratchImage>();
+	pImage->Initialize2D(fmt, width, height, 1, 1);
+
+	const Image& image = *pImage->GetImage(0, 0, 0);
+	for (uint32_t i = 0; i < width; ++i)
+	{
+		for (uint32_t j = 0; j < height; ++j)
+		{
+			uint16_t* pixel = reinterpret_cast<uint16_t*>(image.pixels + i * image.rowPitch + j * bytePerPixel);
+			*pixel = rawData[j * width + i];
+		}
+	}
+
+	m_name = debugName;
+	m_width = width;
+	m_height = height;
 	m_arraySize = 1;
 	m_mipLevels = 1;
 	m_texFormat = fmt;

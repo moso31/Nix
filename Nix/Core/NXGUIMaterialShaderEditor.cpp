@@ -737,7 +737,10 @@ void NXGUIMaterialShaderEditor::Render_Params_TextureItem(const int texParamId, 
 	bool bChanged = false;
 
 	auto& pTex = pTexture->pTexture;
-	if (pTex.IsNull()) return;
+	if (pTex.IsNull())
+	{
+		pTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_White);
+	}
 
 	ImGui::PushID(texParamId);
 	float texSize = (float)48;
@@ -763,7 +766,8 @@ void NXGUIMaterialShaderEditor::Render_Params_TextureItem(const int texParamId, 
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_EXPLORER_BUTTON_DRUGING"))
 			{
 				auto pDropData = (NXGUIAssetDragData*)(payload->Data);
-				if (NXConvert::IsImageFileExtension(pDropData->srcPath.extension().string()))
+				if (NXConvert::IsImageFileExtension(pDropData->srcPath.extension().string()) || 
+					NXConvert::IsRawFileExtension(pDropData->srcPath.extension().string()))
 				{
 					bChanged = true;
 					pTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(pTex->GetName().c_str(), pDropData->srcPath);

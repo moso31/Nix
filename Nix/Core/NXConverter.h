@@ -35,6 +35,7 @@ DXGI_FORMAT ForceSRGB(DXGI_FORMAT fmt);
 DXGI_FORMAT ForceLinear(DXGI_FORMAT fmt);
 
 bool IsImageFileExtension(const std::string& strExt);
+bool IsRawFileExtension(const std::string& strExt);
 bool IsMaterialFileExtension(const std::string& strExt);
 bool IsDiffuseProfileExtension(const std::string& strExt);
 
