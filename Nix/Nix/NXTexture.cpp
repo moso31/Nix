@@ -987,14 +987,24 @@ D3D12_CPU_DESCRIPTOR_HANDLE NXTextureCube::GetSRVPreview2D()
 	return { m_pSRVPreview2D };
 }
 
-void NXTexture2DArray::Create(const std::string& debugName, DXGI_FORMAT texFormat, uint32_t width, uint32_t height, uint32_t arraySize, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags)
+void NXTexture2DArray::Create(const std::string& debugName, const std::wstring& filePath, uint32_t width, uint32_t height, uint32_t arraySize, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags)
 {
-	this->m_name = debugName;
-	this->m_width = width;
-	this->m_height = height;
-	this->m_arraySize = arraySize;
-	this->m_texFormat = texFormat;
-	this->m_mipLevels = mipLevels;
+	m_texFilePath = filePath.c_str();
+	m_name = debugName;
+	Deserialize();
+
+	CreatePathTextureInternal(m_texFilePath, flags);
+	//SetSRVPreview2D();
+}
+
+void NXTexture2DArray::CreateRT(const std::string& debugName, DXGI_FORMAT texFormat, uint32_t width, uint32_t height, uint32_t arraySize, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags)
+{
+	m_name = debugName;
+	m_width = width;
+	m_height = height;
+	m_arraySize = arraySize;
+	m_texFormat = texFormat;
+	m_mipLevels = mipLevels;
 	CreateRenderTextureInternal(flags);
 }
 
