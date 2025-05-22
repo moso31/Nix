@@ -2,6 +2,7 @@
 #include "BaseDefs/CppSTLFully.h"
 #include "BaseDefs/DX12.h"
 #include "NXConvertString.h"
+#include "DirectXTex.h"
 
 namespace NXConvert
 {
@@ -35,6 +36,7 @@ DXGI_FORMAT ForceSRGB(DXGI_FORMAT fmt);
 DXGI_FORMAT ForceLinear(DXGI_FORMAT fmt);
 
 bool IsImageFileExtension(const std::string& strExt);
+bool IsDDSFileExtension(const std::string& strExt);
 bool IsRawFileExtension(const std::string& strExt);
 bool IsMaterialFileExtension(const std::string& strExt);
 bool IsDiffuseProfileExtension(const std::string& strExt);
@@ -42,5 +44,7 @@ bool IsDiffuseProfileExtension(const std::string& strExt);
 bool IsMaterialDefaultPath(const std::string& s);
 
 void GetMipSliceFromLayoutIndex(int layoutIndex, int mipSize, int sliceSize, int& oMip, int& oSlice);
+
+bool GetMetadataFromFile(const std::filesystem::path& path, DirectX::TexMetadata& oMetaData);
 
 }

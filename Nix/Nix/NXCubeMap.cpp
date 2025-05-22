@@ -82,7 +82,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE NXCubeMap::GetSRVCubeMap()
 D3D12_CPU_DESCRIPTOR_HANDLE NXCubeMap::GetSRVCubeMapPreview2D()
 {
 	WaitForCubeMapTexsReady();
-	return m_pTexCubeMap->GetSRVPreview2D();
+	return m_pTexCubeMap->GetSRVPreview(0);
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE NXCubeMap::GetSRVIrradianceMap()

@@ -275,6 +275,12 @@ bool IsImageFileExtension(const std::string& strExtension)
 	return s == ".dds" || s == ".png" || s == ".jpg" || s == ".tga" || s == ".bmp" || s == ".hdr";
 }
 
+bool IsDDSFileExtension(const std::string& strExtension)
+{
+	std::string s = s2lower(strExtension);
+	return s == ".dds";
+}
+
 bool IsRawFileExtension(const std::string& strExtension)
 {
 	std::string s = s2lower(strExtension);
@@ -302,6 +308,24 @@ void GetMipSliceFromLayoutIndex(int layoutIndex, int mipSize, int sliceSize, int
 {
 	oMip = layoutIndex % mipSize;
 	oSlice = (layoutIndex / mipSize) % sliceSize;
+}
+
+bool GetMetadataFromFile(const std::filesystem::path& path, DirectX::TexMetadata& oMetaData)
+{
+	using namespace DirectX;
+
+	HRESULT hr;
+	std::string strExtension = NXConvert::s2lower(path.extension().string());
+	if (strExtension == ".hdr")
+		hr = GetMetadataFromHDRFile(path.wstring().c_str(), oMetaData);
+	else if (strExtension == ".dds")
+		hr = GetMetadataFromDDSFile(path.wstring().c_str(), DDS_FLAGS_NONE, oMetaData);
+	else if (strExtension == ".tga")
+		hr = GetMetadataFromTGAFile(path.wstring().c_str(), oMetaData);
+	else
+		hr = GetMetadataFromWICFile(path.wstring().c_str(), WIC_FLAGS_NONE, oMetaData);
+
+	return SUCCEEDED(hr);
 }
 
 }

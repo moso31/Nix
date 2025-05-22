@@ -228,7 +228,7 @@ void NXScene::Init()
 {
 	InitEditorObjectsManager();
 
-	m_pTestCustomMat = NXResourceManager::GetInstance()->GetMaterialManager()->CreateCustomMaterial("TestCustomMat", "D:\\NixAssets\\Materials\\mat.nsl");
+	m_pTestCustomMat = NXResourceManager::GetInstance()->GetMaterialManager()->CreateCustomMaterial("TestCustomMat", "D:\\NixAssets\\Materials\\terrainMat.nsl");
 
 	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\boxes.fbx", false);
 	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\TestBall.fbx", false);
@@ -236,11 +236,8 @@ void NXScene::Init()
 	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\EditorObjTest.fbx", false);
 	//NXPrefab* p2 = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\lury.fbx", false);
 	
-	NXTerrain* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateTerrain("myTerrain", 513, 2048, 2048, "D:\\NixAssets\\Terrain.raw");
+	NXTerrain* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateTerrain("myTerrain", 513, 2048, 2048, "D:\\NixAssets\\Terrain2.raw", Vector2(0.0f, 1000.0f));
 	p->SetScale(Vector3(0.1f));
-	p->SetTranslation(Vector3(0.0f, 0.0f, 0.25f));
-	p->SetRotation(Vector3(0.0f, 0.0f, 0.25f));
-	// 
 	//p2->SetScale(Vector3(0.1f));
 	NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(p, m_pTestCustomMat);
 	//NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(p2, m_pTestCustomMat);

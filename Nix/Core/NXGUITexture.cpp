@@ -17,10 +17,9 @@ NXGUITexture::NXGUITexture()
 
 void NXGUITexture::Render()
 {
-	ImGui::Text("Texture");
-
 	if (m_pTexImage.IsNull())
-	{ 
+	{
+		ImGui::Text("Texture invalid!");
 		return;
 	}
 
@@ -43,18 +42,46 @@ void NXGUITexture::SetImage(const std::filesystem::path& path)
 	if (m_pTexImage.IsValid() && path == m_pTexImage->GetFilePath())
 		return;
 
+	m_preview2DArraySliceIndex = 0;
 	m_path = path;
-	m_pTexImage = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("NXGUITexture Preview Image", path);
+
+	if (NXConvert::IsDDSFileExtension(path.extension().string()))
+	{
+		// 如果是DDS文件，需要判断是2D、2DArray、Cube中的哪种
+		DirectX::TexMetadata metaData;
+		if (NXConvert::GetMetadataFromFile(path, metaData))
+		{
+			if (metaData.IsCubemap())
+			{
+				// Cubemap
+				m_pTexImage = NXResourceManager::GetInstance()->GetTextureManager()->CreateTextureCube("NXGUITexture Preview Image", path);
+			}
+			else if (metaData.arraySize > 1)
+			{
+				// 2DArray
+				m_pTexImage = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DArray("NXGUITexture Preview Image", path);
+			}
+			else
+			{
+				// 2D
+				m_pTexImage = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("NXGUITexture Preview Image", path);
+			}
+		}
+		else
+			m_pTexImage = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("NXGUITexture Preview Image", path);
+	}
+	else
+	{
+		m_pTexImage = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("NXGUITexture Preview Image", path);
+	}
+
 	m_texData = m_pTexImage->GetSerializationData();
 }
 
 void NXGUITexture::Render_Texture()
 {
-	float fTexSize = ImGui::GetContentRegionAvail().x * 0.7f;
-	NXShVisDescHeap->PushFluid(m_pTexImage->GetSRV());
-	auto& srvHandle = NXShVisDescHeap->Submit();
-	const ImTextureID& ImTexID = (ImTextureID)srvHandle.ptr;
-	ImGui::Image(ImTexID, ImVec2(fTexSize, fTexSize));
+	Render_TexturePreview();
+	Render_Preview2D();
 
 	ImGui::Checkbox("Generate mip map##Texture", &m_texData.m_bGenerateMipMap);
 	ImGui::Checkbox("Invert normal Y##Texture", &m_texData.m_bInvertNormalY);
@@ -81,11 +108,7 @@ void NXGUITexture::Render_Texture()
 
 void NXGUITexture::Render_RawTexture()
 {
-	float fTexSize = ImGui::GetContentRegionAvail().x * 0.7f;
-	NXShVisDescHeap->PushFluid(m_pTexImage->GetSRV());
-	auto& srvHandle = NXShVisDescHeap->Submit();
-	const ImTextureID& ImTexID = (ImTextureID)srvHandle.ptr;
-	ImGui::Image(ImTexID, ImVec2(fTexSize, fTexSize));
+	Render_Preview2D();
 
 	static int value[2] = { m_texData.m_rawWidth, m_texData.m_rawHeight };
 	if (ImGui::InputInt2("Texture Size", value))
@@ -112,6 +135,25 @@ void NXGUITexture::Render_RawTexture()
 	}
 
 	Render_BakePopup();
+}
+
+void NXGUITexture::Render_TexturePreview()
+{
+	ImGui::PushID("Render_TexturePreview");
+	if (m_pTexImage->GetArraySize() > 1)
+	{
+		ImGui::SliderInt("2DArray index", &m_preview2DArraySliceIndex, 0, m_pTexImage->GetSRVPreviewCount() - 1);
+	}
+	ImGui::PopID();
+}
+
+void NXGUITexture::Render_Preview2D()
+{
+	float fTexSize = ImGui::GetContentRegionAvail().x * 0.7f;
+	NXShVisDescHeap->PushFluid(m_pTexImage->GetSRVPreview(m_preview2DArraySliceIndex));
+	auto& srvHandle = NXShVisDescHeap->Submit();
+	const ImTextureID& ImTexID = (ImTextureID)srvHandle.ptr;
+	ImGui::Image(ImTexID, ImVec2(fTexSize, fTexSize));
 }
 
 void NXGUITexture::Render_BakePopup()

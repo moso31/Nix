@@ -67,6 +67,7 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D(const std::string& na
 		pTexture2D->CreateHeightRaw(name, filePath, flags);
 	}
 
+	// 文件Tex2D的autoMakeView：只创建一个SRV
 	if (bAutoMakeViews)
 	{
 		pTexture2D->SetViews(1, 0, 0, 0);
@@ -83,6 +84,7 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateRenderTexture(const std::string
 	Ntr<NXTexture2D> pTexture2D(new NXTexture2D());
 	pTexture2D->CreateRenderTexture(name, fmt, width, height, flags);
 
+	// 2DRT的automakeView：创建一个SRV，如果作为RT使用，就创建RTV；如果作为DS使用，就创建DSV
 	if (bAutoMakeViews)
 	{
 		uint32_t rtvCount = flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET ? 1 : 0;
@@ -100,7 +102,7 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateRenderTexture(const std::string
 	return pTexture2D;
 }
 
-Ntr<NXTextureCube> NXTextureResourceManager::CreateTextureCube(const std::string& name, const std::wstring& filePath, UINT width, UINT height, D3D12_RESOURCE_FLAGS flags, bool bAutoMakeViews)
+Ntr<NXTextureCube> NXTextureResourceManager::CreateTextureCube(const std::string& name, const std::wstring& filePath, D3D12_RESOURCE_FLAGS flags, bool bAutoMakeViews)
 {
 	// 先在已加载纹理里面找当前纹理，有的话就不用Create了
 	for (auto& pTexture : m_pTextureArrayInternal)
@@ -113,8 +115,9 @@ Ntr<NXTextureCube> NXTextureResourceManager::CreateTextureCube(const std::string
 	}
 
 	Ntr<NXTextureCube> pTextureCube = new NXTextureCube();
-	pTextureCube->Create(name, filePath, width, height, flags);
+	pTextureCube->Create(name, filePath, flags);
 
+	// 文件 cubemap的automakeView：创建一个SRV
 	if (bAutoMakeViews)
 	{
 		pTextureCube->SetViews(1, 0, 0, 0);
@@ -133,10 +136,10 @@ Ntr<NXTextureCube> NXTextureResourceManager::CreateTextureCube(const std::string
 	return pTextureCube;
 }
 
-Ntr<NXTexture2DArray> NXTextureResourceManager::CreateTexture2DArray(const std::string& debugName, const std::wstring& filePath, uint32_t width, uint32_t height, uint32_t arraySize, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags, bool bAutoMakeViews)
+Ntr<NXTexture2DArray> NXTextureResourceManager::CreateTexture2DArray(const std::string& debugName, const std::wstring& filePath, D3D12_RESOURCE_FLAGS flags, bool bAutoMakeViews)
 {
 	Ntr<NXTexture2DArray> pTexture2DArray(new NXTexture2DArray());
-	pTexture2DArray->Create(debugName, filePath, width, height, arraySize, mipLevels, flags);
+	pTexture2DArray->Create(debugName, filePath, flags);
 	m_pTextureArrayInternal.push_back(pTexture2DArray);
 	return pTexture2DArray;
 }

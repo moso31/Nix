@@ -79,6 +79,38 @@ void NXTexture::WaitLoadingViewsFinish()
 	m_futureLoadingViews.wait();
 }
 
+void NXTexture::ProcessLoading2DPreview()
+{
+	int oldVal = m_loading2DPreviews.fetch_sub(1);
+
+	if (oldVal == 1) // don't use m_loadingViews == 0. It will be fucked up.
+	{
+		m_promiseLoading2DPreview.set_value();
+	}
+}
+
+void NXTexture::WaitLoading2DPreviewFinish()
+{
+	m_futureLoading2DPreview.wait();
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE NXTexture::GetSRVPreview(uint32_t index)
+{
+	if (m_pSRVPreviews.size() > index)
+	{
+		WaitLoading2DPreviewFinish();
+		return m_pSRVPreviews[index];
+	}
+
+	if (!m_pSRVs.empty())
+	{
+		WaitLoadingViewsFinish();
+		return m_pSRVs[0];
+	}
+
+	return D3D12_CPU_DESCRIPTOR_HANDLE(0);
+}
+
 void NXTexture::SetClearValue(float R, float G, float B, float A)
 {
 	m_clearValue.Color[0] = R;
@@ -350,7 +382,7 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 					else
 					{
 						// chunk里有多个layout，累积处理
-						for (int index = texChunk.layoutIndexStart; index < texChunk.layoutIndexSize; index++)
+						for (int index = texChunk.layoutIndexStart; index < texChunk.layoutIndexStart + texChunk.layoutIndexSize; index++)
 						{
 							NXConvert::GetMipSliceFromLayoutIndex(index, texDesc.MipLevels, texDesc.DepthOrArraySize, mip, slice);
 
@@ -460,22 +492,6 @@ void NXTexture::GenerateUploadChunks(uint32_t layoutSize, uint32_t* numRow, uint
 			oChunks.push_back(chunk);
 		}
 	}
-}
-
-bool NXTexture::GetMetadataFromFile(const std::filesystem::path& path, TexMetadata& oMetaData)
-{
-	HRESULT hr;
-	std::string strExtension = NXConvert::s2lower(path.extension().string());
-	if (strExtension == ".hdr")
-		hr = GetMetadataFromHDRFile(path.wstring().c_str(), oMetaData);
-	else if (strExtension == ".dds")
-		hr = GetMetadataFromDDSFile(path.wstring().c_str(), DDS_FLAGS_NONE, oMetaData);
-	else if (strExtension == ".tga")
-		hr = GetMetadataFromTGAFile(path.wstring().c_str(), oMetaData);
-	else
-		hr = GetMetadataFromWICFile(path.wstring().c_str(), WIC_FLAGS_NONE, oMetaData);
-
-	return SUCCEEDED(hr);
 }
 
 void NXTexture::InternalReload(Ntr<NXTexture> pReloadTexture)
@@ -602,6 +618,7 @@ void NXTexture::Deserialize()
 	bool bJsonExist = deserializer.LoadFromFile(nxInfoPath.c_str());
 	if (bJsonExist)
 	{
+		// 优先读取序列化文件
 		std::string str = m_texFilePath.extension().string();
 		if (NXConvert::IsImageFileExtension(str))
 		{
@@ -618,6 +635,21 @@ void NXTexture::Deserialize()
 			m_serializationData.m_rawHeight = deserializer.Uint("rawFile_Height");
 			m_serializationData.m_rawByteSize = deserializer.Uint("rawFile_ByteSize");
 		}
+	}
+	else if (NXConvert::IsDDSFileExtension(m_texFilePath.extension().string()))
+	{
+		// 如果没有序列化文件，但是DDS文件，直接读取DDS文件的元数据，这样可以序列化一部分内容
+		DirectX::TexMetadata metadata;
+		HRESULT hr = DirectX::GetMetadataFromDDSFile(m_texFilePath.c_str(), DirectX::DDS_FLAGS_NONE, metadata);
+		if (SUCCEEDED(hr))
+		{
+			m_serializationData.m_bGenerateMipMap = metadata.mipLevels > 1;
+			m_serializationData.m_bCubeMap = metadata.IsCubemap();
+		}
+	}
+	else 
+	{
+		// 其他情况无法序列化
 	}
 }
 
@@ -787,6 +819,7 @@ void NXTexture2D::SetSRV(uint32_t index)
 {
 	NXAllocator_SRV->Alloc([this, index](const D3D12_CPU_DESCRIPTOR_HANDLE& result) {
 		m_pSRVs[index] = result;
+		WaitLoadingTexturesFinish(); // 创建SRV前，先等待纹理加载完成
 
 		DXGI_FORMAT SRVFormat = m_texFormat;
 		if (m_texFormat == DXGI_FORMAT_R24G8_TYPELESS)
@@ -801,7 +834,6 @@ void NXTexture2D::SetSRV(uint32_t index)
 		srvDesc.Texture2D.ResourceMinLODClamp = 0.0;
 		srvDesc.Texture2D.PlaneSlice = 0;
 
-		WaitLoadingTexturesFinish(); // 创建SRV前，先等待纹理加载完成
 		NXGlobalDX::GetDevice()->CreateShaderResourceView(m_pTexture.Get(), &srvDesc, m_pSRVs[index]);
 
 		ProcessLoadingBuffers();
@@ -849,16 +881,6 @@ void NXTexture2D::SetUAV(uint32_t index)
 		});
 }
 
-void NXTextureCube::ProcessLoading2DPreview()
-{
-	m_promiseLoading2DPreview.set_value();
-}
-
-void NXTextureCube::WaitLoading2DPreviewFinish()
-{
-	m_futureLoading2DPreview.wait();
-}
-
 void NXTextureCube::Create(const std::string& debugName, DXGI_FORMAT texFormat, uint32_t width, uint32_t height, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags)
 {
 	m_name = debugName;
@@ -870,23 +892,24 @@ void NXTextureCube::Create(const std::string& debugName, DXGI_FORMAT texFormat, 
 
 	CreateRenderTextureInternal(flags);
 
-	SetSRVPreview2D();
+	SetSRVPreviews();
 }
 
-void NXTextureCube::Create(const std::string& debugName, const std::wstring& filePath, size_t width, size_t height, D3D12_RESOURCE_FLAGS flags)
+void NXTextureCube::Create(const std::string& debugName, const std::wstring& filePath, D3D12_RESOURCE_FLAGS flags)
 {
 	m_texFilePath = filePath.c_str();
 	m_name = debugName;
 
 	CreatePathTextureInternal(m_texFilePath, flags);
 
-	SetSRVPreview2D();
+	SetSRVPreviews();
 }
 
 void NXTextureCube::SetSRV(uint32_t index)
 {
 	NXAllocator_SRV->Alloc([this, index](const D3D12_CPU_DESCRIPTOR_HANDLE& result) {
 		m_pSRVs[index] = result;
+		WaitLoadingTexturesFinish(); // 创建SRV前，先等待纹理加载完成
 
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
 		srvDesc.Format = m_texFormat;
@@ -902,10 +925,27 @@ void NXTextureCube::SetSRV(uint32_t index)
 		});
 }
 
-void NXTextureCube::SetSRVPreview2D()
+D3D12_CPU_DESCRIPTOR_HANDLE NXTextureCube::GetSRVPreview(uint32_t index)
 {
-	NXAllocator_SRV->Alloc([this](const D3D12_CPU_DESCRIPTOR_HANDLE& result) {
-		m_pSRVPreview2D = result;
+	WaitLoading2DPreviewFinish();
+	return { m_pSRVPreviews[index] };
+}
+
+void NXTextureCube::SetSRVPreviews()
+{
+	m_loading2DPreviews = 6;
+	m_pSRVPreviews.resize(6);
+	for (auto i = 0; i < m_pSRVPreviews.size(); i++)
+	{
+		SetSRVPreview(i);
+	}
+}
+
+void NXTextureCube::SetSRVPreview(uint32_t idx)
+{
+	NXAllocator_SRV->Alloc([this, idx](const D3D12_CPU_DESCRIPTOR_HANDLE& result) {
+		m_pSRVPreviews[idx] = result;
+		WaitLoadingTexturesFinish(); // 创建SRV前，先等待纹理加载完成
 
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 		srvDesc.Format = m_texFormat;
@@ -914,12 +954,13 @@ void NXTextureCube::SetSRVPreview2D()
 
 		srvDesc.Texture2DArray.MostDetailedMip = 0;
 		srvDesc.Texture2DArray.MipLevels = 1;
-		srvDesc.Texture2DArray.FirstArraySlice = 0;
+		srvDesc.Texture2DArray.FirstArraySlice = idx;
 		srvDesc.Texture2DArray.ArraySize = 1;
 		srvDesc.Texture2DArray.PlaneSlice = 0;
 		srvDesc.Texture2DArray.ResourceMinLODClamp = 0.0f;
 
-		NXGlobalDX::GetDevice()->CreateShaderResourceView(m_pTexture.Get(), &srvDesc, m_pSRVPreview2D);
+		NXGlobalDX::GetDevice()->CreateShaderResourceView(m_pTexture.Get(), &srvDesc, m_pSRVPreviews[idx]);
+
 		ProcessLoading2DPreview();
 		});
 }
@@ -981,20 +1022,14 @@ void NXTextureCube::SetUAV(uint32_t index, uint32_t mipSlice, uint32_t firstArra
 		});
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE NXTextureCube::GetSRVPreview2D()
-{
-	WaitLoading2DPreviewFinish();
-	return { m_pSRVPreview2D };
-}
-
-void NXTexture2DArray::Create(const std::string& debugName, const std::wstring& filePath, uint32_t width, uint32_t height, uint32_t arraySize, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags)
+void NXTexture2DArray::Create(const std::string& debugName, const std::wstring& filePath, D3D12_RESOURCE_FLAGS flags)
 {
 	m_texFilePath = filePath.c_str();
 	m_name = debugName;
 	Deserialize();
 
 	CreatePathTextureInternal(m_texFilePath, flags);
-	//SetSRVPreview2D();
+	SetSRVPreviews();
 }
 
 void NXTexture2DArray::CreateRT(const std::string& debugName, DXGI_FORMAT texFormat, uint32_t width, uint32_t height, uint32_t arraySize, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags)
@@ -1012,6 +1047,7 @@ void NXTexture2DArray::SetSRV(uint32_t index, uint32_t firstArraySlice, uint32_t
 {
 	NXAllocator_SRV->Alloc([this, index, firstArraySlice, arraySize](const D3D12_CPU_DESCRIPTOR_HANDLE& result) {
 		m_pSRVs[index] = result;
+		WaitLoadingTexturesFinish(); // 创建SRV前，先等待纹理加载完成
 
 		DXGI_FORMAT SRVFormat = m_texFormat;
 		if (m_texFormat == DXGI_FORMAT_R24G8_TYPELESS)
@@ -1095,5 +1131,49 @@ void NXTexture2DArray::SetUAV(uint32_t index, uint32_t firstArraySlice, uint32_t
 		NXGlobalDX::GetDevice()->CreateUnorderedAccessView(m_pTexture.Get(), nullptr, &uavDesc, m_pUAVs[index]);
 
 		ProcessLoadingBuffers();
+		});
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE NXTexture2DArray::GetSRVPreview(uint32_t index)
+{
+	WaitLoading2DPreviewFinish();
+	return { m_pSRVPreviews[index] };
+}
+
+void NXTexture2DArray::SetSRVPreviews()
+{
+	DirectX::TexMetadata metadata;
+	HRESULT hr = DirectX::GetMetadataFromDDSFile(m_texFilePath.c_str(), DirectX::DDS_FLAGS_NONE, metadata);
+
+	// 这里不能直接用m_arraySize，m_arraySize在纹理异步加载完成时才有效
+	m_loading2DPreviews = metadata.arraySize;
+	m_pSRVPreviews.resize(metadata.arraySize);
+	for (auto i = 0; i < m_pSRVPreviews.size(); i++)
+	{
+		SetSRVPreview(i);
+	}
+}
+
+void NXTexture2DArray::SetSRVPreview(uint32_t idx)
+{
+	NXAllocator_SRV->Alloc([this, idx](const D3D12_CPU_DESCRIPTOR_HANDLE& result) {
+		m_pSRVPreviews[idx] = result;
+		WaitLoadingTexturesFinish(); // 创建SRV前，先等待纹理加载完成
+
+		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+		srvDesc.Format = m_texFormat;
+		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+
+		srvDesc.Texture2DArray.MipLevels = 1;
+		srvDesc.Texture2DArray.MostDetailedMip = 0;
+		srvDesc.Texture2DArray.FirstArraySlice = idx;
+		srvDesc.Texture2DArray.ArraySize = 1;
+		srvDesc.Texture2DArray.PlaneSlice = 0;
+		srvDesc.Texture2DArray.ResourceMinLODClamp = 0.0f;
+
+		NXGlobalDX::GetDevice()->CreateShaderResourceView(m_pTexture.Get(), &srvDesc, m_pSRVPreviews[idx]);
+
+		ProcessLoading2DPreview();
 		});
 }
