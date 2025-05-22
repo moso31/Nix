@@ -119,11 +119,11 @@ void NXCustomMaterial::LoadAndCompile(const std::filesystem::path& nslFilePath)
 
 	if (LoadShaderCode())
 	{
+		InitShaderResources();
+
 		std::string strHLSL = NXCodeProcessHelper::BuildHLSL(nslFilePath, m_materialDatas, m_codeBlocks);
 		std::string strErrMsgVS, strErrMsgPS;
 		CompileShader(strHLSL, strErrMsgVS, strErrMsgPS);
-
-		InitShaderResources();
 	}
 	else
 	{
@@ -314,6 +314,8 @@ NXCustomMaterial::NXCustomMaterial(const std::string& name, const std::filesyste
 
 void NXCustomMaterial::Render(ID3D12GraphicsCommandList* pCommandList)
 {
+	if (!m_pRootSig || !m_pPSO) return;
+
 	pCommandList->SetGraphicsRootSignature(m_pRootSig.Get());
 	pCommandList->SetPipelineState(m_pPSO.Get());
 
@@ -470,7 +472,7 @@ void NXCustomMaterial::Deserialize()
 			auto* txData = m_materialDatas.FindTextureByName(objName);
 			if (txData)
 			{
-				txData->pTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(m_name + objName, objPath);
+				txData->pTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTextureAuto(objName, objPath);
 			}
 		}
 

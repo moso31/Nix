@@ -168,6 +168,12 @@ namespace
         _Inout_ uint32_t& convFlags) noexcept
     {
         uint32_t ddpfFlags = ddpf.flags;
+        if ((ddpfFlags & DDS_ALPHAPIXELS) && ddpf.ABitMask == 0)
+        {
+            // No alpha channel
+            ddpfFlags &= ~DDS_ALPHAPIXELS;
+        }
+
         if (hdr.reserved1[9] == MAKEFOURCC('N', 'V', 'T', 'T'))
         {
             // Clear out non-standard nVidia DDS flags

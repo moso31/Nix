@@ -41,6 +41,30 @@ void NXTextureResourceManager::Release()
 {
 }
 
+Ntr<NXTexture> NXTextureResourceManager::CreateTextureAuto(const std::string& name, const std::filesystem::path& path, bool bForce, D3D12_RESOURCE_FLAGS flags, bool bAutoMakeViews)
+{
+	if (NXConvert::IsDDSFileExtension(path.extension().string()))
+	{
+		// 如果是DDS文件，需要判断是2D、2DArray、Cube中的哪种
+		DirectX::TexMetadata metaData;
+		if (NXConvert::GetMetadataFromFile(path, metaData))
+		{
+			if (metaData.IsCubemap())
+			{
+				// Cubemap
+				return CreateTextureCube(name, path, flags, bAutoMakeViews);
+			}
+			else if (metaData.arraySize > 1)
+			{
+				// 2DArray
+				return CreateTexture2DArray(name, path, flags, bAutoMakeViews);
+			}
+		}
+	}
+
+	return CreateTexture2D(name, path, bForce, flags, bAutoMakeViews);
+}
+
 Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D(const std::string& name, const std::filesystem::path& filePath, bool bForce, D3D12_RESOURCE_FLAGS flags, bool bAutoMakeViews)
 {
 	if (!bForce)
@@ -140,6 +164,11 @@ Ntr<NXTexture2DArray> NXTextureResourceManager::CreateTexture2DArray(const std::
 {
 	Ntr<NXTexture2DArray> pTexture2DArray(new NXTexture2DArray());
 	pTexture2DArray->Create(debugName, filePath, flags);
+	if (bAutoMakeViews)
+	{
+		pTexture2DArray->SetViews(1, 0, 0, 0);
+		pTexture2DArray->SetSRV(0, 0, pTexture2DArray->GetArraySize());
+	}
 	m_pTextureArrayInternal.push_back(pTexture2DArray);
 	return pTexture2DArray;
 }

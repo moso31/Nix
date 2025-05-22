@@ -45,35 +45,7 @@ void NXGUITexture::SetImage(const std::filesystem::path& path)
 	m_preview2DArraySliceIndex = 0;
 	m_path = path;
 
-	if (NXConvert::IsDDSFileExtension(path.extension().string()))
-	{
-		// 如果是DDS文件，需要判断是2D、2DArray、Cube中的哪种
-		DirectX::TexMetadata metaData;
-		if (NXConvert::GetMetadataFromFile(path, metaData))
-		{
-			if (metaData.IsCubemap())
-			{
-				// Cubemap
-				m_pTexImage = NXResourceManager::GetInstance()->GetTextureManager()->CreateTextureCube("NXGUITexture Preview Image", path);
-			}
-			else if (metaData.arraySize > 1)
-			{
-				// 2DArray
-				m_pTexImage = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DArray("NXGUITexture Preview Image", path);
-			}
-			else
-			{
-				// 2D
-				m_pTexImage = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("NXGUITexture Preview Image", path);
-			}
-		}
-		else
-			m_pTexImage = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("NXGUITexture Preview Image", path);
-	}
-	else
-	{
-		m_pTexImage = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("NXGUITexture Preview Image", path);
-	}
+	m_pTexImage = NXResourceManager::GetInstance()->GetTextureManager()->CreateTextureAuto("NXGUITexture Preview Image", path);
 
 	m_texData = m_pTexImage->GetSerializationData();
 }

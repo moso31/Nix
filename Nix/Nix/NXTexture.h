@@ -70,6 +70,8 @@ public:
 
     virtual ~NXTexture();
 
+    NXTextureType GetTextureType() { return m_type; }
+
     ID3D12Resource* GetTex() const { return m_pTexture.Get(); }
     D3D12_CPU_DESCRIPTOR_HANDLE GetSRV(uint32_t index = 0);
     D3D12_CPU_DESCRIPTOR_HANDLE GetRTV(uint32_t index = 0);

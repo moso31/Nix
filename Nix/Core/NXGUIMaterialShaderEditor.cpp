@@ -772,7 +772,7 @@ void NXGUIMaterialShaderEditor::Render_Params_TextureItem(const int texParamId, 
 					NXConvert::IsRawFileExtension(pDropData->srcPath.extension().string()))
 				{
 					bChanged = true;
-					pTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(pTex->GetName().c_str(), pDropData->srcPath);
+					pTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTextureAuto(pTex->GetName().c_str(), pDropData->srcPath);
 				}
 			}
 			ImGui::EndDragDropTarget();

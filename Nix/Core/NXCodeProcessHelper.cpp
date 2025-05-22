@@ -463,7 +463,16 @@ std::string NXCodeProcessHelper::BuildHLSL_Params(int& ioLineCounter, const std:
 	// texture
 	for (auto* tex : oMatData.GetTextures())
 	{
-		str += "Texture2D " + tex->name + " : register(t" + std::to_string(slot_tex++) + ");\n";
+		if (tex->pTexture->GetTextureType() == NXTextureType::TextureType_2DArray)
+			str += "Texture2DArray ";
+		else if (tex->pTexture->GetTextureType() == NXTextureType::TextureType_Cube)
+			str += "TextureCube ";
+		else if (tex->pTexture->GetTextureType() == NXTextureType::TextureType_2D)
+			str += "Texture2D ";
+		else
+			str += "Texture2D ";
+
+		str += tex->name + " : register(t" + std::to_string(slot_tex++) + ");\n";
 	}
 
 	// sampler
