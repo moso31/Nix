@@ -511,31 +511,34 @@ void NXSubMeshGeometryEditor::CreateSHSphere(NXPrimitive* pMesh, int basis_l, in
 	pMesh->AddSubMesh(pSubMesh);
 }
 
-void NXSubMeshGeometryEditor::CreateTerrain(NXTerrain* pTerrain, int rawSize, int gridSize, int worldSize, const std::filesystem::path& rawFile, const Vector2& heightRange)
+void NXSubMeshGeometryEditor::CreateTerrain(NXTerrain* pTerrain, int gridSize, int worldSize)
 {
-	if ((rawSize - 1) % g_configTerrain.sectorSize != 0)
-		throw std::runtime_error("地形数据大小不符合要求；rawSize 必须是 g_configTerrain.sectorSize 的整数倍)");
-
 	if (gridSize % g_configTerrain.sectorSize != 0)
 		throw std::runtime_error("地形数据大小不符合要求；gridSize 必须是 g_configTerrain.sectorSize 的整数倍)");
 
-	// 然后构建SubMesh
-	// 基于sectorSize 构建基本的面片，使用FarCry5的米字形）
-	std::string subMeshName("_terrainMesh_grid" + std::to_string(pTerrain->m_gridSize) + "_world" + std::to_string(pTerrain->m_worldSize));
-	NXSubMeshTerrain* pSubMesh = new NXSubMeshTerrain(pTerrain, subMeshName);
+	for (int lod = 0; lod < 6; lod++)
+	{
+		CreateTerrainSingleLod(pTerrain, gridSize, worldSize, lod);
+	}
+}
+
+void NXSubMeshGeometryEditor::CreateTerrainSingleLod(NXTerrain* pTerrain, int gridSize, int worldSize, int lod)
+{
+	// 顶点、索引；基于sectorSize 构建基本的面片，使用FarCry5的米字形）
 	std::vector<VertexPNTC> vertices;
 	std::vector<uint32_t> indices;
 
 	int gSectorSize = g_configTerrain.sectorSize;
+	float lodScale = float(1 << lod);
 	for (int x = 0; x <= gSectorSize; x++)
 	{
 		for (int y = 0; y <= gSectorSize; y++)
 		{
-			float vertScale = (float)gridSize / (float)worldSize;
-			Vector3 p(vertScale * (float)x, 0.0f, vertScale * (float)y);
+			float vertScale = (float)gridSize / (float)worldSize * lodScale;
+			Vector3 p(vertScale * (float)x, 0, vertScale * (float)y);
 			Vector3 n(0, 1, 0);
-			Vector2 uv(0, 0); 
-			Vector4 c(1, 1, 1, 1); 
+			Vector2 uv(0, 0);
+			Vector4 c(1, 1, 1, 1);
 			vertices.push_back({ p, n, uv, c });
 		}
 	}
@@ -571,23 +574,26 @@ void NXSubMeshGeometryEditor::CreateTerrain(NXTerrain* pTerrain, int rawSize, in
 				_4, _7, _6,
 				_4, _5, _8,
 				_4, _8, _7
-			});
+				});
 		}
 	}
-
+	// 然后构建SubMesh
+	std::string subMeshName("_terrainMesh_grid" + std::to_string(pTerrain->m_gridSize) + "_world" + std::to_string(pTerrain->m_worldSize) + "_lod" + std::to_string(lod));
+	NXSubMeshTerrain* pSubMesh = new NXSubMeshTerrain(pTerrain, subMeshName);
 	pSubMesh->AppendVertices(std::move(vertices));
 	pSubMesh->AppendIndices(std::move(indices));
 
 	// 添加instance数据
 	// 第一版先进行完全加载，将来再考虑gpu-driven剔除啥的
-	int gSectorNum = worldSize / gSectorSize;
+	int gSectorNum = (worldSize >> lod) / gSectorSize;
 	std::vector<InstanceData> insDatas;
 	for (int x = 0; x < gSectorNum; x++)
 	{
 		for (int y = 0; y < gSectorNum; y++)
 		{
-			float vertScale = (float)gSectorSize;// (float)gridSize / (float)worldSize;
+			float vertScale = (float)gSectorSize * lodScale;
 			Vector3 p(vertScale * (float)x, 0.0f, vertScale * (float)y);
+			p.y = lod * 100.0f;
 
 			insDatas.push_back({ Matrix::CreateTranslation(p) });
 		}
@@ -596,7 +602,7 @@ void NXSubMeshGeometryEditor::CreateTerrain(NXTerrain* pTerrain, int rawSize, in
 	pSubMesh->AppendInstanceData(std::move(insDatas));
 
 	pSubMesh->TryAddBuffers();
-	pTerrain->AddSubMesh(pSubMesh);
+	pTerrain->AddSubMesh(pSubMesh, lod);
 }
 
 void NXSubMeshGeometryEditor::CreateMoveArrows(NXPrimitive* pMesh)
@@ -790,6 +796,64 @@ void NXSubMeshGeometryEditor::CreateMoveArrows(NXPrimitive* pMesh)
 		pSubMesh->TryAddBuffers();
 		pMesh->AddSubMesh(pSubMesh);
 	}
+}
+
+void NXSubMeshGeometryEditor::CreateBuffers(std::vector<NXRawMeshView>& rawViews, const std::string& name)
+{
+	NXMeshViews* pMeshView = nullptr;
+	{
+		std::lock_guard<std::mutex> lock(m_mutex);
+
+		if (m_data.find(name) != m_data.end())
+			return;
+
+		pMeshView = new NXMeshViews(name, rawViews);
+		m_data.emplace(name, pMeshView);
+	}
+
+	if (!pMeshView)
+		return;
+
+	// 异步创建rawViews：顶点/索引/instanceData等数据的vbv/ibv，并上传
+	// 上层目前还能确保rawViews 都是成员变量，所以这里不需要担心生命周期问题，但将来不好说……
+
+	// 线程A 执行 std::thread
+	printf("主线程%s\n", name.c_str());
+	std::thread([&rawViews, name, pMeshView]() {
+		for (auto& view : rawViews)
+		{
+			// 内有异步分配逻辑，由线程B执行
+			NXStructuredBuffer pBuffer(view.stride, view.span.size());
+			// 等待线程B完成分配 get GPUAddress.
+			pBuffer.WaitCreateComplete();
+
+			view.gpuAddress = pBuffer.GetGPUAddress();
+
+			uint32_t byteSize = view.span.size_bytes();
+			UploadTaskContext ctx(name + "_VB");
+			if (NXUploadSystem->BuildTask(byteSize, ctx))
+			{
+				// ctx.pResourceData/pResourceOffset是 上传系统的UploadRingBuffer 的临时资源和偏移量
+				// pVB.GetD3DResourceAndOffset(byteOffset) 是 D3D默认堆上 的偏移量，也就是GPU资源
+				// 不要搞混了
+
+				uint8_t* pDst = ctx.pResourceData + ctx.pResourceOffset;
+
+				// 拷贝到上传堆
+				memcpy(pDst, view.span.data(), byteSize);
+
+				// 从上传堆拷贝到默认堆
+				uint64_t byteOffset = 0;
+				ID3D12Resource* pDstResource = pBuffer.GetD3DResourceAndOffset(byteOffset);
+				ctx.pOwner->pCmdList->CopyBufferRegion(pDstResource, byteOffset, ctx.pResource, ctx.pResourceOffset, byteSize);
+
+				// 上传数据并同步到gpu，异步线程C 负责执行
+				NXUploadSystem->FinishTask(ctx, [pMeshView, name, taskID = ctx.pOwner->selfID]() {
+					pMeshView->ProcessOne(); // 顶点数据上传完成，通知 loadCounter - 1
+					});
+			}
+		}
+		}).detach();
 }
 
 const NXMeshViews& NXSubMeshGeometryEditor::GetMeshViews(const std::string& name)

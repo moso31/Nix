@@ -5,24 +5,24 @@
 #include "NXCamera.h"
 #include "NXTimer.h"
 
-NXTerrain::NXTerrain(int rawSize, int gridSize, int worldSize) :
-	m_rawSize(rawSize),
+NXTerrain::NXTerrain(int gridSize, int worldSize) :
 	m_gridSize(gridSize),
 	m_worldSize(worldSize),
 	m_heightRange(0, 1000)
 {
+	m_pSubMesh.resize(6);
 }
 
-void NXTerrain::AddSubMesh(NXSubMeshBase* pSubMesh)
+void NXTerrain::AddSubMesh(NXSubMeshBase* pSubMesh, int lod)
 {
-	m_pSubMesh = std::shared_ptr<NXSubMeshBase>(pSubMesh);
+	m_pSubMesh[lod].reset(pSubMesh);
 }
 
 
 bool NXTerrain::RayCastPrimitive(const Ray& worldRay, NXHit& outHitInfo, float& outDist)
 {
 	NXHit hit;
-	hit.pSubMesh = m_pSubMesh.get();
+	hit.pSubMesh = m_pSubMesh[0].get();
 	outDist = 0.0f;
 	outHitInfo = hit;
 	return true;

@@ -80,11 +80,11 @@ NXPrefab* NXMeshResourceManager::CreateFBXPrefab(const std::string& name, const 
 	return p;
 }
 
-NXTerrain* NXMeshResourceManager::CreateTerrain(const std::string& name, int rawSize, int gridSize, int worldSize, const std::filesystem::path& rawFile, const Vector2& heightRange)
+NXTerrain* NXMeshResourceManager::CreateTerrain(const std::string& name, int gridSize, int worldSize)
 {
-	auto p = new NXTerrain(rawSize, gridSize, worldSize);
+	auto p = new NXTerrain(gridSize, worldSize);
 	p->SetName(name);
-	NXSubMeshGeometryEditor::GetInstance()->CreateTerrain(p, rawSize, gridSize, worldSize, rawFile, heightRange);
+	NXSubMeshGeometryEditor::GetInstance()->CreateTerrain(p, gridSize, worldSize);
 	m_pWorkingScene->RegisterTerrain(p);
 	return p;
 }
@@ -104,10 +104,14 @@ void NXMeshResourceManager::BindMaterial(NXRenderableObject* pRenderableObj, NXM
 	NXTerrain* pTerrain = pRenderableObj->IsTerrain();
 	if (pTerrain)
 	{
-		auto pSubMesh = pTerrain->GetSubMesh();
-		if (pSubMesh)
+		for (uint32_t i = 0; i < pTerrain->GetSubMeshCount(); i++)
 		{
-			BindMaterial(pSubMesh, pMaterial);
+			auto pSubMesh = pTerrain->GetSubMesh(i);
+
+			if (pSubMesh)
+			{
+				BindMaterial(pSubMesh, pMaterial);
+			}
 		}
 	}
 
