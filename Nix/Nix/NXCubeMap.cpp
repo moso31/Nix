@@ -19,8 +19,8 @@ using namespace DirectX::SimpleMath::SH;
 
 NXCubeMap::NXCubeMap(NXScene* pScene) :
 	m_pScene(pScene),
-	m_prefilterMapSize(512.0f),
-	m_cubeMapSize(512.0f),
+	m_prefilterMapSize(128.0f),
+	m_cubeMapSize(128.0f),
 	m_nFenceValue(0),
 	m_futureCubeMapTexsReady(m_promiseCubeMapTexsReady.get_future()),
 	m_subMesh(nullptr, "_CubeMapSphere"),

@@ -4,7 +4,6 @@
 #include "BaseDefs/NixCore.h"
 #include "NXTransform.h"
 #include "DirectXTex.h"
-#include "ShaderStructures.h"
 #include "Ntr.h"
 #include "NXConstantBuffer.h"
 #include "NXSubMesh.h"
