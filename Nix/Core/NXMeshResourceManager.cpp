@@ -104,14 +104,11 @@ void NXMeshResourceManager::BindMaterial(NXRenderableObject* pRenderableObj, NXM
 	NXTerrain* pTerrain = pRenderableObj->IsTerrain();
 	if (pTerrain)
 	{
-		for (uint32_t i = 0; i < pTerrain->GetSubMeshCount(); i++)
-		{
-			auto pSubMesh = pTerrain->GetSubMesh(i);
+		auto pSubMesh = pTerrain->GetSubMesh();
 
-			if (pSubMesh)
-			{
-				BindMaterial(pSubMesh, pMaterial);
-			}
+		if (pSubMesh)
+		{
+			BindMaterial(pSubMesh, pMaterial);
 		}
 	}
 

@@ -10,19 +10,18 @@ NXTerrain::NXTerrain(int gridSize, int worldSize) :
 	m_worldSize(worldSize),
 	m_heightRange(0, 1000)
 {
-	m_pSubMesh.resize(6);
 }
 
-void NXTerrain::AddSubMesh(NXSubMeshBase* pSubMesh, int lod)
+void NXTerrain::AddSubMesh(NXSubMeshBase* pSubMesh)
 {
-	m_pSubMesh[lod].reset(pSubMesh);
+	m_pSubMesh.reset(pSubMesh);
 }
 
 
 bool NXTerrain::RayCastPrimitive(const Ray& worldRay, NXHit& outHitInfo, float& outDist)
 {
 	NXHit hit;
-	hit.pSubMesh = m_pSubMesh[0].get();
+	hit.pSubMesh = m_pSubMesh.get();
 	outDist = 0.0f;
 	outHitInfo = hit;
 	return true;

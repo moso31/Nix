@@ -516,25 +516,16 @@ void NXSubMeshGeometryEditor::CreateTerrain(NXTerrain* pTerrain, int gridSize, i
 	if (gridSize % g_configTerrain.sectorSize != 0)
 		throw std::runtime_error("地形数据大小不符合要求；gridSize 必须是 g_configTerrain.sectorSize 的整数倍)");
 
-	for (int lod = 0; lod < 6; lod++)
-	{
-		CreateTerrainSingleLod(pTerrain, gridSize, worldSize, lod);
-	}
-}
-
-void NXSubMeshGeometryEditor::CreateTerrainSingleLod(NXTerrain* pTerrain, int gridSize, int worldSize, int lod)
-{
 	// 顶点、索引；基于sectorSize 构建基本的面片，使用FarCry5的米字形）
 	std::vector<VertexPNTC> vertices;
 	std::vector<uint32_t> indices;
 
 	int gSectorSize = g_configTerrain.sectorSize;
-	float lodScale = float(1 << lod);
 	for (int x = 0; x <= gSectorSize; x++)
 	{
 		for (int y = 0; y <= gSectorSize; y++)
 		{
-			float vertScale = (float)gridSize / (float)worldSize * lodScale;
+			float vertScale = (float)gridSize / (float)worldSize;
 			Vector3 p(vertScale * (float)x, 0, vertScale * (float)y);
 			Vector3 n(0, 1, 0);
 			Vector2 uv(0, 0);
@@ -578,10 +569,24 @@ void NXSubMeshGeometryEditor::CreateTerrainSingleLod(NXTerrain* pTerrain, int gr
 		}
 	}
 	// 然后构建SubMesh
-	std::string subMeshName("_terrainMesh_grid" + std::to_string(pTerrain->m_gridSize) + "_world" + std::to_string(pTerrain->m_worldSize) + "_lod" + std::to_string(lod));
+	std::string subMeshName("_terrainMesh_grid" + std::to_string(pTerrain->m_gridSize) + "_world" + std::to_string(pTerrain->m_worldSize));
 	NXSubMeshTerrain* pSubMesh = new NXSubMeshTerrain(pTerrain, subMeshName);
 	pSubMesh->AppendVertices(std::move(vertices));
 	pSubMesh->AppendIndices(std::move(indices));
+
+	for (int lod = 0; lod < 6; lod++)
+	{
+		CreateTerrainSingleLod(pTerrain, pSubMesh, worldSize, lod);
+	}
+
+	pSubMesh->TryAddBuffers();
+	pTerrain->AddSubMesh(pSubMesh);
+}
+
+void NXSubMeshGeometryEditor::CreateTerrainSingleLod(NXTerrain* pTerrain, NXSubMeshTerrain* pSubMesh, int worldSize, int lod)
+{
+	int gSectorSize = g_configTerrain.sectorSize;
+	float lodScale = float(1 << lod);
 
 	// 添加instance数据
 	// 第一版先进行完全加载，将来再考虑gpu-driven剔除啥的
@@ -595,14 +600,11 @@ void NXSubMeshGeometryEditor::CreateTerrainSingleLod(NXTerrain* pTerrain, int gr
 			Vector3 p(vertScale * (float)x, 0.0f, vertScale * (float)y);
 			p.y = lod * 100.0f;
 
-			insDatas.push_back({ Matrix::CreateTranslation(p) });
+			insDatas.push_back({ Matrix::CreateScale(lodScale) * Matrix::CreateTranslation(p) });
 		}
 	}
 
 	pSubMesh->AppendInstanceData(std::move(insDatas));
-
-	pSubMesh->TryAddBuffers();
-	pTerrain->AddSubMesh(pSubMesh, lod);
 }
 
 void NXSubMeshGeometryEditor::CreateMoveArrows(NXPrimitive* pMesh)

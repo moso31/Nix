@@ -12,9 +12,8 @@ public:
 	virtual ~NXTerrain() {}
 
 	virtual NXTerrain* IsTerrain() { return this; }
-	void AddSubMesh(NXSubMeshBase* pSubMesh, int lod);
-	uint32_t GetSubMeshCount() { return 6; }
-	NXSubMeshBase* GetSubMesh(uint32_t index = 0) { return m_pSubMesh[index].get(); }
+	void AddSubMesh(NXSubMeshBase* pSubMesh);
+	NXSubMeshBase* GetSubMesh() { return m_pSubMesh.get(); }
 	bool RayCastPrimitive(const Ray& worldRay, NXHit& outHitInfo, float& outDist);
 
 	void SetHeightRange(const Vector2& heightRange) { m_heightRange = heightRange; }
@@ -27,7 +26,7 @@ protected:
 	int m_gridSize;
 	int m_worldSize;
 	Vector2 m_heightRange;
-	std::vector<std::shared_ptr<NXSubMeshBase>> m_pSubMesh; // m_pSubMesh[lod]
+	std::shared_ptr<NXSubMeshBase> m_pSubMesh; 
 
 	ConstantBufferObject m_cbDataObject;
 	NXConstantBuffer<ConstantBufferObject>	m_cbObject;

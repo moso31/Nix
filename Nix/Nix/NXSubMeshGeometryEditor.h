@@ -8,6 +8,7 @@
 class NXPrefab;
 class NXPrimitive;
 class NXTerrain;
+class NXSubMeshTerrain;
 class NXSubMeshGeometryEditor : public NXInstance<NXSubMeshGeometryEditor>
 {
 public:
@@ -35,7 +36,7 @@ public:
 	void Release();
 
 private:
-	void CreateTerrainSingleLod(NXTerrain* pTerrain, int gridSize, int worldSize, int lod);
+	void CreateTerrainSingleLod(NXTerrain* pTerrain, NXSubMeshTerrain* pSubMesh, int worldSize, int lod);
 	void InitCommonMeshes();
 
 private:
