@@ -9,6 +9,7 @@ struct NXQuadTreeNode
 	{
 	}
 
+	AABB m_aabb; // 节点的包围盒
 	NXQuadTreeNode* m_pParent;
 	NXQuadTreeNode* m_pChilds[4]; // 0=左下, 1=右下, 2=左上, 3=右上，和Nix坐标系的XZ正方向一致
 };
@@ -16,23 +17,116 @@ struct NXQuadTreeNode
 class NXQuadTree
 {
 public:
-	NXQuadTree(const Vector2& regionCenter, const Vector2& regionSize, int depth) :
-		m_regionCenter(regionCenter),
-		m_regionSize(regionSize),
-		m_depth(depth)
+	NXQuadTree(const Vector3& pos, const Vector3& size) :
+		m_pos(pos), m_size(size)
 	{
 		m_pRootNode = new NXQuadTreeNode(nullptr);
 	}
 
 	virtual ~NXQuadTree() {}
 
-	void AddChilds(NXQuadTreeNode* pNode)
+	// 构建四叉树
+	void Build(int depth)
 	{
-		for (int i = 0; i < 4; i++) if (pNode->m_pChilds[i]) return;
+		m_pRootNode->m_aabb.Center = m_pos;
+		m_pRootNode->m_aabb.Extents = m_size;
+		m_maxDepth = depth;
+		
+		BuildNode(m_pRootNode, 0);
+	}
+
+	// 释放四叉树
+	void Destroy()
+	{
+		RemoveChilds(m_pRootNode);
+	}
+
+	// 基于距离获取各级LOD节点
+	// profile: 各级配置，比如如果{..., 1400, 600, 200} 就代表 200m使用LOD0，600m使用LOD1，1400m使用LOD2
+	// oNodes：最终输出的oNodes
+	void GetGPUTerrainNodes(const Vector3& cameraPos, const std::vector<uint32_t>& profile, std::vector<std::vector<NXQuadTreeNode*>>& oNodes)
+	{
+		assert(profile.size() == oNodes.size());
+		for (int i = 0; i < profile.size(); i++) oNodes[i].clear();
+
+		int state = GetOverlapState(cameraPos, (float)profile[0], m_pRootNode);
+		
+		if (state == 0) return;
+		oNodes[0].push_back(m_pRootNode);
+
 		for (int i = 0; i < 4; i++)
 		{
-			pNode->m_pChilds[i] = new NXQuadTreeNode(pNode);
+			GetGPUTerrainNodes_Internal(m_pRootNode->m_pChilds[i], 1, cameraPos, profile, oNodes);
 		}
+	}
+
+	// 获取一个节点基于距离的覆盖情况
+	// return 0: 完全不相交 1：部分覆盖 2：完全覆盖
+	int GetOverlapState(const Vector3& pos, const float radius, const NXQuadTreeNode* pNode)
+	{
+		// 目前暂时用不到Y轴
+		Vector3 pMax = pNode->m_aabb.GetMax();
+		Vector3 pMin = pNode->m_aabb.GetMin();
+		float clampX = Clamp(pos.x, pMin.x, pMax.x);
+		float clampZ = Clamp(pos.z, pMin.z, pMax.z);
+		float dx = clampX - pos.x;
+		float dz = clampZ - pos.z;
+		float r2 = radius * radius;
+
+		if (dx * dx + dz * dz > r2)
+			return 0;
+
+		float cornerX[4] = { pMin.x - pos.x, pMin.x - pos.x, pMax.x - pos.x, pMax.x - pos.x };
+		float cornerZ[4] = { pMin.z - pos.z, pMax.z - pos.z, pMax.z - pos.z, pMin.z - pos.z };
+		for (int i = 0; i < 4; i++)
+		{
+			if (cornerX[i] * cornerX[i] + cornerZ[i] * cornerZ[i] > r2)
+				return 1;
+		}
+
+		return 2;
+	}
+
+private:
+	void BuildNode(NXQuadTreeNode* pNode, int depth)
+	{
+		if (depth == m_maxDepth - 1) return;
+
+		Vector3 halfSize = pNode->m_aabb.Extents * 0.5;
+		Vector3 O = pNode->m_aabb.Center;
+		Vector3 A = pNode->m_aabb.GetMin();
+		Vector3 C = pNode->m_aabb.GetMax();
+		// 目前暂时用不到Y轴
+		Vector3 B(A.x, 0.0, C.z);
+		Vector3 D(C.x, 0.0, A.z);
+
+		// 1--2   B--C
+		// |  | = |  |
+		// 0--3   A--D
+		auto pChild = new NXQuadTreeNode(pNode);
+		pChild->m_aabb.Center = (A + O) * 0.5;
+		pChild->m_aabb.Extents = halfSize;
+		pNode->m_pChilds[0] = pChild;
+
+		pChild = new NXQuadTreeNode(pNode);
+		pChild->m_aabb.Center = (B + O) * 0.5;
+		pChild->m_aabb.Extents = halfSize;
+		pNode->m_pChilds[1] = pChild;
+
+		pChild = new NXQuadTreeNode(pNode);
+		pChild->m_aabb.Center = (C + O) * 0.5;
+		pChild->m_aabb.Extents = halfSize;
+		pNode->m_pChilds[2] = pChild;
+
+		pChild = new NXQuadTreeNode(pNode);
+		pChild->m_aabb.Center = (D + O) * 0.5;
+		pChild->m_aabb.Extents = halfSize;
+		pNode->m_pChilds[3] = pChild;
+
+		BuildNode(pNode->m_pChilds[0], depth + 1);
+		BuildNode(pNode->m_pChilds[1], depth + 1);
+		BuildNode(pNode->m_pChilds[2], depth + 1);
+		BuildNode(pNode->m_pChilds[3], depth + 1);
 	}
 
 	void RemoveChilds(NXQuadTreeNode* pNode)
@@ -48,48 +142,25 @@ public:
 		}
 	}
 
-	// get对应位置的四叉树节点
-	NXQuadTreeNode* Get(const Vector2& coord)
+	void GetGPUTerrainNodes_Internal(NXQuadTreeNode* pNode, int depth, const Vector3& cameraPos, const std::vector<uint32_t>& profile, std::vector<std::vector<NXQuadTreeNode*>>& oNodes)
 	{
-		Get_Internal(m_pRootNode, coord, m_regionCenter, m_regionSize);
+		if (depth >= (int)profile.size() || !pNode) return;
+
+		int state = GetOverlapState(cameraPos, (float)profile[depth], pNode);
+
+		if (state == 0) return;
+		oNodes[depth].push_back(pNode);
+
+		for (int i = 0; i < 4; i++)
+		{
+			GetGPUTerrainNodes_Internal(pNode->m_pChilds[i], depth + 1, cameraPos, profile, oNodes);
+		}
 	}
 
 private:
-	NXQuadTreeNode* Get_Internal(NXQuadTreeNode* pNode, const Vector2& coord, const Vector2& nodeCenter, const Vector2& nodeSize)
-	{
-		Vector2 childSize = nodeSize * Vector2(0.5f, 0.5f);
-		if (coord.x < nodeCenter.x && coord.y < nodeCenter.y) // 左下
-		{
-			Vector2 childCenter(nodeCenter.x - childSize.x, nodeCenter.y - childSize.y);
-			if (pNode->m_pChilds[0]) 
-				return Get_Internal(pNode->m_pChilds[0], coord, childCenter, childSize);
-		}
-		else if (coord.x >= nodeCenter.x && coord.y < nodeCenter.y) // 右下
-		{
-			Vector2 childCenter(nodeCenter.x + childSize.x, nodeCenter.y - childSize.y);
-			if (pNode->m_pChilds[1]) 
-				return Get_Internal(pNode->m_pChilds[1], coord, childCenter, childSize);
-		}
-		else if (coord.x < nodeCenter.x && coord.y >= nodeCenter.y) // 左上
-		{
-			Vector2 childCenter(nodeCenter.x - childSize.x, nodeCenter.y + childSize.y);
-			if (pNode->m_pChilds[2]) 
-				return Get_Internal(pNode->m_pChilds[2], coord, childCenter, childSize);
-		}
-		else // 右上
-		{
-			Vector2 childCenter(nodeCenter.x + childSize.x, nodeCenter.y + childSize.y);
-			if (pNode->m_pChilds[3]) 
-				return Get_Internal(pNode->m_pChilds[3], coord, childCenter, childSize);
-		}
-
-		return pNode;
-	}
-
-private:
-	Vector2 m_regionCenter; // 四叉树中心点
-	Vector2 m_regionSize; // 四叉树区域大小
-	int m_depth;
+	Vector3 m_pos;
+	Vector3 m_size;
+	int m_maxDepth;
 
 	NXQuadTreeNode* m_pRootNode;
 };
