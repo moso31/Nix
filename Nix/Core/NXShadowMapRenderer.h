@@ -24,18 +24,14 @@ public:
 	NXShadowMapRenderer(NXScene* pScene);
 	virtual ~NXShadowMapRenderer();
 
-	void InitShadowMapDepthTex();
 	virtual void SetupInternal() override;
 	virtual void Render(ID3D12GraphicsCommandList* pCmdList) override;
 	void RenderSingleObject(ID3D12GraphicsCommandList* pCmdList, NXRenderableObject* pRenderableObject);
 
 	void Release();
 
-	Ntr<NXTexture2DArray> GetShadowMapDepthTex();
-
 	UINT	GetCascadeCount()						{ return m_cascadeCount; }
 	int 	GetDepthBias()							{ return m_depthBias; }
-	UINT	GetShadowMapRTSize()					{ return m_shadowMapRTSize; }
 	float	GetShadowDistance()						{ return m_shadowDistance; }
 	float	GetCascadeExponentScale()				{ return m_cascadeExponentScale; }
 	float	GetCascadeTransitionScale()				{ return m_cascadeTransitionScale; }
@@ -44,7 +40,6 @@ public:
 	void	SetDepthBias(int value);
 	void	SetShadowDistance(float value);
 	void	SetCascadeTransitionScale(float value);
-	void	SetShadowMapRTSize(UINT value)			{ m_shadowMapRTSize = value; }
 	void	SetCascadeExponentScale(float value)	{ m_cascadeExponentScale = value; }
 
 private:
@@ -52,9 +47,6 @@ private:
 
 private:
 	NXScene*							m_pScene;
-
-	// 2022.5.10 阴影贴图（目前仅用于平行光）
-	Ntr<NXTexture2DArray>				m_pShadowMapDepth;
 
 	CBufferShadowMapObject m_cbDataCSMViewProj[8];
 	NXConstantBuffer<CBufferShadowMapObject> m_cbCSMViewProj[8];

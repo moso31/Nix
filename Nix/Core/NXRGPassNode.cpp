@@ -1,22 +1,15 @@
 #include "NXRGPassNode.h"
 #include "NXRenderGraph.h"
 
-NXRGResource* NXRGPassNodeBase::Create(const std::string& resourceName, const NXRGDescription & desc)
-{
-	NXRGResource* pResource = new NXRGResource(resourceName, desc);
-	m_pRenderGraph->AddResource(pResource);
-	return pResource;
-}
-
 void NXRGPassNodeBase::Read(NXRGResource* pResource, uint32_t passSlotIndex)
 {
 	m_inputs.push_back({ pResource, passSlotIndex });
 }
 
-NXRGResource* NXRGPassNodeBase::WriteRT(NXRGResource* pResource, uint32_t outRTIndex, bool keepPixel)
+NXRGResource* NXRGPassNodeBase::WriteRT(NXRGResource* pResource, uint32_t outRTIndex, bool useOldVersion)
 {
 	// 如果之前没被写入过，那么不需要创建新版本
-	if (keepPixel || !pResource->HasWrited())
+	if (useOldVersion || !pResource->HasWrited())
 	{
 		m_outputs.push_back({ pResource, outRTIndex });
 		pResource->MakeWriteConnect(); // 标记为已写入
@@ -27,15 +20,14 @@ NXRGResource* NXRGPassNodeBase::WriteRT(NXRGResource* pResource, uint32_t outRTI
 	NXRGResource* pNewVersionResource = new NXRGResource(pResource);
 	m_outputs.push_back({ pNewVersionResource, outRTIndex });
 	pNewVersionResource->MakeWriteConnect(); // 标记为已写入
-	m_pRenderGraph->AddResource(pNewVersionResource); // 添加到graph中
+	m_pRenderGraph->CreateResource(pNewVersionResource->GetName(), pNewVersionResource->GetDescription()); // 添加到graph中
 	return pNewVersionResource;
 }
 
-NXRGResource* NXRGPassNodeBase::WriteDS(NXRGResource* pResource, bool keepPixel)
+NXRGResource* NXRGPassNodeBase::WriteDS(NXRGResource* pResource, bool useOldVersion)
 {
-	// 如果要求保留像素，那么不需要创建新版本
-	// 如果之前没被写入过，那么不需要创建新版本
-	if (keepPixel || !pResource->HasWrited())
+	// 如果要求保留像素，或之前没被写入过，那么不需要创建新版本
+	if (useOldVersion || !pResource->HasWrited())
 	{
 		m_outputs.push_back({ pResource, uint32_t(-1) });
 		pResource->MakeWriteConnect(); // 标记为已写入
@@ -46,7 +38,7 @@ NXRGResource* NXRGPassNodeBase::WriteDS(NXRGResource* pResource, bool keepPixel)
 	NXRGResource* pNewVersionResource = new NXRGResource(pResource);
 	m_outputs.push_back({ pNewVersionResource, uint32_t(-1) });
 	pNewVersionResource->MakeWriteConnect(); // 标记为已写入
-	m_pRenderGraph->AddResource(pNewVersionResource); // 添加到graph中
+	m_pRenderGraph->CreateResource(pNewVersionResource->GetName(), pNewVersionResource->GetDescription()); // 添加到graph中
 	return pNewVersionResource;
 }
 

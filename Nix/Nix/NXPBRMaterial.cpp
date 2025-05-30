@@ -150,9 +150,9 @@ bool NXCustomMaterial::LoadShaderCode()
 void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::string& oErrorMessageVS, std::string& oErrorMessagePS)
 {
 	ComPtr<IDxcBlob> pVSBlob, pPSBlob;
-	NXShaderComplier::GetInstance()->AddMacro(L"GPU_INSTANCING", L"1");
+	NXShaderComplier::GetInstance()->AddMacro(L"GPU_INSTANCING", L"0");
 	HRESULT hrVS = NXShaderComplier::GetInstance()->CompileVSByCode(strGBufferShader, L"VS", pVSBlob.GetAddressOf(), oErrorMessageVS);
-	NXShaderComplier::GetInstance()->AddMacro(L"GPU_INSTANCING", L"1");
+	NXShaderComplier::GetInstance()->AddMacro(L"GPU_INSTANCING", L"0");
 	HRESULT hrPS = NXShaderComplier::GetInstance()->CompilePSByCode(strGBufferShader, L"PS", pPSBlob.GetAddressOf(), oErrorMessagePS);
 	m_bCompileSuccess = SUCCEEDED(hrVS) && SUCCEEDED(hrPS);
 	

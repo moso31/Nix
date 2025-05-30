@@ -20,7 +20,7 @@ public:
 	NXObject(const std::string& name) : m_name(name) {}
 	virtual ~NXObject() {}
 
-	std::string GetName() { return m_name; }
+	std::string GetName() const { return m_name; }
 	void SetName(std::string name) { m_name = name; }
 
 	virtual NXTransform* IsTransform() { return nullptr; }

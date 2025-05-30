@@ -31,8 +31,9 @@ public:
 	Ntr<NXTexture> GetPresent();
 	void SetPresent(NXRGResource* pResource) { m_presentResource = pResource; }
 
-	void AddResource(NXRGResource* pResources);
-	void SetViewResolution(const Vector2& resolution) { m_viewResolution = resolution; }
+	NXRGResource* CreateResource(const std::string& resourceName, const NXRGDescription& desc);
+	NXRGResource* ImportResource(const Ntr<NXTexture>& pTexture, NXRGHandleFlags flag = RG_None);
+	void SetViewResolution(const Vector2& resolution) { m_viewResolution = resolution; }	
 
 	NXRendererPass* GetRenderPass(const std::string& passName);
 

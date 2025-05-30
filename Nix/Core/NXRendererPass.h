@@ -43,6 +43,10 @@ public:
 	void SetOutputRT(const Ntr<NXTexture>& pTex, uint32_t rtIndex);
 	void SetOutputDS(const Ntr<NXTexture>& pTex);
 
+	Ntr<NXTexture> GetInputTex(uint32_t slotIndex) { return m_pInTexs[slotIndex]; }
+	Ntr<NXTexture> GetOutputRT(uint32_t index) { return m_pOutRTs[index]; }
+	Ntr<NXTexture> GetOutputDS() { return m_pOutDS; }
+
 	void SetInputLayout(const D3D12_INPUT_LAYOUT_DESC& desc);
 	void SetRenderTargetMesh(const std::string& rtSubMeshName);
 	void SetBlendState(const D3D12_BLEND_DESC& desc);

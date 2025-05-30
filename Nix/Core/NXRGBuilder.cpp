@@ -1,11 +1,6 @@
 #include "NXRGBuilder.h"
 #include "NXRGPassNode.h"
 
-NXRGResource* NXRGBuilder::Create(const std::string& resourceName, const NXRGDescription& desc)
-{
-	return m_pPassNode->Create(resourceName, desc);
-}
-
 void NXRGBuilder::Read(NXRGResource* pResource, uint32_t passSlotIndex)
 {
 	return m_pPassNode->Read(pResource, passSlotIndex);

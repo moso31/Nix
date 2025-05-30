@@ -17,15 +17,12 @@ public:
 
 	const std::string& GetName() { return m_passName; }
 
-	// 声明一个RenderGraph使用的资源。
-	NXRGResource* Create(const std::string& resourceName, const NXRGDescription& desc);
-
 	// 设置Pass输入资源。
 	void Read(NXRGResource* pResource, uint32_t passSlotIndex);
 
 	// 设置pass输出RT。
-	NXRGResource* WriteRT(NXRGResource* pResource, uint32_t outRTIndex, bool keepPixel);
-	NXRGResource* WriteDS(NXRGResource* pResource, bool keepPixel);
+	NXRGResource* WriteRT(NXRGResource* pResource, uint32_t outRTIndex, bool useOldVersion);
+	NXRGResource* WriteDS(NXRGResource* pResource, bool useOldVersion);
 
 	NXRendererPass* GetRenderPass() { return m_pPass; }
 

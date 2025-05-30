@@ -1,5 +1,6 @@
 #pragma once
 #include "NXRGHandle.h"
+#include "NXTexture.h"
 
 enum NXRGHandleType
 {
@@ -9,29 +10,26 @@ enum NXRGHandleType
 
 enum NXRGHandleFlags
 {
+	RG_None = 0,
 	RG_RenderTarget = 1 << 0,
 	RG_DepthStencil = 1 << 1
 };
 
 struct NXRGDescription
 {
-	// 是否使用view的分辨率
-	bool isDynamicResolution = true;
+	bool isViewRT = true; // 是否使用view的分辨率
+	float RTScale = 1.0f; // isViewRT == true 时分辨率比例。允许pass的分辨率缩放到0.5x, 0.25x等
 
-	union
+	bool isImported = false;
+	struct
 	{
-		// isDynamicResolution == true 时
-		// 分辨率比例。允许pass的分辨率缩放到0.5x, 0.25x等
-		float dynamicResolutionRatio = 1.0f;
+		Ntr<NXTexture> pImportTexture = nullptr; // 如果是导入纹理(isImported)
+		uint32_t width;
+		uint32_t height;
+		uint32_t arraySize;
+	} importData;
 
-		// isDynamicResolution == false 时
-		struct
-		{
-			// 纹理的size
-			uint32_t width;
-			uint32_t height;
-		};
-	};
+	NXTextureType type = NXTextureType::TextureType_2D;
 
 	// 纹理的DXGI格式
 	DXGI_FORMAT format;

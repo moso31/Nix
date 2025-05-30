@@ -27,15 +27,6 @@ NXShadowMapRenderer::~NXShadowMapRenderer()
 {
 }
 
-void NXShadowMapRenderer::InitShadowMapDepthTex()
-{
-	m_pShadowMapDepth = NXResourceManager::GetInstance()->GetTextureManager()->CreateRenderTexture2DArray("Shadow DepthZ RT", DXGI_FORMAT_R32_TYPELESS, m_shadowMapRTSize, m_shadowMapRTSize, m_cascadeCount, 1, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL, false);
-	m_pShadowMapDepth->SetViews(1, 0, m_cascadeCount, 0);
-	for (UINT i = 0; i < m_cascadeCount; i++)
-		m_pShadowMapDepth->SetDSV(i, i, 1);	// DSV 单张切片（每次写cascade深度 只写一片）
-	m_pShadowMapDepth->SetSRV(0, 0, m_cascadeCount); // SRV 读取整个纹理数组（ShadowTest时使用）
-}
-
 void NXShadowMapRenderer::SetupInternal()
 {
 	SetShaderFilePath("Shader\\ShadowMap.fx");
@@ -101,11 +92,6 @@ void NXShadowMapRenderer::RenderSingleObject(ID3D12GraphicsCommandList* pCmdList
 
 void NXShadowMapRenderer::Release()
 {
-}
-
-Ntr<NXTexture2DArray> NXShadowMapRenderer::GetShadowMapDepthTex()
-{
-	return m_pShadowMapDepth;
 }
 
 void NXShadowMapRenderer::SetCascadeCount(UINT value)
@@ -241,8 +227,9 @@ void NXShadowMapRenderer::RenderCSMPerLight(ID3D12GraphicsCommandList* pCmdList,
 		g_cbDataShadowTest.projection[i] = mxShadowProj.Transpose();
 		m_cbCSMViewProj[i].Update(m_cbDataCSMViewProj[i]);
 
-		pCmdList->ClearDepthStencilView(m_pShadowMapDepth->GetDSV(i), D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0x0, 0, nullptr);
-		pCmdList->OMSetRenderTargets(0, nullptr, false, &m_pShadowMapDepth->GetDSV(i));
+		auto pCSMDepthDSV = GetOutputDS()->GetDSV(i);
+		pCmdList->ClearDepthStencilView(pCSMDepthDSV, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0x0, 0, nullptr);
+		pCmdList->OMSetRenderTargets(0, nullptr, false, &pCSMDepthDSV);
 		pCmdList->SetGraphicsRootConstantBufferView(1, m_cbCSMViewProj[i].CurrentGPUAddress());
 
 		// 更新当前 cascade 层 的 ShadowMap world 绘制矩阵，并绘制
