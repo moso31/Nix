@@ -102,6 +102,24 @@ NXRGResource* NXRenderGraph::ImportResource(const Ntr<NXTexture>& pTexture, NXRG
 	return pResource;
 }
 
+NXRGResource* NXRenderGraph::ImportResource(const Ntr<NXBuffer>& pBuffer)
+{
+	NXRGDescription desc;
+	desc.isImported = true;
+	desc.importData.pImportBuffer = pBuffer;
+	desc.importData.width = pBuffer->GetByteSize();
+	desc.importData.height = 1; 
+	desc.importData.arraySize = 1;
+	desc.isViewRT = false;
+	desc.type = NXTextureType::TextureType_None;
+	desc.format = DXGI_FORMAT_UNKNOWN; // Buffer没有格式 // 可能某些情况下需要R32_TYPELESS 但目前没用到
+	desc.handleFlags = RG_None;
+
+	NXRGResource* pResource = new NXRGResource(pBuffer->GetName(), desc);
+	m_resources.emplace_back(pResource);
+	return pResource;
+}
+
 NXRendererPass* NXRenderGraph::GetRenderPass(const std::string& passName)
 {
 	auto it = std::find_if(m_passNodes.begin(), m_passNodes.end(), [&](NXRGPassNodeBase* passNode) {

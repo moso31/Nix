@@ -8,8 +8,9 @@ void NXAllocatorManager::Init()
 	auto pDevice = NXGlobalDX::GetDevice();
 	m_bRunning.store(true);
 
-	m_pCBAllocator = std::make_unique<CommittedBufferAllocator>(pDevice, true, 64u, Memsize_MB(256));
-	m_pSBAllocator = std::make_unique<CommittedBufferAllocator>(pDevice, false, 64u, Memsize_MB(256));
+	m_pCBAllocator = std::make_unique<CommittedBufferAllocator>(pDevice, true, false, 64u, Memsize_MB(256));
+	m_pSBAllocator = std::make_unique<CommittedBufferAllocator>(pDevice, false, false, 64u, Memsize_MB(256));
+	m_pRWBAllocator = std::make_unique<PlacedBufferAllocator>(pDevice, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT, Memsize_MB(256));
 	m_pTextureAllocator = std::make_unique<PlacedBufferAllocator>(pDevice, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT, Memsize_MB(512));
 
 	m_pUpdateSystem = std::make_unique<UploadSystem>(pDevice);
@@ -18,7 +19,6 @@ void NXAllocatorManager::Init()
 	m_pSRVAllocator = std::make_unique<DescriptorAllocator<false>>(pDevice, 1000000, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	m_pRTVAllocator = std::make_unique<DescriptorAllocator<false>>(pDevice, 4096, D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	m_pDSVAllocator = std::make_unique<DescriptorAllocator<false>>(pDevice, 4096, D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-	//m_pUAVAllocator = std::make_unique<DescriptorAllocator<false>>(pDevice, 4096, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 	m_pShaderVisibleDescAllocator = std::make_unique<DescriptorAllocator<true>>(pDevice, 1000000, 10);
 
@@ -40,6 +40,7 @@ void NXAllocatorManager::Init()
 	addThread([this]() { m_pTextureLoader->Update(); }, "NXTextureLoader\n");
 	addThread([this]() { m_pCBAllocator->ExecuteTasks(); }, "NXCBAllocator\n");
 	addThread([this]() { m_pSBAllocator->ExecuteTasks(); }, "NXSBAllocator\n");
+	addThread([this]() { m_pRWBAllocator->ExecuteTasks(); }, "NXRWBAllocator\n");
 	addThread([this]() { m_pTextureAllocator->ExecuteTasks(); }, "NXTextureAllocator\n");
 	addThread([this]() { m_pSRVAllocator->ExecuteTasks(); }, "NXSRVAllocator\n");
 	addThread([this]() { m_pRTVAllocator->ExecuteTasks(); }, "NXRTVAllocator\n");

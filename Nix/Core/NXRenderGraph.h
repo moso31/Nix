@@ -33,6 +33,7 @@ public:
 
 	NXRGResource* CreateResource(const std::string& resourceName, const NXRGDescription& desc);
 	NXRGResource* ImportResource(const Ntr<NXTexture>& pTexture, NXRGHandleFlags flag = RG_None);
+	NXRGResource* ImportResource(const Ntr<NXBuffer>& pBuffer);
 	void SetViewResolution(const Vector2& resolution) { m_viewResolution = resolution; }	
 
 	NXRendererPass* GetRenderPass(const std::string& passName);

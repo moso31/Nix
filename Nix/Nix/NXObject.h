@@ -9,9 +9,6 @@ class NXRenderableObject;
 class NXPrimitive;
 class NXPrefab;
 class NXTerrain;
-class NXScript;
-class NXTexture;
-class NXTexture2D;
 
 class NXObject : public NXRefCountable
 {

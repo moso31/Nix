@@ -1,6 +1,7 @@
 #pragma once
 #include "NXRGHandle.h"
 #include "NXTexture.h"
+#include "NXBuffer.h"
 
 enum NXRGHandleType
 {
@@ -23,6 +24,7 @@ struct NXRGDescription
 	bool isImported = false;
 	struct
 	{
+		Ntr<NXBuffer> pImportBuffer = nullptr; // 如果是导入Buffer(isImported)
 		Ntr<NXTexture> pImportTexture = nullptr; // 如果是导入纹理(isImported)
 		uint32_t width;
 		uint32_t height;

@@ -9,6 +9,7 @@
 #include "NXRenderStates.h"
 #include "NXGUI.h"
 #include "NXTexture.h"
+#include "NXBuffer.h"
 #include "NXScene.h"
 #include "NXCubeMap.h"
 #include "NXDepthPrepass.h"

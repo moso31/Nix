@@ -287,11 +287,11 @@
     <ClCompile Include="Core\Renderer.cpp" />
     <ClCompile Include="Core\ShaderComplier.cpp" />
     <ClCompile Include="Core\NXShaderVisibleDescriptorHeap.cpp" />
+    <ClCompile Include="Nix\NXBuffer.cpp" />
     <ClCompile Include="Nix\NXQuadTree.cpp" />
     <ClCompile Include="Nix\NXRefCountable.cpp" />
     <ClCompile Include="Nix\NXTerrain.cpp" />
     <ClCompile Include="Nix\HBVH.cpp" />
-    <ClCompile Include="Nix\NXBuffer.cpp" />
     <ClCompile Include="Nix\NXDepthPrepass.cpp" />
     <ClCompile Include="Nix\NXSSSDiffuseProfile.cpp" />
     <ClCompile Include="Nix\NXEditorObjectManager.cpp" />
@@ -406,6 +406,7 @@
     <ClInclude Include="Core\NXShaderVisibleDescriptorHeap.h" />
     <ClInclude Include="Nix\HBVH.h" />
     <ClInclude Include="Nix\NXBuffer.h" />
+    <ClInclude Include="Nix\NXRWBuffer.h" />
     <ClInclude Include="Nix\NXConstantBuffer.h" />
     <ClInclude Include="Nix\NXDepthPrepass.h" />
     <ClInclude Include="Nix\NXQuadTree.h" />

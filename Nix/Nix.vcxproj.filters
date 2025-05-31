@@ -463,9 +463,6 @@
     <ClCompile Include="Core\NXSamplerManager.cpp">
       <Filter>Core\DirectX\Manager</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\NXBuffer.cpp">
-      <Filter>Nix\TextureBuffer</Filter>
-    </ClCompile>
     <ClCompile Include="Core\NXPSOManager.cpp">
       <Filter>Core\DirectX\Manager</Filter>
     </ClCompile>
@@ -540,6 +537,9 @@
     </ClCompile>
     <ClCompile Include="Core\NXCodeProcessHelper.cpp">
       <Filter>Core\Helper\NXCodeProcess</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXBuffer.cpp">
+      <Filter>Nix\TextureBuffer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -807,7 +807,7 @@
     <ClInclude Include="Core\NXSamplerManager.h">
       <Filter>Core\DirectX\Manager</Filter>
     </ClInclude>
-    <ClInclude Include="Nix\NXBuffer.h">
+    <ClInclude Include="Nix\NXRWBuffer.h">
       <Filter>Nix\TextureBuffer</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXCommonTexDefinition.h">
@@ -905,6 +905,9 @@
     </ClInclude>
     <ClInclude Include="Core\NXCodeProcessHeader.h">
       <Filter>Core\Helper\NXCodeProcess</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXBuffer.h">
+      <Filter>Nix\TextureBuffer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

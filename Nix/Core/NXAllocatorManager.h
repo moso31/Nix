@@ -4,14 +4,22 @@
 #include "NXShaderVisibleDescriptorHeap.h"
 #include "NXTextureLoader.h"
 
-#define NXAllocator_CB		NXAllocatorManager::GetInstance()->GetCBAllocator()
-#define NXAllocator_SB		NXAllocatorManager::GetInstance()->GetSBAllocator()
-#define NXAllocator_Tex		NXAllocatorManager::GetInstance()->GetTextureAllocator()
+// 资源
+#define NXAllocator_CB		NXAllocatorManager::GetInstance()->GetCBAllocator()			// cb
+#define NXAllocator_SB		NXAllocatorManager::GetInstance()->GetSBAllocator()			// vb, ib, instance-data
+#define NXAllocator_RWB		NXAllocatorManager::GetInstance()->GetRWBAllocator()		// rw buffer
+#define NXAllocator_Tex		NXAllocatorManager::GetInstance()->GetTextureAllocator()	// texture，但其中目前仅文件、高度图、cpu程序生成这几种。但不包括RT（RT单独）
+
+// 描述符
 #define NXAllocator_SRV		NXAllocatorManager::GetInstance()->GetSRVAllocator()
 #define NXAllocator_RTV		NXAllocatorManager::GetInstance()->GetRTVAllocator()
 #define NXAllocator_DSV		NXAllocatorManager::GetInstance()->GetDSVAllocator()
 #define NXShVisDescHeap		NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorAllocator()
+
+// 上传系统
 #define NXUploadSystem		NXAllocatorManager::GetInstance()->GetUploadSystem()
+
+// 纹理加载器
 #define NXTexLoader			NXAllocatorManager::GetInstance()->GetTextureLoader()
 
 using namespace ccmem;
@@ -23,6 +31,7 @@ public:
 
 	CommittedBufferAllocator*			GetCBAllocator()			{ return m_pCBAllocator.get(); }
 	CommittedBufferAllocator*			GetSBAllocator()			{ return m_pSBAllocator.get(); }
+	PlacedBufferAllocator*				GetRWBAllocator()			{ return m_pRWBAllocator.get(); }
 	PlacedBufferAllocator*				GetTextureAllocator()		{ return m_pTextureAllocator.get(); }
 
 	DescriptorAllocator<false>*			GetSRVAllocator()			{ return m_pSRVAllocator.get(); }
@@ -41,7 +50,9 @@ public:
 private:
 	std::unique_ptr<CommittedBufferAllocator>	m_pCBAllocator;	
 	std::unique_ptr<CommittedBufferAllocator>	m_pSBAllocator;
+	std::unique_ptr<PlacedBufferAllocator>		m_pRWBAllocator;
 	std::unique_ptr<PlacedBufferAllocator>		m_pTextureAllocator;
+
 	std::unique_ptr<DescriptorAllocator<false>>	m_pSRVAllocator;
 	std::unique_ptr<DescriptorAllocator<false>>	m_pRTVAllocator;
 	std::unique_ptr<DescriptorAllocator<false>>	m_pDSVAllocator;
