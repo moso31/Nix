@@ -524,9 +524,9 @@ D3D12_RESOURCE_DIMENSION NXTexture::GetResourceDimentionFromType()
 		return D3D12_RESOURCE_DIMENSION_UNKNOWN;
 	case TextureType_1D: 
 		return D3D12_RESOURCE_DIMENSION_TEXTURE1D;
-	case TextureType_2D: 
-	case TextureType_Cube:
-	case TextureType_2DArray:
+	case Tex2D: 
+	case TexCube:
+	case Tex2DArray:
 		return D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	case TextureType_3D:
 		return D3D12_RESOURCE_DIMENSION_TEXTURE3D;

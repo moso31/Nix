@@ -29,7 +29,7 @@ void NXRenderGraph::Compile(bool isResize)
 
 		if (!desc.isImported) // 如果非导入，需要自己创建纹理
 		{
-			if (desc.type == NXTextureType::TextureType_2D)
+			if (desc.type == NXResourceType::Tex2D)
 			{
 				Ntr<NXTexture2D> pTexture2D(new NXTexture2D());
 				pTexture2D->CreateRenderTexture(pResource->GetName(), desc.format, width, height, flags);
@@ -111,7 +111,7 @@ NXRGResource* NXRenderGraph::ImportResource(const Ntr<NXBuffer>& pBuffer)
 	desc.importData.height = 1; 
 	desc.importData.arraySize = 1;
 	desc.isViewRT = false;
-	desc.type = NXTextureType::TextureType_None;
+	desc.type = NXResourceType::Buffer;
 	desc.format = DXGI_FORMAT_UNKNOWN; // Buffer没有格式 // 可能某些情况下需要R32_TYPELESS 但目前没用到
 	desc.handleFlags = RG_None;
 

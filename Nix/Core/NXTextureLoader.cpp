@@ -61,7 +61,7 @@ void NXTextureLoader::DoTask(const NXTextureLoaderTask& task)
 	}
 
 	// 如果是Texture2D纹理，并且读取的是arraySize/TextureCube 类型的文件，就只加载第一面。
-	if (metadata.arraySize > 1 && type == TextureType_2D)
+	if (metadata.arraySize > 1 && type == Tex2D)
 	{
 		std::shared_ptr<ScratchImage> timage(new ScratchImage);
 		hr = timage->InitializeFromImage(*pImage->GetImage(0, 0, 0));

@@ -58,7 +58,7 @@ public:
 
 	void SetStencilRef(const UINT stencilRef) { m_stencilRef = stencilRef; }
 
-	// 2024.5.26 当前 Nix 的根参数（和采样器）-寄存器的布局规则：
+	// 当前 Nix Graphic Pass 的根参数（和采样器）-寄存器的布局规则：
 	// 1. 每个CBV占用一个根参数
 	// 2. 若存在SRV，则这些SRV都将放到一个描述符Table里。且该Table将始终占用最后一个根参数。
 	// （2+. UAV 目前暂时还没涉及到，用到了再说）

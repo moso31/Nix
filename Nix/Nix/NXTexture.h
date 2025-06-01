@@ -1,12 +1,6 @@
 #pragma once
-#include "BaseDefs/DX12.h"
-#include "BaseDefs/NixCore.h"
+#include "NXResource.h"
 #include <future>
-#include "SimpleMath.h"
-#include "Ntr.h"
-#include "NXObject.h"
-#include "NXSerializable.h"
-#include "NXTextureDefinitions.h"
 #include "NXTextureReloadTesk.h"
 #include "NXConverter.h"
 
@@ -50,18 +44,17 @@ struct NXTextureUploadChunk
 class NXTexture2D;
 class NXTexture2DArray;
 class NXTextureCube;
-class NXTexture : public NXObject, public NXSerializable
+class NXTexture : public NXResource
 {
 public:
-    NXTexture(NXTextureType type) :
+    NXTexture(NXResourceType type) : 
+        NXResource(type),
         m_width(-1),
         m_height(-1),
         m_arraySize(-1),
         m_texFormat(DXGI_FORMAT_UNKNOWN),
         m_mipLevels(-1),
         m_texFilePath(""),
-        m_type(type),
-        m_resourceState(D3D12_RESOURCE_STATE_COPY_DEST),
         m_loadingViews(0),
         m_futureLoadingViews(m_promiseLoadingViews.get_future()),
         m_futureLoadingTexChunks(m_promiseLoadingTexChunks.get_future()),
@@ -70,7 +63,7 @@ public:
 
     virtual ~NXTexture();
 
-    NXTextureType GetTextureType() const { return m_type; }
+    NXResourceType GetResourceType() const { return m_type; }
 
     ID3D12Resource* GetTex() const { return m_pTexture.Get(); }
     D3D12_CPU_DESCRIPTOR_HANDLE GetSRV(uint32_t index = 0);
@@ -101,8 +94,7 @@ public:
     void SetClearValue(float R, float G, float B, float A);
     void SetClearValue(float depth, uint32_t stencilRef);
 
-    const D3D12_RESOURCE_STATES& GetResourceState() { return m_resourceState; }
-    void SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D3D12_RESOURCE_STATES& state);
+    void SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D3D12_RESOURCE_STATES& state) override;
 
     const std::filesystem::path& GetFilePath() const { return m_texFilePath; }
 
@@ -145,7 +137,6 @@ private:
 protected:
     ComPtr<ID3D12Resource> m_pTexture;
 
-    D3D12_RESOURCE_STATES m_resourceState;
     std::filesystem::path m_texFilePath;
 
     std::atomic<int> m_loadingTexChunks;
@@ -166,7 +157,6 @@ protected:
     std::future<void> m_futureLoading2DPreview;
     std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> m_pSRVPreviews;
 
-    NXTextureType m_type;
     DXGI_FORMAT m_texFormat;
     uint32_t m_width;
     uint32_t m_height;
@@ -184,7 +174,7 @@ protected:
 class NXTexture2D : public NXTexture
 {
 public:
-    NXTexture2D() : NXTexture(TextureType_2D) {}
+    NXTexture2D() : NXTexture(NXResourceType::Tex2D) {}
     NXTexture2D(const NXTexture2D& other) = delete;
     virtual ~NXTexture2D() {}
 
@@ -205,7 +195,7 @@ public:
 class NXTextureCube : public NXTexture
 {
 public:
-    NXTextureCube() : NXTexture(TextureType_Cube) {}
+    NXTextureCube() : NXTexture(NXResourceType::TexCube) {}
     virtual ~NXTextureCube() {}
 
     void Create(const std::string& debugName, DXGI_FORMAT texFormat, uint32_t width, uint32_t height, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
@@ -224,7 +214,7 @@ public:
 class NXTexture2DArray : public NXTexture
 {
 public:
-    NXTexture2DArray() : NXTexture(TextureType_2DArray) {}
+    NXTexture2DArray() : NXTexture(NXResourceType::Tex2DArray) {}
     virtual ~NXTexture2DArray() {}
 
     void Create(const std::string& debugName, const std::wstring& filePath, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);

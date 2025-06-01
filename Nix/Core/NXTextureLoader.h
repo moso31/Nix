@@ -15,7 +15,7 @@ struct NXTextureLoaderTaskResult
 struct NXTextureLoaderTask
 {
 	std::filesystem::path path;
-	NXTextureType type;
+	NXResourceType type;
 	NXTextureSerializationData serializationData;
 
 	std::function<void(NXTextureLoaderTaskResult)> pCallBack;

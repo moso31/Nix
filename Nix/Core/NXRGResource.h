@@ -31,7 +31,7 @@ struct NXRGDescription
 		uint32_t arraySize;
 	} importData;
 
-	NXTextureType type = NXTextureType::TextureType_2D;
+	NXResourceType type = NXResourceType::Tex2D;
 
 	// 纹理的DXGI格式
 	DXGI_FORMAT format;

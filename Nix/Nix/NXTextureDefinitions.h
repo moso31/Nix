@@ -1,13 +1,14 @@
 #pragma once
 
-enum NXTextureType
+enum class NXResourceType
 {
-    TextureType_None,
-    TextureType_1D,
-    TextureType_2D,
-    TextureType_Cube,
-    TextureType_2DArray,
-    TextureType_3D,
+    None,
+    Buffer,
+    Tex1D,
+    Tex2D,
+    TexCube,
+    Tex2DArray,
+    Tex3D,
 };
 
 enum class NXTextureMode

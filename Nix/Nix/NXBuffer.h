@@ -1,10 +1,10 @@
 #pragma once
-#include "NXObject.h"
+#include "NXResource.h"
 
-class NXBuffer : public NXObject
+class NXBuffer : public NXResource
 {
 public:
-	NXBuffer(const std::string& name) : NXObject(name) {}
+	NXBuffer(const std::string& name) : NXResource(NXResourceType::Buffer, name) {}
 	virtual ~NXBuffer() {}
 
 	void Create(uint32_t stride, uint32_t arraySize);
