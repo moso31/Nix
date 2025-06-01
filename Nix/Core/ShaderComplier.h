@@ -18,9 +18,11 @@ public:
 
 	HRESULT CompileVS(const std::filesystem::path& shaderFilePath, const std::wstring& mainFuncEntryPoint, IDxcBlob** pVSBlob, std::string& oErrorMessage = std::string(), bool clearDefineMacros = true);
 	HRESULT CompilePS(const std::filesystem::path& shaderFilePath, const std::wstring& mainFuncEntryPoint, IDxcBlob** pPSBlob, std::string& oErrorMessage = std::string(), bool clearDefineMacros = true);
+	HRESULT CompileCS(const std::filesystem::path& shaderFilePath, const std::wstring& mainFuncEntryPoint, IDxcBlob** pCSBlob, std::string& oErrorMessage = std::string(), bool clearDefineMacros = true);
 
 	HRESULT CompileVSByCode(const std::string& shaderCode, const std::wstring& mainFuncEntryPoint, IDxcBlob** pVSBlob, std::string& oErrorMessage = std::string(), bool clearDefineMacros = true);
 	HRESULT CompilePSByCode(const std::string& shaderCode, const std::wstring& mainFuncEntryPoint, IDxcBlob** pPSBlob, std::string& oErrorMessage = std::string(), bool clearDefineMacros = true);
+	HRESULT CompileCSByCode(const std::string& shaderCode, const std::wstring& mainFuncEntryPoint, IDxcBlob** pCSBlob, std::string& oErrorMessage = std::string(), bool clearDefineMacros = true);
 
 	void AddMacro(const std::wstring& name, const std::wstring& value);
 	void ClearMacros();

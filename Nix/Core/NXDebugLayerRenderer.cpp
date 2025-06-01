@@ -41,5 +41,5 @@ void NXDebugLayerRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 	m_cbData.LayerParam0.y = m_fShadowMapZoomScale;
 	m_cb.Update(m_cbData);
 
-	NXRendererPass::Render(pCmdList);
+	NXGraphicPass::Render(pCmdList);
 }

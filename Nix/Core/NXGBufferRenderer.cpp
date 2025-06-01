@@ -34,7 +34,7 @@ void NXGBufferRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 {
 	NX12Util::BeginEvent(pCmdList, "GBuffer");
 
-	NXRendererPass::RenderSetTargetAndState(pCmdList);
+	NXGraphicPass::RenderSetTargetAndState(pCmdList);
 
 	pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 

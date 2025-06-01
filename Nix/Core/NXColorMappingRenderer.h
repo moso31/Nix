@@ -1,5 +1,5 @@
 #pragma once
-#include "NXRendererPass.h"
+#include "NXGraphicPass.h"
 #include "NXConstantBuffer.h"
 
 struct CBufferColorMapping
@@ -7,7 +7,7 @@ struct CBufferColorMapping
 	Vector4 param0; // x: enable
 };
 
-class NXColorMappingRenderer : public NXRendererPass
+class NXColorMappingRenderer : public NXGraphicPass
 {
 public:
 	NXColorMappingRenderer();

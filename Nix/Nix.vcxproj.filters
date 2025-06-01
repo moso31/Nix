@@ -538,7 +538,7 @@
     <ClCompile Include="Nix\NXBuffer.cpp">
       <Filter>Nix\TextureBuffer</Filter>
     </ClCompile>
-    <ClCompile Include="Core\NXRendererPass.cpp">
+    <ClCompile Include="Core\NXGraphicPass.cpp">
       <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXComputePass.cpp">
@@ -546,6 +546,9 @@
     </ClCompile>
     <ClCompile Include="Nix\NXResource.cpp">
       <Filter>Nix\TextureBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXRenderPass.cpp">
+      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -912,7 +915,7 @@
     <ClInclude Include="Nix\NXBuffer.h">
       <Filter>Nix\TextureBuffer</Filter>
     </ClInclude>
-    <ClInclude Include="Core\NXRendererPass.h">
+    <ClInclude Include="Core\NXGraphicPass.h">
       <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXComputePass.h">
@@ -920,6 +923,9 @@
     </ClInclude>
     <ClInclude Include="Nix\NXResource.h">
       <Filter>Nix\TextureBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXRenderPass.h">
+      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

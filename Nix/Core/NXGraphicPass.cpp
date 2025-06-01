@@ -1,4 +1,4 @@
-#include "NXRendererPass.h"
+#include "NXGraphicPass.h"
 #include "NXResourceManager.h"
 #include "ShaderComplier.h"
 #include "NXGlobalDefinitions.h"
@@ -8,9 +8,9 @@
 #include "NXAllocatorManager.h"
 #include "NXSubMeshGeometryEditor.h"
 
-NXRendererPass::NXRendererPass() :
+NXGraphicPass::NXGraphicPass() :
+	NXRenderPass(),
 	m_psoDesc({}),
-	m_passName("Unnamed Pass"),
 	m_stencilRef(0x0),
 	m_rtSubMeshName("_RenderTarget")
 {
@@ -26,73 +26,73 @@ NXRendererPass::NXRendererPass() :
 	m_srvUavRanges.reserve(1);
 }
 
-void NXRendererPass::SetInputTex(NXCommonTexEnum eCommonTex, uint32_t slotIndex)
+void NXGraphicPass::SetInputTex(NXCommonTexEnum eCommonTex, uint32_t slotIndex)
 {
 	auto pTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(eCommonTex);
 	if (m_pInTexs.size() <= slotIndex) m_pInTexs.resize(slotIndex + 1);
 	m_pInTexs[slotIndex] = pTex;
 }
 
-void NXRendererPass::SetInputTex(const Ntr<NXTexture>& pTex, uint32_t slotIndex)
+void NXGraphicPass::SetInputTex(const Ntr<NXTexture>& pTex, uint32_t slotIndex)
 {
 	if (m_pInTexs.size() <= slotIndex) m_pInTexs.resize(slotIndex + 1);
 	m_pInTexs[slotIndex] = pTex;
 }
 
-void NXRendererPass::SetOutputRT(const Ntr<NXTexture>& pTex, uint32_t rtIndex)
+void NXGraphicPass::SetOutputRT(const Ntr<NXTexture>& pTex, uint32_t rtIndex)
 {
 	if (m_pOutRTs.size() <= rtIndex) m_pOutRTs.resize(rtIndex + 1);
 	m_pOutRTs[rtIndex] = pTex;
 }
 
-void NXRendererPass::SetOutputDS(const Ntr<NXTexture>& pTex)
+void NXGraphicPass::SetOutputDS(const Ntr<NXTexture>& pTex)
 {
 	m_pOutDS = pTex;
 }
 
-void NXRendererPass::SetInputLayout(const D3D12_INPUT_LAYOUT_DESC& desc)
+void NXGraphicPass::SetInputLayout(const D3D12_INPUT_LAYOUT_DESC& desc)
 {
 	m_psoDesc.InputLayout = desc;
 }
 
-void NXRendererPass::SetRenderTargetMesh(const std::string& rtSubMeshName)
+void NXGraphicPass::SetRenderTargetMesh(const std::string& rtSubMeshName)
 {
 	m_rtSubMeshName = rtSubMeshName;
 }
 
-void NXRendererPass::SetBlendState(const D3D12_BLEND_DESC& desc)
+void NXGraphicPass::SetBlendState(const D3D12_BLEND_DESC& desc)
 {
 	m_psoDesc.BlendState = desc;
 }
 
-void NXRendererPass::SetRasterizerState(const D3D12_RASTERIZER_DESC& desc)
+void NXGraphicPass::SetRasterizerState(const D3D12_RASTERIZER_DESC& desc)
 {
 	m_psoDesc.RasterizerState = desc;
 }
 
-void NXRendererPass::SetDepthStencilState(const D3D12_DEPTH_STENCIL_DESC& desc)
+void NXGraphicPass::SetDepthStencilState(const D3D12_DEPTH_STENCIL_DESC& desc)
 {
 	m_psoDesc.DepthStencilState = desc;
 }
 
-void NXRendererPass::SetSampleDescAndMask(UINT Count, UINT Quality, UINT Mask)
+void NXGraphicPass::SetSampleDescAndMask(UINT Count, UINT Quality, UINT Mask)
 {
 	m_psoDesc.SampleDesc.Count = Count;
 	m_psoDesc.SampleDesc.Quality = Quality;
 	m_psoDesc.SampleMask = Mask;
 }
 
-void NXRendererPass::SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE type)
+void NXGraphicPass::SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE type)
 {
 	m_psoDesc.PrimitiveTopologyType = type;
 }
 
-void NXRendererPass::SetShaderFilePath(const std::filesystem::path& shaderFilePath)
+void NXGraphicPass::SetShaderFilePath(const std::filesystem::path& shaderFilePath)
 {
 	m_shaderFilePath = shaderFilePath;
 }
 
-void NXRendererPass::InitPSO()
+void NXGraphicPass::InitPSO()
 {
 	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::GetDevice(), m_rootParams, m_staticSamplers);
 
@@ -115,7 +115,7 @@ void NXRendererPass::InitPSO()
 	m_pPSO->SetName(psoName.c_str());
 }
 
-void NXRendererPass::RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList)
+void NXGraphicPass::RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList)
 {
 	std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> ppRTVs;
 	for (auto& pTex : m_pOutRTs) ppRTVs.push_back(pTex->GetRTV());
@@ -130,7 +130,7 @@ void NXRendererPass::RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList
 		m_pOutDS->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 }
 
-void NXRendererPass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
+void NXGraphicPass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 {
 	pCmdList->OMSetStencilRef(m_stencilRef);
 
@@ -139,6 +139,8 @@ void NXRendererPass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 
 	for (int i = 0; i < (int)m_cbvManagements.size(); i++)
 	{
+		// 支持自动绑定，但自动绑定（autoUpdate）是图方便搞的语法糖，
+		// 也许让上层接口自己手动更新更清晰。// 保持现状，如果未来觉得这样不合适，再改
 		if (m_cbvManagements[i].autoUpdate)
 		{
 			const D3D12_GPU_VIRTUAL_ADDRESS gpuVirtAddr = m_cbvManagements[i].multiFrameGpuVirtAddr->Current();
@@ -158,7 +160,7 @@ void NXRendererPass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 	}
 }
 
-void NXRendererPass::Render(ID3D12GraphicsCommandList* pCmdList)
+void NXGraphicPass::Render(ID3D12GraphicsCommandList* pCmdList)
 {
 	NX12Util::BeginEvent(pCmdList, m_passName.c_str());
 
@@ -177,7 +179,7 @@ void NXRendererPass::Render(ID3D12GraphicsCommandList* pCmdList)
 	NX12Util::EndEvent(pCmdList);
 }
 
-void NXRendererPass::SetRootParams(int CBVNum, int SRVUAVNum)
+void NXGraphicPass::SetRootParams(int CBVNum, int SRVUAVNum)
 {
 	m_srvUavRanges.clear();
 	m_rootParams.clear();
@@ -197,24 +199,24 @@ void NXRendererPass::SetRootParams(int CBVNum, int SRVUAVNum)
 	m_cbvManagements.resize(CBVNum);
 }
 
-void NXRendererPass::SetStaticRootParamCBV(int rootParamIndex, const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>* gpuVirtAddrs)
+void NXGraphicPass::SetStaticRootParamCBV(int rootParamIndex, const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>* gpuVirtAddrs)
 {
 	m_cbvManagements[rootParamIndex].autoUpdate = true;
 	m_cbvManagements[rootParamIndex].multiFrameGpuVirtAddr = gpuVirtAddrs;
 }
 
-void NXRendererPass::SetStaticRootParamCBV(int rootParamIndex, int slotIndex, const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>* gpuVirtAddrs)
+void NXGraphicPass::SetStaticRootParamCBV(int rootParamIndex, int slotIndex, const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>* gpuVirtAddrs)
 {
 	SetStaticRootParamCBV(rootParamIndex, gpuVirtAddrs);
 	m_rootParams[rootParamIndex].Descriptor.ShaderRegister = slotIndex;
 }
 
-void NXRendererPass::AddStaticSampler(const D3D12_STATIC_SAMPLER_DESC& samplerDesc)
+void NXGraphicPass::AddStaticSampler(const D3D12_STATIC_SAMPLER_DESC& samplerDesc)
 {
 	m_staticSamplers.push_back(samplerDesc);
 }
 
-void NXRendererPass::AddStaticSampler(D3D12_FILTER filter, D3D12_TEXTURE_ADDRESS_MODE addrUVW)
+void NXGraphicPass::AddStaticSampler(D3D12_FILTER filter, D3D12_TEXTURE_ADDRESS_MODE addrUVW)
 {
 	auto& samplerDesc = NXSamplerManager::GetInstance()->CreateIso((int)m_staticSamplers.size(), 0, D3D12_SHADER_VISIBILITY_ALL, filter, addrUVW);
 	m_staticSamplers.push_back(samplerDesc);

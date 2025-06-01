@@ -1,5 +1,5 @@
 #pragma once
-#include "NXRendererPass.h"
+#include "NXGraphicPass.h"
 #include "NXConstantBuffer.h"
 
 struct CBufferDebugLayer
@@ -8,7 +8,7 @@ struct CBufferDebugLayer
 };
 
 class NXShadowMapRenderer;
-class NXDebugLayerRenderer : public NXRendererPass
+class NXDebugLayerRenderer : public NXGraphicPass
 {
 public:
 	NXDebugLayerRenderer();

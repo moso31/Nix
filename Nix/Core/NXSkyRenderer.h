@@ -1,8 +1,8 @@
 #pragma once
-#include "NXRendererPass.h"
+#include "NXGraphicPass.h"
 
 class NXScene;
-class NXSkyRenderer : public NXRendererPass
+class NXSkyRenderer : public NXGraphicPass
 {
 public:
 	NXSkyRenderer(NXScene* pScene);

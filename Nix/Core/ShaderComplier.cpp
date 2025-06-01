@@ -65,6 +65,31 @@ HRESULT NXShaderComplier::CompilePS(const std::filesystem::path& shaderFilePath,
 
 	return CompileInternal(sourceBuffer, shaderFilePath.wstring(), s_smVersionPS, mainFuncEntryPoint, pPSBlob, oErrorMessage, clearDefineMacros);
 }
+HRESULT NXShaderComplier::CompileCS(const std::filesystem::path& shaderFilePath, const std::wstring& mainFuncEntryPoint, IDxcBlob** pCSBlob, std::string& oErrorMessage, bool clearDefineMacros)
+{
+	ComPtr<IDxcBlobEncoding> pSrcBlob;
+	HRESULT hr = m_pDXCUtils->LoadFile(shaderFilePath.c_str(), nullptr, &pSrcBlob);
+	if (FAILED(hr))
+	{
+		std::wstring msg = L"shader " + shaderFilePath.wstring() + L" cannot be loaded.  Please run this executable from the directory that contains the FX file.";
+		MessageBox(nullptr, msg.c_str(), L"error", MB_OK);
+		return hr;
+	}
+
+	DxcBuffer sourceBuffer;
+	sourceBuffer.Ptr = pSrcBlob->GetBufferPointer();
+	sourceBuffer.Size = pSrcBlob->GetBufferSize();
+	sourceBuffer.Encoding = DXC_CP_UTF8;
+
+	return CompileInternal(
+		sourceBuffer,
+		shaderFilePath.wstring(),
+		s_smVersionCS,
+		mainFuncEntryPoint,
+		pCSBlob,
+		oErrorMessage,
+		clearDefineMacros);
+}
 HRESULT NXShaderComplier::CompileVSByCode(const std::string& shaderCode, const std::wstring& mainFuncEntryPoint, IDxcBlob** pVSBlob, std::string& oErrorMessage, bool clearDefineMacros)
 {
 	DxcBuffer sourceBuffer;
@@ -83,6 +108,16 @@ HRESULT NXShaderComplier::CompilePSByCode(const std::string& shaderCode, const s
 	sourceBuffer.Encoding = DXC_CP_UTF8;
 
 	return CompileInternal(sourceBuffer, L"[Custom Shader]", s_smVersionPS, mainFuncEntryPoint, pPSBlob, oErrorMessage, clearDefineMacros);
+}
+
+HRESULT NXShaderComplier::CompileCSByCode(const std::string& shaderCode, const std::wstring& mainFuncEntryPoint, IDxcBlob** pCSBlob, std::string& oErrorMessage, bool clearDefineMacros)
+{
+	DxcBuffer sourceBuffer;
+	sourceBuffer.Ptr = shaderCode.data();
+	sourceBuffer.Size = shaderCode.size();
+	sourceBuffer.Encoding = DXC_CP_UTF8;
+
+	return CompileInternal(sourceBuffer, L"[Custom Shader]", s_smVersionCS, mainFuncEntryPoint, pCSBlob, oErrorMessage, clearDefineMacros);
 }
 
 void NXShaderComplier::AddMacro(const std::wstring& name, const std::wstring& value)

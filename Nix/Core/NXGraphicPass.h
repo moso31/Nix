@@ -1,9 +1,5 @@
 #pragma once
-#include "BaseDefs/DX12.h"
-#include <filesystem>
-#include "Ntr.h"
-#include "NXCommonTexDefinition.h"
-#include "NXTexture.h"
+#include "NXRenderPass.h"
 
 class NXPassTexture
 {
@@ -15,28 +11,13 @@ public:
 	uint32_t slotIndex = -1;
 };
 
-// 在DX12要绑定CB，需要提供对应CBV的gpuHandle。
-// cmdList将使用gpuHandle。
-struct NXCBVManagement
-{
-	// 用于记录每帧 cmdList如何接收 cbv gpu 虚拟地址。
-	// true: 使用 multiFrameGpuVirtAddr 中的地址；
-	// false: 派生类手动更新，这里不用管。
-	bool autoUpdate = false;
-
-	// 如果启用autoUpdate，使用这里的gpuHandle（D3D12_GPU_VIRTUAL_ADDRESS）。
-	const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>* multiFrameGpuVirtAddr;
-};
-
-class NXRendererPass
+class NXGraphicPass : public NXRenderPass
 {
 public:
-	NXRendererPass();
-	virtual ~NXRendererPass() {}
+	NXGraphicPass();
+	virtual ~NXGraphicPass() {}
 
 	virtual void SetupInternal() = 0;
-
-	void SetPassName(const std::string& passName) { m_passName = passName; }
 
 	void SetInputTex(NXCommonTexEnum eCommonTex, uint32_t slotIndex);
 	void SetInputTex(const Ntr<NXTexture>& pTex, uint32_t slotIndex);
@@ -66,9 +47,7 @@ public:
 	// 4. 采样器始终使用StaticSampler，不考虑动态Sampler，目前够用了
 	void SetRootParams(int CBVNum, int SRVUAVNum);
 
-	// 设置静态CBV。
-	// 注意：对一个Pass，如果设置成静态CBV，那么这个CBV的映射地址整个Pass的生命周期内不会改变。
-	// 应该根据Pass实际情况决定是否设置，而不是盲目全部设置。
+	// 设置CBV。
 	// rootParamIndex: 根参数的索引
 	// slotIndex: 描述符表的索引，如果不提供，则和rootParamIndex相同。
 	// gpuVirtAddr: CBV的gpu虚拟地址
@@ -89,7 +68,6 @@ public:
 	void Release() {}
 
 private:
-	std::string	m_passName;
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC		m_psoDesc;
 	ComPtr<ID3D12PipelineState>				m_pPSO;
 	ComPtr<ID3D12RootSignature>				m_pRootSig;
@@ -111,7 +89,7 @@ private:
 	// pass 使用的静态采样器
 	std::vector<D3D12_STATIC_SAMPLER_DESC>	m_staticSamplers;
 
-	// Pass总是需要开发者描述这个Pass依赖哪些CB。
+	// 描述当前pass cb的输入布局
 	std::vector<NXCBVManagement>			m_cbvManagements;
 
 	// rt 使用的 subMesh 的名称。

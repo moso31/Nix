@@ -229,8 +229,9 @@
     <ClCompile Include="Core\NXGUIInspector.cpp" />
     <ClCompile Include="Core\NXGUIRenderGraph.cpp" />
     <ClCompile Include="Core\NXPSOManager.cpp" />
-    <ClCompile Include="Core\NXRendererPass.cpp" />
+    <ClCompile Include="Core\NXGraphicPass.cpp" />
     <ClCompile Include="Core\NXRenderGraph.cpp" />
+    <ClCompile Include="Core\NXRenderPass.cpp" />
     <ClCompile Include="Core\NXRGBuilder.cpp" />
     <ClCompile Include="Core\NXRGHandle.cpp" />
     <ClCompile Include="Core\NXRGPassNode.cpp" />
@@ -346,8 +347,9 @@
     <ClInclude Include="Core\NXGUIInspector.h" />
     <ClInclude Include="Core\NXGUIRenderGraph.h" />
     <ClInclude Include="Core\NXPSOManager.h" />
-    <ClInclude Include="Core\NXRendererPass.h" />
+    <ClInclude Include="Core\NXGraphicPass.h" />
     <ClInclude Include="Core\NXRenderGraph.h" />
+    <ClInclude Include="Core\NXRenderPass.h" />
     <ClInclude Include="Core\NXRGBuilder.h" />
     <ClInclude Include="Core\NXRGHandle.h" />
     <ClInclude Include="Core\NXRGPassNode.h" />

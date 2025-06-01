@@ -13,6 +13,8 @@ public:
 	NXResource(NXResourceType type, const std::string& name = "");
 	virtual ~NXResource() = default;
 
+	NXResourceType GetResourceType() const { return m_type; }
+
 	virtual const D3D12_RESOURCE_STATES& GetResourceState() { return m_resourceState; }
 	virtual void SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D3D12_RESOURCE_STATES& state) = 0;
 

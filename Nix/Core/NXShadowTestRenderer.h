@@ -1,8 +1,8 @@
 #pragma once
-#include "NXRendererPass.h"
+#include "NXGraphicPass.h"
 
 class NXShadowMapRenderer;
-class NXShadowTestRenderer : public NXRendererPass
+class NXShadowTestRenderer : public NXGraphicPass
 {
 public:
 	NXShadowTestRenderer() = default;

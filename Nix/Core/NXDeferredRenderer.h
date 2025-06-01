@@ -1,5 +1,5 @@
 #pragma once
-#include "NXRendererPass.h"
+#include "NXGraphicPass.h"
 #include "ShaderStructures.h"
 #include "Ntr.h"
 
@@ -7,7 +7,7 @@ class NXScene;
 class NXBRDFLut;
 class NXTexture2D;
 class NXRenderTarget;
-class NXDeferredRenderer : public NXRendererPass
+class NXDeferredRenderer : public NXGraphicPass
 {
 public:
 	NXDeferredRenderer(NXScene* pScene);

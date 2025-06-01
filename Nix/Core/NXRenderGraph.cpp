@@ -120,7 +120,7 @@ NXRGResource* NXRenderGraph::ImportResource(const Ntr<NXBuffer>& pBuffer)
 	return pResource;
 }
 
-NXRendererPass* NXRenderGraph::GetRenderPass(const std::string& passName)
+NXGraphicPass* NXRenderGraph::GetRenderPass(const std::string& passName)
 {
 	auto it = std::find_if(m_passNodes.begin(), m_passNodes.end(), [&](NXRGPassNodeBase* passNode) {
 		return passNode->GetName() == passName;

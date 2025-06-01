@@ -5,7 +5,7 @@
 
 #include "NXRGBuilder.h"
 #include "NXRGPassNode.h"
-#include "NXRendererPass.h"
+#include "NXGraphicPass.h"
 
 class NXRenderGraph
 {
@@ -14,7 +14,7 @@ public:
 	virtual ~NXRenderGraph();
 
 	template<typename NXRGPassData>
-	NXRGPassNode<NXRGPassData>* AddPass(const std::string& name, NXRendererPass* pRendererPass, std::function<void(NXRGBuilder& pBuilder, NXRGPassData& data)> setup, std::function<void(ID3D12GraphicsCommandList* pCmdList, NXRGPassData& data)> execute)
+	NXRGPassNode<NXRGPassData>* AddPass(const std::string& name, NXGraphicPass* pRendererPass, std::function<void(NXRGBuilder& pBuilder, NXRGPassData& data)> setup, std::function<void(ID3D12GraphicsCommandList* pCmdList, NXRGPassData& data)> execute)
 	{
 		auto pPassNode = new NXRGPassNode<NXRGPassData>(this, name, pRendererPass);
 		NXRGBuilder pBuilder(this, pPassNode);
@@ -36,7 +36,7 @@ public:
 	NXRGResource* ImportResource(const Ntr<NXBuffer>& pBuffer);
 	void SetViewResolution(const Vector2& resolution) { m_viewResolution = resolution; }	
 
-	NXRendererPass* GetRenderPass(const std::string& passName);
+	NXGraphicPass* GetRenderPass(const std::string& passName);
 
 	// 获取资源和pass的接口
 	const std::vector<NXRGResource*>& GetResources() { return m_resources; }

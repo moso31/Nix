@@ -1,9 +1,9 @@
 #pragma once
-#include "NXRendererPass.h"
+#include "NXGraphicPass.h"
 
 class NXScene;
 class NXCamera;
-class NXGBufferRenderer : public NXRendererPass
+class NXGBufferRenderer : public NXGraphicPass
 {
 private:
 	explicit NXGBufferRenderer() = default;

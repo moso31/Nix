@@ -41,8 +41,8 @@ void NXEditorObjectRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 {
 	NX12Util::BeginEvent(pCmdList, "Editor objects");
 
-	NXRendererPass::RenderSetTargetAndState(pCmdList);
-	NXRendererPass::RenderBefore(pCmdList);
+	NXGraphicPass::RenderSetTargetAndState(pCmdList);
+	NXGraphicPass::RenderBefore(pCmdList);
 
   	NXEditorObjectManager* pEditorObjManager = m_pScene->GetEditorObjManager();
 	for (auto pEditObj : pEditorObjManager->GetEditableObjects())

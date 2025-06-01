@@ -51,8 +51,8 @@ void NXShadowMapRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 {
 	NX12Util::BeginEvent(pCmdList, "Shadow Map");
 
-	NXRendererPass::RenderSetTargetAndState(pCmdList);
-	NXRendererPass::RenderBefore(pCmdList);
+	NXGraphicPass::RenderSetTargetAndState(pCmdList);
+	NXGraphicPass::RenderBefore(pCmdList);
 
 	g_cbDataShadowTest.test_transition = m_test_transition;
 

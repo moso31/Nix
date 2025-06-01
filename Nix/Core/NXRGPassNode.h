@@ -1,5 +1,5 @@
 #pragma once
-#include "NXRendererPass.h"
+#include "NXGraphicPass.h"
 #include "NXRGResource.h"
 
 struct NXRGResourceSlot
@@ -12,7 +12,7 @@ class NXRenderGraph;
 class NXRGPassNodeBase
 {
 public:
-	NXRGPassNodeBase(NXRenderGraph* pRenderGraph, const std::string& passName, NXRendererPass* pPass) :
+	NXRGPassNodeBase(NXRenderGraph* pRenderGraph, const std::string& passName, NXGraphicPass* pPass) :
 		m_pRenderGraph(pRenderGraph), m_passName(passName), m_pPass(pPass) {}
 
 	const std::string& GetName() { return m_passName; }
@@ -24,7 +24,7 @@ public:
 	NXRGResource* WriteRT(NXRGResource* pResource, uint32_t outRTIndex, bool useOldVersion);
 	NXRGResource* WriteDS(NXRGResource* pResource, bool useOldVersion);
 
-	NXRendererPass* GetRenderPass() { return m_pPass; }
+	NXGraphicPass* GetRenderPass() { return m_pPass; }
 
 	void Compile(bool isResize);
 	virtual void Execute(ID3D12GraphicsCommandList* pCmdList) = 0;
@@ -36,7 +36,7 @@ public:
 protected:
 	std::string m_passName;
 	NXRenderGraph* m_pRenderGraph;
-	NXRendererPass* m_pPass;
+	NXGraphicPass* m_pPass;
 
 	// Pass记录自己依赖的资源，但生命周期由NXRenderGraph*管理；
 	std::vector<NXRGResourceSlot> m_inputs; 
@@ -47,7 +47,7 @@ template<typename NXRGPassData>
 class NXRGPassNode : public NXRGPassNodeBase
 {
 public:
-	NXRGPassNode(NXRenderGraph* pRenderGraph, const std::string& passName, NXRendererPass* pPass) : NXRGPassNodeBase(pRenderGraph, passName, pPass), m_passData(NXRGPassData()) {}
+	NXRGPassNode(NXRenderGraph* pRenderGraph, const std::string& passName, NXGraphicPass* pPass) : NXRGPassNodeBase(pRenderGraph, passName, pPass), m_passData(NXRGPassData()) {}
 
 	NXRGPassData& GetData() { return m_passData; }
 

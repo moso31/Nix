@@ -4,7 +4,7 @@
 #include "BaseDefs/NixCore.h"
 #include "ShaderStructures.h"
 #include "NXConstantBuffer.h"
-#include "NXRendererPass.h"
+#include "NXGraphicPass.h"
 
 struct CBufferShadowMapObject
 {
@@ -16,7 +16,7 @@ class NXScene;
 class NXRenderableObject;
 class NXTexture2DArray;
 class NXPBRDistantLight;
-class NXShadowMapRenderer : public NXRendererPass
+class NXShadowMapRenderer : public NXGraphicPass
 {
 private:
 	explicit NXShadowMapRenderer() = default;

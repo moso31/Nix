@@ -38,7 +38,7 @@ void NXColorMappingRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 	m_cbData.param0.x = m_bEnablePostProcessing ? 1.0f : 0.0f;
 	m_cb.Update(m_cbData);
 
-	NXRendererPass::Render(pCmdList);
+	NXGraphicPass::Render(pCmdList);
 }
 
 void NXColorMappingRenderer::Release()

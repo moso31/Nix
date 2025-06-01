@@ -1,9 +1,9 @@
 #pragma once
-#include "NXRendererPass.h"
+#include "NXGraphicPass.h"
 #include "ShaderStructures.h"
 
 class NXScene;
-class NXEditorObjectRenderer : public NXRendererPass
+class NXEditorObjectRenderer : public NXGraphicPass
 {
 public:
 	NXEditorObjectRenderer(NXScene* pScene);

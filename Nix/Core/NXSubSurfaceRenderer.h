@@ -1,7 +1,7 @@
 #pragma once
-#include "NXRendererPass.h"
+#include "NXGraphicPass.h"
 
-class NXSubSurfaceRenderer : public NXRendererPass
+class NXSubSurfaceRenderer : public NXGraphicPass
 {
 public:
 	NXSubSurfaceRenderer();
