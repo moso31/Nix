@@ -13,6 +13,8 @@ public:
 	D3D12_CPU_DESCRIPTOR_HANDLE GetSRV() const { return m_pSRV; }
 	D3D12_CPU_DESCRIPTOR_HANDLE GetUAV() const { return m_pUAV; }
 
+	void SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D3D12_RESOURCE_STATES& state);
+
 private:
 	// Buffer和Texture相似，但SRV和UAV都是自动创建的
 	void SetSRV();

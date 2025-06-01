@@ -15,6 +15,7 @@ namespace DirectX
     struct TexMetadata;
 }
 
+class NXTexture;
 struct NXTextureReload
 {
     bool m_needReload = false;

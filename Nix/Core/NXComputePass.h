@@ -14,11 +14,9 @@ public:
 
 	void SetThreadGroups(uint32_t threadGroupX, uint32_t threadGroupY = 1, uint32_t threadGroupZ = 1);
 
-	void SetInputTex(NXCommonTexEnum eCommonTex, uint32_t slotIndex);
-	void SetInputTex(const Ntr<NXTexture>& pTex, uint32_t slotIndex);
-	void SetOutputTex(const Ntr<NXTexture>& pTex, uint32_t slotIndex);
-	void SetInputBuffer(const Ntr<NXBuffer>& pBuffer, uint32_t slotIndex);
-	void SetOutputBuffer(const Ntr<NXBuffer>& pBuffer, uint32_t slotIndex);
+	void SetInput(NXCommonTexEnum eCommonTex, uint32_t slotIndex);
+	void SetInput(const Ntr<NXResource>& pTex, uint32_t slotIndex);
+	void SetOutput(const Ntr<NXResource>& pTex, uint32_t slotIndex);
 
 	virtual void RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList);
 	virtual void RenderBefore(ID3D12GraphicsCommandList* pCmdList);
@@ -54,8 +52,6 @@ private:
 
 	std::vector<Ntr<NXResource>>			m_pInRes;
 	std::vector<Ntr<NXResource>>			m_pOutRes;
-
-	std::filesystem::path					m_shaderFilePath;
 
 	// pass 使用的根参数
 	std::vector<D3D12_ROOT_PARAMETER>		m_rootParams;

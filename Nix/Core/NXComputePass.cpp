@@ -5,7 +5,7 @@
 #include "NXSamplerManager.h"
 
 NXComputePass::NXComputePass() :
-	NXRenderPass(),
+	NXRenderPass(NXRenderPassType::ComputePass),
 	m_csoDesc({})
 {
 	m_csoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
@@ -33,35 +33,23 @@ void NXComputePass::SetThreadGroups(uint32_t threadGroupX, uint32_t threadGroupY
 	m_threadGroupZ = threadGroupZ;
 }
 
-void NXComputePass::SetInputTex(NXCommonTexEnum eCommonTex, uint32_t slotIndex)
+void NXComputePass::SetInput(NXCommonTexEnum eCommonTex, uint32_t slotIndex)
 {
 	auto pTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(eCommonTex);
 	if (m_pInRes.size() <= slotIndex) m_pInRes.resize(slotIndex + 1);
 	m_pInRes[slotIndex] = pTex;
 }
 
-void NXComputePass::SetInputTex(const Ntr<NXTexture>& pTex, uint32_t slotIndex)
+void NXComputePass::SetInput(const Ntr<NXResource>& pTex, uint32_t slotIndex)
 {
 	if (m_pInRes.size() <= slotIndex) m_pInRes.resize(slotIndex + 1);
 	m_pInRes[slotIndex] = pTex;
 }
 
-void NXComputePass::SetOutputTex(const Ntr<NXTexture>& pTex, uint32_t slotIndex)
+void NXComputePass::SetOutput(const Ntr<NXResource>& pTex, uint32_t slotIndex)
 {
 	if (m_pOutRes.size() <= slotIndex) m_pOutRes.resize(slotIndex + 1);
 	m_pOutRes[slotIndex] = pTex;
-}
-
-void NXComputePass::SetInputBuffer(const Ntr<NXBuffer>& pBuffer, uint32_t slotIndex)
-{
-	if (m_pInRes.size() <= slotIndex) m_pInRes.resize(slotIndex + 1);
-	m_pInRes[slotIndex] = pBuffer;
-}
-
-void NXComputePass::SetOutputBuffer(const Ntr<NXBuffer>& pBuffer, uint32_t slotIndex)
-{
-	if (m_pOutRes.size() <= slotIndex) m_pOutRes.resize(slotIndex + 1);
-	m_pOutRes[slotIndex] = pBuffer;
 }
 
 void NXComputePass::RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList)
@@ -75,7 +63,7 @@ void NXComputePass::RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList)
 
 void NXComputePass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 {
-	pCmdList->SetGraphicsRootSignature(m_pRootSig.Get());
+	pCmdList->SetComputeRootSignature(m_pRootSig.Get());
 	pCmdList->SetPipelineState(m_pCSO.Get());
 
 	for (int i = 0; i < (int)m_cbvManagements.size(); i++)
@@ -110,7 +98,7 @@ void NXComputePass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 		if (!m_srvRanges.empty())
 		{
 			D3D12_GPU_DESCRIPTOR_HANDLE srvHandle0 = NXShVisDescHeap->Submit();
-			pCmdList->SetGraphicsRootDescriptorTable(srvTableIdx, srvHandle0);
+			pCmdList->SetComputeRootDescriptorTable(srvTableIdx, srvHandle0);
 		}
 	}
 

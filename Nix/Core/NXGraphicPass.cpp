@@ -9,7 +9,7 @@
 #include "NXSubMeshGeometryEditor.h"
 
 NXGraphicPass::NXGraphicPass() :
-	NXRenderPass(),
+	NXRenderPass(NXRenderPassType::GraphicPass),
 	m_psoDesc({}),
 	m_stencilRef(0x0),
 	m_rtSubMeshName("_RenderTarget")
@@ -85,11 +85,6 @@ void NXGraphicPass::SetSampleDescAndMask(UINT Count, UINT Quality, UINT Mask)
 void NXGraphicPass::SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE type)
 {
 	m_psoDesc.PrimitiveTopologyType = type;
-}
-
-void NXGraphicPass::SetShaderFilePath(const std::filesystem::path& shaderFilePath)
-{
-	m_shaderFilePath = shaderFilePath;
 }
 
 void NXGraphicPass::InitPSO()

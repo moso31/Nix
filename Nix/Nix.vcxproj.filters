@@ -124,6 +124,9 @@
     <Filter Include="Core\DirectX\Renderer\RenderGraph\Renderers">
       <UniqueIdentifier>{6701371a-c5d5-4caa-88b9-084db4c46717}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shader\Test">
+      <UniqueIdentifier>{acc387db-02b9-4a20-a13b-7dbb2dd8454a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Common.fx">
@@ -229,6 +232,9 @@
     </None>
     <None Include="Shader\Instancing.fx">
       <Filter>Shader</Filter>
+    </None>
+    <None Include="Shader\FillTestComputeShader.fx">
+      <Filter>Shader\Test</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -549,6 +555,9 @@
     </ClCompile>
     <ClCompile Include="Core\NXRenderPass.cpp">
       <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXFillTestRenderer.cpp">
+      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -926,6 +935,9 @@
     </ClInclude>
     <ClInclude Include="Core\NXRenderPass.h">
       <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXFillTestRenderer.h">
+      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

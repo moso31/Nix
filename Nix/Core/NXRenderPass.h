@@ -18,16 +18,29 @@ struct NXCBVManagement
 	const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>* multiFrameGpuVirtAddr;
 };
 
+enum class NXRenderPassType
+{
+	GraphicPass,
+	ComputePass,
+};
+
 class NXRenderPass
 {
 public:
-	NXRenderPass();
+	NXRenderPass(NXRenderPassType type);
 	virtual ~NXRenderPass() {}
 
 	virtual void SetupInternal() = 0;
 
+	NXRenderPassType GetPassType() const { return m_passType; }
+
 	void SetPassName(const std::string& passName) { m_passName = passName; }
+	void SetShaderFilePath(const std::filesystem::path& shaderFilePath) { m_shaderFilePath = shaderFilePath; }
+
+	virtual void Render(ID3D12GraphicsCommandList* pCmdList) = 0;
 
 protected:
 	std::string	m_passName;
+	NXRenderPassType m_passType;
+	std::filesystem::path m_shaderFilePath;
 };

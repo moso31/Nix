@@ -54,7 +54,7 @@ void NXRenderGraph::Compile(bool isResize)
 		else
 		{
 			// 外部导入的不需要创建
-			pResource->SetResource(desc.importData.pImportTexture);
+			pResource->SetResource(desc.importData.pImportResource);
 		}
 	}
 
@@ -84,16 +84,16 @@ NXRGResource* NXRenderGraph::CreateResource(const std::string& resourceName, con
 	return pResource;
 }
 
-NXRGResource* NXRenderGraph::ImportResource(const Ntr<NXTexture>& pTexture, NXRGHandleFlags flag)
+NXRGResource* NXRenderGraph::ImportTexture(const Ntr<NXTexture>& pTexture, NXRGHandleFlags flag)
 {
 	NXRGDescription desc;
 	desc.isImported = true;
-	desc.importData.pImportTexture = pTexture;
+	desc.importData.pImportResource = pTexture;
 	desc.importData.width = pTexture->GetWidth();
 	desc.importData.height = pTexture->GetHeight();
 	desc.importData.arraySize = pTexture->GetArraySize();
 	desc.isViewRT = false;
-	desc.type = pTexture->GetTextureType();
+	desc.type = pTexture->GetResourceType();
 	desc.format = pTexture->GetFormat();
 	desc.handleFlags = flag;
 
@@ -102,11 +102,11 @@ NXRGResource* NXRenderGraph::ImportResource(const Ntr<NXTexture>& pTexture, NXRG
 	return pResource;
 }
 
-NXRGResource* NXRenderGraph::ImportResource(const Ntr<NXBuffer>& pBuffer)
+NXRGResource* NXRenderGraph::ImportBuffer(const Ntr<NXBuffer>& pBuffer)
 {
 	NXRGDescription desc;
 	desc.isImported = true;
-	desc.importData.pImportBuffer = pBuffer;
+	desc.importData.pImportResource = pBuffer;
 	desc.importData.width = pBuffer->GetByteSize();
 	desc.importData.height = 1; 
 	desc.importData.arraySize = 1;
@@ -120,7 +120,7 @@ NXRGResource* NXRenderGraph::ImportResource(const Ntr<NXBuffer>& pBuffer)
 	return pResource;
 }
 
-NXGraphicPass* NXRenderGraph::GetRenderPass(const std::string& passName)
+NXRenderPass* NXRenderGraph::GetRenderPass(const std::string& passName)
 {
 	auto it = std::find_if(m_passNodes.begin(), m_passNodes.end(), [&](NXRGPassNodeBase* passNode) {
 		return passNode->GetName() == passName;
@@ -134,18 +134,22 @@ NXGraphicPass* NXRenderGraph::GetRenderPass(const std::string& passName)
 
 void NXRenderGraph::ClearRT(ID3D12GraphicsCommandList* pCmdList, NXRGResource* pResource)
 {
+	if (pResource->GetResource()->GetResourceType() != NXResourceType::Tex2D)
+		return;
+
 	auto& pResDesc = pResource->GetDescription();
+	Ntr<NXTexture> pTexture = pResource->GetResource();
 	if (pResDesc.handleFlags == RG_RenderTarget)
 	{
-		pResource->GetResource()->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_RENDER_TARGET); // dx12 需要及时更新资源状态
-		pCmdList->ClearRenderTargetView(pResource->GetResource()->GetRTV(), Colors::Black, 0, nullptr);
+		pTexture->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_RENDER_TARGET); // dx12 需要及时更新资源状态
+		pCmdList->ClearRenderTargetView(pTexture->GetRTV(), Colors::Black, 0, nullptr);
 		return;
 	}
 
 	if (pResDesc.handleFlags == RG_DepthStencil)
 	{
-		pResource->GetResource()->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_DEPTH_WRITE); // dx12 需要及时更新资源状态
-		pCmdList->ClearDepthStencilView(pResource->GetResource()->GetDSV(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0x0, 0, nullptr);
+		pTexture->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_DEPTH_WRITE); // dx12 需要及时更新资源状态
+		pCmdList->ClearDepthStencilView(pTexture->GetDSV(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0x0, 0, nullptr);
 		return;
 	}
 }

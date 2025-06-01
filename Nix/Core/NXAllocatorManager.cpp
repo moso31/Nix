@@ -8,8 +8,8 @@ void NXAllocatorManager::Init()
 	auto pDevice = NXGlobalDX::GetDevice();
 	m_bRunning.store(true);
 
-	m_pCBAllocator = std::make_unique<CommittedBufferAllocator>(pDevice, true, false, 64u, Memsize_MB(256));
-	m_pSBAllocator = std::make_unique<CommittedBufferAllocator>(pDevice, false, false, 64u, Memsize_MB(256));
+	m_pCBAllocator = std::make_unique<CommittedBufferAllocator>(pDevice, true, 64u, Memsize_MB(256));
+	m_pSBAllocator = std::make_unique<CommittedBufferAllocator>(pDevice, false, 64u, Memsize_MB(256));
 	m_pRWBAllocator = std::make_unique<PlacedBufferAllocator>(pDevice, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT, Memsize_MB(256));
 	m_pTextureAllocator = std::make_unique<PlacedBufferAllocator>(pDevice, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT, Memsize_MB(512));
 

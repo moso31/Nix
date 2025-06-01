@@ -35,7 +35,6 @@ public:
 	void SetDepthStencilState(const D3D12_DEPTH_STENCIL_DESC& desc);
 	void SetSampleDescAndMask(UINT Count, UINT Quality, UINT Mask);
 	void SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE type);
-	void SetShaderFilePath(const std::filesystem::path& shaderFilePath);
 
 	void SetStencilRef(const UINT stencilRef) { m_stencilRef = stencilRef; }
 
@@ -77,8 +76,6 @@ private:
 	std::vector<Ntr<NXTexture>>				m_pInTexs;
 	std::vector<Ntr<NXTexture>>				m_pOutRTs;
 	Ntr<NXTexture>							m_pOutDS;
-
-	std::filesystem::path					m_shaderFilePath;
 
 	// pass 使用的根参数
 	std::vector<D3D12_ROOT_PARAMETER>		m_rootParams;

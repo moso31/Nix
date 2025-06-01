@@ -19,10 +19,14 @@ public:
 	// passSlotIndex = 最终pass shader使用的slot索引。
 	void Read(NXRGResource* pResource, uint32_t passSlotIndex);
 
+	// 设置线程组数量
+	void SetComputeThreadGroup(uint32_t threadGroupX, uint32_t threadGroupY = 1, uint32_t threadGroupZ = 1);
+
 	// 设置pass输出RT/DS。
 	// outRTIndex = pass shader 输出的RT索引（DS忽略此参数）
 	NXRGResource* WriteRT(NXRGResource* pResource, uint32_t outRTIndex, bool keep = false);
 	NXRGResource* WriteDS(NXRGResource* pResource, bool keep = false);
+	NXRGResource* WriteUAV(NXRGResource* pResource, uint32_t outUAVIndex, bool keep = false);
 
 	NXRGPassNodeBase* GetPassNode() { return m_pPassNode; }
 

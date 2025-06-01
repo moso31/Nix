@@ -223,6 +223,7 @@
     <ClCompile Include="Core\NXConvertString.cpp" />
     <ClCompile Include="Core\NXDepthRenderer.cpp" />
     <ClCompile Include="Core\NXFileSystemHelper.cpp" />
+    <ClCompile Include="Core\NXFillTestRenderer.cpp" />
     <ClCompile Include="Core\NXGlobalDefinitions.cpp" />
     <ClCompile Include="Core\NXGUICommandManager.cpp" />
     <ClCompile Include="Core\NXGUIDiffuseProfile.cpp" />
@@ -340,6 +341,7 @@
     <ClInclude Include="Core\NXConvertString.h" />
     <ClInclude Include="Core\NXDepthRenderer.h" />
     <ClInclude Include="Core\NXFileSystemHelper.h" />
+    <ClInclude Include="Core\NXFillTestRenderer.h" />
     <ClInclude Include="Core\NXGlobalBuffers.h" />
     <ClInclude Include="Core\NXGlobalDefinitions.h" />
     <ClInclude Include="Core\NXGUICommandManager.h" />
@@ -649,6 +651,13 @@
       </ExcludedFromBuild>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
       <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shader\FillTestComputeShader.fx">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DeploymentContent>
+      <FileType>Document</FileType>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DeploymentContent>
     </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

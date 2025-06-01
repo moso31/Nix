@@ -18,6 +18,7 @@
 #include "NXGUI.h"
 #include "NXDebugLayerRenderer.h"
 #include "NXEditorObjectRenderer.h"
+#include "NXFillTestRenderer.h"
 #include "NXRenderGraph.h"
 
 struct NXEventArgKey;

@@ -83,6 +83,22 @@ void Renderer::InitRenderGraph()
 	m_pRenderGraph = new NXRenderGraph();
 	m_pRenderGraph->SetViewResolution(m_viewRTSize);
 
+	Ntr<NXBuffer> pBufTest(new NXBuffer("test"));
+	pBufTest->Create(4, 200);
+
+	NXRGResource* pBufTest2 = m_pRenderGraph->ImportBuffer(pBufTest);
+
+	struct FillTestData
+	{
+	};
+	m_pRenderGraph->AddComputePass<FillTestData>("FillTest", new NXFillTestRenderer(),
+		[&](NXRGBuilder& builder, FillTestData& data) {
+			builder.WriteUAV(pBufTest2, 0);
+			builder.SetComputeThreadGroup(3, 1, 1);
+		},
+		[&](ID3D12GraphicsCommandList* pCmdList, FillTestData& data) {
+		});
+
 	struct GBufferData
 	{
 		NXRGResource* depth;
@@ -145,7 +161,7 @@ void Renderer::InitRenderGraph()
 	for (UINT i = 0; i < cascadeCount; i++) pShadowMapDepth->SetDSV(i, i, 1);	// DSV 单张切片（每次写cascade深度 只写一片）
 	pShadowMapDepth->SetSRV(0, 0, cascadeCount); // SRV 读取整个纹理数组（ShadowTest时使用）
 
-	auto pCSMDepth = m_pRenderGraph->ImportResource(pShadowMapDepth, RG_DepthStencil);
+	auto pCSMDepth = m_pRenderGraph->ImportTexture(pShadowMapDepth, RG_DepthStencil);
 	auto shadowMapPassData = m_pRenderGraph->AddPass<ShadowMapData>("ShadowMap", new NXShadowMapRenderer(m_scene),
 		[&](NXRGBuilder& builder, ShadowMapData& data) {
 			builder.WriteDS(pCSMDepth);
@@ -181,9 +197,9 @@ void Renderer::InitRenderGraph()
 	auto pLit = m_pRenderGraph->CreateResource("Lighting RT0", { .format = DXGI_FORMAT_R32G32B32A32_FLOAT, .handleFlags = RG_RenderTarget });
 	auto pLitSpec = m_pRenderGraph->CreateResource("Lighting RT1", { .format = DXGI_FORMAT_R32G32B32A32_FLOAT, .handleFlags = RG_RenderTarget });
 	auto pLitCopy = m_pRenderGraph->CreateResource("Lighting RT Copy", { .format = DXGI_FORMAT_R11G11B10_FLOAT, .handleFlags = RG_RenderTarget });
-	auto pCubeMap = m_pRenderGraph->ImportResource(m_scene->GetCubeMap()->GetCubeMap());
-	auto pPreFilter = m_pRenderGraph->ImportResource(m_scene->GetCubeMap()->GetPreFilterMap());
-	auto pBRDFLut = m_pRenderGraph->ImportResource(m_pBRDFLut->GetTex());
+	auto pCubeMap = m_pRenderGraph->ImportTexture(m_scene->GetCubeMap()->GetCubeMap());
+	auto pPreFilter = m_pRenderGraph->ImportTexture(m_scene->GetCubeMap()->GetPreFilterMap());
+	auto pBRDFLut = m_pRenderGraph->ImportTexture(m_pBRDFLut->GetTex());
 
 	auto litPassData = m_pRenderGraph->AddPass<DeferredLightingData>("DeferredLighting", new NXDeferredRenderer(m_scene),
 		[&](NXRGBuilder& builder, DeferredLightingData& data) {
@@ -269,8 +285,6 @@ void Renderer::InitRenderGraph()
 
 	auto debugLayerPassData = m_pRenderGraph->AddPass<DebugLayerData>("DebugLayer", new NXDebugLayerRenderer(),
 		[&](NXRGBuilder& builder, DebugLayerData& data) {
-			auto renderer = static_cast<NXDebugLayerRenderer*>(builder.GetPassNode()->GetRenderPass());
-
 			builder.Read(postProcessPassData->GetData().out, 0);
 			builder.Read(pCSMDepth, 1);
 			data.out = builder.WriteRT(pDebugLayer, 0);

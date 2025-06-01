@@ -1,6 +1,7 @@
 #include "NXRenderPass.h"
 
-NXRenderPass::NXRenderPass() :
-	m_passName("Noname pass")
+NXRenderPass::NXRenderPass(NXRenderPassType type) :
+	m_passName("Noname pass"),
+	m_passType(type)
 {
 }

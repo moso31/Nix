@@ -64,3 +64,20 @@ void NXBuffer::SetUAV()
 		NXGlobalDX::GetDevice()->CreateUnorderedAccessView(m_pBuffer.Get(), nullptr, &uavDesc, m_pUAV);
 		});
 }
+
+void NXBuffer::SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D3D12_RESOURCE_STATES& state)
+{
+	if (m_resourceState == state)
+		return;
+
+	D3D12_RESOURCE_BARRIER barrier = {};
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barrier.Transition.pResource = m_pBuffer.Get();
+	barrier.Transition.StateBefore = m_resourceState;
+	barrier.Transition.StateAfter = state;
+	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	pCommandList->ResourceBarrier(1, &barrier);
+
+	m_resourceState = state;
+}

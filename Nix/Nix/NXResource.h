@@ -13,6 +13,9 @@ public:
 	NXResource(NXResourceType type, const std::string& name = "");
 	virtual ~NXResource() = default;
 
+	virtual void Serialize() override {};
+	virtual void Deserialize() override {};
+
 	NXResourceType GetResourceType() const { return m_type; }
 
 	virtual const D3D12_RESOURCE_STATES& GetResourceState() { return m_resourceState; }

@@ -24,8 +24,7 @@ struct NXRGDescription
 	bool isImported = false;
 	struct
 	{
-		Ntr<NXBuffer> pImportBuffer = nullptr; // 如果是导入Buffer(isImported)
-		Ntr<NXTexture> pImportTexture = nullptr; // 如果是导入纹理(isImported)
+		Ntr<NXResource> pImportResource = nullptr; // 如果是导入资源(isImported)
 		uint32_t width;
 		uint32_t height;
 		uint32_t arraySize;
@@ -55,8 +54,8 @@ public:
 	bool HasWrited() { return m_bHasWrited; }
 	void MakeWriteConnect() { m_bHasWrited = true; }
 
-	void SetResource(Ntr<NXTexture> pResource) { m_pResource = pResource; }
-	Ntr<NXTexture> GetResource() { return m_pResource; }
+	void SetResource(Ntr<NXResource> pResource) { m_pResource = pResource; }
+	Ntr<NXResource> GetResource() const { return m_pResource; }
 
 private:
 	std::string m_name;
@@ -65,6 +64,6 @@ private:
 	NXRGHandle* m_handle;
 	NXRGDescription m_description;
 
-	Ntr<NXTexture> m_pResource;
+	Ntr<NXResource> m_pResource;
 };
 
