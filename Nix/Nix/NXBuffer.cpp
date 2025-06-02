@@ -35,7 +35,8 @@ void NXBuffer::Set(const void* pSrcData, uint32_t arraySize)
 		SetResourceState(taskContext.pOwner->pCmdList, oldState);
 	}
 
-	NXUploadSystem->FinishTask(taskContext);
+	NXUploadSystem->FinishTask(taskContext, []() {
+		});
 }
 
 void NXBuffer::SetSRV()

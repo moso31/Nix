@@ -19,8 +19,6 @@ public:
 	NXPSOManager() {}
 	virtual ~NXPSOManager() {}
 
-	void Init(ID3D12Device* pDevice, ID3D12CommandQueue* pCmdQueue);
-
 	// 分成两种情况，
 	// 如果name不存在，创建PSO
 	// 如果name已经存在，除了创建PSO，还会将原来的PSO标记为WaitForRelease，等待GPU不再使用时释放；
@@ -30,8 +28,6 @@ public:
 	void FrameCleanup();
 
 private:
-	ID3D12CommandQueue* m_pCmdQueue;
-
 	std::unordered_map<std::string, NXPSOData> m_psoMap;
 	std::list<NXPSOData> m_psoWaitForReleaseList;
 };

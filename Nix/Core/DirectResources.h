@@ -16,6 +16,8 @@ struct NXSwapChainBuffer
 class DirectResources
 {
 public:
+	DirectResources();
+
 	void	InitDevice();
 
 	void	FrameBegin();
@@ -41,4 +43,7 @@ private:
 	 
 	ComPtr<ID3D12Resource>			m_pDepthStencilBuffer;
 	ComPtr<ID3D12DescriptorHeap>	m_pRTVHeap;
+
+	HANDLE m_fenceEvent;
+	std::vector<uint64_t> m_fenceValues;
 };

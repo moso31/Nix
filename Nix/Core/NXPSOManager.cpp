@@ -2,11 +2,6 @@
 #include "NXGlobalDefinitions.h"
 #include "NXConverter.h"
 
-void NXPSOManager::Init(ID3D12Device* pDevice, ID3D12CommandQueue* pCmdQueue)
-{
-	m_pCmdQueue = pCmdQueue;
-}
-
 ID3D12PipelineState* NXPSOManager::Create(const D3D12_GRAPHICS_PIPELINE_STATE_DESC& psoDesc, const std::string& name)
 {
 	auto it = m_psoMap.find(name);

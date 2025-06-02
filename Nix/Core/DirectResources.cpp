@@ -2,6 +2,13 @@
 #include "BaseDefs/NixCore.h"
 #include "NXGlobalDefinitions.h"
 
+DirectResources::DirectResources() :
+	m_fenceValues(MultiFrameSets_swapChainCount)
+{
+	for (auto& val : m_fenceValues) val = 0;
+	m_fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+}
+
 void DirectResources::InitDevice()
 {
 #ifdef _DEBUG
@@ -114,34 +121,34 @@ void DirectResources::FrameEnd()
 {
 	m_pSwapChain->Present(0, 0);
 
-	NXGlobalDX::s_globalfenceValue++;
-	NXGlobalDX::GlobalCmdQueue()->Signal(NXGlobalDX::s_globalfence.Get(), NXGlobalDX::s_globalfenceValue);
+	uint64_t currFenceValue = ++NXGlobalDX::s_globalfenceValue;
+	m_fenceValues[MultiFrameSets::swapChainIndex] = currFenceValue;
+	NXGlobalDX::GlobalCmdQueue()->Signal(NXGlobalDX::s_globalfence.Get(), currFenceValue);
 
-	if (NXGlobalDX::s_globalfenceValue - NXGlobalDX::s_globalfence->GetCompletedValue() > MultiFrameSets_swapChainCount - 1)
+	uint64_t fenceToWait = m_fenceValues[(MultiFrameSets::swapChainIndex + 1) % MultiFrameSets_swapChainCount];
+	if (NXGlobalDX::s_globalfence->GetCompletedValue() < fenceToWait)
 	{
-		HANDLE fenceEvent = CreateEvent(nullptr, false, false, nullptr);
-		NXGlobalDX::s_globalfence->SetEventOnCompletion(NXGlobalDX::s_globalfenceValue - MultiFrameSets_swapChainCount + 1, fenceEvent);
-
-		WaitForSingleObject(fenceEvent, INFINITE);
-		CloseHandle(fenceEvent);
+		NXGlobalDX::s_globalfence->SetEventOnCompletion(fenceToWait, m_fenceEvent);
+		WaitForSingleObject(m_fenceEvent, INFINITE);
 	}
 }
 
 void DirectResources::Flush()
 {
-	NXGlobalDX::s_globalfenceValue++;
-	NXGlobalDX::GlobalCmdQueue()->Signal(NXGlobalDX::s_globalfence.Get(), NXGlobalDX::s_globalfenceValue);
-	while (NXGlobalDX::s_globalfenceValue - NXGlobalDX::s_globalfence->GetCompletedValue() > 0)
-	{
-		HANDLE fenceEvent = CreateEvent(nullptr, false, false, nullptr);
-		NXGlobalDX::s_globalfence->SetEventOnCompletion(NXGlobalDX::s_globalfenceValue, fenceEvent);
+	uint64_t currFenceValue = ++NXGlobalDX::s_globalfenceValue;
+	for (auto& val : m_fenceValues) val = currFenceValue;
 
-		WaitForSingleObject(fenceEvent, INFINITE);
-		CloseHandle(fenceEvent);
+	NXGlobalDX::GlobalCmdQueue()->Signal(NXGlobalDX::s_globalfence.Get(), currFenceValue);
+	uint64_t fenceToWait = currFenceValue;
+	while (NXGlobalDX::s_globalfence->GetCompletedValue() < fenceToWait)
+	{
+		NXGlobalDX::s_globalfence->SetEventOnCompletion(NXGlobalDX::s_globalfenceValue, m_fenceEvent);
+		WaitForSingleObject(m_fenceEvent, INFINITE);
 	}
 }
 
 void DirectResources::Release()
 {
 	Flush();
+	CloseHandle(m_fenceEvent);
 }

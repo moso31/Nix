@@ -331,9 +331,6 @@ void Renderer::InitGlobalResources()
 
 	NXAllocatorManager::GetInstance()->Init();
 	NXGlobalInputLayout::Init();
-
-	// PSOManager
-	NXPSOManager::GetInstance()->Init(NXGlobalDX::GetDevice(), NXGlobalDX::GlobalCmdQueue());
 }
 
 void Renderer::ResourcesReloading()
