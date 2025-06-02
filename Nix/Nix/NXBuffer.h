@@ -8,6 +8,8 @@ public:
 	virtual ~NXBuffer() {}
 
 	void Create(uint32_t stride, uint32_t arraySize);
+	void Set(const void* pSrcData, uint32_t arraySize);
+
 	uint32_t GetByteSize() const { return m_byteSize; }
 
 	D3D12_CPU_DESCRIPTOR_HANDLE GetSRV() const { return m_pSRV; }

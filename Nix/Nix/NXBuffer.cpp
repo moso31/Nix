@@ -16,6 +16,28 @@ void NXBuffer::Create(uint32_t stride, uint32_t arraySize)
 	SetUAV();
 }
 
+void NXBuffer::Set(const void* pSrcData, uint32_t arraySize)
+{
+	uint32_t byteSize = m_stride * arraySize;
+	assert(byteSize <= m_byteSize);
+
+	UploadTaskContext taskContext(m_name);
+	if (NXUploadSystem->BuildTask(byteSize, taskContext))
+	{
+		auto bufDesc = m_pBuffer->GetDesc();
+		uint64_t byteOffset = taskContext.pResourceOffset;
+		byte* pDstData = taskContext.pResourceData + byteOffset;
+		memcpy(pDstData, pSrcData, byteSize);
+
+		D3D12_RESOURCE_STATES oldState = m_resourceState;
+		SetResourceState(taskContext.pOwner->pCmdList, D3D12_RESOURCE_STATE_COPY_DEST);
+		taskContext.pOwner->pCmdList->CopyBufferRegion(m_pBuffer.Get(), 0, taskContext.pResource, byteOffset, byteSize);
+		SetResourceState(taskContext.pOwner->pCmdList, oldState);
+	}
+
+	NXUploadSystem->FinishTask(taskContext);
+}
+
 void NXBuffer::SetSRV()
 {
 	NXAllocator_SRV->Alloc([this](const D3D12_CPU_DESCRIPTOR_HANDLE& result) {
