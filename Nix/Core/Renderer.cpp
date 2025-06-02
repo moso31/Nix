@@ -83,10 +83,11 @@ void Renderer::InitRenderGraph()
 	m_pRenderGraph = new NXRenderGraph();
 	m_pRenderGraph->SetViewResolution(m_viewRTSize);
 
-	Ntr<NXBuffer> pBufTest(new NXBuffer("test"));
-	pBufTest->Create(4, 200);
+	m_pBufTest = new NXBuffer("Test");
+	m_pBufTest->Create(4, 200);
+	for (int i = 0; i < 200; i++) m_testArr.push_back(i);
 
-	NXRGResource* pBufTest2 = m_pRenderGraph->ImportBuffer(pBufTest);
+	NXRGResource* pBufTest2 = m_pRenderGraph->ImportBuffer(m_pBufTest);
 
 	struct FillTestData
 	{
@@ -97,6 +98,7 @@ void Renderer::InitRenderGraph()
 			builder.SetComputeThreadGroup(3, 1, 1);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, FillTestData& data) {
+			m_pBufTest->Set(m_testArr.data(), 200);
 		});
 
 	struct GBufferData

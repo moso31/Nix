@@ -85,4 +85,7 @@ private:
 
 	NXGUI*				m_pGUI;
 	bool				m_bRenderGUI;
+
+	Ntr<NXBuffer>		m_pBufTest;
+	std::vector<uint32_t> m_testArr;
 };

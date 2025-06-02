@@ -29,10 +29,7 @@ void NXBuffer::Set(const void* pSrcData, uint32_t arraySize)
 		byte* pDstData = taskContext.pResourceData + byteOffset;
 		memcpy(pDstData, pSrcData, byteSize);
 
-		D3D12_RESOURCE_STATES oldState = m_resourceState;
-		SetResourceState(taskContext.pOwner->pCmdList, D3D12_RESOURCE_STATE_COPY_DEST);
 		taskContext.pOwner->pCmdList->CopyBufferRegion(m_pBuffer.Get(), 0, taskContext.pResource, byteOffset, byteSize);
-		SetResourceState(taskContext.pOwner->pCmdList, oldState);
 	}
 
 	NXUploadSystem->FinishTask(taskContext, []() {

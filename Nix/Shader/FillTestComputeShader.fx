@@ -7,6 +7,6 @@ void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
     // 确保不越界
     if (index < 256)
     {
-        gOutput[index] = 42; // 将每个元素写成42
+        gOutput[index] = (gOutput[index] + 1) % 10000;
     }
 }
