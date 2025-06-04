@@ -228,7 +228,7 @@ void NXScene::Init()
 {
 	InitEditorObjectsManager();
 
-	m_pTestCustomMat = NXResourceManager::GetInstance()->GetMaterialManager()->CreateCustomMaterial("TestCustomMat", "D:\\NixAssets\\Materials\\terrainMat.nsl");
+	m_pTestCustomMat = NXResourceManager::GetInstance()->GetMaterialManager()->CreateCustomMaterial("TestCustomMat", "D:\\NixAssets\\Materials\\terrainmat.nsl");
 
 	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\boxes.fbx", false);
 	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\TestBall.fbx", false);
@@ -505,6 +505,7 @@ void NXScene::RegisterTerrain(NXTerrain* newTerrain, NXObject* pParent)
 	m_scriptableObjects.push_back(newTerrain);
 	m_renderableObjects.push_back(newTerrain);
 	m_objects.push_back(newTerrain);
+	m_terrains.push_back(newTerrain);
 
 	newTerrain->SetParent(pParent ? pParent : m_pRootObject);
 }

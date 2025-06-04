@@ -17,10 +17,10 @@
 #include "NXAllocatorManager.h"
 #include "NXSubMeshGeometryEditor.h"
 #include "NXPSOManager.h"
-
 #include "NXRGPassNode.h"
 #include "NXRGResource.h"
 #include "NXRGBuilder.h"
+#include "NXGPUTerrainManager.h"
 
 Renderer::Renderer(const Vector2& rtSize) :
 	m_bRenderGUI(true),
@@ -51,6 +51,10 @@ void Renderer::Init()
 	NXResourceManager::GetInstance()->GetLightManager()->SetWorkingScene(m_scene);
 
 	m_scene->Init();
+
+	NXGPUTerrainManager::GetInstance()->Init();
+	NXGPUTerrainManager::GetInstance()->AddSceneTerrains(m_scene);
+	NXGPUTerrainManager::GetInstance()->GetGPUTerrainNodes(m_scene->GetMainCamera());
 
 	auto pCubeMap = m_scene->GetCubeMap();
 

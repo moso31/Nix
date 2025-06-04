@@ -21,6 +21,8 @@ public:
 	void InitAABB() override;
 	void Update(ID3D12GraphicsCommandList* pCmdList);
 
+	void GetGPUTerrainNodes(const Vector3& cameraPos, const std::vector<uint32_t>& profile, std::vector<std::vector<AABB>>& oData, bool clearOldData = false);
+
 protected:
 	int m_rawSize;
 	int m_gridSize;

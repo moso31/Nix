@@ -44,19 +44,20 @@ public:
 	// 基于距离获取各级LOD节点
 	// profile: 各级配置，比如如果{..., 1400, 600, 200} 就代表 200m使用LOD0，600m使用LOD1，1400m使用LOD2
 	// oNodes：最终输出的oNodes
-	void GetGPUTerrainNodes(const Vector3& cameraPos, const std::vector<uint32_t>& profile, std::vector<std::vector<NXQuadTreeNode*>>& oNodes)
+	void GetGPUTerrainNodes(const Vector3& cameraPos, const std::vector<uint32_t>& profile, std::vector<std::vector<AABB>>& oData, bool clearOldData = false)
 	{
 		assert(profile.size() == oNodes.size());
-		for (int i = 0; i < profile.size(); i++) oNodes[i].clear();
+		if (clearOldData)
+			for (int i = 0; i < profile.size(); i++) oNodes[i].clear();
 
 		int state = GetOverlapState(cameraPos, (float)profile[0], m_pRootNode);
 		
 		if (state == 0) return;
-		oNodes[0].push_back(m_pRootNode);
+		oNodes[0].push_back(m_pRootNode->m_aabb);
 
 		for (int i = 0; i < 4; i++)
 		{
-			GetGPUTerrainNodes_Internal(m_pRootNode->m_pChilds[i], 1, cameraPos, profile, oNodes);
+			GetGPUTerrainNodes_Internal(m_pRootNode->m_pChilds[i], 1, cameraPos, profile, oData);
 		}
 	}
 
@@ -142,14 +143,14 @@ private:
 		}
 	}
 
-	void GetGPUTerrainNodes_Internal(NXQuadTreeNode* pNode, int depth, const Vector3& cameraPos, const std::vector<uint32_t>& profile, std::vector<std::vector<NXQuadTreeNode*>>& oNodes)
+	void GetGPUTerrainNodes_Internal(NXQuadTreeNode* pNode, int depth, const Vector3& cameraPos, const std::vector<uint32_t>& profile, std::vector<std::vector<AABB>>& oNodes)
 	{
 		if (depth >= (int)profile.size() || !pNode) return;
 
 		int state = GetOverlapState(cameraPos, (float)profile[depth], pNode);
 
 		if (state == 0) return;
-		oNodes[depth].push_back(pNode);
+		oNodes[depth].push_back(pNode->m_aabb);
 
 		for (int i = 0; i < 4; i++)
 		{
