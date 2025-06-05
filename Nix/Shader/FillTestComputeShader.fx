@@ -1,12 +1,14 @@
-RWStructuredBuffer<uint> gOutput : register(u0);
+struct AABB
+{
+	float4 Center; // 中心点
+	float4 Extents; // 半径
+};
+
+RWStructuredBuffer<AABB> gOutput : register(u0);
 
 [numthreads(64, 1, 1)]
 void CS(uint3 dispatchThreadID : SV_DispatchThreadID)
 {
     uint index = dispatchThreadID.x;
-    // 确保不越界
-    if (index < 256)
-    {
-        gOutput[index] = (gOutput[index] + 1) % 10000;
-    }
+    gOutput[index] = gOutput[index];
 }

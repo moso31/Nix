@@ -11,6 +11,7 @@ public:
 	void Set(const void* pSrcData, uint32_t arraySize);
 
 	uint32_t GetByteSize() const { return m_byteSize; }
+	uint32_t GetArraySize() const { return m_byteSize / m_stride; }
 
 	D3D12_CPU_DESCRIPTOR_HANDLE GetSRV() const { return m_pSRV; }
 	D3D12_CPU_DESCRIPTOR_HANDLE GetUAV() const { return m_pUAV; }

@@ -4,7 +4,6 @@
 #include "NXAllocatorManager.h"
 #include "NXCamera.h"
 #include "NXTimer.h"
-#include "NXQuadTree.h"
 
 NXTerrain::NXTerrain(int gridSize, int worldSize) :
 	m_gridSize(gridSize),
@@ -58,15 +57,9 @@ void NXTerrain::Update(ID3D12GraphicsCommandList* pCmdList)
 	m_cbObject.Update(m_cbDataObject);
 
 	pCmdList->SetGraphicsRootConstantBufferView(0, m_cbObject.CurrentGPUAddress());
-
-	// ËÄ²æÊ÷ Âß¼­²âÊÔ£¨TODO£©
-	std::vector<uint32_t> profiles = { 12600, 6200, 3000, 1400, 600, 200 };
-	std::vector<std::vector<AABB>> qtNode(profiles.size());
-	m_pQuadTree->GetGPUTerrainNodes(pCamera->GetTranslation(), profiles, qtNode);
-	//printf("%d %d %d %d %d %d\n", qtNode[0].size(), qtNode[1].size(), qtNode[2].size(), qtNode[3].size(), qtNode[4].size(), qtNode[5].size());
 }
 
-void NXTerrain::GetGPUTerrainNodes(const Vector3& cameraPos, const std::vector<uint32_t>& profile, std::vector<std::vector<AABB>>& oData, bool clearOldData)
+void NXTerrain::GetGPUTerrainNodes(const Vector3& cameraPos, const std::vector<uint32_t>& profile, std::vector<std::vector<NXGPUTerrainBlockData>>& oData, bool clearOldData)
 {
 	m_pQuadTree->GetGPUTerrainNodes(cameraPos, profile, oData, clearOldData);
 }

@@ -291,6 +291,7 @@
     <ClCompile Include="Core\ShaderComplier.cpp" />
     <ClCompile Include="Core\NXShaderVisibleDescriptorHeap.cpp" />
     <ClCompile Include="Nix\NXBuffer.cpp" />
+    <ClCompile Include="Nix\NXGPUTerrainManager.cpp" />
     <ClCompile Include="Nix\NXQuadTree.cpp" />
     <ClCompile Include="Nix\NXRefCountable.cpp" />
     <ClCompile Include="Nix\NXResource.cpp" />
@@ -413,6 +414,7 @@
     <ClInclude Include="Core\NXShaderVisibleDescriptorHeap.h" />
     <ClInclude Include="Nix\HBVH.h" />
     <ClInclude Include="Nix\NXBuffer.h" />
+    <ClInclude Include="Nix\NXGPUTerrainManager.h" />
     <ClInclude Include="Nix\NXResource.h" />
     <ClInclude Include="Nix\NXRWBuffer.h" />
     <ClInclude Include="Nix\NXConstantBuffer.h" />

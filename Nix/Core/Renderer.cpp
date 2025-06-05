@@ -54,7 +54,6 @@ void Renderer::Init()
 
 	NXGPUTerrainManager::GetInstance()->Init();
 	NXGPUTerrainManager::GetInstance()->AddSceneTerrains(m_scene);
-	NXGPUTerrainManager::GetInstance()->GetGPUTerrainNodes(m_scene->GetMainCamera());
 
 	auto pCubeMap = m_scene->GetCubeMap();
 
@@ -87,11 +86,8 @@ void Renderer::InitRenderGraph()
 	m_pRenderGraph = new NXRenderGraph();
 	m_pRenderGraph->SetViewResolution(m_viewRTSize);
 
-	m_pBufTest = new NXBuffer("Test");
-	m_pBufTest->Create(4, 200);
-	for (int i = 0; i < 200; i++) m_testArr.push_back(i);
-
-	NXRGResource* pBufTest2 = m_pRenderGraph->ImportBuffer(m_pBufTest);
+	Ntr<NXBuffer> pBuffer = NXGPUTerrainManager::GetInstance()->GetTerrainLodBuffer(5);
+	NXRGResource* pBufTest2 = m_pRenderGraph->ImportBuffer(pBuffer);
 
 	struct FillTestData
 	{
@@ -99,10 +95,12 @@ void Renderer::InitRenderGraph()
 	m_pRenderGraph->AddComputePass<FillTestData>("FillTest", new NXFillTestRenderer(),
 		[&](NXRGBuilder& builder, FillTestData& data) {
 			builder.WriteUAV(pBufTest2, 0);
-			builder.SetComputeThreadGroup(3, 1, 1);
+
+			uint32_t threadCount = pBuffer->GetArraySize() / 64 + 1;
+			builder.SetComputeThreadGroup(threadCount, 1, 1);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, FillTestData& data) {
-			m_pBufTest->Set(m_testArr.data(), 200);
+			NXGPUTerrainManager::GetInstance()->UpdateGPUTerrainNodes(m_scene->GetMainCamera());
 		});
 
 	struct GBufferData

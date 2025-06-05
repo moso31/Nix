@@ -1,6 +1,12 @@
 #pragma once
 #include "BaseDefs/Math.h"
 
+struct NXGPUTerrainBlockData
+{
+	Vector4 pos;
+	Vector4 extent;
+};
+
 struct NXQuadTreeNode
 {
 	NXQuadTreeNode(NXQuadTreeNode* pParent) :
@@ -43,17 +49,20 @@ public:
 
 	// 基于距离获取各级LOD节点
 	// profile: 各级配置，比如如果{..., 1400, 600, 200} 就代表 200m使用LOD0，600m使用LOD1，1400m使用LOD2
-	// oNodes：最终输出的oNodes
-	void GetGPUTerrainNodes(const Vector3& cameraPos, const std::vector<uint32_t>& profile, std::vector<std::vector<AABB>>& oData, bool clearOldData = false)
+	// oData：最终输出
+	void GetGPUTerrainNodes(const Vector3& cameraPos, const std::vector<uint32_t>& profile, std::vector<std::vector<NXGPUTerrainBlockData>>& oData, bool clearOldData = false)
 	{
-		assert(profile.size() == oNodes.size());
+		assert(profile.size() == oData.size());
 		if (clearOldData)
-			for (int i = 0; i < profile.size(); i++) oNodes[i].clear();
+			for (int i = 0; i < profile.size(); i++) oData[i].clear();
 
 		int state = GetOverlapState(cameraPos, (float)profile[0], m_pRootNode);
 		
 		if (state == 0) return;
-		oNodes[0].push_back(m_pRootNode->m_aabb);
+		NXGPUTerrainBlockData newData;
+		newData.pos = Vector4(m_pRootNode->m_aabb.Center, 1.0f);
+		newData.extent = Vector4(m_pRootNode->m_aabb.Extents, 1.0f);
+		oData[0].push_back(newData);
 
 		for (int i = 0; i < 4; i++)
 		{
@@ -98,6 +107,7 @@ private:
 		Vector3 A = pNode->m_aabb.GetMin();
 		Vector3 C = pNode->m_aabb.GetMax();
 		// 目前暂时用不到Y轴
+		O.y = A.y = C.y = 0.0f;
 		Vector3 B(A.x, 0.0, C.z);
 		Vector3 D(C.x, 0.0, A.z);
 
@@ -143,14 +153,17 @@ private:
 		}
 	}
 
-	void GetGPUTerrainNodes_Internal(NXQuadTreeNode* pNode, int depth, const Vector3& cameraPos, const std::vector<uint32_t>& profile, std::vector<std::vector<AABB>>& oNodes)
+	void GetGPUTerrainNodes_Internal(NXQuadTreeNode* pNode, int depth, const Vector3& cameraPos, const std::vector<uint32_t>& profile, std::vector<std::vector<NXGPUTerrainBlockData>>& oNodes)
 	{
 		if (depth >= (int)profile.size() || !pNode) return;
 
 		int state = GetOverlapState(cameraPos, (float)profile[depth], pNode);
 
 		if (state == 0) return;
-		oNodes[depth].push_back(pNode->m_aabb);
+		NXGPUTerrainBlockData newData;
+		newData.pos = Vector4(pNode->m_aabb.Center, 1.0f);
+		newData.extent = Vector4(pNode->m_aabb.Extents, 1.0f);
+		oNodes[depth].push_back(newData);
 
 		for (int i = 0; i < 4; i++)
 		{

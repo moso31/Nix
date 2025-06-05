@@ -127,6 +127,9 @@
     <Filter Include="Shader\Test">
       <UniqueIdentifier>{acc387db-02b9-4a20-a13b-7dbb2dd8454a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Nix\Object\Transform\Primitive\Terrain">
+      <UniqueIdentifier>{58afa7e4-0b44-49f3-af93-46cce61d2f3e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Common.fx">
@@ -559,6 +562,9 @@
     <ClCompile Include="Core\NXFillTestRenderer.cpp">
       <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\NXGPUTerrainManager.cpp">
+      <Filter>Nix\Object\Transform\Primitive\Terrain</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -938,6 +944,9 @@
     </ClInclude>
     <ClInclude Include="Core\NXFillTestRenderer.h">
       <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXGPUTerrainManager.h">
+      <Filter>Nix\Object\Transform\Primitive\Terrain</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
