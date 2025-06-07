@@ -30,7 +30,7 @@ void NXGPUTerrainManager::Init()
 		std::string name = "GPUTerrainLod" + std::to_string(i);
 
 		pBuffer = new NXBuffer(name);
-		pBuffer->Create(sizeof(float) * 8, maxLODBlockNum[i]);
+		pBuffer->Create(sizeof(NXGPUTerrainBlockData), maxLODBlockNum[i]);
 	}
 }
 

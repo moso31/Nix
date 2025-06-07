@@ -10,7 +10,7 @@ class NXTerrain : public NXRenderableObject
 {
 	friend class NXSubMeshGeometryEditor;
 public:
-	NXTerrain(int gridSize, int worldSize);
+	NXTerrain(int gridSize, int worldSize, int terrainId);
 	virtual ~NXTerrain() {}
 
 	virtual void SetRotation(const Vector3& value) override {} // 地形不可旋转
@@ -29,6 +29,7 @@ public:
 	void GetGPUTerrainNodes(const Vector3& cameraPos, const std::vector<uint32_t>& profile, std::vector<std::vector<NXGPUTerrainBlockData>>& oData, bool clearOldData = false);
 
 protected:
+	int m_terrainId;
 	int m_rawSize;
 	int m_gridSize;
 	int m_worldSize;
@@ -39,6 +40,7 @@ protected:
 	NXConstantBuffer<ConstantBufferObject>	m_cbObject;
 
 private:
+	static std::vector<int> m_deadList;
 	NXQuadTree* m_pQuadTree; 
 
 	bool m_bGenerated = false;

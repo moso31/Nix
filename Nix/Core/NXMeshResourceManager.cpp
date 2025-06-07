@@ -8,6 +8,8 @@
 
 void NXMeshResourceManager::Init(NXScene* pScene)
 {
+	m_terrainIncreaseId = 0;
+
 	m_pWorkingScene = pScene;
 }
 
@@ -82,7 +84,7 @@ NXPrefab* NXMeshResourceManager::CreateFBXPrefab(const std::string& name, const 
 
 NXTerrain* NXMeshResourceManager::CreateTerrain(const std::string& name, int gridSize, int worldSize)
 {
-	auto p = new NXTerrain(gridSize, worldSize);
+	auto p = new NXTerrain(gridSize, worldSize, m_terrainIncreaseId++);
 	p->SetName(name);
 	NXSubMeshGeometryEditor::GetInstance()->CreateTerrain(p, gridSize, worldSize);
 	m_pWorkingScene->RegisterTerrain(p);

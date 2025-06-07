@@ -5,10 +5,11 @@
 #include "NXCamera.h"
 #include "NXTimer.h"
 
-NXTerrain::NXTerrain(int gridSize, int worldSize) :
+NXTerrain::NXTerrain(int gridSize, int worldSize, int terrainId) :
 	m_gridSize(gridSize),
 	m_worldSize(worldSize),
-	m_heightRange(0, 1000)
+	m_heightRange(0, 1000),
+	m_terrainId(terrainId)
 {
 	m_pQuadTree = new NXQuadTree(Vector3(1024), Vector3(1024));
 	m_pQuadTree->Build(6);
@@ -61,5 +62,5 @@ void NXTerrain::Update(ID3D12GraphicsCommandList* pCmdList)
 
 void NXTerrain::GetGPUTerrainNodes(const Vector3& cameraPos, const std::vector<uint32_t>& profile, std::vector<std::vector<NXGPUTerrainBlockData>>& oData, bool clearOldData)
 {
-	m_pQuadTree->GetGPUTerrainNodes(cameraPos, profile, oData, clearOldData);
+	m_pQuadTree->GetGPUTerrainNodes(cameraPos, m_terrainId, profile, oData, clearOldData);
 }

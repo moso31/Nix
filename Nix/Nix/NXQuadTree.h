@@ -3,8 +3,8 @@
 
 struct NXGPUTerrainBlockData
 {
-	Vector4 pos;
-	Vector4 extent;
+	uint32_t terrainId;
+	uint32_t nodeId;
 };
 
 struct NXQuadTreeNode
@@ -50,7 +50,7 @@ public:
 	// 基于距离获取各级LOD节点
 	// profile: 各级配置，比如如果{..., 1400, 600, 200} 就代表 200m使用LOD0，600m使用LOD1，1400m使用LOD2
 	// oData：最终输出
-	void GetGPUTerrainNodes(const Vector3& cameraPos, const std::vector<uint32_t>& profile, std::vector<std::vector<NXGPUTerrainBlockData>>& oData, bool clearOldData = false)
+	void GetGPUTerrainNodes(const Vector3& cameraPos, uint32_t terrainId, const std::vector<uint32_t>& profile, std::vector<std::vector<NXGPUTerrainBlockData>>& oData, bool clearOldData = false)
 	{
 		assert(profile.size() == oData.size());
 		if (clearOldData)
@@ -59,14 +59,16 @@ public:
 		int state = GetOverlapState(cameraPos, (float)profile[0], m_pRootNode);
 		
 		if (state == 0) return;
+
+		// 构建节点GPU数据
 		NXGPUTerrainBlockData newData;
-		newData.pos = Vector4(m_pRootNode->m_aabb.Center, 1.0f);
-		newData.extent = Vector4(m_pRootNode->m_aabb.Extents, 1.0f);
+		newData.terrainId = terrainId;
+		newData.nodeId = 0;
 		oData[0].push_back(newData);
 
 		for (int i = 0; i < 4; i++)
 		{
-			GetGPUTerrainNodes_Internal(m_pRootNode->m_pChilds[i], 1, cameraPos, profile, oData);
+			GetGPUTerrainNodes_Internal(m_pRootNode->m_pChilds[i], 1, cameraPos, profile, oData, terrainId, i + 1);
 		}
 	}
 
@@ -153,7 +155,7 @@ private:
 		}
 	}
 
-	void GetGPUTerrainNodes_Internal(NXQuadTreeNode* pNode, int depth, const Vector3& cameraPos, const std::vector<uint32_t>& profile, std::vector<std::vector<NXGPUTerrainBlockData>>& oNodes)
+	void GetGPUTerrainNodes_Internal(NXQuadTreeNode* pNode, int depth, const Vector3& cameraPos, const std::vector<uint32_t>& profile, std::vector<std::vector<NXGPUTerrainBlockData>>& oNodes, uint32_t terrainId, uint32_t nodeId)
 	{
 		if (depth >= (int)profile.size() || !pNode) return;
 
@@ -161,13 +163,13 @@ private:
 
 		if (state == 0) return;
 		NXGPUTerrainBlockData newData;
-		newData.pos = Vector4(pNode->m_aabb.Center, 1.0f);
-		newData.extent = Vector4(pNode->m_aabb.Extents, 1.0f);
+		newData.terrainId = terrainId;
+		newData.nodeId = nodeId;
 		oNodes[depth].push_back(newData);
 
 		for (int i = 0; i < 4; i++)
 		{
-			GetGPUTerrainNodes_Internal(pNode->m_pChilds[i], depth + 1, cameraPos, profile, oNodes);
+			GetGPUTerrainNodes_Internal(pNode->m_pChilds[i], depth + 1, cameraPos, profile, oNodes, terrainId, nodeId * 4 + i + 1);
 		}
 	}
 

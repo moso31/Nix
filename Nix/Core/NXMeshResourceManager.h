@@ -52,4 +52,7 @@ private:
 	NXScene* m_pWorkingScene;
 
 	std::vector<NXSubMeshBase*> m_replacingSubMeshes;
+
+	// 地形自增id
+	int m_terrainIncreaseId;
 };
