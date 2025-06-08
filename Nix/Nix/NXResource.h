@@ -16,6 +16,11 @@ public:
 	virtual void Serialize() override {};
 	virtual void Deserialize() override {};
 
+	virtual uint32_t GetWidth()		const = 0;
+	virtual uint32_t GetHeight()	const = 0;
+	virtual uint32_t GetArraySize()	const = 0;
+	virtual uint32_t GetMipLevels()	const = 0;
+
 	NXResourceType GetResourceType() const { return m_type; }
 
 	virtual const D3D12_RESOURCE_STATES& GetResourceState() { return m_resourceState; }

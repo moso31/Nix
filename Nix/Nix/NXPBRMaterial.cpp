@@ -149,10 +149,11 @@ bool NXCustomMaterial::LoadShaderCode()
 
 void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::string& oErrorMessageVS, std::string& oErrorMessagePS)
 {
+	std::wstring strEnableGPUInstancing = L"1";
 	ComPtr<IDxcBlob> pVSBlob, pPSBlob;
-	NXShaderComplier::GetInstance()->AddMacro(L"GPU_INSTANCING", L"1");
+	NXShaderComplier::GetInstance()->AddMacro(L"GPU_INSTANCING", strEnableGPUInstancing);
 	HRESULT hrVS = NXShaderComplier::GetInstance()->CompileVSByCode(strGBufferShader, L"VS", pVSBlob.GetAddressOf(), oErrorMessageVS);
-	NXShaderComplier::GetInstance()->AddMacro(L"GPU_INSTANCING", L"1");
+	NXShaderComplier::GetInstance()->AddMacro(L"GPU_INSTANCING", strEnableGPUInstancing);
 	HRESULT hrPS = NXShaderComplier::GetInstance()->CompilePSByCode(strGBufferShader, L"PS", pPSBlob.GetAddressOf(), oErrorMessagePS);
 	m_bCompileSuccess = SUCCEEDED(hrVS) && SUCCEEDED(hrPS);
 	

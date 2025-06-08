@@ -31,9 +31,6 @@ void NXEditorObjectRenderer::SetupInternal()
 	SetDepthStencilState(NXDepthStencilState<false, false, D3D12_COMPARISON_FUNC_LESS>::Create());
 	SetInputLayout(NXGlobalInputLayout::layoutEditorObject);
 
-	SetRootParams(3, 0); // b0~b2. (actually do not need b1.)
-	SetStaticRootParamCBV(1, &g_cbCamera.GetFrameGPUAddresses());
-
 	InitPSO();
 }
 

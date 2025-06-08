@@ -6,7 +6,6 @@
 #include <atomic>
 #include <vector>
 
-template<typename T>
 class NXConstantBufferImpl
 {
 public:
@@ -15,6 +14,8 @@ public:
 		m_futureCB.wait();
 		m_isCreating = false;
 	}
+
+	virtual const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>& GetFrameGPUAddresses() = 0;
 
 protected:
 	virtual void CreateInternal(UINT byteSize) = 0;
@@ -31,7 +32,7 @@ protected:
 };
 
 template<typename T>
-class NXConstantBuffer : public NXConstantBufferImpl<T>
+class NXConstantBuffer : public NXConstantBufferImpl
 {
 public:
 	NXConstantBuffer()
@@ -62,7 +63,7 @@ public:
 	}
 
 	// 获取所有FrameResource的GPU地址。以MultiFrame的形式返回。
-	const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>& GetFrameGPUAddresses()
+	const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>& GetFrameGPUAddresses() override
 	{
 		WaitCreateComplete();
 		return m_gpuAddrs;
@@ -145,7 +146,7 @@ private:
 };
 
 template<typename T>
-class NXConstantBuffer<std::vector<T>> : public NXConstantBufferImpl<std::vector<T>>
+class NXConstantBuffer<std::vector<T>> : public NXConstantBufferImpl
 {
 public:
 	// 允许空构造函数，但是需要手动调用Recreate
@@ -183,7 +184,7 @@ public:
 	}
 
 	// 获取所有FrameResource的GPU地址。以MultiFrame的形式返回。
-	const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>& GetFrameGPUAddresses()
+	const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>& GetFrameGPUAddresses() override
 	{
 		WaitCreateComplete();
 		return m_gpuAddrs;

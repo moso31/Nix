@@ -7,6 +7,7 @@
 #include "NXResourceManager.h"
 #include "ShaderComplier.h"
 #include "NXEvent.h"
+#include "NXAllocatorManager.h"
 
 App::App() :
 	m_pRenderer(nullptr),
@@ -21,6 +22,7 @@ void App::Init()
 	m_pDXResources = new DirectResources();
 	m_pDXResources->InitDevice();
 
+	NXAllocatorManager::GetInstance()->Init();
 	m_pRenderer = new Renderer(m_viewSize);
 	m_pRenderer->Init();
 }

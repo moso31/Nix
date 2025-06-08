@@ -3,8 +3,8 @@
 
 struct NXGPUTerrainBlockData
 {
-	uint32_t terrainId;
-	uint32_t nodeId;
+	uint32_t x;
+	uint32_t y;
 };
 
 struct NXQuadTreeNode
@@ -45,31 +45,6 @@ public:
 	void Destroy()
 	{
 		RemoveChilds(m_pRootNode);
-	}
-
-	// 基于距离获取各级LOD节点
-	// profile: 各级配置，比如如果{..., 1400, 600, 200} 就代表 200m使用LOD0，600m使用LOD1，1400m使用LOD2
-	// oData：最终输出
-	void GetGPUTerrainNodes(const Vector3& cameraPos, uint32_t terrainId, const std::vector<uint32_t>& profile, std::vector<std::vector<NXGPUTerrainBlockData>>& oData, bool clearOldData = false)
-	{
-		assert(profile.size() == oData.size());
-		if (clearOldData)
-			for (int i = 0; i < profile.size(); i++) oData[i].clear();
-
-		int state = GetOverlapState(cameraPos, (float)profile[0], m_pRootNode);
-		
-		if (state == 0) return;
-
-		// 构建节点GPU数据
-		NXGPUTerrainBlockData newData;
-		newData.terrainId = terrainId;
-		newData.nodeId = 0;
-		oData[0].push_back(newData);
-
-		for (int i = 0; i < 4; i++)
-		{
-			GetGPUTerrainNodes_Internal(m_pRootNode->m_pChilds[i], 1, cameraPos, profile, oData, terrainId, i + 1);
-		}
 	}
 
 	// 获取一个节点基于距离的覆盖情况
@@ -152,24 +127,6 @@ private:
 				delete pNode->m_pChilds[i];
 				pNode->m_pChilds[i] = nullptr;
 			}
-		}
-	}
-
-	void GetGPUTerrainNodes_Internal(NXQuadTreeNode* pNode, int depth, const Vector3& cameraPos, const std::vector<uint32_t>& profile, std::vector<std::vector<NXGPUTerrainBlockData>>& oNodes, uint32_t terrainId, uint32_t nodeId)
-	{
-		if (depth >= (int)profile.size() || !pNode) return;
-
-		int state = GetOverlapState(cameraPos, (float)profile[depth], pNode);
-
-		if (state == 0) return;
-		NXGPUTerrainBlockData newData;
-		newData.terrainId = terrainId;
-		newData.nodeId = nodeId;
-		oNodes[depth].push_back(newData);
-
-		for (int i = 0; i < 4; i++)
-		{
-			GetGPUTerrainNodes_Internal(pNode->m_pChilds[i], depth + 1, cameraPos, profile, oNodes, terrainId, nodeId * 4 + i + 1);
 		}
 	}
 

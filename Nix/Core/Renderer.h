@@ -21,6 +21,11 @@
 #include "NXFillTestRenderer.h"
 #include "NXRenderGraph.h"
 
+struct CBufferDebugLayer
+{
+	Vector4 LayerParam0; // x: EnableShadowMap, y: ZoomScale
+};
+
 struct NXEventArgKey;
 class Renderer
 {
@@ -45,9 +50,17 @@ public:
 
 	void Release();
 
-	NXRenderGraph* GetRenderGraph()				{ return m_pRenderGraph; }
-	bool	GetEnableDebugLayer()				{ return m_bEnableDebugLayer; }
-	void	SetEnableDebugLayer(bool value)		{ m_bEnableDebugLayer = value; }
+	NXRenderGraph* GetRenderGraph() { return m_pRenderGraph; }
+	// debug layer
+	bool GetEnableDebugLayer() const { return m_bEnableDebugLayer; }
+	void SetEnableDebugLayer(bool value) { m_bEnableDebugLayer = value; }
+	bool GetEnableShadowMapDebugLayer() { return m_bEnableShadowMapDebugLayer; }
+	void SetEnableShadowMapDebugLayer(bool value) { m_bEnableShadowMapDebugLayer = value; }
+	float GetShadowMapDebugLayerZoomScale() { return m_fShadowMapZoomScale; }
+	void SetShadowMapDebugLayerZoomScale(float value) { m_fShadowMapZoomScale = value; }
+	// post processing
+	bool GetEnablePostProcessing() const { return m_bEnablePostProcessing; }
+	void SetEnablePostProcessing(bool value) { m_bEnablePostProcessing = value; }
 
 private:
 	void InitEvents();
@@ -81,11 +94,16 @@ private:
 	NXRenderGraph*		m_pRenderGraph;
 	Ntr<NXTexture2D>	m_pFinalRT;
 
-	bool				m_bEnableDebugLayer;
-
 	NXGUI*				m_pGUI;
 	bool				m_bRenderGUI;
 
-	Ntr<NXBuffer>		m_pBufTest;
-	std::vector<uint32_t> m_testArr;
+	bool m_bEnablePostProcessing;
+	CBufferColorMapping m_cbColorMappingData;
+	NXConstantBuffer<CBufferColorMapping> m_cbColorMapping;
+
+	bool m_bEnableDebugLayer;
+	bool m_bEnableShadowMapDebugLayer;
+	float m_fShadowMapZoomScale;
+	CBufferDebugLayer m_cbDebugLayerData;
+	NXConstantBuffer<CBufferDebugLayer> m_cbDebugLayer;
 };

@@ -43,6 +43,8 @@ ccmem::BuddyAllocator::~BuddyAllocator()
 
 void ccmem::BuddyAllocator::AddAllocTask(uint32_t byteSize, void* pTaskContext, uint32_t pTaskContextSize, const std::function<void(const BuddyTaskResult&)>& callback)
 {
+	assert(byteSize > 0);
+
 	BuddyTask task;
 	task.byteSize = byteSize;
 	task.pCallBack = callback;

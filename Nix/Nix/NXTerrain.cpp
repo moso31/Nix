@@ -59,8 +59,3 @@ void NXTerrain::Update(ID3D12GraphicsCommandList* pCmdList)
 
 	pCmdList->SetGraphicsRootConstantBufferView(0, m_cbObject.CurrentGPUAddress());
 }
-
-void NXTerrain::GetGPUTerrainNodes(const Vector3& cameraPos, const std::vector<uint32_t>& profile, std::vector<std::vector<NXGPUTerrainBlockData>>& oData, bool clearOldData)
-{
-	m_pQuadTree->GetGPUTerrainNodes(cameraPos, m_terrainId, profile, oData, clearOldData);
-}

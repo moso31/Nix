@@ -4,7 +4,6 @@
 #include "NXGlobalDefinitions.h"
 #include "NXTexture.h"
 #include "NXRenderStates.h"
-#include "NXSamplerManager.h"
 #include "NXAllocatorManager.h"
 #include "NXSubMeshGeometryEditor.h"
 
@@ -22,8 +21,6 @@ NXGraphicPass::NXGraphicPass() :
 	m_psoDesc.SampleDesc.Quality = 0;
 	m_psoDesc.SampleMask = UINT_MAX;
 	m_psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-
-	m_srvUavRanges.reserve(1);
 }
 
 void NXGraphicPass::SetInputTex(NXCommonTexEnum eCommonTex, uint32_t slotIndex)
@@ -92,8 +89,8 @@ void NXGraphicPass::InitPSO()
 	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::GetDevice(), m_rootParams, m_staticSamplers);
 
 	ComPtr<IDxcBlob> pVSBlob, pPSBlob;
-	NXShaderComplier::GetInstance()->CompileVS(m_shaderFilePath, L"VS", pVSBlob.GetAddressOf());
-	NXShaderComplier::GetInstance()->CompilePS(m_shaderFilePath, L"PS", pPSBlob.GetAddressOf());
+	NXShaderComplier::GetInstance()->CompileVS(m_shaderFilePath, m_entryNameVS, pVSBlob.GetAddressOf());
+	NXShaderComplier::GetInstance()->CompilePS(m_shaderFilePath, m_entryNamePS, pPSBlob.GetAddressOf());
 
 	m_psoDesc.pRootSignature = m_pRootSig.Get();
 	m_psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
@@ -172,47 +169,4 @@ void NXGraphicPass::Render(ID3D12GraphicsCommandList* pCmdList)
 	pCmdList->DrawIndexedInstanced(meshView.GetIndexCount(), 1, 0, 0, 0);
 
 	NX12Util::EndEvent(pCmdList);
-}
-
-void NXGraphicPass::SetRootParams(int CBVNum, int SRVUAVNum)
-{
-	m_srvUavRanges.clear();
-	m_rootParams.clear();
-	for (int i = 0; i < CBVNum; i++)
-	{
-		// 默认slotIndex = i，可以通过 SetStaticRootParamCBV(, slotIdx, ) 方法修改
-		m_rootParams.push_back(NX12Util::CreateRootParameterCBV(i, 0, D3D12_SHADER_VISIBILITY_ALL));
-	};
-
-	if (SRVUAVNum)
-	{
-		m_srvUavRanges.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, SRVUAVNum, 0, 0));
-
-		m_rootParams.push_back(NX12Util::CreateRootParameterTable(m_srvUavRanges, D3D12_SHADER_VISIBILITY_ALL));
-	}
-
-	m_cbvManagements.resize(CBVNum);
-}
-
-void NXGraphicPass::SetStaticRootParamCBV(int rootParamIndex, const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>* gpuVirtAddrs)
-{
-	m_cbvManagements[rootParamIndex].autoUpdate = true;
-	m_cbvManagements[rootParamIndex].multiFrameGpuVirtAddr = gpuVirtAddrs;
-}
-
-void NXGraphicPass::SetStaticRootParamCBV(int rootParamIndex, int slotIndex, const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>* gpuVirtAddrs)
-{
-	SetStaticRootParamCBV(rootParamIndex, gpuVirtAddrs);
-	m_rootParams[rootParamIndex].Descriptor.ShaderRegister = slotIndex;
-}
-
-void NXGraphicPass::AddStaticSampler(const D3D12_STATIC_SAMPLER_DESC& samplerDesc)
-{
-	m_staticSamplers.push_back(samplerDesc);
-}
-
-void NXGraphicPass::AddStaticSampler(D3D12_FILTER filter, D3D12_TEXTURE_ADDRESS_MODE addrUVW)
-{
-	auto& samplerDesc = NXSamplerManager::GetInstance()->CreateIso((int)m_staticSamplers.size(), 0, D3D12_SHADER_VISIBILITY_ALL, filter, addrUVW);
-	m_staticSamplers.push_back(samplerDesc);
 }

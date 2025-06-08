@@ -30,9 +30,6 @@ NXShadowMapRenderer::~NXShadowMapRenderer()
 void NXShadowMapRenderer::SetupInternal()
 {
 	SetShaderFilePath("Shader\\ShadowMap.fx");
-	SetRootParams(2, 0);
-	SetStaticRootParamCBV(0, 0, &g_cbObject.GetFrameGPUAddresses()); // b0
-	SetStaticRootParamCBV(1, 2, &g_cbShadowTest.GetFrameGPUAddresses()); // b2
 
 	InitPSO();
 

@@ -14,7 +14,6 @@ void NXDepthRenderer::SetupInternal()
 
 	// t0, s0, b is empty
 	SetShaderFilePath(L"Shader\\Depth.fx");
-	SetRootParams(0, 1); // param 0 = t0
 	AddStaticSampler(D3D12_FILTER_MIN_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
 
 	SetDepthStencilState(NXDepthStencilState<false, false, D3D12_COMPARISON_FUNC_LESS, true, 0xFF, 0xFF, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_COMPARISON_FUNC_EQUAL>::Create());

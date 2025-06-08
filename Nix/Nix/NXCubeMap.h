@@ -86,8 +86,8 @@ public:
 	Ntr<NXTexture2D> GetIrradianceMap();
 	Ntr<NXTexture2D> GetPreFilterMap();
 
-	const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>& GetCBObjectParams() { return m_cbCubeWVPMatrix.GetFrameGPUAddresses(); }
-	const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>& GetCBDataParams() { return m_cbCubeMap.GetFrameGPUAddresses(); }
+	NXConstantBuffer<ConstantBufferBaseWVP>& GetCBObjectParams() { return m_cbCubeWVPMatrix; }
+	NXConstantBuffer<ConstantBufferCubeMap>& GetCBDataParams() { return m_cbCubeMap; }
 
 	void SetIntensity(float val);
 	float GetIntensity() { return m_cbDataCubeMap.intensity; }

@@ -6,13 +6,14 @@ void NXRGBuilder::Read(NXRGResource* pResource, uint32_t passSlotIndex)
 	return m_pPassNode->Read(pResource, passSlotIndex);
 }
 
-void NXRGBuilder::SetComputeThreadGroup(uint32_t threadGroupX, uint32_t threadGroupY, uint32_t threadGroupZ)
+void NXRGBuilder::SetRootParamLayout(uint32_t cbvCount, uint32_t srvCount, uint32_t uavCount)
 {
-	if (m_pPassNode->GetRenderPass()->GetPassType() == NXRenderPassType::ComputePass)
-	{
-		auto pComputePass = (NXComputePass*)m_pPassNode->GetRenderPass();
-		pComputePass->SetThreadGroups(threadGroupX, threadGroupY, threadGroupZ);
-	}
+	m_pPassNode->SetRootParamLayout(cbvCount, srvCount, uavCount);
+}
+
+void NXRGBuilder::ReadConstantBuffer(uint32_t rootIndex, uint32_t slotIndex, NXConstantBufferImpl* pConstantBuffer)
+{
+	m_pPassNode->ReadConstantBuffer(rootIndex, slotIndex, pConstantBuffer);
 }
 
 NXRGResource* NXRGBuilder::WriteRT(NXRGResource* pResource, uint32_t outRTIndex, bool keep)
@@ -28,5 +29,29 @@ NXRGResource* NXRGBuilder::WriteDS(NXRGResource* pResource, bool keep)
 NXRGResource* NXRGBuilder::WriteUAV(NXRGResource* pResource, uint32_t outUAVIndex, bool keep)
 {
 	return m_pPassNode->WriteUAV(pResource, outUAVIndex, keep);
+}
+
+void NXRGBuilder::SetComputeThreadGroup(uint32_t threadGroupX, uint32_t threadGroupY, uint32_t threadGroupZ)
+{
+	if (m_pPassNode->GetRenderPass()->GetPassType() == NXRenderPassType::ComputePass)
+	{
+		auto pComputePass = (NXComputePass*)m_pPassNode->GetRenderPass();
+		pComputePass->SetThreadGroups(threadGroupX, threadGroupY, threadGroupZ);
+	}
+}
+
+void NXRGBuilder::SetEntryNameVS(const std::wstring& entryName)
+{
+	m_pPassNode->GetRenderPass()->SetEntryNameVS(entryName);
+}
+
+void NXRGBuilder::SetEntryNamePS(const std::wstring& entryName)
+{
+	m_pPassNode->GetRenderPass()->SetEntryNamePS(entryName);
+}
+
+void NXRGBuilder::SetEntryNameCS(const std::wstring& entryName)
+{
+	m_pPassNode->GetRenderPass()->SetEntryNameCS(entryName);
 }
 

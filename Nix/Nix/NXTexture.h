@@ -97,12 +97,12 @@ public:
 
     const std::filesystem::path& GetFilePath() const { return m_texFilePath; }
 
-    uint32_t        GetWidth() const { return m_width; }
-    uint32_t        GetHeight() const { return m_height; }
-    uint32_t        GetArraySize() const { return m_arraySize; }
-    uint32_t        GetMipLevels() const { return m_mipLevels; }
-    DXGI_FORMAT     GetFormat() const { return m_texFormat; }
-    DXGI_FORMAT     GetDSVFormat() const { return NXConvert::TypelessToDSVFormat(m_texFormat); }
+    uint32_t        GetWidth()      const override { return m_width; }
+    uint32_t        GetHeight()     const override { return m_height; }
+    uint32_t        GetArraySize()  const override { return m_arraySize; }
+    uint32_t        GetMipLevels()  const override { return m_mipLevels; }
+    DXGI_FORMAT     GetFormat()     const { return m_texFormat; }
+    DXGI_FORMAT     GetDSVFormat()  const { return NXConvert::TypelessToDSVFormat(m_texFormat); }
 
     void Release();
 

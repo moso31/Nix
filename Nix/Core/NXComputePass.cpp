@@ -2,7 +2,6 @@
 #include "NXResourceManager.h"
 #include "ShaderComplier.h"
 #include "NXGlobalDefinitions.h"
-#include "NXSamplerManager.h"
 
 NXComputePass::NXComputePass() :
 	NXRenderPass(NXRenderPassType::ComputePass),
@@ -16,7 +15,7 @@ void NXComputePass::InitCSO()
 	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::GetDevice(), m_rootParams, m_staticSamplers);
 
 	ComPtr<IDxcBlob> pCSBlob;
-	NXShaderComplier::GetInstance()->CompileCS(m_shaderFilePath, L"CS", pCSBlob.GetAddressOf());
+	NXShaderComplier::GetInstance()->CompileCS(m_shaderFilePath, m_entryNameCS, pCSBlob.GetAddressOf());
 
 	m_csoDesc.pRootSignature = m_pRootSig.Get();
 	m_csoDesc.CS = { pCSBlob->GetBufferPointer(), pCSBlob->GetBufferSize() };
@@ -135,53 +134,4 @@ void NXComputePass::Render(ID3D12GraphicsCommandList* pCmdList)
 	pCmdList->Dispatch(m_threadGroupX, m_threadGroupY, m_threadGroupZ);
 
 	NX12Util::EndEvent(pCmdList);
-}
-
-void NXComputePass::SetRootParams(int CBVNum, int SRVNum, int UAVNum)
-{
-	m_srvRanges.clear();
-	m_uavRanges.clear();
-	m_rootParams.clear();
-	for (int i = 0; i < CBVNum; i++)
-	{
-		// 默认slotIndex = i，可以通过 SetStaticRootParamCBV(, slotIdx, ) 方法修改
-		m_rootParams.push_back(NX12Util::CreateRootParameterCBV(i, 0, D3D12_SHADER_VISIBILITY_ALL));
-	};
-
-	if (SRVNum)
-	{
-		m_srvRanges.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, SRVNum, 0, 0));
-		m_rootParams.push_back(NX12Util::CreateRootParameterTable(m_srvRanges, D3D12_SHADER_VISIBILITY_ALL));
-	}
-
-	if (UAVNum)
-	{
-		m_uavRanges.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, UAVNum, 0, 0));
-		m_rootParams.push_back(NX12Util::CreateRootParameterTable(m_uavRanges, D3D12_SHADER_VISIBILITY_ALL));
-	}
-
-	m_cbvManagements.resize(CBVNum);
-}
-
-void NXComputePass::SetStaticRootParamCBV(int rootParamIndex, const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>* gpuVirtAddrs)
-{
-	m_cbvManagements[rootParamIndex].autoUpdate = true;
-	m_cbvManagements[rootParamIndex].multiFrameGpuVirtAddr = gpuVirtAddrs;
-}
-
-void NXComputePass::SetStaticRootParamCBV(int rootParamIndex, int slotIndex, const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>* gpuVirtAddrs)
-{
-	SetStaticRootParamCBV(rootParamIndex, gpuVirtAddrs);
-	m_rootParams[rootParamIndex].Descriptor.ShaderRegister = slotIndex;
-}
-
-void NXComputePass::AddStaticSampler(const D3D12_STATIC_SAMPLER_DESC& samplerDesc)
-{
-	m_staticSamplers.push_back(samplerDesc);
-}
-
-void NXComputePass::AddStaticSampler(D3D12_FILTER filter, D3D12_TEXTURE_ADDRESS_MODE addrUVW)
-{
-	auto& samplerDesc = NXSamplerManager::GetInstance()->CreateIso((int)m_staticSamplers.size(), 0, D3D12_SHADER_VISIBILITY_ALL, filter, addrUVW);
-	m_staticSamplers.push_back(samplerDesc);
 }

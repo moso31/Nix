@@ -10,6 +10,7 @@ struct NXRGResourceSlot
 };
 
 class NXRenderGraph;
+class NXConstantBufferImpl;
 class NXRGPassNodeBase
 {
 public:
@@ -18,8 +19,14 @@ public:
 
 	const std::string& GetName() { return m_passName; }
 
+	// 设置Pass的根参数布局
+	void SetRootParamLayout(uint32_t cbvCount, uint32_t srvCount, uint32_t uavCount);
+
 	// 设置Pass输入资源。
 	void Read(NXRGResource* pResource, uint32_t passSlotIndex);
+
+	// 设置Pass输入的CB
+	void ReadConstantBuffer(uint32_t rootIndex, uint32_t slotIndex, NXConstantBufferImpl* pConstantBuffer);
 
 	// 设置pass输出RT。
 	NXRGResource* WriteRT(NXRGResource* pResource, uint32_t outRTIndex, bool useOldVersion);
@@ -47,6 +54,9 @@ protected:
 	// Pass记录自己依赖的资源，但生命周期由NXRenderGraph*管理；
 	std::vector<NXRGResourceSlot> m_inputs; 
 	std::vector<NXRGResourceSlot> m_outputs;
+
+	// 记录当前pass的根参数布局
+	NXRGRootParamLayout m_rootParamLayout; 
 };
 
 template<typename NXRGPassData>

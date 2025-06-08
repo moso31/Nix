@@ -23,16 +23,16 @@ void NXGUIDebugLayer::Render()
 
 	if (bEnableDebugLayer)
 	{
-		bool bEnableShadowMap = pDebugLayer->GetEnableShadowMapDebugLayer();
+		bool bEnableShadowMap = m_pRenderer->GetEnableShadowMapDebugLayer();
 		if (ImGui::Checkbox("Cascade Shadow Map", &bEnableShadowMap))
 		{
-			pDebugLayer->SetEnableShadowMapDebugLayer(bEnableShadowMap);
+			m_pRenderer->SetEnableShadowMapDebugLayer(bEnableShadowMap);
 		}
 
-		float fZoomScale = pDebugLayer->GetShadowMapDebugLayerZoomScale();
+		float fZoomScale = m_pRenderer->GetShadowMapDebugLayerZoomScale();
 		if (ImGui::DragFloat("Zoom Scale", &fZoomScale, 0.1f, 1.0f, 1024.0f))
 		{
-			pDebugLayer->SetShadowMapDebugLayerZoomScale(fZoomScale);
+			m_pRenderer->SetShadowMapDebugLayerZoomScale(fZoomScale);
 		}
 	}
 

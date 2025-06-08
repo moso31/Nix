@@ -1,9 +1,26 @@
 #include "NXRGPassNode.h"
 #include "NXRenderGraph.h"
+#include "NXConstantBuffer.h"
+
+void NXRGPassNodeBase::SetRootParamLayout(uint32_t cbvCount, uint32_t srvCount, uint32_t uavCount)
+{
+	m_rootParamLayout.cbvCount = cbvCount;
+	m_rootParamLayout.srvCount = srvCount;
+	m_rootParamLayout.uavCount = uavCount;
+	m_pPass->SetRootParamLayout(m_rootParamLayout);
+}
 
 void NXRGPassNodeBase::Read(NXRGResource* pResource, uint32_t passSlotIndex)
 {
 	m_inputs.push_back({ pResource, passSlotIndex });
+}
+
+void NXRGPassNodeBase::ReadConstantBuffer(uint32_t rootIndex, uint32_t slotIndex, NXConstantBufferImpl* pConstantBuffer)
+{
+	// 目前的规定是 必须先SetRootParamLayout才能调用ReadConstantBuffer（长期要去掉这个策略吗？）
+	assert(m_rootParamLayout.cbvCount > rootIndex);
+
+	m_pPass->SetStaticRootParamCBV(rootIndex, slotIndex, &pConstantBuffer->GetFrameGPUAddresses());
 }
 
 NXRGResource* NXRGPassNodeBase::WriteRT(NXRGResource* pResource, uint32_t outRTIndex, bool useOldVersion)
@@ -88,7 +105,9 @@ void NXRGPassNodeBase::Compile_GraphicsPass(bool isResize)
 	}
 
 	if (!isResize)
+	{
 		pPass->SetupInternal();
+	}
 }
 
 void NXRGPassNodeBase::Compile_ComputePass(bool isResize)
@@ -106,5 +125,7 @@ void NXRGPassNodeBase::Compile_ComputePass(bool isResize)
 	}
 
 	if (!isResize)
+	{
 		pPass->SetupInternal();
+	}
 }

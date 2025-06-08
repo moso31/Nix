@@ -14,7 +14,6 @@
 #include "NXCubeMap.h"
 #include "NXDepthPrepass.h"
 #include "NXSimpleSSAO.h"
-#include "NXAllocatorManager.h"
 #include "NXSubMeshGeometryEditor.h"
 #include "NXPSOManager.h"
 #include "NXRGPassNode.h"
@@ -25,8 +24,12 @@
 Renderer::Renderer(const Vector2& rtSize) :
 	m_bRenderGUI(true),
 	m_viewRTSize(rtSize),
-	m_bEnableDebugLayer(false)
+	m_bEnablePostProcessing(true),
+	m_bEnableDebugLayer(false),
+	m_bEnableShadowMapDebugLayer(false),
+	m_fShadowMapZoomScale(1.0f)
 {
+	m_cbDebugLayerData.LayerParam0 = Vector4(1.0f, 0.0f, 0.0f, 0.0f);
 }
 
 void Renderer::Init()
@@ -86,22 +89,30 @@ void Renderer::InitRenderGraph()
 	m_pRenderGraph = new NXRenderGraph();
 	m_pRenderGraph->SetViewResolution(m_viewRTSize);
 
-	Ntr<NXBuffer> pBuffer = NXGPUTerrainManager::GetInstance()->GetTerrainLodBuffer(5);
-	NXRGResource* pBufTest2 = m_pRenderGraph->ImportBuffer(pBuffer);
+	//NXRGResource* pBufLod5 = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainLodBuffer(5));
+	//NXRGResource* pBufLod4 = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainLodBuffer(4));
 
-	struct FillTestData
-	{
-	};
-	m_pRenderGraph->AddComputePass<FillTestData>("FillTest", new NXFillTestRenderer(),
-		[&](NXRGBuilder& builder, FillTestData& data) {
-			builder.WriteUAV(pBufTest2, 0);
+	//Ntr<NXBuffer> pBufferFinal = new NXBuffer("");
+	//pBufferFinal->Create(sizeof(int) * 3, 1024); // todo : 1024?
+	//NXRGResource* pBufFinal = m_pRenderGraph->ImportBuffer(pBufferFinal);
 
-			uint32_t threadCount = pBuffer->GetArraySize() / 64 + 1;
-			builder.SetComputeThreadGroup(threadCount, 1, 1);
-		},
-		[&](ID3D12GraphicsCommandList* pCmdList, FillTestData& data) {
-			NXGPUTerrainManager::GetInstance()->UpdateGPUTerrainNodes(m_scene->GetMainCamera());
-		});
+	//struct FillTestData
+	//{
+	//};
+	//m_pRenderGraph->AddComputePass<FillTestData>("FillTest", new NXFillTestRenderer(),
+	//	[&](NXRGBuilder& builder, FillTestData& data) {
+	//		NXGPUTerrainManager::GetInstance()->UpdateLodParams(5);
+
+	//		builder.WriteUAV(pBufLod5, 1); // u0
+	//		builder.WriteUAV(pBufLod4, 1); // u1
+	//		builder.WriteUAV(pBufFinal, 2); // u2
+	//		builder.SetEntryNameCS(L"CS_Pass");
+
+	//		uint32_t threadCount = pBufLod5->GetResource()->GetWidth() / 64 + 1;
+	//		builder.SetComputeThreadGroup(threadCount, 1, 1);
+	//	},
+	//	[&](ID3D12GraphicsCommandList* pCmdList, FillTestData& data) {
+	//	});
 
 	struct GBufferData
 	{
@@ -148,6 +159,7 @@ void Renderer::InitRenderGraph()
 	auto depthCopyPassData = 
 	m_pRenderGraph->AddPass<DepthCopyData>("DepthCopy", new NXDepthRenderer(),
 		[&](NXRGBuilder& builder, DepthCopyData& data) {
+			builder.SetRootParamLayout(0, 1, 0);
 			builder.Read(gBufferPassData->GetData().depth, 0);
 			data.depthCopy = builder.WriteRT(pDepthCopy, 0);
 		},
@@ -168,6 +180,9 @@ void Renderer::InitRenderGraph()
 	auto pCSMDepth = m_pRenderGraph->ImportTexture(pShadowMapDepth, RG_DepthStencil);
 	auto shadowMapPassData = m_pRenderGraph->AddPass<ShadowMapData>("ShadowMap", new NXShadowMapRenderer(m_scene),
 		[&](NXRGBuilder& builder, ShadowMapData& data) {
+			builder.SetRootParamLayout(2, 0, 0); 
+			builder.ReadConstantBuffer(0, 0, &g_cbObject); 
+			builder.ReadConstantBuffer(1, 2, &g_cbShadowTest);
 			builder.WriteDS(pCSMDepth);
 		},
 		[=](ID3D12GraphicsCommandList* pCmdList, ShadowMapData& data) {
@@ -183,6 +198,10 @@ void Renderer::InitRenderGraph()
 
 	auto shadowTestPassData = m_pRenderGraph->AddPass<ShadowTestData>("ShadowTest", new NXShadowTestRenderer(),
 		[&](NXRGBuilder& builder, ShadowTestData& data) {
+			builder.SetRootParamLayout(3, 2, 0);
+			builder.ReadConstantBuffer(0, 0, &g_cbObject); 
+			builder.ReadConstantBuffer(1, 1, &g_cbCamera); 
+			builder.ReadConstantBuffer(2, 2, &g_cbShadowTest); 
 			builder.Read(gBufferPassData->GetData().depth, 0); 
 			builder.Read(pCSMDepth, 1);
 			data.shadowTest = builder.WriteRT(pShadowTest, 0);
@@ -207,6 +226,13 @@ void Renderer::InitRenderGraph()
 
 	auto litPassData = m_pRenderGraph->AddPass<DeferredLightingData>("DeferredLighting", new NXDeferredRenderer(m_scene),
 		[&](NXRGBuilder& builder, DeferredLightingData& data) {
+			builder.SetRootParamLayout(5, 9, 0);
+			builder.ReadConstantBuffer(0, 0, &g_cbObject); // b0
+			builder.ReadConstantBuffer(1, 1, &g_cbCamera); // b1
+			builder.ReadConstantBuffer(2, 2, &m_scene->GetConstantBufferLights()); // b2
+			builder.ReadConstantBuffer(3, 3, &m_scene->GetCubeMap()->GetCBDataParams()); // b3
+			builder.ReadConstantBuffer(4, 4, &NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfile()); // b4
+
 			builder.Read(gBufferPassData->GetData().rt0, 0); // register t0
 			builder.Read(gBufferPassData->GetData().rt1, 1); // t1
 			builder.Read(gBufferPassData->GetData().rt2, 2); // t2
@@ -231,6 +257,10 @@ void Renderer::InitRenderGraph()
 	};
 	auto sssPassData = m_pRenderGraph->AddPass<SubsurfaceData>("Subsurface", new NXSubSurfaceRenderer(),
 		[&](NXRGBuilder& builder, SubsurfaceData& data) {
+			builder.SetRootParamLayout(2, 6, 0);
+			builder.ReadConstantBuffer(0, 1, &g_cbCamera);
+			builder.ReadConstantBuffer(1, 3, &NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfile());
+
 			builder.Read(litPassData->GetData().lighting, 0);
 			builder.Read(litPassData->GetData().lightingSpec, 1);
 			builder.Read(litPassData->GetData().lightingCopy, 2);
@@ -254,6 +284,10 @@ void Renderer::InitRenderGraph()
 	};
 	auto skyPassData = m_pRenderGraph->AddPass<SkyLightingData>("SkyLighting", new NXSkyRenderer(m_scene),
 		[&](NXRGBuilder& builder, SkyLightingData& data) {
+			builder.SetRootParamLayout(2, 1, 0);
+			builder.ReadConstantBuffer(0, 0, &m_scene->GetCubeMap()->GetCBObjectParams());
+			builder.ReadConstantBuffer(1, 1, &m_scene->GetCubeMap()->GetCBDataParams());
+
 			data.buf = builder.WriteRT(sssPassData->GetData().buf, 0, true);
 			data.depth = builder.WriteDS(gBufferPassData->GetData().depth, true);
 
@@ -273,10 +307,14 @@ void Renderer::InitRenderGraph()
 
 	auto postProcessPassData = m_pRenderGraph->AddPass<PostProcessingData>("PostProcessing", new NXColorMappingRenderer(),
 		[&](NXRGBuilder& builder, PostProcessingData& data) {
+			builder.SetRootParamLayout(1, 1, 0);
+			builder.ReadConstantBuffer(0, 2, &m_cbColorMapping);
 			builder.Read(skyPassData->GetData().buf, 0);
 			data.out = builder.WriteRT(pPostProcess, 0);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, PostProcessingData& data) {
+			m_cbColorMappingData.param0.x = m_bEnablePostProcessing ? 1.0f : 0.0f;
+			m_cbColorMapping.Update(m_cbColorMappingData);
 		});
 
 	struct DebugLayerData
@@ -284,18 +322,21 @@ void Renderer::InitRenderGraph()
 		NXRGResource* out;
 	};
 
-
 	auto pDebugLayer = m_pRenderGraph->CreateResource("Debug Layer RT", { .format = DXGI_FORMAT_R11G11B10_FLOAT, .handleFlags = RG_RenderTarget });
 
 	auto debugLayerPassData = m_pRenderGraph->AddPass<DebugLayerData>("DebugLayer", new NXDebugLayerRenderer(),
 		[&](NXRGBuilder& builder, DebugLayerData& data) {
+			builder.SetRootParamLayout(2, 2, 0);
+			builder.ReadConstantBuffer(0, 1, &g_cbCamera);
+			builder.ReadConstantBuffer(1, 2, &m_cbDebugLayer);
 			builder.Read(postProcessPassData->GetData().out, 0);
 			builder.Read(pCSMDepth, 1);
 			data.out = builder.WriteRT(pDebugLayer, 0);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, DebugLayerData& data) {
-			auto pDebugLayer = static_cast<NXDebugLayerRenderer*>(m_pRenderGraph->GetRenderPass("DebugLayer"));
-			pDebugLayer->SetEnableDebugLayer(m_bEnableDebugLayer);
+			m_cbDebugLayerData.LayerParam0.x = (float)m_bEnableShadowMapDebugLayer;
+			m_cbDebugLayerData.LayerParam0.y = m_fShadowMapZoomScale;
+			m_cbDebugLayer.Update(m_cbDebugLayerData);
 		});
 
 	struct GizmosData
@@ -304,6 +345,8 @@ void Renderer::InitRenderGraph()
 	};
 	auto gizmosPassData = m_pRenderGraph->AddPass<GizmosData>("Gizmos", new NXEditorObjectRenderer(m_scene),
 		[&](NXRGBuilder& builder, GizmosData& data) {
+			builder.SetRootParamLayout(3, 0, 0);
+			builder.ReadConstantBuffer(1, 1, &g_cbCamera);
 			//NXRGResource* pOut = m_bEnableDebugLayer ? debugLayerPassData->GetData().out : postProcessPassData->GetData().out;
 			NXRGResource* pOut = debugLayerPassData->GetData().out;
 			data.out = builder.WriteRT(pOut, 0, true);
@@ -333,7 +376,6 @@ void Renderer::InitGlobalResources()
 		m_pCommandList.Get(i)->SetName(strCmdListName.c_str());
 	}
 
-	NXAllocatorManager::GetInstance()->Init();
 	NXGlobalInputLayout::Init();
 }
 
@@ -367,6 +409,8 @@ void Renderer::UpdateSceneData()
 
 	// 更新Camera的常量缓存数据（VP矩阵、眼睛位置）
 	m_scene->UpdateCamera();
+
+	NXGPUTerrainManager::GetInstance()->UpdateCameraParams(m_scene->GetMainCamera());
 
 	m_scene->UpdateLightData();
 

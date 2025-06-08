@@ -18,10 +18,10 @@ void NXGUIPostProcessing::Render()
 		return;
 	}
 
-    bool bPostProcessingEnable = pPass->GetEnable();
+    bool bPostProcessingEnable = m_pRenderer->GetEnablePostProcessing();
     if (ImGui::Checkbox("Enable##post_processing", &bPostProcessingEnable))
     {
-		pPass->SetEnable(bPostProcessingEnable);
+		m_pRenderer->SetEnablePostProcessing(bPostProcessingEnable);
     }
 
 	ImGui::End();
