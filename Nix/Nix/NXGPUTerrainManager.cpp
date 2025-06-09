@@ -11,20 +11,6 @@ void NXGPUTerrainManager::Init()
 {
 	m_pTerrainLodBuffer.resize(m_terrainLodNum);
 	m_gpuTerrainData.resize(m_terrainLodNum);
-
-	return;
-
-	uint32_t terrainNodeNum = m_pTerrains.size(); // 地形node数量
-	for (int i = m_terrainLodNum - 1; i >= 0; i--)
-	{
-		auto& pBuffer = m_pTerrainLodBuffer[i];
-		std::string name = "GPUTerrainLod" + std::to_string(i);
-
-		pBuffer = new NXBuffer(name);
-		pBuffer->Create(sizeof(NXGPUTerrainBlockData), terrainNodeNum);
-
-		terrainNodeNum <<= 2; // 每个Lod级别的地形node数量是上一级的4倍
-	}
 }
 
 void NXGPUTerrainManager::UpdateCameraParams(NXCamera* pCam)
@@ -42,6 +28,18 @@ void NXGPUTerrainManager::AddSceneTerrains(NXScene* pScene)
 	for (auto& pTerrain : pScene->GetTerrains())
 	{
 		m_pTerrains.push_back(pTerrain);
+	}
+
+	uint32_t terrainNodeNum = m_pTerrains.size(); // 地形node数量
+	for (int i = m_terrainLodNum - 1; i >= 0; i--)
+	{
+		auto& pBuffer = m_pTerrainLodBuffer[i];
+		std::string name = "GPUTerrainLod" + std::to_string(i);
+
+		pBuffer = new NXBuffer(name);
+		pBuffer->Create(sizeof(NXGPUTerrainBlockData), terrainNodeNum);
+
+		terrainNodeNum <<= 2; // 每个Lod级别的地形node数量是上一级的4倍
 	}
 }
 

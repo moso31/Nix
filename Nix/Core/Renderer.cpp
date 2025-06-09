@@ -89,30 +89,34 @@ void Renderer::InitRenderGraph()
 	m_pRenderGraph = new NXRenderGraph();
 	m_pRenderGraph->SetViewResolution(m_viewRTSize);
 
-	//NXRGResource* pBufLod5 = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainLodBuffer(5));
-	//NXRGResource* pBufLod4 = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainLodBuffer(4));
+	NXRGResource* pBufLod5 = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainLodBuffer(5));
+	NXRGResource* pBufLod4 = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainLodBuffer(4));
 
-	//Ntr<NXBuffer> pBufferFinal = new NXBuffer("");
-	//pBufferFinal->Create(sizeof(int) * 3, 1024); // todo : 1024?
-	//NXRGResource* pBufFinal = m_pRenderGraph->ImportBuffer(pBufferFinal);
+	Ntr<NXBuffer> pBufferFinal = new NXBuffer("");
+	pBufferFinal->Create(sizeof(int) * 3, 1024); // todo : 1024?
+	NXRGResource* pBufFinal = m_pRenderGraph->ImportBuffer(pBufferFinal);
 
-	//struct FillTestData
-	//{
-	//};
-	//m_pRenderGraph->AddComputePass<FillTestData>("FillTest", new NXFillTestRenderer(),
-	//	[&](NXRGBuilder& builder, FillTestData& data) {
-	//		NXGPUTerrainManager::GetInstance()->UpdateLodParams(5);
+	struct FillTestData
+	{
+	};
+	m_pRenderGraph->AddComputePass<FillTestData>("FillTest", new NXFillTestRenderer(),
+		[&](NXRGBuilder& builder, FillTestData& data) {
+			NXGPUTerrainManager::GetInstance()->UpdateLodParams(5);
 
-	//		builder.WriteUAV(pBufLod5, 1); // u0
-	//		builder.WriteUAV(pBufLod4, 1); // u1
-	//		builder.WriteUAV(pBufFinal, 2); // u2
-	//		builder.SetEntryNameCS(L"CS_Pass");
+			builder.WriteUAV(pBufLod5, 1); // u0
+			builder.WriteUAV(pBufLod4, 1); // u1
+			builder.WriteUAV(pBufFinal, 2); // u2
 
-	//		uint32_t threadCount = pBufLod5->GetResource()->GetWidth() / 64 + 1;
-	//		builder.SetComputeThreadGroup(threadCount, 1, 1);
-	//	},
-	//	[&](ID3D12GraphicsCommandList* pCmdList, FillTestData& data) {
-	//	});
+			builder.SetRootParamLayout(1, 0, 3);
+			builder.ReadConstantBuffer(0, 0, &m_cbFillTest); // b0
+
+			builder.SetEntryNameCS(L"CS_Pass");
+
+			uint32_t threadCount = pBufLod5->GetDescription().importData.pImportResource->GetWidth() / 64 + 1;
+			builder.SetComputeThreadGroup(threadCount, 1, 1);
+		},
+		[&](ID3D12GraphicsCommandList* pCmdList, FillTestData& data) {
+		});
 
 	struct GBufferData
 	{

@@ -26,6 +26,11 @@ struct CBufferDebugLayer
 	Vector4 LayerParam0; // x: EnableShadowMap, y: ZoomScale
 };
 
+struct CBufferFillTest
+{
+	Vector4 Param0; // xyz: camPos, w: currLodLevel;
+};
+
 struct NXEventArgKey;
 class Renderer
 {
@@ -106,4 +111,7 @@ private:
 	float m_fShadowMapZoomScale;
 	CBufferDebugLayer m_cbDebugLayerData;
 	NXConstantBuffer<CBufferDebugLayer> m_cbDebugLayer;
+
+	CBufferFillTest m_cbFillTestData;
+	NXConstantBuffer<CBufferFillTest> m_cbFillTest;
 };
