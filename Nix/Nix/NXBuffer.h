@@ -32,6 +32,10 @@ private:
 	ComPtr<ID3D12Resource> m_pBuffer; 
 	uint64_t m_pBufferByteOffset; 
 
+	// 计数器buffer，用于UAV的计数
+	ComPtr<ID3D12Resource> m_pUAVCounterBuffer;
+	uint64_t m_pUAVCounterOffset;
+
 	uint32_t m_stride;
 	uint32_t m_byteSize;
 

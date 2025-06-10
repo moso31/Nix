@@ -12,6 +12,10 @@ void NXBuffer::Create(uint32_t stride, uint32_t arraySize)
 	buffer.WaitCreateComplete();
 	m_pBuffer = buffer.GetD3DResource();
 
+	NXRWBuffer uavCounterBuffer(sizeof(uint32_t), 1);
+	uavCounterBuffer.WaitCreateComplete();
+	m_pUAVCounterBuffer = uavCounterBuffer.GetD3DResource();
+
 	SetSRV();
 	SetUAV();
 }
@@ -79,9 +83,9 @@ void NXBuffer::SetUAV()
 		uavDesc.Buffer.FirstElement = 0;
 		uavDesc.Buffer.NumElements = m_byteSize / m_stride;
 		uavDesc.Buffer.StructureByteStride = m_stride;
-		uavDesc.Buffer.CounterOffsetInBytes = 0; // No counter buffer
+		uavDesc.Buffer.CounterOffsetInBytes = 0; // ¶ÀÁ¢µÄUAV counter buffer
 
-		NXGlobalDX::GetDevice()->CreateUnorderedAccessView(m_pBuffer.Get(), nullptr, &uavDesc, m_pUAV);
+		NXGlobalDX::GetDevice()->CreateUnorderedAccessView(m_pBuffer.Get(), m_pUAVCounterBuffer.Get(), &uavDesc, m_pUAV);
 		});
 }
 
@@ -97,6 +101,9 @@ void NXBuffer::SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D
 	barrier.Transition.StateBefore = m_resourceState;
 	barrier.Transition.StateAfter = state;
 	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	pCommandList->ResourceBarrier(1, &barrier);
+
+	barrier.Transition.pResource = m_pUAVCounterBuffer.Get();
 	pCommandList->ResourceBarrier(1, &barrier);
 
 	m_resourceState = state;
