@@ -38,6 +38,20 @@ void NXBuffer::Set(const void* pSrcData, uint32_t arraySize)
 
 	NXUploadSystem->FinishTask(taskContext, []() {
 		});
+
+	// uav counter;
+	UploadTaskContext taskCtx2(m_name + std::string("_UAVCounter"));
+	if (NXUploadSystem->BuildTask(sizeof(uint32_t), taskCtx2))
+	{
+		auto bufDesc = m_pBuffer->GetDesc();
+		uint64_t byteOffset = taskCtx2.pResourceOffset;
+		byte* pDstData = taskCtx2.pResourceData + byteOffset;
+		memcpy(pDstData, pSrcData, byteSize);
+
+		taskCtx2.pOwner->pCmdList->CopyBufferRegion(m_pUAVCounterBuffer.Get(), 0, taskCtx2.pResource, byteOffset, byteSize);
+	}
+
+	NXUploadSystem->FinishTask(taskCtx2);
 }
 
 void NXBuffer::SetSRV()

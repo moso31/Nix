@@ -22,24 +22,19 @@ public:
 	void UpdateCameraParams(NXCamera* pCam);
 	void UpdateLodParams(uint32_t lod);
 
-	void AddSceneTerrains(NXScene* pScene);
-	void AddTerrain(Ntr<NXTerrain> pTerrain);
+	Ntr<NXBuffer>& GetTerrainBufferA() { return m_pTerrainBufferA; }
+	Ntr<NXBuffer>& GetTerrainBufferB() { return m_pTerrainBufferB; }
+	Ntr<NXBuffer>& GetTerrainFinalBuffer() { return m_pTerrainFinalBuffer; }
 
-	Ntr<NXBuffer> GetTerrainLodBuffer(uint32_t lodLevel);
 	NXConstantBuffer<NXGPUTerrainParams>& GetTerrainParams() { return m_pTerrainParams; }
 
 private:
-	// 记录所有的地形块
-	//m_pTerrains[i] 的i表示 lod等级，值越小越精细
-	std::vector<Ntr<NXTerrain>> m_pTerrains;
+	uint32_t m_pTerrainBufferMaxSize = 65536;
 
-	std::vector<std::vector<NXGPUTerrainBlockData>> m_gpuTerrainData;
-
-	// 地形一共分几级lod
-	uint32_t m_terrainLodNum;
-
-	std::vector<Ntr<NXBuffer>> m_pTerrainLodBuffer;
-	std::vector<Ntr<NXBuffer>> m_pTerrainFinalBuffer;
+	// 两个buffer A B之间 来回pingpong，结果输出到 final
+	Ntr<NXBuffer> m_pTerrainBufferA;
+	Ntr<NXBuffer> m_pTerrainBufferB;
+	Ntr<NXBuffer> m_pTerrainFinalBuffer;
 
 	NXGPUTerrainParams m_pTerrainParamsData;
 	NXConstantBuffer<NXGPUTerrainParams> m_pTerrainParams;

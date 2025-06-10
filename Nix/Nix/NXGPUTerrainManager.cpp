@@ -2,15 +2,26 @@
 #include "NXScene.h"
 #include "NXCamera.h"
 
-NXGPUTerrainManager::NXGPUTerrainManager() :
-	m_terrainLodNum(6)
+NXGPUTerrainManager::NXGPUTerrainManager()
 {
 }
 
 void NXGPUTerrainManager::Init()
 {
-	m_pTerrainLodBuffer.resize(m_terrainLodNum);
-	m_gpuTerrainData.resize(m_terrainLodNum);
+	// 分配内存
+	m_pTerrainBufferA = new NXBuffer("GPU Terrain Buffer A");
+	m_pTerrainBufferA->Create(sizeof(NXGPUTerrainBlockData), m_pTerrainBufferMaxSize);
+
+	m_pTerrainBufferB = new NXBuffer("GPU Terrain Buffer B");
+	m_pTerrainBufferB->Create(sizeof(NXGPUTerrainBlockData), m_pTerrainBufferMaxSize);
+
+	m_pTerrainFinalBuffer = new NXBuffer("GPU Terrain Final Buffer");
+	m_pTerrainFinalBuffer->Create(sizeof(NXGPUTerrainBlockData), m_pTerrainBufferMaxSize);
+
+	// 初始化参数，目前初始化阶段只需要传入这一个地形
+	NXGPUTerrainBlockData initData;
+	initData = { 0, 0 };
+	m_pTerrainBufferA->Set(&initData, 1);
 }
 
 void NXGPUTerrainManager::UpdateCameraParams(NXCamera* pCam)
@@ -21,35 +32,4 @@ void NXGPUTerrainManager::UpdateCameraParams(NXCamera* pCam)
 void NXGPUTerrainManager::UpdateLodParams(uint32_t lod)
 {
 	m_pTerrainParamsData.m_currLodLevel = lod;
-}
-
-void NXGPUTerrainManager::AddSceneTerrains(NXScene* pScene)
-{
-	for (auto& pTerrain : pScene->GetTerrains())
-	{
-		m_pTerrains.push_back(pTerrain);
-	}
-
-	uint32_t terrainNodeNum = m_pTerrains.size(); // 地形node数量
-	for (int i = m_terrainLodNum - 1; i >= 0; i--)
-	{
-		auto& pBuffer = m_pTerrainLodBuffer[i];
-		std::string name = "GPUTerrainLod" + std::to_string(i);
-
-		pBuffer = new NXBuffer(name);
-		pBuffer->Create(sizeof(NXGPUTerrainBlockData), terrainNodeNum);
-
-		terrainNodeNum <<= 2; // 每个Lod级别的地形node数量是上一级的4倍
-	}
-}
-
-void NXGPUTerrainManager::AddTerrain(Ntr<NXTerrain> pTerrain)
-{
-	m_pTerrains.push_back(pTerrain);
-}
-
-Ntr<NXBuffer> NXGPUTerrainManager::GetTerrainLodBuffer(uint32_t lodLevel)
-{
-	if (lodLevel < m_pTerrainLodBuffer.size()) return m_pTerrainLodBuffer[lodLevel];
-	return nullptr;
 }

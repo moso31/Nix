@@ -89,8 +89,8 @@ void Renderer::InitRenderGraph()
 	m_pRenderGraph = new NXRenderGraph();
 	m_pRenderGraph->SetViewResolution(m_viewRTSize);
 
-	NXRGResource* pBufLod5 = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainLodBuffer(5));
-	NXRGResource* pBufLod4 = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainLodBuffer(4));
+	NXRGResource* pTerrainBufferA = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainBufferA());
+	NXRGResource* pTerrainBufferB = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainBufferB());
 
 	Ntr<NXBuffer> pBufferFinal = new NXBuffer("");
 	pBufferFinal->Create(sizeof(int) * 3, 1024); // todo : 1024?
