@@ -19,14 +19,13 @@ public:
 
 	virtual void SetupInternal() = 0;
 
-	void SetInputTex(NXCommonTexEnum eCommonTex, uint32_t slotIndex);
-	void SetInputTex(const Ntr<NXTexture>& pTex, uint32_t slotIndex);
-	void SetOutputRT(const Ntr<NXTexture>& pTex, uint32_t rtIndex);
-	void SetOutputDS(const Ntr<NXTexture>& pTex);
+	void SetInputTex(NXRGResource* pTex, uint32_t slotIndex);
+	void SetOutputRT(NXRGResource* pTex, uint32_t rtIndex);
+	void SetOutputDS(NXRGResource* pTex);
 
-	Ntr<NXTexture> GetInputTex(uint32_t slotIndex) { return m_pInTexs[slotIndex]; }
-	Ntr<NXTexture> GetOutputRT(uint32_t index) { return m_pOutRTs[index]; }
-	Ntr<NXTexture> GetOutputDS() { return m_pOutDS; }
+	NXRGResource* GetInputTex(uint32_t slotIndex) { return m_pInTexs[slotIndex]; }
+	NXRGResource* GetOutputRT(uint32_t index) { return m_pOutRTs[index]; }
+	NXRGResource* GetOutputDS() { return m_pOutDS; }
 
 	void SetInputLayout(const D3D12_INPUT_LAYOUT_DESC& desc);
 	void SetRenderTargetMesh(const std::string& rtSubMeshName);
@@ -55,9 +54,9 @@ private:
 	UINT m_stencilRef;
 	Vector2 m_viewPortSize;
 
-	std::vector<Ntr<NXTexture>>				m_pInTexs;
-	std::vector<Ntr<NXTexture>>				m_pOutRTs;
-	Ntr<NXTexture>							m_pOutDS;
+	std::vector<NXRGResource*>				m_pInTexs;
+	std::vector<NXRGResource*>				m_pOutRTs;
+	NXRGResource*							m_pOutDS;
 
 	// rt 使用的 subMesh 的名称。
 	// 实际渲染时根据这个名字确定使用 NXSubMeshGeometryEditor 的哪个 subMesh 作为 RT.

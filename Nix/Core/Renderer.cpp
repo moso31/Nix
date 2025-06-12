@@ -23,11 +23,13 @@
 
 Renderer::Renderer(const Vector2& rtSize) :
 	m_bRenderGUI(true),
+	m_pRenderGraph(nullptr),
 	m_viewRTSize(rtSize),
 	m_bEnablePostProcessing(true),
 	m_bEnableDebugLayer(false),
 	m_bEnableShadowMapDebugLayer(false),
-	m_fShadowMapZoomScale(1.0f)
+	m_fShadowMapZoomScale(1.0f),
+	m_pNeedRebuildRenderGraph(true)
 {
 	m_cbDebugLayerData.LayerParam0 = Vector4(1.0f, 0.0f, 0.0f, 0.0f);
 }
@@ -56,14 +58,13 @@ void Renderer::Init()
 	m_scene->Init();
 
 	NXGPUTerrainManager::GetInstance()->Init();
-	NXGPUTerrainManager::GetInstance()->AddSceneTerrains(m_scene);
 
 	auto pCubeMap = m_scene->GetCubeMap();
 
 	m_pBRDFLut = new NXBRDFLut();
 	m_pBRDFLut->Init();
 
-	InitRenderGraph();
+	m_pRenderGraph = new NXRenderGraph();
 
 	InitGUI();
 }
@@ -72,8 +73,8 @@ void Renderer::OnResize(const Vector2& rtSize)
 {
 	m_viewRTSize = rtSize;
 
-	m_pRenderGraph->SetViewResolution(m_viewRTSize);
-	m_pRenderGraph->Compile(true);
+	if (m_pRenderGraph)
+		m_pRenderGraph->SetViewResolution(m_viewRTSize);
 
 	m_scene->OnResize(rtSize);
 }
@@ -84,39 +85,41 @@ void Renderer::InitGUI()
 	m_pGUI->Init();
 }
 
-void Renderer::InitRenderGraph()
+void Renderer::GenerateRenderGraph()
 {
-	m_pRenderGraph = new NXRenderGraph();
 	m_pRenderGraph->SetViewResolution(m_viewRTSize);
 
-	NXRGResource* pTerrainBufferA = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainBufferA());
-	NXRGResource* pTerrainBufferB = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainBufferB());
+	//NXRGResource* pTerrainBufferA = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainBufferA());
+	//NXRGResource* pTerrainBufferB = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainBufferB());
+	//NXRGResource* pTerrainBufferFinal = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainFinalBuffer());
 
-	Ntr<NXBuffer> pBufferFinal = new NXBuffer("");
-	pBufferFinal->Create(sizeof(int) * 3, 1024); // todo : 1024?
-	NXRGResource* pBufFinal = m_pRenderGraph->ImportBuffer(pBufferFinal);
+	//struct FillTestData
+	//{
+	//};
 
-	struct FillTestData
-	{
-	};
-	m_pRenderGraph->AddComputePass<FillTestData>("FillTest", new NXFillTestRenderer(),
-		[&](NXRGBuilder& builder, FillTestData& data) {
-			NXGPUTerrainManager::GetInstance()->UpdateLodParams(5);
+	//for (int i = 0; i < 6; i++)
+	//{
+	//	std::string strBufName = "FillTestBufferLod" + std::to_string(i);
+	//	m_pRenderGraph->AddComputePass<FillTestData>(strBufName, new NXFillTestRenderer(),
+	//		[&](NXRGBuilder& builder, FillTestData& data) {
+	//			NXGPUTerrainManager::GetInstance()->UpdateLodParams(5);
 
-			builder.WriteUAV(pBufLod5, 1); // u0
-			builder.WriteUAV(pBufLod4, 1); // u1
-			builder.WriteUAV(pBufFinal, 2); // u2
+	//			builder.WriteUAV(i % 2 ? pTerrainBufferB : pTerrainBufferA, 0); // u0
+	//			builder.WriteUAV(i % 2 ? pTerrainBufferA : pTerrainBufferB, 1); // u1
+	//			builder.WriteUAV(pTerrainBufferFinal, 2); // u2
 
-			builder.SetRootParamLayout(1, 0, 3);
-			builder.ReadConstantBuffer(0, 0, &m_cbFillTest); // b0
+	//			builder.SetRootParamLayout(1, 0, 3);
+	//			builder.ReadConstantBuffer(0, 0, &m_cbFillTest); // b0
 
-			builder.SetEntryNameCS(L"CS_Pass");
+	//			builder.SetEntryNameCS(L"CS_Pass");
 
-			uint32_t threadCount = pBufLod5->GetDescription().importData.pImportResource->GetWidth() / 64 + 1;
-			builder.SetComputeThreadGroup(threadCount, 1, 1);
-		},
-		[&](ID3D12GraphicsCommandList* pCmdList, FillTestData& data) {
-		});
+	//			//uint32_t threadCount = ？？？？？// 无法知道每次线程组的数量！
+	//			//builder.SetComputeThreadGroup(threadCount, 1, 1);
+	//		},
+	//		[&](ID3D12GraphicsCommandList* pCmdList, FillTestData& data) {
+	//			//pCmdList->
+	//		});
+	//}
 
 	struct GBufferData
 	{
@@ -259,6 +262,7 @@ void Renderer::InitRenderGraph()
 		NXRGResource* buf;
 		NXRGResource* depth;
 	};
+	auto pNoise64 = m_pRenderGraph->ImportTexture(NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_Noise2DGray_64x64));
 	auto sssPassData = m_pRenderGraph->AddPass<SubsurfaceData>("Subsurface", new NXSubSurfaceRenderer(),
 		[&](NXRGBuilder& builder, SubsurfaceData& data) {
 			builder.SetRootParamLayout(2, 6, 0);
@@ -270,13 +274,10 @@ void Renderer::InitRenderGraph()
 			builder.Read(litPassData->GetData().lightingCopy, 2);
 			builder.Read(gBufferPassData->GetData().rt1, 3);
 			builder.Read(gBufferPassData->GetData().depth, 4);
+			builder.Read(pNoise64, 5);
 
 			data.buf = builder.WriteRT(litPassData->GetData().lighting, 0, true);
 			data.depth = builder.WriteDS(gBufferPassData->GetData().depth, true);
-
-			auto pNoise64 = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_Noise2DGray_64x64);
-			auto renderer = static_cast<NXSubSurfaceRenderer*>(builder.GetPassNode()->GetRenderPass());
-			renderer->SetInputTex(pNoise64, 5);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, SubsurfaceData& data) {
 		});
@@ -291,13 +292,10 @@ void Renderer::InitRenderGraph()
 			builder.SetRootParamLayout(2, 1, 0);
 			builder.ReadConstantBuffer(0, 0, &m_scene->GetCubeMap()->GetCBObjectParams());
 			builder.ReadConstantBuffer(1, 1, &m_scene->GetCubeMap()->GetCBDataParams());
+			builder.Read(pCubeMap, 0);
 
 			data.buf = builder.WriteRT(sssPassData->GetData().buf, 0, true);
 			data.depth = builder.WriteDS(gBufferPassData->GetData().depth, true);
-
-			auto pCubeMap = m_scene->GetCubeMap()->GetCubeMap();
-			auto renderer = static_cast<NXSkyRenderer*>(builder.GetPassNode()->GetRenderPass());
-			renderer->SetInputTex(pCubeMap, 0);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, SkyLightingData& data) {
 		});
@@ -351,17 +349,21 @@ void Renderer::InitRenderGraph()
 		[&](NXRGBuilder& builder, GizmosData& data) {
 			builder.SetRootParamLayout(3, 0, 0);
 			builder.ReadConstantBuffer(1, 1, &g_cbCamera);
-			//NXRGResource* pOut = m_bEnableDebugLayer ? debugLayerPassData->GetData().out : postProcessPassData->GetData().out;
-			NXRGResource* pOut = debugLayerPassData->GetData().out;
+			NXRGResource* pOut = m_bEnableDebugLayer ? debugLayerPassData->GetData().out : postProcessPassData->GetData().out;
+			//NXRGResource* pOut = debugLayerPassData->GetData().out;
 			data.out = builder.WriteRT(pOut, 0, true);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, GizmosData& data) {
 		});
 
 	m_pRenderGraph->SetPresent(gizmosPassData->GetData().out);
-	m_pRenderGraph->Compile();
 }
  
+void Renderer::NotifyRebuildRenderGraph()
+{
+	m_pNeedRebuildRenderGraph = true;
+}
+
 void Renderer::InitEvents()
 {
 	NXEventKeyDown::GetInstance()->AddListener(std::bind(&Renderer::OnKeyDown, this, std::placeholders::_1));
@@ -387,6 +389,15 @@ void Renderer::ResourcesReloading()
 {
 	NXResourceManager::GetInstance()->OnReload();
 	NXResourceReloader::GetInstance()->OnReload();
+
+	if (m_pNeedRebuildRenderGraph)
+	{
+		GenerateRenderGraph();
+		m_pNeedRebuildRenderGraph = false;
+	}
+
+	// 每帧都Compile
+	m_pRenderGraph->Compile();
 }
 
 void Renderer::Update()
@@ -469,7 +480,7 @@ void Renderer::RenderGUI(const NXSwapChainBuffer& swapChainBuffer)
 
 void Renderer::Release()
 {
-	// TODO: m_renderGraph release.
+	m_pRenderGraph->Destroy();
 
 	SafeRelease(m_pGUI);
 	SafeRelease(m_pBRDFLut);

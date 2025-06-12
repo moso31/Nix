@@ -31,6 +31,7 @@ enum class NXRenderPassType
 	ComputePass,
 };
 
+class NXRGResource;
 class NXRenderPass
 {
 public:

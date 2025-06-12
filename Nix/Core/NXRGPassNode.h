@@ -15,18 +15,18 @@ class NXRGPassNodeBase
 {
 public:
 	NXRGPassNodeBase(NXRenderGraph* pRenderGraph, const std::string& passName, NXRenderPass* pPass) :
-		m_pRenderGraph(pRenderGraph), m_passName(passName), m_pPass(pPass) {}
+		m_pRenderGraph(pRenderGraph), m_passName(passName), m_pPass(pPass), m_pPassInited(false) {}
 
 	const std::string& GetName() { return m_passName; }
 
 	// 设置Pass的根参数布局
 	void SetRootParamLayout(uint32_t cbvCount, uint32_t srvCount, uint32_t uavCount);
 
-	// 设置Pass输入资源。
-	void Read(NXRGResource* pResource, uint32_t passSlotIndex);
-
 	// 设置Pass输入的CB
 	void ReadConstantBuffer(uint32_t rootIndex, uint32_t slotIndex, NXConstantBufferImpl* pConstantBuffer);
+
+	// 设置Pass输入资源。
+	void Read(NXRGResource* pResource, uint32_t passSlotIndex);
 
 	// 设置pass输出RT。
 	NXRGResource* WriteRT(NXRGResource* pResource, uint32_t outRTIndex, bool useOldVersion);
@@ -49,9 +49,11 @@ private:
 protected:
 	std::string m_passName;
 	NXRenderGraph* m_pRenderGraph;
-	NXRenderPass* m_pPass;
 
-	// Pass记录自己依赖的资源，但生命周期由NXRenderGraph*管理；
+	NXRenderPass* m_pPass;
+	bool m_pPassInited;
+
+	// Pass记录自己依赖的资源指针（但不负责其生命周期）
 	std::vector<NXRGResourceSlot> m_inputs; 
 	std::vector<NXRGResourceSlot> m_outputs;
 
@@ -69,6 +71,12 @@ public:
 
 	void Execute(ID3D12GraphicsCommandList* pCmdList) override
 	{
+		if (!m_pPassInited)
+		{
+			m_pPass->SetupInternal();
+			m_pPassInited = true;
+		}
+
 		m_executeFunc(pCmdList, m_passData);
 		m_pPass->Render(pCmdList);
 	}

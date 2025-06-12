@@ -2,6 +2,7 @@
 #include "NXResourceManager.h"
 #include "ShaderComplier.h"
 #include "NXGlobalDefinitions.h"
+#include "NXRGResource.h"
 
 NXComputePass::NXComputePass() :
 	NXRenderPass(NXRenderPassType::ComputePass),
@@ -32,32 +33,32 @@ void NXComputePass::SetThreadGroups(uint32_t threadGroupX, uint32_t threadGroupY
 	m_threadGroupZ = threadGroupZ;
 }
 
-void NXComputePass::SetInput(NXCommonTexEnum eCommonTex, uint32_t slotIndex)
-{
-	auto pTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(eCommonTex);
-	if (m_pInRes.size() <= slotIndex) m_pInRes.resize(slotIndex + 1);
-	m_pInRes[slotIndex] = pTex;
-}
-
-void NXComputePass::SetInput(const Ntr<NXResource>& pTex, uint32_t slotIndex)
+void NXComputePass::SetInput(NXRGResource* pRes, uint32_t slotIndex)
 {
 	if (m_pInRes.size() <= slotIndex) m_pInRes.resize(slotIndex + 1);
-	m_pInRes[slotIndex] = pTex;
+	m_pInRes[slotIndex] = pRes;
 }
 
-void NXComputePass::SetOutput(const Ntr<NXResource>& pTex, uint32_t slotIndex)
+void NXComputePass::SetOutput(NXRGResource* pRes, uint32_t slotIndex)
 {
 	if (m_pOutRes.size() <= slotIndex) m_pOutRes.resize(slotIndex + 1);
-	m_pOutRes[slotIndex] = pTex;
+	m_pOutRes[slotIndex] = pRes;
 }
 
 void NXComputePass::RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList)
 {
 	// DX12需要及时更新纹理的资源状态
 	for (int i = 0; i < (int)m_pInRes.size(); i++)
-		m_pInRes[i]->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	{
+		auto pRes = m_pInRes[i]->GetResource();
+		pRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+
+	}
 	for (int i = 0; i < (int)m_pOutRes.size(); i++)
-		m_pOutRes[i]->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+	{
+		auto pRes = m_pOutRes[i]->GetResource();
+		pRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+	}
 }
 
 void NXComputePass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
@@ -84,13 +85,14 @@ void NXComputePass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 	{
 		for (int i = 0; i < (int)m_pInRes.size(); i++)
 		{
-			if (m_pInRes[i]->GetResourceType() == NXResourceType::Buffer)
+			auto pRes = m_pInRes[i]->GetResource();
+			if (pRes->GetResourceType() == NXResourceType::Buffer)
 			{
-				NXShVisDescHeap->PushFluid(Ntr<NXBuffer>(m_pInRes[i])->GetSRV());
+				NXShVisDescHeap->PushFluid(pRes.As<NXBuffer>()->GetSRV());
 			}
-			else if (m_pInRes[i]->GetResourceType() != NXResourceType::None)
+			else if (pRes->GetResourceType() != NXResourceType::None)
 			{
-				NXShVisDescHeap->PushFluid(Ntr<NXTexture>(m_pInRes[i])->GetSRV());
+				NXShVisDescHeap->PushFluid(pRes.As<NXTexture>()->GetSRV());
 			}
 		}
 
@@ -106,13 +108,14 @@ void NXComputePass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 	{
 		for (int i = 0; i < (int)m_pOutRes.size(); i++)
 		{
-			if (m_pOutRes[i]->GetResourceType() == NXResourceType::Buffer)
+			auto pRes = m_pOutRes[i]->GetResource();
+			if (pRes->GetResourceType() == NXResourceType::Buffer)
 			{
-				NXShVisDescHeap->PushFluid(Ntr<NXBuffer>(m_pOutRes[i])->GetUAV());
+				NXShVisDescHeap->PushFluid(Ntr<NXBuffer>(pRes)->GetUAV());
 			}
-			else if (m_pOutRes[i]->GetResourceType() != NXResourceType::None)
+			else if (pRes->GetResourceType() != NXResourceType::None)
 			{
-				NXShVisDescHeap->PushFluid(Ntr<NXTexture>(m_pOutRes[i])->GetUAV());
+				NXShVisDescHeap->PushFluid(Ntr<NXTexture>(pRes)->GetUAV());
 			}
 		}
 

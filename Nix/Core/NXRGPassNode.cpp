@@ -87,7 +87,7 @@ void NXRGPassNodeBase::Compile_GraphicsPass(bool isResize)
 	auto pPass = (NXGraphicPass*)m_pPass;
 	for (auto pInResSlot : m_inputs)
 	{
-		pPass->SetInputTex(pInResSlot.resource->GetResource(), pInResSlot.slot);
+		pPass->SetInputTex(pInResSlot.resource, pInResSlot.slot);
 	}
 
 	for (auto pOutResSlot : m_outputs)
@@ -96,17 +96,12 @@ void NXRGPassNodeBase::Compile_GraphicsPass(bool isResize)
 		auto flag = pOutRes->GetDescription().handleFlags;
 		if (flag == RG_RenderTarget)
 		{
-			pPass->SetOutputRT(pOutRes->GetResource(), pOutResSlot.slot);
+			pPass->SetOutputRT(pOutRes, pOutResSlot.slot);
 		}
 		else if (flag == RG_DepthStencil)
 		{
-			pPass->SetOutputDS(pOutRes->GetResource());
+			pPass->SetOutputDS(pOutRes);
 		}
-	}
-
-	if (!isResize)
-	{
-		pPass->SetupInternal();
 	}
 }
 
@@ -115,17 +110,12 @@ void NXRGPassNodeBase::Compile_ComputePass(bool isResize)
 	auto pPass = (NXComputePass*)m_pPass;
 	for (auto pInResSlot : m_inputs)
 	{
-		pPass->SetInput(pInResSlot.resource->GetResource(), pInResSlot.slot);
+		pPass->SetInput(pInResSlot.resource, pInResSlot.slot);
 	}
 
 	for (auto pOutResSlot : m_outputs)
 	{
 		auto pOutRes = pOutResSlot.resource;
-		pPass->SetOutput(pOutRes->GetResource(), pOutResSlot.slot);
-	}
-
-	if (!isResize)
-	{
-		pPass->SetupInternal();
+		pPass->SetOutput(pOutRes, pOutResSlot.slot);
 	}
 }

@@ -14,9 +14,8 @@ public:
 
 	void SetThreadGroups(uint32_t threadGroupX, uint32_t threadGroupY = 1, uint32_t threadGroupZ = 1);
 
-	void SetInput(NXCommonTexEnum eCommonTex, uint32_t slotIndex);
-	void SetInput(const Ntr<NXResource>& pTex, uint32_t slotIndex);
-	void SetOutput(const Ntr<NXResource>& pTex, uint32_t slotIndex);
+	void SetInput(NXRGResource* pRes, uint32_t slotIndex);
+	void SetOutput(NXRGResource* pRes, uint32_t slotIndex);
 
 	virtual void RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList);
 	virtual void RenderBefore(ID3D12GraphicsCommandList* pCmdList);
@@ -31,6 +30,6 @@ private:
 	uint32_t 								m_threadGroupY;
 	uint32_t 								m_threadGroupZ;
 
-	std::vector<Ntr<NXResource>>			m_pInRes;
-	std::vector<Ntr<NXResource>>			m_pOutRes;
+	std::vector<NXRGResource*>				m_pInRes;
+	std::vector<NXRGResource*>				m_pOutRes;
 };

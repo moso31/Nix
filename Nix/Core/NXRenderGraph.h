@@ -59,6 +59,8 @@ public:
 	void ClearRT(ID3D12GraphicsCommandList* pCmdList, NXRGResource* pResource);
 	void SetViewPortAndScissorRect(ID3D12GraphicsCommandList* pCmdList, const Vector2& size);
 
+	void Destroy();
+
 private:
 	// Õº“¿¿µµƒÀ˘”–pass
 	std::vector<NXRGPassNodeBase*> m_passNodes;

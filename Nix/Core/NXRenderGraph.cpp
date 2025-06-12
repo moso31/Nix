@@ -15,49 +15,6 @@ NXRenderGraph::~NXRenderGraph()
 
 void NXRenderGraph::Compile(bool isResize)
 {
-	// 2025.2.5 目前RenderGraph会为每个Handle Version都创建一个RT。
-	for (auto pResource : m_resources)
-	{
-		auto& desc = pResource->GetDescription();
-		D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE;
-		desc.handleFlags == RG_RenderTarget ? flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET : 0;
-		desc.handleFlags == RG_DepthStencil ? flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL : 0;
-
-		// 如果是viewRT（跟随view变化），使用动态分辨率和动态缩放比例；否则使用desc的分辨率
-		uint32_t width = static_cast<uint32_t>(desc.isViewRT ? m_viewResolution.x * desc.RTScale : desc.importData.width);
-		uint32_t height = static_cast<uint32_t>(desc.isViewRT ? m_viewResolution.y * desc.RTScale : desc.importData.height);
-
-		if (!desc.isImported) // 如果非导入，需要自己创建纹理
-		{
-			if (desc.type == NXResourceType::Tex2D)
-			{
-				Ntr<NXTexture2D> pTexture2D(new NXTexture2D());
-				pTexture2D->CreateRenderTexture(pResource->GetName(), desc.format, width, height, flags);
-
-				uint32_t rtvCount = flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET ? 1 : 0;
-				uint32_t dsvCount = flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL ? 1 : 0;
-				uint32_t srvCount = 1;
-
-				pTexture2D->SetViews(srvCount, rtvCount, dsvCount, 0);
-
-				if (rtvCount) pTexture2D->SetRTV(0);
-				if (dsvCount) pTexture2D->SetDSV(0);
-				pTexture2D->SetSRV(0);
-
-				pResource->SetResource(pTexture2D);
-			}
-			else
-			{
-				// TODO：其他的还没用上，懒得写 // 而且要铺开搞的话 是不是走ResourceManager好一些？
-			}
-		}
-		else
-		{
-			// 外部导入的不需要创建
-			pResource->SetResource(desc.importData.pImportResource);
-		}
-	}
-
 	for (auto pass : m_passNodes)
 	{
 		pass->Compile(isResize);
@@ -66,6 +23,56 @@ void NXRenderGraph::Compile(bool isResize)
 
 void NXRenderGraph::Execute(ID3D12GraphicsCommandList* pCmdList)
 {
+	// 动态构建RenderGraph内部创建的Resources
+	for (auto pResource : m_resources)
+	{
+		auto& desc = pResource->GetDescription();
+		auto pRes = pResource->GetResource();
+
+		if (desc.isImported) 
+		{
+			// 外部导入的不需要动态构建，设置一下SetResource，确保后续周期 GetResource() 接口能正常用就行
+			pResource->SetResource(desc.importData.pImportResource);
+		}
+		else if (desc.type == NXResourceType::Tex2D)
+		{
+			auto pTex = pRes.As<NXTexture2D>();
+
+			if (desc.isViewRT) 
+			{
+				// RT的话，需要动态构建
+				uint32_t rtWidth = (uint32_t)(desc.RTScale * m_viewResolution.x);
+				uint32_t rtHeight = (uint32_t)(desc.RTScale * m_viewResolution.y);
+				if (pTex.IsNull() || pTex->GetWidth() != rtWidth || pTex->GetHeight() != rtHeight)
+				{
+					D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE;
+					desc.handleFlags == RG_RenderTarget ? flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET : 0;
+					desc.handleFlags == RG_DepthStencil ? flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL : 0;
+
+					Ntr<NXTexture2D> pTexture2D(new NXTexture2D());
+					pTexture2D->CreateRenderTexture(pResource->GetName(), desc.format, rtWidth, rtHeight, flags);
+
+					uint32_t rtvCount = flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET ? 1 : 0;
+					uint32_t dsvCount = flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL ? 1 : 0;
+					uint32_t srvCount = 1;
+
+					pTexture2D->SetViews(srvCount, rtvCount, dsvCount, 0);
+
+					if (rtvCount) pTexture2D->SetRTV(0);
+					if (dsvCount) pTexture2D->SetDSV(0);
+					pTexture2D->SetSRV(0);
+
+					pResource->SetResource(pTexture2D);
+				}
+			}
+			else 
+			{
+				// 非RT+非导入资源 的动态构建
+				// TODO 暂时没用到这种情况，先偷懒了
+			}
+		}
+	}
+
 	for (auto pass : m_passNodes)
 	{
 		pass->Execute(pCmdList);
@@ -159,4 +166,12 @@ void NXRenderGraph::SetViewPortAndScissorRect(ID3D12GraphicsCommandList* pCmdLis
 	auto vpCamera = NX12Util::ViewPort(size.x, size.y);
 	pCmdList->RSSetViewports(1, &vpCamera);
 	pCmdList->RSSetScissorRects(1, &NX12Util::ScissorRect(vpCamera));
+}
+
+void NXRenderGraph::Destroy()
+{
+	for (auto& pResource : m_resources) delete pResource;
+	m_resources.clear();
+	for (auto& passNode : m_passNodes) delete passNode;
+	m_passNodes.clear();
 }

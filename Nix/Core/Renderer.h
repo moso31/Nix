@@ -67,10 +67,12 @@ public:
 	bool GetEnablePostProcessing() const { return m_bEnablePostProcessing; }
 	void SetEnablePostProcessing(bool value) { m_bEnablePostProcessing = value; }
 
+	void NotifyRebuildRenderGraph();
+
 private:
 	void InitEvents();
 	void InitGlobalResources();
-	void InitRenderGraph();
+	void GenerateRenderGraph();
 	void InitGUI();
 
 	// 2023.11.5 Nix 的 GUI 控制参数目前暂时使用两种方式：即时更新 和 延迟更新
@@ -97,6 +99,7 @@ private:
 	NXScene*			m_scene;
 
 	NXRenderGraph*		m_pRenderGraph;
+	bool				m_pNeedRebuildRenderGraph;
 	Ntr<NXTexture2D>	m_pFinalRT;
 
 	NXGUI*				m_pGUI;

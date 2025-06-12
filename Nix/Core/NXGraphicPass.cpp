@@ -6,12 +6,14 @@
 #include "NXRenderStates.h"
 #include "NXAllocatorManager.h"
 #include "NXSubMeshGeometryEditor.h"
+#include "NXRGResource.h"
 
 NXGraphicPass::NXGraphicPass() :
 	NXRenderPass(NXRenderPassType::GraphicPass),
 	m_psoDesc({}),
 	m_stencilRef(0x0),
-	m_rtSubMeshName("_RenderTarget")
+	m_rtSubMeshName("_RenderTarget"),
+	m_pOutDS(nullptr)
 {
 	m_psoDesc.InputLayout = NXGlobalInputLayout::layoutPT;
 	m_psoDesc.BlendState = NXBlendState<>::Create();
@@ -23,26 +25,19 @@ NXGraphicPass::NXGraphicPass() :
 	m_psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 }
 
-void NXGraphicPass::SetInputTex(NXCommonTexEnum eCommonTex, uint32_t slotIndex)
-{
-	auto pTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(eCommonTex);
-	if (m_pInTexs.size() <= slotIndex) m_pInTexs.resize(slotIndex + 1);
-	m_pInTexs[slotIndex] = pTex;
-}
-
-void NXGraphicPass::SetInputTex(const Ntr<NXTexture>& pTex, uint32_t slotIndex)
+void NXGraphicPass::SetInputTex(NXRGResource* pTex, uint32_t slotIndex)
 {
 	if (m_pInTexs.size() <= slotIndex) m_pInTexs.resize(slotIndex + 1);
 	m_pInTexs[slotIndex] = pTex;
 }
 
-void NXGraphicPass::SetOutputRT(const Ntr<NXTexture>& pTex, uint32_t rtIndex)
+void NXGraphicPass::SetOutputRT(NXRGResource* pTex, uint32_t rtIndex)
 {
 	if (m_pOutRTs.size() <= rtIndex) m_pOutRTs.resize(rtIndex + 1);
 	m_pOutRTs[rtIndex] = pTex;
 }
 
-void NXGraphicPass::SetOutputDS(const Ntr<NXTexture>& pTex)
+void NXGraphicPass::SetOutputDS(NXRGResource* pTex)
 {
 	m_pOutDS = pTex;
 }
@@ -98,8 +93,8 @@ void NXGraphicPass::InitPSO()
 
 	m_psoDesc.NumRenderTargets = (UINT)m_pOutRTs.size();
 	for (UINT i = 0; i < m_psoDesc.NumRenderTargets; i++)
-		m_psoDesc.RTVFormats[i] = m_pOutRTs[i]->GetFormat();
-	m_psoDesc.DSVFormat = m_pOutDS.IsNull() ? DXGI_FORMAT_UNKNOWN : m_pOutDS->GetDSVFormat();
+		m_psoDesc.RTVFormats[i] = m_pOutRTs[i]->GetDescription().format;
+	m_psoDesc.DSVFormat = m_pOutDS ? NXConvert::TypelessToDSVFormat(m_pOutDS->GetDescription().format) : DXGI_FORMAT_UNKNOWN;
 
 	NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&m_psoDesc, IID_PPV_ARGS(&m_pPSO));
 
@@ -110,16 +105,27 @@ void NXGraphicPass::InitPSO()
 void NXGraphicPass::RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList)
 {
 	std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> ppRTVs;
-	for (auto& pTex : m_pOutRTs) ppRTVs.push_back(pTex->GetRTV());
-	pCmdList->OMSetRenderTargets((UINT)ppRTVs.size(), ppRTVs.data(), true, m_pOutDS.IsNull() ? nullptr : &m_pOutDS->GetDSV());
+	for (auto& pTex : m_pOutRTs)
+	{
+		ppRTVs.push_back(pTex->GetResource().As<NXTexture2D>()->GetRTV());
+	}
+
+	bool bHasDSV = m_pOutDS && m_pOutDS->GetResource().IsValid();
+	pCmdList->OMSetRenderTargets((UINT)ppRTVs.size(), ppRTVs.data(), true, bHasDSV ? &m_pOutDS->GetResource().As<NXTexture2D>()->GetDSV() : nullptr);
 
 	// DX12需要及时更新纹理的资源状态
 	for (int i = 0; i < (int)m_pInTexs.size(); i++)
-		m_pInTexs[i]->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	{
+		m_pInTexs[i]->GetResource()->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	}
 	for (int i = 0; i < (int)m_pOutRTs.size(); i++)
-		m_pOutRTs[i]->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_RENDER_TARGET);
-	if (m_pOutDS.IsValid())
-		m_pOutDS->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+	{
+		m_pOutRTs[i]->GetResource()->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	}
+	if (m_pOutDS)
+	{
+		m_pOutDS->GetResource()->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+	}
 }
 
 void NXGraphicPass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
@@ -142,7 +148,11 @@ void NXGraphicPass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 
 	if (!m_pInTexs.empty())
 	{
-		for (int i = 0; i < (int)m_pInTexs.size(); i++) NXShVisDescHeap->PushFluid(m_pInTexs[i]->GetSRV());
+		for (int i = 0; i < (int)m_pInTexs.size(); i++)
+		{
+			auto pRes = m_pInTexs[i]->GetResource();
+			NXShVisDescHeap->PushFluid(pRes.As<NXTexture>()->GetSRV());
+		}
 		D3D12_GPU_DESCRIPTOR_HANDLE srvHandle0 = NXShVisDescHeap->Submit();
 
 		// 2024.6.8

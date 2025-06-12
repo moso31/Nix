@@ -6,6 +6,7 @@
 #include "NXResourceManager.h"
 #include "NXAllocatorManager.h"
 #include "NXConverter.h"
+#include "NXRGResource.h"
 
 #include "NXScene.h"
 #include "NXPBRLight.h"
@@ -224,7 +225,7 @@ void NXShadowMapRenderer::RenderCSMPerLight(ID3D12GraphicsCommandList* pCmdList,
 		g_cbDataShadowTest.projection[i] = mxShadowProj.Transpose();
 		m_cbCSMViewProj[i].Update(m_cbDataCSMViewProj[i]);
 
-		auto pCSMDepthDSV = GetOutputDS()->GetDSV(i);
+		auto pCSMDepthDSV = GetOutputDS()->GetResource().As<NXTexture2DArray>()->GetDSV(i);
 		pCmdList->ClearDepthStencilView(pCSMDepthDSV, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0x0, 0, nullptr);
 		pCmdList->OMSetRenderTargets(0, nullptr, false, &pCSMDepthDSV);
 		pCmdList->SetGraphicsRootConstantBufferView(1, m_cbCSMViewProj[i].CurrentGPUAddress());

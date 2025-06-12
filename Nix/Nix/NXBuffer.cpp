@@ -12,9 +12,13 @@ void NXBuffer::Create(uint32_t stride, uint32_t arraySize)
 	buffer.WaitCreateComplete();
 	m_pBuffer = buffer.GetD3DResource();
 
-	NXRWBuffer uavCounterBuffer(sizeof(uint32_t), 1);
+	NXRWBuffer uavCounterBuffer(sizeof(uint32_t), 1); // int: uav counter
 	uavCounterBuffer.WaitCreateComplete();
 	m_pUAVCounterBuffer = uavCounterBuffer.GetD3DResource();
+
+	NXRWBuffer indirectArgsBuffer(sizeof(uint32_t), 3); // int3: x, y, z
+	indirectArgsBuffer.WaitCreateComplete();
+	m_pIndirectArgsBuffer = indirectArgsBuffer.GetD3DResource();
 
 	SetSRV();
 	SetUAV();
@@ -118,6 +122,9 @@ void NXBuffer::SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D
 	pCommandList->ResourceBarrier(1, &barrier);
 
 	barrier.Transition.pResource = m_pUAVCounterBuffer.Get();
+	pCommandList->ResourceBarrier(1, &barrier);
+
+	barrier.Transition.pResource = m_pIndirectArgsBuffer.Get();
 	pCommandList->ResourceBarrier(1, &barrier);
 
 	m_resourceState = state;

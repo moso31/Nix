@@ -19,6 +19,7 @@ void NXGUIDebugLayer::Render()
 	if (ImGui::Checkbox("Enable Debug Layer", &bEnableDebugLayer))
 	{
 		m_pRenderer->SetEnableDebugLayer(bEnableDebugLayer);
+		m_pRenderer->NotifyRebuildRenderGraph();
 	}
 
 	if (bEnableDebugLayer)
