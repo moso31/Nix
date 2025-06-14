@@ -32,6 +32,7 @@ public:
 	NXRGResource* WriteRT(NXRGResource* pResource, uint32_t outRTIndex, bool useOldVersion);
 	NXRGResource* WriteDS(NXRGResource* pResource, bool useOldVersion);
 	NXRGResource* WriteUAV(NXRGResource* pResource, uint32_t outUAVIndex, bool useOldVersion);
+	NXRGResource* SetIndirectArgs(NXRGResource* pResource);
 
 	NXRenderPass* GetRenderPass() { return m_pPass; }
 
@@ -56,6 +57,7 @@ protected:
 	// Pass记录自己依赖的资源指针（但不负责其生命周期）
 	std::vector<NXRGResourceSlot> m_inputs; 
 	std::vector<NXRGResourceSlot> m_outputs;
+	NXRGResource* m_indirectArgs;
 
 	// 记录当前pass的根参数布局
 	NXRGRootParamLayout m_rootParamLayout; 

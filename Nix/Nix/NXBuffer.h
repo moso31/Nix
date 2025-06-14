@@ -23,6 +23,9 @@ public:
 	// 设置本体buffer的资源状态；但这个不会设置uavCounter、indirectArgs的状态。
 	void SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D3D12_RESOURCE_STATES& state) override;
 
+	ID3D12Resource* GetD3DResource() const override { return m_pBuffer.Get(); }
+	ID3D12Resource* GetD3DResourceUAVCounter() const override { return m_pUAVCounterBuffer.Get(); }
+
 private:
 	// Buffer和Texture相似，但SRV和UAV都是自动创建的
 	void SetSRV();
@@ -36,9 +39,6 @@ private:
 	// 计数器buffer，用于UAV的计数
 	ComPtr<ID3D12Resource> m_pUAVCounterBuffer;
 	uint64_t m_pUAVCounterOffset;
-	
-	ComPtr<ID3D12Resource> m_pIndirectArgsBuffer;
-	uint64_t m_pIndirectArgsOffset;
 
 	uint32_t m_stride;
 	uint32_t m_byteSize;

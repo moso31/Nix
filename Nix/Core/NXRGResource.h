@@ -56,6 +56,8 @@ public:
 
 	void SetResource(Ntr<NXResource> pResource) { m_pResource = pResource; }
 	Ntr<NXResource> GetResource() const { return m_pResource; }
+	Ntr<NXBuffer> GetBuffer() const { return m_pResource.As<NXBuffer>(); }
+	Ntr<NXTexture> GetTexture() const { return m_pResource.As<NXTexture>(); }
 
 private:
 	std::string m_name;

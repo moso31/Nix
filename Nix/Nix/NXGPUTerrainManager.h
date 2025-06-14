@@ -25,6 +25,7 @@ public:
 	Ntr<NXBuffer>& GetTerrainBufferA() { return m_pTerrainBufferA; }
 	Ntr<NXBuffer>& GetTerrainBufferB() { return m_pTerrainBufferB; }
 	Ntr<NXBuffer>& GetTerrainFinalBuffer() { return m_pTerrainFinalBuffer; }
+	Ntr<NXBuffer>& GetTerrainIndirectArgs() { return m_pTerrainIndirectArgs; }
 
 	NXConstantBuffer<NXGPUTerrainParams>& GetTerrainParams() { return m_pTerrainParams; }
 
@@ -35,6 +36,7 @@ private:
 	Ntr<NXBuffer> m_pTerrainBufferA;
 	Ntr<NXBuffer> m_pTerrainBufferB;
 	Ntr<NXBuffer> m_pTerrainFinalBuffer;
+	Ntr<NXBuffer> m_pTerrainIndirectArgs;
 
 	NXGPUTerrainParams m_pTerrainParamsData;
 	NXConstantBuffer<NXGPUTerrainParams> m_pTerrainParams;

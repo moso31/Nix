@@ -70,6 +70,8 @@ public:
     D3D12_CPU_DESCRIPTOR_HANDLE GetDSV(uint32_t index = 0);
     D3D12_CPU_DESCRIPTOR_HANDLE GetUAV(uint32_t index = 0);
 
+    ID3D12Resource* GetD3DResource() const override { return m_pTexture.Get(); }
+
     // 异步加载纹理资源相关
     void SetTexChunks(int chunks); // 设置纹理加载的chunk数量
     void ProcessLoadingTexChunks(); // 计数--，每加载好一个chunk，调用一次

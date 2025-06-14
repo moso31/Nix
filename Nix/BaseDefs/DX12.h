@@ -55,8 +55,6 @@ public:
 	static D3D12_HEAP_PROPERTIES CreateHeapProperties(D3D12_HEAP_TYPE heapType);
 	static D3D12_CLEAR_VALUE CreateClearValue(float depth = 1.0f, UINT8 stencil = 0, DXGI_FORMAT fmt = DXGI_FORMAT_D24_UNORM_S8_UINT);
 
-	static void CopyTextureRegion(ID3D12GraphicsCommandList* pCommandList, ID3D12Resource* pTexture, ID3D12Resource* pTextureUploadBuffer, UINT layoutSize, const D3D12_PLACED_SUBRESOURCE_FOOTPRINT* pLayouts);
-
 	static D3D12_VIEWPORT ViewPort(float width, float height, float minDepth = 0.0f, float maxDepth = 1.0f, float topLeftX = 0.0f, float topLeftY = 0.0f);
 	static D3D12_RECT ScissorRect(const D3D12_VIEWPORT& vp);
 
@@ -73,6 +71,10 @@ public:
 	static ID3D12RootSignature* CreateRootSignature(ID3D12Device* pDevice, UINT numParams, const D3D12_ROOT_PARAMETER* pParams, UINT numSamplers, const D3D12_STATIC_SAMPLER_DESC* pSamplers);
 	static ID3D12RootSignature* CreateRootSignature(ID3D12Device* pDevice, const std::vector<D3D12_ROOT_PARAMETER>& pParams, const std::vector<D3D12_STATIC_SAMPLER_DESC>& pSamplers);
 	static ID3D12RootSignature* CreateRootSignature(ID3D12Device* pDevice, const std::vector<D3D12_ROOT_PARAMETER>& pParams);
+
+	static ID3D12CommandSignature* CreateCommandSignature(ID3D12Device* pDevice, const D3D12_COMMAND_SIGNATURE_DESC& desc, ID3D12RootSignature* pRootSignature);
+
+	static D3D12_RESOURCE_BARRIER BarrierUAV(ID3D12Resource* pD3DResource);
 
 	static UINT ByteAlign256(UINT sizeInBytes);
 	static UINT GetRequiredIntermediateSize(ID3D12Device* pDevice, ID3D12Resource* pResource);

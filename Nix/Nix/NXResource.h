@@ -23,6 +23,9 @@ public:
 
 	NXResourceType GetResourceType() const { return m_type; }
 
+	virtual ID3D12Resource* GetD3DResource() const = 0;
+	virtual ID3D12Resource* GetD3DResourceUAVCounter() const { return nullptr; }
+
 	virtual const D3D12_RESOURCE_STATES& GetResourceState() { return m_resourceState; }
 	virtual void SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D3D12_RESOURCE_STATES& state) = 0;
 

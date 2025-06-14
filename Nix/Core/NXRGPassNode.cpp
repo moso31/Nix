@@ -77,6 +77,13 @@ NXRGResource* NXRGPassNodeBase::WriteUAV(NXRGResource* pResource, uint32_t outUA
 	return pNewVersionResource;
 }
 
+NXRGResource* NXRGPassNodeBase::SetIndirectArgs(NXRGResource* pResource)
+{
+	m_indirectArgs = pResource;
+	pResource->MakeWriteConnect(); // 标记为已写入
+	return m_indirectArgs;
+}
+
 void NXRGPassNodeBase::Compile(bool isResize)
 {
 	m_pPass->GetPassType() == NXRenderPassType::GraphicPass ? Compile_GraphicsPass(isResize) : Compile_ComputePass(isResize);
@@ -118,4 +125,6 @@ void NXRGPassNodeBase::Compile_ComputePass(bool isResize)
 		auto pOutRes = pOutResSlot.resource;
 		pPass->SetOutput(pOutRes, pOutResSlot.slot);
 	}
+
+	pPass->SetIndirectArguments(m_indirectArgs);
 }

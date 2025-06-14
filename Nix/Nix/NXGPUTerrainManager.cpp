@@ -8,7 +8,6 @@ NXGPUTerrainManager::NXGPUTerrainManager()
 
 void NXGPUTerrainManager::Init()
 {
-	return;
 	// 分配内存
 	m_pTerrainBufferA = new NXBuffer("GPU Terrain Buffer A");
 	m_pTerrainBufferA->Create(sizeof(NXGPUTerrainBlockData), m_pTerrainBufferMaxSize);
@@ -18,6 +17,11 @@ void NXGPUTerrainManager::Init()
 
 	m_pTerrainFinalBuffer = new NXBuffer("GPU Terrain Final Buffer");
 	m_pTerrainFinalBuffer->Create(sizeof(NXGPUTerrainBlockData), m_pTerrainBufferMaxSize);
+
+	m_pTerrainIndirectArgs = new NXBuffer("GPU Terrain Indirect Args Buffer");
+	m_pTerrainIndirectArgs->Create(sizeof(int) * 3, 1);
+	int a[3] = { 1, 1, 1 };
+	m_pTerrainIndirectArgs->Set(a, 1);
 
 	// 初始化参数，目前初始化阶段只需要传入这一个地形
 	NXGPUTerrainBlockData initData;

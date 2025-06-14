@@ -89,37 +89,40 @@ void Renderer::GenerateRenderGraph()
 {
 	m_pRenderGraph->SetViewResolution(m_viewRTSize);
 
-	//NXRGResource* pTerrainBufferA = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainBufferA());
-	//NXRGResource* pTerrainBufferB = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainBufferB());
-	//NXRGResource* pTerrainBufferFinal = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainFinalBuffer());
+	NXRGResource* pTerrainBufferA = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainBufferA());
+	NXRGResource* pTerrainBufferB = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainBufferB());
+	NXRGResource* pTerrainBufferFinal = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainFinalBuffer());
+	NXRGResource* pTerrainIndiArgs = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainIndirectArgs());
 
-	//struct FillTestData
-	//{
-	//};
+	struct FillTestData
+	{
+		NXComputePass* pFillPass;
+	};
 
-	//for (int i = 0; i < 6; i++)
-	//{
-	//	std::string strBufName = "FillTestBufferLod" + std::to_string(i);
-	//	m_pRenderGraph->AddComputePass<FillTestData>(strBufName, new NXFillTestRenderer(),
-	//		[&](NXRGBuilder& builder, FillTestData& data) {
-	//			NXGPUTerrainManager::GetInstance()->UpdateLodParams(5);
+	for (int i = 0; i < 6; i++)
+	{
+		NXRGResource* pInputBuf = i % 2 ? pTerrainBufferB : pTerrainBufferA;
+		NXRGResource* pOutputBuf = i % 2 ? pTerrainBufferA : pTerrainBufferB;
 
-	//			builder.WriteUAV(i % 2 ? pTerrainBufferB : pTerrainBufferA, 0); // u0
-	//			builder.WriteUAV(i % 2 ? pTerrainBufferA : pTerrainBufferB, 1); // u1
-	//			builder.WriteUAV(pTerrainBufferFinal, 2); // u2
+		std::string strBufName = "FillTestBufferLod" + std::to_string(i);
+		m_pRenderGraph->AddComputePass<FillTestData>(strBufName, new NXFillTestRenderer(),
+			[=](NXRGBuilder& builder, FillTestData& data) {
+				data.pFillPass = (NXComputePass*)builder.GetPassNode()->GetRenderPass();
 
-	//			builder.SetRootParamLayout(1, 0, 3);
-	//			builder.ReadConstantBuffer(0, 0, &m_cbFillTest); // b0
+				builder.WriteUAV(pInputBuf, 0, true); // u0
+				builder.WriteUAV(pOutputBuf, 1, true); // u1
+				builder.WriteUAV(pTerrainBufferFinal, 2, true); // u2
+				builder.SetIndirectArgs(pTerrainIndiArgs);
 
-	//			builder.SetEntryNameCS(L"CS_Pass");
+				builder.SetRootParamLayout(1, 0, 3);
+				builder.ReadConstantBuffer(0, 0, &m_cbFillTest); // b0
 
-	//			//uint32_t threadCount = ？？？？？// 无法知道每次线程组的数量！
-	//			//builder.SetComputeThreadGroup(threadCount, 1, 1);
-	//		},
-	//		[&](ID3D12GraphicsCommandList* pCmdList, FillTestData& data) {
-	//			//pCmdList->
-	//		});
-	//}
+				builder.SetEntryNameCS(L"CS_Pass");
+			},
+			[=](ID3D12GraphicsCommandList* pCmdList, FillTestData& data) {
+				data.pFillPass->CopyUAVCounterTo(pCmdList, pInputBuf);
+			});
+	}
 
 	struct GBufferData
 	{

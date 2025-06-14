@@ -31,6 +31,11 @@ NXRGResource* NXRGBuilder::WriteUAV(NXRGResource* pResource, uint32_t outUAVInde
 	return m_pPassNode->WriteUAV(pResource, outUAVIndex, keep);
 }
 
+NXRGResource* NXRGBuilder::SetIndirectArgs(NXRGResource* pResource)
+{
+	return m_pPassNode->SetIndirectArgs(pResource);
+}
+
 void NXRGBuilder::SetComputeThreadGroup(uint32_t threadGroupX, uint32_t threadGroupY, uint32_t threadGroupZ)
 {
 	if (m_pPassNode->GetRenderPass()->GetPassType() == NXRenderPassType::ComputePass)

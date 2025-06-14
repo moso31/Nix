@@ -33,6 +33,7 @@ public:
 	NXRGResource* WriteRT(NXRGResource* pResource, uint32_t outRTIndex, bool keep = false);
 	NXRGResource* WriteDS(NXRGResource* pResource, bool keep = false);
 	NXRGResource* WriteUAV(NXRGResource* pResource, uint32_t outUAVIndex, bool keep = false);
+	NXRGResource* SetIndirectArgs(NXRGResource* pResource);
 
 	// 设置线程组数量
 	void SetComputeThreadGroup(uint32_t threadGroupX, uint32_t threadGroupY = 1, uint32_t threadGroupZ = 1);

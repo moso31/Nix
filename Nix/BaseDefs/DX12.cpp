@@ -132,26 +132,6 @@ D3D12_CLEAR_VALUE NX12Util::CreateClearValue(float depth, UINT8 stencil, DXGI_FO
 	return cv;
 }
 
-void NX12Util::CopyTextureRegion(ID3D12GraphicsCommandList* pCommandList, ID3D12Resource* pTexture, ID3D12Resource* pTextureUploadBuffer, UINT layoutSize, const D3D12_PLACED_SUBRESOURCE_FOOTPRINT* pLayouts)
-{
-	D3D12_TEXTURE_COPY_LOCATION dst = {};
-	dst.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
-	dst.pResource = pTexture;
-
-	D3D12_TEXTURE_COPY_LOCATION src = {};
-	src.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-
-	src.pResource = pTextureUploadBuffer;
-
-	for (UINT idx = 0; idx < layoutSize; ++idx)
-	{
-		src.PlacedFootprint = pLayouts[idx];
-		dst.SubresourceIndex = idx;
-
-		pCommandList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
-	}
-}
-
 D3D12_VIEWPORT NX12Util::ViewPort(float width, float height, float minDepth, float maxDepth, float topLeftX, float topLeftY)
 {
 	D3D12_VIEWPORT vp;
@@ -285,6 +265,28 @@ ID3D12RootSignature* NX12Util::CreateRootSignature(ID3D12Device* pDevice, const 
 ID3D12RootSignature* NX12Util::CreateRootSignature(ID3D12Device* pDevice, const std::vector<D3D12_ROOT_PARAMETER>& pParams)
 {
 	return CreateRootSignature(pDevice, (UINT)pParams.size(), pParams.data(), 0, nullptr);
+}
+
+ID3D12CommandSignature* NX12Util::CreateCommandSignature(ID3D12Device* pDevice, const D3D12_COMMAND_SIGNATURE_DESC& desc, ID3D12RootSignature* pRootSignature)
+{
+	ID3D12CommandSignature* pCmdSig = nullptr;
+	HRESULT hr = pDevice->CreateCommandSignature(&desc, pRootSignature, IID_PPV_ARGS(&pCmdSig));
+	if (FAILED(hr))
+	{
+		pCmdSig->Release();
+		return nullptr;
+	}
+
+	return pCmdSig;
+}
+
+D3D12_RESOURCE_BARRIER NX12Util::BarrierUAV(ID3D12Resource* pD3DResource)
+{
+	D3D12_RESOURCE_BARRIER barrier{};
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
+	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barrier.UAV.pResource = pD3DResource;
+	return barrier;
 }
 
 UINT NX12Util::ByteAlign256(UINT sizeInBytes)

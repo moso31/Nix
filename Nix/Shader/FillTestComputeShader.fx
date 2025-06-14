@@ -5,6 +5,8 @@ AppendStructuredBuffer<uint2> m_final : register(u2);
 [numthreads(64, 1, 1)]
 void CS_Pass(uint3 dispatchThreadID : SV_DispatchThreadID)
 {
-    uint index = dispatchThreadID.x;
-    m_outBuffer[index] = m_outBuffer[index];
+    uint2 index = dispatchThreadID.xy;
+    
+    m_outBuffer.Append(index);
+    //m_outBuffer[index] = m_outBuffer[index];
 }
