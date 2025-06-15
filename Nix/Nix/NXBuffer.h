@@ -8,7 +8,8 @@ public:
 	virtual ~NXBuffer() {}
 
 	void Create(uint32_t stride, uint32_t arraySize);
-	void Set(const void* pSrcData, uint32_t arraySize);
+	void SetCurrent(const void* pSrcData, uint32_t arraySize);
+	void SetAll(const void* pSrcData, uint32_t arraySize);
 
 	uint32_t GetByteSize() const { return m_byteSize; }
 
@@ -17,32 +18,33 @@ public:
 	uint32_t GetArraySize() const override { return 1; }
 	uint32_t GetMipLevels() const override { return 1; }
 
-	D3D12_CPU_DESCRIPTOR_HANDLE GetSRV() const { return m_pSRV; }
-	D3D12_CPU_DESCRIPTOR_HANDLE GetUAV() const { return m_pUAV; }
+	D3D12_CPU_DESCRIPTOR_HANDLE GetSRV() const { return m_pSRV.Current(); }
+	D3D12_CPU_DESCRIPTOR_HANDLE GetUAV() const { return m_pUAV.Current(); }
 
 	// 设置本体buffer的资源状态；但这个不会设置uavCounter、indirectArgs的状态。
 	void SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D3D12_RESOURCE_STATES& state) override;
 
-	ID3D12Resource* GetD3DResource() const override { return m_pBuffer.Get(); }
-	ID3D12Resource* GetD3DResourceUAVCounter() const override { return m_pUAVCounterBuffer.Get(); }
+	ID3D12Resource* GetD3DResource() const override { return m_pBuffer.Current().Get(); }
+	ID3D12Resource* GetD3DResourceUAVCounter() const override { return m_pUAVCounterBuffer.Current().Get(); }
+
+private:
+	void Set_Internal(const void* pSrcData, uint32_t arraySize, ID3D12Resource* pBuffer, ID3D12Resource* pUAVCounterBuffer);
 
 private:
 	// Buffer和Texture相似，但SRV和UAV都是自动创建的
-	void SetSRV();
-	void SetUAV();
+	void InitSRV();
+	void InitUAV();
 
 private:
 	// 存一下伙伴内存池的原始资源指针和偏移量，方便SRV/UAV创建定位。
-	ComPtr<ID3D12Resource> m_pBuffer; 
-	uint64_t m_pBufferByteOffset; 
+	MultiFrame<ComPtr<ID3D12Resource>> m_pBuffer; 
 
 	// 计数器buffer，用于UAV的计数
-	ComPtr<ID3D12Resource> m_pUAVCounterBuffer;
-	uint64_t m_pUAVCounterOffset;
+	MultiFrame<ComPtr<ID3D12Resource>> m_pUAVCounterBuffer;
 
 	uint32_t m_stride;
 	uint32_t m_byteSize;
 
-	D3D12_CPU_DESCRIPTOR_HANDLE m_pSRV;
-	D3D12_CPU_DESCRIPTOR_HANDLE m_pUAV;
+	MultiFrame<D3D12_CPU_DESCRIPTOR_HANDLE> m_pSRV;
+	MultiFrame<D3D12_CPU_DESCRIPTOR_HANDLE> m_pUAV;
 };

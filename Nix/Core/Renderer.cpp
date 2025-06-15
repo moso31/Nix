@@ -125,8 +125,8 @@ void Renderer::GenerateRenderGraph()
 					NXGPUTerrainBlockData initData;
 					initData = { 0, 0 };
 
-					pInputBuf->GetBuffer()->Set(&initData, 1);
-					pOutputBuf->GetBuffer()->Set(&initData, 1);
+					pInputBuf->GetBuffer()->SetCurrent(&initData, 1);
+					pOutputBuf->GetBuffer()->SetCurrent(&initData, 1);
 				}
 				data.pFillPass->CopyUAVCounterTo(pCmdList, pInputBuf);
 			});

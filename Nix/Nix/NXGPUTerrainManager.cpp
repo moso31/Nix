@@ -21,12 +21,12 @@ void NXGPUTerrainManager::Init()
 	m_pTerrainIndirectArgs = new NXBuffer("GPU Terrain Indirect Args Buffer");
 	m_pTerrainIndirectArgs->Create(sizeof(int) * 3, 1);
 	int a[3] = { 1, 1, 1 };
-	m_pTerrainIndirectArgs->Set(a, 1);
+	m_pTerrainIndirectArgs->SetAll(a, 1);
 
 	// 初始化参数，目前初始化阶段只需要传入这一个地形
 	NXGPUTerrainBlockData initData;
 	initData = { 0, 0 };
-	m_pTerrainBufferA->Set(&initData, 1);
+	m_pTerrainBufferA->SetAll(&initData, 1);
 }
 
 void NXGPUTerrainManager::UpdateCameraParams(NXCamera* pCam)
