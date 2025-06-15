@@ -164,8 +164,6 @@ void NXGraphicPass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 
 void NXGraphicPass::Render(ID3D12GraphicsCommandList* pCmdList)
 {
-	NX12Util::BeginEvent(pCmdList, m_passName.c_str());
-
 	RenderSetTargetAndState(pCmdList);
 	RenderBefore(pCmdList);
 
@@ -177,6 +175,4 @@ void NXGraphicPass::Render(ID3D12GraphicsCommandList* pCmdList)
 	if (meshView.GetIBV(1, ibv))
 		pCmdList->IASetIndexBuffer(&ibv);
 	pCmdList->DrawIndexedInstanced(meshView.GetIndexCount(), 1, 0, 0, 0);
-
-	NX12Util::EndEvent(pCmdList);
 }

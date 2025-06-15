@@ -120,6 +120,14 @@ void Renderer::GenerateRenderGraph()
 				builder.SetEntryNameCS(L"CS_Pass");
 			},
 			[=](ID3D12GraphicsCommandList* pCmdList, FillTestData& data) {
+				if (i == 0)
+				{
+					NXGPUTerrainBlockData initData;
+					initData = { 0, 0 };
+
+					pInputBuf->GetBuffer()->Set(&initData, 1);
+					pOutputBuf->GetBuffer()->Set(&initData, 1);
+				}
 				data.pFillPass->CopyUAVCounterTo(pCmdList, pInputBuf);
 			});
 	}

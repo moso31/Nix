@@ -84,12 +84,15 @@ namespace ccmem
         bool BuildTask(int byteSize, UploadTaskContext& taskResult);
         void FinishTask(const UploadTaskContext& result, const std::function<void()>& pCallBack = nullptr);
         void Update();
+		void SetSyncCommandQueue(ID3D12CommandQueue* pQueue) { m_pSyncCmdQueue = pQueue; }
 
     private:
         ID3D12Device* m_pDevice;
         ID3D12CommandQueue* m_pCmdQueue;
         ID3D12Fence* m_pFence;
         uint64_t m_fenceValue = 0;
+
+        ID3D12CommandQueue* m_pSyncCmdQueue;
 
         UploadTask m_uploadTask[UPLOADTASK_NUM];
 

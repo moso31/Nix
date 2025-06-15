@@ -166,8 +166,6 @@ void NXComputePass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 
 void NXComputePass::Render(ID3D12GraphicsCommandList* pCmdList)
 {
-	NX12Util::BeginEvent(pCmdList, m_passName.c_str());
-
 	RenderSetTargetAndState(pCmdList);
 	RenderBefore(pCmdList);
 
@@ -180,8 +178,6 @@ void NXComputePass::Render(ID3D12GraphicsCommandList* pCmdList)
 		auto pIndiArg = m_pIndirectArgs->GetResource().As<NXBuffer>();
 		pCmdList->ExecuteIndirect(m_pCommandSig.Get(), 1, pIndiArg->GetD3DResource(), 0, nullptr, 0);
 	}
-
-	NX12Util::EndEvent(pCmdList);
 }
 
 void NXComputePass::CopyUAVCounterTo(ID3D12GraphicsCommandList* pCmdList, NXRGResource* pUAVCounterRes)
@@ -194,5 +190,5 @@ void NXComputePass::CopyUAVCounterTo(ID3D12GraphicsCommandList* pCmdList, NXRGRe
 	auto pIndirectArgsBuffer = m_pIndirectArgs->GetBuffer();
 	pIndirectArgsBuffer->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COPY_DEST);
 
-	pCmdList->CopyBufferRegion(pUAVCounterBuffer->GetD3DResourceUAVCounter(), 0, pIndirectArgsBuffer->GetD3DResource(), 0, sizeof(uint32_t));
+	pCmdList->CopyBufferRegion(pIndirectArgsBuffer->GetD3DResource(), 0, pUAVCounterBuffer->GetD3DResourceUAVCounter(), 0, sizeof(uint32_t));
 }

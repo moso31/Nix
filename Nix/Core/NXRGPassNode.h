@@ -79,8 +79,12 @@ public:
 			m_pPassInited = true;
 		}
 
+		NX12Util::BeginEvent(pCmdList, m_passName.c_str());
+
 		m_executeFunc(pCmdList, m_passData);
 		m_pPass->Render(pCmdList);
+
+		NX12Util::EndEvent(pCmdList);
 	}
 
 	void RegisterExecuteFunc(std::function<void(ID3D12GraphicsCommandList* pCmdList, NXRGPassData& data)> func) { m_executeFunc = func; }
