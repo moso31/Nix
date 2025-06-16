@@ -116,7 +116,7 @@ void Renderer::GenerateRenderGraph()
 				builder.SetIndirectArgs(pTerrainIndiArgs);
 
 				builder.SetRootParamLayout(1, 0, 3);
-				builder.ReadConstantBuffer(0, 0, &m_cbFillTest); // b0
+				builder.ReadConstantBuffer(0, 0, &NXGPUTerrainManager::GetInstance()->GetCBTerrainParams(i));
 
 				builder.SetEntryNameCS(L"CS_Pass");
 			},
@@ -129,6 +129,8 @@ void Renderer::GenerateRenderGraph()
 					pInputBuf->GetBuffer()->SetCurrent(&initData, 1);
 					//pOutputBuf->GetBuffer()->SetCurrent(&initData, 1);
 				}
+
+				NXGPUTerrainManager::GetInstance()->UpdateLodParams(i);
 				data.pFillPass->CopyUAVCounterTo(pCmdList, pInputBuf);
 			});
 	}

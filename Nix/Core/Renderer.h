@@ -114,7 +114,4 @@ private:
 	float m_fShadowMapZoomScale;
 	CBufferDebugLayer m_cbDebugLayerData;
 	NXConstantBuffer<CBufferDebugLayer> m_cbDebugLayer;
-
-	CBufferFillTest m_cbFillTestData;
-	NXConstantBuffer<CBufferFillTest> m_cbFillTest;
 };

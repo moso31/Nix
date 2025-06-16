@@ -32,10 +32,15 @@ void NXGPUTerrainManager::Init()
 
 void NXGPUTerrainManager::UpdateCameraParams(NXCamera* pCam)
 {
-	m_pTerrainParamsData.m_camPos = pCam->GetTranslation();
+	for (auto& terrainParamData : m_pTerrainParamsData)
+	{
+		terrainParamData.m_camPos = pCam->GetTranslation();
+	}
 }
 
 void NXGPUTerrainManager::UpdateLodParams(uint32_t lod)
 {
-	m_pTerrainParamsData.m_currLodLevel = lod;
+	m_pTerrainParamsData[lod].m_nodeWorldScale = (float)(64 << (5 - lod));
+	m_pTerrainParamsData[lod].m_currLodLevel = lod;
+	m_pTerrainParams[lod].Update(m_pTerrainParamsData[lod]);
 }

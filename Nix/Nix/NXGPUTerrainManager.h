@@ -27,7 +27,11 @@ public:
 	Ntr<NXBuffer>& GetTerrainFinalBuffer() { return m_pTerrainFinalBuffer; }
 	Ntr<NXBuffer>& GetTerrainIndirectArgs() { return m_pTerrainIndirectArgs; }
 
-	NXConstantBuffer<NXGPUTerrainParams>& GetTerrainParams() { return m_pTerrainParams; }
+	NXConstantBuffer<NXGPUTerrainParams>& GetCBTerrainParams(uint32_t index) 
+	{ 
+		assert(index < m_pTerrainParamsCount);
+		return m_pTerrainParams[index]; 
+	}
 
 private:
 	uint32_t m_pTerrainBufferMaxSize = 65536;
@@ -38,6 +42,7 @@ private:
 	Ntr<NXBuffer> m_pTerrainFinalBuffer;
 	Ntr<NXBuffer> m_pTerrainIndirectArgs;
 
-	NXGPUTerrainParams m_pTerrainParamsData;
-	NXConstantBuffer<NXGPUTerrainParams> m_pTerrainParams;
+	static const uint32_t m_pTerrainParamsCount = 6; // 6¸öLODµÈ¼¶
+	NXGPUTerrainParams m_pTerrainParamsData[m_pTerrainParamsCount];
+	NXConstantBuffer<NXGPUTerrainParams> m_pTerrainParams[m_pTerrainParamsCount];
 };
