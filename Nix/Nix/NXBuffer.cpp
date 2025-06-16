@@ -2,18 +2,25 @@
 #include "NXBuffer.h"
 #include "NXRWBuffer.h"
 #include "NXGlobalDefinitions.h"
+#include "NXConvertString.h"
+
+NXBuffer::NXBuffer(const std::string& name) : 
+	NXResource(NXResourceType::Buffer, name) 
+{
+	m_resourceState.Reset(D3D12_RESOURCE_STATE_COPY_DEST);
+}
 
 void NXBuffer::Create(uint32_t stride, uint32_t arraySize)
 {
 	m_stride = stride;
 	m_byteSize = stride * arraySize;
 
-	NXRWBuffer buffer(stride, arraySize);
+	NXRWBuffer buffer(NXConvert::s2ws(m_name), stride, arraySize);
 	buffer.WaitCreateComplete();
 	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 		m_pBuffer[i] = buffer.GetD3DResource()[i];
 
-	NXRWBuffer uavCounterBuffer(sizeof(uint32_t), 1); 
+	NXRWBuffer uavCounterBuffer(NXConvert::s2ws(m_name) + L"_counter", sizeof(uint32_t), 1);
 	uavCounterBuffer.WaitCreateComplete();
 	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 		m_pUAVCounterBuffer[i] = uavCounterBuffer.GetD3DResource()[i];
@@ -38,19 +45,21 @@ void NXBuffer::Set_Internal(const void* pSrcData, uint32_t arraySize, ID3D12Reso
 	uint32_t byteSize = m_stride * arraySize;
 	assert(byteSize <= m_byteSize);
 
-	UploadTaskContext taskContext(m_name);
-	if (NXUploadSystem->BuildTask(byteSize, taskContext))
+	if (pSrcData)
 	{
-		auto bufDesc = pBuffer->GetDesc();
-		uint64_t byteOffset = taskContext.pResourceOffset;
-		byte* pDstData = taskContext.pResourceData + byteOffset;
-		memcpy(pDstData, pSrcData, byteSize);
+		UploadTaskContext taskContext(m_name);
+		if (NXUploadSystem->BuildTask(byteSize, taskContext))
+		{
+			auto bufDesc = pBuffer->GetDesc();
+			uint64_t byteOffset = taskContext.pResourceOffset;
+			byte* pDstData = taskContext.pResourceData + byteOffset;
+			memcpy(pDstData, pSrcData, byteSize);
 
-		taskContext.pOwner->pCmdList->CopyBufferRegion(pBuffer, 0, taskContext.pResource, byteOffset, byteSize);
+			taskContext.pOwner->pCmdList->CopyBufferRegion(pBuffer, 0, taskContext.pResource, byteOffset, byteSize);
+		}
+
+		NXUploadSystem->FinishTask(taskContext);
 	}
-
-	NXUploadSystem->FinishTask(taskContext, []() {
-		});
 
 	// uav counter;
 	uint32_t counter = arraySize;
@@ -125,14 +134,14 @@ void NXBuffer::InitUAV()
 
 void NXBuffer::SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D3D12_RESOURCE_STATES& state)
 {
-	if (m_resourceState == state)
+	if (m_resourceState.Current() == state)
 		return;
 
 	D3D12_RESOURCE_BARRIER barrier = {};
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
 	barrier.Transition.pResource = m_pBuffer.Current().Get();
-	barrier.Transition.StateBefore = m_resourceState;
+	barrier.Transition.StateBefore = m_resourceState.Current();
 	barrier.Transition.StateAfter = state;
 	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 	pCommandList->ResourceBarrier(1, &barrier);
@@ -140,5 +149,5 @@ void NXBuffer::SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D
 	barrier.Transition.pResource = m_pUAVCounterBuffer.Current().Get();
 	pCommandList->ResourceBarrier(1, &barrier);
 
-	m_resourceState = state;
+	m_resourceState.Current() = state;
 }

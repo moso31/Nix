@@ -41,7 +41,7 @@ public:
 	void OnResize(const Vector2& rtSize);
 
 	// 资源重加载（如果上一帧修改了资源）
-	void ResourcesReloading();
+	void ResourcesReloading(DirectResources* pDXRes);
 
 	void Update();
 

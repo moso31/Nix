@@ -86,6 +86,7 @@ void NXComputePass::RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList)
 		auto pRes = m_pOutRes[i]->GetResource();
 		pRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 		uavBarriers.push_back(NX12Util::BarrierUAV(pRes->GetD3DResource()));
+		uavBarriers.push_back(NX12Util::BarrierUAV(pRes->GetD3DResourceUAVCounter()));
 	}
 
 	if (m_pIndirectArgs)

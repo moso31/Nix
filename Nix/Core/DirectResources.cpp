@@ -126,7 +126,8 @@ void DirectResources::FrameEnd()
 	NXGlobalDX::GlobalCmdQueue()->Signal(NXGlobalDX::s_globalfence.Get(), currFenceValue);
 
 	uint64_t fenceToWait = m_fenceValues[(MultiFrameSets::swapChainIndex + 1) % MultiFrameSets_swapChainCount];
-	if (NXGlobalDX::s_globalfence->GetCompletedValue() < fenceToWait)
+	uint64_t gpuVal = NXGlobalDX::s_globalfence->GetCompletedValue();
+	if (gpuVal < fenceToWait)
 	{
 		NXGlobalDX::s_globalfence->SetEventOnCompletion(fenceToWait, m_fenceEvent);
 		WaitForSingleObject(m_fenceEvent, INFINITE);
@@ -140,11 +141,13 @@ void DirectResources::Flush()
 
 	NXGlobalDX::GlobalCmdQueue()->Signal(NXGlobalDX::s_globalfence.Get(), currFenceValue);
 	uint64_t fenceToWait = currFenceValue;
-	while (NXGlobalDX::s_globalfence->GetCompletedValue() < fenceToWait)
+	uint64_t gpuVal = NXGlobalDX::s_globalfence->GetCompletedValue();
+	if (gpuVal < fenceToWait)
 	{
 		NXGlobalDX::s_globalfence->SetEventOnCompletion(NXGlobalDX::s_globalfenceValue, m_fenceEvent);
 		WaitForSingleObject(m_fenceEvent, INFINITE);
 	}
+	gpuVal = NXGlobalDX::s_globalfence->GetCompletedValue();
 }
 
 void DirectResources::Release()

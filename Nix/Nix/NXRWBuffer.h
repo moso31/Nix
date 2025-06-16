@@ -10,7 +10,8 @@ class NXRWBuffer
 public:
 	using OnCreateCompleteCallback = std::function<void(NXRWBuffer*)>;
 
-	NXRWBuffer(size_t stride, size_t arraySize, OnCreateCompleteCallback onCreateComplete = nullptr) :
+	NXRWBuffer(const std::wstring& name, size_t stride, size_t arraySize, OnCreateCompleteCallback onCreateComplete = nullptr) :
+		m_name(name),
 		m_stride(stride),
 		m_onCreateComplete(std::move(onCreateComplete))
 	{
@@ -52,6 +53,8 @@ protected:
 		for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 		{
 			NXAllocator_RWB->Alloc(&desc, m_byteSize, [this, i](const PlacedBufferAllocTaskResult& result) {
+				std::wstring strName = m_name + std::to_wstring(i);
+				result.pResource->SetName(strName.c_str());
 				m_pResource[i] = result.pResource;
 				m_memData[i] = result.memData;
 
@@ -79,6 +82,8 @@ private:
 	std::promise<void> m_promiseCB;
 	std::future<void> m_futureCB;
 	std::atomic<int> m_counter;
+
+	std::wstring m_name;
 
 	// 这俩成员存了一份 但暂时没啥用……
 	uint32_t m_stride;

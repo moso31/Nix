@@ -87,6 +87,7 @@ void Renderer::InitGUI()
 
 void Renderer::GenerateRenderGraph()
 {
+	m_pRenderGraph->Destroy();
 	m_pRenderGraph->SetViewResolution(m_viewRTSize);
 
 	NXRGResource* pTerrainBufferA = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainBufferA());
@@ -123,10 +124,10 @@ void Renderer::GenerateRenderGraph()
 				if (i == 0)
 				{
 					NXGPUTerrainBlockData initData;
-					initData = { 0, 0 };
+					initData = { 1, 1 };
 
 					pInputBuf->GetBuffer()->SetCurrent(&initData, 1);
-					pOutputBuf->GetBuffer()->SetCurrent(&initData, 1);
+					//pOutputBuf->GetBuffer()->SetCurrent(&initData, 1);
 				}
 				data.pFillPass->CopyUAVCounterTo(pCmdList, pInputBuf);
 			});
@@ -396,13 +397,14 @@ void Renderer::InitGlobalResources()
 	NXGlobalInputLayout::Init();
 }
 
-void Renderer::ResourcesReloading()
+void Renderer::ResourcesReloading(DirectResources* pDXRes)
 {
 	NXResourceManager::GetInstance()->OnReload();
 	NXResourceReloader::GetInstance()->OnReload();
 
 	if (m_pNeedRebuildRenderGraph)
 	{
+		pDXRes->Flush();
 		GenerateRenderGraph();
 		m_pNeedRebuildRenderGraph = false;
 	}

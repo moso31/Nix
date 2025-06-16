@@ -61,7 +61,7 @@ void App::ResizeCheck()
 
 void App::Reload()
 {
-	m_pRenderer->ResourcesReloading();
+	m_pRenderer->ResourcesReloading(m_pDXResources);
 }
 
 void App::Update()	

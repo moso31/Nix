@@ -25,8 +25,9 @@ void NXGPUTerrainManager::Init()
 
 	// 初始化参数，目前初始化阶段只需要传入这一个地形
 	NXGPUTerrainBlockData initData;
-	initData = { 0, 0 };
+	initData = { 1, 1 };
 	m_pTerrainBufferA->SetAll(&initData, 1);
+	m_pTerrainBufferB->SetAll(nullptr, 0);
 }
 
 void NXGPUTerrainManager::UpdateCameraParams(NXCamera* pCam)
