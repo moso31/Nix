@@ -8,3 +8,11 @@ void NXFillTestRenderer::SetupInternal()
 
 	InitCSO();
 }
+
+void NXGPUTerrainPatcherRenderer::SetupInternal()
+{
+	SetPassName("GPUTerrainPatcher");
+	SetShaderFilePath(L"Shader\\GPUTerrainPatcher.fx");
+
+	InitCSO();
+}

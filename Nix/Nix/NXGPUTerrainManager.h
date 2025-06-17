@@ -8,6 +8,15 @@ struct NXGPUTerrainParams
 	Vector3 m_camPos;
 	float m_nodeWorldScale; // lod等级的单个node的世界大小
 	uint32_t m_currLodLevel;
+	float m_currLodDist;
+};
+
+struct NXGPUTerrainPatcherParams
+{
+	Matrix m_mxWorld;
+	Vector3 m_pos;
+	float m_pad;
+	Vector2 m_uv;
 };
 
 // 2025.6.4
@@ -27,9 +36,11 @@ public:
 	Ntr<NXBuffer>& GetTerrainFinalBuffer() { return m_pTerrainFinalBuffer; }
 	Ntr<NXBuffer>& GetTerrainIndirectArgs() { return m_pTerrainIndirectArgs; }
 
+	Ntr<NXBuffer>& GetTerrainPatcherBuffer() { return m_pTerrainPatcherBuffer; }
+
 	NXConstantBuffer<NXGPUTerrainParams>& GetCBTerrainParams(uint32_t index) 
 	{ 
-		assert(index < m_pTerrainParamsCount);
+		assert(index < TERRAIN_LOD_NUM);
 		return m_pTerrainParams[index]; 
 	}
 
@@ -42,7 +53,10 @@ private:
 	Ntr<NXBuffer> m_pTerrainFinalBuffer;
 	Ntr<NXBuffer> m_pTerrainIndirectArgs;
 
-	static const uint32_t m_pTerrainParamsCount = 6; // 6个LOD等级
-	NXGPUTerrainParams m_pTerrainParamsData[m_pTerrainParamsCount];
-	NXConstantBuffer<NXGPUTerrainParams> m_pTerrainParams[m_pTerrainParamsCount];
+	// GPU Terrain Patcher
+	Ntr<NXBuffer> m_pTerrainPatcherBuffer;
+
+	static const uint32_t TERRAIN_LOD_NUM = 6; // 6个LOD等级
+	NXGPUTerrainParams m_pTerrainParamsData[TERRAIN_LOD_NUM];
+	NXConstantBuffer<NXGPUTerrainParams> m_pTerrainParams[TERRAIN_LOD_NUM];
 };

@@ -11,3 +11,12 @@ public:
 
 private:
 };
+
+class NXGPUTerrainPatcherRenderer : public NXComputePass
+{
+public:
+	NXGPUTerrainPatcherRenderer() {}
+	virtual ~NXGPUTerrainPatcherRenderer() {}
+
+	virtual void SetupInternal() override;
+};

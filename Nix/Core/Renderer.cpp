@@ -94,6 +94,7 @@ void Renderer::GenerateRenderGraph()
 	NXRGResource* pTerrainBufferB = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainBufferB());
 	NXRGResource* pTerrainBufferFinal = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainFinalBuffer());
 	NXRGResource* pTerrainIndiArgs = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainIndirectArgs());
+	NXRGResource* pTerrainPatcher = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainPatcherBuffer());
 
 	struct FillTestData
 	{
@@ -124,16 +125,35 @@ void Renderer::GenerateRenderGraph()
 				if (i == 0)
 				{
 					NXGPUTerrainBlockData initData;
-					initData = { 1, 1 };
+					initData = { 0, 0 };
 
 					pInputBuf->GetBuffer()->SetCurrent(&initData, 1);
-					//pOutputBuf->GetBuffer()->SetCurrent(&initData, 1);
+					pTerrainBufferFinal->GetBuffer()->SetCurrent(nullptr, 0);
 				}
 
 				NXGPUTerrainManager::GetInstance()->UpdateLodParams(i);
 				data.pFillPass->CopyUAVCounterTo(pCmdList, pInputBuf);
 			});
 	}
+
+	struct GPUTerrainPatcherData 
+	{
+		NXComputePass* pPatcherPass;
+	};
+	m_pRenderGraph->AddComputePass<GPUTerrainPatcherData>("GPU Terrain Patcher", new NXGPUTerrainPatcherRenderer(),
+		[=](NXRGBuilder& builder, GPUTerrainPatcherData& data) {
+
+			data.pPatcherPass = (NXComputePass*)builder.GetPassNode()->GetRenderPass();
+			builder.WriteUAV(pTerrainBufferFinal, 0, true);
+			builder.WriteUAV(pTerrainPatcher, 1, true);
+			builder.SetIndirectArgs(pTerrainIndiArgs);
+			builder.SetRootParamLayout(0, 0, 2);
+			builder.SetEntryNameCS(L"CS_Patch");
+		},
+		[=](ID3D12GraphicsCommandList* pCmdList, GPUTerrainPatcherData& data) {
+			pTerrainPatcher->GetBuffer()->SetCurrent(nullptr, 0);
+			data.pPatcherPass->CopyUAVCounterTo(pCmdList, pTerrainBufferFinal);
+		});
 
 	struct GBufferData
 	{
