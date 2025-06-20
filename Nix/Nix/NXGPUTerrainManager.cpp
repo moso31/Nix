@@ -26,6 +26,11 @@ void NXGPUTerrainManager::Init()
 	m_pTerrainPatcherBuffer = new NXBuffer("GPU Terrain Patcher Buffer");
 	m_pTerrainPatcherBuffer->Create(sizeof(NXGPUTerrainPatcherParams), m_pTerrainBufferMaxSize);
 
+	m_pTerrainDrawIndexArgs = new NXBuffer("GPU Terrain Draw Index Indirect Args");
+	m_pTerrainDrawIndexArgs->Create(sizeof(int) * 5, 1);
+	int a2[5] = { 0,0,0,0,0 };
+	m_pTerrainDrawIndexArgs->SetAll(a2, 1);
+
 	// 初始化参数，目前初始化阶段只需要传入这一个地形
 	NXGPUTerrainBlockData initData;
 	initData = { 0, 0 };

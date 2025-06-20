@@ -95,6 +95,7 @@ void Renderer::GenerateRenderGraph()
 	NXRGResource* pTerrainBufferFinal = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainFinalBuffer());
 	NXRGResource* pTerrainIndiArgs = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainIndirectArgs());
 	NXRGResource* pTerrainPatcher = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainPatcherBuffer());
+	NXRGResource* pTerrainDrawIndexArgs = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainDrawIndexArgs());
 
 	struct FillTestData
 	{
@@ -140,18 +141,31 @@ void Renderer::GenerateRenderGraph()
 	{
 		NXComputePass* pPatcherPass;
 	};
+
+	m_pRenderGraph->AddComputePass<GPUTerrainPatcherData>("GPU Terrain Patcher Clear", new NXGPUTerrainPatcherRenderer(),
+		[=](NXRGBuilder& builder, GPUTerrainPatcherData& data) {
+			data.pPatcherPass = (NXComputePass*)builder.GetPassNode()->GetRenderPass();
+			//builder.WriteUAV(pTerrainBufferFinal, 0, true);
+			builder.WriteUAV(pTerrainPatcher, 1, true, 3);
+			builder.WriteUAV(pTerrainDrawIndexArgs, 2, true);
+			builder.SetComputeThreadGroup(1, 1, 1);
+			builder.SetRootParamLayout(0, 0, 4);
+			builder.SetEntryNameCS(L"CS_Clear");
+		},
+		[=](ID3D12GraphicsCommandList* pCmdList, GPUTerrainPatcherData& data) {
+		});
+
 	m_pRenderGraph->AddComputePass<GPUTerrainPatcherData>("GPU Terrain Patcher", new NXGPUTerrainPatcherRenderer(),
 		[=](NXRGBuilder& builder, GPUTerrainPatcherData& data) {
-
 			data.pPatcherPass = (NXComputePass*)builder.GetPassNode()->GetRenderPass();
 			builder.WriteUAV(pTerrainBufferFinal, 0, true);
 			builder.WriteUAV(pTerrainPatcher, 1, true);
+			builder.WriteUAV(pTerrainDrawIndexArgs, 2, true);
 			builder.SetIndirectArgs(pTerrainIndiArgs);
-			builder.SetRootParamLayout(0, 0, 2);
+			builder.SetRootParamLayout(0, 0, 3);
 			builder.SetEntryNameCS(L"CS_Patch");
 		},
 		[=](ID3D12GraphicsCommandList* pCmdList, GPUTerrainPatcherData& data) {
-			pTerrainPatcher->GetBuffer()->SetCurrent(nullptr, 0);
 			data.pPatcherPass->CopyUAVCounterTo(pCmdList, pTerrainBufferFinal);
 		});
 

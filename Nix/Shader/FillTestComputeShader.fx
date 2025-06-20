@@ -41,9 +41,3 @@ void CS_Pass(uint3 dispatchThreadID : SV_DispatchThreadID)
         m_final.Append(uint3(c, m_lod));
     }
 }
-
-[numthreads(8, 8, 1)]
-void CS_Patch(uint3 dispatchThreadID : SV_DispatchThreadID)
-{
-
-}

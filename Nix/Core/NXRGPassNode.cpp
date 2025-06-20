@@ -2,6 +2,15 @@
 #include "NXRenderGraph.h"
 #include "NXConstantBuffer.h"
 
+NXRGPassNodeBase::NXRGPassNodeBase(NXRenderGraph* pRenderGraph, const std::string& passName, NXRenderPass* pPass) :
+	m_pRenderGraph(pRenderGraph), 
+	m_passName(passName), 
+	m_pPass(pPass), 
+	m_indirectArgs(nullptr),
+	m_pPassInited(false) 
+{
+}
+
 void NXRGPassNodeBase::SetRootParamLayout(uint32_t cbvCount, uint32_t srvCount, uint32_t uavCount)
 {
 	m_rootParamLayout.cbvCount = cbvCount;
@@ -59,19 +68,19 @@ NXRGResource* NXRGPassNodeBase::WriteDS(NXRGResource* pResource, bool useOldVers
 	return pNewVersionResource;
 }
 
-NXRGResource* NXRGPassNodeBase::WriteUAV(NXRGResource* pResource, uint32_t outUAVIndex, bool useOldVersion)
+NXRGResource* NXRGPassNodeBase::WriteUAV(NXRGResource* pResource, uint32_t uavIndex, bool useOldVersion, uint32_t uavCounterIndex)
 {
 	// 如果之前没被写入过，那么不需要创建新版本
 	if (useOldVersion || !pResource->HasWrited())
 	{
-		m_outputs.push_back({ pResource, outUAVIndex });
+		m_outputs.push_back({ pResource, uavIndex, uavCounterIndex });
 		pResource->MakeWriteConnect(); // 标记为已写入
 		return pResource;
 	}
 
 	// 创建新版本
 	NXRGResource* pNewVersionResource = new NXRGResource(pResource);
-	m_outputs.push_back({ pNewVersionResource, outUAVIndex });
+	m_outputs.push_back({ pNewVersionResource, uavIndex, uavCounterIndex });
 	pNewVersionResource->MakeWriteConnect(); // 标记为已写入
 	m_pRenderGraph->CreateResource(pNewVersionResource->GetName(), pNewVersionResource->GetDescription()); // 添加到graph中
 	return pNewVersionResource;
@@ -123,7 +132,13 @@ void NXRGPassNodeBase::Compile_ComputePass(bool isResize)
 	for (auto pOutResSlot : m_outputs)
 	{
 		auto pOutRes = pOutResSlot.resource;
-		pPass->SetOutput(pOutRes, pOutResSlot.slot);
+		pPass->SetOutput(pOutRes, pOutResSlot.slot, false);
+
+		if (pOutResSlot.uavCounterSlot != -1)
+		{
+			// 只有 uav counter 的逻辑才会走这里
+			pPass->SetOutput(pOutRes, pOutResSlot.uavCounterSlot, true);
+		}
 	}
 
 	pPass->SetIndirectArguments(m_indirectArgs);

@@ -568,6 +568,9 @@
     <ClCompile Include="Nix\NXGPUTerrainManager.cpp">
       <Filter>Nix\Object\Transform\Primitive\Terrain</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXNullDescriptor.cpp">
+      <Filter>Core\DirectX</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -950,6 +953,9 @@
     </ClInclude>
     <ClInclude Include="Nix\NXGPUTerrainManager.h">
       <Filter>Nix\Object\Transform\Primitive\Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXNullDescriptor.h">
+      <Filter>Core\DirectX</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

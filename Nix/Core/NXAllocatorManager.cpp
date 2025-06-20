@@ -21,6 +21,8 @@ void NXAllocatorManager::Init()
 	m_pSRVAllocator = std::make_unique<DescriptorAllocator<false>>(pDevice, 1000000, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	m_pRTVAllocator = std::make_unique<DescriptorAllocator<false>>(pDevice, 4096, D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	m_pDSVAllocator = std::make_unique<DescriptorAllocator<false>>(pDevice, 4096, D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	m_pNullDescriptorAllocator = std::make_unique<NXNullDescriptor>();
+	m_pNullDescriptorAllocator->ExecuteTasks(); // 空描述符 直接单线程执行，且仅执行一次
 
 	m_pShaderVisibleDescAllocator = std::make_unique<DescriptorAllocator<true>>(pDevice, 1000000, 10);
 

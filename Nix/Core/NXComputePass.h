@@ -2,6 +2,12 @@
 #include "NXRenderPass.h"
 #include "NXBuffer.h"
 
+struct NXRGResourceUAV
+{
+	NXRGResource* pRes;
+	bool isUAVCounter;
+};
+
 class NXComputePass : public NXRenderPass
 {
 public:
@@ -16,7 +22,7 @@ public:
 	void SetThreadGroups(uint32_t threadGroupX, uint32_t threadGroupY = 1, uint32_t threadGroupZ = 1);
 
 	void SetInput(NXRGResource* pRes, uint32_t slotIndex);
-	void SetOutput(NXRGResource* pRes, uint32_t slotIndex);
+	void SetOutput(NXRGResource* pRes, uint32_t slotIndex, bool IsUAVCounter = false);
 	void SetIndirectArguments(NXRGResource* pRes);
 
 	virtual void RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList);
@@ -36,6 +42,6 @@ private:
 	uint32_t 								m_threadGroupZ;
 
 	std::vector<NXRGResource*>				m_pInRes;
-	std::vector<NXRGResource*>				m_pOutRes;
+	std::vector<NXRGResourceUAV>			m_pOutRes;
 	NXRGResource*							m_pIndirectArgs;
 };

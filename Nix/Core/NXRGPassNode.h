@@ -6,7 +6,8 @@
 struct NXRGResourceSlot
 {
 	NXRGResource* resource;
-	uint32_t slot;
+	uint32_t slot; // srv uav 的slot
+	uint32_t uavCounterSlot; // uav counter 的slot（如果有uav的话）
 };
 
 class NXRenderGraph;
@@ -14,8 +15,7 @@ class NXConstantBufferImpl;
 class NXRGPassNodeBase
 {
 public:
-	NXRGPassNodeBase(NXRenderGraph* pRenderGraph, const std::string& passName, NXRenderPass* pPass) :
-		m_pRenderGraph(pRenderGraph), m_passName(passName), m_pPass(pPass), m_pPassInited(false) {}
+	NXRGPassNodeBase(NXRenderGraph* pRenderGraph, const std::string& passName, NXRenderPass* pPass);
 
 	const std::string& GetName() { return m_passName; }
 
@@ -31,7 +31,7 @@ public:
 	// 设置pass输出RT。
 	NXRGResource* WriteRT(NXRGResource* pResource, uint32_t outRTIndex, bool useOldVersion);
 	NXRGResource* WriteDS(NXRGResource* pResource, bool useOldVersion);
-	NXRGResource* WriteUAV(NXRGResource* pResource, uint32_t outUAVIndex, bool useOldVersion);
+	NXRGResource* WriteUAV(NXRGResource* pResource, uint32_t uavIndex, bool useOldVersion, uint32_t uavCounterIndex);
 	NXRGResource* SetIndirectArgs(NXRGResource* pResource);
 
 	NXRenderPass* GetRenderPass() { return m_pPass; }

@@ -59,10 +59,10 @@ void NXComputePass::SetInput(NXRGResource* pRes, uint32_t slotIndex)
 	m_pInRes[slotIndex] = pRes;
 }
 
-void NXComputePass::SetOutput(NXRGResource* pRes, uint32_t slotIndex)
+void NXComputePass::SetOutput(NXRGResource* pRes, uint32_t slotIndex, bool IsUAVCounter)
 {
 	if (m_pOutRes.size() <= slotIndex) m_pOutRes.resize(slotIndex + 1);
-	m_pOutRes[slotIndex] = pRes;
+	m_pOutRes[slotIndex] = { pRes, IsUAVCounter };
 }
 
 void NXComputePass::SetIndirectArguments(NXRGResource* pRes)
@@ -77,13 +77,17 @@ void NXComputePass::RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList)
 
 	for (int i = 0; i < (int)m_pInRes.size(); i++)
 	{
+		if (!m_pInRes[i]) continue; // 可能有空的输入资源
+
 		auto pRes = m_pInRes[i]->GetResource();
 		pRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
 	}
 	for (int i = 0; i < (int)m_pOutRes.size(); i++)
 	{
-		auto pRes = m_pOutRes[i]->GetResource();
+		if (!m_pOutRes[i].pRes) continue; // 可能有空的输出资源
+
+		auto pRes = m_pOutRes[i].pRes->GetResource();
 		pRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 		uavBarriers.push_back(NX12Util::BarrierUAV(pRes->GetD3DResource()));
 		uavBarriers.push_back(NX12Util::BarrierUAV(pRes->GetD3DResourceUAVCounter()));
@@ -123,6 +127,12 @@ void NXComputePass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 	{
 		for (int i = 0; i < (int)m_pInRes.size(); i++)
 		{
+			if (!m_pInRes[i])
+			{
+				NXShVisDescHeap->PushFluid(NXAllocator_NULL->GetNullSRV());
+				continue;
+			}
+
 			auto pRes = m_pInRes[i]->GetResource();
 			if (pRes->GetResourceType() == NXResourceType::Buffer)
 			{
@@ -146,14 +156,23 @@ void NXComputePass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 	{
 		for (int i = 0; i < (int)m_pOutRes.size(); i++)
 		{
-			auto pRes = m_pOutRes[i]->GetResource();
+			if (!m_pOutRes[i].pRes)
+			{
+				NXShVisDescHeap->PushFluid({ NXAllocator_NULL->GetNullUAV() });
+				continue;
+			}
+
+			auto pRes = m_pOutRes[i].pRes->GetResource();
 			if (pRes->GetResourceType() == NXResourceType::Buffer)
 			{
-				NXShVisDescHeap->PushFluid(Ntr<NXBuffer>(pRes)->GetUAV());
+				if (!m_pOutRes[i].isUAVCounter)
+					NXShVisDescHeap->PushFluid(pRes.As<NXBuffer>()->GetUAV());
+				else
+					NXShVisDescHeap->PushFluid(pRes.As<NXBuffer>()->GetUAVCounter());
 			}
 			else if (pRes->GetResourceType() != NXResourceType::None)
 			{
-				NXShVisDescHeap->PushFluid(Ntr<NXTexture>(pRes)->GetUAV());
+				NXShVisDescHeap->PushFluid(pRes.As<NXTexture>()->GetUAV());
 			}
 		}
 

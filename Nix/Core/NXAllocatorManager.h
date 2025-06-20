@@ -3,6 +3,7 @@
 #include "NXInstance.h"
 #include "NXShaderVisibleDescriptorHeap.h"
 #include "NXTextureLoader.h"
+#include "NXNullDescriptor.h"
 
 // 资源
 #define NXAllocator_CB		NXAllocatorManager::GetInstance()->GetCBAllocator()			// cb
@@ -14,6 +15,7 @@
 #define NXAllocator_SRV		NXAllocatorManager::GetInstance()->GetSRVAllocator()
 #define NXAllocator_RTV		NXAllocatorManager::GetInstance()->GetRTVAllocator()
 #define NXAllocator_DSV		NXAllocatorManager::GetInstance()->GetDSVAllocator()
+#define NXAllocator_NULL 	NXAllocatorManager::GetInstance()->GetNullDescriptorAllocator()
 #define NXShVisDescHeap		NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorAllocator()
 
 // 上传系统
@@ -29,14 +31,15 @@ class NXAllocatorManager : public NXInstance<NXAllocatorManager>
 public:
 	void Init();
 
-	CommittedBufferAllocator*			GetCBAllocator()			{ return m_pCBAllocator.get(); }
-	CommittedBufferAllocator*			GetSBAllocator()			{ return m_pSBAllocator.get(); }
-	PlacedBufferAllocator*				GetRWBAllocator()			{ return m_pRWBAllocator.get(); }
-	PlacedBufferAllocator*				GetTextureAllocator()		{ return m_pTextureAllocator.get(); }
+	CommittedBufferAllocator*		GetCBAllocator()				{ return m_pCBAllocator.get(); }
+	CommittedBufferAllocator*		GetSBAllocator()				{ return m_pSBAllocator.get(); }
+	PlacedBufferAllocator*			GetRWBAllocator()				{ return m_pRWBAllocator.get(); }
+	PlacedBufferAllocator*			GetTextureAllocator()			{ return m_pTextureAllocator.get(); }
 
-	DescriptorAllocator<false>*			GetSRVAllocator()			{ return m_pSRVAllocator.get(); }
-	DescriptorAllocator<false>*			GetRTVAllocator()			{ return m_pRTVAllocator.get(); }
-	DescriptorAllocator<false>*			GetDSVAllocator()			{ return m_pDSVAllocator.get(); }
+	DescriptorAllocator<false>*		GetSRVAllocator()				{ return m_pSRVAllocator.get(); }
+	DescriptorAllocator<false>*		GetRTVAllocator()				{ return m_pRTVAllocator.get(); }
+	DescriptorAllocator<false>*		GetDSVAllocator()				{ return m_pDSVAllocator.get(); }
+	NXNullDescriptor*				GetNullDescriptorAllocator()	{ return m_pNullDescriptorAllocator.get(); }
 
 	UploadSystem*		GetUploadSystem()	{ return m_pUpdateSystem.get(); }
 	NXTextureLoader*	GetTextureLoader()	{ return m_pTextureLoader.get(); }
@@ -56,6 +59,7 @@ private:
 	std::unique_ptr<DescriptorAllocator<false>>	m_pSRVAllocator;
 	std::unique_ptr<DescriptorAllocator<false>>	m_pRTVAllocator;
 	std::unique_ptr<DescriptorAllocator<false>>	m_pDSVAllocator;
+	std::unique_ptr<NXNullDescriptor>			m_pNullDescriptorAllocator;
 
 	std::unique_ptr<UploadSystem>				m_pUpdateSystem;
 	std::unique_ptr<NXTextureLoader>			m_pTextureLoader;

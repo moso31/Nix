@@ -37,6 +37,7 @@ public:
 	Ntr<NXBuffer>& GetTerrainIndirectArgs() { return m_pTerrainIndirectArgs; }
 
 	Ntr<NXBuffer>& GetTerrainPatcherBuffer() { return m_pTerrainPatcherBuffer; }
+	Ntr<NXBuffer>& GetTerrainDrawIndexArgs() { return m_pTerrainDrawIndexArgs; }
 
 	NXConstantBuffer<NXGPUTerrainParams>& GetCBTerrainParams(uint32_t index) 
 	{ 
@@ -55,6 +56,7 @@ private:
 
 	// GPU Terrain Patcher
 	Ntr<NXBuffer> m_pTerrainPatcherBuffer;
+	Ntr<NXBuffer> m_pTerrainDrawIndexArgs;
 
 	static const uint32_t TERRAIN_LOD_NUM = 6; // 6¸öLODµÈ¼¶
 	NXGPUTerrainParams m_pTerrainParamsData[TERRAIN_LOD_NUM];

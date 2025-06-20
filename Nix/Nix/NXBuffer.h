@@ -8,6 +8,8 @@ public:
 	virtual ~NXBuffer() {}
 
 	void Create(uint32_t stride, uint32_t arraySize);
+
+	// 从pSrcData地址开始，拷贝大小为arraySize字节的数据到当前buffer
 	void SetCurrent(const void* pSrcData, uint32_t arraySize);
 	void SetAll(const void* pSrcData, uint32_t arraySize);
 
@@ -20,6 +22,7 @@ public:
 
 	D3D12_CPU_DESCRIPTOR_HANDLE GetSRV() const { return m_pSRV.Current(); }
 	D3D12_CPU_DESCRIPTOR_HANDLE GetUAV() const { return m_pUAV.Current(); }
+	D3D12_CPU_DESCRIPTOR_HANDLE GetUAVCounter() const { return m_pUAVCounter.Current(); }
 
 	// 设置本体buffer的资源状态；但这个不会设置uavCounter、indirectArgs的状态。
 	void SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D3D12_RESOURCE_STATES& state) override;
@@ -49,4 +52,5 @@ private:
 
 	MultiFrame<D3D12_CPU_DESCRIPTOR_HANDLE> m_pSRV;
 	MultiFrame<D3D12_CPU_DESCRIPTOR_HANDLE> m_pUAV;
+	MultiFrame<D3D12_CPU_DESCRIPTOR_HANDLE> m_pUAVCounter;
 };

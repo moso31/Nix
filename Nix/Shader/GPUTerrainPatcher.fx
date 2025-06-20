@@ -6,15 +6,33 @@ struct NXGPUTerrainPatch
     float2 uv;
 };
 
+struct NXGPUDrawIndexArgs 
+{
+    uint indexCountPerInstance;
+    uint instanceCount;
+    uint startIndexLocation; // 0
+    int  baseVertexLocation; // 0
+    uint startInstanceLocation; // 0
+};
+
 RWStructuredBuffer<uint3> m_terrainBuffer : register(u0);
 AppendStructuredBuffer<NXGPUTerrainPatch> m_patchBuffer : register(u1);
+RWStructuredBuffer<NXGPUDrawIndexArgs> m_drawIndexArgs : register(u2);
+RWByteAddressBuffer m_patchBufferUAVCounter : register(u3); // uav counter of m_patchBuffer!
    
 #define NXGPUTERRAIN_PATCH_SIZE 8
 
+[numthreads(1, 1, 1)]
+void CS_Clear(uint3 dtid : SV_DispatchThreadID)
+{
+    m_drawIndexArgs[0] = (NXGPUDrawIndexArgs)0;
+    m_patchBufferUAVCounter.Store(0, 0);
+}
+
 [numthreads(NXGPUTERRAIN_PATCH_SIZE, NXGPUTERRAIN_PATCH_SIZE, 1)]
 void CS_Patch(
-    uint3 dispatchThreadID : SV_DispatchThreadID, 
-    uint3 groupThreadID : SV_GroupThreadID,
+    uint3 dtid : SV_DispatchThreadID, 
+    uint3 gtid : SV_GroupThreadID,
     uint groupIndex : SV_GroupID
 )
 {
@@ -26,7 +44,7 @@ void CS_Patch(
     float patchSize = blockSize / NXGPUTERRAIN_PATCH_SIZE;
 
     float3 blockOrigin = float3(param.x, 0.0f, param.y) * blockSize;
-    float3 patchOrigin = blockOrigin + float3(groupThreadID.x, 0, groupThreadID.y) * patchSize;
+    float3 patchOrigin = blockOrigin + float3(gtid.x, 0, gtid.y) * patchSize;
 
     NXGPUTerrainPatch patch = (NXGPUTerrainPatch)0;
     patch.pos = patchOrigin;
@@ -36,6 +54,9 @@ void CS_Patch(
 		0.0f, 0.0f, 1.0f, 0.0f,
 		patchOrigin.x, patchOrigin.y, patchOrigin.z, 1.0f
 	);
+
+    // todo: if patch visible...
+    InterlockedAdd(m_drawIndexArgs[0].instanceCount, 1);
 
     m_patchBuffer.Append(patch);
 }

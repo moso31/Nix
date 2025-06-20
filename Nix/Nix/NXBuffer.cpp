@@ -129,6 +129,19 @@ void NXBuffer::InitUAV()
 
 			NXGlobalDX::GetDevice()->CreateUnorderedAccessView(m_pBuffer[i].Get(), m_pUAVCounterBuffer[i].Get(), &uavDesc, m_pUAV[i]);
 			});
+
+		NXAllocator_SRV->Alloc([this, i](const D3D12_CPU_DESCRIPTOR_HANDLE& result) {
+			m_pUAVCounter[i] = result;
+
+			D3D12_UNORDERED_ACCESS_VIEW_DESC uavCounterDesc = {};
+			uavCounterDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+			uavCounterDesc.Format = DXGI_FORMAT_R32_UINT;
+			uavCounterDesc.Buffer.FirstElement = 0;
+			uavCounterDesc.Buffer.NumElements = 1;
+			uavCounterDesc.Buffer.StructureByteStride = 0;
+
+			NXGlobalDX::GetDevice()->CreateUnorderedAccessView(m_pUAVCounterBuffer[i].Get(), nullptr, &uavCounterDesc, m_pUAVCounter[i]);
+			});
 	}
 }
 

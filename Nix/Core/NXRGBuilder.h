@@ -32,7 +32,7 @@ public:
 	// outRTIndex = pass shader 输出的RT索引（DS忽略此参数）
 	NXRGResource* WriteRT(NXRGResource* pResource, uint32_t outRTIndex, bool keep = false);
 	NXRGResource* WriteDS(NXRGResource* pResource, bool keep = false);
-	NXRGResource* WriteUAV(NXRGResource* pResource, uint32_t outUAVIndex, bool keep = false);
+	NXRGResource* WriteUAV(NXRGResource* pResource, uint32_t uavIndex, bool keep = false, uint32_t uavCounterIndex = -1);
 	NXRGResource* SetIndirectArgs(NXRGResource* pResource);
 
 	// 设置线程组数量
