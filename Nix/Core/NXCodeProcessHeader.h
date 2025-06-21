@@ -352,6 +352,7 @@ public:
 	const std::vector<NXMatDataTexture*>& GetTextures() const { return txArr; }
 	const std::vector<NXMatDataSampler*>& GetSamplers() const { return ssArr; }
 	const std::vector<NXMatDataBase*>& GetAll() { return allArr; }
+
 	NXMatDataSettings& Settings() { return settings; }
 
 private:

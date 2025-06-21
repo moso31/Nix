@@ -26,6 +26,7 @@ RWByteAddressBuffer m_patchBufferUAVCounter : register(u3); // uav counter of m_
 void CS_Clear(uint3 dtid : SV_DispatchThreadID)
 {
     m_drawIndexArgs[0] = (NXGPUDrawIndexArgs)0;
+    m_drawIndexArgs[0].indexCountPerInstance = 24576;
     m_patchBufferUAVCounter.Store(0, 0);
 }
 

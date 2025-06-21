@@ -45,7 +45,11 @@ public:
 		return m_pTerrainParams[index]; 
 	}
 
+	const D3D12_COMMAND_SIGNATURE_DESC& GetDrawIndexArgDesc() { return m_cmdSigDesc; }
+
 private:
+	D3D12_COMMAND_SIGNATURE_DESC m_cmdSigDesc;
+
 	uint32_t m_pTerrainBufferMaxSize = 65536;
 
 	// 两个buffer A B之间 来回pingpong，结果输出到 final

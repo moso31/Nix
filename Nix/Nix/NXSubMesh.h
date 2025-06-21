@@ -52,7 +52,7 @@ public:
 private:
 	// [Warning!] 不允许直接设置材质！
 	// 需使用 BindMaterial() 为场景物体绑定材质
-	void SetMaterial(NXMaterial* mat) { m_pMaterial = mat; }
+	virtual void SetMaterial(NXMaterial* mat) { m_pMaterial = mat; }
 
 protected:
 	std::string	m_subMeshName;
@@ -87,7 +87,7 @@ public:
 		m_indices.insert(m_indices.end(), indices.begin(), indices.end());
 	}
 
-	void Render(ID3D12GraphicsCommandList* pCommandList) override
+	virtual void Render(ID3D12GraphicsCommandList* pCommandList) override
 	{
 		auto& subMeshViews = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews(m_subMeshName);
 
@@ -146,7 +146,7 @@ public:
 		NXSubMeshGeometryEditor::GetInstance()->CreateBuffers(m_rawViews, m_subMeshName);
 	}
 
-	void Render(ID3D12GraphicsCommandList* pCommandList) override
+	virtual void Render(ID3D12GraphicsCommandList* pCommandList) override
 	{
 		auto& subMeshViews = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews(m_subMeshName);
 
@@ -170,7 +170,10 @@ protected:
 class NXSubMeshStandard : public NXSubMesh<VertexPNTT>
 {
 public:
-	NXSubMeshStandard(NXRenderableObject* pRenderableObject, const std::string& subMeshName) : NXSubMesh<VertexPNTT>(pRenderableObject, subMeshName) {}
+	NXSubMeshStandard(NXRenderableObject* pRenderableObject, const std::string& subMeshName) : 
+		NXSubMesh<VertexPNTT>(pRenderableObject, subMeshName) 
+	{
+	}
 	virtual ~NXSubMeshStandard() {}
 
 	virtual bool IsSubMeshStandard()	 override { return true; }
@@ -183,10 +186,23 @@ public:
 class NXSubMeshTerrain : public NXSubMeshInstanced<VertexPNTC, InstanceData>
 {
 public:
-	NXSubMeshTerrain(NXRenderableObject* pRenderableObject, const std::string& subMeshName) : NXSubMeshInstanced<VertexPNTC, InstanceData>(pRenderableObject, subMeshName) {}
+	NXSubMeshTerrain(NXRenderableObject* pRenderableObject, const std::string& subMeshName) :
+		NXSubMeshInstanced<VertexPNTC, InstanceData>(pRenderableObject, subMeshName) 
+	{
+	}
+
 	virtual ~NXSubMeshTerrain() {}
 
 	virtual bool IsSubMeshTerrain()		 override { return true; }
+
+	// [Warning!] 不允许直接设置材质！
+	// 需使用 BindMaterial() 为场景物体绑定材质
+	virtual void SetMaterial(NXMaterial* mat) override;
+
+	virtual void Render(ID3D12GraphicsCommandList* pCommandList) override;
+
+private:
+	ComPtr<ID3D12CommandSignature> m_pCmdSignature;
 };
 
 enum EditorObjectID

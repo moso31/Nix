@@ -43,6 +43,7 @@ public:
 	virtual void Deserialize() {}
 
 	virtual void UpdatePSORenderStates(D3D12_GRAPHICS_PIPELINE_STATE_DESC& oPSODesc);
+	ID3D12RootSignature* GetRootSignature() { return m_pRootSig.Get(); }
 
 public:
 	std::vector<NXSubMeshBase*> GetRefSubMeshes() { return m_pRefSubMeshes; }

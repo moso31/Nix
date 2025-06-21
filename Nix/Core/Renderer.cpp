@@ -55,9 +55,9 @@ void Renderer::Init()
 	NXResourceManager::GetInstance()->GetCameraManager()->SetWorkingScene(m_scene);
 	NXResourceManager::GetInstance()->GetLightManager()->SetWorkingScene(m_scene);
 
-	m_scene->Init();
-
 	NXGPUTerrainManager::GetInstance()->Init();
+
+	m_scene->Init();
 
 	auto pCubeMap = m_scene->GetCubeMap();
 

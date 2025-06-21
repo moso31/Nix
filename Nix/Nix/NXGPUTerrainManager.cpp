@@ -37,6 +37,15 @@ void NXGPUTerrainManager::Init()
 	m_pTerrainBufferA->SetAll(&initData, 1);
 	m_pTerrainBufferB->SetAll(nullptr, 0);
 
+	// 创建一个GPU-Driven地形专用的CommandSignatureDesc
+	m_cmdSigDesc = {};
+	D3D12_INDIRECT_ARGUMENT_DESC args[1] = {};
+	args[0].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED;
+	m_cmdSigDesc.NumArgumentDescs = 1;
+	m_cmdSigDesc.pArgumentDescs = args;
+	m_cmdSigDesc.ByteStride = sizeof(int) * 5;
+	m_cmdSigDesc.NodeMask = 0;
+
 	float dist[TERRAIN_LOD_NUM] = { 12600, 6200, 3000, 1400, 600, 200 };
 	for (int lod = 0; lod < TERRAIN_LOD_NUM; lod++)
 	{

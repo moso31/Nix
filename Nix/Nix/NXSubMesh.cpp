@@ -4,6 +4,8 @@
 #include "NXSubMeshGeometryEditor.h"
 #include "NXCamera.h"
 #include "NXTimer.h"
+#include "NXGlobalDefinitions.h"
+#include "NXGPUTerrainManager.h"
 
 void NXSubMeshBase::Update(ID3D12GraphicsCommandList* pCommandList)
 {
@@ -103,6 +105,38 @@ void NXSubMeshStandard::CalcLocalAABB()
 
 	m_localAABB = AABB(vMin, vMax);
 }
+
+void NXSubMeshTerrain::SetMaterial(NXMaterial* mat)
+{
+	m_pMaterial = mat;
+
+	auto cmdSigDesc = NXGPUTerrainManager::GetInstance()->GetDrawIndexArgDesc();
+	NXGlobalDX::GetDevice()->CreateCommandSignature(&cmdSigDesc, nullptr, IID_PPV_ARGS(&m_pCmdSignature));
+
+	//auto* pGraphicRootSig = m_pMaterial->GetRootSignature();
+	//NXGlobalDX::GetDevice()->CreateCommandSignature(&cmdSigDesc, pGraphicRootSig, IID_PPV_ARGS(&m_pCmdSignature));
+}
+
+void NXSubMeshTerrain::Render(ID3D12GraphicsCommandList* pCommandList)
+{
+	auto& subMeshViews = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews(m_subMeshName);
+
+	D3D12_VERTEX_BUFFER_VIEW vbv[2];
+	if (subMeshViews.GetVBV(0, vbv[0]) && subMeshViews.GetVBV(1, vbv[1]))
+		pCommandList->IASetVertexBuffers(0, 2, vbv);
+
+	D3D12_INDEX_BUFFER_VIEW ibv;
+	if (subMeshViews.GetIBV(2, ibv))
+		pCommandList->IASetIndexBuffer(&ibv);
+
+	pCommandList->DrawIndexedInstanced(subMeshViews.GetIndexCount(), m_instanceData.size(), 0, 0, 0);
+
+	//auto drawIndexArgs = NXGPUTerrainManager::GetInstance()->GetTerrainDrawIndexArgs();
+	//drawIndexArgs->SetResourceState(pCommandList, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+
+	//pCommandList->ExecuteIndirect(m_pCmdSignature.Get(), 1, drawIndexArgs->GetD3DResource(), 0, nullptr, 0);
+}
+
 
 NXSubMeshEditorObjects::NXSubMeshEditorObjects(NXRenderableObject* pRenderableObject, const std::string& subMeshName, EditorObjectID id) : 
 	NXSubMesh<VertexEditorObjects>(pRenderableObject, subMeshName),
