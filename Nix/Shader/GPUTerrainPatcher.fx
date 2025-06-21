@@ -14,7 +14,7 @@ AppendStructuredBuffer<NXGPUTerrainPatch> m_patchBuffer : register(u1);
 RWStructuredBuffer<NXGPUDrawIndexArgs> m_drawIndexArgs : register(u2);
 RWByteAddressBuffer m_patchBufferUAVCounter : register(u3); // uav counter of m_patchBuffer!
    
-#define NXGPUTERRAIN_PATCH_SIZE 1
+#define NXGPUTERRAIN_PATCH_SIZE 2
 
 [numthreads(1, 1, 1)]
 void CS_Clear(uint3 dtid : SV_DispatchThreadID)
@@ -60,7 +60,7 @@ void CS_Patch(
 	);
 
     patch.mxWorld = mul(mxScale, patch.mxWorld);
-    patch.pad = (float)param.z;
+    patch.uv = (float)gtid.xy;
 
     // todo: if patch visible...
     InterlockedAdd(m_drawIndexArgs[0].instanceCount, 1);
