@@ -46,7 +46,8 @@ void NXGPUTerrainManager::Init()
 	m_cmdSigDesc.ByteStride = sizeof(int) * 5;
 	m_cmdSigDesc.NodeMask = 0;
 
-	float dist[TERRAIN_LOD_NUM] = { 12600, 6200, 3000, 1400, 600, 200 };
+	// ¸÷¼¶¾àÀë
+	float dist[TERRAIN_LOD_NUM] = { 10000, 2000, 600, 400, 200, 100 };
 	for (int lod = 0; lod < TERRAIN_LOD_NUM; lod++)
 	{
 		m_pTerrainParamsData[lod].m_nodeWorldScale = (float)(64 << (5 - lod));

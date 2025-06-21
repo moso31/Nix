@@ -520,12 +520,13 @@ void NXSubMeshGeometryEditor::CreateTerrain(NXTerrain* pTerrain, int gridSize, i
 	std::vector<VertexPNTC> vertices;
 	std::vector<uint32_t> indices;
 
-	int gSectorSize = g_configTerrain.sectorSize;
+	int factor = 8;
+	int gSectorSize = g_configTerrain.sectorSize / factor;
 	for (int x = 0; x <= gSectorSize; x++)
 	{
 		for (int y = 0; y <= gSectorSize; y++)
 		{
-			float vertScale = (float)gridSize / (float)worldSize;
+			float vertScale = (float)(gridSize * factor) * 0.95 / (float)worldSize;
 			Vector3 p(vertScale * (float)x, 0, vertScale * (float)y);
 			Vector3 n(0, 1, 0);
 			Vector2 uv(0, 0);

@@ -11,5 +11,5 @@ public:
 
 private:
 	Renderer* m_pRenderer;
-	Ntr<NXTexture> m_pShowResource;
+	Ntr<NXResource> m_pShowResource;
 };

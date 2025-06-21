@@ -120,7 +120,15 @@ void NXGUIRenderGraph::Render()
     ImGui::BeginChild("ImageRegion", ImVec2(0, 0), false);
     if (m_pShowResource.IsValid())
     {
-        NXShVisDescHeap->PushFluid(m_pShowResource->GetSRV());
+        if (m_pShowResource->GetResourceType() == NXResourceType::Buffer)
+        {
+            NXShVisDescHeap->PushFluid(m_pShowResource.As<NXBuffer>()->GetSRV());
+        }
+        else
+        {
+            NXShVisDescHeap->PushFluid(m_pShowResource.As<NXTexture>()->GetSRV());
+        }
+
         auto& srvHandle = NXShVisDescHeap->Submit();
         const ImTextureID& ImTexID = (ImTextureID)srvHandle.ptr;
         ImGui::Image(ImTexID, ImVec2(300, 200));

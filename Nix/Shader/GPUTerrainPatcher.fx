@@ -14,7 +14,7 @@ AppendStructuredBuffer<NXGPUTerrainPatch> m_patchBuffer : register(u1);
 RWStructuredBuffer<NXGPUDrawIndexArgs> m_drawIndexArgs : register(u2);
 RWByteAddressBuffer m_patchBufferUAVCounter : register(u3); // uav counter of m_patchBuffer!
    
-#define NXGPUTERRAIN_PATCH_SIZE 2
+#define NXGPUTERRAIN_PATCH_SIZE 8
 
 [numthreads(1, 1, 1)]
 void CS_Clear(uint3 dtid : SV_DispatchThreadID)
@@ -34,7 +34,7 @@ void CS_Patch(
 {
     // z : lod等级；xy : 此lod等级下 xy偏移量
     uint3 param = m_terrainBuffer[groupIndex];
-    float scale = (float)(1u << (5 - param.z));
+    float scale = (float)(1u << (5 - param.z)) * 1.0 / (float)(NXGPUTERRAIN_PATCH_SIZE);
 
     // 计算实际世界坐标 for block and patch
     float blockSize = (float)(2048u >> param.z);
@@ -61,6 +61,7 @@ void CS_Patch(
 
     patch.mxWorld = mul(mxScale, patch.mxWorld);
     patch.uv = (float)gtid.xy;
+    patch.pad = (float) (5 - param.z);
 
     // todo: if patch visible...
     InterlockedAdd(m_drawIndexArgs[0].instanceCount, 1);
