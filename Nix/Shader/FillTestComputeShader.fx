@@ -28,7 +28,7 @@ void CS_Pass(uint3 dispatchThreadID : SV_DispatchThreadID)
     float dist2 = length(childCenterPos2 - m_camPos);
     float dist3 = length(childCenterPos3 - m_camPos);
 
-    if (dist0 < m_currLodDist && dist1 < m_currLodDist && dist2 < m_currLodDist && dist3 < m_currLodDist)
+    if (m_lod < 5 && dist0 < m_currLodDist && dist1 < m_currLodDist && dist2 < m_currLodDist && dist3 < m_currLodDist)
     {
         // 如果四个子块都在当前Lod的距离内，则直接输出父级Lod
 		m_outBuffer.Append(c * 2 + uint2(0, 0));

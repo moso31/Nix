@@ -147,6 +147,8 @@ private:
 	std::filesystem::path m_nslPath;
 	NXConstantBuffer<std::vector<float>>	m_cbData;
 
+	bool m_bEnableGPUInstancing;
+
 	NXMaterialData							m_materialDatas; 
 	NXMaterialCode							m_codeBlocks; 
 

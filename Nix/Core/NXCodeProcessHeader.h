@@ -354,6 +354,7 @@ public:
 	const std::vector<NXMatDataBase*>& GetAll() { return allArr; }
 
 	NXMatDataSettings& Settings() { return settings; }
+	const NXMatDataSettings& GetSettings() const { return settings; }
 
 private:
 	std::vector<NXMatDataCBuffer*> cbArr;

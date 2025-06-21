@@ -129,12 +129,12 @@ void NXSubMeshTerrain::Render(ID3D12GraphicsCommandList* pCommandList)
 	if (subMeshViews.GetIBV(2, ibv))
 		pCommandList->IASetIndexBuffer(&ibv);
 
-	pCommandList->DrawIndexedInstanced(subMeshViews.GetIndexCount(), m_instanceData.size(), 0, 0, 0);
+	//pCommandList->DrawIndexedInstanced(subMeshViews.GetIndexCount(), m_instanceData.size(), 0, 0, 0);
 
-	//auto drawIndexArgs = NXGPUTerrainManager::GetInstance()->GetTerrainDrawIndexArgs();
-	//drawIndexArgs->SetResourceState(pCommandList, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+	auto drawIndexArgs = NXGPUTerrainManager::GetInstance()->GetTerrainDrawIndexArgs();
+	drawIndexArgs->SetResourceState(pCommandList, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
 
-	//pCommandList->ExecuteIndirect(m_pCmdSignature.Get(), 1, drawIndexArgs->GetD3DResource(), 0, nullptr, 0);
+	pCommandList->ExecuteIndirect(m_pCmdSignature.Get(), 1, drawIndexArgs->GetD3DResource(), 0, nullptr, 0);
 }
 
 

@@ -568,9 +568,18 @@ struct PS_OUTPUT
 	float4 GBufferC : SV_Target2;
 	float4 GBufferD : SV_Target3;
 };
-
-#include "Instancing.fx"
 )";
+
+	bool gpuInstancing = true;
+	if (gpuInstancing)
+	{
+		str += R"(#include "Instancing.fx"
+#include "GPUTerrainCommon.fx"
+)";
+		str += "\n";
+
+		str += "StructuredBuffer<NXGPUTerrainPatch> m_patchBuffer : register(t0, space1);\n";
+	}
 
 	ioLineCounter += GetLineCount(str);
 	return str;
@@ -621,10 +630,27 @@ std::string NXCodeProcessHelper::BuildHLSL_Entry(int& ioLineCounter, const NXMat
 
 std::string NXCodeProcessHelper::BuildHLSL_Entry_VS(int& ioLineCounter, const NXMaterialData& oMatData, NXMaterialCode& shaderCode)
 {
-	std::string strVSBegin = R"(PS_INPUT VS(VS_INPUT input)
+	std::string strVSBegin = R"(PS_INPUT VS(VS_INPUT input
+)";
+
+	bool gpuInstancing = true;
+	if (gpuInstancing)
+	{
+		strVSBegin += ", uint instanceID : SV_InstanceID\n";
+	}
+
+	strVSBegin += R"()
 {
 	PS_INPUT output;
 )";
+
+	if (gpuInstancing)
+	{
+		strVSBegin += R"(
+		NXGPUTerrainPatch patch = m_patchBuffer[instanceID];
+)";
+	}
+
 	std::string strVSEnd = R"(
 	return output;
 }
