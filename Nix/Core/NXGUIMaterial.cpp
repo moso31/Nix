@@ -250,13 +250,15 @@ void NXGUIMaterial::RenderGUI_Unique_TerrainLayer(NXTerrain* pTerrain, NXTerrain
 	ImGui::Text("Height Map:");
 	ImGui::SameLine();
 
-	auto onHeightMapDrop = [pTerrainLayer](const std::wstring& dragPath)
-		{
+	auto onHeightMapDrop = [pTerrainLayer](const std::wstring& dragPath) {
 			pTerrainLayer->SetHeightMapPath(dragPath);
 		};
 
 	std::filesystem::path heightMapPath = pTerrainLayer->GetHeightMapPath();
-	if (heightMapPath.empty() || !std::filesystem::exists(heightMapPath)) heightMapPath = g_defaultTex_white_wstr;
+	if (heightMapPath.empty() || !std::filesystem::exists(heightMapPath))
+	{
+		heightMapPath = g_defaultTex_white_wstr;
+	}
 
 	auto pHeightMapTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("", heightMapPath);
 	if (!pHeightMapTex.IsNull())

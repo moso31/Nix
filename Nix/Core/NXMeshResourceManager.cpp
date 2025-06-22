@@ -196,10 +196,8 @@ void NXMeshResourceManager::OnReload()
 
 void NXMeshResourceManager::Release()
 {
-	for (auto pTerrainLayer : m_terrainLayers)
-	{
-		delete pTerrainLayer;
-	}
+	for (auto pTerrainLayer : m_terrainLayers) 
+		SafeRelease(pTerrainLayer);
 	m_terrainLayers.clear();
 }
 

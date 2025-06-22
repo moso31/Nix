@@ -815,6 +815,11 @@ Ntr<NXTexture2D> NXTexture2D::CreateHeightRaw(const std::string& debugName, cons
 	return this;
 }
 
+Ntr<NXTexture2D> NXTexture2D::CreateByData(const std::string& debugName, DXGI_FORMAT fmt, uint32_t width, uint32_t height, void* data, uint32_t byteSize, D3D12_RESOURCE_FLAGS flags)
+{
+	return Ntr<NXTexture2D>();
+}
+
 void NXTexture2D::SetSRV(uint32_t index)
 {
 	NXAllocator_SRV->Alloc([this, index](const D3D12_CPU_DESCRIPTOR_HANDLE& result) {
