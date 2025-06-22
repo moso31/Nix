@@ -54,6 +54,20 @@ void NXTerrainLayer::Release()
 {
 }
 
+void NXTerrainLayer::BakeGPUDrivenData()
+{
+	if (m_heightMapTexture.IsValid())
+	{
+		// 如果有高度图，但没有路径，说明还没生成过GPUDriven关联图，生成下
+		if (!std::filesystem::exists(m_minMaxZMapPath))
+		{
+			GenerateMinMaxZMap();
+		}
+
+		m_minMaxZMapTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("Terrain Patcher MinMaxZ", m_minMaxZMapPath);
+	}
+}
+
 void NXTerrainLayer::GenerateMinMaxZMap()
 {
 	auto rawPath = m_heightMapPath;
@@ -162,7 +176,11 @@ void NXTerrainLayer::GenerateMinMaxZMap()
 	fillLevel(0, dataZMip0);
 	for (int i = 0; i < 5; ++i) fillLevel(i + 1, dataZMip1To5[i]);
 
-	hr = SaveToDDSFile(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), DDS_FLAGS_NONE, L"d:\\test.dds");
+	m_minMaxZMapPath = m_path;
+	m_minMaxZMapPath.replace_filename(m_path.stem().string() + "_MinMaxZ");
+	m_minMaxZMapPath.replace_extension(".dds");
+
+	hr = SaveToDDSFile(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), DDS_FLAGS_NONE, m_minMaxZMapPath.wstring().c_str());
 }
 
 void NXTerrainLayer::GeneratePatchConeMap()

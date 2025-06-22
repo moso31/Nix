@@ -241,12 +241,19 @@ void NXGUIMaterial::RenderGUI_Unique_Terrain(NXTerrain* pTerrain)
 		ImGui::EndPopup();
 	}
 
+	if (ImGui::Button("Bake GPU-Driven data##terrainlayer_bake"))
+	{
+		pTerrainLayer->BakeGPUDrivenData();
+	}
+
 	ImGui::Separator();
 }
 
 void NXGUIMaterial::RenderGUI_Unique_TerrainLayer(NXTerrain* pTerrain, NXTerrainLayer* pTerrainLayer)
 {
 	// Height-Map 小图标 + 拖放
+	RenderGUI_Unique_TerrainLayer_Connection(pTerrain, pTerrainLayer);
+
 	ImGui::Text("Height Map:");
 	ImGui::SameLine();
 
@@ -271,6 +278,45 @@ void NXGUIMaterial::RenderGUI_Unique_TerrainLayer(NXTerrain* pTerrain, NXTerrain
 		ImGui::SameLine();
 		ImGui::Text("%s", heightMapPath.filename().string().c_str());
 	}
+}
+
+void NXGUIMaterial::RenderGUI_Unique_TerrainLayer_Connection(NXTerrain* pTerrain, NXTerrainLayer* pTerrainLayer)
+{
+	ImGui::PushID("RenderGUI_Unique_TerrainLayer_Connection");
+
+	ImGui::Text("Connection: ");
+	ImVec2 regionSize = ImGui::GetContentRegionAvail();
+	regionSize.y = std::min(regionSize.y, 120.0f); // 限高120
+	ImGui::BeginChild("TableRegion", regionSize, true); // 开启边框
+	int columnCount = 2;
+	if (ImGui::BeginTable("RenderGraphTableFlipped", columnCount, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
+	{
+		// 表头
+		ImGui::TableSetupColumn("Resource");
+		ImGui::TableSetupColumn("Connection");
+		ImGui::TableHeadersRow();
+
+		auto drawRow = [](const char* resourceName, bool state) {
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			ImGui::TextUnformatted(resourceName);
+			ImGui::TableSetColumnIndex(1);
+			if (state) ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Lost"); // 红色
+			else ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Connected"); // 绿色
+			};
+
+		// 高度图
+		drawRow("Height Map", pTerrainLayer->GetHeightMapTexture().IsNull());
+		// Min/Max Z 图
+		drawRow("Min/Max Z Map", pTerrainLayer->GetMinMaxZMapTexture().IsNull());
+		// Patch Cone 图
+		drawRow("PatchCone Map", pTerrainLayer->GetPatchConeMapTexture().IsNull());
+
+		ImGui::EndTable();
+	}
+	ImGui::EndChild();
+
+	ImGui::PopID();
 }
 
 void NXGUIMaterial::RenderMaterialUI_Custom(NXCustomMaterial* pMaterial)

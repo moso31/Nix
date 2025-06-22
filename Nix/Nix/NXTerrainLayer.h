@@ -34,6 +34,8 @@ public:
 
 	void Release();
 
+	void BakeGPUDrivenData();
+
 private:
 	void GenerateMinMaxZMap();
 	void GeneratePatchConeMap();

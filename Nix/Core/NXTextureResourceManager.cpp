@@ -80,6 +80,12 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D(const std::string& na
 		}
 	}
 
+	// 如果路径不存在，直接返回空指针
+	if (!std::filesystem::exists(filePath))
+	{
+		return nullptr;
+	}
+
 	Ntr<NXTexture2D> pTexture2D(new NXTexture2D());
 	std::string strExt = filePath.extension().string();
 	if (NXConvert::IsImageFileExtension(strExt))

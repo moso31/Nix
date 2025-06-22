@@ -815,9 +815,16 @@ Ntr<NXTexture2D> NXTexture2D::CreateHeightRaw(const std::string& debugName, cons
 	return this;
 }
 
-Ntr<NXTexture2D> NXTexture2D::CreateByData(const std::string& debugName, DXGI_FORMAT fmt, uint32_t width, uint32_t height, void* data, uint32_t byteSize, D3D12_RESOURCE_FLAGS flags)
+Ntr<NXTexture2D> NXTexture2D::CreateByData(const std::string& debugName, const std::shared_ptr<ScratchImage>& pImage, D3D12_RESOURCE_FLAGS flags)
 {
-	return Ntr<NXTexture2D>();
+	m_name = debugName;
+	m_width = pImage->GetMetadata().width;
+	m_height = pImage->GetMetadata().height;
+	m_arraySize = pImage->GetMetadata().arraySize;
+	m_mipLevels = pImage->GetMetadata().mipLevels;
+	m_texFormat = pImage->GetMetadata().format;
+	CreateInternal(pImage, flags);
+	return this;
 }
 
 void NXTexture2D::SetSRV(uint32_t index)
