@@ -9,6 +9,7 @@
 #include "NXMaterialResourceManager.h"
 #include "NXSSSDiffuseProfile.h"
 #include "NXGUICommandManager.h"
+#include "NXTerrainLayer.h"
 
 NXGUIContentExplorer::NXGUIContentExplorer(NXScene* pScene) :
     m_pCurrentScene(pScene),
@@ -82,6 +83,10 @@ void NXGUIContentExplorer::Render()
                 {
                     GenerateSSSProfileResourceFile(singleSelectFolderPath);
                 }
+                if (ImGui::Selectable("Terrain Layer", false))
+                {
+                    GenerateTerrainLayerFile(singleSelectFolderPath);
+                }
                 ImGui::EndPopup();
             }
 
@@ -121,9 +126,9 @@ void NXGUIContentExplorer::Render()
                                 ImGui::TableNextColumn();
 
                                 // 文件夹/图标按钮本体
-                                if (ImGui::Button((strExtensionText + "##" + subElem.path().string()).c_str(), ImVec2(fActualSize, fActualSize)))
+                                if (ImGui::ButtonEx((strExtensionText + "##" + subElem.path().string()).c_str(), ImVec2(fActualSize, fActualSize), ImGuiButtonFlags_PressedOnClickRelease))
                                 {
-                                    //printf("%s\n", strExtensionText.c_str());
+                                    OnBtnContentLeftClicked(subElem);
                                 }
 
                                 // 文件夹/图标按钮 拖动事件
@@ -134,12 +139,6 @@ void NXGUIContentExplorer::Render()
                                     ImGui::SetDragDropPayload("CONTENT_EXPLORER_BUTTON_DRUGING", &m_btnDrugData, sizeof(NXGUIAssetDragData));
                                     ImGui::Text("(o_o)...");
                                     ImGui::EndDragDropSource();
-                                }
-
-                                // 文件夹/图标按钮 单击事件
-                                if (ImGui::IsItemClicked(ImGuiMouseButton_Left) && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-                                {
-                                    OnBtnContentLeftClicked(subElem);
                                 }
 
                                 // 文件夹/图标按钮 右键单击事件
@@ -263,6 +262,12 @@ void NXGUIContentExplorer::GenerateSSSProfileResourceFile(const std::filesystem:
 	CreateSSSProfileFileOnDisk(newPath);
 }
 
+void NXGUIContentExplorer::GenerateTerrainLayerFile(const std::filesystem::path& FolderPath)
+{
+    std::filesystem::path newPath = NXGUICommon::GenerateAssetNameJudge(FolderPath, ".ntl", "New Terrain Layer");
+    CreateTerrainLayerFileOnDisk(newPath);
+}
+
 void NXGUIContentExplorer::CreateMaterialFileOnDisk(const std::filesystem::path& path)
 {
     // 使用模板文件创建新材质。默认是一个standardPBR材质。
@@ -277,6 +282,13 @@ void NXGUIContentExplorer::CreateSSSProfileFileOnDisk(const std::filesystem::pat
     NXSSSDiffuseProfile ssprof;
     ssprof.SetFilePath(path);
     ssprof.Serialize();
+}
+
+void NXGUIContentExplorer::CreateTerrainLayerFileOnDisk(const std::filesystem::path& path)
+{
+    NXTerrainLayer terrainLayer("");
+    terrainLayer.SetPath(path);
+    terrainLayer.Serialize();
 }
 
 void NXGUIContentExplorer::OnBtnContentLeftClicked(const std::filesystem::directory_entry& path)

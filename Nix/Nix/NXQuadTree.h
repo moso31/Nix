@@ -1,12 +1,6 @@
 #pragma once
 #include "BaseDefs/Math.h"
 
-struct NXGPUTerrainBlockData
-{
-	uint32_t x;
-	uint32_t y;
-};
-
 struct NXQuadTreeNode
 {
 	NXQuadTreeNode(NXQuadTreeNode* pParent) :

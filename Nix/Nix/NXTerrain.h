@@ -2,16 +2,23 @@
 #include "NXRenderableObject.h"
 #include "NXSubMesh.h"
 #include "NXConstantBuffer.h"
-#include "NXQuadTree.h"
+#include "NXTerrainLayer.h"
 
-// 对接UAV格式所以需要按照 packing rules 对齐
-class NXQuadTree;
+struct NXGPUTerrainBlockData
+{
+	uint32_t x;
+	uint32_t y;
+};
+
 class NXTerrain : public NXRenderableObject
 {
 	friend class NXSubMeshGeometryEditor;
 public:
 	NXTerrain(int gridSize, int worldSize, int terrainId);
 	virtual ~NXTerrain() {}
+
+	NXTerrainLayer* GetTerrainLayer() const { return m_pTerrainLayer; }
+	void SetTerrainLayer(NXTerrainLayer* pTerrainLayer);
 
 	virtual void SetRotation(const Vector3& value) override {} // 地形不可旋转
 	virtual void SetScale(const Vector3& value) override {} // 地形不可缩放
@@ -21,8 +28,6 @@ public:
 	NXSubMeshBase* GetSubMesh() { return m_pSubMesh.get(); }
 	bool RayCastPrimitive(const Ray& worldRay, NXHit& outHitInfo, float& outDist);
 
-	void SetHeightRange(const Vector2& heightRange) { m_heightRange = heightRange; }
-
 	void InitAABB() override;
 	void Update(ID3D12GraphicsCommandList* pCmdList);
 
@@ -31,15 +36,13 @@ protected:
 	int m_rawSize;
 	int m_gridSize;
 	int m_worldSize;
-	Vector2 m_heightRange;
+
+	NXTerrainLayer* m_pTerrainLayer;
 	std::shared_ptr<NXSubMeshBase> m_pSubMesh; 
 
 	ConstantBufferObject m_cbDataObject;
 	NXConstantBuffer<ConstantBufferObject>	m_cbObject;
 
 private:
-	static std::vector<int> m_deadList;
-	NXQuadTree* m_pQuadTree; 
-
 	bool m_bGenerated = false;
 };

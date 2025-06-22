@@ -20,8 +20,6 @@
 #define new DEBUG_NEW 
 #endif
 
-using namespace rapidjson;
-
 #include "BaseDefs/Math.h"
 
 class NXSerializer
@@ -54,9 +52,9 @@ public:
 	void SaveToFile(const std::filesystem::path& path);
 
 private:
-	StringBuffer m_stringBuffer;
+	rapidjson::StringBuffer m_stringBuffer;
 	//rapidjson::Writer<StringBuffer> m_writer;
-	rapidjson::PrettyWriter<StringBuffer> m_writer;
+	rapidjson::PrettyWriter<rapidjson::StringBuffer> m_writer;
 };
 
 class NXDeserializer
@@ -85,17 +83,16 @@ public:
 	DirectX::SimpleMath::Vector3 Vector3(const rapidjson::Value& parent, const std::string& key, const DirectX::SimpleMath::Vector3 defaultValue = DirectX::SimpleMath::Vector3(0.0f));
 	DirectX::SimpleMath::Vector4 Vector4(const rapidjson::Value& parent, const std::string& key, const DirectX::SimpleMath::Vector4 defaultValue = DirectX::SimpleMath::Vector4(0.0f));
 
-	const GenericObject<false, Value> Object(const std::string& key);
-	const GenericArray<false, Value> Array(const std::string& key);
-
-	const GenericObject<true, Value> Object(const rapidjson::Value& parent, const std::string& key);
-	const GenericArray<true, Value> Array(const rapidjson::Value& parent, const std::string& key);
+	const rapidjson::GenericObject<false, rapidjson::Value> Object(const std::string& key);
+	const rapidjson::GenericArray<false, rapidjson::Value> Array(const std::string& key);
+	const rapidjson::GenericObject<true, rapidjson::Value> Object(const rapidjson::Value& parent, const std::string& key);
+	const rapidjson::GenericArray<true, rapidjson::Value> Array(const rapidjson::Value& parent, const std::string& key);
 
 	// 从本地文件读取 Json
 	bool LoadFromFile(const std::filesystem::path& path);
 
 private:
-	Document m_reader;
+	rapidjson::Document m_reader;
 };
 
 // Nix 序列化基类

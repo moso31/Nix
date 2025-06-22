@@ -8,10 +8,17 @@ struct NXGUIAssetDragData
 	std::filesystem::path srcPath;
 };
 
+enum class NXGUISmallTexType
+{
+	Image = 1,
+	Raw = 1 << 1,
+	All = Image | Raw
+};
+
 class NXGUIFileBrowser;
 namespace NXGUICommon
 {
-	void RenderSmallTextureIcon(D3D12_GPU_DESCRIPTOR_HANDLE srvHandle, NXGUIFileBrowser* pFileBrowser, std::function<void()> onChange, std::function<void()> onRemove, std::function<void(const std::wstring&)> onDrop);
+	void RenderSmallTextureIcon(D3D12_GPU_DESCRIPTOR_HANDLE srvHandle, NXGUIFileBrowser* pFileBrowser, std::function<void()> onChange, std::function<void()> onRemove, std::function<void(const std::wstring&)> onDrop, NXGUISmallTexType type = NXGUISmallTexType::Image);
 
 	// ½«×Ö·û´®×ª»»³ÉGUIStyle
 	NXGUICBufferStyle	GetGUIStyleFromString(const std::string& strTypeString);

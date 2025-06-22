@@ -5,6 +5,7 @@
 #include "NXConverter.h"
 #include "NXScene.h"
 #include "NXSubMesh.h"
+#include "NXTerrain.h"
 #include "NXRenderableObject.h"
 #include "NXAllocatorManager.h"
 #include "NXGUICommandManager.h"
@@ -26,19 +27,19 @@ void NXGUIMaterial::Render()
 	}
 
 	// 统计选中的所有Meshes里面有多少材质
-	std::unordered_set<NXMaterial*> pUniqueMats;
+	std::unordered_set<NXMaterial*> pUsedMats;
 	for (auto pSubMesh : pPickingSubMeshes)
-		pUniqueMats.insert(pSubMesh->GetMaterial());
+		pUsedMats.insert(pSubMesh->GetMaterial());
 
-	// 如果选中的所有SubMesh都只有一个材质，将此材质记作pCommonMaterial
-	bool bIsReadOnlyMaterial = pUniqueMats.size() != 1;
-	NXMaterial* pCommonMaterial = bIsReadOnlyMaterial ? nullptr : *pUniqueMats.begin();
+	// 如果选中的所有SubMesh都只有一个材质，将此材质记作pUniqueMat
+	bool bIsReadOnlyMaterial = pUsedMats.size() != 1;
+	NXMaterial* pUniqueMat = bIsReadOnlyMaterial ? nullptr : *pUsedMats.begin();
 
 	bool bIsReadOnlyTransform = pPickingSubMeshes.size() != 1;
 	if (bIsReadOnlyTransform) ImGui::BeginDisabled();
 
 	NXRenderableObject* pObject = pPickingSubMeshes[0]->GetRenderableObject();
-	NXMaterial* pMaterial = pPickingSubMeshes[0]->GetMaterial();
+	NXRenderableObject* pUniqueObj = bIsReadOnlyTransform ? nullptr : pObject;
 
 	std::string strName = bIsReadOnlyTransform ? "-" : pObject->GetName().c_str();
 	if (ImGui::InputText("Name", &strName))
@@ -78,8 +79,13 @@ void NXGUIMaterial::Render()
 
 	if (bIsReadOnlyTransform) ImGui::EndDisabled();
 
-	ImGui::Text("%d Materials, %d Submeshes", pUniqueMats.size(), pPickingSubMeshes.size());
+	ImGui::Text("%d Materials, %d Submeshes", pUsedMats.size(), pPickingSubMeshes.size());
 	ImGui::Separator();
+
+	if (pUniqueObj)
+	{
+		RenderGUI_Unique_RenderableObject(pUniqueObj);
+	}
 
 	float fBtnSize = 45.0f;
 	ImGui::BeginChild("##material_iconbtn", ImVec2(fBtnSize, std::max(ImGui::GetContentRegionAvail().y * 0.1f, fBtnSize)));
@@ -103,22 +109,22 @@ void NXGUIMaterial::Render()
 
 	ImGui::SameLine();
 
-	if (pCommonMaterial)
+	if (pUniqueMat)
 	{
 		ImGui::BeginChild("##material_description", ImVec2(ImGui::GetContentRegionAvail().x, std::max(ImGui::GetContentRegionAvail().y * 0.1f, fBtnSize)));
-		std::string strMatName = pCommonMaterial->GetName().c_str();
+		std::string strMatName = pUniqueMat->GetName().c_str();
 		if (ImGui::InputText("Material", &strMatName))
 		{
-			pCommonMaterial->SetName(strMatName);
+			pUniqueMat->SetName(strMatName);
 		}
 		ImGui::EndChild();
 
-		auto pCustomMat = pCommonMaterial->IsCustomMat();
+		auto pCustomMat = pUniqueMat->IsCustomMat();
 		if (pCustomMat)
 		{
 			RenderMaterialUI_Custom(pCustomMat);
 
-			if (pCommonMaterial->IsCustomMat())
+			if (pUniqueMat->IsCustomMat())
 			{
 				if (ImGui::Button("Edit Shader...##material_custom_editshader"))
 				{
@@ -130,14 +136,14 @@ void NXGUIMaterial::Render()
 
 
 	// 渲染 Shader Editor GUI
-	if (pCommonMaterial && pCommonMaterial->IsCustomMat())
+	if (pUniqueMat && pUniqueMat->IsCustomMat())
 	{
-		if (m_pLastCommonPickMaterial != pCommonMaterial)
+		if (m_pLastCommonPickMaterial != pUniqueMat)
 		{
-			NXGUICommand e(NXGUICmd_MSE_SetMaterial, { static_cast<NXCustomMaterial*>(pCommonMaterial) });
+			NXGUICommand e(NXGUICmd_MSE_SetMaterial, { static_cast<NXCustomMaterial*>(pUniqueMat) });
 			NXGUICommandManager::GetInstance()->PushCommand(e);
 
-			m_pLastCommonPickMaterial = pCommonMaterial;
+			m_pLastCommonPickMaterial = pUniqueMat;
 		}
 	}
 }
@@ -160,6 +166,109 @@ void NXGUIMaterial::SyncMaterialData(NXCustomMaterial* pMaterial)
 	m_guiData.Destroy();
 	m_guiData = pMaterial->GetMaterialData().Clone(true);
 	m_pLastMaterial = pMaterial;
+}
+
+void NXGUIMaterial::RenderGUI_Unique_RenderableObject(NXRenderableObject* pObj)
+{
+	if (!pObj) return;
+	if (auto* pUniqueTerrain = pObj->IsTerrain())
+	{
+		RenderGUI_Unique_Terrain(pUniqueTerrain);
+		return;
+	}
+}
+
+
+void NXGUIMaterial::RenderGUI_Unique_Terrain(NXTerrain* pTerrain)
+{
+	if (!pTerrain) return;
+
+	ImGui::Text("Terrain: %s", pTerrain->GetName().c_str());
+
+	NXTerrainLayer* pTerrainLayer = pTerrain->GetTerrainLayer();
+	if (!pTerrainLayer)
+	{
+		ImGui::Text("[Error] No TerrainLayer pointer.");
+		ImGui::Separator();
+		return;
+	}
+
+	// Layer 路径
+	if (!pTerrainLayer->GetPath().empty())
+	{
+		ImGui::Text("Layer: %s", pTerrainLayer->GetPath().string().c_str());
+		RenderGUI_Unique_TerrainLayer(pTerrain, pTerrainLayer);
+	}
+	else
+		ImGui::Text("No valid TerrainLayer.");
+
+	if (ImGui::Button("Switch *.ntl file...##terrainlayer_btn"))
+	{
+		ImGui::OpenPopup("##terrainlayer_select_popup");
+	}
+
+	// Drag-and-Drop：仅接受 .ntl
+	if (ImGui::BeginDragDropTarget())
+	{
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_EXPLORER_BUTTON_DRUGING"))
+		{
+			auto pDropData = static_cast<const NXGUIAssetDragData*>(payload->Data);
+			if (pDropData && pDropData->srcPath.has_extension() &&
+				NXConvert::IsTerrainLayerExtension(pDropData->srcPath.extension().string()))
+			{
+				pTerrainLayer->SetPath(pDropData->srcPath);
+			}
+		}
+		ImGui::EndDragDropTarget();
+	}
+
+	// 快速选择弹窗：递归枚举 D:\\NixAssets 下全部 .ntl
+	if (ImGui::BeginPopup("##terrainlayer_select_popup"))
+	{
+		const std::filesystem::path searchRoot = "D:\\NixAssets";
+		for (auto const& entry : std::filesystem::recursive_directory_iterator(searchRoot))
+		{
+			if (!entry.is_regular_file()) continue;
+			if (!NXConvert::IsTerrainLayerExtension(entry.path().extension().string())) continue;
+
+			const std::string fileName = entry.path().filename().string();
+			if (ImGui::Selectable(fileName.c_str()))
+			{
+				pTerrainLayer->SetPath(entry.path());
+				ImGui::CloseCurrentPopup();
+			}
+		}
+		ImGui::EndPopup();
+	}
+
+	ImGui::Separator();
+}
+
+void NXGUIMaterial::RenderGUI_Unique_TerrainLayer(NXTerrain* pTerrain, NXTerrainLayer* pTerrainLayer)
+{
+	// Height-Map 小图标 + 拖放
+	ImGui::Text("Height Map:");
+	ImGui::SameLine();
+
+	auto onHeightMapDrop = [pTerrainLayer](const std::wstring& dragPath)
+		{
+			pTerrainLayer->SetHeightMapPath(dragPath);
+		};
+
+	std::filesystem::path heightMapPath = pTerrainLayer->GetHeightMapPath();
+	if (heightMapPath.empty() || !std::filesystem::exists(heightMapPath)) heightMapPath = g_defaultTex_white_wstr;
+
+	auto pHeightMapTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("", heightMapPath);
+	if (!pHeightMapTex.IsNull())
+	{
+		NXShVisDescHeap->PushFluid(pHeightMapTex->GetSRV());
+		auto& srvHandle = NXShVisDescHeap->Submit();
+
+		using namespace NXGUICommon;
+		RenderSmallTextureIcon(srvHandle, nullptr, nullptr, nullptr, onHeightMapDrop, NXGUISmallTexType::Raw);
+		ImGui::SameLine();
+		ImGui::Text("%s", heightMapPath.filename().string().c_str());
+	}
 }
 
 void NXGUIMaterial::RenderMaterialUI_Custom(NXCustomMaterial* pMaterial)

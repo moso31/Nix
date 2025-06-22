@@ -48,6 +48,7 @@ public:
 	const D3D12_COMMAND_SIGNATURE_DESC& GetDrawIndexArgDesc() { return m_cmdSigDesc; }
 
 private:
+	D3D12_INDIRECT_ARGUMENT_DESC m_drawIndexArgDesc[1];
 	D3D12_COMMAND_SIGNATURE_DESC m_cmdSigDesc;
 
 	uint32_t m_pTerrainBufferMaxSize = 65536;

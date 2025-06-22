@@ -7,6 +7,9 @@ class NXMaterial;
 class NXCustomMaterial;
 class NXGUICodeEditor;
 struct NXGUIAssetDragData;
+class NXTerrain;
+class NXTerrainLayer;
+class NXRenderableObject;
 class NXGUIMaterial
 {
 public:
@@ -20,6 +23,9 @@ public:
 	void RequestSyncMaterialData() { m_bIsDirty = true; }
 
 private:
+	void RenderGUI_Unique_RenderableObject(NXRenderableObject* pObj);
+	void RenderGUI_Unique_Terrain(NXTerrain* pTerrain);
+	void RenderGUI_Unique_TerrainLayer(NXTerrain* pTerrain, NXTerrainLayer* pTerrainLayer);
 	void RenderMaterialUI_Custom(NXCustomMaterial* pMaterial);
 	void RenderMaterialUI_Custom_Parameters(NXCustomMaterial* pMaterial);
 	void RenderMaterialUI_Custom_Parameters_CBufferItem(const std::string& strId, NXCustomMaterial* pMaterial, NXMatDataCBuffer* cbData);

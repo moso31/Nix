@@ -312,6 +312,7 @@
     <ClCompile Include="Nix\NXSimpleSSAO.cpp" />
     <ClCompile Include="Nix\NXSubMesh.cpp" />
     <ClCompile Include="Nix\NXSubMeshGeometryEditor.cpp" />
+    <ClCompile Include="Nix\NXTerrainLayer.cpp" />
     <ClCompile Include="Nix\NXTexture.cpp" />
     <ClCompile Include="Nix\Script\NSFirstPersonalCamera.cpp" />
     <ClCompile Include="Nix\Script\NSTest.cpp" />
@@ -436,6 +437,7 @@
     <ClInclude Include="Nix\NXStructuredBuffer.h" />
     <ClInclude Include="Nix\NXSubMeshCommon.h" />
     <ClInclude Include="Nix\NXTerrain.h" />
+    <ClInclude Include="Nix\NXTerrainLayer.h" />
     <ClInclude Include="Nix\NXTextureDefinitions.h" />
     <ClInclude Include="Nix\NXSimpleSSAO.h" />
     <ClInclude Include="Nix\NXSubMesh.h" />

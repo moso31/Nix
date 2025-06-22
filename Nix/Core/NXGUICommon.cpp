@@ -7,7 +7,7 @@
 namespace NXGUICommon
 {
 
-void RenderSmallTextureIcon(D3D12_GPU_DESCRIPTOR_HANDLE srvHandle, NXGUIFileBrowser* pFileBrowser, std::function<void()> onChange, std::function<void()> onRemove, std::function<void(const std::wstring&)> onDrop)
+void RenderSmallTextureIcon(D3D12_GPU_DESCRIPTOR_HANDLE srvHandle, NXGUIFileBrowser* pFileBrowser, std::function<void()> onChange, std::function<void()> onRemove, std::function<void(const std::wstring&)> onDrop, NXGUISmallTexType type)
 {
 	float texSize = (float)20;
 
@@ -16,7 +16,7 @@ void RenderSmallTextureIcon(D3D12_GPU_DESCRIPTOR_HANDLE srvHandle, NXGUIFileBrow
 		int frame_padding = 2;									// -1 == uses default padding (style.FramePadding)
 		ImVec2 size = ImVec2(texSize - frame_padding, texSize - frame_padding);                     // Size of the image we want to make visible
 
-		if (onChange && ImGui::ImageButton("##", (ImTextureID)srvHandle.ptr, size) && pFileBrowser)
+		if (ImGui::ImageButton("##", (ImTextureID)srvHandle.ptr, size) && onChange && pFileBrowser)
 		{
 			pFileBrowser->SetTitle("Material");
 			pFileBrowser->SetTypeFilters({ ".png", ".jpg", ".bmp", ".dds", ".tga", ".tif", ".tiff" });
@@ -31,7 +31,12 @@ void RenderSmallTextureIcon(D3D12_GPU_DESCRIPTOR_HANDLE srvHandle, NXGUIFileBrow
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_EXPLORER_BUTTON_DRUGING"))
 			{
 				auto pDropData = (NXGUIAssetDragData*)(payload->Data);
-				if (NXConvert::IsImageFileExtension(pDropData->srcPath.extension().string()))
+				auto strExt = pDropData->srcPath.extension().string();
+
+				bool bCheckImage = ((int)type & (int)NXGUISmallTexType::Image);
+				bool bCheckRaw = ((int)type & (int)NXGUISmallTexType::Raw);
+				if (bCheckImage && (NXConvert::IsImageFileExtension(strExt)) ||
+					bCheckRaw && (NXConvert::IsRawFileExtension(strExt)))
 				{
 					onDrop(pDropData->srcPath.wstring());
 				}

@@ -4,6 +4,7 @@
 #include "NXPrimitive.h"
 #include "NXPrefab.h"
 #include "NXTerrain.h"
+#include "NXTerrainLayer.h"
 #include "NXTextureReloadTesk.h"
 
 void NXMeshResourceManager::Init(NXScene* pScene)
@@ -73,7 +74,7 @@ NXPrimitive* NXMeshResourceManager::CreatePlane(const std::string& name, const f
 	return p;
 }
 
-NXPrefab* NXMeshResourceManager::CreateFBXPrefab(const std::string& name, const std::string filePath, bool bAutoCalcTangents)
+NXPrefab* NXMeshResourceManager::CreateFBXPrefab(const std::string& name, const std::string& filePath, bool bAutoCalcTangents)
 {
 	auto p = new NXPrefab();
 	p->SetName(name);
@@ -88,6 +89,13 @@ NXTerrain* NXMeshResourceManager::CreateTerrain(const std::string& name, int gri
 	p->SetName(name);
 	NXSubMeshGeometryEditor::GetInstance()->CreateTerrain(p, gridSize, worldSize);
 	m_pWorkingScene->RegisterTerrain(p);
+	return p;
+}
+
+NXTerrainLayer* NXMeshResourceManager::CreateTerrainLayer()
+{
+	auto p = new NXTerrainLayer("TerrainLayer_" + std::to_string(m_terrainLayerIncreaseId++));
+	m_terrainLayers.push_back(p);
 	return p;
 }
 
@@ -188,6 +196,11 @@ void NXMeshResourceManager::OnReload()
 
 void NXMeshResourceManager::Release()
 {
+	for (auto pTerrainLayer : m_terrainLayers)
+	{
+		delete pTerrainLayer;
+	}
+	m_terrainLayers.clear();
 }
 
 NXTextureReloadTask NXMeshResourceManager::LoadMaterialAsync(const NXSubMeshReloadTaskPackage* pTaskData)

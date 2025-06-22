@@ -40,6 +40,7 @@ bool IsDDSFileExtension(const std::string& strExt);
 bool IsRawFileExtension(const std::string& strExt);
 bool IsMaterialFileExtension(const std::string& strExt);
 bool IsDiffuseProfileExtension(const std::string& strExt);
+bool IsTerrainLayerExtension(const std::string& strExt);
 
 bool IsMaterialDefaultPath(const std::string& s);
 

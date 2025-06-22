@@ -29,9 +29,11 @@ private:
 	// 在指定文件夹生成各种资产文件
 	void GenerateMaterialResourceFile(const std::filesystem::path& FolderPath); 
 	void GenerateSSSProfileResourceFile(const std::filesystem::path& FolderPath);
+	void GenerateTerrainLayerFile(const std::filesystem::path& FolderPath);
 
 	void CreateMaterialFileOnDisk(const std::filesystem::path& path);
 	void CreateSSSProfileFileOnDisk(const std::filesystem::path& path);
+	void CreateTerrainLayerFileOnDisk(const std::filesystem::path& path);
 
 	void OnBtnContentLeftClicked(const std::filesystem::directory_entry& path);
 

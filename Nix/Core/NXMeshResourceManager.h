@@ -27,14 +27,13 @@ public:
 	NXPrimitive* CreateSHSphere(const std::string& name, const int l, const int m, const float radius, const UINT segmentHorizontal, const UINT segmentVertical, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));
 	NXPrimitive* CreateCylinder(const std::string& name, const float radius, const float length, const UINT segmentCircle, const UINT segmentLength, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));
 	NXPrimitive* CreatePlane(const std::string& name, const float width, const float height, const NXPlaneAxis axis, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));
-	NXPrefab* CreateFBXPrefab(const std::string& name, const std::string filePath, bool bAutoCalcTangents = true);
+	NXPrefab* CreateFBXPrefab(const std::string& name, const std::string& filePath, bool bAutoCalcTangents = true);
 
 	// 创建地形
-	// rawSize: rawFile 的具体格式，目前只支持16bit			
-	// 注意：rawsize的值通常是2^n+1，比如513、1025、2049....
 	// gridSize: 地形网格大小分辨率（不需要控制lod，每个terrain自带四叉树）
 	// worldSize: 实际尺寸大小
 	NXTerrain* CreateTerrain(const std::string& name, int gridSize, int worldSize);
+	NXTerrainLayer* CreateTerrainLayer();
 
 	void BindMaterial(NXRenderableObject* pRenderableObj, NXMaterial* pMaterial);
 	void BindMaterial(NXSubMeshBase* pSubMesh, NXMaterial* pMaterial);
@@ -55,4 +54,11 @@ private:
 
 	// 地形自增id
 	int m_terrainIncreaseId;
+
+	// 地形层自增id（注意这俩id 概念上是互相独立的，不一定非得相同）
+	int m_terrainLayerIncreaseId;
+
+	// 生命周期暂时先由这里管理
+	// TODO: 该放到哪？
+	std::vector<NXTerrainLayer*> m_terrainLayers;
 };

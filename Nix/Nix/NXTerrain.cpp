@@ -8,11 +8,13 @@
 NXTerrain::NXTerrain(int gridSize, int worldSize, int terrainId) :
 	m_gridSize(gridSize),
 	m_worldSize(worldSize),
-	m_heightRange(0, 1000),
 	m_terrainId(terrainId)
 {
-	m_pQuadTree = new NXQuadTree(Vector3(1024), Vector3(1024));
-	m_pQuadTree->Build(6);
+}
+
+void NXTerrain::SetTerrainLayer(NXTerrainLayer* pTerrainLayer)
+{
+	m_pTerrainLayer = pTerrainLayer;
 }
 
 void NXTerrain::AddSubMesh(NXSubMeshBase* pSubMesh)
@@ -32,8 +34,8 @@ bool NXTerrain::RayCastPrimitive(const Ray& worldRay, NXHit& outHitInfo, float& 
 
 void NXTerrain::InitAABB()
 {
-	Vector3 vMin(0.0f, m_heightRange.x, 0.0f);
-	Vector3 vMax((float)m_worldSize, m_heightRange.y, (float)m_worldSize);
+	Vector3 vMin(0.0f, 0.0f, 0.0f);
+	Vector3 vMax((float)m_worldSize, 1000.0f, (float)m_worldSize);
 	m_localAABB = AABB(vMin, vMax);
 
 	NXRenderableObject::InitAABB();

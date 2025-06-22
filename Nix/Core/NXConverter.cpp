@@ -299,6 +299,12 @@ bool IsDiffuseProfileExtension(const std::string& strExt)
 	return s == ".nssprof";
 }
 
+bool IsTerrainLayerExtension(const std::string& strExt)
+{
+	std::string s = s2lower(strExt);
+	return s == ".ntl";
+}
+
 bool IsMaterialDefaultPath(const std::string& s)
 {
 	return s == "?";

@@ -27,6 +27,7 @@ class NXRenderableObject;
 class NXPrefab;
 class NXPrimitive;
 class NXTerrain;
+class NXTerrainLayer;
 
 // Camera
 class NXCamera;
