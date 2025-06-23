@@ -17,7 +17,7 @@ public:
 	~NXTerrainLayer() {}
 
 	const std::filesystem::path& GetPath() const { return m_path; }
-	void SetPath(const std::filesystem::path& path) { m_path = path; }
+	void SetPath(const std::filesystem::path& path);
 
 	uint32_t GetTerrainWidth() const { return m_terrainWidth; }
 	uint32_t GetTerrainHeight() const { return m_terrainHeight; }
@@ -34,7 +34,7 @@ public:
 
 	void Release();
 
-	void BakeGPUDrivenData();
+	void BakeGPUDrivenData(bool bSave);
 
 private:
 	void GenerateMinMaxZMap();

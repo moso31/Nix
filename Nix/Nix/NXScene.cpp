@@ -238,9 +238,12 @@ void NXScene::Init()
 	
 	// 这里有点毒...地形层做了序列化；但地形本身没有序列化。
 	NXTerrain* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateTerrain("myTerrain", 2048, 2048);
-	// TODO：地形的序列化牵扯到整个NXRenderableObject基类，还没想清楚怎么做，暂时搁置
-	NXTerrainLayer* pTerrainLayer = NXResourceManager::GetInstance()->GetMeshManager()->CreateTerrainLayer();
-	p->SetTerrainLayer(pTerrainLayer); // 暂时先这么强绑定上。
+	{
+		// TODO：地形的序列化牵扯到整个NXRenderableObject基类，还没想清楚怎么做，暂时搁置
+		NXTerrainLayer* pTerrainLayer = NXResourceManager::GetInstance()->GetMeshManager()->CreateTerrainLayer();
+		pTerrainLayer->SetPath(L"D:\\NixAssets\\terrainTest\\New Terrain Layer 1.ntl");  // 暂时先这么强绑定上。
+		p->SetTerrainLayer(pTerrainLayer);
+	}
 
 	p->SetScale(Vector3(0.1f));
 	//p2->SetScale(Vector3(0.1f));

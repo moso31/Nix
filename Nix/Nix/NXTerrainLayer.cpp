@@ -8,6 +8,12 @@ NXTerrainLayer::NXTerrainLayer(const std::string& name) :
 {
 }
 
+void NXTerrainLayer::SetPath(const std::filesystem::path& path)
+{
+	m_path = path;
+	Deserialize();
+}
+
 void NXTerrainLayer::SetHeightMapPath(const std::filesystem::path& heightMapPath)
 {
 	m_heightMapPath = heightMapPath;
@@ -30,6 +36,7 @@ void NXTerrainLayer::Serialize()
 		serializer.StartObject();
 		serializer.String("path", m_path.string());
 		serializer.String("heightMapPath", m_heightMapPath.string());
+		serializer.String("minMaxZMapPath", m_minMaxZMapPath.string());
 		serializer.EndObject();
 
 		serializer.SaveToFile(m_path);
@@ -38,15 +45,23 @@ void NXTerrainLayer::Serialize()
 
 void NXTerrainLayer::Deserialize()
 {
-	std::string nxInfoPath = m_path.string() + ".n0";
+	std::string nxInfoPath = m_path.string();
 
 	NXDeserializer deserializer;
 	bool bJsonExist = deserializer.LoadFromFile(nxInfoPath.c_str());
 	if (bJsonExist)
 	{
+		m_path = deserializer.String("path", "");
+		m_heightMapPath = deserializer.String("heightMapPath", "");
+		m_minMaxZMapPath = deserializer.String("minMaxZMapPath", "");
+
+		m_heightMapTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("", m_heightMapPath);
+
+		BakeGPUDrivenData(false);
 	}
 	else
-	{
+	{ 
+		// do nothing
 	}
 }
 
@@ -54,7 +69,7 @@ void NXTerrainLayer::Release()
 {
 }
 
-void NXTerrainLayer::BakeGPUDrivenData()
+void NXTerrainLayer::BakeGPUDrivenData(bool bSave)
 {
 	if (m_heightMapTexture.IsValid())
 	{
@@ -65,6 +80,11 @@ void NXTerrainLayer::BakeGPUDrivenData()
 		}
 
 		m_minMaxZMapTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("Terrain Patcher MinMaxZ", m_minMaxZMapPath);
+	}
+
+	if (bSave)
+	{
+		Serialize();
 	}
 }
 

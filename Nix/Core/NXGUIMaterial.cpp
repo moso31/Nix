@@ -243,7 +243,7 @@ void NXGUIMaterial::RenderGUI_Unique_Terrain(NXTerrain* pTerrain)
 
 	if (ImGui::Button("Bake GPU-Driven data##terrainlayer_bake"))
 	{
-		pTerrainLayer->BakeGPUDrivenData();
+		pTerrainLayer->BakeGPUDrivenData(true);
 	}
 
 	ImGui::Separator();
