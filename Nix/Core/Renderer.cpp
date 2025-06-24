@@ -155,14 +155,18 @@ void Renderer::GenerateRenderGraph()
 		[=](ID3D12GraphicsCommandList* pCmdList, GPUTerrainPatcherData& data) {
 		});
 
+	auto pTerrainLayer0 = m_scene->GetTerrains()[0]->GetTerrainLayer();
+	auto pTerrainLayer0_MinMaxZMap = m_pRenderGraph->ImportTexture(pTerrainLayer0->GetMinMaxZMapTexture());
+
 	m_pRenderGraph->AddComputePass<GPUTerrainPatcherData>("GPU Terrain Patcher", new NXGPUTerrainPatcherRenderer(),
 		[=](NXRGBuilder& builder, GPUTerrainPatcherData& data) {
 			data.pPatcherPass = (NXComputePass*)builder.GetPassNode()->GetRenderPass();
+			builder.Read(pTerrainLayer0_MinMaxZMap, 0);
 			builder.WriteUAV(pTerrainBufferFinal, 0, true);
 			builder.WriteUAV(pTerrainPatcher, 1, true);
 			builder.WriteUAV(pTerrainDrawIndexArgs, 2, true);
 			builder.SetIndirectArgs(pTerrainIndiArgs);
-			builder.SetRootParamLayout(0, 0, 3);
+			builder.SetRootParamLayout(0, 1, 3);
 			builder.SetEntryNameCS(L"CS_Patch");
 		},
 		[=](ID3D12GraphicsCommandList* pCmdList, GPUTerrainPatcherData& data) {

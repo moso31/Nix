@@ -9,6 +9,9 @@ struct NXGPUDrawIndexArgs
     uint startInstanceLocation; // 0
 };
 
+Texture2D m_minmaxZMap : register(t0);
+SamplerState ssLinearClamp : register(s0);
+
 RWStructuredBuffer<uint3> m_terrainBuffer : register(u0);
 AppendStructuredBuffer<NXGPUTerrainPatch> m_patchBuffer : register(u1);
 RWStructuredBuffer<NXGPUDrawIndexArgs> m_drawIndexArgs : register(u2);
@@ -63,7 +66,7 @@ void CS_Patch(
     patch.uv = (float)gtid.xy;
     patch.pad = (float) (5 - param.z);
 
-    // todo: if patch visible...
+    // visibility test
     InterlockedAdd(m_drawIndexArgs[0].instanceCount, 1);
 
     m_patchBuffer.Append(patch);

@@ -122,7 +122,7 @@ void NXCustomMaterial::LoadAndCompile(const std::filesystem::path& nslFilePath)
 	{
 		InitShaderResources();
 
-		std::string strHLSL = NXCodeProcessHelper::BuildHLSL(nslFilePath, m_materialDatas, m_codeBlocks);
+		std::string strHLSL = NXCodeProcessHelper::BuildHLSL(nslFilePath, m_materialDatas, m_codeBlocks, m_bEnableTerrainGPUInstancing);
 		std::string strErrMsgVS, strErrMsgPS;
 		CompileShader(strHLSL, strErrMsgVS, strErrMsgPS);
 	}
@@ -150,7 +150,7 @@ bool NXCustomMaterial::LoadShaderCode()
 
 void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::string& oErrorMessageVS, std::string& oErrorMessagePS)
 {
-	std::wstring strEnableGPUInstancing = m_bEnableGPUInstancing ? L"1" : L"0";
+	std::wstring strEnableGPUInstancing = m_bEnableTerrainGPUInstancing ? L"1" : L"0";
 	ComPtr<IDxcBlob> pVSBlob, pPSBlob;
 	NXShaderComplier::GetInstance()->AddMacro(L"GPU_INSTANCING", strEnableGPUInstancing);
 	HRESULT hrVS = NXShaderComplier::GetInstance()->CompileVSByCode(strGBufferShader, L"VS", pVSBlob.GetAddressOf(), oErrorMessageVS);
@@ -174,14 +174,16 @@ void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::s
 		for (int i = 0; i < txArr.size(); i++)
 			ranges.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, i));
 
-		if (m_bEnableGPUInstancing)
-			ranges.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 1)); // GPU Terrain Patch Buffer;
+		if (m_bEnableTerrainGPUInstancing)
+		{
+			ranges.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 1)); // t0, space1 = GPU Terrain Patch Buffer;
+		}
 
 		std::vector<D3D12_ROOT_PARAMETER> rootParams = {
 			NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL), // b0, space0
 			NX12Util::CreateRootParameterCBV(1, 0, D3D12_SHADER_VISIBILITY_ALL), // b1
 			NX12Util::CreateRootParameterCBV(0, 1, D3D12_SHADER_VISIBILITY_ALL), // b0, space1 用户自定义参数总是放在space1
-			NX12Util::CreateRootParameterTable(ranges, D3D12_SHADER_VISIBILITY_ALL), // t...
+			NX12Util::CreateRootParameterTable(ranges, D3D12_SHADER_VISIBILITY_ALL), // t..., space0
 		};
 
 		std::vector<D3D12_STATIC_SAMPLER_DESC> staticSamplers;
@@ -224,7 +226,7 @@ void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::s
 bool NXCustomMaterial::Recompile(const NXMaterialData& guiData, const NXMaterialCode& code, const NXMaterialData& guiDataBackup, const NXMaterialCode& codeBackup, std::string& oErrorMessageVS, std::string& oErrorMessagePS)
 {
 	auto codeCopy = code;
-	std::string strHLSL = NXCodeProcessHelper::BuildHLSL(m_nslPath, guiData, codeCopy);
+	std::string strHLSL = NXCodeProcessHelper::BuildHLSL(m_nslPath, guiData, codeCopy, m_bEnableTerrainGPUInstancing);
 	CompileShader(strHLSL, oErrorMessageVS, oErrorMessagePS);
 
 	m_materialDatas.Destroy();
@@ -314,7 +316,7 @@ void NXCustomMaterial::UpdatePSORenderStates(D3D12_GRAPHICS_PIPELINE_STATE_DESC&
 
 NXCustomMaterial::NXCustomMaterial(const std::string& name, const std::filesystem::path& path) :
 	NXMaterial(name, path),
-	m_bEnableGPUInstancing(true)
+	m_bEnableTerrainGPUInstancing(true)
 {
 }
 
@@ -332,7 +334,7 @@ void NXCustomMaterial::Render(ID3D12GraphicsCommandList* pCommandList)
 			NXShVisDescHeap->PushFluid(pTex->GetSRV());
 	}
 
-	if (m_bEnableGPUInstancing)
+	if (m_bEnableTerrainGPUInstancing)
 	{
 		auto pTerrainPatchBuffer = NXGPUTerrainManager::GetInstance()->GetTerrainPatcherBuffer();
 		if (pTerrainPatchBuffer.IsValid())

@@ -424,7 +424,7 @@ void NXCodeProcessHelper::ExtractShader_SubShader_Pass_Entry(std::istringstream&
 	}
 }
 
-std::string NXCodeProcessHelper::BuildHLSL(const std::filesystem::path& nslPath, const NXMaterialData& oMatData, NXMaterialCode& shaderCode)
+std::string NXCodeProcessHelper::BuildHLSL(const std::filesystem::path& nslPath, const NXMaterialData& oMatData, NXMaterialCode& shaderCode, bool bIsGPUTerrain)
 {
 	// 此处nslPath只有文件名有用，文件内容没用！
 	// nslPath在这里唯一作用就是给cbuffer struct生成hash
@@ -434,7 +434,7 @@ std::string NXCodeProcessHelper::BuildHLSL(const std::filesystem::path& nslPath,
 	std::string str;
 	str += BuildHLSL_Include(ioLineCounter);
 	str += BuildHLSL_Structs(ioLineCounter, oMatData, shaderCode);
-	str += BuildHLSL_Params(ioLineCounter, nslPath, oMatData, shaderCode);
+	str += BuildHLSL_Params(ioLineCounter, nslPath, oMatData, shaderCode, bIsGPUTerrain);
 	str += BuildHLSL_PassFuncs(ioLineCounter, oMatData, shaderCode);
 	str += BuildHLSL_GlobalFuncs(ioLineCounter, oMatData, shaderCode);
 	str += BuildHLSL_Entry(ioLineCounter, oMatData, shaderCode);
@@ -451,7 +451,7 @@ std::string NXCodeProcessHelper::BuildHLSL_Include(int& ioLineCounter)
 	return str;
 }
 
-std::string NXCodeProcessHelper::BuildHLSL_Params(int& ioLineCounter, const std::filesystem::path& nslPath, const NXMaterialData& oMatData, const NXMaterialCode& shaderCode)
+std::string NXCodeProcessHelper::BuildHLSL_Params(int& ioLineCounter, const std::filesystem::path& nslPath, const NXMaterialData& oMatData, const NXMaterialCode& shaderCode, bool bIsGPUTerrain)
 {
 	int slot_tex = 0;
 	int slot_ss = 0;
@@ -473,6 +473,12 @@ std::string NXCodeProcessHelper::BuildHLSL_Params(int& ioLineCounter, const std:
 			str += "Texture2D ";
 
 		str += tex->name + " : register(t" + std::to_string(slot_tex++) + ");\n";
+	}
+
+	if (bIsGPUTerrain) // GPU Terrain专用
+	{
+		str += R"(#include "GPUTerrainCommon.fx")"; str += "\n";
+		str += "StructuredBuffer<NXGPUTerrainPatch> m_patchBuffer : register(t0, space1);\n";
 	}
 
 	// sampler
@@ -508,7 +514,7 @@ std::string NXCodeProcessHelper::BuildHLSL_Params(int& ioLineCounter, const std:
 	}
 	str += "};\n";
 
-	str += "cbuffer " + strMatName + " : register(b" + std::to_string(slot_cb++) + ", space1)\n"; // 2025.5.15 以后规定用户自定义参数总是放在space1
+	str += "cbuffer " + strMatName + " : register(b" + std::to_string(slot_cb++) + ", space1)\n"; // 2025.5.15 以后规定用户自定义cb参数总是放在space1
 	str += "{\n";
 	str += "\t" + strMatName + " m;\n"; // 可编辑材质的成员变量约定命名 m。比如 m.albedo, m.metallic
 	str += "};\n";
@@ -569,17 +575,6 @@ struct PS_OUTPUT
 	float4 GBufferD : SV_Target3;
 };
 )";
-
-	bool gpuInstancing = true;
-	if (gpuInstancing)
-	{
-		str += R"(#include "Instancing.fx"
-#include "GPUTerrainCommon.fx"
-)";
-		str += "\n";
-
-		str += "StructuredBuffer<NXGPUTerrainPatch> m_patchBuffer : register(t0, space1);\n";
-	}
 
 	ioLineCounter += GetLineCount(str);
 	return str;
