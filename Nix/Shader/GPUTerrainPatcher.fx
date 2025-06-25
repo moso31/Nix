@@ -11,14 +11,17 @@ struct NXGPUDrawIndexArgs
 };
 
 Texture2D m_minmaxZMap : register(t0);
-SamplerState ssLinearClamp : register(s0);
+SamplerState ssPointClamp : register(s0);
 
 RWStructuredBuffer<uint3> m_terrainBuffer : register(u0);
 AppendStructuredBuffer<NXGPUTerrainPatch> m_patchBuffer : register(u1);
 RWStructuredBuffer<NXGPUDrawIndexArgs> m_drawIndexArgs : register(u2);
 RWByteAddressBuffer m_patchBufferUAVCounter : register(u3); // uav counter of m_patchBuffer!
    
-#define NXGPUTERRAIN_PATCH_SIZE 8
+#define MINMAXZ_TEXSIZE 256u // TODO：临时的，如果多地形不见得能这么干……
+
+#define TERRAIN_SIZE 2048u
+#define NXGPUTERRAIN_PATCH_SIZE 8u
 
 [numthreads(1, 1, 1)]
 void CS_Clear(uint3 dtid : SV_DispatchThreadID)
@@ -38,11 +41,12 @@ void CS_Patch(
 {
     // z : lod等级；xy : 此lod等级下 xy偏移量
     uint3 param = m_terrainBuffer[groupIndex];
-    float scale = (float)(1u << (5 - param.z)) * 1.0 / (float)(NXGPUTERRAIN_PATCH_SIZE);
+    uint mip = 5u - param.z;
+    float scale = (float)(1u << mip) * 1.0f / (float)(NXGPUTERRAIN_PATCH_SIZE);
 
     // 计算实际世界坐标 for block and patch
-    float blockSize = (float)(2048u >> param.z);
-    float patchSize = blockSize / NXGPUTERRAIN_PATCH_SIZE;
+    float blockSize = (float)(TERRAIN_SIZE >> param.z);
+    float patchSize = blockSize / (float)NXGPUTERRAIN_PATCH_SIZE;
 
     float3 blockOrigin = float3(param.x, 0.0f, param.y) * blockSize;
     float3 patchOrigin = blockOrigin + float3(gtid.x, 0, gtid.y) * patchSize;
@@ -54,6 +58,11 @@ void CS_Patch(
 		0.0f, 0.0f, 0.0f, 1.0f
 	);
 
+    float2 patchUV = (patchOrigin.xz + patchSize * 0.5) / (float)TERRAIN_SIZE;
+    float2 minMaxZ = m_minmaxZMap.SampleLevel(ssPointClamp, patchUV, mip);
+    float yExt = (minMaxZ.y - minMaxZ.x);
+    float yCenter = (minMaxZ.y + minMaxZ.x) * 0.5f;
+
     NXGPUTerrainPatch patch = (NXGPUTerrainPatch)0;
     patch.pos = patchOrigin;
     patch.mxWorld = matrix(
@@ -64,18 +73,18 @@ void CS_Patch(
 	);
 
     patch.mxWorld = mul(mxScale, patch.mxWorld);
-    patch.uv = (float)gtid.xy;
-    patch.pad = (float) (5 - param.z);
+    patch.uv = minMaxZ;
 
     // visibility test
     // Frustum Culling
     float4 plane[6];
-    plane[0] = NormalizePlane(m_viewProjection[0] - m_viewProjection[3]);
-    plane[1] = NormalizePlane(m_viewProjection[0] + m_viewProjection[3]);
-    plane[2] = NormalizePlane(m_viewProjection[1] - m_viewProjection[3]);
-    plane[3] = NormalizePlane(m_viewProjection[1] + m_viewProjection[3]);
-    plane[4] = NormalizePlane(m_viewProjection[2]);
-    plane[5] = NormalizePlane(m_viewProjection[2] - m_viewProjection[3]);
+    matrix vp = transpose(m_viewProjection);
+    plane[0] = NormalizePlane(vp[3] - vp[0]);
+    plane[1] = NormalizePlane(vp[3] + vp[0]);
+    plane[2] = NormalizePlane(vp[3] - vp[1]);
+    plane[3] = NormalizePlane(vp[3] + vp[1]);
+    plane[4] = NormalizePlane(vp[2]);
+    plane[5] = NormalizePlane(vp[3] - vp[2]);
 
     bool isoutside = false;
     for (int i = 0; i < 6; i++)
@@ -83,13 +92,13 @@ void CS_Patch(
         float3 n = plane[i].xyz;
         float d = plane[i].w;
 
-        float3 extent = float3(patchSize * 0.5f, 0.0f, patchSize * 0.5f);
-        float3 center = patch.pos + extent;
+        float3 extent = float3(patchSize * 0.5f, yExt * 0.5f, patchSize * 0.5f);
+        float3 center = patch.pos + float3(0.0f, yCenter, 0.0f) + extent;
 
         float s = dot(n, center) + d;
         float r = dot(abs(n), extent);
 
-        if (s - r > 0)
+        if (s + r < 0)
         {
             isoutside = true;
             break;
