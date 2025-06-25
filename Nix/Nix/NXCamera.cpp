@@ -180,6 +180,7 @@ void NXCamera::Update()
 	cbDataCamera.viewTranspose = m_mxView;
 	cbDataCamera.projection = m_mxProjection.Transpose();
 	cbDataCamera.projectionInverse = m_mxProjectionInv.Transpose();
+	cbDataCamera.viewProjection = m_mxViewProjection.Transpose();
 	g_cbCamera.Update(cbDataCamera);
 }
 

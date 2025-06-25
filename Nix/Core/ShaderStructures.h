@@ -170,4 +170,5 @@ struct ConstantBufferCamera
 	Matrix viewInverseTranspose;
 	Matrix projection;
 	Matrix projectionInverse;
+	Matrix viewProjection;
 };

@@ -46,6 +46,14 @@ cbuffer ConstantBufferCamera : register(b1)
 	matrix m_viewInverseTranspose;
 	matrix m_projection;
 	matrix m_projectionInv;
+	matrix m_viewProjection;
+}
+
+float4 NormalizePlane(float4 plane)
+{
+	// plane = (a, b, c, d)
+	float3 normal = plane.xyz;
+	return plane / length(normal);
 }
 
 #endif // !_COMMON_

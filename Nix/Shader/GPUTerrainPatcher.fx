@@ -1,3 +1,4 @@
+#include "Common.fx"
 #include "GPUTerrainCommon.fx"
 
 struct NXGPUDrawIndexArgs 
@@ -67,7 +68,37 @@ void CS_Patch(
     patch.pad = (float) (5 - param.z);
 
     // visibility test
-    InterlockedAdd(m_drawIndexArgs[0].instanceCount, 1);
+    // Frustum Culling
+    float4 plane[6];
+    plane[0] = NormalizePlane(m_viewProjection[0] - m_viewProjection[3]);
+    plane[1] = NormalizePlane(m_viewProjection[0] + m_viewProjection[3]);
+    plane[2] = NormalizePlane(m_viewProjection[1] - m_viewProjection[3]);
+    plane[3] = NormalizePlane(m_viewProjection[1] + m_viewProjection[3]);
+    plane[4] = NormalizePlane(m_viewProjection[2]);
+    plane[5] = NormalizePlane(m_viewProjection[2] - m_viewProjection[3]);
 
-    m_patchBuffer.Append(patch);
+    bool isoutside = false;
+    for (int i = 0; i < 6; i++)
+    {
+        float3 n = plane[i].xyz;
+        float d = plane[i].w;
+
+        float3 extent = float3(patchSize * 0.5f, 0.0f, patchSize * 0.5f);
+        float3 center = patch.pos + extent;
+
+        float s = dot(n, center) + d;
+        float r = dot(abs(n), extent);
+
+        if (s - r > 0)
+        {
+            isoutside = true;
+            break;
+        }
+    }
+
+    if (!isoutside)
+    {
+        InterlockedAdd(m_drawIndexArgs[0].instanceCount, 1);
+        m_patchBuffer.Append(patch);
+    }
 }

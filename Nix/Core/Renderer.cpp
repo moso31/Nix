@@ -161,12 +161,13 @@ void Renderer::GenerateRenderGraph()
 	m_pRenderGraph->AddComputePass<GPUTerrainPatcherData>("GPU Terrain Patcher", new NXGPUTerrainPatcherRenderer(),
 		[=](NXRGBuilder& builder, GPUTerrainPatcherData& data) {
 			data.pPatcherPass = (NXComputePass*)builder.GetPassNode()->GetRenderPass();
+			builder.SetRootParamLayout(1, 1, 3);
+			builder.ReadConstantBuffer(0, 1, &g_cbCamera);
 			builder.Read(pTerrainLayer0_MinMaxZMap, 0);
 			builder.WriteUAV(pTerrainBufferFinal, 0, true);
 			builder.WriteUAV(pTerrainPatcher, 1, true);
 			builder.WriteUAV(pTerrainDrawIndexArgs, 2, true);
 			builder.SetIndirectArgs(pTerrainIndiArgs);
-			builder.SetRootParamLayout(0, 1, 3);
 			builder.SetEntryNameCS(L"CS_Patch");
 		},
 		[=](ID3D12GraphicsCommandList* pCmdList, GPUTerrainPatcherData& data) {
