@@ -47,7 +47,7 @@ private:
 	uint32_t m_terrainWidth = 2048u;
 	uint32_t m_terrainHeight = 2048u;
 	uint32_t m_minZ = 0;
-	uint32_t m_maxZ = 2000;
+	uint32_t m_maxZ = 2048;
 
 	std::filesystem::path m_path;
 	std::filesystem::path m_heightMapPath;
