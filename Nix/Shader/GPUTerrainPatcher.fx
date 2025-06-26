@@ -60,7 +60,7 @@ void CS_Patch(
 
     float2 patchUV = (patchOrigin.xz + patchSize * 0.5) / (float)TERRAIN_SIZE;
     float2 minMaxZ = m_minmaxZMap.SampleLevel(ssPointClamp, patchUV, mip);
-    float yExt = (minMaxZ.y - minMaxZ.x);
+    float yExtent = (minMaxZ.y - minMaxZ.x);
     float yCenter = (minMaxZ.y + minMaxZ.x) * 0.5f;
 
     NXGPUTerrainPatch patch = (NXGPUTerrainPatch)0;
@@ -75,8 +75,7 @@ void CS_Patch(
     patch.mxWorld = mul(mxScale, patch.mxWorld);
     patch.uv = minMaxZ;
 
-    // visibility test
-    // Frustum Culling
+    // visibility test: Frustum Culling
     float4 plane[6];
     matrix vp = transpose(m_viewProjection);
     plane[0] = NormalizePlane(vp[3] - vp[0]);
@@ -86,14 +85,16 @@ void CS_Patch(
     plane[4] = NormalizePlane(vp[2]);
     plane[5] = NormalizePlane(vp[3] - vp[2]);
 
+    //for (int i = 0; i < 6; ++i) plane[i].w -= 15.0f; // debug
+
+    float3 extent = float3(patchSize * 0.5f, yExtent * 0.5f, patchSize * 0.5f);
+    float3 center = patch.pos + float3(0.0f, minMaxZ.x, 0.0f) + extent;
+
     bool isoutside = false;
     for (int i = 0; i < 6; i++)
     {
         float3 n = plane[i].xyz;
         float d = plane[i].w;
-
-        float3 extent = float3(patchSize * 0.5f, yExt * 0.5f, patchSize * 0.5f);
-        float3 center = patch.pos + float3(0.0f, yCenter, 0.0f) + extent;
 
         float s = dot(n, center) + d;
         float r = dot(abs(n), extent);

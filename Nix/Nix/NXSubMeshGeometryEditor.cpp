@@ -526,7 +526,7 @@ void NXSubMeshGeometryEditor::CreateTerrain(NXTerrain* pTerrain, int gridSize, i
 	{
 		for (int y = 0; y <= gSectorSize; y++)
 		{
-			float debugFactor = 0.99f;
+			float debugFactor = 1.0f;
 			float vertScale = (float)(gridSize * factor) / (float)worldSize * debugFactor;
 			Vector3 p(vertScale * (float)x, 0, vertScale * (float)y);
 			Vector3 n(0, 1, 0);

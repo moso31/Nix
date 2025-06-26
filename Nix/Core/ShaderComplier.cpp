@@ -158,8 +158,8 @@ HRESULT NXShaderComplier::CompileInternal(const DxcBuffer& sourceBuffer, const s
 	args.push_back(L"./Shader/");
 
 #ifdef DEBUG
-	// Debug mode
-	args.push_back(L"-Qembed_debug");
+	args.push_back(L"-Od");            // 关闭所有优化
+	args.push_back(L"-Qembed_debug");  // 嵌入 PDB
 	args.push_back(L"-Qsource_in_debug_module");
 #endif
 
