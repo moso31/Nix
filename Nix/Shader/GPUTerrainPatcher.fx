@@ -59,7 +59,7 @@ void CS_Patch(
 	);
 
     float2 patchUV = (patchOrigin.xz + patchSize * 0.5) / (float)TERRAIN_SIZE;
-    float2 minMaxZ = m_minmaxZMap.SampleLevel(ssPointClamp, patchUV, mip);
+    float2 minMaxZ = m_minmaxZMap.SampleLevel(ssPointClamp, float2(patchUV.x, 1.0 - patchUV.y), mip);
     float yExtent = (minMaxZ.y - minMaxZ.x);
     float yCenter = (minMaxZ.y + minMaxZ.x) * 0.5f;
 

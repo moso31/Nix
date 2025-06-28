@@ -799,8 +799,19 @@ Ntr<NXTexture2D> NXTexture2D::CreateHeightRaw(const std::string& debugName, cons
 	pImage->Initialize2D(fmt, width, height, 1, 1);
 
 	const Image& image = *pImage->GetImage(0, 0, 0);
-	uint16_t* p = reinterpret_cast<uint16_t*>(image.pixels);
-	memcpy(p, rawData.data(), width * height * bytePerPixel);
+	uint8_t* p = image.pixels;
+
+	bool yFlip = false;
+	if (yFlip)
+	{
+		for (int y = 0; y < height; ++y)
+		{
+			uint8_t* srcRow = (uint8_t*)rawData.data() + (height - 1 - y) * width * bytePerPixel;
+			uint8_t* dstRow = p + y * image.rowPitch;
+			memcpy(dstRow, srcRow, width * bytePerPixel);
+		}
+	}
+	else memcpy(p, rawData.data(), width * height * bytePerPixel);
 
 	m_name = debugName;
 	m_width = width;

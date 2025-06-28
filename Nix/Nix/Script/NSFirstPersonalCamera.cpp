@@ -17,7 +17,7 @@
 #define SPEED_HIGH 1
 
 NSFirstPersonalCamera::NSFirstPersonalCamera() :
-	m_fMoveSpeed(3.0f),
+	m_fMoveSpeed(30.0f),
 	m_fSensitivity(5.0f),
 	m_bSpeedState(SPEED_MID),
 	m_bMoveAble(false),

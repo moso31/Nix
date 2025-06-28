@@ -10,7 +10,7 @@ NXCamera::NXCamera(const std::string& name) :
 	m_at(0.0f, 0.0f, 0.0f),
 	m_up(0.0f, 1.0f, 0.0f),
 	m_near(0.1f),
-	m_far(1000.0f),
+	m_far(10000.0f),
 	m_aspectRatio(1.0f),
 	m_rtSize(0.0f, 0.0f)
 {

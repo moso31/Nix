@@ -259,7 +259,7 @@ void NXScene::Init()
 
 	auto pCamera = NXResourceManager::GetInstance()->GetCameraManager()->CreateCamera(
 		"Main Camera",
-		70.0f, 0.3f, 1000.f,
+		70.0f, 0.3f, 10000.f,
 		Vector3(0.0f, 0.0f, -10.0f),
 		Vector3(0.0f, 0.0f, 0.0f),
 		Vector3(0.0f, 1.0f, 0.0f),
