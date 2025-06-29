@@ -71,6 +71,9 @@ void NXGBufferRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 				{
 					pSubMesh->GetRenderableObject()->Update(pCmdList); // 永远优先调用派生类的Update 
 					pSubMesh->Render(pCmdList);
+
+					if (pSubMesh->IsSubMeshTerrain())
+						break;
 				}
 			}
 		}

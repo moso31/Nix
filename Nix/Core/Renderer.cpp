@@ -126,9 +126,10 @@ void Renderer::GenerateRenderGraph()
 				if (i == 0)
 				{
 					std::vector<NXGPUTerrainBlockData> initData;
-					for (int x = -1; x <= 1; x++)
+					int step = 4;
+					for (int x = -step; x < step; x++)
 					{
-						for (int y = -1; y <= 1; y++)
+						for (int y = -step; y < step; y++)
 						{
 							initData.push_back({ x, y });
 						}
@@ -167,7 +168,7 @@ void Renderer::GenerateRenderGraph()
 	m_pRenderGraph->AddComputePass<GPUTerrainPatcherData>("GPU Terrain Patcher", new NXGPUTerrainPatcherRenderer(),
 		[=](NXRGBuilder& builder, GPUTerrainPatcherData& data) {
 			data.pPatcherPass = (NXComputePass*)builder.GetPassNode()->GetRenderPass();
-			builder.SetRootParamLayout(1, 1, 3);
+			builder.SetRootParamLayout(1, 1, 4);
 			builder.ReadConstantBuffer(0, 1, &g_cbCamera);
 			builder.Read(pTerrainLayer0_MinMaxZMap, 0);
 			builder.WriteUAV(pTerrainBufferFinal, 0, true);

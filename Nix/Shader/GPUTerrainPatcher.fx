@@ -27,7 +27,7 @@ RWByteAddressBuffer m_patchBufferUAVCounter : register(u3); // uav counter of m_
 void CS_Clear(uint3 dtid : SV_DispatchThreadID)
 {
     m_drawIndexArgs[0] = (NXGPUDrawIndexArgs)0;
-    m_drawIndexArgs[0].indexCountPerInstance = 24576;
+    m_drawIndexArgs[0].indexCountPerInstance = 384;
     //m_drawIndexArgs[0].instanceCount = 0;
     m_patchBufferUAVCounter.Store(0, 0);
 }
@@ -74,7 +74,7 @@ void CS_Patch(
 
     patch.mxWorld = mul(mxScale, patch.mxWorld);
     patch.uv = minMaxZ;
-    patch.terrainOrigin = floor(blockOrigin / (float)TERRAIN_SIZE) * (float)TERRAIN_SIZE;
+    patch.terrainOrigin = floor(blockOrigin.xz / (float)TERRAIN_SIZE) * (float)TERRAIN_SIZE;
 
     // visibility test: Frustum Culling
     float4 plane[6];
@@ -92,24 +92,24 @@ void CS_Patch(
     float3 center = patch.pos + float3(0.0f, minMaxZ.x, 0.0f) + extent;
 
     bool isoutside = false;
-    for (int i = 0; i < 6; i++)
-    {
-        float3 n = plane[i].xyz;
-        float d = plane[i].w;
+    //for (int i = 0; i < 6; i++)
+    //{
+    //    float3 n = plane[i].xyz;
+    //    float d = plane[i].w;
 
-        float s = dot(n, center) + d;
-        float r = dot(abs(n), extent);
+    //    float s = dot(n, center) + d;
+    //    float r = dot(abs(n), extent);
 
-        if (s + r < 0)
-        {
-            isoutside = true;
-            break;
-        }
-    }
+    //    if (s + r < 0)
+    //    {
+    //        isoutside = true;
+    //        break;
+    //    }
+    //}
 
     if (!isoutside)
     {
-        InterlockedAdd(m_drawIndexArgs[0].instanceCount, 1);
         m_patchBuffer.Append(patch);
+        InterlockedAdd(m_drawIndexArgs[0].instanceCount, 1);
     }
 }

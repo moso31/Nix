@@ -235,10 +235,11 @@ void NXScene::Init()
 	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\shadowMapTest.fbx", false);
 	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\EditorObjTest.fbx", false);
 	//NXPrefab* p2 = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\lury.fbx", false);
-	
-	for (int x = -1; x <= 1; x++)
+
+	int step = 4;
+	for (int x = -step; x < step; x++)
 	{
-		for (int y = -1; y <= 1; y++)
+		for (int y = -step; y < step; y++)
 		{
 			// 这里有点毒...地形层做了序列化；但地形本身没有序列化。
 			NXTerrain* pTerr = NXResourceManager::GetInstance()->GetMeshManager()->CreateTerrain("myTerrain", 2048, 2048);

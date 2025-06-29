@@ -41,7 +41,7 @@ public:
 	virtual bool IsSubMeshTerrain()			{ return false; }
 	virtual bool IsSubMeshEditorObject()	{ return false; }
 
-	void MarkReplacing(const std::filesystem::path& replaceMaterialPath);
+	void MarkReplacing(const std::filesystem::path& replaceMaterialPath);	
 	void SwitchToLoadingMaterial();
 	void SwitchToReplacingMaterial();
 	void OnReplaceFinish();

@@ -42,7 +42,4 @@ protected:
 
 	ConstantBufferObject m_cbDataObject;
 	NXConstantBuffer<ConstantBufferObject>	m_cbObject;
-
-private:
-	bool m_bGenerated = false;
 };

@@ -43,12 +43,9 @@ void NXTerrain::InitAABB()
 
 void NXTerrain::Update(ID3D12GraphicsCommandList* pCmdList)
 {
-	if (!m_bGenerated)
-		std::runtime_error("NXTerrain has not been Generated(). Terrain should be call this method once always.");
-
 	auto* pCamera = NXResourceManager::GetInstance()->GetCameraManager()->GetCamera("Main Camera");
 	auto& mxView = pCamera->GetViewMatrix();
-	auto& mxWorld = m_worldMatrix;
+	auto& mxWorld = Matrix::Identity();
 	auto& mxWorldView = mxWorld * mxView;
 
 	m_cbDataObject.world = mxWorld.Transpose();
