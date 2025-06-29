@@ -13,7 +13,7 @@ struct NXGPUDrawIndexArgs
 Texture2D m_minmaxZMap : register(t0);
 SamplerState ssPointClamp : register(s0);
 
-RWStructuredBuffer<uint3> m_terrainBuffer : register(u0);
+RWStructuredBuffer<int3> m_terrainBuffer : register(u0);
 AppendStructuredBuffer<NXGPUTerrainPatch> m_patchBuffer : register(u1);
 RWStructuredBuffer<NXGPUDrawIndexArgs> m_drawIndexArgs : register(u2);
 RWByteAddressBuffer m_patchBufferUAVCounter : register(u3); // uav counter of m_patchBuffer!
@@ -40,7 +40,7 @@ void CS_Patch(
 )
 {
     // z : lod等级；xy : 此lod等级下 xy偏移量
-    uint3 param = m_terrainBuffer[groupIndex];
+    int3 param = m_terrainBuffer[groupIndex];
     uint mip = 5u - param.z;
     float scale = (float)(1u << mip) * 1.0f / (float)(NXGPUTERRAIN_PATCH_SIZE);
 
@@ -58,7 +58,7 @@ void CS_Patch(
 		0.0f, 0.0f, 0.0f, 1.0f
 	);
 
-    float2 patchUV = (patchOrigin.xz + patchSize * 0.5) / (float)TERRAIN_SIZE;
+    float2 patchUV = frac((patchOrigin.xz + patchSize * 0.5) / (float)TERRAIN_SIZE);
     float2 minMaxZ = m_minmaxZMap.SampleLevel(ssPointClamp, float2(patchUV.x, 1.0 - patchUV.y), mip);
     float yExtent = (minMaxZ.y - minMaxZ.x);
     float yCenter = (minMaxZ.y + minMaxZ.x) * 0.5f;
@@ -74,6 +74,7 @@ void CS_Patch(
 
     patch.mxWorld = mul(mxScale, patch.mxWorld);
     patch.uv = minMaxZ;
+    patch.terrainOrigin = floor(blockOrigin / (float)TERRAIN_SIZE) * (float)TERRAIN_SIZE;
 
     // visibility test: Frustum Culling
     float4 plane[6];

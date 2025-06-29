@@ -1,6 +1,6 @@
-ConsumeStructuredBuffer<uint2> m_inBuffer : register(u0);
-AppendStructuredBuffer<uint2> m_outBuffer : register(u1);
-AppendStructuredBuffer<uint3> m_final : register(u2);
+ConsumeStructuredBuffer<int2> m_inBuffer : register(u0);
+AppendStructuredBuffer<int2> m_outBuffer : register(u1);
+AppendStructuredBuffer<int3> m_final : register(u2);
 
 cbuffer cbTerrainParam : register(b0)
 {
@@ -16,7 +16,7 @@ void CS_Pass(uint3 dispatchThreadID : SV_DispatchThreadID)
     uint2 dtid = dispatchThreadID.xy;
     
     // 拿一个父级Lod
-    uint2 c = m_inBuffer.Consume();
+    int2 c = m_inBuffer.Consume();
 
     // 计算四个子块到当前lod的距离
     float3 childCenterPos0 = float3(c.x, 0, c.y) * m_scale + float3(m_scale * 0.25, 0, m_scale * 0.25);

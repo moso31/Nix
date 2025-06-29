@@ -16,7 +16,7 @@ void NXGPUTerrainManager::Init()
 	m_pTerrainBufferB->Create(sizeof(NXGPUTerrainBlockData), m_pTerrainBufferMaxSize);
 
 	m_pTerrainFinalBuffer = new NXBuffer("GPU Terrain Final Buffer");
-	m_pTerrainFinalBuffer->Create(sizeof(uint32_t) * 3, m_pTerrainBufferMaxSize);
+	m_pTerrainFinalBuffer->Create(sizeof(int) * 3, m_pTerrainBufferMaxSize);
 
 	m_pTerrainIndirectArgs = new NXBuffer("GPU Terrain Indirect Args Buffer");
 	m_pTerrainIndirectArgs->Create(sizeof(int) * 3, 1);
@@ -30,12 +30,6 @@ void NXGPUTerrainManager::Init()
 	m_pTerrainDrawIndexArgs->Create(sizeof(int) * 5, 1);
 	int a2[5] = { 0,0,0,0,0 };
 	m_pTerrainDrawIndexArgs->SetAll(a2, 1);
-
-	// 初始化参数，目前初始化阶段只需要传入这一个地形
-	NXGPUTerrainBlockData initData;
-	initData = { 0, 0 };
-	m_pTerrainBufferA->SetAll(&initData, 1);
-	m_pTerrainBufferB->SetAll(nullptr, 0);
 
 	// 创建一个GPU-Driven地形专用的CommandSignatureDesc
 	m_drawIndexArgDesc[0] = {};

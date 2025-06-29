@@ -17,6 +17,7 @@ struct NXGPUTerrainPatcherParams
 	Vector3 m_pos;
 	float m_pad;
 	Vector2 m_uv;
+	Vector2 m_terrainOrigin;
 };
 
 // 2025.6.4

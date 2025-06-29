@@ -125,10 +125,16 @@ void Renderer::GenerateRenderGraph()
 			[=](ID3D12GraphicsCommandList* pCmdList, FillTestData& data) {
 				if (i == 0)
 				{
-					NXGPUTerrainBlockData initData;
-					initData = { 0, 0 };
+					std::vector<NXGPUTerrainBlockData> initData;
+					for (int x = -1; x <= 1; x++)
+					{
+						for (int y = -1; y <= 1; y++)
+						{
+							initData.push_back({ x, y });
+						}
+					}
 
-					pInputBuf->GetBuffer()->SetCurrent(&initData, 1);
+					pInputBuf->GetBuffer()->SetCurrent(initData.data(), initData.size());
 					pTerrainBufferFinal->GetBuffer()->SetCurrent(nullptr, 0);
 				}
 

@@ -4,4 +4,5 @@ struct NXGPUTerrainPatch
     float3 pos;
     float pad;
     float2 uv;
+    float2 terrainOrigin;
 };
