@@ -9,9 +9,11 @@
 #include "NXRenderableObject.h"
 #include "NXAllocatorManager.h"
 #include "NXGUICommandManager.h"
+#include "NXGUITerrainSystem.h"
 
-NXGUIMaterial::NXGUIMaterial(NXScene* pScene) :
+NXGUIMaterial::NXGUIMaterial(NXScene* pScene, NXGUITerrainSystem* pTerrainSystem) :
 	m_pCurrentScene(pScene),
+	m_pTerrainSystem(pTerrainSystem),
 	m_bIsDirty(false)
 {
 }
@@ -244,6 +246,11 @@ void NXGUIMaterial::RenderGUI_Unique_Terrain(NXTerrain* pTerrain)
 	if (ImGui::Button("Bake GPU-Driven data##terrainlayer_bake"))
 	{
 		pTerrainLayer->BakeGPUDrivenData(true);
+	}
+
+	if (ImGui::Button("Open Terrain System..."))
+	{
+		m_pTerrainSystem->Show();
 	}
 
 	ImGui::Separator();

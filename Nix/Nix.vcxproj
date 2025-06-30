@@ -231,6 +231,7 @@
     <ClCompile Include="Core\NXGUIDiffuseProfile.cpp" />
     <ClCompile Include="Core\NXGUIInspector.cpp" />
     <ClCompile Include="Core\NXGUIRenderGraph.cpp" />
+    <ClCompile Include="Core\NXGUITerrainSystem.cpp" />
     <ClCompile Include="Core\NXNullDescriptor.cpp" />
     <ClCompile Include="Core\NXPSOManager.cpp" />
     <ClCompile Include="Core\NXGraphicPass.cpp" />
@@ -353,6 +354,7 @@
     <ClInclude Include="Core\NXGUIDiffuseProfile.h" />
     <ClInclude Include="Core\NXGUIInspector.h" />
     <ClInclude Include="Core\NXGUIRenderGraph.h" />
+    <ClInclude Include="Core\NXGUITerrainSystem.h" />
     <ClInclude Include="Core\NXNullDescriptor.h" />
     <ClInclude Include="Core\NXPSOManager.h" />
     <ClInclude Include="Core\NXGraphicPass.h" />

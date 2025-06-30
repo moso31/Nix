@@ -8,9 +8,21 @@ NXTerrainLayer::NXTerrainLayer(const std::string& name) :
 {
 }
 
-void NXTerrainLayer::SetPath(const std::filesystem::path& path)
+void NXTerrainLayer::SetPath(const std::filesystem::path& path, bool bForceCreate)
 {
 	m_path = path;
+
+	if (!std::filesystem::exists(path) && bForceCreate)
+	{
+		// create directory 
+		std::filesystem::path dir = path.parent_path();
+		std::filesystem::create_directories(dir);
+
+		// create ntl file
+		std::ofstream ofs(path);
+		return; 
+	}
+
 	Deserialize();
 }
 

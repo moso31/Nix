@@ -149,8 +149,8 @@ void Renderer::GenerateRenderGraph()
 		NXComputePass* pPatcherPass;
 	};
 
-	auto pTerrainLayer0 = m_scene->GetTerrains()[0]->GetTerrainLayer();
-	auto pTerrainLayer0_MinMaxZMap = m_pRenderGraph->ImportTexture(pTerrainLayer0->GetMinMaxZMapTexture());
+	//auto pTerrainLayer0 = m_scene->GetTerrains()[0]->GetTerrainLayer();
+	//auto pTerrainLayer0_MinMaxZMap = m_pRenderGraph->ImportTexture(pTerrainLayer0->GetMinMaxZMapTexture());
 
 	m_pRenderGraph->AddComputePass<GPUTerrainPatcherData>("GPU Terrain Patcher Clear", new NXGPUTerrainPatcherRenderer(),
 		[=](NXRGBuilder& builder, GPUTerrainPatcherData& data) {
@@ -170,7 +170,7 @@ void Renderer::GenerateRenderGraph()
 			data.pPatcherPass = (NXComputePass*)builder.GetPassNode()->GetRenderPass();
 			builder.SetRootParamLayout(1, 1, 4);
 			builder.ReadConstantBuffer(0, 1, &g_cbCamera);
-			builder.Read(pTerrainLayer0_MinMaxZMap, 0);
+			//builder.Read(pTerrainLayer0_MinMaxZMap, 0);
 			builder.WriteUAV(pTerrainBufferFinal, 0, true);
 			builder.WriteUAV(pTerrainPatcher, 1, true);
 			builder.WriteUAV(pTerrainDrawIndexArgs, 2, true);

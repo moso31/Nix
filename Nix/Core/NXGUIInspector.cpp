@@ -7,17 +7,19 @@
 #include "NXGUIMaterialShaderEditor.h"
 #include "NXGUIDiffuseProfile.h"
 #include "NXScene.h"
+#include "NXGUITerrainSystem.h"
 
 NXGUIInspector::NXGUIInspector()
 {
 }
 
-void NXGUIInspector::InitGUI(NXScene* pScene, NXGUIMaterialShaderEditor* pMaterialShaderEditor)
+void NXGUIInspector::InitGUI(NXScene* pScene, NXGUIMaterialShaderEditor* pMaterialShaderEditor, NXGUITerrainSystem* pTerrainSystem)
 {
 	m_pGUITexture = new NXGUITexture();
-	m_pGUIMaterial = new NXGUIMaterial(pScene);
+	m_pGUIMaterial = new NXGUIMaterial(pScene, pTerrainSystem);
 	m_pGUIDiffuseProfile = new NXGUIDiffuseProfile();
 	m_pGUIMaterialShaderEditor = pMaterialShaderEditor;
+	m_pGUITerrainSystem = pTerrainSystem;
 }
 
 void NXGUIInspector::DoCommand(const NXGUICommand& cmd)

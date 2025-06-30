@@ -32,7 +32,7 @@ public:
 	// 创建地形
 	// gridSize: 地形网格大小分辨率（不需要控制lod，每个terrain自带四叉树）
 	// worldSize: 实际尺寸大小
-	NXTerrain* CreateTerrain(const std::string& name, int gridSize, int worldSize);
+	NXTerrain* CreateTerrain(const std::string& name, int gridSize, int worldSize, int terrainNodeX, int terrainNodeY);
 	NXTerrainLayer* CreateTerrainLayer();
 
 	void BindMaterial(NXRenderableObject* pRenderableObj, NXMaterial* pMaterial);

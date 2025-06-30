@@ -6,9 +6,11 @@
 #include "NXAllocatorManager.h"
 #include "NXGPUTerrainManager.h"
 
-NXTerrain::NXTerrain(int gridSize, int worldSize, int terrainId) :
+NXTerrain::NXTerrain(int gridSize, int worldSize, int terrainNodeX, int terrainNodeY, int terrainId) :
 	m_gridSize(gridSize),
 	m_worldSize(worldSize),
+	m_terrainNodeX(terrainNodeX),
+	m_terrainNodeY(terrainNodeY),
 	m_terrainId(terrainId)
 {
 }

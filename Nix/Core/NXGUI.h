@@ -10,6 +10,7 @@ class Renderer;
 class NXTexture2D;
 
 class NXGUIFileBrowser;
+class NXGUITerrainSystem;
 class NXGUIContentExplorer;
 class NXGUIMaterialShaderEditor;
 class NXGUISSAO;
@@ -43,6 +44,7 @@ private:
 	NXScene*	m_pCurrentScene;
 	Renderer*	m_pRenderer;
 
+	NXGUITerrainSystem* 		m_pGUITerrainSystem;
 	NXGUIContentExplorer*		m_pGUIContentExplorer;
 	NXGUILights*				m_pGUILights;
 	NXGUICamera*				m_pGUICamera;

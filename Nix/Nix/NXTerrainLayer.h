@@ -17,7 +17,7 @@ public:
 	~NXTerrainLayer() {}
 
 	const std::filesystem::path& GetPath() const { return m_path; }
-	void SetPath(const std::filesystem::path& path);
+	void SetPath(const std::filesystem::path& path, bool bForceCreate = false);
 
 	uint32_t GetTerrainWidth() const { return m_terrainWidth; }
 	uint32_t GetTerrainHeight() const { return m_terrainHeight; }

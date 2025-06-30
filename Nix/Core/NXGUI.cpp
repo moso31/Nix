@@ -19,6 +19,7 @@
 #include "NXGUIDebugLayer.h"
 #include "NXGUIPostProcessing.h"
 #include "NXGUIContentExplorer.h"
+#include "NXGUITerrainSystem.h"
 #include "NXGUITexture.h"
 #include "NXGUIView.h"
 #include "NXGUIRenderGraph.h"
@@ -38,6 +39,7 @@ NXGUI::NXGUI(NXScene* pScene, Renderer* pRenderer) :
 	m_pGUIPostProcessing(nullptr),
 	m_pGUIDebugLayer(nullptr),
 	m_pGUIContentExplorer(nullptr),
+	m_pGUITerrainSystem(nullptr),
 	m_pGUIRenderGraph(nullptr),
 	m_pGUIView(nullptr),
 	m_pGUIWorkspace(nullptr)
@@ -84,9 +86,10 @@ void NXGUI::Init()
 
 	m_pGUIMaterialShaderEditor = new NXGUIMaterialShaderEditor();
 	m_pGUIContentExplorer = new NXGUIContentExplorer(m_pCurrentScene);
+	m_pGUITerrainSystem = new NXGUITerrainSystem(m_pCurrentScene);
 
 	m_pGUIInspector = new NXGUIInspector();
-	m_pGUIInspector->InitGUI(m_pCurrentScene, m_pGUIMaterialShaderEditor);
+	m_pGUIInspector->InitGUI(m_pCurrentScene, m_pGUIMaterialShaderEditor, m_pGUITerrainSystem);
 
 	m_pGUICamera = new NXGUICamera(m_pCurrentScene);
 	m_pGUILights = new NXGUILights(m_pCurrentScene);
@@ -129,6 +132,7 @@ void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT, const NXSwapChainBuffer& swapCha
 	m_pGUIWorkspace->Render();
 
 	m_pGUIMaterialShaderEditor->Render();
+	m_pGUITerrainSystem->Render();
 	m_pGUIContentExplorer->Render();
 	m_pGUIInspector->Render();
 	m_pGUICubeMap->Render();
@@ -218,6 +222,7 @@ void NXGUI::Release()
 	SafeDelete(m_pGUIPostProcessing);
 	SafeDelete(m_pGUIDebugLayer);
 	SafeDelete(m_pGUIContentExplorer);
+	SafeDelete(m_pGUITerrainSystem);
 	SafeDelete(m_pGUIRenderGraph);
 
 	ImGui_ImplDX12_Shutdown();
