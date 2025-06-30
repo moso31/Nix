@@ -6,7 +6,6 @@
 #include "NXSubMesh.h"
 #include "NXResourceManager.h"
 #include "NXAllocatorManager.h"
-#include "NXGPUTerrainManager.h"
 
 #include "ShaderComplier.h"
 #include "NXGlobalDefinitions.h"
@@ -174,17 +173,23 @@ void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::s
 		for (int i = 0; i < txArr.size(); i++)
 			ranges.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, i));
 
-		if (m_bEnableTerrainGPUInstancing)
-		{
-			ranges.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 1)); // t0, space1 = GPU Terrain Patch Buffer;
-		}
-
 		std::vector<D3D12_ROOT_PARAMETER> rootParams = {
 			NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL), // b0, space0
 			NX12Util::CreateRootParameterCBV(1, 0, D3D12_SHADER_VISIBILITY_ALL), // b1
 			NX12Util::CreateRootParameterCBV(0, 1, D3D12_SHADER_VISIBILITY_ALL), // b0, space1 用户自定义参数总是放在space1
 			NX12Util::CreateRootParameterTable(ranges, D3D12_SHADER_VISIBILITY_ALL), // t..., space0
 		};
+
+		std::vector<D3D12_DESCRIPTOR_RANGE> ranges2;
+		if (m_bEnableTerrainGPUInstancing)
+		{
+			ranges2.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 1)); // t0, space1 = GPU Terrain Patch Buffer;
+			ranges2.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1, 1)); // t1, space1 = Height Map;
+
+			rootParams.push_back(
+				NX12Util::CreateRootParameterTable(ranges2, D3D12_SHADER_VISIBILITY_ALL) // t..., space1
+			); 
+		}
 
 		std::vector<D3D12_STATIC_SAMPLER_DESC> staticSamplers;
 		staticSamplers.reserve(ssArr.size());
@@ -332,15 +337,6 @@ void NXCustomMaterial::Render(ID3D12GraphicsCommandList* pCommandList)
 		auto& pTex = texData->pTexture;
 		if (pTex.IsValid())
 			NXShVisDescHeap->PushFluid(pTex->GetSRV());
-	}
-
-	if (m_bEnableTerrainGPUInstancing)
-	{
-		auto pTerrainPatchBuffer = NXGPUTerrainManager::GetInstance()->GetTerrainPatcherBuffer();
-		if (pTerrainPatchBuffer.IsValid())
-		{
-			NXShVisDescHeap->PushFluid(pTerrainPatchBuffer->GetSRV());
-		}
 	}
 
 	auto& srvHandle = NXShVisDescHeap->Submit();

@@ -1,9 +1,10 @@
 #include "NXTerrain.h"
 #include "NXGlobalDefinitions.h"
 #include "NXScene.h"
-#include "NXAllocatorManager.h"
 #include "NXCamera.h"
 #include "NXTimer.h"
+#include "NXAllocatorManager.h"
+#include "NXGPUTerrainManager.h"
 
 NXTerrain::NXTerrain(int gridSize, int worldSize, int terrainId) :
 	m_gridSize(gridSize),
@@ -57,4 +58,13 @@ void NXTerrain::Update(ID3D12GraphicsCommandList* pCmdList)
 	m_cbObject.Update(m_cbDataObject);
 
 	pCmdList->SetGraphicsRootConstantBufferView(0, m_cbObject.CurrentGPUAddress());
+
+	auto pTerrainPatchBuffer = NXGPUTerrainManager::GetInstance()->GetTerrainPatcherBuffer();
+	NXShVisDescHeap->PushFluid(pTerrainPatchBuffer.IsValid() ? pTerrainPatchBuffer->GetSRV() : NXAllocator_NULL->GetNullSRV());
+
+	auto pHeightMapTex = m_pTerrainLayer->GetHeightMapTexture();
+	NXShVisDescHeap->PushFluid(pHeightMapTex.IsValid() ? pHeightMapTex->GetSRV() : NXAllocator_NULL->GetNullSRV());
+
+	auto& srvHandle = NXShVisDescHeap->Submit();
+	pCmdList->SetGraphicsRootDescriptorTable(4, srvHandle); // t...
 }
