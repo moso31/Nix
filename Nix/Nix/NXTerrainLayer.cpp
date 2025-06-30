@@ -30,7 +30,6 @@ void NXTerrainLayer::SetHeightMapPath(const std::filesystem::path& heightMapPath
 {
 	m_heightMapPath = heightMapPath;
 	m_heightMapTexture = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("", heightMapPath);
-	GenerateMinMaxZMap();
 }
 
 void NXTerrainLayer::Serialize()
@@ -118,6 +117,11 @@ void NXTerrainLayer::GenerateMinMaxZMap()
 
 	if (!file)
 		throw std::runtime_error("读取数据失败: " + rawPath.string());
+
+	if (width == height && width != 2049)
+	{
+		return;
+	}
 
 	int step = 8;
 	uint32_t dataZMipWidth = width / step; // 如果高度图是2049，这里/8会自动抹除余数

@@ -1,7 +1,7 @@
 #pragma once
 
 class NXScene;
-class NXPBRLight;
+class NXTerrain;
 class NXGUITerrainSystem
 {
 public:
@@ -16,7 +16,11 @@ private:
 	void Render_Map();
 	void Render_Tools();
 
+	void GenerateFile_Tex2DArray_HeightMap();
+
 private:
 	NXScene* m_pCurrentScene;
+	NXTerrain* m_pPickingTerrain;
 	bool m_bShowWindow;
+	bool m_bPickTerrainSelectionChanged;
 };

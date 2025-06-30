@@ -66,14 +66,13 @@ void NXGBufferRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 		{
 			if (pSubMesh)
 			{
+				if (pSubMesh->IsSubMeshTerrain()) break; // 地形不在这里处理
+
 				bool bIsVisible = pSubMesh->GetRenderableObject()->GetVisible();
 				if (bIsVisible)
 				{
 					pSubMesh->GetRenderableObject()->Update(pCmdList); // 永远优先调用派生类的Update 
 					pSubMesh->Render(pCmdList);
-
-					if (pSubMesh->IsSubMeshTerrain())
-						break;
 				}
 			}
 		}

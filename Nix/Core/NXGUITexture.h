@@ -35,6 +35,7 @@ private:
 	std::filesystem::path m_path;
 	Ntr<NXTexture> m_pTexImage;
 	NXTextureSerializationData m_texData;
+	int m_guiImgRawWH[2] = { 1, 1 };
 
 	// 如果是cube或者2DArray，允许预览单个slice
 	int m_preview2DArraySliceIndex;

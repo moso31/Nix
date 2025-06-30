@@ -906,9 +906,6 @@
     <ClInclude Include="Core\NXSubSurfaceRenderer.h">
       <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
     </ClInclude>
-    <ClInclude Include="NXTerrainConfig.h">
-      <Filter>Core\Config</Filter>
-    </ClInclude>
     <ClInclude Include="Core\NXGUIRenderGraph.h">
       <Filter>Core\UI</Filter>
     </ClInclude>
@@ -971,6 +968,9 @@
     </ClInclude>
     <ClInclude Include="Core\NXGUITerrainSystem.h">
       <Filter>Core\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="NXTerrainCommon.h">
+      <Filter>Nix\Object\Transform\Primitive\Terrain</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

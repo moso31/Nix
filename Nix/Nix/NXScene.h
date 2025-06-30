@@ -2,12 +2,14 @@
 #include "BaseDefs/Math.h"
 #include "BaseDefs/DX12.h"
 #include "BaseDefs/NixCore.h"
+#include "BaseDefs/CppSTLFully.h"
 
 #include "NXEvent.h"
 #include "NXObject.h"
 #include "HBVH.h"
 #include "ShaderStructures.h"
 #include "NXConstantBuffer.h"
+#include "NXTerrainCommon.h"
 
 class NXCamera;
 class NXPBRLight;
@@ -64,8 +66,10 @@ public:
 	NXCamera* GetMainCamera() { return m_pMainCamera; }
 	std::vector<NXRenderableObject*> GetRenderableObjects() { return m_renderableObjects; }
 	std::vector<NXPBRLight*> GetPBRLights() { return m_pbrLights; }
-	std::vector<NXTerrain*> GetTerrains() { return m_terrains; }
 	NXCubeMap* GetCubeMap() { return m_pCubeMap; }
+	
+	const std::unordered_map<NXTerrainNodeId, NXTerrain*>& GetTerrains() { return m_terrains; }
+	NXTerrain* GetTerrain(short nodeIdX, short nodeIdY);
 
 	NXEditorObjectManager* GetEditorObjManager() { return m_pEditorObjManager; }
 
@@ -108,7 +112,7 @@ private:
 	std::vector<NXScriptable*> m_scriptableObjects;
 	std::vector<NXRenderableObject*> m_renderableObjects;
 	std::vector<NXPBRLight*> m_pbrLights;
-	std::vector<NXTerrain*> m_terrains;
+	std::unordered_map<NXTerrainNodeId, NXTerrain*> m_terrains;
 
 	// 当前选中的SubMesh和对应的Objects
 	std::vector<NXSubMeshBase*> m_pSelectedSubMeshes;

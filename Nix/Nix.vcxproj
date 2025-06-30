@@ -456,7 +456,7 @@
     <ClInclude Include="Nix\Script\NXScript.h" />
     <ClInclude Include="Nix\Script\NXScriptType.h" />
     <ClInclude Include="Nix\NXTransform.h" />
-    <ClInclude Include="NXTerrainConfig.h" />
+    <ClInclude Include="NXTerrainCommon.h" />
     <None Include="Shader\BRDFCommon.fx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>

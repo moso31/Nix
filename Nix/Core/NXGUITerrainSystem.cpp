@@ -1,12 +1,17 @@
 #include "BaseDefs/DearImGui.h"
 #include "NXGUITerrainSystem.h"
 #include "NXScene.h"
+#include "NXTerrain.h"
+#include "NXGUICommon.h"
+#include "NXConverter.h"
 
 static bool s_terrain_system_dock_inited = false;
 
-NXGUITerrainSystem::NXGUITerrainSystem(NXScene* pScene /*=nullptr*/)
-    : m_pCurrentScene(pScene)
-    , m_bShowWindow(false)
+NXGUITerrainSystem::NXGUITerrainSystem(NXScene* pScene /*=nullptr*/) : 
+    m_pCurrentScene(pScene),
+    m_pPickingTerrain(nullptr),
+    m_bShowWindow(false),
+    m_bPickTerrainSelectionChanged(false)
 {
 }
 
@@ -88,23 +93,148 @@ void NXGUITerrainSystem::Render()
 
 void NXGUITerrainSystem::Render_List()
 {
-    ImGui::Text("Terrain List");
-    ImGui::Separator();
-    for (int i = 0; i < 10; ++i)
-        ImGui::Selectable(("Terrain " + std::to_string(i)).c_str());
-}
+    if (m_pCurrentScene)
+    {
+        for (auto& [pTerrNodeId, pTerrain] : m_pCurrentScene->GetTerrains())
+        {
+            bool bSelected = (pTerrain == m_pPickingTerrain);
 
+            std::string strNodeId = std::to_string(pTerrain->GetTerrainNode().x) + ", " + std::to_string(pTerrain->GetTerrainNode().y);
+            std::string strName = pTerrain->GetName().c_str() + std::string("(id: ") + strNodeId + ")";
+            if (ImGui::Selectable(strName.c_str(), bSelected, ImGuiSelectableFlags_AllowDoubleClick))
+            {
+                m_pPickingTerrain = pTerrain;
+                m_bPickTerrainSelectionChanged = true;
+            }
+
+            if (bSelected)
+            {
+                ImGui::SetItemDefaultFocus();
+
+                if (m_bPickTerrainSelectionChanged)
+                {
+                    ImGui::SetScrollHereY(0.5f);
+                    m_bPickTerrainSelectionChanged = false;
+                }
+            }
+        }
+    }
+}
 void NXGUITerrainSystem::Render_Map()
 {
-    ImGui::Text("Height Map");
-    ImGui::Dummy(ImVec2(0, 0)); // TODO: 渲染高度图纹理
+    if (!m_pCurrentScene) return;
+
+    const auto& terrains = m_pCurrentScene->GetTerrains();
+    if (terrains.empty()) return;
+
+    /* ---------- 1. 先计算 X/Y 最大最小值 ---------- */
+    short minX = SHRT_MAX, minY = SHRT_MAX;
+    short maxX = -SHRT_MAX, maxY = -SHRT_MAX;
+
+    for (const auto& [nodeId, pTerrain] : terrains)
+    {
+        minX = std::min(minX, nodeId.x);
+        minY = std::min(minY, nodeId.y);
+        maxX = std::max(maxX, nodeId.x);
+        maxY = std::max(maxY, nodeId.y);
+    }
+
+    const float kSpacing = 2.0f;
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(kSpacing, kSpacing));
+
+    const ImVec2 kBtnSize(50.0f, 50.0f);
+    Ntr<NXTexture2D> pEmptyTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_White);
+    NXShVisDescHeap->PushFluid(pEmptyTex->GetSRV());
+    auto& srvEmptyHandle = NXShVisDescHeap->Submit();
+
+    for (short y = maxY; y >= minY; y--) // flip Y
+    {
+        for (short x = minX; x <= maxX; x++)
+        {
+            auto* pTerrain = m_pCurrentScene->GetTerrain(x, y);
+            NXTerrainLayer* pTerrainLayer = nullptr;
+
+            ImGui::PushID((y << 16) + x);
+
+            // 加载并显示高度图；
+            bool bHeightTexExist = false;
+            if (pTerrain)
+            {
+                pTerrainLayer = pTerrain->GetTerrainLayer();
+                if (pTerrainLayer)
+                {
+                    auto& pTerrLayerTex = pTerrainLayer->GetHeightMapTexture();
+                    if (pTerrLayerTex.IsValid())
+                    {
+                        NXShVisDescHeap->PushFluid(pTerrLayerTex->GetSRV());
+                        auto& srvHandle = NXShVisDescHeap->Submit();
+                        if (ImGui::ImageButton("##TerrainBlock", (ImTextureID)srvHandle.ptr, kBtnSize))
+                        {
+                            m_pPickingTerrain = pTerrain;
+                            m_bPickTerrainSelectionChanged = true;
+                        }
+                        bHeightTexExist = true;
+                    }
+                }
+            }
+            
+            if (!bHeightTexExist) // 如果没有高度图加载空纹理
+            {
+                if (ImGui::ImageButton("##TerrainBlock", (ImTextureID)srvEmptyHandle.ptr, kBtnSize))
+                {
+                    m_pPickingTerrain = pTerrain;
+                    m_bPickTerrainSelectionChanged = true;
+                }
+            }
+
+            if (ImGui::BeginDragDropTarget())
+            {
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_EXPLORER_BUTTON_DRUGING"))
+                {
+                    auto pDropData = static_cast<const NXGUIAssetDragData*>(payload->Data);
+                    if (pDropData && pDropData->srcPath.has_extension() && NXConvert::IsRawFileExtension(pDropData->srcPath.extension().string()))
+                    {
+                        // 如果拖入的文件是高度图（Raw 文件），则设置到对应的 TerrainLayer 上
+                        if (pTerrainLayer)
+                        {
+                            pTerrainLayer->SetHeightMapPath(pDropData->srcPath);
+                        }
+                    }
+                }
+                ImGui::EndDragDropTarget();
+            }
+
+            ImGui::PopID();
+
+            if (x < maxX) ImGui::SameLine();
+        }
+    }
+
+    ImGui::PopStyleVar();
 }
 
 void NXGUITerrainSystem::Render_Tools()
 {
-    if (ImGui::Button("Generate")) { /* ... */ }
-    ImGui::SameLine();
-    if (ImGui::Button("Delete")) { /* ... */ }
-    ImGui::SameLine();
-    if (ImGui::Button("Export")) { /* ... */ }
+    if (ImGui::Button("Bake GPUTerrain data....")) 
+    {
+    }
+}
+
+void NXGUITerrainSystem::GenerateFile_Tex2DArray_HeightMap()
+{
+    if (m_pCurrentScene)
+    {
+        for (auto& [pTerrNodeId, pTerrain] : m_pCurrentScene->GetTerrains())
+        {
+            if (pTerrain)
+            {
+                auto* pTerrainLayer = pTerrain->GetTerrainLayer();
+                if (pTerrainLayer)
+                {
+                    pTerrain->GetTerrainNode();
+                    pTerrainLayer->GetHeightMapPath();
+                }
+            }
+        }
+    }
 }

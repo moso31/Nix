@@ -48,6 +48,8 @@ void NXGUITexture::SetImage(const std::filesystem::path& path)
 	m_pTexImage = NXResourceManager::GetInstance()->GetTextureManager()->CreateTextureAuto("NXGUITexture Preview Image", path);
 
 	m_texData = m_pTexImage->GetSerializationData();
+	m_guiImgRawWH[0] = m_texData.m_rawWidth;
+	m_guiImgRawWH[1] = m_texData.m_rawHeight;
 }
 
 void NXGUITexture::Render_Texture()
@@ -82,11 +84,10 @@ void NXGUITexture::Render_RawTexture()
 {
 	Render_Preview2D();
 
-	static int value[2] = { m_texData.m_rawWidth, m_texData.m_rawHeight };
-	if (ImGui::InputInt2("Texture Size", value))
+	if (ImGui::InputInt2("Texture Size", m_guiImgRawWH))
 	{
-		m_texData.m_rawWidth = value[0];
-		m_texData.m_rawHeight = value[1];
+		m_texData.m_rawWidth = m_guiImgRawWH[0];
+		m_texData.m_rawHeight = m_guiImgRawWH[1];
 	}
 
 	if (ImGui::Button("Apply##Texture"))

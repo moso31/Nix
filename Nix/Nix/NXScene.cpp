@@ -241,14 +241,15 @@ void NXScene::Init()
 	{
 		for (int y = -step; y < step; y++)
 		{
+			std::filesystem::path strNode = std::to_string(x + step) + "_" + std::to_string(y + step);
+
 			// 这里有点毒...地形层做了序列化；但地形本身没有序列化。
-			NXTerrain* pTerr = NXResourceManager::GetInstance()->GetMeshManager()->CreateTerrain("myTerrain", 2048, 2048, x, y);
+			NXTerrain* pTerr = NXResourceManager::GetInstance()->GetMeshManager()->CreateTerrain("Terrain_" + strNode.string(), 2048, 2048, x, y);
 			{
 				// TODO：地形的序列化牵扯到整个NXRenderableObject基类，还没想清楚怎么做，暂时搁置
 				NXTerrainLayer* pTerrainLayer = NXResourceManager::GetInstance()->GetMeshManager()->CreateTerrainLayer();
 
-				std::wstring strNode = std::to_wstring(x + step) + L"_" + std::to_wstring(y + step);
-				std::wstring strTerrLayer = L"D:\\NixAssets\\terrainTest\\" + strNode + L"\\TerrainLayer" + strNode + L".ntl";
+				std::wstring strTerrLayer = L"D:\\NixAssets\\terrainTest\\" + strNode.wstring() + L"\\TerrainLayer" + strNode.wstring() + L".ntl";
 
 				bool bForceCreate = true;
 				pTerrainLayer->SetPath(strTerrLayer, bForceCreate);  // 暂时先这么强绑定上。
@@ -467,6 +468,14 @@ bool NXScene::RayCast(const Ray& ray, NXHit& outHitInfo, float tMax)
 	return true;
 }
 
+NXTerrain* NXScene::GetTerrain(short nodeIdX, short nodeIdY)
+{
+	auto it = m_terrains.find({ nodeIdX, nodeIdY });
+	if (it != m_terrains.end())
+		return it->second;
+	return nullptr;
+}
+
 void NXScene::InitBoundingStructures()
 {
 	// 要计算所有物体的AABB，就需要确保所有物体的 Transform 是正确的
@@ -528,7 +537,8 @@ void NXScene::RegisterTerrain(NXTerrain* newTerrain, NXObject* pParent)
 	m_scriptableObjects.push_back(newTerrain);
 	m_renderableObjects.push_back(newTerrain);
 	m_objects.push_back(newTerrain);
-	m_terrains.push_back(newTerrain);
+
+	m_terrains[newTerrain->GetTerrainNode()] = newTerrain;
 
 	newTerrain->SetParent(pParent ? pParent : m_pRootObject);
 }
