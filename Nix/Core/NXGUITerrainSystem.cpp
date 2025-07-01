@@ -4,6 +4,7 @@
 #include "NXTerrain.h"
 #include "NXGUICommon.h"
 #include "NXConverter.h"
+#include "NXTextureMaker.h"
 
 static bool s_terrain_system_dock_inited = false;
 
@@ -217,6 +218,22 @@ void NXGUITerrainSystem::Render_Tools()
 {
     if (ImGui::Button("Bake GPUTerrain data....")) 
     {
+        std::vector<std::filesystem::path> rawPaths;
+        for (auto& [_, pTerr] : m_pCurrentScene->GetTerrains())
+        {
+            auto* pTerrLayer = pTerr->GetTerrainLayer();
+            if (!pTerrLayer)
+                throw std::runtime_error("TerrainLayer is null!");
+
+            bool pHMapTex = pTerrLayer->GetHeightMapTexture().IsValid();
+            auto& path = pHMapTex ? pTerrLayer->GetHeightMapPath() : g_defaultTex_white_wstr;
+            rawPaths.push_back(path);
+        }
+
+        std::filesystem::path outPath("D:\\test.dds");
+        NXTextureMaker::GenerateTerrainHeightMap2DArray(rawPaths, 2049, 2049, rawPaths.size(), outPath);
+        std::filesystem::path outPath2("D:\\testmMz.dds");
+        NXTextureMaker::GenerateTerrainMinMaxZMap2DArray(rawPaths, 2049, 2049, rawPaths.size(), outPath2);
     }
 }
 

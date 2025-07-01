@@ -2,12 +2,7 @@
 #include <filesystem>
 #include "NXSerializable.h"
 #include "Ntr.h"
-
-struct MinMaxZMap
-{
-	float minVal;
-	float maxVal;
-};
+#include "NXTerrainCommon.h"
 
 class NXTexture2D;
 class NXTerrainLayer : public NXSerializable

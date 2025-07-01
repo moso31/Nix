@@ -1,8 +1,15 @@
 #pragma once
+
 struct NXGPUTerrainBlockData
 {
 	int x;
 	int y;
+};
+
+struct MinMaxZMap
+{
+	float minVal;
+	float maxVal;
 };
 
 struct NXTerrainNodeId
