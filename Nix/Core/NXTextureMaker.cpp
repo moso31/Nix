@@ -5,7 +5,7 @@
 
 using namespace DirectX;
 
-void NXTextureMaker::GenerateTerrainHeightMap2DArray(const std::vector<std::filesystem::path>& rawPaths, uint32_t width, uint32_t height, uint32_t arraySize, const std::filesystem::path& outDDSPath)
+void NXTextureMaker::GenerateTerrainHeightMap2DArray(const std::vector<std::filesystem::path>& rawPaths, uint32_t width, uint32_t height, uint32_t arraySize, const std::filesystem::path& outDDSPath, std::function<void()> onProgressCount)
 {
     arraySize = std::min<uint32_t>(arraySize, static_cast<uint32_t>(rawPaths.size()));
     if (arraySize == 0)
@@ -46,6 +46,9 @@ void NXTextureMaker::GenerateTerrainHeightMap2DArray(const std::vector<std::file
         // 写入对应 slice
         const Image* dst = texArray->GetImage(0, slice, 0);
         std::memcpy(dst->pixels, rawData.data(), width* height* kBytesPerPixel);
+
+        // 如有必要，通知外部计数器-1
+        if (onProgressCount) onProgressCount();
     }
 
     // 保存到 DDS
@@ -54,12 +57,7 @@ void NXTextureMaker::GenerateTerrainHeightMap2DArray(const std::vector<std::file
         throw std::runtime_error("保存 DDS 失败: " + outDDSPath.string());
 }
 
-void NXTextureMaker::GenerateTerrainMinMaxZMap2DArray(
-    const std::vector<std::filesystem::path>& inPaths,
-    uint32_t width,
-    uint32_t height,
-    uint32_t arraySize,
-    const std::filesystem::path& outDDSPath)
+void NXTextureMaker::GenerateTerrainMinMaxZMap2DArray(const std::vector<std::filesystem::path>& inPaths, uint32_t width, uint32_t height, uint32_t arraySize, const std::filesystem::path& outDDSPath, std::function<void()> onProgressCount)
 {
     arraySize = std::min<uint32_t>(arraySize, static_cast<uint32_t>(inPaths.size()));
     if (arraySize == 0)
@@ -174,6 +172,9 @@ void NXTextureMaker::GenerateTerrainMinMaxZMap2DArray(
         copyLevel(0, dataZMip0);
         for (int mip = 0; mip < 5; ++mip)
             copyLevel(mip + 1, dataZMip1To5[mip]);
+
+        // 如有必要，通知外部计数器-1
+        if (onProgressCount) onProgressCount();
     }
 
     hr = SaveToDDSFile(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), DDS_FLAGS_NONE, outDDSPath.wstring().c_str());

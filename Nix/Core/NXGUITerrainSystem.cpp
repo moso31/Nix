@@ -216,25 +216,41 @@ void NXGUITerrainSystem::Render_Map()
 
 void NXGUITerrainSystem::Render_Tools()
 {
+    bool isBaking = m_bake_progress < m_bake_progress_count;
+
     if (ImGui::Button("Bake GPUTerrain data....")) 
     {
-        std::vector<std::filesystem::path> rawPaths;
-        for (auto& [_, pTerr] : m_pCurrentScene->GetTerrains())
+        if (!isBaking)
         {
-            auto* pTerrLayer = pTerr->GetTerrainLayer();
-            if (!pTerrLayer)
-                throw std::runtime_error("TerrainLayer is null!");
+            std::vector<std::filesystem::path> rawPaths;
+            for (auto& [_, pTerr] : m_pCurrentScene->GetTerrains())
+            {
+                auto* pTerrLayer = pTerr->GetTerrainLayer();
+                if (!pTerrLayer)
+                    throw std::runtime_error("TerrainLayer is null!");
 
-            bool pHMapTex = pTerrLayer->GetHeightMapTexture().IsValid();
-            auto& path = pHMapTex ? pTerrLayer->GetHeightMapPath() : g_defaultTex_white_wstr;
-            rawPaths.push_back(path);
+                bool pHMapTex = pTerrLayer->GetHeightMapTexture().IsValid();
+                auto& path = pHMapTex ? pTerrLayer->GetHeightMapPath() : g_defaultTex_white_wstr;
+                rawPaths.push_back(path);
+            }
+
+            m_bake_future = std::async(std::launch::async, [rawPaths, this]() {
+                m_bake_progress = 0;
+                m_bake_progress_count = rawPaths.size() * 2;
+                std::filesystem::path outPath("D:\\test.dds");
+                std::filesystem::path outPath2("D:\\testmMz.dds");
+                NXTextureMaker::GenerateTerrainHeightMap2DArray(rawPaths, 2049, 2049, rawPaths.size(), outPath, [this]() { m_bake_progress++; });
+                NXTextureMaker::GenerateTerrainMinMaxZMap2DArray(rawPaths, 2049, 2049, rawPaths.size(), outPath2, [this]() { m_bake_progress++; });
+                });
         }
-
-        std::filesystem::path outPath("D:\\test.dds");
-        NXTextureMaker::GenerateTerrainHeightMap2DArray(rawPaths, 2049, 2049, rawPaths.size(), outPath);
-        std::filesystem::path outPath2("D:\\testmMz.dds");
-        NXTextureMaker::GenerateTerrainMinMaxZMap2DArray(rawPaths, 2049, 2049, rawPaths.size(), outPath2);
     }
+
+    std::string strProgress = "Done!";
+    if (isBaking)
+        strProgress = "Baking..." + std::to_string(m_bake_progress) + "/" + std::to_string(m_bake_progress_count);
+
+    ImGui::SameLine();
+    ImGui::Text(strProgress.c_str());
 }
 
 void NXGUITerrainSystem::GenerateFile_Tex2DArray_HeightMap()

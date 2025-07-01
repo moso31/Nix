@@ -1,4 +1,5 @@
 #pragma once
+#include <future>
 
 class NXScene;
 class NXTerrain;
@@ -23,4 +24,8 @@ private:
 	NXTerrain* m_pPickingTerrain;
 	bool m_bShowWindow;
 	bool m_bPickTerrainSelectionChanged;
+
+	int m_bake_progress = 1;
+	int m_bake_progress_count = 1;
+	std::future<void> m_bake_future;
 };
