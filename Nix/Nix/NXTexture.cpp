@@ -1055,6 +1055,21 @@ void NXTexture2DArray::Create(const std::string& debugName, const std::wstring& 
 	SetSRVPreviews();
 }
 
+void NXTexture2DArray::Create(const std::string& debugName, const std::wstring& filePath, DXGI_FORMAT texFormat, uint32_t width, uint32_t height, uint32_t arraySize, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags)
+{
+	m_texFilePath = filePath.c_str();
+	m_name = debugName;
+	m_width = width;
+	m_height = height;
+	m_arraySize = arraySize;
+	m_texFormat = texFormat;
+	m_mipLevels = mipLevels;
+	Deserialize();
+
+	CreatePathTextureInternal(m_texFilePath, flags);
+	SetSRVPreviews();
+}
+
 void NXTexture2DArray::CreateRT(const std::string& debugName, DXGI_FORMAT texFormat, uint32_t width, uint32_t height, uint32_t arraySize, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags)
 {
 	m_name = debugName;

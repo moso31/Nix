@@ -2,23 +2,7 @@
 #include "NXTerrain.h"
 #include "NXInstance.h"
 #include "NXBuffer.h"
-
-struct NXGPUTerrainParams
-{
-	Vector3 m_camPos;
-	float m_nodeWorldScale; // lod等级的单个node的世界大小
-	uint32_t m_currLodLevel;
-	float m_currLodDist;
-};
-
-struct NXGPUTerrainPatcherParams
-{
-	Matrix m_mxWorld;
-	Vector3 m_pos;
-	float m_pad;
-	Vector2 m_uv;
-	Vector2 m_terrainOrigin;
-};
+#include "NXTerrainCommon.h"
 
 // 2025.6.4
 // GPU地形数据管理器，目前负责接收所有地形块的数据，然后推送给Compute Shader进行剔除、绘制等计算
@@ -32,7 +16,8 @@ public:
 	void UpdateCameraParams(NXCamera* pCam);
 	void UpdateLodParams(uint32_t lod);
 
-	void SetBakeTerrainTextures(const std::filesystem::path& heightMap2DArrayPath, const std::filesystem::path& minMaxZMap2DArrayPath);
+	void SetBakeTerrainTextures(const std::filesystem::path& heightMap2DArrayPath, const std::filesystem::path& minMaxZMap2DArrayPath, uint32_t width, uint32_t height, uint32_t arraySize);
+	void UpdateTerrainSupportParam(int minIdX, int minIdY, int rowCount);
 
 	Ntr<NXBuffer>& GetTerrainBufferA() { return m_pTerrainBufferA; }
 	Ntr<NXBuffer>& GetTerrainBufferB() { return m_pTerrainBufferB; }
@@ -50,6 +35,8 @@ public:
 		assert(index < TERRAIN_LOD_NUM);
 		return m_pTerrainParams[index]; 
 	}
+
+	NXConstantBuffer<NXGPUTerrainSupport>& GetTerrainSupportParam() { return m_pTerrainSupport; }
 
 	const D3D12_COMMAND_SIGNATURE_DESC& GetDrawIndexArgDesc() { return m_cmdSigDesc; }
 
@@ -74,6 +61,9 @@ private:
 	static const uint32_t TERRAIN_LOD_NUM = 6; // 6个LOD等级
 	NXGPUTerrainParams m_pTerrainParamsData[TERRAIN_LOD_NUM];
 	NXConstantBuffer<NXGPUTerrainParams> m_pTerrainParams[TERRAIN_LOD_NUM];
+
+	NXGPUTerrainSupport m_pTerrainSupportData;
+	NXConstantBuffer<NXGPUTerrainSupport> m_pTerrainSupport;
 
 	// 全局烘焙高度图/MinMaxZ纹理
 	std::filesystem::path m_heightMap2DArrayPath;

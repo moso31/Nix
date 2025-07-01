@@ -76,24 +76,24 @@ void NXTextureLoader::DoTask(const NXTextureLoaderTask& task)
 		pImage.swap(timage);
 	}
 
-	if (NXConvert::IsUnormFormat(metadata.format))
-	{
-		DXGI_FORMAT safeFormat = NXConvert::SafeDXGIFormat(metadata.format);
-		if (metadata.format != safeFormat)
-		{
-			std::shared_ptr<ScratchImage> timage(new ScratchImage);
-			hr = Convert(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), safeFormat, TEX_FILTER_DEFAULT, TEX_THRESHOLD_DEFAULT, *timage);
-			if (SUCCEEDED(hr))
-			{
-				metadata.format = safeFormat;
-			}
-			else
-			{
-				printf("Warning: [Convert] failed when loading NXTexture2D: %s.\n", filePath.string().c_str());
-			}
-			pImage.swap(timage);
-		}
-	}
+	//if (NXConvert::IsUnormFormat(metadata.format))
+	//{
+	//	DXGI_FORMAT safeFormat = NXConvert::SafeDXGIFormat(metadata.format);
+	//	if (metadata.format != safeFormat)
+	//	{
+	//		std::shared_ptr<ScratchImage> timage(new ScratchImage);
+	//		hr = Convert(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), safeFormat, TEX_FILTER_DEFAULT, TEX_THRESHOLD_DEFAULT, *timage);
+	//		if (SUCCEEDED(hr))
+	//		{
+	//			metadata.format = safeFormat;
+	//		}
+	//		else
+	//		{
+	//			printf("Warning: [Convert] failed when loading NXTexture2D: %s.\n", filePath.string().c_str());
+	//		}
+	//		pImage.swap(timage);
+	//	}
+	//}
 
 	// 如果序列化的文件里记录了sRGB/Linear类型，就做对应的转换
 	if (serializationData.m_textureType == NXTextureMode::sRGB || serializationData.m_textureType == NXTextureMode::Linear)

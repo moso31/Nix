@@ -179,6 +179,19 @@ Ntr<NXTexture2DArray> NXTextureResourceManager::CreateTexture2DArray(const std::
 	return pTexture2DArray;
 }
 
+Ntr<NXTexture2DArray> NXTextureResourceManager::CreateTexture2DArray(const std::string& debugName, const std::wstring& filePath, DXGI_FORMAT texFormat, uint32_t width, uint32_t height, uint32_t arraySize, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags, bool bAutoMakeViews)
+{
+	Ntr<NXTexture2DArray> pTexture2DArray(new NXTexture2DArray());
+	pTexture2DArray->Create(debugName, filePath, texFormat, width, height, arraySize, mipLevels, flags);
+	if (bAutoMakeViews)
+	{
+		pTexture2DArray->SetViews(1, 0, 0, 0);
+		pTexture2DArray->SetSRV(0, 0, pTexture2DArray->GetArraySize());
+	}
+	m_pTextureArrayInternal.push_back(pTexture2DArray);
+	return pTexture2DArray;
+}
+
 Ntr<NXTexture2DArray> NXTextureResourceManager::CreateRenderTexture2DArray(const std::string& debugName, DXGI_FORMAT texFormat, UINT width, UINT height, UINT arraySize, UINT mipLevels, D3D12_RESOURCE_FLAGS flags, bool bAutoMakeViews)
 {
 	Ntr<NXTexture2DArray> pTexture2DArray(new NXTexture2DArray());

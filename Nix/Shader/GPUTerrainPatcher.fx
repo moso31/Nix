@@ -17,6 +17,13 @@ RWStructuredBuffer<int3> m_terrainBuffer : register(u0);
 AppendStructuredBuffer<NXGPUTerrainPatch> m_patchBuffer : register(u1);
 RWStructuredBuffer<NXGPUDrawIndexArgs> m_drawIndexArgs : register(u2);
 RWByteAddressBuffer m_patchBufferUAVCounter : register(u3); // uav counter of m_patchBuffer!
+
+cbuffer cbTerrainSupport : register(b2)
+{
+    int m_blockMinIdX;
+    int m_blockMinIdY;
+    int m_blockCountX;
+}
    
 #define MINMAXZ_TEXSIZE 256u // TODO：临时的，如果多地形不见得能这么干……
 
@@ -74,6 +81,9 @@ void CS_Patch(
 
     patch.mxWorld = mul(mxScale, patch.mxWorld);
     patch.uv = minMaxZ;
+
+    int2 coord = (param.xy - int2(m_blockMinIdX, m_blockMinIdY)) >> param.z;
+    patch.sliceIndex = coord.y * m_blockCountX + coord.x;
     patch.terrainOrigin = floor(blockOrigin.xz / (float)TERRAIN_SIZE) * (float)TERRAIN_SIZE;
 
     // visibility test: Frustum Culling

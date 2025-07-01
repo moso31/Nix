@@ -1,4 +1,5 @@
 #pragma once
+#include "BaseDefs/Math.h"
 
 struct NXGPUTerrainBlockData
 {
@@ -32,4 +33,29 @@ struct std::hash<NXTerrainNodeId>
 	{
 		return (static_cast<std::size_t>(id.x) << 16) ^ static_cast<std::size_t>(id.y);
 	}
+};
+
+struct NXGPUTerrainParams
+{
+	Vector3 m_camPos;
+	float m_nodeWorldScale; // lod等级的单个node的世界大小
+	uint32_t m_currLodLevel;
+	float m_currLodDist;
+};
+
+struct NXGPUTerrainPatcherParams
+{
+	Matrix m_mxWorld;
+	Vector3 m_pos;
+	int m_sliceIndex;
+	Vector2 m_uv;
+	Vector2 m_terrainOrigin;
+};
+
+struct NXGPUTerrainSupport
+{
+	int m_blockMinIdX;
+	int m_blockMinIdY;
+	int m_terrainBlockWidth;
+	//int m_terrainBlockHeight;
 };

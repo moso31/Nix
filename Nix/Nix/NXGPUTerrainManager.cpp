@@ -50,6 +50,8 @@ void NXGPUTerrainManager::Init()
 		m_pTerrainParamsData[lod].m_currLodLevel = lod;
 		m_pTerrainParamsData[lod].m_currLodDist = dist[lod];
 	}
+
+	UpdateTerrainSupportParam(-4, -4, 8);
 }
 
 void NXGPUTerrainManager::UpdateCameraParams(NXCamera* pCam)
@@ -65,19 +67,27 @@ void NXGPUTerrainManager::UpdateLodParams(uint32_t lod)
 	m_pTerrainParams[lod].Update(m_pTerrainParamsData[lod]);
 }
 
-void NXGPUTerrainManager::SetBakeTerrainTextures(const std::filesystem::path& heightMap2DArrayPath, const std::filesystem::path& minMaxZMap2DArrayPath)
+void NXGPUTerrainManager::UpdateTerrainSupportParam(int minIdX, int minIdY, int rowCount)
+{
+	m_pTerrainSupportData.m_blockMinIdX = minIdX;
+	m_pTerrainSupportData.m_blockMinIdY = minIdY;
+	m_pTerrainSupportData.m_terrainBlockWidth = rowCount;
+	m_pTerrainSupport.Set(m_pTerrainSupportData);
+}
+
+void NXGPUTerrainManager::SetBakeTerrainTextures(const std::filesystem::path& heightMap2DArrayPath, const std::filesystem::path& minMaxZMap2DArrayPath, uint32_t width, uint32_t height, uint32_t arraySize)
 {
 	m_heightMap2DArrayPath = heightMap2DArrayPath;
 	m_minMaxZMap2DArrayPath = minMaxZMap2DArrayPath;
 
 	if (std::filesystem::exists(m_heightMap2DArrayPath))
 	{
-		m_pTerrainHeightMap2DArray = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DArray("Terrain HeightMap 2DArray", m_heightMap2DArrayPath);
+		m_pTerrainHeightMap2DArray = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DArray("Terrain HeightMap 2DArray", m_heightMap2DArrayPath, DXGI_FORMAT_R16_UNORM, width, height, arraySize, 1);
 	}
 
 	if (std::filesystem::exists(m_minMaxZMap2DArrayPath))
 	{
-		m_pTerrainMinMaxZMap2DArray = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DArray("Terrain MinMax Z Map 2DArray", m_minMaxZMap2DArrayPath);
+		m_pTerrainMinMaxZMap2DArray = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DArray("Terrain MinMax Z Map 2DArray", m_minMaxZMap2DArrayPath, DXGI_FORMAT_R32G32_FLOAT, width, height, arraySize, 1);
 	}
 }
 

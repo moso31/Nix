@@ -2,7 +2,7 @@ struct NXGPUTerrainPatch
 {
     matrix mxWorld;
     float3 pos;
-    float pad;
+    int sliceIndex;
     float2 uv;
     float2 terrainOrigin;
 };

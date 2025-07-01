@@ -13,7 +13,7 @@
 #include "NXRenderStates.h"
 #include "NXSamplerManager.h"
 #include "NXAllocatorManager.h"
-
+#include "NXGPUTerrainManager.h"
 #include "NXPBRMaterial.h"
 
 NXGBufferRenderer::NXGBufferRenderer(NXScene* pScene) :
@@ -66,11 +66,16 @@ void NXGBufferRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 		{
 			if (pSubMesh)
 			{
-				if (pSubMesh->IsSubMeshTerrain()) break; // 地形不在这里处理
-
 				bool bIsVisible = pSubMesh->GetRenderableObject()->GetVisible();
 				if (bIsVisible)
 				{
+					if (pSubMesh->IsSubMeshTerrain())
+					{
+						NXGPUTerrainManager::GetInstance()->Update(pCmdList);
+						pSubMesh->Render(pCmdList);
+						break;
+					}
+
 					pSubMesh->GetRenderableObject()->Update(pCmdList); // 永远优先调用派生类的Update 
 					pSubMesh->Render(pCmdList);
 				}

@@ -257,15 +257,18 @@ void NXGUITerrainSystem::Render_Tools()
                 rawPaths.push_back({ pathId, path });
             }
 
-            m_bake_future = std::async(std::launch::async, [rawPaths, cntX, cntY, this]() {
+            m_bake_future = std::async(std::launch::async, [rawPaths, minX, minY, cntX, cntY, this]() {
                 m_bake_progress = 0;
                 m_bake_progress_count = rawPaths.size() * 2;
                 std::filesystem::path outPath("D:\\NixAssets\\terrainTest\\heightMapArray.dds");
                 std::filesystem::path outPath2("D:\\NixAssets\\terrainTest\\minMaxZMapArray.dds");
-                NXTextureMaker::GenerateTerrainHeightMap2DArray(rawPaths, cntX, cntY, 2049, 2049, outPath, [this]() { m_bake_progress++; });
-                NXTextureMaker::GenerateTerrainMinMaxZMap2DArray(rawPaths, cntX, cntY, 2049, 2049, outPath2, [this]() { m_bake_progress++; });
 
-                NXGPUTerrainManager::GetInstance()->SetBakeTerrainTextures(outPath, outPath2);
+                int terrSize = 2049;
+                NXTextureMaker::GenerateTerrainHeightMap2DArray(rawPaths, cntX, cntY, terrSize, terrSize, outPath, [this]() { m_bake_progress++; });
+                NXTextureMaker::GenerateTerrainMinMaxZMap2DArray(rawPaths, cntX, cntY, terrSize, terrSize, outPath2, [this]() { m_bake_progress++; });
+
+                NXGPUTerrainManager::GetInstance()->SetBakeTerrainTextures(outPath, outPath2, terrSize, terrSize, cntX * cntY);
+                NXGPUTerrainManager::GetInstance()->UpdateTerrainSupportParam(minX, minY, cntX);
                 });
         }
     }

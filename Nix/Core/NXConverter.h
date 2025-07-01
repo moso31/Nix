@@ -13,6 +13,9 @@ std::string GetPathOfImguiIni();
 // 检测是否是 UNORM 格式的纹理
 bool IsUnormFormat(DXGI_FORMAT fmt);
 
+// 【WTF】我当时是为什么写了下面这个 SafeDXGIFormat ????? 
+// 完 全 失 忆
+// ……
 // 2023.5.31
 // 对读入的 UNORM 格式的纹理，进行安全化格式转换。
 // UNORM 类型的纹理需要遵照以下规则进行处理：
