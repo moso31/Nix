@@ -5,6 +5,8 @@
 #include "NXGUICommon.h"
 #include "NXConverter.h"
 #include "NXTextureMaker.h"
+#include "NXGPUTerrainManager.h"
+#include "NXTerrainCommon.h"
 
 static bool s_terrain_system_dock_inited = false;
 
@@ -218,12 +220,30 @@ void NXGUITerrainSystem::Render_Tools()
 {
     bool isBaking = m_bake_progress < m_bake_progress_count;
 
+    if (isBaking) ImGui::BeginDisabled();
+
     if (ImGui::Button("Bake GPUTerrain data....")) 
     {
         if (!isBaking)
         {
-            std::vector<std::filesystem::path> rawPaths;
-            for (auto& [_, pTerr] : m_pCurrentScene->GetTerrains())
+            std::vector<TerrainNodePath> rawPaths;
+
+            const auto& terrains = m_pCurrentScene->GetTerrains();
+            short minX = SHRT_MAX, minY = SHRT_MAX;
+            short maxX = -SHRT_MAX, maxY = -SHRT_MAX;
+
+            for (const auto& [nodeId, pTerrain] : terrains)
+            {
+                minX = std::min(minX, nodeId.x);
+                minY = std::min(minY, nodeId.y);
+                maxX = std::max(maxX, nodeId.x);
+                maxY = std::max(maxY, nodeId.y);
+            }
+
+            uint32_t cntX = uint32_t(maxX - minX + 1);
+            uint32_t cntY = uint32_t(maxY - minY + 1);
+
+            for (auto& [nodeId, pTerr] : terrains)
             {
                 auto* pTerrLayer = pTerr->GetTerrainLayer();
                 if (!pTerrLayer)
@@ -231,19 +251,26 @@ void NXGUITerrainSystem::Render_Tools()
 
                 bool pHMapTex = pTerrLayer->GetHeightMapTexture().IsValid();
                 auto& path = pHMapTex ? pTerrLayer->GetHeightMapPath() : g_defaultTex_white_wstr;
-                rawPaths.push_back(path);
+
+                // 写内存之前将值偏移到正数
+                NXTerrainNodeId pathId = { (short)(nodeId.x - minX), (short)(nodeId.y - minY) };
+                rawPaths.push_back({ pathId, path });
             }
 
-            m_bake_future = std::async(std::launch::async, [rawPaths, this]() {
+            m_bake_future = std::async(std::launch::async, [rawPaths, cntX, cntY, this]() {
                 m_bake_progress = 0;
                 m_bake_progress_count = rawPaths.size() * 2;
-                std::filesystem::path outPath("D:\\test.dds");
-                std::filesystem::path outPath2("D:\\testmMz.dds");
-                NXTextureMaker::GenerateTerrainHeightMap2DArray(rawPaths, 2049, 2049, rawPaths.size(), outPath, [this]() { m_bake_progress++; });
-                NXTextureMaker::GenerateTerrainMinMaxZMap2DArray(rawPaths, 2049, 2049, rawPaths.size(), outPath2, [this]() { m_bake_progress++; });
+                std::filesystem::path outPath("D:\\NixAssets\\terrainTest\\heightMapArray.dds");
+                std::filesystem::path outPath2("D:\\NixAssets\\terrainTest\\minMaxZMapArray.dds");
+                NXTextureMaker::GenerateTerrainHeightMap2DArray(rawPaths, cntX, cntY, 2049, 2049, outPath, [this]() { m_bake_progress++; });
+                NXTextureMaker::GenerateTerrainMinMaxZMap2DArray(rawPaths, cntX, cntY, 2049, 2049, outPath2, [this]() { m_bake_progress++; });
+
+                NXGPUTerrainManager::GetInstance()->SetBakeTerrainTextures(outPath, outPath2);
                 });
         }
     }
+
+    if (isBaking) ImGui::EndDisabled();
 
     std::string strProgress = "Done!";
     if (isBaking)

@@ -5,8 +5,9 @@
 
 using namespace DirectX;
 
-void NXTextureMaker::GenerateTerrainHeightMap2DArray(const std::vector<std::filesystem::path>& rawPaths, uint32_t width, uint32_t height, uint32_t arraySize, const std::filesystem::path& outDDSPath, std::function<void()> onProgressCount)
+void NXTextureMaker::GenerateTerrainHeightMap2DArray(const std::vector<TerrainNodePath>& rawPaths, uint32_t nodeCountX, uint32_t nodeCountY, uint32_t width, uint32_t height, const std::filesystem::path& outDDSPath, std::function<void()> onProgressCount)
 {
+    uint32_t arraySize = nodeCountX * nodeCountY;
     arraySize = std::min<uint32_t>(arraySize, static_cast<uint32_t>(rawPaths.size()));
     if (arraySize == 0)
         throw std::runtime_error("arraySize == 0");
@@ -20,10 +21,10 @@ void NXTextureMaker::GenerateTerrainHeightMap2DArray(const std::vector<std::file
     if (FAILED(hr))
         throw std::runtime_error("DirectXTex::InitializeArray 失败");
 
-    // 逐 slice 填充数据
-    for (uint32_t slice = 0; slice < arraySize; ++slice)
+    for (uint32_t i = 0; i < arraySize; ++i)
     {
-        const auto& path = rawPaths[slice];
+        int slice = rawPaths[i].nodeId.y * nodeCountX + rawPaths[i].nodeId.x;
+        const auto& path = rawPaths[i].path;
         std::vector<uint16_t> rawData(width * height);
 
         bool rawValid = true;
@@ -43,7 +44,7 @@ void NXTextureMaker::GenerateTerrainHeightMap2DArray(const std::vector<std::file
             std::fill(rawData.begin(), rawData.end(), uint16_t(0)); 
         }
 
-        // 写入对应 slice
+        // 写入对应 i
         const Image* dst = texArray->GetImage(0, slice, 0);
         std::memcpy(dst->pixels, rawData.data(), width* height* kBytesPerPixel);
 
@@ -57,8 +58,9 @@ void NXTextureMaker::GenerateTerrainHeightMap2DArray(const std::vector<std::file
         throw std::runtime_error("保存 DDS 失败: " + outDDSPath.string());
 }
 
-void NXTextureMaker::GenerateTerrainMinMaxZMap2DArray(const std::vector<std::filesystem::path>& inPaths, uint32_t width, uint32_t height, uint32_t arraySize, const std::filesystem::path& outDDSPath, std::function<void()> onProgressCount)
+void NXTextureMaker::GenerateTerrainMinMaxZMap2DArray(const std::vector<TerrainNodePath>& inPaths, uint32_t nodeCountX, uint32_t nodeCountY, uint32_t width, uint32_t height, const std::filesystem::path& outDDSPath, std::function<void()> onProgressCount)
 {
+    uint32_t arraySize = nodeCountX * nodeCountY; 
     arraySize = std::min<uint32_t>(arraySize, static_cast<uint32_t>(inPaths.size()));
     if (arraySize == 0)
         throw std::runtime_error("arraySize == 0");
@@ -75,9 +77,10 @@ void NXTextureMaker::GenerateTerrainMinMaxZMap2DArray(const std::vector<std::fil
 
     const uint32_t kBytesPerPixel = sizeof(uint16_t);
 
-    for (uint32_t slice = 0; slice < arraySize; ++slice)
+    for (uint32_t i = 0; i < arraySize; ++i)
     {
-        const auto& path = inPaths[slice];
+        int slice = inPaths[i].nodeId.y * nodeCountX + inPaths[i].nodeId.x;
+        const auto& path = inPaths[i].path;
         std::vector<uint16_t> rawData(width * height, 0);
 
         if (NXConvert::IsRawFileExtension(path.extension().string()))

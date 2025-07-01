@@ -1,6 +1,8 @@
 #include "NXGPUTerrainManager.h"
 #include "NXScene.h"
 #include "NXCamera.h"
+#include "NXGlobalDefinitions.h"
+#include "NXTimer.h"
 
 NXGPUTerrainManager::NXGPUTerrainManager()
 {
@@ -61,4 +63,47 @@ void NXGPUTerrainManager::UpdateCameraParams(NXCamera* pCam)
 void NXGPUTerrainManager::UpdateLodParams(uint32_t lod)
 {
 	m_pTerrainParams[lod].Update(m_pTerrainParamsData[lod]);
+}
+
+void NXGPUTerrainManager::SetBakeTerrainTextures(const std::filesystem::path& heightMap2DArrayPath, const std::filesystem::path& minMaxZMap2DArrayPath)
+{
+	m_heightMap2DArrayPath = heightMap2DArrayPath;
+	m_minMaxZMap2DArrayPath = minMaxZMap2DArrayPath;
+
+	if (std::filesystem::exists(m_heightMap2DArrayPath))
+	{
+		m_pTerrainHeightMap2DArray = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DArray("Terrain HeightMap 2DArray", m_heightMap2DArrayPath);
+	}
+
+	if (std::filesystem::exists(m_minMaxZMap2DArrayPath))
+	{
+		m_pTerrainMinMaxZMap2DArray = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DArray("Terrain MinMax Z Map 2DArray", m_minMaxZMap2DArrayPath);
+	}
+}
+
+void NXGPUTerrainManager::Update(ID3D12GraphicsCommandList* pCmdList)
+{
+	auto* pCamera = NXResourceManager::GetInstance()->GetCameraManager()->GetCamera("Main Camera");
+	auto& mxView = pCamera->GetViewMatrix();
+	auto& mxWorld = Matrix::Identity();
+	auto& mxWorldView = mxWorld * mxView;
+
+	m_cbDataObject.world = mxWorld.Transpose();
+	m_cbDataObject.worldInverseTranspose = mxWorld.Invert(); // it actually = m_worldMatrix.Invert().Transpose().Transpose();
+	m_cbDataObject.worldView = mxWorldView.Transpose();
+	m_cbDataObject.worldViewInverseTranspose = (mxWorldView).Invert();
+	m_cbDataObject.globalData.time = NXGlobalApp::Timer->GetGlobalTimeSeconds();
+
+	m_cbObject.Update(m_cbDataObject);
+
+	pCmdList->SetGraphicsRootConstantBufferView(0, m_cbObject.CurrentGPUAddress());
+
+	auto pTerrainPatchBuffer = NXGPUTerrainManager::GetInstance()->GetTerrainPatcherBuffer();
+	NXShVisDescHeap->PushFluid(pTerrainPatchBuffer.IsValid() ? pTerrainPatchBuffer->GetSRV() : NXAllocator_NULL->GetNullSRV());
+
+	auto pHeightMapTex = m_pTerrainHeightMap2DArray;
+	NXShVisDescHeap->PushFluid(pHeightMapTex.IsValid() ? pHeightMapTex->GetSRV() : NXAllocator_NULL->GetNullSRV());
+
+	auto& srvHandle = NXShVisDescHeap->Submit();
+	pCmdList->SetGraphicsRootDescriptorTable(4, srvHandle); // t...
 }

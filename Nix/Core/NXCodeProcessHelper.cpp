@@ -479,7 +479,7 @@ std::string NXCodeProcessHelper::BuildHLSL_Params(int& ioLineCounter, const std:
 	{
 		str += R"(#include "GPUTerrainCommon.fx")"; str += "\n";
 		str += "StructuredBuffer<NXGPUTerrainPatch> m_patchBuffer : register(t0, space1);\n";
-		str += "Texture2D m_terrainHeightMap : register(t1, space1);\n";
+		str += "Texture2DArray m_terrainHeightMap : register(t1, space1);\n";
 	}
 
 	// sampler

@@ -45,27 +45,4 @@ void NXTerrain::InitAABB()
 
 void NXTerrain::Update(ID3D12GraphicsCommandList* pCmdList)
 {
-	auto* pCamera = NXResourceManager::GetInstance()->GetCameraManager()->GetCamera("Main Camera");
-	auto& mxView = pCamera->GetViewMatrix();
-	auto& mxWorld = Matrix::Identity();
-	auto& mxWorldView = mxWorld * mxView;
-
-	m_cbDataObject.world = mxWorld.Transpose();
-	m_cbDataObject.worldInverseTranspose = mxWorld.Invert(); // it actually = m_worldMatrix.Invert().Transpose().Transpose();
-	m_cbDataObject.worldView = mxWorldView.Transpose();
-	m_cbDataObject.worldViewInverseTranspose = (mxWorldView).Invert();
-	m_cbDataObject.globalData.time = NXGlobalApp::Timer->GetGlobalTimeSeconds();
-
-	m_cbObject.Update(m_cbDataObject);
-
-	pCmdList->SetGraphicsRootConstantBufferView(0, m_cbObject.CurrentGPUAddress());
-
-	auto pTerrainPatchBuffer = NXGPUTerrainManager::GetInstance()->GetTerrainPatcherBuffer();
-	NXShVisDescHeap->PushFluid(pTerrainPatchBuffer.IsValid() ? pTerrainPatchBuffer->GetSRV() : NXAllocator_NULL->GetNullSRV());
-
-	auto pHeightMapTex = m_pTerrainLayer->GetHeightMapTexture();
-	NXShVisDescHeap->PushFluid(pHeightMapTex.IsValid() ? pHeightMapTex->GetSRV() : NXAllocator_NULL->GetNullSRV());
-
-	auto& srvHandle = NXShVisDescHeap->Submit();
-	pCmdList->SetGraphicsRootDescriptorTable(4, srvHandle); // t...
 }

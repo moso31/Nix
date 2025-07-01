@@ -32,6 +32,8 @@ public:
 	void UpdateCameraParams(NXCamera* pCam);
 	void UpdateLodParams(uint32_t lod);
 
+	void SetBakeTerrainTextures(const std::filesystem::path& heightMap2DArrayPath, const std::filesystem::path& minMaxZMap2DArrayPath);
+
 	Ntr<NXBuffer>& GetTerrainBufferA() { return m_pTerrainBufferA; }
 	Ntr<NXBuffer>& GetTerrainBufferB() { return m_pTerrainBufferB; }
 	Ntr<NXBuffer>& GetTerrainFinalBuffer() { return m_pTerrainFinalBuffer; }
@@ -40,6 +42,9 @@ public:
 	Ntr<NXBuffer>& GetTerrainPatcherBuffer() { return m_pTerrainPatcherBuffer; }
 	Ntr<NXBuffer>& GetTerrainDrawIndexArgs() { return m_pTerrainDrawIndexArgs; }
 
+	Ntr<NXTexture2DArray>& GetTerrainHeightMap2DArray() { return m_pTerrainHeightMap2DArray; }
+	Ntr<NXTexture2DArray>& GetTerrainMinMaxZMap2DArray() { return m_pTerrainMinMaxZMap2DArray; }
+
 	NXConstantBuffer<NXGPUTerrainParams>& GetCBTerrainParams(uint32_t index) 
 	{ 
 		assert(index < TERRAIN_LOD_NUM);
@@ -47,6 +52,8 @@ public:
 	}
 
 	const D3D12_COMMAND_SIGNATURE_DESC& GetDrawIndexArgDesc() { return m_cmdSigDesc; }
+
+	void Update(ID3D12GraphicsCommandList* pCmdList);
 
 private:
 	D3D12_INDIRECT_ARGUMENT_DESC m_drawIndexArgDesc[1];
@@ -67,4 +74,13 @@ private:
 	static const uint32_t TERRAIN_LOD_NUM = 6; // 6个LOD等级
 	NXGPUTerrainParams m_pTerrainParamsData[TERRAIN_LOD_NUM];
 	NXConstantBuffer<NXGPUTerrainParams> m_pTerrainParams[TERRAIN_LOD_NUM];
+
+	// 全局烘焙高度图/MinMaxZ纹理
+	std::filesystem::path m_heightMap2DArrayPath;
+	std::filesystem::path m_minMaxZMap2DArrayPath;
+	Ntr<NXTexture2DArray> m_pTerrainHeightMap2DArray;
+	Ntr<NXTexture2DArray> m_pTerrainMinMaxZMap2DArray;
+
+	ConstantBufferObject m_cbDataObject;
+	NXConstantBuffer<ConstantBufferObject>	m_cbObject;
 };

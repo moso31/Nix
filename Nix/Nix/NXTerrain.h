@@ -37,7 +37,4 @@ protected:
 
 	NXTerrainLayer* m_pTerrainLayer;
 	std::shared_ptr<NXSubMeshBase> m_pSubMesh; 
-
-	ConstantBufferObject m_cbDataObject;
-	NXConstantBuffer<ConstantBufferObject>	m_cbObject;
 };
