@@ -218,6 +218,7 @@ void NXGUITerrainSystem::Render_Map()
 
 void NXGUITerrainSystem::Render_Tools()
 {
+    const auto& terrains = m_pCurrentScene->GetTerrains();
     bool isBaking = m_bake_progress < m_bake_progress_count;
 
     if (isBaking) ImGui::BeginDisabled();
@@ -228,7 +229,6 @@ void NXGUITerrainSystem::Render_Tools()
         {
             std::vector<TerrainNodePath> rawPaths;
 
-            const auto& terrains = m_pCurrentScene->GetTerrains();
             short minX = SHRT_MAX, minY = SHRT_MAX;
             short maxX = -SHRT_MAX, maxY = -SHRT_MAX;
 
@@ -273,14 +273,57 @@ void NXGUITerrainSystem::Render_Tools()
         }
     }
 
-    if (isBaking) ImGui::EndDisabled();
-
     std::string strProgress = "Done!";
     if (isBaking)
         strProgress = "Baking..." + std::to_string(m_bake_progress) + "/" + std::to_string(m_bake_progress_count);
 
     ImGui::SameLine();
     ImGui::Text(strProgress.c_str());
+
+    ImGui::SameLine();
+    if (ImGui::Button("Save To File"))
+    {
+        for (const auto& [nodeId, pTerrain] : terrains)
+        {
+            auto* pTerrainLayer = pTerrain->GetTerrainLayer();
+            if (pTerrainLayer)
+            {
+                pTerrainLayer->Deserialize();
+            }
+        }
+    }
+
+    if (isBaking) ImGui::EndDisabled();
+
+    // 批量处理Grid中录入的所有.raw文件，调整大小，并批量序列化
+    ImGui::PushID("Resize for all *.raw files");
+    static int val[2] = { 2049, 2049 };
+    ImGui::DragInt2("raw size", val, 1.0f, 0, 16384);
+
+    if (ImGui::Button("Resize for all *.raw files"))
+    {
+        for (auto& [nodeId, pTerr] : terrains)
+        {
+            auto* pTerrLayer = pTerr->GetTerrainLayer();
+            if (!pTerrLayer)
+                throw std::runtime_error("TerrainLayer is null!");
+
+            auto& pHMapTex = pTerrLayer->GetHeightMapTexture();
+            if (pHMapTex.IsValid())
+            {
+                auto hMapData = pHMapTex->GetSerializationData();
+                if (hMapData.m_rawWidth != val[0] && hMapData.m_rawHeight != val[1])
+                {
+                    hMapData.m_rawWidth = val[0];
+                    hMapData.m_rawHeight = val[1];
+                    pHMapTex->SetSerializationData(hMapData);
+                    pHMapTex->Serialize();
+                    pHMapTex->MarkReload(pHMapTex->GetFilePath());
+                }
+            }
+        }
+    }
+    ImGui::PopID();
 }
 
 void NXGUITerrainSystem::GenerateFile_Tex2DArray_HeightMap()

@@ -22,8 +22,6 @@ void NXTerrainLayer::SetPath(const std::filesystem::path& path, bool bForceCreat
 		std::ofstream ofs(path);
 		return; 
 	}
-
-	Deserialize();
 }
 
 void NXTerrainLayer::SetHeightMapPath(const std::filesystem::path& heightMapPath)

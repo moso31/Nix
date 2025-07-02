@@ -23,7 +23,7 @@ void NXTextureMaker::GenerateTerrainHeightMap2DArray(const std::vector<TerrainNo
 
     for (uint32_t i = 0; i < arraySize; ++i)
     {
-        int slice = rawPaths[i].nodeId.y * nodeCountX + rawPaths[i].nodeId.x;
+        int slice = rawPaths[i].nodeId.x * nodeCountX + rawPaths[i].nodeId.y;
         const auto& path = rawPaths[i].path;
         std::vector<uint16_t> rawData(width * height);
 

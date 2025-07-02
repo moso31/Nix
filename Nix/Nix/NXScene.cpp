@@ -252,7 +252,8 @@ void NXScene::Init()
 				std::wstring strTerrLayer = L"D:\\NixAssets\\terrainTest\\" + strNode.wstring() + L"\\TerrainLayer" + strNode.wstring() + L".ntl";
 
 				bool bForceCreate = true;
-				pTerrainLayer->SetPath(strTerrLayer, bForceCreate);  // 暂时先这么强绑定上。
+				pTerrainLayer->SetPath(strTerrLayer, bForceCreate); 
+				pTerrainLayer->Deserialize(); // 暂时先手动反序列化地形层
 				pTerr->SetTerrainLayer(pTerrainLayer);
 				pTerr->SetTranslation(Vector3(2048 * x, 0, 2048 * y));
 
