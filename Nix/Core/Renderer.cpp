@@ -155,11 +155,11 @@ void Renderer::GenerateRenderGraph()
 	m_pRenderGraph->AddComputePass<GPUTerrainPatcherData>("GPU Terrain Patcher Clear", new NXGPUTerrainPatcherRenderer(),
 		[=](NXRGBuilder& builder, GPUTerrainPatcherData& data) {
 			data.pPatcherPass = (NXComputePass*)builder.GetPassNode()->GetRenderPass();
+			builder.SetRootParamLayout(0, 0, 3);
 			//builder.WriteUAV(pTerrainBufferFinal, 0, true);
-			builder.WriteUAV(pTerrainPatcher, 1, true, 3);
-			builder.WriteUAV(pTerrainDrawIndexArgs, 2, true);
+			builder.WriteUAV(pTerrainPatcher, 0, true, 2);
+			builder.WriteUAV(pTerrainDrawIndexArgs, 1, true);
 			builder.SetComputeThreadGroup(1, 1, 1);
-			builder.SetRootParamLayout(0, 0, 4);
 			builder.SetEntryNameCS(L"CS_Clear");
 		},
 		[=](ID3D12GraphicsCommandList* pCmdList, GPUTerrainPatcherData& data) {
@@ -168,13 +168,13 @@ void Renderer::GenerateRenderGraph()
 	m_pRenderGraph->AddComputePass<GPUTerrainPatcherData>("GPU Terrain Patcher", new NXGPUTerrainPatcherRenderer(),
 		[=](NXRGBuilder& builder, GPUTerrainPatcherData& data) {
 			data.pPatcherPass = (NXComputePass*)builder.GetPassNode()->GetRenderPass();
-			builder.SetRootParamLayout(2, 1, 4);
+			builder.SetRootParamLayout(2, 2, 3);
 			builder.ReadConstantBuffer(0, 1, &g_cbCamera);
 			builder.ReadConstantBuffer(1, 2, &NXGPUTerrainManager::GetInstance()->GetTerrainSupportParam());
 			//builder.Read(pTerrainLayer0_MinMaxZMap, 0);
-			builder.WriteUAV(pTerrainBufferFinal, 0, true);
-			builder.WriteUAV(pTerrainPatcher, 1, true);
-			builder.WriteUAV(pTerrainDrawIndexArgs, 2, true);
+			builder.Read(pTerrainBufferFinal, 1);
+			builder.WriteUAV(pTerrainPatcher, 0, true);
+			builder.WriteUAV(pTerrainDrawIndexArgs, 1, true);
 			builder.SetIndirectArgs(pTerrainIndiArgs);
 			builder.SetEntryNameCS(L"CS_Patch");
 		},

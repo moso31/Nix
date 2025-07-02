@@ -13,10 +13,10 @@ struct NXGPUDrawIndexArgs
 Texture2D m_minmaxZMap : register(t0);
 SamplerState ssPointClamp : register(s0);
 
-RWStructuredBuffer<int3> m_terrainBuffer : register(u0);
-AppendStructuredBuffer<NXGPUTerrainPatch> m_patchBuffer : register(u1);
-RWStructuredBuffer<NXGPUDrawIndexArgs> m_drawIndexArgs : register(u2);
-RWByteAddressBuffer m_patchBufferUAVCounter : register(u3); // uav counter of m_patchBuffer!
+StructuredBuffer<int3> m_terrainBuffer : register(t1);
+AppendStructuredBuffer<NXGPUTerrainPatch> m_patchBuffer : register(u0);
+RWStructuredBuffer<NXGPUDrawIndexArgs> m_drawIndexArgs : register(u1);
+RWByteAddressBuffer m_patchBufferUAVCounter : register(u2); // uav counter of m_patchBuffer!
 
 cbuffer cbTerrainSupport : register(b2)
 {
@@ -43,11 +43,11 @@ void CS_Clear(uint3 dtid : SV_DispatchThreadID)
 void CS_Patch(
     uint3 dtid : SV_DispatchThreadID, 
     uint3 gtid : SV_GroupThreadID,
-    uint groupIndex : SV_GroupID
+    uint3 groupIndex : SV_GroupID
 )
 {
     // z : lod等级；xy : 此lod等级下 xy偏移量
-    int3 param = m_terrainBuffer[groupIndex];
+    int3 param = m_terrainBuffer[groupIndex.x];
     uint mip = 5u - param.z;
     float scale = (float)(1u << mip) * 1.0f / (float)(NXGPUTERRAIN_PATCH_SIZE);
 
@@ -82,7 +82,7 @@ void CS_Patch(
     patch.mxWorld = mul(mxScale, patch.mxWorld);
     patch.uv = minMaxZ;
 
-    int2 coord = (param.xy - int2(m_blockMinIdX, m_blockMinIdY)) >> param.z;
+    int2 coord = (param.xy >> param.z) - int2(m_blockMinIdX, m_blockMinIdY);
     patch.sliceIndex = coord.y * m_blockCountX + coord.x;
     patch.terrainOrigin = floor(blockOrigin.xz / (float)TERRAIN_SIZE) * (float)TERRAIN_SIZE;
 
