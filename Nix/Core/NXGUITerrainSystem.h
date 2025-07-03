@@ -1,5 +1,6 @@
 #pragma once
 #include <future>
+#include <filesystem>
 
 class NXScene;
 class NXTerrain;
@@ -16,6 +17,7 @@ private:
 	void Render_List();
 	void Render_Map();
 	void Render_Tools();
+	void ProcessAsyncCallback();
 
 	void GenerateFile_Tex2DArray_HeightMap();
 
@@ -28,4 +30,5 @@ private:
 	int m_bake_progress = 1;
 	int m_bake_progress_count = 1;
 	std::future<void> m_bake_future;
+	bool m_bNeedUpdateTerrainLayerFiles = false;
 };

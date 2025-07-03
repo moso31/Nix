@@ -10,7 +10,7 @@ struct NXGPUDrawIndexArgs
     uint startInstanceLocation; // 0
 };
 
-Texture2D m_minmaxZMap : register(t0);
+Texture2DArray m_minmaxZMap : register(t0);
 SamplerState ssPointClamp : register(s0);
 
 StructuredBuffer<int3> m_terrainBuffer : register(t1);
@@ -64,9 +64,12 @@ void CS_Patch(
 		0.0f, 0.0f, scale, 0.0f,
 		0.0f, 0.0f, 0.0f, 1.0f
 	);
+    
+    int2 coord = (param.xy >> param.z) - int2(m_blockMinIdX, m_blockMinIdY);
+    int sliceIndex = coord.y * m_blockCountX + coord.x;
 
     float2 patchUV = frac((patchOrigin.xz + patchSize * 0.5) / (float)TERRAIN_SIZE);
-    float2 minMaxZ = float2(0.0f, 0.0f); // m_minmaxZMap.SampleLevel(ssPointClamp, float2(patchUV.x, 1.0 - patchUV.y), mip);
+    float2 minMaxZ = m_minmaxZMap.SampleLevel(ssPointClamp, float3(patchUV.x, 1.0 - patchUV.y, (float)sliceIndex), 0);
     float yExtent = (minMaxZ.y - minMaxZ.x);
     float yCenter = (minMaxZ.y + minMaxZ.x) * 0.5f;
 
@@ -81,9 +84,8 @@ void CS_Patch(
 
     patch.mxWorld = mul(mxScale, patch.mxWorld);
     patch.uv = minMaxZ;
-
-    int2 coord = (param.xy >> param.z) - int2(m_blockMinIdX, m_blockMinIdY);
-    patch.sliceIndex = coord.y * m_blockCountX + coord.x;
+    
+    patch.sliceIndex = sliceIndex;
     patch.terrainOrigin = floor(blockOrigin.xz / (float)TERRAIN_SIZE) * (float)TERRAIN_SIZE;
 
     // visibility test: Frustum Culling
@@ -102,20 +104,20 @@ void CS_Patch(
     float3 center = patch.pos + float3(0.0f, minMaxZ.x, 0.0f) + extent;
 
     bool isoutside = false;
-    //for (int i = 0; i < 6; i++)
-    //{
-    //    float3 n = plane[i].xyz;
-    //    float d = plane[i].w;
+    for (int i = 0; i < 6; i++)
+    {
+        float3 n = plane[i].xyz;
+        float d = plane[i].w;
 
-    //    float s = dot(n, center) + d;
-    //    float r = dot(abs(n), extent);
+        float s = dot(n, center) + d;
+        float r = dot(abs(n), extent);
 
-    //    if (s + r < 0)
-    //    {
-    //        isoutside = true;
-    //        break;
-    //    }
-    //}
+        if (s + r < 0)
+        {
+            isoutside = true;
+            break;
+        }
+    }
 
     if (!isoutside)
     {

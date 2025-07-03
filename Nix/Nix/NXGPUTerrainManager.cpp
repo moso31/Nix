@@ -52,6 +52,8 @@ void NXGPUTerrainManager::Init()
 	}
 
 	UpdateTerrainSupportParam(-4, -4, 8);
+
+	SetBakeTerrainTextures("D:\\NixAssets\\terrainTest\\heightMapArray.dds", "D:\\NixAssets\\terrainTest\\minMaxZMapArray.dds");
 }
 
 void NXGPUTerrainManager::UpdateCameraParams(NXCamera* pCam)
@@ -75,19 +77,23 @@ void NXGPUTerrainManager::UpdateTerrainSupportParam(int minIdX, int minIdY, int 
 	m_pTerrainSupport.Set(m_pTerrainSupportData);
 }
 
-void NXGPUTerrainManager::SetBakeTerrainTextures(const std::filesystem::path& heightMap2DArrayPath, const std::filesystem::path& minMaxZMap2DArrayPath, uint32_t width, uint32_t height, uint32_t arraySize)
+void NXGPUTerrainManager::SetBakeTerrainTextures(const std::filesystem::path& heightMap2DArrayPath, const std::filesystem::path& minMaxZMap2DArrayPath)
 {
 	m_heightMap2DArrayPath = heightMap2DArrayPath;
 	m_minMaxZMap2DArrayPath = minMaxZMap2DArrayPath;
 
 	if (std::filesystem::exists(m_heightMap2DArrayPath))
 	{
-		m_pTerrainHeightMap2DArray = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DArray("Terrain HeightMap 2DArray", m_heightMap2DArrayPath, DXGI_FORMAT_R16_UNORM, width, height, arraySize, 1);
+		TexMetadata metadata;
+		DirectX::GetMetadataFromDDSFile(m_heightMap2DArrayPath.wstring().c_str(), DDS_FLAGS_NONE, metadata);
+		m_pTerrainHeightMap2DArray = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DArray("Terrain HeightMap 2DArray", m_heightMap2DArrayPath, DXGI_FORMAT_R16_UNORM, metadata.width, metadata.height, metadata.arraySize, metadata.mipLevels);
 	}
 
 	if (std::filesystem::exists(m_minMaxZMap2DArrayPath))
 	{
-		m_pTerrainMinMaxZMap2DArray = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DArray("Terrain MinMax Z Map 2DArray", m_minMaxZMap2DArrayPath, DXGI_FORMAT_R32G32_FLOAT, width, height, arraySize, 1);
+		TexMetadata metadata;
+		DirectX::GetMetadataFromDDSFile(m_minMaxZMap2DArrayPath.wstring().c_str(), DDS_FLAGS_NONE, metadata);
+		m_pTerrainMinMaxZMap2DArray = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DArray("Terrain MinMax Z Map 2DArray", m_minMaxZMap2DArrayPath, DXGI_FORMAT_R32G32_FLOAT, metadata.width, metadata.height, metadata.arraySize, metadata.mipLevels);
 	}
 }
 

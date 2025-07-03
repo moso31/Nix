@@ -23,7 +23,7 @@ void NXTextureMaker::GenerateTerrainHeightMap2DArray(const std::vector<TerrainNo
 
     for (uint32_t i = 0; i < arraySize; ++i)
     {
-        int slice = rawPaths[i].nodeId.x * nodeCountX + rawPaths[i].nodeId.y;
+        int slice = rawPaths[i].nodeId.y * nodeCountX + rawPaths[i].nodeId.x;
         const auto& path = rawPaths[i].path;
         std::vector<uint16_t> rawData(width * height);
 
@@ -97,6 +97,9 @@ void NXTextureMaker::GenerateTerrainMinMaxZMap2DArray(const std::vector<TerrainN
 
         std::vector<MinMaxZMap> dataZMip0(mip0Width * mip0Height);
 
+        const static int s_maxHeight = 2048;
+        const static int s_minHeight = 0;
+
         for (int y = 0; y + step < static_cast<int>(height); y += step)
         {
             for (int x = 0; x + step < static_cast<int>(width); x += step)
@@ -118,6 +121,10 @@ void NXTextureMaker::GenerateTerrainMinMaxZMap2DArray(const std::vector<TerrainN
                         maxZ = std::max(maxZ, normalizedV);
                     }
                 }
+
+                // remap to [s_minHeight, s_maxHeight]
+                minZ = minZ * (s_maxHeight - s_minHeight) + s_minHeight; 
+                maxZ = maxZ * (s_maxHeight - s_minHeight) + s_minHeight;
 
                 dataZMip0[(y / step) * mip0Width + (x / step)].minVal = minZ;
                 dataZMip0[(y / step) * mip0Width + (x / step)].maxVal = maxZ;

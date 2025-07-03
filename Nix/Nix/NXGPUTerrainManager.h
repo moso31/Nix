@@ -16,7 +16,7 @@ public:
 	void UpdateCameraParams(NXCamera* pCam);
 	void UpdateLodParams(uint32_t lod);
 
-	void SetBakeTerrainTextures(const std::filesystem::path& heightMap2DArrayPath, const std::filesystem::path& minMaxZMap2DArrayPath, uint32_t width, uint32_t height, uint32_t arraySize);
+	void SetBakeTerrainTextures(const std::filesystem::path& heightMap2DArrayPath, const std::filesystem::path& minMaxZMap2DArrayPath);
 	void UpdateTerrainSupportParam(int minIdX, int minIdY, int rowCount);
 
 	Ntr<NXBuffer>& GetTerrainBufferA() { return m_pTerrainBufferA; }

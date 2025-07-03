@@ -10,7 +10,7 @@
 
 static bool s_terrain_system_dock_inited = false;
 
-NXGUITerrainSystem::NXGUITerrainSystem(NXScene* pScene /*=nullptr*/) : 
+NXGUITerrainSystem::NXGUITerrainSystem(NXScene* pScene /*=nullptr*/) :
     m_pCurrentScene(pScene),
     m_pPickingTerrain(nullptr),
     m_bShowWindow(false),
@@ -91,7 +91,27 @@ void NXGUITerrainSystem::Render()
     {
         Render_Tools();
     }
+
+    ProcessAsyncCallback();
+
     ImGui::End();
+}
+
+void NXGUITerrainSystem::ProcessAsyncCallback()
+{
+    const auto& terrains = m_pCurrentScene->GetTerrains();
+    if (m_bNeedUpdateTerrainLayerFiles)
+    {
+        // 遍历关联的所有地形，并保存每个terrainLayers
+        for (const auto& [nodeId, pTerrain] : terrains)
+        {
+            auto* pTerrainLayer = pTerrain->GetTerrainLayer();
+            if (pTerrainLayer)
+            {
+                pTerrainLayer->Serialize();
+            }
+        }
+    }
 }
 
 void NXGUITerrainSystem::Render_List()
@@ -257,6 +277,7 @@ void NXGUITerrainSystem::Render_Tools()
                 rawPaths.push_back({ pathId, path });
             }
 
+            // 把单张地形的数据拼成完整的2D TexArray；时间比较长 用异步做
             m_bake_future = std::async(std::launch::async, [rawPaths, minX, minY, cntX, cntY, this]() {
                 m_bake_progress = 0;
                 m_bake_progress_count = rawPaths.size() * 2;
@@ -267,8 +288,9 @@ void NXGUITerrainSystem::Render_Tools()
                 NXTextureMaker::GenerateTerrainHeightMap2DArray(rawPaths, cntX, cntY, terrSize, terrSize, outPath, [this]() { m_bake_progress++; });
                 NXTextureMaker::GenerateTerrainMinMaxZMap2DArray(rawPaths, cntX, cntY, terrSize, terrSize, outPath2, [this]() { m_bake_progress++; });
 
-                NXGPUTerrainManager::GetInstance()->SetBakeTerrainTextures(outPath, outPath2, terrSize, terrSize, cntX * cntY);
+                NXGPUTerrainManager::GetInstance()->SetBakeTerrainTextures(outPath, outPath2);
                 NXGPUTerrainManager::GetInstance()->UpdateTerrainSupportParam(minX, minY, cntX);
+                m_bNeedUpdateTerrainLayerFiles = true;
                 });
         }
     }
@@ -280,26 +302,16 @@ void NXGUITerrainSystem::Render_Tools()
     ImGui::SameLine();
     ImGui::Text(strProgress.c_str());
 
-    ImGui::SameLine();
-    if (ImGui::Button("Save To File"))
-    {
-        for (const auto& [nodeId, pTerrain] : terrains)
-        {
-            auto* pTerrainLayer = pTerrain->GetTerrainLayer();
-            if (pTerrainLayer)
-            {
-                pTerrainLayer->Deserialize();
-            }
-        }
-    }
-
     if (isBaking) ImGui::EndDisabled();
 
-    // 批量处理Grid中录入的所有.raw文件，调整大小，并批量序列化
+    std::string strShowPath = NXGPUTerrainManager::GetInstance()->GetTerrainHeightMap2DArray()->GetFilePath().string();
+    ImGui::Text(strShowPath.c_str());
+
     ImGui::PushID("Resize for all *.raw files");
     static int val[2] = { 2049, 2049 };
-    ImGui::DragInt2("raw size", val, 1.0f, 0, 16384);
-
+    ImGui::DragInt2("", val, 1.0f, 0, 16384);
+    ImGui::SameLine();
+    // 批量处理Grid中录入的所有.raw文件，调整大小，并批量序列化
     if (ImGui::Button("Resize for all *.raw files"))
     {
         for (auto& [nodeId, pTerr] : terrains)

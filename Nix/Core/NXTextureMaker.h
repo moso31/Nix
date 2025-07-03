@@ -20,5 +20,6 @@ public:
 
 	// 生成地形最小最大Z值纹理，读取vector下的所有path并打包成一个数组
 	static void GenerateTerrainMinMaxZMap2DArray(const std::vector<TerrainNodePath>& rawPaths, uint32_t nodeCountX, uint32_t nodeCountY, uint32_t width, uint32_t height, const std::filesystem::path& outDDSPath, std::function<void()> onProgressCount = nullptr);
+
 };
 
