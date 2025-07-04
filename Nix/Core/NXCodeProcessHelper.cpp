@@ -549,12 +549,6 @@ struct VS_INPUT
 	float3 norm : NORMAL;
 	float2 tex : TEXCOORD;
 	float3 tangent : TANGENT;
-#ifdef GPU_INSTANCING
-	float4 row0 : GPUINSWORLD0;
-	float4 row1 : GPUINSWORLD1;
-	float4 row2 : GPUINSWORLD2;
-	float4 row3 : GPUINSWORLD3;
-#endif
 };
 
 struct PS_INPUT
@@ -566,6 +560,9 @@ struct PS_INPUT
 	float3 normVS : NORMAL;
 	float2 tex : TEXCOORD;
 	float3 tangentVS : TANGENT;
+#ifdef GPU_INSTANCING
+	nointerpolation uint instanceID : TEXCOORD1;
+#endif
 };
 
 struct PS_OUTPUT
@@ -643,11 +640,14 @@ std::string NXCodeProcessHelper::BuildHLSL_Entry_VS(int& ioLineCounter, const NX
 	if (gpuInstancing)
 	{
 		strVSBegin += R"(
-		NXGPUTerrainPatch patch = m_patchBuffer[instanceID];
+	NXGPUTerrainPatch patch = m_patchBuffer[instanceID];
 )";
 	}
 
 	std::string strVSEnd = R"(
+#ifdef GPU_INSTANCING
+	output.instanceID = instanceID;
+#endif
 	return output;
 }
 )";
@@ -673,6 +673,19 @@ std::string NXCodeProcessHelper::BuildHLSL_Entry_PS(int& ioLineCounter, const NX
 	std::string strPSBegin = R"(
 void PS(PS_INPUT input, out PS_OUTPUT Output)
 {
+	PS_INPUT output;
+)";
+
+	bool gpuInstancing = true; 
+	if (gpuInstancing)
+	{
+		strPSBegin += R"(
+	uint instanceID = input.instanceID;
+	NXGPUTerrainPatch patch = m_patchBuffer[instanceID];
+)";
+	}
+
+	strPSBegin += R"(
     NXGBufferParams o;
 	o.albedo = 1.0f.xxx;
 	o.normal = 1.0f.xxx;

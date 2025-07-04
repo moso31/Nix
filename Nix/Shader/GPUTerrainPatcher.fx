@@ -98,7 +98,7 @@ void CS_Patch(
     plane[4] = NormalizePlane(vp[2]);
     plane[5] = NormalizePlane(vp[3] - vp[2]);
 
-    //for (int i = 0; i < 6; ++i) plane[i].w -= 15.0f; // debug
+    //for (int i = 0; i < 6; ++i) plane[i].w -= 100.0f; // debug
 
     float3 extent = float3(patchSize * 0.5f, yExtent * 0.5f, patchSize * 0.5f);
     float3 center = patch.pos + float3(0.0f, minMaxZ.x, 0.0f) + extent;
