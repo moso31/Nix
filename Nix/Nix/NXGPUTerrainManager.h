@@ -18,6 +18,7 @@ public:
 
 	void SetBakeTerrainTextures(const std::filesystem::path& heightMap2DArrayPath, const std::filesystem::path& minMaxZMap2DArrayPath);
 	void UpdateTerrainSupportParam(int minIdX, int minIdY, int rowCount);
+	void UpdateTerrainDebugParam(float factor);
 
 	Ntr<NXBuffer>& GetTerrainBufferA() { return m_pTerrainBufferA; }
 	Ntr<NXBuffer>& GetTerrainBufferB() { return m_pTerrainBufferB; }

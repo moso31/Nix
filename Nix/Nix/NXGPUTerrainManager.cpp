@@ -77,6 +77,12 @@ void NXGPUTerrainManager::UpdateTerrainSupportParam(int minIdX, int minIdY, int 
 	m_pTerrainSupport.Set(m_pTerrainSupportData);
 }
 
+void NXGPUTerrainManager::UpdateTerrainDebugParam(float factor)
+{
+	m_pTerrainSupportData.m_debugParam = factor;
+	m_pTerrainSupport.Set(m_pTerrainSupportData);
+}
+
 void NXGPUTerrainManager::SetBakeTerrainTextures(const std::filesystem::path& heightMap2DArrayPath, const std::filesystem::path& minMaxZMap2DArrayPath)
 {
 	m_heightMap2DArrayPath = heightMap2DArrayPath;

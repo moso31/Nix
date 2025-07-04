@@ -336,6 +336,13 @@ void NXGUITerrainSystem::Render_Tools()
         }
     }
     ImGui::PopID();
+
+    ImGui::PushID("Debug Params");
+    if (ImGui::DragFloat("Debug Frustum Factor", &m_debugFrustumFactor, 1.0f, 0.0f, 1000.0f))
+    {
+        NXGPUTerrainManager::GetInstance()->UpdateTerrainDebugParam(m_debugFrustumFactor);
+    }
+    ImGui::PopID();
 }
 
 void NXGUITerrainSystem::GenerateFile_Tex2DArray_HeightMap()

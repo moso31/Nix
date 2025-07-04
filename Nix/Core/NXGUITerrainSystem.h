@@ -26,6 +26,7 @@ private:
 	NXTerrain* m_pPickingTerrain;
 	bool m_bShowWindow;
 	bool m_bPickTerrainSelectionChanged;
+	float m_debugFrustumFactor = 0.0f;
 
 	int m_bake_progress = 1;
 	int m_bake_progress_count = 1;

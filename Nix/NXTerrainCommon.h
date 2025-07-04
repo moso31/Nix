@@ -57,5 +57,5 @@ struct NXGPUTerrainSupport
 	int m_blockMinIdX;
 	int m_blockMinIdY;
 	int m_terrainBlockWidth;
-	//int m_terrainBlockHeight;
+	float m_debugParam = 0.0f;
 };

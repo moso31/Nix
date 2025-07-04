@@ -23,6 +23,7 @@ cbuffer cbTerrainSupport : register(b2)
     int m_blockMinIdX;
     int m_blockMinIdY;
     int m_blockCountX;
+    float m_debugParam;
 }
    
 #define MINMAXZ_TEXSIZE 256u // TODO：临时的，如果多地形不见得能这么干……
@@ -69,7 +70,7 @@ void CS_Patch(
     int sliceIndex = coord.y * m_blockCountX + coord.x;
 
     float2 patchUV = frac((patchOrigin.xz + patchSize * 0.5) / (float)TERRAIN_SIZE);
-    float2 minMaxZ = m_minmaxZMap.SampleLevel(ssPointClamp, float3(patchUV.x, 1.0 - patchUV.y, (float)sliceIndex), 0);
+    float2 minMaxZ = m_minmaxZMap.SampleLevel(ssPointClamp, float3(patchUV.x, 1.0 - patchUV.y, (float)sliceIndex), mip);
     float yExtent = (minMaxZ.y - minMaxZ.x);
     float yCenter = (minMaxZ.y + minMaxZ.x) * 0.5f;
 
@@ -83,7 +84,7 @@ void CS_Patch(
 	);
 
     patch.mxWorld = mul(mxScale, patch.mxWorld);
-    patch.uv = minMaxZ;
+    patch.uv = patchUV;
     
     patch.sliceIndex = sliceIndex;
     patch.terrainOrigin = floor(blockOrigin.xz / (float)TERRAIN_SIZE) * (float)TERRAIN_SIZE;
@@ -98,7 +99,7 @@ void CS_Patch(
     plane[4] = NormalizePlane(vp[2]);
     plane[5] = NormalizePlane(vp[3] - vp[2]);
 
-    //for (int i = 0; i < 6; ++i) plane[i].w -= 100.0f; // debug
+    for (int i = 0; i < 6; ++i) plane[i].w -= m_debugParam; // debug
 
     float3 extent = float3(patchSize * 0.5f, yExtent * 0.5f, patchSize * 0.5f);
     float3 center = patch.pos + float3(0.0f, minMaxZ.x, 0.0f) + extent;
