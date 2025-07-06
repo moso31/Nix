@@ -191,3 +191,112 @@ void NXTextureMaker::GenerateTerrainMinMaxZMap2DArray(const std::vector<TerrainN
     if (FAILED(hr))
         throw std::runtime_error("保存 DDS 失败: " + outDDSPath.string());
 }
+
+void NXTextureMaker::GenerateTerrainNormal2DArray(const std::vector<TerrainNodePath>& rawPaths, uint32_t nodeCountX, uint32_t nodeCountY, uint32_t width, uint32_t height, const Vector2& zRange, const std::filesystem::path& outDDSPath, std::function<void()> onProgressCount)
+{
+    uint32_t arraySize = nodeCountX * nodeCountY;
+    arraySize = std::min<uint32_t>(arraySize, static_cast<uint32_t>(rawPaths.size()));
+    if (arraySize == 0)
+        throw std::runtime_error("arraySize == 0");
+
+    constexpr DXGI_FORMAT kFormat = DXGI_FORMAT_R10G10B10A2_UNORM;  // 输出格式
+    constexpr uint32_t kBytesPerPixel = sizeof(uint16_t);
+
+    std::unique_ptr<ScratchImage> texArray = std::make_unique<ScratchImage>();
+    HRESULT hr = texArray->Initialize2D(kFormat, width, height, arraySize, 1);
+    if (FAILED(hr))
+        throw std::runtime_error("DirectXTex::Initialize2D 失败");
+
+    std::vector<uint16_t> rawData(width * height);
+    std::vector<Vector3> normalBuf(width * height);
+
+    for (uint32_t n = 0; n < arraySize; ++n)
+    {
+        int slice = rawPaths[n].nodeId.y * nodeCountX + rawPaths[n].nodeId.x;
+        const auto& path = rawPaths[n].path;
+
+        bool rawOK = NXConvert::IsRawFileExtension(path.extension().string());
+        if (rawOK)
+        {
+            std::ifstream ifs(path, std::ios::binary);
+            if (!ifs) rawOK = false;
+            if (rawOK)
+            {
+                ifs.read(reinterpret_cast<char*>(rawData.data()), width * height * kBytesPerPixel);
+                if (ifs.gcount() != static_cast<std::streamsize>(width * height * kBytesPerPixel))
+                    rawOK = false;
+            }
+        }
+
+        if (!rawOK)
+        {
+            std::fill(rawData.begin(), rawData.end(), 0);
+        }
+
+        auto heightWorld = [&](uint16_t h16) -> float
+            {
+                float h = static_cast<float>(h16) / 65535.0f;   // [0,1]
+                return h * (zRange.y - zRange.x) + zRange.x;    // [zMin,zMax]
+            };
+
+        /* ----------- 3. 遍历像素求法线 ----------- */
+        for (uint32_t j = 0; j < height; ++j)
+        {
+            uint32_t jU = (j == 0) ? j : j - 1;
+            uint32_t jD = (j == height - 1) ? j : j + 1;
+
+            for (uint32_t i = 0; i < width; ++i)
+            {
+                uint32_t iL = (i == 0) ? i : i - 1;
+                uint32_t iR = (i == width - 1) ? i : i + 1;
+
+                float hL = heightWorld(rawData[j * width + iL]);
+                float hR = heightWorld(rawData[j * width + iR]);
+                float hU = heightWorld(rawData[jU * width + i]);
+                float hD = heightWorld(rawData[jD * width + i]);
+
+                // L/R/U/D 在世界坐标中的位置
+                Vector3 posL((float)iL, hL, (float)j);
+                Vector3 posR((float)iR, hR, (float)j);
+                Vector3 posU((float)i, hU, (float)jU);
+                Vector3 posD((float)i, hD, (float)jD);
+
+                Vector3 vecLR = posR - posL;
+                Vector3 vecUD = posD - posU;
+                Vector3 nrm = vecUD.Cross(vecLR);
+                nrm.Normalize();
+
+                normalBuf[j * width + i] = nrm;
+            }
+        }
+
+        const Image* dstImg = texArray->GetImage(0, slice, 0);
+        uint8_t* dstPtr = dstImg->pixels;
+
+        for (uint32_t y = 0; y < height; ++y)
+        {
+            uint32_t* row = reinterpret_cast<uint32_t*>(dstPtr + y * dstImg->rowPitch);
+            for (uint32_t x = 0; x < width; ++x)
+            {
+                const Vector3& n = normalBuf[y * width + x];
+                uint32_t r = static_cast<uint32_t>((n.x * 0.5f + 0.5f) * 1023.0f);
+                uint32_t g = static_cast<uint32_t>((n.y * 0.5f + 0.5f) * 1023.0f);
+                uint32_t b = static_cast<uint32_t>((n.z * 0.5f + 0.5f) * 1023.0f);
+                uint32_t a = 3;   // 2-bit alpha 置满
+
+                row[x] = (a << 30) | (b << 20) | (g << 10) | (r << 0);
+            }
+        }
+
+        if (onProgressCount) onProgressCount();
+    }
+
+    if (!outDDSPath.empty())
+    {
+        hr = SaveToDDSFile(texArray->GetImages(), texArray->GetImageCount(),
+            texArray->GetMetadata(), DDS_FLAGS_NONE,
+            outDDSPath.wstring().c_str());
+        if (FAILED(hr))
+            throw std::runtime_error("保存 DDS 失败: " + outDDSPath.string());
+    }
+}

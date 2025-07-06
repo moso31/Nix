@@ -185,6 +185,7 @@ void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::s
 		{
 			ranges2.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 1)); // t0, space1 = GPU Terrain Patch Buffer;
 			ranges2.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1, 1)); // t1, space1 = Height Map;
+			ranges2.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2, 1)); // t2, space1 = Normal Map;
 
 			rootParams.push_back(
 				NX12Util::CreateRootParameterTable(ranges2, D3D12_SHADER_VISIBILITY_ALL) // t..., space1

@@ -43,7 +43,7 @@ void NXGPUTerrainManager::Init()
 	m_cmdSigDesc.NodeMask = 0;
 
 	// ¸÷¼¶¾àÀë
-	float dist[TERRAIN_LOD_NUM] = { 10000, 2000, 600, 400, 200, 100 };
+	float dist[TERRAIN_LOD_NUM] = { 6000, 3000, 1500, 800, 400, 150 };
 	for (int lod = 0; lod < TERRAIN_LOD_NUM; lod++)
 	{
 		m_pTerrainParamsData[lod].m_nodeWorldScale = (float)(64 << (5 - lod));
@@ -53,7 +53,10 @@ void NXGPUTerrainManager::Init()
 
 	UpdateTerrainSupportParam(-4, -4, 8);
 
-	SetBakeTerrainTextures("D:\\NixAssets\\terrainTest\\heightMapArray.dds", "D:\\NixAssets\\terrainTest\\minMaxZMapArray.dds");
+	SetBakeTerrainTextures(
+		"D:\\NixAssets\\terrainTest\\heightMapArray.dds", 
+		"D:\\NixAssets\\terrainTest\\minMaxZMapArray.dds",
+		"D:\\NixAssets\\terrainTest\\NormalArray.dds");
 }
 
 void NXGPUTerrainManager::UpdateCameraParams(NXCamera* pCam)
@@ -83,7 +86,7 @@ void NXGPUTerrainManager::UpdateTerrainDebugParam(float factor)
 	m_pTerrainSupport.Set(m_pTerrainSupportData);
 }
 
-void NXGPUTerrainManager::SetBakeTerrainTextures(const std::filesystem::path& heightMap2DArrayPath, const std::filesystem::path& minMaxZMap2DArrayPath)
+void NXGPUTerrainManager::SetBakeTerrainTextures(const std::filesystem::path& heightMap2DArrayPath, const std::filesystem::path& minMaxZMap2DArrayPath, const std::filesystem::path& NormalArrayPath)
 {
 	m_heightMap2DArrayPath = heightMap2DArrayPath;
 	m_minMaxZMap2DArrayPath = minMaxZMap2DArrayPath;
@@ -100,6 +103,13 @@ void NXGPUTerrainManager::SetBakeTerrainTextures(const std::filesystem::path& he
 		TexMetadata metadata;
 		DirectX::GetMetadataFromDDSFile(m_minMaxZMap2DArrayPath.wstring().c_str(), DDS_FLAGS_NONE, metadata);
 		m_pTerrainMinMaxZMap2DArray = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DArray("Terrain MinMax Z Map 2DArray", m_minMaxZMap2DArrayPath, DXGI_FORMAT_R32G32_FLOAT, metadata.width, metadata.height, metadata.arraySize, metadata.mipLevels);
+	}
+
+	if (std::filesystem::exists(NormalArrayPath))
+	{
+		TexMetadata metadata;
+		DirectX::GetMetadataFromDDSFile(NormalArrayPath.wstring().c_str(), DDS_FLAGS_NONE, metadata);
+		m_pTerrainNormalMap2DArray = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DArray("Terrain Normal Map 2DArray", NormalArrayPath, DXGI_FORMAT_R10G10B10A2_UNORM, metadata.width, metadata.height, metadata.arraySize, metadata.mipLevels);
 	}
 }
 
@@ -125,6 +135,9 @@ void NXGPUTerrainManager::Update(ID3D12GraphicsCommandList* pCmdList)
 
 	auto pHeightMapTex = m_pTerrainHeightMap2DArray;
 	NXShVisDescHeap->PushFluid(pHeightMapTex.IsValid() ? pHeightMapTex->GetSRV() : NXAllocator_NULL->GetNullSRV());
+
+	auto pNormalMapTex = m_pTerrainNormalMap2DArray;
+	NXShVisDescHeap->PushFluid(pNormalMapTex.IsValid() ? pNormalMapTex->GetSRV() : NXAllocator_NULL->GetNullSRV());
 
 	auto& srvHandle = NXShVisDescHeap->Submit();
 	pCmdList->SetGraphicsRootDescriptorTable(4, srvHandle); // t...

@@ -75,7 +75,7 @@ void CS_Patch(
     float yCenter = (minMaxZ.y + minMaxZ.x) * 0.5f;
 
     NXGPUTerrainPatch patch = (NXGPUTerrainPatch)0;
-    patch.pos = patchOrigin;
+    patch.pos = mip.xxx;
     patch.mxWorld = matrix(
 		1.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 1.0f, 0.0f, 0.0f,
@@ -102,7 +102,7 @@ void CS_Patch(
     for (int i = 0; i < 6; ++i) plane[i].w -= m_debugParam; // debug
 
     float3 extent = float3(patchSize * 0.5f, yExtent * 0.5f, patchSize * 0.5f);
-    float3 center = patch.pos + float3(0.0f, minMaxZ.x, 0.0f) + extent;
+    float3 center = patchOrigin + float3(0.0f, minMaxZ.x, 0.0f) + extent;
 
     bool isoutside = false;
     for (int i = 0; i < 6; i++)

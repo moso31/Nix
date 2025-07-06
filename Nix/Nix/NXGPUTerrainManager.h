@@ -16,7 +16,7 @@ public:
 	void UpdateCameraParams(NXCamera* pCam);
 	void UpdateLodParams(uint32_t lod);
 
-	void SetBakeTerrainTextures(const std::filesystem::path& heightMap2DArrayPath, const std::filesystem::path& minMaxZMap2DArrayPath);
+	void SetBakeTerrainTextures(const std::filesystem::path& heightMap2DArrayPath, const std::filesystem::path& minMaxZMap2DArrayPath, const std::filesystem::path& NormalArrayPath);
 	void UpdateTerrainSupportParam(int minIdX, int minIdY, int rowCount);
 	void UpdateTerrainDebugParam(float factor);
 
@@ -30,6 +30,7 @@ public:
 
 	Ntr<NXTexture2DArray>& GetTerrainHeightMap2DArray() { return m_pTerrainHeightMap2DArray; }
 	Ntr<NXTexture2DArray>& GetTerrainMinMaxZMap2DArray() { return m_pTerrainMinMaxZMap2DArray; }
+	Ntr<NXTexture2DArray>& GetTerrainNormalMap2DArray() { return m_pTerrainNormalMap2DArray; }
 
 	NXConstantBuffer<NXGPUTerrainParams>& GetCBTerrainParams(uint32_t index) 
 	{ 
@@ -71,6 +72,7 @@ private:
 	std::filesystem::path m_minMaxZMap2DArrayPath;
 	Ntr<NXTexture2DArray> m_pTerrainHeightMap2DArray;
 	Ntr<NXTexture2DArray> m_pTerrainMinMaxZMap2DArray;
+	Ntr<NXTexture2DArray> m_pTerrainNormalMap2DArray;
 
 	ConstantBufferObject m_cbDataObject;
 	NXConstantBuffer<ConstantBufferObject>	m_cbObject;

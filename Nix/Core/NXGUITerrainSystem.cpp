@@ -280,15 +280,17 @@ void NXGUITerrainSystem::Render_Tools()
             // 把单张地形的数据拼成完整的2D TexArray；时间比较长 用异步做
             m_bake_future = std::async(std::launch::async, [rawPaths, minX, minY, cntX, cntY, this]() {
                 m_bake_progress = 0;
-                m_bake_progress_count = rawPaths.size() * 2;
+                m_bake_progress_count = rawPaths.size() * 3;
                 std::filesystem::path outPath("D:\\NixAssets\\terrainTest\\heightMapArray.dds");
                 std::filesystem::path outPath2("D:\\NixAssets\\terrainTest\\minMaxZMapArray.dds");
+                std::filesystem::path outPath3("D:\\NixAssets\\terrainTest\\NormalArray.dds");
 
                 int terrSize = 2049;
                 NXTextureMaker::GenerateTerrainHeightMap2DArray(rawPaths, cntX, cntY, terrSize, terrSize, outPath, [this]() { m_bake_progress++; });
                 NXTextureMaker::GenerateTerrainMinMaxZMap2DArray(rawPaths, cntX, cntY, terrSize, terrSize, outPath2, [this]() { m_bake_progress++; });
+                NXTextureMaker::GenerateTerrainNormal2DArray(rawPaths, cntX, cntY, terrSize, terrSize, Vector2(0, 2048), outPath3, [this]() { m_bake_progress++; });
 
-                NXGPUTerrainManager::GetInstance()->SetBakeTerrainTextures(outPath, outPath2);
+                NXGPUTerrainManager::GetInstance()->SetBakeTerrainTextures(outPath, outPath2, outPath3);
                 NXGPUTerrainManager::GetInstance()->UpdateTerrainSupportParam(minX, minY, cntX);
                 m_bNeedUpdateTerrainLayerFiles = true;
                 });
