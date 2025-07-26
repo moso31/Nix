@@ -20,6 +20,7 @@
 #include "NXRGResource.h"
 #include "NXRGBuilder.h"
 #include "NXGPUTerrainManager.h"
+#include "NXVirtualTextureManager.h"
 
 Renderer::Renderer(const Vector2& rtSize) :
 	m_bRenderGUI(true),
@@ -58,6 +59,8 @@ void Renderer::Init()
 	NXGPUTerrainManager::GetInstance()->Init();
 
 	m_scene->Init();
+	NXVirtualTextureManager::GetInstance()->BuildSearchList(400);
+	NXVirtualTextureManager::GetInstance()->SetCamera(m_scene->GetMainCamera());
 
 	auto pCubeMap = m_scene->GetCubeMap();
 
@@ -489,6 +492,7 @@ void Renderer::UpdateSceneData()
 	m_scene->UpdateCamera();
 
 	NXGPUTerrainManager::GetInstance()->UpdateCameraParams(m_scene->GetMainCamera());
+	NXVirtualTextureManager::GetInstance()->Update();
 
 	m_scene->UpdateLightData();
 

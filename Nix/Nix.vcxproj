@@ -232,6 +232,7 @@
     <ClCompile Include="Core\NXGUIInspector.cpp" />
     <ClCompile Include="Core\NXGUIRenderGraph.cpp" />
     <ClCompile Include="Core\NXGUITerrainSystem.cpp" />
+    <ClCompile Include="Core\NXGUIVirtualTexture.cpp" />
     <ClCompile Include="Core\NXNullDescriptor.cpp" />
     <ClCompile Include="Core\NXPSOManager.cpp" />
     <ClCompile Include="Core\NXGraphicPass.cpp" />
@@ -318,6 +319,7 @@
     <ClCompile Include="Nix\NXSubMeshGeometryEditor.cpp" />
     <ClCompile Include="Nix\NXTerrainLayer.cpp" />
     <ClCompile Include="Nix\NXTexture.cpp" />
+    <ClCompile Include="Nix\NXVirtualTextureManager.cpp" />
     <ClCompile Include="Nix\Script\NSFirstPersonalCamera.cpp" />
     <ClCompile Include="Nix\Script\NSTest.cpp" />
     <ClCompile Include="Nix\NXCamera.cpp" />
@@ -356,6 +358,7 @@
     <ClInclude Include="Core\NXGUIInspector.h" />
     <ClInclude Include="Core\NXGUIRenderGraph.h" />
     <ClInclude Include="Core\NXGUITerrainSystem.h" />
+    <ClInclude Include="Core\NXGUIVirtualTexture.h" />
     <ClInclude Include="Core\NXNullDescriptor.h" />
     <ClInclude Include="Core\NXPSOManager.h" />
     <ClInclude Include="Core\NXGraphicPass.h" />
@@ -449,6 +452,7 @@
     <ClInclude Include="Nix\NXSubMesh.h" />
     <ClInclude Include="Nix\NXSubMeshGeometryEditor.h" />
     <ClInclude Include="Nix\NXTexture.h" />
+    <ClInclude Include="Nix\NXVirtualTextureManager.h" />
     <ClInclude Include="Nix\Script\NSFirstPersonalCamera.h" />
     <ClInclude Include="Nix\Script\NSTest.h" />
     <ClInclude Include="Nix\NXCamera.h" />

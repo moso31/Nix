@@ -20,6 +20,7 @@
 #include "NXGUIPostProcessing.h"
 #include "NXGUIContentExplorer.h"
 #include "NXGUITerrainSystem.h"
+#include "NXGUIVirtualTexture.h"
 #include "NXGUITexture.h"
 #include "NXGUIView.h"
 #include "NXGUIRenderGraph.h"
@@ -40,6 +41,7 @@ NXGUI::NXGUI(NXScene* pScene, Renderer* pRenderer) :
 	m_pGUIDebugLayer(nullptr),
 	m_pGUIContentExplorer(nullptr),
 	m_pGUITerrainSystem(nullptr),
+	m_pGUIVirtualTexture(nullptr),
 	m_pGUIRenderGraph(nullptr),
 	m_pGUIView(nullptr),
 	m_pGUIWorkspace(nullptr)
@@ -87,6 +89,7 @@ void NXGUI::Init()
 	m_pGUIMaterialShaderEditor = new NXGUIMaterialShaderEditor();
 	m_pGUIContentExplorer = new NXGUIContentExplorer(m_pCurrentScene);
 	m_pGUITerrainSystem = new NXGUITerrainSystem(m_pCurrentScene);
+	m_pGUIVirtualTexture = new NXGUIVirtualTexture();
 
 	m_pGUIInspector = new NXGUIInspector();
 	m_pGUIInspector->InitGUI(m_pCurrentScene, m_pGUIMaterialShaderEditor, m_pGUITerrainSystem);
@@ -133,6 +136,7 @@ void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT, const NXSwapChainBuffer& swapCha
 
 	m_pGUIMaterialShaderEditor->Render();
 	m_pGUITerrainSystem->Render();
+	m_pGUIVirtualTexture->Render();
 	m_pGUIContentExplorer->Render();
 	m_pGUIInspector->Render();
 	m_pGUICubeMap->Render();
@@ -222,6 +226,7 @@ void NXGUI::Release()
 	SafeDelete(m_pGUIPostProcessing);
 	SafeDelete(m_pGUIDebugLayer);
 	SafeDelete(m_pGUIContentExplorer);
+	SafeDelete(m_pGUIVirtualTexture);
 	SafeDelete(m_pGUITerrainSystem);
 	SafeDelete(m_pGUIRenderGraph);
 

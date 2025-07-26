@@ -24,6 +24,7 @@ class NXGUIView;
 class NXGUIWorkspace;
 class NXGUIInspector;
 class NXGUIRenderGraph;
+class NXGUIVirtualTexture;
 
 class NXGUI
 {
@@ -45,6 +46,7 @@ private:
 	Renderer*	m_pRenderer;
 
 	NXGUITerrainSystem* 		m_pGUITerrainSystem;
+	NXGUIVirtualTexture* 		m_pGUIVirtualTexture;
 	NXGUIContentExplorer*		m_pGUIContentExplorer;
 	NXGUILights*				m_pGUILights;
 	NXGUICamera*				m_pGUICamera;

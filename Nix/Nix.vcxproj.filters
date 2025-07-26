@@ -130,6 +130,9 @@
     <Filter Include="Shader\Terrain">
       <UniqueIdentifier>{acc387db-02b9-4a20-a13b-7dbb2dd8454a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Nix\VirtualTexture">
+      <UniqueIdentifier>{1eb6e8cc-0515-4c86-a1ed-8f8c12b4665f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Common.fx">
@@ -583,6 +586,12 @@
     <ClCompile Include="Core\NXTextureMaker.cpp">
       <Filter>Core\Helper</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\NXVirtualTextureManager.cpp">
+      <Filter>Nix\VirtualTexture</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXGUIVirtualTexture.cpp">
+      <Filter>Core\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -977,6 +986,12 @@
     </ClInclude>
     <ClInclude Include="Core\NXTextureMaker.h">
       <Filter>Core\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXVirtualTextureManager.h">
+      <Filter>Nix\VirtualTexture</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXGUIVirtualTexture.h">
+      <Filter>Core\UI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

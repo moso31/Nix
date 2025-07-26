@@ -926,6 +926,11 @@ inline float DirectX::SimpleMath::Vector3::GetGrayValue()
 	return this->Dot(grayScale);
 }
 
+inline Vector2 Vector3::GetXZ() const
+{
+    return Vector2(x, z);
+}
+
 //------------------------------------------------------------------------------
 // Static functions
 //------------------------------------------------------------------------------

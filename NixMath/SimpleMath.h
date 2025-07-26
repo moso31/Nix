@@ -211,6 +211,7 @@ struct Vector3 : public XMFLOAT3
 	int MaxDimension() const;
 	float MaxComponent() const;
     void GenerateCoordinateSpace(Vector3& basis1, Vector3& basis2);
+    Vector2 GetXZ() const;
 
 	// ªÒ»°ª“∂»
 	float GetGrayValue();
@@ -382,6 +383,118 @@ Vector4 operator* (const Vector4& V1, const Vector4& V2);
 Vector4 operator* (const Vector4& V, float S);
 Vector4 operator/ (const Vector4& V1, const Vector4& V2);
 Vector4 operator* (float S, const Vector4& V);
+
+//------------------------------------------------------------------------------
+
+struct Int2 : public XMINT2
+{
+    Int2() : XMINT2(0, 0) {}
+    Int2(int x, int y) : XMINT2(x, y) {}
+    Int2(const Vector2& v) : XMINT2((int)v.x, (int)v.y) {}
+
+    // Comparision operators
+    bool operator == (const Int2& V) const { return (x == V.x && y == V.y); }
+    bool operator != (const Int2& V) const { return (x != V.x || y != V.y); }
+
+    // Assignment operators
+    Int2& operator=  (const Int2& V) { x = V.x; y = V.y; return *this; }
+    Int2& operator+= (const Int2& V) { x += V.x; y += V.y; return *this; }
+    Int2& operator-= (const Int2& V) { x -= V.x; y -= V.y; return *this; }
+    Int2& operator*= (const Int2& V) { x *= V.x; y *= V.y; return *this; }
+    Int2& operator*= (int S) { x *= S; y *= S; return *this; }
+    Int2& operator/= (int S) { x /= S; y /= S; return *this; }
+
+    // bit operators
+    Int2& operator&= (const Int2& V) { x &= V.x; y &= V.y; return *this; }
+    Int2& operator|= (const Int2& V) { x |= V.x; y |= V.y; return *this; }
+    Int2& operator^= (const Int2& V) { x ^= V.x; y ^= V.y; return *this; }
+    Int2& operator<<= (int S) { x <<= S; y <<= S; return *this; }
+    Int2& operator>>= (int S) { x >>= S; y >>= S; return *this; }
+    Int2 operator+ () const { return *this; }
+    Int2 operator- () const { return Int2(-x, -y); }
+};
+
+inline Int2 operator+ (const Int2& V1, const Int2& V2) { return Int2(V1.x + V2.x, V1.y + V2.y); }
+inline Int2 operator- (const Int2& V1, const Int2& V2) { return Int2(V1.x - V2.x, V1.y - V2.y); }
+inline Int2 operator* (const Int2& V1, const Int2& V2) { return Int2(V1.x * V2.x, V1.y * V2.y); }
+inline Int2 operator* (const Int2& V, int S) { return Int2(V.x * S, V.y * S); }
+inline Int2 operator/ (const Int2& V1, const Int2& V2) { return Int2(V1.x / V2.x, V1.y / V2.y); }
+inline Int2 operator* (int S, const Int2& V) { return Int2(V.x * S, V.y * S); }
+inline Int2 operator/ (const Int2& V, int S) { return Int2(V.x / S, V.y / S); }
+
+struct Int3 : public XMINT3
+{
+    Int3() : XMINT3(0, 0, 0) {}
+    Int3(int x, int y, int z) : XMINT3(x, y, z) {}
+    Int3(const Vector3& v) : XMINT3((int)v.x, (int)v.y, (int)v.z) {}
+
+    // Comparision operators
+    bool operator == (const Int3& V) const { return (x == V.x && y == V.y && z == V.z); }
+    bool operator != (const Int3& V) const { return (x != V.x || y != V.y || z != V.z); }
+
+    // Assignment operators
+    Int3& operator=  (const Int3& V) { x = V.x; y = V.y; z = V.z; return *this; }
+    Int3& operator+= (const Int3& V) { x += V.x; y += V.y; z += V.z; return *this; }
+    Int3& operator-= (const Int3& V) { x -= V.x; y -= V.y; z -= V.z; return *this; }
+    Int3& operator*= (const Int3& V) { x *= V.x; y *= V.y; z *= V.z; return *this; }
+    Int3& operator*= (int S) { x *= S; y *= S; z *= S; return *this; }
+    Int3& operator/= (int S) { x /= S; y /= S; z /= S; return *this; }
+
+    // bit operators
+    Int3& operator&= (const Int3& V) { x &= V.x; y &= V.y; z &= V.z; return *this; }
+    Int3& operator|= (const Int3& V) { x |= V.x; y |= V.y; z |= V.z; return *this; }
+    Int3& operator^= (const Int3& V) { x ^= V.x; y ^= V.y; z ^= V.z; return *this; }
+    Int3& operator<<= (int S) { x <<= S; y <<= S; z <<= S; return *this; }
+    Int3& operator>>= (int S) { x >>= S; y >>= S; z >>= S; return *this; }
+
+    Int3 operator+ () const { return *this; }
+    Int3 operator- () const { return Int3(-x, -y, -z); }
+};
+
+inline Int3 operator+ (const Int3& V1, const Int3& V2) { return Int3(V1.x + V2.x, V1.y + V2.y, V1.z + V2.z); }
+inline Int3 operator- (const Int3& V1, const Int3& V2) { return Int3(V1.x - V2.x, V1.y - V2.y, V1.z - V2.z); }
+inline Int3 operator* (const Int3& V1, const Int3& V2) { return Int3(V1.x * V2.x, V1.y * V2.y, V1.z * V2.z); }
+inline Int3 operator* (const Int3& V, int S) { return Int3(V.x * S, V.y * S, V.z * S); }
+inline Int3 operator/ (const Int3& V1, const Int3& V2) { return Int3(V1.x / V2.x, V1.y / V2.y, V1.z / V2.z); }
+inline Int3 operator* (int S, const Int3& V) { return Int3(V.x * S, V.y * S, V.z * S); }
+inline Int3 operator/ (const Int3& V, int S) { return Int3(V.x / S, V.y / S, V.z / S); }
+
+struct Int4 : public XMINT4
+{
+    Int4() : XMINT4(0, 0, 0, 0) {}
+    Int4(int x, int y, int z, int w) : XMINT4(x, y, z, w) {}
+    Int4(const Vector4& v) : XMINT4((int)v.x, (int)v.y, (int)v.z, (int)v.w) {}
+
+    // Comparision operators
+    bool operator == (const Int4& V) const { return (x == V.x && y == V.y && z == V.z && w == V.w); }
+    bool operator != (const Int4& V) const { return (x != V.x || y != V.y || z != V.z || w != V.w); }
+
+    // Assignment operators
+    Int4& operator=  (const Int4& V) { x = V.x; y = V.y; z = V.z; w = V.w; return *this; }
+    Int4& operator+= (const Int4& V) { x += V.x; y += V.y; z += V.z; w += V.w; return *this; }
+    Int4& operator-= (const Int4& V) { x -= V.x; y -= V.y; z -= V.z; w -= V.w; return *this; }
+    Int4& operator*= (const Int4& V) { x *= V.x; y *= V.y; z *= V.z; w *= V.w; return *this; }
+    Int4& operator*= (int S) { x *= S; y *= S; z *= S; w *= S; return *this; }
+    Int4& operator/= (int S) { x /= S; y /= S; z /= S; w /= S; return *this; }
+
+    // bit operators
+    Int4& operator&= (const Int4& V) { x &= V.x; y &= V.y; z &= V.z; w &= V.w; return *this; }
+    Int4& operator|= (const Int4& V) { x |= V.x; y |= V.y; z |= V.z; w |= V.w; return *this; }
+    Int4& operator^= (const Int4& V) { x ^= V.x; y ^= V.y; z ^= V.z; w ^= V.w; return *this; }
+    Int4& operator<<= (int S) { x <<= S; y <<= S; z <<= S; w <<= S; return *this; }
+    Int4& operator>>= (int S) { x >>= S; y >>= S; z >>= S; w >>= S; return *this; }
+    
+    Int4 operator+ () const { return *this; }
+    Int4 operator- () const { return Int4(-x, -y, -z, -w); }
+};
+
+inline Int4 operator+ (const Int4& V1, const Int4& V2) { return Int4(V1.x + V2.x, V1.y + V2.y, V1.z + V2.z, V1.w + V2.w); }
+inline Int4 operator- (const Int4& V1, const Int4& V2) { return Int4(V1.x - V2.x, V1.y - V2.y, V1.z - V2.z, V1.w - V2.w); }
+inline Int4 operator* (const Int4& V1, const Int4& V2) { return Int4(V1.x * V2.x, V1.y * V2.y, V1.z * V2.z, V1.w * V2.w); }
+inline Int4 operator* (const Int4& V, int S) { return Int4(V.x * S, V.y * S, V.z * S, V.w * S); }
+inline Int4 operator/ (const Int4& V1, const Int4& V2) { return Int4(V1.x / V2.x, V1.y / V2.y, V1.z / V2.z, V1.w / V2.w); }
+inline Int4 operator* (int S, const Int4& V) { return Int4(V.x * S, V.y * S, V.z * S, V.w * S); }
+inline Int4 operator/ (const Int4& V, int S) { return Int4(V.x / S, V.y / S, V.z / S, V.w / S); }
 
 //------------------------------------------------------------------------------
 // 4x4 Matrix (assumes right-handed cooordinates)
