@@ -592,6 +592,12 @@
     <ClCompile Include="Core\NXGUIVirtualTexture.cpp">
       <Filter>Core\UI</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\NXVirtualImageAtlas.cpp">
+      <Filter>Nix\VirtualTexture</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXVirtualTextureCommon.cpp">
+      <Filter>Nix\VirtualTexture</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -992,6 +998,12 @@
     </ClInclude>
     <ClInclude Include="Core\NXGUIVirtualTexture.h">
       <Filter>Core\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXVirtualImageAtlas.h">
+      <Filter>Nix\VirtualTexture</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXVirtualTextureCommon.h">
+      <Filter>Nix\VirtualTexture</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

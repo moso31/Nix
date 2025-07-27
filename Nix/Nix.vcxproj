@@ -319,6 +319,8 @@
     <ClCompile Include="Nix\NXSubMeshGeometryEditor.cpp" />
     <ClCompile Include="Nix\NXTerrainLayer.cpp" />
     <ClCompile Include="Nix\NXTexture.cpp" />
+    <ClCompile Include="Nix\NXVirtualImageAtlas.cpp" />
+    <ClCompile Include="Nix\NXVirtualTextureCommon.cpp" />
     <ClCompile Include="Nix\NXVirtualTextureManager.cpp" />
     <ClCompile Include="Nix\Script\NSFirstPersonalCamera.cpp" />
     <ClCompile Include="Nix\Script\NSTest.cpp" />
@@ -452,6 +454,8 @@
     <ClInclude Include="Nix\NXSubMesh.h" />
     <ClInclude Include="Nix\NXSubMeshGeometryEditor.h" />
     <ClInclude Include="Nix\NXTexture.h" />
+    <ClInclude Include="Nix\NXVirtualImageAtlas.h" />
+    <ClInclude Include="Nix\NXVirtualTextureCommon.h" />
     <ClInclude Include="Nix\NXVirtualTextureManager.h" />
     <ClInclude Include="Nix\Script\NSFirstPersonalCamera.h" />
     <ClInclude Include="Nix\Script\NSTest.h" />
