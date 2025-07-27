@@ -32,6 +32,30 @@ void NXVirtualTextureManager::Update()
 	for (int i = 0; i < m_offsetXZ.size(); i++)
 	{
 		auto& ofsXZ = m_offsetXZ[i];
-		m_sectorXZ[i] = posXZ + ofsXZ;
+		m_sectorXZ[i].position = posXZ + ofsXZ;
 	}
+
+	std::vector<NXSectorInfo> delayedRemoveSectors;
+	for (auto& sectorXZ : m_sectorXZ)
+	{
+		int virtImgSize = CalcVirtImageSize(sectorXZ.position);
+		if (virtImgSize != sectorXZ.resolution)
+		{
+			delayedRemoveSectors.push_back(sectorXZ);
+		}
+	}
+}
+
+int NXVirtualTextureManager::CalcVirtImageSize(const Int2& sector)
+{
+	Vector3 sectorPosWS(sector.x, 0.0, sector.y);
+	Vector3 camPosWS = m_pCamera->GetTranslation();
+	float distance = Vector3::Distance(sectorPosWS, camPosWS);
+	float t = distance / 5.0; // TODO: 5.0?...
+
+	int lod = 0;
+	if (t > 1) lod = std::log2(t + 1);
+
+	int resolution = NXVT_VIRTUALIMAGE_MAXNODE_PIXEL >> lod;
+	return resolution;
 }
