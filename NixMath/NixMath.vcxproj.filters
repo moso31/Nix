@@ -12,4 +12,7 @@
     <ClCompile Include="SamplerMath.cpp" />
     <ClCompile Include="SphereHarmonics.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="NixMath.natvis" />
+  </ItemGroup>
 </Project>

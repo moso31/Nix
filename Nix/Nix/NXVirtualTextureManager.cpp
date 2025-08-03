@@ -6,6 +6,38 @@ void NXVirtualTextureManager::Init()
 	m_atlas = new NXVirtualTextureAtlas();
 }
 
+void NXVirtualTextureManager::GetImagePosAndSize(NXVTAtlasQuadTreeNode* pNode, Int2& oAtlasPos, int& oAtlasSize)
+{
+	// 基于nodeId，将四叉树节点换算成VirtImageAtlas的位置和大小
+	
+	// 根节点位置和大小
+	Int2 nPos(1024, 1024);
+	int nSize = 1024; 
+
+	int depth = 0;
+	for (int t = pNode->nodeID; t; t = (t - 1) >> 2) depth+=2;
+
+	// 将nodeID转码成可按位解析的四进制，比如0312={根}-{子0}-{子3}-{子1}-{子2}
+	int n = (pNode->nodeID - 0x55555555) & ((1 << depth) - 1); 
+
+	int mask = 0x3;
+	while (depth)
+	{
+		depth -= 2;
+		int subId = ((mask << depth) & n) >> depth; // 按位从高往低读每两位的subId
+
+		int ofs = nSize / 2;
+		if (subId == 0)			nPos += Int2(-ofs, -ofs);
+		else if (subId == 1)	nPos += Int2(+ofs, -ofs);
+		else if (subId == 2)	nPos += Int2(-ofs, +ofs);
+		else if (subId == 3)	nPos += Int2(+ofs, +ofs);
+		nSize = ofs;
+	}
+
+	oAtlasPos = nPos;
+	oAtlasSize = nSize;
+}
+
 void NXVirtualTextureManager::BuildSearchList(float distance)
 {
 	m_offsetXZ.clear();
@@ -55,7 +87,7 @@ void NXVirtualTextureManager::Update()
 	std::unordered_set<NXSectorInfo> removeImmediately, addImmediately, removeDelayed;
 	for (auto& oldSectorInfo : m_sectorInfo)
 	{
-		if (newSectorMap.contains(oldSectorInfo.position))
+		if (!newSectorMap.contains(oldSectorInfo.position))
 		{
 			removeImmediately.insert(oldSectorInfo);
 		}
@@ -105,12 +137,12 @@ int NXVirtualTextureManager::CalcVirtImageSize(const Int2& sector)
 	Vector3 sectorPosWS((float)sector.x, 0.0f, (float)sector.y);
 	Vector3 camPosWS = m_pCamera->GetTranslation();
 	float distance = Vector3::Distance(sectorPosWS, camPosWS);
-	float t = distance / 5.0f; // TODO: 5.0?...
+	float t = distance / 128.0f; // TODO: 128.0?...
 
 	int lod = 0;
 	if (t > 1) lod = (int)std::log2(t + 1);
 
-	int resolution = NXVT_VIRTUALIMAGE_MAXNODE_PIXEL >> lod;
+	int resolution = (NXVT_VIRTUALIMAGE_MAXNODE_PIXEL / NXVT_VIRTUALIMAGE_MAXNODE) >> lod;
 	return resolution;
 }
 

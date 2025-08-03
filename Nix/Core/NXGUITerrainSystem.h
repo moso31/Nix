@@ -14,6 +14,7 @@ public:
 	void Show() { m_bShowWindow = true; }
 
 private:
+	void BuildDockLayout(ImGuiID dockspace_id);
 	void Render_List();
 	void Render_Map();
 	void Render_Tools();

@@ -9,6 +9,11 @@ public:
     void Render();
 
 private:
+    void Render_Sectors();
+    void Render_VirtImageAtlas();
+
+    void BuildDockLayout(ImGuiID dockspace_id);
+
     // 绘制
     void DrawWorld(ImDrawList* dl, const ImVec2& regionTL, const ImVec2& regionSize);
 
@@ -34,4 +39,7 @@ private:
     // 视图交互：以“像素”为单位的平移偏移（相对可视区左上角）
     // 可选：后续可扩展右键拖拽；当前用中键
     ImVec2 m_panPix{ 0.0f, 0.0f };
+
+    bool m_bShowWindow;
+    std::vector<std::string> m_strTitle;
 };

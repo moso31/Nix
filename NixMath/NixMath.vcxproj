@@ -30,6 +30,9 @@
     <ClCompile Include="SamplerMath.cpp" />
     <ClCompile Include="SphereHarmonics.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="NixMath.natvis" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{6C25EBDE-60BB-4BE7-B488-262DFEF88485}</ProjectGuid>

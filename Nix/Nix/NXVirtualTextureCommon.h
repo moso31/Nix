@@ -81,6 +81,7 @@ struct NXVTAtlasQuadTreeNode
 				NXVTAtlasQuadTreeNode* p = new NXVTAtlasQuadTreeNode();
 				p->size = size / 2;
 				p->pParent = this;
+				p->nodeID = nodeID * 4 + i + 1;
 				pChilds[i] = p;
 
 				return p->InsertImage(info);
@@ -95,6 +96,7 @@ struct NXVTAtlasQuadTreeNode
 	Int2 position = Int2(-1, -1);
 	int size = -1;
 
+	int nodeID = -1;
 	int isImage = false;
 	int subImageNum = 0;
 };
@@ -108,6 +110,7 @@ public:
 	{
 		pRoot = new NXVTAtlasQuadTreeNode();
 		pRoot->size = NXVT_VIRTUALIMAGE_NODE_SIZE;
+		pRoot->nodeID = 0;
 	}
 
 	NXVTAtlasQuadTreeNode* InsertImage(const NXSectorInfo& info)
@@ -141,14 +144,8 @@ public:
 		// 隐含了不能移除pRoot，因为pRoot没有父节点
 		if (pRemove->pParent)
 		{
-			for (int i = 0; i < 4; i++)
-			{
-				if (pRemove->pParent->pChilds[i] == pRemove)
-				{
-					pRemove->pParent->pChilds[i] = nullptr;
-					break;
-				}
-			}
+			int childIdx = pRemove->nodeID % pRemove->pParent->nodeID - 1;
+			pRemove->pParent->pChilds[childIdx] = nullptr;
 		}
 
 		RemoveSubTree(pRemove);
@@ -224,6 +221,8 @@ public:
 
 		m_allocatedNodes.clear();
 	}
+
+	const std::vector<NXVTAtlasQuadTreeNode*>& GetNodes() { return m_allocatedNodes; }
 
 private:
 	NXVTAtlasQuadTree* m_qtree;
