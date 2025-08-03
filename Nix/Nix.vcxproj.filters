@@ -993,6 +993,9 @@
     <ClInclude Include="Core\NXGUIVirtualTexture.h">
       <Filter>Core\UI</Filter>
     </ClInclude>
+    <ClInclude Include="Nix\NXVirtualTextureCommon.h">
+      <Filter>Nix\VirtualTexture</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="八字无撇的待办事项.txt" />

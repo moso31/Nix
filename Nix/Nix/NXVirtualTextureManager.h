@@ -1,19 +1,18 @@
 #pragma once
+#include "NXVirtualTextureCommon.h"
 #include "NXCamera.h"
 #include "NXInstance.h"
-
-struct NXVTSector
-{
-	// VT Sector 的中心位置
-	// 必须是 64x64 的大小
-	Int2 posXZ;
-};
 
 class NXVirtualTextureManager : public NXInstance<NXVirtualTextureManager>
 {
 public:
 	const float NXVT_SECTORSIZE = 64.0f;
 	const int NXVT_SECTORSIZE_LOG2 = 6;
+	const int NXVT_VIRTUALIMAGE_MAXNODE = 256; // VirtualImage 单个节点最大面积
+	const int NXVT_PHYSICAL_TILE_SIZE = 256; // VirtualImage 单个像素对应的物理Tile大小
+	const int NXVT_VIRTUALIMAGE_MAXNODE_PIXEL = (NXVT_VIRTUALIMAGE_MAXNODE * NXVT_PHYSICAL_TILE_SIZE); // VirtualImage 单个节点最大像素数
+
+	void Init();
 
 	void SetCamera(NXCamera* pCamera) { m_pCamera = pCamera; }
 	const std::vector<Int2>& GetSectorList() const { return m_sectorXZ; }
@@ -22,10 +21,17 @@ public:
 	void BuildSearchList(float distance);
 	void Update();
 
+	int CalcVirtImageSize(const Int2& sector);
+
+	void Release();
+
 private:
 	NXCamera* m_pCamera = nullptr;
 
-	std::vector<NXVTSector> m_vtSectors;
 	std::vector<Int2> m_offsetXZ; // 缓存附近一定距离内的偏移量，用这个找相机附近的sector
+
 	std::vector<Int2> m_sectorXZ;
+	std::vector<NXSectorInfo> m_sectorInfo;
+
+	NXVirtualTextureAtlas* m_atlas;
 };

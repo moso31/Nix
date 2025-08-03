@@ -452,6 +452,7 @@
     <ClInclude Include="Nix\NXSubMesh.h" />
     <ClInclude Include="Nix\NXSubMeshGeometryEditor.h" />
     <ClInclude Include="Nix\NXTexture.h" />
+    <ClInclude Include="Nix\NXVirtualTextureCommon.h" />
     <ClInclude Include="Nix\NXVirtualTextureManager.h" />
     <ClInclude Include="Nix\Script\NSFirstPersonalCamera.h" />
     <ClInclude Include="Nix\Script\NSTest.h" />

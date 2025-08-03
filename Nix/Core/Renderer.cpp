@@ -59,6 +59,7 @@ void Renderer::Init()
 	NXGPUTerrainManager::GetInstance()->Init();
 
 	m_scene->Init();
+	NXVirtualTextureManager::GetInstance()->Init();
 	NXVirtualTextureManager::GetInstance()->BuildSearchList(400);
 	NXVirtualTextureManager::GetInstance()->SetCamera(m_scene->GetMainCamera());
 
@@ -553,6 +554,7 @@ void Renderer::Release()
 	SafeRelease(m_pBRDFLut);
 	SafeRelease(m_scene);
 
+	NXVirtualTextureManager::GetInstance()->Release();
 	NXAllocatorManager::GetInstance()->Release();
 	NXSubMeshGeometryEditor::GetInstance()->Release();
 }

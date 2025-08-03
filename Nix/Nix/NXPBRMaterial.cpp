@@ -317,7 +317,7 @@ void NXCustomMaterial::UpdatePSORenderStates(D3D12_GRAPHICS_PIPELINE_STATE_DESC&
 	}
 
 	oPSODesc.BlendState = NXBlendState<>::Create();
-	oPSODesc.RasterizerState = NXRasterizerState<>::Create();
+	oPSODesc.RasterizerState = NXRasterizerState<D3D12_FILL_MODE_WIREFRAME>::Create();
 }
 
 NXCustomMaterial::NXCustomMaterial(const std::string& name, const std::filesystem::path& path) :

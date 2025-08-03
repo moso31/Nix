@@ -48,10 +48,10 @@ void NXGUIVirtualTexture::Render()
             if (m_showOnlyNear && m_mgr)
             {
                 const auto& lst = m_mgr->GetSectorList();
-                const auto& pos = lst[i]; // 假设 pos=(x,z) 为“右上角锚点”
+                const auto& sectorInfo = lst[i]; // 假设 pos=(x,z) 为“右上角锚点”
                 // 将右上角锚点换算为网格行列：先得到该格子的最小点(左下)
-                float tileMinX = float(pos.x - SECTOR_SIZE);
-                float tileMinZ = float(pos.y - SECTOR_SIZE);
+                float tileMinX = float(sectorInfo.x - SECTOR_SIZE);
+                float tileMinZ = float(sectorInfo.y - SECTOR_SIZE);
                 // 负数要用 floor，再转 int
                 col = int(std::floor((tileMinX - WORLD_MIN) / float(SECTOR_SIZE)));
                 row = int(std::floor((tileMinZ - WORLD_MIN) / float(SECTOR_SIZE)));
@@ -211,13 +211,12 @@ void NXGUIVirtualTexture::DrawWorld(ImDrawList* dl, const ImVec2& regionTL, cons
         ImU32 fillC = IM_COL32(60, 160, 255, 70);
         ImU32 outlineC = IM_COL32(60, 160, 255, 200);
 
-        for (const auto& pos : lst)
+        for (const auto& sectorInfo : lst)
         {
-            // 假定 pos 为右上角锚点 => [min, max] = [pos-64, pos]
-            float minx = float(pos.x - SECTOR_SIZE);
-            float maxx = float(pos.x);
-            float minz = float(pos.y - SECTOR_SIZE);
-            float maxz = float(pos.y);
+            float minx = float(sectorInfo.x - SECTOR_SIZE);
+            float maxx = float(sectorInfo.x);
+            float minz = float(sectorInfo.y - SECTOR_SIZE);
+            float maxz = float(sectorInfo.y);
 
             // 裁剪到世界范围
             if (maxx <= WORLD_MIN || minx >= WORLD_MAX || maxz <= WORLD_MIN || minz >= WORLD_MAX)
