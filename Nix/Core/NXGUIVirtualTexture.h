@@ -16,6 +16,7 @@ private:
 
     // 绘制
     void DrawWorld(ImDrawList* dl, const ImVec2& regionTL, const ImVec2& regionSize);
+    ImU32 GetSectorRectColor(int size, bool isFill);
 
     // 工具函数
     void IdxToRowCol(int idx, int& row, int& col);

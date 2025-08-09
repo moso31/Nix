@@ -113,6 +113,8 @@ public:
 		pRoot->nodeID = 0;
 	}
 
+	NXVTAtlasQuadTreeNode* GetRootNode() { return pRoot; }
+	
 	NXVTAtlasQuadTreeNode* InsertImage(const NXSectorInfo& info)
 	{
 		return pRoot->InsertImage(info);
@@ -127,7 +129,8 @@ public:
 		// 先搞清楚是不是隶属于这个树的pNode
 		auto* p = pNode;
 		while (p->pParent) p = p->pParent;
-		if (p != pRoot) return;
+		if (p != pRoot)
+			return;
 
 		bool bFlag = false;
 		auto* pRemove = pNode;
@@ -144,7 +147,9 @@ public:
 		// 隐含了不能移除pRoot，因为pRoot没有父节点
 		if (pRemove->pParent)
 		{
-			int childIdx = pRemove->nodeID % pRemove->pParent->nodeID - 1;
+			int childIdx = (pRoot == pRemove->pParent ? 
+				pRemove->nodeID : 
+				pRemove->nodeID - pRemove->pParent->nodeID * 4) - 1;
 			pRemove->pParent->pChilds[childIdx] = nullptr;
 		}
 
@@ -176,7 +181,11 @@ private:
 			pNode->isImage = false;
 			pNode->subImageNum = 0;
 		}
-		else delete pNode;
+		else
+		{
+			delete pNode;
+			pNode = nullptr;
+		}
 	}
 
 private:
@@ -223,6 +232,7 @@ public:
 	}
 
 	const std::vector<NXVTAtlasQuadTreeNode*>& GetNodes() { return m_allocatedNodes; }
+	NXVTAtlasQuadTreeNode* GetRootNode() { return m_qtree->GetRootNode(); }
 
 private:
 	NXVTAtlasQuadTree* m_qtree;

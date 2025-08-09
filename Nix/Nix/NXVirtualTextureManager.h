@@ -13,11 +13,14 @@ public:
 	const int NXVT_VIRTUALIMAGE_MAXNODE_PIXEL = (NXVT_VIRTUALIMAGE_MAXNODE * NXVT_PHYSICAL_TILE_SIZE); // VirtualImage 单个节点最大像素数
 
 	void Init();
+
+	NXVTAtlasQuadTreeNode* GetAtlasRootNode() { return m_atlas->GetRootNode(); }
 	const std::vector<NXVTAtlasQuadTreeNode*>& GetNodes() { return m_atlas->GetNodes(); }
 	void GetImagePosAndSize(NXVTAtlasQuadTreeNode* pNode, Int2& oAtlasPos, int& oAtlasSize);
 
 	void SetCamera(NXCamera* pCamera) { m_pCamera = pCamera; }
 	const std::vector<Int2>& GetSectorList() const { return m_sectorXZ; }
+	const std::vector<NXSectorInfo> GetSectorInfos() { return m_sectorInfo; }
 
 	// 根据相机位置和距离，构建搜索列表
 	void BuildSearchList(float distance);

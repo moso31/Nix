@@ -175,12 +175,15 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
     ImGui::Text("Nodes: %d", totalNodes);
     ImGui::Separator();
     ImGui::Checkbox("Draw grid in view", &s_drawGrid);
-    ImGui::SliderFloat("Scale", &s_zoom, 0.25f, 6.0f, "%.2fx");
+    ImGui::SliderFloat("Scale", &s_zoom, 0.25f, 16.0f, "%.2fx");
     if (ImGui::Button("Reset view"))
     {
         s_zoom = 1.0f;
         s_panPix = ImVec2(0.0f, 0.0f);
     }
+    ImGui::Separator();
+    auto pRoot = m_mgr->GetAtlasRootNode();
+    ImGui::Text("rootSubImgNum: %d", pRoot->subImageNum);
     ImGui::Separator();
 
     // 列表：使用 clipper
@@ -210,10 +213,13 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
 
                 char buf[192];
                 std::snprintf(buf, sizeof(buf),
-                    "#%-5d pos(%4d,%4d) size(%4d)",
+                    "#%-5d pos(%4d,%4d) size(%4d): %d, %d", 
                     n->nodeID,
                     n->position.x, n->position.y,
-                    n->size);
+                    n->size, 
+                    n->isImage,
+                    n->subImageNum
+                    );
 
                 bool selected = (s_selectedIdx == i);
                 if (ImGui::Selectable(buf, selected))
@@ -271,7 +277,7 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
         if (hovered && io.MouseWheel != 0.0f) {
             ImVec2 anchorA = S2A(io.MousePos.x, io.MousePos.y);
             float zoomFactor = (io.MouseWheel > 0.0f) ? 1.1f : 0.9f;
-            float newZoom = ImClamp(s_zoom * zoomFactor, 0.25f, 6.0f);
+            float newZoom = ImClamp(s_zoom * zoomFactor, 0.25f, 16.0f);
             if (newZoom != s_zoom) {
                 float newScale = baseScale * std::max(0.01f, newZoom);
                 ImVec2 anchorS_after = ImVec2(
@@ -320,37 +326,22 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
 
     // 绘制所有有效节点：内部节点画边框；isImage 的叶子节点再加轻微填充
     {
-        ImU32 outlineC = IM_COL32(160, 160, 160, 220);
-        ImU32 imageFill = IM_COL32(60, 160, 255, 70);
-        ImU32 imageLine = IM_COL32(60, 160, 255, 220);
-
-        std::vector<NXVTAtlasQuadTreeNode> pNodeArr;
-        for (int i = 9; i <= 12; i++)
-        {
-            NXVTAtlasQuadTreeNode k;
-            k.nodeID = i;
-            pNodeArr.push_back(k);
-        }
-
         for (int i = 0; i < totalNodes; ++i)
-        //for (auto& pNode : pNodeArr)
         {
             const auto& n = nodes[i];
-            //const auto& n = &pNode;
+            ImU32 imageFill = GetSectorRectColor(n->size, true);
+            ImU32 imageLine = GetSectorRectColor(n->size, false);
 
             m_mgr->GetImagePosAndSize(n, pos, size);
             ImVec2 tl = A2S((float)pos.x - (float)size, (float)pos.y - (float)size);
             ImVec2 br = A2S((float)pos.x + (float)size, (float)pos.y + (float)size);
 
-            // 填充：仅对 isImage 节点
-            //if (n->isImage)
-                dl->AddRectFilled(tl, br, imageFill);
-
-            // 边框（像素对齐）
+            // 画矩形+边框
             ImVec2 atl = tl, abr = br;
             atl.x = AlignPx(atl.x); abr.x = AlignPx(abr.x);
             atl.y = AlignPx(atl.y); abr.y = AlignPx(abr.y);
-            dl->AddRect(atl, abr, n->isImage ? imageLine : outlineC, 0.0f, 0, 1.5f);
+            dl->AddRectFilled(tl, br, imageFill);
+            dl->AddRect(atl, abr, imageLine, 0.0f, 0, 1.5f);
         }
 
         // 选中高亮
@@ -491,16 +482,17 @@ void NXGUIVirtualTexture::DrawWorld(ImDrawList* dl, const ImVec2& regionTL, cons
     // 相机附近 Sector 高亮（来自单例 Manager）
     if (auto m_mgr = NXVirtualTextureManager::GetInstance())
     {
-        const auto& lst = m_mgr->GetSectorList();
-        ImU32 fillC = IM_COL32(60, 160, 255, 70);
-        ImU32 outlineC = IM_COL32(60, 160, 255, 200);
+        const auto& lst = m_mgr->GetSectorInfos();
 
         for (const auto& sectorInfo : lst)
         {
-            float minx = float(sectorInfo.x - SECTOR_SIZE);
-            float maxx = float(sectorInfo.x);
-            float minz = float(sectorInfo.y - SECTOR_SIZE);
-            float maxz = float(sectorInfo.y);
+            ImU32 imageFill = GetSectorRectColor(sectorInfo.size, true);
+            ImU32 imageLine = GetSectorRectColor(sectorInfo.size, false);
+
+            float minx = float(sectorInfo.position.x - SECTOR_SIZE);
+            float maxx = float(sectorInfo.position.x);
+            float minz = float(sectorInfo.position.y - SECTOR_SIZE);
+            float maxz = float(sectorInfo.position.y);
 
             // 裁剪到世界范围
             if (maxx <= WORLD_MIN || minx >= WORLD_MAX || maxz <= WORLD_MIN || minz >= WORLD_MAX)
@@ -513,12 +505,12 @@ void NXGUIVirtualTexture::DrawWorld(ImDrawList* dl, const ImVec2& regionTL, cons
             // 注意 Z 轴反转：左上与右下使用 (minx,maxz) 与 (maxx,minz)
             ImVec2 tl = W2S(minx, maxz);
             ImVec2 br = W2S(maxx, minz);
-            dl->AddRectFilled(tl, br, fillC);
+            dl->AddRectFilled(tl, br, imageFill);
 
             // 像素对齐描边
             tl.x = AlignPx(tl.x); br.x = AlignPx(br.x);
             tl.y = AlignPx(tl.y); br.y = AlignPx(br.y);
-            dl->AddRect(tl, br, outlineC, 0.0f, 0, 1.5f);
+            dl->AddRect(tl, br, imageLine, 0.0f, 0, 1.5f);
         }
     }
 
@@ -544,6 +536,26 @@ void NXGUIVirtualTexture::DrawWorld(ImDrawList* dl, const ImVec2& regionTL, cons
     // 最后绘制边框（避免与内部绘制产生边缘 AA 叠色）
     dl->AddRect(regionTL, regionBR, IM_COL32(160, 160, 160, 255));
 }
+
+ImU32 NXGUIVirtualTexture::GetSectorRectColor(int size, bool isFill)
+{
+    const int alpha = isFill ? 70 : 220; // 中心区域相对透明一些
+
+    switch (size)
+    {
+    case 256: return IM_COL32(255, 60, 60, alpha); // 红
+    case 128: return IM_COL32(60, 255, 60, alpha); // 绿
+    case  64: return IM_COL32(60, 160, 255, alpha); // 原先 256 的偏蓝
+    case  32: return IM_COL32(60, 255, 255, alpha); // 青
+    case  16: return IM_COL32(255, 60, 255, alpha); // 品红
+    case   8: return IM_COL32(255, 160, 60, alpha); // 橙
+    case   4: return IM_COL32(160, 60, 255, alpha); // 紫
+    case   2: return IM_COL32(60, 255, 160, alpha); // 孔雀绿/蓝绿
+    case   1: return IM_COL32(255, 255, 60, alpha); // 黄
+    default:  return IM_COL32(255, 255, 255, alpha); // 默认白色
+    }
+}
+
 
 void NXGUIVirtualTexture::IdxToRowCol(int idx, int& row, int& col)
 {
