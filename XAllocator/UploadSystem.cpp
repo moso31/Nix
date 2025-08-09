@@ -70,7 +70,7 @@ bool ccmem::UploadRingBuffer::CanAlloc(uint32_t byteSize)
 	}
 }
 
-bool ccmem::UploadRingBuffer::BuildTask(uint32_t byteSize, UploadTask& oTask)
+bool ccmem::UploadRingBuffer::Build(uint32_t byteSize, UploadTask& oTask)
 {
 	NXPrint::Write(0, "BuildTask(Begin), usedstart: %d, end: %d\n", m_usedStart, m_usedEnd);
 
@@ -130,7 +130,7 @@ bool ccmem::UploadRingBuffer::BuildTask(uint32_t byteSize, UploadTask& oTask)
 	return true;
 }
 
-void ccmem::UploadRingBuffer::FinishTask(const UploadTask& task)
+void ccmem::UploadRingBuffer::Finish(const UploadTask& task)
 {
 	// 任务完成后，只需要将usedStart向前移动即可
 	m_usedStart = task.ringPos + task.byteSize;
@@ -198,7 +198,7 @@ bool ccmem::UploadSystem::BuildTask(int byteSize, UploadTaskContext& taskResult)
 
 	uint32_t idx = (m_taskStart + m_taskUsed) % UPLOADTASK_NUM;
 	auto& task = m_uploadTask[idx];
-	if (m_ringBuffer.BuildTask(byteSize, task))
+	if (m_ringBuffer.Build(byteSize, task))
 	{
 		m_taskUsed++;
 
@@ -228,7 +228,7 @@ void ccmem::UploadSystem::FinishTask(const UploadTaskContext& result, const std:
 	m_pCmdQueue->ExecuteCommandLists(1, cmdLists);
 	
 	m_fenceValue++;
-	m_pCmdQueue->Signal(m_pFence, m_fenceValue); // GPU fence == N 
+	m_pCmdQueue->Signal(m_pFence, m_fenceValue); // 告知GPU 命令执行完成时 m_pFence更新成value
 
 	task->fenceValue = m_fenceValue; 
 }
@@ -248,7 +248,7 @@ void ccmem::UploadSystem::Update()
 				task.pCallback(); // 触发完成后callback
 
 			// 任务完成，回收资源
-			m_ringBuffer.FinishTask(task);
+			m_ringBuffer.Finish(task);
 			m_taskStart = (m_taskStart + 1) % UPLOADTASK_NUM;
 			m_taskUsed--;
 			task.Reset();
