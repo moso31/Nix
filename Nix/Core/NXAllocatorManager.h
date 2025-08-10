@@ -8,6 +8,7 @@
 // 资源
 #define NXAllocator_CB		NXAllocatorManager::GetInstance()->GetCBAllocator()			// cb
 #define NXAllocator_SB		NXAllocatorManager::GetInstance()->GetSBAllocator()			// vb, ib, instance-data
+#define NXAllocator_RB		NXAllocatorManager::GetInstance()->GetRBAllocator()			// readback buffer
 #define NXAllocator_RWB		NXAllocatorManager::GetInstance()->GetRWBAllocator()		// rw buffer
 #define NXAllocator_Tex		NXAllocatorManager::GetInstance()->GetTextureAllocator()	// texture，但其中目前仅文件、高度图、cpu程序生成这几种。但不包括RT（RT单独）
 
@@ -19,7 +20,7 @@
 #define NXShVisDescHeap		NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorAllocator()
 
 // 上传系统
-#define NXUploadSystem		NXAllocatorManager::GetInstance()->GetUploadSystem()
+#define NXGPUTransferSys	NXAllocatorManager::GetInstance()->GetNXGPUTransferSystem()
 
 // 纹理加载器
 #define NXTexLoader			NXAllocatorManager::GetInstance()->GetTextureLoader()
@@ -33,6 +34,7 @@ public:
 
 	CommittedBufferAllocator*		GetCBAllocator()				{ return m_pCBAllocator.get(); }
 	CommittedBufferAllocator*		GetSBAllocator()				{ return m_pSBAllocator.get(); }
+	CommittedBufferAllocator*		GetRBAllocator()				{ return m_pRBAllocator.get(); }
 	PlacedBufferAllocator*			GetRWBAllocator()				{ return m_pRWBAllocator.get(); }
 	PlacedBufferAllocator*			GetTextureAllocator()			{ return m_pTextureAllocator.get(); }
 
@@ -41,7 +43,7 @@ public:
 	DescriptorAllocator<false>*		GetDSVAllocator()				{ return m_pDSVAllocator.get(); }
 	NXNullDescriptor*				GetNullDescriptorAllocator()	{ return m_pNullDescriptorAllocator.get(); }
 
-	UploadSystem*		GetUploadSystem()	{ return m_pUpdateSystem.get(); }
+	NXGPUTransferSystem*			GetNXGPUTransferSystem()		{ return m_pUpdateSystem.get(); }
 	NXTextureLoader*	GetTextureLoader()	{ return m_pTextureLoader.get(); }
 
 	DescriptorAllocator<true>*			GetShaderVisibleDescriptorAllocator()	{ return m_pShaderVisibleDescAllocator.get(); }
@@ -53,6 +55,7 @@ public:
 private:
 	std::unique_ptr<CommittedBufferAllocator>	m_pCBAllocator;	
 	std::unique_ptr<CommittedBufferAllocator>	m_pSBAllocator;
+	std::unique_ptr<CommittedBufferAllocator>	m_pRBAllocator;
 	std::unique_ptr<PlacedBufferAllocator>		m_pRWBAllocator;
 	std::unique_ptr<PlacedBufferAllocator>		m_pTextureAllocator;
 
@@ -61,7 +64,7 @@ private:
 	std::unique_ptr<DescriptorAllocator<false>>	m_pDSVAllocator;
 	std::unique_ptr<NXNullDescriptor>			m_pNullDescriptorAllocator;
 
-	std::unique_ptr<UploadSystem>				m_pUpdateSystem;
+	std::unique_ptr<NXGPUTransferSystem>				m_pUpdateSystem;
 	std::unique_ptr<NXTextureLoader>			m_pTextureLoader;
 
 	// shader-visible descriptor allocator

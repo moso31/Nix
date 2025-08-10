@@ -8,12 +8,13 @@ void NXAllocatorManager::Init()
 	auto pDevice = NXGlobalDX::GetDevice();
 	m_bRunning.store(true);
 
-	m_pCBAllocator = std::make_unique<CommittedBufferAllocator>(pDevice, true, 64u, Memsize_MB(256));
-	m_pSBAllocator = std::make_unique<CommittedBufferAllocator>(pDevice, false, 64u, Memsize_MB(256));
+	m_pCBAllocator = std::make_unique<CommittedBufferAllocator>(pDevice, true, false, 64u, Memsize_MB(256));
+	m_pSBAllocator = std::make_unique<CommittedBufferAllocator>(pDevice, false, false, 64u, Memsize_MB(256));
+	m_pRBAllocator = std::make_unique<CommittedBufferAllocator>(pDevice, false, true, 64u, Memsize_MB(256));
 	m_pRWBAllocator = std::make_unique<PlacedBufferAllocator>(pDevice, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT, Memsize_MB(256));
 	m_pTextureAllocator = std::make_unique<PlacedBufferAllocator>(pDevice, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT, Memsize_MB(2048));
 
-	m_pUpdateSystem = std::make_unique<UploadSystem>(pDevice);
+	m_pUpdateSystem = std::make_unique<NXGPUTransferSystem>(pDevice);
 	m_pUpdateSystem->SetSyncCommandQueue(NXGlobalDX::GlobalCmdQueue()); // 渲染队列有时候需要等待上传队列完成才能继续进行
 
 	m_pTextureLoader = std::make_unique<NXTextureLoader>();
@@ -40,16 +41,16 @@ void NXAllocatorManager::Init()
 		m_threads.push_back(std::move(t));
 	};
 
-	addThread([this]() { m_pUpdateSystem->Update(); }, "NXUploadSystem\n");
+	addThread([this]() { m_pUpdateSystem->Update(); }, "NXGPUTransferSystem\n");
 	addThread([this]() { m_pTextureLoader->Update(); }, "NXTextureLoader\n");
 	addThread([this]() { m_pCBAllocator->ExecuteTasks(); }, "NXCBAllocator\n");
 	addThread([this]() { m_pSBAllocator->ExecuteTasks(); }, "NXSBAllocator\n");
+	addThread([this]() { m_pRBAllocator->ExecuteTasks(); }, "NXRBAllocator\n");
 	addThread([this]() { m_pRWBAllocator->ExecuteTasks(); }, "NXRWBAllocator\n");
 	addThread([this]() { m_pTextureAllocator->ExecuteTasks(); }, "NXTextureAllocator\n");
 	addThread([this]() { m_pSRVAllocator->ExecuteTasks(); }, "NXSRVAllocator\n");
 	addThread([this]() { m_pRTVAllocator->ExecuteTasks(); }, "NXRTVAllocator\n");
 	addThread([this]() { m_pDSVAllocator->ExecuteTasks(); }, "NXDSVAllocator\n");
-	//addThread([this]() { m_pUAVAllocator->ExecuteTasks(); }, "NXUAVAllocator\n");
 }
 
 void NXAllocatorManager::Update()

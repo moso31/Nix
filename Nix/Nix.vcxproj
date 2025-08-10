@@ -427,6 +427,7 @@
     <ClInclude Include="Nix\HBVH.h" />
     <ClInclude Include="Nix\NXBuffer.h" />
     <ClInclude Include="Nix\NXGPUTerrainManager.h" />
+    <ClInclude Include="Nix\NXReadbackBuffer.h" />
     <ClInclude Include="Nix\NXResource.h" />
     <ClInclude Include="Nix\NXRWBuffer.h" />
     <ClInclude Include="Nix\NXConstantBuffer.h" />

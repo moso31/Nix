@@ -47,8 +47,8 @@ void NXBuffer::Set_Internal(const void* pSrcData, uint32_t arraySize, ID3D12Reso
 
 	if (pSrcData)
 	{
-		UploadTaskContext taskContext(m_name);
-		if (NXUploadSystem->BuildTask(byteSize, taskContext))
+		NXTransferContext taskContext(m_name);
+		if (NXGPUTransferSys->BuildTask(byteSize, NXTransferType::Upload, taskContext))
 		{
 			auto bufDesc = pBuffer->GetDesc();
 			uint64_t byteOffset = taskContext.pResourceOffset;
@@ -58,13 +58,13 @@ void NXBuffer::Set_Internal(const void* pSrcData, uint32_t arraySize, ID3D12Reso
 			taskContext.pOwner->pCmdList->CopyBufferRegion(pBuffer, 0, taskContext.pResource, byteOffset, byteSize);
 		}
 
-		NXUploadSystem->FinishTask(taskContext);
+		NXGPUTransferSys->FinishTask(taskContext);
 	}
 
 	// uav counter;
 	uint32_t counter = arraySize;
-	UploadTaskContext taskCtx2(m_name + std::string("_UAVCounter"));
-	if (NXUploadSystem->BuildTask(sizeof(uint32_t), taskCtx2))
+	NXTransferContext taskCtx2(m_name + std::string("_UAVCounter"));
+	if (NXGPUTransferSys->BuildTask(sizeof(uint32_t), NXTransferType::Upload, taskCtx2))
 	{
 		auto bufDesc = pUAVCounterBuffer->GetDesc();
 		uint64_t byteOffset = taskCtx2.pResourceOffset;
@@ -74,7 +74,7 @@ void NXBuffer::Set_Internal(const void* pSrcData, uint32_t arraySize, ID3D12Reso
 		taskCtx2.pOwner->pCmdList->CopyBufferRegion(pUAVCounterBuffer, 0, taskCtx2.pResource, byteOffset, sizeof(uint32_t));
 	}
 
-	NXUploadSystem->FinishTask(taskCtx2);
+	NXGPUTransferSys->FinishTask(taskCtx2);
 }
 
 void NXBuffer::InitSRV()

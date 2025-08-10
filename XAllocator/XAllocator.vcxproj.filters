@@ -7,7 +7,7 @@
     <ClCompile Include="DescriptorAllocator.cpp" />
     <ClCompile Include="PlacedBufferAllocator.cpp" />
     <ClCompile Include="XAllocCommon.h" />
-    <ClCompile Include="UploadSystem.cpp" />
+    <ClCompile Include="NXGPUTransferSystem.cpp" />
     <ClCompile Include="XAllocCommon.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -17,6 +17,6 @@
     <ClInclude Include="XAllocImpl.h" />
     <ClInclude Include="DescriptorAllocator.h" />
     <ClInclude Include="PlacedBufferAllocator.h" />
-    <ClInclude Include="UploadSystem.h" />
+    <ClInclude Include="NXGPUTransferSystem.h" />
   </ItemGroup>
 </Project>
