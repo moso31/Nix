@@ -584,9 +584,17 @@ std::string NXCodeProcessHelper::BuildHLSL_PassFuncs(int& ioLineCounter, const N
 	std::string str = R"(
 void EncodeGBuffer(NXGBufferParams gBuffer, PS_INPUT input, out PS_OUTPUT Output)
 {
-	uint uShadingModel = asuint(m.shadingModel);
+	// TODO: ªª≥…VirtPageID£¨¡Ÿ ±¥˙¬Î
+	int ix = (int)floor(input.posWS.x);
+	int iy = (int)floor(input.posWS.y);
+	int iz = (int)floor(input.posWS.z);
+	uint ux = (ix % 4096u) & 0xFFFu;
+	uint uy = (iy % 4096u) & 0xFFFu;
+	uint uz = (iz % 256u) & 0xFFu;
+	uint packed = (ux << 20) | (uy << 8) | uz;
+	Output.GBufferA = packed;
 
-	Output.GBufferA = float4(1.0f, 1.0f, 1.0f, 1.0f);
+	uint uShadingModel = asuint(m.shadingModel);
 	
 	float3 normalVS = TangentSpaceToViewSpace(gBuffer.normal, input.normVS, input.tangentVS);
 	if (uShadingModel == 2) // burley SSS

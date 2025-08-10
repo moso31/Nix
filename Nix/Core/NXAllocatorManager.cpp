@@ -10,7 +10,7 @@ void NXAllocatorManager::Init()
 
 	m_pCBAllocator = std::make_unique<CommittedBufferAllocator>(pDevice, true, false, 64u, Memsize_MB(256));
 	m_pSBAllocator = std::make_unique<CommittedBufferAllocator>(pDevice, false, false, 64u, Memsize_MB(256));
-	m_pRBAllocator = std::make_unique<CommittedBufferAllocator>(pDevice, false, true, 64u, Memsize_MB(256));
+	m_pRBAllocator = std::make_unique<CommittedBufferAllocator>(pDevice, false, true, 512u, Memsize_MB(256));
 	m_pRWBAllocator = std::make_unique<PlacedBufferAllocator>(pDevice, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT, Memsize_MB(256));
 	m_pTextureAllocator = std::make_unique<PlacedBufferAllocator>(pDevice, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT, Memsize_MB(2048));
 
@@ -27,7 +27,7 @@ void NXAllocatorManager::Init()
 
 	m_pShaderVisibleDescAllocator = std::make_unique<DescriptorAllocator<true>>(pDevice, 1000000, 10);
 
-	// 各分配器独立线程，不能和其它分配器混用 // 混用=死锁。// taskFunction = lambda.
+	// 各分配器独立线程，禁止多个Allocator同线程执行，否则很容易死锁。// taskFunction = lambda.
 	auto addThread = [this](auto taskFunction, const char* name, int sleepMS = 1) {
 		std::thread t([this, taskFunction, name, sleepMS]() {
 			NXPrint::Write(0, name);

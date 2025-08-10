@@ -77,7 +77,16 @@ void PS(PS_INPUT input, out PS_OUTPUT output)
 
 	float3 albedo = weights.x * albedoX + weights.y * albedoY + weights.z * albedoZ;
 
-	output.GBufferA = float4(input.posVS.xyz, 1.0f);
+	// TODO: ªª≥…VirtPageID£¨¡Ÿ ±¥˙¬Î
+	int ix = (int)floor(input.posWS.x);
+	int iy = (int)floor(input.posWS.y);
+	int iz = (int)floor(input.posWS.z);
+	uint ux = (ix % 4096u) & 0xFFFu;
+	uint uy = (iy % 4096u) & 0xFFFu;
+	uint uz = (iz % 256u) & 0xFFu;
+	uint packed = (ux << 20) | (uy << 8) | uz;
+
+	output.GBufferA = asfloat(packed);
 	output.GBufferB = float4(0.5f, 0.5f, 1.0f, 1.0f); // xyz = vector(0, 0, 1)
 	output.GBufferC = float4(albedo, 1.0f); // use txLoading as albedo.
 	output.GBufferD = float4(0.0f, 1.0f, 1.0f, 1.0f / 255.0f); // xyz = Metallic/Roughness/AO, w = shading model 'unlit'.

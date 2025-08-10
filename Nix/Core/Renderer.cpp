@@ -196,7 +196,7 @@ void Renderer::GenerateRenderGraph()
 		NXRGResource* rt3;
 	};
 
-	NXRGResource* pGBuffer0 = m_pRenderGraph->CreateResource("GBuffer RT0", { .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
+	NXRGResource* pGBuffer0 = m_pRenderGraph->CreateResource("GBuffer RT0", { .format = DXGI_FORMAT_R32_FLOAT, .handleFlags = RG_RenderTarget });
 	NXRGResource* pGBuffer1 = m_pRenderGraph->CreateResource("GBuffer RT1", { .format = DXGI_FORMAT_R32G32B32A32_FLOAT, .handleFlags = RG_RenderTarget });
 	NXRGResource* pGBuffer2 = m_pRenderGraph->CreateResource("GBuffer RT2", { .format = DXGI_FORMAT_R10G10B10A2_UNORM, .handleFlags = RG_RenderTarget });
 	NXRGResource* pGBuffer3 = m_pRenderGraph->CreateResource("GBuffer RT3", { .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
@@ -221,6 +221,13 @@ void Renderer::GenerateRenderGraph()
 			m_pRenderGraph->ClearRT(pCmdList, pDepthZ);
 			m_pRenderGraph->SetViewPortAndScissorRect(pCmdList, m_viewRTSize); // 第一个pass设置ViewPort
 		});
+
+	//struct VTFeedbackData {};
+	//m_pRenderGraph->AddComputePass<VTFeedbackData>("VTFeedbackPass", nullptr,
+	//	[](NXRGBuilder& pBuilder, VTFeedbackData& data) {
+	//	},
+	//	[](ID3D12GraphicsCommandList* pCmdList, VTFeedbackData& data) {
+	//	});
 
 	struct DepthCopyData
 	{
