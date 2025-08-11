@@ -36,13 +36,13 @@ void NXRenderGraph::Execute(ID3D12GraphicsCommandList* pCmdList)
 		}
 		else if (desc.type == NXResourceType::Tex2D)
 		{
-			auto pTex = pRes.As<NXTexture2D>();
-
 			if (desc.isViewRT) 
 			{
 				// RT的话，需要动态构建
 				uint32_t rtWidth = (uint32_t)(desc.RTScale * m_viewResolution.x);
 				uint32_t rtHeight = (uint32_t)(desc.RTScale * m_viewResolution.y);
+
+				auto pTex = pRes.As<NXTexture2D>();
 				if (pTex.IsNull() || pTex->GetWidth() != rtWidth || pTex->GetHeight() != rtHeight)
 				{
 					D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE;
@@ -65,10 +65,11 @@ void NXRenderGraph::Execute(ID3D12GraphicsCommandList* pCmdList)
 					pResource->SetResource(pTexture2D);
 				}
 			}
-			else 
+			else if (desc.type == NXResourceType::Buffer)
 			{
-				// 非RT+非导入资源 的动态构建
-				// TODO 暂时没用到这种情况，先偷懒了
+				// Buffer 有些情况下也需要动态构建，比如VT随屏幕读取像素流数据
+				// 虽然数据是一维形式，但size是依赖RT的
+				auto pBuffer = pRes.As<NXBuffer>();
 			}
 		}
 	}

@@ -159,7 +159,6 @@ void Renderer::GenerateRenderGraph()
 
 	m_pRenderGraph->AddComputePass<GPUTerrainPatcherData>("GPU Terrain Patcher Clear", new NXGPUTerrainPatcherRenderer(),
 		[=](NXRGBuilder& builder, GPUTerrainPatcherData& data) {
-			data.pPatcherPass = (NXComputePass*)builder.GetPassNode()->GetRenderPass();
 			builder.SetRootParamLayout(0, 0, 3);
 			//builder.WriteUAV(pTerrainBufferFinal, 0, true);
 			builder.WriteUAV(pTerrainPatcher, 0, true, 2);
@@ -222,11 +221,14 @@ void Renderer::GenerateRenderGraph()
 			m_pRenderGraph->SetViewPortAndScissorRect(pCmdList, m_viewRTSize); // 第一个pass设置ViewPort
 		});
 
-	//struct VTFeedbackData {};
-	//m_pRenderGraph->AddComputePass<VTFeedbackData>("VTFeedbackPass", nullptr,
-	//	[](NXRGBuilder& pBuilder, VTFeedbackData& data) {
+	//NXRGResource* pVTReadback = m_pRenderGraph->CreateResource("VT Readback Buffer", { .isViewRT = true, .RTScale = 0.125f, .type = NXResourceType::Buffer, .format = DXGI_FORMAT_R32_FLOAT });
+	//struct VTReadbackData {};
+	//m_pRenderGraph->AddComputePass<VTReadbackData>("VTReadbackPass", nullptr,
+	//	[&](NXRGBuilder& pBuilder, VTReadbackData& data) {
+	//		pBuilder.Read(pGBuffer3, 0);
+	//		pBuilder.WriteUAV(pVTReadback, 0);
 	//	},
-	//	[](ID3D12GraphicsCommandList* pCmdList, VTFeedbackData& data) {
+	//	[](ID3D12GraphicsCommandList* pCmdList, VTReadbackData& data) {
 	//	});
 
 	struct DepthCopyData

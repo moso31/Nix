@@ -127,11 +127,14 @@
     <Filter Include="Nix\Object\Transform\Primitive\Terrain">
       <UniqueIdentifier>{58afa7e4-0b44-49f3-af93-46cce61d2f3e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shader\Terrain">
-      <UniqueIdentifier>{acc387db-02b9-4a20-a13b-7dbb2dd8454a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Nix\VirtualTexture">
       <UniqueIdentifier>{1eb6e8cc-0515-4c86-a1ed-8f8c12b4665f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\VirtualTexture">
+      <UniqueIdentifier>{4d8152c1-bf29-473b-bce5-16f63f4f2057}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\GPUTerrain">
+      <UniqueIdentifier>{acc387db-02b9-4a20-a13b-7dbb2dd8454a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -240,13 +243,13 @@
       <Filter>Shader</Filter>
     </None>
     <None Include="Shader\FillTestComputeShader.fx">
-      <Filter>Shader\Terrain</Filter>
+      <Filter>Shader\GPUTerrain</Filter>
     </None>
     <None Include="Shader\GPUTerrainPatcher.fx">
-      <Filter>Shader\Terrain</Filter>
+      <Filter>Shader\GPUTerrain</Filter>
     </None>
     <None Include="Shader\GPUTerrainCommon.fx">
-      <Filter>Shader\Terrain</Filter>
+      <Filter>Shader\GPUTerrain</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -591,6 +594,9 @@
     </ClCompile>
     <ClCompile Include="Core\NXGUIVirtualTexture.cpp">
       <Filter>Core\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXVirtualTextureRenderer.cpp">
+      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -999,9 +1005,17 @@
     <ClInclude Include="Nix\NXReadbackBuffer.h">
       <Filter>Nix\TextureBuffer</Filter>
     </ClInclude>
+    <ClInclude Include="Core\NXVirtualTextureRenderer.h">
+      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="八字无撇的待办事项.txt" />
     <Text Include="快速规划.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Shader\VTReadback.fx">
+      <Filter>Shader\VirtualTexture</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

@@ -293,6 +293,7 @@
     <ClCompile Include="Core\NXTextureReloadTesk.cpp" />
     <ClCompile Include="Core\NXTextureResourceManager.cpp" />
     <ClCompile Include="Core\NXTimer.cpp" />
+    <ClCompile Include="Core\NXVirtualTextureRenderer.cpp" />
     <ClCompile Include="Core\Renderer.cpp" />
     <ClCompile Include="Core\ShaderComplier.cpp" />
     <ClCompile Include="Core\NXShaderVisibleDescriptorHeap.cpp" />
@@ -420,6 +421,7 @@
     <ClInclude Include="Core\NXTextureReloadTesk.h" />
     <ClInclude Include="Core\NXTextureResourceManager.h" />
     <ClInclude Include="Core\NXTimer.h" />
+    <ClInclude Include="Core\NXVirtualTextureRenderer.h" />
     <ClInclude Include="Core\Renderer.h" />
     <ClInclude Include="Core\ShaderComplier.h" />
     <ClInclude Include="Core\ShaderStructures.h" />
@@ -691,6 +693,9 @@
       <FileType>Document</FileType>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DeploymentContent>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Shader\VTReadback.fx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

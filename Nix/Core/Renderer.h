@@ -19,6 +19,7 @@
 #include "NXDebugLayerRenderer.h"
 #include "NXEditorObjectRenderer.h"
 #include "NXFillTestRenderer.h"
+#include "NXVirtualTextureRenderer.h"
 #include "NXRenderGraph.h"
 
 struct CBufferDebugLayer

@@ -1,5 +1,4 @@
 #include "NXFillTestRenderer.h"
-#include "NXGPUTerrainManager.h"
 
 void NXFillTestRenderer::SetupInternal()
 {
