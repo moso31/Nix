@@ -2,6 +2,12 @@
 #include "NXVirtualTextureCommon.h"
 #include "NXCamera.h"
 #include "NXInstance.h"
+#include "NXConstantBuffer.h"
+
+struct CBufferVTReadback
+{
+	Vector4 param0;
+};
 
 class NXVirtualTextureManager : public NXInstance<NXVirtualTextureManager>
 {
@@ -25,12 +31,18 @@ public:
 	// 根据相机位置和距离，构建搜索列表
 	void BuildSearchList(float distance);
 	void Update();
+	void UpdateCBData(const Vector2& rtSize);
 
 	int CalcVirtImageSize(const Int2& sector);
 
 	void Release();
 
+	NXConstantBuffer<CBufferVTReadback>& GetCBufferVTReadback() { return m_cbVTReadback; }
+
 private:
+	CBufferVTReadback m_cbDataVTReadback;
+	NXConstantBuffer<CBufferVTReadback>	m_cbVTReadback;
+
 	NXCamera* m_pCamera = nullptr;
 
 	std::vector<Int2> m_offsetXZ; // 缓存附近一定距离内的偏移量，用这个找相机附近的sector

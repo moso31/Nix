@@ -132,6 +132,12 @@ void NXVirtualTextureManager::Update()
 	std::erase_if(m_sectorInfo, [&removeDelayed](const NXSectorInfo& oldSectorInfo) { return removeDelayed.contains(oldSectorInfo); });
 }
 
+void NXVirtualTextureManager::UpdateCBData(const Vector2& rtSize)
+{
+	m_cbDataVTReadback.param0 = Vector4(rtSize.x, rtSize.y, 0.0f, 0.0f);
+	m_cbVTReadback.Update(m_cbDataVTReadback);
+}
+
 int NXVirtualTextureManager::CalcVirtImageSize(const Int2& sector)
 {
 	Vector3 sectorPosWS((float)sector.x, 0.0f, (float)sector.y);

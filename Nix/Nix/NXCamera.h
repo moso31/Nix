@@ -47,6 +47,8 @@ public:
 	void Render(ID3D12GraphicsCommandList* pCmdList);
 	void Release();
 
+	const Vector2& GetRTSize() { return m_rtSize; }
+
 	NSFirstPersonalCamera* GetFirstPersonalController();
 	void SetFirstPersonalController(NSFirstPersonalCamera* pScript);
 

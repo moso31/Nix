@@ -389,6 +389,7 @@ Vector4 operator* (float S, const Vector4& V);
 struct Int2 : public XMINT2
 {
     Int2() : XMINT2(0, 0) {}
+    Int2(int x) : XMINT2(x, x) {}
     Int2(int x, int y) : XMINT2(x, y) {}
     Int2(const Vector2& v) : XMINT2((int)v.x, (int)v.y) {}
 

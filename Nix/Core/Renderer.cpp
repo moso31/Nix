@@ -221,15 +221,25 @@ void Renderer::GenerateRenderGraph()
 			m_pRenderGraph->SetViewPortAndScissorRect(pCmdList, m_viewRTSize); // 第一个pass设置ViewPort
 		});
 
-	//NXRGResource* pVTReadback = m_pRenderGraph->CreateResource("VT Readback Buffer", { .isViewRT = true, .RTScale = 0.125f, .type = NXResourceType::Buffer, .format = DXGI_FORMAT_R32_FLOAT });
-	//struct VTReadbackData {};
-	//m_pRenderGraph->AddComputePass<VTReadbackData>("VTReadbackPass", nullptr,
-	//	[&](NXRGBuilder& pBuilder, VTReadbackData& data) {
-	//		pBuilder.Read(pGBuffer3, 0);
-	//		pBuilder.WriteUAV(pVTReadback, 0);
-	//	},
-	//	[](ID3D12GraphicsCommandList* pCmdList, VTReadbackData& data) {
-	//	});
+	NXRGResource* pVTReadback = m_pRenderGraph->CreateResource("VT Readback Buffer", { .isViewRT = true, .RTScale = 0.125f, .type = NXResourceType::Buffer, .format = DXGI_FORMAT_R32_FLOAT });
+	struct VTReadbackData 
+	{
+		NXVTReadbackRenderer* pPass;
+	};
+	m_pRenderGraph->AddComputePass<VTReadbackData>("VTReadbackPass", new NXVTReadbackRenderer(),
+		[&](NXRGBuilder& builder, VTReadbackData& data) {
+			data.pPass = static_cast<NXVTReadbackRenderer*>(builder.GetPassNode()->GetRenderPass());
+			builder.SetRootParamLayout(1, 1, 1);
+			builder.ReadConstantBuffer(0, 0, &NXVirtualTextureManager::GetInstance()->GetCBufferVTReadback());
+			builder.Read(pGBuffer0, 0);
+			builder.WriteUAV(pVTReadback, 0);
+		},
+		[=](ID3D12GraphicsCommandList* pCmdList, VTReadbackData& data) {
+			auto& pRT = pGBuffer0->GetTexture();
+			Int2 rtSize(pRT->GetWidth(), pRT->GetHeight());
+			Int2 threadGroupSize((rtSize + 7) / 8);
+			data.pPass->SetThreadGroups(threadGroupSize.x, threadGroupSize.y);
+		});
 
 	struct DepthCopyData
 	{
@@ -501,8 +511,10 @@ void Renderer::UpdateSceneData()
 	// 更新Camera的常量缓存数据（VP矩阵、眼睛位置）
 	m_scene->UpdateCamera();
 
-	NXGPUTerrainManager::GetInstance()->UpdateCameraParams(m_scene->GetMainCamera());
+	auto* pCamera = m_scene->GetMainCamera();
+	NXGPUTerrainManager::GetInstance()->UpdateCameraParams(pCamera);
 	NXVirtualTextureManager::GetInstance()->Update();
+	NXVirtualTextureManager::GetInstance()->UpdateCBData(pCamera->GetRTSize());
 
 	m_scene->UpdateLightData();
 
