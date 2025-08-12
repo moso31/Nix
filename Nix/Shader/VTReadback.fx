@@ -8,7 +8,7 @@ cbuffer CBufferVTReadback : register(b0)
 };
 
 Texture2D<float> txVTEncodeData : register(t0);
-RWStructuredBuffer<uint> m_output : register(u0);
+RWStructuredBuffer<int> m_output : register(u0);
 
 // 传入的总线程组数量已经是1/8 RT的像素数量了
 [numthreads(1, 1, 1)]
@@ -25,5 +25,5 @@ void CS(uint3 DTid : SV_DispatchThreadID)
 
 	float encode = txVTEncodeData.Load(int3(screenPos, 0)).x;
 	int index = outPos.y * m_param0.x + outPos.x;
-	m_output[index] = asuint(encode);
+	m_output[index] = (encode);
 }

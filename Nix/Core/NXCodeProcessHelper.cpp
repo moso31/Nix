@@ -591,7 +591,7 @@ void EncodeGBuffer(NXGBufferParams gBuffer, PS_INPUT input, out PS_OUTPUT Output
 	uint ux = (ix % 4096u) & 0xFFFu;
 	uint uy = (iy % 4096u) & 0xFFFu;
 	uint uz = (iz % 256u) & 0xFFu;
-	uint packed = (ux << 20) | (uy << 8) | uz;
+	float packed = input.posWS.x; // (ux << 20) | (uy << 8) | uz;
 	Output.GBufferA = packed;
 
 	uint uShadingModel = asuint(m.shadingModel);

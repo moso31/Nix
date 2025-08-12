@@ -5,7 +5,9 @@
 #include "NXConvertString.h"
 
 NXBuffer::NXBuffer(const std::string& name) : 
-	NXResource(NXResourceType::Buffer, name) 
+	NXResource(NXResourceType::Buffer, name),
+	m_loadingViews(0),
+	m_futureLoadingViews(m_promiseLoadingViews.get_future())
 {
 	m_resourceState.Reset(D3D12_RESOURCE_STATE_COPY_DEST);
 }
@@ -24,9 +26,15 @@ void NXBuffer::Create(uint32_t stride, uint32_t arraySize)
 	uavCounterBuffer.WaitCreateComplete();
 	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 		m_pUAVCounterBuffer[i] = uavCounterBuffer.GetD3DResource()[i];
+	
 
+	// views = 1 srv + 2 uav. 
+	m_loadingViews = 3; 
 	InitSRV();
 	InitUAV();
+
+	// buffer 先不搞太复杂，初始化就等待加载完成
+	WaitLoadingViewsFinish();
 }
 
 void NXBuffer::SetCurrent(const void* pSrcData, uint32_t arraySize)
@@ -107,6 +115,7 @@ void NXBuffer::InitSRV()
 			}
 
 			NXGlobalDX::GetDevice()->CreateShaderResourceView(m_pBuffer[i].Get(), &srvDesc, m_pSRV[i]);
+			ProcessLoadingViews();
 			});
 	}
 }
@@ -128,6 +137,7 @@ void NXBuffer::InitUAV()
 			uavDesc.Buffer.CounterOffsetInBytes = 0; // 独立的UAV counter buffer
 
 			NXGlobalDX::GetDevice()->CreateUnorderedAccessView(m_pBuffer[i].Get(), m_pUAVCounterBuffer[i].Get(), &uavDesc, m_pUAV[i]);
+			ProcessLoadingViews();
 			});
 
 		NXAllocator_SRV->Alloc([this, i](const D3D12_CPU_DESCRIPTOR_HANDLE& result) {
@@ -141,8 +151,24 @@ void NXBuffer::InitUAV()
 			uavCounterDesc.Buffer.StructureByteStride = 0;
 
 			NXGlobalDX::GetDevice()->CreateUnorderedAccessView(m_pUAVCounterBuffer[i].Get(), nullptr, &uavCounterDesc, m_pUAVCounter[i]);
+			ProcessLoadingViews();
 			});
 	}
+}
+
+void NXBuffer::ProcessLoadingViews()
+{
+	int oldVal = m_loadingViews.fetch_sub(1);
+
+	if (oldVal == 1) // don't use m_loadingViews == 0. It will be fucked up.
+	{
+		m_promiseLoadingViews.set_value();
+	}
+}
+
+void NXBuffer::WaitLoadingViewsFinish()
+{
+	m_futureLoadingViews.wait();
 }
 
 void NXBuffer::SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D3D12_RESOURCE_STATES& state)

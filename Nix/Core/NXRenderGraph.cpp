@@ -65,11 +65,25 @@ void NXRenderGraph::Execute(ID3D12GraphicsCommandList* pCmdList)
 					pResource->SetResource(pTexture2D);
 				}
 			}
-			else if (desc.type == NXResourceType::Buffer)
+		}
+		else if (desc.type == NXResourceType::Buffer)
+		{
+			// 有时候会出现需要用一维buffer 表述ViewRT的情况，比如VT随屏幕读取像素流数据
+			// 这时的bufferSize是依赖屏幕分辨率的
+			if (desc.isViewRT) 
 			{
-				// Buffer 有些情况下也需要动态构建，比如VT随屏幕读取像素流数据
-				// 虽然数据是一维形式，但size是依赖RT的
+				// RT的话，需要动态构建
+				uint32_t rtWidth = (uint32_t)(desc.RTScale * m_viewResolution.x + 0.5f);
+				uint32_t rtHeight = (uint32_t)(desc.RTScale * m_viewResolution.y + 0.5f);
+
 				auto pBuffer = pRes.As<NXBuffer>();
+				if (pBuffer.IsNull() || pBuffer->GetWidth() != rtWidth * rtHeight)
+				{
+					Ntr<NXBuffer> pNewBuffer(new NXBuffer("RG Buffer"));
+					pNewBuffer->Create(desc.stride, rtWidth * rtHeight);
+
+					pResource->SetResource(pNewBuffer);
+				}
 			}
 		}
 	}

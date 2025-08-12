@@ -2,7 +2,7 @@
 
 void NXVTReadbackRenderer::SetupInternal()
 {
-	SetPassName("Fill Test");
+	SetPassName("VT Readback");
 	SetShaderFilePath(L"Shader\\VTReadback.fx");
 
 	InitCSO();

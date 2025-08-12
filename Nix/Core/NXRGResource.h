@@ -21,6 +21,9 @@ struct NXRGDescription
 	bool isViewRT = true; // 是否使用view的分辨率
 	float RTScale = 1.0f; // isViewRT == true 时分辨率比例。允许pass的分辨率缩放到0.5x, 0.25x等
 
+	// 只有缓冲使用这个参数，单个数据的字节量，默认使用sizeof(int)=4
+	int stride = 4; 
+
 	bool isImported = false;
 	struct
 	{
@@ -30,12 +33,13 @@ struct NXRGDescription
 		uint32_t arraySize;
 	} importData;
 
+	// 资源类型
 	NXResourceType type = NXResourceType::Tex2D;
 
-	// 纹理的DXGI格式
+	// 资源DXGI格式
 	DXGI_FORMAT format;
 
-	// 纹理是RT还是DS，如果是RT运行多张；如果是DS只能放一张
+	//（纹理）是RT还是DS
 	NXRGHandleFlags handleFlags;
 };
 

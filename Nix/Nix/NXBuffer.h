@@ -1,5 +1,6 @@
 #pragma once
 #include "NXResource.h"
+#include <future>
 
 class NXBuffer : public NXResource
 {
@@ -37,6 +38,8 @@ private:
 	// Buffer和Texture相似，但SRV和UAV都是自动创建的
 	void InitSRV();
 	void InitUAV();
+	void ProcessLoadingViews(); // 计数--，每加载好一个View，调用一次
+	void WaitLoadingViewsFinish(); // 等待所有View都加载完成，渲染传View时调用
 
 private:
 	// 存一下伙伴内存池的原始资源指针和偏移量，方便SRV/UAV创建定位。
@@ -49,6 +52,10 @@ private:
 
 	uint32_t m_stride;
 	uint32_t m_byteSize;
+
+	std::atomic<int> m_loadingViews;
+	std::promise<void> m_promiseLoadingViews;
+	std::future<void> m_futureLoadingViews;
 
 	MultiFrame<D3D12_CPU_DESCRIPTOR_HANDLE> m_pSRV;
 	MultiFrame<D3D12_CPU_DESCRIPTOR_HANDLE> m_pUAV;
