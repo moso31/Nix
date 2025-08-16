@@ -136,6 +136,9 @@
     <Filter Include="Shader\GPUTerrain">
       <UniqueIdentifier>{acc387db-02b9-4a20-a13b-7dbb2dd8454a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Core\DirectX\Renderer\RenderGraph\Passes">
+      <UniqueIdentifier>{3227739e-2f7d-4f56-afda-b12683d6d940}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Common.fx">
@@ -559,17 +562,8 @@
     <ClCompile Include="Nix\NXBuffer.cpp">
       <Filter>Nix\TextureBuffer</Filter>
     </ClCompile>
-    <ClCompile Include="Core\NXGraphicPass.cpp">
-      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\NXComputePass.cpp">
-      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
-    </ClCompile>
     <ClCompile Include="Nix\NXResource.cpp">
       <Filter>Nix\TextureBuffer</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\NXRenderPass.cpp">
-      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXFillTestRenderer.cpp">
       <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
@@ -603,6 +597,21 @@
     </ClCompile>
     <ClCompile Include="..\XAllocator\NXGPUTransferSystem.cpp">
       <Filter>Core\DirectX</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXReadbackBufferPass.cpp">
+      <Filter>Core\DirectX\Renderer\RenderGraph\Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXComputePass.cpp">
+      <Filter>Core\DirectX\Renderer\RenderGraph\Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXGraphicPass.cpp">
+      <Filter>Core\DirectX\Renderer\RenderGraph\Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXRenderPass.cpp">
+      <Filter>Core\DirectX\Renderer\RenderGraph\Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXRGPass.cpp">
+      <Filter>Core\DirectX\Renderer\RenderGraph\Passes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -963,17 +972,8 @@
     <ClInclude Include="Nix\NXBuffer.h">
       <Filter>Nix\TextureBuffer</Filter>
     </ClInclude>
-    <ClInclude Include="Core\NXGraphicPass.h">
-      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\NXComputePass.h">
-      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
-    </ClInclude>
     <ClInclude Include="Nix\NXResource.h">
       <Filter>Nix\TextureBuffer</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\NXRenderPass.h">
-      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXFillTestRenderer.h">
       <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
@@ -1016,6 +1016,24 @@
     </ClInclude>
     <ClInclude Include="..\XAllocator\NXGPUTransferSystem.h">
       <Filter>Core\DirectX</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXReadbackBufferPass.h">
+      <Filter>Core\DirectX\Renderer\RenderGraph\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXComputePass.h">
+      <Filter>Core\DirectX\Renderer\RenderGraph\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXGraphicPass.h">
+      <Filter>Core\DirectX\Renderer\RenderGraph\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXRenderPass.h">
+      <Filter>Core\DirectX\Renderer\RenderGraph\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXRGPass.h">
+      <Filter>Core\DirectX\Renderer\RenderGraph\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXRGUtil.h">
+      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

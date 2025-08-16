@@ -1,8 +1,10 @@
 #include "NXRGPassNode.h"
 #include "NXRenderGraph.h"
 #include "NXConstantBuffer.h"
+#include "NXComputePass.h"
+#include "NXGraphicPass.h"
 
-NXRGPassNodeBase::NXRGPassNodeBase(NXRenderGraph* pRenderGraph, const std::string& passName, NXRenderPass* pPass) :
+NXRGPassNodeBase::NXRGPassNodeBase(NXRenderGraph* pRenderGraph, const std::string& passName, NXRGPass* pPass) :
 	m_pRenderGraph(pRenderGraph), 
 	m_passName(passName), 
 	m_pPass(pPass), 
@@ -13,10 +15,14 @@ NXRGPassNodeBase::NXRGPassNodeBase(NXRenderGraph* pRenderGraph, const std::strin
 
 void NXRGPassNodeBase::SetRootParamLayout(uint32_t cbvCount, uint32_t srvCount, uint32_t uavCount)
 {
+	if (!m_pPass->IsRenderPass())
+		return;
+
+	auto* pRenderPass = (NXRenderPass*)m_pPass;
 	m_rootParamLayout.cbvCount = cbvCount;
 	m_rootParamLayout.srvCount = srvCount;
 	m_rootParamLayout.uavCount = uavCount;
-	m_pPass->SetRootParamLayout(m_rootParamLayout);
+	pRenderPass->SetRootParamLayout(m_rootParamLayout);
 }
 
 void NXRGPassNodeBase::Read(NXRGResource* pResource, uint32_t passSlotIndex)
@@ -26,10 +32,14 @@ void NXRGPassNodeBase::Read(NXRGResource* pResource, uint32_t passSlotIndex)
 
 void NXRGPassNodeBase::ReadConstantBuffer(uint32_t rootIndex, uint32_t slotIndex, NXConstantBufferImpl* pConstantBuffer)
 {
+	if (!m_pPass->IsRenderPass())
+		return;
+
 	// 目前的规定是 必须先SetRootParamLayout才能调用ReadConstantBuffer（长期要去掉这个策略吗？）
 	assert(m_rootParamLayout.cbvCount > rootIndex);
 
-	m_pPass->SetStaticRootParamCBV(rootIndex, slotIndex, &pConstantBuffer->GetFrameGPUAddresses());
+	auto* pRenderPass = (NXRenderPass*)m_pPass;
+	pRenderPass->SetStaticRootParamCBV(rootIndex, slotIndex, &pConstantBuffer->GetFrameGPUAddresses());
 }
 
 NXRGResource* NXRGPassNodeBase::WriteRT(NXRGResource* pResource, uint32_t outRTIndex, bool useOldVersion)
@@ -91,6 +101,14 @@ NXRGResource* NXRGPassNodeBase::SetIndirectArgs(NXRGResource* pResource)
 	m_indirectArgs = pResource;
 	pResource->MakeWriteConnect(); // 标记为已写入
 	return m_indirectArgs;
+}
+
+NXRenderPass* NXRGPassNodeBase::GetRenderPass()
+{
+	if (!m_pPass->IsRenderPass())
+		return nullptr;
+
+	return (NXRenderPass*)m_pPass; 
 }
 
 void NXRGPassNodeBase::Compile(bool isResize)

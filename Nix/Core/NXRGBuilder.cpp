@@ -1,5 +1,8 @@
 #include "NXRGBuilder.h"
 #include "NXRGPassNode.h"
+#include "NXComputePass.h"
+#include "NXGraphicPass.h"
+#include "NXReadbackBufferPass.h"
 
 void NXRGBuilder::Read(NXRGResource* pResource, uint32_t passSlotIndex)
 {

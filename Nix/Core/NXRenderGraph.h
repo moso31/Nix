@@ -7,6 +7,7 @@
 #include "NXRGPassNode.h"
 #include "NXGraphicPass.h"
 #include "NXComputePass.h"
+#include "NXReadbackBufferPass.h"
 
 class NXRenderGraph
 {
@@ -30,6 +31,18 @@ public:
 	NXRGPassNode<NXRGPassData>* AddComputePass(const std::string& name, NXComputePass* pComputePass, std::function<void(NXRGBuilder& pBuilder, NXRGPassData& data)> setup, std::function<void(ID3D12GraphicsCommandList* pCmdList, NXRGPassData& data)> execute)
 	{
 		auto pPassNode = new NXRGPassNode<NXRGPassData>(this, name, pComputePass);
+		NXRGBuilder pBuilder(this, pPassNode);
+		setup(pBuilder, pPassNode->GetData());
+
+		pPassNode->RegisterExecuteFunc(execute);
+		m_passNodes.push_back(pPassNode);
+		return pPassNode;
+	}
+
+	template<typename NXRGPassData>
+	NXRGPassNode<NXRGPassData>* AddReadbackBufferPass(const std::string& name, NXReadbackBufferPass* pReadbackPass, std::function<void(NXRGBuilder& pBuilder, NXRGPassData& data)> setup, std::function<void(ID3D12GraphicsCommandList* pCmdList, NXRGPassData& data)> execute)
+	{
+		auto pPassNode = new NXRGPassNode<NXRGPassData>(this, name, pReadbackPass);
 		NXRGBuilder pBuilder(this, pPassNode);
 		setup(pBuilder, pPassNode->GetData());
 

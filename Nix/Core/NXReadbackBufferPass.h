@@ -1,12 +1,13 @@
 #pragma once
-#include "NXBuffer.h"
+#include "NXRGPass.h"
 
-// TODO: 缺少纹理类型 NXReadback（Texture）Pass 的支持
-class NXReadbackBufferPass //: public NXRenderPass
+class NXReadbackBufferPass : public NXRGPass
 {
 public:
 	NXReadbackBufferPass();
 	virtual ~NXReadbackBufferPass() {}
 
-	virtual void SetupInternal() = 0;
+	virtual void SetupInternal() override {}
+
+	virtual void Render(ID3D12GraphicsCommandList* pCmdList) override {}
 };

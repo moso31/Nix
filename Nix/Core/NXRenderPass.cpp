@@ -2,8 +2,7 @@
 #include "NXSamplerManager.h"
 
 NXRenderPass::NXRenderPass(NXRenderPassType type) :
-	m_passName("Noname pass"),
-	m_passType(type),
+	NXRGPass(type),
 	m_entryNameVS(L"VS"),
 	m_entryNamePS(L"PS"),
 	m_entryNameCS(L"CS")

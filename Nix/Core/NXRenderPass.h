@@ -2,15 +2,9 @@
 #include "BaseDefs/DX12.h"
 #include <filesystem>
 #include "Ntr.h"
+#include "NXRGPass.h"
 #include "NXCommonTexDefinition.h"
 #include "NXTexture.h"
-
-struct NXRGRootParamLayout
-{
-	int cbvCount = 0;
-	int srvCount = 0;
-	int uavCount = 0;
-};
 
 // 在DX12要绑定CB，需要提供对应CBV的gpuHandle。
 // cmdList将使用gpuHandle。
@@ -25,14 +19,8 @@ struct NXCBVManagement
 	const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>* multiFrameGpuVirtAddr;
 };
 
-enum class NXRenderPassType
-{
-	GraphicPass,
-	ComputePass,
-};
-
 class NXRGResource;
-class NXRenderPass
+class NXRenderPass : public NXRGPass
 {
 public:
 	NXRenderPass(NXRenderPassType type);
@@ -40,9 +28,6 @@ public:
 
 	virtual void SetupInternal() = 0;
 
-	NXRenderPassType GetPassType() const { return m_passType; }
-
-	void SetPassName(const std::string& passName) { m_passName = passName; }
 	void SetShaderFilePath(const std::filesystem::path& shaderFilePath) { m_shaderFilePath = shaderFilePath; }
 
 	void SetEntryNameVS(const std::wstring& name) { m_entryNameVS = name; }
@@ -71,8 +56,6 @@ public:
 	void AddStaticSampler(D3D12_FILTER filter, D3D12_TEXTURE_ADDRESS_MODE addrUVW);
 
 protected:
-	std::string	m_passName;
-	NXRenderPassType m_passType;
 	std::filesystem::path m_shaderFilePath;
 
 	// shader入口点名称

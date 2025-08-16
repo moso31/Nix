@@ -98,7 +98,7 @@ void NXGraphicPass::InitPSO()
 
 	NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&m_psoDesc, IID_PPV_ARGS(&m_pPSO));
 
-	std::wstring psoName(NXConvert::s2ws(m_passName) + L" PSO");
+	std::wstring psoName(NXConvert::s2ws(GetPassName()) + L" PSO");
 	m_pPSO->SetName(psoName.c_str());
 }
 

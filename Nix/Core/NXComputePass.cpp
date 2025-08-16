@@ -28,7 +28,7 @@ void NXComputePass::InitCSO()
 	m_csoDesc.CS = { pCSBlob->GetBufferPointer(), pCSBlob->GetBufferSize() };
 	NXGlobalDX::GetDevice()->CreateComputePipelineState(&m_csoDesc, IID_PPV_ARGS(&m_pCSO));
 
-	std::wstring csoName(NXConvert::s2ws(m_passName) + L" CSO");
+	std::wstring csoName(NXConvert::s2ws(GetPassName()) + L" CSO");
 	m_pCSO->SetName(csoName.c_str());
 }
 

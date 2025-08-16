@@ -241,6 +241,13 @@ void Renderer::GenerateRenderGraph()
 			data.pPass->SetThreadGroups(threadGroupSize.x, threadGroupSize.y);
 		});
 
+	// TODO: 简略变量，new NXReadbackBufferPass有必要吗？
+	m_pRenderGraph->AddReadbackBufferPass<VTReadbackData>("", new NXReadbackBufferPass(),
+		[&](NXRGBuilder& builder, VTReadbackData& data) {
+		},
+		[=](ID3D12GraphicsCommandList* pCmdList, VTReadbackData& data) {
+		});
+
 	struct DepthCopyData
 	{
 		NXRGResource* depthCopy;

@@ -1,6 +1,5 @@
 #pragma once
-#include "NXGraphicPass.h"
-#include "NXComputePass.h"
+#include "NXRGUtil.h"
 #include "NXRGResource.h"
 
 struct NXRGResourceSlot
@@ -10,12 +9,14 @@ struct NXRGResourceSlot
 	uint32_t uavCounterSlot; // uav counter 的slot（如果有uav的话）
 };
 
+class NXRGPass;
+class NXRenderPass;
 class NXRenderGraph;
 class NXConstantBufferImpl;
 class NXRGPassNodeBase
 {
 public:
-	NXRGPassNodeBase(NXRenderGraph* pRenderGraph, const std::string& passName, NXRenderPass* pPass);
+	NXRGPassNodeBase(NXRenderGraph* pRenderGraph, const std::string& passName, NXRGPass* pPass);
 
 	const std::string& GetName() { return m_passName; }
 
@@ -34,7 +35,7 @@ public:
 	NXRGResource* WriteUAV(NXRGResource* pResource, uint32_t uavIndex, bool useOldVersion, uint32_t uavCounterIndex);
 	NXRGResource* SetIndirectArgs(NXRGResource* pResource);
 
-	NXRenderPass* GetRenderPass() { return m_pPass; }
+	NXRenderPass* GetRenderPass();
 
 	void Compile(bool isResize);
 	virtual void Execute(ID3D12GraphicsCommandList* pCmdList) = 0;
@@ -51,7 +52,7 @@ protected:
 	std::string m_passName;
 	NXRenderGraph* m_pRenderGraph;
 
-	NXRenderPass* m_pPass;
+	NXRGPass* m_pPass;
 	bool m_pPassInited;
 
 	// Pass记录自己依赖的资源指针（但不负责其生命周期）
@@ -67,7 +68,7 @@ template<typename NXRGPassData>
 class NXRGPassNode : public NXRGPassNodeBase
 {
 public:
-	NXRGPassNode(NXRenderGraph* pRenderGraph, const std::string& passName, NXRenderPass* pPass) : NXRGPassNodeBase(pRenderGraph, passName, pPass), m_passData(NXRGPassData()) {}
+	NXRGPassNode(NXRenderGraph* pRenderGraph, const std::string& passName, NXRGPass* pPass) : NXRGPassNodeBase(pRenderGraph, passName, pPass), m_passData(NXRGPassData()) {}
 
 	NXRGPassData& GetData() { return m_passData; }
 
