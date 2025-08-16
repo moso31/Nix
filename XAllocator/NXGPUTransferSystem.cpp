@@ -1,12 +1,10 @@
 #include "NXGPUTransferSystem.h"
 
-using namespace ccmem;
-
-ccmem::NXTransferTask::NXTransferTask()
+NXTransferTask::NXTransferTask()
 {
 }
 
-ccmem::NXRingBuffer::NXRingBuffer(ID3D12Device* pDevice, uint32_t bufferSize, NXTransferType type):
+NXRingBuffer::NXRingBuffer(ID3D12Device* pDevice, uint32_t bufferSize, NXTransferType type):
 	m_pDevice(pDevice),
 	m_size(bufferSize),
 	m_type(type),
@@ -43,14 +41,14 @@ ccmem::NXRingBuffer::NXRingBuffer(ID3D12Device* pDevice, uint32_t bufferSize, NX
 	}
 }
 
-ccmem::NXRingBuffer::~NXRingBuffer()
+NXRingBuffer::~NXRingBuffer()
 {
 	m_pResource->Unmap(0, nullptr);
 	m_pResource->Release();
 	m_pResource = nullptr;
 }
 
-bool ccmem::NXRingBuffer::CanAlloc(uint32_t byteSize)
+bool NXRingBuffer::CanAlloc(uint32_t byteSize)
 {
 	// byteSize 做字节对齐处理，以DX12的纹理数据对齐方式为准（不得小于512字节）
 	byteSize = (byteSize + D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT - 1) & ~(D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT - 1);
@@ -76,7 +74,7 @@ bool ccmem::NXRingBuffer::CanAlloc(uint32_t byteSize)
 	}
 }
 
-bool ccmem::NXRingBuffer::Build(uint32_t byteSize, NXTransferTask& oTask)
+bool NXRingBuffer::Build(uint32_t byteSize, NXTransferTask& oTask)
 {
 	NXPrint::Write(0, "BuildTask(Begin), usedstart: %d, end: %d\n", m_usedStart, m_usedEnd);
 
@@ -138,7 +136,7 @@ bool ccmem::NXRingBuffer::Build(uint32_t byteSize, NXTransferTask& oTask)
 	return true;
 }
 
-void ccmem::NXRingBuffer::Finish(const NXTransferTask& task)
+void NXRingBuffer::Finish(const NXTransferTask& task)
 {
 	// 任务完成后，只需要将usedStart向前移动即可
 	m_usedStart = task.ringPos + task.byteSize;
@@ -147,7 +145,7 @@ void ccmem::NXRingBuffer::Finish(const NXTransferTask& task)
 	m_usedStart %= m_size;
 }
 
-ccmem::NXGPUTransferSystem::NXGPUTransferSystem(ID3D12Device* pDevice) :
+NXGPUTransferSystem::NXGPUTransferSystem(ID3D12Device* pDevice) :
 	m_pDevice(pDevice),
 	m_ringBufferUpload(pDevice, 64 * 1024 * 1024, NXTransferType::Upload), // 64MB ring buffer.
 	m_ringBufferReadback(pDevice, 64 * 1024 * 1024, NXTransferType::Readback) // 64MB ring buffer.
@@ -169,7 +167,7 @@ ccmem::NXGPUTransferSystem::NXGPUTransferSystem(ID3D12Device* pDevice) :
 	}
 }
 
-ccmem::NXGPUTransferSystem::~NXGPUTransferSystem()
+NXGPUTransferSystem::~NXGPUTransferSystem()
 {
 	if (m_pCmdQueue)
 	{
@@ -199,7 +197,7 @@ ccmem::NXGPUTransferSystem::~NXGPUTransferSystem()
 	}
 }
 
-bool ccmem::NXGPUTransferSystem::BuildTask(int byteSize, NXTransferType taskType, NXTransferContext& taskResult)
+bool NXGPUTransferSystem::BuildTask(int byteSize, NXTransferType taskType, NXTransferContext& taskResult)
 {
 	assert(taskType != NXTransferType::None);
 
@@ -236,7 +234,7 @@ bool ccmem::NXGPUTransferSystem::BuildTask(int byteSize, NXTransferType taskType
 	return false;
 }
 
-void ccmem::NXGPUTransferSystem::FinishTask(const NXTransferContext& result, const std::function<void()>& pCallBack)
+void NXGPUTransferSystem::FinishTask(const NXTransferContext& result, const std::function<void()>& pCallBack)
 {
 	std::lock_guard<std::mutex> lock(m_mutex);
 
@@ -248,12 +246,13 @@ void ccmem::NXGPUTransferSystem::FinishTask(const NXTransferContext& result, con
 	m_pCmdQueue->ExecuteCommandLists(1, cmdLists);
 	
 	m_fenceValue++;
+	m_frameFenceValue[MultiFrameSets::swapChainIndex] = m_fenceValue;
 	m_pCmdQueue->Signal(m_pFence, m_fenceValue); // 告知GPU 命令执行完成时 m_pFence更新成value
 
 	task->fenceValue = m_fenceValue; 
 }
 
-void ccmem::NXGPUTransferSystem::Update()
+void NXGPUTransferSystem::Update()
 {
 	std::lock_guard<std::mutex> lock(m_mutex);
 

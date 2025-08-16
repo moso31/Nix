@@ -601,6 +601,9 @@
     <ClCompile Include="Core\NXVirtualTextureRenderer.cpp">
       <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
     </ClCompile>
+    <ClCompile Include="..\XAllocator\NXGPUTransferSystem.cpp">
+      <Filter>Core\DirectX</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -1010,6 +1013,9 @@
     </ClInclude>
     <ClInclude Include="Core\NXVirtualTextureRenderer.h">
       <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\XAllocator\NXGPUTransferSystem.h">
+      <Filter>Core\DirectX</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

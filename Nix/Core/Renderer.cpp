@@ -555,6 +555,9 @@ void Renderer::RenderFrame()
 	// 确保BRDF 2D LUT 异步加载完成
 	WaitForBRDF2DLUTFinish();
 
+	// 确保NXTransferSys本帧数据加载完成
+	NXGlobalDX::GlobalCmdQueue()->Wait(NXGPUTransferSys->GetFence(), NXGPUTransferSys->GetCurrentFenceValue());
+
 	ID3D12CommandList* pCmdLists[] = { pCommandList.Get() };
 	NXGlobalDX::GlobalCmdQueue()->ExecuteCommandLists(1, pCmdLists);
 

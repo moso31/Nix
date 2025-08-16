@@ -15,7 +15,6 @@ void NXAllocatorManager::Init()
 	m_pTextureAllocator = std::make_unique<PlacedBufferAllocator>(pDevice, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT, Memsize_MB(2048));
 
 	m_pUpdateSystem = std::make_unique<NXGPUTransferSystem>(pDevice);
-	m_pUpdateSystem->SetSyncCommandQueue(NXGlobalDX::GlobalCmdQueue()); // 渲染队列有时候需要等待上传队列完成才能继续进行
 
 	m_pTextureLoader = std::make_unique<NXTextureLoader>();
 

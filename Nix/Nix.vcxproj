@@ -214,6 +214,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\XAllocator\NXGPUTransferSystem.cpp" />
     <ClCompile Include="BaseDefs\DearImGui.cpp" />
     <ClCompile Include="BaseDefs\DX12.cpp" />
     <ClCompile Include="Core\App.cpp" />
@@ -331,6 +332,7 @@
     <ClCompile Include="Nix\NXTransform.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\XAllocator\NXGPUTransferSystem.h" />
     <ClInclude Include="BaseDefs\CppSTLFully.h" />
     <ClInclude Include="BaseDefs\CrtDbg.h" />
     <ClInclude Include="BaseDefs\DX12.h" />
