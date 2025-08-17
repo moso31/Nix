@@ -226,7 +226,7 @@ void NXTexture::CreateInternal(const std::shared_ptr<DirectX::ScratchImage>& pIm
 	NXAllocator_Tex->Alloc(&desc, (uint32_t)totalBytes, [this, layouts, numRow, numRowSizeInBytes, layoutSize, totalBytes, pImage](const PlacedBufferAllocTaskResult& result) mutable {
 		m_pTexture = result.pResource;
 
-		NXTransferContext taskContext(m_name);
+		NXUploadContext taskContext(m_name);
 		if (NXUploadSys->BuildTask((int)totalBytes, taskContext))
 		{
 			// 更新纹理资源
@@ -323,7 +323,7 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 
 			for (auto& texChunk : chunks)
 			{
-				NXTransferContext taskContext("Upload Texture Task");
+				NXUploadContext taskContext("Upload Texture Task");
 				if (NXUploadSys->BuildTask(texChunk.chunkBytes, taskContext))
 				{
 					int mip, slice;

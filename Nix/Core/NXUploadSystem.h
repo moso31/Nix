@@ -2,10 +2,10 @@
 #include "XAllocCommon.h"
 #include "BaseDefs/DX12.h"
 
-class NXRingBuffer;
-struct NXTransferTask
+class NXUploadRingBuffer;
+struct NXUploadTask
 {
-    NXTransferTask();
+    NXUploadTask();
 
     void Reset()
     {
@@ -30,14 +30,14 @@ struct NXTransferTask
 	uint32_t ringPos = 0;
 	uint32_t byteSize = 0;
 
-    NXRingBuffer* pRingBuffer = nullptr;
+    NXUploadRingBuffer* pRingBuffer = nullptr;
 };
 
-struct NXTransferContext
+struct NXUploadContext
 {
-    NXTransferContext(const std::string& name) : name(name) {}
+    NXUploadContext(const std::string& name) : name(name) {}
 
-    NXTransferTask* pOwner = nullptr;
+    NXUploadTask* pOwner = nullptr;
 
     // ringBuffer的临时资源本体、临时资源上传堆映射、临时资源上传堆偏移量
 	ID3D12Resource* pResource = nullptr;
@@ -46,16 +46,16 @@ struct NXTransferContext
     std::string name;
 };
 
-class NXRingBuffer
+class NXUploadRingBuffer
 {
 public:
-    NXRingBuffer(ID3D12Device* pDevice, uint32_t bufferSize);
-    ~NXRingBuffer();
+    NXUploadRingBuffer(ID3D12Device* pDevice, uint32_t bufferSize);
+    ~NXUploadRingBuffer();
 
     bool CanAlloc(uint32_t byteSize);
-    bool Build(uint32_t byteSize, NXTransferTask& oTask);
-    void Finish(const NXTransferTask& task);
-        
+    bool Build(uint32_t byteSize, NXUploadTask& oTask);
+    void Finish(const NXUploadTask& task);
+
     ID3D12Resource* GetResource() { return m_pResource; }
     uint8_t* GetResourceMappedData() { return m_pResourceData; }
 
@@ -80,8 +80,8 @@ public:
     NXUploadSystem(ID3D12Device* pDevice);
     ~NXUploadSystem();
 
-    bool BuildTask(int byteSize, NXTransferContext& taskResult);
-    void FinishTask(const NXTransferContext& result, const std::function<void()>& pCallBack = nullptr);
+    bool BuildTask(int byteSize, NXUploadContext& taskResult);
+    void FinishTask(const NXUploadContext& result, const std::function<void()>& pCallBack = nullptr);
     void Update();
     ID3D12Fence* GetFence() { return m_pFence; }
     const uint64_t GetCurrentFenceValue() { return m_frameFenceValue.Current(); }
@@ -95,12 +95,12 @@ private:
 
     ID3D12CommandQueue* m_pSyncCmdQueue;
 
-    NXTransferTask m_transferTask[TASK_NUM];
+    NXUploadTask m_tasks[TASK_NUM];
 
     uint32_t m_taskStart = 0;
     uint32_t m_taskUsed = 0;
 
-    NXRingBuffer m_ringBuffer;
+    NXUploadRingBuffer m_ringBuffer;
 
     // 这里的锁策略是比较简单粗暴的，每个方法都加锁，这些方法的开销都不大。
     // 上传系统的大头开销在BeginTask()结束后，FinishTask()开始前这段时间的各种操作上，而这些操作是暴露在上层，允许多线程同时调用的。

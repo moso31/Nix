@@ -214,8 +214,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\XAllocator\NXReadbackSystem.cpp" />
-    <ClCompile Include="..\XAllocator\NXUploadSystem.cpp" />
     <ClCompile Include="BaseDefs\DearImGui.cpp" />
     <ClCompile Include="BaseDefs\DX12.cpp" />
     <ClCompile Include="Core\App.cpp" />
@@ -239,6 +237,7 @@
     <ClCompile Include="Core\NXPSOManager.cpp" />
     <ClCompile Include="Core\NXGraphicPass.cpp" />
     <ClCompile Include="Core\NXReadbackBufferPass.cpp" />
+    <ClCompile Include="Core\NXReadbackSystem.cpp" />
     <ClCompile Include="Core\NXRenderGraph.cpp" />
     <ClCompile Include="Core\NXRenderPass.cpp" />
     <ClCompile Include="Core\NXRGBuilder.cpp" />
@@ -297,6 +296,7 @@
     <ClCompile Include="Core\NXTextureReloadTesk.cpp" />
     <ClCompile Include="Core\NXTextureResourceManager.cpp" />
     <ClCompile Include="Core\NXTimer.cpp" />
+    <ClCompile Include="Core\NXUploadSystem.cpp" />
     <ClCompile Include="Core\NXVirtualTextureRenderer.cpp" />
     <ClCompile Include="Core\Renderer.cpp" />
     <ClCompile Include="Core\ShaderComplier.cpp" />
@@ -335,8 +335,6 @@
     <ClCompile Include="Nix\NXTransform.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\XAllocator\NXReadbackSystem.h" />
-    <ClInclude Include="..\XAllocator\NXUploadSystem.h" />
     <ClInclude Include="BaseDefs\CppSTLFully.h" />
     <ClInclude Include="BaseDefs\CrtDbg.h" />
     <ClInclude Include="BaseDefs\DX12.h" />
@@ -360,6 +358,7 @@
     <ClInclude Include="Core\NXFillTestRenderer.h" />
     <ClInclude Include="Core\NXGlobalBuffers.h" />
     <ClInclude Include="Core\NXGlobalDefinitions.h" />
+    <ClInclude Include="Core\NXGPUTransferCommon.h" />
     <ClInclude Include="Core\NXGUICommandManager.h" />
     <ClInclude Include="Core\NXGUIDiffuseProfile.h" />
     <ClInclude Include="Core\NXGUIInspector.h" />
@@ -370,6 +369,7 @@
     <ClInclude Include="Core\NXPSOManager.h" />
     <ClInclude Include="Core\NXGraphicPass.h" />
     <ClInclude Include="Core\NXReadbackBufferPass.h" />
+    <ClInclude Include="Core\NXReadbackSystem.h" />
     <ClInclude Include="Core\NXRenderGraph.h" />
     <ClInclude Include="Core\NXRenderPass.h" />
     <ClInclude Include="Core\NXRGBuilder.h" />
@@ -430,6 +430,7 @@
     <ClInclude Include="Core\NXTextureReloadTesk.h" />
     <ClInclude Include="Core\NXTextureResourceManager.h" />
     <ClInclude Include="Core\NXTimer.h" />
+    <ClInclude Include="Core\NXUploadSystem.h" />
     <ClInclude Include="Core\NXVirtualTextureRenderer.h" />
     <ClInclude Include="Core\Renderer.h" />
     <ClInclude Include="Core\ShaderComplier.h" />

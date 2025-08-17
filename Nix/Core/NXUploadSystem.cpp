@@ -1,10 +1,10 @@
 #include "NXUploadSystem.h"
 
-NXTransferTask::NXTransferTask()
+NXUploadTask::NXUploadTask()
 {
 }
 
-NXRingBuffer::NXRingBuffer(ID3D12Device* pDevice, uint32_t bufferSize):
+NXUploadRingBuffer::NXUploadRingBuffer(ID3D12Device* pDevice, uint32_t bufferSize):
 	m_pDevice(pDevice),
 	m_size(bufferSize),
 	m_usedStart(0),
@@ -29,14 +29,14 @@ NXRingBuffer::NXRingBuffer(ID3D12Device* pDevice, uint32_t bufferSize):
 	m_pResource->Map(0, nullptr, reinterpret_cast<void**>(&m_pResourceData));
 }
 
-NXRingBuffer::~NXRingBuffer()
+NXUploadRingBuffer::~NXUploadRingBuffer()
 {
 	m_pResource->Unmap(0, nullptr);
 	m_pResource->Release();
 	m_pResource = nullptr;
 }
 
-bool NXRingBuffer::CanAlloc(uint32_t byteSize)
+bool NXUploadRingBuffer::CanAlloc(uint32_t byteSize)
 {
 	// byteSize 做字节对齐处理，以DX12的纹理数据对齐方式为准（不得小于512字节）
 	byteSize = (byteSize + D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT - 1) & ~(D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT - 1);
@@ -62,7 +62,7 @@ bool NXRingBuffer::CanAlloc(uint32_t byteSize)
 	}
 }
 
-bool NXRingBuffer::Build(uint32_t byteSize, NXTransferTask& oTask)
+bool NXUploadRingBuffer::Build(uint32_t byteSize, NXUploadTask& oTask)
 {
 	NXPrint::Write(0, "BuildTask(Begin), usedstart: %d, end: %d\n", m_usedStart, m_usedEnd);
 
@@ -123,7 +123,7 @@ bool NXRingBuffer::Build(uint32_t byteSize, NXTransferTask& oTask)
 	return true;
 }
 
-void NXRingBuffer::Finish(const NXTransferTask& task)
+void NXUploadRingBuffer::Finish(const NXUploadTask& task)
 {
 	// 任务完成后，只需要将usedStart向前移动即可
 	m_usedStart = task.ringPos + task.byteSize;
@@ -145,7 +145,7 @@ NXUploadSystem::NXUploadSystem(ID3D12Device* pDevice) :
 
 	for (int i = 0; i < TASK_NUM; i++)
 	{
-		auto& task = m_transferTask[i];
+		auto& task = m_tasks[i];
 		m_pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_COPY, IID_PPV_ARGS(&task.pCmdAllocator));
 		m_pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_COPY, task.pCmdAllocator, nullptr, IID_PPV_ARGS(&task.pCmdList));
 		task.pCmdList->SetName(std::wstring(L"UploadTask" + std::to_wstring(i)).c_str());
@@ -167,7 +167,7 @@ NXUploadSystem::~NXUploadSystem()
 		m_pFence = nullptr;
 	}
 
-	for (auto& task : m_transferTask)
+	for (auto& task : m_tasks)
 	{
 		if (task.pCmdAllocator)
 		{
@@ -183,7 +183,7 @@ NXUploadSystem::~NXUploadSystem()
 	}
 }
 
-bool NXUploadSystem::BuildTask(int byteSize, NXTransferContext& taskResult)
+bool NXUploadSystem::BuildTask(int byteSize, NXUploadContext& taskResult)
 {
 	std::unique_lock<std::mutex> lock(m_mutex);
 
@@ -196,7 +196,7 @@ bool NXUploadSystem::BuildTask(int byteSize, NXTransferContext& taskResult)
 		});
 
 	uint32_t idx = (m_taskStart + m_taskUsed) % TASK_NUM;
-	auto& task = m_transferTask[idx];
+	auto& task = m_tasks[idx];
 	if (m_ringBuffer.Build(byteSize, task))
 	{
 		m_taskUsed++;
@@ -215,11 +215,11 @@ bool NXUploadSystem::BuildTask(int byteSize, NXTransferContext& taskResult)
 	return false;
 }
 
-void NXUploadSystem::FinishTask(const NXTransferContext& result, const std::function<void()>& pCallBack)
+void NXUploadSystem::FinishTask(const NXUploadContext& result, const std::function<void()>& pCallBack)
 {
 	std::lock_guard<std::mutex> lock(m_mutex);
 
-	NXTransferTask* task = result.pOwner;
+	NXUploadTask* task = result.pOwner;
 	task->pCallback = pCallBack;
 
 	task->pCmdList->Close();
@@ -239,7 +239,7 @@ void NXUploadSystem::Update()
 
 	while (m_taskUsed)
 	{
-		auto& task = m_transferTask[m_taskStart];
+		auto& task = m_tasks[m_taskStart];
 
 		// 等待GPU侧的任务完成
 		if (m_pFence->GetCompletedValue() >= task.fenceValue)

@@ -139,6 +139,9 @@
     <Filter Include="Core\DirectX\Renderer\RenderGraph\Passes">
       <UniqueIdentifier>{3227739e-2f7d-4f56-afda-b12683d6d940}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Core\DirectX\GPUTransfer">
+      <UniqueIdentifier>{21250321-5aee-41e3-990c-bec094884cf3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Common.fx">
@@ -595,9 +598,6 @@
     <ClCompile Include="Core\NXVirtualTextureRenderer.cpp">
       <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
     </ClCompile>
-    <ClCompile Include="..\XAllocator\NXUploadSystem.cpp">
-      <Filter>Core\DirectX</Filter>
-    </ClCompile>
     <ClCompile Include="Core\NXReadbackBufferPass.cpp">
       <Filter>Core\DirectX\Renderer\RenderGraph\Passes</Filter>
     </ClCompile>
@@ -613,8 +613,11 @@
     <ClCompile Include="Core\NXRGPass.cpp">
       <Filter>Core\DirectX\Renderer\RenderGraph\Passes</Filter>
     </ClCompile>
-    <ClCompile Include="..\XAllocator\NXReadbackSystem.cpp">
-      <Filter>Core\DirectX</Filter>
+    <ClCompile Include="Core\NXReadbackSystem.cpp">
+      <Filter>Core\DirectX\GPUTransfer</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXUploadSystem.cpp">
+      <Filter>Core\DirectX\GPUTransfer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1017,9 +1020,6 @@
     <ClInclude Include="Core\NXVirtualTextureRenderer.h">
       <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
     </ClInclude>
-    <ClInclude Include="..\XAllocator\NXUploadSystem.h">
-      <Filter>Core\DirectX</Filter>
-    </ClInclude>
     <ClInclude Include="Core\NXReadbackBufferPass.h">
       <Filter>Core\DirectX\Renderer\RenderGraph\Passes</Filter>
     </ClInclude>
@@ -1038,8 +1038,14 @@
     <ClInclude Include="Core\NXRGUtil.h">
       <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClInclude>
-    <ClInclude Include="..\XAllocator\NXReadbackSystem.h">
-      <Filter>Core\DirectX</Filter>
+    <ClInclude Include="Core\NXReadbackSystem.h">
+      <Filter>Core\DirectX\GPUTransfer</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXUploadSystem.h">
+      <Filter>Core\DirectX\GPUTransfer</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXGPUTransferCommon.h">
+      <Filter>Core\DirectX\GPUTransfer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

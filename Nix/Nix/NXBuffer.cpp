@@ -55,7 +55,7 @@ void NXBuffer::Set_Internal(const void* pSrcData, uint32_t arraySize, ID3D12Reso
 
 	if (pSrcData)
 	{
-		NXTransferContext taskContext(m_name);
+		NXUploadContext taskContext(m_name);
 		if (NXUploadSys->BuildTask(byteSize, taskContext))
 		{
 			auto bufDesc = pBuffer->GetDesc();
@@ -71,7 +71,7 @@ void NXBuffer::Set_Internal(const void* pSrcData, uint32_t arraySize, ID3D12Reso
 
 	// uav counter;
 	uint32_t counter = arraySize;
-	NXTransferContext taskCtx2(m_name + std::string("_UAVCounter"));
+	NXUploadContext taskCtx2(m_name + std::string("_UAVCounter"));
 	if (NXUploadSys->BuildTask(sizeof(uint32_t), taskCtx2))
 	{
 		auto bufDesc = pUAVCounterBuffer->GetDesc();

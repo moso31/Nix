@@ -9,7 +9,7 @@ NXReadbackBufferPass::NXReadbackBufferPass() :
 void NXReadbackBufferPass::Render(ID3D12GraphicsCommandList* pCmdList)
 {
 	auto pReadbackBuffer = m_pReadbackBuffer->GetBuffer();
-	NXTransferContext ctx(pReadbackBuffer->GetName() + "_Buffer");
+	NXUploadContext ctx(pReadbackBuffer->GetName() + "_Buffer");
 	if (NXUploadSys->BuildTask(pReadbackBuffer->GetByteSize(), ctx))
 	{
 		// 从（一般是主渲染cmdList）将RT拷到readback ringbuffer（ctx.pResource）

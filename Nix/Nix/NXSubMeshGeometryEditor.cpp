@@ -834,7 +834,7 @@ void NXSubMeshGeometryEditor::CreateBuffers(std::vector<NXRawMeshView>& rawViews
 			view.gpuAddress = pBuffer.GetGPUAddress();
 
 			uint32_t byteSize = view.span.size_bytes();
-			NXTransferContext ctx(name + "_Buffer");
+			NXUploadContext ctx(name + "_Buffer");
 			if (NXUploadSys->BuildTask(byteSize, ctx))
 			{
 				// pUpload 是 上传系统的UploadRingBuffer 的临时资源和偏移量
