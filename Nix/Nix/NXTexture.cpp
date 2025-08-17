@@ -227,7 +227,7 @@ void NXTexture::CreateInternal(const std::shared_ptr<DirectX::ScratchImage>& pIm
 		m_pTexture = result.pResource;
 
 		NXTransferContext taskContext(m_name);
-		if (NXGPUTransferSys->BuildTask((int)totalBytes, NXTransferType::Upload, taskContext))
+		if (NXUploadSys->BuildTask((int)totalBytes, taskContext))
 		{
 			// 更新纹理资源
 			m_pTexture->SetName(NXConvert::s2ws(m_name).c_str());
@@ -265,7 +265,7 @@ void NXTexture::CreateInternal(const std::shared_ptr<DirectX::ScratchImage>& pIm
 				}
 			}
 
-			NXGPUTransferSys->FinishTask(taskContext, [this]() {
+			NXUploadSys->FinishTask(taskContext, [this]() {
 				ProcessLoadingTexChunks();
 				});
 		}
@@ -324,7 +324,7 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 			for (auto& texChunk : chunks)
 			{
 				NXTransferContext taskContext("Upload Texture Task");
-				if (NXGPUTransferSys->BuildTask(texChunk.chunkBytes, NXTransferType::Upload, taskContext))
+				if (NXUploadSys->BuildTask(texChunk.chunkBytes, taskContext))
 				{
 					int mip, slice;
 					auto texDesc = m_pTexture->GetDesc();
@@ -348,7 +348,7 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 							memcpy(pDstData + layouts[index].Footprint.RowPitch * (y - rowSt), pSrcData + pImg->rowPitch * y, numRowSizeInBytes[index]);
 						}
 
-						// NXGPUTransferSystem 从RingBuffer同步到实际GPU资源
+						// NXUploadSystem 从RingBuffer同步到实际GPU资源
 						D3D12_TEXTURE_COPY_LOCATION src = {};
 						src.pResource = taskContext.pResource;
 						src.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
@@ -374,7 +374,7 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 						box.back = 1;
 						taskContext.pOwner->pCmdList->CopyTextureRegion(&dst, dstX, dstY, dstZ, &src, &box);
 
-						NXGPUTransferSys->FinishTask(taskContext, [this]() {
+						NXUploadSys->FinishTask(taskContext, [this]() {
 							// 任务完成后的回调
 							ProcessLoadingTexChunks();
 							});
@@ -398,7 +398,7 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 								memcpy(pDstData + layouts[index].Footprint.RowPitch * y, pSrcData + pImg->rowPitch * y, numRowSizeInBytes[index]);
 							}
 
-							// NXGPUTransferSystem 从RingBuffer同步到实际GPU资源
+							// NXUploadSystem 从RingBuffer同步到实际GPU资源
 							D3D12_TEXTURE_COPY_LOCATION src = {}; // src = 上传堆中的内存段
 							src.pResource = taskContext.pResource;
 							src.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
@@ -416,7 +416,7 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 							taskContext.pOwner->pCmdList->CopyTextureRegion(&dst, dstX, dstY, dstZ, &src, nullptr);
 						}
 
-						NXGPUTransferSys->FinishTask(taskContext, [this]() {
+						NXUploadSys->FinishTask(taskContext, [this]() {
 							ProcessLoadingTexChunks();
 							});
 					}
@@ -424,7 +424,7 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 				else
 				{
 					// 抛出异常
-					printf("Error: [NXGPUTransferSystem::BuildTask] failed when loading NXTexture2D: %s\n", filePath.string().c_str());
+					printf("Error: [NXUploadSystem::BuildTask] failed when loading NXTexture2D: %s\n", filePath.string().c_str());
 				}
 			}
 			});
@@ -434,7 +434,7 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 
 void NXTexture::GenerateUploadChunks(uint32_t layoutSize, uint32_t* numRow, uint64_t* numRowSizeInBytes, uint64_t totalBytes, std::vector<NXTextureUploadChunk>& oChunks)
 {
-	// 作用：根据纹理布局，将上传任务划分成若干个块上传，避免NXGPUTransferSystem一次性上传过大的数据直接崩溃
+	// 作用：根据纹理布局，将上传任务划分成若干个块上传，避免NXUploadSystem一次性上传过大的数据直接崩溃
 	// 思路：按layout遍历
 	//	1. layout大小超过了这个阈值，就需要拆分成多个任务。
 	//	2. 否则持续累积bytes，每当累积的bytes超过了一个阈值，就生成一个上传任务。

@@ -3,4 +3,4 @@
 #include "CommittedBufferAllocator.h"
 #include "PlacedBufferAllocator.h"
 #include "DescriptorAllocator.h"
-#include "NXGPUTransferSystem.h"
+#include "NXUploadSystem.h"

@@ -2,13 +2,6 @@
 #include "XAllocCommon.h"
 #include "BaseDefs/DX12.h"
 
-enum class NXTransferType
-{
-    None,
-    Upload,
-    Readback
-};
-
 class NXRingBuffer;
 struct NXTransferTask
 {
@@ -16,7 +9,6 @@ struct NXTransferTask
 
     void Reset()
     {
-        type = NXTransferType::None;
 		ringPos = 0;
 		byteSize = 0;
 		fenceValue = 0;
@@ -38,7 +30,6 @@ struct NXTransferTask
 	uint32_t ringPos = 0;
 	uint32_t byteSize = 0;
 
-    NXTransferType type = NXTransferType::None;
     NXRingBuffer* pRingBuffer = nullptr;
 };
 
@@ -58,7 +49,7 @@ struct NXTransferContext
 class NXRingBuffer
 {
 public:
-    NXRingBuffer(ID3D12Device* pDevice, uint32_t bufferSize, NXTransferType type);
+    NXRingBuffer(ID3D12Device* pDevice, uint32_t bufferSize);
     ~NXRingBuffer();
 
     bool CanAlloc(uint32_t byteSize);
@@ -69,7 +60,6 @@ public:
     uint8_t* GetResourceMappedData() { return m_pResourceData; }
 
 private:
-    NXTransferType m_type;
     uint32_t m_size;
 
     // 记录ring中的已分配范围
@@ -82,15 +72,15 @@ private:
     uint8_t* m_pResourceData;
 };
 
-class NXGPUTransferSystem
+class NXUploadSystem
 {
     const static uint32_t TASK_NUM = 16;
 
 public:
-    NXGPUTransferSystem(ID3D12Device* pDevice);
-    ~NXGPUTransferSystem();
+    NXUploadSystem(ID3D12Device* pDevice);
+    ~NXUploadSystem();
 
-    bool BuildTask(int byteSize, NXTransferType taskType, NXTransferContext& taskResult);
+    bool BuildTask(int byteSize, NXTransferContext& taskResult);
     void FinishTask(const NXTransferContext& result, const std::function<void()>& pCallBack = nullptr);
     void Update();
     ID3D12Fence* GetFence() { return m_pFence; }
@@ -110,8 +100,7 @@ private:
     uint32_t m_taskStart = 0;
     uint32_t m_taskUsed = 0;
 
-    NXRingBuffer m_ringBufferUpload;
-    NXRingBuffer m_ringBufferReadback;
+    NXRingBuffer m_ringBuffer;
 
     // 这里的锁策略是比较简单粗暴的，每个方法都加锁，这些方法的开销都不大。
     // 上传系统的大头开销在BeginTask()结束后，FinishTask()开始前这段时间的各种操作上，而这些操作是暴露在上层，允许多线程同时调用的。

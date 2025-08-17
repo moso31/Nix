@@ -14,7 +14,7 @@ void NXAllocatorManager::Init()
 	m_pRWBAllocator = std::make_unique<PlacedBufferAllocator>(pDevice, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT, Memsize_MB(256));
 	m_pTextureAllocator = std::make_unique<PlacedBufferAllocator>(pDevice, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT, Memsize_MB(2048));
 
-	m_pUpdateSystem = std::make_unique<NXGPUTransferSystem>(pDevice);
+	m_pUpdateSystem = std::make_unique<NXUploadSystem>(pDevice);
 
 	m_pTextureLoader = std::make_unique<NXTextureLoader>();
 
@@ -40,7 +40,7 @@ void NXAllocatorManager::Init()
 		m_threads.push_back(std::move(t));
 	};
 
-	addThread([this]() { m_pUpdateSystem->Update(); }, "NXGPUTransferSystem\n");
+	addThread([this]() { m_pUpdateSystem->Update(); }, "NXUploadSystem\n");
 	addThread([this]() { m_pTextureLoader->Update(); }, "NXTextureLoader\n");
 	addThread([this]() { m_pCBAllocator->ExecuteTasks(); }, "NXCBAllocator\n");
 	addThread([this]() { m_pSBAllocator->ExecuteTasks(); }, "NXSBAllocator\n");

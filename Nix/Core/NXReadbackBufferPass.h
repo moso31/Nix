@@ -11,7 +11,7 @@ public:
 	virtual void SetupInternal() override {}
 	virtual void Render(ID3D12GraphicsCommandList* pCmdList) override;
 
-	NXRGResource* SetReadbackBuffer(NXRGResource* pRes) { m_pReadbackBuffer = pRes; }
+	void SetReadbackBuffer(NXRGResource* pRes) { m_pReadbackBuffer = pRes; }
 
 private:
 	NXRGResource* m_pReadbackBuffer;

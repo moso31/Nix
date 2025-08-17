@@ -20,7 +20,7 @@
 #define NXShVisDescHeap		NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorAllocator()
 
 // 上传系统
-#define NXGPUTransferSys	NXAllocatorManager::GetInstance()->GetNXGPUTransferSystem()
+#define NXUploadSys			NXAllocatorManager::GetInstance()->GetNXUploadSystem()
 
 // 纹理加载器
 #define NXTexLoader			NXAllocatorManager::GetInstance()->GetTextureLoader()
@@ -43,8 +43,8 @@ public:
 	DescriptorAllocator<false>*		GetDSVAllocator()				{ return m_pDSVAllocator.get(); }
 	NXNullDescriptor*				GetNullDescriptorAllocator()	{ return m_pNullDescriptorAllocator.get(); }
 
-	NXGPUTransferSystem*			GetNXGPUTransferSystem()		{ return m_pUpdateSystem.get(); }
-	NXTextureLoader*	GetTextureLoader()	{ return m_pTextureLoader.get(); }
+	NXUploadSystem*		GetNXUploadSystem()		{ return m_pUpdateSystem.get(); }
+	NXTextureLoader*	GetTextureLoader()		{ return m_pTextureLoader.get(); }
 
 	DescriptorAllocator<true>*			GetShaderVisibleDescriptorAllocator()	{ return m_pShaderVisibleDescAllocator.get(); }
 
@@ -64,7 +64,7 @@ private:
 	std::unique_ptr<DescriptorAllocator<false>>	m_pDSVAllocator;
 	std::unique_ptr<NXNullDescriptor>			m_pNullDescriptorAllocator;
 
-	std::unique_ptr<NXGPUTransferSystem>				m_pUpdateSystem;
+	std::unique_ptr<NXUploadSystem>				m_pUpdateSystem;
 	std::unique_ptr<NXTextureLoader>			m_pTextureLoader;
 
 	// shader-visible descriptor allocator

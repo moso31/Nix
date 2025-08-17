@@ -1,13 +1,12 @@
-#include "NXGPUTransferSystem.h"
+#include "NXUploadSystem.h"
 
 NXTransferTask::NXTransferTask()
 {
 }
 
-NXRingBuffer::NXRingBuffer(ID3D12Device* pDevice, uint32_t bufferSize, NXTransferType type):
+NXRingBuffer::NXRingBuffer(ID3D12Device* pDevice, uint32_t bufferSize):
 	m_pDevice(pDevice),
 	m_size(bufferSize),
-	m_type(type),
 	m_usedStart(0),
 	m_usedEnd(0)
 {
@@ -24,21 +23,10 @@ NXRingBuffer::NXRingBuffer(ID3D12Device* pDevice, uint32_t bufferSize, NXTransfe
 	desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 	desc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-	assert(type != NXTransferType::None);
-	if (type == NXTransferType::Upload)
-	{
-		D3D12_HEAP_PROPERTIES heapProperties = {};
-		heapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;
-		m_pDevice->CreateCommittedResource(&heapProperties, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&m_pResource));
-		m_pResource->Map(0, nullptr, reinterpret_cast<void**>(&m_pResourceData));
-	}
-	else
-	{
-		D3D12_HEAP_PROPERTIES heapProperties = {};
-		heapProperties.Type = D3D12_HEAP_TYPE_READBACK;
-		m_pDevice->CreateCommittedResource(&heapProperties, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&m_pResource));
-		m_pResource->Map(0, nullptr, reinterpret_cast<void**>(&m_pResourceData));
-	}
+	D3D12_HEAP_PROPERTIES heapProperties = {};
+	heapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;
+	m_pDevice->CreateCommittedResource(&heapProperties, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&m_pResource));
+	m_pResource->Map(0, nullptr, reinterpret_cast<void**>(&m_pResourceData));
 }
 
 NXRingBuffer::~NXRingBuffer()
@@ -130,7 +118,6 @@ bool NXRingBuffer::Build(uint32_t byteSize, NXTransferTask& oTask)
 	// 能走到这里都是分配成功的情况
 	oTask.byteSize = byteSize;
 	oTask.fenceValue = UINT64_MAX;
-	oTask.type = m_type;
 	oTask.pRingBuffer = this;
 	NXPrint::Write(0, "BuildTask(End  ), usedstart: %d, end: %d\n", m_usedStart, m_usedEnd);
 	return true;
@@ -145,10 +132,9 @@ void NXRingBuffer::Finish(const NXTransferTask& task)
 	m_usedStart %= m_size;
 }
 
-NXGPUTransferSystem::NXGPUTransferSystem(ID3D12Device* pDevice) :
+NXUploadSystem::NXUploadSystem(ID3D12Device* pDevice) :
 	m_pDevice(pDevice),
-	m_ringBufferUpload(pDevice, 64 * 1024 * 1024, NXTransferType::Upload), // 64MB ring buffer.
-	m_ringBufferReadback(pDevice, 64 * 1024 * 1024, NXTransferType::Readback) // 64MB ring buffer.
+	m_ringBuffer(pDevice, 64 * 1024 * 1024) // 64MB ring buffer.
 {
 	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
 	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_COPY;
@@ -167,7 +153,7 @@ NXGPUTransferSystem::NXGPUTransferSystem(ID3D12Device* pDevice) :
 	}
 }
 
-NXGPUTransferSystem::~NXGPUTransferSystem()
+NXUploadSystem::~NXUploadSystem()
 {
 	if (m_pCmdQueue)
 	{
@@ -197,26 +183,21 @@ NXGPUTransferSystem::~NXGPUTransferSystem()
 	}
 }
 
-bool NXGPUTransferSystem::BuildTask(int byteSize, NXTransferType taskType, NXTransferContext& taskResult)
+bool NXUploadSystem::BuildTask(int byteSize, NXTransferContext& taskResult)
 {
-	assert(taskType != NXTransferType::None);
-
 	std::unique_lock<std::mutex> lock(m_mutex);
-
-	NXRingBuffer* ringBuffer = (taskType == NXTransferType::Upload) ?
-		&m_ringBufferUpload : &m_ringBufferReadback;
 
 	// 不满足以下条件时，持续等待
 	// update() 每完成一个任务，就会notify_one()，唤醒一个正在这里持续等待的线程（如果有的话）
-	m_condition.wait(lock, [this, byteSize, ringBuffer]() {
+	m_condition.wait(lock, [this, byteSize]() {
 		bool taskOK = m_taskUsed < TASK_NUM;
-		bool ringBufferOK = ringBuffer->CanAlloc(byteSize);
+		bool ringBufferOK = m_ringBuffer.CanAlloc(byteSize);
 		return taskOK && ringBufferOK;
 		});
 
 	uint32_t idx = (m_taskStart + m_taskUsed) % TASK_NUM;
 	auto& task = m_transferTask[idx];
-	if (ringBuffer->Build(byteSize, task))
+	if (m_ringBuffer.Build(byteSize, task))
 	{
 		m_taskUsed++;
 
@@ -224,8 +205,8 @@ bool NXGPUTransferSystem::BuildTask(int byteSize, NXTransferType taskType, NXTra
 		task.pCmdList->Reset(task.pCmdAllocator, nullptr);
 
 		taskResult.pOwner = &task;
-		taskResult.pResource = ringBuffer->GetResource();
-		taskResult.pResourceData = ringBuffer->GetResourceMappedData();
+		taskResult.pResource = m_ringBuffer.GetResource();
+		taskResult.pResourceData = m_ringBuffer.GetResourceMappedData();
 		taskResult.pResourceOffset = task.ringPos;
 
 		return true;
@@ -234,7 +215,7 @@ bool NXGPUTransferSystem::BuildTask(int byteSize, NXTransferType taskType, NXTra
 	return false;
 }
 
-void NXGPUTransferSystem::FinishTask(const NXTransferContext& result, const std::function<void()>& pCallBack)
+void NXUploadSystem::FinishTask(const NXTransferContext& result, const std::function<void()>& pCallBack)
 {
 	std::lock_guard<std::mutex> lock(m_mutex);
 
@@ -252,7 +233,7 @@ void NXGPUTransferSystem::FinishTask(const NXTransferContext& result, const std:
 	task->fenceValue = m_fenceValue; 
 }
 
-void NXGPUTransferSystem::Update()
+void NXUploadSystem::Update()
 {
 	std::lock_guard<std::mutex> lock(m_mutex);
 
@@ -267,8 +248,7 @@ void NXGPUTransferSystem::Update()
 				task.pCallback(); // 触发完成后callback
 
 			// 任务完成，回收资源
-			if (task.pRingBuffer)
-				task.pRingBuffer->Finish(task);
+			m_ringBuffer.Finish(task);
 
 			m_taskStart = (m_taskStart + 1) % TASK_NUM;
 			m_taskUsed--;

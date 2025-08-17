@@ -10,12 +10,12 @@ void NXReadbackBufferPass::Render(ID3D12GraphicsCommandList* pCmdList)
 {
 	auto pReadbackBuffer = m_pReadbackBuffer->GetBuffer();
 	NXTransferContext ctx(pReadbackBuffer->GetName() + "_Buffer");
-	if (NXGPUTransferSys->BuildTask(pReadbackBuffer->GetByteSize(), NXTransferType::Readback, ctx))
+	if (NXUploadSys->BuildTask(pReadbackBuffer->GetByteSize(), ctx))
 	{
 		// 从（一般是主渲染cmdList）将RT拷到readback ringbuffer（ctx.pResource）
 		pCmdList->CopyBufferRegion(ctx.pResource, ctx.pResourceOffset, pReadbackBuffer->GetD3DResource(), 0, pReadbackBuffer->GetByteSize()); 
 
-		NXGPUTransferSys->FinishTask(ctx, [&]() {
+		NXUploadSys->FinishTask(ctx, [&]() {
 			// 这时候对应的ringBuffer还不会释放 放心用
 			uint8_t* pData = ctx.pResourceData + ctx.pResourceOffset;
 			});

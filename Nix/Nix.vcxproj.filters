@@ -595,7 +595,7 @@
     <ClCompile Include="Core\NXVirtualTextureRenderer.cpp">
       <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
     </ClCompile>
-    <ClCompile Include="..\XAllocator\NXGPUTransferSystem.cpp">
+    <ClCompile Include="..\XAllocator\NXUploadSystem.cpp">
       <Filter>Core\DirectX</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXReadbackBufferPass.cpp">
@@ -612,6 +612,9 @@
     </ClCompile>
     <ClCompile Include="Core\NXRGPass.cpp">
       <Filter>Core\DirectX\Renderer\RenderGraph\Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\XAllocator\NXReadbackSystem.cpp">
+      <Filter>Core\DirectX</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1014,7 +1017,7 @@
     <ClInclude Include="Core\NXVirtualTextureRenderer.h">
       <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
     </ClInclude>
-    <ClInclude Include="..\XAllocator\NXGPUTransferSystem.h">
+    <ClInclude Include="..\XAllocator\NXUploadSystem.h">
       <Filter>Core\DirectX</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXReadbackBufferPass.h">
@@ -1034,6 +1037,9 @@
     </ClInclude>
     <ClInclude Include="Core\NXRGUtil.h">
       <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="..\XAllocator\NXReadbackSystem.h">
+      <Filter>Core\DirectX</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
