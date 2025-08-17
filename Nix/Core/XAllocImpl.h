@@ -3,4 +3,6 @@
 #include "CommittedBufferAllocator.h"
 #include "PlacedBufferAllocator.h"
 #include "DescriptorAllocator.h"
+
 #include "NXUploadSystem.h"
+#include "NXReadbackSystem.h"

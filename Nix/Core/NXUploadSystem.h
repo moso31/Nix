@@ -5,12 +5,13 @@
 class NXUploadRingBuffer;
 struct NXUploadTask
 {
-    NXUploadTask();
+    NXUploadTask() {}
 
     void Reset()
     {
 		ringPos = 0;
 		byteSize = 0;
+        pCallback = nullptr;
 		fenceValue = 0;
 	}
 
@@ -29,8 +30,6 @@ struct NXUploadTask
 	// 在RingBuffer中的位置和大小
 	uint32_t ringPos = 0;
 	uint32_t byteSize = 0;
-
-    NXUploadRingBuffer* pRingBuffer = nullptr;
 };
 
 struct NXUploadContext
@@ -92,8 +91,6 @@ private:
     ID3D12Fence* m_pFence;
     uint64_t m_fenceValue = 0;
     MultiFrame<uint64_t> m_frameFenceValue;
-
-    ID3D12CommandQueue* m_pSyncCmdQueue;
 
     NXUploadTask m_tasks[TASK_NUM];
 

@@ -13,7 +13,6 @@
     <ClInclude Include="Buddy.h" />
     <ClInclude Include="DeadList.h" />
     <ClInclude Include="CommittedBufferAllocator.h" />
-    <ClInclude Include="XAllocImpl.h" />
     <ClInclude Include="DescriptorAllocator.h" />
     <ClInclude Include="PlacedBufferAllocator.h" />
   </ItemGroup>

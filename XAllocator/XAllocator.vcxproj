@@ -33,7 +33,6 @@
     <ClInclude Include="DeadList.h" />
     <ClInclude Include="DescriptorAllocator.h" />
     <ClInclude Include="PlacedBufferAllocator.h" />
-    <ClInclude Include="XAllocImpl.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

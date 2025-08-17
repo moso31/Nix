@@ -1,9 +1,5 @@
 #include "NXUploadSystem.h"
 
-NXUploadTask::NXUploadTask()
-{
-}
-
 NXUploadRingBuffer::NXUploadRingBuffer(ID3D12Device* pDevice, uint32_t bufferSize):
 	m_pDevice(pDevice),
 	m_size(bufferSize),
@@ -118,7 +114,6 @@ bool NXUploadRingBuffer::Build(uint32_t byteSize, NXUploadTask& oTask)
 	// 能走到这里都是分配成功的情况
 	oTask.byteSize = byteSize;
 	oTask.fenceValue = UINT64_MAX;
-	oTask.pRingBuffer = this;
 	NXPrint::Write(0, "BuildTask(End  ), usedstart: %d, end: %d\n", m_usedStart, m_usedEnd);
 	return true;
 }

@@ -242,12 +242,12 @@ void Renderer::GenerateRenderGraph()
 		});
 
 	// TODO: 简略变量，new NXReadbackBufferPass有必要吗？
-	//m_pRenderGraph->AddReadbackBufferPass<VTReadbackData>("", new NXReadbackBufferPass(),
-	//	[&](NXRGBuilder& builder, VTReadbackData& data) {
-	//		builder.Read(pVTReadback, 0); // TODO：readback类型Pass 的 slot0 没有意义，这种情况下就别传了
-	//	},
-	//	[=](ID3D12GraphicsCommandList* pCmdList, VTReadbackData& data) {
-	//	});
+	m_pRenderGraph->AddReadbackBufferPass<VTReadbackData>("", new NXReadbackBufferPass(),
+		[&](NXRGBuilder& builder, VTReadbackData& data) {
+			builder.Read(pVTReadback, 0); // TODO：readback类型Pass 的 slot0 没有意义，这种情况下就别传了
+		},
+		[=](ID3D12GraphicsCommandList* pCmdList, VTReadbackData& data) {
+		});
 
 	struct DepthCopyData
 	{

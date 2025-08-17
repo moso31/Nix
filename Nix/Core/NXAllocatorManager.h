@@ -21,6 +21,7 @@
 
 // 上传系统
 #define NXUploadSys			NXAllocatorManager::GetInstance()->GetNXUploadSystem()
+#define NXReadbackSys		NXAllocatorManager::GetInstance()->GetNXReadbackSystem()
 
 // 纹理加载器
 #define NXTexLoader			NXAllocatorManager::GetInstance()->GetTextureLoader()
@@ -44,6 +45,7 @@ public:
 	NXNullDescriptor*				GetNullDescriptorAllocator()	{ return m_pNullDescriptorAllocator.get(); }
 
 	NXUploadSystem*		GetNXUploadSystem()		{ return m_pUpdateSystem.get(); }
+	NXReadbackSystem*	GetNXReadbackSystem()	{ return m_pReadbackSystem.get(); }
 	NXTextureLoader*	GetTextureLoader()		{ return m_pTextureLoader.get(); }
 
 	DescriptorAllocator<true>*			GetShaderVisibleDescriptorAllocator()	{ return m_pShaderVisibleDescAllocator.get(); }
@@ -65,6 +67,7 @@ private:
 	std::unique_ptr<NXNullDescriptor>			m_pNullDescriptorAllocator;
 
 	std::unique_ptr<NXUploadSystem>				m_pUpdateSystem;
+	std::unique_ptr<NXReadbackSystem>			m_pReadbackSystem;
 	std::unique_ptr<NXTextureLoader>			m_pTextureLoader;
 
 	// shader-visible descriptor allocator

@@ -142,6 +142,9 @@
     <Filter Include="Core\DirectX\GPUTransfer">
       <UniqueIdentifier>{21250321-5aee-41e3-990c-bec094884cf3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Core\XAllocator">
+      <UniqueIdentifier>{bf4f0334-8874-4b4b-9043-2cc0ab7761bb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Common.fx">
@@ -1044,8 +1047,8 @@
     <ClInclude Include="Core\NXUploadSystem.h">
       <Filter>Core\DirectX\GPUTransfer</Filter>
     </ClInclude>
-    <ClInclude Include="Core\NXGPUTransferCommon.h">
-      <Filter>Core\DirectX\GPUTransfer</Filter>
+    <ClInclude Include="Core\XAllocImpl.h">
+      <Filter>Core\XAllocator</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

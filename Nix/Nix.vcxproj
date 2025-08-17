@@ -358,7 +358,6 @@
     <ClInclude Include="Core\NXFillTestRenderer.h" />
     <ClInclude Include="Core\NXGlobalBuffers.h" />
     <ClInclude Include="Core\NXGlobalDefinitions.h" />
-    <ClInclude Include="Core\NXGPUTransferCommon.h" />
     <ClInclude Include="Core\NXGUICommandManager.h" />
     <ClInclude Include="Core\NXGUIDiffuseProfile.h" />
     <ClInclude Include="Core\NXGUIInspector.h" />
@@ -436,6 +435,7 @@
     <ClInclude Include="Core\ShaderComplier.h" />
     <ClInclude Include="Core\ShaderStructures.h" />
     <ClInclude Include="Core\NXShaderVisibleDescriptorHeap.h" />
+    <ClInclude Include="Core\XAllocImpl.h" />
     <ClInclude Include="Nix\HBVH.h" />
     <ClInclude Include="Nix\NXBuffer.h" />
     <ClInclude Include="Nix\NXGPUTerrainManager.h" />
