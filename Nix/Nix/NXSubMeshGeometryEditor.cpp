@@ -837,14 +837,14 @@ void NXSubMeshGeometryEditor::CreateBuffers(std::vector<NXRawMeshView>& rawViews
 			NXTransferContext ctx(name + "_Buffer");
 			if (NXGPUTransferSys->BuildTask(byteSize, NXTransferType::Upload, ctx))
 			{
-				// ctx.pResourceData/pResourceOffset是 上传系统的UploadRingBuffer 的临时资源和偏移量
-				// pVB.GetD3DResourceAndOffset(byteOffset) 是 D3D默认堆上 的偏移量，也就是GPU资源
+				// pUpload 是 上传系统的UploadRingBuffer 的临时资源和偏移量
+				// pDstResource = pBuffer 是 D3D默认堆上 的偏移量，也就是GPU资源
 				// 不要搞混了
 
-				uint8_t* pDst = ctx.pResourceData + ctx.pResourceOffset;
+				uint8_t* pUpload = ctx.pResourceData + ctx.pResourceOffset;
 
 				// 拷贝到上传堆
-				memcpy(pDst, view.span.data(), byteSize);
+				memcpy(pUpload, view.span.data(), byteSize);
 
 				// 从上传堆拷贝到默认堆
 				uint64_t byteOffset = 0;

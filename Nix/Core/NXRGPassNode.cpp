@@ -113,7 +113,18 @@ NXRenderPass* NXRGPassNodeBase::GetRenderPass()
 
 void NXRGPassNodeBase::Compile(bool isResize)
 {
-	m_pPass->GetPassType() == NXRenderPassType::GraphicPass ? Compile_GraphicsPass(isResize) : Compile_ComputePass(isResize);
+	switch (m_pPass->GetPassType())
+	{
+	case NXRenderPassType::GraphicPass :
+		Compile_GraphicsPass(isResize);
+		break;
+	case NXRenderPassType::ComputePass :
+		Compile_ComputePass(isResize);
+		break;
+	case NXRenderPassType::ReadbackBufferPass :
+		Compile_ReadbackBufferPass();
+		break;
+	}
 }
 
 void NXRGPassNodeBase::Compile_GraphicsPass(bool isResize)
@@ -160,4 +171,14 @@ void NXRGPassNodeBase::Compile_ComputePass(bool isResize)
 	}
 
 	pPass->SetIndirectArguments(m_indirectArgs);
+}
+
+void NXRGPassNodeBase::Compile_ReadbackBufferPass()
+{
+	// Readback Pass 目前只支持m_input[0] 作为输入，因为本质就是读这个buffer从GPU读到CPU
+	if (m_inputs.size() != 1)
+		return;
+
+	auto* pPass = (NXReadbackBufferPass*)m_pPass;
+	pPass->SetReadbackBuffer(m_inputs[0].resource);
 }

@@ -47,6 +47,7 @@ public:
 private:
 	void Compile_GraphicsPass(bool isResize);
 	void Compile_ComputePass(bool isResize);
+	void Compile_ReadbackBufferPass();
 
 protected:
 	std::string m_passName;
