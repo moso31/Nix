@@ -33,6 +33,7 @@ Renderer::Renderer(const Vector2& rtSize) :
 	m_pNeedRebuildRenderGraph(true)
 {
 	m_cbDebugLayerData.LayerParam0 = Vector4(1.0f, 0.0f, 0.0f, 0.0f);
+	m_vtReadbackData = new NXReadbackData("VT Readback CPUdata");
 }
 
 void Renderer::Init()
@@ -222,19 +223,19 @@ void Renderer::GenerateRenderGraph()
 		});
 
 	NXRGResource* pVTReadback = m_pRenderGraph->CreateResource("VT Readback Buffer", { .isViewRT = true, .RTScale = 0.125f, .type = NXResourceType::Buffer, .format = DXGI_FORMAT_R32_FLOAT });
-	struct VTReadbackData 
+	struct VTReadback
 	{
 		NXVTReadbackRenderer* pPass;
 	};
-	m_pRenderGraph->AddComputePass<VTReadbackData>("VTReadbackPass", new NXVTReadbackRenderer(),
-		[&](NXRGBuilder& builder, VTReadbackData& data) {
+	m_pRenderGraph->AddComputePass<VTReadback>("VTReadbackPass", new NXVTReadbackRenderer(),
+		[&](NXRGBuilder& builder, VTReadback& data) {
 			data.pPass = static_cast<NXVTReadbackRenderer*>(builder.GetPassNode()->GetRenderPass());
 			builder.SetRootParamLayout(1, 1, 1);
 			builder.ReadConstantBuffer(0, 0, &NXVirtualTextureManager::GetInstance()->GetCBufferVTReadback());
 			builder.Read(pGBuffer0, 0);
 			builder.WriteUAV(pVTReadback, 0);
 		},
-		[=](ID3D12GraphicsCommandList* pCmdList, VTReadbackData& data) {
+		[=](ID3D12GraphicsCommandList* pCmdList, VTReadback& data) {
 			auto& pRT = pGBuffer0->GetTexture();
 			Int2 rtSize(pRT->GetWidth(), pRT->GetHeight());
 			Int2 threadGroupSize((rtSize + 7) / 8);
@@ -242,9 +243,13 @@ void Renderer::GenerateRenderGraph()
 		});
 
 	// TODO: 简略变量，new NXReadbackBufferPass有必要吗？
+	struct VTReadbackData
+	{
+	};
 	m_pRenderGraph->AddReadbackBufferPass<VTReadbackData>("", new NXReadbackBufferPass(),
 		[&](NXRGBuilder& builder, VTReadbackData& data) {
 			builder.Read(pVTReadback, 0); // TODO：readback类型Pass 的 slot0 没有意义，这种情况下就别传了
+			builder.WriteReadbackData(m_vtReadbackData);
 		},
 		[=](ID3D12GraphicsCommandList* pCmdList, VTReadbackData& data) {
 		});

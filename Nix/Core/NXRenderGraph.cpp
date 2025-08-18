@@ -39,8 +39,8 @@ void NXRenderGraph::Execute(ID3D12GraphicsCommandList* pCmdList)
 			if (desc.isViewRT) 
 			{
 				// RT的话，需要动态构建
-				uint32_t rtWidth = (uint32_t)(desc.RTScale * m_viewResolution.x);
-				uint32_t rtHeight = (uint32_t)(desc.RTScale * m_viewResolution.y);
+				uint32_t rtWidth = (uint32_t)std::ceil(desc.RTScale * m_viewResolution.x);
+				uint32_t rtHeight = (uint32_t)std::ceil(desc.RTScale * m_viewResolution.y);
 
 				auto pTex = pRes.As<NXTexture2D>();
 				if (pTex.IsNull() || pTex->GetWidth() != rtWidth || pTex->GetHeight() != rtHeight)
@@ -73,8 +73,8 @@ void NXRenderGraph::Execute(ID3D12GraphicsCommandList* pCmdList)
 			if (desc.isViewRT) 
 			{
 				// RT的话，需要动态构建
-				uint32_t rtWidth = (uint32_t)(desc.RTScale * m_viewResolution.x + 0.5f);
-				uint32_t rtHeight = (uint32_t)(desc.RTScale * m_viewResolution.y + 0.5f);
+				uint32_t rtWidth = (uint32_t)std::ceil(desc.RTScale * m_viewResolution.x);
+				uint32_t rtHeight = (uint32_t)std::ceil(desc.RTScale * m_viewResolution.y);
 
 				auto pBuffer = pRes.As<NXBuffer>();
 				if (pBuffer.IsNull() || pBuffer->GetWidth() != rtWidth * rtHeight)

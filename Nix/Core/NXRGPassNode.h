@@ -13,6 +13,7 @@ class NXRGPass;
 class NXRenderPass;
 class NXRenderGraph;
 class NXConstantBufferImpl;
+class NXReadbackData;
 class NXRGPassNodeBase
 {
 public:
@@ -33,7 +34,12 @@ public:
 	NXRGResource* WriteRT(NXRGResource* pResource, uint32_t outRTIndex, bool useOldVersion);
 	NXRGResource* WriteDS(NXRGResource* pResource, bool useOldVersion);
 	NXRGResource* WriteUAV(NXRGResource* pResource, uint32_t uavIndex, bool useOldVersion, uint32_t uavCounterIndex);
+
+	// 设置Pass的间接参数
 	NXRGResource* SetIndirectArgs(NXRGResource* pResource);
+
+	// 设置Pass输入到哪个回读data（仅回读Pass使用）
+	void WriteReadbackData(Ntr<NXReadbackData>& data) { m_readbackData = data; }
 
 	NXRenderPass* GetRenderPass();
 
@@ -59,7 +65,13 @@ protected:
 	// Pass记录自己依赖的资源指针（但不负责其生命周期）
 	std::vector<NXRGResourceSlot> m_inputs; 
 	std::vector<NXRGResourceSlot> m_outputs;
+
+	// Pass是否使用间接参数作为draw/dispatch
 	NXRGResource* m_indirectArgs;
+
+	// 特化：如果是回读Pass，使用这个数据存回读Pass的data
+	// 【要做成NXRGResource节点也可以，但要改至少NXResource一级的继承结构，现阶段不是很划得来】
+	Ntr<NXReadbackData> m_readbackData;
 
 	// 记录当前pass的根参数布局
 	NXRGRootParamLayout m_rootParamLayout; 

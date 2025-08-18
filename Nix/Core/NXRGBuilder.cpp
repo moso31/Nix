@@ -3,6 +3,7 @@
 #include "NXComputePass.h"
 #include "NXGraphicPass.h"
 #include "NXReadbackBufferPass.h"
+#include "NXReadbackData.h"
 
 void NXRGBuilder::Read(NXRGResource* pResource, uint32_t passSlotIndex)
 {
@@ -37,6 +38,11 @@ NXRGResource* NXRGBuilder::WriteUAV(NXRGResource* pResource, uint32_t uavIndex, 
 NXRGResource* NXRGBuilder::SetIndirectArgs(NXRGResource* pResource)
 {
 	return m_pPassNode->SetIndirectArgs(pResource);
+}
+
+void NXRGBuilder::WriteReadbackData(Ntr<NXReadbackData>& data)
+{
+	m_pPassNode->WriteReadbackData(data);
 }
 
 void NXRGBuilder::SetComputeThreadGroup(uint32_t threadGroupX, uint32_t threadGroupY, uint32_t threadGroupZ)

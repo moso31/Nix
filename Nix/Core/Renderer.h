@@ -115,4 +115,6 @@ private:
 	float m_fShadowMapZoomScale;
 	CBufferDebugLayer m_cbDebugLayerData;
 	NXConstantBuffer<CBufferDebugLayer> m_cbDebugLayer;
+
+	Ntr<NXReadbackData> m_vtReadbackData;
 };

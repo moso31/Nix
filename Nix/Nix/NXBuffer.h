@@ -14,6 +14,7 @@ public:
 	void SetCurrent(const void* pSrcData, uint32_t arraySize);
 	void SetAll(const void* pSrcData, uint32_t arraySize);
 
+	uint32_t GetStride() const { return m_stride; }
 	uint32_t GetByteSize() const { return m_byteSize; }
 
 	uint32_t GetWidth() const override { return m_byteSize / m_stride; }

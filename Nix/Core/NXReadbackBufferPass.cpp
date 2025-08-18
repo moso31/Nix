@@ -8,16 +8,32 @@ NXReadbackBufferPass::NXReadbackBufferPass() :
 
 void NXReadbackBufferPass::Render(ID3D12GraphicsCommandList* pCmdList)
 {
-	auto pReadbackBuffer = m_pReadbackBuffer->GetBuffer();
-	NXReadbackContext ctx(pReadbackBuffer->GetName() + "_Buffer");
-	if (NXReadbackSys->BuildTask(pReadbackBuffer->GetByteSize(), ctx))
+	// 在这里维护CPUData（m_pOutData）的大小
+	AdjustOutputDataSize();
+
+	auto pGPUBuffer = m_pReadbackBuffer->GetBuffer();
+	NXReadbackContext ctx(pGPUBuffer->GetName() + "_Buffer");
+	if (NXReadbackSys->BuildTask(pGPUBuffer->GetByteSize(), ctx))
 	{
 		// 从（一般是主渲染cmdList）将RT拷到readback ringbuffer（ctx.pResource）
-		pCmdList->CopyBufferRegion(ctx.pResource, ctx.pResourceOffset, pReadbackBuffer->GetD3DResource(), 0, pReadbackBuffer->GetByteSize()); 
+		pCmdList->CopyBufferRegion(ctx.pResource, ctx.pResourceOffset, pGPUBuffer->GetD3DResource(), 0, pGPUBuffer->GetByteSize()); 
 
-		NXReadbackSys->FinishTask(ctx, [ctx]() {
+		NXReadbackSys->FinishTask(ctx, [this, ctx]() {
 			// 这时候对应的ringBuffer还不会释放 放心用
 			uint8_t* pData = ctx.pResourceData + ctx.pResourceOffset;
+			m_pOutData->CopyDataFromGPU(pData);
 			});
+	}
+}
+
+void NXReadbackBufferPass::AdjustOutputDataSize()
+{
+	auto pGPUBuffer = m_pReadbackBuffer->GetBuffer();
+	auto stride = pGPUBuffer->GetStride();
+	auto byteSize = pGPUBuffer->GetByteSize();
+
+	if (m_pOutData->GetStride() != stride || m_pOutData->GetByteSize() != byteSize)
+	{
+		m_pOutData->Create(stride, byteSize / stride);
 	}
 }

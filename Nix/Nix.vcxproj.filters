@@ -622,6 +622,9 @@
     <ClCompile Include="Core\NXUploadSystem.cpp">
       <Filter>Core\DirectX\GPUTransfer</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\NXReadbackData.cpp">
+      <Filter>Nix\TextureBuffer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -1017,9 +1020,6 @@
     <ClInclude Include="Nix\NXVirtualTextureCommon.h">
       <Filter>Nix\VirtualTexture</Filter>
     </ClInclude>
-    <ClInclude Include="Nix\NXReadbackBuffer.h">
-      <Filter>Nix\TextureBuffer</Filter>
-    </ClInclude>
     <ClInclude Include="Core\NXVirtualTextureRenderer.h">
       <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
     </ClInclude>
@@ -1049,6 +1049,9 @@
     </ClInclude>
     <ClInclude Include="Core\XAllocImpl.h">
       <Filter>Core\XAllocator</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXReadbackData.h">
+      <Filter>Nix\TextureBuffer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

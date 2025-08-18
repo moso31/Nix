@@ -1,6 +1,7 @@
 #pragma once
 #include "NXRGPass.h"
 #include "NXRGResource.h"
+#include "NXReadbackData.h"
 
 class NXReadbackBufferPass : public NXRGPass
 {
@@ -11,8 +12,12 @@ public:
 	virtual void SetupInternal() override {}
 	virtual void Render(ID3D12GraphicsCommandList* pCmdList) override;
 
-	void SetReadbackBuffer(NXRGResource* pRes) { m_pReadbackBuffer = pRes; }
+	void SetInput(NXRGResource* pRes) { m_pReadbackBuffer = pRes; }
+	void SetOutput(Ntr<NXReadbackData>& pOutData) { m_pOutData = pOutData; }
+
+	void AdjustOutputDataSize();
 
 private:
-	NXRGResource* m_pReadbackBuffer;
+	NXRGResource* m_pReadbackBuffer; // input
+	Ntr<NXReadbackData> m_pOutData; // output
 };

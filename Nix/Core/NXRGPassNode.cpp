@@ -3,6 +3,7 @@
 #include "NXConstantBuffer.h"
 #include "NXComputePass.h"
 #include "NXGraphicPass.h"
+#include "NXReadbackData.h"
 
 NXRGPassNodeBase::NXRGPassNodeBase(NXRenderGraph* pRenderGraph, const std::string& passName, NXRGPass* pPass) :
 	m_pRenderGraph(pRenderGraph), 
@@ -180,5 +181,7 @@ void NXRGPassNodeBase::Compile_ReadbackBufferPass()
 		return;
 
 	auto* pPass = (NXReadbackBufferPass*)m_pPass;
-	pPass->SetReadbackBuffer(m_inputs[0].resource);
+	auto* pInRes = m_inputs[0].resource;
+	pPass->SetInput(pInRes); // set readback buffer.
+	pPass->SetOutput(m_readbackData);
 }
