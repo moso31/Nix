@@ -119,4 +119,5 @@ private:
 	NXConstantBuffer<CBufferDebugLayer> m_cbDebugLayer;
 
 	Ntr<NXReadbackData> m_vtReadbackData;
+	Int2 m_vtReadbackDataSize;
 };

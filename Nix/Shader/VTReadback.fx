@@ -23,7 +23,9 @@ void CS(uint3 DTid : SV_DispatchThreadID)
 	if (outPos.x >= outRTSize.x || outPos.y >= outRTSize.y)
 		return;
 
+	float2 vtReadbackSize = ((m_param0.x) / TILE_SIZE);
+
 	float encode = txVTEncodeData.Load(int3(screenPos, 0)).x;
-	int index = outPos.y * m_param0.x + outPos.x;
+	int index = outPos.y * vtReadbackSize.x + outPos.x;
 	m_output[index] = (encode);
 }

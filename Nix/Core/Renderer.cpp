@@ -242,7 +242,8 @@ void Renderer::GenerateRenderGraph()
 			Int2 threadGroupSize((rtSize + 7) / 8);
 			data.pPass->SetThreadGroups(threadGroupSize.x, threadGroupSize.y);
 
-			// 记录VTReadback的size 用于GUI调试
+			// 记录VTReadback的size 
+			m_vtReadbackDataSize = threadGroupSize;
 			m_pGUI->SetVTReadbackDataSize(threadGroupSize);
 		});
 
