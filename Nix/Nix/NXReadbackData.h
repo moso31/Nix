@@ -24,6 +24,7 @@ public:
 	uint32_t GetWidth() const { return m_byteSize / m_stride; }
 
 	void CopyDataFromGPU(uint8_t* pData);
+	const std::vector<uint8_t>& Get() const { return m_data.Current(); }
 
 private:
 	std::string m_name;

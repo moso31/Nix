@@ -88,6 +88,7 @@ void Renderer::InitGUI()
 {
 	m_pGUI = new NXGUI(m_scene, this);
 	m_pGUI->Init();
+	m_pGUI->SetVTReadbackData(m_vtReadbackData);
 }
 
 void Renderer::GenerateRenderGraph()
@@ -240,6 +241,9 @@ void Renderer::GenerateRenderGraph()
 			Int2 rtSize(pRT->GetWidth(), pRT->GetHeight());
 			Int2 threadGroupSize((rtSize + 7) / 8);
 			data.pPass->SetThreadGroups(threadGroupSize.x, threadGroupSize.y);
+
+			// 记录VTReadback的size 用于GUI调试
+			m_pGUI->SetVTReadbackDataSize(threadGroupSize);
 		});
 
 	// TODO: 简略变量，new NXReadbackBufferPass有必要吗？

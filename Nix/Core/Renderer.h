@@ -68,6 +68,8 @@ public:
 	bool GetEnablePostProcessing() const { return m_bEnablePostProcessing; }
 	void SetEnablePostProcessing(bool value) { m_bEnablePostProcessing = value; }
 
+	Ntr<NXReadbackData>& GetVTReadbackData() { return m_vtReadbackData; }
+
 	void NotifyRebuildRenderGraph();
 
 private:

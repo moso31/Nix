@@ -1,9 +1,10 @@
 #pragma once
 #include "BaseDefs/NixCore.h"
-#include "BaseDefs/DX12.h"
 #include "BaseDefs/DearImGui.h"
+#include "BaseDefs/Math.h"
 #include "NXShaderVisibleDescriptorHeap.h"
 #include "DirectResources.h"
+#include "NXReadbackData.h"
 
 class NXScene;
 class Renderer;
@@ -37,6 +38,11 @@ public:
 	void Render(Ntr<NXTexture2D> pGUIViewRT, const NXSwapChainBuffer& swapChainBuffer);
 	void Release();
 
+	void SetVTReadbackData(Ntr<NXReadbackData>& vtReadbackData) { m_vtReadbackData = vtReadbackData; }
+	const Ntr<NXReadbackData>& GetVTReadbackData() const { return m_vtReadbackData; }
+	void SetVTReadbackDataSize(const Int2& val) { m_vtReadbackDataSize = val; }
+	const Int2 GetVTReadbackDataSize() const { return m_vtReadbackDataSize; }
+
 private:
 	MultiFrame<ComPtr<ID3D12GraphicsCommandList>>	m_pCmdList;
 	MultiFrame<ComPtr<ID3D12CommandAllocator>>		m_pCmdAllocator;
@@ -62,4 +68,7 @@ private:
 	NXGUIRenderGraph* 			m_pGUIRenderGraph;
 
 	NXGUIDebugLayer*			m_pGUIDebugLayer;
+
+	Ntr<NXReadbackData> m_vtReadbackData;
+	Int2 m_vtReadbackDataSize;
 };

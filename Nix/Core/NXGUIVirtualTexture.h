@@ -1,16 +1,17 @@
 #pragma once
-#include "BaseDefs/DearImGui.h"
+#include "NXGUI.h"
 #include "NXVirtualTextureManager.h"
 
 class NXGUIVirtualTexture
 {
 public:
-    NXGUIVirtualTexture();
+    NXGUIVirtualTexture(NXGUI* pOwner);
     void Render();
 
 private:
     void Render_Sectors();
     void Render_VirtImageAtlas();
+    void Render_Readback();
 
     void BuildDockLayout(ImGuiID dockspace_id);
 
@@ -24,7 +25,12 @@ private:
     ImVec2 TileMin(int row, int col);
     ImVec2 TileMax(int row, int col);
 
+    ImU32 VTReadbackDecodeData(int val) const; 
+    ImU32 VTReadbackDecodeDataFromLinear(int idx, int width) const; 
+
 private:
+    NXGUI* m_pOwner;
+
     // 世界 & 网格常量
     static constexpr int WORLD_MIN = -8192;
     static constexpr int WORLD_MAX = 8192;

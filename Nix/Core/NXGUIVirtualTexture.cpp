@@ -1,14 +1,17 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
-#include "NXGUIVirtualTexture.h"
 #include "imgui.h"
+#include "NXGUIVirtualTexture.h"
+#include "NXGlobalDefinitions.h"
 
-NXGUIVirtualTexture::NXGUIVirtualTexture() 
+NXGUIVirtualTexture::NXGUIVirtualTexture(NXGUI* pOwner) :
+    m_pOwner(pOwner)
 {
     m_strTitle = {
         "Sector##child_sector",
-        "Virtual image atlas##child_virtImgAtlas"
+        "Virtual image atlas##child_virtImgAtlas",
+        "Readback##child_readback"
     };
 }
 
@@ -36,6 +39,7 @@ void NXGUIVirtualTexture::Render()
 
     Render_Sectors();
     Render_VirtImageAtlas();
+    Render_Readback();
 
     ImGui::End(); // Virtual Texture Debug
 }
@@ -365,6 +369,108 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
     ImGui::End();
 }
 
+void NXGUIVirtualTexture::Render_Readback()
+{
+    ImGui::Begin(m_strTitle[2].c_str());
+
+    // 数据与尺寸
+    auto& vtReadbackData = m_pOwner->GetVTReadbackData()->Get();
+    const uint32_t* pVTData = reinterpret_cast<const uint32_t*>(vtReadbackData.data());
+    const Int2 sz = m_pOwner->GetVTReadbackDataSize();
+    const int W = sz.x, H = sz.y;
+
+    ImGui::Text("Readback size: %d x %d", W, H);
+    if (W <= 0 || H <= 0 || !pVTData || vtReadbackData.empty()) {
+        ImGui::TextUnformatted("No data.");
+        ImGui::End();
+        return;
+    }
+
+    // 简单控制（仅缩放/平移；可删）
+    static float  s_zoom = 1.0f;
+    static ImVec2 s_panPix = ImVec2(0, 0);
+    if (ImGui::SliderFloat("Scale", &s_zoom, 0.25f, 32.0f, "%.2fx")) {}
+    ImGui::SameLine();
+    if (ImGui::Button("Reset view")) { s_zoom = 1.0f; s_panPix = ImVec2(0, 0); }
+
+    // 视图区域
+    ImGui::BeginChild("RBView", ImVec2(0, 0), true,
+        ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    const ImVec2 viewTL = ImGui::GetCursorScreenPos();
+    ImVec2 avail = ImGui::GetContentRegionAvail();
+    const ImVec2 pad(8, 8);
+    ImVec2 regionTL(viewTL.x + pad.x, viewTL.y + pad.y);
+    ImVec2 regionSize(avail.x - pad.x * 2, avail.y - pad.y * 2);
+    ImVec2 regionBR(regionTL.x + regionSize.x, regionTL.y + regionSize.y);
+
+    dl->AddRectFilled(regionTL, regionBR, IM_COL32(30, 30, 30, 255));
+
+    // 坐标变换：像素坐标 <-> 屏幕
+    const float baseScale = std::min(regionSize.x / float(W), regionSize.y / float(H));
+    float scale = baseScale * std::max(0.01f, s_zoom);
+
+    auto A2S = [&](float ax, float ay)->ImVec2 {
+        return ImVec2(regionTL.x + ax * scale + s_panPix.x,
+            regionTL.y + ay * scale + s_panPix.y);
+        };
+    auto S2A = [&](float sx, float sy)->ImVec2 {
+        return ImVec2((sx - regionTL.x - s_panPix.x) / scale,
+            (sy - regionTL.y - s_panPix.y) / scale);
+        };
+
+    // 简单交互：中键平移、滚轮缩放（围绕鼠标）
+    {
+        ImGuiIO& io = ImGui::GetIO();
+        const bool hovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
+        if (hovered && ImGui::IsMouseDown(ImGuiMouseButton_Middle)) {
+            s_panPix.x += io.MouseDelta.x;
+            s_panPix.y += io.MouseDelta.y;
+        }
+        if (hovered && io.MouseWheel != 0.0f) {
+            ImVec2 anchorA = S2A(io.MousePos.x, io.MousePos.y);
+            float zoomFactor = (io.MouseWheel > 0.0f) ? 1.1f : 0.9f;
+            float newZoom = ImClamp(s_zoom * zoomFactor, 0.25f, 64.0f);
+            if (newZoom != s_zoom) {
+                float newScale = baseScale * std::max(0.01f, newZoom);
+                ImVec2 anchorS_after = ImVec2(
+                    regionTL.x + anchorA.x * newScale + s_panPix.x,
+                    regionTL.y + anchorA.y * newScale + s_panPix.y
+                );
+                s_panPix.x += io.MousePos.x - anchorS_after.x;
+                s_panPix.y += io.MousePos.y - anchorS_after.y;
+                s_zoom = newZoom;
+                scale = newScale;
+            }
+        }
+    }
+
+    // 裁剪
+    dl->PushClipRect(ImVec2(regionTL.x + 1, regionTL.y + 1),
+        ImVec2(regionBR.x - 1, regionBR.y - 1), true);
+
+    // 轻量 LOD：当每像素 <1 屏幕像素时，按步进聚合成块，代表色取左上像素
+    const int stepX = std::max(1, (int)std::floor(1.0f / std::max(1e-6f, scale)));
+    const int stepY = stepX;
+
+    for (int y = 0; y < H; y += stepY) {
+        for (int x = 0; x < W; x += stepX) {
+            const int idx = y * W + x;
+            const uint32_t v = pVTData[idx];
+            const ImU32 col = VTReadbackDecodeData(v);
+
+            ImVec2 tl = A2S((float)x, (float)y);
+            ImVec2 br = A2S((float)std::min(x + stepX, W), (float)std::min(y + stepY, H));
+            dl->AddRectFilled(tl, br, col);
+        }
+    }
+
+    dl->PopClipRect();
+    dl->AddRect(regionTL, regionBR, IM_COL32(160, 160, 160, 255));
+    ImGui::EndChild();
+    ImGui::End();
+}
 
 void NXGUIVirtualTexture::BuildDockLayout(ImGuiID dockspace_id)
 {
@@ -374,6 +480,7 @@ void NXGUIVirtualTexture::BuildDockLayout(ImGuiID dockspace_id)
 
     ImGui::DockBuilderDockWindow(m_strTitle[0].c_str(), dockspace_id);
     ImGui::DockBuilderDockWindow(m_strTitle[1].c_str(), dockspace_id);
+    ImGui::DockBuilderDockWindow(m_strTitle[2].c_str(), dockspace_id);
 
     ImGui::DockBuilderFinish(dockspace_id);  // 完成！
 }
@@ -578,4 +685,12 @@ ImVec2 NXGUIVirtualTexture::TileMax(int row, int col)
 {
     ImVec2 mn = TileMin(row, col);
     return ImVec2(mn.x + SECTOR_SIZE, mn.y + SECTOR_SIZE);
+}
+
+ImU32 NXGUIVirtualTexture::VTReadbackDecodeData(int val) const
+{
+    const uint32_t r = val % 100u;
+    const float t = (float)r / 99.0f;
+    const uint8_t g = (uint8_t)ImClamp(t * 255.0f + 0.5f, 0.0f, 255.0f);
+    return IM_COL32(g, g, g, 255);
 }

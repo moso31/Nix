@@ -89,7 +89,7 @@ void NXGUI::Init()
 	m_pGUIMaterialShaderEditor = new NXGUIMaterialShaderEditor();
 	m_pGUIContentExplorer = new NXGUIContentExplorer(m_pCurrentScene);
 	m_pGUITerrainSystem = new NXGUITerrainSystem(m_pCurrentScene);
-	m_pGUIVirtualTexture = new NXGUIVirtualTexture();
+	m_pGUIVirtualTexture = new NXGUIVirtualTexture(this);
 
 	m_pGUIInspector = new NXGUIInspector();
 	m_pGUIInspector->InitGUI(m_pCurrentScene, m_pGUIMaterialShaderEditor, m_pGUITerrainSystem);
