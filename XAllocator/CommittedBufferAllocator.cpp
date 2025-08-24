@@ -2,12 +2,12 @@
 
 using namespace ccmem;
 
-CommittedBufferAllocator::CommittedBufferAllocator(ID3D12Device* pDevice, bool cpuAccessable, bool isReadBack, uint32_t pageBlockByteSize, uint32_t pageFullByteSize) :
+CommittedBufferAllocator::CommittedBufferAllocator(const std::wstring& name, ID3D12Device* pDevice, bool cpuAccessable, bool isReadBack, uint32_t pageBlockByteSize, uint32_t pageFullByteSize) :
 	m_cpuAccessable(cpuAccessable),
 	m_isReadBack(isReadBack),
 	m_pageFullByteSize(pageFullByteSize),
 	m_pDevice(pDevice),
-	BuddyAllocator(pageBlockByteSize, pageFullByteSize)
+	BuddyAllocator(pageBlockByteSize, pageFullByteSize, name)
 {
 	if (m_isReadBack && pageBlockByteSize < 512u)
 	{
@@ -81,7 +81,8 @@ void ccmem::CommittedBufferAllocator::OnAllocatorAdded(BuddyAllocatorPage* pAllo
 	}
 
 	// 设置调试用资源名称
-	newData.m_pResource->SetName(L"CBuffer");
+	std::wstring bufferName = GetName() + std::to_wstring(pAllocator->GetPageID());
+	newData.m_pResource->SetName(bufferName.c_str());
 }
 
 ID3D12Resource* ccmem::CommittedBufferAllocator::GetD3DResource(BuddyAllocatorPage* pAllocator)

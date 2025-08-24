@@ -105,12 +105,12 @@ void NXGPUTerrainManager::SetBakeTerrainTextures(const std::filesystem::path& he
 		m_pTerrainMinMaxZMap2DArray = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DArray("Terrain MinMax Z Map 2DArray", m_minMaxZMap2DArrayPath, DXGI_FORMAT_R32G32_FLOAT, metadata.width, metadata.height, metadata.arraySize, metadata.mipLevels);
 	}
 
-	if (std::filesystem::exists(NormalArrayPath))
-	{
-		TexMetadata metadata;
-		DirectX::GetMetadataFromDDSFile(NormalArrayPath.wstring().c_str(), DDS_FLAGS_NONE, metadata);
-		m_pTerrainNormalMap2DArray = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DArray("Terrain Normal Map 2DArray", NormalArrayPath, DXGI_FORMAT_R10G10B10A2_UNORM, metadata.width, metadata.height, metadata.arraySize, metadata.mipLevels);
-	}
+	//if (std::filesystem::exists(NormalArrayPath))
+	//{
+	//	TexMetadata metadata;
+	//	DirectX::GetMetadataFromDDSFile(NormalArrayPath.wstring().c_str(), DDS_FLAGS_NONE, metadata);
+	//	m_pTerrainNormalMap2DArray = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DArray("Terrain Normal Map 2DArray", NormalArrayPath, DXGI_FORMAT_R10G10B10A2_UNORM, metadata.width, metadata.height, metadata.arraySize, metadata.mipLevels);
+	//}
 }
 
 void NXGPUTerrainManager::Update(ID3D12GraphicsCommandList* pCmdList)

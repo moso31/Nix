@@ -2,10 +2,10 @@
 
 using namespace ccmem;
 
-ccmem::PlacedBufferAllocator::PlacedBufferAllocator(ID3D12Device* pDevice, uint32_t pageBlockByteSize, uint32_t pageFullByteSize) :
+ccmem::PlacedBufferAllocator::PlacedBufferAllocator(const std::wstring& name, ID3D12Device* pDevice, uint32_t pageBlockByteSize, uint32_t pageFullByteSize) :
 	m_pageFullByteSize(pageFullByteSize),
 	m_pDevice(pDevice),
-	BuddyAllocator(pageBlockByteSize, pageFullByteSize)
+	BuddyAllocator(pageBlockByteSize, pageFullByteSize, name)
 {
 }
 

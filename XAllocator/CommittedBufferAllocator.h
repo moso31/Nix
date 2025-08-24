@@ -22,7 +22,7 @@ namespace ccmem
 	public:
 		// pageBlockByteSize = 单个内存块的大小 pageFullByteSize = 单个Allocator内存大小. 要求必须是2的n次幂
 		// 这里约定单个内存块大小是64B，总内存大小是2GB
-		CommittedBufferAllocator(ID3D12Device* pDevice, bool cpuAccessable, bool isReadBack, uint32_t pageBlockByteSize = 64, uint32_t pageFullByteSize = 2147483648);
+		CommittedBufferAllocator(const std::wstring& name, ID3D12Device* pDevice, bool cpuAccessable, bool isReadBack, uint32_t pageBlockByteSize = 64, uint32_t pageFullByteSize = 2147483648);
 		virtual ~CommittedBufferAllocator() {};
 
 		// 分配内存。结果是延迟生成的，需要在回调函数中获取分配的内存地址

@@ -52,6 +52,18 @@ void NXTextureMaker::GenerateTerrainHeightMap2DArray(const std::vector<TerrainNo
         if (onProgressCount) onProgressCount();
     }
 
+    // 2) 压缩到 BC4（并行）
+    //std::unique_ptr<ScratchImage> bc4 = std::make_unique<ScratchImage>();
+    //{
+    //    const TexMetadata& meta = texArray->GetMetadata();
+    //    TEX_COMPRESS_FLAGS cflags = TEX_COMPRESS_DEFAULT | TEX_COMPRESS_PARALLEL;
+    //    HRESULT hr = Compress(texArray->GetImages(), texArray->GetImageCount(), meta, DXGI_FORMAT_BC4_UNORM, cflags, 0.5f, *bc4);
+    //    if (FAILED(hr)) 
+    //        throw std::runtime_error("Compress(BC4) 失败");
+
+    //    texArray.swap(bc4);
+    //}
+
     // 保存到 DDS
     hr = SaveToDDSFile(texArray->GetImages(), texArray->GetImageCount(), texArray->GetMetadata(), DDS_FLAGS_NONE, outDDSPath.wstring().c_str());
     if (FAILED(hr))

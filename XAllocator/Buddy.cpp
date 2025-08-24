@@ -22,7 +22,8 @@ ccmem::BuddyTask::BuddyTask()
 	selfID = ccmem::GenerateUniqueTaskID();
 }
 
-ccmem::BuddyAllocator::BuddyAllocator(uint32_t blockByteSize, uint32_t fullByteSize) :
+ccmem::BuddyAllocator::BuddyAllocator(uint32_t blockByteSize, uint32_t fullByteSize, const std::wstring& name) :
+	m_name(name),
 	MIN_LV(blockByteSize),
 	MAX_LV(fullByteSize)
 {

@@ -97,13 +97,12 @@ namespace ccmem
 		BuddyAllocatorPage(BuddyAllocator* pOwner);
 		~BuddyAllocatorPage();
 
+		uint32_t GetPageID() const { return m_pageID; }
 		void Print();
 
 	private:
 		BuddyTask::State AllocSync(const BuddyTask& task, uint32_t& oByteOffset);
 		BuddyTask::State FreeSync(const uint32_t& freeByteOffset);
-
-		uint32_t GetPageID() const { return m_pageID; }
 
 	private:
 		BuddyAllocator* m_pOwner;
@@ -119,9 +118,10 @@ namespace ccmem
 	{
 	public:
 		// blockByteSize = 单个内存块的大小 fullByteSize = 总内存大小
-		BuddyAllocator(uint32_t blockByteSize, uint32_t fullByteSize);
+		BuddyAllocator(uint32_t blockByteSize, uint32_t fullByteSize, const std::wstring& name);
 		~BuddyAllocator();
 
+		const std::wstring& GetName() const { return m_name; }
 		void ExecuteTasks();
 		void Print();
 
@@ -149,6 +149,7 @@ namespace ccmem
 		BuddyTask::State TryAlloc(const BuddyTask& task, XBuddyTaskMemData& oTaskMemData);
 		BuddyTask::State TryFree(const BuddyTask& task);
 	private:
+		std::wstring m_name;
 		std::mutex m_mutex;
 
 		// 任务队列，任务首次添加总是添加到这里
