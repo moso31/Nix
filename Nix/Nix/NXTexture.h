@@ -181,6 +181,8 @@ public:
 
     // 注意：Create是异步的！其他下面几个都是同步的
     Ntr<NXTexture2D> Create(const std::string& debugName, const std::filesystem::path& FilePath, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
+    // 只加载贴图文件的一部分区域，这个也异步
+    Ntr<NXTexture2D> CreateSub(const std::string& debugName, const std::filesystem::path& filePath, Int2 subRegionXY, Int2 subRegionSize, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE); 
 
     Ntr<NXTexture2D> CreateRenderTexture(const std::string& debugName, DXGI_FORMAT fmt, uint32_t width, uint32_t height, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
     Ntr<NXTexture2D> CreateSolid(const std::string& debugName, uint32_t TexSize, const Vector4& Color, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);

@@ -298,6 +298,7 @@
     <ClCompile Include="Core\NXTimer.cpp" />
     <ClCompile Include="Core\NXUploadSystem.cpp" />
     <ClCompile Include="Core\NXVirtualTextureRenderer.cpp" />
+    <ClCompile Include="Core\NXVirtualTextureStreaming.cpp" />
     <ClCompile Include="Core\Renderer.cpp" />
     <ClCompile Include="Core\ShaderComplier.cpp" />
     <ClCompile Include="Core\NXShaderVisibleDescriptorHeap.cpp" />
@@ -432,6 +433,7 @@
     <ClInclude Include="Core\NXTimer.h" />
     <ClInclude Include="Core\NXUploadSystem.h" />
     <ClInclude Include="Core\NXVirtualTextureRenderer.h" />
+    <ClInclude Include="Core\NXVirtualTextureStreaming.h" />
     <ClInclude Include="Core\Renderer.h" />
     <ClInclude Include="Core\ShaderComplier.h" />
     <ClInclude Include="Core\ShaderStructures.h" />

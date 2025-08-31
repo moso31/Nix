@@ -4,6 +4,7 @@
 #include "NXShaderVisibleDescriptorHeap.h"
 #include "NXTextureLoader.h"
 #include "NXNullDescriptor.h"
+#include "NXVirtualTextureStreaming.h"
 
 // 资源
 #define NXAllocator_CB		NXAllocatorManager::GetInstance()->GetCBAllocator()			// cb
@@ -26,6 +27,9 @@
 // 纹理加载器
 #define NXTexLoader			NXAllocatorManager::GetInstance()->GetTextureLoader()
 
+// VT Streaming
+#define NXVTStreaming		NXAllocatorManager::GetInstance()->GetVirtualTextureStreaming()
+
 using namespace ccmem;
 
 class NXAllocatorManager : public NXInstance<NXAllocatorManager>
@@ -44,13 +48,12 @@ public:
 	DescriptorAllocator<false>*		GetDSVAllocator()				{ return m_pDSVAllocator.get(); }
 	NXNullDescriptor*				GetNullDescriptorAllocator()	{ return m_pNullDescriptorAllocator.get(); }
 
-	NXUploadSystem*		GetNXUploadSystem()		{ return m_pUpdateSystem.get(); }
-	NXReadbackSystem*	GetNXReadbackSystem()	{ return m_pReadbackSystem.get(); }
-	NXTextureLoader*	GetTextureLoader()		{ return m_pTextureLoader.get(); }
+	NXUploadSystem*					GetNXUploadSystem()				{ return m_pUpdateSystem.get(); }
+	NXReadbackSystem*				GetNXReadbackSystem()			{ return m_pReadbackSystem.get(); }
+	NXTextureLoader*				GetTextureLoader()				{ return m_pTextureLoader.get(); }
+	NXVirtualTextureStreaming*		GetVirtualTextureStreaming()	{ return m_pVTStreaming.get(); }
 
 	DescriptorAllocator<true>*			GetShaderVisibleDescriptorAllocator()	{ return m_pShaderVisibleDescAllocator.get(); }
-
-	void Update();
 
 	void Release();
 
@@ -69,6 +72,7 @@ private:
 	std::unique_ptr<NXUploadSystem>				m_pUpdateSystem;
 	std::unique_ptr<NXReadbackSystem>			m_pReadbackSystem;
 	std::unique_ptr<NXTextureLoader>			m_pTextureLoader;
+	std::unique_ptr<NXVirtualTextureStreaming>	m_pVTStreaming;
 
 	// shader-visible descriptor allocator
 	std::unique_ptr<DescriptorAllocator<true>> 	m_pShaderVisibleDescAllocator;

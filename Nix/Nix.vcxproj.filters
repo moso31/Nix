@@ -625,6 +625,9 @@
     <ClCompile Include="Nix\NXReadbackData.cpp">
       <Filter>Nix\TextureBuffer</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXVirtualTextureStreaming.cpp">
+      <Filter>Nix\VirtualTexture</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -1052,6 +1055,9 @@
     </ClInclude>
     <ClInclude Include="Nix\NXReadbackData.h">
       <Filter>Nix\TextureBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXVirtualTextureStreaming.h">
+      <Filter>Nix\VirtualTexture</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

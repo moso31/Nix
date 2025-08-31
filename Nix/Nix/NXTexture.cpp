@@ -663,6 +663,16 @@ Ntr<NXTexture2D> NXTexture2D::Create(const std::string& debugName, const std::fi
 	return this;
 }
 
+Ntr<NXTexture2D> NXTexture2D::CreateSub(const std::string& debugName, const std::filesystem::path& filePath, Int2 subRegionXY, Int2 subRegionSize, D3D12_RESOURCE_FLAGS flags)
+{
+	m_texFilePath = filePath;
+	m_name = debugName;
+	Deserialize();
+
+	CreatePathTextureInternal(m_texFilePath, flags);
+	return this;
+}
+
 Ntr<NXTexture2D> NXTexture2D::CreateRenderTexture(const std::string& debugName, DXGI_FORMAT fmt, uint32_t width, uint32_t height, D3D12_RESOURCE_FLAGS flags)
 {
 	m_texFilePath = "[Render Target: " + debugName + "]";
