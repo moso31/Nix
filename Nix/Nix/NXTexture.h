@@ -3,11 +3,9 @@
 #include <future>
 #include "NXTextureReloadTesk.h"
 #include "NXConverter.h"
+#include "NXTextureLoader.h"
 
-using namespace Microsoft::WRL;
-using namespace SimpleMath;
 using namespace DirectX;
-using namespace ccmem;
 
 namespace DirectX
 {
@@ -48,20 +46,7 @@ class NXTextureCube;
 class NXTexture : public NXResource
 {
 public:
-    NXTexture(NXResourceType type) : 
-        NXResource(type),
-        m_width(-1),
-        m_height(-1),
-        m_arraySize(-1),
-        m_texFormat(DXGI_FORMAT_UNKNOWN),
-        m_mipLevels(-1),
-        m_texFilePath(""),
-        m_loadingViews(0),
-        m_futureLoadingViews(m_promiseLoadingViews.get_future()),
-        m_futureLoadingTexChunks(m_promiseLoadingTexChunks.get_future()),
-        m_futureLoading2DPreview(m_promiseLoading2DPreview.get_future())
-    {}
-
+    NXTexture(NXResourceType type);
     virtual ~NXTexture();
 
     ID3D12Resource* GetTex() const { return m_pTexture.Get(); }
@@ -128,12 +113,33 @@ protected:
 
     // 从文件创建 Texture，调用这个方法
     void CreatePathTextureInternal(const std::filesystem::path& filePath, D3D12_RESOURCE_FLAGS flags);
+    void CreatePathTextureInternal(const std::filesystem::path& filePath, Int2 subRegionXY, Int2 subRegionSize, D3D12_RESOURCE_FLAGS flags);
+
+    void AfterTexLoaded(const std::filesystem::path& filePath, D3D12_RESOURCE_FLAGS flags, const NXTextureLoaderTaskResult& result);
+    void AfterTexMemoryAllocated(const NXTextureLoaderTaskResult& result, const PlacedBufferAllocTaskResult& taskResult, std::vector<NXTextureUploadChunk>&& chunks);
 
 private:
     void InternalReload(Ntr<NXTexture> pReloadTexture);
     D3D12_RESOURCE_DIMENSION GetResourceDimentionFromType();
 
     void GenerateUploadChunks(uint32_t layoutSize, uint32_t* numRow, uint64_t* numRowSizeInBytes, uint64_t totalBytes, std::vector<NXTextureUploadChunk>& oChunks);
+
+    // 向下取整对齐，alignment必须是2的幂
+    int AlignDownForPow2Only(int value, int alignment) { return value & ~(alignment - 1); }
+
+    // 计算mip数量
+    uint32_t CalcMipCount(int width, int height);
+
+    // 计算指定layout的subRegion的偏移；
+    // oSrcRow：行/块行的起始行数
+    // oSrcBytes: 每行/块行的起始偏移量
+    void ComputeSubRegionOffsets(const std::shared_ptr<ScratchImage>& pImage, int layoutIndex, uint32_t& oSrcRow, uint32_t& oSrcBytes);
+
+    // 分块传输接口：传输一个Layout的一部分数据（将较大的layout打散，多次处理）
+    void CopyPartOfLayoutToChunk(const NXTextureUploadChunk& texChunk, const std::shared_ptr<ScratchImage>& pImage);
+
+    // 分块传输接口：传输多个Layout的数据（同时处理多个小的layout）
+    void CopyMultiLayoutsToChunk(const NXTextureUploadChunk& texChunk, const std::shared_ptr<ScratchImage>& pImage);
 
 protected:
     ComPtr<ID3D12Resource> m_pTexture;
@@ -158,11 +164,18 @@ protected:
     std::future<void> m_futureLoading2DPreview;
     std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> m_pSRVPreviews;
 
+    // 基本信息；如果是subRegion，那么wh就是subRegion的wh。
+    // 目前还没有实际需求需要明确区分 源文件和实际创建的wh
     DXGI_FORMAT m_texFormat;
     uint32_t m_width;
     uint32_t m_height;
     uint32_t m_arraySize;
     uint32_t m_mipLevels;
+
+    // 是否只加载贴图文件的一部分区域
+    bool m_useSubRegion;
+    Int2 m_subRegionXY;
+    Int2 m_subRegionSize;
 
     // 序列化数据
     NXTextureSerializationData m_serializationData;

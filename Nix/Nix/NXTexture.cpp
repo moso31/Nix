@@ -6,6 +6,24 @@
 #include "NXRandom.h"
 #include "NXAllocatorManager.h"
 
+NXTexture::NXTexture(NXResourceType type) :
+	NXResource(type),
+	m_width(-1),
+	m_height(-1),
+	m_arraySize(-1),
+	m_texFormat(DXGI_FORMAT_UNKNOWN),
+	m_mipLevels(-1),
+	m_useSubRegion(false),
+	m_subRegionXY(-1, -1),
+	m_subRegionSize(-1, -1),
+	m_texFilePath(""),
+	m_loadingViews(0),
+	m_futureLoadingViews(m_promiseLoadingViews.get_future()),
+	m_futureLoadingTexChunks(m_promiseLoadingTexChunks.get_future()),
+	m_futureLoading2DPreview(m_promiseLoading2DPreview.get_future())
+{
+}
+
 NXTexture::~NXTexture()
 {
 }
@@ -432,6 +450,134 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 	NXTexLoader->AddTask(task);
 }
 
+void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath, Int2 subRegionXY, Int2 subRegionSize, D3D12_RESOURCE_FLAGS flags)
+{
+	m_useSubRegion = true;
+	m_subRegionXY = subRegionXY;
+	m_subRegionSize = subRegionSize;
+
+	NXTextureLoaderTask task;
+	task.path = filePath;
+	task.type = m_type;
+	task.serializationData = m_serializationData;
+	task.pCallBack = [this, filePath, flags](NXTextureLoaderTaskResult result) { AfterTexLoaded(filePath, flags, result); };
+	NXTexLoader->AddTask(task);
+}
+
+void NXTexture::AfterTexLoaded(const std::filesystem::path& filePath, D3D12_RESOURCE_FLAGS flags, const NXTextureLoaderTaskResult& result)
+{
+	// 获取NXTexLoader的加载结果
+	auto& metadata = result.metadata;
+	std::shared_ptr<ScratchImage> pImage = result.pImage;
+
+	uint32_t srcW = (uint32_t)metadata.width;
+	uint32_t srcH = (uint32_t)metadata.height;
+	uint32_t subX = 0, subY = 0, subW = srcW, subH = srcH;
+	if (m_useSubRegion)
+	{
+		// 目前只有2D类型支持subRegion
+		if (m_type == NXResourceType::Tex2D)
+		{
+			subX = m_subRegionXY.x;
+			subY = m_subRegionXY.y;
+			subW = m_subRegionSize.x;
+			subH = m_subRegionSize.y;
+
+			// 如果超过屏幕边界 保留像素
+			if (subX >= srcW) subX = srcW - 1;
+			if (subY >= srcH) subY = srcH - 1;
+			subW = std::min(subW, srcW - subX);
+			subH = std::min(subH, srcH - subY);
+
+			// BC 对齐：4x4 block
+			if (NXConvert::IsBCFormat(metadata.format))
+			{
+				// 角坐标按4向下对齐
+				uint32_t x0 = AlignDownForPow2Only(subX, 4);
+				uint32_t y0 = AlignDownForPow2Only(subY, 4);
+
+				// 子宽高按4向下对齐
+				uint32_t x1 = subX + subW;
+				uint32_t y1 = subY + subH;
+				x1 = AlignDownForPow2Only(x1, 4); 
+				y1 = AlignDownForPow2Only(y1, 4); 
+
+				// 防御：if 避免零块
+				if (x1 <= x0) x1 = x0 + 4;
+				if (y1 <= y0) y1 = y0 + 4;
+
+				// 防御：避免 零块+4后 超出边界
+				subX = x0; subY = y0; 
+				subW = std::min(srcW - subX, x1 - x0);
+				subH = std::min(srcH - subY, y1 - y0);
+			}
+		}
+
+		m_subRegionXY = { subX, subY };
+	}
+
+	// 计算实际使用的desc; 如果有子区域需要调整宽高和mipLevels
+	D3D12_RESOURCE_DESC desc = {};
+	desc.Dimension = GetResourceDimentionFromType();
+	desc.Width = m_useSubRegion ? subW : srcW;
+	desc.Height = m_useSubRegion ? subH : srcH;
+	desc.DepthOrArraySize = (uint32_t)metadata.arraySize;
+	const uint32_t subMipMax = CalcMipCount((uint32_t)desc.Width, (uint32_t)desc.Height);
+	desc.MipLevels = (uint32_t)std::min<uint32_t>(metadata.mipLevels, subMipMax); // NEW
+	desc.Format = metadata.format;
+	desc.SampleDesc.Count = 1;
+	desc.SampleDesc.Quality = 0;
+	desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	desc.Flags = flags;
+
+	m_width = (uint32_t)desc.Width;
+	m_height = (uint32_t)desc.Height;
+	m_subRegionSize = { m_width, m_height };
+	m_arraySize = (uint32_t)desc.DepthOrArraySize;
+	m_mipLevels = (uint32_t)desc.MipLevels;
+	m_texFormat = desc.Format;
+
+	// desc -> layout
+	const uint32_t layoutSize = desc.DepthOrArraySize * desc.MipLevels;
+	std::shared_ptr<D3D12_PLACED_SUBRESOURCE_FOOTPRINT[]> layouts = std::make_shared<D3D12_PLACED_SUBRESOURCE_FOOTPRINT[]>(layoutSize);
+	std::shared_ptr<uint32_t[]> numRow = std::make_shared<uint32_t[]>(layoutSize);
+	std::shared_ptr<uint64_t[]> numRowSizeInBytes = std::make_shared<uint64_t[]>(layoutSize);
+	size_t totalBytes = 0;
+	NXGlobalDX::GetDevice()->GetCopyableFootprints(&desc, 0, layoutSize, 0, layouts.get(), numRow.get(), numRowSizeInBytes.get(), &totalBytes);
+
+	// 将加载过程按字节大小拆分成多个 Chunk（内部最大 8MB）
+	std::vector<NXTextureUploadChunk> chunks;
+	GenerateUploadChunks(layoutSize, numRow.get(), numRowSizeInBytes.get(), totalBytes, chunks);
+	SetTexChunks((int)chunks.size());
+
+	NXAllocator_Tex->Alloc(&desc, (uint32_t)totalBytes, [this, result, chunks = std::move(chunks)](const PlacedBufferAllocTaskResult& taskResult) mutable {
+		AfterTexMemoryAllocated(result, taskResult, std::move(chunks));
+		});
+}
+
+void NXTexture::AfterTexMemoryAllocated(const NXTextureLoaderTaskResult& result, const PlacedBufferAllocTaskResult& taskResult, std::vector<NXTextureUploadChunk>&& chunks)
+{
+	std::shared_ptr<ScratchImage> pImage = result.pImage;
+
+	// 输出资源
+	m_pTexture = taskResult.pResource;
+	m_pTexture->SetName(NXConvert::s2ws(m_name).c_str());
+	SetRefCountDebugName(m_name);
+	m_resourceState = D3D12_RESOURCE_STATE_COPY_DEST;
+
+	for (auto& texChunk : chunks)
+	{
+		if (texChunk.layoutIndexSize == -1)
+		{
+			CopyPartOfLayoutToChunk(texChunk, pImage);
+		}
+		else
+		{
+			CopyMultiLayoutsToChunk(texChunk, pImage);
+		}
+	}
+}
+
 void NXTexture::GenerateUploadChunks(uint32_t layoutSize, uint32_t* numRow, uint64_t* numRowSizeInBytes, uint64_t totalBytes, std::vector<NXTextureUploadChunk>& oChunks)
 {
 	// 作用：根据纹理布局，将上传任务划分成若干个块上传，避免NXUploadSystem一次性上传过大的数据直接崩溃
@@ -492,6 +638,200 @@ void NXTexture::GenerateUploadChunks(uint32_t layoutSize, uint32_t* numRow, uint
 			oChunks.push_back(chunk);
 		}
 	}
+}
+
+uint32_t NXTexture::CalcMipCount(int width, int height)
+{
+	uint32_t levels = 1;
+	int size = std::max(width, height);
+	while (size > 1) 
+	{
+		size >>= 1;
+		levels++;
+	}
+	return levels;
+}
+
+void NXTexture::ComputeSubRegionOffsets(const std::shared_ptr<ScratchImage>& pImage, int layoutIndex, uint32_t& oSrcRow, uint32_t& oSrcBytes)
+{
+	// oSrcRow：行/块行的起始行数
+	// oSrcBytes: 每行/块行的起始偏移量
+	int mip, slice;
+	NXConvert::GetMipSliceFromLayoutIndex(layoutIndex, m_mipLevels, m_arraySize, mip, slice);
+
+	auto* pImg = pImage->GetImage(mip, slice, 0);
+	uint32_t sx = 0, sy = 0;
+	if (m_useSubRegion)
+	{
+		//获取 subX subY在mip等级的实际像素偏移量
+		sx = m_subRegionXY.x >> mip;
+		sy = m_subRegionXY.y >> mip;
+	}
+
+	if (!NXConvert::IsBCFormat(m_texFormat)) // 如果不是BC压缩格式
+	{
+		// 通过行字节数（rowPitch）/图像宽度（width)得出每个像素占多少字节
+		uint32_t bytesPerPixel = (pImg->width > 0) ? (uint32_t)(pImg->rowPitch / pImg->width) : 0;
+
+		oSrcBytes = bytesPerPixel * sx; // 获取sub区域中，每行的起始偏移量
+		oSrcRow = sy; // 获取sub区域的起始行
+	}
+	else
+	{
+		// BC：以块为单位
+		
+		// 明确这一行的block数量
+		const uint32_t blocksX = (pImg->width + 3) / 4;
+
+		// 通过行字节数（rowPitch）/ block数量，明确每个块占多少个字节 
+		// bc格式下 rowPitch已经按块对齐并压缩 // 只可能是8或16字节
+		const uint32_t blockSize = (blocksX > 0) ? (uint32_t)(pImg->rowPitch / blocksX) : 0;
+
+		// bc模式下，sx sy 已经按4向下对齐
+		oSrcBytes = (sx / 4) * blockSize; // 获取sub区域中，每块的起始偏移量
+		oSrcRow = (sy / 4); // 获取sub区域中，块的起始偏移量
+	}
+}
+
+void NXTexture::CopyPartOfLayoutToChunk(const NXTextureUploadChunk& texChunk, const std::shared_ptr<ScratchImage>& pImage)
+{
+	NXUploadContext taskContext("Upload Texture Task");
+	if (!NXUploadSys->BuildTask(texChunk.chunkBytes, taskContext))
+	{
+		printf("Error: [NXUploadSystem::BuildTask] failed when loading NXTexture2D: %s\n", m_texFilePath.string().c_str());
+		return;
+	}
+
+	// 该 chunk < 单个 layout：只覆盖 layout 的部分行
+	const int index = texChunk.layoutIndexStart;
+
+	int mip = 0, slice = 0;
+	NXConvert::GetMipSliceFromLayoutIndex(index, m_mipLevels, m_arraySize, mip, slice);
+
+	const Image* pImg = pImage->GetImage(mip, slice, 0);
+	const BYTE* pSrcData = pImg->pixels;
+
+	// 映射上传堆ring buffer
+	BYTE* pMapped = taskContext.pResourceData;
+	BYTE* pDstBase = pMapped + taskContext.pResourceOffset;
+
+	// 计算源列偏移/起始行（像素行或块行）
+	uint32_t srcXBytes = 0, baseRow = 0;
+	ComputeSubRegionOffsets(pImage, index, baseRow, srcXBytes);
+
+	// 需要拷贝的行范围（相对目标 layout）
+	const uint32_t rowSt = texChunk.rowStart;
+	const uint32_t rowEd = texChunk.rowStart + texChunk.rowSize;
+
+	// desc -> layout
+	auto desc = m_pTexture->GetDesc();
+	const uint32_t layoutSize = desc.DepthOrArraySize * desc.MipLevels;
+	std::shared_ptr<D3D12_PLACED_SUBRESOURCE_FOOTPRINT[]> layouts = std::make_shared<D3D12_PLACED_SUBRESOURCE_FOOTPRINT[]>(layoutSize);
+	std::shared_ptr<uint32_t[]> numRow = std::make_shared<uint32_t[]>(layoutSize);
+	std::shared_ptr<uint64_t[]> numRowSizeInBytes = std::make_shared<uint64_t[]>(layoutSize);
+	size_t totalBytes = 0;
+	NXGlobalDX::GetDevice()->GetCopyableFootprints(&desc, 0, layoutSize, 0, layouts.get(), numRow.get(), numRowSizeInBytes.get(), &totalBytes);
+
+	for (uint32_t y = rowSt; y < rowEd; ++y)
+	{
+		// 源行索引：以 baseRow 为起点
+		const uint32_t srcRowIndex = baseRow + (y - rowSt);
+		const BYTE* pSrcRow = pSrcData + pImg->rowPitch * srcRowIndex + srcXBytes;
+		BYTE* pDstRow = pDstBase + layouts[index].Footprint.RowPitch * (y - rowSt);
+
+		// 每行只拷贝“子矩形宽度”的字节数（由 GetCopyableFootprints 计算得到）
+		memcpy(pDstRow, pSrcRow, numRowSizeInBytes[index]);
+	}
+
+	// 提交拷贝：从上传堆片段 → 目标纹理的该 subresource 的部分行
+	D3D12_TEXTURE_COPY_LOCATION src = {};
+	src.pResource = taskContext.pResource;
+	src.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+	src.PlacedFootprint = layouts[index];
+	src.PlacedFootprint.Offset = taskContext.pResourceOffset;
+	src.PlacedFootprint.Footprint.Height = texChunk.rowSize; // 仅拷贝部分行
+
+	D3D12_TEXTURE_COPY_LOCATION dst = {};
+	dst.pResource = m_pTexture.Get();
+	dst.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+	dst.SubresourceIndex = index;
+
+	const uint32_t dstX = 0;
+	const uint32_t dstY = rowSt; // 目标 layout 的起始行
+	const uint32_t dstZ = 0;
+
+	D3D12_BOX box = {};
+	box.left = 0;
+	box.right = src.PlacedFootprint.Footprint.Width; // 子纹理的行宽（texels）
+	box.top = 0;
+	box.bottom = texChunk.rowSize;                     // 行数
+	box.front = 0;
+	box.back = 1;
+
+	taskContext.pOwner->pCmdList->CopyTextureRegion(&dst, dstX, dstY, dstZ, &src, &box);
+
+	NXUploadSys->FinishTask(taskContext, [this]() { ProcessLoadingTexChunks(); });
+}
+
+void NXTexture::CopyMultiLayoutsToChunk(const NXTextureUploadChunk& texChunk, const std::shared_ptr<ScratchImage>& pImage)
+{
+	NXUploadContext taskContext("Upload Texture Task");
+	if (!NXUploadSys->BuildTask(texChunk.chunkBytes, taskContext))
+	{
+		printf("Error: [NXUploadSystem::BuildTask] failed when loading NXTexture2D: %s\n", m_texFilePath.string().c_str());
+		return;
+	}
+
+	// 该 chunk 覆盖多个 layout：每个 layout 拷贝完整行
+	for (int index = texChunk.layoutIndexStart; index < texChunk.layoutIndexStart + texChunk.layoutIndexSize; ++index)
+	{
+		int mip = 0, slice = 0;
+		NXConvert::GetMipSliceFromLayoutIndex(index, m_mipLevels, m_arraySize, mip, slice);
+
+		const Image* pImg = pImage->GetImage(mip, slice, 0);
+		const BYTE* pSrcData = pImg->pixels;
+
+		// desc -> layout
+		auto desc = m_pTexture->GetDesc();
+		const uint32_t layoutSize = desc.DepthOrArraySize * desc.MipLevels;
+		std::shared_ptr<D3D12_PLACED_SUBRESOURCE_FOOTPRINT[]> layouts = std::make_shared<D3D12_PLACED_SUBRESOURCE_FOOTPRINT[]>(layoutSize);
+		std::shared_ptr<uint32_t[]> numRow = std::make_shared<uint32_t[]>(layoutSize);
+		std::shared_ptr<uint64_t[]> numRowSizeInBytes = std::make_shared<uint64_t[]>(layoutSize);
+		size_t totalBytes = 0;
+		NXGlobalDX::GetDevice()->GetCopyableFootprints(&desc, 0, layoutSize, 0, layouts.get(), numRow.get(), numRowSizeInBytes.get(), &totalBytes);
+
+		BYTE* pMapped = taskContext.pResourceData;
+		const uint64_t bytesOffset = taskContext.pResourceOffset + layouts[index].Offset - layouts[texChunk.layoutIndexStart].Offset;
+		BYTE* pDstBase = pMapped + bytesOffset;
+
+		uint32_t srcXBytes = 0, baseRow = 0;
+		ComputeSubRegionOffsets(pImage, index, baseRow, srcXBytes);
+
+		for (uint32_t y = 0; y < numRow[index]; ++y)
+		{
+			const uint32_t srcRowIndex = baseRow + y;
+			const BYTE* pSrcRow = pSrcData + pImg->rowPitch * srcRowIndex + srcXBytes;
+			BYTE* pDstRow = pDstBase + layouts[index].Footprint.RowPitch * y;
+
+			memcpy(pDstRow, pSrcRow, numRowSizeInBytes[index]);
+		}
+
+		D3D12_TEXTURE_COPY_LOCATION src = {};
+		src.pResource = taskContext.pResource;
+		src.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+		src.PlacedFootprint = layouts[index];
+		src.PlacedFootprint.Offset = bytesOffset;
+
+		D3D12_TEXTURE_COPY_LOCATION dst = {};
+		dst.pResource = m_pTexture.Get();
+		dst.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+		dst.SubresourceIndex = index;
+
+		const uint32_t dstX = 0, dstY = 0, dstZ = 0;
+		taskContext.pOwner->pCmdList->CopyTextureRegion(&dst, dstX, dstY, dstZ, &src, nullptr);
+	}
+
+	NXUploadSys->FinishTask(taskContext, [this]() { ProcessLoadingTexChunks(); });
 }
 
 void NXTexture::InternalReload(Ntr<NXTexture> pReloadTexture)

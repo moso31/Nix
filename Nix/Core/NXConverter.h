@@ -38,6 +38,9 @@ DXGI_FORMAT TypelessToDSVFormat(DXGI_FORMAT fmt);
 DXGI_FORMAT ForceSRGB(DXGI_FORMAT fmt);
 DXGI_FORMAT ForceLinear(DXGI_FORMAT fmt);
 
+// 2025.9.2 是否是BC压缩格式
+bool IsBCFormat(DXGI_FORMAT fmt);
+
 bool IsImageFileExtension(const std::string& strExt);
 bool IsDDSFileExtension(const std::string& strExt);
 bool IsRawFileExtension(const std::string& strExt);
