@@ -73,7 +73,9 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D(const std::string& na
 		for (auto pTexture : m_pTextureArrayInternal)
 		{
 			auto& pTex2D = pTexture.As<NXTexture2D>();
-			if (pTex2D.IsValid() && !filePath.empty() && std::filesystem::hash_value(filePath) == std::filesystem::hash_value(pTexture->GetFilePath()))
+			if (pTex2D.IsValid() && !filePath.empty() 
+				&& std::filesystem::hash_value(filePath) == std::filesystem::hash_value(pTexture->GetFilePath()) 
+				&& !pTexture->IsSubRegion())
 			{
 				return pTex2D;
 			}
@@ -129,6 +131,37 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateRenderTexture(const std::string
 	}
 
 	m_pTextureArrayInternal.push_back(pTexture2D);
+	return pTexture2D;
+}
+
+Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2DSubRegion(const std::string& name, const std::filesystem::path& filePath, const Int2& subRegionXY, const Int2& subRegionSize, D3D12_RESOURCE_FLAGS flags, bool bAutoMakeViews)
+{
+	// 暂不判重，目前只有流式加载会用到这个接口
+	
+	// 如果路径不存在，直接返回空指针
+	if (!std::filesystem::exists(filePath))
+	{
+		return nullptr;
+	}
+
+	Ntr<NXTexture2D> pTexture2D(new NXTexture2D());
+	std::string strExt = filePath.extension().string();
+	if (NXConvert::IsImageFileExtension(strExt))
+	{
+		pTexture2D->CreateSub(name, filePath, subRegionXY, subRegionSize, flags);
+	}
+	else if (NXConvert::IsRawFileExtension(strExt))
+	{
+		pTexture2D->CreateHeightRaw(name, filePath, flags);
+	}
+
+	// 文件Tex2D的autoMakeView：只创建一个SRV
+	if (bAutoMakeViews)
+	{
+		pTexture2D->SetViews(1, 0, 0, 0);
+		pTexture2D->SetSRV(0);
+	}
+
 	return pTexture2D;
 }
 

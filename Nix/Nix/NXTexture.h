@@ -6,6 +6,7 @@
 #include "NXTextureLoader.h"
 
 using namespace DirectX;
+using namespace ccmem;
 
 namespace DirectX
 {
@@ -90,6 +91,10 @@ public:
     uint32_t        GetMipLevels()  const override { return m_mipLevels; }
     DXGI_FORMAT     GetFormat()     const { return m_texFormat; }
     DXGI_FORMAT     GetDSVFormat()  const { return NXConvert::TypelessToDSVFormat(m_texFormat); }
+
+    const bool      IsSubRegion()       const { return m_useSubRegion; }
+    const Int2&	    GetSubRegionXY()    const { return m_subRegionXY; }
+    const Int2&	    GetSubRegionSize()  const { return m_subRegionSize; }
 
     void Release();
 

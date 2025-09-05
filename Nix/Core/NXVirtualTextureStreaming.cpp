@@ -1,6 +1,8 @@
 #include "NXVirtualTextureStreaming.h"
 #include "NXGlobalDefinitions.h"
 #include "NXAllocatorManager.h"
+#include "NXTexture.h"
+#include "NXResourceManager.h"
 
 NXVirtualTextureStreaming::NXVirtualTextureStreaming()
 {
@@ -24,6 +26,7 @@ void NXVirtualTextureStreaming::Update()
 	{
 		auto& task = m_loadTasks[i];
 		task.sectorXY;
+		//NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("");
 	}
 }
 
