@@ -17,7 +17,12 @@ NXTexture::NXTexture(NXResourceType type) :
 	m_subRegionXY(-1, -1),
 	m_subRegionSize(-1, -1),
 	m_texFilePath(""),
+	m_loadingTexChunks(0),
 	m_loadingViews(0),
+	m_loading2DPreviews(0),
+	m_loadTexChunksReady(true),
+	m_loadViewsReady(true),
+	m_load2DPreviewsReady(true),
 	m_futureLoadingViews(m_promiseLoadingViews.get_future()),
 	m_futureLoadingTexChunks(m_promiseLoadingTexChunks.get_future()),
 	m_futureLoading2DPreview(m_promiseLoading2DPreview.get_future())
@@ -54,7 +59,8 @@ D3D12_CPU_DESCRIPTOR_HANDLE NXTexture::GetUAV(uint32_t index)
 
 void NXTexture::SetTexChunks(int chunks)
 {
-	m_loadingTexChunks = chunks;
+	m_loadingTexChunks.store(chunks);
+	m_loadTexChunksReady.store(false);
 }
 
 void NXTexture::ProcessLoadingTexChunks()
@@ -64,6 +70,7 @@ void NXTexture::ProcessLoadingTexChunks()
 	if (oldVal == 1) // don't use m_loadingTexChunks == 0. It will be fucked up.
 	{
 		m_promiseLoadingTexChunks.set_value();
+		m_loadTexChunksReady.store(true);
 	}
 }
 
@@ -74,7 +81,8 @@ void NXTexture::SetViews(uint32_t srvNum, uint32_t rtvNum, uint32_t dsvNum, uint
 	m_pDSVs.resize(dsvNum);
 	m_pUAVs.resize(uavNum);
 
-	m_loadingViews = srvNum + rtvNum + dsvNum + uavNum + otherNum;
+	m_loadingViews.store(srvNum + rtvNum + dsvNum + uavNum + otherNum);
+	m_loadViewsReady.store(false);
 }
 
 void NXTexture::ProcessLoadingViews()
@@ -84,6 +92,7 @@ void NXTexture::ProcessLoadingViews()
 	if (oldVal == 1) // don't use m_loadingViews == 0. It will be fucked up.
 	{
 		m_promiseLoadingViews.set_value();
+		m_loadViewsReady.store(true);
 	}
 }
 
@@ -104,12 +113,18 @@ void NXTexture::ProcessLoading2DPreview()
 	if (oldVal == 1) // don't use m_loadingViews == 0. It will be fucked up.
 	{
 		m_promiseLoading2DPreview.set_value();
+		m_load2DPreviewsReady.store(true);
 	}
 }
 
 void NXTexture::WaitLoading2DPreviewFinish()
 {
 	m_futureLoading2DPreview.wait();
+}
+
+bool NXTexture::IsLoadReady() const
+{
+	return m_loadTexChunksReady.load() && m_loadViewsReady.load() && m_load2DPreviewsReady.load();
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE NXTexture::GetSRVPreview(uint32_t index)
@@ -221,7 +236,7 @@ void NXTexture::CreateRenderTextureInternal(D3D12_RESOURCE_FLAGS flags)
 
 void NXTexture::CreateInternal(const std::shared_ptr<DirectX::ScratchImage>& pImage, D3D12_RESOURCE_FLAGS flags, bool useSubRegion, Int2 subRegionXY, Int2 subRegionSize)
 {
-	m_useSubRegion = false;
+	m_useSubRegion = useSubRegion;
 	m_subRegionXY = Int2(0, 0);
 	m_subRegionSize = Int2(-1, -1);
 
@@ -235,7 +250,7 @@ void NXTexture::CreateInternal(const std::shared_ptr<DirectX::ScratchImage>& pIm
 
 void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath, D3D12_RESOURCE_FLAGS flags, bool useSubRegion, Int2 subRegionXY, Int2 subRegionSize)
 {
-	m_useSubRegion = true;
+	m_useSubRegion = useSubRegion;
 	m_subRegionXY = subRegionXY;
 	m_subRegionSize = subRegionSize;
 
@@ -898,6 +913,11 @@ Ntr<NXTexture2D> NXTexture2D::CreateHeightRaw(const std::string& debugName, cons
 
 	int width = m_serializationData.m_rawWidth;
 	int height = m_serializationData.m_rawHeight;
+	if (useSubRegion)
+	{
+		width = subRegionSize.x;
+		height = subRegionSize.y;
+	}
 
 	std::vector<uint16_t> rawData(width * height);
 
@@ -1067,7 +1087,9 @@ D3D12_CPU_DESCRIPTOR_HANDLE NXTextureCube::GetSRVPreview(uint32_t index)
 
 void NXTextureCube::SetSRVPreviews()
 {
-	m_loading2DPreviews = 6;
+	m_loading2DPreviews.store(6);
+	m_load2DPreviewsReady.store(false);
+
 	m_pSRVPreviews.resize(6);
 	for (auto i = 0; i < m_pSRVPreviews.size(); i++)
 	{
@@ -1296,6 +1318,8 @@ void NXTexture2DArray::SetSRVPreviews()
 
 	// 这里不能直接用m_arraySize，m_arraySize在纹理异步加载完成时才有效
 	m_loading2DPreviews = metadata.arraySize;
+	m_load2DPreviewsReady.store(false);
+
 	m_pSRVPreviews.resize(metadata.arraySize);
 	for (auto i = 0; i < m_pSRVPreviews.size(); i++)
 	{

@@ -1,4 +1,5 @@
 #include "NXVirtualTextureManager.h"
+#include "NXTerrainCommon.h"
 #include <unordered_set>
 
 void NXVirtualTextureManager::Init()
@@ -121,7 +122,16 @@ void NXVirtualTextureManager::Update()
 	// 基于上述结果，更新sector信息
 	// TODO：立即移除和延迟移除目前还没有像AVT描述的那样做区别。看看后续会怎么样。
 	for (auto& sector : addImmediately)
+	{
 		m_atlas->InsertImage(sector);
+		
+		NXVTInfoTask vtTask;
+		vtTask.terrainID = GetTerrainIDFromWorldPos(sector.position);
+		vtTask.sectorXY = sector.position;
+		vtTask.tileRelativePos = GetRelativeTerrainPosFromWorldPos(sector.position);
+		vtTask.tileSize = g_terrainConfig.SectorSize;
+		NXVTStreaming->AddTexLoadTask(vtTask);
+	}
 	for (auto& sector : removeImmediately)
 		m_atlas->RemoveImage(sector);
 	for (auto& sector : removeDelayed)
@@ -159,4 +169,23 @@ void NXVirtualTextureManager::Release()
 		m_atlas->Release();
 		m_atlas = nullptr;
 	}
+}
+
+Int2 NXVirtualTextureManager::GetTerrainIDFromWorldPos(const Int2& worldPosXZ)
+{
+	// 偏移到正坐标
+	Int2 PositivePos = worldPosXZ - g_terrainConfig.MinTerrainPos;
+
+	int ix = static_cast<int>(std::floor(PositivePos.x / g_terrainConfig.TerrainSize));
+	int iy = static_cast<int>(std::floor(PositivePos.y / g_terrainConfig.TerrainSize));
+	return Int2(ix, iy);
+}
+
+Int2 NXVirtualTextureManager::GetRelativeTerrainPosFromWorldPos(const Int2& worldPos)
+{
+	// 偏移到正坐标
+	Int2 PositivePos = worldPos - g_terrainConfig.MinTerrainPos;
+	int rX = PositivePos.x % g_terrainConfig.TerrainSize;
+	int rY = PositivePos.y % g_terrainConfig.TerrainSize;
+	return Int2(rX, rY);
 }

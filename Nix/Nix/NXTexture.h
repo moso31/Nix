@@ -71,6 +71,9 @@ public:
     void ProcessLoading2DPreview(); // 计数--，每加载好一个View，调用一次
     void WaitLoading2DPreviewFinish(); // 等待所有View都加载完成，渲染传View时调用
 
+    // 获取异步加载状态，看看chunk和View是否都加载完成了
+    bool IsLoadReady() const;
+
     virtual uint32_t GetSRVPreviewCount() { return (uint32_t)m_pSRVPreviews.size(); }
     virtual D3D12_CPU_DESCRIPTOR_HANDLE GetSRVPreview(uint32_t index);
 
@@ -150,6 +153,7 @@ protected:
 
     std::filesystem::path m_texFilePath;
 
+    // 异步加载相关
     std::atomic<int> m_loadingTexChunks;
     std::promise<void> m_promiseLoadingTexChunks;
     std::future<void> m_futureLoadingTexChunks;
@@ -167,6 +171,11 @@ protected:
     std::promise<void> m_promiseLoading2DPreview;
     std::future<void> m_futureLoading2DPreview;
     std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> m_pSRVPreviews;
+
+    // 异步加载状态：是否加载完成
+    std::atomic<bool> m_loadTexChunksReady;
+    std::atomic<bool> m_loadViewsReady;
+    std::atomic<bool> m_load2DPreviewsReady;
 
     // 基本信息；如果是subRegion，那么wh就是subRegion的wh。
     // 目前还没有实际需求需要明确区分 源文件和实际创建的wh

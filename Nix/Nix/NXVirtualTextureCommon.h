@@ -5,7 +5,7 @@
 struct NXSectorInfo
 {
 	Int2 position;
-	int size;
+	int size; // virtual Image atlas µÄ size
 
 	bool operator==(const NXSectorInfo& o) const noexcept {
 		return position == o.position && size == o.size;

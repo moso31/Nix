@@ -5,7 +5,7 @@
 #include "FBXMeshLoader.h"
 #include "SphereHarmonics.h"
 #include "NXSubMesh.h" // include this .h for EditorObjectID only.
-#include "NXTerrainConfig.h"
+#include "NXTerrainCommon.h"
 
 NXSubMeshGeometryEditor::NXSubMeshGeometryEditor()
 {
@@ -513,7 +513,7 @@ void NXSubMeshGeometryEditor::CreateSHSphere(NXPrimitive* pMesh, int basis_l, in
 
 void NXSubMeshGeometryEditor::CreateTerrain(NXTerrain* pTerrain, int gridSize, int worldSize)
 {
-	if (gridSize % g_configTerrain.sectorSize != 0)
+	if (gridSize % g_terrainConfig.SectorSize != 0)
 		throw std::runtime_error("地形数据大小不符合要求；gridSize 必须是 g_configTerrain.sectorSize 的整数倍)");
 
 	// 顶点、索引；基于sectorSize 构建基本的面片，使用FarCry5的米字形）
@@ -521,7 +521,7 @@ void NXSubMeshGeometryEditor::CreateTerrain(NXTerrain* pTerrain, int gridSize, i
 	std::vector<uint32_t> indices;
 
 	int factor = 8;
-	int gSectorSize = g_configTerrain.sectorSize / factor;
+	int gSectorSize = g_terrainConfig.SectorSize / factor;
 	float debugFactor = 0.98f;
 	float vertScale = (float)(gridSize * factor) / (float)worldSize * debugFactor;
 	for (int x = 0; x <= gSectorSize; x++)
@@ -587,7 +587,7 @@ void NXSubMeshGeometryEditor::CreateTerrain(NXTerrain* pTerrain, int gridSize, i
 
 void NXSubMeshGeometryEditor::CreateTerrainSingleLod(NXTerrain* pTerrain, NXSubMeshTerrain* pSubMesh, int worldSize, int lod)
 {
-	int gSectorSize = g_configTerrain.sectorSize;
+	int gSectorSize = g_terrainConfig.SectorSize;
 	float lodScale = float(1 << lod);
 
 	// 添加instance数据

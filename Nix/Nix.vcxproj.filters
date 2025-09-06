@@ -1008,9 +1008,6 @@
     <ClInclude Include="Core\NXGUITerrainSystem.h">
       <Filter>Core\UI</Filter>
     </ClInclude>
-    <ClInclude Include="NXTerrainCommon.h">
-      <Filter>Nix\Object\Transform\Primitive\Terrain</Filter>
-    </ClInclude>
     <ClInclude Include="Core\NXTextureMaker.h">
       <Filter>Core\Helper</Filter>
     </ClInclude>
@@ -1058,6 +1055,9 @@
     </ClInclude>
     <ClInclude Include="Core\NXVirtualTextureStreaming.h">
       <Filter>Nix\VirtualTexture</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXTerrainCommon.h">
+      <Filter>Nix\Object\Transform\Primitive\Terrain</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

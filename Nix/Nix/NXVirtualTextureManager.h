@@ -40,6 +40,10 @@ public:
 	NXConstantBuffer<CBufferVTReadback>& GetCBufferVTReadback() { return m_cbVTReadback; }
 
 private:
+	Int2 GetTerrainIDFromWorldPos(const Int2& worldPos);
+	Int2 GetRelativeTerrainPosFromWorldPos(const Int2& worldPos);
+
+private:
 	CBufferVTReadback m_cbDataVTReadback;
 	NXConstantBuffer<CBufferVTReadback>	m_cbVTReadback;
 

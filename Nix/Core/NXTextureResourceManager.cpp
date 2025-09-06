@@ -152,7 +152,7 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2DSubRegion(const std::s
 	}
 	else if (NXConvert::IsRawFileExtension(strExt))
 	{
-		pTexture2D->CreateHeightRaw(name, filePath, flags);
+		pTexture2D->CreateHeightRaw(name, filePath, flags, true, subRegionXY, subRegionSize);
 	}
 
 	// 文件Tex2D的autoMakeView：只创建一个SRV

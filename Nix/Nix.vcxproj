@@ -462,6 +462,7 @@
     <ClInclude Include="Nix\NXStructuredBuffer.h" />
     <ClInclude Include="Nix\NXSubMeshCommon.h" />
     <ClInclude Include="Nix\NXTerrain.h" />
+    <ClInclude Include="Nix\NXTerrainCommon.h" />
     <ClInclude Include="Nix\NXTerrainLayer.h" />
     <ClInclude Include="Nix\NXTextureDefinitions.h" />
     <ClInclude Include="Nix\NXSimpleSSAO.h" />
@@ -479,7 +480,6 @@
     <ClInclude Include="Nix\Script\NXScript.h" />
     <ClInclude Include="Nix\Script\NXScriptType.h" />
     <ClInclude Include="Nix\NXTransform.h" />
-    <ClInclude Include="NXTerrainCommon.h" />
     <None Include="Shader\BRDFCommon.fx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>

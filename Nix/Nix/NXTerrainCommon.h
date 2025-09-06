@@ -59,3 +59,17 @@ struct NXGPUTerrainSupport
 	int m_terrainBlockWidth;
 	float m_debugParam = 0.0f;
 };
+
+struct NXTerrainConfig
+{
+	// 地形块大小
+	int TerrainSize = 2048;
+
+	// sector大小
+	int SectorSize = 64;
+
+	// 最小地形坐标
+	Int2 MinTerrainPos = Int2(-8192, -8192); 
+};
+
+inline NXTerrainConfig g_terrainConfig;
