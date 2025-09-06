@@ -148,7 +148,7 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2DSubRegion(const std::s
 	std::string strExt = filePath.extension().string();
 	if (NXConvert::IsImageFileExtension(strExt))
 	{
-		pTexture2D->CreateSub(name, filePath, subRegionXY, subRegionSize, flags);
+		pTexture2D->Create(name, filePath, flags, true, subRegionXY, subRegionSize);
 	}
 	else if (NXConvert::IsRawFileExtension(strExt))
 	{

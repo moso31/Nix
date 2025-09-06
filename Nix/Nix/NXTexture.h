@@ -114,11 +114,10 @@ protected:
     void CreateRenderTextureInternal(D3D12_RESOURCE_FLAGS flags);
 
     // 程序化生成 Texture，调用这个方法
-    void CreateInternal(const std::shared_ptr<DirectX::ScratchImage>& pImage, D3D12_RESOURCE_FLAGS flags);
+    void CreateInternal(const std::shared_ptr<DirectX::ScratchImage>& pImage, D3D12_RESOURCE_FLAGS flags, bool useSubRegion, Int2 subRegionXY, Int2 subRegionSize);
 
     // 从文件创建 Texture，调用这个方法
-    void CreatePathTextureInternal(const std::filesystem::path& filePath, D3D12_RESOURCE_FLAGS flags);
-    void CreatePathTextureInternal(const std::filesystem::path& filePath, Int2 subRegionXY, Int2 subRegionSize, D3D12_RESOURCE_FLAGS flags);
+    void CreatePathTextureInternal(const std::filesystem::path& filePath, D3D12_RESOURCE_FLAGS flags, bool useSubRegion, Int2 subRegionXY, Int2 subRegionSize);
 
     void AfterTexLoaded(const std::filesystem::path& filePath, D3D12_RESOURCE_FLAGS flags, const NXTextureLoaderTaskResult& result);
     void AfterTexMemoryAllocated(const NXTextureLoaderTaskResult& result, const PlacedBufferAllocTaskResult& taskResult, std::vector<NXTextureUploadChunk>&& chunks);
@@ -198,14 +197,12 @@ public:
     virtual ~NXTexture2D() {}
 
     // 注意：Create是异步的！其他下面几个都是同步的
-    Ntr<NXTexture2D> Create(const std::string& debugName, const std::filesystem::path& FilePath, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
-    // 只加载贴图文件的一部分区域，这个也异步
-    Ntr<NXTexture2D> CreateSub(const std::string& debugName, const std::filesystem::path& filePath, Int2 subRegionXY, Int2 subRegionSize, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE); 
+    Ntr<NXTexture2D> Create(const std::string& debugName, const std::filesystem::path& FilePath, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE, bool useSubRegion = false, const Int2& subRegionXY = Int2(0, 0), const Int2& subRegionSize = Int2(-1, -1));
 
     Ntr<NXTexture2D> CreateRenderTexture(const std::string& debugName, DXGI_FORMAT fmt, uint32_t width, uint32_t height, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
     Ntr<NXTexture2D> CreateSolid(const std::string& debugName, uint32_t TexSize, const Vector4& Color, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
     Ntr<NXTexture2D> CreateNoise(const std::string& debugName, uint32_t TexSize, uint32_t Dimension, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
-    Ntr<NXTexture2D> CreateHeightRaw(const std::string& debugName, const std::filesystem::path& rawPath, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
+    Ntr<NXTexture2D> CreateHeightRaw(const std::string& debugName, const std::filesystem::path& rawPath, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE, bool useSubRegion = false, const Int2& subRegionXY = Int2(0, 0), const Int2& subRegionSize = Int2(-1, -1));
     Ntr<NXTexture2D> CreateByData(const std::string& debugName, const std::shared_ptr<ScratchImage>& pImage, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
 
     void SetSRV(uint32_t index);

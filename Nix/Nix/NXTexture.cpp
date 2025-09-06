@@ -219,94 +219,21 @@ void NXTexture::CreateRenderTextureInternal(D3D12_RESOURCE_FLAGS flags)
 	ProcessLoadingTexChunks();
 }
 
-void NXTexture::CreateInternal(const std::shared_ptr<DirectX::ScratchImage>& pImage, D3D12_RESOURCE_FLAGS flags)
-{
-	D3D12_RESOURCE_DESC desc = {};
-	desc.Dimension = GetResourceDimentionFromType();
-	desc.Width = m_width;
-	desc.Height = m_height;
-	desc.DepthOrArraySize = m_arraySize;
-	desc.MipLevels = m_mipLevels;
-	desc.Format = m_texFormat;
-	desc.SampleDesc.Count = 1;
-	desc.SampleDesc.Quality = 0;
-	desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	desc.Flags = flags;
-
-	uint32_t layoutSize = desc.DepthOrArraySize * desc.MipLevels;
-	std::shared_ptr<D3D12_PLACED_SUBRESOURCE_FOOTPRINT[]> layouts = std::make_shared<D3D12_PLACED_SUBRESOURCE_FOOTPRINT[]>(layoutSize);
-	std::shared_ptr<uint32_t[]> numRow = std::make_shared<uint32_t[]>(layoutSize);
-	std::shared_ptr<uint64_t[]> numRowSizeInBytes = std::make_shared<uint64_t[]>(layoutSize);
-	size_t totalBytes;
-	NXGlobalDX::GetDevice()->GetCopyableFootprints(&desc, 0, layoutSize, 0, layouts.get(), numRow.get(), numRowSizeInBytes.get(), &totalBytes);
-
-	SetTexChunks(1);
-	NXAllocator_Tex->Alloc(&desc, (uint32_t)totalBytes, [this, layouts, numRow, numRowSizeInBytes, layoutSize, totalBytes, pImage](const PlacedBufferAllocTaskResult& result) mutable {
-		m_pTexture = result.pResource;
-
-		NXUploadContext taskContext(m_name);
-		if (NXUploadSys->BuildTask((int)totalBytes, taskContext))
-		{
-			// 更新纹理资源
-			m_pTexture->SetName(NXConvert::s2ws(m_name).c_str());
-			SetRefCountDebugName(m_name);
-			m_resourceState = D3D12_RESOURCE_STATE_COPY_DEST; // 和 NXAllocator_Tex->Alloc 内部的逻辑保持同步
-
-			auto texDesc = m_pTexture->GetDesc();
-			for (uint32_t face = 0, index = 0; face < texDesc.DepthOrArraySize; face++)
-			{
-				for (uint32_t mip = 0; mip < texDesc.MipLevels; mip++, index++)
-				{
-					const Image* pImg = pImage->GetImage(mip, face, 0);
-					const BYTE* pSrcData = pImg->pixels;
-					BYTE* pMappedRingBufferData = taskContext.pResourceData;
-					uint64_t bytesOffset = taskContext.pResourceOffset + layouts[index].Offset;
-					BYTE* pDstData = pMappedRingBufferData + bytesOffset;
-
-					for (uint32_t y = 0; y < numRow[index]; y++)
-					{
-						memcpy(pDstData + layouts[index].Footprint.RowPitch * y, pSrcData + pImg->rowPitch * y, numRowSizeInBytes[index]);
-					}
-
-					D3D12_TEXTURE_COPY_LOCATION src = {};
-					src.pResource = taskContext.pResource;
-					src.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-					src.PlacedFootprint = layouts[index];
-					src.PlacedFootprint.Offset = bytesOffset;
-
-					D3D12_TEXTURE_COPY_LOCATION dst = {};
-					dst.pResource = m_pTexture.Get();
-					dst.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
-					dst.SubresourceIndex = index;
-
-					taskContext.pOwner->pCmdList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
-				}
-			}
-
-			NXUploadSys->FinishTask(taskContext, [this]() {
-				ProcessLoadingTexChunks();
-				});
-		}
-		});
-}
-
-void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath, D3D12_RESOURCE_FLAGS flags)
+void NXTexture::CreateInternal(const std::shared_ptr<DirectX::ScratchImage>& pImage, D3D12_RESOURCE_FLAGS flags, bool useSubRegion, Int2 subRegionXY, Int2 subRegionSize)
 {
 	m_useSubRegion = false;
 	m_subRegionXY = Int2(0, 0);
 	m_subRegionSize = Int2(-1, -1);
 
-	NXTextureLoaderTask task;
-	task.path = filePath;
-	task.type = m_type;
-	task.serializationData = m_serializationData;
-	task.pCallBack = [this, filePath, flags](NXTextureLoaderTaskResult result) {
-		AfterTexLoaded(filePath, flags, result);
-		};
-	NXTexLoader->AddTask(task);
+	DirectX::TexMetadata md = pImage->GetMetadata();
+	NXTextureLoaderTaskResult fake{};
+	fake.metadata = md;
+	fake.pImage = pImage;
+
+	AfterTexLoaded(m_texFilePath, flags, fake);
 }
 
-void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath, Int2 subRegionXY, Int2 subRegionSize, D3D12_RESOURCE_FLAGS flags)
+void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath, D3D12_RESOURCE_FLAGS flags, bool useSubRegion, Int2 subRegionXY, Int2 subRegionSize)
 {
 	m_useSubRegion = true;
 	m_subRegionXY = subRegionXY;
@@ -316,7 +243,9 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 	task.path = filePath;
 	task.type = m_type;
 	task.serializationData = m_serializationData;
-	task.pCallBack = [this, filePath, flags](NXTextureLoaderTaskResult result) { AfterTexLoaded(filePath, flags, result); };
+	task.pCallBack = [this, filePath, flags](NXTextureLoaderTaskResult result) {
+		AfterTexLoaded(filePath, flags, result);
+		};
 	NXTexLoader->AddTask(task);
 }
 
@@ -513,9 +442,10 @@ uint32_t NXTexture::CalcMipCount(int width, int height)
 
 void NXTexture::ComputeSubRegionOffsets(const std::shared_ptr<ScratchImage>& pImage, int layoutIndex, uint32_t& oSrcRow, uint32_t& oSrcBytes)
 {
-	if (m_useSubRegion)
+	if (!m_useSubRegion)
 	{
-		oSrcRow = oSrcBytes = 0;
+		oSrcRow = 0;
+		oSrcBytes = 0;
 		return;
 	}
 
@@ -601,7 +531,7 @@ void NXTexture::CopyPartOfLayoutToChunk(const NXTextureUploadChunk& texChunk, co
 		const BYTE* pSrcRow = pSrcData + pImg->rowPitch * srcRowIndex + srcXBytes;
 		BYTE* pDstRow = pDstBase + layouts[index].Footprint.RowPitch * (y - rowSt);
 
-		// 每行只拷贝“子矩形宽度”的字节数（由 GetCopyableFootprints 计算得到）
+		// 每行只拷贝“子矩形宽度”的字节数（由 GetCopyableFootprints 计算得到）	
 		memcpy(pDstRow, pSrcRow, numRowSizeInBytes[index]);
 	}
 
@@ -855,23 +785,13 @@ void NXTexture::Deserialize()
 	}
 }
 
-Ntr<NXTexture2D> NXTexture2D::Create(const std::string& debugName, const std::filesystem::path& filePath, D3D12_RESOURCE_FLAGS flags)
+Ntr<NXTexture2D> NXTexture2D::Create(const std::string& debugName, const std::filesystem::path& filePath, D3D12_RESOURCE_FLAGS flags, bool useSubRegion, const Int2& subRegionXY, const Int2& subRegionSize)
 {
 	m_texFilePath = filePath;
 	m_name = debugName;
 	Deserialize();
 
-	CreatePathTextureInternal(m_texFilePath, flags);
-	return this;
-}
-
-Ntr<NXTexture2D> NXTexture2D::CreateSub(const std::string& debugName, const std::filesystem::path& filePath, Int2 subRegionXY, Int2 subRegionSize, D3D12_RESOURCE_FLAGS flags)
-{
-	m_texFilePath = filePath;
-	m_name = debugName;
-	Deserialize();
-
-	CreatePathTextureInternal(m_texFilePath, flags);
+	CreatePathTextureInternal(m_texFilePath, flags, useSubRegion, subRegionXY, subRegionSize);
 	return this;
 }
 
@@ -918,13 +838,8 @@ Ntr<NXTexture2D> NXTexture2D::CreateSolid(const std::string& debugName, uint32_t
 
 	m_texFilePath = "[Default Solid Texture]";
 	m_name = debugName;
-	m_width = texSize;
-	m_height = texSize;
-	m_arraySize = 1;
-	m_mipLevels = 1;
-	m_texFormat = fmt;
 
-	CreateInternal(pImage, flags);
+	CreateInternal(pImage, flags, false, Int2(0, 0), Int2(-1, -1));
 
 	pImage.reset();
 	return this;
@@ -969,19 +884,14 @@ Ntr<NXTexture2D> NXTexture2D::CreateNoise(const std::string& debugName, uint32_t
 
 	m_texFilePath = "[Default Noise Texture]";
 	m_name = debugName;
-	m_width = texSize;
-	m_height = texSize;
-	m_arraySize = 1;
-	m_mipLevels = 1;
-	m_texFormat = fmt;
 
-	CreateInternal(pImage, flags);
+	CreateInternal(pImage, flags, false, Int2(0, 0), Int2(-1, -1));
 
 	pImage.reset();
 	return this;
 }
 
-Ntr<NXTexture2D> NXTexture2D::CreateHeightRaw(const std::string& debugName, const std::filesystem::path& rawPath, D3D12_RESOURCE_FLAGS flags)
+Ntr<NXTexture2D> NXTexture2D::CreateHeightRaw(const std::string& debugName, const std::filesystem::path& rawPath, D3D12_RESOURCE_FLAGS flags, bool useSubRegion, const Int2& subRegionXY, const Int2& subRegionSize)
 {
 	m_texFilePath = rawPath;
 	Deserialize();
@@ -1002,7 +912,6 @@ Ntr<NXTexture2D> NXTexture2D::CreateHeightRaw(const std::string& debugName, cons
 
 	if (!file)
 		throw std::runtime_error("读取数据失败: " + rawPath.string());
-
 
 	uint32_t bytePerPixel = sizeof(uint16_t);
 
@@ -1026,13 +935,8 @@ Ntr<NXTexture2D> NXTexture2D::CreateHeightRaw(const std::string& debugName, cons
 	else memcpy(p, rawData.data(), width * height * bytePerPixel);
 
 	m_name = debugName;
-	m_width = width;
-	m_height = height;
-	m_arraySize = 1;
-	m_mipLevels = 1;
-	m_texFormat = fmt;
 
-	CreateInternal(pImage, flags);
+	CreateInternal(pImage, flags, useSubRegion, subRegionXY, subRegionSize);
 
 	pImage.reset();
 	return this;
@@ -1041,12 +945,7 @@ Ntr<NXTexture2D> NXTexture2D::CreateHeightRaw(const std::string& debugName, cons
 Ntr<NXTexture2D> NXTexture2D::CreateByData(const std::string& debugName, const std::shared_ptr<ScratchImage>& pImage, D3D12_RESOURCE_FLAGS flags)
 {
 	m_name = debugName;
-	m_width = pImage->GetMetadata().width;
-	m_height = pImage->GetMetadata().height;
-	m_arraySize = pImage->GetMetadata().arraySize;
-	m_mipLevels = pImage->GetMetadata().mipLevels;
-	m_texFormat = pImage->GetMetadata().format;
-	CreateInternal(pImage, flags);
+	CreateInternal(pImage, flags, false, Int2(0, 0), Int2(-1, -1));
 	return this;
 }
 
@@ -1135,7 +1034,7 @@ void NXTextureCube::Create(const std::string& debugName, const std::wstring& fil
 	m_texFilePath = filePath.c_str();
 	m_name = debugName;
 
-	CreatePathTextureInternal(m_texFilePath, flags);
+	CreatePathTextureInternal(m_texFilePath, flags, false, Int2(0, 0), Int2(-1, -1));
 
 	SetSRVPreviews();
 }
@@ -1263,7 +1162,7 @@ void NXTexture2DArray::Create(const std::string& debugName, const std::wstring& 
 	m_name = debugName;
 	Deserialize();
 
-	CreatePathTextureInternal(m_texFilePath, flags);
+	CreatePathTextureInternal(m_texFilePath, flags, false, Int2(0, 0), Int2(-1, -1));
 	SetSRVPreviews();
 }
 
@@ -1278,7 +1177,7 @@ void NXTexture2DArray::Create(const std::string& debugName, const std::wstring& 
 	m_mipLevels = mipLevels;
 	Deserialize();
 
-	CreatePathTextureInternal(m_texFilePath, flags);
+	CreatePathTextureInternal(m_texFilePath, flags, false, Int2(0, 0), Int2(-1, -1));
 	SetSRVPreviews();
 }
 
