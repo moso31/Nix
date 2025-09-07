@@ -7,7 +7,7 @@ struct NXVirtualTextureConfig
 	int MaxLoadTilesFromDiskAtOnce = 4;
 
 	// VT管线一帧最多处理的纹理Package数量
-	int MaxProcessingTilesAtOnce = 4;
+	int MaxProcessingBatchesAtOnce = 4;
 
 	// 每帧请求的地形纹理View数量上限（SplatMap、HeightMap）
 	int MaxRequestTerrainViewsPerUpdate = 16;

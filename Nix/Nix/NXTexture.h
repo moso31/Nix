@@ -115,6 +115,7 @@ public:
 protected:    
     // 创建 RT 类型的Texture，调用这个方法
     void CreateRenderTextureInternal(D3D12_RESOURCE_FLAGS flags);
+    void CreateUAVTextureInternal(D3D12_RESOURCE_FLAGS flags);
 
     // 程序化生成 Texture，调用这个方法
     void CreateInternal(const std::shared_ptr<DirectX::ScratchImage>& pImage, D3D12_RESOURCE_FLAGS flags, bool useSubRegion, Int2 subRegionXY, Int2 subRegionSize);
@@ -209,6 +210,7 @@ public:
     Ntr<NXTexture2D> Create(const std::string& debugName, const std::filesystem::path& FilePath, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE, bool useSubRegion = false, const Int2& subRegionXY = Int2(0, 0), const Int2& subRegionSize = Int2(-1, -1));
 
     Ntr<NXTexture2D> CreateRenderTexture(const std::string& debugName, DXGI_FORMAT fmt, uint32_t width, uint32_t height, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
+    Ntr<NXTexture2D> CreateUAVTexture(const std::string& debugName, DXGI_FORMAT fmt, uint32_t width, uint32_t height, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
     Ntr<NXTexture2D> CreateSolid(const std::string& debugName, uint32_t TexSize, const Vector4& Color, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
     Ntr<NXTexture2D> CreateNoise(const std::string& debugName, uint32_t TexSize, uint32_t Dimension, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
     Ntr<NXTexture2D> CreateHeightRaw(const std::string& debugName, const std::filesystem::path& rawPath, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE, bool useSubRegion = false, const Int2& subRegionXY = Int2(0, 0), const Int2& subRegionSize = Int2(-1, -1));

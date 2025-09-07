@@ -134,6 +134,27 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateRenderTexture(const std::string
 	return pTexture2D;
 }
 
+Ntr<NXTexture2D> NXTextureResourceManager::CreateUAVTexture(const std::string& name, DXGI_FORMAT fmt, UINT width, UINT height, D3D12_RESOURCE_FLAGS flags, bool bAutoMakeViews)
+{
+	Ntr<NXTexture2D> pTexture2D(new NXTexture2D());
+	pTexture2D->CreateUAVTexture(name, fmt, width, height, flags);
+
+	// 2DRT的automakeView：创建一个SRV，如果作为RT使用，就创建RTV；如果作为DS使用，就创建DSV
+	if (bAutoMakeViews)
+	{
+		uint32_t uavCount = flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS? 1 : 0;
+		uint32_t srvCount = 1;
+
+		pTexture2D->SetViews(srvCount, 0, 0, uavCount);
+
+		if (uavCount) pTexture2D->SetUAV(0);
+		pTexture2D->SetSRV(0);
+	}
+
+	m_pTextureArrayInternal.push_back(pTexture2D);
+	return pTexture2D;
+}
+
 Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2DSubRegion(const std::string& name, const std::filesystem::path& filePath, const Int2& subRegionXY, const Int2& subRegionSize, D3D12_RESOURCE_FLAGS flags, bool bAutoMakeViews)
 {
 	// 暂不判重，目前只有流式加载会用到这个接口

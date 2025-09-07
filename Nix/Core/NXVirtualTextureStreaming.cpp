@@ -15,24 +15,26 @@ void NXVirtualTextureStreaming::Init()
 {
 	std::filesystem::path baseColor2DArrayPath = m_terrainWorkingDir / "basecolor_array.dds";
 	m_pBaseColor2DArray = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DArray("VT_BaseColorArray", baseColor2DArrayPath.wstring());
+	m_pBaseColor2DArray->WaitLoadingTexturesFinish();
 
-	m_pVTPhysicalPage0 = NXResourceManager::GetInstance()->GetTextureManager()->CreateRenderTexture("VT_PhysicalPage", DXGI_FORMAT_R11G11B10_FLOAT, 8192, 8192, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, false);
+	m_pVTPhysicalPage0 = NXResourceManager::GetInstance()->GetTextureManager()->CreateUAVTexture("VT_PhysicalPage", DXGI_FORMAT_R11G11B10_FLOAT, 8192, 8192,  D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, false);
+	m_pVTPhysicalPage0->SetViews(1, 0, 0, 1);
 	m_pVTPhysicalPage0->SetSRV(0);
-	m_pVTPhysicalPage0->SetRTV(0);
 	m_pVTPhysicalPage0->SetUAV(0);
 
-	m_pVTPhysicalPage1 = NXResourceManager::GetInstance()->GetTextureManager()->CreateRenderTexture("VT_PhysicalPage", DXGI_FORMAT_R16_UNORM, 8192, 8192, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, false);
+	m_pVTPhysicalPage1 = NXResourceManager::GetInstance()->GetTextureManager()->CreateUAVTexture("VT_PhysicalPage", DXGI_FORMAT_R16_UNORM, 8192, 8192, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, false);
+	m_pVTPhysicalPage1->SetViews(1, 0, 0, 1);
 	m_pVTPhysicalPage1->SetSRV(0);
-	m_pVTPhysicalPage1->SetRTV(0);
 	m_pVTPhysicalPage1->SetUAV(0);
 
-	m_cbVTBatchData.resize(g_VTConfig.MaxProcessingTilesAtOnce);
+	m_cbVTBatchData.resize(g_VTConfig.MaxProcessingBatchesAtOnce);
+	m_cbVTBatch.Recreate(g_VTConfig.MaxProcessingBatchesAtOnce);
 	m_cbVTBatch.Set(m_cbVTBatchData);
 	m_cbVTConfigData.TileSize = g_VTConfig.PhysicalPageTileSize;
 	m_cbVTConfig.Set(m_cbVTConfigData);
 
 	auto pDevice = NXGlobalDX::GetDevice();
-	NX12Util::CreateCommands(pDevice, D3D12_COMMAND_LIST_TYPE_COMPUTE, m_pCmdAllocator.GetAddressOf(), m_pCmdList.GetAddressOf());
+	NX12Util::CreateCommands(pDevice, D3D12_COMMAND_LIST_TYPE_COMPUTE, m_pCmdQueue.GetAddressOf(), m_pCmdAllocator.GetAddressOf(), m_pCmdList.GetAddressOf());
 	m_pCmdList->SetName(L"VirtualTexture Streaming Command List");
 
 	// VT 管线专用 描述符规定：
@@ -61,7 +63,7 @@ void NXVirtualTextureStreaming::Init()
 
 	// CSO
 	ComPtr<IDxcBlob> pCSBlob;
-	NXShaderComplier::GetInstance()->CompileCS("Shaders/VTPatchBaker.hlsl", L"CS", pCSBlob.GetAddressOf());
+	NXShaderComplier::GetInstance()->CompileCS("Shader\\VTBatchBaker.fx", L"CS", pCSBlob.GetAddressOf());
 
 	D3D12_COMPUTE_PIPELINE_STATE_DESC csoDesc = {};
 	csoDesc.CS = { pCSBlob->GetBufferPointer(), pCSBlob->GetBufferSize() };
@@ -122,7 +124,7 @@ void NXVirtualTextureStreaming::Update()
 	}
 
 	// 处理从磁盘加载好的tex。每帧数量是有上限的
-	while (!m_pendingTextures.empty() && m_processingTextures.size() < g_VTConfig.MaxProcessingTilesAtOnce)
+	while (!m_pendingTextures.empty() && m_processingTextures.size() < g_VTConfig.MaxProcessingBatchesAtOnce)
 	{
 		m_processingTextures.push_back(m_pendingTextures.front()); // 这里的tex将会用于VT批渲染
 		m_pendingTextures.erase(m_pendingTextures.begin());
@@ -133,12 +135,17 @@ void NXVirtualTextureStreaming::ProcessVTBatch()
 {
 	std::lock_guard<std::mutex> lock(m_mutex);
 
+	if (m_processingTextures.empty())
+		return;
+
 	m_pCmdAllocator->Reset();
 	m_pCmdList->Reset(m_pCmdAllocator.Get(), nullptr);
 	NX12Util::BeginEvent(m_pCmdList.Get(), "VT Batch Pass");
 
 	ID3D12DescriptorHeap* heaps[] = { NXShVisDescHeap->GetDescriptorHeap() };
 	m_pCmdList->SetDescriptorHeaps(1, heaps);
+	m_pCmdList->SetComputeRootSignature(m_pRootSig.Get());
+	m_pCmdList->SetPipelineState(m_pCSO.Get());
 
 	// 按Init里说的顺序绑定Table描述符
 	// space0
@@ -166,7 +173,7 @@ void NXVirtualTextureStreaming::ProcessVTBatch()
 	for (auto& it = m_processingTextures.begin(); it != m_processingTextures.end();)
 	{
 		// 无论cb还是view 处理数量超对应上限，都不要再传了
-		if (cbCnt >= g_VTConfig.MaxProcessingTilesAtOnce || viewCnt >= g_VTConfig.MaxRequestTerrainViewsPerUpdate) break;
+		if (cbCnt >= g_VTConfig.MaxProcessingBatchesAtOnce || viewCnt >= g_VTConfig.MaxRequestTerrainViewsPerUpdate) break;
 
 		auto& task = *it;
 		task.pHeightMap->SetResourceState(m_pCmdList.Get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
@@ -212,7 +219,7 @@ void NXVirtualTextureStreaming::ProcessVTBatch()
 
 	m_pCmdList->Close();
 	ID3D12CommandList* cmdLists[] = { m_pCmdList.Get() };
-	NXGlobalDX::GlobalCmdQueue()->ExecuteCommandLists(1, cmdLists);
+	m_pCmdQueue->ExecuteCommandLists(1, cmdLists);
 
 	// 纹理的生命周期还没弄呢！需要等队列完成时删除！
 }

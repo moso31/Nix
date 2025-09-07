@@ -263,7 +263,7 @@
     <None Include="Shader\VTReadback.fx">
       <Filter>Shader\VirtualTexture</Filter>
     </None>
-    <None Include="Shader\VTPatchBaker.fx">
+    <None Include="Shader\VTBatchBaker.fx">
       <Filter>Shader\VirtualTexture</Filter>
     </None>
   </ItemGroup>

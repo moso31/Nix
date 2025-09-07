@@ -234,6 +234,46 @@ void NXTexture::CreateRenderTextureInternal(D3D12_RESOURCE_FLAGS flags)
 	ProcessLoadingTexChunks();
 }
 
+void NXTexture::CreateUAVTextureInternal(D3D12_RESOURCE_FLAGS flags)
+{
+	D3D12_RESOURCE_DESC desc = {};
+	desc.Dimension = GetResourceDimentionFromType();
+	desc.Width = m_width;
+	desc.Height = m_height;
+	desc.DepthOrArraySize = m_arraySize;
+	desc.MipLevels = m_mipLevels;
+	desc.Format = m_texFormat;
+	desc.SampleDesc.Count = 1;
+	desc.SampleDesc.Quality = 0;
+	desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	desc.Flags = flags;
+
+	m_resourceState = D3D12_RESOURCE_STATE_COMMON;
+
+	HRESULT hr;
+	hr = NXGlobalDX::GetDevice()->CreateCommittedResource(
+		&NX12Util::CreateHeapProperties(D3D12_HEAP_TYPE_DEFAULT),
+		D3D12_HEAP_FLAG_NONE,
+		&desc,
+		m_resourceState,
+		nullptr,
+		IID_PPV_ARGS(&m_pTexture)
+	);
+
+	std::wstring wName(m_name.begin(), m_name.end());
+	m_pTexture->SetName(wName.c_str());
+	SetRefCountDebugName(m_name);
+
+	if (FAILED(hr))
+	{
+		m_pTexture.Reset();
+		return;
+	}
+
+	SetTexChunks(1);
+	ProcessLoadingTexChunks();
+}
+
 void NXTexture::CreateInternal(const std::shared_ptr<DirectX::ScratchImage>& pImage, D3D12_RESOURCE_FLAGS flags, bool useSubRegion, Int2 subRegionXY, Int2 subRegionSize)
 {
 	m_useSubRegion = useSubRegion;
@@ -821,6 +861,21 @@ Ntr<NXTexture2D> NXTexture2D::CreateRenderTexture(const std::string& debugName, 
 	m_texFormat = fmt;
 
 	CreateRenderTextureInternal(flags);
+
+	return this;
+}
+
+Ntr<NXTexture2D> NXTexture2D::CreateUAVTexture(const std::string& debugName, DXGI_FORMAT fmt, uint32_t width, uint32_t height, D3D12_RESOURCE_FLAGS flags)
+{
+	m_texFilePath = "[UAV Texture: " + debugName + "]";
+	m_name = debugName;
+	m_width = width;
+	m_height = height;
+	m_arraySize = 1;
+	m_mipLevels = 1;
+	m_texFormat = fmt;
+
+	CreateUAVTextureInternal(flags);
 
 	return this;
 }

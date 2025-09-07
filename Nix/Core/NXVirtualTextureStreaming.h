@@ -51,6 +51,7 @@ public:
 
 private:
 	// DX12 
+	ComPtr<ID3D12CommandQueue> m_pCmdQueue;
 	ComPtr<ID3D12CommandAllocator> m_pCmdAllocator;
 	ComPtr<ID3D12GraphicsCommandList> m_pCmdList;
 	ComPtr<ID3D12Fence> m_pFence;

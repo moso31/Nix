@@ -714,7 +714,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shader\VTPatchBaker.fx">
+    <None Include="Shader\VTBatchBaker.fx">
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </DeploymentContent>
       <FileType>Document</FileType>
