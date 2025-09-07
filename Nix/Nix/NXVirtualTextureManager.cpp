@@ -1,6 +1,7 @@
 #include "NXVirtualTextureManager.h"
 #include "NXTerrainCommon.h"
 #include <unordered_set>
+#include "NXVirtualTextureStreaming.h"
 
 void NXVirtualTextureManager::Init()
 {

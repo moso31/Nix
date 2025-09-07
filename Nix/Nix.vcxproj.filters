@@ -263,6 +263,9 @@
     <None Include="Shader\VTReadback.fx">
       <Filter>Shader\VirtualTexture</Filter>
     </None>
+    <None Include="Shader\VTPatchBaker.fx">
+      <Filter>Shader\VirtualTexture</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">
@@ -1058,6 +1061,9 @@
     </ClInclude>
     <ClInclude Include="Nix\NXTerrainCommon.h">
       <Filter>Nix\Object\Transform\Primitive\Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXVirtualTextureConfig.h">
+      <Filter>Nix\VirtualTexture</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

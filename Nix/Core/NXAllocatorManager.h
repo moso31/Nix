@@ -4,7 +4,8 @@
 #include "NXShaderVisibleDescriptorHeap.h"
 #include "NXTextureLoader.h"
 #include "NXNullDescriptor.h"
-#include "NXVirtualTextureStreaming.h"
+
+class NXVirtualTextureStreaming;
 
 // ×ÊÔ´
 #define NXAllocator_CB		NXAllocatorManager::GetInstance()->GetCBAllocator()			// cb
@@ -35,6 +36,9 @@ using namespace ccmem;
 class NXAllocatorManager : public NXInstance<NXAllocatorManager>
 {
 public:
+	NXAllocatorManager();
+	virtual ~NXAllocatorManager();
+
 	void Init();
 
 	CommittedBufferAllocator*		GetCBAllocator()				{ return m_pCBAllocator.get(); }
@@ -53,7 +57,7 @@ public:
 	NXTextureLoader*				GetTextureLoader()				{ return m_pTextureLoader.get(); }
 	NXVirtualTextureStreaming*		GetVirtualTextureStreaming()	{ return m_pVTStreaming.get(); }
 
-	DescriptorAllocator<true>*			GetShaderVisibleDescriptorAllocator()	{ return m_pShaderVisibleDescAllocator.get(); }
+	DescriptorAllocator<true>*		GetShaderVisibleDescriptorAllocator()	{ return m_pShaderVisibleDescAllocator.get(); }
 
 	void Release();
 

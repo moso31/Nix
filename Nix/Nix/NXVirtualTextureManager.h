@@ -40,7 +40,10 @@ public:
 	NXConstantBuffer<CBufferVTReadback>& GetCBufferVTReadback() { return m_cbVTReadback; }
 
 private:
+	// 获取这个位置的地形XY ID
 	Int2 GetTerrainIDFromWorldPos(const Int2& worldPos);
+
+	// 获取一个世界坐标在对应地形中的相对位置
 	Int2 GetRelativeTerrainPosFromWorldPos(const Int2& worldPos);
 
 private:

@@ -1,7 +1,16 @@
 #include "NXAllocatorManager.h"
 #include "NXGlobalDefinitions.h"
+#include "NXVirtualTextureStreaming.h"
 
 #define Memsize_MB(x) (x * 1024 * 1024)
+
+NXAllocatorManager::NXAllocatorManager()
+{
+}
+
+NXAllocatorManager::~NXAllocatorManager()
+{
+}
 
 void NXAllocatorManager::Init()
 {
@@ -18,7 +27,6 @@ void NXAllocatorManager::Init()
 	m_pReadbackSystem = std::make_unique<NXReadbackSystem>(pDevice);
 
 	m_pTextureLoader = std::make_unique<NXTextureLoader>();
-	m_pVTStreaming = std::make_unique<NXVirtualTextureStreaming>();
 
 	m_pSRVAllocator = std::make_unique<DescriptorAllocator<false>>(pDevice, 1000000, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	m_pRTVAllocator = std::make_unique<DescriptorAllocator<false>>(pDevice, 4096, D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
@@ -27,6 +35,10 @@ void NXAllocatorManager::Init()
 	m_pNullDescriptorAllocator->ExecuteTasks(); // 空描述符 直接单线程执行，且仅执行一次
 
 	m_pShaderVisibleDescAllocator = std::make_unique<DescriptorAllocator<true>>(pDevice, 1000000, 10);
+
+	// 最后再初始化VT相关的，VT需要用到以上分配器
+	m_pVTStreaming = std::make_unique<NXVirtualTextureStreaming>();
+	m_pVTStreaming->Init();
 
 	// 各分配器独立线程，禁止多个Allocator同线程执行，否则很容易死锁。// taskFunction = lambda.
 	auto addThread = [this](auto taskFunction, const char* name, int sleepMS = 1) {
@@ -45,7 +57,6 @@ void NXAllocatorManager::Init()
 	addThread([this]() { m_pUpdateSystem->Update(); }, "NXUploadSystem\n");
 	addThread([this]() { m_pReadbackSystem->Update(); }, "NXReadbackSystem\n");
 	addThread([this]() { m_pTextureLoader->Update(); }, "NXTextureLoader\n");
-	addThread([this]() { m_pVTStreaming->Update(); }, "NXVirtualTextureStreaming\n");
 	addThread([this]() { m_pCBAllocator->ExecuteTasks(); }, "NXCBAllocator\n");
 	addThread([this]() { m_pSBAllocator->ExecuteTasks(); }, "NXSBAllocator\n");
 	addThread([this]() { m_pRBAllocator->ExecuteTasks(); }, "NXRBAllocator\n");
@@ -54,6 +65,11 @@ void NXAllocatorManager::Init()
 	addThread([this]() { m_pSRVAllocator->ExecuteTasks(); }, "NXSRVAllocator\n");
 	addThread([this]() { m_pRTVAllocator->ExecuteTasks(); }, "NXRTVAllocator\n");
 	addThread([this]() { m_pDSVAllocator->ExecuteTasks(); }, "NXDSVAllocator\n");
+
+	addThread([this]() { 
+		m_pVTStreaming->Update(); 
+		m_pVTStreaming->ProcessVTBatch();
+		}, "NXVirtualTextureStreaming\n");
 }
 
 void NXAllocatorManager::Release()

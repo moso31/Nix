@@ -432,6 +432,7 @@
     <ClInclude Include="Core\NXTextureResourceManager.h" />
     <ClInclude Include="Core\NXTimer.h" />
     <ClInclude Include="Core\NXUploadSystem.h" />
+    <ClInclude Include="Core\NXVirtualTextureConfig.h" />
     <ClInclude Include="Core\NXVirtualTextureRenderer.h" />
     <ClInclude Include="Core\NXVirtualTextureStreaming.h" />
     <ClInclude Include="Core\Renderer.h" />
@@ -710,6 +711,15 @@
   <ItemGroup>
     <None Include="Shader\VTReadback.fx">
       <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shader\VTPatchBaker.fx">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </DeploymentContent>
+      <FileType>Document</FileType>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </DeploymentContent>
     </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
