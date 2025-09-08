@@ -9,6 +9,13 @@
 NXVirtualTextureStreaming::NXVirtualTextureStreaming()
 {
 	m_terrainWorkingDir = "D:\\NixAssets\\terrainTest";
+	HANDLE m_fenceEvent = CreateEvent(nullptr, false, false, nullptr);
+}
+
+NXVirtualTextureStreaming::~NXVirtualTextureStreaming()
+{
+	CloseHandle(m_fenceEvent);
+	m_fenceEvent = nullptr;
 }
 
 void NXVirtualTextureStreaming::Init()
@@ -33,9 +40,13 @@ void NXVirtualTextureStreaming::Init()
 	m_cbVTConfigData.TileSize = g_VTConfig.PhysicalPageTileSize;
 	m_cbVTConfig.Set(m_cbVTConfigData);
 
+	m_pFence = NX12Util::CreateFence(NXGlobalDX::GetDevice(), L"Create fence FAILED in NXVirtualTextureStreaming.");
+
 	auto pDevice = NXGlobalDX::GetDevice();
 	NX12Util::CreateCommands(pDevice, D3D12_COMMAND_LIST_TYPE_COMPUTE, m_pCmdQueue.GetAddressOf(), m_pCmdAllocator.GetAddressOf(), m_pCmdList.GetAddressOf());
 	m_pCmdList->SetName(L"VirtualTexture Streaming Command List");
+
+	m_pShVisDescHeap = std::make_unique<DescriptorAllocator<true>>(pDevice, 1000000, 10);
 
 	// VT 管线专用 描述符规定：
 	// Space0: 
@@ -142,7 +153,7 @@ void NXVirtualTextureStreaming::ProcessVTBatch()
 	m_pCmdList->Reset(m_pCmdAllocator.Get(), nullptr);
 	NX12Util::BeginEvent(m_pCmdList.Get(), "VT Batch Pass");
 
-	ID3D12DescriptorHeap* heaps[] = { NXShVisDescHeap->GetDescriptorHeap() };
+	ID3D12DescriptorHeap* heaps[] = { m_pShVisDescHeap->GetDescriptorHeap() };
 	m_pCmdList->SetDescriptorHeaps(1, heaps);
 	m_pCmdList->SetComputeRootSignature(m_pRootSig.Get());
 	m_pCmdList->SetPipelineState(m_pCSO.Get());
@@ -152,9 +163,9 @@ void NXVirtualTextureStreaming::ProcessVTBatch()
 	m_pBaseColor2DArray->SetResourceState(m_pCmdList.Get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 	m_pVTPhysicalPage0->SetResourceState(m_pCmdList.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 	m_pVTPhysicalPage1->SetResourceState(m_pCmdList.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-	NXShVisDescHeap->PushFluid(m_pBaseColor2DArray->GetSRV(0));
-	NXShVisDescHeap->PushFluid(m_pVTPhysicalPage0->GetUAV(0));
-	NXShVisDescHeap->PushFluid(m_pVTPhysicalPage1->GetUAV(0));
+	m_pShVisDescHeap->PushFluid(m_pBaseColor2DArray->GetSRV(0));
+	m_pShVisDescHeap->PushFluid(m_pVTPhysicalPage0->GetUAV(0));
+	m_pShVisDescHeap->PushFluid(m_pVTPhysicalPage1->GetUAV(0));
 
 	// 获取偏移位置（临时）（TODO：真正的偏移位置需要从VT系统获取，现在只是临时测试 ）
 	auto getTempPageXY = []() -> Int2 {
@@ -179,8 +190,8 @@ void NXVirtualTextureStreaming::ProcessVTBatch()
 		task.pHeightMap->SetResourceState(m_pCmdList.Get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 		task.pSplatMap->SetResourceState(m_pCmdList.Get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
-		NXShVisDescHeap->PushFluid(task.pHeightMap->GetSRV(0)); // t0, t2, ...
-		NXShVisDescHeap->PushFluid(task.pSplatMap->GetSRV(0)); // t1, t3, ...
+		m_pShVisDescHeap->PushFluid(task.pHeightMap->GetSRV(0)); // t0, t2, ...
+		m_pShVisDescHeap->PushFluid(task.pSplatMap->GetSRV(0)); // t1, t3, ...
 
 		auto& cbData = m_cbVTBatchData[cbCnt];
 		cbData.TileWorldPos = task.TileWorldPos;
@@ -193,20 +204,21 @@ void NXVirtualTextureStreaming::ProcessVTBatch()
 		m_waitGPUFinishTextures.push_back(task); // 这个纹理包已经在GPU里处理了，等队列完成后再删
 		it = m_processingTextures.erase(it);
 	}
+	m_cbVTBatch.Set(m_cbVTBatchData);
 
 	// space1 补满剩余
 	for (; viewCnt < g_VTConfig.MaxRequestTerrainViewsPerUpdate; viewCnt++)
-		NXShVisDescHeap->PushFluid(NXAllocator_NULL->GetNullSRV());
+		m_pShVisDescHeap->PushFluid(NXAllocator_NULL->GetNullSRV());
 
 	// space2: todo, 贴花的内容还没想好，先放一放
 	for (int i = 0; i < g_VTConfig.MaxRequestDecalViewsPerUpdate; i++)
-		NXShVisDescHeap->PushFluid(NXAllocator_NULL->GetNullSRV());
+		m_pShVisDescHeap->PushFluid(NXAllocator_NULL->GetNullSRV());
 
-	D3D12_GPU_DESCRIPTOR_HANDLE gpuHandles = NXShVisDescHeap->Submit();
+	D3D12_GPU_DESCRIPTOR_HANDLE gpuHandles = m_pShVisDescHeap->Submit();
 	m_pCmdList->SetComputeRootDescriptorTable(0, gpuHandles);
 
 	m_cbVTConfigData.BakeTileNum = cbCnt; // 记录本次烘焙实际使用几个Tile
-	m_cbVTConfig.Update(m_cbVTConfigData);
+	m_cbVTConfig.Set(m_cbVTConfigData);
 
 	m_pCmdList->SetComputeRootConstantBufferView(1, m_cbVTConfig.CurrentGPUAddress());
 	m_pCmdList->SetComputeRootConstantBufferView(2, m_cbVTBatch.CurrentGPUAddress());
@@ -221,7 +233,17 @@ void NXVirtualTextureStreaming::ProcessVTBatch()
 	ID3D12CommandList* cmdLists[] = { m_pCmdList.Get() };
 	m_pCmdQueue->ExecuteCommandLists(1, cmdLists);
 
-	// 纹理的生命周期还没弄呢！需要等队列完成时删除！
+	m_nFenceValue++;
+	m_pCmdQueue->Signal(m_pFence.Get(), m_nFenceValue);
+
+	if (m_pFence->GetCompletedValue() < m_nFenceValue)
+	{
+		m_pFence->SetEventOnCompletion(m_nFenceValue, m_fenceEvent);
+		WaitForSingleObject(m_fenceEvent, INFINITE); 
+
+		// 删除已经处理完的纹理包
+		m_waitGPUFinishTextures.clear();
+	}
 }
 
 void NXVirtualTextureStreaming::AddTexLoadTask(const NXVTInfoTask& task)

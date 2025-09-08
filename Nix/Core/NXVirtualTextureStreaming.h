@@ -1,5 +1,6 @@
 #pragma once
 #include "BaseDefs/DX12.h"
+#include <memory>
 #include "BaseDefs/CppSTLFully.h"
 #include "BaseDefs/Math.h"
 #include "Ntr.h"
@@ -28,6 +29,7 @@ struct CBufferVTConfig
 {
 	Int2 TileSize;
 	int BakeTileNum;
+	int _0;
 };
 
 struct CBufferVTBatch
@@ -35,13 +37,14 @@ struct CBufferVTBatch
 	Int2 VTPageOffset;
 	Int2 TileWorldPos;
 	Int2 TileWorldSize;
+	Int2 _0;
 };
 
 class NXVirtualTextureStreaming
 {
 public:
 	NXVirtualTextureStreaming();
-	~NXVirtualTextureStreaming() {}
+	~NXVirtualTextureStreaming();
 
 	void Init();
 	void Update();
@@ -50,11 +53,15 @@ public:
 	void AddTexLoadTask(const NXVTInfoTask& task);
 
 private:
+	// VT 单独使用一个 shader-visible descriptor allocator
+	std::unique_ptr<DescriptorAllocator<true>> 	m_pShVisDescHeap;
+
 	// DX12 
 	ComPtr<ID3D12CommandQueue> m_pCmdQueue;
 	ComPtr<ID3D12CommandAllocator> m_pCmdAllocator;
 	ComPtr<ID3D12GraphicsCommandList> m_pCmdList;
 	ComPtr<ID3D12Fence> m_pFence;
+	HANDLE m_fenceEvent;
 	uint64_t m_nFenceValue = 0;
 	ComPtr<ID3D12RootSignature> m_pRootSig;
 	ComPtr<ID3D12PipelineState> m_pCSO;
