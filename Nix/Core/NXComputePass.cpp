@@ -70,8 +70,10 @@ void NXComputePass::SetIndirectArguments(NXRGResource* pRes)
 	m_pIndirectArgs = pRes;
 }
 
-void NXComputePass::RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList)
+void NXComputePass::RenderSetTargetAndState()
 {
+	auto pCmdList = m_commandCtx.cmdList.Current().Get();
+
 	// DX12需要及时更新纹理的资源状态
 	std::vector<D3D12_RESOURCE_BARRIER> uavBarriers;
 
@@ -103,8 +105,9 @@ void NXComputePass::RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList)
 	pCmdList->ResourceBarrier((uint32_t)uavBarriers.size(), uavBarriers.data());
 }
 
-void NXComputePass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
+void NXComputePass::RenderBefore()
 {
+	auto pCmdList = m_commandCtx.cmdList.Current().Get();
 	pCmdList->SetComputeRootSignature(m_pRootSig.Get());
 	pCmdList->SetPipelineState(m_pCSO.Get());
 
@@ -184,10 +187,11 @@ void NXComputePass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 	}
 }
 
-void NXComputePass::Render(ID3D12GraphicsCommandList* pCmdList)
+void NXComputePass::Render()
 {
-	RenderSetTargetAndState(pCmdList);
-	RenderBefore(pCmdList);
+	auto pCmdList = m_commandCtx.cmdList.Current().Get();
+	RenderSetTargetAndState();
+	RenderBefore();
 
 	if (!m_pIndirectArgs)
 	{
@@ -200,9 +204,10 @@ void NXComputePass::Render(ID3D12GraphicsCommandList* pCmdList)
 	}
 }
 
-void NXComputePass::CopyUAVCounterTo(ID3D12GraphicsCommandList* pCmdList, NXRGResource* pUAVCounterRes)
+void NXComputePass::CopyUAVCounterTo(NXRGResource* pUAVCounterRes)
 {
 	assert(m_pIndirectArgs);
+	auto pCmdList = m_commandCtx.cmdList.Current().Get();
 
 	auto pUAVCounterBuffer = pUAVCounterRes->GetBuffer();
 	pUAVCounterBuffer->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COPY_SOURCE);

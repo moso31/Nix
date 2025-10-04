@@ -25,11 +25,11 @@ public:
 	void SetOutput(NXRGResource* pRes, uint32_t slotIndex, bool IsUAVCounter = false);
 	void SetIndirectArguments(NXRGResource* pRes);
 
-	virtual void RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList);
-	virtual void RenderBefore(ID3D12GraphicsCommandList* pCmdList);
-	virtual void Render(ID3D12GraphicsCommandList* pCmdList);
+	virtual void RenderSetTargetAndState();
+	virtual void RenderBefore();
+	virtual void Render();
 
-	void CopyUAVCounterTo(ID3D12GraphicsCommandList* pCmdList, NXRGResource* pUAVCounterRes);
+	void CopyUAVCounterTo(NXRGResource* pUAVCounterRes);
 
 private:
 	D3D12_COMPUTE_PIPELINE_STATE_DESC		m_csoDesc;

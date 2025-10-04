@@ -17,6 +17,8 @@ public:
 	NXRGBuilder(NXRenderGraph* pRenderGraph, NXRGPassNodeBase* pPassNode) :
 		m_pRenderGraph(pRenderGraph), m_pPassNode(pPassNode) {}
 
+	void SetSubmitGroup(uint32_t index);
+
 	// 设置Pass输入资源。
 	// passSlotIndex = 最终pass shader使用的slot索引。
 	void Read(NXRGResource* pResource, uint32_t passSlotIndex);

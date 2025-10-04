@@ -93,9 +93,6 @@ private:
 	void WaitForBRDF2DLUTFinish();
 
 private:
-	MultiFrame<ComPtr<ID3D12CommandAllocator>>		m_pCommandAllocator;
-	MultiFrame<ComPtr<ID3D12GraphicsCommandList>>	m_pCommandList;
-
 	Vector2				m_viewRTSize;
 	NXBRDFLut*			m_pBRDFLut;
 

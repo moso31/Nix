@@ -12,7 +12,7 @@ public:
 	virtual ~NXGBufferRenderer();
 
 	virtual void SetupInternal() override {}
-	virtual void Render(ID3D12GraphicsCommandList* pCmdList) override;
+	virtual void Render() override;
 
 	void SetCamera(NXCamera* pCamera);
 

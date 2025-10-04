@@ -25,8 +25,8 @@ public:
 	virtual ~NXShadowMapRenderer();
 
 	virtual void SetupInternal() override;
-	virtual void Render(ID3D12GraphicsCommandList* pCmdList) override;
-	void RenderSingleObject(ID3D12GraphicsCommandList* pCmdList, NXRenderableObject* pRenderableObject);
+	virtual void Render() override;
+	void RenderSingleObject(NXRenderableObject* pRenderableObject);
 
 	void Release();
 
@@ -43,7 +43,7 @@ public:
 	void	SetCascadeExponentScale(float value)	{ m_cascadeExponentScale = value; }
 
 private:
-	void RenderCSMPerLight(ID3D12GraphicsCommandList* pCmdList, NXPBRDistantLight* pDirLight);
+	void RenderCSMPerLight(NXPBRDistantLight* pDirLight);
 
 private:
 	NXScene*							m_pScene;

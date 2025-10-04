@@ -52,7 +52,7 @@ public:
 	}
 
 	void Compile(bool isResize = false);
-	void Execute(ID3D12GraphicsCommandList* pCmdList);
+	void Execute();
 
 	Ntr<NXTexture> GetPresent();
 	void SetPresent(NXRGResource* pResource) { m_presentResource = pResource; }
@@ -74,9 +74,14 @@ public:
 
 	void Destroy();
 
+	// 指定的NXRGPass具体使用哪个commandList
+	// （目前NXRG还不支持自动排序，先这样）
+	void SetCommandContextGroup(uint32_t index, NXRGPassNodeBase* pPass);
+
 private:
 	// 图依赖的所有pass
 	std::vector<NXRGPassNodeBase*> m_passNodes;
+	std::vector<std::vector<NXRGPassNodeBase*>> m_passCtxMap; // 每个ctx对应的pass列表：[ctx group][pass]
 
 	// 图依赖的资源RT
 	std::vector<NXRGResource*> m_resources;
@@ -85,4 +90,6 @@ private:
 	NXRGResource* m_presentResource;
 
 	Vector2 m_viewResolution;
+
+	std::vector<NXRGCommandContext> m_ctx;
 };

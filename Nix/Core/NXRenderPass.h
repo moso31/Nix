@@ -34,7 +34,7 @@ public:
 	void SetEntryNamePS(const std::wstring& name) { m_entryNamePS = name; }
 	void SetEntryNameCS(const std::wstring& name) { m_entryNameCS = name; }
 
-	virtual void Render(ID3D12GraphicsCommandList* pCmdList) = 0;
+	virtual void Render() = 0;
 
 	// 当前 Nix 的根参数（和采样器）-寄存器的布局规则：
 	// 1. 每个CBV占用一个根参数

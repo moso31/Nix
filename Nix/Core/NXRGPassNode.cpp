@@ -128,6 +128,11 @@ void NXRGPassNodeBase::Compile(bool isResize)
 	}
 }
 
+void NXRGPassNodeBase::SetCommandContext(const NXRGCommandContext& ctx)
+{
+	m_pPass->SetCommandContext(ctx);
+}
+
 void NXRGPassNodeBase::Compile_GraphicsPass(bool isResize)
 {
 	auto pPass = (NXGraphicPass*)m_pPass;

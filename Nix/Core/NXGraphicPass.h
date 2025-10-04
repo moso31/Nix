@@ -43,7 +43,7 @@ public:
 
 	virtual void RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList);
 	virtual void RenderBefore(ID3D12GraphicsCommandList* pCmdList);
-	virtual void Render(ID3D12GraphicsCommandList* pCmdList);
+	virtual void Render();
 
 	void Release() {}
 

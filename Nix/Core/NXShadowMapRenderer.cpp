@@ -45,8 +45,9 @@ void NXShadowMapRenderer::SetupInternal()
 	}
 }
 
-void NXShadowMapRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
+void NXShadowMapRenderer::Render()
 {
+	auto pCmdList = m_commandCtx.cmdList.Current().Get();
 	NX12Util::BeginEvent(pCmdList, "Shadow Map");
 
 	NXGraphicPass::RenderSetTargetAndState(pCmdList);
@@ -59,15 +60,16 @@ void NXShadowMapRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
 		if (pLight->GetType() == NXLightTypeEnum::NXLight_Distant)
 		{
 			NXPBRDistantLight* pDirLight = static_cast<NXPBRDistantLight*>(pLight);
-			RenderCSMPerLight(pCmdList, pDirLight);
+			RenderCSMPerLight(pDirLight);
 		}
 	}
 
 	NX12Util::EndEvent(pCmdList);
 }
 
-void NXShadowMapRenderer::RenderSingleObject(ID3D12GraphicsCommandList* pCmdList, NXRenderableObject* pRenderableObject)
+void NXShadowMapRenderer::RenderSingleObject(NXRenderableObject* pRenderableObject)
 {
+	auto pCmdList = m_commandCtx.cmdList.Current().Get();
 	NXPrimitive* pPrimitive = pRenderableObject->IsPrimitive();
 	if (pPrimitive)
 	{
@@ -84,7 +86,7 @@ void NXShadowMapRenderer::RenderSingleObject(ID3D12GraphicsCommandList* pCmdList
 	{
 		NXRenderableObject* pChildRenderableObject = pChildObject->IsRenderableObject();
 		if (pChildRenderableObject)
-			RenderSingleObject(pCmdList, pChildRenderableObject);
+			RenderSingleObject(pChildRenderableObject);
 	}
 }
 
@@ -116,8 +118,10 @@ void NXShadowMapRenderer::SetCascadeTransitionScale(float value)
 	g_cbDataShadowTest.cascadeTransitionScale = m_cascadeTransitionScale;
 }
 
-void NXShadowMapRenderer::RenderCSMPerLight(ID3D12GraphicsCommandList* pCmdList, NXPBRDistantLight* pDirLight)
+void NXShadowMapRenderer::RenderCSMPerLight(NXPBRDistantLight* pDirLight)
 {
+	auto pCmdList = m_commandCtx.cmdList.Current().Get();
+
 	Vector3 lightDirection = pDirLight->GetDirection();
 	lightDirection = lightDirection.IsZero() ? Vector3(0.0f, 0.0f, 1.0f) : lightDirection;
 	lightDirection.Normalize();
@@ -233,7 +237,7 @@ void NXShadowMapRenderer::RenderCSMPerLight(ID3D12GraphicsCommandList* pCmdList,
 		// 更新当前 cascade 层 的 ShadowMap world 绘制矩阵，并绘制
 		for (auto pRenderableObj : m_pScene->GetRenderableObjects())
 		{
-			RenderSingleObject(pCmdList, pRenderableObj);
+			RenderSingleObject(pRenderableObj);
 		}
 	}
 

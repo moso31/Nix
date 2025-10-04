@@ -6,7 +6,7 @@ NXReadbackBufferPass::NXReadbackBufferPass() :
 {
 }
 
-void NXReadbackBufferPass::Render(ID3D12GraphicsCommandList* pCmdList)
+void NXReadbackBufferPass::Render()
 {
 	// 在这里维护CPUData（m_pOutData）的大小
 	AdjustOutputDataSize();
@@ -16,6 +16,7 @@ void NXReadbackBufferPass::Render(ID3D12GraphicsCommandList* pCmdList)
 	if (NXReadbackSys->BuildTask(pGPUBuffer->GetByteSize(), ctx))
 	{
 		// 从（一般是主渲染cmdList）将RT拷到readback ringbuffer（ctx.pResource）
+		auto pCmdList = m_commandCtx.cmdList.Current();
 		pCmdList->CopyBufferRegion(ctx.pResource, ctx.pResourceOffset, pGPUBuffer->GetD3DResource(), 0, pGPUBuffer->GetByteSize()); 
 
 		NXReadbackSys->FinishTask(ctx, [this, ctx]() {

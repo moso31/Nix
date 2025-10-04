@@ -10,7 +10,7 @@ public:
 	virtual ~NXReadbackBufferPass() {}
 
 	virtual void SetupInternal() override {}
-	virtual void Render(ID3D12GraphicsCommandList* pCmdList) override;
+	virtual void Render() override;
 
 	void SetInput(NXRGResource* pRes) { m_pReadbackBuffer = pRes; }
 	void SetOutput(Ntr<NXReadbackData>& pOutData) { m_pOutData = pOutData; }

@@ -36,7 +36,7 @@ Texture2D<float> m_decalArray : register(t0, space1);
 void CS(uint3 dtid : SV_DispatchThreadID)
 {
 	int2 pixelPos = m_cbVTBatch[dtid.z].VTPageOffset;
-	float tempVal = (float)pixelPos / 8192.0f;
-	m_VTPhxPageSplatMap[pixelPos + dtid.xy] = float3(0.0f, tempVal.x, 0.0f);
+	float2 tempVal = (float2)pixelPos / 8192.0f;
+	m_VTPhxPageSplatMap[pixelPos + dtid.xy] = float3(tempVal.xy, 0.0f);
 	m_VTPhxPageHeightMap[pixelPos + dtid.xy] = tempVal;
 }

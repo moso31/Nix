@@ -30,13 +30,12 @@ void NXGBufferRenderer::SetCamera(NXCamera* pCamera)
 	m_pCamera = pCamera;
 }
 
-void NXGBufferRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
+void NXGBufferRenderer::Render()
 {
+	auto pCmdList = m_commandCtx.cmdList.Current().Get();
 	NX12Util::BeginEvent(pCmdList, "GBuffer");
 
 	NXGraphicPass::RenderSetTargetAndState(pCmdList);
-
-	pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	auto pErrorMat = NXResourceManager::GetInstance()->GetMaterialManager()->GetErrorMaterial();
 	auto pMaterialsArray = NXResourceManager::GetInstance()->GetMaterialManager()->GetMaterials();

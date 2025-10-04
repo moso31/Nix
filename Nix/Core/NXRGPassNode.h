@@ -50,6 +50,8 @@ public:
 	const std::vector<NXRGResourceSlot>& GetInputs() { return m_inputs; }
 	const std::vector<NXRGResourceSlot>& GetOutputs() { return m_outputs; }
 
+	void SetCommandContext(const NXRGCommandContext& ctx);
+
 private:
 	void Compile_GraphicsPass(bool isResize);
 	void Compile_ComputePass(bool isResize);
@@ -96,7 +98,7 @@ public:
 		NX12Util::BeginEvent(pCmdList, m_passName.c_str());
 
 		m_executeFunc(pCmdList, m_passData);
-		m_pPass->Render(pCmdList);
+		m_pPass->Render();
 
 		NX12Util::EndEvent(pCmdList);
 	}

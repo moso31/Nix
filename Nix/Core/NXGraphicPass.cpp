@@ -162,8 +162,9 @@ void NXGraphicPass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 	}
 }
 
-void NXGraphicPass::Render(ID3D12GraphicsCommandList* pCmdList)
+void NXGraphicPass::Render()
 {
+	auto pCmdList = m_commandCtx.cmdList.Current().Get();
 	RenderSetTargetAndState(pCmdList);
 	RenderBefore(pCmdList);
 

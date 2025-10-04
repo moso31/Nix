@@ -1,9 +1,11 @@
+#include "BaseDefs/DX12.h"
 #include "NXRenderGraph.h"
 #include "NXRGHandle.h"
 #include "NXRGPassNode.h"
 #include "NXRGResource.h"
 #include "NXTexture.h"
 #include "NXResourceManager.h"
+#include "NXGlobalDefinitions.h"
 
 NXRenderGraph::NXRenderGraph()
 {
@@ -19,9 +21,37 @@ void NXRenderGraph::Compile(bool isResize)
 	{
 		pass->Compile(isResize);
 	}
+
+	// 创建上下文相关（DX12 命令分配器+命令列表）
+	for (int k = 0; k < m_ctx.size(); k++)
+	{
+		auto& ctx = m_ctx[k];
+		auto& passes = m_passCtxMap[k];
+
+		for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
+		{
+			auto& cA = ctx.cmdAllocator.Get(i);
+			auto& cL = ctx.cmdList.Get(i);
+
+			// 已经创建过就不用重新创建了
+			if (cA && cL) continue;
+
+			cA = NX12Util::CreateCommandAllocator(NXGlobalDX::GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT);
+			std::wstring strCmdAllocatorName(L"NXRG CmdAlloc " + std::to_wstring(k) + L" ctx " + std::to_wstring(i));
+			cA->SetName(strCmdAllocatorName.c_str());
+
+			cL = NX12Util::CreateGraphicsCommandList(NXGlobalDX::GetDevice(), cA.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT);
+			std::wstring strCmdListName(L"NXRG CmdList " + std::to_wstring(k) + L" ctx " + std::to_wstring(i));
+			cL->SetName(strCmdListName.c_str());
+		}
+
+		// 绑定一下pass和Ctx
+		for (auto pass : passes)
+			pass->SetCommandContext(ctx);
+	}
 }
 
-void NXRenderGraph::Execute(ID3D12GraphicsCommandList* pCmdList)
+void NXRenderGraph::Execute()
 {
 	// 动态构建RenderGraph内部创建的Resources
 	for (auto pResource : m_resources)
@@ -88,9 +118,40 @@ void NXRenderGraph::Execute(ID3D12GraphicsCommandList* pCmdList)
 		}
 	}
 
-	for (auto pass : m_passNodes)
+	auto cQ = NXGlobalDX::GlobalCmdQueue();
+	for (auto i = 0; i < m_passCtxMap.size(); i++)
 	{
-		pass->Execute(pCmdList);
+		auto ctx = m_ctx[i]; // 这一组使用的ctx（DX12 CA+CL）
+		auto passes = m_passCtxMap[i]; // 这一组关联的pass
+
+		auto cA = ctx.cmdAllocator.Current().Get();
+		auto cL = ctx.cmdList.Current().Get();
+
+		cA->Reset();
+		cL->Reset(cA, nullptr);
+
+		std::string eventName = "NXRG ctx " + std::to_string(i);
+
+		NX12Util::BeginEvent(cL, "Render Scene");
+
+		ID3D12DescriptorHeap* ppHeaps[] = { NXShVisDescHeap->GetDescriptorHeap() };
+		cL->SetDescriptorHeaps(1, ppHeaps);
+		cL->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		for (auto pass : passes)
+		{
+			pass->Execute(ctx.cmdList.Current().Get());
+		}
+
+		NX12Util::EndEvent(cL);
+
+		cL->Close();
+
+		// 确保NXTransferSys本帧数据加载完成
+		cQ->Wait(NXUploadSys->GetFence(), NXUploadSys->GetCurrentFenceValue());
+
+		ID3D12CommandList* pCmdLists[] = { cL };
+		cQ->ExecuteCommandLists(1, pCmdLists);
 	}
 }
 
@@ -189,4 +250,15 @@ void NXRenderGraph::Destroy()
 	m_resources.clear();
 	for (auto& passNode : m_passNodes) delete passNode;
 	m_passNodes.clear();
+}
+
+void NXRenderGraph::SetCommandContextGroup(uint32_t index, NXRGPassNodeBase* pPass)
+{
+	if (m_ctx.size() < index + 1)
+	{
+		m_ctx.resize(index + 1);
+		m_passCtxMap.resize(index + 1);
+	}
+
+	m_passCtxMap[index].push_back(pPass);
 }

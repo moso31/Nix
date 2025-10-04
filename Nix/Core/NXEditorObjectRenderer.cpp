@@ -34,8 +34,10 @@ void NXEditorObjectRenderer::SetupInternal()
 	InitPSO();
 }
 
-void NXEditorObjectRenderer::Render(ID3D12GraphicsCommandList* pCmdList)
+void NXEditorObjectRenderer::Render()
 {
+	auto pCmdList = m_commandCtx.cmdList.Current().Get();
+
 	NX12Util::BeginEvent(pCmdList, "Editor objects");
 
 	NXGraphicPass::RenderSetTargetAndState(pCmdList);

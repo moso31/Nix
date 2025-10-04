@@ -4,6 +4,12 @@
 #include "NXGraphicPass.h"
 #include "NXReadbackBufferPass.h"
 #include "NXReadbackData.h"
+#include "NXRenderGraph.h"
+
+void NXRGBuilder::SetSubmitGroup(uint32_t index)
+{
+	m_pRenderGraph->SetCommandContextGroup(index, m_pPassNode);
+}
 
 void NXRGBuilder::Read(NXRGResource* pResource, uint32_t passSlotIndex)
 {

@@ -10,7 +10,7 @@ public:
 	virtual ~NXEditorObjectRenderer();
 
 	virtual void SetupInternal() override;
-	virtual void Render(ID3D12GraphicsCommandList* pCmdList) override;
+	virtual void Render() override;
 
 	void Release();
 

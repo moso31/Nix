@@ -1,6 +1,5 @@
 #pragma once
 #include "NXRGUtil.h"
-#include "BaseDefs/DX12.h"
 #include <filesystem>
 #include "Ntr.h"
 
@@ -24,7 +23,12 @@ public:
 	void SetPassName(const std::string& passName) { m_passName = passName; }
 
 	virtual void SetupInternal() = 0;
-	virtual void Render(ID3D12GraphicsCommandList* pCmdList) = 0;
+	virtual void Render() = 0;
+
+	void SetCommandContext(const NXRGCommandContext& ctx) { m_commandCtx = ctx; }
+
+protected:
+	NXRGCommandContext m_commandCtx;
 
 private:
 	std::string	m_passName;
