@@ -6,16 +6,48 @@
 #include "NXVirtualTextureConfig.h"
 #include "NXTerrainCommon.h"
 
+NXVTFenceSync::NXVTFenceSync()
+{
+	pFenceRead = NX12Util::CreateFence(NXGlobalDX::GetDevice(), L"Create Fence Failed at NXVTFenceSync_read");
+	pFenceRead->SetName(L"VT_Fence_Read");
+	pFenceWrite = NX12Util::CreateFence(NXGlobalDX::GetDevice(), L"Create Fence Failed at NXVTFenceSync_write");
+	pFenceWrite->SetName(L"VT_Fence_Write");
+}
+
+void NXVTFenceSync::ReadBegin(ID3D12CommandQueue* pCmdQueue) 
+{
+	pCmdQueue->Wait(pFenceWrite.Get(), fenceValueWrite);
+}
+
+void NXVTFenceSync::ReadEnd(ID3D12CommandQueue* pCmdQueue)
+{
+	fenceValueRead++;
+	pCmdQueue->Signal(pFenceRead.Get(), fenceValueRead);
+}
+
+void NXVTFenceSync::WriteBegin(ID3D12CommandQueue* pCmdQueue)
+{
+	pCmdQueue->Wait(pFenceRead.Get(), fenceValueRead);
+}
+
+void NXVTFenceSync::WriteEnd(ID3D12CommandQueue* pCmdQueue)
+{
+	fenceValueWrite++;
+	pCmdQueue->Signal(pFenceWrite.Get(), fenceValueWrite);
+}
+
 NXVirtualTextureStreaming::NXVirtualTextureStreaming()
 {
 	m_terrainWorkingDir = "D:\\NixAssets\\terrainTest";
-	HANDLE m_fenceEvent = CreateEvent(nullptr, false, false, nullptr);
 }
 
 NXVirtualTextureStreaming::~NXVirtualTextureStreaming()
 {
-	CloseHandle(m_fenceEvent);
-	m_fenceEvent = nullptr;
+}
+
+void NXVirtualTextureStreaming::AwakeOnce()
+{
+	m_cv.notify_one();
 }
 
 void NXVirtualTextureStreaming::Init()
@@ -39,8 +71,6 @@ void NXVirtualTextureStreaming::Init()
 	m_cbVTBatch.Set(m_cbVTBatchData);
 	m_cbVTConfigData.TileSize = g_VTConfig.PhysicalPageTileSize;
 	m_cbVTConfig.Set(m_cbVTConfigData);
-
-	m_pFence = NX12Util::CreateFence(NXGlobalDX::GetDevice(), L"Create fence FAILED in NXVirtualTextureStreaming.");
 
 	auto pDevice = NXGlobalDX::GetDevice();
 	NX12Util::CreateCommands(pDevice, D3D12_COMMAND_LIST_TYPE_COMPUTE, m_pCmdQueue.GetAddressOf(), m_pCmdAllocator.GetAddressOf(), m_pCmdList.GetAddressOf());
@@ -84,8 +114,23 @@ void NXVirtualTextureStreaming::Init()
 
 void NXVirtualTextureStreaming::Update()
 {
-	std::lock_guard<std::mutex> lock(m_mutex);
+	uint64_t thisFrame;
 
+	std::unique_lock<std::mutex> lock(m_mutex);
+	m_cv.wait(lock, [&]() { 
+		return NXGlobalApp::s_frameIndex > m_lastFrame; 
+	});
+
+	thisFrame = NXGlobalApp::s_frameIndex;
+
+	ProcessTasks();
+	ProcessVTBatch();
+
+	m_lastFrame = thisFrame;
+}
+
+void NXVirtualTextureStreaming::ProcessTasks()
+{
 	// 如果已经有很多纹理在处理了，就先不推新的
 	if (m_texTasks.size() > g_VTConfig.MaxLoadTilesFromDiskAtOnce)
 		return;
@@ -109,10 +154,11 @@ void NXVirtualTextureStreaming::Update()
 		NXVTTexTask nextTask;
 		nextTask.pHeightMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DSubRegion(strHeightMapName, texHeightMapPath, task.tileRelativePos, task.tileSize + 1);
 		nextTask.pSplatMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DSubRegion(strSplatMapName, texSplatMapPath, task.tileRelativePos, task.tileSize + 1);
-		nextTask.TileWorldPos = task.terrainID * g_terrainConfig.TerrainSize + task.tileRelativePos; 
+		nextTask.TileWorldPos = task.terrainID * g_terrainConfig.TerrainSize + task.tileRelativePos;
 		nextTask.TileWorldSize = task.tileSize;
 		m_texTasks.push_back(nextTask);
 
+		if (m_infoTasks.size() > 5)
 		it = m_infoTasks.erase(it);
 	}
 
@@ -144,10 +190,11 @@ void NXVirtualTextureStreaming::Update()
 
 void NXVirtualTextureStreaming::ProcessVTBatch()
 {
-	std::lock_guard<std::mutex> lock(m_mutex);
-
 	if (m_processingTextures.empty())
 		return;
+
+	// 等待主线程 读完成
+	m_fenceSync.WriteBegin(m_pCmdQueue.Get());
 
 	m_pCmdAllocator->Reset();
 	m_pCmdList->Reset(m_pCmdAllocator.Get(), nullptr);
@@ -233,17 +280,11 @@ void NXVirtualTextureStreaming::ProcessVTBatch()
 	ID3D12CommandList* cmdLists[] = { m_pCmdList.Get() };
 	m_pCmdQueue->ExecuteCommandLists(1, cmdLists);
 
-	m_nFenceValue++;
-	m_pCmdQueue->Signal(m_pFence.Get(), m_nFenceValue);
+	// fence记录 写完成
+	m_fenceSync.WriteEnd(m_pCmdQueue.Get());
 
-	if (m_pFence->GetCompletedValue() < m_nFenceValue)
-	{
-		m_pFence->SetEventOnCompletion(m_nFenceValue, m_fenceEvent);
-		WaitForSingleObject(m_fenceEvent, INFINITE); 
-
-		// 删除已经处理完的纹理包
-		m_waitGPUFinishTextures.clear();
-	}
+	// 删除已经处理完的纹理包
+	m_waitGPUFinishTextures.clear();
 }
 
 void NXVirtualTextureStreaming::AddTexLoadTask(const NXVTInfoTask& task)

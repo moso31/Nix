@@ -7,6 +7,22 @@
 #include "NXTexture.h"
 #include "NXConstantBuffer.h"
 
+struct NXVTFenceSync
+{
+	NXVTFenceSync();
+
+	void ReadBegin(ID3D12CommandQueue* m_pCmdQueue);
+	void ReadEnd(ID3D12CommandQueue* m_pCmdQueue);
+	void WriteBegin(ID3D12CommandQueue* m_pCmdQueue);
+	void WriteEnd(ID3D12CommandQueue* m_pCmdQueue);
+
+	ComPtr<ID3D12Fence> pFenceRead;
+	uint64_t fenceValueRead = 0;
+
+	ComPtr<ID3D12Fence> pFenceWrite;
+	uint64_t fenceValueWrite = 0;
+};
+
 struct NXVTInfoTask
 {
 	// 哪个terrain
@@ -46,11 +62,16 @@ public:
 	NXVirtualTextureStreaming();
 	~NXVirtualTextureStreaming();
 
+	void AwakeOnce();
+
 	void Init();
 	void Update();
+	void ProcessTasks();
 	void ProcessVTBatch();
 
 	void AddTexLoadTask(const NXVTInfoTask& task);
+
+	NXVTFenceSync& GetFenceSync() { return m_fenceSync; }
 
 private:
 	// VT 单独使用一个 shader-visible descriptor allocator
@@ -60,11 +81,9 @@ private:
 	ComPtr<ID3D12CommandQueue> m_pCmdQueue;
 	ComPtr<ID3D12CommandAllocator> m_pCmdAllocator;
 	ComPtr<ID3D12GraphicsCommandList> m_pCmdList;
-	ComPtr<ID3D12Fence> m_pFence;
-	HANDLE m_fenceEvent;
-	uint64_t m_nFenceValue = 0;
 	ComPtr<ID3D12RootSignature> m_pRootSig;
 	ComPtr<ID3D12PipelineState> m_pCSO;
+	NXVTFenceSync m_fenceSync;
 
 	// Tex 
 	Ntr<NXTexture2DArray> m_pBaseColor2DArray;
@@ -80,13 +99,15 @@ private:
 	// 地形块的工作目录
 	std::filesystem::path m_terrainWorkingDir;
 
-	// 异步相关
-	std::mutex m_mutex;
-
 	// 纹理加载任务队列
 	std::vector<NXVTInfoTask> m_infoTasks;
 	std::vector<NXVTTexTask> m_texTasks;
 	std::vector<NXVTTexTask> m_pendingTextures;
 	std::vector<NXVTTexTask> m_processingTextures;
 	std::vector<NXVTTexTask> m_waitGPUFinishTextures;
+
+	// 异步相关
+	std::mutex m_mutex;
+	std::condition_variable m_cv;
+	uint64_t m_lastFrame = 0;
 };

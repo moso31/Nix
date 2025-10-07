@@ -1,6 +1,7 @@
 #pragma once
 #include "BaseDefs/DX12.h"
 #include "BaseDefs/NixCore.h"
+#include <atomic>
 
 class NXGlobalWindows
 {
@@ -33,6 +34,7 @@ class NXGlobalApp
 public:
 	static App* App;
 	static NXTimer* Timer;
+	static std::atomic<uint64_t> s_frameIndex;
 };
 
 class NXGlobalInputLayout

@@ -137,6 +137,7 @@ NXUploadSystem::NXUploadSystem(ID3D12Device* pDevice) :
 	m_pDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_pCmdQueue));
 
 	m_pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_pFence));
+	m_pFence->SetName(L"NXUploadSystem Fence");
 
 	for (int i = 0; i < TASK_NUM; i++)
 	{

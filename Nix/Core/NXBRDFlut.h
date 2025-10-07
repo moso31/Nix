@@ -13,9 +13,9 @@ public:
 
 	void Init();
 	void Release();
-	ID3D12Fence* GlobalFence();
-	uint64_t GetFenceValue();
 	const Ntr<NXTexture2D> GetTex() const { return m_pTexBRDFLUT; }
+
+	void WaitTexLoadFinish();
 
 private:
 	void InitVertex();
@@ -34,7 +34,8 @@ private:
 	ComPtr<ID3D12RootSignature> m_pRootSig;
 
 	ComPtr<ID3D12Fence> m_pFence;
-	UINT64 m_fenceValue;
+	UINT64 m_fenceValue = 0;
+	bool m_bLoaded = false;
 
 	NXSubMesh<VertexPT>			m_subMesh;
 	std::vector<NXRawMeshView>	m_rawViews;

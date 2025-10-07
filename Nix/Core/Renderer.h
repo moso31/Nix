@@ -90,8 +90,6 @@ private:
 
 	void OnKeyDown(NXEventArgKey eArg);
 
-	void WaitForBRDF2DLUTFinish();
-
 private:
 	Vector2				m_viewRTSize;
 	NXBRDFLut*			m_pBRDFLut;

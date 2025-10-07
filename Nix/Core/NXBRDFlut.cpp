@@ -30,14 +30,12 @@ void NXBRDFLut::Release()
 {
 }
 
-ID3D12Fence* NXBRDFLut::GlobalFence()
+void NXBRDFLut::WaitTexLoadFinish()
 {
-	return m_pFence.Get();
-}
+	if (m_bLoaded) return;
 
-uint64_t NXBRDFLut::GetFenceValue()
-{
-	return m_fenceValue;
+	if (m_pFence->GetCompletedValue() < m_fenceValue)
+		NXGlobalDX::GlobalCmdQueue()->Wait(m_pFence.Get(), m_fenceValue);
 }
 
 void NXBRDFLut::InitVertex()

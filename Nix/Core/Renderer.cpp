@@ -557,7 +557,7 @@ void Renderer::UpdateTime()
 void Renderer::RenderFrame()
 {
 	// 确保BRDF 2D LUT 异步加载完成
-	WaitForBRDF2DLUTFinish();
+	m_pBRDFLut->WaitTexLoadFinish();
 
 	// 执行RenderGraph!
 	m_pRenderGraph->Execute();
@@ -590,9 +590,4 @@ void Renderer::OnKeyDown(NXEventArgKey eArg)
 	//{
 	//	m_bRenderGUI = !m_bRenderGUI;
 	//}
-}
-
-void Renderer::WaitForBRDF2DLUTFinish()
-{
-	NXGlobalDX::GlobalCmdQueue()->Wait(m_pBRDFLut->GlobalFence(), m_pBRDFLut->GetFenceValue());
 }

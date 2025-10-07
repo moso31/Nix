@@ -6,6 +6,7 @@
 #include "NXTexture.h"
 #include "NXResourceManager.h"
 #include "NXGlobalDefinitions.h"
+#include "NXVirtualTextureStreaming.h"
 
 NXRenderGraph::NXRenderGraph()
 {
@@ -119,6 +120,7 @@ void NXRenderGraph::Execute()
 	}
 
 	auto cQ = NXGlobalDX::GlobalCmdQueue();
+
 	for (auto i = 0; i < m_passCtxMap.size(); i++)
 	{
 		auto ctx = m_ctx[i]; // 这一组使用的ctx（DX12 CA+CL）
@@ -132,7 +134,7 @@ void NXRenderGraph::Execute()
 
 		std::string eventName = "NXRG ctx " + std::to_string(i);
 
-		NX12Util::BeginEvent(cL, "Render Scene");
+		NX12Util::BeginEvent(cL, eventName.c_str());
 
 		ID3D12DescriptorHeap* ppHeaps[] = { NXShVisDescHeap->GetDescriptorHeap() };
 		cL->SetDescriptorHeaps(1, ppHeaps);
@@ -147,11 +149,18 @@ void NXRenderGraph::Execute()
 
 		cL->Close();
 
-		// 确保NXTransferSys本帧数据加载完成
-		cQ->Wait(NXUploadSys->GetFence(), NXUploadSys->GetCurrentFenceValue());
+		if (i == 1)
+		{
+			NXVTStreaming->GetFenceSync().ReadBegin(cQ);
+		}
 
 		ID3D12CommandList* pCmdLists[] = { cL };
 		cQ->ExecuteCommandLists(1, pCmdLists);
+
+		if (i == 1)
+		{
+			NXVTStreaming->GetFenceSync().ReadEnd(cQ);
+		}
 	}
 }
 

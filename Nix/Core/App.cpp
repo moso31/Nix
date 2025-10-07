@@ -8,6 +8,7 @@
 #include "ShaderComplier.h"
 #include "NXEvent.h"
 #include "NXAllocatorManager.h"
+#include "NXVirtualTextureStreaming.h"
 
 App::App() :
 	m_pRenderer(nullptr),
@@ -71,6 +72,10 @@ void App::Update()
 
 void App::Draw()
 {
+	// 增加帧计数 + 唤醒VT管线 同步更新一次（可能）
+	NXGlobalApp::s_frameIndex++;
+	NXVTStreaming->AwakeOnce();
+
 	// 画渲染帧
 	m_pRenderer->RenderFrame();
 

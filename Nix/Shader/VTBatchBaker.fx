@@ -37,6 +37,13 @@ void CS(uint3 dtid : SV_DispatchThreadID)
 {
 	int2 pixelPos = m_cbVTBatch[dtid.z].VTPageOffset;
 	float2 tempVal = (float2)pixelPos / 8192.0f;
-	m_VTPhxPageSplatMap[pixelPos + dtid.xy] = float3(tempVal.xy, 0.0f);
-	m_VTPhxPageHeightMap[pixelPos + dtid.xy] = tempVal;
+    m_VTPhxPageSplatMap[pixelPos + dtid.xy] = float3(tempVal.xy, 0.0f);
+    m_VTPhxPageHeightMap[pixelPos + dtid.xy] = tempVal;
+    for (int i = 0; i < 10; i++)
+    {
+        for (int j = 0; j < 10; j++)
+        {
+            m_VTPhxPageSplatMap[pixelPos + dtid.xy] += 0.001f;
+        }
+    }
 }

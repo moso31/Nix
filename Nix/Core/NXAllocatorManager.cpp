@@ -69,7 +69,6 @@ void NXAllocatorManager::Init()
 
 	addThread([this]() { 
 		m_pVTStreaming->Update(); 
-		m_pVTStreaming->ProcessVTBatch();
 		}, "NXVirtualTextureStreaming\n");
 }
 

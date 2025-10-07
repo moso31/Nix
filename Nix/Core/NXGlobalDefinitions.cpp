@@ -34,6 +34,7 @@ void NXGlobalDX::Init(IDXGIAdapter4* pAdapter)
 
 App*		NXGlobalApp::App;
 NXTimer*	NXGlobalApp::Timer;
+std::atomic<uint64_t>	NXGlobalApp::s_frameIndex = 0;
 
 D3D12_INPUT_LAYOUT_DESC	NXGlobalInputLayout::layoutP;
 D3D12_INPUT_LAYOUT_DESC	NXGlobalInputLayout::layoutPT;

@@ -12,9 +12,9 @@ DirectResources::DirectResources() :
 void DirectResources::InitDevice()
 {
 #ifdef _DEBUG
-	ComPtr<ID3D12Debug> debugController;
-	D3D12GetDebugInterface(IID_PPV_ARGS(&debugController));
-	debugController->EnableDebugLayer();
+	//ComPtr<ID3D12Debug> debugController;
+	//D3D12GetDebugInterface(IID_PPV_ARGS(&debugController));
+	//debugController->EnableDebugLayer();
 #endif
 
 	HRESULT hr;
