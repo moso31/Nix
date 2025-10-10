@@ -41,6 +41,12 @@ struct NXVTTexTask
 	Int2 TileWorldSize;
 };
 
+struct NXVTTexTaskWithFence
+{
+	NXVTTexTask task;
+	uint64_t fenceValue = 0;
+};
+
 struct CBufferVTConfig
 {
 	Int2 TileSize;
@@ -104,7 +110,11 @@ private:
 	std::vector<NXVTTexTask> m_texTasks;
 	std::vector<NXVTTexTask> m_pendingTextures;
 	std::vector<NXVTTexTask> m_processingTextures;
-	std::vector<NXVTTexTask> m_waitGPUFinishTextures;
+	std::vector<NXVTTexTaskWithFence> m_waitGPUFinishTextures;
+
+	ComPtr<ID3D12Fence> m_pFenceSubmit;
+	uint64_t m_fenceValueSubmit = 0;
+	HANDLE m_fenceEvent;
 
 	// “Ï≤Ωœ‡πÿ
 	std::mutex m_mutex;

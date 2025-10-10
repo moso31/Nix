@@ -964,55 +964,55 @@ Ntr<NXTexture2D> NXTexture2D::CreateNoise(const std::string& debugName, uint32_t
 Ntr<NXTexture2D> NXTexture2D::CreateHeightRaw(const std::string& debugName, const std::filesystem::path& rawPath, D3D12_RESOURCE_FLAGS flags, bool useSubRegion, const Int2& subRegionXY, const Int2& subRegionSize)
 {
 	m_texFilePath = rawPath;
-	Deserialize();
+	Deserialize(); // 里头要能拿到 m_serializationData.m_rawWidth/Height=2049
 
-	int width = m_serializationData.m_rawWidth;
-	int height = m_serializationData.m_rawHeight;
-	if (useSubRegion)
-	{
-		width = subRegionSize.x;
-		height = subRegionSize.y;
+	const int fullW = m_serializationData.m_rawWidth;
+	const int fullH = m_serializationData.m_rawHeight;
+
+	int width = useSubRegion ? subRegionSize.x : fullW;
+	int height = useSubRegion ? subRegionSize.y : fullH;
+	int offX = useSubRegion ? subRegionXY.x : 0;
+	int offY = useSubRegion ? subRegionXY.y : 0;
+
+	// 基本越界保护（VT 的 tileSize+1 要确保不超 2049）
+	if (offX < 0 || offY < 0 || offX + width > fullW || offY + height > fullH) {
+		throw std::runtime_error("RAW subregion OOB: " + rawPath.string());
 	}
 
-	std::vector<uint16_t> rawData(width * height);
+	const uint32_t bpp = sizeof(uint16_t);
+	const DXGI_FORMAT fmt = DXGI_FORMAT_R16_UNORM;
 
-	// 读取rawPath的文件，并转换成单通道纹理
 	std::ifstream file(rawPath, std::ios::binary);
-	if (!file)
-		throw std::runtime_error("无法打开文件: " + rawPath.string());
+	if (!file) throw std::runtime_error("无法打开文件: " + rawPath.string());
 
-	// 直接读数据就行，必须是16bit 
-	// todo: 支持更多格式
-	file.read(reinterpret_cast<char*>(rawData.data()), width * height * sizeof(uint16_t));
-
-	if (!file)
-		throw std::runtime_error("读取数据失败: " + rawPath.string());
-
-	uint32_t bytePerPixel = sizeof(uint16_t);
-
-	auto fmt = DXGI_FORMAT_R16_UNORM;
 	std::shared_ptr<ScratchImage> pImage = std::make_shared<ScratchImage>();
 	pImage->Initialize2D(fmt, width, height, 1, 1);
 
 	const Image& image = *pImage->GetImage(0, 0, 0);
-	uint8_t* p = image.pixels;
+	uint8_t* dst = image.pixels;
+	const size_t dstRowPitch = image.rowPitch;      // DirectXTex 对该格式通常是 width * 2
 
-	bool yFlip = false;
-	if (yFlip)
-	{
-		for (int y = 0; y < height; ++y)
-		{
-			uint8_t* srcRow = (uint8_t*)rawData.data() + (height - 1 - y) * width * bytePerPixel;
-			uint8_t* dstRow = p + y * image.rowPitch;
-			memcpy(dstRow, srcRow, width * bytePerPixel);
-		}
+	// 行主序的数据：每行在文件里的跨度是 fullW * bpp
+	const size_t srcRowBytes = static_cast<size_t>(fullW) * bpp;
+	const size_t roiRowBytes = static_cast<size_t>(width) * bpp;
+
+	// 如需 Y 翻转可在这里调整 y 的映射；默认不翻转
+	for (int y = 0; y < height; ++y) {
+		const int srcY = offY + y;
+		const std::streamoff rowStart =
+			static_cast<std::streamoff>(srcY) * srcRowBytes +
+			static_cast<std::streamoff>(offX) * bpp;
+
+		file.seekg(rowStart, std::ios::beg);
+		if (!file) throw std::runtime_error("seekg 失败: " + rawPath.string());
+
+		uint8_t* dstRow = dst + static_cast<size_t>(y) * dstRowPitch;
+		file.read(reinterpret_cast<char*>(dstRow), roiRowBytes);
+		if (!file) throw std::runtime_error("读取行数据失败: " + rawPath.string());
 	}
-	else memcpy(p, rawData.data(), width * height * bytePerPixel);
 
 	m_name = debugName;
-
 	CreateInternal(pImage, flags, useSubRegion, subRegionXY, subRegionSize);
-
 	pImage.reset();
 	return this;
 }

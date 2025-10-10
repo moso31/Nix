@@ -3,6 +3,7 @@
 #include "NXAllocatorManager.h"
 #include "NXResourceManager.h"
 #include "ShaderComplier.h"
+#include "NXSamplerManager.h"
 #include "NXVirtualTextureConfig.h"
 #include "NXTerrainCommon.h"
 
@@ -38,11 +39,17 @@ void NXVTFenceSync::WriteEnd(ID3D12CommandQueue* pCmdQueue)
 
 NXVirtualTextureStreaming::NXVirtualTextureStreaming()
 {
+	HANDLE m_fenceEvent = CreateEvent(nullptr, false, false, nullptr);
+	m_pFenceSubmit = NX12Util::CreateFence(NXGlobalDX::GetDevice(), L"Create Fence Failed at NXVTFenceSync_submit");
+	m_pFenceSubmit->SetName(L"VT_Fence_Submit");
+
 	m_terrainWorkingDir = "D:\\NixAssets\\terrainTest";
 }
 
 NXVirtualTextureStreaming::~NXVirtualTextureStreaming()
 {
+	CloseHandle(m_fenceEvent);
+	m_fenceEvent = nullptr;
 }
 
 void NXVirtualTextureStreaming::AwakeOnce()
@@ -56,12 +63,12 @@ void NXVirtualTextureStreaming::Init()
 	m_pBaseColor2DArray = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DArray("VT_BaseColorArray", baseColor2DArrayPath.wstring());
 	m_pBaseColor2DArray->WaitLoadingTexturesFinish();
 
-	m_pVTPhysicalPage0 = NXResourceManager::GetInstance()->GetTextureManager()->CreateUAVTexture("VT_PhysicalPage", DXGI_FORMAT_R11G11B10_FLOAT, 8192, 8192,  D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, false);
+	m_pVTPhysicalPage0 = NXResourceManager::GetInstance()->GetTextureManager()->CreateUAVTexture("VT_PhysicalPage_SplatMap", DXGI_FORMAT_R16_FLOAT, 8192, 8192,  D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, false);
 	m_pVTPhysicalPage0->SetViews(1, 0, 0, 1);
 	m_pVTPhysicalPage0->SetSRV(0);
 	m_pVTPhysicalPage0->SetUAV(0);
 
-	m_pVTPhysicalPage1 = NXResourceManager::GetInstance()->GetTextureManager()->CreateUAVTexture("VT_PhysicalPage", DXGI_FORMAT_R16_UNORM, 8192, 8192, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, false);
+	m_pVTPhysicalPage1 = NXResourceManager::GetInstance()->GetTextureManager()->CreateUAVTexture("VT_PhysicalPage_HeightMap", DXGI_FORMAT_R16_FLOAT, 8192, 8192, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, false);
 	m_pVTPhysicalPage1->SetViews(1, 0, 0, 1);
 	m_pVTPhysicalPage1->SetSRV(0);
 	m_pVTPhysicalPage1->SetUAV(0);
@@ -100,7 +107,11 @@ void NXVirtualTextureStreaming::Init()
 		NX12Util::CreateRootParameterCBV(1, 0, D3D12_SHADER_VISIBILITY_ALL), // b1, space0
 	};
 
-	m_pRootSig = NX12Util::CreateRootSignature(pDevice, rp);
+	std::vector<D3D12_STATIC_SAMPLER_DESC> pSamplers = {
+		NXSamplerManager::GetInstance()->CreateIso(0, 0, D3D12_SHADER_VISIBILITY_ALL, D3D12_FILTER_MIN_MAG_MIP_POINT) // s0, ssPointWrap
+	};
+
+	m_pRootSig = NX12Util::CreateRootSignature(pDevice, rp, pSamplers);
 
 	// CSO
 	ComPtr<IDxcBlob> pCSBlob;
@@ -154,11 +165,10 @@ void NXVirtualTextureStreaming::ProcessTasks()
 		NXVTTexTask nextTask;
 		nextTask.pHeightMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DSubRegion(strHeightMapName, texHeightMapPath, task.tileRelativePos, task.tileSize + 1);
 		nextTask.pSplatMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DSubRegion(strSplatMapName, texSplatMapPath, task.tileRelativePos, task.tileSize + 1);
-		nextTask.TileWorldPos = task.terrainID * g_terrainConfig.TerrainSize + task.tileRelativePos;
+		nextTask.TileWorldPos = task.terrainID * g_terrainConfig.TerrainSize + task.tileRelativePos + g_terrainConfig.MinTerrainPos;
 		nextTask.TileWorldSize = task.tileSize;
 		m_texTasks.push_back(nextTask);
 
-		if (m_infoTasks.size() > 5)
 		it = m_infoTasks.erase(it);
 	}
 
@@ -234,6 +244,9 @@ void NXVirtualTextureStreaming::ProcessVTBatch()
 		if (cbCnt >= g_VTConfig.MaxProcessingBatchesAtOnce || viewCnt >= g_VTConfig.MaxRequestTerrainViewsPerUpdate) break;
 
 		auto& task = *it;
+		task.pHeightMap->WaitLoadingTexturesFinish();
+		task.pSplatMap->WaitLoadingTexturesFinish();
+
 		task.pHeightMap->SetResourceState(m_pCmdList.Get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 		task.pSplatMap->SetResourceState(m_pCmdList.Get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
@@ -248,7 +261,11 @@ void NXVirtualTextureStreaming::ProcessVTBatch()
 		cbCnt++;
 		viewCnt += 2;
 
-		m_waitGPUFinishTextures.push_back(task); // 这个纹理包已经在GPU里处理了，等队列完成后再删
+		// 等GPU队列完成后，才能删，所以要记录GPU完成时的fence
+		NXVTTexTaskWithFence gpuFinishTask;
+		gpuFinishTask.task = task;
+		gpuFinishTask.fenceValue = m_fenceValueSubmit + 1; 
+		m_waitGPUFinishTextures.push_back(gpuFinishTask);
 		it = m_processingTextures.erase(it);
 	}
 	m_cbVTBatch.Set(m_cbVTBatchData);
@@ -283,8 +300,18 @@ void NXVirtualTextureStreaming::ProcessVTBatch()
 	// fence记录 写完成
 	m_fenceSync.WriteEnd(m_pCmdQueue.Get());
 
-	// 删除已经处理完的纹理包
-	m_waitGPUFinishTextures.clear();
+	// 提交专用一个独立fence
+	m_fenceValueSubmit++;
+	m_pCmdQueue->Signal(m_pFenceSubmit.Get(), m_fenceValueSubmit);
+
+	if (m_pFenceSubmit->GetCompletedValue() < m_fenceValueSubmit)
+	{
+		m_pFenceSubmit->SetEventOnCompletion(m_fenceValueSubmit, m_fenceEvent);
+		WaitForSingleObject(m_fenceEvent, INFINITE);
+
+		// 删除已处理完的纹理包
+		m_waitGPUFinishTextures.clear();
+	}
 }
 
 void NXVirtualTextureStreaming::AddTexLoadTask(const NXVTInfoTask& task)
