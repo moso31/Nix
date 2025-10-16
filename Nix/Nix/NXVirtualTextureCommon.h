@@ -36,17 +36,17 @@ struct NXVTAtlasQuadTreeNode
 	{
 		int newImgSize = info.size;
 
-		if (newImgSize > size) return nullptr;
+		if (newImgSize > sectorSize) return nullptr;
 		if (isImage) return nullptr;
 
-		if (size == newImgSize)
+		if (sectorSize == newImgSize)
 		{
 			// 不是图像，并且没有子图像，那么可以分配
 			if (!isImage && subImageNum == 0)
 			{
 				isImage = true;
-				position = info.position;
-				size = info.size;
+				sectorPos = info.position;
+				sectorSize = info.size;
 
 				auto* p = pParent;
 				while (p)
@@ -78,13 +78,14 @@ struct NXVTAtlasQuadTreeNode
 		{
 			if (!pChilds[i])
 			{
-				NXVTAtlasQuadTreeNode* p = new NXVTAtlasQuadTreeNode();
-				p->size = size / 2;
-				p->pParent = this;
-				p->nodeID = nodeID * 4 + i + 1;
-				pChilds[i] = p;
+				NXVTAtlasQuadTreeNode* pChild = new NXVTAtlasQuadTreeNode();
+				pChild->sectorSize = sectorSize / 2;
+				pChild->pParent = this;
+				pChild->childID = i;
+				pChild->nodePos = nodePos + Int2((i % 2) * pChild->sectorSize, (i / 2) * pChild->sectorSize);
+				pChilds[i] = pChild;
 
-				return p->InsertImage(info);
+				return pChild->InsertImage(info);
 			}
 		}
 
@@ -94,12 +95,13 @@ struct NXVTAtlasQuadTreeNode
 	NXVTAtlasQuadTreeNode* pParent = nullptr;
 	NXVTAtlasQuadTreeNode* pChilds[4] = { nullptr , nullptr , nullptr , nullptr };
 
-	// 当前node对应的世界位置和大小
-	Int2 position = Int2(-1, -1);
-	int size = -1;
+	Int2 sectorPos = Int2(-1, -1); // 对应的sector的位置
+	int sectorSize = -1; // 对应的sector的大小
+	Int2 nodePos = Int2(-1, -1); // 节点左上角在树中相对位置
+	int& nodeSize = sectorSize; // 节点在树中大小（总是和sectorSize相等）
 
-	int nodeID = -1;
-	int isImage = false;
+	bool isImage = false; // 是否是叶子节点
+	char childID = -1; // 记录子节点索引 0-3
 	int subImageNum = 0;
 };
 
@@ -111,8 +113,8 @@ public:
 	NXVTAtlasQuadTree()
 	{
 		pRoot = new NXVTAtlasQuadTreeNode();
-		pRoot->size = NXVT_VIRTUALIMAGE_NODE_SIZE;
-		pRoot->nodeID = 0;
+		pRoot->nodePos = Int2(0, 0);
+		pRoot->sectorSize = NXVT_VIRTUALIMAGE_NODE_SIZE;
 	}
 
 	NXVTAtlasQuadTreeNode* GetRootNode() { return pRoot; }
@@ -149,10 +151,8 @@ public:
 		// 隐含了不能移除pRoot，因为pRoot没有父节点
 		if (pRemove->pParent)
 		{
-			int childIdx = (pRoot == pRemove->pParent ? 
-				pRemove->nodeID : 
-				pRemove->nodeID - pRemove->pParent->nodeID * 4) - 1;
-			pRemove->pParent->pChilds[childIdx] = nullptr;
+			if (pRemove->childID != -1)
+				pRemove->pParent->pChilds[pRemove->childID] = nullptr;
 		}
 
 		RemoveSubTree(pRemove);
@@ -212,7 +212,7 @@ public:
 	void RemoveImage(const NXSectorInfo& info)
 	{
 		auto secIt = std::find_if(m_allocatedNodes.begin(), m_allocatedNodes.end(), [&info](const NXVTAtlasQuadTreeNode* node) {
-			return info.position == node->position && info.size == node->size; });
+			return info.position == node->sectorPos && info.size == node->sectorSize; });
 
 		if (secIt != m_allocatedNodes.end())
 		{

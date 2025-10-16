@@ -22,7 +22,6 @@ public:
 
 	NXVTAtlasQuadTreeNode* GetAtlasRootNode() { return m_atlas->GetRootNode(); }
 	const std::vector<NXVTAtlasQuadTreeNode*>& GetNodes() { return m_atlas->GetNodes(); }
-	void GetImagePosAndSize(NXVTAtlasQuadTreeNode* pNode, Int2& oAtlasPos, int& oAtlasSize);
 
 	void SetCamera(NXCamera* pCamera) { m_pCamera = pCamera; }
 	const std::vector<Int2>& GetSectorList() const { return m_sectorXZ; }
@@ -41,10 +40,10 @@ public:
 
 private:
 	// 获取这个位置的地形XY ID
-	Int2 GetTerrainIDFromWorldPos(const Int2& worldPos);
+	Int2 GetTerrainIDFromWorldPos(const Int2& sectorPos);
 
 	// 获取一个世界坐标在对应地形中的相对位置
-	Int2 GetRelativeTerrainPosFromWorldPos(const Int2& worldPos);
+	Int2 GetRelativeTerrainPosFromWorldPos(const Int2& sectorPos);
 
 private:
 	CBufferVTReadback m_cbDataVTReadback;

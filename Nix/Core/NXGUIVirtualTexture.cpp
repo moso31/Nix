@@ -217,10 +217,9 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
 
                 char buf[192];
                 std::snprintf(buf, sizeof(buf),
-                    "#%-5d pos(%4d,%4d) size(%4d): %d, %d", 
-                    n->nodeID,
-                    n->position.x, n->position.y,
-                    n->size, 
+                    "pos(%4d,%4d) size(%4d): %d, %d", 
+                    n->sectorPos.x, n->sectorPos.y,
+                    n->sectorSize,
                     n->isImage,
                     n->subImageNum
                     );
@@ -324,21 +323,16 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
         }
     }
 
-    // 临时变量，记录node转换出来的位置和大小
-    Int2 pos;
-    int size;
-
     // 绘制所有有效节点：内部节点画边框；isImage 的叶子节点再加轻微填充
     {
         for (int i = 0; i < totalNodes; ++i)
         {
             const auto& n = nodes[i];
-            ImU32 imageFill = GetSectorRectColor(n->size, true);
-            ImU32 imageLine = GetSectorRectColor(n->size, false);
+            ImU32 imageFill = GetSectorRectColor(n->sectorSize, true);
+            ImU32 imageLine = GetSectorRectColor(n->sectorSize, false);
 
-            m_mgr->GetImagePosAndSize(n, pos, size);
-            ImVec2 tl = A2S((float)pos.x - (float)size, (float)pos.y - (float)size);
-            ImVec2 br = A2S((float)pos.x + (float)size, (float)pos.y + (float)size);
+            ImVec2 tl = A2S((float)n->nodePos.x, (float)n->nodePos.y);
+            ImVec2 br = A2S((float)n->nodePos.x + n->nodeSize, (float)n->nodePos.y + n->nodeSize);
 
             // 画矩形+边框
             ImVec2 atl = tl, abr = br;
@@ -352,9 +346,8 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
         if (s_selectedIdx >= 0 && s_selectedIdx < totalNodes)
         {
             const auto& n = nodes[s_selectedIdx];
-            m_mgr->GetImagePosAndSize(n, pos, size);
-            ImVec2 tl = A2S((float)pos.x - (float)size, (float)pos.y - (float)size);
-            ImVec2 br = A2S((float)pos.x + (float)size, (float)pos.y + (float)size);
+            ImVec2 tl = A2S((float)n->nodePos.x, (float)n->nodePos.y);
+            ImVec2 br = A2S((float)n->nodePos.x + n->nodeSize, (float)n->nodePos.y + n->nodeSize);
             tl.x = AlignPx(tl.x); br.x = AlignPx(br.x);
             tl.y = AlignPx(tl.y); br.y = AlignPx(br.y);
             dl->AddRect(tl, br, IM_COL32(255, 220, 60, 255), 0.0f, 0, 3.0f);

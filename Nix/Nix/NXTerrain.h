@@ -9,7 +9,7 @@ class NXTerrain : public NXRenderableObject
 {
 	friend class NXSubMeshGeometryEditor;
 public:
-	NXTerrain(int gridSize, int worldSize, NXTerrainNodeId terrainNodeId, int terrainId);
+	NXTerrain(int gridSize, int sectorSize, NXTerrainNodeId terrainNodeId, int terrainId);
 	virtual ~NXTerrain() {}
 
 	NXTerrainLayer* GetTerrainLayer() const { return m_pTerrainLayer; }

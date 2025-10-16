@@ -8,38 +8,6 @@ void NXVirtualTextureManager::Init()
 	m_atlas = new NXVirtualTextureAtlas();
 }
 
-void NXVirtualTextureManager::GetImagePosAndSize(NXVTAtlasQuadTreeNode* pNode, Int2& oAtlasPos, int& oAtlasSize)
-{
-	// 基于nodeId，将四叉树节点换算成在树中的相对位置和大小（注意和pNode.position pNode.size不是一回事）
-	
-	// 根节点位置和大小
-	Int2 nPos(1024, 1024);
-	int nSize = 1024; 
-
-	int depth = 0;
-	for (int t = pNode->nodeID; t; t = (t - 1) >> 2) depth+=2;
-
-	// 将nodeID转码成可按位解析的四进制，比如0312(4)={根}-{子0}-{子3}-{子1}-{子2}
-	int n = (pNode->nodeID - 0x55555555) & ((1 << depth) - 1); 
-
-	int mask = 0x3;
-	while (depth)
-	{
-		depth -= 2;
-		int subId = ((mask << depth) & n) >> depth; // 按位从高往低读每两位的subId
-
-		int ofs = nSize / 2;
-		if (subId == 0)			nPos += Int2(-ofs, -ofs);
-		else if (subId == 1)	nPos += Int2(+ofs, -ofs);
-		else if (subId == 2)	nPos += Int2(-ofs, +ofs);
-		else if (subId == 3)	nPos += Int2(+ofs, +ofs);
-		nSize = ofs;
-	}
-
-	oAtlasPos = nPos;
-	oAtlasSize = nSize;
-}
-
 void NXVirtualTextureManager::BuildSearchList(float distance)
 {
 	m_offsetXZ.clear();
@@ -182,10 +150,10 @@ Int2 NXVirtualTextureManager::GetTerrainIDFromWorldPos(const Int2& worldPosXZ)
 	return Int2(ix, iy);
 }
 
-Int2 NXVirtualTextureManager::GetRelativeTerrainPosFromWorldPos(const Int2& worldPos)
+Int2 NXVirtualTextureManager::GetRelativeTerrainPosFromWorldPos(const Int2& sectorPos)
 {
 	// 偏移到正坐标
-	Int2 PositivePos = worldPos - g_terrainConfig.MinTerrainPos;
+	Int2 PositivePos = sectorPos - g_terrainConfig.MinTerrainPos;
 	int rX = PositivePos.x % g_terrainConfig.TerrainSize;
 	int rY = PositivePos.y % g_terrainConfig.TerrainSize;
 	return Int2(rX, rY);

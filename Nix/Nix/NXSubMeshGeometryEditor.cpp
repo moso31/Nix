@@ -511,7 +511,7 @@ void NXSubMeshGeometryEditor::CreateSHSphere(NXPrimitive* pMesh, int basis_l, in
 	pMesh->AddSubMesh(pSubMesh);
 }
 
-void NXSubMeshGeometryEditor::CreateTerrain(NXTerrain* pTerrain, int gridSize, int worldSize)
+void NXSubMeshGeometryEditor::CreateTerrain(NXTerrain* pTerrain, int gridSize, int sectorSize)
 {
 	if (gridSize % g_terrainConfig.SectorSize != 0)
 		throw std::runtime_error("地形数据大小不符合要求；gridSize 必须是 g_configTerrain.sectorSize 的整数倍)");
@@ -523,7 +523,7 @@ void NXSubMeshGeometryEditor::CreateTerrain(NXTerrain* pTerrain, int gridSize, i
 	int factor = 8;
 	int gSectorSize = g_terrainConfig.SectorSize / factor;
 	float debugFactor = 0.98f;
-	float vertScale = (float)(gridSize * factor) / (float)worldSize * debugFactor;
+	float vertScale = (float)(gridSize * factor) / (float)sectorSize * debugFactor;
 	for (int x = 0; x <= gSectorSize; x++)
 	{
 		for (int y = 0; y <= gSectorSize; y++)
@@ -578,21 +578,21 @@ void NXSubMeshGeometryEditor::CreateTerrain(NXTerrain* pTerrain, int gridSize, i
 
 	for (int lod = 0; lod < 6; lod++)
 	{
-		CreateTerrainSingleLod(pTerrain, pSubMesh, worldSize, lod);
+		CreateTerrainSingleLod(pTerrain, pSubMesh, sectorSize, lod);
 	}
 
 	pSubMesh->TryAddBuffers();
 	pTerrain->AddSubMesh(pSubMesh);
 }
 
-void NXSubMeshGeometryEditor::CreateTerrainSingleLod(NXTerrain* pTerrain, NXSubMeshTerrain* pSubMesh, int worldSize, int lod)
+void NXSubMeshGeometryEditor::CreateTerrainSingleLod(NXTerrain* pTerrain, NXSubMeshTerrain* pSubMesh, int sectorSize, int lod)
 {
 	int gSectorSize = g_terrainConfig.SectorSize;
 	float lodScale = float(1 << lod);
 
 	// 添加instance数据
 	// 第一版先进行完全加载，将来再考虑gpu-driven剔除啥的
-	int gSectorNum = (worldSize >> lod) / gSectorSize;
+	int gSectorNum = (sectorSize >> lod) / gSectorSize;
 	std::vector<InstanceData> insDatas;
 	for (int x = 0; x < gSectorNum; x++)
 	{

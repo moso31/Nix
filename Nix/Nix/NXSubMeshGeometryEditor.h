@@ -24,7 +24,7 @@ public:
 	void CreatePlane(NXPrimitive* pMesh, float width = 0.5f, float height = 0.5f, NXPlaneAxis Axis = POSITIVE_Y);
 	void CreateSphere(NXPrimitive* pMesh, float radius = 1.0f, int segmentHorizontal = 16, int segmentVertical = 16);
 	void CreateSHSphere(NXPrimitive* pMesh, int basis_l, int basis_m, float radius = 1.0f, int segmentHorizontal = 64, int segmentVertical = 64);
-	void CreateTerrain(NXTerrain* pTerrain, int gridSize, int worldSize);
+	void CreateTerrain(NXTerrain* pTerrain, int gridSize, int sectorSize);
 
 	// Editor objects
 	void CreateMoveArrows(NXPrimitive* pMesh);
@@ -36,7 +36,7 @@ public:
 	void Release();
 
 private:
-	void CreateTerrainSingleLod(NXTerrain* pTerrain, NXSubMeshTerrain* pSubMesh, int worldSize, int lod);
+	void CreateTerrainSingleLod(NXTerrain* pTerrain, NXSubMeshTerrain* pSubMesh, int sectorSize, int lod);
 	void InitCommonMeshes();
 
 private:

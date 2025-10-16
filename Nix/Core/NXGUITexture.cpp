@@ -134,7 +134,7 @@ void NXGUITexture::Render_BakePopup()
 	if (ImGui::BeginPopup("##BakePopup"))
 	{
 		ImGui::PushID("##BakePopup");
-		ImGui::DragFloat2("WorldSize", m_terrainNormalMapBakeData.worldSize);
+		ImGui::DragFloat2("WorldSize", m_terrainNormalMapBakeData.sectorSize);
 		ImGui::DragFloat2("HeightRange", m_terrainNormalMapBakeData.heightRange);
 		if (ImGui::Button("Bake!"))
 		{
@@ -194,11 +194,11 @@ void NXGUITexture::SaveNormalMap()
 			float hU = (static_cast<float>(rawData[jU * width + i]) / normValue) * (m_terrainNormalMapBakeData.heightRange[1] - m_terrainNormalMapBakeData.heightRange[0]) + m_terrainNormalMapBakeData.heightRange[0];
 			float hD = (static_cast<float>(rawData[jD * width + i]) / normValue) * (m_terrainNormalMapBakeData.heightRange[1] - m_terrainNormalMapBakeData.heightRange[0]) + m_terrainNormalMapBakeData.heightRange[0];
 
-			Vector3 posL((float)iL / (float)width * m_terrainNormalMapBakeData.worldSize[0], hL, (float)j  / (float)width * m_terrainNormalMapBakeData.worldSize[1]);
-			Vector3 posR((float)iR / (float)width * m_terrainNormalMapBakeData.worldSize[0], hR, (float)j  / (float)width * m_terrainNormalMapBakeData.worldSize[1]);
-			//Vector3 posC((float)i  / (float)width * m_terrainNormalMapBakeData.worldSize[0], h,  (float)j  / (float)width * m_terrainNormalMapBakeData.worldSize[1]);
-			Vector3 posU((float)i  / (float)width * m_terrainNormalMapBakeData.worldSize[0], hU, (float)jU / (float)width * m_terrainNormalMapBakeData.worldSize[1]);
-			Vector3 posD((float)i  / (float)width * m_terrainNormalMapBakeData.worldSize[0], hD, (float)jD / (float)width * m_terrainNormalMapBakeData.worldSize[1]);
+			Vector3 posL((float)iL / (float)width * m_terrainNormalMapBakeData.sectorSize[0], hL, (float)j  / (float)width * m_terrainNormalMapBakeData.sectorSize[1]);
+			Vector3 posR((float)iR / (float)width * m_terrainNormalMapBakeData.sectorSize[0], hR, (float)j  / (float)width * m_terrainNormalMapBakeData.sectorSize[1]);
+			//Vector3 posC((float)i  / (float)width * m_terrainNormalMapBakeData.sectorSize[0], h,  (float)j  / (float)width * m_terrainNormalMapBakeData.sectorSize[1]);
+			Vector3 posU((float)i  / (float)width * m_terrainNormalMapBakeData.sectorSize[0], hU, (float)jU / (float)width * m_terrainNormalMapBakeData.sectorSize[1]);
+			Vector3 posD((float)i  / (float)width * m_terrainNormalMapBakeData.sectorSize[0], hD, (float)jD / (float)width * m_terrainNormalMapBakeData.sectorSize[1]);
 
 			Vector3 vecLR = posR - posL;
 			Vector3 vecUD = posD - posU;

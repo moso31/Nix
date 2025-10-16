@@ -5,7 +5,7 @@
 
 struct NXTerrainNormalMapBakeData
 {
-	float worldSize[2] = { 2048.0f, 2048.0f };
+	float sectorSize[2] = { 2048.0f, 2048.0f };
 	float heightRange[2] = { 0.0f, 1000.0f };
 };
 
