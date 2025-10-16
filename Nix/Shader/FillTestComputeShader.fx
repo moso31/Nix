@@ -30,7 +30,7 @@ void CS_Pass(uint3 dispatchThreadID : SV_DispatchThreadID)
 
     if (m_lod < 5 && dist0 < m_currLodDist && dist1 < m_currLodDist && dist2 < m_currLodDist && dist3 < m_currLodDist)
     {
-        // 如果四个子块都在当前Lod的距离内，则直接输出父级Lod
+        // 如果四个子块都在当前Lod的距离内，输出到下一轮input，继续细分
 		m_outBuffer.Append(c * 2 + int2(0, 0));
 		m_outBuffer.Append(c * 2 + int2(0, 1));
 		m_outBuffer.Append(c * 2 + int2(1, 0));

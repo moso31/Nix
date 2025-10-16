@@ -10,7 +10,7 @@ void NXVirtualTextureManager::Init()
 
 void NXVirtualTextureManager::GetImagePosAndSize(NXVTAtlasQuadTreeNode* pNode, Int2& oAtlasPos, int& oAtlasSize)
 {
-	// 基于nodeId，将四叉树节点换算成VirtImageAtlas的位置和大小
+	// 基于nodeId，将四叉树节点换算成在树中的相对位置和大小（注意和pNode.position pNode.size不是一回事）
 	
 	// 根节点位置和大小
 	Int2 nPos(1024, 1024);
@@ -19,7 +19,7 @@ void NXVirtualTextureManager::GetImagePosAndSize(NXVTAtlasQuadTreeNode* pNode, I
 	int depth = 0;
 	for (int t = pNode->nodeID; t; t = (t - 1) >> 2) depth+=2;
 
-	// 将nodeID转码成可按位解析的四进制，比如0312={根}-{子0}-{子3}-{子1}-{子2}
+	// 将nodeID转码成可按位解析的四进制，比如0312(4)={根}-{子0}-{子3}-{子1}-{子2}
 	int n = (pNode->nodeID - 0x55555555) & ((1 << depth) - 1); 
 
 	int mask = 0x3;

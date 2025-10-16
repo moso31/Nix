@@ -66,7 +66,9 @@ void CS_Patch(
 		0.0f, 0.0f, 0.0f, 1.0f
 	);
     
-    int2 coord = (param.xy >> param.z) - int2(m_blockMinIdX, m_blockMinIdY);
+    // 将block转换成正值=coord
+    // 然后换算出sliceIndex，用于后续2DArray的采样
+    int2 coord = (param.xy >> param.z) - int2(m_blockMinIdX, m_blockMinIdY); 
     int sliceIndex = coord.y * m_blockCountX + coord.x;
 
     float2 patchUV = frac((patchOrigin.xz + patchSize * 0.5) / (float)TERRAIN_SIZE);
@@ -74,6 +76,7 @@ void CS_Patch(
     float yExtent = (minMaxZ.y - minMaxZ.x);
     float yCenter = (minMaxZ.y + minMaxZ.x) * 0.5f;
 
+    // 【TODO：移到 FrustumCulling 后面去？】
     NXGPUTerrainPatch patch = (NXGPUTerrainPatch)0;
     patch.pos = mip.xxx;
     patch.mxWorld = matrix(

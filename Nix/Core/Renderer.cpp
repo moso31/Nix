@@ -113,7 +113,7 @@ void Renderer::GenerateRenderGraph()
 		NXRGResource* pInputBuf = i % 2 ? pTerrainBufferB : pTerrainBufferA;
 		NXRGResource* pOutputBuf = i % 2 ? pTerrainBufferA : pTerrainBufferB;
 
-		std::string strBufName = "FillTestBufferLod" + std::to_string(i);
+		std::string strBufName = "Terrain Fill " + std::to_string(i);
 		m_pRenderGraph->AddComputePass<FillTestData>(strBufName, new NXFillTestRenderer(),
 			[=](NXRGBuilder& builder, FillTestData& data) {
 				data.pFillPass = (NXComputePass*)builder.GetPassNode()->GetRenderPass();
@@ -132,7 +132,7 @@ void Renderer::GenerateRenderGraph()
 			[=](ID3D12GraphicsCommandList* pCmdList, FillTestData& data) {
 				if (i == 0)
 				{
-					std::vector<NXGPUTerrainBlockData> initData;
+					std::vector<NXGPUTerrainBlockData> initData; // NXGPUTerrainBlockData = Int2
 					int step = 4;
 					for (int x = -step; x < step; x++)
 					{
@@ -147,7 +147,7 @@ void Renderer::GenerateRenderGraph()
 				}
 
 				NXGPUTerrainManager::GetInstance()->UpdateLodParams(i);
-				data.pFillPass->CopyUAVCounterTo(pInputBuf);
+				data.pFillPass->SetBufferAsIndirectArg(pInputBuf);
 			});
 	}
 
@@ -164,8 +164,8 @@ void Renderer::GenerateRenderGraph()
 		[=](NXRGBuilder& builder, GPUTerrainPatcherData& data) {
 			builder.SetSubmitGroup(0);
 			builder.SetRootParamLayout(0, 0, 3);
-			//builder.WriteUAV(pTerrainBufferFinal, 0, true);
-			builder.WriteUAV(pTerrainPatcher, 0, true, 2);
+			builder.WriteUAV(pTerrainPatcher, 0, true);
+			builder.WriteUAVCounter(pTerrainPatcher, 2); // uav counter 的值也需要清空
 			builder.WriteUAV(pTerrainDrawIndexArgs, 1, true);
 			builder.SetComputeThreadGroup(1, 1, 1);
 			builder.SetEntryNameCS(L"CS_Clear");
@@ -188,7 +188,7 @@ void Renderer::GenerateRenderGraph()
 			builder.SetEntryNameCS(L"CS_Patch");
 		},
 		[=](ID3D12GraphicsCommandList* pCmdList, GPUTerrainPatcherData& data) {
-			data.pPatcherPass->CopyUAVCounterTo(pTerrainBufferFinal);
+			data.pPatcherPass->SetBufferAsIndirectArg(pTerrainBufferFinal);
 		});
 
 	struct GBufferData

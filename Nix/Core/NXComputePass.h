@@ -29,7 +29,9 @@ public:
 	virtual void RenderBefore();
 	virtual void Render();
 
-	void CopyUAVCounterTo(NXRGResource* pUAVCounterRes);
+	// 将uav计数器的数据拷贝到m_pIndirectArgs
+	// 如果这个pass依赖IndirectDispatch，需要依赖这个接口，通知gpu要处理的dispatch线程组数量
+	void SetBufferAsIndirectArg(NXRGResource* pUAVCounterRes);
 
 private:
 	D3D12_COMPUTE_PIPELINE_STATE_DESC		m_csoDesc;

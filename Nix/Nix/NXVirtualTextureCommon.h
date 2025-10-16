@@ -93,6 +93,8 @@ struct NXVTAtlasQuadTreeNode
 
 	NXVTAtlasQuadTreeNode* pParent = nullptr;
 	NXVTAtlasQuadTreeNode* pChilds[4] = { nullptr , nullptr , nullptr , nullptr };
+
+	// 当前node对应的世界位置和大小
 	Int2 position = Int2(-1, -1);
 	int size = -1;
 

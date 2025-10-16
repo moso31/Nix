@@ -36,9 +36,14 @@ NXRGResource* NXRGBuilder::WriteDS(NXRGResource* pResource, bool keep)
 	return m_pPassNode->WriteDS(pResource, keep);
 }
 
-NXRGResource* NXRGBuilder::WriteUAV(NXRGResource* pResource, uint32_t uavIndex, bool keep, uint32_t uavCounterIndex)
+NXRGResource* NXRGBuilder::WriteUAV(NXRGResource* pResource, uint32_t uavIndex, bool keep)
 {
-	return m_pPassNode->WriteUAV(pResource, uavIndex, keep, uavCounterIndex);
+	return m_pPassNode->WriteUAV(pResource, uavIndex, keep);
+}
+
+NXRGResource* NXRGBuilder::WriteUAVCounter(NXRGResource* pResource, uint32_t uavCounterIndex)
+{
+	return m_pPassNode->WriteUAVCounter(pResource, uavCounterIndex);
 }
 
 NXRGResource* NXRGBuilder::SetIndirectArgs(NXRGResource* pResource)

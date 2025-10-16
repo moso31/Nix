@@ -5,8 +5,8 @@
 struct NXRGResourceSlot
 {
 	NXRGResource* resource;
-	uint32_t slot; // srv uav 的slot
-	uint32_t uavCounterSlot; // uav counter 的slot（如果有uav的话）
+	uint32_t slot = (uint32_t)-1; // srv uav 的slot
+	uint32_t uavCounterSlot = (uint32_t)-1; // uav counter 的slot（如果有uav的话）
 };
 
 class NXRGPass;
@@ -33,7 +33,8 @@ public:
 	// 设置pass输出RT。
 	NXRGResource* WriteRT(NXRGResource* pResource, uint32_t outRTIndex, bool useOldVersion);
 	NXRGResource* WriteDS(NXRGResource* pResource, bool useOldVersion);
-	NXRGResource* WriteUAV(NXRGResource* pResource, uint32_t uavIndex, bool useOldVersion, uint32_t uavCounterIndex);
+	NXRGResource* WriteUAV(NXRGResource* pResource, uint32_t uavIndex, bool useOldVersion);
+	NXRGResource* WriteUAVCounter(NXRGResource* pResource, uint32_t uavCounterIndex);
 
 	// 设置Pass的间接参数
 	NXRGResource* SetIndirectArgs(NXRGResource* pResource);

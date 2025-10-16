@@ -204,7 +204,7 @@ void NXComputePass::Render()
 	}
 }
 
-void NXComputePass::CopyUAVCounterTo(NXRGResource* pUAVCounterRes)
+void NXComputePass::SetBufferAsIndirectArg(NXRGResource* pUAVCounterRes)
 {
 	assert(m_pIndirectArgs);
 	auto pCmdList = m_commandCtx.cmdList.Current().Get();

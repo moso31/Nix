@@ -79,22 +79,36 @@ NXRGResource* NXRGPassNodeBase::WriteDS(NXRGResource* pResource, bool useOldVers
 	return pNewVersionResource;
 }
 
-NXRGResource* NXRGPassNodeBase::WriteUAV(NXRGResource* pResource, uint32_t uavIndex, bool useOldVersion, uint32_t uavCounterIndex)
+NXRGResource* NXRGPassNodeBase::WriteUAV(NXRGResource* pResource, uint32_t uavIndex, bool useOldVersion)
 {
 	// 如果之前没被写入过，那么不需要创建新版本
 	if (useOldVersion || !pResource->HasWrited())
 	{
-		m_outputs.push_back({ pResource, uavIndex, uavCounterIndex });
+		m_outputs.push_back({ pResource, uavIndex });
 		pResource->MakeWriteConnect(); // 标记为已写入
 		return pResource;
 	}
 
 	// 创建新版本
 	NXRGResource* pNewVersionResource = new NXRGResource(pResource);
-	m_outputs.push_back({ pNewVersionResource, uavIndex, uavCounterIndex });
+	m_outputs.push_back({ pNewVersionResource, uavIndex });
 	pNewVersionResource->MakeWriteConnect(); // 标记为已写入
 	m_pRenderGraph->CreateResource(pNewVersionResource->GetName(), pNewVersionResource->GetDescription()); // 添加到graph中
 	return pNewVersionResource;
+}
+
+NXRGResource* NXRGPassNodeBase::WriteUAVCounter(NXRGResource* pResource, uint32_t uavCounterIndex)
+{
+	assert(pResource);
+	for (auto& pRes : m_outputs)
+	{
+		if (pRes.resource == pResource)
+		{
+			pRes.uavCounterSlot = uavCounterIndex;
+			break;
+		}
+	}
+	return pResource;
 }
 
 NXRGResource* NXRGPassNodeBase::SetIndirectArgs(NXRGResource* pResource)
