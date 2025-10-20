@@ -325,6 +325,7 @@
     <ClCompile Include="Nix\NXSubMesh.cpp" />
     <ClCompile Include="Nix\NXSubMeshGeometryEditor.cpp" />
     <ClCompile Include="Nix\NXTerrainLayer.cpp" />
+    <ClCompile Include="Nix\NXTerrainStreamingQuadTree.cpp" />
     <ClCompile Include="Nix\NXTexture.cpp" />
     <ClCompile Include="Nix\NXVirtualTextureManager.cpp" />
     <ClCompile Include="Nix\Script\NSFirstPersonalCamera.cpp" />
@@ -465,6 +466,7 @@
     <ClInclude Include="Nix\NXTerrain.h" />
     <ClInclude Include="Nix\NXTerrainCommon.h" />
     <ClInclude Include="Nix\NXTerrainLayer.h" />
+    <ClInclude Include="Nix\NXTerrainStreamingQuadTree.h" />
     <ClInclude Include="Nix\NXTextureDefinitions.h" />
     <ClInclude Include="Nix\NXSimpleSSAO.h" />
     <ClInclude Include="Nix\NXSubMesh.h" />

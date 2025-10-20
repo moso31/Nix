@@ -58,7 +58,7 @@ inline T Lerp(T lerp, U x, V y) {
 struct Vector2 : public XMFLOAT2
 {
     Vector2() : XMFLOAT2(0.f, 0.f) {}
-    explicit Vector2(float x) : XMFLOAT2( x, x ) {}
+    Vector2(float x) : XMFLOAT2( x, x ) {}
     Vector2(float _x, float _y) : XMFLOAT2(_x, _y) {}
     explicit Vector2(_In_reads_(2) const float *pArray) : XMFLOAT2(pArray) {}
     Vector2(FXMVECTOR V) { XMStoreFloat2( this, V ); }
@@ -159,7 +159,7 @@ Vector2 operator* (float S, const Vector2& V);
 struct Vector3 : public XMFLOAT3
 {
     Vector3() : XMFLOAT3(0.f, 0.f, 0.f) {}
-    explicit Vector3(float x) : XMFLOAT3( x, x, x ) {}
+    Vector3(float x) : XMFLOAT3( x, x, x ) {}
     Vector3(float _x, float _y, float _z) : XMFLOAT3(_x, _y, _z) {}
     explicit Vector3(_In_reads_(3) const float *pArray) : XMFLOAT3(pArray) {}
     Vector3(FXMVECTOR V) { XMStoreFloat3( this, V ); }
@@ -287,7 +287,7 @@ Vector3 operator/ (const Vector3& V, float S);
 struct Vector4 : public XMFLOAT4
 {
     Vector4() : XMFLOAT4(0.f, 0.f, 0.f, 0.f) {}
-    explicit Vector4(float x) : XMFLOAT4( x, x, x, x ) {}
+    Vector4(float x) : XMFLOAT4( x, x, x, x ) {}
     Vector4(float _x, float _y, float _z, float _w) : XMFLOAT4(_x, _y, _z, _w) {}
     Vector4(Vector3 xyz, float w) : XMFLOAT4(xyz.x, xyz.y, xyz.z, w) {}
     explicit Vector4(_In_reads_(4) const float *pArray) : XMFLOAT4(pArray) {}
@@ -896,6 +896,37 @@ public:
     Triangle(const Vector3& A, const Vector3& B, const Vector3& C) : A(A), B(B), C(C) {}
 
     bool Intersects(const Ray& ray, _Out_ Vector3& Position, _Out_ float& Dist) const;
+};
+
+class Circle2D
+{
+public:
+    Vector2 position;
+    float radius;
+
+    Circle2D() : position(0,0), radius(0) {}
+    Circle2D(const Vector2& pos, float r) : position(pos), radius(r) {}
+};
+
+class Rect2D
+{
+public:
+    Vector2 position; // top-left
+    Vector2 size;
+
+    Rect2D() : position(0,0), size(0,0) {}
+    Rect2D(const Vector2& pos, const Vector2& sz) : position(pos), size(sz) {}
+
+    bool Intersect(const Circle2D& c)
+    {
+        float nearestX = Clamp(c.position.x, position.x, position.x + size.x);
+        float nearestY = Clamp(c.position.y, position.y, position.y + size.y);
+
+		float dx = c.position.x - nearestX;
+		float dy = c.position.y - nearestY;
+
+		return (dx * dx + dy * dy) <= (c.radius * c.radius);
+    }
 };
 
 

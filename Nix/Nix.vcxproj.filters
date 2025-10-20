@@ -145,6 +145,9 @@
     <Filter Include="Core\XAllocator">
       <UniqueIdentifier>{bf4f0334-8874-4b4b-9043-2cc0ab7761bb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Nix\TextureStreaming">
+      <UniqueIdentifier>{6a50751f-1068-41e7-9a74-8fe97260177e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Common.fx">
@@ -631,6 +634,9 @@
     <ClCompile Include="Core\NXVirtualTextureStreaming.cpp">
       <Filter>Nix\VirtualTexture</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\NXTerrainStreamingQuadTree.cpp">
+      <Filter>Nix\TextureStreaming</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -1064,6 +1070,9 @@
     </ClInclude>
     <ClInclude Include="Core\NXVirtualTextureConfig.h">
       <Filter>Nix\VirtualTexture</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXTerrainStreamingQuadTree.h">
+      <Filter>Nix\TextureStreaming</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
