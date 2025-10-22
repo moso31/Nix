@@ -78,62 +78,62 @@ void NXTextureMaker::EnsureDir(const std::filesystem::path& dir)
 
 void NXTextureMaker::SaveTerrainTileHeightMap(const std::filesystem::path& outPath, const uint16_t* src, uint32_t srcW, uint32_t srcH, uint32_t startX, uint32_t startY, uint32_t tileSize)
 {
-    const uint32_t kBytesPerPixel = sizeof(uint16_t);
-
-    // 准备目标图
+    // 输出大小=kMinTileSize的Tile，如果输入tileSize超过这个大小，就做降采样
     ScratchImage img;
-    HRESULT hr = img.Initialize2D(kHeightMapFormat, tileSize, tileSize, /*arraySize*/1, /*mipLevels*/1);
+    HRESULT hr = img.Initialize2D(kHeightMapFormat, kMinTileSize, kMinTileSize, /*arraySize*/1, /*mipLevels*/1);
     if (FAILED(hr)) throw std::runtime_error("ScratchImage::Initialize2D 失败");
 
     const Image* dst = img.GetImage(0, 0, 0);
-    auto* dstRow = reinterpret_cast<uint8_t*>(dst->pixels);
+    uint8_t* dstBase = dst->pixels;
     const size_t dstRowPitch = dst->rowPitch;
 
-    // 拷贝：带边重叠，步长 1
-    for (uint32_t y = 0; y < tileSize; ++y)
+    // 专门针对2整数幂的点降采样
+    const uint32_t step = (tileSize - 1u) / (kMinTileSize - 1u); 
+    for (uint32_t y = 0; y < kMinTileSize; ++y)
     {
-        const uint32_t sy = startY + y;
-        const uint16_t* srcRow = src + size_t(sy) * srcW + startX;
+        const uint32_t sy = startY + y * step;
+        const uint16_t* srcRow = src + size_t(sy) * srcW;
 
-        // 逐行 memcpy
-        std::memcpy(dstRow + size_t(y) * dstRowPitch,
-            srcRow,
-            size_t(tileSize) * kBytesPerPixel);
+        uint16_t* dstRow = reinterpret_cast<uint16_t*>(dstBase + size_t(y) * dstRowPitch);
+        for (uint32_t x = 0; x < kMinTileSize; ++x)
+        {
+            const uint32_t sx = startX + x * step;
+            dstRow[x] = srcRow[sx];
+        }
     }
 
-    hr = SaveToDDSFile(img.GetImages(), img.GetImageCount(), img.GetMetadata(),
-        DDS_FLAGS_NONE, outPath.wstring().c_str());
+    hr = SaveToDDSFile(img.GetImages(), img.GetImageCount(), img.GetMetadata(), DDS_FLAGS_NONE, outPath.wstring().c_str());
     if (FAILED(hr))
         throw std::runtime_error("保存 DDS 失败: " + outPath.string());
 }
 
 void NXTextureMaker::SaveTerrainTileSplatMap(const std::filesystem::path& outPath, const uint8_t* src, uint32_t srcW, uint32_t srcH, uint32_t startX, uint32_t startY, uint32_t tileSize)
 {
-    const uint32_t kBytesPerPixel = sizeof(uint8_t);
-
-    // 准备目标图 - SplatMap使用R8格式
+    // 输出大小=kMinTileSize的Tile，如果输入tileSize超过这个大小，就做降采样
     ScratchImage img;
-    HRESULT hr = img.Initialize2D(DXGI_FORMAT_R8_UNORM, tileSize, tileSize, /*arraySize*/1, /*mipLevels*/1);
+    HRESULT hr = img.Initialize2D(DXGI_FORMAT_R8_UNORM, kMinTileSize, kMinTileSize, /*arraySize*/1, /*mipLevels*/1);
     if (FAILED(hr)) throw std::runtime_error("ScratchImage::Initialize2D 失败");
 
     const Image* dst = img.GetImage(0, 0, 0);
-    auto* dstRow = reinterpret_cast<uint8_t*>(dst->pixels);
+    uint8_t* dstBase = dst->pixels;
     const size_t dstRowPitch = dst->rowPitch;
 
-    // 拷贝：带边重叠，步长 1
-    for (uint32_t y = 0; y < tileSize; ++y)
+    // 专门针对2整数幂的点降采样
+    const uint32_t step = (tileSize - 1u) / (kMinTileSize - 1u); 
+    for (uint32_t y = 0; y < kMinTileSize; ++y)
     {
-        const uint32_t sy = startY + y;
-        const uint8_t* srcRow = src + size_t(sy) * srcW + startX;
+        const uint32_t sy = startY + y * step;
+        const uint8_t* srcRow = src + size_t(sy) * srcW;
 
-        // 逐行 memcpy
-        std::memcpy(dstRow + size_t(y) * dstRowPitch,
-            srcRow,
-            size_t(tileSize) * kBytesPerPixel);
+        uint8_t* dstRow = dstBase + size_t(y) * dstRowPitch;
+        for (uint32_t x = 0; x < kMinTileSize; ++x)
+        {
+            const uint32_t sx = startX + x * step;
+            dstRow[x] = srcRow[sx];
+        }
     }
 
-    hr = SaveToDDSFile(img.GetImages(), img.GetImageCount(), img.GetMetadata(),
-        DDS_FLAGS_NONE, outPath.wstring().c_str());
+    hr = SaveToDDSFile(img.GetImages(), img.GetImageCount(), img.GetMetadata(), DDS_FLAGS_NONE, outPath.wstring().c_str());
     if (FAILED(hr))
         throw std::runtime_error("保存 SplatMap DDS 失败: " + outPath.string());
 }
