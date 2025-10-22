@@ -3,6 +3,7 @@
 #include "BaseDefs/NixCore.h"
 #include "BaseDefs/CppSTLFully.h"
 
+class NXTerrainStreamingAsyncLoader;
 struct NXTerrainStreamingNode
 {
 	Int2 terrainID; // 地形ID
@@ -52,9 +53,15 @@ struct NXTerrainStreamingNodeDescription
 {
 	NXTerrainStreamingNode data;
 
+	// 是否是一个有效节点（已经加载完成）
+	bool isValid = false;
+
+	// 是否正在异步加载中
+	bool isLoading = false;
+
 	// 记录上次更新的帧数；
 	// 如果某个node长时间没有被访问到，则可以考虑卸载
-	uint64_t lastUpdatedFrame; 
+	uint64_t lastUpdatedFrame = 0;
 };
 
 class NXCamera;
@@ -63,10 +70,11 @@ class NXTerrainStreamingQuadTree
 {
 	static constexpr int s_maxNodeLevel = 5; // 最大节点层级 0~5 共6层
 	static constexpr float s_distRanges[6] = { 400.0f, 800.0f, 1600.0f, 3200.0f, 6400.0f, 12800.0f }; // 这样写可以不在cpp再初始化一次 很方便
+	static constexpr float s_nodeDescArrayInitialSize = 100; // 预分配已加载节点描述数组的初始大小
 
 public:
-	NXTerrainStreamingQuadTree() {}
-	~NXTerrainStreamingQuadTree() {}
+	NXTerrainStreamingQuadTree();
+	~NXTerrainStreamingQuadTree();
 
 	void Init(NXScene* m_pScene);
 
@@ -82,6 +90,9 @@ public:
 private:
 	void GetNodeDatasInternal(std::vector<std::vector<NXTerrainStreamingNode>>& oNodeDataList, const NXTerrainStreamingNode& node);
 
+	// 在NodeDescArray中挑一个未使用的节点出来
+	void PickANode();
+
 private:
 	std::filesystem::path m_terrainWorkingDir = "D:\\NixAssets\\terrainTest";
 
@@ -89,11 +100,10 @@ private:
 	std::vector<NXTerrainStreamingNode> m_terrainRoots;
 
 	// "已经加载"到Atlas的节点
+	// 初始化直接resize，长度固定
 	std::vector<NXTerrainStreamingNodeDescription> m_nodeDescArray;
 
-	// "正在加载中"的节点
-	std::vector<NXTerrainStreamingNodeDescription> m_loadingNodeDescArray;
-
 	NXScene* m_pScene; 
+	NXTerrainStreamingAsyncLoader* m_asyncLoader;
 };
 

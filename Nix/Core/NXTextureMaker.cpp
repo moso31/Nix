@@ -466,6 +466,7 @@ void NXTextureMaker::GenerateTerrainStreamingLODMaps(const TerrainTexLODBakeConf
 
 void NXTextureMaker::GenerateTerrainStreamingLODMaps_HeightMap(const TerrainTexLODBakeConfig& bakeConfig)
 {
+    const uint32_t kMinTileSize = g_terrainConfig.SectorSize + 1; // 65
     auto& rawPaths = bakeConfig.bakeTerrains;
 
     for (const auto& item : rawPaths)
@@ -521,6 +522,7 @@ void NXTextureMaker::GenerateTerrainStreamingLODMaps_HeightMap(const TerrainTexL
 
 void NXTextureMaker::GenerateTerrainStreamingLODMaps_SplatMap(const TerrainTexLODBakeConfig& bakeConfig)
 {
+    const uint32_t kMinTileSize = g_terrainConfig.SectorSize + 1; // 65
     auto& rawPaths = bakeConfig.bakeTerrains;
 
     for (const auto& item : rawPaths)

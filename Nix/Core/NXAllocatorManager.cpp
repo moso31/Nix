@@ -1,6 +1,7 @@
 #include "NXAllocatorManager.h"
 #include "NXGlobalDefinitions.h"
 #include "NXVirtualTextureStreaming.h"
+#include "NXTerrainStreamingAsyncLoader.h"
 
 #define Memsize_MB(x) (x * 1024 * 1024)
 
@@ -70,6 +71,11 @@ void NXAllocatorManager::Init()
 	addThread([this]() { 
 		m_pVTStreaming->Update(); 
 		}, "NXVirtualTextureStreaming\n");
+
+	m_pTerrainStreamingAsyncLoader = std::make_unique<NXTerrainStreamingAsyncLoader>();
+	addThread([this]() {
+		m_pTerrainStreamingAsyncLoader->Update();
+		}, "NXTerrainStreamingAsyncLoader\n");
 }
 
 void NXAllocatorManager::Release()

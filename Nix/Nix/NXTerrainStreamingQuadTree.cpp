@@ -3,6 +3,19 @@
 #include "NXScene.h"
 #include "NXTerrain.h"
 #include "NXGlobalDefinitions.h"
+#include "NXTerrainStreamingAsyncLoader.h"
+
+NXTerrainStreamingQuadTree::NXTerrainStreamingQuadTree() :
+    m_asyncLoader(new NXTerrainStreamingAsyncLoader())
+{
+    // nodeDescArray长度固定不变
+    m_nodeDescArray.resize(s_nodeDescArrayInitialSize);
+}
+
+NXTerrainStreamingQuadTree::~NXTerrainStreamingQuadTree()
+{
+    delete m_asyncLoader;
+}
 
 void NXTerrainStreamingQuadTree::Init(NXScene* pScene)
 {
@@ -39,7 +52,7 @@ void NXTerrainStreamingQuadTree::Update()
     GetNodeDatas(nodeLists);
 
     // 统计本帧需要加载的node
-    std::vector<NXTerrainStreamingNodeDescription> loadFromDiskNodeDescs;
+    std::vector<uint32_t> nextLoadingNodeDescIndices;
 
     // 逆序，因为nodeLevel越大，对应node表示的精度越高；这里需要优先加载精度最高的
     int loadCount = 0;
@@ -48,58 +61,82 @@ void NXTerrainStreamingQuadTree::Update()
         for (auto& node : nodeLists[i])
         {
             auto it = std::find_if(m_nodeDescArray.begin(), m_nodeDescArray.end(), [&](const NXTerrainStreamingNodeDescription& nodeDesc) {
-                return node.positionWS == nodeDesc.data.positionWS && node.size == nodeDesc.data.size;
+                // 检查缓存中是否已经具有位置和大小相同，并且是有效（或正在加载中的）节点
+                return node.positionWS == nodeDesc.data.positionWS && node.size == nodeDesc.data.size && (nodeDesc.isLoading || nodeDesc.isValid);
                 });
 
-            auto itLoading = std::find_if(m_loadingNodeDescArray.begin(), m_loadingNodeDescArray.end(), [&](const NXTerrainStreamingNodeDescription& nodeDesc) {
-				return node.positionWS == nodeDesc.data.positionWS && node.size == nodeDesc.data.size;
-				});
-
             // 若节点已存在，或者正在加载
-            if (it != m_nodeDescArray.end() || itLoading != m_loadingNodeDescArray.end())
+            if (it != m_nodeDescArray.end())
             {
                 // 仅需更新lastUpdate
                 it->lastUpdatedFrame = NXGlobalApp::s_frameIndex.load();
             }
-            else // 否则准备磁盘异步加载
+            else // 否则准备磁盘异步加载，从nodeDesc中选一个空闲的或最久未使用的
             {
                 loadCount++;
 
-                NXTerrainStreamingNodeDescription newNodeDesc;
-                newNodeDesc.data = node;
-                newNodeDesc.lastUpdatedFrame = NXGlobalApp::s_frameIndex.load();
+                uint64_t oldestFrame = UINT64_MAX;
+                uint32_t oldestIndex = -1;
+                uint32_t selectedIndex = -1;
 
-                loadFromDiskNodeDescs.push_back(newNodeDesc);
+                // 首先尝试找空闲节点
+                for (uint32_t descIndex = 0; descIndex < m_nodeDescArray.size(); descIndex++)
+                {
+                    auto& nodeDesc = m_nodeDescArray[descIndex];
+                    if (!nodeDesc.isValid && !nodeDesc.isLoading)
+                    {
+                        selectedIndex = descIndex;
+                        break;
+                    }
+
+                    if (nodeDesc.isValid && nodeDesc.lastUpdatedFrame < oldestFrame)
+                    { 
+                        oldestFrame = nodeDesc.lastUpdatedFrame;
+                        oldestIndex = descIndex;
+                    }
+                }
+
+                // 如果没有空闲节点，找到最久未使用的节点
+                if (selectedIndex == -1 && oldestIndex != -1)
+                {
+                    selectedIndex = oldestIndex;
+                }
+                
+                if (selectedIndex != -1)
+                {
+                    auto& selectedNodeDesc = m_nodeDescArray[selectedIndex];
+                    selectedNodeDesc.isLoading = true;
+                    selectedNodeDesc.isValid = false;
+                    selectedNodeDesc.data = node;
+                    selectedNodeDesc.lastUpdatedFrame = NXGlobalApp::s_frameIndex.load();
+                    nextLoadingNodeDescIndices.push_back(selectedIndex);
+                }
             }
         }
     }
 
-    // 加入"加载中"队列
-    m_loadingNodeDescArray.insert(m_loadingNodeDescArray.end(), loadFromDiskNodeDescs.begin(), loadFromDiskNodeDescs.end());
-
     // 开始加载需要的纹理。
     // 加载库本身就是异步的，这里直接调接口就OK
-    for (auto& loadingDesc : loadFromDiskNodeDescs)
+    for (auto& loadingDesc : nextLoadingNodeDescIndices)
     {
-        auto& task = loadingDesc.data;
-        Int2 relativePos = task.positionWS - task.terrainID * g_terrainConfig.TerrainSize; // 地形块内相对左下角的位置
+        auto& data = m_nodeDescArray[loadingDesc].data;
+        Int2 relativePos = data.positionWS - data.terrainID * g_terrainConfig.TerrainSize; // 地形块内相对左下角的位置
+        Int2 relativePosID = relativePos / g_terrainConfig.SectorSize;
 
-        // 加载高度图
-        std::string strTerrId = std::to_string(task.terrainID.x) + "_" + std::to_string(task.terrainID.y);
-        std::string strRaw = std::format("tile_{:02}_{:02}.raw", task.terrainID.x, task.terrainID.y);
-        std::filesystem::path texHeightMapPath = m_terrainWorkingDir / strTerrId / strRaw;
-        std::string strHeightMapName = "VT_HeightMap_" + strTerrId + "_tile" + std::to_string(relativePos.x) + "_" + std::to_string(relativePos.y);
+        std::string strTerrId = std::to_string(data.terrainID.x) + "_" + std::to_string(data.terrainID.y);
+        std::string strTerrSubID = std::to_string(data.size) + "_" + std::to_string(relativePosID.x) + "_" + std::to_string(relativePosID.y);
 
-        // 加载SplatMap图
-        std::filesystem::path texSplatMapPath = m_terrainWorkingDir / "splatmap_uncompress.dds";
-        std::string strSplatMapName = "VT_SplatMap_" + strTerrId + "_tile" + std::to_string(relativePos.x) + "_" + std::to_string(relativePos.y);
+        TerrainStreamingLoadRequest task;
+        task.terrainID = data.terrainID;
+        task.relativePosID = relativePosID;
+        task.size = data.size;
+        task.heightMap.path = m_terrainWorkingDir / strTerrId / "sub\\hmap\\" / strTerrSubID + ".dds";
+        task.heightMap.name = "Terrain_HeightMap_" + strTerrId + "_tile_" + strTerrSubID;
 
-        //NXVTTexTask nextTask;
-        //nextTask.pHeightMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DSubRegion(strHeightMapName, texHeightMapPath, task.tileRelativePos, task.tileSize + 1);
-        //nextTask.pSplatMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DSubRegion(strSplatMapName, texSplatMapPath, task.tileRelativePos, task.tileSize + 1);
-        //nextTask.TileWorldPos = task.terrainID * g_terrainConfig.TerrainSize + task.tileRelativePos + g_terrainConfig.MinTerrainPos;
-        //nextTask.TileWorldSize = task.tileSize;
-        //m_texTasks.push_back(nextTask);
+        task.splatMap.path = m_terrainWorkingDir / strTerrId / "sub\\splat\\" / strTerrSubID + ".dds";
+        task.splatMap.name = "Terrain_SplatMap_" + strTerrId + "_tile_" + strTerrSubID;
+
+        m_asyncLoader->AddTask(task);
     }
 }
 
@@ -135,4 +172,17 @@ void NXTerrainStreamingQuadTree::GetNodeDatasInternal(std::vector<std::vector<NX
             }
         }
     }
+}
+
+void NXTerrainStreamingQuadTree::PickANode()
+{
+	for (auto& nodeDesc : m_nodeDescArray)
+	{
+        // 找到一个未使用的节点
+		if (!nodeDesc.isValid && !nodeDesc.isLoading)
+		{
+			nodeDesc.isLoading = true;
+			return;
+		}
+	}
 }

@@ -6,6 +6,7 @@
 #include "NXNullDescriptor.h"
 
 class NXVirtualTextureStreaming;
+class NXTerrainStreamingAsyncLoader;
 
 // 资源
 #define NXAllocator_CB		NXAllocatorManager::GetInstance()->GetCBAllocator()			// cb
@@ -28,6 +29,9 @@ class NXVirtualTextureStreaming;
 // 纹理加载器
 #define NXTexLoader			NXAllocatorManager::GetInstance()->GetTextureLoader()
 
+// 地形流式异步加载器
+#define NXTerraStmLoader	NXAllocatorManager::GetInstance()->GetTerrainStreamingAsyncLoader()
+
 // VT Streaming
 #define NXVTStreaming		NXAllocatorManager::GetInstance()->GetVirtualTextureStreaming()
 
@@ -41,42 +45,44 @@ public:
 
 	void Init();
 
-	CommittedBufferAllocator*		GetCBAllocator()				{ return m_pCBAllocator.get(); }
-	CommittedBufferAllocator*		GetSBAllocator()				{ return m_pSBAllocator.get(); }
-	CommittedBufferAllocator*		GetRBAllocator()				{ return m_pRBAllocator.get(); }
-	PlacedBufferAllocator*			GetRWBAllocator()				{ return m_pRWBAllocator.get(); }
-	PlacedBufferAllocator*			GetTextureAllocator()			{ return m_pTextureAllocator.get(); }
+	CommittedBufferAllocator*		GetCBAllocator()					{ return m_pCBAllocator.get(); }
+	CommittedBufferAllocator*		GetSBAllocator()					{ return m_pSBAllocator.get(); }
+	CommittedBufferAllocator*		GetRBAllocator()					{ return m_pRBAllocator.get(); }
+	PlacedBufferAllocator*			GetRWBAllocator()					{ return m_pRWBAllocator.get(); }
+	PlacedBufferAllocator*			GetTextureAllocator()				{ return m_pTextureAllocator.get(); }
 
-	DescriptorAllocator<false>*		GetSRVAllocator()				{ return m_pSRVAllocator.get(); }
-	DescriptorAllocator<false>*		GetRTVAllocator()				{ return m_pRTVAllocator.get(); }
-	DescriptorAllocator<false>*		GetDSVAllocator()				{ return m_pDSVAllocator.get(); }
-	NXNullDescriptor*				GetNullDescriptorAllocator()	{ return m_pNullDescriptorAllocator.get(); }
+	DescriptorAllocator<false>*		GetSRVAllocator()					{ return m_pSRVAllocator.get(); }
+	DescriptorAllocator<false>*		GetRTVAllocator()					{ return m_pRTVAllocator.get(); }
+	DescriptorAllocator<false>*		GetDSVAllocator()					{ return m_pDSVAllocator.get(); }
+	NXNullDescriptor*				GetNullDescriptorAllocator()		{ return m_pNullDescriptorAllocator.get(); }
 
-	NXUploadSystem*					GetNXUploadSystem()				{ return m_pUpdateSystem.get(); }
-	NXReadbackSystem*				GetNXReadbackSystem()			{ return m_pReadbackSystem.get(); }
-	NXTextureLoader*				GetTextureLoader()				{ return m_pTextureLoader.get(); }
-	NXVirtualTextureStreaming*		GetVirtualTextureStreaming()	{ return m_pVTStreaming.get(); }
+	NXUploadSystem*					GetNXUploadSystem()					{ return m_pUpdateSystem.get(); }
+	NXReadbackSystem*				GetNXReadbackSystem()				{ return m_pReadbackSystem.get(); }
+	NXTextureLoader*				GetTextureLoader()					{ return m_pTextureLoader.get(); }
+	NXVirtualTextureStreaming*		GetVirtualTextureStreaming()		{ return m_pVTStreaming.get(); }
+	NXTerrainStreamingAsyncLoader*	GetTerrainStreamingAsyncLoader() 	{ return m_pTerrainStreamingAsyncLoader.get(); }
 
 	DescriptorAllocator<true>*		GetShaderVisibleDescriptorAllocator()	{ return m_pShaderVisibleDescAllocator.get(); }
 
 	void Release();
 
 private:
-	std::unique_ptr<CommittedBufferAllocator>	m_pCBAllocator;	
-	std::unique_ptr<CommittedBufferAllocator>	m_pSBAllocator;
-	std::unique_ptr<CommittedBufferAllocator>	m_pRBAllocator;
-	std::unique_ptr<PlacedBufferAllocator>		m_pRWBAllocator;
-	std::unique_ptr<PlacedBufferAllocator>		m_pTextureAllocator;
+	std::unique_ptr<CommittedBufferAllocator>		m_pCBAllocator;	
+	std::unique_ptr<CommittedBufferAllocator>		m_pSBAllocator;
+	std::unique_ptr<CommittedBufferAllocator>		m_pRBAllocator;
+	std::unique_ptr<PlacedBufferAllocator>			m_pRWBAllocator;
+	std::unique_ptr<PlacedBufferAllocator>			m_pTextureAllocator;
 
-	std::unique_ptr<DescriptorAllocator<false>>	m_pSRVAllocator;
-	std::unique_ptr<DescriptorAllocator<false>>	m_pRTVAllocator;
-	std::unique_ptr<DescriptorAllocator<false>>	m_pDSVAllocator;
-	std::unique_ptr<NXNullDescriptor>			m_pNullDescriptorAllocator;
+	std::unique_ptr<DescriptorAllocator<false>>		m_pSRVAllocator;
+	std::unique_ptr<DescriptorAllocator<false>>		m_pRTVAllocator;
+	std::unique_ptr<DescriptorAllocator<false>>		m_pDSVAllocator;
+	std::unique_ptr<NXNullDescriptor>				m_pNullDescriptorAllocator;
 
-	std::unique_ptr<NXUploadSystem>				m_pUpdateSystem;
-	std::unique_ptr<NXReadbackSystem>			m_pReadbackSystem;
-	std::unique_ptr<NXTextureLoader>			m_pTextureLoader;
-	std::unique_ptr<NXVirtualTextureStreaming>	m_pVTStreaming;
+	std::unique_ptr<NXUploadSystem>					m_pUpdateSystem;
+	std::unique_ptr<NXReadbackSystem>				m_pReadbackSystem;
+	std::unique_ptr<NXTextureLoader>				m_pTextureLoader;
+	std::unique_ptr<NXVirtualTextureStreaming>		m_pVTStreaming;
+	std::unique_ptr<NXTerrainStreamingAsyncLoader> 	m_pTerrainStreamingAsyncLoader;
 
 	// shader-visible descriptor allocator
 	std::unique_ptr<DescriptorAllocator<true>> 	m_pShaderVisibleDescAllocator;

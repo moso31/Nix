@@ -22,7 +22,6 @@ struct TerrainTexLODBakeConfig
 class NXTextureMaker
 {
 	static constexpr uint32_t kBaseSize = 2049;
-	static constexpr uint32_t kMinTileSize = 65;        // ×îÐ¡ LOD5 tile ³ß´ç
 	static constexpr DXGI_FORMAT kHeightMapFormat = DXGI_FORMAT_R16_UNORM;
 	static constexpr DXGI_FORMAT kSplatMapFormat = DXGI_FORMAT_R16_UNORM;
 
