@@ -33,7 +33,7 @@ public:
 
 private:
 	void GenerateMinMaxZMap();
-	void GeneratePatchConeMap();
+	void GeneratePatchConeMap(); // ÔÝÎ´¿ª·¢
 
 private:
 	std::string m_name;

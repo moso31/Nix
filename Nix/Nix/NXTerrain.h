@@ -29,9 +29,8 @@ public:
 	void Update(ID3D12GraphicsCommandList* pCmdList);
 
 protected:
-	NXTerrainNodeId m_terrainNodeId;
-	int m_terrainId;
-	int m_rawSize;
+	NXTerrainNodeId m_terrainNodeId; // 相对位置
+	int m_terrainId; // 全局唯一ID
 	int m_gridSize;
 	int m_worldSize;
 

@@ -33,4 +33,9 @@ private:
 	int m_bake_progress_count = 1;
 	std::future<void> m_bake_future;
 	bool m_bNeedUpdateTerrainLayerFiles = false;
+
+	// ∫Ê±∫≈‰÷√—°œÓ
+	bool m_bakeConfig_GenerateHeightMap = true;
+	bool m_bakeConfig_GenerateSplatMap = true;
+	bool m_bakeConfig_ForceGenerate = false;
 };

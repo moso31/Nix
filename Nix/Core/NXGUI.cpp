@@ -70,9 +70,14 @@ void NXGUI::Init()
 	// ImGUI的字体纹理，将始终使用 ShaderVisibleHeap（NXShVisDescHeap）中的静态描述符区。静态描述符是Nix的概念，详见该类中的注释说明。
 	ImGui_ImplDX12_Init(NXGlobalDX::GetDevice(), MultiFrameSets_swapChainCount, DXGI_FORMAT_R8G8B8A8_UNORM, NXShVisDescHeap->GetDescriptorHeap(), NXShVisDescHeap->GetStableCPUHandle(0), NXShVisDescHeap->GetStableGPUHandle(0));
 
-	// 设置字体
 	ImGui_ImplWin32_Init(NXGlobalWindows::hWnd);
+
+	// 设置字体
+	ImFontConfig cfg;
+	cfg.MergeMode = true;
+	cfg.PixelSnapH = true;
 	g_imgui_font_general = io.Fonts->AddFontFromFileTTF("./Resource/fonts/JetBrainsMono-Bold.ttf", 16);
+	g_imgui_font_general = io.Fonts->AddFontFromFileTTF("./Resource/fonts/msyh.ttc", 16.0f, &cfg, io.Fonts->GetGlyphRangesChineseFull());
 
 	// CodeEditor 需要使用独立的字体配置。
 	// 若直接使用基本字体，就算是等宽字体，对齐也会有问题

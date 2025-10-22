@@ -243,11 +243,11 @@ void NXGUITerrainSystem::Render_Tools()
 
     if (isBaking) ImGui::BeginDisabled();
 
-    if (ImGui::Button("Bake GPUTerrain data....")) 
+    if (ImGui::Button("Bake GPUTerrain data..."))
     {
         if (!isBaking)
         {
-            std::vector<TerrainNodePath> rawPaths;
+            TerrainTexLODBakeConfig bakeConfig;
 
             short minX = SHRT_MAX, minY = SHRT_MAX;
             short maxX = -SHRT_MAX, maxY = -SHRT_MAX;
@@ -270,24 +270,29 @@ void NXGUITerrainSystem::Render_Tools()
                     throw std::runtime_error("TerrainLayer is null!");
 
                 bool pHMapTex = pTerrLayer->GetHeightMapTexture().IsValid();
-                auto& path = pHMapTex ? pTerrLayer->GetHeightMapPath() : g_defaultTex_white_wstr;
+                auto& pathHMap = pHMapTex ? pTerrLayer->GetHeightMapPath() : g_defaultTex_white_wstr;
 
                 // 写内存之前将值偏移到正数
                 NXTerrainNodeId pathId = { (short)(nodeId.x - minX), (short)(nodeId.y - minY) };
-                rawPaths.push_back({ pathId, path });
+
+                PerTerrainBakeData node;
+                node.nodeId = pathId;
+                node.pathHeightMap = pathHMap;
+                node.pathSplatMap = "D:\\NixAssets\\terrainTest\\splatmap_uncompress.dds"; // 先写死只用一个
+                bakeConfig.bakeTerrains.push_back(node);
             }
 
             // 把单张地形的数据拼成完整的2D TexArray；时间比较长 用异步做
-            m_bake_future = std::async(std::launch::async, [rawPaths, minX, minY, cntX, cntY, this]() {
+            m_bake_future = std::async(std::launch::async, [bakeConfig, minX, minY, cntX, cntY, this]() {
                 m_bake_progress = 0;
-                m_bake_progress_count = rawPaths.size() * 2; // 先不生成法线贴图了，体积太大了
+                m_bake_progress_count = bakeConfig.bakeTerrains.size() * 2; // 先不生成法线贴图了，体积太大了
                 std::filesystem::path outPath("D:\\NixAssets\\terrainTest\\heightMapArray.dds");
                 std::filesystem::path outPath2("D:\\NixAssets\\terrainTest\\minMaxZMapArray.dds");
                 //std::filesystem::path outPath3("D:\\NixAssets\\terrainTest\\NormalArray.dds");
 
                 int terrSize = 2049;
-                NXTextureMaker::GenerateTerrainHeightMap2DArray(rawPaths, cntX, cntY, terrSize, terrSize, outPath, [this]() { m_bake_progress++; });
-                NXTextureMaker::GenerateTerrainMinMaxZMap2DArray(rawPaths, cntX, cntY, terrSize, terrSize, outPath2, [this]() { m_bake_progress++; });
+                NXTextureMaker::GenerateTerrainHeightMap2DArray(bakeConfig, cntX, cntY, terrSize, terrSize, outPath, [this]() { m_bake_progress++; });
+                NXTextureMaker::GenerateTerrainMinMaxZMap2DArray(bakeConfig, cntX, cntY, terrSize, terrSize, outPath2, [this]() { m_bake_progress++; });
                 //NXTextureMaker::GenerateTerrainNormal2DArray(rawPaths, cntX, cntY, terrSize, terrSize, Vector2(0, 2048), outPath3, [this]() { m_bake_progress++; });
 
                 NXGPUTerrainManager::GetInstance()->SetBakeTerrainTextures(outPath, outPath2, "outPath3");
@@ -311,6 +316,133 @@ void NXGUITerrainSystem::Render_Tools()
         std::string strShowPath = NXGPUTerrainManager::GetInstance()->GetTerrainHeightMap2DArray()->GetFilePath().string();
         ImGui::Text(strShowPath.c_str());
     }
+
+    ImGui::PushID("TerrainStreamingBake");
+    if (ImGui::Button(ImUtf8("烘焙地形流式加载数据...")))
+	{
+        ImGui::OpenPopup("BakeTerrainPopup");
+	}
+
+    if (ImGui::BeginPopup("BakeTerrainPopup"))
+    {
+        ImGui::Text(ImUtf8(R"(注意！这玩意将读取地形raw生成各级LOD文件，用于后续地形流式加载。
+每个地形都将生成很多子纹理块，并以*.dds形式放在
+    Assets\\terrainTest\\[各级地形的编号]\\sub\\
+文件夹下，可能会花费很长时间。")"));
+        ImGui::Separator();
+
+        // 烘焙配置选项
+        ImGui::Text(ImUtf8("烘焙配置选项："));
+        ImGui::Checkbox(ImUtf8("生成高度图 (HeightMap)"), &m_bakeConfig_GenerateHeightMap);
+        ImGui::Checkbox(ImUtf8("生成材质分布图 (SplatMap)"), &m_bakeConfig_GenerateSplatMap);
+        
+        ImGui::Separator();
+        
+        // 全选/全不选按钮
+        if (ImGui::Button(ImUtf8("全选")))
+        {
+            m_bakeConfig_GenerateHeightMap = true;
+            m_bakeConfig_GenerateSplatMap = true;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(ImUtf8("全不选")))
+        {
+            m_bakeConfig_GenerateHeightMap = false;
+            m_bakeConfig_GenerateSplatMap = false;
+        }
+
+        ImGui::Separator();
+        
+        // 强制生成选项
+        ImGui::Checkbox(ImUtf8("强制生成（忽略已存在的文件）"), &m_bakeConfig_ForceGenerate);
+        
+        if (m_bakeConfig_ForceGenerate)
+        {
+            ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), ImUtf8("将重新生成所有文件，即使已存在！可能会花费比较长的时间"));
+        }
+        else
+        {
+            ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), ImUtf8("将跳过已存在的文件"));
+        }
+
+        ImGui::Separator();
+
+        // 检查是否至少选择了一个选项
+        bool hasSelection = m_bakeConfig_GenerateHeightMap || m_bakeConfig_GenerateSplatMap;
+        if (!hasSelection)
+        {
+            ImGui::BeginDisabled();
+        }
+
+        if (ImGui::Button(ImUtf8("开始烘焙")))
+        {
+            TerrainTexLODBakeConfig bakeConfig;
+            bakeConfig.bForceGenerate = m_bakeConfig_ForceGenerate;
+            bakeConfig.bGenerateHeightMap = m_bakeConfig_GenerateHeightMap;
+            bakeConfig.bGenerateSplatMap = m_bakeConfig_GenerateSplatMap;
+
+            short minX = SHRT_MAX, minY = SHRT_MAX;
+            short maxX = -SHRT_MAX, maxY = -SHRT_MAX;
+
+            for (const auto& [nodeId, pTerrain] : terrains)
+            {
+                minX = std::min(minX, nodeId.x);
+                minY = std::min(minY, nodeId.y);
+                maxX = std::max(maxX, nodeId.x);
+                maxY = std::max(maxY, nodeId.y);
+            }
+
+            uint32_t cntX = uint32_t(maxX - minX + 1);
+            uint32_t cntY = uint32_t(maxY - minY + 1);
+
+            for (auto& [nodeId, pTerr] : terrains)
+            {
+                auto* pTerrLayer = pTerr->GetTerrainLayer();
+                if (!pTerrLayer)
+                    throw std::runtime_error("TerrainLayer is null!");
+
+                bool pHMapTex = pTerrLayer->GetHeightMapTexture().IsValid();
+                auto& pathHMap = pHMapTex ? pTerrLayer->GetHeightMapPath() : g_defaultTex_white_wstr;
+
+                // 写内存之前将值偏移到正数
+                NXTerrainNodeId pathId = { (short)(nodeId.x - minX), (short)(nodeId.y - minY) };
+
+                // 【临时代码】【临时代码】【临时代码】
+                // 地形的路径临时手写 【TODO：改成根据每个地形的配置（.ntl?）】
+                std::string pathSplatMap =
+                    std::string("D:\\NixAssets\\terrainTest\\") +
+                    std::to_string(pathId.x) + "_" + std::to_string(pathId.y) + "\\" +
+                    std::string("splatmap_uncompress.dds");
+
+                PerTerrainBakeData perTerrainBakeData;
+                perTerrainBakeData.nodeId = pathId;
+                perTerrainBakeData.pathHeightMap = pathHMap;
+                perTerrainBakeData.pathSplatMap = pathSplatMap;
+                bakeConfig.bakeTerrains.push_back(perTerrainBakeData);
+            }
+
+            // 根据配置选择性调用烘焙方法
+            NXTextureMaker::GenerateTerrainStreamingLODMaps(bakeConfig);
+
+            ImGui::CloseCurrentPopup();
+        }
+
+        if (!hasSelection)
+        {
+            ImGui::EndDisabled();
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button(ImUtf8("取消")))
+        {
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
+    }
+
+    ImGui::PopID();
 
     ImGui::PushID("Resize for all *.raw files");
     static int val[2] = { 2049, 2049 };

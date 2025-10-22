@@ -15,6 +15,7 @@ struct MinMaxZMap
 
 struct NXTerrainNodeId
 {
+	NXTerrainNodeId() : x(SHRT_MIN), y(SHRT_MIN) {}
 	NXTerrainNodeId(short x, short y) : x(x), y(y) {}
 
 	bool operator ==(NXTerrainNodeId other) const

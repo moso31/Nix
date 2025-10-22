@@ -637,6 +637,9 @@
     <ClCompile Include="Nix\NXTerrainStreamingQuadTree.cpp">
       <Filter>Nix\TextureStreaming</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\NXTerrainStreamingAsyncLoader.cpp">
+      <Filter>Nix\TextureStreaming</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -1072,6 +1075,9 @@
       <Filter>Nix\VirtualTexture</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXTerrainStreamingQuadTree.h">
+      <Filter>Nix\TextureStreaming</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXTerrainStreamingAsyncLoader.h">
       <Filter>Nix\TextureStreaming</Filter>
     </ClInclude>
   </ItemGroup>

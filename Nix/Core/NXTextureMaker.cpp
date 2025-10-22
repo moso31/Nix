@@ -5,8 +5,143 @@
 
 using namespace DirectX;
 
-void NXTextureMaker::GenerateTerrainHeightMap2DArray(const std::vector<TerrainNodePath>& rawPaths, uint32_t nodeCountX, uint32_t nodeCountY, uint32_t width, uint32_t height, const std::filesystem::path& outDDSPath, std::function<void()> onProgressCount)
+void NXTextureMaker::ReadTerrainRawR16(const std::filesystem::path& path, std::vector<uint16_t>& out)
 {
+    const uint32_t kBytesPerPixel = sizeof(uint16_t);
+
+    if (!NXConvert::IsRawFileExtension(path.extension().string()))
+        throw std::runtime_error("高度图扩展名不是 .raw");
+
+    const uint64_t expectedBytes = uint64_t(kBaseSize) * uint64_t(kBaseSize) * kBytesPerPixel;
+
+    std::ifstream file(path, std::ios::binary);
+    if (!file)
+        throw std::runtime_error("打开 RAW 失败: " + path.string());
+
+    out.resize(size_t(kBaseSize) * size_t(kBaseSize));
+    file.read(reinterpret_cast<char*>(out.data()), std::streamsize(expectedBytes));
+    if (file.gcount() != std::streamsize(expectedBytes))
+        throw std::runtime_error("RAW 尺寸不为 2049x2049 R16: " + path.string());
+}
+
+void NXTextureMaker::ReadTerrainDDSR8Unorm(const std::filesystem::path& path, std::vector<uint8_t>& out)
+{
+    TexMetadata meta;
+    ScratchImage img;
+    HRESULT hr = LoadFromDDSFile(path.wstring().c_str(), DDS_FLAGS_NONE, &meta, img);
+    if (FAILED(hr)) 
+    {
+        throw std::runtime_error("LoadFromDDSFile 失败: " + path.string());
+    }
+
+    // 2) 检查格式必须是 R8_UNORM，否则直接报错
+    DXGI_FORMAT fmt = meta.format;
+    if (fmt != DXGI_FORMAT_R8_UNORM)
+    {
+        throw std::runtime_error("DDS 格式必须是 R8_UNORM: " + path.string());
+    }
+
+    const Image* src = img.GetImage(0, 0, 0);
+
+    if (!src) 
+        throw std::runtime_error("获取图像数据失败: " + path.string());
+
+    // 3) 基本校验：只读 2D（允许有 mip/array，但此处取 slice0/mip0）
+    if (src->format != DXGI_FORMAT_R8_UNORM) 
+        throw std::runtime_error("DDS 非 8bit 单通道格式: " + path.string());
+
+    const size_t width = src->width;
+    const size_t height = src->height;
+    const size_t rowPitch = src->rowPitch;
+
+    out.resize(width * height);
+
+    // 4) 逐行拷贝，忽略对齐字节
+    const uint8_t* p = src->pixels;
+    for (size_t y = 0; y < height; ++y) 
+    {
+        const uint8_t* row = p + y * rowPitch;
+        std::memcpy(&out[y * width], row, width);
+    }
+}
+
+void NXTextureMaker::EnsureDir(const std::filesystem::path& dir)
+{
+    std::error_code ec;
+    if (!std::filesystem::create_directories(dir, ec))
+    {
+        // 已存在或创建成功都可以；只有在真正失败时抛
+        if (!std::filesystem::exists(dir))
+            throw std::runtime_error("创建目录失败: " + dir.string());
+    }
+}
+
+void NXTextureMaker::SaveTerrainTileHeightMap(const std::filesystem::path& outPath, const uint16_t* src, uint32_t srcW, uint32_t srcH, uint32_t startX, uint32_t startY, uint32_t tileSize)
+{
+    const uint32_t kBytesPerPixel = sizeof(uint16_t);
+
+    // 准备目标图
+    ScratchImage img;
+    HRESULT hr = img.Initialize2D(kHeightMapFormat, tileSize, tileSize, /*arraySize*/1, /*mipLevels*/1);
+    if (FAILED(hr)) throw std::runtime_error("ScratchImage::Initialize2D 失败");
+
+    const Image* dst = img.GetImage(0, 0, 0);
+    auto* dstRow = reinterpret_cast<uint8_t*>(dst->pixels);
+    const size_t dstRowPitch = dst->rowPitch;
+
+    // 拷贝：带边重叠，步长 1
+    for (uint32_t y = 0; y < tileSize; ++y)
+    {
+        const uint32_t sy = startY + y;
+        const uint16_t* srcRow = src + size_t(sy) * srcW + startX;
+
+        // 逐行 memcpy
+        std::memcpy(dstRow + size_t(y) * dstRowPitch,
+            srcRow,
+            size_t(tileSize) * kBytesPerPixel);
+    }
+
+    hr = SaveToDDSFile(img.GetImages(), img.GetImageCount(), img.GetMetadata(),
+        DDS_FLAGS_NONE, outPath.wstring().c_str());
+    if (FAILED(hr))
+        throw std::runtime_error("保存 DDS 失败: " + outPath.string());
+}
+
+void NXTextureMaker::SaveTerrainTileSplatMap(const std::filesystem::path& outPath, const uint8_t* src, uint32_t srcW, uint32_t srcH, uint32_t startX, uint32_t startY, uint32_t tileSize)
+{
+    const uint32_t kBytesPerPixel = sizeof(uint8_t);
+
+    // 准备目标图 - SplatMap使用R8格式
+    ScratchImage img;
+    HRESULT hr = img.Initialize2D(DXGI_FORMAT_R8_UNORM, tileSize, tileSize, /*arraySize*/1, /*mipLevels*/1);
+    if (FAILED(hr)) throw std::runtime_error("ScratchImage::Initialize2D 失败");
+
+    const Image* dst = img.GetImage(0, 0, 0);
+    auto* dstRow = reinterpret_cast<uint8_t*>(dst->pixels);
+    const size_t dstRowPitch = dst->rowPitch;
+
+    // 拷贝：带边重叠，步长 1
+    for (uint32_t y = 0; y < tileSize; ++y)
+    {
+        const uint32_t sy = startY + y;
+        const uint8_t* srcRow = src + size_t(sy) * srcW + startX;
+
+        // 逐行 memcpy
+        std::memcpy(dstRow + size_t(y) * dstRowPitch,
+            srcRow,
+            size_t(tileSize) * kBytesPerPixel);
+    }
+
+    hr = SaveToDDSFile(img.GetImages(), img.GetImageCount(), img.GetMetadata(),
+        DDS_FLAGS_NONE, outPath.wstring().c_str());
+    if (FAILED(hr))
+        throw std::runtime_error("保存 SplatMap DDS 失败: " + outPath.string());
+}
+
+void NXTextureMaker::GenerateTerrainHeightMap2DArray(const TerrainTexLODBakeConfig& bakeConfig, uint32_t nodeCountX, uint32_t nodeCountY, uint32_t width, uint32_t height, const std::filesystem::path& outDDSPath, std::function<void()> onProgressCount)
+{
+    auto& rawPaths = bakeConfig.bakeTerrains;
+
     uint32_t arraySize = nodeCountX * nodeCountY;
     arraySize = std::min<uint32_t>(arraySize, static_cast<uint32_t>(rawPaths.size()));
     if (arraySize == 0)
@@ -24,7 +159,7 @@ void NXTextureMaker::GenerateTerrainHeightMap2DArray(const std::vector<TerrainNo
     for (uint32_t i = 0; i < arraySize; ++i)
     {
         int slice = rawPaths[i].nodeId.y * nodeCountX + rawPaths[i].nodeId.x;
-        const auto& path = rawPaths[i].path;
+        const auto& path = rawPaths[i].pathHeightMap;
         std::vector<uint16_t> rawData(width * height);
 
         bool rawValid = true;
@@ -70,8 +205,10 @@ void NXTextureMaker::GenerateTerrainHeightMap2DArray(const std::vector<TerrainNo
         throw std::runtime_error("保存 DDS 失败: " + outDDSPath.string());
 }
 
-void NXTextureMaker::GenerateTerrainMinMaxZMap2DArray(const std::vector<TerrainNodePath>& inPaths, uint32_t nodeCountX, uint32_t nodeCountY, uint32_t width, uint32_t height, const std::filesystem::path& outDDSPath, std::function<void()> onProgressCount)
+void NXTextureMaker::GenerateTerrainMinMaxZMap2DArray(const TerrainTexLODBakeConfig& bakeConfig, uint32_t nodeCountX, uint32_t nodeCountY, uint32_t width, uint32_t height, const std::filesystem::path& outDDSPath, std::function<void()> onProgressCount)
 {
+    auto& inPaths = bakeConfig.bakeTerrains;
+
     uint32_t arraySize = nodeCountX * nodeCountY; 
     arraySize = std::min<uint32_t>(arraySize, static_cast<uint32_t>(inPaths.size()));
     if (arraySize == 0)
@@ -92,7 +229,7 @@ void NXTextureMaker::GenerateTerrainMinMaxZMap2DArray(const std::vector<TerrainN
     for (uint32_t i = 0; i < arraySize; ++i)
     {
         int slice = inPaths[i].nodeId.y * nodeCountX + inPaths[i].nodeId.x;
-        const auto& path = inPaths[i].path;
+        const auto& path = inPaths[i].pathHeightMap;
         std::vector<uint16_t> rawData(width * height, 0);
 
         if (NXConvert::IsRawFileExtension(path.extension().string()))
@@ -204,8 +341,10 @@ void NXTextureMaker::GenerateTerrainMinMaxZMap2DArray(const std::vector<TerrainN
         throw std::runtime_error("保存 DDS 失败: " + outDDSPath.string());
 }
 
-void NXTextureMaker::GenerateTerrainNormal2DArray(const std::vector<TerrainNodePath>& rawPaths, uint32_t nodeCountX, uint32_t nodeCountY, uint32_t width, uint32_t height, const Vector2& zRange, const std::filesystem::path& outDDSPath, std::function<void()> onProgressCount)
+void NXTextureMaker::GenerateTerrainNormal2DArray(const TerrainTexLODBakeConfig& bakeConfig, uint32_t nodeCountX, uint32_t nodeCountY, uint32_t width, uint32_t height, const Vector2& zRange, const std::filesystem::path& outDDSPath, std::function<void()> onProgressCount)
 {
+    auto& rawPaths = bakeConfig.bakeTerrains;
+
     uint32_t arraySize = nodeCountX * nodeCountY;
     arraySize = std::min<uint32_t>(arraySize, static_cast<uint32_t>(rawPaths.size()));
     if (arraySize == 0)
@@ -225,7 +364,7 @@ void NXTextureMaker::GenerateTerrainNormal2DArray(const std::vector<TerrainNodeP
     for (uint32_t n = 0; n < arraySize; ++n)
     {
         int slice = rawPaths[n].nodeId.y * nodeCountX + rawPaths[n].nodeId.x;
-        const auto& path = rawPaths[n].path;
+        const auto& path = rawPaths[n].pathHeightMap;
 
         bool rawOK = NXConvert::IsRawFileExtension(path.extension().string());
         if (rawOK)
@@ -310,5 +449,127 @@ void NXTextureMaker::GenerateTerrainNormal2DArray(const std::vector<TerrainNodeP
             outDDSPath.wstring().c_str());
         if (FAILED(hr))
             throw std::runtime_error("保存 DDS 失败: " + outDDSPath.string());
+    }
+}
+
+void NXTextureMaker::GenerateTerrainStreamingLODMaps(const TerrainTexLODBakeConfig& bakeConfig)
+{
+    if (bakeConfig.bGenerateHeightMap)
+    {
+        GenerateTerrainStreamingLODMaps_HeightMap(bakeConfig);
+    }
+    if (bakeConfig.bGenerateSplatMap)
+    {
+        GenerateTerrainStreamingLODMaps_SplatMap(bakeConfig);
+    }
+}
+
+void NXTextureMaker::GenerateTerrainStreamingLODMaps_HeightMap(const TerrainTexLODBakeConfig& bakeConfig)
+{
+    auto& rawPaths = bakeConfig.bakeTerrains;
+
+    for (const auto& item : rawPaths)
+    {
+        const auto& rawPath = item.pathHeightMap;
+
+        // 1) 读取原始 R16 RAW
+        std::vector<uint16_t> base;
+        ReadTerrainRawR16(rawPath, base);
+
+        // 2) 输出目录：<tile_dir>\sub\hmap\ 
+        const std::filesystem::path tileDir = rawPath.parent_path();
+        const std::filesystem::path outDir = tileDir / "sub" / "hmap";
+        EnsureDir(outDir);
+
+        // 3) 遍历 LOD 层级（0..5）
+        for (uint32_t L = 0; ; ++L)
+        {
+            const uint32_t nTiles = 1u << L;
+            const uint32_t tileSize = (kBaseSize - 1u) / nTiles + 1u; // 2049 -> 1025 -> 513 -> ...
+            if (tileSize < kMinTileSize) break;                       // 到 65 为止（LOD5）
+
+            const uint32_t stride = tileSize - 1u; // 子块起点步长（含重叠边）
+
+            for (uint32_t ty = 0; ty < nTiles; ++ty)
+            {
+                const uint32_t startY = ty * stride;
+
+                for (uint32_t tx = 0; tx < nTiles; ++tx)
+                {
+                    const uint32_t startX = tx * stride;
+
+                    // 文件名：<size>_<row>_<col>.dds 例如：1025_1_0.dds
+                    std::wstring fname = std::to_wstring(tileSize) + L"_" +
+                        std::to_wstring(ty) + L"_" +
+                        std::to_wstring(tx) + L".dds";
+                    const auto outPath = outDir / fname;
+
+                    // 检查文件是否存在，如果不强制生成且文件已存在则跳过
+                    if (!bakeConfig.bForceGenerate && std::filesystem::exists(outPath))
+                    {
+                        printf("跳过已存在的 HeightMap LOD%d tile (%d,%d) : %s\n", L, tx, ty, outPath.string().c_str());
+                        continue;
+                    }
+
+                    printf("生成 HeightMap LOD%d tile (%d,%d) : %s\n", L, tx, ty, outPath.string().c_str());
+                    SaveTerrainTileHeightMap(outPath, base.data(), kBaseSize, kBaseSize, startX, startY, tileSize);
+                }
+            }
+        }
+    }
+}
+
+void NXTextureMaker::GenerateTerrainStreamingLODMaps_SplatMap(const TerrainTexLODBakeConfig& bakeConfig)
+{
+    auto& rawPaths = bakeConfig.bakeTerrains;
+
+    for (const auto& item : rawPaths)
+    {
+        const auto& rawPath = item.pathSplatMap;
+
+        // 1) 读取原始 R8 DDS
+        std::vector<uint8_t> base;
+        ReadTerrainDDSR8Unorm(rawPath, base);
+
+        // 2) 输出目录：<tile_dir>\sub\splat\ 
+        const std::filesystem::path tileDir = rawPath.parent_path();
+        const std::filesystem::path outDir = tileDir / "sub" / "splat";
+        EnsureDir(outDir);
+
+        // 3) 遍历 LOD 层级（0..5）
+        for (uint32_t L = 0; ; ++L)
+        {
+            const uint32_t nTiles = 1u << L;
+            const uint32_t tileSize = (kBaseSize - 1u) / nTiles + 1u; // 2049 -> 1025 -> 513 -> ...
+            if (tileSize < kMinTileSize) break;                       // 到 65 为止（LOD5）
+
+            const uint32_t stride = tileSize - 1u; // 子块起点步长（含重叠边）
+
+            for (uint32_t ty = 0; ty < nTiles; ++ty)
+            {
+                const uint32_t startY = ty * stride;
+
+                for (uint32_t tx = 0; tx < nTiles; ++tx)
+                {
+                    const uint32_t startX = tx * stride;
+
+                    // 文件名：<size>_<row>_<col>.dds 例如：1025_1_0.dds
+                    std::wstring fname = std::to_wstring(tileSize) + L"_" +
+                        std::to_wstring(ty) + L"_" +
+                        std::to_wstring(tx) + L".dds";
+                    const auto outPath = outDir / fname;
+
+                    // 检查文件是否存在，如果不强制生成且文件已存在则跳过
+                    if (!bakeConfig.bForceGenerate && std::filesystem::exists(outPath))
+                    {
+                        printf("跳过已存在的 SplatMap LOD%d tile (%d,%d) : %s\n", L, tx, ty, outPath.string().c_str());
+                        continue;
+                    }
+
+                    printf("生成 SplatMap LOD%d tile (%d,%d) : %s\n", L, tx, ty, outPath.string().c_str());
+                    SaveTerrainTileSplatMap(outPath, base.data(), kBaseSize, kBaseSize, startX, startY, tileSize);
+                }
+            }
+        }
     }
 }

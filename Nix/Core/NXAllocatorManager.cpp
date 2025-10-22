@@ -40,7 +40,7 @@ void NXAllocatorManager::Init()
 	// 各分配器独立线程，禁止多个Allocator同线程执行，否则很容易死锁。// taskFunction = lambda.
 	auto addThread = [this](auto taskFunction, const char* name, int sleepMS = 1) {
 		std::thread t([this, taskFunction, name, sleepMS]() {
-			NXPrint::Write(0, name);
+			NXPrint::Write(1, name);
 			while (m_bRunning)
 			{
 				taskFunction();
