@@ -1,5 +1,6 @@
 #include "NXTerrainStreamingAsyncLoader.h"
-#include "NXTextureResourceManager.h"
+#include "NXResourceManager.h"
+#include "NXTexture.h"
 
 void NXTerrainStreamingAsyncLoader::AddTask(const TerrainStreamingLoadRequest& task)
 {
@@ -9,36 +10,43 @@ void NXTerrainStreamingAsyncLoader::AddTask(const TerrainStreamingLoadRequest& t
 
 void NXTerrainStreamingAsyncLoader::Update()
 {
-	// 快照 避免竞争
-	std::vector<TerrainStreamingLoadRequest> reqTasks;
+	std::lock_guard<std::mutex> lock(m_tasksMutex);
 	
-	{
-		std::lock_guard<std::mutex> lock(m_tasksMutex);
-		if (m_requestTasks.empty())
-			return;
-			
-		reqTasks = std::move(m_requestTasks);
-		m_requestTasks.clear();
-	}
-	
-	for (const auto& task : reqTasks)
+	// 1. 请求队列->loading队列
+	for (const auto& task : m_requestTasks)
 	{
 		NXTerrainStreamingLoadTextureResult nextTask;
 		nextTask.terrainID = task.terrainID;
 		nextTask.relativePosID = task.relativePosID;
 		nextTask.size = task.size;
+		nextTask.pHeightMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(task.heightMap.name, task.heightMap.path);
+		nextTask.pSplatMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(task.splatMap.name, task.splatMap.path);
 
-		nextTask.heightMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DSubRegion(strHeightMapName, texHeightMapPath, task.tileRelativePos, task.tileSize + 1);
-		nextTask.splatMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DSubRegion(strSplatMapName, texSplatMapPath, task.tileRelativePos, task.tileSize + 1);
+		m_loadingTasks.push_back(nextTask);
+	}
+	m_requestTasks.clear(); 
+	
+	// 2. loading->Completed队列
+	int loadingCnt = 0;
+	for (auto it = m_loadingTasks.begin(); it != m_loadingTasks.end(); loadingCnt++)
+	{
+		// 防止同时处理过多task
+		if (loadingCnt >= s_maxRequestLimit) 
+			break;
 
+		if (it->pHeightMap.IsValid() && it->pHeightMap->IsLoadReady() && it->pSplatMap.IsValid() && it->pSplatMap->IsLoadReady())
 		{
-			std::lock_guard<std::mutex> lock(m_tasksMutex);
-			m_completedTasks.push_back(nextTask);
+			m_completedTasks.push_back(std::move(*it));
+			it = m_loadingTasks.erase(it);
+		}
+		else
+		{
+			++it;
 		}
 	}
 }
 
-std::vector<NXTerrainStreamingLoadTextureResult> NXTerrainStreamingAsyncLoader::GetCompletedTasks()
+std::vector<NXTerrainStreamingLoadTextureResult> NXTerrainStreamingAsyncLoader::ConsumeCompletedTasks()
 {
 	// 一次性把所有的已完成task取走，放到主线程那边去处理
 	std::lock_guard<std::mutex> lock(m_tasksMutex);

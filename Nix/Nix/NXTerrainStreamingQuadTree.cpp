@@ -4,9 +4,11 @@
 #include "NXTerrain.h"
 #include "NXGlobalDefinitions.h"
 #include "NXTerrainStreamingAsyncLoader.h"
+#include "NXTerrainStreamingBatcher.h"
 
 NXTerrainStreamingQuadTree::NXTerrainStreamingQuadTree() :
-    m_asyncLoader(new NXTerrainStreamingAsyncLoader())
+    m_asyncLoader(new NXTerrainStreamingAsyncLoader()),
+    m_batcher(new NXTerrainStreamingBatcher())
 {
     // nodeDescArray长度固定不变
     m_nodeDescArray.resize(s_nodeDescArrayInitialSize);
@@ -130,18 +132,24 @@ void NXTerrainStreamingQuadTree::Update()
         task.terrainID = data.terrainID;
         task.relativePosID = relativePosID;
         task.size = data.size;
-        task.heightMap.path = m_terrainWorkingDir / strTerrId / "sub\\hmap\\" / strTerrSubID + ".dds";
+        
+        // 使用正确的路径分隔符，确保与TextureMaker的路径格式一致
+        task.heightMap.path = m_terrainWorkingDir / strTerrId / "sub" / "hmap" / (strTerrSubID + ".dds");
         task.heightMap.name = "Terrain_HeightMap_" + strTerrId + "_tile_" + strTerrSubID;
 
-        task.splatMap.path = m_terrainWorkingDir / strTerrId / "sub\\splat\\" / strTerrSubID + ".dds";
+        task.splatMap.path = m_terrainWorkingDir / strTerrId / "sub" / "splat" / (strTerrSubID + ".dds");
         task.splatMap.name = "Terrain_SplatMap_" + strTerrId + "_tile_" + strTerrSubID;
 
         m_asyncLoader->AddTask(task);
     }
 }
 
-void NXTerrainStreamingQuadTree::ProcessBatcher()
+void NXTerrainStreamingQuadTree::ProcessCompletedStreamingTask()
 {
+    for (auto& task : m_asyncLoader->ConsumeCompletedTasks())
+    {
+        m_batcher->Push(task);
+    }
 }
 
 void NXTerrainStreamingQuadTree::GetNodeDatasInternal(std::vector<std::vector<NXTerrainStreamingNode>>& oNodeDataList, const NXTerrainStreamingNode& node)

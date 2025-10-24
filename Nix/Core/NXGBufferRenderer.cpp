@@ -70,7 +70,7 @@ void NXGBufferRenderer::Render()
 				{
 					if (pSubMesh->IsSubMeshTerrain())
 					{
-						NXGPUTerrainManager::GetInstance()->Update(pCmdList);
+						NXGPUTerrainManager::GetInstance()->UpdateConstantForGBuffer(pCmdList);
 						pSubMesh->Render(pCmdList);
 						break;
 					}

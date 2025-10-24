@@ -7,7 +7,7 @@ struct NXTerrainStreamingLoadTask_EachTexture
 {
 	std::filesystem::path path; // 纹理文件路径
 	std::string name; // 纹理资源名称，通常用于调试
-}
+};
 
 struct TerrainStreamingLoadRequest
 {
@@ -38,6 +38,7 @@ struct NXTerrainStreamingLoadTextureResult
 
 class NXTerrainStreamingAsyncLoader
 {
+	static constexpr uint32_t s_maxRequestLimit = 8;
 public:
 	NXTerrainStreamingAsyncLoader() {};
 	~NXTerrainStreamingAsyncLoader() {};
@@ -45,11 +46,12 @@ public:
 	void AddTask(const TerrainStreamingLoadRequest& task);
 	void Update();
 	
-	// 获取已完成的加载任务（主线程调用）
-	std::vector<NXTerrainStreamingLoadTextureResult> GetCompletedTasks(); 
+	// 获取已完成的加载任务（主线程调用），注意会被直接消费掉（Get+Clear）
+	std::vector<NXTerrainStreamingLoadTextureResult> ConsumeCompletedTasks();
 	
 private:
 	std::vector<TerrainStreamingLoadRequest> m_requestTasks;
+	std::vector<NXTerrainStreamingLoadTextureResult> m_loadingTasks;
 	std::vector<NXTerrainStreamingLoadTextureResult> m_completedTasks;
 	std::mutex m_tasksMutex; // 保护任务队列的线程安全
 };

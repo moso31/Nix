@@ -291,6 +291,7 @@
     <ClCompile Include="Core\NXSkyRenderer.cpp" />
     <ClCompile Include="Core\NXGUICodeEditor.cpp" />
     <ClCompile Include="Core\NXSubSurfaceRenderer.cpp" />
+    <ClCompile Include="Core\NXTerrainStreamingPass.cpp" />
     <ClCompile Include="Core\NXTextureLoader.cpp" />
     <ClCompile Include="Core\NXTextureMaker.cpp" />
     <ClCompile Include="Core\NXTextureReloadTesk.cpp" />
@@ -326,6 +327,7 @@
     <ClCompile Include="Nix\NXSubMeshGeometryEditor.cpp" />
     <ClCompile Include="Nix\NXTerrainLayer.cpp" />
     <ClCompile Include="Nix\NXTerrainStreamingAsyncLoader.cpp" />
+    <ClCompile Include="Nix\NXTerrainStreamingBatcher.cpp" />
     <ClCompile Include="Nix\NXTerrainStreamingQuadTree.cpp" />
     <ClCompile Include="Nix\NXTexture.cpp" />
     <ClCompile Include="Nix\NXVirtualTextureManager.cpp" />
@@ -428,6 +430,7 @@
     <ClInclude Include="Core\NXSkyRenderer.h" />
     <ClInclude Include="Core\NXGUICodeEditor.h" />
     <ClInclude Include="Core\NXSubSurfaceRenderer.h" />
+    <ClInclude Include="Core\NXTerrainStreamingPass.h" />
     <ClInclude Include="Core\NXTextureLoader.h" />
     <ClInclude Include="Core\NXTextureMaker.h" />
     <ClInclude Include="Core\NXTextureReloadTesk.h" />
@@ -468,6 +471,7 @@
     <ClInclude Include="Nix\NXTerrainCommon.h" />
     <ClInclude Include="Nix\NXTerrainLayer.h" />
     <ClInclude Include="Nix\NXTerrainStreamingAsyncLoader.h" />
+    <ClInclude Include="Nix\NXTerrainStreamingBatcher.h" />
     <ClInclude Include="Nix\NXTerrainStreamingQuadTree.h" />
     <ClInclude Include="Nix\NXTextureDefinitions.h" />
     <ClInclude Include="Nix\NXSimpleSSAO.h" />

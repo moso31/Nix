@@ -4,6 +4,7 @@
 #include "BaseDefs/CppSTLFully.h"
 
 class NXTerrainStreamingAsyncLoader;
+class NXTerrainStreamingBatcher;
 struct NXTerrainStreamingNode
 {
 	Int2 terrainID; // 地形ID
@@ -85,7 +86,8 @@ public:
 	// 每帧更新
 	void Update();
 
-	void ProcessBatcher();
+	// 每帧更新时先处理那些已经完成的流式任务
+	void ProcessCompletedStreamingTask();
 
 private:
 	void GetNodeDatasInternal(std::vector<std::vector<NXTerrainStreamingNode>>& oNodeDataList, const NXTerrainStreamingNode& node);
@@ -103,7 +105,12 @@ private:
 	// 初始化直接resize，长度固定
 	std::vector<NXTerrainStreamingNodeDescription> m_nodeDescArray;
 
-	NXScene* m_pScene; 
+	// 异步加载器，异步读取tile纹理
 	NXTerrainStreamingAsyncLoader* m_asyncLoader;
-};
 
+	// 合批烘焙，将读出的tile纹理合并到大图集
+	NXTerrainStreamingBatcher* m_batcher;
+
+	// 场景指针
+	NXScene* m_pScene; 
+};

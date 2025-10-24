@@ -42,7 +42,7 @@ public:
 
 	const D3D12_COMMAND_SIGNATURE_DESC& GetDrawIndexArgDesc() { return m_cmdSigDesc; }
 
-	void Update(ID3D12GraphicsCommandList* pCmdList);
+	void UpdateConstantForGBuffer(ID3D12GraphicsCommandList* pCmdList);
 
 private:
 	D3D12_INDIRECT_ARGUMENT_DESC m_drawIndexArgDesc[1];
@@ -74,6 +74,7 @@ private:
 	Ntr<NXTexture2DArray> m_pTerrainMinMaxZMap2DArray;
 	Ntr<NXTexture2DArray> m_pTerrainNormalMap2DArray;
 
+	// 给GBuffer用的常量缓冲区
 	ConstantBufferObject m_cbDataObject;
 	NXConstantBuffer<ConstantBufferObject>	m_cbObject;
 };

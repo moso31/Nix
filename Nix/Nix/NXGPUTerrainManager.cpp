@@ -113,7 +113,7 @@ void NXGPUTerrainManager::SetBakeTerrainTextures(const std::filesystem::path& he
 	}
 }
 
-void NXGPUTerrainManager::Update(ID3D12GraphicsCommandList* pCmdList)
+void NXGPUTerrainManager::UpdateConstantForGBuffer(ID3D12GraphicsCommandList* pCmdList)
 {
 	auto* pCamera = NXResourceManager::GetInstance()->GetCameraManager()->GetCamera("Main Camera");
 	auto& mxView = pCamera->GetViewMatrix();
