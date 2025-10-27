@@ -78,6 +78,8 @@ void NXTextureMaker::EnsureDir(const std::filesystem::path& dir)
 
 void NXTextureMaker::SaveTerrainTileHeightMap(const std::filesystem::path& outPath, const uint16_t* src, uint32_t srcW, uint32_t srcH, uint32_t startX, uint32_t startY, uint32_t tileSize)
 {
+    const uint32_t kMinTileSize = g_terrainConfig.SectorSize + 1; // 65
+
     // 输出大小=kMinTileSize的Tile，如果输入tileSize超过这个大小，就做降采样
     ScratchImage img;
     HRESULT hr = img.Initialize2D(kHeightMapFormat, kMinTileSize, kMinTileSize, /*arraySize*/1, /*mipLevels*/1);
@@ -109,6 +111,8 @@ void NXTextureMaker::SaveTerrainTileHeightMap(const std::filesystem::path& outPa
 
 void NXTextureMaker::SaveTerrainTileSplatMap(const std::filesystem::path& outPath, const uint8_t* src, uint32_t srcW, uint32_t srcH, uint32_t startX, uint32_t startY, uint32_t tileSize)
 {
+    const uint32_t kMinTileSize = g_terrainConfig.SectorSize + 1; // 65
+
     // 输出大小=kMinTileSize的Tile，如果输入tileSize超过这个大小，就做降采样
     ScratchImage img;
     HRESULT hr = img.Initialize2D(DXGI_FORMAT_R8_UNORM, kMinTileSize, kMinTileSize, /*arraySize*/1, /*mipLevels*/1);

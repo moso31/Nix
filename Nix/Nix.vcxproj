@@ -328,7 +328,7 @@
     <ClCompile Include="Nix\NXTerrainLayer.cpp" />
     <ClCompile Include="Nix\NXTerrainStreamingAsyncLoader.cpp" />
     <ClCompile Include="Nix\NXTerrainStreamingBatcher.cpp" />
-    <ClCompile Include="Nix\NXTerrainStreamingQuadTree.cpp" />
+    <ClCompile Include="Nix\NXTerrainLODStreamer.cpp" />
     <ClCompile Include="Nix\NXTexture.cpp" />
     <ClCompile Include="Nix\NXVirtualTextureManager.cpp" />
     <ClCompile Include="Nix\Script\NSFirstPersonalCamera.cpp" />
@@ -472,7 +472,7 @@
     <ClInclude Include="Nix\NXTerrainLayer.h" />
     <ClInclude Include="Nix\NXTerrainStreamingAsyncLoader.h" />
     <ClInclude Include="Nix\NXTerrainStreamingBatcher.h" />
-    <ClInclude Include="Nix\NXTerrainStreamingQuadTree.h" />
+    <ClInclude Include="Nix\NXTerrainLODStreamer.h" />
     <ClInclude Include="Nix\NXTextureDefinitions.h" />
     <ClInclude Include="Nix\NXSimpleSSAO.h" />
     <ClInclude Include="Nix\NXSubMesh.h" />

@@ -1,4 +1,4 @@
-#include "NXTerrainStreamingQuadTree.h"
+#include "NXTerrainLODStreamer.h"
 #include "NXCamera.h"
 #include "NXScene.h"
 #include "NXTerrain.h"
@@ -6,7 +6,7 @@
 #include "NXTerrainStreamingAsyncLoader.h"
 #include "NXTerrainStreamingBatcher.h"
 
-NXTerrainStreamingQuadTree::NXTerrainStreamingQuadTree() :
+NXTerrainLODStreamer::NXTerrainLODStreamer() :
     m_asyncLoader(new NXTerrainStreamingAsyncLoader()),
     m_batcher(new NXTerrainStreamingBatcher())
 {
@@ -14,12 +14,12 @@ NXTerrainStreamingQuadTree::NXTerrainStreamingQuadTree() :
     m_nodeDescArray.resize(s_nodeDescArrayInitialSize);
 }
 
-NXTerrainStreamingQuadTree::~NXTerrainStreamingQuadTree()
+NXTerrainLODStreamer::~NXTerrainLODStreamer()
 {
     delete m_asyncLoader;
 }
 
-void NXTerrainStreamingQuadTree::Init(NXScene* pScene)
+void NXTerrainLODStreamer::Init(NXScene* pScene)
 {
     // 遍历场景所有地形，拿地形位置，由此形成四叉树根节点
     m_pScene = pScene;
@@ -27,7 +27,7 @@ void NXTerrainStreamingQuadTree::Init(NXScene* pScene)
 
     for (auto& [terraID, pTerra] : pTerrains)
     {
-        NXTerrainStreamingNode terrainRoot;
+        NXTerrainLODQuadTreeNode terrainRoot;
         terrainRoot.terrainID = Int2(terraID.x, terraID.y);
         terrainRoot.positionWS = Int2(terraID.x, terraID.y) * g_terrainConfig.TerrainSize; // 地形左下角位置
         terrainRoot.size = g_terrainConfig.TerrainSize;
@@ -36,7 +36,7 @@ void NXTerrainStreamingQuadTree::Init(NXScene* pScene)
     }
 }
 
-void NXTerrainStreamingQuadTree::GetNodeDatas(std::vector<std::vector<NXTerrainStreamingNode>>& oNodeDataList)
+void NXTerrainLODStreamer::GetNodeDatas(std::vector<std::vector<NXTerrainLODQuadTreeNode>>& oNodeDataList)
 {
 	oNodeDataList.clear();
 	oNodeDataList.resize(6);
@@ -48,9 +48,9 @@ void NXTerrainStreamingQuadTree::GetNodeDatas(std::vector<std::vector<NXTerrainS
     }
 }
 
-void NXTerrainStreamingQuadTree::Update()
+void NXTerrainLODStreamer::Update()
 {
-    std::vector<std::vector<NXTerrainStreamingNode>> nodeLists;
+    std::vector<std::vector<NXTerrainLODQuadTreeNode>> nodeLists;
     GetNodeDatas(nodeLists);
 
     // 统计本帧需要加载的node
@@ -62,7 +62,7 @@ void NXTerrainStreamingQuadTree::Update()
     {
         for (auto& node : nodeLists[i])
         {
-            auto it = std::find_if(m_nodeDescArray.begin(), m_nodeDescArray.end(), [&](const NXTerrainStreamingNodeDescription& nodeDesc) {
+            auto it = std::find_if(m_nodeDescArray.begin(), m_nodeDescArray.end(), [&](const NXTerrainLODQuadTreeNodeDescription& nodeDesc) {
                 // 检查缓存中是否已经具有位置和大小相同，并且是有效（或正在加载中的）节点
                 return node.positionWS == nodeDesc.data.positionWS && node.size == nodeDesc.data.size && (nodeDesc.isLoading || nodeDesc.isValid);
                 });
@@ -144,15 +144,15 @@ void NXTerrainStreamingQuadTree::Update()
     }
 }
 
-void NXTerrainStreamingQuadTree::ProcessCompletedStreamingTask()
+void NXTerrainLODStreamer::ProcessCompletedStreamingTask()
 {
     for (auto& task : m_asyncLoader->ConsumeCompletedTasks())
     {
-        m_batcher->Push(task);
+        //m_batcher->Push(task);
     }
 }
 
-void NXTerrainStreamingQuadTree::GetNodeDatasInternal(std::vector<std::vector<NXTerrainStreamingNode>>& oNodeDataList, const NXTerrainStreamingNode& node)
+void NXTerrainLODStreamer::GetNodeDatasInternal(std::vector<std::vector<NXTerrainLODQuadTreeNode>>& oNodeDataList, const NXTerrainLODQuadTreeNode& node)
 {
     // 从根节点向下遍历四叉树，规则：
     // - 先判断节点是否在当前LOD距离内
@@ -182,7 +182,7 @@ void NXTerrainStreamingQuadTree::GetNodeDatasInternal(std::vector<std::vector<NX
     }
 }
 
-void NXTerrainStreamingQuadTree::PickANode()
+void NXTerrainLODStreamer::AcquireNodeDescSlot()
 {
 	for (auto& nodeDesc : m_nodeDescArray)
 	{

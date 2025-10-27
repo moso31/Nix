@@ -5,15 +5,15 @@
 
 class NXTerrainStreamingAsyncLoader;
 class NXTerrainStreamingBatcher;
-struct NXTerrainStreamingNode
+struct NXTerrainLODQuadTreeNode
 {
 	Int2 terrainID; // 地形ID
 	Int2 positionWS; // 地形左下角XZ节点坐标（左手坐标系）
 	uint32_t size; // 节点大小，一定是2的整数幂
 
-	NXTerrainStreamingNode GetChildNode(int index) const
+	NXTerrainLODQuadTreeNode GetChildNode(int index) const
 	{
-		NXTerrainStreamingNode childNode;
+		NXTerrainLODQuadTreeNode childNode;
 
 		childNode.size = size >> 1;
 		switch (index)
@@ -50,9 +50,9 @@ struct NXTerrainStreamingNode
 	}
 };
 
-struct NXTerrainStreamingNodeDescription
+struct NXTerrainLODQuadTreeNodeDescription
 {
-	NXTerrainStreamingNode data;
+	NXTerrainLODQuadTreeNode data;
 
 	// 是否是一个有效节点（已经加载完成）
 	bool isValid = false;
@@ -67,21 +67,26 @@ struct NXTerrainStreamingNodeDescription
 
 class NXCamera;
 class NXScene;
-class NXTerrainStreamingQuadTree
+/// <summary>
+/// 四叉树地形流式加载的核心
+/// 负责基于当前场景的相机距离，决定需要流式加载哪些地形节点的纹理
+/// 使用位置固定的LRU Cache（对应类中m_nodeDescArray）来管理已经加载的节点，如果出现Cache未记录节点，异步加载
+/// </summary>
+class NXTerrainLODStreamer
 {
 	static constexpr int s_maxNodeLevel = 5; // 最大节点层级 0~5 共6层
 	static constexpr float s_distRanges[6] = { 400.0f, 800.0f, 1600.0f, 3200.0f, 6400.0f, 12800.0f }; // 这样写可以不在cpp再初始化一次 很方便
 	static constexpr float s_nodeDescArrayInitialSize = 100; // 预分配已加载节点描述数组的初始大小
 
 public:
-	NXTerrainStreamingQuadTree();
-	~NXTerrainStreamingQuadTree();
+	NXTerrainLODStreamer();
+	~NXTerrainLODStreamer();
 
 	void Init(NXScene* m_pScene);
 
 	// 获取6档距离内的节点，输出一个list[6]；只要是当前档次距离能覆盖的，统统加入到预加载队列
 	// nodeData总是临时的！所以无需释放
-	void GetNodeDatas(std::vector<std::vector<NXTerrainStreamingNode>>& oNodeDataList);
+	void GetNodeDatas(std::vector<std::vector<NXTerrainLODQuadTreeNode>>& oNodeDataList);
 
 	// 每帧更新
 	void Update();
@@ -90,20 +95,20 @@ public:
 	void ProcessCompletedStreamingTask();
 
 private:
-	void GetNodeDatasInternal(std::vector<std::vector<NXTerrainStreamingNode>>& oNodeDataList, const NXTerrainStreamingNode& node);
+	void GetNodeDatasInternal(std::vector<std::vector<NXTerrainLODQuadTreeNode>>& oNodeDataList, const NXTerrainLODQuadTreeNode& node);
 
-	// 在NodeDescArray中挑一个未使用的节点出来
-	void PickANode();
+	// 在NodeDescArray中挑一个未使用（或者最老）的节点出来
+	void AcquireNodeDescSlot();
 
 private:
 	std::filesystem::path m_terrainWorkingDir = "D:\\NixAssets\\terrainTest";
 
 	// 每个地形是一个四叉树
-	std::vector<NXTerrainStreamingNode> m_terrainRoots;
+	std::vector<NXTerrainLODQuadTreeNode> m_terrainRoots;
 
 	// "已经加载"到Atlas的节点
 	// 初始化直接resize，长度固定
-	std::vector<NXTerrainStreamingNodeDescription> m_nodeDescArray;
+	std::vector<NXTerrainLODQuadTreeNodeDescription> m_nodeDescArray;
 
 	// 异步加载器，异步读取tile纹理
 	NXTerrainStreamingAsyncLoader* m_asyncLoader;

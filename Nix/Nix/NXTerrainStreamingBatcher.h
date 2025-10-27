@@ -14,5 +14,11 @@ public:
 	void Render();
 
 private:
-	std::vector<NXTerrainStreamingTask> m_completedTasks;
+	ComPtr<ID3D12CommandQueue> m_pCmdQueue;
+	ComPtr<ID3D12CommandAllocator> m_pCmdAllocator;
+	ComPtr<ID3D12GraphicsCommandList> m_pCmdList;
+	ComPtr<ID3D12RootSignature> m_pRootSig;
+	ComPtr<ID3D12PipelineState> m_pCSO;
+
+	std::vector<NXTerrainStreamingLoadTextureResult> m_completedTasks;
 };

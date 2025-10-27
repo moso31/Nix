@@ -634,12 +634,14 @@
     <ClCompile Include="Core\NXVirtualTextureStreaming.cpp">
       <Filter>Nix\VirtualTexture</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\NXTerrainStreamingQuadTree.cpp">
+    <ClCompile Include="Nix\NXTerrainLODStreamer.cpp">
       <Filter>Nix\TextureStreaming</Filter>
     </ClCompile>
     <ClCompile Include="Nix\NXTerrainStreamingAsyncLoader.cpp">
       <Filter>Nix\TextureStreaming</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXTerrainStreamingPass.cpp" />
+    <ClCompile Include="Nix\NXTerrainStreamingBatcher.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -1074,12 +1076,14 @@
     <ClInclude Include="Core\NXVirtualTextureConfig.h">
       <Filter>Nix\VirtualTexture</Filter>
     </ClInclude>
-    <ClInclude Include="Nix\NXTerrainStreamingQuadTree.h">
+    <ClInclude Include="Nix\NXTerrainLODStreamer.h">
       <Filter>Nix\TextureStreaming</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXTerrainStreamingAsyncLoader.h">
       <Filter>Nix\TextureStreaming</Filter>
     </ClInclude>
+    <ClInclude Include="Core\NXTerrainStreamingPass.h" />
+    <ClInclude Include="Nix\NXTerrainStreamingBatcher.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="八字无撇的待办事项.txt" />
