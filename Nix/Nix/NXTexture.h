@@ -248,8 +248,9 @@ public:
     virtual ~NXTexture2DArray() {}
 
     void Create(const std::string& debugName, const std::wstring& filePath, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
-    void Create(const std::string& debugName, const std::wstring& filePath, DXGI_FORMAT texFormat, uint32_t width, uint32_t height, uint32_t arraySize, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
-    void CreateRT(const std::string& debugName, DXGI_FORMAT texFormat, uint32_t width, uint32_t height, uint32_t arraySize, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
+    void Create(const std::string& debugName, const std::wstring& filePath, DXGI_FORMAT fmt, uint32_t width, uint32_t height, uint32_t arraySize, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
+    void CreateRT(const std::string& debugName, DXGI_FORMAT fmt, uint32_t width, uint32_t height, uint32_t arraySize, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
+    void CreateUAVTexture(const std::string& debugName, DXGI_FORMAT fmt, uint32_t width, uint32_t height, uint32_t arraySize, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
 
     void SetSRV(uint32_t index, uint32_t firstArraySlice = 0, uint32_t arraySize = -1);
     void SetRTV(uint32_t index, uint32_t firstArraySlice = 0, uint32_t arraySize = -1);

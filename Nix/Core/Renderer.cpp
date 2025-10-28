@@ -21,6 +21,7 @@
 #include "NXRGBuilder.h"
 #include "NXGPUTerrainManager.h"
 #include "NXVirtualTextureManager.h"
+#include "NXTerrainStreamingBatcher.h"
 
 Renderer::Renderer(const Vector2& rtSize) :
 	m_bRenderGUI(true),
@@ -95,6 +96,7 @@ void Renderer::GenerateRenderGraph()
 {
 	m_pRenderGraph->Destroy();
 	m_pRenderGraph->SetViewResolution(m_viewRTSize);
+
 
 	NXRGResource* pTerrainBufferA = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainBufferA());
 	NXRGResource* pTerrainBufferB = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainBufferB());

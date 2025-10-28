@@ -640,8 +640,12 @@
     <ClCompile Include="Nix\NXTerrainStreamingAsyncLoader.cpp">
       <Filter>Nix\TextureStreaming</Filter>
     </ClCompile>
-    <ClCompile Include="Core\NXTerrainStreamingPass.cpp" />
-    <ClCompile Include="Nix\NXTerrainStreamingBatcher.cpp" />
+    <ClCompile Include="Nix\NXTerrainStreamingBatcher.cpp">
+      <Filter>Nix\TextureStreaming</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXTerrainStreamingPass.cpp">
+      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -1082,8 +1086,12 @@
     <ClInclude Include="Nix\NXTerrainStreamingAsyncLoader.h">
       <Filter>Nix\TextureStreaming</Filter>
     </ClInclude>
-    <ClInclude Include="Core\NXTerrainStreamingPass.h" />
-    <ClInclude Include="Nix\NXTerrainStreamingBatcher.h" />
+    <ClInclude Include="Nix\NXTerrainStreamingBatcher.h">
+      <Filter>Nix\TextureStreaming</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXTerrainStreamingPass.h">
+      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="八字无撇的待办事项.txt" />

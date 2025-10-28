@@ -1269,6 +1269,19 @@ void NXTexture2DArray::CreateRT(const std::string& debugName, DXGI_FORMAT texFor
 	CreateRenderTextureInternal(flags);
 }
 
+void NXTexture2DArray::CreateUAVTexture(const std::string& debugName, DXGI_FORMAT fmt, uint32_t width, uint32_t height, uint32_t arraySize, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags)
+{
+	m_texFilePath = "[UAV Texture2DArray: " + debugName + "]";
+	m_name = debugName;
+	m_width = width;
+	m_height = height;
+	m_arraySize = arraySize;
+	m_mipLevels = mipLevels;
+	m_texFormat = fmt;
+
+	CreateUAVTextureInternal(flags);
+}
+
 void NXTexture2DArray::SetSRV(uint32_t index, uint32_t firstArraySlice, uint32_t arraySize)
 {
 	NXAllocator_SRV->Alloc([this, index, firstArraySlice, arraySize](const D3D12_CPU_DESCRIPTOR_HANDLE& result) {

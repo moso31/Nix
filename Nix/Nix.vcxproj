@@ -157,7 +157,7 @@
       <ConformanceMode>false</ConformanceMode>
       <AdditionalIncludeDirectories>.\;..\;..\NXDebugLogOutput\;..\DirectxTex\DirectxTex\;..\XAllocator\;..\NixMath\;..\IMGUI\;..\NixTools\Include\;..\NixTools\Include\FBXSDK\;.\Core;.\Nix;.\Nix\Script;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OpenMPSupport>true</OpenMPSupport>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4267;4018</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>

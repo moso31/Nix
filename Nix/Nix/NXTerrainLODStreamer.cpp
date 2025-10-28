@@ -8,7 +8,7 @@
 
 NXTerrainLODStreamer::NXTerrainLODStreamer() :
     m_asyncLoader(new NXTerrainStreamingAsyncLoader()),
-    m_batcher(new NXTerrainStreamingBatcher())
+    m_batcher(NXTerrainStreamingBatcher::GetInstance())
 {
     // nodeDescArray长度固定不变
     m_nodeDescArray.resize(s_nodeDescArrayInitialSize);
@@ -148,7 +148,7 @@ void NXTerrainLODStreamer::ProcessCompletedStreamingTask()
 {
     for (auto& task : m_asyncLoader->ConsumeCompletedTasks())
     {
-        //m_batcher->Push(task);
+        m_batcher->PushCompletedTask(task);
     }
 }
 

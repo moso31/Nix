@@ -6,6 +6,13 @@
 #include "NXScriptResourceManager.h"
 #include "NXLightResourceManager.h"
 
+#define NXManager_Tex		NXResourceManager::GetInstance()->GetTextureManager()
+#define NXManager_Mat		NXResourceManager::GetInstance()->GetMaterialManager()
+#define NXManager_Mesh		NXResourceManager::GetInstance()->GetMeshManager()
+#define NXManager_Cam		NXResourceManager::GetInstance()->GetCameraManager()
+#define NXManager_Script	NXResourceManager::GetInstance()->GetScriptManager()
+#define NXManager_Lit		NXResourceManager::GetInstance()->GetLightManager()
+
 // by Moso31 2021.12.25
 // Updated by moso31 2023.3.28
 // 
