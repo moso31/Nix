@@ -25,10 +25,16 @@ NXGraphicPass::NXGraphicPass() :
 	m_psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 }
 
-void NXGraphicPass::SetInputTex(NXRGResource* pTex, uint32_t slotIndex)
+void NXGraphicPass::SetInputTex(NXRGResource* pTex, uint32_t slotIndex, uint32_t spaceIndex)
 {
-	if (m_pInTexs.size() <= slotIndex) m_pInTexs.resize(slotIndex + 1);
-	m_pInTexs[slotIndex] = pTex;
+	if (m_pInTexs.size() <= spaceIndex) m_pInTexs.resize(spaceIndex + 1);
+
+	auto& pInTex = m_pInTexs[spaceIndex];
+	if (pInTex.size() <= slotIndex) pInTex.resize(slotIndex + 1);
+	pInTex[slotIndex] = pTex;
+
+	if (m_rootParamLayout.srvCount.size() <= spaceIndex) m_rootParamLayout.srvCount.resize(spaceIndex + 1, 0);
+	m_rootParamLayout.srvCount[spaceIndex] = (uint32_t)pInTex.size();
 }
 
 void NXGraphicPass::SetOutputRT(NXRGResource* pTex, uint32_t rtIndex)
@@ -81,7 +87,7 @@ void NXGraphicPass::SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE type)
 
 void NXGraphicPass::InitPSO()
 {
-	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::GetDevice(), m_rootParams, m_staticSamplers);
+	InitRootParams();
 
 	ComPtr<IDxcBlob> pVSBlob, pPSBlob;
 	NXShaderComplier::GetInstance()->CompileVS(m_shaderFilePath, m_entryNameVS, pVSBlob.GetAddressOf());
@@ -116,7 +122,9 @@ void NXGraphicPass::RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList)
 	// DX12需要及时更新纹理的资源状态
 	for (int i = 0; i < (int)m_pInTexs.size(); i++)
 	{
-		m_pInTexs[i]->GetResource()->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		auto& pSpaceTexs = m_pInTexs[i];
+		for (int j = 0; j < (int)pSpaceTexs.size(); j++)
+			pSpaceTexs[j]->GetResource()->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	}
 	for (int i = 0; i < (int)m_pOutRTs.size(); i++)
 	{
@@ -150,8 +158,12 @@ void NXGraphicPass::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 	{
 		for (int i = 0; i < (int)m_pInTexs.size(); i++)
 		{
-			auto pRes = m_pInTexs[i]->GetResource();
-			NXShVisDescHeap->PushFluid(pRes.As<NXTexture>()->GetSRV());
+			auto& pSpaceTexs = m_pInTexs[i];
+			for (int j = 0; j < (int)pSpaceTexs.size(); j++)
+			{
+				auto pRes = pSpaceTexs[j]->GetResource();
+				NXShVisDescHeap->PushFluid(pRes.As<NXTexture>()->GetSRV());
+			}
 		}
 		D3D12_GPU_DESCRIPTOR_HANDLE srvHandle0 = NXShVisDescHeap->Submit();
 

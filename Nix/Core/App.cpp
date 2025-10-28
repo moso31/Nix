@@ -74,7 +74,7 @@ void App::Draw()
 {
 	// 增加帧计数 + 唤醒VT管线 同步更新一次（可能）
 	NXGlobalApp::s_frameIndex++;
-	NXVTStreaming->AwakeOnce();
+	//NXVTStreaming->AwakeOnce();
 
 	// 画渲染帧
 	m_pRenderer->RenderFrame();

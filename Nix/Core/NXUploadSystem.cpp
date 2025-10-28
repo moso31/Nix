@@ -135,6 +135,7 @@ NXUploadSystem::NXUploadSystem(ID3D12Device* pDevice) :
 	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_COPY;
 	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 	m_pDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_pCmdQueue));
+	m_pCmdQueue->SetName(L"NXUploadSystem CommandQueue");
 
 	m_pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_pFence));
 	m_pFence->SetName(L"NXUploadSystem Fence");

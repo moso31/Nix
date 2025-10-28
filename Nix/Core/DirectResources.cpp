@@ -11,13 +11,19 @@ DirectResources::DirectResources() :
 
 void DirectResources::InitDevice()
 {
+	HRESULT hr;
+
 #ifdef _DEBUG
-	//ComPtr<ID3D12Debug> debugController;
-	//D3D12GetDebugInterface(IID_PPV_ARGS(&debugController));
-	//debugController->EnableDebugLayer();
+	ComPtr<ID3D12Debug> debugController;
+	D3D12GetDebugInterface(IID_PPV_ARGS(&debugController));
+	debugController->EnableDebugLayer();
+	ComPtr<ID3D12Debug1> dbg1;
+	hr = debugController.As(&dbg1);
+	if (SUCCEEDED(hr)) {
+		dbg1->SetEnableGPUBasedValidation(FALSE); // ¹Ø±Õ GBV
+	}
 #endif
 
-	HRESULT hr;
 	hr = CreateDXGIFactory2(0, IID_PPV_ARGS(&m_pDXGIFactory));
 
 	ComPtr<IDXGIAdapter1> pAdapter;

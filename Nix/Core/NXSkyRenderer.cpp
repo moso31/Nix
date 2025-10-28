@@ -15,8 +15,6 @@ NXSkyRenderer::~NXSkyRenderer()
 
 void NXSkyRenderer::SetupInternal()
 {
-	SetPassName("Sky (CubeMap IBL)");
-
 	SetShaderFilePath("Shader\\CubeMap.fx");
 	SetInputLayout(NXGlobalInputLayout::layoutP);
 	SetRenderTargetMesh("_CubeMapSphere");

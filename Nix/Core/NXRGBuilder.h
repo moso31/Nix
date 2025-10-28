@@ -23,13 +23,12 @@ public:
 	// passSlotIndex = 最终pass shader使用的slot索引。
 	void Read(NXRGResource* pResource, uint32_t passSlotIndex);
 
-	// 设置Pass的根参数布局
-	void SetRootParamLayout(uint32_t cbvCount, uint32_t srvCount, uint32_t uavCount);
-
 	// 设置Pass输入的CB
 	// rootIndex = root signature中CB所在的索引
 	// slotIndex = shader中CB所在的slot索引
+	// spaceIndex = shader中CB所在的space索引，若不指定则为 0
 	void ReadConstantBuffer(uint32_t rootIndex, uint32_t slotIndex, NXConstantBufferImpl* pConstantBuffer);
+	void ReadConstantBuffer(uint32_t rootIndex, uint32_t slotIndex, uint32_t spaceIndex, NXConstantBufferImpl* pConstantBuffer);
 
 	// 设置pass输出RT/DS。
 	// outRTIndex = pass shader 输出的RT索引（DS忽略此参数）

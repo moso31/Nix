@@ -16,14 +16,14 @@ void NXRGBuilder::Read(NXRGResource* pResource, uint32_t passSlotIndex)
 	return m_pPassNode->Read(pResource, passSlotIndex);
 }
 
-void NXRGBuilder::SetRootParamLayout(uint32_t cbvCount, uint32_t srvCount, uint32_t uavCount)
-{
-	m_pPassNode->SetRootParamLayout(cbvCount, srvCount, uavCount);
-}
-
 void NXRGBuilder::ReadConstantBuffer(uint32_t rootIndex, uint32_t slotIndex, NXConstantBufferImpl* pConstantBuffer)
 {
-	m_pPassNode->ReadConstantBuffer(rootIndex, slotIndex, pConstantBuffer);
+	m_pPassNode->ReadConstantBuffer(rootIndex, slotIndex, 0, pConstantBuffer);
+}
+
+void NXRGBuilder::ReadConstantBuffer(uint32_t rootIndex, uint32_t slotIndex, uint32_t spaceIndex, NXConstantBufferImpl* pConstantBuffer)
+{
+	m_pPassNode->ReadConstantBuffer(rootIndex, slotIndex, spaceIndex, pConstantBuffer);
 }
 
 NXRGResource* NXRGBuilder::WriteRT(NXRGResource* pResource, uint32_t outRTIndex, bool keep)

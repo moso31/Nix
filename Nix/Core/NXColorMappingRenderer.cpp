@@ -19,7 +19,6 @@ NXColorMappingRenderer::~NXColorMappingRenderer()
 
 void NXColorMappingRenderer::SetupInternal()
 {
-	SetPassName("Color Mapping");
 	SetShaderFilePath(L"Shader\\ColorMapping.fx");
 
 	SetDepthStencilState(NXDepthStencilState<false, false, D3D12_COMPARISON_FUNC_ALWAYS>::Create());

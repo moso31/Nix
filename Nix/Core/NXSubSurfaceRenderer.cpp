@@ -19,8 +19,6 @@ NXSubSurfaceRenderer::~NXSubSurfaceRenderer()
 
 void NXSubSurfaceRenderer::SetupInternal()
 {
-	SetPassName("Burley 3S");
-
 	SetShaderFilePath(L"Shader\\SSSSSRenderer.fx");
 	SetDepthStencilState(NXDepthStencilState<false, false, D3D12_COMPARISON_FUNC_LESS, true, 0xFF, 0xFF, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_COMPARISON_FUNC_EQUAL>::Create());
 

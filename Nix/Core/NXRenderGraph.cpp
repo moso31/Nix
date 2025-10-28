@@ -151,7 +151,7 @@ void NXRenderGraph::Execute()
 
 		if (i == 1)
 		{
-			NXVTStreaming->GetFenceSync().ReadBegin(cQ);
+			//NXVTStreaming->GetFenceSync().ReadBegin(cQ);
 		}
 
 		ID3D12CommandList* pCmdLists[] = { cL };
@@ -159,7 +159,7 @@ void NXRenderGraph::Execute()
 
 		if (i == 1)
 		{
-			NXVTStreaming->GetFenceSync().ReadEnd(cQ);
+			//NXVTStreaming->GetFenceSync().ReadEnd(cQ);
 		}
 	}
 }

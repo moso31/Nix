@@ -406,7 +406,6 @@ void NXTexture::AfterTexMemoryAllocated(const NXTextureLoaderTaskResult& result,
 	m_pTexture = taskResult.pResource;
 	m_pTexture->SetName(NXConvert::s2ws(m_name).c_str());
 	SetRefCountDebugName(m_name);
-	m_resourceState = D3D12_RESOURCE_STATE_COPY_DEST;
 
 	for (auto& texChunk : chunks)
 	{

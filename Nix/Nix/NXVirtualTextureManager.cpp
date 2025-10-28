@@ -32,6 +32,8 @@ void NXVirtualTextureManager::BuildSearchList(float distance)
 
 void NXVirtualTextureManager::Update()
 {
+	return;
+
 	// 获取相机位置WS（整数）
 	Vector3 posWS = m_pCamera->GetTranslation();
 	posWS.x = std::floor(posWS.x / NXVT_SECTORSIZE) * NXVT_SECTORSIZE;

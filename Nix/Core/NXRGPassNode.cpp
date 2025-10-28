@@ -14,33 +14,21 @@ NXRGPassNodeBase::NXRGPassNodeBase(NXRenderGraph* pRenderGraph, const std::strin
 {
 }
 
-void NXRGPassNodeBase::SetRootParamLayout(uint32_t cbvCount, uint32_t srvCount, uint32_t uavCount)
-{
-	if (!m_pPass->IsRenderPass())
-		return;
-
-	auto* pRenderPass = (NXRenderPass*)m_pPass;
-	m_rootParamLayout.cbvCount = cbvCount;
-	m_rootParamLayout.srvCount = srvCount;
-	m_rootParamLayout.uavCount = uavCount;
-	pRenderPass->SetRootParamLayout(m_rootParamLayout);
-}
-
 void NXRGPassNodeBase::Read(NXRGResource* pResource, uint32_t passSlotIndex)
 {
 	m_inputs.push_back({ pResource, passSlotIndex });
 }
 
-void NXRGPassNodeBase::ReadConstantBuffer(uint32_t rootIndex, uint32_t slotIndex, NXConstantBufferImpl* pConstantBuffer)
+void NXRGPassNodeBase::ReadConstantBuffer(uint32_t rootIndex, uint32_t slotIndex, uint32_t spaceIndex, NXConstantBufferImpl* pConstantBuffer)
 {
 	if (!m_pPass->IsRenderPass())
 		return;
 
-	// 目前的规定是 必须先SetRootParamLayout才能调用ReadConstantBuffer（长期要去掉这个策略吗？）
-	assert(m_rootParamLayout.cbvCount > rootIndex);
-
 	auto* pRenderPass = (NXRenderPass*)m_pPass;
-	pRenderPass->SetStaticRootParamCBV(rootIndex, slotIndex, &pConstantBuffer->GetFrameGPUAddresses());
+	if (pConstantBuffer)
+		pRenderPass->SetRootParamCBV(rootIndex, slotIndex, spaceIndex, &pConstantBuffer->GetFrameGPUAddresses());
+	else
+		pRenderPass->ForceSetRootParamCBV(rootIndex, slotIndex, spaceIndex);
 }
 
 NXRGResource* NXRGPassNodeBase::WriteRT(NXRGResource* pResource, uint32_t outRTIndex, bool useOldVersion)
@@ -152,7 +140,7 @@ void NXRGPassNodeBase::Compile_GraphicsPass(bool isResize)
 	auto pPass = (NXGraphicPass*)m_pPass;
 	for (auto pInResSlot : m_inputs)
 	{
-		pPass->SetInputTex(pInResSlot.resource, pInResSlot.slot);
+		pPass->SetInputTex(pInResSlot.resource, pInResSlot.slot, pInResSlot.space);
 	}
 
 	for (auto pOutResSlot : m_outputs)
@@ -175,18 +163,18 @@ void NXRGPassNodeBase::Compile_ComputePass(bool isResize)
 	auto pPass = (NXComputePass*)m_pPass;
 	for (auto pInResSlot : m_inputs)
 	{
-		pPass->SetInput(pInResSlot.resource, pInResSlot.slot);
+		pPass->SetInput(pInResSlot.resource, pInResSlot.slot, pInResSlot.space);
 	}
 
 	for (auto pOutResSlot : m_outputs)
 	{
 		auto pOutRes = pOutResSlot.resource;
-		pPass->SetOutput(pOutRes, pOutResSlot.slot, false);
+		pPass->SetOutput(pOutRes, pOutResSlot.slot, pOutResSlot.space, false);
 
 		if (pOutResSlot.uavCounterSlot != -1)
 		{
 			// 只有 uav counter 的逻辑才会走这里
-			pPass->SetOutput(pOutRes, pOutResSlot.uavCounterSlot, true);
+			pPass->SetOutput(pOutRes, pOutResSlot.uavCounterSlot, pOutResSlot.uavCounterSpace, true);
 		}
 	}
 

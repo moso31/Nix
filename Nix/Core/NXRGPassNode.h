@@ -2,11 +2,13 @@
 #include "NXRGUtil.h"
 #include "NXRGResource.h"
 
-struct NXRGResourceSlot
+struct NXRGResourceSlotSpace
 {
 	NXRGResource* resource;
 	uint32_t slot = (uint32_t)-1; // srv uav 的slot
 	uint32_t uavCounterSlot = (uint32_t)-1; // uav counter 的slot（如果有uav的话）
+	uint32_t space = 0; // srv uav 的space
+	uint32_t uavCounterSpace = 0; // uav counter 的space（如果有uav的话）
 };
 
 class NXRGPass;
@@ -21,11 +23,9 @@ public:
 
 	const std::string& GetName() { return m_passName; }
 
-	// 设置Pass的根参数布局
-	void SetRootParamLayout(uint32_t cbvCount, uint32_t srvCount, uint32_t uavCount);
-
 	// 设置Pass输入的CB
-	void ReadConstantBuffer(uint32_t rootIndex, uint32_t slotIndex, NXConstantBufferImpl* pConstantBuffer);
+	// 【TODO：暂时可传nullptr，表示给此CBV预留槽位，但不由NXRG指定。由于传统多Pass写法尚未完全解耦，故作此妥协】
+	void ReadConstantBuffer(uint32_t rootIndex, uint32_t slotIndex, uint32_t spaceIndex, NXConstantBufferImpl* pConstantBuffer);
 
 	// 设置Pass输入资源。
 	void Read(NXRGResource* pResource, uint32_t passSlotIndex);
@@ -48,8 +48,8 @@ public:
 	virtual void Execute(ID3D12GraphicsCommandList* pCmdList) = 0;
 
 	// 获取pass关联资源
-	const std::vector<NXRGResourceSlot>& GetInputs() { return m_inputs; }
-	const std::vector<NXRGResourceSlot>& GetOutputs() { return m_outputs; }
+	const std::vector<NXRGResourceSlotSpace>& GetInputs() { return m_inputs; }
+	const std::vector<NXRGResourceSlotSpace>& GetOutputs() { return m_outputs; }
 
 	void SetCommandContext(const NXRGCommandContext& ctx);
 
@@ -66,8 +66,8 @@ protected:
 	bool m_pPassInited;
 
 	// Pass记录自己依赖的资源指针（但不负责其生命周期）
-	std::vector<NXRGResourceSlot> m_inputs; 
-	std::vector<NXRGResourceSlot> m_outputs;
+	std::vector<NXRGResourceSlotSpace> m_inputs; 
+	std::vector<NXRGResourceSlotSpace> m_outputs;
 
 	// Pass是否使用间接参数作为draw/dispatch
 	NXRGResource* m_indirectArgs;
@@ -75,9 +75,6 @@ protected:
 	// 特化：如果是回读Pass，使用这个数据存回读Pass的data
 	// 【要做成NXRGResource节点也可以，但要改至少NXResource一级的继承结构，现阶段不是很划得来】
 	Ntr<NXReadbackData> m_readbackData;
-
-	// 记录当前pass的根参数布局
-	NXRGRootParamLayout m_rootParamLayout; 
 };
 
 template<typename NXRGPassData>
@@ -92,6 +89,7 @@ public:
 	{
 		if (!m_pPassInited)
 		{
+			m_pPass->SetPassName(m_passName);
 			m_pPass->SetupInternal();
 			m_pPassInited = true;
 		}

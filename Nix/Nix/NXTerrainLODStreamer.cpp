@@ -162,7 +162,7 @@ void NXTerrainLODStreamer::GetNodeDatasInternal(std::vector<std::vector<NXTerrai
     float range = s_distRanges[nodeLevel];
 
     auto pCamera = m_pScene->GetMainCamera();
-    Rect2D nodeRect(Vector2(node.positionWS.x, node.positionWS.y), node.size);
+    Rect2D nodeRect(Vector2((float)node.positionWS.x, (float)node.positionWS.y), (float)node.size);
     Circle2D camCircle(pCamera->GetTranslation().GetXZ(), range);
 
     // 如果相机范围-节点 相交

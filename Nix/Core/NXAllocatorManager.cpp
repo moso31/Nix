@@ -65,12 +65,12 @@ void NXAllocatorManager::Init()
 	addThread([this]() { m_pDSVAllocator->ExecuteTasks(); }, "NXDSVAllocator\n");
 
 	// 最后再初始化VT相关的，VT需要用到以上分配器
-	m_pVTStreaming = std::make_unique<NXVirtualTextureStreaming>();
-	m_pVTStreaming->Init();
+	//m_pVTStreaming = std::make_unique<NXVirtualTextureStreaming>();
+	//m_pVTStreaming->Init();
 
-	addThread([this]() { 
-		m_pVTStreaming->Update(); 
-		}, "NXVirtualTextureStreaming\n");
+	//addThread([this]() { 
+	//	m_pVTStreaming->Update(); 
+	//	}, "NXVirtualTextureStreaming\n");
 
 	m_pTerrainStreamingAsyncLoader = std::make_unique<NXTerrainStreamingAsyncLoader>();
 	addThread([this]() {

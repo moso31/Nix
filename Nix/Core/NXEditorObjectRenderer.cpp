@@ -23,8 +23,6 @@ NXEditorObjectRenderer::~NXEditorObjectRenderer()
 
 void NXEditorObjectRenderer::SetupInternal()
 {
-	SetPassName("Editor Objects");
-
 	SetShaderFilePath(L"Shader\\EditorObjects.fx");
 	SetBlendState(NXBlendState<false, false, true, false, D3D12_BLEND_SRC_ALPHA, D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_OP_ADD>::Create());
 	SetRasterizerState(NXRasterizerState<D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_NONE>::Create());

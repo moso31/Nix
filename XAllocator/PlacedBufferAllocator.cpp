@@ -15,7 +15,7 @@ void ccmem::PlacedBufferAllocator::Alloc(D3D12_RESOURCE_DESC* desc, uint32_t byt
 		const auto& memData = taskResult.memData;
 		PlacedBufferAllocTaskResult result;
 		D3D12_RESOURCE_DESC* texDesc = reinterpret_cast<D3D12_RESOURCE_DESC*>(taskResult.pTaskContext);
-		m_pDevice->CreatePlacedResource(m_allocatorMap[memData.pAllocator].pHeap, memData.byteOffset, texDesc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&result.pResource));
+		m_pDevice->CreatePlacedResource(m_allocatorMap[memData.pAllocator].pHeap, memData.byteOffset, texDesc, D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&result.pResource));
 		result.memData = memData;
 		callback(result);
 	});

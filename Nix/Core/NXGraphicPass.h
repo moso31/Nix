@@ -19,11 +19,11 @@ public:
 
 	virtual void SetupInternal() = 0;
 
-	void SetInputTex(NXRGResource* pTex, uint32_t slotIndex);
+	void SetInputTex(NXRGResource* pTex, uint32_t slotIndex, uint32_t spaceIndex = 0);
 	void SetOutputRT(NXRGResource* pTex, uint32_t rtIndex);
 	void SetOutputDS(NXRGResource* pTex);
 
-	NXRGResource* GetInputTex(uint32_t slotIndex) { return m_pInTexs[slotIndex]; }
+	NXRGResource* GetInputTex(uint32_t slotIndex, uint32_t spaceIndex = 0) { return m_pInTexs[spaceIndex][slotIndex]; }
 	NXRGResource* GetOutputRT(uint32_t index) { return m_pOutRTs[index]; }
 	NXRGResource* GetOutputDS() { return m_pOutDS; }
 
@@ -50,11 +50,11 @@ public:
 private:
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC		m_psoDesc;
 	ComPtr<ID3D12PipelineState>				m_pPSO;
-	ComPtr<ID3D12RootSignature>				m_pRootSig;
 	UINT m_stencilRef;
 	Vector2 m_viewPortSize;
 
-	std::vector<NXRGResource*>				m_pInTexs;
+	// [space][slot]
+	std::vector<std::vector<NXRGResource*>>	m_pInTexs;
 	std::vector<NXRGResource*>				m_pOutRTs;
 	NXRGResource*							m_pOutDS;
 

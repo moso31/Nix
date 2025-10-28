@@ -21,8 +21,8 @@ public:
 
 	void SetThreadGroups(uint32_t threadGroupX, uint32_t threadGroupY = 1, uint32_t threadGroupZ = 1);
 
-	void SetInput(NXRGResource* pRes, uint32_t slotIndex);
-	void SetOutput(NXRGResource* pRes, uint32_t slotIndex, bool IsUAVCounter = false);
+	void SetInput(NXRGResource* pRes, uint32_t slotIndex, uint32_t spaceIndex = 0);
+	void SetOutput(NXRGResource* pRes, uint32_t slotIndex, uint32_t spaceIndex, bool IsUAVCounter = false);
 	void SetIndirectArguments(NXRGResource* pRes);
 
 	virtual void RenderSetTargetAndState();
@@ -34,16 +34,16 @@ public:
 	void SetBufferAsIndirectArg(NXRGResource* pUAVCounterRes);
 
 private:
-	D3D12_COMPUTE_PIPELINE_STATE_DESC		m_csoDesc;
-	ComPtr<ID3D12PipelineState>				m_pCSO;
-	ComPtr<ID3D12RootSignature>				m_pRootSig;
-	ComPtr<ID3D12CommandSignature>			m_pCommandSig;
+	D3D12_COMPUTE_PIPELINE_STATE_DESC			m_csoDesc;
+	ComPtr<ID3D12PipelineState>					m_pCSO;
+	ComPtr<ID3D12CommandSignature>				m_pCommandSig;
 
-	uint32_t 								m_threadGroupX;
-	uint32_t 								m_threadGroupY;
-	uint32_t 								m_threadGroupZ;
+	uint32_t 									m_threadGroupX;
+	uint32_t 									m_threadGroupY;
+	uint32_t 									m_threadGroupZ;
 
-	std::vector<NXRGResource*>				m_pInRes;
-	std::vector<NXRGResourceUAV>			m_pOutRes;
-	NXRGResource*							m_pIndirectArgs;
+	// [space][slot]
+	std::vector<std::vector<NXRGResource*>>		m_pInRes;
+	std::vector<std::vector<NXRGResourceUAV>>	m_pOutRes;
+	NXRGResource*								m_pIndirectArgs;
 };
