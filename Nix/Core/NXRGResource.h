@@ -1,5 +1,5 @@
 #pragma once
-#include "NXRGHandle.h"
+#include "NXRGResourceVersion.h"
 #include "NXTexture.h"
 #include "NXBuffer.h"
 
@@ -52,7 +52,7 @@ public:
 
 	const std::string& GetName() { return m_name; }
 
-	NXRGHandle* GetHandle() { return m_handle; }
+	NXRGResourceVersion* GetVersion() { return m_version; }
 	const NXRGDescription& GetDescription() { return m_description; }
 
 	bool HasWrited() { return m_bHasWrited; }
@@ -67,7 +67,7 @@ private:
 	std::string m_name;
 	bool m_bHasWrited;
 
-	NXRGHandle* m_handle;
+	NXRGResourceVersion* m_version;
 	NXRGDescription m_description;
 
 	Ntr<NXResource> m_pResource;

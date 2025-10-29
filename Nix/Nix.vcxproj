@@ -241,7 +241,7 @@
     <ClCompile Include="Core\NXRenderGraph.cpp" />
     <ClCompile Include="Core\NXRenderPass.cpp" />
     <ClCompile Include="Core\NXRGBuilder.cpp" />
-    <ClCompile Include="Core\NXRGHandle.cpp" />
+    <ClCompile Include="Core\NXRGResourceVersion.cpp" />
     <ClCompile Include="Core\NXRGPass.cpp" />
     <ClCompile Include="Core\NXRGPassNode.cpp" />
     <ClCompile Include="Core\NXRGResource.cpp" />
@@ -378,7 +378,7 @@
     <ClInclude Include="Core\NXRenderGraph.h" />
     <ClInclude Include="Core\NXRenderPass.h" />
     <ClInclude Include="Core\NXRGBuilder.h" />
-    <ClInclude Include="Core\NXRGHandle.h" />
+    <ClInclude Include="Core\NXRGResourceVersion.h" />
     <ClInclude Include="Core\NXRGPass.h" />
     <ClInclude Include="Core\NXRGPassNode.h" />
     <ClInclude Include="Core\NXRGResource.h" />

@@ -84,21 +84,14 @@ public:
 
 	void Init(NXScene* m_pScene);
 
-	// 获取6档距离内的节点，输出一个list[6]；只要是当前档次距离能覆盖的，统统加入到预加载队列
-	// nodeData总是临时的！所以无需释放
-	void GetNodeDatas(std::vector<std::vector<NXTerrainLODQuadTreeNode>>& oNodeDataList);
-
 	// 每帧更新
 	void Update();
 
-	// 每帧更新时先处理那些已经完成的流式任务
 	void ProcessCompletedStreamingTask();
 
 private:
+	// 获取6档距离内的节点，输出一个list[6]；只要是当前档次距离能覆盖的，统统加入到预加载队列
 	void GetNodeDatasInternal(std::vector<std::vector<NXTerrainLODQuadTreeNode>>& oNodeDataList, const NXTerrainLODQuadTreeNode& node);
-
-	// 在NodeDescArray中挑一个未使用（或者最老）的节点出来
-	void AcquireNodeDescSlot();
 
 private:
 	std::filesystem::path m_terrainWorkingDir = "D:\\NixAssets\\terrainTest";
@@ -107,14 +100,11 @@ private:
 	std::vector<NXTerrainLODQuadTreeNode> m_terrainRoots;
 
 	// "已经加载"到Atlas的节点
-	// 初始化直接resize，长度固定
+	// 长度固定，初始化直接resize
 	std::vector<NXTerrainLODQuadTreeNodeDescription> m_nodeDescArray;
 
 	// 异步加载器，异步读取tile纹理
 	NXTerrainStreamingAsyncLoader* m_asyncLoader;
-
-	// 合批烘焙，将读出的tile纹理合并到大图集
-	NXTerrainStreamingBatcher* m_batcher;
 
 	// 场景指针
 	NXScene* m_pScene; 

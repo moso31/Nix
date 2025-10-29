@@ -11,14 +11,17 @@ struct NXTerrainStreamingLoadTask_EachTexture
 
 struct TerrainStreamingLoadRequest
 {
-	// 要加载的地形块ID
-	Int2 terrainID; 
+	// node所处地形块ID
+	Int2 terrainID;
 
-	// 要加载的地形node的相对编号
-	Int2 relativePosID; 
+	// 地形node相对当前地形左下角的位置，取整数
+	Int2 relativePos; 
 
-	// 要加载的地形node的尺寸
-	uint32_t size; 
+	// 地形node的尺寸
+	uint32_t size;
+
+	// 地形node在nodeDescArray中的索引
+	uint32_t nodeDescArrayIndex;
 
 	// 每个任务包负责加载的对应子纹理集
 	NXTerrainStreamingLoadTask_EachTexture heightMap;
@@ -28,10 +31,19 @@ struct TerrainStreamingLoadRequest
 class NXTexture2D;
 struct NXTerrainStreamingLoadTextureResult
 {
+	// node所处地形块ID
 	Int2 terrainID;
-	Int2 relativePosID;
+
+	// 地形node相对当前地形左下角的位置，取整数
+	Int2 relativePos;
+
+	// 地形node的尺寸
 	uint32_t size;
 
+	// 地形node在nodeDescArray中的索引
+	uint32_t nodeDescArrayIndex;
+
+	// 每个任务包异步加载的纹理
 	Ntr<NXTexture2D> pHeightMap;
 	Ntr<NXTexture2D> pSplatMap;
 };

@@ -19,11 +19,11 @@ public:
 
 	void SetSubmitGroup(uint32_t index);
 
-	// 设置Pass输入资源。
+	// 给当前pass设置一个 纹理/Buffer 作为输入
 	// passSlotIndex = 最终pass shader使用的slot索引。
 	void Read(NXRGResource* pResource, uint32_t passSlotIndex);
 
-	// 设置Pass输入的CB
+	// 给当前pass设置一个 常量缓冲 作为输入
 	// rootIndex = root signature中CB所在的索引
 	// slotIndex = shader中CB所在的slot索引
 	// spaceIndex = shader中CB所在的space索引，若不指定则为 0

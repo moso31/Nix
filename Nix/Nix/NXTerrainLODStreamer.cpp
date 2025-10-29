@@ -7,8 +7,7 @@
 #include "NXTerrainStreamingBatcher.h"
 
 NXTerrainLODStreamer::NXTerrainLODStreamer() :
-    m_asyncLoader(new NXTerrainStreamingAsyncLoader()),
-    m_batcher(NXTerrainStreamingBatcher::GetInstance())
+    m_asyncLoader(new NXTerrainStreamingAsyncLoader())
 {
     // nodeDescArray长度固定不变
     m_nodeDescArray.resize(s_nodeDescArrayInitialSize);
@@ -36,24 +35,18 @@ void NXTerrainLODStreamer::Init(NXScene* pScene)
     }
 }
 
-void NXTerrainLODStreamer::GetNodeDatas(std::vector<std::vector<NXTerrainLODQuadTreeNode>>& oNodeDataList)
+void NXTerrainLODStreamer::Update()
 {
-	oNodeDataList.clear();
-	oNodeDataList.resize(6);
+    // 获取6档LOD覆盖的所有四叉树节点
+    std::vector<std::vector<NXTerrainLODQuadTreeNode>> nodeLists(6);
 
     // 遍历所有地形
     for (auto& terrainRoot : m_terrainRoots)
     {
-        GetNodeDatasInternal(oNodeDataList, terrainRoot);
+        GetNodeDatasInternal(nodeLists, terrainRoot);
     }
-}
 
-void NXTerrainLODStreamer::Update()
-{
-    std::vector<std::vector<NXTerrainLODQuadTreeNode>> nodeLists;
-    GetNodeDatas(nodeLists);
-
-    // 统计本帧需要加载的node
+    // 统计本帧需要加载的nodeId
     std::vector<uint32_t> nextLoadingNodeDescIndices;
 
     // 逆序，因为nodeLevel越大，对应node表示的精度越高；这里需要优先加载精度最高的
@@ -130,8 +123,9 @@ void NXTerrainLODStreamer::Update()
 
         TerrainStreamingLoadRequest task;
         task.terrainID = data.terrainID;
-        task.relativePosID = relativePosID;
+        task.relativePos = relativePos;
         task.size = data.size;
+		task.nodeDescArrayIndex = loadingDesc;
         
         // 使用正确的路径分隔符，确保与TextureMaker的路径格式一致
         task.heightMap.path = m_terrainWorkingDir / strTerrId / "sub" / "hmap" / (strTerrSubID + ".dds");
@@ -148,7 +142,7 @@ void NXTerrainLODStreamer::ProcessCompletedStreamingTask()
 {
     for (auto& task : m_asyncLoader->ConsumeCompletedTasks())
     {
-        m_batcher->PushCompletedTask(task);
+        NXTerrainStreamingBatcher::GetInstance()->PushCompletedTask(task);
     }
 }
 
@@ -180,17 +174,4 @@ void NXTerrainLODStreamer::GetNodeDatasInternal(std::vector<std::vector<NXTerrai
             }
         }
     }
-}
-
-void NXTerrainLODStreamer::AcquireNodeDescSlot()
-{
-	for (auto& nodeDesc : m_nodeDescArray)
-	{
-        // 找到一个未使用的节点
-		if (!nodeDesc.isValid && !nodeDesc.isLoading)
-		{
-			nodeDesc.isLoading = true;
-			return;
-		}
-	}
 }

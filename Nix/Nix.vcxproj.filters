@@ -562,7 +562,7 @@
     <ClCompile Include="Core\NXRGBuilder.cpp">
       <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClCompile>
-    <ClCompile Include="Core\NXRGHandle.cpp">
+    <ClCompile Include="Core\NXRGResourceVersion.cpp">
       <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXConvertString.cpp">
@@ -987,7 +987,7 @@
     <ClInclude Include="Core\NXRGBuilder.h">
       <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClInclude>
-    <ClInclude Include="Core\NXRGHandle.h">
+    <ClInclude Include="Core\NXRGResourceVersion.h">
       <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXSubMeshCommon.h">

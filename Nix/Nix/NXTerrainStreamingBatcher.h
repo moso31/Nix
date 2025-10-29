@@ -1,10 +1,11 @@
 #pragma once
 #include "BaseDefs/DX12.h"
+#include "NXInstance.h"
 #include "NXTerrainStreamingAsyncLoader.h"
 #include "NXTexture.h"
 #include "NXConstantBuffer.h"
 #include "NXBuffer.h"
-#include "NXInstance.h"
+#include <vector>
 
 struct CBufferTerrainBatchConfig
 {
@@ -12,22 +13,28 @@ struct CBufferTerrainBatchConfig
 	int _pad[3];
 };
 
-struct NXTerrainStreamNodeDescription
+struct NXTerrainStreamBatcherNodeDescription
 {
-	Int2 pos;
-	Int2 size;
-	Int2 minmaxZ;
-	Int2 lodbias;
-	Int2 atlasUV;
+	Int2 relativePos;
+	uint32_t size;
+	uint32_t nodeDescArrayIndex;
+};
+
+struct NXTerrainStreamNodeDescriptionGPU
+{
+	Int2 relativePos;	// 相对地形左下角的位置
+	uint32_t size;		// 节点尺寸
+	Vector2 minMaxZ;	// 高度范围
+	Vector2 atlasUV;	// 在Atlas中的UV坐标（左下角）
 };
 
 /// <summary>
 ///	DX12管线，在主线程上运行。
 /// 通过CS 将异步加载完成的多个小纹理合并到大Atlas
 /// - input
-///		- `m_batchTextures`到根参数
-///		- `m_batchNodeDescriptions`到根参数
-///		- `QuadTreeTexture`到根参数
+///		- 多个 HeightMap 纹理
+/// 	- 多个 SplatMap 纹理
+///		- 
 ///	- output
 ///		- `QuadTreeTexture`
 ///		- `NodeDescArray(GPU)`
@@ -44,19 +51,25 @@ public:
     void PushCompletedTask(const NXTerrainStreamingLoadTextureResult& task);
 
 	Ntr<NXTexture2D> GetSector2NodeIDTexture() const { return m_pSector2NodeIDTexture; }
-	Ntr<NXBuffer> GetNodeDescriptionsArray() const { return m_pNodeDescriptionsArray; }
 	Ntr<NXTexture2DArray> GetHeightMapAtlas() const { return m_pHeightMapAtlas; }
 	Ntr<NXTexture2DArray> GetSplatMapAtlas() const { return m_pSplatMapAtlas; }
+	Ntr<NXBuffer> GetNodeDescriptionsArrayGPU() const { return m_pNodeDescriptionsArray; }
+
+	NXConstantBuffer<std::vector<NXTerrainStreamBatcherNodeDescription>>& GetBatchingNodeDescCBuffer() { return m_batchingNodeDesc; }
 
 private:
 	// in, 当前帧处理的纹理 
 	std::vector<Ntr<NXTexture2D>> m_batchingHeightMap;
 	std::vector<Ntr<NXTexture2D>> m_batchingSplatMap;
 
-	// in-out, 纹理，记录sector-nodeID的映射
+	// in, CBuffer，记录要写到Atlas的纹理信息
+	std::vector<NXTerrainStreamBatcherNodeDescription> m_batchingNodeDescData;
+	NXConstantBuffer<std::vector<NXTerrainStreamBatcherNodeDescription>> m_batchingNodeDesc;
+
+	// out, 纹理，记录sector-nodeID的映射
 	Ntr<NXTexture2D> m_pSector2NodeIDTexture;
 
-	// in-out, NodeDescriptionsArray
+	// out, NodeDescriptionsArray
 	Ntr<NXBuffer> m_pNodeDescriptionsArray;
 
 	// out, 输出Atlas

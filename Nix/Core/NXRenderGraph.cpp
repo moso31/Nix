@@ -1,6 +1,6 @@
 #include "BaseDefs/DX12.h"
 #include "NXRenderGraph.h"
-#include "NXRGHandle.h"
+#include "NXRGResourceVersion.h"
 #include "NXRGPassNode.h"
 #include "NXRGResource.h"
 #include "NXTexture.h"

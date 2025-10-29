@@ -17,8 +17,9 @@ void NXTerrainStreamingAsyncLoader::Update()
 	{
 		NXTerrainStreamingLoadTextureResult nextTask;
 		nextTask.terrainID = task.terrainID;
-		nextTask.relativePosID = task.relativePosID;
+		nextTask.relativePos = task.relativePos;
 		nextTask.size = task.size;
+		nextTask.nodeDescArrayIndex = task.nodeDescArrayIndex;
 		nextTask.pHeightMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(task.heightMap.name, task.heightMap.path);
 		nextTask.pSplatMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(task.splatMap.name, task.splatMap.path);
 

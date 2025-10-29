@@ -61,6 +61,8 @@ void Renderer::Init()
 	NXGPUTerrainManager::GetInstance()->Init();
 
 	m_scene->Init();
+	m_pTerrainLODStreamer = new NXTerrainLODStreamer();
+	m_pTerrainLODStreamer->Init(m_scene);
 	NXVirtualTextureManager::GetInstance()->Init();
 	NXVirtualTextureManager::GetInstance()->BuildSearchList(400);
 	NXVirtualTextureManager::GetInstance()->SetCamera(m_scene->GetMainCamera());
@@ -97,6 +99,18 @@ void Renderer::GenerateRenderGraph()
 	m_pRenderGraph->Destroy();
 	m_pRenderGraph->SetViewResolution(m_viewRTSize);
 
+	//struct TerrainStreamBatcherData
+	//{
+
+	//};
+
+	//m_pRenderGraph->AddComputePass<TerrainStreamBatcherData>("Terrain Streaming Batcher", new NXTerrainStreamingPass(),
+	//	[=](NXRGBuilder& builder, TerrainStreamBatcherData& data) {
+	//		builder.SetSubmitGroup(0);
+	//		//builder.Read()
+	//	},
+	//	[=](ID3D12GraphicsCommandList* pCmdList, TerrainStreamBatcherData& data) {
+	//	});
 
 	NXRGResource* pTerrainBufferA = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainBufferA());
 	NXRGResource* pTerrainBufferB = m_pRenderGraph->ImportBuffer(NXGPUTerrainManager::GetInstance()->GetTerrainBufferB());
@@ -499,6 +513,9 @@ void Renderer::ResourcesReloading(DirectResources* pDXRes)
 
 void Renderer::Update()
 {
+	m_pTerrainLODStreamer->ProcessCompletedStreamingTask();
+	m_pTerrainLODStreamer->Update();
+
 	UpdateGUI();
 	UpdateSceneData();
 }

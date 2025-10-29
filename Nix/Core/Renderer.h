@@ -2,6 +2,7 @@
 #include "NXGlobalDefinitions.h"
 #include "NXBRDFlut.h"
 #include "DirectResources.h"
+#include "NXTerrainLODStreamer.h"
 
 #include "NXDepthPrepass.h"
 #include "NXGBufferRenderer.h"
@@ -116,4 +117,6 @@ private:
 
 	Ntr<NXReadbackData> m_vtReadbackData;
 	Int2 m_vtReadbackDataSize;
+
+	NXTerrainLODStreamer* m_pTerrainLODStreamer;
 };

@@ -1,14 +1,14 @@
 #pragma once
 #include "BaseDefs/NixCore.h"
 
-class NXRGHandle
+class NXRGResourceVersion
 {
 	static int s_id;
 	static std::map<int, int> s_indexToVersion;
 
 public:
 	// 新建资源，index自增
-	NXRGHandle() : 
+	NXRGResourceVersion() : 
 		m_index(s_id++)
 	{
 		s_indexToVersion[m_index] = 0;
@@ -16,7 +16,7 @@ public:
 	}
 
 	// 复用资源时调用，index不增加，version自增
-	NXRGHandle(NXRGHandle* handle) 
+	NXRGResourceVersion(NXRGResourceVersion* handle) 
 	{
 		m_index = handle->m_index;
 		m_version = ++s_indexToVersion[m_index];
@@ -28,7 +28,7 @@ public:
 		s_indexToVersion.clear();
 	}
 
-	bool operator==(const NXRGHandle& other) const
+	bool operator==(const NXRGResourceVersion& other) const
 	{
 		return m_index == other.m_index && m_version == other.m_version;
 	}
