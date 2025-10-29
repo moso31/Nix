@@ -49,6 +49,10 @@ private:
 	// 计数器buffer，用于UAV的计数
 	MultiFrame<ComPtr<ID3D12Resource>> m_pUAVCounterBuffer;
 
+	// 记录当前资源在NXUploadSys中的FenceValue
+	MultiFrame<uint64_t> m_lastUploadSysFenceValue_buffer;
+	MultiFrame<uint64_t> m_lastUploadSysFenceValue_uavCounter;
+
 	MultiFrame<D3D12_RESOURCE_STATES> m_resourceState;
 
 	uint32_t m_stride;
