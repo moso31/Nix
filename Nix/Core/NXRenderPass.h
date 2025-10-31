@@ -6,25 +6,8 @@
 #include "NXCommonTexDefinition.h"
 #include "NXTexture.h"
 
-// 在DX12要绑定CB，需要提供对应CBV的gpuHandle。
-// cmdList将使用gpuHandle。
-struct NXCBVManagement
-{
-	// 用于记录每帧 cmdList如何接收 cbv gpu 虚拟地址。
-	// true: 使用 multiFrameGpuVirtAddr 中的地址；
-	// false: 派生类手动更新，这里不用管。
-	bool autoUpdate = false;
-
-	// 如果启用autoUpdate，使用这里的gpuHandle（D3D12_GPU_VIRTUAL_ADDRESS）。
-	const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>* multiFrameGpuVirtAddr;
-
-	// 如果启用autoUpdate, 记录cbv绑定的根参数的slot space.
-	int cbvSpace = 0;
-	int cbvSlot = 0;
-};
-
 class NXRGResource;
-class NXRenderPass : public NXRGPass
+class NXRenderPass : public NXRGPass	
 {
 public:
 	NXRenderPass(NXRenderPassType type);

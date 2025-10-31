@@ -646,6 +646,9 @@
     <ClCompile Include="Core\NXTerrainStreamingPass.cpp">
       <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\NXPassMaterial.cpp">
+      <Filter>Nix\Material</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -1091,6 +1094,9 @@
     </ClInclude>
     <ClInclude Include="Core\NXTerrainStreamingPass.h">
       <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXPassMaterial.h">
+      <Filter>Nix\Material</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

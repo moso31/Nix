@@ -1,0 +1,158 @@
+#pragma once
+#include "NXPBRMaterial.h"
+
+struct NXPassMatLayout
+{
+	int cbvSlotNum = 0;
+	int cbvSpaceNum = 0;
+	int srvSlotNum = 0;
+	int srvSpaceNum = 0;
+
+	union
+	{
+		struct // Graphic Pass
+		{
+			int rtNum;
+		};
+		struct // Compute Pass
+		{
+			int uavSlotNum;
+			int uavSpaceNum;
+		};
+	};
+};
+
+class NXPassMaterial : public NXMaterial
+{
+public:
+	NXPassMaterial(const std::string& name, const std::filesystem::path& shaderPath = {});
+
+	void SetShaderFilePath(const std::filesystem::path& shaderFilePath);
+	void SetConstantBuffer(int spaceIndex, int slotIndex, NXConstantBufferImpl* pCBuffer);
+
+	void AddStaticSampler(const D3D12_STATIC_SAMPLER_DESC& staticSampler);
+	void AddStaticSampler(D3D12_FILTER filter, D3D12_TEXTURE_ADDRESS_MODE addrUVW);
+
+	void Update() = 0;
+	void Render(ID3D12GraphicsCommandList*) = 0;
+	void Release() = 0;
+
+	void InitRootParams();
+
+protected:
+	ComPtr<ID3D12PipelineState> m_pso;
+	
+	// 当前 Nix 的根参数（和采样器）-寄存器的布局规则：
+	// 根参数索引按以下顺序排列：
+	// 1. CBV：每个slot,space占用一个根参数
+	// 	  按：space0的b0，b1，...，space1的b0，b1，...的顺序排列根参数
+	// 2. SRV：
+	//	  每个space占用一个描述符Table，并占用一个根参数。
+	// 3. UAV：
+	//	  每个space占用一个描述符Table，并占用一个根参数。
+	// 4. 任何情况下都不使用根常量
+	// 5. 采样器始终使用StaticSampler，暂不考虑space和动态Sampler的问题，目前够用了
+	std::vector<D3D12_ROOT_PARAMETER> m_rootParams;
+	std::vector<D3D12_DESCRIPTOR_RANGE> m_srvRanges; // 这俩range必须用成员变量保存
+	std::vector<D3D12_DESCRIPTOR_RANGE> m_uavRanges;
+    NXPassMatLayout m_layout;
+	
+	std::filesystem::path m_shaderFilePath;
+	std::wstring m_entryNameVS;
+	std::wstring m_entryNamePS;
+	std::wstring m_entryNameCS;
+	
+	std::vector<D3D12_STATIC_SAMPLER_DESC> m_staticSamplers;
+    std::vector<std::vector<NXConstantBufferImpl*>> m_cbuffers;
+};
+
+class NXGraphicPassMaterial : public NXPassMaterial
+{
+public:
+	NXGraphicPassMaterial(const std::string& name, const std::filesystem::path& shaderPath = {});
+
+    void SetLayout(int cbvSlotNum, int cbvSpaceNum, int srvSlotNum, int srvSpaceNum, const std::vector<DXGI_FORMAT>& rtFormats, DXGI_FORMAT dsvFormat = DXGI_FORMAT_UNKNOWN);
+
+	void SetInputTex(int spaceIndex, int slotIndex, const Ntr<NXResource>& pTex);
+	void SetOutputRT(int index, const Ntr<NXResource>& pRT);
+	void SetOutputDS(const Ntr<NXResource>& pDS);
+
+	void SetInputLayout(const D3D12_INPUT_LAYOUT_DESC& desc);
+	void SetBlendState(const D3D12_BLEND_DESC& desc);
+	void SetRasterizerState(const D3D12_RASTERIZER_DESC& desc);
+	void SetDepthStencilState(const D3D12_DEPTH_STENCIL_DESC& desc);
+	void SetSampleDescAndMask(UINT Count, UINT Quality, UINT Mask);
+	void SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE type);
+	void SetStencilRef(const UINT stencilRef) { m_stencilRef = stencilRef; }
+	void SetRenderTargetMesh(const std::string& rtSubMeshName) { m_rtSubMeshName = rtSubMeshName; }
+	const std::string& GetRenderTargetMesh() const { return m_rtSubMeshName; }
+
+	void Compile();
+	void Update() override {}
+	void Render(ID3D12GraphicsCommandList* pCmdList) override;
+	void Release() override {}
+
+private:
+	void RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList);
+	void RenderBefore(ID3D12GraphicsCommandList* pCmdList);
+
+private:
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC m_psoDesc;
+
+	std::vector<std::vector<Ntr<NXResource>>> m_pInTexs; // [space][slot]
+	std::vector<Ntr<NXResource>> m_pOutRTs;
+	Ntr<NXResource> m_pOutDS;
+	std::vector<DXGI_FORMAT> m_rtFormats;
+	DXGI_FORMAT m_dsvFormat;
+	UINT m_stencilRef;
+	std::string m_rtSubMeshName;
+};
+
+struct NXResourceUAV
+{
+	Ntr<NXResource> pRes;
+	bool isUAVCounter = false;
+	
+	NXResourceUAV() = default;
+	NXResourceUAV(const Ntr<NXResource>& res, bool useCounter = false) : pRes(res), isUAVCounter(useCounter) {}
+};
+
+class NXComputePassMaterial : public NXPassMaterial
+{
+public:
+	NXComputePassMaterial(const std::string& name, const std::filesystem::path& shaderPath = {});
+
+    void SetLayout(int cbvSlotNum, int cbvSpaceNum, int srvSlotNum, int srvSpaceNum, int uavSlotNum, int uavSpaceNum);
+
+	void SetInput(int spaceIndex, int slotIndex, const Ntr<NXResource>& pRes);
+	void SetOutput(int spaceIndex, int slotIndex, const Ntr<NXResource>& pRes, bool isUAVCounter = false);
+	
+	void SetThreadGroups(uint32_t threadGroupX, uint32_t threadGroupY = 1, uint32_t threadGroupZ = 1);
+	uint32_t GetThreadGroupX() const { return m_threadGroupX; }
+	uint32_t GetThreadGroupY() const { return m_threadGroupY; }
+	uint32_t GetThreadGroupZ() const { return m_threadGroupZ; }
+	
+	// 将一个Buffer的UAV计数器绑定为indirectArgs-dispatch-X.
+	// 【TODO：应该是一个基类级别的函数吗？还是应该做一个派生，然后将它的逻辑实现在派生里？】
+	void SetBufferUAVCounterAsIndirectArgDispatchX(const Ntr<NXResource>& pRes, ID3D12GraphicsCommandList* pCmdList);
+	void SetIndirectArguments(const Ntr<NXResource>& pRes);
+
+	void Compile();
+	void Update() override;
+	void Render(ID3D12GraphicsCommandList* pCmdList) override;
+	void Release() override;
+
+private:
+	void RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList);
+	void RenderBefore(ID3D12GraphicsCommandList* pCmdList);
+
+private:
+	D3D12_COMPUTE_PIPELINE_STATE_DESC m_csoDesc;
+	Microsoft::WRL::ComPtr<ID3D12CommandSignature> m_pCommandSig;
+	std::vector<std::vector<Ntr<NXResource>>> m_pInRes;
+	std::vector<std::vector<NXResourceUAV>> m_pOutRes;
+	Ntr<NXResource> m_pIndirectArgs;
+	uint32_t m_threadGroupX;
+	uint32_t m_threadGroupY;
+	uint32_t m_threadGroupZ;
+};
