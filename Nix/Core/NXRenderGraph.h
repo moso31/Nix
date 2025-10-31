@@ -19,11 +19,10 @@ public:
 	NXRGPassNode<NXRGPassData>* AddPass(const std::string& name, NXGraphicPass* pRendererPass, std::function<void(NXRGBuilder& pBuilder, NXRGPassData& data)> setup, std::function<void(ID3D12GraphicsCommandList* pCmdList, NXRGPassData& data)> execute)
 	{
 		auto pPassNode = new NXRGPassNode<NXRGPassData>(this, name, pRendererPass);
-		NXRGBuilder pBuilder(this, pPassNode);
-		setup(pBuilder, pPassNode->GetData());
-
-		pPassNode->RegisterExecuteFunc(execute);
+		pPassNode->RegisterSetupFunc(std::move(setup));
+		pPassNode->RegisterExecuteFunc(std::move(execute));
 		m_passNodes.push_back(pPassNode);
+		m_passNodesMap[name] = pPassNode;
 		return pPassNode;
 	}
 
@@ -31,11 +30,10 @@ public:
 	NXRGPassNode<NXRGPassData>* AddComputePass(const std::string& name, NXComputePass* pComputePass, std::function<void(NXRGBuilder& pBuilder, NXRGPassData& data)> setup, std::function<void(ID3D12GraphicsCommandList* pCmdList, NXRGPassData& data)> execute)
 	{
 		auto pPassNode = new NXRGPassNode<NXRGPassData>(this, name, pComputePass);
-		NXRGBuilder pBuilder(this, pPassNode);
-		setup(pBuilder, pPassNode->GetData());
-
-		pPassNode->RegisterExecuteFunc(execute);
+		pPassNode->RegisterSetupFunc(std::move(setup));
+		pPassNode->RegisterExecuteFunc(std::move(execute));
 		m_passNodes.push_back(pPassNode);
+		m_passNodesMap[name] = pPassNode;
 		return pPassNode;
 	}
 
@@ -43,19 +41,20 @@ public:
 	NXRGPassNode<NXRGPassData>* AddReadbackBufferPass(const std::string& name, NXReadbackBufferPass* pReadbackPass, std::function<void(NXRGBuilder& pBuilder, NXRGPassData& data)> setup, std::function<void(ID3D12GraphicsCommandList* pCmdList, NXRGPassData& data)> execute)
 	{
 		auto pPassNode = new NXRGPassNode<NXRGPassData>(this, name, pReadbackPass);
-		NXRGBuilder pBuilder(this, pPassNode);
-		setup(pBuilder, pPassNode->GetData());
-
-		pPassNode->RegisterExecuteFunc(execute);
+		pPassNode->RegisterSetupFunc(std::move(setup));
+		pPassNode->RegisterExecuteFunc(std::move(execute));
 		m_passNodes.push_back(pPassNode);
+		m_passNodesMap[name] = pPassNode;
 		return pPassNode;
 	}
 
+	void Clear();
+	void Setup();
 	void Compile(bool isResize = false);
 	void Execute();
 
 	Ntr<NXTexture> GetPresent();
-	void SetPresent(NXRGResource* pResource) { m_presentResource = pResource; }
+	void SetPresent(NXRGResource** pResource) { m_presentResource = pResource; }
 
 	NXRGResource* CreateResource(const std::string& resourceName, const NXRGDescription& desc);
 	NXRGResource* ImportTexture(const Ntr<NXTexture>& pTexture, NXRGHandleFlags flag = RG_None);
@@ -81,13 +80,17 @@ public:
 private:
 	// 图依赖的所有pass
 	std::vector<NXRGPassNodeBase*> m_passNodes;
+	std::map<std::string, NXRGPassNodeBase*> m_passNodesMap;
 	std::vector<std::vector<NXRGPassNodeBase*>> m_passCtxMap; // 每个ctx对应的pass列表：[ctx group][pass]
 
-	// 图依赖的资源RT
+	// NXRG自己创建的资源（如RT）
 	std::vector<NXRGResource*> m_resources;
 
+	// 外部导入的资源
+	std::vector<NXRGResource*> m_importResources;
+
 	// 最终呈现使用的RT
-	NXRGResource* m_presentResource;
+	NXRGResource** m_presentResource;
 
 	Vector2 m_viewResolution;
 

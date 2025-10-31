@@ -49,6 +49,7 @@ class NXRGResource
 public:
 	NXRGResource(NXRGResource* pOldResource);
 	NXRGResource(const std::string& name, const NXRGDescription& description);
+	~NXRGResource() { delete m_version; }
 
 	const std::string& GetName() { return m_name; }
 

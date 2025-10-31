@@ -1,6 +1,7 @@
 #pragma once
 #include "NXRGUtil.h"
 #include "NXRGResource.h"
+#include "NXRGBuilder.h"
 
 struct NXRGResourceSlotSpace
 {
@@ -44,6 +45,7 @@ public:
 
 	NXRenderPass* GetRenderPass();
 
+	virtual void Setup(NXRGBuilder& builder) = 0;
 	void Compile(bool isResize);
 	virtual void Execute(ID3D12GraphicsCommandList* pCmdList) = 0;
 
@@ -85,6 +87,11 @@ public:
 
 	NXRGPassData& GetData() { return m_passData; }
 
+	void Setup(NXRGBuilder& builder) override
+	{
+		m_setupFunc(builder, m_passData);
+	}
+
 	void Execute(ID3D12GraphicsCommandList* pCmdList) override
 	{
 		if (!m_pPassInited)
@@ -102,11 +109,12 @@ public:
 		NX12Util::EndEvent(pCmdList);
 	}
 
-	void RegisterExecuteFunc(std::function<void(ID3D12GraphicsCommandList* pCmdList, NXRGPassData& data)> func) { m_executeFunc = func; }
+	void RegisterSetupFunc(std::function<void(NXRGBuilder& pBuilder, NXRGPassData& data)> func) { m_setupFunc = std::move(func); }
+	void RegisterExecuteFunc(std::function<void(ID3D12GraphicsCommandList* pCmdList, NXRGPassData& data)> func) { m_executeFunc = std::move(func); }
 
 private:
 	NXRGPassData m_passData;
 
-	// 如果需要在执行前进行一些pass操作（比如clearRT），可使用此方法的lambda。
+	std::function<void(NXRGBuilder& pBuilder, NXRGPassData& data)> m_setupFunc;
 	std::function<void(ID3D12GraphicsCommandList* pCmdList, NXRGPassData& data)> m_executeFunc;
 };

@@ -276,23 +276,6 @@ void Renderer::GenerateRenderGraph()
 		[=](ID3D12GraphicsCommandList* pCmdList, VTReadbackData& data) {
 		});
 
-	struct DepthCopyData
-	{
-		NXRGResource* depthCopy;
-	};
-
-	NXRGResource* pDepthCopy = m_pRenderGraph->CreateResource("DepthCopy", { .format = DXGI_FORMAT_R32_FLOAT, .handleFlags = RG_RenderTarget });
-
-	auto depthCopyPassData = 
-	m_pRenderGraph->AddPass<DepthCopyData>("DepthCopy", new NXDepthRenderer(),
-		[&](NXRGBuilder& builder, DepthCopyData& data) {
-			builder.SetSubmitGroup(2);
-			builder.Read(gBufferPassData->GetData().depth, 0);
-			data.depthCopy = builder.WriteRT(pDepthCopy, 0);
-		},
-		[&](ID3D12GraphicsCommandList* pCmdList, DepthCopyData& data) {
-		});
-
 	struct ShadowMapData
 	{
 	};
@@ -477,7 +460,7 @@ void Renderer::GenerateRenderGraph()
 		[&](ID3D12GraphicsCommandList* pCmdList, GizmosData& data) {
 		});
 
-	m_pRenderGraph->SetPresent(gizmosPassData->GetData().out);
+	m_pRenderGraph->SetPresent(&gizmosPassData->GetData().out);
 }
  
 void Renderer::NotifyRebuildRenderGraph()
@@ -500,14 +483,18 @@ void Renderer::ResourcesReloading(DirectResources* pDXRes)
 	NXResourceManager::GetInstance()->OnReload();
 	NXResourceReloader::GetInstance()->OnReload();
 
-	if (m_pNeedRebuildRenderGraph)
-	{
-		pDXRes->Flush();
-		GenerateRenderGraph();
-		m_pNeedRebuildRenderGraph = false;
-	}
+	m_pRenderGraph->Clear();
+	GenerateRenderGraph();
+
+	//if (m_pNeedRebuildRenderGraph)
+	//{
+	//	pDXRes->Flush();
+	//	GenerateRenderGraph();
+	//	m_pNeedRebuildRenderGraph = false;
+	//}
 
 	// Ã¿Ö¡¶¼Compile
+	m_pRenderGraph->Setup();
 	m_pRenderGraph->Compile();
 }
 
@@ -574,7 +561,12 @@ void Renderer::RenderFrame()
 
 void Renderer::RenderGUI(const NXSwapChainBuffer& swapChainBuffer)
 {
-	if (m_bRenderGUI) m_pGUI->Render(m_pRenderGraph->GetPresent(), swapChainBuffer);
+	if (m_bRenderGUI)
+	{
+		auto backbuffer = m_pRenderGraph->GetPresent();
+		if (backbuffer.IsValid())
+			m_pGUI->Render(backbuffer, swapChainBuffer);
+	}
 }
 
 void Renderer::Release()

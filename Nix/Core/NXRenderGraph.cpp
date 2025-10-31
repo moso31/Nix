@@ -16,9 +16,31 @@ NXRenderGraph::~NXRenderGraph()
 {
 }
 
+void NXRenderGraph::Clear()
+{
+	for (auto* pass : m_passNodes) delete pass;
+	m_passNodes.clear();
+
+	for (auto* res : m_resources) delete res;
+	m_resources.clear();
+
+	m_importResources.clear();
+	m_passCtxMap.clear();
+	m_ctx.clear();
+}
+
+void NXRenderGraph::Setup()
+{
+	for (auto* pass : m_passNodes)
+	{
+		NXRGBuilder pBuilder(this, pass);
+		pass->Setup(pBuilder);
+	}
+}
+
 void NXRenderGraph::Compile(bool isResize)
 {
-	for (auto pass : m_passNodes)
+	for (auto* pass : m_passNodes)
 	{
 		pass->Compile(isResize);
 	}
@@ -166,7 +188,7 @@ void NXRenderGraph::Execute()
 
 Ntr<NXTexture> NXRenderGraph::GetPresent()
 {
-	return m_presentResource->GetResource();
+	return *m_presentResource ? (*m_presentResource)->GetResource() : nullptr;
 }
 
 NXRGResource* NXRenderGraph::CreateResource(const std::string& resourceName, const NXRGDescription& desc)
