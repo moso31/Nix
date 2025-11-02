@@ -1,31 +1,48 @@
 #pragma once
 #include "NXPBRMaterial.h"
+#include "NXReadbackData.h"
 
 struct NXPassMatLayout
 {
-	int cbvSlotNum = 0;
 	int cbvSpaceNum = 0;
-	int srvSlotNum = 0;
+	std::vector<int> cbvSlotNum = {};
 	int srvSpaceNum = 0;
+	std::vector<int> srvSlotNum = {};
 
-	union
-	{
-		struct // Graphic Pass
-		{
-			int rtNum;
-		};
-		struct // Compute Pass
-		{
-			int uavSlotNum;
-			int uavSpaceNum;
-		};
-	};
+	// ComputePass专用
+	int uavSpaceNum = 0;
+	std::vector<int> uavSlotNum = {};
 };
 
 class NXPassMaterial : public NXMaterial
 {
 public:
 	NXPassMaterial(const std::string& name, const std::filesystem::path& shaderPath = {});
+
+	// 设置当前shader需要几个cbv space
+	void RegisterCBVSpaceNum(int spaceNum) { m_layout.cbvSpaceNum = spaceNum; m_layout.cbvSlotNum.resize(spaceNum); }
+
+	// 设置当前cbv需要几个slot（默认space0）
+	void RegisterCBVSlotNum(int slotNum, int spaceIndex = 0) { m_layout.cbvSlotNum[spaceIndex] = slotNum; }
+
+	// 设置当前shader需要几个srv space
+	void RegisterSRVSpaceNum(int spaceNum) { m_layout.srvSpaceNum = spaceNum; m_layout.srvSlotNum.resize(spaceNum); }
+
+	// 设置当前srv需要几个slot（默认space0）
+	void RegisterSRVSlotNum(int slotNum, int spaceIndex = 0) { m_layout.srvSlotNum[spaceIndex] = slotNum; }
+
+	// 设置当前shader需要几个uav space
+	void RegisterUAVSpaceNum(int spaceNum) { m_layout.uavSpaceNum = spaceNum; m_layout.uavSlotNum.resize(spaceNum); }
+
+	// 设置当前uav需要几个slot（默认space0）
+	void RegisterUAVSlotNum(int slotNum, int spaceIndex = 0) { m_layout.uavSlotNum[spaceIndex] = slotNum; }
+
+	virtual void RegisterRTVNum(const std::vector<DXGI_FORMAT>& rtFormats) {}
+	virtual void RegisterDSV(DXGI_FORMAT dsvFormat) {}
+
+	virtual void FinalizeLayout() = 0;
+
+	NXShadingModel GetShadingModel() override { return NXShadingModel::Unlit; }
 
 	void SetShaderFilePath(const std::filesystem::path& shaderFilePath);
 	void SetConstantBuffer(int spaceIndex, int slotIndex, NXConstantBufferImpl* pCBuffer);
@@ -37,13 +54,16 @@ public:
 	void Render(ID3D12GraphicsCommandList*) = 0;
 	void Release() = 0;
 
+	virtual void RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList) = 0;
+	virtual void RenderBefore(ID3D12GraphicsCommandList* pCmdList) = 0;
+
 	void InitRootParams();
 
 protected:
 	ComPtr<ID3D12PipelineState> m_pso;
 	
 	// 当前 Nix 的根参数（和采样器）-寄存器的布局规则：
-	// 根参数索引按以下顺序排列：
+	// 根参数索引(rootParameterIndex)按以下顺序排列：
 	// 1. CBV：每个slot,space占用一个根参数
 	// 	  按：space0的b0，b1，...，space1的b0，b1，...的顺序排列根参数
 	// 2. SRV：
@@ -71,7 +91,12 @@ class NXGraphicPassMaterial : public NXPassMaterial
 public:
 	NXGraphicPassMaterial(const std::string& name, const std::filesystem::path& shaderPath = {});
 
-    void SetLayout(int cbvSlotNum, int cbvSpaceNum, int srvSlotNum, int srvSpaceNum, const std::vector<DXGI_FORMAT>& rtFormats, DXGI_FORMAT dsvFormat = DXGI_FORMAT_UNKNOWN);
+	// 设置当前shader的RT数量和格式
+	void RegisterRTVNum(const std::vector<DXGI_FORMAT>& rtFormats) override { m_rtFormats = rtFormats; }
+
+	// 设置当前shader的DS格式
+	void RegisterDSV(DXGI_FORMAT dsvFormat) override { m_dsvFormat = dsvFormat; }
+	void FinalizeLayout() override;
 
 	void SetInputTex(int spaceIndex, int slotIndex, const Ntr<NXResource>& pTex);
 	void SetOutputRT(int index, const Ntr<NXResource>& pRT);
@@ -92,9 +117,8 @@ public:
 	void Render(ID3D12GraphicsCommandList* pCmdList) override;
 	void Release() override {}
 
-private:
-	void RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList);
-	void RenderBefore(ID3D12GraphicsCommandList* pCmdList);
+	void RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList) override;
+	void RenderBefore(ID3D12GraphicsCommandList* pCmdList) override;
 
 private:
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC m_psoDesc;
@@ -122,29 +146,28 @@ class NXComputePassMaterial : public NXPassMaterial
 public:
 	NXComputePassMaterial(const std::string& name, const std::filesystem::path& shaderPath = {});
 
-    void SetLayout(int cbvSlotNum, int cbvSpaceNum, int srvSlotNum, int srvSpaceNum, int uavSlotNum, int uavSpaceNum);
+	void FinalizeLayout() override;
 
 	void SetInput(int spaceIndex, int slotIndex, const Ntr<NXResource>& pRes);
 	void SetOutput(int spaceIndex, int slotIndex, const Ntr<NXResource>& pRes, bool isUAVCounter = false);
-	
+
 	void SetThreadGroups(uint32_t threadGroupX, uint32_t threadGroupY = 1, uint32_t threadGroupZ = 1);
 	uint32_t GetThreadGroupX() const { return m_threadGroupX; }
 	uint32_t GetThreadGroupY() const { return m_threadGroupY; }
 	uint32_t GetThreadGroupZ() const { return m_threadGroupZ; }
-	
+
 	// 将一个Buffer的UAV计数器绑定为indirectArgs-dispatch-X.
 	// 【TODO：应该是一个基类级别的函数吗？还是应该做一个派生，然后将它的逻辑实现在派生里？】
 	void SetBufferUAVCounterAsIndirectArgDispatchX(const Ntr<NXResource>& pRes, ID3D12GraphicsCommandList* pCmdList);
 	void SetIndirectArguments(const Ntr<NXResource>& pRes);
 
 	void Compile();
-	void Update() override;
+	void Update() override {}
 	void Render(ID3D12GraphicsCommandList* pCmdList) override;
-	void Release() override;
+	void Release() override {}
 
-private:
-	void RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList);
-	void RenderBefore(ID3D12GraphicsCommandList* pCmdList);
+	void RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList) override;
+	void RenderBefore(ID3D12GraphicsCommandList* pCmdList) override;
 
 private:
 	D3D12_COMPUTE_PIPELINE_STATE_DESC m_csoDesc;
@@ -155,4 +178,21 @@ private:
 	uint32_t m_threadGroupX;
 	uint32_t m_threadGroupY;
 	uint32_t m_threadGroupZ;
+};
+
+class NXReadbackPassMaterial : public NXPassMaterial
+{
+public:
+	NXReadbackPassMaterial(const std::string& name) : NXPassMaterial(name) {}
+
+	void SetInput(Ntr<NXResource> pRes) { m_pReadbackBuffer = pRes; }
+	void SetOutput(Ntr<NXReadbackData>& pOutData) { m_pOutData = pOutData; }
+
+	void Update() override {}
+	void Render(ID3D12GraphicsCommandList* pCmdList) override;
+	void Release() override {}
+
+private:
+	Ntr<NXResource> m_pReadbackBuffer; // input
+	Ntr<NXReadbackData> m_pOutData;		// output
 };

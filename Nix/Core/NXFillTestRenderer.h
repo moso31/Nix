@@ -8,8 +8,6 @@ public:
 	virtual ~NXFillTestRenderer() {}
 
 	virtual void SetupInternal() override;
-
-private:
 };
 
 class NXGPUTerrainPatcherRenderer : public NXComputePass

@@ -22,6 +22,7 @@
 #include "NXGPUTerrainManager.h"
 #include "NXVirtualTextureManager.h"
 #include "NXTerrainStreamingBatcher.h"
+#include "NXPassMaterial.h"
 
 Renderer::Renderer(const Vector2& rtSize) :
 	m_bRenderGUI(true),
@@ -92,6 +93,41 @@ void Renderer::InitGUI()
 	m_pGUI = new NXGUI(m_scene, this);
 	m_pGUI->Init();
 	m_pGUI->SetVTReadbackData(m_vtReadbackData);
+}
+
+void Renderer::InitPassMaterials()
+{
+	auto pMat = m_pPassMaterialMaps["TerrainFillTest"];
+	pMat = new NXComputePassMaterial("TerrainFillTest", L"Shader\\FillTestComputeShader.fx");
+	pMat->RegisterCBVSpaceNum(1);
+	pMat->RegisterCBVSlotNum(1);
+	pMat->RegisterUAVSpaceNum(1);
+	pMat->RegisterUAVSpaceNum(3);
+	pMat->FinalizeLayout();
+
+	pMat = m_pPassMaterialMaps["TerrainGPUPatcher"];
+	pMat = new NXComputePassMaterial("TerrainGPUPatcher", L"Shader\\GPUTerrainPatcherComputeShader.fx");
+	pMat->RegisterCBVSpaceNum(1);
+	pMat->RegisterCBVSlotNum(2);
+	pMat->RegisterSRVSpaceNum(1);
+	pMat->RegisterSRVSlotNum(2);
+	pMat->RegisterUAVSpaceNum(1);
+	pMat->RegisterUAVSlotNum(3);
+	pMat->FinalizeLayout();
+	pMat->AddStaticSampler(D3D12_FILTER_MIN_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
+
+	pMat = m_pPassMaterialMaps["GBuffer"];
+	pMat = new NXGraphicPassMaterial("GBuffer");
+
+	pMat = m_pPassMaterialMaps["VTReadback"];
+	pMat = new NXComputePassMaterial("VTReadback", L"Shader\\VTReadback.fx");
+	pMat->RegisterCBVSpaceNum(1);
+	pMat->RegisterCBVSlotNum(1);
+	pMat->RegisterSRVSpaceNum(1);
+	pMat->RegisterSRVSlotNum(1);
+	pMat->RegisterUAVSpaceNum(1);
+	pMat->RegisterUAVSlotNum(1);
+	pMat->FinalizeLayout();
 }
 
 void Renderer::GenerateRenderGraph()
@@ -200,7 +236,8 @@ void Renderer::GenerateRenderGraph()
 			builder.SetEntryNameCS(L"CS_Patch");
 		},
 		[=](ID3D12GraphicsCommandList* pCmdList, GPUTerrainPatcherData& data) {
-			data.pPatcherPass->SetBufferAsIndirectArg(pTerrainBufferFinal);
+			auto* pPassMaterial = m_pPassMaterialMaps["TerrainGPUPatcher"];
+			pPassMaterial->SetBufferAsIndirectArg(pTerrainBufferFinal);
 		});
 
 	struct GBufferData
@@ -237,6 +274,58 @@ void Renderer::GenerateRenderGraph()
 			m_pRenderGraph->ClearRT(pCmdList, pGBuffer3);
 			m_pRenderGraph->ClearRT(pCmdList, pDepthZ);
 			m_pRenderGraph->SetViewPortAndScissorRect(pCmdList, m_viewRTSize); // 第一个pass设置ViewPort
+
+			NX12Util::BeginEvent(pCmdList, "GBuffer");
+
+			auto* pPassMaterial = m_pPassMaterialMaps["GBuffer"];
+			pPassMaterial->RenderSetTargetAndState(pCmdList);
+
+			auto pErrorMat = NXResourceManager::GetInstance()->GetMaterialManager()->GetErrorMaterial();
+			auto pMaterialsArray = NXResourceManager::GetInstance()->GetMaterialManager()->GetMaterials();
+			for (auto pMat : pMaterialsArray)
+			{
+				auto pCustomMat = pMat ? pMat->IsCustomMat() : nullptr;
+				pCmdList->OMSetStencilRef(0x0);
+
+				if (pMat)
+				{
+					// 更新材质CB
+					pMat->Update();
+				}
+
+				if (pCustomMat && pCustomMat->GetCompileSuccess())
+				{
+					if (pCustomMat->GetShadingModel() == NXShadingModel::SubSurface)
+					{
+						// 3S材质需要写模板缓存
+						pCmdList->OMSetStencilRef(0x1);
+					}
+				}
+
+				pMat->Render(pCmdList);
+				m_scene->GetMainCamera()->Render(pCmdList);
+				for (auto pSubMesh : pMat->GetRefSubMeshes())
+				{
+					if (pSubMesh)
+					{
+						bool bIsVisible = pSubMesh->GetRenderableObject()->GetVisible();
+						if (bIsVisible)
+						{
+							if (pSubMesh->IsSubMeshTerrain())
+							{
+								NXGPUTerrainManager::GetInstance()->UpdateConstantForGBuffer(pCmdList);
+								pSubMesh->Render(pCmdList);
+								break;
+							}
+
+							pSubMesh->GetRenderableObject()->Update(pCmdList); // 永远优先调用派生类的Update 
+							pSubMesh->Render(pCmdList);
+						}
+					}
+				}
+			}
+
+			NX12Util::EndEvent(pCmdList);
 		});
 
 	NXRGResource* pVTReadback = m_pRenderGraph->CreateResource("VT Readback Buffer", { .isViewRT = true, .RTScale = 0.125f, .type = NXResourceType::Buffer, .format = DXGI_FORMAT_R32_FLOAT });

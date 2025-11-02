@@ -1,15 +1,29 @@
 #include "NXPassMaterial.h"
 #include "BaseDefs/DX12.h"
-#include "Core/NXSamplerManager.h"
+#include "NXSamplerManager.h"
 #include "NXSubMeshGeometryEditor.h"
-#include "Core/ShaderComplier.h"
-#include "Core/NXGlobalDefinitions.h"
-#include "Core/NXConverter.h"
-#include "Core/NXAllocatorManager.h"
-#include "Core/NXShaderVisibleDescriptorHeap.h"
-#include "NXBuffer.h"
-#include "NXGlobalDefinitions.h"
 #include "ShaderComplier.h"
+#include "NXGlobalDefinitions.h"
+#include "NXConverter.h"
+#include "NXAllocatorManager.h"
+#include "NXShaderVisibleDescriptorHeap.h"
+#include "NXBuffer.h"
+#include "NXRenderStates.h"
+
+NXGraphicPassMaterial::NXGraphicPassMaterial(const std::string& name, const std::filesystem::path& shaderPath)
+	: NXPassMaterial(name, shaderPath),
+	m_stencilRef(0),
+	m_rtSubMeshName("_RenderTarget")
+{
+	m_psoDesc.InputLayout = NXGlobalInputLayout::layoutPT;
+	m_psoDesc.BlendState = NXBlendState<>::Create();
+	m_psoDesc.RasterizerState = NXRasterizerState<>::Create();
+	m_psoDesc.DepthStencilState = NXDepthStencilState<>::Create();
+	m_psoDesc.SampleDesc.Count = 1;
+	m_psoDesc.SampleDesc.Quality = 0;
+	m_psoDesc.SampleMask = UINT_MAX;
+	m_psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+}
 
 void NXGraphicPassMaterial::SetInputLayout(const D3D12_INPUT_LAYOUT_DESC& desc)
 {
@@ -43,12 +57,34 @@ void NXGraphicPassMaterial::SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TY
 	m_psoDesc.PrimitiveTopologyType = type;
 }
 
-// NXGraphicPassMaterial constructor
-NXGraphicPassMaterial::NXGraphicPassMaterial(const std::string& name, const std::filesystem::path& shaderPath)
-	: NXPassMaterial(name, shaderPath),
-	m_stencilRef(0),
-	m_rtSubMeshName("_RenderTarget")
+NXPassMaterial::NXPassMaterial(const std::string& name, const std::filesystem::path& shaderPath) : 
+	NXMaterial(name),
+	m_shaderFilePath(shaderPath)
 {
+}
+
+void NXGraphicPassMaterial::FinalizeLayout()
+{
+	// cbuffer 需要初始置空（通过判空确定控制权，nullptr = 其他逻辑手动控制，非空 = 交给NXRG(setup/execute)控制）
+	m_cbuffers.resize(m_layout.cbvSpaceNum);
+	for (int i = 0; i < m_layout.cbvSpaceNum; ++i)
+	{
+		auto& cbvSlotNum = m_layout.cbvSlotNum[i];
+		m_cbuffers[i].resize(cbvSlotNum);
+		for (int j = 0; j < cbvSlotNum; ++j)
+		{
+			m_cbuffers[i][j] = nullptr;
+		}
+	}
+
+	// 纹理不需要初始化，预留出size即可
+	m_pInTexs.resize(m_layout.srvSpaceNum);
+	for (int i = 0; i < m_layout.srvSpaceNum; ++i)
+	{
+		auto& srvSlotNum = m_layout.srvSlotNum[i];
+		m_pInTexs[i].resize(srvSlotNum);
+	}
+	m_pOutRTs.resize(m_rtFormats.size());
 }
 
 // NXPassMaterial implementations
@@ -59,7 +95,7 @@ void NXPassMaterial::SetShaderFilePath(const std::filesystem::path& shaderFilePa
 
 void NXPassMaterial::SetConstantBuffer(int spaceIndex, int slotIndex, NXConstantBufferImpl* pCBuffer)
 {
-	if (spaceIndex >= m_layout.cbvSpaceNum || slotIndex >= m_layout.cbvSlotNum) return;
+	if (spaceIndex >= m_layout.cbvSpaceNum || slotIndex >= m_layout.cbvSlotNum[spaceIndex]) return;
 	m_cbuffers[spaceIndex][slotIndex] = pCBuffer;
 }
 
@@ -82,62 +118,39 @@ void NXPassMaterial::InitRootParams()
 
     for (int space = 0; space < m_layout.cbvSpaceNum; ++space)
     {
-        for (int slot = 0; slot < m_layout.cbvSlotNum; ++slot)
+		for (int slot = 0; slot < m_layout.cbvSlotNum[space]; ++slot)
         {
+			// 每个CBV占用一个根参数
             m_rootParams.push_back(NX12Util::CreateRootParameterCBV(slot, space, D3D12_SHADER_VISIBILITY_ALL));
         }
     }
 
     for (int space = 0; space < m_layout.srvSpaceNum; ++space)
     {
-        m_srvRanges.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, m_layout.srvSlotNum, 0, space));
+		// 每个space占用一个描述符Table，并占用一个根参数。
+        m_srvRanges.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, m_layout.srvSlotNum[space], 0, space));
         m_rootParams.push_back(NX12Util::CreateRootParameterTable(1, &m_srvRanges.back(), D3D12_SHADER_VISIBILITY_ALL));
     }
 
     for (int space = 0; space < m_layout.uavSpaceNum; ++space)
     {
-        m_uavRanges.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, m_layout.uavSlotNum, 0, space));
+		// 每个space占用一个描述符Table，并占用一个根参数。
+        m_uavRanges.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, m_layout.uavSlotNum[space], 0, space));
         m_rootParams.push_back(NX12Util::CreateRootParameterTable(1, &m_uavRanges.back(), D3D12_SHADER_VISIBILITY_ALL));
     }
 
 	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::GetDevice(), m_rootParams, m_staticSamplers);
 }
 
-void NXGraphicPassMaterial::SetLayout(int cbvSlotNum, int cbvSpaceNum, int srvSlotNum, int srvSpaceNum, const std::vector<DXGI_FORMAT>& rtFormats, DXGI_FORMAT dsvFormat)
-{
-	m_layout.cbvSlotNum = cbvSlotNum;
-	m_layout.cbvSpaceNum = cbvSpaceNum;
-	m_layout.srvSlotNum = srvSlotNum;
-	m_layout.srvSpaceNum = srvSpaceNum;
-	m_layout.rtNum = rtFormats.size();
-	m_rtFormats = rtFormats;
-	m_dsvFormat = dsvFormat;
-
-	m_cbuffers.resize(m_layout.cbvSpaceNum);
-	for (int i = 0; i < m_layout.cbvSpaceNum; ++i)
-	{
-		m_cbuffers[i].resize(m_layout.cbvSlotNum);
-		for (int j = 0; j < m_layout.cbvSlotNum; ++j)
-		{
-			// cbuffer 指针需要初始化为 nullptr 才行
-			m_cbuffers[i][j] = nullptr; 
-		}
-	}
-	m_pInTexs.resize(m_layout.srvSpaceNum);
-	for (int i = 0; i < m_layout.srvSpaceNum; ++i)
-		m_pInTexs[i].resize(m_layout.srvSlotNum);
-	m_pOutRTs.resize(m_layout.rtNum);
-}
-
 void NXGraphicPassMaterial::SetInputTex(int spaceIndex, int slotIndex, const Ntr<NXResource>& pTex)
 {
-	if (spaceIndex >= m_layout.srvSpaceNum || slotIndex >= m_layout.srvSlotNum) return;
+	if (spaceIndex >= m_layout.srvSpaceNum || slotIndex >= m_layout.srvSlotNum[spaceIndex]) return;
 	m_pInTexs[spaceIndex][slotIndex] = pTex;
 }
 
 void NXGraphicPassMaterial::SetOutputRT(int index, const Ntr<NXResource>& pRT)
 {
-	if (index >= m_layout.rtNum) return;
+	if (index >= m_rtFormats.size()) return;
 	m_pOutRTs[index] = pRT;
 }
 
@@ -212,15 +225,17 @@ void NXGraphicPassMaterial::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 	pCmdList->SetGraphicsRootSignature(m_pRootSig.Get());
 	pCmdList->SetPipelineState(m_pPSO.Get());
 
+	int rootParameterIndex = 0;
 	for (int i = 0; i < (int)m_layout.cbvSpaceNum; i++)
 	{
-		for (int j = 0; j < (int)m_layout.cbvSlotNum; j++)
+		for (int j = 0; j < (int)m_layout.cbvSlotNum[i]; j++)
 		{
 			if (m_cbuffers[i][j])
 			{
 				const D3D12_GPU_VIRTUAL_ADDRESS gpuVirtAddr = m_cbuffers[i][j]->GetFrameGPUAddresses().Current();
-				pCmdList->SetGraphicsRootConstantBufferView(i * m_layout.cbvSlotNum + j, gpuVirtAddr);
+				pCmdList->SetGraphicsRootConstantBufferView(rootParameterIndex, gpuVirtAddr);
 			}
+			rootParameterIndex++;
 		}
 	}
 
@@ -237,39 +252,21 @@ void NXGraphicPassMaterial::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
             D3D12_GPU_DESCRIPTOR_HANDLE srvHandle0 = NXShVisDescHeap->Submit();
 
             // 按照当前规则，每个srv space占用一个描述符表
-            int srvRootParamIndex = m_layout.cbvSlotNum * m_layout.cbvSpaceNum + i;
-            pCmdList->SetGraphicsRootDescriptorTable(srvRootParamIndex, srvHandle0);
+            pCmdList->SetGraphicsRootDescriptorTable(rootParameterIndex, srvHandle0);
+			rootParameterIndex++;
 		}
 	}
 }
 
-void NXComputePassMaterial::SetLayout(int cbvSlotNum, int cbvSpaceNum, int srvSlotNum, int srvSpaceNum, int uavSlotNum, int uavSpaceNum)
-{
-	m_layout.cbvSlotNum = cbvSlotNum;
-	m_layout.cbvSpaceNum = cbvSpaceNum;
-	m_layout.srvSlotNum = srvSlotNum;
-	m_layout.srvSpaceNum = srvSpaceNum;
-	m_layout.uavSlotNum = uavSlotNum;
-	m_layout.uavSpaceNum = uavSpaceNum;
-
-	m_cbuffers.resize(m_layout.cbvSpaceNum);
-	m_pInRes.resize(m_layout.srvSpaceNum);
-	for (int i = 0; i < m_layout.srvSpaceNum; ++i)
-		m_pInRes[i].resize(m_layout.srvSlotNum);
-	m_pOutRes.resize(m_layout.uavSpaceNum);
-	for (int i = 0; i < m_layout.uavSpaceNum; ++i)
-		m_pOutRes[i].resize(m_layout.uavSlotNum);
-}
-
 void NXComputePassMaterial::SetInput(int spaceIndex, int slotIndex, const Ntr<NXResource>& pRes)
 {
-	if (spaceIndex >= m_layout.srvSpaceNum || slotIndex >= m_layout.srvSlotNum) return;
+	if (spaceIndex >= m_layout.srvSpaceNum || slotIndex >= m_layout.srvSlotNum[spaceIndex]) return;
 	m_pInRes[spaceIndex][slotIndex] = pRes;
 }
 
 void NXComputePassMaterial::SetOutput(int spaceIndex, int slotIndex, const Ntr<NXResource>& pRes, bool isUAVCounter)
 {
-	if (spaceIndex >= m_layout.uavSpaceNum || slotIndex >= m_layout.uavSlotNum) return;
+	if (spaceIndex >= m_layout.uavSpaceNum || slotIndex >= m_layout.uavSlotNum[spaceIndex]) return;
 	m_pOutRes[spaceIndex][slotIndex] = NXResourceUAV(pRes, isUAVCounter);
 }
 
@@ -285,6 +282,35 @@ NXComputePassMaterial::NXComputePassMaterial(const std::string& name, const std:
 	m_threadGroupZ(1)
 {
 	m_csoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+}
+
+void NXComputePassMaterial::FinalizeLayout()
+{
+	// cbuffer 需要初始置空（通过判空确定控制权，nullptr = 其他逻辑手动控制，非空 = 交给NXRG(setup/execute)控制）
+	m_cbuffers.resize(m_layout.cbvSpaceNum);
+	for (int i = 0; i < m_layout.cbvSpaceNum; ++i)
+	{
+		auto& cbvSlotNum = m_layout.cbvSlotNum[i];
+		m_cbuffers[i].resize(cbvSlotNum);
+		for (int j = 0; j < cbvSlotNum; ++j)
+		{
+			m_cbuffers[i][j] = nullptr;
+		}
+	}
+
+	// 纹理不需要初始化，预留出size即可
+	m_pInRes.resize(m_layout.srvSpaceNum);
+	for (int i = 0; i < m_layout.srvSpaceNum; ++i)
+	{
+		auto& srvSlotNum = m_layout.srvSlotNum[i];
+		m_pInRes[i].resize(srvSlotNum);
+	}
+	m_pOutRes.resize(m_layout.uavSpaceNum);
+	for (int i = 0; i < m_layout.uavSpaceNum; ++i)
+	{
+		auto& uavSlotNum = m_layout.uavSlotNum[i];
+		m_pOutRes[i].resize(uavSlotNum);
+	}
 }
 
 void NXComputePassMaterial::SetThreadGroups(uint32_t threadGroupX, uint32_t threadGroupY, uint32_t threadGroupZ)
@@ -337,10 +363,6 @@ void NXComputePassMaterial::Compile()
 	m_pPSO->SetName(csoName.c_str());
 }
 
-void NXComputePassMaterial::Update()
-{
-}
-
 void NXComputePassMaterial::Render(ID3D12GraphicsCommandList* pCmdList)
 {
 	RenderSetTargetAndState(pCmdList);
@@ -355,10 +377,6 @@ void NXComputePassMaterial::Render(ID3D12GraphicsCommandList* pCmdList)
 		auto pIndirectBuffer = m_pIndirectArgs.As<NXBuffer>();
 		pCmdList->ExecuteIndirect(m_pCommandSig.Get(), 1, pIndirectBuffer->GetD3DResource(), 0, nullptr, 0);
 	}
-}
-
-void NXComputePassMaterial::Release()
-{
 }
 
 void NXComputePassMaterial::RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList)
@@ -415,21 +433,19 @@ void NXComputePassMaterial::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 	pCmdList->SetPipelineState(m_pPSO.Get());
 
 	// 绑定CBV
+	int rootParameterIndex = 0;
 	for (int i = 0; i < (int)m_layout.cbvSpaceNum; i++)
 	{
-		for (int j = 0; j < (int)m_layout.cbvSlotNum; j++)
+		for (int j = 0; j < (int)m_layout.cbvSlotNum[i]; j++)
 		{
 			if (m_cbuffers[i][j])
 			{
 				const D3D12_GPU_VIRTUAL_ADDRESS gpuVirtAddr = m_cbuffers[i][j]->GetFrameGPUAddresses().Current();
-				pCmdList->SetComputeRootConstantBufferView(i * m_layout.cbvSlotNum + j, gpuVirtAddr);
+				pCmdList->SetComputeRootConstantBufferView(rootParameterIndex, gpuVirtAddr);
 			}
+			rootParameterIndex++;
 		}
 	}
-
-	// 描述符表的根参数索引位置
-	uint32_t srvTableIdx = m_layout.cbvSpaceNum * m_layout.cbvSlotNum;
-	uint32_t uavTableIdx = srvTableIdx + m_layout.srvSpaceNum;
 
 	// 绑定SRV描述符表
 	if (!m_pInRes.empty())
@@ -457,7 +473,8 @@ void NXComputePassMaterial::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 			}
 
 			D3D12_GPU_DESCRIPTOR_HANDLE srvHandle = NXShVisDescHeap->Submit();
-			pCmdList->SetComputeRootDescriptorTable(srvTableIdx + i, srvHandle);
+			pCmdList->SetComputeRootDescriptorTable(rootParameterIndex, srvHandle);
+			rootParameterIndex++;
 		}
 	}
 
@@ -496,7 +513,32 @@ void NXComputePassMaterial::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 			}
 
 			D3D12_GPU_DESCRIPTOR_HANDLE uavHandle = NXShVisDescHeap->Submit();
-			pCmdList->SetComputeRootDescriptorTable(uavTableIdx + i, uavHandle);
+			pCmdList->SetComputeRootDescriptorTable(rootParameterIndex, uavHandle);
+			rootParameterIndex++;
 		}
+	}
+}
+
+void NXReadbackPassMaterial::Render(ID3D12GraphicsCommandList* pCmdList)
+{
+	// 在这里维护CPUData（m_pOutData）的大小
+	auto pGPUBuffer = m_pReadbackBuffer->GetBuffer();
+	auto stride = pGPUBuffer->GetStride();
+	auto byteSize = pGPUBuffer->GetByteSize();
+	if (m_pOutData->GetStride() != stride || m_pOutData->GetByteSize() != byteSize)
+		m_pOutData->Create(stride, byteSize / stride);
+
+	auto pGPUBuffer = m_pReadbackBuffer->GetBuffer();
+	NXReadbackContext ctx(pGPUBuffer->GetName() + "_Buffer");
+	if (NXReadbackSys->BuildTask(pGPUBuffer->GetByteSize(), ctx))
+	{
+		// 从（一般是主渲染cmdList）将RT拷到readback ringbuffer（ctx.pResource）
+		pCmdList->CopyBufferRegion(ctx.pResource, ctx.pResourceOffset, pGPUBuffer->GetD3DResource(), 0, pGPUBuffer->GetByteSize());
+
+		NXReadbackSys->FinishTask(ctx, [this, ctx]() {
+			// 这时候对应的ringBuffer还不会释放 放心用
+			uint8_t* pData = ctx.pResourceData + ctx.pResourceOffset;
+			m_pOutData->CopyDataFromGPU(pData);
+			});
 	}
 }

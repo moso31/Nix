@@ -15,8 +15,6 @@ public:
 	void SetInput(NXRGResource* pRes) { m_pReadbackBuffer = pRes; }
 	void SetOutput(Ntr<NXReadbackData>& pOutData) { m_pOutData = pOutData; }
 
-	void AdjustOutputDataSize();
-
 private:
 	NXRGResource* m_pReadbackBuffer; // input
 	Ntr<NXReadbackData> m_pOutData; // output

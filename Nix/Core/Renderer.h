@@ -77,6 +77,7 @@ public:
 private:
 	void InitEvents();
 	void InitGlobalResources();
+	void InitPassMaterials();
 	void GenerateRenderGraph();
 	void InitGUI();
 
@@ -119,4 +120,6 @@ private:
 	Int2 m_vtReadbackDataSize;
 
 	NXTerrainLODStreamer* m_pTerrainLODStreamer;
+
+	std::map<std::string, NXPassMaterial*> m_pPassMaterialMaps;
 };

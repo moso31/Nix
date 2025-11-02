@@ -9,7 +9,11 @@ NXReadbackBufferPass::NXReadbackBufferPass() :
 void NXReadbackBufferPass::Render()
 {
 	// 在这里维护CPUData（m_pOutData）的大小
-	AdjustOutputDataSize();
+	auto pGPUBuffer = m_pReadbackBuffer->GetBuffer();
+	auto stride = pGPUBuffer->GetStride();
+	auto byteSize = pGPUBuffer->GetByteSize();
+	if (m_pOutData->GetStride() != stride || m_pOutData->GetByteSize() != byteSize)
+		m_pOutData->Create(stride, byteSize / stride);
 
 	auto pGPUBuffer = m_pReadbackBuffer->GetBuffer();
 	NXReadbackContext ctx(pGPUBuffer->GetName() + "_Buffer");
@@ -24,17 +28,5 @@ void NXReadbackBufferPass::Render()
 			uint8_t* pData = ctx.pResourceData + ctx.pResourceOffset;
 			m_pOutData->CopyDataFromGPU(pData);
 			});
-	}
-}
-
-void NXReadbackBufferPass::AdjustOutputDataSize()
-{
-	auto pGPUBuffer = m_pReadbackBuffer->GetBuffer();
-	auto stride = pGPUBuffer->GetStride();
-	auto byteSize = pGPUBuffer->GetByteSize();
-
-	if (m_pOutData->GetStride() != stride || m_pOutData->GetByteSize() != byteSize)
-	{
-		m_pOutData->Create(stride, byteSize / stride);
 	}
 }
