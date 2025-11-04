@@ -59,6 +59,9 @@ public:
 	void Release();
 
 	NXRenderGraph* GetRenderGraph() { return m_pRenderGraph; }
+	// shadow map
+	float GetShadowMapShadowExponent() const { return m_shadowMap_shadowExponent; }
+	void SetShadowMapShadowExponent(float value) { m_shadowMap_shadowExponent = value; }
 	// debug layer
 	bool GetEnableDebugLayer() const { return m_bEnableDebugLayer; }
 	void SetEnableDebugLayer(bool value) { m_bEnableDebugLayer = value; }
@@ -93,7 +96,13 @@ private:
 
 	void OnKeyDown(NXEventArgKey eArg);
 
+	// shadow map
+	void RenderCSMPerLight(ID3D12GraphicsCommandList* pCmdList, class NXPBRDistantLight* pDirLight);
+	void RenderSingleObject(ID3D12GraphicsCommandList* pCmdList, class NXRenderableObject* pRenderableObject);
+
 private:
+	Microsoft::WRL::ComPtr<ID3D12CommandSignature> m_pCommandSig;
+
 	Vector2				m_viewRTSize;
 	NXBRDFLut*			m_pBRDFLut;
 
@@ -106,10 +115,20 @@ private:
 	NXGUI*				m_pGUI;
 	bool				m_bRenderGUI;
 
+	// shadow map
+	float m_shadowMap_shadowExponent = 2.0f;
+	uint32_t m_shadowMapRTSize = 2048;
+	uint32_t m_cascadeCount = 4;
+	Ntr<NXTexture2DArray> m_pTexCSMDepth;
+	CBufferShadowMapObject m_cbDataCSMViewProj[8];
+	NXConstantBuffer<CBufferShadowMapObject> m_cbCSMViewProj[8];
+
+	// post processing
 	bool m_bEnablePostProcessing;
 	CBufferColorMapping m_cbColorMappingData;
 	NXConstantBuffer<CBufferColorMapping> m_cbColorMapping;
 
+	// debug layer
 	bool m_bEnableDebugLayer;
 	bool m_bEnableShadowMapDebugLayer;
 	float m_fShadowMapZoomScale;

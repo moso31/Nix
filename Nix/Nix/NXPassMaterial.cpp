@@ -320,19 +320,6 @@ void NXComputePassMaterial::SetThreadGroups(uint32_t threadGroupX, uint32_t thre
 	m_threadGroupZ = threadGroupZ;
 }
 
-void NXComputePassMaterial::SetBufferUAVCounterAsIndirectArgDispatchX(const Ntr<NXResource>& pRes, ID3D12GraphicsCommandList* pCmdList)
-{
-    // 虽然只是拷贝UAV计数器，但目前的设计不太灵活，要SetResourceState必须带着原始资源一起做...
-	auto pBuffer = pRes.As<NXBuffer>();
-	pBuffer->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COPY_SOURCE);
-
-	auto pIndirectArgsBuffer = m_pIndirectArgs.As<NXBuffer>();
-	pIndirectArgsBuffer->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COPY_DEST);
-
-    // ...不过最终拷贝的时候，只拷贝UAV计数器即可。
-	pCmdList->CopyBufferRegion(pIndirectArgsBuffer->GetD3DResource(), 0, pBuffer->GetD3DResourceUAVCounter(), 0, sizeof(uint32_t));
-}
-
 void NXComputePassMaterial::Compile()
 {
 	InitRootParams();
@@ -522,13 +509,12 @@ void NXComputePassMaterial::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 void NXReadbackPassMaterial::Render(ID3D12GraphicsCommandList* pCmdList)
 {
 	// 在这里维护CPUData（m_pOutData）的大小
-	auto pGPUBuffer = m_pReadbackBuffer->GetBuffer();
+	auto pGPUBuffer = m_pReadbackBuffer.As<NXBuffer>();
 	auto stride = pGPUBuffer->GetStride();
 	auto byteSize = pGPUBuffer->GetByteSize();
 	if (m_pOutData->GetStride() != stride || m_pOutData->GetByteSize() != byteSize)
 		m_pOutData->Create(stride, byteSize / stride);
 
-	auto pGPUBuffer = m_pReadbackBuffer->GetBuffer();
 	NXReadbackContext ctx(pGPUBuffer->GetName() + "_Buffer");
 	if (NXReadbackSys->BuildTask(pGPUBuffer->GetByteSize(), ctx))
 	{

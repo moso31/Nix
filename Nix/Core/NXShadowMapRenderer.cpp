@@ -14,13 +14,7 @@
 #include "NXCamera.h"
 
 NXShadowMapRenderer::NXShadowMapRenderer(NXScene* pScene) :
-	m_pScene(pScene),
-	m_cascadeCount(4),
-	m_shadowMapRTSize(2048),
-	m_shadowDistance(300.0f),
-	m_cascadeExponentScale(2.0f),
-	m_cascadeTransitionScale(0.1f),
-	m_depthBias(100)
+	m_pScene(pScene)
 {
 }
 
@@ -30,19 +24,6 @@ NXShadowMapRenderer::~NXShadowMapRenderer()
 
 void NXShadowMapRenderer::SetupInternal()
 {
-	SetShaderFilePath("Shader\\ShadowMap.fx");
-
-	InitPSO();
-
-	SetCascadeCount(m_cascadeCount);
-	SetShadowDistance(m_shadowDistance);
-	SetCascadeTransitionScale(m_cascadeTransitionScale);
-	SetDepthBias(m_depthBias);
-
-	for (int j = 0; j < 8; j++)
-	{
-		g_cbDataShadowTest.frustumParams[j] = Vector4(0.0f);
-	}
 }
 
 void NXShadowMapRenderer::Render()
@@ -92,30 +73,6 @@ void NXShadowMapRenderer::RenderSingleObject(NXRenderableObject* pRenderableObje
 
 void NXShadowMapRenderer::Release()
 {
-}
-
-void NXShadowMapRenderer::SetCascadeCount(UINT value)
-{
-	m_cascadeCount = value;
-	g_cbDataShadowTest.cascadeCount = (float)m_cascadeCount;
-}
-
-void NXShadowMapRenderer::SetDepthBias(int value)
-{
-	m_depthBias = value;
-	g_cbDataShadowTest.depthBias = m_depthBias;
-}
-
-void NXShadowMapRenderer::SetShadowDistance(float value)
-{
-	m_shadowDistance = value;
-	g_cbDataShadowTest.shadowDistance = m_shadowDistance;
-}
-
-void NXShadowMapRenderer::SetCascadeTransitionScale(float value)
-{
-	m_cascadeTransitionScale = value;
-	g_cbDataShadowTest.cascadeTransitionScale = m_cascadeTransitionScale;
 }
 
 void NXShadowMapRenderer::RenderCSMPerLight(NXPBRDistantLight* pDirLight)

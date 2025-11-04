@@ -115,12 +115,19 @@ struct ConstantBufferShadowTest
 	// 记录 CSM 各级 用于计算Transition的过渡 的信息。
 	Vector4 frustumParams[8]; // x: frustum far; y : transition length
 
-	float cascadeCount;
-	float shadowDistance;
-	float cascadeTransitionScale;
-	int depthBias;
+	// cascade 级联数量 
+	int cascadeCount = 4;
 
-	float test_transition;
+	// 阴影距离
+	float shadowDistance = 300.0f;
+
+	// 用于在 两级cascade之间 平滑过渡
+	// 该值越大 过渡越平滑。
+	float cascadeTransitionScale = 0.1f;
+
+	int depthBias = 100;
+	float test_transition = 1.0f;
+
 	Vector3 _0;
 };
 

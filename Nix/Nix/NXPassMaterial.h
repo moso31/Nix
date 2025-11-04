@@ -40,9 +40,12 @@ public:
 	virtual void RegisterRTVNum(const std::vector<DXGI_FORMAT>& rtFormats) {}
 	virtual void RegisterDSV(DXGI_FORMAT dsvFormat) {}
 
-	virtual void FinalizeLayout() = 0;
+	virtual void FinalizeLayout() {}
 
 	NXShadingModel GetShadingModel() override { return NXShadingModel::Unlit; }
+	void SetEntryNameVS(const std::wstring& entryName) { m_entryNameVS = entryName; }
+	void SetEntryNamePS(const std::wstring& entryName) { m_entryNamePS = entryName; }
+	void SetEntryNameCS(const std::wstring& entryName) { m_entryNameCS = entryName; }
 
 	void SetShaderFilePath(const std::filesystem::path& shaderFilePath);
 	void SetConstantBuffer(int spaceIndex, int slotIndex, NXConstantBufferImpl* pCBuffer);
@@ -53,9 +56,6 @@ public:
 	void Update() = 0;
 	void Render(ID3D12GraphicsCommandList*) = 0;
 	void Release() = 0;
-
-	virtual void RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList) = 0;
-	virtual void RenderBefore(ID3D12GraphicsCommandList* pCmdList) = 0;
 
 	void InitRootParams();
 
@@ -117,8 +117,8 @@ public:
 	void Render(ID3D12GraphicsCommandList* pCmdList) override;
 	void Release() override {}
 
-	void RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList) override;
-	void RenderBefore(ID3D12GraphicsCommandList* pCmdList) override;
+	void RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList);
+	void RenderBefore(ID3D12GraphicsCommandList* pCmdList);
 
 private:
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC m_psoDesc;
@@ -156,9 +156,6 @@ public:
 	uint32_t GetThreadGroupY() const { return m_threadGroupY; }
 	uint32_t GetThreadGroupZ() const { return m_threadGroupZ; }
 
-	// 将一个Buffer的UAV计数器绑定为indirectArgs-dispatch-X.
-	// 【TODO：应该是一个基类级别的函数吗？还是应该做一个派生，然后将它的逻辑实现在派生里？】
-	void SetBufferUAVCounterAsIndirectArgDispatchX(const Ntr<NXResource>& pRes, ID3D12GraphicsCommandList* pCmdList);
 	void SetIndirectArguments(const Ntr<NXResource>& pRes);
 
 	void Compile();
@@ -166,8 +163,8 @@ public:
 	void Render(ID3D12GraphicsCommandList* pCmdList) override;
 	void Release() override {}
 
-	void RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList) override;
-	void RenderBefore(ID3D12GraphicsCommandList* pCmdList) override;
+	void RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList);
+	void RenderBefore(ID3D12GraphicsCommandList* pCmdList);
 
 private:
 	D3D12_COMPUTE_PIPELINE_STATE_DESC m_csoDesc;
