@@ -79,12 +79,6 @@
     <Filter Include="Core\DirectX\Renderer">
       <UniqueIdentifier>{fce4c3cd-5a30-4a68-93d9-7df8246a1267}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\DirectX\Renderer\DebugLayer">
-      <UniqueIdentifier>{37cd9fa6-55b5-456c-b161-f79e2ca26fa6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\DirectX\Renderer\EditorObjectLayer">
-      <UniqueIdentifier>{47ca16b0-e59c-4ebd-b48b-d55afdebabf5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Core\DirectX\Compile">
       <UniqueIdentifier>{bab74a59-0b89-4335-9c36-8cfcc6df66f2}</UniqueIdentifier>
     </Filter>
@@ -121,9 +115,6 @@
     <Filter Include="Core\Helper\NXCodeProcess">
       <UniqueIdentifier>{21aaf577-435a-4061-bf33-9b62745d6e28}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\DirectX\Renderer\RenderGraph\Renderers">
-      <UniqueIdentifier>{6701371a-c5d5-4caa-88b9-084db4c46717}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Nix\Object\Transform\Primitive\Terrain">
       <UniqueIdentifier>{58afa7e4-0b44-49f3-af93-46cce61d2f3e}</UniqueIdentifier>
     </Filter>
@@ -136,9 +127,6 @@
     <Filter Include="Shader\GPUTerrain">
       <UniqueIdentifier>{acc387db-02b9-4a20-a13b-7dbb2dd8454a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\DirectX\Renderer\RenderGraph\Passes">
-      <UniqueIdentifier>{3227739e-2f7d-4f56-afda-b12683d6d940}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Core\DirectX\GPUTransfer">
       <UniqueIdentifier>{21250321-5aee-41e3-990c-bec094884cf3}</UniqueIdentifier>
     </Filter>
@@ -147,6 +135,9 @@
     </Filter>
     <Filter Include="Nix\TextureStreaming">
       <UniqueIdentifier>{6a50751f-1068-41e7-9a74-8fe97260177e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\DirectX\Renderer\Renderers">
+      <UniqueIdentifier>{6701371a-c5d5-4caa-88b9-084db4c46717}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -388,14 +379,8 @@
     <ClCompile Include="Core\NXGUIShadows.cpp">
       <Filter>Core\UI</Filter>
     </ClCompile>
-    <ClCompile Include="Core\NXDebugLayerRenderer.cpp">
-      <Filter>Core\DirectX\Renderer\DebugLayer</Filter>
-    </ClCompile>
     <ClCompile Include="Core\NXGUIDebugLayer.cpp">
       <Filter>Core\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\NXEditorObjectRenderer.cpp">
-      <Filter>Core\DirectX\Renderer\EditorObjectLayer</Filter>
     </ClCompile>
     <ClCompile Include="Nix\NXEditorObjectManager.cpp">
       <Filter>Nix\Scene</Filter>
@@ -512,37 +497,13 @@
       <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXBRDFlut.cpp">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\NXColorMappingRenderer.cpp">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\NXDeferredRenderer.cpp">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
+      <Filter>Core\DirectX\Renderer\Renderers</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXDepthPeelingRenderer.cpp">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\NXDepthRenderer.cpp">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
+      <Filter>Core\DirectX\Renderer\Renderers</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXForwardRenderer.cpp">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\NXGBufferRenderer.cpp">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\NXShadowMapRenderer.cpp">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\NXShadowTestRenderer.cpp">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\NXSkyRenderer.cpp">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\NXSubSurfaceRenderer.cpp">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
+      <Filter>Core\DirectX\Renderer\Renderers</Filter>
     </ClCompile>
     <ClCompile Include="Nix\NXRefCountable.cpp">
       <Filter>Nix\Object</Filter>
@@ -562,9 +523,6 @@
     <ClCompile Include="Core\NXRGBuilder.cpp">
       <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClCompile>
-    <ClCompile Include="Core\NXRGResourceVersion.cpp">
-      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
-    </ClCompile>
     <ClCompile Include="Core\NXConvertString.cpp">
       <Filter>Core\Helper</Filter>
     </ClCompile>
@@ -576,9 +534,6 @@
     </ClCompile>
     <ClCompile Include="Nix\NXResource.cpp">
       <Filter>Nix\TextureBuffer</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\NXFillTestRenderer.cpp">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
     </ClCompile>
     <ClCompile Include="Nix\NXGPUTerrainManager.cpp">
       <Filter>Nix\Object\Transform\Primitive\Terrain</Filter>
@@ -604,24 +559,6 @@
     <ClCompile Include="Core\NXGUIVirtualTexture.cpp">
       <Filter>Core\UI</Filter>
     </ClCompile>
-    <ClCompile Include="Core\NXVirtualTextureRenderer.cpp">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\NXReadbackBufferPass.cpp">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Passes</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\NXComputePass.cpp">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Passes</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\NXGraphicPass.cpp">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Passes</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\NXRenderPass.cpp">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Passes</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\NXRGPass.cpp">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Passes</Filter>
-    </ClCompile>
     <ClCompile Include="Core\NXReadbackSystem.cpp">
       <Filter>Core\DirectX\GPUTransfer</Filter>
     </ClCompile>
@@ -643,11 +580,11 @@
     <ClCompile Include="Nix\NXTerrainStreamingBatcher.cpp">
       <Filter>Nix\TextureStreaming</Filter>
     </ClCompile>
-    <ClCompile Include="Core\NXTerrainStreamingPass.cpp">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
-    </ClCompile>
     <ClCompile Include="Nix\NXPassMaterial.cpp">
       <Filter>Nix\Material</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXRGUtil.cpp">
+      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -777,14 +714,8 @@
     <ClInclude Include="Core\NXGUIShadows.h">
       <Filter>Core\UI</Filter>
     </ClInclude>
-    <ClInclude Include="Core\NXDebugLayerRenderer.h">
-      <Filter>Core\DirectX\Renderer\DebugLayer</Filter>
-    </ClInclude>
     <ClInclude Include="Core\NXGUIDebugLayer.h">
       <Filter>Core\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\NXEditorObjectRenderer.h">
-      <Filter>Core\DirectX\Renderer\EditorObjectLayer</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXEditorObjectManager.h">
       <Filter>Nix\Scene</Filter>
@@ -943,37 +874,13 @@
       <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXBRDFlut.h">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\NXColorMappingRenderer.h">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\NXDeferredRenderer.h">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
+      <Filter>Core\DirectX\Renderer\Renderers</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXDepthPeelingRenderer.h">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\NXDepthRenderer.h">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
+      <Filter>Core\DirectX\Renderer\Renderers</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXForwardRenderer.h">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\NXGBufferRenderer.h">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\NXShadowMapRenderer.h">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\NXShadowTestRenderer.h">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\NXSkyRenderer.h">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\NXSubSurfaceRenderer.h">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
+      <Filter>Core\DirectX\Renderer\Renderers</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXGUIRenderGraph.h">
       <Filter>Core\UI</Filter>
@@ -988,9 +895,6 @@
       <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXRGBuilder.h">
-      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\NXRGResourceVersion.h">
       <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXSubMeshCommon.h">
@@ -1010,9 +914,6 @@
     </ClInclude>
     <ClInclude Include="Nix\NXResource.h">
       <Filter>Nix\TextureBuffer</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\NXFillTestRenderer.h">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXGPUTerrainManager.h">
       <Filter>Nix\Object\Transform\Primitive\Terrain</Filter>
@@ -1040,24 +941,6 @@
     </ClInclude>
     <ClInclude Include="Nix\NXVirtualTextureCommon.h">
       <Filter>Nix\VirtualTexture</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\NXVirtualTextureRenderer.h">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\NXReadbackBufferPass.h">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Passes</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\NXComputePass.h">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Passes</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\NXGraphicPass.h">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Passes</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\NXRenderPass.h">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Passes</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\NXRGPass.h">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Passes</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXRGUtil.h">
       <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
@@ -1091,9 +974,6 @@
     </ClInclude>
     <ClInclude Include="Nix\NXTerrainStreamingBatcher.h">
       <Filter>Nix\TextureStreaming</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\NXTerrainStreamingPass.h">
-      <Filter>Core\DirectX\Renderer\RenderGraph\Renderers</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXPassMaterial.h">
       <Filter>Nix\Material</Filter>

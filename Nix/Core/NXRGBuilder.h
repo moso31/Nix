@@ -1,12 +1,9 @@
 #pragma once
 #include "BaseDefs/NixCore.h"
+#include "NXRenderGraph.h"
 
 class NXRenderGraph;
-class NXRGResource;
 class NXRGPassNodeBase;
-class NXReadbackData;
-struct NXRGDescription;
-class NXConstantBufferImpl;
 class NXRGBuilder
 {
 	NXRGBuilder() = delete;
@@ -17,36 +14,10 @@ public:
 	NXRGBuilder(NXRenderGraph* pRenderGraph, NXRGPassNodeBase* pPassNode) :
 		m_pRenderGraph(pRenderGraph), m_pPassNode(pPassNode) {}
 
-	void SetSubmitGroup(uint32_t index);
-
-	// 给当前pass设置一个 纹理/Buffer 作为输入
-	// passSlotIndex = 最终pass shader使用的slot索引。
-	void Read(NXRGResource* pResource, uint32_t passSlotIndex);
-
-	// 给当前pass设置一个 常量缓冲 作为输入
-	// rootIndex = root signature中CB所在的索引
-	// slotIndex = shader中CB所在的slot索引
-	// spaceIndex = shader中CB所在的space索引，若不指定则为 0
-	void ReadConstantBuffer(uint32_t rootIndex, uint32_t slotIndex, NXConstantBufferImpl* pConstantBuffer);
-	void ReadConstantBuffer(uint32_t rootIndex, uint32_t slotIndex, uint32_t spaceIndex, NXConstantBufferImpl* pConstantBuffer);
-
-	// 设置pass输出RT/DS。
-	// outRTIndex = pass shader 输出的RT索引（DS忽略此参数）
-	NXRGResource* WriteRT(NXRGResource* pResource, uint32_t outRTIndex, bool keep = false);
-	NXRGResource* WriteDS(NXRGResource* pResource, bool keep = false);
-	NXRGResource* WriteUAV(NXRGResource* pResource, uint32_t uavIndex, bool keep = false);
-	NXRGResource* WriteUAVCounter(NXRGResource* pResource, uint32_t uavCounterIndex);
-	NXRGResource* SetIndirectArgs(NXRGResource* pResource);
-	void WriteReadbackData(Ntr<NXReadbackData>& data);
-
-	// 设置线程组数量
-	void SetComputeThreadGroup(uint32_t threadGroupX, uint32_t threadGroupY = 1, uint32_t threadGroupZ = 1);
-
-	void SetEntryNameVS(const std::wstring& entryName);
-	void SetEntryNamePS(const std::wstring& entryName);
-	void SetEntryNameCS(const std::wstring& entryName);
-
 	NXRGPassNodeBase* GetPassNode() { return m_pPassNode; }
+
+	NXRGHandle Read(NXRGHandle resID) { m_pRenderGraph->Read(resID, m_pPassNode); }
+	NXRGHandle Write(NXRGHandle resID) { m_pRenderGraph->Write(m_pPassNode, resID); }
 
 private:
 	NXRenderGraph* m_pRenderGraph;

@@ -263,12 +263,13 @@ void Renderer::GenerateRenderGraph()
 	//	[=](ID3D12GraphicsCommandList* pCmdList, TerrainStreamBatcherData& data) {
 	//	});
 
-	Ntr<NXBuffer> pTerrainBufferA	   	= NXGPUTerrainManager::GetInstance()->GetTerrainBufferA();
-	Ntr<NXBuffer> pTerrainBufferB	   	= NXGPUTerrainManager::GetInstance()->GetTerrainBufferB();
-	Ntr<NXBuffer> pTerrainBufferFinal  	= NXGPUTerrainManager::GetInstance()->GetTerrainFinalBuffer();
-	Ntr<NXBuffer> pTerrainIndiArgs	   	= NXGPUTerrainManager::GetInstance()->GetTerrainIndirectArgs();
-	Ntr<NXBuffer> pTerrainPatcher	   	= NXGPUTerrainManager::GetInstance()->GetTerrainPatcherBuffer();
-	Ntr<NXBuffer> pTerrainDrawIndexArgs	= NXGPUTerrainManager::GetInstance()->GetTerrainDrawIndexArgs();
+	auto terrIns = NXGPUTerrainManager::GetInstance();
+	NXRGHandle hTerrainBufferA			= m_pRenderGraph->Import(terrIns->GetTerrainBufferA());
+	NXRGHandle hTerrainBufferB			= m_pRenderGraph->Import(terrIns->GetTerrainBufferB());
+	NXRGHandle hTerrainBufferFinal		= m_pRenderGraph->Import(terrIns->GetTerrainFinalBuffer());
+	NXRGHandle hTerrainIndiArgs			= m_pRenderGraph->Import(terrIns->GetTerrainIndirectArgs());
+	NXRGHandle hTerrainPatcher			= m_pRenderGraph->Import(terrIns->GetTerrainPatcherBuffer());
+	NXRGHandle hTerrainDrawIndexArgs	= m_pRenderGraph->Import(terrIns->GetTerrainDrawIndexArgs());
 
 	struct FillTestData
 	{
@@ -276,13 +277,15 @@ void Renderer::GenerateRenderGraph()
 
 	for (int i = 0; i < 6; i++)
 	{
-		Ntr<NXBuffer> pInput = i % 2 ? pTerrainBufferB : pTerrainBufferA;
-		Ntr<NXBuffer> pOutput = i % 2 ? pTerrainBufferA : pTerrainBufferB;
+		NXRGHandle hInput = i % 2 ? hTerrainBufferB : hTerrainBufferA;
+		NXRGHandle hOutput = i % 2 ? hTerrainBufferA : hTerrainBufferB;
 
 		std::string strBufName = "Terrain Fill " + std::to_string(i);
 		m_pRenderGraph->AddComputePass<FillTestData>(strBufName,
 			[=](NXRGBuilder& builder, FillTestData& data) {
-				builder.SetSubmitGroup(0);
+				builder.Write(hInput);
+				builder.Write(hOutput);
+				builder.Write(hTerrainBufferFinal);
 			},
 			[=](ID3D12GraphicsCommandList* pCmdList, FillTestData& data) mutable {
 				auto pMat = static_cast<NXComputePassMaterial*>(m_pPassMaterialMaps["TerrainFillTest"]);
@@ -324,16 +327,13 @@ void Renderer::GenerateRenderGraph()
 
 	struct GPUTerrainPatcherData 
 	{
-		NXComputePass* pPatcherPass;
 	};
-
-	auto pTerrain_MinMaxZMap2DArray = m_pRenderGraph->ImportTexture(
-		NXGPUTerrainManager::GetInstance()->GetTerrainMinMaxZMap2DArray()
-	);
 
 	m_pRenderGraph->AddComputePass<GPUTerrainPatcherData>("GPU Terrain Patcher Clear",
 		[=](NXRGBuilder& builder, GPUTerrainPatcherData& data) {
-			builder.SetSubmitGroup(0);
+			builder.Write(hTerrainPatcher);
+			builder.Write(hTerrainDrawIndexArgs);
+			builder.Write(hTerrainPatcher);
 		},
 		[=](ID3D12GraphicsCommandList* pCmdList, GPUTerrainPatcherData& data) {
 			auto pMat = static_cast<NXComputePassMaterial*>(m_pPassMaterialMaps["TerrainGPUPatcher:clear"]);
@@ -346,10 +346,14 @@ void Renderer::GenerateRenderGraph()
 			pMat->RenderBefore(pCmdList);
 		});
 
+	auto hTerrain_MinMaxZMap2DArray = m_pRenderGraph->Import(terrIns->GetTerrainMinMaxZMap2DArray());
+
 	m_pRenderGraph->AddComputePass<GPUTerrainPatcherData>("GPU Terrain Patcher",
 		[=](NXRGBuilder& builder, GPUTerrainPatcherData& data) {
-			data.pPatcherPass = (NXComputePass*)builder.GetPassNode()->GetRenderPass();
-			builder.SetSubmitGroup(0);
+			builder.Read(hTerrain_MinMaxZMap2DArray);
+			builder.Read(hTerrainBufferFinal);
+			builder.Write(hTerrainPatcher);
+			builder.Write(hTerrainDrawIndexArgs);
 		},
 		[=](ID3D12GraphicsCommandList* pCmdList, GPUTerrainPatcherData& data) mutable {
 			auto pMat = static_cast<NXComputePassMaterial*>(m_pPassMaterialMaps["TerrainGPUPatcher:patch"]);
@@ -371,29 +375,28 @@ void Renderer::GenerateRenderGraph()
 			pMat->RenderBefore(pCmdList);
 		});
 
+	NXRGHandle hGBuffer0 = m_pRenderGraph->Create("GBuffer RT0", { .format = DXGI_FORMAT_R32_FLOAT, .type = NXResourceType::Texture2D });
+	NXRGHandle hGBuffer1 = m_pRenderGraph->Create("GBuffer RT1", { .format = DXGI_FORMAT_R32G32B32A32_FLOAT, .type = NXResourceType::Texture2D });
+	NXRGHandle hGBuffer2 = m_pRenderGraph->Create("GBuffer RT2", { .format = DXGI_FORMAT_R10G10B10A2_UNORM, .type = NXResourceType::Texture2D });
+	NXRGHandle hGBuffer3 = m_pRenderGraph->Create("GBuffer RT3", { .format = DXGI_FORMAT_R8G8B8A8_UNORM, .type = NXResourceType::Texture2D });
+	NXRGHandle hDepthZ = m_pRenderGraph->Create("DepthZ", { .format = DXGI_FORMAT_R24G8_TYPELESS, .type = NXResourceType::Texture2D });
+
 	struct GBufferData
 	{
-		NXRGResource* depth;
-		NXRGResource* rt0;
-		NXRGResource* rt1;
-		NXRGResource* rt2;
-		NXRGResource* rt3;
+		NXRGHandle depth;
+		NXRGHandle rt0;
+		NXRGHandle rt1;
+		NXRGHandle rt2;
+		NXRGHandle rt3;
 	};
 
-	NXRGResource* pGBuffer0 = m_pRenderGraph->CreateResource("GBuffer RT0", { .format = DXGI_FORMAT_R32_FLOAT, .handleFlags = RG_RenderTarget });
-	NXRGResource* pGBuffer1 = m_pRenderGraph->CreateResource("GBuffer RT1", { .format = DXGI_FORMAT_R32G32B32A32_FLOAT, .handleFlags = RG_RenderTarget });
-	NXRGResource* pGBuffer2 = m_pRenderGraph->CreateResource("GBuffer RT2", { .format = DXGI_FORMAT_R10G10B10A2_UNORM, .handleFlags = RG_RenderTarget });
-	NXRGResource* pGBuffer3 = m_pRenderGraph->CreateResource("GBuffer RT3", { .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
-	NXRGResource* pDepthZ = m_pRenderGraph->CreateResource("DepthZ", { .format = DXGI_FORMAT_R24G8_TYPELESS, .handleFlags = RG_DepthStencil });
-
 	auto gBufferPassData = m_pRenderGraph->AddPass<GBufferData>("GBufferPass",
-		[&](NXRGBuilder& pBuilder, GBufferData& data) {
-			pBuilder.SetSubmitGroup(1);
-			data.rt0 = pBuilder.WriteRT(pGBuffer0, 0);
-			data.rt1 = pBuilder.WriteRT(pGBuffer1, 1);
-			data.rt2 = pBuilder.WriteRT(pGBuffer2, 2);
-			data.rt3 = pBuilder.WriteRT(pGBuffer3, 3);
-			data.depth = pBuilder.WriteDS(pDepthZ);
+		[&](NXRGBuilder& builder, GBufferData& data) {
+			data.rt0	= builder.Write(hGBuffer0);
+			data.rt1	= builder.Write(hGBuffer1);
+			data.rt2	= builder.Write(hGBuffer2);
+			data.rt3	= builder.Write(hGBuffer3);
+			data.depth	= builder.Write(hDepthZ);
 		}, 
 		[=](ID3D12GraphicsCommandList* pCmdList, GBufferData& data) {
 			Ntr<NXTexture> pOutRTs[] = {
@@ -467,15 +470,14 @@ void Renderer::GenerateRenderGraph()
 			}
 		});
 
-	NXRGResource* pVTReadback = m_pRenderGraph->CreateResource("VT Readback Buffer", { .isViewRT = true, .RTScale = 0.125f, .type = NXResourceType::Buffer, .format = DXGI_FORMAT_R32_FLOAT });
+	NXRGHandle pVTReadback = m_pRenderGraph->Create("VT Readback Buffer", { .isViewRT = true, .RTScale = 0.125f, .type = NXResourceType::Buffer, .format = DXGI_FORMAT_R32_FLOAT });
 	struct VTReadback
 	{
-		NXVTReadbackRenderer* pPass;
 	};
 	m_pRenderGraph->AddComputePass<VTReadback>("VTReadbackPass",
 		[&](NXRGBuilder& builder, VTReadback& data) {
-			data.pPass = static_cast<NXVTReadbackRenderer*>(builder.GetPassNode()->GetRenderPass());
-			builder.SetSubmitGroup(2);
+			builder.Read(gBufferPassData->GetData().rt0);
+			builder.Write(pVTReadback);
 		},
 		[=](ID3D12GraphicsCommandList* pCmdList, VTReadback& data) {
 			auto pMat = static_cast<NXComputePassMaterial*>(m_pPassMaterialMaps["VTReadback"]);
@@ -502,7 +504,7 @@ void Renderer::GenerateRenderGraph()
 	};
 	m_pRenderGraph->AddReadbackBufferPass<VTReadbackData>("",
 		[&](NXRGBuilder& builder, VTReadbackData& data) {
-			builder.SetSubmitGroup(2);
+			builder.Read(pVTReadback);
 		},
 		[=](ID3D12GraphicsCommandList* pCmdList, VTReadbackData& data) {
 			auto pMat = static_cast<NXReadbackPassMaterial*>(m_pPassMaterialMaps["VTReadbackData"]);
@@ -515,13 +517,10 @@ void Renderer::GenerateRenderGraph()
 	{
 	};
 
-	auto pCSMDepth = m_pRenderGraph->ImportTexture(m_pTexCSMDepth, RG_DepthStencil);
+	NXRGHandle pCSMDepth = m_pRenderGraph->Import(m_pTexCSMDepth);
 	auto shadowMapPassData = m_pRenderGraph->AddPass<ShadowMapData>("ShadowMap",
 		[&](NXRGBuilder& builder, ShadowMapData& data) {
-			builder.SetSubmitGroup(2);
-			builder.ReadConstantBuffer(0, 0, &g_cbObject); 
-			builder.ReadConstantBuffer(1, 2, &g_cbShadowTest);
-			builder.WriteDS(pCSMDepth);
+			builder.Write(pCSMDepth);
 		},
 		[=](ID3D12GraphicsCommandList* pCmdList, ShadowMapData& data) {
 			auto vpCamera = NX12Util::ViewPort((float)m_shadowMapRTSize, (float)m_shadowMapRTSize);
@@ -549,15 +548,16 @@ void Renderer::GenerateRenderGraph()
 
 	struct ShadowTestData
 	{
-		NXRGResource* shadowTest;
+		NXRGHandle shadowTest;
 	};
 
-	auto pShadowTest = m_pRenderGraph->CreateResource("ShadowTest RT", { .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
+	NXRGHandle pShadowTest = m_pRenderGraph->Create("ShadowTest RT", { .format = DXGI_FORMAT_R8G8B8A8_UNORM, .handleFlags = RG_RenderTarget });
 
 	auto shadowTestPassData = m_pRenderGraph->AddPass<ShadowTestData>("ShadowTest",
 		[&](NXRGBuilder& builder, ShadowTestData& data) {
-			builder.SetSubmitGroup(2);
-			data.shadowTest = builder.WriteRT(pShadowTest, 0);
+			builder.Read(gBufferPassData->GetData().depth);
+			builder.Read(pCSMDepth);
+			data.shadowTest = builder.Write(pShadowTest);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, ShadowTestData& data) {
 			auto pMat = static_cast<NXGraphicPassMaterial*>(m_pPassMaterialMaps["ShadowTest"]);
@@ -576,24 +576,32 @@ void Renderer::GenerateRenderGraph()
 
 	struct DeferredLightingData
 	{
-		NXRGResource* lighting;
-		NXRGResource* lightingSpec;
-		NXRGResource* lightingCopy;
+		NXRGHandle lighting;
+		NXRGHandle lightingSpec;
+		NXRGHandle lightingCopy;
 	};
 
-	auto pLit = m_pRenderGraph->CreateResource("Lighting RT0", { .format = DXGI_FORMAT_R32G32B32A32_FLOAT, .handleFlags = RG_RenderTarget });
-	auto pLitSpec = m_pRenderGraph->CreateResource("Lighting RT1", { .format = DXGI_FORMAT_R32G32B32A32_FLOAT, .handleFlags = RG_RenderTarget });
-	auto pLitCopy = m_pRenderGraph->CreateResource("Lighting RT Copy", { .format = DXGI_FORMAT_R11G11B10_FLOAT, .handleFlags = RG_RenderTarget });
-	auto pCubeMap = m_pRenderGraph->ImportTexture(m_scene->GetCubeMap()->GetCubeMap());
-	auto pPreFilter = m_pRenderGraph->ImportTexture(m_scene->GetCubeMap()->GetPreFilterMap());
-	auto pBRDFLut = m_pRenderGraph->ImportTexture(m_pBRDFLut->GetTex());
+	NXRGHandle pLit			= m_pRenderGraph->Create("Lighting RT0", { .format = DXGI_FORMAT_R32G32B32A32_FLOAT, .handleFlags = RG_RenderTarget });
+	NXRGHandle pLitSpec		= m_pRenderGraph->Create("Lighting RT1", { .format = DXGI_FORMAT_R32G32B32A32_FLOAT, .handleFlags = RG_RenderTarget });
+	NXRGHandle pLitCopy		= m_pRenderGraph->Create("Lighting RT Copy", { .format = DXGI_FORMAT_R11G11B10_FLOAT, .handleFlags = RG_RenderTarget });
+	NXRGHandle pCubeMap		= m_pRenderGraph->Import(m_scene->GetCubeMap()->GetCubeMap());
+	NXRGHandle pPreFilter	= m_pRenderGraph->Import(m_scene->GetCubeMap()->GetPreFilterMap());
+	NXRGHandle pBRDFLut		= m_pRenderGraph->Import(m_pBRDFLut->GetTex());
 
 	auto litPassData = m_pRenderGraph->AddPass<DeferredLightingData>("DeferredLighting",
 		[&](NXRGBuilder& builder, DeferredLightingData& data) {
-			builder.SetSubmitGroup(2);
-			data.lighting = builder.WriteRT(pLit, 0); 
-			data.lightingSpec = builder.WriteRT(pLitSpec, 1); 
-			data.lightingCopy = builder.WriteRT(pLitCopy, 2); 
+			builder.Read(gBufferPassData->GetData().rt0);
+			builder.Read(gBufferPassData->GetData().rt1);
+			builder.Read(gBufferPassData->GetData().rt2);
+			builder.Read(gBufferPassData->GetData().rt3);
+			builder.Read(gBufferPassData->GetData().depth);
+			builder.Read(shadowTestPassData->GetData().shadowTest);
+			builder.Read(pCubeMap);
+			builder.Read(pPreFilter);
+			builder.Read(pBRDFLut);
+			data.lighting = builder.Write(pLit); 
+			data.lightingSpec = builder.Write(pLitSpec); 
+			data.lightingCopy = builder.Write(pLitCopy); 
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, DeferredLightingData& data) {
 			auto pMat = static_cast<NXGraphicPassMaterial*>(m_pPassMaterialMaps["DeferredLighting"]);
@@ -623,15 +631,21 @@ void Renderer::GenerateRenderGraph()
 
 	struct SubsurfaceData
 	{
-		NXRGResource* buf;
-		NXRGResource* depth;
+		NXRGHandle buf;
+		NXRGHandle depth;
 	};
-	auto pNoise64 = m_pRenderGraph->ImportTexture(NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_Noise2DGray_64x64));
+	NXRGHandle pNoise64 = m_pRenderGraph->Import(NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_Noise2DGray_64x64));
 	auto sssPassData = m_pRenderGraph->AddPass<SubsurfaceData>("Subsurface",
 		[&](NXRGBuilder& builder, SubsurfaceData& data) {
-			builder.SetSubmitGroup(2);
-			data.buf = builder.WriteRT(litPassData->GetData().lighting, 0, true);
-			data.depth = builder.WriteDS(gBufferPassData->GetData().depth, true);
+			builder.Read(litPassData->GetData().lighting);
+			builder.Read(litPassData->GetData().lightingSpec);
+			builder.Read(litPassData->GetData().lightingCopy);
+			builder.Read(gBufferPassData->GetData().rt1);
+			builder.Read(gBufferPassData->GetData().depth);
+			builder.Read(pNoise64);
+
+			data.buf	= builder.Write(litPassData->GetData().lighting);
+			data.depth	= builder.Write(gBufferPassData->GetData().depth);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, SubsurfaceData& data) {
 			auto pMat = static_cast<NXGraphicPassMaterial*>(m_pPassMaterialMaps["Subsurface"]);
@@ -654,14 +668,14 @@ void Renderer::GenerateRenderGraph()
 
 	struct SkyLightingData
 	{
-		NXRGResource* buf;
-		NXRGResource* depth;
+		NXRGHandle buf;
+		NXRGHandle depth;
 	};
 	auto skyPassData = m_pRenderGraph->AddPass<SkyLightingData>("SkyLighting",
 		[&](NXRGBuilder& builder, SkyLightingData& data) {
-			builder.SetSubmitGroup(2);
-			data.buf = builder.WriteRT(sssPassData->GetData().buf, 0, true);
-			data.depth = builder.WriteDS(gBufferPassData->GetData().depth, true);
+			builder.Read(pCubeMap);
+			data.buf	= builder.Write(sssPassData->GetData().buf);
+			data.depth	= builder.Write(gBufferPassData->GetData().depth);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, SkyLightingData& data) {
 			auto pMat = static_cast<NXGraphicPassMaterial*>(m_pPassMaterialMaps["SkyLighting"]);
@@ -678,15 +692,15 @@ void Renderer::GenerateRenderGraph()
 
 	struct PostProcessingData
 	{
-		NXRGResource* out;
+		NXRGHandle out;
 	};
 
-	auto pPostProcess = m_pRenderGraph->CreateResource("PostProcessing RT", { .format = DXGI_FORMAT_R11G11B10_FLOAT, .handleFlags = RG_RenderTarget });
+	NXRGHandle pPostProcess = m_pRenderGraph->Create("PostProcessing RT", { .format = DXGI_FORMAT_R11G11B10_FLOAT, .handleFlags = RG_RenderTarget });
 
 	auto postProcessPassData = m_pRenderGraph->AddPass<PostProcessingData>("PostProcessing",
 		[&](NXRGBuilder& builder, PostProcessingData& data) {
-			builder.SetSubmitGroup(2);
-			data.out = builder.WriteRT(pPostProcess, 0);
+			builder.Read(skyPassData->GetData().buf);
+			data.out = builder.Write(pPostProcess);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, PostProcessingData& data) {
 			auto pMat = static_cast<NXGraphicPassMaterial*>(m_pPassMaterialMaps["PostProcessing"]);
@@ -704,15 +718,16 @@ void Renderer::GenerateRenderGraph()
 
 	struct DebugLayerData
 	{
-		NXRGResource* out;
+		NXRGHandle out;
 	};
 
-	auto pDebugLayer = m_pRenderGraph->CreateResource("Debug Layer RT", { .format = DXGI_FORMAT_R11G11B10_FLOAT, .handleFlags = RG_RenderTarget });
+	NXRGHandle pDebugLayer = m_pRenderGraph->Create("Debug Layer RT", { .format = DXGI_FORMAT_R11G11B10_FLOAT, .handleFlags = RG_RenderTarget });
 
 	auto debugLayerPassData = m_pRenderGraph->AddPass<DebugLayerData>("DebugLayer",
 		[&](NXRGBuilder& builder, DebugLayerData& data) {
-			builder.SetSubmitGroup(2);
-			data.out = builder.WriteRT(pDebugLayer, 0);
+			builder.Read(postProcessPassData->GetData().out);
+			builder.Read(pCSMDepth);
+			data.out = builder.Write(pDebugLayer);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, DebugLayerData& data) {
 			auto pMat = static_cast<NXGraphicPassMaterial*>(m_pPassMaterialMaps["DebugLayer"]);
@@ -733,14 +748,12 @@ void Renderer::GenerateRenderGraph()
 
 	struct GizmosData
 	{
-		NXRGResource* out;
+		NXRGHandle out;
 	};
 	auto gizmosPassData = m_pRenderGraph->AddPass<GizmosData>("Gizmos",
 		[&](NXRGBuilder& builder, GizmosData& data) {
-			builder.SetSubmitGroup(2);
-			NXRGResource* pOut = m_bEnableDebugLayer ? debugLayerPassData->GetData().out : postProcessPassData->GetData().out;
-			//NXRGResource* pOut = debugLayerPassData->GetData().out;
-			data.out = builder.WriteRT(pOut, 0, true);
+			NXRGHandle pOut = m_bEnableDebugLayer ? debugLayerPassData->GetData().out : postProcessPassData->GetData().out;
+			data.out = builder.Write(pOut);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, GizmosData& data) {
 			auto pMat = static_cast<NXGraphicPassMaterial*>(m_pPassMaterialMaps["Gizmos"]);
