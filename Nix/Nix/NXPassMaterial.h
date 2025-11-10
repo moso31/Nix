@@ -151,13 +151,6 @@ public:
 	void SetInput(int spaceIndex, int slotIndex, const Ntr<NXResource>& pRes);
 	void SetOutput(int spaceIndex, int slotIndex, const Ntr<NXResource>& pRes, bool isUAVCounter = false);
 
-	void SetThreadGroups(uint32_t threadGroupX, uint32_t threadGroupY = 1, uint32_t threadGroupZ = 1);
-	uint32_t GetThreadGroupX() const { return m_threadGroupX; }
-	uint32_t GetThreadGroupY() const { return m_threadGroupY; }
-	uint32_t GetThreadGroupZ() const { return m_threadGroupZ; }
-
-	void SetIndirectArguments(const Ntr<NXResource>& pRes);
-
 	void Compile();
 	void Update() override {}
 	void Render(ID3D12GraphicsCommandList* pCmdList) override;
@@ -171,10 +164,6 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12CommandSignature> m_pCommandSig;
 	std::vector<std::vector<Ntr<NXResource>>> m_pInRes;
 	std::vector<std::vector<NXResourceUAV>> m_pOutRes;
-	Ntr<NXResource> m_pIndirectArgs;
-	uint32_t m_threadGroupX;
-	uint32_t m_threadGroupY;
-	uint32_t m_threadGroupZ;
 };
 
 class NXReadbackPassMaterial : public NXPassMaterial

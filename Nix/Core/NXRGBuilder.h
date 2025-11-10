@@ -1,6 +1,6 @@
 #pragma once
 #include "BaseDefs/NixCore.h"
-#include "NXRenderGraph.h"
+#include "NXRGUtil.h"
 
 class NXRenderGraph;
 class NXRGPassNodeBase;
@@ -16,8 +16,8 @@ public:
 
 	NXRGPassNodeBase* GetPassNode() { return m_pPassNode; }
 
-	NXRGHandle Read(NXRGHandle resID) { m_pRenderGraph->Read(resID, m_pPassNode); }
-	NXRGHandle Write(NXRGHandle resID) { m_pRenderGraph->Write(m_pPassNode, resID); }
+	NXRGHandle Read(NXRGHandle resID);
+	NXRGHandle Write(NXRGHandle resID);
 
 private:
 	NXRenderGraph* m_pRenderGraph;

@@ -5,36 +5,20 @@
 #include "NXTerrainLODStreamer.h"
 
 #include "NXDepthPrepass.h"
-#include "NXGBufferRenderer.h"
-#include "NXShadowMapRenderer.h"
-#include "NXShadowTestRenderer.h"
-#include "NXDeferredRenderer.h"
 #include "NXForwardRenderer.h"
-#include "NXDepthRenderer.h"
 #include "NXDepthPeelingRenderer.h"
-#include "NXSubSurfaceRenderer.h"
-#include "NXSkyRenderer.h"
-#include "NXColorMappingRenderer.h"
 #include "NXSimpleSSAO.h"
 #include "NXGUI.h"
-#include "NXDebugLayerRenderer.h"
-#include "NXEditorObjectRenderer.h"
-#include "NXFillTestRenderer.h"
-#include "NXVirtualTextureRenderer.h"
-#include "NXTerrainStreamingPass.h"
 #include "NXRenderGraph.h"
 
-struct CBufferDebugLayer
+struct CBufferShadowMapObject
 {
-	Vector4 LayerParam0; // x: EnableShadowMap, y: ZoomScale
-};
-
-struct CBufferFillTest
-{
-	Vector4 Param0; // xyz: camPos, w: currLodLevel;
+	Matrix view;
+	Matrix projection;
 };
 
 struct NXEventArgKey;
+class NXPassMaterial;
 class Renderer
 {
 public:
@@ -72,10 +56,10 @@ public:
 	// post processing
 	bool GetEnablePostProcessing() const { return m_bEnablePostProcessing; }
 	void SetEnablePostProcessing(bool value) { m_bEnablePostProcessing = value; }
+	// FinalQuad
+	Ntr<NXTexture2D> GetFinalRT() { return m_pFinalRT; }
 
 	Ntr<NXReadbackData>& GetVTReadbackData() { return m_vtReadbackData; }
-
-	void NotifyRebuildRenderGraph();
 
 private:
 	void InitEvents();
@@ -103,14 +87,13 @@ private:
 private:
 	Microsoft::WRL::ComPtr<ID3D12CommandSignature> m_pCommandSig;
 
+	Ntr<NXTexture2D>	m_pFinalRT;
 	Vector2				m_viewRTSize;
 	NXBRDFLut*			m_pBRDFLut;
 
 	NXScene*			m_scene;
 
 	NXRenderGraph*		m_pRenderGraph;
-	bool				m_pNeedRebuildRenderGraph;
-	Ntr<NXTexture2D>	m_pFinalRT;
 
 	NXGUI*				m_pGUI;
 	bool				m_bRenderGUI;
@@ -125,15 +108,15 @@ private:
 
 	// post processing
 	bool m_bEnablePostProcessing;
-	CBufferColorMapping m_cbColorMappingData;
-	NXConstantBuffer<CBufferColorMapping> m_cbColorMapping;
+	Vector4 m_cbColorMappingData;
+	NXConstantBuffer<Vector4> m_cbColorMapping;
 
 	// debug layer
 	bool m_bEnableDebugLayer;
 	bool m_bEnableShadowMapDebugLayer;
 	float m_fShadowMapZoomScale;
-	CBufferDebugLayer m_cbDebugLayerData;
-	NXConstantBuffer<CBufferDebugLayer> m_cbDebugLayer;
+	Vector4 m_cbDebugLayerData;
+	NXConstantBuffer<Vector4> m_cbDebugLayer;
 
 	Ntr<NXReadbackData> m_vtReadbackData;
 	Int2 m_vtReadbackDataSize;

@@ -1,5 +1,16 @@
 {
     "cmake.configureOnOpen": false,
+    "files.encoding": "gb2312",
+    "files.autoGuessEncoding": true,
+    "[cpp]": {
+        "files.encoding": "gb2312"
+    },
+    "[c]": {
+        "files.encoding": "gb2312"
+    },
+    "[h]": {
+        "files.encoding": "gb2312"
+    },
     "files.associations": {
         "vector": "cpp",
         "algorithm": "cpp",
@@ -84,6 +95,9 @@
         "xutility": "cpp",
         "any": "cpp",
         "ranges": "cpp",
-        "span": "cpp"
+        "span": "cpp",
+        "future": "cpp",
+        "resumable": "cpp",
+        "stack": "cpp"
     }
 }

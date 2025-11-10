@@ -481,7 +481,7 @@ void NXTextureMaker::GenerateTerrainStreamingLODMaps_HeightMap(const TerrainTexL
         std::vector<uint16_t> base;
         ReadTerrainRawR16(rawPath, base);
 
-        // 2) 输出目录：<tile_dir>\sub\hmap\ 
+        // 2) 输出目录："<tile_dir>\sub\hmap\"
         const std::filesystem::path tileDir = rawPath.parent_path();
         const std::filesystem::path outDir = tileDir / "sub" / "hmap";
         EnsureDir(outDir);
@@ -537,7 +537,7 @@ void NXTextureMaker::GenerateTerrainStreamingLODMaps_SplatMap(const TerrainTexLO
         std::vector<uint8_t> base;
         ReadTerrainDDSR8Unorm(rawPath, base);
 
-        // 2) 输出目录：<tile_dir>\sub\splat\ 
+        // 2) 输出目录："<tile_dir>\sub\splat\"
         const std::filesystem::path tileDir = rawPath.parent_path();
         const std::filesystem::path outDir = tileDir / "sub" / "splat";
         EnsureDir(outDir);

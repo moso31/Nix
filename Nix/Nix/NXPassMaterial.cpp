@@ -270,16 +270,8 @@ void NXComputePassMaterial::SetOutput(int spaceIndex, int slotIndex, const Ntr<N
 	m_pOutRes[spaceIndex][slotIndex] = NXResourceUAV(pRes, isUAVCounter);
 }
 
-void NXComputePassMaterial::SetIndirectArguments(const Ntr<NXResource>& pRes)
-{
-	m_pIndirectArgs = pRes;
-}
-
 NXComputePassMaterial::NXComputePassMaterial(const std::string& name, const std::filesystem::path& shaderPath)
-	: NXPassMaterial(name, shaderPath),
-	m_threadGroupX(1),
-	m_threadGroupY(1),
-	m_threadGroupZ(1)
+	: NXPassMaterial(name, shaderPath)
 {
 	m_csoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
 }
@@ -313,30 +305,9 @@ void NXComputePassMaterial::FinalizeLayout()
 	}
 }
 
-void NXComputePassMaterial::SetThreadGroups(uint32_t threadGroupX, uint32_t threadGroupY, uint32_t threadGroupZ)
-{
-	m_threadGroupX = threadGroupX;
-	m_threadGroupY = threadGroupY;
-	m_threadGroupZ = threadGroupZ;
-}
-
 void NXComputePassMaterial::Compile()
 {
 	InitRootParams();
-
-	if (m_pIndirectArgs.IsValid())
-	{
-        D3D12_INDIRECT_ARGUMENT_DESC indirectArgDesc = {};
-        indirectArgDesc.Type = D3D12_INDIRECT_ARGUMENT_TYPE_DISPATCH;
-
-        D3D12_COMMAND_SIGNATURE_DESC desc = {};
-        desc.pArgumentDescs = &indirectArgDesc;
-        desc.NumArgumentDescs = 1;
-        desc.ByteStride = sizeof(D3D12_DISPATCH_ARGUMENTS);
-        desc.NodeMask = 0;
-
-        m_pCommandSig = NX12Util::CreateCommandSignature(NXGlobalDX::GetDevice(), desc, nullptr);
-	}
 
 	ComPtr<IDxcBlob> pCSBlob;
 	NXShaderComplier::GetInstance()->CompileCS(m_shaderFilePath, m_entryNameCS, pCSBlob.GetAddressOf());
@@ -354,16 +325,6 @@ void NXComputePassMaterial::Render(ID3D12GraphicsCommandList* pCmdList)
 {
 	RenderSetTargetAndState(pCmdList);
 	RenderBefore(pCmdList);
-
-	if (!m_pIndirectArgs.IsValid())
-	{
-		pCmdList->Dispatch(m_threadGroupX, m_threadGroupY, m_threadGroupZ);
-	}
-	else
-	{
-		auto pIndirectBuffer = m_pIndirectArgs.As<NXBuffer>();
-		pCmdList->ExecuteIndirect(m_pCommandSig.Get(), 1, pIndirectBuffer->GetD3DResource(), 0, nullptr, 0);
-	}
 }
 
 void NXComputePassMaterial::RenderSetTargetAndState(ID3D12GraphicsCommandList* pCmdList)
@@ -401,12 +362,6 @@ void NXComputePassMaterial::RenderSetTargetAndState(ID3D12GraphicsCommandList* p
 				}
 			}
 		}
-	}
-
-	// 间接参数资源状态（如果存在）
-	if (m_pIndirectArgs.IsValid())
-	{
-		m_pIndirectArgs->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
 	}
 
 	// 最后提交UAV屏障

@@ -14,7 +14,6 @@ class NXGUIFileBrowser;
 class NXGUITerrainSystem;
 class NXGUIContentExplorer;
 class NXGUIMaterialShaderEditor;
-class NXGUISSAO;
 class NXGUICubeMap;
 class NXGUILights;
 class NXGUICamera;
@@ -58,7 +57,6 @@ private:
 	NXGUICamera*				m_pGUICamera;
 	NXGUICubeMap*				m_pGUICubeMap;
 	NXGUIFileBrowser*			m_pFileBrowser;
-	NXGUISSAO*					m_pGUISSAO;
 	NXGUIShadows*				m_pGUIShadows;
 	NXGUIPostProcessing*		m_pGUIPostProcessing;
 	NXGUIView*					m_pGUIView;

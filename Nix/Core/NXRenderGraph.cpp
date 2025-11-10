@@ -1,6 +1,11 @@
 #include "NXRenderGraph.h"
 #include "NXTexture.h"
 #include "NXBuffer.h"
+#include "NXRGResource.h"
+#include "NXGlobalDefinitions.h"
+#include "NXAllocatorManager.h"
+
+uint32_t NXRenderGraph::s_resourceId = 0;
 
 NXRGHandle NXRenderGraph::Read(NXRGHandle resID, NXRGPassNodeBase* passNode)
 {
@@ -14,17 +19,16 @@ NXRGHandle NXRenderGraph::Write(NXRGPassNodeBase* passNode, NXRGHandle resID)
 	NXRGHandle handle = pResource->GetHandle();
 
 	passNode->AddOutput(handle);
-	m_resourceNodes.push_back(pResource);
 	m_resourceMap[handle] = pResource;
+	m_importedResourceMap[handle] = m_importedResourceMap[handle.GetAncestor()]; // 导入资源的所有版本共用一个实际NXResource*指针
 	return handle;
 }
 
 NXRGHandle NXRenderGraph::Create(const std::string& name, const NXRGDescription& desc)
 {
-	NXRGResource* pResource = new NXRGResource(name, desc);
+	NXRGResource* pResource = new NXRGResource(name, desc, false);
 	NXRGHandle handle = pResource->GetHandle();
 
-	m_resourceNodes.push_back(pResource);
 	m_resourceMap[handle] = pResource;
 	return handle;
 }
@@ -32,6 +36,315 @@ NXRGHandle NXRenderGraph::Create(const std::string& name, const NXRGDescription&
 NXRGHandle NXRenderGraph::Import(const Ntr<NXResource>& importResource)
 {
 	NXRGDescription desc;
-	NXRGResource* pResource = new NXRGResource(importResource->GetName(), desc);
-	m_externalNodes.push_back(pResource);
+	NXRGResource* pResource = new NXRGResource(importResource->GetName(), desc, true);
+	NXRGHandle handle = pResource->GetHandle();
+
+	m_resourceMap[handle] = pResource;
+	m_importedResourceMap[handle] = importResource;
+	return handle;
+}
+
+void NXRenderGraph::Compile()
+{
+	s_resourceId = 0;
+
+	for (auto& pass : m_passNodes)
+	{
+		m_indegreePassMap[pass] = 0; // 初始化入度表=0
+		m_timeLayerPassMap[pass] = 0; // 初始化时间层级表=0
+		pass->ClearBeforeCompile();
+	}
+
+	for (auto& pass : m_passNodes)
+	{
+		for (auto& outResID : pass->GetOutputs())
+		{
+			// 记录每个资源的生产者Pass
+			m_resourceProducerPassMap[outResID] = pass;
+		}
+	}
+
+	for (auto& pass : m_passNodes)
+	{
+		for (auto& inResID : pass->GetInputs())
+		{
+			// 构建邻接表和入度表
+			auto itProducerPass = m_resourceProducerPassMap.find(inResID);
+			if (itProducerPass != m_resourceProducerPassMap.end())
+			{
+				auto* pProducerPass = itProducerPass->second;
+				m_adjTablePassMap[pProducerPass].push_back(pass); // 生产者指向消费者
+				m_indegreePassMap[pass]++; // 消费者入度+1
+			}
+		}
+	}
+
+	std::queue<NXRGPassNodeBase*> passQueue;
+	for (auto& pass : m_passNodes)
+	{
+		if (m_indegreePassMap[pass] == 0)
+		{
+			passQueue.push(pass);
+		}
+	}
+
+	// khan 拓扑排序
+	while (!passQueue.empty())
+	{
+		auto* pass = passQueue.front();
+		passQueue.pop();
+
+		for (auto& neighborPass : m_adjTablePassMap[pass])
+		{
+			m_timeLayerPassMap[neighborPass] = std::max(m_timeLayerPassMap[neighborPass], m_timeLayerPassMap[pass] + 1);
+			m_indegreePassMap[neighborPass]--;
+			if (m_indegreePassMap[neighborPass] == 0)
+			{
+				passQueue.push(neighborPass);
+			}
+		}
+	}
+
+	// 确认每个resource的起止time
+	for (auto& [resID, resNode] : m_resourceMap)
+	{
+		if (resNode->IsImported()) continue; // import资源不参与生命周期管理
+		m_resourceLifeTimeMap[resID] = { std::numeric_limits<int>::max(), std::numeric_limits<int>::min() };
+	}
+	for (auto& pass : m_passNodes)
+	{
+		int passTimeLayer = m_timeLayerPassMap[pass]; // 当前pass的时间层级
+
+		for (auto& resID : pass->GetInputs())
+		{
+			if (m_resourceLifeTimeMap.find(resID) == m_resourceLifeTimeMap.end()) continue;
+			m_resourceLifeTimeMap[resID].start = std::min(m_resourceLifeTimeMap[resID].start, passTimeLayer);
+			m_resourceLifeTimeMap[resID].end = std::max(m_resourceLifeTimeMap[resID].end, passTimeLayer);
+		}
+
+		for (auto& resID : pass->GetOutputs())
+		{
+			if (m_resourceLifeTimeMap.find(resID) == m_resourceLifeTimeMap.end()) continue;
+			m_resourceLifeTimeMap[resID].start = std::min(m_resourceLifeTimeMap[resID].start, passTimeLayer);
+			m_resourceLifeTimeMap[resID].end = std::max(m_resourceLifeTimeMap[resID].end, passTimeLayer);
+		}
+	}
+
+	// 贪心，确认实际应该分配的资源
+	for (auto& [resID, lifeTime] : m_resourceLifeTimeMap)
+	{
+		//if (m_resourceMap.find(resID) == m_resourceMap.end()) continue; // 不需要这句;resourceLifeTimeMap一定是resourceMap的子集
+		auto& resourceDesc = m_resourceMap[resID]->GetDescription(); 
+
+		bool bFoundReusable = false;
+		if (m_descLifeTimesMap.find(resourceDesc) != m_descLifeTimesMap.end())
+		{
+			// 当前desc覆盖的生命周期
+			for (auto& singleResourceLifeTime : m_descLifeTimesMap[resourceDesc]) 
+			{
+				// 检查desc的所有生命周期，看看和liftTime是否重合
+				bool bCanReuse = true;
+				for (auto& resourceLifeTime : singleResourceLifeTime.descLifeTimes)
+				{
+					// 和任意一个生命周期相交，就不能复用
+					if (!(lifeTime.end < resourceLifeTime.start || lifeTime.start > resourceLifeTime.end))
+					{
+						bCanReuse = false;
+						break;
+					}
+				}
+
+				if (bCanReuse)
+				{
+					bFoundReusable = true;
+					// 若可以复用，直接加入该实际资源实例的生命周期列表
+					singleResourceLifeTime.descLifeTimes.push_back(lifeTime);
+					m_allocatedResourceMap[resID] = singleResourceLifeTime.pResource;
+					break;
+				}
+			}
+		}
+
+		if (!bFoundReusable) 
+		{
+			// 如果没有找到可复用的实例 需要新建一个
+			NXRGAllocedResourceLifeTimes singleResourceLifeTime;
+			singleResourceLifeTime.pResource = CreateResourceByDescription(resourceDesc, resID);
+			singleResourceLifeTime.descLifeTimes.push_back(lifeTime);
+			m_descLifeTimesMap[resourceDesc].push_back(singleResourceLifeTime);
+			m_allocatedResourceMap[resID] = singleResourceLifeTime.pResource;
+		}
+	}
+
+	// 分发NXRGHandle到每个passNode.NXRGFrameResources
+	for (auto& pass : m_passNodes)
+	{
+		for (auto& handle : pass->GetInputs())
+		{
+			if (m_resourceMap[handle]->IsImported())
+			{
+				pass->RegisterFrameResource(handle, m_importedResourceMap[handle]);
+			}
+			else
+			{
+				pass->RegisterFrameResource(handle, m_allocatedResourceMap[handle]);
+			}
+		}
+
+		for (auto& handle : pass->GetOutputs())
+		{
+			if (m_resourceMap[handle]->IsImported())
+			{
+				pass->RegisterFrameResource(handle, m_importedResourceMap[handle]);
+			}
+			else
+			{
+				pass->RegisterFrameResource(handle, m_allocatedResourceMap[handle]);
+			}
+		}
+	}
+
+	// TODO：上一帧未被复用的资源将被移除 这里先放到pending，等fence完成再销毁
+	for (auto& [desc, vec] : m_lastResourceUsingMap)
+	{
+		for (auto& res : vec)
+		{
+			//m_pendingDestroy.push_back({ res, m_lastSubmitFenceValueOfPrevFrame });
+		}
+	}
+
+	// Compile结束，准备好资源分配方案，清空上次的复用记录
+	m_lastResourceUsingMap = std::move(m_resourceUsingMap);
+}
+
+void NXRenderGraph::Execute()
+{
+	auto cQ = NXGlobalDX::GlobalCmdQueue();
+	auto cA = NXGlobalDX::CurrentCmdAllocator();
+	auto cL = NXGlobalDX::CurrentCmdList();
+
+	cA->Reset();
+	cL->Reset(cA, nullptr);
+
+	std::string eventName = "NXRenderGraph";
+	NX12Util::BeginEvent(cL, eventName.c_str());
+
+	ID3D12DescriptorHeap* ppHeaps[] = { NXShVisDescHeap->GetDescriptorHeap() };
+	cL->SetDescriptorHeaps(1, ppHeaps);
+	cL->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	for (auto pass : m_passNodes)
+	{
+		pass->Execute(cL);
+	}
+
+	NX12Util::EndEvent(cL);
+
+	cL->Close();
+
+	//NXVTStreaming->GetFenceSync().ReadBegin(cQ);
+
+	ID3D12CommandList* pCmdLists[] = { cL };
+	cQ->ExecuteCommandLists(1, pCmdLists);
+
+	//NXVTStreaming->GetFenceSync().ReadEnd(cQ);
+}
+
+void NXRenderGraph::Clear()
+{
+	// 清空所有pass
+	for (auto& pass : m_passNodes)
+	{
+		delete pass;
+	}
+	m_passNodes.clear();
+	// 清空资源映射
+	for (auto& [handle, resNode] : m_resourceMap)
+	{
+		delete resNode;
+	}
+	m_resourceMap.clear();
+	m_importedResourceMap.clear();
+	// 清空其他辅助数据结构
+	m_resourceProducerPassMap.clear();
+	m_adjTablePassMap.clear();
+	m_indegreePassMap.clear();
+	m_timeLayerPassMap.clear();
+	m_resourceLifeTimeMap.clear();
+	m_descLifeTimesMap.clear();
+	m_allocatedResourceMap.clear();
+	m_resourceUsingMap.clear();
+}
+
+Ntr<NXResource> NXRenderGraph::GetResource(NXRGHandle handle)
+{
+	return m_allocatedResourceMap.find(handle) != m_allocatedResourceMap.end() ? m_allocatedResourceMap[handle] : nullptr;
+}
+
+Ntr<NXResource> NXRenderGraph::CreateResourceByDescription(const NXRGDescription& desc, NXRGHandle handle)
+{
+	std::string strResName = "NXRGRes_" + std::to_string(s_resourceId++);
+
+	// 先尝试从 m_lastResourceUsingMap 复用资源...
+	if (m_lastResourceUsingMap.find(desc) != m_lastResourceUsingMap.end())
+	{
+		if (!m_lastResourceUsingMap[desc].empty())
+		{
+			// m_lastResourceUsingMap 中取一个转移到 m_resourceUsingMap
+			Ntr<NXResource> pRes = m_lastResourceUsingMap[desc].back();
+			m_lastResourceUsingMap[desc].pop_back();
+			m_resourceUsingMap[desc].push_back(pRes);
+			return pRes;
+		}
+	}
+
+	// ...如果没法复用，就新建
+
+	if (desc.resourceType == NXResourceType::Tex2D)
+	{
+		uint32_t rtvCount = 0;
+		uint32_t dsvCount = 0;
+		uint32_t uavCount = 0;
+		uint32_t srvCount = 1;
+
+		D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE;
+		if (desc.usage == NXRGResourceUsage::RenderTarget)
+		{
+			flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+			rtvCount++;
+		}
+		else if (desc.usage == NXRGResourceUsage::DepthStencil)
+		{
+			flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+			dsvCount++;
+		}
+		else if (desc.usage == NXRGResourceUsage::UnorderedAccess)
+		{
+			flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+			uavCount++;
+		}
+		
+		Ntr<NXTexture2D> pTex(new NXTexture2D());
+		pTex->CreateRenderTexture(strResName.c_str(), desc.tex.format, desc.tex.width, desc.tex.height, flags);
+		pTex->SetViews(srvCount, rtvCount, dsvCount, uavCount);
+		if (rtvCount) pTex->SetRTV(0);
+		if (dsvCount) pTex->SetDSV(0);
+		if (uavCount) pTex->SetUAV(0);
+		if (srvCount) pTex->SetSRV(0);
+		m_resourceUsingMap[desc].push_back(pTex);
+		return pTex;
+	}
+
+	if (desc.resourceType == NXResourceType::Buffer)
+	{
+		Ntr<NXBuffer> pBuffer(new NXBuffer(strResName));
+		pBuffer->Create(desc.buf.stride, desc.buf.arraySize);
+		m_resourceUsingMap[desc].push_back(pBuffer);
+		return pBuffer;
+	}
+
+	// TODO：暂不支持其他资源类型（Tex1D、Tex3D、Tex2DArray Cube）自建RT
+	// （shadowMap的Tex2dArray现在是import直连外部，先凑合着用）
+	assert(false);
+	return nullptr;
 }

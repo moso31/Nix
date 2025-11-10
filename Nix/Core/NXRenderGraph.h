@@ -7,38 +7,34 @@
 #include "NXRGPassNode.h"
 
 class NXResource;
+class NXRGResource;
+
+struct NXRGAllocedResourceLifeTimes
+{
+	Ntr<NXResource> pResource; // 分配的资源指针
+	std::vector<NXRGLifeTime> descLifeTimes; // 此资源占用的时间段列表
+};
+
 class NXRenderGraph
 {
 public:
-	NXRenderGraph();
-	virtual ~NXRenderGraph();
+	NXRenderGraph() {}
+	virtual ~NXRenderGraph() {}
 
 	template<typename NXRGPassData>
-	NXRGPassNode<NXRGPassData>* AddPass(const std::string& name, std::function<void(NXRGBuilder& pBuilder, NXRGPassData& data)> setup, std::function<void(ID3D12GraphicsCommandList* pCmdList, NXRGPassData& data)> execute)
+	NXRGPassNode<NXRGPassData>* AddPass(const std::string& name,
+		std::function<void(NXRGBuilder& pBuilder, NXRGPassData& data)> setup,
+		std::function<void(ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& frameResources, NXRGPassData& data)> execute)
 	{
-		auto pPassNode = new NXRGPassNode<NXRGPassData>(this, name, pRendererPass);
-		pPassNode->RegisterSetupFunc(std::move(setup));
-		pPassNode->RegisterExecuteFunc(std::move(execute));
-		m_passNodes.push_back(pPassNode);
-		return pPassNode;
-	}
+		auto pPassNode = new NXRGPassNode<NXRGPassData>(this, name);
 
-	template<typename NXRGPassData>
-	NXRGPassNode<NXRGPassData>* AddComputePass(const std::string& name, std::function<void(NXRGBuilder& pBuilder, NXRGPassData& data)> setup, std::function<void(ID3D12GraphicsCommandList* pCmdList, NXRGPassData& data)> execute)
-	{
-		auto pPassNode = new NXRGPassNode<NXRGPassData>(this, name, pComputePass);
-		pPassNode->RegisterSetupFunc(std::move(setup));
-		pPassNode->RegisterExecuteFunc(std::move(execute));
-		m_passNodes.push_back(pPassNode);
-		return pPassNode;
-	}
+		// setup
+		NXRGBuilder builder(this, pPassNode);
+		setup(builder, pPassNode->GetData());
 
-	template<typename NXRGPassData>
-	NXRGPassNode<NXRGPassData>* AddReadbackBufferPass(const std::string& name, std::function<void(NXRGBuilder& pBuilder, NXRGPassData& data)> setup, std::function<void(ID3D12GraphicsCommandList* pCmdList, NXRGPassData& data)> execute)
-	{
-		auto pPassNode = new NXRGPassNode<NXRGPassData>(this, name, pReadbackPass);
-		pPassNode->RegisterSetupFunc(std::move(setup));
+		// regist execute
 		pPassNode->RegisterExecuteFunc(std::move(execute));
+
 		m_passNodes.push_back(pPassNode);
 		return pPassNode;
 	}
@@ -50,24 +46,46 @@ public:
 	NXRGHandle Import(const Ntr<NXResource>& importResource);
 
 	void Compile();
-	void Execute() {}
+	void Execute();
+
+	void Clear();
 
 	// 获取资源和pass的接口
-	const std::vector<NXRGResource*>& GetResources() { return m_resourceNodes; }
+	Ntr<NXResource> GetResource(NXRGHandle handle);
 	const std::vector<NXRGPassNodeBase*>& GetPassNodes() { return m_passNodes; }
+	const std::unordered_map<NXRGHandle, NXRGResource*>& GetResourceMap() { return m_resourceMap; }
 
-	void Destroy();
+private:
+	Ntr<NXResource> CreateResourceByDescription(const NXRGDescription& desc, NXRGHandle handle);
 
 private:
 	// 图依赖的所有pass
 	std::vector<NXRGPassNodeBase*> m_passNodes;
 
-	// NXRG自己创建的资源（如RT）
-	std::vector<NXRGResource*> m_resourceNodes;
+	// 记录RGHandle和RGResource的映射关系
+	std::unordered_map<NXRGHandle, NXRGResource*> m_resourceMap;
 
-	// 记录RGHandle和实际资源的映射关系
-	std::map<NXRGHandle, NXRGResource*> m_resourceMap;
+	// NXRGHandle-导入资源 映射
+	std::unordered_map<NXRGHandle, Ntr<NXResource>> m_importedResourceMap; 
 
-	// 外部导入的资源
-	std::vector<NXRGResource*> m_externalNodes;
+	// Compile相关：
+	std::unordered_map<NXRGHandle, NXRGPassNodeBase*> m_resourceProducerPassMap; // 每个RGHandle的生产者Pass
+	// Compile-拓扑排序相关：
+	std::unordered_map<NXRGPassNodeBase*, std::vector<NXRGPassNodeBase*>> m_adjTablePassMap; // 每个Pass的邻接表
+	std::unordered_map<NXRGPassNodeBase*, int> m_indegreePassMap; // 每个Pass的入度
+	std::unordered_map<NXRGPassNodeBase*, int> m_timeLayerPassMap; // 每个Pass的优先顺序，越小越先执行
+	// Compile-资源生命周期管理相关：
+	std::unordered_map<NXRGHandle, NXRGLifeTime> m_resourceLifeTimeMap; // 每个资源的起止时间
+	// Compile-贪心确认资源分配方案
+	// 如果desc一样，并且lifetime不重合，那么可以复用
+	std::unordered_map<NXRGDescription, std::vector<NXRGAllocedResourceLifeTimes>> m_descLifeTimesMap; // 每种desc实际覆盖的生命周期，二维vector=[资源实例][覆盖生命周期段]
+	// NXRGHandle-实际分配的资源 映射
+	std::unordered_map<NXRGHandle, Ntr<NXResource>> m_allocatedResourceMap; 
+
+	// 记录每种desc的资源在 上帧+本帧 的分配情况，以确认资源复用
+	std::unordered_map<NXRGDescription, std::vector<Ntr<NXResource>>> m_lastResourceUsingMap;
+	std::unordered_map<NXRGDescription, std::vector<Ntr<NXResource>>> m_resourceUsingMap;
+
+	// 静态变量记录纹理编号
+	static uint32_t s_resourceId;
 };

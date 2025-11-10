@@ -1,25 +1,14 @@
 #include "BaseDefs/DearImGui.h"
-
 #include "NXGUIDebugLayer.h"
-#include "NXDebugLayerRenderer.h"
 
 void NXGUIDebugLayer::Render()
 {
 	ImGui::Begin("Debug Layer");
 
-	NXDebugLayerRenderer* pDebugLayer = (NXDebugLayerRenderer*)m_pRenderer->GetRenderGraph()->GetRenderPass("DebugLayer");
-	if (!pDebugLayer)
-	{
-		ImGui::Text("Debug Layer Renderer is not found.");
-		ImGui::End();
-		return;
-	}
-
 	bool bEnableDebugLayer = m_pRenderer->GetEnableDebugLayer();
 	if (ImGui::Checkbox("Enable Debug Layer", &bEnableDebugLayer))
 	{
 		m_pRenderer->SetEnableDebugLayer(bEnableDebugLayer);
-		m_pRenderer->NotifyRebuildRenderGraph();
 	}
 
 	if (bEnableDebugLayer)

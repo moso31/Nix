@@ -14,7 +14,6 @@
 #include "NXGUILights.h"
 #include "NXGUICamera.h"
 #include "NXGUICubeMap.h"
-#include "NXGUISSAO.h"
 #include "NXGUIShadows.h"
 #include "NXGUIDebugLayer.h"
 #include "NXGUIPostProcessing.h"
@@ -35,7 +34,6 @@ NXGUI::NXGUI(NXScene* pScene, Renderer* pRenderer) :
 	m_pGUILights(nullptr),
 	m_pGUICamera(nullptr),
 	m_pGUICubeMap(nullptr),
-	m_pGUISSAO(nullptr),
 	m_pGUIShadows(nullptr),
 	m_pGUIPostProcessing(nullptr),
 	m_pGUIDebugLayer(nullptr),
@@ -103,7 +101,6 @@ void NXGUI::Init()
 	m_pGUILights = new NXGUILights(m_pCurrentScene);
 	m_pGUICubeMap = new NXGUICubeMap(m_pCurrentScene, m_pFileBrowser);
 
-	m_pGUISSAO = new NXGUISSAO(m_pRenderer);
 	m_pGUIShadows = new NXGUIShadows(m_pRenderer);
 	m_pGUIPostProcessing = new NXGUIPostProcessing(m_pRenderer);
 	m_pGUIDebugLayer = new NXGUIDebugLayer(m_pRenderer);
@@ -147,7 +144,6 @@ void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT, const NXSwapChainBuffer& swapCha
 	m_pGUICubeMap->Render();
 	m_pGUILights->Render();
 	m_pGUICamera->Render();
-	m_pGUISSAO->Render();
 	m_pGUIShadows->Render();
 	m_pGUIPostProcessing->Render();
 	m_pGUIDebugLayer->Render();
@@ -225,7 +221,6 @@ void NXGUI::Release()
 	SafeDelete(m_pGUILights);
 	SafeDelete(m_pGUICamera);
 	SafeDelete(m_pGUICubeMap);
-	SafeDelete(m_pGUISSAO);
 	SafeDelete(m_pGUIShadows);
 	SafeDelete(m_pFileBrowser);
 	SafeDelete(m_pGUIPostProcessing);

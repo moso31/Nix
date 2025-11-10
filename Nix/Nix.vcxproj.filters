@@ -238,7 +238,6 @@
     <None Include="Shader\Depth.fx">
       <Filter>Shader\Renderer</Filter>
     </None>
-    <None Include="packages.config" />
     <None Include="Shader\CubeMapCommon.fx">
       <Filter>Shader\Renderer\IBL\CubeMap</Filter>
     </None>
@@ -260,6 +259,7 @@
     <None Include="Shader\VTBatchBaker.fx">
       <Filter>Shader\VirtualTexture</Filter>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">
@@ -342,9 +342,6 @@
     </ClCompile>
     <ClCompile Include="Nix\NXDepthPrepass.cpp">
       <Filter>Nix\Effect</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\NXGUISSAO.cpp">
-      <Filter>Core\UI</Filter>
     </ClCompile>
     <ClCompile Include="Nix\NXIntersection.cpp">
       <Filter>Nix\Accelerator</Filter>
@@ -517,9 +514,6 @@
     <ClCompile Include="Core\NXRGPassNode.cpp">
       <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClCompile>
-    <ClCompile Include="Core\NXRGResource.cpp">
-      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
-    </ClCompile>
     <ClCompile Include="Core\NXRGBuilder.cpp">
       <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClCompile>
@@ -677,9 +671,6 @@
     </ClInclude>
     <ClInclude Include="Nix\NXDepthPrepass.h">
       <Filter>Nix\Effect</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\NXGUISSAO.h">
-      <Filter>Core\UI</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXIntersection.h">
       <Filter>Nix\Accelerator</Filter>
