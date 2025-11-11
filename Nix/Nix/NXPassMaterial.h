@@ -53,15 +53,14 @@ public:
 	void AddStaticSampler(const D3D12_STATIC_SAMPLER_DESC& staticSampler);
 	void AddStaticSampler(D3D12_FILTER filter, D3D12_TEXTURE_ADDRESS_MODE addrUVW);
 
-	void Update() = 0;
-	void Render(ID3D12GraphicsCommandList*) = 0;
-	void Release() = 0;
+	virtual void Compile() = 0;
+	virtual void Update() = 0;
+	virtual void Render(ID3D12GraphicsCommandList*) = 0;
+	virtual void Release() = 0;
 
 	void InitRootParams();
 
 protected:
-	ComPtr<ID3D12PipelineState> m_pso;
-	
 	// 当前 Nix 的根参数（和采样器）-寄存器的布局规则：
 	// 根参数索引(rootParameterIndex)按以下顺序排列：
 	// 1. CBV：每个slot,space占用一个根参数
@@ -112,7 +111,7 @@ public:
 	void SetRenderTargetMesh(const std::string& rtSubMeshName) { m_rtSubMeshName = rtSubMeshName; }
 	const std::string& GetRenderTargetMesh() const { return m_rtSubMeshName; }
 
-	void Compile();
+	void Compile() override;
 	void Update() override {}
 	void Render(ID3D12GraphicsCommandList* pCmdList) override;
 	void Release() override {}
@@ -151,7 +150,7 @@ public:
 	void SetInput(int spaceIndex, int slotIndex, const Ntr<NXResource>& pRes);
 	void SetOutput(int spaceIndex, int slotIndex, const Ntr<NXResource>& pRes, bool isUAVCounter = false);
 
-	void Compile();
+	void Compile() override;
 	void Update() override {}
 	void Render(ID3D12GraphicsCommandList* pCmdList) override;
 	void Release() override {}
@@ -174,6 +173,7 @@ public:
 	void SetInput(Ntr<NXResource> pRes) { m_pReadbackBuffer = pRes; }
 	void SetOutput(Ntr<NXReadbackData>& pOutData) { m_pOutData = pOutData; }
 
+	void Compile() override {}
 	void Update() override {}
 	void Render(ID3D12GraphicsCommandList* pCmdList) override;
 	void Release() override {}

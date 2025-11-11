@@ -20,7 +20,10 @@ NXRGHandle NXRenderGraph::Write(NXRGPassNodeBase* passNode, NXRGHandle resID)
 
 	passNode->AddOutput(handle);
 	m_resourceMap[handle] = pResource;
-	m_importedResourceMap[handle] = m_importedResourceMap[handle.GetAncestor()]; // 导入资源的所有版本共用一个实际NXResource*指针
+
+	if (pResource->IsImported())
+		m_importedResourceMap[handle] = m_importedResourceMap[handle.GetAncestor()]; // 导入资源的所有版本共用一个实际NXResource*指针
+
 	return handle;
 }
 

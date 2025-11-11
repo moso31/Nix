@@ -10,10 +10,12 @@
 #include "NXBuffer.h"
 #include "NXRenderStates.h"
 
-NXGraphicPassMaterial::NXGraphicPassMaterial(const std::string& name, const std::filesystem::path& shaderPath)
-	: NXPassMaterial(name, shaderPath),
+NXGraphicPassMaterial::NXGraphicPassMaterial(const std::string& name, const std::filesystem::path& shaderPath) : 
+	NXPassMaterial(name, shaderPath),
 	m_stencilRef(0),
-	m_rtSubMeshName("_RenderTarget")
+	m_rtSubMeshName("_RenderTarget"),
+	m_dsvFormat(DXGI_FORMAT_UNKNOWN),
+	m_psoDesc({})
 {
 	m_psoDesc.InputLayout = NXGlobalInputLayout::layoutPT;
 	m_psoDesc.BlendState = NXBlendState<>::Create();
@@ -59,13 +61,16 @@ void NXGraphicPassMaterial::SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TY
 
 NXPassMaterial::NXPassMaterial(const std::string& name, const std::filesystem::path& shaderPath) : 
 	NXMaterial(name),
-	m_shaderFilePath(shaderPath)
+	m_shaderFilePath(shaderPath),
+	m_entryNameVS(L"VS"),
+	m_entryNamePS(L"PS"),
+	m_entryNameCS(L"CS")
 {
 }
 
 void NXGraphicPassMaterial::FinalizeLayout()
 {
-	// cbuffer 需要初始置空（通过判空确定控制权，nullptr = 其他逻辑手动控制，非空 = 交给NXRG(setup/execute)控制）
+	// cbuffer 需要初始置空（通过判空确定控制权，nullptr = 其他逻辑手动控制，非空 = 交给NXRG(execute)控制）
 	m_cbuffers.resize(m_layout.cbvSpaceNum);
 	for (int i = 0; i < m_layout.cbvSpaceNum; ++i)
 	{
@@ -270,15 +275,16 @@ void NXComputePassMaterial::SetOutput(int spaceIndex, int slotIndex, const Ntr<N
 	m_pOutRes[spaceIndex][slotIndex] = NXResourceUAV(pRes, isUAVCounter);
 }
 
-NXComputePassMaterial::NXComputePassMaterial(const std::string& name, const std::filesystem::path& shaderPath)
-	: NXPassMaterial(name, shaderPath)
+NXComputePassMaterial::NXComputePassMaterial(const std::string& name, const std::filesystem::path& shaderPath) : 
+	NXPassMaterial(name, shaderPath),
+	m_csoDesc({})
 {
 	m_csoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
 }
 
 void NXComputePassMaterial::FinalizeLayout()
 {
-	// cbuffer 需要初始置空（通过判空确定控制权，nullptr = 其他逻辑手动控制，非空 = 交给NXRG(setup/execute)控制）
+	// cbuffer 需要初始置空（通过判空确定控制权，nullptr = 其他逻辑手动控制，非空 = 交给NXRG(execute)控制）
 	m_cbuffers.resize(m_layout.cbvSpaceNum);
 	for (int i = 0; i < m_layout.cbvSpaceNum; ++i)
 	{

@@ -105,9 +105,9 @@ void Renderer::InitPassMaterials()
 		auto pMat = new NXComputePassMaterial("TerrainFillTest", L"Shader\\FillTestComputeShader.fx");
 		pMat->SetEntryNameCS(L"CS_Pass");
 		pMat->RegisterCBVSpaceNum(1);
-		pMat->RegisterCBVSlotNum(1);
+		pMat->RegisterCBVSlotNum(1);  // b0
 		pMat->RegisterUAVSpaceNum(1);
-		pMat->RegisterUAVSlotNum(3);
+		pMat->RegisterUAVSlotNum(3);  // u0, u1, u2
 		pMat->FinalizeLayout();
 		m_pPassMaterialMaps["TerrainFillTest"] = pMat;
 	}
@@ -117,11 +117,11 @@ void Renderer::InitPassMaterials()
 		auto pMat = new NXComputePassMaterial("TerrainGPUPatcher", L"Shader\\GPUTerrainPatcher.fx");
 		pMat->SetEntryNameCS(L"CS_Clear");
 		pMat->RegisterCBVSpaceNum(1);
-		pMat->RegisterCBVSlotNum(2);
+		pMat->RegisterCBVSlotNum(3);  // b0, b1, b2
 		pMat->RegisterSRVSpaceNum(1);
-		pMat->RegisterSRVSlotNum(2);
+		pMat->RegisterSRVSlotNum(2);  // t0, t1
 		pMat->RegisterUAVSpaceNum(1);
-		pMat->RegisterUAVSlotNum(3);
+		pMat->RegisterUAVSlotNum(3);  // u0, u1, u2
 		pMat->FinalizeLayout();
 		pMat->AddStaticSampler(D3D12_FILTER_MIN_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
 		m_pPassMaterialMaps["TerrainGPUPatcher:clear"] = pMat;
@@ -132,11 +132,11 @@ void Renderer::InitPassMaterials()
 		auto pMat = new NXComputePassMaterial("TerrainGPUPatcher", L"Shader\\GPUTerrainPatcher.fx");
 		pMat->SetEntryNameCS(L"CS_Patch");
 		pMat->RegisterCBVSpaceNum(1);
-		pMat->RegisterCBVSlotNum(2);
+		pMat->RegisterCBVSlotNum(3);  // b0, b1, b2
 		pMat->RegisterSRVSpaceNum(1);
-		pMat->RegisterSRVSlotNum(2);
+		pMat->RegisterSRVSlotNum(2);  // t0, t1
 		pMat->RegisterUAVSpaceNum(1);
-		pMat->RegisterUAVSlotNum(3);
+		pMat->RegisterUAVSlotNum(3);  // u0, u1, u2
 		pMat->FinalizeLayout();
 		pMat->AddStaticSampler(D3D12_FILTER_MIN_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
 		m_pPassMaterialMaps["TerrainGPUPatcher:patch"] = pMat;
@@ -147,6 +147,7 @@ void Renderer::InitPassMaterials()
 		auto pMat = new NXGraphicPassMaterial("GBuffer");
 		pMat->RegisterRTVNum({ DXGI_FORMAT_R32_FLOAT, DXGI_FORMAT_R32G32B32A32_FLOAT, DXGI_FORMAT_R10G10B10A2_UNORM, DXGI_FORMAT_R8G8B8A8_UNORM });
 		pMat->RegisterDSV({ DXGI_FORMAT_R24G8_TYPELESS });
+		pMat->FinalizeLayout();
 		m_pPassMaterialMaps["GBuffer"] = pMat;
 	}
 
@@ -154,11 +155,11 @@ void Renderer::InitPassMaterials()
 	{
 		auto pMat = new NXComputePassMaterial("VTReadback", L"Shader\\VTReadback.fx");
 		pMat->RegisterCBVSpaceNum(1);
-		pMat->RegisterCBVSlotNum(1);
+		pMat->RegisterCBVSlotNum(1);  // b0
 		pMat->RegisterSRVSpaceNum(1);
-		pMat->RegisterSRVSlotNum(1);
+		pMat->RegisterSRVSlotNum(1);  // t0
 		pMat->RegisterUAVSpaceNum(1);
-		pMat->RegisterUAVSlotNum(1);
+		pMat->RegisterUAVSlotNum(1);  // u0
 		pMat->FinalizeLayout();
 		m_pPassMaterialMaps["VTReadback"] = pMat;
 	}
@@ -174,7 +175,7 @@ void Renderer::InitPassMaterials()
 		auto pMat = new NXGraphicPassMaterial("ShadowMap", L"Shader\\ShadowMap.fx");
 		pMat->RegisterCBVSpaceNum(1);
 		pMat->RegisterCBVSlotNum(3);
-		pMat->RegisterDSV(DXGI_FORMAT_D24_UNORM_S8_UINT);
+		pMat->RegisterDSV(DXGI_FORMAT_R32_TYPELESS);
 		pMat->FinalizeLayout();
 		m_pPassMaterialMaps["ShadowMap"] = pMat;
 	}
@@ -182,6 +183,12 @@ void Renderer::InitPassMaterials()
 	// ShadowTest
 	{
 		auto pMat = new NXGraphicPassMaterial("ShadowTest", L"Shader\\ShadowTest.fx");
+		pMat->RegisterRTVNum({ DXGI_FORMAT_R8G8B8A8_UNORM });
+		pMat->RegisterSRVSpaceNum(1);
+		pMat->RegisterSRVSlotNum(2);  // t0-t1
+		pMat->RegisterCBVSpaceNum(1);
+		pMat->RegisterCBVSlotNum(3);  // b0-b2
+		pMat->FinalizeLayout();
 		pMat->SetRasterizerState(NXRasterizerState<D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_BACK, 0, 0, 1000.0f>::Create());
 		pMat->SetDepthStencilState(NXDepthStencilState<false, false, D3D12_COMPARISON_FUNC_ALWAYS>::Create());
 		pMat->AddStaticSampler(D3D12_FILTER_MIN_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
@@ -191,6 +198,12 @@ void Renderer::InitPassMaterials()
 	// DeferredLighting
 	{
 		auto pMat = new NXGraphicPassMaterial("DeferredLighting", L"Shader\\DeferredRender.fx");
+		pMat->RegisterRTVNum({ DXGI_FORMAT_R32G32B32A32_FLOAT, DXGI_FORMAT_R32G32B32A32_FLOAT, DXGI_FORMAT_R11G11B10_FLOAT });
+		pMat->RegisterSRVSpaceNum(1);
+		pMat->RegisterSRVSlotNum(9);  // t0-t8
+		pMat->RegisterCBVSpaceNum(1);
+		pMat->RegisterCBVSlotNum(5);  // b0-b4
+		pMat->FinalizeLayout();
 		pMat->SetDepthStencilState(NXDepthStencilState<false, false, D3D12_COMPARISON_FUNC_LESS_EQUAL>::Create());
 		pMat->AddStaticSampler(D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
 		pMat->AddStaticSampler(D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
@@ -200,6 +213,13 @@ void Renderer::InitPassMaterials()
 	// Subsurface
 	{
 		auto pMat = new NXGraphicPassMaterial("Subsurface", L"Shader\\SSSSSRenderer.fx");
+		pMat->RegisterRTVNum({ DXGI_FORMAT_R32G32B32A32_FLOAT });
+		pMat->RegisterDSV(DXGI_FORMAT_R24G8_TYPELESS);
+		pMat->RegisterSRVSpaceNum(1);
+		pMat->RegisterSRVSlotNum(6);  // t0-t5
+		pMat->RegisterCBVSpaceNum(1);
+		pMat->RegisterCBVSlotNum(4);  // b0-b3
+		pMat->FinalizeLayout();
 		pMat->SetDepthStencilState(NXDepthStencilState<false, false, D3D12_COMPARISON_FUNC_LESS, true, 0xFF, 0xFF, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_COMPARISON_FUNC_EQUAL>::Create());
 		pMat->AddStaticSampler(D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
 		pMat->SetStencilRef(0x1);
@@ -209,6 +229,13 @@ void Renderer::InitPassMaterials()
 	// SkyLighting
 	{
 		auto pMat = new NXGraphicPassMaterial("SkyLighting", L"Shader\\CubeMap.fx");
+		pMat->RegisterRTVNum({ DXGI_FORMAT_R32G32B32A32_FLOAT });
+		pMat->RegisterDSV(DXGI_FORMAT_R24G8_TYPELESS);
+		pMat->RegisterSRVSpaceNum(1);
+		pMat->RegisterSRVSlotNum(1);  // t0
+		pMat->RegisterCBVSpaceNum(1);
+		pMat->RegisterCBVSlotNum(2);  // b0-b1
+		pMat->FinalizeLayout();
 		pMat->SetInputLayout(NXGlobalInputLayout::layoutP);
 		pMat->SetRenderTargetMesh("_CubeMapSphere");
 		pMat->SetDepthStencilState(NXDepthStencilState<true, false, D3D12_COMPARISON_FUNC_LESS_EQUAL>::Create());
@@ -219,6 +246,12 @@ void Renderer::InitPassMaterials()
 	// PostProcessing
 	{
 		auto pMat = new NXGraphicPassMaterial("PostProcessing", L"Shader\\ColorMapping.fx");
+		pMat->RegisterRTVNum({ DXGI_FORMAT_R11G11B10_FLOAT });
+		pMat->RegisterSRVSpaceNum(1);
+		pMat->RegisterSRVSlotNum(1);  // t0
+		pMat->RegisterCBVSpaceNum(1);
+		pMat->RegisterCBVSlotNum(3);  // b0-b2
+		pMat->FinalizeLayout();
 		pMat->SetDepthStencilState(NXDepthStencilState<false, false, D3D12_COMPARISON_FUNC_ALWAYS>::Create());
 		pMat->AddStaticSampler(D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
 		m_pPassMaterialMaps["PostProcessing"] = pMat;
@@ -227,6 +260,12 @@ void Renderer::InitPassMaterials()
 	// DebugLayer
 	{
 		auto pMat = new NXGraphicPassMaterial("DebugLayer", L"Shader\\DebugLayer.fx");
+		pMat->RegisterRTVNum({ DXGI_FORMAT_R11G11B10_FLOAT });
+		pMat->RegisterSRVSpaceNum(1);
+		pMat->RegisterSRVSlotNum(2);  // t0-t1
+		pMat->RegisterCBVSpaceNum(1);
+		pMat->RegisterCBVSlotNum(3);  // b0-b2
+		pMat->FinalizeLayout();
 		pMat->SetDepthStencilState(NXDepthStencilState<false, false, D3D12_COMPARISON_FUNC_ALWAYS>::Create());
 		pMat->AddStaticSampler(D3D12_FILTER_MIN_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
 		m_pPassMaterialMaps["DebugLayer"] = pMat;
@@ -235,6 +274,10 @@ void Renderer::InitPassMaterials()
 	// Gizmos
 	{
 		auto pMat = new NXGraphicPassMaterial("Gizmos", L"Shader\\EditorObjects.fx");
+		pMat->RegisterRTVNum({ DXGI_FORMAT_R11G11B10_FLOAT });
+		pMat->RegisterCBVSpaceNum(1);
+		pMat->RegisterCBVSlotNum(3);  // b0-b2
+		pMat->FinalizeLayout();
 		pMat->SetBlendState(NXBlendState<false, false, true, false, D3D12_BLEND_SRC_ALPHA, D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_OP_ADD>::Create());
 		pMat->SetRasterizerState(NXRasterizerState<D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_NONE>::Create());
 		pMat->SetDepthStencilState(NXDepthStencilState<false, false, D3D12_COMPARISON_FUNC_LESS>::Create());
@@ -245,9 +288,19 @@ void Renderer::InitPassMaterials()
 	// Final
 	{
 		auto pMat = new NXGraphicPassMaterial("FinalQuad", L"Shader\\FinalQuad.fx");
+		pMat->RegisterRTVNum({ DXGI_FORMAT_R11G11B10_FLOAT });
+		pMat->RegisterSRVSpaceNum(1);
+		pMat->RegisterSRVSlotNum(1);  // t0
+		pMat->FinalizeLayout();
 		pMat->SetDepthStencilState(NXDepthStencilState<false, false, D3D12_COMPARISON_FUNC_ALWAYS>::Create());
 		pMat->AddStaticSampler(D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
 		m_pPassMaterialMaps["FinalQuad"] = pMat;
+	}
+
+	for (auto& [name, mat] : m_pPassMaterialMaps)
+	{
+		if (name != "GBuffer")
+			mat->Compile();
 	}
 }
 
@@ -283,6 +336,10 @@ void Renderer::GenerateRenderGraph()
 
 	struct FillTestData
 	{
+		NXRGHandle pIn;
+		NXRGHandle pOut;
+		NXRGHandle pFinal;
+		NXRGHandle pIndiArgs;
 	};
 
 	for (int i = 0; i < 6; i++)
@@ -293,21 +350,21 @@ void Renderer::GenerateRenderGraph()
 		std::string strBufName = "Terrain Fill " + std::to_string(i);
 		m_pRenderGraph->AddPass<FillTestData>(strBufName,
 			[=](NXRGBuilder& builder, FillTestData& data) {
-				builder.Read(pTerrainIndiArgs);
-				builder.Read(pInput);
-				builder.Write(pOutput);
-				builder.Write(pTerrainBufferFinal);
+				data.pIndiArgs = builder.Read(pTerrainIndiArgs);
+				data.pIn = builder.Read(pInput);
+				data.pOut = builder.Write(pOutput);
+				data.pFinal = builder.Write(pTerrainBufferFinal);
 			},
 			[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, FillTestData& data) mutable {
 				auto pMat = static_cast<NXComputePassMaterial*>(m_pPassMaterialMaps["TerrainFillTest"]);
-				pMat->SetOutput(0, 0, resMap.GetRes(pInput));
-				pMat->SetOutput(0, 1, resMap.GetRes(pOutput));
-				pMat->SetOutput(0, 2, resMap.GetRes(pTerrainBufferFinal));
+				pMat->SetOutput(0, 0, resMap.GetRes(data.pIn));
+				pMat->SetOutput(0, 1, resMap.GetRes(data.pOut));
+				pMat->SetOutput(0, 2, resMap.GetRes(data.pFinal));
 				pMat->SetConstantBuffer(0, 0, &NXGPUTerrainManager::GetInstance()->GetCBTerrainParams(i));
 
-				Ntr<NXBuffer> pInputRes = resMap.GetRes(pInput).As<NXBuffer>();
-				Ntr<NXBuffer> pTerrainIndiArgsRes = resMap.GetRes(pTerrainIndiArgs).As<NXBuffer>();
-				Ntr<NXBuffer> pTerrainBufferFinalRes = resMap.GetRes(pTerrainBufferFinal).As<NXBuffer>();
+				Ntr<NXBuffer> pInputRes = resMap.GetRes(data.pIn).As<NXBuffer>();
+				Ntr<NXBuffer> pIndiArgsRes = resMap.GetRes(data.pIndiArgs).As<NXBuffer>();
+				Ntr<NXBuffer> pFinalRes = resMap.GetRes(data.pFinal).As<NXBuffer>();
 				if (i == 0)
 				{
 					std::vector<NXGPUTerrainBlockData> initData; // NXGPUTerrainBlockData = Int2
@@ -321,40 +378,44 @@ void Renderer::GenerateRenderGraph()
 					}
 
 					pInputRes->SetCurrent(initData.data(), initData.size());
-					pTerrainBufferFinalRes->SetCurrent(nullptr, 0);
+					pFinalRes->SetCurrent(nullptr, 0);
 				}
 				NXGPUTerrainManager::GetInstance()->UpdateLodParams(i);
 
 				// 拷贝pInput.UAV计数器 作为 dispatch indirect args
 				// 虽然只是拷贝pInput.UAV计数器，但目前的设计不太灵活，要SetResourceState必须带着原始资源一起做...
 				pInputRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COPY_SOURCE);
-				pTerrainIndiArgsRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COPY_DEST);
+				pIndiArgsRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COPY_DEST);
 				// ...不过最终拷贝的时候，只拷贝pInput.UAV计数器即可。
-				pCmdList->CopyBufferRegion(pTerrainIndiArgsRes->GetD3DResource(), 0, pInputRes->GetD3DResourceUAVCounter(), 0, sizeof(uint32_t));
+				pCmdList->CopyBufferRegion(pIndiArgsRes->GetD3DResource(), 0, pInputRes->GetD3DResourceUAVCounter(), 0, sizeof(uint32_t));
 
 				pMat->RenderSetTargetAndState(pCmdList);
 				pMat->RenderBefore(pCmdList);
 
-				pTerrainIndiArgsRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
-				pCmdList->ExecuteIndirect(m_pCommandSig.Get(), 1, pTerrainIndiArgsRes->GetD3DResource(), 0, nullptr, 0);
+				pIndiArgsRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+				pCmdList->ExecuteIndirect(m_pCommandSig.Get(), 1, pIndiArgsRes->GetD3DResource(), 0, nullptr, 0);
 			});
 	}
 
 	struct GPUTerrainPatcherData 
 	{
+		NXRGHandle pMinMaxZMap;
+		NXRGHandle pFinal;
+		NXRGHandle pIndiArgs;
+		NXRGHandle pPatcher;
+		NXRGHandle pDrawIndexArgs;
 	};
 
 	m_pRenderGraph->AddPass<GPUTerrainPatcherData>("GPU Terrain Patcher Clear",
 		[=](NXRGBuilder& builder, GPUTerrainPatcherData& data) {
-			builder.Write(pTerrainPatcher);
-			builder.Write(pTerrainDrawIndexArgs);
-			builder.Write(pTerrainPatcher);
+			data.pPatcher		= builder.Write(pTerrainPatcher);
+			data.pDrawIndexArgs = builder.Write(pTerrainDrawIndexArgs);
 		},
 		[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, GPUTerrainPatcherData& data) {
 			auto pMat = static_cast<NXComputePassMaterial*>(m_pPassMaterialMaps["TerrainGPUPatcher:clear"]);
-			pMat->SetOutput(0, 0, resMap.GetRes(pTerrainPatcher));
-			pMat->SetOutput(0, 1, resMap.GetRes(pTerrainDrawIndexArgs));
-			pMat->SetOutput(0, 2, resMap.GetRes(pTerrainPatcher), true);
+			pMat->SetOutput(0, 0, resMap.GetRes(data.pPatcher));
+			pMat->SetOutput(0, 1, resMap.GetRes(data.pDrawIndexArgs));
+			pMat->SetOutput(0, 2, resMap.GetRes(data.pPatcher), true);
 
 			pMat->RenderSetTargetAndState(pCmdList);
 			pMat->RenderBefore(pCmdList);
@@ -366,35 +427,34 @@ void Renderer::GenerateRenderGraph()
 
 	m_pRenderGraph->AddPass<GPUTerrainPatcherData>("GPU Terrain Patcher",
 		[=](NXRGBuilder& builder, GPUTerrainPatcherData& data) {
-			builder.Read(pTerrain_MinMaxZMap2DArray);
-			builder.Read(pTerrainBufferFinal);
-			builder.Read(pTerrainIndiArgs);
-			builder.Write(pTerrainPatcher);
-			builder.Write(pTerrainDrawIndexArgs);
+			data.pMinMaxZMap	= builder.Read(pTerrain_MinMaxZMap2DArray);
+			data.pFinal			= builder.Read(pTerrainBufferFinal);
+			data.pIndiArgs		= builder.Write(pTerrainIndiArgs);
+			data.pPatcher		= builder.Write(pTerrainPatcher);
 		},
 		[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, GPUTerrainPatcherData& data) mutable {
 			auto pMat = static_cast<NXComputePassMaterial*>(m_pPassMaterialMaps["TerrainGPUPatcher:patch"]);
 			pMat->SetConstantBuffer(0, 1, &g_cbCamera);
 			pMat->SetConstantBuffer(0, 2, &NXGPUTerrainManager::GetInstance()->GetTerrainSupportParam());
-			pMat->SetInput(0, 0, resMap.GetRes(pTerrain_MinMaxZMap2DArray));
-			pMat->SetInput(0, 1, resMap.GetRes(pTerrainBufferFinal));
-			pMat->SetOutput(0, 0, resMap.GetRes(pTerrainPatcher));
-			pMat->SetOutput(0, 1, resMap.GetRes(pTerrainDrawIndexArgs));
+			pMat->SetInput(0, 0, resMap.GetRes(data.pMinMaxZMap));
+			pMat->SetInput(0, 1, resMap.GetRes(data.pFinal));
+			pMat->SetOutput(0, 0, resMap.GetRes(data.pPatcher));
+			pMat->SetOutput(0, 1, resMap.GetRes(data.pIndiArgs));
 
-			Ntr<NXBuffer> pTerrainIndiArgsRes = resMap.GetRes(pTerrainIndiArgs).As<NXBuffer>();
-			Ntr<NXBuffer> pTerrainBufferFinalRes = resMap.GetRes(pTerrainBufferFinal).As<NXBuffer>();
+			Ntr<NXBuffer> pIndiArgsRes = resMap.GetRes(data.pIndiArgs).As<NXBuffer>();
+			Ntr<NXBuffer> pFinalRes = resMap.GetRes(data.pFinal).As<NXBuffer>();
 
 			// 虽然只是拷贝pInput.UAV计数器，但目前的设计不太灵活，要SetResourceState必须带着原始资源一起做...
-			pTerrainBufferFinalRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COPY_SOURCE);
-			pTerrainIndiArgsRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COPY_DEST);
+			pFinalRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COPY_SOURCE);
+			pIndiArgsRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COPY_DEST);
 			// ...不过最终拷贝的时候，只拷贝pInput.UAV计数器即可。
-			pCmdList->CopyBufferRegion(pTerrainIndiArgsRes->GetD3DResource(), 0, pTerrainBufferFinalRes->GetD3DResourceUAVCounter(), 0, sizeof(uint32_t));
+			pCmdList->CopyBufferRegion(pIndiArgsRes->GetD3DResource(), 0, pFinalRes->GetD3DResourceUAVCounter(), 0, sizeof(uint32_t));
 
 			pMat->RenderSetTargetAndState(pCmdList);
 			pMat->RenderBefore(pCmdList);
 
-			pTerrainIndiArgsRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
-			pCmdList->ExecuteIndirect(m_pCommandSig.Get(), 1, pTerrainIndiArgsRes->GetD3DResource(), 0, nullptr, 0);
+			pIndiArgsRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+			pCmdList->ExecuteIndirect(m_pCommandSig.Get(), 1, pIndiArgsRes->GetD3DResource(), 0, nullptr, 0);
 		});
 
 	NXRGHandle hGBuffer0 = m_pRenderGraph->Create("GBuffer RT0", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::RenderTarget, .tex = { .format = DXGI_FORMAT_R32_FLOAT, .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .arraySize = 1, .mipLevels = 1 } });
@@ -495,19 +555,21 @@ void Renderer::GenerateRenderGraph()
 	NXRGHandle pVTReadback = m_pRenderGraph->Create("VT Readback Buffer", { .resourceType = NXResourceType::Buffer, .usage = NXRGResourceUsage::UnorderedAccess, .buf = { .stride = 4, .arraySize = (uint32_t)(m_viewRTSize.x * m_viewRTSize.y * 0.125f * 0.125f) } });
 	struct VTReadback
 	{
+		NXRGHandle gBuffer0;
+		NXRGHandle vtReadback;
 	};
-	m_pRenderGraph->AddPass<VTReadback>("VTReadbackPass",
+	auto vtReadbackPassData = m_pRenderGraph->AddPass<VTReadback>("VTReadbackPass",
 		[&](NXRGBuilder& builder, VTReadback& data) {
-			builder.Read(gBufferPassData->GetData().rt0);
-			builder.Write(pVTReadback);
+			data.gBuffer0 = builder.Read(gBufferPassData->GetData().rt0);
+			data.vtReadback = builder.Write(pVTReadback);
 		},
 		[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, VTReadback& data) {
 			auto pMat = static_cast<NXComputePassMaterial*>(m_pPassMaterialMaps["VTReadback"]);
 			pMat->SetConstantBuffer(0, 0, &NXVirtualTextureManager::GetInstance()->GetCBufferVTReadback());
-			pMat->SetInput(0, 0, resMap.GetRes(gBufferPassData->GetData().rt0));
-			pMat->SetOutput(0, 0, resMap.GetRes(pVTReadback));
+			pMat->SetInput(0, 0, resMap.GetRes(data.gBuffer0));
+			pMat->SetOutput(0, 0, resMap.GetRes(data.vtReadback));
 
-			auto& pRT = resMap.GetRes(gBufferPassData->GetData().rt0);
+			auto& pRT = resMap.GetRes(data.gBuffer0);
 			Int2 rtSize(pRT->GetWidth(), pRT->GetHeight());
 			Int2 threadGroupSize((rtSize + 7) / 8);
 
@@ -524,26 +586,28 @@ void Renderer::GenerateRenderGraph()
 	// TODO: 简略变量，new NXReadbackBufferPass有必要吗？
 	struct VTReadbackData
 	{
+		NXRGHandle vtReadback;
 	};
-	m_pRenderGraph->AddPass<VTReadbackData>("",
+	auto vtReadbackDataPassData = m_pRenderGraph->AddPass<VTReadbackData>("",
 		[&](NXRGBuilder& builder, VTReadbackData& data) {
-			builder.Read(pVTReadback);
+			data.vtReadback = builder.Read(vtReadbackPassData->GetData().vtReadback);
 		},
 		[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, VTReadbackData& data) {
 			auto pMat = static_cast<NXReadbackPassMaterial*>(m_pPassMaterialMaps["VTReadbackData"]);
-			pMat->SetInput(resMap.GetRes(pVTReadback));
+			pMat->SetInput(resMap.GetRes(data.vtReadback));
 			pMat->SetOutput(m_vtReadbackData);
 			pMat->Render(pCmdList);
 		});
 
 	struct ShadowMapData
 	{
+		NXRGHandle csmDepth;
 	};
 
 	NXRGHandle pCSMDepth = m_pRenderGraph->Import(m_pTexCSMDepth);
 	auto shadowMapPassData = m_pRenderGraph->AddPass<ShadowMapData>("ShadowMap",
 		[&](NXRGBuilder& builder, ShadowMapData& data) {
-			builder.Write(pCSMDepth);
+			data.csmDepth = builder.Write(pCSMDepth);
 		},
 		[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, ShadowMapData& data) {
 			auto vpCamera = NX12Util::ViewPort((float)m_shadowMapRTSize, (float)m_shadowMapRTSize);
@@ -553,7 +617,7 @@ void Renderer::GenerateRenderGraph()
 			auto pMat = static_cast<NXGraphicPassMaterial*>(m_pPassMaterialMaps["ShadowMap"]);
 			pMat->SetConstantBuffer(0, 0, &g_cbObject);
 			pMat->SetConstantBuffer(0, 2, &g_cbShadowTest);
-			pMat->SetOutputDS(resMap.GetRes(pCSMDepth));
+			pMat->SetOutputDS(resMap.GetRes(data.csmDepth));
 
 			pMat->RenderSetTargetAndState(pCmdList);
 			pMat->RenderBefore(pCmdList);
@@ -570,6 +634,8 @@ void Renderer::GenerateRenderGraph()
 
 	struct ShadowTestData
 	{
+		NXRGHandle gbufferDepth;
+		NXRGHandle csmDepth;
 		NXRGHandle shadowTest;
 	};
 
@@ -577,8 +643,8 @@ void Renderer::GenerateRenderGraph()
 
 	auto shadowTestPassData = m_pRenderGraph->AddPass<ShadowTestData>("ShadowTest",
 		[&](NXRGBuilder& builder, ShadowTestData& data) {
-			builder.Read(gBufferPassData->GetData().depth);
-			builder.Read(pCSMDepth);
+			data.gbufferDepth = builder.Read(gBufferPassData->GetData().depth);
+			data.csmDepth = builder.Read(shadowMapPassData->GetData().csmDepth);
 			data.shadowTest = builder.Write(pShadowTest);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, ShadowTestData& data) {
@@ -586,9 +652,9 @@ void Renderer::GenerateRenderGraph()
 			pMat->SetConstantBuffer(0, 0, &g_cbObject);
 			pMat->SetConstantBuffer(0, 1, &g_cbCamera);
 			pMat->SetConstantBuffer(0, 2, &g_cbShadowTest);
-			pMat->SetInputTex(0, 0, resMap.GetRes(gBufferPassData->GetData().depth));
-			pMat->SetInputTex(0, 1, resMap.GetRes(pCSMDepth));
-			pMat->SetOutputRT(0, resMap.GetRes(pShadowTest));
+			pMat->SetInputTex(0, 0, resMap.GetRes(data.gbufferDepth));
+			pMat->SetInputTex(0, 1, resMap.GetRes(data.csmDepth));
+			pMat->SetOutputRT(0, resMap.GetRes(data.shadowTest));
 
 			auto vpCamera = NX12Util::ViewPort(m_viewRTSize.x, m_viewRTSize.y);
 			pCmdList->RSSetViewports(1, &vpCamera);
@@ -598,6 +664,15 @@ void Renderer::GenerateRenderGraph()
 
 	struct DeferredLightingData
 	{
+		NXRGHandle gbuffer0;
+		NXRGHandle gbuffer1;
+		NXRGHandle gbuffer2;
+		NXRGHandle gbuffer3;
+		NXRGHandle gbufferDepth;
+		NXRGHandle shadowTest;
+		NXRGHandle cubeMap;
+		NXRGHandle preFilter;
+		NXRGHandle brdfLut;
 		NXRGHandle lighting;
 		NXRGHandle lightingSpec;
 		NXRGHandle lightingCopy;
@@ -612,15 +687,15 @@ void Renderer::GenerateRenderGraph()
 
 	auto litPassData = m_pRenderGraph->AddPass<DeferredLightingData>("DeferredLighting",
 		[&](NXRGBuilder& builder, DeferredLightingData& data) {
-			builder.Read(gBufferPassData->GetData().rt0);
-			builder.Read(gBufferPassData->GetData().rt1);
-			builder.Read(gBufferPassData->GetData().rt2);
-			builder.Read(gBufferPassData->GetData().rt3);
-			builder.Read(gBufferPassData->GetData().depth);
-			builder.Read(shadowTestPassData->GetData().shadowTest);
-			builder.Read(pCubeMap);
-			builder.Read(pPreFilter);
-			builder.Read(pBRDFLut);
+			data.gbuffer0 = builder.Read(gBufferPassData->GetData().rt0);
+			data.gbuffer1 = builder.Read(gBufferPassData->GetData().rt1);
+			data.gbuffer2 = builder.Read(gBufferPassData->GetData().rt2);
+			data.gbuffer3 = builder.Read(gBufferPassData->GetData().rt3);
+			data.gbufferDepth = builder.Read(gBufferPassData->GetData().depth);
+			data.shadowTest = builder.Read(shadowTestPassData->GetData().shadowTest);
+			data.cubeMap = builder.Read(pCubeMap);
+			data.preFilter = builder.Read(pPreFilter);
+			data.brdfLut = builder.Read(pBRDFLut);
 			data.lighting = builder.Write(pLit); 
 			data.lightingSpec = builder.Write(pLitSpec); 
 			data.lightingCopy = builder.Write(pLitCopy); 
@@ -633,15 +708,15 @@ void Renderer::GenerateRenderGraph()
 			pMat->SetConstantBuffer(0, 3, &m_scene->GetCubeMap()->GetCBDataParams()); // b3
 			pMat->SetConstantBuffer(0, 4, &NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfile()); // b4
 
-			pMat->SetInputTex(0, 0, resMap.GetRes(gBufferPassData->GetData().rt0)); // register t0
-			pMat->SetInputTex(0, 1, resMap.GetRes(gBufferPassData->GetData().rt1)); // t1
-			pMat->SetInputTex(0, 2, resMap.GetRes(gBufferPassData->GetData().rt2)); // t2
-			pMat->SetInputTex(0, 3, resMap.GetRes(gBufferPassData->GetData().rt3)); // t3
-			pMat->SetInputTex(0, 4, resMap.GetRes(gBufferPassData->GetData().depth)); // t4
-			pMat->SetInputTex(0, 5, resMap.GetRes(shadowTestPassData->GetData().shadowTest)); // t5
-			pMat->SetInputTex(0, 6, resMap.GetRes(pCubeMap));
-			pMat->SetInputTex(0, 7, resMap.GetRes(pPreFilter));
-			pMat->SetInputTex(0, 8, resMap.GetRes(pBRDFLut));
+			pMat->SetInputTex(0, 0, resMap.GetRes(data.gbuffer0)); // register t0
+			pMat->SetInputTex(0, 1, resMap.GetRes(data.gbuffer1)); // t1
+			pMat->SetInputTex(0, 2, resMap.GetRes(data.gbuffer2)); // t2
+			pMat->SetInputTex(0, 3, resMap.GetRes(data.gbuffer3)); // t3
+			pMat->SetInputTex(0, 4, resMap.GetRes(data.gbufferDepth)); // t4
+			pMat->SetInputTex(0, 5, resMap.GetRes(data.shadowTest)); // t5
+			pMat->SetInputTex(0, 6, resMap.GetRes(data.cubeMap));
+			pMat->SetInputTex(0, 7, resMap.GetRes(data.preFilter));
+			pMat->SetInputTex(0, 8, resMap.GetRes(data.brdfLut));
 			pMat->SetOutputRT(0, resMap.GetRes(data.lighting)); 
 			pMat->SetOutputRT(1, resMap.GetRes(data.lightingSpec)); 
 			pMat->SetOutputRT(2, resMap.GetRes(data.lightingCopy)); 
@@ -651,18 +726,24 @@ void Renderer::GenerateRenderGraph()
 
 	struct SubsurfaceData
 	{
+		NXRGHandle lighting;
+		NXRGHandle lightingSpec;
+		NXRGHandle lightingCopy;
+		NXRGHandle gbuffer1;
+		NXRGHandle gbufferDepth;
+		NXRGHandle noise64;
 		NXRGHandle buf;
 		NXRGHandle depth;
 	};
 	NXRGHandle pNoise64 = m_pRenderGraph->Import(NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_Noise2DGray_64x64));
 	auto sssPassData = m_pRenderGraph->AddPass<SubsurfaceData>("Subsurface",
 		[&](NXRGBuilder& builder, SubsurfaceData& data) {
-			builder.Read(litPassData->GetData().lighting);
-			builder.Read(litPassData->GetData().lightingSpec);
-			builder.Read(litPassData->GetData().lightingCopy);
-			builder.Read(gBufferPassData->GetData().rt1);
-			builder.Read(gBufferPassData->GetData().depth);
-			builder.Read(pNoise64);
+			data.lighting = builder.Read(litPassData->GetData().lighting);
+			data.lightingSpec = builder.Read(litPassData->GetData().lightingSpec);
+			data.lightingCopy = builder.Read(litPassData->GetData().lightingCopy);
+			data.gbuffer1 = builder.Read(gBufferPassData->GetData().rt1);
+			data.gbufferDepth = builder.Read(gBufferPassData->GetData().depth);
+			data.noise64 = builder.Read(pNoise64);
 
 			data.buf	= builder.Write(litPassData->GetData().lighting);
 			data.depth	= builder.Write(gBufferPassData->GetData().depth);
@@ -672,12 +753,12 @@ void Renderer::GenerateRenderGraph()
 			pMat->SetConstantBuffer(0, 1, &g_cbCamera);
 			pMat->SetConstantBuffer(0, 3, &NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfile());
 
-			pMat->SetInputTex(0, 0, resMap.GetRes(litPassData->GetData().lighting));
-			pMat->SetInputTex(0, 1, resMap.GetRes(litPassData->GetData().lightingSpec));
-			pMat->SetInputTex(0, 2, resMap.GetRes(litPassData->GetData().lightingCopy));
-			pMat->SetInputTex(0, 3, resMap.GetRes(gBufferPassData->GetData().rt1));
-			pMat->SetInputTex(0, 4, resMap.GetRes(gBufferPassData->GetData().depth));
-			pMat->SetInputTex(0, 5, resMap.GetRes(pNoise64));
+			pMat->SetInputTex(0, 0, resMap.GetRes(data.lighting));
+			pMat->SetInputTex(0, 1, resMap.GetRes(data.lightingSpec));
+			pMat->SetInputTex(0, 2, resMap.GetRes(data.lightingCopy));
+			pMat->SetInputTex(0, 3, resMap.GetRes(data.gbuffer1));
+			pMat->SetInputTex(0, 4, resMap.GetRes(data.gbufferDepth));
+			pMat->SetInputTex(0, 5, resMap.GetRes(data.noise64));
 			pMat->SetOutputRT(0, resMap.GetRes(data.buf));
 			pMat->SetOutputDS(resMap.GetRes(data.depth));
 
@@ -686,12 +767,13 @@ void Renderer::GenerateRenderGraph()
 
 	struct SkyLightingData
 	{
+		NXRGHandle cubeMap;
 		NXRGHandle buf;
 		NXRGHandle depth;
 	};
 	auto skyPassData = m_pRenderGraph->AddPass<SkyLightingData>("SkyLighting",
 		[&](NXRGBuilder& builder, SkyLightingData& data) {
-			builder.Read(pCubeMap);
+			data.cubeMap = builder.Read(pCubeMap);
 			data.buf	= builder.Write(sssPassData->GetData().buf);
 			data.depth	= builder.Write(gBufferPassData->GetData().depth);
 		},
@@ -699,7 +781,7 @@ void Renderer::GenerateRenderGraph()
 			auto pMat = static_cast<NXGraphicPassMaterial*>(m_pPassMaterialMaps["SkyLighting"]);
 			pMat->SetConstantBuffer(0, 0, &m_scene->GetCubeMap()->GetCBObjectParams());
 			pMat->SetConstantBuffer(0, 1, &m_scene->GetCubeMap()->GetCBDataParams());
-			pMat->SetInputTex(0, 0, resMap.GetRes(pCubeMap));
+			pMat->SetInputTex(0, 0, resMap.GetRes(data.cubeMap));
 			pMat->SetOutputRT(0, resMap.GetRes(data.buf));
 			pMat->SetOutputDS(resMap.GetRes(data.depth));
 
@@ -708,6 +790,7 @@ void Renderer::GenerateRenderGraph()
 
 	struct PostProcessingData
 	{
+		NXRGHandle skyBuf;
 		NXRGHandle out;
 	};
 
@@ -715,7 +798,7 @@ void Renderer::GenerateRenderGraph()
 
 	auto postProcessPassData = m_pRenderGraph->AddPass<PostProcessingData>("PostProcessing",
 		[&](NXRGBuilder& builder, PostProcessingData& data) {
-			builder.Read(skyPassData->GetData().buf);
+			data.skyBuf = builder.Read(skyPassData->GetData().buf);
 			data.out = builder.Write(pPostProcess);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, PostProcessingData& data) {
@@ -725,7 +808,7 @@ void Renderer::GenerateRenderGraph()
 			m_cbColorMapping.Update(m_cbColorMappingData);
 			
 			pMat->SetConstantBuffer(0, 2, &m_cbColorMapping);
-			pMat->SetInputTex(0, 0, resMap.GetRes(skyPassData->GetData().buf));
+			pMat->SetInputTex(0, 0, resMap.GetRes(data.skyBuf));
 			pMat->SetOutputRT(0, resMap.GetRes(data.out));
 
 			pMat->Render(pCmdList);
@@ -733,6 +816,8 @@ void Renderer::GenerateRenderGraph()
 
 	struct DebugLayerData
 	{
+		NXRGHandle postProcessOut;
+		NXRGHandle csmDepth;
 		NXRGHandle out;
 	};
 
@@ -740,8 +825,8 @@ void Renderer::GenerateRenderGraph()
 
 	auto debugLayerPassData = m_pRenderGraph->AddPass<DebugLayerData>("DebugLayer",
 		[&](NXRGBuilder& builder, DebugLayerData& data) {
-			builder.Read(postProcessPassData->GetData().out);
-			builder.Read(pCSMDepth);
+			data.postProcessOut = builder.Read(postProcessPassData->GetData().out);
+			data.csmDepth = builder.Read(shadowMapPassData->GetData().csmDepth);
 			data.out = builder.Write(pDebugLayer);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, DebugLayerData& data) {
@@ -753,8 +838,8 @@ void Renderer::GenerateRenderGraph()
 			
 			pMat->SetConstantBuffer(0, 1, &g_cbCamera);
 			pMat->SetConstantBuffer(0, 2, &m_cbDebugLayer);
-			pMat->SetInputTex(0, 0, resMap.GetRes(postProcessPassData->GetData().out));
-			pMat->SetInputTex(0, 1, resMap.GetRes(pCSMDepth));
+			pMat->SetInputTex(0, 0, resMap.GetRes(data.postProcessOut));
+			pMat->SetInputTex(0, 1, resMap.GetRes(data.csmDepth));
 			pMat->SetOutputRT(0, resMap.GetRes(data.out));
 
 			pMat->Render(pCmdList);
@@ -762,11 +847,13 @@ void Renderer::GenerateRenderGraph()
 
 	struct GizmosData
 	{
+		NXRGHandle in;
 		NXRGHandle out;
 	};
 	auto gizmosPassData = m_pRenderGraph->AddPass<GizmosData>("Gizmos",
 		[&](NXRGBuilder& builder, GizmosData& data) {
 			NXRGHandle pOut = m_bEnableDebugLayer ? debugLayerPassData->GetData().out : postProcessPassData->GetData().out;
+			data.in = builder.Read(pOut);
 			data.out = builder.Write(pOut);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, GizmosData& data) {
@@ -804,17 +891,18 @@ void Renderer::GenerateRenderGraph()
 	NXRGHandle pFinalRT = m_pRenderGraph->Import(m_pFinalRT);
 	struct FinalQuadData
 	{
-		NXRGHandle out;
+		NXRGHandle gizmosOut;
+		NXRGHandle finalOut;
 	};
 	auto FinalQuadPassData = m_pRenderGraph->AddPass<FinalQuadData>("FinalQuad",
 		[&](NXRGBuilder& builder, FinalQuadData& data) {
-			builder.Read(gizmosPassData->GetData().out);
-			data.out = builder.Write(pFinalRT);
+			data.gizmosOut = builder.Read(gizmosPassData->GetData().out);
+			data.finalOut = builder.Write(pFinalRT);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, FinalQuadData& data) {
 			auto pMat = static_cast<NXGraphicPassMaterial*>(m_pPassMaterialMaps["FinalQuad"]);
-			pMat->SetInputTex(0, 0, resMap.GetRes(gizmosPassData->GetData().out));
-			pMat->SetOutputRT(0, resMap.GetRes(data.out));
+			pMat->SetInputTex(0, 0, resMap.GetRes(data.gizmosOut));
+			pMat->SetOutputRT(0, resMap.GetRes(data.finalOut));
 
 			pMat->Render(pCmdList);
 		});
