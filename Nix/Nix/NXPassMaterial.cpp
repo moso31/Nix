@@ -178,7 +178,7 @@ void NXGraphicPassMaterial::Compile()
 	m_psoDesc.NumRenderTargets = (UINT)m_pOutRTs.size();
 	for (UINT i = 0; i < m_psoDesc.NumRenderTargets; i++)
 		m_psoDesc.RTVFormats[i] = m_rtFormats[i];
-	m_psoDesc.DSVFormat = m_dsvFormat;
+	m_psoDesc.DSVFormat = NXConvert::TypelessToDSVFormat(m_dsvFormat);
 
 	NXGlobalDX::GetDevice()->CreateGraphicsPipelineState(&m_psoDesc, IID_PPV_ARGS(&m_pPSO));
 
@@ -208,7 +208,6 @@ void NXGraphicPassMaterial::RenderSetTargetAndState(ID3D12GraphicsCommandList* p
 	{
 		ppRTVs.push_back(pTex.As<NXTexture2D>()->GetRTV());
 	}
-	pCmdList->OMSetRenderTargets((UINT)ppRTVs.size(), ppRTVs.data(), true, m_pOutDS.IsValid() ? &m_pOutDS.As<NXTexture2D>()->GetDSV() : nullptr);
 
 	// DX12需要及时更新纹理的资源状态
 	for (int i = 0; i < (int)m_pInTexs.size(); i++)
@@ -221,6 +220,8 @@ void NXGraphicPassMaterial::RenderSetTargetAndState(ID3D12GraphicsCommandList* p
 		m_pOutRTs[i]->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	if (m_pOutDS.IsValid())
 		m_pOutDS->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+
+	pCmdList->OMSetRenderTargets((UINT)ppRTVs.size(), ppRTVs.data(), true, m_pOutDS.IsValid() ? &m_pOutDS.As<NXTexture2D>()->GetDSV() : nullptr);
 }
 
 void NXGraphicPassMaterial::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
@@ -480,6 +481,7 @@ void NXReadbackPassMaterial::Render(ID3D12GraphicsCommandList* pCmdList)
 	if (NXReadbackSys->BuildTask(pGPUBuffer->GetByteSize(), ctx))
 	{
 		// 从（一般是主渲染cmdList）将RT拷到readback ringbuffer（ctx.pResource）
+		pGPUBuffer->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COPY_SOURCE);
 		pCmdList->CopyBufferRegion(ctx.pResource, ctx.pResourceOffset, pGPUBuffer->GetD3DResource(), 0, pGPUBuffer->GetByteSize());
 
 		NXReadbackSys->FinishTask(ctx, [this, ctx]() {

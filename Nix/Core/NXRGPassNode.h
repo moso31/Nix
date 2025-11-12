@@ -8,7 +8,7 @@ class NXRGFrameResources
 {
 public:
 	void Register(NXRGHandle handle, const Ntr<NXResource>& pResource);
-	const Ntr<NXResource>& GetRes(NXRGHandle handle) const;
+	Ntr<NXResource> GetRes(NXRGHandle handle) const;
 	void Clear() { resources.clear(); }	
 
 private:
@@ -48,6 +48,8 @@ protected:
 	std::vector<NXRGHandle> m_inputs; 
 	std::vector<NXRGHandle> m_outputs;
 
+	// 记录这个pass本帧使用的RGHandle和实际资源指针
+	// execute必须通过这个变量读取资源，否则版本可能对不上
 	NXRGFrameResources m_frameResources;
 };
 

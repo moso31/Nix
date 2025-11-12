@@ -6,7 +6,7 @@ void NXRGFrameResources::Register(NXRGHandle handle, const Ntr<NXResource>& pRes
 	resources[handle] = pResource;
 }
 
-const Ntr<NXResource>& NXRGFrameResources::GetRes(NXRGHandle handle) const
+Ntr<NXResource> NXRGFrameResources::GetRes(NXRGHandle handle) const
 {
 	// 在FrameResource里查找handle对于的实际NXResource*指针
 	// 必然查的到，查不到说明代码有问题

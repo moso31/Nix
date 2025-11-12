@@ -34,6 +34,27 @@ void DirectResources::InitDevice()
 
 	NXGlobalDX::Init(pAdapter4.Get());
 
+#if defined(_DEBUG)
+	{
+		Microsoft::WRL::ComPtr<ID3D12InfoQueue> iq;
+		if (SUCCEEDED(NXGlobalDX::s_device.As(&iq)))
+		{
+			iq->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE);
+			iq->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, TRUE);
+			// 如果也希望 Warning 停止，可打开下一行：
+			// iq->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, TRUE);
+
+			// 3) （可选）只对特定消息 ID 断点，例如资源屏障前后状态不匹配
+			// 该错误对应的枚举一般为：
+			// D3D12_MESSAGE_ID_RESOURCE_BARRIER_BEFORE_AFTER_MISMATCH
+			iq->SetBreakOnID(D3D12_MESSAGE_ID_RESOURCE_BARRIER_BEFORE_AFTER_MISMATCH, TRUE);
+
+			// 也可按类别统一拦截：
+			// iq->SetBreakOnCategory(D3D12_MESSAGE_CATEGORY_RESOURCE_MANIPULATION, TRUE);
+		}
+	}
+#endif
+
 	RECT rc;
 	GetClientRect(NXGlobalWindows::hWnd, &rc);
 	UINT width = rc.right - rc.left;

@@ -13,6 +13,8 @@ public:
 	// 从pSrcData地址开始，拷贝大小为arraySize字节的数据到当前buffer
 	void SetCurrent(const void* pSrcData, uint32_t arraySize);
 	void SetAll(const void* pSrcData, uint32_t arraySize);
+	// 如果有必要，等待上传操作完成（会阻塞主图形队列！只用于对性能要求不高的SetAll/SetCurrent行为，或者调试）
+	void WaitForUploadFinish();
 
 	uint32_t GetStride() const { return m_stride; }
 	uint32_t GetByteSize() const { return m_byteSize; }

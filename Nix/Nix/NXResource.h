@@ -28,6 +28,7 @@ public:
 
 	virtual const D3D12_RESOURCE_STATES& GetResourceState() { return m_resourceState; }
 	virtual void SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D3D12_RESOURCE_STATES& state) = 0;
+	virtual void SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D3D12_RESOURCE_STATES& srcState, const D3D12_RESOURCE_STATES& dstState);
 
 protected:
 	D3D12_RESOURCE_STATES m_resourceState;

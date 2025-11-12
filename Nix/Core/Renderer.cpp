@@ -342,18 +342,29 @@ void Renderer::GenerateRenderGraph()
 		NXRGHandle pIndiArgs;
 	};
 
+	std::vector<NXRGPassNode<FillTestData>*> terrainFillPasses(6);
+	auto& passFillResult = terrainFillPasses.back();
 	for (int i = 0; i < 6; i++)
 	{
-		NXRGHandle pInput = i % 2 ? pTerrainBufferB : pTerrainBufferA;
-		NXRGHandle pOutput = i % 2 ? pTerrainBufferA : pTerrainBufferB;
+		auto passPrevFill = (i == 0) ? nullptr : terrainFillPasses[i - 1];
+		auto& passFill = terrainFillPasses[i];
 
 		std::string strBufName = "Terrain Fill " + std::to_string(i);
-		m_pRenderGraph->AddPass<FillTestData>(strBufName,
+		passFill = m_pRenderGraph->AddPass<FillTestData>(strBufName,
 			[=](NXRGBuilder& builder, FillTestData& data) {
 				data.pIndiArgs = builder.Read(pTerrainIndiArgs);
-				data.pIn = builder.Read(pInput);
-				data.pOut = builder.Write(pOutput);
 				data.pFinal = builder.Write(pTerrainBufferFinal);
+
+				if (i == 0)
+				{
+					data.pIn = builder.Read(pTerrainBufferA);
+					data.pOut = builder.Write(pTerrainBufferB);
+				}
+				else
+				{
+					data.pIn = builder.Read(passPrevFill->GetData().pOut);
+					data.pOut = builder.Write(passPrevFill->GetData().pIn);
+				}
 			},
 			[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, FillTestData& data) mutable {
 				auto pMat = static_cast<NXComputePassMaterial*>(m_pPassMaterialMaps["TerrainFillTest"]);
@@ -363,6 +374,7 @@ void Renderer::GenerateRenderGraph()
 				pMat->SetConstantBuffer(0, 0, &NXGPUTerrainManager::GetInstance()->GetCBTerrainParams(i));
 
 				Ntr<NXBuffer> pInputRes = resMap.GetRes(data.pIn).As<NXBuffer>();
+				Ntr<NXBuffer> pOutputRes = resMap.GetRes(data.pOut).As<NXBuffer>();
 				Ntr<NXBuffer> pIndiArgsRes = resMap.GetRes(data.pIndiArgs).As<NXBuffer>();
 				Ntr<NXBuffer> pFinalRes = resMap.GetRes(data.pFinal).As<NXBuffer>();
 				if (i == 0)
@@ -379,6 +391,9 @@ void Renderer::GenerateRenderGraph()
 
 					pInputRes->SetCurrent(initData.data(), initData.size());
 					pFinalRes->SetCurrent(nullptr, 0);
+
+					pInputRes->WaitForUploadFinish();
+					pFinalRes->WaitForUploadFinish();
 				}
 				NXGPUTerrainManager::GetInstance()->UpdateLodParams(i);
 
@@ -406,7 +421,7 @@ void Renderer::GenerateRenderGraph()
 		NXRGHandle pDrawIndexArgs;
 	};
 
-	m_pRenderGraph->AddPass<GPUTerrainPatcherData>("GPU Terrain Patcher Clear",
+	auto passPatchClear = m_pRenderGraph->AddPass<GPUTerrainPatcherData>("GPU Terrain Patcher Clear",
 		[=](NXRGBuilder& builder, GPUTerrainPatcherData& data) {
 			data.pPatcher		= builder.Write(pTerrainPatcher);
 			data.pDrawIndexArgs = builder.Write(pTerrainDrawIndexArgs);
@@ -424,13 +439,13 @@ void Renderer::GenerateRenderGraph()
 		});
 
 	auto pTerrain_MinMaxZMap2DArray = m_pRenderGraph->Import(terrIns->GetTerrainMinMaxZMap2DArray());
-
-	m_pRenderGraph->AddPass<GPUTerrainPatcherData>("GPU Terrain Patcher",
+	auto passPatcher = m_pRenderGraph->AddPass<GPUTerrainPatcherData>("GPU Terrain Patcher",
 		[=](NXRGBuilder& builder, GPUTerrainPatcherData& data) {
 			data.pMinMaxZMap	= builder.Read(pTerrain_MinMaxZMap2DArray);
-			data.pFinal			= builder.Read(pTerrainBufferFinal);
-			data.pIndiArgs		= builder.Write(pTerrainIndiArgs);
-			data.pPatcher		= builder.Write(pTerrainPatcher);
+			data.pFinal			= builder.Read(passFillResult->GetData().pFinal);
+			data.pIndiArgs		= builder.Write(passFillResult->GetData().pIndiArgs);
+			data.pPatcher		= builder.Write(passPatchClear->GetData().pPatcher);
+			data.pDrawIndexArgs = builder.Write(passPatchClear->GetData().pDrawIndexArgs);
 		},
 		[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, GPUTerrainPatcherData& data) mutable {
 			auto pMat = static_cast<NXComputePassMaterial*>(m_pPassMaterialMaps["TerrainGPUPatcher:patch"]);
@@ -439,7 +454,7 @@ void Renderer::GenerateRenderGraph()
 			pMat->SetInput(0, 0, resMap.GetRes(data.pMinMaxZMap));
 			pMat->SetInput(0, 1, resMap.GetRes(data.pFinal));
 			pMat->SetOutput(0, 0, resMap.GetRes(data.pPatcher));
-			pMat->SetOutput(0, 1, resMap.GetRes(data.pIndiArgs));
+			pMat->SetOutput(0, 1, resMap.GetRes(data.pDrawIndexArgs));
 
 			Ntr<NXBuffer> pIndiArgsRes = resMap.GetRes(data.pIndiArgs).As<NXBuffer>();
 			Ntr<NXBuffer> pFinalRes = resMap.GetRes(data.pFinal).As<NXBuffer>();
@@ -474,6 +489,8 @@ void Renderer::GenerateRenderGraph()
 
 	auto gBufferPassData = m_pRenderGraph->AddPass<GBufferData>("GBufferPass",
 		[&](NXRGBuilder& builder, GBufferData& data) {
+			builder.Read(passPatcher->GetData().pPatcher); // 临时代码，保证拓扑关系terrainPatcher在前【TODO：优先级还是read token?总之干掉】 
+
 			data.rt0	= builder.Write(hGBuffer0);
 			data.rt1	= builder.Write(hGBuffer1);
 			data.rt2	= builder.Write(hGBuffer2);
@@ -481,6 +498,7 @@ void Renderer::GenerateRenderGraph()
 			data.depth	= builder.Write(hDepthZ);
 		}, 
 		[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, GBufferData& data) {
+			// GBuffer 和其他的pass不太一样，依赖动态变化的场景/材质信息
 			Ntr<NXTexture> pOutRTs[] = {
 				resMap.GetRes(data.rt0),
 				resMap.GetRes(data.rt1),
@@ -489,6 +507,7 @@ void Renderer::GenerateRenderGraph()
 			};
 			Ntr<NXTexture> pOutDS = resMap.GetRes(data.depth);
 
+			auto kTest = m_pRenderGraph->GetUsingResourceByName("NXRGRes_3");
 			auto* pPassMaterial = static_cast<NXGraphicPassMaterial*>(m_pPassMaterialMaps["GBuffer"]);
 			for (int i = 0; i < 4; i++)
 			{
@@ -550,6 +569,11 @@ void Renderer::GenerateRenderGraph()
 					}
 				}
 			}
+
+			if (kTest.IsValid() && false)
+			{
+				kTest->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+			}
 		});
 
 	NXRGHandle pVTReadback = m_pRenderGraph->Create("VT Readback Buffer", { .resourceType = NXResourceType::Buffer, .usage = NXRGResourceUsage::UnorderedAccess, .buf = { .stride = 4, .arraySize = (uint32_t)(m_viewRTSize.x * m_viewRTSize.y * 0.125f * 0.125f) } });
@@ -583,12 +607,11 @@ void Renderer::GenerateRenderGraph()
 			pCmdList->Dispatch(threadGroupSize.x, threadGroupSize.y, 1);
 		});
 
-	// TODO: 简略变量，new NXReadbackBufferPass有必要吗？
 	struct VTReadbackData
 	{
 		NXRGHandle vtReadback;
 	};
-	auto vtReadbackDataPassData = m_pRenderGraph->AddPass<VTReadbackData>("",
+	auto vtReadbackDataPassData = m_pRenderGraph->AddPass<VTReadbackData>("DoVTReadback",
 		[&](NXRGBuilder& builder, VTReadbackData& data) {
 			data.vtReadback = builder.Read(vtReadbackPassData->GetData().vtReadback);
 		},
@@ -773,6 +796,7 @@ void Renderer::GenerateRenderGraph()
 	};
 	auto skyPassData = m_pRenderGraph->AddPass<SkyLightingData>("SkyLighting",
 		[&](NXRGBuilder& builder, SkyLightingData& data) {
+			builder.Read(sssPassData->GetData().buf); // 临时代码，保证拓扑关系sss在前【TODO：优先级还是read token?总之干掉】
 			data.cubeMap = builder.Read(pCubeMap);
 			data.buf	= builder.Write(sssPassData->GetData().buf);
 			data.depth	= builder.Write(gBufferPassData->GetData().depth);

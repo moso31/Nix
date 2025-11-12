@@ -177,11 +177,6 @@ void NXBuffer::WaitLoadingViewsFinish()
 
 void NXBuffer::SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D3D12_RESOURCE_STATES& state)
 {
-	// 设置资源状态时，先确保上传命令完成
-	uint64_t maxUploadFenceValue = std::max(m_lastUploadSysFenceValue_buffer.Current(), m_lastUploadSysFenceValue_uavCounter.Current());
-	if (maxUploadFenceValue > 0)
-		NXGlobalDX::GlobalCmdQueue()->Wait(NXUploadSys->GetFence(), maxUploadFenceValue); // 取buffer本体和uav counter buffer的最大值
-
 	if (m_resourceState.Current() == state)
 		return;
 
@@ -198,4 +193,12 @@ void NXBuffer::SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D
 	pCommandList->ResourceBarrier(1, &barrier);
 
 	m_resourceState.Current() = state;
+}
+
+void NXBuffer::WaitForUploadFinish()
+{
+	// 设置资源状态时，先确保上传命令完成
+	uint64_t maxUploadFenceValue = std::max(m_lastUploadSysFenceValue_buffer.Current(), m_lastUploadSysFenceValue_uavCounter.Current());
+	if (maxUploadFenceValue > 0)
+		NXGlobalDX::GlobalCmdQueue()->Wait(NXUploadSys->GetFence(), maxUploadFenceValue); // 取buffer本体和uav counter buffer的最大值
 }

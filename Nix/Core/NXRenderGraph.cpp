@@ -136,6 +136,9 @@ void NXRenderGraph::Compile()
 	// 贪心，确认实际应该分配的资源
 	for (auto& [resID, lifeTime] : m_resourceLifeTimeMap)
 	{
+		if (lifeTime.start == std::numeric_limits<int>::max() || lifeTime.end == std::numeric_limits<int>::min())
+			continue; // 未被任何pass使用的资源不分配
+
 		//if (m_resourceMap.find(resID) == m_resourceMap.end()) continue; // 不需要这句;resourceLifeTimeMap一定是resourceMap的子集
 		auto& resourceDesc = m_resourceMap[resID]->GetDescription(); 
 
@@ -232,6 +235,8 @@ void NXRenderGraph::Execute()
 	std::string eventName = "NXRenderGraph";
 	NX12Util::BeginEvent(cL, eventName.c_str());
 
+	cL->OMSetRenderTargets(0, nullptr, FALSE, nullptr);
+
 	ID3D12DescriptorHeap* ppHeaps[] = { NXShVisDescHeap->GetDescriptorHeap() };
 	cL->SetDescriptorHeaps(1, ppHeaps);
 	cL->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -277,11 +282,28 @@ void NXRenderGraph::Clear()
 	m_descLifeTimesMap.clear();
 	m_allocatedResourceMap.clear();
 	m_resourceUsingMap.clear();
+
+	// 重置RGHandle 从0计数
+	NXRGHandle::Reset();
 }
 
 Ntr<NXResource> NXRenderGraph::GetResource(NXRGHandle handle)
 {
 	return m_allocatedResourceMap.find(handle) != m_allocatedResourceMap.end() ? m_allocatedResourceMap[handle] : nullptr;
+}
+
+Ntr<NXResource> NXRenderGraph::GetUsingResourceByName(const std::string& name)
+{
+	for (auto [m, d] : m_lastResourceUsingMap)
+	{
+		for (auto& res : d)
+		{
+			if (res->GetName() == name)
+				return res;
+		}
+	}
+
+	return nullptr;
 }
 
 Ntr<NXResource> NXRenderGraph::CreateResourceByDescription(const NXRGDescription& desc, NXRGHandle handle)

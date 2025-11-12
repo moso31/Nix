@@ -53,7 +53,7 @@ protected:
 		for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 		{
 			NXAllocator_RWB->Alloc(&desc, m_byteSize, [this, i](const PlacedBufferAllocTaskResult& result) {
-				std::wstring strName = m_name + std::to_wstring(i);
+				std::wstring strName = m_name + L"_" + std::to_wstring(i);
 				result.pResource->SetName(strName.c_str());
 				m_pResource[i] = result.pResource;
 				m_memData[i] = result.memData;

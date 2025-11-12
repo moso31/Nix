@@ -52,6 +52,8 @@ public:
 
 	// 获取资源和pass的接口
 	Ntr<NXResource> GetResource(NXRGHandle handle);
+	Ntr<NXResource> GetUsingResourceByName(const std::string& name); // 通过资源名称查找资源；仅调试使用
+
 	const std::vector<NXRGPassNodeBase*>& GetPassNodes() { return m_passNodes; }
 	const std::unordered_map<NXRGHandle, NXRGResource*>& GetResourceMap() { return m_resourceMap; }
 

@@ -162,6 +162,11 @@ void NXTexture::SetClearValue(float depth, uint32_t stencilRef)
 
 void NXTexture::SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D3D12_RESOURCE_STATES& state)
 {
+	if (m_name == "NXRGRes_3")
+	{
+		int x = 0;
+	}
+
 	if (m_resourceState == state)
 		return;
 
