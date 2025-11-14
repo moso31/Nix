@@ -166,6 +166,8 @@ void NXRenderGraph::Compile()
 					// 若可以复用，直接加入该实际资源实例的生命周期列表
 					singleResourceLifeTime.descLifeTimes.push_back(lifeTime);
 					m_allocatedResourceMap[resID] = singleResourceLifeTime.pResource;
+
+					m_debug_allocatedResourceHandles[m_allocatedResourceMap[resID]->GetName()].push_back(resID);
 					break;
 				}
 			}
@@ -179,6 +181,8 @@ void NXRenderGraph::Compile()
 			singleResourceLifeTime.descLifeTimes.push_back(lifeTime);
 			m_descLifeTimesMap[resourceDesc].push_back(singleResourceLifeTime);
 			m_allocatedResourceMap[resID] = singleResourceLifeTime.pResource;
+
+			m_debug_allocatedResourceHandles[m_allocatedResourceMap[resID]->GetName()].push_back(resID);
 		}
 	}
 
@@ -285,6 +289,8 @@ void NXRenderGraph::Clear()
 
 	// 重置RGHandle 从0计数
 	NXRGHandle::Reset();
+
+	m_debug_allocatedResourceHandles.clear();
 }
 
 Ntr<NXResource> NXRenderGraph::GetResource(NXRGHandle handle)

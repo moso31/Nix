@@ -214,14 +214,20 @@ void NXGraphicPassMaterial::RenderSetTargetAndState(ID3D12GraphicsCommandList* p
 	{
 		auto& pSpaceTexs = m_pInTexs[i];
 		for (int j = 0; j < (int)pSpaceTexs.size(); j++)
-			pSpaceTexs[j]->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		{
+			auto& pSlotTex = pSpaceTexs[j];
+			if (pSlotTex.IsValid())
+			{
+				pSlotTex->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+			}
+		}
 	}
 	for (int i = 0; i < (int)m_pOutRTs.size(); i++)
 		m_pOutRTs[i]->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	if (m_pOutDS.IsValid())
 		m_pOutDS->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
-	pCmdList->OMSetRenderTargets((UINT)ppRTVs.size(), ppRTVs.data(), true, m_pOutDS.IsValid() ? &m_pOutDS.As<NXTexture2D>()->GetDSV() : nullptr);
+	pCmdList->OMSetRenderTargets((UINT)ppRTVs.size(), ppRTVs.data(), false, m_pOutDS.IsValid() ? &m_pOutDS.As<NXTexture2D>()->GetDSV() : nullptr);
 }
 
 void NXGraphicPassMaterial::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
@@ -253,7 +259,10 @@ void NXGraphicPassMaterial::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 			for (int j = 0; j < (int)pSpaceTexs.size(); j++)
 			{
 				auto pRes = pSpaceTexs[j];
-				NXShVisDescHeap->PushFluid(pRes.As<NXTexture>()->GetSRV());
+				if (pRes.IsValid())
+					NXShVisDescHeap->PushFluid(pRes.As<NXTexture>()->GetSRV());
+				else
+					NXShVisDescHeap->PushFluid(NXAllocator_NULL->GetNullSRV());
 			}
             D3D12_GPU_DESCRIPTOR_HANDLE srvHandle0 = NXShVisDescHeap->Submit();
 
@@ -357,15 +366,18 @@ void NXComputePassMaterial::RenderSetTargetAndState(ID3D12GraphicsCommandList* p
 		{
 			if (pSpaceOuts[slot].pRes.IsNull()) continue;
 			auto pRes = pSpaceOuts[slot].pRes;
-			pRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-            
-			uavBarriers.push_back(NX12Util::BarrierUAV(pRes->GetD3DResource()));
-			if (pRes->GetResourceType() == NXResourceType::Buffer)
+			if (pRes.IsValid())
 			{
-				auto pBuffer = pRes.As<NXBuffer>();
-				if (pBuffer->GetD3DResourceUAVCounter())
+				pRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+
+				uavBarriers.push_back(NX12Util::BarrierUAV(pRes->GetD3DResource()));
+				if (pRes->GetResourceType() == NXResourceType::Buffer)
 				{
-					uavBarriers.push_back(NX12Util::BarrierUAV(pBuffer->GetD3DResourceUAVCounter()));
+					auto pBuffer = pRes.As<NXBuffer>();
+					if (pBuffer->GetD3DResourceUAVCounter())
+					{
+						uavBarriers.push_back(NX12Util::BarrierUAV(pBuffer->GetD3DResourceUAVCounter()));
+					}
 				}
 			}
 		}
@@ -442,22 +454,29 @@ void NXComputePassMaterial::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 				}
 
 				auto pRes = pSpaceOuts[j].pRes;
-				if (pRes->GetResourceType() == NXResourceType::Buffer)
+				if (pRes.IsValid())
 				{
-					auto pBuffer = pRes.As<NXBuffer>();
-					// 根据NXResourceUAV的标志选择UAV描述符
-					if (pSpaceOuts[j].isUAVCounter)
+					if (pRes->GetResourceType() == NXResourceType::Buffer)
 					{
-						NXShVisDescHeap->PushFluid(pBuffer->GetUAVCounter());
+						auto pBuffer = pRes.As<NXBuffer>();
+						// 根据NXResourceUAV的标志选择UAV描述符
+						if (pSpaceOuts[j].isUAVCounter)
+						{
+							NXShVisDescHeap->PushFluid(pBuffer->GetUAVCounter());
+						}
+						else
+						{
+							NXShVisDescHeap->PushFluid(pBuffer->GetUAV());
+						}
 					}
-					else
+					else if (pRes->GetResourceType() != NXResourceType::None)
 					{
-						NXShVisDescHeap->PushFluid(pBuffer->GetUAV());
+						NXShVisDescHeap->PushFluid(pRes.As<NXTexture>()->GetUAV());
 					}
 				}
-				else if (pRes->GetResourceType() != NXResourceType::None)
+				else
 				{
-					NXShVisDescHeap->PushFluid(pRes.As<NXTexture>()->GetUAV());
+					NXShVisDescHeap->PushFluid(NXAllocator_NULL->GetNullUAV());
 				}
 			}
 

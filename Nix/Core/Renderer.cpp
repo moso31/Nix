@@ -213,7 +213,7 @@ void Renderer::InitPassMaterials()
 	// Subsurface
 	{
 		auto pMat = new NXGraphicPassMaterial("Subsurface", L"Shader\\SSSSSRenderer.fx");
-		pMat->RegisterRTVNum({ DXGI_FORMAT_R32G32B32A32_FLOAT });
+		pMat->RegisterRTVNum({ DXGI_FORMAT_R11G11B10_FLOAT });
 		pMat->RegisterDSV(DXGI_FORMAT_R24G8_TYPELESS);
 		pMat->RegisterSRVSpaceNum(1);
 		pMat->RegisterSRVSlotNum(6);  // t0-t5
@@ -229,7 +229,7 @@ void Renderer::InitPassMaterials()
 	// SkyLighting
 	{
 		auto pMat = new NXGraphicPassMaterial("SkyLighting", L"Shader\\CubeMap.fx");
-		pMat->RegisterRTVNum({ DXGI_FORMAT_R32G32B32A32_FLOAT });
+		pMat->RegisterRTVNum({ DXGI_FORMAT_R11G11B10_FLOAT });
 		pMat->RegisterDSV(DXGI_FORMAT_R24G8_TYPELESS);
 		pMat->RegisterSRVSpaceNum(1);
 		pMat->RegisterSRVSlotNum(1);  // t0
@@ -751,7 +751,6 @@ void Renderer::GenerateRenderGraph()
 	{
 		NXRGHandle lighting;
 		NXRGHandle lightingSpec;
-		NXRGHandle lightingCopy;
 		NXRGHandle gbuffer1;
 		NXRGHandle gbufferDepth;
 		NXRGHandle noise64;
@@ -763,12 +762,12 @@ void Renderer::GenerateRenderGraph()
 		[&](NXRGBuilder& builder, SubsurfaceData& data) {
 			data.lighting = builder.Read(litPassData->GetData().lighting);
 			data.lightingSpec = builder.Read(litPassData->GetData().lightingSpec);
-			data.lightingCopy = builder.Read(litPassData->GetData().lightingCopy);
 			data.gbuffer1 = builder.Read(gBufferPassData->GetData().rt1);
 			data.gbufferDepth = builder.Read(gBufferPassData->GetData().depth);
 			data.noise64 = builder.Read(pNoise64);
 
-			data.buf	= builder.Write(litPassData->GetData().lighting);
+			NXRGHandle in = builder.Read(litPassData->GetData().lightingCopy);
+			data.buf	= builder.Write(in);
 			data.depth	= builder.Write(gBufferPassData->GetData().depth);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, SubsurfaceData& data) {
@@ -778,7 +777,6 @@ void Renderer::GenerateRenderGraph()
 
 			pMat->SetInputTex(0, 0, resMap.GetRes(data.lighting));
 			pMat->SetInputTex(0, 1, resMap.GetRes(data.lightingSpec));
-			pMat->SetInputTex(0, 2, resMap.GetRes(data.lightingCopy));
 			pMat->SetInputTex(0, 3, resMap.GetRes(data.gbuffer1));
 			pMat->SetInputTex(0, 4, resMap.GetRes(data.gbufferDepth));
 			pMat->SetInputTex(0, 5, resMap.GetRes(data.noise64));

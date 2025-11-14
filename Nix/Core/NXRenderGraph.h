@@ -84,6 +84,9 @@ private:
 	// NXRGHandle-实际分配的资源 映射
 	std::unordered_map<NXRGHandle, Ntr<NXResource>> m_allocatedResourceMap; 
 
+	// 调试用接口
+	std::unordered_map<std::string, std::vector<NXRGHandle>> m_debug_allocatedResourceHandles; // 记录每个实际分配纹理资源由哪些Handle占用
+
 	// 记录每种desc的资源在 上帧+本帧 的分配情况，以确认资源复用
 	std::unordered_map<NXRGDescription, std::vector<Ntr<NXResource>>> m_lastResourceUsingMap;
 	std::unordered_map<NXRGDescription, std::vector<Ntr<NXResource>>> m_resourceUsingMap;
