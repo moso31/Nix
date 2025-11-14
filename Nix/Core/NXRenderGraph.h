@@ -41,6 +41,7 @@ public:
 
 	NXRGHandle Read(NXRGHandle resID, NXRGPassNodeBase* passNode);
 	NXRGHandle Write(NXRGPassNodeBase* passNode,NXRGHandle resID);
+	NXRGHandle ReadWrite(NXRGPassNodeBase* passNode, NXRGHandle resID);
 
 	NXRGHandle Create(const std::string& name, const NXRGDescription& desc);
 	NXRGHandle Import(const Ntr<NXResource>& importResource);
@@ -71,7 +72,6 @@ private:
 	std::unordered_map<NXRGHandle, Ntr<NXResource>> m_importedResourceMap; 
 
 	// Compile相关：
-	std::unordered_map<NXRGHandle, NXRGPassNodeBase*> m_resourceProducerPassMap; // 每个RGHandle的生产者Pass
 	// Compile-拓扑排序相关：
 	std::unordered_map<NXRGPassNodeBase*, std::vector<NXRGPassNodeBase*>> m_adjTablePassMap; // 每个Pass的邻接表
 	std::unordered_map<NXRGPassNodeBase*, int> m_indegreePassMap; // 每个Pass的入度

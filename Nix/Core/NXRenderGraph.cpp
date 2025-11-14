@@ -27,6 +27,13 @@ NXRGHandle NXRenderGraph::Write(NXRGPassNodeBase* passNode, NXRGHandle resID)
 	return handle;
 }
 
+NXRGHandle NXRenderGraph::ReadWrite(NXRGPassNodeBase* passNode, NXRGHandle resID)
+{
+	passNode->AddInput(resID);
+	passNode->AddOutput(resID);
+	return resID;
+}
+
 NXRGHandle NXRenderGraph::Create(const std::string& name, const NXRGDescription& desc)
 {
 	NXRGResource* pResource = new NXRGResource(name, desc, false);
@@ -58,27 +65,24 @@ void NXRenderGraph::Compile()
 		pass->ClearBeforeCompile();
 	}
 
-	for (auto& pass : m_passNodes)
-	{
-		for (auto& outResID : pass->GetOutputs())
-		{
-			// 记录每个资源的生产者Pass
-			m_resourceProducerPassMap[outResID] = pass;
-		}
-	}
-
+	std::unordered_map<NXRGHandle, NXRGPassNodeBase*> lastWriteMap; // 构建邻接表用，记录每个RGHandle的最后写入Pass
 	for (auto& pass : m_passNodes)
 	{
 		for (auto& inResID : pass->GetInputs())
 		{
-			// 构建邻接表和入度表
-			auto itProducerPass = m_resourceProducerPassMap.find(inResID);
-			if (itProducerPass != m_resourceProducerPassMap.end())
+			auto it = lastWriteMap.find(inResID);
+			if (it != lastWriteMap.end())
 			{
-				auto* pProducerPass = itProducerPass->second;
-				m_adjTablePassMap[pProducerPass].push_back(pass); // 生产者指向消费者
-				m_indegreePassMap[pass]++; // 消费者入度+1
+				// 构建一条从最后写入该资源的Pass到当前Pass的边
+				auto& lastWritePass = it->second;
+				m_adjTablePassMap[lastWritePass].push_back(pass);
+				m_indegreePassMap[pass]++; // 入度+1
 			}
+		}
+
+		for (auto& outResID : pass->GetOutputs())
+		{
+			lastWriteMap[outResID] = pass;
 		}
 	}
 
@@ -278,7 +282,6 @@ void NXRenderGraph::Clear()
 	m_resourceMap.clear();
 	m_importedResourceMap.clear();
 	// 清空其他辅助数据结构
-	m_resourceProducerPassMap.clear();
 	m_adjTablePassMap.clear();
 	m_indegreePassMap.clear();
 	m_timeLayerPassMap.clear();

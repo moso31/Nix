@@ -765,10 +765,8 @@ void Renderer::GenerateRenderGraph()
 			data.gbuffer1 = builder.Read(gBufferPassData->GetData().rt1);
 			data.gbufferDepth = builder.Read(gBufferPassData->GetData().depth);
 			data.noise64 = builder.Read(pNoise64);
-
-			NXRGHandle in = builder.Read(litPassData->GetData().lightingCopy);
-			data.buf	= builder.Write(in);
-			data.depth	= builder.Write(gBufferPassData->GetData().depth);
+			data.depth	= builder.Read(gBufferPassData->GetData().depth);
+			data.buf	= builder.ReadWrite(litPassData->GetData().lightingCopy);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, SubsurfaceData& data) {
 			auto pMat = static_cast<NXGraphicPassMaterial*>(m_pPassMaterialMaps["Subsurface"]);
@@ -794,10 +792,9 @@ void Renderer::GenerateRenderGraph()
 	};
 	auto skyPassData = m_pRenderGraph->AddPass<SkyLightingData>("SkyLighting",
 		[&](NXRGBuilder& builder, SkyLightingData& data) {
-			builder.Read(sssPassData->GetData().buf); // 临时代码，保证拓扑关系sss在前【TODO：优先级还是read token?总之干掉】
 			data.cubeMap = builder.Read(pCubeMap);
-			data.buf	= builder.Write(sssPassData->GetData().buf);
-			data.depth	= builder.Write(gBufferPassData->GetData().depth);
+			data.buf	= builder.ReadWrite(sssPassData->GetData().buf);
+			data.depth	= builder.Read(gBufferPassData->GetData().depth);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, SkyLightingData& data) {
 			auto pMat = static_cast<NXGraphicPassMaterial*>(m_pPassMaterialMaps["SkyLighting"]);
@@ -869,14 +866,12 @@ void Renderer::GenerateRenderGraph()
 
 	struct GizmosData
 	{
-		NXRGHandle in;
 		NXRGHandle out;
 	};
 	auto gizmosPassData = m_pRenderGraph->AddPass<GizmosData>("Gizmos",
 		[&](NXRGBuilder& builder, GizmosData& data) {
 			NXRGHandle pOut = m_bEnableDebugLayer ? debugLayerPassData->GetData().out : postProcessPassData->GetData().out;
-			data.in = builder.Read(pOut);
-			data.out = builder.Write(pOut);
+			data.out = builder.ReadWrite(pOut);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, GizmosData& data) {
 			auto pMat = static_cast<NXGraphicPassMaterial*>(m_pPassMaterialMaps["Gizmos"]);

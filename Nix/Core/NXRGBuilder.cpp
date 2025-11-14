@@ -10,3 +10,8 @@ NXRGHandle NXRGBuilder::Write(NXRGHandle resID)
 {
     return m_pRenderGraph->Write(m_pPassNode, resID);
 }
+
+NXRGHandle NXRGBuilder::ReadWrite(NXRGHandle resID)
+{
+	return m_pRenderGraph->ReadWrite(m_pPassNode, resID);
+}

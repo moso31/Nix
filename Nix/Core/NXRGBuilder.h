@@ -18,6 +18,7 @@ public:
 
 	NXRGHandle Read(NXRGHandle resID);
 	NXRGHandle Write(NXRGHandle resID);
+	NXRGHandle ReadWrite(NXRGHandle resID);
 
 private:
 	NXRenderGraph* m_pRenderGraph;
