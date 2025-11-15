@@ -443,7 +443,7 @@ void Renderer::GenerateRenderGraph()
 		[=](NXRGBuilder& builder, GPUTerrainPatcherData& data) {
 			data.pMinMaxZMap	= builder.Read(pTerrain_MinMaxZMap2DArray);
 			data.pFinal			= builder.Read(passFillResult->GetData().pFinal);
-			data.pIndiArgs		= builder.Write(passFillResult->GetData().pIndiArgs);
+			data.pIndiArgs		= builder.Read(passFillResult->GetData().pIndiArgs);
 			data.pPatcher		= builder.Write(passPatchClear->GetData().pPatcher);
 			data.pDrawIndexArgs = builder.Write(passPatchClear->GetData().pDrawIndexArgs);
 		},
@@ -752,7 +752,6 @@ void Renderer::GenerateRenderGraph()
 		NXRGHandle lighting;
 		NXRGHandle lightingSpec;
 		NXRGHandle gbuffer1;
-		NXRGHandle gbufferDepth;
 		NXRGHandle noise64;
 		NXRGHandle buf;
 		NXRGHandle depth;
@@ -763,7 +762,6 @@ void Renderer::GenerateRenderGraph()
 			data.lighting = builder.Read(litPassData->GetData().lighting);
 			data.lightingSpec = builder.Read(litPassData->GetData().lightingSpec);
 			data.gbuffer1 = builder.Read(gBufferPassData->GetData().rt1);
-			data.gbufferDepth = builder.Read(gBufferPassData->GetData().depth);
 			data.noise64 = builder.Read(pNoise64);
 			data.depth	= builder.Read(gBufferPassData->GetData().depth);
 			data.buf	= builder.ReadWrite(litPassData->GetData().lightingCopy);
@@ -776,7 +774,7 @@ void Renderer::GenerateRenderGraph()
 			pMat->SetInputTex(0, 0, resMap.GetRes(data.lighting));
 			pMat->SetInputTex(0, 1, resMap.GetRes(data.lightingSpec));
 			pMat->SetInputTex(0, 3, resMap.GetRes(data.gbuffer1));
-			pMat->SetInputTex(0, 4, resMap.GetRes(data.gbufferDepth));
+			pMat->SetInputTex(0, 4, resMap.GetRes(data.depth));
 			pMat->SetInputTex(0, 5, resMap.GetRes(data.noise64));
 			pMat->SetOutputRT(0, resMap.GetRes(data.buf));
 			pMat->SetOutputDS(resMap.GetRes(data.depth));
