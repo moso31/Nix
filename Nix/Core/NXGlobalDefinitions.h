@@ -49,3 +49,5 @@ public:
 	static D3D12_INPUT_LAYOUT_DESC layoutPNTT_GPUInstancing;
 	static D3D12_INPUT_LAYOUT_DESC layoutEditorObject;
 };
+
+extern bool g_debug_temporal_enable_terrain_debug;

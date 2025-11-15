@@ -15,14 +15,18 @@ NXRGHandle NXRenderGraph::Read(NXRGHandle resID, NXRGPassNodeBase* passNode)
 
 NXRGHandle NXRenderGraph::Write(NXRGPassNodeBase* passNode, NXRGHandle resID)
 {
+	if (m_resourceMap[resID]->IsImported())
+	{
+		// 导入资源不创建新版本，直接复用
+		passNode->AddOutput(resID); 
+		return resID;
+	}
+
 	NXRGResource* pResource = new NXRGResource(m_resourceMap[resID]);
 	NXRGHandle handle = pResource->GetHandle();
 
 	passNode->AddOutput(handle);
 	m_resourceMap[handle] = pResource;
-
-	if (pResource->IsImported())
-		m_importedResourceMap[handle] = m_importedResourceMap[handle.GetAncestor()]; // 导入资源的所有版本共用一个实际NXResource*指针
 
 	return handle;
 }

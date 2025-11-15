@@ -19,11 +19,6 @@ struct NXRGHandle
 		return index == other.index && version == other.version;
 	}
 
-	NXRGHandle GetAncestor()
-	{
-		return NXRGHandle(index, 0);
-	}
-
 	uint16_t index;
 	uint16_t version;
 	static std::uint16_t s_nextIndex;

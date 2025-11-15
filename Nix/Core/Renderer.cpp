@@ -327,82 +327,145 @@ void Renderer::GenerateRenderGraph()
 	//	});
 
 	auto terrIns = NXGPUTerrainManager::GetInstance();
-	NXRGHandle pTerrainBufferA			= m_pRenderGraph->Import(terrIns->GetTerrainBufferA());
-	NXRGHandle pTerrainBufferB			= m_pRenderGraph->Import(terrIns->GetTerrainBufferB());
-	NXRGHandle pTerrainBufferFinal		= m_pRenderGraph->Import(terrIns->GetTerrainFinalBuffer());
-	NXRGHandle pTerrainIndiArgs			= m_pRenderGraph->Import(terrIns->GetTerrainIndirectArgs());
-	NXRGHandle pTerrainPatcher			= m_pRenderGraph->Import(terrIns->GetTerrainPatcherBuffer());
-	NXRGHandle pTerrainDrawIndexArgs	= m_pRenderGraph->Import(terrIns->GetTerrainDrawIndexArgs());
-
-	struct FillTestData
+	if (g_debug_temporal_enable_terrain_debug)
 	{
-		NXRGHandle pIn;
-		NXRGHandle pOut;
-		NXRGHandle pFinal;
-		NXRGHandle pIndiArgs;
-	};
+		NXRGHandle pTerrainBufferA = m_pRenderGraph->Import(terrIns->GetTerrainBufferA());
+		NXRGHandle pTerrainBufferB = m_pRenderGraph->Import(terrIns->GetTerrainBufferB());
+		NXRGHandle pTerrainBufferFinal = m_pRenderGraph->Import(terrIns->GetTerrainFinalBuffer());
+		NXRGHandle pTerrainIndiArgs = m_pRenderGraph->Import(terrIns->GetTerrainIndirectArgs());
+		NXRGHandle pTerrainPatcher = m_pRenderGraph->Import(terrIns->GetTerrainPatcherBuffer());
+		NXRGHandle pTerrainDrawIndexArgs = m_pRenderGraph->Import(terrIns->GetTerrainDrawIndexArgs());
 
-	std::vector<NXRGPassNode<FillTestData>*> terrainFillPasses(6);
-	auto& passFillResult = terrainFillPasses.back();
-	for (int i = 0; i < 6; i++)
-	{
-		auto passPrevFill = (i == 0) ? nullptr : terrainFillPasses[i - 1];
-		auto& passFill = terrainFillPasses[i];
+		struct FillTestData
+		{
+			NXRGHandle pIn;
+			NXRGHandle pOut;
+			NXRGHandle pFinal;
+			NXRGHandle pIndiArgs;
+		};
 
-		std::string strBufName = "Terrain Fill " + std::to_string(i);
-		passFill = m_pRenderGraph->AddPass<FillTestData>(strBufName,
-			[=](NXRGBuilder& builder, FillTestData& data) {
-				data.pIndiArgs = builder.Read(pTerrainIndiArgs);
-				data.pFinal = builder.Write(pTerrainBufferFinal);
+		std::vector<NXRGPassNode<FillTestData>*> terrainFillPasses(6);
+		auto& passFillResult = terrainFillPasses.back();
+		for (int i = 0; i < 6; i++)
+		{
+			auto passPrevFill = (i == 0) ? nullptr : terrainFillPasses[i - 1];
+			auto& passFill = terrainFillPasses[i];
 
-				if (i == 0)
-				{
-					data.pIn = builder.Read(pTerrainBufferA);
-					data.pOut = builder.Write(pTerrainBufferB);
-				}
-				else
-				{
-					data.pIn = builder.Read(passPrevFill->GetData().pOut);
-					data.pOut = builder.Write(passPrevFill->GetData().pIn);
-				}
+			std::string strBufName = "Terrain Fill " + std::to_string(i);
+			passFill = m_pRenderGraph->AddPass<FillTestData>(strBufName,
+				[=](NXRGBuilder& builder, FillTestData& data) {
+					data.pIndiArgs = builder.Read(pTerrainIndiArgs);
+					data.pFinal = builder.Write(pTerrainBufferFinal);
+
+					if (i == 0)
+					{
+						data.pIn = builder.Read(pTerrainBufferA);
+						data.pOut = builder.Write(pTerrainBufferB);
+					}
+					else
+					{
+						data.pIn = builder.Read(passPrevFill->GetData().pOut);
+						data.pOut = builder.Write(passPrevFill->GetData().pIn);
+					}
+				},
+				[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, FillTestData& data) mutable {
+					auto pMat = static_cast<NXComputePassMaterial*>(m_pPassMaterialMaps["TerrainFillTest"]);
+					pMat->SetOutput(0, 0, resMap.GetRes(data.pIn));
+					pMat->SetOutput(0, 1, resMap.GetRes(data.pOut));
+					pMat->SetOutput(0, 2, resMap.GetRes(data.pFinal));
+					pMat->SetConstantBuffer(0, 0, &NXGPUTerrainManager::GetInstance()->GetCBTerrainParams(i));
+
+					Ntr<NXBuffer> pInputRes = resMap.GetRes(data.pIn).As<NXBuffer>();
+					Ntr<NXBuffer> pOutputRes = resMap.GetRes(data.pOut).As<NXBuffer>();
+					Ntr<NXBuffer> pIndiArgsRes = resMap.GetRes(data.pIndiArgs).As<NXBuffer>();
+					Ntr<NXBuffer> pFinalRes = resMap.GetRes(data.pFinal).As<NXBuffer>();
+					if (i == 0)
+					{
+						std::vector<NXGPUTerrainBlockData> initData; // NXGPUTerrainBlockData = Int2
+						int step = 4;
+						for (int x = -step; x < step; x++)
+						{
+							for (int y = -step; y < step; y++)
+							{
+								initData.push_back({ x, y });
+							}
+						}
+
+						pInputRes->SetCurrent(initData.data(), initData.size());
+						pFinalRes->SetCurrent(nullptr, 0);
+
+						pInputRes->WaitForUploadFinish();
+						pFinalRes->WaitForUploadFinish();
+					}
+					NXGPUTerrainManager::GetInstance()->UpdateLodParams(i);
+
+					// 拷贝pInput.UAV计数器 作为 dispatch indirect args
+					// 虽然只是拷贝pInput.UAV计数器，但目前的设计不太灵活，要SetResourceState必须带着原始资源一起做...
+					pInputRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COPY_SOURCE);
+					pIndiArgsRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COPY_DEST);
+					// ...不过最终拷贝的时候，只拷贝pInput.UAV计数器即可。
+					pCmdList->CopyBufferRegion(pIndiArgsRes->GetD3DResource(), 0, pInputRes->GetD3DResourceUAVCounter(), 0, sizeof(uint32_t));
+
+					pMat->RenderSetTargetAndState(pCmdList);
+					pMat->RenderBefore(pCmdList);
+
+					pIndiArgsRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+					pCmdList->ExecuteIndirect(m_pCommandSig.Get(), 1, pIndiArgsRes->GetD3DResource(), 0, nullptr, 0);
+				});
+		}
+
+		struct GPUTerrainPatcherData
+		{
+			NXRGHandle pMinMaxZMap;
+			NXRGHandle pFinal;
+			NXRGHandle pIndiArgs;
+			NXRGHandle pPatcher;
+			NXRGHandle pDrawIndexArgs;
+		};
+
+		auto passPatchClear = m_pRenderGraph->AddPass<GPUTerrainPatcherData>("GPU Terrain Patcher Clear",
+			[=](NXRGBuilder& builder, GPUTerrainPatcherData& data) {
+				data.pPatcher = builder.Write(pTerrainPatcher);
+				data.pDrawIndexArgs = builder.Write(pTerrainDrawIndexArgs);
 			},
-			[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, FillTestData& data) mutable {
-				auto pMat = static_cast<NXComputePassMaterial*>(m_pPassMaterialMaps["TerrainFillTest"]);
-				pMat->SetOutput(0, 0, resMap.GetRes(data.pIn));
-				pMat->SetOutput(0, 1, resMap.GetRes(data.pOut));
-				pMat->SetOutput(0, 2, resMap.GetRes(data.pFinal));
-				pMat->SetConstantBuffer(0, 0, &NXGPUTerrainManager::GetInstance()->GetCBTerrainParams(i));
+			[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, GPUTerrainPatcherData& data) {
+				auto pMat = static_cast<NXComputePassMaterial*>(m_pPassMaterialMaps["TerrainGPUPatcher:clear"]);
+				pMat->SetOutput(0, 0, resMap.GetRes(data.pPatcher));
+				pMat->SetOutput(0, 1, resMap.GetRes(data.pDrawIndexArgs));
+				pMat->SetOutput(0, 2, resMap.GetRes(data.pPatcher), true);
 
-				Ntr<NXBuffer> pInputRes = resMap.GetRes(data.pIn).As<NXBuffer>();
-				Ntr<NXBuffer> pOutputRes = resMap.GetRes(data.pOut).As<NXBuffer>();
+				pMat->RenderSetTargetAndState(pCmdList);
+				pMat->RenderBefore(pCmdList);
+
+				pCmdList->Dispatch(1, 1, 1);
+			});
+
+		auto pTerrain_MinMaxZMap2DArray = m_pRenderGraph->Import(terrIns->GetTerrainMinMaxZMap2DArray());
+		auto passPatcher = m_pRenderGraph->AddPass<GPUTerrainPatcherData>("GPU Terrain Patcher",
+			[=](NXRGBuilder& builder, GPUTerrainPatcherData& data) {
+				data.pMinMaxZMap = builder.Read(pTerrain_MinMaxZMap2DArray);
+				data.pFinal = builder.Read(passFillResult->GetData().pFinal);
+				data.pIndiArgs = builder.Read(passFillResult->GetData().pIndiArgs);
+				data.pPatcher = builder.Write(passPatchClear->GetData().pPatcher);
+				data.pDrawIndexArgs = builder.Write(passPatchClear->GetData().pDrawIndexArgs);
+			},
+			[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, GPUTerrainPatcherData& data) mutable {
+				auto pMat = static_cast<NXComputePassMaterial*>(m_pPassMaterialMaps["TerrainGPUPatcher:patch"]);
+				pMat->SetConstantBuffer(0, 1, &g_cbCamera);
+				pMat->SetConstantBuffer(0, 2, &NXGPUTerrainManager::GetInstance()->GetTerrainSupportParam());
+				pMat->SetInput(0, 0, resMap.GetRes(data.pMinMaxZMap));
+				pMat->SetInput(0, 1, resMap.GetRes(data.pFinal));
+				pMat->SetOutput(0, 0, resMap.GetRes(data.pPatcher));
+				pMat->SetOutput(0, 1, resMap.GetRes(data.pDrawIndexArgs));
+
 				Ntr<NXBuffer> pIndiArgsRes = resMap.GetRes(data.pIndiArgs).As<NXBuffer>();
 				Ntr<NXBuffer> pFinalRes = resMap.GetRes(data.pFinal).As<NXBuffer>();
-				if (i == 0)
-				{
-					std::vector<NXGPUTerrainBlockData> initData; // NXGPUTerrainBlockData = Int2
-					int step = 4;
-					for (int x = -step; x < step; x++)
-					{
-						for (int y = -step; y < step; y++)
-						{
-							initData.push_back({ x, y });
-						}
-					}
 
-					pInputRes->SetCurrent(initData.data(), initData.size());
-					pFinalRes->SetCurrent(nullptr, 0);
-
-					pInputRes->WaitForUploadFinish();
-					pFinalRes->WaitForUploadFinish();
-				}
-				NXGPUTerrainManager::GetInstance()->UpdateLodParams(i);
-
-				// 拷贝pInput.UAV计数器 作为 dispatch indirect args
 				// 虽然只是拷贝pInput.UAV计数器，但目前的设计不太灵活，要SetResourceState必须带着原始资源一起做...
-				pInputRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COPY_SOURCE);
+				pFinalRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COPY_SOURCE);
 				pIndiArgsRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COPY_DEST);
 				// ...不过最终拷贝的时候，只拷贝pInput.UAV计数器即可。
-				pCmdList->CopyBufferRegion(pIndiArgsRes->GetD3DResource(), 0, pInputRes->GetD3DResourceUAVCounter(), 0, sizeof(uint32_t));
+				pCmdList->CopyBufferRegion(pIndiArgsRes->GetD3DResource(), 0, pFinalRes->GetD3DResourceUAVCounter(), 0, sizeof(uint32_t));
 
 				pMat->RenderSetTargetAndState(pCmdList);
 				pMat->RenderBefore(pCmdList);
@@ -411,66 +474,6 @@ void Renderer::GenerateRenderGraph()
 				pCmdList->ExecuteIndirect(m_pCommandSig.Get(), 1, pIndiArgsRes->GetD3DResource(), 0, nullptr, 0);
 			});
 	}
-
-	struct GPUTerrainPatcherData 
-	{
-		NXRGHandle pMinMaxZMap;
-		NXRGHandle pFinal;
-		NXRGHandle pIndiArgs;
-		NXRGHandle pPatcher;
-		NXRGHandle pDrawIndexArgs;
-	};
-
-	auto passPatchClear = m_pRenderGraph->AddPass<GPUTerrainPatcherData>("GPU Terrain Patcher Clear",
-		[=](NXRGBuilder& builder, GPUTerrainPatcherData& data) {
-			data.pPatcher		= builder.Write(pTerrainPatcher);
-			data.pDrawIndexArgs = builder.Write(pTerrainDrawIndexArgs);
-		},
-		[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, GPUTerrainPatcherData& data) {
-			auto pMat = static_cast<NXComputePassMaterial*>(m_pPassMaterialMaps["TerrainGPUPatcher:clear"]);
-			pMat->SetOutput(0, 0, resMap.GetRes(data.pPatcher));
-			pMat->SetOutput(0, 1, resMap.GetRes(data.pDrawIndexArgs));
-			pMat->SetOutput(0, 2, resMap.GetRes(data.pPatcher), true);
-
-			pMat->RenderSetTargetAndState(pCmdList);
-			pMat->RenderBefore(pCmdList);
-
-			pCmdList->Dispatch(1, 1, 1);
-		});
-
-	auto pTerrain_MinMaxZMap2DArray = m_pRenderGraph->Import(terrIns->GetTerrainMinMaxZMap2DArray());
-	auto passPatcher = m_pRenderGraph->AddPass<GPUTerrainPatcherData>("GPU Terrain Patcher",
-		[=](NXRGBuilder& builder, GPUTerrainPatcherData& data) {
-			data.pMinMaxZMap	= builder.Read(pTerrain_MinMaxZMap2DArray);
-			data.pFinal			= builder.Read(passFillResult->GetData().pFinal);
-			data.pIndiArgs		= builder.Write(passFillResult->GetData().pIndiArgs);
-			data.pPatcher		= builder.Write(passPatchClear->GetData().pPatcher);
-			data.pDrawIndexArgs = builder.Write(passPatchClear->GetData().pDrawIndexArgs);
-		},
-		[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, GPUTerrainPatcherData& data) mutable {
-			auto pMat = static_cast<NXComputePassMaterial*>(m_pPassMaterialMaps["TerrainGPUPatcher:patch"]);
-			pMat->SetConstantBuffer(0, 1, &g_cbCamera);
-			pMat->SetConstantBuffer(0, 2, &NXGPUTerrainManager::GetInstance()->GetTerrainSupportParam());
-			pMat->SetInput(0, 0, resMap.GetRes(data.pMinMaxZMap));
-			pMat->SetInput(0, 1, resMap.GetRes(data.pFinal));
-			pMat->SetOutput(0, 0, resMap.GetRes(data.pPatcher));
-			pMat->SetOutput(0, 1, resMap.GetRes(data.pDrawIndexArgs));
-
-			Ntr<NXBuffer> pIndiArgsRes = resMap.GetRes(data.pIndiArgs).As<NXBuffer>();
-			Ntr<NXBuffer> pFinalRes = resMap.GetRes(data.pFinal).As<NXBuffer>();
-
-			// 虽然只是拷贝pInput.UAV计数器，但目前的设计不太灵活，要SetResourceState必须带着原始资源一起做...
-			pFinalRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COPY_SOURCE);
-			pIndiArgsRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COPY_DEST);
-			// ...不过最终拷贝的时候，只拷贝pInput.UAV计数器即可。
-			pCmdList->CopyBufferRegion(pIndiArgsRes->GetD3DResource(), 0, pFinalRes->GetD3DResourceUAVCounter(), 0, sizeof(uint32_t));
-
-			pMat->RenderSetTargetAndState(pCmdList);
-			pMat->RenderBefore(pCmdList);
-
-			pIndiArgsRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
-			pCmdList->ExecuteIndirect(m_pCommandSig.Get(), 1, pIndiArgsRes->GetD3DResource(), 0, nullptr, 0);
-		});
 
 	NXRGHandle hGBuffer0 = m_pRenderGraph->Create("GBuffer RT0", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::RenderTarget, .tex = { .format = DXGI_FORMAT_R32_FLOAT, .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .arraySize = 1, .mipLevels = 1 } });
 	NXRGHandle hGBuffer1 = m_pRenderGraph->Create("GBuffer RT1", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::RenderTarget, .tex = { .format = DXGI_FORMAT_R32G32B32A32_FLOAT, .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .arraySize = 1, .mipLevels = 1 } });
@@ -489,8 +492,6 @@ void Renderer::GenerateRenderGraph()
 
 	auto gBufferPassData = m_pRenderGraph->AddPass<GBufferData>("GBufferPass",
 		[&](NXRGBuilder& builder, GBufferData& data) {
-			builder.Read(passPatcher->GetData().pPatcher); // 临时代码，保证拓扑关系terrainPatcher在前【TODO：优先级还是read token?总之干掉】 
-
 			data.rt0	= builder.Write(hGBuffer0);
 			data.rt1	= builder.Write(hGBuffer1);
 			data.rt2	= builder.Write(hGBuffer2);
@@ -507,7 +508,6 @@ void Renderer::GenerateRenderGraph()
 			};
 			Ntr<NXTexture> pOutDS = resMap.GetRes(data.depth);
 
-			auto kTest = m_pRenderGraph->GetUsingResourceByName("NXRGRes_3");
 			auto* pPassMaterial = static_cast<NXGraphicPassMaterial*>(m_pPassMaterialMaps["GBuffer"]);
 			for (int i = 0; i < 4; i++)
 			{
@@ -556,7 +556,7 @@ void Renderer::GenerateRenderGraph()
 						bool bIsVisible = pSubMesh->GetRenderableObject()->GetVisible();
 						if (bIsVisible)
 						{
-							if (pSubMesh->IsSubMeshTerrain())
+							if (pSubMesh->IsSubMeshTerrain() && g_debug_temporal_enable_terrain_debug)
 							{
 								NXGPUTerrainManager::GetInstance()->UpdateConstantForGBuffer(pCmdList);
 								pSubMesh->Render(pCmdList);
@@ -568,11 +568,6 @@ void Renderer::GenerateRenderGraph()
 						}
 					}
 				}
-			}
-
-			if (kTest.IsValid() && false)
-			{
-				kTest->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_RENDER_TARGET);
 			}
 		});
 
@@ -752,7 +747,6 @@ void Renderer::GenerateRenderGraph()
 		NXRGHandle lighting;
 		NXRGHandle lightingSpec;
 		NXRGHandle gbuffer1;
-		NXRGHandle gbufferDepth;
 		NXRGHandle noise64;
 		NXRGHandle buf;
 		NXRGHandle depth;
@@ -763,7 +757,6 @@ void Renderer::GenerateRenderGraph()
 			data.lighting = builder.Read(litPassData->GetData().lighting);
 			data.lightingSpec = builder.Read(litPassData->GetData().lightingSpec);
 			data.gbuffer1 = builder.Read(gBufferPassData->GetData().rt1);
-			data.gbufferDepth = builder.Read(gBufferPassData->GetData().depth);
 			data.noise64 = builder.Read(pNoise64);
 			data.depth	= builder.Read(gBufferPassData->GetData().depth);
 			data.buf	= builder.ReadWrite(litPassData->GetData().lightingCopy);
@@ -776,7 +769,7 @@ void Renderer::GenerateRenderGraph()
 			pMat->SetInputTex(0, 0, resMap.GetRes(data.lighting));
 			pMat->SetInputTex(0, 1, resMap.GetRes(data.lightingSpec));
 			pMat->SetInputTex(0, 3, resMap.GetRes(data.gbuffer1));
-			pMat->SetInputTex(0, 4, resMap.GetRes(data.gbufferDepth));
+			pMat->SetInputTex(0, 4, resMap.GetRes(data.depth));
 			pMat->SetInputTex(0, 5, resMap.GetRes(data.noise64));
 			pMat->SetOutputRT(0, resMap.GetRes(data.buf));
 			pMat->SetOutputDS(resMap.GetRes(data.depth));
@@ -1174,11 +1167,10 @@ void Renderer::RenderCSMPerLight(ID3D12GraphicsCommandList* pCmdList, NXPBRDista
 		g_cbDataShadowTest.view[i] = mxShadowView.Transpose();
 		g_cbDataShadowTest.projection[i] = mxShadowProj.Transpose();
 
-		auto pMat = static_cast<NXGraphicPassMaterial*>(m_pPassMaterialMaps["ShadowMap"]);
 		auto pCSMDepthDSV = m_pTexCSMDepth->GetDSV(i);
 		pCmdList->ClearDepthStencilView(pCSMDepthDSV, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0x0, 0, nullptr);
 		pCmdList->OMSetRenderTargets(0, nullptr, false, &pCSMDepthDSV);
-		pCmdList->SetGraphicsRootConstantBufferView(1, m_cbCSMViewProj[i].CurrentGPUAddress());
+		pCmdList->SetGraphicsRootConstantBufferView(2, m_cbCSMViewProj[i].CurrentGPUAddress());
 		
 		// 更新当前 cascade 层 的 ShadowMap world 绘制矩阵，并绘制
 		for (auto pRenderableObj : m_scene->GetRenderableObjects())

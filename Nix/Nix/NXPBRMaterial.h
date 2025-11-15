@@ -8,10 +8,9 @@
 
 enum class NXShadingModel
 {
-	None,
-	StandardLit,
-	Unlit,
-	SubSurface,
+	StandardLit = 0,
+	Unlit = 1,
+	SubSurface = 2,
 };
 
 class NXEasyMaterial;
@@ -42,7 +41,7 @@ public:
 	virtual void Serialize() {}
 	virtual void Deserialize() {}
 
-	virtual void UpdatePSORenderStates(D3D12_GRAPHICS_PIPELINE_STATE_DESC& oPSODesc);
+	void UpdatePSORenderStates(D3D12_GRAPHICS_PIPELINE_STATE_DESC& oPSODesc);
 	ID3D12RootSignature* GetRootSignature() { return m_pRootSig.Get(); }
 
 public:
@@ -51,6 +50,7 @@ public:
 	void AddSubMesh(NXSubMeshBase* pSubMesh);
 
 protected:
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC m_psoDesc;
 	ComPtr<ID3D12PipelineState> m_pPSO;
 	ComPtr<ID3D12RootSignature> m_pRootSig;
 
@@ -98,7 +98,7 @@ public:
 	void LoadAndCompile(const std::filesystem::path& nslFilePath);
 
 	bool LoadShaderCode();
-	void CompileShader(const std::string& strGBufferShader, std::string& oErrorMessageVS, std::string& oErrorMessagePS);
+	void CompileShader(const std::string& strGBufferShader, const NXMaterialData& guiData, std::string& oErrorMessageVS, std::string& oErrorMessagePS);
 	bool Recompile(const NXMaterialData& guiData, const NXMaterialCode& code, const NXMaterialData& guiDataBackup, const NXMaterialCode& codeBackup, std::string& oErrorMessageVS, std::string& oErrorMessagePS);
 
 	// 初始化所有着色器资源，包括 cb, tex, sampler
@@ -130,7 +130,7 @@ public:
 	bool GetCompileSuccess() { return m_bCompileSuccess; }
 
 	// 获取 pso RS BS DS 三大状态
-	void UpdatePSORenderStates(D3D12_GRAPHICS_PIPELINE_STATE_DESC& oPSODesc) override;
+	void UpdatePSORenderStates(D3D12_GRAPHICS_PIPELINE_STATE_DESC& oPSODesc, const NXMaterialData& guiData);
 
 private:
 	// 读取 nsl 文件

@@ -1,6 +1,7 @@
 #include "NXCodeProcessHelper.h"
 #include "NXConvertString.h"
 #include "NXTexture.h"
+#include "NXGlobalDefinitions.h"
 
 using namespace NXConvert;
 
@@ -561,7 +562,7 @@ struct PS_INPUT
 	float3 normVS : NORMAL;
 	float2 tex : TEXCOORD;
 	float3 tangentVS : TANGENT;
-#ifdef GPU_INSTANCING
+#if GPU_INSTANCING
 	nointerpolation uint instanceID : TEXCOORD1;
 #endif
 };
@@ -635,7 +636,7 @@ std::string NXCodeProcessHelper::BuildHLSL_Entry_VS(int& ioLineCounter, const NX
 	std::string strVSBegin = R"(PS_INPUT VS(VS_INPUT input
 )";
 
-	bool gpuInstancing = true;
+	bool gpuInstancing = g_debug_temporal_enable_terrain_debug;
 	if (gpuInstancing)
 	{
 		strVSBegin += ", uint instanceID : SV_InstanceID\n";
@@ -654,7 +655,7 @@ std::string NXCodeProcessHelper::BuildHLSL_Entry_VS(int& ioLineCounter, const NX
 	}
 
 	std::string strVSEnd = R"(
-#ifdef GPU_INSTANCING
+#if GPU_INSTANCING
 	output.instanceID = instanceID;
 #endif
 	return output;
@@ -685,7 +686,7 @@ void PS(PS_INPUT input, out PS_OUTPUT Output)
 	PS_INPUT output;
 )";
 
-	bool gpuInstancing = true; 
+	bool gpuInstancing = g_debug_temporal_enable_terrain_debug;
 	if (gpuInstancing)
 	{
 		strPSBegin += R"(

@@ -17,7 +17,7 @@ cbuffer ConstantBufferShadowMapObject : register(b2)
 	// 记录 CSM 各级 用于计算Transition的过渡 的信息。
 	float4 m_frustumParams[8]; // x: frustum far; y : transition length
 
-	float m_cascadeCount;
+	int m_cascadeCount;
 	float m_shadowDistance;
 	float m_cascadeTransitionScale;
 	int m_depthBias;
