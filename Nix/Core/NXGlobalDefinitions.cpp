@@ -12,6 +12,8 @@ UINT64											NXGlobalDX::s_globalfenceValue = 0;
 MultiFrame<ComPtr<ID3D12GraphicsCommandList>>	NXGlobalDX::s_cmdList;
 MultiFrame<ComPtr<ID3D12CommandAllocator>>		NXGlobalDX::s_cmdAllocator;
 
+bool g_debug_temporal_enable_terrain_debug = false;
+
 void NXGlobalDX::Init(IDXGIAdapter4* pAdapter)
 {
 	HRESULT hr = D3D12CreateDevice(pAdapter, D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&s_device));

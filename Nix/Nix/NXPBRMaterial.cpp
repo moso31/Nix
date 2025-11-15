@@ -123,7 +123,7 @@ void NXCustomMaterial::LoadAndCompile(const std::filesystem::path& nslFilePath)
 
 		std::string strHLSL = NXCodeProcessHelper::BuildHLSL(nslFilePath, m_materialDatas, m_codeBlocks, m_bEnableTerrainGPUInstancing);
 		std::string strErrMsgVS, strErrMsgPS;
-		CompileShader(strHLSL, strErrMsgVS, strErrMsgPS);
+		CompileShader(strHLSL, m_materialDatas, strErrMsgVS, strErrMsgPS);
 	}
 	else
 	{
@@ -147,7 +147,7 @@ bool NXCustomMaterial::LoadShaderCode()
 	return bLoadSuccess;
 }
 
-void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::string& oErrorMessageVS, std::string& oErrorMessagePS)
+void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, const NXMaterialData& guiData, std::string& oErrorMessageVS, std::string& oErrorMessagePS)
 {
 	std::wstring strEnableGPUInstancing = m_bEnableTerrainGPUInstancing ? L"1" : L"0";
 	ComPtr<IDxcBlob> pVSBlob, pPSBlob;
@@ -223,7 +223,7 @@ void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, std::s
 		psoDesc.VS = { pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize() };
 		psoDesc.PS = { pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize() };
 		psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-		UpdatePSORenderStates(psoDesc);
+		UpdatePSORenderStates(psoDesc, guiData);
 
 		m_pPSO = NXPSOManager::GetInstance()->Create(psoDesc, m_name + "_PSO");
 	}
@@ -233,7 +233,7 @@ bool NXCustomMaterial::Recompile(const NXMaterialData& guiData, const NXMaterial
 {
 	auto codeCopy = code;
 	std::string strHLSL = NXCodeProcessHelper::BuildHLSL(m_nslPath, guiData, codeCopy, m_bEnableTerrainGPUInstancing);
-	CompileShader(strHLSL, oErrorMessageVS, oErrorMessagePS);
+	CompileShader(strHLSL, guiData, oErrorMessageVS, oErrorMessagePS);
 
 	m_materialDatas.Destroy();
 	if (m_bCompileSuccess)
@@ -300,13 +300,14 @@ void NXCustomMaterial::UpdateCBData(bool rebuildCB)
 	m_cbData.Set(cbData);
 }
 
-void NXCustomMaterial::UpdatePSORenderStates(D3D12_GRAPHICS_PIPELINE_STATE_DESC& oPSODesc)
+
+void NXCustomMaterial::UpdatePSORenderStates(D3D12_GRAPHICS_PIPELINE_STATE_DESC& oPSODesc, const NXMaterialData& guiData)
 {
 	// TODO: 根据材质的属性，设置各种渲染状态
 	// 现在的材质系统非常简单，只基于 ShadingModel 设了个模板状态=Replace（因为3S用的着），其他的就啥都没管了……
 	// 将来会有更多的属性，比如alphaTest blend、双面、深度是否写入等等
 
-	NXShadingModel shadingModel = GetShadingModel();
+	NXShadingModel shadingModel = (NXShadingModel)guiData.GetSettings().shadingModel;
 	if (shadingModel == NXShadingModel::SubSurface)
 	{
 		oPSODesc.DepthStencilState = NXDepthStencilState<true, true, D3D12_COMPARISON_FUNC_LESS, true, 0xff, 0xff, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_REPLACE, D3D12_COMPARISON_FUNC_ALWAYS, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_COMPARISON_FUNC_ALWAYS>::Create();
@@ -322,7 +323,7 @@ void NXCustomMaterial::UpdatePSORenderStates(D3D12_GRAPHICS_PIPELINE_STATE_DESC&
 
 NXCustomMaterial::NXCustomMaterial(const std::string& name, const std::filesystem::path& path) :
 	NXMaterial(name, path),
-	m_bEnableTerrainGPUInstancing(true)
+	m_bEnableTerrainGPUInstancing(g_debug_temporal_enable_terrain_debug)
 {
 }
 

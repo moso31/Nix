@@ -228,44 +228,52 @@ void NXScene::Init()
 {
 	InitEditorObjectsManager();
 
-	m_pTestCustomMat = NXResourceManager::GetInstance()->GetMaterialManager()->CreateCustomMaterial("TestCustomMat", "D:\\NixAssets\\Materials\\terrainmat.nsl");
-
-	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\boxes.fbx", false);
-	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\TestBall.fbx", false);
-	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\shadowMapTest.fbx", false);
-	//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\EditorObjTest.fbx", false);
-	//NXPrefab* p2 = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\lury.fbx", false);
-
-	int step = 4;
-	for (int x = -step; x < step; x++)
+	bool bTestTerrain = g_debug_temporal_enable_terrain_debug;
+	if (bTestTerrain)
 	{
-		for (int y = -step; y < step; y++)
+		m_pTestCustomMat = NXResourceManager::GetInstance()->GetMaterialManager()->CreateCustomMaterial("TestCustomMat", "D:\\NixAssets\\Materials\\terrainmat.nsl");
+
+		int step = 4;
+		for (int x = -step; x < step; x++)
 		{
-			std::filesystem::path strNode = std::to_string(x + step) + "_" + std::to_string(y + step);
-
-			// 这里有点毒...地形层做了序列化；但地形本身没有序列化。
-			NXTerrain* pTerr = NXResourceManager::GetInstance()->GetMeshManager()->CreateTerrain("Terrain_" + strNode.string(), 2048, 2048, x, y);
+			for (int y = -step; y < step; y++)
 			{
-				// TODO：地形的序列化牵扯到整个NXRenderableObject基类，还没想清楚怎么做，暂时搁置
-				NXTerrainLayer* pTerrainLayer = NXResourceManager::GetInstance()->GetMeshManager()->CreateTerrainLayer();
+				std::filesystem::path strNode = std::to_string(x + step) + "_" + std::to_string(y + step);
 
-				std::wstring strTerrLayer = L"D:\\NixAssets\\terrainTest\\" + strNode.wstring() + L"\\TerrainLayer" + strNode.wstring() + L".ntl";
+				// 这里有点毒...地形层做了序列化；但地形本身没有序列化。
+				NXTerrain* pTerr = NXResourceManager::GetInstance()->GetMeshManager()->CreateTerrain("Terrain_" + strNode.string(), 2048, 2048, x, y);
+				{
+					// TODO：地形的序列化牵扯到整个NXRenderableObject基类，还没想清楚怎么做，暂时搁置
+					NXTerrainLayer* pTerrainLayer = NXResourceManager::GetInstance()->GetMeshManager()->CreateTerrainLayer();
 
-				bool bForceCreate = true;
-				pTerrainLayer->SetPath(strTerrLayer, bForceCreate); 
-				pTerrainLayer->Deserialize(); // 暂时先手动反序列化地形层
-				pTerr->SetTerrainLayer(pTerrainLayer);
-				pTerr->SetTranslation(Vector3(2048 * x, 0, 2048 * y));
+					std::wstring strTerrLayer = L"D:\\NixAssets\\terrainTest\\" + strNode.wstring() + L"\\TerrainLayer" + strNode.wstring() + L".ntl";
 
-				NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(pTerr, m_pTestCustomMat);
+					bool bForceCreate = true;
+					pTerrainLayer->SetPath(strTerrLayer, bForceCreate); 
+					pTerrainLayer->Deserialize(); // 暂时先手动反序列化地形层
+					pTerr->SetTerrainLayer(pTerrainLayer);
+					pTerr->SetTranslation(Vector3(2048 * x, 0, 2048 * y));
+
+					NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(pTerr, m_pTestCustomMat);
+				}
 			}
 		}
 	}
+	else
+	{
+		m_pTestCustomMat = NXResourceManager::GetInstance()->GetMaterialManager()->CreateCustomMaterial("TestCustomMat", "D:\\NixAssets\\Materials\\mat.nsl");
 
-	//p->SetScale(Vector3(0.1f));
-	//p2->SetScale(Vector3(0.1f));
-	//NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(p, m_pTestCustomMat);
-	//NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(p2, m_pTestCustomMat);
+		NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\boxes.fbx", false);
+		//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\TestBall.fbx", false);
+		//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\shadowMapTest.fbx", false);
+		//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\EditorObjTest.fbx", false);
+		//NXPrefab* p2 = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\lury.fbx", false);
+
+		p->SetScale(Vector3(0.1f));
+		NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(p, m_pTestCustomMat);
+		//p2->SetScale(Vector3(0.1f));
+		//NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(p2, m_pTestCustomMat);
+	}
 
 	std::vector<NXPrimitive*> pMeshes;
 	{
