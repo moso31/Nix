@@ -205,6 +205,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
 	CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 
+	g_debug_temporal_enable_terrain_debug = true;
+
 	NXGlobalApp::App = new App();
 	NXGlobalApp::App->Init();
 

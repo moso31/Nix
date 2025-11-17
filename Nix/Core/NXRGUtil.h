@@ -25,10 +25,13 @@ struct NXRGHandle
 	static std::unordered_map<uint16_t, uint16_t> s_maxVersions;
 };
 
+class NXRGPassNodeBase;
 struct NXRGLifeTime
 {
 	int start;  // 资源首次使用的时间层级
 	int end;	// 资源最后使用的时间层级
+	NXRGPassNodeBase* pStartPass = nullptr; // 资源首次使用的Pass
+	NXRGPassNodeBase* pEndPass = nullptr;   // 资源最后使用的Pass
 };
 
 enum class NXRGResourceUsage
@@ -143,3 +146,13 @@ namespace std
 		}
 	};
 }
+
+// 用于GUI显示的资源信息基类，既可以表示虚拟资源（NXRGResource），也可以表示物理资源（Ntr<NXResource>）
+// 表示虚拟资源的时候只有一个handle+生命周期；表示物理资源的时候可能有多个handle+生命周期
+struct NXRGGUIResource
+{
+	std::string name;
+	std::vector<NXRGHandle> handles; 
+	std::vector<NXRGLifeTime> lifeTimes;
+	bool isImported = false; 
+};

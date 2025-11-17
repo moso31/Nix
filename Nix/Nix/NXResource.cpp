@@ -12,3 +12,12 @@ void NXResource::SetResourceState(ID3D12GraphicsCommandList* pCommandList, const
 	m_resourceState = srcState;
 	SetResourceState(pCommandList, dstState);
 }
+
+bool NXResource::IsTexture() const
+{
+	return m_type == NXResourceType::Tex1D ||
+		m_type == NXResourceType::Tex2D ||
+		m_type == NXResourceType::TexCube ||
+		m_type == NXResourceType::Tex2DArray ||
+		m_type == NXResourceType::Tex3D;
+}

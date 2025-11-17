@@ -22,6 +22,8 @@ public:
 	virtual uint32_t GetMipLevels()	const = 0;
 
 	NXResourceType GetResourceType() const { return m_type; }
+	bool IsBuffer() const { return m_type == NXResourceType::Buffer; }
+	bool IsTexture() const;
 
 	virtual ID3D12Resource* GetD3DResource() const = 0;
 	virtual ID3D12Resource* GetD3DResourceUAVCounter() const { return nullptr; }

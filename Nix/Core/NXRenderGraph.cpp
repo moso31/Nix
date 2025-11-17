@@ -4,6 +4,8 @@
 #include "NXRGResource.h"
 #include "NXGlobalDefinitions.h"
 #include "NXAllocatorManager.h"
+#include <limits>
+#include <algorithm>
 
 uint32_t NXRenderGraph::s_resourceId = 0;
 
@@ -55,6 +57,7 @@ NXRGHandle NXRenderGraph::Import(const Ntr<NXResource>& importResource)
 
 	m_resourceMap[handle] = pResource;
 	m_importedResourceMap[handle] = importResource;
+	m_importedHandlesMap[importResource] = handle;
 	return handle;
 }
 
@@ -120,7 +123,7 @@ void NXRenderGraph::Compile()
 	for (auto& [resID, resNode] : m_resourceMap)
 	{
 		if (resNode->IsImported()) continue; // import资源不参与生命周期管理
-		m_resourceLifeTimeMap[resID] = { std::numeric_limits<int>::max(), std::numeric_limits<int>::min() };
+		m_resourceLifeTimeMap[resID] = { std::numeric_limits<int>::max(), std::numeric_limits<int>::min(), nullptr, nullptr };
 	}
 	for (auto& pass : m_passNodes)
 	{
@@ -128,16 +131,38 @@ void NXRenderGraph::Compile()
 
 		for (auto& resID : pass->GetInputs())
 		{
-			if (m_resourceLifeTimeMap.find(resID) == m_resourceLifeTimeMap.end()) continue;
-			m_resourceLifeTimeMap[resID].start = std::min(m_resourceLifeTimeMap[resID].start, passTimeLayer);
-			m_resourceLifeTimeMap[resID].end = std::max(m_resourceLifeTimeMap[resID].end, passTimeLayer);
+			auto it = m_resourceLifeTimeMap.find(resID);
+			if (it == m_resourceLifeTimeMap.end()) continue;
+
+			if (it->second.start > passTimeLayer)
+			{
+				it->second.start = passTimeLayer;
+				it->second.pStartPass = pass;
+			}
+
+			if (it->second.end < passTimeLayer)
+			{
+				it->second.end = passTimeLayer;
+				it->second.pEndPass = pass;
+			}
 		}
 
 		for (auto& resID : pass->GetOutputs())
 		{
-			if (m_resourceLifeTimeMap.find(resID) == m_resourceLifeTimeMap.end()) continue;
-			m_resourceLifeTimeMap[resID].start = std::min(m_resourceLifeTimeMap[resID].start, passTimeLayer);
-			m_resourceLifeTimeMap[resID].end = std::max(m_resourceLifeTimeMap[resID].end, passTimeLayer);
+			auto it = m_resourceLifeTimeMap.find(resID);
+			if (it == m_resourceLifeTimeMap.end()) continue;
+
+			if (it->second.start > passTimeLayer)
+			{
+				it->second.start = passTimeLayer;
+				it->second.pStartPass = pass;
+			}
+
+			if (it->second.end < passTimeLayer)
+			{
+				it->second.end = passTimeLayer;
+				it->second.pEndPass = pass;
+			}
 		}
 	}
 
@@ -173,9 +198,8 @@ void NXRenderGraph::Compile()
 					bFoundReusable = true;
 					// 若可以复用，直接加入该实际资源实例的生命周期列表
 					singleResourceLifeTime.descLifeTimes.push_back(lifeTime);
-					m_allocatedResourceMap[resID] = singleResourceLifeTime.pResource;
-
-					m_debug_allocatedResourceHandles[m_allocatedResourceMap[resID]->GetName()].push_back(resID);
+					m_allocatedResourceMap[resID] = singleResourceLifeTime.pResource; 
+					m_allocatedHandlesMap[singleResourceLifeTime.pResource].push_back(resID);
 					break;
 				}
 			}
@@ -189,8 +213,7 @@ void NXRenderGraph::Compile()
 			singleResourceLifeTime.descLifeTimes.push_back(lifeTime);
 			m_descLifeTimesMap[resourceDesc].push_back(singleResourceLifeTime);
 			m_allocatedResourceMap[resID] = singleResourceLifeTime.pResource;
-
-			m_debug_allocatedResourceHandles[m_allocatedResourceMap[resID]->GetName()].push_back(resID);
+			m_allocatedHandlesMap[singleResourceLifeTime.pResource].push_back(resID);
 		}
 	}
 
@@ -230,6 +253,9 @@ void NXRenderGraph::Compile()
 			//m_pendingDestroy.push_back({ res, m_lastSubmitFenceValueOfPrevFrame });
 		}
 	}
+
+	// 生成GUI数据
+	GenerateGUIData();
 
 	// Compile结束，准备好资源分配方案，清空上次的复用记录
 	m_lastResourceUsingMap = std::move(m_resourceUsingMap);
@@ -293,16 +319,29 @@ void NXRenderGraph::Clear()
 	m_descLifeTimesMap.clear();
 	m_allocatedResourceMap.clear();
 	m_resourceUsingMap.clear();
+	m_allocatedHandlesMap.clear();
+	m_importedHandlesMap.clear();
 
 	// 重置RGHandle 从0计数
 	NXRGHandle::Reset();
-
-	m_debug_allocatedResourceHandles.clear();
 }
 
 Ntr<NXResource> NXRenderGraph::GetResource(NXRGHandle handle)
 {
-	return m_allocatedResourceMap.find(handle) != m_allocatedResourceMap.end() ? m_allocatedResourceMap[handle] : nullptr;
+	auto it = m_resourceMap.find(handle);
+	if (it == m_resourceMap.end())
+		return nullptr;
+
+	if (it->second->IsImported())
+	{
+		auto itRes = m_importedResourceMap.find(handle);
+		return itRes == m_importedResourceMap.end() ? nullptr : itRes->second;
+	}
+	else
+	{
+		auto itRes = m_allocatedResourceMap.find(handle);
+		return itRes == m_allocatedResourceMap.end() ? nullptr : itRes->second;
+	}
 }
 
 Ntr<NXResource> NXRenderGraph::GetUsingResourceByName(const std::string& name)
@@ -319,6 +358,65 @@ Ntr<NXResource> NXRenderGraph::GetUsingResourceByName(const std::string& name)
 	return nullptr;
 }
 
+void NXRenderGraph::GenerateGUIData()
+{
+	m_guiVirtualResources.clear();
+	m_guiPhysicalResources.clear();
+	m_guiImportedResources.clear();
+	m_maxTimeLayer = 0;
+
+	// 生成虚拟资源（NXRGResource*）的GUI数据
+	for (auto& [handle, lifeTime] : m_resourceLifeTimeMap)
+	{
+		if (lifeTime.start == std::numeric_limits<int>::max() || lifeTime.end == std::numeric_limits<int>::min())
+			continue;
+
+		auto it = m_resourceMap.find(handle);
+		if (it == m_resourceMap.end()) continue;
+
+		NXRGGUIResource res;
+		res.name = it->second->GetName();
+		res.handles.push_back(handle);
+		res.lifeTimes.push_back(lifeTime);
+		res.isImported = false;
+
+		m_guiVirtualResources.push_back(res);
+		m_maxTimeLayer = std::max(m_maxTimeLayer, lifeTime.end);
+	}
+
+	// 生成实际资源（Ntr<NXResource>）的GUI数据-Create部分
+	for (auto& [pResource, handles] : m_allocatedHandlesMap)
+	{
+		NXRGGUIResource res;
+		res.name = pResource->GetName();
+		res.isImported = false;
+
+		for (auto& handle : handles)
+		{
+			auto it = m_resourceLifeTimeMap.find(handle);
+			if (it != m_resourceLifeTimeMap.end())
+			{
+				res.handles.push_back(it->first);
+				res.lifeTimes.push_back(it->second);
+			}
+		}
+
+		m_guiPhysicalResources.push_back(res);
+	}
+
+	// 生成实际资源（Ntr<NXResource>）的GUI数据-Import部分
+	for (auto& [pResource, handle] : m_importedHandlesMap)
+	{
+		NXRGGUIResource res;
+		res.name = pResource->GetName();
+		res.handles.push_back(handle);
+		res.lifeTimes.push_back({ 0, m_maxTimeLayer, nullptr, nullptr }); // import资源生命周期贯穿始终
+		res.isImported = true;
+
+		m_guiImportedResources.push_back(res);
+	}
+}
+
 Ntr<NXResource> NXRenderGraph::CreateResourceByDescription(const NXRGDescription& desc, NXRGHandle handle)
 {
 	std::string strResName = "NXRGRes_" + std::to_string(s_resourceId++);
@@ -328,9 +426,8 @@ Ntr<NXResource> NXRenderGraph::CreateResourceByDescription(const NXRGDescription
 	{
 		if (!m_lastResourceUsingMap[desc].empty())
 		{
-			// m_lastResourceUsingMap 中取一个转移到 m_resourceUsingMap
-			Ntr<NXResource> pRes = m_lastResourceUsingMap[desc].back();
-			m_lastResourceUsingMap[desc].pop_back();
+			Ntr<NXResource> pRes = m_lastResourceUsingMap[desc].front(); // 从队头取，尽量保持顺序
+			m_lastResourceUsingMap[desc].erase(m_lastResourceUsingMap[desc].begin());
 			m_resourceUsingMap[desc].push_back(pRes);
 			return pRes;
 		}

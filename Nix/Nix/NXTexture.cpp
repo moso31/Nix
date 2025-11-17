@@ -1405,8 +1405,14 @@ void NXTexture2DArray::SetSRVPreview(uint32_t idx)
 		m_pSRVPreviews[idx] = result;
 		WaitLoadingTexturesFinish(); // 创建SRV前，先等待纹理加载完成
 
+		DXGI_FORMAT SRVFormat = m_texFormat;
+		if (m_texFormat == DXGI_FORMAT_R24G8_TYPELESS)
+			SRVFormat = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+		else if (m_texFormat == DXGI_FORMAT_R32_TYPELESS)
+			SRVFormat = DXGI_FORMAT_R32_FLOAT;
+
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-		srvDesc.Format = m_texFormat;
+		srvDesc.Format = SRVFormat;
 		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
 		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 

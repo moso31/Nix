@@ -326,6 +326,17 @@ void Renderer::GenerateRenderGraph()
 	//	[=](ID3D12GraphicsCommandList* pCmdList, TerrainStreamBatcherData& data) {
 	//	});
 
+
+	struct GPUTerrainPatcherData
+	{
+		NXRGHandle pMinMaxZMap;
+		NXRGHandle pFinal;
+		NXRGHandle pIndiArgs;
+		NXRGHandle pPatcher;
+		NXRGHandle pDrawIndexArgs;
+	};
+	NXRGPassNode<GPUTerrainPatcherData>* passPatcher = nullptr;
+
 	auto terrIns = NXGPUTerrainManager::GetInstance();
 	if (g_debug_temporal_enable_terrain_debug)
 	{
@@ -414,15 +425,6 @@ void Renderer::GenerateRenderGraph()
 				});
 		}
 
-		struct GPUTerrainPatcherData
-		{
-			NXRGHandle pMinMaxZMap;
-			NXRGHandle pFinal;
-			NXRGHandle pIndiArgs;
-			NXRGHandle pPatcher;
-			NXRGHandle pDrawIndexArgs;
-		};
-
 		auto passPatchClear = m_pRenderGraph->AddPass<GPUTerrainPatcherData>("GPU Terrain Patcher Clear",
 			[=](NXRGBuilder& builder, GPUTerrainPatcherData& data) {
 				data.pPatcher = builder.Write(pTerrainPatcher);
@@ -441,7 +443,7 @@ void Renderer::GenerateRenderGraph()
 			});
 
 		auto pTerrain_MinMaxZMap2DArray = m_pRenderGraph->Import(terrIns->GetTerrainMinMaxZMap2DArray());
-		auto passPatcher = m_pRenderGraph->AddPass<GPUTerrainPatcherData>("GPU Terrain Patcher",
+		passPatcher = m_pRenderGraph->AddPass<GPUTerrainPatcherData>("GPU Terrain Patcher",
 			[=](NXRGBuilder& builder, GPUTerrainPatcherData& data) {
 				data.pMinMaxZMap = builder.Read(pTerrain_MinMaxZMap2DArray);
 				data.pFinal = builder.Read(passFillResult->GetData().pFinal);
@@ -492,6 +494,9 @@ void Renderer::GenerateRenderGraph()
 
 	auto gBufferPassData = m_pRenderGraph->AddPass<GBufferData>("GBufferPass",
 		[&](NXRGBuilder& builder, GBufferData& data) {
+			if (passPatcher)
+				builder.Read(passPatcher->GetData().pPatcher); 
+
 			data.rt0	= builder.Write(hGBuffer0);
 			data.rt1	= builder.Write(hGBuffer1);
 			data.rt2	= builder.Write(hGBuffer2);
@@ -625,6 +630,9 @@ void Renderer::GenerateRenderGraph()
 	NXRGHandle pCSMDepth = m_pRenderGraph->Import(m_pTexCSMDepth);
 	auto shadowMapPassData = m_pRenderGraph->AddPass<ShadowMapData>("ShadowMap",
 		[&](NXRGBuilder& builder, ShadowMapData& data) {
+			if (passPatcher)
+				builder.Read(passPatcher->GetData().pPatcher);
+
 			data.csmDepth = builder.Write(pCSMDepth);
 		},
 		[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, ShadowMapData& data) {
@@ -758,7 +766,7 @@ void Renderer::GenerateRenderGraph()
 			data.lightingSpec = builder.Read(litPassData->GetData().lightingSpec);
 			data.gbuffer1 = builder.Read(gBufferPassData->GetData().rt1);
 			data.noise64 = builder.Read(pNoise64);
-			data.depth	= builder.Read(gBufferPassData->GetData().depth);
+			data.depth	= builder.ReadWrite(gBufferPassData->GetData().depth);
 			data.buf	= builder.ReadWrite(litPassData->GetData().lightingCopy);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, SubsurfaceData& data) {
@@ -787,7 +795,7 @@ void Renderer::GenerateRenderGraph()
 		[&](NXRGBuilder& builder, SkyLightingData& data) {
 			data.cubeMap = builder.Read(pCubeMap);
 			data.buf	= builder.ReadWrite(sssPassData->GetData().buf);
-			data.depth	= builder.Read(gBufferPassData->GetData().depth);
+			data.depth	= builder.ReadWrite(gBufferPassData->GetData().depth);
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, SkyLightingData& data) {
 			auto pMat = static_cast<NXGraphicPassMaterial*>(m_pPassMaterialMaps["SkyLighting"]);
@@ -908,7 +916,7 @@ void Renderer::GenerateRenderGraph()
 		[&](NXRGBuilder& builder, FinalQuadData& data) {
 			data.gizmosOut = builder.Read(gizmosPassData->GetData().out);
 			data.finalOut = builder.Write(pFinalRT);
-		},
+ 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, FinalQuadData& data) {
 			auto pMat = static_cast<NXGraphicPassMaterial*>(m_pPassMaterialMaps["FinalQuad"]);
 			pMat->SetInputTex(0, 0, resMap.GetRes(data.gizmosOut));
@@ -939,10 +947,11 @@ void Renderer::InitGlobalResources()
 	m_pCommandSig = NX12Util::CreateCommandSignature(NXGlobalDX::GetDevice(), desc, nullptr);
 
 	// shadow map
-	m_pTexCSMDepth = NXResourceManager::GetInstance()->GetTextureManager()->CreateRenderTexture2DArray("Shadow DepthZ RT", DXGI_FORMAT_R32_TYPELESS, m_shadowMapRTSize, m_shadowMapRTSize, m_cascadeCount, 1, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL, false);
+	m_pTexCSMDepth = NXResourceManager::GetInstance()->GetTextureManager()->CreateRenderTexture2DArray("CSM DepZ 2DArray", DXGI_FORMAT_R32_TYPELESS, m_shadowMapRTSize, m_shadowMapRTSize, m_cascadeCount, 1, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL, false);
 	m_pTexCSMDepth->SetViews(1, 0, m_cascadeCount, 0);
 	for (UINT i = 0; i < m_cascadeCount; i++) m_pTexCSMDepth->SetDSV(i, i, 1);	// DSV 单张切片（每次写cascade深度 只写一片）
 	m_pTexCSMDepth->SetSRV(0, 0, m_cascadeCount); // SRV 读取整个纹理数组（ShadowTest时使用）
+	m_pTexCSMDepth->SetSRVPreviewsManual(1);
 }
 
 void Renderer::ResourcesReloading(DirectResources* pDXRes)

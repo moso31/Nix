@@ -45,11 +45,17 @@ public:
         return data == other.data; 
     }
 
+    bool operator!=(const Ntr<T>& other) const
+    {
+        return data != other.data;
+    }
+
     T& operator*() { return *static_cast<T*>(data); }
     T* operator->() { return static_cast<T*>(data); }
     const T* operator->() const { return static_cast<const T*>(data); }
 
     T* Ptr() { return static_cast<T*>(data); }
+    const T* Ptr() const { return static_cast<const T*>(data); }
 
     bool IsValid() const { return data != nullptr; }
     bool IsNull() const { return data == nullptr; }
@@ -64,3 +70,15 @@ public:
 private:
     IRefCountable* data;
 };
+
+namespace std
+{
+    template <typename T>
+    struct hash<Ntr<T>>
+    {
+        size_t operator()(const Ntr<T>& ntr) const noexcept
+        {
+            return std::hash<const void*>()(ntr.Ptr());
+        }
+    };
+}
