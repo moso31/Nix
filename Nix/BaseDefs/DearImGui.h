@@ -14,6 +14,8 @@
 #include "imgui_impl_dx12.h"
 #include "imgui_internal.h"
 
+#include "implot.h"
+
 #if defined(DEBUG) | defined(_DEBUG)
 #define DEBUG_NEW new( _NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW 

@@ -1,4 +1,4 @@
-#include "NXGlobalDefinitions.H"
+#include "NXGlobalDefinitions.h"
 
 #include "NXGUI.h"
 #include "NXEvent.h"
@@ -54,6 +54,7 @@ void NXGUI::Init()
 {
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
+	ImPlot::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
 	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
@@ -153,13 +154,17 @@ void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT, const NXSwapChainBuffer& swapCha
 		m_pGUIView->SetViewRT(pGUIViewRT);
 	m_pGUIView->Render(NXShVisDescHeap);
 
-	static bool show_demo_window = true;
+	static bool show_demo_window = false;
+	static bool show_implot_demo = true;
 	static bool show_another_window = false;
 	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 	// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
 	if (show_demo_window)
 		ImGui::ShowDemoWindow(&show_demo_window);
+
+	if (show_implot_demo)
+		ImPlot::ShowDemoWindow(&show_implot_demo);
 
 	m_pFileBrowser->Display();
 
@@ -232,5 +237,7 @@ void NXGUI::Release()
 
 	ImGui_ImplDX12_Shutdown();
 	ImGui_ImplWin32_Shutdown();
+
+	ImPlot::DestroyContext();
 	ImGui::DestroyContext();
 }

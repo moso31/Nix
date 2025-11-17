@@ -6,6 +6,7 @@
                 "${workspaceFolder}/**"
             ],
             "defines": [
+                "NOMINMAX",
                 "_DEBUG",
                 "UNICODE",
                 "_UNICODE"

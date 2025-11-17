@@ -77,7 +77,26 @@ public:
     virtual uint32_t GetSRVPreviewCount() { return (uint32_t)m_pSRVPreviews.size(); }
     virtual D3D12_CPU_DESCRIPTOR_HANDLE GetSRVPreview(uint32_t index);
 
+	// 【TODO：关于SetSRVPreviews()/SetSRVPreviewsManual()，甚至SetViews()的设计需要重新考虑】
+    // 这块的设计是个历史遗留问题。我之前的认知都是"纹理需要预加载SRV"，由此设计了这一坨SetSRVPreviews
+    // 越来越觉得这样做有问题。
+    // 说到底，想只靠现在这套（所有同一type，比如2DArray纹理的SRV数量，参数都一致）支撑越来越复杂的需求，也是不现实的。
+    // 有个思路是打算运行时动态构建，怎么落地现在还没想好。以后再重构。
+    
+    // 自动计算贴图的预览SRV数量；派生类负责实现具体逻辑
     virtual void SetSRVPreviews() { m_loading2DPreviews = 0; }
+	// 手动计算贴图的预览SRV数量
+    void SetSRVPreviewsManual(uint32_t count)
+    {	
+        m_loading2DPreviews = count;
+        m_load2DPreviewsReady.store(false);
+
+        m_pSRVPreviews.resize(count);
+        for (auto i = 0; i < m_pSRVPreviews.size(); i++)
+        {
+            SetSRVPreview(i);
+        }
+    }
     virtual void SetSRVPreview(uint32_t idx) {}
 
     const D3D12_CLEAR_VALUE& GetClearValue() { return m_clearValue; }
