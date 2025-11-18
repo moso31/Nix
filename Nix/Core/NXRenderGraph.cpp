@@ -12,6 +12,7 @@ uint32_t NXRenderGraph::s_resourceId = 0;
 NXRGHandle NXRenderGraph::Read(NXRGHandle resID, NXRGPassNodeBase* passNode)
 {
 	passNode->AddInput(resID);
+	m_handlePassNodes[resID].insert(passNode);
 	return resID;
 }
 
@@ -21,6 +22,7 @@ NXRGHandle NXRenderGraph::Write(NXRGPassNodeBase* passNode, NXRGHandle resID)
 	{
 		// 导入资源不创建新版本，直接复用
 		passNode->AddOutput(resID); 
+		m_handlePassNodes[resID].insert(passNode);
 		return resID;
 	}
 
@@ -29,6 +31,7 @@ NXRGHandle NXRenderGraph::Write(NXRGPassNodeBase* passNode, NXRGHandle resID)
 
 	passNode->AddOutput(handle);
 	m_resourceMap[handle] = pResource;
+	m_handlePassNodes[handle].insert(passNode);
 
 	return handle;
 }
@@ -37,6 +40,7 @@ NXRGHandle NXRenderGraph::ReadWrite(NXRGPassNodeBase* passNode, NXRGHandle resID
 {
 	passNode->AddInput(resID);
 	passNode->AddOutput(resID);
+	m_handlePassNodes[resID].insert(passNode);
 	return resID;
 }
 
@@ -304,6 +308,8 @@ void NXRenderGraph::Clear()
 		delete pass;
 	}
 	m_passNodes.clear();
+	m_handlePassNodes.clear();
+
 	// 清空资源映射
 	for (auto& [handle, resNode] : m_resourceMap)
 	{
@@ -364,6 +370,7 @@ void NXRenderGraph::GenerateGUIData()
 	m_guiPhysicalResources.clear();
 	m_guiImportedResources.clear();
 	m_maxTimeLayer = 0;
+	m_minTimeLayer = std::numeric_limits<int>::max();
 
 	// 生成虚拟资源（NXRGResource*）的GUI数据
 	for (auto& [handle, lifeTime] : m_resourceLifeTimeMap)
@@ -381,6 +388,7 @@ void NXRenderGraph::GenerateGUIData()
 		res.isImported = false;
 
 		m_guiVirtualResources.push_back(res);
+		m_minTimeLayer = std::min(m_minTimeLayer, lifeTime.start);
 		m_maxTimeLayer = std::max(m_maxTimeLayer, lifeTime.end);
 	}
 
@@ -409,8 +417,13 @@ void NXRenderGraph::GenerateGUIData()
 	{
 		NXRGGUIResource res;
 		res.name = pResource->GetName();
-		res.handles.push_back(handle);
-		res.lifeTimes.push_back({ 0, m_maxTimeLayer, nullptr, nullptr }); // import资源生命周期贯穿始终
+
+		for (auto& pass : m_handlePassNodes[handle])
+		{
+			res.handles.push_back(handle);
+			res.lifeTimes.push_back({ m_timeLayerPassMap[pass], m_timeLayerPassMap[pass] + 1, nullptr, nullptr }); // import资源生命周期贯穿始终
+		}
+
 		res.isImported = true;
 
 		m_guiImportedResources.push_back(res);
@@ -482,4 +495,18 @@ Ntr<NXResource> NXRenderGraph::CreateResourceByDescription(const NXRGDescription
 	// （shadowMap的Tex2dArray现在是import直连外部，先凑合着用）
 	assert(false);
 	return nullptr;
+}
+
+const std::set<std::string>& NXRenderGraph::GetPassesAtTimeLayer(int timeLayer) const
+{
+	static std::set<std::string> result;
+	result.clear();
+	for (const auto& [pass, layer] : m_timeLayerPassMap)
+	{
+		if (layer == timeLayer)
+		{
+			result.insert(pass->GetName());
+		}
+	}
+	return result;
 }

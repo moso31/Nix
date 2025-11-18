@@ -73,7 +73,9 @@ public:
 	const std::vector<NXRGGUIResource>& GetGUIVirtualResources() const { return m_guiVirtualResources; }
 	const std::vector<NXRGGUIResource>& GetGUIPhysicalResources() const { return m_guiPhysicalResources; }
 	const std::vector<NXRGGUIResource>& GetGUIImportedResources() const { return m_guiImportedResources; }
-	int GetMaxTimeLayer() const { return m_maxTimeLayer; }
+	int GetMinTimeLayer() const { return m_minTimeLayer; } // 虚拟资源依赖的最大/最小时间节点
+	int GetMaxTimeLayer() const { return m_maxTimeLayer; } // 虚拟资源依赖的最大/最小时间节点
+	const std::set<std::string>& GetPassesAtTimeLayer(int timeLayer) const; // 获取当前时间节点对应的Pass（可能有多个）
 
 private:
 	void GenerateGUIData();
@@ -86,6 +88,7 @@ private:
 
 	// 图依赖的所有pass
 	std::vector<NXRGPassNodeBase*> m_passNodes;
+	std::unordered_map<NXRGHandle, std::unordered_set<NXRGPassNodeBase*>> m_handlePassNodes;
 
 	// 记录RGHandle和RGResource的映射关系
 	std::unordered_map<NXRGHandle, NXRGResource*> m_resourceMap;
@@ -118,5 +121,7 @@ private:
 	std::vector<NXRGGUIResource> m_guiVirtualResources;
 	std::vector<NXRGGUIResource> m_guiPhysicalResources; // Create资源
 	std::vector<NXRGGUIResource> m_guiImportedResources; // Import资源
+	// 虚拟资源依赖的最大/最小时间节点
+	int m_minTimeLayer = 0; 
 	int m_maxTimeLayer = 0;
 };

@@ -41,6 +41,9 @@ DXGI_FORMAT ForceLinear(DXGI_FORMAT fmt);
 // 2025.9.2 是否是BC压缩格式
 bool IsBCFormat(DXGI_FORMAT fmt);
 
+// 2025.11.18 将DXGI_FORMAT转换为字符串(省略DXGI_FORMAT_前缀)
+std::string GetDXGIFormatString(DXGI_FORMAT fmt);
+
 bool IsImageFileExtension(const std::string& strExt);
 bool IsDDSFileExtension(const std::string& strExt);
 bool IsRawFileExtension(const std::string& strExt);

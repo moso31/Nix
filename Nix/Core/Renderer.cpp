@@ -183,7 +183,7 @@ void Renderer::InitPassMaterials()
 	// ShadowTest
 	{
 		auto pMat = new NXGraphicPassMaterial("ShadowTest", L"Shader\\ShadowTest.fx");
-		pMat->RegisterRTVNum({ DXGI_FORMAT_R8G8B8A8_UNORM });
+		pMat->RegisterRTVNum({ DXGI_FORMAT_R11G11B10_FLOAT });
 		pMat->RegisterSRVSpaceNum(1);
 		pMat->RegisterSRVSlotNum(2);  // t0-t1
 		pMat->RegisterCBVSpaceNum(1);
@@ -665,7 +665,7 @@ void Renderer::GenerateRenderGraph()
 		NXRGHandle shadowTest;
 	};
 
-	NXRGHandle pShadowTest = m_pRenderGraph->Create("ShadowTest RT", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::RenderTarget, .tex = { .format = DXGI_FORMAT_R8G8B8A8_UNORM, .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .arraySize = 1, .mipLevels = 1 } });
+	NXRGHandle pShadowTest = m_pRenderGraph->Create("ShadowTest RT", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::RenderTarget, .tex = { .format = DXGI_FORMAT_R11G11B10_FLOAT, .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .arraySize = 1, .mipLevels = 1 } });
 
 	auto shadowTestPassData = m_pRenderGraph->AddPass<ShadowTestData>("ShadowTest",
 		[&](NXRGBuilder& builder, ShadowTestData& data) {
