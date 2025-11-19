@@ -1,0 +1,254 @@
+{
+  "main": {
+    "id": "fa8ad659f93dfb16",
+    "type": "split",
+    "children": [
+      {
+        "id": "6027df2d245a09a2",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "72852cf069215e03",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "NXRG/代码文档/文档汇总.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "文档汇总"
+            }
+          },
+          {
+            "id": "6dde81473b2f7956",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "NXRG/代码文档/NXRGFrameResources.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "NXRGFrameResources"
+            }
+          },
+          {
+            "id": "5e6a6fa1e1194f66",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "NXRG/代码文档/NXRGPassNodeBase.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "NXRGPassNodeBase"
+            }
+          },
+          {
+            "id": "68a6d449ed01c138",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "NXRG/代码文档/NXRGFrameResources.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "NXRGFrameResources"
+            }
+          }
+        ],
+        "currentTab": 1
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "b06918c613d6a569",
+    "type": "split",
+    "children": [
+      {
+        "id": "cfa38179be4fc3d1",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "677c966393603711",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "文件列表"
+            }
+          },
+          {
+            "id": "87f5152672f4d861",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "NXRGDescription",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "搜索"
+            }
+          },
+          {
+            "id": "41bc9314e8245c2f",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "书签"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "907f57ebc7918584",
+    "type": "split",
+    "children": [
+      {
+        "id": "f003aee9e913bb07",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "d1cb9e670661ac52",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "NXRG/代码文档/NXRGFrameResources.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "NXRGFrameResources 的反向链接列表"
+            }
+          },
+          {
+            "id": "5f3bda151b337ad5",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "NXRG/代码文档/NXRGFrameResources.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "NXRGFrameResources 的出链列表"
+            }
+          },
+          {
+            "id": "a29f752013fc9b3c",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "标签"
+            }
+          },
+          {
+            "id": "87a9ffa216ea15f9",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "添加笔记属性"
+            }
+          },
+          {
+            "id": "558b5ef11da870c9",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "NXRG/代码文档/NXRGFrameResources.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "NXRGFrameResources 的大纲"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:打开快速切换": false,
+      "graph:查看关系图谱": false,
+      "canvas:新建白板": false,
+      "daily-notes:打开/创建今天的日记": false,
+      "templates:插入模板": false,
+      "command-palette:打开命令面板": false,
+      "bases:创建新数据库": false
+    }
+  },
+  "active": "6dde81473b2f7956",
+  "lastOpenFiles": [
+    "NXRG/代码文档/NXRenderGraph.md",
+    "NXRG/代码文档/NXRGFrameResources.md",
+    "NXRG/代码文档/NXRGHandle.md",
+    "NXRG/代码文档/NXRGPassData 模板.md",
+    "NXRG/代码文档/NXRGResource 类.md",
+    "NXRG/代码文档/NXRGPassNodeBase.md",
+    "NXRG/代码文档/文档汇总.md",
+    "NXRG/代码文档/NXRGUtil.md",
+    "NXRG/代码文档/NXGUIRenderGraph 类.md",
+    "NXRG/代码文档/NXRGBuilder 类.md",
+    "没解决的问题.md",
+    "欢迎.md",
+    "NXReadback.md",
+    "NXBuffer.md",
+    "NX 继承链.md",
+    "NX Gpu-Driven Terrain.md",
+    "NXRG/使用示例图/NXRG.md",
+    "NXRG/使用示例图",
+    "NXRG/代码文档",
+    "NXRG/NXRG Compile 拓扑排序.md",
+    "NXRG",
+    "创建链接.md"
+  ]
+}
