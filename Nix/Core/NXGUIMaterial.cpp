@@ -314,10 +314,6 @@ void NXGUIMaterial::RenderGUI_Unique_TerrainLayer_Connection(NXTerrain* pTerrain
 
 		// �߶�ͼ
 		drawRow("Height Map", pTerrainLayer->GetHeightMapTexture().IsNull());
-		// Min/Max Z ͼ
-		drawRow("Min/Max Z Map", pTerrainLayer->GetMinMaxZMapTexture().IsNull());
-		// Patch Cone ͼ
-		drawRow("PatchCone Map", pTerrainLayer->GetPatchConeMapTexture().IsNull());
 
 		ImGui::EndTable();
 	}

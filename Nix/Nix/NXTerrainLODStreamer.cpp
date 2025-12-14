@@ -40,7 +40,7 @@ void NXTerrainLODStreamer::Update()
     // 获取6档LOD覆盖的所有四叉树节点
     std::vector<std::vector<NXTerrainLODQuadTreeNode>> nodeLists(6);
 
-    // 遍历所有地形
+    // 遍历所有地形，按6档LOD距离加载node
     for (auto& terrainRoot : m_terrainRoots)
     {
         GetNodeDatasInternal(nodeLists, terrainRoot);
@@ -114,11 +114,14 @@ void NXTerrainLODStreamer::Update()
     // 加载库本身就是异步的，这里直接调接口就OK
     for (auto& loadingDesc : nextLoadingNodeDescIndices)
     {
+		static Int2 minTerrainID = g_terrainConfig.MinTerrainPos / g_terrainConfig.TerrainSize;
+
         auto& data = m_nodeDescArray[loadingDesc].data;
         Int2 relativePos = data.positionWS - data.terrainID * g_terrainConfig.TerrainSize; // 地形块内相对左下角的位置
         Int2 relativePosID = relativePos / g_terrainConfig.SectorSize;
 
-        std::string strTerrId = std::to_string(data.terrainID.x) + "_" + std::to_string(data.terrainID.y);
+		Int2 strID = data.terrainID - minTerrainID;
+        std::string strTerrId = std::to_string(strID.x) + "_" + std::to_string(strID.y);
         std::string strTerrSubID = std::to_string(data.size) + "_" + std::to_string(relativePosID.x) + "_" + std::to_string(relativePosID.y);
 
         TerrainStreamingLoadRequest task;
@@ -142,6 +145,7 @@ void NXTerrainLODStreamer::ProcessCompletedStreamingTask()
 {
     for (auto& task : m_asyncLoader->ConsumeCompletedTasks())
     {
+        printf("%s\n", task.pSplatMap->GetFilePath().string().c_str());
         NXTerrainStreamingBatcher::GetInstance()->PushCompletedTask(task);
     }
 }
@@ -153,7 +157,7 @@ void NXTerrainLODStreamer::GetNodeDatasInternal(std::vector<std::vector<NXTerrai
     // - 如果节点在当前LOD距离内，递归拿四个子节点并进入下一级LOD；否则中止递归
 
     uint32_t nodeLevel = node.GetLevel();
-    float range = s_distRanges[nodeLevel];
+    float range = s_distRanges[s_maxNodeLevel - nodeLevel];
 
     auto pCamera = m_pScene->GetMainCamera();
     Rect2D nodeRect(Vector2((float)node.positionWS.x, (float)node.positionWS.y), (float)node.size);

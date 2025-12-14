@@ -25,6 +25,7 @@ class NXGUIWorkspace;
 class NXGUIInspector;
 class NXGUIRenderGraph;
 class NXGUIVirtualTexture;
+class NXGUIHoudiniTerrainExporter;
 
 class NXGUI
 {
@@ -41,6 +42,8 @@ public:
 	const Ntr<NXReadbackData>& GetVTReadbackData() const { return m_vtReadbackData; }
 	void SetVTReadbackDataSize(const Int2& val) { m_vtReadbackDataSize = val; }
 	const Int2 GetVTReadbackDataSize() const { return m_vtReadbackDataSize; }
+
+	NXGUIHoudiniTerrainExporter* GetGUIHoudiniTerrainExporter() const { return m_pGUIHoudiniTerrainExporter; }
 
 private:
 	MultiFrame<ComPtr<ID3D12GraphicsCommandList>>	m_pCmdList;
@@ -64,6 +67,7 @@ private:
 	NXGUIInspector*				m_pGUIInspector;
 	NXGUIMaterialShaderEditor*	m_pGUIMaterialShaderEditor;
 	NXGUIRenderGraph* 			m_pGUIRenderGraph;
+	NXGUIHoudiniTerrainExporter* m_pGUIHoudiniTerrainExporter;
 
 	NXGUIDebugLayer*			m_pGUIDebugLayer;
 

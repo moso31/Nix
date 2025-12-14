@@ -24,6 +24,7 @@
 #include "NXGUIView.h"
 #include "NXGUIRenderGraph.h"
 #include "NXGUIWorkspace.h"
+#include "NXGUIHoudiniTerrainExporter.h"
 #include "NXGUICommandManager.h"
 
 NXGUI::NXGUI(NXScene* pScene, Renderer* pRenderer) :
@@ -42,7 +43,8 @@ NXGUI::NXGUI(NXScene* pScene, Renderer* pRenderer) :
 	m_pGUIVirtualTexture(nullptr),
 	m_pGUIRenderGraph(nullptr),
 	m_pGUIView(nullptr),
-	m_pGUIWorkspace(nullptr)
+	m_pGUIWorkspace(nullptr),
+	m_pGUIHoudiniTerrainExporter(nullptr)
 {
 }
 
@@ -110,8 +112,10 @@ void NXGUI::Init()
 
 	m_pGUIRenderGraph = new NXGUIRenderGraph(m_pRenderer);
 
+	m_pGUIHoudiniTerrainExporter = new NXGUIHoudiniTerrainExporter();
+	
 	m_pGUIWorkspace = new NXGUIWorkspace();
-	m_pGUIWorkspace->Init();
+	m_pGUIWorkspace->Init(this);
 
 	//ImGui::LoadIniSettingsFromDisk(NXConvert::GetPathOfImguiIni().c_str());
 
@@ -149,6 +153,7 @@ void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT, const NXSwapChainBuffer& swapCha
 	m_pGUIPostProcessing->Render();
 	m_pGUIDebugLayer->Render();
 	m_pGUIRenderGraph->Render();
+	m_pGUIHoudiniTerrainExporter->Render();
 
 	if (m_pGUIView->GetViewRT() != pGUIViewRT)
 		m_pGUIView->SetViewRT(pGUIViewRT);
@@ -221,6 +226,7 @@ void NXGUI::Release()
 
 	SafeDelete(m_pGUIView);
 	SafeDelete(m_pGUIWorkspace);
+	SafeDelete(m_pGUIHoudiniTerrainExporter);
 	SafeRelease(m_pGUIMaterialShaderEditor);
 	SafeRelease(m_pGUIInspector);
 	SafeDelete(m_pGUILights);

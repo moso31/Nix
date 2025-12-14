@@ -13,58 +13,15 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "NXRG/代码文档/文档汇总.md",
+                "file": "没解决的问题.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "文档汇总"
-            }
-          },
-          {
-            "id": "6dde81473b2f7956",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "NXRG/代码文档/NXRGFrameResources.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "NXRGFrameResources"
-            }
-          },
-          {
-            "id": "5e6a6fa1e1194f66",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "NXRG/代码文档/NXRGPassNodeBase.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "NXRGPassNodeBase"
-            }
-          },
-          {
-            "id": "68a6d449ed01c138",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "NXRG/代码文档/NXRGFrameResources.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "NXRGFrameResources"
+              "title": "没解决的问题"
             }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "vertical"
@@ -137,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "NXRG/代码文档/NXRGFrameResources.md",
+                "file": "NXRG/代码文档/文档汇总.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -147,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "NXRGFrameResources 的反向链接列表"
+              "title": "文档汇总 的反向链接列表"
             }
           },
           {
@@ -156,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "NXRG/代码文档/NXRGFrameResources.md",
+                "file": "NXRG/代码文档/文档汇总.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "NXRGFrameResources 的出链列表"
+              "title": "文档汇总 的出链列表"
             }
           },
           {
@@ -199,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "NXRG/代码文档/NXRGFrameResources.md",
+                "file": "NXRG/代码文档/文档汇总.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "NXRGFrameResources 的大纲"
+              "title": "文档汇总 的大纲"
             }
           }
         ]
@@ -226,15 +183,17 @@
       "bases:创建新数据库": false
     }
   },
-  "active": "6dde81473b2f7956",
+  "active": "72852cf069215e03",
   "lastOpenFiles": [
-    "NXRG/代码文档/NXRenderGraph.md",
+    "未命名 1.base",
+    "未命名.base",
+    "NXRG/代码文档/文档汇总.md",
     "NXRG/代码文档/NXRGFrameResources.md",
+    "NXRG/代码文档/NXRGPassNodeBase.md",
+    "NXRG/代码文档/NXRenderGraph.md",
     "NXRG/代码文档/NXRGHandle.md",
     "NXRG/代码文档/NXRGPassData 模板.md",
     "NXRG/代码文档/NXRGResource 类.md",
-    "NXRG/代码文档/NXRGPassNodeBase.md",
-    "NXRG/代码文档/文档汇总.md",
     "NXRG/代码文档/NXRGUtil.md",
     "NXRG/代码文档/NXGUIRenderGraph 类.md",
     "NXRG/代码文档/NXRGBuilder 类.md",

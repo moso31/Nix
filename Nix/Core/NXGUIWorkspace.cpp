@@ -1,9 +1,11 @@
 #include "BaseDefs/DearImGui.h"
 
 #include "NXGUIWorkspace.h"
+#include "NXGUI.h"
+#include "NXGUIHoudiniTerrainExporter.h"
 #include "NXFileSystemHelper.h"
 
-void NXGUIWorkspace::Init()
+void NXGUIWorkspace::Init(NXGUI* pGUI)
 {
 #if DEBUG || _DEBUG
     m_strMode = "(Debug Mode)";
@@ -19,6 +21,7 @@ void NXGUIWorkspace::Init()
     m_strVersion = "Nix Rendering Frame, version " + 
         std::to_string((int)versionTime.year()) + "." + std::to_string((unsigned)versionTime.month()) + "." + std::to_string((unsigned)versionTime.day());
 
+    m_pGUI = pGUI;
 }
 
 void NXGUIWorkspace::Render()
@@ -87,6 +90,18 @@ void NXGUIWorkspace::Render()
             ImGui::Separator();
 
             if (ImGui::MenuItem("Exit", NULL, false)) {}
+            ImGui::EndMenu();
+        }
+
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(7.0f, 7.0f));
+        bool bToolsMenu = ImGui::BeginMenu(ImUtf8("地形"));
+        ImGui::PopStyleVar();
+        if (bToolsMenu)
+        {
+            if (ImGui::MenuItem(ImUtf8("Houdini地形导出..."))) 
+            {
+                m_pGUI->GetGUIHoudiniTerrainExporter()->SetVisible(true);
+            }
             ImGui::EndMenu();
         }
 

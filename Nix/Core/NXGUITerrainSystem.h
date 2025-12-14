@@ -14,10 +14,18 @@ public:
 	void Show() { m_bShowWindow = true; }
 
 private:
-	void BuildDockLayout(ImGuiID dockspace_id);
+	// NXGUITerrainSystem 依赖 docking 功能实现布局；所以需要强制锁定
+	void BuildDockLayout(ImGuiID dockspace_id); 
+
+	// 左 地形列表：遍历场景所有地形并保存
 	void Render_List();
+
+	// 右上 HeightMap 预览
 	void Render_Map();
+
+	// 右下 工具按钮
 	void Render_Tools();
+
 	void ProcessAsyncCallback();
 
 	void GenerateFile_Tex2DArray_HeightMap();

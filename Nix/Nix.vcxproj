@@ -226,6 +226,7 @@
     <ClCompile Include="Core\NXGlobalDefinitions.cpp" />
     <ClCompile Include="Core\NXGUICommandManager.cpp" />
     <ClCompile Include="Core\NXGUIDiffuseProfile.cpp" />
+    <ClCompile Include="Core\NXGUIHoudiniTerrainExporter.cpp" />
     <ClCompile Include="Core\NXGUIInspector.cpp" />
     <ClCompile Include="Core\NXGUIRenderGraph.cpp" />
     <ClCompile Include="Core\NXGUITerrainSystem.cpp" />
@@ -344,6 +345,7 @@
     <ClInclude Include="Core\NXGlobalDefinitions.h" />
     <ClInclude Include="Core\NXGUICommandManager.h" />
     <ClInclude Include="Core\NXGUIDiffuseProfile.h" />
+    <ClInclude Include="Core\NXGUIHoudiniTerrainExporter.h" />
     <ClInclude Include="Core\NXGUIInspector.h" />
     <ClInclude Include="Core\NXGUIRenderGraph.h" />
     <ClInclude Include="Core\NXGUITerrainSystem.h" />

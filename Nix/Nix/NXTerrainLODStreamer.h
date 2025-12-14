@@ -15,6 +15,7 @@ struct NXTerrainLODQuadTreeNode
 	{
 		NXTerrainLODQuadTreeNode childNode;
 
+		childNode.terrainID = terrainID;
 		childNode.size = size >> 1;
 		switch (index)
 		{
@@ -75,8 +76,8 @@ class NXScene;
 class NXTerrainLODStreamer
 {
 	static constexpr int s_maxNodeLevel = 5; // 最大节点层级 0~5 共6层
-	static constexpr float s_distRanges[6] = { 400.0f, 800.0f, 1600.0f, 3200.0f, 6400.0f, 12800.0f }; // 这样写可以不在cpp再初始化一次 很方便
-	static constexpr int s_nodeDescArrayInitialSize = 100; // 预分配已加载节点描述数组的初始大小
+	static constexpr float s_distRanges[6] = { 200.0f, 400.0f, 800.0f, 1600.0f, 3200.0f, FLT_MAX }; // 这样写可以不在cpp再初始化一次 很方便
+	static constexpr int s_nodeDescArrayInitialSize = 1024; // 预分配已加载节点描述数组的初始大小
 
 public:
 	NXTerrainLODStreamer();
