@@ -109,9 +109,6 @@
     <Filter Include="Core\DirectX\Renderer\RenderGraph">
       <UniqueIdentifier>{7364bf99-9d72-4455-9833-5e144ff234c4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\Config">
-      <UniqueIdentifier>{58b2859a-c6d2-494a-8484-ea9fc399b188}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Core\Helper\NXCodeProcess">
       <UniqueIdentifier>{21aaf577-435a-4061-bf33-9b62745d6e28}</UniqueIdentifier>
     </Filter>
@@ -138,6 +135,9 @@
     </Filter>
     <Filter Include="Core\DirectX\Renderer\Renderers">
       <UniqueIdentifier>{6701371a-c5d5-4caa-88b9-084db4c46717}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\TinyExr">
+      <UniqueIdentifier>{a3f46065-43a4-4741-85ad-1f4901fb9bf7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -583,6 +583,12 @@
     <ClCompile Include="Core\NXGUIHoudiniTerrainExporter.cpp">
       <Filter>Core\UI</Filter>
     </ClCompile>
+    <ClCompile Include="..\NixTools\include\tinyexr\miniz.c">
+      <Filter>Core\TinyExr</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\TinyEXRImpl.cpp">
+      <Filter>Core\TinyExr</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -974,6 +980,12 @@
     </ClInclude>
     <ClInclude Include="Core\NXGUIHoudiniTerrainExporter.h">
       <Filter>Core\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NixTools\include\tinyexr\miniz.h">
+      <Filter>Core\TinyExr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\NixTools\include\tinyexr\tinyexr.h">
+      <Filter>Core\TinyExr</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -3,9 +3,8 @@
 #include <algorithm>
 #include <regex>
 #include <fstream>
-
-// TODO: 接入tinyexr后替换此处
-// #include "tinyexr.h"
+#include <cmath>
+#include "tinyexr/tinyexr.h"
 
 using namespace DirectX;
 
@@ -391,20 +390,16 @@ void NXGUIHoudiniTerrainExporter::ScanNixDdsFiles()
 
 void NXGUIHoudiniTerrainExporter::ConvertExrToHeightMapDDS(const HoudiniExrFileInfo& exrInfo, const std::filesystem::path& outPath)
 {
-	// TODO: 接入tinyexr后实现
-	// 1. 使用tinyexr读取EXR文件 (32位浮点RGBA)
-	// 2. 提取R通道作为高度值
-	// 3. 将高度值映射到R16_UNORM格式 (假设高度范围0-2048，映射到0-65535)
-	// 4. 使用DirectXTex保存为DDS
-
-	/*
+	// 使用tinyexr读取EXR文件 (32位浮点RGBA)
 	float* exrData = nullptr;
 	int width, height;
 	const char* err = nullptr;
 	
 	int ret = LoadEXR(&exrData, &width, &height, exrInfo.fullPath.string().c_str(), &err);
-	if (ret != TINYEXR_SUCCESS) {
-		if (err) {
+	if (ret != TINYEXR_SUCCESS) 
+	{
+		if (err) 
+		{
 			printf("EXR加载失败: %s\n", err);
 			FreeEXRErrorMessage(err);
 		}
@@ -413,23 +408,37 @@ void NXGUIHoudiniTerrainExporter::ConvertExrToHeightMapDDS(const HoudiniExrFileI
 
 	// 创建R16_UNORM纹理
 	ScratchImage img;
-	img.Initialize2D(DXGI_FORMAT_R16_UNORM, width, height, 1, 1);
+	HRESULT hr = img.Initialize2D(DXGI_FORMAT_R16_UNORM, width, height, 1, 1);
+	if (FAILED(hr))
+	{
+		printf("ConvertExrToHeightMapDDS: Initialize2D 失败\n");
+		free(exrData);
+		return;
+	}
 	
 	const Image* dst = img.GetImage(0, 0, 0);
-	uint16_t* dstPixels = reinterpret_cast<uint16_t*>(dst->pixels);
 	
 	// EXR是RGBA格式，stride=4
-	for (int y = 0; y < height; ++y) {
-		for (int x = 0; x < width; ++x) {
+	// 高度范围: [-32768, 32767] (short)
+	// 公式: R16_UNORM = (round(exrValue) / 65536.0) + 0.5
+	// 这样 -32768 -> 0.0, 0 -> 0.5, 32767 -> ~1.0
+	for (int y = 0; y < height; ++y) 
+	{
+		uint16_t* dstRow = reinterpret_cast<uint16_t*>(dst->pixels + y * dst->rowPitch);
+		for (int x = 0; x < width; ++x) 
+		{
 			int srcIdx = (y * width + x) * 4; // RGBA
 			float heightVal = exrData[srcIdx]; // R通道是高度
 			
-			// 假设高度范围0-2048，映射到0-65535
-			float normalized = heightVal / 2048.0f;
+			// 四舍五入到最近整数
+			float roundedHeight = std::round(heightVal);
+			
+			// 映射公式: (value / 65536) + 0.5
+			// 范围 [-32768, 32767] -> [0, 1]
+			float normalized = (roundedHeight / 65536.0f) + 0.5f;
 			normalized = std::clamp(normalized, 0.0f, 1.0f);
 			
-			dstPixels[y * (dst->rowPitch / sizeof(uint16_t)) + x] = 
-				static_cast<uint16_t>(normalized * 65535.0f);
+			dstRow[x] = static_cast<uint16_t>(normalized * 65535.0f);
 		}
 	}
 	
@@ -439,29 +448,31 @@ void NXGUIHoudiniTerrainExporter::ConvertExrToHeightMapDDS(const HoudiniExrFileI
 	std::filesystem::create_directories(outPath.parent_path());
 	
 	// 保存DDS
-	SaveToDDSFile(img.GetImages(), img.GetImageCount(), img.GetMetadata(), 
+	hr = SaveToDDSFile(img.GetImages(), img.GetImageCount(), img.GetMetadata(), 
 				  DDS_FLAGS_NONE, outPath.wstring().c_str());
-	*/
-
-	printf("ConvertExrToHeightMapDDS: %s -> %s (TODO: 接入tinyexr)\n", 
-		   exrInfo.fullPath.string().c_str(), outPath.string().c_str());
+	if (FAILED(hr))
+	{
+		printf("ConvertExrToHeightMapDDS: 保存DDS失败 %s\n", outPath.string().c_str());
+	}
+	else
+	{
+		printf("ConvertExrToHeightMapDDS: %s -> %s 成功\n", 
+			   exrInfo.fullPath.string().c_str(), outPath.string().c_str());
+	}
 }
 
 void NXGUIHoudiniTerrainExporter::ConvertExrToSplatMapDDS(const HoudiniExrFileInfo& exrInfo, const std::filesystem::path& outPath)
 {
-	// TODO: 接入tinyexr后实现
-	// 1. 使用tinyexr读取EXR文件 (32位浮点RGBA)
-	// 2. 提取R通道作为材质ID (整数值0-255)
-	// 3. 保存为R8_UNORM格式DDS
-
-	/*
+	// 使用tinyexr读取EXR文件 (32位浮点RGBA)
 	float* exrData = nullptr;
 	int width, height;
 	const char* err = nullptr;
 	
 	int ret = LoadEXR(&exrData, &width, &height, exrInfo.fullPath.string().c_str(), &err);
-	if (ret != TINYEXR_SUCCESS) {
-		if (err) {
+	if (ret != TINYEXR_SUCCESS) 
+	{
+		if (err) 
+		{
 			printf("EXR加载失败: %s\n", err);
 			FreeEXRErrorMessage(err);
 		}
@@ -470,20 +481,34 @@ void NXGUIHoudiniTerrainExporter::ConvertExrToSplatMapDDS(const HoudiniExrFileIn
 
 	// 创建R8_UNORM纹理
 	ScratchImage img;
-	img.Initialize2D(DXGI_FORMAT_R8_UNORM, width, height, 1, 1);
+	HRESULT hr = img.Initialize2D(DXGI_FORMAT_R8_UNORM, width, height, 1, 1);
+	if (FAILED(hr))
+	{
+		printf("ConvertExrToSplatMapDDS: Initialize2D 失败\n");
+		free(exrData);
+		return;
+	}
 	
 	const Image* dst = img.GetImage(0, 0, 0);
-	uint8_t* dstPixels = dst->pixels;
 	
-	for (int y = 0; y < height; ++y) {
-		for (int x = 0; x < width; ++x) {
-			int srcIdx = (y * width + x) * 4;
+	// EXR是RGBA格式，stride=4
+	// Splat值范围: [0, 255] (整数)
+	// 公式: R8_UNORM = value / 255.0
+	for (int y = 0; y < height; ++y) 
+	{
+		uint8_t* dstRow = dst->pixels + y * dst->rowPitch;
+		for (int x = 0; x < width; ++x) 
+		{
+			int srcIdx = (y * width + x) * 4; // RGBA
 			float idVal = exrData[srcIdx]; // R通道是材质ID
 			
 			// Houdini保证是整数且在[0,255]范围
-			uint8_t id = static_cast<uint8_t>(std::clamp(idVal, 0.0f, 255.0f));
+			// 将浮点值除以255存储为R8_UNORM (即直接存储原值作为uint8)
+			// R8_UNORM存储时会自动将0-255映射到0.0-1.0
+			float clampedVal = std::clamp(idVal, 0.0f, 255.0f);
+			uint8_t id = static_cast<uint8_t>(std::round(clampedVal));
 			
-			dstPixels[y * dst->rowPitch + x] = id;
+			dstRow[x] = id;
 		}
 	}
 	
@@ -493,12 +518,17 @@ void NXGUIHoudiniTerrainExporter::ConvertExrToSplatMapDDS(const HoudiniExrFileIn
 	std::filesystem::create_directories(outPath.parent_path());
 	
 	// 保存DDS
-	SaveToDDSFile(img.GetImages(), img.GetImageCount(), img.GetMetadata(), 
+	hr = SaveToDDSFile(img.GetImages(), img.GetImageCount(), img.GetMetadata(), 
 				  DDS_FLAGS_NONE, outPath.wstring().c_str());
-	*/
-
-	printf("ConvertExrToSplatMapDDS: %s -> %s (TODO: 接入tinyexr)\n", 
-		   exrInfo.fullPath.string().c_str(), outPath.string().c_str());
+	if (FAILED(hr))
+	{
+		printf("ConvertExrToSplatMapDDS: 保存DDS失败 %s\n", outPath.string().c_str());
+	}
+	else
+	{
+		printf("ConvertExrToSplatMapDDS: %s -> %s 成功\n", 
+			   exrInfo.fullPath.string().c_str(), outPath.string().c_str());
+	}
 }
 
 void NXGUIHoudiniTerrainExporter::ExecuteConvertAll()

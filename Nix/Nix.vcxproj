@@ -214,6 +214,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\NixTools\include\tinyexr\miniz.c" />
     <ClCompile Include="BaseDefs\DearImGui.cpp" />
     <ClCompile Include="BaseDefs\DX12.cpp" />
     <ClCompile Include="Core\App.cpp" />
@@ -227,6 +228,7 @@
     <ClCompile Include="Core\NXGUICommandManager.cpp" />
     <ClCompile Include="Core\NXGUIDiffuseProfile.cpp" />
     <ClCompile Include="Core\NXGUIHoudiniTerrainExporter.cpp" />
+    <ClCompile Include="Core\TinyEXRImpl.cpp" />
     <ClCompile Include="Core\NXGUIInspector.cpp" />
     <ClCompile Include="Core\NXGUIRenderGraph.cpp" />
     <ClCompile Include="Core\NXGUITerrainSystem.cpp" />
@@ -323,6 +325,8 @@
     <ClCompile Include="Nix\NXTransform.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\NixTools\include\tinyexr\miniz.h" />
+    <ClInclude Include="..\NixTools\include\tinyexr\tinyexr.h" />
     <ClInclude Include="BaseDefs\CppSTLFully.h" />
     <ClInclude Include="BaseDefs\CrtDbg.h" />
     <ClInclude Include="BaseDefs\DX12.h" />

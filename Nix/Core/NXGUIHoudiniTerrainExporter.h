@@ -77,15 +77,15 @@ private:
 	int m_selectedSplatExrIndex = 0;
 
 	// === 第二列: 转录DDS ===
-	char m_nixOutputPath[512] = "D:\\NixAsset\\Terrain";
+	char m_nixOutputPath[512] = "D:\\NixAssets\\Terrain";
 	std::vector<NixTerrainDdsInfo> m_nixDdsFiles;
 	int m_selectedDdsIndex = 0;
 	bool m_bConvertHeightMap = true;
 	bool m_bConvertSplatMap = true;
 
 	// === 第三列: 合成2DArray ===
-	char m_heightArrayPath[512] = "D:\\NixAsset\\Terrain\\hMap2DArray.dds";
-	char m_minMaxZPath[512] = "D:\\NixAsset\\Terrain\\mmz.dds";
+	char m_heightArrayPath[512] = "D:\\NixAssets\\Terrain\\hMap2DArray.dds";
+	char m_minMaxZPath[512] = "D:\\NixAssets\\Terrain\\mmz.dds";
 	bool m_bRowAscending = true;	// 行正序
 	bool m_bColAscending = true;	// 列正序
 	int m_terrainCountX = 0;		// 地形X方向数量(自动计算)
