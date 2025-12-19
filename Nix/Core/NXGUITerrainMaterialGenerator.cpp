@@ -90,6 +90,10 @@ void NXGUITerrainMaterialGenerator::RenderSliceListWithPreview()
 
 	// 滚动区域显示所有slice
 	float previewSize = 64.0f;
+	float spacing = 5.0f;
+	float framePadding = ImGui::GetStyle().FramePadding.x; // ImageButton 左右各有 frame padding
+	float buttonWidth = previewSize + framePadding * 2;    // 单个按钮实际宽度
+	float rightColumnWidth = buttonWidth * 5 + spacing * 4 + 10.0f; // 5个按钮 + 4个间距 + 额外边距
 	
 	ImGui::BeginChild("SliceScrollArea", ImVec2(0, 0), false);
 	
@@ -104,8 +108,8 @@ void NXGUITerrainMaterialGenerator::RenderSliceListWithPreview()
 		{
 			// 左侧列占用剩余空间
 			ImGui::TableSetupColumn("Left", ImGuiTableColumnFlags_WidthStretch);
-			// 右侧列固定宽度（5张图片 + 间距）
-			ImGui::TableSetupColumn("Right", ImGuiTableColumnFlags_WidthFixed, previewSize * 5 + 5.0f * 4 + 10.0f);
+			// 右侧列固定宽度（5张图片 + 间距 + frame padding）
+			ImGui::TableSetupColumn("Right", ImGuiTableColumnFlags_WidthFixed, rightColumnWidth);
 			
 			ImGui::TableNextRow();
 			
@@ -248,8 +252,8 @@ void NXGUITerrainMaterialGenerator::RenderComposeSection()
 		}
 		ImGui::EndCombo();
 	}
-
-	ImGui::Spacing();
+    
+	ImGui::SameLine();
 
 	// 合成选项 - 横向排列
 	ImGui::Checkbox("Albedo", &m_bComposeAlbedo);

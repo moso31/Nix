@@ -86,9 +86,9 @@ private:
 	// 合成选项
 	bool m_bComposeAlbedo = true;
 	bool m_bComposeNormal = true;
-	bool m_bComposeRoughness = true;
-	bool m_bComposeSpecular = true;
-	bool m_bComposeAO = true;
+	bool m_bComposeRoughness = false;
+	bool m_bComposeSpecular = false;
+	bool m_bComposeAO = false;
 
 	// 输出纹理尺寸
 	int m_outputTextureSizeIndex = 2; // 0=256, 1=512, 2=1024, 3=2048
