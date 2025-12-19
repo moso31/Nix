@@ -174,6 +174,9 @@ HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow)
 		0, 0, rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr, hInstance,
 		nullptr);
 
+	// 启用从 Windows 资源管理器拖拽文件
+	DragAcceptFiles(NXGlobalWindows::hWnd, TRUE);
+
 	//SetWindowLong(NXGlobalWindows::hWnd, GWL_STYLE, 5);
 	ShowWindow(NXGlobalWindows::hWnd, SW_HIDE);
 
@@ -289,6 +292,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_INPUT:
 		NXInput::GetInstance()->UpdateRawInput(lParam);
 		break;
+
+	case WM_DROPFILES:
+	{
+		HDROP hDrop = reinterpret_cast<HDROP>(wParam);
+		UINT fileCount = DragQueryFileW(hDrop, 0xFFFFFFFF, nullptr, 0);
+		for (UINT i = 0; i < fileCount; ++i)
+		{
+			WCHAR filePath[MAX_PATH];
+			if (DragQueryFileW(hDrop, i, filePath, MAX_PATH) > 0)
+			{
+				NXFileDrop->AddDroppedFile(std::filesystem::path(filePath));
+			}
+		}
+		DragFinish(hDrop);
+	}
+	break;
 
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);

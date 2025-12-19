@@ -26,6 +26,7 @@ class NXGUIInspector;
 class NXGUIRenderGraph;
 class NXGUIVirtualTexture;
 class NXGUIHoudiniTerrainExporter;
+class NXGUITerrainMaterialGenerator;
 
 class NXGUI
 {
@@ -44,6 +45,7 @@ public:
 	const Int2 GetVTReadbackDataSize() const { return m_vtReadbackDataSize; }
 
 	NXGUIHoudiniTerrainExporter* GetGUIHoudiniTerrainExporter() const { return m_pGUIHoudiniTerrainExporter; }
+	NXGUITerrainMaterialGenerator* GetGUITerrainMaterialGenerator() const { return m_pGUITerrainMaterialGenerator; }
 
 private:
 	MultiFrame<ComPtr<ID3D12GraphicsCommandList>>	m_pCmdList;
@@ -68,6 +70,7 @@ private:
 	NXGUIMaterialShaderEditor*	m_pGUIMaterialShaderEditor;
 	NXGUIRenderGraph* 			m_pGUIRenderGraph;
 	NXGUIHoudiniTerrainExporter* m_pGUIHoudiniTerrainExporter;
+	NXGUITerrainMaterialGenerator* m_pGUITerrainMaterialGenerator;
 
 	NXGUIDebugLayer*			m_pGUIDebugLayer;
 

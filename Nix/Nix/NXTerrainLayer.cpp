@@ -80,7 +80,7 @@ void NXTerrainLayer::Release()
 
 void NXTerrainLayer::BakeGPUDrivenData(bool bSave)
 {
-	if (m_heightMapTexture.IsValid())
+	if (m_heightMapTexture.IsValid() && false) // 【先禁用掉，新版可能不需要这个了】
 	{
 		// 如果有高度图，但没有路径，说明还没生成过GPUDriven关联图，生成下
 		if (!std::filesystem::exists(m_minMaxZMapPath))

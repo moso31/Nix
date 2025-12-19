@@ -589,6 +589,9 @@
     <ClCompile Include="Core\TinyEXRImpl.cpp">
       <Filter>Core\TinyExr</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXGUITerrainMaterialGenerator.cpp">
+      <Filter>Core\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -986,6 +989,12 @@
     </ClInclude>
     <ClInclude Include="..\NixTools\include\tinyexr\tinyexr.h">
       <Filter>Core\TinyExr</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXGUITerrainMaterialGenerator.h">
+      <Filter>Core\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXWinFileDrop.h">
+      <Filter>Core\File</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

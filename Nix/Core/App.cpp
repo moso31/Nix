@@ -89,6 +89,9 @@ void App::FrameEnd()
 
 	// 回读堆帧末处理
 	NXReadbackSys->UpdatePendingTaskFenceValue(NXGlobalDX::s_globalfenceValue);
+
+	// 清除拖入文件
+	NXFileDrop->ClearDroppedFiles();
 }
 
 void App::Release()

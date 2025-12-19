@@ -36,4 +36,9 @@ namespace NXGUICommon
 	// 遍历指定文件夹下的所有文件（注意是递归遍历），并返回一个所有扩展名为 strSuffix 的文件数组。
 	// 2023.11.4 此方法，目前主要是材质编辑器中，替换 nssprof 的时候，对应的替换popup使用。将来换纹理，换材质等，也会基于这个方法
 	std::vector<std::filesystem::path> GetFilesInFolder(const std::filesystem::path& strFolderPath, const std::string& strSuffix);
+
+	// 检测当前 ImGui 控件是否接收到 Win32 拖放的图片文件
+	// 在 ImGui 控件（如 InvisibleButton、ImageButton）之后调用
+	// 返回拖入的第一个图片文件路径，如果没有则返回空路径
+	std::filesystem::path AcceptWinFileDropImage();
 }

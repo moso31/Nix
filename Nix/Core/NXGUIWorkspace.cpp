@@ -3,6 +3,7 @@
 #include "NXGUIWorkspace.h"
 #include "NXGUI.h"
 #include "NXGUIHoudiniTerrainExporter.h"
+#include "NXGUITerrainMaterialGenerator.h"
 #include "NXFileSystemHelper.h"
 
 void NXGUIWorkspace::Init(NXGUI* pGUI)
@@ -101,6 +102,10 @@ void NXGUIWorkspace::Render()
             if (ImGui::MenuItem(ImUtf8("Houdini地形导出..."))) 
             {
                 m_pGUI->GetGUIHoudiniTerrainExporter()->SetVisible(true);
+            }
+            if (ImGui::MenuItem(ImUtf8("地形材质纹理生成..."))) 
+            {
+                m_pGUI->GetGUITerrainMaterialGenerator()->SetVisible(true);
             }
             ImGui::EndMenu();
         }

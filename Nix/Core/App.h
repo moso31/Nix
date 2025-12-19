@@ -1,5 +1,6 @@
 #pragma once
 #include "BaseDefs/Math.h"
+#include "NXWinFileDrop.h"
 
 class Renderer;
 class DirectResources;

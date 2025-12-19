@@ -59,6 +59,7 @@ private:
 	// 合成2DArray
 	void ComposeHeightMap2DArray();
 	void ComposeMinMaxZ2DArray();
+	void ComposeSplatMap2DArray();
 
 	// 根据排序设置获取排序后的slice索引
 	std::vector<int> GetSortedSliceIndices() const;
@@ -81,13 +82,19 @@ private:
 	std::vector<NixTerrainDdsInfo> m_nixDdsFiles;
 	int m_selectedDdsIndex = 0;
 	bool m_bConvertHeightMap = true;
+	int m_heightMapRange[2] = { -512, 1536 };	// 高度图映射范围 [min, max]
 	bool m_bConvertSplatMap = true;
 
 	// === 第三列: 合成2DArray ===
 	char m_heightArrayPath[512] = "D:\\NixAssets\\Terrain\\hMap2DArray.dds";
 	char m_minMaxZPath[512] = "D:\\NixAssets\\Terrain\\mmz.dds";
+	char m_splatArrayPath[512] = "D:\\NixAssets\\Terrain\\splatMap2DArray.dds";
+	bool m_bComposeHeightArray = true;
+	bool m_bComposeMinMaxZ = true;
+	bool m_bComposeSplatArray = true;
 	bool m_bRowAscending = true;	// 行正序
 	bool m_bColAscending = true;	// 列正序
+	bool m_bColumnFirst = true;		// 先遍历列（不勾选则行优先）
 	int m_terrainCountX = 0;		// 地形X方向数量(自动计算)
 	int m_terrainCountY = 0;		// 地形Y方向数量(自动计算)
 };

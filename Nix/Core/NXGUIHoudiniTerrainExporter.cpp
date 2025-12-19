@@ -142,6 +142,9 @@ void NXGUIHoudiniTerrainExporter::RenderColumn2_ConvertToDDS()
 
 	// 转换选项
 	ImGui::Checkbox(ImUtf8("转换 HeightMap"), &m_bConvertHeightMap);
+	ImGui::SameLine();
+	ImGui::SetNextItemWidth(120);
+	ImGui::InputInt2(ImUtf8("高度范围"), m_heightMapRange);
 	ImGui::Checkbox(ImUtf8("转换 SplatMap"), &m_bConvertSplatMap);
 
 	ImGui::Spacing();
@@ -211,16 +214,23 @@ void NXGUIHoudiniTerrainExporter::RenderColumn3_Compose2DArray()
 	ImGui::Separator();
 
 	// HeightArray路径
-	ImGui::Text(ImUtf8("HeightMap 2DArray路径:"));
+	ImGui::Checkbox(ImUtf8("合成 HeightMap 2DArray"), &m_bComposeHeightArray);
 	ImGui::SetNextItemWidth(-1);
 	ImGui::InputText("##HeightArrayPath", m_heightArrayPath, sizeof(m_heightArrayPath));
 
 	ImGui::Spacing();
 
 	// MinMaxZ路径
-	ImGui::Text(ImUtf8("MinMaxZ 路径:"));
+	ImGui::Checkbox(ImUtf8("合成 MinMaxZ"), &m_bComposeMinMaxZ);
 	ImGui::SetNextItemWidth(-1);
 	ImGui::InputText("##MinMaxZPath", m_minMaxZPath, sizeof(m_minMaxZPath));
+
+	ImGui::Spacing();
+
+	// SplatMap 2DArray路径
+	ImGui::Checkbox(ImUtf8("合成 SplatMap 2DArray"), &m_bComposeSplatArray);
+	ImGui::SetNextItemWidth(-1);
+	ImGui::InputText("##SplatArrayPath", m_splatArrayPath, sizeof(m_splatArrayPath));
 
 	ImGui::Spacing();
 	ImGui::Separator();
@@ -229,6 +239,7 @@ void NXGUIHoudiniTerrainExporter::RenderColumn3_Compose2DArray()
 	ImGui::Text(ImUtf8("排序设置:"));
 	ImGui::Checkbox(ImUtf8("行正序 (Y+)"), &m_bRowAscending);
 	ImGui::Checkbox(ImUtf8("列正序 (X+)"), &m_bColAscending);
+	ImGui::Checkbox(ImUtf8("先遍历列（不勾选则行优先）"), &m_bColumnFirst);
 
 	ImGui::Spacing();
 
@@ -245,8 +256,12 @@ void NXGUIHoudiniTerrainExporter::RenderColumn3_Compose2DArray()
 
 	if (ImGui::Button(ImUtf8("开始合成"), ImVec2(-1, 30)))
 	{
-		ComposeHeightMap2DArray();
-		ComposeMinMaxZ2DArray();
+		if (m_bComposeHeightArray)
+			ComposeHeightMap2DArray();
+		if (m_bComposeMinMaxZ)
+			ComposeMinMaxZ2DArray();
+		if (m_bComposeSplatArray)
+			ComposeSplatMap2DArray();
 	}
 
 	if (!canCompose)
@@ -419,25 +434,17 @@ void NXGUIHoudiniTerrainExporter::ConvertExrToHeightMapDDS(const HoudiniExrFileI
 	const Image* dst = img.GetImage(0, 0, 0);
 	
 	// EXR是RGBA格式，stride=4
-	// 高度范围: [-32768, 32767] (short)
-	// 公式: R16_UNORM = (round(exrValue) / 65536.0) + 0.5
-	// 这样 -32768 -> 0.0, 0 -> 0.5, 32767 -> ~1.0
+	// 输入值已经是0..1区间，直接映射到R16_UNORM
 	for (int y = 0; y < height; ++y) 
 	{
 		uint16_t* dstRow = reinterpret_cast<uint16_t*>(dst->pixels + y * dst->rowPitch);
 		for (int x = 0; x < width; ++x) 
 		{
 			int srcIdx = (y * width + x) * 4; // RGBA
-			float heightVal = exrData[srcIdx]; // R通道是高度
+			float heightVal = exrData[srcIdx]; // R通道是高度（已经是0..1）
 			
-			// 四舍五入到最近整数
-			float roundedHeight = std::round(heightVal);
-			
-			// 映射公式: (value / 65536) + 0.5
-			// 范围 [-32768, 32767] -> [0, 1]
-			float normalized = (roundedHeight / 65536.0f) + 0.5f;
-			normalized = std::clamp(normalized, 0.0f, 1.0f);
-			
+			// 输入已经是0..1，直接clamp并转换为R16_UNORM
+			float normalized = std::clamp(heightVal, 0.0f, 1.0f);
 			dstRow[x] = static_cast<uint16_t>(normalized * 65535.0f);
 		}
 	}
@@ -492,23 +499,18 @@ void NXGUIHoudiniTerrainExporter::ConvertExrToSplatMapDDS(const HoudiniExrFileIn
 	const Image* dst = img.GetImage(0, 0, 0);
 	
 	// EXR是RGBA格式，stride=4
-	// Splat值范围: [0, 255] (整数)
-	// 公式: R8_UNORM = value / 255.0
+	// 输入值已经是0..1区间，直接映射到R8_UNORM
 	for (int y = 0; y < height; ++y) 
 	{
 		uint8_t* dstRow = dst->pixels + y * dst->rowPitch;
 		for (int x = 0; x < width; ++x) 
 		{
 			int srcIdx = (y * width + x) * 4; // RGBA
-			float idVal = exrData[srcIdx]; // R通道是材质ID
+			float idVal = exrData[srcIdx]; // R通道是材质ID（已经是0..1）
 			
-			// Houdini保证是整数且在[0,255]范围
-			// 将浮点值除以255存储为R8_UNORM (即直接存储原值作为uint8)
-			// R8_UNORM存储时会自动将0-255映射到0.0-1.0
-			float clampedVal = std::clamp(idVal, 0.0f, 255.0f);
-			uint8_t id = static_cast<uint8_t>(std::round(clampedVal));
-			
-			dstRow[x] = id;
+			// 输入已经是0..1，直接clamp并转换为R8_UNORM
+			float normalized = std::clamp(idVal, 0.0f, 1.0f);
+			dstRow[x] = static_cast<uint8_t>(normalized * 255.0f);
 		}
 	}
 	
@@ -666,8 +668,8 @@ void NXGUIHoudiniTerrainExporter::ComposeMinMaxZ2DArray()
 	constexpr uint32_t kMip0Height = kSrcHeight / kStep;
 	constexpr int kMipLevels = 6;
 
-	constexpr float kMinHeight = 0.0f;
-	constexpr float kMaxHeight = 2048.0f;
+	float kMinHeight = m_heightMapRange[0];
+	float kMaxHeight = m_heightMapRange[1];
 
 	auto pImage = std::make_unique<ScratchImage>();
 	HRESULT hr = pImage->Initialize2D(DXGI_FORMAT_R32G32_FLOAT, kMip0Width, kMip0Height, arraySize, kMipLevels);
@@ -817,6 +819,89 @@ void NXGUIHoudiniTerrainExporter::ComposeMinMaxZ2DArray()
 	}
 }
 
+void NXGUIHoudiniTerrainExporter::ComposeSplatMap2DArray()
+{
+	if (m_nixDdsFiles.empty())
+		return;
+
+	auto sortedIndices = GetSortedSliceIndices();
+	uint32_t arraySize = static_cast<uint32_t>(sortedIndices.size());
+
+	// 假设所有splatmap尺寸相同
+	constexpr uint32_t kWidth = 2049;
+	constexpr uint32_t kHeight = 2049;
+	constexpr DXGI_FORMAT kFormat = DXGI_FORMAT_R8_UNORM;
+	constexpr uint32_t kBytesPerPixel = sizeof(uint8_t);
+
+	std::unique_ptr<ScratchImage> texArray = std::make_unique<ScratchImage>();
+	HRESULT hr = texArray->Initialize2D(kFormat, kWidth, kHeight, arraySize, 1);
+	if (FAILED(hr))
+	{
+		printf("ComposeSplatMap2DArray: Initialize2D 失败\n");
+		return;
+	}
+
+	for (uint32_t sliceIdx = 0; sliceIdx < arraySize; ++sliceIdx)
+	{
+		int fileIdx = sortedIndices[sliceIdx];
+		if (fileIdx < 0 || fileIdx >= (int)m_nixDdsFiles.size())
+			continue;
+
+		const auto& ddsInfo = m_nixDdsFiles[fileIdx];
+		
+		// 读取单个DDS文件
+		TexMetadata meta;
+		ScratchImage srcImg;
+		hr = LoadFromDDSFile(ddsInfo.splatMapPath.wstring().c_str(), DDS_FLAGS_NONE, &meta, srcImg);
+		
+		if (SUCCEEDED(hr))
+		{
+			const Image* src = srcImg.GetImage(0, 0, 0);
+			const Image* dst = texArray->GetImage(0, sliceIdx, 0);
+			
+			if (src && dst && meta.width == kWidth && meta.height == kHeight)
+			{
+				// 逐行复制，处理可能的行对齐差异
+				for (uint32_t y = 0; y < kHeight; ++y)
+				{
+					const uint8_t* srcRow = src->pixels + y * src->rowPitch;
+					uint8_t* dstRow = dst->pixels + y * dst->rowPitch;
+					std::memcpy(dstRow, srcRow, kWidth * kBytesPerPixel);
+				}
+			}
+			else
+			{
+				printf("ComposeSplatMap2DArray: 尺寸不匹配 %s\n", ddsInfo.splatMapPath.string().c_str());
+			}
+		}
+		else
+		{
+			printf("ComposeSplatMap2DArray: 加载失败 %s\n", ddsInfo.splatMapPath.string().c_str());
+			// 填充全黑
+			const Image* dst = texArray->GetImage(0, sliceIdx, 0);
+			if (dst)
+			{
+				std::memset(dst->pixels, 0, dst->slicePitch);
+			}
+		}
+	}
+
+	// 保存2DArray
+	std::filesystem::path outPath(m_splatArrayPath);
+	std::filesystem::create_directories(outPath.parent_path());
+	
+	hr = SaveToDDSFile(texArray->GetImages(), texArray->GetImageCount(), 
+					   texArray->GetMetadata(), DDS_FLAGS_NONE, outPath.wstring().c_str());
+	if (FAILED(hr))
+	{
+		printf("ComposeSplatMap2DArray: 保存失败 %s\n", outPath.string().c_str());
+	}
+	else
+	{
+		printf("ComposeSplatMap2DArray: 保存成功 %s\n", outPath.string().c_str());
+	}
+}
+
 std::vector<int> NXGUIHoudiniTerrainExporter::GetSortedSliceIndices() const
 {
 	if (m_nixDdsFiles.empty())
@@ -848,18 +933,41 @@ std::vector<int> NXGUIHoudiniTerrainExporter::GetSortedSliceIndices() const
 	std::vector<int> result;
 	result.reserve(m_nixDdsFiles.size());
 
-	for (int rowIdx = 0; rowIdx < countY; ++rowIdx)
+	if (m_bColumnFirst)
 	{
-		int y = m_bRowAscending ? (minY + rowIdx) : (maxY - rowIdx);
-		
+		// 列优先：外层遍历列(X)，内层遍历行(Y)
 		for (int colIdx = 0; colIdx < countX; ++colIdx)
 		{
 			int x = m_bColAscending ? (minX + colIdx) : (maxX - colIdx);
 			
-			auto it = coordToIdx.find({x, y});
-			if (it != coordToIdx.end())
+			for (int rowIdx = 0; rowIdx < countY; ++rowIdx)
 			{
-				result.push_back(it->second);
+				int y = m_bRowAscending ? (minY + rowIdx) : (maxY - rowIdx);
+				
+				auto it = coordToIdx.find({x, y});
+				if (it != coordToIdx.end())
+				{
+					result.push_back(it->second);
+				}
+			}
+		}
+	}
+	else
+	{
+		// 行优先：外层遍历行(Y)，内层遍历列(X)
+		for (int rowIdx = 0; rowIdx < countY; ++rowIdx)
+		{
+			int y = m_bRowAscending ? (minY + rowIdx) : (maxY - rowIdx);
+			
+			for (int colIdx = 0; colIdx < countX; ++colIdx)
+			{
+				int x = m_bColAscending ? (minX + colIdx) : (maxX - colIdx);
+				
+				auto it = coordToIdx.find({x, y});
+				if (it != coordToIdx.end())
+				{
+					result.push_back(it->second);
+				}
 			}
 		}
 	}

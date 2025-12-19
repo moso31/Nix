@@ -3,6 +3,7 @@
 #include "NXGUICommon.h"
 #include "NXConverter.h"
 #include "NXGUIFileBrowser.h"
+#include "NXWinFileDrop.h"
 
 namespace NXGUICommon
 {
@@ -162,6 +163,23 @@ UINT GetValueNumOfGUIStyle(NXGUICBufferStyle eGuiStyle)
 	default:
 		return 4;
 	}
+}
+
+std::filesystem::path AcceptWinFileDropImage()
+{
+	if (!ImGui::IsItemHovered() || !NXFileDrop->HasDroppedFiles())
+		return std::filesystem::path();
+
+	const auto& files = NXFileDrop->GetDroppedFiles();
+	for (const auto& filePath : files)
+	{
+		std::string ext = filePath.extension().string();
+		if (NXConvert::IsImageFileExtension(ext))
+		{
+			return filePath;
+		}
+	}
+	return std::filesystem::path();
 }
 
 }

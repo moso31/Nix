@@ -54,9 +54,12 @@ void NXGPUTerrainManager::Init()
 	UpdateTerrainSupportParam(-4, -4, 8);
 
 	SetBakeTerrainTextures(
-		"D:\\NixAssets\\terrainTest\\heightMapArray.dds", 
-		"D:\\NixAssets\\terrainTest\\minMaxZMapArray.dds",
-		"D:\\NixAssets\\terrainTest\\NormalArray.dds");
+		//"D:\\NixAssets\\terrainTest\\heightMapArray.dds",
+		//"D:\\NixAssets\\terrainTest\\minMaxZMapArray.dds",
+		//"D:\\NixAssets\\terrainTest\\NormalArray.dds");
+		"D:\\NixAssets\\Terrain\\hMap2DArray.dds", 
+		"D:\\NixAssets\\Terrain\\mmz.dds",
+		"D:\\NixAssets\\TerrainTest\\NormalArray.dds");
 }
 
 void NXGPUTerrainManager::UpdateCameraParams(NXCamera* pCam)
