@@ -38,6 +38,7 @@ private:
 
 	// 文件夹快捷匹配
 	void AutoMatchFromFolder(int sliceIndex);
+	void AutoMatchAllSlices();
 
 	// 清空Slice路径
 	void ClearSlice(int sliceIndex);

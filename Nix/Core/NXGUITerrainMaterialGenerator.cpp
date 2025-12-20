@@ -60,6 +60,16 @@ void NXGUITerrainMaterialGenerator::RenderSliceListWithPreview()
 	}
 
 	ImGui::SameLine();
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.3f, 0.1f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.7f, 0.4f, 0.2f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.5f, 0.2f, 0.0f, 1.0f));
+	if (ImGui::Button(ImUtf8("匹配全部纹理（可能比较久）")))
+	{
+		AutoMatchAllSlices();
+	}
+	ImGui::PopStyleColor(3);
+
+	ImGui::SameLine();
 	ImGui::Spacing();
 	ImGui::SameLine();
 
@@ -402,6 +412,16 @@ void NXGUITerrainMaterialGenerator::AutoMatchFromFolder(int sliceIndex)
 	}
 
 	printf("AutoMatchFromFolder: 从 %s 匹配完成\n", slice.folderPath);
+}
+
+void NXGUITerrainMaterialGenerator::AutoMatchAllSlices()
+{
+	printf("AutoMatchAllSlices: 开始匹配全部 %d 个slice...\n", m_sliceCount);
+	for (int i = 0; i < m_sliceCount; i++)
+	{
+		AutoMatchFromFolder(i);
+	}
+	printf("AutoMatchAllSlices: 全部匹配完成\n");
 }
 
 void NXGUITerrainMaterialGenerator::ClearSlice(int sliceIndex)
