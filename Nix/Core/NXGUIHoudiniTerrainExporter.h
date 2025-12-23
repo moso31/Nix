@@ -82,7 +82,7 @@ private:
 	std::vector<NixTerrainDdsInfo> m_nixDdsFiles;
 	int m_selectedDdsIndex = 0;
 	bool m_bConvertHeightMap = true;
-	int m_heightMapRange[2] = { -512, 1536 };	// 高度图映射范围 [min, max]
+	int m_heightMapRange[2] = { 0, 2048 };	// 高度图映射范围 [min, max]
 	bool m_bConvertSplatMap = true;
 
 	// === 第三列: 合成2DArray ===

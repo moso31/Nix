@@ -42,7 +42,6 @@ void CS_Clear(uint3 dtid : SV_DispatchThreadID)
 
 [numthreads(NXGPUTERRAIN_PATCH_SIZE, NXGPUTERRAIN_PATCH_SIZE, 1)]
 void CS_Patch(
-    uint3 dtid : SV_DispatchThreadID, 
     uint3 gtid : SV_GroupThreadID,
     uint3 groupIndex : SV_GroupID
 )
@@ -58,21 +57,15 @@ void CS_Patch(
 
     float3 blockOrigin = float3(param.x, 0.0f, param.y) * blockSize;
     float3 patchOrigin = blockOrigin + float3(gtid.x, 0, gtid.y) * patchSize;
-
-    matrix mxScale = matrix(
-		scale, 0.0f, 0.0f, 0.0f,
-		0.0f, scale, 0.0f, 0.0f,
-		0.0f, 0.0f, scale, 0.0f,
-		0.0f, 0.0f, 0.0f, 1.0f
-	);
-    
+        
     // 将block转换成正值=coord
     // 然后换算出sliceIndex，用于后续2DArray的采样
     int2 coord = (param.xy >> param.z) - int2(m_blockMinIdX, m_blockMinIdY); 
-    int sliceIndex = coord.y * m_blockCountX + coord.x;
+    int sliceIndex = (7 - coord.y) * m_blockCountX + coord.x;
 
     float2 patchUV = frac((patchOrigin.xz + patchSize * 0.5) / (float)TERRAIN_SIZE);
-    float2 minMaxZ = m_minmaxZMap.SampleLevel(ssPointClamp, float3(patchUV.x, 1.0 - patchUV.y, (float)sliceIndex), mip);
+    patchUV.y = 1.0 - patchUV.y;
+    float2 minMaxZ = m_minmaxZMap.SampleLevel(ssPointClamp, float3(patchUV.x, patchUV.y, (float)sliceIndex), mip);
     float yExtent = (minMaxZ.y - minMaxZ.x);
     float yCenter = (minMaxZ.y + minMaxZ.x) * 0.5f;
 
@@ -80,15 +73,12 @@ void CS_Patch(
     NXGPUTerrainPatch patch = (NXGPUTerrainPatch)0;
     patch.pos = mip.xxx;
     patch.mxWorld = matrix(
-		1.0f, 0.0f, 0.0f, 0.0f,
-		0.0f, 1.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 1.0f, 0.0f,
+		scale, 0.0f, 0.0f, 0.0f,
+		0.0f, scale, 0.0f, 0.0f,
+		0.0f, 0.0f, scale, 0.0f,
 		patchOrigin.x, patchOrigin.y, patchOrigin.z, 1.0f
 	);
-
-    patch.mxWorld = mul(mxScale, patch.mxWorld);
     patch.uv = patchUV;
-    
     patch.sliceIndex = sliceIndex;
     patch.terrainOrigin = floor(blockOrigin.xz / (float)TERRAIN_SIZE) * (float)TERRAIN_SIZE;
 
@@ -106,8 +96,8 @@ void CS_Patch(
 
     float3 extent = float3(patchSize * 0.5f, yExtent * 0.5f, patchSize * 0.5f);
     float3 center = patchOrigin + float3(0.0f, minMaxZ.x, 0.0f) + extent;
-    center.y = 0.0f;
-    extent.y = 1e10f; // 忽略y轴方向的裁剪
+    //center.y = 0.0f;
+    //extent.y = 1e10f; // 忽略y轴方向的裁剪
 
     bool isoutside = false;
     for (int i = 0; i < 6; i++)

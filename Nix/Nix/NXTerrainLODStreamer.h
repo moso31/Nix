@@ -55,7 +55,7 @@ struct NXTerrainLODQuadTreeNodeDescription
 {
 	NXTerrainLODQuadTreeNode data;
 
-	// 是否是一个有效节点（已经加载完成）
+	// 是否已经异步加载完成
 	bool isValid = false;
 
 	// 是否正在异步加载中
