@@ -592,6 +592,9 @@
     <ClCompile Include="Core\NXGUITerrainMaterialGenerator.cpp">
       <Filter>Core\UI</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXPassMaterialManager.cpp">
+      <Filter>Core\DirectX\Manager</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -995,6 +998,9 @@
     </ClInclude>
     <ClInclude Include="Core\NXWinFileDrop.h">
       <Filter>Core\File</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXPassMaterialManager.h">
+      <Filter>Core\DirectX\Manager</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
