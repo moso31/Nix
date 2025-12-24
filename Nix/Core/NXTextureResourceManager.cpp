@@ -26,7 +26,7 @@ Ntr<NXTexture2D> NXTextureResourceManager::GetCommonTextures(NXCommonTexEnum eTe
 
 void NXTextureResourceManager::OnReload()
 {
-	for (auto& pTex : m_pTextureArrayInternal)
+	for (auto& [path, pTex] : m_pTextureCache)
 	{
 		if (pTex.IsNull()) continue;
 
@@ -67,18 +67,15 @@ Ntr<NXTexture> NXTextureResourceManager::CreateTextureAuto(const std::string& na
 
 Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D(const std::string& name, const std::filesystem::path& filePath, bool bForce, D3D12_RESOURCE_FLAGS flags, bool bAutoMakeViews)
 {
-	if (!bForce)
+	if (!bForce && !filePath.empty())
 	{
 		// 先在已加载纹理里面找当前纹理，有的话就不用Create了
-		for (auto pTexture : m_pTextureArrayInternal)
+		auto it = m_pTextureCache.find(filePath);
+		if (it != m_pTextureCache.end() && !it->second->IsSubRegion())
 		{
-			auto& pTex2D = pTexture.As<NXTexture2D>();
-			if (pTex2D.IsValid() && !filePath.empty() 
-				&& std::filesystem::hash_value(filePath) == std::filesystem::hash_value(pTexture->GetFilePath()) 
-				&& !pTexture->IsSubRegion())
-			{
+			auto& pTex2D = it->second.As<NXTexture2D>();
+			if (pTex2D.IsValid())
 				return pTex2D;
-			}
 		}
 	}
 
@@ -106,8 +103,8 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D(const std::string& na
 		pTexture2D->SetSRV(0);
 	}
 
-	if (!bForce)
-		m_pTextureArrayInternal.push_back(pTexture2D); // 2023.3.26 如果是强制加载，就不应加入到资源数组里面
+	if (!bForce && !filePath.empty())
+		m_pTextureCache[filePath] = pTexture2D; // 2023.3.26 如果是强制加载，就不应加入到缓存里面
 	return pTexture2D;
 }
 
@@ -130,7 +127,6 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateRenderTexture(const std::string
 		pTexture2D->SetSRV(0);
 	}
 
-	m_pTextureArrayInternal.push_back(pTexture2D);
 	return pTexture2D;
 }
 
@@ -151,7 +147,6 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateUAVTexture(const std::string& n
 		pTexture2D->SetSRV(0);
 	}
 
-	m_pTextureArrayInternal.push_back(pTexture2D);
 	return pTexture2D;
 }
 
@@ -189,12 +184,14 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2DSubRegion(const std::s
 Ntr<NXTextureCube> NXTextureResourceManager::CreateTextureCube(const std::string& name, const std::wstring& filePath, D3D12_RESOURCE_FLAGS flags, bool bAutoMakeViews)
 {
 	// 先在已加载纹理里面找当前纹理，有的话就不用Create了
-	for (auto& pTexture : m_pTextureArrayInternal)
+	if (!filePath.empty())
 	{
-		auto& pTexCube = pTexture.As<NXTextureCube>();
-		if (pTexCube.Ptr() && !filePath.empty() && std::filesystem::hash_value(filePath) == std::filesystem::hash_value(pTexture->GetFilePath()))
+		auto it = m_pTextureCache.find(filePath);
+		if (it != m_pTextureCache.end())
 		{
-			return pTexCube;
+			auto& pTexCube = it->second.As<NXTextureCube>();
+			if (pTexCube.IsValid())
+				return pTexCube;
 		}
 	}
 
@@ -208,7 +205,8 @@ Ntr<NXTextureCube> NXTextureResourceManager::CreateTextureCube(const std::string
 		pTextureCube->SetSRV(0);
 	}
 
-	m_pTextureArrayInternal.push_back(pTextureCube);
+	if (!filePath.empty())
+		m_pTextureCache[filePath] = pTextureCube;
 	return pTextureCube;
 }
 
@@ -216,7 +214,6 @@ Ntr<NXTextureCube> NXTextureResourceManager::CreateTextureCube(const std::string
 {
 	Ntr<NXTextureCube> pTextureCube(new NXTextureCube());
 	pTextureCube->Create(name, texFormat, width, height, mipLevels, flags);
-	m_pTextureArrayInternal.push_back(pTextureCube);
 	return pTextureCube;
 }
 
@@ -229,7 +226,8 @@ Ntr<NXTexture2DArray> NXTextureResourceManager::CreateTexture2DArray(const std::
 		pTexture2DArray->SetViews(1, 0, 0, 0);
 		pTexture2DArray->SetSRV(0, 0, pTexture2DArray->GetArraySize());
 	}
-	m_pTextureArrayInternal.push_back(pTexture2DArray);
+	if (!filePath.empty())
+		m_pTextureCache[filePath] = pTexture2DArray;
 	return pTexture2DArray;
 }
 
@@ -242,7 +240,8 @@ Ntr<NXTexture2DArray> NXTextureResourceManager::CreateTexture2DArray(const std::
 		pTexture2DArray->SetViews(1, 0, 0, 0);
 		pTexture2DArray->SetSRV(0, 0, pTexture2DArray->GetArraySize());
 	}
-	m_pTextureArrayInternal.push_back(pTexture2DArray);
+	if (!filePath.empty())
+		m_pTextureCache[filePath] = pTexture2DArray;
 	return pTexture2DArray;
 }
 
@@ -250,7 +249,6 @@ Ntr<NXTexture2DArray> NXTextureResourceManager::CreateRenderTexture2DArray(const
 {
 	Ntr<NXTexture2DArray> pTexture2DArray(new NXTexture2DArray());
 	pTexture2DArray->CreateRT(debugName, texFormat, width, height, arraySize, mipLevels, flags);
-	m_pTextureArrayInternal.push_back(pTexture2DArray);
 	return pTexture2DArray;
 }
 
@@ -271,7 +269,6 @@ Ntr<NXTexture2DArray> NXTextureResourceManager::CreateUAVTexture2DArray(const st
 		pTexture2DArray->SetSRV(0, 0, arraySize);
 	}
 
-	m_pTextureArrayInternal.push_back(pTexture2DArray);
 	return pTexture2DArray;
 }
 

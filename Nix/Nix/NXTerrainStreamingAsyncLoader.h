@@ -54,16 +54,12 @@ struct NXTerrainStreamingLoadTextureResult
 	Ntr<NXTexture2D> pSplatMap;
 };
 
-/// <summary>
-/// 地形纹理 异步加载器
-/// AddTask（主线程）：发请求
-/// Update（异步线程）：接受请求，处理请求，并将完成的任务放到已完成队列
-/// ConsumeCompletedTasks（主线程）：抽取已完成的任务
-/// </summary>
 class NXTerrainStreamingAsyncLoader
 {
-	static constexpr uint32_t s_maxRequestLimit = 8;
-	static constexpr uint32_t s_maxComputeLimit = 8; // 每帧最多处理的完成任务数量
+	// 每帧最多请求几组任务。注意每个任务对应一个地形节点Task=加载4N张纹理。
+	static constexpr uint32_t s_maxRequestLimit = 4; 
+	// 每帧最多处理的完成任务数量
+	static constexpr uint32_t s_maxComputeLimit = 4; 
 public:
 	NXTerrainStreamingAsyncLoader() {};
 	~NXTerrainStreamingAsyncLoader() {};

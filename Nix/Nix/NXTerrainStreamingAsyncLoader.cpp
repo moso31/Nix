@@ -13,28 +13,30 @@ void NXTerrainStreamingAsyncLoader::Update()
 	std::lock_guard<std::mutex> lock(m_tasksMutex);
 	
 	// 1. 请求队列->loading队列
-	for (const auto& task : m_requestTasks)
+	auto it = m_requestTasks.begin();
+	while (it != m_requestTasks.end())
 	{
+		// 防止同时处理过多task
+		if (m_loadingTasks.size() >= s_maxRequestLimit) 
+			break;
+
 		NXTerrainStreamingLoadTextureResult nextTask;
-		nextTask.terrainID = task.terrainID;
-		nextTask.relativePos = task.relativePos;
-		nextTask.size = task.size;
-		nextTask.nodeDescArrayIndex = task.nodeDescArrayIndex;
-		nextTask.pHeightMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(task.heightMap.name, task.heightMap.path);
-		nextTask.pSplatMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(task.splatMap.name, task.splatMap.path);
+		nextTask.terrainID = it->terrainID;
+		nextTask.relativePos = it->relativePos;
+		nextTask.size = it->size;
+		nextTask.nodeDescArrayIndex = it->nodeDescArrayIndex;
+		nextTask.minMaxZ = it->minMaxZ;
+		nextTask.pHeightMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(it->heightMap.name, it->heightMap.path);
+		nextTask.pSplatMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(it->splatMap.name, it->splatMap.path);
 
 		m_loadingTasks.push_back(nextTask);
-	}
-	m_requestTasks.clear(); 
+		it = m_requestTasks.erase(it);
+	} 
 	
 	// 2. loading->Completed队列
 	int loadingCnt = 0;
 	for (auto it = m_loadingTasks.begin(); it != m_loadingTasks.end(); loadingCnt++)
 	{
-		// 防止同时处理过多task
-		if (loadingCnt >= s_maxRequestLimit) 
-			break;
-
 		if (m_computeTasks.size() >= s_maxComputeLimit)
 			break;
 

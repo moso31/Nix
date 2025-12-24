@@ -77,9 +77,9 @@ void NXTerrainLODStreamer::Update()
                 uint32_t oldestIndex = -1;
                 uint32_t selectedIndex = -1;
 
-                // 首先尝试找空闲节点
                 for (uint32_t descIndex = 0; descIndex < m_nodeDescArray.size(); descIndex++)
                 {
+                    // 优先取空闲（isValid）；正在加载的（isLoading）不考虑
                     auto& nodeDesc = m_nodeDescArray[descIndex];
                     if (!nodeDesc.isValid && !nodeDesc.isLoading)
                     {
@@ -87,6 +87,7 @@ void NXTerrainLODStreamer::Update()
                         break;
                     }
 
+					// 若没有空闲，则找最久未使用的
                     if (nodeDesc.isValid && nodeDesc.lastUpdatedFrame < oldestFrame)
                     { 
                         oldestFrame = nodeDesc.lastUpdatedFrame;
@@ -167,6 +168,8 @@ void NXTerrainLODStreamer::ProcessCompletedStreamingTask()
 {
     for (auto& task : m_asyncLoader->ConsumeCompletedTasks())
     {
+        m_nodeDescArray[task.nodeDescArrayIndex].isLoading = false;
+        m_nodeDescArray[task.nodeDescArrayIndex].isValid = true;
         printf("%s\n", task.pSplatMap->GetFilePath().string().c_str());
         //NXTerrainStreamingBatcher::GetInstance()->PushCompletedTask(task);
     }
