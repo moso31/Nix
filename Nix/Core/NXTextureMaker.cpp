@@ -24,6 +24,43 @@ void NXTextureMaker::ReadTerrainRawR16(const std::filesystem::path& path, std::v
         throw std::runtime_error("RAW 尺寸不为 2049x2049 R16: " + path.string());
 }
 
+void NXTextureMaker::ReadTerrainDDSR16Unorm(const std::filesystem::path& path, std::vector<uint16_t>& out)
+{
+    TexMetadata meta;
+    ScratchImage img;
+    HRESULT hr = LoadFromDDSFile(path.wstring().c_str(), DDS_FLAGS_NONE, &meta, img);
+    if (FAILED(hr)) 
+    {
+        throw std::runtime_error("LoadFromDDSFile 失败: " + path.string());
+    }
+
+    // 检查格式必须是 R16_UNORM
+    DXGI_FORMAT fmt = meta.format;
+    if (fmt != DXGI_FORMAT_R16_UNORM)
+    {
+        throw std::runtime_error("DDS 格式必须是 R16_UNORM: " + path.string());
+    }
+
+    const Image* src = img.GetImage(0, 0, 0);
+
+    if (!src) 
+        throw std::runtime_error("获取图像数据失败: " + path.string());
+
+    const size_t width = src->width;
+    const size_t height = src->height;
+    const size_t rowPitch = src->rowPitch;
+
+    out.resize(width * height);
+
+    // 逐行拷贝，忽略对齐字节
+    const uint8_t* p = src->pixels;
+    for (size_t y = 0; y < height; ++y) 
+    {
+        const uint16_t* row = reinterpret_cast<const uint16_t*>(p + y * rowPitch);
+        std::memcpy(&out[y * width], row, width * sizeof(uint16_t));
+    }
+}
+
 void NXTextureMaker::ReadTerrainDDSR8Unorm(const std::filesystem::path& path, std::vector<uint8_t>& out)
 {
     TexMetadata meta;
@@ -477,9 +514,21 @@ void NXTextureMaker::GenerateTerrainStreamingLODMaps_HeightMap(const TerrainTexL
     {
         const auto& rawPath = item.pathHeightMap;
 
-        // 1) 读取原始 R16 RAW
+        // 1) 根据文件扩展名选择读取方式
         std::vector<uint16_t> base;
-        ReadTerrainRawR16(rawPath, base);
+        std::string ext = rawPath.extension().string();
+        if (NXConvert::IsRawFileExtension(ext))
+        {
+            ReadTerrainRawR16(rawPath, base);
+        }
+        else if (ext == ".dds" || ext == ".DDS")
+        {
+            ReadTerrainDDSR16Unorm(rawPath, base);
+        }
+        else
+        {
+            throw std::runtime_error("不支持的高度图格式: " + rawPath.string());
+        }
 
         // 2) 输出目录："<tile_dir>\sub\hmap\"
         const std::filesystem::path tileDir = rawPath.parent_path();
@@ -503,10 +552,10 @@ void NXTextureMaker::GenerateTerrainStreamingLODMaps_HeightMap(const TerrainTexL
                 {
                     const uint32_t startX = tx * stride;
 
-                    // 文件名：<size>_<row>_<col>.dds 例如：1025_1_0.dds
+                    // 文件名：<size>_<x>_<y>.dds 例如：1025_0_1.dds
                     std::wstring fname = std::to_wstring(tileSize) + L"_" +
-                        std::to_wstring(ty) + L"_" +
-                        std::to_wstring(tx) + L".dds";
+                        std::to_wstring(tx) + L"_" +
+                        std::to_wstring(ty) + L".dds";
                     const auto outPath = outDir / fname;
 
                     // 检查文件是否存在，如果不强制生成且文件已存在则跳过
@@ -559,10 +608,10 @@ void NXTextureMaker::GenerateTerrainStreamingLODMaps_SplatMap(const TerrainTexLO
                 {
                     const uint32_t startX = tx * stride;
 
-                    // 文件名：<size>_<row>_<col>.dds 例如：1025_1_0.dds
+                    // 文件名：<size>_<x>_<y>.dds 例如：1025_0_1.dds
                     std::wstring fname = std::to_wstring(tileSize) + L"_" +
-                        std::to_wstring(ty) + L"_" +
-                        std::to_wstring(tx) + L".dds";
+                        std::to_wstring(tx) + L"_" +
+                        std::to_wstring(ty) + L".dds";
                     const auto outPath = outDir / fname;
 
                     // 检查文件是否存在，如果不强制生成且文件已存在则跳过

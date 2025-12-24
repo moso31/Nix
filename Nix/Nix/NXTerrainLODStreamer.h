@@ -87,6 +87,7 @@ public:
 
 	// 每帧更新
 	void Update();
+	void UpdateAsyncLoader();
 
 	void ProcessCompletedStreamingTask();
 
@@ -94,8 +95,11 @@ private:
 	// 获取6档距离内的节点，输出一个list[6]；只要是当前档次距离能覆盖的，统统加入到预加载队列
 	void GetNodeDatasInternal(std::vector<std::vector<NXTerrainLODQuadTreeNode>>& oNodeDataList, const NXTerrainLODQuadTreeNode& node);
 
+	// 加载 minmaxZ 数据（用于地形剔除等）
+	void LoadMinmaxZData();
+
 private:
-	std::filesystem::path m_terrainWorkingDir = "D:\\NixAssets\\terrainTest";
+	std::filesystem::path m_terrainWorkingDir = "D:\\NixAssets\\Terrain";
 
 	// 每个地形是一个四叉树
 	std::vector<NXTerrainLODQuadTreeNode> m_terrainRoots;
@@ -108,5 +112,9 @@ private:
 	NXTerrainStreamingAsyncLoader* m_asyncLoader;
 
 	// 场景指针
-	NXScene* m_pScene; 
+	NXScene* m_pScene;
+
+	// minmaxZ 数据，用于地形剔除
+	// m_minmaxZData[mip][x][y] = Vector2(minZ, maxZ)
+	std::vector<std::vector<std::vector<Vector2>>> m_minmaxZData;
 };

@@ -31,5 +31,6 @@ public:
 
 private:
     std::vector<Ntr<NXTexture2D>> m_pCommonTex;
-    std::vector<Ntr<NXTexture>> m_pTextureArrayInternal;
+    // std::vector<Ntr<NXTexture>> m_pTextureArrayInternal;
+    std::unordered_map<std::filesystem::path, Ntr<NXTexture>> m_pTextureCache;
 };

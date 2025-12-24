@@ -35,9 +35,12 @@ void NXTerrainStreamingAsyncLoader::Update()
 		if (loadingCnt >= s_maxRequestLimit) 
 			break;
 
+		if (m_computeTasks.size() >= s_maxComputeLimit)
+			break;
+
 		if (it->pHeightMap.IsValid() && it->pHeightMap->IsLoadReady() && it->pSplatMap.IsValid() && it->pSplatMap->IsLoadReady())
 		{
-			m_completedTasks.push_back(std::move(*it));
+			m_computeTasks.push_back(std::move(*it));
 			it = m_loadingTasks.erase(it);
 		}
 		else
@@ -51,7 +54,7 @@ std::vector<NXTerrainStreamingLoadTextureResult> NXTerrainStreamingAsyncLoader::
 {
 	// 一次性把所有的已完成task取走，放到主线程那边去处理
 	std::lock_guard<std::mutex> lock(m_tasksMutex);
-	std::vector<NXTerrainStreamingLoadTextureResult> result = std::move(m_completedTasks);
-	m_completedTasks.clear();
+	std::vector<NXTerrainStreamingLoadTextureResult> result = std::move(m_computeTasks);
+	m_computeTasks.clear();
 	return result;
 }

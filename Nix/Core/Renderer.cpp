@@ -969,6 +969,7 @@ void Renderer::Update()
 
 	m_pTerrainLODStreamer->ProcessCompletedStreamingTask();
 	m_pTerrainLODStreamer->Update();
+	m_pTerrainLODStreamer->UpdateAsyncLoader();
 
 	UpdateGUI();
 	UpdateSceneData();

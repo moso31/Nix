@@ -5,6 +5,7 @@
 #include "NXGlobalDefinitions.h"
 #include "NXTerrainStreamingAsyncLoader.h"
 #include "NXTerrainStreamingBatcher.h"
+#include "DirectXTex.h"
 
 NXTerrainLODStreamer::NXTerrainLODStreamer() :
     m_asyncLoader(new NXTerrainStreamingAsyncLoader())
@@ -33,6 +34,8 @@ void NXTerrainLODStreamer::Init(NXScene* pScene)
 
         m_terrainRoots.push_back(terrainRoot);
     }
+
+    LoadMinmaxZData();
 }
 
 void NXTerrainLODStreamer::Update()
@@ -118,17 +121,30 @@ void NXTerrainLODStreamer::Update()
 
         auto& data = m_nodeDescArray[loadingDesc].data;
         Int2 relativePos = data.positionWS - data.terrainID * g_terrainConfig.TerrainSize; // 地形块内相对左下角的位置
-        Int2 relativePosID = relativePos / g_terrainConfig.SectorSize;
+        relativePos.y = 2048 - relativePos.y; // flip Y
+        Int2 relativePosID = relativePos / data.size;
+        relativePosID.y--; 
+        int realSize = data.size + 1;
+
+        // 获取minmaxZ
+        int bitOffsetXY = std::countr_zero(data.size); // data.size一定是2的整数倍并且>=64
+        int bitOffsetMip = bitOffsetXY - std::countr_zero(64u);
+        Int2 offsetPosWS = data.positionWS - g_terrainConfig.MinTerrainPos;
+        int bx = bitOffsetMip;
+		int by = (offsetPosWS.x >> bitOffsetXY);
+		int bz = (offsetPosWS.y >> bitOffsetXY);
+		Vector2 minmaxZ = m_minmaxZData[bx][by][bz];
 
 		Int2 strID = data.terrainID - minTerrainID;
         std::string strTerrId = std::to_string(strID.x) + "_" + std::to_string(strID.y);
-        std::string strTerrSubID = std::to_string(data.size) + "_" + std::to_string(relativePosID.x) + "_" + std::to_string(relativePosID.y);
+        std::string strTerrSubID = std::to_string(realSize) + "_" + std::to_string(relativePosID.x) + "_" + std::to_string(relativePosID.y);
 
         TerrainStreamingLoadRequest task;
         task.terrainID = data.terrainID;
         task.relativePos = relativePos;
-        task.size = data.size;
+        task.size = realSize;
 		task.nodeDescArrayIndex = loadingDesc;
+		task.minMaxZ = minmaxZ;
         
         // 使用正确的路径分隔符，确保与TextureMaker的路径格式一致
         task.heightMap.path = m_terrainWorkingDir / strTerrId / "sub" / "hmap" / (strTerrSubID + ".dds");
@@ -141,12 +157,18 @@ void NXTerrainLODStreamer::Update()
     }
 }
 
+void NXTerrainLODStreamer::UpdateAsyncLoader()
+{
+	// 更新异步加载器
+    m_asyncLoader->Update();
+}
+
 void NXTerrainLODStreamer::ProcessCompletedStreamingTask()
 {
     for (auto& task : m_asyncLoader->ConsumeCompletedTasks())
     {
         printf("%s\n", task.pSplatMap->GetFilePath().string().c_str());
-        NXTerrainStreamingBatcher::GetInstance()->PushCompletedTask(task);
+        //NXTerrainStreamingBatcher::GetInstance()->PushCompletedTask(task);
     }
 }
 
@@ -175,6 +197,72 @@ void NXTerrainLODStreamer::GetNodeDatasInternal(std::vector<std::vector<NXTerrai
             {
                 auto childNode = node.GetChildNode(i);
                 GetNodeDatasInternal(oNodeDataList, childNode);
+            }
+        }
+    }
+}
+
+void NXTerrainLODStreamer::LoadMinmaxZData()
+{
+    using namespace DirectX;
+
+    std::filesystem::path mmzPath = m_terrainWorkingDir / "mmz.dds";
+
+    TexMetadata metadata;
+    ScratchImage scratchImage;
+    HRESULT hr = LoadFromDDSFile(mmzPath.wstring().c_str(), DDS_FLAGS_NONE, &metadata, scratchImage);
+
+    if (FAILED(hr))
+    {
+        printf("LoadMinmaxZData: 加载失败 %s\n", mmzPath.string().c_str());
+        return;
+    }
+
+    // 验证格式是否为 R32G32_FLOAT
+    if (metadata.format != DXGI_FORMAT_R32G32_FLOAT)
+    {
+        printf("LoadMinmaxZData: 格式不匹配，期望 R32G32_FLOAT，实际 %d\n", (int)metadata.format);
+        return;
+    }
+
+    // 初始化 m_minmaxZData，维度为 [mipCount][width][height]
+    size_t mipCount = metadata.mipLevels;
+    m_minmaxZData.resize(mipCount);
+
+    for (size_t mip = 0; mip < mipCount; mip++)
+    {
+        const Image* img = scratchImage.GetImage(mip, 0, 0);
+        if (!img)
+        {
+            printf("LoadMinmaxZData: 获取 mip %zu 失败\n", mip);
+            continue;
+        }
+
+        size_t mipWidth = img->width;
+        size_t mipHeight = img->height;
+
+        m_minmaxZData[mip].resize(mipWidth);
+        for (size_t x = 0; x < mipWidth; x++)
+        {
+            m_minmaxZData[mip][x].resize(mipHeight);
+        }
+
+        // 读取像素数据，R32G32_FLOAT 每像素 8 字节
+        const uint8_t* pixels = img->pixels;
+        size_t rowPitch = img->rowPitch;
+
+        for (size_t y = 0; y < mipHeight; y++)
+        {
+            const uint8_t* row = pixels + y * rowPitch;
+            for (size_t x = 0; x < mipWidth; x++)
+            {
+                const float* pixelData = reinterpret_cast<const float*>(row + x * sizeof(float) * 2);
+                float minZ = pixelData[0];
+                float maxZ = pixelData[1];
+
+                // y 翻转以适配世界坐标
+                size_t flippedY = mipHeight - 1 - y;
+                m_minmaxZData[mip][x][flippedY] = Vector2(minZ, maxZ);
             }
         }
     }

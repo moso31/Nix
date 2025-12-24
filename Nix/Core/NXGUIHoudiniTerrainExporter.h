@@ -39,7 +39,8 @@ private:
 	// GUI渲染各列
 	void RenderColumn1_HoudiniFiles();
 	void RenderColumn2_ConvertToDDS();
-	void RenderColumn3_Compose2DArray();
+	void RenderColumn3_BakeSubTiles();
+	void RenderColumn4_Compose2DArray();
 
 	// 扫描Houdini EXR文件
 	void ScanHoudiniExrFiles();
@@ -85,7 +86,13 @@ private:
 	int m_heightMapRange[2] = { 0, 2048 };	// 高度图映射范围 [min, max]
 	bool m_bConvertSplatMap = true;
 
-	// === 第三列: 合成2DArray ===
+	// === 第三列: 烘焙子区域纹理 ===
+	char m_subTileOutputPath[512] = "D:\\NixAssets\\Terrain";	// 子区域纹理输出根路径
+	bool m_bBakeHeightMapSubTiles = true;	// 烘焙HeightMap子区域
+	bool m_bBakeSplatMapSubTiles = true;	// 烘焙SplatMap子区域
+	bool m_bForceGenerateSubTiles = false;	// 强制生成（忽略已存在的文件）
+
+	// === 第四列: 合成2DArray ===
 	char m_heightArrayPath[512] = "D:\\NixAssets\\Terrain\\hMap2DArray.dds";
 	char m_minMaxZPath[512] = "D:\\NixAssets\\Terrain\\mmz.dds";
 	char m_splatArrayPath[512] = "D:\\NixAssets\\Terrain\\splatMap2DArray.dds";

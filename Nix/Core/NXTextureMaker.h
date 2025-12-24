@@ -32,6 +32,9 @@ public:
 	// 读地形原始R16 raw高度图数据
 	static void ReadTerrainRawR16(const std::filesystem::path& path, std::vector<uint16_t>& out);
 
+	// 读地形DDS R16_UNORM高度图数据
+	static void ReadTerrainDDSR16Unorm(const std::filesystem::path& path, std::vector<uint16_t>& out);
+
 	// 读地形原始R8 dds splatmap 材质ID图数据
 	static void ReadTerrainDDSR8Unorm(const std::filesystem::path& path, std::vector<uint8_t>& out);
 

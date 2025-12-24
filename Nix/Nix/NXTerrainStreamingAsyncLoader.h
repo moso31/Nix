@@ -3,7 +3,7 @@
 #include "BaseDefs/NixCore.h"
 #include "BaseDefs/CppSTLFully.h"
 
-struct NXTerrainStreamingLoadTask_EachTexture
+struct StringDatas
 {
 	std::filesystem::path path; // 纹理文件路径
 	std::string name; // 纹理资源名称，通常用于调试
@@ -17,6 +17,9 @@ struct TerrainStreamingLoadRequest
 	// 地形node相对当前地形左下角的位置，取整数
 	Int2 relativePos; 
 
+	// 高度范围
+	Vector2 minMaxZ; 
+
 	// 地形node的尺寸
 	uint32_t size;
 
@@ -24,8 +27,8 @@ struct TerrainStreamingLoadRequest
 	uint32_t nodeDescArrayIndex;
 
 	// 每个任务包负责加载的对应子纹理集
-	NXTerrainStreamingLoadTask_EachTexture heightMap;
-	NXTerrainStreamingLoadTask_EachTexture splatMap;
+	StringDatas heightMap;
+	StringDatas splatMap;
 };
 
 class NXTexture2D;
@@ -36,6 +39,9 @@ struct NXTerrainStreamingLoadTextureResult
 
 	// 地形node相对当前地形左下角的位置，取整数
 	Int2 relativePos;
+
+	// 高度范围
+	Vector2 minMaxZ;
 
 	// 地形node的尺寸
 	uint32_t size;
@@ -57,6 +63,7 @@ struct NXTerrainStreamingLoadTextureResult
 class NXTerrainStreamingAsyncLoader
 {
 	static constexpr uint32_t s_maxRequestLimit = 8;
+	static constexpr uint32_t s_maxComputeLimit = 8; // 每帧最多处理的完成任务数量
 public:
 	NXTerrainStreamingAsyncLoader() {};
 	~NXTerrainStreamingAsyncLoader() {};
@@ -72,5 +79,5 @@ private:
 
 	std::vector<TerrainStreamingLoadRequest> m_requestTasks;
 	std::vector<NXTerrainStreamingLoadTextureResult> m_loadingTasks;
-	std::vector<NXTerrainStreamingLoadTextureResult> m_completedTasks;
+	std::vector<NXTerrainStreamingLoadTextureResult> m_computeTasks;
 };

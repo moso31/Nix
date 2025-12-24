@@ -15,7 +15,7 @@ NXAllocatorManager::~NXAllocatorManager()
 
 void NXAllocatorManager::Init()
 {
-	auto pDevice = NXGlobalDX::GetDevice();
+	auto pDevice = NXGlobalDX::GetDevice();	
 	m_bRunning.store(true);
 
 	m_pCBAllocator = std::make_unique<CommittedBufferAllocator>(L"CBAllocator", pDevice, true, false, 64u, Memsize_MB(256));
@@ -71,11 +71,6 @@ void NXAllocatorManager::Init()
 	//addThread([this]() { 
 	//	m_pVTStreaming->Update(); 
 	//	}, "NXVirtualTextureStreaming\n");
-
-	m_pTerrainStreamingAsyncLoader = std::make_unique<NXTerrainStreamingAsyncLoader>();
-	addThread([this]() {
-		m_pTerrainStreamingAsyncLoader->Update();
-		}, "NXTerrainStreamingAsyncLoader\n");
 }
 
 void NXAllocatorManager::Release()

@@ -5,6 +5,7 @@
 #include <fstream>
 #include <cmath>
 #include "tinyexr/tinyexr.h"
+#include "NXTextureMaker.h"
 
 using namespace DirectX;
 
@@ -24,9 +25,9 @@ void NXGUIHoudiniTerrainExporter::Render()
 	ImGui::SetNextWindowSize(ImVec2(1200.0f, 600.0f), ImGuiCond_FirstUseEver);
 	if (ImGui::Begin(ImUtf8("Houdini 地形导出器"), &m_bVisible))
 	{
-		// 获取可用宽度，三列平均分配
+		// 获取可用宽度，四列平均分配
 		float availWidth = ImGui::GetContentRegionAvail().x;
-		float columnWidth = (availWidth - 20.0f) / 3.0f; // 减去间隔
+		float columnWidth = (availWidth - 30.0f) / 4.0f; // 减去间隔
 
 		// 第一列
 		ImGui::BeginChild("Column1", ImVec2(columnWidth, 0), true);
@@ -44,7 +45,14 @@ void NXGUIHoudiniTerrainExporter::Render()
 
 		// 第三列
 		ImGui::BeginChild("Column3", ImVec2(columnWidth, 0), true);
-		RenderColumn3_Compose2DArray();
+		RenderColumn3_BakeSubTiles();
+		ImGui::EndChild();
+
+		ImGui::SameLine();
+
+		// 第四列
+		ImGui::BeginChild("Column4", ImVec2(columnWidth, 0), true);
+		RenderColumn4_Compose2DArray();
 		ImGui::EndChild();
 	}
 	ImGui::End();
@@ -208,7 +216,87 @@ void NXGUIHoudiniTerrainExporter::RenderColumn2_ConvertToDDS()
 	}
 }
 
-void NXGUIHoudiniTerrainExporter::RenderColumn3_Compose2DArray()
+void NXGUIHoudiniTerrainExporter::RenderColumn3_BakeSubTiles()
+{
+	ImGui::Text(ImUtf8("=== 烘焙子区域纹理 ==="));
+	ImGui::Separator();
+
+	// 输出路径
+	ImGui::Text(ImUtf8("子区域纹理输出根路径:"));
+	ImGui::SetNextItemWidth(-1);
+	ImGui::InputText("##SubTileOutputPath", m_subTileOutputPath, sizeof(m_subTileOutputPath));
+
+	ImGui::Spacing();
+	ImGui::TextDisabled(ImUtf8("输出目录结构: <根路径>\\X_Y\\sub\\hmap\\ 或 splat\\"));
+
+	ImGui::Spacing();
+	ImGui::Separator();
+
+	// 烘焙选项
+	ImGui::Text(ImUtf8("烘焙选项:"));
+	ImGui::Checkbox(ImUtf8("烘焙 HeightMap 子区域"), &m_bBakeHeightMapSubTiles);
+	ImGui::Checkbox(ImUtf8("烘焙 SplatMap 子区域"), &m_bBakeSplatMapSubTiles);
+
+	ImGui::Spacing();
+
+	// 强制生成选项
+	ImGui::Checkbox(ImUtf8("强制生成（忽略已存在的文件）"), &m_bForceGenerateSubTiles);
+
+	if (m_bForceGenerateSubTiles)
+	{
+		ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), ImUtf8("将重新生成所有文件！"));
+	}
+	else
+	{
+		ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), ImUtf8("将跳过已存在的文件"));
+	}
+
+	ImGui::Spacing();
+	ImGui::Separator();
+
+	// 检查是否有DDS文件可供烘焙
+	bool canBake = !m_nixDdsFiles.empty() && (m_bBakeHeightMapSubTiles || m_bBakeSplatMapSubTiles);
+	if (!canBake)
+		ImGui::BeginDisabled();
+
+	if (ImGui::Button(ImUtf8("开始烘焙子区域纹理"), ImVec2(-1, 30)))
+	{
+		TerrainTexLODBakeConfig bakeConfig;
+		bakeConfig.bForceGenerate = m_bForceGenerateSubTiles;
+		bakeConfig.bGenerateHeightMap = m_bBakeHeightMapSubTiles;
+		bakeConfig.bGenerateSplatMap = m_bBakeSplatMapSubTiles;
+
+		// 遍历所有DDS文件，构建烘焙数据
+		for (const auto& ddsInfo : m_nixDdsFiles)
+		{
+			PerTerrainBakeData perTerrainBakeData;
+			perTerrainBakeData.nodeId = { (short)ddsInfo.tileX, (short)ddsInfo.tileY };
+
+			// 构建路径：<根路径>\X_Y\hmap.dds 和 <根路径>\X_Y\splatmap.dds
+			std::filesystem::path basePath(m_subTileOutputPath);
+			std::string terrainId = std::to_string(ddsInfo.tileX) + "_" + std::to_string(ddsInfo.tileY);
+			std::filesystem::path terrainDir = basePath / terrainId;
+
+			perTerrainBakeData.pathHeightMap = terrainDir / "hmap.dds";
+			perTerrainBakeData.pathSplatMap = terrainDir / "splatmap.dds";
+
+			bakeConfig.bakeTerrains.push_back(perTerrainBakeData);
+		}
+
+		// 调用烘焙函数
+		NXTextureMaker::GenerateTerrainStreamingLODMaps(bakeConfig);
+	}
+
+	if (!canBake)
+		ImGui::EndDisabled();
+
+	ImGui::Spacing();
+
+	// 显示帮助信息
+	ImGui::TextWrapped(ImUtf8("说明：此功能将DDS纹理切分成若干子区域(subtile)，用于支持地形流式加载。每个地形将生成多级LOD的子纹理块。"));
+}
+
+void NXGUIHoudiniTerrainExporter::RenderColumn4_Compose2DArray()
 {
 	ImGui::Text(ImUtf8("=== 合成 2D Array ==="));
 	ImGui::Separator();

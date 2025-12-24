@@ -29,9 +29,6 @@ class NXTerrainStreamingAsyncLoader;
 // 纹理加载器
 #define NXTexLoader			NXAllocatorManager::GetInstance()->GetTextureLoader()
 
-// 地形流式异步加载器
-#define NXTerraStmLoader	NXAllocatorManager::GetInstance()->GetTerrainStreamingAsyncLoader()
-
 // VT Streaming
 #define NXVTStreaming		NXAllocatorManager::GetInstance()->GetVirtualTextureStreaming()
 
@@ -60,7 +57,6 @@ public:
 	NXReadbackSystem*				GetNXReadbackSystem()				{ return m_pReadbackSystem.get(); }
 	NXTextureLoader*				GetTextureLoader()					{ return m_pTextureLoader.get(); }
 	NXVirtualTextureStreaming*		GetVirtualTextureStreaming()		{ return m_pVTStreaming.get(); }
-	NXTerrainStreamingAsyncLoader*	GetTerrainStreamingAsyncLoader() 	{ return m_pTerrainStreamingAsyncLoader.get(); }
 
 	DescriptorAllocator<true>*		GetShaderVisibleDescriptorAllocator()	{ return m_pShaderVisibleDescAllocator.get(); }
 
@@ -82,7 +78,6 @@ private:
 	std::unique_ptr<NXReadbackSystem>				m_pReadbackSystem;
 	std::unique_ptr<NXTextureLoader>				m_pTextureLoader;
 	std::unique_ptr<NXVirtualTextureStreaming>		m_pVTStreaming;
-	std::unique_ptr<NXTerrainStreamingAsyncLoader> 	m_pTerrainStreamingAsyncLoader;
 
 	// shader-visible descriptor allocator
 	std::unique_ptr<DescriptorAllocator<true>> 	m_pShaderVisibleDescAllocator;
