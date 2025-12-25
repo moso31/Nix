@@ -1,7 +1,5 @@
 #pragma once
-#include "BaseDefs/Math.h"
-#include "BaseDefs/NixCore.h"
-#include "BaseDefs/CppSTLFully.h"
+#include "NXTerrainLODStreamData.h"
 
 class NXTerrainStreamingAsyncLoader;
 class NXTerrainStreamingBatcher;
@@ -71,10 +69,11 @@ class NXScene;
 /// <summary>
 /// 四叉树地形流式加载的核心
 /// 负责基于当前场景的相机距离，决定需要流式加载哪些地形节点的纹理
-/// 使用位置固定的LRU Cache（对应类中m_nodeDescArray）来管理已经加载的节点，如果出现Cache未记录节点，异步加载
+/// 使用位置固定的LRU Cache（对应类中m_nodeDescArrayInternal）来管理已经加载的节点，如果出现Cache未记录节点，异步加载
 /// </summary>
 class NXTerrainLODStreamer
 {
+public:
 	static constexpr int s_maxNodeLevel = 5; // 最大节点层级 0~5 共6层
 	static constexpr float s_distRanges[6] = { 200.0f, 400.0f, 800.0f, 1600.0f, 3200.0f, FLT_MAX }; // 这样写可以不在cpp再初始化一次 很方便
 	static constexpr int s_nodeDescArrayInitialSize = 1024; // 预分配已加载节点描述数组的初始大小
@@ -91,6 +90,8 @@ public:
 
 	void ProcessCompletedStreamingTask();
 
+	NXTerrainLODStreamData& GetStreamingData() { return m_streamData; }
+
 private:
 	// 获取6档距离内的节点，输出一个list[6]；只要是当前档次距离能覆盖的，统统加入到预加载队列
 	void GetNodeDatasInternal(std::vector<std::vector<NXTerrainLODQuadTreeNode>>& oNodeDataList, const NXTerrainLODQuadTreeNode& node);
@@ -106,13 +107,16 @@ private:
 
 	// "已经加载"到Atlas的节点
 	// 长度固定，初始化直接resize
-	std::vector<NXTerrainLODQuadTreeNodeDescription> m_nodeDescArray;
+	std::vector<NXTerrainLODQuadTreeNodeDescription> m_nodeDescArrayInternal;
 
 	// 异步加载器，异步读取tile纹理
 	NXTerrainStreamingAsyncLoader* m_asyncLoader;
 
 	// 场景指针
 	NXScene* m_pScene;
+
+	// 流式加载所使用的各种数据
+	NXTerrainLODStreamData m_streamData;
 
 	// minmaxZ 数据，用于地形剔除
 	// m_minmaxZData[mip][x][y] = Vector2(minZ, maxZ)

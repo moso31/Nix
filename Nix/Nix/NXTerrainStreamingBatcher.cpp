@@ -33,7 +33,7 @@ void NXTerrainStreamingBatcher::PushCompletedTask(const NXTerrainStreamingLoadTe
 	m_batchingNodeDescData.resize(m_completedTasks.size());
 	for (int i = 0; i < m_batchingNodeDescData.size(); i++)
 	{
-		m_batchingNodeDescData[i].relativePos = m_completedTasks[i].relativePos;
+		//m_batchingNodeDescData[i].relativePos = m_completedTasks[i].relativePos;
 		m_batchingNodeDescData[i].size = m_completedTasks[i].size;
 		m_batchingNodeDescData[i].nodeDescArrayIndex = m_completedTasks[i].nodeDescArrayIndex;
 	}

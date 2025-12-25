@@ -11,17 +11,14 @@ struct StringDatas
 
 struct TerrainStreamingLoadRequest
 {
-	// node所处地形块ID
-	Int2 terrainID;
-
-	// 地形node相对当前地形左下角的位置，取整数
-	Int2 relativePos; 
-
-	// 高度范围
-	Vector2 minMaxZ; 
+	// node所处世界坐标（左下角）
+	Int2 positionWS;
 
 	// 地形node的尺寸
 	uint32_t size;
+
+	// node的最大最小高度
+	Vector2 minMaxZ;
 
 	// 地形node在nodeDescArray中的索引
 	uint32_t nodeDescArrayIndex;
@@ -34,11 +31,8 @@ struct TerrainStreamingLoadRequest
 class NXTexture2D;
 struct NXTerrainStreamingLoadTextureResult
 {
-	// node所处地形块ID
-	Int2 terrainID;
-
-	// 地形node相对当前地形左下角的位置，取整数
-	Int2 relativePos;
+	// node所处世界坐标（左下角）
+	Int2 positionWS;
 
 	// 高度范围
 	Vector2 minMaxZ;

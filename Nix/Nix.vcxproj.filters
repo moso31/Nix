@@ -593,7 +593,10 @@
       <Filter>Core\UI</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXPassMaterialManager.cpp">
-      <Filter>Core\DirectX\Manager</Filter>
+      <Filter>Core\DirectX\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXTerrainLODStreamData.cpp">
+      <Filter>Nix\TextureStreaming</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1000,7 +1003,10 @@
       <Filter>Core\File</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXPassMaterialManager.h">
-      <Filter>Core\DirectX\Manager</Filter>
+      <Filter>Core\DirectX\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXTerrainLODStreamData.h">
+      <Filter>Nix\TextureStreaming</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

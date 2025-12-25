@@ -9,7 +9,7 @@
 class NXConstantBufferImpl
 {
 public:
-	void WaitCreateComplete()
+	void WaitCreateComplete() const
 	{
 		m_futureCB.wait();
 		m_isCreating = false;
@@ -25,8 +25,8 @@ protected:
 	std::promise<void> m_promiseCB;
 	std::future<void> m_futureCB;
 
+	mutable std::atomic<bool> m_isCreating = false;
 	std::atomic<int> m_counter = MultiFrameSets_swapChainCount;
-	std::atomic<bool> m_isCreating = false;
 	std::atomic<bool> m_inited = false;
 	UINT m_byteSize;
 };
@@ -172,12 +172,12 @@ public:
 		CreateInternal((UINT)(sizeof(T) * m_arraySize));
 	}
 
-	T* Current()
+	const T* Current() const
 	{
 		return m_cpuAddrs.Current();
 	}
 
-	const D3D12_GPU_VIRTUAL_ADDRESS& CurrentGPUAddress()
+	const D3D12_GPU_VIRTUAL_ADDRESS& CurrentGPUAddress() const 
 	{
 		WaitCreateComplete();
 		return m_gpuAddrs.Current();

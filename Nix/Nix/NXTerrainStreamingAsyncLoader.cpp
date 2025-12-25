@@ -21,8 +21,7 @@ void NXTerrainStreamingAsyncLoader::Update()
 			break;
 
 		NXTerrainStreamingLoadTextureResult nextTask;
-		nextTask.terrainID = it->terrainID;
-		nextTask.relativePos = it->relativePos;
+		nextTask.positionWS = it->positionWS;
 		nextTask.size = it->size;
 		nextTask.nodeDescArrayIndex = it->nodeDescArrayIndex;
 		nextTask.minMaxZ = it->minMaxZ;

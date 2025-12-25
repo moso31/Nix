@@ -10,8 +10,10 @@
 NXTerrainLODStreamer::NXTerrainLODStreamer() :
     m_asyncLoader(new NXTerrainStreamingAsyncLoader())
 {
+	m_streamData.Init(this);
+
     // nodeDescArray长度固定不变
-    m_nodeDescArray.resize(s_nodeDescArrayInitialSize);
+    m_nodeDescArrayInternal.resize(s_nodeDescArrayInitialSize);
 }
 
 NXTerrainLODStreamer::~NXTerrainLODStreamer()
@@ -58,13 +60,13 @@ void NXTerrainLODStreamer::Update()
     {
         for (auto& node : nodeLists[i])
         {
-            auto it = std::find_if(m_nodeDescArray.begin(), m_nodeDescArray.end(), [&](const NXTerrainLODQuadTreeNodeDescription& nodeDesc) {
+            auto it = std::find_if(m_nodeDescArrayInternal.begin(), m_nodeDescArrayInternal.end(), [&](const NXTerrainLODQuadTreeNodeDescription& nodeDesc) {
                 // 检查缓存中是否已经具有位置和大小相同，并且是有效（或正在加载中的）节点
                 return node.positionWS == nodeDesc.data.positionWS && node.size == nodeDesc.data.size && (nodeDesc.isLoading || nodeDesc.isValid);
                 });
 
             // 若节点已存在，或者正在加载
-            if (it != m_nodeDescArray.end())
+            if (it != m_nodeDescArrayInternal.end())
             {
                 // 仅需更新lastUpdate
                 it->lastUpdatedFrame = NXGlobalApp::s_frameIndex.load();
@@ -77,10 +79,10 @@ void NXTerrainLODStreamer::Update()
                 uint32_t oldestIndex = -1;
                 uint32_t selectedIndex = -1;
 
-                for (uint32_t descIndex = 0; descIndex < m_nodeDescArray.size(); descIndex++)
+                for (uint32_t descIndex = 0; descIndex < m_nodeDescArrayInternal.size(); descIndex++)
                 {
                     // 优先取空闲（isValid）；正在加载的（isLoading）不考虑
-                    auto& nodeDesc = m_nodeDescArray[descIndex];
+                    auto& nodeDesc = m_nodeDescArrayInternal[descIndex];
                     if (!nodeDesc.isValid && !nodeDesc.isLoading)
                     {
                         selectedIndex = descIndex;
@@ -103,7 +105,7 @@ void NXTerrainLODStreamer::Update()
                 
                 if (selectedIndex != -1)
                 {
-                    auto& selectedNodeDesc = m_nodeDescArray[selectedIndex];
+                    auto& selectedNodeDesc = m_nodeDescArrayInternal[selectedIndex];
                     selectedNodeDesc.isLoading = true;
                     selectedNodeDesc.isValid = false;
                     selectedNodeDesc.data = node;
@@ -120,7 +122,7 @@ void NXTerrainLODStreamer::Update()
     {
 		static Int2 minTerrainID = g_terrainConfig.MinTerrainPos / g_terrainConfig.TerrainSize;
 
-        auto& data = m_nodeDescArray[loadingDesc].data;
+        auto& data = m_nodeDescArrayInternal[loadingDesc].data;
         Int2 relativePos = data.positionWS - data.terrainID * g_terrainConfig.TerrainSize; // 地形块内相对左下角的位置
         relativePos.y = 2048 - relativePos.y; // flip Y
         Int2 relativePosID = relativePos / data.size;
@@ -141,8 +143,7 @@ void NXTerrainLODStreamer::Update()
         std::string strTerrSubID = std::to_string(realSize) + "_" + std::to_string(relativePosID.x) + "_" + std::to_string(relativePosID.y);
 
         TerrainStreamingLoadRequest task;
-        task.terrainID = data.terrainID;
-        task.relativePos = relativePos;
+		task.positionWS = data.positionWS;
         task.size = realSize;
 		task.nodeDescArrayIndex = loadingDesc;
 		task.minMaxZ = minmaxZ;
@@ -168,10 +169,16 @@ void NXTerrainLODStreamer::ProcessCompletedStreamingTask()
 {
     for (auto& task : m_asyncLoader->ConsumeCompletedTasks())
     {
-        m_nodeDescArray[task.nodeDescArrayIndex].isLoading = false;
-        m_nodeDescArray[task.nodeDescArrayIndex].isValid = true;
-        printf("%s\n", task.pSplatMap->GetFilePath().string().c_str());
-        //NXTerrainStreamingBatcher::GetInstance()->PushCompletedTask(task);
+        //printf("%s\n", task.pSplatMap->GetFilePath().string().c_str());
+
+        m_nodeDescArrayInternal[task.nodeDescArrayIndex].isLoading = false;
+        m_nodeDescArrayInternal[task.nodeDescArrayIndex].isValid = true;
+
+        CBufferTerrainNodeDescription data;
+		data.minmaxZ = task.minMaxZ;
+		data.positionWS = task.positionWS;
+		data.size = task.size;
+        m_streamData.SetNodeDescArrayData(task.nodeDescArrayIndex, data);
     }
 }
 

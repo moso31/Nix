@@ -10,7 +10,6 @@ NXGPUTerrainManager::NXGPUTerrainManager()
 
 void NXGPUTerrainManager::Init()
 {
-	// ·ÖÅäÄÚ´æ
 	m_pTerrainBufferA = new NXBuffer("GPU Terrain Buffer A");
 	m_pTerrainBufferA->Create(sizeof(NXGPUTerrainBlockData), m_pTerrainBufferMaxSize);
 

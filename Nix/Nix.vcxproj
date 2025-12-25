@@ -395,6 +395,7 @@
     <ClCompile Include="Nix\NXSubMesh.cpp" />
     <ClCompile Include="Nix\NXSubMeshGeometryEditor.cpp" />
     <ClCompile Include="Nix\NXTerrainLayer.cpp" />
+    <ClCompile Include="Nix\NXTerrainLODStreamData.cpp" />
     <ClCompile Include="Nix\NXTerrainStreamingAsyncLoader.cpp" />
     <ClCompile Include="Nix\NXTerrainStreamingBatcher.cpp" />
     <ClCompile Include="Nix\NXTerrainLODStreamer.cpp" />
@@ -526,6 +527,7 @@
     <ClInclude Include="Nix\NXTerrain.h" />
     <ClInclude Include="Nix\NXTerrainCommon.h" />
     <ClInclude Include="Nix\NXTerrainLayer.h" />
+    <ClInclude Include="Nix\NXTerrainLODStreamData.h" />
     <ClInclude Include="Nix\NXTerrainStreamingAsyncLoader.h" />
     <ClInclude Include="Nix\NXTerrainStreamingBatcher.h" />
     <ClInclude Include="Nix\NXTerrainLODStreamer.h" />

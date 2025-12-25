@@ -121,6 +121,22 @@ void Renderer::GenerateRenderGraph()
 	auto terrIns = NXGPUTerrainManager::GetInstance();
 	if (g_debug_temporal_enable_terrain_debug)
 	{
+		struct TerrainNodeDescCopy
+		{
+			NXRGHandle pNodeDescArrayGPU;
+		};
+		NXRGHandle pTerrNodeDescArrayGPU = m_pRenderGraph->Import(m_pTerrainLODStreamer->GetStreamingData().GetNodeDescArrayGPUBuffer()); 
+
+		m_pRenderGraph->AddPass<TerrainNodeDescCopy>("Terrain NodeDesc Copy",
+			[&](NXRGBuilder& builder, TerrainNodeDescCopy& data) {
+				data.pNodeDescArrayGPU = builder.Write(pTerrNodeDescArrayGPU);
+			},
+			[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, TerrainNodeDescCopy& data) {
+				auto pBuffer = m_pTerrainLODStreamer->GetStreamingData().GetNodeDescArray().Current();
+				auto pGPUBuffer = resMap.GetRes(data.pNodeDescArrayGPU).As<NXBuffer>()->GetD3DResource();
+				//pCmdList->CopyBufferRegion(pGPUBuffer,)
+			});
+
 		NXRGHandle pTerrainBufferA = m_pRenderGraph->Import(terrIns->GetTerrainBufferA());
 		NXRGHandle pTerrainBufferB = m_pRenderGraph->Import(terrIns->GetTerrainBufferB());
 		NXRGHandle pTerrainBufferFinal = m_pRenderGraph->Import(terrIns->GetTerrainFinalBuffer());

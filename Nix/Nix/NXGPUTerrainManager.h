@@ -48,7 +48,7 @@ private:
 	D3D12_INDIRECT_ARGUMENT_DESC m_drawIndexArgDesc[1];
 	D3D12_COMMAND_SIGNATURE_DESC m_cmdSigDesc;
 
-	uint32_t m_pTerrainBufferMaxSize = 65536;
+	static constexpr uint32_t m_pTerrainBufferMaxSize = 65536;
 
 	// 两个buffer A B之间 来回pingpong，结果输出到 final
 	Ntr<NXBuffer> m_pTerrainBufferA;
