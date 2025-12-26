@@ -27,9 +27,9 @@ void CommittedBufferAllocator::Alloc(uint32_t byteSize, const std::function<void
 			result.cpuAddress = nullptr; 
 
 		if (m_isReadBack)
-			result.gpuAddress = NULL;
-		else 
-			result.gpuAddress = m_allocatorMap[memData.pAllocator].m_pResource->GetGPUVirtualAddress() + memData.byteOffset;
+			result.gpuResource = nullptr;
+		else
+			result.gpuResource = m_allocatorMap[memData.pAllocator].m_pResource;
 
 		result.memData = memData;
 		callback(result);

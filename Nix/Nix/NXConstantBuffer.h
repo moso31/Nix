@@ -15,7 +15,9 @@ public:
 		m_isCreating = false;
 	}
 
-	virtual const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>& GetFrameGPUAddresses() = 0;
+	UINT GetByteSize() const { return m_byteSize; }
+
+	virtual const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>& GetFrameGPUAddresses() const = 0;
 
 protected:
 	virtual void CreateInternal(UINT byteSize) = 0;
@@ -56,17 +58,24 @@ public:
 		return *m_cpuAddrs.Current();
 	}
 
-	const D3D12_GPU_VIRTUAL_ADDRESS& CurrentGPUAddress()
+	const D3D12_GPU_VIRTUAL_ADDRESS& CurrentGPUAddress() const
 	{
 		WaitCreateComplete();
 		return m_gpuAddrs.Current();
 	}
 
 	// 获取所有FrameResource的GPU地址。以MultiFrame的形式返回。
-	const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>& GetFrameGPUAddresses() override
+	const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>& GetFrameGPUAddresses() const override
 	{
 		WaitCreateComplete();
 		return m_gpuAddrs;
+	}
+
+	ID3D12Resource* CurrentGPUResourceAndOffset(UINT64& oByteOffset) const
+	{
+		WaitCreateComplete();
+		oByteOffset = m_memData.Current().byteOffset;
+		return m_gpuResource.Current();
 	}
 
 	void Update(const T& newData)
@@ -107,7 +116,8 @@ private:
 				// lambda内可能是另一个线程A
 				// 获取Alloc的上传堆cpu地址。
 				m_cpuAddrs[i] = reinterpret_cast<T*>(result.cpuAddress);
-				m_gpuAddrs[i] = result.gpuAddress;
+				m_gpuAddrs[i] = result.gpuResource->GetGPUVirtualAddress() + result.memData.byteOffset;
+				m_gpuResource[i] = result.gpuResource;
 				m_memData[i] = result.memData;
 
 				if (--m_counter == 0)
@@ -134,6 +144,7 @@ private:
 			NXAllocator_CB->Free(m_memData[i]);
 			m_cpuAddrs[i] = nullptr;
 			m_gpuAddrs[i] = 0;
+			m_gpuResource[i] = nullptr;
 			m_memData[i].pAllocator = nullptr;
 			m_memData[i].byteOffset = 0;
 		}
@@ -142,7 +153,8 @@ private:
 private:
 	MultiFrame<T*> m_cpuAddrs;
 	MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS> m_gpuAddrs;
-	XBuddyTaskMemData m_memData[MultiFrameSets_swapChainCount];
+	MultiFrame<ID3D12Resource*> m_gpuResource;
+	MultiFrame<XBuddyTaskMemData> m_memData;
 };
 
 template<typename T>
@@ -184,10 +196,17 @@ public:
 	}
 
 	// 获取所有FrameResource的GPU地址。以MultiFrame的形式返回。
-	const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>& GetFrameGPUAddresses() override
+	const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>& GetFrameGPUAddresses() const override
 	{
 		WaitCreateComplete();
 		return m_gpuAddrs;
+	}
+
+	ID3D12Resource* CurrentGPUResourceAndOffset(UINT64& oByteOffset) const
+	{
+		WaitCreateComplete();
+		oByteOffset = m_memData.Current().byteOffset;
+		return m_gpuResource.Current();
 	}
 
 	// 更新整个数组
@@ -230,7 +249,8 @@ private:
 				// lambda内可能是另一个线程A
 				// 获取Alloc的上传堆cpu地址。
 				m_cpuAddrs[i] = reinterpret_cast<T*>(result.cpuAddress);
-				m_gpuAddrs[i] = result.gpuAddress;
+				m_gpuAddrs[i] = result.gpuResource->GetGPUVirtualAddress() + result.memData.byteOffset;
+				m_gpuResource[i] = result.gpuResource;
 				m_memData[i] = result.memData;
 
 				if (--m_counter == 0)
@@ -255,6 +275,7 @@ private:
 			NXAllocator_CB->Free(m_memData[i]);
 			m_cpuAddrs[i] = nullptr;
 			m_gpuAddrs[i] = 0;
+			m_gpuResource[i] = nullptr;
 			m_memData[i].pAllocator = nullptr;
 			m_memData[i].byteOffset = 0;
 		}
@@ -265,5 +286,6 @@ private:
 
 	MultiFrame<T*> m_cpuAddrs;
 	MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS> m_gpuAddrs;
-	XBuddyTaskMemData m_memData[MultiFrameSets_swapChainCount];
+	MultiFrame<ID3D12Resource*> m_gpuResource;
+	MultiFrame<XBuddyTaskMemData> m_memData;
 };

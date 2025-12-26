@@ -90,6 +90,9 @@ public:
 
 	void ProcessCompletedStreamingTask();
 
+	// 每帧最多加载多少组纹理
+	uint32_t GetLoadTexGroupLimitEachFrame();
+
 	NXTerrainLODStreamData& GetStreamingData() { return m_streamData; }
 
 private:

@@ -48,7 +48,7 @@ public:
 	void SetEntryNameCS(const std::wstring& entryName) { m_entryNameCS = entryName; }
 
 	void SetShaderFilePath(const std::filesystem::path& shaderFilePath);
-	void SetConstantBuffer(int spaceIndex, int slotIndex, NXConstantBufferImpl* pCBuffer);
+	void SetConstantBuffer(int spaceIndex, int slotIndex, const NXConstantBufferImpl* pCBuffer);
 
 	void AddStaticSampler(const D3D12_STATIC_SAMPLER_DESC& staticSampler);
 	void AddStaticSampler(D3D12_FILTER filter, D3D12_TEXTURE_ADDRESS_MODE addrUVW);
@@ -82,7 +82,7 @@ protected:
 	std::wstring m_entryNameCS;
 	
 	std::vector<D3D12_STATIC_SAMPLER_DESC> m_staticSamplers;
-    std::vector<std::vector<NXConstantBufferImpl*>> m_cbuffers;
+    std::vector<std::vector<const NXConstantBufferImpl*>> m_cbuffers;
 };
 
 class NXGraphicPassMaterial : public NXPassMaterial

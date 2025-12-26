@@ -121,21 +121,91 @@ void Renderer::GenerateRenderGraph()
 	auto terrIns = NXGPUTerrainManager::GetInstance();
 	if (g_debug_temporal_enable_terrain_debug)
 	{
-		struct TerrainNodeDescCopy
-		{
-			NXRGHandle pNodeDescArrayGPU;
-		};
-		NXRGHandle pTerrNodeDescArrayGPU = m_pRenderGraph->Import(m_pTerrainLODStreamer->GetStreamingData().GetNodeDescArrayGPUBuffer()); 
+		auto& pStreamingData = m_pTerrainLODStreamer->GetStreamingData();
 
-		m_pRenderGraph->AddPass<TerrainNodeDescCopy>("Terrain NodeDesc Copy",
-			[&](NXRGBuilder& builder, TerrainNodeDescCopy& data) {
-				data.pNodeDescArrayGPU = builder.Write(pTerrNodeDescArrayGPU);
-			},
-			[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, TerrainNodeDescCopy& data) {
-				auto pBuffer = m_pTerrainLODStreamer->GetStreamingData().GetNodeDescArray().Current();
-				auto pGPUBuffer = resMap.GetRes(data.pNodeDescArrayGPU).As<NXBuffer>()->GetD3DResource();
-				//pCmdList->CopyBufferRegion(pGPUBuffer,)
-			});
+		int groupNum = pStreamingData.GetNodeDescUpdateIndicesNum();
+		if (groupNum > 0)
+		{
+			struct TerrainNodeDescCopy
+			{
+				NXRGHandle pNodeDescArrayGPU;
+			};
+			NXRGHandle pTerrNodeDescArrayGPU = m_pRenderGraph->Import(pStreamingData.GetNodeDescArrayGPUBuffer());
+
+			m_pRenderGraph->AddPass<TerrainNodeDescCopy>("Terrain NodeDesc Copy",
+				[&](NXRGBuilder& builder, TerrainNodeDescCopy& data) {
+					data.pNodeDescArrayGPU = builder.Write(pTerrNodeDescArrayGPU);
+				},
+				[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, TerrainNodeDescCopy& data) {
+					uint64_t pBufferOffset;
+					auto& cbNodeDescArray = pStreamingData.GetNodeDescArray();
+					auto pBuffer = cbNodeDescArray.CurrentGPUResourceAndOffset(pBufferOffset);
+					auto pGPUBuffer = resMap.GetRes(data.pNodeDescArrayGPU).As<NXBuffer>();
+					pCmdList->CopyBufferRegion(pGPUBuffer->GetD3DResource(), 0, pBuffer, pBufferOffset, cbNodeDescArray.GetByteSize());
+				});
+
+			struct TerrainAtlasBaker
+			{
+				std::vector<NXRGHandle> pIn;
+				NXRGHandle pOutAtlas;
+			};
+
+			//std::vector<NXRGHandle> pToAtlasHeights(groupNum);
+			//std::vector<NXRGHandle> pToAtlasSplats(groupNum);
+			//for (int i = 0; i < groupNum; i++)
+			//{
+			//	pToAtlasHeights[i] = m_pRenderGraph->Import(pStreamingData.GetToAtlasHeightTextures()[i]);
+			//	pToAtlasSplats[i] = m_pRenderGraph->Import(pStreamingData.GetToAtlasSplatTextures()[i]);
+			//}
+			//NXRGHandle pHeightMapAtlas = m_pRenderGraph->Import(pStreamingData.GetHeightMapAtlas());
+			//NXRGHandle pSplatMapAtlas = m_pRenderGraph->Import(pStreamingData.GetSplatMapAtlas());
+
+			m_pRenderGraph->AddPass<TerrainAtlasBaker>("Terrain Atlas Baker: Height",
+				[&, groupNum](NXRGBuilder& builder, TerrainAtlasBaker& data) {
+					data.pIn.resize(groupNum);
+					for (int i = 0; i < groupNum; i++)
+					{
+						data.pIn[i] = builder.Read(m_pRenderGraph->Import(pStreamingData.GetToAtlasHeightTextures()[i]));
+					}
+					data.pOutAtlas = builder.Write(m_pRenderGraph->Import(pStreamingData.GetHeightMapAtlas()));
+				},
+				[&, groupNum](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, TerrainAtlasBaker& data) {
+					auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("TerrainAtlasBaker"));
+					for (int i = 0; i < groupNum; i++)
+						pMat->SetInput(0, i, resMap.GetRes(data.pIn[i]));
+					pMat->SetOutput(0, 0, resMap.GetRes(data.pOutAtlas));
+					pMat->SetConstantBuffer(0, 0, &pStreamingData.GetNodeDescUpdateIndices());
+
+					uint32_t threadGroups = (pStreamingData.s_atlasSplatMapSize + 7) / 8;
+					pMat->RenderSetTargetAndState(pCmdList);
+					pMat->RenderBefore(pCmdList);
+					pCmdList->Dispatch(threadGroups, threadGroups, groupNum);
+				});
+
+			m_pRenderGraph->AddPass<TerrainAtlasBaker>("Terrain Atlas Baker: Splat",
+				[&, groupNum](NXRGBuilder& builder, TerrainAtlasBaker& data) {
+					data.pIn.resize(groupNum);
+					for (int i = 0; i < groupNum; i++)
+					{
+						data.pIn[i] = builder.Read(m_pRenderGraph->Import(pStreamingData.GetToAtlasSplatTextures()[i]));
+					}
+					data.pOutAtlas = builder.Write(m_pRenderGraph->Import(pStreamingData.GetSplatMapAtlas()));
+				},
+				[&, groupNum](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, TerrainAtlasBaker& data) {
+					auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("TerrainAtlasBaker"));
+					for (int i = 0; i < groupNum; i++)
+					{
+						pMat->SetInput(0, i, resMap.GetRes(data.pIn[i]));
+					}
+					pMat->SetOutput(0, 0, resMap.GetRes(data.pOutAtlas));
+					pMat->SetConstantBuffer(0, 0, &pStreamingData.GetNodeDescUpdateIndices());
+
+					uint32_t threadGroups = (pStreamingData.s_atlasSplatMapSize + 7) / 8;
+					pMat->RenderSetTargetAndState(pCmdList);
+					pMat->RenderBefore(pCmdList);
+					pCmdList->Dispatch(threadGroups, threadGroups, groupNum);
+				});
+		}
 
 		NXRGHandle pTerrainBufferA = m_pRenderGraph->Import(terrIns->GetTerrainBufferA());
 		NXRGHandle pTerrainBufferB = m_pRenderGraph->Import(terrIns->GetTerrainBufferB());
@@ -759,14 +829,14 @@ void Renderer::ResourcesReloading(DirectResources* pDXRes)
 
 void Renderer::Update()
 {
+	m_pTerrainLODStreamer->ProcessCompletedStreamingTask();
+	m_pTerrainLODStreamer->Update();
+	m_pTerrainLODStreamer->UpdateAsyncLoader();
+
 	// Ã¿Ö¡¶¼Compile RenderGraph
 	m_pRenderGraph->Clear();
 	GenerateRenderGraph();
 	m_pRenderGraph->Compile();
-
-	m_pTerrainLODStreamer->ProcessCompletedStreamingTask();
-	m_pTerrainLODStreamer->Update();
-	m_pTerrainLODStreamer->UpdateAsyncLoader();
 
 	UpdateGUI();
 	UpdateSceneData();

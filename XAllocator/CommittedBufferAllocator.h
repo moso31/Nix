@@ -7,7 +7,7 @@ namespace ccmem
 	struct CommittedBufferAllocTaskResult
 	{
 		uint8_t* cpuAddress;
-		D3D12_GPU_VIRTUAL_ADDRESS gpuAddress;
+		ID3D12Resource* gpuResource;
 		XBuddyTaskMemData memData;
 	};
 

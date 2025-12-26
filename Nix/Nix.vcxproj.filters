@@ -260,6 +260,9 @@
       <Filter>Shader\VirtualTexture</Filter>
     </None>
     <None Include="packages.config" />
+    <None Include="Shader\TerrainAtlasBaker.fx">
+      <Filter>Shader\GPUTerrain</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">

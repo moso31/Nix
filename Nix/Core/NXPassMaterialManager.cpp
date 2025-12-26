@@ -11,6 +11,19 @@ NXPassMaterialManager* NXPassMaterialManager::GetInstance()
 
 void NXPassMaterialManager::Init()
 {
+	// Terrain Atlas Baker
+	{
+		auto pMat = new NXComputePassMaterial("TerrainAtlasBaker", L"Shader\\TerrainAtlasBaker.fx");
+		pMat->RegisterCBVSpaceNum(1);
+		pMat->RegisterCBVSlotNum(1);
+		pMat->RegisterUAVSpaceNum(1);
+		pMat->RegisterUAVSlotNum(1);
+		pMat->RegisterSRVSpaceNum(1);
+		pMat->RegisterSRVSlotNum(4);
+		pMat->FinalizeLayout();
+		m_pPassMaterialMaps["TerrainAtlasBaker"] = pMat;
+	}
+
 	// TerrainFillTest
 	{
 		auto pMat = new NXComputePassMaterial("TerrainFillTest", L"Shader\\FillTestComputeShader.fx");

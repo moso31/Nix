@@ -167,9 +167,13 @@ void NXTerrainLODStreamer::UpdateAsyncLoader()
 
 void NXTerrainLODStreamer::ProcessCompletedStreamingTask()
 {
-    for (auto& task : m_asyncLoader->ConsumeCompletedTasks())
+    m_streamData.ClearNodeDescUpdateIndices(); // 更新索引每帧清空
+
+    auto& completeTasks = m_asyncLoader->ConsumeCompletedTasks();
+    for (int i = 0; i < completeTasks.size(); i++)
     {
-        //printf("%s\n", task.pSplatMap->GetFilePath().string().c_str());
+        auto& task = completeTasks[i];
+        printf("%d %s\n", i, task.pSplatMap->GetFilePath().string().c_str());
 
         m_nodeDescArrayInternal[task.nodeDescArrayIndex].isLoading = false;
         m_nodeDescArrayInternal[task.nodeDescArrayIndex].isValid = true;
@@ -179,7 +183,17 @@ void NXTerrainLODStreamer::ProcessCompletedStreamingTask()
 		data.positionWS = task.positionWS;
 		data.size = task.size;
         m_streamData.SetNodeDescArrayData(task.nodeDescArrayIndex, data);
+
+        m_streamData.SetToAtlasHeightTexture(i, task.pHeightMap);
+        m_streamData.SetToAtlasSplatTexture(i, task.pSplatMap);
     }
+
+    m_streamData.UpdateCBNodeDescArray();
+}
+
+uint32_t NXTerrainLODStreamer::GetLoadTexGroupLimitEachFrame()
+{
+    return m_asyncLoader->s_maxComputeLimit;
 }
 
 void NXTerrainLODStreamer::GetNodeDatasInternal(std::vector<std::vector<NXTerrainLODQuadTreeNode>>& oNodeDataList, const NXTerrainLODQuadTreeNode& node)

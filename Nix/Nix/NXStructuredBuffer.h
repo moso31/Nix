@@ -40,7 +40,7 @@ protected:
 
 		m_futureCB = m_promiseCB.get_future();
 		NXAllocator_SB->Alloc(m_byteSize, [this](const CommittedBufferAllocTaskResult& result) {
-			m_gpuAddress = result.gpuAddress;
+			m_gpuAddress = result.gpuResource->GetGPUVirtualAddress() + result.memData.byteOffset;
 			m_memData = result.memData;
 			m_promiseCB.set_value();
 

@@ -98,7 +98,7 @@ void NXPassMaterial::SetShaderFilePath(const std::filesystem::path& shaderFilePa
 	m_shaderFilePath = shaderFilePath;
 }
 
-void NXPassMaterial::SetConstantBuffer(int spaceIndex, int slotIndex, NXConstantBufferImpl* pCBuffer)
+void NXPassMaterial::SetConstantBuffer(int spaceIndex, int slotIndex, const NXConstantBufferImpl* pCBuffer)
 {
 	if (spaceIndex >= m_layout.cbvSpaceNum || slotIndex >= m_layout.cbvSlotNum[spaceIndex]) return;
 	m_cbuffers[spaceIndex][slotIndex] = pCBuffer;
