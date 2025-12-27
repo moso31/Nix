@@ -263,6 +263,9 @@
     <None Include="Shader\TerrainAtlasBaker.fx">
       <Filter>Shader\GPUTerrain</Filter>
     </None>
+    <None Include="Shader\TerrainSector2NodeTint.fx">
+      <Filter>Shader\GPUTerrain</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">
@@ -584,6 +587,9 @@
       <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXGUIHoudiniTerrainExporter.cpp">
+      <Filter>Core\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXGUITerrainSector2NodeIDPreview.cpp">
       <Filter>Core\UI</Filter>
     </ClCompile>
     <ClCompile Include="..\NixTools\include\tinyexr\miniz.c">
@@ -991,6 +997,9 @@
       <Filter>Nix\Material</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXGUIHoudiniTerrainExporter.h">
+      <Filter>Core\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXGUITerrainSector2NodeIDPreview.h">
       <Filter>Core\UI</Filter>
     </ClInclude>
     <ClInclude Include="..\NixTools\include\tinyexr\miniz.h">

@@ -26,26 +26,26 @@ struct TerrainStreamingLoadRequest
 	// 每个任务包负责加载的对应子纹理集
 	StringDatas heightMap;
 	StringDatas splatMap;
+
+	// 是否替换nodeDescArray中的旧data
+	// 旧data只需记录位置和size，能擦除就行
+	// 注意如果是不需要替换, size=0
+	Int2 replacePositionWS;
+	int replaceSize;
 };
 
 class NXTexture2D;
 struct NXTerrainStreamingLoadTextureResult
 {
-	// node所处世界坐标（左下角）
+	// 除了把stringdatas换成实际纹理指针，其他和上面struct TerrainStreamingLoadRequest保持一致
 	Int2 positionWS;
-
-	// 高度范围
-	Vector2 minMaxZ;
-
-	// 地形node的尺寸
 	uint32_t size;
-
-	// 地形node在nodeDescArray中的索引
+	Vector2 minMaxZ;
 	uint32_t nodeDescArrayIndex;
-
-	// 每个任务包异步加载的纹理
 	Ntr<NXTexture2D> pHeightMap;
 	Ntr<NXTexture2D> pSplatMap;
+	Int2 replacePositionWS;
+	int replaceSize;
 };
 
 class NXTerrainStreamingAsyncLoader

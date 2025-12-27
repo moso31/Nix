@@ -52,6 +52,10 @@ struct NXTerrainLODQuadTreeNode
 struct NXTerrainLODQuadTreeNodeDescription
 {
 	NXTerrainLODQuadTreeNode data;
+	NXTerrainLODQuadTreeNode oldData;
+
+	// 是否需要删除旧值
+	bool removeOldData = false;
 
 	// 是否已经异步加载完成
 	bool isValid = false;

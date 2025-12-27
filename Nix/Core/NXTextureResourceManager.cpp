@@ -130,10 +130,10 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateRenderTexture(const std::string
 	return pTexture2D;
 }
 
-Ntr<NXTexture2D> NXTextureResourceManager::CreateUAVTexture(const std::string& name, DXGI_FORMAT fmt, UINT width, UINT height, D3D12_RESOURCE_FLAGS flags, bool bAutoMakeViews)
+Ntr<NXTexture2D> NXTextureResourceManager::CreateUAVTexture(const std::string& name, DXGI_FORMAT fmt, UINT width, UINT height, UINT mipLevels, D3D12_RESOURCE_FLAGS flags, bool bAutoMakeViews)
 {
 	Ntr<NXTexture2D> pTexture2D(new NXTexture2D());
-	pTexture2D->CreateUAVTexture(name, fmt, width, height, flags);
+	pTexture2D->CreateUAVTexture(name, fmt, width, height, mipLevels, flags);
 
 	// 2DRT的automakeView：创建一个SRV，如果作为RT使用，就创建RTV；如果作为DS使用，就创建DSV
 	if (bAutoMakeViews)

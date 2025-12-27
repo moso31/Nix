@@ -150,16 +150,6 @@ void Renderer::GenerateRenderGraph()
 				NXRGHandle pOutAtlas;
 			};
 
-			//std::vector<NXRGHandle> pToAtlasHeights(groupNum);
-			//std::vector<NXRGHandle> pToAtlasSplats(groupNum);
-			//for (int i = 0; i < groupNum; i++)
-			//{
-			//	pToAtlasHeights[i] = m_pRenderGraph->Import(pStreamingData.GetToAtlasHeightTextures()[i]);
-			//	pToAtlasSplats[i] = m_pRenderGraph->Import(pStreamingData.GetToAtlasSplatTextures()[i]);
-			//}
-			//NXRGHandle pHeightMapAtlas = m_pRenderGraph->Import(pStreamingData.GetHeightMapAtlas());
-			//NXRGHandle pSplatMapAtlas = m_pRenderGraph->Import(pStreamingData.GetSplatMapAtlas());
-
 			m_pRenderGraph->AddPass<TerrainAtlasBaker>("Terrain Atlas Baker: Height",
 				[&, groupNum](NXRGBuilder& builder, TerrainAtlasBaker& data) {
 					data.pIn.resize(groupNum);
@@ -205,6 +195,28 @@ void Renderer::GenerateRenderGraph()
 					pMat->RenderBefore(pCmdList);
 					pCmdList->Dispatch(threadGroups, threadGroups, groupNum);
 				});
+
+			struct TerrainSector2NodeTint
+			{
+				NXRGHandle Sector2NodeTex;
+			};
+			m_pRenderGraph->AddPass<TerrainSector2NodeTint>("Terrain Sector2Node Tint", 
+				[&](NXRGBuilder& builder, TerrainSector2NodeTint& data) 
+				{
+					data.Sector2NodeTex = builder.Write(m_pRenderGraph->Import(pStreamingData.GetSector2NodeIDTexture()));
+				},
+				[&, groupNum](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, TerrainSector2NodeTint& data) 
+				{
+					auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("TerrainSector2NodeTint"));
+					pMat->SetConstantBuffer(0, 0, &pStreamingData.GetNodeDescArray());
+					pMat->SetConstantBuffer(0, 1, &pStreamingData.GetNodeDescUpdateIndices());
+					pMat->SetOutput(0, 0, resMap.GetRes(data.Sector2NodeTex));
+
+					pMat->RenderSetTargetAndState(pCmdList);
+					pMat->RenderBefore(pCmdList);
+					pCmdList->Dispatch(groupNum, 1, 1);
+				}
+			);
 		}
 
 		NXRGHandle pTerrainBufferA = m_pRenderGraph->Import(terrIns->GetTerrainBufferA());

@@ -61,6 +61,9 @@ public:
 
 	Ntr<NXReadbackData>& GetVTReadbackData() { return m_vtReadbackData; }
 
+	// TerrainLODStreamer
+	NXTerrainLODStreamer* GetTerrainLODStreamer() { return m_pTerrainLODStreamer; }
+
 private:
 	void InitEvents();
 	void InitGlobalResources();

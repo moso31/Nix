@@ -11,11 +11,24 @@ struct CBufferTerrainNodeDescription
 	// 地形左下角XZ节点坐标（左手坐标系）
 	Int2 positionWS; 
 
+	// 节点的minmaxZ数据
+	Vector2 minmaxZ; 
+
 	// 节点大小，一定是2的整数幂
 	uint32_t size; 
 
-	// 节点的minmaxZ数据
-	Vector2 minmaxZ; 
+	uint32_t padding[3];
+};
+
+struct CBufferTerrainNodeDescUpdateInfo
+{
+	// 要替换的索引
+	int newIndex;
+
+	// 被替换的旧信息和大小
+	// 注意如果是不需要replace，则size = 0;
+	Int2 replacePosWS;
+	int replaceSize; 
 };
 
 class NXTerrainLODStreamer;
@@ -33,10 +46,11 @@ public:
 	void Init(NXTerrainLODStreamer* pStreamer);
 
 	const std::vector<CBufferTerrainNodeDescription>& GetNodeDescArrayData() const { return m_nodeDescArray; }
-	void SetNodeDescArrayData(uint32_t index, const CBufferTerrainNodeDescription& data);
+	void SetNodeDescArrayData(uint32_t index, const CBufferTerrainNodeDescription& data, const Int2& replacePosWS, int replaceSize);
 	const NXConstantBuffer<std::vector<CBufferTerrainNodeDescription>>& GetNodeDescArray() const { return m_cbNodeDescArray; }
 	void UpdateCBNodeDescArray();
-	const NXConstantBuffer<std::vector<int>>& GetNodeDescUpdateIndices() const { return m_cbNodeDescUpdateIndices; }
+	const NXConstantBuffer<std::vector<CBufferTerrainNodeDescUpdateInfo>>& GetNodeDescUpdateIndices() const { return m_cbNodeDescUpdateIndices; }
+	const std::vector<CBufferTerrainNodeDescUpdateInfo>& GetNodeDescUpdateIndicesData() const { return m_nodeDescUpdateIndices; }
 	const uint32_t GetNodeDescUpdateIndicesNum() const { return m_nodeDescUpdateIndices.size(); }
 	void ClearNodeDescUpdateIndices();
 
@@ -48,14 +62,15 @@ public:
 	const std::vector<Ntr<NXTexture2D>>& GetToAtlasSplatTextures() const { return m_pToAtlasSplats; }
 	void SetToAtlasHeightTexture(uint32_t index, const Ntr<NXTexture2D>& pTexture) { m_pToAtlasHeights[index] = pTexture; }
 	void SetToAtlasSplatTexture(uint32_t index, const Ntr<NXTexture2D>& pTexture) { m_pToAtlasSplats[index] = pTexture; }
+	const Ntr<NXTexture2D>& GetSector2NodeIDTexture() const { return m_pSector2NodeIDTexture; }
 
 private:
 	// 和m_nodeDescArrayInternal完全相同，只是数据格式不同，供CPU-GPU交互
 	std::vector<CBufferTerrainNodeDescription> m_nodeDescArray;
 	NXConstantBuffer<std::vector<CBufferTerrainNodeDescription>> m_cbNodeDescArray;
 	// 用一个int[]记录每帧更新的nodeDesc索引，每帧重置
-	std::vector<int> m_nodeDescUpdateIndices;
-	NXConstantBuffer<std::vector<int>> m_cbNodeDescUpdateIndices;
+	std::vector<CBufferTerrainNodeDescUpdateInfo> m_nodeDescUpdateIndices;
+	NXConstantBuffer<std::vector<CBufferTerrainNodeDescUpdateInfo>> m_cbNodeDescUpdateIndices;
 
 	// NodeDescriptionArray(GPU)
 	Ntr<NXBuffer> m_pTerrainNodeDescArray;
@@ -67,4 +82,7 @@ private:
 	// 每帧待合并到Atlas的纹理列表
 	std::vector<Ntr<NXTexture2D>> m_pToAtlasHeights;
 	std::vector<Ntr<NXTexture2D>> m_pToAtlasSplats;
+
+	// 记录各sector的nodeID
+	Ntr<NXTexture2D> m_pSector2NodeIDTexture;
 };

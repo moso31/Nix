@@ -106,6 +106,16 @@ void NXTerrainLODStreamer::Update()
                 if (selectedIndex != -1)
                 {
                     auto& selectedNodeDesc = m_nodeDescArrayInternal[selectedIndex];
+                    if (oldestIndex != -1)
+                    {
+                        // 如果要替换最久未使用的节点 记录替换前的数据
+                        selectedNodeDesc.oldData = selectedNodeDesc.data; 
+                        selectedNodeDesc.removeOldData = true;
+                    }
+                    else
+                    {
+                        selectedNodeDesc.removeOldData = false;
+                    }
                     selectedNodeDesc.isLoading = true;
                     selectedNodeDesc.isValid = false;
                     selectedNodeDesc.data = node;
@@ -143,12 +153,20 @@ void NXTerrainLODStreamer::Update()
         std::string strTerrSubID = std::to_string(realSize) + "_" + std::to_string(relativePosID.x) + "_" + std::to_string(relativePosID.y);
 
         TerrainStreamingLoadRequest task;
+        // 新的位置、大小、minmaxz
 		task.positionWS = data.positionWS;
         task.size = realSize;
 		task.nodeDescArrayIndex = loadingDesc;
 		task.minMaxZ = minmaxZ;
+
+        // 如果有旧的信息task也记一下，同步到GPU，有删除操作依赖
+        if (m_nodeDescArrayInternal[loadingDesc].removeOldData)
+        {
+            auto& oldData = m_nodeDescArrayInternal[loadingDesc].oldData;
+            task.replacePositionWS = oldData.positionWS;
+            task.replaceSize = oldData.size;
+        }
         
-        // 使用正确的路径分隔符，确保与TextureMaker的路径格式一致
         task.heightMap.path = m_terrainWorkingDir / strTerrId / "sub" / "hmap" / (strTerrSubID + ".dds");
         task.heightMap.name = "Terrain_HeightMap_" + strTerrId + "_tile_" + strTerrSubID;
 
@@ -173,16 +191,17 @@ void NXTerrainLODStreamer::ProcessCompletedStreamingTask()
     for (int i = 0; i < completeTasks.size(); i++)
     {
         auto& task = completeTasks[i];
-        printf("%d %s\n", i, task.pSplatMap->GetFilePath().string().c_str());
+        //printf("%d %s\n", i, task.pSplatMap->GetFilePath().string().c_str());
 
         m_nodeDescArrayInternal[task.nodeDescArrayIndex].isLoading = false;
         m_nodeDescArrayInternal[task.nodeDescArrayIndex].isValid = true;
 
+        // 要更新的索引、数据；还有此索引上残留的旧数据(replaced)
         CBufferTerrainNodeDescription data;
 		data.minmaxZ = task.minMaxZ;
 		data.positionWS = task.positionWS;
 		data.size = task.size;
-        m_streamData.SetNodeDescArrayData(task.nodeDescArrayIndex, data);
+        m_streamData.SetNodeDescArrayData(task.nodeDescArrayIndex, data, task.replacePositionWS, task.replaceSize);
 
         m_streamData.SetToAtlasHeightTexture(i, task.pHeightMap);
         m_streamData.SetToAtlasSplatTexture(i, task.pSplatMap);

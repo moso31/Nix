@@ -27,6 +27,7 @@ class NXGUIRenderGraph;
 class NXGUIVirtualTexture;
 class NXGUIHoudiniTerrainExporter;
 class NXGUITerrainMaterialGenerator;
+class NXGUITerrainSector2NodeIDPreview;
 
 class NXGUI
 {
@@ -46,6 +47,7 @@ public:
 
 	NXGUIHoudiniTerrainExporter* GetGUIHoudiniTerrainExporter() const { return m_pGUIHoudiniTerrainExporter; }
 	NXGUITerrainMaterialGenerator* GetGUITerrainMaterialGenerator() const { return m_pGUITerrainMaterialGenerator; }
+	NXGUITerrainSector2NodeIDPreview* GetGUITerrainSector2NodeIDPreview() const { return m_pGUITerrainSector2NodeIDPreview; }
 
 private:
 	MultiFrame<ComPtr<ID3D12GraphicsCommandList>>	m_pCmdList;
@@ -71,6 +73,7 @@ private:
 	NXGUIRenderGraph* 			m_pGUIRenderGraph;
 	NXGUIHoudiniTerrainExporter* m_pGUIHoudiniTerrainExporter;
 	NXGUITerrainMaterialGenerator* m_pGUITerrainMaterialGenerator;
+	NXGUITerrainSector2NodeIDPreview* m_pGUITerrainSector2NodeIDPreview;
 
 	NXGUIDebugLayer*			m_pGUIDebugLayer;
 

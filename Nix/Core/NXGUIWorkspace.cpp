@@ -4,6 +4,7 @@
 #include "NXGUI.h"
 #include "NXGUIHoudiniTerrainExporter.h"
 #include "NXGUITerrainMaterialGenerator.h"
+#include "NXGUITerrainSector2NodeIDPreview.h"
 #include "NXFileSystemHelper.h"
 
 void NXGUIWorkspace::Init(NXGUI* pGUI)
@@ -99,13 +100,17 @@ void NXGUIWorkspace::Render()
         ImGui::PopStyleVar();
         if (bToolsMenu)
         {
-            if (ImGui::MenuItem(ImUtf8("Houdini地形导出..."))) 
+            if (ImGui::MenuItem(ImUtf8("Houdini地形导出"))) 
             {
                 m_pGUI->GetGUIHoudiniTerrainExporter()->SetVisible(true);
             }
-            if (ImGui::MenuItem(ImUtf8("地形材质纹理生成..."))) 
+            if (ImGui::MenuItem(ImUtf8("地形材质纹理生成"))) 
             {
                 m_pGUI->GetGUITerrainMaterialGenerator()->SetVisible(true);
+            }
+            if (ImGui::MenuItem(ImUtf8("显示Sector2NodeID纹理"))) 
+            {
+                m_pGUI->GetGUITerrainSector2NodeIDPreview()->SetVisible(true);
             }
             ImGui::EndMenu();
         }

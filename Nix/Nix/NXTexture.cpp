@@ -869,14 +869,14 @@ Ntr<NXTexture2D> NXTexture2D::CreateRenderTexture(const std::string& debugName, 
 	return this;
 }
 
-Ntr<NXTexture2D> NXTexture2D::CreateUAVTexture(const std::string& debugName, DXGI_FORMAT fmt, uint32_t width, uint32_t height, D3D12_RESOURCE_FLAGS flags)
+Ntr<NXTexture2D> NXTexture2D::CreateUAVTexture(const std::string& debugName, DXGI_FORMAT fmt, uint32_t width, uint32_t height, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags)
 {
 	m_texFilePath = "[UAV Texture: " + debugName + "]";
 	m_name = debugName;
 	m_width = width;
 	m_height = height;
 	m_arraySize = 1;
-	m_mipLevels = 1;
+	m_mipLevels = mipLevels;
 	m_texFormat = fmt;
 
 	CreateUAVTextureInternal(flags);

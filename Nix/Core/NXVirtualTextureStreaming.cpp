@@ -63,12 +63,12 @@ void NXVirtualTextureStreaming::Init()
 	m_pBaseColor2DArray = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DArray("VT_BaseColorArray", baseColor2DArrayPath.wstring());
 	m_pBaseColor2DArray->WaitLoadingTexturesFinish();
 
-	m_pVTPhysicalPage0 = NXResourceManager::GetInstance()->GetTextureManager()->CreateUAVTexture("VT_PhysicalPage_SplatMap", DXGI_FORMAT_R16_FLOAT, 8192, 8192,  D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, false);
+	m_pVTPhysicalPage0 = NXResourceManager::GetInstance()->GetTextureManager()->CreateUAVTexture("VT_PhysicalPage_SplatMap", DXGI_FORMAT_R16_FLOAT, 8192, 8192, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, false);
 	m_pVTPhysicalPage0->SetViews(1, 0, 0, 1);
 	m_pVTPhysicalPage0->SetSRV(0);
 	m_pVTPhysicalPage0->SetUAV(0);
 
-	m_pVTPhysicalPage1 = NXResourceManager::GetInstance()->GetTextureManager()->CreateUAVTexture("VT_PhysicalPage_HeightMap", DXGI_FORMAT_R16_FLOAT, 8192, 8192, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, false);
+	m_pVTPhysicalPage1 = NXResourceManager::GetInstance()->GetTextureManager()->CreateUAVTexture("VT_PhysicalPage_HeightMap", DXGI_FORMAT_R16_FLOAT, 8192, 8192, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, false);
 	m_pVTPhysicalPage1->SetViews(1, 0, 0, 1);
 	m_pVTPhysicalPage1->SetSRV(0);
 	m_pVTPhysicalPage1->SetUAV(0);

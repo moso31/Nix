@@ -311,6 +311,7 @@
     <ClCompile Include="Core\NXGUICommandManager.cpp" />
     <ClCompile Include="Core\NXGUIDiffuseProfile.cpp" />
     <ClCompile Include="Core\NXGUIHoudiniTerrainExporter.cpp" />
+    <ClCompile Include="Core\NXGUITerrainSector2NodeIDPreview.cpp" />
     <ClCompile Include="Core\NXGUITerrainMaterialGenerator.cpp" />
     <ClCompile Include="Core\NXPassMaterialManager.cpp" />
     <ClCompile Include="Core\TinyEXRImpl.cpp" />
@@ -438,6 +439,7 @@
     <ClInclude Include="Core\NXGUICommandManager.h" />
     <ClInclude Include="Core\NXGUIDiffuseProfile.h" />
     <ClInclude Include="Core\NXGUIHoudiniTerrainExporter.h" />
+    <ClInclude Include="Core\NXGUITerrainSector2NodeIDPreview.h" />
     <ClInclude Include="Core\NXGUIInspector.h" />
     <ClInclude Include="Core\NXGUIRenderGraph.h" />
     <ClInclude Include="Core\NXGUITerrainMaterialGenerator.h" />
@@ -829,6 +831,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\TerrainAtlasBaker.fx">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DeploymentContent>
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shader\TerrainSector2NodeTint.fx">
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DeploymentContent>
       <FileType>Document</FileType>
     </None>

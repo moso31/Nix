@@ -14,19 +14,28 @@ void NXTerrainLODStreamData::Init(NXTerrainLODStreamer* pStreamer)
 	m_cbNodeDescUpdateIndices.Recreate(pStreamer->GetLoadTexGroupLimitEachFrame());
 
 	// 纹理Atlas
-	m_pHeightMapAtlas = NXManager_Tex->CreateUAVTexture2DArray("TerrainStreaming_HeightMapAtlas", DXGI_FORMAT_R16_FLOAT, s_atlasHeightMapSize, s_atlasHeightMapSize, s_atlasLayerCount, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+	m_pHeightMapAtlas = NXManager_Tex->CreateUAVTexture2DArray("TerrainStreaming_HeightMapAtlas", DXGI_FORMAT_R16_UNORM, s_atlasHeightMapSize, s_atlasHeightMapSize, s_atlasLayerCount, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 	m_pSplatMapAtlas = NXManager_Tex->CreateUAVTexture2DArray("TerrainStreaming_SplatMapAtlas", DXGI_FORMAT_R8_UNORM, s_atlasSplatMapSize, s_atlasSplatMapSize, s_atlasLayerCount, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 
 	// 每帧待合并到Atlas的纹理列表
 	m_pToAtlasHeights.resize(pStreamer->GetLoadTexGroupLimitEachFrame());
 	m_pToAtlasSplats.resize(pStreamer->GetLoadTexGroupLimitEachFrame());
+
+	// 记录各sector的nodeID
+	int mip = 6;
+	m_pSector2NodeIDTexture = NXManager_Tex->CreateUAVTexture("TerrainStreaming_Sector2NodeID", DXGI_FORMAT_R16_UINT, s_sector2NodeIDTexSize, s_sector2NodeIDTexSize, mip, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 }
 
-void NXTerrainLODStreamData::SetNodeDescArrayData(uint32_t index, const CBufferTerrainNodeDescription& data)
+void NXTerrainLODStreamData::SetNodeDescArrayData(uint32_t index, const CBufferTerrainNodeDescription& data, const Int2& replacedPosWS, int replacedSize)
 {
     if (index >= m_nodeDescArray.size()) return;
     m_nodeDescArray[index] = data;
-	m_nodeDescUpdateIndices.push_back(index); // 本帧更新的索引也记录一下
+
+	CBufferTerrainNodeDescUpdateInfo info;
+	info.newIndex = index;
+	info.replacePosWS = replacedPosWS;
+	info.replaceSize = replacedSize;
+	m_nodeDescUpdateIndices.push_back(info); // 本帧更新的索引也记录一下
 }
 
 void NXTerrainLODStreamData::UpdateCBNodeDescArray()

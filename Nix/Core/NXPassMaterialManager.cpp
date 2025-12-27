@@ -24,6 +24,17 @@ void NXPassMaterialManager::Init()
 		m_pPassMaterialMaps["TerrainAtlasBaker"] = pMat;
 	}
 
+	// Terrain Sector2Node Tint
+	{
+		auto pMat = new NXComputePassMaterial("TerrainSector2NodeTint", L"Shader\\TerrainSector2NodeTint.fx");
+		pMat->RegisterCBVSpaceNum(1);
+		pMat->RegisterCBVSlotNum(2);
+		pMat->RegisterUAVSpaceNum(1);
+		pMat->RegisterUAVSlotNum(1);
+		pMat->FinalizeLayout();
+		m_pPassMaterialMaps["TerrainSector2NodeTint"] = pMat;
+	}
+
 	// TerrainFillTest
 	{
 		auto pMat = new NXComputePassMaterial("TerrainFillTest", L"Shader\\FillTestComputeShader.fx");
