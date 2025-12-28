@@ -27,6 +27,7 @@
 #include "NXPBRLight.h"
 #include "NXPrimitive.h"
 #include "NXEditorObjectManager.h"
+#include "NXAllocatorManager.h"
 
 Renderer::Renderer(const Vector2& rtSize) :
 	m_bRenderGUI(true),
@@ -122,6 +123,39 @@ void Renderer::GenerateRenderGraph()
 	if (g_debug_temporal_enable_terrain_debug)
 	{
 		auto& pStreamingData = m_pTerrainLODStreamer->GetStreamingData();
+
+		// 仅首帧执行
+		// 清空Sector2NodeID纹理，将所有像素设置为65535 (0xFFFF)
+		if (pStreamingData.NeedClearSector2NodeIDTexture())
+		{
+			struct TerrainSector2NodeClear
+			{
+				NXRGHandle Sector2NodeTex;
+			};
+			m_pRenderGraph->AddPass<TerrainSector2NodeClear>("Terrain Sector2Node Clear",
+				[&](NXRGBuilder& builder, TerrainSector2NodeClear& data)
+				{
+					data.Sector2NodeTex = builder.Write(m_pRenderGraph->Import(pStreamingData.GetSector2NodeIDTexture()));
+				},
+				[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, TerrainSector2NodeClear& data)
+				{
+					auto pTex = resMap.GetRes(data.Sector2NodeTex).As<NXTexture2D>();
+					pTex->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+
+					// 使用 ClearUnorderedAccessViewUint 清空所有mip级别
+					UINT clearValues[4] = { 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF };
+					int mipLevels = pTex->GetMipLevels();
+					for (int i = 0; i < mipLevels; i++)
+					{
+						D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = pTex->GetUAV(i);
+						NXShVisDescHeap->PushFluid(cpuHandle);
+						D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = NXShVisDescHeap->Submit();
+						pCmdList->ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, pTex->GetD3DResource(), clearValues, 0, nullptr);
+					}
+
+					pStreamingData.MarkSector2NodeIDTextureCleared();
+				});
+		}
 
 		int groupNum = pStreamingData.GetNodeDescUpdateIndicesNum();
 		if (groupNum > 0)

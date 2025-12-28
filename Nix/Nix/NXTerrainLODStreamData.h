@@ -64,6 +64,9 @@ public:
 	void SetToAtlasSplatTexture(uint32_t index, const Ntr<NXTexture2D>& pTexture) { m_pToAtlasSplats[index] = pTexture; }
 	const Ntr<NXTexture2D>& GetSector2NodeIDTexture() const { return m_pSector2NodeIDTexture; }
 
+	bool NeedClearSector2NodeIDTexture() const { return m_bNeedClearSector2NodeIDTexture; }
+	void MarkSector2NodeIDTextureCleared() { m_bNeedClearSector2NodeIDTexture = false; }
+
 private:
 	// 和m_nodeDescArrayInternal完全相同，只是数据格式不同，供CPU-GPU交互
 	std::vector<CBufferTerrainNodeDescription> m_nodeDescArray;
@@ -85,4 +88,7 @@ private:
 
 	// 记录各sector的nodeID
 	Ntr<NXTexture2D> m_pSector2NodeIDTexture;
+
+	// 是否需要清空Sector2NodeID纹理（仅首帧需要）
+	bool m_bNeedClearSector2NodeIDTexture = true;
 };
