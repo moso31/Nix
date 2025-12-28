@@ -210,7 +210,10 @@ void Renderer::GenerateRenderGraph()
 					auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("TerrainSector2NodeTint"));
 					pMat->SetConstantBuffer(0, 0, &pStreamingData.GetNodeDescArray());
 					pMat->SetConstantBuffer(0, 1, &pStreamingData.GetNodeDescUpdateIndices());
-					pMat->SetOutput(0, 0, resMap.GetRes(data.Sector2NodeTex));
+					for (int i = 0; i < 6; i++)
+					{
+						pMat->SetOutput(0, i, resMap.GetRes(data.Sector2NodeTex), i);
+					}
 
 					pMat->RenderSetTargetAndState(pCmdList);
 					pMat->RenderBefore(pCmdList);

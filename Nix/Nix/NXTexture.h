@@ -238,7 +238,7 @@ public:
     void SetSRV(uint32_t index);
     void SetRTV(uint32_t index);
     void SetDSV(uint32_t index);
-    void SetUAV(uint32_t index);
+    void SetUAV(uint32_t index, uint32_t mipSlice = 0);
 };
 
 class NXTextureCube : public NXTexture

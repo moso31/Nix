@@ -27,6 +27,8 @@ void NXTerrainStreamingAsyncLoader::Update()
 		nextTask.minMaxZ = it->minMaxZ;
 		nextTask.pHeightMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(it->heightMap.name, it->heightMap.path);
 		nextTask.pSplatMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(it->splatMap.name, it->splatMap.path);
+		nextTask.replacePositionWS = it->replacePositionWS;
+		nextTask.replaceSize = it->replaceSize;
 
 		m_loadingTasks.push_back(nextTask);
 		it = m_requestTasks.erase(it);

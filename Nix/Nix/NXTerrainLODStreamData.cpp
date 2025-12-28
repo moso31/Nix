@@ -23,7 +23,13 @@ void NXTerrainLODStreamData::Init(NXTerrainLODStreamer* pStreamer)
 
 	// 记录各sector的nodeID
 	int mip = 6;
-	m_pSector2NodeIDTexture = NXManager_Tex->CreateUAVTexture("TerrainStreaming_Sector2NodeID", DXGI_FORMAT_R16_UINT, s_sector2NodeIDTexSize, s_sector2NodeIDTexSize, mip, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+	m_pSector2NodeIDTexture = NXManager_Tex->CreateUAVTexture("TerrainStreaming_Sector2NodeID", DXGI_FORMAT_R16_UINT, s_sector2NodeIDTexSize, s_sector2NodeIDTexSize, mip, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, false);
+	m_pSector2NodeIDTexture->SetViews(1, 0, 0, mip); 
+	m_pSector2NodeIDTexture->SetSRV(0);
+	for (int i = 0; i < mip; i++)
+	{
+		m_pSector2NodeIDTexture->SetUAV(i, i); // 每个mip都需要UAV
+	}
 }
 
 void NXTerrainLODStreamData::SetNodeDescArrayData(uint32_t index, const CBufferTerrainNodeDescription& data, const Int2& replacedPosWS, int replacedSize)

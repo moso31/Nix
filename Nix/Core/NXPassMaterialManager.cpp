@@ -30,7 +30,7 @@ void NXPassMaterialManager::Init()
 		pMat->RegisterCBVSpaceNum(1);
 		pMat->RegisterCBVSlotNum(2);
 		pMat->RegisterUAVSpaceNum(1);
-		pMat->RegisterUAVSlotNum(1);
+		pMat->RegisterUAVSlotNum(6);
 		pMat->FinalizeLayout();
 		m_pPassMaterialMaps["TerrainSector2NodeTint"] = pMat;
 	}

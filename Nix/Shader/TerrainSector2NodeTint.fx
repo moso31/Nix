@@ -39,7 +39,7 @@ cbuffer cbNodeUpdateIndices : register(b1)
     CBufferTerrainNodeDescUpdateInfo m_updateIndices[NodeDescUpdateIndicesNum];
 }
 
-RWTexture2D<uint> txSector2NodeID : register(u0);
+RWTexture2D<uint> txSector2NodeID_mip[6] : register(u0);
 
 [numthreads(1, 1, 1)]
 void CS(uint3 dtid : SV_DispatchThreadID)
@@ -50,7 +50,7 @@ void CS(uint3 dtid : SV_DispatchThreadID)
     uint mip = firstbithigh(m_nodeDescArray[nodeDescIndex].size) - 6; // 2048->5, ..., 64->0
     int2 pixelPos = (m_nodeDescArray[nodeDescIndex].positionWS - MinTerrainCoord) >> (6 + mip);
 
-    txSector2NodeID[uint3(pixelPos, mip)] = nodeDescIndex;
+    txSector2NodeID_mip[mip][pixelPos] = nodeDescIndex;
 
     // 如果nodeDescArray[nodeDescIndex]之前有记录旧值，则需要擦除
     if (m_updateIndices[updateIndex].replaceSize > 0)
@@ -58,6 +58,6 @@ void CS(uint3 dtid : SV_DispatchThreadID)
         mip = firstbithigh(m_updateIndices[updateIndex].replaceSize) - 6; // 2048->5, ..., 64->0
         pixelPos = (m_updateIndices[updateIndex].replacePosWS - MinTerrainCoord) >> (6 + mip);
 
-        txSector2NodeID[uint3(pixelPos, mip)] = -1;
+        txSector2NodeID_mip[mip][pixelPos] = -1;
     }
 }

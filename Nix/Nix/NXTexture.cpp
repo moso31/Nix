@@ -162,11 +162,6 @@ void NXTexture::SetClearValue(float depth, uint32_t stencilRef)
 
 void NXTexture::SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D3D12_RESOURCE_STATES& state)
 {
-	if (m_name == "NXRGRes_3")
-	{
-		int x = 0;
-	}
-
 	if (m_resourceState == state)
 		return;
 
@@ -1085,11 +1080,18 @@ void NXTexture2D::SetDSV(uint32_t index)
 		});
 }
 
-void NXTexture2D::SetUAV(uint32_t index)
+void NXTexture2D::SetUAV(uint32_t index, uint32_t mipSlice)
 {
-	NXAllocator_SRV->Alloc([this, index](const D3D12_CPU_DESCRIPTOR_HANDLE& result) {
+	NXAllocator_SRV->Alloc([this, index, mipSlice](const D3D12_CPU_DESCRIPTOR_HANDLE& result) {
 		m_pUAVs[index] = result;
-		NXGlobalDX::GetDevice()->CreateUnorderedAccessView(m_pTexture.Get(), nullptr, nullptr, m_pUAVs[index]);
+
+		D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+		uavDesc.Format = m_texFormat;
+		uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+		uavDesc.Texture2D.MipSlice = mipSlice;
+		uavDesc.Texture2D.PlaneSlice = 0;
+
+		NXGlobalDX::GetDevice()->CreateUnorderedAccessView(m_pTexture.Get(), nullptr, &uavDesc, m_pUAVs[index]);
 		ProcessLoadingViews();
 		});
 }

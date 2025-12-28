@@ -226,6 +226,7 @@ void NXRenderGraph::Compile()
 	{
 		for (auto& handle : pass->GetInputs())
 		{
+			auto& desc = m_resourceMap[handle]->GetDescription();
 			if (m_resourceMap[handle]->IsImported())
 			{
 				pass->RegisterFrameResource(handle, m_importedResourceMap[handle]);
@@ -238,6 +239,7 @@ void NXRenderGraph::Compile()
 
 		for (auto& handle : pass->GetOutputs())
 		{
+			auto& desc = m_resourceMap[handle]->GetDescription();
 			if (m_resourceMap[handle]->IsImported())
 			{
 				pass->RegisterFrameResource(handle, m_importedResourceMap[handle]);

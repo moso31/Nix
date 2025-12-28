@@ -285,6 +285,12 @@ void NXComputePassMaterial::SetOutput(int spaceIndex, int slotIndex, const Ntr<N
 	m_pOutRes[spaceIndex][slotIndex] = NXResourceUAV(pRes, isUAVCounter);
 }
 
+void NXComputePassMaterial::SetOutput(int spaceIndex, int slotIndex, const Ntr<NXResource>& pRes, int mipSlice)
+{
+	if (spaceIndex >= m_layout.uavSpaceNum || slotIndex >= m_layout.uavSlotNum[spaceIndex]) return;
+	m_pOutRes[spaceIndex][slotIndex] = NXResourceUAV(pRes, mipSlice);
+}
+
 NXComputePassMaterial::NXComputePassMaterial(const std::string& name, const std::filesystem::path& shaderPath) : 
 	NXPassMaterial(name, shaderPath),
 	m_csoDesc({})
@@ -369,8 +375,8 @@ void NXComputePassMaterial::RenderSetTargetAndState(ID3D12GraphicsCommandList* p
 			if (pRes.IsValid())
 			{
 				pRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-
 				uavBarriers.push_back(NX12Util::BarrierUAV(pRes->GetD3DResource()));
+
 				if (pRes->GetResourceType() == NXResourceType::Buffer)
 				{
 					auto pBuffer = pRes.As<NXBuffer>();
@@ -460,13 +466,26 @@ void NXComputePassMaterial::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 					{
 						auto pBuffer = pRes.As<NXBuffer>();
 						// 根据NXResourceUAV的标志选择UAV描述符
-						if (pSpaceOuts[j].isUAVCounter)
+						if (pSpaceOuts[j].useBufferUAVCounter)
 						{
 							NXShVisDescHeap->PushFluid(pBuffer->GetUAVCounter());
 						}
 						else
 						{
 							NXShVisDescHeap->PushFluid(pBuffer->GetUAV());
+						}
+					}
+					else if (pRes->GetResourceType() == NXResourceType::Tex2D)
+					{
+						auto pTexture2D = pRes.As<NXTexture2D>();
+						// 根据NXResourceUAV的mipSlice选择UAV描述符
+						if (pSpaceOuts[j].texMipSlice >= 0)
+						{
+							NXShVisDescHeap->PushFluid(pTexture2D->GetUAV((uint32_t)pSpaceOuts[j].texMipSlice));
+						}
+						else
+						{
+							NXShVisDescHeap->PushFluid(pTexture2D->GetUAV());
 						}
 					}
 					else if (pRes->GetResourceType() != NXResourceType::None)
