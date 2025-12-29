@@ -234,7 +234,7 @@ void NXTexture::CreateRenderTextureInternal(D3D12_RESOURCE_FLAGS flags)
 	ProcessLoadingTexChunks();
 }
 
-void NXTexture::CreateUAVTextureInternal(D3D12_RESOURCE_FLAGS flags)
+void NXTexture::CreateTextureInternal(D3D12_RESOURCE_FLAGS flags)
 {
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = GetResourceDimentionFromType();
@@ -864,7 +864,7 @@ Ntr<NXTexture2D> NXTexture2D::CreateRenderTexture(const std::string& debugName, 
 	return this;
 }
 
-Ntr<NXTexture2D> NXTexture2D::CreateUAVTexture(const std::string& debugName, DXGI_FORMAT fmt, uint32_t width, uint32_t height, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags)
+Ntr<NXTexture2D> NXTexture2D::CreateTexture(const std::string& debugName, DXGI_FORMAT fmt, uint32_t width, uint32_t height, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags)
 {
 	m_texFilePath = "[UAV Texture: " + debugName + "]";
 	m_name = debugName;
@@ -874,7 +874,7 @@ Ntr<NXTexture2D> NXTexture2D::CreateUAVTexture(const std::string& debugName, DXG
 	m_mipLevels = mipLevels;
 	m_texFormat = fmt;
 
-	CreateUAVTextureInternal(flags);
+	CreateTextureInternal(flags);
 
 	return this;
 }
@@ -1275,7 +1275,7 @@ void NXTexture2DArray::CreateRT(const std::string& debugName, DXGI_FORMAT texFor
 	CreateRenderTextureInternal(flags);
 }
 
-void NXTexture2DArray::CreateUAVTexture(const std::string& debugName, DXGI_FORMAT fmt, uint32_t width, uint32_t height, uint32_t arraySize, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags)
+void NXTexture2DArray::CreateTexture(const std::string& debugName, DXGI_FORMAT fmt, uint32_t width, uint32_t height, uint32_t arraySize, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags)
 {
 	m_texFilePath = "[UAV Texture2DArray: " + debugName + "]";
 	m_name = debugName;
@@ -1285,7 +1285,7 @@ void NXTexture2DArray::CreateUAVTexture(const std::string& debugName, DXGI_FORMA
 	m_mipLevels = mipLevels;
 	m_texFormat = fmt;
 
-	CreateUAVTextureInternal(flags);
+	CreateTextureInternal(flags);
 }
 
 void NXTexture2DArray::SetSRV(uint32_t index, uint32_t firstArraySlice, uint32_t arraySize)

@@ -8,10 +8,10 @@
 //
 //void NXTerrainStreamingBatcher::Init()
 //{
-//	m_pHeightMapAtlas = NXResourceManager::GetInstance()->GetTextureManager()->CreateUAVTexture2DArray("TerrainStreaming_HeightMapAtlas", DXGI_FORMAT_R16_FLOAT, kAtlasHeightMapSize, kAtlasHeightMapSize, kAtlasLayerCount, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
-//	m_pSplatMapAtlas = NXResourceManager::GetInstance()->GetTextureManager()->CreateUAVTexture2DArray("TerrainStreaming_SplatMapAtlas", DXGI_FORMAT_R8_UNORM, kAtlasSplatMapSize, kAtlasSplatMapSize, kAtlasLayerCount, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+//	m_pHeightMapAtlas = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DArray("TerrainStreaming_HeightMapAtlas", DXGI_FORMAT_R16_FLOAT, kAtlasHeightMapSize, kAtlasHeightMapSize, kAtlasLayerCount, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+//	m_pSplatMapAtlas = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2DArray("TerrainStreaming_SplatMapAtlas", DXGI_FORMAT_R8_UNORM, kAtlasSplatMapSize, kAtlasSplatMapSize, kAtlasLayerCount, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 //
-//	m_pSector2NodeIDTexture = NXManager_Tex->CreateUAVTexture("TerrainStreaming_Sector2NodeID", DXGI_FORMAT_R16_UINT, kSector2NodeIDTexSize, kSector2NodeIDTexSize, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+//	m_pSector2NodeIDTexture = NXManager_Tex->CreateTexture2D("TerrainStreaming_Sector2NodeID", DXGI_FORMAT_R16_UINT, kSector2NodeIDTexSize, kSector2NodeIDTexSize, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 //
 //	m_pNodeDescriptionsArray = new NXBuffer("TerrainStreaming_NodeDescriptionsGPU");
 //	m_pNodeDescriptionsArray->Create(sizeof(NXTerrainStreamNodeDescriptionGPU), kAtlasLayerCount);

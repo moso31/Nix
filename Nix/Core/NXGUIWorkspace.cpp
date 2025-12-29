@@ -110,7 +110,7 @@ void NXGUIWorkspace::Render()
             }
             if (ImGui::MenuItem(ImUtf8("ÏÔÊ¾Sector2NodeIDÎÆÀí"))) 
             {
-                m_pGUI->GetGUITerrainSector2NodeIDPreview()->SetVisible(true);
+                m_pGUI->OpenGUITerrainSector2NodeIDPreview();
             }
             ImGui::EndMenu();
         }

@@ -130,10 +130,10 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateRenderTexture(const std::string
 	return pTexture2D;
 }
 
-Ntr<NXTexture2D> NXTextureResourceManager::CreateUAVTexture(const std::string& name, DXGI_FORMAT fmt, UINT width, UINT height, UINT mipLevels, D3D12_RESOURCE_FLAGS flags, bool bAutoMakeViews)
+Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D(const std::string& name, DXGI_FORMAT fmt, UINT width, UINT height, UINT mipLevels, D3D12_RESOURCE_FLAGS flags, bool bAutoMakeViews)
 {
 	Ntr<NXTexture2D> pTexture2D(new NXTexture2D());
-	pTexture2D->CreateUAVTexture(name, fmt, width, height, mipLevels, flags);
+	pTexture2D->CreateTexture(name, fmt, width, height, mipLevels, flags);
 
 	// 2DRT的automakeView：创建一个SRV，如果作为RT使用，就创建RTV；如果作为DS使用，就创建DSV
 	if (bAutoMakeViews)
@@ -245,17 +245,10 @@ Ntr<NXTexture2DArray> NXTextureResourceManager::CreateTexture2DArray(const std::
 	return pTexture2DArray;
 }
 
-Ntr<NXTexture2DArray> NXTextureResourceManager::CreateRenderTexture2DArray(const std::string& debugName, DXGI_FORMAT texFormat, UINT width, UINT height, UINT arraySize, UINT mipLevels, D3D12_RESOURCE_FLAGS flags, bool bAutoMakeViews)
+Ntr<NXTexture2DArray> NXTextureResourceManager::CreateTexture2DArray(const std::string& debugName, DXGI_FORMAT texFormat, UINT width, UINT height, UINT arraySize, UINT mipLevels, D3D12_RESOURCE_FLAGS flags, bool bAutoMakeViews)
 {
 	Ntr<NXTexture2DArray> pTexture2DArray(new NXTexture2DArray());
-	pTexture2DArray->CreateRT(debugName, texFormat, width, height, arraySize, mipLevels, flags);
-	return pTexture2DArray;
-}
-
-Ntr<NXTexture2DArray> NXTextureResourceManager::CreateUAVTexture2DArray(const std::string& debugName, DXGI_FORMAT texFormat, UINT width, UINT height, UINT arraySize, UINT mipLevels, D3D12_RESOURCE_FLAGS flags, bool bAutoMakeViews)
-{
-	Ntr<NXTexture2DArray> pTexture2DArray(new NXTexture2DArray());
-	pTexture2DArray->CreateUAVTexture(debugName, texFormat, width, height, arraySize, mipLevels, flags);
+	pTexture2DArray->CreateTexture(debugName, texFormat, width, height, arraySize, mipLevels, flags);
 
 	// 2DArray UAV的automakeView：总是创建一个SRV，如果允许UAV访问就创建UAV
 	if (bAutoMakeViews)
@@ -269,6 +262,13 @@ Ntr<NXTexture2DArray> NXTextureResourceManager::CreateUAVTexture2DArray(const st
 		pTexture2DArray->SetSRV(0, 0, arraySize);
 	}
 
+	return pTexture2DArray;
+}
+
+Ntr<NXTexture2DArray> NXTextureResourceManager::CreateRenderTexture2DArray(const std::string& debugName, DXGI_FORMAT texFormat, UINT width, UINT height, UINT arraySize, UINT mipLevels, D3D12_RESOURCE_FLAGS flags, bool bAutoMakeViews)
+{
+	Ntr<NXTexture2DArray> pTexture2DArray(new NXTexture2DArray());
+	pTexture2DArray->CreateRT(debugName, texFormat, width, height, arraySize, mipLevels, flags);
 	return pTexture2DArray;
 }
 

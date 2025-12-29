@@ -134,7 +134,7 @@ public:
 protected:    
     // 创建 RT 类型的Texture，调用这个方法
     void CreateRenderTextureInternal(D3D12_RESOURCE_FLAGS flags);
-    void CreateUAVTextureInternal(D3D12_RESOURCE_FLAGS flags);
+    void CreateTextureInternal(D3D12_RESOURCE_FLAGS flags);
 
     // 程序化生成 Texture，调用这个方法
     void CreateInternal(const std::shared_ptr<DirectX::ScratchImage>& pImage, D3D12_RESOURCE_FLAGS flags, bool useSubRegion, Int2 subRegionXY, Int2 subRegionSize);
@@ -225,15 +225,16 @@ public:
     NXTexture2D(const NXTexture2D& other) = delete;
     virtual ~NXTexture2D() {}
 
-    // 注意：Create是异步的！其他下面几个都是同步的
+    // 异步创建，记入伙伴内存池的大CommittedResource
     Ntr<NXTexture2D> Create(const std::string& debugName, const std::filesystem::path& FilePath, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE, bool useSubRegion = false, const Int2& subRegionXY = Int2(0, 0), const Int2& subRegionSize = Int2(-1, -1));
-
-    Ntr<NXTexture2D> CreateRenderTexture(const std::string& debugName, DXGI_FORMAT fmt, uint32_t width, uint32_t height, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
-    Ntr<NXTexture2D> CreateUAVTexture(const std::string& debugName, DXGI_FORMAT fmt, uint32_t width, uint32_t height, uint32_t mipLevels = 1, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
     Ntr<NXTexture2D> CreateSolid(const std::string& debugName, uint32_t TexSize, const Vector4& Color, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
     Ntr<NXTexture2D> CreateNoise(const std::string& debugName, uint32_t TexSize, uint32_t Dimension, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
     Ntr<NXTexture2D> CreateHeightRaw(const std::string& debugName, const std::filesystem::path& rawPath, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE, bool useSubRegion = false, const Int2& subRegionXY = Int2(0, 0), const Int2& subRegionSize = Int2(-1, -1));
     Ntr<NXTexture2D> CreateByData(const std::string& debugName, const std::shared_ptr<ScratchImage>& pImage, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
+
+    // 同步创建，独立Resource
+    Ntr<NXTexture2D> CreateRenderTexture(const std::string& debugName, DXGI_FORMAT fmt, uint32_t width, uint32_t height, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
+    Ntr<NXTexture2D> CreateTexture(const std::string& debugName, DXGI_FORMAT fmt, uint32_t width, uint32_t height, uint32_t mipLevels = 1, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
 
     void SetSRV(uint32_t index);
     void SetRTV(uint32_t index);
@@ -247,7 +248,10 @@ public:
     NXTextureCube() : NXTexture(NXResourceType::TexCube) {}
     virtual ~NXTextureCube() {}
 
+    // 异步创建，记入伙伴内存池的大CommittedResource
     void Create(const std::string& debugName, DXGI_FORMAT texFormat, uint32_t width, uint32_t height, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
+
+    // 同步创建，独立Resource
     void Create(const std::string& debugName, const std::wstring& filePath, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
 
     void SetSRV(uint32_t index);
@@ -266,10 +270,13 @@ public:
     NXTexture2DArray() : NXTexture(NXResourceType::Tex2DArray) {}
     virtual ~NXTexture2DArray() {}
 
+    // 异步创建，记入伙伴内存池的大CommittedResource
     void Create(const std::string& debugName, const std::wstring& filePath, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
     void Create(const std::string& debugName, const std::wstring& filePath, DXGI_FORMAT fmt, uint32_t width, uint32_t height, uint32_t arraySize, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
+
+    // 同步创建，独立Resource
     void CreateRT(const std::string& debugName, DXGI_FORMAT fmt, uint32_t width, uint32_t height, uint32_t arraySize, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
-    void CreateUAVTexture(const std::string& debugName, DXGI_FORMAT fmt, uint32_t width, uint32_t height, uint32_t arraySize, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
+    void CreateTexture(const std::string& debugName, DXGI_FORMAT fmt, uint32_t width, uint32_t height, uint32_t arraySize, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
 
     void SetSRV(uint32_t index, uint32_t firstArraySlice = 0, uint32_t arraySize = -1);
     void SetRTV(uint32_t index, uint32_t firstArraySlice = 0, uint32_t arraySize = -1);

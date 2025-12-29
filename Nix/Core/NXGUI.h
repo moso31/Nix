@@ -47,7 +47,12 @@ public:
 
 	NXGUIHoudiniTerrainExporter* GetGUIHoudiniTerrainExporter() const { return m_pGUIHoudiniTerrainExporter; }
 	NXGUITerrainMaterialGenerator* GetGUITerrainMaterialGenerator() const { return m_pGUITerrainMaterialGenerator; }
-	NXGUITerrainSector2NodeIDPreview* GetGUITerrainSector2NodeIDPreview() const { return m_pGUITerrainSector2NodeIDPreview; }
+
+	// 延迟分配：打开窗口时分配，关闭窗口时释放
+	void OpenGUITerrainSector2NodeIDPreview();
+
+private:
+	void UpdateGUITerrainSector2NodeIDPreview(); // 内部更新，检查是否需要释放
 
 private:
 	MultiFrame<ComPtr<ID3D12GraphicsCommandList>>	m_pCmdList;

@@ -1,9 +1,17 @@
 #pragma once
 #include "BaseDefs/DearImGui.h"
+#include "Ntr.h"
+#include "NXConstantBuffer.h"
 
 class Renderer;
+class NXTexture2D;
 class NXGUITerrainSector2NodeIDPreview
 {
+	struct CBufferData
+	{
+
+	};
+
 public:
 	NXGUITerrainSector2NodeIDPreview();
 	virtual ~NXGUITerrainSector2NodeIDPreview();
@@ -18,4 +26,9 @@ private:
 	Renderer* m_pRenderer = nullptr;
 	bool m_bVisible = false;
 	float m_zoomScale = 1.0f;
+
+	Ntr<NXTexture2D> m_pTexture;
+
+	CBufferData m_cbData;
+	NXConstantBuffer<CBufferData> m_cb;
 };

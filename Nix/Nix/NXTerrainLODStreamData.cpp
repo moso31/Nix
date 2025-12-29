@@ -14,8 +14,8 @@ void NXTerrainLODStreamData::Init(NXTerrainLODStreamer* pStreamer)
 	m_cbNodeDescUpdateIndices.Recreate(pStreamer->GetLoadTexGroupLimitEachFrame());
 
 	// 纹理Atlas
-	m_pHeightMapAtlas = NXManager_Tex->CreateUAVTexture2DArray("TerrainStreaming_HeightMapAtlas", DXGI_FORMAT_R16_UNORM, s_atlasHeightMapSize, s_atlasHeightMapSize, s_atlasLayerCount, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
-	m_pSplatMapAtlas = NXManager_Tex->CreateUAVTexture2DArray("TerrainStreaming_SplatMapAtlas", DXGI_FORMAT_R8_UNORM, s_atlasSplatMapSize, s_atlasSplatMapSize, s_atlasLayerCount, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+	m_pHeightMapAtlas = NXManager_Tex->CreateTexture2DArray("TerrainStreaming_HeightMapAtlas", DXGI_FORMAT_R16_UNORM, s_atlasHeightMapSize, s_atlasHeightMapSize, s_atlasLayerCount, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+	m_pSplatMapAtlas = NXManager_Tex->CreateTexture2DArray("TerrainStreaming_SplatMapAtlas", DXGI_FORMAT_R8_UNORM, s_atlasSplatMapSize, s_atlasSplatMapSize, s_atlasLayerCount, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 
 	// 每帧待合并到Atlas的纹理列表
 	m_pToAtlasHeights.resize(pStreamer->GetLoadTexGroupLimitEachFrame());
@@ -23,7 +23,7 @@ void NXTerrainLODStreamData::Init(NXTerrainLODStreamer* pStreamer)
 
 	// 记录各sector的nodeID
 	int mip = 6;
-	m_pSector2NodeIDTexture = NXManager_Tex->CreateUAVTexture("TerrainStreaming_Sector2NodeID", DXGI_FORMAT_R16_UINT, s_sector2NodeIDTexSize, s_sector2NodeIDTexSize, mip, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, false);
+	m_pSector2NodeIDTexture = NXManager_Tex->CreateTexture2D("TerrainStreaming_Sector2NodeID", DXGI_FORMAT_R16_UINT, s_sector2NodeIDTexSize, s_sector2NodeIDTexSize, mip, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, false);
 	m_pSector2NodeIDTexture->SetViews(1, 0, 0, mip); 
 	m_pSector2NodeIDTexture->SetSRV(0);
 	for (int i = 0; i < mip; i++)

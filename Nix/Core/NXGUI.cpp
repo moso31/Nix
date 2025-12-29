@@ -162,7 +162,8 @@ void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT, const NXSwapChainBuffer& swapCha
 	m_pGUIRenderGraph->Render();
 	m_pGUIHoudiniTerrainExporter->Render();
 	m_pGUITerrainMaterialGenerator->Render();
-	m_pGUITerrainSector2NodeIDPreview->Render();
+
+	UpdateGUITerrainSector2NodeIDPreview();
 
 	if (m_pGUIView->GetViewRT() != pGUIViewRT)
 		m_pGUIView->SetViewRT(pGUIViewRT);
@@ -257,4 +258,29 @@ void NXGUI::Release()
 
 	ImPlot::DestroyContext();
 	ImGui::DestroyContext();
+}
+
+void NXGUI::OpenGUITerrainSector2NodeIDPreview()
+{
+	// 打开窗口时分配内存
+	if (!m_pGUITerrainSector2NodeIDPreview)
+	{
+		m_pGUITerrainSector2NodeIDPreview = new NXGUITerrainSector2NodeIDPreview();
+		m_pGUITerrainSector2NodeIDPreview->Init(m_pRenderer);
+	}
+	m_pGUITerrainSector2NodeIDPreview->SetVisible(true);
+}
+
+void NXGUI::UpdateGUITerrainSector2NodeIDPreview()
+{
+	if (m_pGUITerrainSector2NodeIDPreview)
+	{
+		m_pGUITerrainSector2NodeIDPreview->Render();
+
+		// 关闭窗口时释放内存
+		if (!m_pGUITerrainSector2NodeIDPreview->GetVisible())
+		{
+			SafeDelete(m_pGUITerrainSector2NodeIDPreview);
+		}
+	}
 }

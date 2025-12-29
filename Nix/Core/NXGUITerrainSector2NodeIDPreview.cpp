@@ -14,6 +14,8 @@ NXGUITerrainSector2NodeIDPreview::~NXGUITerrainSector2NodeIDPreview()
 void NXGUITerrainSector2NodeIDPreview::Init(Renderer* pRenderer)
 {
 	m_pRenderer = pRenderer;
+
+	//m_pTexture = NXManager_Tex->CreateTexture2D("TerrainStreaming_Sector2NodeID", DXGI_FORMAT_R16_UINT, s_sector2NodeIDTexSize, s_sector2NodeIDTexSize, mip, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, false);
 }
 
 void NXGUITerrainSector2NodeIDPreview::Render()
