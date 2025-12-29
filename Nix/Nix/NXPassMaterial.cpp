@@ -273,10 +273,10 @@ void NXGraphicPassMaterial::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 	}
 }
 
-void NXComputePassMaterial::SetInput(int spaceIndex, int slotIndex, const Ntr<NXResource>& pRes)
+void NXComputePassMaterial::SetInput(int spaceIndex, int slotIndex, const Ntr<NXResource>& pRes, int mipSlice)
 {
 	if (spaceIndex >= m_layout.srvSpaceNum || slotIndex >= m_layout.srvSlotNum[spaceIndex]) return;
-	m_pInRes[spaceIndex][slotIndex] = pRes;
+	m_pInRes[spaceIndex][slotIndex] = NXResourceView(pRes, mipSlice);
 }
 
 void NXComputePassMaterial::SetOutput(int spaceIndex, int slotIndex, const Ntr<NXResource>& pRes, bool isUAVCounter)
@@ -359,8 +359,9 @@ void NXComputePassMaterial::RenderSetTargetAndState(ID3D12GraphicsCommandList* p
 		auto& pSpaceIns = m_pInRes[space];
 		for (int slot = 0; slot < (int)pSpaceIns.size(); slot++)
 		{
-			if (!pSpaceIns[slot].IsValid()) continue;
-			pSpaceIns[slot]->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+			auto pResource = pSpaceIns[slot].pRes;
+			if (pResource.IsValid())
+				pResource->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 		}
 	}
 
@@ -370,8 +371,7 @@ void NXComputePassMaterial::RenderSetTargetAndState(ID3D12GraphicsCommandList* p
 		auto& pSpaceOuts = m_pOutRes[space];
 		for (int slot = 0; slot < (int)pSpaceOuts.size(); slot++)
 		{
-			if (pSpaceOuts[slot].pRes.IsNull()) continue;
-			auto pRes = pSpaceOuts[slot].pRes;
+			auto pRes = pSpaceOuts[slot].pResView.pRes;
 			if (pRes.IsValid())
 			{
 				pRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
@@ -422,20 +422,35 @@ void NXComputePassMaterial::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 			auto& pSpaceIns = m_pInRes[i];
 			for (int j = 0; j < (int)pSpaceIns.size(); j++)
 			{
-				if (!pSpaceIns[j].IsValid())
+				auto& pResView = pSpaceIns[j];
+				auto pRes = pResView.pRes;
+				if (pRes.IsValid())
+				{
+					if (pRes->GetResourceType() == NXResourceType::Buffer)
+					{
+						NXShVisDescHeap->PushFluid(pRes.As<NXBuffer>()->GetSRV());
+					}
+					else if (pRes->GetResourceType() == NXResourceType::Tex2D)
+					{
+						auto pTexture2D = pRes.As<NXTexture2D>();
+						// 根据mip等级选择SRV描述符
+						if (pResView.texMipSlice >= 0)
+						{
+							NXShVisDescHeap->PushFluid(pTexture2D->GetSRV(pResView.texMipSlice));
+						}
+						else
+						{
+							NXShVisDescHeap->PushFluid(pTexture2D->GetSRV());
+						}
+					}
+					else if (pRes->GetResourceType() != NXResourceType::None)
+					{
+						NXShVisDescHeap->PushFluid(pRes.As<NXTexture>()->GetSRV());
+					}
+				}
+				else
 				{
 					NXShVisDescHeap->PushFluid(NXAllocator_NULL->GetNullSRV());
-					continue;
-				}
-
-				auto pRes = pSpaceIns[j];
-				if (pRes->GetResourceType() == NXResourceType::Buffer)
-				{
-					NXShVisDescHeap->PushFluid(pRes.As<NXBuffer>()->GetSRV());
-				}
-				else if (pRes->GetResourceType() != NXResourceType::None)
-				{
-					NXShVisDescHeap->PushFluid(pRes.As<NXTexture>()->GetSRV());
 				}
 			}
 
@@ -453,13 +468,8 @@ void NXComputePassMaterial::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 			auto& pSpaceOuts = m_pOutRes[i];
 			for (int j = 0; j < (int)pSpaceOuts.size(); j++)
 			{
-				if (!pSpaceOuts[j].pRes.IsValid())
-				{
-					NXShVisDescHeap->PushFluid(NXAllocator_NULL->GetNullUAV());
-					continue;
-				}
-
-				auto pRes = pSpaceOuts[j].pRes;
+				auto& pResView = pSpaceOuts[j].pResView;
+				auto pRes = pResView.pRes;
 				if (pRes.IsValid())
 				{
 					if (pRes->GetResourceType() == NXResourceType::Buffer)
@@ -479,9 +489,9 @@ void NXComputePassMaterial::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 					{
 						auto pTexture2D = pRes.As<NXTexture2D>();
 						// 根据NXResourceUAV的mipSlice选择UAV描述符
-						if (pSpaceOuts[j].texMipSlice >= 0)
+						if (pResView.texMipSlice >= 0)
 						{
-							NXShVisDescHeap->PushFluid(pTexture2D->GetUAV((uint32_t)pSpaceOuts[j].texMipSlice));
+							NXShVisDescHeap->PushFluid(pTexture2D->GetUAV(pResView.texMipSlice));
 						}
 						else
 						{

@@ -22,10 +22,11 @@ void NXTerrainLODStreamData::Init(NXTerrainLODStreamer* pStreamer)
 	m_pToAtlasSplats.resize(g_terrainStreamConfig.MaxComputeLimit);
 
 	// 记录各sector的nodeID
-	m_pSector2NodeIDTexture = NXManager_Tex->CreateTexture2D("TerrainStreaming_Sector2NodeID", DXGI_FORMAT_R16_UINT, g_terrainStreamConfig.Sector2NodeIDTexSize, g_terrainStreamConfig.Sector2NodeIDTexSize, g_terrainStreamConfig.LODSize, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, false);
-	m_pSector2NodeIDTexture->SetViews(1, 0, 0, g_terrainStreamConfig.LODSize);
+	uint32_t mips = g_terrainStreamConfig.LODSize; // 6
+	m_pSector2NodeIDTexture = NXManager_Tex->CreateTexture2D("TerrainStreaming_Sector2NodeID", DXGI_FORMAT_R16_UINT, g_terrainStreamConfig.Sector2NodeIDTexSize, g_terrainStreamConfig.Sector2NodeIDTexSize, mips, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, false);
+	m_pSector2NodeIDTexture->SetViews(1, 0, 0, mips);
 	m_pSector2NodeIDTexture->SetSRV(0);
-	for (int i = 0; i < g_terrainStreamConfig.LODSize; i++)
+	for (int i = 0; i < mips; i++)
 	{
 		m_pSector2NodeIDTexture->SetUAV(i, i); // 每个mip都需要UAV
 	}

@@ -118,8 +118,7 @@ void NXGUI::Init()
 
 	m_pGUIHoudiniTerrainExporter = new NXGUIHoudiniTerrainExporter();
 	m_pGUITerrainMaterialGenerator = new NXGUITerrainMaterialGenerator();
-	m_pGUITerrainSector2NodeIDPreview = new NXGUITerrainSector2NodeIDPreview();
-	m_pGUITerrainSector2NodeIDPreview->Init(m_pRenderer);
+	m_pGUITerrainSector2NodeIDPreview = new NXGUITerrainSector2NodeIDPreview(m_pRenderer);
 	
 	m_pGUIWorkspace = new NXGUIWorkspace();
 	m_pGUIWorkspace->Init(this);

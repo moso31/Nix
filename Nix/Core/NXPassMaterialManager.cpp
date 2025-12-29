@@ -21,7 +21,7 @@ void NXPassMaterialManager::InitDefaultRenderer()
 		pMat->RegisterSRVSpaceNum(1);
 		pMat->RegisterSRVSlotNum(4);
 		pMat->FinalizeLayout();
-		AddMaterial("TerrainAtlasBaker", pMat, true);
+		AddMaterial(pMat, true);
 	}
 
 	// Terrain Sector2Node Tint
@@ -32,7 +32,7 @@ void NXPassMaterialManager::InitDefaultRenderer()
 		pMat->RegisterUAVSpaceNum(1);
 		pMat->RegisterUAVSlotNum(6);
 		pMat->FinalizeLayout();
-		AddMaterial("TerrainSector2NodeTint", pMat, true);
+		AddMaterial(pMat, true);
 	}
 
 	// TerrainFillTest
@@ -44,12 +44,12 @@ void NXPassMaterialManager::InitDefaultRenderer()
 		pMat->RegisterUAVSpaceNum(1);
 		pMat->RegisterUAVSlotNum(3);  // u0, u1, u2
 		pMat->FinalizeLayout();
-		AddMaterial("TerrainFillTest", pMat, true);
+		AddMaterial(pMat, true);
 	}
 
 	// TerrainGPUPatcher Clear
 	{
-		auto pMat = new NXComputePassMaterial("TerrainGPUPatcher", L"Shader\\GPUTerrainPatcher.fx");
+		auto pMat = new NXComputePassMaterial("TerrainGPUPatcher:clear", L"Shader\\GPUTerrainPatcher.fx");
 		pMat->SetEntryNameCS(L"CS_Clear");
 		pMat->RegisterCBVSpaceNum(1);
 		pMat->RegisterCBVSlotNum(3);  // b0, b1, b2
@@ -59,12 +59,12 @@ void NXPassMaterialManager::InitDefaultRenderer()
 		pMat->RegisterUAVSlotNum(3);  // u0, u1, u2
 		pMat->FinalizeLayout();
 		pMat->AddStaticSampler(D3D12_FILTER_MIN_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
-		AddMaterial("TerrainGPUPatcher:clear", pMat, true);
+		AddMaterial(pMat, true);
 	}
 
 	// TerrainGPUPatcher Patch
 	{
-		auto pMat = new NXComputePassMaterial("TerrainGPUPatcher", L"Shader\\GPUTerrainPatcher.fx");
+		auto pMat = new NXComputePassMaterial("TerrainGPUPatcher:patch", L"Shader\\GPUTerrainPatcher.fx");
 		pMat->SetEntryNameCS(L"CS_Patch");
 		pMat->RegisterCBVSpaceNum(1);
 		pMat->RegisterCBVSlotNum(3);  // b0, b1, b2
@@ -74,16 +74,16 @@ void NXPassMaterialManager::InitDefaultRenderer()
 		pMat->RegisterUAVSlotNum(3);  // u0, u1, u2
 		pMat->FinalizeLayout();
 		pMat->AddStaticSampler(D3D12_FILTER_MIN_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
-		AddMaterial("TerrainGPUPatcher:patch", pMat, true);
+		AddMaterial(pMat, true);
 	}
 
-	// GBuffer（GBuffer由Mesh提供CBV SRV，这里不需要）
+	// GBuffer锛圙Buffer鐢盡esh鎻愪緵CBV SRV锛岃繖閲屼笉闇�瑕侊級
 	{
 		auto pMat = new NXGraphicPassMaterial("GBuffer");
 		pMat->RegisterRTVNum({ DXGI_FORMAT_R32_FLOAT, DXGI_FORMAT_R32G32B32A32_FLOAT, DXGI_FORMAT_R10G10B10A2_UNORM, DXGI_FORMAT_R8G8B8A8_UNORM });
 		pMat->RegisterDSV({ DXGI_FORMAT_R24G8_TYPELESS });
 		pMat->FinalizeLayout();
-		AddMaterial("GBuffer", pMat, false);
+		AddMaterial(pMat, false);
 	}
 
 	// VTReadback computeshader
@@ -96,13 +96,13 @@ void NXPassMaterialManager::InitDefaultRenderer()
 		pMat->RegisterUAVSpaceNum(1);
 		pMat->RegisterUAVSlotNum(1);  // u0
 		pMat->FinalizeLayout();
-		AddMaterial("VTReadback", pMat, true);
+		AddMaterial(pMat, true);
 	}
 
 	// VTReadback dataout
 	{
 		auto pMat = new NXReadbackPassMaterial("VTReadbackData");
-		AddMaterial("VTReadbackData", pMat, true);
+		AddMaterial(pMat, true);
 	}
 
 	// ShadowMap
@@ -112,7 +112,7 @@ void NXPassMaterialManager::InitDefaultRenderer()
 		pMat->RegisterCBVSlotNum(3);
 		pMat->RegisterDSV(DXGI_FORMAT_R32_TYPELESS);
 		pMat->FinalizeLayout();
-		AddMaterial("ShadowMap", pMat, true);
+		AddMaterial(pMat, true);
 	}
 
 	// ShadowTest
@@ -127,7 +127,7 @@ void NXPassMaterialManager::InitDefaultRenderer()
 		pMat->SetRasterizerState(NXRasterizerState<D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_BACK, 0, 0, 1000.0f>::Create());
 		pMat->SetDepthStencilState(NXDepthStencilState<false, false, D3D12_COMPARISON_FUNC_ALWAYS>::Create());
 		pMat->AddStaticSampler(D3D12_FILTER_MIN_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
-		AddMaterial("ShadowTest", pMat, true);
+		AddMaterial(pMat, true);
 	}
 
 	// DeferredLighting
@@ -142,7 +142,7 @@ void NXPassMaterialManager::InitDefaultRenderer()
 		pMat->SetDepthStencilState(NXDepthStencilState<false, false, D3D12_COMPARISON_FUNC_LESS_EQUAL>::Create());
 		pMat->AddStaticSampler(D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
 		pMat->AddStaticSampler(D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
-		AddMaterial("DeferredLighting", pMat, true);
+		AddMaterial(pMat, true);
 	}
 
 	// Subsurface
@@ -158,7 +158,7 @@ void NXPassMaterialManager::InitDefaultRenderer()
 		pMat->SetDepthStencilState(NXDepthStencilState<false, false, D3D12_COMPARISON_FUNC_LESS, true, 0xFF, 0xFF, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_COMPARISON_FUNC_EQUAL>::Create());
 		pMat->AddStaticSampler(D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
 		pMat->SetStencilRef(0x1);
-		AddMaterial("Subsurface", pMat, true);
+		AddMaterial(pMat, true);
 	}
 
 	// SkyLighting
@@ -175,7 +175,7 @@ void NXPassMaterialManager::InitDefaultRenderer()
 		pMat->SetRenderTargetMesh("_CubeMapSphere");
 		pMat->SetDepthStencilState(NXDepthStencilState<true, false, D3D12_COMPARISON_FUNC_LESS_EQUAL>::Create());
 		pMat->AddStaticSampler(D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
-		AddMaterial("SkyLighting", pMat, true);
+		AddMaterial(pMat, true);
 	}
 
 	// PostProcessing
@@ -189,7 +189,7 @@ void NXPassMaterialManager::InitDefaultRenderer()
 		pMat->FinalizeLayout();
 		pMat->SetDepthStencilState(NXDepthStencilState<false, false, D3D12_COMPARISON_FUNC_ALWAYS>::Create());
 		pMat->AddStaticSampler(D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
-		AddMaterial("PostProcessing", pMat, true);
+		AddMaterial(pMat, true);
 	}
 
 	// DebugLayer
@@ -203,7 +203,7 @@ void NXPassMaterialManager::InitDefaultRenderer()
 		pMat->FinalizeLayout();
 		pMat->SetDepthStencilState(NXDepthStencilState<false, false, D3D12_COMPARISON_FUNC_ALWAYS>::Create());
 		pMat->AddStaticSampler(D3D12_FILTER_MIN_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
-		AddMaterial("DebugLayer", pMat, true);
+		AddMaterial(pMat, true);
 	}
 
 	// Gizmos
@@ -217,7 +217,7 @@ void NXPassMaterialManager::InitDefaultRenderer()
 		pMat->SetRasterizerState(NXRasterizerState<D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_NONE>::Create());
 		pMat->SetDepthStencilState(NXDepthStencilState<false, false, D3D12_COMPARISON_FUNC_LESS>::Create());
 		pMat->SetInputLayout(NXGlobalInputLayout::layoutEditorObject);
-		AddMaterial("Gizmos", pMat, true);
+		AddMaterial(pMat, true);
 	}
 
 	// Final
@@ -229,7 +229,7 @@ void NXPassMaterialManager::InitDefaultRenderer()
 		pMat->FinalizeLayout();
 		pMat->SetDepthStencilState(NXDepthStencilState<false, false, D3D12_COMPARISON_FUNC_ALWAYS>::Create());
 		pMat->AddStaticSampler(D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
-		AddMaterial("FinalQuad", pMat, true);
+		AddMaterial(pMat, true);
 	}
 }
 
@@ -246,8 +246,9 @@ void NXPassMaterialManager::Release()
 	m_pPassMaterialMaps.clear();
 }
 
-void NXPassMaterialManager::AddMaterial(const std::string& name, NXPassMaterial* pMat, bool bCompile)
+void NXPassMaterialManager::AddMaterial(NXPassMaterial* pMat, bool bCompile)
 {
+	std::string name = pMat->GetName();
 	auto it = m_pPassMaterialMaps.find(name);
 	if (it != m_pPassMaterialMaps.end())
 	{

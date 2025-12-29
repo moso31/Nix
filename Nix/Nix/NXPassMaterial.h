@@ -131,21 +131,30 @@ private:
 	std::string m_rtSubMeshName;
 };
 
-// 如果是UAV类型做pass output，用法比较多，所以单独封装一个结构体
-struct NXResourceUAV
+struct NXResourceView
 {
 	// 资源本体
 	Ntr<NXResource> pRes;
 
+	// 资源视图的mip等级（-1表示不指定，使用默认视图）
+	int texMipSlice = -1;
+
+	NXResourceView() = default;
+	NXResourceView(const Ntr<NXResource>& res, int mipSlice = -1) : pRes(res), texMipSlice(mipSlice) {}
+};
+
+// 如果是UAV类型做pass output，用法比较多，所以单独封装一个结构体
+struct NXResourceUAV
+{
+	// 资源本体+对应view
+	NXResourceView pResView;
+
 	// 如果是Buffer类型的，底层会同时创建buffer本体和计数器两个资源；如果用计数器，此处设为true
 	bool useBufferUAVCounter = false; 
-
-	// 如果是Texture类型的，可能需要给每个mip等级封装专门UAV视图，此处指定mip等级。
-	int texMipSlice = -1; // -1表示不指定，使用默认视图 
 	
 	NXResourceUAV() = default;
-	NXResourceUAV(const Ntr<NXResource>& res, bool useCounter = false) : pRes(res), useBufferUAVCounter(useCounter) {}
-	NXResourceUAV(const Ntr<NXResource>& res, int mipSlice) : pRes(res), texMipSlice(mipSlice) {}
+	NXResourceUAV(const Ntr<NXResource>& res, bool useCounter = false) : pResView(res), useBufferUAVCounter(useCounter) {}
+	NXResourceUAV(const Ntr<NXResource>& res, int mipSlice) : pResView(res, mipSlice) {}
 };
 
 class NXComputePassMaterial : public NXPassMaterial
@@ -155,7 +164,7 @@ public:
 
 	void FinalizeLayout() override;
 
-	void SetInput(int spaceIndex, int slotIndex, const Ntr<NXResource>& pRes);
+	void SetInput(int spaceIndex, int slotIndex, const Ntr<NXResource>& pRes, int mipSlice = -1);
 	void SetOutput(int spaceIndex, int slotIndex, const Ntr<NXResource>& pRes, bool isUAVCounter = false);
 	void SetOutput(int spaceIndex, int slotIndex, const Ntr<NXResource>& pRes, int mipSlice);
 
@@ -170,7 +179,7 @@ public:
 private:
 	D3D12_COMPUTE_PIPELINE_STATE_DESC m_csoDesc;
 	Microsoft::WRL::ComPtr<ID3D12CommandSignature> m_pCommandSig;
-	std::vector<std::vector<Ntr<NXResource>>> m_pInRes;
+	std::vector<std::vector<NXResourceView>> m_pInRes;
 	std::vector<std::vector<NXResourceUAV>> m_pOutRes;
 };
 

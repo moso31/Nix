@@ -20,7 +20,7 @@ public:
 	void InitDefaultRenderer();
 	void Release();
 
-	void AddMaterial(const std::string& name, NXPassMaterial* pMat, bool bCompile);
+	void AddMaterial(NXPassMaterial* pMat, bool bCompile);
 	void RemoveMaterial(const std::string& name);
 
 	void FrameCleanup();
