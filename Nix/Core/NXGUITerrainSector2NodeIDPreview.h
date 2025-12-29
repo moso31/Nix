@@ -13,10 +13,10 @@ class NXGUITerrainSector2NodeIDPreview
 	};
 
 public:
-	NXGUITerrainSector2NodeIDPreview();
+	NXGUITerrainSector2NodeIDPreview(Renderer* pRenderer);
 	virtual ~NXGUITerrainSector2NodeIDPreview();
 
-	void Init(Renderer* pRenderer);
+	void Update();
 	void Render();
 
 	void SetVisible(bool bVisible) { m_bVisible = bVisible; }

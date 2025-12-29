@@ -3,21 +3,54 @@
 #include "NXTerrainLODStreamer.h"
 #include "NXAllocatorManager.h"
 #include "NXTerrainLODStreamConfigs.h"
+#include "NXRenderGraph.h"
+#include "NXPassMaterialManager.h"
+#include "NXPassMaterial.h"
 
-NXGUITerrainSector2NodeIDPreview::NXGUITerrainSector2NodeIDPreview()
+NXGUITerrainSector2NodeIDPreview::NXGUITerrainSector2NodeIDPreview(Renderer* pRenderer) : 
+	m_pRenderer(pRenderer)
 {
+	// 预览纹理不需要mip
+	m_pTexture = NXManager_Tex->CreateTexture2D("TerrainStreaming_Sector2NodeID", DXGI_FORMAT_R16_UINT, g_terrainStreamConfig.AtlasHeightMapSize, g_terrainStreamConfig.AtlasHeightMapSize, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+
+	std::string matName = "GUI Terrain Sector2NodeID Texture Preview";
+	NXPassMaterial* pMat = new NXComputePassMaterial(matName);
+	NXPassMng->AddMaterial("GUI Terrain Sector2NodeID Texture Preview", );
 }
 
 NXGUITerrainSector2NodeIDPreview::~NXGUITerrainSector2NodeIDPreview()
 {
 }
 
-void NXGUITerrainSector2NodeIDPreview::Init(Renderer* pRenderer)
+void NXGUITerrainSector2NodeIDPreview::Update()
 {
-	m_pRenderer = pRenderer;
+	if (!m_bVisible)
+		return;
 
-	// 预览纹理不需要mip
-	m_pTexture = NXManager_Tex->CreateTexture2D("TerrainStreaming_Sector2NodeID", DXGI_FORMAT_R16_UINT, g_terrainStreamConfig.AtlasHeightMapSize, g_terrainStreamConfig.AtlasHeightMapSize, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+	auto* pStreamer = m_pRenderer->GetTerrainLODStreamer();
+	if (!pStreamer) return;
+
+	auto& pStreamData = pStreamer->GetStreamingData();
+
+	struct PassData
+	{
+		NXRGHandle pIn;
+		NXRGHandle pOut;
+	};
+
+	auto rg = m_pRenderer->GetRenderGraph();
+	if (rg)
+	{
+		rg->AddPass<PassData>("TerrainSector2NodeID preview pass",
+			[&](NXRGBuilder& builder, PassData& data) 
+			{
+				data.pIn = builder.Read(rg->Import(pStreamData.GetSector2NodeIDTexture()));
+				data.pOut = builder.Write(rg->Import(m_pTexture));
+			},
+			[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, PassData& data)
+			{
+			});
+	}
 }
 
 void NXGUITerrainSector2NodeIDPreview::Render()

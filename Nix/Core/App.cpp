@@ -87,6 +87,8 @@ void App::FrameEnd()
 {
 	m_pDXResources->FrameEnd();
 
+	m_pRenderer->FrameEnd();
+
 	// »Ø¶Á¶ÑÖ¡Ä©´¦Àí
 	NXReadbackSys->UpdatePendingTaskFenceValue(NXGlobalDX::s_globalfenceValue);
 

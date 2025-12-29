@@ -79,7 +79,7 @@ void Renderer::Init()
 
 	m_pRenderGraph = new NXRenderGraph();
 
-	NXPassMng->Init();
+	NXPassMng->InitDefaultRenderer();
 
 	InitGUI();
 }
@@ -884,7 +884,14 @@ void Renderer::Update()
 
 	// 每帧都Compile RenderGraph
 	m_pRenderGraph->Clear();
+
+	// 2025.12.29 新增GUI的Update，先实现在这里
+	// 注册RenderGraph pass会用到，肯定得写在m_pRenderGraph->Clear()和Compile()之间
+	// 预计后续还会扩展，根据情况再调整
+	m_pGUI->Update();
+
 	GenerateRenderGraph();
+
 	m_pRenderGraph->Compile();
 
 	UpdateGUI();
@@ -949,6 +956,12 @@ void Renderer::RenderGUI(const NXSwapChainBuffer& swapChainBuffer)
 	{
 		m_pGUI->Render(m_pFinalRT, swapChainBuffer);
 	}
+}
+
+void Renderer::FrameEnd()
+{
+	// 释放不需要的PassMaterial
+	NXPassMng->FrameCleanup();
 }
 
 void Renderer::Release()

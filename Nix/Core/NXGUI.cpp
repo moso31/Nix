@@ -136,6 +136,12 @@ void NXGUI::ExecuteDeferredCommands()
 	NXGUICommandManager::GetInstance()->Update();
 }
 
+void NXGUI::Update()
+{
+	if (m_pGUITerrainSector2NodeIDPreview)
+		m_pGUITerrainSector2NodeIDPreview->Update();
+}
+
 void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT, const NXSwapChainBuffer& swapChainBuffer)
 {
 	ImGui_ImplDX12_NewFrame();
@@ -265,8 +271,7 @@ void NXGUI::OpenGUITerrainSector2NodeIDPreview()
 	// 打开窗口时分配内存
 	if (!m_pGUITerrainSector2NodeIDPreview)
 	{
-		m_pGUITerrainSector2NodeIDPreview = new NXGUITerrainSector2NodeIDPreview();
-		m_pGUITerrainSector2NodeIDPreview->Init(m_pRenderer);
+		m_pGUITerrainSector2NodeIDPreview = new NXGUITerrainSector2NodeIDPreview(m_pRenderer);
 	}
 	m_pGUITerrainSector2NodeIDPreview->SetVisible(true);
 }

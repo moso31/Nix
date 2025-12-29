@@ -37,6 +37,7 @@ public:
 
 	void Init();
 	void ExecuteDeferredCommands();
+	void Update();
 	void Render(Ntr<NXTexture2D> pGUIViewRT, const NXSwapChainBuffer& swapChainBuffer);
 	void Release();
 

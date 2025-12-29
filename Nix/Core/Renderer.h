@@ -40,6 +40,9 @@ public:
 	// 负责处理 GUI 的实际渲染 和 即时更新。见上面 UpdateGUI() 的注释
 	void RenderGUI(const NXSwapChainBuffer& swapChainBuffer);
 
+	// 帧结束时
+	void FrameEnd();
+
 	void Release();
 
 	NXRenderGraph* GetRenderGraph() { return m_pRenderGraph; }
