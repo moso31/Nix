@@ -1,5 +1,6 @@
 #pragma once
 #include "BaseDefs/DearImGui.h"
+#include "BaseDefs/Math.h"
 #include "Ntr.h"
 #include "NXConstantBuffer.h"
 
@@ -8,12 +9,13 @@ class NXTexture2D;
 class NXComputePassMaterial;
 class NXGUITerrainSector2NodeIDPreview
 {
-	// 与 TerrainSector2NodePreview.fx 中的 cbRemapParams 对应
 	struct CBufferRemapParams
 	{
-		float remapMin = 0.0f;		// remap 范围的最小值 (0-1024)
-		float remapMax = 1024.0f;	// remap 范围的最大值 (0-1024)
-		int padding[2];
+		float remapMin;	
+		float remapMax;	
+		Vector2 pad0;
+		Vector3 invalidColor;
+		float pad1;
 	};
 
 public:
@@ -47,4 +49,5 @@ private:
 	int m_currentMipLevel = 0;		// 当前查看的 mip 等级 (0-5)
 	float m_remapMin = 0.0f;		// remap 范围最小值
 	float m_remapMax = 1024.0f;		// remap 范围最大值
+	Vector3 m_invalidColor = { 1.0f, 0.5f, 0.5f };	// 无效值的预览颜色
 };

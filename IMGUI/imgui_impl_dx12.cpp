@@ -62,12 +62,14 @@ struct ImGui_ImplDX12_Data
     ID3D12Device*               pd3dDevice;
     ID3D12RootSignature*        pRootSignature;
     ID3D12PipelineState*        pPipelineState;
+    ID3D12PipelineState*        pPipelineStatePoint;  // Point sampling PSO
     DXGI_FORMAT                 RTVFormat;
     ID3D12Resource*             pFontTextureResource;
     D3D12_CPU_DESCRIPTOR_HANDLE hFontSrvCpuDescHandle;
     D3D12_GPU_DESCRIPTOR_HANDLE hFontSrvGpuDescHandle;
     ID3D12DescriptorHeap*       pd3dSrvDescHeap;
     UINT                        numFramesInFlight;
+    ID3D12GraphicsCommandList*  pCurrentCommandList;  // Current command list for callbacks
 
     ImGui_ImplDX12_Data()       { memset((void*)this, 0, sizeof(*this)); }
 };
@@ -236,6 +238,26 @@ static inline void SafeRelease(T*& res)
     res = nullptr;
 }
 
+// Point sampling callback - switches to point sampling PSO
+void ImGui_ImplDX12_SetPointSamplerCallback(const ImDrawList* parent_list, const ImDrawCmd* cmd)
+{
+    (void)parent_list;
+    (void)cmd;
+    ImGui_ImplDX12_Data* bd = ImGui_ImplDX12_GetBackendData();
+    if (bd && bd->pCurrentCommandList && bd->pPipelineStatePoint)
+        bd->pCurrentCommandList->SetPipelineState(bd->pPipelineStatePoint);
+}
+
+// Linear sampling callback - restores linear sampling PSO
+void ImGui_ImplDX12_RestoreLinearSamplerCallback(const ImDrawList* parent_list, const ImDrawCmd* cmd)
+{
+    (void)parent_list;
+    (void)cmd;
+    ImGui_ImplDX12_Data* bd = ImGui_ImplDX12_GetBackendData();
+    if (bd && bd->pCurrentCommandList && bd->pPipelineState)
+        bd->pCurrentCommandList->SetPipelineState(bd->pPipelineState);
+}
+
 // Render function
 void ImGui_ImplDX12_RenderDrawData(ImDrawData* draw_data, ID3D12GraphicsCommandList* ctx)
 {
@@ -244,6 +266,7 @@ void ImGui_ImplDX12_RenderDrawData(ImDrawData* draw_data, ID3D12GraphicsCommandL
         return;
 
     ImGui_ImplDX12_Data* bd = ImGui_ImplDX12_GetBackendData();
+    bd->pCurrentCommandList = ctx;  // Store for use in callbacks
     ImGui_ImplDX12_ViewportData* vd = (ImGui_ImplDX12_ViewportData*)draw_data->OwnerViewport->RendererUserData;
     vd->FrameIndex++;
     ImGui_ImplDX12_RenderBuffers* fr = &vd->FrameRenderBuffers[vd->FrameIndex % bd->numFramesInFlight];
@@ -550,26 +573,43 @@ bool    ImGui_ImplDX12_CreateDeviceObjects()
         param[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
         // Bilinear sampling is required by default. Set 'io.Fonts->Flags |= ImFontAtlasFlags_NoBakedLines' or 'style.AntiAliasedLinesUseTex = false' to allow point/nearest sampling.
-        D3D12_STATIC_SAMPLER_DESC staticSampler = {};
-        staticSampler.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
-        staticSampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-        staticSampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-        staticSampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-        staticSampler.MipLODBias = 0.f;
-        staticSampler.MaxAnisotropy = 0;
-        staticSampler.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
-        staticSampler.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
-        staticSampler.MinLOD = 0.f;
-        staticSampler.MaxLOD = 0.f;
-        staticSampler.ShaderRegister = 0;
-        staticSampler.RegisterSpace = 0;
-        staticSampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+        D3D12_STATIC_SAMPLER_DESC staticSamplers[2] = {};
+        
+        // Linear sampler (s0)
+        staticSamplers[0].Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+        staticSamplers[0].AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+        staticSamplers[0].AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+        staticSamplers[0].AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+        staticSamplers[0].MipLODBias = 0.f;
+        staticSamplers[0].MaxAnisotropy = 0;
+        staticSamplers[0].ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+        staticSamplers[0].BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
+        staticSamplers[0].MinLOD = 0.f;
+        staticSamplers[0].MaxLOD = 0.f;
+        staticSamplers[0].ShaderRegister = 0;
+        staticSamplers[0].RegisterSpace = 0;
+        staticSamplers[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+        
+        // Point sampler (s1)
+        staticSamplers[1].Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
+        staticSamplers[1].AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+        staticSamplers[1].AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+        staticSamplers[1].AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+        staticSamplers[1].MipLODBias = 0.f;
+        staticSamplers[1].MaxAnisotropy = 0;
+        staticSamplers[1].ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+        staticSamplers[1].BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
+        staticSamplers[1].MinLOD = 0.f;
+        staticSamplers[1].MaxLOD = 0.f;
+        staticSamplers[1].ShaderRegister = 1;
+        staticSamplers[1].RegisterSpace = 0;
+        staticSamplers[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
         D3D12_ROOT_SIGNATURE_DESC desc = {};
         desc.NumParameters = _countof(param);
         desc.pParameters = param;
-        desc.NumStaticSamplers = 1;
-        desc.pStaticSamplers = &staticSampler;
+        desc.NumStaticSamplers = 2;
+        desc.pStaticSamplers = staticSamplers;
         desc.Flags =
             D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
             D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
@@ -674,7 +714,8 @@ bool    ImGui_ImplDX12_CreateDeviceObjects()
         psoDesc.InputLayout = { local_layout, 3 };
     }
 
-    // Create the pixel shader
+    // Create the pixel shader (linear sampling)
+    ID3DBlob* pixelShaderBlobPoint = nullptr;
     {
         static const char* pixelShader =
             "struct PS_INPUT\
@@ -698,6 +739,32 @@ bool    ImGui_ImplDX12_CreateDeviceObjects()
             return false; // NB: Pass ID3DBlob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
         }
         psoDesc.PS = { pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize() };
+    }
+
+    // Create the pixel shader (point sampling) - uses sampler1 instead of sampler0
+    {
+        static const char* pixelShaderPoint =
+            "struct PS_INPUT\
+            {\
+              float4 pos : SV_POSITION;\
+              float4 col : COLOR0;\
+              float2 uv  : TEXCOORD0;\
+            };\
+            SamplerState sampler1 : register(s1);\
+            Texture2D texture0 : register(t0);\
+            \
+            float4 main(PS_INPUT input) : SV_Target\
+            {\
+              float4 out_col = input.col * texture0.Sample(sampler1, input.uv); \
+              return out_col; \
+            }";
+
+        if (FAILED(D3DCompile(pixelShaderPoint, strlen(pixelShaderPoint), nullptr, nullptr, nullptr, "main", "ps_5_0", 0, 0, &pixelShaderBlobPoint, nullptr)))
+        {
+            vertexShaderBlob->Release();
+            pixelShaderBlob->Release();
+            return false;
+        }
     }
 
     // Create the blending setup
@@ -743,8 +810,22 @@ bool    ImGui_ImplDX12_CreateDeviceObjects()
     }
 
     HRESULT result_pipeline_state = bd->pd3dDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&bd->pPipelineState));
+    if (result_pipeline_state != S_OK)
+    {
+        vertexShaderBlob->Release();
+        pixelShaderBlob->Release();
+        pixelShaderBlobPoint->Release();
+        return false;
+    }
+
+    // Create the point sampling PSO
+    psoDesc.PS = { pixelShaderBlobPoint->GetBufferPointer(), pixelShaderBlobPoint->GetBufferSize() };
+    result_pipeline_state = bd->pd3dDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&bd->pPipelineStatePoint));
+    
     vertexShaderBlob->Release();
     pixelShaderBlob->Release();
+    pixelShaderBlobPoint->Release();
+    
     if (result_pipeline_state != S_OK)
         return false;
 
@@ -769,6 +850,7 @@ void    ImGui_ImplDX12_InvalidateDeviceObjects()
     ImGuiIO& io = ImGui::GetIO();
     SafeRelease(bd->pRootSignature);
     SafeRelease(bd->pPipelineState);
+    SafeRelease(bd->pPipelineStatePoint);
     SafeRelease(bd->pFontTextureResource);
     io.Fonts->SetTexID(0); // We copied bd->pFontTextureView to io.Fonts->TexID so let's clear that as well.
 }

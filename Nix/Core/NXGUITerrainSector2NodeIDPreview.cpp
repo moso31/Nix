@@ -19,14 +19,12 @@ NXGUITerrainSector2NodeIDPreview::NXGUITerrainSector2NodeIDPreview(Renderer* pRe
 		m_pTexture->SetUAV(i, i);
 	}
 
+	// cbmip 初始化设置一次就行
 	for (int i = 0; i < mips; i++)
 	{
 		m_cbMipData[i] = i;
 		m_cbMip[i].Set(m_cbMipData[i]);
 	}
-
-	m_cbRemapData.remapMin = m_remapMin;
-	m_cbRemapData.remapMax = m_remapMax;
 
 	m_pPassMat = new NXComputePassMaterial("TerrainSector2NodePreview", L"Shader\\TerrainSector2NodePreview.fx");
 	m_pPassMat->RegisterCBVSpaceNum(1);
@@ -63,6 +61,7 @@ void NXGUITerrainSector2NodeIDPreview::Update()
 
 	m_cbRemapData.remapMin = m_remapMin;
 	m_cbRemapData.remapMax = m_remapMax;
+	m_cbRemapData.invalidColor = m_invalidColor;
 	m_cbRemap.Update(m_cbRemapData);
 
 	struct PassData
@@ -160,7 +159,7 @@ void NXGUITerrainSector2NodeIDPreview::Render()
 						float uvMax = (float)mipSize / (float)g_terrainStreamConfig.Sector2NodeIDTexSize;
 						NXShVisDescHeap->PushFluid(m_pTexture->GetSRV());
 						D3D12_GPU_DESCRIPTOR_HANDLE srvHandle = NXShVisDescHeap->Submit();
-						ImGui::Image((ImTextureID)srvHandle.ptr, ImVec2(displayWidth, displayHeight), 
+						ImGui_ImagePointSampling((ImTextureID)srvHandle.ptr, ImVec2(displayWidth, displayHeight), 
 							ImVec2(0.0f, 0.0f), ImVec2(uvMax, uvMax));
 
 						ImGui::EndChild();
@@ -196,25 +195,21 @@ void NXGUITerrainSector2NodeIDPreview::Render()
 						ImGui::Text(ImUtf8("重映射范围 (NodeID -> [0,1]):"));
 						ImGui::DragFloatRange2("##RemapRange", &m_remapMin, &m_remapMax, 1.0f, 0.0f, 1024.0f, ImUtf8("最小: %.0f"), ImUtf8("最大: %.0f"));
 						
-						ImGui::Spacing();
+						ImGui::SameLine();
 						if (ImGui::Button(ImUtf8("重置")))
 						{
 							m_remapMin = 0.0f;
 							m_remapMax = 1024.0f;
 						}
-						ImGui::SameLine();
-						if (ImGui::Button("0-256"))
-						{
-							m_remapMin = 0.0f;
-							m_remapMax = 256.0f;
-						}
-						ImGui::SameLine();
-						if (ImGui::Button("0-512"))
-						{
-							m_remapMin = 0.0f;
-							m_remapMax = 512.0f;
-						}
 
+						ImGui::Spacing();
+						ImGui::Separator();
+						ImGui::Spacing();
+
+						// 3. 无效值颜色设置
+						ImGui::Text(ImUtf8("无效像素颜色 (0xFFFF):"));
+						ImGui::ColorEdit3("##InvalidColor", m_invalidColor);
+						
 						ImGui::Spacing();
 						ImGui::Separator();
 						ImGui::Spacing();
@@ -222,7 +217,6 @@ void NXGUITerrainSector2NodeIDPreview::Render()
 						// 显示当前 remap 说明
 						ImGui::TextWrapped(ImUtf8("NodeID 值在 [%.0f, %.0f] 范围内将被映射到灰度 [0, 1]。"), m_remapMin, m_remapMax);
 						ImGui::TextWrapped(ImUtf8("超出此范围的值将被截断。"));
-						ImGui::TextWrapped(ImUtf8("无效像素 (0xFFFF) 显示为黑色。"));
 					}
 
 					ImGui::Columns(1);

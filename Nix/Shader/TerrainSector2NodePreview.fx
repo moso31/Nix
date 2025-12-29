@@ -4,15 +4,16 @@ cbuffer cbRemapParams : register(b0)
 {
     float m_remapMin;
     float m_remapMax;
+    float2 pad0;
     
-    int2 pad0;
+    float3 m_invalidColor;
+    float pad1;
 };
 
 cbuffer cbMip : register(b1)
 {
     int m_currentMip;
-    
-    int3 pad1;
+    int3 pad2;
 }
 
 Texture2D<uint> txSector2NodeID : register(t0); 
@@ -34,7 +35,7 @@ void CS(uint3 dtid : SV_DispatchThreadID)
     float normalizedValue;
     if (nodeID == 0xFFFF) // -1ÊÇÎÞÐ§ÏñËØ
     {
-        txPreview[pixelPos] = float3(1.0, 0.5, 0.5);
+        txPreview[pixelPos] = m_invalidColor;
         return;
     }
     else

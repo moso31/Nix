@@ -19,6 +19,9 @@
     <ClInclude Include="implot_internal.h">
       <Filter>implot</Filter>
     </ClInclude>
+    <ClInclude Include="imgui_nix_extra.h">
+      <Filter>nix_extra</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="imgui_demo.cpp" />
@@ -42,6 +45,9 @@
     <ClCompile Include="implot_demo.cpp">
       <Filter>implot</Filter>
     </ClCompile>
+    <ClCompile Include="imgui_nix_extra.cpp">
+      <Filter>nix_extra</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="impl">
@@ -49,6 +55,9 @@
     </Filter>
     <Filter Include="implot">
       <UniqueIdentifier>{6d0fbef8-fe9f-444c-b1ff-4ca6fcf5876b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="nix_extra">
+      <UniqueIdentifier>{c55c90b6-95ec-4f29-9a6c-d9860cb6f126}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
