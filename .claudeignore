@@ -1,0 +1,27 @@
+﻿################################################################################
+# 此 .gitignore 文件已由 Microsoft(R) Visual Studio 自动创建。
+################################################################################
+
+/.vs
+/FBXImporter/lib/vs2015
+/FBXImporter/x64
+/Nix/x64
+/NixMath/x64
+/x64/Debug
+/x64/Release
+/Nix/lib/Debug
+/DirectXTex/.nuget
+/IMGUI/x64/Debug
+/IMGUI/x64/Release
+/FBXImporter/lib/vs2017
+/_Intermediate/x64
+*.lib
+*.pdb
+*.dll
+*.idb
+*.lastcodeanalysissucceeded
+/Nix/logs/Log.txt
+/NXDebugLogOutput/x64
+/XAllocator/x64/Release
+/FunctionTest/x64/Debug
+/FunctionTest/x64/Release
