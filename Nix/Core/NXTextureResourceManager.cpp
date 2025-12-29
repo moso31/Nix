@@ -135,7 +135,6 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D(const std::string& na
 	Ntr<NXTexture2D> pTexture2D(new NXTexture2D());
 	pTexture2D->CreateTexture(name, fmt, width, height, mipLevels, flags);
 
-	// 2DRT的automakeView：创建一个SRV，如果作为RT使用，就创建RTV；如果作为DS使用，就创建DSV
 	if (bAutoMakeViews)
 	{
 		uint32_t uavCount = flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS? 1 : 0;

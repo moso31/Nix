@@ -16,7 +16,8 @@ void NXGUITerrainSector2NodeIDPreview::Init(Renderer* pRenderer)
 {
 	m_pRenderer = pRenderer;
 
-	//m_pTexture = NXManager_Tex->CreateTexture2D("TerrainStreaming_Sector2NodeID", DXGI_FORMAT_R16_UINT, s_sector2NodeIDTexSize, s_sector2NodeIDTexSize, mip, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, false);
+	// 预览纹理不需要mip
+	m_pTexture = NXManager_Tex->CreateTexture2D("TerrainStreaming_Sector2NodeID", DXGI_FORMAT_R16_UINT, g_terrainStreamConfig.AtlasHeightMapSize, g_terrainStreamConfig.AtlasHeightMapSize, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 }
 
 void NXGUITerrainSector2NodeIDPreview::Render()

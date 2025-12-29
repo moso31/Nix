@@ -24,11 +24,14 @@ struct NXTerrainLODStreamConfigsStruct
 	// NXTerrainLODStreamer 配置
 	// ========================================
 
-	// 最大节点层级（0~5 共6层）
-	static constexpr int MaxNodeLevel = 5;
-
 	// 各LOD级别对应的距离范围
 	static constexpr float DistRanges[6] = { 200.0f, 400.0f, 800.0f, 1600.0f, 3200.0f, FLT_MAX };
+
+	// 几档LOD
+	static constexpr int LODSize = 6;
+
+	// 最大节点层级（0~5 共6层）
+	static constexpr int MaxNodeLevel = LODSize - 1;
 
 	// 预分配已加载节点描述数组的初始大小
 	static constexpr int NodeDescArrayInitialSize = 1024;
