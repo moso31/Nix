@@ -17,7 +17,7 @@ void NXTerrainStreamingAsyncLoader::Update()
 	while (it != m_requestTasks.end())
 	{
 		// 防止同时处理过多task
-		if (m_loadingTasks.size() >= s_maxRequestLimit) 
+		if (m_loadingTasks.size() >= g_terrainStreamConfig.MaxRequestLimit) 
 			break;
 
 		NXTerrainStreamingLoadTextureResult nextTask;
@@ -38,7 +38,7 @@ void NXTerrainStreamingAsyncLoader::Update()
 	int loadingCnt = 0;
 	for (auto it = m_loadingTasks.begin(); it != m_loadingTasks.end(); loadingCnt++)
 	{
-		if (m_computeTasks.size() >= s_maxComputeLimit)
+		if (m_computeTasks.size() >= g_terrainStreamConfig.MaxComputeLimit)
 			break;
 
 		if (it->pHeightMap.IsValid() && it->pHeightMap->IsLoadReady() && it->pSplatMap.IsValid() && it->pSplatMap->IsLoadReady())

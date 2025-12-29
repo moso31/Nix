@@ -200,7 +200,7 @@ void Renderer::GenerateRenderGraph()
 					pMat->SetOutput(0, 0, resMap.GetRes(data.pOutAtlas));
 					pMat->SetConstantBuffer(0, 0, &pStreamingData.GetNodeDescUpdateIndices());
 
-					uint32_t threadGroups = (pStreamingData.s_atlasSplatMapSize + 7) / 8;
+					uint32_t threadGroups = (g_terrainStreamConfig.AtlasHeightMapSize + 7) / 8;
 					pMat->RenderSetTargetAndState(pCmdList);
 					pMat->RenderBefore(pCmdList);
 					pCmdList->Dispatch(threadGroups, threadGroups, groupNum);
@@ -224,7 +224,7 @@ void Renderer::GenerateRenderGraph()
 					pMat->SetOutput(0, 0, resMap.GetRes(data.pOutAtlas));
 					pMat->SetConstantBuffer(0, 0, &pStreamingData.GetNodeDescUpdateIndices());
 
-					uint32_t threadGroups = (pStreamingData.s_atlasSplatMapSize + 7) / 8;
+					uint32_t threadGroups = (g_terrainStreamConfig.AtlasHeightMapSize + 7) / 8;
 					pMat->RenderSetTargetAndState(pCmdList);
 					pMat->RenderBefore(pCmdList);
 					pCmdList->Dispatch(threadGroups, threadGroups, groupNum);

@@ -13,7 +13,7 @@ NXTerrainLODStreamer::NXTerrainLODStreamer() :
 	m_streamData.Init(this);
 
     // nodeDescArray长度固定不变
-    m_nodeDescArrayInternal.resize(s_nodeDescArrayInitialSize);
+    m_nodeDescArrayInternal.resize(g_terrainStreamConfig.NodeDescArrayInitialSize);
 }
 
 NXTerrainLODStreamer::~NXTerrainLODStreamer()
@@ -56,7 +56,7 @@ void NXTerrainLODStreamer::Update()
 
     // 逆序，因为nodeLevel越大，对应node表示的精度越高；这里需要优先加载精度最高的
     int loadCount = 0;
-    for (int i = s_maxNodeLevel; i >= 0; i--) 
+    for (int i = g_terrainStreamConfig.MaxNodeLevel; i >= 0; i--) 
     {
         for (auto& node : nodeLists[i])
         {
@@ -212,7 +212,7 @@ void NXTerrainLODStreamer::ProcessCompletedStreamingTask()
 
 uint32_t NXTerrainLODStreamer::GetLoadTexGroupLimitEachFrame()
 {
-    return m_asyncLoader->s_maxComputeLimit;
+    return g_terrainStreamConfig.MaxComputeLimit;
 }
 
 void NXTerrainLODStreamer::GetNodeDatasInternal(std::vector<std::vector<NXTerrainLODQuadTreeNode>>& oNodeDataList, const NXTerrainLODQuadTreeNode& node)
@@ -222,7 +222,7 @@ void NXTerrainLODStreamer::GetNodeDatasInternal(std::vector<std::vector<NXTerrai
     // - 如果节点在当前LOD距离内，递归拿四个子节点并进入下一级LOD；否则中止递归
 
     uint32_t nodeLevel = node.GetLevel();
-    float range = s_distRanges[s_maxNodeLevel - nodeLevel];
+    float range = g_terrainStreamConfig.DistRanges[g_terrainStreamConfig.MaxNodeLevel - nodeLevel];
 
     auto pCamera = m_pScene->GetMainCamera();
     Rect2D nodeRect(Vector2((float)node.positionWS.x, (float)node.positionWS.y), (float)node.size);
@@ -234,7 +234,7 @@ void NXTerrainLODStreamer::GetNodeDatasInternal(std::vector<std::vector<NXTerrai
         oNodeDataList[nodeLevel].push_back(node);
 
         // 继续递归子节点
-        if (nodeLevel + 1 <= s_maxNodeLevel)
+        if (nodeLevel + 1 <= g_terrainStreamConfig.MaxNodeLevel)
         {
             for (int i = 0; i < 4; i++)
             {

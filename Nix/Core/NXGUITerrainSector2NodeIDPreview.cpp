@@ -2,6 +2,7 @@
 #include "Renderer.h"
 #include "NXTerrainLODStreamer.h"
 #include "NXAllocatorManager.h"
+#include "NXTerrainLODStreamConfigs.h"
 
 NXGUITerrainSector2NodeIDPreview::NXGUITerrainSector2NodeIDPreview()
 {

@@ -1,5 +1,6 @@
 #pragma once
 #include "NXTerrainLODStreamData.h"
+#include "NXTerrainLODStreamConfigs.h"
 
 class NXTerrainStreamingAsyncLoader;
 class NXTerrainStreamingBatcher;
@@ -77,11 +78,6 @@ class NXScene;
 /// </summary>
 class NXTerrainLODStreamer
 {
-public:
-	static constexpr int s_maxNodeLevel = 5; // 最大节点层级 0~5 共6层
-	static constexpr float s_distRanges[6] = { 200.0f, 400.0f, 800.0f, 1600.0f, 3200.0f, FLT_MAX }; // 这样写可以不在cpp再初始化一次 很方便
-	static constexpr int s_nodeDescArrayInitialSize = 1024; // 预分配已加载节点描述数组的初始大小
-
 public:
 	NXTerrainLODStreamer();
 	~NXTerrainLODStreamer();

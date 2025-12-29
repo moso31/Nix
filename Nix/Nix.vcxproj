@@ -529,6 +529,7 @@
     <ClInclude Include="Nix\NXTerrain.h" />
     <ClInclude Include="Nix\NXTerrainCommon.h" />
     <ClInclude Include="Nix\NXTerrainLayer.h" />
+    <ClInclude Include="Nix\NXTerrainLODStreamConfigs.h" />
     <ClInclude Include="Nix\NXTerrainLODStreamData.h" />
     <ClInclude Include="Nix\NXTerrainStreamingAsyncLoader.h" />
     <ClInclude Include="Nix\NXTerrainStreamingBatcher.h" />

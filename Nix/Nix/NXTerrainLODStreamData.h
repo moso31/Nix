@@ -5,6 +5,7 @@
 #include "NXConstantBuffer.h"
 #include "NXBuffer.h"
 #include "NXTexture.h"
+#include "NXTerrainLODStreamConfigs.h"
 
 struct CBufferTerrainNodeDescription
 {
@@ -35,11 +36,6 @@ class NXTerrainLODStreamer;
 class NXTerrainLODStreamData
 {
 public:
-	static const int s_atlasHeightMapSize = 65;	// HeightMap: 65 x 65 x s_atlasLayerCount
-	static const int s_atlasSplatMapSize = 65;	// SplatMap: 65 x 65 x s_atlasLayerCount
-	static const int s_atlasLayerCount = 1024;	// atlas tex2darray 数组长度
-	static const int s_sector2NodeIDTexSize = 256;
-
 	NXTerrainLODStreamData() {};
 	~NXTerrainLODStreamData() {};
 

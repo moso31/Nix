@@ -2,6 +2,7 @@
 #include "BaseDefs/Math.h"
 #include "BaseDefs/NixCore.h"
 #include "BaseDefs/CppSTLFully.h"
+#include "NXTerrainLODStreamConfigs.h"
 
 struct StringDatas
 {
@@ -51,11 +52,6 @@ struct NXTerrainStreamingLoadTextureResult
 class NXTerrainStreamingAsyncLoader
 {
 public:
-	// 每帧最多请求几组任务。注意每个任务对应一个地形节点Task=加载4N张纹理。
-	static constexpr uint32_t s_maxRequestLimit = 4; 
-	// 每帧最多处理的完成任务数量
-	static constexpr uint32_t s_maxComputeLimit = 4; 
-
 	NXTerrainStreamingAsyncLoader() {};
 	~NXTerrainStreamingAsyncLoader() {};
 

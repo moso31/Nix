@@ -1020,6 +1020,9 @@
     <ClInclude Include="Nix\NXTerrainLODStreamData.h">
       <Filter>Nix\TextureStreaming</Filter>
     </ClInclude>
+    <ClInclude Include="Nix\NXTerrainLODStreamConfigs.h">
+      <Filter>Nix\TextureStreaming</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="八字无撇的待办事项.txt" />
