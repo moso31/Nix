@@ -1,13 +1,10 @@
 #include "NXTerrainLODStreamData.h"
 #include "NXTerrainLODStreamer.h"
 #include "NXResourceManager.h"
+#include "NXCamera.h"
 
 void NXTerrainLODStreamData::Init(NXTerrainLODStreamer* pStreamer)
 {
-    // NodeDescArray_GPU 和CPU预分配相同的大小（默认1024）
-	m_pTerrainNodeDescArray = new NXBuffer("Terrain NodeDescArray_GPU");
-    m_pTerrainNodeDescArray->Create(sizeof(CBufferTerrainNodeDescription), g_terrainStreamConfig.NodeDescArrayInitialSize); 
-
 	// NodeDescArray_CPU
     m_cbNodeDescArray.Recreate(g_terrainStreamConfig.NodeDescArrayInitialSize);
 	m_nodeDescArray.resize(g_terrainStreamConfig.NodeDescArrayInitialSize);
@@ -29,6 +26,26 @@ void NXTerrainLODStreamData::Init(NXTerrainLODStreamer* pStreamer)
 	for (int i = 0; i < mips; i++)
 	{
 		m_pSector2NodeIDTexture->SetUAV(i, i); // 每个mip都需要UAV
+	}
+
+	// gpu-driven ping-pong
+	m_pingpongNodesA = new NXBuffer("Terrain Ping-pong NodeId Array A");
+	m_pingpongNodesA->Create(sizeof(int), g_terrainStreamConfig.NodeDescArrayInitialSize);
+	m_pingpongNodesB = new NXBuffer("Terrain Ping-pong NodeId Array B");
+	m_pingpongNodesB->Create(sizeof(int), g_terrainStreamConfig.NodeDescArrayInitialSize);
+	m_pingpongNodesFinal = new NXBuffer("Terrain Ping-pong NodeId Array Final");
+	m_pingpongNodesFinal->Create(sizeof(int), g_terrainStreamConfig.NodeDescArrayInitialSize);
+	m_pingpongIndirectArgs = new NXBuffer("Terrain Ping-pong Indirect Args");
+	m_pingpongIndirectArgs->Create(sizeof(int) * 3, 1);
+	int a[3] = { 1, 1, 1 };
+	m_pingpongIndirectArgs->SetAll(a, 1);
+
+	// culling data 初始化时部分数据更新
+	for (int i = 0; i < g_terrainStreamConfig.LODSize; i++)
+	{
+		int val = g_terrainStreamConfig.LODSize - i - 1;
+		m_cbCullingData[i].m_currentLodDist = g_terrainStreamConfig.DistRanges[val];
+		m_cbCullingData[i].m_currentMip = val;
 	}
 }
 
@@ -55,4 +72,13 @@ void NXTerrainLODStreamData::UpdateCBNodeDescArray()
 void NXTerrainLODStreamData::ClearNodeDescUpdateIndices()
 {
 	m_nodeDescUpdateIndices.clear();
+}
+
+void NXTerrainLODStreamData::UpdateCullingData(NXCamera* pCamera)
+{
+	for (int i = 0; i < g_terrainStreamConfig.LODSize; i++)
+	{
+		m_cbCullingData[i].m_cameraPos = pCamera->GetTranslation();
+		m_cbCulling[i].Update(m_cbCullingData[i]);
+	}
 }

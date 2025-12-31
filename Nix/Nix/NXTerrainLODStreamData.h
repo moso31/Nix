@@ -32,6 +32,21 @@ struct CBufferTerrainNodeDescUpdateInfo
 	int replaceSize; 
 };
 
+struct CBufferTerrainCullingParam
+{
+	// 相机位置
+	Vector3 m_cameraPos;
+
+	// 各级LOD距离
+	float m_currentLodDist;
+
+	// 当前consume/append的mip等级
+	int m_currentMip;
+
+	Vector3 pad;
+};
+
+class NXCamera;
 class NXTerrainLODStreamer;
 class NXTerrainLODStreamData
 {
@@ -50,8 +65,6 @@ public:
 	const uint32_t GetNodeDescUpdateIndicesNum() const { return m_nodeDescUpdateIndices.size(); }
 	void ClearNodeDescUpdateIndices();
 
-	const Ntr<NXBuffer>& GetNodeDescArrayGPUBuffer() const { return m_pTerrainNodeDescArray; }
-
 	const Ntr<NXTexture2DArray>& GetHeightMapAtlas() const { return m_pHeightMapAtlas; }
 	const Ntr<NXTexture2DArray>& GetSplatMapAtlas() const { return m_pSplatMapAtlas; }
 	const std::vector<Ntr<NXTexture2D>>& GetToAtlasHeightTextures() const { return m_pToAtlasHeights; }
@@ -63,6 +76,14 @@ public:
 	bool NeedClearSector2NodeIDTexture() const { return m_bNeedClearSector2NodeIDTexture; }
 	void MarkSector2NodeIDTextureCleared() { m_bNeedClearSector2NodeIDTexture = false; }
 
+	const Ntr<NXBuffer>& GetPingPongNodesA() const { return m_pingpongNodesA; }
+	const Ntr<NXBuffer>& GetPingPongNodesB() const { return m_pingpongNodesB; }
+	const Ntr<NXBuffer>& GetPingPongNodesFinal() const { return m_pingpongNodesFinal; }
+	const Ntr<NXBuffer>& GetPingPongIndirectArgs() const { return m_pingpongIndirectArgs; }
+
+	void UpdateCullingData(NXCamera* pCamera);
+	const NXConstantBuffer<CBufferTerrainCullingParam>& GetCullingParam(uint32_t index) const { return m_cbCulling[index]; }
+
 private:
 	// 和m_nodeDescArrayInternal完全相同，只是数据格式不同，供CPU-GPU交互
 	std::vector<CBufferTerrainNodeDescription> m_nodeDescArray;
@@ -70,9 +91,6 @@ private:
 	// 用一个int[]记录每帧更新的nodeDesc索引，每帧重置
 	std::vector<CBufferTerrainNodeDescUpdateInfo> m_nodeDescUpdateIndices;
 	NXConstantBuffer<std::vector<CBufferTerrainNodeDescUpdateInfo>> m_cbNodeDescUpdateIndices;
-
-	// NodeDescriptionArray(GPU)
-	Ntr<NXBuffer> m_pTerrainNodeDescArray;
 
 	// 纹理Atlas
 	Ntr<NXTexture2DArray> m_pHeightMapAtlas;
@@ -87,4 +105,14 @@ private:
 
 	// 是否需要清空Sector2NodeID纹理（仅首帧需要）
 	bool m_bNeedClearSector2NodeIDTexture = true;
+
+	// gpu-driven ping-pong
+	Ntr<NXBuffer> m_pingpongNodesA;
+	Ntr<NXBuffer> m_pingpongNodesB;
+	Ntr<NXBuffer> m_pingpongNodesFinal;
+	Ntr<NXBuffer> m_pingpongIndirectArgs;
+
+	// 各级ping-pong 的culling参数
+	CBufferTerrainCullingParam m_cbCullingData[6];
+	NXConstantBuffer<CBufferTerrainCullingParam> m_cbCulling[6];
 };

@@ -42,6 +42,7 @@ private:
 	CBufferRemapParams m_cbRemapData;
 	NXConstantBuffer<CBufferRemapParams> m_cbRemap;
 
+	// 预览的mip等级，实际就是个非常简单的data[i] = i;
 	int m_cbMipData[6];
 	NXConstantBuffer<int> m_cbMip[6];
 

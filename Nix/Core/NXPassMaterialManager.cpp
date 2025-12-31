@@ -35,6 +35,34 @@ void NXPassMaterialManager::InitDefaultRenderer()
 		AddMaterial(pMat, true);
 	}
 
+	// Terrain Nodes Culling
+	{
+		auto pMat = new NXComputePassMaterial("TerrainNodesCulling:First", L"Shader\\TerrainNodesCulling.fx");
+		pMat->SetEntryNameCS(L"CS_First");
+		pMat->RegisterCBVSpaceNum(1);
+		pMat->RegisterCBVSlotNum(2);
+		pMat->RegisterSRVSpaceNum(1);
+		pMat->RegisterSRVSlotNum(1);
+		pMat->RegisterUAVSpaceNum(1);
+		pMat->RegisterUAVSlotNum(3);
+		pMat->FinalizeLayout();
+		AddMaterial(pMat, true);
+	}
+
+	// Terrain Nodes Culling
+	{
+		auto pMat = new NXComputePassMaterial("TerrainNodesCulling:Process", L"Shader\\TerrainNodesCulling.fx");
+		pMat->SetEntryNameCS(L"CS_Process");
+		pMat->RegisterCBVSpaceNum(1);
+		pMat->RegisterCBVSlotNum(2);
+		pMat->RegisterSRVSpaceNum(1);
+		pMat->RegisterSRVSlotNum(1);
+		pMat->RegisterUAVSpaceNum(1);
+		pMat->RegisterUAVSlotNum(3);
+		pMat->FinalizeLayout();
+		AddMaterial(pMat, true);
+	}
+
 	// TerrainFillTest
 	{
 		auto pMat = new NXComputePassMaterial("TerrainFillTest", L"Shader\\FillTestComputeShader.fx");
@@ -77,7 +105,7 @@ void NXPassMaterialManager::InitDefaultRenderer()
 		AddMaterial(pMat, true);
 	}
 
-	// GBuffer（GBuffer由Mesh提供CBV SRV，这里不需要）
+	// GBuffer
 	{
 		auto pMat = new NXGraphicPassMaterial("GBuffer");
 		pMat->RegisterRTVNum({ DXGI_FORMAT_R32_FLOAT, DXGI_FORMAT_R32G32B32A32_FLOAT, DXGI_FORMAT_R10G10B10A2_UNORM, DXGI_FORMAT_R8G8B8A8_UNORM });

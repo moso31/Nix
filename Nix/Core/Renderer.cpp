@@ -160,24 +160,6 @@ void Renderer::GenerateRenderGraph()
 		int groupNum = pStreamingData.GetNodeDescUpdateIndicesNum();
 		if (groupNum > 0)
 		{
-			struct TerrainNodeDescCopy
-			{
-				NXRGHandle pNodeDescArrayGPU;
-			};
-			NXRGHandle pTerrNodeDescArrayGPU = m_pRenderGraph->Import(pStreamingData.GetNodeDescArrayGPUBuffer());
-
-			m_pRenderGraph->AddPass<TerrainNodeDescCopy>("Terrain NodeDesc Copy",
-				[&](NXRGBuilder& builder, TerrainNodeDescCopy& data) {
-					data.pNodeDescArrayGPU = builder.Write(pTerrNodeDescArrayGPU);
-				},
-				[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, TerrainNodeDescCopy& data) {
-					uint64_t pBufferOffset;
-					auto& cbNodeDescArray = pStreamingData.GetNodeDescArray();
-					auto pBuffer = cbNodeDescArray.CurrentGPUResourceAndOffset(pBufferOffset);
-					auto pGPUBuffer = resMap.GetRes(data.pNodeDescArrayGPU).As<NXBuffer>();
-					pCmdList->CopyBufferRegion(pGPUBuffer->GetD3DResource(), 0, pBuffer, pBufferOffset, cbNodeDescArray.GetByteSize());
-				});
-
 			struct TerrainAtlasBaker
 			{
 				std::vector<NXRGHandle> pIn;
@@ -254,6 +236,100 @@ void Renderer::GenerateRenderGraph()
 					pCmdList->Dispatch(groupNum, 1, 1);
 				}
 			);
+		}
+
+		struct TerrainNodesCullingData
+		{
+			NXRGHandle sector2NodeTex;
+			NXRGHandle pIn;
+			NXRGHandle pOut;
+			NXRGHandle pFinal;
+			NXRGHandle pIndiArgs;
+		};
+		NXRGHandle pTerrainNodesA = m_pRenderGraph->Import(pStreamingData.GetPingPongNodesA());
+		NXRGHandle pTerrainNodesB = m_pRenderGraph->Import(pStreamingData.GetPingPongNodesB());
+		NXRGHandle pTerrainNodesFinal = m_pRenderGraph->Import(pStreamingData.GetPingPongNodesFinal());
+		NXRGHandle pTerrainIndirectArgs = m_pRenderGraph->Import(pStreamingData.GetPingPongIndirectArgs());
+
+		// 每帧clear 一次 FinalBuffer
+		m_pRenderGraph->AddPass<TerrainNodesCullingData>("Terrain Nodes Clear",
+			[=, &pStreamingData](NXRGBuilder& builder, TerrainNodesCullingData& data)
+			{
+				data.pFinal = builder.Write(pTerrainNodesFinal);
+			},
+			[=, &pStreamingData](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, TerrainNodesCullingData& data)
+			{
+				UINT clearValues[4] = { 0,0,0,0 };
+				auto pGPUBuffer = resMap.GetRes(data.pFinal).As<NXBuffer>();
+				pGPUBuffer->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+				D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = pGPUBuffer->GetUAVCounter();
+				NXShVisDescHeap->PushFluid(cpuHandle);
+				D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = NXShVisDescHeap->Submit();
+				pCmdList->ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, pGPUBuffer->GetD3DResourceUAVCounter(), clearValues, 0, nullptr);
+			});
+
+		// culling：预加载 填满mip5初始nodeID
+		m_pRenderGraph->AddPass<TerrainNodesCullingData>("Terrain Nodes Culling",
+			[=, &pStreamingData](NXRGBuilder& builder, TerrainNodesCullingData& data)
+			{
+				data.pOut = builder.Write(pTerrainNodesA);
+				data.pFinal = builder.Write(pTerrainNodesFinal);
+				data.sector2NodeTex = builder.Read(m_pRenderGraph->Import(pStreamingData.GetSector2NodeIDTexture()));
+			},
+			[=, &pStreamingData](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, TerrainNodesCullingData& data)
+			{
+				auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("TerrainNodesCulling:First"));
+				pMat->SetInput(0, 0, resMap.GetRes(data.sector2NodeTex)); // t0
+				pMat->SetOutput(0, 1, resMap.GetRes(data.pOut)); // u1
+				pMat->SetOutput(0, 2, resMap.GetRes(data.pFinal)); // u2
+				pMat->SetConstantBuffer(0, 1, &pStreamingData.GetCullingParam(0));
+
+				pMat->RenderSetTargetAndState(pCmdList);
+				pMat->RenderBefore(pCmdList);
+
+				pCmdList->Dispatch(1, 1, 1);
+			});
+
+		// culling：ping-pong
+		for (int i = 0; i < g_terrainStreamConfig.LODSize; i++)
+		{
+			m_pRenderGraph->AddPass<TerrainNodesCullingData>("Terrain Nodes Culling",
+				[=, &pStreamingData](NXRGBuilder& builder, TerrainNodesCullingData& data)
+				{
+					data.pIn = builder.Read((i % 2 == 0) ? pTerrainNodesA : pTerrainNodesB);
+					data.pOut = builder.Write((i % 2 == 0) ? pTerrainNodesB : pTerrainNodesA);
+					data.pFinal = builder.Write(pTerrainNodesFinal);
+					data.pIndiArgs = builder.Read(pTerrainIndirectArgs); 
+					data.sector2NodeTex = builder.Read(m_pRenderGraph->Import(pStreamingData.GetSector2NodeIDTexture()));
+				},
+				[=, &pStreamingData](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, TerrainNodesCullingData& data)
+				{
+					Ntr<NXBuffer> pInputRes = resMap.GetRes(data.pIn).As<NXBuffer>();
+					Ntr<NXBuffer> pOutputRes = resMap.GetRes(data.pOut).As<NXBuffer>();
+					Ntr<NXBuffer> pIndiArgsRes = resMap.GetRes(data.pIndiArgs).As<NXBuffer>();
+					Ntr<NXBuffer> pFinalRes = resMap.GetRes(data.pFinal).As<NXBuffer>();
+
+					auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("TerrainNodesCulling:Process"));
+					pMat->SetInput(0, 0, resMap.GetRes(data.sector2NodeTex));
+					pMat->SetOutput(0, 0, pInputRes);
+					pMat->SetOutput(0, 1, pOutputRes);
+					pMat->SetOutput(0, 2, pFinalRes);
+					pMat->SetConstantBuffer(0, 0, &pStreamingData.GetNodeDescArray());
+					pMat->SetConstantBuffer(0, 1, &pStreamingData.GetCullingParam(i));
+
+					// 拷贝pInput.UAV计数器 作为 dispatch indirect args
+					// 虽然只是拷贝pInput.UAV计数器，但目前的设计不太灵活，要SetResourceState必须带着原始资源一起做...
+					pInputRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COPY_SOURCE);
+					pIndiArgsRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COPY_DEST);
+					// ...不过最终拷贝的时候，只拷贝pInput.UAV计数器即可。
+					pCmdList->CopyBufferRegion(pIndiArgsRes->GetD3DResource(), 0, pInputRes->GetD3DResourceUAVCounter(), 0, sizeof(uint32_t));
+
+					pMat->RenderSetTargetAndState(pCmdList);
+					pMat->RenderBefore(pCmdList);
+
+					pIndiArgsRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+					pCmdList->ExecuteIndirect(m_pCommandSig.Get(), 1, pIndiArgsRes->GetD3DResource(), 0, nullptr, 0);
+				});
 		}
 
 		NXRGHandle pTerrainBufferA = m_pRenderGraph->Import(terrIns->GetTerrainBufferA());
@@ -918,6 +994,7 @@ void Renderer::UpdateSceneData()
 	m_scene->UpdateCamera();
 
 	auto* pCamera = m_scene->GetMainCamera();
+	m_pTerrainLODStreamer->GetStreamingData().UpdateCullingData(pCamera);
 	NXGPUTerrainManager::GetInstance()->UpdateCameraParams(pCamera);
 	NXVirtualTextureManager::GetInstance()->Update();
 	NXVirtualTextureManager::GetInstance()->UpdateCBData(pCamera->GetRTSize());
