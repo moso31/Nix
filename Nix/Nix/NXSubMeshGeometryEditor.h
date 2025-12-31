@@ -36,7 +36,6 @@ public:
 	void Release();
 
 private:
-	void CreateTerrainSingleLod(NXTerrain* pTerrain, NXSubMeshTerrain* pSubMesh, int sectorSize, int lod);
 	void InitCommonMeshes();
 
 private:

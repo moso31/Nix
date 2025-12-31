@@ -47,6 +47,15 @@ void NXTerrainLODStreamData::Init(NXTerrainLODStreamer* pStreamer)
 		m_cbCullingData[i].m_currentLodDist = g_terrainStreamConfig.DistRanges[val];
 		m_cbCullingData[i].m_currentMip = val;
 	}
+
+	// gpu-driven patcher
+	m_patcherBuffer = new NXBuffer("GPU Terrain Patcher Buffer"); 
+	m_patcherBuffer->Create(sizeof(TerrainPatchParam), 1024); // 不要用 g_terrainStreamConfig.NodeDescArrayInitialSize，二者含义有区别
+
+	m_patcherDrawArgs = new NXBuffer("GPU Terrain Draw Index Indirect Args");
+	m_patcherDrawArgs->Create(sizeof(int) * 5, 1);
+	int a2[5] = { 0,0,0,0,0 };
+	m_patcherDrawArgs->SetAll(a2, 1);
 }
 
 void NXTerrainLODStreamData::SetNodeDescArrayData(uint32_t index, const CBufferTerrainNodeDescription& data, const Int2& replacedPosWS, int replacedSize)

@@ -183,15 +183,25 @@ public:
 	void CalcLocalAABB() override;
 };
 
-class NXSubMeshTerrain : public NXSubMeshInstanced<VertexPNTC, InstanceData>
+class NXSubMeshTerrain : public NXSubMesh<VertexPNTC>
 {
 public:
 	NXSubMeshTerrain(NXRenderableObject* pRenderableObject, const std::string& subMeshName) :
-		NXSubMeshInstanced<VertexPNTC, InstanceData>(pRenderableObject, subMeshName) 
+		NXSubMesh<VertexPNTC>(pRenderableObject, subMeshName)
 	{
 	}
 
 	virtual ~NXSubMeshTerrain() {}
+
+	// 地形只上传顶点和索引，不需要 instance data
+	virtual void TryAddBuffers() override
+	{
+		auto rawBytes = std::as_bytes(std::span(m_vertices));
+		m_rawViews.push_back(NXRawMeshView(rawBytes, sizeof(VertexPNTC), NXMeshViewType::VERTEX));
+		rawBytes = std::as_bytes(std::span(m_indices));
+		m_rawViews.push_back(NXRawMeshView(rawBytes, sizeof(uint32_t), NXMeshViewType::INDEX));
+		NXSubMeshGeometryEditor::GetInstance()->CreateBuffers(m_rawViews, m_subMeshName);
+	}
 
 	virtual bool IsSubMeshTerrain()		 override { return true; }
 

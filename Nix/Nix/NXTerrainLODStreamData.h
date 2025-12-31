@@ -46,6 +46,13 @@ struct CBufferTerrainCullingParam
 	Vector3 pad;
 };
 
+struct TerrainPatchParam
+{
+	Int2 positionWS;
+	int size;
+	int nodeId;
+};
+
 class NXCamera;
 class NXTerrainLODStreamer;
 class NXTerrainLODStreamData
@@ -81,6 +88,9 @@ public:
 	const Ntr<NXBuffer>& GetPingPongNodesFinal() const { return m_pingpongNodesFinal; }
 	const Ntr<NXBuffer>& GetPingPongIndirectArgs() const { return m_pingpongIndirectArgs; }
 
+	const Ntr<NXBuffer>& GetPatcherBuffer() const { return m_patcherBuffer; }
+	const Ntr<NXBuffer>& GetPatcherDrawIndexArgs() const { return m_patcherDrawArgs; }
+
 	void UpdateCullingData(NXCamera* pCamera);
 	const NXConstantBuffer<CBufferTerrainCullingParam>& GetCullingParam(uint32_t index) const { return m_cbCulling[index]; }
 
@@ -115,4 +125,8 @@ private:
 	// 各级ping-pong 的culling参数
 	CBufferTerrainCullingParam m_cbCullingData[6];
 	NXConstantBuffer<CBufferTerrainCullingParam> m_cbCulling[6];
+
+	// gpu-driven patcher
+	Ntr<NXBuffer> m_patcherBuffer;
+	Ntr<NXBuffer> m_patcherDrawArgs;
 };

@@ -520,13 +520,12 @@ void NXSubMeshGeometryEditor::CreateTerrain(NXTerrain* pTerrain, int gridSize, i
 	std::vector<VertexPNTC> vertices;
 	std::vector<uint32_t> indices;
 
-	int factor = 8;
-	int gSectorSize = g_terrainConfig.SectorSize / factor;
+	int size = 8;
 	float debugFactor = 1.0f;// 0.98f;
-	float vertScale = (float)(gridSize * factor) / (float)sectorSize * debugFactor;
-	for (int x = 0; x <= gSectorSize; x++)
+	float vertScale = (float)gridSize / (float)sectorSize * debugFactor;
+	for (int x = 0; x <= size; x++)
 	{
-		for (int y = 0; y <= gSectorSize; y++)
+		for (int y = 0; y <= size; y++)
 		{
 			Vector3 p(vertScale * (float)x, 0, vertScale * (float)y);
 			Vector3 n(0, 1, 0);
@@ -536,10 +535,10 @@ void NXSubMeshGeometryEditor::CreateTerrain(NXTerrain* pTerrain, int gridSize, i
 		}
 	}
 
-	float gRowSize = (float)(gSectorSize + 1);
-	for (int x = 0; x < gSectorSize; x += 2)
+	float gRowNum = (float)(size + 1);
+	for (int x = 0; x < size; x += 2)
 	{
-		for (int y = 0; y < gSectorSize; y += 2)
+		for (int y = 0; y < size; y += 2)
 		{
 			// FarCry5的米字形填充布局
 			// 0---1---2
@@ -548,15 +547,15 @@ void NXSubMeshGeometryEditor::CreateTerrain(NXTerrain* pTerrain, int gridSize, i
 			// | / | \ |
 			// 6---7---8
 
-			uint32_t _0 = (uint32_t)(gRowSize * y + x);
-			uint32_t _1 = (uint32_t)(gRowSize * y + x + 1);
-			uint32_t _2 = (uint32_t)(gRowSize * y + x + 2);
-			uint32_t _3 = (uint32_t)(gRowSize * (y + 1) + x);
-			uint32_t _4 = (uint32_t)(gRowSize * (y + 1) + x + 1);
-			uint32_t _5 = (uint32_t)(gRowSize * (y + 1) + x + 2);
-			uint32_t _6 = (uint32_t)(gRowSize * (y + 2) + x);
-			uint32_t _7 = (uint32_t)(gRowSize * (y + 2) + x + 1);
-			uint32_t _8 = (uint32_t)(gRowSize * (y + 2) + x + 2);
+			uint32_t _0 = (uint32_t)(gRowNum * y + x);
+			uint32_t _1 = (uint32_t)(gRowNum * y + x + 1);
+			uint32_t _2 = (uint32_t)(gRowNum * y + x + 2);
+			uint32_t _3 = (uint32_t)(gRowNum * (y + 1) + x);
+			uint32_t _4 = (uint32_t)(gRowNum * (y + 1) + x + 1);
+			uint32_t _5 = (uint32_t)(gRowNum * (y + 1) + x + 2);
+			uint32_t _6 = (uint32_t)(gRowNum * (y + 2) + x);
+			uint32_t _7 = (uint32_t)(gRowNum * (y + 2) + x + 1);
+			uint32_t _8 = (uint32_t)(gRowNum * (y + 2) + x + 2);
 
 			indices.insert(indices.end(), {
 				_0, _1, _4,
@@ -575,38 +574,9 @@ void NXSubMeshGeometryEditor::CreateTerrain(NXTerrain* pTerrain, int gridSize, i
 	NXSubMeshTerrain* pSubMesh = new NXSubMeshTerrain(pTerrain, subMeshName);
 	pSubMesh->AppendVertices(std::move(vertices));
 	pSubMesh->AppendIndices(std::move(indices));
-
-	for (int lod = 0; lod < 6; lod++)
-	{
-		CreateTerrainSingleLod(pTerrain, pSubMesh, sectorSize, lod);
-	}
-
 	pSubMesh->TryAddBuffers();
+
 	pTerrain->AddSubMesh(pSubMesh);
-}
-
-void NXSubMeshGeometryEditor::CreateTerrainSingleLod(NXTerrain* pTerrain, NXSubMeshTerrain* pSubMesh, int sectorSize, int lod)
-{
-	int gSectorSize = g_terrainConfig.SectorSize;
-	float lodScale = float(1 << lod);
-
-	// 添加instance数据
-	// 第一版先进行完全加载，将来再考虑gpu-driven剔除啥的
-	int gSectorNum = (sectorSize >> lod) / gSectorSize;
-	std::vector<InstanceData> insDatas;
-	for (int x = 0; x < gSectorNum; x++)
-	{
-		for (int y = 0; y < gSectorNum; y++)
-		{
-			float vertScale = (float)gSectorSize * lodScale;
-			Vector3 p(vertScale * (float)x, 0.0f, vertScale * (float)y);
-			p.y = lod * 100.0f;
-
-			insDatas.push_back({ Matrix::CreateScale(lodScale) * Matrix::CreateTranslation(p) });
-		}
-	}
-
-	pSubMesh->AppendInstanceData(std::move(insDatas));
 }
 
 void NXSubMeshGeometryEditor::CreateMoveArrows(NXPrimitive* pMesh)
@@ -826,6 +796,12 @@ void NXSubMeshGeometryEditor::CreateBuffers(std::vector<NXRawMeshView>& rawViews
 	std::thread([&rawViews, name, pMeshView]() {
 		for (auto& view : rawViews)
 		{
+			if (view.span.size() == 0)
+			{
+				pMeshView->ProcessOne();
+				continue;
+			}
+
 			// 内有异步分配逻辑，由线程B执行
 			NXStructuredBuffer pBuffer(view.stride, view.span.size());
 			// 等待线程B完成分配 get GPUAddress.

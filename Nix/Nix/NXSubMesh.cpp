@@ -121,12 +121,12 @@ void NXSubMeshTerrain::Render(ID3D12GraphicsCommandList* pCommandList)
 {
 	auto& subMeshViews = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews(m_subMeshName);
 
-	D3D12_VERTEX_BUFFER_VIEW vbv[2];
-	if (subMeshViews.GetVBV(0, vbv[0]) && subMeshViews.GetVBV(1, vbv[1]))
-		pCommandList->IASetVertexBuffers(0, 2, vbv);
+	D3D12_VERTEX_BUFFER_VIEW vbv;
+	if (subMeshViews.GetVBV(0, vbv))
+		pCommandList->IASetVertexBuffers(0, 1, &vbv);
 
 	D3D12_INDEX_BUFFER_VIEW ibv;
-	if (subMeshViews.GetIBV(2, ibv))
+	if (subMeshViews.GetIBV(1, ibv))
 		pCommandList->IASetIndexBuffer(&ibv);
 
 	//pCommandList->DrawIndexedInstanced(subMeshViews.GetIndexCount(), m_instanceData.size(), 0, 0, 0);

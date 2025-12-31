@@ -49,7 +49,7 @@ void CS_Patch(
     // z : lod等级；xy : 此lod等级下 xy偏移量
     int3 param = m_terrainBuffer[groupIndex.x];
     uint mip = 5u - param.z;
-    float scale = (float)(1u << mip) * 1.0f / (float)(NXGPUTERRAIN_PATCH_SIZE);
+    float scale = (float)(1u << mip) * 1.0f;
 
     // 计算实际世界坐标 for block and patch
     float blockSize = (float)(TERRAIN_SIZE >> param.z);

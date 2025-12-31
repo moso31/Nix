@@ -332,6 +332,38 @@ void Renderer::GenerateRenderGraph()
 				});
 		}
 
+		struct TerrainPatcher
+		{
+			NXRGHandle pFinal;
+			NXRGHandle pPatcher;
+			NXRGHandle pDrawIndexArgs;
+		};
+		auto patcherClear = m_pRenderGraph->AddPass<TerrainPatcher>("Terrain Patcher Clear",
+			[=, &pStreamingData](NXRGBuilder& builder, TerrainPatcher& data) {
+				data.pFinal = builder.Read(pTerrainNodesFinal);
+				data.pPatcher = builder.Write(m_pRenderGraph->Import(pStreamingData.GetPatcherBuffer()));
+				data.pDrawIndexArgs = builder.Write(m_pRenderGraph->Import(pStreamingData.GetPingPongIndirectArgs()));
+			},
+			[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, TerrainPatcher& data) {
+				UINT clearValues[4] = { 0,0,0,0 };
+				auto pGPUBuffer = resMap.GetRes(data.pPatcher).As<NXBuffer>();
+				pGPUBuffer->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+				D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = pGPUBuffer->GetUAVCounter();
+				NXShVisDescHeap->PushFluid(cpuHandle);
+				D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = NXShVisDescHeap->Submit();
+				pCmdList->ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, pGPUBuffer->GetD3DResourceUAVCounter(), clearValues, 0, nullptr);
+			});
+
+		//auto passPatcher = m_pRenderGraph->AddPass<TerrainPatcher>("Terrain Patcher",
+		//	[=, &pStreamingData](NXRGBuilder& builder, TerrainPatcher& data) {
+		//		data.pPatcher = builder.Write(m_pRenderGraph->Import(pStreamingData.GetPatcherBuffer()));
+		//		data.pDrawIndexArgs = builder.Write(m_pRenderGraph->Import(pStreamingData.GetPingPongIndirectArgs()));
+		//	},
+		//	[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, TerrainPatcher& data) {
+		//		auto pMat;
+		//		pMat->SetConstantBuffer(pStreamingData.GetNodeDescArray());
+		//	});
+
 		NXRGHandle pTerrainBufferA = m_pRenderGraph->Import(terrIns->GetTerrainBufferA());
 		NXRGHandle pTerrainBufferB = m_pRenderGraph->Import(terrIns->GetTerrainBufferB());
 		NXRGHandle pTerrainBufferFinal = m_pRenderGraph->Import(terrIns->GetTerrainFinalBuffer());
