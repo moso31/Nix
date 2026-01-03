@@ -63,6 +63,19 @@ void NXPassMaterialManager::InitDefaultRenderer()
 		AddMaterial(pMat, true);
 	}
 
+	// Terrain Patcher
+	{
+		auto pMat = new NXComputePassMaterial("TerrainPatcher", L"Shader\\TerrainPatcher.fx");
+		pMat->RegisterCBVSpaceNum(1);
+		pMat->RegisterCBVSlotNum(2);
+		pMat->RegisterSRVSpaceNum(1);
+		pMat->RegisterSRVSlotNum(1);
+		pMat->RegisterUAVSpaceNum(1);
+		pMat->RegisterUAVSlotNum(2);
+		pMat->FinalizeLayout();
+		AddMaterial(pMat, true);
+	}
+
 	// TerrainFillTest
 	{
 		auto pMat = new NXComputePassMaterial("TerrainFillTest", L"Shader\\FillTestComputeShader.fx");

@@ -43,9 +43,10 @@ cbuffer cbNodeDescArray : register(b0)
     CBufferTerrainNodeDescription m_nodeDescArray[NodeDescArrayNum];
 }
 
+#define VERTEX_GRID_SIZE 8 // 根据NXSubMeshTerrain的顶点调整
 #define NXGPUTERRAIN_PATCH_SIZE 8
 [numthreads(NXGPUTERRAIN_PATCH_SIZE, NXGPUTERRAIN_PATCH_SIZE, 1)]
-void CS_Patch(
+void CS(
     uint3 gtid : SV_GroupThreadID,
     uint3 groupIndex : SV_GroupID)
 {
@@ -91,7 +92,7 @@ void CS_Patch(
 
     if (!isoutside)
     {
-        int scale = ;
+        float scale = (float)(patchSize / VERTEX_GRID_SIZE);
         TerrainPatchData patch = (TerrainPatchData)0;
         patch.sliceIndex = nodeId;
         patch.patchOrigin = patchOrigin;
@@ -100,10 +101,10 @@ void CS_Patch(
 		    scale, 0.0f, 0.0f, 0.0f,
 		    0.0f, scale, 0.0f, 0.0f,
 		    0.0f, 0.0f, scale, 0.0f,
-		    patchOrigin.x, 0.0f, patchOrigin.y, 1.0f
+		    (float)patchOrigin.x, 0.0f, (float)patchOrigin.y, 1.0f
 	    );
         
         m_patcherBuffer.Append(patch);
-        InterlockedAdd(m_drawIndexArgs[0].instanceCount, 1);
+        InterlockedAdd(m_patcherDrawIndexArgs[0].instanceCount, 1);
     }
 }

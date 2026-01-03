@@ -50,12 +50,17 @@ void NXTerrainLODStreamData::Init(NXTerrainLODStreamer* pStreamer)
 
 	// gpu-driven patcher
 	m_patcherBuffer = new NXBuffer("GPU Terrain Patcher Buffer"); 
-	m_patcherBuffer->Create(sizeof(TerrainPatchParam), 1024); // 不要用 g_terrainStreamConfig.NodeDescArrayInitialSize，二者含义有区别
+	m_patcherBuffer->Create(sizeof(TerrainPatchParam), 16384);
 
+	int a2[5] = { 0,0,0,0,0 };
 	m_patcherDrawArgs = new NXBuffer("GPU Terrain Draw Index Indirect Args");
 	m_patcherDrawArgs->Create(sizeof(int) * 5, 1);
-	int a2[5] = { 0,0,0,0,0 };
 	m_patcherDrawArgs->SetAll(a2, 1);
+
+	int a3[5] = { 384,0,0,0,0 }; // 384=FarCry5米字形索引数，详见SubMeshTerrain的实现
+	m_patcherDrawArgsZero = new NXBuffer("GPU Terrain Draw Index Args Zero");
+	m_patcherDrawArgsZero->Create(sizeof(int) * 5, 1);
+	m_patcherDrawArgsZero->SetAll(a2, 1);
 }
 
 void NXTerrainLODStreamData::SetNodeDescArrayData(uint32_t index, const CBufferTerrainNodeDescription& data, const Int2& replacedPosWS, int replacedSize)

@@ -48,9 +48,12 @@ struct CBufferTerrainCullingParam
 
 struct TerrainPatchParam
 {
-	Int2 positionWS;
-	int size;
-	int nodeId;
+	Matrix mxWorld;
+	Int2 patchOrigin;
+	Int2 patchSize;
+	int sliceIndex;
+
+	Vector3 _pad0;
 };
 
 class NXCamera;
@@ -90,6 +93,7 @@ public:
 
 	const Ntr<NXBuffer>& GetPatcherBuffer() const { return m_patcherBuffer; }
 	const Ntr<NXBuffer>& GetPatcherDrawIndexArgs() const { return m_patcherDrawArgs; }
+	const Ntr<NXBuffer>& GetPatcherDrawIndexArgsZero() const { return m_patcherDrawArgsZero; }
 
 	void UpdateCullingData(NXCamera* pCamera);
 	const NXConstantBuffer<CBufferTerrainCullingParam>& GetCullingParam(uint32_t index) const { return m_cbCulling[index]; }
@@ -129,4 +133,5 @@ private:
 	// gpu-driven patcher
 	Ntr<NXBuffer> m_patcherBuffer;
 	Ntr<NXBuffer> m_patcherDrawArgs;
+	Ntr<NXBuffer> m_patcherDrawArgsZero;
 };

@@ -291,9 +291,10 @@ void Renderer::GenerateRenderGraph()
 			});
 
 		// culling：ping-pong
+		NXRGPassNode<TerrainNodesCullingData>* pLastCullingPass;
 		for (int i = 0; i < g_terrainStreamConfig.LODSize; i++)
 		{
-			m_pRenderGraph->AddPass<TerrainNodesCullingData>("Terrain Nodes Culling",
+			pLastCullingPass = m_pRenderGraph->AddPass<TerrainNodesCullingData>("Terrain Nodes Culling",
 				[=, &pStreamingData](NXRGBuilder& builder, TerrainNodesCullingData& data)
 				{
 					data.pIn = builder.Read((i % 2 == 0) ? pTerrainNodesA : pTerrainNodesB);
@@ -336,15 +337,18 @@ void Renderer::GenerateRenderGraph()
 		{
 			NXRGHandle pFinal;
 			NXRGHandle pPatcher;
+			NXRGHandle pIndirectArgs;
 			NXRGHandle pDrawIndexArgs;
 		};
 		auto patcherClear = m_pRenderGraph->AddPass<TerrainPatcher>("Terrain Patcher Clear",
 			[=, &pStreamingData](NXRGBuilder& builder, TerrainPatcher& data) {
 				data.pFinal = builder.Read(pTerrainNodesFinal);
 				data.pPatcher = builder.Write(m_pRenderGraph->Import(pStreamingData.GetPatcherBuffer()));
-				data.pDrawIndexArgs = builder.Write(m_pRenderGraph->Import(pStreamingData.GetPingPongIndirectArgs()));
+				data.pIndirectArgs = builder.Read(pTerrainIndirectArgs);
+				data.pDrawIndexArgs = builder.Write(m_pRenderGraph->Import(pStreamingData.GetPatcherDrawIndexArgs()));
 			},
-			[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, TerrainPatcher& data) {
+			[=, &pStreamingData](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, TerrainPatcher& data) {
+				// 清零Patcher的UAV计数器
 				UINT clearValues[4] = { 0,0,0,0 };
 				auto pGPUBuffer = resMap.GetRes(data.pPatcher).As<NXBuffer>();
 				pGPUBuffer->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
@@ -352,17 +356,44 @@ void Renderer::GenerateRenderGraph()
 				NXShVisDescHeap->PushFluid(cpuHandle);
 				D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = NXShVisDescHeap->Submit();
 				pCmdList->ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, pGPUBuffer->GetD3DResourceUAVCounter(), clearValues, 0, nullptr);
+
+				// 清零整个DrawIndexArgs
+				auto pDrawIndexArgs = resMap.GetRes(data.pDrawIndexArgs).As<NXBuffer>();
+				auto pZeroBuffer = pStreamingData.GetPatcherDrawIndexArgsZero();
+				pZeroBuffer->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COPY_SOURCE);
+				pDrawIndexArgs->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COPY_DEST);
+				pCmdList->CopyBufferRegion(pDrawIndexArgs->GetD3DResource(), 0, pZeroBuffer->GetD3DResource(), 0, sizeof(uint32_t) * 5);
 			});
 
-		//auto passPatcher = m_pRenderGraph->AddPass<TerrainPatcher>("Terrain Patcher",
-		//	[=, &pStreamingData](NXRGBuilder& builder, TerrainPatcher& data) {
-		//		data.pPatcher = builder.Write(m_pRenderGraph->Import(pStreamingData.GetPatcherBuffer()));
-		//		data.pDrawIndexArgs = builder.Write(m_pRenderGraph->Import(pStreamingData.GetPingPongIndirectArgs()));
-		//	},
-		//	[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, TerrainPatcher& data) {
-		//		auto pMat;
-		//		pMat->SetConstantBuffer(pStreamingData.GetNodeDescArray());
-		//	});
+		auto patcher = m_pRenderGraph->AddPass<TerrainPatcher>("Terrain Patcher",
+			[=, &pStreamingData](NXRGBuilder& builder, TerrainPatcher& data) {
+				data.pFinal = builder.Read(pTerrainNodesFinal);
+				data.pPatcher = builder.Write(m_pRenderGraph->Import(pStreamingData.GetPatcherBuffer()));
+				data.pIndirectArgs = builder.Read(pTerrainIndirectArgs);
+				data.pDrawIndexArgs = builder.Write(m_pRenderGraph->Import(pStreamingData.GetPatcherDrawIndexArgs()));
+			},
+			[=, &pStreamingData](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, TerrainPatcher& data) {
+				auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("TerrainPatcher"));
+				pMat->SetInput(0, 0, resMap.GetRes(data.pFinal));
+				pMat->SetOutput(0, 0, resMap.GetRes(data.pPatcher));
+				pMat->SetOutput(0, 1, resMap.GetRes(data.pDrawIndexArgs));
+				pMat->SetConstantBuffer(0, 0, &pStreamingData.GetNodeDescArray());
+				pMat->SetConstantBuffer(0, 1, &g_cbCamera);
+				
+				// 把Final的uav计数 拷贝到indirectArgs上
+				Ntr<NXBuffer> pBufFinal = resMap.GetRes(data.pFinal).As<NXBuffer>(); 
+				Ntr<NXBuffer> pBufIndirectArgs = resMap.GetRes(data.pIndirectArgs).As<NXBuffer>();
+
+				pBufFinal->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COPY_SOURCE);
+				pBufIndirectArgs->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COPY_DEST);
+				pCmdList->CopyBufferRegion(pBufIndirectArgs->GetD3DResource(), 0, pBufFinal->GetD3DResourceUAVCounter(), 0, sizeof(uint32_t));
+
+				pMat->RenderSetTargetAndState(pCmdList);
+				pMat->RenderBefore(pCmdList);
+
+				pBufIndirectArgs->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+				pCmdList->ExecuteIndirect(m_pCommandSig.Get(), 1, pBufIndirectArgs->GetD3DResource(), 0, nullptr, 0);
+			});
 
 		NXRGHandle pTerrainBufferA = m_pRenderGraph->Import(terrIns->GetTerrainBufferA());
 		NXRGHandle pTerrainBufferB = m_pRenderGraph->Import(terrIns->GetTerrainBufferB());
