@@ -130,6 +130,17 @@ void NXTerrainLODStreamer::Update()
     // 加载库本身就是异步的，这里直接调接口就OK
     for (auto& loadingDesc : nextLoadingNodeDescIndices)
     {
+        // 对地形留点文本说明 方便以后查bug：
+        // 下面这些数据都验证过了，除非后面又改相关工作流，不然不用怀疑！
+        //      整个世界是一个 - 8192, -8192 ~8192, 8192 的矩形，每个大的地形块大小为2048, 2048
+        //      Nix 使用 Y上X右Z前 的左手坐标系。
+        //      下面我们说坐标时，如无特殊说明，统一使用每个地形的左下角坐标。
+        //      每个地形有一个编号。俯视角看，从左上到右下，第一行，0_0, 0_1, 0_2, ..., 0_7.第二行，1_0, 1_1....以此类推。
+        //      作为参考，左下角的地形为7_0，其地形左下角坐标为（-8192, -8192）。
+        //      每个地形与缓存若干patch纹理。通常名为
+        //      \{Nix资源文件夹}\Terrain\{地形行}_{ 地形列 }\sub\hmap\{patch纹理实际大小}_{ patch行 }_{ patch列 }.dds
+        //      大致就以上这些。
+
 		static Int2 minTerrainID = g_terrainConfig.MinTerrainPos / g_terrainConfig.TerrainSize;
 
         auto& data = m_nodeDescArrayInternal[loadingDesc].data;
@@ -149,7 +160,9 @@ void NXTerrainLODStreamer::Update()
 		Vector2 minmaxZ = m_minmaxZData[bx][by][bz];
 
 		Int2 strID = data.terrainID - minTerrainID;
-        std::string strTerrId = std::to_string(strID.x) + "_" + std::to_string(strID.y);
+        int row = 7 - strID.y;  // 换算了下应该是Flip V
+        int col = strID.x;
+        std::string strTerrId = std::to_string(row) + "_" + std::to_string(col);
         std::string strTerrSubID = std::to_string(realSize) + "_" + std::to_string(relativePosID.x) + "_" + std::to_string(relativePosID.y);
 
         TerrainStreamingLoadRequest task;
@@ -174,6 +187,7 @@ void NXTerrainLODStreamer::Update()
         task.splatMap.name = "Terrain_SplatMap_" + strTerrId + "_tile_" + strTerrSubID;
 
         m_asyncLoader->AddTask(task);
+        //printf("%d %s\n", task.nodeDescArrayIndex, task.splatMap.path.string().c_str());
     }
 }
 
@@ -191,7 +205,6 @@ void NXTerrainLODStreamer::ProcessCompletedStreamingTask()
     for (int i = 0; i < completeTasks.size(); i++)
     {
         auto& task = completeTasks[i];
-        //printf("%d %s\n", i, task.pSplatMap->GetFilePath().string().c_str());
 
         m_nodeDescArrayInternal[task.nodeDescArrayIndex].isLoading = false;
         m_nodeDescArrayInternal[task.nodeDescArrayIndex].isValid = true;

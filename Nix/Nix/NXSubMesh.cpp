@@ -4,8 +4,9 @@
 #include "NXSubMeshGeometryEditor.h"
 #include "NXCamera.h"
 #include "NXTimer.h"
-#include "NXGlobalDefinitions.h"
 #include "NXGPUTerrainManager.h"
+#include "NXTerrainCommandSignature.h"
+#include "NXBuffer.h"
 
 void NXSubMeshBase::Update(ID3D12GraphicsCommandList* pCommandList)
 {
@@ -110,14 +111,14 @@ void NXSubMeshTerrain::SetMaterial(NXMaterial* mat)
 {
 	m_pMaterial = mat;
 
-	auto cmdSigDesc = NXGPUTerrainManager::GetInstance()->GetDrawIndexArgDesc();
+	auto cmdSigDesc = NXTerrainCommandSignature::GetInstance()->GetDrawIndexArgDesc();
 	NXGlobalDX::GetDevice()->CreateCommandSignature(&cmdSigDesc, nullptr, IID_PPV_ARGS(&m_pCmdSignature));
 
 	//auto* pGraphicRootSig = m_pMaterial->GetRootSignature();
 	//NXGlobalDX::GetDevice()->CreateCommandSignature(&cmdSigDesc, pGraphicRootSig, IID_PPV_ARGS(&m_pCmdSignature));
 }
 
-void NXSubMeshTerrain::Render(ID3D12GraphicsCommandList* pCommandList)
+void NXSubMeshTerrain::Render(ID3D12GraphicsCommandList* pCommandList, Ntr<NXBuffer> pDrawIndexIndirectArgs)
 {
 	auto& subMeshViews = NXSubMeshGeometryEditor::GetInstance()->GetMeshViews(m_subMeshName);
 
@@ -131,10 +132,8 @@ void NXSubMeshTerrain::Render(ID3D12GraphicsCommandList* pCommandList)
 
 	//pCommandList->DrawIndexedInstanced(subMeshViews.GetIndexCount(), m_instanceData.size(), 0, 0, 0);
 
-	auto drawIndexArgs = NXGPUTerrainManager::GetInstance()->GetTerrainDrawIndexArgs();
-	drawIndexArgs->SetResourceState(pCommandList, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
-
-	pCommandList->ExecuteIndirect(m_pCmdSignature.Get(), 1, drawIndexArgs->GetD3DResource(), 0, nullptr, 0);
+	pDrawIndexIndirectArgs->SetResourceState(pCommandList, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+	pCommandList->ExecuteIndirect(m_pCmdSignature.Get(), 1, pDrawIndexIndirectArgs->GetD3DResource(), 0, nullptr, 0);
 }
 
 

@@ -6,6 +6,7 @@
 #include "NXBuffer.h"
 #include "NXTexture.h"
 #include "NXTerrainLODStreamConfigs.h"
+#include "ShaderStructures.h"
 
 struct CBufferTerrainNodeDescription
 {
@@ -48,12 +49,11 @@ struct CBufferTerrainCullingParam
 
 struct TerrainPatchParam
 {
-	Matrix mxWorld;
 	Int2 patchOrigin;
-	Int2 patchSize;
+	int patchSize;
 	int sliceIndex;
-
-	Vector3 _pad0;
+	Vector2 patchOriginPixelPos;
+	Vector2 _0;
 };
 
 class NXCamera;
@@ -98,6 +98,8 @@ public:
 	void UpdateCullingData(NXCamera* pCamera);
 	const NXConstantBuffer<CBufferTerrainCullingParam>& GetCullingParam(uint32_t index) const { return m_cbCulling[index]; }
 
+	void UpdateGBufferPatcherData(ID3D12GraphicsCommandList* pCmdList);
+
 private:
 	// 和m_nodeDescArrayInternal完全相同，只是数据格式不同，供CPU-GPU交互
 	std::vector<CBufferTerrainNodeDescription> m_nodeDescArray;
@@ -134,4 +136,8 @@ private:
 	Ntr<NXBuffer> m_patcherBuffer;
 	Ntr<NXBuffer> m_patcherDrawArgs;
 	Ntr<NXBuffer> m_patcherDrawArgsZero;
+
+	// patcher 给GBuffer用的常量缓冲区
+	ConstantBufferObject m_cbDataObject;
+	NXConstantBuffer<ConstantBufferObject>	m_cbObject;
 };

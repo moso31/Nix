@@ -1,25 +1,6 @@
 #include "Common.fx"
 #include "TerrainCommon.fx"
 
-struct TerrainPatchData
-{
-    matrix mxWorld;
-    int2 patchOrigin;
-    int2 patchSize;
-    int atlasIndex;
-    
-    float3 _pad0;
-};
-
-struct TerrainPatchDrawIndexArgs 
-{
-    uint indexCountPerInstance;
-    uint instanceCount;
-    uint startIndexLocation; // 0
-    int  baseVertexLocation; // 0
-    uint startInstanceLocation; // 0
-};
-
 StructuredBuffer<uint> m_finalNodeIdArray : register(t0);
 AppendStructuredBuffer<TerrainPatchData> m_patcherBuffer : register(u0);
 RWStructuredBuffer<TerrainPatchDrawIndexArgs> m_patcherDrawIndexArgs : register(u1);
@@ -41,8 +22,11 @@ void CS(
     int2 nodeOrigin = m_nodeDescArray[nodeId].positionWS;
     int nodeSize = m_nodeDescArray[nodeId].size;
     
-    int2 patchOrigin = nodeOrigin / NXGPUTERRAIN_PATCH_SIZE;
     int patchSize = nodeSize / NXGPUTERRAIN_PATCH_SIZE;
+    int2 patchOrigin = nodeOrigin + int2(gtid.x * patchSize, gtid.y * patchSize);
+    
+    // 这个patcher在node内的相对位置
+    float2 patchOriginPixelPos = gtid.xy * VERTEX_GRID_SIZE;
     
     int2 nodeMinMaxZ = m_nodeDescArray[nodeId].minmaxZ;
 
@@ -77,19 +61,13 @@ void CS(
         }
     }
 
-    if (!isoutside)
+    //if (!isoutside)
     {
-        float scale = (float)(patchSize / VERTEX_GRID_SIZE);
         TerrainPatchData patch = (TerrainPatchData)0;
         patch.atlasIndex = nodeId;
         patch.patchOrigin = patchOrigin;
         patch.patchSize = patchSize;
-        patch.mxWorld = matrix(
-		    scale, 0.0f, 0.0f, 0.0f,
-		    0.0f, scale, 0.0f, 0.0f,
-		    0.0f, 0.0f, scale, 0.0f,
-		    (float)patchOrigin.x, 0.0f, (float)patchOrigin.y, 1.0f
-	    );
+        patch.patchOriginPixelPos = patchOriginPixelPos;
         
         m_patcherBuffer.Append(patch);
         InterlockedAdd(m_patcherDrawIndexArgs[0].instanceCount, 1);

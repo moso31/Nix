@@ -619,6 +619,9 @@
     <ClCompile Include="Nix\NXTerrainLODStreamData.cpp">
       <Filter>Nix\TextureStreaming</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\NXTerrainCommandSignature.cpp">
+      <Filter>Nix\TextureStreaming</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -1033,6 +1036,9 @@
       <Filter>Nix\TextureStreaming</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXTerrainLODStreamConfigs.h">
+      <Filter>Nix\TextureStreaming</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXTerrainCommandSignature.h">
       <Filter>Nix\TextureStreaming</Filter>
     </ClInclude>
   </ItemGroup>
