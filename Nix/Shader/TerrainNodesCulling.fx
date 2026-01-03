@@ -1,21 +1,4 @@
-#define NodeDescArrayNum 1024
-
-// 最小地形坐标，按说应该传个CB进来，先不搞了，图省事
-#define MinTerrainCoord -8192
-
-struct CBufferTerrainNodeDescription
-{
-	// 地形左下角XZ节点坐标（左手坐标系）
-    int2 positionWS;
-
-	// 节点的minmaxZ数据
-    float2 minmaxZ;
-
-	// 节点大小，一定是2的整数幂
-    uint size;
-
-    uint3 padding; // 16 byte align
-};
+#include "TerrainCommon.fx"
 
 ConsumeStructuredBuffer<uint> m_inBuffer : register(u0);
 AppendStructuredBuffer<uint> m_outBuffer : register(u1);

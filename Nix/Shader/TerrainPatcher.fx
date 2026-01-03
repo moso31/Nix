@@ -1,25 +1,12 @@
 #include "Common.fx"
-
-struct CBufferTerrainNodeDescription
-{
-	// 地形左下角XZ节点坐标（左手坐标系）
-    int2 positionWS;
-
-	// 节点的minmaxZ数据
-    float2 minmaxZ;
-
-	// 节点大小，一定是2的整数幂
-    uint size;
-
-    uint3 padding; // 16 byte align
-};
+#include "TerrainCommon.fx"
 
 struct TerrainPatchData
 {
     matrix mxWorld;
     int2 patchOrigin;
     int2 patchSize;
-    int sliceIndex;
+    int atlasIndex;
     
     float3 _pad0;
 };
@@ -94,7 +81,7 @@ void CS(
     {
         float scale = (float)(patchSize / VERTEX_GRID_SIZE);
         TerrainPatchData patch = (TerrainPatchData)0;
-        patch.sliceIndex = nodeId;
+        patch.atlasIndex = nodeId;
         patch.patchOrigin = patchOrigin;
         patch.patchSize = patchSize;
         patch.mxWorld = matrix(

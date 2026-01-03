@@ -275,6 +275,9 @@
     <None Include="Shader\TerrainPatcher.fx">
       <Filter>Shader\GPUTerrain</Filter>
     </None>
+    <None Include="Shader\TerrainCommon.fx">
+      <Filter>Shader\GPUTerrain</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">
