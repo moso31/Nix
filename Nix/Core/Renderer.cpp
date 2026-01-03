@@ -20,6 +20,7 @@
 #include "NXRGResource.h"
 #include "NXRGBuilder.h"
 #include "NXGPUTerrainManager.h"
+#include "NXTerrainCommandSignature.h"
 #include "NXVirtualTextureManager.h"
 #include "NXTerrainStreamingBatcher.h"
 #include "NXPassMaterial.h"
@@ -63,6 +64,7 @@ void Renderer::Init()
 	NXResourceManager::GetInstance()->GetCameraManager()->SetWorkingScene(m_scene);
 	NXResourceManager::GetInstance()->GetLightManager()->SetWorkingScene(m_scene);
 
+	NXTerrainCommandSignature::GetInstance()->Init();
 	NXGPUTerrainManager::GetInstance()->Init();
 
 	m_scene->Init();
@@ -618,8 +620,8 @@ void Renderer::GenerateRenderGraph()
 						{
 							if (pSubMesh->IsSubMeshTerrain() && g_debug_temporal_enable_terrain_debug)
 							{
-								NXGPUTerrainManager::GetInstance()->UpdateConstantForGBuffer(pCmdList);
-								pSubMesh->Render(pCmdList);
+								m_pTerrainLODStreamer->GetStreamingData().UpdateGBufferPatcherData(pCmdList);
+								((NXSubMeshTerrain*)pSubMesh)->Render(pCmdList, m_pTerrainLODStreamer->GetStreamingData().GetPatcherDrawIndexArgs());
 								break;
 							}
 

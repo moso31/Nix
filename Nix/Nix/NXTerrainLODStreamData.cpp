@@ -2,6 +2,8 @@
 #include "NXTerrainLODStreamer.h"
 #include "NXResourceManager.h"
 #include "NXCamera.h"
+#include "NXGlobalDefinitions.h"
+#include "NXTimer.h"
 
 void NXTerrainLODStreamData::Init(NXTerrainLODStreamer* pStreamer)
 {
@@ -60,7 +62,7 @@ void NXTerrainLODStreamData::Init(NXTerrainLODStreamer* pStreamer)
 	int a3[5] = { 384,0,0,0,0 }; // 384=FarCry5米字形索引数，详见SubMeshTerrain的实现
 	m_patcherDrawArgsZero = new NXBuffer("GPU Terrain Draw Index Args Zero");
 	m_patcherDrawArgsZero->Create(sizeof(int) * 5, 1);
-	m_patcherDrawArgsZero->SetAll(a2, 1);
+	m_patcherDrawArgsZero->SetAll(a3, 1);
 }
 
 void NXTerrainLODStreamData::SetNodeDescArrayData(uint32_t index, const CBufferTerrainNodeDescription& data, const Int2& replacedPosWS, int replacedSize)
@@ -95,4 +97,26 @@ void NXTerrainLODStreamData::UpdateCullingData(NXCamera* pCamera)
 		m_cbCullingData[i].m_cameraPos = pCamera->GetTranslation();
 		m_cbCulling[i].Update(m_cbCullingData[i]);
 	}
+}
+
+void NXTerrainLODStreamData::UpdateGBufferPatcherData(ID3D12GraphicsCommandList* pCmdList)
+{
+	auto* pCamera = NXResourceManager::GetInstance()->GetCameraManager()->GetCamera("Main Camera");
+	auto& mxView = pCamera->GetViewMatrix();
+	auto& mxWorld = Matrix::Identity();
+	auto& mxWorldView = mxWorld * mxView;
+
+	m_cbDataObject.world = mxWorld.Transpose();
+	m_cbDataObject.worldInverseTranspose = mxWorld.Invert(); // it actually = m_worldMatrix.Invert().Transpose().Transpose();
+	m_cbDataObject.worldView = mxWorldView.Transpose();
+	m_cbDataObject.worldViewInverseTranspose = (mxWorldView).Invert();
+	m_cbDataObject.globalData.time = NXGlobalApp::Timer->GetGlobalTimeSeconds();
+	m_cbObject.Update(m_cbDataObject);
+	pCmdList->SetGraphicsRootConstantBufferView(0, m_cbObject.CurrentGPUAddress());
+
+	NXShVisDescHeap->PushFluid(m_patcherBuffer.IsValid() ? m_patcherBuffer->GetSRV() : NXAllocator_NULL->GetNullSRV());
+	NXShVisDescHeap->PushFluid(m_pHeightMapAtlas.IsValid() ? m_pHeightMapAtlas->GetSRV() : NXAllocator_NULL->GetNullSRV());
+	NXShVisDescHeap->PushFluid(m_pSplatMapAtlas.IsValid() ? m_pSplatMapAtlas->GetSRV() : NXAllocator_NULL->GetNullSRV());
+	auto& srvHandle = NXShVisDescHeap->Submit();
+	pCmdList->SetGraphicsRootDescriptorTable(4, srvHandle); // 使用4号根参数 具体见NXCustomMaterial::CompileShader()
 }

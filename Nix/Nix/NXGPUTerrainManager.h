@@ -40,14 +40,9 @@ public:
 
 	NXConstantBuffer<NXGPUTerrainSupport>& GetTerrainSupportParam() { return m_pTerrainSupport; }
 
-	const D3D12_COMMAND_SIGNATURE_DESC& GetDrawIndexArgDesc() { return m_cmdSigDesc; }
-
 	void UpdateConstantForGBuffer(ID3D12GraphicsCommandList* pCmdList);
 
 private:
-	D3D12_INDIRECT_ARGUMENT_DESC m_drawIndexArgDesc[1];
-	D3D12_COMMAND_SIGNATURE_DESC m_cmdSigDesc;
-
 	static constexpr uint32_t m_pTerrainBufferMaxSize = 65536;
 
 	// 两个buffer A B之间 来回pingpong，结果输出到 final

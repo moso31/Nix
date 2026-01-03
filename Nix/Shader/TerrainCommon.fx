@@ -35,4 +35,22 @@ struct CBufferTerrainNodeDescUpdateInfo
     int replaceSize;
 };
 
+struct TerrainPatchData
+{
+    int2 patchOrigin;
+    int patchSize;
+    int atlasIndex;
+    float2 patchOriginPixelPos;
+    float2 _0;
+};
+
+struct TerrainPatchDrawIndexArgs
+{
+    uint indexCountPerInstance;
+    uint instanceCount;
+    uint startIndexLocation; // 0
+    int baseVertexLocation; // 0
+    uint startInstanceLocation; // 0
+};
+
 #endif // TERRAIN_COMMON_FX

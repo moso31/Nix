@@ -478,10 +478,10 @@ std::string NXCodeProcessHelper::BuildHLSL_Params(int& ioLineCounter, const std:
 
 	if (bIsGPUTerrain) // GPU Terrain×¨ÓÃ
 	{
-		str += R"(#include "GPUTerrainCommon.fx")"; str += "\n";
-		str += "StructuredBuffer<NXGPUTerrainPatch> m_patchBuffer : register(t0, space1);\n";
+		str += R"(#include "TerrainCommon.fx")"; str += "\n";
+		str += "StructuredBuffer<TerrainPatchData> m_patchBuffer : register(t0, space1);\n";
 		str += "Texture2DArray m_terrainHeightMap : register(t1, space1);\n";
-		str += "Texture2DArray m_terrainNormalMap : register(t2, space1);\n";
+		str += "Texture2DArray m_terrainSplatMap : register(t2, space1);\n";
 	}
 
 	// sampler
@@ -649,8 +649,11 @@ std::string NXCodeProcessHelper::BuildHLSL_Entry_VS(int& ioLineCounter, const NX
 
 	if (gpuInstancing)
 	{
+//		strVSBegin += R"(
+//	NXGPUTerrainPatch patch = m_patchBuffer[instanceID];
+//)";
 		strVSBegin += R"(
-	NXGPUTerrainPatch patch = m_patchBuffer[instanceID];
+	TerrainPatchData patch = m_patchBuffer[instanceID];
 )";
 	}
 
@@ -689,9 +692,13 @@ void PS(PS_INPUT input, out PS_OUTPUT Output)
 	bool gpuInstancing = g_debug_temporal_enable_terrain_debug;
 	if (gpuInstancing)
 	{
+//		strPSBegin += R"(
+//	uint instanceID = input.instanceID;
+//	NXGPUTerrainPatch patch = m_patchBuffer[instanceID];
+//)";
 		strPSBegin += R"(
 	uint instanceID = input.instanceID;
-	NXGPUTerrainPatch patch = m_patchBuffer[instanceID];
+	TerrainPatchData patch = m_patchBuffer[instanceID];
 )";
 	}
 

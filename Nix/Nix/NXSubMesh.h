@@ -6,6 +6,7 @@
 #include "NXConstantBuffer.h"
 #include "NXSubMeshGeometryEditor.h"
 
+class NXBuffer;
 class NXPrimitive;
 class NXSubMeshBase
 {
@@ -209,7 +210,8 @@ public:
 	// 需使用 BindMaterial() 为场景物体绑定材质
 	virtual void SetMaterial(NXMaterial* mat) override;
 
-	virtual void Render(ID3D12GraphicsCommandList* pCommandList) override;
+	virtual void Render(ID3D12GraphicsCommandList* pCommandList) override {}
+	void Render(ID3D12GraphicsCommandList* pCommandList, Ntr<NXBuffer> pDrawIndexIndirectArgs);
 
 private:
 	ComPtr<ID3D12CommandSignature> m_pCmdSignature;

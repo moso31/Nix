@@ -32,15 +32,6 @@ void NXGPUTerrainManager::Init()
 	int a2[5] = { 0,0,0,0,0 };
 	m_pTerrainDrawIndexArgs->SetAll(a2, 1);
 
-	// 创建一个GPU-Driven地形专用的CommandSignatureDesc
-	m_drawIndexArgDesc[0] = {};
-	m_drawIndexArgDesc[0].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED;
-	m_cmdSigDesc = {};
-	m_cmdSigDesc.NumArgumentDescs = 1;
-	m_cmdSigDesc.pArgumentDescs = m_drawIndexArgDesc;
-	m_cmdSigDesc.ByteStride = sizeof(int) * 5;
-	m_cmdSigDesc.NodeMask = 0;
-
 	// 各级距离
 	float dist[TERRAIN_LOD_NUM] = { 6000, 3000, 1500, 800, 400, 150 };
 	for (int lod = 0; lod < TERRAIN_LOD_NUM; lod++)
@@ -142,5 +133,5 @@ void NXGPUTerrainManager::UpdateConstantForGBuffer(ID3D12GraphicsCommandList* pC
 	NXShVisDescHeap->PushFluid(pNormalMapTex.IsValid() ? pNormalMapTex->GetSRV() : NXAllocator_NULL->GetNullSRV());
 
 	auto& srvHandle = NXShVisDescHeap->Submit();
-	pCmdList->SetGraphicsRootDescriptorTable(4, srvHandle); // t...
+	pCmdList->SetGraphicsRootDescriptorTable(4, srvHandle); // 使用4号根参数 具体见NXCustomMaterial::CompileShader()
 }
