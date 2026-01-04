@@ -35,14 +35,14 @@ NXGUITerrainSector2NodeIDPreview::NXGUITerrainSector2NodeIDPreview(Renderer* pRe
 	m_pPassMat->RegisterUAVSlotNum(6);
 	m_pPassMat->FinalizeLayout();
 	m_pPassMat->Compile();
+	NXPassMng->AddMaterial(m_pPassMat, true);
 }
 
 NXGUITerrainSector2NodeIDPreview::~NXGUITerrainSector2NodeIDPreview()
 {
 	if (m_pPassMat)
 	{
-		m_pPassMat->Release();
-		delete m_pPassMat;
+		NXPassMng->RemoveMaterial(m_pPassMat->GetName());
 		m_pPassMat = nullptr;
 	}
 }
@@ -126,7 +126,16 @@ void NXGUITerrainSector2NodeIDPreview::Render()
 
 					// ========== 左列：纹理预览 ==========
 					{
-						ImGui::Text(ImUtf8("预览 (Mip %d)"), m_currentMipLevel);
+						ImGui::Text(ImUtf8("预览 (Mip %d) - 缩放: %.2fx"), m_currentMipLevel, m_imageZoomScale);
+
+						// 缩放控制
+						ImGui::SliderFloat("##ZoomScale", &m_imageZoomScale, 0.1f, 10.0f, ImUtf8("缩放: %.2fx"));
+						ImGui::SameLine();
+						if (ImGui::Button(ImUtf8("重置缩放")))
+						{
+							m_imageZoomScale = 1.0f;
+						}
+
 						ImGui::Separator();
 
 						// 计算当前 mip 等级的纹理尺寸（源纹理的 mip 尺寸）
@@ -150,8 +159,24 @@ void NXGUITerrainSector2NodeIDPreview::Render()
 							displayWidth = displayHeight * aspect;
 						}
 
+						// 应用缩放系数
+						displayWidth *= m_imageZoomScale;
+						displayHeight *= m_imageZoomScale;
+
 						// 滚动区域以支持缩放后的查看
 						ImGui::BeginChild("TextureScrollRegion", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
+
+						// 鼠标滚轮缩放支持
+						if (ImGui::IsWindowHovered())
+						{
+							float wheel = ImGui::GetIO().MouseWheel;
+							if (wheel != 0.0f)
+							{
+								m_imageZoomScale += wheel * 0.1f;
+								if (m_imageZoomScale < 0.1f) m_imageZoomScale = 0.1f;
+								if (m_imageZoomScale > 10.0f) m_imageZoomScale = 10.0f;
+							}
+						}
 
 						// 获取 SRV 并渲染
 						// 计算 UV 范围：源 mip 的内容写入到 mip0 的左上角

@@ -51,4 +51,5 @@ private:
 	float m_remapMin = 0.0f;		// remap 范围最小值
 	float m_remapMax = 1024.0f;		// remap 范围最大值
 	Vector3 m_invalidColor = { 1.0f, 0.5f, 0.5f };	// 无效值的预览颜色
+	float m_imageZoomScale = 1.0f;	// 图像缩放系数
 };
