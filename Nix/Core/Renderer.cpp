@@ -271,7 +271,7 @@ void Renderer::GenerateRenderGraph()
 			});
 
 		// culling£ºÔ¤¼ÓÔØ ÌîÂúmip5³õÊ¼nodeID
-		m_pRenderGraph->AddPass<TerrainNodesCullingData>("Terrain Nodes Culling",
+		m_pRenderGraph->AddPass<TerrainNodesCullingData>("Terrain Nodes Culling: First",
 			[=, &pStreamingData](NXRGBuilder& builder, TerrainNodesCullingData& data)
 			{
 				data.pOut = builder.Write(pTerrainNodesA);
@@ -296,7 +296,7 @@ void Renderer::GenerateRenderGraph()
 		NXRGPassNode<TerrainNodesCullingData>* pLastCullingPass;
 		for (int i = 0; i < g_terrainStreamConfig.LODSize; i++)
 		{
-			pLastCullingPass = m_pRenderGraph->AddPass<TerrainNodesCullingData>("Terrain Nodes Culling",
+			pLastCullingPass = m_pRenderGraph->AddPass<TerrainNodesCullingData>("Terrain Nodes Culling" + std::to_string(i),
 				[=, &pStreamingData](NXRGBuilder& builder, TerrainNodesCullingData& data)
 				{
 					data.pIn = builder.Read((i % 2 == 0) ? pTerrainNodesA : pTerrainNodesB);
