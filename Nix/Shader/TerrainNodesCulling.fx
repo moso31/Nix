@@ -65,10 +65,10 @@ void CS_Process()
         CBufferTerrainNodeDescription childNode2 = m_nodeDescArray[childNodeID2];
         CBufferTerrainNodeDescription childNode3 = m_nodeDescArray[childNodeID3];
     
-        float2 childCenter0 = childNode0.positionWS + childNode0.size / 2;
-        float2 childCenter1 = childNode1.positionWS + childNode1.size / 2;
-        float2 childCenter2 = childNode2.positionWS + childNode2.size / 2;
-        float2 childCenter3 = childNode3.positionWS + childNode3.size / 2;
+        float2 childCenter0 = (float2)(childNode0.positionWS + (int)childNode0.size / 2);
+        float2 childCenter1 = (float2)(childNode1.positionWS + (int)childNode1.size / 2);
+        float2 childCenter2 = (float2)(childNode2.positionWS + (int)childNode2.size / 2);
+        float2 childCenter3 = (float2)(childNode3.positionWS + (int)childNode3.size / 2);
     
         float childDistance0 = distance(m_cameraPos.xz, childCenter0);
         float childDistance1 = distance(m_cameraPos.xz, childCenter1);
