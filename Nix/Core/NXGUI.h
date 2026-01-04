@@ -11,7 +11,6 @@ class Renderer;
 class NXTexture2D;
 
 class NXGUIFileBrowser;
-class NXGUITerrainSystem;
 class NXGUIContentExplorer;
 class NXGUIMaterialShaderEditor;
 class NXGUICubeMap;
@@ -63,7 +62,6 @@ private:
 	NXScene*	m_pCurrentScene;
 	Renderer*	m_pRenderer;
 
-	NXGUITerrainSystem* 		m_pGUITerrainSystem;
 	NXGUIVirtualTexture* 		m_pGUIVirtualTexture;
 	NXGUIContentExplorer*		m_pGUIContentExplorer;
 	NXGUILights*				m_pGUILights;

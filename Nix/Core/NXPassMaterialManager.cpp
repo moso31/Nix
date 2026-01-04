@@ -76,48 +76,6 @@ void NXPassMaterialManager::InitDefaultRenderer()
 		AddMaterial(pMat, true);
 	}
 
-	// TerrainFillTest
-	{
-		auto pMat = new NXComputePassMaterial("TerrainFillTest", L"Shader\\FillTestComputeShader.fx");
-		pMat->SetEntryNameCS(L"CS_Pass");
-		pMat->RegisterCBVSpaceNum(1);
-		pMat->RegisterCBVSlotNum(1);  // b0
-		pMat->RegisterUAVSpaceNum(1);
-		pMat->RegisterUAVSlotNum(3);  // u0, u1, u2
-		pMat->FinalizeLayout();
-		AddMaterial(pMat, true);
-	}
-
-	// TerrainGPUPatcher Clear
-	{
-		auto pMat = new NXComputePassMaterial("TerrainGPUPatcher:clear", L"Shader\\GPUTerrainPatcher.fx");
-		pMat->SetEntryNameCS(L"CS_Clear");
-		pMat->RegisterCBVSpaceNum(1);
-		pMat->RegisterCBVSlotNum(3);  // b0, b1, b2
-		pMat->RegisterSRVSpaceNum(1);
-		pMat->RegisterSRVSlotNum(2);  // t0, t1
-		pMat->RegisterUAVSpaceNum(1);
-		pMat->RegisterUAVSlotNum(3);  // u0, u1, u2
-		pMat->FinalizeLayout();
-		pMat->AddStaticSampler(D3D12_FILTER_MIN_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
-		AddMaterial(pMat, true);
-	}
-
-	// TerrainGPUPatcher Patch
-	{
-		auto pMat = new NXComputePassMaterial("TerrainGPUPatcher:patch", L"Shader\\GPUTerrainPatcher.fx");
-		pMat->SetEntryNameCS(L"CS_Patch");
-		pMat->RegisterCBVSpaceNum(1);
-		pMat->RegisterCBVSlotNum(3);  // b0, b1, b2
-		pMat->RegisterSRVSpaceNum(1);
-		pMat->RegisterSRVSlotNum(2);  // t0, t1
-		pMat->RegisterUAVSpaceNum(1);
-		pMat->RegisterUAVSlotNum(3);  // u0, u1, u2
-		pMat->FinalizeLayout();
-		pMat->AddStaticSampler(D3D12_FILTER_MIN_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
-		AddMaterial(pMat, true);
-	}
-
 	// GBuffer
 	{
 		auto pMat = new NXGraphicPassMaterial("GBuffer");

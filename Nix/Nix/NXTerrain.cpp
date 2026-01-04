@@ -4,7 +4,6 @@
 #include "NXCamera.h"
 #include "NXTimer.h"
 #include "NXAllocatorManager.h"
-#include "NXGPUTerrainManager.h"
 
 NXTerrain::NXTerrain(int gridSize, int sectorSize, NXTerrainNodeId terrainNodeId, int terrainId) :
 	m_gridSize(gridSize),

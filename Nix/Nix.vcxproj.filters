@@ -244,15 +244,6 @@
     <None Include="Shader\Instancing.fx">
       <Filter>Shader</Filter>
     </None>
-    <None Include="Shader\FillTestComputeShader.fx">
-      <Filter>Shader\GPUTerrain</Filter>
-    </None>
-    <None Include="Shader\GPUTerrainPatcher.fx">
-      <Filter>Shader\GPUTerrain</Filter>
-    </None>
-    <None Include="Shader\GPUTerrainCommon.fx">
-      <Filter>Shader\GPUTerrain</Filter>
-    </None>
     <None Include="Shader\VTReadback.fx">
       <Filter>Shader\VirtualTexture</Filter>
     </None>
@@ -547,9 +538,6 @@
     <ClCompile Include="Nix\NXResource.cpp">
       <Filter>Nix\TextureBuffer</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\NXGPUTerrainManager.cpp">
-      <Filter>Nix\Object\Transform\Primitive\Terrain</Filter>
-    </ClCompile>
     <ClCompile Include="Core\NXNullDescriptor.cpp">
       <Filter>Core\DirectX</Filter>
     </ClCompile>
@@ -558,9 +546,6 @@
     </ClCompile>
     <ClCompile Include="Nix\NXTerrainLayer.cpp">
       <Filter>Nix\Object\Transform\Primitive\Terrain</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\NXGUITerrainSystem.cpp">
-      <Filter>Core\UI</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXTextureMaker.cpp">
       <Filter>Core\Helper</Filter>
@@ -948,9 +933,6 @@
     <ClInclude Include="Nix\NXResource.h">
       <Filter>Nix\TextureBuffer</Filter>
     </ClInclude>
-    <ClInclude Include="Nix\NXGPUTerrainManager.h">
-      <Filter>Nix\Object\Transform\Primitive\Terrain</Filter>
-    </ClInclude>
     <ClInclude Include="Core\NXNullDescriptor.h">
       <Filter>Core\DirectX</Filter>
     </ClInclude>
@@ -959,9 +941,6 @@
     </ClInclude>
     <ClInclude Include="Nix\NXTerrainLayer.h">
       <Filter>Nix\Object\Transform\Primitive\Terrain</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\NXGUITerrainSystem.h">
-      <Filter>Core\UI</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXTextureMaker.h">
       <Filter>Core\Helper</Filter>

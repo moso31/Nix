@@ -317,7 +317,6 @@
     <ClCompile Include="Core\TinyEXRImpl.cpp" />
     <ClCompile Include="Core\NXGUIInspector.cpp" />
     <ClCompile Include="Core\NXGUIRenderGraph.cpp" />
-    <ClCompile Include="Core\NXGUITerrainSystem.cpp" />
     <ClCompile Include="Core\NXGUIVirtualTexture.cpp" />
     <ClCompile Include="Core\NXNullDescriptor.cpp" />
     <ClCompile Include="Core\NXPSOManager.cpp" />
@@ -373,7 +372,6 @@
     <ClCompile Include="Core\ShaderComplier.cpp" />
     <ClCompile Include="Core\NXShaderVisibleDescriptorHeap.cpp" />
     <ClCompile Include="Nix\NXBuffer.cpp" />
-    <ClCompile Include="Nix\NXGPUTerrainManager.cpp" />
     <ClCompile Include="Nix\NXPassMaterial.cpp" />
     <ClCompile Include="Nix\NXQuadTree.cpp" />
     <ClCompile Include="Nix\NXReadbackData.cpp" />
@@ -444,7 +442,6 @@
     <ClInclude Include="Core\NXGUIInspector.h" />
     <ClInclude Include="Core\NXGUIRenderGraph.h" />
     <ClInclude Include="Core\NXGUITerrainMaterialGenerator.h" />
-    <ClInclude Include="Core\NXGUITerrainSystem.h" />
     <ClInclude Include="Core\NXGUIVirtualTexture.h" />
     <ClInclude Include="Core\NXNullDescriptor.h" />
     <ClInclude Include="Core\NXPSOManager.h" />
@@ -506,7 +503,6 @@
     <ClInclude Include="Core\XAllocImpl.h" />
     <ClInclude Include="Nix\HBVH.h" />
     <ClInclude Include="Nix\NXBuffer.h" />
-    <ClInclude Include="Nix\NXGPUTerrainManager.h" />
     <ClInclude Include="Nix\NXPassMaterial.h" />
     <ClInclude Include="Nix\NXReadbackData.h" />
     <ClInclude Include="Nix\NXResource.h" />
@@ -790,30 +786,6 @@
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='FullyDebug|x64'">true</DeploymentContent>
       <FileType>Document</FileType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Shader\FillTestComputeShader.fx">
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DeploymentContent>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='FullyDebug|x64'">false</DeploymentContent>
-      <FileType>Document</FileType>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DeploymentContent>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Shader\GPUTerrainPatcher.fx">
-      <FileType>Document</FileType>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DeploymentContent>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='FullyDebug|x64'">false</DeploymentContent>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DeploymentContent>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Shader\GPUTerrainCommon.fx">
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DeploymentContent>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='FullyDebug|x64'">false</DeploymentContent>
-      <FileType>Document</FileType>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DeploymentContent>
     </None>
   </ItemGroup>
   <ItemGroup>

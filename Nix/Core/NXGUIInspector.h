@@ -13,7 +13,6 @@ struct NXGUICommand;
 class NXGUITexture;
 class NXGUIMaterial;
 class NXGUIMaterialShaderEditor;
-class NXGUITerrainSystem;
 class NXGUIDiffuseProfile;
 class NXScene;
 class NXGUIInspector
@@ -22,7 +21,7 @@ public:
 	NXGUIInspector();
 	virtual ~NXGUIInspector() {}
 
-	void InitGUI(NXScene* pScene, NXGUIMaterialShaderEditor* pMaterialShaderEditor, NXGUITerrainSystem* pTerrainSystem);
+	void InitGUI(NXScene* pScene, NXGUIMaterialShaderEditor* pMaterialShaderEditor);
 
 	void DoCommand(const NXGUICommand& cmd);
 	void Render();
@@ -40,5 +39,4 @@ private:
 	NXGUIMaterial* m_pGUIMaterial;
 	NXGUIDiffuseProfile* m_pGUIDiffuseProfile;
 	NXGUIMaterialShaderEditor* m_pGUIMaterialShaderEditor;
-	NXGUITerrainSystem* m_pGUITerrainSystem;
 };

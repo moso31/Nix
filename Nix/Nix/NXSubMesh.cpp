@@ -4,7 +4,6 @@
 #include "NXSubMeshGeometryEditor.h"
 #include "NXCamera.h"
 #include "NXTimer.h"
-#include "NXGPUTerrainManager.h"
 #include "NXTerrainCommandSignature.h"
 #include "NXBuffer.h"
 

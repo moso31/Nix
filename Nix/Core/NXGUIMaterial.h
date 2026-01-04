@@ -5,7 +5,6 @@
 class NXScene;
 class NXMaterial;
 class NXCustomMaterial;
-class NXGUITerrainSystem;
 struct NXGUIAssetDragData;
 class NXTerrain;
 class NXTerrainLayer;
@@ -13,7 +12,7 @@ class NXRenderableObject;
 class NXGUIMaterial
 {
 public:
-	NXGUIMaterial(NXScene* pScene, NXGUITerrainSystem* pTerrainSystem);
+	NXGUIMaterial(NXScene* pScene);
 	virtual ~NXGUIMaterial() {}
 
 	void SetCurrentScene(NXScene* pScene) { m_pCurrentScene = pScene; }
@@ -43,6 +42,5 @@ private:
 	NXMaterialData m_guiData;
 
 	NXCustomMaterial* m_pLastMaterial = nullptr;
-	NXGUITerrainSystem* m_pTerrainSystem;
 	bool m_bIsDirty;
 };
