@@ -67,6 +67,7 @@ void CS(
         patch.atlasIndex = nodeId;
         patch.patchOrigin = patchOrigin;
         patch.patchSize = patchSize;
+        patch.nodeOrigin = nodeOrigin;
         patch.patchOriginPixelPos = patchOriginPixelPos;
         
         m_patcherBuffer.Append(patch);

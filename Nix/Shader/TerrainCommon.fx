@@ -40,8 +40,8 @@ struct TerrainPatchData
     int2 patchOrigin;
     int patchSize;
     int atlasIndex;
+    int2 nodeOrigin; // nodeSize = f(patchSize)
     float2 patchOriginPixelPos;
-    float2 _0;
 };
 
 struct TerrainPatchDrawIndexArgs

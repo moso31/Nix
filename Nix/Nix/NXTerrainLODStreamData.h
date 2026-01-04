@@ -52,8 +52,8 @@ struct TerrainPatchParam
 	Int2 patchOrigin;
 	int patchSize;
 	int sliceIndex;
+	Int2 nodeOrigin; // nodeSize = f(patchSize)
 	Vector2 patchOriginPixelPos;
-	Vector2 _0;
 };
 
 class NXCamera;
