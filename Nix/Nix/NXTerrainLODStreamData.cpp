@@ -52,7 +52,7 @@ void NXTerrainLODStreamData::Init(NXTerrainLODStreamer* pStreamer)
 
 	// gpu-driven patcher
 	m_patcherBuffer = new NXBuffer("GPU Terrain Patcher Buffer"); 
-	m_patcherBuffer->Create(sizeof(TerrainPatchParam), 16384);
+	m_patcherBuffer->Create(sizeof(TerrainPatchParam), 32768);
 
 	int a2[5] = { 0,0,0,0,0 };
 	m_patcherDrawArgs = new NXBuffer("GPU Terrain Draw Index Indirect Args");

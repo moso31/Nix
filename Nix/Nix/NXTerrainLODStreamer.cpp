@@ -158,6 +158,7 @@ void NXTerrainLODStreamer::Update()
 		int by = (offsetPosWS.x >> bitOffsetXY);
 		int bz = (offsetPosWS.y >> bitOffsetXY);
 		Vector2 minmaxZ = m_minmaxZData[bx][by][bz];
+        printf("loading: data.size = %d, mip = %d; posWS = %d %d; minMaxZ: %f %f\n", data.size, bx, by, bz, minmaxZ.x, minmaxZ.y);
 
 		Int2 strID = data.terrainID - minTerrainID;
         int row = 7 - strID.y;  // 换算了下应该是Flip V
@@ -281,44 +282,113 @@ void NXTerrainLODStreamer::LoadMinmaxZData()
         return;
     }
 
-    // 初始化 m_minmaxZData，维度为 [mipCount][width][height]
+    // 这是一个 2D Array 纹理：
+    // - mipLevels 对应不同的四叉树 LOD 层级
+    // - arraySize = 64（8x8 地形块），需要平摊到全局 x/z 坐标
+    // - slice 排列：从左上到右下，先行后列。slice 0 = 0_0（左上角），slice 1 = 0_1，...，slice 8 = 1_0
+    // 
+    // mmz.dds 原始数据是 patcher 粒度（mip0: 256x256 per slice，每 patcher 8x8）
+    // 流式加载地形上线后，需要合并到 node 粒度（mip0: 32x32 per slice，每 node 64x64）
+    // 每 8x8 个 patcher 合并成 1 个 node，取这 64 个 patcher 的 min/max
+    // 最终数据结构：m_minmaxZData[mip][globalNodeX][globalNodeZ]
+    size_t arraySize = metadata.arraySize;
     size_t mipCount = metadata.mipLevels;
+
+    printf("LoadMinmaxZData: arraySize=%zu, mipLevels=%zu, baseWidth=%zu, baseHeight=%zu\n",
+           arraySize, mipCount, metadata.width, metadata.height);
+
     m_minmaxZData.resize(mipCount);
 
     for (size_t mip = 0; mip < mipCount; mip++)
     {
-        const Image* img = scratchImage.GetImage(mip, 0, 0);
-        if (!img)
+        // 获取第一个 slice 来确定这个 mip 级别的尺寸
+        const Image* firstImg = scratchImage.GetImage(mip, 0, 0);
+        if (!firstImg)
         {
-            printf("LoadMinmaxZData: 获取 mip %zu 失败\n", mip);
+            printf("LoadMinmaxZData: 获取 mip %zu slice 0 失败\n", mip);
             continue;
         }
 
-        size_t mipWidth = img->width;
-        size_t mipHeight = img->height;
+        size_t sliceWidth = firstImg->width;   // patcher 粒度的宽度
+        size_t sliceHeight = firstImg->height; // patcher 粒度的高度
 
-        m_minmaxZData[mip].resize(mipWidth);
-        for (size_t x = 0; x < mipWidth; x++)
+        // 计算 node 粒度的尺寸（每 8x8 patcher 合并为 1 个 node）
+        // 对于低 mip 级别，slice 尺寸可能小于 8，此时不需要合并
+        size_t mergeFactorX = std::min(sliceWidth, (size_t)8);
+        size_t mergeFactorZ = std::min(sliceHeight, (size_t)8);
+        size_t nodeSliceWidth = (sliceWidth + mergeFactorX - 1) / mergeFactorX;
+        size_t nodeSliceHeight = (sliceHeight + mergeFactorZ - 1) / mergeFactorZ;
+
+        // 全局 node 数量 = node slice 大小 * 8（8x8 地形块）
+        size_t globalNodeWidth = nodeSliceWidth * 8;
+        size_t globalNodeHeight = nodeSliceHeight * 8;
+
+        m_minmaxZData[mip].resize(globalNodeWidth);
+        for (size_t x = 0; x < globalNodeWidth; x++)
         {
-            m_minmaxZData[mip][x].resize(mipHeight);
+            m_minmaxZData[mip][x].resize(globalNodeHeight);
         }
 
-        // 读取像素数据，R32G32_FLOAT 每像素 8 字节
-        const uint8_t* pixels = img->pixels;
-        size_t rowPitch = img->rowPitch;
-
-        for (size_t y = 0; y < mipHeight; y++)
+        // 遍历每个 slice
+        for (size_t slice = 0; slice < arraySize; slice++)
         {
-            const uint8_t* row = pixels + y * rowPitch;
-            for (size_t x = 0; x < mipWidth; x++)
-            {
-                const float* pixelData = reinterpret_cast<const float*>(row + x * sizeof(float) * 2);
-                float minZ = pixelData[0];
-                float maxZ = pixelData[1];
+            // slice 排列：从左上到右下，先行后列
+            // slice 0 = 0_0（左上角），slice 1 = 0_1，...，slice 8 = 1_0
+            size_t sliceRow = slice / 8;  // 0-7，0是上面（z 最大）
+            size_t sliceCol = slice % 8;  // 0-7，0是左边（x 最小）
 
-                // y 翻转以适配世界坐标
-                size_t flippedY = mipHeight - 1 - y;
-                m_minmaxZData[mip][x][flippedY] = Vector2(minZ, maxZ);
+            const Image* img = scratchImage.GetImage(mip, slice, 0);
+            if (!img)
+            {
+                printf("LoadMinmaxZData: 获取 mip %zu slice %zu 失败\n", mip, slice);
+                continue;
+            }
+
+            // 计算这个 slice 在全局 node 数组中的起始位置
+            // sliceCol 直接映射到 x
+            // sliceRow 需要翻转：row 0（上面）对应全局 z 最大
+            size_t globalNodeStartX = sliceCol * nodeSliceWidth;
+            size_t globalNodeStartZ = (7 - sliceRow) * nodeSliceHeight;
+
+            const uint8_t* pixels = img->pixels;
+            size_t rowPitch = img->rowPitch;
+
+            // 遍历每个 node（每个 node 对应 8x8 个 patcher）
+            for (size_t nodeY = 0; nodeY < nodeSliceHeight; nodeY++)
+            {
+                for (size_t nodeX = 0; nodeX < nodeSliceWidth; nodeX++)
+                {
+                    float nodeMinZ = FLT_MAX;
+                    float nodeMaxZ = -FLT_MAX;
+
+                    // 遍历这个 node 内的所有 patcher（最多 8x8）
+                    size_t patcherStartX = nodeX * mergeFactorX;
+                    size_t patcherStartY = nodeY * mergeFactorZ;
+                    size_t patcherEndX = std::min(patcherStartX + mergeFactorX, sliceWidth);
+                    size_t patcherEndY = std::min(patcherStartY + mergeFactorZ, sliceHeight);
+
+                    for (size_t py = patcherStartY; py < patcherEndY; py++)
+                    {
+                        const uint8_t* row = pixels + py * rowPitch;
+                        for (size_t px = patcherStartX; px < patcherEndX; px++)
+                        {
+                            const float* pixelData = reinterpret_cast<const float*>(row + px * sizeof(float) * 2);
+                            float minZ = pixelData[0];
+                            float maxZ = pixelData[1];
+
+                            nodeMinZ = std::min(nodeMinZ, minZ);
+                            nodeMaxZ = std::max(nodeMaxZ, maxZ);
+                        }
+                    }
+
+                    // 图像 y=0 在上面，翻转以适配世界坐标
+                    size_t localNodeZ = nodeSliceHeight - 1 - nodeY;
+
+                    size_t gx = globalNodeStartX + nodeX;
+                    size_t gz = globalNodeStartZ + localNodeZ;
+
+                    m_minmaxZData[mip][gx][gz] = Vector2(nodeMinZ, nodeMaxZ);
+                }
             }
         }
     }

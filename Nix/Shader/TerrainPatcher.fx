@@ -28,7 +28,7 @@ void CS(
     // 这个patcher在node内的相对位置
     float2 patchOriginPixelPos = gtid.xy * VERTEX_GRID_SIZE;
     
-    int2 nodeMinMaxZ = m_nodeDescArray[nodeId].minmaxZ;
+    float2 nodeMinMaxZ = m_nodeDescArray[nodeId].minmaxZ;
 
     // visibility test: Frustum Culling
     float4 plane[6];
@@ -41,9 +41,10 @@ void CS(
     plane[5] = NormalizePlane(vp[3] - vp[2]);
 
     //for (int i = 0; i < 6; ++i) plane[i].w -= m_debugParam; // debug
-
-    float3 extent = float3(patchSize, nodeMinMaxZ.y - nodeMinMaxZ.x, patchSize);
-    float3 center = float3(patchOrigin.x, 0.0f, patchOrigin.y) + extent * 0.5f;
+    
+    float3 aabbMin = float3(patchOrigin.x, nodeMinMaxZ.x, patchOrigin.y);
+    float3 extent = float3(patchSize, (nodeMinMaxZ.y - nodeMinMaxZ.x), patchSize) * 0.5f;
+    float3 center = aabbMin + extent;
 
     bool isoutside = false;
     for (int i = 0; i < 6; i++)
@@ -61,7 +62,7 @@ void CS(
         }
     }
 
-    //if (!isoutside)
+    if (!isoutside)
     {
         TerrainPatchData patch = (TerrainPatchData)0;
         patch.atlasIndex = nodeId;
