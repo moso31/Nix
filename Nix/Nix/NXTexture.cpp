@@ -824,14 +824,8 @@ void NXTexture::Deserialize()
 	}
 	else if (NXConvert::IsDDSFileExtension(m_texFilePath.extension().string()))
 	{
-		// 如果没有序列化文件，但是DDS文件，直接读取DDS文件的元数据，这样可以序列化一部分内容
-		DirectX::TexMetadata metadata;
-		HRESULT hr = DirectX::GetMetadataFromDDSFile(m_texFilePath.c_str(), DirectX::DDS_FLAGS_NONE, metadata);
-		if (SUCCEEDED(hr))
-		{
-			m_serializationData.m_bGenerateMipMap = metadata.mipLevels > 1;
-			m_serializationData.m_bCubeMap = metadata.IsCubemap();
-		}
+		// 以前这里对dds文件会基于GetMetaData()序列化，但开销过高
+		// 于是删掉了
 	}
 	else 
 	{
