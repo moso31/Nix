@@ -114,6 +114,14 @@ void NXGUIWorkspace::Render()
             {
                 m_pGUI->OpenGUITerrainSector2NodeIDPreview();
             }
+            if (ImGui::BeginMenu(ImUtf8("调试")))
+            {
+                if (ImGui::MenuItem(ImUtf8("显示调试界面"))) 
+                {
+                    m_pGUI->OpenGUITerrainStreamingDebug();
+                }
+                ImGui::EndMenu();
+            }
             ImGui::EndMenu();
         }
 

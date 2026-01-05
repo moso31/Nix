@@ -313,6 +313,7 @@
     <ClCompile Include="Core\NXGUIHoudiniTerrainExporter.cpp" />
     <ClCompile Include="Core\NXGUITerrainSector2NodeIDPreview.cpp" />
     <ClCompile Include="Core\NXGUITerrainMaterialGenerator.cpp" />
+    <ClCompile Include="Core\NXGUITerrainStreamingDebug.cpp" />
     <ClCompile Include="Core\NXPassMaterialManager.cpp" />
     <ClCompile Include="Core\TinyEXRImpl.cpp" />
     <ClCompile Include="Core\NXGUIInspector.cpp" />
@@ -430,6 +431,7 @@
     <ClInclude Include="Core\NXCodeProcessHelper.h" />
     <ClInclude Include="Core\NXCommonTexDefinition.h" />
     <ClInclude Include="Core\NXConvertString.h" />
+    <ClInclude Include="Core\NXGUITerrainStreamingDebug.h" />
     <ClInclude Include="Core\NXPassMaterialManager.h" />
     <ClInclude Include="Core\NXWinFileDrop.h" />
     <ClInclude Include="Core\NXFileSystemHelper.h" />

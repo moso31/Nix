@@ -26,6 +26,7 @@
 #include "NXGUIHoudiniTerrainExporter.h"
 #include "NXGUITerrainMaterialGenerator.h"
 #include "NXGUITerrainSector2NodeIDPreview.h"
+#include "NXGUITerrainStreamingDebug.h"
 #include "NXGUICommandManager.h"
 
 NXGUI::NXGUI(NXScene* pScene, Renderer* pRenderer) :
@@ -46,7 +47,8 @@ NXGUI::NXGUI(NXScene* pScene, Renderer* pRenderer) :
 	m_pGUIWorkspace(nullptr),
 	m_pGUIHoudiniTerrainExporter(nullptr),
 	m_pGUITerrainMaterialGenerator(nullptr),
-	m_pGUITerrainSector2NodeIDPreview(nullptr)
+	m_pGUITerrainSector2NodeIDPreview(nullptr),
+	m_pGUITerrainStreamingDebug(nullptr)
 {
 }
 
@@ -116,6 +118,7 @@ void NXGUI::Init()
 	m_pGUIHoudiniTerrainExporter = new NXGUIHoudiniTerrainExporter();
 	m_pGUITerrainMaterialGenerator = new NXGUITerrainMaterialGenerator();
 	m_pGUITerrainSector2NodeIDPreview = new NXGUITerrainSector2NodeIDPreview(m_pRenderer);
+	m_pGUITerrainStreamingDebug = new NXGUITerrainStreamingDebug(m_pRenderer);
 	
 	m_pGUIWorkspace = new NXGUIWorkspace();
 	m_pGUIWorkspace->Init(this);
@@ -165,6 +168,7 @@ void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT, const NXSwapChainBuffer& swapCha
 	m_pGUITerrainMaterialGenerator->Render();
 
 	UpdateGUITerrainSector2NodeIDPreview();
+	UpdateGUITerrainStreamingDebug();
 
 	if (m_pGUIView->GetViewRT() != pGUIViewRT)
 		m_pGUIView->SetViewRT(pGUIViewRT);
@@ -252,6 +256,7 @@ void NXGUI::Release()
 	SafeDelete(m_pGUIContentExplorer);
 	SafeDelete(m_pGUIVirtualTexture);
 	SafeDelete(m_pGUIRenderGraph);
+	SafeDelete(m_pGUITerrainStreamingDebug);
 
 	ImGui_ImplDX12_Shutdown();
 	ImGui_ImplWin32_Shutdown();
@@ -280,6 +285,30 @@ void NXGUI::UpdateGUITerrainSector2NodeIDPreview()
 		if (!m_pGUITerrainSector2NodeIDPreview->GetVisible())
 		{
 			SafeDelete(m_pGUITerrainSector2NodeIDPreview);
+		}
+	}
+}
+
+void NXGUI::OpenGUITerrainStreamingDebug()
+{
+	// 打开窗口时分配内存
+	if (!m_pGUITerrainStreamingDebug)
+	{
+		m_pGUITerrainStreamingDebug = new NXGUITerrainStreamingDebug(m_pRenderer);
+	}
+	m_pGUITerrainStreamingDebug->SetVisible(true);
+}
+
+void NXGUI::UpdateGUITerrainStreamingDebug()
+{
+	if (m_pGUITerrainStreamingDebug)
+	{
+		m_pGUITerrainStreamingDebug->Render();
+
+		// 关闭窗口时释放内存
+		if (!m_pGUITerrainStreamingDebug->GetVisible())
+		{
+			SafeDelete(m_pGUITerrainStreamingDebug);
 		}
 	}
 }

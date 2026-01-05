@@ -3,6 +3,7 @@
 #include "NXScene.h"
 #include "NXTerrain.h"
 #include "NXGlobalDefinitions.h"
+#include "NXTerrainLODStreamConfigs.h"
 #include "NXTerrainStreamingAsyncLoader.h"
 #include "NXTerrainStreamingBatcher.h"
 #include "DirectXTex.h"
@@ -42,6 +43,10 @@ void NXTerrainLODStreamer::Init(NXScene* pScene)
 
 void NXTerrainLODStreamer::Update()
 {
+    // 如果调试模式下暂停异步加载，则跳过本次更新
+    if (g_terrainStreamDebug.bPauseAsyncLoading)
+        return;
+
     // 获取6档LOD覆盖的所有四叉树节点
     std::vector<std::vector<NXTerrainLODQuadTreeNode>> nodeLists(6);
 
@@ -207,6 +212,10 @@ void NXTerrainLODStreamer::Update()
 
 void NXTerrainLODStreamer::UpdateAsyncLoader()
 {
+    // 如果调试模式下暂停异步加载，则跳过本次更新
+    if (g_terrainStreamDebug.bPauseAsyncLoading)
+        return;
+
 	// 更新异步加载器
     m_asyncLoader->Update();
 }

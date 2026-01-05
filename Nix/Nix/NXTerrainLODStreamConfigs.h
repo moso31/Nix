@@ -47,4 +47,10 @@ struct NXTerrainLODStreamConfigsStruct
 	static constexpr uint32_t MaxComputeLimit = 4;
 };
 
+struct NXTerrainLODStreamDebug
+{
+	bool bPauseAsyncLoading = false;
+};
+
 inline NXTerrainLODStreamConfigsStruct g_terrainStreamConfig;
+inline NXTerrainLODStreamDebug g_terrainStreamDebug;

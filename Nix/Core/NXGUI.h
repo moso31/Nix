@@ -27,6 +27,7 @@ class NXGUIVirtualTexture;
 class NXGUIHoudiniTerrainExporter;
 class NXGUITerrainMaterialGenerator;
 class NXGUITerrainSector2NodeIDPreview;
+class NXGUITerrainStreamingDebug;
 
 class NXGUI
 {
@@ -49,12 +50,15 @@ public:
 	NXGUITerrainMaterialGenerator* GetGUITerrainMaterialGenerator() const { return m_pGUITerrainMaterialGenerator; }
 	NXGUIVirtualTexture* GetGUIVirtualTexture() const { return m_pGUIVirtualTexture; }
 	NXGUIRenderGraph* GetGUIRenderGraph() const { return m_pGUIRenderGraph; }
+	NXGUITerrainStreamingDebug* GetGUITerrainStreamingDebug() const { return m_pGUITerrainStreamingDebug; }
 
 	// 延迟分配：打开窗口时分配，关闭窗口时释放
 	void OpenGUITerrainSector2NodeIDPreview();
+	void OpenGUITerrainStreamingDebug();
 
 private:
 	void UpdateGUITerrainSector2NodeIDPreview(); // 内部更新，检查是否需要释放
+	void UpdateGUITerrainStreamingDebug();
 
 private:
 	MultiFrame<ComPtr<ID3D12GraphicsCommandList>>	m_pCmdList;
@@ -80,6 +84,7 @@ private:
 	NXGUIHoudiniTerrainExporter* m_pGUIHoudiniTerrainExporter;
 	NXGUITerrainMaterialGenerator* m_pGUITerrainMaterialGenerator;
 	NXGUITerrainSector2NodeIDPreview* m_pGUITerrainSector2NodeIDPreview;
+	NXGUITerrainStreamingDebug* m_pGUITerrainStreamingDebug;
 
 	NXGUIDebugLayer*			m_pGUIDebugLayer;
 
