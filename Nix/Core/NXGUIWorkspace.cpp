@@ -5,6 +5,8 @@
 #include "NXGUIHoudiniTerrainExporter.h"
 #include "NXGUITerrainMaterialGenerator.h"
 #include "NXGUITerrainSector2NodeIDPreview.h"
+#include "NXGUIVirtualTexture.h"
+#include "NXGUIRenderGraph.h"
 #include "NXFileSystemHelper.h"
 
 void NXGUIWorkspace::Init(NXGUI* pGUI)
@@ -111,6 +113,32 @@ void NXGUIWorkspace::Render()
             if (ImGui::MenuItem(ImUtf8("显示Sector2NodeID纹理"))) 
             {
                 m_pGUI->OpenGUITerrainSector2NodeIDPreview();
+            }
+            ImGui::EndMenu();
+        }
+
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(7.0f, 7.0f));
+        bool bVTMenu = ImGui::BeginMenu("Virtual Texture");
+        ImGui::PopStyleVar();
+        if (bVTMenu)
+        {
+            bool bVTVisible = m_pGUI->GetGUIVirtualTexture()->IsVisible();
+            if (ImGui::MenuItem(ImUtf8("显示调试界面"), nullptr, bVTVisible))
+            {
+                m_pGUI->GetGUIVirtualTexture()->SetVisible(!bVTVisible);
+            }
+            ImGui::EndMenu();
+        }
+
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(7.0f, 7.0f));
+        bool bRGMenu = ImGui::BeginMenu("Render Graph");
+        ImGui::PopStyleVar();
+        if (bRGMenu)
+        {
+            bool bRGVisible = m_pGUI->GetGUIRenderGraph()->IsVisible();
+            if (ImGui::MenuItem(ImUtf8("显示调试界面"), nullptr, bRGVisible))
+            {
+                m_pGUI->GetGUIRenderGraph()->SetVisible(!bRGVisible);
             }
             ImGui::EndMenu();
         }

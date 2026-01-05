@@ -503,6 +503,10 @@ NXGUIRenderGraph::NXGUIRenderGraph(Renderer* pRenderer) :
 
 void NXGUIRenderGraph::Render()
 {
+    // 如果窗口关闭，直接返回，避免不必要的渲染开销
+    if (!m_bShowWindow)
+        return;
+
     auto pRenderGraph = m_pRenderer->GetRenderGraph();
     if (!pRenderGraph)
         return;
@@ -514,7 +518,7 @@ void NXGUIRenderGraph::Render()
     int minTimeLayer = m_showImportedResources ? 0 : pRenderGraph->GetMinTimeLayer();
     int maxTimeLayer = pRenderGraph->GetMaxTimeLayer();
 
-    ImGui::Begin("Render Graph");
+    ImGui::Begin("Render Graph", &m_bShowWindow);
 
     static int hoveredResource = -1;
     static int hoveredSegment = -1;

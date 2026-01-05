@@ -8,6 +8,9 @@ public:
     NXGUIVirtualTexture(NXGUI* pOwner);
     void Render();
 
+    void SetVisible(bool visible) { m_bShowWindow = visible; }
+    bool IsVisible() const { return m_bShowWindow; }
+
 private:
     void Render_Sectors();
     void Render_VirtImageAtlas();

@@ -6,7 +6,8 @@
 #include "NXGlobalDefinitions.h"
 
 NXGUIVirtualTexture::NXGUIVirtualTexture(NXGUI* pOwner) :
-    m_pOwner(pOwner)
+    m_pOwner(pOwner),
+    m_bShowWindow(false)
 {
     m_strTitle = {
         "Sector##child_sector",
@@ -17,6 +18,10 @@ NXGUIVirtualTexture::NXGUIVirtualTexture(NXGUI* pOwner) :
 
 void NXGUIVirtualTexture::Render()
 {
+    // 如果窗口关闭，直接返回，避免不必要的渲染开销
+    if (!m_bShowWindow)
+        return;
+
     // -------------------- 1. 宿主窗口（里面放一个 DockSpace） --------------------
     const ImGuiWindowFlags host_flags =
         ImGuiWindowFlags_NoDocking |

@@ -17,6 +17,9 @@ public:
 
 	void Render();
 
+	void SetVisible(bool visible) { m_bShowWindow = visible; }
+	bool IsVisible() const { return m_bShowWindow; }
+
 private:
 	// 辅助方法 - 格式化和转换
 	static std::string FormatByteSize(size_t bytes);
@@ -42,6 +45,7 @@ private:
 	Renderer* m_pRenderer;
 	Ntr<NXResource> m_pShowResource;
 
+	bool m_bShowWindow = false;
 	NXRGGUIResourceViewMode m_viewMode = NXRGGUIResourceViewMode::Virtual;
 	bool m_showImportedResources = true;
 

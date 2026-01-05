@@ -47,6 +47,8 @@ public:
 
 	NXGUIHoudiniTerrainExporter* GetGUIHoudiniTerrainExporter() const { return m_pGUIHoudiniTerrainExporter; }
 	NXGUITerrainMaterialGenerator* GetGUITerrainMaterialGenerator() const { return m_pGUITerrainMaterialGenerator; }
+	NXGUIVirtualTexture* GetGUIVirtualTexture() const { return m_pGUIVirtualTexture; }
+	NXGUIRenderGraph* GetGUIRenderGraph() const { return m_pGUIRenderGraph; }
 
 	// 延迟分配：打开窗口时分配，关闭窗口时释放
 	void OpenGUITerrainSector2NodeIDPreview();
