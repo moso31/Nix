@@ -55,33 +55,36 @@ void NXTerrainLODStreamer::Update()
     std::vector<uint32_t> nextLoadingNodeDescIndices;
 
     // 逆序，因为nodeLevel越大，对应node表示的精度越高；这里需要优先加载精度最高的
-    int loadCount = 0;
     for (int i = g_terrainStreamConfig.MaxNodeLevel; i >= 0; i--) 
     {
         for (auto& node : nodeLists[i])
         {
-            auto it = std::find_if(m_nodeDescArrayInternal.begin(), m_nodeDescArrayInternal.end(), [&](const NXTerrainLODQuadTreeNodeDescription& nodeDesc) {
-                // 检查缓存中是否已经具有位置和大小相同，并且是有效（或正在加载中的）节点
-                return node.positionWS == nodeDesc.data.positionWS && node.size == nodeDesc.data.size && (nodeDesc.isLoading || nodeDesc.isValid);
-                });
-
-            // 若节点已存在，或者正在加载
-            if (it != m_nodeDescArrayInternal.end())
+            // 辅助快查map提速，原本直接对 m_nodeDescArrayInternal做find_if 开销有点高了
+            TerrainNodeKey key;
+            key.positionWS = node.positionWS;
+            key.size = node.size;
+            auto itKey = m_keyToNodeMap.find(key);
+            if (itKey != m_keyToNodeMap.end())
             {
-                // 仅需更新lastUpdate
-                it->lastUpdatedFrame = NXGlobalApp::s_frameIndex.load();
+                // 检查缓存中是否已经具有位置和大小相同的节点（正在加载中的也算）
+                // 若节点已存在，或者正在加载
+                if (m_nodeDescArrayInternal[itKey->second].isLoading || m_nodeDescArrayInternal[itKey->second].isValid)
+                {
+                    // 仅需更新lastUpdate
+                    m_nodeDescArrayInternal[itKey->second].lastUpdatedFrame = NXGlobalApp::s_frameIndex.load();
+                    continue;
+                }
             }
-            else // 否则准备磁盘异步加载，从nodeDesc中选一个空闲的或最久未使用的
-            {
-                loadCount++;
 
+            // 若节点不存在，准备从磁盘异步加载，从nodeDesc中选一个空闲的或最久未使用的
+            {
                 uint64_t oldestFrame = UINT64_MAX;
                 uint32_t oldestIndex = -1;
                 uint32_t selectedIndex = -1;
 
                 for (uint32_t descIndex = 0; descIndex < m_nodeDescArrayInternal.size(); descIndex++)
                 {
-                    // 优先取空闲（isValid）；正在加载的（isLoading）不考虑
+                    // 优先取空闲（!isValid）；正在加载的（isLoading）不考虑
                     auto& nodeDesc = m_nodeDescArrayInternal[descIndex];
                     if (!nodeDesc.isValid && !nodeDesc.isLoading)
                     {
@@ -111,11 +114,21 @@ void NXTerrainLODStreamer::Update()
                         // 如果要替换最久未使用的节点 记录替换前的数据
                         selectedNodeDesc.oldData = selectedNodeDesc.data; 
                         selectedNodeDesc.removeOldData = true;
+
+                        // 辅助快查map更新
+                        TerrainNodeKey oldKey;
+                        oldKey.positionWS = selectedNodeDesc.oldData.positionWS;
+                        oldKey.size = selectedNodeDesc.oldData.size;
+                        m_keyToNodeMap.erase(oldKey);
                     }
                     else
                     {
                         selectedNodeDesc.removeOldData = false;
                     }
+
+                    // 辅助快查map更新
+                    m_keyToNodeMap[key] = selectedIndex;
+
                     selectedNodeDesc.isLoading = true;
                     selectedNodeDesc.isValid = false;
                     selectedNodeDesc.data = node;
@@ -158,7 +171,7 @@ void NXTerrainLODStreamer::Update()
 		int by = (offsetPosWS.x >> bitOffsetXY);
 		int bz = (offsetPosWS.y >> bitOffsetXY);
 		Vector2 minmaxZ = m_minmaxZData[bx][by][bz];
-        printf("loading: data.size = %d, mip = %d; posWS = %d %d; minMaxZ: %f %f\n", data.size, bx, by, bz, minmaxZ.x, minmaxZ.y);
+        //printf("loading: data.size = %d, mip = %d; posWS = %d %d; minMaxZ: %f %f\n", data.size, bx, by, bz, minmaxZ.x, minmaxZ.y);
 
 		Int2 strID = data.terrainID - minTerrainID;
         int row = 7 - strID.y;  // 换算了下应该是Flip V

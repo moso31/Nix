@@ -2,6 +2,28 @@
 #include "NXTerrainLODStreamData.h"
 #include "NXTerrainLODStreamConfigs.h"
 
+struct TerrainNodeKey
+{
+	Int2 positionWS;
+	int size;
+
+	bool operator==(const TerrainNodeKey& other) const
+	{
+		return positionWS == other.positionWS && size == other.size;
+	}
+};
+
+struct TerrainNodeKeyHash
+{
+	uint64_t operator()(const TerrainNodeKey& key) const
+	{
+		uint64_t h1 = std::hash<int>()(key.positionWS.x);
+		uint64_t h2 = std::hash<int>()(key.positionWS.y);
+		uint64_t h3 = std::hash<int>()(key.size);
+		return h1 ^ (h2 << 16) ^ (h3 << 32);
+	}
+};
+
 class NXTerrainStreamingAsyncLoader;
 class NXTerrainStreamingBatcher;
 struct NXTerrainLODQuadTreeNode
@@ -111,6 +133,7 @@ private:
 	// "已经加载"到Atlas的节点
 	// 长度固定，初始化直接resize
 	std::vector<NXTerrainLODQuadTreeNodeDescription> m_nodeDescArrayInternal;
+	std::unordered_map<TerrainNodeKey, uint32_t, TerrainNodeKeyHash> m_keyToNodeMap; // 优化查找速度
 
 	// 异步加载器，异步读取tile纹理
 	NXTerrainStreamingAsyncLoader* m_asyncLoader;
