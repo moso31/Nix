@@ -85,17 +85,17 @@ void PS(PS_INPUT input, out DeferredRenderingResult output)
 	// convert depth to linear
 	float linearDepthZ = DepthZ01ToLinear(depth);
 	float3 ViewDirRawVS = GetViewDirVS_unNormalized(uv);
-	float3 PositionVS = ViewDirRawVS * linearDepthZ;
+    float3 PositionVS = ViewDirRawVS * linearDepthZ;
+    float4 posWS = mul(float4(PositionVS, 1.0f), m_viewInverse);
 
 	//float a = txRT3.Sample(ssLinearWrap, uv).z;
 	//return float4(a.xxx, 1.0f);
 	float4 rt1 = txRT1.Sample(ssLinearWrap, uv);
 	float3 N = rt1.xyz;
 	uint sssProfIndex = asuint(rt1.w);
-	float3 V = normalize(-PositionVS);
+	float3 V = normalize(camPosWS - posWS);
 	float NoV = max(dot(N, V), 0.0);
 	float3 R = reflect(-V, N);
-	R = mul(R, (float3x3)m_viewTranspose);
 
 	//return txCubeMap.Sample(ssLinearWrap, R);	// perfect reflection test
 
@@ -132,19 +132,19 @@ void PS(PS_INPUT input, out DeferredRenderingResult output)
 
 		for (i = 0; i < NUM_POINT_LIGHT; i++)
 		{
-			EvalRadiance_PointLight(m_pointLight[i], PositionVS, V, N, NoV, perceptualRoughness, metallic, albedo, F0, Ld, Ls);
+			EvalRadiance_PointLight(m_pointLight[i], posWS.xyz, V, N, NoV, perceptualRoughness, metallic, albedo, F0, Ld, Ls);
 			Lo_diff += Ld;
 			Lo_spec += Ls;
 		}
 
 		for (i = 0; i < NUM_SPOT_LIGHT; i++)
 		{
-			EvalRadiance_SpotLight(m_spotLight[i], PositionVS, V, N, NoV, perceptualRoughness, metallic, albedo, F0, Ld, Ls);
+			EvalRadiance_SpotLight(m_spotLight[i], posWS.xyz, V, N, NoV, perceptualRoughness, metallic, albedo, F0, Ld, Ls);
 			Lo_diff += Ld;
 			Lo_spec += Ls;
 		}
 
-		float3 NormalWS = mul(N, (float3x3)m_viewTranspose);
+		float3 NormalWS = N;
 		//float3 IndirectIrradiance = txIrradianceMap.Sample(ssLinearWrap, NormalWS).xyz;
 		float3 IndirectIrradiance = GetIndirectIrradiance(NormalWS);
 		float3 diffuseIBL = albedo * IndirectIrradiance;
@@ -188,19 +188,19 @@ void PS(PS_INPUT input, out DeferredRenderingResult output)
 
 		for (i = 0; i < NUM_POINT_LIGHT; i++)
 		{
-			EvalRadiance_PointLight_SubSurface(sssProfData[sssProfIndex], m_pointLight[i], PositionVS, V, N, NoV, perceptualRoughness, metallic, albedo, F0, Ld, Ls);
+			EvalRadiance_PointLight_SubSurface(sssProfData[sssProfIndex], m_pointLight[i], posWS.xyz, V, N, NoV, perceptualRoughness, metallic, albedo, F0, Ld, Ls);
 			Lo_diff += Ld;
 			Lo_spec += Ls;
 		}
 
 		for (i = 0; i < NUM_SPOT_LIGHT; i++)
 		{
-			EvalRadiance_SpotLight_SubSurface(sssProfData[sssProfIndex], m_spotLight[i], PositionVS, V, N, NoV, perceptualRoughness, metallic, albedo, F0, Ld, Ls);
+			EvalRadiance_SpotLight_SubSurface(sssProfData[sssProfIndex], m_spotLight[i], posWS.xyz, V, N, NoV, perceptualRoughness, metallic, albedo, F0, Ld, Ls);
 			Lo_diff += Ld;
 			Lo_spec += Ls;
 		}
 
-		float3 NormalWS = mul(N, (float3x3)m_viewTranspose);
+		float3 NormalWS = N;
 		//float3 IndirectIrradiance = txIrradianceMap.Sample(ssLinearWrap, NormalWS).xyz;
 		float3 IndirectIrradiance = GetIndirectIrradiance(NormalWS);
 		float3 diffuseIBL = albedo * IndirectIrradiance;

@@ -453,7 +453,7 @@ void NXGUITerrainMaterialGenerator::ComposeAlbedo2DArray()
 	{
 		paths.push_back(m_slices[i].albedoPath);
 	}
-	ComposeTexture2DArray(paths, std::filesystem::path(m_albedoArrayPath), true, true, "Albedo");
+	ComposeTexture2DArray(paths, std::filesystem::path(m_albedoArrayPath), true, true, true, "Albedo");
 }
 
 void NXGUITerrainMaterialGenerator::ComposeNormal2DArray()
@@ -463,7 +463,7 @@ void NXGUITerrainMaterialGenerator::ComposeNormal2DArray()
 	{
 		paths.push_back(m_slices[i].normalPath);
 	}
-	ComposeTexture2DArray(paths, std::filesystem::path(m_normalArrayPath), true, false, "Normal");
+	ComposeTexture2DArray(paths, std::filesystem::path(m_normalArrayPath), true, false, false, "Normal");
 }
 
 void NXGUITerrainMaterialGenerator::ComposeRoughness2DArray()
@@ -473,7 +473,7 @@ void NXGUITerrainMaterialGenerator::ComposeRoughness2DArray()
 	{
 		paths.push_back(m_slices[i].roughnessPath);
 	}
-	ComposeTexture2DArray(paths, std::filesystem::path(m_roughnessArrayPath), true, false, "Roughness");
+	ComposeTexture2DArray(paths, std::filesystem::path(m_roughnessArrayPath), true, false, false, "Roughness");
 }
 
 void NXGUITerrainMaterialGenerator::ComposeSpecular2DArray()
@@ -483,7 +483,7 @@ void NXGUITerrainMaterialGenerator::ComposeSpecular2DArray()
 	{
 		paths.push_back(m_slices[i].specularPath);
 	}
-	ComposeTexture2DArray(paths, std::filesystem::path(m_specularArrayPath), true, false, "Specular");
+	ComposeTexture2DArray(paths, std::filesystem::path(m_specularArrayPath), true, false, false, "Specular");
 }
 
 void NXGUITerrainMaterialGenerator::ComposeAO2DArray()
@@ -493,14 +493,15 @@ void NXGUITerrainMaterialGenerator::ComposeAO2DArray()
 	{
 		paths.push_back(m_slices[i].aoPath);
 	}
-	ComposeTexture2DArray(paths, std::filesystem::path(m_aoArrayPath), true, false, "AO");
+	ComposeTexture2DArray(paths, std::filesystem::path(m_aoArrayPath), true, false, false, "AO");
 }
 
 void NXGUITerrainMaterialGenerator::ComposeTexture2DArray(
 	const std::vector<std::string>& texturePaths,
 	const std::filesystem::path& outPath,
 	bool useBC7Compression,
-	bool useSRGB,
+    bool inputIsSRGB,
+	bool outputUseSRGB,
 	const char* textureName)
 {
 	if (texturePaths.empty())
@@ -578,7 +579,8 @@ void NXGUITerrainMaterialGenerator::ComposeTexture2DArray(
 		}
 		else
 		{
-			hr = LoadFromWICFile(wSrcPath.c_str(), WIC_FLAGS_NONE, nullptr, srcImage);
+			WIC_FLAGS wicFlags = inputIsSRGB ? WIC_FLAGS_NONE : WIC_FLAGS_IGNORE_SRGB;
+			hr = LoadFromWICFile(wSrcPath.c_str(), wicFlags, nullptr, srcImage);
 		}
 
 		if (FAILED(hr))
@@ -647,7 +649,7 @@ void NXGUITerrainMaterialGenerator::ComposeTexture2DArray(
 	std::unique_ptr<ScratchImage> finalImage;
 	if (useBC7Compression)
 	{
-		DXGI_FORMAT compressFormat = useSRGB ? DXGI_FORMAT_BC7_UNORM_SRGB : DXGI_FORMAT_BC7_UNORM;
+		DXGI_FORMAT compressFormat = outputUseSRGB ? DXGI_FORMAT_BC7_UNORM_SRGB : DXGI_FORMAT_BC7_UNORM;
 		finalImage = std::make_unique<ScratchImage>();
 		hr = Compress(texArrayWithMips->GetImages(), texArrayWithMips->GetImageCount(), texArrayWithMips->GetMetadata(),
 					  compressFormat, TEX_COMPRESS_BC7_QUICK | TEX_COMPRESS_PARALLEL, TEX_THRESHOLD_DEFAULT, *finalImage);
@@ -658,7 +660,7 @@ void NXGUITerrainMaterialGenerator::ComposeTexture2DArray(
 		}
 		else
 		{
-			printf("ComposeTexture2DArray: %s BC7压缩成功 (SRGB=%s)\n", textureName, useSRGB ? "true" : "false");
+			printf("ComposeTexture2DArray: %s BC7压缩成功 (SRGB=%s)\n", textureName, outputUseSRGB ? "true" : "false");
 		}
 	}
 	else

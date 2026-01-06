@@ -560,9 +560,9 @@ struct PS_INPUT
 	float4 posOS : POSITION0;
 	float4 posWS : POSITION1;
 	float4 posVS : POSITION2;
-	float3 normVS : NORMAL;
+	float3 normWS : NORMAL;
 	float2 tex : TEXCOORD;
-	float3 tangentVS : TANGENT;
+	float3 tangentWS : TANGENT;
 #if GPU_INSTANCING
 	nointerpolation uint instanceID : TEXCOORD1;
 #endif
@@ -598,10 +598,10 @@ void EncodeGBuffer(NXGBufferParams gBuffer, PS_INPUT input, out PS_OUTPUT Output
 
 	uint uShadingModel = asuint(m.shadingModel);
 	
-	float3 normalVS = TangentSpaceToViewSpace(gBuffer.normal, input.normVS, input.tangentVS);
+	float3 normalWS = TangentSpaceToWorldSpace(gBuffer.normal, input.normWS, input.tangentWS);
 	if (uShadingModel == 2) // burley SSS
 	{
-		Output.GBufferB = float4(normalVS, m.customData0.x);
+		Output.GBufferB = float4(normalWS, m.customData0.x);
 		Output.GBufferC = float4(gBuffer.albedo, 1.0f);
 		Output.GBufferD = float4(gBuffer.roughness, gBuffer.metallic, gBuffer.ao, (float)uShadingModel / 255.0f);
 	}
@@ -613,7 +613,7 @@ void EncodeGBuffer(NXGBufferParams gBuffer, PS_INPUT input, out PS_OUTPUT Output
 	}
 	else 
 	{
-		Output.GBufferB = float4(normalVS, 1.0f);
+		Output.GBufferB = float4(normalWS, 1.0f);
 		Output.GBufferC = float4(gBuffer.albedo, 1.0f);
 		Output.GBufferD = float4(gBuffer.roughness, gBuffer.metallic, gBuffer.ao, (float)uShadingModel / 255.0f);
 	}

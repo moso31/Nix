@@ -1,3 +1,4 @@
+#include "Common.fx"
 #include "Math.fx"
 #include "PBRLights.fx"
 
@@ -98,7 +99,8 @@ float4 PS(PS_INPUT input) : SV_Target
 
 	float3 irradiance = txIrradiance.Sample(ssLinearClamp, uv).xyz;
 	float4 rt1 = txNormal.Sample(ssLinearClamp, uv);
-	float3 normalVS = rt1.xyz;
+	float3 normalWS = rt1.xyz;
+	float3 normalVS = normalize(mul(normalWS, (float3x3)m_view));
 	float3 tangentVS, bitangentVS;
 	GetNTBMatrixVS(normalVS, tangentVS, bitangentVS);
 

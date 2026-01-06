@@ -28,9 +28,8 @@ void CalcBSDF(float NoV, float NoL, float NoH, float VoH, float roughness, float
 void EvalRadiance_DirLight(DistantLight dirLight, float3 V, float3 N, float NoV, float perceptualRoughness, float metallic, float3 albedo, float F0, out float3 Lo_diff, out float3 Lo_spec)
 {
 	float3 LightDirWS = normalize(-dirLight.direction);
-	float3 LightDirVS = normalize(mul(LightDirWS, (float3x3)m_viewInverseTranspose));
 
-	float3 L = LightDirVS;
+	float3 L = LightDirWS;
 	float3 H = normalize(V + L);
 	float NoL = max(dot(N, L), 0.0);
 	float NoH = max(dot(N, H), 0.0);
@@ -46,19 +45,19 @@ void EvalRadiance_DirLight(DistantLight dirLight, float3 V, float3 N, float NoV,
 	Lo_spec = f_spec * IncidentIlluminance;
 }
 
-void EvalRadiance_PointLight(PointLight pointLight, float3 CamPosVS, float3 V, float3 N, float NoV, float perceptualRoughness, float metallic, float3 albedo, float F0, out float3 Lo_diff, out float3 Lo_spec)
+void EvalRadiance_PointLight(PointLight pointLight, float3 PosWS, float3 V, float3 N, float NoV, float perceptualRoughness, float metallic, float3 albedo, float F0, out float3 Lo_diff, out float3 Lo_spec)
 {
-	float3 LightPosVS = mul(float4(pointLight.position, 1.0f), m_view).xyz;
+	float3 LightPosWS = pointLight.position;
 	float3 LightIntensity = pointLight.color * pointLight.intensity;
-	float3 LightDirVS = LightPosVS - CamPosVS;
+	float3 LightDirWS = LightPosWS - PosWS;
 
-	float3 L = normalize(LightDirVS);
+	float3 L = normalize(LightDirWS);
 	float3 H = normalize(V + L);
 	float NoL = max(dot(N, L), 0.0);
 	float NoH = max(dot(N, H), 0.0);
 	float VoH = max(dot(V, H), 0.0);
 
-	float d2 = dot(LightDirVS, LightDirVS);
+	float d2 = dot(LightDirWS, LightDirWS);
 	float3 LightIlluminance = LightIntensity / (NX_4PI * d2);
 	float3 IncidentIlluminance = LightIlluminance * NoL;
 
@@ -72,27 +71,26 @@ void EvalRadiance_PointLight(PointLight pointLight, float3 CamPosVS, float3 V, f
 	Lo_spec = f_spec * IncidentIlluminance * FalloffFactor;
 }
 
-void EvalRadiance_SpotLight(SpotLight spotLight, float3 CamPosVS, float3 V, float3 N, float NoV, float perceptualRoughness, float metallic, float3 albedo, float F0, out float3 Lo_diff, out float3 Lo_spec)
+void EvalRadiance_SpotLight(SpotLight spotLight, float3 PosWS, float3 V, float3 N, float NoV, float perceptualRoughness, float metallic, float3 albedo, float F0, out float3 Lo_diff, out float3 Lo_spec)
 {
-	float3 LightPosVS = mul(float4(spotLight.position, 1.0f), m_view).xyz;
+	float3 LightPosWS = spotLight.position;
 	float3 LightIntensity = spotLight.color * spotLight.intensity;
-	float3 LightDirVS = LightPosVS - CamPosVS;
+	float3 LightDirWS = LightPosWS - PosWS;
 
-	float3 L = normalize(LightDirVS);
+	float3 L = normalize(LightDirWS);
 	float3 H = normalize(V + L);
 	float NoL = max(dot(N, L), 0.0);
 	float NoH = max(dot(N, H), 0.0);
 	float VoH = max(dot(V, H), 0.0);
 
-	float d2 = dot(LightDirVS, LightDirVS);
+	float d2 = dot(LightDirWS, LightDirWS);
 	float3 LightIlluminance = LightIntensity / (NX_PI * d2);
 	float3 IncidentIlluminance = LightIlluminance * NoL;
 
 	float CosInner = cos(spotLight.innerAngle * NX_DEGTORED);
 	float CosOuter = cos(spotLight.outerAngle * NX_DEGTORED);
 	float3 SpotDirWS = normalize(spotLight.direction);
-	float3 SpotDirVS = normalize(mul(SpotDirWS, (float3x3)m_viewInverseTranspose));
-	float FalloffFactor = (dot(-SpotDirVS, L) - CosOuter) / max(CosInner - CosOuter, 1e-4f);
+	float FalloffFactor = (dot(-SpotDirWS, L) - CosOuter) / max(CosInner - CosOuter, 1e-4f);
 	FalloffFactor = saturate(FalloffFactor);
 	FalloffFactor = FalloffFactor * FalloffFactor;
 
@@ -109,9 +107,8 @@ void EvalRadiance_SpotLight(SpotLight spotLight, float3 CamPosVS, float3 V, floa
 void EvalRadiance_DirLight_SubSurface(CBufferDiffuseProfile sssProfile, DistantLight dirLight, float3 V, float3 N, float NoV, float perceptualRoughness, float metallic, float3 albedo, float F0, out float3 Lo_diff, out float3 Lo_spec)
 {
 	float3 LightDirWS = normalize(-dirLight.direction);
-	float3 LightDirVS = normalize(mul(LightDirWS, (float3x3)m_viewInverseTranspose));
 
-	float3 L = LightDirVS;
+	float3 L = LightDirWS;
 	float3 H = normalize(V + L);
 	float NoL = saturate(dot(N, L));
 	float NoH = saturate(dot(N, H));
@@ -137,19 +134,19 @@ void EvalRadiance_DirLight_SubSurface(CBufferDiffuseProfile sssProfile, DistantL
 	Lo_diff += Lo_transmit;
 }
 
-void EvalRadiance_PointLight_SubSurface(CBufferDiffuseProfile sssProfile, PointLight pointLight, float3 CamPosVS, float3 V, float3 N, float NoV, float perceptualRoughness, float metallic, float3 albedo, float F0, out float3 Lo_diff, out float3 Lo_spec)
+void EvalRadiance_PointLight_SubSurface(CBufferDiffuseProfile sssProfile, PointLight pointLight, float3 PosWS, float3 V, float3 N, float NoV, float perceptualRoughness, float metallic, float3 albedo, float F0, out float3 Lo_diff, out float3 Lo_spec)
 {
-	float3 LightPosVS = mul(float4(pointLight.position, 1.0f), m_view).xyz;
+	float3 LightPosWS = pointLight.position;
 	float3 LightIntensity = pointLight.color * pointLight.intensity;
-	float3 LightDirVS = LightPosVS - CamPosVS;
+	float3 LightDirWS = LightPosWS - PosWS;
 
-	float3 L = normalize(LightDirVS);
+	float3 L = normalize(LightDirWS);
 	float3 H = normalize(V + L);
 	float NoL = max(dot(N, L), 0.0);
 	float NoH = max(dot(N, H), 0.0);
 	float VoH = max(dot(V, H), 0.0);
 
-	float d2 = dot(LightDirVS, LightDirVS);
+	float d2 = dot(LightDirWS, LightDirWS);
 	float3 LightIlluminance = LightIntensity / (NX_4PI * d2);
 	float3 IncidentIlluminance = LightIlluminance * NoL;
 
@@ -173,19 +170,19 @@ void EvalRadiance_PointLight_SubSurface(CBufferDiffuseProfile sssProfile, PointL
 	Lo_diff += Lo_transmit;
 }
 
-void EvalRadiance_SpotLight_SubSurface(CBufferDiffuseProfile sssProfile, SpotLight spotLight, float3 CamPosVS, float3 V, float3 N, float NoV, float perceptualRoughness, float metallic, float3 albedo, float F0, out float3 Lo_diff, out float3 Lo_spec)
+void EvalRadiance_SpotLight_SubSurface(CBufferDiffuseProfile sssProfile, SpotLight spotLight, float3 PosWS, float3 V, float3 N, float NoV, float perceptualRoughness, float metallic, float3 albedo, float F0, out float3 Lo_diff, out float3 Lo_spec)
 {
-	float3 LightPosVS = mul(float4(spotLight.position, 1.0f), m_view).xyz;
+	float3 LightPosWS = spotLight.position;
 	float3 LightIntensity = spotLight.color * spotLight.intensity;
-	float3 LightDirVS = LightPosVS - CamPosVS;
+	float3 LightDirWS = LightPosWS - PosWS;
 
-	float3 L = normalize(LightDirVS);
+	float3 L = normalize(LightDirWS);
 	float3 H = normalize(V + L);
 	float NoL = max(dot(N, L), 0.0);
 	float NoH = max(dot(N, H), 0.0);
 	float VoH = max(dot(V, H), 0.0);
 
-	float d2 = dot(LightDirVS, LightDirVS);
+	float d2 = dot(LightDirWS, LightDirWS);
 	float3 LightIlluminance = LightIntensity / (NX_PI * d2);
 	float3 IncidentIlluminance = LightIlluminance * NoL;
 
@@ -195,8 +192,7 @@ void EvalRadiance_SpotLight_SubSurface(CBufferDiffuseProfile sssProfile, SpotLig
 	float CosInner = cos(spotLight.innerAngle * NX_DEGTORED);
 	float CosOuter = cos(spotLight.outerAngle * NX_DEGTORED);
 	float3 SpotDirWS = normalize(spotLight.direction);
-	float3 SpotDirVS = normalize(mul(SpotDirWS, (float3x3)m_viewInverseTranspose));
-	float FalloffFactor = (dot(-SpotDirVS, L) - CosOuter) / max(CosInner - CosOuter, 1e-4f);
+	float FalloffFactor = (dot(-SpotDirWS, L) - CosOuter) / max(CosInner - CosOuter, 1e-4f);
 	FalloffFactor = saturate(FalloffFactor);
 	FalloffFactor = FalloffFactor * FalloffFactor;
 

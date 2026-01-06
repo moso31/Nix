@@ -60,7 +60,8 @@ private:
 		const std::vector<std::string>& texturePaths,
 		const std::filesystem::path& outPath,
 		bool useBC7Compression,
-		bool useSRGB,
+    	bool inputIsSRGB, // 输入数据是否是SRGB编码的
+		bool outputUseSRGB,	// 输出纹理是否使用SRGB编码
 		const char* textureName);
 
 	// 检查字符串是否包含子串(不区分大小写)

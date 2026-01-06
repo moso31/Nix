@@ -171,6 +171,7 @@ struct ConstantBufferCamera
 	Vector4 Params0;
 	Vector4 Params1;
 	Vector4 Params2;
+	Vector4 camPosWS;
 	Matrix view;
 	Matrix viewInverse;
 	Matrix viewTranspose;

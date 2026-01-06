@@ -267,12 +267,12 @@ void NXScene::Init()
 		//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\TestBall.fbx", false);
 		//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\shadowMapTest.fbx", false);
 		//NXPrefab* p = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\EditorObjTest.fbx", false);
-		//NXPrefab* p2 = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\lury.fbx", false);
+		NXPrefab* p2 = NXResourceManager::GetInstance()->GetMeshManager()->CreateFBXPrefab("arnia", "D:\\NixAssets\\lury.fbx", false);
 
 		p->SetScale(Vector3(0.1f));
 		NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(p, m_pTestCustomMat);
-		//p2->SetScale(Vector3(0.1f));
-		//NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(p2, m_pTestCustomMat);
+		p2->SetScale(Vector3(0.1f));
+		NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(p2, m_pTestCustomMat);
 	}
 
 	std::vector<NXPrimitive*> pMeshes;
@@ -285,8 +285,8 @@ void NXScene::Init()
 	auto pCamera = NXResourceManager::GetInstance()->GetCameraManager()->CreateCamera(
 		"Main Camera",
 		70.0f, 0.3f, 10000.f,
-		Vector3(0.0f, 200.0f, -10.0f),
-		Vector3(0.0f, 200.0f, 0.0f),
+		Vector3(0.0f, 0.0f, -10.0f),
+		Vector3(0.0f, 0.0f, 0.0f),
 		Vector3(0.0f, 1.0f, 0.0f),
 		m_rtSize
 	);

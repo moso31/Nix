@@ -39,6 +39,8 @@ cbuffer ConstantBufferCamera : register(b1)
 
 	// proj._11, proj._22, invProj._11, invProj._22
 	float4 cameraParams2;
+	
+    float4 camPosWS;
 
 	matrix m_view;
 	matrix m_viewInverse;
