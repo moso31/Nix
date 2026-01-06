@@ -29,7 +29,7 @@ struct NXTextureSerializationData
     bool m_bInvertNormalY = false;
 
     // 是否生成mipmap
-    bool m_bGenerateMipMap = true;
+    bool m_bGenerateMipMap = false;
 
     // 是否是立方体贴图
     bool m_bCubeMap = false;
