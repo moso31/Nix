@@ -15,10 +15,12 @@ void NXTerrainLODStreamData::Init(NXTerrainLODStreamer* pStreamer)
 	// 纹理Atlas
 	m_pHeightMapAtlas = NXManager_Tex->CreateTexture2DArray("TerrainStreaming_HeightMapAtlas", DXGI_FORMAT_R16_UNORM, g_terrainStreamConfig.AtlasHeightMapSize, g_terrainStreamConfig.AtlasHeightMapSize, g_terrainStreamConfig.AtlasLayerCount, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 	m_pSplatMapAtlas = NXManager_Tex->CreateTexture2DArray("TerrainStreaming_SplatMapAtlas", DXGI_FORMAT_R8_UNORM, g_terrainStreamConfig.AtlasSplatMapSize, g_terrainStreamConfig.AtlasSplatMapSize, g_terrainStreamConfig.AtlasLayerCount, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+	m_pNormalMapAtlas = NXManager_Tex->CreateTexture2DArray("TerrainStreaming_NormalMapAtlas", DXGI_FORMAT_R8G8B8A8_UNORM, g_terrainStreamConfig.AtlasNormalMapSize, g_terrainStreamConfig.AtlasNormalMapSize, g_terrainStreamConfig.AtlasLayerCount, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 
 	// 每帧待合并到Atlas的纹理列表
 	m_pToAtlasHeights.resize(g_terrainStreamConfig.MaxComputeLimit);
 	m_pToAtlasSplats.resize(g_terrainStreamConfig.MaxComputeLimit);
+	m_pToAtlasNormals.resize(g_terrainStreamConfig.MaxComputeLimit);
 
 	// 记录各sector的nodeID
 	uint32_t mips = g_terrainStreamConfig.LODSize; // 6
@@ -117,6 +119,7 @@ void NXTerrainLODStreamData::UpdateGBufferPatcherData(ID3D12GraphicsCommandList*
 	NXShVisDescHeap->PushFluid(m_patcherBuffer.IsValid() ? m_patcherBuffer->GetSRV() : NXAllocator_NULL->GetNullSRV());
 	NXShVisDescHeap->PushFluid(m_pHeightMapAtlas.IsValid() ? m_pHeightMapAtlas->GetSRV() : NXAllocator_NULL->GetNullSRV());
 	NXShVisDescHeap->PushFluid(m_pSplatMapAtlas.IsValid() ? m_pSplatMapAtlas->GetSRV() : NXAllocator_NULL->GetNullSRV());
+	NXShVisDescHeap->PushFluid(m_pNormalMapAtlas.IsValid() ? m_pNormalMapAtlas->GetSRV() : NXAllocator_NULL->GetNullSRV());
 	auto& srvHandle = NXShVisDescHeap->Submit();
 	pCmdList->SetGraphicsRootDescriptorTable(4, srvHandle); // 使用4号根参数 具体见NXCustomMaterial::CompileShader()
 }

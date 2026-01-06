@@ -24,6 +24,20 @@ void NXPassMaterialManager::InitDefaultRenderer()
 		AddMaterial(pMat, true);
 	}
 
+	// Terrain Atlas Baker(normal, float4)
+	{
+		auto pMat = new NXComputePassMaterial("TerrainAtlasBaker:Float4", L"Shader\\TerrainAtlasBaker.fx");
+		pMat->SetEntryNameCS(L"CS_Float4");
+		pMat->RegisterCBVSpaceNum(1);
+		pMat->RegisterCBVSlotNum(1);
+		pMat->RegisterUAVSpaceNum(1);
+		pMat->RegisterUAVSlotNum(2);
+		pMat->RegisterSRVSpaceNum(1);
+		pMat->RegisterSRVSlotNum(4);
+		pMat->FinalizeLayout();
+		AddMaterial(pMat, true);
+	}
+
 	// Terrain Sector2Node Tint
 	{
 		auto pMat = new NXComputePassMaterial("TerrainSector2NodeTint", L"Shader\\TerrainSector2NodeTint.fx");

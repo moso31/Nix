@@ -285,15 +285,15 @@ void NXScene::Init()
 	auto pCamera = NXResourceManager::GetInstance()->GetCameraManager()->CreateCamera(
 		"Main Camera",
 		70.0f, 0.3f, 10000.f,
-		Vector3(0.0f, 0.0f, -10.0f),
-		Vector3(0.0f, 0.0f, 0.0f),
+		Vector3(0.0f, 200.0f, -10.0f),
+		Vector3(0.0f, 200.0f, 0.0f),
 		Vector3(0.0f, 1.0f, 0.0f),
 		m_rtSize
 	);
 
 	//NXCubeMap* pSky = NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\Alexs_Apt_2k.hdr");	
 	NXCubeMap* pSky = NXResourceManager::GetInstance()->GetLightManager()->CreateCubeMap("Sky", L"D:\\NixAssets\\HDR\\rural_asphalt_road_1k.hdr");
-	pSky->SetIntensity(0.0f);
+	pSky->SetIntensity(1.0f);
 
 	InitBoundingStructures();
 

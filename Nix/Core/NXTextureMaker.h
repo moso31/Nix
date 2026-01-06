@@ -9,6 +9,7 @@ struct PerTerrainBakeData
 	NXTerrainNodeId nodeId; // 地形节点ID
 	std::filesystem::path pathHeightMap; // 高度图路径
 	std::filesystem::path pathSplatMap; // SplatMap路径
+	std::filesystem::path pathNormalMap; // NormalMap路径
 };
 
 struct TerrainTexLODBakeConfig
@@ -17,6 +18,7 @@ struct TerrainTexLODBakeConfig
 	bool bForceGenerate = false; // 是否强制生成（忽略已存在的文件）
 	bool bGenerateHeightMap = true; // 是否生成HeightMap
 	bool bGenerateSplatMap = true; // 是否生成SplatMap
+	bool bGenerateNormalMap = true; // 是否生成NormalMap
 };
 
 class NXTextureMaker
@@ -37,6 +39,9 @@ public:
 
 	// 读地形原始R8 dds splatmap 材质ID图数据
 	static void ReadTerrainDDSR8Unorm(const std::filesystem::path& path, std::vector<uint8_t>& out);
+
+	// 读地形DDS R8G8B8A8_UNORM法线图数据
+	static void ReadTerrainDDSRGBA8Unorm(const std::filesystem::path& path, std::vector<uint32_t>& out);
 
 	// 确保目录存在，若不存在则创建
 	static void EnsureDir(const std::filesystem::path& dir);
@@ -64,6 +69,7 @@ private:
 	// 生成地形流式加载LOD纹理集-子函数
 	static void GenerateTerrainStreamingLODMaps_HeightMap(const TerrainTexLODBakeConfig& bakeConfig);
 	static void GenerateTerrainStreamingLODMaps_SplatMap(const TerrainTexLODBakeConfig& bakeConfig);
+	static void GenerateTerrainStreamingLODMaps_NormalMap(const TerrainTexLODBakeConfig& bakeConfig);
 
 	// 保存地形Tile DDS纹理
 	// src：源数据指针（整个高度图数据）
@@ -72,5 +78,6 @@ private:
 	// tileSize：拷贝多大尺寸
 	static void SaveTerrainTileHeightMap(const std::filesystem::path& outPath, const uint16_t* src, uint32_t srcW, uint32_t srcH, uint32_t startX, uint32_t startY, uint32_t tileSize);
 	static void SaveTerrainTileSplatMap(const std::filesystem::path& outPath, const uint8_t* src, uint32_t srcW, uint32_t srcH, uint32_t startX, uint32_t startY, uint32_t tileSize);
+	static void SaveTerrainTileNormalMap(const std::filesystem::path& outPath, const uint32_t* src, uint32_t srcW, uint32_t srcH, uint32_t startX, uint32_t startY, uint32_t tileSize);
 };
 

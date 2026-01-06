@@ -27,6 +27,7 @@ struct TerrainStreamingLoadRequest
 	// 每个任务包负责加载的对应子纹理集
 	StringDatas heightMap;
 	StringDatas splatMap;
+	StringDatas normalMap;
 
 	// 是否替换nodeDescArray中的旧data
 	// 旧data只需记录位置和size，能擦除就行
@@ -45,6 +46,7 @@ struct NXTerrainStreamingLoadTextureResult
 	uint32_t nodeDescArrayIndex;
 	Ntr<NXTexture2D> pHeightMap;
 	Ntr<NXTexture2D> pSplatMap;
+	Ntr<NXTexture2D> pNormalMap;
 	Int2 replacePositionWS;
 	int replaceSize;
 };

@@ -77,10 +77,13 @@ public:
 
 	const Ntr<NXTexture2DArray>& GetHeightMapAtlas() const { return m_pHeightMapAtlas; }
 	const Ntr<NXTexture2DArray>& GetSplatMapAtlas() const { return m_pSplatMapAtlas; }
+	const Ntr<NXTexture2DArray>& GetNormalMapAtlas() const { return m_pNormalMapAtlas; }
 	const std::vector<Ntr<NXTexture2D>>& GetToAtlasHeightTextures() const { return m_pToAtlasHeights; }
 	const std::vector<Ntr<NXTexture2D>>& GetToAtlasSplatTextures() const { return m_pToAtlasSplats; }
+	const std::vector<Ntr<NXTexture2D>>& GetToAtlasNormalTextures() const { return m_pToAtlasNormals; }
 	void SetToAtlasHeightTexture(uint32_t index, const Ntr<NXTexture2D>& pTexture) { m_pToAtlasHeights[index] = pTexture; }
 	void SetToAtlasSplatTexture(uint32_t index, const Ntr<NXTexture2D>& pTexture) { m_pToAtlasSplats[index] = pTexture; }
+	void SetToAtlasNormalTexture(uint32_t index, const Ntr<NXTexture2D>& pTexture) { m_pToAtlasNormals[index] = pTexture; }
 	const Ntr<NXTexture2D>& GetSector2NodeIDTexture() const { return m_pSector2NodeIDTexture; }
 
 	bool NeedClearSector2NodeIDTexture() const { return m_bNeedClearSector2NodeIDTexture; }
@@ -111,10 +114,12 @@ private:
 	// 纹理Atlas
 	Ntr<NXTexture2DArray> m_pHeightMapAtlas;
 	Ntr<NXTexture2DArray> m_pSplatMapAtlas;
+	Ntr<NXTexture2DArray> m_pNormalMapAtlas;
 
 	// 每帧待合并到Atlas的纹理列表
 	std::vector<Ntr<NXTexture2D>> m_pToAtlasHeights;
 	std::vector<Ntr<NXTexture2D>> m_pToAtlasSplats;
+	std::vector<Ntr<NXTexture2D>> m_pToAtlasNormals;
 
 	// 记录各sector的nodeID
 	Ntr<NXTexture2D> m_pSector2NodeIDTexture;

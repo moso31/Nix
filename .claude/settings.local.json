@@ -1,8 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(msbuild:*)"
+      "Bash(msbuild:*)",
+      "Bash(dir:*)"
     ]
   }
-  
 }

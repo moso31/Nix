@@ -11,6 +11,8 @@ void NXTerrainStreamingAsyncLoader::AddTask(const TerrainStreamingLoadRequest& t
 void NXTerrainStreamingAsyncLoader::Update()
 {
 	std::lock_guard<std::mutex> lock(m_tasksMutex);
+
+	printf("req: %d tasks\n", m_requestTasks.size());
 	
 	// 1. 请求队列->loading队列
 	auto it = m_requestTasks.begin();
@@ -27,6 +29,7 @@ void NXTerrainStreamingAsyncLoader::Update()
 		nextTask.minMaxZ = it->minMaxZ;
 		nextTask.pHeightMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(it->heightMap.name, it->heightMap.path);
 		nextTask.pSplatMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(it->splatMap.name, it->splatMap.path);
+		nextTask.pNormalMap = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(it->normalMap.name, it->normalMap.path);
 		nextTask.replacePositionWS = it->replacePositionWS;
 		nextTask.replaceSize = it->replaceSize;
 
@@ -41,7 +44,9 @@ void NXTerrainStreamingAsyncLoader::Update()
 		if (m_computeTasks.size() >= g_terrainStreamConfig.MaxComputeLimit)
 			break;
 
-		if (it->pHeightMap.IsValid() && it->pHeightMap->IsLoadReady() && it->pSplatMap.IsValid() && it->pSplatMap->IsLoadReady())
+		if (it->pHeightMap.IsValid() && it->pHeightMap->IsLoadReady() && 
+			it->pSplatMap.IsValid() && it->pSplatMap->IsLoadReady() && 
+			it->pNormalMap.IsValid() && it->pNormalMap->IsLoadReady())
 		{
 			m_computeTasks.push_back(std::move(*it));
 			it = m_loadingTasks.erase(it);

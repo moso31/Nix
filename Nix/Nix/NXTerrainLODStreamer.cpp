@@ -205,6 +205,9 @@ void NXTerrainLODStreamer::Update()
         task.splatMap.path = m_terrainWorkingDir / strTerrId / "sub" / "splat" / (strTerrSubID + ".dds");
         task.splatMap.name = "Terrain_SplatMap_" + strTerrId + "_tile_" + strTerrSubID;
 
+        task.normalMap.path = m_terrainWorkingDir / strTerrId / "sub" / "normal" / (strTerrSubID + ".dds");
+        task.normalMap.name = "Terrain_NormalMap_" + strTerrId + "_tile_" + strTerrSubID;
+
         m_asyncLoader->AddTask(task);
         //printf("%d %s\n", task.nodeDescArrayIndex, task.splatMap.path.string().c_str());
     }
@@ -241,6 +244,7 @@ void NXTerrainLODStreamer::ProcessCompletedStreamingTask()
 
         m_streamData.SetToAtlasHeightTexture(i, task.pHeightMap);
         m_streamData.SetToAtlasSplatTexture(i, task.pSplatMap);
+        m_streamData.SetToAtlasNormalTexture(i, task.pNormalMap);
     }
 
     m_streamData.UpdateCBNodeDescArray();

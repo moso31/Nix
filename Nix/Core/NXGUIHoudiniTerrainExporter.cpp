@@ -79,6 +79,7 @@ void NXGUIHoudiniTerrainExporter::RenderColumn1_HoudiniFiles()
 	// 显示纹理数量
 	ImGui::Text(ImUtf8("Height纹理: %d 个"), (int)m_heightExrFiles.size());
 	ImGui::Text(ImUtf8("Splat纹理: %d 个"), (int)m_splatExrFiles.size());
+	ImGui::Text(ImUtf8("Normal纹理: %d 个"), (int)m_normalExrFiles.size());
 
 	ImGui::Spacing();
 	ImGui::Separator();
@@ -134,6 +135,33 @@ void NXGUIHoudiniTerrainExporter::RenderColumn1_HoudiniFiles()
 	{
 		ImGui::TextDisabled(ImUtf8("(无文件)"));
 	}
+
+	ImGui::Spacing();
+
+	// Normal文件下拉菜单
+	ImGui::Text(ImUtf8("Normal文件列表:"));
+	if (!m_normalExrFiles.empty())
+	{
+		ImGui::SetNextItemWidth(-1);
+		if (ImGui::BeginCombo("##NormalFiles", m_normalExrFiles[m_selectedNormalExrIndex].fileName.c_str()))
+		{
+			for (int i = 0; i < (int)m_normalExrFiles.size(); i++)
+			{
+				bool isSelected = (m_selectedNormalExrIndex == i);
+				if (ImGui::Selectable(m_normalExrFiles[i].fileName.c_str(), isSelected))
+				{
+					m_selectedNormalExrIndex = i;
+				}
+				if (isSelected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
+	}
+	else
+	{
+		ImGui::TextDisabled(ImUtf8("(无文件)"));
+	}
 }
 
 void NXGUIHoudiniTerrainExporter::RenderColumn2_ConvertToDDS()
@@ -154,6 +182,7 @@ void NXGUIHoudiniTerrainExporter::RenderColumn2_ConvertToDDS()
 	ImGui::SetNextItemWidth(120);
 	ImGui::InputInt2(ImUtf8("高度范围"), m_heightMapRange);
 	ImGui::Checkbox(ImUtf8("转换 SplatMap"), &m_bConvertSplatMap);
+	ImGui::Checkbox(ImUtf8("转换 NormalMap"), &m_bConvertNormalMap);
 
 	ImGui::Spacing();
 
@@ -208,6 +237,7 @@ void NXGUIHoudiniTerrainExporter::RenderColumn2_ConvertToDDS()
 			const auto& dds = m_nixDdsFiles[m_selectedDdsIndex];
 			ImGui::TextWrapped(ImUtf8("HeightMap: %s"), dds.heightMapPath.string().c_str());
 			ImGui::TextWrapped(ImUtf8("SplatMap: %s"), dds.splatMapPath.string().c_str());
+			ImGui::TextWrapped(ImUtf8("NormalMap: %s"), dds.normalMapPath.string().c_str());
 		}
 	}
 	else
@@ -236,6 +266,7 @@ void NXGUIHoudiniTerrainExporter::RenderColumn3_BakeSubTiles()
 	ImGui::Text(ImUtf8("烘焙选项:"));
 	ImGui::Checkbox(ImUtf8("烘焙 HeightMap 子区域"), &m_bBakeHeightMapSubTiles);
 	ImGui::Checkbox(ImUtf8("烘焙 SplatMap 子区域"), &m_bBakeSplatMapSubTiles);
+	ImGui::Checkbox(ImUtf8("烘焙 NormalMap 子区域"), &m_bBakeNormalMapSubTiles);
 
 	ImGui::Spacing();
 
@@ -255,7 +286,7 @@ void NXGUIHoudiniTerrainExporter::RenderColumn3_BakeSubTiles()
 	ImGui::Separator();
 
 	// 检查是否有DDS文件可供烘焙
-	bool canBake = !m_nixDdsFiles.empty() && (m_bBakeHeightMapSubTiles || m_bBakeSplatMapSubTiles);
+	bool canBake = !m_nixDdsFiles.empty() && (m_bBakeHeightMapSubTiles || m_bBakeSplatMapSubTiles || m_bBakeNormalMapSubTiles);
 	if (!canBake)
 		ImGui::BeginDisabled();
 
@@ -265,6 +296,7 @@ void NXGUIHoudiniTerrainExporter::RenderColumn3_BakeSubTiles()
 		bakeConfig.bForceGenerate = m_bForceGenerateSubTiles;
 		bakeConfig.bGenerateHeightMap = m_bBakeHeightMapSubTiles;
 		bakeConfig.bGenerateSplatMap = m_bBakeSplatMapSubTiles;
+		bakeConfig.bGenerateNormalMap = m_bBakeNormalMapSubTiles;
 
 		// 遍历所有DDS文件，构建烘焙数据
 		for (const auto& ddsInfo : m_nixDdsFiles)
@@ -279,6 +311,7 @@ void NXGUIHoudiniTerrainExporter::RenderColumn3_BakeSubTiles()
 
 			perTerrainBakeData.pathHeightMap = terrainDir / "hmap.dds";
 			perTerrainBakeData.pathSplatMap = terrainDir / "splatmap.dds";
+			perTerrainBakeData.pathNormalMap = terrainDir / "nmap.dds";
 
 			bakeConfig.bakeTerrains.push_back(perTerrainBakeData);
 		}
@@ -321,6 +354,13 @@ void NXGUIHoudiniTerrainExporter::RenderColumn4_Compose2DArray()
 	ImGui::InputText("##SplatArrayPath", m_splatArrayPath, sizeof(m_splatArrayPath));
 
 	ImGui::Spacing();
+
+	// NormalMap 2DArray路径
+	ImGui::Checkbox(ImUtf8("合成 NormalMap 2DArray"), &m_bComposeNormalArray);
+	ImGui::SetNextItemWidth(-1);
+	ImGui::InputText("##NormalArrayPath", m_normalArrayPath, sizeof(m_normalArrayPath));
+
+	ImGui::Spacing();
 	ImGui::Separator();
 
 	// 排序设置
@@ -350,6 +390,8 @@ void NXGUIHoudiniTerrainExporter::RenderColumn4_Compose2DArray()
 			ComposeMinMaxZ2DArray();
 		if (m_bComposeSplatArray)
 			ComposeSplatMap2DArray();
+		if (m_bComposeNormalArray)
+			ComposeNormalMap2DArray();
 	}
 
 	if (!canCompose)
@@ -386,8 +428,10 @@ void NXGUIHoudiniTerrainExporter::ScanHoudiniExrFiles()
 {
 	m_heightExrFiles.clear();
 	m_splatExrFiles.clear();
+	m_normalExrFiles.clear();
 	m_selectedHeightExrIndex = 0;
 	m_selectedSplatExrIndex = 0;
+	m_selectedNormalExrIndex = 0;
 
 	std::filesystem::path basePath(m_houdiniBasePath);
 
@@ -421,6 +465,23 @@ void NXGUIHoudiniTerrainExporter::ScanHoudiniExrFiles()
 				info.fileName = entry.path().filename().string();
 				ParseTileCoord(info.fileName, info.tileX, info.tileY);
 				m_splatExrFiles.push_back(info);
+			}
+		}
+	}
+
+	// 扫描normal文件夹
+	std::filesystem::path normalDir = basePath / "normal";
+	if (std::filesystem::exists(normalDir) && std::filesystem::is_directory(normalDir))
+	{
+		for (const auto& entry : std::filesystem::directory_iterator(normalDir))
+		{
+			if (entry.is_regular_file() && entry.path().extension() == ".exr")
+			{
+				HoudiniExrFileInfo info;
+				info.fullPath = entry.path();
+				info.fileName = entry.path().filename().string();
+				ParseTileCoord(info.fileName, info.tileX, info.tileY);
+				m_normalExrFiles.push_back(info);
 			}
 		}
 	}
@@ -464,9 +525,10 @@ void NXGUIHoudiniTerrainExporter::ScanNixDdsFiles()
 		info.tileY = y;
 		info.heightMapPath = entry.path() / "hmap.dds";
 		info.splatMapPath = entry.path() / "splatmap.dds";
+		info.normalMapPath = entry.path() / "nmap.dds";
 
 		// 检查文件是否存在
-		if (std::filesystem::exists(info.heightMapPath) || std::filesystem::exists(info.splatMapPath))
+		if (std::filesystem::exists(info.heightMapPath) || std::filesystem::exists(info.splatMapPath) || std::filesystem::exists(info.normalMapPath))
 		{
 			m_nixDdsFiles.push_back(info);
 
@@ -621,6 +683,86 @@ void NXGUIHoudiniTerrainExporter::ConvertExrToSplatMapDDS(const HoudiniExrFileIn
 	}
 }
 
+void NXGUIHoudiniTerrainExporter::ConvertExrToNormalMapDDS(const HoudiniExrFileInfo& exrInfo, const std::filesystem::path& outPath)
+{
+	// 使用tinyexr读取EXR文件 (32位浮点RGBA)
+	float* exrData = nullptr;
+	int width, height;
+	const char* err = nullptr;
+	
+	int ret = LoadEXR(&exrData, &width, &height, exrInfo.fullPath.string().c_str(), &err);
+	if (ret != TINYEXR_SUCCESS) 
+	{
+		if (err) 
+		{
+			printf("EXR加载失败: %s\n", err);
+			FreeEXRErrorMessage(err);
+		}
+		return;
+	}
+
+	// 先创建R8G8B8A8_UNORM纹理作为中间格式
+	ScratchImage imgUncompressed;
+	HRESULT hr = imgUncompressed.Initialize2D(DXGI_FORMAT_R8G8B8A8_UNORM, width, height, 1, 1);
+	if (FAILED(hr))
+	{
+		printf("ConvertExrToNormalMapDDS: Initialize2D 失败\n");
+		free(exrData);
+		return;
+	}
+	
+	const Image* dst = imgUncompressed.GetImage(0, 0, 0);
+	
+	// EXR是RGBA格式，stride=4
+	// 法线值已经在0-1范围内，直接使用
+	for (int y = 0; y < height; ++y) 
+	{
+		uint8_t* dstRow = dst->pixels + y * dst->rowPitch;
+		for (int x = 0; x < width; ++x) 
+		{
+			int srcIdx = (y * width + x) * 4; // RGBA
+			float nx = exrData[srcIdx];     // R通道
+			float ny = exrData[srcIdx + 1]; // G通道
+			float nz = exrData[srcIdx + 2]; // B通道
+			
+			// 直接clamp到0-1并转换
+			int dstIdx = x * 4;
+			dstRow[dstIdx]     = static_cast<uint8_t>(std::clamp(nx, 0.0f, 1.0f) * 255.0f);
+			dstRow[dstIdx + 1] = static_cast<uint8_t>(std::clamp(ny, 0.0f, 1.0f) * 255.0f);
+			dstRow[dstIdx + 2] = static_cast<uint8_t>(std::clamp(nz, 0.0f, 1.0f) * 255.0f);
+			dstRow[dstIdx + 3] = 255; // Alpha通道设为1
+		}
+	}
+	
+	free(exrData);
+	
+	// 压缩为BC3格式
+	ScratchImage imgCompressed;
+	hr = Compress(imgUncompressed.GetImages(), imgUncompressed.GetImageCount(), imgUncompressed.GetMetadata(),
+				  DXGI_FORMAT_BC3_UNORM, TEX_COMPRESS_DEFAULT, TEX_THRESHOLD_DEFAULT, imgCompressed);
+	if (FAILED(hr))
+	{
+		printf("ConvertExrToNormalMapDDS: BC3压缩失败\n");
+		return;
+	}
+	
+	// 确保目录存在
+	std::filesystem::create_directories(outPath.parent_path());
+	
+	// 保存DDS
+	hr = SaveToDDSFile(imgCompressed.GetImages(), imgCompressed.GetImageCount(), imgCompressed.GetMetadata(), 
+				  DDS_FLAGS_NONE, outPath.wstring().c_str());
+	if (FAILED(hr))
+	{
+		printf("ConvertExrToNormalMapDDS: 保存DDS失败 %s\n", outPath.string().c_str());
+	}
+	else
+	{
+		printf("ConvertExrToNormalMapDDS: %s -> %s 成功\n", 
+			   exrInfo.fullPath.string().c_str(), outPath.string().c_str());
+	}
+}
+
 void NXGUIHoudiniTerrainExporter::ExecuteConvertAll()
 {
 	std::filesystem::path outputBase(m_nixOutputPath);
@@ -650,6 +792,20 @@ void NXGUIHoudiniTerrainExporter::ExecuteConvertAll()
 			
 			std::filesystem::create_directories(outDir);
 			ConvertExrToSplatMapDDS(exr, outPath);
+		}
+	}
+
+	// 转换NormalMap
+	if (m_bConvertNormalMap)
+	{
+		for (const auto& exr : m_normalExrFiles)
+		{
+			std::string terrainId = std::to_string(exr.tileX) + "_" + std::to_string(exr.tileY);
+			std::filesystem::path outDir = outputBase / terrainId;
+			std::filesystem::path outPath = outDir / "nmap.dds";
+			
+			std::filesystem::create_directories(outDir);
+			ConvertExrToNormalMapDDS(exr, outPath);
 		}
 	}
 
@@ -987,6 +1143,123 @@ void NXGUIHoudiniTerrainExporter::ComposeSplatMap2DArray()
 	else
 	{
 		printf("ComposeSplatMap2DArray: 保存成功 %s\n", outPath.string().c_str());
+	}
+}
+
+void NXGUIHoudiniTerrainExporter::ComposeNormalMap2DArray()
+{
+	if (m_nixDdsFiles.empty())
+		return;
+
+	auto sortedIndices = GetSortedSliceIndices();
+	uint32_t arraySize = static_cast<uint32_t>(sortedIndices.size());
+
+	// 假设所有normalmap尺寸相同
+	constexpr uint32_t kWidth = 2049;
+	constexpr uint32_t kHeight = 2049;
+
+	// 先创建未压缩的R8G8B8A8纹理数组
+	std::unique_ptr<ScratchImage> texArrayUncompressed = std::make_unique<ScratchImage>();
+	HRESULT hr = texArrayUncompressed->Initialize2D(DXGI_FORMAT_R8G8B8A8_UNORM, kWidth, kHeight, arraySize, 1);
+	if (FAILED(hr))
+	{
+		printf("ComposeNormalMap2DArray: Initialize2D 失败\n");
+		return;
+	}
+
+	for (uint32_t sliceIdx = 0; sliceIdx < arraySize; ++sliceIdx)
+	{
+		int fileIdx = sortedIndices[sliceIdx];
+		if (fileIdx < 0 || fileIdx >= (int)m_nixDdsFiles.size())
+			continue;
+
+		const auto& ddsInfo = m_nixDdsFiles[fileIdx];
+		
+		// 读取单个DDS文件（可能是BC3压缩的）
+		TexMetadata meta;
+		ScratchImage srcImg;
+		hr = LoadFromDDSFile(ddsInfo.normalMapPath.wstring().c_str(), DDS_FLAGS_NONE, &meta, srcImg);
+		
+		if (SUCCEEDED(hr))
+		{
+			// 如果是压缩格式，先解压
+			ScratchImage decompressedImg;
+			const ScratchImage* pSrcImg = &srcImg;
+			if (IsCompressed(meta.format))
+			{
+				hr = Decompress(srcImg.GetImages(), srcImg.GetImageCount(), srcImg.GetMetadata(),
+								DXGI_FORMAT_R8G8B8A8_UNORM, decompressedImg);
+				if (SUCCEEDED(hr))
+				{
+					pSrcImg = &decompressedImg;
+					meta = decompressedImg.GetMetadata();
+				}
+			}
+
+			const Image* src = pSrcImg->GetImage(0, 0, 0);
+			const Image* dst = texArrayUncompressed->GetImage(0, sliceIdx, 0);
+			
+			if (src && dst && meta.width == kWidth && meta.height == kHeight)
+			{
+				// 逐行复制
+				for (uint32_t y = 0; y < kHeight; ++y)
+				{
+					const uint8_t* srcRow = src->pixels + y * src->rowPitch;
+					uint8_t* dstRow = dst->pixels + y * dst->rowPitch;
+					std::memcpy(dstRow, srcRow, kWidth * 4);
+				}
+			}
+			else
+			{
+				printf("ComposeNormalMap2DArray: 尺寸不匹配 %s\n", ddsInfo.normalMapPath.string().c_str());
+			}
+		}
+		else
+		{
+			printf("ComposeNormalMap2DArray: 加载失败 %s\n", ddsInfo.normalMapPath.string().c_str());
+			// 填充默认法线值 (0.5, 0.5, 1.0, 1.0) 即朝上的法线
+			const Image* dst = texArrayUncompressed->GetImage(0, sliceIdx, 0);
+			if (dst)
+			{
+				for (uint32_t y = 0; y < kHeight; ++y)
+				{
+					uint8_t* dstRow = dst->pixels + y * dst->rowPitch;
+					for (uint32_t x = 0; x < kWidth; ++x)
+					{
+						int idx = x * 4;
+						dstRow[idx]     = 128; // R: nx = 0.5
+						dstRow[idx + 1] = 128; // G: ny = 0.5
+						dstRow[idx + 2] = 255; // B: nz = 1 (朝上)
+						dstRow[idx + 3] = 255; // A: 1
+					}
+				}
+			}
+		}
+	}
+
+	// 压缩为BC3格式
+	std::unique_ptr<ScratchImage> texArrayCompressed = std::make_unique<ScratchImage>();
+	hr = Compress(texArrayUncompressed->GetImages(), texArrayUncompressed->GetImageCount(), texArrayUncompressed->GetMetadata(),
+				  DXGI_FORMAT_BC3_UNORM, TEX_COMPRESS_DEFAULT, TEX_THRESHOLD_DEFAULT, *texArrayCompressed);
+	if (FAILED(hr))
+	{
+		printf("ComposeNormalMap2DArray: BC3压缩失败\n");
+		return;
+	}
+
+	// 保存2DArray
+	std::filesystem::path outPath(m_normalArrayPath);
+	std::filesystem::create_directories(outPath.parent_path());
+	
+	hr = SaveToDDSFile(texArrayCompressed->GetImages(), texArrayCompressed->GetImageCount(), 
+					   texArrayCompressed->GetMetadata(), DDS_FLAGS_NONE, outPath.wstring().c_str());
+	if (FAILED(hr))
+	{
+		printf("ComposeNormalMap2DArray: 保存失败 %s\n", outPath.string().c_str());
+	}
+	else
+	{
+		printf("ComposeNormalMap2DArray: 保存成功 %s\n", outPath.string().c_str());
 	}
 }
 

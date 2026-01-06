@@ -211,6 +211,30 @@ void Renderer::GenerateRenderGraph()
 					pCmdList->Dispatch(threadGroups, threadGroups, groupNum);
 				});
 
+			m_pRenderGraph->AddPass<TerrainAtlasBaker>("Terrain Atlas Baker: Normal",
+				[&, groupNum](NXRGBuilder& builder, TerrainAtlasBaker& data) {
+					data.pIn.resize(groupNum);
+					for (int i = 0; i < groupNum; i++)
+					{
+						data.pIn[i] = builder.Read(m_pRenderGraph->Import(pStreamingData.GetToAtlasNormalTextures()[i]));
+					}
+					data.pOutAtlas = builder.Write(m_pRenderGraph->Import(pStreamingData.GetNormalMapAtlas()));
+				},
+				[&, groupNum](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, TerrainAtlasBaker& data) {
+					auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("TerrainAtlasBaker:Float4"));
+					for (int i = 0; i < groupNum; i++)
+					{
+						pMat->SetInput(0, i, resMap.GetRes(data.pIn[i]));
+					}
+					pMat->SetOutput(0, 1, resMap.GetRes(data.pOutAtlas)); // TerrainAtlasBaker:Float4 用u1 而不是u0
+					pMat->SetConstantBuffer(0, 0, &pStreamingData.GetNodeDescUpdateIndices());
+
+					uint32_t threadGroups = (g_terrainStreamConfig.AtlasNormalMapSize + 7) / 8;
+					pMat->RenderSetTargetAndState(pCmdList);
+					pMat->RenderBefore(pCmdList);
+					pCmdList->Dispatch(threadGroups, threadGroups, groupNum);
+				});
+
 			struct TerrainSector2NodeTint
 			{
 				NXRGHandle Sector2NodeTex;
