@@ -59,9 +59,14 @@ void NXTerrainLODStreamer::Update()
     // 统计本帧需要加载的nodeId
     std::vector<uint32_t> nextLoadingNodeDescIndices;
 
-    // 逆序，因为nodeLevel越大，对应node表示的精度越高；这里需要优先加载精度最高的
-    for (int i = g_terrainStreamConfig.MaxNodeLevel; i >= 0; i--) 
+    // 本帧最大请求数量
+    int maxRequest = std::max((int)g_terrainStreamConfig.MaxRequestLimit - m_asyncLoader->GetWorkingTaskNum(), 0);
+    int req = 0;
+
+    // 正序加载（gpu-driven，逆序加载没有意义）
+    for (int i = 0; i <= g_terrainStreamConfig.MaxNodeLevel; i++) 
     {
+        // 遍历，看本帧快照对应的node们是否在缓存里
         for (auto& node : nodeLists[i])
         {
             // 辅助快查map提速，原本直接对 m_nodeDescArrayInternal做find_if 开销有点高了
@@ -71,22 +76,23 @@ void NXTerrainLODStreamer::Update()
             auto itKey = m_keyToNodeMap.find(key);
             if (itKey != m_keyToNodeMap.end())
             {
-                // 检查缓存中是否已经具有位置和大小相同的节点（正在加载中的也算）
-                // 若节点已存在，或者正在加载
+                // 如果node已经在缓存可直接跳过
                 if (m_nodeDescArrayInternal[itKey->second].isLoading || m_nodeDescArrayInternal[itKey->second].isValid)
                 {
-                    // 仅需更新lastUpdate
+                    // 维护正在加载/已加载完缓存节点 的最后更新时间（lastUpdatedFrame）
                     m_nodeDescArrayInternal[itKey->second].lastUpdatedFrame = NXGlobalApp::s_frameIndex.load();
                     continue;
                 }
             }
 
-            // 若节点不存在，准备从磁盘异步加载，从nodeDesc中选一个空闲的或最久未使用的
+            if (req < maxRequest)
             {
+                // 若node不在缓存里，准备从磁盘异步加载，从nodeDesc中选一个空闲的或最久未使用的
                 uint64_t oldestFrame = UINT64_MAX;
                 uint32_t oldestIndex = -1;
                 uint32_t selectedIndex = -1;
 
+                // 从缓存找一个优先级最低的节点
                 for (uint32_t descIndex = 0; descIndex < m_nodeDescArrayInternal.size(); descIndex++)
                 {
                     // 优先取空闲（!isValid）；正在加载的（isLoading）不考虑
@@ -97,27 +103,26 @@ void NXTerrainLODStreamer::Update()
                         break;
                     }
 
-					// 若没有空闲，则找最久未使用的
+                    // 若没有空闲，则找最久未使用的
                     if (nodeDesc.isValid && nodeDesc.lastUpdatedFrame < oldestFrame)
-                    { 
+                    {
                         oldestFrame = nodeDesc.lastUpdatedFrame;
                         oldestIndex = descIndex;
                     }
                 }
 
-                // 如果没有空闲节点，找到最久未使用的节点
                 if (selectedIndex == -1 && oldestIndex != -1)
                 {
                     selectedIndex = oldestIndex;
                 }
-                
-                if (selectedIndex != -1)
+
+                if (selectedIndex != -1) // 锁定LRU优先级最低的节点
                 {
                     auto& selectedNodeDesc = m_nodeDescArrayInternal[selectedIndex];
                     if (oldestIndex != -1)
                     {
                         // 如果要替换最久未使用的节点 记录替换前的数据
-                        selectedNodeDesc.oldData = selectedNodeDesc.data; 
+                        selectedNodeDesc.oldData = selectedNodeDesc.data;
                         selectedNodeDesc.removeOldData = true;
 
                         // 辅助快查map更新
@@ -139,6 +144,8 @@ void NXTerrainLODStreamer::Update()
                     selectedNodeDesc.data = node;
                     selectedNodeDesc.lastUpdatedFrame = NXGlobalApp::s_frameIndex.load();
                     nextLoadingNodeDescIndices.push_back(selectedIndex);
+
+                    req++;
                 }
             }
         }
@@ -231,6 +238,7 @@ void NXTerrainLODStreamer::ProcessCompletedStreamingTask()
     for (int i = 0; i < completeTasks.size(); i++)
     {
         auto& task = completeTasks[i];
+        //printf("task %d: %s\n", task.nodeDescArrayIndex, task.pHeightMap->GetName().c_str());
 
         m_nodeDescArrayInternal[task.nodeDescArrayIndex].isLoading = false;
         m_nodeDescArrayInternal[task.nodeDescArrayIndex].isValid = true;

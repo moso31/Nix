@@ -4,15 +4,12 @@
 
 void NXTerrainStreamingAsyncLoader::AddTask(const TerrainStreamingLoadRequest& task)
 {
-	std::lock_guard<std::mutex> lock(m_tasksMutex);
 	m_requestTasks.push_back(task);
 }
 
 void NXTerrainStreamingAsyncLoader::Update()
 {
-	std::lock_guard<std::mutex> lock(m_tasksMutex);
-
-	printf("req: %d tasks\n", m_requestTasks.size());
+	//printf("req: %d tasks\n", m_requestTasks.size());
 	
 	// 1. 请求队列->loading队列
 	auto it = m_requestTasks.begin();
@@ -41,6 +38,8 @@ void NXTerrainStreamingAsyncLoader::Update()
 	int loadingCnt = 0;
 	for (auto it = m_loadingTasks.begin(); it != m_loadingTasks.end(); loadingCnt++)
 	{
+		auto& task = *it;
+
 		if (m_computeTasks.size() >= g_terrainStreamConfig.MaxComputeLimit)
 			break;
 
@@ -60,8 +59,7 @@ void NXTerrainStreamingAsyncLoader::Update()
 
 std::vector<NXTerrainStreamingLoadTextureResult> NXTerrainStreamingAsyncLoader::ConsumeCompletedTasks()
 {
-	// 一次性把所有的已完成task取走，放到主线程那边去处理
-	std::lock_guard<std::mutex> lock(m_tasksMutex);
+	// 一次性把所有的已完成task取走
 	std::vector<NXTerrainStreamingLoadTextureResult> result = std::move(m_computeTasks);
 	m_computeTasks.clear();
 	return result;

@@ -1,7 +1,6 @@
 #include "NXAllocatorManager.h"
 #include "NXGlobalDefinitions.h"
 #include "NXVirtualTextureStreaming.h"
-#include "NXTerrainStreamingAsyncLoader.h"
 
 #define Memsize_MB(x) (x * 1024 * 1024)
 

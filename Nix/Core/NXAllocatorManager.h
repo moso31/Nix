@@ -6,7 +6,6 @@
 #include "NXNullDescriptor.h"
 
 class NXVirtualTextureStreaming;
-class NXTerrainStreamingAsyncLoader;
 
 // ×ÊÔ´
 #define NXAllocator_CB		NXAllocatorManager::GetInstance()->GetCBAllocator()			// cb

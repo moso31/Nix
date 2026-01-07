@@ -59,13 +59,13 @@ public:
 
 	void AddTask(const TerrainStreamingLoadRequest& task);
 	void Update();
+
+	int GetWorkingTaskNum() { return m_requestTasks.size() + m_loadingTasks.size(); }
 	
 	// 获取已完成的加载任务（主线程调用），注意会被直接消费掉（Get+Clear）
 	std::vector<NXTerrainStreamingLoadTextureResult> ConsumeCompletedTasks();
 	
 private:
-	std::mutex m_tasksMutex;
-
 	std::vector<TerrainStreamingLoadRequest> m_requestTasks;
 	std::vector<NXTerrainStreamingLoadTextureResult> m_loadingTasks;
 	std::vector<NXTerrainStreamingLoadTextureResult> m_computeTasks;

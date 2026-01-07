@@ -24,7 +24,7 @@ struct NXTerrainLODStreamConfigsStruct
 	// ========================================
 
 	// 各LOD级别对应的距离范围
-	static constexpr float DistRanges[6] = { 200.0f, 400.0f, 800.0f, 1600.0f, 3200.0f, FLT_MAX };
+	static constexpr float DistRanges[6] = { 300.0f, 600.0f, 1200.0f, 2400.0f, 4800.0f, FLT_MAX };
 
 	// 几档LOD
 	static constexpr int LODSize = 6;

@@ -135,6 +135,8 @@ private:
 	std::vector<NXTerrainLODQuadTreeNodeDescription> m_nodeDescArrayInternal;
 	std::unordered_map<TerrainNodeKey, uint32_t, TerrainNodeKeyHash> m_keyToNodeMap; // 优化查找速度
 
+	std::vector<NXTerrainLODQuadTreeNode> m_wantMap;
+
 	// 异步加载器，异步读取tile纹理
 	NXTerrainStreamingAsyncLoader* m_asyncLoader;
 
