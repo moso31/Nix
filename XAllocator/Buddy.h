@@ -22,8 +22,8 @@ namespace ccmem
 
 	struct XBuddyTaskMemData
 	{
-		BuddyAllocatorPage* pAllocator;
-		uint32_t byteOffset;
+		BuddyAllocatorPage* pAllocator = nullptr;
+		uint32_t byteOffset = 0;
 	};
 
 	struct BuddyTaskResult

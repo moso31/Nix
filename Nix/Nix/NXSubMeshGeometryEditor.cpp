@@ -792,7 +792,6 @@ void NXSubMeshGeometryEditor::CreateBuffers(std::vector<NXRawMeshView>& rawViews
 	// 上层目前还能确保rawViews 都是成员变量，所以这里不需要担心生命周期问题，但将来不好说……
 
 	// 线程A 执行 std::thread
-	printf("主线程%s\n", name.c_str());
 	std::thread([&rawViews, name, pMeshView]() {
 		for (auto& view : rawViews)
 		{

@@ -14,7 +14,7 @@ cbuffer cbNodeDescArray : register(b0)
 cbuffer cbLodDist : register(b1)
 {
     float3 m_cameraPos;
-    float m_currentLodDist;
+    float m_nextLodDist;
     int m_currentMip;
     
     float3 pad;
@@ -75,7 +75,7 @@ void CS_Process()
         float childDistance2 = distance(m_cameraPos.xz, childCenter2);
         float childDistance3 = distance(m_cameraPos.xz, childCenter3);
     
-        if (childDistance0 > m_currentLodDist || childDistance1 > m_currentLodDist || childDistance2 > m_currentLodDist || childDistance3 > m_currentLodDist)
+        if (childDistance0 > m_nextLodDist || childDistance1 > m_nextLodDist || childDistance2 > m_nextLodDist || childDistance3 > m_nextLodDist)
         {
             // 当前节点计入final
             m_final.Append(nodeID);

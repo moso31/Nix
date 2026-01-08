@@ -38,8 +38,8 @@ struct CBufferTerrainCullingParam
 	// 相机位置
 	Vector3 m_cameraPos;
 
-	// 各级LOD距离
-	float m_currentLodDist;
+	// 子级LOD距离（不是当前等级，是当前等级-1，为啥这么做见shader）
+	float m_nextLodDist;
 
 	// 当前consume/append的mip等级
 	int m_currentMip;

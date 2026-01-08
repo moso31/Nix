@@ -31,6 +31,11 @@ NXTexture::NXTexture(NXResourceType type) :
 
 NXTexture::~NXTexture()
 {
+	// 如果是通过伙伴内存分配的，需要释放
+	if (m_texMemData.pAllocator != nullptr)
+	{
+		NXAllocator_Tex->Free(m_texMemData);
+	}
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE NXTexture::GetSRV(uint32_t index)
@@ -390,7 +395,7 @@ void NXTexture::AfterTexLoaded(const std::filesystem::path& filePath, D3D12_RESO
 
 	// 将加载过程按字节大小拆分成多个 Chunk（内部最大 8MB）
 	std::vector<NXTextureUploadChunk> chunks;
-	GenerateUploadChunks(layoutSize, numRow.get(), numRowSizeInBytes.get(), totalBytes, chunks);
+	GenerateUploadChunks(layoutSize, numRow.get(), numRowSizeInBytes.get(), totalBytes, layouts.get(), chunks);
 	SetTexChunks((int)chunks.size());
 
 	NXAllocator_Tex->Alloc(&desc, (uint32_t)totalBytes, [this, result, chunks = std::move(chunks)](const PlacedBufferAllocTaskResult& taskResult) mutable {
@@ -401,9 +406,11 @@ void NXTexture::AfterTexLoaded(const std::filesystem::path& filePath, D3D12_RESO
 void NXTexture::AfterTexMemoryAllocated(const NXTextureLoaderTaskResult& result, const PlacedBufferAllocTaskResult& taskResult, std::vector<NXTextureUploadChunk>&& chunks)
 {
 	std::shared_ptr<ScratchImage> pImage = result.pImage;
+	m_texMemData = taskResult.memData;
 
-	// 输出资源
-	m_pTexture = taskResult.pResource;
+	// taskResult后续就没有用了，直接接管而不是用'=' 否则会导致内存泄漏
+	m_pTexture.Attach(taskResult.pResource); 
+
 	m_pTexture->SetName(NXConvert::s2ws(m_name).c_str());
 	SetRefCountDebugName(m_name);
 
@@ -420,7 +427,8 @@ void NXTexture::AfterTexMemoryAllocated(const NXTextureLoaderTaskResult& result,
 	}
 }
 
-void NXTexture::GenerateUploadChunks(uint32_t layoutSize, uint32_t* numRow, uint64_t* numRowSizeInBytes, uint64_t totalBytes, std::vector<NXTextureUploadChunk>& oChunks)
+void NXTexture::GenerateUploadChunks(uint32_t layoutSize, uint32_t* numRow, uint64_t* numRowSizeInBytes, uint64_t totalBytes,
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT* layouts, std::vector<NXTextureUploadChunk>& oChunks)
 {
 	// 作用：根据纹理布局，将上传任务划分成若干个块上传，避免NXUploadSystem一次性上传过大的数据直接崩溃
 	// 思路：按layout遍历
@@ -455,24 +463,23 @@ void NXTexture::GenerateUploadChunks(uint32_t layoutSize, uint32_t* numRow, uint
 		{
 			// 2. 否则持续累积bytes，每当累积的bytes超过了一个阈值，就生成一个上传任务。
 			NXTextureUploadChunk chunk = {};
-			chunk.chunkBytes = (int)layoutByteSize;
 			chunk.layoutIndexStart = i;
 			chunk.layoutIndexSize = 1;
 			chunk.rowStart = -1; // 累积模式下只可能包含完整的layout，所以row参数没用
 			chunk.rowSize = -1;
+			uint64_t chunkStartOffset = layouts[i].Offset;
+			chunk.chunkBytes = (int)(numRow[i] * layouts[i].Footprint.RowPitch);
 
 			i++;
 
 			while (i < layoutSize)
 			{
-				uint64_t numRowSizeInByteAlign256 = (numRowSizeInBytes[i] + 255) & ~255; // DX12的纹理需要每行按256字节对齐
-				uint64_t layoutByteSize = numRow[i] * numRowSizeInByteAlign256;
-				if (chunk.chunkBytes + layoutByteSize >= ringBufferLimit)
-				{
-					break;
-				}
+				uint64_t endOfThisLayout = layouts[i].Offset - chunkStartOffset + numRow[i] * layouts[i].Footprint.RowPitch;
 
-				chunk.chunkBytes += (int)layoutByteSize;
+				if (endOfThisLayout >= ringBufferLimit)
+					break;
+
+				chunk.chunkBytes = (int)endOfThisLayout;  // 使用真实的结束位置
 				chunk.layoutIndexSize++;
 				i++;
 			}

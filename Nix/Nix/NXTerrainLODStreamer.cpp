@@ -328,8 +328,7 @@ void NXTerrainLODStreamer::LoadMinmaxZData()
     size_t arraySize = metadata.arraySize;
     size_t mipCount = metadata.mipLevels;
 
-    printf("LoadMinmaxZData: arraySize=%zu, mipLevels=%zu, baseWidth=%zu, baseHeight=%zu\n",
-           arraySize, mipCount, metadata.width, metadata.height);
+    //printf("LoadMinmaxZData: arraySize=%zu, mipLevels=%zu, baseWidth=%zu, baseHeight=%zu\n", arraySize, mipCount, metadata.width, metadata.height);
 
     m_minmaxZData.resize(mipCount);
 

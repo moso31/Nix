@@ -96,6 +96,7 @@ void ccmem::BuddyAllocator::ExecuteTasks()
 				taskResult.pTaskContext = task.pTaskContext;
 				task.pTaskContext = nullptr; // 防止重复释放
 				task.pCallBack(taskResult);
+				task.pCallBack = nullptr;
 			}
 		}
 		else // is free
@@ -172,7 +173,6 @@ BuddyTask::State ccmem::BuddyAllocator::TryAlloc(const BuddyTask& task, XBuddyTa
 		if (pAllocator->m_freeByteSize >= task.byteSize)
 		{
 			result = pAllocator->AllocSync(task, oTaskMemData.byteOffset);
-
 			// 如果返回未知错误，不接受，直接让它崩溃
 			assert(result != BuddyTask::State::Failed_Unknown);
 
@@ -309,6 +309,8 @@ BuddyTask::State ccmem::BuddyAllocatorPage::FreeSync(const uint32_t& freeByteOff
 
 	it->second.bUsed = false;
 
+	uint32_t currentOffset = freeByteOffset;  // 用可变的局部变量
+
 	// 逐级合并
 	for (uint32_t i = it->second.level; i > 0; i--)
 	{
@@ -316,30 +318,28 @@ BuddyTask::State ccmem::BuddyAllocatorPage::FreeSync(const uint32_t& freeByteOff
 		uint32_t freeByteSize = m_pOwner->GetByteSizeFromLevel(i);
 
 		// xor 计算伙伴内存偏移量
-		uint32_t buddyByteOffset = freeByteOffset ^ freeByteSize;
+		uint32_t buddyByteOffset = currentOffset ^ freeByteSize;
 
-		uint32_t parentByteOffset = std::min(freeByteOffset, buddyByteOffset);
+		uint32_t parentByteOffset = std::min(currentOffset, buddyByteOffset);
 
 		auto it = m_memory.find(buddyByteOffset);
 		if (it == m_memory.end())
 			throw std::runtime_error("buddy not found."); // 直接抛异常，不应该找不到buddy
-		
-		if (it->second.bUsed == false)
-		{
-			// 实际的合并行为
-			m_memory.erase(freeByteOffset);
-			m_memory.erase(buddyByteOffset);
 
-			BuddyMemoryBlock block;
-			block.level = i - 1;
-			block.bUsed = false;
-			m_memory.insert({ parentByteOffset, block });
-		}
-		else
-		{
-			// 走到这里说明伙伴内存块被占用，不再继续向上合并
+		// buddy必须同级，并且没有被占用，才能合并
+		if (it->second.level != i || it->second.bUsed == true) 
 			break;
-		}
+
+		// 合并buddy
+		m_memory.erase(currentOffset);
+		m_memory.erase(buddyByteOffset);
+
+		BuddyMemoryBlock block;
+		block.level = i - 1;
+		block.bUsed = false;
+		m_memory.insert({ parentByteOffset, block });
+
+		currentOffset = parentByteOffset;  // 父级buddy，继续迭代
 	}
 
 	return BuddyTask::State::Success;
@@ -347,4 +347,13 @@ BuddyTask::State ccmem::BuddyAllocatorPage::FreeSync(const uint32_t& freeByteOff
 
 void ccmem::BuddyAllocatorPage::Print()
 {
+	printf("memory:");
+	for (auto& [x, y] : m_memory)
+	{
+		printf("%d", x);
+		printf(y.bUsed ? "T" : "F");
+		printf(" ");
+	}
+
+	printf("\n");
 }

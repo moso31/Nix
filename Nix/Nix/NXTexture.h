@@ -149,7 +149,8 @@ private:
     void InternalReload(Ntr<NXTexture> pReloadTexture);
     D3D12_RESOURCE_DIMENSION GetResourceDimentionFromType();
 
-    void GenerateUploadChunks(uint32_t layoutSize, uint32_t* numRow, uint64_t* numRowSizeInBytes, uint64_t totalBytes, std::vector<NXTextureUploadChunk>& oChunks);
+    void GenerateUploadChunks(uint32_t layoutSize, uint32_t* numRow, uint64_t* numRowSizeInBytes, uint64_t totalBytes,
+        D3D12_PLACED_SUBRESOURCE_FOOTPRINT* layouts, std::vector<NXTextureUploadChunk>& oChunks);
 
     // 向下取整对齐，alignment必须是2的幂
     int AlignDownForPow2Only(int value, int alignment) { return value & ~(alignment - 1); }
@@ -216,6 +217,8 @@ protected:
     D3D12_CLEAR_VALUE m_clearValue;
 
     NXTextureReload m_reload;
+
+    XBuddyTaskMemData m_texMemData;  // 存储伙伴内存分配信息，用于释放
 };
 
 class NXTexture2D : public NXTexture

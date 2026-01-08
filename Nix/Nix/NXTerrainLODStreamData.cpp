@@ -48,7 +48,8 @@ void NXTerrainLODStreamData::Init(NXTerrainLODStreamer* pStreamer)
 	for (int i = 0; i < g_terrainStreamConfig.LODSize; i++)
 	{
 		int val = g_terrainStreamConfig.LODSize - i - 1;
-		m_cbCullingData[i].m_currentLodDist = g_terrainStreamConfig.DistRanges[val];
+		int childIdx = std::max(val - 1, 0);
+		m_cbCullingData[i].m_nextLodDist = g_terrainStreamConfig.DistRanges[childIdx];
 		m_cbCullingData[i].m_currentMip = val;
 	}
 
