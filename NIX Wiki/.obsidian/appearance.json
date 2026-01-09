@@ -1,1 +1,4 @@
-{}
+{
+  "nativeMenus": false,
+  "baseFontSizeAction": false
+}
