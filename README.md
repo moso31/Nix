@@ -29,13 +29,19 @@
 
 支持对导入资源自动估算生命周期，并整合同类型纹理实现资源复用，但不支持DAG剪枝优化和断环。
 
+提供了可视化界面，可观察实际资源复用情况
+
+<img width="1986" height="893" alt="image" src="https://github.com/user-attachments/assets/262e5f70-0379-440c-a015-2e78528b1a53" />
+
+<img width="1986" height="893" alt="image" src="https://github.com/user-attachments/assets/c6713628-aa6c-4c06-8fa9-f225da52933b" />
+
 ### 标准 PBR
 
 > 延迟渲染管线（Deferred Pipeline）+ 漫反射 IBL（球谐，Spherical Harmonics）+ 预过滤贴图（PreFilter Map）
 
 ### Depth Peeling、SSAO
 
-代码存在，但暂时停用
+代码DX11时期编写，较老旧，没时间折腾，暂时停用
 
 ### 级联阴影贴图（Cascade Shadow Map，仅 PCF）
 
