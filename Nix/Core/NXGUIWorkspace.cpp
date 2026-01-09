@@ -7,6 +7,7 @@
 #include "NXGUITerrainSector2NodeIDPreview.h"
 #include "NXGUIVirtualTexture.h"
 #include "NXGUIRenderGraph.h"
+#include "NXGUIGPUProfiler.h"
 #include "NXFileSystemHelper.h"
 
 void NXGUIWorkspace::Init(NXGUI* pGUI)
@@ -126,25 +127,24 @@ void NXGUIWorkspace::Render()
         }
 
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(7.0f, 7.0f));
-        bool bVTMenu = ImGui::BeginMenu("Virtual Texture");
+        bool bDebugMenu = ImGui::BeginMenu(ImUtf8("调试"));
         ImGui::PopStyleVar();
-        if (bVTMenu)
+        if (bDebugMenu)
         {
+            bool bGPUProfilerVisible = m_pGUI->GetGUIGPUProfiler()->IsVisible();
+            if (ImGui::MenuItem(ImUtf8("显示 GPU Profiler"), nullptr, bGPUProfilerVisible))
+            {
+                m_pGUI->GetGUIGPUProfiler()->SetVisible(!bGPUProfilerVisible);
+            }
+
             bool bVTVisible = m_pGUI->GetGUIVirtualTexture()->IsVisible();
-            if (ImGui::MenuItem(ImUtf8("显示调试界面"), nullptr, bVTVisible))
+            if (ImGui::MenuItem(ImUtf8("Virtual Texture"), nullptr, bVTVisible))
             {
                 m_pGUI->GetGUIVirtualTexture()->SetVisible(!bVTVisible);
             }
-            ImGui::EndMenu();
-        }
 
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(7.0f, 7.0f));
-        bool bRGMenu = ImGui::BeginMenu("Render Graph");
-        ImGui::PopStyleVar();
-        if (bRGMenu)
-        {
             bool bRGVisible = m_pGUI->GetGUIRenderGraph()->IsVisible();
-            if (ImGui::MenuItem(ImUtf8("显示调试界面"), nullptr, bRGVisible))
+            if (ImGui::MenuItem(ImUtf8("可视化 Render Graph"), nullptr, bRGVisible))
             {
                 m_pGUI->GetGUIRenderGraph()->SetVisible(!bRGVisible);
             }

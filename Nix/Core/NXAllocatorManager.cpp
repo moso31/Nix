@@ -17,11 +17,11 @@ void NXAllocatorManager::Init()
 	auto pDevice = NXGlobalDX::GetDevice();	
 	m_bRunning.store(true);
 
-	m_pCBAllocator = std::make_unique<CommittedBufferAllocator>(L"CBAllocator", pDevice, true, false, 64u, Memsize_MB(256));
-	m_pSBAllocator = std::make_unique<CommittedBufferAllocator>(L"SBAllocator", pDevice, false, false, 64u, Memsize_MB(1024));
-	m_pRBAllocator = std::make_unique<CommittedBufferAllocator>(L"RBAllocator", pDevice, false, true, 512u, Memsize_MB(256));
-	m_pRWBAllocator = std::make_unique<PlacedBufferAllocator>(L"RWBAllocator", pDevice, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT, Memsize_MB(256));
-	m_pTextureAllocator = std::make_unique<PlacedBufferAllocator>(L"TextureAllocator", pDevice, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT, Memsize_MB(512));
+	m_pCBAllocator = std::make_unique<CommittedBufferAllocator>(L"CBAllocator", pDevice, true, false, 64u, Memsize_MB(32));
+	m_pSBAllocator = std::make_unique<CommittedBufferAllocator>(L"SBAllocator", pDevice, false, false, 64u, Memsize_MB(32));
+	m_pRBAllocator = std::make_unique<CommittedBufferAllocator>(L"RBAllocator", pDevice, false, true, 512u, Memsize_MB(32));
+	m_pRWBAllocator = std::make_unique<PlacedBufferAllocator>(L"RWBAllocator", pDevice, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT, Memsize_MB(32));
+	m_pTextureAllocator = std::make_unique<PlacedBufferAllocator>(L"TextureAllocator", pDevice, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT, Memsize_MB(128));
 
 	m_pUpdateSystem = std::make_unique<NXUploadSystem>(pDevice);
 	m_pReadbackSystem = std::make_unique<NXReadbackSystem>(pDevice);

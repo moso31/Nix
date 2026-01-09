@@ -28,6 +28,7 @@
 #include "NXPrimitive.h"
 #include "NXEditorObjectManager.h"
 #include "NXAllocatorManager.h"
+#include "NXGPUProfiler.h"
 
 Renderer::Renderer(const Vector2& rtSize) :
 	m_bRenderGUI(true),
@@ -80,6 +81,10 @@ void Renderer::Init()
 	m_pRenderGraph = new NXRenderGraph();
 
 	NXPassMng->InitDefaultRenderer();
+
+	// ³õÊ¼»¯ GPU Profiler
+	g_pGPUProfiler = new NXGPUProfiler();
+	g_pGPUProfiler->Init(NXGlobalDX::GetDevice(), NXGlobalDX::GlobalCmdQueue(), 256);
 
 	InitGUI();
 }
@@ -994,6 +999,13 @@ void Renderer::Release()
 {
 	m_pRenderGraph->Clear();
 	SafeDelete(m_pRenderGraph);
+
+	// ÊÍ·Å GPU Profiler
+	if (g_pGPUProfiler)
+	{
+		g_pGPUProfiler->Release();
+		SafeDelete(g_pGPUProfiler);
+	}
 
 	SafeReleaseCOM(m_pCommandSig);
 

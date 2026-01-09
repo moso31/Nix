@@ -7,6 +7,7 @@
 #include "NXScene.h"
 #include "NXConverter.h"
 #include "NXAllocatorManager.h"
+#include "NXGPUProfiler.h"
 
 #include "NXGUIFileBrowser.h"
 #include "NXGUIMaterialShaderEditor.h"
@@ -27,6 +28,7 @@
 #include "NXGUITerrainMaterialGenerator.h"
 #include "NXGUITerrainSector2NodeIDPreview.h"
 #include "NXGUITerrainStreamingDebug.h"
+#include "NXGUIGPUProfiler.h"
 #include "NXGUICommandManager.h"
 
 NXGUI::NXGUI(NXScene* pScene, Renderer* pRenderer) :
@@ -48,7 +50,8 @@ NXGUI::NXGUI(NXScene* pScene, Renderer* pRenderer) :
 	m_pGUIHoudiniTerrainExporter(nullptr),
 	m_pGUITerrainMaterialGenerator(nullptr),
 	m_pGUITerrainSector2NodeIDPreview(nullptr),
-	m_pGUITerrainStreamingDebug(nullptr)
+	m_pGUITerrainStreamingDebug(nullptr),
+	m_pGUIGPUProfiler(nullptr)
 {
 }
 
@@ -119,6 +122,7 @@ void NXGUI::Init()
 	m_pGUITerrainMaterialGenerator = new NXGUITerrainMaterialGenerator();
 	m_pGUITerrainSector2NodeIDPreview = new NXGUITerrainSector2NodeIDPreview(m_pRenderer);
 	m_pGUITerrainStreamingDebug = new NXGUITerrainStreamingDebug(m_pRenderer);
+	m_pGUIGPUProfiler = new NXGUIGPUProfiler();
 	
 	m_pGUIWorkspace = new NXGUIWorkspace();
 	m_pGUIWorkspace->Init(this);
@@ -188,6 +192,8 @@ void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT, const NXSwapChainBuffer& swapCha
 
 	m_pFileBrowser->Display();
 
+	m_pGUIGPUProfiler->Render();
+
 	// Rendering
 	ImGui::Render();
 
@@ -196,6 +202,10 @@ void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT, const NXSwapChainBuffer& swapCha
 
 	pCmdAllocator->Reset();
 	pCmdList->Reset(pCmdAllocator, nullptr);
+
+	// GPU Profiler: ImGui 渲染开始
+	if (g_pGPUProfiler)
+		g_pGPUProfiler->BeginPass(pCmdList, "ImGui Render");
 
 	NX12Util::BeginEvent(pCmdList, "dear-imgui");
 
@@ -222,6 +232,15 @@ void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT, const NXSwapChainBuffer& swapCha
 	pCmdList->ResourceBarrier(1, &barrier);
 
 	NX12Util::EndEvent(pCmdList);
+
+	// GPU Profiler: ImGui 渲染结束
+	if (g_pGPUProfiler)
+		g_pGPUProfiler->EndPass(pCmdList);
+
+	// GPU Profiler: 帧结束，resolve 时间戳
+	// 放在这里确保统计包含 RenderGraph + ImGui 的所有 GPU 时间
+	if (g_pGPUProfiler)
+		g_pGPUProfiler->EndFrame(pCmdList);
 
 	pCmdList->Close();
 	ID3D12CommandList* ppCmdLists[] = { pCmdList };
@@ -257,6 +276,7 @@ void NXGUI::Release()
 	SafeDelete(m_pGUIVirtualTexture);
 	SafeDelete(m_pGUIRenderGraph);
 	SafeDelete(m_pGUITerrainStreamingDebug);
+	SafeDelete(m_pGUIGPUProfiler);
 
 	ImGui_ImplDX12_Shutdown();
 	ImGui_ImplWin32_Shutdown();

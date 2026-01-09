@@ -502,6 +502,9 @@
     <ClCompile Include="Core\NXRenderGraph.cpp">
       <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXGPUProfiler.cpp">
+      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
+    </ClCompile>
     <ClCompile Include="Core\NXBRDFlut.cpp">
       <Filter>Core\DirectX\Renderer\Renderers</Filter>
     </ClCompile>
@@ -515,6 +518,9 @@
       <Filter>Nix\Object</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXGUIRenderGraph.cpp">
+      <Filter>Core\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NXGUIGPUProfiler.cpp">
       <Filter>Core\UI</Filter>
     </ClCompile>
     <ClCompile Include="Nix\NXQuadTree.cpp">
@@ -894,6 +900,9 @@
     <ClInclude Include="Core\NXRenderGraph.h">
       <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
     </ClInclude>
+    <ClInclude Include="Core\NXGPUProfiler.h">
+      <Filter>Core\DirectX\Renderer\RenderGraph</Filter>
+    </ClInclude>
     <ClInclude Include="Core\NXBRDFlut.h">
       <Filter>Core\DirectX\Renderer\Renderers</Filter>
     </ClInclude>
@@ -904,6 +913,9 @@
       <Filter>Core\DirectX\Renderer\Renderers</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXGUIRenderGraph.h">
+      <Filter>Core\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NXGUIGPUProfiler.h">
       <Filter>Core\UI</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXQuadTree.h">

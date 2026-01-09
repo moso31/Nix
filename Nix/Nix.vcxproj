@@ -318,10 +318,12 @@
     <ClCompile Include="Core\TinyEXRImpl.cpp" />
     <ClCompile Include="Core\NXGUIInspector.cpp" />
     <ClCompile Include="Core\NXGUIRenderGraph.cpp" />
+    <ClCompile Include="Core\NXGUIGPUProfiler.cpp" />
     <ClCompile Include="Core\NXGUIVirtualTexture.cpp" />
     <ClCompile Include="Core\NXNullDescriptor.cpp" />
     <ClCompile Include="Core\NXPSOManager.cpp" />
     <ClCompile Include="Core\NXReadbackSystem.cpp" />
+    <ClCompile Include="Core\NXGPUProfiler.cpp" />
     <ClCompile Include="Core\NXRenderGraph.cpp" />
     <ClCompile Include="Core\NXRGBuilder.cpp" />
     <ClCompile Include="Core\NXRGPassNode.cpp" />
@@ -443,11 +445,13 @@
     <ClInclude Include="Core\NXGUITerrainSector2NodeIDPreview.h" />
     <ClInclude Include="Core\NXGUIInspector.h" />
     <ClInclude Include="Core\NXGUIRenderGraph.h" />
+    <ClInclude Include="Core\NXGUIGPUProfiler.h" />
     <ClInclude Include="Core\NXGUITerrainMaterialGenerator.h" />
     <ClInclude Include="Core\NXGUIVirtualTexture.h" />
     <ClInclude Include="Core\NXNullDescriptor.h" />
     <ClInclude Include="Core\NXPSOManager.h" />
     <ClInclude Include="Core\NXReadbackSystem.h" />
+    <ClInclude Include="Core\NXGPUProfiler.h" />
     <ClInclude Include="Core\NXRenderGraph.h" />
     <ClInclude Include="Core\NXRGBuilder.h" />
     <ClInclude Include="Core\NXRGPassNode.h" />

@@ -4,6 +4,7 @@
 #include "NXRGResource.h"
 #include "NXGlobalDefinitions.h"
 #include "NXAllocatorManager.h"
+#include "NXGPUProfiler.h"
 #include <limits>
 #include <algorithm>
 
@@ -276,6 +277,10 @@ void NXRenderGraph::Execute()
 	cA->Reset();
 	cL->Reset(cA, nullptr);
 
+	// GPU Profiler: 帧开始
+	if (g_pGPUProfiler)
+		g_pGPUProfiler->BeginFrame();
+
 	std::string eventName = "NXRenderGraph";
 	NX12Util::BeginEvent(cL, eventName.c_str());
 
@@ -287,10 +292,21 @@ void NXRenderGraph::Execute()
 
 	for (auto pass : m_passNodes)
 	{
+		// GPU Profiler: Pass 开始
+		if (g_pGPUProfiler)
+			g_pGPUProfiler->BeginPass(cL, pass->GetName());
+
 		pass->Execute(cL);
+
+		// GPU Profiler: Pass 结束
+		if (g_pGPUProfiler)
+			g_pGPUProfiler->EndPass(cL);
 	}
 
 	NX12Util::EndEvent(cL);
+
+	// 注意：GPU Profiler 的 EndFrame() 移至 NXGUI::Render() 末尾
+	// 以确保统计包含 ImGui 渲染时间
 
 	cL->Close();
 
