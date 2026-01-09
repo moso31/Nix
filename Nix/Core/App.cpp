@@ -30,16 +30,15 @@ void App::Init()
 
 void App::OnWindowResize(UINT width, UINT height)
 {
-	if (width & height)
+	if (width && height)
 	{
 		m_pDXResources->OnResize(width, height);
-		//m_pRenderer->OnResize(Vector2((float)width, (float)height));
 	}
 }
 
 void App::OnResize(const Vector2& rtSize)
 {
-	if ((UINT)rtSize.x & (UINT)rtSize.y)
+	if ((UINT)rtSize.x && (UINT)rtSize.y)
 	{
 		m_pDXResources->Flush();
 		m_pRenderer->OnResize(rtSize);
