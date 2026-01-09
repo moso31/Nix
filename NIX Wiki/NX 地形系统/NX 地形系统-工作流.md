@@ -5,7 +5,7 @@
 - 第一列：确定美术exr是否存在；
 - 第二列：将exr资产（高度图、法线图、splat图）转换成dds。
 - 第三列：负责将原始纹理烘焙成子纹理。
-- 第四列（不再使用）：将dds资产合成全地形2d array
+- 第四列（除了MinMaxZ均已不再使用）：将dds资产合成全地形2d array
 	- 配合旧的全量加载方案使用；
 	- 现在仅使用其中的MinMaxZ纹理。
 
@@ -66,6 +66,12 @@ std::vector<NXTerrainLODQuadTreeNodeDescription> m_nodeDescArrayInternal;
 
 **然后由AsyncLoader进行异步构建即可。**
 AsyncLoader.cpp不需要mutex，因为`NXManager_Tex->CreateTexture2D`方法本身就是异步的！
+
+**构建时，注意和AsyncLoader同步本次可申请上限**
+避免一次push过多任务。
+```
+int maxRequest = std::max((int)g_terrainStreamConfig.MaxRequestLimit - m_asyncLoader->GetWorkingTaskNum(), 0);
+```
 
 **构建完成时的纹理每帧返回到`NXTerrainStreamingAsyncLoader::ConsumeCompletedTasks`的容器中。**
 **每帧由渲染器`Renderer.cpp`的NXRG提供三个烘焙pass，获取上述`ConsumeCompletedTasks`容器的纹理并烘焙到对应atlas上。**
