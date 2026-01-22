@@ -20,7 +20,6 @@
 #include "NXRGResource.h"
 #include "NXRGBuilder.h"
 #include "NXTerrainCommandSignature.h"
-#include "NXVirtualTextureManager.h"
 #include "NXTerrainStreamingBatcher.h"
 #include "NXPassMaterial.h"
 #include "NXPassMaterialManager.h"
@@ -28,6 +27,7 @@
 #include "NXPrimitive.h"
 #include "NXEditorObjectManager.h"
 #include "NXAllocatorManager.h"
+#include "NXCamera.h"
 #include "NXGPUProfiler.h"
 
 Renderer::Renderer(const Vector2& rtSize) :
@@ -69,9 +69,7 @@ void Renderer::Init()
 	m_scene->Init();
 	m_pTerrainLODStreamer = new NXTerrainLODStreamer();
 	m_pTerrainLODStreamer->Init(m_scene);
-	NXVirtualTextureManager::GetInstance()->Init();
-	NXVirtualTextureManager::GetInstance()->BuildSearchList(400);
-	NXVirtualTextureManager::GetInstance()->SetCamera(m_scene->GetMainCamera());
+	NXVTMng->Init(m_scene->GetMainCamera());
 
 	auto pCubeMap = m_scene->GetCubeMap();
 
@@ -536,7 +534,7 @@ void Renderer::GenerateRenderGraph()
 		},
 		[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, VTReadback& data) {
 			auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("VTReadback"));
-			pMat->SetConstantBuffer(0, 0, &NXVirtualTextureManager::GetInstance()->GetCBufferVTReadback());
+			pMat->SetConstantBuffer(0, 0, &m_pVirtualTexture->GetCBufferVTReadback());
 			pMat->SetInput(0, 0, resMap.GetRes(data.gBuffer0));
 			pMat->SetOutput(0, 0, resMap.GetRes(data.vtReadback));
 
@@ -950,8 +948,8 @@ void Renderer::UpdateSceneData()
 
 	auto* pCamera = m_scene->GetMainCamera();
 	m_pTerrainLODStreamer->GetStreamingData().UpdateCullingData(pCamera);
-	NXVirtualTextureManager::GetInstance()->Update();
-	NXVirtualTextureManager::GetInstance()->UpdateCBData(pCamera->GetRTSize());
+	m_pVirtualTexture->Update();
+	m_pVirtualTexture->UpdateCBData(pCamera->GetRTSize());
 
 	m_scene->UpdateLightData();
 
@@ -1013,7 +1011,7 @@ void Renderer::Release()
 	SafeRelease(m_pBRDFLut);
 	SafeRelease(m_scene);
 
-	NXVirtualTextureManager::GetInstance()->Release();
+	m_pVirtualTexture->Release();
 	NXAllocatorManager::GetInstance()->Release();
 	NXSubMeshGeometryEditor::GetInstance()->Release();
 }

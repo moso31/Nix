@@ -3,6 +3,7 @@
 #include "NXBRDFlut.h"
 #include "DirectResources.h"
 #include "NXTerrainLODStreamer.h"
+#include "NXVirtualTexture.h"
 
 #include "NXDepthPrepass.h"
 #include "NXForwardRenderer.h"
@@ -67,6 +68,9 @@ public:
 	// TerrainLODStreamer
 	NXTerrainLODStreamer* GetTerrainLODStreamer() { return m_pTerrainLODStreamer; }
 
+	// VirtualTexture
+	NXVirtualTexture* GetVirtualTexture() { return m_pVirtualTexture; }
+
 private:
 	void InitEvents();
 	void InitGlobalResources();
@@ -127,4 +131,5 @@ private:
 	Int2 m_vtReadbackDataSize;
 
 	NXTerrainLODStreamer* m_pTerrainLODStreamer;
+	NXVirtualTexture* m_pVirtualTexture;
 };

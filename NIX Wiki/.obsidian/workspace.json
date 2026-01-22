@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "NX 地形系统/NX 地形系统-工作流.md",
+                "file": "2026-01-09.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "NX 地形系统-工作流"
+              "title": "2026-01-09"
             }
           }
         ]
@@ -53,7 +53,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "",
+                "query": "另一种方法是对虚拟纹理使用硬件三线性过滤",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -74,7 +74,8 @@
               "title": "书签"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "horizontal",
@@ -183,15 +184,18 @@
       "bases:创建新数据库": false
     }
   },
-  "active": "8bef40153c6f3c65",
+  "active": "d9a571dde231c999",
   "lastOpenFiles": [
-    "NX 地形系统/NX 地形系统-开销.md",
-    "NX 地形系统/NX 地形系统-工作流.md",
     "没解决的问题.md",
+    "未命名.base",
+    "未命名 1.base",
+    "NXReadback.md",
+    "NXBuffer.md",
+    "NX Gpu-Driven Terrain.md",
+    "NX 地形系统/NX 地形系统-工作流.md",
+    "NX 地形系统/NX 地形系统-开销.md",
     "NX 地形系统/目录.md",
     "NX 地形系统/Images/Pasted image 20260109114537.png",
-    "NX 地形系统/Images/Pasted image 20260109100802.png",
-    "未命名 1.base",
-    "未命名.base"
+    "NX 地形系统/Images/Pasted image 20260109100802.png"
   ]
 }

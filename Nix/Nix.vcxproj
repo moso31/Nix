@@ -370,7 +370,6 @@
     <ClCompile Include="Core\NXTextureResourceManager.cpp" />
     <ClCompile Include="Core\NXTimer.cpp" />
     <ClCompile Include="Core\NXUploadSystem.cpp" />
-    <ClCompile Include="Core\NXVirtualTextureStreaming.cpp" />
     <ClCompile Include="Core\Renderer.cpp" />
     <ClCompile Include="Core\ShaderComplier.cpp" />
     <ClCompile Include="Core\NXShaderVisibleDescriptorHeap.cpp" />
@@ -403,7 +402,8 @@
     <ClCompile Include="Nix\NXTerrainStreamingBatcher.cpp" />
     <ClCompile Include="Nix\NXTerrainLODStreamer.cpp" />
     <ClCompile Include="Nix\NXTexture.cpp" />
-    <ClCompile Include="Nix\NXVirtualTextureManager.cpp" />
+    <ClCompile Include="Nix\NXVirtualTexture.cpp" />
+    <ClCompile Include="Nix\NXVTImageQuadTree.cpp" />
     <ClCompile Include="Nix\Script\NSFirstPersonalCamera.cpp" />
     <ClCompile Include="Nix\Script\NSTest.cpp" />
     <ClCompile Include="Nix\NXCamera.cpp" />
@@ -500,8 +500,6 @@
     <ClInclude Include="Core\NXTextureResourceManager.h" />
     <ClInclude Include="Core\NXTimer.h" />
     <ClInclude Include="Core\NXUploadSystem.h" />
-    <ClInclude Include="Core\NXVirtualTextureConfig.h" />
-    <ClInclude Include="Core\NXVirtualTextureStreaming.h" />
     <ClInclude Include="Core\Renderer.h" />
     <ClInclude Include="Core\ShaderComplier.h" />
     <ClInclude Include="Core\ShaderStructures.h" />
@@ -544,7 +542,8 @@
     <ClInclude Include="Nix\NXSubMeshGeometryEditor.h" />
     <ClInclude Include="Nix\NXTexture.h" />
     <ClInclude Include="Nix\NXVirtualTextureCommon.h" />
-    <ClInclude Include="Nix\NXVirtualTextureManager.h" />
+    <ClInclude Include="Nix\NXVirtualTexture.h" />
+    <ClInclude Include="Nix\NXVTImageQuadTree.h" />
     <ClInclude Include="Nix\Script\NSFirstPersonalCamera.h" />
     <ClInclude Include="Nix\Script\NSTest.h" />
     <ClInclude Include="Nix\NXCamera.h" />

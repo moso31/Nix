@@ -556,7 +556,7 @@
     <ClCompile Include="Core\NXTextureMaker.cpp">
       <Filter>Core\Helper</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\NXVirtualTextureManager.cpp">
+    <ClCompile Include="Nix\NXVirtualTexture.cpp">
       <Filter>Nix\VirtualTexture</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXGUIVirtualTexture.cpp">
@@ -570,9 +570,6 @@
     </ClCompile>
     <ClCompile Include="Nix\NXReadbackData.cpp">
       <Filter>Nix\TextureBuffer</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\NXVirtualTextureStreaming.cpp">
-      <Filter>Nix\VirtualTexture</Filter>
     </ClCompile>
     <ClCompile Include="Nix\NXTerrainLODStreamer.cpp">
       <Filter>Nix\TextureStreaming</Filter>
@@ -615,6 +612,9 @@
     </ClCompile>
     <ClCompile Include="Core\NXGUITerrainStreamingDebug.cpp">
       <Filter>Nix\TextureStreaming</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXVTImageQuadTree.cpp">
+      <Filter>Nix\VirtualTexture</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -960,7 +960,7 @@
     <ClInclude Include="Core\NXTextureMaker.h">
       <Filter>Core\Helper</Filter>
     </ClInclude>
-    <ClInclude Include="Nix\NXVirtualTextureManager.h">
+    <ClInclude Include="Nix\NXVirtualTexture.h">
       <Filter>Nix\VirtualTexture</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXGUIVirtualTexture.h">
@@ -984,14 +984,8 @@
     <ClInclude Include="Nix\NXReadbackData.h">
       <Filter>Nix\TextureBuffer</Filter>
     </ClInclude>
-    <ClInclude Include="Core\NXVirtualTextureStreaming.h">
-      <Filter>Nix\VirtualTexture</Filter>
-    </ClInclude>
     <ClInclude Include="Nix\NXTerrainCommon.h">
       <Filter>Nix\Object\Transform\Primitive\Terrain</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\NXVirtualTextureConfig.h">
-      <Filter>Nix\VirtualTexture</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXTerrainLODStreamer.h">
       <Filter>Nix\TextureStreaming</Filter>
@@ -1037,6 +1031,9 @@
     </ClInclude>
     <ClInclude Include="Core\NXGUITerrainStreamingDebug.h">
       <Filter>Nix\TextureStreaming</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXVTImageQuadTree.h">
+      <Filter>Nix\VirtualTexture</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

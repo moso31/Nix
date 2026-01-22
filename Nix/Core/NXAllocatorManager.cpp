@@ -1,6 +1,5 @@
 #include "NXAllocatorManager.h"
 #include "NXGlobalDefinitions.h"
-#include "NXVirtualTextureStreaming.h"
 
 #define Memsize_MB(x) (x * 1024 * 1024)
 
@@ -62,14 +61,6 @@ void NXAllocatorManager::Init()
 	addThread([this]() { m_pSRVAllocator->ExecuteTasks(); }, "NXSRVAllocator\n");
 	addThread([this]() { m_pRTVAllocator->ExecuteTasks(); }, "NXRTVAllocator\n");
 	addThread([this]() { m_pDSVAllocator->ExecuteTasks(); }, "NXDSVAllocator\n");
-
-	// 最后再初始化VT相关的，VT需要用到以上分配器
-	//m_pVTStreaming = std::make_unique<NXVirtualTextureStreaming>();
-	//m_pVTStreaming->Init();
-
-	//addThread([this]() { 
-	//	m_pVTStreaming->Update(); 
-	//	}, "NXVirtualTextureStreaming\n");
 }
 
 void NXAllocatorManager::Release()

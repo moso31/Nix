@@ -310,12 +310,8 @@ void NXRenderGraph::Execute()
 
 	cL->Close();
 
-	//NXVTStreaming->GetFenceSync().ReadBegin(cQ);
-
 	ID3D12CommandList* pCmdLists[] = { cL };
 	cQ->ExecuteCommandLists(1, pCmdLists);
-
-	//NXVTStreaming->GetFenceSync().ReadEnd(cQ);
 }
 
 void NXRenderGraph::Clear()

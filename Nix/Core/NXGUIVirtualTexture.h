@@ -1,6 +1,5 @@
 #pragma once
 #include "NXGUI.h"
-#include "NXVirtualTextureManager.h"
 
 class NXGUIVirtualTexture
 {
@@ -29,7 +28,6 @@ private:
     ImVec2 TileMax(int row, int col);
 
     ImU32 VTReadbackDecodeData(int val) const; 
-    ImU32 VTReadbackDecodeDataFromLinear(int idx, int width) const; 
 
 private:
     NXGUI* m_pOwner;
