@@ -14,7 +14,6 @@ SamplerState ssLinearWrap : register(s0);
 
 cbuffer ConstantBufferPreFilter : register(b1)
 {
-	float4 m_paramSize; // x : cubemap size; y : cubemap size inv; z : prefilter map size; w : prefilter map size inv
 	float m_perceptualRoughness;
 }
 
