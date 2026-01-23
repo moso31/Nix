@@ -23,6 +23,12 @@
  ****************************************************************************/
 
 //------------------------------------------------------------------------------
+// Constructors
+//------------------------------------------------------------------------------
+
+inline Vector2::Vector2(const Int2& v) : XMFLOAT2((float)v.x, (float)v.y) {}
+
+//------------------------------------------------------------------------------
 // Comparision operators
 //------------------------------------------------------------------------------
 
@@ -592,6 +598,44 @@ inline void Vector2::TransformNormal( const Vector2* varray, size_t count, const
     XMVector2TransformNormalStream( resultArray, sizeof(XMFLOAT2), varray, sizeof(XMFLOAT2), count, M );
 }
 
+inline void Vector2::Floor( const Vector2& v, Vector2& result )
+{
+    using namespace DirectX;
+    XMVECTOR v1 = XMLoadFloat2( &v );
+    XMVECTOR X = XMVectorFloor( v1 );
+    XMStoreFloat2( &result, X );
+}
+
+inline Vector2 Vector2::Floor( const Vector2& v )
+{
+    using namespace DirectX;
+    XMVECTOR v1 = XMLoadFloat2( &v );
+    XMVECTOR X = XMVectorFloor( v1 );
+
+    Vector2 result;
+    XMStoreFloat2( &result, X );
+    return result;
+}
+
+inline void Vector2::Ceil( const Vector2& v, Vector2& result )
+{
+    using namespace DirectX;
+    XMVECTOR v1 = XMLoadFloat2( &v );
+    XMVECTOR X = XMVectorCeiling( v1 );
+    XMStoreFloat2( &result, X );
+}
+
+inline Vector2 Vector2::Ceil( const Vector2& v )
+{
+    using namespace DirectX;
+    XMVECTOR v1 = XMLoadFloat2( &v );
+    XMVECTOR X = XMVectorCeiling( v1 );
+
+    Vector2 result;
+    XMStoreFloat2( &result, X );
+    return result;
+}
+
 
 /****************************************************************************
  *
@@ -600,13 +644,19 @@ inline void Vector2::TransformNormal( const Vector2* varray, size_t count, const
  ****************************************************************************/
 
 //------------------------------------------------------------------------------
-// Comparision operators
+// Constructors
 //------------------------------------------------------------------------------
 
 inline Vector3::Vector3(const Vector4& v) :
 	XMFLOAT3(v.x, v.y, v.z)
 {
 }
+
+inline Vector3::Vector3(const Int3& v) : XMFLOAT3((float)v.x, (float)v.y, (float)v.z) {}
+
+//------------------------------------------------------------------------------
+// Comparision operators
+//------------------------------------------------------------------------------
 
 inline bool Vector3::operator == ( const Vector3& V ) const
 {
@@ -1254,6 +1304,44 @@ inline void Vector3::TransformNormal( const Vector3* varray, size_t count, const
     XMVector3TransformNormalStream( resultArray, sizeof(XMFLOAT3), varray, sizeof(XMFLOAT3), count, M );
 }
 
+inline void Vector3::Floor( const Vector3& v, Vector3& result )
+{
+    using namespace DirectX;
+    XMVECTOR v1 = XMLoadFloat3( &v );
+    XMVECTOR X = XMVectorFloor( v1 );
+    XMStoreFloat3( &result, X );
+}
+
+inline Vector3 Vector3::Floor( const Vector3& v )
+{
+    using namespace DirectX;
+    XMVECTOR v1 = XMLoadFloat3( &v );
+    XMVECTOR X = XMVectorFloor( v1 );
+
+    Vector3 result;
+    XMStoreFloat3( &result, X );
+    return result;
+}
+
+inline void Vector3::Ceil( const Vector3& v, Vector3& result )
+{
+    using namespace DirectX;
+    XMVECTOR v1 = XMLoadFloat3( &v );
+    XMVECTOR X = XMVectorCeiling( v1 );
+    XMStoreFloat3( &result, X );
+}
+
+inline Vector3 Vector3::Ceil( const Vector3& v )
+{
+    using namespace DirectX;
+    XMVECTOR v1 = XMLoadFloat3( &v );
+    XMVECTOR X = XMVectorCeiling( v1 );
+
+    Vector3 result;
+    XMStoreFloat3( &result, X );
+    return result;
+}
+
 inline float Vector3::Angle(const Vector3& v1, const Vector3& v2)
 {
 	float cosAngle = v1.Dot(v2) / (v1.Length() * v2.Length());
@@ -1297,6 +1385,12 @@ inline bool Vector3::IsNaN(const Vector3& v)
  * Vector4
  *
  ****************************************************************************/
+
+//------------------------------------------------------------------------------
+// Constructors
+//------------------------------------------------------------------------------
+
+inline Vector4::Vector4(const Int4& v) : XMFLOAT4((float)v.x, (float)v.y, (float)v.z, (float)v.w) {}
 
 //------------------------------------------------------------------------------
 // Comparision operators
@@ -1872,6 +1966,44 @@ inline void Vector4::Transform( const Vector4* varray, size_t count, const Matri
     using namespace DirectX;
     XMMATRIX M = XMLoadFloat4x4( &m );
     XMVector4TransformStream( resultArray, sizeof(XMFLOAT4), varray, sizeof(XMFLOAT4), count, M );
+}
+
+inline void Vector4::Floor( const Vector4& v, Vector4& result )
+{
+    using namespace DirectX;
+    XMVECTOR v1 = XMLoadFloat4( &v );
+    XMVECTOR X = XMVectorFloor( v1 );
+    XMStoreFloat4( &result, X );
+}
+
+inline Vector4 Vector4::Floor( const Vector4& v )
+{
+    using namespace DirectX;
+    XMVECTOR v1 = XMLoadFloat4( &v );
+    XMVECTOR X = XMVectorFloor( v1 );
+
+    Vector4 result;
+    XMStoreFloat4( &result, X );
+    return result;
+}
+
+inline void Vector4::Ceil( const Vector4& v, Vector4& result )
+{
+    using namespace DirectX;
+    XMVECTOR v1 = XMLoadFloat4( &v );
+    XMVECTOR X = XMVectorCeiling( v1 );
+    XMStoreFloat4( &result, X );
+}
+
+inline Vector4 Vector4::Ceil( const Vector4& v )
+{
+    using namespace DirectX;
+    XMVECTOR v1 = XMLoadFloat4( &v );
+    XMVECTOR X = XMVectorCeiling( v1 );
+
+    Vector4 result;
+    XMStoreFloat4( &result, X );
+    return result;
 }
 
 

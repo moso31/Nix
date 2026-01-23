@@ -32,6 +32,9 @@ struct Vector4;
 struct Matrix;
 struct Quaternion;
 struct Plane;
+struct Int2;
+struct Int3;
+struct Int4;
 
 const float DEGTORAD = 0.01745329251994329576923690768489f;
 const float RADTODEG = 57.295779513082320876798154814105f;
@@ -62,6 +65,7 @@ struct Vector2 : public XMFLOAT2
     Vector2(float _x, float _y) : XMFLOAT2(_x, _y) {}
     explicit Vector2(_In_reads_(2) const float *pArray) : XMFLOAT2(pArray) {}
     Vector2(FXMVECTOR V) { XMStoreFloat2( this, V ); }
+    Vector2(const Int2& v);
 
     operator XMVECTOR() const { return XMLoadFloat2( this ); }
     operator float* () { return reinterpret_cast<float*>(this); }
@@ -144,6 +148,12 @@ struct Vector2 : public XMFLOAT2
     static void TransformNormal( const Vector2& v, const Matrix& m, Vector2& result );
     static Vector2 TransformNormal( const Vector2& v, const Matrix& m );
     static void TransformNormal( _In_reads_(count) const Vector2* varray, size_t count, const Matrix& m, _Out_writes_(count) Vector2* resultArray );
+
+    static void Floor( const Vector2& v, Vector2& result );
+    static Vector2 Floor( const Vector2& v );
+
+    static void Ceil( const Vector2& v, Vector2& result );
+    static Vector2 Ceil( const Vector2& v );
 };
 
 // Binary operators
@@ -167,6 +177,7 @@ struct Vector3 : public XMFLOAT3
 	Vector3(const Vector4& v);
 	Vector3(const Vector2& v, const float z) : XMFLOAT3(v.x, v.y, z) {};
 	Vector3(const float x, const Vector2& v) : XMFLOAT3(x, v.x, v.y) {};
+    Vector3(const Int3& v);
 
     operator XMVECTOR() const { return XMLoadFloat3( this ); }
     operator float* () { return reinterpret_cast<float*>(this); }
@@ -271,6 +282,12 @@ struct Vector3 : public XMFLOAT3
 	static Vector3 Permute(const Vector3& v, int x, int y, int z);
 
     static bool IsNaN(const Vector3& v);
+
+    static void Floor( const Vector3& v, Vector3& result );
+    static Vector3 Floor( const Vector3& v );
+
+    static void Ceil( const Vector3& v, Vector3& result );
+    static Vector3 Ceil( const Vector3& v );
 };
 
 // Binary operators
@@ -292,6 +309,7 @@ struct Vector4 : public XMFLOAT4
     Vector4(Vector3 xyz, float w) : XMFLOAT4(xyz.x, xyz.y, xyz.z, w) {}
     explicit Vector4(_In_reads_(4) const float *pArray) : XMFLOAT4(pArray) {}
     Vector4(FXMVECTOR V) { XMStoreFloat4( this, V ); }
+    Vector4(const Int4& v);
 
     operator XMVECTOR() const { return XMLoadFloat4( this ); }
     operator float* () { return reinterpret_cast<float*>(this); }
@@ -374,6 +392,12 @@ struct Vector4 : public XMFLOAT4
     static void Transform( const Vector4& v, const Matrix& m, Vector4& result );
     static Vector4 Transform( const Vector4& v, const Matrix& m );
     static void Transform( _In_reads_(count) const Vector4* varray, size_t count, const Matrix& m, _Out_writes_(count) Vector4* resultArray );
+
+    static void Floor( const Vector4& v, Vector4& result );
+    static Vector4 Floor( const Vector4& v );
+
+    static void Ceil( const Vector4& v, Vector4& result );
+    static Vector4 Ceil( const Vector4& v );
 };
 
 // Binary operators
@@ -422,6 +446,8 @@ inline Int2 operator* (const Int2& V, int S) { return Int2(V.x * S, V.y * S); }
 inline Int2 operator/ (const Int2& V1, const Int2& V2) { return Int2(V1.x / V2.x, V1.y / V2.y); }
 inline Int2 operator* (int S, const Int2& V) { return Int2(V.x * S, V.y * S); }
 inline Int2 operator/ (const Int2& V, int S) { return Int2(V.x / S, V.y / S); }
+inline Int2 operator<< (const Int2& V, int S) { return Int2(V.x << S, V.y << S); }
+inline Int2 operator>> (const Int2& V, int S) { return Int2(V.x >> S, V.y >> S); }
 
 struct Int3 : public XMINT3
 {
@@ -459,6 +485,8 @@ inline Int3 operator* (const Int3& V, int S) { return Int3(V.x * S, V.y * S, V.z
 inline Int3 operator/ (const Int3& V1, const Int3& V2) { return Int3(V1.x / V2.x, V1.y / V2.y, V1.z / V2.z); }
 inline Int3 operator* (int S, const Int3& V) { return Int3(V.x * S, V.y * S, V.z * S); }
 inline Int3 operator/ (const Int3& V, int S) { return Int3(V.x / S, V.y / S, V.z / S); }
+inline Int3 operator<< (const Int3& V, int S) { return Int3(V.x << S, V.y << S, V.z << S); }
+inline Int3 operator>> (const Int3& V, int S) { return Int3(V.x >> S, V.y >> S, V.z >> S); }
 
 struct Int4 : public XMINT4
 {
@@ -496,6 +524,8 @@ inline Int4 operator* (const Int4& V, int S) { return Int4(V.x * S, V.y * S, V.z
 inline Int4 operator/ (const Int4& V1, const Int4& V2) { return Int4(V1.x / V2.x, V1.y / V2.y, V1.z / V2.z, V1.w / V2.w); }
 inline Int4 operator* (int S, const Int4& V) { return Int4(V.x * S, V.y * S, V.z * S, V.w * S); }
 inline Int4 operator/ (const Int4& V, int S) { return Int4(V.x / S, V.y / S, V.z / S, V.w / S); }
+inline Int4 operator<< (const Int4& V, int S) { return Int4(V.x << S, V.y << S, V.z << S, V.w << S); }
+inline Int4 operator>> (const Int4& V, int S) { return Int4(V.x >> S, V.y >> S, V.z >> S, V.w >> S); }
 
 //------------------------------------------------------------------------------
 // 4x4 Matrix (assumes right-handed cooordinates)
