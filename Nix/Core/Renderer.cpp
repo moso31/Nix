@@ -69,7 +69,7 @@ void Renderer::Init()
 	m_scene->Init();
 	m_pTerrainLODStreamer = new NXTerrainLODStreamer();
 	m_pTerrainLODStreamer->Init(m_scene);
-	m_pVirtualTexture->Init(m_scene->GetMainCamera());
+	m_pVirtualTexture = new NXVirtualTexture(m_scene->GetMainCamera());
 
 	auto pCubeMap = m_scene->GetCubeMap();
 
@@ -977,6 +977,9 @@ void Renderer::RenderFrame()
 
 	// 更新PSOManager状态
 	NXPSOManager::GetInstance()->FrameCleanup();
+
+	// 延迟清除用不着的 流式地形Tile纹理
+	m_pTerrainLODStreamer->GetStreamingData().FrameCleanup();
 }
 
 void Renderer::RenderGUI(const NXSwapChainBuffer& swapChainBuffer)

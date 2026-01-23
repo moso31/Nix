@@ -1,7 +1,8 @@
 #include "NXVirtualTexture.h"
 #include "NXCamera.h"
 
-NXVirtualTexture::NXVirtualTexture() :
+NXVirtualTexture::NXVirtualTexture(class NXCamera* pCam) :
+	m_pCamera(pCam),
 	m_vtSectorLodDists({ 32.0f, 64.0f, 128.0f, 256.0f, 512.0f, 1024.0f, 2048.0f }),
 	m_vtSectorLodMaxDist(400)
 {
@@ -64,10 +65,8 @@ void NXVirtualTexture::UpdateNearestSectors()
 	{
 		auto& A = m_lastSectors[i];
 		auto& B = m_sectors[j];
-		auto kA = A.GetKey();
-		auto kB = B.GetKey();
 
-		if (kA == kB)
+		if (A.id == B.id)
 		{
 			if (A.imageSize == B.imageSize)
 			{
@@ -83,12 +82,12 @@ void NXVirtualTexture::UpdateNearestSectors()
 			i++;
 			j++;
 		}
-		else if (kA < kB)
+		else if (A.Less(B)) // A < B
 		{
 			removeSector.push_back(A);
 			i++;
 		}
-		else // kA > kB
+		else // A > B
 		{
 			createSector.push_back(B);
 			j++;
@@ -101,6 +100,7 @@ void NXVirtualTexture::UpdateNearestSectors()
 	for (auto& s : createSector)
 	{
 		Int2 virtImgPos = m_pVirtImageQuadTree->Alloc(s.imageSize);
+		printf("CreateSector: %d %d\n", virtImgPos.x, virtImgPos.y);
 		m_sector2VirtImagePos[s] = virtImgPos;
 	}
 
@@ -117,6 +117,7 @@ void NXVirtualTexture::UpdateNearestSectors()
 	for (auto& s : changeSector)
 	{
 		Int2 newVirtImgPos = m_pVirtImageQuadTree->Alloc(s.changedImageSize);
+		printf("changeSector: %d %d\n", newVirtImgPos.x, newVirtImgPos.y);
 		NXVTSector newSector = s.oldData;
 		newSector.imageSize = s.changedImageSize;
 		m_sector2VirtImagePos[newSector] = newVirtImgPos;

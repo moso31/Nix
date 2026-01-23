@@ -8,6 +8,13 @@
 #include "NXTerrainLODStreamConfigs.h"
 #include "ShaderStructures.h"
 
+// 用于延迟释放的纹理数据
+struct NXTerrainTextureRemoving
+{
+	Ntr<NXTexture2D> pTexture;
+	uint64_t fenceValue;
+};
+
 struct CBufferTerrainNodeDescription
 {
 	// 地形左下角XZ节点坐标（左手坐标系）
@@ -81,9 +88,9 @@ public:
 	const std::vector<Ntr<NXTexture2D>>& GetToAtlasHeightTextures() const { return m_pToAtlasHeights; }
 	const std::vector<Ntr<NXTexture2D>>& GetToAtlasSplatTextures() const { return m_pToAtlasSplats; }
 	const std::vector<Ntr<NXTexture2D>>& GetToAtlasNormalTextures() const { return m_pToAtlasNormals; }
-	void SetToAtlasHeightTexture(uint32_t index, const Ntr<NXTexture2D>& pTexture) { m_pToAtlasHeights[index] = pTexture; }
-	void SetToAtlasSplatTexture(uint32_t index, const Ntr<NXTexture2D>& pTexture) { m_pToAtlasSplats[index] = pTexture; }
-	void SetToAtlasNormalTexture(uint32_t index, const Ntr<NXTexture2D>& pTexture) { m_pToAtlasNormals[index] = pTexture; }
+	void SetToAtlasHeightTexture(uint32_t index, const Ntr<NXTexture2D>& pTexture);
+	void SetToAtlasSplatTexture(uint32_t index, const Ntr<NXTexture2D>& pTexture);
+	void SetToAtlasNormalTexture(uint32_t index, const Ntr<NXTexture2D>& pTexture);
 	const Ntr<NXTexture2D>& GetSector2NodeIDTexture() const { return m_pSector2NodeIDTexture; }
 
 	bool NeedClearSector2NodeIDTexture() const { return m_bNeedClearSector2NodeIDTexture; }
@@ -103,7 +110,13 @@ public:
 
 	void UpdateGBufferPatcherData(ID3D12GraphicsCommandList* pCmdList);
 
+	// 每帧清理已确认GPU完成使用的纹理
+	void FrameCleanup();
+
 private:
+	// 将旧纹理加入待释放队列
+	void AddToRemovingQueue(const Ntr<NXTexture2D>& pTexture);
+
 	// 和m_nodeDescArrayInternal完全相同，只是数据格式不同，供CPU-GPU交互
 	std::vector<CBufferTerrainNodeDescription> m_nodeDescArray;
 	NXConstantBuffer<std::vector<CBufferTerrainNodeDescription>> m_cbNodeDescArray;
@@ -120,6 +133,9 @@ private:
 	std::vector<Ntr<NXTexture2D>> m_pToAtlasHeights;
 	std::vector<Ntr<NXTexture2D>> m_pToAtlasSplats;
 	std::vector<Ntr<NXTexture2D>> m_pToAtlasNormals;
+
+	// 待释放的纹理队列（等待GPU完成后再释放）
+	std::vector<NXTerrainTextureRemoving> m_removingTextures;
 
 	// 记录各sector的nodeID
 	Ntr<NXTexture2D> m_pSector2NodeIDTexture;

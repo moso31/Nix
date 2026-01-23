@@ -59,8 +59,10 @@ private:
 
 class NXVTImageQuadTree
 {
-    constexpr static int VT_IMAGE_LEVELS = 12; // 2048x2048
 public:
+    constexpr static int VT_IMAGE_LEVELS = 12; // 2048x2048
+    constexpr static int VT_IMAGE_SIZE = 2048; // 根节点大小
+
     NXVTImageQuadTree()
     {
         m_state[0].assign(1, NXVTImageNodeState::Free);
@@ -73,6 +75,11 @@ public:
             m_state[i].assign(nodeCnt, NXVTImageNodeState::Unused);
         }
     }
+
+    // GUI可视化访问接口
+    int GetLevelCount() const { return VT_IMAGE_LEVELS; }
+    int GetImageSize() const { return VT_IMAGE_SIZE; }
+    const std::vector<NXVTImageNodeState>& GetStateAtLevel(int level) const { return m_state[level]; }
 
     int SizeToLevel(int size) // 2048 = 0, 1 = 11
     {

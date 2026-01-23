@@ -4,6 +4,17 @@
 #include "imgui.h"
 #include "NXGUIVirtualTexture.h"
 #include "NXGlobalDefinitions.h"
+#include "Renderer.h"
+#include "NXVirtualTexture.h"
+#include "NXVTImageQuadTree.h"
+
+NXVirtualTexture* NXGUIVirtualTexture::GetVirtualTexture() const
+{
+    if (!m_pOwner) return nullptr;
+    auto* pRenderer = m_pOwner->GetRenderer();
+    if (!pRenderer) return nullptr;
+    return pRenderer->GetVirtualTexture();
+}
 
 NXGUIVirtualTexture::NXGUIVirtualTexture(NXGUI* pOwner) :
     m_pOwner(pOwner),
@@ -57,8 +68,8 @@ void NXGUIVirtualTexture::Render_Sectors()
     const float kLeftWidth = 360.0f;
     ImGui::BeginChild("LeftList", ImVec2(kLeftWidth, 0.0f), true);
 
-    auto m_mgr = NXVirtualTextureManager::GetInstance();
-    int nearCount = (m_mgr ? (int)m_mgr->GetSectorList().size() : 0);
+    auto* pVT = GetVirtualTexture();
+    int nearCount = (pVT ? (int)pVT->GetSectors().size() : 0);
     ImGui::Text("Near sector: %d", nearCount);
 
     ImGui::Separator();
@@ -72,7 +83,7 @@ void NXGUIVirtualTexture::Render_Sectors()
     ImGui::Separator();
 
     // 列表内容（Clipper 保证 6.5 万条也不卡）
-    const int total = (m_showOnlyNear && m_mgr) ? nearCount : GRID_COUNT * GRID_COUNT;
+    const int total = (m_showOnlyNear && pVT) ? nearCount : GRID_COUNT * GRID_COUNT;
     ImGui::Text("list(%d)", total);
     ImGui::Separator();
 
@@ -86,16 +97,17 @@ void NXGUIVirtualTexture::Render_Sectors()
             ImVec2 mn, mx;
             int globalIdx = -1;
 
-            if (m_showOnlyNear && m_mgr)
+            if (m_showOnlyNear && pVT)
             {
-                const auto& lst = m_mgr->GetSectorList();
-                const auto& sectorInfo = lst[i]; // 假设 pos=(x,z) 为“右上角锚点”
-                // 将右上角锚点换算为网格行列：先得到该格子的最小点(左下)
-                float tileMinX = float(sectorInfo.x - SECTOR_SIZE);
-                float tileMinZ = float(sectorInfo.y - SECTOR_SIZE);
-                // 负数要用 floor，再转 int
-                col = int(std::floor((tileMinX - WORLD_MIN) / float(SECTOR_SIZE)));
-                row = int(std::floor((tileMinZ - WORLD_MIN) / float(SECTOR_SIZE)));
+                const auto& lst = pVT->GetSectors();
+                const auto& sectorInfo = lst[i];
+                // sectorInfo.id 是 sector 的网格坐标
+                // 转换为世界坐标：sectorPos = id * SECTOR_SIZE
+                float tileMinX = float(sectorInfo.id.x * SECTOR_SIZE);
+                float tileMinZ = float(sectorInfo.id.y * SECTOR_SIZE);
+                // 计算行列
+                col = sectorInfo.id.x - (WORLD_MIN / SECTOR_SIZE);
+                row = sectorInfo.id.y - (WORLD_MIN / SECTOR_SIZE);
                 // 保底夹取到合法范围
                 col = std::clamp(col, 0, GRID_COUNT - 1);
                 row = std::clamp(row, 0, GRID_COUNT - 1);
@@ -150,38 +162,39 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
     ImGui::Begin(m_strTitle[1].c_str());
 
     // ---- 取数据 ----
-    auto* m_mgr = NXVirtualTextureManager::GetInstance();
-    if (!m_mgr)
+    auto* pVT = GetVirtualTexture();
+    if (!pVT)
     {
-        ImGui::TextUnformatted("NXVirtualTextureManager::GetInstance() == nullptr");
+        ImGui::TextUnformatted("NXVirtualTexture is nullptr");
         ImGui::End();
         return;
     }
 
-    const auto& nodes = m_mgr->GetNodes();          // 线性展开的一维节点数组
-    const int totalNodes = (int)nodes.size();
+    const auto* pQuadTree = pVT->GetQuadTree();
+    if (!pQuadTree)
+    {
+        ImGui::TextUnformatted("QuadTree is nullptr");
+        ImGui::End();
+        return;
+    }
+
+    // 获取所有已分配的叶子节点（sector到VirtImage位置的映射）
+    const auto& sector2Pos = pVT->GetSector2VirtImagePos();
+    const auto& sectors = pVT->GetSectors();
+    const int ATLAS_SIZE = pQuadTree->GetImageSize(); // 2048
 
     // ---- 左右布局：左列表 + 右视图 ----
     const float kLeftWidth = 360.0f;
     ImGui::BeginChild("AtlasLeftList", ImVec2(kLeftWidth, 0.0f), true);
 
-    // 交互选项与状态（仅用于 Atlas，不影响 Sector）
-    static bool  s_drawGrid = true;    // 右侧视图是否画参考网格
-    static float s_zoom = 1.0f;    // 右侧缩放
-    static ImVec2 s_panPix = ImVec2(0.0f, 0.0f); // 右侧平移（像素系）
-    static int   s_selectedIdx = -1;      // 选中的线性索引
-    constexpr int ATLAS_SIZE = 2048;       // 画布（矢量图）边长
-
-    // 统计
-    int imageCount = 0;
-    for (int i = 0; i < totalNodes; ++i)
-    {
-        const auto& n = nodes[i];
-        if (n->isImage) imageCount++;
-    }
+    // 交互选项与状态
+    static bool  s_drawGrid = true;
+    static float s_zoom = 1.0f;
+    static ImVec2 s_panPix = ImVec2(0.0f, 0.0f);
+    static int   s_selectedIdx = -1;
 
     ImGui::Text("Atlas size: %dx%d", ATLAS_SIZE, ATLAS_SIZE);
-    ImGui::Text("Nodes: %d", totalNodes);
+    ImGui::Text("Leaf nodes (allocated): %d", (int)sector2Pos.size());
     ImGui::Separator();
     ImGui::Checkbox("Draw grid in view", &s_drawGrid);
     ImGui::SliderFloat("Scale", &s_zoom, 0.25f, 16.0f, "%.2fx");
@@ -191,48 +204,42 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
         s_panPix = ImVec2(0.0f, 0.0f);
     }
     ImGui::Separator();
-    auto pRoot = m_mgr->GetAtlasRootNode();
-    ImGui::Text("rootSubImgNum: %d", pRoot->subImageNum);
+
+    // 列表：显示所有叶子节点（已分配的sector）
+    ImGui::Text("Leaf nodes list (%d)", (int)sectors.size());
     ImGui::Separator();
 
-    // 列表：使用 clipper
+    ImGuiListClipper clipper;
+    clipper.Begin((int)sectors.size());
+    while (clipper.Step())
     {
-        // 先确定列表里要显示的条目索引集合（避免在 clipper 内部做复杂判断）
-        static std::vector<int> s_viewIndices;
-        s_viewIndices.clear();
-        s_viewIndices.reserve(totalNodes);
-
-        for (int i = 0; i < totalNodes; ++i)
+        for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
         {
-            const auto& n = nodes[i];
-            s_viewIndices.push_back(i);
-        }
-
-        ImGui::Text("list(%d)", (int)s_viewIndices.size());
-        ImGui::Separator();
-
-        ImGuiListClipper clipper;
-        clipper.Begin((int)s_viewIndices.size());
-        while (clipper.Step())
-        {
-            for (int k = clipper.DisplayStart; k < clipper.DisplayEnd; ++k)
+            const auto& sector = sectors[i];
+            auto it = sector2Pos.find(sector);
+            
+            char buf[256];
+            if (it != sector2Pos.end())
             {
-                const int i = s_viewIndices[k];
-                const auto& n = nodes[i];
-
-                char buf[192];
-                std::snprintf(buf, sizeof(buf),
-                    "pos(%4d,%4d) size(%4d): %d, %d", 
-                    n->sectorPos.x, n->sectorPos.y,
-                    n->sectorSize,
-                    n->isImage,
-                    n->subImageNum
-                    );
-
-                bool selected = (s_selectedIdx == i);
-                if (ImGui::Selectable(buf, selected))
-                    s_selectedIdx = i;
+                const Int2& virtPos = it->second;
+                // virtPos 是四叉树索引转换后的位置，需要乘以imageSize得到实际像素坐标
+                int pixelX = virtPos.x * sector.imageSize;
+                int pixelY = virtPos.y * sector.imageSize;
+                std::snprintf(buf, sizeof(buf), 
+                    "Sector(%d,%d) -> VirtImg pos(%d,%d) size=%d", 
+                    sector.id.x, sector.id.y, 
+                    pixelX, pixelY, sector.imageSize);
             }
+            else
+            {
+                std::snprintf(buf, sizeof(buf), 
+                    "Sector(%d,%d) size=%d [no mapping]", 
+                    sector.id.x, sector.id.y, sector.imageSize);
+            }
+
+            bool selected = (s_selectedIdx == i);
+            if (ImGui::Selectable(buf, selected))
+                s_selectedIdx = i;
         }
     }
 
@@ -261,16 +268,15 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
     float scale = baseScale * std::max(0.01f, s_zoom);
 
     auto A2S = [&](float ax, float ay) -> ImVec2 {
-        // Atlas 原点在左上，Y 向下（与屏幕一致）
         float sx = regionTL.x + ax * scale + s_panPix.x;
         float sy = regionTL.y + ay * scale + s_panPix.y;
         return ImVec2(sx, sy);
-        };
+    };
     auto S2A = [&](float sx, float sy) -> ImVec2 {
         float ax = (sx - regionTL.x - s_panPix.x) / scale;
         float ay = (sy - regionTL.y - s_panPix.y) / scale;
         return ImVec2(ax, ay);
-        };
+    };
 
     // 视图交互：中键平移、滚轮围绕鼠标缩放
     {
@@ -296,7 +302,7 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
                 s_panPix.y += io.MousePos.y - anchorS_after.y;
 
                 s_zoom = newZoom;
-                scale = newScale; // 本帧生效
+                scale = newScale;
             }
         }
     }
@@ -312,7 +318,6 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
     if (s_drawGrid)
     {
         ImU32 gridC = IM_COL32(70, 70, 70, 255);
-        // 每 128 画一条（不会太密，足够参考）
         const int step = 128;
         for (int k = 0; k <= ATLAS_SIZE; k += step)
         {
@@ -328,34 +333,57 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
         }
     }
 
-    // 绘制所有有效节点：内部节点画边框；isImage 的叶子节点再加轻微填充
+    // 绘制所有叶子节点（已分配的sector在VirtImage中的位置）
     {
-        for (int i = 0; i < totalNodes; ++i)
+        int idx = 0;
+        for (const auto& sector : sectors)
         {
-            const auto& n = nodes[i];
-            ImU32 imageFill = GetSectorRectColor(n->sectorSize, true);
-            ImU32 imageLine = GetSectorRectColor(n->sectorSize, false);
+            auto it = sector2Pos.find(sector);
+            if (it == sector2Pos.end())
+            {
+                idx++;
+                continue;
+            }
 
-            ImVec2 tl = A2S((float)n->nodePos.x, (float)n->nodePos.y);
-            ImVec2 br = A2S((float)n->nodePos.x + n->nodeSize, (float)n->nodePos.y + n->nodeSize);
+            const Int2& virtPos = it->second;
+            int nodeSize = sector.imageSize;
+            // virtPos是四叉树位置索引，乘以nodeSize得到像素坐标
+            float x = (float)(virtPos.x * nodeSize);
+            float y = (float)(virtPos.y * nodeSize);
+
+            ImU32 fillColor = GetSectorRectColor(nodeSize, true);
+            ImU32 lineColor = GetSectorRectColor(nodeSize, false);
+
+            ImVec2 tl = A2S(x, y);
+            ImVec2 br = A2S(x + nodeSize, y + nodeSize);
 
             // 画矩形+边框
             ImVec2 atl = tl, abr = br;
             atl.x = AlignPx(atl.x); abr.x = AlignPx(abr.x);
             atl.y = AlignPx(atl.y); abr.y = AlignPx(abr.y);
-            dl->AddRectFilled(tl, br, imageFill);
-            dl->AddRect(atl, abr, imageLine, 0.0f, 0, 1.5f);
+            dl->AddRectFilled(tl, br, fillColor);
+            dl->AddRect(atl, abr, lineColor, 0.0f, 0, 1.5f);
+
+            idx++;
         }
 
         // 选中高亮
-        if (s_selectedIdx >= 0 && s_selectedIdx < totalNodes)
+        if (s_selectedIdx >= 0 && s_selectedIdx < (int)sectors.size())
         {
-            const auto& n = nodes[s_selectedIdx];
-            ImVec2 tl = A2S((float)n->nodePos.x, (float)n->nodePos.y);
-            ImVec2 br = A2S((float)n->nodePos.x + n->nodeSize, (float)n->nodePos.y + n->nodeSize);
-            tl.x = AlignPx(tl.x); br.x = AlignPx(br.x);
-            tl.y = AlignPx(tl.y); br.y = AlignPx(br.y);
-            dl->AddRect(tl, br, IM_COL32(255, 220, 60, 255), 0.0f, 0, 3.0f);
+            const auto& sector = sectors[s_selectedIdx];
+            auto it = sector2Pos.find(sector);
+            if (it != sector2Pos.end())
+            {
+                const Int2& virtPos = it->second;
+                int nodeSize = sector.imageSize;
+                float x = (float)(virtPos.x * nodeSize);
+                float y = (float)(virtPos.y * nodeSize);
+                ImVec2 tl = A2S(x, y);
+                ImVec2 br = A2S(x + nodeSize, y + nodeSize);
+                tl.x = AlignPx(tl.x); br.x = AlignPx(br.x);
+                tl.y = AlignPx(tl.y); br.y = AlignPx(br.y);
+                dl->AddRect(tl, br, IM_COL32(255, 220, 60, 255), 0.0f, 0, 3.0f);
+            }
         }
     }
 
@@ -584,20 +612,21 @@ void NXGUIVirtualTexture::DrawWorld(ImDrawList* dl, const ImVec2& regionTL, cons
         dl->AddLine(z0, z1, IM_COL32(200, 60, 60, 255), 2.0f); // Z=0
     }
 
-    // 相机附近 Sector 高亮（来自单例 Manager）
-    if (auto m_mgr = NXVirtualTextureManager::GetInstance())
+    // 相机附近 Sector 高亮（来自 NXVirtualTexture）
+    if (auto* pVT = GetVirtualTexture())
     {
-        const auto& lst = m_mgr->GetSectorInfos();
+        const auto& sectors = pVT->GetSectors();
 
-        for (const auto& sectorInfo : lst)
+        for (const auto& sector : sectors)
         {
-            ImU32 imageFill = GetSectorRectColor(sectorInfo.size, true);
-            ImU32 imageLine = GetSectorRectColor(sectorInfo.size, false);
+            ImU32 imageFill = GetSectorRectColor(sector.imageSize, true);
+            ImU32 imageLine = GetSectorRectColor(sector.imageSize, false);
 
-            float minx = float(sectorInfo.position.x - SECTOR_SIZE);
-            float maxx = float(sectorInfo.position.x);
-            float minz = float(sectorInfo.position.y - SECTOR_SIZE);
-            float maxz = float(sectorInfo.position.y);
+            // sector.id 是网格坐标，转换为世界坐标
+            float minx = float(sector.id.x * SECTOR_SIZE);
+            float maxx = float((sector.id.x + 1) * SECTOR_SIZE);
+            float minz = float(sector.id.y * SECTOR_SIZE);
+            float maxz = float((sector.id.y + 1) * SECTOR_SIZE);
 
             // 裁剪到世界范围
             if (maxx <= WORLD_MIN || minx >= WORLD_MAX || maxz <= WORLD_MIN || minz >= WORLD_MAX)

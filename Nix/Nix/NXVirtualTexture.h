@@ -10,12 +10,16 @@ struct NXVTSector
 {
 	NXVTSector() : id(0, 0), imageSize(0) {}
 	NXVTSector(const Int2& id, int imageSize) : id(id), imageSize(imageSize) {}
-	
-	// 需要两种Key，位置id唯一key 和 全局唯一key
-	uint64_t GetKey() { return id.x << 16 | id.y; }
 
 	bool operator==(const NXVTSector& other) const noexcept {
 		return id == other.id && imageSize == other.imageSize;
+	}
+	
+	// 归并比较的小于
+	bool Less(const NXVTSector& other)
+	{
+		if (id.x != other.id.x) return id.x < other.id.x;
+		return id.y < other.id.y;
 	}
 
 	Int2 id;
@@ -49,10 +53,9 @@ class NXVirtualTexture
 	constexpr static size_t SECTOR_SIZE_LOG2 = 6;
 
 public:
-	NXVirtualTexture();
+	NXVirtualTexture(class NXCamera* pCam);
 	~NXVirtualTexture();
 
-	void Init(class NXCamera* pCam) { m_pCamera = pCam; }
 	void Update();
 
 	void UpdateCBData(const Vector2& rtSize)
@@ -62,6 +65,11 @@ public:
 	}
 
 	const NXConstantBuffer<Vector4>& GetCBufferVTReadback() const { return m_cbVTReadback; }
+
+	// GUI 访问接口
+	const std::vector<NXVTSector>& GetSectors() const { return m_sectors; }
+	const NXVTImageQuadTree* GetQuadTree() const { return m_pVirtImageQuadTree; }
+	const std::unordered_map<NXVTSector, Int2>& GetSector2VirtImagePos() const { return m_sector2VirtImagePos; }
 
 	void Release();
 

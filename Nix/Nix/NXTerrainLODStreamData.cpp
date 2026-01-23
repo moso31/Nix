@@ -4,6 +4,7 @@
 #include "NXCamera.h"
 #include "NXGlobalDefinitions.h"
 #include "NXTimer.h"
+#include <algorithm>
 
 void NXTerrainLODStreamData::Init(NXTerrainLODStreamer* pStreamer)
 {
@@ -123,4 +124,42 @@ void NXTerrainLODStreamData::UpdateGBufferPatcherData(ID3D12GraphicsCommandList*
 	NXShVisDescHeap->PushFluid(m_pNormalMapAtlas.IsValid() ? m_pNormalMapAtlas->GetSRV() : NXAllocator_NULL->GetNullSRV());
 	auto& srvHandle = NXShVisDescHeap->Submit();
 	pCmdList->SetGraphicsRootDescriptorTable(4, srvHandle); // 使用4号根参数 具体见NXCustomMaterial::CompileShader()
+}
+
+void NXTerrainLODStreamData::SetToAtlasHeightTexture(uint32_t index, const Ntr<NXTexture2D>& pTexture)
+{
+	AddToRemovingQueue(m_pToAtlasHeights[index]);
+	m_pToAtlasHeights[index] = pTexture;
+}
+
+void NXTerrainLODStreamData::SetToAtlasSplatTexture(uint32_t index, const Ntr<NXTexture2D>& pTexture)
+{
+	AddToRemovingQueue(m_pToAtlasSplats[index]);
+	m_pToAtlasSplats[index] = pTexture;
+}
+
+void NXTerrainLODStreamData::SetToAtlasNormalTexture(uint32_t index, const Ntr<NXTexture2D>& pTexture)
+{
+	AddToRemovingQueue(m_pToAtlasNormals[index]);
+	m_pToAtlasNormals[index] = pTexture;
+}
+
+void NXTerrainLODStreamData::AddToRemovingQueue(const Ntr<NXTexture2D>& pTexture)
+{
+	if (pTexture.IsNull())
+		return;
+
+	NXTerrainTextureRemoving removing;
+	removing.pTexture = pTexture;
+	removing.fenceValue = NXGlobalDX::s_globalfenceValue;
+	m_removingTextures.push_back(removing);
+}
+
+void NXTerrainLODStreamData::FrameCleanup()
+{
+	UINT64 currentGPUFenceValue = NXGlobalDX::s_globalfence->GetCompletedValue();
+	std::erase_if(m_removingTextures, [currentGPUFenceValue](const NXTerrainTextureRemoving& removing)
+		{
+			return currentGPUFenceValue > removing.fenceValue;
+		});
 }

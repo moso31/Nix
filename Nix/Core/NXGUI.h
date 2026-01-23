@@ -53,6 +53,7 @@ public:
 	NXGUIRenderGraph* GetGUIRenderGraph() const { return m_pGUIRenderGraph; }
 	NXGUITerrainStreamingDebug* GetGUITerrainStreamingDebug() const { return m_pGUITerrainStreamingDebug; }
 	NXGUIGPUProfiler* GetGUIGPUProfiler() const { return m_pGUIGPUProfiler; }
+	Renderer* GetRenderer() const { return m_pRenderer; }
 
 	// 延迟分配：打开窗口时分配，关闭窗口时释放
 	void OpenGUITerrainSector2NodeIDPreview();
