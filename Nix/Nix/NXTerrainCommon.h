@@ -40,6 +40,9 @@ struct NXTerrainConfig
 
 	// 最小地形坐标
 	Int2 MinTerrainPos = Int2(-8192, -8192); 
+
+	// 最小SectorID
+	Int2 MinSectorID = MinTerrainPos / SectorSize;
 };
 
 inline NXTerrainConfig g_terrainConfig;

@@ -124,6 +124,59 @@ void Renderer::GenerateRenderGraph()
 
 	if (g_debug_temporal_enable_terrain_debug)
 	{
+		// 仅首帧执行
+        // 清空Sector2IndirectTexture，将所有像素设置为-1
+        if (m_pVirtualTexture->NeedClearSector2IndirectTexture())
+        {
+            struct Sector2IndirectTextureClear
+            {
+                NXRGHandle Sector2IndirectTex;
+            };
+            m_pRenderGraph->AddPass<Sector2IndirectTextureClear>("Sector2IndirectTexture Clear",
+                [&](NXRGBuilder& builder, Sector2IndirectTextureClear& data)
+                {
+                    data.Sector2IndirectTex = builder.Write(m_pRenderGraph->Import(m_pVirtualTexture->GetSector2IndirectTexture()));
+                },
+                [&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, Sector2IndirectTextureClear& data)
+                {
+                    auto pTex = resMap.GetRes(data.Sector2IndirectTex).As<NXTexture2D>();
+                    pTex->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+
+                    // 使用 ClearUnorderedAccessViewUint 清空纹理，设置为-1 (0xFFFFFFFF)
+                    UINT clearValues[4] = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
+                    D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = pTex->GetUAV(0);
+                    NXShVisDescHeap->PushFluid(cpuHandle);
+                    D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = NXShVisDescHeap->Submit();
+                    pCmdList->ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, pTex->GetD3DResource(), clearValues, 0, nullptr);
+
+                    m_pVirtualTexture->MarkSector2IndirectTextureCleared();
+                });
+        }
+
+		struct Sector2IndirectTexture
+		{
+			NXRGHandle Sector2IndirectTexture;
+		};
+		m_pRenderGraph->AddPass<Sector2IndirectTexture>("UpdateSector2IndirectTexture",
+			[&](NXRGBuilder& builder, Sector2IndirectTexture& data)
+			{
+				data.Sector2IndirectTexture = builder.Write(m_pRenderGraph->Import(m_pVirtualTexture->GetSector2IndirectTexture()));
+			},
+			[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, Sector2IndirectTexture& data)
+			{
+				uint32_t threadGroups = (m_pVirtualTexture->GetCBufferSector2IndirectTextureNum() + 7) / 8;
+				if (threadGroups == 0)
+					return;
+
+				auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("UpdateSector2IndirectTexture"));
+				pMat->SetOutput(0, 0, resMap.GetRes(data.Sector2IndirectTexture));
+				pMat->SetConstantBuffer(0, 0, &m_pVirtualTexture->GetCBufferSector2IndirectTexture());
+
+				pMat->RenderSetTargetAndState(pCmdList);
+				pMat->RenderBefore(pCmdList);
+				pCmdList->Dispatch(threadGroups, 1, 1);
+			});
+
 		auto& pStreamingData = m_pTerrainLODStreamer->GetStreamingData();
 
 		// 仅首帧执行

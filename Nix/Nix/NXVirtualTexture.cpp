@@ -1,5 +1,7 @@
 #include "NXVirtualTexture.h"
+#include "NXResourceManager.h"
 #include "NXCamera.h"
+#include "NXTexture.h"
 
 NXVirtualTexture::NXVirtualTexture(class NXCamera* pCam) :
 	m_pCamera(pCam),
@@ -7,6 +9,13 @@ NXVirtualTexture::NXVirtualTexture(class NXCamera* pCam) :
 	m_vtSectorLodMaxDist(400)
 {
 	m_pVirtImageQuadTree = new NXVTImageQuadTree();
+
+	m_pSector2IndirectTexture = NXManager_Tex->CreateTexture2D("VirtualTexture_Sector2IndirectTexture", DXGI_FORMAT_R32_UINT, VT_SECTOR2INDIRECTTEXTURE_SIZE, VT_SECTOR2INDIRECTTEXTURE_SIZE, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, false);
+	m_pSector2IndirectTexture->SetViews(1, 0, 0, 1);
+	m_pSector2IndirectTexture->SetSRV(0);
+	m_pSector2IndirectTexture->SetUAV(0);
+
+	m_cbSector2IndirectTexture.Recreate(CB_SECTOR2INDIRECTTEXTURE_DATA_NUM);
 }
 
 NXVirtualTexture::~NXVirtualTexture()
@@ -30,11 +39,17 @@ void NXVirtualTexture::Update()
 	UpdateNearestSectors();
 }
 
+void NXVirtualTexture::UpdateCBData(const Vector2& rtSize)
+{
+	m_cbDataVTReadback = Vector4(rtSize.x, rtSize.y, 0.0f, 0.0f);
+	m_cbVTReadback.Update(m_cbDataVTReadback);
+}
+
 void NXVirtualTexture::UpdateNearestSectors()
 {
 	Vector2 camPosXZ = m_pCamera->GetTranslation().GetXZ();
 
-	// è·å–æœ¬å¸§æœ€æ–°çš„sectors
+	// »ñÈ¡±¾Ö¡×îĞÂµÄsectors
 	Vector2 sectorPosXZ = Vector2::Floor(camPosXZ * SECTOR_SIZEF_INV);
 	Int2 camSectorXZ(sectorPosXZ); 
 	int sectorRange = (m_vtSectorLodMaxDist + SECTOR_SIZE) >> SECTOR_SIZE_LOG2;
@@ -48,17 +63,17 @@ void NXVirtualTexture::UpdateNearestSectors()
 			{
 				int size = VTIMAGE_MAX_NODE_SIZE >> GetVTImageSizeFromDist2(dist2);
 
-				// ä¿æŒè¿™é‡Œpushçš„sectorIDæ˜¯å‡åºçš„ï¼Œä¸ç„¶ä¸¤å¸§å…³ç³»æ¯”å¯¹ä¼šå‡ºé”™
+				// ±£³ÖÕâÀïpushµÄsectorIDÊÇÉıĞòµÄ£¬²»È»Á½Ö¡¹ØÏµ±È¶Ô»á³ö´í
 				m_sectors.push_back(NXVTSector(sectorID, size));
 			}
 		}
 	}
 
-	// ä¸¤å¸§å…³ç³»æ¯”å¯¹
-	std::vector<NXVTSector> createSector; // æœ¬å¸§åˆ›å»ºçš„
-	std::vector<NXVTSector> removeSector; // æœ¬å¸§ç§»é™¤çš„
-	std::vector<NXVTSector> keepSector;	// æ²¡å‘ç”Ÿä»»ä½•å˜åŒ–çš„
-	std::vector<NXVTChangeSector> changeSector; // æœ¬å¸§å‡çº§/é™çº§çš„
+	// Á½Ö¡¹ØÏµ±È¶Ô
+	std::vector<NXVTSector> createSector; // ±¾Ö¡´´½¨µÄ
+	std::vector<NXVTSector> removeSector; // ±¾Ö¡ÒÆ³ıµÄ
+	std::vector<NXVTSector> keepSector;	// Ã»·¢ÉúÈÎºÎ±ä»¯µÄ
+	std::vector<NXVTChangeSector> changeSector; // ±¾Ö¡Éı¼¶/½µ¼¶µÄ
 	int i = 0;
 	int j = 0;
 	while (i < m_lastSectors.size() && j < m_sectors.size())
@@ -97,11 +112,13 @@ void NXVirtualTexture::UpdateNearestSectors()
 	while (i < m_lastSectors.size()) { removeSector.push_back(m_lastSectors[i]); i++; }
 	while (j < m_sectors.size()) { createSector.push_back(m_sectors[j]); j++; }
 
+	// ×¼±¸¸üĞÂ Sector2IndirectTexture
+	m_cbDataSector2IndirectTexture.clear();
 	for (auto& s : createSector)
 	{
 		Int2 virtImgPos = m_pVirtImageQuadTree->Alloc(s.imageSize);
-		printf("CreateSector: %d %d\n", virtImgPos.x, virtImgPos.y);
 		m_sector2VirtImagePos[s] = virtImgPos;
+		m_cbDataSector2IndirectTexture.push_back({ s.id - g_terrainConfig.MinSectorID, virtImgPos, s.imageSize });
 	}
 
 	for (auto& s : removeSector)
@@ -111,23 +128,34 @@ void NXVirtualTexture::UpdateNearestSectors()
 			Int2 virtImgPos = m_sector2VirtImagePos[s];
 			m_pVirtImageQuadTree->Free(virtImgPos, s.imageSize);
 			m_sector2VirtImagePos.erase(s);
+			m_cbDataSector2IndirectTexture.push_back({ s.id - g_terrainConfig.MinSectorID, -1 });
 		}
 	}
 
 	for (auto& s : changeSector)
 	{
 		Int2 newVirtImgPos = m_pVirtImageQuadTree->Alloc(s.changedImageSize);
-		printf("changeSector: %d %d\n", newVirtImgPos.x, newVirtImgPos.y);
 		NXVTSector newSector = s.oldData;
 		newSector.imageSize = s.changedImageSize;
 		m_sector2VirtImagePos[newSector] = newVirtImgPos;
+		m_cbDataSector2IndirectTexture.push_back({ s.oldData.id - g_terrainConfig.MinSectorID, newVirtImgPos, s.changedImageSize });
+
 		if (m_sector2VirtImagePos.find(s.oldData) != m_sector2VirtImagePos.end())
 		{
 			Int2 oldVirtImgPos = m_sector2VirtImagePos[s.oldData];
 			m_pVirtImageQuadTree->Free(oldVirtImgPos, s.oldData.imageSize);
 			m_sector2VirtImagePos.erase(s.oldData);
+			m_cbDataSector2IndirectTexture.push_back({ s.oldData.id - g_terrainConfig.MinSectorID, -1 });
 		}
 	}
+
+	if (m_cbDataSector2IndirectTexture.size() > 256)
+	{
+		printf("WARNING\n");
+	}
+
+	// ×¼±¸¸üĞÂ Sector2IndirectTexture
+	m_cbSector2IndirectTexture.Update(m_cbDataSector2IndirectTexture);
 }
 
 float NXVirtualTexture::GetDist2OfSectorToCamera(const Vector2& camPos, const Int2& sectorCorner)

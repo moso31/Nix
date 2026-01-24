@@ -11,6 +11,25 @@ NXPassMaterialManager* NXPassMaterialManager::GetInstance()
 
 void NXPassMaterialManager::InitDefaultRenderer()
 {
+	////////////////////////////////////////
+	// Virtual Texture
+	////////////////////////////////////////
+	
+	// UpdateSector2IndirectTexture
+	{
+		auto pMat = new NXComputePassMaterial("UpdateSector2IndirectTexture", L"Shader\\VTSector2IndirectTexture.fx");
+		pMat->RegisterUAVSpaceNum(1);
+		pMat->RegisterUAVSlotNum(1);
+		pMat->RegisterCBVSpaceNum(1);
+		pMat->RegisterCBVSlotNum(1);
+		pMat->FinalizeLayout();
+		AddMaterial(pMat, true);
+	}
+
+	////////////////////////////////////////
+	// GPU-Driven Terrain
+	////////////////////////////////////////
+
 	// Terrain Atlas Baker
 	{
 		auto pMat = new NXComputePassMaterial("TerrainAtlasBaker", L"Shader\\TerrainAtlasBaker.fx");
@@ -89,6 +108,10 @@ void NXPassMaterialManager::InitDefaultRenderer()
 		pMat->FinalizeLayout();
 		AddMaterial(pMat, true);
 	}
+
+	////////////////////////////////////////
+	// Rendering
+	////////////////////////////////////////
 
 	// GBuffer
 	{

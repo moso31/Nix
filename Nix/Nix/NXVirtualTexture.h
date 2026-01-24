@@ -1,10 +1,12 @@
 #pragma once
 #include <array>
+#include <bit>
 #include "NXInstance.h"
 #include "BaseDefs/Math.h"
 #include "NXConstantBuffer.h"
 #include "NXVirtualTextureCommon.h"
 #include "NXVTImageQuadTree.h"
+#include "NXTerrainCommon.h"
 
 struct NXVTSector
 {
@@ -26,6 +28,24 @@ struct NXVTSector
 	int imageSize;
 };
 
+struct CBufferSector2IndirectTexture
+{
+	CBufferSector2IndirectTexture(const Int2& sector, const Int2& indiTexPos, int indiTexSize) : 
+		sectorPos(sector),
+		indiTexData(((indiTexPos.x & 0xFFF) << 20) | ((indiTexPos.y & 0xFFF) << 8) | (std::countr_zero((uint32_t)indiTexSize) & 0xFF)) // std::countr_zero = log2 of POTsize
+	{
+	}
+
+	CBufferSector2IndirectTexture(const Int2& sector, int emptyData) : sectorPos(sector), indiTexData(emptyData) {}
+
+	// 哪个像素
+	Int2 sectorPos; 
+
+	// 改成什么值
+	int indiTexData; // x(12bit)y(12bit) = indi tex pos; z(8bit) = indi tex size
+	int _0;
+};  
+
 template<>
 struct std::hash<NXVTSector>
 {
@@ -41,9 +61,13 @@ struct NXVTChangeSector
 	int changedImageSize;
 };
 
+class NXTexture2D;
 class NXVirtualTexture
 {
+	constexpr static int VT_SECTOR2INDIRECTTEXTURE_SIZE = 256; // Sector2IndirectTexture使用的分辨率
+	constexpr static int VT_MIN_SECTOR_ID = -128; // 最小的SectorID
 	constexpr static size_t VTIMAGE_MAX_NODE_SIZE = 256; // 最大node使用的分辨率
+	constexpr static int CB_SECTOR2INDIRECTTEXTURE_DATA_NUM = 256;
 
 	constexpr static size_t VTSECTOR_LOD_NUM = 7; // VTSector的lod等级
 
@@ -58,13 +82,14 @@ public:
 
 	void Update();
 
-	void UpdateCBData(const Vector2& rtSize)
-	{
-		m_cbDataVTReadback = Vector4(rtSize.x, rtSize.y, 0.0f, 0.0f);
-		m_cbVTReadback.Update(m_cbDataVTReadback);
-	}
-
+	void UpdateCBData(const Vector2& rtSize);
 	const NXConstantBuffer<Vector4>& GetCBufferVTReadback() const { return m_cbVTReadback; }
+
+	const Ntr<NXTexture2D>& GetSector2IndirectTexture() const { return m_pSector2IndirectTexture; }
+	const NXConstantBuffer<std::vector<CBufferSector2IndirectTexture>>& GetCBufferSector2IndirectTexture() const { return m_cbSector2IndirectTexture; }
+	const size_t GetCBufferSector2IndirectTextureNum() const { return m_cbDataSector2IndirectTexture.size(); }
+	bool NeedClearSector2IndirectTexture() const { return m_bNeedClearSector2IndirectTexture; }
+	void MarkSector2IndirectTextureCleared() { m_bNeedClearSector2IndirectTexture = false; }
 
 	// GUI 访问接口
 	const std::vector<NXVTSector>& GetSectors() const { return m_sectors; }
@@ -97,4 +122,11 @@ private:
 
 	// 记录一个sector到VirtImage位置的映射
 	std::unordered_map<NXVTSector, Int2> m_sector2VirtImagePos;
+
+	// R32_UINT，24bit = 角坐标XY，8bit = size
+	Ntr<NXTexture2D> m_pSector2IndirectTexture;
+
+	bool m_bNeedClearSector2IndirectTexture = true; // 首帧清除标记
+	std::vector<CBufferSector2IndirectTexture> m_cbDataSector2IndirectTexture; 
+	NXConstantBuffer<std::vector<CBufferSector2IndirectTexture>> m_cbSector2IndirectTexture;
 };
