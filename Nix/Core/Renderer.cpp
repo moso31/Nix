@@ -498,6 +498,7 @@ void Renderer::GenerateRenderGraph()
 		[&](NXRGBuilder& builder, GBufferData& data) {
 			if (passPatcher)
 				builder.Read(passPatcher->GetData().pPatcher); 
+			data.VTSector2IndirectTexture = builder.Read(hVTSector2IndirectTexture);
 
 			data.rt0	= builder.Write(hGBuffer0);
 			data.rt1	= builder.Write(hGBuffer1);
@@ -505,7 +506,6 @@ void Renderer::GenerateRenderGraph()
 			data.rt3	= builder.Write(hGBuffer3);
 			data.depth	= builder.Write(hDepthZ);
 			data.VTPageIDTexture = builder.Write(hVTPageIDTexture);
-			data.VTSector2IndirectTexture = builder.Write(hVTSector2IndirectTexture);
 		}, 
 		[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, GBufferData& data) {
 			// GBuffer 和其他的pass不太一样，依赖动态变化的场景/材质信息
@@ -518,6 +518,9 @@ void Renderer::GenerateRenderGraph()
 			Ntr<NXTexture> pOutDS = resMap.GetRes(data.depth);
 
 			auto* pPassMaterial = static_cast<NXGraphicPassMaterial*>(NXPassMng->GetPassMaterial("GBuffer"));
+			pPassMaterial->SetInput(2, 0, resMap.GetRes(data.VTSector2IndirectTexture));
+			pPassMaterial->SetOutputUAV(0, 0, resMap.GetRes(data.VTPageIDTexture));
+
 			for (int i = 0; i < 4; i++)
 			{
 				pOutRTs[i]->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -573,7 +576,7 @@ void Renderer::GenerateRenderGraph()
 									NXShVisDescHeap->PushFluid(pVTPageIDTexture->GetUAV(0));
 
 									auto& pVTSector2IndirectTexture = resMap.GetRes(data.VTSector2IndirectTexture).As<NXTexture2D>();
-									NXShVisDescHeap->PushFluid(pVTSector2IndirectTexture->GetUAV(0));
+									NXShVisDescHeap->PushFluid(pVTSector2IndirectTexture->GetSRV(0));
 
 									auto& srvHandle = NXShVisDescHeap->Submit();
 									pCmdList->SetGraphicsRootDescriptorTable(5, srvHandle); // virtual texture 使用5号根参数 具体见NXCustomMaterial::CompileShader()
@@ -693,8 +696,8 @@ void Renderer::GenerateRenderGraph()
 			pMat->SetConstantBuffer(0, 0, &g_cbObject);
 			pMat->SetConstantBuffer(0, 1, &g_cbCamera);
 			pMat->SetConstantBuffer(0, 2, &g_cbShadowTest);
-			pMat->SetInputTex(0, 0, resMap.GetRes(data.gbufferDepth));
-			pMat->SetInputTex(0, 1, resMap.GetRes(data.csmDepth));
+			pMat->SetInput(0, 0, resMap.GetRes(data.gbufferDepth));
+			pMat->SetInput(0, 1, resMap.GetRes(data.csmDepth));
 			pMat->SetOutputRT(0, resMap.GetRes(data.shadowTest));
 
 			auto vpCamera = NX12Util::ViewPort(m_viewRTSize.x, m_viewRTSize.y);
@@ -749,15 +752,15 @@ void Renderer::GenerateRenderGraph()
 			pMat->SetConstantBuffer(0, 3, &m_scene->GetCubeMap()->GetCBDataParams()); // b3
 			pMat->SetConstantBuffer(0, 4, &NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfile()); // b4
 
-			pMat->SetInputTex(0, 0, resMap.GetRes(data.gbuffer0)); // register t0
-			pMat->SetInputTex(0, 1, resMap.GetRes(data.gbuffer1)); // t1
-			pMat->SetInputTex(0, 2, resMap.GetRes(data.gbuffer2)); // t2
-			pMat->SetInputTex(0, 3, resMap.GetRes(data.gbuffer3)); // t3
-			pMat->SetInputTex(0, 4, resMap.GetRes(data.gbufferDepth)); // t4
-			pMat->SetInputTex(0, 5, resMap.GetRes(data.shadowTest)); // t5
-			pMat->SetInputTex(0, 6, resMap.GetRes(data.cubeMap));
-			pMat->SetInputTex(0, 7, resMap.GetRes(data.preFilter));
-			pMat->SetInputTex(0, 8, resMap.GetRes(data.brdfLut));
+			pMat->SetInput(0, 0, resMap.GetRes(data.gbuffer0)); // register t0
+			pMat->SetInput(0, 1, resMap.GetRes(data.gbuffer1)); // t1
+			pMat->SetInput(0, 2, resMap.GetRes(data.gbuffer2)); // t2
+			pMat->SetInput(0, 3, resMap.GetRes(data.gbuffer3)); // t3
+			pMat->SetInput(0, 4, resMap.GetRes(data.gbufferDepth)); // t4
+			pMat->SetInput(0, 5, resMap.GetRes(data.shadowTest)); // t5
+			pMat->SetInput(0, 6, resMap.GetRes(data.cubeMap));
+			pMat->SetInput(0, 7, resMap.GetRes(data.preFilter));
+			pMat->SetInput(0, 8, resMap.GetRes(data.brdfLut));
 			pMat->SetOutputRT(0, resMap.GetRes(data.lighting)); 
 			pMat->SetOutputRT(1, resMap.GetRes(data.lightingSpec)); 
 			pMat->SetOutputRT(2, resMap.GetRes(data.lightingCopy)); 
@@ -789,11 +792,11 @@ void Renderer::GenerateRenderGraph()
 			pMat->SetConstantBuffer(0, 1, &g_cbCamera);
 			pMat->SetConstantBuffer(0, 3, &NXResourceManager::GetInstance()->GetMaterialManager()->GetCBufferDiffuseProfile());
 
-			pMat->SetInputTex(0, 0, resMap.GetRes(data.lighting));
-			pMat->SetInputTex(0, 1, resMap.GetRes(data.lightingSpec));
-			pMat->SetInputTex(0, 3, resMap.GetRes(data.gbuffer1));
-			pMat->SetInputTex(0, 4, resMap.GetRes(data.depth));
-			pMat->SetInputTex(0, 5, resMap.GetRes(data.noise64));
+			pMat->SetInput(0, 0, resMap.GetRes(data.lighting));
+			pMat->SetInput(0, 1, resMap.GetRes(data.lightingSpec));
+			pMat->SetInput(0, 3, resMap.GetRes(data.gbuffer1));
+			pMat->SetInput(0, 4, resMap.GetRes(data.depth));
+			pMat->SetInput(0, 5, resMap.GetRes(data.noise64));
 			pMat->SetOutputRT(0, resMap.GetRes(data.buf));
 			pMat->SetOutputDS(resMap.GetRes(data.depth));
 
@@ -816,7 +819,7 @@ void Renderer::GenerateRenderGraph()
 			auto pMat = static_cast<NXGraphicPassMaterial*>(NXPassMng->GetPassMaterial("SkyLighting"));
 			pMat->SetConstantBuffer(0, 0, &m_scene->GetCubeMap()->GetCBObjectParams());
 			pMat->SetConstantBuffer(0, 1, &m_scene->GetCubeMap()->GetCBDataParams());
-			pMat->SetInputTex(0, 0, resMap.GetRes(data.cubeMap));
+			pMat->SetInput(0, 0, resMap.GetRes(data.cubeMap));
 			pMat->SetOutputRT(0, resMap.GetRes(data.buf));
 			pMat->SetOutputDS(resMap.GetRes(data.depth));
 
@@ -843,7 +846,7 @@ void Renderer::GenerateRenderGraph()
 			m_cbColorMapping.Update(m_cbColorMappingData);
 			
 			pMat->SetConstantBuffer(0, 2, &m_cbColorMapping);
-			pMat->SetInputTex(0, 0, resMap.GetRes(data.skyBuf));
+			pMat->SetInput(0, 0, resMap.GetRes(data.skyBuf));
 			pMat->SetOutputRT(0, resMap.GetRes(data.out));
 
 			pMat->Render(pCmdList);
@@ -873,8 +876,8 @@ void Renderer::GenerateRenderGraph()
 			
 			pMat->SetConstantBuffer(0, 1, &g_cbCamera);
 			pMat->SetConstantBuffer(0, 2, &m_cbDebugLayer);
-			pMat->SetInputTex(0, 0, resMap.GetRes(data.postProcessOut));
-			pMat->SetInputTex(0, 1, resMap.GetRes(data.csmDepth));
+			pMat->SetInput(0, 0, resMap.GetRes(data.postProcessOut));
+			pMat->SetInput(0, 1, resMap.GetRes(data.csmDepth));
 			pMat->SetOutputRT(0, resMap.GetRes(data.out));
 
 			pMat->Render(pCmdList);
@@ -934,7 +937,7 @@ void Renderer::GenerateRenderGraph()
  		},
 		[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, FinalQuadData& data) {
 			auto pMat = static_cast<NXGraphicPassMaterial*>(NXPassMng->GetPassMaterial("FinalQuad"));
-			pMat->SetInputTex(0, 0, resMap.GetRes(data.gizmosOut));
+			pMat->SetInput(0, 0, resMap.GetRes(data.gizmosOut));
 			pMat->SetOutputRT(0, resMap.GetRes(data.finalOut));
 
 			pMat->Render(pCmdList);

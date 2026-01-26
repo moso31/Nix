@@ -487,7 +487,7 @@ Texture2DArray m_terrainSplatMap : register(t2, space1);
 Texture2DArray m_terrainNormalMap : register(t3, space1);
 
 RWTexture2D<uint> m_VTPageIDBuffer : register(u0, space0);
-Texture2D m_VTSector2IndirectTexture : register(t0, space2);
+Texture2D<uint> m_VTSector2IndirectTexture : register(t0, space2);
 )";
 	}
 
@@ -592,15 +592,27 @@ std::string NXCodeProcessHelper::BuildHLSL_PassFuncs(int& ioLineCounter, const N
 	std::string str = R"(
 void EncodeVTPageID(float2 posXZ, float2 positionSS)
 {
+	int2 sectorID = int2(floor(posXZ / 64));
+	uint2 sectorPixelPos = (uint2)(sectorID + 128);
+	uint indiTexData = m_VTSector2IndirectTexture.Load(uint3(sectorPixelPos.xy, 0));
+	if (indiTexData == 0xFFFFFFFF)
+		return;
+
+	uint3 val = DecodeSector2IndirectTextureData(indiTexData);
+	uint2 indiTexPosMip0 = val.xy;
+	uint indiTexLog2Size = val.z;
+
     int2 pixelCoord = int2(positionSS);
     float mip = MipLevelAnisotropy(posXZ, 256);
+
+	uint2 indiTexPos = indiTexPosMip0 >> (uint)mip; // indiTexPos¾ÍÊÇPageID
 
     int bayerOffset64 = g_Bayer8x8[g.frameIndex % 64];
     int bayerOffsetX = bayerOffset64 % 8;
     int bayerOffsetY = bayerOffset64 / 8;
     if (pixelCoord.x % 8 == bayerOffsetX && pixelCoord.y % 8 == bayerOffsetY)
     {
-        m_VTPageIDBuffer[pixelCoord / 8] = (uint)mip + m_VTSector2IndirectTexture.Load(uint3(0, 0, 0)) * 0.01;
+        m_VTPageIDBuffer[pixelCoord / 8] = EncodeIndirectTextureData(indiTexPos, mip, indiTexLog2Size); 
     }
 }
 

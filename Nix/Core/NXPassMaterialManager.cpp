@@ -118,6 +118,10 @@ void NXPassMaterialManager::InitDefaultRenderer()
 		auto pMat = new NXGraphicPassMaterial("GBuffer");
 		pMat->RegisterRTVNum({ DXGI_FORMAT_R32_FLOAT, DXGI_FORMAT_R32G32B32A32_FLOAT, DXGI_FORMAT_R10G10B10A2_UNORM, DXGI_FORMAT_R8G8B8A8_UNORM });
 		pMat->RegisterDSV({ DXGI_FORMAT_R24G8_TYPELESS });
+		pMat->RegisterSRVSpaceNum(3);
+		pMat->RegisterSRVSlotNum(1, 2); // t0, space2
+		pMat->RegisterUAVSpaceNum(1);
+		pMat->RegisterUAVSlotNum(1, 0); // u0, space0
 		pMat->FinalizeLayout();
 		AddMaterial(pMat, false);
 	}

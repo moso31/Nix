@@ -2,6 +2,32 @@
 #include "NXPBRMaterial.h"
 #include "NXReadbackData.h"
 
+struct NXResourceView
+{
+	// 资源本体
+	Ntr<NXResource> pRes;
+
+	// 资源视图的mip等级（-1表示不指定，使用默认视图）
+	int texMipSlice = -1;
+
+	NXResourceView() = default;
+	NXResourceView(const Ntr<NXResource>& res, int mipSlice = -1) : pRes(res), texMipSlice(mipSlice) {}
+};
+
+// 如果是UAV类型做pass output，用法比较多，所以单独封装一个结构体
+struct NXResourceUAV
+{
+	// 资源本体+对应view
+	NXResourceView pResView;
+
+	// 如果是Buffer类型的，底层会同时创建buffer本体和计数器两个资源；如果用计数器，此处设为true
+	bool useBufferUAVCounter = false;
+
+	NXResourceUAV() = default;
+	NXResourceUAV(const Ntr<NXResource>& res, bool useCounter = false) : pResView(res), useBufferUAVCounter(useCounter) {}
+	NXResourceUAV(const Ntr<NXResource>& res, int mipSlice) : pResView(res, mipSlice) {}
+};
+
 struct NXPassMatLayout
 {
 	int cbvSpaceNum = 0;
@@ -97,11 +123,11 @@ public:
 	void RegisterDSV(DXGI_FORMAT dsvFormat) override { m_dsvFormat = dsvFormat; }
 	void FinalizeLayout() override;
 
-	void SetInputTex(int spaceIndex, int slotIndex, const Ntr<NXResource>& pTex);
+	void SetInput(int spaceIndex, int slotIndex, const Ntr<NXResource>& pRes, int mipSlice = -1);
+	void SetOutputUAV(int spaceIndex, int slotIndex, const Ntr<NXResource>& pRes, bool isUAVCounter = false);
+	void SetOutputUAV(int spaceIndex, int slotIndex, const Ntr<NXResource>& pRes, int mipSlice);
 	void SetOutputRT(int index, const Ntr<NXResource>& pRT);
 	void SetOutputDS(const Ntr<NXResource>& pDS);
-	void SetOutput(int spaceIndex, int slotIndex, const Ntr<NXResource>& pRes, bool isUAVCounter = false);
-	void SetOutput(int spaceIndex, int slotIndex, const Ntr<NXResource>& pRes, int mipSlice);
 
 	void SetInputLayout(const D3D12_INPUT_LAYOUT_DESC& desc);
 	void SetBlendState(const D3D12_BLEND_DESC& desc);
@@ -124,39 +150,14 @@ public:
 private:
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC m_psoDesc;
 
-	std::vector<std::vector<Ntr<NXResource>>> m_pInTexs; // [space][slot]
+	std::vector<std::vector<NXResourceView>> m_pInRes;
+	std::vector<std::vector<NXResourceUAV>> m_pOutRes;
 	std::vector<Ntr<NXResource>> m_pOutRTs;
 	Ntr<NXResource> m_pOutDS;
 	std::vector<DXGI_FORMAT> m_rtFormats;
 	DXGI_FORMAT m_dsvFormat;
 	UINT m_stencilRef;
 	std::string m_rtSubMeshName;
-};
-
-struct NXResourceView
-{
-	// 资源本体
-	Ntr<NXResource> pRes;
-
-	// 资源视图的mip等级（-1表示不指定，使用默认视图）
-	int texMipSlice = -1;
-
-	NXResourceView() = default;
-	NXResourceView(const Ntr<NXResource>& res, int mipSlice = -1) : pRes(res), texMipSlice(mipSlice) {}
-};
-
-// 如果是UAV类型做pass output，用法比较多，所以单独封装一个结构体
-struct NXResourceUAV
-{
-	// 资源本体+对应view
-	NXResourceView pResView;
-
-	// 如果是Buffer类型的，底层会同时创建buffer本体和计数器两个资源；如果用计数器，此处设为true
-	bool useBufferUAVCounter = false; 
-	
-	NXResourceUAV() = default;
-	NXResourceUAV(const Ntr<NXResource>& res, bool useCounter = false) : pResView(res), useBufferUAVCounter(useCounter) {}
-	NXResourceUAV(const Ntr<NXResource>& res, int mipSlice) : pResView(res, mipSlice) {}
 };
 
 class NXComputePassMaterial : public NXPassMaterial

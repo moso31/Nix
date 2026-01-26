@@ -83,11 +83,17 @@ void NXGraphicPassMaterial::FinalizeLayout()
 	}
 
 	// 纹理不需要初始化，预留出size即可
-	m_pInTexs.resize(m_layout.srvSpaceNum);
+	m_pInRes.resize(m_layout.srvSpaceNum);
 	for (int i = 0; i < m_layout.srvSpaceNum; ++i)
 	{
 		auto& srvSlotNum = m_layout.srvSlotNum[i];
-		m_pInTexs[i].resize(srvSlotNum);
+		m_pInRes[i].resize(srvSlotNum);
+	}
+	m_pOutRes.resize(m_layout.uavSpaceNum);
+	for (int i = 0; i < m_layout.uavSpaceNum; ++i)
+	{
+		auto& uavSlotNum = m_layout.uavSlotNum[i];
+		m_pOutRes[i].resize(uavSlotNum);
 	}
 	m_pOutRTs.resize(m_rtFormats.size());
 }
@@ -147,10 +153,22 @@ void NXPassMaterial::InitRootParams()
 	m_pRootSig = NX12Util::CreateRootSignature(NXGlobalDX::GetDevice(), m_rootParams, m_staticSamplers);
 }
 
-void NXGraphicPassMaterial::SetInputTex(int spaceIndex, int slotIndex, const Ntr<NXResource>& pTex)
+void NXGraphicPassMaterial::SetInput(int spaceIndex, int slotIndex, const Ntr<NXResource>& pRes, int mipSlice)
 {
 	if (spaceIndex >= m_layout.srvSpaceNum || slotIndex >= m_layout.srvSlotNum[spaceIndex]) return;
-	m_pInTexs[spaceIndex][slotIndex] = pTex;
+	m_pInRes[spaceIndex][slotIndex] = NXResourceView(pRes, mipSlice);
+}
+
+void NXGraphicPassMaterial::SetOutputUAV(int spaceIndex, int slotIndex, const Ntr<NXResource>& pRes, bool isUAVCounter)
+{
+	if (spaceIndex >= m_layout.uavSpaceNum || slotIndex >= m_layout.uavSlotNum[spaceIndex]) return;
+	m_pOutRes[spaceIndex][slotIndex] = NXResourceUAV(pRes, isUAVCounter);
+}
+
+void NXGraphicPassMaterial::SetOutputUAV(int spaceIndex, int slotIndex, const Ntr<NXResource>& pRes, int mipSlice)
+{
+	if (spaceIndex >= m_layout.uavSpaceNum || slotIndex >= m_layout.uavSlotNum[spaceIndex]) return;
+	m_pOutRes[spaceIndex][slotIndex] = NXResourceUAV(pRes, mipSlice);
 }
 
 void NXGraphicPassMaterial::SetOutputRT(int index, const Ntr<NXResource>& pRT)
@@ -209,19 +227,47 @@ void NXGraphicPassMaterial::RenderSetTargetAndState(ID3D12GraphicsCommandList* p
 		ppRTVs.push_back(pTex.As<NXTexture2D>()->GetRTV());
 	}
 
-	// DX12需要及时更新纹理的资源状态
-	for (int i = 0; i < (int)m_pInTexs.size(); i++)
+	// 设置输入资源状态
+	for (int space = 0; space < (int)m_pInRes.size(); space++)
 	{
-		auto& pSpaceTexs = m_pInTexs[i];
-		for (int j = 0; j < (int)pSpaceTexs.size(); j++)
+		auto& pSpaceIns = m_pInRes[space];
+		for (int slot = 0; slot < (int)pSpaceIns.size(); slot++)
 		{
-			auto& pSlotTex = pSpaceTexs[j];
-			if (pSlotTex.IsValid())
+			auto pResource = pSpaceIns[slot].pRes;
+			if (pResource.IsValid())
+				pResource->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+		}
+	}
+
+	// 设置输出资源状态
+	std::vector<D3D12_RESOURCE_BARRIER> uavBarriers;
+	for (int space = 0; space < (int)m_pOutRes.size(); space++)
+	{
+		auto& pSpaceOuts = m_pOutRes[space];
+		for (int slot = 0; slot < (int)pSpaceOuts.size(); slot++)
+		{
+			auto pRes = pSpaceOuts[slot].pResView.pRes;
+			if (pRes.IsValid())
 			{
-				pSlotTex->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+				pRes->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+				uavBarriers.push_back(NX12Util::BarrierUAV(pRes->GetD3DResource()));
+
+				if (pRes->GetResourceType() == NXResourceType::Buffer)
+				{
+					auto pBuffer = pRes.As<NXBuffer>();
+					if (pBuffer->GetD3DResourceUAVCounter())
+					{
+						uavBarriers.push_back(NX12Util::BarrierUAV(pBuffer->GetD3DResourceUAVCounter()));
+					}
+				}
 			}
 		}
 	}
+
+	// 提交UAV屏障
+	if (!uavBarriers.empty())
+		pCmdList->ResourceBarrier((uint32_t)uavBarriers.size(), uavBarriers.data());
+
 	for (int i = 0; i < (int)m_pOutRTs.size(); i++)
 		m_pOutRTs[i]->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	if (m_pOutDS.IsValid())
@@ -237,6 +283,7 @@ void NXGraphicPassMaterial::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 	pCmdList->SetGraphicsRootSignature(m_pRootSig.Get());
 	pCmdList->SetPipelineState(m_pPSO.Get());
 
+	// 绑定CBV
 	int rootParameterIndex = 0;
 	for (int i = 0; i < (int)m_layout.cbvSpaceNum; i++)
 	{
@@ -251,23 +298,103 @@ void NXGraphicPassMaterial::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 		}
 	}
 
-	if (!m_pInTexs.empty())
+	// 绑定SRV描述符表
+	if (!m_pInRes.empty())
 	{
-		for (int i = 0; i < (int)m_pInTexs.size(); i++)
+		for (int i = 0; i < (int)m_pInRes.size(); i++)
 		{
-			auto& pSpaceTexs = m_pInTexs[i];
-			for (int j = 0; j < (int)pSpaceTexs.size(); j++)
+			auto& pSpaceIns = m_pInRes[i];
+			for (int j = 0; j < (int)pSpaceIns.size(); j++)
 			{
-				auto pRes = pSpaceTexs[j];
+				auto& pResView = pSpaceIns[j];
+				auto pRes = pResView.pRes;
 				if (pRes.IsValid())
-					NXShVisDescHeap->PushFluid(pRes.As<NXTexture>()->GetSRV());
+				{
+					if (pRes->GetResourceType() == NXResourceType::Buffer)
+					{
+						NXShVisDescHeap->PushFluid(pRes.As<NXBuffer>()->GetSRV());
+					}
+					else if (pRes->GetResourceType() == NXResourceType::Tex2D)
+					{
+						auto pTexture2D = pRes.As<NXTexture2D>();
+						// 根据mip等级选择SRV描述符
+						if (pResView.texMipSlice >= 0)
+						{
+							NXShVisDescHeap->PushFluid(pTexture2D->GetSRV(pResView.texMipSlice));
+						}
+						else
+						{
+							NXShVisDescHeap->PushFluid(pTexture2D->GetSRV());
+						}
+					}
+					else if (pRes->GetResourceType() != NXResourceType::None)
+					{
+						NXShVisDescHeap->PushFluid(pRes.As<NXTexture>()->GetSRV());
+					}
+				}
 				else
+				{
 					NXShVisDescHeap->PushFluid(NXAllocator_NULL->GetNullSRV());
+				}
 			}
-            D3D12_GPU_DESCRIPTOR_HANDLE srvHandle0 = NXShVisDescHeap->Submit();
 
-            // 按照当前规则，每个srv space占用一个描述符表
-            pCmdList->SetGraphicsRootDescriptorTable(rootParameterIndex, srvHandle0);
+			D3D12_GPU_DESCRIPTOR_HANDLE srvHandle = NXShVisDescHeap->Submit();
+			pCmdList->SetGraphicsRootDescriptorTable(rootParameterIndex, srvHandle);  // 改这里
+			rootParameterIndex++;
+		}
+	}
+
+	// 绑定UAV描述符表
+	if (!m_pOutRes.empty())
+	{
+		for (int i = 0; i < (int)m_pOutRes.size(); i++)
+		{
+			auto& pSpaceOuts = m_pOutRes[i];
+			for (int j = 0; j < (int)pSpaceOuts.size(); j++)
+			{
+				auto& pResView = pSpaceOuts[j].pResView;
+				auto pRes = pResView.pRes;
+				if (pRes.IsValid())
+				{
+					if (pRes->GetResourceType() == NXResourceType::Buffer)
+					{
+						auto pBuffer = pRes.As<NXBuffer>();
+						// 根据NXResourceUAV的标志选择UAV描述符
+						if (pSpaceOuts[j].useBufferUAVCounter)
+						{
+							NXShVisDescHeap->PushFluid(pBuffer->GetUAVCounter());
+						}
+						else
+						{
+							NXShVisDescHeap->PushFluid(pBuffer->GetUAV());
+						}
+					}
+					else if (pRes->GetResourceType() == NXResourceType::Tex2D)
+					{
+						auto pTexture2D = pRes.As<NXTexture2D>();
+						// 根据NXResourceUAV的mipSlice选择UAV描述符
+						if (pResView.texMipSlice >= 0)
+						{
+							NXShVisDescHeap->PushFluid(pTexture2D->GetUAV(pResView.texMipSlice));
+						}
+						else
+						{
+							NXShVisDescHeap->PushFluid(pTexture2D->GetUAV());
+						}
+					}
+					else if (pRes->GetResourceType() != NXResourceType::None)
+					{
+						NXShVisDescHeap->PushFluid(pRes.As<NXTexture>()->GetUAV());
+					}
+				}
+				else
+				{
+					NXShVisDescHeap->PushFluid(NXAllocator_NULL->GetNullUAV());
+				}
+			}
+
+			D3D12_GPU_DESCRIPTOR_HANDLE uavHandle = NXShVisDescHeap->Submit();
+			pCmdList->SetGraphicsRootDescriptorTable(rootParameterIndex, uavHandle);  // 改这里
 			rootParameterIndex++;
 		}
 	}

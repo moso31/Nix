@@ -15,7 +15,7 @@ cbuffer cbSec2IndiTexUpdateData : register(b0)
     CBufferSector2IndirectTexture m_cbData[cbSec2IndiTexUpdateDataNum];
 }
 
-RWTexture2D<int> txSector2IndirectTexture : register(u0);
+RWTexture2D<uint> txSector2IndirectTexture : register(u0);
 
 [numthreads(8, 1, 1)]
 void CS(uint3 dtid : SV_DispatchThreadID)

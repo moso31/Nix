@@ -78,3 +78,16 @@ float MipLevelAnisotropy(float2 uv, float size)
     float LOD = log2(lengthMinor);
     return LOD;
 }
+
+uint3 DecodeSector2IndirectTextureData(int v)
+{
+    int x = (v >> 20) & 0xFFF; // 12 bit
+    int y = (v >> 8) & 0xFFF; // 12 bit
+    int log2Size = (v >> 0) & 0x0FF; // 8 bit
+    return uint3(x, y, log2Size);
+}
+
+uint EncodeIndirectTextureData(uint2 indiTexPos, uint gpuMip, uint indiTexLog2Size)
+{
+    return ((indiTexPos.x & 0xFFF) << 20) | ((indiTexPos.y & 0xFFF) << 8) | ((gpuMip & 0xF) << 4) | indiTexLog2Size; 
+}
