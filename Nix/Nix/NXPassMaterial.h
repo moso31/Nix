@@ -100,6 +100,8 @@ public:
 	void SetInputTex(int spaceIndex, int slotIndex, const Ntr<NXResource>& pTex);
 	void SetOutputRT(int index, const Ntr<NXResource>& pRT);
 	void SetOutputDS(const Ntr<NXResource>& pDS);
+	void SetOutput(int spaceIndex, int slotIndex, const Ntr<NXResource>& pRes, bool isUAVCounter = false);
+	void SetOutput(int spaceIndex, int slotIndex, const Ntr<NXResource>& pRes, int mipSlice);
 
 	void SetInputLayout(const D3D12_INPUT_LAYOUT_DESC& desc);
 	void SetBlendState(const D3D12_BLEND_DESC& desc);

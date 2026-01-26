@@ -104,6 +104,7 @@ void NXPrimitive::Update(ID3D12GraphicsCommandList* pCmdList)
 	m_cbDataObject.worldView = mxWorldView.Transpose();
 	m_cbDataObject.worldViewInverseTranspose = (mxWorldView).Invert();
 	m_cbDataObject.globalData.time = NXGlobalApp::Timer->GetGlobalTimeSeconds();
+	m_cbDataObject.globalData.frameIndex = (uint32_t)NXGlobalApp::s_frameIndex.load();
 
 	m_cbObject.Update(m_cbDataObject);
 

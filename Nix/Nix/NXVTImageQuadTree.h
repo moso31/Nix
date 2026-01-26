@@ -91,6 +91,7 @@ public:
         return (VT_IMAGE_LEVELS - 1) - lg;
     }
 
+    // 返回的 Int2 乘以该层节点尺寸(2048, 1024, ...) = 实际像素坐标
     const Int2 Alloc(int size)
     {
         int findLV, findIdx;

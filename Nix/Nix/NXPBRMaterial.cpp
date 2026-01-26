@@ -176,12 +176,12 @@ void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, const 
 		std::vector<D3D12_ROOT_PARAMETER> rootParams = {
 			NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL), // b0, space0
 			NX12Util::CreateRootParameterCBV(1, 0, D3D12_SHADER_VISIBILITY_ALL), // b1
-			NX12Util::CreateRootParameterCBV(0, 1, D3D12_SHADER_VISIBILITY_ALL), // b0, space1 用户自定义参数总是放在space1
-			NX12Util::CreateRootParameterTable(ranges, D3D12_SHADER_VISIBILITY_ALL), // t..., space0
+			NX12Util::CreateRootParameterCBV(0, 1, D3D12_SHADER_VISIBILITY_ALL), // b0, space1 = nsl的自定义cbuffer
+			NX12Util::CreateRootParameterTable(ranges, D3D12_SHADER_VISIBILITY_ALL), // t..., space0 = nsl的自定义texture
 		};
 
 		std::vector<D3D12_DESCRIPTOR_RANGE> ranges2;
-		if (m_bEnableTerrainGPUInstancing)
+		if (m_bEnableTerrainGPUInstancing) // for gpu-driven terrain
 		{
 			ranges2.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 1)); // t0, space1 = GPU Terrain Patch Buffer;
 			ranges2.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1, 1)); // t1, space1 = Height Map;
@@ -191,6 +191,16 @@ void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, const 
 			rootParams.push_back(
 				NX12Util::CreateRootParameterTable(ranges2, D3D12_SHADER_VISIBILITY_ALL) // t..., space1
 			); 
+		}
+
+		std::vector<D3D12_DESCRIPTOR_RANGE> ranges3;
+		if (m_bEnableTerrainGPUInstancing) // for virtual texture
+		{
+			ranges3.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, 0)); // u0, space0 = VTPageIDTexture;
+			ranges3.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 2)); // t0, space2 = VTSector2IndirectTexture;
+			rootParams.push_back(
+				NX12Util::CreateRootParameterTable(ranges3, D3D12_SHADER_VISIBILITY_ALL) 
+			);
 		}
 
 		std::vector<D3D12_STATIC_SAMPLER_DESC> staticSamplers;

@@ -115,15 +115,16 @@ void NXTerrainLODStreamData::UpdateGBufferPatcherData(ID3D12GraphicsCommandList*
 	m_cbDataObject.worldView = mxWorldView.Transpose();
 	m_cbDataObject.worldViewInverseTranspose = (mxWorldView).Invert();
 	m_cbDataObject.globalData.time = NXGlobalApp::Timer->GetGlobalTimeSeconds();
+	m_cbDataObject.globalData.frameIndex = (uint32_t)NXGlobalApp::s_frameIndex.load();
 	m_cbObject.Update(m_cbDataObject);
 	pCmdList->SetGraphicsRootConstantBufferView(0, m_cbObject.CurrentGPUAddress());
 
-	NXShVisDescHeap->PushFluid(m_patcherBuffer.IsValid() ? m_patcherBuffer->GetSRV() : NXAllocator_NULL->GetNullSRV());
+	NXShVisDescHeap->PushFluid(m_patcherBuffer.IsValid() ? m_patcherBuffer->GetSRV() : NXAllocator_NULL->GetNullSRV()); 
 	NXShVisDescHeap->PushFluid(m_pHeightMapAtlas.IsValid() ? m_pHeightMapAtlas->GetSRV() : NXAllocator_NULL->GetNullSRV());
 	NXShVisDescHeap->PushFluid(m_pSplatMapAtlas.IsValid() ? m_pSplatMapAtlas->GetSRV() : NXAllocator_NULL->GetNullSRV());
 	NXShVisDescHeap->PushFluid(m_pNormalMapAtlas.IsValid() ? m_pNormalMapAtlas->GetSRV() : NXAllocator_NULL->GetNullSRV());
 	auto& srvHandle = NXShVisDescHeap->Submit();
-	pCmdList->SetGraphicsRootDescriptorTable(4, srvHandle); // 使用4号根参数 具体见NXCustomMaterial::CompileShader()
+	pCmdList->SetGraphicsRootDescriptorTable(4, srvHandle); // GPU-Driven Terrain 使用4号根参数 具体见NXCustomMaterial::CompileShader()
 }
 
 void NXTerrainLODStreamData::SetToAtlasHeightTexture(uint32_t index, const Ntr<NXTexture2D>& pTexture)

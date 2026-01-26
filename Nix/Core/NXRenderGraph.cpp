@@ -487,7 +487,14 @@ Ntr<NXResource> NXRenderGraph::CreateResourceByDescription(const NXRGDescription
 		}
 		
 		Ntr<NXTexture2D> pTex(new NXTexture2D());
-		pTex->CreateRenderTexture(strResName.c_str(), desc.tex.format, desc.tex.width, desc.tex.height, flags);
+		if (desc.usage == NXRGResourceUsage::RenderTarget || desc.usage == NXRGResourceUsage::DepthStencil)
+		{
+			pTex->CreateRenderTexture(strResName.c_str(), desc.tex.format, desc.tex.width, desc.tex.height, flags);
+		}
+		else // desc.usage == NXRGResourceUsage::UnorderedAccess
+		{
+			pTex->CreateTexture(strResName.c_str(), desc.tex.format, desc.tex.width, desc.tex.height, desc.tex.mipLevels, flags);
+		}
 		pTex->SetViews(srvCount, rtvCount, dsvCount, uavCount);
 		if (rtvCount) pTex->SetRTV(0);
 		if (dsvCount) pTex->SetDSV(0);

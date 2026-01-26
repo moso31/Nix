@@ -14,7 +14,8 @@ struct NXGBufferParams
 struct NXCBGlobalData
 {
 	float Time;
-	float3 _0;
+    float frameIndex;
+	float2 _0;
 };
 
 cbuffer ConstantBufferObject : register(b0)

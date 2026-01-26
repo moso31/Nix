@@ -137,7 +137,7 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D(const std::string& na
 
 	if (bAutoMakeViews)
 	{
-		uint32_t uavCount = flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS? 1 : 0;
+		uint32_t uavCount = flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS ? 1 : 0;
 		uint32_t srvCount = 1;
 
 		pTexture2D->SetViews(srvCount, 0, 0, uavCount);

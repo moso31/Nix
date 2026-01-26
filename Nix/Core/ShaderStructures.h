@@ -88,7 +88,8 @@ struct ConstantBufferVector4
 struct ConstantBufferGlobalData
 {
 	float time;
-	Vector3 _0;
+	uint32_t frameIndex;
+	Vector2 _0;
 };
 
 struct ConstantBufferObject

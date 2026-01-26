@@ -480,6 +480,8 @@ void Renderer::GenerateRenderGraph()
 	NXRGHandle hGBuffer2 = m_pRenderGraph->Create("GBuffer RT2", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::RenderTarget, .tex = { .format = DXGI_FORMAT_R10G10B10A2_UNORM, .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .arraySize = 1, .mipLevels = 1 } });
 	NXRGHandle hGBuffer3 = m_pRenderGraph->Create("GBuffer RT3", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::RenderTarget, .tex = { .format = DXGI_FORMAT_R8G8B8A8_UNORM, .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .arraySize = 1, .mipLevels = 1 } });
 	NXRGHandle hDepthZ = m_pRenderGraph->Create("DepthZ", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::DepthStencil, .tex = { .format = DXGI_FORMAT_R24G8_TYPELESS, .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .arraySize = 1, .mipLevels = 1 } });
+	NXRGHandle hVTPageIDTexture = m_pRenderGraph->Create("VT PageID Texture", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::UnorderedAccess, .tex = { .format = DXGI_FORMAT_R32_UINT, .width = (uint32_t)(m_viewRTSize.x + 7) / 8, .height = (uint32_t)(m_viewRTSize.y + 7) / 8, .arraySize = 1, .mipLevels = 1 }});
+	NXRGHandle hVTSector2IndirectTexture = m_pRenderGraph->Import(m_pVirtualTexture->GetSector2IndirectTexture());
 
 	struct GBufferData
 	{
@@ -488,6 +490,8 @@ void Renderer::GenerateRenderGraph()
 		NXRGHandle rt1;
 		NXRGHandle rt2;
 		NXRGHandle rt3;
+		NXRGHandle VTPageIDTexture;
+		NXRGHandle VTSector2IndirectTexture;
 	};
 
 	auto gBufferPassData = m_pRenderGraph->AddPass<GBufferData>("GBufferPass",
@@ -500,6 +504,8 @@ void Renderer::GenerateRenderGraph()
 			data.rt2	= builder.Write(hGBuffer2);
 			data.rt3	= builder.Write(hGBuffer3);
 			data.depth	= builder.Write(hDepthZ);
+			data.VTPageIDTexture = builder.Write(hVTPageIDTexture);
+			data.VTSector2IndirectTexture = builder.Write(hVTSector2IndirectTexture);
 		}, 
 		[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, GBufferData& data) {
 			// GBuffer 和其他的pass不太一样，依赖动态变化的场景/材质信息
@@ -561,6 +567,18 @@ void Renderer::GenerateRenderGraph()
 						{
 							if (pSubMesh->IsSubMeshTerrain() && g_debug_temporal_enable_terrain_debug)
 							{
+								// Virtual texture
+								{
+									auto& pVTPageIDTexture = resMap.GetRes(data.VTPageIDTexture).As<NXTexture2D>();
+									NXShVisDescHeap->PushFluid(pVTPageIDTexture->GetUAV(0));
+
+									auto& pVTSector2IndirectTexture = resMap.GetRes(data.VTSector2IndirectTexture).As<NXTexture2D>();
+									NXShVisDescHeap->PushFluid(pVTSector2IndirectTexture->GetUAV(0));
+
+									auto& srvHandle = NXShVisDescHeap->Submit();
+									pCmdList->SetGraphicsRootDescriptorTable(5, srvHandle); // virtual texture 使用5号根参数 具体见NXCustomMaterial::CompileShader()
+								}
+
 								m_pTerrainLODStreamer->GetStreamingData().UpdateGBufferPatcherData(pCmdList);
 								((NXSubMeshTerrain*)pSubMesh)->Render(pCmdList, m_pTerrainLODStreamer->GetStreamingData().GetPatcherDrawIndexArgs());
 								break;
@@ -574,51 +592,50 @@ void Renderer::GenerateRenderGraph()
 			}
 		});
 
-	NXRGHandle pVTReadback = m_pRenderGraph->Create("VT Readback Buffer", { .resourceType = NXResourceType::Buffer, .usage = NXRGResourceUsage::UnorderedAccess, .buf = { .stride = 4, .arraySize = (uint32_t)(m_viewRTSize.x * m_viewRTSize.y * 0.125f * 0.125f) } });
-	struct VTReadback
-	{
-		NXRGHandle gBuffer0;
-		NXRGHandle vtReadback;
-	};
-	auto vtReadbackPassData = m_pRenderGraph->AddPass<VTReadback>("VTReadbackPass",
-		[&](NXRGBuilder& builder, VTReadback& data) {
-			data.gBuffer0 = builder.Read(gBufferPassData->GetData().rt0);
-			data.vtReadback = builder.Write(pVTReadback);
-		},
-		[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, VTReadback& data) {
-			auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("VTReadback"));
-			pMat->SetConstantBuffer(0, 0, &m_pVirtualTexture->GetCBufferVTReadback());
-			pMat->SetInput(0, 0, resMap.GetRes(data.gBuffer0));
-			pMat->SetOutput(0, 0, resMap.GetRes(data.vtReadback));
+	//struct VTReadback
+	//{
+	//	NXRGHandle gBuffer0;
+	//	NXRGHandle vtReadback;
+	//};
+	//auto vtReadbackPassData = m_pRenderGraph->AddPass<VTReadback>("VTReadbackPass",
+	//	[&](NXRGBuilder& builder, VTReadback& data) {
+	//		data.gBuffer0 = builder.Read(gBufferPassData->GetData().rt0);
+	//		data.vtReadback = builder.Write(pVTReadback);
+	//	},
+	//	[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, VTReadback& data) {
+	//		auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("VTReadback"));
+	//		pMat->SetConstantBuffer(0, 0, &m_pVirtualTexture->GetCBufferVTReadback());
+	//		pMat->SetInput(0, 0, resMap.GetRes(data.gBuffer0));
+	//		pMat->SetOutput(0, 0, resMap.GetRes(data.vtReadback));
 
-			auto& pRT = resMap.GetRes(data.gBuffer0);
-			Int2 rtSize(pRT->GetWidth(), pRT->GetHeight());
-			Int2 threadGroupSize((rtSize + 7) / 8);
+	//		auto& pRT = resMap.GetRes(data.gBuffer0);
+	//		Int2 rtSize(pRT->GetWidth(), pRT->GetHeight());
+	//		Int2 threadGroupSize((rtSize + 7) / 8);
 
-			// 记录VTReadback的size 
-			m_vtReadbackDataSize = threadGroupSize;
-			m_pGUI->SetVTReadbackDataSize(threadGroupSize);
+	//		// 记录VTReadback的size 
+	//		m_vtReadbackDataSize = threadGroupSize;
+	//		m_pGUI->SetVTReadbackDataSize(threadGroupSize);
 
-			pMat->RenderSetTargetAndState(pCmdList);
-			pMat->RenderBefore(pCmdList);
+	//		pMat->RenderSetTargetAndState(pCmdList);
+	//		pMat->RenderBefore(pCmdList);
 
-			pCmdList->Dispatch(threadGroupSize.x, threadGroupSize.y, 1);
-		});
+	//		pCmdList->Dispatch(threadGroupSize.x, threadGroupSize.y, 1);
+	//	});
 
-	struct VTReadbackData
-	{
-		NXRGHandle vtReadback;
-	};
-	auto vtReadbackDataPassData = m_pRenderGraph->AddPass<VTReadbackData>("DoVTReadback",
-		[&](NXRGBuilder& builder, VTReadbackData& data) {
-			data.vtReadback = builder.Read(vtReadbackPassData->GetData().vtReadback);
-		},
-		[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, VTReadbackData& data) {
-			auto pMat = static_cast<NXReadbackPassMaterial*>(NXPassMng->GetPassMaterial("VTReadbackData"));
-			pMat->SetInput(resMap.GetRes(data.vtReadback));
-			pMat->SetOutput(m_vtReadbackData);
-			pMat->Render(pCmdList);
-		});
+	//struct VTReadbackData
+	//{
+	//	NXRGHandle vtReadback;
+	//};
+	//auto vtReadbackDataPassData = m_pRenderGraph->AddPass<VTReadbackData>("DoVTReadback",
+	//	[&](NXRGBuilder& builder, VTReadbackData& data) {
+	//		data.vtReadback = builder.Read(gBufferPassData->GetData().VTPageIDTexture);
+	//	},
+	//	[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, VTReadbackData& data) {
+	//		auto pMat = static_cast<NXReadbackPassMaterial*>(NXPassMng->GetPassMaterial("VTReadbackData"));
+	//		pMat->SetInput(resMap.GetRes(data.vtReadback));
+	//		pMat->SetOutput(m_vtReadbackData);
+	//		pMat->Render(pCmdList);
+	//	});
 
 	struct ShadowMapData
 	{
@@ -987,7 +1004,7 @@ void Renderer::UpdateGUI()
 
 void Renderer::UpdateSceneData()
 {
-	UpdateTime();
+	UpdateGlobalCBuffer();
 
 	// 更新场景Scripts。实际上是用Scripts控制指定物体的Transform。
 	m_scene->UpdateScripts();
@@ -1015,9 +1032,10 @@ void Renderer::UpdateSceneData()
 	//m_pSSAO->Update();
 }
 
-void Renderer::UpdateTime()
+void Renderer::UpdateGlobalCBuffer()
 {
 	g_cbDataObject.globalData.time = NXGlobalApp::Timer->GetGlobalTimeSeconds();
+	g_cbDataObject.globalData.frameIndex = (uint32_t)NXGlobalApp::s_frameIndex.load();
 }
 
 void Renderer::RenderFrame()

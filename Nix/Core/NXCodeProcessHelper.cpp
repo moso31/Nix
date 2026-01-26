@@ -447,6 +447,7 @@ std::string NXCodeProcessHelper::BuildHLSL_Include(int& ioLineCounter)
 {
 	std::string str = R"(#include "Common.fx"
 #include "Math.fx"
+#include "VTCommon.fx"
 )";
 	ioLineCounter += GetLineCount(str);
 	return str;
@@ -478,11 +479,16 @@ std::string NXCodeProcessHelper::BuildHLSL_Params(int& ioLineCounter, const std:
 
 	if (bIsGPUTerrain) // GPU Terrain专用
 	{
-		str += R"(#include "TerrainCommon.fx")"; str += "\n";
-		str += "StructuredBuffer<TerrainPatchData> m_patchBuffer : register(t0, space1);\n";
-		str += "Texture2DArray m_terrainHeightMap : register(t1, space1);\n";
-		str += "Texture2DArray m_terrainSplatMap : register(t2, space1);\n";
-		str += "Texture2DArray m_terrainNormalMap : register(t3, space1);\n";
+		str += R"(
+#include "TerrainCommon.fx"
+StructuredBuffer<TerrainPatchData> m_patchBuffer : register(t0, space1);
+Texture2DArray m_terrainHeightMap : register(t1, space1);
+Texture2DArray m_terrainSplatMap : register(t2, space1);
+Texture2DArray m_terrainNormalMap : register(t3, space1);
+
+RWTexture2D<uint> m_VTPageIDBuffer : register(u0, space0);
+Texture2D m_VTSector2IndirectTexture : register(t0, space2);
+)";
 	}
 
 	// sampler
@@ -584,18 +590,22 @@ struct PS_OUTPUT
 std::string NXCodeProcessHelper::BuildHLSL_PassFuncs(int& ioLineCounter, const NXMaterialData& oMatData, const NXMaterialCode& shaderCode)
 {
 	std::string str = R"(
+void EncodeVTPageID(float2 posXZ, float2 positionSS)
+{
+    int2 pixelCoord = int2(positionSS);
+    float mip = MipLevelAnisotropy(posXZ, 256);
+
+    int bayerOffset64 = g_Bayer8x8[g.frameIndex % 64];
+    int bayerOffsetX = bayerOffset64 % 8;
+    int bayerOffsetY = bayerOffset64 / 8;
+    if (pixelCoord.x % 8 == bayerOffsetX && pixelCoord.y % 8 == bayerOffsetY)
+    {
+        m_VTPageIDBuffer[pixelCoord / 8] = (uint)mip + m_VTSector2IndirectTexture.Load(uint3(0, 0, 0)) * 0.01;
+    }
+}
+
 void EncodeGBuffer(NXGBufferParams gBuffer, PS_INPUT input, out PS_OUTPUT Output)
 {
-	// TODO: 换成VirtPageID，临时代码
-	int ix = (int)floor(input.posWS.x);
-	int iy = (int)floor(input.posWS.y);
-	int iz = (int)floor(input.posWS.z);
-	uint ux = (ix % 4096u) & 0xFFFu;
-	uint uy = (iy % 4096u) & 0xFFFu;
-	uint uz = (iz % 256u) & 0xFFu;
-	float packed = input.posWS.y; // (ux << 20) | (uy << 8) | uz;
-	Output.GBufferA = packed;
-
 	uint uShadingModel = asuint(m.shadingModel);
 	
 	float3 normalWS = TangentSpaceToWorldSpace(gBuffer.normal, input.normWS, input.tangentWS);
@@ -650,9 +660,6 @@ std::string NXCodeProcessHelper::BuildHLSL_Entry_VS(int& ioLineCounter, const NX
 
 	if (gpuInstancing)
 	{
-//		strVSBegin += R"(
-//	NXGPUTerrainPatch patch = m_patchBuffer[instanceID];
-//)";
 		strVSBegin += R"(
 	TerrainPatchData patch = m_patchBuffer[instanceID];
 )";
@@ -693,10 +700,6 @@ void PS(PS_INPUT input, out PS_OUTPUT Output)
 	bool gpuInstancing = g_debug_temporal_enable_terrain_debug;
 	if (gpuInstancing)
 	{
-//		strPSBegin += R"(
-//	uint instanceID = input.instanceID;
-//	NXGPUTerrainPatch patch = m_patchBuffer[instanceID];
-//)";
 		strPSBegin += R"(
 	uint instanceID = input.instanceID;
 	TerrainPatchData patch = m_patchBuffer[instanceID];
@@ -713,9 +716,15 @@ void PS(PS_INPUT input, out PS_OUTPUT Output)
 )";
 
 	std::string strPSEnd = R"(
-    EncodeGBuffer(o, input, Output);
+EncodeGBuffer(o, input, Output);
 }
 )";
+	if (gpuInstancing)
+	{
+		strPSEnd = R"(
+EncodeVTPageID(input.posWS.xz, input.posSS.xy);
+)" + strPSEnd;
+	}
 
 	std::string str;
 	str += strPSBegin;
