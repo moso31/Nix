@@ -21,7 +21,7 @@ void NXPassMaterialManager::InitDefaultRenderer()
 		pMat->RegisterUAVSpaceNum(1);
 		pMat->RegisterUAVSlotNum(1);
 		pMat->RegisterCBVSpaceNum(1);
-		pMat->RegisterCBVSlotNum(1);
+		pMat->RegisterCBVSlotNum(2);
 		pMat->FinalizeLayout();
 		AddMaterial(pMat, true);
 	}

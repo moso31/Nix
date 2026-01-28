@@ -164,13 +164,14 @@ void Renderer::GenerateRenderGraph()
 			},
 			[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, Sector2IndirectTexture& data)
 			{
-				uint32_t threadGroups = (m_pVirtualTexture->GetCBufferSector2IndirectTextureNum() + 7) / 8;
+				uint32_t threadGroups = (m_pVirtualTexture->GetCBufferSector2IndirectTextureDataNum() + 7) / 8;
 				if (threadGroups == 0)
 					return;
 
 				auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("UpdateSector2IndirectTexture"));
 				pMat->SetOutput(0, 0, resMap.GetRes(data.Sector2IndirectTexture));
 				pMat->SetConstantBuffer(0, 0, &m_pVirtualTexture->GetCBufferSector2IndirectTexture());
+				pMat->SetConstantBuffer(0, 1, &m_pVirtualTexture->GetCBufferSector2IndirectTextureNum());
 
 				pMat->RenderSetTargetAndState(pCmdList);
 				pMat->RenderBefore(pCmdList);
@@ -482,6 +483,31 @@ void Renderer::GenerateRenderGraph()
 	NXRGHandle hDepthZ = m_pRenderGraph->Create("DepthZ", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::DepthStencil, .tex = { .format = DXGI_FORMAT_R24G8_TYPELESS, .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .arraySize = 1, .mipLevels = 1 } });
 	NXRGHandle hVTPageIDTexture = m_pRenderGraph->Create("VT PageID Texture", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::UnorderedAccess, .tex = { .format = DXGI_FORMAT_R32_UINT, .width = (uint32_t)(m_viewRTSize.x + 7) / 8, .height = (uint32_t)(m_viewRTSize.y + 7) / 8, .arraySize = 1, .mipLevels = 1 }});
 	NXRGHandle hVTSector2IndirectTexture = m_pRenderGraph->Import(m_pVirtualTexture->GetSector2IndirectTexture());
+
+	bool bNeedClearIndirectTexture = true;
+	if (bNeedClearIndirectTexture) // µ÷ÊÔ£ºÇå¿ÕVTPageIDTexture
+	{
+		struct PageIDTextureClear
+		{
+			NXRGHandle VTPageIDTexture;
+		};
+		m_pRenderGraph->AddPass<PageIDTextureClear>("VTPageIDTexture Clear",
+			[&](NXRGBuilder& builder, PageIDTextureClear& data)
+			{
+				data.VTPageIDTexture = builder.Write(hVTPageIDTexture);
+			},
+			[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, PageIDTextureClear& data)
+			{
+				auto pTex = resMap.GetRes(data.VTPageIDTexture).As<NXTexture2D>();
+				pTex->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+
+				UINT clearValues[4] = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
+				D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = pTex->GetUAV(0);
+				NXShVisDescHeap->PushFluid(cpuHandle);
+				D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = NXShVisDescHeap->Submit();
+				pCmdList->ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, pTex->GetD3DResource(), clearValues, 0, nullptr);
+			});
+	}
 
 	struct GBufferData
 	{

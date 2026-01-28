@@ -603,9 +603,9 @@ void EncodeVTPageID(float2 posXZ, float2 positionSS)
 	uint indiTexLog2Size = val.z;
 
     int2 pixelCoord = int2(positionSS);
-    float mip = MipLevelAnisotropy(posXZ, 256);
+    uint mip = (uint)MipLevelAnisotropy(posXZ, 256);
 
-	uint2 indiTexPos = indiTexPosMip0 >> (uint)mip; // indiTexPos¾ÍÊÇPageID
+	uint2 indiTexPos = indiTexPosMip0 >> mip; // indiTexPos >> mip == PageID
 
     int bayerOffset64 = g_Bayer8x8[g.frameIndex % 64];
     int bayerOffsetX = bayerOffset64 % 8;

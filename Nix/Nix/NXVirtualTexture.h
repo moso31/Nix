@@ -87,7 +87,8 @@ public:
 
 	const Ntr<NXTexture2D>& GetSector2IndirectTexture() const { return m_pSector2IndirectTexture; }
 	const NXConstantBuffer<std::vector<CBufferSector2IndirectTexture>>& GetCBufferSector2IndirectTexture() const { return m_cbSector2IndirectTexture; }
-	const size_t GetCBufferSector2IndirectTextureNum() const { return m_cbDataSector2IndirectTexture.size(); }
+	const NXConstantBuffer<int>& GetCBufferSector2IndirectTextureNum() const { return m_cbSector2IndirectTextureNum; }
+	const size_t GetCBufferSector2IndirectTextureDataNum() const { return m_cbDataSector2IndirectTexture.size(); }
 	bool NeedClearSector2IndirectTexture() const { return m_bNeedClearSector2IndirectTexture; }
 	void MarkSector2IndirectTextureCleared() { m_bNeedClearSector2IndirectTexture = false; }
 
@@ -129,4 +130,5 @@ private:
 	bool m_bNeedClearSector2IndirectTexture = true; // 首帧清除标记
 	std::vector<CBufferSector2IndirectTexture> m_cbDataSector2IndirectTexture; 
 	NXConstantBuffer<std::vector<CBufferSector2IndirectTexture>> m_cbSector2IndirectTexture;
+	NXConstantBuffer<int> m_cbSector2IndirectTextureNum;
 };

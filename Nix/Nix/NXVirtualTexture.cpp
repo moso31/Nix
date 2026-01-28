@@ -145,17 +145,18 @@ void NXVirtualTexture::UpdateNearestSectors()
 			Int2 oldVirtImgPos = m_sector2VirtImagePos[s.oldData];
 			m_pVirtImageQuadTree->Free(oldVirtImgPos, s.oldData.imageSize);
 			m_sector2VirtImagePos.erase(s.oldData);
-			m_cbDataSector2IndirectTexture.push_back({ s.oldData.id - g_terrainConfig.MinSectorID, -1 });
+			//m_cbDataSector2IndirectTexture.push_back({ s.oldData.id - g_terrainConfig.MinSectorID, -1 });
 		}
 	}
 
-	if (m_cbDataSector2IndirectTexture.size() > 256)
+	if (m_cbDataSector2IndirectTexture.size() >= 256)
 	{
 		printf("WARNING\n");
 	}
 
 	// 准备更新 Sector2IndirectTexture
 	m_cbSector2IndirectTexture.Update(m_cbDataSector2IndirectTexture);
+	m_cbSector2IndirectTextureNum.Update((int)m_cbDataSector2IndirectTexture.size());
 }
 
 float NXVirtualTexture::GetDist2OfSectorToCamera(const Vector2& camPos, const Int2& sectorCorner)
