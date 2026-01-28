@@ -651,20 +651,24 @@ void Renderer::GenerateRenderGraph()
 	//		pCmdList->Dispatch(threadGroupSize.x, threadGroupSize.y, 1);
 	//	});
 
-	//struct VTReadbackData
-	//{
-	//	NXRGHandle vtReadback;
-	//};
-	//auto vtReadbackDataPassData = m_pRenderGraph->AddPass<VTReadbackData>("DoVTReadback",
-	//	[&](NXRGBuilder& builder, VTReadbackData& data) {
-	//		data.vtReadback = builder.Read(gBufferPassData->GetData().VTPageIDTexture);
-	//	},
-	//	[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, VTReadbackData& data) {
-	//		auto pMat = static_cast<NXReadbackPassMaterial*>(NXPassMng->GetPassMaterial("VTReadbackData"));
-	//		pMat->SetInput(resMap.GetRes(data.vtReadback));
-	//		pMat->SetOutput(m_vtReadbackData);
-	//		pMat->Render(pCmdList);
-	//	});
+	struct VTReadbackData
+	{
+		NXRGHandle vtReadback;
+	};
+	auto vtReadbackDataPassData = m_pRenderGraph->AddPass<VTReadbackData>("DoVTReadback",
+		[&](NXRGBuilder& builder, VTReadbackData& data) {
+			data.vtReadback = builder.Read(gBufferPassData->GetData().VTPageIDTexture);
+		},
+		[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, VTReadbackData& data) {
+			auto pMat = static_cast<NXReadbackPassMaterial*>(NXPassMng->GetPassMaterial("VTReadbackData"));
+
+			auto pTex = resMap.GetRes(data.vtReadback).As<NXTexture2D>();
+			pMat->SetInput(pTex);
+			pMat->SetOutput(m_vtReadbackData);
+			pMat->Render(pCmdList);
+
+			m_pGUI->SetVTReadbackDataSize(Int2(pTex->GetWidth(), pTex->GetHeight()));
+		});
 
 	struct ShadowMapData
 	{

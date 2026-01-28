@@ -191,7 +191,7 @@ class NXReadbackPassMaterial : public NXPassMaterial
 public:
 	NXReadbackPassMaterial(const std::string& name) : NXPassMaterial(name) {}
 
-	void SetInput(Ntr<NXResource> pRes) { m_pReadbackBuffer = pRes; }
+	void SetInput(Ntr<NXResource> pRes) { m_pReadbackResource = pRes; }
 	void SetOutput(Ntr<NXReadbackData>& pOutData) { m_pOutData = pOutData; }
 
 	void Compile() override {}
@@ -200,6 +200,10 @@ public:
 	void Release() override {}
 
 private:
-	Ntr<NXResource> m_pReadbackBuffer; // input
+	void ReadbackBuffer(ID3D12GraphicsCommandList* pCmdList);
+	void ReadbackTexture(ID3D12GraphicsCommandList* pCmdList);
+
+private:
+	Ntr<NXResource> m_pReadbackResource; // input
 	Ntr<NXReadbackData> m_pOutData;		// output
 };

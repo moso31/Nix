@@ -13,10 +13,7 @@ public:
 		m_stride = stride;
 		m_byteSize = stride * arraySize;
 
-		for (uint32_t i = 0; i < MultiFrameSets_swapChainCount; i++)
-		{
-			m_data[i].assign(m_byteSize, 0u);
-		}
+		m_data.assign(m_byteSize, 0u);
 	}
 
 	uint32_t GetStride() const { return m_stride; }
@@ -24,7 +21,8 @@ public:
 	uint32_t GetWidth() const { return m_byteSize / m_stride; }
 
 	void CopyDataFromGPU(uint8_t* pData);
-	const std::vector<uint8_t>& Get() const { return m_data.Current(); }
+	void CopyDataFromGPU(uint8_t* pSrcData, uint32_t dstOffset, uint32_t byteSize);
+	const std::vector<uint8_t>& Get() const { return m_data; }
 
 private:
 	std::string m_name;
@@ -32,5 +30,5 @@ private:
 	uint32_t m_stride;
 	uint32_t m_byteSize;
 
-	MultiFrame<std::vector<uint8_t>> m_data;
+	std::vector<uint8_t> m_data;
 };

@@ -645,8 +645,20 @@ void NXComputePassMaterial::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 
 void NXReadbackPassMaterial::Render(ID3D12GraphicsCommandList* pCmdList)
 {
+	if (m_pReadbackResource->GetResourceType() == NXResourceType::Buffer)
+	{
+		ReadbackBuffer(pCmdList);
+	}
+	else // Texture
+	{
+		ReadbackTexture(pCmdList);
+	}
+}
+
+void NXReadbackPassMaterial::ReadbackBuffer(ID3D12GraphicsCommandList* pCmdList)
+{
 	// 在这里维护CPUData（m_pOutData）的大小
-	auto pGPUBuffer = m_pReadbackBuffer.As<NXBuffer>();
+	auto pGPUBuffer = m_pReadbackResource.As<NXBuffer>();
 	auto stride = pGPUBuffer->GetStride();
 	auto byteSize = pGPUBuffer->GetByteSize();
 	if (m_pOutData->GetStride() != stride || m_pOutData->GetByteSize() != byteSize)
@@ -663,6 +675,47 @@ void NXReadbackPassMaterial::Render(ID3D12GraphicsCommandList* pCmdList)
 			// 这时候对应的ringBuffer还不会释放 放心用
 			uint8_t* pData = ctx.pResourceData + ctx.pResourceOffset;
 			m_pOutData->CopyDataFromGPU(pData);
+			});
+	}
+}
+
+void NXReadbackPassMaterial::ReadbackTexture(ID3D12GraphicsCommandList* pCmdList)
+{
+	auto pTexture = m_pReadbackResource.As<NXTexture>();
+
+	NXReadbackContext ctx(pTexture->GetName() + "_Texture");
+	if (NXReadbackSys->BuildTask(pTexture, ctx))
+	{
+		// 纹理和buffer不太一样，需要根据对纹理抓取的结果 分配实际回读的内存大小
+		if (m_pOutData->GetStride() != ctx.rowSizeInBytes || m_pOutData->GetByteSize() != ctx.numRows * ctx.rowSizeInBytes)
+			m_pOutData->Create((uint32_t)ctx.rowSizeInBytes, ctx.numRows);
+
+		// 设置源纹理状态
+		pTexture->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COPY_SOURCE);
+
+		// 构建拷贝参数
+		D3D12_TEXTURE_COPY_LOCATION src = {};
+		src.pResource = pTexture->GetD3DResource();
+		src.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+		src.SubresourceIndex = 0;
+
+		D3D12_TEXTURE_COPY_LOCATION dst = {};
+		dst.pResource = ctx.pResource;
+		dst.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+		dst.PlacedFootprint = ctx.footprint;
+
+		pCmdList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
+
+		NXReadbackSys->FinishTask(ctx, [this, ctx]() {
+			uint8_t* pSrc = ctx.pResourceData + ctx.pResourceOffset;
+			for (uint32_t row = 0; row < ctx.numRows; row++)
+			{
+				// 纹理，逐行拷贝；
+				// 由于纹理行字节对齐的特性，偏移地址(src)按对齐后长度，但回读地址(dst)按对齐前的长度
+				uint8_t* pSrcRow = pSrc + ctx.footprint.Footprint.RowPitch * row;
+				uint32_t dstOffset = row * (uint32_t)ctx.rowSizeInBytes;
+				m_pOutData->CopyDataFromGPU(pSrcRow, dstOffset, (uint32_t)ctx.rowSizeInBytes);
+			}
 			});
 	}
 }

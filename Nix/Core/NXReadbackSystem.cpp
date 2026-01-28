@@ -1,5 +1,6 @@
 #include "NXReadbackSystem.h"
 #include "NXGlobalDefinitions.h"
+#include "NXTexture.h"
 
 NXReadbackRingBuffer::NXReadbackRingBuffer(ID3D12Device* pDevice, uint32_t bufferSize) :
 	m_pDevice(pDevice),
@@ -145,9 +146,7 @@ bool NXReadbackSystem::BuildTask(int byteSize, NXReadbackContext& taskResult)
 	// 不满足以下条件时，持续等待
 	// update() 每完成一个任务，就会notify_one()，唤醒一个正在这里持续等待的线程（如果有的话）
 	m_condition.wait(lock, [this, byteSize]() {
-		bool taskOK = m_taskUsed < TASK_NUM;
-		bool ringBufferOK = m_ringBuffer.CanAlloc(byteSize);
-		return taskOK && ringBufferOK;
+        return m_taskUsed < TASK_NUM && m_ringBuffer.CanAlloc(byteSize);
 		});
 
 	uint32_t idx = (m_taskStart + m_taskUsed) % TASK_NUM;
@@ -167,6 +166,55 @@ bool NXReadbackSystem::BuildTask(int byteSize, NXReadbackContext& taskResult)
 	}
 
 	return false;
+}
+
+bool NXReadbackSystem::BuildTask(const Ntr<NXTexture>& pTexture, NXReadbackContext& taskResult)
+{
+	std::unique_lock<std::mutex> lock(m_mutex);
+
+	auto* pD3DTextureResource = pTexture->GetD3DResource();
+
+    // 获取纹理布局
+	// NOTE: 现在只支持对2DArray的mip0进行回读！
+    D3D12_RESOURCE_DESC texDesc = pD3DTextureResource->GetDesc();
+    D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
+    uint32_t numRows; // 只支持2darray mip0 的回读，所以不需要弄成数组了
+    uint64_t rowSizeInBytes;
+    uint64_t totalBytes;
+	
+	uint32_t firstSubresourceIndex = 0;
+    m_pDevice->GetCopyableFootprints(&texDesc, firstSubresourceIndex, 1, 0, &footprint, &numRows, &rowSizeInBytes, &totalBytes);
+
+    // 分配RingBuffer空间（totalSize=对齐后的大小）
+    uint32_t byteSize = static_cast<uint32_t>(totalBytes);
+    
+    m_condition.wait(lock, [this, byteSize]() {
+        return m_taskUsed < TASK_NUM && m_ringBuffer.CanAlloc(byteSize);
+    });
+
+    uint32_t idx = (m_taskStart + m_taskUsed) % TASK_NUM;
+    auto& task = m_tasks[idx];
+    if (m_ringBuffer.Build(byteSize, task))
+    {
+        m_taskUsed++;
+
+        // 填充Context
+        taskResult.pOwner = &task;
+        taskResult.pResource = m_ringBuffer.GetResource();
+        taskResult.pResourceData = m_ringBuffer.GetResourceMappedData();
+        taskResult.pResourceOffset = task.ringPos;
+        
+        // 纹理专用信息
+        taskResult.type = NXReadbackType::Texture;
+        taskResult.footprint = footprint;
+        taskResult.footprint.Offset = task.ringPos;  // ringbuffer中的实际偏移
+        taskResult.numRows = numRows;
+        taskResult.rowSizeInBytes = rowSizeInBytes;
+
+        m_pendingTask.push_back(&task);
+        return true;
+    }
+    return false;
 }
 
 void NXReadbackSystem::FinishTask(const NXReadbackContext& result, const std::function<void()>& pCallBack)

@@ -1,6 +1,14 @@
 #pragma once
 #include "XAllocCommon.h"
 #include "BaseDefs/DX12.h"
+#include "Ntr.h"
+
+enum class NXReadbackType 
+{ 
+    Unknown,
+    Buffer, 
+    Texture 
+};
 
 class NXReadbackRingBuffer;
 struct NXReadbackTask
@@ -36,6 +44,13 @@ struct NXReadbackContext
     uint8_t* pResourceData = nullptr;
     uint32_t pResourceOffset = 0;
     std::string name;
+    
+    NXReadbackType type = NXReadbackType::Unknown; 
+
+    // 回读纹理时专用
+    D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint = {};
+    uint32_t numRows = 0;
+    uint64_t rowSizeInBytes = 0;
 };
 
 class NXReadbackRingBuffer
@@ -64,6 +79,7 @@ private:
     uint8_t* m_pResourceData;
 };
 
+class NXTexture;
 class NXReadbackSystem
 {
     const static uint32_t TASK_NUM = 16;
@@ -72,7 +88,11 @@ public:
     NXReadbackSystem(ID3D12Device* pDevice);
     ~NXReadbackSystem();
 
+    // 回读Buffer
     bool BuildTask(int byteSize, NXReadbackContext& taskResult);
+    // 回读Texture
+    bool BuildTask(const Ntr<NXTexture>& pTexture, NXReadbackContext& taskResult);
+
     void FinishTask(const NXReadbackContext& result, const std::function<void()>& pCallBack = nullptr);
     void Update();
     void UpdatePendingTaskFenceValue(uint64_t mainRenderFenceValue);
