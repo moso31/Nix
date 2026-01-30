@@ -5,8 +5,10 @@
 #include "BaseDefs/Math.h"
 #include "NXConstantBuffer.h"
 #include "NXVirtualTextureCommon.h"
+#include "NXReadbackData.h"
 #include "NXVTImageQuadTree.h"
 #include "NXTerrainCommon.h"
+#include "NXVTLRUCache.h"
 
 struct NXVTSector
 {
@@ -65,7 +67,6 @@ class NXTexture2D;
 class NXVirtualTexture
 {
 	constexpr static int VT_SECTOR2INDIRECTTEXTURE_SIZE = 256; // Sector2IndirectTexture使用的分辨率
-	constexpr static int VT_MIN_SECTOR_ID = -128; // 最小的SectorID
 	constexpr static size_t VTIMAGE_MAX_NODE_SIZE = 256; // 最大node使用的分辨率
 	constexpr static int CB_SECTOR2INDIRECTTEXTURE_DATA_NUM = 256;
 
@@ -75,6 +76,9 @@ class NXVirtualTexture
 	constexpr static float	SECTOR_SIZEF = 64.0f;
 	constexpr static float	SECTOR_SIZEF_INV = 1.0 / SECTOR_SIZEF;
 	constexpr static size_t SECTOR_SIZE_LOG2 = 6;
+
+	constexpr static size_t LRU_CACHE_SIZE = 1024;
+	constexpr static size_t BAKE_PHYSICAL_PAGE_PER_FRAME = 8; // 每帧最多烘焙的PhysicalPage数量
 
 public:
 	NXVirtualTexture(class NXCamera* pCam);
@@ -97,10 +101,16 @@ public:
 	const NXVTImageQuadTree* GetQuadTree() const { return m_pVirtImageQuadTree; }
 	const std::unordered_map<NXVTSector, Int2>& GetSector2VirtImagePos() const { return m_sector2VirtImagePos; }
 
+	// VT Readback 数据访问接口
+	Ntr<NXReadbackData>& GetVTReadbackData() { return m_vtReadbackData; }
+	const Int2& GetVTReadbackDataSize() const { return m_vtReadbackDataSize; }
+	void SetVTReadbackDataSize(const Int2& val) { m_vtReadbackDataSize = val; }
+
 	void Release();
 
 private:
 	void UpdateNearestSectors();
+	void BakePhysicalPages();
 
 	// 获取sector-相机最近距离的 平方
 	float GetDist2OfSectorToCamera(const Vector2& camPos, const Int2& sectorPos);
@@ -131,4 +141,11 @@ private:
 	std::vector<CBufferSector2IndirectTexture> m_cbDataSector2IndirectTexture; 
 	NXConstantBuffer<std::vector<CBufferSector2IndirectTexture>> m_cbSector2IndirectTexture;
 	NXConstantBuffer<int> m_cbSector2IndirectTextureNum;
+
+	// VT Readback 数据
+	Ntr<NXReadbackData> m_vtReadbackData;
+	Int2 m_vtReadbackDataSize;
+
+	NXVTLRUCache m_lruCache;
+	std::vector<NXVTLRUKey> m_physPagePendingKeys;
 };

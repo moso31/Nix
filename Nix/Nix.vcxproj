@@ -404,6 +404,7 @@
     <ClCompile Include="Nix\NXTexture.cpp" />
     <ClCompile Include="Nix\NXVirtualTexture.cpp" />
     <ClCompile Include="Nix\NXVTImageQuadTree.cpp" />
+    <ClCompile Include="Nix\NXVTLRUCache.cpp" />
     <ClCompile Include="Nix\Script\NSFirstPersonalCamera.cpp" />
     <ClCompile Include="Nix\Script\NSTest.cpp" />
     <ClCompile Include="Nix\NXCamera.cpp" />
@@ -544,6 +545,7 @@
     <ClInclude Include="Nix\NXVirtualTextureCommon.h" />
     <ClInclude Include="Nix\NXVirtualTexture.h" />
     <ClInclude Include="Nix\NXVTImageQuadTree.h" />
+    <ClInclude Include="Nix\NXVTLRUCache.h" />
     <ClInclude Include="Nix\Script\NSFirstPersonalCamera.h" />
     <ClInclude Include="Nix\Script\NSTest.h" />
     <ClInclude Include="Nix\NXCamera.h" />
@@ -799,7 +801,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shader\VTBatchBaker.fx">
+    <None Include="Shader\PhysicalPageBaker.fx">
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='FullyDebug|x64'">

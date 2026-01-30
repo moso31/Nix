@@ -687,8 +687,10 @@ void NXReadbackPassMaterial::ReadbackTexture(ID3D12GraphicsCommandList* pCmdList
 	if (NXReadbackSys->BuildTask(pTexture, ctx))
 	{
 		// 纹理和buffer不太一样，需要根据对纹理抓取的结果 分配实际回读的内存大小
-		if (m_pOutData->GetStride() != ctx.rowSizeInBytes || m_pOutData->GetByteSize() != ctx.numRows * ctx.rowSizeInBytes)
-			m_pOutData->Create((uint32_t)ctx.rowSizeInBytes, ctx.numRows);
+		uint32_t stride = ctx.rowSizeInBytes / pTexture->GetWidth();
+		uint32_t arraySize = ctx.numRows * ctx.rowSizeInBytes / stride;
+		if (m_pOutData->GetStride() != stride || m_pOutData->GetByteSize() != stride * arraySize)
+			m_pOutData->Create(stride, arraySize);
 
 		// 设置源纹理状态
 		pTexture->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COPY_SOURCE);

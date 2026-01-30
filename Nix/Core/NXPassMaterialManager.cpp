@@ -26,6 +26,12 @@ void NXPassMaterialManager::InitDefaultRenderer()
 		AddMaterial(pMat, true);
 	}
 
+	//{
+	//	auto pMat = new NXComputePassMaterial("PhysicalPageBaker", "PhysicalPageBaker.fx");
+	//	pMat->FinalizeLayout();
+	//	AddMaterial(pMat, true);
+	//}
+
 	////////////////////////////////////////
 	// GPU-Driven Terrain
 	////////////////////////////////////////

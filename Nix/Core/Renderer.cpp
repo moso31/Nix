@@ -40,7 +40,6 @@ Renderer::Renderer(const Vector2& rtSize) :
 	m_fShadowMapZoomScale(1.0f)
 {
 	m_cbDebugLayerData = Vector4(1.0f, 0.0f, 0.0f, 0.0f);
-	m_vtReadbackData = new NXReadbackData("VT Readback CPUdata");
 }
 
 void Renderer::Init()
@@ -100,7 +99,6 @@ void Renderer::InitGUI()
 {
 	m_pGUI = new NXGUI(m_scene, this);
 	m_pGUI->Init();
-	m_pGUI->SetVTReadbackData(m_vtReadbackData);
 }
 
 void Renderer::GenerateRenderGraph()
@@ -179,6 +177,7 @@ void Renderer::GenerateRenderGraph()
 			});
 
 		auto& pStreamingData = m_pTerrainLODStreamer->GetStreamingData();
+		NXRGHandle pSector2NodeIDTex = m_pRenderGraph->Import(pStreamingData.GetSector2NodeIDTexture());
 
 		// 仅首帧执行
 		// 清空Sector2NodeID纹理，将所有像素设置为65535 (0xFFFF)
@@ -191,7 +190,7 @@ void Renderer::GenerateRenderGraph()
 			m_pRenderGraph->AddPass<TerrainSector2NodeClear>("Terrain Sector2Node Clear",
 				[&](NXRGBuilder& builder, TerrainSector2NodeClear& data)
 				{
-					data.Sector2NodeTex = builder.Write(m_pRenderGraph->Import(pStreamingData.GetSector2NodeIDTexture()));
+					data.Sector2NodeTex = builder.Write(pSector2NodeIDTex);
 				},
 				[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, TerrainSector2NodeClear& data)
 				{
@@ -299,7 +298,7 @@ void Renderer::GenerateRenderGraph()
 			m_pRenderGraph->AddPass<TerrainSector2NodeTint>("Terrain Sector2Node Tint", 
 				[&](NXRGBuilder& builder, TerrainSector2NodeTint& data) 
 				{
-					data.Sector2NodeTex = builder.Write(m_pRenderGraph->Import(pStreamingData.GetSector2NodeIDTexture()));
+					data.Sector2NodeTex = builder.Write(pSector2NodeIDTex);
 				},
 				[&, groupNum](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, TerrainSector2NodeTint& data) 
 				{
@@ -349,12 +348,12 @@ void Renderer::GenerateRenderGraph()
 			});
 
 		// culling：预加载 填满mip5初始nodeID
-		m_pRenderGraph->AddPass<TerrainNodesCullingData>("Terrain Nodes Culling: First",
+		 m_pRenderGraph->AddPass<TerrainNodesCullingData>("Terrain Nodes Culling: First",
 			[=, &pStreamingData](NXRGBuilder& builder, TerrainNodesCullingData& data)
 			{
 				data.pOut = builder.Write(pTerrainNodesA);
 				data.pFinal = builder.Write(pTerrainNodesFinal);
-				data.sector2NodeTex = builder.Read(m_pRenderGraph->Import(pStreamingData.GetSector2NodeIDTexture()));
+				data.sector2NodeTex = builder.Read(pSector2NodeIDTex);
 			},
 			[=, &pStreamingData](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, TerrainNodesCullingData& data)
 			{
@@ -381,7 +380,7 @@ void Renderer::GenerateRenderGraph()
 					data.pOut = builder.Write((i % 2 == 0) ? pTerrainNodesB : pTerrainNodesA);
 					data.pFinal = builder.Write(pTerrainNodesFinal);
 					data.pIndiArgs = builder.Read(pTerrainIndirectArgs); 
-					data.sector2NodeTex = builder.Read(m_pRenderGraph->Import(pStreamingData.GetSector2NodeIDTexture()));
+					data.sector2NodeTex = builder.Read(pSector2NodeIDTex);
 				},
 				[=, &pStreamingData](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, TerrainNodesCullingData& data)
 				{
@@ -474,6 +473,17 @@ void Renderer::GenerateRenderGraph()
 				pBufIndirectArgs->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
 				pCmdList->ExecuteIndirect(m_pCommandSig.Get(), 1, pBufIndirectArgs->GetD3DResource(), 0, nullptr, 0);
 			});
+
+		//struct PhysicalPageBaker
+		//{
+		//};
+		//m_pRenderGraph->AddPass<PhysicalPageBaker>("PhysicalPageBaker",
+		//	[&](NXRGBuilder& builder, PhysicalPageBaker& data)
+		//	{
+		//	},
+		//	[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, PhysicalPageBaker& data)
+		//	{
+		//	});
 	}
 
 	NXRGHandle hGBuffer0 = m_pRenderGraph->Create("GBuffer RT0", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::RenderTarget, .tex = { .format = DXGI_FORMAT_R32_FLOAT, .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .arraySize = 1, .mipLevels = 1 } });
@@ -621,36 +631,6 @@ void Renderer::GenerateRenderGraph()
 			}
 		});
 
-	//struct VTReadback
-	//{
-	//	NXRGHandle gBuffer0;
-	//	NXRGHandle vtReadback;
-	//};
-	//auto vtReadbackPassData = m_pRenderGraph->AddPass<VTReadback>("VTReadbackPass",
-	//	[&](NXRGBuilder& builder, VTReadback& data) {
-	//		data.gBuffer0 = builder.Read(gBufferPassData->GetData().rt0);
-	//		data.vtReadback = builder.Write(pVTReadback);
-	//	},
-	//	[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, VTReadback& data) {
-	//		auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("VTReadback"));
-	//		pMat->SetConstantBuffer(0, 0, &m_pVirtualTexture->GetCBufferVTReadback());
-	//		pMat->SetInput(0, 0, resMap.GetRes(data.gBuffer0));
-	//		pMat->SetOutput(0, 0, resMap.GetRes(data.vtReadback));
-
-	//		auto& pRT = resMap.GetRes(data.gBuffer0);
-	//		Int2 rtSize(pRT->GetWidth(), pRT->GetHeight());
-	//		Int2 threadGroupSize((rtSize + 7) / 8);
-
-	//		// 记录VTReadback的size 
-	//		m_vtReadbackDataSize = threadGroupSize;
-	//		m_pGUI->SetVTReadbackDataSize(threadGroupSize);
-
-	//		pMat->RenderSetTargetAndState(pCmdList);
-	//		pMat->RenderBefore(pCmdList);
-
-	//		pCmdList->Dispatch(threadGroupSize.x, threadGroupSize.y, 1);
-	//	});
-
 	struct VTReadbackData
 	{
 		NXRGHandle vtReadback;
@@ -664,10 +644,10 @@ void Renderer::GenerateRenderGraph()
 
 			auto pTex = resMap.GetRes(data.vtReadback).As<NXTexture2D>();
 			pMat->SetInput(pTex);
-			pMat->SetOutput(m_vtReadbackData);
+			pMat->SetOutput(m_pVirtualTexture->GetVTReadbackData());
 			pMat->Render(pCmdList);
 
-			m_pGUI->SetVTReadbackDataSize(Int2(pTex->GetWidth(), pTex->GetHeight()));
+			m_pVirtualTexture->SetVTReadbackDataSize(Int2(pTex->GetWidth(), pTex->GetHeight()));
 		});
 
 	struct ShadowMapData

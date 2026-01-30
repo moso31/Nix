@@ -63,8 +63,6 @@ public:
 	// FinalQuad
 	Ntr<NXTexture2D> GetFinalRT() { return m_pFinalRT; }
 
-	Ntr<NXReadbackData>& GetVTReadbackData() { return m_vtReadbackData; }
-
 	// TerrainLODStreamer
 	NXTerrainLODStreamer* GetTerrainLODStreamer() { return m_pTerrainLODStreamer; }
 
@@ -126,9 +124,6 @@ private:
 	float m_fShadowMapZoomScale;
 	Vector4 m_cbDebugLayerData;
 	NXConstantBuffer<Vector4> m_cbDebugLayer;
-
-	Ntr<NXReadbackData> m_vtReadbackData;
-	Int2 m_vtReadbackDataSize;
 
 	NXTerrainLODStreamer* m_pTerrainLODStreamer;
 	NXVirtualTexture* m_pVirtualTexture;

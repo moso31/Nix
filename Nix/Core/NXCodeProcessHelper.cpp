@@ -599,13 +599,13 @@ void EncodeVTPageID(float2 posXZ, float2 positionSS)
 		return;
 
 	uint3 val = DecodeSector2IndirectTextureData(indiTexData);
-	uint2 indiTexPosMip0 = val.xy;
+	uint2 indiTexPosMip0 = val.xy * (1 << val.z);
 	uint indiTexLog2Size = val.z;
 
     int2 pixelCoord = int2(positionSS);
-    uint mip = (uint)MipLevelAnisotropy(posXZ, 256);
+    uint mip = (uint)clamp(MipLevelAnisotropy(posXZ, 256), 0, indiTexLog2Size);
 
-	uint2 indiTexPos = indiTexPosMip0 >> mip; // indiTexPos >> mip == PageID
+	uint2 indiTexPos = indiTexPosMip0 >> mip; // indiTexPos >> mip == PageID.
 
     int bayerOffset64 = g_Bayer8x8[g.frameIndex % 64];
     int bayerOffsetX = bayerOffset64 % 8;
@@ -704,6 +704,7 @@ std::string NXCodeProcessHelper::BuildHLSL_Entry_VS(int& ioLineCounter, const NX
 std::string NXCodeProcessHelper::BuildHLSL_Entry_PS(int& ioLineCounter, const NXMaterialData& oMatData, NXMaterialCode& shaderCode)
 {
 	std::string strPSBegin = R"(
+[earlydepthstencil]
 void PS(PS_INPUT input, out PS_OUTPUT Output)
 {
 	PS_INPUT output;

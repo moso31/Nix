@@ -247,7 +247,7 @@
     <None Include="Shader\VTReadback.fx">
       <Filter>Shader\VirtualTexture</Filter>
     </None>
-    <None Include="Shader\VTBatchBaker.fx">
+    <None Include="Shader\PhysicalPageBaker.fx">
       <Filter>Shader\VirtualTexture</Filter>
     </None>
     <None Include="packages.config" />
@@ -620,6 +620,9 @@
       <Filter>Nix\TextureStreaming</Filter>
     </ClCompile>
     <ClCompile Include="Nix\NXVTImageQuadTree.cpp">
+      <Filter>Nix\VirtualTexture</Filter>
+    </ClCompile>
+    <ClCompile Include="Nix\NXVTLRUCache.cpp">
       <Filter>Nix\VirtualTexture</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1039,6 +1042,9 @@
       <Filter>Nix\TextureStreaming</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXVTImageQuadTree.h">
+      <Filter>Nix\VirtualTexture</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXVTLRUCache.h">
       <Filter>Nix\VirtualTexture</Filter>
     </ClInclude>
   </ItemGroup>

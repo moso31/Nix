@@ -1,242 +1,174 @@
-#pragma once
-#include "BaseDefs/Math.h"
-#include <bit>
+#include "NXVTImageQuadTree.h"
 
-struct NXSectorInfo
+void NXVTNodeArray::Init(int capaSize)
 {
-	Int2 position;
-	int size; // virtual Image atlas 的 size
+    m_data.clear();
+    m_pos.assign(capaSize, -1);
+}
 
-	bool operator==(const NXSectorInfo& o) const noexcept {
-		return position == o.position && size == o.size;
-	}
-};
-
-// NXSectorInfo 的哈希器
-// 现在先只用32位 position用12位 最大兼容到0-4095 可以覆盖现在0-2047的地形分辨率需求了；size用4位就行
-template<>
-struct std::hash<NXSectorInfo> {
-	size_t operator()(const NXSectorInfo& v) const noexcept 
-	{ 
-		return (v.position.x << 20) ^ (v.position.y << 4) ^ std::countr_zero((uint32_t)v.size); // countr_zero = 位宽-1 = log2 size
-	}
-};
-
-// Int2 用于VT的特化哈希器 
-struct Int2VTHasher {
-	size_t operator()(const Int2& v) const noexcept
-	{
-		return (v.x << 16) ^ (v.y);
-	}
-};
-
-struct NXVTAtlasQuadTreeNode
+void NXVTNodeArray::Add(int value)
 {
-	NXVTAtlasQuadTreeNode* InsertImage(const NXSectorInfo& info)
-	{
-		int newImgSize = info.size;
+    assert(m_pos[value] == -1);
+    m_data.push_back(value);
+    m_pos[value] = m_data.size() - 1;
+}
 
-		if (newImgSize > sectorSize) return nullptr;
-		if (isImage) return nullptr;
-
-		if (sectorSize == newImgSize)
-		{
-			// 不是图像，并且没有子图像，那么可以分配
-			if (!isImage && subImageNum == 0)
-			{
-				isImage = true;
-				sectorPos = info.position;
-				sectorSize = info.size;
-
-				auto* p = pParent;
-				while (p)
-				{
-					p->subImageNum++;
-					p = p->pParent;
-				}
-				return this;
-			}
-			else return nullptr; // 否则不能在这里分配
-		}
-
-		// 如果当前节点不行，递归子节点看看能不能找到可分配区域
-		// 优先找已经分配过内存的
-		for (int i = 0; i < 4; i++)
-		{
-			if (pChilds[i])
-			{
-				NXVTAtlasQuadTreeNode* p = pChilds[i]->InsertImage(info);
-				if (p)
-				{
-					return p;
-				}
-			}
-		}
-
-		// 如果已分配空间中没有合适的可分配区域，就得new新内存
-		for (int i = 0; i < 4; i++)
-		{
-			if (!pChilds[i])
-			{
-				NXVTAtlasQuadTreeNode* pChild = new NXVTAtlasQuadTreeNode();
-				pChild->sectorSize = sectorSize / 2;
-				pChild->pParent = this;
-				pChild->childID = i;
-				pChild->nodePos = nodePos + Int2((i % 2) * pChild->sectorSize, (i / 2) * pChild->sectorSize);
-				pChilds[i] = pChild;
-
-				return pChild->InsertImage(info);
-			}
-		}
-
-		return nullptr;
-	}
-
-	NXVTAtlasQuadTreeNode* pParent = nullptr;
-	NXVTAtlasQuadTreeNode* pChilds[4] = { nullptr , nullptr , nullptr , nullptr };
-
-	Int2 sectorPos = Int2(-1, -1); // 对应的sector的位置
-	int sectorSize = -1; // 对应的sector的大小
-	Int2 nodePos = Int2(-1, -1); // 节点左上角在树中相对位置
-	int& nodeSize = sectorSize; // 节点在树中大小（总是和sectorSize相等）
-
-	bool isImage = false; // 是否是叶子节点
-	char childID = -1; // 记录子节点索引 0-3
-	int subImageNum = 0;
-};
-
-class NXVTAtlasQuadTree
+void NXVTNodeArray::Remove(int value)
 {
-	static constexpr int NXVT_VIRTUALIMAGE_NODE_SIZE = 2048;
+    assert(m_pos[value] != -1);
+    int i = m_pos[value];
+    int last = m_data.size() - 1;
 
-public:
-	NXVTAtlasQuadTree()
-	{
-		pRoot = new NXVTAtlasQuadTreeNode();
-		pRoot->nodePos = Int2(0, 0);
-		pRoot->sectorSize = NXVT_VIRTUALIMAGE_NODE_SIZE;
-	}
+    if (i != last)
+    {
+        int t = m_data[last];
+        m_data[i] = t;
+        m_pos[t] = i;
+    }
 
-	NXVTAtlasQuadTreeNode* GetRootNode() { return pRoot; }
-	
-	NXVTAtlasQuadTreeNode* InsertImage(const NXSectorInfo& info)
-	{
-		return pRoot->InsertImage(info);
-	}
+    m_pos[value] = -1;
+    m_data.pop_back();
+}
 
-	void RemoveImage(NXVTAtlasQuadTreeNode* pNode)
-	{
-		// 不是图像不让删
-		if (!pNode || !pNode->isImage)
-			return;
-
-		// 先搞清楚是不是隶属于这个树的pNode
-		auto* p = pNode;
-		while (p->pParent) p = p->pParent;
-		if (p != pRoot)
-			return;
-
-		bool bFlag = false;
-		auto* pRemove = pNode;
-		for (auto* p = pNode->pParent; p; p = p->pParent)
-		{
-			p->subImageNum--;
-			if (p->subImageNum == 0 && !bFlag)
-				pRemove = p;
-			else bFlag = true;
-
-			assert(p->subImageNum >= 0);
-		}
-
-		// 隐含了不能移除pRoot，因为pRoot没有父节点
-		if (pRemove->pParent)
-		{
-			if (pRemove->childID != -1)
-				pRemove->pParent->pChilds[pRemove->childID] = nullptr;
-		}
-
-		RemoveSubTree(pRemove);
-	}
-
-	void Release()
-	{
-		RemoveSubTree(pRoot);
-		delete pRoot;
-		pRoot = nullptr;
-	}
-
-private:
-	void RemoveSubTree(NXVTAtlasQuadTreeNode* pNode)
-	{
-		for (int i = 0; i < 4; i++)
-		{
-			if (pNode->pChilds[i])
-			{
-				RemoveSubTree(pNode->pChilds[i]);
-				pNode->pChilds[i] = nullptr;
-			}
-		}
-
-		// 根节点不能删 但重置一下状态
-		if (pNode == pRoot)
-		{
-			pNode->isImage = false;
-			pNode->subImageNum = 0;
-		}
-		else
-		{
-			delete pNode;
-			pNode = nullptr;
-		}
-	}
-
-private:
-	NXVTAtlasQuadTreeNode* pRoot;
-};
-
-class NXVirtualTextureAtlas
+bool NXVTNodeArray::Empty()
 {
-public:
-	NXVirtualTextureAtlas() :
-		m_qtree(new NXVTAtlasQuadTree())
-	{
-	}
-	~NXVirtualTextureAtlas() { Release(); }
+    return m_data.empty();
+}
 
-	void InsertImage(const NXSectorInfo& info)
-	{
-		auto* pNode = m_qtree->InsertImage(info);
-		if (pNode) m_allocatedNodes.push_back(pNode);
-	}
+int NXVTNodeArray::GetLast()
+{
+    return m_data.back();
+}
 
-	void RemoveImage(const NXSectorInfo& info)
-	{
-		auto secIt = std::find_if(m_allocatedNodes.begin(), m_allocatedNodes.end(), [&info](const NXVTAtlasQuadTreeNode* node) {
-			return info.position == node->sectorPos && info.size == node->sectorSize; });
+NXVTImageQuadTree::NXVTImageQuadTree()
+{
+    m_state[0].assign(1, NXVTImageNodeState::Free);
+    m_freeNodes[0].Init(1);
+    m_freeNodes[0].Add(0);
+    m_node2sectors[0].push_back(Int2(INT_MIN));
+    for (int i = 1; i < VT_IMAGE_LEVELS; i++)
+    {
+        int nodeCnt = 1 << (2 * i);
+        m_freeNodes[i].Init(nodeCnt);
+        m_state[i].assign(nodeCnt, NXVTImageNodeState::Unused);
+        m_node2sectors[i].assign(nodeCnt, Int2(INT_MIN)); // sectorID可能是负的 用INT_MIN表示无效
+    }
+}
 
-		if (secIt != m_allocatedNodes.end())
-		{
-			m_qtree->RemoveImage(*secIt);
-			m_allocatedNodes.erase(secIt);
-		}
-	}
+const Int2& NXVTImageQuadTree::GetSector(const Int2& virtImageMip0Pos, const int virtImgLog2Size)
+{
+    int lv = VT_IMAGE_LEVELS - 1 - virtImgLog2Size;
+    int index = VTImagePosToIndex(virtImageMip0Pos >> virtImgLog2Size);
+    return m_node2sectors[lv][index];
+}
 
-	void Release()
-	{
-		if (m_qtree)
-		{
-			m_qtree->Release();
-			delete m_qtree;
-			m_qtree = nullptr;
-		}
+int NXVTImageQuadTree::SizeToLevel(int size)
+{
+    assert(size > 0);
+    assert((size & (size - 1)) == 0); // 输入size必须是POT的
 
-		m_allocatedNodes.clear();
-	}
+    int lg = 0;
+    while (size > 1) { size >>= 1; lg++; }
+    return (VT_IMAGE_LEVELS - 1) - lg;
+}
 
-	const std::vector<NXVTAtlasQuadTreeNode*>& GetNodes() { return m_allocatedNodes; }
-	NXVTAtlasQuadTreeNode* GetRootNode() { return m_qtree->GetRootNode(); }
+const Int2 NXVTImageQuadTree::Alloc(int size, const Int2& sectorID)
+{
+    int findLV, findIdx;
+    if (!Alloc(size, findLV, findIdx))
+    {
+        return Int2(-1);
+    }
 
-private:
-	NXVTAtlasQuadTree* m_qtree;
-	std::vector<NXVTAtlasQuadTreeNode*> m_allocatedNodes;
-};
+    m_node2sectors[findLV][findIdx] = sectorID; 
+    return VTImageIndexToPos(findIdx);
+}
+
+void NXVTImageQuadTree::Free(const Int2& pos, int size)
+{
+    int idx = VTImagePosToIndex(pos);
+    int level = SizeToLevel(size);
+    Free(level, idx);
+
+    m_node2sectors[level][idx] = Int2(INT_MIN);
+}
+
+bool NXVTImageQuadTree::Alloc(int size, int& findLV, int& findIdx)
+{
+    int targetLV = SizeToLevel(size);
+    if (FindFreeLevel(targetLV, findLV, findIdx))
+    {
+        int idx = findIdx;
+        for (int i = findLV; i < targetLV; i++)
+        {
+            m_state[i][idx] = NXVTImageNodeState::Split;
+            m_freeNodes[i].Remove(idx);
+            idx <<= 2;
+            for (int j = idx; j < idx + 4; j++)
+            {
+                m_state[i + 1][j] = NXVTImageNodeState::Free;
+                m_freeNodes[i + 1].Add(j);
+            }
+        }
+
+        m_state[targetLV][idx] = NXVTImageNodeState::Allocated;
+        m_freeNodes[targetLV].Remove(idx);
+        findLV = targetLV;
+        findIdx = idx;
+        return true;
+    }
+
+    return false;
+}
+
+void NXVTImageQuadTree::Free(int freeLV, int freeIdx)
+{
+    assert(m_state[freeLV][freeIdx] == NXVTImageNodeState::Allocated);
+    m_state[freeLV][freeIdx] = NXVTImageNodeState::Free;
+    m_freeNodes[freeLV].Add(freeIdx);
+
+    int lv = freeLV;
+    int idx = freeIdx;
+    while (lv > 0)
+    {
+        idx = idx & ~0x3;
+        bool allFree = true;
+        for (int i = idx; i < idx + 4; i++)
+        {
+            if (m_state[lv][i] != NXVTImageNodeState::Free)
+            {
+                allFree = false;
+                break;
+            }
+        }
+
+        if (!allFree) break;
+
+        for (int i = idx; i < idx + 4; i++)
+        {
+            m_state[lv][i] = NXVTImageNodeState::Unused;
+            m_freeNodes[lv].Remove(i);
+        }
+
+        idx >>= 2;
+        assert(m_state[lv - 1][idx] == NXVTImageNodeState::Split);
+        m_state[lv - 1][idx] = NXVTImageNodeState::Free;
+        m_freeNodes[lv - 1].Add(idx);
+
+        lv--;
+    }
+}
+
+bool NXVTImageQuadTree::FindFreeLevel(int targetLV, int& findLV, int& findIdx)
+{
+    for (int i = targetLV; i >= 0; i--)
+    {
+        if (m_freeNodes[i].Empty()) continue;
+
+        findLV = i;
+        findIdx = m_freeNodes[i].GetLast();
+        return true;
+    }
+
+    return false;
+}

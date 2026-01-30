@@ -1,6 +1,21 @@
 #pragma once
 #include <BaseDefs/NixCore.h>
 #include <BaseDefs/Math.h>
+#include "NXTerrainCommon.h"
+
+struct NXVTLRUKey
+{
+    uint64_t GetKey()
+    {
+        Int2 sectorOffset = sector - g_terrainConfig.MinSectorID;
+        return static_cast<size_t>(sectorOffset.x) << 40 | static_cast<size_t>(sectorOffset.y) << 32 | pageID.x << 20 | pageID.y << 8 | gpuMip << 4 | indiTexLog2Size;
+    }
+
+    Int2 sector;
+    Int2 pageID;
+    int gpuMip;
+    int indiTexLog2Size;
+};
 
 static inline int VTImageIndexDecode(int x)
 {

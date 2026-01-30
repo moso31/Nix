@@ -196,6 +196,21 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
     ImGui::Text("Atlas size: %dx%d", ATLAS_SIZE, ATLAS_SIZE);
     ImGui::Text("Leaf nodes (allocated): %d", (int)sector2Pos.size());
     ImGui::Separator();
+    
+    // 搜索框
+    ImGui::Text("Search:");
+    ImGui::SameLine();
+    if (ImGui::InputText("##AtlasSearch", m_atlasSearchBuf, sizeof(m_atlasSearchBuf)))
+    {
+        // 搜索框内容变化时的处理
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Clear"))
+    {
+        m_atlasSearchBuf[0] = '\0';
+    }
+    ImGui::Separator();
+    
     ImGui::Checkbox("Draw grid in view", &s_drawGrid);
     ImGui::SliderFloat("Scale", &s_zoom, 0.25f, 16.0f, "%.2fx");
     if (ImGui::Button("Reset view"))
@@ -205,16 +220,80 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
     }
     ImGui::Separator();
 
-    // 列表：显示所有叶子节点（已分配的sector）
-    ImGui::Text("Leaf nodes list (%d)", (int)sectors.size());
+    // 过滤列表：根据搜索字符串过滤
+    std::vector<int> filteredIndices;
+    std::string searchStr = m_atlasSearchBuf;
+    bool hasSearch = !searchStr.empty();
+    
+    if (hasSearch)
+    {
+        // 有搜索条件，过滤节点
+        for (int i = 0; i < (int)sectors.size(); ++i)
+        {
+            const auto& sector = sectors[i];
+            auto it = sector2Pos.find(sector);
+            
+            char buf[256];
+            if (it != sector2Pos.end())
+            {
+                const Int2& virtPos = it->second;
+                int pixelX = virtPos.x * sector.imageSize;
+                int pixelY = virtPos.y * sector.imageSize;
+                std::snprintf(buf, sizeof(buf), 
+                    "Sector(%d,%d) -> VirtImg pos(%d,%d) size=%d", 
+                    sector.id.x, sector.id.y, 
+                    pixelX, pixelY, sector.imageSize);
+            }
+            else
+            {
+                std::snprintf(buf, sizeof(buf), 
+                    "Sector(%d,%d) size=%d [no mapping]", 
+                    sector.id.x, sector.id.y, sector.imageSize);
+            }
+            
+            // 检查是否包含搜索字符串（不区分大小写）
+            std::string bufStr = buf;
+            std::string searchLower = searchStr;
+            std::string bufLower = bufStr;
+            std::transform(searchLower.begin(), searchLower.end(), searchLower.begin(), ::tolower);
+            std::transform(bufLower.begin(), bufLower.end(), bufLower.begin(), ::tolower);
+            
+            if (bufLower.find(searchLower) != std::string::npos)
+            {
+                filteredIndices.push_back(i);
+            }
+        }
+    }
+    else
+    {
+        // 没有搜索条件，显示所有节点
+        filteredIndices.resize(sectors.size());
+        for (int i = 0; i < (int)sectors.size(); ++i)
+        {
+            filteredIndices[i] = i;
+        }
+    }
+    
+    // 列表：显示过滤后的叶子节点
+    int totalCount = (int)sectors.size();
+    int filteredCount = (int)filteredIndices.size();
+    if (hasSearch)
+    {
+        ImGui::Text("Leaf nodes list (%d / %d)", filteredCount, totalCount);
+    }
+    else
+    {
+        ImGui::Text("Leaf nodes list (%d)", totalCount);
+    }
     ImGui::Separator();
 
     ImGuiListClipper clipper;
-    clipper.Begin((int)sectors.size());
+    clipper.Begin(filteredCount);
     while (clipper.Step())
     {
-        for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
+        for (int listIdx = clipper.DisplayStart; listIdx < clipper.DisplayEnd; ++listIdx)
         {
+            int i = filteredIndices[listIdx];
             const auto& sector = sectors[i];
             auto it = sector2Pos.find(sector);
             
@@ -400,9 +479,10 @@ void NXGUIVirtualTexture::Render_Readback()
     ImGui::Begin(m_strTitle[2].c_str());
 
     // 数据与尺寸
-    auto& vtReadbackData = m_pOwner->GetVTReadbackData()->Get();
+    NXVirtualTexture* pVT = GetVirtualTexture();
+    auto& vtReadbackData = pVT->GetVTReadbackData()->Get();
     const uint32_t* pVTData = reinterpret_cast<const uint32_t*>(vtReadbackData.data());
-    const Int2 sz = m_pOwner->GetVTReadbackDataSize();
+    const Int2 sz = pVT->GetVTReadbackDataSize();
     const int W = sz.x, H = sz.y;
 
     ImGui::Text("Readback size: %d x %d", W, H);

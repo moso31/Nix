@@ -4,7 +4,6 @@
 #include "BaseDefs/Math.h"
 #include "NXShaderVisibleDescriptorHeap.h"
 #include "DirectResources.h"
-#include "NXReadbackData.h"
 
 class NXScene;
 class Renderer;
@@ -41,11 +40,6 @@ public:
 	void Update();
 	void Render(Ntr<NXTexture2D> pGUIViewRT, const NXSwapChainBuffer& swapChainBuffer);
 	void Release();
-
-	void SetVTReadbackData(Ntr<NXReadbackData>& vtReadbackData) { m_vtReadbackData = vtReadbackData; }
-	const Ntr<NXReadbackData>& GetVTReadbackData() const { return m_vtReadbackData; }
-	void SetVTReadbackDataSize(const Int2& val) { m_vtReadbackDataSize = val; }
-	const Int2 GetVTReadbackDataSize() const { return m_vtReadbackDataSize; }
 
 	NXGUIHoudiniTerrainExporter* GetGUIHoudiniTerrainExporter() const { return m_pGUIHoudiniTerrainExporter; }
 	NXGUITerrainMaterialGenerator* GetGUITerrainMaterialGenerator() const { return m_pGUITerrainMaterialGenerator; }
@@ -91,7 +85,4 @@ private:
 	NXGUIGPUProfiler*			m_pGUIGPUProfiler;
 
 	NXGUIDebugLayer*			m_pGUIDebugLayer;
-
-	Ntr<NXReadbackData> m_vtReadbackData;
-	Int2 m_vtReadbackDataSize;
 };

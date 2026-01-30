@@ -2,11 +2,13 @@
 #include "NXResourceManager.h"
 #include "NXCamera.h"
 #include "NXTexture.h"
+#include <unordered_set>
 
 NXVirtualTexture::NXVirtualTexture(class NXCamera* pCam) :
 	m_pCamera(pCam),
 	m_vtSectorLodDists({ 32.0f, 64.0f, 128.0f, 256.0f, 512.0f, 1024.0f, 2048.0f }),
-	m_vtSectorLodMaxDist(400)
+	m_vtSectorLodMaxDist(400),
+	m_lruCache(LRU_CACHE_SIZE)
 {
 	m_pVirtImageQuadTree = new NXVTImageQuadTree();
 
@@ -16,6 +18,8 @@ NXVirtualTexture::NXVirtualTexture(class NXCamera* pCam) :
 	m_pSector2IndirectTexture->SetUAV(0);
 
 	m_cbSector2IndirectTexture.Recreate(CB_SECTOR2INDIRECTTEXTURE_DATA_NUM);
+
+	m_vtReadbackData = new NXReadbackData("VT Readback CPUdata");
 }
 
 NXVirtualTexture::~NXVirtualTexture()
@@ -37,6 +41,7 @@ void NXVirtualTexture::Update()
 	m_lastSectors.swap(m_sectors);
 	m_sectors.clear();
 	UpdateNearestSectors();
+	BakePhysicalPages();
 }
 
 void NXVirtualTexture::UpdateCBData(const Vector2& rtSize)
@@ -116,7 +121,7 @@ void NXVirtualTexture::UpdateNearestSectors()
 	m_cbDataSector2IndirectTexture.clear();
 	for (auto& s : createSector)
 	{
-		Int2 virtImgPos = m_pVirtImageQuadTree->Alloc(s.imageSize);
+		Int2 virtImgPos = m_pVirtImageQuadTree->Alloc(s.imageSize, s.id);
 		m_sector2VirtImagePos[s] = virtImgPos;
 		m_cbDataSector2IndirectTexture.push_back({ s.id - g_terrainConfig.MinSectorID, virtImgPos, s.imageSize });
 	}
@@ -134,7 +139,7 @@ void NXVirtualTexture::UpdateNearestSectors()
 
 	for (auto& s : changeSector)
 	{
-		Int2 newVirtImgPos = m_pVirtImageQuadTree->Alloc(s.changedImageSize);
+		Int2 newVirtImgPos = m_pVirtImageQuadTree->Alloc(s.changedImageSize, s.oldData.id);
 		NXVTSector newSector = s.oldData;
 		newSector.imageSize = s.changedImageSize;
 		m_sector2VirtImagePos[newSector] = newVirtImgPos;
@@ -157,6 +162,64 @@ void NXVirtualTexture::UpdateNearestSectors()
 	// 准备更新 Sector2IndirectTexture
 	m_cbSector2IndirectTexture.Update(m_cbDataSector2IndirectTexture);
 	m_cbSector2IndirectTextureNum.Update((int)m_cbDataSector2IndirectTexture.size());
+}
+
+void NXVirtualTexture::BakePhysicalPages()
+{
+	if (m_vtReadbackData.IsNull())
+		return;
+
+	auto& pVTReadbackData = m_vtReadbackData->Get();
+	if (pVTReadbackData.empty())
+		return;
+
+	std::unordered_set<uint32_t> readbackSets;
+	const uint32_t* readbackData = reinterpret_cast<const uint32_t*>(pVTReadbackData.data());
+	uint32_t readbackDataNum = m_vtReadbackData->GetWidth();
+	for (int i = 0; i < readbackDataNum; i++)
+	{
+		// readbackData: xy = pageID, z = gpu mip, w = log2indiTexSize;
+		auto& data = readbackData[i];
+		if (data == 0xFFFFFFFF) continue;
+
+		readbackSets.insert(data);
+	}
+
+	int lruInsertNum = 0;
+	m_physPagePendingKeys.clear();
+	for (auto& data : readbackSets)
+	{
+		Int2 pageID((data >> 20) & 0xFFF, (data >> 8) & 0xFFF);
+		uint32_t gpuMip = (data >> 4) & 0xF;
+		Int2 pageIDMip0 = pageID << gpuMip;
+		uint32_t log2IndiTexSize = (data >> 0) & 0xF;
+
+		Int2 sectorID = m_pVirtImageQuadTree->GetSector(pageIDMip0, log2IndiTexSize);
+		if (sectorID != Int2(INT_MIN))
+		{
+			NXVTLRUKey key;
+			key.sector = sectorID;
+			key.pageID = pageID;
+			key.gpuMip = gpuMip;
+			key.indiTexLog2Size = log2IndiTexSize;
+
+			uint64_t keyHash = key.GetKey();
+			if (m_lruCache.Find(keyHash))
+			{
+				m_lruCache.Touch(keyHash);
+			}
+			else
+			{
+				m_lruCache.Insert(keyHash);
+				lruInsertNum++;
+
+				m_physPagePendingKeys.push_back(key);
+
+				if (lruInsertNum >= BAKE_PHYSICAL_PAGE_PER_FRAME)
+					break;
+			}
+		}
+	}
 }
 
 float NXVirtualTexture::GetDist2OfSectorToCamera(const Vector2& camPos, const Int2& sectorCorner)
