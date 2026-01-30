@@ -170,7 +170,7 @@ void NXVirtualTexture::BakePhysicalPages()
 	if (m_vtReadbackData.IsNull())
 		return;
 
-	auto& pVTReadbackData = m_vtReadbackData->Get();
+	auto pVTReadbackData = m_vtReadbackData->Clone();
 	if (pVTReadbackData.empty())
 		return;
 
@@ -182,7 +182,6 @@ void NXVirtualTexture::BakePhysicalPages()
 		// readbackData: xy = pageID, z = gpu mip, w = log2indiTexSize;
 		auto& data = readbackData[i];
 		if (data == 0xFFFFFFFF) continue;
-
 		readbackSets.insert(data);
 	}
 
