@@ -586,6 +586,9 @@
     <ClCompile Include="Nix\NXTerrainStreamingBatcher.cpp">
       <Filter>Nix\TextureStreaming</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\NXTerrainMaterialTexture.cpp">
+      <Filter>Nix\TextureStreaming</Filter>
+    </ClCompile>
     <ClCompile Include="Nix\NXPassMaterial.cpp">
       <Filter>Nix\Material</Filter>
     </ClCompile>
@@ -1003,6 +1006,9 @@
       <Filter>Nix\TextureStreaming</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXTerrainStreamingBatcher.h">
+      <Filter>Nix\TextureStreaming</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXTerrainMaterialTexture.h">
       <Filter>Nix\TextureStreaming</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXPassMaterial.h">

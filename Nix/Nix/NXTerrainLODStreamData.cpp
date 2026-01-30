@@ -18,6 +18,10 @@ void NXTerrainLODStreamData::Init(NXTerrainLODStreamer* pStreamer)
 	m_pSplatMapAtlas = NXManager_Tex->CreateTexture2DArray("TerrainStreaming_SplatMapAtlas", DXGI_FORMAT_R8_UNORM, g_terrainStreamConfig.AtlasSplatMapSize, g_terrainStreamConfig.AtlasSplatMapSize, g_terrainStreamConfig.AtlasLayerCount, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 	m_pNormalMapAtlas = NXManager_Tex->CreateTexture2DArray("TerrainStreaming_NormalMapAtlas", DXGI_FORMAT_R8G8B8A8_UNORM, g_terrainStreamConfig.AtlasNormalMapSize, g_terrainStreamConfig.AtlasNormalMapSize, g_terrainStreamConfig.AtlasLayerCount, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 
+	// 地形材质纹理（存储所有terrain模块常用的材质，跟随splatMap一起使用）
+	m_pTerrainAlbedo2DArray = NXManager_Tex->CreateTexture2DArray("Terrain Albedo Array", L"D:\\NixAssets\\Terrain\\terrainAlbedo2DArray.dds");
+	m_pTerrainNormal2DArray = NXManager_Tex->CreateTexture2DArray("Terrain Normal Array", L"D:\\NixAssets\\Terrain\\terrainNormal2DArray.dds");
+
 	// 每帧待合并到Atlas的纹理列表
 	m_pToAtlasHeights.resize(g_terrainStreamConfig.MaxComputeLimit);
 	m_pToAtlasSplats.resize(g_terrainStreamConfig.MaxComputeLimit);
@@ -123,6 +127,8 @@ void NXTerrainLODStreamData::UpdateGBufferPatcherData(ID3D12GraphicsCommandList*
 	NXShVisDescHeap->PushFluid(m_pHeightMapAtlas.IsValid() ? m_pHeightMapAtlas->GetSRV() : NXAllocator_NULL->GetNullSRV());
 	NXShVisDescHeap->PushFluid(m_pSplatMapAtlas.IsValid() ? m_pSplatMapAtlas->GetSRV() : NXAllocator_NULL->GetNullSRV());
 	NXShVisDescHeap->PushFluid(m_pNormalMapAtlas.IsValid() ? m_pNormalMapAtlas->GetSRV() : NXAllocator_NULL->GetNullSRV());
+	NXShVisDescHeap->PushFluid(m_pTerrainAlbedo2DArray.IsValid() ? m_pTerrainAlbedo2DArray->GetSRV() : NXAllocator_NULL->GetNullSRV());
+	NXShVisDescHeap->PushFluid(m_pTerrainNormal2DArray.IsValid() ? m_pTerrainNormal2DArray->GetSRV() : NXAllocator_NULL->GetNullSRV());
 	auto& srvHandle = NXShVisDescHeap->Submit();
 	pCmdList->SetGraphicsRootDescriptorTable(4, srvHandle); // GPU-Driven Terrain 使用4号根参数 具体见NXCustomMaterial::CompileShader()
 }

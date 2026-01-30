@@ -85,6 +85,8 @@ public:
 	const Ntr<NXTexture2DArray>& GetHeightMapAtlas() const { return m_pHeightMapAtlas; }
 	const Ntr<NXTexture2DArray>& GetSplatMapAtlas() const { return m_pSplatMapAtlas; }
 	const Ntr<NXTexture2DArray>& GetNormalMapAtlas() const { return m_pNormalMapAtlas; }
+	const Ntr<NXTexture2D>& GetTerrainAlbedo2DArray() const { return m_pTerrainAlbedo2DArray; }
+	const Ntr<NXTexture2D>& GetTerrainNormal2DArray() const { return m_pTerrainNormal2DArray; }
 	const std::vector<Ntr<NXTexture2D>>& GetToAtlasHeightTextures() const { return m_pToAtlasHeights; }
 	const std::vector<Ntr<NXTexture2D>>& GetToAtlasSplatTextures() const { return m_pToAtlasSplats; }
 	const std::vector<Ntr<NXTexture2D>>& GetToAtlasNormalTextures() const { return m_pToAtlasNormals; }
@@ -128,6 +130,10 @@ private:
 	Ntr<NXTexture2DArray> m_pHeightMapAtlas;
 	Ntr<NXTexture2DArray> m_pSplatMapAtlas;
 	Ntr<NXTexture2DArray> m_pNormalMapAtlas;
+
+	// 地形材质纹理（存储所有terrain模块常用的材质，跟随splatMap一起使用）
+	Ntr<NXTexture2D> m_pTerrainAlbedo2DArray;
+	Ntr<NXTexture2D> m_pTerrainNormal2DArray;
 
 	// 每帧待合并到Atlas的纹理列表
 	std::vector<Ntr<NXTexture2D>> m_pToAtlasHeights;

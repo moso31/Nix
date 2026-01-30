@@ -180,6 +180,9 @@ void Renderer::GenerateRenderGraph()
 
 		auto& pStreamingData = m_pTerrainLODStreamer->GetStreamingData();
 		NXRGHandle pSector2NodeIDTex = m_pRenderGraph->Import(pStreamingData.GetSector2NodeIDTexture());
+		NXRGHandle hHeightMapAtlas = m_pRenderGraph->Import(pStreamingData.GetHeightMapAtlas());
+		NXRGHandle hSplatMapAtlas = m_pRenderGraph->Import(pStreamingData.GetSplatMapAtlas());
+		NXRGHandle hNormalMapAtlas = m_pRenderGraph->Import(pStreamingData.GetNormalMapAtlas());
 
 		// 仅首帧执行
 		// 清空Sector2NodeID纹理，将所有像素设置为65535 (0xFFFF)
@@ -226,9 +229,6 @@ void Renderer::GenerateRenderGraph()
 				hToAtlasSplatTextures[i] = m_pRenderGraph->Import(pStreamingData.GetToAtlasSplatTextures()[i]);
 				hToAtlasNormalTextures[i] = m_pRenderGraph->Import(pStreamingData.GetToAtlasNormalTextures()[i]);
 			}
-			NXRGHandle hHeightMapAtlas = m_pRenderGraph->Import(pStreamingData.GetHeightMapAtlas());
-			NXRGHandle hSplatMapAtlas = m_pRenderGraph->Import(pStreamingData.GetSplatMapAtlas());
-			NXRGHandle hNormalMapAtlas = m_pRenderGraph->Import(pStreamingData.GetNormalMapAtlas());
 
 			struct TerrainAtlasBaker
 			{
@@ -496,14 +496,16 @@ void Renderer::GenerateRenderGraph()
 		{
 			NXRGHandle Sector2NodeIDTex;
 			NXRGHandle SplatMapAtlas;
-			NXRGHandle NormalMapArray;
-			NXRGHandle AlbedoMapArray;
 		};
+		//NXRGHandle hAlbedoMapArray = m_pRenderGraph->Import(m_pTerrainMaterialTexture->GetAlbedo2DArray());
+		//NXRGHandle hNormalMapArray = m_pRenderGraph->Import(m_pTerrainMaterialTexture->GetNormal2DArray());
 		//m_pRenderGraph->AddPass<PhysicalPageBaker>("PhysicalPageBaker",
 		//	[&](NXRGBuilder& builder, PhysicalPageBaker& data)
 		//	{
 		//		data.Sector2NodeIDTex = builder.Read(pSector2NodeIDTex);
-		//		//data.SplatMapAtlas = builder.Read(pStreamingData.GetSplatMapAtlas());
+		//		data.SplatMapAtlas = builder.Read(hSplatMapAtlas);
+		//		data.NormalMapArray = builder.Read(hAlbedoMapArray);
+		//		data.AlbedoMapArray = builder.Read(hNormalMapArray);
 		//	},
 		//	[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, PhysicalPageBaker& data)
 		//	{
@@ -1131,6 +1133,7 @@ void Renderer::Release()
 	SafeRelease(m_scene);
 
 	m_pVirtualTexture->Release();
+	SafeDelete(m_pVirtualTexture);
 	NXAllocatorManager::GetInstance()->Release();
 	NXSubMeshGeometryEditor::GetInstance()->Release();
 }
