@@ -69,6 +69,7 @@ class NXVirtualTexture
 	constexpr static int VT_SECTOR2INDIRECTTEXTURE_SIZE = 256; // Sector2IndirectTexture使用的分辨率
 	constexpr static size_t VTIMAGE_MAX_NODE_SIZE = 256; // 最大node使用的分辨率
 	constexpr static int CB_SECTOR2INDIRECTTEXTURE_DATA_NUM = 256;
+	constexpr static int CB_PHYSPAGEBAKEDATA_NUM = 4;
 
 	constexpr static size_t VTSECTOR_LOD_NUM = 7; // VTSector的lod等级
 
@@ -95,6 +96,9 @@ public:
 	const size_t GetCBufferSector2IndirectTextureDataNum() const { return m_cbDataSector2IndirectTexture.size(); }
 	bool NeedClearSector2IndirectTexture() const { return m_bNeedClearSector2IndirectTexture; }
 	void MarkSector2IndirectTextureCleared() { m_bNeedClearSector2IndirectTexture = false; }
+
+	const NXConstantBuffer<std::vector<NXVTLRUKey>>& GetCBPhysPageBakeData() const { return m_cbPhysPageBake; }
+	const size_t GetCBPhysPageBakeDataNum() const { return m_cbDataPhysPageBake.size(); }
 
 	// GUI 访问接口
 	const std::vector<NXVTSector>& GetSectors() const { return m_sectors; }
@@ -147,5 +151,6 @@ private:
 	Int2 m_vtReadbackDataSize;
 
 	NXVTLRUCache m_lruCache;
-	std::vector<NXVTLRUKey> m_physPagePendingKeys;
+	NXConstantBuffer<std::vector<NXVTLRUKey>> m_cbPhysPageBake;
+	std::vector<NXVTLRUKey> m_cbDataPhysPageBake;
 };

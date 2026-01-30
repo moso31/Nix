@@ -18,6 +18,7 @@ NXVirtualTexture::NXVirtualTexture(class NXCamera* pCam) :
 	m_pSector2IndirectTexture->SetUAV(0);
 
 	m_cbSector2IndirectTexture.Recreate(CB_SECTOR2INDIRECTTEXTURE_DATA_NUM);
+	m_cbPhysPageBake.Recreate(CB_PHYSPAGEBAKEDATA_NUM);
 
 	m_vtReadbackData = new NXReadbackData("VT Readback CPUdata");
 }
@@ -186,7 +187,7 @@ void NXVirtualTexture::BakePhysicalPages()
 	}
 
 	int lruInsertNum = 0;
-	m_physPagePendingKeys.clear();
+	m_cbDataPhysPageBake.clear();
 	for (auto& data : readbackSets)
 	{
 		Int2 pageID((data >> 20) & 0xFFF, (data >> 8) & 0xFFF);
@@ -213,13 +214,15 @@ void NXVirtualTexture::BakePhysicalPages()
 				m_lruCache.Insert(keyHash);
 				lruInsertNum++;
 
-				m_physPagePendingKeys.push_back(key);
+				m_cbDataPhysPageBake.push_back(key);
 
 				if (lruInsertNum >= BAKE_PHYSICAL_PAGE_PER_FRAME)
 					break;
 			}
 		}
 	}
+
+	m_cbPhysPageBake.Update(m_cbDataPhysPageBake);
 }
 
 float NXVirtualTexture::GetDist2OfSectorToCamera(const Vector2& camPos, const Int2& sectorCorner)

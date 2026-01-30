@@ -122,6 +122,8 @@ void Renderer::GenerateRenderGraph()
 
 	if (g_debug_temporal_enable_terrain_debug)
 	{
+		NXRGHandle hSector2IndirectTexture = m_pRenderGraph->Import(m_pVirtualTexture->GetSector2IndirectTexture());
+
 		// 仅首帧执行
         // 清空Sector2IndirectTexture，将所有像素设置为-1
         if (m_pVirtualTexture->NeedClearSector2IndirectTexture())
@@ -133,7 +135,7 @@ void Renderer::GenerateRenderGraph()
             m_pRenderGraph->AddPass<Sector2IndirectTextureClear>("Sector2IndirectTexture Clear",
                 [&](NXRGBuilder& builder, Sector2IndirectTextureClear& data)
                 {
-                    data.Sector2IndirectTex = builder.Write(m_pRenderGraph->Import(m_pVirtualTexture->GetSector2IndirectTexture()));
+                    data.Sector2IndirectTex = builder.Write(hSector2IndirectTexture);
                 },
                 [&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, Sector2IndirectTextureClear& data)
                 {
@@ -158,7 +160,7 @@ void Renderer::GenerateRenderGraph()
 		m_pRenderGraph->AddPass<Sector2IndirectTexture>("UpdateSector2IndirectTexture",
 			[&](NXRGBuilder& builder, Sector2IndirectTexture& data)
 			{
-				data.Sector2IndirectTexture = builder.Write(m_pRenderGraph->Import(m_pVirtualTexture->GetSector2IndirectTexture()));
+				data.Sector2IndirectTexture = builder.Write(hSector2IndirectTexture);
 			},
 			[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, Sector2IndirectTexture& data)
 			{
@@ -215,6 +217,19 @@ void Renderer::GenerateRenderGraph()
 		int groupNum = pStreamingData.GetNodeDescUpdateIndicesNum();
 		if (groupNum > 0)
 		{
+			std::vector<NXRGHandle> hToAtlasHeightTextures(groupNum);
+			std::vector<NXRGHandle> hToAtlasSplatTextures(groupNum);
+			std::vector<NXRGHandle> hToAtlasNormalTextures(groupNum);
+			for (int i = 0; i < groupNum; i++)
+			{
+				hToAtlasHeightTextures[i] = m_pRenderGraph->Import(pStreamingData.GetToAtlasHeightTextures()[i]);
+				hToAtlasSplatTextures[i] = m_pRenderGraph->Import(pStreamingData.GetToAtlasSplatTextures()[i]);
+				hToAtlasNormalTextures[i] = m_pRenderGraph->Import(pStreamingData.GetToAtlasNormalTextures()[i]);
+			}
+			NXRGHandle hHeightMapAtlas = m_pRenderGraph->Import(pStreamingData.GetHeightMapAtlas());
+			NXRGHandle hSplatMapAtlas = m_pRenderGraph->Import(pStreamingData.GetSplatMapAtlas());
+			NXRGHandle hNormalMapAtlas = m_pRenderGraph->Import(pStreamingData.GetNormalMapAtlas());
+
 			struct TerrainAtlasBaker
 			{
 				std::vector<NXRGHandle> pIn;
@@ -226,9 +241,9 @@ void Renderer::GenerateRenderGraph()
 					data.pIn.resize(groupNum);
 					for (int i = 0; i < groupNum; i++)
 					{
-						data.pIn[i] = builder.Read(m_pRenderGraph->Import(pStreamingData.GetToAtlasHeightTextures()[i]));
+						data.pIn[i] = builder.Read(hToAtlasHeightTextures[i]);
 					}
-					data.pOutAtlas = builder.Write(m_pRenderGraph->Import(pStreamingData.GetHeightMapAtlas()));
+					data.pOutAtlas = builder.Write(hHeightMapAtlas);
 				},
 				[&, groupNum](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, TerrainAtlasBaker& data) {
 					auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("TerrainAtlasBaker"));
@@ -248,9 +263,9 @@ void Renderer::GenerateRenderGraph()
 					data.pIn.resize(groupNum);
 					for (int i = 0; i < groupNum; i++)
 					{
-						data.pIn[i] = builder.Read(m_pRenderGraph->Import(pStreamingData.GetToAtlasSplatTextures()[i]));
+						data.pIn[i] = builder.Read(hToAtlasSplatTextures[i]);
 					}
-					data.pOutAtlas = builder.Write(m_pRenderGraph->Import(pStreamingData.GetSplatMapAtlas()));
+					data.pOutAtlas = builder.Write(hSplatMapAtlas);
 				},
 				[&, groupNum](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, TerrainAtlasBaker& data) {
 					auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("TerrainAtlasBaker"));
@@ -272,9 +287,9 @@ void Renderer::GenerateRenderGraph()
 					data.pIn.resize(groupNum);
 					for (int i = 0; i < groupNum; i++)
 					{
-						data.pIn[i] = builder.Read(m_pRenderGraph->Import(pStreamingData.GetToAtlasNormalTextures()[i]));
+						data.pIn[i] = builder.Read(hToAtlasNormalTextures[i]);
 					}
-					data.pOutAtlas = builder.Write(m_pRenderGraph->Import(pStreamingData.GetNormalMapAtlas()));
+					data.pOutAtlas = builder.Write(hNormalMapAtlas);
 				},
 				[&, groupNum](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, TerrainAtlasBaker& data) {
 					auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("TerrainAtlasBaker:Float4"));
@@ -412,6 +427,9 @@ void Renderer::GenerateRenderGraph()
 				});
 		}
 
+		NXRGHandle hPatcherBuffer = m_pRenderGraph->Import(pStreamingData.GetPatcherBuffer());
+		NXRGHandle hPatcherDrawIndexArgs = m_pRenderGraph->Import(pStreamingData.GetPatcherDrawIndexArgs());
+
 		struct TerrainPatcher
 		{
 			NXRGHandle pFinal;
@@ -422,9 +440,9 @@ void Renderer::GenerateRenderGraph()
 		auto patcherClear = m_pRenderGraph->AddPass<TerrainPatcher>("Terrain Patcher Clear",
 			[=, &pStreamingData](NXRGBuilder& builder, TerrainPatcher& data) {
 				data.pFinal = builder.Read(pTerrainNodesFinal);
-				data.pPatcher = builder.Write(m_pRenderGraph->Import(pStreamingData.GetPatcherBuffer()));
+				data.pPatcher = builder.Write(hPatcherBuffer);
 				data.pIndirectArgs = builder.Read(pTerrainIndirectArgs);
-				data.pDrawIndexArgs = builder.Write(m_pRenderGraph->Import(pStreamingData.GetPatcherDrawIndexArgs()));
+				data.pDrawIndexArgs = builder.Write(hPatcherDrawIndexArgs);
 			},
 			[=, &pStreamingData](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, TerrainPatcher& data) {
 				// 清零Patcher的UAV计数器
@@ -447,9 +465,9 @@ void Renderer::GenerateRenderGraph()
 		auto patcher = m_pRenderGraph->AddPass<TerrainPatcher>("Terrain Patcher",
 			[=, &pStreamingData](NXRGBuilder& builder, TerrainPatcher& data) {
 				data.pFinal = builder.Read(pTerrainNodesFinal);
-				data.pPatcher = builder.Write(m_pRenderGraph->Import(pStreamingData.GetPatcherBuffer()));
+				data.pPatcher = builder.Write(hPatcherBuffer);
 				data.pIndirectArgs = builder.Read(pTerrainIndirectArgs);
-				data.pDrawIndexArgs = builder.Write(m_pRenderGraph->Import(pStreamingData.GetPatcherDrawIndexArgs()));
+				data.pDrawIndexArgs = builder.Write(hPatcherDrawIndexArgs);
 			},
 			[=, &pStreamingData](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, TerrainPatcher& data) {
 				auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("TerrainPatcher"));
@@ -474,15 +492,29 @@ void Renderer::GenerateRenderGraph()
 				pCmdList->ExecuteIndirect(m_pCommandSig.Get(), 1, pBufIndirectArgs->GetD3DResource(), 0, nullptr, 0);
 			});
 
-		//struct PhysicalPageBaker
-		//{
-		//};
+		struct PhysicalPageBaker
+		{
+			NXRGHandle Sector2NodeIDTex;
+			NXRGHandle SplatMapAtlas;
+			NXRGHandle NormalMapArray;
+			NXRGHandle AlbedoMapArray;
+		};
 		//m_pRenderGraph->AddPass<PhysicalPageBaker>("PhysicalPageBaker",
 		//	[&](NXRGBuilder& builder, PhysicalPageBaker& data)
 		//	{
+		//		data.Sector2NodeIDTex = builder.Read(pSector2NodeIDTex);
+		//		//data.SplatMapAtlas = builder.Read(pStreamingData.GetSplatMapAtlas());
 		//	},
 		//	[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, PhysicalPageBaker& data)
 		//	{
+		//		auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("PhysicalPageBaker"));
+		//		pMat->SetConstantBuffer(0, 0, &m_pVirtualTexture->GetCBPhysPageBakeData());
+		//		pMat->SetConstantBuffer(0, 1, &pStreamingData.GetNodeDescArray());
+		//		pMat->SetInput(0, 0, resMap.GetRes(data.Sector2NodeIDTex));
+		//		//pMat->SetInput(0, 1, resMap.GetRes(data.));
+		//		//pMat->SetOutput();
+
+		//		uint32_t BakeTileSize = 256 + 8;
 		//	});
 	}
 
