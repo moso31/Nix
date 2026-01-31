@@ -15,6 +15,7 @@ struct NXVTLRUKey
     Int2 pageID;
     int gpuMip;
     int indiTexLog2Size;
+    Int2 _0;
 };
 
 static inline int VTImageIndexDecode(int x)
@@ -46,3 +47,19 @@ static inline int VTImagePosToIndex(const Int2& p)
 {
     return (VTImageIndexEncode(p.x) << 1) | VTImageIndexEncode(p.y);
 }
+
+// HLSL cbuffer 数组元素需要 16 字节对齐
+struct CBufferPhysPageUpdateIndex
+{
+    int index;
+    Int3 _0;
+};
+
+struct NXVirtualTextureConfig
+{
+    uint32_t PhysicalPageTilePadding = 4;
+    uint32_t PhysicalPageTileSize = 256 + PhysicalPageTilePadding * 2;
+    uint32_t PhysicalPageTileNum = 1024;
+};
+
+inline NXVirtualTextureConfig g_virtualTextureConfig;

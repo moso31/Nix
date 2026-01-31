@@ -26,11 +26,20 @@ void NXPassMaterialManager::InitDefaultRenderer()
 		AddMaterial(pMat, true);
 	}
 
-	//{
-	//	auto pMat = new NXComputePassMaterial("PhysicalPageBaker", "PhysicalPageBaker.fx");
-	//	pMat->FinalizeLayout();
-	//	AddMaterial(pMat, true);
-	//}
+	// VT Physical Page
+	{
+		auto pMat = new NXComputePassMaterial("PhysicalPageBaker", L"Shader\\PhysicalPageBaker.fx");
+		pMat->RegisterUAVSpaceNum(1);
+		pMat->RegisterUAVSlotNum(2);
+		pMat->RegisterSRVSpaceNum(1);
+		pMat->RegisterSRVSlotNum(4);
+		pMat->RegisterCBVSpaceNum(1);
+		pMat->RegisterCBVSlotNum(3);  // b0, b1, b2
+		pMat->FinalizeLayout();
+		pMat->AddStaticSampler(D3D12_FILTER_MIN_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
+		pMat->AddStaticSampler(D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
+		AddMaterial(pMat, true);
+	}
 
 	////////////////////////////////////////
 	// GPU-Driven Terrain

@@ -605,7 +605,7 @@ void EncodeVTPageID(float2 posXZ, float2 positionSS)
 	uint indiTexLog2Size = val.z;
 
     int2 pixelCoord = int2(positionSS);
-    uint mip = (uint)clamp(MipLevelAnisotropy(posXZ, 256), 0, indiTexLog2Size);
+    uint mip = (uint)clamp(MipLevelAnisotropy(posXZ, 64), 0, indiTexLog2Size);
 
 	uint2 indiTexPos = indiTexPosMip0 >> mip; // indiTexPos >> mip == PageID.
 

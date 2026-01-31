@@ -64,6 +64,7 @@ struct NXVTChangeSector
 };
 
 class NXTexture2D;
+class NXTexture2DArray;
 class NXVirtualTexture
 {
 	constexpr static int VT_SECTOR2INDIRECTTEXTURE_SIZE = 256; // Sector2IndirectTexture使用的分辨率
@@ -90,6 +91,7 @@ public:
 	void UpdateCBData(const Vector2& rtSize);
 	const NXConstantBuffer<Vector4>& GetCBufferVTReadback() const { return m_cbVTReadback; }
 
+	// sector2indirecttexture
 	const Ntr<NXTexture2D>& GetSector2IndirectTexture() const { return m_pSector2IndirectTexture; }
 	const NXConstantBuffer<std::vector<CBufferSector2IndirectTexture>>& GetCBufferSector2IndirectTexture() const { return m_cbSector2IndirectTexture; }
 	const NXConstantBuffer<int>& GetCBufferSector2IndirectTextureNum() const { return m_cbSector2IndirectTextureNum; }
@@ -97,8 +99,12 @@ public:
 	bool NeedClearSector2IndirectTexture() const { return m_bNeedClearSector2IndirectTexture; }
 	void MarkSector2IndirectTextureCleared() { m_bNeedClearSector2IndirectTexture = false; }
 
+	// physicalpage
+	const Ntr<NXTexture2DArray>& GetPhysicalPageAlbedo() const { return m_pPhysicalPageAlbedo; }
+	const Ntr<NXTexture2DArray>& GetPhysicalPageNormal() const { return m_pPhysicalPageNormal; }
 	const NXConstantBuffer<std::vector<NXVTLRUKey>>& GetCBPhysPageBakeData() const { return m_cbPhysPageBake; }
 	const size_t GetCBPhysPageBakeDataNum() const { return m_cbDataPhysPageBake.size(); }
+	const NXConstantBuffer<std::vector<CBufferPhysPageUpdateIndex>>& GetCBPhysPageUpdateIndex() const { return m_cbPhysPageUpdateIndex; }
 
 	// GUI 访问接口
 	const std::vector<NXVTSector>& GetSectors() const { return m_sectors; }
@@ -153,4 +159,8 @@ private:
 	NXVTLRUCache m_lruCache;
 	NXConstantBuffer<std::vector<NXVTLRUKey>> m_cbPhysPageBake;
 	std::vector<NXVTLRUKey> m_cbDataPhysPageBake;
+	NXConstantBuffer<std::vector<CBufferPhysPageUpdateIndex>> m_cbPhysPageUpdateIndex;
+	std::vector<CBufferPhysPageUpdateIndex> m_cbDataPhysPageUpdateIndex;
+	Ntr<NXTexture2DArray> m_pPhysicalPageAlbedo;
+	Ntr<NXTexture2DArray> m_pPhysicalPageNormal;
 };

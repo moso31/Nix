@@ -17,8 +17,12 @@ NXVirtualTexture::NXVirtualTexture(class NXCamera* pCam) :
 	m_pSector2IndirectTexture->SetSRV(0);
 	m_pSector2IndirectTexture->SetUAV(0);
 
+	m_pPhysicalPageAlbedo = NXManager_Tex->CreateTexture2DArray("VirtualTexture_PhysicalPage_Albedo", DXGI_FORMAT_R8G8B8A8_UNORM, g_virtualTextureConfig.PhysicalPageTileSize, g_virtualTextureConfig.PhysicalPageTileSize, g_virtualTextureConfig.PhysicalPageTileNum, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+	m_pPhysicalPageNormal = NXManager_Tex->CreateTexture2DArray("VirtualTexture_PhysicalPage_Normal", DXGI_FORMAT_R8G8B8A8_UNORM, g_virtualTextureConfig.PhysicalPageTileSize, g_virtualTextureConfig.PhysicalPageTileSize, g_virtualTextureConfig.PhysicalPageTileNum, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+
 	m_cbSector2IndirectTexture.Recreate(CB_SECTOR2INDIRECTTEXTURE_DATA_NUM);
 	m_cbPhysPageBake.Recreate(CB_PHYSPAGEBAKEDATA_NUM);
+	m_cbPhysPageUpdateIndex.Recreate(BAKE_PHYSICAL_PAGE_PER_FRAME);
 
 	m_vtReadbackData = new NXReadbackData("VT Readback CPUdata");
 }
@@ -187,6 +191,8 @@ void NXVirtualTexture::BakePhysicalPages()
 
 	int lruInsertNum = 0;
 	m_cbDataPhysPageBake.clear();
+	m_cbDataPhysPageUpdateIndex.clear();
+
 	for (auto& data : readbackSets)
 	{
 		Int2 pageID((data >> 20) & 0xFFF, (data >> 8) & 0xFFF);
@@ -210,10 +216,13 @@ void NXVirtualTexture::BakePhysicalPages()
 			}
 			else
 			{
-				m_lruCache.Insert(keyHash);
+				int cacheIdx = m_lruCache.Insert(keyHash);
 				lruInsertNum++;
 
 				m_cbDataPhysPageBake.push_back(key);
+				m_cbDataPhysPageUpdateIndex.push_back(CBufferPhysPageUpdateIndex(cacheIdx));
+
+				//printf("Sector: (%d, %d), PageID: (%d, %d), GPU Mip: %d, IndiTexLog2Size: %d\n", key.sector.x, key.sector.y, key.pageID.x, key.pageID.y, key.gpuMip, key.indiTexLog2Size);
 
 				if (lruInsertNum >= BAKE_PHYSICAL_PAGE_PER_FRAME)
 					break;
@@ -221,7 +230,14 @@ void NXVirtualTexture::BakePhysicalPages()
 		}
 	}
 
+	for (auto& idx : m_cbDataPhysPageUpdateIndex)
+	{
+		printf("%d ", idx.index);
+	}
+	if (!m_cbDataPhysPageUpdateIndex.empty()) printf("\n");
+
 	m_cbPhysPageBake.Update(m_cbDataPhysPageBake);
+	m_cbPhysPageUpdateIndex.Update(m_cbDataPhysPageUpdateIndex);
 }
 
 float NXVirtualTexture::GetDist2OfSectorToCamera(const Vector2& camPos, const Int2& sectorCorner)

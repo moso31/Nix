@@ -496,28 +496,49 @@ void Renderer::GenerateRenderGraph()
 		{
 			NXRGHandle Sector2NodeIDTex;
 			NXRGHandle SplatMapAtlas;
+			NXRGHandle AlbedoMapArray;
+			NXRGHandle NormalMapArray;
+			NXRGHandle PhysicalPageAlbedo;
+			NXRGHandle PhysicalPageNormal;
 		};
-		//NXRGHandle hAlbedoMapArray = m_pRenderGraph->Import(m_pTerrainMaterialTexture->GetAlbedo2DArray());
-		//NXRGHandle hNormalMapArray = m_pRenderGraph->Import(m_pTerrainMaterialTexture->GetNormal2DArray());
-		//m_pRenderGraph->AddPass<PhysicalPageBaker>("PhysicalPageBaker",
-		//	[&](NXRGBuilder& builder, PhysicalPageBaker& data)
-		//	{
-		//		data.Sector2NodeIDTex = builder.Read(pSector2NodeIDTex);
-		//		data.SplatMapAtlas = builder.Read(hSplatMapAtlas);
-		//		data.NormalMapArray = builder.Read(hAlbedoMapArray);
-		//		data.AlbedoMapArray = builder.Read(hNormalMapArray);
-		//	},
-		//	[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, PhysicalPageBaker& data)
-		//	{
-		//		auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("PhysicalPageBaker"));
-		//		pMat->SetConstantBuffer(0, 0, &m_pVirtualTexture->GetCBPhysPageBakeData());
-		//		pMat->SetConstantBuffer(0, 1, &pStreamingData.GetNodeDescArray());
-		//		pMat->SetInput(0, 0, resMap.GetRes(data.Sector2NodeIDTex));
-		//		//pMat->SetInput(0, 1, resMap.GetRes(data.));
-		//		//pMat->SetOutput();
+		NXRGHandle hAlbedoMapArray = m_pRenderGraph->Import(pStreamingData.GetTerrainAlbedo2DArray());
+		NXRGHandle hNormalMapArray = m_pRenderGraph->Import(pStreamingData.GetTerrainNormal2DArray());
+		NXRGHandle hAlbedoPhysicalPage = m_pRenderGraph->Import(m_pVirtualTexture->GetPhysicalPageAlbedo());
+		NXRGHandle hNormalPhysicalPage = m_pRenderGraph->Import(m_pVirtualTexture->GetPhysicalPageNormal());
+		m_pRenderGraph->AddPass<PhysicalPageBaker>("PhysicalPageBaker",
+			[&](NXRGBuilder& builder, PhysicalPageBaker& data)
+			{
+				data.Sector2NodeIDTex = builder.Read(pSector2NodeIDTex);
+				data.SplatMapAtlas = builder.Read(hSplatMapAtlas);
+				data.AlbedoMapArray = builder.Read(hAlbedoMapArray);
+				data.NormalMapArray = builder.Read(hNormalMapArray);
+				data.PhysicalPageAlbedo = builder.Read(hAlbedoPhysicalPage);
+				data.PhysicalPageNormal = builder.Read(hNormalPhysicalPage);
+			},
+			[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, PhysicalPageBaker& data)
+			{
+				uint32_t threadNum = (g_virtualTextureConfig.PhysicalPageTileNum + 7) / 8;
+				uint32_t bakeTexNum = m_pVirtualTexture->GetCBPhysPageBakeDataNum();
 
-		//		uint32_t BakeTileSize = 256 + 8;
-		//	});
+				if (bakeTexNum == 0)
+					return;
+
+				auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("PhysicalPageBaker"));
+				pMat->SetConstantBuffer(0, 0, &m_pVirtualTexture->GetCBPhysPageBakeData());
+				pMat->SetConstantBuffer(0, 1, &pStreamingData.GetNodeDescArray());
+				pMat->SetConstantBuffer(0, 2, &m_pVirtualTexture->GetCBPhysPageUpdateIndex());
+				pMat->SetInput(0, 0, resMap.GetRes(data.Sector2NodeIDTex));
+				pMat->SetInput(0, 1, resMap.GetRes(data.SplatMapAtlas));
+				pMat->SetInput(0, 2, resMap.GetRes(data.AlbedoMapArray));
+				pMat->SetInput(0, 3, resMap.GetRes(data.NormalMapArray));
+				pMat->SetOutput(0, 0, resMap.GetRes(data.PhysicalPageAlbedo));
+				pMat->SetOutput(0, 1, resMap.GetRes(data.PhysicalPageNormal));
+
+				pMat->RenderSetTargetAndState(pCmdList);
+				pMat->RenderBefore(pCmdList);
+
+				pCmdList->Dispatch(threadNum, threadNum, bakeTexNum);
+			});
 	}
 
 	NXRGHandle hGBuffer0 = m_pRenderGraph->Create("GBuffer RT0", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::RenderTarget, .tex = { .format = DXGI_FORMAT_R32_FLOAT, .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .arraySize = 1, .mipLevels = 1 } });
