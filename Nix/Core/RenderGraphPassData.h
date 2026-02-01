@@ -71,6 +71,11 @@ struct PhysicalPageBakerPassData
 	NXRGHandle PhysicalPageNormal;
 };
 
+struct IndirectTextureClearPassData
+{
+	NXRGHandle IndirectTexture;
+};
+
 struct UpdateIndirectTexturePassData
 {
 	NXRGHandle IndirectTexture;

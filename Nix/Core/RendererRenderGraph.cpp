@@ -416,17 +416,58 @@ void Renderer::BuildVirtualTexturePasses(NXRGHandle pSector2NodeIDTex, NXRGHandl
 			pCmdList->Dispatch(threadNum, threadNum, bakeTexNum);
 		});
 
-	//NXRGHandle hIndirectTexture = m_pRenderGraph->Import(m_pVirtualTexture->GetIndirectTexture());
-	//m_pRenderGraph->AddPass<UpdateIndirectTexturePassData>("UpdateIndirectTexture",
-	//	[&](NXRGBuilder& builder, UpdateIndirectTexturePassData& data)
-	//	{
-	//		data.IndirectTexture = hIndirectTexture;
-	//	},
-	//	[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, UpdateIndirectTexturePassData& data)
-	//	{
-	//		auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("UpdateIndirectTexture"));
-	//		//pMat->SetConstantBuffer(0, 0, m_pVirtualTexture->);
-	//	});
+	NXRGHandle hIndirectTexture = m_pRenderGraph->Import(m_pVirtualTexture->GetIndirectTexture());
+
+	// 仅首帧执行: 清空IndirectTexture，将所有像素设置为-1
+	if (m_pVirtualTexture->NeedClearIndirectTexture())
+	{
+		m_pRenderGraph->AddPass<IndirectTextureClearPassData>("IndirectTexture Clear",
+			[&](NXRGBuilder& builder, IndirectTextureClearPassData& data)
+			{
+				data.IndirectTexture = builder.Write(hIndirectTexture);
+			},
+			[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, IndirectTextureClearPassData& data)
+			{
+				auto pTex = resMap.GetRes(data.IndirectTexture).As<NXTexture2D>();
+				pTex->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+
+				UINT clearValues[4] = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
+				int mipLevels = pTex->GetMipLevels();
+				for (int i = 0; i < mipLevels; i++)
+				{
+					D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = pTex->GetUAV(i);
+					NXShVisDescHeap->PushFluid(cpuHandle);
+					D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = NXShVisDescHeap->Submit();
+					pCmdList->ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, pTex->GetD3DResource(), clearValues, 0, nullptr);
+				}
+
+				m_pVirtualTexture->MarkIndirectTextureCleared();
+			});
+	}
+
+	m_pRenderGraph->AddPass<UpdateIndirectTexturePassData>("UpdateIndirectTexture",
+		[&](NXRGBuilder& builder, UpdateIndirectTexturePassData& data)
+		{
+			data.IndirectTexture = builder.Write(hIndirectTexture);
+		},
+		[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, UpdateIndirectTexturePassData& data)
+		{
+			uint32_t bakeTexNum = m_pVirtualTexture->GetCBPhysPageBakeDataNum();
+			if (bakeTexNum == 0)
+				return;
+
+			auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("UpdateIndirectTexture"));
+			pMat->SetConstantBuffer(0, 0, &m_pVirtualTexture->GetCBPhysPageUpdateIndex());
+
+			int mips = 11;
+			for (int i = 0; i < mips; i++)
+				pMat->SetOutput(0, i, resMap.GetRes(data.IndirectTexture), i);
+
+			pMat->RenderSetTargetAndState(pCmdList);
+			pMat->RenderBefore(pCmdList);
+
+			pCmdList->Dispatch(bakeTexNum, 1, 1);
+		});
 }
 
 // =====================================================

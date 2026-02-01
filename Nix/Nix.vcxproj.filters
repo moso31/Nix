@@ -625,6 +625,10 @@
     <ClCompile Include="Nix\NXVTLRUCache.cpp">
       <Filter>Nix\VirtualTexture</Filter>
     </ClCompile>
+    <ClCompile Include="Core\pch.cpp" />
+    <ClCompile Include="Core\RendererRenderGraph.cpp">
+      <Filter>Core\DirectX\Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">
@@ -1046,6 +1050,9 @@
     </ClInclude>
     <ClInclude Include="Nix\NXVTLRUCache.h">
       <Filter>Nix\VirtualTexture</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\RenderGraphPassData.h">
+      <Filter>Core\DirectX\Renderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

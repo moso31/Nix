@@ -1,3 +1,5 @@
+#include "VTCommon.fx"
+
 float4 RectGrid(float2 uv, out float2 vertexPosX, out float2 vertexPosY, out float2 vertexPosZ, out float2 vertexPosW, float scale)
 {
     float t = scale;
@@ -33,13 +35,6 @@ struct TerrainNodeDescription
 	uint3 padding;
 };
 
-#define BAKE_PHYSICAL_PAGE_PER_FRAME 8
-#define BAKE_PHYSICAL_PAGE_SIZE 256
-#define BAKE_PHYSICAL_PAGE_BORDER 4
-#define SECTOR_SIZE 64
-#define SECTOR_MIN int2(-128, -128)
-#define NodeDescArrayNum 1024
-
 cbuffer cbPhysPageBakeData : register(b0, space0)
 {
     VTLRUKey m_physPageBakeData[BAKE_PHYSICAL_PAGE_PER_FRAME];
@@ -50,17 +45,9 @@ cbuffer cbNodeDescArray : register(b1, space0)
 	TerrainNodeDescription m_nodeDescArray[NodeDescArrayNum];
 }
 
-// CBufferPhysPageUpdateIndex 对应的结构
-struct PhysPageUpdateIndex
-{
-    int index;
-    int2 pageID;
-    int mip;
-};
-
 cbuffer cbPhysPageUpdateIndex : register(b2, space0)
 {
-    PhysPageUpdateIndex m_physPageUpdateIndex[BAKE_PHYSICAL_PAGE_PER_FRAME];
+    CBufferPhysPageUpdateIndex m_physPageUpdateIndex[BAKE_PHYSICAL_PAGE_PER_FRAME];
 }
 
 Texture2D<uint> m_sector2NodeIDTex : register(t0, space0);
@@ -95,7 +82,7 @@ uint GetBestSector2NodeId(int2 sector)
 void CS(uint3 dtid : SV_DispatchThreadID) 
 {
     VTLRUKey key = m_physPageBakeData[dtid.z];
-    PhysPageUpdateIndex updateIdx = m_physPageUpdateIndex[dtid.z];
+    CBufferPhysPageUpdateIndex updateIdx = m_physPageUpdateIndex[dtid.z];
     int physPageIdx = updateIdx.index;
     // updateIdx.pageID 和 updateIdx.mip 可在需要时使用
     uint nodeID = GetBestSector2NodeId(key.sector);

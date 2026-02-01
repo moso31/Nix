@@ -110,6 +110,8 @@ public:
 
 	// updateindirecttexture
 	const Ntr<NXTexture2D>& GetIndirectTexture() const { return m_pIndirectTexture; }
+	bool NeedClearIndirectTexture() const { return m_bNeedClearIndirectTexture; }
+	void MarkIndirectTextureCleared() { m_bNeedClearIndirectTexture = false; }
 
 	// GUI 访问接口
 	const std::vector<NXVTSector>& GetSectors() const { return m_sectors; }
@@ -171,4 +173,5 @@ private:
 	Ntr<NXTexture2DArray> m_pPhysicalPageNormal;
 
 	Ntr<NXTexture2D> m_pIndirectTexture;
+	bool m_bNeedClearIndirectTexture = true; // 首帧清除标记
 };

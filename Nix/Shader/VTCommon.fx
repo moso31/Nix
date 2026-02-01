@@ -10,6 +10,20 @@ static const uint g_Bayer8x8[64] =
     42, 26, 38, 22, 41, 25, 37, 21
 };
 
+struct CBufferPhysPageUpdateIndex
+{
+    int index;
+    int2 pageID;
+    int mip;
+};
+
+#define BAKE_PHYSICAL_PAGE_PER_FRAME 8
+#define BAKE_PHYSICAL_PAGE_SIZE 256
+#define BAKE_PHYSICAL_PAGE_BORDER 4
+#define SECTOR_SIZE 64
+#define SECTOR_MIN int2(-128, -128)
+#define NodeDescArrayNum 1024
+
 // From https://microsoft.github.io/DirectX-Specs/d3d/archive/D3D11_3_FunctionalSpec.htm
 float MipLevelAnisotropy(float2 uv, float size)
 {

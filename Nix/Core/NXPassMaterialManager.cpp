@@ -41,18 +41,16 @@ void NXPassMaterialManager::InitDefaultRenderer()
 		AddMaterial(pMat, true);
 	}
 
-	//// VT Update IndirectTexture
-	//{
-	//	auto pMat = new NXComputePassMaterial("UpdateIndirectTexture", L"Shader\\VTUpdateIndirectTexture.fx");
-	//	pMat->RegisterCBVSpaceNum(1);
-	//	pMat->RegisterCBVSlotNum(1);  // b0
-	//	pMat->RegisterSRVSpaceNum(1);
-	//	pMat->RegisterSRVSlotNum(1);  // t0
-	//	pMat->RegisterUAVSpaceNum(1);
-	//	pMat->RegisterUAVSlotNum(1);  // u0
-	//	pMat->FinalizeLayout();
-	//	AddMaterial(pMat, true);
-	//}
+	// VT Update IndirectTexture
+	{
+		auto pMat = new NXComputePassMaterial("UpdateIndirectTexture", L"Shader\\VTUpdateIndirectTexture.fx");
+		pMat->RegisterCBVSpaceNum(1);
+		pMat->RegisterCBVSlotNum(1);  // b0
+		pMat->RegisterUAVSpaceNum(1);
+		pMat->RegisterUAVSlotNum(11);  // u0
+		pMat->FinalizeLayout();
+		AddMaterial(pMat, true);
+	}
 
 	////////////////////////////////////////
 	// GPU-Driven Terrain
