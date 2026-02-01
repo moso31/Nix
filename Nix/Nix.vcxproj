@@ -149,8 +149,8 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
@@ -161,6 +161,7 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4267;4018</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <ForcedIncludeFiles>pch.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -175,8 +176,8 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='FullyDebug|x64'">
     <ClCompile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
@@ -187,6 +188,7 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4267;4018</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <ForcedIncludeFiles>pch.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -220,8 +222,8 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -234,6 +236,7 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4267;4018</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <ForcedIncludeFiles>pch.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -297,9 +300,29 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\NixTools\include\tinyexr\miniz.c" />
-    <ClCompile Include="BaseDefs\DearImGui.cpp" />
-    <ClCompile Include="BaseDefs\DX12.cpp" />
+    <ClCompile Include="..\NixTools\include\tinyexr\miniz.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='FullyDebug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"></ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='FullyDebug|x64'"></ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|x64'"></ForcedIncludeFiles>
+    </ClCompile>
+    <ClCompile Include="Core\pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='FullyDebug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="BaseDefs\DearImGui.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='FullyDebug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="BaseDefs\DX12.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='FullyDebug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="Core\App.cpp" />
     <ClCompile Include="Core\DirectResources.cpp" />
     <ClCompile Include="Core\FBXMeshLoader.cpp" />
@@ -315,7 +338,11 @@
     <ClCompile Include="Core\NXGUITerrainMaterialGenerator.cpp" />
     <ClCompile Include="Core\NXGUITerrainStreamingDebug.cpp" />
     <ClCompile Include="Core\NXPassMaterialManager.cpp" />
-    <ClCompile Include="Core\TinyEXRImpl.cpp" />
+    <ClCompile Include="Core\TinyEXRImpl.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='FullyDebug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="Core\NXGUIInspector.cpp" />
     <ClCompile Include="Core\NXGUIRenderGraph.cpp" />
     <ClCompile Include="Core\NXGUIGPUProfiler.cpp" />
@@ -371,6 +398,7 @@
     <ClCompile Include="Core\NXTimer.cpp" />
     <ClCompile Include="Core\NXUploadSystem.cpp" />
     <ClCompile Include="Core\Renderer.cpp" />
+    <ClCompile Include="Core\RendererRenderGraph.cpp" />
     <ClCompile Include="Core\ShaderComplier.cpp" />
     <ClCompile Include="Core\NXShaderVisibleDescriptorHeap.cpp" />
     <ClCompile Include="Nix\NXBuffer.cpp" />
@@ -502,6 +530,7 @@
     <ClInclude Include="Core\NXTimer.h" />
     <ClInclude Include="Core\NXUploadSystem.h" />
     <ClInclude Include="Core\Renderer.h" />
+    <ClInclude Include="Core\RenderGraphPassData.h" />
     <ClInclude Include="Core\ShaderComplier.h" />
     <ClInclude Include="Core\ShaderStructures.h" />
     <ClInclude Include="Core\NXShaderVisibleDescriptorHeap.h" />

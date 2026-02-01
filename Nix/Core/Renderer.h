@@ -1,16 +1,43 @@
 #pragma once
-#include "NXGlobalDefinitions.h"
-#include "NXBRDFlut.h"
-#include "DirectResources.h"
-#include "NXTerrainLODStreamer.h"
-#include "NXVirtualTexture.h"
+#include "BaseDefs/DX12.h"
+#include "BaseDefs/Math.h"
+#include "NXConstantBuffer.h"
+#include "Ntr.h"  
+#include "NXRGUtil.h"
 
-#include "NXDepthPrepass.h"
-#include "NXForwardRenderer.h"
-#include "NXDepthPeelingRenderer.h"
-#include "NXSimpleSSAO.h"
-#include "NXGUI.h"
-#include "NXRenderGraph.h"
+// ===== 前置声明 =====
+// 场景/渲染相关
+class NXScene;
+class NXRenderGraph;
+class NXGUI;
+class NXBRDFLut;
+class NXTerrainLODStreamer;
+class NXVirtualTexture;
+class NXPassMaterial;
+class NXPBRDistantLight;
+class NXRenderableObject;
+
+// 资源相关
+class NXTexture2D;
+class NXTexture2DArray;
+class DirectResources;
+
+// RenderGraph Pass 相关
+template<typename T> class NXRGPassNode;
+struct TerrainPatcherPassData;
+struct GBufferPassData;
+struct ShadowMapPassData;
+struct ShadowTestPassData;
+struct DeferredLightingPassData;
+struct SubsurfacePassData;
+struct SkyLightingPassData;
+struct PostProcessingPassData;
+struct DebugLayerPassData;
+struct GizmosPassData;
+
+// 事件
+struct NXEventArgKey;
+struct NXSwapChainBuffer;
 
 struct CBufferShadowMapObject
 {
@@ -18,8 +45,6 @@ struct CBufferShadowMapObject
 	Matrix projection;
 };
 
-struct NXEventArgKey;
-class NXPassMaterial;
 class Renderer
 {
 public:
@@ -74,6 +99,22 @@ private:
 	void InitGlobalResources();
 	void GenerateRenderGraph();
 	void InitGUI();
+
+	// ===== RenderGraph Pass 构建辅助函数 =====
+	// 将大型的 GenerateRenderGraph() 拆分为多个小函数，改善 IntelliSense 性能
+	void BuildTerrainStreamingPasses(NXRGHandle& hSector2IndirectTexture, NXRGHandle& pSector2NodeIDTex, NXRGHandle& hHeightMapAtlas, NXRGHandle& hSplatMapAtlas, NXRGHandle& hNormalMapAtlas);
+	NXRGPassNode<TerrainPatcherPassData>* BuildTerrainCullingPasses(NXRGHandle pSector2NodeIDTex, NXRGHandle& hPatcherBuffer, NXRGHandle& hPatcherDrawIndexArgs);
+	void BuildVirtualTexturePasses(NXRGHandle pSector2NodeIDTex, NXRGHandle hSplatMapAtlas);
+	NXRGPassNode<GBufferPassData>* BuildGBufferPasses(NXRGPassNode<TerrainPatcherPassData>* passPatcher, NXRGHandle hGBuffer0, NXRGHandle hGBuffer1, NXRGHandle hGBuffer2, NXRGHandle hGBuffer3, NXRGHandle hDepthZ, NXRGHandle hVTPageIDTexture, NXRGHandle hVTSector2IndirectTexture);
+	NXRGPassNode<ShadowMapPassData>* BuildShadowMapPass(NXRGPassNode<TerrainPatcherPassData>* passPatcher);
+	NXRGPassNode<ShadowTestPassData>* BuildShadowTestPass(NXRGPassNode<GBufferPassData>* gBufferPassData, NXRGPassNode<ShadowMapPassData>* shadowMapPassData);
+	NXRGPassNode<DeferredLightingPassData>* BuildDeferredLightingPass(NXRGPassNode<GBufferPassData>* gBufferPassData, NXRGPassNode<ShadowTestPassData>* shadowTestPassData);
+	NXRGPassNode<SubsurfacePassData>* BuildSubsurfacePass(NXRGPassNode<DeferredLightingPassData>* litPassData, NXRGPassNode<GBufferPassData>* gBufferPassData);
+	NXRGPassNode<SkyLightingPassData>* BuildSkyLightingPass(NXRGPassNode<SubsurfacePassData>* sssPassData, NXRGPassNode<GBufferPassData>* gBufferPassData, NXRGHandle pCubeMap);
+	NXRGPassNode<PostProcessingPassData>* BuildPostProcessingPass(NXRGPassNode<SkyLightingPassData>* skyPassData);
+	NXRGPassNode<DebugLayerPassData>* BuildDebugLayerPass(NXRGPassNode<PostProcessingPassData>* postProcessPassData, NXRGPassNode<ShadowMapPassData>* shadowMapPassData);
+	NXRGPassNode<GizmosPassData>* BuildGizmosPass(NXRGPassNode<DebugLayerPassData>* debugLayerPassData, NXRGPassNode<PostProcessingPassData>* postProcessPassData);
+	void BuildFinalQuadPass(NXRGPassNode<GizmosPassData>* gizmosPassData);
 
 	// 2023.11.5 Nix 的 GUI 控制参数目前暂时使用两种方式：即时更新 和 延迟更新
 	// 1. 即时更新：GUI 每次修改参数，都会立即更新到对应的资源上（即，传统的 dearImgui 更新参数的方法）

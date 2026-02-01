@@ -1,5 +1,7 @@
 #pragma once
 #include "Renderer.h"
+#include "NXRenderGraph.h"
+#include "NXResource.h"
 
 enum class NXRGGUIResourceViewMode
 {

@@ -23,7 +23,7 @@ NXVirtualTexture::NXVirtualTexture(class NXCamera* pCam) :
 	int mip = 11;
 	m_pIndirectTexture = NXManager_Tex->CreateTexture2D("VirtualTexture_IndirectTexture", DXGI_FORMAT_R32_UINT, g_virtualTextureConfig.IndirectTextureSize, g_virtualTextureConfig.IndirectTextureSize, mip, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, false);
 	m_pIndirectTexture->SetViews(1, 0, 0, mip);
-	m_pIndirectTexture->SetSRV(1);
+	m_pIndirectTexture->SetSRV(0);
 	for (int i = 0; i < mip; i++)
 		m_pIndirectTexture->SetUAV(i, i);
 
