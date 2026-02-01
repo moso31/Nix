@@ -20,6 +20,13 @@ NXVirtualTexture::NXVirtualTexture(class NXCamera* pCam) :
 	m_pPhysicalPageAlbedo = NXManager_Tex->CreateTexture2DArray("VirtualTexture_PhysicalPage_Albedo", DXGI_FORMAT_R8G8B8A8_UNORM, g_virtualTextureConfig.PhysicalPageTileSize, g_virtualTextureConfig.PhysicalPageTileSize, g_virtualTextureConfig.PhysicalPageTileNum, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 	m_pPhysicalPageNormal = NXManager_Tex->CreateTexture2DArray("VirtualTexture_PhysicalPage_Normal", DXGI_FORMAT_R8G8B8A8_UNORM, g_virtualTextureConfig.PhysicalPageTileSize, g_virtualTextureConfig.PhysicalPageTileSize, g_virtualTextureConfig.PhysicalPageTileNum, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 
+	int mip = 11;
+	m_pIndirectTexture = NXManager_Tex->CreateTexture2D("VirtualTexture_IndirectTexture", DXGI_FORMAT_R32_UINT, g_virtualTextureConfig.IndirectTextureSize, g_virtualTextureConfig.IndirectTextureSize, mip, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, false);
+	m_pIndirectTexture->SetViews(1, 0, 0, mip);
+	m_pIndirectTexture->SetSRV(1);
+	for (int i = 0; i < mip; i++)
+		m_pIndirectTexture->SetUAV(i, i);
+
 	m_cbSector2IndirectTexture.Recreate(CB_SECTOR2INDIRECTTEXTURE_DATA_NUM);
 	m_cbPhysPageBake.Recreate(CB_PHYSPAGEBAKEDATA_NUM);
 	m_cbPhysPageUpdateIndex.Recreate(BAKE_PHYSICAL_PAGE_PER_FRAME);
@@ -47,6 +54,7 @@ void NXVirtualTexture::Update()
 	m_sectors.clear();
 	UpdateNearestSectors();
 	BakePhysicalPages();
+	UpdateIndirectTexture();
 }
 
 void NXVirtualTexture::UpdateCBData(const Vector2& rtSize)
@@ -220,7 +228,7 @@ void NXVirtualTexture::BakePhysicalPages()
 				lruInsertNum++;
 
 				m_cbDataPhysPageBake.push_back(key);
-				m_cbDataPhysPageUpdateIndex.push_back(CBufferPhysPageUpdateIndex(cacheIdx));
+				m_cbDataPhysPageUpdateIndex.push_back(CBufferPhysPageUpdateIndex(cacheIdx, pageID, gpuMip));
 
 				//printf("Sector: (%d, %d), PageID: (%d, %d), GPU Mip: %d, IndiTexLog2Size: %d\n", key.sector.x, key.sector.y, key.pageID.x, key.pageID.y, key.gpuMip, key.indiTexLog2Size);
 
@@ -238,6 +246,11 @@ void NXVirtualTexture::BakePhysicalPages()
 
 	m_cbPhysPageBake.Update(m_cbDataPhysPageBake);
 	m_cbPhysPageUpdateIndex.Update(m_cbDataPhysPageUpdateIndex);
+}
+
+void NXVirtualTexture::UpdateIndirectTexture()
+{
+
 }
 
 float NXVirtualTexture::GetDist2OfSectorToCamera(const Vector2& camPos, const Int2& sectorCorner)

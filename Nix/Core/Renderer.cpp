@@ -539,6 +539,22 @@ void Renderer::GenerateRenderGraph()
 
 				pCmdList->Dispatch(threadNum, threadNum, bakeTexNum);
 			});
+
+		//NXRGHandle hIndirectTexture = m_pRenderGraph->Import(m_pVirtualTexture->GetIndirectTexture());
+		//struct UpdateIndirectTexture
+		//{
+		//	NXRGHandle IndirectTexture;
+		//};
+		//m_pRenderGraph->AddPass<UpdateIndirectTexture>("UpdateIndirectTexture",
+		//	[&](NXRGBuilder& builder, UpdateIndirectTexture& data)
+		//	{
+		//		data.IndirectTexture = hIndirectTexture;
+		//	},
+		//	[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, UpdateIndirectTexture& data)
+		//	{
+		//		auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("UpdateIndirectTexture"));
+		//		pMat->SetConstantBuffer(0, 0, &m_pVirtualTexture->getcb());
+		//	});
 	}
 
 	NXRGHandle hGBuffer0 = m_pRenderGraph->Create("GBuffer RT0", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::RenderTarget, .tex = { .format = DXGI_FORMAT_R32_FLOAT, .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .arraySize = 1, .mipLevels = 1 } });

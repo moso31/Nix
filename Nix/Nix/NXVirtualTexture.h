@@ -82,6 +82,8 @@ class NXVirtualTexture
 	constexpr static size_t LRU_CACHE_SIZE = 1024;
 	constexpr static size_t BAKE_PHYSICAL_PAGE_PER_FRAME = 8; // 每帧最多烘焙的PhysicalPage数量
 
+	constexpr static size_t INDIRECT_TEXTURE_SIZE = 2048;
+
 public:
 	NXVirtualTexture(class NXCamera* pCam);
 	~NXVirtualTexture();
@@ -106,6 +108,9 @@ public:
 	const size_t GetCBPhysPageBakeDataNum() const { return m_cbDataPhysPageBake.size(); }
 	const NXConstantBuffer<std::vector<CBufferPhysPageUpdateIndex>>& GetCBPhysPageUpdateIndex() const { return m_cbPhysPageUpdateIndex; }
 
+	// updateindirecttexture
+	const Ntr<NXTexture2D>& GetIndirectTexture() const { return m_pIndirectTexture; }
+
 	// GUI 访问接口
 	const std::vector<NXVTSector>& GetSectors() const { return m_sectors; }
 	const NXVTImageQuadTree* GetQuadTree() const { return m_pVirtImageQuadTree; }
@@ -121,6 +126,7 @@ public:
 private:
 	void UpdateNearestSectors();
 	void BakePhysicalPages();
+	void UpdateIndirectTexture();
 
 	// 获取sector-相机最近距离的 平方
 	float GetDist2OfSectorToCamera(const Vector2& camPos, const Int2& sectorPos);
@@ -163,4 +169,6 @@ private:
 	std::vector<CBufferPhysPageUpdateIndex> m_cbDataPhysPageUpdateIndex;
 	Ntr<NXTexture2DArray> m_pPhysicalPageAlbedo;
 	Ntr<NXTexture2DArray> m_pPhysicalPageNormal;
+
+	Ntr<NXTexture2D> m_pIndirectTexture;
 };

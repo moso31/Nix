@@ -244,10 +244,10 @@
     <None Include="Shader\Instancing.fx">
       <Filter>Shader</Filter>
     </None>
-    <None Include="Shader\VTReadback.fx">
+    <None Include="Shader\VTUpdateIndirectTexture.fx">
       <Filter>Shader\VirtualTexture</Filter>
     </None>
-    <None Include="Shader\PhysicalPageBaker.fx">
+    <None Include="Shader\VTPhysicalPageBaker.fx">
       <Filter>Shader\VirtualTexture</Filter>
     </None>
     <None Include="packages.config" />
@@ -584,9 +584,6 @@
       <Filter>Nix\TextureStreaming</Filter>
     </ClCompile>
     <ClCompile Include="Nix\NXTerrainStreamingBatcher.cpp">
-      <Filter>Nix\TextureStreaming</Filter>
-    </ClCompile>
-    <ClCompile Include="Nix\NXTerrainMaterialTexture.cpp">
       <Filter>Nix\TextureStreaming</Filter>
     </ClCompile>
     <ClCompile Include="Nix\NXPassMaterial.cpp">
@@ -1006,9 +1003,6 @@
       <Filter>Nix\TextureStreaming</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXTerrainStreamingBatcher.h">
-      <Filter>Nix\TextureStreaming</Filter>
-    </ClInclude>
-    <ClInclude Include="Nix\NXTerrainMaterialTexture.h">
       <Filter>Nix\TextureStreaming</Filter>
     </ClInclude>
     <ClInclude Include="Nix\NXPassMaterial.h">

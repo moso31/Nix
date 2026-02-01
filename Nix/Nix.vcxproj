@@ -796,12 +796,12 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shader\VTReadback.fx">
+    <None Include="Shader\VTUpdateIndirectTexture.fx">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shader\PhysicalPageBaker.fx">
+    <None Include="Shader\VTPhysicalPageBaker.fx">
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='FullyDebug|x64'">

@@ -51,8 +51,10 @@ static inline int VTImagePosToIndex(const Int2& p)
 // HLSL cbuffer 数组元素需要 16 字节对齐
 struct CBufferPhysPageUpdateIndex
 {
+    CBufferPhysPageUpdateIndex(int index, Int2 pageID, int mip) : index(index), pageID(pageID), mip(mip) {}
     int index;
-    Int3 _0;
+    Int2 pageID;
+    int mip;
 };
 
 struct NXVirtualTextureConfig
@@ -60,6 +62,8 @@ struct NXVirtualTextureConfig
     uint32_t PhysicalPageTilePadding = 4;
     uint32_t PhysicalPageTileSize = 256 + PhysicalPageTilePadding * 2;
     uint32_t PhysicalPageTileNum = 1024;
+
+    uint32_t IndirectTextureSize = 2048;
 };
 
 inline NXVirtualTextureConfig g_virtualTextureConfig;

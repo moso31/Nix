@@ -28,7 +28,7 @@ void NXPassMaterialManager::InitDefaultRenderer()
 
 	// VT Physical Page
 	{
-		auto pMat = new NXComputePassMaterial("PhysicalPageBaker", L"Shader\\PhysicalPageBaker.fx");
+		auto pMat = new NXComputePassMaterial("PhysicalPageBaker", L"Shader\\VTPhysicalPageBaker.fx");
 		pMat->RegisterUAVSpaceNum(1);
 		pMat->RegisterUAVSlotNum(2);
 		pMat->RegisterSRVSpaceNum(1);
@@ -38,6 +38,19 @@ void NXPassMaterialManager::InitDefaultRenderer()
 		pMat->FinalizeLayout();
 		pMat->AddStaticSampler(D3D12_FILTER_MIN_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
 		pMat->AddStaticSampler(D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
+		AddMaterial(pMat, true);
+	}
+
+	// VT Update IndirectTexture
+	{
+		auto pMat = new NXComputePassMaterial("UpdateIndirectTexture", L"Shader\\VTUpdateIndirectTexture.fx");
+		pMat->RegisterCBVSpaceNum(1);
+		pMat->RegisterCBVSlotNum(1);  // b0
+		pMat->RegisterSRVSpaceNum(1);
+		pMat->RegisterSRVSlotNum(1);  // t0
+		pMat->RegisterUAVSpaceNum(1);
+		pMat->RegisterUAVSlotNum(1);  // u0
+		pMat->FinalizeLayout();
 		AddMaterial(pMat, true);
 	}
 
@@ -139,19 +152,6 @@ void NXPassMaterialManager::InitDefaultRenderer()
 		pMat->RegisterUAVSlotNum(1, 0); // u0, space0
 		pMat->FinalizeLayout();
 		AddMaterial(pMat, false);
-	}
-
-	// VTReadback computeshader
-	{
-		auto pMat = new NXComputePassMaterial("VTReadback", L"Shader\\VTReadback.fx");
-		pMat->RegisterCBVSpaceNum(1);
-		pMat->RegisterCBVSlotNum(1);  // b0
-		pMat->RegisterSRVSpaceNum(1);
-		pMat->RegisterSRVSlotNum(1);  // t0
-		pMat->RegisterUAVSpaceNum(1);
-		pMat->RegisterUAVSlotNum(1);  // u0
-		pMat->FinalizeLayout();
-		AddMaterial(pMat, true);
 	}
 
 	// VTReadback dataout
