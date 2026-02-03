@@ -105,7 +105,7 @@ private:
 	void BuildTerrainStreamingPasses(NXRGHandle& hSector2IndirectTexture, NXRGHandle& pSector2NodeIDTex, NXRGHandle& hHeightMapAtlas, NXRGHandle& hSplatMapAtlas, NXRGHandle& hNormalMapAtlas);
 	NXRGPassNode<TerrainPatcherPassData>* BuildTerrainCullingPasses(NXRGHandle pSector2NodeIDTex, NXRGHandle& hPatcherBuffer, NXRGHandle& hPatcherDrawIndexArgs);
 	void BuildVirtualTexturePasses(NXRGHandle pSector2NodeIDTex, NXRGHandle hSplatMapAtlas);
-	NXRGPassNode<GBufferPassData>* BuildGBufferPasses(NXRGPassNode<TerrainPatcherPassData>* passPatcher, NXRGHandle hGBuffer0, NXRGHandle hGBuffer1, NXRGHandle hGBuffer2, NXRGHandle hGBuffer3, NXRGHandle hDepthZ, NXRGHandle hVTPageIDTexture, NXRGHandle hVTSector2IndirectTexture);
+	NXRGPassNode<GBufferPassData>* BuildGBufferPasses(NXRGPassNode<TerrainPatcherPassData>* passPatcher, NXRGHandle hGBuffer0, NXRGHandle hGBuffer1, NXRGHandle hGBuffer2, NXRGHandle hGBuffer3, NXRGHandle hDepthZ, NXRGHandle hVTPageIDTexture, NXRGHandle hVTSector2IndirectTexture, NXRGHandle hVTIndirectTexture, NXRGHandle hVTPhysicalPageAlbedo, NXRGHandle hVTPhysicalPageNormal);
 	NXRGPassNode<ShadowMapPassData>* BuildShadowMapPass(NXRGPassNode<TerrainPatcherPassData>* passPatcher);
 	NXRGPassNode<ShadowTestPassData>* BuildShadowTestPass(NXRGPassNode<GBufferPassData>* gBufferPassData, NXRGPassNode<ShadowMapPassData>* shadowMapPassData);
 	NXRGPassNode<DeferredLightingPassData>* BuildDeferredLightingPass(NXRGPassNode<GBufferPassData>* gBufferPassData, NXRGPassNode<ShadowTestPassData>* shadowTestPassData);

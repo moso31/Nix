@@ -70,7 +70,6 @@ class NXVirtualTexture
 	constexpr static int VT_SECTOR2INDIRECTTEXTURE_SIZE = 256; // Sector2IndirectTexture使用的分辨率
 	constexpr static size_t VTIMAGE_MAX_NODE_SIZE = 256; // 最大node使用的分辨率
 	constexpr static int CB_SECTOR2INDIRECTTEXTURE_DATA_NUM = 256;
-	constexpr static int CB_PHYSPAGEBAKEDATA_NUM = 4;
 
 	constexpr static size_t VTSECTOR_LOD_NUM = 7; // VTSector的lod等级
 
@@ -79,8 +78,7 @@ class NXVirtualTexture
 	constexpr static float	SECTOR_SIZEF_INV = 1.0 / SECTOR_SIZEF;
 	constexpr static size_t SECTOR_SIZE_LOG2 = 6;
 
-	constexpr static size_t LRU_CACHE_SIZE = 1024;
-	constexpr static size_t BAKE_PHYSICAL_PAGE_PER_FRAME = 8; // 每帧最多烘焙的PhysicalPage数量
+	constexpr static size_t BAKE_PHYSICAL_PAGE_PER_FRAME = 32; // 每帧最多烘焙的PhysicalPage数量
 
 	constexpr static size_t INDIRECT_TEXTURE_SIZE = 2048;
 

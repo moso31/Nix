@@ -17,7 +17,7 @@ struct CBufferPhysPageUpdateIndex
     int mip;
 };
 
-#define BAKE_PHYSICAL_PAGE_PER_FRAME 8
+#define BAKE_PHYSICAL_PAGE_PER_FRAME 32
 #define BAKE_PHYSICAL_PAGE_SIZE 256
 #define BAKE_PHYSICAL_PAGE_BORDER 4
 #define SECTOR_SIZE 64

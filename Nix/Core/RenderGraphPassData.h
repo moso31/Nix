@@ -99,6 +99,9 @@ struct GBufferPassData
 	NXRGHandle rt3;
 	NXRGHandle VTPageIDTexture;
 	NXRGHandle VTSector2IndirectTexture;
+	NXRGHandle VTIndirectTexture;
+	NXRGHandle VTPhysicalPageAlbedo;
+	NXRGHandle VTPhysicalPageNormal;
 };
 
 struct VTReadbackPassData

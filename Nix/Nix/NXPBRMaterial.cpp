@@ -200,6 +200,9 @@ void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, const 
 		{
 			ranges3.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, 0)); // u0, space0 = VTPageIDTexture;
 			ranges3.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 2)); // t0, space2 = VTSector2IndirectTexture;
+			ranges3.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1, 2)); // t1, space2 = VTIndirectTexture;
+			ranges3.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2, 2)); // t2, space2 = VTPhysicalPageAlbedo;
+			ranges3.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 3, 2)); // t3, space2 = VTPhysicalPageNormal;
 			rootParams.push_back(
 				NX12Util::CreateRootParameterTable(ranges3, D3D12_SHADER_VISIBILITY_ALL) 
 			);

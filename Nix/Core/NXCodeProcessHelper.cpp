@@ -490,6 +490,9 @@ Texture2DArray m_txTerrainNormalMap : register(t5, space1);
 
 RWTexture2D<uint> m_VTPageIDBuffer : register(u0, space0);
 Texture2D<uint> m_VTSector2IndirectTexture : register(t0, space2);
+Texture2D<uint> m_VTIndirectTexture : register(t1, space2);
+Texture2DArray<float4> m_VTPhysPageAlbedo : register(t2, space2);
+Texture2DArray<float4> m_VTPhysPageNormal : register(t3, space2);
 )";
 	}
 
@@ -599,22 +602,25 @@ void EncodeVTPageID(float2 posXZ, float2 positionSS)
 	uint indiTexData = m_VTSector2IndirectTexture.Load(uint3(sectorPixelPos.xy, 0));
 	if (indiTexData == 0xFFFFFFFF)
 		return;
-
+	
 	uint3 val = DecodeSector2IndirectTextureData(indiTexData);
-	uint2 indiTexPosMip0 = val.xy * (1 << val.z);
-	uint indiTexLog2Size = val.z;
-
-    int2 pixelCoord = int2(positionSS);
-    uint mip = (uint)clamp(MipLevelAnisotropy(posXZ, 64), 0, indiTexLog2Size);
-
-	uint2 indiTexPos = indiTexPosMip0 >> mip; // indiTexPos >> mip == PageID.
+	uint  indiTexMip0Size = (1u << val.z);
+	uint2 indiTexMip0Pos = val.xy * indiTexMip0Size; 
+	uint indiTexMip0Log2Size = val.z;
+	
+    uint mip = (uint)clamp(MipLevelAnisotropy(posXZ, 2048), 0, indiTexMip0Log2Size);
+	
+	float2 relativeUV = frac(posXZ / 64.0f);
+	uint2 indiTexPagePixelMip0 = indiTexMip0Pos + relativeUV * indiTexMip0Size;
+	uint2 indiTexPagePixelMip = indiTexPagePixelMip0 >> mip; // pageID of this Pixel.
 
     int bayerOffset64 = g_Bayer8x8[g.frameIndex % 64];
     int bayerOffsetX = bayerOffset64 % 8;
     int bayerOffsetY = bayerOffset64 / 8;
+    int2 pixelCoord = int2(positionSS);
     if (pixelCoord.x % 8 == bayerOffsetX && pixelCoord.y % 8 == bayerOffsetY)
     {
-        m_VTPageIDBuffer[pixelCoord / 8] = EncodeIndirectTextureData(indiTexPos, mip, indiTexLog2Size); 
+        m_VTPageIDBuffer[pixelCoord / 8] = EncodeIndirectTextureData(indiTexPagePixelMip, mip, indiTexMip0Log2Size); 
     }
 }
 

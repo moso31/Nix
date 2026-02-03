@@ -8,7 +8,13 @@ struct NXVTLRUKey
     uint64_t GetKey()
     {
         Int2 sectorOffset = sector - g_terrainConfig.MinSectorID;
-        return static_cast<size_t>(sectorOffset.x) << 40 | static_cast<size_t>(sectorOffset.y) << 32 | pageID.x << 20 | pageID.y << 8 | gpuMip << 4 | indiTexLog2Size;
+
+        return ((uint64_t(sectorOffset.x) & 0xFFull) << 40) |
+            ((uint64_t(sectorOffset.y) & 0xFFull) << 32) |
+            ((uint64_t(pageID.x) & 0xFFFull) << 20) |
+            ((uint64_t(pageID.y) & 0xFFFull) << 8) |
+            ((uint64_t(gpuMip) & 0xFull) << 4) |
+            ((uint64_t(indiTexLog2Size) & 0xFull));
     }
 
     Int2 sector;
@@ -61,7 +67,7 @@ struct NXVirtualTextureConfig
 {
     uint32_t PhysicalPageTilePadding = 4;
     uint32_t PhysicalPageTileSize = 256 + PhysicalPageTilePadding * 2;
-    uint32_t PhysicalPageTileNum = 1024;
+    uint32_t PhysicalPageTileNum = 2048;
 
     uint32_t IndirectTextureSize = 2048;
 };

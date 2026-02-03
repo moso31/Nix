@@ -144,9 +144,12 @@ void Renderer::GenerateRenderGraph()
 	NXRGHandle hDepthZ = m_pRenderGraph->Create("DepthZ", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::DepthStencil, .tex = { .format = DXGI_FORMAT_R24G8_TYPELESS, .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .arraySize = 1, .mipLevels = 1 } });
 	NXRGHandle hVTPageIDTexture = m_pRenderGraph->Create("VT PageID Texture", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::UnorderedAccess, .tex = { .format = DXGI_FORMAT_R32_UINT, .width = (uint32_t)(m_viewRTSize.x + 7) / 8, .height = (uint32_t)(m_viewRTSize.y + 7) / 8, .arraySize = 1, .mipLevels = 1 }});
 	NXRGHandle hVTSector2IndirectTexture = m_pRenderGraph->Import(m_pVirtualTexture->GetSector2IndirectTexture());
+	NXRGHandle hVTIndirectTexture = m_pRenderGraph->Import(m_pVirtualTexture->GetIndirectTexture());
+	NXRGHandle hVTPhysicalPageAlbedo = m_pRenderGraph->Import(m_pVirtualTexture->GetPhysicalPageAlbedo());
+	NXRGHandle hVTPhysicalPageNormal = m_pRenderGraph->Import(m_pVirtualTexture->GetPhysicalPageNormal());
 
 	// GBuffer Pass
-	auto gBufferPassData = BuildGBufferPasses(passPatcher, hGBuffer0, hGBuffer1, hGBuffer2, hGBuffer3, hDepthZ, hVTPageIDTexture, hVTSector2IndirectTexture);
+	auto gBufferPassData = BuildGBufferPasses(passPatcher, hGBuffer0, hGBuffer1, hGBuffer2, hGBuffer3, hDepthZ, hVTPageIDTexture, hVTSector2IndirectTexture, hVTIndirectTexture, hVTPhysicalPageAlbedo, hVTPhysicalPageNormal);
 
 	// VT Readback Pass
 	struct VTReadbackData { NXRGHandle vtReadback; };

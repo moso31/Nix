@@ -14,7 +14,7 @@ struct NXGBufferParams
 struct NXCBGlobalData
 {
 	float Time;
-    float frameIndex;
+    uint frameIndex;
 	float2 _0;
 };
 

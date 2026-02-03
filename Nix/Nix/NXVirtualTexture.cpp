@@ -6,9 +6,9 @@
 
 NXVirtualTexture::NXVirtualTexture(class NXCamera* pCam) :
 	m_pCamera(pCam),
-	m_vtSectorLodDists({ 32.0f, 64.0f, 128.0f, 256.0f, 512.0f, 1024.0f, 2048.0f }),
+	m_vtSectorLodDists({ 16.0f, 32.0f, 64.0f, 128.0f, 256.0f, 512.0f, 1024.0f }),
 	m_vtSectorLodMaxDist(400),
-	m_lruCache(LRU_CACHE_SIZE)
+	m_lruCache(g_virtualTextureConfig.PhysicalPageTileNum)
 {
 	m_pVirtImageQuadTree = new NXVTImageQuadTree();
 
@@ -28,7 +28,7 @@ NXVirtualTexture::NXVirtualTexture(class NXCamera* pCam) :
 		m_pIndirectTexture->SetUAV(i, i);
 
 	m_cbSector2IndirectTexture.Recreate(CB_SECTOR2INDIRECTTEXTURE_DATA_NUM);
-	m_cbPhysPageBake.Recreate(CB_PHYSPAGEBAKEDATA_NUM);
+	m_cbPhysPageBake.Recreate(BAKE_PHYSICAL_PAGE_PER_FRAME);
 	m_cbPhysPageUpdateIndex.Recreate(BAKE_PHYSICAL_PAGE_PER_FRAME);
 
 	m_vtReadbackData = new NXReadbackData("VT Readback CPUdata");
@@ -201,6 +201,24 @@ void NXVirtualTexture::BakePhysicalPages()
 	m_cbDataPhysPageBake.clear();
 	m_cbDataPhysPageUpdateIndex.clear();
 
+
+	int cnt = 0;
+	for (auto& data : readbackSets)
+	{
+		Int2 pageID((data >> 20) & 0xFFF, (data >> 8) & 0xFFF);
+		uint32_t gpuMip = (data >> 4) & 0xF;
+		Int2 pageIDMip0 = pageID << gpuMip;
+		uint32_t log2IndiTexSize = (data >> 0) & 0xF;
+
+		if (gpuMip == 0)
+			cnt++;
+
+		if (cnt >= 5)
+		{
+			int x = 0;
+		}
+	}
+
 	for (auto& data : readbackSets)
 	{
 		Int2 pageID((data >> 20) & 0xFFF, (data >> 8) & 0xFFF);
@@ -230,7 +248,7 @@ void NXVirtualTexture::BakePhysicalPages()
 				m_cbDataPhysPageBake.push_back(key);
 				m_cbDataPhysPageUpdateIndex.push_back(CBufferPhysPageUpdateIndex(cacheIdx, pageID, gpuMip));
 
-				//printf("Sector: (%d, %d), PageID: (%d, %d), GPU Mip: %d, IndiTexLog2Size: %d\n", key.sector.x, key.sector.y, key.pageID.x, key.pageID.y, key.gpuMip, key.indiTexLog2Size);
+				printf("Sector: (%d, %d), PageID: (%d, %d), GPU Mip: %d, IndiTexLog2Size: %d\n", key.sector.x, key.sector.y, key.pageID.x, key.pageID.y, key.gpuMip, key.indiTexLog2Size);
 
 				if (lruInsertNum >= BAKE_PHYSICAL_PAGE_PER_FRAME)
 					break;
@@ -238,11 +256,11 @@ void NXVirtualTexture::BakePhysicalPages()
 		}
 	}
 
-	for (auto& idx : m_cbDataPhysPageUpdateIndex)
-	{
-		printf("%d ", idx.index);
-	}
-	if (!m_cbDataPhysPageUpdateIndex.empty()) printf("\n");
+	//for (auto& idx : m_cbDataPhysPageUpdateIndex)
+	//{
+	//	printf("%d ", idx.index);
+	//}
+	//if (!m_cbDataPhysPageUpdateIndex.empty()) printf("\n");
 
 	m_cbPhysPageBake.Update(m_cbDataPhysPageBake);
 	m_cbPhysPageUpdateIndex.Update(m_cbDataPhysPageUpdateIndex);
@@ -275,5 +293,5 @@ int NXVirtualTexture::GetVTImageSizeFromDist2(const float dist2)
 		float lodDist = m_vtSectorLodDists[i];
 		if (dist2 < lodDist * lodDist) return i;
 	}
-	return -1;
+	return VTSECTOR_LOD_NUM - 1;
 }

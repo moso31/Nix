@@ -474,7 +474,7 @@ void Renderer::BuildVirtualTexturePasses(NXRGHandle pSector2NodeIDTex, NXRGHandl
 // GBuffer Passes
 // =====================================================
 
-NXRGPassNode<GBufferPassData>* Renderer::BuildGBufferPasses(NXRGPassNode<TerrainPatcherPassData>* passPatcher, NXRGHandle hGBuffer0, NXRGHandle hGBuffer1, NXRGHandle hGBuffer2, NXRGHandle hGBuffer3, NXRGHandle hDepthZ, NXRGHandle hVTPageIDTexture, NXRGHandle hVTSector2IndirectTexture)
+NXRGPassNode<GBufferPassData>* Renderer::BuildGBufferPasses(NXRGPassNode<TerrainPatcherPassData>* passPatcher, NXRGHandle hGBuffer0, NXRGHandle hGBuffer1, NXRGHandle hGBuffer2, NXRGHandle hGBuffer3, NXRGHandle hDepthZ, NXRGHandle hVTPageIDTexture, NXRGHandle hVTSector2IndirectTexture, NXRGHandle hVTIndirectTexture, NXRGHandle hVTPhysicalPageAlbedo, NXRGHandle hVTPhysicalPageNormal)
 {
 	// µ÷ÊÔ£ºÇå¿ÕVTPageIDTexture
 	m_pRenderGraph->AddPass<PageIDTextureClearPassData>("VTPageIDTexture Clear",
@@ -499,6 +499,9 @@ NXRGPassNode<GBufferPassData>* Renderer::BuildGBufferPasses(NXRGPassNode<Terrain
 			if (passPatcher)
 				builder.Read(passPatcher->GetData().pPatcher);
 			data.VTSector2IndirectTexture = builder.Read(hVTSector2IndirectTexture);
+			data.VTIndirectTexture = builder.Read(hVTIndirectTexture);
+			data.VTPhysicalPageAlbedo = builder.Read(hVTPhysicalPageAlbedo);
+			data.VTPhysicalPageNormal = builder.Read(hVTPhysicalPageNormal);
 
 			data.rt0 = builder.Write(hGBuffer0);
 			data.rt1 = builder.Write(hGBuffer1);
@@ -518,6 +521,9 @@ NXRGPassNode<GBufferPassData>* Renderer::BuildGBufferPasses(NXRGPassNode<Terrain
 
 			auto* pPassMaterial = static_cast<NXGraphicPassMaterial*>(NXPassMng->GetPassMaterial("GBuffer"));
 			pPassMaterial->SetInput(2, 0, resMap.GetRes(data.VTSector2IndirectTexture));
+			pPassMaterial->SetInput(2, 1, resMap.GetRes(data.VTIndirectTexture));
+			pPassMaterial->SetInput(2, 2, resMap.GetRes(data.VTPhysicalPageAlbedo));
+			pPassMaterial->SetInput(2, 3, resMap.GetRes(data.VTPhysicalPageNormal));
 			pPassMaterial->SetOutputUAV(0, 0, resMap.GetRes(data.VTPageIDTexture));
 
 			for (int i = 0; i < 4; i++)
@@ -573,6 +579,15 @@ NXRGPassNode<GBufferPassData>* Renderer::BuildGBufferPasses(NXRGPassNode<Terrain
 
 									auto& pVTSector2IndirectTexture = resMap.GetRes(data.VTSector2IndirectTexture).As<NXTexture2D>();
 									NXShVisDescHeap->PushFluid(pVTSector2IndirectTexture->GetSRV(0));
+
+                                    auto& pVTIndirectTexture = resMap.GetRes(data.VTIndirectTexture).As<NXTexture2D>();
+                                    NXShVisDescHeap->PushFluid(pVTIndirectTexture->GetSRV(0));
+
+                                    auto& pVTPhysicalPageAlbedo = resMap.GetRes(data.VTPhysicalPageAlbedo).As<NXTexture2D>();
+                                    NXShVisDescHeap->PushFluid(pVTPhysicalPageAlbedo->GetSRV(0));
+
+                                    auto& pVTPhysicalPageNormal = resMap.GetRes(data.VTPhysicalPageNormal).As<NXTexture2D>();
+                                    NXShVisDescHeap->PushFluid(pVTPhysicalPageNormal->GetSRV(0));
 
 									auto& srvHandle = NXShVisDescHeap->Submit();
 									pCmdList->SetGraphicsRootDescriptorTable(5, srvHandle);

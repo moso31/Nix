@@ -12,6 +12,7 @@
 #define NOMINMAX
 #endif
 #include <Windows.h>
+#include <shellapi.h>  // WIN32_LEAN_AND_MEAN 会排除此头文件，需手动包含（用于拖放文件功能）
 
 // 取消 Windows 宏污染（避免与 rapidjson 等库冲突）
 #ifdef GetObject
