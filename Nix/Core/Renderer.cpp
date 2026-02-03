@@ -142,7 +142,8 @@ void Renderer::GenerateRenderGraph()
 	NXRGHandle hGBuffer2 = m_pRenderGraph->Create("GBuffer RT2", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::RenderTarget, .tex = { .format = DXGI_FORMAT_R10G10B10A2_UNORM, .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .arraySize = 1, .mipLevels = 1 } });
 	NXRGHandle hGBuffer3 = m_pRenderGraph->Create("GBuffer RT3", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::RenderTarget, .tex = { .format = DXGI_FORMAT_R8G8B8A8_UNORM, .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .arraySize = 1, .mipLevels = 1 } });
 	NXRGHandle hDepthZ = m_pRenderGraph->Create("DepthZ", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::DepthStencil, .tex = { .format = DXGI_FORMAT_R24G8_TYPELESS, .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .arraySize = 1, .mipLevels = 1 } });
-	NXRGHandle hVTPageIDTexture = m_pRenderGraph->Create("VT PageID Texture", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::UnorderedAccess, .tex = { .format = DXGI_FORMAT_R32_UINT, .width = (uint32_t)(m_viewRTSize.x + 7) / 8, .height = (uint32_t)(m_viewRTSize.y + 7) / 8, .arraySize = 1, .mipLevels = 1 }});
+	//NXRGHandle hVTPageIDTexture = m_pRenderGraph->Create("VT PageID Texture", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::UnorderedAccess, .tex = { .format = DXGI_FORMAT_R32_UINT, .width = (uint32_t)(m_viewRTSize.x + 7) / 8, .height = (uint32_t)(m_viewRTSize.y + 7) / 8, .arraySize = 1, .mipLevels = 1 }}); // 1/8 RT resolution
+	NXRGHandle hVTPageIDTexture = m_pRenderGraph->Create("VT PageID Texture", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::UnorderedAccess, .tex = { .format = DXGI_FORMAT_R32_UINT, .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .arraySize = 1, .mipLevels = 1 }}); // Full resolution for debugging
 	NXRGHandle hVTSector2IndirectTexture = m_pRenderGraph->Import(m_pVirtualTexture->GetSector2IndirectTexture());
 	NXRGHandle hVTIndirectTexture = m_pRenderGraph->Import(m_pVirtualTexture->GetIndirectTexture());
 	NXRGHandle hVTPhysicalPageAlbedo = m_pRenderGraph->Import(m_pVirtualTexture->GetPhysicalPageAlbedo());
@@ -158,12 +159,21 @@ void Renderer::GenerateRenderGraph()
 			data.vtReadback = builder.Read(gBufferPassData->GetData().VTPageIDTexture);
 		},
 		[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, VTReadbackData& data) {
-			auto pMat = static_cast<NXReadbackPassMaterial*>(NXPassMng->GetPassMaterial("VTReadbackData"));
+			if (m_pVirtualTexture->GetUpdateState() != NXVTUpdateState::WaitReadback)
+				return;
+
+			m_pVirtualTexture->UpdateStateBeforeReadback();
+
 			auto pTex = resMap.GetRes(data.vtReadback).As<NXTexture2D>();
+			m_pVirtualTexture->SetVTReadbackDataSize(Int2(pTex->GetWidth(), pTex->GetHeight()));
+
+			auto pMat = static_cast<NXReadbackPassMaterial*>(NXPassMng->GetPassMaterial("VTReadbackData"));
 			pMat->SetInput(pTex);
 			pMat->SetOutput(m_pVirtualTexture->GetVTReadbackData());
 			pMat->Render(pCmdList);
-			m_pVirtualTexture->SetVTReadbackDataSize(Int2(pTex->GetWidth(), pTex->GetHeight()));
+			pMat->SetCallback([=]() {
+				m_pVirtualTexture->UpdateStateAfterReadback();
+				});
 		});
 
 	// Shadow Passes

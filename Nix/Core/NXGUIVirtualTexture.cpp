@@ -8,6 +8,13 @@
 #include "NXVirtualTexture.h"
 #include "NXVTImageQuadTree.h"
 
+// 缓存数据结构体定义
+struct NXGUIVirtualTexture::CachedData
+{
+    std::vector<NXVTSector> sectors;
+    std::unordered_map<NXVTSector, Int2> sector2VirtImagePos;
+};
+
 NXVirtualTexture* NXGUIVirtualTexture::GetVirtualTexture() const
 {
     if (!m_pOwner) return nullptr;
@@ -18,7 +25,8 @@ NXVirtualTexture* NXGUIVirtualTexture::GetVirtualTexture() const
 
 NXGUIVirtualTexture::NXGUIVirtualTexture(NXGUI* pOwner) :
     m_pOwner(pOwner),
-    m_bShowWindow(false)
+    m_bShowWindow(false),
+    m_cachedData(new CachedData())
 {
     m_strTitle = {
         "Sector##child_sector",
@@ -26,6 +34,8 @@ NXGUIVirtualTexture::NXGUIVirtualTexture(NXGUI* pOwner) :
         "Readback##child_readback"
     };
 }
+
+NXGUIVirtualTexture::~NXGUIVirtualTexture() = default;
 
 void NXGUIVirtualTexture::Render()
 {
@@ -69,7 +79,12 @@ void NXGUIVirtualTexture::Render_Sectors()
     ImGui::BeginChild("LeftList", ImVec2(kLeftWidth, 0.0f), true);
 
     auto* pVT = GetVirtualTexture();
-    int nearCount = (pVT ? (int)pVT->GetSectors().size() : 0);
+    // 只在Finish状态时更新缓存，避免中间帧数据不一致
+    if (pVT && pVT->GetUpdateState() == NXVTUpdateState::Finish)
+    {
+        m_cachedData->sectors = pVT->GetSectors();
+    }
+    int nearCount = (int)m_cachedData->sectors.size();
     ImGui::Text("Near sector: %d", nearCount);
 
     ImGui::Separator();
@@ -97,9 +112,9 @@ void NXGUIVirtualTexture::Render_Sectors()
             ImVec2 mn, mx;
             int globalIdx = -1;
 
-            if (m_showOnlyNear && pVT)
+            if (m_showOnlyNear)
             {
-                const auto& lst = pVT->GetSectors();
+                const auto& lst = m_cachedData->sectors;
                 const auto& sectorInfo = lst[i];
                 // sectorInfo.id 是 sector 的网格坐标
                 // 转换为世界坐标：sectorPos = id * SECTOR_SIZE
@@ -178,9 +193,16 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
         return;
     }
 
+    // 只在Finish状态时更新缓存，避免中间帧数据不一致
+    if (pVT->GetUpdateState() == NXVTUpdateState::Finish)
+    {
+        m_cachedData->sectors = pVT->GetSectors();
+        m_cachedData->sector2VirtImagePos = pVT->GetSector2VirtImagePos();
+    }
+
     // 获取所有已分配的叶子节点（sector到VirtImage位置的映射）
-    const auto& sector2Pos = pVT->GetSector2VirtImagePos();
-    const auto& sectors = pVT->GetSectors();
+    const auto& sector2Pos = m_cachedData->sector2VirtImagePos;
+    const auto& sectors = m_cachedData->sectors;
     const int ATLAS_SIZE = pQuadTree->GetImageSize(); // 2048
 
     // ---- 左右布局：左列表 + 右视图 ----
@@ -695,7 +717,7 @@ void NXGUIVirtualTexture::DrawWorld(ImDrawList* dl, const ImVec2& regionTL, cons
     // 相机附近 Sector 高亮（来自 NXVirtualTexture）
     if (auto* pVT = GetVirtualTexture())
     {
-        const auto& sectors = pVT->GetSectors();
+        const auto& sectors = m_cachedData->sectors;
 
         for (const auto& sector : sectors)
         {

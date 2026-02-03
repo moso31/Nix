@@ -10,6 +10,16 @@
 #include "NXTerrainCommon.h"
 #include "NXVTLRUCache.h"
 
+enum class NXVTUpdateState
+{
+	None,
+	Ready,
+	WaitReadback,
+	Reading,
+	PhysicalPageBake,
+	Finish
+};
+
 struct NXVTSector
 {
 	NXVTSector() : id(0, 0), imageSize(0) {}
@@ -115,11 +125,15 @@ public:
 	const std::vector<NXVTSector>& GetSectors() const { return m_sectors; }
 	const NXVTImageQuadTree* GetQuadTree() const { return m_pVirtImageQuadTree; }
 	const std::unordered_map<NXVTSector, Int2>& GetSector2VirtImagePos() const { return m_sector2VirtImagePos; }
+	NXVTUpdateState GetUpdateState() const { return m_updateState; }
 
 	// VT Readback 数据访问接口
 	Ntr<NXReadbackData>& GetVTReadbackData() { return m_vtReadbackData; }
 	const Int2& GetVTReadbackDataSize() const { return m_vtReadbackDataSize; }
 	void SetVTReadbackDataSize(const Int2& val) { m_vtReadbackDataSize = val; }
+
+	void UpdateStateBeforeReadback();
+	void UpdateStateAfterReadback();
 
 	void Release();
 
@@ -172,4 +186,8 @@ private:
 
 	Ntr<NXTexture2D> m_pIndirectTexture;
 	bool m_bNeedClearIndirectTexture = true; // 首帧清除标记
+
+	// 状态机，保证数据跨帧统一
+	NXVTUpdateState m_updateState = NXVTUpdateState::None;
+	bool m_bReadbackFinish = false;
 };

@@ -1,12 +1,18 @@
 #pragma once
 #include "NXGUI.h"
+#include "BaseDefs/Math.h"
+#include <vector>
+#include <memory>
+#include <unordered_map>
 
 class NXVirtualTexture;
+struct NXVTSector;
 
 class NXGUIVirtualTexture
 {
 public:
     NXGUIVirtualTexture(NXGUI* pOwner);
+    ~NXGUIVirtualTexture();
     void Render();
 
     void SetVisible(bool visible) { m_bShowWindow = visible; }
@@ -56,4 +62,8 @@ private:
     char m_atlasSearchBuf[256] = "";
     bool m_bShowWindow;
     std::vector<std::string> m_strTitle;
+
+    // 缓存数据，避免状态机中间帧数据不一致导致闪烁
+    struct CachedData;
+    std::unique_ptr<CachedData> m_cachedData;
 };

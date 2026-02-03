@@ -13,5 +13,9 @@ RWTexture2D<uint> m_txIndirectTexture[11] : register(u0, space0);
 void CS(uint3 dtid : SV_DispatchThreadID)
 {
     CBufferPhysPageUpdateIndex pageData = m_physPageUpdateIndex[dtid.x];
-    m_txIndirectTexture[pageData.mip][pageData.pageID] = pageData.index << 16 | pageData.mip;
+    
+    if (pageData.index == -1)
+        m_txIndirectTexture[pageData.mip][pageData.pageID] = 0xFFFFFFFF;
+    else
+        m_txIndirectTexture[pageData.mip][pageData.pageID] = pageData.index << 16 | pageData.mip;
 }

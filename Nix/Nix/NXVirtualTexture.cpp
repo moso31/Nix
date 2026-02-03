@@ -39,6 +39,16 @@ NXVirtualTexture::~NXVirtualTexture()
 	Release();
 }
 
+void NXVirtualTexture::UpdateStateBeforeReadback()
+{
+	m_updateState = NXVTUpdateState::Reading;
+}
+
+void NXVirtualTexture::UpdateStateAfterReadback()
+{
+	m_bReadbackFinish = true;
+}
+
 void NXVirtualTexture::Release()
 {
 	if (m_pVirtImageQuadTree)
@@ -50,11 +60,39 @@ void NXVirtualTexture::Release()
 
 void NXVirtualTexture::Update()
 {
-	m_lastSectors.swap(m_sectors);
-	m_sectors.clear();
-	UpdateNearestSectors();
-	BakePhysicalPages();
-	UpdateIndirectTexture();
+	switch (m_updateState)
+	{
+	case NXVTUpdateState::None:
+	case NXVTUpdateState::Finish:
+		m_lastSectors.swap(m_sectors);
+		m_sectors.clear();
+		m_cbDataSector2IndirectTexture.clear();
+		m_cbDataPhysPageBake.clear();
+		m_cbDataPhysPageUpdateIndex.clear();
+
+		m_updateState = NXVTUpdateState::Ready;
+		break;
+	case NXVTUpdateState::Ready:
+		UpdateNearestSectors();
+		m_updateState = NXVTUpdateState::WaitReadback;
+		break;
+	case NXVTUpdateState::WaitReadback:
+		break;
+	case NXVTUpdateState::Reading:
+		if (m_bReadbackFinish)
+		{
+			m_updateState = NXVTUpdateState::PhysicalPageBake;
+			m_bReadbackFinish = false;
+		}
+		break;
+	case NXVTUpdateState::PhysicalPageBake:
+		BakePhysicalPages();
+		UpdateIndirectTexture();
+		m_updateState = NXVTUpdateState::Finish;
+		break;
+	default:
+		break;
+	}
 }
 
 void NXVirtualTexture::UpdateCBData(const Vector2& rtSize)
@@ -131,7 +169,6 @@ void NXVirtualTexture::UpdateNearestSectors()
 	while (j < m_sectors.size()) { createSector.push_back(m_sectors[j]); j++; }
 
 	// 准备更新 Sector2IndirectTexture
-	m_cbDataSector2IndirectTexture.clear();
 	for (auto& s : createSector)
 	{
 		Int2 virtImgPos = m_pVirtImageQuadTree->Alloc(s.imageSize, s.id);
@@ -198,9 +235,6 @@ void NXVirtualTexture::BakePhysicalPages()
 	}
 
 	int lruInsertNum = 0;
-	m_cbDataPhysPageBake.clear();
-	m_cbDataPhysPageUpdateIndex.clear();
-
 
 	int cnt = 0;
 	for (auto& data : readbackSets)
@@ -236,21 +270,29 @@ void NXVirtualTexture::BakePhysicalPages()
 			key.indiTexLog2Size = log2IndiTexSize;
 
 			uint64_t keyHash = key.GetKey();
+			uint64_t oldKeyHash = -1;
 			if (m_lruCache.Find(keyHash))
 			{
 				m_lruCache.Touch(keyHash);
 			}
 			else
 			{
-				int cacheIdx = m_lruCache.Insert(keyHash);
-				lruInsertNum++;
+				int cacheIdx = m_lruCache.Insert(keyHash, oldKeyHash);
+				if (oldKeyHash < UINT64_MAX - g_virtualTextureConfig.PhysicalPageTileNum)	
+				{
+					NXVTLRUKey oldKey(oldKeyHash);
+					m_cbDataPhysPageBake.push_back(oldKey);
+					m_cbDataPhysPageUpdateIndex.push_back(CBufferPhysPageUpdateIndex(-1, oldKey.pageID, oldKey.gpuMip));
+					lruInsertNum++;
+				}
 
 				m_cbDataPhysPageBake.push_back(key);
 				m_cbDataPhysPageUpdateIndex.push_back(CBufferPhysPageUpdateIndex(cacheIdx, pageID, gpuMip));
+				lruInsertNum++;
 
-				printf("Sector: (%d, %d), PageID: (%d, %d), GPU Mip: %d, IndiTexLog2Size: %d\n", key.sector.x, key.sector.y, key.pageID.x, key.pageID.y, key.gpuMip, key.indiTexLog2Size);
+				//printf("Sector: (%d, %d), PageID: (%d, %d), GPU Mip: %d, IndiTexLog2Size: %d, cacheIdx: %d\n", key.sector.x, key.sector.y, key.pageID.x, key.pageID.y, key.gpuMip, key.indiTexLog2Size, cacheIdx);
 
-				if (lruInsertNum >= BAKE_PHYSICAL_PAGE_PER_FRAME)
+				if (lruInsertNum + 2 > BAKE_PHYSICAL_PAGE_PER_FRAME)
 					break;
 			}
 		}

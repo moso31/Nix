@@ -68,9 +68,10 @@ public:
 		return slot;
 	}
 
-	size_t Insert(uint64_t key)
+	size_t Insert(uint64_t key, uint64_t& oldKey)
 	{
 		size_t lastSlot = m_lruList.back();
+		oldKey = m_vector[lastSlot];
 		m_umap.erase(m_vector[lastSlot]);
 
 		m_vector[lastSlot] = key;

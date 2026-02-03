@@ -5,6 +5,24 @@
 
 struct NXVTLRUKey
 {
+    NXVTLRUKey() = default;
+
+    NXVTLRUKey(uint64_t hash)
+    {
+        sector = Int2(
+            int((hash >> 40) & 0xFF),
+            int((hash >> 32) & 0xFF)
+        ) + g_terrainConfig.MinSectorID;
+
+        pageID = Int2(
+            int((hash >> 20) & 0xFFF),
+            int((hash >> 8) & 0xFFF)
+        );
+
+        gpuMip = int((hash >> 4) & 0xF);
+        indiTexLog2Size = int((hash >> 0) & 0xF);
+    }
+
     uint64_t GetKey()
     {
         Int2 sectorOffset = sector - g_terrainConfig.MinSectorID;
@@ -67,7 +85,7 @@ struct NXVirtualTextureConfig
 {
     uint32_t PhysicalPageTilePadding = 4;
     uint32_t PhysicalPageTileSize = 256 + PhysicalPageTilePadding * 2;
-    uint32_t PhysicalPageTileNum = 2048;
+    uint32_t PhysicalPageTileNum = 1024;
 
     uint32_t IndirectTextureSize = 2048;
 };

@@ -194,6 +194,9 @@ public:
 	void SetInput(Ntr<NXResource> pRes) { m_pReadbackResource = pRes; }
 	void SetOutput(Ntr<NXReadbackData>& pOutData) { m_pOutData = pOutData; }
 
+	// 设置自定义回调函数（会在 FinishTask 中调用）
+	void SetCallback(std::function<void()> callback) { m_callback = callback; }
+
 	void Compile() override {}
 	void Update() override {}
 	void Render(ID3D12GraphicsCommandList* pCmdList) override;
@@ -206,4 +209,5 @@ private:
 private:
 	Ntr<NXResource> m_pReadbackResource; // input
 	Ntr<NXReadbackData> m_pOutData;		// output
+	std::function<void()> m_callback;	// 自定义回调函数
 };

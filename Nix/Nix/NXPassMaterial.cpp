@@ -675,6 +675,10 @@ void NXReadbackPassMaterial::ReadbackBuffer(ID3D12GraphicsCommandList* pCmdList)
 			// 这时候对应的ringBuffer还不会释放 放心用
 			uint8_t* pData = ctx.pResourceData + ctx.pResourceOffset;
 			m_pOutData->CopyDataFromGPU(pData);
+			
+			// 调用自定义回调
+			if (m_callback)
+				m_callback();
 			});
 	}
 }
@@ -718,6 +722,10 @@ void NXReadbackPassMaterial::ReadbackTexture(ID3D12GraphicsCommandList* pCmdList
 				uint32_t dstOffset = row * (uint32_t)ctx.rowSizeInBytes;
 				m_pOutData->CopyDataFromGPU(pSrcRow, dstOffset, (uint32_t)ctx.rowSizeInBytes);
 			}
+			
+			// 调用自定义回调
+			if (m_callback)
+				m_callback();
 			});
 	}
 }
