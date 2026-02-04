@@ -120,22 +120,6 @@ void Renderer::GenerateRenderGraph()
 	// execute:
 	// - pCmdList目前直接显式暴露，包括资源状态切换、设置indirectArgs、乃至一些memcpy行为、全手动处理
 
-	NXRGPassNode<TerrainPatcherPassData>* passPatcher = nullptr;
-	NXRGHandle hSector2IndirectTexture, pSector2NodeIDTex, hHeightMapAtlas, hSplatMapAtlas, hNormalMapAtlas;
-	NXRGHandle hPatcherBuffer, hPatcherDrawIndexArgs;
-
-	if (g_debug_temporal_enable_terrain_debug)
-	{
-		// 地形流式加载相关 Pass
-		BuildTerrainStreamingPasses(hSector2IndirectTexture, pSector2NodeIDTex, hHeightMapAtlas, hSplatMapAtlas, hNormalMapAtlas);
-
-		// 地形裁剪相关 Pass
-		passPatcher = BuildTerrainCullingPasses(pSector2NodeIDTex, hPatcherBuffer, hPatcherDrawIndexArgs);
-
-		// 虚拟纹理相关 Pass
-		BuildVirtualTexturePasses(pSector2NodeIDTex, hSplatMapAtlas);
-	}
-
 	// 创建 GBuffer 资源
 	NXRGHandle hGBuffer0 = m_pRenderGraph->Create("GBuffer RT0", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::RenderTarget, .tex = { .format = DXGI_FORMAT_R32_FLOAT, .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .arraySize = 1, .mipLevels = 1 } });
 	NXRGHandle hGBuffer1 = m_pRenderGraph->Create("GBuffer RT1", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::RenderTarget, .tex = { .format = DXGI_FORMAT_R32G32B32A32_FLOAT, .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .arraySize = 1, .mipLevels = 1 } });
@@ -144,13 +128,43 @@ void Renderer::GenerateRenderGraph()
 	NXRGHandle hDepthZ = m_pRenderGraph->Create("DepthZ", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::DepthStencil, .tex = { .format = DXGI_FORMAT_R24G8_TYPELESS, .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .arraySize = 1, .mipLevels = 1 } });
 	//NXRGHandle hVTPageIDTexture = m_pRenderGraph->Create("VT PageID Texture", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::UnorderedAccess, .tex = { .format = DXGI_FORMAT_R32_UINT, .width = (uint32_t)(m_viewRTSize.x + 7) / 8, .height = (uint32_t)(m_viewRTSize.y + 7) / 8, .arraySize = 1, .mipLevels = 1 }}); // 1/8 RT resolution
 	NXRGHandle hVTPageIDTexture = m_pRenderGraph->Create("VT PageID Texture", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::UnorderedAccess, .tex = { .format = DXGI_FORMAT_R32_UINT, .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .arraySize = 1, .mipLevels = 1 }}); // Full resolution for debugging
-	NXRGHandle hVTSector2IndirectTexture = m_pRenderGraph->Import(m_pVirtualTexture->GetSector2IndirectTexture());
+
+	NXRGHandle hVTSector2VirtImg = m_pRenderGraph->Import(m_pVirtualTexture->GetSector2VirtImg());
 	NXRGHandle hVTIndirectTexture = m_pRenderGraph->Import(m_pVirtualTexture->GetIndirectTexture());
 	NXRGHandle hVTPhysicalPageAlbedo = m_pRenderGraph->Import(m_pVirtualTexture->GetPhysicalPageAlbedo());
 	NXRGHandle hVTPhysicalPageNormal = m_pRenderGraph->Import(m_pVirtualTexture->GetPhysicalPageNormal());
 
+	auto& pStreamingData = m_pTerrainLODStreamer->GetStreamingData();
+	NXRGHandle pSector2NodeIDTex = m_pRenderGraph->Import(pStreamingData.GetSector2NodeIDTexture());
+	NXRGHandle hHeightMapAtlas = m_pRenderGraph->Import(pStreamingData.GetHeightMapAtlas());
+	NXRGHandle hSplatMapAtlas = m_pRenderGraph->Import(pStreamingData.GetSplatMapAtlas());
+	NXRGHandle hNormalMapAtlas = m_pRenderGraph->Import(pStreamingData.GetNormalMapAtlas());
+	NXRGHandle hAlbedoMapArray = m_pRenderGraph->Import(pStreamingData.GetTerrainAlbedo2DArray());
+	NXRGHandle hNormalMapArray = m_pRenderGraph->Import(pStreamingData.GetTerrainNormal2DArray());
+
+	NXRGHandle pCubeMap = m_pRenderGraph->Import(m_scene->GetCubeMap()->GetCubeMap());
+	NXRGHandle pPreFilter = m_pRenderGraph->Import(m_scene->GetCubeMap()->GetPreFilterMap());
+	NXRGHandle pBRDFLut = m_pRenderGraph->Import(m_pBRDFLut->GetTex());
+
+	NXRGHandle pCSMDepth = m_pRenderGraph->Import(m_pTexCSMDepth);
+
+	NXRGPassNode<TerrainPatcherPassData>* passPatcher = nullptr;
+	NXRGHandle hPatcherBuffer, hPatcherDrawIndexArgs;
+
+	if (g_debug_temporal_enable_terrain_debug)
+	{
+		// 地形流式加载相关 Pass
+		BuildTerrainStreamingPasses(hVTSector2VirtImg, pSector2NodeIDTex, hHeightMapAtlas, hSplatMapAtlas, hNormalMapAtlas);
+
+		// 地形裁剪相关 Pass
+		passPatcher = BuildTerrainCullingPasses(pSector2NodeIDTex, hPatcherBuffer, hPatcherDrawIndexArgs);
+
+		// 虚拟纹理相关 Pass
+		BuildVirtualTexturePasses(pSector2NodeIDTex, hSplatMapAtlas, hAlbedoMapArray, hNormalMapArray, hVTPhysicalPageAlbedo, hVTPhysicalPageNormal, hVTIndirectTexture);
+	}
+
 	// GBuffer Pass
-	auto gBufferPassData = BuildGBufferPasses(passPatcher, hGBuffer0, hGBuffer1, hGBuffer2, hGBuffer3, hDepthZ, hVTPageIDTexture, hVTSector2IndirectTexture, hVTIndirectTexture, hVTPhysicalPageAlbedo, hVTPhysicalPageNormal);
+	auto gBufferPassData = BuildGBufferPasses(passPatcher, hGBuffer0, hGBuffer1, hGBuffer2, hGBuffer3, hDepthZ, hVTPageIDTexture, hVTSector2VirtImg, hVTIndirectTexture, hVTPhysicalPageAlbedo, hVTPhysicalPageNormal);
 
 	// VT Readback Pass
 	struct VTReadbackData { NXRGHandle vtReadback; };
@@ -162,7 +176,7 @@ void Renderer::GenerateRenderGraph()
 			if (m_pVirtualTexture->GetUpdateState() != NXVTUpdateState::WaitReadback)
 				return;
 
-			m_pVirtualTexture->UpdateStateBeforeReadback();
+			m_pVirtualTexture->SetUpdateState(NXVTUpdateState::Reading);
 
 			auto pTex = resMap.GetRes(data.vtReadback).As<NXTexture2D>();
 			m_pVirtualTexture->SetVTReadbackDataSize(Int2(pTex->GetWidth(), pTex->GetHeight()));
@@ -177,15 +191,14 @@ void Renderer::GenerateRenderGraph()
 		});
 
 	// Shadow Passes
-	auto shadowMapPassData = BuildShadowMapPass(passPatcher);
+	auto shadowMapPassData = BuildShadowMapPass(passPatcher, pCSMDepth);
 	auto shadowTestPassData = BuildShadowTestPass(gBufferPassData, shadowMapPassData);
 
 	// Lighting Passes
-	auto litPassData = BuildDeferredLightingPass(gBufferPassData, shadowTestPassData);
+	auto litPassData = BuildDeferredLightingPass(gBufferPassData, shadowTestPassData, pCubeMap, pPreFilter, pBRDFLut);
 	auto sssPassData = BuildSubsurfacePass(litPassData, gBufferPassData);
 
 	// Sky Pass
-	NXRGHandle pCubeMap = m_pRenderGraph->Import(m_scene->GetCubeMap()->GetCubeMap());
 	auto skyPassData = BuildSkyLightingPass(sssPassData, gBufferPassData, pCubeMap);
 
 	// Post Processing Passes

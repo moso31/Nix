@@ -15,9 +15,9 @@ void NXPassMaterialManager::InitDefaultRenderer()
 	// Virtual Texture
 	////////////////////////////////////////
 	
-	// UpdateSector2IndirectTexture
+	// UpdateSector2VirtImg
 	{
-		auto pMat = new NXComputePassMaterial("UpdateSector2IndirectTexture", L"Shader\\VTSector2IndirectTexture.fx");
+		auto pMat = new NXComputePassMaterial("UpdateSector2VirtImg", L"Shader\\VTSector2VirtImg.fx");
 		pMat->RegisterUAVSpaceNum(1);
 		pMat->RegisterUAVSlotNum(1);
 		pMat->RegisterCBVSpaceNum(1);

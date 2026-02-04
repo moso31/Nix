@@ -269,7 +269,7 @@
     <None Include="Shader\TerrainCommon.fx">
       <Filter>Shader\GPUTerrain</Filter>
     </None>
-    <None Include="Shader\VTSector2IndirectTexture.fx">
+    <None Include="Shader\VTSector2VirtImg.fx">
       <Filter>Shader\VirtualTexture</Filter>
     </None>
     <None Include="Shader\VTCommon.fx">

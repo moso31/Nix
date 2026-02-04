@@ -33,21 +33,19 @@
 // Terrain Streaming Passes
 // =====================================================
 
-void Renderer::BuildTerrainStreamingPasses(NXRGHandle& hSector2IndirectTexture, NXRGHandle& pSector2NodeIDTex, NXRGHandle& hHeightMapAtlas, NXRGHandle& hSplatMapAtlas, NXRGHandle& hNormalMapAtlas)
+void Renderer::BuildTerrainStreamingPasses(NXRGHandle hSector2VirtImg, NXRGHandle pSector2NodeIDTex, NXRGHandle hHeightMapAtlas, NXRGHandle hSplatMapAtlas, NXRGHandle hNormalMapAtlas)
 {
-	hSector2IndirectTexture = m_pRenderGraph->Import(m_pVirtualTexture->GetSector2IndirectTexture());
-
-	// 仅首帧执行: 清空Sector2IndirectTexture，将所有像素设置为-1
-	if (m_pVirtualTexture->NeedClearSector2IndirectTexture())
+	// 仅首帧执行: 清空Sector2VirtImg，将所有像素设置为-1
+	if (m_pVirtualTexture->NeedClearSector2VirtImg())
 	{
-		m_pRenderGraph->AddPass<Sector2IndirectTextureClearPassData>("Sector2IndirectTexture Clear",
-			[&](NXRGBuilder& builder, Sector2IndirectTextureClearPassData& data)
+		m_pRenderGraph->AddPass<Sector2VirtImgClearPassData>("Sector2VirtImg Clear",
+			[&](NXRGBuilder& builder, Sector2VirtImgClearPassData& data)
 			{
-				data.Sector2IndirectTex = builder.Write(hSector2IndirectTexture);
+				data.Sector2VirtImg = builder.Write(hSector2VirtImg);
 			},
-			[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, Sector2IndirectTextureClearPassData& data)
+			[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, Sector2VirtImgClearPassData& data)
 			{
-				auto pTex = resMap.GetRes(data.Sector2IndirectTex).As<NXTexture2D>();
+				auto pTex = resMap.GetRes(data.Sector2VirtImg).As<NXTexture2D>();
 				pTex->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
 				UINT clearValues[4] = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
@@ -56,25 +54,30 @@ void Renderer::BuildTerrainStreamingPasses(NXRGHandle& hSector2IndirectTexture, 
 				D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = NXShVisDescHeap->Submit();
 				pCmdList->ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, pTex->GetD3DResource(), clearValues, 0, nullptr);
 
-				m_pVirtualTexture->MarkSector2IndirectTextureCleared();
+				m_pVirtualTexture->MarkSector2VirtImgCleared();
 			});
 	}
 
-	m_pRenderGraph->AddPass<Sector2IndirectTexturePassData>("UpdateSector2IndirectTexture",
-		[&](NXRGBuilder& builder, Sector2IndirectTexturePassData& data)
+	m_pRenderGraph->AddPass<Sector2VirtImgPassData>("UpdateSector2VirtImg",
+		[&](NXRGBuilder& builder, Sector2VirtImgPassData& data)
 		{
-			data.Sector2IndirectTexture = builder.Write(hSector2IndirectTexture);
+			data.Sector2VirtImg = builder.Write(hSector2VirtImg);
 		},
-		[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, Sector2IndirectTexturePassData& data)
+		[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, Sector2VirtImgPassData& data)
 		{
-			uint32_t threadGroups = (m_pVirtualTexture->GetCBufferSector2IndirectTextureDataNum() + 7) / 8;
+			if (m_pVirtualTexture->GetUpdateState() != NXVTUpdateState::Sector2VirtImgUpdateOnce)
+				return;
+
+			m_pVirtualTexture->SetUpdateState(NXVTUpdateState::Sector2VirtImgUpdated);
+
+			uint32_t threadGroups = (m_pVirtualTexture->GetCBufferSector2VirtImgDataNum() + 7) / 8;
 			if (threadGroups == 0)
 				return;
 
-			auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("UpdateSector2IndirectTexture"));
-			pMat->SetOutput(0, 0, resMap.GetRes(data.Sector2IndirectTexture));
-			pMat->SetConstantBuffer(0, 0, &m_pVirtualTexture->GetCBufferSector2IndirectTexture());
-			pMat->SetConstantBuffer(0, 1, &m_pVirtualTexture->GetCBufferSector2IndirectTextureNum());
+			auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("UpdateSector2VirtImg"));
+			pMat->SetOutput(0, 0, resMap.GetRes(data.Sector2VirtImg));
+			pMat->SetConstantBuffer(0, 0, &m_pVirtualTexture->GetCBufferSector2VirtImg());
+			pMat->SetConstantBuffer(0, 1, &m_pVirtualTexture->GetCBufferSector2VirtImgNum());
 
 			pMat->RenderSetTargetAndState(pCmdList);
 			pMat->RenderBefore(pCmdList);
@@ -82,10 +85,6 @@ void Renderer::BuildTerrainStreamingPasses(NXRGHandle& hSector2IndirectTexture, 
 		});
 
 	auto& pStreamingData = m_pTerrainLODStreamer->GetStreamingData();
-	pSector2NodeIDTex = m_pRenderGraph->Import(pStreamingData.GetSector2NodeIDTexture());
-	hHeightMapAtlas = m_pRenderGraph->Import(pStreamingData.GetHeightMapAtlas());
-	hSplatMapAtlas = m_pRenderGraph->Import(pStreamingData.GetSplatMapAtlas());
-	hNormalMapAtlas = m_pRenderGraph->Import(pStreamingData.GetNormalMapAtlas());
 
 	// 仅首帧执行: 清空Sector2NodeID纹理，将所有像素设置为65535 (0xFFFF)
 	if (pStreamingData.NeedClearSector2NodeIDTexture())
@@ -372,14 +371,9 @@ NXRGPassNode<TerrainPatcherPassData>* Renderer::BuildTerrainCullingPasses(NXRGHa
 // Virtual Texture Passes
 // =====================================================
 
-void Renderer::BuildVirtualTexturePasses(NXRGHandle pSector2NodeIDTex, NXRGHandle hSplatMapAtlas)
+void Renderer::BuildVirtualTexturePasses(NXRGHandle pSector2NodeIDTex, NXRGHandle hSplatMapAtlas, NXRGHandle hAlbedoMapArray, NXRGHandle hNormalMapArray, NXRGHandle hAlbedoPhysicalPage, NXRGHandle hNormalPhysicalPage, NXRGHandle hIndirectTexture)
 {
 	auto& pStreamingData = m_pTerrainLODStreamer->GetStreamingData();
-
-	NXRGHandle hAlbedoMapArray = m_pRenderGraph->Import(pStreamingData.GetTerrainAlbedo2DArray());
-	NXRGHandle hNormalMapArray = m_pRenderGraph->Import(pStreamingData.GetTerrainNormal2DArray());
-	NXRGHandle hAlbedoPhysicalPage = m_pRenderGraph->Import(m_pVirtualTexture->GetPhysicalPageAlbedo());
-	NXRGHandle hNormalPhysicalPage = m_pRenderGraph->Import(m_pVirtualTexture->GetPhysicalPageNormal());
 
 	m_pRenderGraph->AddPass<PhysicalPageBakerPassData>("PhysicalPageBaker",
 		[&](NXRGBuilder& builder, PhysicalPageBakerPassData& data)
@@ -393,6 +387,12 @@ void Renderer::BuildVirtualTexturePasses(NXRGHandle pSector2NodeIDTex, NXRGHandl
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, PhysicalPageBakerPassData& data)
 		{
+			if (m_pVirtualTexture->GetUpdateState() != NXVTUpdateState::PhysicalPageBakeOnce ||
+				m_pVirtualTexture->GetPhysPageBakeFinish())
+				return;
+
+			m_pVirtualTexture->SetPhysPageBakeFinish(true);
+
 			uint32_t threadNum = (g_virtualTextureConfig.PhysicalPageTileNum + 7) / 8;
 			uint32_t bakeTexNum = m_pVirtualTexture->GetCBPhysPageBakeDataNum();
 
@@ -415,8 +415,6 @@ void Renderer::BuildVirtualTexturePasses(NXRGHandle pSector2NodeIDTex, NXRGHandl
 
 			pCmdList->Dispatch(threadNum, threadNum, bakeTexNum);
 		});
-
-	NXRGHandle hIndirectTexture = m_pRenderGraph->Import(m_pVirtualTexture->GetIndirectTexture());
 
 	// 仅首帧执行: 清空IndirectTexture，将所有像素设置为-1
 	if (m_pVirtualTexture->NeedClearIndirectTexture())
@@ -452,6 +450,12 @@ void Renderer::BuildVirtualTexturePasses(NXRGHandle pSector2NodeIDTex, NXRGHandl
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, UpdateIndirectTexturePassData& data)
 		{
+			if (m_pVirtualTexture->GetUpdateState() != NXVTUpdateState::PhysicalPageBakeOnce ||
+				m_pVirtualTexture->GetUpdateIndiTexFinish())
+				return;
+
+			m_pVirtualTexture->SetUpdateIndiTexFinish(true);
+
 			uint32_t bakeTexNum = m_pVirtualTexture->GetCBPhysPageBakeDataNum();
 			if (bakeTexNum == 0)
 				return;
@@ -474,7 +478,7 @@ void Renderer::BuildVirtualTexturePasses(NXRGHandle pSector2NodeIDTex, NXRGHandl
 // GBuffer Passes
 // =====================================================
 
-NXRGPassNode<GBufferPassData>* Renderer::BuildGBufferPasses(NXRGPassNode<TerrainPatcherPassData>* passPatcher, NXRGHandle hGBuffer0, NXRGHandle hGBuffer1, NXRGHandle hGBuffer2, NXRGHandle hGBuffer3, NXRGHandle hDepthZ, NXRGHandle hVTPageIDTexture, NXRGHandle hVTSector2IndirectTexture, NXRGHandle hVTIndirectTexture, NXRGHandle hVTPhysicalPageAlbedo, NXRGHandle hVTPhysicalPageNormal)
+NXRGPassNode<GBufferPassData>* Renderer::BuildGBufferPasses(NXRGPassNode<TerrainPatcherPassData>* passPatcher, NXRGHandle hGBuffer0, NXRGHandle hGBuffer1, NXRGHandle hGBuffer2, NXRGHandle hGBuffer3, NXRGHandle hDepthZ, NXRGHandle hVTPageIDTexture, NXRGHandle hVTSector2VirtImg, NXRGHandle hVTIndirectTexture, NXRGHandle hVTPhysicalPageAlbedo, NXRGHandle hVTPhysicalPageNormal)
 {
 	// 调试：清空VTPageIDTexture
 	m_pRenderGraph->AddPass<PageIDTextureClearPassData>("VTPageIDTexture Clear",
@@ -498,7 +502,7 @@ NXRGPassNode<GBufferPassData>* Renderer::BuildGBufferPasses(NXRGPassNode<Terrain
 		[&, passPatcher](NXRGBuilder& builder, GBufferPassData& data) {
 			if (passPatcher)
 				builder.Read(passPatcher->GetData().pPatcher);
-			data.VTSector2IndirectTexture = builder.Read(hVTSector2IndirectTexture);
+			data.VTSector2VirtImg = builder.Read(hVTSector2VirtImg);
 			data.VTIndirectTexture = builder.Read(hVTIndirectTexture);
 			data.VTPhysicalPageAlbedo = builder.Read(hVTPhysicalPageAlbedo);
 			data.VTPhysicalPageNormal = builder.Read(hVTPhysicalPageNormal);
@@ -520,7 +524,7 @@ NXRGPassNode<GBufferPassData>* Renderer::BuildGBufferPasses(NXRGPassNode<Terrain
 			Ntr<NXTexture> pOutDS = resMap.GetRes(data.depth);
 
 			auto* pPassMaterial = static_cast<NXGraphicPassMaterial*>(NXPassMng->GetPassMaterial("GBuffer"));
-			pPassMaterial->SetInput(2, 0, resMap.GetRes(data.VTSector2IndirectTexture));
+			pPassMaterial->SetInput(2, 0, resMap.GetRes(data.VTSector2VirtImg));
 			pPassMaterial->SetInput(2, 1, resMap.GetRes(data.VTIndirectTexture));
 			pPassMaterial->SetInput(2, 2, resMap.GetRes(data.VTPhysicalPageAlbedo));
 			pPassMaterial->SetInput(2, 3, resMap.GetRes(data.VTPhysicalPageNormal));
@@ -577,8 +581,8 @@ NXRGPassNode<GBufferPassData>* Renderer::BuildGBufferPasses(NXRGPassNode<Terrain
 									auto& pVTPageIDTexture = resMap.GetRes(data.VTPageIDTexture).As<NXTexture2D>();
 									NXShVisDescHeap->PushFluid(pVTPageIDTexture->GetUAV(0));
 
-									auto& pVTSector2IndirectTexture = resMap.GetRes(data.VTSector2IndirectTexture).As<NXTexture2D>();
-									NXShVisDescHeap->PushFluid(pVTSector2IndirectTexture->GetSRV(0));
+									auto& pVTSector2VirtImg = resMap.GetRes(data.VTSector2VirtImg).As<NXTexture2D>();
+									NXShVisDescHeap->PushFluid(pVTSector2VirtImg->GetSRV(0));
 
                                     auto& pVTIndirectTexture = resMap.GetRes(data.VTIndirectTexture).As<NXTexture2D>();
                                     NXShVisDescHeap->PushFluid(pVTIndirectTexture->GetSRV(0));
@@ -611,9 +615,8 @@ NXRGPassNode<GBufferPassData>* Renderer::BuildGBufferPasses(NXRGPassNode<Terrain
 // Shadow Passes
 // =====================================================
 
-NXRGPassNode<ShadowMapPassData>* Renderer::BuildShadowMapPass(NXRGPassNode<TerrainPatcherPassData>* passPatcher)
+NXRGPassNode<ShadowMapPassData>* Renderer::BuildShadowMapPass(NXRGPassNode<TerrainPatcherPassData>* passPatcher, NXRGHandle pCSMDepth)
 {
-	NXRGHandle pCSMDepth = m_pRenderGraph->Import(m_pTexCSMDepth);
 	return m_pRenderGraph->AddPass<ShadowMapPassData>("ShadowMap",
 		[&, passPatcher](NXRGBuilder& builder, ShadowMapPassData& data) {
 			if (passPatcher)
@@ -674,14 +677,11 @@ NXRGPassNode<ShadowTestPassData>* Renderer::BuildShadowTestPass(NXRGPassNode<GBu
 // Lighting Passes
 // =====================================================
 
-NXRGPassNode<DeferredLightingPassData>* Renderer::BuildDeferredLightingPass(NXRGPassNode<GBufferPassData>* gBufferPassData, NXRGPassNode<ShadowTestPassData>* shadowTestPassData)
+NXRGPassNode<DeferredLightingPassData>* Renderer::BuildDeferredLightingPass(NXRGPassNode<GBufferPassData>* gBufferPassData, NXRGPassNode<ShadowTestPassData>* shadowTestPassData, NXRGHandle pCubeMap, NXRGHandle pPreFilter, NXRGHandle pBRDFLut)
 {
 	NXRGHandle pLit = m_pRenderGraph->Create("Lighting RT0", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::RenderTarget, .tex = { .format = DXGI_FORMAT_R32G32B32A32_FLOAT, .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .arraySize = 1, .mipLevels = 1 } });
 	NXRGHandle pLitSpec = m_pRenderGraph->Create("Lighting RT1", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::RenderTarget, .tex = { .format = DXGI_FORMAT_R32G32B32A32_FLOAT, .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .arraySize = 1, .mipLevels = 1 } });
 	NXRGHandle pLitCopy = m_pRenderGraph->Create("Lighting RT Copy", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::RenderTarget, .tex = { .format = DXGI_FORMAT_R11G11B10_FLOAT, .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .arraySize = 1, .mipLevels = 1 } });
-	NXRGHandle pCubeMap = m_pRenderGraph->Import(m_scene->GetCubeMap()->GetCubeMap());
-	NXRGHandle pPreFilter = m_pRenderGraph->Import(m_scene->GetCubeMap()->GetPreFilterMap());
-	NXRGHandle pBRDFLut = m_pRenderGraph->Import(m_pBRDFLut->GetTex());
 
 	return m_pRenderGraph->AddPass<DeferredLightingPassData>("DeferredLighting",
 		[&](NXRGBuilder& builder, DeferredLightingPassData& data) {

@@ -102,13 +102,13 @@ private:
 
 	// ===== RenderGraph Pass 构建辅助函数 =====
 	// 将大型的 GenerateRenderGraph() 拆分为多个小函数，改善 IntelliSense 性能
-	void BuildTerrainStreamingPasses(NXRGHandle& hSector2IndirectTexture, NXRGHandle& pSector2NodeIDTex, NXRGHandle& hHeightMapAtlas, NXRGHandle& hSplatMapAtlas, NXRGHandle& hNormalMapAtlas);
+	void BuildTerrainStreamingPasses(NXRGHandle hSector2VirtImg, NXRGHandle pSector2NodeIDTex, NXRGHandle hHeightMapAtlas, NXRGHandle hSplatMapAtlas, NXRGHandle hNormalMapAtlas);
 	NXRGPassNode<TerrainPatcherPassData>* BuildTerrainCullingPasses(NXRGHandle pSector2NodeIDTex, NXRGHandle& hPatcherBuffer, NXRGHandle& hPatcherDrawIndexArgs);
-	void BuildVirtualTexturePasses(NXRGHandle pSector2NodeIDTex, NXRGHandle hSplatMapAtlas);
-	NXRGPassNode<GBufferPassData>* BuildGBufferPasses(NXRGPassNode<TerrainPatcherPassData>* passPatcher, NXRGHandle hGBuffer0, NXRGHandle hGBuffer1, NXRGHandle hGBuffer2, NXRGHandle hGBuffer3, NXRGHandle hDepthZ, NXRGHandle hVTPageIDTexture, NXRGHandle hVTSector2IndirectTexture, NXRGHandle hVTIndirectTexture, NXRGHandle hVTPhysicalPageAlbedo, NXRGHandle hVTPhysicalPageNormal);
-	NXRGPassNode<ShadowMapPassData>* BuildShadowMapPass(NXRGPassNode<TerrainPatcherPassData>* passPatcher);
+	void BuildVirtualTexturePasses(NXRGHandle pSector2NodeIDTex, NXRGHandle hSplatMapAtlas, NXRGHandle hAlbedoMapArray, NXRGHandle hNormalMapArray, NXRGHandle hAlbedoPhysicalPage, NXRGHandle hNormalPhysicalPage, NXRGHandle hIndirectTexture);
+	NXRGPassNode<GBufferPassData>* BuildGBufferPasses(NXRGPassNode<TerrainPatcherPassData>* passPatcher, NXRGHandle hGBuffer0, NXRGHandle hGBuffer1, NXRGHandle hGBuffer2, NXRGHandle hGBuffer3, NXRGHandle hDepthZ, NXRGHandle hVTPageIDTexture, NXRGHandle hVTSector2VirtImg, NXRGHandle hVTIndirectTexture, NXRGHandle hVTPhysicalPageAlbedo, NXRGHandle hVTPhysicalPageNormal);
+	NXRGPassNode<ShadowMapPassData>* BuildShadowMapPass(NXRGPassNode<TerrainPatcherPassData>* passPatcher, NXRGHandle pCSMDepth);
 	NXRGPassNode<ShadowTestPassData>* BuildShadowTestPass(NXRGPassNode<GBufferPassData>* gBufferPassData, NXRGPassNode<ShadowMapPassData>* shadowMapPassData);
-	NXRGPassNode<DeferredLightingPassData>* BuildDeferredLightingPass(NXRGPassNode<GBufferPassData>* gBufferPassData, NXRGPassNode<ShadowTestPassData>* shadowTestPassData);
+	NXRGPassNode<DeferredLightingPassData>* BuildDeferredLightingPass(NXRGPassNode<GBufferPassData>* gBufferPassData, NXRGPassNode<ShadowTestPassData>* shadowTestPassData, NXRGHandle pCubeMap, NXRGHandle pPreFilter, NXRGHandle pBRDFLut);
 	NXRGPassNode<SubsurfacePassData>* BuildSubsurfacePass(NXRGPassNode<DeferredLightingPassData>* litPassData, NXRGPassNode<GBufferPassData>* gBufferPassData);
 	NXRGPassNode<SkyLightingPassData>* BuildSkyLightingPass(NXRGPassNode<SubsurfacePassData>* sssPassData, NXRGPassNode<GBufferPassData>* gBufferPassData, NXRGHandle pCubeMap);
 	NXRGPassNode<PostProcessingPassData>* BuildPostProcessingPass(NXRGPassNode<SkyLightingPassData>* skyPassData);

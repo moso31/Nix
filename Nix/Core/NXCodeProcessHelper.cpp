@@ -489,7 +489,7 @@ Texture2DArray m_txTerrainBaseColor : register(t4, space1);
 Texture2DArray m_txTerrainNormalMap : register(t5, space1);
 
 RWTexture2D<uint> m_VTPageIDBuffer : register(u0, space0);
-Texture2D<uint> m_VTSector2IndirectTexture : register(t0, space2);
+Texture2D<uint> m_VTSector2VirtImg : register(t0, space2);
 Texture2D<uint> m_VTIndirectTexture : register(t1, space2);
 Texture2DArray<float4> m_VTPhysPageAlbedo : register(t2, space2);
 Texture2DArray<float4> m_VTPhysPageNormal : register(t3, space2);
@@ -599,11 +599,11 @@ void EncodeVTPageID(float2 posXZ, float2 positionSS)
 {
 	int2 sectorID = int2(floor(posXZ / 64));
 	uint2 sectorPixelPos = (uint2)(sectorID + 128);
-	uint indiTexData = m_VTSector2IndirectTexture.Load(uint3(sectorPixelPos.xy, 0));
+	uint indiTexData = m_VTSector2VirtImg.Load(uint3(sectorPixelPos.xy, 0));
 	if (indiTexData == 0xFFFFFFFF)
 		return;
 	
-	uint3 val = DecodeSector2IndirectTextureData(indiTexData);
+	uint3 val = DecodeSector2VirtImgData(indiTexData);
 	uint  indiTexMip0Size = (1u << val.z);
 	uint2 indiTexMip0Pos = val.xy * indiTexMip0Size; 
 	uint indiTexMip0Log2Size = val.z;

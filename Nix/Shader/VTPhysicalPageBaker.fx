@@ -83,6 +83,9 @@ void CS(uint3 dtid : SV_DispatchThreadID)
 {
     VTLRUKey key = m_physPageBakeData[dtid.z];
     CBufferPhysPageUpdateIndex updateIdx = m_physPageUpdateIndex[dtid.z];
+    if (updateIdx.index == -1)
+        return;
+    
     int physPageIdx = updateIdx.index;
     // updateIdx.pageID 和 updateIdx.mip 可在需要时使用
     uint nodeID = GetBestSector2NodeId(key.sector);

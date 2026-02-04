@@ -376,4 +376,4 @@ SafeRelease(obj);        // obj->Release() + delete + nullptr
 
 ### GBuffer材质：
 - 材质不跟随项目，放在项目外。
-- 地形/VirtualTexture相关的问题，首先应该看下地形材质实例.md
+- 地形/VirtualTexture相关的问题，首先应该看下全局路径：D:\NixAssets\Materials\terrainMat.nsl。如果没有，应该主动请求该材质的代码，否则很可能难以分析相关的内容。

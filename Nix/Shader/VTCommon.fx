@@ -93,7 +93,7 @@ float MipLevelAnisotropy(float2 uv, float size)
     return LOD;
 }
 
-uint3 DecodeSector2IndirectTextureData(int v)
+uint3 DecodeSector2VirtImgData(int v)
 {
     int x = (v >> 20) & 0xFFF; // 12 bit
     int y = (v >> 8) & 0xFFF; // 12 bit

@@ -10,14 +10,14 @@
 // Terrain Streaming Passes
 // =====================================================
 
-struct Sector2IndirectTextureClearPassData
+struct Sector2VirtImgClearPassData
 {
-	NXRGHandle Sector2IndirectTex;
+	NXRGHandle Sector2VirtImg;
 };
 
-struct Sector2IndirectTexturePassData
+struct Sector2VirtImgPassData
 {
-	NXRGHandle Sector2IndirectTexture;
+	NXRGHandle Sector2VirtImg;
 };
 
 struct TerrainSector2NodeClearPassData
@@ -98,7 +98,7 @@ struct GBufferPassData
 	NXRGHandle rt2;
 	NXRGHandle rt3;
 	NXRGHandle VTPageIDTexture;
-	NXRGHandle VTSector2IndirectTexture;
+	NXRGHandle VTSector2VirtImg;
 	NXRGHandle VTIndirectTexture;
 	NXRGHandle VTPhysicalPageAlbedo;
 	NXRGHandle VTPhysicalPageNormal;

@@ -14,9 +14,12 @@ enum class NXVTUpdateState
 {
 	None,
 	Ready,
+	Sector2VirtImgUpdateOnce,
+	Sector2VirtImgUpdated,
 	WaitReadback,
 	Reading,
-	PhysicalPageBake,
+	PhysicalPageBakeOnce,
+	PhysicalPageBakeFinish,
 	Finish
 };
 
@@ -36,19 +39,19 @@ struct NXVTSector
 		return id.y < other.id.y;
 	}
 
-	Int2 id;
-	int imageSize;
+	Int2 id; // 世界sectorID
+	int imageSize; // sector的大小，注意是log2size
 };
 
-struct CBufferSector2IndirectTexture
+struct CBufferSector2VirtImg
 {
-	CBufferSector2IndirectTexture(const Int2& sector, const Int2& indiTexPos, int indiTexSize) : 
+	CBufferSector2VirtImg(const Int2& sector, const Int2& indiTexPos, int indiTexSize) : 
 		sectorPos(sector),
 		indiTexData(((indiTexPos.x & 0xFFF) << 20) | ((indiTexPos.y & 0xFFF) << 8) | (std::countr_zero((uint32_t)indiTexSize) & 0xFF)) // std::countr_zero = log2 of POTsize
 	{
 	}
 
-	CBufferSector2IndirectTexture(const Int2& sector, int emptyData) : sectorPos(sector), indiTexData(emptyData) {}
+	CBufferSector2VirtImg(const Int2& sector, int emptyData) : sectorPos(sector), indiTexData(emptyData) {}
 
 	// 哪个像素
 	Int2 sectorPos; 
@@ -77,9 +80,9 @@ class NXTexture2D;
 class NXTexture2DArray;
 class NXVirtualTexture
 {
-	constexpr static int VT_SECTOR2INDIRECTTEXTURE_SIZE = 256; // Sector2IndirectTexture使用的分辨率
+	constexpr static int VT_SECTOR2VIRTIMG_SIZE = 256; // Sector2VirtImg使用的分辨率
 	constexpr static size_t VTIMAGE_MAX_NODE_SIZE = 256; // 最大node使用的分辨率
-	constexpr static int CB_SECTOR2INDIRECTTEXTURE_DATA_NUM = 256;
+	constexpr static int CB_SECTOR2VIRTIMG_DATA_NUM = 256;
 
 	constexpr static size_t VTSECTOR_LOD_NUM = 7; // VTSector的lod等级
 
@@ -101,13 +104,13 @@ public:
 	void UpdateCBData(const Vector2& rtSize);
 	const NXConstantBuffer<Vector4>& GetCBufferVTReadback() const { return m_cbVTReadback; }
 
-	// sector2indirecttexture
-	const Ntr<NXTexture2D>& GetSector2IndirectTexture() const { return m_pSector2IndirectTexture; }
-	const NXConstantBuffer<std::vector<CBufferSector2IndirectTexture>>& GetCBufferSector2IndirectTexture() const { return m_cbSector2IndirectTexture; }
-	const NXConstantBuffer<int>& GetCBufferSector2IndirectTextureNum() const { return m_cbSector2IndirectTextureNum; }
-	const size_t GetCBufferSector2IndirectTextureDataNum() const { return m_cbDataSector2IndirectTexture.size(); }
-	bool NeedClearSector2IndirectTexture() const { return m_bNeedClearSector2IndirectTexture; }
-	void MarkSector2IndirectTextureCleared() { m_bNeedClearSector2IndirectTexture = false; }
+	// sector2VirtualImage
+	const Ntr<NXTexture2D>& GetSector2VirtImg() const { return m_pSector2VirtImg; }
+	const NXConstantBuffer<std::vector<CBufferSector2VirtImg>>& GetCBufferSector2VirtImg() const { return m_cbSector2VirtImg; }
+	const NXConstantBuffer<int>& GetCBufferSector2VirtImgNum() const { return m_cbSector2VirtImgNum; }
+	const size_t GetCBufferSector2VirtImgDataNum() const { return m_cbDataSector2VirtImg.size(); }
+	bool NeedClearSector2VirtImg() const { return m_bNeedClearSector2VirtImg; }
+	void MarkSector2VirtImgCleared() { m_bNeedClearSector2VirtImg = false; }
 
 	// physicalpage
 	const Ntr<NXTexture2DArray>& GetPhysicalPageAlbedo() const { return m_pPhysicalPageAlbedo; }
@@ -126,21 +129,25 @@ public:
 	const NXVTImageQuadTree* GetQuadTree() const { return m_pVirtImageQuadTree; }
 	const std::unordered_map<NXVTSector, Int2>& GetSector2VirtImagePos() const { return m_sector2VirtImagePos; }
 	NXVTUpdateState GetUpdateState() const { return m_updateState; }
+	void SetUpdateState(NXVTUpdateState s) { m_updateState = s; }
 
 	// VT Readback 数据访问接口
 	Ntr<NXReadbackData>& GetVTReadbackData() { return m_vtReadbackData; }
 	const Int2& GetVTReadbackDataSize() const { return m_vtReadbackDataSize; }
 	void SetVTReadbackDataSize(const Int2& val) { m_vtReadbackDataSize = val; }
 
-	void UpdateStateBeforeReadback();
-	void UpdateStateAfterReadback();
+	void UpdateStateAfterReadback() { m_bReadbackFinish = true; }
+
+	bool GetPhysPageBakeFinish() { return m_bPhysPageBakeFinish; }
+	void SetPhysPageBakeFinish(bool val) { m_bPhysPageBakeFinish = val; }
+	bool GetUpdateIndiTexFinish() { return m_bUpdateIndiTexFinish; }
+	void SetUpdateIndiTexFinish(bool val) { m_bUpdateIndiTexFinish = val; }
 
 	void Release();
 
 private:
 	void UpdateNearestSectors();
 	void BakePhysicalPages();
-	void UpdateIndirectTexture();
 
 	// 获取sector-相机最近距离的 平方
 	float GetDist2OfSectorToCamera(const Vector2& camPos, const Int2& sectorPos);
@@ -165,12 +172,12 @@ private:
 	std::unordered_map<NXVTSector, Int2> m_sector2VirtImagePos;
 
 	// R32_UINT，24bit = 角坐标XY，8bit = size
-	Ntr<NXTexture2D> m_pSector2IndirectTexture;
+	Ntr<NXTexture2D> m_pSector2VirtImg;
 
-	bool m_bNeedClearSector2IndirectTexture = true; // 首帧清除标记
-	std::vector<CBufferSector2IndirectTexture> m_cbDataSector2IndirectTexture; 
-	NXConstantBuffer<std::vector<CBufferSector2IndirectTexture>> m_cbSector2IndirectTexture;
-	NXConstantBuffer<int> m_cbSector2IndirectTextureNum;
+	bool m_bNeedClearSector2VirtImg = true; // 首帧清除标记
+	std::vector<CBufferSector2VirtImg> m_cbDataSector2VirtImg; 
+	NXConstantBuffer<std::vector<CBufferSector2VirtImg>> m_cbSector2VirtImg;
+	NXConstantBuffer<int> m_cbSector2VirtImgNum;
 
 	// VT Readback 数据
 	Ntr<NXReadbackData> m_vtReadbackData;
@@ -190,4 +197,6 @@ private:
 	// 状态机，保证数据跨帧统一
 	NXVTUpdateState m_updateState = NXVTUpdateState::None;
 	bool m_bReadbackFinish = false;
+	bool m_bPhysPageBakeFinish = false;
+	bool m_bUpdateIndiTexFinish = false;
 };

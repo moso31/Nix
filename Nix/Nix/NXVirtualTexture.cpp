@@ -12,10 +12,10 @@ NXVirtualTexture::NXVirtualTexture(class NXCamera* pCam) :
 {
 	m_pVirtImageQuadTree = new NXVTImageQuadTree();
 
-	m_pSector2IndirectTexture = NXManager_Tex->CreateTexture2D("VirtualTexture_Sector2IndirectTexture", DXGI_FORMAT_R32_UINT, VT_SECTOR2INDIRECTTEXTURE_SIZE, VT_SECTOR2INDIRECTTEXTURE_SIZE, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, false);
-	m_pSector2IndirectTexture->SetViews(1, 0, 0, 1);
-	m_pSector2IndirectTexture->SetSRV(0);
-	m_pSector2IndirectTexture->SetUAV(0);
+	m_pSector2VirtImg = NXManager_Tex->CreateTexture2D("VirtualTexture_Sector2VirtImg", DXGI_FORMAT_R32_UINT, VT_SECTOR2VIRTIMG_SIZE, VT_SECTOR2VIRTIMG_SIZE, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, false);
+	m_pSector2VirtImg->SetViews(1, 0, 0, 1);
+	m_pSector2VirtImg->SetSRV(0);
+	m_pSector2VirtImg->SetUAV(0);
 
 	m_pPhysicalPageAlbedo = NXManager_Tex->CreateTexture2DArray("VirtualTexture_PhysicalPage_Albedo", DXGI_FORMAT_R8G8B8A8_UNORM, g_virtualTextureConfig.PhysicalPageTileSize, g_virtualTextureConfig.PhysicalPageTileSize, g_virtualTextureConfig.PhysicalPageTileNum, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 	m_pPhysicalPageNormal = NXManager_Tex->CreateTexture2DArray("VirtualTexture_PhysicalPage_Normal", DXGI_FORMAT_R8G8B8A8_UNORM, g_virtualTextureConfig.PhysicalPageTileSize, g_virtualTextureConfig.PhysicalPageTileSize, g_virtualTextureConfig.PhysicalPageTileNum, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
@@ -27,7 +27,7 @@ NXVirtualTexture::NXVirtualTexture(class NXCamera* pCam) :
 	for (int i = 0; i < mip; i++)
 		m_pIndirectTexture->SetUAV(i, i);
 
-	m_cbSector2IndirectTexture.Recreate(CB_SECTOR2INDIRECTTEXTURE_DATA_NUM);
+	m_cbSector2VirtImg.Recreate(CB_SECTOR2VIRTIMG_DATA_NUM);
 	m_cbPhysPageBake.Recreate(BAKE_PHYSICAL_PAGE_PER_FRAME);
 	m_cbPhysPageUpdateIndex.Recreate(BAKE_PHYSICAL_PAGE_PER_FRAME);
 
@@ -37,16 +37,6 @@ NXVirtualTexture::NXVirtualTexture(class NXCamera* pCam) :
 NXVirtualTexture::~NXVirtualTexture()
 {
 	Release();
-}
-
-void NXVirtualTexture::UpdateStateBeforeReadback()
-{
-	m_updateState = NXVTUpdateState::Reading;
-}
-
-void NXVirtualTexture::UpdateStateAfterReadback()
-{
-	m_bReadbackFinish = true;
 }
 
 void NXVirtualTexture::Release()
@@ -64,16 +54,15 @@ void NXVirtualTexture::Update()
 	{
 	case NXVTUpdateState::None:
 	case NXVTUpdateState::Finish:
-		m_lastSectors.swap(m_sectors);
-		m_sectors.clear();
-		m_cbDataSector2IndirectTexture.clear();
-		m_cbDataPhysPageBake.clear();
-		m_cbDataPhysPageUpdateIndex.clear();
-
 		m_updateState = NXVTUpdateState::Ready;
 		break;
 	case NXVTUpdateState::Ready:
 		UpdateNearestSectors();
+		m_updateState = NXVTUpdateState::Sector2VirtImgUpdateOnce;
+		break;
+	case NXVTUpdateState::Sector2VirtImgUpdateOnce:
+		break;
+	case NXVTUpdateState::Sector2VirtImgUpdated:
 		m_updateState = NXVTUpdateState::WaitReadback;
 		break;
 	case NXVTUpdateState::WaitReadback:
@@ -81,13 +70,20 @@ void NXVirtualTexture::Update()
 	case NXVTUpdateState::Reading:
 		if (m_bReadbackFinish)
 		{
-			m_updateState = NXVTUpdateState::PhysicalPageBake;
+			m_updateState = NXVTUpdateState::PhysicalPageBakeOnce;
 			m_bReadbackFinish = false;
+			BakePhysicalPages();
 		}
 		break;
-	case NXVTUpdateState::PhysicalPageBake:
-		BakePhysicalPages();
-		UpdateIndirectTexture();
+	case NXVTUpdateState::PhysicalPageBakeOnce:
+		if (m_bPhysPageBakeFinish && m_bUpdateIndiTexFinish)
+		{
+			m_updateState = NXVTUpdateState::PhysicalPageBakeFinish;
+			m_bPhysPageBakeFinish = false;
+			m_bUpdateIndiTexFinish = false;
+		}
+		break;
+	case NXVTUpdateState::PhysicalPageBakeFinish:
 		m_updateState = NXVTUpdateState::Finish;
 		break;
 	default:
@@ -103,6 +99,10 @@ void NXVirtualTexture::UpdateCBData(const Vector2& rtSize)
 
 void NXVirtualTexture::UpdateNearestSectors()
 {
+	m_lastSectors.swap(m_sectors);
+	m_sectors.clear();
+	m_cbDataSector2VirtImg.clear();
+
 	Vector2 camPosXZ = m_pCamera->GetTranslation().GetXZ();
 
 	// 获取本帧最新的sectors
@@ -168,12 +168,12 @@ void NXVirtualTexture::UpdateNearestSectors()
 	while (i < m_lastSectors.size()) { removeSector.push_back(m_lastSectors[i]); i++; }
 	while (j < m_sectors.size()) { createSector.push_back(m_sectors[j]); j++; }
 
-	// 准备更新 Sector2IndirectTexture
+	// 准备更新 Sector2VirtImg
 	for (auto& s : createSector)
 	{
 		Int2 virtImgPos = m_pVirtImageQuadTree->Alloc(s.imageSize, s.id);
 		m_sector2VirtImagePos[s] = virtImgPos;
-		m_cbDataSector2IndirectTexture.push_back({ s.id - g_terrainConfig.MinSectorID, virtImgPos, s.imageSize });
+		m_cbDataSector2VirtImg.push_back({ s.id - g_terrainConfig.MinSectorID, virtImgPos, s.imageSize });
 	}
 
 	for (auto& s : removeSector)
@@ -183,7 +183,7 @@ void NXVirtualTexture::UpdateNearestSectors()
 			Int2 virtImgPos = m_sector2VirtImagePos[s];
 			m_pVirtImageQuadTree->Free(virtImgPos, s.imageSize);
 			m_sector2VirtImagePos.erase(s);
-			m_cbDataSector2IndirectTexture.push_back({ s.id - g_terrainConfig.MinSectorID, -1 });
+			m_cbDataSector2VirtImg.push_back({ s.id - g_terrainConfig.MinSectorID, -1 });
 		}
 	}
 
@@ -193,25 +193,25 @@ void NXVirtualTexture::UpdateNearestSectors()
 		NXVTSector newSector = s.oldData;
 		newSector.imageSize = s.changedImageSize;
 		m_sector2VirtImagePos[newSector] = newVirtImgPos;
-		m_cbDataSector2IndirectTexture.push_back({ s.oldData.id - g_terrainConfig.MinSectorID, newVirtImgPos, s.changedImageSize });
+		m_cbDataSector2VirtImg.push_back({ s.oldData.id - g_terrainConfig.MinSectorID, newVirtImgPos, s.changedImageSize });
 
 		if (m_sector2VirtImagePos.find(s.oldData) != m_sector2VirtImagePos.end())
 		{
 			Int2 oldVirtImgPos = m_sector2VirtImagePos[s.oldData];
 			m_pVirtImageQuadTree->Free(oldVirtImgPos, s.oldData.imageSize);
 			m_sector2VirtImagePos.erase(s.oldData);
-			//m_cbDataSector2IndirectTexture.push_back({ s.oldData.id - g_terrainConfig.MinSectorID, -1 });
+			//m_cbDataSector2VirtImg.push_back({ s.oldData.id - g_terrainConfig.MinSectorID, -1 });
 		}
 	}
 
-	if (m_cbDataSector2IndirectTexture.size() >= 256)
+	if (m_cbDataSector2VirtImg.size() >= 256)
 	{
 		printf("WARNING\n");
 	}
 
-	// 准备更新 Sector2IndirectTexture
-	m_cbSector2IndirectTexture.Update(m_cbDataSector2IndirectTexture);
-	m_cbSector2IndirectTextureNum.Update((int)m_cbDataSector2IndirectTexture.size());
+	// 准备更新 Sector2VirtImg
+	m_cbSector2VirtImg.Update(m_cbDataSector2VirtImg);
+	m_cbSector2VirtImgNum.Update((int)m_cbDataSector2VirtImg.size());
 }
 
 void NXVirtualTexture::BakePhysicalPages()
@@ -222,6 +222,9 @@ void NXVirtualTexture::BakePhysicalPages()
 	auto pVTReadbackData = m_vtReadbackData->Clone();
 	if (pVTReadbackData.empty())
 		return;
+
+	m_cbDataPhysPageBake.clear();
+	m_cbDataPhysPageUpdateIndex.clear();
 
 	std::unordered_set<uint32_t> readbackSets;
 	const uint32_t* readbackData = reinterpret_cast<const uint32_t*>(pVTReadbackData.data());
@@ -234,25 +237,10 @@ void NXVirtualTexture::BakePhysicalPages()
 		readbackSets.insert(data);
 	}
 
+	std::vector<NXVTLRUKey> test;
+	std::vector<NXVTLRUKey> oldTest;
+
 	int lruInsertNum = 0;
-
-	int cnt = 0;
-	for (auto& data : readbackSets)
-	{
-		Int2 pageID((data >> 20) & 0xFFF, (data >> 8) & 0xFFF);
-		uint32_t gpuMip = (data >> 4) & 0xF;
-		Int2 pageIDMip0 = pageID << gpuMip;
-		uint32_t log2IndiTexSize = (data >> 0) & 0xF;
-
-		if (gpuMip == 0)
-			cnt++;
-
-		if (cnt >= 5)
-		{
-			int x = 0;
-		}
-	}
-
 	for (auto& data : readbackSets)
 	{
 		Int2 pageID((data >> 20) & 0xFFF, (data >> 8) & 0xFFF);
@@ -270,6 +258,8 @@ void NXVirtualTexture::BakePhysicalPages()
 			key.indiTexLog2Size = log2IndiTexSize;
 
 			uint64_t keyHash = key.GetKey();
+			test.push_back(key);
+
 			uint64_t oldKeyHash = -1;
 			if (m_lruCache.Find(keyHash))
 			{
@@ -284,6 +274,8 @@ void NXVirtualTexture::BakePhysicalPages()
 					m_cbDataPhysPageBake.push_back(oldKey);
 					m_cbDataPhysPageUpdateIndex.push_back(CBufferPhysPageUpdateIndex(-1, oldKey.pageID, oldKey.gpuMip));
 					lruInsertNum++;
+
+					oldTest.push_back(oldKey);
 				}
 
 				m_cbDataPhysPageBake.push_back(key);
@@ -298,6 +290,22 @@ void NXVirtualTexture::BakePhysicalPages()
 		}
 	}
 
+	// 临时测试：检查一下OldTest里面的数据有几个出现在了Test里面, 只要是pageID和gpumip两项相等就count++
+	int count = 0;
+	for (auto& v : oldTest)
+	{
+		for (auto& u : test)
+		{
+			if (v.pageID == u.pageID && v.gpuMip == u.gpuMip)
+			{
+				count++;
+				break;
+			}
+		}
+	}
+
+	printf("BakePhysicalPages: ReadbackNum=%d, UniqueNum=%zu, ReusedOldKeyNum=%d\n", readbackDataNum, readbackSets.size(), count);
+
 	//for (auto& idx : m_cbDataPhysPageUpdateIndex)
 	//{
 	//	printf("%d ", idx.index);
@@ -306,11 +314,6 @@ void NXVirtualTexture::BakePhysicalPages()
 
 	m_cbPhysPageBake.Update(m_cbDataPhysPageBake);
 	m_cbPhysPageUpdateIndex.Update(m_cbDataPhysPageUpdateIndex);
-}
-
-void NXVirtualTexture::UpdateIndirectTexture()
-{
-
 }
 
 float NXVirtualTexture::GetDist2OfSectorToCamera(const Vector2& camPos, const Int2& sectorCorner)
