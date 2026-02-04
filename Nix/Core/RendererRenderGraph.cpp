@@ -402,7 +402,7 @@ void Renderer::BuildVirtualTexturePasses(NXRGHandle pSector2NodeIDTex, NXRGHandl
 			auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("PhysicalPageBaker"));
 			pMat->SetConstantBuffer(0, 0, &m_pVirtualTexture->GetCBPhysPageBakeData());
 			pMat->SetConstantBuffer(0, 1, &pStreamingData.GetNodeDescArray());
-			pMat->SetConstantBuffer(0, 2, &m_pVirtualTexture->GetCBPhysPageUpdateIndex());
+			pMat->SetConstantBuffer(0, 2, &m_pVirtualTexture->GetCBUpdateIndex());
 			pMat->SetInput(0, 0, resMap.GetRes(data.Sector2NodeIDTex));
 			pMat->SetInput(0, 1, resMap.GetRes(data.SplatMapAtlas));
 			pMat->SetInput(0, 2, resMap.GetRes(data.AlbedoMapArray));
@@ -456,12 +456,12 @@ void Renderer::BuildVirtualTexturePasses(NXRGHandle pSector2NodeIDTex, NXRGHandl
 
 			m_pVirtualTexture->SetUpdateIndiTexFinish(true);
 
-			uint32_t bakeTexNum = m_pVirtualTexture->GetCBPhysPageBakeDataNum();
+			uint32_t bakeTexNum = m_pVirtualTexture->GetCBUpdateIndexDataNum();
 			if (bakeTexNum == 0)
 				return;
 
 			auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("UpdateIndirectTexture"));
-			pMat->SetConstantBuffer(0, 0, &m_pVirtualTexture->GetCBPhysPageUpdateIndex());
+			pMat->SetConstantBuffer(0, 0, &m_pVirtualTexture->GetCBUpdateIndex());
 
 			int mips = 11;
 			for (int i = 0; i < mips; i++)

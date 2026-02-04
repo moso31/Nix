@@ -29,7 +29,7 @@ NXVirtualTexture::NXVirtualTexture(class NXCamera* pCam) :
 
 	m_cbSector2VirtImg.Recreate(CB_SECTOR2VIRTIMG_DATA_NUM);
 	m_cbPhysPageBake.Recreate(BAKE_PHYSICAL_PAGE_PER_FRAME);
-	m_cbPhysPageUpdateIndex.Recreate(BAKE_PHYSICAL_PAGE_PER_FRAME);
+	m_cbUpdateIndex.Recreate(BAKE_PHYSICAL_PAGE_PER_FRAME);
 
 	m_vtReadbackData = new NXReadbackData("VT Readback CPUdata");
 }
@@ -224,7 +224,7 @@ void NXVirtualTexture::BakePhysicalPages()
 		return;
 
 	m_cbDataPhysPageBake.clear();
-	m_cbDataPhysPageUpdateIndex.clear();
+	m_cbDataUpdateIndex.clear();
 
 	std::unordered_set<uint32_t> readbackSets;
 	const uint32_t* readbackData = reinterpret_cast<const uint32_t*>(pVTReadbackData.data());
@@ -237,16 +237,15 @@ void NXVirtualTexture::BakePhysicalPages()
 		readbackSets.insert(data);
 	}
 
-	std::vector<NXVTLRUKey> test;
-	std::vector<NXVTLRUKey> oldTest;
+	std::vector<uint64_t> pendingRemoveData;
 
 	int lruInsertNum = 0;
 	for (auto& data : readbackSets)
 	{
 		Int2 pageID((data >> 20) & 0xFFF, (data >> 8) & 0xFFF);
 		uint32_t gpuMip = (data >> 4) & 0xF;
-		Int2 pageIDMip0 = pageID << gpuMip;
 		uint32_t log2IndiTexSize = (data >> 0) & 0xF;
+		Int2 pageIDMip0 = pageID << gpuMip;
 
 		Int2 sectorID = m_pVirtImageQuadTree->GetSector(pageIDMip0, log2IndiTexSize);
 		if (sectorID != Int2(INT_MIN))
@@ -258,7 +257,6 @@ void NXVirtualTexture::BakePhysicalPages()
 			key.indiTexLog2Size = log2IndiTexSize;
 
 			uint64_t keyHash = key.GetKey();
-			test.push_back(key);
 
 			uint64_t oldKeyHash = -1;
 			if (m_lruCache.Find(keyHash))
@@ -270,50 +268,35 @@ void NXVirtualTexture::BakePhysicalPages()
 				int cacheIdx = m_lruCache.Insert(keyHash, oldKeyHash);
 				if (oldKeyHash < UINT64_MAX - g_virtualTextureConfig.PhysicalPageTileNum)	
 				{
-					NXVTLRUKey oldKey(oldKeyHash);
-					m_cbDataPhysPageBake.push_back(oldKey);
-					m_cbDataPhysPageUpdateIndex.push_back(CBufferPhysPageUpdateIndex(-1, oldKey.pageID, oldKey.gpuMip));
+					pendingRemoveData.push_back(oldKeyHash);
 					lruInsertNum++;
-
-					oldTest.push_back(oldKey);
 				}
 
 				m_cbDataPhysPageBake.push_back(key);
-				m_cbDataPhysPageUpdateIndex.push_back(CBufferPhysPageUpdateIndex(cacheIdx, pageID, gpuMip));
+				m_cbDataUpdateIndex.push_back(CBufferPhysPageUpdateIndex(cacheIdx, pageID, gpuMip));
 				lruInsertNum++;
 
 				//printf("Sector: (%d, %d), PageID: (%d, %d), GPU Mip: %d, IndiTexLog2Size: %d, cacheIdx: %d\n", key.sector.x, key.sector.y, key.pageID.x, key.pageID.y, key.gpuMip, key.indiTexLog2Size, cacheIdx);
 
-				if (lruInsertNum + 2 > BAKE_PHYSICAL_PAGE_PER_FRAME)
+				if (lruInsertNum >= BAKE_PHYSICAL_PAGE_PER_FRAME)
 					break;
 			}
 		}
 	}
 
-	// 临时测试：检查一下OldTest里面的数据有几个出现在了Test里面, 只要是pageID和gpumip两项相等就count++
-	int count = 0;
-	for (auto& v : oldTest)
+	for (auto& removeLRUKey : pendingRemoveData)
 	{
-		for (auto& u : test)
-		{
-			if (v.pageID == u.pageID && v.gpuMip == u.gpuMip)
-			{
-				count++;
-				break;
-			}
-		}
+		uint32_t removePage = removeLRUKey & 0xFFFFFFFF; // LRUKey的后32位 和pageIDTexture的格式完全一致
+		Int2 pageID((removePage >> 20) & 0xFFF, (removePage >> 8) & 0xFFF);
+		uint32_t gpuMip = (removePage >> 4) & 0xF;
+		uint32_t log2IndiTexSize = (removePage >> 0) & 0xF;
+
+		if (!readbackSets.contains(removePage))
+			m_cbDataUpdateIndex.push_back(CBufferPhysPageUpdateIndex(-1, pageID, gpuMip));
 	}
 
-	printf("BakePhysicalPages: ReadbackNum=%d, UniqueNum=%zu, ReusedOldKeyNum=%d\n", readbackDataNum, readbackSets.size(), count);
-
-	//for (auto& idx : m_cbDataPhysPageUpdateIndex)
-	//{
-	//	printf("%d ", idx.index);
-	//}
-	//if (!m_cbDataPhysPageUpdateIndex.empty()) printf("\n");
-
 	m_cbPhysPageBake.Update(m_cbDataPhysPageBake);
-	m_cbPhysPageUpdateIndex.Update(m_cbDataPhysPageUpdateIndex);
+	m_cbUpdateIndex.Update(m_cbDataUpdateIndex);
 }
 
 float NXVirtualTexture::GetDist2OfSectorToCamera(const Vector2& camPos, const Int2& sectorCorner)

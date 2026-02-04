@@ -117,7 +117,8 @@ public:
 	const Ntr<NXTexture2DArray>& GetPhysicalPageNormal() const { return m_pPhysicalPageNormal; }
 	const NXConstantBuffer<std::vector<NXVTLRUKey>>& GetCBPhysPageBakeData() const { return m_cbPhysPageBake; }
 	const size_t GetCBPhysPageBakeDataNum() const { return m_cbDataPhysPageBake.size(); }
-	const NXConstantBuffer<std::vector<CBufferPhysPageUpdateIndex>>& GetCBPhysPageUpdateIndex() const { return m_cbPhysPageUpdateIndex; }
+	const NXConstantBuffer<std::vector<CBufferPhysPageUpdateIndex>>& GetCBUpdateIndex() const { return m_cbUpdateIndex; }
+	const size_t GetCBUpdateIndexDataNum() const { return m_cbDataUpdateIndex.size(); }
 
 	// updateindirecttexture
 	const Ntr<NXTexture2D>& GetIndirectTexture() const { return m_pIndirectTexture; }
@@ -186,8 +187,8 @@ private:
 	NXVTLRUCache m_lruCache;
 	NXConstantBuffer<std::vector<NXVTLRUKey>> m_cbPhysPageBake;
 	std::vector<NXVTLRUKey> m_cbDataPhysPageBake;
-	NXConstantBuffer<std::vector<CBufferPhysPageUpdateIndex>> m_cbPhysPageUpdateIndex;
-	std::vector<CBufferPhysPageUpdateIndex> m_cbDataPhysPageUpdateIndex;
+	NXConstantBuffer<std::vector<CBufferPhysPageUpdateIndex>> m_cbUpdateIndex;
+	std::vector<CBufferPhysPageUpdateIndex> m_cbDataUpdateIndex;
 	Ntr<NXTexture2DArray> m_pPhysicalPageAlbedo;
 	Ntr<NXTexture2DArray> m_pPhysicalPageNormal;
 
