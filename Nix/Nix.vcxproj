@@ -436,6 +436,7 @@
     <ClCompile Include="Nix\NXVirtualTexture.cpp" />
     <ClCompile Include="Nix\NXVTImageQuadTree.cpp" />
     <ClCompile Include="Nix\NXVTLRUCache.cpp" />
+    <ClCompile Include="Nix\NXVTRenderGraphContext.cpp" />
     <ClCompile Include="Nix\Script\NSFirstPersonalCamera.cpp" />
     <ClCompile Include="Nix\Script\NSTest.cpp" />
     <ClCompile Include="Nix\NXCamera.cpp" />

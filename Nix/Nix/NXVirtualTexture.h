@@ -10,16 +10,33 @@
 #include "NXTerrainCommon.h"
 #include "NXVTLRUCache.h"
 
+// RenderGraph
+#include "NXRGUtil.h"
+class NXTerrainLODStreamer;
+struct NXVTRenderGraphContext 
+{
+	class NXRenderGraph* pRG;
+	NXTerrainLODStreamer* pTerrainLODStreamer;
+
+	NXRGHandle hSector2VirtImg;
+	NXRGHandle hSector2NodeIDTex;
+	NXRGHandle hHeightMapAtlas;
+	NXRGHandle hSplatMapAtlas;
+	NXRGHandle hNormalMapAtlas;
+	NXRGHandle hAlbedoMapArray;
+	NXRGHandle hNormalMapArray;
+	NXRGHandle hAlbedoPhysicalPage;
+	NXRGHandle hNormalPhysicalPage;
+	NXRGHandle hIndirectTexture;
+};
+
 enum class NXVTUpdateState
 {
 	None,
 	Ready,
-	Sector2VirtImgUpdateOnce,
-	Sector2VirtImgUpdated,
 	WaitReadback,
 	Reading,
-	PhysicalPageBakeOnce,
-	PhysicalPageBakeFinish,
+	PhysicalPageBake,
 	Finish
 };
 
@@ -99,6 +116,7 @@ public:
 	NXVirtualTexture(class NXCamera* pCam);
 	~NXVirtualTexture();
 
+	void RegisterRenderPasses(const NXVTRenderGraphContext& ctx) { m_ctx = ctx; }
 	void Update();
 
 	void UpdateCBData(const Vector2& rtSize);
@@ -106,24 +124,13 @@ public:
 
 	// sector2VirtualImage
 	const Ntr<NXTexture2D>& GetSector2VirtImg() const { return m_pSector2VirtImg; }
-	const NXConstantBuffer<std::vector<CBufferSector2VirtImg>>& GetCBufferSector2VirtImg() const { return m_cbSector2VirtImg; }
-	const NXConstantBuffer<int>& GetCBufferSector2VirtImgNum() const { return m_cbSector2VirtImgNum; }
-	const size_t GetCBufferSector2VirtImgDataNum() const { return m_cbDataSector2VirtImg.size(); }
-	bool NeedClearSector2VirtImg() const { return m_bNeedClearSector2VirtImg; }
-	void MarkSector2VirtImgCleared() { m_bNeedClearSector2VirtImg = false; }
 
 	// physicalpage
 	const Ntr<NXTexture2DArray>& GetPhysicalPageAlbedo() const { return m_pPhysicalPageAlbedo; }
 	const Ntr<NXTexture2DArray>& GetPhysicalPageNormal() const { return m_pPhysicalPageNormal; }
-	const NXConstantBuffer<std::vector<NXVTLRUKey>>& GetCBPhysPageBakeData() const { return m_cbPhysPageBake; }
-	const size_t GetCBPhysPageBakeDataNum() const { return m_cbDataPhysPageBake.size(); }
-	const NXConstantBuffer<std::vector<CBufferPhysPageUpdateIndex>>& GetCBUpdateIndex() const { return m_cbUpdateIndex; }
-	const size_t GetCBUpdateIndexDataNum() const { return m_cbDataUpdateIndex.size(); }
 
 	// updateindirecttexture
 	const Ntr<NXTexture2D>& GetIndirectTexture() const { return m_pIndirectTexture; }
-	bool NeedClearIndirectTexture() const { return m_bNeedClearIndirectTexture; }
-	void MarkIndirectTextureCleared() { m_bNeedClearIndirectTexture = false; }
 
 	// GUI 访问接口
 	const std::vector<NXVTSector>& GetSectors() const { return m_sectors; }
@@ -139,12 +146,14 @@ public:
 
 	void UpdateStateAfterReadback() { m_bReadbackFinish = true; }
 
-	bool GetPhysPageBakeFinish() { return m_bPhysPageBakeFinish; }
-	void SetPhysPageBakeFinish(bool val) { m_bPhysPageBakeFinish = val; }
-	bool GetUpdateIndiTexFinish() { return m_bUpdateIndiTexFinish; }
-	void SetUpdateIndiTexFinish(bool val) { m_bUpdateIndiTexFinish = val; }
-
 	void Release();
+
+private:
+	void RegisterClearSector2VirtImgPass();
+	void RegisterClearIndirectTexturePass();
+	void RegisterUpdateSector2VirtImgPass();
+	void RegisterBakePhysicalPagePass();
+	void RegisterUpdateIndirectTexturePass();
 
 private:
 	void UpdateNearestSectors();
@@ -174,8 +183,6 @@ private:
 
 	// R32_UINT，24bit = 角坐标XY，8bit = size
 	Ntr<NXTexture2D> m_pSector2VirtImg;
-
-	bool m_bNeedClearSector2VirtImg = true; // 首帧清除标记
 	std::vector<CBufferSector2VirtImg> m_cbDataSector2VirtImg; 
 	NXConstantBuffer<std::vector<CBufferSector2VirtImg>> m_cbSector2VirtImg;
 	NXConstantBuffer<int> m_cbSector2VirtImgNum;
@@ -193,11 +200,13 @@ private:
 	Ntr<NXTexture2DArray> m_pPhysicalPageNormal;
 
 	Ntr<NXTexture2D> m_pIndirectTexture;
+
+	bool m_bNeedClearSector2VirtImg = true; // 首帧清除标记
 	bool m_bNeedClearIndirectTexture = true; // 首帧清除标记
 
 	// 状态机，保证数据跨帧统一
 	NXVTUpdateState m_updateState = NXVTUpdateState::None;
 	bool m_bReadbackFinish = false;
-	bool m_bPhysPageBakeFinish = false;
-	bool m_bUpdateIndiTexFinish = false;
+
+	NXVTRenderGraphContext m_ctx;
 };

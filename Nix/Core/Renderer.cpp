@@ -151,6 +151,24 @@ void Renderer::GenerateRenderGraph()
 	NXRGPassNode<TerrainPatcherPassData>* passPatcher = nullptr;
 	NXRGHandle hPatcherBuffer, hPatcherDrawIndexArgs;
 
+	{
+		NXVTRenderGraphContext ctx;
+		ctx.pRG = m_pRenderGraph;
+		ctx.pTerrainLODStreamer = m_pTerrainLODStreamer;
+
+		ctx.hSector2VirtImg = hVTSector2VirtImg;
+		ctx.hSector2NodeIDTex = pSector2NodeIDTex;
+		ctx.hHeightMapAtlas = hHeightMapAtlas;
+		ctx.hSplatMapAtlas = hSplatMapAtlas;
+		ctx.hNormalMapAtlas = hNormalMapAtlas;
+		ctx.hAlbedoMapArray = hAlbedoMapArray;
+		ctx.hNormalMapArray = hNormalMapArray;
+		ctx.hAlbedoPhysicalPage = hVTPhysicalPageAlbedo;
+		ctx.hNormalPhysicalPage = hVTPhysicalPageNormal;
+		ctx.hIndirectTexture = hVTIndirectTexture;
+		m_pVirtualTexture->RegisterRenderPasses(ctx);
+	}
+
 	if (g_debug_temporal_enable_terrain_debug)
 	{
 		// 地形流式加载相关 Pass
@@ -159,8 +177,9 @@ void Renderer::GenerateRenderGraph()
 		// 地形裁剪相关 Pass
 		passPatcher = BuildTerrainCullingPasses(pSector2NodeIDTex, hPatcherBuffer, hPatcherDrawIndexArgs);
 
-		// 虚拟纹理相关 Pass
-		BuildVirtualTexturePasses(pSector2NodeIDTex, hSplatMapAtlas, hAlbedoMapArray, hNormalMapArray, hVTPhysicalPageAlbedo, hVTPhysicalPageNormal, hVTIndirectTexture);
+		auto* pCamera = m_scene->GetMainCamera();
+		m_pVirtualTexture->Update();
+		m_pVirtualTexture->UpdateCBData(pCamera->GetRTSize());
 	}
 
 	// GBuffer Pass
@@ -260,10 +279,10 @@ void Renderer::Update()
 
 	GenerateRenderGraph();
 
-	m_pRenderGraph->Compile();
-
 	UpdateGUI();
 	UpdateSceneData();
+
+	m_pRenderGraph->Compile();
 }
 
 void Renderer::UpdateGUI()
@@ -287,8 +306,6 @@ void Renderer::UpdateSceneData()
 
 	auto* pCamera = m_scene->GetMainCamera();
 	m_pTerrainLODStreamer->GetStreamingData().UpdateCullingData(pCamera);
-	m_pVirtualTexture->Update();
-	m_pVirtualTexture->UpdateCBData(pCamera->GetRTSize());
 
 	m_scene->UpdateLightData();
 

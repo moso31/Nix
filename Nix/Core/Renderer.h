@@ -104,7 +104,6 @@ private:
 	// 将大型的 GenerateRenderGraph() 拆分为多个小函数，改善 IntelliSense 性能
 	void BuildTerrainStreamingPasses(NXRGHandle hSector2VirtImg, NXRGHandle pSector2NodeIDTex, NXRGHandle hHeightMapAtlas, NXRGHandle hSplatMapAtlas, NXRGHandle hNormalMapAtlas);
 	NXRGPassNode<TerrainPatcherPassData>* BuildTerrainCullingPasses(NXRGHandle pSector2NodeIDTex, NXRGHandle& hPatcherBuffer, NXRGHandle& hPatcherDrawIndexArgs);
-	void BuildVirtualTexturePasses(NXRGHandle pSector2NodeIDTex, NXRGHandle hSplatMapAtlas, NXRGHandle hAlbedoMapArray, NXRGHandle hNormalMapArray, NXRGHandle hAlbedoPhysicalPage, NXRGHandle hNormalPhysicalPage, NXRGHandle hIndirectTexture);
 	NXRGPassNode<GBufferPassData>* BuildGBufferPasses(NXRGPassNode<TerrainPatcherPassData>* passPatcher, NXRGHandle hGBuffer0, NXRGHandle hGBuffer1, NXRGHandle hGBuffer2, NXRGHandle hGBuffer3, NXRGHandle hDepthZ, NXRGHandle hVTPageIDTexture, NXRGHandle hVTSector2VirtImg, NXRGHandle hVTIndirectTexture, NXRGHandle hVTPhysicalPageAlbedo, NXRGHandle hVTPhysicalPageNormal);
 	NXRGPassNode<ShadowMapPassData>* BuildShadowMapPass(NXRGPassNode<TerrainPatcherPassData>* passPatcher, NXRGHandle pCSMDepth);
 	NXRGPassNode<ShadowTestPassData>* BuildShadowTestPass(NXRGPassNode<GBufferPassData>* gBufferPassData, NXRGPassNode<ShadowMapPassData>* shadowMapPassData);

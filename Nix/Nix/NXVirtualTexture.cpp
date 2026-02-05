@@ -50,6 +50,19 @@ void NXVirtualTexture::Release()
 
 void NXVirtualTexture::Update()
 {
+	// 仅首帧执行: Sector2VirtImg IndirectTexture 全像素初始化-1
+	if (m_bNeedClearSector2VirtImg)
+	{
+		RegisterClearSector2VirtImgPass();
+		m_bNeedClearSector2VirtImg = false;
+	}
+
+	if (m_bNeedClearIndirectTexture)
+	{
+		RegisterClearIndirectTexturePass();
+		m_bNeedClearIndirectTexture = false;
+	}
+
 	switch (m_updateState)
 	{
 	case NXVTUpdateState::None:
@@ -58,11 +71,7 @@ void NXVirtualTexture::Update()
 		break;
 	case NXVTUpdateState::Ready:
 		UpdateNearestSectors();
-		m_updateState = NXVTUpdateState::Sector2VirtImgUpdateOnce;
-		break;
-	case NXVTUpdateState::Sector2VirtImgUpdateOnce:
-		break;
-	case NXVTUpdateState::Sector2VirtImgUpdated:
+		RegisterUpdateSector2VirtImgPass();
 		m_updateState = NXVTUpdateState::WaitReadback;
 		break;
 	case NXVTUpdateState::WaitReadback:
@@ -70,20 +79,14 @@ void NXVirtualTexture::Update()
 	case NXVTUpdateState::Reading:
 		if (m_bReadbackFinish)
 		{
-			m_updateState = NXVTUpdateState::PhysicalPageBakeOnce;
+			m_updateState = NXVTUpdateState::PhysicalPageBake;
 			m_bReadbackFinish = false;
 			BakePhysicalPages();
+			RegisterBakePhysicalPagePass();
+			RegisterUpdateIndirectTexturePass();
 		}
 		break;
-	case NXVTUpdateState::PhysicalPageBakeOnce:
-		if (m_bPhysPageBakeFinish && m_bUpdateIndiTexFinish)
-		{
-			m_updateState = NXVTUpdateState::PhysicalPageBakeFinish;
-			m_bPhysPageBakeFinish = false;
-			m_bUpdateIndiTexFinish = false;
-		}
-		break;
-	case NXVTUpdateState::PhysicalPageBakeFinish:
+	case NXVTUpdateState::PhysicalPageBake:
 		m_updateState = NXVTUpdateState::Finish;
 		break;
 	default:

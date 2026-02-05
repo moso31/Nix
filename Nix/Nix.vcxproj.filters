@@ -629,6 +629,9 @@
     <ClCompile Include="Core\RendererRenderGraph.cpp">
       <Filter>Core\DirectX\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="Nix\NXVTRenderGraphContext.cpp">
+      <Filter>Nix\VirtualTexture</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App.h">

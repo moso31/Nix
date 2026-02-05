@@ -99,5 +99,6 @@
         "future": "cpp",
         "resumable": "cpp",
         "stack": "cpp"
-    }
+    },
+    "chatgpt.commentCodeLensEnabled": false
 }
