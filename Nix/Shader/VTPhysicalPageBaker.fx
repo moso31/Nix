@@ -23,7 +23,8 @@ struct VTLRUKey
 	int2 pageID;
 	int gpuMip;
 	int indiTexLog2Size;
-	int2 _padding;
+    int bakeIndirectTextureIndex;
+	int _0;
 };
 
 // CBufferTerrainNodeDescription 对应的结构
@@ -43,11 +44,6 @@ cbuffer cbPhysPageBakeData : register(b0, space0)
 cbuffer cbNodeDescArray : register(b1, space0)
 {
 	TerrainNodeDescription m_nodeDescArray[NodeDescArrayNum];
-}
-
-cbuffer cbPhysPageUpdateIndex : register(b2, space0)
-{
-    CBufferPhysPageUpdateIndex m_physPageUpdateIndex[BAKE_PHYSICAL_PAGE_PER_FRAME];
 }
 
 Texture2D<uint> m_sector2NodeIDTex : register(t0, space0);
@@ -82,11 +78,10 @@ uint GetBestSector2NodeId(int2 sector)
 void CS(uint3 dtid : SV_DispatchThreadID) 
 {
     VTLRUKey key = m_physPageBakeData[dtid.z];
-    CBufferPhysPageUpdateIndex updateIdx = m_physPageUpdateIndex[dtid.z];
-    if (updateIdx.index == -1)
+    if (key.bakeIndirectTextureIndex < 0)
         return;
     
-    int physPageIdx = updateIdx.index;
+    int physPageIdx = key.bakeIndirectTextureIndex;
     // updateIdx.pageID 和 updateIdx.mip 可在需要时使用
     uint nodeID = GetBestSector2NodeId(key.sector);
     

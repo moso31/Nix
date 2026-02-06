@@ -29,7 +29,7 @@ NXVirtualTexture::NXVirtualTexture(class NXCamera* pCam) :
 
 	m_cbSector2VirtImg.Recreate(CB_SECTOR2VIRTIMG_DATA_NUM);
 	m_cbPhysPageBake.Recreate(BAKE_PHYSICAL_PAGE_PER_FRAME);
-	m_cbUpdateIndex.Recreate(BAKE_PHYSICAL_PAGE_PER_FRAME);
+	m_cbUpdateIndex.Recreate(UPDATE_INDIRECT_TEXTURE_PER_FRAME);
 
 	m_vtReadbackData = new NXReadbackData("VT Readback CPUdata");
 }
@@ -325,14 +325,26 @@ void NXVirtualTexture::BakePhysicalPages()
 			uint64_t oldKeyHash = -1;
 			if (m_lruCache.Find(keyHash))
 			{
-				m_lruCache.Touch(keyHash);
+				int cacheIdx = m_lruCache.Touch(keyHash);
+
+				m_cbDataUpdateIndex.push_back(CBufferPhysPageUpdateIndex(cacheIdx, pageID, gpuMip));
+				lruInsertNum++;
 			}
 			else
 			{
 				int cacheIdx = m_lruCache.Insert(keyHash, oldKeyHash);
-				if (oldKeyHash < UINT64_MAX - g_virtualTextureConfig.PhysicalPageTileNum)	
+				key.bakeIndirectTextureIndex = cacheIdx;
+
+				if (oldKeyHash < UINT64_MAX - g_virtualTextureConfig.PhysicalPageTileNum)
 				{
-					pendingRemoveData.push_back(oldKeyHash);
+					uint32_t removePage = oldKeyHash & 0xFFFFFFFF; // LRUKey的后32位 和pageIDTexture的格式完全一致
+					Int2 pageID((removePage >> 20) & 0xFFF, (removePage >> 8) & 0xFFF);
+					uint32_t gpuMip = (removePage >> 4) & 0xF;
+					uint32_t log2IndiTexSize = (removePage >> 0) & 0xF;
+
+					if (!readbackSets.contains(removePage))
+						m_cbDataUpdateIndex.push_back(CBufferPhysPageUpdateIndex(-1, pageID, gpuMip));
+
 					lruInsertNum++;
 				}
 
@@ -340,23 +352,12 @@ void NXVirtualTexture::BakePhysicalPages()
 				m_cbDataUpdateIndex.push_back(CBufferPhysPageUpdateIndex(cacheIdx, pageID, gpuMip));
 				lruInsertNum++;
 
-				//printf("Sector: (%d, %d), PageID: (%d, %d), GPU Mip: %d, IndiTexLog2Size: %d, cacheIdx: %d\n", key.sector.x, key.sector.y, key.pageID.x, key.pageID.y, key.gpuMip, key.indiTexLog2Size, cacheIdx);
+				printf("data: %d, Sector: (%d, %d), PageID: (%d, %d), GPU Mip: %d, IndiTexLog2Size: %d, cacheIdx: %d\n", data, key.sector.x, key.sector.y, key.pageID.x, key.pageID.y, key.gpuMip, key.indiTexLog2Size, cacheIdx);
 
-				if (lruInsertNum >= BAKE_PHYSICAL_PAGE_PER_FRAME)
+				if (lruInsertNum >= UPDATE_INDIRECT_TEXTURE_PER_FRAME)
 					break;
 			}
 		}
-	}
-
-	for (auto& removeLRUKey : pendingRemoveData)
-	{
-		uint32_t removePage = removeLRUKey & 0xFFFFFFFF; // LRUKey的后32位 和pageIDTexture的格式完全一致
-		Int2 pageID((removePage >> 20) & 0xFFF, (removePage >> 8) & 0xFFF);
-		uint32_t gpuMip = (removePage >> 4) & 0xF;
-		uint32_t log2IndiTexSize = (removePage >> 0) & 0xF;
-
-		if (!readbackSets.contains(removePage))
-			m_cbDataUpdateIndex.push_back(CBufferPhysPageUpdateIndex(-1, pageID, gpuMip));
 	}
 
 	m_cbPhysPageBake.Update(m_cbDataPhysPageBake);

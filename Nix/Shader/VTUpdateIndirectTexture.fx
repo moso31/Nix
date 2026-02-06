@@ -2,7 +2,7 @@
 
 cbuffer cbPhysPageUpdateIndex : register(b0, space0)
 {
-    CBufferPhysPageUpdateIndex m_physPageUpdateIndex[BAKE_PHYSICAL_PAGE_PER_FRAME];
+    CBufferPhysPageUpdateIndex m_physPageUpdateIndex[UPDATE_INDIRECT_TEXTURE_PER_FRAME];
 }
 
 // 使用数组形式，支持动态索引访问不同mip层级

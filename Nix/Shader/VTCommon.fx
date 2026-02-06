@@ -21,7 +21,7 @@ struct CBufferRemoveSector
 {
     int2 imagePos;
     int imageSize;
-    int maxRemoveMip; // å€¼=Nï¼Œè¡¨ç¤ºåªç§»é™¤å‰Nä¸ªmipï¼ˆ0~N-1ï¼‰
+    int maxRemoveMip; // Öµ=N£¬±íÊ¾Ö»ÒÆ³ıÇ°N¸ömip£¨0~N-1£©
 };
 
 struct CBufferMigrateSector
@@ -30,10 +30,11 @@ struct CBufferMigrateSector
     int2 toImagePos;
     int fromImageSize;
     int toImageSize;
-    int mipDelta; // è¿ç§»å‰åä¸¤ä¸ªsectorçš„mipç­‰çº§å·®
+    int mipDelta; // Ç¨ÒÆÇ°ºóÁ½¸ösectorµÄmipµÈ¼¶²î
     int _0;
 };
 
+#define UPDATE_INDIRECT_TEXTURE_PER_FRAME 1024
 #define BAKE_PHYSICAL_PAGE_PER_FRAME 32
 #define BAKE_PHYSICAL_PAGE_SIZE 256
 #define BAKE_PHYSICAL_PAGE_BORDER 4

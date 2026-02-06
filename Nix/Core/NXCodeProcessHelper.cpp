@@ -600,8 +600,6 @@ void EncodeVTPageID(float2 posXZ, float2 positionSS)
 	int2 sectorID = int2(floor(posXZ / 64));
 	uint2 sectorPixelPos = (uint2)(sectorID + 128);
 	uint indiTexData = m_VTSector2VirtImg.Load(uint3(sectorPixelPos.xy, 0));
-	if (indiTexData == 0xFFFFFFFF)
-		return;
 	
 	uint3 val = DecodeSector2VirtImgData(indiTexData);
 	uint  indiTexMip0Size = (1u << val.z);
@@ -609,7 +607,10 @@ void EncodeVTPageID(float2 posXZ, float2 positionSS)
 	uint indiTexMip0Log2Size = val.z;
 	
     uint mip = (uint)clamp(MipLevelAnisotropy(posXZ, 2048), 0, indiTexMip0Log2Size);
-	
+
+	if (indiTexData == 0xFFFFFFFF) // must before MipLevelAnisotropy because of ddx/ddy!
+		return;
+
 	float2 relativeUV = frac(posXZ / 64.0f);
 	uint2 indiTexPagePixelMip0 = indiTexMip0Pos + relativeUV * indiTexMip0Size;
 	uint2 indiTexPagePixelMip = indiTexPagePixelMip0 >> mip; // pageID of this Pixel.
@@ -626,7 +627,8 @@ void EncodeVTPageID(float2 posXZ, float2 positionSS)
 
 	// Full resolution for debugging
     int2 pixelCoord = int2(positionSS);
-    m_VTPageIDBuffer[pixelCoord] = EncodeIndirectTextureData(indiTexPagePixelMip, mip, indiTexMip0Log2Size);
+    uint encode = EncodeIndirectTextureData(indiTexPagePixelMip, mip, indiTexMip0Log2Size);
+	m_VTPageIDBuffer[pixelCoord] = encode;
 }
 
 void EncodeGBuffer(NXGBufferParams gBuffer, PS_INPUT input, out PS_OUTPUT Output)

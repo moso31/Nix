@@ -126,6 +126,7 @@ class NXVirtualTexture
 	constexpr static size_t SECTOR_SIZE_LOG2 = 6;
 
 	constexpr static size_t BAKE_PHYSICAL_PAGE_PER_FRAME = 32; // 每帧最多烘焙的PhysicalPage数量
+	constexpr static size_t UPDATE_INDIRECT_TEXTURE_PER_FRAME = 1024; // 每帧最多更新的indirectTexture像素数
 
 	constexpr static size_t INDIRECT_TEXTURE_SIZE = 2048;
 

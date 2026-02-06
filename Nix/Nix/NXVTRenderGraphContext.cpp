@@ -51,6 +51,19 @@ void NXVirtualTexture::RegisterClearIndirectTexturePass()
 
 void NXVirtualTexture::RegisterUpdateSector2VirtImgPass()
 {
+	for (auto& data : m_cbDataSector2VirtImg)
+	{
+		//indiTexData(((indiTexPos.x & 0xFFF) << 20) | ((indiTexPos.y & 0xFFF) << 8) | (std::countr_zero((uint32_t)indiTexSize) & 0xFF)) // std::countr_zero = log2 of POTsize;
+		int indiTexPosX = (data.indiTexData >> 20) & 0xFFF;
+		int indiTexPosY = (data.indiTexData >> 8) & 0xFFF;
+		int indiTexSize = 1 << (data.indiTexData & 0xFF);
+
+		printf("[UpdateSector2VirtImg] sectorPos: (%d, %d), indiTexPos: (%d, %d), indiTexSize: %d\n",
+			data.sectorPos.x, data.sectorPos.y,
+			indiTexPosX, indiTexPosY,
+			indiTexSize);
+	}
+
 	m_ctx.pRG->AddPass<Sector2VirtImgPassData>("UpdateSector2VirtImg",
 		[&](NXRGBuilder& builder, Sector2VirtImgPassData& data)
 		{
@@ -76,6 +89,11 @@ void NXVirtualTexture::RegisterUpdateSector2VirtImgPass()
 
 void NXVirtualTexture::RegisterBakePhysicalPagePass()
 {
+	for (auto& data : m_cbDataPhysPageBake)
+	{
+		printf("[BakePhysicalPage] SectorID: (%d, %d), PageID: (%d, %d), GPU Mip: %d, IndiTexLog2Size: %d\n", data.sector.x, data.sector.y, data.pageID.x, data.pageID.y, data.gpuMip, data.indiTexLog2Size);
+	}
+
 	auto& pStreamingData = m_ctx.pTerrainLODStreamer->GetStreamingData();
 
 	m_ctx.pRG->AddPass<PhysicalPageBakerPassData>("PhysicalPageBaker",
@@ -90,7 +108,7 @@ void NXVirtualTexture::RegisterBakePhysicalPagePass()
 		},
 		[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, PhysicalPageBakerPassData& data)
 		{
-			uint32_t threadNum = (g_virtualTextureConfig.PhysicalPageTileNum + 7) / 8;
+			uint32_t threadNum = (g_virtualTextureConfig.PhysicalPageTileSize + 7) / 8;
 			uint32_t bakeTexNum = m_cbDataPhysPageBake.size();
 
 			if (bakeTexNum == 0)
@@ -99,7 +117,6 @@ void NXVirtualTexture::RegisterBakePhysicalPagePass()
 			auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("PhysicalPageBaker"));
 			pMat->SetConstantBuffer(0, 0, &m_cbPhysPageBake);
 			pMat->SetConstantBuffer(0, 1, &pStreamingData.GetNodeDescArray());
-			pMat->SetConstantBuffer(0, 2, &m_cbUpdateIndex);
 			pMat->SetInput(0, 0, resMap.GetRes(data.Sector2NodeIDTex));
 			pMat->SetInput(0, 1, resMap.GetRes(data.SplatMapAtlas));
 			pMat->SetInput(0, 2, resMap.GetRes(data.AlbedoMapArray));
@@ -116,6 +133,11 @@ void NXVirtualTexture::RegisterBakePhysicalPagePass()
 
 void NXVirtualTexture::RegisterUpdateIndirectTexturePass()
 {
+	for (auto& data : m_cbDataUpdateIndex)
+	{
+		printf("[UpdateIndirectTexture] PageID: (%d, %d), gpumip: %d, index: %d\n", data.pageID.x, data.pageID.y, data.mip, data.index);
+	}
+
 	m_ctx.pRG->AddPass<UpdateIndirectTexturePassData>("UpdateIndirectTexture",
 		[&](NXRGBuilder& builder, UpdateIndirectTexturePassData& data)
 		{
@@ -143,6 +165,7 @@ void NXVirtualTexture::RegisterUpdateIndirectTexturePass()
 
 void NXVirtualTexture::RegisterRemoveIndirectTextureSectorPass(const NXConstantBuffer<CBufferRemoveSector>& pCBRemoveSector, const CBufferRemoveSector& removeData)
 {
+	printf("RemoveIndirectTextureSectors: ImagePos: (%d, %d), ImageSize: %d, MaxRemoveMip: %d\n", removeData.imagePos.x, removeData.imagePos.y, removeData.imageSize, removeData.maxRemoveMip);
 	m_ctx.pRG->AddPass<RemoveIndirectTextureSectorPassData>("RemoveIndirectTextureSectors",
 		[&](NXRGBuilder& builder, RemoveIndirectTextureSectorPassData& data)
 		{
@@ -168,6 +191,11 @@ void NXVirtualTexture::RegisterRemoveIndirectTextureSectorPass(const NXConstantB
 
 void NXVirtualTexture::RegisterMigrateIndirectTextureSectorPass(const NXConstantBuffer<CBufferMigrateSector>& pCBMigrateSector, const CBufferMigrateSector& migrateData)
 {
+	printf("MigrateIndirectTextureSectors: FromImagePos: (%d, %d), ToImagePos: (%d, %d), FromImageSize: %d, ToImageSize: %d, MipDelta: %d\n",
+		migrateData.fromImagePos.x, migrateData.fromImagePos.y,
+		migrateData.toImagePos.x, migrateData.toImagePos.y,
+		migrateData.fromImageSize, migrateData.toImageSize,
+		migrateData.mipDelta);
 	m_ctx.pRG->AddPass<MigrateIndirectTextureSectorPassData>("MigrateIndirectTextureSectors",
 		[&](NXRGBuilder& builder, MigrateIndirectTextureSectorPassData& data)
 		{
