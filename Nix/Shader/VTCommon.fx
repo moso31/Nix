@@ -17,6 +17,23 @@ struct CBufferPhysPageUpdateIndex
     int mip;
 };
 
+struct CBufferRemoveSector
+{
+    int2 imagePos;
+    int imageSize;
+    int maxRemoveMip; // 值=N，表示只移除前N个mip（0~N-1）
+};
+
+struct CBufferMigrateSector
+{
+    int2 fromImagePos;
+    int2 toImagePos;
+    int fromImageSize;
+    int toImageSize;
+    int mipDelta; // 迁移前后两个sector的mip等级差
+    int _0;
+};
+
 #define BAKE_PHYSICAL_PAGE_PER_FRAME 32
 #define BAKE_PHYSICAL_PAGE_SIZE 256
 #define BAKE_PHYSICAL_PAGE_BORDER 4

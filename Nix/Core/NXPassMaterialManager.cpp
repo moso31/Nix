@@ -52,6 +52,30 @@ void NXPassMaterialManager::InitDefaultRenderer()
 		AddMaterial(pMat, true);
 	}
 
+	// VT Remove IndirectTexture Sector
+	{
+		auto pMat = new NXComputePassMaterial("RemoveIndirectTextureSectors", L"Shader\\VTUpdateIndirectTextureBlock.fx");
+		pMat->SetEntryNameCS(L"CS_Remove");
+		pMat->RegisterCBVSpaceNum(1);
+		pMat->RegisterCBVSlotNum(1);  // b0
+		pMat->RegisterUAVSpaceNum(1);
+		pMat->RegisterUAVSlotNum(11);  // u0
+		pMat->FinalizeLayout();
+		AddMaterial(pMat, true);
+	}
+
+	// VT Migrate IndirectTexture Sector
+	{
+		auto pMat = new NXComputePassMaterial("MigrateIndirectTextureSectors", L"Shader\\VTUpdateIndirectTextureBlock.fx");
+		pMat->SetEntryNameCS(L"CS_Migrate");
+		pMat->RegisterCBVSpaceNum(1);
+		pMat->RegisterCBVSlotNum(1);  // b0
+		pMat->RegisterUAVSpaceNum(1);
+		pMat->RegisterUAVSlotNum(11);  // u0
+		pMat->FinalizeLayout();
+		AddMaterial(pMat, true);
+	}
+
 	////////////////////////////////////////
 	// GPU-Driven Terrain
 	////////////////////////////////////////

@@ -71,6 +71,7 @@ void NXVirtualTexture::Update()
 		break;
 	case NXVTUpdateState::Ready:
 		UpdateNearestSectors();
+
 		RegisterUpdateSector2VirtImgPass();
 		m_updateState = NXVTUpdateState::WaitReadback;
 		break;
@@ -79,11 +80,12 @@ void NXVirtualTexture::Update()
 	case NXVTUpdateState::Reading:
 		if (m_bReadbackFinish)
 		{
-			m_updateState = NXVTUpdateState::PhysicalPageBake;
-			m_bReadbackFinish = false;
 			BakePhysicalPages();
+
 			RegisterBakePhysicalPagePass();
 			RegisterUpdateIndirectTexturePass();
+			m_updateState = NXVTUpdateState::PhysicalPageBake;
+			m_bReadbackFinish = false;
 		}
 		break;
 	case NXVTUpdateState::PhysicalPageBake:
@@ -131,8 +133,10 @@ void NXVirtualTexture::UpdateNearestSectors()
 	// 两帧关系比对
 	std::vector<NXVTSector> createSector; // 本帧创建的
 	std::vector<NXVTSector> removeSector; // 本帧移除的
-	std::vector<NXVTSector> keepSector;	// 没发生任何变化的
 	std::vector<NXVTChangeSector> changeSector; // 本帧升级/降级的
+	m_cbDataRemoveSector.clear();
+	m_cbDataMigrateRemoveSector.clear();
+	m_cbDataMigrateSector.clear();
 	int i = 0;
 	int j = 0;
 	while (i < m_lastSectors.size() && j < m_sectors.size())
@@ -142,16 +146,16 @@ void NXVirtualTexture::UpdateNearestSectors()
 
 		if (A.id == B.id)
 		{
-			if (A.imageSize == B.imageSize)
-			{
-				keepSector.push_back(A);
-			}
-			else
+			if (A.imageSize != B.imageSize)
 			{
 				NXVTChangeSector cs;
 				cs.oldData = A;
 				cs.changedImageSize = B.imageSize;
 				changeSector.push_back(cs);
+			}
+			else
+			{
+				// keepSector. do nothing
 			}
 			i++;
 			j++;
@@ -187,6 +191,16 @@ void NXVirtualTexture::UpdateNearestSectors()
 			m_pVirtImageQuadTree->Free(virtImgPos, s.imageSize);
 			m_sector2VirtImagePos.erase(s);
 			m_cbDataSector2VirtImg.push_back({ s.id - g_terrainConfig.MinSectorID, -1 });
+
+			CBufferRemoveSector removeData;
+			removeData.imagePos = virtImgPos;
+			removeData.imageSize = s.imageSize;
+			removeData.maxRemoveMip = 114514; // 移除所有Mip，够大就行
+			m_cbDataRemoveSector.push_back(removeData);
+		}
+		else
+		{
+			printf("WARNING: removeSector not found!\n");
 		}
 	}
 
@@ -204,12 +218,59 @@ void NXVirtualTexture::UpdateNearestSectors()
 			m_pVirtImageQuadTree->Free(oldVirtImgPos, s.oldData.imageSize);
 			m_sector2VirtImagePos.erase(s.oldData);
 			//m_cbDataSector2VirtImg.push_back({ s.oldData.id - g_terrainConfig.MinSectorID, -1 });
+
+			CBufferMigrateSector migrateData;
+			migrateData.fromImagePos = oldVirtImgPos;
+			migrateData.toImagePos = newVirtImgPos;
+			migrateData.fromImageSize = s.oldData.imageSize;
+			migrateData.toImageSize = s.changedImageSize;
+			auto& A = migrateData.fromImageSize;
+			auto& B = migrateData.toImageSize;
+			migrateData.mipDelta = std::countr_zero((uint32_t)(std::max(A, B) / std::min(A, B))); // 例如log2(from:32/to:8)=2，即存在2级mip差
+			m_cbDataMigrateSector.push_back(migrateData);
+		}
+		else
+		{
+			printf("WARNING: changeSector old sector not found!\n");
 		}
 	}
 
 	if (m_cbDataSector2VirtImg.size() >= 256)
 	{
 		printf("WARNING\n");
+	}
+
+	for (int i = 0; i < m_cbDataRemoveSector.size(); i++)
+	{
+		// 页表删除
+		auto& removeData = m_cbDataRemoveSector[i];
+		m_cbArrayRemoveSector[i].Update(removeData);
+		RegisterRemoveIndirectTextureSectorPass(m_cbArrayRemoveSector[i], removeData);
+	}
+
+	for (int i = 0; i < m_cbDataMigrateSector.size(); i++)
+	{
+		// 页表迁移（升/降 sector）
+		auto& migrateData = m_cbDataMigrateSector[i];
+		m_cbArrayMigrateSector[i].Update(migrateData);
+		RegisterMigrateIndirectTextureSectorPass(m_cbArrayMigrateSector[i], migrateData);
+
+		// 降采样，大图换小图，大图的前mip级页表 也需要完全清空
+		if (migrateData.fromImageSize > migrateData.toImageSize)
+		{
+			CBufferRemoveSector migrateRemoveData;
+			migrateRemoveData.imagePos = migrateData.fromImagePos;
+			migrateRemoveData.imageSize = migrateData.fromImageSize;
+			migrateRemoveData.maxRemoveMip = migrateData.mipDelta; // 清空前N级mip
+			m_cbDataMigrateRemoveSector.push_back(migrateRemoveData);
+		}
+	}
+
+	for (int i = 0; i < m_cbDataMigrateRemoveSector.size(); i++)
+	{
+		auto& migrateRemoveData = m_cbDataMigrateRemoveSector[i];
+		m_cbArrayMigrateRemoveSector[i].Update(migrateRemoveData);
+		RegisterRemoveIndirectTextureSectorPass(m_cbArrayMigrateRemoveSector[i], migrateRemoveData);
 	}
 
 	// 准备更新 Sector2VirtImg

@@ -60,6 +60,38 @@ struct NXVTSector
 	int imageSize; // sector的大小，注意是log2size
 };
 
+template<>
+struct std::hash<NXVTSector>
+{
+	size_t operator()(const NXVTSector& sector) const noexcept
+	{
+		return (static_cast<size_t>(sector.id.x) << 32) ^ (static_cast<size_t>(sector.id.y) << 16) ^ static_cast<size_t>(sector.imageSize);
+	}
+};
+
+struct NXVTChangeSector
+{
+	NXVTSector oldData;
+	int changedImageSize;
+};
+
+struct CBufferRemoveSector
+{
+	Int2 imagePos;
+	int imageSize;
+	int maxRemoveMip; // 值=N时，表示只移除前N个mip（0~N-1）
+};
+
+struct CBufferMigrateSector
+{
+	Int2 fromImagePos;
+	Int2 toImagePos;
+	int fromImageSize;
+	int toImageSize;
+	int mipDelta; // 迁移前后两个sector的mip等级差
+	int _0;
+};
+
 struct CBufferSector2VirtImg
 {
 	CBufferSector2VirtImg(const Int2& sector, const Int2& indiTexPos, int indiTexSize) : 
@@ -77,21 +109,6 @@ struct CBufferSector2VirtImg
 	int indiTexData; // x(12bit)y(12bit) = indi tex pos; z(8bit) = indi tex size
 	int _0;
 };  
-
-template<>
-struct std::hash<NXVTSector>
-{
-	size_t operator()(const NXVTSector& sector) const noexcept
-	{
-		return (static_cast<size_t>(sector.id.x) << 32) ^ (static_cast<size_t>(sector.id.y) << 16) ^ static_cast<size_t>(sector.imageSize);
-	}
-};
-
-struct NXVTChangeSector
-{
-	NXVTSector oldData;
-	int changedImageSize;
-};
 
 class NXTexture2D;
 class NXTexture2DArray;
@@ -154,6 +171,8 @@ private:
 	void RegisterUpdateSector2VirtImgPass();
 	void RegisterBakePhysicalPagePass();
 	void RegisterUpdateIndirectTexturePass();
+	void RegisterRemoveIndirectTextureSectorPass(const NXConstantBuffer<CBufferRemoveSector>& pCBRemoveSector, const CBufferRemoveSector& removeData);
+	void RegisterMigrateIndirectTextureSectorPass(const NXConstantBuffer<CBufferMigrateSector>& pCBMigrateSector, const CBufferMigrateSector& migrateData);
 
 private:
 	void UpdateNearestSectors();
@@ -200,6 +219,15 @@ private:
 	Ntr<NXTexture2DArray> m_pPhysicalPageNormal;
 
 	Ntr<NXTexture2D> m_pIndirectTexture;
+
+	// UpdateNearestSector时配套的 页表(indirectTexture)同步
+	std::vector<CBufferRemoveSector> m_cbDataRemoveSector;
+	std::vector<CBufferRemoveSector> m_cbDataMigrateRemoveSector;
+	std::vector<CBufferMigrateSector> m_cbDataMigrateSector;
+	// 注意：每个struct单配CBuffer，而不是一整个CB<std::vector>特化！
+	std::array<NXConstantBuffer<CBufferRemoveSector>, 1000> m_cbArrayRemoveSector; 
+	std::array<NXConstantBuffer<CBufferRemoveSector>, 1000> m_cbArrayMigrateRemoveSector;
+	std::array<NXConstantBuffer<CBufferMigrateSector>, 1000> m_cbArrayMigrateSector;
 
 	bool m_bNeedClearSector2VirtImg = true; // 首帧清除标记
 	bool m_bNeedClearIndirectTexture = true; // 首帧清除标记

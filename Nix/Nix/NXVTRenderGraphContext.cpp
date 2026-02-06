@@ -140,3 +140,53 @@ void NXVirtualTexture::RegisterUpdateIndirectTexturePass()
 			pCmdList->Dispatch(bakeTexNum, 1, 1);
 		});
 }
+
+void NXVirtualTexture::RegisterRemoveIndirectTextureSectorPass(const NXConstantBuffer<CBufferRemoveSector>& pCBRemoveSector, const CBufferRemoveSector& removeData)
+{
+	m_ctx.pRG->AddPass<RemoveIndirectTextureSectorPassData>("RemoveIndirectTextureSectors",
+		[&](NXRGBuilder& builder, RemoveIndirectTextureSectorPassData& data)
+		{
+			data.IndirectTexture = builder.Write(m_ctx.hIndirectTexture);
+		},
+		[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, RemoveIndirectTextureSectorPassData& data)
+		{
+			int thdGroupCount = (removeData.imageSize + 7) / 8;
+
+			auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("RemoveIndirectTextureSectors"));
+			pMat->SetConstantBuffer(0, 0, &pCBRemoveSector);
+
+			int mips = 11;
+			for (int i = 0; i < mips; i++)
+				pMat->SetOutput(0, i, resMap.GetRes(data.IndirectTexture), i);
+
+			pMat->RenderSetTargetAndState(pCmdList);
+			pMat->RenderBefore(pCmdList);
+
+			pCmdList->Dispatch(thdGroupCount, thdGroupCount, 1);
+		});
+}
+
+void NXVirtualTexture::RegisterMigrateIndirectTextureSectorPass(const NXConstantBuffer<CBufferMigrateSector>& pCBMigrateSector, const CBufferMigrateSector& migrateData)
+{
+	m_ctx.pRG->AddPass<MigrateIndirectTextureSectorPassData>("MigrateIndirectTextureSectors",
+		[&](NXRGBuilder& builder, MigrateIndirectTextureSectorPassData& data)
+		{
+			data.IndirectTexture = builder.Write(m_ctx.hIndirectTexture);
+		},
+		[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, MigrateIndirectTextureSectorPassData& data)
+		{
+			int thdGroupCount = (migrateData.fromImageSize + 7) / 8;
+
+			auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("MigrateIndirectTextureSectors"));
+			pMat->SetConstantBuffer(0, 0, &pCBMigrateSector);
+
+			int mips = 11;
+			for (int i = 0; i < mips; i++)
+				pMat->SetOutput(0, i, resMap.GetRes(data.IndirectTexture), i);
+
+			pMat->RenderSetTargetAndState(pCmdList);
+			pMat->RenderBefore(pCmdList);
+
+			pCmdList->Dispatch(thdGroupCount, thdGroupCount, 1);
+		});
+}

@@ -275,6 +275,9 @@
     <None Include="Shader\VTCommon.fx">
       <Filter>Shader\VirtualTexture</Filter>
     </None>
+    <None Include="Shader\VTUpdateIndirectTextureBlock.fx">
+      <Filter>Shader\VirtualTexture</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">

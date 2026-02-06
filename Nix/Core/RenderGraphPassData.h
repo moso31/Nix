@@ -86,6 +86,16 @@ struct PageIDTextureClearPassData
 	NXRGHandle VTPageIDTexture;
 };
 
+struct RemoveIndirectTextureSectorPassData
+{
+	NXRGHandle IndirectTexture;
+};
+
+struct MigrateIndirectTextureSectorPassData
+{
+	NXRGHandle IndirectTexture;
+};
+
 // =====================================================
 // GBuffer Passes
 // =====================================================
