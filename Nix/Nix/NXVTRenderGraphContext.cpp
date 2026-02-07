@@ -58,10 +58,13 @@ void NXVirtualTexture::RegisterUpdateSector2VirtImgPass()
 		int indiTexPosY = (data.indiTexData >> 8) & 0xFFF;
 		int indiTexSize = 1 << (data.indiTexData & 0xFF);
 
-		printf("[UpdateSector2VirtImg] sectorPos: (%d, %d), indiTexPos: (%d, %d), indiTexSize: %d\n",
-			data.sectorPos.x, data.sectorPos.y,
-			indiTexPosX, indiTexPosY,
-			indiTexSize);
+		if (m_enableDebugPrint)
+		{
+			printf("[UpdateSector2VirtImg] sectorPos: (%d, %d), indiTexPos: (%d, %d), indiTexSize: %d\n",
+				data.sectorPos.x, data.sectorPos.y,
+				indiTexPosX, indiTexPosY,
+				indiTexSize);
+		}
 	}
 
 	m_ctx.pRG->AddPass<Sector2VirtImgPassData>("UpdateSector2VirtImg",
@@ -91,7 +94,10 @@ void NXVirtualTexture::RegisterBakePhysicalPagePass()
 {
 	for (auto& data : m_cbDataPhysPageBake)
 	{
-		printf("[BakePhysicalPage] SectorID: (%d, %d), PageID: (%d, %d), GPU Mip: %d, IndiTexLog2Size: %d\n", data.sector.x, data.sector.y, data.pageID.x, data.pageID.y, data.gpuMip, data.indiTexLog2Size);
+		if (m_enableDebugPrint)
+		{
+			printf("[BakePhysicalPage] SectorID: (%d, %d), PageID: (%d, %d), GPU Mip: %d, IndiTexLog2Size: %d\n", data.sector.x, data.sector.y, data.pageID.x, data.pageID.y, data.gpuMip, data.indiTexLog2Size);
+		}
 	}
 
 	auto& pStreamingData = m_ctx.pTerrainLODStreamer->GetStreamingData();
@@ -135,7 +141,10 @@ void NXVirtualTexture::RegisterUpdateIndirectTexturePass()
 {
 	for (auto& data : m_cbDataUpdateIndex)
 	{
-		printf("[UpdateIndirectTexture] PageID: (%d, %d), gpumip: %d, index: %d\n", data.pageID.x, data.pageID.y, data.mip, data.index);
+		if (m_enableDebugPrint)
+		{
+			printf("[UpdateIndirectTexture] PageID: (%d, %d), gpumip: %d, index: %d\n", data.pageID.x, data.pageID.y, data.mip, data.index);
+		}
 	}
 
 	m_ctx.pRG->AddPass<UpdateIndirectTexturePassData>("UpdateIndirectTexture",
@@ -165,7 +174,10 @@ void NXVirtualTexture::RegisterUpdateIndirectTexturePass()
 
 void NXVirtualTexture::RegisterRemoveIndirectTextureSectorPass(const NXConstantBuffer<CBufferRemoveSector>& pCBRemoveSector, const CBufferRemoveSector& removeData)
 {
-	printf("RemoveIndirectTextureSectors: ImagePos: (%d, %d), ImageSize: %d, MaxRemoveMip: %d\n", removeData.imagePos.x, removeData.imagePos.y, removeData.imageSize, removeData.maxRemoveMip);
+	if (m_enableDebugPrint)
+	{
+		printf("RemoveIndirectTextureSectors: ImagePos: (%d, %d), ImageSize: %d, MaxRemoveMip: %d\n", removeData.imagePos.x, removeData.imagePos.y, removeData.imageSize, removeData.maxRemoveMip);
+	}
 	m_ctx.pRG->AddPass<RemoveIndirectTextureSectorPassData>("RemoveIndirectTextureSectors",
 		[&](NXRGBuilder& builder, RemoveIndirectTextureSectorPassData& data)
 		{
@@ -191,11 +203,14 @@ void NXVirtualTexture::RegisterRemoveIndirectTextureSectorPass(const NXConstantB
 
 void NXVirtualTexture::RegisterMigrateIndirectTextureSectorPass(const NXConstantBuffer<CBufferMigrateSector>& pCBMigrateSector, const CBufferMigrateSector& migrateData)
 {
-	printf("MigrateIndirectTextureSectors: FromImagePos: (%d, %d), ToImagePos: (%d, %d), FromImageSize: %d, ToImageSize: %d, MipDelta: %d\n",
-		migrateData.fromImagePos.x, migrateData.fromImagePos.y,
-		migrateData.toImagePos.x, migrateData.toImagePos.y,
-		migrateData.fromImageSize, migrateData.toImageSize,
-		migrateData.mipDelta);
+	if (m_enableDebugPrint)
+	{
+		printf("MigrateIndirectTextureSectors: FromImagePos: (%d, %d), ToImagePos: (%d, %d), FromImageSize: %d, ToImageSize: %d, MipDelta: %d\n",
+			migrateData.fromImagePos.x, migrateData.fromImagePos.y,
+			migrateData.toImagePos.x, migrateData.toImagePos.y,
+			migrateData.fromImageSize, migrateData.toImageSize,
+			migrateData.mipDelta);
+	}
 	m_ctx.pRG->AddPass<MigrateIndirectTextureSectorPassData>("MigrateIndirectTextureSectors",
 		[&](NXRGBuilder& builder, MigrateIndirectTextureSectorPassData& data)
 		{

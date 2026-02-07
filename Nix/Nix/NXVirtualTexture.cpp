@@ -7,7 +7,7 @@
 NXVirtualTexture::NXVirtualTexture(class NXCamera* pCam) :
 	m_pCamera(pCam),
 	m_vtSectorLodDists({ 16.0f, 32.0f, 64.0f, 128.0f, 256.0f, 512.0f, 1024.0f }),
-	m_vtSectorLodMaxDist(400),
+	m_vtSectorLodMaxDist(4),
 	m_lruCache(g_virtualTextureConfig.PhysicalPageTileNum)
 {
 	m_pVirtImageQuadTree = new NXVTImageQuadTree();

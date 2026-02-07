@@ -237,5 +237,8 @@ private:
 	NXVTUpdateState m_updateState = NXVTUpdateState::None;
 	bool m_bReadbackFinish = false;
 
+	// debug print¿ØÖÆ
+	bool m_enableDebugPrint = false;
+
 	NXVTRenderGraphContext m_ctx;
 };

@@ -616,19 +616,19 @@ void EncodeVTPageID(float2 posXZ, float2 positionSS)
 	uint2 indiTexPagePixelMip = indiTexPagePixelMip0 >> mip; // pageID of this Pixel.
 
 	// 1/8 RT resolution with Bayer sampling
-    //int bayerOffset64 = g_Bayer8x8[g.frameIndex % 64];
-    //int bayerOffsetX = bayerOffset64 % 8;
-    //int bayerOffsetY = bayerOffset64 / 8;
-    //int2 pixelCoord = int2(positionSS);
-    //if (pixelCoord.x % 8 == bayerOffsetX && pixelCoord.y % 8 == bayerOffsetY)
-    //{
-    //    m_VTPageIDBuffer[pixelCoord / 8] = EncodeIndirectTextureData(indiTexPagePixelMip, mip, indiTexMip0Log2Size); 
-    //}
+    int bayerOffset64 = g_Bayer8x8[g.frameIndex % 64];
+    int bayerOffsetX = bayerOffset64 % 8;
+    int bayerOffsetY = bayerOffset64 / 8;
+    int2 pixelCoord = int2(positionSS);
+    if (pixelCoord.x % 8 == bayerOffsetX && pixelCoord.y % 8 == bayerOffsetY)
+    {
+        m_VTPageIDBuffer[pixelCoord / 8] = EncodeIndirectTextureData(indiTexPagePixelMip, mip, indiTexMip0Log2Size); 
+    }
 
 	// Full resolution for debugging
-    int2 pixelCoord = int2(positionSS);
-    uint encode = EncodeIndirectTextureData(indiTexPagePixelMip, mip, indiTexMip0Log2Size);
-	m_VTPageIDBuffer[pixelCoord] = encode;
+    //int2 pixelCoord = int2(positionSS);
+    //uint encode = EncodeIndirectTextureData(indiTexPagePixelMip, mip, indiTexMip0Log2Size);
+	//m_VTPageIDBuffer[pixelCoord] = encode;
 }
 
 void EncodeGBuffer(NXGBufferParams gBuffer, PS_INPUT input, out PS_OUTPUT Output)
