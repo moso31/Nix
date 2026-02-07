@@ -78,7 +78,7 @@ void Renderer::Init()
 	m_scene->Init();
 	m_pTerrainLODStreamer = new NXTerrainLODStreamer();
 	m_pTerrainLODStreamer->Init(m_scene);
-	m_pVirtualTexture = new NXVirtualTexture(m_scene->GetMainCamera());
+	m_pVirtualTexture = new NXVirtualTexture(m_scene->GetMainCamera(), m_pTerrainLODStreamer);
 
 	auto pCubeMap = m_scene->GetCubeMap();
 

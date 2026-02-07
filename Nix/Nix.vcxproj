@@ -340,6 +340,7 @@
     <ClCompile Include="Core\NXGUITerrainSector2NodeIDPreview.cpp" />
     <ClCompile Include="Core\NXGUITerrainMaterialGenerator.cpp" />
     <ClCompile Include="Core\NXGUITerrainStreamingDebug.cpp" />
+    <ClCompile Include="Core\NXGUISectorVersionMap.cpp" />
     <ClCompile Include="Core\NXPassMaterialManager.cpp" />
     <ClCompile Include="Core\TinyEXRImpl.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
@@ -467,6 +468,7 @@
     <ClInclude Include="Core\NXCommonTexDefinition.h" />
     <ClInclude Include="Core\NXConvertString.h" />
     <ClInclude Include="Core\NXGUITerrainStreamingDebug.h" />
+    <ClInclude Include="Core\NXGUISectorVersionMap.h" />
     <ClInclude Include="Core\NXPassMaterialManager.h" />
     <ClInclude Include="Core\NXWinFileDrop.h" />
     <ClInclude Include="Core\NXFileSystemHelper.h" />
@@ -567,6 +569,7 @@
     <ClInclude Include="Nix\NXTerrainLayer.h" />
     <ClInclude Include="Nix\NXTerrainLODStreamConfigs.h" />
     <ClInclude Include="Nix\NXTerrainLODStreamData.h" />
+    <ClInclude Include="Nix\NXSectorVersionMap.h" />
     <ClInclude Include="Nix\NXTerrainStreamingAsyncLoader.h" />
     <ClInclude Include="Nix\NXTerrainStreamingBatcher.h" />
     <ClInclude Include="Nix\NXTerrainLODStreamer.h" />

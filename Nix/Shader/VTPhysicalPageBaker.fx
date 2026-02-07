@@ -82,7 +82,6 @@ void CS(uint3 dtid : SV_DispatchThreadID)
         return;
     
     int physPageIdx = key.bakeIndirectTextureIndex;
-    // updateIdx.pageID 和 updateIdx.mip 可在需要时使用
     uint nodeID = GetBestSector2NodeId(key.sector);
     
     TerrainNodeDescription nodeDesc = m_nodeDescArray[nodeID];

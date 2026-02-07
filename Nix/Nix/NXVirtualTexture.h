@@ -131,7 +131,7 @@ class NXVirtualTexture
 	constexpr static size_t INDIRECT_TEXTURE_SIZE = 2048;
 
 public:
-	NXVirtualTexture(class NXCamera* pCam);
+	NXVirtualTexture(class NXCamera* pCam, class NXTerrainLODStreamer* pTerrainLODStreamer);
 	~NXVirtualTexture();
 
 	void RegisterRenderPasses(const NXVTRenderGraphContext& ctx) { m_ctx = ctx; }
@@ -186,6 +186,8 @@ private:
 
 private:
 	NXCamera* m_pCamera;
+	NXTerrainLODStreamer* m_pTerrainLODStreamer;
+
 	std::array<float, VTSECTOR_LOD_NUM> m_vtSectorLodDists;
 	int m_vtSectorLodMaxDist;
 
@@ -212,6 +214,8 @@ private:
 	Int2 m_vtReadbackDataSize;
 
 	NXVTLRUCache m_lruCache;
+	std::vector<uint32_t> m_physPageSlotSectorVersion;
+
 	NXConstantBuffer<std::vector<NXVTLRUKey>> m_cbPhysPageBake;
 	std::vector<NXVTLRUKey> m_cbDataPhysPageBake;
 	NXConstantBuffer<std::vector<CBufferPhysPageUpdateIndex>> m_cbUpdateIndex;
@@ -240,5 +244,6 @@ private:
 	// debug print¿ØÖÆ
 	bool m_enableDebugPrint = false;
 
+	// RenderGraph passes
 	NXVTRenderGraphContext m_ctx;
 };

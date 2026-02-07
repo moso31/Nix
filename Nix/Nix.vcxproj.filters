@@ -622,6 +622,9 @@
     <ClCompile Include="Core\NXGUITerrainStreamingDebug.cpp">
       <Filter>Nix\TextureStreaming</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NXGUISectorVersionMap.cpp">
+      <Filter>Nix\TextureStreaming</Filter>
+    </ClCompile>
     <ClCompile Include="Nix\NXVTImageQuadTree.cpp">
       <Filter>Nix\VirtualTexture</Filter>
     </ClCompile>
@@ -1051,6 +1054,9 @@
     <ClInclude Include="Core\NXGUITerrainStreamingDebug.h">
       <Filter>Nix\TextureStreaming</Filter>
     </ClInclude>
+    <ClInclude Include="Core\NXGUISectorVersionMap.h">
+      <Filter>Nix\TextureStreaming</Filter>
+    </ClInclude>
     <ClInclude Include="Nix\NXVTImageQuadTree.h">
       <Filter>Nix\VirtualTexture</Filter>
     </ClInclude>
@@ -1059,6 +1065,9 @@
     </ClInclude>
     <ClInclude Include="Core\RenderGraphPassData.h">
       <Filter>Core\DirectX\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\NXSectorVersionMap.h">
+      <Filter>Nix\TextureStreaming</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

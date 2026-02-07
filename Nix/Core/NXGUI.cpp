@@ -28,6 +28,7 @@
 #include "NXGUITerrainMaterialGenerator.h"
 #include "NXGUITerrainSector2NodeIDPreview.h"
 #include "NXGUITerrainStreamingDebug.h"
+#include "NXGUISectorVersionMap.h"
 #include "NXGUIGPUProfiler.h"
 #include "NXGUICommandManager.h"
 
@@ -51,6 +52,7 @@ NXGUI::NXGUI(NXScene* pScene, Renderer* pRenderer) :
 	m_pGUITerrainMaterialGenerator(nullptr),
 	m_pGUITerrainSector2NodeIDPreview(nullptr),
 	m_pGUITerrainStreamingDebug(nullptr),
+	m_pGUISectorVersionMap(nullptr),
 	m_pGUIGPUProfiler(nullptr)
 {
 }
@@ -173,6 +175,7 @@ void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT, const NXSwapChainBuffer& swapCha
 
 	UpdateGUITerrainSector2NodeIDPreview();
 	UpdateGUITerrainStreamingDebug();
+	UpdateGUISectorVersionMap();
 
 	if (m_pGUIView->GetViewRT() != pGUIViewRT)
 		m_pGUIView->SetViewRT(pGUIViewRT);
@@ -329,6 +332,30 @@ void NXGUI::UpdateGUITerrainStreamingDebug()
 		if (!m_pGUITerrainStreamingDebug->GetVisible())
 		{
 			SafeDelete(m_pGUITerrainStreamingDebug);
+		}
+	}
+}
+
+void NXGUI::OpenGUISectorVersionMap()
+{
+	// 打开窗口时分配内存
+	if (!m_pGUISectorVersionMap)
+	{
+		m_pGUISectorVersionMap = new NXGUISectorVersionMap(m_pRenderer);
+	}
+	m_pGUISectorVersionMap->SetVisible(true);
+}
+
+void NXGUI::UpdateGUISectorVersionMap()
+{
+	if (m_pGUISectorVersionMap)
+	{
+		m_pGUISectorVersionMap->Render();
+
+		// 关闭窗口时释放内存
+		if (!m_pGUISectorVersionMap->GetVisible())
+		{
+			SafeDelete(m_pGUISectorVersionMap);
 		}
 	}
 }

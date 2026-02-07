@@ -27,6 +27,7 @@ class NXGUIHoudiniTerrainExporter;
 class NXGUITerrainMaterialGenerator;
 class NXGUITerrainSector2NodeIDPreview;
 class NXGUITerrainStreamingDebug;
+class NXGUISectorVersionMap;
 class NXGUIGPUProfiler;
 
 class NXGUI
@@ -52,10 +53,12 @@ public:
 	// 延迟分配：打开窗口时分配，关闭窗口时释放
 	void OpenGUITerrainSector2NodeIDPreview();
 	void OpenGUITerrainStreamingDebug();
+	void OpenGUISectorVersionMap();
 
 private:
 	void UpdateGUITerrainSector2NodeIDPreview(); // 内部更新，检查是否需要释放
 	void UpdateGUITerrainStreamingDebug();
+	void UpdateGUISectorVersionMap();
 
 private:
 	MultiFrame<ComPtr<ID3D12GraphicsCommandList>>	m_pCmdList;
@@ -82,6 +85,7 @@ private:
 	NXGUITerrainMaterialGenerator* m_pGUITerrainMaterialGenerator;
 	NXGUITerrainSector2NodeIDPreview* m_pGUITerrainSector2NodeIDPreview;
 	NXGUITerrainStreamingDebug* m_pGUITerrainStreamingDebug;
+	NXGUISectorVersionMap* m_pGUISectorVersionMap;
 	NXGUIGPUProfiler*			m_pGUIGPUProfiler;
 
 	NXGUIDebugLayer*			m_pGUIDebugLayer;

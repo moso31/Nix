@@ -2,12 +2,14 @@
 #include "NXResourceManager.h"
 #include "NXCamera.h"
 #include "NXTexture.h"
+#include "NXTerrainLODStreamer.h"
 #include <unordered_set>
 
-NXVirtualTexture::NXVirtualTexture(class NXCamera* pCam) :
+NXVirtualTexture::NXVirtualTexture(class NXCamera* pCam, class NXTerrainLODStreamer* pTerrainLODStreamer) :
 	m_pCamera(pCam),
+	m_pTerrainLODStreamer(pTerrainLODStreamer),
 	m_vtSectorLodDists({ 16.0f, 32.0f, 64.0f, 128.0f, 256.0f, 512.0f, 1024.0f }),
-	m_vtSectorLodMaxDist(4),
+	m_vtSectorLodMaxDist(400),
 	m_lruCache(g_virtualTextureConfig.PhysicalPageTileNum)
 {
 	m_pVirtImageQuadTree = new NXVTImageQuadTree();
@@ -30,6 +32,7 @@ NXVirtualTexture::NXVirtualTexture(class NXCamera* pCam) :
 	m_cbSector2VirtImg.Recreate(CB_SECTOR2VIRTIMG_DATA_NUM);
 	m_cbPhysPageBake.Recreate(BAKE_PHYSICAL_PAGE_PER_FRAME);
 	m_cbUpdateIndex.Recreate(UPDATE_INDIRECT_TEXTURE_PER_FRAME);
+	m_physPageSlotSectorVersion.assign(g_virtualTextureConfig.PhysicalPageTileNum, 0);
 
 	m_vtReadbackData = new NXReadbackData("VT Readback CPUdata");
 }
@@ -301,8 +304,7 @@ void NXVirtualTexture::BakePhysicalPages()
 		readbackSets.insert(data);
 	}
 
-	std::vector<uint64_t> pendingRemoveData;
-
+	auto& sectorVersionMap = m_pTerrainLODStreamer->GetSectorVersionMap();
 	int lruInsertNum = 0;
 	for (auto& data : readbackSets)
 	{
@@ -320,15 +322,28 @@ void NXVirtualTexture::BakePhysicalPages()
 			key.gpuMip = gpuMip;
 			key.indiTexLog2Size = log2IndiTexSize;
 
-			uint64_t keyHash = key.GetKey();
+			uint32_t keyVersion = sectorVersionMap.GetVersion(sectorID - g_terrainConfig.MinSectorID);
 
+			uint64_t keyHash = key.GetKey();
 			uint64_t oldKeyHash = -1;
 			if (m_lruCache.Find(keyHash))
 			{
 				int cacheIdx = m_lruCache.Touch(keyHash);
+				key.bakeIndirectTextureIndex = cacheIdx;
 
-				m_cbDataUpdateIndex.push_back(CBufferPhysPageUpdateIndex(cacheIdx, pageID, gpuMip));
-				lruInsertNum++;
+				uint32_t oldKeyVersion = m_physPageSlotSectorVersion[cacheIdx];
+				if (keyVersion != oldKeyVersion)
+				{
+					m_physPageSlotSectorVersion[cacheIdx] = keyVersion;
+					m_cbDataPhysPageBake.push_back(key);
+					m_cbDataUpdateIndex.push_back(CBufferPhysPageUpdateIndex(cacheIdx, pageID, gpuMip));
+					lruInsertNum++;
+				}
+				else
+				{
+					m_cbDataUpdateIndex.push_back(CBufferPhysPageUpdateIndex(cacheIdx, pageID, gpuMip));
+					lruInsertNum++;
+				}
 			}
 			else
 			{
@@ -352,11 +367,11 @@ void NXVirtualTexture::BakePhysicalPages()
 				m_cbDataUpdateIndex.push_back(CBufferPhysPageUpdateIndex(cacheIdx, pageID, gpuMip));
 				lruInsertNum++;
 
-				printf("data: %d, Sector: (%d, %d), PageID: (%d, %d), GPU Mip: %d, IndiTexLog2Size: %d, cacheIdx: %d\n", data, key.sector.x, key.sector.y, key.pageID.x, key.pageID.y, key.gpuMip, key.indiTexLog2Size, cacheIdx);
-
-				if (lruInsertNum >= UPDATE_INDIRECT_TEXTURE_PER_FRAME)
-					break;
+				//printf("data: %d, Sector: (%d, %d), PageID: (%d, %d), GPU Mip: %d, IndiTexLog2Size: %d, cacheIdx: %d\n", data, key.sector.x, key.sector.y, key.pageID.x, key.pageID.y, key.gpuMip, key.indiTexLog2Size, cacheIdx);
 			}
+
+			if (lruInsertNum >= UPDATE_INDIRECT_TEXTURE_PER_FRAME)
+				break;
 		}
 	}
 

@@ -1,6 +1,7 @@
 #pragma once
 #include "NXTerrainLODStreamData.h"
 #include "NXTerrainLODStreamConfigs.h"
+#include "NXSectorVersionMap.h"
 
 struct TerrainNodeKey
 {
@@ -116,6 +117,7 @@ public:
 	uint32_t GetLoadTexGroupLimitEachFrame();
 
 	NXTerrainLODStreamData& GetStreamingData() { return m_streamData; }
+	const NXSectorVersionMap& GetSectorVersionMap() const { return m_sectorVersionMap; }
 
 private:
 	// 获取6档距离内的节点，输出一个list[6]；只要是当前档次距离能覆盖的，统统加入到预加载队列
@@ -149,4 +151,7 @@ private:
 	// minmaxZ 数据，用于地形剔除
 	// m_minmaxZData[mip][x][y] = Vector2(minZ, maxZ)
 	std::vector<std::vector<std::vector<Vector2>>> m_minmaxZData;
+
+	// CPU记录sector的版本号
+	NXSectorVersionMap m_sectorVersionMap;
 };

@@ -115,6 +115,10 @@ void NXGUIWorkspace::Render()
             {
                 m_pGUI->OpenGUITerrainSector2NodeIDPreview();
             }
+            if (ImGui::MenuItem(ImUtf8("显示全局Sector版本号"))) 
+            {
+                m_pGUI->OpenGUISectorVersionMap();
+            }
             if (ImGui::BeginMenu(ImUtf8("调试")))
             {
                 if (ImGui::MenuItem(ImUtf8("显示调试界面"))) 

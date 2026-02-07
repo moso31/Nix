@@ -15,6 +15,8 @@ NXTerrainLODStreamer::NXTerrainLODStreamer() :
 
     // nodeDescArray长度固定不变
     m_nodeDescArrayInternal.resize(g_terrainStreamConfig.NodeDescArrayInitialSize);
+
+    m_sectorVersionMap.Init(Int2(256, 256));
 }
 
 NXTerrainLODStreamer::~NXTerrainLODStreamer()
@@ -63,7 +65,7 @@ void NXTerrainLODStreamer::Update()
     int maxRequest = std::max((int)g_terrainStreamConfig.MaxRequestLimit - m_asyncLoader->GetWorkingTaskNum(), 0);
     int req = 0;
 
-    // 正序加载（gpu-driven，逆序加载没有意义）
+    // 正序加载（逆序加载没有意义，ping-pong对逐层推导有强依赖）
     for (int i = 0; i <= g_terrainStreamConfig.MaxNodeLevel; i++) 
     {
         // 遍历，看本帧快照对应的node们是否在缓存里
@@ -238,7 +240,7 @@ void NXTerrainLODStreamer::ProcessCompletedStreamingTask()
     for (int i = 0; i < completeTasks.size(); i++)
     {
         auto& task = completeTasks[i];
-        //printf("task %d: %s\n", task.nodeDescArrayIndex, task.pHeightMap->GetName().c_str());
+        //printf("task %d: %s, pos: %d, %d; size: %d\n", task.nodeDescArrayIndex, task.pHeightMap->GetName().c_str(), task.positionWS.x, task.positionWS.y, (int)task.size);
 
         m_nodeDescArrayInternal[task.nodeDescArrayIndex].isLoading = false;
         m_nodeDescArrayInternal[task.nodeDescArrayIndex].isValid = true;
@@ -253,6 +255,10 @@ void NXTerrainLODStreamer::ProcessCompletedStreamingTask()
         m_streamData.SetToAtlasHeightTexture(i, task.pHeightMap);
         m_streamData.SetToAtlasSplatTexture(i, task.pSplatMap);
         m_streamData.SetToAtlasNormalTexture(i, task.pNormalMap);
+
+        Int2 sectorID = (task.positionWS / g_terrainConfig.SectorSize - g_terrainConfig.MinSectorID);
+        int sectorSize = (task.size - 1) / g_terrainConfig.SectorSize;
+        m_sectorVersionMap.UpdateVersion(sectorID, sectorSize);
     }
 
     m_streamData.UpdateCBNodeDescArray();
