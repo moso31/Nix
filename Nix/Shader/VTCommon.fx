@@ -42,6 +42,22 @@ struct CBufferMigrateSector
 #define SECTOR_MIN int2(-128, -128)
 #define NodeDescArrayNum 1024
 
+float MipLevelPoint(float2 uv, float size)
+{
+    float2 dX = ddx(uv * size);
+    float2 dY = ddy(uv * size);
+    float delta = max(dot(dX, dX), dot(dY, dY));
+    return ceil(0.5f * log2(delta));
+}
+
+float MipLevelLinear(float2 uv, float size)
+{
+    float2 dX = ddx(uv * size);
+    float2 dY = ddy(uv * size);
+    float delta = max(dot(dX, dX), dot(dY, dY));
+    return 0.5f * log2(delta);
+}
+
 // From https://microsoft.github.io/DirectX-Specs/d3d/archive/D3D11_3_FunctionalSpec.htm
 float MipLevelAnisotropy(float2 uv, float size)
 {

@@ -51,15 +51,15 @@ void NXVirtualTexture::RegisterClearIndirectTexturePass()
 
 void NXVirtualTexture::RegisterUpdateSector2VirtImgPass()
 {
-	for (auto& data : m_cbDataSector2VirtImg)
+	if (m_enableDebugPrint)
 	{
-		//indiTexData(((indiTexPos.x & 0xFFF) << 20) | ((indiTexPos.y & 0xFFF) << 8) | (std::countr_zero((uint32_t)indiTexSize) & 0xFF)) // std::countr_zero = log2 of POTsize;
-		int indiTexPosX = (data.indiTexData >> 20) & 0xFFF;
-		int indiTexPosY = (data.indiTexData >> 8) & 0xFFF;
-		int indiTexSize = 1 << (data.indiTexData & 0xFF);
-
-		if (m_enableDebugPrint)
+		for (auto& data : m_cbDataSector2VirtImg)
 		{
+			//indiTexData(((indiTexPos.x & 0xFFF) << 20) | ((indiTexPos.y & 0xFFF) << 8) | (std::countr_zero((uint32_t)indiTexSize) & 0xFF)) // std::countr_zero = log2 of POTsize;
+			int indiTexPosX = (data.indiTexData >> 20) & 0xFFF;
+			int indiTexPosY = (data.indiTexData >> 8) & 0xFFF;
+			int indiTexSize = 1 << (data.indiTexData & 0xFF);
+
 			printf("[UpdateSector2VirtImg] sectorPos: (%d, %d), indiTexPos: (%d, %d), indiTexSize: %d\n",
 				data.sectorPos.x, data.sectorPos.y,
 				indiTexPosX, indiTexPosY,
@@ -92,13 +92,16 @@ void NXVirtualTexture::RegisterUpdateSector2VirtImgPass()
 
 void NXVirtualTexture::RegisterBakePhysicalPagePass()
 {
-	for (auto& data : m_cbDataPhysPageBake)
+	if (m_enableDebugPrint)
 	{
-		if (m_enableDebugPrint)
+		for (auto& data : m_cbDataPhysPageBake)
 		{
 			printf("[BakePhysicalPage] SectorID: (%d, %d), PageID: (%d, %d), GPU Mip: %d, IndiTexLog2Size: %d\n", data.sector.x, data.sector.y, data.pageID.x, data.pageID.y, data.gpuMip, data.indiTexLog2Size);
 		}
 	}
+
+	if (m_cbDataPhysPageBake.empty())
+		return;
 
 	auto& pStreamingData = m_ctx.pTerrainLODStreamer->GetStreamingData();
 
@@ -116,9 +119,6 @@ void NXVirtualTexture::RegisterBakePhysicalPagePass()
 		{
 			uint32_t threadNum = (g_virtualTextureConfig.PhysicalPageTileSize + 7) / 8;
 			uint32_t bakeTexNum = m_cbDataPhysPageBake.size();
-
-			if (bakeTexNum == 0)
-				return;
 
 			auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("PhysicalPageBaker"));
 			pMat->SetConstantBuffer(0, 0, &m_cbPhysPageBake);
@@ -139,13 +139,16 @@ void NXVirtualTexture::RegisterBakePhysicalPagePass()
 
 void NXVirtualTexture::RegisterUpdateIndirectTexturePass()
 {
-	for (auto& data : m_cbDataUpdateIndex)
+	if (m_enableDebugPrint)
 	{
-		if (m_enableDebugPrint)
+		for (auto& data : m_cbDataUpdateIndex)
 		{
 			printf("[UpdateIndirectTexture] PageID: (%d, %d), gpumip: %d, index: %d\n", data.pageID.x, data.pageID.y, data.mip, data.index);
 		}
 	}
+
+	if (m_cbDataUpdateIndex.empty())
+		return;
 
 	m_ctx.pRG->AddPass<UpdateIndirectTexturePassData>("UpdateIndirectTexture",
 		[&](NXRGBuilder& builder, UpdateIndirectTexturePassData& data)
@@ -155,8 +158,6 @@ void NXVirtualTexture::RegisterUpdateIndirectTexturePass()
 		[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, UpdateIndirectTexturePassData& data)
 		{
 			uint32_t bakeTexNum = m_cbDataUpdateIndex.size();
-			if (bakeTexNum == 0)
-				return;
 
 			auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("UpdateIndirectTexture"));
 			pMat->SetConstantBuffer(0, 0, &m_cbUpdateIndex);
@@ -178,6 +179,7 @@ void NXVirtualTexture::RegisterRemoveIndirectTextureSectorPass(const NXConstantB
 	{
 		printf("RemoveIndirectTextureSectors: ImagePos: (%d, %d), ImageSize: %d, MaxRemoveMip: %d\n", removeData.imagePos.x, removeData.imagePos.y, removeData.imageSize, removeData.maxRemoveMip);
 	}
+
 	m_ctx.pRG->AddPass<RemoveIndirectTextureSectorPassData>("RemoveIndirectTextureSectors",
 		[&](NXRGBuilder& builder, RemoveIndirectTextureSectorPassData& data)
 		{
@@ -211,6 +213,7 @@ void NXVirtualTexture::RegisterMigrateIndirectTextureSectorPass(const NXConstant
 			migrateData.fromImageSize, migrateData.toImageSize,
 			migrateData.mipDelta);
 	}
+
 	m_ctx.pRG->AddPass<MigrateIndirectTextureSectorPassData>("MigrateIndirectTextureSectors",
 		[&](NXRGBuilder& builder, MigrateIndirectTextureSectorPassData& data)
 		{

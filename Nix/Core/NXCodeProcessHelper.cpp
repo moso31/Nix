@@ -595,42 +595,6 @@ struct PS_OUTPUT
 std::string NXCodeProcessHelper::BuildHLSL_PassFuncs(int& ioLineCounter, const NXMaterialData& oMatData, const NXMaterialCode& shaderCode)
 {
 	std::string str = R"(
-void EncodeVTPageID(float2 posXZ, float2 positionSS)
-{
-	int2 sectorID = int2(floor(posXZ / 64));
-	uint2 sectorPixelPos = (uint2)(sectorID + 128);
-	uint indiTexData = m_VTSector2VirtImg.Load(uint3(sectorPixelPos.xy, 0));
-	
-	uint3 val = DecodeSector2VirtImgData(indiTexData);
-	uint  indiTexMip0Size = (1u << val.z);
-	uint2 indiTexMip0Pos = val.xy * indiTexMip0Size; 
-	uint indiTexMip0Log2Size = val.z;
-	
-    uint mip = (uint)clamp(MipLevelAnisotropy(posXZ, 2048), 0, indiTexMip0Log2Size);
-
-	if (indiTexData == 0xFFFFFFFF) // must before MipLevelAnisotropy because of ddx/ddy!
-		return;
-
-	float2 relativeUV = frac(posXZ / 64.0f);
-	uint2 indiTexPagePixelMip0 = indiTexMip0Pos + relativeUV * indiTexMip0Size;
-	uint2 indiTexPagePixelMip = indiTexPagePixelMip0 >> mip; // pageID of this Pixel.
-
-	// 1/8 RT resolution with Bayer sampling
-    int bayerOffset64 = g_Bayer8x8[g.frameIndex % 64];
-    int bayerOffsetX = bayerOffset64 % 8;
-    int bayerOffsetY = bayerOffset64 / 8;
-    int2 pixelCoord = int2(positionSS);
-    if (pixelCoord.x % 8 == bayerOffsetX && pixelCoord.y % 8 == bayerOffsetY)
-    {
-        m_VTPageIDBuffer[pixelCoord / 8] = EncodeIndirectTextureData(indiTexPagePixelMip, mip, indiTexMip0Log2Size); 
-    }
-
-	// Full resolution for debugging
-    //int2 pixelCoord = int2(positionSS);
-    //uint encode = EncodeIndirectTextureData(indiTexPagePixelMip, mip, indiTexMip0Log2Size);
-	//m_VTPageIDBuffer[pixelCoord] = encode;
-}
-
 void EncodeGBuffer(NXGBufferParams gBuffer, PS_INPUT input, out PS_OUTPUT Output)
 {
 	uint uShadingModel = asuint(m.shadingModel);
@@ -747,12 +711,6 @@ void PS(PS_INPUT input, out PS_OUTPUT Output)
 EncodeGBuffer(o, input, Output);
 }
 )";
-	if (gpuInstancing)
-	{
-		strPSEnd = R"(
-EncodeVTPageID(input.posWS.xz, input.posSS.xy);
-)" + strPSEnd;
-	}
 
 	std::string str;
 	str += strPSBegin;
