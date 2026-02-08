@@ -23,6 +23,12 @@
 
 在AMD-Ryzen 5800X + RTX 4070Ti环境下，16384x16384的地形，可达720p 1k多帧（cpu瓶颈），2k 550帧，同时显存占用不到200M。并且考虑到代码并非彻底优化，在此基础上仍有不少提升空间。
 
+### Adaptive Virtual Texture
+
+这一部分基本是对 Ka Chen 《Adaptive Virtual Texture Rendering in Far Cry 4》 中所介绍功能的的落地。
+
+<img width="2560" height="1392" alt="image" src="https://github.com/user-attachments/assets/40ec5f63-7db5-48cf-a9b5-7cd684b0a4a5" />
+
 ### NXRG(基于有向无环图的半自动RenderGraph) 
 
 提供了一个半自动的RenderGraph实现。
