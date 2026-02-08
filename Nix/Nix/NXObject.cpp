@@ -11,7 +11,7 @@ void NXObject::SetParent(NXObject* pParent)
 	if (m_parent)
 		m_parent->RemoveChild(this);
 
-	// ²»¿¼ÂÇSetParentÎªnullptrµÄÇé¿ö£¬ÒòÎª³¡¾°ÖÐÊ¼ÖÕÓÐÒ»¸öpRootObject¡£
+	// ä¸è€ƒè™‘SetParentä¸ºnullptrçš„æƒ…å†µï¼Œå› ä¸ºåœºæ™¯ä¸­å§‹ç»ˆæœ‰ä¸€ä¸ªpRootObjectã€‚
 	m_parent = pParent;
 	pParent->m_childs.push_back(this);
 }

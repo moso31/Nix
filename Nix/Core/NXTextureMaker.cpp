@@ -10,18 +10,18 @@ void NXTextureMaker::ReadTerrainRawR16(const std::filesystem::path& path, std::v
     const uint32_t kBytesPerPixel = sizeof(uint16_t);
 
     if (!NXConvert::IsRawFileExtension(path.extension().string()))
-        throw std::runtime_error("¸ß¶ÈÍ¼À©Õ¹Ãû²»ÊÇ .raw");
+        throw std::runtime_error("é«˜åº¦å›¾æ‰©å±•åä¸æ˜¯ .raw");
 
     const uint64_t expectedBytes = uint64_t(kBaseSize) * uint64_t(kBaseSize) * kBytesPerPixel;
 
     std::ifstream file(path, std::ios::binary);
     if (!file)
-        throw std::runtime_error("´ò¿ª RAW Ê§°Ü: " + path.string());
+        throw std::runtime_error("æ‰“å¼€ RAW å¤±è´¥: " + path.string());
 
     out.resize(size_t(kBaseSize) * size_t(kBaseSize));
     file.read(reinterpret_cast<char*>(out.data()), std::streamsize(expectedBytes));
     if (file.gcount() != std::streamsize(expectedBytes))
-        throw std::runtime_error("RAW ³ß´ç²»Îª 2049x2049 R16: " + path.string());
+        throw std::runtime_error("RAW å°ºå¯¸ä¸ä¸º 2049x2049 R16: " + path.string());
 }
 
 void NXTextureMaker::ReadTerrainDDSR16Unorm(const std::filesystem::path& path, std::vector<uint16_t>& out)
@@ -31,20 +31,20 @@ void NXTextureMaker::ReadTerrainDDSR16Unorm(const std::filesystem::path& path, s
     HRESULT hr = LoadFromDDSFile(path.wstring().c_str(), DDS_FLAGS_NONE, &meta, img);
     if (FAILED(hr)) 
     {
-        throw std::runtime_error("LoadFromDDSFile Ê§°Ü: " + path.string());
+        throw std::runtime_error("LoadFromDDSFile å¤±è´¥: " + path.string());
     }
 
-    // ¼ì²é¸ñÊ½±ØĞëÊÇ R16_UNORM
+    // æ£€æŸ¥æ ¼å¼å¿…é¡»æ˜¯ R16_UNORM
     DXGI_FORMAT fmt = meta.format;
     if (fmt != DXGI_FORMAT_R16_UNORM)
     {
-        throw std::runtime_error("DDS ¸ñÊ½±ØĞëÊÇ R16_UNORM: " + path.string());
+        throw std::runtime_error("DDS æ ¼å¼å¿…é¡»æ˜¯ R16_UNORM: " + path.string());
     }
 
     const Image* src = img.GetImage(0, 0, 0);
 
     if (!src) 
-        throw std::runtime_error("»ñÈ¡Í¼ÏñÊı¾İÊ§°Ü: " + path.string());
+        throw std::runtime_error("è·å–å›¾åƒæ•°æ®å¤±è´¥: " + path.string());
 
     const size_t width = src->width;
     const size_t height = src->height;
@@ -52,7 +52,7 @@ void NXTextureMaker::ReadTerrainDDSR16Unorm(const std::filesystem::path& path, s
 
     out.resize(width * height);
 
-    // ÖğĞĞ¿½±´£¬ºöÂÔ¶ÔÆë×Ö½Ú
+    // é€è¡Œæ‹·è´ï¼Œå¿½ç•¥å¯¹é½å­—èŠ‚
     const uint8_t* p = src->pixels;
     for (size_t y = 0; y < height; ++y) 
     {
@@ -68,24 +68,24 @@ void NXTextureMaker::ReadTerrainDDSR8Unorm(const std::filesystem::path& path, st
     HRESULT hr = LoadFromDDSFile(path.wstring().c_str(), DDS_FLAGS_NONE, &meta, img);
     if (FAILED(hr)) 
     {
-        throw std::runtime_error("LoadFromDDSFile Ê§°Ü: " + path.string());
+        throw std::runtime_error("LoadFromDDSFile å¤±è´¥: " + path.string());
     }
 
-    // 2) ¼ì²é¸ñÊ½±ØĞëÊÇ R8_UNORM£¬·ñÔòÖ±½Ó±¨´í
+    // 2) æ£€æŸ¥æ ¼å¼å¿…é¡»æ˜¯ R8_UNORMï¼Œå¦åˆ™ç›´æ¥æŠ¥é”™
     DXGI_FORMAT fmt = meta.format;
     if (fmt != DXGI_FORMAT_R8_UNORM)
     {
-        throw std::runtime_error("DDS ¸ñÊ½±ØĞëÊÇ R8_UNORM: " + path.string());
+        throw std::runtime_error("DDS æ ¼å¼å¿…é¡»æ˜¯ R8_UNORM: " + path.string());
     }
 
     const Image* src = img.GetImage(0, 0, 0);
 
     if (!src) 
-        throw std::runtime_error("»ñÈ¡Í¼ÏñÊı¾İÊ§°Ü: " + path.string());
+        throw std::runtime_error("è·å–å›¾åƒæ•°æ®å¤±è´¥: " + path.string());
 
-    // 3) »ù±¾Ğ£Ñé£ºÖ»¶Á 2D£¨ÔÊĞíÓĞ mip/array£¬µ«´Ë´¦È¡ slice0/mip0£©
+    // 3) åŸºæœ¬æ ¡éªŒï¼šåªè¯» 2Dï¼ˆå…è®¸æœ‰ mip/arrayï¼Œä½†æ­¤å¤„å– slice0/mip0ï¼‰
     if (src->format != DXGI_FORMAT_R8_UNORM) 
-        throw std::runtime_error("DDS ·Ç 8bit µ¥Í¨µÀ¸ñÊ½: " + path.string());
+        throw std::runtime_error("DDS é 8bit å•é€šé“æ ¼å¼: " + path.string());
 
     const size_t width = src->width;
     const size_t height = src->height;
@@ -93,7 +93,7 @@ void NXTextureMaker::ReadTerrainDDSR8Unorm(const std::filesystem::path& path, st
 
     out.resize(width * height);
 
-    // 4) ÖğĞĞ¿½±´£¬ºöÂÔ¶ÔÆë×Ö½Ú
+    // 4) é€è¡Œæ‹·è´ï¼Œå¿½ç•¥å¯¹é½å­—èŠ‚
     const uint8_t* p = src->pixels;
     for (size_t y = 0; y < height; ++y) 
     {
@@ -109,10 +109,10 @@ void NXTextureMaker::ReadTerrainDDSRGBA8Unorm(const std::filesystem::path& path,
     HRESULT hr = LoadFromDDSFile(path.wstring().c_str(), DDS_FLAGS_NONE, &meta, img);
     if (FAILED(hr)) 
     {
-        throw std::runtime_error("LoadFromDDSFile Ê§°Ü: " + path.string());
+        throw std::runtime_error("LoadFromDDSFile å¤±è´¥: " + path.string());
     }
 
-    // Èç¹ûÊÇÑ¹Ëõ¸ñÊ½£¨ÈçBC3£©£¬ÏÈ½âÑ¹
+    // å¦‚æœæ˜¯å‹ç¼©æ ¼å¼ï¼ˆå¦‚BC3ï¼‰ï¼Œå…ˆè§£å‹
     ScratchImage decompressedImg;
     const ScratchImage* pImg = &img;
     DXGI_FORMAT fmt = meta.format;
@@ -122,23 +122,23 @@ void NXTextureMaker::ReadTerrainDDSRGBA8Unorm(const std::filesystem::path& path,
                         DXGI_FORMAT_R8G8B8A8_UNORM, decompressedImg);
         if (FAILED(hr))
         {
-            throw std::runtime_error("½âÑ¹DDSÊ§°Ü: " + path.string());
+            throw std::runtime_error("è§£å‹DDSå¤±è´¥: " + path.string());
         }
         pImg = &decompressedImg;
         meta = decompressedImg.GetMetadata();
         fmt = meta.format;
     }
 
-    // ¼ì²é¸ñÊ½±ØĞëÊÇ R8G8B8A8_UNORM
+    // æ£€æŸ¥æ ¼å¼å¿…é¡»æ˜¯ R8G8B8A8_UNORM
     if (fmt != DXGI_FORMAT_R8G8B8A8_UNORM)
     {
-        throw std::runtime_error("DDS ¸ñÊ½±ØĞëÊÇ R8G8B8A8_UNORM: " + path.string());
+        throw std::runtime_error("DDS æ ¼å¼å¿…é¡»æ˜¯ R8G8B8A8_UNORM: " + path.string());
     }
 
     const Image* src = pImg->GetImage(0, 0, 0);
 
     if (!src) 
-        throw std::runtime_error("»ñÈ¡Í¼ÏñÊı¾İÊ§°Ü: " + path.string());
+        throw std::runtime_error("è·å–å›¾åƒæ•°æ®å¤±è´¥: " + path.string());
 
     const size_t width = src->width;
     const size_t height = src->height;
@@ -146,7 +146,7 @@ void NXTextureMaker::ReadTerrainDDSRGBA8Unorm(const std::filesystem::path& path,
 
     out.resize(width * height);
 
-    // ÖğĞĞ¿½±´£¬ºöÂÔ¶ÔÆë×Ö½Ú
+    // é€è¡Œæ‹·è´ï¼Œå¿½ç•¥å¯¹é½å­—èŠ‚
     const uint8_t* p = src->pixels;
     for (size_t y = 0; y < height; ++y) 
     {
@@ -160,9 +160,9 @@ void NXTextureMaker::EnsureDir(const std::filesystem::path& dir)
     std::error_code ec;
     if (!std::filesystem::create_directories(dir, ec))
     {
-        // ÒÑ´æÔÚ»ò´´½¨³É¹¦¶¼¿ÉÒÔ£»Ö»ÓĞÔÚÕæÕıÊ§°ÜÊ±Å×
+        // å·²å­˜åœ¨æˆ–åˆ›å»ºæˆåŠŸéƒ½å¯ä»¥ï¼›åªæœ‰åœ¨çœŸæ­£å¤±è´¥æ—¶æŠ›
         if (!std::filesystem::exists(dir))
-            throw std::runtime_error("´´½¨Ä¿Â¼Ê§°Ü: " + dir.string());
+            throw std::runtime_error("åˆ›å»ºç›®å½•å¤±è´¥: " + dir.string());
     }
 }
 
@@ -170,16 +170,16 @@ void NXTextureMaker::SaveTerrainTileHeightMap(const std::filesystem::path& outPa
 {
     const uint32_t kMinTileSize = g_terrainConfig.SectorSize + 1; // 65
 
-    // Êä³ö´óĞ¡=kMinTileSizeµÄTile£¬Èç¹ûÊäÈëtileSize³¬¹ıÕâ¸ö´óĞ¡£¬¾Í×ö½µ²ÉÑù
+    // è¾“å‡ºå¤§å°=kMinTileSizeçš„Tileï¼Œå¦‚æœè¾“å…¥tileSizeè¶…è¿‡è¿™ä¸ªå¤§å°ï¼Œå°±åšé™é‡‡æ ·
     ScratchImage img;
     HRESULT hr = img.Initialize2D(kHeightMapFormat, kMinTileSize, kMinTileSize, /*arraySize*/1, /*mipLevels*/1);
-    if (FAILED(hr)) throw std::runtime_error("ScratchImage::Initialize2D Ê§°Ü");
+    if (FAILED(hr)) throw std::runtime_error("ScratchImage::Initialize2D å¤±è´¥");
 
     const Image* dst = img.GetImage(0, 0, 0);
     uint8_t* dstBase = dst->pixels;
     const size_t dstRowPitch = dst->rowPitch;
 
-    // ×¨ÃÅÕë¶Ô2ÕûÊıÃİµÄµã½µ²ÉÑù
+    // ä¸“é—¨é’ˆå¯¹2æ•´æ•°å¹‚çš„ç‚¹é™é‡‡æ ·
     const uint32_t step = (tileSize - 1u) / (kMinTileSize - 1u); 
     for (uint32_t y = 0; y < kMinTileSize; ++y)
     {
@@ -196,23 +196,23 @@ void NXTextureMaker::SaveTerrainTileHeightMap(const std::filesystem::path& outPa
 
     hr = SaveToDDSFile(img.GetImages(), img.GetImageCount(), img.GetMetadata(), DDS_FLAGS_NONE, outPath.wstring().c_str());
     if (FAILED(hr))
-        throw std::runtime_error("±£´æ DDS Ê§°Ü: " + outPath.string());
+        throw std::runtime_error("ä¿å­˜ DDS å¤±è´¥: " + outPath.string());
 }
 
 void NXTextureMaker::SaveTerrainTileSplatMap(const std::filesystem::path& outPath, const uint8_t* src, uint32_t srcW, uint32_t srcH, uint32_t startX, uint32_t startY, uint32_t tileSize)
 {
     const uint32_t kMinTileSize = g_terrainConfig.SectorSize + 1; // 65
 
-    // Êä³ö´óĞ¡=kMinTileSizeµÄTile£¬Èç¹ûÊäÈëtileSize³¬¹ıÕâ¸ö´óĞ¡£¬¾Í×ö½µ²ÉÑù
+    // è¾“å‡ºå¤§å°=kMinTileSizeçš„Tileï¼Œå¦‚æœè¾“å…¥tileSizeè¶…è¿‡è¿™ä¸ªå¤§å°ï¼Œå°±åšé™é‡‡æ ·
     ScratchImage img;
     HRESULT hr = img.Initialize2D(DXGI_FORMAT_R8_UNORM, kMinTileSize, kMinTileSize, /*arraySize*/1, /*mipLevels*/1);
-    if (FAILED(hr)) throw std::runtime_error("ScratchImage::Initialize2D Ê§°Ü");
+    if (FAILED(hr)) throw std::runtime_error("ScratchImage::Initialize2D å¤±è´¥");
 
     const Image* dst = img.GetImage(0, 0, 0);
     uint8_t* dstBase = dst->pixels;
     const size_t dstRowPitch = dst->rowPitch;
 
-    // ×¨ÃÅÕë¶Ô2ÕûÊıÃİµÄµã½µ²ÉÑù
+    // ä¸“é—¨é’ˆå¯¹2æ•´æ•°å¹‚çš„ç‚¹é™é‡‡æ ·
     const uint32_t step = (tileSize - 1u) / (kMinTileSize - 1u); 
     for (uint32_t y = 0; y < kMinTileSize; ++y)
     {
@@ -229,24 +229,24 @@ void NXTextureMaker::SaveTerrainTileSplatMap(const std::filesystem::path& outPat
 
     hr = SaveToDDSFile(img.GetImages(), img.GetImageCount(), img.GetMetadata(), DDS_FLAGS_NONE, outPath.wstring().c_str());
     if (FAILED(hr))
-        throw std::runtime_error("±£´æ SplatMap DDS Ê§°Ü: " + outPath.string());
+        throw std::runtime_error("ä¿å­˜ SplatMap DDS å¤±è´¥: " + outPath.string());
 }
 
 void NXTextureMaker::SaveTerrainTileNormalMap(const std::filesystem::path& outPath, const uint32_t* src, uint32_t srcW, uint32_t srcH, uint32_t startX, uint32_t startY, uint32_t tileSize)
 {
     const uint32_t kMinTileSize = g_terrainConfig.SectorSize + 1; // 65
 
-    // Êä³ö´óĞ¡=kMinTileSizeµÄTile£¬Èç¹ûÊäÈëtileSize³¬¹ıÕâ¸ö´óĞ¡£¬¾Í×ö½µ²ÉÑù
-    // ÏÈ´´½¨Î´Ñ¹ËõµÄR8G8B8A8ÎÆÀí
+    // è¾“å‡ºå¤§å°=kMinTileSizeçš„Tileï¼Œå¦‚æœè¾“å…¥tileSizeè¶…è¿‡è¿™ä¸ªå¤§å°ï¼Œå°±åšé™é‡‡æ ·
+    // å…ˆåˆ›å»ºæœªå‹ç¼©çš„R8G8B8A8çº¹ç†
     ScratchImage imgUncompressed;
     HRESULT hr = imgUncompressed.Initialize2D(DXGI_FORMAT_R8G8B8A8_UNORM, kMinTileSize, kMinTileSize, /*arraySize*/1, /*mipLevels*/1);
-    if (FAILED(hr)) throw std::runtime_error("ScratchImage::Initialize2D Ê§°Ü");
+    if (FAILED(hr)) throw std::runtime_error("ScratchImage::Initialize2D å¤±è´¥");
 
     const Image* dst = imgUncompressed.GetImage(0, 0, 0);
     uint8_t* dstBase = dst->pixels;
     const size_t dstRowPitch = dst->rowPitch;
 
-    // ×¨ÃÅÕë¶Ô2ÕûÊıÃİµÄµã½µ²ÉÑù
+    // ä¸“é—¨é’ˆå¯¹2æ•´æ•°å¹‚çš„ç‚¹é™é‡‡æ ·
     const uint32_t step = (tileSize - 1u) / (kMinTileSize - 1u); 
     for (uint32_t y = 0; y < kMinTileSize; ++y)
     {
@@ -261,16 +261,16 @@ void NXTextureMaker::SaveTerrainTileNormalMap(const std::filesystem::path& outPa
         }
     }
 
-    // Ñ¹ËõÎªBC3¸ñÊ½
+    // å‹ç¼©ä¸ºBC3æ ¼å¼
     ScratchImage imgCompressed;
     hr = Compress(imgUncompressed.GetImages(), imgUncompressed.GetImageCount(), imgUncompressed.GetMetadata(),
                   DXGI_FORMAT_BC3_UNORM, TEX_COMPRESS_DEFAULT, TEX_THRESHOLD_DEFAULT, imgCompressed);
     if (FAILED(hr))
-        throw std::runtime_error("BC3Ñ¹ËõÊ§°Ü: " + outPath.string());
+        throw std::runtime_error("BC3å‹ç¼©å¤±è´¥: " + outPath.string());
 
     hr = SaveToDDSFile(imgCompressed.GetImages(), imgCompressed.GetImageCount(), imgCompressed.GetMetadata(), DDS_FLAGS_NONE, outPath.wstring().c_str());
     if (FAILED(hr))
-        throw std::runtime_error("±£´æ NormalMap DDS Ê§°Ü: " + outPath.string());
+        throw std::runtime_error("ä¿å­˜ NormalMap DDS å¤±è´¥: " + outPath.string());
 }
 
 void NXTextureMaker::GenerateTerrainHeightMap2DArray(const TerrainTexLODBakeConfig& bakeConfig, uint32_t nodeCountX, uint32_t nodeCountY, uint32_t width, uint32_t height, const std::filesystem::path& outDDSPath, std::function<void()> onProgressCount)
@@ -285,11 +285,11 @@ void NXTextureMaker::GenerateTerrainHeightMap2DArray(const TerrainTexLODBakeConf
     constexpr DXGI_FORMAT kFormat = DXGI_FORMAT_R16_UNORM;
     const uint32_t kBytesPerPixel = sizeof(uint16_t);
 
-    // ´´½¨ 2D array ÎÆÀí
+    // åˆ›å»º 2D array çº¹ç†
     std::unique_ptr<ScratchImage> texArray = std::make_unique<ScratchImage>();
     HRESULT hr = texArray->Initialize2D(kFormat, width, height, rawPaths.size(), 1);
     if (FAILED(hr))
-        throw std::runtime_error("DirectXTex::InitializeArray Ê§°Ü");
+        throw std::runtime_error("DirectXTex::InitializeArray å¤±è´¥");
 
     for (uint32_t i = 0; i < arraySize; ++i)
     {
@@ -309,35 +309,35 @@ void NXTextureMaker::GenerateTerrainHeightMap2DArray(const TerrainTexLODBakeConf
         if (file.gcount() != static_cast<std::streamsize>(width * height * kBytesPerPixel)) 
             rawValid = false;
 
-        if (!rawValid) // Èç¹û²»ÊÇ raw ÎÄ¼ş£¬»òÕßrawµÄ¸ñÊ½²»¶Ô£¬¶ÔÓ¦sliceÌî³äÈ«ºÚÎÆÀí
+        if (!rawValid) // å¦‚æœä¸æ˜¯ raw æ–‡ä»¶ï¼Œæˆ–è€…rawçš„æ ¼å¼ä¸å¯¹ï¼Œå¯¹åº”sliceå¡«å……å…¨é»‘çº¹ç†
         {
             std::fill(rawData.begin(), rawData.end(), uint16_t(0)); 
         }
 
-        // Ğ´Èë¶ÔÓ¦ i
+        // å†™å…¥å¯¹åº” i
         const Image* dst = texArray->GetImage(0, slice, 0);
         std::memcpy(dst->pixels, rawData.data(), width* height* kBytesPerPixel);
 
-        // ÈçÓĞ±ØÒª£¬Í¨ÖªÍâ²¿¼ÆÊıÆ÷-1
+        // å¦‚æœ‰å¿…è¦ï¼Œé€šçŸ¥å¤–éƒ¨è®¡æ•°å™¨-1
         if (onProgressCount) onProgressCount();
     }
 
-    // 2) Ñ¹Ëõµ½ BC4£¨²¢ĞĞ£©
+    // 2) å‹ç¼©åˆ° BC4ï¼ˆå¹¶è¡Œï¼‰
     //std::unique_ptr<ScratchImage> bc4 = std::make_unique<ScratchImage>();
     //{
     //    const TexMetadata& meta = texArray->GetMetadata();
     //    TEX_COMPRESS_FLAGS cflags = TEX_COMPRESS_DEFAULT | TEX_COMPRESS_PARALLEL;
     //    HRESULT hr = Compress(texArray->GetImages(), texArray->GetImageCount(), meta, DXGI_FORMAT_BC4_UNORM, cflags, 0.5f, *bc4);
     //    if (FAILED(hr)) 
-    //        throw std::runtime_error("Compress(BC4) Ê§°Ü");
+    //        throw std::runtime_error("Compress(BC4) å¤±è´¥");
 
     //    texArray.swap(bc4);
     //}
 
-    // ±£´æµ½ DDS
+    // ä¿å­˜åˆ° DDS
     hr = SaveToDDSFile(texArray->GetImages(), texArray->GetImageCount(), texArray->GetMetadata(), DDS_FLAGS_NONE, outDDSPath.wstring().c_str());
     if (FAILED(hr))
-        throw std::runtime_error("±£´æ DDS Ê§°Ü: " + outDDSPath.string());
+        throw std::runtime_error("ä¿å­˜ DDS å¤±è´¥: " + outDDSPath.string());
 }
 
 void NXTextureMaker::GenerateTerrainMinMaxZMap2DArray(const TerrainTexLODBakeConfig& bakeConfig, uint32_t nodeCountX, uint32_t nodeCountY, uint32_t width, uint32_t height, const std::filesystem::path& outDDSPath, std::function<void()> onProgressCount)
@@ -350,14 +350,14 @@ void NXTextureMaker::GenerateTerrainMinMaxZMap2DArray(const TerrainTexLODBakeCon
         throw std::runtime_error("arraySize == 0");
 
     const int  step = 8;
-    uint32_t   mip0Width = width / step; // 2049 »á±»×Ô¶¯È¡ÕûÄ¨µôÓàÊı
+    uint32_t   mip0Width = width / step; // 2049 ä¼šè¢«è‡ªåŠ¨å–æ•´æŠ¹æ‰ä½™æ•°
     uint32_t   mip0Height = height / step;
     const int  mipLevels = 6;
 
     auto pImage = std::make_shared<ScratchImage>();
     HRESULT hr = pImage->Initialize2D(DXGI_FORMAT_R32G32_FLOAT, mip0Width, mip0Height, arraySize, mipLevels);
     if (FAILED(hr))
-        throw std::runtime_error("DirectXTex::Initialize2D Ê§°Ü");
+        throw std::runtime_error("DirectXTex::Initialize2D å¤±è´¥");
 
     const uint32_t kBytesPerPixel = sizeof(uint16_t);
 
@@ -371,12 +371,12 @@ void NXTextureMaker::GenerateTerrainMinMaxZMap2DArray(const TerrainTexLODBakeCon
         {
             std::ifstream file(path, std::ios::binary);
             if (!file)
-                throw std::runtime_error("ÎŞ·¨´ò¿ªÎÄ¼ş: " + path.string());
+                throw std::runtime_error("æ— æ³•æ‰“å¼€æ–‡ä»¶: " + path.string());
 
             file.read(reinterpret_cast<char*>(rawData.data()),
                 static_cast<std::streamsize>(rawData.size() * kBytesPerPixel));
             if (!file)
-                throw std::runtime_error("¶ÁÈ¡Êı¾İÊ§°Ü: " + path.string());
+                throw std::runtime_error("è¯»å–æ•°æ®å¤±è´¥: " + path.string());
         }
 
         std::vector<MinMaxZMap> dataZMip0(mip0Width * mip0Height);
@@ -467,13 +467,13 @@ void NXTextureMaker::GenerateTerrainMinMaxZMap2DArray(const TerrainTexLODBakeCon
         for (int mip = 0; mip < 5; ++mip)
             copyLevel(mip + 1, dataZMip1To5[mip]);
 
-        // ÈçÓĞ±ØÒª£¬Í¨ÖªÍâ²¿¼ÆÊıÆ÷-1
+        // å¦‚æœ‰å¿…è¦ï¼Œé€šçŸ¥å¤–éƒ¨è®¡æ•°å™¨-1
         if (onProgressCount) onProgressCount();
     }
 
     hr = SaveToDDSFile(pImage->GetImages(), pImage->GetImageCount(), pImage->GetMetadata(), DDS_FLAGS_NONE, outDDSPath.wstring().c_str());
     if (FAILED(hr))
-        throw std::runtime_error("±£´æ DDS Ê§°Ü: " + outDDSPath.string());
+        throw std::runtime_error("ä¿å­˜ DDS å¤±è´¥: " + outDDSPath.string());
 }
 
 void NXTextureMaker::GenerateTerrainNormal2DArray(const TerrainTexLODBakeConfig& bakeConfig, uint32_t nodeCountX, uint32_t nodeCountY, uint32_t width, uint32_t height, const Vector2& zRange, const std::filesystem::path& outDDSPath, std::function<void()> onProgressCount)
@@ -485,13 +485,13 @@ void NXTextureMaker::GenerateTerrainNormal2DArray(const TerrainTexLODBakeConfig&
     if (arraySize == 0)
         throw std::runtime_error("arraySize == 0");
 
-    constexpr DXGI_FORMAT kFormat = DXGI_FORMAT_R10G10B10A2_UNORM;  // Êä³ö¸ñÊ½
+    constexpr DXGI_FORMAT kFormat = DXGI_FORMAT_R10G10B10A2_UNORM;  // è¾“å‡ºæ ¼å¼
     constexpr uint32_t kBytesPerPixel = sizeof(uint16_t);
 
     std::unique_ptr<ScratchImage> texArray = std::make_unique<ScratchImage>();
     HRESULT hr = texArray->Initialize2D(kFormat, width, height, arraySize, 1);
     if (FAILED(hr))
-        throw std::runtime_error("DirectXTex::Initialize2D Ê§°Ü");
+        throw std::runtime_error("DirectXTex::Initialize2D å¤±è´¥");
 
     std::vector<uint16_t> rawData(width * height);
     std::vector<Vector3> normalBuf(width * height);
@@ -525,7 +525,7 @@ void NXTextureMaker::GenerateTerrainNormal2DArray(const TerrainTexLODBakeConfig&
                 return h * (zRange.y - zRange.x) + zRange.x;    // [zMin,zMax]
             };
 
-        /* ----------- 3. ±éÀúÏñËØÇó·¨Ïß ----------- */
+        /* ----------- 3. éå†åƒç´ æ±‚æ³•çº¿ ----------- */
         for (uint32_t j = 0; j < height; ++j)
         {
             uint32_t jU = (j == 0) ? j : j - 1;
@@ -541,7 +541,7 @@ void NXTextureMaker::GenerateTerrainNormal2DArray(const TerrainTexLODBakeConfig&
                 float hU = heightWorld(rawData[jU * width + i]);
                 float hD = heightWorld(rawData[jD * width + i]);
 
-                // L/R/U/D ÔÚÊÀ½ç×ø±êÖĞµÄÎ»ÖÃ
+                // L/R/U/D åœ¨ä¸–ç•Œåæ ‡ä¸­çš„ä½ç½®
                 Vector3 posL((float)iL, hL, (float)j);
                 Vector3 posR((float)iR, hR, (float)j);
                 Vector3 posU((float)i, hU, (float)jU);
@@ -568,7 +568,7 @@ void NXTextureMaker::GenerateTerrainNormal2DArray(const TerrainTexLODBakeConfig&
                 uint32_t r = static_cast<uint32_t>((n.x * 0.5f + 0.5f) * 1023.0f);
                 uint32_t g = static_cast<uint32_t>((n.y * 0.5f + 0.5f) * 1023.0f);
                 uint32_t b = static_cast<uint32_t>((n.z * 0.5f + 0.5f) * 1023.0f);
-                uint32_t a = 3;   // 2-bit alpha ÖÃÂú
+                uint32_t a = 3;   // 2-bit alpha ç½®æ»¡
 
                 row[x] = (a << 30) | (b << 20) | (g << 10) | (r << 0);
             }
@@ -583,7 +583,7 @@ void NXTextureMaker::GenerateTerrainNormal2DArray(const TerrainTexLODBakeConfig&
             texArray->GetMetadata(), DDS_FLAGS_NONE,
             outDDSPath.wstring().c_str());
         if (FAILED(hr))
-            throw std::runtime_error("±£´æ DDS Ê§°Ü: " + outDDSPath.string());
+            throw std::runtime_error("ä¿å­˜ DDS å¤±è´¥: " + outDDSPath.string());
     }
 }
 
@@ -612,7 +612,7 @@ void NXTextureMaker::GenerateTerrainStreamingLODMaps_HeightMap(const TerrainTexL
     {
         const auto& rawPath = item.pathHeightMap;
 
-        // 1) ¸ù¾İÎÄ¼şÀ©Õ¹ÃûÑ¡Ôñ¶ÁÈ¡·½Ê½
+        // 1) æ ¹æ®æ–‡ä»¶æ‰©å±•åé€‰æ‹©è¯»å–æ–¹å¼
         std::vector<uint16_t> base;
         std::string ext = rawPath.extension().string();
         if (NXConvert::IsRawFileExtension(ext))
@@ -625,22 +625,22 @@ void NXTextureMaker::GenerateTerrainStreamingLODMaps_HeightMap(const TerrainTexL
         }
         else
         {
-            throw std::runtime_error("²»Ö§³ÖµÄ¸ß¶ÈÍ¼¸ñÊ½: " + rawPath.string());
+            throw std::runtime_error("ä¸æ”¯æŒçš„é«˜åº¦å›¾æ ¼å¼: " + rawPath.string());
         }
 
-        // 2) Êä³öÄ¿Â¼£º"<tile_dir>\sub\hmap\"
+        // 2) è¾“å‡ºç›®å½•ï¼š"<tile_dir>\sub\hmap\"
         const std::filesystem::path tileDir = rawPath.parent_path();
         const std::filesystem::path outDir = tileDir / "sub" / "hmap";
         EnsureDir(outDir);
 
-        // 3) ±éÀú LOD ²ã¼¶£¨0..5£©
+        // 3) éå† LOD å±‚çº§ï¼ˆ0..5ï¼‰
         for (uint32_t L = 0; ; ++L)
         {
             const uint32_t nTiles = 1u << L;
             const uint32_t tileSize = (kBaseSize - 1u) / nTiles + 1u; // 2049 -> 1025 -> 513 -> ...
-            if (tileSize < kMinTileSize) break;                       // µ½ 65 ÎªÖ¹£¨LOD5£©
+            if (tileSize < kMinTileSize) break;                       // åˆ° 65 ä¸ºæ­¢ï¼ˆLOD5ï¼‰
 
-            const uint32_t stride = tileSize - 1u; // ×Ó¿éÆğµã²½³¤£¨º¬ÖØµş±ß£©
+            const uint32_t stride = tileSize - 1u; // å­å—èµ·ç‚¹æ­¥é•¿ï¼ˆå«é‡å è¾¹ï¼‰
 
             for (uint32_t ty = 0; ty < nTiles; ++ty)
             {
@@ -650,20 +650,20 @@ void NXTextureMaker::GenerateTerrainStreamingLODMaps_HeightMap(const TerrainTexL
                 {
                     const uint32_t startX = tx * stride;
 
-                    // ÎÄ¼şÃû£º<size>_<x>_<y>.dds ÀıÈç£º1025_0_1.dds
+                    // æ–‡ä»¶åï¼š<size>_<x>_<y>.dds ä¾‹å¦‚ï¼š1025_0_1.dds
                     std::wstring fname = std::to_wstring(tileSize) + L"_" +
                         std::to_wstring(tx) + L"_" +
                         std::to_wstring(ty) + L".dds";
                     const auto outPath = outDir / fname;
 
-                    // ¼ì²éÎÄ¼şÊÇ·ñ´æÔÚ£¬Èç¹û²»Ç¿ÖÆÉú³ÉÇÒÎÄ¼şÒÑ´æÔÚÔòÌø¹ı
+                    // æ£€æŸ¥æ–‡ä»¶æ˜¯å¦å­˜åœ¨ï¼Œå¦‚æœä¸å¼ºåˆ¶ç”Ÿæˆä¸”æ–‡ä»¶å·²å­˜åœ¨åˆ™è·³è¿‡
                     if (!bakeConfig.bForceGenerate && std::filesystem::exists(outPath))
                     {
-                        printf("Ìø¹ıÒÑ´æÔÚµÄ HeightMap LOD%d tile (%d,%d) : %s\n", L, tx, ty, outPath.string().c_str());
+                        printf("è·³è¿‡å·²å­˜åœ¨çš„ HeightMap LOD%d tile (%d,%d) : %s\n", L, tx, ty, outPath.string().c_str());
                         continue;
                     }
 
-                    printf("Éú³É HeightMap LOD%d tile (%d,%d) : %s\n", L, tx, ty, outPath.string().c_str());
+                    printf("ç”Ÿæˆ HeightMap LOD%d tile (%d,%d) : %s\n", L, tx, ty, outPath.string().c_str());
                     SaveTerrainTileHeightMap(outPath, base.data(), kBaseSize, kBaseSize, startX, startY, tileSize);
                 }
             }
@@ -680,23 +680,23 @@ void NXTextureMaker::GenerateTerrainStreamingLODMaps_SplatMap(const TerrainTexLO
     {
         const auto& rawPath = item.pathSplatMap;
 
-        // 1) ¶ÁÈ¡Ô­Ê¼ R8 DDS
+        // 1) è¯»å–åŸå§‹ R8 DDS
         std::vector<uint8_t> base;
         ReadTerrainDDSR8Unorm(rawPath, base);
 
-        // 2) Êä³öÄ¿Â¼£º"<tile_dir>\sub\splat\"
+        // 2) è¾“å‡ºç›®å½•ï¼š"<tile_dir>\sub\splat\"
         const std::filesystem::path tileDir = rawPath.parent_path();
         const std::filesystem::path outDir = tileDir / "sub" / "splat";
         EnsureDir(outDir);
 
-        // 3) ±éÀú LOD ²ã¼¶£¨0..5£©
+        // 3) éå† LOD å±‚çº§ï¼ˆ0..5ï¼‰
         for (uint32_t L = 0; ; ++L)
         {
             const uint32_t nTiles = 1u << L;
             const uint32_t tileSize = (kBaseSize - 1u) / nTiles + 1u; // 2049 -> 1025 -> 513 -> ...
-            if (tileSize < kMinTileSize) break;                       // µ½ 65 ÎªÖ¹£¨LOD5£©
+            if (tileSize < kMinTileSize) break;                       // åˆ° 65 ä¸ºæ­¢ï¼ˆLOD5ï¼‰
 
-            const uint32_t stride = tileSize - 1u; // ×Ó¿éÆğµã²½³¤£¨º¬ÖØµş±ß£©
+            const uint32_t stride = tileSize - 1u; // å­å—èµ·ç‚¹æ­¥é•¿ï¼ˆå«é‡å è¾¹ï¼‰
 
             for (uint32_t ty = 0; ty < nTiles; ++ty)
             {
@@ -706,20 +706,20 @@ void NXTextureMaker::GenerateTerrainStreamingLODMaps_SplatMap(const TerrainTexLO
                 {
                     const uint32_t startX = tx * stride;
 
-                    // ÎÄ¼şÃû£º<size>_<x>_<y>.dds ÀıÈç£º1025_0_1.dds
+                    // æ–‡ä»¶åï¼š<size>_<x>_<y>.dds ä¾‹å¦‚ï¼š1025_0_1.dds
                     std::wstring fname = std::to_wstring(tileSize) + L"_" +
                         std::to_wstring(tx) + L"_" +
                         std::to_wstring(ty) + L".dds";
                     const auto outPath = outDir / fname;
 
-                    // ¼ì²éÎÄ¼şÊÇ·ñ´æÔÚ£¬Èç¹û²»Ç¿ÖÆÉú³ÉÇÒÎÄ¼şÒÑ´æÔÚÔòÌø¹ı
+                    // æ£€æŸ¥æ–‡ä»¶æ˜¯å¦å­˜åœ¨ï¼Œå¦‚æœä¸å¼ºåˆ¶ç”Ÿæˆä¸”æ–‡ä»¶å·²å­˜åœ¨åˆ™è·³è¿‡
                     if (!bakeConfig.bForceGenerate && std::filesystem::exists(outPath))
                     {
-                        printf("Ìø¹ıÒÑ´æÔÚµÄ SplatMap LOD%d tile (%d,%d) : %s\n", L, tx, ty, outPath.string().c_str());
+                        printf("è·³è¿‡å·²å­˜åœ¨çš„ SplatMap LOD%d tile (%d,%d) : %s\n", L, tx, ty, outPath.string().c_str());
                         continue;
                     }
 
-                    printf("Éú³É SplatMap LOD%d tile (%d,%d) : %s\n", L, tx, ty, outPath.string().c_str());
+                    printf("ç”Ÿæˆ SplatMap LOD%d tile (%d,%d) : %s\n", L, tx, ty, outPath.string().c_str());
                     SaveTerrainTileSplatMap(outPath, base.data(), kBaseSize, kBaseSize, startX, startY, tileSize);
                 }
             }
@@ -735,23 +735,23 @@ void NXTextureMaker::GenerateTerrainStreamingLODMaps_NormalMap(const TerrainTexL
     {
         const auto& rawPath = item.pathNormalMap;
 
-        // 1) ¶ÁÈ¡Ô­Ê¼ RGBA8 DDS
+        // 1) è¯»å–åŸå§‹ RGBA8 DDS
         std::vector<uint32_t> base;
         ReadTerrainDDSRGBA8Unorm(rawPath, base);
 
-        // 2) Êä³öÄ¿Â¼£º"<tile_dir>\sub\normal\"
+        // 2) è¾“å‡ºç›®å½•ï¼š"<tile_dir>\sub\normal\"
         const std::filesystem::path tileDir = rawPath.parent_path();
         const std::filesystem::path outDir = tileDir / "sub" / "normal";
         EnsureDir(outDir);
 
-        // 3) ±éÀú LOD ²ã¼¶£¨0..5£©
+        // 3) éå† LOD å±‚çº§ï¼ˆ0..5ï¼‰
         for (uint32_t L = 0; ; ++L)
         {
             const uint32_t nTiles = 1u << L;
             const uint32_t tileSize = (kBaseSize - 1u) / nTiles + 1u; // 2049 -> 1025 -> 513 -> ...
-            if (tileSize < kMinTileSize) break;                       // µ½ 65 ÎªÖ¹£¨LOD5£©
+            if (tileSize < kMinTileSize) break;                       // åˆ° 65 ä¸ºæ­¢ï¼ˆLOD5ï¼‰
 
-            const uint32_t stride = tileSize - 1u; // ×Ó¿éÆğµã²½³¤£¨º¬ÖØµş±ß£©
+            const uint32_t stride = tileSize - 1u; // å­å—èµ·ç‚¹æ­¥é•¿ï¼ˆå«é‡å è¾¹ï¼‰
 
             for (uint32_t ty = 0; ty < nTiles; ++ty)
             {
@@ -761,20 +761,20 @@ void NXTextureMaker::GenerateTerrainStreamingLODMaps_NormalMap(const TerrainTexL
                 {
                     const uint32_t startX = tx * stride;
 
-                    // ÎÄ¼şÃû£º<size>_<x>_<y>.dds ÀıÈç£º1025_0_1.dds
+                    // æ–‡ä»¶åï¼š<size>_<x>_<y>.dds ä¾‹å¦‚ï¼š1025_0_1.dds
                     std::wstring fname = std::to_wstring(tileSize) + L"_" +
                         std::to_wstring(tx) + L"_" +
                         std::to_wstring(ty) + L".dds";
                     const auto outPath = outDir / fname;
 
-                    // ¼ì²éÎÄ¼şÊÇ·ñ´æÔÚ£¬Èç¹û²»Ç¿ÖÆÉú³ÉÇÒÎÄ¼şÒÑ´æÔÚÔòÌø¹ı
+                    // æ£€æŸ¥æ–‡ä»¶æ˜¯å¦å­˜åœ¨ï¼Œå¦‚æœä¸å¼ºåˆ¶ç”Ÿæˆä¸”æ–‡ä»¶å·²å­˜åœ¨åˆ™è·³è¿‡
                     if (!bakeConfig.bForceGenerate && std::filesystem::exists(outPath))
                     {
-                        printf("Ìø¹ıÒÑ´æÔÚµÄ NormalMap LOD%d tile (%d,%d) : %s\n", L, tx, ty, outPath.string().c_str());
+                        printf("è·³è¿‡å·²å­˜åœ¨çš„ NormalMap LOD%d tile (%d,%d) : %s\n", L, tx, ty, outPath.string().c_str());
                         continue;
                     }
 
-                    printf("Éú³É NormalMap LOD%d tile (%d,%d) : %s\n", L, tx, ty, outPath.string().c_str());
+                    printf("ç”Ÿæˆ NormalMap LOD%d tile (%d,%d) : %s\n", L, tx, ty, outPath.string().c_str());
                     SaveTerrainTileNormalMap(outPath, base.data(), kBaseSize, kBaseSize, startX, startY, tileSize);
                 }
             }

@@ -26,11 +26,11 @@ public:
 	DescriptorAllocator(ID3D12Device* pDevice);
 	DescriptorAllocator(ID3D12Device* pDevice, UINT pageNumLimit, UINT pageSizeLimit);
 
-	// ÔÚ¶ÑÀïÕÒÒ»¶Î´óĞ¡Îª allocSize µÄ¿Õ¼ä£¬²¢·ÖÅäÃèÊö·û
+	// åœ¨å †é‡Œæ‰¾ä¸€æ®µå¤§å°ä¸º allocSize çš„ç©ºé—´ï¼Œå¹¶åˆ†é…æè¿°ç¬¦
 	bool Alloc(DescriptorType type, UINT size, UINT& oPageIdx, UINT& oFirstIdx, D3D12_CPU_DESCRIPTOR_HANDLE& oHandles);
 	bool Alloc(DescriptorType type, D3D12_CPU_DESCRIPTOR_HANDLE& oHandle);
 
-	// ÒÆ³ı pageIdx Ò³ÃæµÄ£¬´Ó start ¿ªÊ¼³¤¶ÈÎª size µÄÄÚ´æ¿é
+	// ç§»é™¤ pageIdx é¡µé¢çš„ï¼Œä» start å¼€å§‹é•¿åº¦ä¸º size çš„å†…å­˜å—
 	void Remove(UINT pageIdx, UINT start, UINT size);
 
 	void CreateNewPage(DescriptorAllocatorBase::Page& newPage) override;

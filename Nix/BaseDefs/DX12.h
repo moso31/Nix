@@ -15,12 +15,12 @@
 using namespace DirectX;
 using namespace Microsoft::WRL;
 
-#define MultiFrameSets_swapChainCount 3 // Ê¹ÓÃÈı»º³å
+#define MultiFrameSets_swapChainCount 3 // ä½¿ç”¨ä¸‰ç¼“å†²
 
 class MultiFrameSets 
 {
 public:
-	static UINT8 swapChainIndex; // ¾²Ì¬±äÁ¿£¬ÓÃÓÚ´æ´¢µ±Ç°Ö¡µÄË÷Òı
+	static UINT8 swapChainIndex; // é™æ€å˜é‡ï¼Œç”¨äºå­˜å‚¨å½“å‰å¸§çš„ç´¢å¼•
 };
 
 template <typename T>

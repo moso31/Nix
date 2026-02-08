@@ -9,7 +9,7 @@ using namespace ccmem;
 //{
 //	BuddyAllocator taskMan;
 //
-//	// ±£´æÒÑ·ÖÅäµÄÄÚ´æ¿éĞÅÏ¢
+//	// ä¿å­˜å·²åˆ†é…çš„å†…å­˜å—ä¿¡æ¯
 //	struct AllocatedBlock
 //	{
 //		uint8_t* ptr;
@@ -20,18 +20,18 @@ using namespace ccmem;
 //	std::vector<AllocatedBlock> allocatedBlocks;
 //
 //	std::string command, command2;
-//	const uint32_t MIN_SIZE = 1; // ¶¨Òå×îĞ¡·ÖÅä´óĞ¡
-//	const uint32_t MAX_SIZE = 16; // ¶¨Òå×î´ó·ÖÅä´óĞ¡
+//	const uint32_t MIN_SIZE = 1; // å®šä¹‰æœ€å°åˆ†é…å¤§å°
+//	const uint32_t MAX_SIZE = 16; // å®šä¹‰æœ€å¤§åˆ†é…å¤§å°
 //
 //	while (true)
 //	{
-//		std::cout << "ÇëÊäÈëÖ¸Áî (alloc/free/exit): ";
+//		std::cout << "è¯·è¾“å…¥æŒ‡ä»¤ (alloc/free/exit): ";
 //		std::cin >> command;
 //
 //		if (command == "a")
 //		{
 //			std::cin >> command2;
-//			uint32_t requestSize = std::stoi(command2); // ½«ÓÃ»§ÊäÈëµÄ×Ö·û´®×ª»»ÎªÕûÊı
+//			uint32_t requestSize = std::stoi(command2); // å°†ç”¨æˆ·è¾“å…¥çš„å­—ç¬¦ä¸²è½¬æ¢ä¸ºæ•´æ•°
 //			//uint32_t requestSize = std::rand() % (MAX_SIZE - MIN_SIZE + 1) + MIN_SIZE;
 //
 //			taskMan.Alloc(requestSize, [&](const BuddyTaskResult& result) {
@@ -57,17 +57,17 @@ using namespace ccmem;
 //		}
 //		else if (command == "e")
 //		{
-//			break; // ÍË³öÑ­»·
+//			break; // é€€å‡ºå¾ªç¯
 //		}
 //		else
 //		{
-//			std::cout << "ÎŞĞ§µÄÖ¸Áî£¬ÇëÊäÈë alloc¡¢free »ò exit¡£" << std::endl;
+//			std::cout << "æ— æ•ˆçš„æŒ‡ä»¤ï¼Œè¯·è¾“å…¥ allocã€free æˆ– exitã€‚" << std::endl;
 //		}
 //
-//		// Ö´ĞĞÈÎÎñ¶ÓÁĞÖĞµÄÈÎÎñ
+//		// æ‰§è¡Œä»»åŠ¡é˜Ÿåˆ—ä¸­çš„ä»»åŠ¡
 //		taskMan.ExecuteTasks();
 //
-//		// ´òÓ¡ÄÚ´æ·ÖÅäÇé¿ö
+//		// æ‰“å°å†…å­˜åˆ†é…æƒ…å†µ
 //		taskMan.Print();
 //	}
 //
@@ -76,32 +76,32 @@ using namespace ccmem;
 
 int main()
 {
-    // ³õÊ¼»¯Ëæ»úÊıÉú³ÉÆ÷
+    // åˆå§‹åŒ–éšæœºæ•°ç”Ÿæˆå™¨
     std::srand(static_cast<unsigned>(std::time(nullptr)));
 
-    // ´´½¨Ò»¸öDeadListAllocator£¬Ã¿¸öÄÚ´æ¿é´óĞ¡Îª256×Ö½Ú£¬×Ü¹²10¸öÄÚ´æ¿é
+    // åˆ›å»ºä¸€ä¸ªDeadListAllocatorï¼Œæ¯ä¸ªå†…å­˜å—å¤§å°ä¸º256å­—èŠ‚ï¼Œæ€»å…±10ä¸ªå†…å­˜å—
     ccmem::DeadListAllocator allocator(256, 10);
-    std::vector<uint8_t*> allocatedBlocks; // ´æ´¢ÒÑ·ÖÅäµÄÄÚ´æ¿éÖ¸Õë
+    std::vector<uint8_t*> allocatedBlocks; // å­˜å‚¨å·²åˆ†é…çš„å†…å­˜å—æŒ‡é’ˆ
 
     std::string command;
 
     while (true)
     {
-        std::cout << "ÇëÊäÈëÖ¸Áî (alloc/free/print/exit): ";
+        std::cout << "è¯·è¾“å…¥æŒ‡ä»¤ (alloc/free/print/exit): ";
         std::cin >> command;
 
         if (command == "alloc" || command == "a")
         {
-            // Ö´ĞĞalloc²Ù×÷
+            // æ‰§è¡Œallocæ“ä½œ
             allocator.Alloc([&](ccmem::DeadListTaskResult& result) {
                 if (result.pMemory != nullptr)
                 {
                     allocatedBlocks.push_back(result.pMemory);
-                    std::cout << "ÒÑ·ÖÅäÄÚ´æ¿é£¬µØÖ·: " << static_cast<void*>(result.pMemory) << std::endl;
+                    std::cout << "å·²åˆ†é…å†…å­˜å—ï¼Œåœ°å€: " << static_cast<void*>(result.pMemory) << std::endl;
                 }
                 else
                 {
-                    std::cout << "ÄÚ´æ·ÖÅäÊ§°Ü£¬Ã»ÓĞ¿ÉÓÃµÄÄÚ´æ¿é¡£" << std::endl;
+                    std::cout << "å†…å­˜åˆ†é…å¤±è´¥ï¼Œæ²¡æœ‰å¯ç”¨çš„å†…å­˜å—ã€‚" << std::endl;
                 }
                 });
             allocator.ExecuteTasks();
@@ -110,34 +110,34 @@ int main()
         {
             if (allocatedBlocks.empty())
             {
-                std::cout << "Ã»ÓĞÒÑ·ÖÅäµÄÄÚ´æ¿é¿ÉÊÍ·Å¡£" << std::endl;
+                std::cout << "æ²¡æœ‰å·²åˆ†é…çš„å†…å­˜å—å¯é‡Šæ”¾ã€‚" << std::endl;
                 continue;
             }
 
-            // Ëæ»úÑ¡ÔñÒ»¸öÒÑ·ÖÅäµÄÄÚ´æ¿é½øĞĞÊÍ·Å
+            // éšæœºé€‰æ‹©ä¸€ä¸ªå·²åˆ†é…çš„å†…å­˜å—è¿›è¡Œé‡Šæ”¾
             size_t index = std::rand() % allocatedBlocks.size();
             uint8_t* pMem = allocatedBlocks[index];
 
             allocator.Free(pMem);
             allocator.ExecuteTasks();
 
-            // ´ÓÒÑ·ÖÅäÁĞ±íÖĞÒÆ³ı
+            // ä»å·²åˆ†é…åˆ—è¡¨ä¸­ç§»é™¤
             allocatedBlocks.erase(allocatedBlocks.begin() + index);
-            std::cout << "ÒÑÊÍ·ÅÄÚ´æ¿é£¬µØÖ·: " << static_cast<void*>(pMem) << std::endl;
+            std::cout << "å·²é‡Šæ”¾å†…å­˜å—ï¼Œåœ°å€: " << static_cast<void*>(pMem) << std::endl;
         }
         else if (command == "print" || command == "p")
         {
-            // Êä³öÒÑ·ÖÅäºÍ¿ÕÏĞµÄÄÚ´æ¿éĞÅÏ¢
+            // è¾“å‡ºå·²åˆ†é…å’Œç©ºé—²çš„å†…å­˜å—ä¿¡æ¯
             std::cout << "====================================" << std::endl;
-            std::cout << "ÒÑ·ÖÅäÄÚ´æ¿éÊıÁ¿: " << allocatedBlocks.size() << std::endl;
-            std::cout << "ÒÑ·ÖÅäÄÚ´æ¿éµØÖ·£º" << std::endl;
+            std::cout << "å·²åˆ†é…å†…å­˜å—æ•°é‡: " << allocatedBlocks.size() << std::endl;
+            std::cout << "å·²åˆ†é…å†…å­˜å—åœ°å€ï¼š" << std::endl;
             for (size_t i = 0; i < allocatedBlocks.size(); ++i)
             {
                 std::cout << "  [" << i << "]: " << static_cast<void*>(allocatedBlocks[i]) << std::endl;
             }
             std::cout << std::endl;
 
-            // µ÷ÓÃallocatorµÄPrintº¯Êı£¬Êä³ö¿ÕÏĞÄÚ´æ¿éĞÅÏ¢
+            // è°ƒç”¨allocatorçš„Printå‡½æ•°ï¼Œè¾“å‡ºç©ºé—²å†…å­˜å—ä¿¡æ¯
         }
         else if (command == "exit" || command == "e")
         {
@@ -145,7 +145,7 @@ int main()
         }
         else
         {
-            std::cout << "ÎŞĞ§µÄÖ¸Áî£¬ÇëÊäÈë 'alloc'¡¢'free'¡¢'print' »ò 'exit'¡£" << std::endl;
+            std::cout << "æ— æ•ˆçš„æŒ‡ä»¤ï¼Œè¯·è¾“å…¥ 'alloc'ã€'free'ã€'print' æˆ– 'exit'ã€‚" << std::endl;
         }
 
         allocator.Print();

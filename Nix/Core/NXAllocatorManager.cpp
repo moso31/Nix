@@ -31,12 +31,12 @@ void NXAllocatorManager::Init()
 	m_pRTVAllocator = std::make_unique<DescriptorAllocator<false>>(pDevice, 4096, D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	m_pDSVAllocator = std::make_unique<DescriptorAllocator<false>>(pDevice, 4096, D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 	m_pNullDescriptorAllocator = std::make_unique<NXNullDescriptor>();
-	m_pNullDescriptorAllocator->ExecuteTasks(); // ¿ÕÃèÊö·û Ö±½Óµ¥Ïß³ÌÖ´ĞĞ£¬ÇÒ½öÖ´ĞĞÒ»´Î
+	m_pNullDescriptorAllocator->ExecuteTasks(); // ç©ºæè¿°ç¬¦ ç›´æ¥å•çº¿ç¨‹æ‰§è¡Œï¼Œä¸”ä»…æ‰§è¡Œä¸€æ¬¡
 
 	m_pShaderVisibleDescAllocator = std::make_unique<DescriptorAllocator<true>>(pDevice, 1000000, 10);
 
 
-	// ¸÷·ÖÅäÆ÷¶ÀÁ¢Ïß³Ì£¬½ûÖ¹¶à¸öAllocatorÍ¬Ïß³ÌÖ´ĞĞ£¬·ñÔòºÜÈİÒ×ËÀËø¡£// taskFunction = lambda.
+	// å„åˆ†é…å™¨ç‹¬ç«‹çº¿ç¨‹ï¼Œç¦æ­¢å¤šä¸ªAllocatoråŒçº¿ç¨‹æ‰§è¡Œï¼Œå¦åˆ™å¾ˆå®¹æ˜“æ­»é”ã€‚// taskFunction = lambda.
 	auto addThread = [this](auto taskFunction, const char* name, int sleepMS = 1) {
 		std::thread t([this, taskFunction, name, sleepMS]() {
 			NXPrint::Write(1, name);

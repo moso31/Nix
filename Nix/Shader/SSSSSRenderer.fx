@@ -15,20 +15,20 @@ float Burley3S_G(float x)
 }
 
 // Generate r = P^-1(x)
-// s ºÍ ½éÖÊÏà¹Ø£¬Ò»°ã¿ÉÒÔÀí½â³É s Ô½¸ß£¬½éÖÊÔ½³íÃÜ
+// s å’Œ ä»‹è´¨ç›¸å…³ï¼Œä¸€èˆ¬å¯ä»¥ç†è§£æˆ s è¶Šé«˜ï¼Œä»‹è´¨è¶Šç¨ å¯†
 float Burley3S_InverseCDF(float x, float s)
 {
 	return 3.0f / s * log((1 + 1 / Burley3S_G(1 - x) + Burley3S_G(1 - x)) / (4 * (1 - x)));
 }
 
 // p(r)
-// s ºÍ ½éÖÊÏà¹Ø£¬Ò»°ã¿ÉÒÔÀí½â³É s Ô½¸ß£¬½éÖÊÔ½³íÃÜ
+// s å’Œ ä»‹è´¨ç›¸å…³ï¼Œä¸€èˆ¬å¯ä»¥ç†è§£æˆ s è¶Šé«˜ï¼Œä»‹è´¨è¶Šç¨ å¯†
 float Burley3S_PDF(float x, float s)
 {
 	return s / 4 * (exp(-s * x) + exp(-s * x / 3));
 }
 
-// ½« View-Space Pos ×ª»»³É ScreenUV¡£
+// å°† View-Space Pos è½¬æ¢æˆ ScreenUVã€‚
 float2 ConvertPositionVSToScreenUV(float3 positionVS)
 {
 	float wClipInv = 1.0f / positionVS.z;
@@ -47,8 +47,8 @@ SamplerState ssLinearClamp : register(s0);
 
 struct CBufferDiffuseProfile
 {
-	// TODO: CBufferDiffuseProfile ×öµ½Í·ÎÄ¼şÀà£¬Í³Ò»¹ÜÀí£¬ÏÖÔÚÓĞ¶à´¦µØ·½¶¨ÒåÁËÕâ¸östruct
-	float3 scatterParam; // x y z µÄ s ²ÎÊı²»Í¬
+	// TODO: CBufferDiffuseProfile åšåˆ°å¤´æ–‡ä»¶ç±»ï¼Œç»Ÿä¸€ç®¡ç†ï¼Œç°åœ¨æœ‰å¤šå¤„åœ°æ–¹å®šä¹‰äº†è¿™ä¸ªstruct
+	float3 scatterParam; // x y z çš„ s å‚æ•°ä¸åŒ
 	float maxScatterDistance;
 	float3 transmit;
 	float transmitStrength;
@@ -59,11 +59,11 @@ cbuffer CBufferParams : register(b3)
 	CBufferDiffuseProfile sssProfData[16];
 }
 
-// »ùÓÚÒ»ÕÅÔ¤ÉèµÄ Noise ÎÆÀí ½øĞĞ²ÉÑù£¬ÒÔÉú³É 0~1 Çø¼äÄÚµÄËæ»úÊı
+// åŸºäºä¸€å¼ é¢„è®¾çš„ Noise çº¹ç† è¿›è¡Œé‡‡æ ·ï¼Œä»¥ç”Ÿæˆ 0~1 åŒºé—´å†…çš„éšæœºæ•°
 float Random01FromNoiseGray(float2 coord, float seed)
 {
 	float2 noiseUV = frac(coord + float2(seed * 1.14, seed * 5.14));
-	return txNoiseGray.Sample(ssLinearClamp, noiseUV).r; // Burley SSS Ê¹ÓÃµÄÎÆÀíÓ¦¸ÃÖ»ÓĞ R Í¨µÀ
+	return txNoiseGray.Sample(ssLinearClamp, noiseUV).r; // Burley SSS ä½¿ç”¨çš„çº¹ç†åº”è¯¥åªæœ‰ R é€šé“
 }
 
 struct VS_INPUT
@@ -106,53 +106,53 @@ float4 PS(PS_INPUT input) : SV_Target
 
 	uint sssProfIndex = asuint(rt1.w);
 	float3 scatter = sssProfData[sssProfIndex].scatterParam;
-	float minScatter = min(scatter.x, min(scatter.y, scatter.z)); // ×îĞ¡Öµ
+	float minScatter = min(scatter.x, min(scatter.y, scatter.z)); // æœ€å°å€¼
 	float3 transmit = sssProfData[sssProfIndex].transmit;
 	float t = sssProfData[sssProfIndex].transmitStrength;
 
 	float3 sssResult = 0.0f;
 
-	float sampleN = 100.0f; // Burley SSS ²ÉÑù´ÎÊı
+	float sampleN = 100.0f; // Burley SSS é‡‡æ ·æ¬¡æ•°
 	float sampleInv = rcp(sampleN);
 	float sumWeight = 0.0f;
 	for (float i = 0.5f; i < sampleN; i += 1.0f)
 	{
-		// ×¼±¸Á½¸ö0~1·¶Î§Êı
-		float e1 = i * sampleInv; // r ¾ùÔÈÉú³É
-		float e2 = Random01FromNoiseGray(screenCoord, i); // Ğı×ª½Ç theta Ëæ»úÉú³É
+		// å‡†å¤‡ä¸¤ä¸ª0~1èŒƒå›´æ•°
+		float e1 = i * sampleInv; // r å‡åŒ€ç”Ÿæˆ
+		float e2 = Random01FromNoiseGray(screenCoord, i); // æ—‹è½¬è§’ theta éšæœºç”Ÿæˆ
 
-		// ·´Ñİ e1£¬»ñÈ¡Êµ¼ÊµÄ r
-		// ·´ÑİÊ±Ê¹ÓÃ rgb Í¨µÀÖĞ ×îĞ¡µÄ scatter£¬È·±£Èı¸öÍ¨µÀµÄ²ÉÑù·¶Î§¹À¼Æ¶¼ÊÇÍêÕûµÄ
+		// åæ¼” e1ï¼Œè·å–å®é™…çš„ r
+		// åæ¼”æ—¶ä½¿ç”¨ rgb é€šé“ä¸­ æœ€å°çš„ scatterï¼Œç¡®ä¿ä¸‰ä¸ªé€šé“çš„é‡‡æ ·èŒƒå›´ä¼°è®¡éƒ½æ˜¯å®Œæ•´çš„
 		float r = Burley3S_InverseCDF(e1, minScatter);
 
-		// ¾ùÔÈ²ÉÑù£¬Éú³É theta
+		// å‡åŒ€é‡‡æ ·ï¼Œç”Ÿæˆ theta
 		float theta = NX_2PI * e2;
 
-		// Disk UV ²ÉÑù£¬2D Ô²ÅÌÑù±¾
+		// Disk UV é‡‡æ ·ï¼Œ2D åœ†ç›˜æ ·æœ¬
 		// same as float2 diskUV = float2(r * sin(theta), r * cos(theta));
 		float2 diskUV;
 		sincos(theta, diskUV.x, diskUV.y);
 		diskUV *= r;
 
-		// »ùÓÚÃüÖĞµãµÄÇĞÏß¿Õ¼ä ½øĞĞ Disk UV Æ«ÒÆ£¬µÃµ½²ÉÑùµã
+		// åŸºäºå‘½ä¸­ç‚¹çš„åˆ‡çº¿ç©ºé—´ è¿›è¡Œ Disk UV åç§»ï¼Œå¾—åˆ°é‡‡æ ·ç‚¹
 		float3 samplePos = positionVS + tangentVS * diskUV.x + bitangentVS * diskUV.y;
 
-		// ½«²ÉÑùµã×ª»»»ØÆÁÄ»¿Õ¼ä UV
+		// å°†é‡‡æ ·ç‚¹è½¬æ¢å›å±å¹•ç©ºé—´ UV
 		float2 sampleUV = ConvertPositionVSToScreenUV(samplePos);
 
-		// »ñÈ¡²ÉÑùµãµÄÉî¶È£¬²¢×ª»»³ÉÏßĞÔÉî¶È
+		// è·å–é‡‡æ ·ç‚¹çš„æ·±åº¦ï¼Œå¹¶è½¬æ¢æˆçº¿æ€§æ·±åº¦
 		float sampleDepth = txDepthZ.Sample(ssLinearClamp, sampleUV).x;
 		float sampleLinearDepth = DepthZ01ToLinear(sampleDepth);
 
-		// Éî¶ÈĞÅÏ¢²»Ò»¶¨Î»ÓÚ Disk ÇĞÆ½ÃæÉÏ£¬ĞèÒª È·¶¨Êµ¼ÊµÄ r µÄÖµ
+		// æ·±åº¦ä¿¡æ¯ä¸ä¸€å®šä½äº Disk åˆ‡å¹³é¢ä¸Šï¼Œéœ€è¦ ç¡®å®šå®é™…çš„ r çš„å€¼
 		float3 sampleVS = GetViewDirVS_unNormalized(sampleUV) * sampleLinearDepth;
-		float adjustR = distance(sampleVS, positionVS); // »ñÈ¡Êµ¼ÊµÄ r
+		float adjustR = distance(sampleVS, positionVS); // è·å–å®é™…çš„ r
 
-		// ×îºó£¬Í³¼Æµ±Ç°Ñù±¾µÄ·´ÉäÂÊ R(r)
-		// Ëã pdf Ê±£¬ÈÔÈ»ÓÃ³õÊ¼ r Öµ¼ÆËã
+		// æœ€åï¼Œç»Ÿè®¡å½“å‰æ ·æœ¬çš„åå°„ç‡ R(r)
+		// ç®— pdf æ—¶ï¼Œä»ç„¶ç”¨åˆå§‹ r å€¼è®¡ç®—
 		float3 weight = Burley3S_R(adjustR, scatter) * NX_2PI * adjustR / Burley3S_PDF(r, minScatter);
 
-		// ÀÛ»ı²ÉÑù½á¹û
+		// ç´¯ç§¯é‡‡æ ·ç»“æœ
 		sssResult += txIrradiance.Sample(ssLinearClamp, sampleUV).xyz * weight;
 		sumWeight += weight;
 	}

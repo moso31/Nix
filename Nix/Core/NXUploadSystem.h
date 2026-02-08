@@ -18,16 +18,16 @@ struct NXUploadTask
 	ID3D12GraphicsCommandList* pCmdList = nullptr;
 	ID3D12CommandAllocator* pCmdAllocator = nullptr;
 
-	// ¼ÇÂ¼ task µÄfenceValue
-	// ÆğÊÖ BuildTask()Ê±£¬fenceValue = -1£¨±íÊ¾Î´Íê³É£©
-	// Íê³ÉÊ± FinishTask() ·½·¨»áË¢ĞÂÕâ¸öÖµÎªÒ»¸öÕı³£µÄÖµ£¬
-	// È»ºóÃ¿Ö¡ Update() Ê±£¬GPU²ÅÄÜ½«ÆäÒÆ³ı
+	// è®°å½• task çš„fenceValue
+	// èµ·æ‰‹ BuildTask()æ—¶ï¼ŒfenceValue = -1ï¼ˆè¡¨ç¤ºæœªå®Œæˆï¼‰
+	// å®Œæˆæ—¶ FinishTask() æ–¹æ³•ä¼šåˆ·æ–°è¿™ä¸ªå€¼ä¸ºä¸€ä¸ªæ­£å¸¸çš„å€¼ï¼Œ
+	// ç„¶åæ¯å¸§ Update() æ—¶ï¼ŒGPUæ‰èƒ½å°†å…¶ç§»é™¤
 	uint64_t fenceValue = 0;
 
-    // ÈÎÎñÍê³ÉºóµÄ»Øµ÷
+    // ä»»åŠ¡å®Œæˆåçš„å›è°ƒ
     std::function<void()> pCallback = nullptr;
 
-	// ÔÚRingBufferÖĞµÄÎ»ÖÃºÍ´óĞ¡
+	// åœ¨RingBufferä¸­çš„ä½ç½®å’Œå¤§å°
 	uint32_t ringPos = 0;
 	uint32_t byteSize = 0;
 };
@@ -38,7 +38,7 @@ struct NXUploadContext
 
     NXUploadTask* pOwner = nullptr;
 
-    // ringBufferµÄÁÙÊ±×ÊÔ´±¾Ìå¡¢ÁÙÊ±×ÊÔ´ÉÏ´«¶ÑÓ³Éä¡¢ÁÙÊ±×ÊÔ´ÉÏ´«¶ÑÆ«ÒÆÁ¿
+    // ringBufferçš„ä¸´æ—¶èµ„æºæœ¬ä½“ã€ä¸´æ—¶èµ„æºä¸Šä¼ å †æ˜ å°„ã€ä¸´æ—¶èµ„æºä¸Šä¼ å †åç§»é‡
 	ID3D12Resource* pResource = nullptr;
 	uint8_t* pResourceData = nullptr;
     uint32_t pResourceOffset = 0;
@@ -61,7 +61,7 @@ public:
 private:
     uint32_t m_size;
 
-    // ¼ÇÂ¼ringÖĞµÄÒÑ·ÖÅä·¶Î§
+    // è®°å½•ringä¸­çš„å·²åˆ†é…èŒƒå›´
     uint32_t m_usedStart;
     uint32_t m_usedEnd;
 
@@ -99,8 +99,8 @@ private:
 
     NXUploadRingBuffer m_ringBuffer;
 
-    // ÕâÀïµÄËø²ßÂÔÊÇ±È½Ï¼òµ¥´Ö±©µÄ£¬Ã¿¸ö·½·¨¶¼¼ÓËø£¬ÕâĞ©·½·¨µÄ¿ªÏú¶¼²»´ó¡£
-    // ÉÏ´«ÏµÍ³µÄ´óÍ·¿ªÏúÔÚBeginTask()½áÊøºó£¬FinishTask()¿ªÊ¼Ç°Õâ¶ÎÊ±¼äµÄ¸÷ÖÖ²Ù×÷ÉÏ£¬¶øÕâĞ©²Ù×÷ÊÇ±©Â¶ÔÚÉÏ²ã£¬ÔÊĞí¶àÏß³ÌÍ¬Ê±µ÷ÓÃµÄ¡£
+    // è¿™é‡Œçš„é”ç­–ç•¥æ˜¯æ¯”è¾ƒç®€å•ç²—æš´çš„ï¼Œæ¯ä¸ªæ–¹æ³•éƒ½åŠ é”ï¼Œè¿™äº›æ–¹æ³•çš„å¼€é”€éƒ½ä¸å¤§ã€‚
+    // ä¸Šä¼ ç³»ç»Ÿçš„å¤§å¤´å¼€é”€åœ¨BeginTask()ç»“æŸåï¼ŒFinishTask()å¼€å§‹å‰è¿™æ®µæ—¶é—´çš„å„ç§æ“ä½œä¸Šï¼Œè€Œè¿™äº›æ“ä½œæ˜¯æš´éœ²åœ¨ä¸Šå±‚ï¼Œå…è®¸å¤šçº¿ç¨‹åŒæ—¶è°ƒç”¨çš„ã€‚
     std::mutex m_mutex;
     std::condition_variable m_condition;
 };

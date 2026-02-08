@@ -23,7 +23,7 @@ void ccmem::PlacedBufferAllocator::Alloc(D3D12_RESOURCE_DESC* desc, uint32_t byt
 
 void ccmem::PlacedBufferAllocator::Free(const XBuddyTaskMemData& memData)
 {
-	// 找到对应的内存块，然后标记为可以重新分配
+	// 鎵惧埌瀵瑰簲鐨勫唴瀛樺潡锛岀劧鍚庢爣璁颁负鍙互閲嶆柊鍒嗛厤
 	BuddyAllocator::AddFreeTask(memData.pAllocator, memData.byteOffset);
 }
 

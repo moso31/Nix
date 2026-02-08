@@ -1,6 +1,6 @@
 #include "DX12.h"
 
-UINT8 MultiFrameSets::swapChainIndex = 0; // ³õÊ¼»¯¾²Ì¬±äÁ¿
+UINT8 MultiFrameSets::swapChainIndex = 0; // åˆå§‹åŒ–é™æ€å˜é‡
 
 void NX12Util::CreateCommands(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE type, ID3D12CommandQueue** oCmdQueue, ID3D12CommandAllocator** oCmdAllocator, ID3D12GraphicsCommandList** oCmdList, bool disableGPUTimeOut, bool closeCmdListAtFirst)
 {
@@ -236,10 +236,10 @@ ID3D12RootSignature* NX12Util::CreateRootSignature(ID3D12Device* pDevice, UINT n
 	{
 		if (pErrorBlob != nullptr) 
 		{
-			// ½«´íÎóĞÅÏ¢×ª»»Îª×Ö·ûÖ¸Õë
+			// å°†é”™è¯¯ä¿¡æ¯è½¬æ¢ä¸ºå­—ç¬¦æŒ‡é’ˆ
 			char* errorMessage = static_cast<char*>(pErrorBlob->GetBufferPointer());
 
-			// ´òÓ¡´íÎóĞÅÏ¢
+			// æ‰“å°é”™è¯¯ä¿¡æ¯
 			printf("Error compiling root signature: %s\n", errorMessage);
 		}
 		return nullptr;

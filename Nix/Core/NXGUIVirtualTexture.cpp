@@ -8,7 +8,7 @@
 #include "NXVirtualTexture.h"
 #include "NXVTImageQuadTree.h"
 
-// »º´æÊı¾İ½á¹¹Ìå¶¨Òå
+// ç¼“å­˜æ•°æ®ç»“æ„ä½“å®šä¹‰
 struct NXGUIVirtualTexture::CachedData
 {
     std::vector<NXVTSector> sectors;
@@ -39,11 +39,11 @@ NXGUIVirtualTexture::~NXGUIVirtualTexture() = default;
 
 void NXGUIVirtualTexture::Render()
 {
-    // Èç¹û´°¿Ú¹Ø±Õ£¬Ö±½Ó·µ»Ø£¬±ÜÃâ²»±ØÒªµÄäÖÈ¾¿ªÏú
+    // å¦‚æœçª—å£å…³é—­ï¼Œç›´æ¥è¿”å›ï¼Œé¿å…ä¸å¿…è¦çš„æ¸²æŸ“å¼€é”€
     if (!m_bShowWindow)
         return;
 
-    // -------------------- 1. ËŞÖ÷´°¿Ú£¨ÀïÃæ·ÅÒ»¸ö DockSpace£© --------------------
+    // -------------------- 1. å®¿ä¸»çª—å£ï¼ˆé‡Œé¢æ”¾ä¸€ä¸ª DockSpaceï¼‰ --------------------
     const ImGuiWindowFlags host_flags =
         ImGuiWindowFlags_NoDocking |
         ImGuiWindowFlags_NoCollapse |
@@ -54,7 +54,7 @@ void NXGUIVirtualTexture::Render()
     ImGui::Begin("Virtual Texture Debug", &m_bShowWindow, host_flags);
 
     ImGuiID dockspace_id = ImGui::GetID("TerrainSystemDockspace");
-    ImGui::DockSpace(dockspace_id, ImVec2(0, 0), ImGuiDockNodeFlags_PassthruCentralNode);  // ÈÃÖ÷´°±³¾°Í¸¹ıÈ¥
+    ImGui::DockSpace(dockspace_id, ImVec2(0, 0), ImGuiDockNodeFlags_PassthruCentralNode);  // è®©ä¸»çª—èƒŒæ™¯é€è¿‡å»
 
     static bool s_dock_built = false;
     if (!s_dock_built)
@@ -74,12 +74,12 @@ void NXGUIVirtualTexture::Render_Sectors()
 {
     ImGui::Begin(m_strTitle[0].c_str());
 
-    // ×ó²àÁĞ±í£¨¹Ì¶¨¿í¶È£©
+    // å·¦ä¾§åˆ—è¡¨ï¼ˆå›ºå®šå®½åº¦ï¼‰
     const float kLeftWidth = 360.0f;
     ImGui::BeginChild("LeftList", ImVec2(kLeftWidth, 0.0f), true);
 
     auto* pVT = GetVirtualTexture();
-    // Ö»ÔÚFinish×´Ì¬Ê±¸üĞÂ»º´æ£¬±ÜÃâÖĞ¼äÖ¡Êı¾İ²»Ò»ÖÂ
+    // åªåœ¨FinishçŠ¶æ€æ—¶æ›´æ–°ç¼“å­˜ï¼Œé¿å…ä¸­é—´å¸§æ•°æ®ä¸ä¸€è‡´
     if (pVT && pVT->GetUpdateState() == NXVTUpdateState::Finish)
     {
         m_cachedData->sectors = pVT->GetSectors();
@@ -97,7 +97,7 @@ void NXGUIVirtualTexture::Render_Sectors()
     }
     ImGui::Separator();
 
-    // ÁĞ±íÄÚÈİ£¨Clipper ±£Ö¤ 6.5 ÍòÌõÒ²²»¿¨£©
+    // åˆ—è¡¨å†…å®¹ï¼ˆClipper ä¿è¯ 6.5 ä¸‡æ¡ä¹Ÿä¸å¡ï¼‰
     const int total = (m_showOnlyNear && pVT) ? nearCount : GRID_COUNT * GRID_COUNT;
     ImGui::Text("list(%d)", total);
     ImGui::Separator();
@@ -116,14 +116,14 @@ void NXGUIVirtualTexture::Render_Sectors()
             {
                 const auto& lst = m_cachedData->sectors;
                 const auto& sectorInfo = lst[i];
-                // sectorInfo.id ÊÇ sector µÄÍø¸ñ×ø±ê
-                // ×ª»»ÎªÊÀ½ç×ø±ê£ºsectorPos = id * SECTOR_SIZE
+                // sectorInfo.id æ˜¯ sector çš„ç½‘æ ¼åæ ‡
+                // è½¬æ¢ä¸ºä¸–ç•Œåæ ‡ï¼šsectorPos = id * SECTOR_SIZE
                 float tileMinX = float(sectorInfo.id.x * SECTOR_SIZE);
                 float tileMinZ = float(sectorInfo.id.y * SECTOR_SIZE);
-                // ¼ÆËãĞĞÁĞ
+                // è®¡ç®—è¡Œåˆ—
                 col = sectorInfo.id.x - (WORLD_MIN / SECTOR_SIZE);
                 row = sectorInfo.id.y - (WORLD_MIN / SECTOR_SIZE);
-                // ±£µ×¼ĞÈ¡µ½ºÏ·¨·¶Î§
+                // ä¿åº•å¤¹å–åˆ°åˆæ³•èŒƒå›´
                 col = std::clamp(col, 0, GRID_COUNT - 1);
                 row = std::clamp(row, 0, GRID_COUNT - 1);
 
@@ -153,7 +153,7 @@ void NXGUIVirtualTexture::Render_Sectors()
 
     ImGui::SameLine();
 
-    // ÓÒ²à¿ÉÊÓÇøÓò
+    // å³ä¾§å¯è§†åŒºåŸŸ
     ImGui::BeginChild("ViewRegion",
         ImVec2(0.0f, 0.0f),
         true,
@@ -176,7 +176,7 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
 {
     ImGui::Begin(m_strTitle[1].c_str());
 
-    // ---- È¡Êı¾İ ----
+    // ---- å–æ•°æ® ----
     auto* pVT = GetVirtualTexture();
     if (!pVT)
     {
@@ -193,23 +193,23 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
         return;
     }
 
-    // Ö»ÔÚFinish×´Ì¬Ê±¸üĞÂ»º´æ£¬±ÜÃâÖĞ¼äÖ¡Êı¾İ²»Ò»ÖÂ
+    // åªåœ¨FinishçŠ¶æ€æ—¶æ›´æ–°ç¼“å­˜ï¼Œé¿å…ä¸­é—´å¸§æ•°æ®ä¸ä¸€è‡´
     if (pVT->GetUpdateState() == NXVTUpdateState::Finish)
     {
         m_cachedData->sectors = pVT->GetSectors();
         m_cachedData->sector2VirtImagePos = pVT->GetSector2VirtImagePos();
     }
 
-    // »ñÈ¡ËùÓĞÒÑ·ÖÅäµÄÒ¶×Ó½Úµã£¨sectorµ½VirtImageÎ»ÖÃµÄÓ³Éä£©
+    // è·å–æ‰€æœ‰å·²åˆ†é…çš„å¶å­èŠ‚ç‚¹ï¼ˆsectoråˆ°VirtImageä½ç½®çš„æ˜ å°„ï¼‰
     const auto& sector2Pos = m_cachedData->sector2VirtImagePos;
     const auto& sectors = m_cachedData->sectors;
     const int ATLAS_SIZE = pQuadTree->GetImageSize(); // 2048
 
-    // ---- ×óÓÒ²¼¾Ö£º×óÁĞ±í + ÓÒÊÓÍ¼ ----
+    // ---- å·¦å³å¸ƒå±€ï¼šå·¦åˆ—è¡¨ + å³è§†å›¾ ----
     const float kLeftWidth = 360.0f;
     ImGui::BeginChild("AtlasLeftList", ImVec2(kLeftWidth, 0.0f), true);
 
-    // ½»»¥Ñ¡ÏîÓë×´Ì¬
+    // äº¤äº’é€‰é¡¹ä¸çŠ¶æ€
     static bool  s_drawGrid = true;
     static float s_zoom = 1.0f;
     static ImVec2 s_panPix = ImVec2(0.0f, 0.0f);
@@ -219,12 +219,12 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
     ImGui::Text("Leaf nodes (allocated): %d", (int)sector2Pos.size());
     ImGui::Separator();
     
-    // ËÑË÷¿ò
+    // æœç´¢æ¡†
     ImGui::Text("Search:");
     ImGui::SameLine();
     if (ImGui::InputText("##AtlasSearch", m_atlasSearchBuf, sizeof(m_atlasSearchBuf)))
     {
-        // ËÑË÷¿òÄÚÈİ±ä»¯Ê±µÄ´¦Àí
+        // æœç´¢æ¡†å†…å®¹å˜åŒ–æ—¶çš„å¤„ç†
     }
     ImGui::SameLine();
     if (ImGui::Button("Clear"))
@@ -242,14 +242,14 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
     }
     ImGui::Separator();
 
-    // ¹ıÂËÁĞ±í£º¸ù¾İËÑË÷×Ö·û´®¹ıÂË
+    // è¿‡æ»¤åˆ—è¡¨ï¼šæ ¹æ®æœç´¢å­—ç¬¦ä¸²è¿‡æ»¤
     std::vector<int> filteredIndices;
     std::string searchStr = m_atlasSearchBuf;
     bool hasSearch = !searchStr.empty();
     
     if (hasSearch)
     {
-        // ÓĞËÑË÷Ìõ¼ş£¬¹ıÂË½Úµã
+        // æœ‰æœç´¢æ¡ä»¶ï¼Œè¿‡æ»¤èŠ‚ç‚¹
         for (int i = 0; i < (int)sectors.size(); ++i)
         {
             const auto& sector = sectors[i];
@@ -273,7 +273,7 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
                     sector.id.x, sector.id.y, sector.imageSize);
             }
             
-            // ¼ì²éÊÇ·ñ°üº¬ËÑË÷×Ö·û´®£¨²»Çø·Ö´óĞ¡Ğ´£©
+            // æ£€æŸ¥æ˜¯å¦åŒ…å«æœç´¢å­—ç¬¦ä¸²ï¼ˆä¸åŒºåˆ†å¤§å°å†™ï¼‰
             std::string bufStr = buf;
             std::string searchLower = searchStr;
             std::string bufLower = bufStr;
@@ -288,7 +288,7 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
     }
     else
     {
-        // Ã»ÓĞËÑË÷Ìõ¼ş£¬ÏÔÊ¾ËùÓĞ½Úµã
+        // æ²¡æœ‰æœç´¢æ¡ä»¶ï¼Œæ˜¾ç¤ºæ‰€æœ‰èŠ‚ç‚¹
         filteredIndices.resize(sectors.size());
         for (int i = 0; i < (int)sectors.size(); ++i)
         {
@@ -296,7 +296,7 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
         }
     }
     
-    // ÁĞ±í£ºÏÔÊ¾¹ıÂËºóµÄÒ¶×Ó½Úµã
+    // åˆ—è¡¨ï¼šæ˜¾ç¤ºè¿‡æ»¤åçš„å¶å­èŠ‚ç‚¹
     int totalCount = (int)sectors.size();
     int filteredCount = (int)filteredIndices.size();
     if (hasSearch)
@@ -323,7 +323,7 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
             if (it != sector2Pos.end())
             {
                 const Int2& virtPos = it->second;
-                // virtPos ÊÇËÄ²æÊ÷Ë÷Òı×ª»»ºóµÄÎ»ÖÃ£¬ĞèÒª³ËÒÔimageSizeµÃµ½Êµ¼ÊÏñËØ×ø±ê
+                // virtPos æ˜¯å››å‰æ ‘ç´¢å¼•è½¬æ¢åçš„ä½ç½®ï¼Œéœ€è¦ä¹˜ä»¥imageSizeå¾—åˆ°å®é™…åƒç´ åæ ‡
                 int pixelX = virtPos.x * sector.imageSize;
                 int pixelY = virtPos.y * sector.imageSize;
                 std::snprintf(buf, sizeof(buf), 
@@ -347,7 +347,7 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
     ImGui::EndChild();
     ImGui::SameLine();
 
-    // ---- ÓÒ²à£º¿ÉÊÓ»¯»æÖÆ ----
+    // ---- å³ä¾§ï¼šå¯è§†åŒ–ç»˜åˆ¶ ----
     ImGui::BeginChild("AtlasView",
         ImVec2(0.0f, 0.0f),
         true,
@@ -361,10 +361,10 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
     ImVec2 regionSize(avail.x - pad.x * 2.0f, avail.y - pad.y * 2.0f);
     ImVec2 regionBR(regionTL.x + regionSize.x, regionTL.y + regionSize.y);
 
-    // ±³¾°
+    // èƒŒæ™¯
     dl->AddRectFilled(regionTL, regionBR, IM_COL32(30, 30, 30, 255));
 
-    // Atlas<->Screen Ó³Éä
+    // Atlas<->Screen æ˜ å°„
     const float baseScale = std::min(regionSize.x / float(ATLAS_SIZE), regionSize.y / float(ATLAS_SIZE));
     float scale = baseScale * std::max(0.01f, s_zoom);
 
@@ -379,7 +379,7 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
         return ImVec2(ax, ay);
     };
 
-    // ÊÓÍ¼½»»¥£ºÖĞ¼üÆ½ÒÆ¡¢¹öÂÖÎ§ÈÆÊó±êËõ·Å
+    // è§†å›¾äº¤äº’ï¼šä¸­é”®å¹³ç§»ã€æ»šè½®å›´ç»•é¼ æ ‡ç¼©æ”¾
     {
         ImGuiIO& io = ImGui::GetIO();
         const bool hovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
@@ -408,14 +408,14 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
         }
     }
 
-    // ²Ã¼ô
+    // è£å‰ª
     ImVec2 clipTL(regionTL.x + 1.0f, regionTL.y + 1.0f);
     ImVec2 clipBR(regionBR.x - 1.0f, regionBR.y - 1.0f);
     dl->PushClipRect(clipTL, clipBR, true);
 
     auto AlignPx = [](float v) -> float { return std::floor(v) + 0.5f; };
 
-    // ²Î¿¼Íø¸ñ£¨¿ÉÑ¡£©
+    // å‚è€ƒç½‘æ ¼ï¼ˆå¯é€‰ï¼‰
     if (s_drawGrid)
     {
         ImU32 gridC = IM_COL32(70, 70, 70, 255);
@@ -434,7 +434,7 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
         }
     }
 
-    // »æÖÆËùÓĞÒ¶×Ó½Úµã£¨ÒÑ·ÖÅäµÄsectorÔÚVirtImageÖĞµÄÎ»ÖÃ£©
+    // ç»˜åˆ¶æ‰€æœ‰å¶å­èŠ‚ç‚¹ï¼ˆå·²åˆ†é…çš„sectoråœ¨VirtImageä¸­çš„ä½ç½®ï¼‰
     {
         int idx = 0;
         for (const auto& sector : sectors)
@@ -448,7 +448,7 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
 
             const Int2& virtPos = it->second;
             int nodeSize = sector.imageSize;
-            // virtPosÊÇËÄ²æÊ÷Î»ÖÃË÷Òı£¬³ËÒÔnodeSizeµÃµ½ÏñËØ×ø±ê
+            // virtPosæ˜¯å››å‰æ ‘ä½ç½®ç´¢å¼•ï¼Œä¹˜ä»¥nodeSizeå¾—åˆ°åƒç´ åæ ‡
             float x = (float)(virtPos.x * nodeSize);
             float y = (float)(virtPos.y * nodeSize);
 
@@ -458,7 +458,7 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
             ImVec2 tl = A2S(x, y);
             ImVec2 br = A2S(x + nodeSize, y + nodeSize);
 
-            // »­¾ØĞÎ+±ß¿ò
+            // ç”»çŸ©å½¢+è¾¹æ¡†
             ImVec2 atl = tl, abr = br;
             atl.x = AlignPx(atl.x); abr.x = AlignPx(abr.x);
             atl.y = AlignPx(atl.y); abr.y = AlignPx(abr.y);
@@ -468,7 +468,7 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
             idx++;
         }
 
-        // Ñ¡ÖĞ¸ßÁÁ
+        // é€‰ä¸­é«˜äº®
         if (s_selectedIdx >= 0 && s_selectedIdx < (int)sectors.size())
         {
             const auto& sector = sectors[s_selectedIdx];
@@ -488,7 +488,7 @@ void NXGUIVirtualTexture::Render_VirtImageAtlas()
         }
     }
 
-    // µ¯³ö²Ã¼ô²¢»­×îÍâ±ß¿ò
+    // å¼¹å‡ºè£å‰ªå¹¶ç”»æœ€å¤–è¾¹æ¡†
     dl->PopClipRect();
     dl->AddRect(regionTL, regionBR, IM_COL32(160, 160, 160, 255));
 
@@ -500,7 +500,7 @@ void NXGUIVirtualTexture::Render_Readback()
 {
     ImGui::Begin(m_strTitle[2].c_str());
 
-    // Êı¾İÓë³ß´ç
+    // æ•°æ®ä¸å°ºå¯¸
     NXVirtualTexture* pVT = GetVirtualTexture();
     auto& vtReadbackData = pVT->GetVTReadbackData()->Get();
     const uint32_t* pVTData = reinterpret_cast<const uint32_t*>(vtReadbackData.data());
@@ -514,14 +514,14 @@ void NXGUIVirtualTexture::Render_Readback()
         return;
     }
 
-    // ¼òµ¥¿ØÖÆ£¨½öËõ·Å/Æ½ÒÆ£»¿ÉÉ¾£©
+    // ç®€å•æ§åˆ¶ï¼ˆä»…ç¼©æ”¾/å¹³ç§»ï¼›å¯åˆ ï¼‰
     static float  s_zoom = 1.0f;
     static ImVec2 s_panPix = ImVec2(0, 0);
     if (ImGui::SliderFloat("Scale", &s_zoom, 0.25f, 32.0f, "%.2fx")) {}
     ImGui::SameLine();
     if (ImGui::Button("Reset view")) { s_zoom = 1.0f; s_panPix = ImVec2(0, 0); }
 
-    // ÊÓÍ¼ÇøÓò
+    // è§†å›¾åŒºåŸŸ
     ImGui::BeginChild("RBView", ImVec2(0, 0), true,
         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
@@ -535,7 +535,7 @@ void NXGUIVirtualTexture::Render_Readback()
 
     dl->AddRectFilled(regionTL, regionBR, IM_COL32(30, 30, 30, 255));
 
-    // ×ø±ê±ä»»£ºÏñËØ×ø±ê <-> ÆÁÄ»
+    // åæ ‡å˜æ¢ï¼šåƒç´ åæ ‡ <-> å±å¹•
     const float baseScale = std::min(regionSize.x / float(W), regionSize.y / float(H));
     float scale = baseScale * std::max(0.01f, s_zoom);
 
@@ -548,7 +548,7 @@ void NXGUIVirtualTexture::Render_Readback()
             (sy - regionTL.y - s_panPix.y) / scale);
         };
 
-    // ¼òµ¥½»»¥£ºÖĞ¼üÆ½ÒÆ¡¢¹öÂÖËõ·Å£¨Î§ÈÆÊó±ê£©
+    // ç®€å•äº¤äº’ï¼šä¸­é”®å¹³ç§»ã€æ»šè½®ç¼©æ”¾ï¼ˆå›´ç»•é¼ æ ‡ï¼‰
     {
         ImGuiIO& io = ImGui::GetIO();
         const bool hovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
@@ -574,11 +574,11 @@ void NXGUIVirtualTexture::Render_Readback()
         }
     }
 
-    // ²Ã¼ô
+    // è£å‰ª
     dl->PushClipRect(ImVec2(regionTL.x + 1, regionTL.y + 1),
         ImVec2(regionBR.x - 1, regionBR.y - 1), true);
 
-    // ÇáÁ¿ LOD£ºµ±Ã¿ÏñËØ <1 ÆÁÄ»ÏñËØÊ±£¬°´²½½ø¾ÛºÏ³É¿é£¬´ú±íÉ«È¡×óÉÏÏñËØ
+    // è½»é‡ LODï¼šå½“æ¯åƒç´  <1 å±å¹•åƒç´ æ—¶ï¼ŒæŒ‰æ­¥è¿›èšåˆæˆå—ï¼Œä»£è¡¨è‰²å–å·¦ä¸Šåƒç´ 
     const int stepX = std::max(1, (int)std::floor(1.0f / std::max(1e-6f, scale)));
     const int stepY = stepX;
 
@@ -610,26 +610,26 @@ void NXGUIVirtualTexture::BuildDockLayout(ImGuiID dockspace_id)
     ImGui::DockBuilderDockWindow(m_strTitle[1].c_str(), dockspace_id);
     ImGui::DockBuilderDockWindow(m_strTitle[2].c_str(), dockspace_id);
 
-    ImGui::DockBuilderFinish(dockspace_id);  // Íê³É£¡
+    ImGui::DockBuilderFinish(dockspace_id);  // å®Œæˆï¼
 }
 
 void NXGUIVirtualTexture::DrawWorld(ImDrawList* dl, const ImVec2& regionTL, const ImVec2& regionSize)
 {
-    // ¼ÆËãÇøÓòÓÒÏÂ½Ç
+    // è®¡ç®—åŒºåŸŸå³ä¸‹è§’
     ImVec2 regionBR(regionTL.x + regionSize.x, regionTL.y + regionSize.y);
 
-    // ±³¾°£¨ÏÈÆÌµ×£¬²»»­±ß¿ò£»±ß¿ò×îºó»­£¬±ÜÃâºÍ²Ã¼ô/AA ½»»¥µ¼ÖÂµÄ±ßÔµÁÁÏß£©
+    // èƒŒæ™¯ï¼ˆå…ˆé“ºåº•ï¼Œä¸ç”»è¾¹æ¡†ï¼›è¾¹æ¡†æœ€åç”»ï¼Œé¿å…å’Œè£å‰ª/AA äº¤äº’å¯¼è‡´çš„è¾¹ç¼˜äº®çº¿ï¼‰
     dl->AddRectFilled(regionTL, regionBR, IM_COL32(30, 30, 30, 255));
 
-    // ÊÀ½ç³ß´çÓëËõ·Å
+    // ä¸–ç•Œå°ºå¯¸ä¸ç¼©æ”¾
     const float worldW = float(WORLD_MAX - WORLD_MIN); // 16384
     const float baseScale = std::min(regionSize.x / worldW, regionSize.y / worldW);
     float scale = baseScale * std::max(0.01f, m_zoom);
 
-    // World<->Screen Ó³Éä£¨°üº¬Æ½ÒÆ m_panPix£©
+    // World<->Screen æ˜ å°„ï¼ˆåŒ…å«å¹³ç§» m_panPixï¼‰
     auto W2S = [&](float wx, float wz) -> ImVec2 {
         float sx = regionTL.x + (wx - WORLD_MIN) * scale + m_panPix.x;
-        float sy = regionTL.y + (WORLD_MAX - wz) * scale + m_panPix.y; // Z ·´Ïò
+        float sy = regionTL.y + (WORLD_MAX - wz) * scale + m_panPix.y; // Z åå‘
         return ImVec2(sx, sy);
         };
     auto S2W = [&](float sx, float sy) -> ImVec2 {
@@ -638,25 +638,25 @@ void NXGUIVirtualTexture::DrawWorld(ImDrawList* dl, const ImVec2& regionTL, cons
         return ImVec2(wx, wz);
         };
 
-    // ===== ÊÓÍ¼½»»¥£ºÖĞ¼üÆ½ÒÆ & ¹öÂÖÎ§ÈÆÊó±êËõ·Å =====
+    // ===== è§†å›¾äº¤äº’ï¼šä¸­é”®å¹³ç§» & æ»šè½®å›´ç»•é¼ æ ‡ç¼©æ”¾ =====
     {
         ImGuiIO& io = ImGui::GetIO();
         const bool hovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
 
-        // ÖĞ¼üÍÏ×§Æ½ÒÆ£¨ÏñËØ×ø±êÏµ£¬Ö±¾õÎÈ¶¨£©
+        // ä¸­é”®æ‹–æ‹½å¹³ç§»ï¼ˆåƒç´ åæ ‡ç³»ï¼Œç›´è§‰ç¨³å®šï¼‰
         if (hovered && ImGui::IsMouseDown(ImGuiMouseButton_Middle)) {
             m_panPix.x += io.MouseDelta.x;
             m_panPix.y += io.MouseDelta.y;
         }
 
-        // Êó±ê¹öÂÖËõ·Å£¨ÒÔÊó±êËùÔÚÊÀ½çµãÎªÃªµã£¬Ëõ·Åºó¸Ãµã±£³ÖÔÚÍ¬Ò»ÆÁÄ»ÏñËØÎ»ÖÃ£©
+        // é¼ æ ‡æ»šè½®ç¼©æ”¾ï¼ˆä»¥é¼ æ ‡æ‰€åœ¨ä¸–ç•Œç‚¹ä¸ºé”šç‚¹ï¼Œç¼©æ”¾åè¯¥ç‚¹ä¿æŒåœ¨åŒä¸€å±å¹•åƒç´ ä½ç½®ï¼‰
         if (hovered && io.MouseWheel != 0.0f) {
             ImVec2 anchorW = S2W(io.MousePos.x, io.MousePos.y);
             float zoomFactor = (io.MouseWheel > 0.0f) ? 1.1f : 0.9f;
             float newZoom = ImClamp(m_zoom * zoomFactor, 0.25f, 4.0f);
             if (newZoom != m_zoom) {
                 float newScale = baseScale * std::max(0.01f, newZoom);
-                // ¼ÆËãËõ·ÅºóÃªµãµÄÆÁÄ»Î»ÖÃ£¬²¢µ÷ÕûÆ½ÒÆÁ¿ÒÔ°ÑÃªµã¡°À­»Ø¡±µ½Êó±ê´¦
+                // è®¡ç®—ç¼©æ”¾åé”šç‚¹çš„å±å¹•ä½ç½®ï¼Œå¹¶è°ƒæ•´å¹³ç§»é‡ä»¥æŠŠé”šç‚¹â€œæ‹‰å›â€åˆ°é¼ æ ‡å¤„
                 ImVec2 anchorS_after = ImVec2(
                     regionTL.x + (anchorW.x - WORLD_MIN) * newScale + m_panPix.x,
                     regionTL.y + (WORLD_MAX - anchorW.y) * newScale + m_panPix.y
@@ -665,26 +665,26 @@ void NXGUIVirtualTexture::DrawWorld(ImDrawList* dl, const ImVec2& regionTL, cons
                 m_panPix.y += io.MousePos.y - anchorS_after.y;
 
                 m_zoom = newZoom;
-                scale = newScale; // ±¾Ö¡Á¢¼´ÉúĞ§
+                scale = newScale; // æœ¬å¸§ç«‹å³ç”Ÿæ•ˆ
             }
         }
     }
 
-    // ===== ²Ã¼ôÇøÓò£º°ÑÍø¸ñ/¸ßÁÁ/×ø±êÖá¶¼ÏŞÖÆÔÚÄÚ²¿£¬±ÜÃâÔ½½çÔì³ÉµÄ°×±ß =====
-    // ÉÔÎ¢ÄÚËõ 1 ÏñËØ£¬±ÜÃâÓë±ß¿ò AA »ìºÏ
+    // ===== è£å‰ªåŒºåŸŸï¼šæŠŠç½‘æ ¼/é«˜äº®/åæ ‡è½´éƒ½é™åˆ¶åœ¨å†…éƒ¨ï¼Œé¿å…è¶Šç•Œé€ æˆçš„ç™½è¾¹ =====
+    // ç¨å¾®å†…ç¼© 1 åƒç´ ï¼Œé¿å…ä¸è¾¹æ¡† AA æ··åˆ
     ImVec2 clipTL(regionTL.x + 1.0f, regionTL.y + 1.0f);
     ImVec2 clipBR(regionBR.x - 1.0f, regionBR.y - 1.0f);
     dl->PushClipRect(clipTL, clipBR, true);
 
-    // ÏñËØ¶ÔÆëº¯Êı£¨±£Ö¤ 1px ÏßÌõÇåÎú¡¢²»¶¶¶¯£©
+    // åƒç´ å¯¹é½å‡½æ•°ï¼ˆä¿è¯ 1px çº¿æ¡æ¸…æ™°ã€ä¸æŠ–åŠ¨ï¼‰
     auto AlignPx = [](float v) -> float { return std::floor(v) + 0.5f; };
 
-    // Íø¸ñÏß£¨¿ÉÑ¡£©
+    // ç½‘æ ¼çº¿ï¼ˆå¯é€‰ï¼‰
     if (m_drawGrid)
     {
         ImU32 gridC = IM_COL32(80, 80, 80, 255);
 
-        // 512 ÌõÏßĞÔÄÜ×ã¹»£»ÓĞĞèÒª¿É¸ù¾İ¿ÉÊÓÊÀ½ç·¶Î§¼ÆËã¿É¼ûË÷ÒıÒÔ½øÒ»²½²Ã¼ô
+        // 512 æ¡çº¿æ€§èƒ½è¶³å¤Ÿï¼›æœ‰éœ€è¦å¯æ ¹æ®å¯è§†ä¸–ç•ŒèŒƒå›´è®¡ç®—å¯è§ç´¢å¼•ä»¥è¿›ä¸€æ­¥è£å‰ª
         for (int k = 0; k <= GRID_COUNT; ++k)
         {
             float wx = float(WORLD_MIN + k * SECTOR_SIZE);
@@ -701,7 +701,7 @@ void NXGUIVirtualTexture::DrawWorld(ImDrawList* dl, const ImVec2& regionTL, cons
         }
     }
 
-    // ÊÀ½ç×ø±êÖá£¨Ò²×öÏñËØ¶ÔÆë£©
+    // ä¸–ç•Œåæ ‡è½´ï¼ˆä¹Ÿåšåƒç´ å¯¹é½ï¼‰
     {
         ImVec2 x0 = W2S(0.0f, WORLD_MIN);
         ImVec2 x1 = W2S(0.0f, WORLD_MAX);
@@ -714,7 +714,7 @@ void NXGUIVirtualTexture::DrawWorld(ImDrawList* dl, const ImVec2& regionTL, cons
         dl->AddLine(z0, z1, IM_COL32(200, 60, 60, 255), 2.0f); // Z=0
     }
 
-    // Ïà»ú¸½½ü Sector ¸ßÁÁ£¨À´×Ô NXVirtualTexture£©
+    // ç›¸æœºé™„è¿‘ Sector é«˜äº®ï¼ˆæ¥è‡ª NXVirtualTextureï¼‰
     if (auto* pVT = GetVirtualTexture())
     {
         const auto& sectors = m_cachedData->sectors;
@@ -724,13 +724,13 @@ void NXGUIVirtualTexture::DrawWorld(ImDrawList* dl, const ImVec2& regionTL, cons
             ImU32 imageFill = GetSectorRectColor(sector.imageSize, true);
             ImU32 imageLine = GetSectorRectColor(sector.imageSize, false);
 
-            // sector.id ÊÇÍø¸ñ×ø±ê£¬×ª»»ÎªÊÀ½ç×ø±ê
+            // sector.id æ˜¯ç½‘æ ¼åæ ‡ï¼Œè½¬æ¢ä¸ºä¸–ç•Œåæ ‡
             float minx = float(sector.id.x * SECTOR_SIZE);
             float maxx = float((sector.id.x + 1) * SECTOR_SIZE);
             float minz = float(sector.id.y * SECTOR_SIZE);
             float maxz = float((sector.id.y + 1) * SECTOR_SIZE);
 
-            // ²Ã¼ôµ½ÊÀ½ç·¶Î§
+            // è£å‰ªåˆ°ä¸–ç•ŒèŒƒå›´
             if (maxx <= WORLD_MIN || minx >= WORLD_MAX || maxz <= WORLD_MIN || minz >= WORLD_MAX)
                 continue;
             minx = std::max(minx, float(WORLD_MIN));
@@ -738,19 +738,19 @@ void NXGUIVirtualTexture::DrawWorld(ImDrawList* dl, const ImVec2& regionTL, cons
             maxx = std::min(maxx, float(WORLD_MAX));
             maxz = std::min(maxz, float(WORLD_MAX));
 
-            // ×¢Òâ Z Öá·´×ª£º×óÉÏÓëÓÒÏÂÊ¹ÓÃ (minx,maxz) Óë (maxx,minz)
+            // æ³¨æ„ Z è½´åè½¬ï¼šå·¦ä¸Šä¸å³ä¸‹ä½¿ç”¨ (minx,maxz) ä¸ (maxx,minz)
             ImVec2 tl = W2S(minx, maxz);
             ImVec2 br = W2S(maxx, minz);
             dl->AddRectFilled(tl, br, imageFill);
 
-            // ÏñËØ¶ÔÆëÃè±ß
+            // åƒç´ å¯¹é½æè¾¹
             tl.x = AlignPx(tl.x); br.x = AlignPx(br.x);
             tl.y = AlignPx(tl.y); br.y = AlignPx(br.y);
             dl->AddRect(tl, br, imageLine, 0.0f, 0, 1.5f);
         }
     }
 
-    // Ñ¡ÖĞ¸ñ×ÓµÄÇ¿µ÷Ãè±ß
+    // é€‰ä¸­æ ¼å­çš„å¼ºè°ƒæè¾¹
     if (m_selectedIdx >= 0)
     {
         int row, col;
@@ -760,35 +760,35 @@ void NXGUIVirtualTexture::DrawWorld(ImDrawList* dl, const ImVec2& regionTL, cons
         ImVec2 tl = W2S(mn.x, mx.y);
         ImVec2 br = W2S(mx.x, mn.y);
 
-        // ÏñËØ¶ÔÆëÃè±ß
+        // åƒç´ å¯¹é½æè¾¹
         tl.x = AlignPx(tl.x); br.x = AlignPx(br.x);
         tl.y = AlignPx(tl.y); br.y = AlignPx(br.y);
         dl->AddRect(tl, br, IM_COL32(255, 220, 60, 255), 0.0f, 0, 3.0f);
     }
 
-    // µ¯³ö²Ã¼ô
+    // å¼¹å‡ºè£å‰ª
     dl->PopClipRect();
 
-    // ×îºó»æÖÆ±ß¿ò£¨±ÜÃâÓëÄÚ²¿»æÖÆ²úÉú±ßÔµ AA µşÉ«£©
+    // æœ€åç»˜åˆ¶è¾¹æ¡†ï¼ˆé¿å…ä¸å†…éƒ¨ç»˜åˆ¶äº§ç”Ÿè¾¹ç¼˜ AA å è‰²ï¼‰
     dl->AddRect(regionTL, regionBR, IM_COL32(160, 160, 160, 255));
 }
 
 ImU32 NXGUIVirtualTexture::GetSectorRectColor(int size, bool isFill)
 {
-    const int alpha = isFill ? 70 : 220; // ÖĞĞÄÇøÓòÏà¶ÔÍ¸Ã÷Ò»Ğ©
+    const int alpha = isFill ? 70 : 220; // ä¸­å¿ƒåŒºåŸŸç›¸å¯¹é€æ˜ä¸€äº›
 
     switch (size)
     {
-    case 256: return IM_COL32(255, 60, 60, alpha); // ºì
-    case 128: return IM_COL32(60, 255, 60, alpha); // ÂÌ
-    case  64: return IM_COL32(60, 160, 255, alpha); // Ô­ÏÈ 256 µÄÆ«À¶
-    case  32: return IM_COL32(60, 255, 255, alpha); // Çà
-    case  16: return IM_COL32(255, 60, 255, alpha); // Æ·ºì
-    case   8: return IM_COL32(255, 160, 60, alpha); // ³È
-    case   4: return IM_COL32(160, 60, 255, alpha); // ×Ï
-    case   2: return IM_COL32(60, 255, 160, alpha); // ¿×È¸ÂÌ/À¶ÂÌ
-    case   1: return IM_COL32(255, 255, 60, alpha); // »Æ
-    default:  return IM_COL32(255, 255, 255, alpha); // Ä¬ÈÏ°×É«
+    case 256: return IM_COL32(255, 60, 60, alpha); // çº¢
+    case 128: return IM_COL32(60, 255, 60, alpha); // ç»¿
+    case  64: return IM_COL32(60, 160, 255, alpha); // åŸå…ˆ 256 çš„åè“
+    case  32: return IM_COL32(60, 255, 255, alpha); // é’
+    case  16: return IM_COL32(255, 60, 255, alpha); // å“çº¢
+    case   8: return IM_COL32(255, 160, 60, alpha); // æ©™
+    case   4: return IM_COL32(160, 60, 255, alpha); // ç´«
+    case   2: return IM_COL32(60, 255, 160, alpha); // å­”é›€ç»¿/è“ç»¿
+    case   1: return IM_COL32(255, 255, 60, alpha); // é»„
+    default:  return IM_COL32(255, 255, 255, alpha); // é»˜è®¤ç™½è‰²
     }
 }
 
@@ -806,7 +806,7 @@ int NXGUIVirtualTexture::RowColToIdx(int row, int col)
 
 ImVec2 NXGUIVirtualTexture::TileMin(int row, int col)
 { 
-    // ÊÀ½ç×ø±ê£¨x=ÁĞ£¬y=ĞĞ->Z£©
+    // ä¸–ç•Œåæ ‡ï¼ˆx=åˆ—ï¼Œy=è¡Œ->Zï¼‰
     return ImVec2(float(WORLD_MIN + col * SECTOR_SIZE),float(WORLD_MIN + row * SECTOR_SIZE));
 }
 

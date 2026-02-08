@@ -4,45 +4,45 @@
 #include <string>
 #include "NXInstance.h"
 
-// È«¾ÖÎÄ¼şÍÏ·Å¹ÜÀíÆ÷
-// ÓÃÓÚ´¦Àí´Ó Windows ×ÊÔ´¹ÜÀíÆ÷ÍÏÈëµÄÎÄ¼ş
+// å…¨å±€æ–‡ä»¶æ‹–æ”¾ç®¡ç†å™¨
+// ç”¨äºå¤„ç†ä» Windows èµ„æºç®¡ç†å™¨æ‹–å…¥çš„æ–‡ä»¶
 class NXWinFileDrop : public NXInstance<NXWinFileDrop>
 {
 public:
 	NXWinFileDrop() = default;
 	~NXWinFileDrop() = default;
 
-	// Ìí¼ÓÍÏÈëµÄÎÄ¼şÂ·¾¶£¨ÓÉ WM_DROPFILES µ÷ÓÃ£©
+	// æ·»åŠ æ‹–å…¥çš„æ–‡ä»¶è·¯å¾„ï¼ˆç”± WM_DROPFILES è°ƒç”¨ï¼‰
 	void AddDroppedFile(const std::filesystem::path& filePath)
 	{
 		m_droppedFiles.push_back(filePath);
 	}
 
-	// Ìí¼Ó¶à¸öÍÏÈëµÄÎÄ¼şÂ·¾¶
+	// æ·»åŠ å¤šä¸ªæ‹–å…¥çš„æ–‡ä»¶è·¯å¾„
 	void AddDroppedFiles(const std::vector<std::filesystem::path>& filePaths)
 	{
 		m_droppedFiles.insert(m_droppedFiles.end(), filePaths.begin(), filePaths.end());
 	}
 
-	// »ñÈ¡ÍÏÈëµÄÎÄ¼şÁĞ±í£¨²»Çå¿Õ£©
+	// è·å–æ‹–å…¥çš„æ–‡ä»¶åˆ—è¡¨ï¼ˆä¸æ¸…ç©ºï¼‰
 	const std::vector<std::filesystem::path>& GetDroppedFiles() const
 	{
 		return m_droppedFiles;
 	}
 
-	// Çå¿ÕÍÏÈëµÄÎÄ¼şÁĞ±í
+	// æ¸…ç©ºæ‹–å…¥çš„æ–‡ä»¶åˆ—è¡¨
 	void ClearDroppedFiles()
 	{
 		m_droppedFiles.clear();
 	}
 
-	// ¼ì²éÊÇ·ñÓĞ´ı´¦ÀíµÄÍÏÈëÎÄ¼ş
+	// æ£€æŸ¥æ˜¯å¦æœ‰å¾…å¤„ç†çš„æ‹–å…¥æ–‡ä»¶
 	bool HasDroppedFiles() const
 	{
 		return !m_droppedFiles.empty();
 	}
 
-	// »ñÈ¡ÍÏÈëÎÄ¼şÊıÁ¿
+	// è·å–æ‹–å…¥æ–‡ä»¶æ•°é‡
 	size_t GetDroppedFileCount() const
 	{
 		return m_droppedFiles.size();

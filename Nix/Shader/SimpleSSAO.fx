@@ -4,7 +4,7 @@
 
 SamplerState ssLinearWrap : register(s0);
 
-//TODO:ÃüÃûĞŞ¸Ä£¬ËùÓĞConstantBufferCamera¸Ä³ÉcbCamera
+//TODO:å‘½åä¿®æ”¹ï¼Œæ‰€æœ‰ConstantBufferCameraæ”¹æˆcbCamera
 cbuffer ConstantBufferCamera : register(b0)
 {
 	// w, h, 1/w, 1/h. unit: pixels.
@@ -42,7 +42,7 @@ void CS(int3 DTid : SV_DispatchThreadID)
 {
 	float3 PositionVS = txPosition.Load(DTid).xyz;
 
-	// NÎªZÖá£¬TBËæÒâµÄxyz×ø±ê»ù
+	// Nä¸ºZè½´ï¼ŒTBéšæ„çš„xyzåæ ‡åŸº
 	float3 N = txNormal.Load(DTid).xyz;
 	float3 T = cross(N, float3(1.0f, 0.0f, 0.0f));
 	if (!any(T))

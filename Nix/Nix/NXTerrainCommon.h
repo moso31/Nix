@@ -32,16 +32,16 @@ struct std::hash<NXTerrainNodeId>
 
 struct NXTerrainConfig
 {
-	// µØĞÎ¿é´óĞ¡
+	// åœ°å½¢å—å¤§å°
 	int TerrainSize = 2048;
 
-	// sector´óĞ¡
+	// sectorå¤§å°
 	int SectorSize = 64;
 
-	// ×îĞ¡µØĞÎ×ø±ê
+	// æœ€å°åœ°å½¢åæ ‡
 	Int2 MinTerrainPos = Int2(-8192, -8192); 
 
-	// ×îĞ¡SectorID
+	// æœ€å°SectorID
 	Int2 MinSectorID = MinTerrainPos / SectorSize;
 };
 

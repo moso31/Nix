@@ -32,7 +32,7 @@ NXNullDescriptor::NXNullDescriptor()
 		});
 }
 
-void NXNullDescriptor::ExecuteTasks() // ×¢£ºÕâ¸ö·½·¨Ä¿Ç°Ô¼¶¨ÊÇÔÚÖ÷Ïß³Ì½öµ÷ÓÃÒ»´ÎµÄ¡£
+void NXNullDescriptor::ExecuteTasks() // æ³¨ï¼šè¿™ä¸ªæ–¹æ³•ç›®å‰çº¦å®šæ˜¯åœ¨ä¸»çº¿ç¨‹ä»…è°ƒç”¨ä¸€æ¬¡çš„ã€‚
 {
 	m_pNullAllocator->ExecuteTasks();
 }

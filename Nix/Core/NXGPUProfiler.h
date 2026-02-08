@@ -4,13 +4,13 @@
 #include <vector>
 #include <unordered_map>
 
-// GPU Profiler ÓÃÓÚ²âÁ¿ RenderGraph Ã¿¸ö Pass µÄ GPU Ö´ĞĞÊ±¼ä
-// Ê¹ÓÃ D3D12 Timestamp Query ÊµÏÖ¾«È·µÄ GPU Ê±¼ä²âÁ¿
+// GPU Profiler ç”¨äºæµ‹é‡ RenderGraph æ¯ä¸ª Pass çš„ GPU æ‰§è¡Œæ—¶é—´
+// ä½¿ç”¨ D3D12 Timestamp Query å®ç°ç²¾ç¡®çš„ GPU æ—¶é—´æµ‹é‡
 
 struct NXGPUProfileResult
 {
 	std::string passName;
-	double timeMs;			// ºÁÃë
+	double timeMs;			// æ¯«ç§’
 	uint64_t startTick;
 	uint64_t endTick;
 };
@@ -24,23 +24,23 @@ public:
 	void Init(ID3D12Device* pDevice, ID3D12CommandQueue* pCmdQueue, uint32_t maxQueries = 256);
 	void Release();
 
-	// Ã¿Ö¡¿ªÊ¼Ê±µ÷ÓÃ£¬×¼±¸ĞÂÒ»Ö¡µÄ profiling
+	// æ¯å¸§å¼€å§‹æ—¶è°ƒç”¨ï¼Œå‡†å¤‡æ–°ä¸€å¸§çš„ profiling
 	void BeginFrame();
 
-	// ÔÚ pass Ö´ĞĞÇ°ºóµ÷ÓÃ
+	// åœ¨ pass æ‰§è¡Œå‰åè°ƒç”¨
 	void BeginPass(ID3D12GraphicsCommandList* pCmdList, const std::string& passName);
 	void EndPass(ID3D12GraphicsCommandList* pCmdList);
 
-	// Ö¡½áÊøÊ±µ÷ÓÃ£¬½âÎöÊ±¼ä´ÁÊı¾İ
+	// å¸§ç»“æŸæ—¶è°ƒç”¨ï¼Œè§£ææ—¶é—´æˆ³æ•°æ®
 	void EndFrame(ID3D12GraphicsCommandList* pCmdList);
 
-	// »ñÈ¡ÉÏÒ»Ö¡µÄ profiling ½á¹û£¨ÒòÎª GPU/CPU Òì²½£¬ĞèÒªÑÓ³ÙÒ»Ö¡¶ÁÈ¡£©
+	// è·å–ä¸Šä¸€å¸§çš„ profiling ç»“æœï¼ˆå› ä¸º GPU/CPU å¼‚æ­¥ï¼Œéœ€è¦å»¶è¿Ÿä¸€å¸§è¯»å–ï¼‰
 	const std::vector<NXGPUProfileResult>& GetLastFrameResults() const { return m_lastFrameResults; }
 
-	// »ñÈ¡ÉÏÒ»Ö¡×Ü GPU Ê±¼ä
+	// è·å–ä¸Šä¸€å¸§æ€» GPU æ—¶é—´
 	double GetLastFrameTotalTimeMs() const { return m_lastFrameTotalTimeMs; }
 
-	// ÊÇ·ñÆôÓÃ profiling
+	// æ˜¯å¦å¯ç”¨ profiling
 	void SetEnabled(bool enabled) { m_bEnabled = enabled; }
 	bool IsEnabled() const { return m_bEnabled; }
 
@@ -54,32 +54,32 @@ private:
 	ID3D12Device* m_pDevice = nullptr;
 	ID3D12CommandQueue* m_pCmdQueue = nullptr;
 
-	// Query Heap ÓÃÓÚ´æ´¢ GPU Ê±¼ä´Á
+	// Query Heap ç”¨äºå­˜å‚¨ GPU æ—¶é—´æˆ³
 	ComPtr<ID3D12QueryHeap> m_pQueryHeap;
 	
-	// Readback Buffer ÓÃÓÚ´Ó GPU ¶ÁÈ¡Ê±¼ä´ÁÊı¾İ
+	// Readback Buffer ç”¨äºä» GPU è¯»å–æ—¶é—´æˆ³æ•°æ®
 	ComPtr<ID3D12Resource> m_pReadbackBuffer;
 
-	// Ê±¼ä´ÁÆµÂÊ£¨Ã¿Ãë¶àÉÙ tick£©
+	// æ—¶é—´æˆ³é¢‘ç‡ï¼ˆæ¯ç§’å¤šå°‘ tickï¼‰
 	uint64_t m_timestampFrequency = 0;
 
-	// µ±Ç°Ö¡µÄ query ÊıÁ¿
+	// å½“å‰å¸§çš„ query æ•°é‡
 	uint32_t m_currentQueryIndex = 0;
 	uint32_t m_maxQueries = 256;
 
-	// µ±Ç°Ö¡ÕıÔÚ profiling µÄ pass Ãû³Æ
+	// å½“å‰å¸§æ­£åœ¨ profiling çš„ pass åç§°
 	std::string m_currentPassName;
 
-	// µ±Ç°Ö¡µÄ pass Ãû³ÆÁĞ±í£¨°´ query Ë³Ğò£©
+	// å½“å‰å¸§çš„ pass åç§°åˆ—è¡¨ï¼ˆæŒ‰ query é¡ºåºï¼‰
 	std::vector<std::string> m_currentFramePassNames;
 
-	// ÉÏÒ»Ö¡µÄ profiling ½á¹û
+	// ä¸Šä¸€å¸§çš„ profiling ç»“æœ
 	std::vector<NXGPUProfileResult> m_lastFrameResults;
 	double m_lastFrameTotalTimeMs = 0.0;
 
-	// Ë«»º³å£º¼ÇÂ¼ÉÏÒ»Ö¡µÄ query ÊıÁ¿£¬ÓÃÓÚ resolve
+	// åŒç¼“å†²ï¼šè®°å½•ä¸Šä¸€å¸§çš„ query æ•°é‡ï¼Œç”¨äº resolve
 	uint32_t m_lastFrameQueryCount = 0;
 };
 
-// È«¾Ö GPU Profiler ÊµÀı
+// å…¨å±€ GPU Profiler å®ä¾‹
 extern NXGPUProfiler* g_pGPUProfiler;

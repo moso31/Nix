@@ -1,6 +1,6 @@
 // 2023.5.30 by moso31
-// Nix ĞòÁĞ»¯Àà£¬»ùÓÚ rapidjson ¿â¿ª·¢£¬
-// ÓÃÓÚ´¦ÀíÒıÇæÖĞÈÎºÎĞèÒªĞòÁĞ»¯µÄ×Ê²ú¡£
+// Nix åºåˆ—åŒ–ç±»ï¼ŒåŸºäº rapidjson åº“å¼€å‘ï¼Œ
+// ç”¨äºå¤„ç†å¼•æ“ä¸­ä»»ä½•éœ€è¦åºåˆ—åŒ–çš„èµ„äº§ã€‚
 
 #pragma once
 #include <filesystem>
@@ -48,7 +48,7 @@ public:
 
 	std::string Json() const { return m_stringBuffer.GetString(); }
 
-	// ½« Json Ğ´Èë±¾µØÎÄ¼ş
+	// å°† Json å†™å…¥æœ¬åœ°æ–‡ä»¶
 	void SaveToFile(const std::filesystem::path& path);
 
 private:
@@ -88,15 +88,15 @@ public:
 	const rapidjson::GenericObject<true, rapidjson::Value> Object(const rapidjson::Value& parent, const std::string& key);
 	const rapidjson::GenericArray<true, rapidjson::Value> Array(const rapidjson::Value& parent, const std::string& key);
 
-	// ´Ó±¾µØÎÄ¼ş¶ÁÈ¡ Json
+	// ä»æœ¬åœ°æ–‡ä»¶è¯»å– Json
 	bool LoadFromFile(const std::filesystem::path& path);
 
 private:
 	rapidjson::Document m_reader;
 };
 
-// Nix ĞòÁĞ»¯»ùÀà
-// ÈÎºÎĞèÒªĞòÁĞ»¯µÄÀà¶¼ĞèÒª¼Ì³Ğ´ËÀà
+// Nix åºåˆ—åŒ–åŸºç±»
+// ä»»ä½•éœ€è¦åºåˆ—åŒ–çš„ç±»éƒ½éœ€è¦ç»§æ‰¿æ­¤ç±»
 class NXSerializable
 {
 public:

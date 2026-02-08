@@ -169,8 +169,8 @@ void NXMeshResourceManager::OnReload()
 		return;
 	}
 
-	// Ê¹ÓÃC++20µÄstd::eraseºÍstd::remove_if£¬
-	// ´ÓÌæ»»¶ÓÁÐÖÐ£¬ÒÆ³ýpTaskDataÕýÔÚÒì²½´¦ÀíµÄÄÚÈÝ
+	// ä½¿ç”¨C++20çš„std::eraseå’Œstd::remove_ifï¼Œ
+	// ä»Žæ›¿æ¢é˜Ÿåˆ—ä¸­ï¼Œç§»é™¤pTaskDataæ­£åœ¨å¼‚æ­¥å¤„ç†çš„å†…å®¹
 	m_replacingSubMeshes.erase(
 		std::remove_if(m_replacingSubMeshes.begin(), m_replacingSubMeshes.end(),
 			[&](NXSubMeshBase* subMesh) {
@@ -178,7 +178,7 @@ void NXMeshResourceManager::OnReload()
 			}),
 		m_replacingSubMeshes.end());
 
-	// Òì²½¼ÓÔØÎÆÀí
+	// å¼‚æ­¥åŠ è½½çº¹ç†
 	bool bAsync = true;
 	if (bAsync)
 	{
@@ -209,7 +209,7 @@ NXTextureReloadTask NXMeshResourceManager::LoadMaterialAsync(const NXSubMeshRelo
 
 void NXMeshResourceManager::LoadMaterialSync(const NXSubMeshReloadTaskPackage* pTaskData)
 {
-	// Éú³ÉÐÂ²ÄÖÊ
+	// ç”Ÿæˆæ–°æè´¨
 	for (auto pSubMesh : pTaskData->submits)
 	{
 		pSubMesh->m_pReplacingMaterial = NXResourceManager::GetInstance()->GetMaterialManager()->LoadFromNSLFile(pSubMesh->m_strReplacingPath);

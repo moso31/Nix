@@ -4,23 +4,23 @@
 
 struct NXResourceView
 {
-	// ×ÊÔ´±¾Ìå
+	// èµ„æºæœ¬ä½“
 	Ntr<NXResource> pRes;
 
-	// ×ÊÔ´ÊÓÍ¼µÄmipµÈ¼¶£¨-1±íÊ¾²»Ö¸¶¨£¬Ê¹ÓÃÄ¬ÈÏÊÓÍ¼£©
+	// èµ„æºè§†å›¾çš„mipç­‰çº§ï¼ˆ-1è¡¨ç¤ºä¸æŒ‡å®šï¼Œä½¿ç”¨é»˜è®¤è§†å›¾ï¼‰
 	int texMipSlice = -1;
 
 	NXResourceView() = default;
 	NXResourceView(const Ntr<NXResource>& res, int mipSlice = -1) : pRes(res), texMipSlice(mipSlice) {}
 };
 
-// Èç¹ûÊÇUAVÀàĞÍ×öpass output£¬ÓÃ·¨±È½Ï¶à£¬ËùÒÔµ¥¶À·â×°Ò»¸ö½á¹¹Ìå
+// å¦‚æœæ˜¯UAVç±»å‹åšpass outputï¼Œç”¨æ³•æ¯”è¾ƒå¤šï¼Œæ‰€ä»¥å•ç‹¬å°è£…ä¸€ä¸ªç»“æ„ä½“
 struct NXResourceUAV
 {
-	// ×ÊÔ´±¾Ìå+¶ÔÓ¦view
+	// èµ„æºæœ¬ä½“+å¯¹åº”view
 	NXResourceView pResView;
 
-	// Èç¹ûÊÇBufferÀàĞÍµÄ£¬µ×²ã»áÍ¬Ê±´´½¨buffer±¾ÌåºÍ¼ÆÊıÆ÷Á½¸ö×ÊÔ´£»Èç¹ûÓÃ¼ÆÊıÆ÷£¬´Ë´¦ÉèÎªtrue
+	// å¦‚æœæ˜¯Bufferç±»å‹çš„ï¼Œåº•å±‚ä¼šåŒæ—¶åˆ›å»ºbufferæœ¬ä½“å’Œè®¡æ•°å™¨ä¸¤ä¸ªèµ„æºï¼›å¦‚æœç”¨è®¡æ•°å™¨ï¼Œæ­¤å¤„è®¾ä¸ºtrue
 	bool useBufferUAVCounter = false;
 
 	NXResourceUAV() = default;
@@ -35,7 +35,7 @@ struct NXPassMatLayout
 	int srvSpaceNum = 0;
 	std::vector<int> srvSlotNum = {};
 
-	// ComputePass×¨ÓÃ
+	// ComputePassä¸“ç”¨
 	int uavSpaceNum = 0;
 	std::vector<int> uavSlotNum = {};
 };
@@ -45,22 +45,22 @@ class NXPassMaterial : public NXMaterial
 public:
 	NXPassMaterial(const std::string& name, const std::filesystem::path& shaderPath = {});
 
-	// ÉèÖÃµ±Ç°shaderĞèÒª¼¸¸öcbv space
+	// è®¾ç½®å½“å‰shaderéœ€è¦å‡ ä¸ªcbv space
 	void RegisterCBVSpaceNum(int spaceNum) { m_layout.cbvSpaceNum = spaceNum; m_layout.cbvSlotNum.resize(spaceNum); }
 
-	// ÉèÖÃµ±Ç°cbvĞèÒª¼¸¸öslot£¨Ä¬ÈÏspace0£©
+	// è®¾ç½®å½“å‰cbvéœ€è¦å‡ ä¸ªslotï¼ˆé»˜è®¤space0ï¼‰
 	void RegisterCBVSlotNum(int slotNum, int spaceIndex = 0) { m_layout.cbvSlotNum[spaceIndex] = slotNum; }
 
-	// ÉèÖÃµ±Ç°shaderĞèÒª¼¸¸ösrv space
+	// è®¾ç½®å½“å‰shaderéœ€è¦å‡ ä¸ªsrv space
 	void RegisterSRVSpaceNum(int spaceNum) { m_layout.srvSpaceNum = spaceNum; m_layout.srvSlotNum.resize(spaceNum); }
 
-	// ÉèÖÃµ±Ç°srvĞèÒª¼¸¸öslot£¨Ä¬ÈÏspace0£©
+	// è®¾ç½®å½“å‰srvéœ€è¦å‡ ä¸ªslotï¼ˆé»˜è®¤space0ï¼‰
 	void RegisterSRVSlotNum(int slotNum, int spaceIndex = 0) { m_layout.srvSlotNum[spaceIndex] = slotNum; }
 
-	// ÉèÖÃµ±Ç°shaderĞèÒª¼¸¸öuav space
+	// è®¾ç½®å½“å‰shaderéœ€è¦å‡ ä¸ªuav space
 	void RegisterUAVSpaceNum(int spaceNum) { m_layout.uavSpaceNum = spaceNum; m_layout.uavSlotNum.resize(spaceNum); }
 
-	// ÉèÖÃµ±Ç°uavĞèÒª¼¸¸öslot£¨Ä¬ÈÏspace0£©
+	// è®¾ç½®å½“å‰uavéœ€è¦å‡ ä¸ªslotï¼ˆé»˜è®¤space0ï¼‰
 	void RegisterUAVSlotNum(int slotNum, int spaceIndex = 0) { m_layout.uavSlotNum[spaceIndex] = slotNum; }
 
 	virtual void RegisterRTVNum(const std::vector<DXGI_FORMAT>& rtFormats) {}
@@ -87,18 +87,18 @@ public:
 	void InitRootParams();
 
 protected:
-	// µ±Ç° Nix µÄ¸ù²ÎÊı£¨ºÍ²ÉÑùÆ÷£©-¼Ä´æÆ÷µÄ²¼¾Ö¹æÔò£º
-	// ¸ù²ÎÊıË÷Òı(rootParameterIndex)°´ÒÔÏÂË³ĞòÅÅÁĞ£º
-	// 1. CBV£ºÃ¿¸öslot,spaceÕ¼ÓÃÒ»¸ö¸ù²ÎÊı
-	// 	  °´£ºspace0µÄb0£¬b1£¬...£¬space1µÄb0£¬b1£¬...µÄË³ĞòÅÅÁĞ¸ù²ÎÊı
-	// 2. SRV£º
-	//	  Ã¿¸öspaceÕ¼ÓÃÒ»¸öÃèÊö·ûTable£¬²¢Õ¼ÓÃÒ»¸ö¸ù²ÎÊı¡£
-	// 3. UAV£º
-	//	  Ã¿¸öspaceÕ¼ÓÃÒ»¸öÃèÊö·ûTable£¬²¢Õ¼ÓÃÒ»¸ö¸ù²ÎÊı¡£
-	// 4. ÈÎºÎÇé¿öÏÂ¶¼²»Ê¹ÓÃ¸ù³£Á¿
-	// 5. ²ÉÑùÆ÷Ê¼ÖÕÊ¹ÓÃStaticSampler£¬Ôİ²»¿¼ÂÇspaceºÍ¶¯Ì¬SamplerµÄÎÊÌâ£¬Ä¿Ç°¹»ÓÃÁË
+	// å½“å‰ Nix çš„æ ¹å‚æ•°ï¼ˆå’Œé‡‡æ ·å™¨ï¼‰-å¯„å­˜å™¨çš„å¸ƒå±€è§„åˆ™ï¼š
+	// æ ¹å‚æ•°ç´¢å¼•(rootParameterIndex)æŒ‰ä»¥ä¸‹é¡ºåºæ’åˆ—ï¼š
+	// 1. CBVï¼šæ¯ä¸ªslot,spaceå ç”¨ä¸€ä¸ªæ ¹å‚æ•°
+	// 	  æŒ‰ï¼šspace0çš„b0ï¼Œb1ï¼Œ...ï¼Œspace1çš„b0ï¼Œb1ï¼Œ...çš„é¡ºåºæ’åˆ—æ ¹å‚æ•°
+	// 2. SRVï¼š
+	//	  æ¯ä¸ªspaceå ç”¨ä¸€ä¸ªæè¿°ç¬¦Tableï¼Œå¹¶å ç”¨ä¸€ä¸ªæ ¹å‚æ•°ã€‚
+	// 3. UAVï¼š
+	//	  æ¯ä¸ªspaceå ç”¨ä¸€ä¸ªæè¿°ç¬¦Tableï¼Œå¹¶å ç”¨ä¸€ä¸ªæ ¹å‚æ•°ã€‚
+	// 4. ä»»ä½•æƒ…å†µä¸‹éƒ½ä¸ä½¿ç”¨æ ¹å¸¸é‡
+	// 5. é‡‡æ ·å™¨å§‹ç»ˆä½¿ç”¨StaticSamplerï¼Œæš‚ä¸è€ƒè™‘spaceå’ŒåŠ¨æ€Samplerçš„é—®é¢˜ï¼Œç›®å‰å¤Ÿç”¨äº†
 	std::vector<D3D12_ROOT_PARAMETER> m_rootParams;
-	std::vector<D3D12_DESCRIPTOR_RANGE> m_srvRanges; // ÕâÁ©range±ØĞëÓÃ³ÉÔ±±äÁ¿±£´æ
+	std::vector<D3D12_DESCRIPTOR_RANGE> m_srvRanges; // è¿™ä¿©rangeå¿…é¡»ç”¨æˆå‘˜å˜é‡ä¿å­˜
 	std::vector<D3D12_DESCRIPTOR_RANGE> m_uavRanges;
     NXPassMatLayout m_layout;
 	
@@ -116,10 +116,10 @@ class NXGraphicPassMaterial : public NXPassMaterial
 public:
 	NXGraphicPassMaterial(const std::string& name, const std::filesystem::path& shaderPath = {});
 
-	// ÉèÖÃµ±Ç°shaderµÄRTÊıÁ¿ºÍ¸ñÊ½
+	// è®¾ç½®å½“å‰shaderçš„RTæ•°é‡å’Œæ ¼å¼
 	void RegisterRTVNum(const std::vector<DXGI_FORMAT>& rtFormats) override { m_rtFormats = rtFormats; }
 
-	// ÉèÖÃµ±Ç°shaderµÄDS¸ñÊ½
+	// è®¾ç½®å½“å‰shaderçš„DSæ ¼å¼
 	void RegisterDSV(DXGI_FORMAT dsvFormat) override { m_dsvFormat = dsvFormat; }
 	void FinalizeLayout() override;
 
@@ -194,7 +194,7 @@ public:
 	void SetInput(Ntr<NXResource> pRes) { m_pReadbackResource = pRes; }
 	void SetOutput(Ntr<NXReadbackData>& pOutData) { m_pOutData = pOutData; }
 
-	// ÉèÖÃ×Ô¶¨Òå»Øµ÷º¯Êı£¨»áÔÚ FinishTask ÖĞµ÷ÓÃ£©
+	// è®¾ç½®è‡ªå®šä¹‰å›è°ƒå‡½æ•°ï¼ˆä¼šåœ¨ FinishTask ä¸­è°ƒç”¨ï¼‰
 	void SetCallback(std::function<void()> callback) { m_callback = callback; }
 
 	void Compile() override {}
@@ -209,5 +209,5 @@ private:
 private:
 	Ntr<NXResource> m_pReadbackResource; // input
 	Ntr<NXReadbackData> m_pOutData;		// output
-	std::function<void()> m_callback;	// ×Ô¶¨Òå»Øµ÷º¯Êı
+	std::function<void()> m_callback;	// è‡ªå®šä¹‰å›è°ƒå‡½æ•°
 };

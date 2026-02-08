@@ -17,11 +17,11 @@ void NXGUISectorVersionMap::Render()
 		return;
 
 	ImGui::SetNextWindowSize(ImVec2(600.0f, 650.0f), ImGuiCond_FirstUseEver);
-	if (ImGui::Begin(ImUtf8("»´æ÷Sector∞Ê±æ∫≈"), &m_bVisible))
+	if (ImGui::Begin(ImUtf8("ÂÖ®Â±ÄSectorÁâàÊú¨Âè∑"), &m_bVisible))
 	{
 		if (!m_pRenderer)
 		{
-			ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), ImUtf8("‰÷»æ∆˜Œ¥…Ë÷√"));
+			ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), ImUtf8("Ê∏≤ÊüìÂô®Êú™ËÆæÁΩÆ"));
 			ImGui::End();
 			return;
 		}
@@ -29,7 +29,7 @@ void NXGUISectorVersionMap::Render()
 		auto* pStreamer = m_pRenderer->GetTerrainLODStreamer();
 		if (!pStreamer)
 		{
-			ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), ImUtf8("TerrainLODStreamer Œ¥≥ı ºªØ"));
+			ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), ImUtf8("TerrainLODStreamer Êú™ÂàùÂßãÂåñ"));
 			ImGui::End();
 			return;
 		}
@@ -37,24 +37,24 @@ void NXGUISectorVersionMap::Render()
 		const NXSectorVersionMap& versionMap = pStreamer->GetSectorVersionMap();
 		Int2 mapSize = versionMap.GetSize();
 
-		ImGui::Text(ImUtf8("Sector∞Ê±æÕº¥Û–°: %d x %d"), mapSize.x, mapSize.y);
+		ImGui::Text(ImUtf8("SectorÁâàÊú¨ÂõæÂ§ßÂ∞è: %d x %d"), mapSize.x, mapSize.y);
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(200.0f);
-		ImGui::SliderFloat(ImUtf8("Àı∑≈"), &m_cellSize, 4.0f, 40.0f, "%.0f px");
+		ImGui::SliderFloat(ImUtf8("Áº©Êîæ"), &m_cellSize, 4.0f, 40.0f, "%.0f px");
 		ImGui::Separator();
 		ImGui::Spacing();
 
 		if (mapSize.x <= 0 || mapSize.y <= 0)
 		{
-			ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), ImUtf8("∞Ê±æÕºŒ¥≥ı ºªØ"));
+			ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), ImUtf8("ÁâàÊú¨ÂõæÊú™ÂàùÂßãÂåñ"));
 			ImGui::End();
 			return;
 		}
 
-		// œ‘ æ∞Ê±æ∫≈Õ¯∏Ò
+		// ÊòæÁ§∫ÁâàÊú¨Âè∑ÁΩëÊ†º
 		ImGui::BeginChild("VersionGrid", ImVec2(0, 0), true, ImGuiWindowFlags_HorizontalScrollbar);
 
-		//  Û±Í÷–º¸Õœ◊ßπˆ∂Ø
+		// Èº†Ê†á‰∏≠ÈîÆÊãñÊãΩÊªöÂä®
 		if (ImGui::IsWindowHovered() && ImGui::IsMouseDragging(ImGuiMouseButton_Middle))
 		{
 			ImVec2 delta = ImGui::GetIO().MouseDelta;
@@ -64,7 +64,7 @@ void NXGUISectorVersionMap::Render()
 
 		float cellSize = m_cellSize;
 		float fontSize = ImGui::GetFontSize();
-		bool bShowText = (cellSize >= fontSize + 4.0f); // µ•‘™∏Òπª¥Û ±≤≈œ‘ æŒƒ◊÷
+		bool bShowText = (cellSize >= fontSize + 4.0f); // ÂçïÂÖÉÊ†ºÂ§üÂ§ßÊó∂ÊâçÊòæÁ§∫ÊñáÂ≠ó
 
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 		ImVec2 canvasPos = ImGui::GetCursorScreenPos();
@@ -79,7 +79,7 @@ void NXGUISectorVersionMap::Render()
 				ImVec2 cellMin = ImVec2(canvasPos.x + x * cellSize, canvasPos.y + y * cellSize);
 				ImVec2 cellMax = ImVec2(cellMin.x + cellSize, cellMin.y + cellSize);
 
-				// ∏˘æ›∞Ê±æ∫≈…Ë÷√—’…´
+				// Ê†πÊçÆÁâàÊú¨Âè∑ËÆæÁΩÆÈ¢úËâ≤
 				ImU32 cellColor;
 				if (version == 0)
 				{
@@ -97,7 +97,7 @@ void NXGUISectorVersionMap::Render()
 
 				if (bShowText)
 				{
-					// µ•‘™∏Ò◊„πª¥Û£∫œ‘ æŒƒ◊÷
+					// ÂçïÂÖÉÊ†ºË∂≥Â§üÂ§ßÔºöÊòæÁ§∫ÊñáÂ≠ó
 					char text[32];
 					sprintf_s(text, "%u", version);
 					ImVec2 textSize = ImGui::CalcTextSize(text);
@@ -111,11 +111,11 @@ void NXGUISectorVersionMap::Render()
 				}
 				else
 				{
-					// µ•‘™∏ÒÃ´–°£∫ Û±Í–¸Õ£ ±œ‘ ætooltip
+					// ÂçïÂÖÉÊ†ºÂ§™Â∞èÔºöÈº†Ê†áÊÇ¨ÂÅúÊó∂ÊòæÁ§∫tooltip
 					if (mousePos.x >= cellMin.x && mousePos.x < cellMax.x &&
 						mousePos.y >= cellMin.y && mousePos.y < cellMax.y)
 					{
-						// ∏ﬂ¡¡±ﬂøÚ
+						// È´ò‰∫ÆËæπÊ°Ü
 						drawList->AddRect(cellMin, cellMax, IM_COL32(255, 255, 0, 255));
 
 						ImGui::BeginTooltip();

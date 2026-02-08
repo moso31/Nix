@@ -27,16 +27,16 @@ struct NXTextureUploadChunk
 {
     NXTextureUploadChunk() = default;
 
-    // chunk´óĞ¡
+    // chunkå¤§å°
     int chunkBytes; 
 
-    // layoutË÷Òı£¨µÚ¼¸¸öfaceµÄmipµÄslice£©
-    // ´ÓµÚ¼¸¸ölayoutµ½µÚ¼¸¸ölayout
+    // layoutç´¢å¼•ï¼ˆç¬¬å‡ ä¸ªfaceçš„mipçš„sliceï¼‰
+    // ä»ç¬¬å‡ ä¸ªlayoutåˆ°ç¬¬å‡ ä¸ªlayout
     int layoutIndexStart;
     int layoutIndexSize;
 
-    // chunk´Óµ±Ç°layoutµÚ¼¸ĞĞ¿ªÊ¼µ½µÚ¼¸ĞĞ½áÊø
-    // ½öÔÚlayoutIndexSize == 1Ê±ÓĞĞ§
+    // chunkä»å½“å‰layoutç¬¬å‡ è¡Œå¼€å§‹åˆ°ç¬¬å‡ è¡Œç»“æŸ
+    // ä»…åœ¨layoutIndexSize == 1æ—¶æœ‰æ•ˆ
     int rowStart; 
     int rowSize;
 };
@@ -58,34 +58,34 @@ public:
 
     ID3D12Resource* GetD3DResource() const override { return m_pTexture.Get(); }
 
-    // Òì²½¼ÓÔØÎÆÀí×ÊÔ´Ïà¹Ø
-    void SetTexChunks(int chunks); // ÉèÖÃÎÆÀí¼ÓÔØµÄchunkÊıÁ¿
-    void ProcessLoadingTexChunks(); // ¼ÆÊı--£¬Ã¿¼ÓÔØºÃÒ»¸öchunk£¬µ÷ÓÃÒ»´Î
+    // å¼‚æ­¥åŠ è½½çº¹ç†èµ„æºç›¸å…³
+    void SetTexChunks(int chunks); // è®¾ç½®çº¹ç†åŠ è½½çš„chunkæ•°é‡
+    void ProcessLoadingTexChunks(); // è®¡æ•°--ï¼Œæ¯åŠ è½½å¥½ä¸€ä¸ªchunkï¼Œè°ƒç”¨ä¸€æ¬¡
     void WaitLoadingTexturesFinish();
 
-    // Òì²½¼ÓÔØViewsÏà¹Ø
-    void SetViews(uint32_t srvNum, uint32_t rtvNum, uint32_t dsvNum, uint32_t uavNum, uint32_t otherNum = 0); // ÉèÖÃViewÊıÁ¿
-    void ProcessLoadingViews(); // ¼ÆÊı--£¬Ã¿¼ÓÔØºÃÒ»¸öView£¬µ÷ÓÃÒ»´Î
-    void WaitLoadingViewsFinish(); // µÈ´ıËùÓĞView¶¼¼ÓÔØÍê³É£¬äÖÈ¾´«ViewÊ±µ÷ÓÃ
+    // å¼‚æ­¥åŠ è½½Viewsç›¸å…³
+    void SetViews(uint32_t srvNum, uint32_t rtvNum, uint32_t dsvNum, uint32_t uavNum, uint32_t otherNum = 0); // è®¾ç½®Viewæ•°é‡
+    void ProcessLoadingViews(); // è®¡æ•°--ï¼Œæ¯åŠ è½½å¥½ä¸€ä¸ªViewï¼Œè°ƒç”¨ä¸€æ¬¡
+    void WaitLoadingViewsFinish(); // ç­‰å¾…æ‰€æœ‰Viewéƒ½åŠ è½½å®Œæˆï¼Œæ¸²æŸ“ä¼ Viewæ—¶è°ƒç”¨
 
-    void ProcessLoading2DPreview(); // ¼ÆÊı--£¬Ã¿¼ÓÔØºÃÒ»¸öView£¬µ÷ÓÃÒ»´Î
-    void WaitLoading2DPreviewFinish(); // µÈ´ıËùÓĞView¶¼¼ÓÔØÍê³É£¬äÖÈ¾´«ViewÊ±µ÷ÓÃ
+    void ProcessLoading2DPreview(); // è®¡æ•°--ï¼Œæ¯åŠ è½½å¥½ä¸€ä¸ªViewï¼Œè°ƒç”¨ä¸€æ¬¡
+    void WaitLoading2DPreviewFinish(); // ç­‰å¾…æ‰€æœ‰Viewéƒ½åŠ è½½å®Œæˆï¼Œæ¸²æŸ“ä¼ Viewæ—¶è°ƒç”¨
 
-    // »ñÈ¡Òì²½¼ÓÔØ×´Ì¬£¬¿´¿´chunkºÍViewÊÇ·ñ¶¼¼ÓÔØÍê³ÉÁË
+    // è·å–å¼‚æ­¥åŠ è½½çŠ¶æ€ï¼Œçœ‹çœ‹chunkå’ŒViewæ˜¯å¦éƒ½åŠ è½½å®Œæˆäº†
     bool IsLoadReady() const;
 
     virtual uint32_t GetSRVPreviewCount() { return (uint32_t)m_pSRVPreviews.size(); }
     virtual D3D12_CPU_DESCRIPTOR_HANDLE GetSRVPreview(uint32_t index);
 
-	// ¡¾TODO£º¹ØÓÚSetSRVPreviews()/SetSRVPreviewsManual()£¬ÉõÖÁSetViews()µÄÉè¼ÆĞèÒªÖØĞÂ¿¼ÂÇ¡¿
-    // Õâ¿éµÄÉè¼ÆÊÇ¸öÀúÊ·ÒÅÁôÎÊÌâ¡£ÎÒÖ®Ç°µÄÈÏÖª¶¼ÊÇ"ÎÆÀíĞèÒªÔ¤¼ÓÔØSRV"£¬ÓÉ´ËÉè¼ÆÁËÕâÒ»ÛçSetSRVPreviews
-    // Ô½À´Ô½¾õµÃÕâÑù×öÓĞÎÊÌâ¡£
-    // Ëµµ½µ×£¬ÏëÖ»¿¿ÏÖÔÚÕâÌ×£¨ËùÓĞÍ¬Ò»type£¬±ÈÈç2DArrayÎÆÀíµÄSRVÊıÁ¿£¬²ÎÊı¶¼Ò»ÖÂ£©Ö§³ÅÔ½À´Ô½¸´ÔÓµÄĞèÇó£¬Ò²ÊÇ²»ÏÖÊµµÄ¡£
-    // ÓĞ¸öË¼Â·ÊÇ´òËãÔËĞĞÊ±¶¯Ì¬¹¹½¨£¬ÔõÃ´ÂäµØÏÖÔÚ»¹Ã»ÏëºÃ¡£ÒÔºóÔÙÖØ¹¹¡£
+	// ã€TODOï¼šå…³äºSetSRVPreviews()/SetSRVPreviewsManual()ï¼Œç”šè‡³SetViews()çš„è®¾è®¡éœ€è¦é‡æ–°è€ƒè™‘ã€‘
+    // è¿™å—çš„è®¾è®¡æ˜¯ä¸ªå†å²é—ç•™é—®é¢˜ã€‚æˆ‘ä¹‹å‰çš„è®¤çŸ¥éƒ½æ˜¯"çº¹ç†éœ€è¦é¢„åŠ è½½SRV"ï¼Œç”±æ­¤è®¾è®¡äº†è¿™ä¸€å¨SetSRVPreviews
+    // è¶Šæ¥è¶Šè§‰å¾—è¿™æ ·åšæœ‰é—®é¢˜ã€‚
+    // è¯´åˆ°åº•ï¼Œæƒ³åªé ç°åœ¨è¿™å¥—ï¼ˆæ‰€æœ‰åŒä¸€typeï¼Œæ¯”å¦‚2DArrayçº¹ç†çš„SRVæ•°é‡ï¼Œå‚æ•°éƒ½ä¸€è‡´ï¼‰æ”¯æ’‘è¶Šæ¥è¶Šå¤æ‚çš„éœ€æ±‚ï¼Œä¹Ÿæ˜¯ä¸ç°å®çš„ã€‚
+    // æœ‰ä¸ªæ€è·¯æ˜¯æ‰“ç®—è¿è¡Œæ—¶åŠ¨æ€æ„å»ºï¼Œæ€ä¹ˆè½åœ°ç°åœ¨è¿˜æ²¡æƒ³å¥½ã€‚ä»¥åå†é‡æ„ã€‚
     
-    // ×Ô¶¯¼ÆËãÌùÍ¼µÄÔ¤ÀÀSRVÊıÁ¿£»ÅÉÉúÀà¸ºÔğÊµÏÖ¾ßÌåÂß¼­
+    // è‡ªåŠ¨è®¡ç®—è´´å›¾çš„é¢„è§ˆSRVæ•°é‡ï¼›æ´¾ç”Ÿç±»è´Ÿè´£å®ç°å…·ä½“é€»è¾‘
     virtual void SetSRVPreviews() { m_loading2DPreviews = 0; }
-	// ÊÖ¶¯¼ÆËãÌùÍ¼µÄÔ¤ÀÀSRVÊıÁ¿
+	// æ‰‹åŠ¨è®¡ç®—è´´å›¾çš„é¢„è§ˆSRVæ•°é‡
     void SetSRVPreviewsManual(uint32_t count)
     {	
         m_loading2DPreviews = count;
@@ -120,11 +120,11 @@ public:
 
     void Release();
 
-    // µ±³öÏÖĞèÒªÖØĞÂ¼ÓÔØm_pTextureÎÆÀíµÄÊÂ¼şÊ±£¨±ÈÈçÎÆÀíÊôĞÔApply¡¢Mesh²ÄÖÊ±ä¸ü£©»á´¥·¢ÕâÀïµÄÂß¼­¡£
+    // å½“å‡ºç°éœ€è¦é‡æ–°åŠ è½½m_pTextureçº¹ç†çš„äº‹ä»¶æ—¶ï¼ˆæ¯”å¦‚çº¹ç†å±æ€§Applyã€Meshæè´¨å˜æ›´ï¼‰ä¼šè§¦å‘è¿™é‡Œçš„é€»è¾‘ã€‚
     void MarkReload(const std::filesystem::path& newTexPath);
     void ReloadCheck();
 
-    // ĞòÁĞ»¯ºÍ·´ĞòÁĞ»¯
+    // åºåˆ—åŒ–å’Œååºåˆ—åŒ–
 	virtual void Serialize() override; 
 	virtual void Deserialize() override;
 
@@ -132,14 +132,14 @@ public:
     void SetSerializationData(const NXTextureSerializationData& data) { m_serializationData = data; }
 
 protected:    
-    // ´´½¨ RT ÀàĞÍµÄTexture£¬µ÷ÓÃÕâ¸ö·½·¨
+    // åˆ›å»º RT ç±»å‹çš„Textureï¼Œè°ƒç”¨è¿™ä¸ªæ–¹æ³•
     void CreateRenderTextureInternal(D3D12_RESOURCE_FLAGS flags);
     void CreateTextureInternal(D3D12_RESOURCE_FLAGS flags);
 
-    // ³ÌĞò»¯Éú³É Texture£¬µ÷ÓÃÕâ¸ö·½·¨
+    // ç¨‹åºåŒ–ç”Ÿæˆ Textureï¼Œè°ƒç”¨è¿™ä¸ªæ–¹æ³•
     void CreateInternal(const std::shared_ptr<DirectX::ScratchImage>& pImage, D3D12_RESOURCE_FLAGS flags, bool useSubRegion, Int2 subRegionXY, Int2 subRegionSize);
 
-    // ´ÓÎÄ¼ş´´½¨ Texture£¬µ÷ÓÃÕâ¸ö·½·¨
+    // ä»æ–‡ä»¶åˆ›å»º Textureï¼Œè°ƒç”¨è¿™ä¸ªæ–¹æ³•
     void CreatePathTextureInternal(const std::filesystem::path& filePath, D3D12_RESOURCE_FLAGS flags, bool useSubRegion, Int2 subRegionXY, Int2 subRegionSize);
 
     void AfterTexLoaded(const std::filesystem::path& filePath, D3D12_RESOURCE_FLAGS flags, const NXTextureLoaderTaskResult& result);
@@ -152,21 +152,21 @@ private:
     void GenerateUploadChunks(uint32_t layoutSize, uint32_t* numRow, uint64_t* numRowSizeInBytes, uint64_t totalBytes,
         D3D12_PLACED_SUBRESOURCE_FOOTPRINT* layouts, std::vector<NXTextureUploadChunk>& oChunks);
 
-    // ÏòÏÂÈ¡Õû¶ÔÆë£¬alignment±ØĞëÊÇ2µÄÃİ
+    // å‘ä¸‹å–æ•´å¯¹é½ï¼Œalignmentå¿…é¡»æ˜¯2çš„å¹‚
     int AlignDownForPow2Only(int value, int alignment) { return value & ~(alignment - 1); }
 
-    // ¼ÆËãmipÊıÁ¿
+    // è®¡ç®—mipæ•°é‡
     uint32_t CalcMipCount(int width, int height);
 
-    // ¼ÆËãÖ¸¶¨layoutµÄsubRegionµÄÆ«ÒÆ£»
-    // oSrcRow£ºĞĞ/¿éĞĞµÄÆğÊ¼ĞĞÊı
-    // oSrcBytes: Ã¿ĞĞ/¿éĞĞµÄÆğÊ¼Æ«ÒÆÁ¿
+    // è®¡ç®—æŒ‡å®šlayoutçš„subRegionçš„åç§»ï¼›
+    // oSrcRowï¼šè¡Œ/å—è¡Œçš„èµ·å§‹è¡Œæ•°
+    // oSrcBytes: æ¯è¡Œ/å—è¡Œçš„èµ·å§‹åç§»é‡
     void ComputeSubRegionOffsets(const std::shared_ptr<ScratchImage>& pImage, int layoutIndex, uint32_t& oSrcRow, uint32_t& oSrcBytes);
 
-    // ·Ö¿é´«Êä½Ó¿Ú£º´«ÊäÒ»¸öLayoutµÄÒ»²¿·ÖÊı¾İ£¨½«½Ï´óµÄlayout´òÉ¢£¬¶à´Î´¦Àí£©
+    // åˆ†å—ä¼ è¾“æ¥å£ï¼šä¼ è¾“ä¸€ä¸ªLayoutçš„ä¸€éƒ¨åˆ†æ•°æ®ï¼ˆå°†è¾ƒå¤§çš„layoutæ‰“æ•£ï¼Œå¤šæ¬¡å¤„ç†ï¼‰
     void CopyPartOfLayoutToChunk(const NXTextureUploadChunk& texChunk, const std::shared_ptr<ScratchImage>& pImage);
 
-    // ·Ö¿é´«Êä½Ó¿Ú£º´«Êä¶à¸öLayoutµÄÊı¾İ£¨Í¬Ê±´¦Àí¶à¸öĞ¡µÄlayout£©
+    // åˆ†å—ä¼ è¾“æ¥å£ï¼šä¼ è¾“å¤šä¸ªLayoutçš„æ•°æ®ï¼ˆåŒæ—¶å¤„ç†å¤šä¸ªå°çš„layoutï¼‰
     void CopyMultiLayoutsToChunk(const NXTextureUploadChunk& texChunk, const std::shared_ptr<ScratchImage>& pImage);
 
 protected:
@@ -174,7 +174,7 @@ protected:
 
     std::filesystem::path m_texFilePath;
 
-    // Òì²½¼ÓÔØÏà¹Ø
+    // å¼‚æ­¥åŠ è½½ç›¸å…³
     std::atomic<int> m_loadingTexChunks;
     std::promise<void> m_promiseLoadingTexChunks;
     std::future<void> m_futureLoadingTexChunks;
@@ -193,32 +193,32 @@ protected:
     std::future<void> m_futureLoading2DPreview;
     std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> m_pSRVPreviews;
 
-    // Òì²½¼ÓÔØ×´Ì¬£ºÊÇ·ñ¼ÓÔØÍê³É
+    // å¼‚æ­¥åŠ è½½çŠ¶æ€ï¼šæ˜¯å¦åŠ è½½å®Œæˆ
     std::atomic<bool> m_loadTexChunksReady;
     std::atomic<bool> m_loadViewsReady;
     std::atomic<bool> m_load2DPreviewsReady;
 
-    // »ù±¾ĞÅÏ¢£»Èç¹ûÊÇsubRegion£¬ÄÇÃ´wh¾ÍÊÇsubRegionµÄwh¡£
-    // Ä¿Ç°»¹Ã»ÓĞÊµ¼ÊĞèÇóĞèÒªÃ÷È·Çø·Ö Ô´ÎÄ¼şºÍÊµ¼Ê´´½¨µÄwh
+    // åŸºæœ¬ä¿¡æ¯ï¼›å¦‚æœæ˜¯subRegionï¼Œé‚£ä¹ˆwhå°±æ˜¯subRegionçš„whã€‚
+    // ç›®å‰è¿˜æ²¡æœ‰å®é™…éœ€æ±‚éœ€è¦æ˜ç¡®åŒºåˆ† æºæ–‡ä»¶å’Œå®é™…åˆ›å»ºçš„wh
     DXGI_FORMAT m_texFormat;
     uint32_t m_width;
     uint32_t m_height;
     uint32_t m_arraySize;
     uint32_t m_mipLevels;
 
-    // ÊÇ·ñÖ»¼ÓÔØÌùÍ¼ÎÄ¼şµÄÒ»²¿·ÖÇøÓò
+    // æ˜¯å¦åªåŠ è½½è´´å›¾æ–‡ä»¶çš„ä¸€éƒ¨åˆ†åŒºåŸŸ
     bool m_useSubRegion;
     Int2 m_subRegionXY;
     Int2 m_subRegionSize;
 
-    // ĞòÁĞ»¯Êı¾İ
+    // åºåˆ—åŒ–æ•°æ®
     NXTextureSerializationData m_serializationData;
 
     D3D12_CLEAR_VALUE m_clearValue;
 
     NXTextureReload m_reload;
 
-    XBuddyTaskMemData m_texMemData;  // ´æ´¢»ï°éÄÚ´æ·ÖÅäĞÅÏ¢£¬ÓÃÓÚÊÍ·Å
+    XBuddyTaskMemData m_texMemData;  // å­˜å‚¨ä¼™ä¼´å†…å­˜åˆ†é…ä¿¡æ¯ï¼Œç”¨äºé‡Šæ”¾
 };
 
 class NXTexture2D : public NXTexture
@@ -228,14 +228,14 @@ public:
     NXTexture2D(const NXTexture2D& other) = delete;
     virtual ~NXTexture2D() {}
 
-    // Òì²½´´½¨£¬¼ÇÈë»ï°éÄÚ´æ³ØµÄ´óCommittedResource
+    // å¼‚æ­¥åˆ›å»ºï¼Œè®°å…¥ä¼™ä¼´å†…å­˜æ± çš„å¤§CommittedResource
     Ntr<NXTexture2D> Create(const std::string& debugName, const std::filesystem::path& FilePath, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE, bool useSubRegion = false, const Int2& subRegionXY = Int2(0, 0), const Int2& subRegionSize = Int2(-1, -1));
     Ntr<NXTexture2D> CreateSolid(const std::string& debugName, uint32_t TexSize, const Vector4& Color, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
     Ntr<NXTexture2D> CreateNoise(const std::string& debugName, uint32_t TexSize, uint32_t Dimension, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
     Ntr<NXTexture2D> CreateHeightRaw(const std::string& debugName, const std::filesystem::path& rawPath, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE, bool useSubRegion = false, const Int2& subRegionXY = Int2(0, 0), const Int2& subRegionSize = Int2(-1, -1));
     Ntr<NXTexture2D> CreateByData(const std::string& debugName, const std::shared_ptr<ScratchImage>& pImage, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
 
-    // Í¬²½´´½¨£¬¶ÀÁ¢Resource
+    // åŒæ­¥åˆ›å»ºï¼Œç‹¬ç«‹Resource
     Ntr<NXTexture2D> CreateRenderTexture(const std::string& debugName, DXGI_FORMAT fmt, uint32_t width, uint32_t height, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
     Ntr<NXTexture2D> CreateTexture(const std::string& debugName, DXGI_FORMAT fmt, uint32_t width, uint32_t height, uint32_t mipLevels = 1, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
 
@@ -251,10 +251,10 @@ public:
     NXTextureCube() : NXTexture(NXResourceType::TexCube) {}
     virtual ~NXTextureCube() {}
 
-    // Òì²½´´½¨£¬¼ÇÈë»ï°éÄÚ´æ³ØµÄ´óCommittedResource
+    // å¼‚æ­¥åˆ›å»ºï¼Œè®°å…¥ä¼™ä¼´å†…å­˜æ± çš„å¤§CommittedResource
     void Create(const std::string& debugName, DXGI_FORMAT texFormat, uint32_t width, uint32_t height, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
 
-    // Í¬²½´´½¨£¬¶ÀÁ¢Resource
+    // åŒæ­¥åˆ›å»ºï¼Œç‹¬ç«‹Resource
     void Create(const std::string& debugName, const std::wstring& filePath, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
 
     void SetSRV(uint32_t index);
@@ -273,11 +273,11 @@ public:
     NXTexture2DArray() : NXTexture(NXResourceType::Tex2DArray) {}
     virtual ~NXTexture2DArray() {}
 
-    // Òì²½´´½¨£¬¼ÇÈë»ï°éÄÚ´æ³ØµÄ´óCommittedResource
+    // å¼‚æ­¥åˆ›å»ºï¼Œè®°å…¥ä¼™ä¼´å†…å­˜æ± çš„å¤§CommittedResource
     void Create(const std::string& debugName, const std::wstring& filePath, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
     void Create(const std::string& debugName, const std::wstring& filePath, DXGI_FORMAT fmt, uint32_t width, uint32_t height, uint32_t arraySize, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
 
-    // Í¬²½´´½¨£¬¶ÀÁ¢Resource
+    // åŒæ­¥åˆ›å»ºï¼Œç‹¬ç«‹Resource
     void CreateRT(const std::string& debugName, DXGI_FORMAT fmt, uint32_t width, uint32_t height, uint32_t arraySize, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
     void CreateTexture(const std::string& debugName, DXGI_FORMAT fmt, uint32_t width, uint32_t height, uint32_t arraySize, uint32_t mipLevels, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
 

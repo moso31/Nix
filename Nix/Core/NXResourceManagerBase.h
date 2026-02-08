@@ -4,7 +4,7 @@
 #include "BaseDefs/CppSTLFully.h"
 #include "NXCommonTexDefinition.h"
 
-// Nix认为，宇宙万法的那个源头
+// Nix璁や负锛屽畤瀹欎竾娉曠殑閭ｄ釜婧愬ご
 class NXObject;
 
 // scene

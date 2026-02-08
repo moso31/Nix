@@ -32,24 +32,24 @@ private:
 	Renderer* m_pRenderer = nullptr;
 	bool m_bVisible = false;
 
-	// R16_UNORM Ô¤ÀÀÎÆÀí (6¸ömipµÈ¼¶£¬Ã¿¸ömip¶¼ÓĞSRVºÍUAV)
+	// R16_UNORM é¢„è§ˆçº¹ç† (6ä¸ªmipç­‰çº§ï¼Œæ¯ä¸ªmipéƒ½æœ‰SRVå’ŒUAV)
 	Ntr<NXTexture2D> m_pTexture;
 
-	// Compute Pass ²ÄÖÊ
+	// Compute Pass æè´¨
 	NXComputePassMaterial* m_pPassMat = nullptr;
 
-	// Remap ²ÎÊı Constant Buffer
+	// Remap å‚æ•° Constant Buffer
 	CBufferRemapParams m_cbRemapData;
 	NXConstantBuffer<CBufferRemapParams> m_cbRemap;
 
-	// Ô¤ÀÀµÄmipµÈ¼¶£¬Êµ¼Ê¾ÍÊÇ¸ö·Ç³£¼òµ¥µÄdata[i] = i;
+	// é¢„è§ˆçš„mipç­‰çº§ï¼Œå®é™…å°±æ˜¯ä¸ªéå¸¸ç®€å•çš„data[i] = i;
 	int m_cbMipData[6];
 	NXConstantBuffer<int> m_cbMip[6];
 
-	// ImGui ²ÎÊı
-	int m_currentMipLevel = 0;		// µ±Ç°²é¿´µÄ mip µÈ¼¶ (0-5)
-	float m_remapMin = 0.0f;		// remap ·¶Î§×îĞ¡Öµ
-	float m_remapMax = 1024.0f;		// remap ·¶Î§×î´óÖµ
-	Vector3 m_invalidColor = { 1.0f, 0.5f, 0.5f };	// ÎŞĞ§ÖµµÄÔ¤ÀÀÑÕÉ«
-	float m_imageZoomScale = 1.0f;	// Í¼ÏñËõ·ÅÏµÊı
+	// ImGui å‚æ•°
+	int m_currentMipLevel = 0;		// å½“å‰æŸ¥çœ‹çš„ mip ç­‰çº§ (0-5)
+	float m_remapMin = 0.0f;		// remap èŒƒå›´æœ€å°å€¼
+	float m_remapMax = 1024.0f;		// remap èŒƒå›´æœ€å¤§å€¼
+	Vector3 m_invalidColor = { 1.0f, 0.5f, 0.5f };	// æ— æ•ˆå€¼çš„é¢„è§ˆé¢œè‰²
+	float m_imageZoomScale = 1.0f;	// å›¾åƒç¼©æ”¾ç³»æ•°
 };

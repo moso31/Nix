@@ -224,7 +224,7 @@ struct Vector3 : public XMFLOAT3
     void GenerateCoordinateSpace(Vector3& basis1, Vector3& basis2);
     Vector2 GetXZ() const;
 
-	// »ñÈ¡»Ò¶È
+	// è·å–ç°åº¦
 	float GetGrayValue();
 
     // Static functions

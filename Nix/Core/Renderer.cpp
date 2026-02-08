@@ -1,7 +1,7 @@
 #include "Renderer.h"
 #include "RenderGraphPassData.h"
 
-// ===== Renderer.h Ê¹ÓÃÇ°ÖÃÉùÃ÷µÄÍ·ÎÄ¼þ£¬ÔÚ´ËÍêÕû°üº¬ =====
+// ===== Renderer.h ä½¿ç”¨å‰ç½®å£°æ˜Žçš„å¤´æ–‡ä»¶ï¼Œåœ¨æ­¤å®Œæ•´åŒ…å« =====
 #include "NXGlobalDefinitions.h"
 #include "NXBRDFlut.h"
 #include "DirectResources.h"
@@ -11,7 +11,7 @@
 #include "NXRenderGraph.h"
 #include "NXScene.h"
 
-// ===== ÆäËûÒÀÀµ =====
+// ===== å…¶ä»–ä¾èµ– =====
 #include "NXTimer.h"
 #include "NXGlobalBuffers.h"
 #include "ShaderComplier.h"
@@ -54,13 +54,13 @@ Renderer::Renderer(const Vector2& rtSize) :
 
 void Renderer::Init()
 {
-	// ÊäÈëÊÂ¼þ
+	// è¾“å…¥äº‹ä»¶
 	InitEvents();
 
-	// ³õÊ¼»¯×ÊÔ´
+	// åˆå§‹åŒ–èµ„æº
 	InitGlobalResources();
 
-	// È«¾ÖÍ¨ÓÃÎÆÀí
+	// å…¨å±€é€šç”¨çº¹ç†
 	NXResourceManager::GetInstance()->GetTextureManager()->InitCommonTextures();
 
 	NXSubMeshGeometryEditor::GetInstance()->Init(NXGlobalDX::GetDevice());
@@ -89,7 +89,7 @@ void Renderer::Init()
 
 	NXPassMng->InitDefaultRenderer();
 
-	// ³õÊ¼»¯ GPU Profiler
+	// åˆå§‹åŒ– GPU Profiler
 	g_pGPUProfiler = new NXGPUProfiler();
 	g_pGPUProfiler->Init(NXGlobalDX::GetDevice(), NXGlobalDX::GlobalCmdQueue(), 256);
 
@@ -113,14 +113,14 @@ void Renderer::InitGUI()
 
 void Renderer::GenerateRenderGraph()
 {
-	// ÕâÀïµÄ RenderGraph Éè¼Æ»¹±È½Ï³õ¼¶£¬ºóÐø¿ÉÄÜ»áÓÐ½Ï´ó¸Ä¶¯¡£Ä¿Ç°¹æÔò£º
-	// setup£º
-	// - ×¼È·µÄRead WriteËùÐè×ÊÔ´¡£ConsumeÊÓÎªRead£¬AppendÊÓÎªWrite£¨Èç¹ûRWÐÐÎª¶¼ÓÐ£¬¾Í¶¼µ÷ÓÃ£©
-	// - indirect args×ÊÔ´Ìá½»Ê±£¬ÊÓÎªRead; 
+	// è¿™é‡Œçš„ RenderGraph è®¾è®¡è¿˜æ¯”è¾ƒåˆçº§ï¼ŒåŽç»­å¯èƒ½ä¼šæœ‰è¾ƒå¤§æ”¹åŠ¨ã€‚ç›®å‰è§„åˆ™ï¼š
+	// setupï¼š
+	// - å‡†ç¡®çš„Read Writeæ‰€éœ€èµ„æºã€‚Consumeè§†ä¸ºReadï¼ŒAppendè§†ä¸ºWriteï¼ˆå¦‚æžœRWè¡Œä¸ºéƒ½æœ‰ï¼Œå°±éƒ½è°ƒç”¨ï¼‰
+	// - indirect argsèµ„æºæäº¤æ—¶ï¼Œè§†ä¸ºRead; 
 	// execute:
-	// - pCmdListÄ¿Ç°Ö±½ÓÏÔÊ½±©Â¶£¬°üÀ¨×ÊÔ´×´Ì¬ÇÐ»»¡¢ÉèÖÃindirectArgs¡¢ÄËÖÁÒ»Ð©memcpyÐÐÎª¡¢È«ÊÖ¶¯´¦Àí
+	// - pCmdListç›®å‰ç›´æŽ¥æ˜¾å¼æš´éœ²ï¼ŒåŒ…æ‹¬èµ„æºçŠ¶æ€åˆ‡æ¢ã€è®¾ç½®indirectArgsã€ä¹ƒè‡³ä¸€äº›memcpyè¡Œä¸ºã€å…¨æ‰‹åŠ¨å¤„ç†
 
-	// ´´½¨ GBuffer ×ÊÔ´
+	// åˆ›å»º GBuffer èµ„æº
 	NXRGHandle hGBuffer0 = m_pRenderGraph->Create("GBuffer RT0", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::RenderTarget, .tex = { .format = DXGI_FORMAT_R32_FLOAT, .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .arraySize = 1, .mipLevels = 1 } });
 	NXRGHandle hGBuffer1 = m_pRenderGraph->Create("GBuffer RT1", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::RenderTarget, .tex = { .format = DXGI_FORMAT_R32G32B32A32_FLOAT, .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .arraySize = 1, .mipLevels = 1 } });
 	NXRGHandle hGBuffer2 = m_pRenderGraph->Create("GBuffer RT2", { .resourceType = NXResourceType::Tex2D, .usage = NXRGResourceUsage::RenderTarget, .tex = { .format = DXGI_FORMAT_R10G10B10A2_UNORM, .width = (uint32_t)m_viewRTSize.x, .height = (uint32_t)m_viewRTSize.y, .arraySize = 1, .mipLevels = 1 } });
@@ -171,10 +171,10 @@ void Renderer::GenerateRenderGraph()
 
 	if (g_debug_temporal_enable_terrain_debug)
 	{
-		// µØÐÎÁ÷Ê½¼ÓÔØÏà¹Ø Pass
+		// åœ°å½¢æµå¼åŠ è½½ç›¸å…³ Pass
 		BuildTerrainStreamingPasses(hVTSector2VirtImg, pSector2NodeIDTex, hHeightMapAtlas, hSplatMapAtlas, hNormalMapAtlas);
 
-		// µØÐÎ²Ã¼ôÏà¹Ø Pass
+		// åœ°å½¢è£å‰ªç›¸å…³ Pass
 		passPatcher = BuildTerrainCullingPasses(pSector2NodeIDTex, hPatcherBuffer, hPatcherDrawIndexArgs);
 
 		auto* pCamera = m_scene->GetMainCamera();
@@ -252,8 +252,8 @@ void Renderer::InitGlobalResources()
 	// shadow map
 	m_pTexCSMDepth = NXResourceManager::GetInstance()->GetTextureManager()->CreateRenderTexture2DArray("CSM DepZ 2DArray", DXGI_FORMAT_R32_TYPELESS, m_shadowMapRTSize, m_shadowMapRTSize, m_cascadeCount, 1, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL, false);
 	m_pTexCSMDepth->SetViews(1, 0, m_cascadeCount, 0);
-	for (UINT i = 0; i < m_cascadeCount; i++) m_pTexCSMDepth->SetDSV(i, i, 1);	// DSV µ¥ÕÅÇÐÆ¬£¨Ã¿´ÎÐ´cascadeÉî¶È Ö»Ð´Ò»Æ¬£©
-	m_pTexCSMDepth->SetSRV(0, 0, m_cascadeCount); // SRV ¶ÁÈ¡Õû¸öÎÆÀíÊý×é£¨ShadowTestÊ±Ê¹ÓÃ£©
+	for (UINT i = 0; i < m_cascadeCount; i++) m_pTexCSMDepth->SetDSV(i, i, 1);	// DSV å•å¼ åˆ‡ç‰‡ï¼ˆæ¯æ¬¡å†™cascadeæ·±åº¦ åªå†™ä¸€ç‰‡ï¼‰
+	m_pTexCSMDepth->SetSRV(0, 0, m_cascadeCount); // SRV è¯»å–æ•´ä¸ªçº¹ç†æ•°ç»„ï¼ˆShadowTestæ—¶ä½¿ç”¨ï¼‰
 	m_pTexCSMDepth->SetSRVPreviewsManual(1);
 }
 
@@ -269,12 +269,12 @@ void Renderer::Update()
 	m_pTerrainLODStreamer->Update();
 	m_pTerrainLODStreamer->UpdateAsyncLoader();
 
-	// Ã¿Ö¡¶¼Compile RenderGraph
+	// æ¯å¸§éƒ½Compile RenderGraph
 	m_pRenderGraph->Clear();
 
-	// 2025.12.29 ÐÂÔöGUIµÄUpdate£¬ÏÈÊµÏÖÔÚÕâÀï
-	// ×¢²áRenderGraph pass»áÓÃµ½£¬¿Ï¶¨µÃÐ´ÔÚm_pRenderGraph->Clear()ºÍCompile()Ö®¼ä
-	// Ô¤¼ÆºóÐø»¹»áÀ©Õ¹£¬¸ù¾ÝÇé¿öÔÙµ÷Õû
+	// 2025.12.29 æ–°å¢žGUIçš„Updateï¼Œå…ˆå®žçŽ°åœ¨è¿™é‡Œ
+	// æ³¨å†ŒRenderGraph passä¼šç”¨åˆ°ï¼Œè‚¯å®šå¾—å†™åœ¨m_pRenderGraph->Clear()å’ŒCompile()ä¹‹é—´
+	// é¢„è®¡åŽç»­è¿˜ä¼šæ‰©å±•ï¼Œæ ¹æ®æƒ…å†µå†è°ƒæ•´
 	m_pGUI->Update();
 
 	GenerateRenderGraph();
@@ -294,14 +294,14 @@ void Renderer::UpdateSceneData()
 {
 	UpdateGlobalCBuffer();
 
-	// ¸üÐÂ³¡¾°Scripts¡£Êµ¼ÊÉÏÊÇÓÃScripts¿ØÖÆÖ¸¶¨ÎïÌåµÄTransform¡£
+	// æ›´æ–°åœºæ™¯Scriptsã€‚å®žé™…ä¸Šæ˜¯ç”¨ScriptsæŽ§åˆ¶æŒ‡å®šç‰©ä½“çš„Transformã€‚
 	m_scene->UpdateScripts();
 
-	// ¸üÐÂTransform
+	// æ›´æ–°Transform
 	m_scene->UpdateTransform();
 	m_scene->UpdateTransformOfEditorObjects();
 
-	// ¸üÐÂCameraµÄ³£Á¿»º´æÊý¾Ý£¨VP¾ØÕó¡¢ÑÛ¾¦Î»ÖÃ£©
+	// æ›´æ–°Cameraçš„å¸¸é‡ç¼“å­˜æ•°æ®ï¼ˆVPçŸ©é˜µã€çœ¼ç›ä½ç½®ï¼‰
 	m_scene->UpdateCamera();
 
 	auto* pCamera = m_scene->GetMainCamera();
@@ -326,16 +326,16 @@ void Renderer::UpdateGlobalCBuffer()
 
 void Renderer::RenderFrame()
 {
-	// È·±£BRDF 2D LUT Òì²½¼ÓÔØÍê³É
+	// ç¡®ä¿BRDF 2D LUT å¼‚æ­¥åŠ è½½å®Œæˆ
 	m_pBRDFLut->WaitTexLoadFinish();
 
-	// Ö´ÐÐRenderGraph!
+	// æ‰§è¡ŒRenderGraph!
 	m_pRenderGraph->Execute();
 
-	// ¸üÐÂPSOManager×´Ì¬
+	// æ›´æ–°PSOManagerçŠ¶æ€
 	NXPSOManager::GetInstance()->FrameCleanup();
 
-	// ÑÓ³ÙÇå³ýÓÃ²»×ÅµÄ Á÷Ê½µØÐÎTileÎÆÀí
+	// å»¶è¿Ÿæ¸…é™¤ç”¨ä¸ç€çš„ æµå¼åœ°å½¢Tileçº¹ç†
 	m_pTerrainLODStreamer->GetStreamingData().FrameCleanup();
 }
 
@@ -349,7 +349,7 @@ void Renderer::RenderGUI(const NXSwapChainBuffer& swapChainBuffer)
 
 void Renderer::FrameEnd()
 {
-	// ÊÍ·Å²»ÐèÒªµÄPassMaterial
+	// é‡Šæ”¾ä¸éœ€è¦çš„PassMaterial
 	NXPassMng->FrameCleanup();
 }
 
@@ -358,7 +358,7 @@ void Renderer::Release()
 	m_pRenderGraph->Clear();
 	SafeDelete(m_pRenderGraph);
 
-	// ÊÍ·Å GPU Profiler
+	// é‡Šæ”¾ GPU Profiler
 	if (g_pGPUProfiler)
 	{
 		g_pGPUProfiler->Release();
@@ -387,8 +387,8 @@ void Renderer::OnKeyDown(NXEventArgKey eArg)
 
 void Renderer::RenderCSMPerLight(ID3D12GraphicsCommandList* pCmdList, NXPBRDistantLight* pDirLight)
 {
-	// ÉèÖÃtest_transition²ÎÊý
-	g_cbDataShadowTest.test_transition = 1.0f; // Ä¬ÈÏÖµ
+	// è®¾ç½®test_transitionå‚æ•°
+	g_cbDataShadowTest.test_transition = 1.0f; // é»˜è®¤å€¼
 
 	Vector3 lightDirection = pDirLight->GetDirection();
 	lightDirection = lightDirection.IsZero() ? Vector3(0.0f, 0.0f, 1.0f) : lightDirection;
@@ -408,7 +408,7 @@ void Renderer::RenderCSMPerLight(ID3D12GraphicsCommandList* pCmdList, NXPBRDista
 	Matrix mxCamProj = pCamera->GetProjectionMatrix();
 
 	UINT cascadeCount = g_cbDataShadowTest.cascadeCount;
-	float cascadeExponentScale = 2.5f; // ³£ÓÃÖµ
+	float cascadeExponentScale = 2.5f; // å¸¸ç”¨å€¼
 	float cascadeTransitionScale = g_cbDataShadowTest.cascadeTransitionScale;
 	uint32_t shadowMapRTSize = 2048;
 
@@ -426,7 +426,7 @@ void Renderer::RenderCSMPerLight(ID3D12GraphicsCommandList* pCmdList, NXPBRDista
 	float zLastCascadeTransitionLength = 0.0f;
 	for (UINT i = 0; i < cascadeCount; i++)
 	{
-		// °´µÈ±ÈÊýÁÐ»®·Ö cascade
+		// æŒ‰ç­‰æ¯”æ•°åˆ—åˆ’åˆ† cascade
 		float percentageOffset = expScale * sumInv;
 		expScale *= cascadeExponentScale;
 
@@ -437,7 +437,7 @@ void Renderer::RenderCSMPerLight(ID3D12GraphicsCommandList* pCmdList, NXPBRDista
 
 		zCascadeNear -= zLastCascadeTransitionLength;
 
-		// ´ËÊýÖµ ÓÃÓÚ cascade Ö®¼äµÄÆ½»¬¹ý¶É
+		// æ­¤æ•°å€¼ ç”¨äºŽ cascade ä¹‹é—´çš„å¹³æ»‘è¿‡æ¸¡
 		zLastCascadeTransitionLength = zCascadeLength * cascadeTransitionScale;
 
 		zCascadeLength += zLastCascadeTransitionLength;
@@ -447,7 +447,7 @@ void Renderer::RenderCSMPerLight(ID3D12GraphicsCommandList* pCmdList, NXPBRDista
 		float zCascadeNearProj = (zCascadeNear * mxCamProj._33 + mxCamProj._43) / zCascadeNear;
 		float zCascadeFarProj = (zCascadeFar * mxCamProj._33 + mxCamProj._43) / zCascadeFar;
 
-		// ¼ÆËã¸÷²ã cascade µÄ Frustum (view space)
+		// è®¡ç®—å„å±‚ cascade çš„ Frustum (view space)
 		Vector3 viewFrustum[8];
 		viewFrustum[0] = Vector3::Transform(Vector3(-1.0f, -1.0f, zCascadeNearProj), mxCamProjInv);
 		viewFrustum[1] = Vector3::Transform(Vector3(-1.0f, 1.0f, zCascadeNearProj), mxCamProjInv);
@@ -458,18 +458,18 @@ void Renderer::RenderCSMPerLight(ID3D12GraphicsCommandList* pCmdList, NXPBRDista
 		viewFrustum[6] = Vector3::Transform(Vector3(1.0f, -1.0f, zCascadeFarProj), mxCamProjInv);
 		viewFrustum[7] = Vector3::Transform(Vector3(1.0f, 1.0f, zCascadeFarProj), mxCamProjInv);
 
-		// ¼ÆËã Frustum µÄÍâ½ÓÇò
+		// è®¡ç®— Frustum çš„å¤–æŽ¥çƒ
 		float a2 = (viewFrustum[3] - viewFrustum[0]).LengthSquared();
 		float b2 = (viewFrustum[7] - viewFrustum[4]).LengthSquared();
 		float delta = zCascadeLength * 0.5f + (a2 - b2) / (8.0f * zCascadeLength);
 
-		// ¼ÆËã Íâ½ÓÇò µÄ ÇòÐÄ£¬view space ºÍ world space ¶¼Òª¡£
-		// zCascadeDistance: µ±Ç° cascade ÖÐ NearÆ½ÃæÖÐÐÄµã µ½ frustum Íâ½ÓÇòÐÄ µÄ¾àÀë
+		// è®¡ç®— å¤–æŽ¥çƒ çš„ çƒå¿ƒï¼Œview space å’Œ world space éƒ½è¦ã€‚
+		// zCascadeDistance: å½“å‰ cascade ä¸­ Nearå¹³é¢ä¸­å¿ƒç‚¹ åˆ° frustum å¤–æŽ¥çƒå¿ƒ çš„è·ç¦»
 		float zCascadeDistance = zCascadeLength - delta;
 		Vector3 sphereCenterVS = Vector3(0.0f, 0.0f, zCascadeNear + zCascadeDistance);
 		Vector3 sphereCenterWS = cameraPosition + cameraDirection * sphereCenterVS.z;
 
-		// ¼ÆËã Íâ½ÓÇò µÄ °ë¾¶
+		// è®¡ç®— å¤–æŽ¥çƒ çš„ åŠå¾„
 		float sphereRadius = sqrtf(zCascadeDistance * zCascadeDistance + (a2 * 0.25f));
 
 		Vector3 shadowMapEye = Vector3(0.0f);
@@ -493,10 +493,10 @@ void Renderer::RenderCSMPerLight(ID3D12GraphicsCommandList* pCmdList, NXPBRDista
 		shadowMapUp = Vector3(0.0f, 1.0f, 0.0f);
 		mxShadowView = XMMatrixLookAtLH(shadowMapEye, shadowMapAt, shadowMapUp);
 
-		// 2022.5.15 Ä¿Ç°Æ½ÐÐ¹â proj µÄ¾ØÕó·½°¸£¬¶ÔzµÄ·¶Î§È¡ÖµºÜ±£ÊØ¡£¿ÉÒÔ¸Ä½ø
+		// 2022.5.15 ç›®å‰å¹³è¡Œå…‰ proj çš„çŸ©é˜µæ–¹æ¡ˆï¼Œå¯¹zçš„èŒƒå›´å–å€¼å¾ˆä¿å®ˆã€‚å¯ä»¥æ”¹è¿›
 		Matrix mxShadowProj = XMMatrixOrthographicOffCenterLH(-sphereRadius, sphereRadius, -sphereRadius, sphereRadius, 0.0f, backDistance * 2.0f);
 
-		// ¸üÐÂµ±Ç° cascade ²ã µÄ ShadowMap view proj »æÖÆ¾ØÕó
+		// æ›´æ–°å½“å‰ cascade å±‚ çš„ ShadowMap view proj ç»˜åˆ¶çŸ©é˜µ
 		m_cbDataCSMViewProj[i].view = mxShadowView.Transpose();
 		m_cbDataCSMViewProj[i].projection = mxShadowProj.Transpose();
 		m_cbCSMViewProj[i].Update(m_cbDataCSMViewProj[i]);
@@ -508,7 +508,7 @@ void Renderer::RenderCSMPerLight(ID3D12GraphicsCommandList* pCmdList, NXPBRDista
 		pCmdList->OMSetRenderTargets(0, nullptr, false, &pCSMDepthDSV);
 		pCmdList->SetGraphicsRootConstantBufferView(2, m_cbCSMViewProj[i].CurrentGPUAddress());
 		
-		// ¸üÐÂµ±Ç° cascade ²ã µÄ ShadowMap world »æÖÆ¾ØÕó£¬²¢»æÖÆ
+		// æ›´æ–°å½“å‰ cascade å±‚ çš„ ShadowMap world ç»˜åˆ¶çŸ©é˜µï¼Œå¹¶ç»˜åˆ¶
 		for (auto pRenderableObj : m_scene->GetRenderableObjects())
 		{
 			RenderSingleObject(pCmdList, pRenderableObj);

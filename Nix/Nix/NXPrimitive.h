@@ -10,7 +10,7 @@ public:
 
 	virtual NXPrimitive* IsPrimitive() override { return this; }
 
-	// ×Ô¶¯¼ÆËãSubMeshÏÂËùÓĞ¶¥µãµÄÇĞÏßÊı¾İ¡£
+	// è‡ªåŠ¨è®¡ç®—SubMeshä¸‹æ‰€æœ‰é¡¶ç‚¹çš„åˆ‡çº¿æ•°æ®ã€‚
 	void CalculateTangents(bool bUpdateVertexIndexBuffer = false);
 
 	bool RayCastPrimitive(const Ray& worldRay, NXHit& outHitInfo, float& outDist);

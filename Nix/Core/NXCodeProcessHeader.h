@@ -52,7 +52,7 @@ enum class NXGUICBufferStyle
 struct NXGUIDataCBuffer
 {
 	NXGUICBufferStyle style;
-	Vector2 params; // guiÍÏ¶¯²ÎÊı¸½¼ÓÊôĞÔ£¬like drugspeed, sliderMin/Max..
+	Vector2 params; // guiæ‹–åŠ¨å‚æ•°é™„åŠ å±æ€§ï¼Œlike drugspeed, sliderMin/Max..
 };
 
 struct NXMatDataCBuffer;
@@ -66,7 +66,7 @@ struct NXMatDataBase
 	virtual NXMatDataTexture* IsTexture() { return nullptr; }
 	virtual NXMatDataSampler* IsSampler() { return nullptr; }
 	virtual void CopyFrom(const NXMatDataBase* pCopy) = 0;
-	virtual void SyncLink() = 0; // Êı¾İÍ¬²½µ½²ÄÖÊ
+	virtual void SyncLink() = 0; // æ•°æ®åŒæ­¥åˆ°æè´¨
 
 	std::string name;
 	NXMatDataBase* pFastLink = nullptr; 
@@ -75,7 +75,7 @@ struct NXMatDataBase
 struct NXMatDataCBuffer : public NXMatDataBase
 {
 	NXMatDataCBuffer* IsCBuffer() override { return this; }
-	virtual void SyncLink() override // Êı¾İÍ¬²½µ½²ÄÖÊ
+	virtual void SyncLink() override // æ•°æ®åŒæ­¥åˆ°æè´¨
 	{
 		if (!pFastLink) return;
 		if (auto* linkData = pFastLink->IsCBuffer())
@@ -107,7 +107,7 @@ struct NXMatDataTexture : public NXMatDataBase
 		name = pTexData->name;
 		pTexture = pTexData->pTexture;
 	}
-	virtual void SyncLink() override // Êı¾İÍ¬²½µ½²ÄÖÊ
+	virtual void SyncLink() override // æ•°æ®åŒæ­¥åˆ°æè´¨
 	{
 		if (!pFastLink) return;
 		if (auto* linkData = pFastLink->IsTexture())
@@ -131,7 +131,7 @@ struct NXMatDataSampler : public NXMatDataBase
 		addressV = pSSData->addressV;
 		addressW = pSSData->addressW;
 	}
-	virtual void SyncLink() override // Êı¾İÍ¬²½µ½²ÄÖÊ
+	virtual void SyncLink() override // æ•°æ®åŒæ­¥åˆ°æè´¨
 	{
 		if (!pFastLink) return;
 		if (auto* linkData = pFastLink->IsSampler())
@@ -161,7 +161,7 @@ public:
 	void AddTexture(NXMatDataTexture* tx) { txArr.push_back(tx); allArr.push_back(tx); }
 	void AddSampler(NXMatDataSampler* ss) { ssArr.push_back(ss); allArr.push_back(ss); }
 
-	// clone = »ù±¾Éî¿½±´£¨³ıÁËtextureÖ¸ÕëµÈ£©
+	// clone = åŸºæœ¬æ·±æ‹·è´ï¼ˆé™¤äº†textureæŒ‡é’ˆç­‰ï¼‰
 	NXMaterialData Clone(bool bLinkTo = false) const
 	{
 		NXMaterialData newData;
@@ -380,13 +380,13 @@ struct NXMaterialPassCode
 
 struct NXMaterialFunctionsCode
 {
-	std::vector<NXMaterialCodeBlock> data; // Õû¸öº¯Êı
-	std::vector<std::string> title; // ½öµÚÒ»ĞĞ
+	std::vector<NXMaterialCodeBlock> data; // æ•´ä¸ªå‡½æ•°
+	std::vector<std::string> title; // ä»…ç¬¬ä¸€è¡Œ
 };
 
 struct NXMaterialCode
 {
 	std::string shaderName;
-	NXMaterialFunctionsCode commonFuncs; // Í¨ÓÃº¯Êı´úÂë
-	std::vector<NXMaterialPassCode> passes; // pass´úÂë¡¾todo: multipassesÀ©Õ¹£¬ÏÖÔÚÖ»ÓĞµ¥pass¡¿
+	NXMaterialFunctionsCode commonFuncs; // é€šç”¨å‡½æ•°ä»£ç 
+	std::vector<NXMaterialPassCode> passes; // passä»£ç ã€todo: multipassesæ‰©å±•ï¼Œç°åœ¨åªæœ‰å•passã€‘
 };

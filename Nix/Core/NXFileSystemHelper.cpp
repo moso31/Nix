@@ -8,7 +8,7 @@ std::chrono::year_month_day NXFilesystemHelper::GetLatestFileModifiedTime(const 
     if (!fs::exists(directoryPath) || !fs::is_directory(directoryPath))
         throw std::runtime_error("Error: Not a valid directory.");
 
-    // »ñÈ¡×îºóĞ´ÈëÊ±¼ä£¬ÎÄ¼ş¼ĞÏÂËùÓĞÎÄ¼şÈ¡×îĞÂ
+    // è·å–æœ€åå†™å…¥æ—¶é—´ï¼Œæ–‡ä»¶å¤¹ä¸‹æ‰€æœ‰æ–‡ä»¶å–æœ€æ–°
     std::filesystem::file_time_type lastModifyTime;
     for (const auto& entry : fs::directory_iterator(directoryPath))
     {
@@ -20,9 +20,9 @@ std::chrono::year_month_day NXFilesystemHelper::GetLatestFileModifiedTime(const 
         }
     }
 
-    // ×ª»»Îªstd::chrono::system_clock::time_point
+    // è½¬æ¢ä¸ºstd::chrono::system_clock::time_point
     auto sys_time = time_point_cast<system_clock::duration>(lastModifyTime - std::filesystem::file_time_type::clock::now() + system_clock::now());
 
-    // ×ª»»Îªstd::chrono::year_month_day
+    // è½¬æ¢ä¸ºstd::chrono::year_month_day
     return year_month_day(floor<days>(sys_time));
 }

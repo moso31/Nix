@@ -34,7 +34,7 @@ namespace NXConvert
 
 	std::string Trim(const std::string& str)
 	{
-		// 去掉 str 中的所有空格和tab
+		// 鍘绘帀 str 涓殑鎵�鏈夌┖鏍煎拰tab
 		const auto begin = str.find_first_not_of(" \t");
 		if (begin == std::string::npos) return "";
 		const auto end = str.find_last_not_of(" \t");

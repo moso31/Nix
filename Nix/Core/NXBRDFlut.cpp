@@ -125,12 +125,12 @@ void NXBRDFLut::DrawBRDFLUT()
 	m_fenceValue++;
 	m_pCommandQueue->Signal(m_pFence.Get(), m_fenceValue);
 
-	// 等待围栏完成
+	// 绛夊緟鍥存爮瀹屾垚
 	if (m_pFence->GetCompletedValue() < m_fenceValue)
 	{
 		HANDLE fenceEvent = CreateEvent(nullptr, false, false, nullptr);
 		m_pFence->SetEventOnCompletion(m_fenceValue, fenceEvent);
-		WaitForSingleObject(fenceEvent, INFINITE);  // 等待围栏信号完成
+		WaitForSingleObject(fenceEvent, INFINITE);  // 绛夊緟鍥存爮淇″彿瀹屾垚
 		CloseHandle(fenceEvent);
 	}
 }

@@ -2,8 +2,8 @@
 #include "NXInstance.h"
 #include "BaseDefs/DX12.h"
 
-// GPU Terrain×¨ÓÃµÄCommandSignature¹ÜÀíÆ÷
-// ¸ºÔğ¹ÜÀíGPU TerrainµÄDrawIndexedInstanced indirect command signature
+// GPU Terrainä¸“ç”¨çš„CommandSignatureç®¡ç†å™¨
+// è´Ÿè´£ç®¡ç†GPU Terrainçš„DrawIndexedInstanced indirect command signature
 class NXTerrainCommandSignature : public NXInstance<NXTerrainCommandSignature>
 {
 public:

@@ -80,9 +80,9 @@ void NXTerrainLayer::Release()
 
 void NXTerrainLayer::BakeGPUDrivenData(bool bSave)
 {
-	if (m_heightMapTexture.IsValid() && false) // ¡¾ÏÈ½ûÓÃµô£¬ĞÂ°æ¿ÉÄÜ²»ĞèÒªÕâ¸öÁË¡¿
+	if (m_heightMapTexture.IsValid() && false) // ã€å…ˆç¦ç”¨æ‰ï¼Œæ–°ç‰ˆå¯èƒ½ä¸éœ€è¦è¿™ä¸ªäº†ã€‘
 	{
-		// Èç¹ûÓĞ¸ß¶ÈÍ¼£¬µ«Ã»ÓĞÂ·¾¶£¬ËµÃ÷»¹Ã»Éú³É¹ıGPUDriven¹ØÁªÍ¼£¬Éú³ÉÏÂ
+		// å¦‚æœæœ‰é«˜åº¦å›¾ï¼Œä½†æ²¡æœ‰è·¯å¾„ï¼Œè¯´æ˜è¿˜æ²¡ç”Ÿæˆè¿‡GPUDrivenå…³è”å›¾ï¼Œç”Ÿæˆä¸‹
 		if (!std::filesystem::exists(m_minMaxZMapPath))
 		{
 			GenerateMinMaxZMap();
@@ -104,17 +104,17 @@ void NXTerrainLayer::GenerateMinMaxZMap()
 	uint32_t height = m_heightMapTexture->GetHeight();
 	std::vector<uint16_t> rawData(width * height);
 
-	// ¶ÁÈ¡rawPathµÄÎÄ¼ş£¬²¢×ª»»³Éµ¥Í¨µÀÎÆÀí
+	// è¯»å–rawPathçš„æ–‡ä»¶ï¼Œå¹¶è½¬æ¢æˆå•é€šé“çº¹ç†
 	std::ifstream file(rawPath, std::ios::binary);
 	if (!file)
-		throw std::runtime_error("ÎŞ·¨´ò¿ªÎÄ¼ş: " + rawPath.string());
+		throw std::runtime_error("æ— æ³•æ‰“å¼€æ–‡ä»¶: " + rawPath.string());
 
-	// Ö±½Ó¶ÁÊı¾İ¾ÍĞĞ£¬±ØĞëÊÇ16bit 
-	// todo: Ö§³Ö¸ü¶à¸ñÊ½
+	// ç›´æ¥è¯»æ•°æ®å°±è¡Œï¼Œå¿…é¡»æ˜¯16bit 
+	// todo: æ”¯æŒæ›´å¤šæ ¼å¼
 	file.read(reinterpret_cast<char*>(rawData.data()), width * height * sizeof(uint16_t));
 
 	if (!file)
-		throw std::runtime_error("¶ÁÈ¡Êı¾İÊ§°Ü: " + rawPath.string());
+		throw std::runtime_error("è¯»å–æ•°æ®å¤±è´¥: " + rawPath.string());
 
 	if (width == height && width != 2049)
 	{
@@ -122,11 +122,11 @@ void NXTerrainLayer::GenerateMinMaxZMap()
 	}
 
 	int step = 8;
-	uint32_t dataZMipWidth = width / step; // Èç¹û¸ß¶ÈÍ¼ÊÇ2049£¬ÕâÀï/8»á×Ô¶¯Ä¨³ıÓàÊı
+	uint32_t dataZMipWidth = width / step; // å¦‚æœé«˜åº¦å›¾æ˜¯2049ï¼Œè¿™é‡Œ/8ä¼šè‡ªåŠ¨æŠ¹é™¤ä½™æ•°
 	uint32_t dataZMipHeight = height / step;
 	std::vector<MinMaxZMap> dataZMip0(dataZMipWidth * dataZMipHeight);
 
-	for (int y = 0; y + step < height; y += step) // width height -1 ·ÀÖ¹±ß½çÒç³ö
+	for (int y = 0; y + step < height; y += step) // width height -1 é˜²æ­¢è¾¹ç•Œæº¢å‡º
 	{
 		for (int x = 0; x + step < width; x += step)
 		{
@@ -135,9 +135,9 @@ void NXTerrainLayer::GenerateMinMaxZMap()
 
 			for (int j = 0; j <= step; j++)
 			{
-				for (int i = 0; i <= step; i++) // mip0µÄÑ­»· Ê¹ÓÃ<=
+				for (int i = 0; i <= step; i++) // mip0çš„å¾ªç¯ ä½¿ç”¨<=
 				{
-					int yy = y + j; if (yy >= height) yy = height - 1; // ·ÀÖ¹Ô½½ç
+					int yy = y + j; if (yy >= height) yy = height - 1; // é˜²æ­¢è¶Šç•Œ
 					int xx = x + i; if (xx >= width)  xx = width - 1;  
 
 					int index = yy * width + xx;

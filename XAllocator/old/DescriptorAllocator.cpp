@@ -12,11 +12,11 @@ DescriptorAllocator::DescriptorAllocator(ID3D12Device* pDevice, UINT pageNumLimi
 {
 }
 
-// ·ÖÅäÒ»¸ö´óÐ¡Îª size µÄÄÚ´æ¿é
-// size: Òª·ÖÅäµÄÄÚ´æ¿éµÄ´óÐ¡
-// oPageIdx: ·ÖÅäµ½µÄÒ³µÄÏÂ±ê
-// oFirstIdx: ·ÖÅäµ½µÄÒ³ÖÐµÄµÚÒ»¸öÄÚ´æ¿éµÄÏÂ±ê
-// oHandles: ·µ»Ø·ÖÅäµÄÊ×¸ö cpu descriptor handle µÄµØÖ·
+// åˆ†é…ä¸€ä¸ªå¤§å°ä¸º size çš„å†…å­˜å—
+// size: è¦åˆ†é…çš„å†…å­˜å—çš„å¤§å°
+// oPageIdx: åˆ†é…åˆ°çš„é¡µçš„ä¸‹æ ‡
+// oFirstIdx: åˆ†é…åˆ°çš„é¡µä¸­çš„ç¬¬ä¸€ä¸ªå†…å­˜å—çš„ä¸‹æ ‡
+// oHandles: è¿”å›žåˆ†é…çš„é¦–ä¸ª cpu descriptor handle çš„åœ°å€
 bool DescriptorAllocator::Alloc(DescriptorType type, UINT size, UINT& oPageIdx, UINT& oFirstIdx, D3D12_CPU_DESCRIPTOR_HANDLE& oHandles)
 {
 	auto predicate = [type](Page& page){
@@ -57,18 +57,18 @@ void DescriptorAllocator::Remove(UINT pageIdx, UINT start, UINT size)
 		bool bCombine = false;
 		if (space.st >= start && space.ed <= end)
 		{
-			// Èç¹û space ÊÇ×Ó¼¯£¬É¾³ý
+			// å¦‚æžœ space æ˜¯å­é›†ï¼Œåˆ é™¤
 			removing.insert(space);
 		}
 		else if (space.st <= end && start <= space.ed)
 		{
-			// Èç¹û space ÊÇ½»¼¯£¬ºÏ²¢
+			// å¦‚æžœ space æ˜¯äº¤é›†ï¼Œåˆå¹¶
 			removing.insert(space);
 			bCombine = true;
 		}
 		else if (space.st < start || space.ed > end)
 		{
-			// Èç¹û space ÊÇ¸¸¼¯£¬Ê²Ã´¶¼²»×ö
+			// å¦‚æžœ space æ˜¯çˆ¶é›†ï¼Œä»€ä¹ˆéƒ½ä¸åš
 		}
 		else bCombine = true;
 
@@ -81,7 +81,7 @@ void DescriptorAllocator::Remove(UINT pageIdx, UINT start, UINT size)
 
 	for (auto& space : removing) freeIntervals.erase(space);
 
-	// Èç¹û adjust ºÍ m_freeInterval ÐÎ³ÉÁ¬ºÅ£¬ÐèÒªÔÙºÏ²¢Ò»´Î¡£
+	// å¦‚æžœ adjust å’Œ m_freeInterval å½¢æˆè¿žå·ï¼Œéœ€è¦å†åˆå¹¶ä¸€æ¬¡ã€‚
 	removing.clear();
 	for (auto& space : freeIntervals)
 	{
@@ -104,10 +104,10 @@ void DescriptorAllocator::Remove(UINT pageIdx, UINT start, UINT size)
 void DescriptorAllocator::CreateNewPage(DescriptorAllocatorBase::Page& newPage)
 {
 	D3D12_DESCRIPTOR_HEAP_DESC desc = {};
-	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE; // cpu heap, Ä¬ÈÏ FLAG_NONE = non-shader-visible.
+	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE; // cpu heap, é»˜è®¤ FLAG_NONE = non-shader-visible.
 	desc.NodeMask = 0;
 	desc.NumDescriptors = m_eachPageDataNum;
-	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV; // ´Ë allocator Ö»Ö§³Ö CBVSRVUAV ÕâÒ»ÖÖÀàÐÍ.
+	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV; // æ­¤ allocator åªæ”¯æŒ CBVSRVUAV è¿™ä¸€ç§ç±»åž‹.
 
 	HRESULT hr = m_pDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&newPage.data.descHeap));
 

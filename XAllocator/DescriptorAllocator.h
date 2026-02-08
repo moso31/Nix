@@ -24,11 +24,11 @@ namespace ccmem
 		uint32_t m_descriptorIncrementSize;
 	};
 
-	// 2024.11.3 DX12ÃèÊö·û¶Ñ£¨µÚ¶ş°æ£©
-	// Õâ¸öÃèÊö·û¶Ñ»á·ÖÎªÁ½¸öÇøÓò£¬Ò»¸öÊÇÎÈ¶¨ÇøÓò£¬Ò»¸öÊÇ±ä»¯ÇøÓò¡£
-	//		Stable Region µÄÃèÊö·ûĞèÒªÊÖ¶¯ÉèÖÃ£¬·ñÔò²»»á±ä»¯£»
-	//		Fluid Region µÄÃèÊö·ûÊÇÒ»¸öring Buffer£¬ĞèÒªÔÚÃ¿Ö¡¸üĞÂ¡£
-	// m_stableCount ¼ÇÂ¼ÁË Stable Region µÄÃèÊö·ûÊıÁ¿£¬Ò²ÊÇ Stable ºÍ Fluid µÄ·Ö½çÏß¡£be like:
+	// 2024.11.3 DX12æè¿°ç¬¦å †ï¼ˆç¬¬äºŒç‰ˆï¼‰
+	// è¿™ä¸ªæè¿°ç¬¦å †ä¼šåˆ†ä¸ºä¸¤ä¸ªåŒºåŸŸï¼Œä¸€ä¸ªæ˜¯ç¨³å®šåŒºåŸŸï¼Œä¸€ä¸ªæ˜¯å˜åŒ–åŒºåŸŸã€‚
+	//		Stable Region çš„æè¿°ç¬¦éœ€è¦æ‰‹åŠ¨è®¾ç½®ï¼Œå¦åˆ™ä¸ä¼šå˜åŒ–ï¼›
+	//		Fluid Region çš„æè¿°ç¬¦æ˜¯ä¸€ä¸ªring Bufferï¼Œéœ€è¦åœ¨æ¯å¸§æ›´æ–°ã€‚
+	// m_stableCount è®°å½•äº† Stable Region çš„æè¿°ç¬¦æ•°é‡ï¼Œä¹Ÿæ˜¯ Stable å’Œ Fluid çš„åˆ†ç•Œçº¿ã€‚be like:
 	// 
 	// 0        (m_stableCount - 1)                            m_maxDescriptors
 	// |                 |                                             |
@@ -36,7 +36,7 @@ namespace ccmem
 	// |  Stable Region  ||                Fluid Region                |
 	// +-----------------++--------------------------------------------+
 	//
-	// 0 ~ (m_stableCount - 1) ÊÇÎÈ¶¨ÇøÓò£¬m_stableCount ~ (m_maxDescriptors - 1) ÊÇ±ä»¯ÇøÓò¡£
+	// 0 ~ (m_stableCount - 1) æ˜¯ç¨³å®šåŒºåŸŸï¼Œm_stableCount ~ (m_maxDescriptors - 1) æ˜¯å˜åŒ–åŒºåŸŸã€‚
 	template<>
 	class DescriptorAllocator<true>
 	{
@@ -47,16 +47,16 @@ namespace ccmem
 
 		ID3D12DescriptorHeap* GetDescriptorHeap() const { return m_pDescriptorHeap; }
 
-		// ÔÚÉÏÍ¼ Stable Region ÄÚÉú³ÉÒ»¸ö¾²Ì¬ÃèÊö·û¡£
-		// ÊÇÁ¢¼´ÉúĞ§µÄ£¬²»ĞèÒªµÈ´ı¡£
+		// åœ¨ä¸Šå›¾ Stable Region å†…ç”Ÿæˆä¸€ä¸ªé™æ€æè¿°ç¬¦ã€‚
+		// æ˜¯ç«‹å³ç”Ÿæ•ˆçš„ï¼Œä¸éœ€è¦ç­‰å¾…ã€‚
 		D3D12_GPU_DESCRIPTOR_HANDLE SetStable(uint32_t stableIndex, const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle);
 
-		// ÔÚÉÏÍ¼ Fluid Region ÄÚÉú³ÉÒ»¸ö¶¯Ì¬ÃèÊö·û¡£
-		// ×¢Òâ PushFluid() Ö»ÊÇÔ¤´¦Àí£¬»¹ĞèÒªSubmit()£¬²ÅÄÜÊµ¼ÊÌí¼Óµ½ Fluid Region ÖĞ¡£
+		// åœ¨ä¸Šå›¾ Fluid Region å†…ç”Ÿæˆä¸€ä¸ªåŠ¨æ€æè¿°ç¬¦ã€‚
+		// æ³¨æ„ PushFluid() åªæ˜¯é¢„å¤„ç†ï¼Œè¿˜éœ€è¦Submit()ï¼Œæ‰èƒ½å®é™…æ·»åŠ åˆ° Fluid Region ä¸­ã€‚
 		void PushFluid(const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle);
 		D3D12_GPU_DESCRIPTOR_HANDLE Submit();
 
-		// »ñÈ¡ Stable Region µÄ CPU ºÍ GPU ÃèÊö·û
+		// è·å– Stable Region çš„ CPU å’Œ GPU æè¿°ç¬¦
 		D3D12_CPU_DESCRIPTOR_HANDLE GetStableCPUHandle(uint32_t stableIndex) const;
 		D3D12_GPU_DESCRIPTOR_HANDLE GetStableGPUHandle(uint32_t stableIndex) const;
 
@@ -68,11 +68,11 @@ namespace ccmem
 		uint32_t m_maxDescriptors;
 		uint32_t m_stableCount;
 
-		// ÓÃÓÚ¼ÇÂ¼´ıÌá½»µÄÃèÊö·û·¶Î§
+		// ç”¨äºè®°å½•å¾…æäº¤çš„æè¿°ç¬¦èŒƒå›´
 		uint32_t m_pendingStart;
 		uint32_t m_pendingEnd;
 
-		// µÈ´ıÌá½»µÄÃèÊö·û
+		// ç­‰å¾…æäº¤çš„æè¿°ç¬¦
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> m_submitDescriptors;
 	};
 }

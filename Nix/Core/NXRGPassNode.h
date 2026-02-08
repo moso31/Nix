@@ -32,7 +32,7 @@ public:
 	void AddInput(NXRGHandle resHandle) { m_inputs.push_back(resHandle); }
 	void AddOutput(NXRGHandle resHandle) { m_outputs.push_back(resHandle); }
 
-	// »ñÈ¡pass¹ØÁª×ÊÔ´
+	// è·å–passå…³è”èµ„æº
 	const std::vector<NXRGHandle>& GetInputs() { return m_inputs; }
 	const std::vector<NXRGHandle>& GetOutputs() { return m_outputs; }
 
@@ -44,12 +44,12 @@ protected:
 	std::string m_passName;
 	NXRenderGraph* m_pRenderGraph;
 
-	// Pass¼ÇÂ¼×Ô¼ºÒÀÀµµÄ×ÊÔ´Ö¸Õë£¨µ«²»¸ºÔğÆäÉúÃüÖÜÆÚ£©
+	// Passè®°å½•è‡ªå·±ä¾èµ–çš„èµ„æºæŒ‡é’ˆï¼ˆä½†ä¸è´Ÿè´£å…¶ç”Ÿå‘½å‘¨æœŸï¼‰
 	std::vector<NXRGHandle> m_inputs; 
 	std::vector<NXRGHandle> m_outputs;
 
-	// ¼ÇÂ¼Õâ¸öpass±¾Ö¡Ê¹ÓÃµÄRGHandleºÍÊµ¼Ê×ÊÔ´Ö¸Õë
-	// execute±ØĞëÍ¨¹ıÕâ¸ö±äÁ¿¶ÁÈ¡×ÊÔ´£¬·ñÔò°æ±¾¿ÉÄÜ¶Ô²»ÉÏ
+	// è®°å½•è¿™ä¸ªpassæœ¬å¸§ä½¿ç”¨çš„RGHandleå’Œå®é™…èµ„æºæŒ‡é’ˆ
+	// executeå¿…é¡»é€šè¿‡è¿™ä¸ªå˜é‡è¯»å–èµ„æºï¼Œå¦åˆ™ç‰ˆæœ¬å¯èƒ½å¯¹ä¸ä¸Š
 	NXRGFrameResources m_frameResources;
 };
 

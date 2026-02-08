@@ -23,7 +23,7 @@ void CS(uint3 dtid : SV_DispatchThreadID)
 
     txSector2NodeID_mip[mip][pixelPos] = nodeDescIndex;
 
-    // Èç¹ûnodeDescArray[nodeDescIndex]Ö®Ç°ÓÐ¼ÇÂ¼¾ÉÖµ£¬ÔòÐèÒª²Á³ý
+    // å¦‚æžœnodeDescArray[nodeDescIndex]ä¹‹å‰æœ‰è®°å½•æ—§å€¼ï¼Œåˆ™éœ€è¦æ“¦é™¤
     if (m_updateIndices[updateIndex].replaceSize > 0)
     {
         mip = firstbithigh(m_updateIndices[updateIndex].replaceSize) - 6; // 2048->5, ..., 64->0

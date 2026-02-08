@@ -329,7 +329,7 @@ void NXPassMaterialManager::AddMaterial(NXPassMaterial* pMat, bool bCompile)
 	auto it = m_pPassMaterialMaps.find(name);
 	if (it != m_pPassMaterialMaps.end())
 	{
-		// Èç¹ûÒÑ´æÔÚÍ¬Ãû PassMaterial£¬ÏÈ×¢Ïú¾ÉµÄ
+		// å¦‚æœå·²å­˜åœ¨åŒå PassMaterialï¼Œå…ˆæ³¨é”€æ—§çš„
 		RemoveMaterial(name);
 	}
 
@@ -347,11 +347,11 @@ void NXPassMaterialManager::RemoveMaterial(const std::string& name)
 	if (it == m_pPassMaterialMaps.end())
 		return;
 
-	// ´ÓÖ÷mapÖĞÒÆ³ı...
+	// ä»ä¸»mapä¸­ç§»é™¤...
 	NXPassMaterial* pMat = it->second;
 	m_pPassMaterialMaps.erase(it);
 
-	// ...µ«ÏÈ·ÅÈë´ıÒÆ³ı¶ÓÁĞ
+	// ...ä½†å…ˆæ”¾å…¥å¾…ç§»é™¤é˜Ÿåˆ—
 	NXPassMaterialRemoving removing;
 	removing.pMaterial = pMat;
 	removing.fenceValue = NXGlobalDX::s_globalfenceValue;

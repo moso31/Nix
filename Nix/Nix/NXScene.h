@@ -33,12 +33,12 @@ public:
 	void OnKeyUpForce(NXEventArgKey eArg);
 
 private:
-	// ¼ÆËãÉäÏßºÍEditorObjectÉÏµÄÃªµã¡£Æ½ÒÆ¡¢Ğı×ª¡¢Ëõ·ÅµÈ²Ù×÷¶¼ÒÀÀµÕâ¸öÃªµã¡£
+	// è®¡ç®—å°„çº¿å’ŒEditorObjectä¸Šçš„é”šç‚¹ã€‚å¹³ç§»ã€æ—‹è½¬ã€ç¼©æ”¾ç­‰æ“ä½œéƒ½ä¾èµ–è¿™ä¸ªé”šç‚¹ã€‚
 	Vector3 GetAnchorOfEditorObject(const Ray& worldRay);
 	Vector3 GetAnchorOfEditorTranslatorLine(const Ray& ray, const Ray& line) const;
 	Vector3 GetAnchorOfEditorTranslatorPlane(const Ray& ray, const Plane& plane) const;
 	EditorObjectID m_bEditorSelectID;
-	// ¼ÇÂ¼ÍÏ¶¯EditorObject²¢MouseDownÊ±£¬ËùÓĞÑ¡ÖĞÎïÌåµÄÎ»ÖÃĞÅÏ¢£¨Êµ¼Ê´¢´æµÄÊÇÕâĞ©Î»ÖÃ¾àÀëAnchorµÄÆ«ÒÆÁ¿£©
+	// è®°å½•æ‹–åŠ¨EditorObjectå¹¶MouseDownæ—¶ï¼Œæ‰€æœ‰é€‰ä¸­ç‰©ä½“çš„ä½ç½®ä¿¡æ¯ï¼ˆå®é™…å‚¨å­˜çš„æ˜¯è¿™äº›ä½ç½®è·ç¦»Anchorçš„åç§»é‡ï¼‰
 	std::vector<Vector3> m_selectObjHitOffset;
 
 public:
@@ -73,12 +73,12 @@ public:
 
 	NXEditorObjectManager* GetEditorObjManager() { return m_pEditorObjManager; }
 
-	// Ä¿Ç°Ö»¶ÔµÚÒ»¸ö¹âÔ´´´½¨Parallel ShadowMap¡£
+	// ç›®å‰åªå¯¹ç¬¬ä¸€ä¸ªå…‰æºåˆ›å»ºParallel ShadowMapã€‚
 	//void InitShadowMapTransformInfo(ConstantBufferShadowMapTransform& out_cb);
 
 	NXConstantBuffer<ConstantBufferLight>& GetConstantBufferLights() { return m_cbLights; }
 
-	// ¸üĞÂ³¡¾°BVHÊ÷
+	// æ›´æ–°åœºæ™¯BVHæ ‘
 	void BuildBVHTrees(const HBVHSplitMode SplitMode);
 
 	void RegisterCubeMap(NXCubeMap* newCubeMap);
@@ -89,10 +89,10 @@ public:
 	void RegisterLight(NXPBRLight* newLight, NXObject* pParent = nullptr);
 
 private:
-	// Éú³É±à¼­Æ÷¶ÔÏó£¨MoveArrowsµÈÍæÒâ£©
+	// ç”Ÿæˆç¼–è¾‘å™¨å¯¹è±¡ï¼ˆMoveArrowsç­‰ç©æ„ï¼‰
 	void InitEditorObjectsManager();
 
-	// ¼ÆËã³¡¾°ÏÂËùÓĞÎïÌåµÄ AABB¡£
+	// è®¡ç®—åœºæ™¯ä¸‹æ‰€æœ‰ç‰©ä½“çš„ AABBã€‚
 	void InitBoundingStructures();
 
 private:
@@ -102,10 +102,10 @@ private:
 	AABB m_aabb;
 	BoundingSphere m_boundingSphere;
 
-	// Çó½»¼ÓËÙ½á¹¹£¨ÓÃÓÚNXRayTracerµÄÉäÏß¼ì²â£©
+	// æ±‚äº¤åŠ é€Ÿç»“æ„ï¼ˆç”¨äºNXRayTracerçš„å°„çº¿æ£€æµ‹ï¼‰
 	HBVHTree* m_pBVHTree;
 
-	// Òş²ØµÄ¸ùobject
+	// éšè—çš„æ ¹object
 	NXObject* m_pRootObject;
 	std::vector<NXObject*> m_objects;
 
@@ -114,10 +114,10 @@ private:
 	std::vector<NXPBRLight*> m_pbrLights;
 	std::unordered_map<NXTerrainNodeId, NXTerrain*> m_terrains;
 
-	// µ±Ç°Ñ¡ÖĞµÄSubMeshºÍ¶ÔÓ¦µÄObjects
+	// å½“å‰é€‰ä¸­çš„SubMeshå’Œå¯¹åº”çš„Objects
 	std::vector<NXSubMeshBase*> m_pSelectedSubMeshes;
 	std::vector<NXRenderableObject*> m_pSelectedObjects; 
-	bool m_bMultiSelectKeyHolding; // ÊÇ·ñ´¦ÓÚ¶àÑ¡×´Ì¬(LCtrl)
+	bool m_bMultiSelectKeyHolding; // æ˜¯å¦å¤„äºå¤šé€‰çŠ¶æ€(LCtrl)
 
 	NXEditorObjectManager* m_pEditorObjManager = nullptr;
 

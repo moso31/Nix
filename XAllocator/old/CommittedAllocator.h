@@ -25,46 +25,46 @@ public:
 
 	ID3D12Device* GetD3DDevice() { return m_pDevice; }
 
-	// ÔÚ×ÊÔ´³ØÖĞ·ÖÅäÒ»¶ÎÄÚ´æ¡£
-	// byteSize£º
-	//		Òª·ÖÅäµÄÊı¾İµÄ×Ö½Ú´óĞ¡£¨Êµ¼Ê·ÖÅäµÄ×Ö½Ú´óĞ¡»á×öblockByteSize¶ÔÆë£¬¿ÉÄÜ¸ü´óÒ»Ğ©£©
-	// oGPUVirtualAddr£º
-	//		·ÖÅäµÄÊı¾İ¶ÔÓ¦µÄGPUµØÖ·¡£
-	//		DX12Ã÷È·¸ù²ÎÊıÊ±£¬ĞèÒªÌá¹©GPUµØÖ·¡£
-	// oPageIdx£º
-	//		±¾´Î·ÖÅäµÄÊı¾İ£¬×ÊÔ´³ØÒ³ÃæµÄ±àºÅ¡£
-	// oPageByteOffset£º
-	//		±¾´Î·ÖÅäµÄÊı¾İ ÔÚ×ÊÔ´³ØÒ³ÃæÖĞµÄÊµ¼ÊÆğÊ¼×Ö½Ú¡£
+	// åœ¨èµ„æºæ± ä¸­åˆ†é…ä¸€æ®µå†…å­˜ã€‚
+	// byteSizeï¼š
+	//		è¦åˆ†é…çš„æ•°æ®çš„å­—èŠ‚å¤§å°ï¼ˆå®é™…åˆ†é…çš„å­—èŠ‚å¤§å°ä¼šåšblockByteSizeå¯¹é½ï¼Œå¯èƒ½æ›´å¤§ä¸€äº›ï¼‰
+	// oGPUVirtualAddrï¼š
+	//		åˆ†é…çš„æ•°æ®å¯¹åº”çš„GPUåœ°å€ã€‚
+	//		DX12æ˜ç¡®æ ¹å‚æ•°æ—¶ï¼Œéœ€è¦æä¾›GPUåœ°å€ã€‚
+	// oPageIdxï¼š
+	//		æœ¬æ¬¡åˆ†é…çš„æ•°æ®ï¼Œèµ„æºæ± é¡µé¢çš„ç¼–å·ã€‚
+	// oPageByteOffsetï¼š
+	//		æœ¬æ¬¡åˆ†é…çš„æ•°æ® åœ¨èµ„æºæ± é¡µé¢ä¸­çš„å®é™…èµ·å§‹å­—èŠ‚ã€‚
 	bool Alloc(UINT byteSize, ResourceType resourceType, D3D12_GPU_VIRTUAL_ADDRESS& oGPUVirtualAddr, UINT& oPageIdx, UINT& oPageByteOffset);
 
-	// ÊÍ·Å×ÊÔ´³ØÖĞµÄÄÚ´æ¡£
-	// pageIdx£º
-	//		ÒªÊÍ·ÅµÄÊı¾İËùÔÚµÄ×ÊÔ´³ØÒ³Ãæ±àºÅ¡£
-	// pageByteOffset£º
-	//		ÒªÊÍ·ÅµÄÊı¾İÔÚ×ÊÔ´³ØÒ³ÃæÖĞµÄÊµ¼ÊÆğÊ¼×Ö½Ú¡£
-	// byteSize£º
-	//		ÒªÊÍ·ÅµÄÊı¾İµÄ×Ö½Ú´óĞ¡¡£
+	// é‡Šæ”¾èµ„æºæ± ä¸­çš„å†…å­˜ã€‚
+	// pageIdxï¼š
+	//		è¦é‡Šæ”¾çš„æ•°æ®æ‰€åœ¨çš„èµ„æºæ± é¡µé¢ç¼–å·ã€‚
+	// pageByteOffsetï¼š
+	//		è¦é‡Šæ”¾çš„æ•°æ®åœ¨èµ„æºæ± é¡µé¢ä¸­çš„å®é™…èµ·å§‹å­—èŠ‚ã€‚
+	// byteSizeï¼š
+	//		è¦é‡Šæ”¾çš„æ•°æ®çš„å­—èŠ‚å¤§å°ã€‚
 	void Remove(UINT pageIdx, UINT pageByteOffset, UINT byteSize);
 	 
-	// ¸üĞÂ×ÊÔ´³ØÖĞµÄÄÚ´æ¡£
-	// NOTE£º½ö ResourceType_Upload ÀàĞÍµÄ Page ¿ÉÒÔÊ¹ÓÃ´Ë·½·¨£¡
+	// æ›´æ–°èµ„æºæ± ä¸­çš„å†…å­˜ã€‚
+	// NOTEï¼šä»… ResourceType_Upload ç±»å‹çš„ Page å¯ä»¥ä½¿ç”¨æ­¤æ–¹æ³•ï¼
 	void UpdateData(const void* data, UINT dataSize, UINT pageIdx, UINT pageByteOffset);
 
-	// ¸üĞÂ×ÊÔ´³ØÖĞµÄÄÚ´æ¡£
-	// NOTE£º½ö ResourceType_Default ÀàĞÍµÄ Page ¿ÉÒÔÊ¹ÓÃ´Ë·½·¨£¡
+	// æ›´æ–°èµ„æºæ± ä¸­çš„å†…å­˜ã€‚
+	// NOTEï¼šä»… ResourceType_Default ç±»å‹çš„ Page å¯ä»¥ä½¿ç”¨æ­¤æ–¹æ³•ï¼
 	void UpdateData(ID3D12GraphicsCommandList* ID3D12GraphicsCommandList, ID3D12Resource* pUploadResource, UINT srcDataOffset, UINT srcDataSize, UINT pageIdx, UINT pageByteOffset);
 
-	// ÉèÖÃ×ÊÔ´×´Ì¬
+	// è®¾ç½®èµ„æºçŠ¶æ€
 	void SetResourceState(ID3D12GraphicsCommandList* ID3D12GraphicsCommandList, UINT pageIdx, const D3D12_RESOURCE_STATES& state);
 
-	// ĞÂ·ÖÅäÒ»¸öPage
+	// æ–°åˆ†é…ä¸€ä¸ªPage
 	void CreateNewPage(CommittedAllocatorBase::Page& newPage) override;
 
-	// ÊÍ·Å×ÊÔ´³ØÖĞµÄËùÓĞ×ÊÔ´
+	// é‡Šæ”¾èµ„æºæ± ä¸­çš„æ‰€æœ‰èµ„æº
 	void Clear() override;
 
 private:
 	ID3D12Device* m_pDevice;
 
-	UINT m_blockByteSize; // Ã¿¸öpageÀïµÄÃ¿¸öblockËùÕ¼µÄ×Ö½Ú´óĞ¡£¨¸ÃÖµ±ØĞëÊÇ256µÄÕûÊı±¶£©
+	UINT m_blockByteSize; // æ¯ä¸ªpageé‡Œçš„æ¯ä¸ªblockæ‰€å çš„å­—èŠ‚å¤§å°ï¼ˆè¯¥å€¼å¿…é¡»æ˜¯256çš„æ•´æ•°å€ï¼‰
 };

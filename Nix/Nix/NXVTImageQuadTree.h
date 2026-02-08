@@ -3,10 +3,10 @@
 
 enum class NXVTImageNodeState
 {
-    Unused, // Î´·ÖÅä
-    Allocated, // ÒÑ·ÖÅä
-    Split, // ÒÑ±»²ğÉ¢£¨½ö¸¸½Úµã£©
-    Free, // ÒÑ±»±ê¼Çµ«ÉĞÎ´·ÖÅä
+    Unused, // æœªåˆ†é…
+    Allocated, // å·²åˆ†é…
+    Split, // å·²è¢«æ‹†æ•£ï¼ˆä»…çˆ¶èŠ‚ç‚¹ï¼‰
+    Free, // å·²è¢«æ ‡è®°ä½†å°šæœªåˆ†é…
 };
 
 class NXVTNodeArray
@@ -27,35 +27,35 @@ class NXVTImageQuadTree
 {
 public:
     constexpr static int VT_IMAGE_LEVELS = 12; // 2048x2048
-    constexpr static int VT_IMAGE_SIZE = 2048; // ¸ù½Úµã´óĞ¡
+    constexpr static int VT_IMAGE_SIZE = 2048; // æ ¹èŠ‚ç‚¹å¤§å°
 
     NXVTImageQuadTree();
 
-    // GUI¿ÉÊÓ»¯·ÃÎÊ½Ó¿Ú
+    // GUIå¯è§†åŒ–è®¿é—®æ¥å£
     int GetLevelCount() const { return VT_IMAGE_LEVELS; }
     int GetImageSize() const { return VT_IMAGE_SIZE; }
     const std::vector<NXVTImageNodeState>& GetStateAtLevel(int level) const { return m_state[level]; }
 
-    // ÊäÈënodeÔÚËÄ²æÊ÷ÖĞµÄ½Ç×ø±êÎ»ÖÃ/´óĞ¡£¬·µ»Ø¶ÔÓ¦µÄSector
+    // è¾“å…¥nodeåœ¨å››å‰æ ‘ä¸­çš„è§’åæ ‡ä½ç½®/å¤§å°ï¼Œè¿”å›å¯¹åº”çš„Sector
     const Int2& GetSector(const Int2& virtImageMip0Pos, const int virtImgLog2Size);
 
     int SizeToLevel(int size); // 2048 = 0, 1 = 11
 
-    // ·µ»ØµÄInt2 * ´Ë½ÚµãµÄsize(2048, 1024, ...) = Êµ¼ÊÏñËØ×ø±ê
+    // è¿”å›çš„Int2 * æ­¤èŠ‚ç‚¹çš„size(2048, 1024, ...) = å®é™…åƒç´ åæ ‡
     const Int2 Alloc(int size, const Int2& sectorID);
 
     void Free(const Int2& pos, int size);
 
 private:
-    // ³¢ÊÔÔÚËÄ²æÊ÷Àï·ÖÅäÒ»¸önode
-    // findLV±íÊ¾·µ»ØµÄ·ÖÅäµÈ¼¶
-    // findIdxÏàµ±ÓÚ¶şÎ¬posµÄmortoncode
+    // å°è¯•åœ¨å››å‰æ ‘é‡Œåˆ†é…ä¸€ä¸ªnode
+    // findLVè¡¨ç¤ºè¿”å›çš„åˆ†é…ç­‰çº§
+    // findIdxç›¸å½“äºäºŒç»´posçš„mortoncode
     bool Alloc(int size, int& findLV, int& findIdx);
     void Free(int freeLV, int freeIdx);
     bool FindFreeLevel(int targetLV, int& findLV, int& findIdx);
 
 private:
     std::vector<NXVTImageNodeState> m_state[VT_IMAGE_LEVELS];
-    std::vector<Int2> m_node2sectors[VT_IMAGE_LEVELS]; // Ã¿¸ö½Úµã¼ÇÒ»ÏÂ×Ô¼ºµÄsectors
+    std::vector<Int2> m_node2sectors[VT_IMAGE_LEVELS]; // æ¯ä¸ªèŠ‚ç‚¹è®°ä¸€ä¸‹è‡ªå·±çš„sectors
     NXVTNodeArray m_freeNodes[VT_IMAGE_LEVELS];
 };

@@ -24,15 +24,15 @@ namespace ccmem
 		};;
 
 	public:
-		// pageBlockByteSize = µ¥¸öÄÚ´æ¿éµÄ´óĞ¡ pageFullByteSize = µ¥¸öAllocatorÄÚ´æ´óĞ¡. ÒªÇó±ØĞëÊÇ2µÄn´ÎÃİ
-		// Ä¬ÈÏµ¥¸öÄÚ´æ¿é´óĞ¡ÊÇ64B£¬×ÜÄÚ´æ´óĞ¡ÊÇ2GB
+		// pageBlockByteSize = å•ä¸ªå†…å­˜å—çš„å¤§å° pageFullByteSize = å•ä¸ªAllocatorå†…å­˜å¤§å°. è¦æ±‚å¿…é¡»æ˜¯2çš„næ¬¡å¹‚
+		// é»˜è®¤å•ä¸ªå†…å­˜å—å¤§å°æ˜¯64Bï¼Œæ€»å†…å­˜å¤§å°æ˜¯2GB
 		PlacedBufferAllocator(const std::wstring& name, ID3D12Device* pDevice, uint32_t pageBlockByteSize = 64, uint32_t pageFullByteSize = 2147483648);
 		virtual ~PlacedBufferAllocator() {};
 
-		// ·ÖÅäÄÚ´æ
+		// åˆ†é…å†…å­˜
 		void Alloc(D3D12_RESOURCE_DESC* desc, uint32_t byteSize, const std::function<void(const PlacedBufferAllocTaskResult&)>& callback);
 
-		// ÊÍ·ÅÖ¸¶¨ÄÚ´æ
+		// é‡Šæ”¾æŒ‡å®šå†…å­˜
 		void Free(const XBuddyTaskMemData& memData);
 
 		void OnAllocatorAdded(BuddyAllocatorPage* pAllocator) override;

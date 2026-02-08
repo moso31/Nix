@@ -6,8 +6,8 @@ struct PPMPixel
 	PPMPixel() {}
 	~PPMPixel() {}
 
-	XMINT2 pixel;	// 像素坐标
-	float pixelWeight;	// 权重
+	XMINT2 pixel;	// 鍍忕礌鍧愭爣
+	float pixelWeight;	// 鏉冮噸
 	Vector3 position;
 	Vector3 normal;
 	std::shared_ptr<NXBSDF> BSDF;
@@ -15,7 +15,7 @@ struct PPMPixel
 	float radius2;
 	UINT photons;
 	Vector3 flux;
-	Vector3 Lemit;	// 自发光（如果有的话）
+	Vector3 Lemit;	// 鑷彂鍏夛紙濡傛灉鏈夌殑璇濓級
 };
 
 class NXPPMPixelGenerator

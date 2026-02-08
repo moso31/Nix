@@ -8,7 +8,7 @@
 #include "NXTerrainLODStreamConfigs.h"
 #include "ShaderStructures.h"
 
-// ÓÃÓÚÑÓ³ÙÊÍ·ÅµÄÎÆÀíÊı¾İ
+// ç”¨äºå»¶è¿Ÿé‡Šæ”¾çš„çº¹ç†æ•°æ®
 struct NXTerrainTextureRemoving
 {
 	Ntr<NXTexture2D> pTexture;
@@ -17,13 +17,13 @@ struct NXTerrainTextureRemoving
 
 struct CBufferTerrainNodeDescription
 {
-	// µØĞÎ×óÏÂ½ÇXZ½Úµã×ø±ê£¨×óÊÖ×ø±êÏµ£©
+	// åœ°å½¢å·¦ä¸‹è§’XZèŠ‚ç‚¹åæ ‡ï¼ˆå·¦æ‰‹åæ ‡ç³»ï¼‰
 	Int2 positionWS; 
 
-	// ½ÚµãµÄminmaxZÊı¾İ
+	// èŠ‚ç‚¹çš„minmaxZæ•°æ®
 	Vector2 minmaxZ; 
 
-	// ½Úµã´óĞ¡£¬Ò»¶¨ÊÇ2µÄÕûÊıÃİ
+	// èŠ‚ç‚¹å¤§å°ï¼Œä¸€å®šæ˜¯2çš„æ•´æ•°å¹‚
 	uint32_t size; 
 
 	uint32_t padding[3];
@@ -31,24 +31,24 @@ struct CBufferTerrainNodeDescription
 
 struct CBufferTerrainNodeDescUpdateInfo
 {
-	// ÒªÌæ»»µÄË÷Òı
+	// è¦æ›¿æ¢çš„ç´¢å¼•
 	int newIndex;
 
-	// ±»Ìæ»»µÄ¾ÉĞÅÏ¢ºÍ´óĞ¡
-	// ×¢ÒâÈç¹ûÊÇ²»ĞèÒªreplace£¬Ôòsize = 0;
+	// è¢«æ›¿æ¢çš„æ—§ä¿¡æ¯å’Œå¤§å°
+	// æ³¨æ„å¦‚æœæ˜¯ä¸éœ€è¦replaceï¼Œåˆ™size = 0;
 	Int2 replacePosWS;
 	int replaceSize; 
 };
 
 struct CBufferTerrainCullingParam
 {
-	// Ïà»úÎ»ÖÃ
+	// ç›¸æœºä½ç½®
 	Vector3 m_cameraPos;
 
-	// ×Ó¼¶LOD¾àÀë£¨²»ÊÇµ±Ç°µÈ¼¶£¬ÊÇµ±Ç°µÈ¼¶-1£¬ÎªÉ¶ÕâÃ´×ö¼ûshader£©
+	// å­çº§LODè·ç¦»ï¼ˆä¸æ˜¯å½“å‰ç­‰çº§ï¼Œæ˜¯å½“å‰ç­‰çº§-1ï¼Œä¸ºå•¥è¿™ä¹ˆåšè§shaderï¼‰
 	float m_nextLodDist;
 
-	// µ±Ç°consume/appendµÄmipµÈ¼¶
+	// å½“å‰consume/appendçš„mipç­‰çº§
 	int m_currentMip;
 
 	Vector3 pad;
@@ -112,41 +112,41 @@ public:
 
 	void UpdateGBufferPatcherData(ID3D12GraphicsCommandList* pCmdList);
 
-	// Ã¿Ö¡ÇåÀíÒÑÈ·ÈÏGPUÍê³ÉÊ¹ÓÃµÄÎÆÀí
+	// æ¯å¸§æ¸…ç†å·²ç¡®è®¤GPUå®Œæˆä½¿ç”¨çš„çº¹ç†
 	void FrameCleanup();
 
 private:
-	// ½«¾ÉÎÆÀí¼ÓÈë´ıÊÍ·Å¶ÓÁĞ
+	// å°†æ—§çº¹ç†åŠ å…¥å¾…é‡Šæ”¾é˜Ÿåˆ—
 	void AddToRemovingQueue(const Ntr<NXTexture2D>& pTexture);
 
-	// ºÍm_nodeDescArrayInternalÍêÈ«ÏàÍ¬£¬Ö»ÊÇÊı¾İ¸ñÊ½²»Í¬£¬¹©CPU-GPU½»»¥
+	// å’Œm_nodeDescArrayInternalå®Œå…¨ç›¸åŒï¼Œåªæ˜¯æ•°æ®æ ¼å¼ä¸åŒï¼Œä¾›CPU-GPUäº¤äº’
 	std::vector<CBufferTerrainNodeDescription> m_nodeDescArray;
 	NXConstantBuffer<std::vector<CBufferTerrainNodeDescription>> m_cbNodeDescArray;
-	// ÓÃÒ»¸öint[]¼ÇÂ¼Ã¿Ö¡¸üĞÂµÄnodeDescË÷Òı£¬Ã¿Ö¡ÖØÖÃ
+	// ç”¨ä¸€ä¸ªint[]è®°å½•æ¯å¸§æ›´æ–°çš„nodeDescç´¢å¼•ï¼Œæ¯å¸§é‡ç½®
 	std::vector<CBufferTerrainNodeDescUpdateInfo> m_nodeDescUpdateIndices;
 	NXConstantBuffer<std::vector<CBufferTerrainNodeDescUpdateInfo>> m_cbNodeDescUpdateIndices;
 
-	// ÎÆÀíAtlas
+	// çº¹ç†Atlas
 	Ntr<NXTexture2DArray> m_pHeightMapAtlas;
 	Ntr<NXTexture2DArray> m_pSplatMapAtlas;
 	Ntr<NXTexture2DArray> m_pNormalMapAtlas;
 
-	// µØĞÎ²ÄÖÊÎÆÀí£¨´æ´¢ËùÓĞterrainÄ£¿é³£ÓÃµÄ²ÄÖÊ£¬¸úËæsplatMapÒ»ÆğÊ¹ÓÃ£©
+	// åœ°å½¢æè´¨çº¹ç†ï¼ˆå­˜å‚¨æ‰€æœ‰terrainæ¨¡å—å¸¸ç”¨çš„æè´¨ï¼Œè·ŸéšsplatMapä¸€èµ·ä½¿ç”¨ï¼‰
 	Ntr<NXTexture2D> m_pTerrainAlbedo2DArray;
 	Ntr<NXTexture2D> m_pTerrainNormal2DArray;
 
-	// Ã¿Ö¡´ıºÏ²¢µ½AtlasµÄÎÆÀíÁĞ±í
+	// æ¯å¸§å¾…åˆå¹¶åˆ°Atlasçš„çº¹ç†åˆ—è¡¨
 	std::vector<Ntr<NXTexture2D>> m_pToAtlasHeights;
 	std::vector<Ntr<NXTexture2D>> m_pToAtlasSplats;
 	std::vector<Ntr<NXTexture2D>> m_pToAtlasNormals;
 
-	// ´ıÊÍ·ÅµÄÎÆÀí¶ÓÁĞ£¨µÈ´ıGPUÍê³ÉºóÔÙÊÍ·Å£©
+	// å¾…é‡Šæ”¾çš„çº¹ç†é˜Ÿåˆ—ï¼ˆç­‰å¾…GPUå®Œæˆåå†é‡Šæ”¾ï¼‰
 	std::vector<NXTerrainTextureRemoving> m_removingTextures;
 
-	// ¼ÇÂ¼¸÷sectorµÄnodeID
+	// è®°å½•å„sectorçš„nodeID
 	Ntr<NXTexture2D> m_pSector2NodeIDTexture;
 
-	// ÊÇ·ñĞèÒªÇå¿ÕSector2NodeIDÎÆÀí£¨½öÊ×Ö¡ĞèÒª£©
+	// æ˜¯å¦éœ€è¦æ¸…ç©ºSector2NodeIDçº¹ç†ï¼ˆä»…é¦–å¸§éœ€è¦ï¼‰
 	bool m_bNeedClearSector2NodeIDTexture = true;
 
 	// gpu-driven ping-pong
@@ -155,7 +155,7 @@ private:
 	Ntr<NXBuffer> m_pingpongNodesFinal;
 	Ntr<NXBuffer> m_pingpongIndirectArgs;
 
-	// ¸÷¼¶ping-pong µÄculling²ÎÊı
+	// å„çº§ping-pong çš„cullingå‚æ•°
 	CBufferTerrainCullingParam m_cbCullingData[6];
 	NXConstantBuffer<CBufferTerrainCullingParam> m_cbCulling[6];
 
@@ -164,7 +164,7 @@ private:
 	Ntr<NXBuffer> m_patcherDrawArgs;
 	Ntr<NXBuffer> m_patcherDrawArgsZero;
 
-	// patcher ¸øGBufferÓÃµÄ³£Á¿»º³åÇø
+	// patcher ç»™GBufferç”¨çš„å¸¸é‡ç¼“å†²åŒº
 	ConstantBufferObject m_cbDataObject;
 	NXConstantBuffer<ConstantBufferObject>	m_cbObject;
 };

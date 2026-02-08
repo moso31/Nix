@@ -23,18 +23,18 @@ public:
 	bool IsVisible() const { return m_bShowWindow; }
 
 private:
-	// ¸¨Öú·½·¨ - ¸ñÊ½»¯ºÍ×ª»»
+	// è¾…åŠ©æ–¹æ³• - æ ¼å¼åŒ–å’Œè½¬æ¢
 	static std::string FormatByteSize(size_t bytes);
 	static const char* GetDXGIFormatString(int format);
 	static constexpr ImVec4 ImU32ToImVec4(ImU32 color);
 
-	// ¸¨Öú·½·¨ - »æÖÆÏà¹Ø
+	// è¾…åŠ©æ–¹æ³• - ç»˜åˆ¶ç›¸å…³
 	void ShowResourceTooltip(const NXRGGUIResource& res, NXRenderGraph* pRenderGraph, int segmentIndex = 0);
 	void DrawTimeLayerHighlightRect(int timeLayer, int minTimeLayer, int maxTimeLayer, double resourceCount, float bottomPadding);
 	void DrawTimeLayerPassNames(int timeLayer, int minTimeLayer, int maxTimeLayer, double resourceCount, NXRenderGraph* pRenderGraph);
 	void DrawResourceSeparatorLine(size_t nonImportedCount, int minTimeLayer, int maxTimeLayer);
 
-	// ºËĞÄäÖÈ¾·½·¨
+	// æ ¸å¿ƒæ¸²æŸ“æ–¹æ³•
 	void RenderResourceView(
 		const std::vector<NXRGGUIResource>& displayResources,
 		NXRenderGraph* pRenderGraph,
@@ -51,7 +51,7 @@ private:
 	NXRGGUIResourceViewMode m_viewMode = NXRGGUIResourceViewMode::Virtual;
 	bool m_showImportedResources = true;
 
-	// ¾²Ì¬ÅäÖÃ³£Á¿
+	// é™æ€é…ç½®å¸¸é‡
 	static constexpr ImU32 COLOR_REGULAR_RESOURCE = IM_COL32(70, 130, 180, 200);
 	static constexpr ImU32 COLOR_IMPORTED_RESOURCE = IM_COL32(144, 238, 144, 200);
 	static constexpr ImU32 COLOR_HIGHLIGHT_FILL = IM_COL32(255, 255, 0, 100);

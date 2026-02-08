@@ -27,7 +27,7 @@ ccmem::BuddyAllocator::BuddyAllocator(uint32_t blockByteSize, uint32_t fullByteS
 	MIN_LV(blockByteSize),
 	MAX_LV(fullByteSize)
 {
-	// ¼ÆËã×îĞ¡ºÍ×î´ó¼¶±ğµÄlog2Öµ ºÍ LV_NUM
+	// è®¡ç®—æœ€å°å’Œæœ€å¤§çº§åˆ«çš„log2å€¼ å’Œ LV_NUM
 	for (MIN_LV_LOG2 = 0; uint32_t(1 << MIN_LV_LOG2) < MIN_LV; ++MIN_LV_LOG2);
 	for (MAX_LV_LOG2 = 0; uint32_t(1 << MAX_LV_LOG2) < MAX_LV; ++MAX_LV_LOG2);
 	LV_NUM = MAX_LV_LOG2 - MIN_LV_LOG2 + 1;
@@ -78,7 +78,7 @@ void ccmem::BuddyAllocator::ExecuteTasks()
 	taskList.swap(m_taskList);
 	m_mutex.unlock();
 
-	// ½«µÍÓÅÏÈ¼¶ÈÎÎñ¶ÓÁĞºÏ²¢µ½ÈÎÎñ¶ÓÁĞÖĞ£¬µ«·ÅÔÚ×îºóÖ´ĞĞ
+	// å°†ä½ä¼˜å…ˆçº§ä»»åŠ¡é˜Ÿåˆ—åˆå¹¶åˆ°ä»»åŠ¡é˜Ÿåˆ—ä¸­ï¼Œä½†æ”¾åœ¨æœ€åæ‰§è¡Œ
 	taskList.splice(taskList.end(), m_lowPriorTaskList);
 	m_lowPriorTaskList.clear();
 
@@ -89,12 +89,12 @@ void ccmem::BuddyAllocator::ExecuteTasks()
 			BuddyTaskResult taskResult(task);
 			task.state = TryAlloc(task, taskResult.memData);
 
-			// Èç¹û·ÖÅä³É¹¦£¬´¥·¢»Øµ÷º¯Êı
+			// å¦‚æœåˆ†é…æˆåŠŸï¼Œè§¦å‘å›è°ƒå‡½æ•°
 			if (task.state == BuddyTask::State::Success)
 			{
-				// ÒÆ½»pTaskContextËùÓĞÈ¨¸øtaskResult
+				// ç§»äº¤pTaskContextæ‰€æœ‰æƒç»™taskResult
 				taskResult.pTaskContext = task.pTaskContext;
-				task.pTaskContext = nullptr; // ·ÀÖ¹ÖØ¸´ÊÍ·Å
+				task.pTaskContext = nullptr; // é˜²æ­¢é‡å¤é‡Šæ”¾
 				task.pCallBack(taskResult);
 				task.pCallBack = nullptr;
 			}
@@ -105,12 +105,12 @@ void ccmem::BuddyAllocator::ExecuteTasks()
 		}
 	}
 
-	// É¾³ı³É¹¦µÄTask£¬ÒÔ¼°ÊÍ·ÅÊ±Ã»ÕÒµ½¶ÔÓ¦ÄÚ´æ¿éµÄTask
+	// åˆ é™¤æˆåŠŸçš„Taskï¼Œä»¥åŠé‡Šæ”¾æ—¶æ²¡æ‰¾åˆ°å¯¹åº”å†…å­˜å—çš„Task
 	taskList.remove_if([](const BuddyTask& task) {
 		return task.state == BuddyTask::State::Success || task.state == BuddyTask::State::Failed_Free_NotFind;
 		});
 
-	// ½«Ê§°ÜµÄTask ×ªÒÆÖÁµÍÓÅÏÈ¼¶ÈÎÎñ¶ÓÁĞ
+	// å°†å¤±è´¥çš„Task è½¬ç§»è‡³ä½ä¼˜å…ˆçº§ä»»åŠ¡é˜Ÿåˆ—
 	m_lowPriorTaskList.swap(taskList);
 }
 
@@ -153,8 +153,8 @@ uint32_t ccmem::BuddyAllocator::GetByteSizeFromLevel(uint32_t level)
 
 BuddyAllocatorPage* ccmem::BuddyAllocator::AddAllocatorInternal()
 {
-	// ÕâÀïµÄËø±¾À´²»Ó¦¸ÃºÍExecuteTasks¹²ÓÃ£¬
-	// ²»¹»µ÷ÓÃÕâ¸ö·½·¨µÄ»ú»á²¢²»¶à£¬¹²ÓÃÓ°ÏìÒ²²»´ó
+	// è¿™é‡Œçš„é”æœ¬æ¥ä¸åº”è¯¥å’ŒExecuteTaskså…±ç”¨ï¼Œ
+	// ä¸å¤Ÿè°ƒç”¨è¿™ä¸ªæ–¹æ³•çš„æœºä¼šå¹¶ä¸å¤šï¼Œå…±ç”¨å½±å“ä¹Ÿä¸å¤§
 	std::lock_guard<std::mutex> lock(m_mutex);
 
 	BuddyAllocatorPage* pAllocator = new BuddyAllocatorPage(this);
@@ -173,10 +173,10 @@ BuddyTask::State ccmem::BuddyAllocator::TryAlloc(const BuddyTask& task, XBuddyTa
 		if (pAllocator->m_freeByteSize >= task.byteSize)
 		{
 			result = pAllocator->AllocSync(task, oTaskMemData.byteOffset);
-			// Èç¹û·µ»ØÎ´Öª´íÎó£¬²»½ÓÊÜ£¬Ö±½ÓÈÃËü±ÀÀ£
+			// å¦‚æœè¿”å›æœªçŸ¥é”™è¯¯ï¼Œä¸æ¥å—ï¼Œç›´æ¥è®©å®ƒå´©æºƒ
 			assert(result != BuddyTask::State::Failed_Unknown);
 
-			// ·ÖÅä³É¹¦Ê±½áÊøÑ­»·
+			// åˆ†é…æˆåŠŸæ—¶ç»“æŸå¾ªç¯
 			if (result == BuddyTask::State::Success)
 			{
 				oTaskMemData.pAllocator = pAllocator;
@@ -185,7 +185,7 @@ BuddyTask::State ccmem::BuddyAllocator::TryAlloc(const BuddyTask& task, XBuddyTa
 		}
 	}
 
-	// Èç¹û×ßµ½ÕâÀï£¬ËµÃ÷ËùÓĞµÄAllocator¶¼ÂúÁË£¬´´½¨Ò»¸öĞÂµÄAllocator
+	// å¦‚æœèµ°åˆ°è¿™é‡Œï¼Œè¯´æ˜æ‰€æœ‰çš„Allocatoréƒ½æ»¡äº†ï¼Œåˆ›å»ºä¸€ä¸ªæ–°çš„Allocator
 	BuddyAllocatorPage* pNewAllocator = AddAllocatorInternal();
 	result = pNewAllocator->AllocSync(task, oTaskMemData.byteOffset);
 	if (result == BuddyTask::State::Success)
@@ -194,7 +194,7 @@ BuddyTask::State ccmem::BuddyAllocator::TryAlloc(const BuddyTask& task, XBuddyTa
 		return result;
 	}
 
-	// Èç¹û·µ»ØÎ´Öª´íÎó£¬²»½ÓÊÜ£¬Ö±½ÓÈÃËü±ÀÀ£
+	// å¦‚æœè¿”å›æœªçŸ¥é”™è¯¯ï¼Œä¸æ¥å—ï¼Œç›´æ¥è®©å®ƒå´©æºƒ
 	assert(result != BuddyTask::State::Failed_Unknown);
 	return result;
 }
@@ -229,14 +229,14 @@ ccmem::BuddyAllocatorPage::~BuddyAllocatorPage()
 
 BuddyTask::State ccmem::BuddyAllocatorPage::AllocSync(const BuddyTask& task, uint32_t& oByteOffset)
 {
-	// ¶¨¼¶£ºÈ·¶¨byteSize¶ÔÓ¦µÄ×îĞ¡ÄÚ´æ¿é¼¶±ğ
+	// å®šçº§ï¼šç¡®å®šbyteSizeå¯¹åº”çš„æœ€å°å†…å­˜å—çº§åˆ«
 	uint32_t newBlockLevel = m_pOwner->GetLevel(task.byteSize);
 
 	bool hasMinBlock = false;
 	uint32_t minBlockByteOffset;
 	BuddyMemoryBlock pMinBlock;
 
-	// ¼ì²éÄÚ´æ¿é£¬Èç¹ûÒÑ¾­ÓĞÍ¬¼¶ÄÚ´æ¿é£¬¿ÉÖ±½ÓÊ¹ÓÃ
+	// æ£€æŸ¥å†…å­˜å—ï¼Œå¦‚æœå·²ç»æœ‰åŒçº§å†…å­˜å—ï¼Œå¯ç›´æ¥ä½¿ç”¨
 	for (auto& [byteOffset, blockData] : m_memory)
 	{
 		if (!blockData.bUsed)
@@ -248,7 +248,7 @@ BuddyTask::State ccmem::BuddyAllocatorPage::AllocSync(const BuddyTask& task, uin
 				return BuddyTask::State::Success;
 			}
 
-			// Èç¹ûÃ»ÓĞÍ¬¼¶ÄÚ´æ¿é£¬ÕÒµ½Ò»¸ö±È¶¨¼¶¸ü´ó£¬µ«×îĞ¡µÄÄÚ´æ¿é£¨µÈ¼¶Ô½Ğ¡£¬ÄÚ´æ¿éÔ½´ó£©
+			// å¦‚æœæ²¡æœ‰åŒçº§å†…å­˜å—ï¼Œæ‰¾åˆ°ä¸€ä¸ªæ¯”å®šçº§æ›´å¤§ï¼Œä½†æœ€å°çš„å†…å­˜å—ï¼ˆç­‰çº§è¶Šå°ï¼Œå†…å­˜å—è¶Šå¤§ï¼‰
 			if (blockData.level < newBlockLevel) 
 			{
 				if (!hasMinBlock || blockData.level > pMinBlock.level)
@@ -261,15 +261,15 @@ BuddyTask::State ccmem::BuddyAllocatorPage::AllocSync(const BuddyTask& task, uin
 		}
 	}
 
-	// Èç¹ûÕÒµ½ÁË´óÓÚ¶¨¼¶µÄ×îĞ¡ÄÚ´æ¿é£¬½«Æä·Ö¸î³É¶¨¼¶µÄÄÚ´æ¿é
+	// å¦‚æœæ‰¾åˆ°äº†å¤§äºå®šçº§çš„æœ€å°å†…å­˜å—ï¼Œå°†å…¶åˆ†å‰²æˆå®šçº§çš„å†…å­˜å—
 	if (hasMinBlock)
 	{
 		m_memory.erase(minBlockByteOffset);
 
-		// for Öğ¼¶²ğ·Ö
+		// for é€çº§æ‹†åˆ†
 		for (uint32_t i = pMinBlock.level; i < newBlockLevel; i++)
 		{
-			// ÓÀÔ¶Ö»½«ÓÒ×Ó¿é²ğ·Ö³öÈ¥
+			// æ°¸è¿œåªå°†å³å­å—æ‹†åˆ†å‡ºå»
 			BuddyMemoryBlock halfBlock;
 			halfBlock.level = i + 1;
 			halfBlock.bUsed = false;
@@ -277,20 +277,20 @@ BuddyTask::State ccmem::BuddyAllocatorPage::AllocSync(const BuddyTask& task, uin
 			uint32_t halfByteOffset = minBlockByteOffset + m_pOwner->GetByteSizeFromLevel(i + 1);
 			m_memory.insert({ halfByteOffset, halfBlock });
 
-			// ²ğ·Öµ½¶¨¼¶Ê±£¬½«×ó×Ó¿é±ê¼ÇÎªÒÑÊ¹ÓÃ
+			// æ‹†åˆ†åˆ°å®šçº§æ—¶ï¼Œå°†å·¦å­å—æ ‡è®°ä¸ºå·²ä½¿ç”¨
 			if (i + 1 == newBlockLevel)
 			{
 				halfBlock.bUsed = true;
 				oByteOffset = minBlockByteOffset;
 				m_memory.insert({ oByteOffset , halfBlock });
 
-				// ·ÖÅä³É¹¦£¬²¢ÇÒºóÃæÃ»ÓĞÂß¼­£¬¿ÉÒÔÖ±½Ó·µ»ØÁË
+				// åˆ†é…æˆåŠŸï¼Œå¹¶ä¸”åé¢æ²¡æœ‰é€»è¾‘ï¼Œå¯ä»¥ç›´æ¥è¿”å›äº†
 				return BuddyTask::State::Success; 
 			}
 		}
 	}
 	
-	// ÕÒ²»µ½ËµÃ÷ÄÚ´æÒÑÂú
+	// æ‰¾ä¸åˆ°è¯´æ˜å†…å­˜å·²æ»¡
 	return BuddyTask::State::Failed_Alloc_FullMemory; 
 }
 
@@ -309,28 +309,28 @@ BuddyTask::State ccmem::BuddyAllocatorPage::FreeSync(const uint32_t& freeByteOff
 
 	it->second.bUsed = false;
 
-	uint32_t currentOffset = freeByteOffset;  // ÓÃ¿É±äµÄ¾Ö²¿±äÁ¿
+	uint32_t currentOffset = freeByteOffset;  // ç”¨å¯å˜çš„å±€éƒ¨å˜é‡
 
-	// Öğ¼¶ºÏ²¢
+	// é€çº§åˆå¹¶
 	for (uint32_t i = it->second.level; i > 0; i--)
 	{
-		// µ±Ç°ÄÚ´æ¿éµÄ×Ö½Ú´óĞ¡
+		// å½“å‰å†…å­˜å—çš„å­—èŠ‚å¤§å°
 		uint32_t freeByteSize = m_pOwner->GetByteSizeFromLevel(i);
 
-		// xor ¼ÆËã»ï°éÄÚ´æÆ«ÒÆÁ¿
+		// xor è®¡ç®—ä¼™ä¼´å†…å­˜åç§»é‡
 		uint32_t buddyByteOffset = currentOffset ^ freeByteSize;
 
 		uint32_t parentByteOffset = std::min(currentOffset, buddyByteOffset);
 
 		auto it = m_memory.find(buddyByteOffset);
 		if (it == m_memory.end())
-			throw std::runtime_error("buddy not found."); // Ö±½ÓÅ×Òì³££¬²»Ó¦¸ÃÕÒ²»µ½buddy
+			throw std::runtime_error("buddy not found."); // ç›´æ¥æŠ›å¼‚å¸¸ï¼Œä¸åº”è¯¥æ‰¾ä¸åˆ°buddy
 
-		// buddy±ØĞëÍ¬¼¶£¬²¢ÇÒÃ»ÓĞ±»Õ¼ÓÃ£¬²ÅÄÜºÏ²¢
+		// buddyå¿…é¡»åŒçº§ï¼Œå¹¶ä¸”æ²¡æœ‰è¢«å ç”¨ï¼Œæ‰èƒ½åˆå¹¶
 		if (it->second.level != i || it->second.bUsed == true) 
 			break;
 
-		// ºÏ²¢buddy
+		// åˆå¹¶buddy
 		m_memory.erase(currentOffset);
 		m_memory.erase(buddyByteOffset);
 
@@ -339,7 +339,7 @@ BuddyTask::State ccmem::BuddyAllocatorPage::FreeSync(const uint32_t& freeByteOff
 		block.bUsed = false;
 		m_memory.insert({ parentByteOffset, block });
 
-		currentOffset = parentByteOffset;  // ¸¸¼¶buddy£¬¼ÌĞøµü´ú
+		currentOffset = parentByteOffset;  // çˆ¶çº§buddyï¼Œç»§ç»­è¿­ä»£
 	}
 
 	return BuddyTask::State::Success;

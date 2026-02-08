@@ -27,8 +27,8 @@ namespace ccmem
 	class DeadListAllocator
 	{
 	public:
-		// ËùÎ½deadList ÆäÊµ¾ÍÊÇÒ»¸ö¼ÇÂ¼ÁË¿ÕÏĞÄÚ´æ¿éµÄÁ´±í
-		// size ±íÊ¾listµÄ´óĞ¡
+		// æ‰€è°“deadList å…¶å®å°±æ˜¯ä¸€ä¸ªè®°å½•äº†ç©ºé—²å†…å­˜å—çš„é“¾è¡¨
+		// size è¡¨ç¤ºlistçš„å¤§å°
 		DeadListAllocator(uint32_t size);
 		~DeadListAllocator();
 

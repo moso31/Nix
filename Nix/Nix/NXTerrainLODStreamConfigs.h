@@ -5,44 +5,44 @@
 struct NXTerrainLODStreamConfigsStruct
 {
 	// ========================================
-	// NXTerrainLODStreamData ÅäÖÃ
+	// NXTerrainLODStreamData é…ç½®
 	// ========================================
 
-	// µ¥¸öÎÆÀí³ß´ç£¨65 x 65£©
+	// å•ä¸ªçº¹ç†å°ºå¯¸ï¼ˆ65 x 65ï¼‰
 	static constexpr int AtlasHeightMapSize = 65;
 	static constexpr int AtlasSplatMapSize = 65;
 	static constexpr int AtlasNormalMapSize = 65;
 
-	// Atlas Texture2DArray µÄ²ãÊı£¨×î´ó¿É¼ÓÔØµÄ½ÚµãÊıÁ¿£©
+	// Atlas Texture2DArray çš„å±‚æ•°ï¼ˆæœ€å¤§å¯åŠ è½½çš„èŠ‚ç‚¹æ•°é‡ï¼‰
 	static constexpr int AtlasLayerCount = 1024;
 
-	// Sector2NodeID ÎÆÀíµÄ³ß´ç
+	// Sector2NodeID çº¹ç†çš„å°ºå¯¸
 	static constexpr int Sector2NodeIDTexSize = 256;
 
 	// ========================================
-	// NXTerrainLODStreamer ÅäÖÃ
+	// NXTerrainLODStreamer é…ç½®
 	// ========================================
 
-	// ¸÷LOD¼¶±ğ¶ÔÓ¦µÄ¾àÀë·¶Î§
+	// å„LODçº§åˆ«å¯¹åº”çš„è·ç¦»èŒƒå›´
 	static constexpr float DistRanges[6] = { 300.0f, 600.0f, 1200.0f, 2400.0f, 4800.0f, FLT_MAX };
 
-	// ¼¸µµLOD
+	// å‡ æ¡£LOD
 	static constexpr int LODSize = 6;
 
-	// ×î´ó½Úµã²ã¼¶£¨0~5 ¹²6²ã£©
+	// æœ€å¤§èŠ‚ç‚¹å±‚çº§ï¼ˆ0~5 å…±6å±‚ï¼‰
 	static constexpr int MaxNodeLevel = LODSize - 1;
 
-	// Ô¤·ÖÅäÒÑ¼ÓÔØ½ÚµãÃèÊöÊı×éµÄ³õÊ¼´óĞ¡
+	// é¢„åˆ†é…å·²åŠ è½½èŠ‚ç‚¹æè¿°æ•°ç»„çš„åˆå§‹å¤§å°
 	static constexpr int NodeDescArrayInitialSize = 1024;
 
 	// ========================================
-	// NXTerrainStreamingAsyncLoader ÅäÖÃ
+	// NXTerrainStreamingAsyncLoader é…ç½®
 	// ========================================
 
-	// Ã¿Ö¡×î¶àÇëÇó¼¸×éÈÎÎñ¡£×¢ÒâÃ¿¸öÈÎÎñ¶ÔÓ¦Ò»¸öµØĞÎ½ÚµãTask=¼ÓÔØ4NÕÅÎÆÀí¡£
+	// æ¯å¸§æœ€å¤šè¯·æ±‚å‡ ç»„ä»»åŠ¡ã€‚æ³¨æ„æ¯ä¸ªä»»åŠ¡å¯¹åº”ä¸€ä¸ªåœ°å½¢èŠ‚ç‚¹Task=åŠ è½½4Nå¼ çº¹ç†ã€‚
 	static constexpr uint32_t MaxRequestLimit = 4;
 
-	// Ã¿Ö¡×î¶à´¦ÀíµÄÍê³ÉÈÎÎñÊıÁ¿
+	// æ¯å¸§æœ€å¤šå¤„ç†çš„å®Œæˆä»»åŠ¡æ•°é‡
 	static constexpr uint32_t MaxComputeLimit = 4;
 };
 

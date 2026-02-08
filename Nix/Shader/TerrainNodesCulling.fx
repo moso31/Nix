@@ -23,7 +23,7 @@ cbuffer cbLodDist : register(b1)
 [numthreads(8, 8, 1)]
 void CS_First(uint3 dtid : SV_DispatchThreadID)
 {    
-    // µÚÒ»¸öpass»ñÈ¡ËùÓĞ×îµÍ¾«¶ÈmipµÄ×Ó½Úµãid
+    // ç¬¬ä¸€ä¸ªpassè·å–æ‰€æœ‰æœ€ä½ç²¾åº¦mipçš„å­èŠ‚ç‚¹id
     uint2 pixelPos = dtid.xy;
     uint nodeId = m_txSector2NodeID.Load(int3(pixelPos, m_currentMip));
     m_outBuffer.Append(nodeId);
@@ -32,14 +32,14 @@ void CS_First(uint3 dtid : SV_DispatchThreadID)
 [numthreads(1, 1, 1)]
 void CS_Process()
 {
-    // ´Ó¸¸½ÚµãÈ¡Ò»¸önode
+    // ä»çˆ¶èŠ‚ç‚¹å–ä¸€ä¸ªnode
     uint nodeID = m_inBuffer.Consume();
     CBufferTerrainNodeDescription nodeDesc = m_nodeDescArray[nodeID];
     
-    // »ñÈ¡¸¸½Úµãnode¶ÔÓ¦µÄÏñËØ×ø±ê
+    // è·å–çˆ¶èŠ‚ç‚¹nodeå¯¹åº”çš„åƒç´ åæ ‡
     int2 pixelPos = (nodeDesc.positionWS - MinTerrainCoord) >> (6 + m_currentMip);
     
-    // ×Ó½ÚµãµÄ×ø±ê
+    // å­èŠ‚ç‚¹çš„åæ ‡
     int2 childPixelPos0 = pixelPos * 2 + int2(0, 0);
     int2 childPixelPos1 = pixelPos * 2 + int2(0, 1);
     int2 childPixelPos2 = pixelPos * 2 + int2(1, 0);
@@ -50,15 +50,15 @@ void CS_Process()
     uint childNodeID2 = m_txSector2NodeID.Load(int3(childPixelPos2, m_currentMip - 1));
     uint childNodeID3 = m_txSector2NodeID.Load(int3(childPixelPos3, m_currentMip - 1));
     
-    // Èç¹ûÊÇ×îºóÒ»´Îµü´ú »òÕßÊÇÎŞĞ§½Úµã0xffff
+    // å¦‚æœæ˜¯æœ€åä¸€æ¬¡è¿­ä»£ æˆ–è€…æ˜¯æ— æ•ˆèŠ‚ç‚¹0xffff
     if (m_currentMip == 0 || childNodeID0 == 0xffff || childNodeID1 == 0xffff || childNodeID2 == 0xffff || childNodeID3 == 0xffff) 
     {
-        // µ±Ç°½Úµã¼ÆÈëfinal
+        // å½“å‰èŠ‚ç‚¹è®¡å…¥final
         m_final.Append(nodeID);
         return;
     }
     
-    // Èô³¬¹ıÏà»ú¹æ»®µÄmip¾àÀë£¬ÊÇ·ñÌø¹ıµü´ú
+    // è‹¥è¶…è¿‡ç›¸æœºè§„åˆ’çš„mipè·ç¦»ï¼Œæ˜¯å¦è·³è¿‡è¿­ä»£
     {
         CBufferTerrainNodeDescription childNode0 = m_nodeDescArray[childNodeID0];
         CBufferTerrainNodeDescription childNode1 = m_nodeDescArray[childNodeID1];
@@ -77,7 +77,7 @@ void CS_Process()
     
         if (childDistance0 > m_nextLodDist || childDistance1 > m_nextLodDist || childDistance2 > m_nextLodDist || childDistance3 > m_nextLodDist)
         {
-            // µ±Ç°½Úµã¼ÆÈëfinal
+            // å½“å‰èŠ‚ç‚¹è®¡å…¥final
             m_final.Append(nodeID);
             return;
         }

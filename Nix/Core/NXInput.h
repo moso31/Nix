@@ -9,7 +9,7 @@ public:
 	NXInput();
 	virtual ~NXInput();
 
-	XMINT2 MousePosition();	// »ñÈ¡Êó±êÔÚµ±Ç°¿Í»§¶ËµÄÎ»ÖÃ£¨×óÉÏ½Ç0,0£©
+	XMINT2 MousePosition();	// è·å–é¼ æ ‡åœ¨å½“å‰å®¢æˆ·ç«¯çš„ä½ç½®ï¼ˆå·¦ä¸Šè§’0,0ï¼‰
 	void RestoreData();
 
 	void UpdateMousePosInfo();
@@ -21,23 +21,23 @@ public:
 	void Release();
 
 private:
-	// ¼ÇÂ¼ÁËÔ­Éú¼üÅÌ/Êó±ê×´Ì¬¡£
-	// ²»Í¬µÄ×´Ì¬¶ÔÓ¦ÁË²»Í¬µÄÊÂ¼ş£¬ÒÔKeyÎªÀı£¬
-	//		°´ÏÂ + ¼¤»î	= KeyDown
-	//		°´ÏÂ + Î´¼¤»î = KeyPressing
-	//		µ¯Æğ + ¼¤»î	= KeyUp
-	//		µ¯Æğ + Î´¼¤»î = ÎŞ´¥·¢ÊÂ¼ş
-	// MouseÒ²ÊÇÍ¬Àí¡£
-	bool m_keyState[256];		// ¼üÅÌÊÇ·ñ°´ÏÂ
-	bool m_keyActivite[256];	// ¼üÅÌÊÇ·ñ¼¤»î£¨µ±Ç°Ö¡±»°´ÏÂ/µ¯Æğ£©
-	bool m_mouseState[256];		// Êó±êÊÇ·ñ°´ÏÂ
-	bool m_mouseActivite[256];	// Êó±êÊÇ·ñ¼¤»î£¨µ±Ç°Ö¡±»°´ÏÂ/µ¯Æğ£©
+	// è®°å½•äº†åŸç”Ÿé”®ç›˜/é¼ æ ‡çŠ¶æ€ã€‚
+	// ä¸åŒçš„çŠ¶æ€å¯¹åº”äº†ä¸åŒçš„äº‹ä»¶ï¼Œä»¥Keyä¸ºä¾‹ï¼Œ
+	//		æŒ‰ä¸‹ + æ¿€æ´»	= KeyDown
+	//		æŒ‰ä¸‹ + æœªæ¿€æ´» = KeyPressing
+	//		å¼¹èµ· + æ¿€æ´»	= KeyUp
+	//		å¼¹èµ· + æœªæ¿€æ´» = æ— è§¦å‘äº‹ä»¶
+	// Mouseä¹Ÿæ˜¯åŒç†ã€‚
+	bool m_keyState[256];		// é”®ç›˜æ˜¯å¦æŒ‰ä¸‹
+	bool m_keyActivite[256];	// é”®ç›˜æ˜¯å¦æ¿€æ´»ï¼ˆå½“å‰å¸§è¢«æŒ‰ä¸‹/å¼¹èµ·ï¼‰
+	bool m_mouseState[256];		// é¼ æ ‡æ˜¯å¦æŒ‰ä¸‹
+	bool m_mouseActivite[256];	// é¼ æ ‡æ˜¯å¦æ¿€æ´»ï¼ˆå½“å‰å¸§è¢«æŒ‰ä¸‹/å¼¹èµ·ï¼‰
 
-	Vector2 m_mouseAbsolutePos;	// Êó±êÆÁÄ»È«¾Ö×ø±ê
-	Vector2 m_mouseWindowPos;	// Êó±êÏà¶ÔWin32´°¿Ú×ø±ê
+	Vector2 m_mouseAbsolutePos;	// é¼ æ ‡å±å¹•å…¨å±€åæ ‡
+	Vector2 m_mouseWindowPos;	// é¼ æ ‡ç›¸å¯¹Win32çª—å£åæ ‡
 
-	// ¼ÇÂ¼GUIViewµÄÊı¾İ
-	bool m_isMouseHoverOnView;	// ¼ì²âÊó±êÊÇ·ñÔÚÊÓ¿Ú£¨"view"£©ÉÏĞüÍ£
+	// è®°å½•GUIViewçš„æ•°æ®
+	bool m_isMouseHoverOnView;	// æ£€æµ‹é¼ æ ‡æ˜¯å¦åœ¨è§†å£ï¼ˆ"view"ï¼‰ä¸Šæ‚¬åœ
 	Vector4 m_viewPortRect;
 };
 

@@ -6,19 +6,19 @@
 
 struct PerTerrainBakeData
 {
-	NXTerrainNodeId nodeId; // µØĞÎ½ÚµãID
-	std::filesystem::path pathHeightMap; // ¸ß¶ÈÍ¼Â·¾¶
-	std::filesystem::path pathSplatMap; // SplatMapÂ·¾¶
-	std::filesystem::path pathNormalMap; // NormalMapÂ·¾¶
+	NXTerrainNodeId nodeId; // åœ°å½¢èŠ‚ç‚¹ID
+	std::filesystem::path pathHeightMap; // é«˜åº¦å›¾è·¯å¾„
+	std::filesystem::path pathSplatMap; // SplatMapè·¯å¾„
+	std::filesystem::path pathNormalMap; // NormalMapè·¯å¾„
 };
 
 struct TerrainTexLODBakeConfig
 {
-	std::vector<PerTerrainBakeData> bakeTerrains; // ĞèÒªºæ±ºµÄµØĞÎÁĞ±í
-	bool bForceGenerate = false; // ÊÇ·ñÇ¿ÖÆÉú³É£¨ºöÂÔÒÑ´æÔÚµÄÎÄ¼ş£©
-	bool bGenerateHeightMap = true; // ÊÇ·ñÉú³ÉHeightMap
-	bool bGenerateSplatMap = true; // ÊÇ·ñÉú³ÉSplatMap
-	bool bGenerateNormalMap = true; // ÊÇ·ñÉú³ÉNormalMap
+	std::vector<PerTerrainBakeData> bakeTerrains; // éœ€è¦çƒ˜ç„™çš„åœ°å½¢åˆ—è¡¨
+	bool bForceGenerate = false; // æ˜¯å¦å¼ºåˆ¶ç”Ÿæˆï¼ˆå¿½ç•¥å·²å­˜åœ¨çš„æ–‡ä»¶ï¼‰
+	bool bGenerateHeightMap = true; // æ˜¯å¦ç”ŸæˆHeightMap
+	bool bGenerateSplatMap = true; // æ˜¯å¦ç”ŸæˆSplatMap
+	bool bGenerateNormalMap = true; // æ˜¯å¦ç”ŸæˆNormalMap
 };
 
 class NXTextureMaker
@@ -31,51 +31,51 @@ public:
 	NXTextureMaker() {}
 	virtual ~NXTextureMaker() {}
 
-	// ¶ÁµØĞÎÔ­Ê¼R16 raw¸ß¶ÈÍ¼Êı¾İ
+	// è¯»åœ°å½¢åŸå§‹R16 rawé«˜åº¦å›¾æ•°æ®
 	static void ReadTerrainRawR16(const std::filesystem::path& path, std::vector<uint16_t>& out);
 
-	// ¶ÁµØĞÎDDS R16_UNORM¸ß¶ÈÍ¼Êı¾İ
+	// è¯»åœ°å½¢DDS R16_UNORMé«˜åº¦å›¾æ•°æ®
 	static void ReadTerrainDDSR16Unorm(const std::filesystem::path& path, std::vector<uint16_t>& out);
 
-	// ¶ÁµØĞÎÔ­Ê¼R8 dds splatmap ²ÄÖÊIDÍ¼Êı¾İ
+	// è¯»åœ°å½¢åŸå§‹R8 dds splatmap æè´¨IDå›¾æ•°æ®
 	static void ReadTerrainDDSR8Unorm(const std::filesystem::path& path, std::vector<uint8_t>& out);
 
-	// ¶ÁµØĞÎDDS R8G8B8A8_UNORM·¨ÏßÍ¼Êı¾İ
+	// è¯»åœ°å½¢DDS R8G8B8A8_UNORMæ³•çº¿å›¾æ•°æ®
 	static void ReadTerrainDDSRGBA8Unorm(const std::filesystem::path& path, std::vector<uint32_t>& out);
 
-	// È·±£Ä¿Â¼´æÔÚ£¬Èô²»´æÔÚÔò´´½¨
+	// ç¡®ä¿ç›®å½•å­˜åœ¨ï¼Œè‹¥ä¸å­˜åœ¨åˆ™åˆ›å»º
 	static void EnsureDir(const std::filesystem::path& dir);
 
-	// Éú³ÉµØĞÎ×ÜÎÆÀí£¬¶ÁÈ¡vectorÏÂµÄËùÓĞpath²¢´ò°ü³ÉÒ»¸öÊı×é
-	// nodeCountX/Y£ºµØĞÎ½ÚµãµÄÊıÁ¿£¬ÓÃÕâ¸öÅĞ¶Ï¾ßÌåÉú³Éµ½2DArrayµÄÄÄ¸ösliceIndex
-	// width/height£ºµ¥¸ösliceÎÆÀí´óĞ¡
+	// ç”Ÿæˆåœ°å½¢æ€»çº¹ç†ï¼Œè¯»å–vectorä¸‹çš„æ‰€æœ‰pathå¹¶æ‰“åŒ…æˆä¸€ä¸ªæ•°ç»„
+	// nodeCountX/Yï¼šåœ°å½¢èŠ‚ç‚¹çš„æ•°é‡ï¼Œç”¨è¿™ä¸ªåˆ¤æ–­å…·ä½“ç”Ÿæˆåˆ°2DArrayçš„å“ªä¸ªsliceIndex
+	// width/heightï¼šå•ä¸ªsliceçº¹ç†å¤§å°
 	static void GenerateTerrainHeightMap2DArray(const TerrainTexLODBakeConfig& bakeConfig, uint32_t nodeCountX, uint32_t nodeCountY, uint32_t width, uint32_t height, const std::filesystem::path& outDDSPath, std::function<void()> onProgressCount = nullptr);
 
-	// Éú³ÉµØĞÎ×îĞ¡×î´óZÖµÎÆÀí£¬¶ÁÈ¡vectorÏÂµÄËùÓĞpath²¢´ò°ü³ÉÒ»¸öÊı×é
-	// nodeCountX/Y£ºµØĞÎ½ÚµãµÄÊıÁ¿£¬ÓÃÕâ¸öÅĞ¶Ï¾ßÌåÉú³Éµ½2DArrayµÄÄÄ¸ösliceIndex
-	// width/height£ºµ¥¸ösliceÎÆÀí´óĞ¡
+	// ç”Ÿæˆåœ°å½¢æœ€å°æœ€å¤§Zå€¼çº¹ç†ï¼Œè¯»å–vectorä¸‹çš„æ‰€æœ‰pathå¹¶æ‰“åŒ…æˆä¸€ä¸ªæ•°ç»„
+	// nodeCountX/Yï¼šåœ°å½¢èŠ‚ç‚¹çš„æ•°é‡ï¼Œç”¨è¿™ä¸ªåˆ¤æ–­å…·ä½“ç”Ÿæˆåˆ°2DArrayçš„å“ªä¸ªsliceIndex
+	// width/heightï¼šå•ä¸ªsliceçº¹ç†å¤§å°
 	static void GenerateTerrainMinMaxZMap2DArray(const TerrainTexLODBakeConfig& bakeConfig, uint32_t nodeCountX, uint32_t nodeCountY, uint32_t width, uint32_t height, const std::filesystem::path& outDDSPath, std::function<void()> onProgressCount = nullptr);
 
-	// Éú³ÉµØĞÎ·¨Ïß
-	// nodeCountX/Y£ºµØĞÎ½ÚµãµÄÊıÁ¿£¬ÓÃÕâ¸öÅĞ¶Ï¾ßÌåÉú³Éµ½2DArrayµÄÄÄ¸ösliceIndex
-	// width/height£ºµ¥¸ösliceÎÆÀí´óĞ¡
-	// zRange£ºÒÔÊ²Ã´¸ß¶È·¶Î§À´¼ÆËã·¨Ïß
+	// ç”Ÿæˆåœ°å½¢æ³•çº¿
+	// nodeCountX/Yï¼šåœ°å½¢èŠ‚ç‚¹çš„æ•°é‡ï¼Œç”¨è¿™ä¸ªåˆ¤æ–­å…·ä½“ç”Ÿæˆåˆ°2DArrayçš„å“ªä¸ªsliceIndex
+	// width/heightï¼šå•ä¸ªsliceçº¹ç†å¤§å°
+	// zRangeï¼šä»¥ä»€ä¹ˆé«˜åº¦èŒƒå›´æ¥è®¡ç®—æ³•çº¿
 	static void GenerateTerrainNormal2DArray(const TerrainTexLODBakeConfig& bakeConfig, uint32_t nodeCountX, uint32_t nodeCountY, uint32_t width, uint32_t height, const Vector2& zRange = Vector2(0, 2048), const std::filesystem::path& outDDSPath = "", std::function<void()> onProgressCount = nullptr);
 
-	// Éú³ÉµØĞÎÁ÷Ê½¼ÓÔØLODÎÆÀí¼¯
+	// ç”Ÿæˆåœ°å½¢æµå¼åŠ è½½LODçº¹ç†é›†
 	static void GenerateTerrainStreamingLODMaps(const TerrainTexLODBakeConfig& bakeConfig);
 
 private:
-	// Éú³ÉµØĞÎÁ÷Ê½¼ÓÔØLODÎÆÀí¼¯-×Óº¯Êı
+	// ç”Ÿæˆåœ°å½¢æµå¼åŠ è½½LODçº¹ç†é›†-å­å‡½æ•°
 	static void GenerateTerrainStreamingLODMaps_HeightMap(const TerrainTexLODBakeConfig& bakeConfig);
 	static void GenerateTerrainStreamingLODMaps_SplatMap(const TerrainTexLODBakeConfig& bakeConfig);
 	static void GenerateTerrainStreamingLODMaps_NormalMap(const TerrainTexLODBakeConfig& bakeConfig);
 
-	// ±£´æµØĞÎTile DDSÎÆÀí
-	// src£ºÔ´Êı¾İÖ¸Õë£¨Õû¸ö¸ß¶ÈÍ¼Êı¾İ£©
-	// srcW/srcH£ºÔ´Êı¾İ¿í¸ß
-	// startX/startY£º´ÓÔ´Êı¾İµÄÄÄ¸öÎ»ÖÃ¿ªÊ¼¿½±´ 
-	// tileSize£º¿½±´¶à´ó³ß´ç
+	// ä¿å­˜åœ°å½¢Tile DDSçº¹ç†
+	// srcï¼šæºæ•°æ®æŒ‡é’ˆï¼ˆæ•´ä¸ªé«˜åº¦å›¾æ•°æ®ï¼‰
+	// srcW/srcHï¼šæºæ•°æ®å®½é«˜
+	// startX/startYï¼šä»æºæ•°æ®çš„å“ªä¸ªä½ç½®å¼€å§‹æ‹·è´ 
+	// tileSizeï¼šæ‹·è´å¤šå¤§å°ºå¯¸
 	static void SaveTerrainTileHeightMap(const std::filesystem::path& outPath, const uint16_t* src, uint32_t srcW, uint32_t srcH, uint32_t startX, uint32_t startY, uint32_t tileSize);
 	static void SaveTerrainTileSplatMap(const std::filesystem::path& outPath, const uint8_t* src, uint32_t srcW, uint32_t srcH, uint32_t startX, uint32_t startY, uint32_t tileSize);
 	static void SaveTerrainTileNormalMap(const std::filesystem::path& outPath, const uint32_t* src, uint32_t srcW, uint32_t srcH, uint32_t startX, uint32_t startY, uint32_t tileSize);

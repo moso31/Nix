@@ -14,8 +14,8 @@ class NXGlobalBuffer : public NXInstance<NXGlobalBuffer>
 {
 public:
 	// global buffers 2024.11.13 
-	// TODO£ºcbData°´ObjectºÍView·Ö¿ÉÒÔ£¬µ«ÏÖÔÚµÄ·Ö·¨ÓĞÎÊÌâ¡£
-	// cbObjectÖĞ´æÔÚÒ»Ğ©view projÖ®ÀàµÄ²ÎÊı£¬Êµ¼ÊÉÏÓ¦¸Ã·ÅÔÚCameraÖĞ¡£ ½«À´ÔÙ¸Ä£¬ÏÖÔÚÃ»¿Õ
+	// TODOï¼šcbDataæŒ‰Objectå’ŒViewåˆ†å¯ä»¥ï¼Œä½†ç°åœ¨çš„åˆ†æ³•æœ‰é—®é¢˜ã€‚
+	// cbObjectä¸­å­˜åœ¨ä¸€äº›view projä¹‹ç±»çš„å‚æ•°ï¼Œå®é™…ä¸Šåº”è¯¥æ”¾åœ¨Cameraä¸­ã€‚ å°†æ¥å†æ”¹ï¼Œç°åœ¨æ²¡ç©º
 	ConstantBufferObject						cbDataObject;
 	NXConstantBuffer<ConstantBufferObject>		cbObject;
 	ConstantBufferCamera						cbDataCamera;

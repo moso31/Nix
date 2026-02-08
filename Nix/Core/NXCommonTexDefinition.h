@@ -11,15 +11,15 @@ enum NXCommonRTEnum
 
     NXCommonRT_SSSLighting,
 
-    // ÆÁÄ»¿Õ¼äÒõÓ°
+    // å±å¹•ç©ºé—´é˜´å½±
     NXCommonRT_ShadowTest,
 
-    // ÏÖĞĞG-Buffer½á¹¹ÈçÏÂ£º
+    // ç°è¡ŒG-Bufferç»“æ„å¦‚ä¸‹ï¼š
     // RT0:		CustomData				        R8G8B8A8_UNORM
     // RT1:		Normal, SSSProfileIndex			R32G32B32A32_FLOAT
     // RT2:		Albedo					        R10G10B10A2_UNORM
     // RT3:		Metallic, Roughness, AO, flags	R8G8B8A8_UNORM
-    //      flags Ä¿Ç°Ö»ÓĞ ShadingModel
+    //      flags ç›®å‰åªæœ‰ ShadingModel
     NXCommonRT_GBuffer0,
     NXCommonRT_GBuffer1,
     NXCommonRT_GBuffer2,

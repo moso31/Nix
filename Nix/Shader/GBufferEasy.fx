@@ -77,7 +77,7 @@ void PS(PS_INPUT input, out PS_OUTPUT output)
 
 	float3 albedo = weights.x * albedoX + weights.y * albedoY + weights.z * albedoZ;
 
-	// TODO: »»³ÉVirtPageID£¬ÁÙÊ±´úÂë
+	// TODO: æ¢æˆVirtPageIDï¼Œä¸´æ—¶ä»£ç 
 	int ix = (int)floor(input.posWS.x);
 	int iy = (int)floor(input.posWS.y);
 	int iz = (int)floor(input.posWS.z);

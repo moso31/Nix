@@ -114,7 +114,7 @@ void NXCustomMaterial::LoadAndCompile(const std::filesystem::path& nslFilePath)
 {
 	m_nslPath = nslFilePath;
 
-	// ¹¹½¨Ç°ÏÈÊÍ·Å¾ÉÊı¾İ
+	// æ„å»ºå‰å…ˆé‡Šæ”¾æ—§æ•°æ®
 	m_materialDatas.Destroy();
 
 	if (LoadShaderCode())
@@ -135,12 +135,12 @@ bool NXCustomMaterial::LoadShaderCode()
 {
 	std::string strShader;
 
-	// ¶ÁÈ¡ nsl ÎÄ¼ş
+	// è¯»å– nsl æ–‡ä»¶
 	bool bLoadSuccess = LoadShaderStringFromFile(strShader);
 
 	if (bLoadSuccess)
 	{
-		// ½âÎö nsl ÎÄ¼ş
+		// è§£æ nsl æ–‡ä»¶
 		NXCodeProcessHelper::ExtractShader(strShader, m_materialDatas, m_codeBlocks);
 	}
 
@@ -157,27 +157,27 @@ void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, const 
 	HRESULT hrPS = NXShaderComplier::GetInstance()->CompilePSByCode(strGBufferShader, L"PS", pPSBlob.GetAddressOf(), oErrorMessagePS);
 	m_bCompileSuccess = SUCCEEDED(hrVS) && SUCCEEDED(hrPS);
 	
-	// Èç¹ûJIT±àÒëOK£¬¾Í¿ÉÒÔ¹¹½¨shaderÁË¡£Ê×ÏÈÖØĞÂ¹¹½¨¸ùÇ©ÃûºÍPSO¡£
+	// å¦‚æœJITç¼–è¯‘OKï¼Œå°±å¯ä»¥æ„å»ºshaderäº†ã€‚é¦–å…ˆé‡æ–°æ„å»ºæ ¹ç­¾åå’ŒPSOã€‚
 	if (m_bCompileSuccess)
 	{
 		auto& txArr = m_materialDatas.GetTextures();
 		auto& ssArr = m_materialDatas.GetSamplers();
 
 		// b3, t0..., s...
-		// t0~tN£ºnsl²ÄÖÊÎÄ¼şÉú³ÉµÄËùÓĞÎÆÀí
-		// s0~sM£ºnsl²ÄÖÊÎÄ¼şÉú³ÉµÄËùÓĞÎÆÀí
+		// t0~tNï¼šnslæè´¨æ–‡ä»¶ç”Ÿæˆçš„æ‰€æœ‰çº¹ç†
+		// s0~sMï¼šnslæè´¨æ–‡ä»¶ç”Ÿæˆçš„æ‰€æœ‰çº¹ç†
 		std::vector<D3D12_DESCRIPTOR_RANGE> ranges;
 		ranges.reserve(txArr.size());
 
-		// Ã¿ÕÅtexÖ¸¶¨ÁËslotIndex ËùÒÔ»¹ÊÇµÃÓÃforÑ­»·
+		// æ¯å¼ texæŒ‡å®šäº†slotIndex æ‰€ä»¥è¿˜æ˜¯å¾—ç”¨forå¾ªç¯
 		for (int i = 0; i < txArr.size(); i++)
 			ranges.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, i));
 
 		std::vector<D3D12_ROOT_PARAMETER> rootParams = {
 			NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL), // b0, space0
 			NX12Util::CreateRootParameterCBV(1, 0, D3D12_SHADER_VISIBILITY_ALL), // b1
-			NX12Util::CreateRootParameterCBV(0, 1, D3D12_SHADER_VISIBILITY_ALL), // b0, space1 = nslµÄ×Ô¶¨Òåcbuffer
-			NX12Util::CreateRootParameterTable(ranges, D3D12_SHADER_VISIBILITY_ALL), // t..., space0 = nslµÄ×Ô¶¨Òåtexture
+			NX12Util::CreateRootParameterCBV(0, 1, D3D12_SHADER_VISIBILITY_ALL), // b0, space1 = nslçš„è‡ªå®šä¹‰cbuffer
+			NX12Util::CreateRootParameterTable(ranges, D3D12_SHADER_VISIBILITY_ALL), // t..., space0 = nslçš„è‡ªå®šä¹‰texture
 		};
 
 		std::vector<D3D12_DESCRIPTOR_RANGE> ranges2;
@@ -259,7 +259,7 @@ bool NXCustomMaterial::Recompile(const NXMaterialData& guiData, const NXMaterial
 	}
 	else
 	{
-		// Èç¹û±àÒëÊ§°Ü£¬ÔòÓÃ±¸·İÊı¾İ»Ö¸´²ÄÖÊ
+		// å¦‚æœç¼–è¯‘å¤±è´¥ï¼Œåˆ™ç”¨å¤‡ä»½æ•°æ®æ¢å¤æè´¨
 		m_materialDatas = guiDataBackup.Clone();
 		m_codeBlocks = codeBackup;
 	}
@@ -269,10 +269,10 @@ bool NXCustomMaterial::Recompile(const NXMaterialData& guiData, const NXMaterial
 
 void NXCustomMaterial::InitShaderResources()
 {
-	// ·´ĞòÁĞ»¯
+	// ååºåˆ—åŒ–
 	Deserialize();
 
-	// ÇëÇó¸üĞÂÒ»´ÎCBufferData
+	// è¯·æ±‚æ›´æ–°ä¸€æ¬¡CBufferData
 	RequestUpdateCBufferData(true);
 }
 
@@ -307,7 +307,7 @@ void NXCustomMaterial::UpdateCBData(bool rebuildCB)
 	cbData.push_back(reinterpret_cast<float&>(sssGBufferIndex));
 	while (cbData.size() % 4 != 0) cbData.push_back(0); // 16 bytes align
 
-	// ÖØ½¨Õû¸öCBuffer
+	// é‡å»ºæ•´ä¸ªCBuffer
 	if (rebuildCB)
 	{
 		m_cbData.Recreate(cbData.size());
@@ -319,9 +319,9 @@ void NXCustomMaterial::UpdateCBData(bool rebuildCB)
 
 void NXCustomMaterial::UpdatePSORenderStates(D3D12_GRAPHICS_PIPELINE_STATE_DESC& oPSODesc, const NXMaterialData& guiData)
 {
-	// TODO: ¸ù¾İ²ÄÖÊµÄÊôĞÔ£¬ÉèÖÃ¸÷ÖÖäÖÈ¾×´Ì¬
-	// ÏÖÔÚµÄ²ÄÖÊÏµÍ³·Ç³£¼òµ¥£¬Ö»»ùÓÚ ShadingModel ÉèÁË¸öÄ£°å×´Ì¬=Replace£¨ÒòÎª3SÓÃµÄ×Å£©£¬ÆäËûµÄ¾ÍÉ¶¶¼Ã»¹ÜÁË¡­¡­
-	// ½«À´»áÓĞ¸ü¶àµÄÊôĞÔ£¬±ÈÈçalphaTest blend¡¢Ë«Ãæ¡¢Éî¶ÈÊÇ·ñĞ´ÈëµÈµÈ
+	// TODO: æ ¹æ®æè´¨çš„å±æ€§ï¼Œè®¾ç½®å„ç§æ¸²æŸ“çŠ¶æ€
+	// ç°åœ¨çš„æè´¨ç³»ç»Ÿéå¸¸ç®€å•ï¼ŒåªåŸºäº ShadingModel è®¾äº†ä¸ªæ¨¡æ¿çŠ¶æ€=Replaceï¼ˆå› ä¸º3Sç”¨çš„ç€ï¼‰ï¼Œå…¶ä»–çš„å°±å•¥éƒ½æ²¡ç®¡äº†â€¦â€¦
+	// å°†æ¥ä¼šæœ‰æ›´å¤šçš„å±æ€§ï¼Œæ¯”å¦‚alphaTest blendã€åŒé¢ã€æ·±åº¦æ˜¯å¦å†™å…¥ç­‰ç­‰
 
 	NXShadingModel shadingModel = (NXShadingModel)guiData.GetSettings().shadingModel;
 	if (shadingModel == NXShadingModel::SubSurface)

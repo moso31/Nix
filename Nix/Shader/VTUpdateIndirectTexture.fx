@@ -5,8 +5,8 @@ cbuffer cbPhysPageUpdateIndex : register(b0, space0)
     CBufferPhysPageUpdateIndex m_physPageUpdateIndex[UPDATE_INDIRECT_TEXTURE_PER_FRAME];
 }
 
-// 使用数组形式，支持动态索引访问不同mip层级
-// register(u0)会自动扩展到 u0-u10
+// 浣跨敤鏁扮粍褰㈠紡锛屾敮鎸佸姩鎬佺储寮曡闂笉鍚宮ip灞傜骇
+// register(u0)浼氳嚜鍔ㄦ墿灞曞埌 u0-u10
 RWTexture2D<uint> m_txIndirectTexture[11] : register(u0, space0);
 
 [numthreads(1, 1, 1)]

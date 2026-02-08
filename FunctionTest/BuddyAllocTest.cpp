@@ -4,7 +4,7 @@ using namespace ccmem;
 
 ccmem::BuddyAllocator::BuddyAllocator()
 {
-	// ³õÊ¼»¯Ê±×Ô¶¯´´½¨Ò»¸öAllocator 
+	// åˆå§‹åŒ–æ—¶è‡ªåŠ¨åˆ›å»ºä¸€ä¸ªAllocator 
 	AddAllocatorInternal();
 }
 
@@ -39,33 +39,33 @@ void ccmem::BuddyAllocator::ExecuteTasks()
 	taskList.swap(m_taskList);
 	m_mutex.unlock();
 
-	// ½«µÍÓÅÏÈ¼¶ÈÎÎñ¶ÓÁĞºÏ²¢µ½ÈÎÎñ¶ÓÁĞÖĞ£¬µ«·ÅÔÚ×îºóÖ´ĞĞ
+	// å°†ä½ä¼˜å…ˆçº§ä»»åŠ¡é˜Ÿåˆ—åˆå¹¶åˆ°ä»»åŠ¡é˜Ÿåˆ—ä¸­ï¼Œä½†æ”¾åœ¨æœ€åæ‰§è¡Œ
 	taskList.splice(taskList.end(), m_lowPriorTaskList);
 	m_lowPriorTaskList.clear();
 
 	for (auto& task : taskList)
 	{
-		if (!task.pFreeMem) // ·ÖÅä
+		if (!task.pFreeMem) // åˆ†é…
 		{
 			BuddyTaskResult taskResult;
 			task.state = TryAlloc(task, taskResult);
 
-			// Èç¹û·ÖÅä³É¹¦£¬´¥·¢»Øµ÷º¯Êı
+			// å¦‚æœåˆ†é…æˆåŠŸï¼Œè§¦å‘å›è°ƒå‡½æ•°
 			if (task.state == BuddyTask::State::Success)
 				task.pCallBack(taskResult);
 		}
-		else // ÊÍ·Å
+		else // é‡Šæ”¾
 		{
 			task.state = TryFree(task);
 		}
 	}
 
-	// É¾³ı³É¹¦µÄTask£¬ÒÔ¼°ÊÍ·ÅÊ±Ã»ÕÒµ½¶ÔÓ¦ÄÚ´æ¿éµÄTask
+	// åˆ é™¤æˆåŠŸçš„Taskï¼Œä»¥åŠé‡Šæ”¾æ—¶æ²¡æ‰¾åˆ°å¯¹åº”å†…å­˜å—çš„Task
 	taskList.remove_if([](const BuddyTask& task) {
 		return task.state == BuddyTask::State::Success || task.state == BuddyTask::State::Failed_Free_NotFind;
 		});
 
-	// ½«Ê§°ÜµÄTask ×ªÒÆÖÁµÍÓÅÏÈ¼¶ÈÎÎñ¶ÓÁĞ
+	// å°†å¤±è´¥çš„Task è½¬ç§»è‡³ä½ä¼˜å…ˆçº§ä»»åŠ¡é˜Ÿåˆ—
 	m_lowPriorTaskList.swap(taskList);
 }
 
@@ -81,8 +81,8 @@ void ccmem::BuddyAllocator::Print()
 
 BuddyAllocatorPage* ccmem::BuddyAllocator::AddAllocatorInternal()
 {
-	// ÕâÀïµÄËø±¾À´²»Ó¦¸ÃºÍExecuteTasks¹²ÓÃ£¬
-	// ²»¹»µ÷ÓÃÕâ¸ö·½·¨µÄ»ú»á²¢²»¶à£¬¹²ÓÃÓ°ÏìÒ²²»´ó
+	// è¿™é‡Œçš„é”æœ¬æ¥ä¸åº”è¯¥å’ŒExecuteTaskså…±ç”¨ï¼Œ
+	// ä¸å¤Ÿè°ƒç”¨è¿™ä¸ªæ–¹æ³•çš„æœºä¼šå¹¶ä¸å¤šï¼Œå…±ç”¨å½±å“ä¹Ÿä¸å¤§
 	std::lock_guard<std::mutex> lock(m_mutex);
 
 	BuddyAllocatorPage* pAllocator = new BuddyAllocatorPage(this);
@@ -99,10 +99,10 @@ BuddyTask::State ccmem::BuddyAllocator::TryAlloc(const BuddyTask& task, BuddyTas
 		{
 			result = pAllocator->AllocSync(task, oTaskResult.pMemory);
 
-			// Èç¹û·µ»ØÎ´Öª´íÎó£¬²»½ÓÊÜ£¬Ö±½ÓÈÃËü±ÀÀ£
+			// å¦‚æœè¿”å›æœªçŸ¥é”™è¯¯ï¼Œä¸æ¥å—ï¼Œç›´æ¥è®©å®ƒå´©æºƒ
 			assert(result != BuddyTask::State::Failed_Unknown);
 
-			// ·ÖÅä³É¹¦Ê±½áÊøÑ­»·
+			// åˆ†é…æˆåŠŸæ—¶ç»“æŸå¾ªç¯
 			if (result == BuddyTask::State::Success)
 			{
 				oTaskResult.pAllocator = pAllocator;
@@ -111,7 +111,7 @@ BuddyTask::State ccmem::BuddyAllocator::TryAlloc(const BuddyTask& task, BuddyTas
 		}
 	}
 
-	// Èç¹û×ßµ½ÕâÀï£¬ËµÃ÷ËùÓĞµÄAllocator¶¼ÂúÁË£¬´´½¨Ò»¸öĞÂµÄAllocator
+	// å¦‚æœèµ°åˆ°è¿™é‡Œï¼Œè¯´æ˜æ‰€æœ‰çš„Allocatoréƒ½æ»¡äº†ï¼Œåˆ›å»ºä¸€ä¸ªæ–°çš„Allocator
 	BuddyAllocatorPage* pNewAllocator = AddAllocatorInternal();
 	result = pNewAllocator->AllocSync(task, oTaskResult.pMemory);
 	if (result == BuddyTask::State::Success)
@@ -120,7 +120,7 @@ BuddyTask::State ccmem::BuddyAllocator::TryAlloc(const BuddyTask& task, BuddyTas
 		return result;
 	}
 
-	// Èç¹û·µ»ØÎ´Öª´íÎó£¬²»½ÓÊÜ£¬Ö±½ÓÈÃËü±ÀÀ£
+	// å¦‚æœè¿”å›æœªçŸ¥é”™è¯¯ï¼Œä¸æ¥å—ï¼Œç›´æ¥è®©å®ƒå´©æºƒ
 	assert(result != BuddyTask::State::Failed_Unknown);
 
 	oTaskResult.pMemory = nullptr;
@@ -162,10 +162,10 @@ ccmem::BuddyAllocatorPage::~BuddyAllocatorPage()
 
 BuddyTask::State ccmem::BuddyAllocatorPage::AllocSync(const BuddyTask& task, uint8_t*& pAllocMem)
 {
-	// È·¶¨byteSize¶ÔÓ¦µÄ×îĞ¡ÄÚ´æ¿é¼¶±ğ
+	// ç¡®å®šbyteSizeå¯¹åº”çš„æœ€å°å†…å­˜å—çº§åˆ«
 	int newBlockLevel = GetLevel(task.byteSize);
 
-	// ´Ó¸Ã¼¶±ğ¿ªÊ¼ÏòÉÏ²éÕÒ£¬ÕÒµ½¿ÉÓÃµÄÄÚ´æ¿é
+	// ä»è¯¥çº§åˆ«å¼€å§‹å‘ä¸ŠæŸ¥æ‰¾ï¼Œæ‰¾åˆ°å¯ç”¨çš„å†…å­˜å—
 	for (int i = newBlockLevel; i >= 0; i--)
 	{
 		if (!m_freeList[i].empty())
@@ -174,24 +174,24 @@ BuddyTask::State ccmem::BuddyAllocatorPage::AllocSync(const BuddyTask& task, uin
 			if (pAllocMem)
 			{
 				m_freeByteSize -= GetAlignedByteSize(task.byteSize);
-				return BuddyTask::State::Success; // ·ÖÅä³É¹¦
+				return BuddyTask::State::Success; // åˆ†é…æˆåŠŸ
 			}
 			else
 			{
 				pAllocMem = nullptr;
-				return BuddyTask::State::Failed_Unknown; // ·ÖÅäÊ§°Ü£¬Ä¿Ç°ÔİÊ±Ã»ÓĞ×ßµ½ÕâÀïµÄÇé¿ö£¬ÏÈ·µ»Ø¸öÎ´Öª´íÎó°É
+				return BuddyTask::State::Failed_Unknown; // åˆ†é…å¤±è´¥ï¼Œç›®å‰æš‚æ—¶æ²¡æœ‰èµ°åˆ°è¿™é‡Œçš„æƒ…å†µï¼Œå…ˆè¿”å›ä¸ªæœªçŸ¥é”™è¯¯å§
 			}
 		}
 	}
 
-	// Èç¹û×ßµ½ÕâÀï£¬ËµÃ÷ÄÚ´æÒÑ¾­ÂúÁË
+	// å¦‚æœèµ°åˆ°è¿™é‡Œï¼Œè¯´æ˜å†…å­˜å·²ç»æ»¡äº†
 	pAllocMem = nullptr;
 	return BuddyTask::State::Failed_Alloc_FullMemory;
 }
 
 BuddyTask::State ccmem::BuddyAllocatorPage::FreeSync(const BuddyTask& task)
 {
-	// ´ÓusedÁĞ±íÖĞÕÒµ½¸ÃÄÚ´æ¿é
+	// ä»usedåˆ—è¡¨ä¸­æ‰¾åˆ°è¯¥å†…å­˜å—
 	for (int i = 0; i < LV_NUM; i++)
 	{
 		auto it = std::find(m_usedList[i].begin(), m_usedList[i].end(), task.pFreeMem);
@@ -206,7 +206,7 @@ BuddyTask::State ccmem::BuddyAllocatorPage::FreeSync(const BuddyTask& task)
 		}
 	}
 
-	// Èç¹û×ßµ½ÕâÀï£¬ËµÃ÷¸ÃÄÚ´æ¿é²»ÔÚusedÁĞ±íÖĞ
+	// å¦‚æœèµ°åˆ°è¿™é‡Œï¼Œè¯´æ˜è¯¥å†…å­˜å—ä¸åœ¨usedåˆ—è¡¨ä¸­
 	return BuddyTask::State::Failed_Free_NotFind;
 }
 
@@ -245,29 +245,29 @@ uint8_t* ccmem::BuddyAllocatorPage::AllocInternal(uint32_t destLevel, uint32_t s
 {
 	assert(srcLevel < LV_NUM);
 
-	// Èç¹ûÓĞ¸Ã¼¶±ğµÄÄÚ´æ¿é¿ÉÓÃ£¬Ö±½ÓÊ¹ÓÃ
+	// å¦‚æœæœ‰è¯¥çº§åˆ«çš„å†…å­˜å—å¯ç”¨ï¼Œç›´æ¥ä½¿ç”¨
 	if (destLevel == srcLevel)
 	{
-		// »ñÈ¡¸ÃÁĞ±íµÄµÚÒ»¸öÔªËØ£¬¼´¿ÉÓÃµÄÄÚ´æ¿é
+		// è·å–è¯¥åˆ—è¡¨çš„ç¬¬ä¸€ä¸ªå…ƒç´ ï¼Œå³å¯ç”¨çš„å†…å­˜å—
 		uint8_t* p = m_freeList[destLevel].front();
-		m_freeList[destLevel].pop_front(); // ´ÓfreeÁĞ±íÖĞÉ¾³ı¸ÃÔªËØ
-		m_usedList[destLevel].push_back(p); // ÔÚusedÁĞ±íÖĞÌí¼Ó¸ÃÔªËØ
+		m_freeList[destLevel].pop_front(); // ä»freeåˆ—è¡¨ä¸­åˆ é™¤è¯¥å…ƒç´ 
+		m_usedList[destLevel].push_back(p); // åœ¨usedåˆ—è¡¨ä¸­æ·»åŠ è¯¥å…ƒç´ 
 		return p;
 	}
 
-	// ÕûÌå»úÖÆ¾ö¶¨ÁËsrcLevelÀïÒ»¶¨ÓĞºÏÊÊµÄÄÚ´æ¿é£¨³ı·ÇÄÚ´æÂúÁË£©
+	// æ•´ä½“æœºåˆ¶å†³å®šäº†srcLevelé‡Œä¸€å®šæœ‰åˆé€‚çš„å†…å­˜å—ï¼ˆé™¤éå†…å­˜æ»¡äº†ï¼‰
 	if (!m_freeList[srcLevel].empty())
 	{
-		// ´Ó¸Ã¼¶±ğµÄ¿ÕÏĞÁĞ±íÖĞÈ¡³öÒ»¸öÄÚ´æ¿é
+		// ä»è¯¥çº§åˆ«çš„ç©ºé—²åˆ—è¡¨ä¸­å–å‡ºä¸€ä¸ªå†…å­˜å—
 		uint8_t* p = m_freeList[srcLevel].front();
 		m_freeList[srcLevel].pop_front();
 
-		// ½«¸ÃÄÚ´æ¿éÒ»·ÖÎª¶ş£¬¶¼·ÅÈëÏÂÒ»¼¶±ğµÄ¿ÕÏĞÁĞ±í
+		// å°†è¯¥å†…å­˜å—ä¸€åˆ†ä¸ºäºŒï¼Œéƒ½æ”¾å…¥ä¸‹ä¸€çº§åˆ«çš„ç©ºé—²åˆ—è¡¨
 		uint32_t halfBlockSize = 1 << (MAX_LV_LOG2 - srcLevel - 1);
 		m_freeList[srcLevel + 1].push_back(p);
 		m_freeList[srcLevel + 1].push_back(p + halfBlockSize);
 
-		// µİ¹é²éÏÂÒ»¼¶±ğ£¬Ö±µ½ÕÒµ½ºÏÊÊµÄÄÚ´æ¿é
+		// é€’å½’æŸ¥ä¸‹ä¸€çº§åˆ«ï¼Œç›´åˆ°æ‰¾åˆ°åˆé€‚çš„å†…å­˜å—
 		return AllocInternal(destLevel, srcLevel + 1);
 	}
 
@@ -278,28 +278,28 @@ void ccmem::BuddyAllocatorPage::FreeInternal(std::list<uint8_t*>::iterator itMem
 {
 	if (level == 0) return;
 
-	// itMem Ö¸ÏòÒªÊÍ·ÅµÄÄÚ´æ¿é
+	// itMem æŒ‡å‘è¦é‡Šæ”¾çš„å†…å­˜å—
 	uint8_t* pMem = *itMem;
 
-	// ¼ì²é¸ÃÄÚ´æ¿éµÄbuddyÊÇ·ñ¶¼ÔÚfreeÁĞ±íÖĞ£¬Èç¹û´æÔÚ¾ÍºÏ²¢³ÉÒ»¸ö¸ü´óµÄ¿é
-	// Ê¹ÓÃXOR²Ù×÷ÕÒµ½buddy
+	// æ£€æŸ¥è¯¥å†…å­˜å—çš„buddyæ˜¯å¦éƒ½åœ¨freeåˆ—è¡¨ä¸­ï¼Œå¦‚æœå­˜åœ¨å°±åˆå¹¶æˆä¸€ä¸ªæ›´å¤§çš„å—
+	// ä½¿ç”¨XORæ“ä½œæ‰¾åˆ°buddy
 	uint32_t blockSize = 1 << (MAX_LV_LOG2 - level);
 	uintptr_t offset = reinterpret_cast<uintptr_t>(pMem) - reinterpret_cast<uintptr_t>(m_pMem);
 	uintptr_t buddyOffset = offset ^ blockSize;
 	uint8_t* pBuddyMem = m_pMem + buddyOffset;
 
-	// ´ÓfreeÁĞ±íÖĞÕÒµ½buddy
+	// ä»freeåˆ—è¡¨ä¸­æ‰¾åˆ°buddy
 	auto itBuddyMem = std::find(m_freeList[level].begin(), m_freeList[level].end(), pBuddyMem);
 	if (itBuddyMem != m_freeList[level].end())
 	{
-		// ºÏ²¢
+		// åˆå¹¶
 		m_freeList[level].erase(itMem);
 		m_freeList[level].erase(itBuddyMem);
 
 		uint8_t* pMergedMem = std::min(pMem, pBuddyMem);
 		m_freeList[level - 1].push_back(pMergedMem);
 
-		// µİ¹é´¦Àí¸ü´óÒ»¼¶µÄÄÚ´æ¿é
+		// é€’å½’å¤„ç†æ›´å¤§ä¸€çº§çš„å†…å­˜å—
 		FreeInternal(std::prev(m_freeList[level - 1].end()), level - 1);
 	}
 }

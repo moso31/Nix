@@ -60,7 +60,7 @@ private:
 	std::promise<void> m_promiseCB;
 	std::future<void> m_futureCB;
 
-	// ÕâÁ©³ÉÔ±´æÁËÒ»·İ µ«ÔİÊ±Ã»É¶ÓÃ¡­¡­
+	// è¿™ä¿©æˆå‘˜å­˜äº†ä¸€ä»½ ä½†æš‚æ—¶æ²¡å•¥ç”¨â€¦â€¦
 	uint32_t m_stride;
 	uint32_t m_byteSize;
 

@@ -1,24 +1,24 @@
 #pragma once
 
 // 2023.5.26
-// ×¢£ºÕâ¸öÀà´ÓÄÚÈİµ½×¢ÊÍ¼¸ºõ-Íê-È«-ÊÇ-chatgpt ´´ÔìµÄ¡£ÌØ´Ë¸ĞĞ»£¡:)
+// æ³¨ï¼šè¿™ä¸ªç±»ä»å†…å®¹åˆ°æ³¨é‡Šå‡ ä¹-å®Œ-å…¨-æ˜¯-chatgpt åˆ›é€ çš„ã€‚ç‰¹æ­¤æ„Ÿè°¢ï¼:)
 // This class from the implement to the comments was almost entirely created by ChatGPT. Special thanks! :)
 template<class T>
 class NXInstance
 {
-// ¹¹Ôìº¯ÊıºÍÎö¹¹º¯ÊıÉùÃ÷Îªprotected£¬ÒÔ·ÀÖ¹ÆäËûÀà´´½¨»òÉ¾³ı»ùÀàµÄÊµÀı
+// æ„é€ å‡½æ•°å’Œææ„å‡½æ•°å£°æ˜ä¸ºprotectedï¼Œä»¥é˜²æ­¢å…¶ä»–ç±»åˆ›å»ºæˆ–åˆ é™¤åŸºç±»çš„å®ä¾‹
 protected:
     NXInstance() {}
-    virtual ~NXInstance() {} // ¼ÓÈëvirtual£¬ÎªÁË·ÀÖ¹ÅÉÉúÀàÔÚÎö¹¹Ê±³öÏÖÎÊÌâ
+    virtual ~NXInstance() {} // åŠ å…¥virtualï¼Œä¸ºäº†é˜²æ­¢æ´¾ç”Ÿç±»åœ¨ææ„æ—¶å‡ºç°é—®é¢˜
 
-    // É¾³ıÁË¿½±´¹¹Ôìº¯ÊıºÍ¿½±´¸³ÖµÔËËã·û£¬·ÀÖ¹ÀàµÄÊµÀı±»¸´ÖÆ»ò¸³Öµ
+    // åˆ é™¤äº†æ‹·è´æ„é€ å‡½æ•°å’Œæ‹·è´èµ‹å€¼è¿ç®—ç¬¦ï¼Œé˜²æ­¢ç±»çš„å®ä¾‹è¢«å¤åˆ¶æˆ–èµ‹å€¼
     NXInstance(const NXInstance&) = delete;
     NXInstance& operator=(const NXInstance&) = delete;
 
 public:
     static T* GetInstance()
     {
-        // Ê¹ÓÃC++11µÄ¾²Ì¬¾Ö²¿±äÁ¿ÌØĞÔ£¬±£Ö¤ÔÚ¶àÏß³Ì»·¾³ÏÂµÄÏß³Ì°²È«
+        // ä½¿ç”¨C++11çš„é™æ€å±€éƒ¨å˜é‡ç‰¹æ€§ï¼Œä¿è¯åœ¨å¤šçº¿ç¨‹ç¯å¢ƒä¸‹çš„çº¿ç¨‹å®‰å…¨
         static T pInstance;
         return &pInstance;
     }

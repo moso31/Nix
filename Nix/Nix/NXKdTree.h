@@ -6,7 +6,7 @@ template <typename T> using priority_queue_distance_cartesian = std::priority_qu
 
 enum LocateFilter
 {
-	// °´ºÎÖÖ·½·¨Í³¼ÆkNN½üÁÚµã¡£
+	// æŒ‰ä½•ç§æ–¹æ³•ç»Ÿè®¡kNNè¿‘é‚»ç‚¹ã€‚
 	Disk,
 	Sphere
 };
@@ -37,7 +37,7 @@ public:
 	NXKdTree() {}
 	virtual ~NXKdTree() {}
 
-	// ´´½¨³õÊ¼¼´Æ½ºâµÄkdÊ÷¡£
+	// åˆ›å»ºåˆå§‹å³å¹³è¡¡çš„kdæ ‘ã€‚
 	void BuildBalanceTree(std::vector<T>& data)
 	{
 		pRoot = RecursiveBuild(0, data.size(), data);
@@ -102,13 +102,13 @@ public:
 			if (disPlane < 0.0f)
 			{
 				if (p->lc) Locate(position, normal, p->lc, maxLimit, out_mindist2, out_nearest, locateFilter);
-				if (disPlane2 < out_mindist2) // ËµÃ÷ÁíÒ»²à¿ÉÄÜÓĞ¸ü½üµã£¬ĞèÒª½øÒ»²½¼ì²éÁíÒ»²àµÄ×ÓÊ÷
+				if (disPlane2 < out_mindist2) // è¯´æ˜å¦ä¸€ä¾§å¯èƒ½æœ‰æ›´è¿‘ç‚¹ï¼Œéœ€è¦è¿›ä¸€æ­¥æ£€æŸ¥å¦ä¸€ä¾§çš„å­æ ‘
 					if (p->rc) Locate(position, normal, p->rc, maxLimit, out_mindist2, out_nearest, locateFilter);
 			}
 			else
 			{
 				if (p->rc) Locate(position, normal, p->rc, maxLimit, out_mindist2, out_nearest, locateFilter);
-				if (disPlane2 < out_mindist2) // ËµÃ÷ÁíÒ»²à¿ÉÄÜÓĞ¸ü½üµã£¬ĞèÒª½øÒ»²½¼ì²éÁíÒ»²àµÄ×ÓÊ÷
+				if (disPlane2 < out_mindist2) // è¯´æ˜å¦ä¸€ä¾§å¯èƒ½æœ‰æ›´è¿‘ç‚¹ï¼Œéœ€è¦è¿›ä¸€æ­¥æ£€æŸ¥å¦ä¸€ä¾§çš„å­æ ‘
 					if (p->lc) Locate(position, normal, p->lc, maxLimit, out_mindist2, out_nearest, locateFilter);
 			}
 		}

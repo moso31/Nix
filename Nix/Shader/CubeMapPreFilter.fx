@@ -17,8 +17,8 @@ cbuffer ConstantBufferPreFilter : register(b1)
 	float m_perceptualRoughness;
 }
 
-// Educational: ¸üÌù½ü»ù±¾ÀíÂÛµÄ¼òµ¥Ä£ĞÍ¡£
-// ´¿²ÉÑù£¬²»À©Õ¹²ÉÑù°ëÏòÁ¿HµÄÁ¢Ìå½Ç£¬²»½øĞĞ¿¹ÔëÓÅ»¯
+// Educational: æ›´è´´è¿‘åŸºæœ¬ç†è®ºçš„ç®€å•æ¨¡å‹ã€‚
+// çº¯é‡‡æ ·ï¼Œä¸æ‰©å±•é‡‡æ ·åŠå‘é‡Hçš„ç«‹ä½“è§’ï¼Œä¸è¿›è¡ŒæŠ—å™ªä¼˜åŒ–
 float3 GetPrefilterEducational(float perceptualRoughness, float3 R)
 {
 	float3 N = R;

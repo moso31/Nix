@@ -13,28 +13,28 @@ void NXTerrainLODStreamData::Init(NXTerrainLODStreamer* pStreamer)
 	m_nodeDescArray.resize(g_terrainStreamConfig.NodeDescArrayInitialSize);
 	m_cbNodeDescUpdateIndices.Recreate(g_terrainStreamConfig.MaxComputeLimit);
 
-	// ÎÆÀíAtlas
+	// çº¹ç†Atlas
 	m_pHeightMapAtlas = NXManager_Tex->CreateTexture2DArray("TerrainStreaming_HeightMapAtlas", DXGI_FORMAT_R16_UNORM, g_terrainStreamConfig.AtlasHeightMapSize, g_terrainStreamConfig.AtlasHeightMapSize, g_terrainStreamConfig.AtlasLayerCount, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 	m_pSplatMapAtlas = NXManager_Tex->CreateTexture2DArray("TerrainStreaming_SplatMapAtlas", DXGI_FORMAT_R8_UNORM, g_terrainStreamConfig.AtlasSplatMapSize, g_terrainStreamConfig.AtlasSplatMapSize, g_terrainStreamConfig.AtlasLayerCount, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 	m_pNormalMapAtlas = NXManager_Tex->CreateTexture2DArray("TerrainStreaming_NormalMapAtlas", DXGI_FORMAT_R8G8B8A8_UNORM, g_terrainStreamConfig.AtlasNormalMapSize, g_terrainStreamConfig.AtlasNormalMapSize, g_terrainStreamConfig.AtlasLayerCount, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 
-	// µØĞÎ²ÄÖÊÎÆÀí£¨´æ´¢ËùÓĞterrainÄ£¿é³£ÓÃµÄ²ÄÖÊ£¬¸úËæsplatMapÒ»ÆğÊ¹ÓÃ£©
+	// åœ°å½¢æè´¨çº¹ç†ï¼ˆå­˜å‚¨æ‰€æœ‰terrainæ¨¡å—å¸¸ç”¨çš„æè´¨ï¼Œè·ŸéšsplatMapä¸€èµ·ä½¿ç”¨ï¼‰
 	m_pTerrainAlbedo2DArray = NXManager_Tex->CreateTexture2DArray("Terrain Albedo Array", L"D:\\NixAssets\\Terrain\\terrainAlbedo2DArray.dds");
 	m_pTerrainNormal2DArray = NXManager_Tex->CreateTexture2DArray("Terrain Normal Array", L"D:\\NixAssets\\Terrain\\terrainNormal2DArray.dds");
 
-	// Ã¿Ö¡´ıºÏ²¢µ½AtlasµÄÎÆÀíÁĞ±í
+	// æ¯å¸§å¾…åˆå¹¶åˆ°Atlasçš„çº¹ç†åˆ—è¡¨
 	m_pToAtlasHeights.resize(g_terrainStreamConfig.MaxComputeLimit);
 	m_pToAtlasSplats.resize(g_terrainStreamConfig.MaxComputeLimit);
 	m_pToAtlasNormals.resize(g_terrainStreamConfig.MaxComputeLimit);
 
-	// ¼ÇÂ¼¸÷sectorµÄnodeID
+	// è®°å½•å„sectorçš„nodeID
 	uint32_t mips = g_terrainStreamConfig.LODSize; // 6
 	m_pSector2NodeIDTexture = NXManager_Tex->CreateTexture2D("TerrainStreaming_Sector2NodeID", DXGI_FORMAT_R16_UINT, g_terrainStreamConfig.Sector2NodeIDTexSize, g_terrainStreamConfig.Sector2NodeIDTexSize, mips, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, false);
 	m_pSector2NodeIDTexture->SetViews(1, 0, 0, mips);
 	m_pSector2NodeIDTexture->SetSRV(0);
 	for (int i = 0; i < mips; i++)
 	{
-		m_pSector2NodeIDTexture->SetUAV(i, i); // Ã¿¸ömip¶¼ĞèÒªUAV
+		m_pSector2NodeIDTexture->SetUAV(i, i); // æ¯ä¸ªmipéƒ½éœ€è¦UAV
 	}
 
 	// gpu-driven ping-pong
@@ -49,7 +49,7 @@ void NXTerrainLODStreamData::Init(NXTerrainLODStreamer* pStreamer)
 	int a[3] = { 1, 1, 1 };
 	m_pingpongIndirectArgs->SetAll(a, 1);
 
-	// culling data ³õÊ¼»¯Ê±²¿·ÖÊı¾İ¸üĞÂ
+	// culling data åˆå§‹åŒ–æ—¶éƒ¨åˆ†æ•°æ®æ›´æ–°
 	for (int i = 0; i < g_terrainStreamConfig.LODSize; i++)
 	{
 		int val = g_terrainStreamConfig.LODSize - i - 1;
@@ -67,7 +67,7 @@ void NXTerrainLODStreamData::Init(NXTerrainLODStreamer* pStreamer)
 	m_patcherDrawArgs->Create(sizeof(int) * 5, 1);
 	m_patcherDrawArgs->SetAll(a2, 1);
 
-	int a3[5] = { 384,0,0,0,0 }; // 384=FarCry5Ã××ÖĞÎË÷ÒıÊı£¬Ïê¼ûSubMeshTerrainµÄÊµÏÖ
+	int a3[5] = { 384,0,0,0,0 }; // 384=FarCry5ç±³å­—å½¢ç´¢å¼•æ•°ï¼Œè¯¦è§SubMeshTerrainçš„å®ç°
 	m_patcherDrawArgsZero = new NXBuffer("GPU Terrain Draw Index Args Zero");
 	m_patcherDrawArgsZero->Create(sizeof(int) * 5, 1);
 	m_patcherDrawArgsZero->SetAll(a3, 1);
@@ -82,13 +82,13 @@ void NXTerrainLODStreamData::SetNodeDescArrayData(uint32_t index, const CBufferT
 	info.newIndex = index;
 	info.replacePosWS = replacedPosWS;
 	info.replaceSize = replacedSize;
-	m_nodeDescUpdateIndices.push_back(info); // ±¾Ö¡¸üĞÂµÄË÷ÒıÒ²¼ÇÂ¼Ò»ÏÂ
+	m_nodeDescUpdateIndices.push_back(info); // æœ¬å¸§æ›´æ–°çš„ç´¢å¼•ä¹Ÿè®°å½•ä¸€ä¸‹
 }
 
 void NXTerrainLODStreamData::UpdateCBNodeDescArray()
 {
-	// Í¼Ê¡ÊÂÖ±½ÓÃ¿Ö¡È«¸üĞÂÁË£¬Êµ¼ÊÉÏÃ¿Ö¡×î¶àÖ»¸üĞÂ¼¸¸ö¡£
-    // ¾Í20KB£¬Ó¦¸Ã»¹ºÃ
+	// å›¾çœäº‹ç›´æ¥æ¯å¸§å…¨æ›´æ–°äº†ï¼Œå®é™…ä¸Šæ¯å¸§æœ€å¤šåªæ›´æ–°å‡ ä¸ªã€‚
+    // å°±20KBï¼Œåº”è¯¥è¿˜å¥½
     m_cbNodeDescArray.Update(m_nodeDescArray);
 	m_cbNodeDescUpdateIndices.Update(m_nodeDescUpdateIndices); 
 }
@@ -130,7 +130,7 @@ void NXTerrainLODStreamData::UpdateGBufferPatcherData(ID3D12GraphicsCommandList*
 	NXShVisDescHeap->PushFluid(m_pTerrainAlbedo2DArray.IsValid() ? m_pTerrainAlbedo2DArray->GetSRV() : NXAllocator_NULL->GetNullSRV());
 	NXShVisDescHeap->PushFluid(m_pTerrainNormal2DArray.IsValid() ? m_pTerrainNormal2DArray->GetSRV() : NXAllocator_NULL->GetNullSRV());
 	auto& srvHandle = NXShVisDescHeap->Submit();
-	pCmdList->SetGraphicsRootDescriptorTable(4, srvHandle); // GPU-Driven Terrain Ê¹ÓÃ4ºÅ¸ù²ÎÊı ¾ßÌå¼ûNXCustomMaterial::CompileShader()
+	pCmdList->SetGraphicsRootDescriptorTable(4, srvHandle); // GPU-Driven Terrain ä½¿ç”¨4å·æ ¹å‚æ•° å…·ä½“è§NXCustomMaterial::CompileShader()
 }
 
 void NXTerrainLODStreamData::SetToAtlasHeightTexture(uint32_t index, const Ntr<NXTexture2D>& pTexture)

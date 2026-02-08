@@ -43,7 +43,7 @@ void NXMaterialResourceManager::ReplaceMaterial(NXMaterial* oldMaterial, NXMater
 
 NXMaterial* NXMaterialResourceManager::LoadFromNSLFile(const std::filesystem::path& matFilePath)
 {
-	// Èç¹ûÒÑ¾­ÔÚÄÚ´æÀïÖ±½ÓÄÃ¾ÍĞĞÁË
+	// å¦‚æœå·²ç»åœ¨å†…å­˜é‡Œç›´æ¥æ‹¿å°±è¡Œäº†
 	NXMaterial* pNewMat = FindMaterial(matFilePath);
 	if (!pNewMat) 
 		pNewMat = CreateCustomMaterial("Hello", matFilePath);
@@ -68,12 +68,12 @@ Ntr<NXSSSDiffuseProfile> NXMaterialResourceManager::GetOrAddSSSProfile(const std
 	if (sssProfFilePath.extension().string() == ".nssprof")
 	{
 		// 2023.11.10 
-		// TODO£ºÕâÀïÃ»ÓĞÅĞ¶Ï*.nssprofÎÄ¼şÄÚµÄdataÊÇ·ñÊÇÓĞĞ§µÄ£¬Ä¿Ç°ÔİÊ±Ä¬ÈÏ²»»á³öÎÊÌâ
+		// TODOï¼šè¿™é‡Œæ²¡æœ‰åˆ¤æ–­*.nssprofæ–‡ä»¶å†…çš„dataæ˜¯å¦æ˜¯æœ‰æ•ˆçš„ï¼Œç›®å‰æš‚æ—¶é»˜è®¤ä¸ä¼šå‡ºé—®é¢˜
 		Ntr<NXSSSDiffuseProfile> pSSSProfile(new NXSSSDiffuseProfile());
 		pSSSProfile->SetFilePath(sssProfFilePath);
 		pSSSProfile->Deserialize();
 
-		// Ìí¼Óµ½ map ²¢Î¬»¤ GBufferIndexMap
+		// æ·»åŠ åˆ° map å¹¶ç»´æŠ¤ GBufferIndexMap
 		m_sssProfilesMap[pathHash] = pSSSProfile;
 		return pSSSProfile;
 	}
@@ -83,10 +83,10 @@ Ntr<NXSSSDiffuseProfile> NXMaterialResourceManager::GetOrAddSSSProfile(const std
 
 void NXMaterialResourceManager::OnReload()
 {
-	// ÊÍ·Å²»ÓÃµÄ²ÄÖÊ
+	// é‡Šæ”¾ä¸ç”¨çš„æè´¨
 	ReleaseUnusedMaterials();
 
-	// Ã¿Ö¡¶¼ĞèÒªÇå¿Õ sssProfileGBufferIndexMap µÄË÷Òı£¬ÖØĞÂ¼ÆËã
+	// æ¯å¸§éƒ½éœ€è¦æ¸…ç©º sssProfileGBufferIndexMap çš„ç´¢å¼•ï¼Œé‡æ–°è®¡ç®—
 	AdjustSSSProfileMapToGBufferIndex();
 }
 
@@ -103,11 +103,11 @@ void NXMaterialResourceManager::ReleaseUnusedMaterials()
 
 void NXMaterialResourceManager::AdjustSSSProfileMapToGBufferIndex()
 {
-	// ´Ë·½·¨¸ºÔğÃ¿Ö¡Î¬»¤ SSSProfile¡¢Mesh¡¢Material Ö®¼äµÄÓ³Éä¹ØÏµ
-	// ±éÀúËùÓĞµÄ sss ²ÄÖÊ£¬Ã¿³öÏÖÒ»¸öĞÂµÄ sss profile Â·¾¶£¬½«¸ÃÂ·¾¶Ìí¼Óµ½ m_sssProfileGBufferIndexMap ÖĞ
-	//	  Èç¹û³öÏÖÎŞĞ§Â·¾¶»òÕß profile ¶ÁÈ¡Ê§°Ü£¬½«Ò»¸ö¿ÕÂ·¾¶Hash£¨"0"£©Ìí¼Óµ½ m_sssProfileGBufferIndexMap¡£
+	// æ­¤æ–¹æ³•è´Ÿè´£æ¯å¸§ç»´æŠ¤ SSSProfileã€Meshã€Material ä¹‹é—´çš„æ˜ å°„å…³ç³»
+	// éå†æ‰€æœ‰çš„ sss æè´¨ï¼Œæ¯å‡ºç°ä¸€ä¸ªæ–°çš„ sss profile è·¯å¾„ï¼Œå°†è¯¥è·¯å¾„æ·»åŠ åˆ° m_sssProfileGBufferIndexMap ä¸­
+	//	  å¦‚æœå‡ºç°æ— æ•ˆè·¯å¾„æˆ–è€… profile è¯»å–å¤±è´¥ï¼Œå°†ä¸€ä¸ªç©ºè·¯å¾„Hashï¼ˆ"0"ï¼‰æ·»åŠ åˆ° m_sssProfileGBufferIndexMapã€‚
 	
-	// 2023.11.14£ºNix ÏÖÔÚÃ»ÓĞÊÓ×¶ÌŞ³ı£¬½«À´Èç¹ûÓĞÁË±ØÈ»ĞèÒªÖØĞ´ÕâÀïµÄÂß¼­£¬µ«ÏÖÔÚ¾ÍÏÈÕâÑù°É
+	// 2023.11.14ï¼šNix ç°åœ¨æ²¡æœ‰è§†é”¥å‰”é™¤ï¼Œå°†æ¥å¦‚æœæœ‰äº†å¿…ç„¶éœ€è¦é‡å†™è¿™é‡Œçš„é€»è¾‘ï¼Œä½†ç°åœ¨å°±å…ˆè¿™æ ·å§
 
 	const static UINT8 INVALID_SSS_PROFILE = 0xff;
 	for (auto& [_, idx] : m_sssProfileGBufferIndexMap) idx = INVALID_SSS_PROFILE;
@@ -119,24 +119,24 @@ void NXMaterialResourceManager::AdjustSSSProfileMapToGBufferIndex()
 		if (pCustomMat && pCustomMat->GetShadingModel() == NXShadingModel::SubSurface)
 		{
 			auto& path = pCustomMat->GetSSSProfilePath();
-			auto& pProfile = GetOrAddSSSProfile(path); // Î¬»¤Ò»ÏÂ SSSProfileMap£¬Ä¿µÄÊÇÈ·±£ÀïÃæÒ»¶¨ÓĞµ±Ç°Ö¡»æÖÆµÄËùÓĞ²ÄÖÊ
+			auto& pProfile = GetOrAddSSSProfile(path); // ç»´æŠ¤ä¸€ä¸‹ SSSProfileMapï¼Œç›®çš„æ˜¯ç¡®ä¿é‡Œé¢ä¸€å®šæœ‰å½“å‰å¸§ç»˜åˆ¶çš„æ‰€æœ‰æè´¨
 			PathHashValue pathHash = std::filesystem::hash_value(path);
 
-			// ÊÇ·ñÊÇ±¾´Î±éÀú¹ı³ÌÖĞ Ã»ÓĞ¼ÇÂ¼¹ıµÄĞÂÂ·¾¶£¿
+			// æ˜¯å¦æ˜¯æœ¬æ¬¡éå†è¿‡ç¨‹ä¸­ æ²¡æœ‰è®°å½•è¿‡çš„æ–°è·¯å¾„ï¼Ÿ
 			if (m_sssProfileGBufferIndexMap.find(pathHash) == m_sssProfileGBufferIndexMap.end() || 
 				m_sssProfileGBufferIndexMap[pathHash] == INVALID_SSS_PROFILE)
 			{
-				// ÊÇ£¬¾Í´æµ½ m_cbDiffuseProfileData ÖĞ
+				// æ˜¯ï¼Œå°±å­˜åˆ° m_cbDiffuseProfileData ä¸­
 				AdjustDiffuseProfileRenderData(pathHash, sssGBufferIndex);
 
-				// Í¬Ê±±£´æÕâ¸ö sss profile ÔÚ GBuffer µÄË÷Òı±àºÅ
+				// åŒæ—¶ä¿å­˜è¿™ä¸ª sss profile åœ¨ GBuffer çš„ç´¢å¼•ç¼–å·
 				m_sssProfileGBufferIndexMap[pathHash] = sssGBufferIndex++;
 
-				// Èô³¬¹ı 16 ¸ö profile£¬GBufferIndex ÓÃÍêÁË£¬Ã»ÓĞ¼ÌĞø±éÀúµÄ±ØÒª
+				// è‹¥è¶…è¿‡ 16 ä¸ª profileï¼ŒGBufferIndex ç”¨å®Œäº†ï¼Œæ²¡æœ‰ç»§ç»­éå†çš„å¿…è¦
 				if (sssGBufferIndex >= 16) break; 
 			}
 
-			// ÉèÖÃµ±Ç°²ÄÖÊµÄ sss profile ÔÚ GBuffer µÄË÷Òı±àºÅ
+			// è®¾ç½®å½“å‰æè´¨çš„ sss profile åœ¨ GBuffer çš„ç´¢å¼•ç¼–å·
 			pCustomMat->SetGBufferIndexInternal(m_sssProfileGBufferIndexMap[pathHash]);
 		}
 	}
@@ -148,8 +148,8 @@ void NXMaterialResourceManager::AdjustDiffuseProfileRenderData(PathHashValue pat
 	auto& pProfile = isInvalidProfile ? m_defaultDiffuseProfile : m_sssProfilesMap[pathHash];
 
 	// 2023.11.21 
-	// Ô­paperÖ»ÊÇÃ÷È·Ö¸³öÁË"Burley SSS µÄ s ÖµÓ¦¸ÃÓë É¢Éä¾àÀë ³É·´±ÈÀı"£¬µ«Ã»ÓĞËµ¾ßÌåµÄ±ÈÀı¶àÉÙºÏÊÊ¡£
-	// ËùÒÔÏÖ½×¶ÎÏÈÊ¹ÓÃ »ùÓÚÒıÇæµ±Ç°»·¾³²âµÄÒ»¸ö±È½ÏºÏÀíµÄscaleFactor¡£
+	// åŸpaperåªæ˜¯æ˜ç¡®æŒ‡å‡ºäº†"Burley SSS çš„ s å€¼åº”è¯¥ä¸ æ•£å°„è·ç¦» æˆåæ¯”ä¾‹"ï¼Œä½†æ²¡æœ‰è¯´å…·ä½“çš„æ¯”ä¾‹å¤šå°‘åˆé€‚ã€‚
+	// æ‰€ä»¥ç°é˜¶æ®µå…ˆä½¿ç”¨ åŸºäºå¼•æ“å½“å‰ç¯å¢ƒæµ‹çš„ä¸€ä¸ªæ¯”è¾ƒåˆç†çš„scaleFactorã€‚
 	float scaleFactor = 0.01f;
 	Vector3 scatterDistance = pProfile->GetScatter() * pProfile->GetScatterDistance() * scaleFactor;
 	float maxScatterDistance = scatterDistance.MaxComponent();

@@ -11,15 +11,15 @@ struct ImageBMPData
 	BYTE b;
 	BYTE g;
 	BYTE r;
-};  // ¶¨ÒåÎ»Í¼Êı¾İ
+};  // å®šä¹‰ä½å›¾æ•°æ®
 
 typedef struct 
 {
-	WORD    bfType;	//ÎÄ¼şÀàĞÍ£¬±ØĞëÊÇ0x424D,¼´×Ö·û¡°BM¡±
-	DWORD   bfSize;	//ÎÄ¼ş´óĞ¡
-	WORD    bfReserved1; //±£Áô×Ö
-	WORD    bfReserved2; //±£Áô×Ö
-	DWORD   bfOffBits; //´ÓÎÄ¼şÍ·µ½Êµ¼ÊÎ»Í¼Êı¾İµÄÆ«ÒÆ×Ö½ÚÊı
+	WORD    bfType;	//æ–‡ä»¶ç±»å‹ï¼Œå¿…é¡»æ˜¯0x424D,å³å­—ç¬¦â€œBMâ€
+	DWORD   bfSize;	//æ–‡ä»¶å¤§å°
+	WORD    bfReserved1; //ä¿ç•™å­—
+	WORD    bfReserved2; //ä¿ç•™å­—
+	DWORD   bfOffBits; //ä»æ–‡ä»¶å¤´åˆ°å®é™…ä½å›¾æ•°æ®çš„åç§»å­—èŠ‚æ•°
 } BMPFILEHEADER_T;
 
 
@@ -34,18 +34,18 @@ struct BMPFILEHEADER_S
 
 typedef struct 
 {
-	DWORD      biSize; //ĞÅÏ¢Í·´óĞ¡
-	LONG       biWidth; //Í¼Ïñ¿í¶È
-	LONG       biHeight; //Í¼Ïñ¸ß¶È
-	WORD       biPlanes; //Î»Æ½ÃæÊı£¬±ØĞëÎª1
-	WORD       biBitCount; //Ã¿ÏñËØÎ»Êı
-	DWORD      biCompression; //Ñ¹ËõÀàĞÍ
-	DWORD      biSizeImage; //Ñ¹ËõÍ¼Ïñ´óĞ¡×Ö½ÚÊı
-	LONG       biXPelsPerMeter; //Ë®Æ½·Ö±æÂÊ
-	LONG       biYPelsPerMeter; //´¹Ö±·Ö±æÂÊ
-	DWORD      biClrUsed; //Î»Í¼Êµ¼ÊÓÃµ½µÄÉ«²ÊÊı
-	DWORD      biClrImportant; //±¾Î»Í¼ÖĞÖØÒªµÄÉ«²ÊÊı
-} BMPINFOHEADER_T; //Î»Í¼ĞÅÏ¢Í·¶¨Òå
+	DWORD      biSize; //ä¿¡æ¯å¤´å¤§å°
+	LONG       biWidth; //å›¾åƒå®½åº¦
+	LONG       biHeight; //å›¾åƒé«˜åº¦
+	WORD       biPlanes; //ä½å¹³é¢æ•°ï¼Œå¿…é¡»ä¸º1
+	WORD       biBitCount; //æ¯åƒç´ ä½æ•°
+	DWORD      biCompression; //å‹ç¼©ç±»å‹
+	DWORD      biSizeImage; //å‹ç¼©å›¾åƒå¤§å°å­—èŠ‚æ•°
+	LONG       biXPelsPerMeter; //æ°´å¹³åˆ†è¾¨ç‡
+	LONG       biYPelsPerMeter; //å‚ç›´åˆ†è¾¨ç‡
+	DWORD      biClrUsed; //ä½å›¾å®é™…ç”¨åˆ°çš„è‰²å½©æ•°
+	DWORD      biClrImportant; //æœ¬ä½å›¾ä¸­é‡è¦çš„è‰²å½©æ•°
+} BMPINFOHEADER_T; //ä½å›¾ä¿¡æ¯å¤´å®šä¹‰
 
 class ImageGenerator
 {

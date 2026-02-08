@@ -16,9 +16,9 @@
 // by Moso31 2021.12.25
 // Updated by moso31 2023.3.28
 // 
-// ×ÊÔ´¹ÜÀíÀà¡£Ö÷ÒªÖ°Ôğ£º
-// 1. ²ÄÖÊ¡¢ÎÆÀíµÈ×ÊÔ´µÄÍ³Ò»¹ÜÀí¡£
-// 2. ¶Ô×ÊÔ´µÄÖØĞÂ¼ÓÔØ¡£
+// èµ„æºç®¡ç†ç±»ã€‚ä¸»è¦èŒè´£ï¼š
+// 1. æè´¨ã€çº¹ç†ç­‰èµ„æºçš„ç»Ÿä¸€ç®¡ç†ã€‚
+// 2. å¯¹èµ„æºçš„é‡æ–°åŠ è½½ã€‚
 class NXResourceManager : public NXInstance<NXResourceManager>
 {
 public:
@@ -32,7 +32,7 @@ public:
     NXScriptResourceManager* GetScriptManager() { return m_pScriptManager; }
     NXLightResourceManager* GetLightManager() { return m_pLightManager; }
 
-    // °ó¶¨Outline¸¸×Ó¹ØÏµ
+    // ç»‘å®šOutlineçˆ¶å­å…³ç³»
     bool BindParent(NXObject* pParent, NXObject* pChild);
 
     void OnReload();

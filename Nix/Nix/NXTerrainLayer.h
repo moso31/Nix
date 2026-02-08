@@ -33,12 +33,12 @@ public:
 
 private:
 	void GenerateMinMaxZMap();
-	void GeneratePatchConeMap(); // ÔİÎ´¿ª·¢
+	void GeneratePatchConeMap(); // æš‚æœªå¼€å‘
 
 private:
 	std::string m_name;
 
-	// ÔİÊ±Ğ´ËÀ
+	// æš‚æ—¶å†™æ­»
 	uint32_t m_terrainWidth = 2048u;
 	uint32_t m_terrainHeight = 2048u;
 	uint32_t m_minZ = 0;

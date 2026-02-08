@@ -10,10 +10,10 @@ class NXSubMesh;
 
 enum NXSubMeshReloadState
 {
-	None,		// Õı³£×´Ì¬
-	Start,		// A->Default ×´Ì¬
-	Replacing,  // Default->B ×´Ì¬
-	Finish,		// B ×´Ì¬
+	None,		// æ­£å¸¸çŠ¶æ€
+	Start,		// A->Default çŠ¶æ€
+	Replacing,  // Default->B çŠ¶æ€
+	Finish,		// B çŠ¶æ€
 };
 
 
@@ -28,14 +28,14 @@ struct NXRawMeshView
 	NXRawMeshView(const std::span<const std::byte>& span, uint32_t stride, NXMeshViewType GPUDataType) :
 		span(span), stride(stride), GPUDataType(GPUDataType) {}
 
-	// ÕâÀïÖ»¼ÇÂ¼ÊÓÍ¼£¬ÊµÌå´æÔÚNXSubMeshBase
+	// è¿™é‡Œåªè®°å½•è§†å›¾ï¼Œå®ä½“å­˜åœ¨NXSubMeshBase
 	std::span<const std::byte> span; 
 	uint32_t stride; 
 
-	// ¼ÇÂ¼viewµÄÀàĞÍÊÇvbv»¹ÊÇibv£¨¹íÖªµÀÎªÉ¶DX12·ÇµÃ¸øÕâbufferview×öÇø·Ö¡£¡££©
+	// è®°å½•viewçš„ç±»å‹æ˜¯vbvè¿˜æ˜¯ibvï¼ˆé¬¼çŸ¥é“ä¸ºå•¥DX12éå¾—ç»™è¿™bufferviewåšåŒºåˆ†ã€‚ã€‚ï¼‰
 	NXMeshViewType GPUDataType; 
 
-	// ¶ÔÓ¦µÄÊµ¼Ê×ÊÔ´gpuµØÖ·
+	// å¯¹åº”çš„å®é™…èµ„æºgpuåœ°å€
 	D3D12_GPU_VIRTUAL_ADDRESS gpuAddress; 
 };
 
@@ -49,7 +49,7 @@ public:
 		m_pending((int)views.size()),
 		m_loadFuture(m_loadPromise.get_future())
 	{
-		// ¼ÇÂ¼Ë÷Òı×ÜÊıÁ¿
+		// è®°å½•ç´¢å¼•æ€»æ•°é‡
 		for (auto view : m_views)
 		{
 			if (view.GPUDataType == NXMeshViewType::INDEX)
@@ -91,7 +91,7 @@ public:
 		WaitLoadComplete();
 		auto& view = m_views[index];
 		out.BufferLocation = view.gpuAddress;
-		out.Format = DXGI_FORMAT_R32_UINT; // Ä¿Ç°Ö»Ö§³ÖR32_UINT£¬½«À´ÓĞ16µÄĞèÇóÔÙËµ
+		out.Format = DXGI_FORMAT_R32_UINT; // ç›®å‰åªæ”¯æŒR32_UINTï¼Œå°†æ¥æœ‰16çš„éœ€æ±‚å†è¯´
 		out.SizeInBytes = (uint32_t)view.span.size_bytes();
 		return true;
 	}

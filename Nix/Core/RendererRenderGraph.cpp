@@ -1,12 +1,12 @@
 // RendererRenderGraph.cpp
-// ½« GenerateRenderGraph() ²ð·ÖÎª¶à¸ö¸¨Öúº¯Êý£¬¸ÄÉÆ IntelliSense ÐÔÄÜ
-// PassData ½á¹¹ÌåÍ³Ò»¶¨ÒåÔÚ RenderGraphPassData.h ÖÐ
+// å°† GenerateRenderGraph() æ‹†åˆ†ä¸ºå¤šä¸ªè¾…åŠ©å‡½æ•°ï¼Œæ”¹å–„ IntelliSense æ€§èƒ½
+// PassData ç»“æž„ä½“ç»Ÿä¸€å®šä¹‰åœ¨ RenderGraphPassData.h ä¸­
 
 #include "pch.h"
 #include "Renderer.h"
 #include "RenderGraphPassData.h"
 
-// ===== ÒÀÀµµÄÍ·ÎÄ¼þ =====
+// ===== ä¾èµ–çš„å¤´æ–‡ä»¶ =====
 #include "NXGlobalDefinitions.h"
 #include "NXBRDFlut.h"
 #include "NXTerrainLODStreamer.h"
@@ -37,7 +37,7 @@ void Renderer::BuildTerrainStreamingPasses(NXRGHandle hSector2VirtImg, NXRGHandl
 {
 	auto& pStreamingData = m_pTerrainLODStreamer->GetStreamingData();
 
-	// ½öÊ×Ö¡Ö´ÐÐ: Çå¿ÕSector2NodeIDÎÆÀí£¬½«ËùÓÐÏñËØÉèÖÃÎª65535 (0xFFFF)
+	// ä»…é¦–å¸§æ‰§è¡Œ: æ¸…ç©ºSector2NodeIDçº¹ç†ï¼Œå°†æ‰€æœ‰åƒç´ è®¾ç½®ä¸º65535 (0xFFFF)
 	if (pStreamingData.NeedClearSector2NodeIDTexture())
 	{
 		m_pRenderGraph->AddPass<TerrainSector2NodeClearPassData>("Terrain Sector2Node Clear",
@@ -138,7 +138,7 @@ void Renderer::BuildTerrainStreamingPasses(NXRGHandle hSector2VirtImg, NXRGHandl
 				{
 					pMat->SetInput(0, i, resMap.GetRes(data.pIn[i]));
 				}
-				pMat->SetOutput(0, 1, resMap.GetRes(data.pOutAtlas)); // TerrainAtlasBaker:Float4 ÓÃu1 ¶ø²»ÊÇu0
+				pMat->SetOutput(0, 1, resMap.GetRes(data.pOutAtlas)); // TerrainAtlasBaker:Float4 ç”¨u1 è€Œä¸æ˜¯u0
 				pMat->SetConstantBuffer(0, 0, &pStreamingData.GetNodeDescUpdateIndices());
 
 				uint32_t threadGroups = (g_terrainStreamConfig.AtlasNormalMapSize + 7) / 8;
@@ -183,7 +183,7 @@ NXRGPassNode<TerrainPatcherPassData>* Renderer::BuildTerrainCullingPasses(NXRGHa
 	NXRGHandle pTerrainNodesFinal = m_pRenderGraph->Import(pStreamingData.GetPingPongNodesFinal());
 	NXRGHandle pTerrainIndirectArgs = m_pRenderGraph->Import(pStreamingData.GetPingPongIndirectArgs());
 
-	// Ã¿Ö¡clearÒ»´ÎFinalBuffer
+	// æ¯å¸§clearä¸€æ¬¡FinalBuffer
 	m_pRenderGraph->AddPass<TerrainNodesCullingPassData>("Terrain Nodes Clear",
 		[=, &pStreamingData](NXRGBuilder& builder, TerrainNodesCullingPassData& data)
 		{
@@ -200,7 +200,7 @@ NXRGPassNode<TerrainPatcherPassData>* Renderer::BuildTerrainCullingPasses(NXRGHa
 			pCmdList->ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, pGPUBuffer->GetD3DResourceUAVCounter(), clearValues, 0, nullptr);
 		});
 
-	// culling£ºÔ¤¼ÓÔØ ÌîÂúmip5³õÊ¼nodeID
+	// cullingï¼šé¢„åŠ è½½ å¡«æ»¡mip5åˆå§‹nodeID
 	m_pRenderGraph->AddPass<TerrainNodesCullingPassData>("Terrain Nodes Culling: First",
 		[=, &pStreamingData](NXRGBuilder& builder, TerrainNodesCullingPassData& data)
 		{
@@ -222,7 +222,7 @@ NXRGPassNode<TerrainPatcherPassData>* Renderer::BuildTerrainCullingPasses(NXRGHa
 			pCmdList->Dispatch(1, 1, 1);
 		});
 
-	// culling£ºping-pong
+	// cullingï¼šping-pong
 	NXRGPassNode<TerrainNodesCullingPassData>* pLastCullingPass = nullptr;
 	for (int i = 0; i < g_terrainStreamConfig.LODSize; i++)
 	{
@@ -324,7 +324,7 @@ NXRGPassNode<TerrainPatcherPassData>* Renderer::BuildTerrainCullingPasses(NXRGHa
 
 NXRGPassNode<GBufferPassData>* Renderer::BuildGBufferPasses(NXRGPassNode<TerrainPatcherPassData>* passPatcher, NXRGHandle hGBuffer0, NXRGHandle hGBuffer1, NXRGHandle hGBuffer2, NXRGHandle hGBuffer3, NXRGHandle hDepthZ, NXRGHandle hVTPageIDTexture, NXRGHandle hVTSector2VirtImg, NXRGHandle hVTIndirectTexture, NXRGHandle hVTPhysicalPageAlbedo, NXRGHandle hVTPhysicalPageNormal)
 {
-	// µ÷ÊÔ£ºÇå¿ÕVTPageIDTexture
+	// è°ƒè¯•ï¼šæ¸…ç©ºVTPageIDTexture
 	m_pRenderGraph->AddPass<PageIDTextureClearPassData>("VTPageIDTexture Clear",
 		[&](NXRGBuilder& builder, PageIDTextureClearPassData& data)
 		{

@@ -52,17 +52,17 @@ public:
 	NXCubeMap(NXScene* pScene);
 	virtual ~NXCubeMap() {}
 
-	// 1. ¶¥µã³õÊ¼»¯
-	// 2. ¹¹½¨Ïà»ú
-	// 3. Èç¹ûÊÇdds£¬¼ÓÔØ£»Èç¹ûÊÇhdr£¬Ç¿×ª³Édds£¬¼ÓÔØ
-	//		LoadDDS£º´´½¨Ò»¸öNXTextureCube+SRV
-	// 4. Éú³ÉIrradMap
-	//		Èç¹ûÊÇSH·½·¨£¬×îÖÕÉú³ÉµÄ½á¹û±£´æÎªcbData
-	//		Èç¹ûÊÇTex·½·¨£¬
-	// 5. Éú³ÉPreFilterMap
-	//		GeneratePreFilterMap()£º
-	//		1. ´´½¨Ò»¸öCubeMap + SRV£¬Í¬Ê±×¼±¸shaderºÍäÖÈ¾¹ÜÏßÏà¹ØµÄÄÚÈİ
-	//		2. for Ñ­»· äÖÈ¾30¸öRTV£¬²¢ÒÀ´Î»æÖÆ
+	// 1. é¡¶ç‚¹åˆå§‹åŒ–
+	// 2. æ„å»ºç›¸æœº
+	// 3. å¦‚æœæ˜¯ddsï¼ŒåŠ è½½ï¼›å¦‚æœæ˜¯hdrï¼Œå¼ºè½¬æˆddsï¼ŒåŠ è½½
+	//		LoadDDSï¼šåˆ›å»ºä¸€ä¸ªNXTextureCube+SRV
+	// 4. ç”ŸæˆIrradMap
+	//		å¦‚æœæ˜¯SHæ–¹æ³•ï¼Œæœ€ç»ˆç”Ÿæˆçš„ç»“æœä¿å­˜ä¸ºcbData
+	//		å¦‚æœæ˜¯Texæ–¹æ³•ï¼Œ
+	// 5. ç”ŸæˆPreFilterMap
+	//		GeneratePreFilterMap()ï¼š
+	//		1. åˆ›å»ºä¸€ä¸ªCubeMap + SRVï¼ŒåŒæ—¶å‡†å¤‡shaderå’Œæ¸²æŸ“ç®¡çº¿ç›¸å…³çš„å†…å®¹
+	//		2. for å¾ªç¯ æ¸²æŸ“30ä¸ªRTVï¼Œå¹¶ä¾æ¬¡ç»˜åˆ¶
 	bool Init(const std::filesystem::path& filePath);
 	void Update(ID3D12GraphicsCommandList* pCmdList) override;
 	void Release() override;

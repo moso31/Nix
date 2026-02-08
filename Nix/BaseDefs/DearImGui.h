@@ -25,7 +25,7 @@
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-// Nix µÄ imgui Ê¹ÓÃµÄ ×ÖÌå¼¯£¬ĞèÒªÔÚ NXGUI::Init() ÖĞ³õÊ¼»¯ËüÃÇ¡£
+// Nix çš„ imgui ä½¿ç”¨çš„ å­—ä½“é›†ï¼Œéœ€è¦åœ¨ NXGUI::Init() ä¸­åˆå§‹åŒ–å®ƒä»¬ã€‚
 extern ImFont* g_imgui_font_general;
 extern ImFont* g_imgui_font_codeEditor;
 

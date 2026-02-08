@@ -33,7 +33,7 @@ public:
 	std::list<NXObject*> GetChilds();
 	void RemoveChild(NXObject* pObject);
 
-	// ¼ì²âpObjectÊÇ·ñÊÇµ±Ç°½ÚµãµÄ×Ó½Úµã¡£
+	// æ£€æµ‹pObjectæ˜¯å¦æ˜¯å½“å‰èŠ‚ç‚¹çš„å­èŠ‚ç‚¹ã€‚
 	bool IsChild(NXObject* pObject);
 
 	virtual void Update(ID3D12GraphicsCommandList* pCmdList) {};

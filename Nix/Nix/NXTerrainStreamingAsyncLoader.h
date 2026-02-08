@@ -6,32 +6,32 @@
 
 struct StringDatas
 {
-	std::filesystem::path path; // ÎÆÀíÎÄ¼şÂ·¾¶
-	std::string name; // ÎÆÀí×ÊÔ´Ãû³Æ£¬Í¨³£ÓÃÓÚµ÷ÊÔ
+	std::filesystem::path path; // çº¹ç†æ–‡ä»¶è·¯å¾„
+	std::string name; // çº¹ç†èµ„æºåç§°ï¼Œé€šå¸¸ç”¨äºè°ƒè¯•
 };
 
 struct TerrainStreamingLoadRequest
 {
-	// nodeËù´¦ÊÀ½ç×ø±ê£¨×óÏÂ½Ç£©
+	// nodeæ‰€å¤„ä¸–ç•Œåæ ‡ï¼ˆå·¦ä¸‹è§’ï¼‰
 	Int2 positionWS;
 
-	// µØĞÎnodeµÄ³ß´ç
+	// åœ°å½¢nodeçš„å°ºå¯¸
 	uint32_t size;
 
-	// nodeµÄ×î´ó×îĞ¡¸ß¶È
+	// nodeçš„æœ€å¤§æœ€å°é«˜åº¦
 	Vector2 minMaxZ;
 
-	// µØĞÎnodeÔÚnodeDescArrayÖĞµÄË÷Òı
+	// åœ°å½¢nodeåœ¨nodeDescArrayä¸­çš„ç´¢å¼•
 	uint32_t nodeDescArrayIndex;
 
-	// Ã¿¸öÈÎÎñ°ü¸ºÔğ¼ÓÔØµÄ¶ÔÓ¦×ÓÎÆÀí¼¯
+	// æ¯ä¸ªä»»åŠ¡åŒ…è´Ÿè´£åŠ è½½çš„å¯¹åº”å­çº¹ç†é›†
 	StringDatas heightMap;
 	StringDatas splatMap;
 	StringDatas normalMap;
 
-	// ÊÇ·ñÌæ»»nodeDescArrayÖĞµÄ¾Édata
-	// ¾ÉdataÖ»Ğè¼ÇÂ¼Î»ÖÃºÍsize£¬ÄÜ²Á³ı¾ÍĞĞ
-	// ×¢ÒâÈç¹ûÊÇ²»ĞèÒªÌæ»», size=0
+	// æ˜¯å¦æ›¿æ¢nodeDescArrayä¸­çš„æ—§data
+	// æ—§dataåªéœ€è®°å½•ä½ç½®å’Œsizeï¼Œèƒ½æ“¦é™¤å°±è¡Œ
+	// æ³¨æ„å¦‚æœæ˜¯ä¸éœ€è¦æ›¿æ¢, size=0
 	Int2 replacePositionWS;
 	int replaceSize;
 };
@@ -39,7 +39,7 @@ struct TerrainStreamingLoadRequest
 class NXTexture2D;
 struct NXTerrainStreamingLoadTextureResult
 {
-	// ³ıÁË°Ñstringdatas»»³ÉÊµ¼ÊÎÆÀíÖ¸Õë£¬ÆäËûºÍÉÏÃæstruct TerrainStreamingLoadRequest±£³ÖÒ»ÖÂ
+	// é™¤äº†æŠŠstringdatasæ¢æˆå®é™…çº¹ç†æŒ‡é’ˆï¼Œå…¶ä»–å’Œä¸Šé¢struct TerrainStreamingLoadRequestä¿æŒä¸€è‡´
 	Int2 positionWS;
 	uint32_t size;
 	Vector2 minMaxZ;
@@ -62,7 +62,7 @@ public:
 
 	int GetWorkingTaskNum() { return m_requestTasks.size() + m_loadingTasks.size(); }
 	
-	// »ñÈ¡ÒÑÍê³ÉµÄ¼ÓÔØÈÎÎñ£¨Ö÷Ïß³Ìµ÷ÓÃ£©£¬×¢Òâ»á±»Ö±½ÓÏû·Ñµô£¨Get+Clear£©
+	// è·å–å·²å®Œæˆçš„åŠ è½½ä»»åŠ¡ï¼ˆä¸»çº¿ç¨‹è°ƒç”¨ï¼‰ï¼Œæ³¨æ„ä¼šè¢«ç›´æ¥æ¶ˆè´¹æ‰ï¼ˆGet+Clearï¼‰
 	std::vector<NXTerrainStreamingLoadTextureResult> ConsumeCompletedTasks();
 	
 private:

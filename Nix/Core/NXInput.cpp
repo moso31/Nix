@@ -22,13 +22,13 @@ NXInput::NXInput() :
 	rid[1].dwFlags = 0; // RIDEV_NOLEGACY;
 	rid[1].hwndTarget = 0;
 
-	printf("Raw Input ÊäÈëÉè±¸×¢²áÖÐ...\n");
+	printf("Raw Input è¾“å…¥è®¾å¤‡æ³¨å†Œä¸­...\n");
 	if (!RegisterRawInputDevices(rid, 2, sizeof(rid[0])))
 	{
-		printf("Ê§°Ü£ºÉè±¸×¢²áÊ§°Ü¡£\n");
+		printf("å¤±è´¥ï¼šè®¾å¤‡æ³¨å†Œå¤±è´¥ã€‚\n");
 		return;
 	}
-	printf("Íê³É¡£\n");
+	printf("å®Œæˆã€‚\n");
 }
 
 NXInput::~NXInput()
@@ -70,7 +70,7 @@ void NXInput::UpdateRawInput(LPARAM lParam)
 		return;
 
 	if (GetRawInputData((HRAWINPUT)lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER)) != dwSize)
-		printf("×¢Òâ£ºGetRawInputData·µ»ØµÄÊý¾ÝÖµºÍÔ¤¼ÆµÄ³¤¶È²»Æ¥Åä£¡Õâ¿ÉÄÜ»áÔì³ÉÎ´Öª´íÎó\n");
+		printf("æ³¨æ„ï¼šGetRawInputDataè¿”å›žçš„æ•°æ®å€¼å’Œé¢„è®¡çš„é•¿åº¦ä¸åŒ¹é…ï¼è¿™å¯èƒ½ä¼šé€ æˆæœªçŸ¥é”™è¯¯\n");
 
 	RAWINPUT* raw = (RAWINPUT*)lpb;
 
@@ -147,7 +147,7 @@ void NXInput::UpdateRawInput(LPARAM lParam)
 			NXEventMouseUp::GetInstance()->Notify(eArg);
 			NXEventMouseUpForce::GetInstance()->Notify(eArg);
 
-			// 2023.6.3 ¼üÅÌ/Êó±êµ¯ÆðÀàÊÂ¼þÎÞÐèifÔ¼Êø¡£
+			// 2023.6.3 é”®ç›˜/é¼ æ ‡å¼¹èµ·ç±»äº‹ä»¶æ— éœ€ifçº¦æŸã€‚
 			NXEventMouseUpViewport::GetInstance()->Notify(eArg);
 		}
 		if (eArg.LastX || eArg.LastY)

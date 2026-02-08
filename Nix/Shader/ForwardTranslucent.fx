@@ -156,10 +156,10 @@ float4 PS(PS_INPUT input) : SV_Target
 		float NoH = max(dot(N, H), 0.0);
 		float VoH = max(dot(V, H), 0.0);
 
-		float3 LightIlluminance = m_dirLight[i].color * m_dirLight[i].illuminance; // ·½Ïò¹âµÄIlluminace
+		float3 LightIlluminance = m_dirLight[i].color * m_dirLight[i].illuminance; // æ–¹å‘å…‰çš„Illuminace
 		float3 IncidentIlluminance = LightIlluminance * NoL;
 
-		// Î¢±íÃæ BRDF
+		// å¾®è¡¨é¢ BRDF
 		float D = D_GGX(NoH, roughness);
 		float G = G_GGX_SmithJoint(NoV, NoL, roughness);
 		float3 F = F_Schlick(VoH, F0);
@@ -185,7 +185,7 @@ float4 PS(PS_INPUT input) : SV_Target
 		float3 LightIlluminance = LightIntensity / (NX_4PI * d2);
 		float3 IncidentIlluminance = LightIlluminance * NoL;
 
-		// Î¢±íÃæ BRDF
+		// å¾®è¡¨é¢ BRDF
 		float D = D_GGX(NoH, roughness);
 		float G = G_GGX_SmithJoint(NoV, NoL, roughness);
 		float3 F = F_Schlick(VoH, F0);
@@ -219,7 +219,7 @@ float4 PS(PS_INPUT input) : SV_Target
 		SpotLambda = saturate(SpotLambda);
 		SpotLambda = SpotLambda * SpotLambda;
 
-		// Î¢±íÃæ BRDF
+		// å¾®è¡¨é¢ BRDF
 		float D = D_GGX(NoH, roughness);
 		float G = G_GGX_SmithJoint(NoV, NoL, roughness);
 		float3 F = F_Schlick(VoH, F0);

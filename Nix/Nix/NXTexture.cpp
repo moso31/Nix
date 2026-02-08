@@ -31,7 +31,7 @@ NXTexture::NXTexture(NXResourceType type) :
 
 NXTexture::~NXTexture()
 {
-	// Èç¹ûÊÇÍ¨¹ı»ï°éÄÚ´æ·ÖÅäµÄ£¬ĞèÒªÊÍ·Å
+	// å¦‚æœæ˜¯é€šè¿‡ä¼™ä¼´å†…å­˜åˆ†é…çš„ï¼Œéœ€è¦é‡Šæ”¾
 	if (m_texMemData.pAllocator != nullptr)
 	{
 		NXAllocator_Tex->Free(m_texMemData);
@@ -184,8 +184,8 @@ void NXTexture::SetResourceState(ID3D12GraphicsCommandList* pCommandList, const 
 
 void NXTexture::CreateRenderTextureInternal(D3D12_RESOURCE_FLAGS flags)
 {
-	// ´´½¨RTÎÆÀíÊ±£¬Ã»ÓĞ´ÓÎÄ¼ş¶ÁÈ¡×ÊÔ´µÄĞèÇó£¬²»ĞèÒªÌá¹©ÉÏ´«¶Ñ×ÊÔ´¡£
-	// ²»×ßÈÎºÎAllocator£¬Ö±½Ó´´½¨×ÊÔ´£»ComPtr×Ô¼º¹ÜÀí×ÊÔ´m_pTextureµÄÉúÃüÖÜÆÚ
+	// åˆ›å»ºRTçº¹ç†æ—¶ï¼Œæ²¡æœ‰ä»æ–‡ä»¶è¯»å–èµ„æºçš„éœ€æ±‚ï¼Œä¸éœ€è¦æä¾›ä¸Šä¼ å †èµ„æºã€‚
+	// ä¸èµ°ä»»ä½•Allocatorï¼Œç›´æ¥åˆ›å»ºèµ„æºï¼›ComPtrè‡ªå·±ç®¡ç†èµ„æºm_pTextureçš„ç”Ÿå‘½å‘¨æœŸ
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = GetResourceDimentionFromType();
 	desc.Width = m_width;
@@ -311,7 +311,7 @@ void NXTexture::CreatePathTextureInternal(const std::filesystem::path& filePath,
 
 void NXTexture::AfterTexLoaded(const std::filesystem::path& filePath, D3D12_RESOURCE_FLAGS flags, const NXTextureLoaderTaskResult& result)
 {
-	// »ñÈ¡NXTexLoaderµÄ¼ÓÔØ½á¹û
+	// è·å–NXTexLoaderçš„åŠ è½½ç»“æœ
 	auto& metadata = result.metadata;
 	std::shared_ptr<ScratchImage> pImage = result.pImage;
 
@@ -320,7 +320,7 @@ void NXTexture::AfterTexLoaded(const std::filesystem::path& filePath, D3D12_RESO
 	uint32_t subX = 0, subY = 0, subW = srcW, subH = srcH;
 	if (m_useSubRegion)
 	{
-		// Ä¿Ç°Ö»ÓĞ2DÀàĞÍÖ§³ÖsubRegion
+		// ç›®å‰åªæœ‰2Dç±»å‹æ”¯æŒsubRegion
 		if (m_type == NXResourceType::Tex2D)
 		{
 			subX = m_subRegionXY.x;
@@ -328,30 +328,30 @@ void NXTexture::AfterTexLoaded(const std::filesystem::path& filePath, D3D12_RESO
 			subW = m_subRegionSize.x;
 			subH = m_subRegionSize.y;
 
-			// Èç¹û³¬¹ıÆÁÄ»±ß½ç ±£ÁôÏñËØ
+			// å¦‚æœè¶…è¿‡å±å¹•è¾¹ç•Œ ä¿ç•™åƒç´ 
 			if (subX >= srcW) subX = srcW - 1;
 			if (subY >= srcH) subY = srcH - 1;
 			subW = std::min(subW, srcW - subX);
 			subH = std::min(subH, srcH - subY);
 
-			// BC ¶ÔÆë£º4x4 block
+			// BC å¯¹é½ï¼š4x4 block
 			if (NXConvert::IsBCFormat(metadata.format))
 			{
-				// ½Ç×ø±ê°´4ÏòÏÂ¶ÔÆë
+				// è§’åæ ‡æŒ‰4å‘ä¸‹å¯¹é½
 				uint32_t x0 = AlignDownForPow2Only(subX, 4);
 				uint32_t y0 = AlignDownForPow2Only(subY, 4);
 
-				// ×Ó¿í¸ß°´4ÏòÏÂ¶ÔÆë
+				// å­å®½é«˜æŒ‰4å‘ä¸‹å¯¹é½
 				uint32_t x1 = subX + subW;
 				uint32_t y1 = subY + subH;
 				x1 = AlignDownForPow2Only(x1, 4); 
 				y1 = AlignDownForPow2Only(y1, 4); 
 
-				// ·ÀÓù£ºif ±ÜÃâÁã¿é
+				// é˜²å¾¡ï¼šif é¿å…é›¶å—
 				if (x1 <= x0) x1 = x0 + 4;
 				if (y1 <= y0) y1 = y0 + 4;
 
-				// ·ÀÓù£º±ÜÃâ Áã¿é+4ºó ³¬³ö±ß½ç
+				// é˜²å¾¡ï¼šé¿å… é›¶å—+4å è¶…å‡ºè¾¹ç•Œ
 				subX = x0; subY = y0; 
 				subW = std::min(srcW - subX, x1 - x0);
 				subH = std::min(srcH - subY, y1 - y0);
@@ -361,7 +361,7 @@ void NXTexture::AfterTexLoaded(const std::filesystem::path& filePath, D3D12_RESO
 		m_subRegionXY = Int2(subX, subY);
 	}
 
-	// ¼ÆËãÊµ¼ÊÊ¹ÓÃµÄdesc; Èç¹ûÓĞ×ÓÇøÓòĞèÒªµ÷Õû¿í¸ßºÍmipLevels
+	// è®¡ç®—å®é™…ä½¿ç”¨çš„desc; å¦‚æœæœ‰å­åŒºåŸŸéœ€è¦è°ƒæ•´å®½é«˜å’ŒmipLevels
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = GetResourceDimentionFromType();
 	desc.Width = m_useSubRegion ? subW : srcW;
@@ -393,7 +393,7 @@ void NXTexture::AfterTexLoaded(const std::filesystem::path& filePath, D3D12_RESO
 	size_t totalBytes = 0;
 	NXGlobalDX::GetDevice()->GetCopyableFootprints(&desc, 0, layoutSize, 0, layouts.get(), numRow.get(), numRowSizeInBytes.get(), &totalBytes);
 
-	// ½«¼ÓÔØ¹ı³Ì°´×Ö½Ú´óĞ¡²ğ·Ö³É¶à¸ö Chunk£¨ÄÚ²¿×î´ó 8MB£©
+	// å°†åŠ è½½è¿‡ç¨‹æŒ‰å­—èŠ‚å¤§å°æ‹†åˆ†æˆå¤šä¸ª Chunkï¼ˆå†…éƒ¨æœ€å¤§ 8MBï¼‰
 	std::vector<NXTextureUploadChunk> chunks;
 	GenerateUploadChunks(layoutSize, numRow.get(), numRowSizeInBytes.get(), totalBytes, layouts.get(), chunks);
 	SetTexChunks((int)chunks.size());
@@ -408,7 +408,7 @@ void NXTexture::AfterTexMemoryAllocated(const NXTextureLoaderTaskResult& result,
 	std::shared_ptr<ScratchImage> pImage = result.pImage;
 	m_texMemData = taskResult.memData;
 
-	// taskResultºóĞø¾ÍÃ»ÓĞÓÃÁË£¬Ö±½Ó½Ó¹Ü¶ø²»ÊÇÓÃ'=' ·ñÔò»áµ¼ÖÂÄÚ´æĞ¹Â©
+	// taskResultåç»­å°±æ²¡æœ‰ç”¨äº†ï¼Œç›´æ¥æ¥ç®¡è€Œä¸æ˜¯ç”¨'=' å¦åˆ™ä¼šå¯¼è‡´å†…å­˜æ³„æ¼
 	m_pTexture.Attach(taskResult.pResource); 
 
 	m_pTexture->SetName(NXConvert::s2ws(m_name).c_str());
@@ -430,27 +430,27 @@ void NXTexture::AfterTexMemoryAllocated(const NXTextureLoaderTaskResult& result,
 void NXTexture::GenerateUploadChunks(uint32_t layoutSize, uint32_t* numRow, uint64_t* numRowSizeInBytes, uint64_t totalBytes,
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT* layouts, std::vector<NXTextureUploadChunk>& oChunks)
 {
-	// ×÷ÓÃ£º¸ù¾İÎÆÀí²¼¾Ö£¬½«ÉÏ´«ÈÎÎñ»®·Ö³ÉÈô¸É¸ö¿éÉÏ´«£¬±ÜÃâNXUploadSystemÒ»´ÎĞÔÉÏ´«¹ı´óµÄÊı¾İÖ±½Ó±ÀÀ£
-	// Ë¼Â·£º°´layout±éÀú
-	//	1. layout´óĞ¡³¬¹ıÁËÕâ¸öãĞÖµ£¬¾ÍĞèÒª²ğ·Ö³É¶à¸öÈÎÎñ¡£
-	//	2. ·ñÔò³ÖĞøÀÛ»ıbytes£¬Ã¿µ±ÀÛ»ıµÄbytes³¬¹ıÁËÒ»¸öãĞÖµ£¬¾ÍÉú³ÉÒ»¸öÉÏ´«ÈÎÎñ¡£
+	// ä½œç”¨ï¼šæ ¹æ®çº¹ç†å¸ƒå±€ï¼Œå°†ä¸Šä¼ ä»»åŠ¡åˆ’åˆ†æˆè‹¥å¹²ä¸ªå—ä¸Šä¼ ï¼Œé¿å…NXUploadSystemä¸€æ¬¡æ€§ä¸Šä¼ è¿‡å¤§çš„æ•°æ®ç›´æ¥å´©æºƒ
+	// æ€è·¯ï¼šæŒ‰layoutéå†
+	//	1. layoutå¤§å°è¶…è¿‡äº†è¿™ä¸ªé˜ˆå€¼ï¼Œå°±éœ€è¦æ‹†åˆ†æˆå¤šä¸ªä»»åŠ¡ã€‚
+	//	2. å¦åˆ™æŒç»­ç´¯ç§¯bytesï¼Œæ¯å½“ç´¯ç§¯çš„bytesè¶…è¿‡äº†ä¸€ä¸ªé˜ˆå€¼ï¼Œå°±ç”Ÿæˆä¸€ä¸ªä¸Šä¼ ä»»åŠ¡ã€‚
 
-	uint64_t ringBufferLimit = 8 * 1024 * 1024; // 8MB£¬ringbufferÓĞ64MÏŞÖÆÇÒ²»ÔÊĞíÂúÔØ£¬ÕâÀïÈ¡8M
+	uint64_t ringBufferLimit = 8 * 1024 * 1024; // 8MBï¼Œringbufferæœ‰64Mé™åˆ¶ä¸”ä¸å…è®¸æ»¡è½½ï¼Œè¿™é‡Œå–8M
 	for (uint32_t i = 0; i < layoutSize; )
 	{
-		uint64_t numRowSizeInByteAlign256 = (numRowSizeInBytes[i] + 255) & ~255; // DX12µÄÎÆÀíĞèÒªÃ¿ĞĞ°´256×Ö½Ú¶ÔÆë
+		uint64_t numRowSizeInByteAlign256 = (numRowSizeInBytes[i] + 255) & ~255; // DX12çš„çº¹ç†éœ€è¦æ¯è¡ŒæŒ‰256å­—èŠ‚å¯¹é½
 		uint64_t layoutByteSize = numRow[i] * numRowSizeInByteAlign256;
 		if (layoutByteSize > ringBufferLimit)
 		{
-			// 1. layout´óĞ¡³¬¹ıÁËÕâ¸öãĞÖµ£¬¾ÍĞèÒª²ğ·Ö³É¶à¸öÈÎÎñ¡£
+			// 1. layoutå¤§å°è¶…è¿‡äº†è¿™ä¸ªé˜ˆå€¼ï¼Œå°±éœ€è¦æ‹†åˆ†æˆå¤šä¸ªä»»åŠ¡ã€‚
 
-			// ¸ù¾İĞĞÊı²ğ·Ö£¬²»ÒªÖ±½ÓËã×Ö½Ú£¬DXĞèÒª°´ĞĞ¶ÔÆë
-			uint32_t rowLimit = (uint32_t)(ringBufferLimit / numRowSizeInByteAlign256); // ²ğ·ÖÄ£Ê½ÏÂ Ã¿¸öchunk×î¶à¶àÉÙĞĞ
+			// æ ¹æ®è¡Œæ•°æ‹†åˆ†ï¼Œä¸è¦ç›´æ¥ç®—å­—èŠ‚ï¼ŒDXéœ€è¦æŒ‰è¡Œå¯¹é½
+			uint32_t rowLimit = (uint32_t)(ringBufferLimit / numRowSizeInByteAlign256); // æ‹†åˆ†æ¨¡å¼ä¸‹ æ¯ä¸ªchunkæœ€å¤šå¤šå°‘è¡Œ
 			for (uint32_t j = 0; j < numRow[i]; j += rowLimit)
 			{
 				NXTextureUploadChunk chunk = {};
 				chunk.layoutIndexStart = i;
-				chunk.layoutIndexSize = -1; // ²ğ·ÖÄ£Ê½ÏÂÖ»ÓĞÒ»¸ölayout
+				chunk.layoutIndexSize = -1; // æ‹†åˆ†æ¨¡å¼ä¸‹åªæœ‰ä¸€ä¸ªlayout
 				chunk.rowStart = j;
 				chunk.rowSize = std::min(rowLimit, numRow[i] - j);
 				chunk.chunkBytes = chunk.rowSize * (int)numRowSizeInByteAlign256;
@@ -461,11 +461,11 @@ void NXTexture::GenerateUploadChunks(uint32_t layoutSize, uint32_t* numRow, uint
 		}
 		else
 		{
-			// 2. ·ñÔò³ÖĞøÀÛ»ıbytes£¬Ã¿µ±ÀÛ»ıµÄbytes³¬¹ıÁËÒ»¸öãĞÖµ£¬¾ÍÉú³ÉÒ»¸öÉÏ´«ÈÎÎñ¡£
+			// 2. å¦åˆ™æŒç»­ç´¯ç§¯bytesï¼Œæ¯å½“ç´¯ç§¯çš„bytesè¶…è¿‡äº†ä¸€ä¸ªé˜ˆå€¼ï¼Œå°±ç”Ÿæˆä¸€ä¸ªä¸Šä¼ ä»»åŠ¡ã€‚
 			NXTextureUploadChunk chunk = {};
 			chunk.layoutIndexStart = i;
 			chunk.layoutIndexSize = 1;
-			chunk.rowStart = -1; // ÀÛ»ıÄ£Ê½ÏÂÖ»¿ÉÄÜ°üº¬ÍêÕûµÄlayout£¬ËùÒÔrow²ÎÊıÃ»ÓÃ
+			chunk.rowStart = -1; // ç´¯ç§¯æ¨¡å¼ä¸‹åªå¯èƒ½åŒ…å«å®Œæ•´çš„layoutï¼Œæ‰€ä»¥rowå‚æ•°æ²¡ç”¨
 			chunk.rowSize = -1;
 			uint64_t chunkStartOffset = layouts[i].Offset;
 			chunk.chunkBytes = (int)(numRow[i] * layouts[i].Footprint.RowPitch);
@@ -479,7 +479,7 @@ void NXTexture::GenerateUploadChunks(uint32_t layoutSize, uint32_t* numRow, uint
 				if (endOfThisLayout >= ringBufferLimit)
 					break;
 
-				chunk.chunkBytes = (int)endOfThisLayout;  // Ê¹ÓÃÕæÊµµÄ½áÊøÎ»ÖÃ
+				chunk.chunkBytes = (int)endOfThisLayout;  // ä½¿ç”¨çœŸå®çš„ç»“æŸä½ç½®
 				chunk.layoutIndexSize++;
 				i++;
 			}
@@ -510,39 +510,39 @@ void NXTexture::ComputeSubRegionOffsets(const std::shared_ptr<ScratchImage>& pIm
 		return;
 	}
 
-	// oSrcRow£ºĞĞ/¿éĞĞµÄÆğÊ¼ĞĞÊı
-	// oSrcBytes: Ã¿ĞĞ/¿éĞĞµÄÆğÊ¼Æ«ÒÆÁ¿
+	// oSrcRowï¼šè¡Œ/å—è¡Œçš„èµ·å§‹è¡Œæ•°
+	// oSrcBytes: æ¯è¡Œ/å—è¡Œçš„èµ·å§‹åç§»é‡
 	int mip, slice;
 	NXConvert::GetMipSliceFromLayoutIndex(layoutIndex, m_mipLevels, m_arraySize, mip, slice);
 
 	auto* pImg = pImage->GetImage(mip, slice, 0);
 	uint32_t sx = 0, sy = 0;
-	//»ñÈ¡ subX subYÔÚmipµÈ¼¶µÄÊµ¼ÊÏñËØÆ«ÒÆÁ¿
+	//è·å– subX subYåœ¨mipç­‰çº§çš„å®é™…åƒç´ åç§»é‡
 	sx = m_subRegionXY.x >> mip;
 	sy = m_subRegionXY.y >> mip;
 
-	if (!NXConvert::IsBCFormat(m_texFormat)) // Èç¹û²»ÊÇBCÑ¹Ëõ¸ñÊ½
+	if (!NXConvert::IsBCFormat(m_texFormat)) // å¦‚æœä¸æ˜¯BCå‹ç¼©æ ¼å¼
 	{
-		// Í¨¹ıĞĞ×Ö½ÚÊı£¨rowPitch£©/Í¼Ïñ¿í¶È£¨width)µÃ³öÃ¿¸öÏñËØÕ¼¶àÉÙ×Ö½Ú
+		// é€šè¿‡è¡Œå­—èŠ‚æ•°ï¼ˆrowPitchï¼‰/å›¾åƒå®½åº¦ï¼ˆwidth)å¾—å‡ºæ¯ä¸ªåƒç´ å å¤šå°‘å­—èŠ‚
 		uint32_t bytesPerPixel = (pImg->width > 0) ? (uint32_t)(pImg->rowPitch / pImg->width) : 0;
 
-		oSrcBytes = bytesPerPixel * sx; // »ñÈ¡subÇøÓòÖĞ£¬Ã¿ĞĞµÄÆğÊ¼Æ«ÒÆÁ¿
-		oSrcRow = sy; // »ñÈ¡subÇøÓòµÄÆğÊ¼ĞĞ
+		oSrcBytes = bytesPerPixel * sx; // è·å–subåŒºåŸŸä¸­ï¼Œæ¯è¡Œçš„èµ·å§‹åç§»é‡
+		oSrcRow = sy; // è·å–subåŒºåŸŸçš„èµ·å§‹è¡Œ
 	}
 	else
 	{
-		// BC£ºÒÔ¿éÎªµ¥Î»
+		// BCï¼šä»¥å—ä¸ºå•ä½
 		
-		// Ã÷È·ÕâÒ»ĞĞµÄblockÊıÁ¿
+		// æ˜ç¡®è¿™ä¸€è¡Œçš„blockæ•°é‡
 		const uint32_t blocksX = (pImg->width + 3) / 4;
 
-		// Í¨¹ıĞĞ×Ö½ÚÊı£¨rowPitch£©/ blockÊıÁ¿£¬Ã÷È·Ã¿¸ö¿éÕ¼¶àÉÙ¸ö×Ö½Ú 
-		// bc¸ñÊ½ÏÂ rowPitchÒÑ¾­°´¿é¶ÔÆë²¢Ñ¹Ëõ // Ö»¿ÉÄÜÊÇ8»ò16×Ö½Ú
+		// é€šè¿‡è¡Œå­—èŠ‚æ•°ï¼ˆrowPitchï¼‰/ blockæ•°é‡ï¼Œæ˜ç¡®æ¯ä¸ªå—å å¤šå°‘ä¸ªå­—èŠ‚ 
+		// bcæ ¼å¼ä¸‹ rowPitchå·²ç»æŒ‰å—å¯¹é½å¹¶å‹ç¼© // åªå¯èƒ½æ˜¯8æˆ–16å­—èŠ‚
 		const uint32_t blockSize = (blocksX > 0) ? (uint32_t)(pImg->rowPitch / blocksX) : 0;
 
-		// bcÄ£Ê½ÏÂ£¬sx sy ÒÑ¾­°´4ÏòÏÂ¶ÔÆë
-		oSrcBytes = (sx / 4) * blockSize; // »ñÈ¡subÇøÓòÖĞ£¬Ã¿¿éµÄÆğÊ¼Æ«ÒÆÁ¿
-		oSrcRow = (sy / 4); // »ñÈ¡subÇøÓòÖĞ£¬¿éµÄÆğÊ¼Æ«ÒÆÁ¿
+		// bcæ¨¡å¼ä¸‹ï¼Œsx sy å·²ç»æŒ‰4å‘ä¸‹å¯¹é½
+		oSrcBytes = (sx / 4) * blockSize; // è·å–subåŒºåŸŸä¸­ï¼Œæ¯å—çš„èµ·å§‹åç§»é‡
+		oSrcRow = (sy / 4); // è·å–subåŒºåŸŸä¸­ï¼Œå—çš„èµ·å§‹åç§»é‡
 	}
 }
 
@@ -555,7 +555,7 @@ void NXTexture::CopyPartOfLayoutToChunk(const NXTextureUploadChunk& texChunk, co
 		return;
 	}
 
-	// ¸Ã chunk < µ¥¸ö layout£ºÖ»¸²¸Ç layout µÄ²¿·ÖĞĞ
+	// è¯¥ chunk < å•ä¸ª layoutï¼šåªè¦†ç›– layout çš„éƒ¨åˆ†è¡Œ
 	const int index = texChunk.layoutIndexStart;
 
 	int mip = 0, slice = 0;
@@ -564,15 +564,15 @@ void NXTexture::CopyPartOfLayoutToChunk(const NXTextureUploadChunk& texChunk, co
 	const Image* pImg = pImage->GetImage(mip, slice, 0);
 	const BYTE* pSrcData = pImg->pixels;
 
-	// Ó³ÉäÉÏ´«¶Ñring buffer
+	// æ˜ å°„ä¸Šä¼ å †ring buffer
 	BYTE* pMapped = taskContext.pResourceData;
 	BYTE* pDstBase = pMapped + taskContext.pResourceOffset;
 
-	// ¼ÆËãÔ´ÁĞÆ«ÒÆ/ÆğÊ¼ĞĞ£¨ÏñËØĞĞ»ò¿éĞĞ£©
+	// è®¡ç®—æºåˆ—åç§»/èµ·å§‹è¡Œï¼ˆåƒç´ è¡Œæˆ–å—è¡Œï¼‰
 	uint32_t srcXBytes = 0, baseRow = 0;
 	ComputeSubRegionOffsets(pImage, index, baseRow, srcXBytes);
 
-	// ĞèÒª¿½±´µÄĞĞ·¶Î§£¨Ïà¶ÔÄ¿±ê layout£©
+	// éœ€è¦æ‹·è´çš„è¡ŒèŒƒå›´ï¼ˆç›¸å¯¹ç›®æ ‡ layoutï¼‰
 	const uint32_t rowSt = texChunk.rowStart;
 	const uint32_t rowEd = texChunk.rowStart + texChunk.rowSize;
 
@@ -587,22 +587,22 @@ void NXTexture::CopyPartOfLayoutToChunk(const NXTextureUploadChunk& texChunk, co
 
 	for (uint32_t y = rowSt; y < rowEd; ++y)
 	{
-		// Ô´ĞĞË÷Òı£ºÒÔ baseRow ÎªÆğµã
+		// æºè¡Œç´¢å¼•ï¼šä»¥ baseRow ä¸ºèµ·ç‚¹
 		const uint32_t srcRowIndex = baseRow + y;
 		const BYTE* pSrcRow = pSrcData + pImg->rowPitch * srcRowIndex + srcXBytes;
 		BYTE* pDstRow = pDstBase + layouts[index].Footprint.RowPitch * (y - rowSt);
 
-		// Ã¿ĞĞÖ»¿½±´¡°×Ó¾ØĞÎ¿í¶È¡±µÄ×Ö½ÚÊı£¨ÓÉ GetCopyableFootprints ¼ÆËãµÃµ½£©	
+		// æ¯è¡Œåªæ‹·è´â€œå­çŸ©å½¢å®½åº¦â€çš„å­—èŠ‚æ•°ï¼ˆç”± GetCopyableFootprints è®¡ç®—å¾—åˆ°ï¼‰	
 		memcpy(pDstRow, pSrcRow, numRowSizeInBytes[index]);
 	}
 
-	// Ìá½»¿½±´£º´ÓÉÏ´«¶ÑÆ¬¶Î ¡ú Ä¿±êÎÆÀíµÄ¸Ã subresource µÄ²¿·ÖĞĞ
+	// æäº¤æ‹·è´ï¼šä»ä¸Šä¼ å †ç‰‡æ®µ â†’ ç›®æ ‡çº¹ç†çš„è¯¥ subresource çš„éƒ¨åˆ†è¡Œ
 	D3D12_TEXTURE_COPY_LOCATION src = {};
 	src.pResource = taskContext.pResource;
 	src.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
 	src.PlacedFootprint = layouts[index];
 	src.PlacedFootprint.Offset = taskContext.pResourceOffset;
-	src.PlacedFootprint.Footprint.Height = texChunk.rowSize; // ½ö¿½±´²¿·ÖĞĞ
+	src.PlacedFootprint.Footprint.Height = texChunk.rowSize; // ä»…æ‹·è´éƒ¨åˆ†è¡Œ
 
 	D3D12_TEXTURE_COPY_LOCATION dst = {};
 	dst.pResource = m_pTexture.Get();
@@ -610,14 +610,14 @@ void NXTexture::CopyPartOfLayoutToChunk(const NXTextureUploadChunk& texChunk, co
 	dst.SubresourceIndex = index;
 
 	const uint32_t dstX = 0;
-	const uint32_t dstY = rowSt; // Ä¿±ê layout µÄÆğÊ¼ĞĞ
+	const uint32_t dstY = rowSt; // ç›®æ ‡ layout çš„èµ·å§‹è¡Œ
 	const uint32_t dstZ = 0;
 
 	D3D12_BOX box = {};
 	box.left = 0;
-	box.right = src.PlacedFootprint.Footprint.Width; // ×ÓÎÆÀíµÄĞĞ¿í£¨texels£©
+	box.right = src.PlacedFootprint.Footprint.Width; // å­çº¹ç†çš„è¡Œå®½ï¼ˆtexelsï¼‰
 	box.top = 0;
-	box.bottom = texChunk.rowSize;                     // ĞĞÊı
+	box.bottom = texChunk.rowSize;                     // è¡Œæ•°
 	box.front = 0;
 	box.back = 1;
 
@@ -635,7 +635,7 @@ void NXTexture::CopyMultiLayoutsToChunk(const NXTextureUploadChunk& texChunk, co
 		return;
 	}
 
-	// ¸Ã chunk ¸²¸Ç¶à¸ö layout£ºÃ¿¸ö layout ¿½±´ÍêÕûĞĞ
+	// è¯¥ chunk è¦†ç›–å¤šä¸ª layoutï¼šæ¯ä¸ª layout æ‹·è´å®Œæ•´è¡Œ
 	for (int index = texChunk.layoutIndexStart; index < texChunk.layoutIndexStart + texChunk.layoutIndexSize; ++index)
 	{
 		int mip = 0, slice = 0;
@@ -746,13 +746,13 @@ void NXTexture::ReloadCheck()
 	if (!m_reload.m_needReload)
 		return;
 
-	// ¼´Ê±Ìæ»»³É¹ı¶ÉÎÆÀí£¬²¢¿ªÊ¼Òì²½¼ÓÔØĞÂÎÆÀí
-	// ¹ı¶ÉÎÆÀíÕâÊ±¿Ï¶¨¼ÓÔØºÃÁË£¬²»ĞèÒªµ÷ÓÃWaitÏà¹Ø·½·¨.
+	// å³æ—¶æ›¿æ¢æˆè¿‡æ¸¡çº¹ç†ï¼Œå¹¶å¼€å§‹å¼‚æ­¥åŠ è½½æ–°çº¹ç†
+	// è¿‡æ¸¡çº¹ç†è¿™æ—¶è‚¯å®šåŠ è½½å¥½äº†ï¼Œä¸éœ€è¦è°ƒç”¨Waitç›¸å…³æ–¹æ³•.
 	m_reload.m_isReloading = true;
 	m_reload.m_needReload = false;
 	InternalReload(NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_White));
 
-	// Òì²½¼ÓÔØĞÂÎÆÀí
+	// å¼‚æ­¥åŠ è½½æ–°çº¹ç†
 	m_reload.m_pReloadTex = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D(m_name, m_reload.m_newTexPath, true);
 	std::thread([this]() mutable {
 		auto& pNewTex = m_reload.m_pReloadTex;
@@ -779,21 +779,21 @@ void NXTexture::Serialize()
 	std::string str = m_texFilePath.extension().string();
 	if (NXConvert::IsImageFileExtension(str))
 	{
-		// 2023.5.30 ÎÆÀí×ÊÔ´µÄĞòÁĞ»¯: 
+		// 2023.5.30 çº¹ç†èµ„æºçš„åºåˆ—åŒ–: 
 		serializer.StartObject();
-		serializer.String("NXInfoPath", nxInfoPath);	// ÔªÎÄ¼şÂ·¾¶
-		serializer.Uint64("PathHashValue", std::filesystem::hash_value(m_texFilePath)); // ÎÆÀíÎÄ¼şÂ·¾¶ hash value
-		serializer.Int("TextureType", (int)m_serializationData.m_textureType); // ÎÆÀíÀàĞÍ
-		serializer.Bool("IsInvertNormalY", m_serializationData.m_bInvertNormalY); // ÊÇ·ñFlipY·¨Ïß
-		serializer.Bool("IsGenerateMipMap", m_serializationData.m_bGenerateMipMap); // ÊÇ·ñÉú³Émipmap
-		serializer.Bool("IsCubeMap", m_serializationData.m_bCubeMap); // ÊÇ·ñÊÇÁ¢·½ÌåÌùÍ¼
+		serializer.String("NXInfoPath", nxInfoPath);	// å…ƒæ–‡ä»¶è·¯å¾„
+		serializer.Uint64("PathHashValue", std::filesystem::hash_value(m_texFilePath)); // çº¹ç†æ–‡ä»¶è·¯å¾„ hash value
+		serializer.Int("TextureType", (int)m_serializationData.m_textureType); // çº¹ç†ç±»å‹
+		serializer.Bool("IsInvertNormalY", m_serializationData.m_bInvertNormalY); // æ˜¯å¦FlipYæ³•çº¿
+		serializer.Bool("IsGenerateMipMap", m_serializationData.m_bGenerateMipMap); // æ˜¯å¦ç”Ÿæˆmipmap
+		serializer.Bool("IsCubeMap", m_serializationData.m_bCubeMap); // æ˜¯å¦æ˜¯ç«‹æ–¹ä½“è´´å›¾
 		serializer.EndObject();
 	}
 	else if (NXConvert::IsRawFileExtension(str))
 	{
 		serializer.StartObject();
-		serializer.String("NXInfoPath", nxInfoPath);	// ÔªÎÄ¼şÂ·¾¶
-		serializer.Uint64("PathHashValue", std::filesystem::hash_value(m_texFilePath)); // ÎÆÀíÎÄ¼şÂ·¾¶ hash value
+		serializer.String("NXInfoPath", nxInfoPath);	// å…ƒæ–‡ä»¶è·¯å¾„
+		serializer.Uint64("PathHashValue", std::filesystem::hash_value(m_texFilePath)); // çº¹ç†æ–‡ä»¶è·¯å¾„ hash value
 		serializer.Uint("rawFile_Width", m_serializationData.m_rawWidth);
 		serializer.Uint("rawFile_Height", m_serializationData.m_rawHeight);
 		serializer.Uint("rawFile_ByteSize", m_serializationData.m_rawByteSize);
@@ -811,7 +811,7 @@ void NXTexture::Deserialize()
 	bool bJsonExist = deserializer.LoadFromFile(nxInfoPath.c_str());
 	if (bJsonExist)
 	{
-		// ÓÅÏÈ¶ÁÈ¡ĞòÁĞ»¯ÎÄ¼ş
+		// ä¼˜å…ˆè¯»å–åºåˆ—åŒ–æ–‡ä»¶
 		std::string str = m_texFilePath.extension().string();
 		if (NXConvert::IsImageFileExtension(str))
 		{
@@ -831,12 +831,12 @@ void NXTexture::Deserialize()
 	}
 	else if (NXConvert::IsDDSFileExtension(m_texFilePath.extension().string()))
 	{
-		// ÒÔÇ°ÕâÀï¶ÔddsÎÄ¼ş»á»ùÓÚGetMetaData()ĞòÁĞ»¯£¬µ«¿ªÏú¹ı¸ß
-		// ÓÚÊÇÉ¾µôÁË
+		// ä»¥å‰è¿™é‡Œå¯¹ddsæ–‡ä»¶ä¼šåŸºäºGetMetaData()åºåˆ—åŒ–ï¼Œä½†å¼€é”€è¿‡é«˜
+		// äºæ˜¯åˆ æ‰äº†
 	}
 	else 
 	{
-		// ÆäËûÇé¿öÎŞ·¨ĞòÁĞ»¯
+		// å…¶ä»–æƒ…å†µæ— æ³•åºåˆ—åŒ–
 	}
 }
 
@@ -882,7 +882,7 @@ Ntr<NXTexture2D> NXTexture2D::CreateTexture(const std::string& debugName, DXGI_F
 
 Ntr<NXTexture2D> NXTexture2D::CreateSolid(const std::string& debugName, uint32_t texSize, const Vector4& color, D3D12_RESOURCE_FLAGS flags)
 {
-	// ´´½¨´óĞ¡Îª texSize * texSize µÄ´¿É«ÎÆÀí
+	// åˆ›å»ºå¤§å°ä¸º texSize * texSize çš„çº¯è‰²çº¹ç†
 	std::shared_ptr<ScratchImage> pImage = std::make_shared<ScratchImage>();
 	DXGI_FORMAT fmt = DXGI_FORMAT_R8G8B8A8_UNORM;
 	pImage->Initialize2D(fmt, texSize, texSize, 1, 1);
@@ -917,7 +917,7 @@ Ntr<NXTexture2D> NXTexture2D::CreateSolid(const std::string& debugName, uint32_t
 
 Ntr<NXTexture2D> NXTexture2D::CreateNoise(const std::string& debugName, uint32_t texSize, uint32_t dimension, D3D12_RESOURCE_FLAGS flags)
 {
-	// ´´½¨´óĞ¡Îª texSize * texSize µÄÔëÉùÎÆÀí
+	// åˆ›å»ºå¤§å°ä¸º texSize * texSize çš„å™ªå£°çº¹ç†
 
 	// Check if dimension is valid (1, 2, 3, or 4)
 	if (dimension < 1 || dimension > 4)
@@ -935,7 +935,7 @@ Ntr<NXTexture2D> NXTexture2D::CreateNoise(const std::string& debugName, uint32_t
 	case 4: fmt = DXGI_FORMAT_R32G32B32A32_FLOAT; break;
 	}
 
-	uint32_t bytePerPixel = sizeof(float) * dimension; // 2023.10.26 ÏÖ½×¶ÎÖ»Ö§³Ö 32-bit float ÎÆÀí£¬ËùÒÔÃ¿¸öÏñËØÕ¼ sizeof(float) * Dimension ×Ö½Ú
+	uint32_t bytePerPixel = sizeof(float) * dimension; // 2023.10.26 ç°é˜¶æ®µåªæ”¯æŒ 32-bit float çº¹ç†ï¼Œæ‰€ä»¥æ¯ä¸ªåƒç´ å  sizeof(float) * Dimension å­—èŠ‚
 
 	std::shared_ptr<ScratchImage> pImage = std::make_shared<ScratchImage>();
 	pImage->Initialize2D(fmt, texSize, texSize, 1, 1);
@@ -964,7 +964,7 @@ Ntr<NXTexture2D> NXTexture2D::CreateNoise(const std::string& debugName, uint32_t
 Ntr<NXTexture2D> NXTexture2D::CreateHeightRaw(const std::string& debugName, const std::filesystem::path& rawPath, D3D12_RESOURCE_FLAGS flags, bool useSubRegion, const Int2& subRegionXY, const Int2& subRegionSize)
 {
 	m_texFilePath = rawPath;
-	Deserialize(); // ÀïÍ·ÒªÄÜÄÃµ½ m_serializationData.m_rawWidth/Height=2049
+	Deserialize(); // é‡Œå¤´è¦èƒ½æ‹¿åˆ° m_serializationData.m_rawWidth/Height=2049
 
 	const int fullW = m_serializationData.m_rawWidth;
 	const int fullH = m_serializationData.m_rawHeight;
@@ -974,7 +974,7 @@ Ntr<NXTexture2D> NXTexture2D::CreateHeightRaw(const std::string& debugName, cons
 	int offX = useSubRegion ? subRegionXY.x : 0;
 	int offY = useSubRegion ? subRegionXY.y : 0;
 
-	// »ù±¾Ô½½ç±£»¤£¨VT µÄ tileSize+1 ÒªÈ·±£²»³¬ 2049£©
+	// åŸºæœ¬è¶Šç•Œä¿æŠ¤ï¼ˆVT çš„ tileSize+1 è¦ç¡®ä¿ä¸è¶… 2049ï¼‰
 	if (offX < 0 || offY < 0 || offX + width > fullW || offY + height > fullH) {
 		throw std::runtime_error("RAW subregion OOB: " + rawPath.string());
 	}
@@ -983,20 +983,20 @@ Ntr<NXTexture2D> NXTexture2D::CreateHeightRaw(const std::string& debugName, cons
 	const DXGI_FORMAT fmt = DXGI_FORMAT_R16_UNORM;
 
 	std::ifstream file(rawPath, std::ios::binary);
-	if (!file) throw std::runtime_error("ÎŞ·¨´ò¿ªÎÄ¼ş: " + rawPath.string());
+	if (!file) throw std::runtime_error("æ— æ³•æ‰“å¼€æ–‡ä»¶: " + rawPath.string());
 
 	std::shared_ptr<ScratchImage> pImage = std::make_shared<ScratchImage>();
 	pImage->Initialize2D(fmt, width, height, 1, 1);
 
 	const Image& image = *pImage->GetImage(0, 0, 0);
 	uint8_t* dst = image.pixels;
-	const size_t dstRowPitch = image.rowPitch;      // DirectXTex ¶Ô¸Ã¸ñÊ½Í¨³£ÊÇ width * 2
+	const size_t dstRowPitch = image.rowPitch;      // DirectXTex å¯¹è¯¥æ ¼å¼é€šå¸¸æ˜¯ width * 2
 
-	// ĞĞÖ÷ĞòµÄÊı¾İ£ºÃ¿ĞĞÔÚÎÄ¼şÀïµÄ¿ç¶ÈÊÇ fullW * bpp
+	// è¡Œä¸»åºçš„æ•°æ®ï¼šæ¯è¡Œåœ¨æ–‡ä»¶é‡Œçš„è·¨åº¦æ˜¯ fullW * bpp
 	const size_t srcRowBytes = static_cast<size_t>(fullW) * bpp;
 	const size_t roiRowBytes = static_cast<size_t>(width) * bpp;
 
-	// ÈçĞè Y ·­×ª¿ÉÔÚÕâÀïµ÷Õû y µÄÓ³Éä£»Ä¬ÈÏ²»·­×ª
+	// å¦‚éœ€ Y ç¿»è½¬å¯åœ¨è¿™é‡Œè°ƒæ•´ y çš„æ˜ å°„ï¼›é»˜è®¤ä¸ç¿»è½¬
 	for (int y = 0; y < height; ++y) {
 		const int srcY = offY + y;
 		const std::streamoff rowStart =
@@ -1004,11 +1004,11 @@ Ntr<NXTexture2D> NXTexture2D::CreateHeightRaw(const std::string& debugName, cons
 			static_cast<std::streamoff>(offX) * bpp;
 
 		file.seekg(rowStart, std::ios::beg);
-		if (!file) throw std::runtime_error("seekg Ê§°Ü: " + rawPath.string());
+		if (!file) throw std::runtime_error("seekg å¤±è´¥: " + rawPath.string());
 
 		uint8_t* dstRow = dst + static_cast<size_t>(y) * dstRowPitch;
 		file.read(reinterpret_cast<char*>(dstRow), roiRowBytes);
-		if (!file) throw std::runtime_error("¶ÁÈ¡ĞĞÊı¾İÊ§°Ü: " + rawPath.string());
+		if (!file) throw std::runtime_error("è¯»å–è¡Œæ•°æ®å¤±è´¥: " + rawPath.string());
 	}
 
 	m_name = debugName;
@@ -1028,15 +1028,15 @@ void NXTexture2D::SetSRV(uint32_t index)
 {
 	NXAllocator_SRV->Alloc([this, index](const D3D12_CPU_DESCRIPTOR_HANDLE& result) {
 		m_pSRVs[index] = result;
-		WaitLoadingTexturesFinish(); // ´´½¨SRVÇ°£¬ÏÈµÈ´ıÎÆÀí¼ÓÔØÍê³É
+		WaitLoadingTexturesFinish(); // åˆ›å»ºSRVå‰ï¼Œå…ˆç­‰å¾…çº¹ç†åŠ è½½å®Œæˆ
 
 		DXGI_FORMAT SRVFormat = m_texFormat;
 		if (m_texFormat == DXGI_FORMAT_R24G8_TYPELESS)
 			SRVFormat = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING; // Ä¬ÈÏµÄÓ³Éä
-		srvDesc.Format = SRVFormat; // ÎÆÀíµÄ¸ñÊ½
+		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING; // é»˜è®¤çš„æ˜ å°„
+		srvDesc.Format = SRVFormat; // çº¹ç†çš„æ ¼å¼
 		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 		srvDesc.Texture2D.MipLevels = m_mipLevels;
 		srvDesc.Texture2D.MostDetailedMip = 0;
@@ -1125,7 +1125,7 @@ void NXTextureCube::SetSRV(uint32_t index)
 {
 	NXAllocator_SRV->Alloc([this, index](const D3D12_CPU_DESCRIPTOR_HANDLE& result) {
 		m_pSRVs[index] = result;
-		WaitLoadingTexturesFinish(); // ´´½¨SRVÇ°£¬ÏÈµÈ´ıÎÆÀí¼ÓÔØÍê³É
+		WaitLoadingTexturesFinish(); // åˆ›å»ºSRVå‰ï¼Œå…ˆç­‰å¾…çº¹ç†åŠ è½½å®Œæˆ
 
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
 		srvDesc.Format = m_texFormat;
@@ -1163,7 +1163,7 @@ void NXTextureCube::SetSRVPreview(uint32_t idx)
 {
 	NXAllocator_SRV->Alloc([this, idx](const D3D12_CPU_DESCRIPTOR_HANDLE& result) {
 		m_pSRVPreviews[idx] = result;
-		WaitLoadingTexturesFinish(); // ´´½¨SRVÇ°£¬ÏÈµÈ´ıÎÆÀí¼ÓÔØÍê³É
+		WaitLoadingTexturesFinish(); // åˆ›å»ºSRVå‰ï¼Œå…ˆç­‰å¾…çº¹ç†åŠ è½½å®Œæˆ
 
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 		srvDesc.Format = m_texFormat;
@@ -1293,7 +1293,7 @@ void NXTexture2DArray::SetSRV(uint32_t index, uint32_t firstArraySlice, uint32_t
 {
 	NXAllocator_SRV->Alloc([this, index, firstArraySlice, arraySize](const D3D12_CPU_DESCRIPTOR_HANDLE& result) {
 		m_pSRVs[index] = result;
-		WaitLoadingTexturesFinish(); // ´´½¨SRVÇ°£¬ÏÈµÈ´ıÎÆÀí¼ÓÔØÍê³É
+		WaitLoadingTexturesFinish(); // åˆ›å»ºSRVå‰ï¼Œå…ˆç­‰å¾…çº¹ç†åŠ è½½å®Œæˆ
 
 		DXGI_FORMAT SRVFormat = m_texFormat;
 		if (m_texFormat == DXGI_FORMAT_R24G8_TYPELESS)
@@ -1302,8 +1302,8 @@ void NXTexture2DArray::SetSRV(uint32_t index, uint32_t firstArraySlice, uint32_t
 			SRVFormat = DXGI_FORMAT_R32_FLOAT;
 
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING; // Ä¬ÈÏµÄÓ³Éä
-		srvDesc.Format = SRVFormat; // ÎÆÀíµÄ¸ñÊ½
+		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING; // é»˜è®¤çš„æ˜ å°„
+		srvDesc.Format = SRVFormat; // çº¹ç†çš„æ ¼å¼
 		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
 		srvDesc.Texture2DArray.MipLevels = m_mipLevels;
 		srvDesc.Texture2DArray.MostDetailedMip = 0;
@@ -1391,7 +1391,7 @@ void NXTexture2DArray::SetSRVPreviews()
 	DirectX::TexMetadata metadata;
 	HRESULT hr = DirectX::GetMetadataFromDDSFile(m_texFilePath.c_str(), DirectX::DDS_FLAGS_NONE, metadata);
 
-	// ÕâÀï²»ÄÜÖ±½ÓÓÃm_arraySize£¬m_arraySizeÔÚÎÆÀíÒì²½¼ÓÔØÍê³ÉÊ±²ÅÓĞĞ§
+	// è¿™é‡Œä¸èƒ½ç›´æ¥ç”¨m_arraySizeï¼Œm_arraySizeåœ¨çº¹ç†å¼‚æ­¥åŠ è½½å®Œæˆæ—¶æ‰æœ‰æ•ˆ
 	m_loading2DPreviews = metadata.arraySize;
 	m_load2DPreviewsReady.store(false);
 
@@ -1406,7 +1406,7 @@ void NXTexture2DArray::SetSRVPreview(uint32_t idx)
 {
 	NXAllocator_SRV->Alloc([this, idx](const D3D12_CPU_DESCRIPTOR_HANDLE& result) {
 		m_pSRVPreviews[idx] = result;
-		WaitLoadingTexturesFinish(); // ´´½¨SRVÇ°£¬ÏÈµÈ´ıÎÆÀí¼ÓÔØÍê³É
+		WaitLoadingTexturesFinish(); // åˆ›å»ºSRVå‰ï¼Œå…ˆç­‰å¾…çº¹ç†åŠ è½½å®Œæˆ
 
 		DXGI_FORMAT SRVFormat = m_texFormat;
 		if (m_texFormat == DXGI_FORMAT_R24G8_TYPELESS)

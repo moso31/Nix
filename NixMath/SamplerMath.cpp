@@ -2,7 +2,7 @@
 
 Vector3 SamplerMath::UniformSampleHemisphere(const Vector2& u, const float radius)
 {
-	// u = Á½¸ö[0, 1)Ö®¼äµÄËæ»úÖµ¡£×îÖÕu»á±»Ó³Éäµ½°ëÇòÌå±íÃæ¡£
+	// u = ä¸¤ä¸ª[0, 1)ä¹‹é—´çš„éšæœºå€¼ã€‚æœ€ç»ˆuä¼šè¢«æ˜ å°„åˆ°åŠçƒä½“è¡¨é¢ã€‚
 	float z = u.x * radius;
 	float phi = XM_2PI * u.y;
 	float r = sqrtf(fmaxf(0.0f, 1.0f - z * z)) * radius;
@@ -18,7 +18,7 @@ float DirectX::SamplerMath::UniformSampleHemispherePdf()
 
 Vector3 SamplerMath::UniformSampleSphere(const Vector2& u)
 {
-	// u = Á½¸ö[0, 1)Ö®¼äµÄËæ»úÖµ¡£×îÖÕu»á±»Ó³Éäµ½ÇòÌå±íÃæ¡£
+	// u = ä¸¤ä¸ª[0, 1)ä¹‹é—´çš„éšæœºå€¼ã€‚æœ€ç»ˆuä¼šè¢«æ˜ å°„åˆ°çƒä½“è¡¨é¢ã€‚
 	float z = 1.0f - 2.0f * u.x;
 	float phi = XM_2PI * u.y;
 	float r = sqrtf(fmaxf(0.0f, 1.0f - z * z));
@@ -63,7 +63,7 @@ Vector2 SamplerMath::UniformTriangleSample(const Vector2& u)
 
 float SamplerMath::PowerHeuristicWeightPdf(int nf, float fPdf, int ng, float gPdf)
 {
-	// Ê¹ÓÃÆô·¢Ê½·½°¸¶Ô½øĞĞpdf²ÉÑùµÄÈ¨ÖØ¼ÆËã¡£
+	// ä½¿ç”¨å¯å‘å¼æ–¹æ¡ˆå¯¹è¿›è¡Œpdfé‡‡æ ·çš„æƒé‡è®¡ç®—ã€‚
 	float f = nf * fPdf, g = ng * gPdf;
 	return (f * f) / (f * f + g * g);
 }

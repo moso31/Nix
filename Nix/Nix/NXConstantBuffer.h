@@ -64,7 +64,7 @@ public:
 		return m_gpuAddrs.Current();
 	}
 
-	// »ñÈ¡ËùÓĞFrameResourceµÄGPUµØÖ·¡£ÒÔMultiFrameµÄĞÎÊ½·µ»Ø¡£
+	// è·å–æ‰€æœ‰FrameResourceçš„GPUåœ°å€ã€‚ä»¥MultiFrameçš„å½¢å¼è¿”å›ã€‚
 	const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>& GetFrameGPUAddresses() const override
 	{
 		WaitCreateComplete();
@@ -109,12 +109,12 @@ private:
 		byteSize = (byteSize + 255) & ~255;
 		m_byteSize = byteSize;
 
-		// Ö÷Ïß³Ì´´½¨CB
+		// ä¸»çº¿ç¨‹åˆ›å»ºCB
 		for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 		{
 			NXAllocator_CB->Alloc(byteSize, [this, i](const CommittedBufferAllocTaskResult& result) {
-				// lambdaÄÚ¿ÉÄÜÊÇÁíÒ»¸öÏß³ÌA
-				// »ñÈ¡AllocµÄÉÏ´«¶ÑcpuµØÖ·¡£
+				// lambdaå†…å¯èƒ½æ˜¯å¦ä¸€ä¸ªçº¿ç¨‹A
+				// è·å–Allocçš„ä¸Šä¼ å †cpuåœ°å€ã€‚
 				m_cpuAddrs[i] = reinterpret_cast<T*>(result.cpuAddress);
 				m_gpuAddrs[i] = result.gpuResource->GetGPUVirtualAddress() + result.memData.byteOffset;
 				m_gpuResource[i] = result.gpuResource;
@@ -161,7 +161,7 @@ template<typename T>
 class NXConstantBuffer<std::vector<T>> : public NXConstantBufferImpl
 {
 public:
-	// ÔÊĞí¿Õ¹¹Ôìº¯Êı£¬µ«ÊÇĞèÒªÊÖ¶¯µ÷ÓÃRecreate
+	// å…è®¸ç©ºæ„é€ å‡½æ•°ï¼Œä½†æ˜¯éœ€è¦æ‰‹åŠ¨è°ƒç”¨Recreate
 	NXConstantBuffer() 
 	{
 	}
@@ -195,7 +195,7 @@ public:
 		return m_gpuAddrs.Current();
 	}
 
-	// »ñÈ¡ËùÓĞFrameResourceµÄGPUµØÖ·¡£ÒÔMultiFrameµÄĞÎÊ½·µ»Ø¡£
+	// è·å–æ‰€æœ‰FrameResourceçš„GPUåœ°å€ã€‚ä»¥MultiFrameçš„å½¢å¼è¿”å›ã€‚
 	const MultiFrame<D3D12_GPU_VIRTUAL_ADDRESS>& GetFrameGPUAddresses() const override
 	{
 		WaitCreateComplete();
@@ -209,14 +209,14 @@ public:
 		return m_gpuResource.Current();
 	}
 
-	// ¸üĞÂÕû¸öÊı×é
+	// æ›´æ–°æ•´ä¸ªæ•°ç»„
 	void Update(const std::vector<T>& newData)
 	{
 		WaitCreateComplete();
 		memcpy(m_cpuAddrs.Current(), newData.data(), sizeof(T) * newData.size());
 	}
 
-	// ÉèÖÃËùÓĞMultiFrameµÄÊı×éÊı¾İ
+	// è®¾ç½®æ‰€æœ‰MultiFrameçš„æ•°ç»„æ•°æ®
 	void Set(const std::vector<T>& newData)
 	{
 		WaitCreateComplete();
@@ -242,12 +242,12 @@ private:
 		byteSize = (byteSize + 255) & ~255;
 		m_byteSize = byteSize;
 
-		// Ö÷Ïß³Ì´´½¨CB
+		// ä¸»çº¿ç¨‹åˆ›å»ºCB
 		for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 		{
 			NXAllocator_CB->Alloc(byteSize, [this, i](const CommittedBufferAllocTaskResult& result) {
-				// lambdaÄÚ¿ÉÄÜÊÇÁíÒ»¸öÏß³ÌA
-				// »ñÈ¡AllocµÄÉÏ´«¶ÑcpuµØÖ·¡£
+				// lambdaå†…å¯èƒ½æ˜¯å¦ä¸€ä¸ªçº¿ç¨‹A
+				// è·å–Allocçš„ä¸Šä¼ å †cpuåœ°å€ã€‚
 				m_cpuAddrs[i] = reinterpret_cast<T*>(result.cpuAddress);
 				m_gpuAddrs[i] = result.gpuResource->GetGPUVirtualAddress() + result.memData.byteOffset;
 				m_gpuResource[i] = result.gpuResource;

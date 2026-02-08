@@ -1,9 +1,9 @@
 struct CBufferSector2VirtImg
 {
-	// ÄÄ¸öÏñËØ
+	// å“ªä¸ªåƒç´ 
     int2 sectorPos;
     
-	// ¸Ä³ÉÊ²Ã´Öµ
+	// æ”¹æˆä»€ä¹ˆå€¼
     int indiTexData; // x(12bit)y(12bit) = indi tex pos; z(8bit) = indi tex size
     int _0;
 };

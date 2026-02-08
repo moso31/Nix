@@ -16,19 +16,19 @@ void NXPrint::Write(const int id, const char* format, ...)
     if (!WriteCondition(id))
         return;
 
-    static std::mutex logMutex; // È·±£Ïß³Ì°²È«
+    static std::mutex logMutex; // ç¡®ä¿çº¿ç¨‹å®‰å…¨
     std::lock_guard<std::mutex> lock(logMutex);
 
-    // »ñÈ¡Ïß³ÌID×Ö·û´®±íÊ¾
+    // è·å–çº¿ç¨‹IDå­—ç¬¦ä¸²è¡¨ç¤º
     std::stringstream ss;
     ss << std::this_thread::get_id();
     std::string threadIdStr = ss.str();
 
-    // ´¦Àí¿É±ä²ÎÊı
+    // å¤„ç†å¯å˜å‚æ•°
     va_list args;
     va_start(args, format);
 
-    // ¸ñÊ½»¯Êä³ö
+    // æ ¼å¼åŒ–è¾“å‡º
     printf("[%s]: ", threadIdStr.c_str());
     vprintf(format, args);
 

@@ -29,9 +29,9 @@ class NXTerrainStreamingAsyncLoader;
 class NXTerrainStreamingBatcher;
 struct NXTerrainLODQuadTreeNode
 {
-	Int2 terrainID; // µØĞÎID
-	Int2 positionWS; // µØĞÎ×óÏÂ½ÇXZ½Úµã×ø±ê£¨×óÊÖ×ø±êÏµ£©
-	uint32_t size; // ½Úµã´óĞ¡£¬Ò»¶¨ÊÇ2µÄÕûÊıÃİ
+	Int2 terrainID; // åœ°å½¢ID
+	Int2 positionWS; // åœ°å½¢å·¦ä¸‹è§’XZèŠ‚ç‚¹åæ ‡ï¼ˆå·¦æ‰‹åæ ‡ç³»ï¼‰
+	uint32_t size; // èŠ‚ç‚¹å¤§å°ï¼Œä¸€å®šæ˜¯2çš„æ•´æ•°å¹‚
 
 	NXTerrainLODQuadTreeNode GetChildNode(int index) const
 	{
@@ -41,16 +41,16 @@ struct NXTerrainLODQuadTreeNode
 		childNode.size = size >> 1;
 		switch (index)
 		{
-		case 0: // ×óÏÂ×Ó¿é
+		case 0: // å·¦ä¸‹å­å—
 			childNode.positionWS = positionWS;
 			break;
-		case 1: // ÓÒÏÂ×Ó¿é
+		case 1: // å³ä¸‹å­å—
 			childNode.positionWS = positionWS + Int2(size >> 1, 0);
 			break;	
-		case 2: // ×óÉÏ×Ó¿é
+		case 2: // å·¦ä¸Šå­å—
 			childNode.positionWS = positionWS + Int2(0, size >> 1);
 			break;
-		case 3: // ÓÒÉÏ×Ó¿é
+		case 3: // å³ä¸Šå­å—
 			childNode.positionWS = positionWS + Int2(size >> 1, size >> 1);
 			break;
 		}
@@ -58,7 +58,7 @@ struct NXTerrainLODQuadTreeNode
 		return childNode;
 	}
 
-	// »ñÈ¡½ÚµãËùÔÚµÄLODµÈ¼¶
+	// è·å–èŠ‚ç‚¹æ‰€åœ¨çš„LODç­‰çº§
 	// 2048 -> level 0; 1024 -> level 1; 512 -> level 2 ...
 	uint32_t GetLevel() const 
 	{
@@ -78,26 +78,26 @@ struct NXTerrainLODQuadTreeNodeDescription
 	NXTerrainLODQuadTreeNode data;
 	NXTerrainLODQuadTreeNode oldData;
 
-	// ÊÇ·ñĞèÒªÉ¾³ı¾ÉÖµ
+	// æ˜¯å¦éœ€è¦åˆ é™¤æ—§å€¼
 	bool removeOldData = false;
 
-	// ÊÇ·ñÒÑ¾­Òì²½¼ÓÔØÍê³É
+	// æ˜¯å¦å·²ç»å¼‚æ­¥åŠ è½½å®Œæˆ
 	bool isValid = false;
 
-	// ÊÇ·ñÕıÔÚÒì²½¼ÓÔØÖĞ
+	// æ˜¯å¦æ­£åœ¨å¼‚æ­¥åŠ è½½ä¸­
 	bool isLoading = false;
 
-	// ¼ÇÂ¼ÉÏ´Î¸üĞÂµÄÖ¡Êı£»
-	// Èç¹ûÄ³¸önode³¤Ê±¼äÃ»ÓĞ±»·ÃÎÊµ½£¬Ôò¿ÉÒÔ¿¼ÂÇĞ¶ÔØ
+	// è®°å½•ä¸Šæ¬¡æ›´æ–°çš„å¸§æ•°ï¼›
+	// å¦‚æœæŸä¸ªnodeé•¿æ—¶é—´æ²¡æœ‰è¢«è®¿é—®åˆ°ï¼Œåˆ™å¯ä»¥è€ƒè™‘å¸è½½
 	uint64_t lastUpdatedFrame = 0;
 };
 
 class NXCamera;
 class NXScene;
 /// <summary>
-/// ËÄ²æÊ÷µØĞÎÁ÷Ê½¼ÓÔØµÄºËĞÄ
-/// ¸ºÔğ»ùÓÚµ±Ç°³¡¾°µÄÏà»ú¾àÀë£¬¾ö¶¨ĞèÒªÁ÷Ê½¼ÓÔØÄÄĞ©µØĞÎ½ÚµãµÄÎÆÀí
-/// Ê¹ÓÃÎ»ÖÃ¹Ì¶¨µÄLRU Cache£¨¶ÔÓ¦ÀàÖĞm_nodeDescArrayInternal£©À´¹ÜÀíÒÑ¾­¼ÓÔØµÄ½Úµã£¬Èç¹û³öÏÖCacheÎ´¼ÇÂ¼½Úµã£¬Òì²½¼ÓÔØ
+/// å››å‰æ ‘åœ°å½¢æµå¼åŠ è½½çš„æ ¸å¿ƒ
+/// è´Ÿè´£åŸºäºå½“å‰åœºæ™¯çš„ç›¸æœºè·ç¦»ï¼Œå†³å®šéœ€è¦æµå¼åŠ è½½å“ªäº›åœ°å½¢èŠ‚ç‚¹çš„çº¹ç†
+/// ä½¿ç”¨ä½ç½®å›ºå®šçš„LRU Cacheï¼ˆå¯¹åº”ç±»ä¸­m_nodeDescArrayInternalï¼‰æ¥ç®¡ç†å·²ç»åŠ è½½çš„èŠ‚ç‚¹ï¼Œå¦‚æœå‡ºç°Cacheæœªè®°å½•èŠ‚ç‚¹ï¼Œå¼‚æ­¥åŠ è½½
 /// </summary>
 class NXTerrainLODStreamer
 {
@@ -107,51 +107,51 @@ public:
 
 	void Init(NXScene* m_pScene);
 
-	// Ã¿Ö¡¸üĞÂ
+	// æ¯å¸§æ›´æ–°
 	void Update();
 	void UpdateAsyncLoader();
 
 	void ProcessCompletedStreamingTask();
 
-	// Ã¿Ö¡×î¶à¼ÓÔØ¶àÉÙ×éÎÆÀí
+	// æ¯å¸§æœ€å¤šåŠ è½½å¤šå°‘ç»„çº¹ç†
 	uint32_t GetLoadTexGroupLimitEachFrame();
 
 	NXTerrainLODStreamData& GetStreamingData() { return m_streamData; }
 	const NXSectorVersionMap& GetSectorVersionMap() const { return m_sectorVersionMap; }
 
 private:
-	// »ñÈ¡6µµ¾àÀëÄÚµÄ½Úµã£¬Êä³öÒ»¸ölist[6]£»Ö»ÒªÊÇµ±Ç°µµ´Î¾àÀëÄÜ¸²¸ÇµÄ£¬Í³Í³¼ÓÈëµ½Ô¤¼ÓÔØ¶ÓÁĞ
+	// è·å–6æ¡£è·ç¦»å†…çš„èŠ‚ç‚¹ï¼Œè¾“å‡ºä¸€ä¸ªlist[6]ï¼›åªè¦æ˜¯å½“å‰æ¡£æ¬¡è·ç¦»èƒ½è¦†ç›–çš„ï¼Œç»Ÿç»ŸåŠ å…¥åˆ°é¢„åŠ è½½é˜Ÿåˆ—
 	void GetNodeDatasInternal(std::vector<std::vector<NXTerrainLODQuadTreeNode>>& oNodeDataList, const NXTerrainLODQuadTreeNode& node);
 
-	// ¼ÓÔØ minmaxZ Êı¾İ£¨ÓÃÓÚµØĞÎÌŞ³ıµÈ£©
+	// åŠ è½½ minmaxZ æ•°æ®ï¼ˆç”¨äºåœ°å½¢å‰”é™¤ç­‰ï¼‰
 	void LoadMinmaxZData();
 
 private:
 	std::filesystem::path m_terrainWorkingDir = "D:\\NixAssets\\Terrain";
 
-	// Ã¿¸öµØĞÎÊÇÒ»¸öËÄ²æÊ÷
+	// æ¯ä¸ªåœ°å½¢æ˜¯ä¸€ä¸ªå››å‰æ ‘
 	std::vector<NXTerrainLODQuadTreeNode> m_terrainRoots;
 
-	// "ÒÑ¾­¼ÓÔØ"µ½AtlasµÄ½Úµã
-	// ³¤¶È¹Ì¶¨£¬³õÊ¼»¯Ö±½Óresize
+	// "å·²ç»åŠ è½½"åˆ°Atlasçš„èŠ‚ç‚¹
+	// é•¿åº¦å›ºå®šï¼Œåˆå§‹åŒ–ç›´æ¥resize
 	std::vector<NXTerrainLODQuadTreeNodeDescription> m_nodeDescArrayInternal;
-	std::unordered_map<TerrainNodeKey, uint32_t, TerrainNodeKeyHash> m_keyToNodeMap; // ÓÅ»¯²éÕÒËÙ¶È
+	std::unordered_map<TerrainNodeKey, uint32_t, TerrainNodeKeyHash> m_keyToNodeMap; // ä¼˜åŒ–æŸ¥æ‰¾é€Ÿåº¦
 
 	std::vector<NXTerrainLODQuadTreeNode> m_wantMap;
 
-	// Òì²½¼ÓÔØÆ÷£¬Òì²½¶ÁÈ¡tileÎÆÀí
+	// å¼‚æ­¥åŠ è½½å™¨ï¼Œå¼‚æ­¥è¯»å–tileçº¹ç†
 	NXTerrainStreamingAsyncLoader* m_asyncLoader;
 
-	// ³¡¾°Ö¸Õë
+	// åœºæ™¯æŒ‡é’ˆ
 	NXScene* m_pScene;
 
-	// Á÷Ê½¼ÓÔØËùÊ¹ÓÃµÄ¸÷ÖÖÊı¾İ
+	// æµå¼åŠ è½½æ‰€ä½¿ç”¨çš„å„ç§æ•°æ®
 	NXTerrainLODStreamData m_streamData;
 
-	// minmaxZ Êı¾İ£¬ÓÃÓÚµØĞÎÌŞ³ı
+	// minmaxZ æ•°æ®ï¼Œç”¨äºåœ°å½¢å‰”é™¤
 	// m_minmaxZData[mip][x][y] = Vector2(minZ, maxZ)
 	std::vector<std::vector<std::vector<Vector2>>> m_minmaxZData;
 
-	// CPU¼ÇÂ¼sectorµÄ°æ±¾ºÅ
+	// CPUè®°å½•sectorçš„ç‰ˆæœ¬å·
 	NXSectorVersionMap m_sectorVersionMap;
 };

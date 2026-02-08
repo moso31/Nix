@@ -26,12 +26,12 @@ void NXGUIMaterial::Render()
 		return;
 	}
 
-	// Í³¼ÆÑ¡ÖĞµÄËùÓĞMeshesÀïÃæÓĞ¶àÉÙ²ÄÖÊ
+	// ç»Ÿè®¡é€‰ä¸­çš„æ‰€æœ‰Meshesé‡Œé¢æœ‰å¤šå°‘æè´¨
 	std::unordered_set<NXMaterial*> pUsedMats;
 	for (auto pSubMesh : pPickingSubMeshes)
 		pUsedMats.insert(pSubMesh->GetMaterial());
 
-	// Èç¹ûÑ¡ÖĞµÄËùÓĞSubMesh¶¼Ö»ÓĞÒ»¸ö²ÄÖÊ£¬½«´Ë²ÄÖÊ¼Ç×÷pUniqueMat
+	// å¦‚æœé€‰ä¸­çš„æ‰€æœ‰SubMeshéƒ½åªæœ‰ä¸€ä¸ªæè´¨ï¼Œå°†æ­¤æè´¨è®°ä½œpUniqueMat
 	bool bIsReadOnlyMaterial = pUsedMats.size() != 1;
 	NXMaterial* pUniqueMat = bIsReadOnlyMaterial ? nullptr : *pUsedMats.begin();
 
@@ -61,7 +61,7 @@ void NXGUIMaterial::Render()
 	{
 		pObject->SetRotation(Vector3(vRotArr));
 
-		// Ã»Ê²Ã´ÒâÒåµÄÀ±¼¦²âÊÔ¡­¡­
+		// æ²¡ä»€ä¹ˆæ„ä¹‰çš„è¾£é¸¡æµ‹è¯•â€¦â€¦
 		//{
 		//	Vector3 value(0.2, 1.12, 2.31);
 		//	Quaternion _qRot = Quaternion::CreateFromYawPitchRoll(value.y, value.x, value.z);
@@ -135,7 +135,7 @@ void NXGUIMaterial::Render()
 	}
 
 
-	// äÖÈ¾ Shader Editor GUI
+	// æ¸²æŸ“ Shader Editor GUI
 	if (pUniqueMat && pUniqueMat->IsCustomMat())
 	{
 		if (m_pLastCommonPickMaterial != pUniqueMat)
@@ -161,8 +161,8 @@ void NXGUIMaterial::OnBtnEditShaderClicked(NXCustomMaterial* pMaterial)
 
 void NXGUIMaterial::SyncMaterialData(NXCustomMaterial* pMaterial)
 {
-	// ²»µ÷clone = ºËĞÄ²ÎÊıÈ«²¿Ç³¿½±´£¬
-	// ĞŞ¸Ä´Ëm_guiDataµÄºËĞÄ²ÎÊı£¬»áÖ±½ÓÓ³Éäµ½pMaterialµÄÔ´Êı¾İ
+	// ä¸è°ƒclone = æ ¸å¿ƒå‚æ•°å…¨éƒ¨æµ…æ‹·è´ï¼Œ
+	// ä¿®æ”¹æ­¤m_guiDataçš„æ ¸å¿ƒå‚æ•°ï¼Œä¼šç›´æ¥æ˜ å°„åˆ°pMaterialçš„æºæ•°æ®
 	m_guiData.Destroy();
 	m_guiData = pMaterial->GetMaterialData().Clone(true);
 	m_pLastMaterial = pMaterial;
@@ -193,7 +193,7 @@ void NXGUIMaterial::RenderGUI_Unique_Terrain(NXTerrain* pTerrain)
 		return;
 	}
 
-	// Layer Â·¾¶
+	// Layer è·¯å¾„
 	if (!pTerrainLayer->GetPath().empty())
 	{
 		ImGui::Text("Layer: %s", pTerrainLayer->GetPath().string().c_str());
@@ -207,7 +207,7 @@ void NXGUIMaterial::RenderGUI_Unique_Terrain(NXTerrain* pTerrain)
 		ImGui::OpenPopup("##terrainlayer_select_popup");
 	}
 
-	// Drag-and-Drop£º½ö½ÓÊÜ .ntl
+	// Drag-and-Dropï¼šä»…æ¥å— .ntl
 	if (ImGui::BeginDragDropTarget())
 	{
 		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_EXPLORER_BUTTON_DRUGING"))
@@ -222,7 +222,7 @@ void NXGUIMaterial::RenderGUI_Unique_Terrain(NXTerrain* pTerrain)
 		ImGui::EndDragDropTarget();
 	}
 
-	// ¿ìËÙÑ¡Ôñµ¯´°£ºµİ¹éÃ¶¾Ù D:\\NixAssets ÏÂÈ«²¿ .ntl
+	// å¿«é€Ÿé€‰æ‹©å¼¹çª—ï¼šé€’å½’æšä¸¾ D:\\NixAssets ä¸‹å…¨éƒ¨ .ntl
 	if (ImGui::BeginPopup("##terrainlayer_select_popup"))
 	{
 		const std::filesystem::path searchRoot = "D:\\NixAssets";
@@ -251,7 +251,7 @@ void NXGUIMaterial::RenderGUI_Unique_Terrain(NXTerrain* pTerrain)
 
 void NXGUIMaterial::RenderGUI_Unique_TerrainLayer(NXTerrain* pTerrain, NXTerrainLayer* pTerrainLayer)
 {
-	// Height-Map Ğ¡Í¼±ê + ÍÏ·Å
+	// Height-Map å°å›¾æ ‡ + æ‹–æ”¾
 	RenderGUI_Unique_TerrainLayer_Connection(pTerrain, pTerrainLayer);
 
 	ImGui::Text("Height Map:");
@@ -286,12 +286,12 @@ void NXGUIMaterial::RenderGUI_Unique_TerrainLayer_Connection(NXTerrain* pTerrain
 
 	ImGui::Text("Connection: ");
 	ImVec2 regionSize = ImGui::GetContentRegionAvail();
-	regionSize.y = std::min(regionSize.y, 120.0f); // ÏŞ¸ß120
-	ImGui::BeginChild("TableRegion", regionSize, true); // ¿ªÆô±ß¿ò
+	regionSize.y = std::min(regionSize.y, 120.0f); // é™é«˜120
+	ImGui::BeginChild("TableRegion", regionSize, true); // å¼€å¯è¾¹æ¡†
 	int columnCount = 2;
 	if (ImGui::BeginTable("RenderGraphTableFlipped", columnCount, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
 	{
-		// ±íÍ·
+		// è¡¨å¤´
 		ImGui::TableSetupColumn("Resource");
 		ImGui::TableSetupColumn("Connection");
 		ImGui::TableHeadersRow();
@@ -301,11 +301,11 @@ void NXGUIMaterial::RenderGUI_Unique_TerrainLayer_Connection(NXTerrain* pTerrain
 			ImGui::TableSetColumnIndex(0);
 			ImGui::TextUnformatted(resourceName);
 			ImGui::TableSetColumnIndex(1);
-			if (state) ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Lost"); // ºìÉ«
-			else ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Connected"); // ÂÌÉ«
+			if (state) ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Lost"); // çº¢è‰²
+			else ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Connected"); // ç»¿è‰²
 			};
 
-		// ¸ß¶ÈÍ¼
+		// é«˜åº¦å›¾
 		drawRow("Height Map", pTerrainLayer->GetHeightMapTexture().IsNull());
 
 		ImGui::EndTable();
@@ -317,12 +317,12 @@ void NXGUIMaterial::RenderGUI_Unique_TerrainLayer_Connection(NXTerrain* pTerrain
 
 void NXGUIMaterial::RenderMaterialUI_Custom(NXCustomMaterial* pMaterial)
 {
-	// TODO: ¸Ğ¾õ m_pLastMaterial Ğ´ÔÚÕâÀï²»Ì«ºÏÊÊ£¬Ğ´ÔÚÀàËÆ Update Ö®ÀàµÄµØ·½»á¸üºÃ
-	// µ«ÏÖÔÚÀÁµÃ×ö GUI Update µÄÊµÏÖ ËùÒÔÏÈÕâÃ´·Å×ÅÁË¡­¡­
+	// TODO: æ„Ÿè§‰ m_pLastMaterial å†™åœ¨è¿™é‡Œä¸å¤ªåˆé€‚ï¼Œå†™åœ¨ç±»ä¼¼ Update ä¹‹ç±»çš„åœ°æ–¹ä¼šæ›´å¥½
+	// ä½†ç°åœ¨æ‡’å¾—åš GUI Update çš„å®ç° æ‰€ä»¥å…ˆè¿™ä¹ˆæ”¾ç€äº†â€¦â€¦
 	if (m_pLastMaterial != pMaterial)
 		m_bIsDirty = true;
 
-	// ½«²ÄÖÊÊı¾İÍ¬²½µ½ GUI²ÄÖÊÀà
+	// å°†æè´¨æ•°æ®åŒæ­¥åˆ° GUIæè´¨ç±»
 	if (m_bIsDirty)
 	{
 		SyncMaterialData(pMaterial);
@@ -331,7 +331,7 @@ void NXGUIMaterial::RenderMaterialUI_Custom(NXCustomMaterial* pMaterial)
 
 	//ImGui::BeginChild("##material_custom", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y * 0.6f));
 	{
-		// ½ûÓÃÊ÷½ÚµãÊ×ĞĞËõ½ø
+		// ç¦ç”¨æ ‘èŠ‚ç‚¹é¦–è¡Œç¼©è¿›
 		ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 0.0f);
 		RenderMaterialUI_Custom_Parameters(pMaterial);
 

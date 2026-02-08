@@ -54,17 +54,17 @@ protected:
 	ComPtr<ID3D12PipelineState> m_pPSO;
 	ComPtr<ID3D12RootSignature> m_pRootSig;
 
-	// ²ÄÖÊÎÄ¼şÂ·¾¶
+	// æè´¨æ–‡ä»¶è·¯å¾„
 	std::filesystem::path m_filePath;
 
 private:
-	// Ó³Éä±í£¬¼ÇÂ¼ÄÄĞ©SubmeshÊ¹ÓÃÁËÕâ¸ö²ÄÖÊ
+	// æ˜ å°„è¡¨ï¼Œè®°å½•å“ªäº›Submeshä½¿ç”¨äº†è¿™ä¸ªæè´¨
 	std::vector<NXSubMeshBase*> m_pRefSubMeshes;
 	UINT m_RefSubMeshesCleanUpCount;
 };
 
 // 2023.6.4
-// ÏÔÊ¾ÕıÔÚ¼ÓÔØ¡¢¼ÓÔØÊ§°ÜµÈÖĞ¼ä×´Ì¬µÄ¹ı¶ÉÎÆÀí
+// æ˜¾ç¤ºæ­£åœ¨åŠ è½½ã€åŠ è½½å¤±è´¥ç­‰ä¸­é—´çŠ¶æ€çš„è¿‡æ¸¡çº¹ç†
 class NXEasyMaterial : public NXMaterial
 {
 public:
@@ -101,7 +101,7 @@ public:
 	void CompileShader(const std::string& strGBufferShader, const NXMaterialData& guiData, std::string& oErrorMessageVS, std::string& oErrorMessagePS);
 	bool Recompile(const NXMaterialData& guiData, const NXMaterialCode& code, const NXMaterialData& guiDataBackup, const NXMaterialCode& codeBackup, std::string& oErrorMessageVS, std::string& oErrorMessagePS);
 
-	// ³õÊ¼»¯ËùÓĞ×ÅÉ«Æ÷×ÊÔ´£¬°üÀ¨ cb, tex, sampler
+	// åˆå§‹åŒ–æ‰€æœ‰ç€è‰²å™¨èµ„æºï¼ŒåŒ…æ‹¬ cb, tex, sampler
 	void InitShaderResources();
 
 	virtual void Update() override;
@@ -116,8 +116,8 @@ public:
 
 	void RequestUpdateCBufferData(bool bNeedRebuildCB);
 
-	// ½«µ±Ç°µÄ param, code, funcs[] ÖØĞÂÕûºÏ³É nsl ÎÄ¼ş£¬
-	// Ò»°ãÔÚ±£´æÊ±µ÷ÓÃ´Ë·½·¨¡£
+	// å°†å½“å‰çš„ param, code, funcs[] é‡æ–°æ•´åˆæˆ nsl æ–‡ä»¶ï¼Œ
+	// ä¸€èˆ¬åœ¨ä¿å­˜æ—¶è°ƒç”¨æ­¤æ–¹æ³•ã€‚
 	void SaveToNSLFile();
 
 	void SetSSSProfile(const std::filesystem::path& path) { m_sssProfilePath = path; }
@@ -129,11 +129,11 @@ public:
 
 	bool GetCompileSuccess() { return m_bCompileSuccess; }
 
-	// »ñÈ¡ pso RS BS DS Èı´ó×´Ì¬
+	// è·å– pso RS BS DS ä¸‰å¤§çŠ¶æ€
 	void UpdatePSORenderStates(D3D12_GRAPHICS_PIPELINE_STATE_DESC& oPSODesc, const NXMaterialData& guiData);
 
 private:
-	// ¶ÁÈ¡ nsl ÎÄ¼ş
+	// è¯»å– nsl æ–‡ä»¶
 	bool LoadShaderStringFromFile(std::string& shaderContent);
 
 	void UpdateCBData(bool rebuildCB);
@@ -152,7 +152,7 @@ private:
 	NXMaterialData							m_materialDatas; 
 	NXMaterialCode							m_codeBlocks; 
 
-	// SSS profile µÄÂ·¾¶
+	// SSS profile çš„è·¯å¾„
 	std::filesystem::path					m_sssProfilePath;
 	UINT8									m_sssProfileGBufferIndexInternal;
 };

@@ -6,7 +6,7 @@
 
 class NXTexture2D;
 class NXShaderVisibleDescriptorHeap;
-// 2023.6.1 用于渲染视口RT
+// 2023.6.1 鐢ㄤ簬娓叉煋瑙嗗彛RT
 class NXGUIView
 {
 	enum class ViewMode

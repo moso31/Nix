@@ -2,26 +2,26 @@
 #include "NXShaderDefinitions.h"
 #include "NXCodeProcessHeader.h"
 
-// ÏÔÊ¾ShaderµÄ´íÎóĞÅÏ¢£¬×î¶à²»ÔÊĞí³¬¹ı NXGUI_ERROR_MESSAGE_MAXLIMIT Ìõ
+// æ˜¾ç¤ºShaderçš„é”™è¯¯ä¿¡æ¯ï¼Œæœ€å¤šä¸å…è®¸è¶…è¿‡ NXGUI_ERROR_MESSAGE_MAXLIMIT æ¡
 #define NXGUI_ERROR_MESSAGE_MAXLIMIT 50
 
 struct NXGUICodeEditorPickingData
 {
 	int mode = 0; // 0 : pass code; 1 : custom functions.
-	int passFuncId = 0; // µÚ¼¸¸öpass
-	int passEntryId = 0; // Èë¿Úµãº¯ÊıÀàĞÍ£¬0=vs, 1=ps
-	int customFuncId = 0; // µÚ¼¸¸öcustomFunc
+	int passFuncId = 0; // ç¬¬å‡ ä¸ªpass
+	int passEntryId = 0; // å…¥å£ç‚¹å‡½æ•°ç±»å‹ï¼Œ0=vs, 1=ps
+	int customFuncId = 0; // ç¬¬å‡ ä¸ªcustomFunc
 };
 
 struct NXGUIShaderErrorMessage
 {
-	// ¾ßÌåµÄ±àÒë´íÎóĞÅÏ¢
+	// å…·ä½“çš„ç¼–è¯‘é”™è¯¯ä¿¡æ¯
 	std::string data;
 
-	// ³ö´íµÄ¾ßÌåÒ³Ãæ
+	// å‡ºé”™çš„å…·ä½“é¡µé¢
 	NXGUICodeEditorPickingData page;
 
-	// ³ö´íµÄ£¬ĞĞºÅ£¬ÁĞºÅ×óÆğ£¬ÁĞºÅÓÒÖÁ
+	// å‡ºé”™çš„ï¼Œè¡Œå·ï¼Œåˆ—å·å·¦èµ·ï¼Œåˆ—å·å³è‡³
 	int row = 0;
 	int col0 = 0;
 	int col1 = 0;
@@ -43,10 +43,10 @@ public:
 	void Render();
 	void Show() { m_bShowWindow = true; }
 
-	// ¸üĞÂShader±àÒë´íÎóĞÅÏ¢£¨±àÒë²ÄÖÊ³ö´íÊ±´¥·¢£©
+	// æ›´æ–°Shaderç¼–è¯‘é”™è¯¯ä¿¡æ¯ï¼ˆç¼–è¯‘æè´¨å‡ºé”™æ—¶è§¦å‘ï¼‰
 	void ClearShaderErrorMessages();
 
-	// ¸üĞÂShader±àÒë´íÎóĞÅÏ¢£¨±àÒë²ÄÖÊ³ö´íÊ±´¥·¢£©
+	// æ›´æ–°Shaderç¼–è¯‘é”™è¯¯ä¿¡æ¯ï¼ˆç¼–è¯‘æè´¨å‡ºé”™æ—¶è§¦å‘ï¼‰
 	void UpdateShaderErrorMessages(const std::string& strCompileErrorVS, const std::string& strCompileErrorPS);
 
 	void RequestSyncMaterialData();
@@ -106,21 +106,21 @@ private:
 	NXGUICodeEditorPickingData m_pickingData;
 	NXGUICodeEditorPickingData m_pickingDataLast;
 
-	// ²ÄÖÊ²ÎÊı¿ÉÄÜ±»ÒÆ³ı£¬µ«²»ÒªÔÚrender¹ı³ÌÖĞÒÆ³ıÕıÔÚ±à¼­µÄÊı¾İ£¬µÈrender½áÊøÔÚÒÆ³ı
+	// æè´¨å‚æ•°å¯èƒ½è¢«ç§»é™¤ï¼Œä½†ä¸è¦åœ¨renderè¿‡ç¨‹ä¸­ç§»é™¤æ­£åœ¨ç¼–è¾‘çš„æ•°æ®ï¼Œç­‰renderç»“æŸåœ¨ç§»é™¤
 	std::vector<NXMatDataBase*> m_guiRemoving;
 
-	// ²ÄÖÊ²ÎÊı
+	// æè´¨å‚æ•°
 	NXMaterialData m_guiData;
 	NXMaterialData m_guiDataBackup;
 
-	// ²ÄÖÊ´úÂë
+	// æè´¨ä»£ç 
 	NXMaterialCode m_guiCodes;
 	NXMaterialCode m_guiCodesBackup;
 
-	// ÏÔÊ¾ShaderµÄ´íÎóĞÅÏ¢
+	// æ˜¾ç¤ºShaderçš„é”™è¯¯ä¿¡æ¯
 	NXGUIShaderErrorMessage m_shaderErrMsgs[NXGUI_ERROR_MESSAGE_MAXLIMIT];
 
-	// ËÑË÷À¸Ïà¹Ø
+	// æœç´¢æ ç›¸å…³
 	std::string m_strQuery;
 
 	bool m_bIsDirty = false;

@@ -51,7 +51,7 @@ NXVTImageQuadTree::NXVTImageQuadTree()
         int nodeCnt = 1 << (2 * i);
         m_freeNodes[i].Init(nodeCnt);
         m_state[i].assign(nodeCnt, NXVTImageNodeState::Unused);
-        m_node2sectors[i].assign(nodeCnt, Int2(INT_MIN)); // sectorID¿ÉÄÜÊÇ¸ºµÄ ÓÃINT_MIN±íÊ¾ÎÞÐ§
+        m_node2sectors[i].assign(nodeCnt, Int2(INT_MIN)); // sectorIDå¯èƒ½æ˜¯è´Ÿçš„ ç”¨INT_MINè¡¨ç¤ºæ— æ•ˆ
     }
 }
 
@@ -65,7 +65,7 @@ const Int2& NXVTImageQuadTree::GetSector(const Int2& virtImageMip0Pos, const int
 int NXVTImageQuadTree::SizeToLevel(int size)
 {
     assert(size > 0);
-    assert((size & (size - 1)) == 0); // ÊäÈësize±ØÐëÊÇPOTµÄ
+    assert((size & (size - 1)) == 0); // è¾“å…¥sizeå¿…é¡»æ˜¯POTçš„
 
     int lg = 0;
     while (size > 1) { size >>= 1; lg++; }

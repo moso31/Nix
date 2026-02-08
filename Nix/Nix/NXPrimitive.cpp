@@ -20,8 +20,8 @@ void NXPrimitive::CalculateTangents(bool bUpdateVBIB)
 
 bool NXPrimitive::RayCastPrimitive(const Ray& worldRay, NXHit& outHitInfo, float& outDist)
 {
-	// ±¾·½·¨ÓÃÓÚÇóPrimitiveºÍÉäÏßworldRayµÄ½»µã¡£±éÀúËùÓĞÈı½ÇĞÎÑ°ÕÒ×î½ü½»µã¡£
-	// »¹¿ÉÒÔ½øÒ»²½ÓÅ»¯³ÉBVH£¬µ«ÔİÊ±Ã»×ö¡£
+	// æœ¬æ–¹æ³•ç”¨äºæ±‚Primitiveå’Œå°„çº¿worldRayçš„äº¤ç‚¹ã€‚éå†æ‰€æœ‰ä¸‰è§’å½¢å¯»æ‰¾æœ€è¿‘äº¤ç‚¹ã€‚
+	// è¿˜å¯ä»¥è¿›ä¸€æ­¥ä¼˜åŒ–æˆBVHï¼Œä½†æš‚æ—¶æ²¡åšã€‚
 	Ray localRay = worldRay.Transform(m_worldMatrixInv);
 	bool bSuccess = false;
 

@@ -1,6 +1,6 @@
 #include "common.fx"
 
-// shadow map Ê¹ÓÃ¶ÀÁ¢µÄ viewproj ¾ØÕó
+// shadow map ä½¿ç”¨ç‹¬ç«‹çš„ viewproj çŸ©é˜µ
 cbuffer ConstantBufferShadowMap : register(b2)
 {
 	matrix m_csmView;

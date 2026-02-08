@@ -5,7 +5,7 @@ enum EditorObjectID;
 class NXHit;
 class NXScene;
 class NXPrimitive;
-// ±à¼­Æ÷ÎïÌå£¨=ÒÆ¶¯¼ıÍ·£¬Ğı×ªÖá ÕâÀàÎïÌåµÄMesh£©µÄ¹ÜÀíÀà
+// ç¼–è¾‘å™¨ç‰©ä½“ï¼ˆ=ç§»åŠ¨ç®­å¤´ï¼Œæ—‹è½¬è½´ è¿™ç±»ç‰©ä½“çš„Meshï¼‰çš„ç®¡ç†ç±»
 class NXEditorObjectManager
 {
 public:
@@ -34,6 +34,6 @@ private:
 	NXScene* m_pScene;
 	std::vector<NXPrimitive*> m_editorObjs;
 
-	// ÓÃÓÚ¿ØÖÆEditorObject-SubMesh-ÊÇ·ñ¸ßÁÁ
+	// ç”¨äºæ§åˆ¶EditorObject-SubMesh-æ˜¯å¦é«˜äº®
 	EditorObjectID m_uHighLightID;
 };

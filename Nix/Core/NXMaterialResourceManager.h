@@ -32,24 +32,24 @@ public:
 
     void Init();
 
-    // ±íÊ¾ ¼ÓÔØÖĞ ×´Ì¬µÄ¹ı¶É²ÄÖÊ
+    // è¡¨ç¤º åŠ è½½ä¸­ çŠ¶æ€çš„è¿‡æ¸¡æè´¨
     NXMaterial* GetLoadingMaterial() { return m_pLoadingMaterial; }
 
-    // ±íÊ¾ ¼ÓÔØ´íÎó ×´Ì¬µÄ¹ı¶É²ÄÖÊ
+    // è¡¨ç¤º åŠ è½½é”™è¯¯ çŠ¶æ€çš„è¿‡æ¸¡æè´¨
     NXMaterial* GetErrorMaterial() { return m_pErrorMaterial; }
 
-    // »ñÈ¡²ÄÖÊÊı×é
+    // è·å–æè´¨æ•°ç»„
     const std::vector<NXMaterial*>& GetMaterials() { return m_pMaterialArray; }
 
-    // ×¢²áÒ»¸öĞÂ²ÄÖÊnewMaterial¡£
+    // æ³¨å†Œä¸€ä¸ªæ–°æè´¨newMaterialã€‚
     void RegisterMaterial(NXMaterial* newMaterial);
 
-    // Í¨¹ı²ÄÖÊÎÄ¼şÂ·¾¶²éÕÒ²ÄÖÊ£¬Èç¹ûÃ»ÕÒµ½Ôò·µ»Ønullptr¡£
+    // é€šè¿‡æè´¨æ–‡ä»¶è·¯å¾„æŸ¥æ‰¾æè´¨ï¼Œå¦‚æœæ²¡æ‰¾åˆ°åˆ™è¿”å›nullptrã€‚
     NXMaterial* FindMaterial(const std::filesystem::path& path);
 
-    // ÒÆ³ıÒ»¸ö¾É²ÄÖÊoldMaterial£¬»»ÉÏÒ»¸öĞÂ²ÄÖÊnewMaterial¡£
-    // ÔÚ±ä¸ü ²ÄÖÊ±à¼­Æ÷ÖĞµÄ²ÄÖÊÀàĞÍ Ê±»áµ÷ÓÃ´Ë·½·¨¡£
-    // 2023.3.26 ÕâÀïÖ»¸ºÔğ²ÄÖÊÊı×éµÄÔöÉ¾²Ù×÷¡£²ÄÖÊºÍÆäËû×ÊÔ´µÄ¹ØÁª»áÔÚÍâ²¿ÊµÏÖ£¬¼ûReTypeMaterial¡£
+    // ç§»é™¤ä¸€ä¸ªæ—§æè´¨oldMaterialï¼Œæ¢ä¸Šä¸€ä¸ªæ–°æè´¨newMaterialã€‚
+    // åœ¨å˜æ›´ æè´¨ç¼–è¾‘å™¨ä¸­çš„æè´¨ç±»å‹ æ—¶ä¼šè°ƒç”¨æ­¤æ–¹æ³•ã€‚
+    // 2023.3.26 è¿™é‡Œåªè´Ÿè´£æè´¨æ•°ç»„çš„å¢åˆ æ“ä½œã€‚æè´¨å’Œå…¶ä»–èµ„æºçš„å…³è”ä¼šåœ¨å¤–éƒ¨å®ç°ï¼Œè§ReTypeMaterialã€‚
     void ReplaceMaterial(NXMaterial* oldMaterial, NXMaterial* newMaterial);
 
     NXMaterial* LoadFromNSLFile(const std::filesystem::path& matFilePath);
@@ -68,21 +68,21 @@ private:
     void AdjustDiffuseProfileRenderData(PathHashValue pathHash, UINT index);
 
 private:
-    NXMaterial* m_pLoadingMaterial = nullptr;   // ÓÃÓÚÏÔÊ¾ ¼ÓÔØÖĞ ×´Ì¬µÄ²ÄÖÊ
-    NXMaterial* m_pErrorMaterial = nullptr;     // ÓÃÓÚÏÔÊ¾ ¼ÓÔØ´íÎó ×´Ì¬µÄ²ÄÖÊ
+    NXMaterial* m_pLoadingMaterial = nullptr;   // ç”¨äºæ˜¾ç¤º åŠ è½½ä¸­ çŠ¶æ€çš„æè´¨
+    NXMaterial* m_pErrorMaterial = nullptr;     // ç”¨äºæ˜¾ç¤º åŠ è½½é”™è¯¯ çŠ¶æ€çš„æè´¨
     std::vector<NXMaterial*> m_pMaterialArray;
 
 	std::vector<NXMaterial*> m_pUnusedMaterials;
 
     Ntr<NXSSSDiffuseProfile> m_defaultDiffuseProfile;
 
-    // ¼ÇÂ¼ËùÓĞ³¡¾°ÖĞÊ¹ÓÃµÄ SSS Profiler
+    // è®°å½•æ‰€æœ‰åœºæ™¯ä¸­ä½¿ç”¨çš„ SSS Profiler
     std::map<PathHashValue, Ntr<NXSSSDiffuseProfile>> m_sssProfilesMap;
 
     // 2023.11.11
-    // ÔÚ Nix ÖĞ£¬GBuffer ½«Ê¹ÓÃÄ³ÕÅRT£¨¾ßÌåÊÇÄÄÕÅRT£¬¼û×îĞÂÏà¹Ø´úÂë£©µÄ 8bit£¬¼ÇÂ¼µ±Ç°ÏñËØÊ¹ÓÃÁËÄÄ¸ö SSSProfile¡£
-    // m_SSSProfileCBufferIndexMap ¸ºÔğÔÚÔ­Ê¼ÎÄ¼ş HashValue ºÍ 8bit Ö®¼ä½¨Á¢Ò»¶ÔÒ»Ó³Éä¡£
-    // ÓÉ´Ë¾Í¿ÉÒÔÖªµÀ m_sssProfilesMap µÄÃ¿¸ö SSSProfile ÔÚ GBufferRT ÖĞµÄ 8bit ±àºÅ¡£
+    // åœ¨ Nix ä¸­ï¼ŒGBuffer å°†ä½¿ç”¨æŸå¼ RTï¼ˆå…·ä½“æ˜¯å“ªå¼ RTï¼Œè§æœ€æ–°ç›¸å…³ä»£ç ï¼‰çš„ 8bitï¼Œè®°å½•å½“å‰åƒç´ ä½¿ç”¨äº†å“ªä¸ª SSSProfileã€‚
+    // m_SSSProfileCBufferIndexMap è´Ÿè´£åœ¨åŸå§‹æ–‡ä»¶ HashValue å’Œ 8bit ä¹‹é—´å»ºç«‹ä¸€å¯¹ä¸€æ˜ å°„ã€‚
+    // ç”±æ­¤å°±å¯ä»¥çŸ¥é“ m_sssProfilesMap çš„æ¯ä¸ª SSSProfile åœ¨ GBufferRT ä¸­çš„ 8bit ç¼–å·ã€‚
     std::map<PathHashValue, UINT8> m_sssProfileGBufferIndexMap;
 
     // SSS profile CBuffer

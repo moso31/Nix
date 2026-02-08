@@ -8,8 +8,8 @@ void NXRGFrameResources::Register(NXRGHandle handle, const Ntr<NXResource>& pRes
 
 Ntr<NXResource> NXRGFrameResources::GetRes(NXRGHandle handle) const
 {
-	// 在FrameResource里查找handle对于的实际NXResource*指针
-	// 必然查的到，查不到说明代码有问题
+	// 鍦‵rameResource閲屾煡鎵緃andle瀵逛簬鐨勫疄闄匩XResource*鎸囬拡
+	// 蹇呯劧鏌ョ殑鍒帮紝鏌ヤ笉鍒拌鏄庝唬鐮佹湁闂
 	auto it = resources.find(handle);
 	if (it != resources.end()) return it->second;
 	

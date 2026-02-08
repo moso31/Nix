@@ -66,7 +66,7 @@ Vector3 NXPPMIntegrator::Radiance(const Ray& cameraRay, const std::shared_ptr<NX
 	m_pixelInfo.radius2 = FLT_MAX;
 	m_pixelInfo.flux = Vector3(0.0f);
 
-	int nPhotonsAtOnce = 100000;	// Ò»´ÎPPMµü´úËù×¼±¸µÄ¹â×ÓÊıÁ¿
+	int nPhotonsAtOnce = 100000;	// ä¸€æ¬¡PPMè¿­ä»£æ‰€å‡†å¤‡çš„å…‰å­æ•°é‡
 	int nPhotonsAtAll = 0;
 	Vector3 L(0.0f);
 	for (int t = 0; t < 1; t++);
@@ -82,24 +82,24 @@ Vector3 NXPPMIntegrator::Radiance(const Ray& cameraRay, const std::shared_ptr<NX
 			});
 
 		float distSqr;
-		if (!m_pixelInfo.photons)	// ÊÇµÚÒ»´Î
+		if (!m_pixelInfo.photons)	// æ˜¯ç¬¬ä¸€æ¬¡
 		{
 			m_pPhotonMap->GetNearest(pos, norm, distSqr, nearestPhotons, 500, FLT_MAX, LocateFilter::Disk);
-			m_pixelInfo.radius2 = distSqr;	// µÚÒ»´ÎĞèÒª½èÖúÊıÁ¿Çó³ö°ë¾¶¡£
+			m_pixelInfo.radius2 = distSqr;	// ç¬¬ä¸€æ¬¡éœ€è¦å€ŸåŠ©æ•°é‡æ±‚å‡ºåŠå¾„ã€‚
 		}
-		else // µÚ2-n´Î
+		else // ç¬¬2-næ¬¡
 			m_pPhotonMap->GetNearest(pos, norm, distSqr, nearestPhotons, -1, m_pixelInfo.radius2, LocateFilter::Disk);
 		if (nearestPhotons.empty())
 			return Vector3(0.0f);
 
-		int photonCount = (int)nearestPhotons.size();	// ĞÂµÄ¹â×ÓÊıÁ¿
+		int photonCount = (int)nearestPhotons.size();	// æ–°çš„å…‰å­æ•°é‡
 		float estimateArea = XM_PI * m_pixelInfo.radius2;
 		float estimateDestiny = (float)(m_pixelInfo.photons + photonCount) / estimateArea;
 
-		float alpha = m_pixelInfo.photons ? 0.7f : 1.0f;	// µÚÒ»´ÎÉèÎª1.0f£¨ÍêÈ«±£Áô£©£¬ºóĞø0.7f£¨²¿·Ö±£Áô£©¡£
+		float alpha = m_pixelInfo.photons ? 0.7f : 1.0f;	// ç¬¬ä¸€æ¬¡è®¾ä¸º1.0fï¼ˆå®Œå…¨ä¿ç•™ï¼‰ï¼Œåç»­0.7fï¼ˆéƒ¨åˆ†ä¿ç•™ï¼‰ã€‚
 		float ds = (m_pixelInfo.photons + alpha * (float)photonCount) / (m_pixelInfo.photons * (float)photonCount);
 
-		// ĞÂµÄ¹À¼Æ°ë¾¶
+		// æ–°çš„ä¼°è®¡åŠå¾„
 		float newRadius2 = m_pixelInfo.radius2 * ds;	
 
 		while (!nearestPhotons.empty())
@@ -109,7 +109,7 @@ Vector3 NXPPMIntegrator::Radiance(const Ray& cameraRay, const std::shared_ptr<NX
 			m_pixelInfo.flux += f * photon.power;
 			nearestPhotons.pop();
 		}
-		// ĞÂµÄÍ¨Á¿
+		// æ–°çš„é€šé‡
 		Vector3 newFlux = m_pixelInfo.flux * ds;
 		L = newFlux / (XM_PI * newRadius2 * (float)nPhotonsAtAll);
 	}

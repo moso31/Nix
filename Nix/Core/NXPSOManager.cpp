@@ -20,9 +20,9 @@ ID3D12PipelineState* NXPSOManager::Create(const D3D12_GRAPHICS_PIPELINE_STATE_DE
 
 void NXPSOManager::FrameCleanup()
 {
-	// 清理已经被替换的PSO.
-	// 由于GPU是异步的，因此需要等待GPU信号，才能释放PSO
-	// 只要currentGPUFenceValue > PSO的frameValue，就说明该PSO没有GPU占用，可以释放了
+	// 娓呯悊宸茬粡琚浛鎹㈢殑PSO.
+	// 鐢变簬GPU鏄紓姝ョ殑锛屽洜姝ら渶瑕佺瓑寰匞PU淇″彿锛屾墠鑳介噴鏀綪SO
+	// 鍙currentGPUFenceValue > PSO鐨刦rameValue锛屽氨璇存槑璇SO娌℃湁GPU鍗犵敤锛屽彲浠ラ噴鏀句簡
 	UINT64 currentGPUFenceValue = NXGlobalDX::s_globalfence->GetCompletedValue();
 	std::erase_if(m_psoWaitForReleaseList, [currentGPUFenceValue](NXPSOData& psoData)
 		{

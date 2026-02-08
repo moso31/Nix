@@ -1,36 +1,36 @@
 #ifndef TERRAIN_COMMON_FX
 #define TERRAIN_COMMON_FX
 
-// Í¨ÓÃºê¶¨Òå
+// é€šç”¨å®å®šä¹‰
 #define NodeDescArrayNum 1024
 #define NodeDescUpdateIndicesNum 4
 
-// ×îĞ¡µØĞÎ×ø±ê
+// æœ€å°åœ°å½¢åæ ‡
 #define MinTerrainCoord -8192
 
-// µØĞÎ½ÚµãÃèÊö½á¹¹Ìå
+// åœ°å½¢èŠ‚ç‚¹æè¿°ç»“æ„ä½“
 struct CBufferTerrainNodeDescription
 {
-	// µØĞÎ×óÏÂ½ÇXZ½Úµã×ø±ê£¨×óÊÖ×ø±êÏµ£©
+	// åœ°å½¢å·¦ä¸‹è§’XZèŠ‚ç‚¹åæ ‡ï¼ˆå·¦æ‰‹åæ ‡ç³»ï¼‰
     int2 positionWS;
 
-	// ½ÚµãµÄminmaxZÊı¾İ
+	// èŠ‚ç‚¹çš„minmaxZæ•°æ®
     float2 minmaxZ;
 
-	// ½Úµã´óĞ¡£¬Ò»¶¨ÊÇ2µÄÕûÊıÃİ
+	// èŠ‚ç‚¹å¤§å°ï¼Œä¸€å®šæ˜¯2çš„æ•´æ•°å¹‚
     uint size;
 
     uint3 padding; // 16 byte align
 };
 
-// µØĞÎ½Úµã¸üĞÂĞÅÏ¢½á¹¹Ìå
+// åœ°å½¢èŠ‚ç‚¹æ›´æ–°ä¿¡æ¯ç»“æ„ä½“
 struct CBufferTerrainNodeDescUpdateInfo
 {
-	// ÒªÌæ»»µÄË÷Òı
+	// è¦æ›¿æ¢çš„ç´¢å¼•
     int newIndex;
 
-	// ±»Ìæ»»µÄ¾ÉĞÅÏ¢ºÍ´óĞ¡
-	// ×¢ÒâÈç¹ûÊÇ²»ĞèÒªreplace£¬Ôòsize = 0;
+	// è¢«æ›¿æ¢çš„æ—§ä¿¡æ¯å’Œå¤§å°
+	// æ³¨æ„å¦‚æœæ˜¯ä¸éœ€è¦replaceï¼Œåˆ™size = 0;
     int2 replacePosWS;
     int replaceSize;
 };

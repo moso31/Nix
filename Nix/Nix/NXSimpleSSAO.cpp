@@ -25,7 +25,7 @@
 //	// SSAO Params
 //	InitSSAOParams();
 //
-//	// Éú³ÉËæ»ú²ÉÑùĞòÁĞ
+//	// ç”Ÿæˆéšæœºé‡‡æ ·åºåˆ—
 //	GenerateSamplePosition();
 //}
 //
@@ -66,7 +66,7 @@
 //	int threadCountY = ((int)m_rtSize.y + 7) / 8;
 //	g_pContext->Dispatch(threadCountX, threadCountY, 1);
 //
-//	// ÓÃÍêÒÔºóÇå¿Õ¶ÔÓ¦²ÛÎ»µÄSRV£¬²»È»ÏÂÒ»Ö¡´¦ÀíDepthPrepassÊ±DSV°ó²»ÉÏ¡£
+//	// ç”¨å®Œä»¥åæ¸…ç©ºå¯¹åº”æ§½ä½çš„SRVï¼Œä¸ç„¶ä¸‹ä¸€å¸§å¤„ç†DepthPrepassæ—¶DSVç»‘ä¸ä¸Šã€‚
 //	ComPtr<ID3D11ShaderResourceView> pSRVNull[3] = { nullptr, nullptr, nullptr };
 //	g_pContext->CSSetShaderResources(0, 3, pSRVNull->GetAddressOf());
 //

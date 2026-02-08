@@ -53,7 +53,7 @@ void NXVirtualTexture::Release()
 
 void NXVirtualTexture::Update()
 {
-	// ½öÊ×Ö¡Ö´ĞĞ: Sector2VirtImg IndirectTexture È«ÏñËØ³õÊ¼»¯-1
+	// ä»…é¦–å¸§æ‰§è¡Œ: Sector2VirtImg IndirectTexture å…¨åƒç´ åˆå§‹åŒ–-1
 	if (m_bNeedClearSector2VirtImg)
 	{
 		RegisterClearSector2VirtImgPass();
@@ -113,7 +113,7 @@ void NXVirtualTexture::UpdateNearestSectors()
 
 	Vector2 camPosXZ = m_pCamera->GetTranslation().GetXZ();
 
-	// »ñÈ¡±¾Ö¡×îĞÂµÄsectors
+	// è·å–æœ¬å¸§æœ€æ–°çš„sectors
 	Vector2 sectorPosXZ = Vector2::Floor(camPosXZ * SECTOR_SIZEF_INV);
 	Int2 camSectorXZ(sectorPosXZ); 
 	int sectorRange = (m_vtSectorLodMaxDist + SECTOR_SIZE) >> SECTOR_SIZE_LOG2;
@@ -127,16 +127,16 @@ void NXVirtualTexture::UpdateNearestSectors()
 			{
 				int size = VTIMAGE_MAX_NODE_SIZE >> GetVTImageSizeFromDist2(dist2);
 
-				// ±£³ÖÕâÀïpushµÄsectorIDÊÇÉıĞòµÄ£¬²»È»Á½Ö¡¹ØÏµ±È¶Ô»á³ö´í
+				// ä¿æŒè¿™é‡Œpushçš„sectorIDæ˜¯å‡åºçš„ï¼Œä¸ç„¶ä¸¤å¸§å…³ç³»æ¯”å¯¹ä¼šå‡ºé”™
 				m_sectors.push_back(NXVTSector(sectorID, size));
 			}
 		}
 	}
 
-	// Á½Ö¡¹ØÏµ±È¶Ô
-	std::vector<NXVTSector> createSector; // ±¾Ö¡´´½¨µÄ
-	std::vector<NXVTSector> removeSector; // ±¾Ö¡ÒÆ³ıµÄ
-	std::vector<NXVTChangeSector> changeSector; // ±¾Ö¡Éı¼¶/½µ¼¶µÄ
+	// ä¸¤å¸§å…³ç³»æ¯”å¯¹
+	std::vector<NXVTSector> createSector; // æœ¬å¸§åˆ›å»ºçš„
+	std::vector<NXVTSector> removeSector; // æœ¬å¸§ç§»é™¤çš„
+	std::vector<NXVTChangeSector> changeSector; // æœ¬å¸§å‡çº§/é™çº§çš„
 	m_cbDataRemoveSector.clear();
 	m_cbDataMigrateRemoveSector.clear();
 	m_cbDataMigrateSector.clear();
@@ -178,7 +178,7 @@ void NXVirtualTexture::UpdateNearestSectors()
 	while (i < m_lastSectors.size()) { removeSector.push_back(m_lastSectors[i]); i++; }
 	while (j < m_sectors.size()) { createSector.push_back(m_sectors[j]); j++; }
 
-	// ×¼±¸¸üĞÂ Sector2VirtImg
+	// å‡†å¤‡æ›´æ–° Sector2VirtImg
 	for (auto& s : createSector)
 	{
 		Int2 virtImgPos = m_pVirtImageQuadTree->Alloc(s.imageSize, s.id);
@@ -198,7 +198,7 @@ void NXVirtualTexture::UpdateNearestSectors()
 			CBufferRemoveSector removeData;
 			removeData.imagePos = virtImgPos;
 			removeData.imageSize = s.imageSize;
-			removeData.maxRemoveMip = 114514; // ÒÆ³ıËùÓĞMip£¬¹»´ó¾ÍĞĞ
+			removeData.maxRemoveMip = 114514; // ç§»é™¤æ‰€æœ‰Mipï¼Œå¤Ÿå¤§å°±è¡Œ
 			m_cbDataRemoveSector.push_back(removeData);
 		}
 		else
@@ -229,7 +229,7 @@ void NXVirtualTexture::UpdateNearestSectors()
 			migrateData.toImageSize = s.changedImageSize;
 			auto& A = migrateData.fromImageSize;
 			auto& B = migrateData.toImageSize;
-			migrateData.mipDelta = std::countr_zero((uint32_t)(std::max(A, B) / std::min(A, B))); // ÀıÈçlog2(from:32/to:8)=2£¬¼´´æÔÚ2¼¶mip²î
+			migrateData.mipDelta = std::countr_zero((uint32_t)(std::max(A, B) / std::min(A, B))); // ä¾‹å¦‚log2(from:32/to:8)=2ï¼Œå³å­˜åœ¨2çº§mipå·®
 			m_cbDataMigrateSector.push_back(migrateData);
 		}
 		else
@@ -245,7 +245,7 @@ void NXVirtualTexture::UpdateNearestSectors()
 
 	for (int i = 0; i < m_cbDataRemoveSector.size(); i++)
 	{
-		// Ò³±íÉ¾³ı
+		// é¡µè¡¨åˆ é™¤
 		auto& removeData = m_cbDataRemoveSector[i];
 		m_cbArrayRemoveSector[i].Update(removeData);
 		RegisterRemoveIndirectTextureSectorPass(m_cbArrayRemoveSector[i], removeData);
@@ -253,18 +253,18 @@ void NXVirtualTexture::UpdateNearestSectors()
 
 	for (int i = 0; i < m_cbDataMigrateSector.size(); i++)
 	{
-		// Ò³±íÇ¨ÒÆ£¨Éı/½µ sector£©
+		// é¡µè¡¨è¿ç§»ï¼ˆå‡/é™ sectorï¼‰
 		auto& migrateData = m_cbDataMigrateSector[i];
 		m_cbArrayMigrateSector[i].Update(migrateData);
 		RegisterMigrateIndirectTextureSectorPass(m_cbArrayMigrateSector[i], migrateData);
 
-		// ½µ²ÉÑù£¬´óÍ¼»»Ğ¡Í¼£¬´óÍ¼µÄÇ°mip¼¶Ò³±í Ò²ĞèÒªÍêÈ«Çå¿Õ
+		// é™é‡‡æ ·ï¼Œå¤§å›¾æ¢å°å›¾ï¼Œå¤§å›¾çš„å‰mipçº§é¡µè¡¨ ä¹Ÿéœ€è¦å®Œå…¨æ¸…ç©º
 		if (migrateData.fromImageSize > migrateData.toImageSize)
 		{
 			CBufferRemoveSector migrateRemoveData;
 			migrateRemoveData.imagePos = migrateData.fromImagePos;
 			migrateRemoveData.imageSize = migrateData.fromImageSize;
-			migrateRemoveData.maxRemoveMip = migrateData.mipDelta; // Çå¿ÕÇ°N¼¶mip
+			migrateRemoveData.maxRemoveMip = migrateData.mipDelta; // æ¸…ç©ºå‰Nçº§mip
 			m_cbDataMigrateRemoveSector.push_back(migrateRemoveData);
 		}
 	}
@@ -276,7 +276,7 @@ void NXVirtualTexture::UpdateNearestSectors()
 		RegisterRemoveIndirectTextureSectorPass(m_cbArrayMigrateRemoveSector[i], migrateRemoveData);
 	}
 
-	// ×¼±¸¸üĞÂ Sector2VirtImg
+	// å‡†å¤‡æ›´æ–° Sector2VirtImg
 	m_cbSector2VirtImg.Update(m_cbDataSector2VirtImg);
 	m_cbSector2VirtImgNum.Update((int)m_cbDataSector2VirtImg.size());
 }
@@ -352,7 +352,7 @@ void NXVirtualTexture::BakePhysicalPages()
 
 				if (oldKeyHash < UINT64_MAX - g_virtualTextureConfig.PhysicalPageTileNum)
 				{
-					uint32_t removePage = oldKeyHash & 0xFFFFFFFF; // LRUKeyµÄºó32Î» ºÍpageIDTextureµÄ¸ñÊ½ÍêÈ«Ò»ÖÂ
+					uint32_t removePage = oldKeyHash & 0xFFFFFFFF; // LRUKeyçš„å32ä½ å’ŒpageIDTextureçš„æ ¼å¼å®Œå…¨ä¸€è‡´
 					Int2 pageID((removePage >> 20) & 0xFFF, (removePage >> 8) & 0xFFF);
 					uint32_t gpuMip = (removePage >> 4) & 0xF;
 					uint32_t log2IndiTexSize = (removePage >> 0) & 0xF;

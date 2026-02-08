@@ -16,7 +16,7 @@ float4 RectGrid(float2 uv, out float2 vertexPosX, out float2 vertexPosY, out flo
     return result / t / t;
 } 
 
-// NXVTLRUKey ¶ÔÓ¦µÄ½á¹¹
+// NXVTLRUKey å¯¹åº”çš„ç»“æ„
 struct VTLRUKey
 {
 	int2 sector;
@@ -27,7 +27,7 @@ struct VTLRUKey
 	int _0;
 };
 
-// CBufferTerrainNodeDescription ¶ÔÓ¦µÄ½á¹¹
+// CBufferTerrainNodeDescription å¯¹åº”çš„ç»“æ„
 struct TerrainNodeDescription
 {
 	int2 positionWS;
@@ -59,10 +59,10 @@ SamplerState ssLinearWrap : register(s1);
 
 uint GetBestSector2NodeId(int2 sector)
 {
-    int2 sectorPixel = sector - SECTOR_MIN; // ²ÉÑùÊ±Æ«ÒÆÖÁÕı×ø±ê
+    int2 sectorPixel = sector - SECTOR_MIN; // é‡‡æ ·æ—¶åç§»è‡³æ­£åæ ‡
     
     int mip = 0;
-    while (mip < 6)  // mip0-5, ¹²6¼¶
+    while (mip < 6)  // mip0-5, å…±6çº§
     {
         uint nodeID = m_sector2NodeIDTex.Load(int3(sectorPixel, mip));
         if (nodeID != 0xffff)
@@ -70,10 +70,10 @@ uint GetBestSector2NodeId(int2 sector)
         sectorPixel >>= 1;
         mip++;
     }
-    return -1; // Î´ÕÒµ½ÓĞĞ§½Úµã
+    return -1; // æœªæ‰¾åˆ°æœ‰æ•ˆèŠ‚ç‚¹
 }
 
-// dtid: xy = µ±Ç°tileÄÚµÄÏñËØÎ»ÖÃ; z = ĞèÒªºæ±ºµÄpageIDË÷Òı
+// dtid: xy = å½“å‰tileå†…çš„åƒç´ ä½ç½®; z = éœ€è¦çƒ˜ç„™çš„pageIDç´¢å¼•
 [numthreads(8, 8, 1)]
 void CS(uint3 dtid : SV_DispatchThreadID) 
 {
@@ -86,7 +86,7 @@ void CS(uint3 dtid : SV_DispatchThreadID)
     
     TerrainNodeDescription nodeDesc = m_nodeDescArray[nodeID];
     float2 sectorPosWS = key.sector * SECTOR_SIZE; 
-    float nodeSize = nodeDesc.size - 1.0f; // splatÎÆÀí´óĞ¡ÊÇPOT+1 ĞèÒª¼õ»ØÀ´
+    float nodeSize = nodeDesc.size - 1.0f; // splatçº¹ç†å¤§å°æ˜¯POT+1 éœ€è¦å‡å›æ¥
     
     int shift = key.indiTexLog2Size - key.gpuMip;
     int2 sectorPageID = key.pageID >> shift << shift;
@@ -126,7 +126,7 @@ void CS(uint3 dtid : SV_DispatchThreadID)
     float4 base3 = m_txTerrainBaseColor.SampleLevel(ssLinearWrap, sampleW, 0);
     float4 terrainAlbedoMap = base0 * weight.x + base1 * weight.y + base2 * weight.z + base3 * weight.w;
 
-    // Ê¹ÓÃ physPageIdx Ğ´Èëµ½ÕıÈ·µÄÎïÀíÒ³Î»ÖÃ
+    // ä½¿ç”¨ physPageIdx å†™å…¥åˆ°æ­£ç¡®çš„ç‰©ç†é¡µä½ç½®
     m_txPhysicalPageAlbedo[uint3(dtid.xy, physPageIdx)] = terrainAlbedoMap;
     m_txPhysicalPageNormal[uint3(dtid.xy, physPageIdx)] = terrainNormalMap;
 }

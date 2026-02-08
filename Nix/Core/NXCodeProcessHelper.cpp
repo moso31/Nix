@@ -7,51 +7,51 @@ using namespace NXConvert;
 
 std::string NXCodeProcessHelper::RemoveHLSLComment(const std::string& strCode, bool removeUserEditable)
 {
-	// ÒÆ³ıÒ»¸östrCodeÖĞµÄËùÓĞ×¢ÊÍÄÚÈİ£¨¸ñÊ½±ØĞëÊÇHLSL£©¡£
-	// ¹æÔò£º
-	// 1. ´ÓÉÏÍùÏÂ±éÀú
-	// 2. ÈôÏÈ¼ì²âµ½ "//"
-	//		2a. È¥µôµ±Ç°ĞĞ//Ö®ºóµÄËùÓĞÄÚÈİ£¨result ÏàÍ¬Î»ÖÃ×Ö·û È«»»³É¿Õ¸ñ£©
-	// 3. ÈôÏÈ¼ì²âµ½ "/*"
-	//		3a. Ïòºó±éÀú£¬Ö±µ½Ñ°ÕÒµ½"*/"Í£ÏÂ
-	//		3b. È¥µô/*...*/Ö®¼äµÄËùÓĞÄÚÈİ£¨result ÏàÍ¬Î»ÖÃ×Ö·û È«»»³É¿Õ¸ñ£©
+	// ç§»é™¤ä¸€ä¸ªstrCodeä¸­çš„æ‰€æœ‰æ³¨é‡Šå†…å®¹ï¼ˆæ ¼å¼å¿…é¡»æ˜¯HLSLï¼‰ã€‚
+	// è§„åˆ™ï¼š
+	// 1. ä»ä¸Šå¾€ä¸‹éå†
+	// 2. è‹¥å…ˆæ£€æµ‹åˆ° "//"
+	//		2a. å»æ‰å½“å‰è¡Œ//ä¹‹åçš„æ‰€æœ‰å†…å®¹ï¼ˆresult ç›¸åŒä½ç½®å­—ç¬¦ å…¨æ¢æˆç©ºæ ¼ï¼‰
+	// 3. è‹¥å…ˆæ£€æµ‹åˆ° "/*"
+	//		3a. å‘åéå†ï¼Œç›´åˆ°å¯»æ‰¾åˆ°"*/"åœä¸‹
+	//		3b. å»æ‰/*...*/ä¹‹é—´çš„æ‰€æœ‰å†…å®¹ï¼ˆresult ç›¸åŒä½ç½®å­—ç¬¦ å…¨æ¢æˆç©ºæ ¼ï¼‰
 
 	std::string result = strCode;
 
 	size_t i = 0;
 	size_t end = strCode.length();
-	while (i < end) // 1. ´ÓÉÏÍùÏÂ±éÀú
+	while (i < end) // 1. ä»ä¸Šå¾€ä¸‹éå†
 	{
 		size_t pos2 = strCode.find("//", i);
 		size_t pos3 = strCode.find("/*", i);
 
-		if (pos2 < pos3) // 2. ÈôÏÈ¼ì²âµ½ "//"
+		if (pos2 < pos3) // 2. è‹¥å…ˆæ£€æµ‹åˆ° "//"
 		{
 			size_t pos2a = strCode.find("\n", pos2);
 			if (pos2a == std::string::npos) pos2a = end;
 
-			// 2a. È¥µôµ±Ç°ĞĞ//Ö®ºóµÄËùÓĞÄÚÈİ£¨result ÏàÍ¬Î»ÖÃ×Ö·û È«»»³É¿Õ¸ñ£©
+			// 2a. å»æ‰å½“å‰è¡Œ//ä¹‹åçš„æ‰€æœ‰å†…å®¹ï¼ˆresult ç›¸åŒä½ç½®å­—ç¬¦ å…¨æ¢æˆç©ºæ ¼ï¼‰
 			result.replace(pos2, pos2a - pos2, pos2a - pos2, ' ');
-			i = pos2a; // ¼ÌĞøÏòÏÂ±éÀú
+			i = pos2a; // ç»§ç»­å‘ä¸‹éå†
 		}
-		else if (pos3 < pos2) // 3. ÈôÏÈ¼ì²âµ½ "/*"
+		else if (pos3 < pos2) // 3. è‹¥å…ˆæ£€æµ‹åˆ° "/*"
 		{
-			// 3a. Ïòºó±éÀú£¬Ö±µ½Ñ°ÕÒµ½"*/"Í£ÏÂ
+			// 3a. å‘åéå†ï¼Œç›´åˆ°å¯»æ‰¾åˆ°"*/"åœä¸‹
 			size_t pos3a = strCode.find("*/", pos3);
 			if (pos3a == std::string::npos) pos3a = end;
 
-			// 3b. È¥µô/*...*/Ö®¼äµÄËùÓĞÄÚÈİ£¨result ÏàÍ¬Î»ÖÃ×Ö·û È«»»³É¿Õ¸ñ£©
+			// 3b. å»æ‰/*...*/ä¹‹é—´çš„æ‰€æœ‰å†…å®¹ï¼ˆresult ç›¸åŒä½ç½®å­—ç¬¦ å…¨æ¢æˆç©ºæ ¼ï¼‰
 			result.replace(pos3, pos3a - pos3 + 2, pos3a - pos3 + 2, ' ');
-			i = pos3a + 2; // ¼ÌĞøÏòÏÂ±éÀú
+			i = pos3a + 2; // ç»§ç»­å‘ä¸‹éå†
 		}
 		else 
 		{
-			// Ã»ÓĞ×¢ÊÍÁË£¬Ö±½ÓÍË³ö
+			// æ²¡æœ‰æ³¨é‡Šäº†ï¼Œç›´æ¥é€€å‡º
 			break;
 		}
 	}
 
-	// Èç¹ûÓÃ»§¿É±à¼­µÄ×¢ÊÍÒ²ÒªÒÆ³ı£¬ÄÇÃ´ÕâÀï¾Í¿ÉÒÔreturnÁË
+	// å¦‚æœç”¨æˆ·å¯ç¼–è¾‘çš„æ³¨é‡Šä¹Ÿè¦ç§»é™¤ï¼Œé‚£ä¹ˆè¿™é‡Œå°±å¯ä»¥returnäº†
 	if (removeUserEditable)
 		return result;
 
@@ -64,7 +64,7 @@ std::string NXCodeProcessHelper::RemoveHLSLComment(const std::string& strCode, b
 	};
 
 	std::vector<std::pair<int, int>> kBlocksPos;
-	// È·¶¨kBlocksµÄÆğÖ¹Î»ÖÃºÍ½áÊøÎ»ÖÃ
+	// ç¡®å®škBlocksçš„èµ·æ­¢ä½ç½®å’Œç»“æŸä½ç½®
 	for (const auto& block : kBlocks)
 	{
 		size_t left = result.find(block.start, 0);
@@ -83,7 +83,7 @@ std::string NXCodeProcessHelper::RemoveHLSLComment(const std::string& strCode, b
 		int st = block.first;
 		int ed = block.second;
 
-		// ½«kBlocksPosÖĞµÄÄÚÈİÌæ»»»ØstrCode
+		// å°†kBlocksPosä¸­çš„å†…å®¹æ›¿æ¢å›strCode
 		for (int i = st; i <= ed; ++i)
 			result[i] = strCode[i];
 	}
@@ -93,29 +93,29 @@ std::string NXCodeProcessHelper::RemoveHLSLComment(const std::string& strCode, b
 
 std::string NXCodeProcessHelper::GetFirstEffectiveLine(const std::string& strCode)
 {	
-	// ÏÈÒÆ³ı×¢ÊÍ
+	// å…ˆç§»é™¤æ³¨é‡Š
 	std::string noCommentCode = RemoveHLSLComment(strCode, true);
 
-	// ÖğĞĞ²éÕÒµÚÒ»ÓĞĞ§´úÂëĞĞ
+	// é€è¡ŒæŸ¥æ‰¾ç¬¬ä¸€æœ‰æ•ˆä»£ç è¡Œ
 	std::istringstream stream(noCommentCode);
 	std::string line;
 	while (std::getline(stream, line))
 	{
-		// È¥µôÇ°ºó¿Õ°×
+		// å»æ‰å‰åç©ºç™½
 		size_t first = line.find_first_not_of(" \t\r\n");
 		if (first != std::string::npos)
 		{
-			return line.substr(first); // ·µ»ØµÚÒ»ÓĞĞ§´úÂëĞĞ
+			return line.substr(first); // è¿”å›ç¬¬ä¸€æœ‰æ•ˆä»£ç è¡Œ
 		}
 	}
 
-	// Ã»ÓĞÕÒµ½ÓĞĞ§´úÂëĞĞ
+	// æ²¡æœ‰æ‰¾åˆ°æœ‰æ•ˆä»£ç è¡Œ
 	return "";
 }
 
 int NXCodeProcessHelper::GetLineCount(const std::string& str)
 {
-	// Í³¼Æ»»ĞĞ·ûµÄÊıÁ¿
+	// ç»Ÿè®¡æ¢è¡Œç¬¦çš„æ•°é‡
 	int count = 0;
 	for (char c : str)
 	{
@@ -156,7 +156,7 @@ bool NXCodeProcessHelper::MoveToNextBranketOut(std::stack<std::string>& stackBra
 
 void NXCodeProcessHelper::ExtractShader(const std::string& strCode, NXMaterialData& oMatData, NXMaterialCode& oMatCode)
 {
-	std::string strNoCommentCode = RemoveHLSLComment(strCode, false); // È¥µô×¢ÊÍ
+	std::string strNoCommentCode = RemoveHLSLComment(strCode, false); // å»æ‰æ³¨é‡Š
 
 	std::istringstream iss(strNoCommentCode);
 	std::string str;
@@ -188,7 +188,7 @@ void NXCodeProcessHelper::ExtractShader(const std::string& strCode, NXMaterialDa
 	}
 
 	if (!shaderCheck || !nameCheck)
-		throw std::runtime_error("shaderÎŞÓĞĞ§Ãû³Æ");
+		throw std::runtime_error("shaderæ— æœ‰æ•ˆåç§°");
 }
 
 void NXCodeProcessHelper::ExtractShader_NXShader(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXMaterialData& oMatData, NXMaterialCode& oMatCode)
@@ -236,7 +236,7 @@ void NXCodeProcessHelper::ExtractShader_Params(std::istringstream& iss, std::sta
 			{
 				if (MoveToNextBranketOut(stackBrackets, "Params")) 
 					return;
-				throw std::runtime_error("À¨ºÅ²»Æ¥Åä");
+				throw std::runtime_error("æ‹¬å·ä¸åŒ¹é…");
 			}
 		}
 		else if (vals.size() == 2)
@@ -271,7 +271,7 @@ void NXCodeProcessHelper::ExtractShader_Params_CBuffer(std::istringstream& iss, 
 				{
 					return;
 				}
-				throw std::runtime_error("À¨ºÅ²»Æ¥Åä");
+				throw std::runtime_error("æ‹¬å·ä¸åŒ¹é…");
 			}
 		}
 		else if (vals.size() == 2)
@@ -312,7 +312,7 @@ void NXCodeProcessHelper::ExtractShader_GlobalFuncs(std::istringstream& iss, std
 			{
 				if (MoveToNextBranketOut(stackBrackets, "GlobalFuncs"))
 					return;
-				throw std::runtime_error("À¨ºÅ²»Æ¥Åä");
+				throw std::runtime_error("æ‹¬å·ä¸åŒ¹é…");
 			}
 		}
 	}
@@ -326,20 +326,20 @@ void NXCodeProcessHelper::ExtractShader_GlobalFuncBody(std::istringstream& iss, 
 	while (std::getline(iss, str))
 	{
 		auto& vals = split(str);
-		if (!vals.empty()) // Ö»Òª²»ÊÇ¿ÕµÄ£¬¾ÍÒ»ÕûĞĞ¶¼Òª
+		if (!vals.empty()) // åªè¦ä¸æ˜¯ç©ºçš„ï¼Œå°±ä¸€æ•´è¡Œéƒ½è¦
 		{
 			if (vals[0] == strEndBlock)
 			{
-				// È¥µô×îºóµÄ»»ĞĞ·û£¬±ÜÃâÃ¿´Î±£´æ¶¼¶àÒ»¸öÄ©Î²ĞĞ
+				// å»æ‰æœ€åçš„æ¢è¡Œç¬¦ï¼Œé¿å…æ¯æ¬¡ä¿å­˜éƒ½å¤šä¸€ä¸ªæœ«å°¾è¡Œ
 				strCode.pop_back();
 				break;
 			}
 
-			// title£ºµÚÒ»ĞĞ£¨º¯ÊıÃûºÍ²ÎÊı£©
+			// titleï¼šç¬¬ä¸€è¡Œï¼ˆå‡½æ•°åå’Œå‚æ•°ï¼‰
 			if (strTitle.empty())
 				strTitle = Trim(str);
 
-			// data£ºËùÓĞÄÚÈİ
+			// dataï¼šæ‰€æœ‰å†…å®¹
 			strCode += str + "\n";
 		}
 		else
@@ -360,8 +360,8 @@ void NXCodeProcessHelper::ExtractShader_SubShader(std::istringstream& iss, std::
 	std::string str;
 	while (std::getline(iss, str))
 	{
-		// ps: Ä¿Ç°Ö»ÓĞ1¸öpass£¬¾ÍÊÇgbuffer£¬ËùÒÔnslÎÄ¼şÖĞµÄPass±ê¼Ç£¬ÔİÊ±Ã»Ìá¹©Ãû×Ö£¬vals.size()³¤¶È=1 && vals[0] == "Pass" ¾Í¹»ÁË.
-		// µ«³¤ÆÚÀ´¿´ÎŞÂÛÊÇ×ö¶àpass»¹ÊÇÈÃnslÖ§³Ö·ÇGBuffer£¬¶¼ĞèÒª¸ÄÁ¼
+		// ps: ç›®å‰åªæœ‰1ä¸ªpassï¼Œå°±æ˜¯gbufferï¼Œæ‰€ä»¥nslæ–‡ä»¶ä¸­çš„Passæ ‡è®°ï¼Œæš‚æ—¶æ²¡æä¾›åå­—ï¼Œvals.size()é•¿åº¦=1 && vals[0] == "Pass" å°±å¤Ÿäº†.
+		// ä½†é•¿æœŸæ¥çœ‹æ— è®ºæ˜¯åšå¤špassè¿˜æ˜¯è®©nslæ”¯æŒéGBufferï¼Œéƒ½éœ€è¦æ”¹è‰¯
 
 		auto& vals = split(str);
 		if (vals.size() == 1) 
@@ -395,7 +395,7 @@ void NXCodeProcessHelper::ExtractShader_SubShader_Pass(std::istringstream& iss, 
 			{
 				if (MoveToNextBranketOut(stackBrackets, "Pass"))
 					return;
-				throw std::runtime_error("À¨ºÅ²»Æ¥Åä");
+				throw std::runtime_error("æ‹¬å·ä¸åŒ¹é…");
 			}
 		}
 	}
@@ -407,11 +407,11 @@ void NXCodeProcessHelper::ExtractShader_SubShader_Pass_Entry(std::istringstream&
 	while (std::getline(iss, str))
 	{
 		auto& vals = split(str);
-		if (!vals.empty()) // Ö»Òª²»ÊÇ¿ÕµÄ£¬¾ÍÒ»ÕûĞĞ¶¼Òª
+		if (!vals.empty()) // åªè¦ä¸æ˜¯ç©ºçš„ï¼Œå°±ä¸€æ•´è¡Œéƒ½è¦
 		{
 			if (vals[0] == strEndBlock)
 			{
-				// È¥µô×îºóµÄ»»ĞĞ·û£¬±ÜÃâÃ¿´Î±£´æ¶¼¶àÒ»¸öÄ©Î²ĞĞ
+				// å»æ‰æœ€åçš„æ¢è¡Œç¬¦ï¼Œé¿å…æ¯æ¬¡ä¿å­˜éƒ½å¤šä¸€ä¸ªæœ«å°¾è¡Œ
 				oStrPassEntryCode.pop_back();
 				return;
 			}
@@ -427,8 +427,8 @@ void NXCodeProcessHelper::ExtractShader_SubShader_Pass_Entry(std::istringstream&
 
 std::string NXCodeProcessHelper::BuildHLSL(const std::filesystem::path& nslPath, const NXMaterialData& oMatData, NXMaterialCode& shaderCode, bool bIsGPUTerrain)
 {
-	// ´Ë´¦nslPathÖ»ÓĞÎÄ¼şÃûÓĞÓÃ£¬ÎÄ¼şÄÚÈİÃ»ÓÃ£¡
-	// nslPathÔÚÕâÀïÎ¨Ò»×÷ÓÃ¾ÍÊÇ¸øcbuffer structÉú³Éhash
+	// æ­¤å¤„nslPathåªæœ‰æ–‡ä»¶åæœ‰ç”¨ï¼Œæ–‡ä»¶å†…å®¹æ²¡ç”¨ï¼
+	// nslPathåœ¨è¿™é‡Œå”¯ä¸€ä½œç”¨å°±æ˜¯ç»™cbuffer structç”Ÿæˆhash
 
 	int ioLineCounter = 0;
 
@@ -477,7 +477,7 @@ std::string NXCodeProcessHelper::BuildHLSL_Params(int& ioLineCounter, const std:
 		str += tex->name + " : register(t" + std::to_string(slot_tex++) + ");\n";
 	}
 
-	if (bIsGPUTerrain) // GPU Terrain×¨ÓÃ
+	if (bIsGPUTerrain) // GPU Terrainä¸“ç”¨
 	{
 		str += R"(
 #include "TerrainCommon.fx"
@@ -521,17 +521,17 @@ Texture2DArray<float4> m_VTPhysPageNormal : register(t3, space2);
 		str += "\tfloat" + std::to_string(padSize) + " _padding" + std::to_string(cb_padding++) + ";\n";
 	}
 
-	bool bIsGBuffer = true; // todo: À©Õ¹ÆäËûpass
+	bool bIsGBuffer = true; // todo: æ‰©å±•å…¶ä»–pass
 	if (bIsGBuffer)
 	{
 		str += "\tfloat shadingModel;\n";
-		str += "\tfloat4 customData0;\n"; // ×Ô¶¨ÒåÊı¾İ£¬ºóĞø¿ÉÒÔÀ©Õ¹
+		str += "\tfloat4 customData0;\n"; // è‡ªå®šä¹‰æ•°æ®ï¼Œåç»­å¯ä»¥æ‰©å±•
 	}
 	str += "};\n";
 
-	str += "cbuffer " + strMatName + " : register(b" + std::to_string(slot_cb++) + ", space1)\n"; // 2025.5.15 ÒÔºó¹æ¶¨ÓÃ»§×Ô¶¨Òåcb²ÎÊı×ÜÊÇ·ÅÔÚspace1
+	str += "cbuffer " + strMatName + " : register(b" + std::to_string(slot_cb++) + ", space1)\n"; // 2025.5.15 ä»¥åè§„å®šç”¨æˆ·è‡ªå®šä¹‰cbå‚æ•°æ€»æ˜¯æ”¾åœ¨space1
 	str += "{\n";
-	str += "\t" + strMatName + " m;\n"; // ¿É±à¼­²ÄÖÊµÄ³ÉÔ±±äÁ¿Ô¼¶¨ÃüÃû m¡£±ÈÈç m.albedo, m.metallic
+	str += "\t" + strMatName + " m;\n"; // å¯ç¼–è¾‘æè´¨çš„æˆå‘˜å˜é‡çº¦å®šå‘½å mã€‚æ¯”å¦‚ m.albedo, m.metallic
 	str += "};\n";
 
 	ioLineCounter += GetLineCount(str);
@@ -672,7 +672,7 @@ std::string NXCodeProcessHelper::BuildHLSL_Entry_VS(int& ioLineCounter, const NX
 	std::string strVSFunc = shaderCode.passes[0].vsFunc.data;
 	str += strVSFunc;
 	ioLineCounter += GetLineCount(strVSFunc);
-	shaderCode.passes[0].vsFunc.hlslLineEnd = ioLineCounter + 1; // TODO: ÂÆÇåÕâÀïµÄÂß¼­£¬ÎªÊ²Ã´vsEntry/psEntryµÄhlslLineEndĞèÒª+1£¬ÆäËûµØ·½¾Í²»ÓÃ£¨ÏÖÔÚÃ»Ê±¼ä´¦Àí£¬Ç£³¶µÄÂß¼­½Ï¶à£¬ºÍCodeEditor¡¢SaveToNSLFile¡¢Extract_()µÄpop_back()¶¼ÓĞ¹ØÁª£©
+	shaderCode.passes[0].vsFunc.hlslLineEnd = ioLineCounter + 1; // TODO: ç¼•æ¸…è¿™é‡Œçš„é€»è¾‘ï¼Œä¸ºä»€ä¹ˆvsEntry/psEntryçš„hlslLineEndéœ€è¦+1ï¼Œå…¶ä»–åœ°æ–¹å°±ä¸ç”¨ï¼ˆç°åœ¨æ²¡æ—¶é—´å¤„ç†ï¼Œç‰µæ‰¯çš„é€»è¾‘è¾ƒå¤šï¼Œå’ŒCodeEditorã€SaveToNSLFileã€Extract_()çš„pop_back()éƒ½æœ‰å…³è”ï¼‰
 
 	str += strVSEnd;
 	ioLineCounter += GetLineCount(strVSEnd);

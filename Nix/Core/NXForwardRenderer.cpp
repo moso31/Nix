@@ -87,7 +87,7 @@ void NXForwardRenderer::Render()
 	m_pCommandList->SetGraphicsRootSignature(m_pRootSig.Get());
 	m_pCommandList->SetPipelineState(m_pPSO.Get());
 
-	//TODO: »ØÍ·ÔÙÐÞÕâ¿é£¬ÐèÒªÏÈÅÜÍ¨ÆäËûÄÚÈÝ
+	//TODO: å›žå¤´å†ä¿®è¿™å—ï¼Œéœ€è¦å…ˆè·‘é€šå…¶ä»–å†…å®¹
 
 	//g_pContext->OMSetDepthStencilState(m_pDepthStencilState.Get(), 0);
 	//g_pContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xffffffff);
@@ -128,14 +128,14 @@ void NXForwardRenderer::Render()
 	//	g_pContext->PSSetConstantBuffers(5, 1, &pCBCubeMapParam);
 	//}
 
-	//// PBR´ó¸Ä¡£ÒõÓ°ÌùÍ¼ÔÝÊ±Í£ÓÃ¡£
+	//// PBRå¤§æ”¹ã€‚é˜´å½±è´´å›¾æš‚æ—¶åœç”¨ã€‚
 	////auto pShadowMapSRV = m_pPassShadowMap->GetSRV();
 	////g_pContext->PSSetShaderResources(10, 1, &pShadowMapSRV);
 
 	////auto pShadowMapConstantBufferTransform = m_pPassShadowMap->GetConstantBufferTransform();
 	////g_pContext->PSSetConstantBuffers(4, 1, &pShadowMapConstantBufferTransform);
 
-	//// 2022.4.14 Ö»äÖÈ¾ Transparent ÎïÌå
+	//// 2022.4.14 åªæ¸²æŸ“ Transparent ç‰©ä½“
 	//for (auto pMat : NXResourceManager::GetInstance()->GetMaterialManager()->GetMaterials())
 	//{
 	//	// TODO

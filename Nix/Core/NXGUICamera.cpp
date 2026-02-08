@@ -4,7 +4,7 @@
 #include "NXScene.h"
 #include "NXCamera.h"
 
-#include "NSFirstPersonalCamera.h" // ÄÚÖÃµÚÒ»ÈË³Æ¿ØÖÆ½Å±¾
+#include "NSFirstPersonalCamera.h" // å†…ç½®ç¬¬ä¸€äººç§°æŽ§åˆ¶è„šæœ¬
 
 NXGUICamera::NXGUICamera(NXScene* pScene) :
     m_pCurrentScene(pScene),
@@ -24,7 +24,7 @@ void NXGUICamera::Render()
             m_pCurrentCamera->SetName(strName);
         }
 
-        // µÚÒ»ÈË³Æ¿ØÖÆÆ÷
+        // ç¬¬ä¸€äººç§°æŽ§åˆ¶å™¨
         NSFirstPersonalCamera* pFirstPersonalController = (NSFirstPersonalCamera*)m_pCurrentCamera->GetFirstPersonalController();
         if (pFirstPersonalController)
         {

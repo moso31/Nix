@@ -59,10 +59,10 @@ bool NXCubeMap::Init(const std::filesystem::path& filePath)
 	{
 		Ntr<NXTexture2D> pTexHDR = NXResourceManager::GetInstance()->GetTextureManager()->CreateTexture2D("HDR Temp Texture", filePath);
 
-		// Ö÷Ïß³Ì
+		// ä¸»çº¿ç¨‹
 		std::thread([this, pTexHDR]() mutable {
 			pTexHDR->WaitLoadingTexturesFinish();
-			// ×ÓÏß³Ì1
+			// å­çº¿ç¨‹1
 			GenerateCubeMap(pTexHDR, [this, pTexHDR]() {
 				GenerateIrradianceSHFromHDRI(pTexHDR);
 				GeneratePreFilterMap();
@@ -265,12 +265,12 @@ void NXCubeMap::GenerateIrradianceSHFromHDRI(Ntr<NXTexture2D> pTexHDR)
 	size_t imgWidth = metadata.width;
 	size_t imgHeight = metadata.height;
 
-	// HDRI ÎÆÀí¼ÓÔØ
+	// HDRI çº¹ç†åŠ è½½
 	auto pData = reinterpret_cast<float*>(pHDRImage->GetImage(0, 0, 0)->pixels);
 	float solidAnglePdf = 0.0;
 	memset(m_shIrradianceMap, 0, sizeof(m_shIrradianceMap));
 
-	// ÏñËØ¸öÊı
+	// åƒç´ ä¸ªæ•°
 	size_t pixelCount = pHDRImage->GetPixelsSize() >> 4;
 
 	size_t threadCount = imgHeight;
@@ -288,7 +288,7 @@ void NXCubeMap::GenerateIrradianceSHFromHDRI(Ntr<NXTexture2D> pTexHDR)
 			float thetaU = (v - scaleY) * XM_PI;
 			float thetaD = (v + scaleY) * XM_PI;
 
-			float dPhi = XM_2PI / imgWidth;	// dPhi ÊÇ¸ö³£Á¿
+			float dPhi = XM_2PI / imgWidth;	// dPhi æ˜¯ä¸ªå¸¸é‡
 			float dTheta = cos(thetaU) - cos(thetaD);
 			solidAnglePdf = dPhi * dTheta;
 
@@ -303,7 +303,7 @@ void NXCubeMap::GenerateIrradianceSHFromHDRI(Ntr<NXTexture2D> pTexHDR)
 			{
 				for (int m = -l; m <= l; m++)
 				{
-					float sh = SHBasis(l, m, theta, phi);  // HDRIÎÆÀí½Ç¶È½ÃÕı
+					float sh = SHBasis(l, m, theta, phi);  // HDRIçº¹ç†è§’åº¦çŸ«æ­£
 
 					// sh = y_l^m(Rs)
 					// m_shIrradianceMap[k++] = L_l^m
@@ -326,7 +326,7 @@ void NXCubeMap::GenerateIrradianceSHFromHDRI(Ntr<NXTexture2D> pTexHDR)
 	{
 		for (int m = -l; m <= l; m++)
 		{
-			// Çó E_l^m
+			// æ±‚ E_l^m
 			m_shIrradianceMap[k++] *= sqrt(XM_4PI / (2.0f * l + 1.0f)) * T[l] * XM_1DIVPI;
 		}
 	}
@@ -336,7 +336,7 @@ void NXCubeMap::GenerateIrradianceSHFromHDRI(Ntr<NXTexture2D> pTexHDR)
 
 void NXCubeMap::GenerateIrradianceSHFromCubeMap()
 {
-	// ¶ÁÈ¡CubeMap
+	// è¯»å–CubeMap
 	size_t nIrradTexSize = m_shDDSCubeMapWidth;
 	const std::wstring& strFilePath = m_pTexCubeMap->GetFilePath();
 	TexMetadata metadata;
@@ -426,7 +426,7 @@ void NXCubeMap::GenerateIrradianceSHFromCubeMap()
 				{
 					for (int m = -l; m <= l; m++)
 					{
-						float sh = SHBasis(l, m, theta, phi);  // HDRIÎÆÀí½Ç¶È½ÃÕı
+						float sh = SHBasis(l, m, theta, phi);  // HDRIçº¹ç†è§’åº¦çŸ«æ­£
 
 						// sh = y_l^m(Rs)
 						// m_shIrradianceMap[k++] = L_l^m
@@ -448,7 +448,7 @@ void NXCubeMap::GenerateIrradianceSHFromCubeMap()
 	{
 		for (int m = -l; m <= l; m++)
 		{
-			// Çó E_l^m
+			// æ±‚ E_l^m
 			m_shIrradianceMap[k++] *= sqrt(XM_4PI / (2.0f * l + 1.0f)) * T[l] * XM_1DIVPI;
 		}
 	}
@@ -456,7 +456,7 @@ void NXCubeMap::GenerateIrradianceSHFromCubeMap()
 	SetSHValues(m_shIrradianceMap);
 }
 
-// ps. DX11 Éı¼¶ DX12 ÆÚ¼äÔİÊ±½ûÓÃ
+// ps. DX11 å‡çº§ DX12 æœŸé—´æš‚æ—¶ç¦ç”¨
 void NXCubeMap::GenerateIrradianceMap()
 {
 	//g_pUDA->BeginEvent(L"Generate Irradiance Map");
@@ -828,7 +828,7 @@ void NXCubeMap::InitRootSignature()
 
 	std::vector<D3D12_ROOT_PARAMETER> rootParamsCubeMap = {
 		NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL), // b0
-		NX12Util::CreateRootParameterTable(rangesCubeMap, D3D12_SHADER_VISIBILITY_ALL) // ÉÏÃæµÄ rangesCubeMap. t0 ~ t0.
+		NX12Util::CreateRootParameterTable(rangesCubeMap, D3D12_SHADER_VISIBILITY_ALL) // ä¸Šé¢çš„ rangesCubeMap. t0 ~ t0.
 	};
 
 	m_pRootSigCubeMap = NX12Util::CreateRootSignature(NXGlobalDX::GetDevice(), rootParamsCubeMap, pSamplers);
@@ -841,7 +841,7 @@ void NXCubeMap::InitRootSignature()
 	std::vector<D3D12_ROOT_PARAMETER> rootParamsPreFilter = {
 		NX12Util::CreateRootParameterCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL), // b0
 		NX12Util::CreateRootParameterCBV(1, 0, D3D12_SHADER_VISIBILITY_ALL), // b1
-		NX12Util::CreateRootParameterTable(rangesPreFilter, D3D12_SHADER_VISIBILITY_ALL) // ÉÏÃæµÄ rangesPreFilter. t0 ~ t0.
+		NX12Util::CreateRootParameterTable(rangesPreFilter, D3D12_SHADER_VISIBILITY_ALL) // ä¸Šé¢çš„ rangesPreFilter. t0 ~ t0.
 	};
 
 	m_pRootSigPreFilterMap = NX12Util::CreateRootSignature(NXGlobalDX::GetDevice(), rootParamsPreFilter, pSamplers);
@@ -918,7 +918,7 @@ void NXCubeMap::GenerateIrradianceSHFromHDRI_Deprecated(NXTexture2D* pTexHDR)
 	//	ComPtr<ID3D11ComputeShader> pComputeShader;
 	//	std::wstring strCSPath = L"";
 
-	//	// ÉèÖÃ CubeMapIrradianceSH.fx Ê¹ÓÃÄÄ¸öÈë¿Úµãº¯Êı
+	//	// è®¾ç½® CubeMapIrradianceSH.fx ä½¿ç”¨å“ªä¸ªå…¥å£ç‚¹å‡½æ•°
 	//	if (passId == 0)
 	//	{
 	//		CD3D_SHADER_MACRO macro("CUBEMAP_IRRADSH_FIRST", "1");
@@ -970,7 +970,7 @@ void NXCubeMap::GenerateIrradianceSHFromHDRI_Deprecated(NXTexture2D* pTexHDR)
 
 	//	g_pContext->Dispatch(tempWidth, tempHeight, 1);
 
-	//	// ÓÃÍêÒÔºóÇå¿Õ¶ÔÓ¦²ÛÎ»µÄSRV UAV£¬±ÜÃâºóĞøpass×ÊÔ´°ó²»ÉÏ£¨¿ÉÄÜÓĞÓÅ»¯¿Õ¼ä£©
+	//	// ç”¨å®Œä»¥åæ¸…ç©ºå¯¹åº”æ§½ä½çš„SRV UAVï¼Œé¿å…åç»­passèµ„æºç»‘ä¸ä¸Šï¼ˆå¯èƒ½æœ‰ä¼˜åŒ–ç©ºé—´ï¼‰
 	//	ComPtr<ID3D11ShaderResourceView> pSRVNull[1] = { nullptr };
 	//	g_pContext->CSSetShaderResources(0, 1, pSRVNull->GetAddressOf());
 

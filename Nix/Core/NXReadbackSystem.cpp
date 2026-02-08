@@ -37,24 +37,24 @@ NXReadbackRingBuffer::~NXReadbackRingBuffer()
 
 bool NXReadbackRingBuffer::CanAlloc(uint32_t byteSize)
 {
-	// byteSize ×ö×Ö½Ú¶ÔÆë´¦Àí£¬ÒÔDX12µÄÎÆÀíÊı¾İ¶ÔÆë·½Ê½Îª×¼£¨²»µÃĞ¡ÓÚ512×Ö½Ú£©
+	// byteSize åšå­—èŠ‚å¯¹é½å¤„ç†ï¼Œä»¥DX12çš„çº¹ç†æ•°æ®å¯¹é½æ–¹å¼ä¸ºå‡†ï¼ˆä¸å¾—å°äº512å­—èŠ‚ï¼‰
 	byteSize = (byteSize + D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT - 1) & ~(D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT - 1);
 
-	// case 1: ed ÔÚ st µÄºóÃæ(<) »òÃ»ÓĞÈÎÎñ(=)
+	// case 1: ed åœ¨ st çš„åé¢(<) æˆ–æ²¡æœ‰ä»»åŠ¡(=)
 	if (m_usedStart <= m_usedEnd)
 	{
-		// case 1.1. ¼ÓÈëĞÂµØÖ·ÒÔºó£¬ÒÀÈ»Ã»ÓĞ´ïµ½»·Î²
+		// case 1.1. åŠ å…¥æ–°åœ°å€ä»¥åï¼Œä¾ç„¶æ²¡æœ‰è¾¾åˆ°ç¯å°¾
 		if (m_usedEnd + byteSize < m_size)
 		{
 			return true;
 		}
-		// case 1.2. ¼ÓÈëĞÂµØÖ·ÒÔºó»á³¬¹ı»·Î²£¨¸Ä³ÉÔÚ»·Í·´´½¨£©
+		// case 1.2. åŠ å…¥æ–°åœ°å€ä»¥åä¼šè¶…è¿‡ç¯å°¾ï¼ˆæ”¹æˆåœ¨ç¯å¤´åˆ›å»ºï¼‰
 		else
 		{
 			return byteSize <= m_usedStart;
 		}
 	}
-	// case 2: ed ÔÚ st µÄÇ°Ãæ(>)
+	// case 2: ed åœ¨ st çš„å‰é¢(>)
 	else // if (m_usedEnd < m_usedStart)
 	{
 		return m_usedEnd + byteSize < m_usedStart;
@@ -65,25 +65,25 @@ bool NXReadbackRingBuffer::Build(uint32_t byteSize, NXReadbackTask& oTask)
 {
 	NXPrint::Write(0, "BuildTask(Begin), usedstart: %d, end: %d\n", m_usedStart, m_usedEnd);
 
-	// byteSize ×ö×Ö½Ú¶ÔÆë´¦Àí£¬ÒÔDX12µÄÎÆÀíÊı¾İ¶ÔÆë·½Ê½Îª×¼£¨²»µÃĞ¡ÓÚ512×Ö½Ú£©
+	// byteSize åšå­—èŠ‚å¯¹é½å¤„ç†ï¼Œä»¥DX12çš„çº¹ç†æ•°æ®å¯¹é½æ–¹å¼ä¸ºå‡†ï¼ˆä¸å¾—å°äº512å­—èŠ‚ï¼‰
 	byteSize = (byteSize + D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT - 1) & ~(D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT - 1);
 
-	// case 0. ×¢Òâ£ºStart == End Ö»±íÊ¾£ºÕû¸öRingBufferÎª¿Õ
-	// »»¾ä»°Ëµ RingBuffer ÊÇ¡¾²»ÔÊĞíÌîÂú£¡¡¿µÄ¡£¶ÔÄÚ´æ×´Ì¬Æµ·±±ä»¯µÄ·ÖÅäÆ÷¶øÑÔ£¬Ó°Ïì²»´ó
+	// case 0. æ³¨æ„ï¼šStart == End åªè¡¨ç¤ºï¼šæ•´ä¸ªRingBufferä¸ºç©º
+	// æ¢å¥è¯è¯´ RingBuffer æ˜¯ã€ä¸å…è®¸å¡«æ»¡ï¼ã€‘çš„ã€‚å¯¹å†…å­˜çŠ¶æ€é¢‘ç¹å˜åŒ–çš„åˆ†é…å™¨è€Œè¨€ï¼Œå½±å“ä¸å¤§
 
-	// case 1: ed ÔÚ st µÄºóÃæ(<) »òÃ»ÓĞÈÎÎñ(=)
+	// case 1: ed åœ¨ st çš„åé¢(<) æˆ–æ²¡æœ‰ä»»åŠ¡(=)
 	if (m_usedStart <= m_usedEnd)
 	{
-		// case 1.1. ¼ÓÈëĞÂµØÖ·ÒÔºó£¬ÒÀÈ»Ã»ÓĞ´ïµ½»·Î²
+		// case 1.1. åŠ å…¥æ–°åœ°å€ä»¥åï¼Œä¾ç„¶æ²¡æœ‰è¾¾åˆ°ç¯å°¾
 		if (m_usedEnd + byteSize < m_size)
 		{
 			oTask.ringPos = m_usedEnd;
 			m_usedEnd += byteSize;
 		}
-		// case 1.2. ¼ÓÈëĞÂµØÖ·ÒÔºó»á³¬¹ı»·Î²£¨¸Ä³ÉÔÚ»·Í·´´½¨£©
+		// case 1.2. åŠ å…¥æ–°åœ°å€ä»¥åä¼šè¶…è¿‡ç¯å°¾ï¼ˆæ”¹æˆåœ¨ç¯å¤´åˆ›å»ºï¼‰
 		else
 		{
-			// ¼ì²âÊÇ·ñÓĞ×ã¹»¿Õ¼ä
+			// æ£€æµ‹æ˜¯å¦æœ‰è¶³å¤Ÿç©ºé—´
 			if (byteSize <= m_usedStart)
 			{
 				oTask.ringPos = 0;
@@ -91,22 +91,22 @@ bool NXReadbackRingBuffer::Build(uint32_t byteSize, NXReadbackTask& oTask)
 			}
 			else
 			{
-				// Ê£Óà¿Õ¼ä²»¹»ËµÃ÷·ÖÅä²»ÁË£¬É¶¶¼±ğ×ö
+				// å‰©ä½™ç©ºé—´ä¸å¤Ÿè¯´æ˜åˆ†é…ä¸äº†ï¼Œå•¥éƒ½åˆ«åš
 				throw std::exception("RingBuffer is full!");
 				return false;
 			}
 		}
 	}
-	// case 2: ed ÔÚ st µÄÇ°Ãæ(>)
+	// case 2: ed åœ¨ st çš„å‰é¢(>)
 	else // if (m_usedEnd < m_usedStart)
 	{
-		// case 2.1. ¼ÓÈëĞÂµØÖ·Ö®ºó£¬ÒÀÈ»Ã»ÓĞ³¬¹ıst
+		// case 2.1. åŠ å…¥æ–°åœ°å€ä¹‹åï¼Œä¾ç„¶æ²¡æœ‰è¶…è¿‡st
 		if (m_usedEnd + byteSize < m_usedStart)
 		{
 			oTask.ringPos = m_usedEnd;
 			m_usedEnd += byteSize;
 		}
-		// case 2.2. ¼ÓÈëĞÂµØÖ·Ö®ºó£¬³¬¹ıÁËst£¨Ã»ÓĞÊ£Óà¿Õ¼äÁË£©
+		// case 2.2. åŠ å…¥æ–°åœ°å€ä¹‹åï¼Œè¶…è¿‡äº†stï¼ˆæ²¡æœ‰å‰©ä½™ç©ºé—´äº†ï¼‰
 		else
 		{
 			throw std::exception("RingBuffer is full!");
@@ -114,7 +114,7 @@ bool NXReadbackRingBuffer::Build(uint32_t byteSize, NXReadbackTask& oTask)
 		}
 	}
 
-	// ÄÜ×ßµ½ÕâÀï¶¼ÊÇ·ÖÅä³É¹¦µÄÇé¿ö
+	// èƒ½èµ°åˆ°è¿™é‡Œéƒ½æ˜¯åˆ†é…æˆåŠŸçš„æƒ…å†µ
 	oTask.byteSize = byteSize;
 	NXPrint::Write(0, "BuildTask(End  ), usedstart: %d, end: %d\n", m_usedStart, m_usedEnd);
 	return true;
@@ -122,10 +122,10 @@ bool NXReadbackRingBuffer::Build(uint32_t byteSize, NXReadbackTask& oTask)
 
 void NXReadbackRingBuffer::Finish(const NXReadbackTask& task)
 {
-	// ÈÎÎñÍê³Éºó£¬Ö»ĞèÒª½«usedStartÏòÇ°ÒÆ¶¯¼´¿É
+	// ä»»åŠ¡å®Œæˆåï¼Œåªéœ€è¦å°†usedStartå‘å‰ç§»åŠ¨å³å¯
 	m_usedStart = task.ringPos + task.byteSize;
 
-	// ¼û BuildTask() case 1.2£¬Èç¹û³¬¹ı»·Î²£¬ĞèÒª»Ø»·
+	// è§ BuildTask() case 1.2ï¼Œå¦‚æœè¶…è¿‡ç¯å°¾ï¼Œéœ€è¦å›ç¯
 	m_usedStart %= m_size;
 }
 
@@ -143,8 +143,8 @@ bool NXReadbackSystem::BuildTask(int byteSize, NXReadbackContext& taskResult)
 {
 	std::unique_lock<std::mutex> lock(m_mutex);
 
-	// ²»Âú×ãÒÔÏÂÌõ¼şÊ±£¬³ÖĞøµÈ´ı
-	// update() Ã¿Íê³ÉÒ»¸öÈÎÎñ£¬¾Í»ánotify_one()£¬»½ĞÑÒ»¸öÕıÔÚÕâÀï³ÖĞøµÈ´ıµÄÏß³Ì£¨Èç¹ûÓĞµÄ»°£©
+	// ä¸æ»¡è¶³ä»¥ä¸‹æ¡ä»¶æ—¶ï¼ŒæŒç»­ç­‰å¾…
+	// update() æ¯å®Œæˆä¸€ä¸ªä»»åŠ¡ï¼Œå°±ä¼šnotify_one()ï¼Œå”¤é†’ä¸€ä¸ªæ­£åœ¨è¿™é‡ŒæŒç»­ç­‰å¾…çš„çº¿ç¨‹ï¼ˆå¦‚æœæœ‰çš„è¯ï¼‰
 	m_condition.wait(lock, [this, byteSize]() {
         return m_taskUsed < TASK_NUM && m_ringBuffer.CanAlloc(byteSize);
 		});
@@ -174,18 +174,18 @@ bool NXReadbackSystem::BuildTask(const Ntr<NXTexture>& pTexture, NXReadbackConte
 
 	auto* pD3DTextureResource = pTexture->GetD3DResource();
 
-    // »ñÈ¡ÎÆÀí²¼¾Ö
-	// NOTE: ÏÖÔÚÖ»Ö§³Ö¶Ô2DArrayµÄmip0½øĞĞ»Ø¶Á£¡
+    // è·å–çº¹ç†å¸ƒå±€
+	// NOTE: ç°åœ¨åªæ”¯æŒå¯¹2DArrayçš„mip0è¿›è¡Œå›è¯»ï¼
     D3D12_RESOURCE_DESC texDesc = pD3DTextureResource->GetDesc();
     D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
-    uint32_t numRows; // Ö»Ö§³Ö2darray mip0 µÄ»Ø¶Á£¬ËùÒÔ²»ĞèÒªÅª³ÉÊı×éÁË
+    uint32_t numRows; // åªæ”¯æŒ2darray mip0 çš„å›è¯»ï¼Œæ‰€ä»¥ä¸éœ€è¦å¼„æˆæ•°ç»„äº†
     uint64_t rowSizeInBytes;
     uint64_t totalBytes;
 	
 	uint32_t firstSubresourceIndex = 0;
     m_pDevice->GetCopyableFootprints(&texDesc, firstSubresourceIndex, 1, 0, &footprint, &numRows, &rowSizeInBytes, &totalBytes);
 
-    // ·ÖÅäRingBuffer¿Õ¼ä£¨totalSize=¶ÔÆëºóµÄ´óĞ¡£©
+    // åˆ†é…RingBufferç©ºé—´ï¼ˆtotalSize=å¯¹é½åçš„å¤§å°ï¼‰
     uint32_t byteSize = static_cast<uint32_t>(totalBytes);
     
     m_condition.wait(lock, [this, byteSize]() {
@@ -198,16 +198,16 @@ bool NXReadbackSystem::BuildTask(const Ntr<NXTexture>& pTexture, NXReadbackConte
     {
         m_taskUsed++;
 
-        // Ìî³äContext
+        // å¡«å……Context
         taskResult.pOwner = &task;
         taskResult.pResource = m_ringBuffer.GetResource();
         taskResult.pResourceData = m_ringBuffer.GetResourceMappedData();
         taskResult.pResourceOffset = task.ringPos;
         
-        // ÎÆÀí×¨ÓÃĞÅÏ¢
+        // çº¹ç†ä¸“ç”¨ä¿¡æ¯
         taskResult.type = NXReadbackType::Texture;
         taskResult.footprint = footprint;
-        taskResult.footprint.Offset = task.ringPos;  // ringbufferÖĞµÄÊµ¼ÊÆ«ÒÆ
+        taskResult.footprint.Offset = task.ringPos;  // ringbufferä¸­çš„å®é™…åç§»
         taskResult.numRows = numRows;
         taskResult.rowSizeInBytes = rowSizeInBytes;
 
@@ -232,13 +232,13 @@ void NXReadbackSystem::Update()
 	{
 		auto& task = m_tasks[m_taskStart];
 
-		// µÈ´ıGPU²àµÄÈÎÎñÍê³É
+		// ç­‰å¾…GPUä¾§çš„ä»»åŠ¡å®Œæˆ
 		if (NXGlobalDX::s_globalfence->GetCompletedValue() >= task.mainRenderFenceValue)
 		{
 			if (task.pCallback)
-				task.pCallback(); // ´¥·¢Íê³Éºócallback
+				task.pCallback(); // è§¦å‘å®Œæˆåcallback
 
-			// ÈÎÎñÍê³É£¬»ØÊÕ×ÊÔ´
+			// ä»»åŠ¡å®Œæˆï¼Œå›æ”¶èµ„æº
 			m_ringBuffer.Finish(task);
 
 			m_taskStart = (m_taskStart + 1) % TASK_NUM;

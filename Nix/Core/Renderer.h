@@ -5,8 +5,8 @@
 #include "Ntr.h"  
 #include "NXRGUtil.h"
 
-// ===== Ç°ÖÃÉùÃ÷ =====
-// ³¡¾°/äÖÈ¾Ïà¹Ø
+// ===== å‰ç½®å£°æ˜ =====
+// åœºæ™¯/æ¸²æŸ“ç›¸å…³
 class NXScene;
 class NXRenderGraph;
 class NXGUI;
@@ -17,12 +17,12 @@ class NXPassMaterial;
 class NXPBRDistantLight;
 class NXRenderableObject;
 
-// ×ÊÔ´Ïà¹Ø
+// èµ„æºç›¸å…³
 class NXTexture2D;
 class NXTexture2DArray;
 class DirectResources;
 
-// RenderGraph Pass Ïà¹Ø
+// RenderGraph Pass ç›¸å…³
 template<typename T> class NXRGPassNode;
 struct TerrainPatcherPassData;
 struct GBufferPassData;
@@ -35,7 +35,7 @@ struct PostProcessingPassData;
 struct DebugLayerPassData;
 struct GizmosPassData;
 
-// ÊÂ¼ş
+// äº‹ä»¶
 struct NXEventArgKey;
 struct NXSwapChainBuffer;
 
@@ -53,20 +53,20 @@ public:
 	void Init();
 	void OnResize(const Vector2& rtSize);
 
-	// ×ÊÔ´ÖØ¼ÓÔØ£¨Èç¹ûÉÏÒ»Ö¡ĞŞ¸ÄÁË×ÊÔ´£©
+	// èµ„æºé‡åŠ è½½ï¼ˆå¦‚æœä¸Šä¸€å¸§ä¿®æ”¹äº†èµ„æºï¼‰
 	void ResourcesReloading(DirectResources* pDXRes);
 
 	void Update();
 
 	void UpdateGlobalCBuffer();
 
-	// µ±Ç°Ö¡ äÖÈ¾»­ÃæµÄ»æÖÆ
+	// å½“å‰å¸§ æ¸²æŸ“ç”»é¢çš„ç»˜åˆ¶
 	void RenderFrame();
 
-	// ¸ºÔğ´¦Àí GUI µÄÊµ¼ÊäÖÈ¾ ºÍ ¼´Ê±¸üĞÂ¡£¼ûÉÏÃæ UpdateGUI() µÄ×¢ÊÍ
+	// è´Ÿè´£å¤„ç† GUI çš„å®é™…æ¸²æŸ“ å’Œ å³æ—¶æ›´æ–°ã€‚è§ä¸Šé¢ UpdateGUI() çš„æ³¨é‡Š
 	void RenderGUI(const NXSwapChainBuffer& swapChainBuffer);
 
-	// Ö¡½áÊøÊ±
+	// å¸§ç»“æŸæ—¶
 	void FrameEnd();
 
 	void Release();
@@ -100,8 +100,8 @@ private:
 	void GenerateRenderGraph();
 	void InitGUI();
 
-	// ===== RenderGraph Pass ¹¹½¨¸¨Öúº¯Êı =====
-	// ½«´óĞÍµÄ GenerateRenderGraph() ²ğ·ÖÎª¶à¸öĞ¡º¯Êı£¬¸ÄÉÆ IntelliSense ĞÔÄÜ
+	// ===== RenderGraph Pass æ„å»ºè¾…åŠ©å‡½æ•° =====
+	// å°†å¤§å‹çš„ GenerateRenderGraph() æ‹†åˆ†ä¸ºå¤šä¸ªå°å‡½æ•°ï¼Œæ”¹å–„ IntelliSense æ€§èƒ½
 	void BuildTerrainStreamingPasses(NXRGHandle hSector2VirtImg, NXRGHandle pSector2NodeIDTex, NXRGHandle hHeightMapAtlas, NXRGHandle hSplatMapAtlas, NXRGHandle hNormalMapAtlas);
 	NXRGPassNode<TerrainPatcherPassData>* BuildTerrainCullingPasses(NXRGHandle pSector2NodeIDTex, NXRGHandle& hPatcherBuffer, NXRGHandle& hPatcherDrawIndexArgs);
 	NXRGPassNode<GBufferPassData>* BuildGBufferPasses(NXRGPassNode<TerrainPatcherPassData>* passPatcher, NXRGHandle hGBuffer0, NXRGHandle hGBuffer1, NXRGHandle hGBuffer2, NXRGHandle hGBuffer3, NXRGHandle hDepthZ, NXRGHandle hVTPageIDTexture, NXRGHandle hVTSector2VirtImg, NXRGHandle hVTIndirectTexture, NXRGHandle hVTPhysicalPageAlbedo, NXRGHandle hVTPhysicalPageNormal);
@@ -115,14 +115,14 @@ private:
 	NXRGPassNode<GizmosPassData>* BuildGizmosPass(NXRGPassNode<DebugLayerPassData>* debugLayerPassData, NXRGPassNode<PostProcessingPassData>* postProcessPassData);
 	void BuildFinalQuadPass(NXRGPassNode<GizmosPassData>* gizmosPassData);
 
-	// 2023.11.5 Nix µÄ GUI ¿ØÖÆ²ÎÊıÄ¿Ç°ÔİÊ±Ê¹ÓÃÁ½ÖÖ·½Ê½£º¼´Ê±¸üĞÂ ºÍ ÑÓ³Ù¸üĞÂ
-	// 1. ¼´Ê±¸üĞÂ£ºGUI Ã¿´ÎĞŞ¸Ä²ÎÊı£¬¶¼»áÁ¢¼´¸üĞÂµ½¶ÔÓ¦µÄ×ÊÔ´ÉÏ£¨¼´£¬´«Í³µÄ dearImgui ¸üĞÂ²ÎÊıµÄ·½·¨£©
-	// 2. ÑÓ³Ù¸üĞÂ£ºÉÏÒ»Ö¡µÄ GUI ĞŞ¸Ä²ÎÊıºó£¬Í¨¹ıÃüÁî¶ÓÁĞµÄĞÎÊ½½»¸ø NXGUICommandManager£¬µÈµ½ÕâÒ»Ö¡ UpdateGUI ÔÙ¸üĞÂ
-	// UpdateGUI() ¸ºÔğ´¦Àí ÑÓ³Ù¸üĞÂ
-	// RenderGUI() ¸ºÔğ´¦ÀíGUIµÄäÖÈ¾ºÍ ¼´Ê±¸üĞÂ
+	// 2023.11.5 Nix çš„ GUI æ§åˆ¶å‚æ•°ç›®å‰æš‚æ—¶ä½¿ç”¨ä¸¤ç§æ–¹å¼ï¼šå³æ—¶æ›´æ–° å’Œ å»¶è¿Ÿæ›´æ–°
+	// 1. å³æ—¶æ›´æ–°ï¼šGUI æ¯æ¬¡ä¿®æ”¹å‚æ•°ï¼Œéƒ½ä¼šç«‹å³æ›´æ–°åˆ°å¯¹åº”çš„èµ„æºä¸Šï¼ˆå³ï¼Œä¼ ç»Ÿçš„ dearImgui æ›´æ–°å‚æ•°çš„æ–¹æ³•ï¼‰
+	// 2. å»¶è¿Ÿæ›´æ–°ï¼šä¸Šä¸€å¸§çš„ GUI ä¿®æ”¹å‚æ•°åï¼Œé€šè¿‡å‘½ä»¤é˜Ÿåˆ—çš„å½¢å¼äº¤ç»™ NXGUICommandManagerï¼Œç­‰åˆ°è¿™ä¸€å¸§ UpdateGUI å†æ›´æ–°
+	// UpdateGUI() è´Ÿè´£å¤„ç† å»¶è¿Ÿæ›´æ–°
+	// RenderGUI() è´Ÿè´£å¤„ç†GUIçš„æ¸²æŸ“å’Œ å³æ—¶æ›´æ–°
 	void UpdateGUI();
 
-	// ¸üĞÂ NXScene ³¡¾°
+	// æ›´æ–° NXScene åœºæ™¯
 	void UpdateSceneData();
 
 	void OnKeyDown(NXEventArgKey eArg);

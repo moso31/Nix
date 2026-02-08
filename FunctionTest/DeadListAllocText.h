@@ -27,8 +27,8 @@ namespace ccmem
 	class DeadListAllocator
 	{
 	public:
-		// 所谓deadList 其实就是一个记录了空闲内存块的链表
-		// blockSize 表示内存块的数量，blockByteSize 表示每个内存块的字节大小
+		// 鎵�璋揹eadList 鍏跺疄灏辨槸涓�涓褰曚簡绌洪棽鍐呭瓨鍧楃殑閾捐〃
+		// blockSize 琛ㄧず鍐呭瓨鍧楃殑鏁伴噺锛宐lockByteSize 琛ㄧず姣忎釜鍐呭瓨鍧楃殑瀛楄妭澶у皬
 		DeadListAllocator(uint32_t blockByteSize, uint32_t blockSize);
 		~DeadListAllocator();
 

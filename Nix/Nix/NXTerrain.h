@@ -17,8 +17,8 @@ public:
 
 	const NXTerrainNodeId& GetTerrainNode() const { return m_terrainNodeId; }
 
-	virtual void SetRotation(const Vector3& value) override {} // 地形不可旋转
-	virtual void SetScale(const Vector3& value) override {} // 地形不可缩放
+	virtual void SetRotation(const Vector3& value) override {} // 鍦板舰涓嶅彲鏃嬭浆
+	virtual void SetScale(const Vector3& value) override {} // 鍦板舰涓嶅彲缂╂斁
 
 	virtual NXTerrain* IsTerrain() { return this; }
 	void AddSubMesh(NXSubMeshBase* pSubMesh);
@@ -29,8 +29,8 @@ public:
 	void Update(ID3D12GraphicsCommandList* pCmdList);
 
 protected:
-	NXTerrainNodeId m_terrainNodeId; // 相对位置
-	int m_terrainId; // 全局唯一ID
+	NXTerrainNodeId m_terrainNodeId; // 鐩稿浣嶇疆
+	int m_terrainId; // 鍏ㄥ眬鍞竴ID
 	int m_gridSize;
 	int m_worldSize;
 

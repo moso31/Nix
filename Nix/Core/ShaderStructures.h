@@ -113,17 +113,17 @@ struct ConstantBufferShadowTest
 	Matrix view[8];
 	Matrix projection[8];
 
-	// ¼ÇÂ¼ CSM ¸÷¼¶ ÓÃÓÚ¼ÆËãTransitionµÄ¹ı¶É µÄĞÅÏ¢¡£
+	// è®°å½• CSM å„çº§ ç”¨äºè®¡ç®—Transitionçš„è¿‡æ¸¡ çš„ä¿¡æ¯ã€‚
 	Vector4 frustumParams[8]; // x: frustum far; y : transition length
 
-	// cascade ¼¶ÁªÊıÁ¿ 
+	// cascade çº§è”æ•°é‡ 
 	int cascadeCount = 4;
 
-	// ÒõÓ°¾àÀë
+	// é˜´å½±è·ç¦»
 	float shadowDistance = 300.0f;
 
-	// ÓÃÓÚÔÚ Á½¼¶cascadeÖ®¼ä Æ½»¬¹ı¶É
-	// ¸ÃÖµÔ½´ó ¹ı¶ÉÔ½Æ½»¬¡£
+	// ç”¨äºåœ¨ ä¸¤çº§cascadeä¹‹é—´ å¹³æ»‘è¿‡æ¸¡
+	// è¯¥å€¼è¶Šå¤§ è¿‡æ¸¡è¶Šå¹³æ»‘ã€‚
 	float cascadeTransitionScale = 0.1f;
 
 	int depthBias = 100;

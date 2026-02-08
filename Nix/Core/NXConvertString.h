@@ -15,10 +15,10 @@ namespace NXConvert
 	std::string s2lower(const std::string& s);
 	std::wstring s2lower(const std::wstring& s);
 
-	// È¥µô str ÖĞµÄËùÓĞ¿Õ¸ñºÍtab
+	// å»æ‰ str ä¸­çš„æ‰€æœ‰ç©ºæ ¼å’Œtab
 	std::string Trim(const std::string& str);
 
-	// ·Ö¸î×Ö·û´®
+	// åˆ†å‰²å­—ç¬¦ä¸²
 	std::vector<std::string> split(const std::string& str, const std::string& delimiters = " \t");
 }
 

@@ -62,7 +62,7 @@ void CS(int2 DTid : SV_DispatchThreadID,
 		float thetaU = (uv.y - scaleY) * NX_PI;
 		float thetaD = (uv.y + scaleY) * NX_PI;
 
-		float dPhi = NX_2PI * currImgSize.z;	// dPhi 是个常量
+		float dPhi = NX_2PI * currImgSize.z;	// dPhi 鏄釜甯搁噺
 		float dTheta = cos(thetaU) - cos(thetaD);
 		float solidAnglePdf = dPhi * dTheta;
 
@@ -70,7 +70,7 @@ void CS(int2 DTid : SV_DispatchThreadID,
 		{
 			for (int m = -l; m <= l; m++)
 			{
-				float sh = SHBasis(l, m, uv.y * NX_PI, (uv.x - 0.25) * NX_2PI);  // HDRI纹理角度矫正
+				float sh = SHBasis(l, m, uv.y * NX_PI, (uv.x - 0.25) * NX_2PI);  // HDRI绾圭悊瑙掑害鐭
 
 				// sh = y_l^m(Rs)
 				// m_shIrradianceMap[k++] = L_l^m

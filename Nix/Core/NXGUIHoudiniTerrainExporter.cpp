@@ -23,34 +23,34 @@ void NXGUIHoudiniTerrainExporter::Render()
 		return;
 
 	ImGui::SetNextWindowSize(ImVec2(1200.0f, 600.0f), ImGuiCond_FirstUseEver);
-	if (ImGui::Begin(ImUtf8("Houdini µØĞÎµ¼³öÆ÷"), &m_bVisible))
+	if (ImGui::Begin(ImUtf8("Houdini åœ°å½¢å¯¼å‡ºå™¨"), &m_bVisible))
 	{
-		// »ñÈ¡¿ÉÓÃ¿í¶È£¬ËÄÁĞÆ½¾ù·ÖÅä
+		// è·å–å¯ç”¨å®½åº¦ï¼Œå››åˆ—å¹³å‡åˆ†é…
 		float availWidth = ImGui::GetContentRegionAvail().x;
-		float columnWidth = (availWidth - 30.0f) / 4.0f; // ¼õÈ¥¼ä¸ô
+		float columnWidth = (availWidth - 30.0f) / 4.0f; // å‡å»é—´éš”
 
-		// µÚÒ»ÁĞ
+		// ç¬¬ä¸€åˆ—
 		ImGui::BeginChild("Column1", ImVec2(columnWidth, 0), true);
 		RenderColumn1_HoudiniFiles();
 		ImGui::EndChild();
 
 		ImGui::SameLine();
 
-		// µÚ¶şÁĞ
+		// ç¬¬äºŒåˆ—
 		ImGui::BeginChild("Column2", ImVec2(columnWidth, 0), true);
 		RenderColumn2_ConvertToDDS();
 		ImGui::EndChild();
 
 		ImGui::SameLine();
 
-		// µÚÈıÁĞ
+		// ç¬¬ä¸‰åˆ—
 		ImGui::BeginChild("Column3", ImVec2(columnWidth, 0), true);
 		RenderColumn3_BakeSubTiles();
 		ImGui::EndChild();
 
 		ImGui::SameLine();
 
-		// µÚËÄÁĞ
+		// ç¬¬å››åˆ—
 		ImGui::BeginChild("Column4", ImVec2(columnWidth, 0), true);
 		RenderColumn4_Compose2DArray();
 		ImGui::EndChild();
@@ -60,32 +60,32 @@ void NXGUIHoudiniTerrainExporter::Render()
 
 void NXGUIHoudiniTerrainExporter::RenderColumn1_HoudiniFiles()
 {
-	ImGui::Text(ImUtf8("=== Houdini EXR ÎÄ¼ş ==="));
+	ImGui::Text(ImUtf8("=== Houdini EXR æ–‡ä»¶ ==="));
 	ImGui::Separator();
 
-	// Â·¾¶ÊäÈë
-	ImGui::Text(ImUtf8("HoudiniÎÆÀíÂ·¾¶:"));
+	// è·¯å¾„è¾“å…¥
+	ImGui::Text(ImUtf8("Houdiniçº¹ç†è·¯å¾„:"));
 	float inputWidth = ImGui::GetContentRegionAvail().x - 80.0f;
 	ImGui::SetNextItemWidth(inputWidth);
 	ImGui::InputText("##HoudiniPath", m_houdiniBasePath, sizeof(m_houdiniBasePath));
 	ImGui::SameLine();
-	if (ImGui::Button(ImUtf8("»ñÈ¡ÎÆÀí")))
+	if (ImGui::Button(ImUtf8("è·å–çº¹ç†")))
 	{
 		ScanHoudiniExrFiles();
 	}
 
 	ImGui::Spacing();
 
-	// ÏÔÊ¾ÎÆÀíÊıÁ¿
-	ImGui::Text(ImUtf8("HeightÎÆÀí: %d ¸ö"), (int)m_heightExrFiles.size());
-	ImGui::Text(ImUtf8("SplatÎÆÀí: %d ¸ö"), (int)m_splatExrFiles.size());
-	ImGui::Text(ImUtf8("NormalÎÆÀí: %d ¸ö"), (int)m_normalExrFiles.size());
+	// æ˜¾ç¤ºçº¹ç†æ•°é‡
+	ImGui::Text(ImUtf8("Heightçº¹ç†: %d ä¸ª"), (int)m_heightExrFiles.size());
+	ImGui::Text(ImUtf8("Splatçº¹ç†: %d ä¸ª"), (int)m_splatExrFiles.size());
+	ImGui::Text(ImUtf8("Normalçº¹ç†: %d ä¸ª"), (int)m_normalExrFiles.size());
 
 	ImGui::Spacing();
 	ImGui::Separator();
 
-	// HeightÎÄ¼şÏÂÀ­²Ëµ¥
-	ImGui::Text(ImUtf8("HeightÎÄ¼şÁĞ±í:"));
+	// Heightæ–‡ä»¶ä¸‹æ‹‰èœå•
+	ImGui::Text(ImUtf8("Heightæ–‡ä»¶åˆ—è¡¨:"));
 	if (!m_heightExrFiles.empty())
 	{
 		ImGui::SetNextItemWidth(-1);
@@ -106,13 +106,13 @@ void NXGUIHoudiniTerrainExporter::RenderColumn1_HoudiniFiles()
 	}
 	else
 	{
-		ImGui::TextDisabled(ImUtf8("(ÎŞÎÄ¼ş)"));
+		ImGui::TextDisabled(ImUtf8("(æ— æ–‡ä»¶)"));
 	}
 
 	ImGui::Spacing();
 
-	// SplatÎÄ¼şÏÂÀ­²Ëµ¥
-	ImGui::Text(ImUtf8("SplatÎÄ¼şÁĞ±í:"));
+	// Splatæ–‡ä»¶ä¸‹æ‹‰èœå•
+	ImGui::Text(ImUtf8("Splatæ–‡ä»¶åˆ—è¡¨:"));
 	if (!m_splatExrFiles.empty())
 	{
 		ImGui::SetNextItemWidth(-1);
@@ -133,13 +133,13 @@ void NXGUIHoudiniTerrainExporter::RenderColumn1_HoudiniFiles()
 	}
 	else
 	{
-		ImGui::TextDisabled(ImUtf8("(ÎŞÎÄ¼ş)"));
+		ImGui::TextDisabled(ImUtf8("(æ— æ–‡ä»¶)"));
 	}
 
 	ImGui::Spacing();
 
-	// NormalÎÄ¼şÏÂÀ­²Ëµ¥
-	ImGui::Text(ImUtf8("NormalÎÄ¼şÁĞ±í:"));
+	// Normalæ–‡ä»¶ä¸‹æ‹‰èœå•
+	ImGui::Text(ImUtf8("Normalæ–‡ä»¶åˆ—è¡¨:"));
 	if (!m_normalExrFiles.empty())
 	{
 		ImGui::SetNextItemWidth(-1);
@@ -160,38 +160,38 @@ void NXGUIHoudiniTerrainExporter::RenderColumn1_HoudiniFiles()
 	}
 	else
 	{
-		ImGui::TextDisabled(ImUtf8("(ÎŞÎÄ¼ş)"));
+		ImGui::TextDisabled(ImUtf8("(æ— æ–‡ä»¶)"));
 	}
 }
 
 void NXGUIHoudiniTerrainExporter::RenderColumn2_ConvertToDDS()
 {
-	ImGui::Text(ImUtf8("=== ×ªÂ¼Îª DDS ==="));
+	ImGui::Text(ImUtf8("=== è½¬å½•ä¸º DDS ==="));
 	ImGui::Separator();
 
-	// Êä³öÂ·¾¶
-	ImGui::Text(ImUtf8("NixÊä³öÂ·¾¶:"));
+	// è¾“å‡ºè·¯å¾„
+	ImGui::Text(ImUtf8("Nixè¾“å‡ºè·¯å¾„:"));
 	ImGui::SetNextItemWidth(-1);
 	ImGui::InputText("##NixOutputPath", m_nixOutputPath, sizeof(m_nixOutputPath));
 
 	ImGui::Spacing();
 
-	// ×ª»»Ñ¡Ïî
-	ImGui::Checkbox(ImUtf8("×ª»» HeightMap"), &m_bConvertHeightMap);
+	// è½¬æ¢é€‰é¡¹
+	ImGui::Checkbox(ImUtf8("è½¬æ¢ HeightMap"), &m_bConvertHeightMap);
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(120);
-	ImGui::InputInt2(ImUtf8("¸ß¶È·¶Î§"), m_heightMapRange);
-	ImGui::Checkbox(ImUtf8("×ª»» SplatMap"), &m_bConvertSplatMap);
-	ImGui::Checkbox(ImUtf8("×ª»» NormalMap"), &m_bConvertNormalMap);
+	ImGui::InputInt2(ImUtf8("é«˜åº¦èŒƒå›´"), m_heightMapRange);
+	ImGui::Checkbox(ImUtf8("è½¬æ¢ SplatMap"), &m_bConvertSplatMap);
+	ImGui::Checkbox(ImUtf8("è½¬æ¢ NormalMap"), &m_bConvertNormalMap);
 
 	ImGui::Spacing();
 
-	// ×ª»»°´Å¥
+	// è½¬æ¢æŒ‰é’®
 	bool canConvert = !m_heightExrFiles.empty() || !m_splatExrFiles.empty();
 	if (!canConvert)
 		ImGui::BeginDisabled();
 	
-	if (ImGui::Button(ImUtf8("¿ªÊ¼×ª»»"), ImVec2(-1, 30)))
+	if (ImGui::Button(ImUtf8("å¼€å§‹è½¬æ¢"), ImVec2(-1, 30)))
 	{
 		ExecuteConvertAll();
 	}
@@ -202,16 +202,16 @@ void NXGUIHoudiniTerrainExporter::RenderColumn2_ConvertToDDS()
 	ImGui::Spacing();
 	ImGui::Separator();
 
-	// Ë¢ĞÂÒÑ×ª»»ÎÄ¼şÁĞ±í
-	if (ImGui::Button(ImUtf8("Ë¢ĞÂDDSÁĞ±í")))
+	// åˆ·æ–°å·²è½¬æ¢æ–‡ä»¶åˆ—è¡¨
+	if (ImGui::Button(ImUtf8("åˆ·æ–°DDSåˆ—è¡¨")))
 	{
 		ScanNixDdsFiles();
 	}
 
 	ImGui::Spacing();
 
-	// ÏÔÊ¾ÒÑ×ª»»µÄDDSÎÄ¼ş
-	ImGui::Text(ImUtf8("ÒÑ×ª»»µÄDDS: %d ×é"), (int)m_nixDdsFiles.size());
+	// æ˜¾ç¤ºå·²è½¬æ¢çš„DDSæ–‡ä»¶
+	ImGui::Text(ImUtf8("å·²è½¬æ¢çš„DDS: %d ç»„"), (int)m_nixDdsFiles.size());
 	
 	if (!m_nixDdsFiles.empty())
 	{
@@ -231,7 +231,7 @@ void NXGUIHoudiniTerrainExporter::RenderColumn2_ConvertToDDS()
 			ImGui::EndCombo();
 		}
 
-		// ÏÔÊ¾Ñ¡ÖĞÎÄ¼şµÄÏêÏ¸ĞÅÏ¢
+		// æ˜¾ç¤ºé€‰ä¸­æ–‡ä»¶çš„è¯¦ç»†ä¿¡æ¯
 		if (m_selectedDdsIndex < (int)m_nixDdsFiles.size())
 		{
 			const auto& dds = m_nixDdsFiles[m_selectedDdsIndex];
@@ -242,55 +242,55 @@ void NXGUIHoudiniTerrainExporter::RenderColumn2_ConvertToDDS()
 	}
 	else
 	{
-		ImGui::TextDisabled(ImUtf8("(ÎŞÎÄ¼ş)"));
+		ImGui::TextDisabled(ImUtf8("(æ— æ–‡ä»¶)"));
 	}
 }
 
 void NXGUIHoudiniTerrainExporter::RenderColumn3_BakeSubTiles()
 {
-	ImGui::Text(ImUtf8("=== ºæ±º×ÓÇøÓòÎÆÀí ==="));
+	ImGui::Text(ImUtf8("=== çƒ˜ç„™å­åŒºåŸŸçº¹ç† ==="));
 	ImGui::Separator();
 
-	// Êä³öÂ·¾¶
-	ImGui::Text(ImUtf8("×ÓÇøÓòÎÆÀíÊä³ö¸ùÂ·¾¶:"));
+	// è¾“å‡ºè·¯å¾„
+	ImGui::Text(ImUtf8("å­åŒºåŸŸçº¹ç†è¾“å‡ºæ ¹è·¯å¾„:"));
 	ImGui::SetNextItemWidth(-1);
 	ImGui::InputText("##SubTileOutputPath", m_subTileOutputPath, sizeof(m_subTileOutputPath));
 
 	ImGui::Spacing();
-	ImGui::TextDisabled(ImUtf8("Êä³öÄ¿Â¼½á¹¹: <¸ùÂ·¾¶>\\X_Y\\sub\\hmap\\ »ò splat\\"));
+	ImGui::TextDisabled(ImUtf8("è¾“å‡ºç›®å½•ç»“æ„: <æ ¹è·¯å¾„>\\X_Y\\sub\\hmap\\ æˆ– splat\\"));
 
 	ImGui::Spacing();
 	ImGui::Separator();
 
-	// ºæ±ºÑ¡Ïî
-	ImGui::Text(ImUtf8("ºæ±ºÑ¡Ïî:"));
-	ImGui::Checkbox(ImUtf8("ºæ±º HeightMap ×ÓÇøÓò"), &m_bBakeHeightMapSubTiles);
-	ImGui::Checkbox(ImUtf8("ºæ±º SplatMap ×ÓÇøÓò"), &m_bBakeSplatMapSubTiles);
-	ImGui::Checkbox(ImUtf8("ºæ±º NormalMap ×ÓÇøÓò"), &m_bBakeNormalMapSubTiles);
+	// çƒ˜ç„™é€‰é¡¹
+	ImGui::Text(ImUtf8("çƒ˜ç„™é€‰é¡¹:"));
+	ImGui::Checkbox(ImUtf8("çƒ˜ç„™ HeightMap å­åŒºåŸŸ"), &m_bBakeHeightMapSubTiles);
+	ImGui::Checkbox(ImUtf8("çƒ˜ç„™ SplatMap å­åŒºåŸŸ"), &m_bBakeSplatMapSubTiles);
+	ImGui::Checkbox(ImUtf8("çƒ˜ç„™ NormalMap å­åŒºåŸŸ"), &m_bBakeNormalMapSubTiles);
 
 	ImGui::Spacing();
 
-	// Ç¿ÖÆÉú³ÉÑ¡Ïî
-	ImGui::Checkbox(ImUtf8("Ç¿ÖÆÉú³É£¨ºöÂÔÒÑ´æÔÚµÄÎÄ¼ş£©"), &m_bForceGenerateSubTiles);
+	// å¼ºåˆ¶ç”Ÿæˆé€‰é¡¹
+	ImGui::Checkbox(ImUtf8("å¼ºåˆ¶ç”Ÿæˆï¼ˆå¿½ç•¥å·²å­˜åœ¨çš„æ–‡ä»¶ï¼‰"), &m_bForceGenerateSubTiles);
 
 	if (m_bForceGenerateSubTiles)
 	{
-		ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), ImUtf8("½«ÖØĞÂÉú³ÉËùÓĞÎÄ¼ş£¡"));
+		ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), ImUtf8("å°†é‡æ–°ç”Ÿæˆæ‰€æœ‰æ–‡ä»¶ï¼"));
 	}
 	else
 	{
-		ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), ImUtf8("½«Ìø¹ıÒÑ´æÔÚµÄÎÄ¼ş"));
+		ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), ImUtf8("å°†è·³è¿‡å·²å­˜åœ¨çš„æ–‡ä»¶"));
 	}
 
 	ImGui::Spacing();
 	ImGui::Separator();
 
-	// ¼ì²éÊÇ·ñÓĞDDSÎÄ¼ş¿É¹©ºæ±º
+	// æ£€æŸ¥æ˜¯å¦æœ‰DDSæ–‡ä»¶å¯ä¾›çƒ˜ç„™
 	bool canBake = !m_nixDdsFiles.empty() && (m_bBakeHeightMapSubTiles || m_bBakeSplatMapSubTiles || m_bBakeNormalMapSubTiles);
 	if (!canBake)
 		ImGui::BeginDisabled();
 
-	if (ImGui::Button(ImUtf8("¿ªÊ¼ºæ±º×ÓÇøÓòÎÆÀí"), ImVec2(-1, 30)))
+	if (ImGui::Button(ImUtf8("å¼€å§‹çƒ˜ç„™å­åŒºåŸŸçº¹ç†"), ImVec2(-1, 30)))
 	{
 		TerrainTexLODBakeConfig bakeConfig;
 		bakeConfig.bForceGenerate = m_bForceGenerateSubTiles;
@@ -298,13 +298,13 @@ void NXGUIHoudiniTerrainExporter::RenderColumn3_BakeSubTiles()
 		bakeConfig.bGenerateSplatMap = m_bBakeSplatMapSubTiles;
 		bakeConfig.bGenerateNormalMap = m_bBakeNormalMapSubTiles;
 
-		// ±éÀúËùÓĞDDSÎÄ¼ş£¬¹¹½¨ºæ±ºÊı¾İ
+		// éå†æ‰€æœ‰DDSæ–‡ä»¶ï¼Œæ„å»ºçƒ˜ç„™æ•°æ®
 		for (const auto& ddsInfo : m_nixDdsFiles)
 		{
 			PerTerrainBakeData perTerrainBakeData;
 			perTerrainBakeData.nodeId = { (short)ddsInfo.tileX, (short)ddsInfo.tileY };
 
-			// ¹¹½¨Â·¾¶£º<¸ùÂ·¾¶>\X_Y\hmap.dds ºÍ <¸ùÂ·¾¶>\X_Y\splatmap.dds
+			// æ„å»ºè·¯å¾„ï¼š<æ ¹è·¯å¾„>\X_Y\hmap.dds å’Œ <æ ¹è·¯å¾„>\X_Y\splatmap.dds
 			std::filesystem::path basePath(m_subTileOutputPath);
 			std::string terrainId = std::to_string(ddsInfo.tileX) + "_" + std::to_string(ddsInfo.tileY);
 			std::filesystem::path terrainDir = basePath / terrainId;
@@ -316,7 +316,7 @@ void NXGUIHoudiniTerrainExporter::RenderColumn3_BakeSubTiles()
 			bakeConfig.bakeTerrains.push_back(perTerrainBakeData);
 		}
 
-		// µ÷ÓÃºæ±ºº¯Êı
+		// è°ƒç”¨çƒ˜ç„™å‡½æ•°
 		NXTextureMaker::GenerateTerrainStreamingLODMaps(bakeConfig);
 	}
 
@@ -325,64 +325,64 @@ void NXGUIHoudiniTerrainExporter::RenderColumn3_BakeSubTiles()
 
 	ImGui::Spacing();
 
-	// ÏÔÊ¾°ïÖúĞÅÏ¢
-	ImGui::TextWrapped(ImUtf8("ËµÃ÷£º´Ë¹¦ÄÜ½«DDSÎÆÀíÇĞ·Ö³ÉÈô¸É×ÓÇøÓò(subtile)£¬ÓÃÓÚÖ§³ÖµØĞÎÁ÷Ê½¼ÓÔØ¡£Ã¿¸öµØĞÎ½«Éú³É¶à¼¶LODµÄ×ÓÎÆÀí¿é¡£"));
+	// æ˜¾ç¤ºå¸®åŠ©ä¿¡æ¯
+	ImGui::TextWrapped(ImUtf8("è¯´æ˜ï¼šæ­¤åŠŸèƒ½å°†DDSçº¹ç†åˆ‡åˆ†æˆè‹¥å¹²å­åŒºåŸŸ(subtile)ï¼Œç”¨äºæ”¯æŒåœ°å½¢æµå¼åŠ è½½ã€‚æ¯ä¸ªåœ°å½¢å°†ç”Ÿæˆå¤šçº§LODçš„å­çº¹ç†å—ã€‚"));
 }
 
 void NXGUIHoudiniTerrainExporter::RenderColumn4_Compose2DArray()
 {
-	ImGui::Text(ImUtf8("=== ºÏ³É 2D Array ==="));
+	ImGui::Text(ImUtf8("=== åˆæˆ 2D Array ==="));
 	ImGui::Separator();
 
-	// HeightArrayÂ·¾¶
-	ImGui::Checkbox(ImUtf8("ºÏ³É HeightMap 2DArray"), &m_bComposeHeightArray);
+	// HeightArrayè·¯å¾„
+	ImGui::Checkbox(ImUtf8("åˆæˆ HeightMap 2DArray"), &m_bComposeHeightArray);
 	ImGui::SetNextItemWidth(-1);
 	ImGui::InputText("##HeightArrayPath", m_heightArrayPath, sizeof(m_heightArrayPath));
 
 	ImGui::Spacing();
 
-	// MinMaxZÂ·¾¶
-	ImGui::Checkbox(ImUtf8("ºÏ³É MinMaxZ"), &m_bComposeMinMaxZ);
+	// MinMaxZè·¯å¾„
+	ImGui::Checkbox(ImUtf8("åˆæˆ MinMaxZ"), &m_bComposeMinMaxZ);
 	ImGui::SetNextItemWidth(-1);
 	ImGui::InputText("##MinMaxZPath", m_minMaxZPath, sizeof(m_minMaxZPath));
 
 	ImGui::Spacing();
 
-	// SplatMap 2DArrayÂ·¾¶
-	ImGui::Checkbox(ImUtf8("ºÏ³É SplatMap 2DArray"), &m_bComposeSplatArray);
+	// SplatMap 2DArrayè·¯å¾„
+	ImGui::Checkbox(ImUtf8("åˆæˆ SplatMap 2DArray"), &m_bComposeSplatArray);
 	ImGui::SetNextItemWidth(-1);
 	ImGui::InputText("##SplatArrayPath", m_splatArrayPath, sizeof(m_splatArrayPath));
 
 	ImGui::Spacing();
 
-	// NormalMap 2DArrayÂ·¾¶
-	ImGui::Checkbox(ImUtf8("ºÏ³É NormalMap 2DArray"), &m_bComposeNormalArray);
+	// NormalMap 2DArrayè·¯å¾„
+	ImGui::Checkbox(ImUtf8("åˆæˆ NormalMap 2DArray"), &m_bComposeNormalArray);
 	ImGui::SetNextItemWidth(-1);
 	ImGui::InputText("##NormalArrayPath", m_normalArrayPath, sizeof(m_normalArrayPath));
 
 	ImGui::Spacing();
 	ImGui::Separator();
 
-	// ÅÅĞòÉèÖÃ
-	ImGui::Text(ImUtf8("ÅÅĞòÉèÖÃ:"));
-	ImGui::Checkbox(ImUtf8("ĞĞÕıĞò (Y+)"), &m_bRowAscending);
-	ImGui::Checkbox(ImUtf8("ÁĞÕıĞò (X+)"), &m_bColAscending);
-	ImGui::Checkbox(ImUtf8("ÏÈ±éÀúÁĞ£¨²»¹´Ñ¡ÔòĞĞÓÅÏÈ£©"), &m_bColumnFirst);
+	// æ’åºè®¾ç½®
+	ImGui::Text(ImUtf8("æ’åºè®¾ç½®:"));
+	ImGui::Checkbox(ImUtf8("è¡Œæ­£åº (Y+)"), &m_bRowAscending);
+	ImGui::Checkbox(ImUtf8("åˆ—æ­£åº (X+)"), &m_bColAscending);
+	ImGui::Checkbox(ImUtf8("å…ˆéå†åˆ—ï¼ˆä¸å‹¾é€‰åˆ™è¡Œä¼˜å…ˆï¼‰"), &m_bColumnFirst);
 
 	ImGui::Spacing();
 
-	// µØĞÎ·¶Î§ĞÅÏ¢(×Ô¶¯¼ÆËã)
-	ImGui::Text(ImUtf8("µØĞÎ·¶Î§: %d x %d"), m_terrainCountX, m_terrainCountY);
+	// åœ°å½¢èŒƒå›´ä¿¡æ¯(è‡ªåŠ¨è®¡ç®—)
+	ImGui::Text(ImUtf8("åœ°å½¢èŒƒå›´: %d x %d"), m_terrainCountX, m_terrainCountY);
 
 	ImGui::Spacing();
 	ImGui::Separator();
 
-	// ¿ªÊ¼ºÏ³É°´Å¥
+	// å¼€å§‹åˆæˆæŒ‰é’®
 	bool canCompose = !m_nixDdsFiles.empty();
 	if (!canCompose)
 		ImGui::BeginDisabled();
 
-	if (ImGui::Button(ImUtf8("¿ªÊ¼ºÏ³É"), ImVec2(-1, 30)))
+	if (ImGui::Button(ImUtf8("å¼€å§‹åˆæˆ"), ImVec2(-1, 30)))
 	{
 		if (m_bComposeHeightArray)
 			ComposeHeightMap2DArray();
@@ -400,8 +400,8 @@ void NXGUIHoudiniTerrainExporter::RenderColumn4_Compose2DArray()
 	ImGui::Spacing();
 	ImGui::Separator();
 
-	// Ô¤ÀÀÁĞ±í
-	ImGui::Text(ImUtf8("SliceË÷ÒıÔ¤ÀÀ:"));
+	// é¢„è§ˆåˆ—è¡¨
+	ImGui::Text(ImUtf8("Sliceç´¢å¼•é¢„è§ˆ:"));
 	
 	if (!m_nixDdsFiles.empty())
 	{
@@ -420,7 +420,7 @@ void NXGUIHoudiniTerrainExporter::RenderColumn4_Compose2DArray()
 	}
 	else
 	{
-		ImGui::TextDisabled(ImUtf8("(ÇëÏÈË¢ĞÂDDSÁĞ±í)"));
+		ImGui::TextDisabled(ImUtf8("(è¯·å…ˆåˆ·æ–°DDSåˆ—è¡¨)"));
 	}
 }
 
@@ -435,7 +435,7 @@ void NXGUIHoudiniTerrainExporter::ScanHoudiniExrFiles()
 
 	std::filesystem::path basePath(m_houdiniBasePath);
 
-	// É¨ÃèheightÎÄ¼ş¼Ğ
+	// æ‰«æheightæ–‡ä»¶å¤¹
 	std::filesystem::path heightDir = basePath / "height";
 	if (std::filesystem::exists(heightDir) && std::filesystem::is_directory(heightDir))
 	{
@@ -452,7 +452,7 @@ void NXGUIHoudiniTerrainExporter::ScanHoudiniExrFiles()
 		}
 	}
 
-	// É¨ÃèsplatÎÄ¼ş¼Ğ
+	// æ‰«æsplatæ–‡ä»¶å¤¹
 	std::filesystem::path splatDir = basePath / "splat";
 	if (std::filesystem::exists(splatDir) && std::filesystem::is_directory(splatDir))
 	{
@@ -469,7 +469,7 @@ void NXGUIHoudiniTerrainExporter::ScanHoudiniExrFiles()
 		}
 	}
 
-	// É¨ÃènormalÎÄ¼ş¼Ğ
+	// æ‰«ænormalæ–‡ä»¶å¤¹
 	std::filesystem::path normalDir = basePath / "normal";
 	if (std::filesystem::exists(normalDir) && std::filesystem::is_directory(normalDir))
 	{
@@ -486,7 +486,7 @@ void NXGUIHoudiniTerrainExporter::ScanHoudiniExrFiles()
 		}
 	}
 
-	//// °´×ø±êÅÅĞò
+	//// æŒ‰åæ ‡æ’åº
 	//auto sortByCoord = [](const HoudiniExrFileInfo& a, const HoudiniExrFileInfo& b) {
 	//	if (a.tileY != b.tileY) return a.tileY < b.tileY;
 	//	return a.tileX < b.tileX;
@@ -516,7 +516,7 @@ void NXGUIHoudiniTerrainExporter::ScanNixDdsFiles()
 
 		std::string dirName = entry.path().filename().string();
 		int x, y;
-		if (!ParseTileCoord(dirName + ".exr", x, y)) // ¸´ÓÃ½âÎöÂß¼­£¬¼Ó¸ö¼Ùºó×º
+		if (!ParseTileCoord(dirName + ".exr", x, y)) // å¤ç”¨è§£æé€»è¾‘ï¼ŒåŠ ä¸ªå‡åç¼€
 			continue;
 
 		NixTerrainDdsInfo info;
@@ -527,7 +527,7 @@ void NXGUIHoudiniTerrainExporter::ScanNixDdsFiles()
 		info.splatMapPath = entry.path() / "splatmap.dds";
 		info.normalMapPath = entry.path() / "nmap.dds";
 
-		// ¼ì²éÎÄ¼şÊÇ·ñ´æÔÚ
+		// æ£€æŸ¥æ–‡ä»¶æ˜¯å¦å­˜åœ¨
 		if (std::filesystem::exists(info.heightMapPath) || std::filesystem::exists(info.splatMapPath) || std::filesystem::exists(info.normalMapPath))
 		{
 			m_nixDdsFiles.push_back(info);
@@ -539,13 +539,13 @@ void NXGUIHoudiniTerrainExporter::ScanNixDdsFiles()
 		}
 	}
 
-	// °´×ø±êÅÅĞò
+	// æŒ‰åæ ‡æ’åº
 	std::sort(m_nixDdsFiles.begin(), m_nixDdsFiles.end(), [](const NixTerrainDdsInfo& a, const NixTerrainDdsInfo& b) {
 		if (a.tileY != b.tileY) return a.tileY < b.tileY;
 		return a.tileX < b.tileX;
 	});
 
-	// ¼ÆËãµØĞÎ·¶Î§
+	// è®¡ç®—åœ°å½¢èŒƒå›´
 	if (!m_nixDdsFiles.empty())
 	{
 		m_terrainCountX = maxX - minX + 1;
@@ -555,7 +555,7 @@ void NXGUIHoudiniTerrainExporter::ScanNixDdsFiles()
 
 void NXGUIHoudiniTerrainExporter::ConvertExrToHeightMapDDS(const HoudiniExrFileInfo& exrInfo, const std::filesystem::path& outPath)
 {
-	// Ê¹ÓÃtinyexr¶ÁÈ¡EXRÎÄ¼ş (32Î»¸¡µãRGBA)
+	// ä½¿ç”¨tinyexrè¯»å–EXRæ–‡ä»¶ (32ä½æµ®ç‚¹RGBA)
 	float* exrData = nullptr;
 	int width, height;
 	const char* err = nullptr;
@@ -565,35 +565,35 @@ void NXGUIHoudiniTerrainExporter::ConvertExrToHeightMapDDS(const HoudiniExrFileI
 	{
 		if (err) 
 		{
-			printf("EXR¼ÓÔØÊ§°Ü: %s\n", err);
+			printf("EXRåŠ è½½å¤±è´¥: %s\n", err);
 			FreeEXRErrorMessage(err);
 		}
 		return;
 	}
 
-	// ´´½¨R16_UNORMÎÆÀí
+	// åˆ›å»ºR16_UNORMçº¹ç†
 	ScratchImage img;
 	HRESULT hr = img.Initialize2D(DXGI_FORMAT_R16_UNORM, width, height, 1, 1);
 	if (FAILED(hr))
 	{
-		printf("ConvertExrToHeightMapDDS: Initialize2D Ê§°Ü\n");
+		printf("ConvertExrToHeightMapDDS: Initialize2D å¤±è´¥\n");
 		free(exrData);
 		return;
 	}
 	
 	const Image* dst = img.GetImage(0, 0, 0);
 	
-	// EXRÊÇRGBA¸ñÊ½£¬stride=4
-	// ÊäÈëÖµÒÑ¾­ÊÇ0..1Çø¼ä£¬Ö±½ÓÓ³Éäµ½R16_UNORM
+	// EXRæ˜¯RGBAæ ¼å¼ï¼Œstride=4
+	// è¾“å…¥å€¼å·²ç»æ˜¯0..1åŒºé—´ï¼Œç›´æ¥æ˜ å°„åˆ°R16_UNORM
 	for (int y = 0; y < height; ++y) 
 	{
 		uint16_t* dstRow = reinterpret_cast<uint16_t*>(dst->pixels + y * dst->rowPitch);
 		for (int x = 0; x < width; ++x) 
 		{
 			int srcIdx = (y * width + x) * 4; // RGBA
-			float heightVal = exrData[srcIdx]; // RÍ¨µÀÊÇ¸ß¶È£¨ÒÑ¾­ÊÇ0..1£©
+			float heightVal = exrData[srcIdx]; // Ré€šé“æ˜¯é«˜åº¦ï¼ˆå·²ç»æ˜¯0..1ï¼‰
 			
-			// ÊäÈëÒÑ¾­ÊÇ0..1£¬Ö±½Óclamp²¢×ª»»ÎªR16_UNORM
+			// è¾“å…¥å·²ç»æ˜¯0..1ï¼Œç›´æ¥clampå¹¶è½¬æ¢ä¸ºR16_UNORM
 			float normalized = std::clamp(heightVal, 0.0f, 1.0f);
 			dstRow[x] = static_cast<uint16_t>(normalized * 65535.0f);
 		}
@@ -601,26 +601,26 @@ void NXGUIHoudiniTerrainExporter::ConvertExrToHeightMapDDS(const HoudiniExrFileI
 	
 	free(exrData);
 	
-	// È·±£Ä¿Â¼´æÔÚ
+	// ç¡®ä¿ç›®å½•å­˜åœ¨
 	std::filesystem::create_directories(outPath.parent_path());
 	
-	// ±£´æDDS
+	// ä¿å­˜DDS
 	hr = SaveToDDSFile(img.GetImages(), img.GetImageCount(), img.GetMetadata(), 
 				  DDS_FLAGS_NONE, outPath.wstring().c_str());
 	if (FAILED(hr))
 	{
-		printf("ConvertExrToHeightMapDDS: ±£´æDDSÊ§°Ü %s\n", outPath.string().c_str());
+		printf("ConvertExrToHeightMapDDS: ä¿å­˜DDSå¤±è´¥ %s\n", outPath.string().c_str());
 	}
 	else
 	{
-		printf("ConvertExrToHeightMapDDS: %s -> %s ³É¹¦\n", 
+		printf("ConvertExrToHeightMapDDS: %s -> %s æˆåŠŸ\n", 
 			   exrInfo.fullPath.string().c_str(), outPath.string().c_str());
 	}
 }
 
 void NXGUIHoudiniTerrainExporter::ConvertExrToSplatMapDDS(const HoudiniExrFileInfo& exrInfo, const std::filesystem::path& outPath)
 {
-	// Ê¹ÓÃtinyexr¶ÁÈ¡EXRÎÄ¼ş (32Î»¸¡µãRGBA)
+	// ä½¿ç”¨tinyexrè¯»å–EXRæ–‡ä»¶ (32ä½æµ®ç‚¹RGBA)
 	float* exrData = nullptr;
 	int width, height;
 	const char* err = nullptr;
@@ -630,35 +630,35 @@ void NXGUIHoudiniTerrainExporter::ConvertExrToSplatMapDDS(const HoudiniExrFileIn
 	{
 		if (err) 
 		{
-			printf("EXR¼ÓÔØÊ§°Ü: %s\n", err);
+			printf("EXRåŠ è½½å¤±è´¥: %s\n", err);
 			FreeEXRErrorMessage(err);
 		}
 		return;
 	}
 
-	// ´´½¨R8_UNORMÎÆÀí
+	// åˆ›å»ºR8_UNORMçº¹ç†
 	ScratchImage img;
 	HRESULT hr = img.Initialize2D(DXGI_FORMAT_R8_UNORM, width, height, 1, 1);
 	if (FAILED(hr))
 	{
-		printf("ConvertExrToSplatMapDDS: Initialize2D Ê§°Ü\n");
+		printf("ConvertExrToSplatMapDDS: Initialize2D å¤±è´¥\n");
 		free(exrData);
 		return;
 	}
 	
 	const Image* dst = img.GetImage(0, 0, 0);
 	
-	// EXRÊÇRGBA¸ñÊ½£¬stride=4
-	// ÊäÈëÖµÒÑ¾­ÊÇ0..1Çø¼ä£¬Ö±½ÓÓ³Éäµ½R8_UNORM
+	// EXRæ˜¯RGBAæ ¼å¼ï¼Œstride=4
+	// è¾“å…¥å€¼å·²ç»æ˜¯0..1åŒºé—´ï¼Œç›´æ¥æ˜ å°„åˆ°R8_UNORM
 	for (int y = 0; y < height; ++y) 
 	{
 		uint8_t* dstRow = dst->pixels + y * dst->rowPitch;
 		for (int x = 0; x < width; ++x) 
 		{
 			int srcIdx = (y * width + x) * 4; // RGBA
-			float idVal = exrData[srcIdx]; // RÍ¨µÀÊÇ²ÄÖÊID£¨ÒÑ¾­ÊÇ0..1£©
+			float idVal = exrData[srcIdx]; // Ré€šé“æ˜¯æè´¨IDï¼ˆå·²ç»æ˜¯0..1ï¼‰
 			
-			// ÊäÈëÒÑ¾­ÊÇ0..1£¬Ö±½Óclamp²¢×ª»»ÎªR8_UNORM
+			// è¾“å…¥å·²ç»æ˜¯0..1ï¼Œç›´æ¥clampå¹¶è½¬æ¢ä¸ºR8_UNORM
 			float normalized = std::clamp(idVal, 0.0f, 1.0f);
 			dstRow[x] = static_cast<uint8_t>(normalized * 255.0f);
 		}
@@ -666,26 +666,26 @@ void NXGUIHoudiniTerrainExporter::ConvertExrToSplatMapDDS(const HoudiniExrFileIn
 	
 	free(exrData);
 	
-	// È·±£Ä¿Â¼´æÔÚ
+	// ç¡®ä¿ç›®å½•å­˜åœ¨
 	std::filesystem::create_directories(outPath.parent_path());
 	
-	// ±£´æDDS
+	// ä¿å­˜DDS
 	hr = SaveToDDSFile(img.GetImages(), img.GetImageCount(), img.GetMetadata(), 
 				  DDS_FLAGS_NONE, outPath.wstring().c_str());
 	if (FAILED(hr))
 	{
-		printf("ConvertExrToSplatMapDDS: ±£´æDDSÊ§°Ü %s\n", outPath.string().c_str());
+		printf("ConvertExrToSplatMapDDS: ä¿å­˜DDSå¤±è´¥ %s\n", outPath.string().c_str());
 	}
 	else
 	{
-		printf("ConvertExrToSplatMapDDS: %s -> %s ³É¹¦\n", 
+		printf("ConvertExrToSplatMapDDS: %s -> %s æˆåŠŸ\n", 
 			   exrInfo.fullPath.string().c_str(), outPath.string().c_str());
 	}
 }
 
 void NXGUIHoudiniTerrainExporter::ConvertExrToNormalMapDDS(const HoudiniExrFileInfo& exrInfo, const std::filesystem::path& outPath)
 {
-	// Ê¹ÓÃtinyexr¶ÁÈ¡EXRÎÄ¼ş (32Î»¸¡µãRGBA)
+	// ä½¿ç”¨tinyexrè¯»å–EXRæ–‡ä»¶ (32ä½æµ®ç‚¹RGBA)
 	float* exrData = nullptr;
 	int width, height;
 	const char* err = nullptr;
@@ -695,70 +695,70 @@ void NXGUIHoudiniTerrainExporter::ConvertExrToNormalMapDDS(const HoudiniExrFileI
 	{
 		if (err) 
 		{
-			printf("EXR¼ÓÔØÊ§°Ü: %s\n", err);
+			printf("EXRåŠ è½½å¤±è´¥: %s\n", err);
 			FreeEXRErrorMessage(err);
 		}
 		return;
 	}
 
-	// ÏÈ´´½¨R8G8B8A8_UNORMÎÆÀí×÷ÎªÖĞ¼ä¸ñÊ½
+	// å…ˆåˆ›å»ºR8G8B8A8_UNORMçº¹ç†ä½œä¸ºä¸­é—´æ ¼å¼
 	ScratchImage imgUncompressed;
 	HRESULT hr = imgUncompressed.Initialize2D(DXGI_FORMAT_R8G8B8A8_UNORM, width, height, 1, 1);
 	if (FAILED(hr))
 	{
-		printf("ConvertExrToNormalMapDDS: Initialize2D Ê§°Ü\n");
+		printf("ConvertExrToNormalMapDDS: Initialize2D å¤±è´¥\n");
 		free(exrData);
 		return;
 	}
 	
 	const Image* dst = imgUncompressed.GetImage(0, 0, 0);
 	
-	// EXRÊÇRGBA¸ñÊ½£¬stride=4
-	// ·¨ÏßÖµÒÑ¾­ÔÚ0-1·¶Î§ÄÚ£¬Ö±½ÓÊ¹ÓÃ
+	// EXRæ˜¯RGBAæ ¼å¼ï¼Œstride=4
+	// æ³•çº¿å€¼å·²ç»åœ¨0-1èŒƒå›´å†…ï¼Œç›´æ¥ä½¿ç”¨
 	for (int y = 0; y < height; ++y) 
 	{
 		uint8_t* dstRow = dst->pixels + y * dst->rowPitch;
 		for (int x = 0; x < width; ++x) 
 		{
 			int srcIdx = (y * width + x) * 4; // RGBA
-			float nx = exrData[srcIdx];     // RÍ¨µÀ
-			float ny = exrData[srcIdx + 1]; // GÍ¨µÀ
-			float nz = exrData[srcIdx + 2]; // BÍ¨µÀ
+			float nx = exrData[srcIdx];     // Ré€šé“
+			float ny = exrData[srcIdx + 1]; // Gé€šé“
+			float nz = exrData[srcIdx + 2]; // Bé€šé“
 			
-			// Ö±½Óclampµ½0-1²¢×ª»»
+			// ç›´æ¥clampåˆ°0-1å¹¶è½¬æ¢
 			int dstIdx = x * 4;
 			dstRow[dstIdx]     = static_cast<uint8_t>(std::clamp(nx, 0.0f, 1.0f) * 255.0f);
 			dstRow[dstIdx + 1] = static_cast<uint8_t>(std::clamp(ny, 0.0f, 1.0f) * 255.0f);
 			dstRow[dstIdx + 2] = static_cast<uint8_t>(std::clamp(nz, 0.0f, 1.0f) * 255.0f);
-			dstRow[dstIdx + 3] = 255; // AlphaÍ¨µÀÉèÎª1
+			dstRow[dstIdx + 3] = 255; // Alphaé€šé“è®¾ä¸º1
 		}
 	}
 	
 	free(exrData);
 	
-	// Ñ¹ËõÎªBC3¸ñÊ½
+	// å‹ç¼©ä¸ºBC3æ ¼å¼
 	ScratchImage imgCompressed;
 	hr = Compress(imgUncompressed.GetImages(), imgUncompressed.GetImageCount(), imgUncompressed.GetMetadata(),
 				  DXGI_FORMAT_BC3_UNORM, TEX_COMPRESS_DEFAULT, TEX_THRESHOLD_DEFAULT, imgCompressed);
 	if (FAILED(hr))
 	{
-		printf("ConvertExrToNormalMapDDS: BC3Ñ¹ËõÊ§°Ü\n");
+		printf("ConvertExrToNormalMapDDS: BC3å‹ç¼©å¤±è´¥\n");
 		return;
 	}
 	
-	// È·±£Ä¿Â¼´æÔÚ
+	// ç¡®ä¿ç›®å½•å­˜åœ¨
 	std::filesystem::create_directories(outPath.parent_path());
 	
-	// ±£´æDDS
+	// ä¿å­˜DDS
 	hr = SaveToDDSFile(imgCompressed.GetImages(), imgCompressed.GetImageCount(), imgCompressed.GetMetadata(), 
 				  DDS_FLAGS_NONE, outPath.wstring().c_str());
 	if (FAILED(hr))
 	{
-		printf("ConvertExrToNormalMapDDS: ±£´æDDSÊ§°Ü %s\n", outPath.string().c_str());
+		printf("ConvertExrToNormalMapDDS: ä¿å­˜DDSå¤±è´¥ %s\n", outPath.string().c_str());
 	}
 	else
 	{
-		printf("ConvertExrToNormalMapDDS: %s -> %s ³É¹¦\n", 
+		printf("ConvertExrToNormalMapDDS: %s -> %s æˆåŠŸ\n", 
 			   exrInfo.fullPath.string().c_str(), outPath.string().c_str());
 	}
 }
@@ -767,7 +767,7 @@ void NXGUIHoudiniTerrainExporter::ExecuteConvertAll()
 {
 	std::filesystem::path outputBase(m_nixOutputPath);
 
-	// ×ª»»HeightMap
+	// è½¬æ¢HeightMap
 	if (m_bConvertHeightMap)
 	{
 		for (const auto& exr : m_heightExrFiles)
@@ -781,7 +781,7 @@ void NXGUIHoudiniTerrainExporter::ExecuteConvertAll()
 		}
 	}
 
-	// ×ª»»SplatMap
+	// è½¬æ¢SplatMap
 	if (m_bConvertSplatMap)
 	{
 		for (const auto& exr : m_splatExrFiles)
@@ -795,7 +795,7 @@ void NXGUIHoudiniTerrainExporter::ExecuteConvertAll()
 		}
 	}
 
-	// ×ª»»NormalMap
+	// è½¬æ¢NormalMap
 	if (m_bConvertNormalMap)
 	{
 		for (const auto& exr : m_normalExrFiles)
@@ -809,7 +809,7 @@ void NXGUIHoudiniTerrainExporter::ExecuteConvertAll()
 		}
 	}
 
-	// Ë¢ĞÂDDSÁĞ±í
+	// åˆ·æ–°DDSåˆ—è¡¨
 	ScanNixDdsFiles();
 }
 
@@ -821,8 +821,8 @@ void NXGUIHoudiniTerrainExporter::ComposeHeightMap2DArray()
 	auto sortedIndices = GetSortedSliceIndices();
 	uint32_t arraySize = static_cast<uint32_t>(sortedIndices.size());
 
-	// ¼ÙÉèËùÓĞheightmap³ß´çÏàÍ¬£¬¶ÁÈ¡µÚÒ»¸ö»ñÈ¡³ß´ç
-	// TODO: Êµ¼ÊÊµÏÖĞèÒª¶ÁÈ¡DDSÍ·»ñÈ¡³ß´ç
+	// å‡è®¾æ‰€æœ‰heightmapå°ºå¯¸ç›¸åŒï¼Œè¯»å–ç¬¬ä¸€ä¸ªè·å–å°ºå¯¸
+	// TODO: å®é™…å®ç°éœ€è¦è¯»å–DDSå¤´è·å–å°ºå¯¸
 	constexpr uint32_t kWidth = 2049;
 	constexpr uint32_t kHeight = 2049;
 	constexpr DXGI_FORMAT kFormat = DXGI_FORMAT_R16_UNORM;
@@ -832,7 +832,7 @@ void NXGUIHoudiniTerrainExporter::ComposeHeightMap2DArray()
 	HRESULT hr = texArray->Initialize2D(kFormat, kWidth, kHeight, arraySize, 1);
 	if (FAILED(hr))
 	{
-		printf("ComposeHeightMap2DArray: Initialize2D Ê§°Ü\n");
+		printf("ComposeHeightMap2DArray: Initialize2D å¤±è´¥\n");
 		return;
 	}
 
@@ -844,7 +844,7 @@ void NXGUIHoudiniTerrainExporter::ComposeHeightMap2DArray()
 
 		const auto& ddsInfo = m_nixDdsFiles[fileIdx];
 		
-		// ¶ÁÈ¡µ¥¸öDDSÎÄ¼ş
+		// è¯»å–å•ä¸ªDDSæ–‡ä»¶
 		TexMetadata meta;
 		ScratchImage srcImg;
 		hr = LoadFromDDSFile(ddsInfo.heightMapPath.wstring().c_str(), DDS_FLAGS_NONE, &meta, srcImg);
@@ -856,7 +856,7 @@ void NXGUIHoudiniTerrainExporter::ComposeHeightMap2DArray()
 			
 			if (src && dst && meta.width == kWidth && meta.height == kHeight)
 			{
-				// ÖğĞĞ¸´ÖÆ£¬´¦Àí¿ÉÄÜµÄĞĞ¶ÔÆë²îÒì
+				// é€è¡Œå¤åˆ¶ï¼Œå¤„ç†å¯èƒ½çš„è¡Œå¯¹é½å·®å¼‚
 				for (uint32_t y = 0; y < kHeight; ++y)
 				{
 					const uint8_t* srcRow = src->pixels + y * src->rowPitch;
@@ -866,13 +866,13 @@ void NXGUIHoudiniTerrainExporter::ComposeHeightMap2DArray()
 			}
 			else
 			{
-				printf("ComposeHeightMap2DArray: ³ß´ç²»Æ¥Åä %s\n", ddsInfo.heightMapPath.string().c_str());
+				printf("ComposeHeightMap2DArray: å°ºå¯¸ä¸åŒ¹é… %s\n", ddsInfo.heightMapPath.string().c_str());
 			}
 		}
 		else
 		{
-			printf("ComposeHeightMap2DArray: ¼ÓÔØÊ§°Ü %s\n", ddsInfo.heightMapPath.string().c_str());
-			// Ìî³äÈ«ºÚ
+			printf("ComposeHeightMap2DArray: åŠ è½½å¤±è´¥ %s\n", ddsInfo.heightMapPath.string().c_str());
+			// å¡«å……å…¨é»‘
 			const Image* dst = texArray->GetImage(0, sliceIdx, 0);
 			if (dst)
 			{
@@ -881,7 +881,7 @@ void NXGUIHoudiniTerrainExporter::ComposeHeightMap2DArray()
 		}
 	}
 
-	// ±£´æ2DArray
+	// ä¿å­˜2DArray
 	std::filesystem::path outPath(m_heightArrayPath);
 	std::filesystem::create_directories(outPath.parent_path());
 	
@@ -889,11 +889,11 @@ void NXGUIHoudiniTerrainExporter::ComposeHeightMap2DArray()
 					   texArray->GetMetadata(), DDS_FLAGS_NONE, outPath.wstring().c_str());
 	if (FAILED(hr))
 	{
-		printf("ComposeHeightMap2DArray: ±£´æÊ§°Ü %s\n", outPath.string().c_str());
+		printf("ComposeHeightMap2DArray: ä¿å­˜å¤±è´¥ %s\n", outPath.string().c_str());
 	}
 	else
 	{
-		printf("ComposeHeightMap2DArray: ±£´æ³É¹¦ %s\n", outPath.string().c_str());
+		printf("ComposeHeightMap2DArray: ä¿å­˜æˆåŠŸ %s\n", outPath.string().c_str());
 	}
 }
 
@@ -919,7 +919,7 @@ void NXGUIHoudiniTerrainExporter::ComposeMinMaxZ2DArray()
 	HRESULT hr = pImage->Initialize2D(DXGI_FORMAT_R32G32_FLOAT, kMip0Width, kMip0Height, arraySize, kMipLevels);
 	if (FAILED(hr))
 	{
-		printf("ComposeMinMaxZ2DArray: Initialize2D Ê§°Ü\n");
+		printf("ComposeMinMaxZ2DArray: Initialize2D å¤±è´¥\n");
 		return;
 	}
 
@@ -933,7 +933,7 @@ void NXGUIHoudiniTerrainExporter::ComposeMinMaxZ2DArray()
 
 		const auto& ddsInfo = m_nixDdsFiles[fileIdx];
 		
-		// ¶ÁÈ¡heightmap
+		// è¯»å–heightmap
 		TexMetadata meta;
 		ScratchImage srcImg;
 		std::vector<uint16_t> rawData(kSrcWidth * kSrcHeight, 0);
@@ -955,7 +955,7 @@ void NXGUIHoudiniTerrainExporter::ComposeMinMaxZ2DArray()
 			}
 		}
 
-		// ¼ÆËãMip0µÄMinMaxZ
+		// è®¡ç®—Mip0çš„MinMaxZ
 		std::vector<MinMaxZ> dataZMip0(kMip0Width * kMip0Height);
 		
 		for (uint32_t y = 0; y + kStep < kSrcHeight; y += kStep)
@@ -980,7 +980,7 @@ void NXGUIHoudiniTerrainExporter::ComposeMinMaxZ2DArray()
 					}
 				}
 
-				// Remapµ½¸ß¶È·¶Î§
+				// Remapåˆ°é«˜åº¦èŒƒå›´
 				minZ = minZ * (kMaxHeight - kMinHeight) + kMinHeight;
 				maxZ = maxZ * (kMaxHeight - kMinHeight) + kMinHeight;
 
@@ -989,7 +989,7 @@ void NXGUIHoudiniTerrainExporter::ComposeMinMaxZ2DArray()
 			}
 		}
 
-		// ¼ÆËãMip1-5
+		// è®¡ç®—Mip1-5
 		constexpr int kMipStep = 2;
 		uint32_t prevW = kMip0Width;
 		uint32_t prevH = kMip0Height;
@@ -1031,7 +1031,7 @@ void NXGUIHoudiniTerrainExporter::ComposeMinMaxZ2DArray()
 			prevH = currH;
 		}
 
-		// ¸´ÖÆµ½Ä¿±êÎÆÀí
+		// å¤åˆ¶åˆ°ç›®æ ‡çº¹ç†
 		auto copyLevel = [&](uint32_t mip, const std::vector<MinMaxZ>& src)
 		{
 			const Image* dst = pImage->GetImage(mip, sliceIdx, 0);
@@ -1047,7 +1047,7 @@ void NXGUIHoudiniTerrainExporter::ComposeMinMaxZ2DArray()
 			copyLevel(mip + 1, dataZMips[mip]);
 	}
 
-	// ±£´æ
+	// ä¿å­˜
 	std::filesystem::path outPath(m_minMaxZPath);
 	std::filesystem::create_directories(outPath.parent_path());
 
@@ -1055,11 +1055,11 @@ void NXGUIHoudiniTerrainExporter::ComposeMinMaxZ2DArray()
 					   pImage->GetMetadata(), DDS_FLAGS_NONE, outPath.wstring().c_str());
 	if (FAILED(hr))
 	{
-		printf("ComposeMinMaxZ2DArray: ±£´æÊ§°Ü %s\n", outPath.string().c_str());
+		printf("ComposeMinMaxZ2DArray: ä¿å­˜å¤±è´¥ %s\n", outPath.string().c_str());
 	}
 	else
 	{
-		printf("ComposeMinMaxZ2DArray: ±£´æ³É¹¦ %s\n", outPath.string().c_str());
+		printf("ComposeMinMaxZ2DArray: ä¿å­˜æˆåŠŸ %s\n", outPath.string().c_str());
 	}
 }
 
@@ -1071,7 +1071,7 @@ void NXGUIHoudiniTerrainExporter::ComposeSplatMap2DArray()
 	auto sortedIndices = GetSortedSliceIndices();
 	uint32_t arraySize = static_cast<uint32_t>(sortedIndices.size());
 
-	// ¼ÙÉèËùÓĞsplatmap³ß´çÏàÍ¬
+	// å‡è®¾æ‰€æœ‰splatmapå°ºå¯¸ç›¸åŒ
 	constexpr uint32_t kWidth = 2049;
 	constexpr uint32_t kHeight = 2049;
 	constexpr DXGI_FORMAT kFormat = DXGI_FORMAT_R8_UNORM;
@@ -1081,7 +1081,7 @@ void NXGUIHoudiniTerrainExporter::ComposeSplatMap2DArray()
 	HRESULT hr = texArray->Initialize2D(kFormat, kWidth, kHeight, arraySize, 1);
 	if (FAILED(hr))
 	{
-		printf("ComposeSplatMap2DArray: Initialize2D Ê§°Ü\n");
+		printf("ComposeSplatMap2DArray: Initialize2D å¤±è´¥\n");
 		return;
 	}
 
@@ -1093,7 +1093,7 @@ void NXGUIHoudiniTerrainExporter::ComposeSplatMap2DArray()
 
 		const auto& ddsInfo = m_nixDdsFiles[fileIdx];
 		
-		// ¶ÁÈ¡µ¥¸öDDSÎÄ¼ş
+		// è¯»å–å•ä¸ªDDSæ–‡ä»¶
 		TexMetadata meta;
 		ScratchImage srcImg;
 		hr = LoadFromDDSFile(ddsInfo.splatMapPath.wstring().c_str(), DDS_FLAGS_NONE, &meta, srcImg);
@@ -1105,7 +1105,7 @@ void NXGUIHoudiniTerrainExporter::ComposeSplatMap2DArray()
 			
 			if (src && dst && meta.width == kWidth && meta.height == kHeight)
 			{
-				// ÖğĞĞ¸´ÖÆ£¬´¦Àí¿ÉÄÜµÄĞĞ¶ÔÆë²îÒì
+				// é€è¡Œå¤åˆ¶ï¼Œå¤„ç†å¯èƒ½çš„è¡Œå¯¹é½å·®å¼‚
 				for (uint32_t y = 0; y < kHeight; ++y)
 				{
 					const uint8_t* srcRow = src->pixels + y * src->rowPitch;
@@ -1115,13 +1115,13 @@ void NXGUIHoudiniTerrainExporter::ComposeSplatMap2DArray()
 			}
 			else
 			{
-				printf("ComposeSplatMap2DArray: ³ß´ç²»Æ¥Åä %s\n", ddsInfo.splatMapPath.string().c_str());
+				printf("ComposeSplatMap2DArray: å°ºå¯¸ä¸åŒ¹é… %s\n", ddsInfo.splatMapPath.string().c_str());
 			}
 		}
 		else
 		{
-			printf("ComposeSplatMap2DArray: ¼ÓÔØÊ§°Ü %s\n", ddsInfo.splatMapPath.string().c_str());
-			// Ìî³äÈ«ºÚ
+			printf("ComposeSplatMap2DArray: åŠ è½½å¤±è´¥ %s\n", ddsInfo.splatMapPath.string().c_str());
+			// å¡«å……å…¨é»‘
 			const Image* dst = texArray->GetImage(0, sliceIdx, 0);
 			if (dst)
 			{
@@ -1130,7 +1130,7 @@ void NXGUIHoudiniTerrainExporter::ComposeSplatMap2DArray()
 		}
 	}
 
-	// ±£´æ2DArray
+	// ä¿å­˜2DArray
 	std::filesystem::path outPath(m_splatArrayPath);
 	std::filesystem::create_directories(outPath.parent_path());
 	
@@ -1138,11 +1138,11 @@ void NXGUIHoudiniTerrainExporter::ComposeSplatMap2DArray()
 					   texArray->GetMetadata(), DDS_FLAGS_NONE, outPath.wstring().c_str());
 	if (FAILED(hr))
 	{
-		printf("ComposeSplatMap2DArray: ±£´æÊ§°Ü %s\n", outPath.string().c_str());
+		printf("ComposeSplatMap2DArray: ä¿å­˜å¤±è´¥ %s\n", outPath.string().c_str());
 	}
 	else
 	{
-		printf("ComposeSplatMap2DArray: ±£´æ³É¹¦ %s\n", outPath.string().c_str());
+		printf("ComposeSplatMap2DArray: ä¿å­˜æˆåŠŸ %s\n", outPath.string().c_str());
 	}
 }
 
@@ -1154,16 +1154,16 @@ void NXGUIHoudiniTerrainExporter::ComposeNormalMap2DArray()
 	auto sortedIndices = GetSortedSliceIndices();
 	uint32_t arraySize = static_cast<uint32_t>(sortedIndices.size());
 
-	// ¼ÙÉèËùÓĞnormalmap³ß´çÏàÍ¬
+	// å‡è®¾æ‰€æœ‰normalmapå°ºå¯¸ç›¸åŒ
 	constexpr uint32_t kWidth = 2049;
 	constexpr uint32_t kHeight = 2049;
 
-	// ÏÈ´´½¨Î´Ñ¹ËõµÄR8G8B8A8ÎÆÀíÊı×é
+	// å…ˆåˆ›å»ºæœªå‹ç¼©çš„R8G8B8A8çº¹ç†æ•°ç»„
 	std::unique_ptr<ScratchImage> texArrayUncompressed = std::make_unique<ScratchImage>();
 	HRESULT hr = texArrayUncompressed->Initialize2D(DXGI_FORMAT_R8G8B8A8_UNORM, kWidth, kHeight, arraySize, 1);
 	if (FAILED(hr))
 	{
-		printf("ComposeNormalMap2DArray: Initialize2D Ê§°Ü\n");
+		printf("ComposeNormalMap2DArray: Initialize2D å¤±è´¥\n");
 		return;
 	}
 
@@ -1175,14 +1175,14 @@ void NXGUIHoudiniTerrainExporter::ComposeNormalMap2DArray()
 
 		const auto& ddsInfo = m_nixDdsFiles[fileIdx];
 		
-		// ¶ÁÈ¡µ¥¸öDDSÎÄ¼ş£¨¿ÉÄÜÊÇBC3Ñ¹ËõµÄ£©
+		// è¯»å–å•ä¸ªDDSæ–‡ä»¶ï¼ˆå¯èƒ½æ˜¯BC3å‹ç¼©çš„ï¼‰
 		TexMetadata meta;
 		ScratchImage srcImg;
 		hr = LoadFromDDSFile(ddsInfo.normalMapPath.wstring().c_str(), DDS_FLAGS_NONE, &meta, srcImg);
 		
 		if (SUCCEEDED(hr))
 		{
-			// Èç¹ûÊÇÑ¹Ëõ¸ñÊ½£¬ÏÈ½âÑ¹
+			// å¦‚æœæ˜¯å‹ç¼©æ ¼å¼ï¼Œå…ˆè§£å‹
 			ScratchImage decompressedImg;
 			const ScratchImage* pSrcImg = &srcImg;
 			if (IsCompressed(meta.format))
@@ -1201,7 +1201,7 @@ void NXGUIHoudiniTerrainExporter::ComposeNormalMap2DArray()
 			
 			if (src && dst && meta.width == kWidth && meta.height == kHeight)
 			{
-				// ÖğĞĞ¸´ÖÆ
+				// é€è¡Œå¤åˆ¶
 				for (uint32_t y = 0; y < kHeight; ++y)
 				{
 					const uint8_t* srcRow = src->pixels + y * src->rowPitch;
@@ -1211,13 +1211,13 @@ void NXGUIHoudiniTerrainExporter::ComposeNormalMap2DArray()
 			}
 			else
 			{
-				printf("ComposeNormalMap2DArray: ³ß´ç²»Æ¥Åä %s\n", ddsInfo.normalMapPath.string().c_str());
+				printf("ComposeNormalMap2DArray: å°ºå¯¸ä¸åŒ¹é… %s\n", ddsInfo.normalMapPath.string().c_str());
 			}
 		}
 		else
 		{
-			printf("ComposeNormalMap2DArray: ¼ÓÔØÊ§°Ü %s\n", ddsInfo.normalMapPath.string().c_str());
-			// Ìî³äÄ¬ÈÏ·¨ÏßÖµ (0.5, 0.5, 1.0, 1.0) ¼´³¯ÉÏµÄ·¨Ïß
+			printf("ComposeNormalMap2DArray: åŠ è½½å¤±è´¥ %s\n", ddsInfo.normalMapPath.string().c_str());
+			// å¡«å……é»˜è®¤æ³•çº¿å€¼ (0.5, 0.5, 1.0, 1.0) å³æœä¸Šçš„æ³•çº¿
 			const Image* dst = texArrayUncompressed->GetImage(0, sliceIdx, 0);
 			if (dst)
 			{
@@ -1229,7 +1229,7 @@ void NXGUIHoudiniTerrainExporter::ComposeNormalMap2DArray()
 						int idx = x * 4;
 						dstRow[idx]     = 128; // R: nx = 0.5
 						dstRow[idx + 1] = 128; // G: ny = 0.5
-						dstRow[idx + 2] = 255; // B: nz = 1 (³¯ÉÏ)
+						dstRow[idx + 2] = 255; // B: nz = 1 (æœä¸Š)
 						dstRow[idx + 3] = 255; // A: 1
 					}
 				}
@@ -1237,17 +1237,17 @@ void NXGUIHoudiniTerrainExporter::ComposeNormalMap2DArray()
 		}
 	}
 
-	// Ñ¹ËõÎªBC3¸ñÊ½
+	// å‹ç¼©ä¸ºBC3æ ¼å¼
 	std::unique_ptr<ScratchImage> texArrayCompressed = std::make_unique<ScratchImage>();
 	hr = Compress(texArrayUncompressed->GetImages(), texArrayUncompressed->GetImageCount(), texArrayUncompressed->GetMetadata(),
 				  DXGI_FORMAT_BC3_UNORM, TEX_COMPRESS_DEFAULT, TEX_THRESHOLD_DEFAULT, *texArrayCompressed);
 	if (FAILED(hr))
 	{
-		printf("ComposeNormalMap2DArray: BC3Ñ¹ËõÊ§°Ü\n");
+		printf("ComposeNormalMap2DArray: BC3å‹ç¼©å¤±è´¥\n");
 		return;
 	}
 
-	// ±£´æ2DArray
+	// ä¿å­˜2DArray
 	std::filesystem::path outPath(m_normalArrayPath);
 	std::filesystem::create_directories(outPath.parent_path());
 	
@@ -1255,11 +1255,11 @@ void NXGUIHoudiniTerrainExporter::ComposeNormalMap2DArray()
 					   texArrayCompressed->GetMetadata(), DDS_FLAGS_NONE, outPath.wstring().c_str());
 	if (FAILED(hr))
 	{
-		printf("ComposeNormalMap2DArray: ±£´æÊ§°Ü %s\n", outPath.string().c_str());
+		printf("ComposeNormalMap2DArray: ä¿å­˜å¤±è´¥ %s\n", outPath.string().c_str());
 	}
 	else
 	{
-		printf("ComposeNormalMap2DArray: ±£´æ³É¹¦ %s\n", outPath.string().c_str());
+		printf("ComposeNormalMap2DArray: ä¿å­˜æˆåŠŸ %s\n", outPath.string().c_str());
 	}
 }
 
@@ -1268,7 +1268,7 @@ std::vector<int> NXGUIHoudiniTerrainExporter::GetSortedSliceIndices() const
 	if (m_nixDdsFiles.empty())
 		return {};
 
-	// ÕÒµ½×ø±ê·¶Î§
+	// æ‰¾åˆ°åæ ‡èŒƒå›´
 	int minX = INT_MAX, maxX = INT_MIN;
 	int minY = INT_MAX, maxY = INT_MIN;
 	
@@ -1283,20 +1283,20 @@ std::vector<int> NXGUIHoudiniTerrainExporter::GetSortedSliceIndices() const
 	int countX = maxX - minX + 1;
 	int countY = maxY - minY + 1;
 
-	// ½¨Á¢×ø±êµ½ÎÄ¼şË÷ÒıµÄÓ³Éä
+	// å»ºç«‹åæ ‡åˆ°æ–‡ä»¶ç´¢å¼•çš„æ˜ å°„
 	std::map<std::pair<int, int>, int> coordToIdx;
 	for (int i = 0; i < (int)m_nixDdsFiles.size(); ++i)
 	{
 		coordToIdx[{m_nixDdsFiles[i].tileX, m_nixDdsFiles[i].tileY}] = i;
 	}
 
-	// ¸ù¾İÅÅĞòÉèÖÃÉú³ÉsliceË³Ğò
+	// æ ¹æ®æ’åºè®¾ç½®ç”Ÿæˆsliceé¡ºåº
 	std::vector<int> result;
 	result.reserve(m_nixDdsFiles.size());
 
 	if (m_bColumnFirst)
 	{
-		// ÁĞÓÅÏÈ£ºÍâ²ã±éÀúÁĞ(X)£¬ÄÚ²ã±éÀúĞĞ(Y)
+		// åˆ—ä¼˜å…ˆï¼šå¤–å±‚éå†åˆ—(X)ï¼Œå†…å±‚éå†è¡Œ(Y)
 		for (int colIdx = 0; colIdx < countX; ++colIdx)
 		{
 			int x = m_bColAscending ? (minX + colIdx) : (maxX - colIdx);
@@ -1315,7 +1315,7 @@ std::vector<int> NXGUIHoudiniTerrainExporter::GetSortedSliceIndices() const
 	}
 	else
 	{
-		// ĞĞÓÅÏÈ£ºÍâ²ã±éÀúĞĞ(Y)£¬ÄÚ²ã±éÀúÁĞ(X)
+		// è¡Œä¼˜å…ˆï¼šå¤–å±‚éå†è¡Œ(Y)ï¼Œå†…å±‚éå†åˆ—(X)
 		for (int rowIdx = 0; rowIdx < countY; ++rowIdx)
 		{
 			int y = m_bRowAscending ? (minY + rowIdx) : (maxY - rowIdx);
@@ -1338,7 +1338,7 @@ std::vector<int> NXGUIHoudiniTerrainExporter::GetSortedSliceIndices() const
 
 bool NXGUIHoudiniTerrainExporter::ParseTileCoord(const std::string& fileName, int& outX, int& outY)
 {
-	// ½âÎö¸ñÊ½: "X_Y.exr" »ò "X_Y"
+	// è§£ææ ¼å¼: "X_Y.exr" æˆ– "X_Y"
 	std::regex pattern(R"((-?\d+)_(-?\d+))");
 	std::smatch match;
 	

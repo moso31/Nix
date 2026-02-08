@@ -7,8 +7,8 @@
 
 struct CBufferDiffuseProfile
 {
-	// TODO: CBufferDiffuseProfile ×öµ½Í·ÎÄ¼şÀà£¬Í³Ò»¹ÜÀí£¬ÏÖÔÚÓĞ¶à´¦µØ·½¶¨ÒåÁËÕâ¸östruct
-	float3 scatterParam; // x y z µÄ s ²ÎÊı²»Í¬
+	// TODO: CBufferDiffuseProfile åšåˆ°å¤´æ–‡ä»¶ç±»ï¼Œç»Ÿä¸€ç®¡ç†ï¼Œç°åœ¨æœ‰å¤šå¤„åœ°æ–¹å®šä¹‰äº†è¿™ä¸ªstruct
+	float3 scatterParam; // x y z çš„ s å‚æ•°ä¸åŒ
 	float maxScatterDistance;
 	float3 transmit;
 	float transmitStrength;
@@ -18,7 +18,7 @@ void CalcBSDF(float NoV, float NoL, float NoH, float VoH, float roughness, float
 {
 	diffBSDF = DiffuseDisney(albedo, roughness, NoV, NoL, VoH);
 
-	// Î¢±íÃæ BRDF
+	// å¾®è¡¨é¢ BRDF
 	float D = D_GGX(NoH, roughness);
 	float G = G_GGX_SmithJoint(NoV, NoL, roughness);
 	float3 F = F_Schlick(saturate(VoH), F0);
@@ -35,7 +35,7 @@ void EvalRadiance_DirLight(DistantLight dirLight, float3 V, float3 N, float NoV,
 	float NoH = max(dot(N, H), 0.0);
 	float VoH = max(dot(V, H), 0.0);
 
-	float3 LightIlluminance = dirLight.color * dirLight.illuminance; // ·½Ïò¹âµÄIlluminace
+	float3 LightIlluminance = dirLight.color * dirLight.illuminance; // æ–¹å‘å…‰çš„Illuminace
 	float3 IncidentIlluminance = LightIlluminance * NoL;
 
 	float3 f_diff, f_spec;
@@ -114,7 +114,7 @@ void EvalRadiance_DirLight_SubSurface(CBufferDiffuseProfile sssProfile, DistantL
 	float NoH = saturate(dot(N, H));
 	float VoH = saturate(dot(V, H));
 
-	float3 LightIlluminance = dirLight.color * dirLight.illuminance; // ·½Ïò¹âµÄIlluminace
+	float3 LightIlluminance = dirLight.color * dirLight.illuminance; // æ–¹å‘å…‰çš„Illuminace
 	float3 IncidentIlluminance = LightIlluminance * NoL;
 
 	float backNoL = saturate(dot(-N, L));
@@ -126,7 +126,7 @@ void EvalRadiance_DirLight_SubSurface(CBufferDiffuseProfile sssProfile, DistantL
 	Lo_diff = f_diff * IncidentIlluminance;
 	Lo_spec = f_spec * IncidentIlluminance;
 
-	// ¶Ô 3s ²ÄÖÊ£¬Á¬±³ÃæµÄ¹âÕÕÒ²Ò»Æğ¿¼ÂÇ¡£µ«±³ÃæÖ»ËãÂş·´Éä
+	// å¯¹ 3s æè´¨ï¼Œè¿èƒŒé¢çš„å…‰ç…§ä¹Ÿä¸€èµ·è€ƒè™‘ã€‚ä½†èƒŒé¢åªç®—æ¼«åå°„
 	float3 scatter = sssProfile.scatterParam;
 	float thickness = sssProfile.transmitStrength;
 	float3 irradTransmit = f_diff * IncidentIlluminanceTransmit;
@@ -162,7 +162,7 @@ void EvalRadiance_PointLight_SubSurface(CBufferDiffuseProfile sssProfile, PointL
 	Lo_diff = f_diff * IncidentIlluminance * FalloffFactor;
 	Lo_spec = f_spec * IncidentIlluminance * FalloffFactor;
 
-	// ¶Ô 3s ²ÄÖÊ£¬Á¬±³ÃæµÄ¹âÕÕÒ²Ò»Æğ¿¼ÂÇ¡£µ«±³ÃæÖ»ËãÂş·´Éä
+	// å¯¹ 3s æè´¨ï¼Œè¿èƒŒé¢çš„å…‰ç…§ä¹Ÿä¸€èµ·è€ƒè™‘ã€‚ä½†èƒŒé¢åªç®—æ¼«åå°„
 	float3 scatter = sssProfile.scatterParam;
 	float thickness = sssProfile.transmitStrength;
 	float3 irradTransmit = f_diff * IncidentIlluminanceTransmit * FalloffFactor;
@@ -205,7 +205,7 @@ void EvalRadiance_SpotLight_SubSurface(CBufferDiffuseProfile sssProfile, SpotLig
 	Lo_diff = f_diff * IncidentIlluminance * FalloffFactor;
 	Lo_spec = f_spec * IncidentIlluminance * FalloffFactor;
 
-	// ¶Ô 3s ²ÄÖÊ£¬Á¬±³ÃæµÄ¹âÕÕÒ²Ò»Æğ¿¼ÂÇ¡£µ«±³ÃæÖ»ËãÂş·´Éä
+	// å¯¹ 3s æè´¨ï¼Œè¿èƒŒé¢çš„å…‰ç…§ä¹Ÿä¸€èµ·è€ƒè™‘ã€‚ä½†èƒŒé¢åªç®—æ¼«åå°„
 	float3 scatter = sssProfile.scatterParam;
 	float thickness = sssProfile.transmitStrength;
 	float3 irradTransmit = f_diff * IncidentIlluminanceTransmit * FalloffFactor;

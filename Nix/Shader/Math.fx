@@ -4,7 +4,7 @@
 #include "Common.fx"
 #include "MathUnits.fx"
 
-// ×ø±ê»ù±ä»»¡£½« Vector ´Ó sourceBasis ×ª»»µ½ targetBasis
+// åæ ‡åŸºå˜æ¢ã€‚å°† Vector ä» sourceBasis è½¬æ¢åˆ° targetBasis
 float3 ChangeBasisVector(float3 sourceBasisVector, float3 targetBasisNormal, float3 targetBasisTangent)
 {
 	float3 N = targetBasisNormal;
@@ -17,18 +17,18 @@ float3 ChangeBasisVector(float3 sourceBasisVector, float3 targetBasisNormal, flo
 
 float3 TangentSpaceToWorldSpace(float3 normalMapValue, float3 normalWS, float3 tangentWS)
 {
-	float3 normalTS = normalMapValue * 2.0f - 1.0f; // ´Ó [0, 1] ×ª»»µ½ [-1, 1] Çø¼ä
+	float3 normalTS = normalMapValue * 2.0f - 1.0f; // ä» [0, 1] è½¬æ¢åˆ° [-1, 1] åŒºé—´
 	return ChangeBasisVector(normalTS, normalWS, tangentWS);
 }
 
 float3 TangentSpaceToViewSpace(float3 normalMapValue, float3 normalVS, float3 tangentVS)
 {
-	float3 normalTS = normalMapValue * 2.0f - 1.0f; // ´Ó [0, 1] ×ª»»µ½ [-1, 1] Çø¼ä
+	float3 normalTS = normalMapValue * 2.0f - 1.0f; // ä» [0, 1] è½¬æ¢åˆ° [-1, 1] åŒºé—´
 	return ChangeBasisVector(normalTS, normalVS, tangentVS);
 }
 
-// ÔÚ±íÃæÄ³´¦½¨»ù
-// »ñÈ¡ NormalVS£¬²¢¼ÆËã¶ÔÓ¦µÄ TangentVS ºÍ BitangentVS
+// åœ¨è¡¨é¢æŸå¤„å»ºåŸº
+// è·å– NormalVSï¼Œå¹¶è®¡ç®—å¯¹åº”çš„ TangentVS å’Œ BitangentVS
 void GetNTBMatrixVS(float3 NormalVS, out float3 TangentVS, out float3 BitangentVS)
 {
 	float3 upVector = float3(0, 1, 0);

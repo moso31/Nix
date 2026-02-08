@@ -20,7 +20,7 @@ void DirectResources::InitDevice()
 	//ComPtr<ID3D12Debug1> dbg1;
 	//hr = debugController.As(&dbg1);
 	//if (SUCCEEDED(hr)) {
-	//	dbg1->SetEnableGPUBasedValidation(FALSE); // ¹Ø±Õ GBV
+	//	dbg1->SetEnableGPUBasedValidation(FALSE); // å…³é—­ GBV
 	//}
 #endif
 
@@ -41,15 +41,15 @@ void DirectResources::InitDevice()
 		{
 			iq->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE);
 			iq->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, TRUE);
-			// Èç¹ûÒ²Ï£Íû Warning Í£Ö¹£¬¿É´ò¿ªÏÂÒ»ĞĞ£º
+			// å¦‚æœä¹Ÿå¸Œæœ› Warning åœæ­¢ï¼Œå¯æ‰“å¼€ä¸‹ä¸€è¡Œï¼š
 			// iq->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, TRUE);
 
-			// 3) £¨¿ÉÑ¡£©Ö»¶ÔÌØ¶¨ÏûÏ¢ ID ¶Ïµã£¬ÀıÈç×ÊÔ´ÆÁÕÏÇ°ºó×´Ì¬²»Æ¥Åä
-			// ¸Ã´íÎó¶ÔÓ¦µÄÃ¶¾ÙÒ»°ãÎª£º
+			// 3) ï¼ˆå¯é€‰ï¼‰åªå¯¹ç‰¹å®šæ¶ˆæ¯ ID æ–­ç‚¹ï¼Œä¾‹å¦‚èµ„æºå±éšœå‰åçŠ¶æ€ä¸åŒ¹é…
+			// è¯¥é”™è¯¯å¯¹åº”çš„æšä¸¾ä¸€èˆ¬ä¸ºï¼š
 			// D3D12_MESSAGE_ID_RESOURCE_BARRIER_BEFORE_AFTER_MISMATCH
 			iq->SetBreakOnID(D3D12_MESSAGE_ID_RESOURCE_BARRIER_BEFORE_AFTER_MISMATCH, TRUE);
 
-			// Ò²¿É°´Àà±ğÍ³Ò»À¹½Ø£º
+			// ä¹Ÿå¯æŒ‰ç±»åˆ«ç»Ÿä¸€æ‹¦æˆªï¼š
 			// iq->SetBreakOnCategory(D3D12_MESSAGE_CATEGORY_RESOURCE_MANIPULATION, TRUE);
 		}
 	}
@@ -68,17 +68,17 @@ void DirectResources::CreateSwapChain(UINT width, UINT height)
 	DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
 	swapChainDesc.BufferDesc.Width = width;
 	swapChainDesc.BufferDesc.Height = height;
-	swapChainDesc.BufferDesc.Format = m_pSwapChainBufferFormat; // 8 Î» RGBA
-	swapChainDesc.BufferDesc.RefreshRate.Numerator = 60; // Ë¢ĞÂÂÊ
+	swapChainDesc.BufferDesc.Format = m_pSwapChainBufferFormat; // 8 ä½ RGBA
+	swapChainDesc.BufferDesc.RefreshRate.Numerator = 60; // åˆ·æ–°ç‡
 	swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
-	swapChainDesc.SampleDesc.Count = 1; // MSAA4x ½ûÓÃ
+	swapChainDesc.SampleDesc.Count = 1; // MSAA4x ç¦ç”¨
 	swapChainDesc.SampleDesc.Quality = 0;
-	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT; // ÓÃÓÚRT
-	swapChainDesc.BufferCount = MultiFrameSets_swapChainCount; // n»º³å
-	swapChainDesc.OutputWindow = NXGlobalWindows::hWnd; // ´°¿Ú¾ä±ú
-	swapChainDesc.Windowed = true; // ´°¿ÚÄ£Ê½
-	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD; // ·­×ªÄ£Ê½
-	swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH; // ÔÊĞíÈ«ÆÁÇĞ»»
+	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT; // ç”¨äºRT
+	swapChainDesc.BufferCount = MultiFrameSets_swapChainCount; // nç¼“å†²
+	swapChainDesc.OutputWindow = NXGlobalWindows::hWnd; // çª—å£å¥æŸ„
+	swapChainDesc.Windowed = true; // çª—å£æ¨¡å¼
+	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD; // ç¿»è½¬æ¨¡å¼
+	swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH; // å…è®¸å…¨å±åˆ‡æ¢
 
 	ComPtr<IDXGISwapChain> pSwapChain;
 	hr = m_pDXGIFactory->CreateSwapChain(NXGlobalDX::GlobalCmdQueue(), &swapChainDesc, &pSwapChain);
@@ -89,17 +89,17 @@ void DirectResources::CreateSwapChain(UINT width, UINT height)
 
 void DirectResources::CreateSwapChainRTVHeap()
 {
-	// ´´½¨ÃèÊö·û¶Ñ
+	// åˆ›å»ºæè¿°ç¬¦å †
 	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-	rtvHeapDesc.NumDescriptors = MultiFrameSets_swapChainCount; // n»º³å
+	rtvHeapDesc.NumDescriptors = MultiFrameSets_swapChainCount; // nç¼“å†²
 	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV; // RTV
-	rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE; // ÎŞ±êÖ¾
-	rtvHeapDesc.NodeMask = 0; // µ¥GPU
+	rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE; // æ— æ ‡å¿—
+	rtvHeapDesc.NodeMask = 0; // å•GPU
 
 	HRESULT hr = NXGlobalDX::GetDevice()->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_pRTVHeap));
 	D3D12_CPU_DESCRIPTOR_HANDLE& rtvHandle = m_pRTVHeap->GetCPUDescriptorHandleForHeapStart();
 
-	// ´´½¨RTV
+	// åˆ›å»ºRTV
 	for (int i = 0; i < MultiFrameSets_swapChainCount; ++i)
 	{
 		auto& pSwapChainRT = m_pSwapChainBuffer[i].pBuffer;

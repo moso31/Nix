@@ -8,7 +8,7 @@ struct NXSubMeshReloadTaskPackage
 {
 	void	Push(NXSubMeshBase* pSubMesh) { submits.push_back(pSubMesh); }
 	bool	IsEmpty()	{ return submits.empty(); }
-	std::vector<NXSubMeshBase*> submits; // ±¾´ÎÒì²½Ìá½»µÄSubMesh
+	std::vector<NXSubMeshBase*> submits; // æœ¬æ¬¡å¼‚æ­¥æäº¤çš„SubMesh
 };
 
 enum NXPlaneAxis;
@@ -29,9 +29,9 @@ public:
 	NXPrimitive* CreatePlane(const std::string& name, const float width, const float height, const NXPlaneAxis axis, const Vector3& translation = Vector3(0.f), const Vector3& rotation = Vector3(0.f), const Vector3& scale = Vector3(1.f));
 	NXPrefab* CreateFBXPrefab(const std::string& name, const std::string& filePath, bool bAutoCalcTangents = true);
 
-	// ´´½¨µØĞÎ
-	// gridSize: µØĞÎÍø¸ñ´óĞ¡·Ö±æÂÊ£¨²»ĞèÒª¿ØÖÆlod£¬Ã¿¸öterrain×Ô´øËÄ²æÊ÷£©
-	// sectorSize: Êµ¼Ê³ß´ç´óĞ¡
+	// åˆ›å»ºåœ°å½¢
+	// gridSize: åœ°å½¢ç½‘æ ¼å¤§å°åˆ†è¾¨ç‡ï¼ˆä¸éœ€è¦æ§åˆ¶lodï¼Œæ¯ä¸ªterrainè‡ªå¸¦å››å‰æ ‘ï¼‰
+	// sectorSize: å®é™…å°ºå¯¸å¤§å°
 	NXTerrain* CreateTerrain(const std::string& name, int gridSize, int sectorSize, int terrainNodeX, int terrainNodeY);
 	NXTerrainLayer* CreateTerrainLayer();
 
@@ -52,13 +52,13 @@ private:
 
 	std::vector<NXSubMeshBase*> m_replacingSubMeshes;
 
-	// µØĞÎ×ÔÔöid
+	// åœ°å½¢è‡ªå¢id
 	int m_terrainIncreaseId;
 
-	// µØĞÎ²ã×ÔÔöid£¨×¢ÒâÕâÁ©id ¸ÅÄîÉÏÊÇ»¥Ïà¶ÀÁ¢µÄ£¬²»Ò»¶¨·ÇµÃÏàÍ¬£©
+	// åœ°å½¢å±‚è‡ªå¢idï¼ˆæ³¨æ„è¿™ä¿©id æ¦‚å¿µä¸Šæ˜¯äº’ç›¸ç‹¬ç«‹çš„ï¼Œä¸ä¸€å®šéå¾—ç›¸åŒï¼‰
 	int m_terrainLayerIncreaseId;
 
-	// ÉúÃüÖÜÆÚÔİÊ±ÏÈÓÉÕâÀï¹ÜÀí
-	// TODO: ¸Ã·Åµ½ÄÄ£¿
+	// ç”Ÿå‘½å‘¨æœŸæš‚æ—¶å…ˆç”±è¿™é‡Œç®¡ç†
+	// TODO: è¯¥æ”¾åˆ°å“ªï¼Ÿ
 	std::vector<NXTerrainLayer*> m_terrainLayers;
 };

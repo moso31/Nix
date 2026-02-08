@@ -10,10 +10,10 @@
 class NXCustomMaterial;
 namespace NXCodeProcessHelper
 {
-	// ÒÆ³ıÕû¸öÎÄ±¾µÄ×¢ÊÍĞÅÏ¢¡£
-	// removeUserEditable: ÊÇ·ñÒÆ³ı[BEGIN][END]Çø¿éÄÚµÄÓÃ»§¿É±à¼­×¢ÊÍ
+	// ç§»é™¤æ•´ä¸ªæ–‡æœ¬çš„æ³¨é‡Šä¿¡æ¯ã€‚
+	// removeUserEditable: æ˜¯å¦ç§»é™¤[BEGIN][END]åŒºå—å†…çš„ç”¨æˆ·å¯ç¼–è¾‘æ³¨é‡Š
 	std::string RemoveHLSLComment(const std::string& strCode, bool removeUserEditable = false);
-	// »ñÈ¡µÚÒ»¸öÓĞĞ§ĞĞ
+	// è·å–ç¬¬ä¸€ä¸ªæœ‰æ•ˆè¡Œ
 	std::string GetFirstEffectiveLine(const std::string& strCode);
 
 	int GetLineCount(const std::string& str);
@@ -21,7 +21,7 @@ namespace NXCodeProcessHelper
 	bool MoveToNextBranketIn(std::istringstream& iss, std::stack<std::string>& stackBrackets, const std::string& branketName);
 	bool MoveToNextBranketOut(std::stack<std::string>& stackBrackets, const std::string& branketName);
 
-	// ´ÓnslÎÄ¼şÖĞÌáÈ¡³öÊı¾İºÍ´úÂë¿é
+	// ä»nslæ–‡ä»¶ä¸­æå–å‡ºæ•°æ®å’Œä»£ç å—
 	void ExtractShader(const std::string& strCode, NXMaterialData& oMatData, NXMaterialCode& oMatCode);
 	void ExtractShader_NXShader(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXMaterialData& oMatData, NXMaterialCode& oMatCode);
 	void ExtractShader_Params(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXMaterialData& oMatData, NXMaterialCode& oMatCode);
@@ -32,7 +32,7 @@ namespace NXCodeProcessHelper
 	void ExtractShader_SubShader_Pass(std::istringstream& iss, std::stack<std::string>& stackBrackets, NXMaterialPassCode& oMatPassCode);
 	void ExtractShader_SubShader_Pass_Entry(std::istringstream& iss, std::stack<std::string>& stackBrackets, const std::string& strEndBlock, std::string& oStrPassEntryCode);
 
-	// ½«²ÄÖÊÊı¾İºÍ´úÂë¿é×ª»»ÎªHLSL´úÂë
+	// å°†æè´¨æ•°æ®å’Œä»£ç å—è½¬æ¢ä¸ºHLSLä»£ç 
 	std::string BuildHLSL(const std::filesystem::path& nslPath, const NXMaterialData& oMatData, NXMaterialCode& shaderCode, bool bIsGPUTerrain);
 	std::string BuildHLSL_Include(int& ioLineCounter);
 	std::string BuildHLSL_Params(int& ioLineCounter, const std::filesystem::path& nslPath, const NXMaterialData& oMatData, const NXMaterialCode& shaderCode, bool bIsGPUTerrain);
@@ -43,7 +43,7 @@ namespace NXCodeProcessHelper
 	std::string BuildHLSL_Entry_VS(int& ioLineCounter, const NXMaterialData& oMatData, NXMaterialCode& shaderCode);
 	std::string BuildHLSL_Entry_PS(int& ioLineCounter, const NXMaterialData& oMatData, NXMaterialCode& shaderCode);
 
-	// ½«²ÄÖÊÊı¾İºÍ´úÂë¿é×ª»»ÎªNSL´úÂë
+	// å°†æè´¨æ•°æ®å’Œä»£ç å—è½¬æ¢ä¸ºNSLä»£ç 
 	void SaveToNSLFile(const std::filesystem::path& nslPath, const NXMaterialData& oMatData, const NXMaterialCode& shaderCode);
 	std::string GenerateNSLParam(const NXMaterialData& data);
 }

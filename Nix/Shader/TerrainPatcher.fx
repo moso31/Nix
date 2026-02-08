@@ -11,7 +11,7 @@ cbuffer cbNodeDescArray : register(b0)
     CBufferTerrainNodeDescription m_nodeDescArray[NodeDescArrayNum];
 }
 
-#define VERTEX_GRID_SIZE 8 // ¸ù¾İNXSubMeshTerrainµÄ¶¥µãµ÷Õû
+#define VERTEX_GRID_SIZE 8 // æ ¹æ®NXSubMeshTerrainçš„é¡¶ç‚¹è°ƒæ•´
 #define NXGPUTERRAIN_PATCH_SIZE 8
 [numthreads(NXGPUTERRAIN_PATCH_SIZE, NXGPUTERRAIN_PATCH_SIZE, 1)]
 void CS(
@@ -25,7 +25,7 @@ void CS(
     int patchSize = nodeSize / NXGPUTERRAIN_PATCH_SIZE;
     int2 patchOrigin = nodeOrigin + int2(gtid.x * patchSize, gtid.y * patchSize);
     
-    // Õâ¸öpatcherÔÚnodeÄÚµÄÏà¶ÔÎ»ÖÃ
+    // è¿™ä¸ªpatcheråœ¨nodeå†…çš„ç›¸å¯¹ä½ç½®
     float2 patchOriginPixelPos = gtid.xy * VERTEX_GRID_SIZE;
     
     float2 nodeMinMaxZ = m_nodeDescArray[nodeId].minmaxZ;

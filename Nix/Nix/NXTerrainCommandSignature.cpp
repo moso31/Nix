@@ -7,7 +7,7 @@ NXTerrainCommandSignature::NXTerrainCommandSignature()
 
 void NXTerrainCommandSignature::Init()
 {
-	// 创建一个GPU-Driven地形专用的CommandSignatureDesc
+	// 鍒涘缓涓�涓狦PU-Driven鍦板舰涓撶敤鐨凜ommandSignatureDesc
 	m_drawIndexArgDesc[0] = {};
 	m_drawIndexArgDesc[0].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED;
 	

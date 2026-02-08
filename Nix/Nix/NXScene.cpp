@@ -37,12 +37,12 @@ NXScene::~NXScene()
 
 void NXScene::OnMouseDown(NXEventArgMouse eArg)
 {
-	if (eArg.VMouse & 1) // Êó±ê×ó¼ü
+	if (eArg.VMouse & 1) // é¼ æ ‡å·¦é”®
 	{
 		auto ray = GetMainCamera()->GenerateRay(eArg.ViewPortPos, eArg.ViewPortSize);
 
-		// ¼ì²âÊÇ·ñµã»÷±à¼­Æ÷¶ÔÏó£¨ÒÆ¶¯¼ýÍ·£¬Ðý×ª»·£¬Ëõ·ÅÖá£©
-		// £¨²»¹ýÄ¿Ç°Êµ¼ÊÉÏÖ»ÓÐÒÆ¶¯¼ýÍ·hhhhh£©
+		// æ£€æµ‹æ˜¯å¦ç‚¹å‡»ç¼–è¾‘å™¨å¯¹è±¡ï¼ˆç§»åŠ¨ç®­å¤´ï¼Œæ—‹è½¬çŽ¯ï¼Œç¼©æ”¾è½´ï¼‰
+		// ï¼ˆä¸è¿‡ç›®å‰å®žé™…ä¸Šåªæœ‰ç§»åŠ¨ç®­å¤´hhhhhï¼‰
 		NXHit editObjHit;
 		m_pEditorObjManager->RayCast(ray, editObjHit);
 		if (editObjHit.pSubMesh)
@@ -59,7 +59,7 @@ void NXScene::OnMouseDown(NXEventArgMouse eArg)
 		}
 		else
 		{
-			// °´×¡LCtrlÊ±¶àÑ¡
+			// æŒ‰ä½LCtrlæ—¶å¤šé€‰
 			if (!m_bMultiSelectKeyHolding)
 			{
 				m_pSelectedSubMeshes.clear();
@@ -79,7 +79,7 @@ void NXScene::OnMouseDown(NXEventArgMouse eArg)
 				}
 			}
 
-			// ÈôÃ»ÓÐpicking¶ÔÏó£¬Òþ²ØEditorObjects
+			// è‹¥æ²¡æœ‰pickingå¯¹è±¡ï¼Œéšè—EditorObjects
 			m_pEditorObjManager->SetVisible(!m_pSelectedObjects.empty());
 		}
 	}
@@ -92,12 +92,12 @@ void NXScene::OnMouseMove(NXEventArgMouse eArg)
 	if (m_bEditorSelectID > EditorObjectID::NONE &&
 		m_bEditorSelectID < EditorObjectID::MAX)
 	{
-		// ½øÈëÕâÀïËµÃ÷ÕýÔÚÍÏ¶¯ MoveArrow/RotateRing/ScaleBoxes
+		// è¿›å…¥è¿™é‡Œè¯´æ˜Žæ­£åœ¨æ‹–åŠ¨ MoveArrow/RotateRing/ScaleBoxes
 
-		// »ñÈ¡ÍÏ¶¯ºóÎ»ÖÃÔÚMoveArrowµÄÖá/Æ½ÃæÉÏµÄÍ¶Ó°×ø±ê
+		// èŽ·å–æ‹–åŠ¨åŽä½ç½®åœ¨MoveArrowçš„è½´/å¹³é¢ä¸Šçš„æŠ•å½±åæ ‡
 		Vector3 anchorPos = GetAnchorOfEditorObject(worldRay);
 
-		// ÒÆ¶¯ËùÓÐÑ¡ÖÐµÄÎïÌå
+		// ç§»åŠ¨æ‰€æœ‰é€‰ä¸­çš„ç‰©ä½“
 		for (int i = 0; i < m_pSelectedObjects.size(); i++)
 		{
 			auto pSelectObjs = m_pSelectedObjects[i];
@@ -106,8 +106,8 @@ void NXScene::OnMouseMove(NXEventArgMouse eArg)
 
 		if (!m_pSelectedObjects.empty())
 		{
-			// MoveArrow Ò²¸ú×ÅÒÆ¶¯Î»ÖÃ
-			// 2023.3.11 ÔÝÊ±Ê¹ÓÃµÚÒ»¸öÑ¡ÖÐµÄPrimitiveµÄTranslation¼ÆËãÒÆ¶¯Á¿
+			// MoveArrow ä¹Ÿè·Ÿç€ç§»åŠ¨ä½ç½®
+			// 2023.3.11 æš‚æ—¶ä½¿ç”¨ç¬¬ä¸€ä¸ªé€‰ä¸­çš„Primitiveçš„Translationè®¡ç®—ç§»åŠ¨é‡
 			NXRenderableObject* pFirstSelectedObj = m_pSelectedObjects[0];
 			m_pEditorObjManager->MoveTranslatorTo(pFirstSelectedObj->GetAABBWorld().Center);
 		}
@@ -118,7 +118,7 @@ void NXScene::OnMouseMove(NXEventArgMouse eArg)
 	m_pEditorObjManager->RayCast(worldRay, editObjHit);
 	if (editObjHit.pSubMesh)
 	{
-		// Êó±êÒÆ¶¯µ½ÁËEditorObjectÉÏ·½£¨´¥·¢EditorObject¸ßÁÁÂß¼­£©
+		// é¼ æ ‡ç§»åŠ¨åˆ°äº†EditorObjectä¸Šæ–¹ï¼ˆè§¦å‘EditorObjecté«˜äº®é€»è¾‘ï¼‰
 		NXSubMeshEditorObjects* pHitSubmesh = (NXSubMeshEditorObjects*)editObjHit.pSubMesh;
 		m_pEditorObjManager->SetHighLightID(pHitSubmesh->GetEditorObjectID());
 	}
@@ -126,7 +126,7 @@ void NXScene::OnMouseMove(NXEventArgMouse eArg)
 
 void NXScene::OnMouseUp(NXEventArgMouse eArg)
 {
-	if (eArg.VMouse & 2) // Êó±ê×ó¼ü
+	if (eArg.VMouse & 2) // é¼ æ ‡å·¦é”®
 	{
 		m_bEditorSelectID = EditorObjectID::NONE;
 	}
@@ -182,8 +182,8 @@ Vector3 NXScene::GetAnchorOfEditorObject(const Ray& worldRay)
 
 Vector3 NXScene::GetAnchorOfEditorTranslatorLine(const Ray& ray, const Ray& line) const
 {
-	// Çóµ±Ç°Ö±ÏßlineÀëÉäÏßµÄ×î½üµã¡£
-	// Ë¼Â·ÊÇÈÃÉäÏßºÍÖ±Ïß²æ»ý£¬È»ºóÀûÓÃ ÉäÏß+²æ»ýÏòÁ¿=Ö±ÏßÉÏ×î½üµãµÄË¼Â·£¬ÁÐ³öÈý¸öÏòÁ¿£¨ÉäÏß¡¢²æ»ýÏòÁ¿¡¢Ö±Ïß£©£¬ÔÙ¸ßË¹ÏûÔªÇó½â¡£
+	// æ±‚å½“å‰ç›´çº¿lineç¦»å°„çº¿çš„æœ€è¿‘ç‚¹ã€‚
+	// æ€è·¯æ˜¯è®©å°„çº¿å’Œç›´çº¿å‰ç§¯ï¼Œç„¶åŽåˆ©ç”¨ å°„çº¿+å‰ç§¯å‘é‡=ç›´çº¿ä¸Šæœ€è¿‘ç‚¹çš„æ€è·¯ï¼Œåˆ—å‡ºä¸‰ä¸ªå‘é‡ï¼ˆå°„çº¿ã€å‰ç§¯å‘é‡ã€ç›´çº¿ï¼‰ï¼Œå†é«˜æ–¯æ¶ˆå…ƒæ±‚è§£ã€‚
 	Vector3 p1 = ray.position;
 	Vector3 d1 = ray.direction;
 	Vector3 p2 = line.position;
@@ -191,27 +191,27 @@ Vector3 NXScene::GetAnchorOfEditorTranslatorLine(const Ray& ray, const Ray& line
 	Vector3 d3 = d1.Cross(d2);
 	Vector3 v = p2 - p1;
 
-	// ´ËÊ±ÓÐ
+	// æ­¤æ—¶æœ‰
 	// [ d1.x -d2.x d3.x ] [ a ] [ p2.x - p1.x ]
 	// [ d1.y -d2.y d3.y ] [ b ] [ p2.y - p1.y ]
 	// [ d1.z -d2.z d3.z ] [ c ] [ p2.z - p1.z ]
-	// ¿É¼Ç×÷Ôö¹ã¾ØÕó (ÕâÀï°Ñ bÐÐ ÒÆµ½ÁËÏÂÃæ)
+	// å¯è®°ä½œå¢žå¹¿çŸ©é˜µ (è¿™é‡ŒæŠŠ bè¡Œ ç§»åˆ°äº†ä¸‹é¢)
 	// [ d1.x d3.x -d2.x | v.x ]
 	// [ d1.y d3.y -d2.y | v.y ]
 	// [ d1.z d3.z -d2.z | v.z ]
 	Vector4 f1(d1.x, d3.x, -d2.x, v.x);
 	Vector4 f2(d1.y, d3.y, -d2.y, v.y);
 	Vector4 f3(d1.z, d3.z, -d2.z, v.z);
-	// È»ºó¸ßË¹ÏûÔª°ÑÉÏÃæÕâ¸ö¾ØÕó¾ïÁË¾ÍÐÐ£¨±¯£©
-	// µÚÒ»ÂÖÏûÔª
+	// ç„¶åŽé«˜æ–¯æ¶ˆå…ƒæŠŠä¸Šé¢è¿™ä¸ªçŸ©é˜µæ’…äº†å°±è¡Œï¼ˆæ‚²ï¼‰
+	// ç¬¬ä¸€è½®æ¶ˆå…ƒ
 	float invf1x = 1.0f / f1.x;
 	f2 -= f1 * (f2.x * invf1x);
 	f3 -= f1 * (f3.x * invf1x);
-	// µÚ¶þÂÖÏûÔª
+	// ç¬¬äºŒè½®æ¶ˆå…ƒ
 	f3 -= f2 * (f3.y / f2.y);
 
-	// ÓÚÊÇ f3.w / f3.z = b
-	// p2 + b * d2 ¼´ÎªÖ±Ïß(p2d2)ÀëÉäÏßµÄ×î½üµã¡£
+	// äºŽæ˜¯ f3.w / f3.z = b
+	// p2 + b * d2 å³ä¸ºç›´çº¿(p2d2)ç¦»å°„çº¿çš„æœ€è¿‘ç‚¹ã€‚
 	Vector3 nearestPoint = p2 + d2 * (f3.w / f3.z);
 	return nearestPoint;
 }
@@ -240,17 +240,17 @@ void NXScene::Init()
 			{
 				std::filesystem::path strNode = std::to_string(x + step) + "_" + std::to_string(y + step);
 
-				// ÕâÀïÓÐµã¶¾...µØÐÎ²ã×öÁËÐòÁÐ»¯£»µ«µØÐÎ±¾ÉíÃ»ÓÐÐòÁÐ»¯¡£
+				// è¿™é‡Œæœ‰ç‚¹æ¯’...åœ°å½¢å±‚åšäº†åºåˆ—åŒ–ï¼›ä½†åœ°å½¢æœ¬èº«æ²¡æœ‰åºåˆ—åŒ–ã€‚
 				NXTerrain* pTerr = NXResourceManager::GetInstance()->GetMeshManager()->CreateTerrain("Terrain_" + strNode.string(), 2048, 2048, x, y);
 				{
-					// TODO£ºµØÐÎµÄÐòÁÐ»¯Ç£³¶µ½Õû¸öNXRenderableObject»ùÀà£¬»¹Ã»ÏëÇå³þÔõÃ´×ö£¬ÔÝÊ±¸éÖÃ
+					// TODOï¼šåœ°å½¢çš„åºåˆ—åŒ–ç‰µæ‰¯åˆ°æ•´ä¸ªNXRenderableObjectåŸºç±»ï¼Œè¿˜æ²¡æƒ³æ¸…æ¥šæ€Žä¹ˆåšï¼Œæš‚æ—¶æç½®
 					NXTerrainLayer* pTerrainLayer = NXResourceManager::GetInstance()->GetMeshManager()->CreateTerrainLayer();
 
 					std::wstring strTerrLayer = L"D:\\NixAssets\\terrainTest\\" + strNode.wstring() + L"\\TerrainLayer" + strNode.wstring() + L".ntl";
 
 					bool bForceCreate = true;
 					pTerrainLayer->SetPath(strTerrLayer, bForceCreate); 
-					pTerrainLayer->Deserialize(); // ÔÝÊ±ÏÈÊÖ¶¯·´ÐòÁÐ»¯µØÐÎ²ã
+					pTerrainLayer->Deserialize(); // æš‚æ—¶å…ˆæ‰‹åŠ¨ååºåˆ—åŒ–åœ°å½¢å±‚
 					pTerr->SetTerrainLayer(pTerrainLayer);
 					pTerr->SetTranslation(Vector3(2048 * x, 0, 2048 * y));
 
@@ -348,8 +348,8 @@ void NXScene::InitScripts()
 
 void NXScene::UpdateTransform(NXObject* pObject)
 {
-	// ¸üÐÂpObjectÏÂËùÓÐTransformµÄÖµºÍ½Å±¾¡£
-	// pObjectÎª¿ÕÊ±=¸üÐÂ³¡¾°ÖÐÈ«²¿ÎïÌå¡£
+	// æ›´æ–°pObjectä¸‹æ‰€æœ‰Transformçš„å€¼å’Œè„šæœ¬ã€‚
+	// pObjectä¸ºç©ºæ—¶=æ›´æ–°åœºæ™¯ä¸­å…¨éƒ¨ç‰©ä½“ã€‚
 	if (!pObject)
 	{
 		UpdateTransform(m_pRootObject);
@@ -444,7 +444,7 @@ void NXScene::AddPickingSubMesh(NXSubMeshBase* pPickingSubMesh)
 		m_pSelectedSubMeshes.push_back(pPickingSubMesh);
 	}
 
-	// 2023.3.11 ÔÝÊ±Ê¹ÓÃµÚÒ»¸öÑ¡ÖÐµÄNXRenderableObjectµÄTranslation¼ÆËãÒÆ¶¯Á¿
+	// 2023.3.11 æš‚æ—¶ä½¿ç”¨ç¬¬ä¸€ä¸ªé€‰ä¸­çš„NXRenderableObjectçš„Translationè®¡ç®—ç§»åŠ¨é‡
 	NXRenderableObject* pFirstSelectedObj = m_pSelectedSubMeshes[0]->GetRenderableObject();
 	m_pEditorObjManager->MoveTranslatorTo(pFirstSelectedObj->GetAABBWorld().Center);
 }
@@ -487,13 +487,13 @@ NXTerrain* NXScene::GetTerrain(short nodeIdX, short nodeIdY)
 
 void NXScene::InitBoundingStructures()
 {
-	// Òª¼ÆËãËùÓÐÎïÌåµÄAABB£¬¾ÍÐèÒªÈ·±£ËùÓÐÎïÌåµÄ Transform ÊÇÕýÈ·µÄ
-	// ËùÒÔÕâÀïÐèÒª×öÒ»´Î UpdateTransform
+	// è¦è®¡ç®—æ‰€æœ‰ç‰©ä½“çš„AABBï¼Œå°±éœ€è¦ç¡®ä¿æ‰€æœ‰ç‰©ä½“çš„ Transform æ˜¯æ­£ç¡®çš„
+	// æ‰€ä»¥è¿™é‡Œéœ€è¦åšä¸€æ¬¡ UpdateTransform
 	UpdateTransform();
 
 	// construct AABB for scene.
-	// ±éÀú renderableObjects£¬Ö»¶ÔÒ»¼¶ Hierarchy ½Úµã InitAABB
-	// ×ÓObject µÄ AABB »áµÝ¹éÉú³É¡£
+	// éåŽ† renderableObjectsï¼Œåªå¯¹ä¸€çº§ Hierarchy èŠ‚ç‚¹ InitAABB
+	// å­Object çš„ AABB ä¼šé€’å½’ç”Ÿæˆã€‚
 	for (auto pMesh : m_renderableObjects)
 	{
 		pMesh->InitAABB();

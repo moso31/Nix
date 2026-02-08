@@ -9,9 +9,9 @@ struct NXQuadTreeNode
 	{
 	}
 
-	AABB m_aabb; // ½ÚµãµÄ°üÎ§ºĞ
+	AABB m_aabb; // èŠ‚ç‚¹çš„åŒ…å›´ç›’
 	NXQuadTreeNode* m_pParent;
-	NXQuadTreeNode* m_pChilds[4]; // 0=×óÏÂ, 1=ÓÒÏÂ, 2=×óÉÏ, 3=ÓÒÉÏ£¬ºÍNix×ø±êÏµµÄXZÕı·½ÏòÒ»ÖÂ
+	NXQuadTreeNode* m_pChilds[4]; // 0=å·¦ä¸‹, 1=å³ä¸‹, 2=å·¦ä¸Š, 3=å³ä¸Šï¼Œå’ŒNixåæ ‡ç³»çš„XZæ­£æ–¹å‘ä¸€è‡´
 };
 
 class NXQuadTree
@@ -25,7 +25,7 @@ public:
 
 	virtual ~NXQuadTree() {}
 
-	// ¹¹½¨ËÄ²æÊ÷
+	// æ„å»ºå››å‰æ ‘
 	void Build(int depth)
 	{
 		m_pRootNode->m_aabb.Center = m_pos;
@@ -35,17 +35,17 @@ public:
 		BuildNode(m_pRootNode, 0);
 	}
 
-	// ÊÍ·ÅËÄ²æÊ÷
+	// é‡Šæ”¾å››å‰æ ‘
 	void Destroy()
 	{
 		RemoveChilds(m_pRootNode);
 	}
 
-	// »ñÈ¡Ò»¸ö½Úµã»ùÓÚ¾àÀëµÄ¸²¸ÇÇé¿ö
-	// return 0: ÍêÈ«²»Ïà½» 1£º²¿·Ö¸²¸Ç 2£ºÍêÈ«¸²¸Ç
+	// è·å–ä¸€ä¸ªèŠ‚ç‚¹åŸºäºè·ç¦»çš„è¦†ç›–æƒ…å†µ
+	// return 0: å®Œå…¨ä¸ç›¸äº¤ 1ï¼šéƒ¨åˆ†è¦†ç›– 2ï¼šå®Œå…¨è¦†ç›–
 	int GetOverlapState(const Vector3& pos, const float radius, const NXQuadTreeNode* pNode)
 	{
-		// Ä¿Ç°ÔİÊ±ÓÃ²»µ½YÖá
+		// ç›®å‰æš‚æ—¶ç”¨ä¸åˆ°Yè½´
 		Vector3 pMax = pNode->m_aabb.GetMax();
 		Vector3 pMin = pNode->m_aabb.GetMin();
 		float clampX = Clamp(pos.x, pMin.x, pMax.x);
@@ -77,7 +77,7 @@ private:
 		Vector3 O = pNode->m_aabb.Center;
 		Vector3 A = pNode->m_aabb.GetMin();
 		Vector3 C = pNode->m_aabb.GetMax();
-		// Ä¿Ç°ÔİÊ±ÓÃ²»µ½YÖá
+		// ç›®å‰æš‚æ—¶ç”¨ä¸åˆ°Yè½´
 		O.y = A.y = C.y = 0.0f;
 		Vector3 B(A.x, 0.0, C.z);
 		Vector3 D(C.x, 0.0, A.z);

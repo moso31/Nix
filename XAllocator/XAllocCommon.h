@@ -25,6 +25,6 @@
 
 namespace ccmem
 {
-	// È«¾ÖIDÉú³ÉÆ÷
+	// å…¨å±€IDç”Ÿæˆå™¨
 	uint64_t GenerateUniqueTaskID();
 }

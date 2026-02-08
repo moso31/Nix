@@ -42,8 +42,8 @@ void HBVHTree::BuildTreesWithScene(HBVHSplitMode mode)
 	}
 
 	root = new HBVHTreeNode();
-	int count = 0;	// ³¡¾°ÖĞµÄprimitive×ÜÊı
-	int skipCount = 0;	// Ìø¹ıµÄprimitive×ÜÊı£¨ÖîÈçlineÖ®Àà²»¿ÉÄÜÏà½»¼ÆËãµÄprimitive¶¼»á±»Ìø¹ı£©¡£
+	int count = 0;	// åœºæ™¯ä¸­çš„primitiveæ€»æ•°
+	int skipCount = 0;	// è·³è¿‡çš„primitiveæ€»æ•°ï¼ˆè¯¸å¦‚lineä¹‹ç±»ä¸å¯èƒ½ç›¸äº¤è®¡ç®—çš„primitiveéƒ½ä¼šè¢«è·³è¿‡ï¼‰ã€‚
 	if (mode != HLBVH)
 	{
 		for (auto it = pRenderableObjects.begin(); it < pRenderableObjects.end(); it++)
@@ -66,7 +66,7 @@ void HBVHTree::BuildTreesWithScene(HBVHSplitMode mode)
 	}
 	else
 	{
-		// ±éÀúËùÓĞprimitive
+		// éå†æ‰€æœ‰primitive
 		for (auto it = pRenderableObjects.begin(); it < pRenderableObjects.end(); it++)
 		{
 			HBVHMortonPrimitiveInfo primitiveInfo;
@@ -75,7 +75,7 @@ void HBVHTree::BuildTreesWithScene(HBVHSplitMode mode)
 			Vector3 fRelativePosition = m_pScene->GetAABB().Offset(primitiveInfo.aabb.Center);
 			int mortonScale = 1 << 10;
 			XMINT3 iRelativePositionScaled = { (int)(fRelativePosition.x * mortonScale), (int)(fRelativePosition.y * mortonScale), (int)(fRelativePosition.z * mortonScale) };
-			// ÎªÃ¿¸öÎïÌåÖ¸¶¨mortonÂë¡£HLBVH·½·¨½«³¡¾°»®·ÖÎªÈô¸ÉÏ¸·ÖÇøÓò¡£Ò»¸ömortonÂë¶ÔÓ¦Ò»¸öÏ¸·ÖÇøÓò¡£
+			// ä¸ºæ¯ä¸ªç‰©ä½“æŒ‡å®šmortonç ã€‚HLBVHæ–¹æ³•å°†åœºæ™¯åˆ’åˆ†ä¸ºè‹¥å¹²ç»†åˆ†åŒºåŸŸã€‚ä¸€ä¸ªmortonç å¯¹åº”ä¸€ä¸ªç»†åˆ†åŒºåŸŸã€‚
 			primitiveInfo.mortonCode = EncodeMorton3(iRelativePositionScaled);
 			m_mortonPrimitiveInfo.push_back(primitiveInfo);
 		}
@@ -108,18 +108,18 @@ void HBVHTree::BuildTreesWithScene(HBVHSplitMode mode)
 		treelet.nPrimitive = count - start;
 		m_treeletInfo.push_back(treelet);
 
-		// ¶àÏß³Ì¹¹½¨ËùÓĞtreelet
+		// å¤šçº¿ç¨‹æ„å»ºæ‰€æœ‰treelet
 		for (int i = 0; i < m_treeletInfo.size(); i++)
 		{
 			m_treeletInfo[i].node = BuildTreelet(m_treeletInfo[i].startIndex, m_treeletInfo[i].startIndex + m_treeletInfo[i].nPrimitive, 29 - 12);
 		}
 
-		// ËùÓĞtreelet¹¹½¨Íê±Ïºó¹¹½¨ÉÏ²ã×ÜÊ÷¡£
+		// æ‰€æœ‰treeletæ„å»ºå®Œæ¯•åæ„å»ºä¸Šå±‚æ€»æ ‘ã€‚
 		BuildUpperTree(root, 0, (int)m_treeletInfo.size());
 	}
 
 	auto time_ed = GetTickCount64();
-	//printf("BVH done. ÓÃÊ±£º%.3f Ãë\n", (float)(time_ed - time_st) / 1000.0f);
+	//printf("BVH done. ç”¨æ—¶ï¼š%.3f ç§’\n", (float)(time_ed - time_st) / 1000.0f);
 }
 
 void HBVHTree::Intersect(const Ray& worldRay, NXHit& outHitInfo, float tMax)
@@ -130,11 +130,11 @@ void HBVHTree::Intersect(const Ray& worldRay, NXHit& outHitInfo, float tMax)
 
 void HBVHTree::BuildTree(HBVHTreeNode * node, int stIndex, int edIndex, HBVHSplitMode mode)
 {
-	//	µİ¹é½¨Ê÷
-	//	Èç¹ûnodeÏÂÖ»ÓĞÒ»¸ö½Úµã¾Í¹¹½¨×ÓÊ÷¡£
-	//	Èç¹ûµ±Ç°nodeÏÂ£¬±éÀúËùÓĞ½ÚµãµÄ¿ªÏúÉÙÓÚ½øÒ»²½·Ö¸îµÄ¿ªÏú£¬Ò²¹¹½¨×ÓÊ÷¡£
-	//	Èç¹û·Ö¸îÒÔºó·Ö²»¿ªÒ²¹¹½¨×ÓÊ÷¡£
-	//	ÆäËûÇé¿öÏÂ¹¹½¨ÖĞ¼äÊ÷¡£
+	//	é€’å½’å»ºæ ‘
+	//	å¦‚æœnodeä¸‹åªæœ‰ä¸€ä¸ªèŠ‚ç‚¹å°±æ„å»ºå­æ ‘ã€‚
+	//	å¦‚æœå½“å‰nodeä¸‹ï¼Œéå†æ‰€æœ‰èŠ‚ç‚¹çš„å¼€é”€å°‘äºè¿›ä¸€æ­¥åˆ†å‰²çš„å¼€é”€ï¼Œä¹Ÿæ„å»ºå­æ ‘ã€‚
+	//	å¦‚æœåˆ†å‰²ä»¥ååˆ†ä¸å¼€ä¹Ÿæ„å»ºå­æ ‘ã€‚
+	//	å…¶ä»–æƒ…å†µä¸‹æ„å»ºä¸­é—´æ ‘ã€‚
 
 	for (int i = stIndex; i < edIndex; i++)
 	{
@@ -205,9 +205,9 @@ void HBVHTree::BuildTree(HBVHTreeNode * node, int stIndex, int edIndex, HBVHSpli
 	}
 	case SAH:
 	{
-		// SAH ½¨Ê÷¡£
-		// ½«µ±Ç°½ÚµãÑØdim·½Ïò·Ö³É12·İ¡£È»ºó´ÓÖĞ¼äµÄ11ÖÖ·Ö¸î·½Ê½ÀïÈ¡Ò»¸ö×îÓÅĞãµÄ¡£
-		// ¿ÉÒÔÍ¨¹ı½«×Ó½Úµã±íÃæ»ı±ÈÀıµÄ·½·¨¼ÆÈëÈ¨ÖØµÄ·½Ê½£¬À´ÅĞ¶ÏÄÄ¸ö×îÓÅĞã¡£
+		// SAH å»ºæ ‘ã€‚
+		// å°†å½“å‰èŠ‚ç‚¹æ²¿dimæ–¹å‘åˆ†æˆ12ä»½ã€‚ç„¶åä»ä¸­é—´çš„11ç§åˆ†å‰²æ–¹å¼é‡Œå–ä¸€ä¸ªæœ€ä¼˜ç§€çš„ã€‚
+		// å¯ä»¥é€šè¿‡å°†å­èŠ‚ç‚¹è¡¨é¢ç§¯æ¯”ä¾‹çš„æ–¹æ³•è®¡å…¥æƒé‡çš„æ–¹å¼ï¼Œæ¥åˆ¤æ–­å“ªä¸ªæœ€ä¼˜ç§€ã€‚
 
 		const int nBucket = 12;
 		HBVHBucketInfo bucket[nBucket];
@@ -244,7 +244,7 @@ void HBVHTree::BuildTree(HBVHTreeNode * node, int stIndex, int edIndex, HBVHSpli
 			cost[i] = isnan(costValue) ? FLT_MAX : costValue;
 		}
 
-		// ´Ó11¸ö·Ö¸î·½°¸ÖĞÈ¡×îÓÅĞãµÄ¡£
+		// ä»11ä¸ªåˆ†å‰²æ–¹æ¡ˆä¸­å–æœ€ä¼˜ç§€çš„ã€‚
 		float minCost = cost[0];
 		int minCostBucket = 0;
 		for (int i = 1; i < nBucket - 1; i++)
@@ -256,7 +256,7 @@ void HBVHTree::BuildTree(HBVHTreeNode * node, int stIndex, int edIndex, HBVHSpli
 			}
 		}
 
-		// Èç¹û×îÓÅĞãµÄ·½°¸µÄ»¨·ÑÖµÒÀÈ»±Èµ±Ç°nodeµÄÍ¼ÔªÊıÁ¿»¹¶à£¬ÄÇ»¹²»ÈçÖ±½Ó±éÀú´´½¨Í¼Ôª¡£
+		// å¦‚æœæœ€ä¼˜ç§€çš„æ–¹æ¡ˆçš„èŠ±è´¹å€¼ä¾ç„¶æ¯”å½“å‰nodeçš„å›¾å…ƒæ•°é‡è¿˜å¤šï¼Œé‚£è¿˜ä¸å¦‚ç›´æ¥éå†åˆ›å»ºå›¾å…ƒã€‚
 		if (minCost < node->offset * 10)
 		{
 			itSplit = partition(m_primitiveInfo.begin() + stIndex, m_primitiveInfo.begin() + edIndex, [=](HBVHPrimitiveInfo& info)
@@ -384,8 +384,8 @@ HBVHTreeNode* HBVHTree::BuildTreelet(int stIndex, int edIndex, int bitIndex)
 {
 	auto pRenderableObjects = m_pScene->GetRenderableObjects();
 
-	// Èç¹ûÒÑ¾­Ã»ÓĞµİ¹éÎ»·Ö¸î£¬Ö±½Ó´´½¨Ò»¸ö°üÀ¨stIndexµ½edIndexËùÓĞprimitiveµÄ×Ó½Úµã£¬²¢Í£Ö¹·Ö¸î
-	// Ò»°ã·Öµ½ÕâÃ´Ï¸£¨Ê®ÒÚ·ÖÖ®Ò»£©»ù±¾ÉÏ²»»áÊ£ÏÂÊ²Ã´ÖØ¸´µÄ¶«Î÷ÁË£¬¶ÔĞÔÄÜµÄÓ°Ïì²»´ó¡£
+	// å¦‚æœå·²ç»æ²¡æœ‰é€’å½’ä½åˆ†å‰²ï¼Œç›´æ¥åˆ›å»ºä¸€ä¸ªåŒ…æ‹¬stIndexåˆ°edIndexæ‰€æœ‰primitiveçš„å­èŠ‚ç‚¹ï¼Œå¹¶åœæ­¢åˆ†å‰²
+	// ä¸€èˆ¬åˆ†åˆ°è¿™ä¹ˆç»†ï¼ˆåäº¿åˆ†ä¹‹ä¸€ï¼‰åŸºæœ¬ä¸Šä¸ä¼šå‰©ä¸‹ä»€ä¹ˆé‡å¤çš„ä¸œè¥¿äº†ï¼Œå¯¹æ€§èƒ½çš„å½±å“ä¸å¤§ã€‚
 	if (bitIndex == -1)
 	{
 		HBVHTreeNode* result = new HBVHTreeNode();
@@ -401,7 +401,7 @@ HBVHTreeNode* HBVHTree::BuildTreelet(int stIndex, int edIndex, int bitIndex)
 		return result;
 	}
 
-	// ·ñÔò£¬¼ÆËãÖĞ¼äÎ»
+	// å¦åˆ™ï¼Œè®¡ç®—ä¸­é—´ä½
 	int startMorton = m_mortonPrimitiveInfo[stIndex].mortonCode & bitIndex;
 	int splitIndex = stIndex;
 	for (int i = stIndex; i < edIndex; i++)
@@ -412,13 +412,13 @@ HBVHTreeNode* HBVHTree::BuildTreelet(int stIndex, int edIndex, int bitIndex)
 		}
 	}
 
-	// Èç¹ûÖĞ¼äÎ»Ã»ÄÜ·Ö¸î³ö¶«Î÷À´£¬¾Í½»ÓÉÏÂÒ»¼¶·Ö¸î
+	// å¦‚æœä¸­é—´ä½æ²¡èƒ½åˆ†å‰²å‡ºä¸œè¥¿æ¥ï¼Œå°±äº¤ç”±ä¸‹ä¸€çº§åˆ†å‰²
 	if (splitIndex == stIndex || splitIndex == edIndex)
 	{
 		return BuildTreelet(stIndex, edIndex, bitIndex - 1);
 	}
 
-	// ÄÜ·Ö¸î³ö¶«Î÷£¬¾Í´´½¨³öµ±Ç°½Úµã£¬²¢µİ¹é´´½¨Á½¸ö×ÓÊ÷
+	// èƒ½åˆ†å‰²å‡ºä¸œè¥¿ï¼Œå°±åˆ›å»ºå‡ºå½“å‰èŠ‚ç‚¹ï¼Œå¹¶é€’å½’åˆ›å»ºä¸¤ä¸ªå­æ ‘
 	HBVHTreeNode* result = new HBVHTreeNode();
 	for (int i = stIndex; i < edIndex; i++)
 	{
@@ -495,7 +495,7 @@ void HBVHTree::BuildUpperTree(HBVHTreeNode*& node, int stIndex, int edIndex)
 		cost[i] = isnan(costValue) ? FLT_MAX : costValue;
 	}
 
-	// ´Ó11¸ö·Ö¸î·½°¸ÖĞÈ¡×îÓÅĞãµÄ¡£
+	// ä»11ä¸ªåˆ†å‰²æ–¹æ¡ˆä¸­å–æœ€ä¼˜ç§€çš„ã€‚
 	float minCost = cost[0];
 	int minCostBucket = 0;
 	for (int i = 1; i < nBucket - 1; i++)
@@ -507,8 +507,8 @@ void HBVHTree::BuildUpperTree(HBVHTreeNode*& node, int stIndex, int edIndex)
 		}
 	}
 
-	// ºÍÆÕÍ¨SAH²»Í¬£¬HLBVHµÄÉÏ²ã½¨Ê÷×îĞ¡µ¥Î»ÊÇÒ»¸ö¸ßÎ»´óÇø¡£
-	// Òò´Ë²»´æÔÚ×Ó½ÚµãµÄÇé¿ö£¨treeletÒÑ¾­½¨ºÃÁË×Ó½Úµã£©£¬Ö±½Ó¹¹½¨ÖĞ¼ä½Úµã¼´¿É¡£
+	// å’Œæ™®é€šSAHä¸åŒï¼ŒHLBVHçš„ä¸Šå±‚å»ºæ ‘æœ€å°å•ä½æ˜¯ä¸€ä¸ªé«˜ä½å¤§åŒºã€‚
+	// å› æ­¤ä¸å­˜åœ¨å­èŠ‚ç‚¹çš„æƒ…å†µï¼ˆtreeletå·²ç»å»ºå¥½äº†å­èŠ‚ç‚¹ï¼‰ï¼Œç›´æ¥æ„å»ºä¸­é—´èŠ‚ç‚¹å³å¯ã€‚
 	itSplit = partition(m_treeletInfo.begin() + stIndex, m_treeletInfo.begin() + edIndex, [=](HBVHTreeletInfo& info)
 	{
 		int bucketPos = (int)(nBucket * centroidAABB.Offset(info.node->aabb.GetCenter())[dim]);

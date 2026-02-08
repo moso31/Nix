@@ -1,4 +1,4 @@
-﻿#include "NXGUIMaterialShaderEditor.h"
+#include "NXGUIMaterialShaderEditor.h"
 #include <regex>
 #include "BaseDefs/DearImGui.h"
 

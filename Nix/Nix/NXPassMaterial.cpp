@@ -70,7 +70,7 @@ NXPassMaterial::NXPassMaterial(const std::string& name, const std::filesystem::p
 
 void NXGraphicPassMaterial::FinalizeLayout()
 {
-	// cbuffer ĞèÒª³õÊ¼ÖÃ¿Õ£¨Í¨¹ıÅĞ¿ÕÈ·¶¨¿ØÖÆÈ¨£¬nullptr = ÆäËûÂß¼­ÊÖ¶¯¿ØÖÆ£¬·Ç¿Õ = ½»¸øNXRG(execute)¿ØÖÆ£©
+	// cbuffer éœ€è¦åˆå§‹ç½®ç©ºï¼ˆé€šè¿‡åˆ¤ç©ºç¡®å®šæ§åˆ¶æƒï¼Œnullptr = å…¶ä»–é€»è¾‘æ‰‹åŠ¨æ§åˆ¶ï¼Œéç©º = äº¤ç»™NXRG(execute)æ§åˆ¶ï¼‰
 	m_cbuffers.resize(m_layout.cbvSpaceNum);
 	for (int i = 0; i < m_layout.cbvSpaceNum; ++i)
 	{
@@ -82,7 +82,7 @@ void NXGraphicPassMaterial::FinalizeLayout()
 		}
 	}
 
-	// ÎÆÀí²»ĞèÒª³õÊ¼»¯£¬Ô¤Áô³ösize¼´¿É
+	// çº¹ç†ä¸éœ€è¦åˆå§‹åŒ–ï¼Œé¢„ç•™å‡ºsizeå³å¯
 	m_pInRes.resize(m_layout.srvSpaceNum);
 	for (int i = 0; i < m_layout.srvSpaceNum; ++i)
 	{
@@ -131,21 +131,21 @@ void NXPassMaterial::InitRootParams()
     {
 		for (int slot = 0; slot < m_layout.cbvSlotNum[space]; ++slot)
         {
-			// Ã¿¸öCBVÕ¼ÓÃÒ»¸ö¸ù²ÎÊı
+			// æ¯ä¸ªCBVå ç”¨ä¸€ä¸ªæ ¹å‚æ•°
             m_rootParams.push_back(NX12Util::CreateRootParameterCBV(slot, space, D3D12_SHADER_VISIBILITY_ALL));
         }
     }
 
     for (int space = 0; space < m_layout.srvSpaceNum; ++space)
     {
-		// Ã¿¸öspaceÕ¼ÓÃÒ»¸öÃèÊö·ûTable£¬²¢Õ¼ÓÃÒ»¸ö¸ù²ÎÊı¡£
+		// æ¯ä¸ªspaceå ç”¨ä¸€ä¸ªæè¿°ç¬¦Tableï¼Œå¹¶å ç”¨ä¸€ä¸ªæ ¹å‚æ•°ã€‚
         m_srvRanges.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, m_layout.srvSlotNum[space], 0, space));
         m_rootParams.push_back(NX12Util::CreateRootParameterTable(1, &m_srvRanges.back(), D3D12_SHADER_VISIBILITY_ALL));
     }
 
     for (int space = 0; space < m_layout.uavSpaceNum; ++space)
     {
-		// Ã¿¸öspaceÕ¼ÓÃÒ»¸öÃèÊö·ûTable£¬²¢Õ¼ÓÃÒ»¸ö¸ù²ÎÊı¡£
+		// æ¯ä¸ªspaceå ç”¨ä¸€ä¸ªæè¿°ç¬¦Tableï¼Œå¹¶å ç”¨ä¸€ä¸ªæ ¹å‚æ•°ã€‚
         m_uavRanges.push_back(NX12Util::CreateDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, m_layout.uavSlotNum[space], 0, space));
         m_rootParams.push_back(NX12Util::CreateRootParameterTable(1, &m_uavRanges.back(), D3D12_SHADER_VISIBILITY_ALL));
     }
@@ -227,7 +227,7 @@ void NXGraphicPassMaterial::RenderSetTargetAndState(ID3D12GraphicsCommandList* p
 		ppRTVs.push_back(pTex.As<NXTexture2D>()->GetRTV());
 	}
 
-	// ÉèÖÃÊäÈë×ÊÔ´×´Ì¬
+	// è®¾ç½®è¾“å…¥èµ„æºçŠ¶æ€
 	for (int space = 0; space < (int)m_pInRes.size(); space++)
 	{
 		auto& pSpaceIns = m_pInRes[space];
@@ -239,7 +239,7 @@ void NXGraphicPassMaterial::RenderSetTargetAndState(ID3D12GraphicsCommandList* p
 		}
 	}
 
-	// ÉèÖÃÊä³ö×ÊÔ´×´Ì¬
+	// è®¾ç½®è¾“å‡ºèµ„æºçŠ¶æ€
 	std::vector<D3D12_RESOURCE_BARRIER> uavBarriers;
 	for (int space = 0; space < (int)m_pOutRes.size(); space++)
 	{
@@ -264,7 +264,7 @@ void NXGraphicPassMaterial::RenderSetTargetAndState(ID3D12GraphicsCommandList* p
 		}
 	}
 
-	// Ìá½»UAVÆÁÕÏ
+	// æäº¤UAVå±éšœ
 	if (!uavBarriers.empty())
 		pCmdList->ResourceBarrier((uint32_t)uavBarriers.size(), uavBarriers.data());
 
@@ -283,7 +283,7 @@ void NXGraphicPassMaterial::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 	pCmdList->SetGraphicsRootSignature(m_pRootSig.Get());
 	pCmdList->SetPipelineState(m_pPSO.Get());
 
-	// °ó¶¨CBV
+	// ç»‘å®šCBV
 	int rootParameterIndex = 0;
 	for (int i = 0; i < (int)m_layout.cbvSpaceNum; i++)
 	{
@@ -298,7 +298,7 @@ void NXGraphicPassMaterial::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 		}
 	}
 
-	// °ó¶¨SRVÃèÊö·û±í
+	// ç»‘å®šSRVæè¿°ç¬¦è¡¨
 	if (!m_pInRes.empty())
 	{
 		for (int i = 0; i < (int)m_pInRes.size(); i++)
@@ -317,7 +317,7 @@ void NXGraphicPassMaterial::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 					else if (pRes->GetResourceType() == NXResourceType::Tex2D)
 					{
 						auto pTexture2D = pRes.As<NXTexture2D>();
-						// ¸ù¾İmipµÈ¼¶Ñ¡ÔñSRVÃèÊö·û
+						// æ ¹æ®mipç­‰çº§é€‰æ‹©SRVæè¿°ç¬¦
 						if (pResView.texMipSlice >= 0)
 						{
 							NXShVisDescHeap->PushFluid(pTexture2D->GetSRV(pResView.texMipSlice));
@@ -339,12 +339,12 @@ void NXGraphicPassMaterial::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 			}
 
 			D3D12_GPU_DESCRIPTOR_HANDLE srvHandle = NXShVisDescHeap->Submit();
-			pCmdList->SetGraphicsRootDescriptorTable(rootParameterIndex, srvHandle);  // ¸ÄÕâÀï
+			pCmdList->SetGraphicsRootDescriptorTable(rootParameterIndex, srvHandle);  // æ”¹è¿™é‡Œ
 			rootParameterIndex++;
 		}
 	}
 
-	// °ó¶¨UAVÃèÊö·û±í
+	// ç»‘å®šUAVæè¿°ç¬¦è¡¨
 	if (!m_pOutRes.empty())
 	{
 		for (int i = 0; i < (int)m_pOutRes.size(); i++)
@@ -359,7 +359,7 @@ void NXGraphicPassMaterial::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 					if (pRes->GetResourceType() == NXResourceType::Buffer)
 					{
 						auto pBuffer = pRes.As<NXBuffer>();
-						// ¸ù¾İNXResourceUAVµÄ±êÖ¾Ñ¡ÔñUAVÃèÊö·û
+						// æ ¹æ®NXResourceUAVçš„æ ‡å¿—é€‰æ‹©UAVæè¿°ç¬¦
 						if (pSpaceOuts[j].useBufferUAVCounter)
 						{
 							NXShVisDescHeap->PushFluid(pBuffer->GetUAVCounter());
@@ -372,7 +372,7 @@ void NXGraphicPassMaterial::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 					else if (pRes->GetResourceType() == NXResourceType::Tex2D)
 					{
 						auto pTexture2D = pRes.As<NXTexture2D>();
-						// ¸ù¾İNXResourceUAVµÄmipSliceÑ¡ÔñUAVÃèÊö·û
+						// æ ¹æ®NXResourceUAVçš„mipSliceé€‰æ‹©UAVæè¿°ç¬¦
 						if (pResView.texMipSlice >= 0)
 						{
 							NXShVisDescHeap->PushFluid(pTexture2D->GetUAV(pResView.texMipSlice));
@@ -394,7 +394,7 @@ void NXGraphicPassMaterial::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 			}
 
 			D3D12_GPU_DESCRIPTOR_HANDLE uavHandle = NXShVisDescHeap->Submit();
-			pCmdList->SetGraphicsRootDescriptorTable(rootParameterIndex, uavHandle);  // ¸ÄÕâÀï
+			pCmdList->SetGraphicsRootDescriptorTable(rootParameterIndex, uavHandle);  // æ”¹è¿™é‡Œ
 			rootParameterIndex++;
 		}
 	}
@@ -427,7 +427,7 @@ NXComputePassMaterial::NXComputePassMaterial(const std::string& name, const std:
 
 void NXComputePassMaterial::FinalizeLayout()
 {
-	// cbuffer ĞèÒª³õÊ¼ÖÃ¿Õ£¨Í¨¹ıÅĞ¿ÕÈ·¶¨¿ØÖÆÈ¨£¬nullptr = ÆäËûÂß¼­ÊÖ¶¯¿ØÖÆ£¬·Ç¿Õ = ½»¸øNXRG(execute)¿ØÖÆ£©
+	// cbuffer éœ€è¦åˆå§‹ç½®ç©ºï¼ˆé€šè¿‡åˆ¤ç©ºç¡®å®šæ§åˆ¶æƒï¼Œnullptr = å…¶ä»–é€»è¾‘æ‰‹åŠ¨æ§åˆ¶ï¼Œéç©º = äº¤ç»™NXRG(execute)æ§åˆ¶ï¼‰
 	m_cbuffers.resize(m_layout.cbvSpaceNum);
 	for (int i = 0; i < m_layout.cbvSpaceNum; ++i)
 	{
@@ -439,7 +439,7 @@ void NXComputePassMaterial::FinalizeLayout()
 		}
 	}
 
-	// ÎÆÀí²»ĞèÒª³õÊ¼»¯£¬Ô¤Áô³ösize¼´¿É
+	// çº¹ç†ä¸éœ€è¦åˆå§‹åŒ–ï¼Œé¢„ç•™å‡ºsizeå³å¯
 	m_pInRes.resize(m_layout.srvSpaceNum);
 	for (int i = 0; i < m_layout.srvSpaceNum; ++i)
 	{
@@ -480,7 +480,7 @@ void NXComputePassMaterial::RenderSetTargetAndState(ID3D12GraphicsCommandList* p
 {
 	std::vector<D3D12_RESOURCE_BARRIER> uavBarriers;
 
-	// ÉèÖÃÊäÈë×ÊÔ´×´Ì¬
+	// è®¾ç½®è¾“å…¥èµ„æºçŠ¶æ€
 	for (int space = 0; space < (int)m_pInRes.size(); space++)
 	{
 		auto& pSpaceIns = m_pInRes[space];
@@ -492,7 +492,7 @@ void NXComputePassMaterial::RenderSetTargetAndState(ID3D12GraphicsCommandList* p
 		}
 	}
 
-	// ÉèÖÃÊä³ö×ÊÔ´×´Ì¬
+	// è®¾ç½®è¾“å‡ºèµ„æºçŠ¶æ€
 	for (int space = 0; space < (int)m_pOutRes.size(); space++)
 	{
 		auto& pSpaceOuts = m_pOutRes[space];
@@ -516,7 +516,7 @@ void NXComputePassMaterial::RenderSetTargetAndState(ID3D12GraphicsCommandList* p
 		}
 	}
 
-	// ×îºóÌá½»UAVÆÁÕÏ
+	// æœ€åæäº¤UAVå±éšœ
 	if (!uavBarriers.empty())
 		pCmdList->ResourceBarrier((uint32_t)uavBarriers.size(), uavBarriers.data());
 }
@@ -526,7 +526,7 @@ void NXComputePassMaterial::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 	pCmdList->SetComputeRootSignature(m_pRootSig.Get());
 	pCmdList->SetPipelineState(m_pPSO.Get());
 
-	// °ó¶¨CBV
+	// ç»‘å®šCBV
 	int rootParameterIndex = 0;
 	for (int i = 0; i < (int)m_layout.cbvSpaceNum; i++)
 	{
@@ -541,7 +541,7 @@ void NXComputePassMaterial::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 		}
 	}
 
-	// °ó¶¨SRVÃèÊö·û±í
+	// ç»‘å®šSRVæè¿°ç¬¦è¡¨
 	if (!m_pInRes.empty())
 	{
 		for (int i = 0; i < (int)m_pInRes.size(); i++)
@@ -560,7 +560,7 @@ void NXComputePassMaterial::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 					else if (pRes->GetResourceType() == NXResourceType::Tex2D)
 					{
 						auto pTexture2D = pRes.As<NXTexture2D>();
-						// ¸ù¾İmipµÈ¼¶Ñ¡ÔñSRVÃèÊö·û
+						// æ ¹æ®mipç­‰çº§é€‰æ‹©SRVæè¿°ç¬¦
 						if (pResView.texMipSlice >= 0)
 						{
 							NXShVisDescHeap->PushFluid(pTexture2D->GetSRV(pResView.texMipSlice));
@@ -587,7 +587,7 @@ void NXComputePassMaterial::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 		}
 	}
 
-	// °ó¶¨UAVÃèÊö·û±í
+	// ç»‘å®šUAVæè¿°ç¬¦è¡¨
 	if (!m_pOutRes.empty())
 	{
 		for (int i = 0; i < (int)m_pOutRes.size(); i++)
@@ -602,7 +602,7 @@ void NXComputePassMaterial::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 					if (pRes->GetResourceType() == NXResourceType::Buffer)
 					{
 						auto pBuffer = pRes.As<NXBuffer>();
-						// ¸ù¾İNXResourceUAVµÄ±êÖ¾Ñ¡ÔñUAVÃèÊö·û
+						// æ ¹æ®NXResourceUAVçš„æ ‡å¿—é€‰æ‹©UAVæè¿°ç¬¦
 						if (pSpaceOuts[j].useBufferUAVCounter)
 						{
 							NXShVisDescHeap->PushFluid(pBuffer->GetUAVCounter());
@@ -615,7 +615,7 @@ void NXComputePassMaterial::RenderBefore(ID3D12GraphicsCommandList* pCmdList)
 					else if (pRes->GetResourceType() == NXResourceType::Tex2D)
 					{
 						auto pTexture2D = pRes.As<NXTexture2D>();
-						// ¸ù¾İNXResourceUAVµÄmipSliceÑ¡ÔñUAVÃèÊö·û
+						// æ ¹æ®NXResourceUAVçš„mipSliceé€‰æ‹©UAVæè¿°ç¬¦
 						if (pResView.texMipSlice >= 0)
 						{
 							NXShVisDescHeap->PushFluid(pTexture2D->GetUAV(pResView.texMipSlice));
@@ -657,7 +657,7 @@ void NXReadbackPassMaterial::Render(ID3D12GraphicsCommandList* pCmdList)
 
 void NXReadbackPassMaterial::ReadbackBuffer(ID3D12GraphicsCommandList* pCmdList)
 {
-	// ÔÚÕâÀïÎ¬»¤CPUData£¨m_pOutData£©µÄ´óĞ¡
+	// åœ¨è¿™é‡Œç»´æŠ¤CPUDataï¼ˆm_pOutDataï¼‰çš„å¤§å°
 	auto pGPUBuffer = m_pReadbackResource.As<NXBuffer>();
 	auto stride = pGPUBuffer->GetStride();
 	auto byteSize = pGPUBuffer->GetByteSize();
@@ -667,16 +667,16 @@ void NXReadbackPassMaterial::ReadbackBuffer(ID3D12GraphicsCommandList* pCmdList)
 	NXReadbackContext ctx(pGPUBuffer->GetName() + "_Buffer");
 	if (NXReadbackSys->BuildTask(pGPUBuffer->GetByteSize(), ctx))
 	{
-		// ´Ó£¨Ò»°ãÊÇÖ÷äÖÈ¾cmdList£©½«RT¿½µ½readback ringbuffer£¨ctx.pResource£©
+		// ä»ï¼ˆä¸€èˆ¬æ˜¯ä¸»æ¸²æŸ“cmdListï¼‰å°†RTæ‹·åˆ°readback ringbufferï¼ˆctx.pResourceï¼‰
 		pGPUBuffer->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COPY_SOURCE);
 		pCmdList->CopyBufferRegion(ctx.pResource, ctx.pResourceOffset, pGPUBuffer->GetD3DResource(), 0, pGPUBuffer->GetByteSize());
 
 		NXReadbackSys->FinishTask(ctx, [this, ctx]() {
-			// ÕâÊ±ºò¶ÔÓ¦µÄringBuffer»¹²»»áÊÍ·Å ·ÅĞÄÓÃ
+			// è¿™æ—¶å€™å¯¹åº”çš„ringBufferè¿˜ä¸ä¼šé‡Šæ”¾ æ”¾å¿ƒç”¨
 			uint8_t* pData = ctx.pResourceData + ctx.pResourceOffset;
 			m_pOutData->CopyDataFromGPU(pData);
 			
-			// µ÷ÓÃ×Ô¶¨Òå»Øµ÷
+			// è°ƒç”¨è‡ªå®šä¹‰å›è°ƒ
 			if (m_callback)
 				m_callback();
 			});
@@ -690,16 +690,16 @@ void NXReadbackPassMaterial::ReadbackTexture(ID3D12GraphicsCommandList* pCmdList
 	NXReadbackContext ctx(pTexture->GetName() + "_Texture");
 	if (NXReadbackSys->BuildTask(pTexture, ctx))
 	{
-		// ÎÆÀíºÍbuffer²»Ì«Ò»Ñù£¬ĞèÒª¸ù¾İ¶ÔÎÆÀí×¥È¡µÄ½á¹û ·ÖÅäÊµ¼Ê»Ø¶ÁµÄÄÚ´æ´óĞ¡
+		// çº¹ç†å’Œbufferä¸å¤ªä¸€æ ·ï¼Œéœ€è¦æ ¹æ®å¯¹çº¹ç†æŠ“å–çš„ç»“æœ åˆ†é…å®é™…å›è¯»çš„å†…å­˜å¤§å°
 		uint32_t stride = ctx.rowSizeInBytes / pTexture->GetWidth();
 		uint32_t arraySize = ctx.numRows * ctx.rowSizeInBytes / stride;
 		if (m_pOutData->GetStride() != stride || m_pOutData->GetByteSize() != stride * arraySize)
 			m_pOutData->Create(stride, arraySize);
 
-		// ÉèÖÃÔ´ÎÆÀí×´Ì¬
+		// è®¾ç½®æºçº¹ç†çŠ¶æ€
 		pTexture->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_COPY_SOURCE);
 
-		// ¹¹½¨¿½±´²ÎÊı
+		// æ„å»ºæ‹·è´å‚æ•°
 		D3D12_TEXTURE_COPY_LOCATION src = {};
 		src.pResource = pTexture->GetD3DResource();
 		src.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
@@ -716,14 +716,14 @@ void NXReadbackPassMaterial::ReadbackTexture(ID3D12GraphicsCommandList* pCmdList
 			uint8_t* pSrc = ctx.pResourceData + ctx.pResourceOffset;
 			for (uint32_t row = 0; row < ctx.numRows; row++)
 			{
-				// ÎÆÀí£¬ÖğĞĞ¿½±´£»
-				// ÓÉÓÚÎÆÀíĞĞ×Ö½Ú¶ÔÆëµÄÌØĞÔ£¬Æ«ÒÆµØÖ·(src)°´¶ÔÆëºó³¤¶È£¬µ«»Ø¶ÁµØÖ·(dst)°´¶ÔÆëÇ°µÄ³¤¶È
+				// çº¹ç†ï¼Œé€è¡Œæ‹·è´ï¼›
+				// ç”±äºçº¹ç†è¡Œå­—èŠ‚å¯¹é½çš„ç‰¹æ€§ï¼Œåç§»åœ°å€(src)æŒ‰å¯¹é½åé•¿åº¦ï¼Œä½†å›è¯»åœ°å€(dst)æŒ‰å¯¹é½å‰çš„é•¿åº¦
 				uint8_t* pSrcRow = pSrc + ctx.footprint.Footprint.RowPitch * row;
 				uint32_t dstOffset = row * (uint32_t)ctx.rowSizeInBytes;
 				m_pOutData->CopyDataFromGPU(pSrcRow, dstOffset, (uint32_t)ctx.rowSizeInBytes);
 			}
 			
-			// µ÷ÓÃ×Ô¶¨Òå»Øµ÷
+			// è°ƒç”¨è‡ªå®šä¹‰å›è°ƒ
 			if (m_callback)
 				m_callback();
 			});

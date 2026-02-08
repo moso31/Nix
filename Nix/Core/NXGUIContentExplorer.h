@@ -19,14 +19,14 @@ public:
 
 	void Render();
 
-	// ÔÚ ContentExplorer µÄ×ó²àÊ÷ĞÎ½á¹¹ÖĞ»æÖÆµ¥¸öÎÄ¼ş¼Ğ
+	// åœ¨ ContentExplorer çš„å·¦ä¾§æ ‘å½¢ç»“æ„ä¸­ç»˜åˆ¶å•ä¸ªæ–‡ä»¶å¤¹
 	void RenderContentFolder(const std::filesystem::path& FolderPath);
 
-	// ÔÚ ContentExplorer µÄ×ó²àÊ÷ĞÎ½á¹¹ÖĞ»æÖÆFolderPathÏÂÊôµÄËùÓĞ×ÓÎÄ¼ş¼Ğ
+	// åœ¨ ContentExplorer çš„å·¦ä¾§æ ‘å½¢ç»“æ„ä¸­ç»˜åˆ¶FolderPathä¸‹å±çš„æ‰€æœ‰å­æ–‡ä»¶å¤¹
 	void RenderContentFolderList(const std::filesystem::path& FolderPath);
 
 private:
-	// ÔÚÖ¸¶¨ÎÄ¼ş¼ĞÉú³É¸÷ÖÖ×Ê²úÎÄ¼ş
+	// åœ¨æŒ‡å®šæ–‡ä»¶å¤¹ç”Ÿæˆå„ç§èµ„äº§æ–‡ä»¶
 	void GenerateMaterialResourceFile(const std::filesystem::path& FolderPath); 
 	void GenerateSSSProfileResourceFile(const std::filesystem::path& FolderPath);
 	void GenerateTerrainLayerFile(const std::filesystem::path& FolderPath);

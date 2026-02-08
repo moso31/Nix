@@ -8,7 +8,7 @@ namespace SimpleMath
 {
 namespace SH
 {
-	// Ô¤´æ´¢10ÒÔÄÚµÄ ½×³Ë ºÍ Ë«½×³Ë£¬½öÓÃÓÚSHÇòĞ³º¯Êı²¿·ÖµÄ¼ÆËã
+	// é¢„å­˜å‚¨10ä»¥å†…çš„ é˜¶ä¹˜ å’Œ åŒé˜¶ä¹˜ï¼Œä»…ç”¨äºSHçƒè°å‡½æ•°éƒ¨åˆ†çš„è®¡ç®—
 	constexpr static float factorial[] = { 1.0, 1.0, 2.0, 6.0, 24.0, 120.0, 720.0, 5040.0, 40320.0, 362880.0, 3628800.0 };
 	constexpr static float doubleFactorial[] = { 1.0, 1.0, 2.0, 3.0, 8.0, 15.0, 48.0, 105.0, 384.0, 945.0, 3840.0 };
 
@@ -24,13 +24,13 @@ namespace SH
 		return doubleFactorial[x];
 	}
 
-	// ¼ÆËã K_l^m
+	// è®¡ç®— K_l^m
 	float NormalizationFactor(int l, int m);
 
-	// ¼ÆËã P_l^m(x)
+	// è®¡ç®— P_l^m(x)
 	float Legendre(int l, int m, float x);
 
-	// ¼ÆËã y_l^m(\theta, \phi)
+	// è®¡ç®— y_l^m(\theta, \phi)
 	float SHBasis(int l, int m, float theta, float phi);
 }
 }

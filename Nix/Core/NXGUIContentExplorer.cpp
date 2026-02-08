@@ -52,12 +52,12 @@ void NXGUIContentExplorer::Render()
             {
                 if (elem.bSelectedMask)
                 {
-                    if (!nSelect) singleSelectFolderPath = elem.filePath; // ¼ÇÂ¼µ¥Ñ¡FolderÂ·¾¶
+                    if (!nSelect) singleSelectFolderPath = elem.filePath; // è®°å½•å•é€‰Folderè·¯å¾„
                     nSelect++;
                 }
             }
 
-            // Ö»ÓĞµ¥Ñ¡²ÅÄÜ½øĞĞÌí¼Ó²Ù×÷
+            // åªæœ‰å•é€‰æ‰èƒ½è¿›è¡Œæ·»åŠ æ“ä½œ
             if (nSelect != 1)
             {
                 ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
@@ -100,23 +100,23 @@ void NXGUIContentExplorer::Render()
                 {
                     for (auto const& [_, elem] : m_selectionInfo)
                     {
-                        // ±éÀúËùÓĞÊ÷ĞÎ½á¹¹ÖĞÑ¡ÖĞµÄFolder...
+                        // éå†æ‰€æœ‰æ ‘å½¢ç»“æ„ä¸­é€‰ä¸­çš„Folder...
                         if (elem.bSelectedMask)
                         {
-                            // ...ÏÂµÄËùÓĞ×ÓÎÄ¼ş¡£
+                            // ...ä¸‹çš„æ‰€æœ‰å­æ–‡ä»¶ã€‚
                             for (auto const& subElem : std::filesystem::directory_iterator(elem.filePath))
                             {
                                 std::string strExtension = "";
                                 std::string strExtensionText = "[unknown]";
                                 if (subElem.is_directory())
-                                    continue; // strTypeText = "folder"; // 2023.3.8 Ôİ²»Ö§³ÖÎÄ¼ş¼Ğ£¬¹»ÓÃ¾ÍĞĞÁË
+                                    continue; // strTypeText = "folder"; // 2023.3.8 æš‚ä¸æ”¯æŒæ–‡ä»¶å¤¹ï¼Œå¤Ÿç”¨å°±è¡Œäº†
                                 else if (subElem.path().has_extension())
                                 {
-                                    // »ñÈ¡À©Õ¹Ãû²¢×ª»»³ÉĞ¡Ğ´
+                                    // è·å–æ‰©å±•åå¹¶è½¬æ¢æˆå°å†™
                                     strExtension = subElem.path().extension().string().c_str();
                                     strExtension = NXConvert::s2lower(strExtension);
 
-                                    // *.n0 £¨´æ´¢ĞòÁĞ»¯ĞÅÏ¢µÄÔªÎÄ¼ş£©²»¼ÓÔØ
+                                    // *.n0 ï¼ˆå­˜å‚¨åºåˆ—åŒ–ä¿¡æ¯çš„å…ƒæ–‡ä»¶ï¼‰ä¸åŠ è½½
                                     if (strExtension == ".n0")
                                         continue;
 
@@ -125,13 +125,13 @@ void NXGUIContentExplorer::Render()
 
                                 ImGui::TableNextColumn();
 
-                                // ÎÄ¼ş¼Ğ/Í¼±ê°´Å¥±¾Ìå
+                                // æ–‡ä»¶å¤¹/å›¾æ ‡æŒ‰é’®æœ¬ä½“
                                 if (ImGui::ButtonEx((strExtensionText + "##" + subElem.path().string()).c_str(), ImVec2(fActualSize, fActualSize), ImGuiButtonFlags_PressedOnClickRelease))
                                 {
                                     OnBtnContentLeftClicked(subElem);
                                 }
 
-                                // ÎÄ¼ş¼Ğ/Í¼±ê°´Å¥ ÍÏ¶¯ÊÂ¼ş
+                                // æ–‡ä»¶å¤¹/å›¾æ ‡æŒ‰é’® æ‹–åŠ¨äº‹ä»¶
                                 if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
                                 {
                                     m_btnDrugData.srcPath = subElem.path();
@@ -141,15 +141,15 @@ void NXGUIContentExplorer::Render()
                                     ImGui::EndDragDropSource();
                                 }
 
-                                // ÎÄ¼ş¼Ğ/Í¼±ê°´Å¥ ÓÒ¼üµ¥»÷ÊÂ¼ş
+                                // æ–‡ä»¶å¤¹/å›¾æ ‡æŒ‰é’® å³é”®å•å‡»äº‹ä»¶
                                 if (ImGui::IsItemClicked(ImGuiMouseButton_Right) && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
                                 {
-                                    // ÕâÀïÖ»¸ºÔğ×°ÌîÎÄ¼şÃû
-                                    // Êµ¼Ê²Ù×÷ÔÚ£º// ÎÄ¼ş¼Ğ/Í¼±ê°´Å¥ ÓÒ¼ü²Ëµ¥
+                                    // è¿™é‡Œåªè´Ÿè´£è£…å¡«æ–‡ä»¶å
+                                    // å®é™…æ“ä½œåœ¨ï¼š// æ–‡ä»¶å¤¹/å›¾æ ‡æŒ‰é’® å³é”®èœå•
                                     m_strRename = subElem.path().stem().string();
                                 }
 
-                                // ÎÄ¼ş¼Ğ/Í¼±ê°´Å¥ ÓÒ¼ü²Ëµ¥
+                                // æ–‡ä»¶å¤¹/å›¾æ ‡æŒ‰é’® å³é”®èœå•
                                 if (ImGui::BeginPopupContextItem())
                                 {
                                     ImGui::AlignTextToFramePadding();
@@ -163,11 +163,11 @@ void NXGUIContentExplorer::Render()
 
                                     if (ImGui::Button("Apply"))
                                     {
-                                        // ¹¹ÔìĞÂµÄÎÄ¼şÂ·¾¶
+                                        // æ„é€ æ–°çš„æ–‡ä»¶è·¯å¾„
                                         const std::filesystem::path& old_path = subElem.path();
                                         const std::filesystem::path& new_path = old_path.parent_path() / (m_strRename + old_path.extension().string());
 
-                                        // ÖØÃüÃûÔ­Ê¼ÎÄ¼ş»òÎÄ¼ş¼Ğ
+                                        // é‡å‘½ååŸå§‹æ–‡ä»¶æˆ–æ–‡ä»¶å¤¹
                                         if (old_path != new_path)
                                             std::filesystem::rename(old_path, new_path);
                                     }
@@ -180,20 +180,20 @@ void NXGUIContentExplorer::Render()
                                     ImGui::EndPopup();
                                 }
 
-                                //// ÎÄ¼ş¼Ğ/Í¼±ê°´Å¥ Ë«»÷ÊÂ¼ş
+                                //// æ–‡ä»¶å¤¹/å›¾æ ‡æŒ‰é’® åŒå‡»äº‹ä»¶
                                 //if (ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
                                 //{
-                                //    if (subElem.is_directory()) {} // 2023.3.8 Ôİ²»Ö§³ÖÎÄ¼ş¼Ğ£¬¹»ÓÃ¾ÍĞĞÁË
+                                //    if (subElem.is_directory()) {} // 2023.3.8 æš‚ä¸æ”¯æŒæ–‡ä»¶å¤¹ï¼Œå¤Ÿç”¨å°±è¡Œäº†
                                 //    else if (subElem.path().has_extension())
                                 //    {
                                 //        if (strExtension == ".fbx")
                                 //        {
-                                //            // 2022.3.8 TODO: Ë«»÷.fbx btnÊ±Ïò³¡¾°Ìí¼ÓÄ£ĞÍ
+                                //            // 2022.3.8 TODO: åŒå‡».fbx btnæ—¶å‘åœºæ™¯æ·»åŠ æ¨¡å‹
                                 //        }
                                 //    }
                                 //}
 
-                                // ÎÄ¼şÃû
+                                // æ–‡ä»¶å
                                 std::string subElemFileName = subElem.path().stem().string().c_str();
                                 float textWidth = ImGui::CalcTextSize(subElemFileName.c_str()).x;
                                 float posX = ImGui::GetCursorPosX();
@@ -270,10 +270,10 @@ void NXGUIContentExplorer::GenerateTerrainLayerFile(const std::filesystem::path&
 
 void NXGUIContentExplorer::CreateMaterialFileOnDisk(const std::filesystem::path& path)
 {
-    // Ê¹ÓÃÄ£°åÎÄ¼ş´´½¨ĞÂ²ÄÖÊ¡£Ä¬ÈÏÊÇÒ»¸östandardPBR²ÄÖÊ¡£
+    // ä½¿ç”¨æ¨¡æ¿æ–‡ä»¶åˆ›å»ºæ–°æè´¨ã€‚é»˜è®¤æ˜¯ä¸€ä¸ªstandardPBRæè´¨ã€‚
     std::filesystem::copy(g_material_template_standardPBR, path, std::filesystem::copy_options::overwrite_existing);
 
-    // ¶ÔÓ¦µÄÔªÎÄ¼şÒ²copy¹ıÈ¥
+    // å¯¹åº”çš„å…ƒæ–‡ä»¶ä¹Ÿcopyè¿‡å»
     std::filesystem::copy(g_material_template_standardPBR + ".n0", path.string() + ".n0", std::filesystem::copy_options::overwrite_existing);
 }
 
@@ -295,7 +295,7 @@ void NXGUIContentExplorer::OnBtnContentLeftClicked(const std::filesystem::direct
 {
     if (path.is_directory()) 
     {
-        // TODO: Èç¹ûµãÑ¡ÁËÎÄ¼ş¼Ğ£¨Ë«»÷£©£¬¾Í´ò¿ª¸ÃÎÄ¼ş¼Ğ
+        // TODO: å¦‚æœç‚¹é€‰äº†æ–‡ä»¶å¤¹ï¼ˆåŒå‡»ï¼‰ï¼Œå°±æ‰“å¼€è¯¥æ–‡ä»¶å¤¹
     }
     else if (path.path().has_extension())
     {

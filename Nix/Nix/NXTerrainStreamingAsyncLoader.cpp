@@ -11,11 +11,11 @@ void NXTerrainStreamingAsyncLoader::Update()
 {
 	//printf("req: %d tasks\n", m_requestTasks.size());
 	
-	// 1. ÇëÇó¶ÓÁÐ->loading¶ÓÁÐ
+	// 1. è¯·æ±‚é˜Ÿåˆ—->loadingé˜Ÿåˆ—
 	auto it = m_requestTasks.begin();
 	while (it != m_requestTasks.end())
 	{
-		// ·ÀÖ¹Í¬Ê±´¦Àí¹ý¶àtask
+		// é˜²æ­¢åŒæ—¶å¤„ç†è¿‡å¤štask
 		if (m_loadingTasks.size() >= g_terrainStreamConfig.MaxRequestLimit) 
 			break;
 
@@ -34,7 +34,7 @@ void NXTerrainStreamingAsyncLoader::Update()
 		it = m_requestTasks.erase(it);
 	} 
 	
-	// 2. loading->Completed¶ÓÁÐ
+	// 2. loading->Completedé˜Ÿåˆ—
 	int loadingCnt = 0;
 	for (auto it = m_loadingTasks.begin(); it != m_loadingTasks.end(); loadingCnt++)
 	{
@@ -59,7 +59,7 @@ void NXTerrainStreamingAsyncLoader::Update()
 
 std::vector<NXTerrainStreamingLoadTextureResult> NXTerrainStreamingAsyncLoader::ConsumeCompletedTasks()
 {
-	// Ò»´ÎÐÔ°ÑËùÓÐµÄÒÑÍê³ÉtaskÈ¡×ß
+	// ä¸€æ¬¡æ€§æŠŠæ‰€æœ‰çš„å·²å®Œæˆtaskå–èµ°
 	std::vector<NXTerrainStreamingLoadTextureResult> result = std::move(m_computeTasks);
 	m_computeTasks.clear();
 	return result;

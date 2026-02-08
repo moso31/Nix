@@ -30,7 +30,7 @@ void NXSerializer::PushInt(int value)
 
 void NXSerializer::PushFloat(float value)
 {
-	// ps: rapidjson writer ºÃÏñÖ»½ÓÊÕ double¡­¡­
+	// ps: rapidjson writer å¥½åƒåªæ¥æ”¶ doubleâ€¦â€¦
 	m_writer.Double((double)value);
 }
 

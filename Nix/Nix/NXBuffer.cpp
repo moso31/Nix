@@ -35,7 +35,7 @@ void NXBuffer::Create(uint32_t stride, uint32_t arraySize)
 	InitSRV();
 	InitUAV();
 
-	// buffer ÏÈ²»¸ãÌ«¸´ÔÓ£¬³õÊ¼»¯¾ÍµÈ´ı¼ÓÔØÍê³É
+	// buffer å…ˆä¸æå¤ªå¤æ‚ï¼Œåˆå§‹åŒ–å°±ç­‰å¾…åŠ è½½å®Œæˆ
 	WaitLoadingViewsFinish();
 }
 
@@ -100,7 +100,7 @@ void NXBuffer::InitSRV()
 			srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
 
-			bool isStructured = true; // Structured or Raw£¬²»¹ıÄ¿Ç°Ôİ²»ÆôÓÃraw
+			bool isStructured = true; // Structured or Rawï¼Œä¸è¿‡ç›®å‰æš‚ä¸å¯ç”¨raw
 			if (isStructured)
 			{
 				srvDesc.Format = DXGI_FORMAT_UNKNOWN;
@@ -128,7 +128,7 @@ void NXBuffer::InitUAV()
 {
 	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 	{
-		// NXAllocator_SRV Ò²¸ºÔğ´´½¨ UAV
+		// NXAllocator_SRV ä¹Ÿè´Ÿè´£åˆ›å»º UAV
 		NXAllocator_SRV->Alloc([this, i](const D3D12_CPU_DESCRIPTOR_HANDLE& result) {
 			m_pUAV[i] = result;
 
@@ -138,7 +138,7 @@ void NXBuffer::InitUAV()
 			uavDesc.Buffer.FirstElement = 0;
 			uavDesc.Buffer.NumElements = m_byteSize / m_stride;
 			uavDesc.Buffer.StructureByteStride = m_stride;
-			uavDesc.Buffer.CounterOffsetInBytes = 0; // ¶ÀÁ¢µÄUAV counter buffer
+			uavDesc.Buffer.CounterOffsetInBytes = 0; // ç‹¬ç«‹çš„UAV counter buffer
 
 			NXGlobalDX::GetDevice()->CreateUnorderedAccessView(m_pBuffer[i].Get(), m_pUAVCounterBuffer[i].Get(), &uavDesc, m_pUAV[i]);
 			ProcessLoadingViews();
@@ -197,8 +197,8 @@ void NXBuffer::SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D
 
 void NXBuffer::WaitForUploadFinish()
 {
-	// ÉèÖÃ×ÊÔ´×´Ì¬Ê±£¬ÏÈÈ·±£ÉÏ´«ÃüÁîÍê³É
+	// è®¾ç½®èµ„æºçŠ¶æ€æ—¶ï¼Œå…ˆç¡®ä¿ä¸Šä¼ å‘½ä»¤å®Œæˆ
 	uint64_t maxUploadFenceValue = std::max(m_lastUploadSysFenceValue_buffer.Current(), m_lastUploadSysFenceValue_uavCounter.Current());
 	if (maxUploadFenceValue > 0)
-		NXGlobalDX::GlobalCmdQueue()->Wait(NXUploadSys->GetFence(), maxUploadFenceValue); // È¡buffer±¾ÌåºÍuav counter bufferµÄ×î´óÖµ
+		NXGlobalDX::GlobalCmdQueue()->Wait(NXUploadSys->GetFence(), maxUploadFenceValue); // å–bufferæœ¬ä½“å’Œuav counter bufferçš„æœ€å¤§å€¼
 }

@@ -9,17 +9,17 @@ public:
 	NXHit(NXSubMeshBase* pSubMesh, const Vector3& position, const Vector2& uv, const Vector3& direction, const Vector3& dpdu, const Vector3& dpdv);
 	virtual ~NXHit() {}
 
-	// ¼ÆËãÍê±ÏºóµÃµ½µÄhitInfoÊÇLocal¿Õ¼äÊı¾İ¡£Ê¹ÓÃ±¾·½·¨½«ÆäÊı¾İ×ª»»µ½world¿Õ¼ä¡£
+	// è®¡ç®—å®Œæ¯•åå¾—åˆ°çš„hitInfoæ˜¯Localç©ºé—´æ•°æ®ã€‚ä½¿ç”¨æœ¬æ–¹æ³•å°†å…¶æ•°æ®è½¬æ¢åˆ°worldç©ºé—´ã€‚
 	void LocalToWorld();
 
-	// ÖØÉèprimitive
+	// é‡è®¾primitive
 	void Reset();
 
 	NXSubMeshBase* pSubMesh;
 
-	Vector3 direction;	// ÈëÉä·½Ïò
+	Vector3 direction;	// å…¥å°„æ–¹å‘
 	Vector3 position;
-	Vector3 normal;	// ¼¸ºÎ·¨Ïß geometry normal
+	Vector3 normal;	// å‡ ä½•æ³•çº¿ geometry normal
 	Vector2 uv;
 	Vector3 dpdu;
 	Vector3 dpdv;

@@ -18,42 +18,42 @@ void NXGUITerrainStreamingDebug::Render()
 		return;
 
 	ImGui::SetNextWindowSize(ImVec2(400.0f, 200.0f), ImGuiCond_FirstUseEver);
-	if (ImGui::Begin(ImUtf8("µØĞÎÁ÷Ê½¼ÓÔØµ÷ÊÔ"), &m_bVisible))
+	if (ImGui::Begin(ImUtf8("åœ°å½¢æµå¼åŠ è½½è°ƒè¯•"), &m_bVisible))
 	{
 		if (m_pRenderer)
 		{
 			auto* pStreamer = m_pRenderer->GetTerrainLODStreamer();
 			if (pStreamer)
 			{
-				ImGui::Text(ImUtf8("µØĞÎÁ÷Ê½¼ÓÔØµ÷ÊÔÑ¡Ïî"));
+				ImGui::Text(ImUtf8("åœ°å½¢æµå¼åŠ è½½è°ƒè¯•é€‰é¡¹"));
 				ImGui::Separator();
 				ImGui::Spacing();
 
-				// ÔİÍ£Òì²½¼ÓÔØÑ¡Ïî
-				ImGui::Checkbox(ImUtf8("ÔİÍ£Òì²½¼ÓÔØ"), &g_terrainStreamDebug.bPauseAsyncLoading);
+				// æš‚åœå¼‚æ­¥åŠ è½½é€‰é¡¹
+				ImGui::Checkbox(ImUtf8("æš‚åœå¼‚æ­¥åŠ è½½"), &g_terrainStreamDebug.bPauseAsyncLoading);
 				
 				ImGui::Spacing();
 				ImGui::Separator();
 				ImGui::Spacing();
 
-				// ÏÔÊ¾µ±Ç°×´Ì¬
+				// æ˜¾ç¤ºå½“å‰çŠ¶æ€
 				if (g_terrainStreamDebug.bPauseAsyncLoading)
 				{
-					ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), ImUtf8("×´Ì¬: ÒÑÔİÍ£"));
+					ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), ImUtf8("çŠ¶æ€: å·²æš‚åœ"));
 				}
 				else
 				{
-					ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), ImUtf8("×´Ì¬: Õı³£ÔËĞĞ"));
+					ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), ImUtf8("çŠ¶æ€: æ­£å¸¸è¿è¡Œ"));
 				}
 			}
 			else
 			{
-				ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), ImUtf8("TerrainLODStreamer Î´³õÊ¼»¯"));
+				ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), ImUtf8("TerrainLODStreamer æœªåˆå§‹åŒ–"));
 			}
 		}
 		else
 		{
-			ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), ImUtf8("äÖÈ¾Æ÷Î´ÉèÖÃ"));
+			ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), ImUtf8("æ¸²æŸ“å™¨æœªè®¾ç½®"));
 		}
 	}
 	ImGui::End();

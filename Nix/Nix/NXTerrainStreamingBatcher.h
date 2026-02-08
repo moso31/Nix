@@ -9,7 +9,7 @@
 //
 //struct CBufferTerrainBatchConfig
 //{
-//	int processCount;		// ±¾´Î´¦ÀíµÄÎÆÀíÊıÁ¿
+//	int processCount;		// æœ¬æ¬¡å¤„ç†çš„çº¹ç†æ•°é‡
 //	int _pad[3];
 //};
 //
@@ -22,28 +22,28 @@
 //
 //struct NXTerrainStreamNodeDescriptionGPU
 //{
-//	Int2 relativePos;	// Ïà¶ÔµØĞÎ×óÏÂ½ÇµÄÎ»ÖÃ
-//	uint32_t size;		// ½Úµã³ß´ç
-//	Vector2 minMaxZ;	// ¸ß¶È·¶Î§
-//	Vector2 atlasUV;	// ÔÚAtlasÖĞµÄUV×ø±ê£¨×óÏÂ½Ç£©
+//	Int2 relativePos;	// ç›¸å¯¹åœ°å½¢å·¦ä¸‹è§’çš„ä½ç½®
+//	uint32_t size;		// èŠ‚ç‚¹å°ºå¯¸
+//	Vector2 minMaxZ;	// é«˜åº¦èŒƒå›´
+//	Vector2 atlasUV;	// åœ¨Atlasä¸­çš„UVåæ ‡ï¼ˆå·¦ä¸‹è§’ï¼‰
 //};
 //
 ///// <summary>
-/////	DX12¹ÜÏß£¬ÔÚÖ÷Ïß³ÌÉÏÔËĞĞ¡£
-///// Í¨¹ıCS ½«Òì²½¼ÓÔØÍê³ÉµÄ¶à¸öĞ¡ÎÆÀíºÏ²¢µ½´óAtlas
+/////	DX12ç®¡çº¿ï¼Œåœ¨ä¸»çº¿ç¨‹ä¸Šè¿è¡Œã€‚
+///// é€šè¿‡CS å°†å¼‚æ­¥åŠ è½½å®Œæˆçš„å¤šä¸ªå°çº¹ç†åˆå¹¶åˆ°å¤§Atlas
 ///// - input
-/////		- ¶à¸ö HeightMap ÎÆÀí
-///// 	- ¶à¸ö SplatMap ÎÆÀí
+/////		- å¤šä¸ª HeightMap çº¹ç†
+///// 	- å¤šä¸ª SplatMap çº¹ç†
 /////		- 
 /////	- output
 /////		- `QuadTreeTexture`
 /////		- `NodeDescArray(GPU)`
-/////		- ×îÖÕµÄ`Atlas`ÎÆÀí
+/////		- æœ€ç»ˆçš„`Atlas`çº¹ç†
 ///// </summary>
 //class NXTerrainStreamingBatcher : public NXInstance<NXTerrainStreamingBatcher>
 //{
-//	// Ã¿Ö¡×î¶à´¦ÀíµÄ"ÎÆÀí°ü"ÊıÁ¿
-//	// Ä¿Ç°Ã¿¸ö"ÎÆÀí°ü"°üº¬£ºHeightMap¡¢SplatMap ¸÷Ò»¸ö
+//	// æ¯å¸§æœ€å¤šå¤„ç†çš„"çº¹ç†åŒ…"æ•°é‡
+//	// ç›®å‰æ¯ä¸ª"çº¹ç†åŒ…"åŒ…å«ï¼šHeightMapã€SplatMap å„ä¸€ä¸ª
 //	static constexpr int MAX_PROCESSING_TEXTURE_PACKAGE = 8;
 //
 //public:
@@ -58,24 +58,24 @@
 //	NXConstantBuffer<std::vector<NXTerrainStreamBatcherNodeDescription>>& GetBatchingNodeDescCBuffer() { return m_batchingNodeDesc; }
 //
 //private:
-//	// in, µ±Ç°Ö¡´¦ÀíµÄÎÆÀí 
+//	// in, å½“å‰å¸§å¤„ç†çš„çº¹ç† 
 //	std::vector<Ntr<NXTexture2D>> m_batchingHeightMap;
 //	std::vector<Ntr<NXTexture2D>> m_batchingSplatMap;
 //
-//	// in, CBuffer£¬¼ÇÂ¼ÒªĞ´µ½AtlasµÄÎÆÀíĞÅÏ¢
+//	// in, CBufferï¼Œè®°å½•è¦å†™åˆ°Atlasçš„çº¹ç†ä¿¡æ¯
 //	std::vector<NXTerrainStreamBatcherNodeDescription> m_batchingNodeDescData;
 //	NXConstantBuffer<std::vector<NXTerrainStreamBatcherNodeDescription>> m_batchingNodeDesc;
 //
-//	// out, ÎÆÀí£¬¼ÇÂ¼sector-nodeIDµÄÓ³Éä
+//	// out, çº¹ç†ï¼Œè®°å½•sector-nodeIDçš„æ˜ å°„
 //	Ntr<NXTexture2D> m_pSector2NodeIDTexture;
 //
 //	// out, NodeDescriptionsArray
 //	Ntr<NXBuffer> m_pNodeDescriptionsArray;
 //
-//	// out, Êä³öAtlas
+//	// out, è¾“å‡ºAtlas
 //	Ntr<NXTexture2DArray> m_pHeightMapAtlas;
 //	Ntr<NXTexture2DArray> m_pSplatMapAtlas;
 //
-//	// ÈÎÎñ¶ÓÁĞ
-//	std::vector<NXTerrainStreamingLoadTextureResult> m_completedTasks; // Ö÷Ïß³ÌµÄtask
+//	// ä»»åŠ¡é˜Ÿåˆ—
+//	std::vector<NXTerrainStreamingLoadTextureResult> m_completedTasks; // ä¸»çº¿ç¨‹çš„task
 //};

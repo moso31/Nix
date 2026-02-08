@@ -95,8 +95,8 @@ D3D12_GPU_DESCRIPTOR_HANDLE ccmem::DescriptorAllocator<true>::Submit()
 
 	uint32_t descCount = (uint32_t)m_submitDescriptors.size();
 
-	// Èç¹û³¬¹ýÁË×î´óÃèÊö·ûÊýÁ¿£¬¾Í´ÓÍ·¿ªÊ¼
-	// ²»ÓÃ¿¼ÂÇ¿ªÍ·ÊÇ·ñ»¹ÔÚÊ¹ÓÃ£¬size·Ç³£´ó£¬Ò»°ãÈÏÎªÒÑ¾­×ã¹»°²È«
+	// å¦‚æžœè¶…è¿‡äº†æœ€å¤§æè¿°ç¬¦æ•°é‡ï¼Œå°±ä»Žå¤´å¼€å§‹
+	// ä¸ç”¨è€ƒè™‘å¼€å¤´æ˜¯å¦è¿˜åœ¨ä½¿ç”¨ï¼Œsizeéžå¸¸å¤§ï¼Œä¸€èˆ¬è®¤ä¸ºå·²ç»è¶³å¤Ÿå®‰å…¨
 	if (m_pendingEnd > m_maxDescriptors)
 	{
 		m_pendingStart = m_stableCount;

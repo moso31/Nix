@@ -29,11 +29,11 @@ void CS(uint3 dtid : SV_DispatchThreadID)
     if (pixelPos.x >= width || pixelPos.y >= height)
         return;
     
-    // ¶Áuint16ÎÆÀí
+    // è¯»uint16çº¹ç†
     uint nodeID = txSector2NodeID.Load(int3(pixelPos, m_currentMip));
     
     float normalizedValue;
-    if (nodeID == 0xFFFF) // -1ÊÇÎŞĞ§ÏñËØ
+    if (nodeID == 0xFFFF) // -1æ˜¯æ— æ•ˆåƒç´ 
     {
         txPreview[pixelPos] = m_invalidColor;
         return;

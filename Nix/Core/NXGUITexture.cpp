@@ -69,13 +69,13 @@ void NXGUITexture::Render_Texture()
 
 	if (ImGui::Button("Apply##Texture"))
 	{
-		// ¸ù¾İGUI²ÎÊı¸üĞÂĞòÁĞ»¯Ïà¹ØÊı¾İ
+		// æ ¹æ®GUIå‚æ•°æ›´æ–°åºåˆ—åŒ–ç›¸å…³æ•°æ®
 		m_pTexImage->SetSerializationData(m_texData);
 
-		// ĞòÁĞ»¯£¬±£´æ³Én0ÎÄ¼ş
+		// åºåˆ—åŒ–ï¼Œä¿å­˜æˆn0æ–‡ä»¶
 		m_pTexImage->Serialize();
 
-		// ½øĞĞÒì²½ÖØÔØ
+		// è¿›è¡Œå¼‚æ­¥é‡è½½
 		m_pTexImage->MarkReload(m_pTexImage->GetFilePath());
 	}
 }
@@ -92,13 +92,13 @@ void NXGUITexture::Render_RawTexture()
 
 	if (ImGui::Button("Apply##Texture"))
 	{
-		// ¸ù¾İGUI²ÎÊı¸üĞÂĞòÁĞ»¯Ïà¹ØÊı¾İ
+		// æ ¹æ®GUIå‚æ•°æ›´æ–°åºåˆ—åŒ–ç›¸å…³æ•°æ®
 		m_pTexImage->SetSerializationData(m_texData);
 
-		// ĞòÁĞ»¯£¬±£´æ³Én0ÎÄ¼ş
+		// åºåˆ—åŒ–ï¼Œä¿å­˜æˆn0æ–‡ä»¶
 		m_pTexImage->Serialize();
 
-		// ½øĞĞÒì²½ÖØÔØ
+		// è¿›è¡Œå¼‚æ­¥é‡è½½
 		m_pTexImage->MarkReload(m_pTexImage->GetFilePath());
 	}
 
@@ -153,19 +153,19 @@ void NXGUITexture::SaveNormalMap()
 
 	std::vector<uint16_t> rawData(width * height);
 
-	// ¶ÁÈ¡rawPathµÄÎÄ¼ş£¬²¢×ª»»³Éµ¥Í¨µÀÎÆÀí
+	// è¯»å–rawPathçš„æ–‡ä»¶ï¼Œå¹¶è½¬æ¢æˆå•é€šé“çº¹ç†
 	std::ifstream file(rawPath, std::ios::binary);
 	if (!file)
-		throw std::runtime_error("ÎŞ·¨´ò¿ªÎÄ¼ş: " + rawPath.string());
+		throw std::runtime_error("æ— æ³•æ‰“å¼€æ–‡ä»¶: " + rawPath.string());
 
-	// Ö±½Ó¶ÁÊı¾İ¾ÍĞĞ£¬±ØĞëÊÇ16bit 
-	// todo: Ö§³Ö¸ü¶à¸ñÊ½
+	// ç›´æ¥è¯»æ•°æ®å°±è¡Œï¼Œå¿…é¡»æ˜¯16bit 
+	// todo: æ”¯æŒæ›´å¤šæ ¼å¼
 	file.read(reinterpret_cast<char*>(rawData.data()), width * height * sizeof(uint16_t));
 
 	if (!file)
-		throw std::runtime_error("¶ÁÈ¡Êı¾İÊ§°Ü: " + rawPath.string());
+		throw std::runtime_error("è¯»å–æ•°æ®å¤±è´¥: " + rawPath.string());
 
-	// ¶ÁÈ¡¸ß¶ÈÍ¼rawÎÆÀí
+	// è¯»å–é«˜åº¦å›¾rawçº¹ç†
 	uint32_t bytePerPixel = sizeof(uint16_t);
 	float normValue = (float)(1 << 16);
 
@@ -177,7 +177,7 @@ void NXGUITexture::SaveNormalMap()
 	uint16_t* p = reinterpret_cast<uint16_t*>(image.pixels);
 	memcpy(p, rawData.data(), width * height * bytePerPixel);
 
-	// »ùÓÚÖĞĞÄºÍÖÜÎ§ËÄµã×ø±ê¼ÆËã·¨ÏßÖµ
+	// åŸºäºä¸­å¿ƒå’Œå‘¨å›´å››ç‚¹åæ ‡è®¡ç®—æ³•çº¿å€¼
 	std::vector<Vector3> normalMapData(width * height);
 	for (uint32_t i = 0; i < width; ++i)
 	{
@@ -211,7 +211,7 @@ void NXGUITexture::SaveNormalMap()
 	}
 	pImage.reset();
 
-	// ÓÃ»ñµÃµÄ·¨ÏßÊı¾İÉú³É µØĞÎ·¨ÏßÎÆÀí
+	// ç”¨è·å¾—çš„æ³•çº¿æ•°æ®ç”Ÿæˆ åœ°å½¢æ³•çº¿çº¹ç†
 	fmt = DXGI_FORMAT_R10G10B10A2_UNORM;
 	pImage = std::make_shared<ScratchImage>();
 	pImage->Initialize2D(fmt, width, height, 1, 1);
@@ -224,11 +224,11 @@ void NXGUITexture::SaveNormalMap()
 		{
 			const Vector3& n = normalMapData[y * width + x];
 
-			// Ó³Éä [-1,1] µ½ [0,1023]
+			// æ˜ å°„ [-1,1] åˆ° [0,1023]
 			uint32_t r = static_cast<uint32_t>((n.x * 0.5f + 0.5f) * 1023.0f);
 			uint32_t g = static_cast<uint32_t>((n.y * 0.5f + 0.5f) * 1023.0f);
 			uint32_t b = static_cast<uint32_t>((n.z * 0.5f + 0.5f) * 1023.0f);
-			uint32_t a = 3; // 2-bit alpha£¬ÉèÖÃÎª×î´óÖµ
+			uint32_t a = 3; // 2-bit alphaï¼Œè®¾ç½®ä¸ºæœ€å¤§å€¼
 
 			row[x] = (a << 30) | (b << 20) | (g << 10) | (r << 0);
 		}

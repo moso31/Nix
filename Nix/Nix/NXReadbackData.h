@@ -22,18 +22,18 @@ public:
 	uint32_t GetByteSize() const { return m_byteSize; }
 	uint32_t GetWidth() const { return m_byteSize / m_stride; }
 
-	// ×¢ÒâÕâÁ½¸ö½Ó¿ÚÏÖ½×¶ÎÊÇ»Ø¶ÁÏß³ÌÖ´ĞĞµÄ
+	// æ³¨æ„è¿™ä¸¤ä¸ªæ¥å£ç°é˜¶æ®µæ˜¯å›è¯»çº¿ç¨‹æ‰§è¡Œçš„
 	void CopyDataFromGPU(uint8_t* pData);
 	void CopyDataFromGPU(uint8_t* pSrcData, uint32_t dstOffset, uint32_t byteSize);
 
-	// NOTE£ºGet²»±£Ö¤Ïß³Ì°²È«£¡Í¨³£½öÔ¤ÀÀ/¿ìÕÕ½Ó¿ÚÊ¹ÓÃ
+	// NOTEï¼šGetä¸ä¿è¯çº¿ç¨‹å®‰å…¨ï¼é€šå¸¸ä»…é¢„è§ˆ/å¿«ç…§æ¥å£ä½¿ç”¨
 	const std::vector<uint8_t>& Get() const;
 
-	// CloneÏß³Ì°²È«
+	// Cloneçº¿ç¨‹å®‰å…¨
 	const std::vector<uint8_t> Clone() const;
 
 private:
-	// ÓÉÓÚÓĞ½Ó¿ÚĞèÒªÓÉ»Ø¶ÁÏß³ÌÖ´ĞĞ£¬ËùÒÔÉÏËøÊÇÓĞ±ØÒªµÄ
+	// ç”±äºæœ‰æ¥å£éœ€è¦ç”±å›è¯»çº¿ç¨‹æ‰§è¡Œï¼Œæ‰€ä»¥ä¸Šé”æ˜¯æœ‰å¿…è¦çš„
 	mutable std::mutex m_mutex;
 	std::string m_name;
 

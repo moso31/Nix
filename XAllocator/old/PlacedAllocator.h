@@ -6,7 +6,7 @@
 class PlacedAllocator : public PlacedAllocatorBase
 {
 public:
-	// 2024.4.9 DX12 ÒªÇó blockByteSize ¶ÔÆë 65536 (¼´ 64KB)
+	// 2024.4.9 DX12 è¦æ±‚ blockByteSize å¯¹é½ 65536 (å³ 64KB)
 	PlacedAllocator(ID3D12Device* pDevice, UINT blockByteSize = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT) : 
 		PlacedAllocatorBase(1000000, 10), m_pDevice(pDevice), m_blockByteSize(blockByteSize) {}
 	~PlacedAllocator() {}
@@ -20,5 +20,5 @@ public:
 private:
 	ID3D12Device* m_pDevice;
 
-	UINT m_blockByteSize; // Ã¿¸öpageÀïµÄÃ¿¸öblockËùÕ¼µÄ×Ö½Ú´óĞ¡£¨¸ÃÖµ±ØĞëÊÇ256µÄÕûÊı±¶£©
+	UINT m_blockByteSize; // æ¯ä¸ªpageé‡Œçš„æ¯ä¸ªblockæ‰€å çš„å­—èŠ‚å¤§å°ï¼ˆè¯¥å€¼å¿…é¡»æ˜¯256çš„æ•´æ•°å€ï¼‰
 };

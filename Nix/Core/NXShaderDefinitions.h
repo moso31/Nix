@@ -3,8 +3,8 @@
 #include "Ntr.h"
 #include <string>
 
-// ��¼һ�� nsl ���� ӳ�䵽 HLSL �Ժ�Ĵ�������
-// ���Ӷ����е������У�
+// 记录一段 nsl 函数 映射到 HLSL 以后的代码坐标
+// （从多少行到多少行）
 struct NXHLSLCodeRegion
 {
 	int firstRow = 0;

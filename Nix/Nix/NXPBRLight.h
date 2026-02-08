@@ -50,7 +50,7 @@ private:
 	float		m_illuminance;		// unit: lux, lm/m^2
 };
 
-// ÁÙÊ±PBR¹âÔ´
+// ä¸´æ—¶PBRå…‰æº
 class NXPBRPointLight : public NXPBRLight
 {
 public:

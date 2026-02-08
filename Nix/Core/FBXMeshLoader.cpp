@@ -61,7 +61,7 @@ void FBXMeshLoader::LoadRenderableObjects(FbxNode* pNode, NXRenderableObject* pP
 			pRenderableObject = new NXPrimitive();
 			pRenderableObject->SetParent(pParentMesh);
 
-			// Èç¹û Mesh µÄ scale ´æÔÚÆæÊı¸ö(1¸ö »ò 3¸ö)¸ºÖµ£¬ÔòĞèÒª·´×ªpolygon£¬·ñÔòÉú³ÉµÄMesh»á³¯ÏòÏà·´µÄ·½Ïò¡£ 
+			// å¦‚æœ Mesh çš„ scale å­˜åœ¨å¥‡æ•°ä¸ª(1ä¸ª æˆ– 3ä¸ª)è´Ÿå€¼ï¼Œåˆ™éœ€è¦åè½¬polygonï¼Œå¦åˆ™ç”Ÿæˆçš„Meshä¼šæœå‘ç›¸åçš„æ–¹å‘ã€‚ 
 			FbxVector4 lTmpVector = pNode->EvaluateLocalScaling() * pNode->GetGeometricScaling(FbxNode::eSourcePivot);
 			bool bFlipPolygon = ((int)(lTmpVector[0] < 0.0f) + (int)(lTmpVector[1] < 0.0f) + (int)(lTmpVector[2] < 0.0f)) % 2;
 
@@ -180,15 +180,15 @@ void FBXMeshLoader::EncodePrimitiveData(FbxNode* pNode, NXPrimitive* pPrimitive,
 		int materialCount = -1;
 
 		// 2022.4.23
-		// ĞèÒªÏÈÈ·ÈÏÓĞ¼¸¸öSubMesh£¬È»ºó·ÖÁ½ÖÖÇé¿ö£º
-		// 1. µ±Ç° Primitive ÓĞ 1 ¸ö SubMesh
-		// 2. µ±Ç° Primitive ÓĞ n ¸ö SubMesh
-		// Çé¿ö 1. Ê¹ÓÃ×¨ÃÅ·½°¸¼ÓÔØ£¬¿ÉÒÔÌá¸ßÒ»Ğ©ËÙ¶È£¨¹úÄÚ½¨Ä£°à³öÉíµÄ¿ÉÄÜ¸ü¶à»áÊ¹ÓÃÇé¿ö 1.£©
-		// Çé¿ö 2. Unity Ball ÑùÀıÊ¹ÓÃÁËÕâÖÖ·½·¨ ¿ÉÄÜ³ö Demo ±È½Ï·½±ã¡£
+		// éœ€è¦å…ˆç¡®è®¤æœ‰å‡ ä¸ªSubMeshï¼Œç„¶ååˆ†ä¸¤ç§æƒ…å†µï¼š
+		// 1. å½“å‰ Primitive æœ‰ 1 ä¸ª SubMesh
+		// 2. å½“å‰ Primitive æœ‰ n ä¸ª SubMesh
+		// æƒ…å†µ 1. ä½¿ç”¨ä¸“é—¨æ–¹æ¡ˆåŠ è½½ï¼Œå¯ä»¥æé«˜ä¸€äº›é€Ÿåº¦ï¼ˆå›½å†…å»ºæ¨¡ç­å‡ºèº«çš„å¯èƒ½æ›´å¤šä¼šä½¿ç”¨æƒ…å†µ 1.ï¼‰
+		// æƒ…å†µ 2. Unity Ball æ ·ä¾‹ä½¿ç”¨äº†è¿™ç§æ–¹æ³• å¯èƒ½å‡º Demo æ¯”è¾ƒæ–¹ä¾¿ã€‚
 
-		// È·¶¨ SubMesh ¸öÊı
+		// ç¡®å®š SubMesh ä¸ªæ•°
 		FbxNode* pNode = pMesh->GetNode();
-		if (pNode) materialCount = std::max(pNode->GetMaterialCount(), 1);	// ÓĞÊ±ºò3dsÖĞÃ»ÓĞÖ¸¶¨²ÄÖÊ£¬ÕâÖÖÇé¿öÏÂÌî³äÒ»¸öÄ¬ÈÏsubmesh£¨ÖÁÉÙ±£Ö¤ÓĞÒ»¸ösubmesh£©¡£
+		if (pNode) materialCount = std::max(pNode->GetMaterialCount(), 1);	// æœ‰æ—¶å€™3dsä¸­æ²¡æœ‰æŒ‡å®šæè´¨ï¼Œè¿™ç§æƒ…å†µä¸‹å¡«å……ä¸€ä¸ªé»˜è®¤submeshï¼ˆè‡³å°‘ä¿è¯æœ‰ä¸€ä¸ªsubmeshï¼‰ã€‚
 
 		static int noNameMaterialIdx = 0;
 		std::vector<NXSubMeshBase*> pSubMeshes;
@@ -228,13 +228,13 @@ void FBXMeshLoader::EncodePrimitiveData(FbxNode* pNode, NXPrimitive* pPrimitive,
 			{
 				for (int elementMaterialIndex = 0; elementMaterialIndex < pMesh->GetElementMaterialCount(); elementMaterialIndex++)
 				{
-					// ÄÃ²ÄÖÊid
+					// æ‹¿æè´¨id
 					FbxGeometryElementMaterial* lMaterialElement = pMesh->GetElementMaterial(elementMaterialIndex);
 					int lMatId = lMaterialElement->GetIndexArray().GetAt(polygonIndex);
 
 					// 2022.4.23
-					// ÕâÀï»¹ÄÜÄÃµ½²ÄÖÊµÄ¾ßÌåÎÆÀíĞÅÏ¢£¬²»¹ıÏÖÔÚÔİÊ±»¹ÓÃ²»ÉÏ
-					// ½«À´Èç¹ûÏëÒª¶Ô fbx²ÄÖÊ ×öµ¼ÈëµÄ»° ¿ÉÒÔ¿¼ÂÇÓÃÏÂÃæµÄ²¿·Ö
+					// è¿™é‡Œè¿˜èƒ½æ‹¿åˆ°æè´¨çš„å…·ä½“çº¹ç†ä¿¡æ¯ï¼Œä¸è¿‡ç°åœ¨æš‚æ—¶è¿˜ç”¨ä¸ä¸Š
+					// å°†æ¥å¦‚æœæƒ³è¦å¯¹ fbxæè´¨ åšå¯¼å…¥çš„è¯ å¯ä»¥è€ƒè™‘ç”¨ä¸‹é¢çš„éƒ¨åˆ†
 					//FbxSurfaceMaterial* lMaterial = NULL;
 					//lMaterial = pMesh->GetNode()->GetMaterial(lMaterialElement->GetIndexArray().GetAt(polygonIndex));
 					//if (lMatId >= 0)
@@ -247,15 +247,15 @@ void FBXMeshLoader::EncodePrimitiveData(FbxNode* pNode, NXPrimitive* pPrimitive,
 			}
 		}
 
-		// ½« submesh Â¼Èëµ½ primitive
+		// å°† submesh å½•å…¥åˆ° primitive
 		pPrimitive->ResizeSubMesh(materialCount);
 		for (int i = 0; i < materialCount; i++)
 			pPrimitive->ReloadSubMesh(i, pSubMeshes[i]);
 
-		// ÖØĞÂ¼ÆËãÇĞÏß
+		// é‡æ–°è®¡ç®—åˆ‡çº¿
 		if (bAutoCalcTangents) pPrimitive->CalculateTangents();
 
-		// °´ SubMesh Éú³É VB/IB
+		// æŒ‰ SubMesh ç”Ÿæˆ VB/IB
 		UINT subMeshCount = pPrimitive->GetSubMeshCount();
 		for (UINT i = 0; i < subMeshCount; i++)
 		{
@@ -303,7 +303,7 @@ void FBXMeshLoader::EncodePolygonData(FbxMesh* pMesh, std::vector<VertexPNTT>& v
 		vertexId++;
 	}
 
-	// ½«¶à±ßĞÎ²ğ·Ö³ÉÈô¸ÉÈı½ÇĞÎ
+	// å°†å¤šè¾¹å½¢æ‹†åˆ†æˆè‹¥å¹²ä¸‰è§’å½¢
 	// polygonSize = vertexDataArray.size()
 	for (int i = 1; i < polygonSize - 1; i++)
 	{

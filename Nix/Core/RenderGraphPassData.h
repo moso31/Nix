@@ -1,7 +1,7 @@
 #pragma once
 // ===== RenderGraphPassData.h =====
-// ½«ËùÓĞ RenderGraph Pass Ê¹ÓÃµÄ PassData ½á¹¹Ìå ÌáÈ¡µ½ÕâÀï
-// ±ÜÃâÔÚ GenerateRenderGraph() º¯ÊıÄÚ²¿¶¨Òå¾Ö²¿ÀàĞÍ + Ä£°åÊµÀı»¯£¬´Ó¶ø¸ÄÉÆ IntelliSense ĞÔÄÜ
+// å°†æ‰€æœ‰ RenderGraph Pass ä½¿ç”¨çš„ PassData ç»“æ„ä½“ æå–åˆ°è¿™é‡Œ
+// é¿å…åœ¨ GenerateRenderGraph() å‡½æ•°å†…éƒ¨å®šä¹‰å±€éƒ¨ç±»å‹ + æ¨¡æ¿å®ä¾‹åŒ–ï¼Œä»è€Œæ”¹å–„ IntelliSense æ€§èƒ½
 
 #include "NXRGUtil.h"
 #include <vector>

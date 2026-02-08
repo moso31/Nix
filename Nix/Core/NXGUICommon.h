@@ -20,25 +20,25 @@ namespace NXGUICommon
 {
 	void RenderSmallTextureIcon(D3D12_GPU_DESCRIPTOR_HANDLE srvHandle, NXGUIFileBrowser* pFileBrowser, std::function<void()> onChange, std::function<void()> onRemove, std::function<void(const std::wstring&)> onDrop, NXGUISmallTexType type = NXGUISmallTexType::Image);
 
-	// ½«×Ö·û´®×ª»»³ÉGUIStyle
+	// å°†å­—ç¬¦ä¸²è½¬æ¢æˆGUIStyle
 	NXGUICBufferStyle	GetGUIStyleFromString(const std::string& strTypeString);
 
-	// »ñÈ¡GUIStyle¶ÔÓ¦µÄÏòÁ¿¸öÊı
+	// è·å–GUIStyleå¯¹åº”çš„å‘é‡ä¸ªæ•°
 	UINT				GetValueNumOfGUIStyle(NXGUICBufferStyle eGuiStyle);
 
-	// »ñÈ¡GUIStyle¶ÔÓ¦µÄÄ¬ÈÏÖµ
+	// è·å–GUIStyleå¯¹åº”çš„é»˜è®¤å€¼
 	Vector2				GetGUIParamsDefaultValue(NXGUICBufferStyle eGUIStyle);
 
-	// ÓÃÓÚÉú³ÉĞÂ×Ê²úÊ±£¬ContentExplorerÌí¼ÓÎÄ¼şÊ±È·¶¨ ¾ßÌåµÄĞòºÅ
-	// ±ÈÈçÄ³¸öÎÄ¼ş¼ĞÏÂĞÂ½¨ÁË²ÄÖÊ£¬Ó¦¸Ã½Ğ "New Material ?"£¬Õâ¸ö·½·¨¾ÍÓÃÓÚÈ·¶¨ ? ÊÇ¶àÉÙ¡£
+	// ç”¨äºç”Ÿæˆæ–°èµ„äº§æ—¶ï¼ŒContentExploreræ·»åŠ æ–‡ä»¶æ—¶ç¡®å®š å…·ä½“çš„åºå·
+	// æ¯”å¦‚æŸä¸ªæ–‡ä»¶å¤¹ä¸‹æ–°å»ºäº†æè´¨ï¼Œåº”è¯¥å« "New Material ?"ï¼Œè¿™ä¸ªæ–¹æ³•å°±ç”¨äºç¡®å®š ? æ˜¯å¤šå°‘ã€‚
 	std::filesystem::path GenerateAssetNameJudge(const std::filesystem::path& strFolderPath, const std::string& strSuffix, const std::string& strJudge);
 
-	// ±éÀúÖ¸¶¨ÎÄ¼ş¼ĞÏÂµÄËùÓĞÎÄ¼ş£¨×¢ÒâÊÇµİ¹é±éÀú£©£¬²¢·µ»ØÒ»¸öËùÓĞÀ©Õ¹ÃûÎª strSuffix µÄÎÄ¼şÊı×é¡£
-	// 2023.11.4 ´Ë·½·¨£¬Ä¿Ç°Ö÷ÒªÊÇ²ÄÖÊ±à¼­Æ÷ÖĞ£¬Ìæ»» nssprof µÄÊ±ºò£¬¶ÔÓ¦µÄÌæ»»popupÊ¹ÓÃ¡£½«À´»»ÎÆÀí£¬»»²ÄÖÊµÈ£¬Ò²»á»ùÓÚÕâ¸ö·½·¨
+	// éå†æŒ‡å®šæ–‡ä»¶å¤¹ä¸‹çš„æ‰€æœ‰æ–‡ä»¶ï¼ˆæ³¨æ„æ˜¯é€’å½’éå†ï¼‰ï¼Œå¹¶è¿”å›ä¸€ä¸ªæ‰€æœ‰æ‰©å±•åä¸º strSuffix çš„æ–‡ä»¶æ•°ç»„ã€‚
+	// 2023.11.4 æ­¤æ–¹æ³•ï¼Œç›®å‰ä¸»è¦æ˜¯æè´¨ç¼–è¾‘å™¨ä¸­ï¼Œæ›¿æ¢ nssprof çš„æ—¶å€™ï¼Œå¯¹åº”çš„æ›¿æ¢popupä½¿ç”¨ã€‚å°†æ¥æ¢çº¹ç†ï¼Œæ¢æè´¨ç­‰ï¼Œä¹Ÿä¼šåŸºäºè¿™ä¸ªæ–¹æ³•
 	std::vector<std::filesystem::path> GetFilesInFolder(const std::filesystem::path& strFolderPath, const std::string& strSuffix);
 
-	// ¼ì²âµ±Ç° ImGui ¿Ø¼şÊÇ·ñ½ÓÊÕµ½ Win32 ÍÏ·ÅµÄÍ¼Æ¬ÎÄ¼ş
-	// ÔÚ ImGui ¿Ø¼ş£¨Èç InvisibleButton¡¢ImageButton£©Ö®ºóµ÷ÓÃ
-	// ·µ»ØÍÏÈëµÄµÚÒ»¸öÍ¼Æ¬ÎÄ¼şÂ·¾¶£¬Èç¹ûÃ»ÓĞÔò·µ»Ø¿ÕÂ·¾¶
+	// æ£€æµ‹å½“å‰ ImGui æ§ä»¶æ˜¯å¦æ¥æ”¶åˆ° Win32 æ‹–æ”¾çš„å›¾ç‰‡æ–‡ä»¶
+	// åœ¨ ImGui æ§ä»¶ï¼ˆå¦‚ InvisibleButtonã€ImageButtonï¼‰ä¹‹åè°ƒç”¨
+	// è¿”å›æ‹–å…¥çš„ç¬¬ä¸€ä¸ªå›¾ç‰‡æ–‡ä»¶è·¯å¾„ï¼Œå¦‚æœæ²¡æœ‰åˆ™è¿”å›ç©ºè·¯å¾„
 	std::filesystem::path AcceptWinFileDropImage();
 }

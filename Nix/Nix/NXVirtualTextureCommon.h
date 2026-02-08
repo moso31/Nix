@@ -74,7 +74,7 @@ static inline int VTImagePosToIndex(const Int2& p)
     return (VTImageIndexEncode(p.x) << 1) | VTImageIndexEncode(p.y);
 }
 
-// HLSL cbuffer Êý×éÔªËØÐèÒª 16 ×Ö½Ú¶ÔÆë
+// HLSL cbuffer æ•°ç»„å…ƒç´ éœ€è¦ 16 å­—èŠ‚å¯¹é½
 struct CBufferPhysPageUpdateIndex
 {
     CBufferPhysPageUpdateIndex(int index, Int2 pageID, int mip) : index(index), pageID(pageID), mip(mip) {}

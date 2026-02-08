@@ -24,7 +24,7 @@
 //{
 //	m_completedTasks.push_back(task);
 //
-//	// È·±£ m_batchingNodeDescData Óë m_completedTasks ´óĞ¡Ò»ÖÂ
+//	// ç¡®ä¿ m_batchingNodeDescData ä¸ m_completedTasks å¤§å°ä¸€è‡´
 //	m_batchingNodeDescData.resize(m_completedTasks.size());
 //	for (int i = 0; i < m_batchingNodeDescData.size(); i++)
 //	{

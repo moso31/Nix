@@ -14,15 +14,15 @@ struct NXEventArgMouse
 	LONG LastX, LastY;
 	USHORT VWheel;
 
-	// ¼ÇÂ¼ÁËµ±Ç°Êó±êÏñËØ×óÉÏ½ÇÏà¶ÔViewPortÉÏµÄÎ»ÖÃ£¬ÒÔÏñËØÎªµ¥Î»¡£
+	// è®°å½•äº†å½“å‰é¼ æ ‡åƒç´ å·¦ä¸Šè§’ç›¸å¯¹ViewPortä¸Šçš„ä½ç½®ï¼Œä»¥åƒç´ ä¸ºå•ä½ã€‚
 	Vector2 ViewPortPos;
 
-	// ¼ÇÂ¼ÁËµ±Ç°ViewPortµÄ´óĞ¡£¬ÒÔÏñËØÎªµ¥Î»¡£
+	// è®°å½•äº†å½“å‰ViewPortçš„å¤§å°ï¼Œä»¥åƒç´ ä¸ºå•ä½ã€‚
 	Vector2 ViewPortSize;
 };
 
 // 2023.6.3
-// ÊÂ¼ş»ùÀà
+// äº‹ä»¶åŸºç±»
 template<typename... Args>
 class NXEventBase
 {
@@ -62,24 +62,24 @@ class NXForceEvent : public NXEventBase<Args...> {};
 template<typename... Args>
 class NXViewportEvent : public NXEventBase<Args...> {};
 
-// ÆÕÍ¨ÊäÈëÊÂ¼ş
-// µ±ImGuiÕ¼ÓÃÊó±ê/¼üÅÌÊ±£¬ÕâĞ©ÊÂ¼ş²»»á´¥·¢¡£
+// æ™®é€šè¾“å…¥äº‹ä»¶
+// å½“ImGuiå ç”¨é¼ æ ‡/é”®ç›˜æ—¶ï¼Œè¿™äº›äº‹ä»¶ä¸ä¼šè§¦å‘ã€‚
 class NXEventKeyUp : public NXEvent<NXEventArgKey>, public NXInstance<NXEventKeyUp> {};
 class NXEventKeyDown : public NXEvent<NXEventArgKey>, public NXInstance<NXEventKeyDown> {};
 class NXEventMouseUp : public NXEvent<NXEventArgMouse>, public NXInstance<NXEventMouseUp> {};
 class NXEventMouseDown : public NXEvent<NXEventArgMouse>, public NXInstance<NXEventMouseDown> {};
 class NXEventMouseMove : public NXEvent<NXEventArgMouse>, public NXInstance<NXEventMouseMove> {};
 
-// Ç¿ÖÆÊäÈëÊÂ¼ş£º
-// µ±ImGuiÕ¼ÓÃÊó±ê/¼üÅÌÊ±£¬ÕâĞ©ÊÂ¼şÈÔÈ»»á´¥·¢¡£
+// å¼ºåˆ¶è¾“å…¥äº‹ä»¶ï¼š
+// å½“ImGuiå ç”¨é¼ æ ‡/é”®ç›˜æ—¶ï¼Œè¿™äº›äº‹ä»¶ä»ç„¶ä¼šè§¦å‘ã€‚
 class NXEventKeyUpForce : public NXForceEvent<NXEventArgKey>, public NXInstance<NXEventKeyUpForce> {};
 class NXEventKeyDownForce : public NXForceEvent<NXEventArgKey>, public NXInstance<NXEventKeyDownForce> {};
 class NXEventMouseUpForce : public NXForceEvent<NXEventArgMouse>, public NXInstance<NXEventMouseUpForce> {};
 class NXEventMouseDownForce : public NXForceEvent<NXEventArgMouse>, public NXInstance<NXEventMouseDownForce> {};
 class NXEventMouseMoveForce : public NXForceEvent<NXEventArgMouse>, public NXInstance<NXEventMouseMoveForce> {};
 
-// ÊÓ¿ÚÊäÈëÊÂ¼ş£º
-// ½öÔÚÊó±êĞüÍ£ÔÚÊÓ¿ÚÉÏÊ±£¬ÕâĞ©ÊÂ¼ş»á´¥·¢¡£
+// è§†å£è¾“å…¥äº‹ä»¶ï¼š
+// ä»…åœ¨é¼ æ ‡æ‚¬åœåœ¨è§†å£ä¸Šæ—¶ï¼Œè¿™äº›äº‹ä»¶ä¼šè§¦å‘ã€‚
 class NXEventKeyUpViewport : public NXViewportEvent<NXEventArgKey>, public NXInstance<NXEventKeyUpViewport> {};
 class NXEventKeyDownViewport : public NXViewportEvent<NXEventArgKey>, public NXInstance<NXEventKeyDownViewport> {};
 class NXEventMouseUpViewport : public NXViewportEvent<NXEventArgMouse>, public NXInstance<NXEventMouseUpViewport> {};

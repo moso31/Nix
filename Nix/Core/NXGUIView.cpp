@@ -26,18 +26,18 @@ void NXGUIView::Render(ccmem::DescriptorAllocator<true>* pImguiHeap)
 		float viewRegionX = ImGui::GetContentRegionAvail().x;
 		float viewRegionY = ImGui::GetContentRegionAvail().y;
 
-		// YÏòÏÂÆ«ÒÆÒ»µã£¬·ñÔòÑ¡Ïî¿¨»áÕÚµ²
+		// Yå‘ä¸‹åç§»ä¸€ç‚¹ï¼Œå¦åˆ™é€‰é¡¹å¡ä¼šé®æŒ¡
 		float tabOffsetY = windowHeight - viewRegionY - 1;
 		float viewOffsetX = 0.0f;
 		float viewOffsetY = 0.0f;
 
 		if (m_viewMode != ViewMode::Auto)
 		{
-			// Èô²»ÊÇ Auto Ä£Ê½£¬ĞèÒª
-			// ÒÔviewRegionµÄÔ¼Êø·¶Î§Îª×î´óÖµ£¬²¢Ê¼ÖÕ±£Ö¤RT±ÈÀıÕıÈ·¡£
+			// è‹¥ä¸æ˜¯ Auto æ¨¡å¼ï¼Œéœ€è¦
+			// ä»¥viewRegionçš„çº¦æŸèŒƒå›´ä¸ºæœ€å¤§å€¼ï¼Œå¹¶å§‹ç»ˆä¿è¯RTæ¯”ä¾‹æ­£ç¡®ã€‚
 			if (viewRegionX / viewRegionY > aspectRatio)
 			{
-				// µÚÒ»ĞĞºÍµÚÈıĞĞÓÃÓÚ¼ÆËã¾ÓÖĞÆ«ÒÆÁ¿£¬µÚ¶şĞĞÓÃÓÚ¼ÆËãÔ¼ÊøÇø´óĞ¡¡£elseÍ¬¡£
+				// ç¬¬ä¸€è¡Œå’Œç¬¬ä¸‰è¡Œç”¨äºè®¡ç®—å±…ä¸­åç§»é‡ï¼Œç¬¬äºŒè¡Œç”¨äºè®¡ç®—çº¦æŸåŒºå¤§å°ã€‚elseåŒã€‚
 				viewOffsetX = viewRegionX;
 				viewRegionX = viewRegionY * aspectRatio;
 				viewOffsetX = (viewOffsetX - viewRegionX) / 2;
@@ -58,7 +58,7 @@ void NXGUIView::Render(ccmem::DescriptorAllocator<true>* pImguiHeap)
 		ImGui::Image((ImTextureID)srvHandle.ptr, ImVec2(viewRegionX, viewRegionY));
 		bool isHoveredOnView = ImGui::IsItemHovered();
 
-		// µã»÷ÓÒ¼üÊ±Ò²Ê¹µ±Ç°´°¿Ú»ñµÃ½¹µã£¬±ÜÃâÆäËü´°¿Ú£¨±ÈÈçCodeEditor£©ÊäÈëÊÕµ½WASDµÈ¿ì½İ¼üÓ°Ïì
+		// ç‚¹å‡»å³é”®æ—¶ä¹Ÿä½¿å½“å‰çª—å£è·å¾—ç„¦ç‚¹ï¼Œé¿å…å…¶å®ƒçª—å£ï¼ˆæ¯”å¦‚CodeEditorï¼‰è¾“å…¥æ”¶åˆ°WASDç­‰å¿«æ·é”®å½±å“
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) ImGui::SetWindowFocus(); 
 
 		const auto& rectMin = ImGui::GetItemRectMin();

@@ -1,10 +1,10 @@
 #include "ImageGenerator.h"
 
-//Éú³ÉBmpÍ¼Æ¬£¬´«µİRGBÖµ£¬´«µİÍ¼Æ¬ÏñËØ´óĞ¡£¬´«µİÍ¼Æ¬´æ´¢Â·¾¶
+//ç”ŸæˆBmpå›¾ç‰‡ï¼Œä¼ é€’RGBå€¼ï¼Œä¼ é€’å›¾ç‰‡åƒç´ å¤§å°ï¼Œä¼ é€’å›¾ç‰‡å­˜å‚¨è·¯å¾„
 void ImageGenerator::GenerateImageBMP(BYTE * pData, int width, int height, const char * filename)
 {
-	int size = width * height * 3; // Ã¿¸öÏñËØµã3¸ö×Ö½Ú
-	// Î»Í¼µÚÒ»²¿·Ö£¬ÎÄ¼şĞÅÏ¢
+	int size = width * height * 3; // æ¯ä¸ªåƒç´ ç‚¹3ä¸ªå­—èŠ‚
+	// ä½å›¾ç¬¬ä¸€éƒ¨åˆ†ï¼Œæ–‡ä»¶ä¿¡æ¯
 	BMPFILEHEADER_T bfh;
 	bfh.bfType = 0X4d42;  //bm
 	bfh.bfSize = size  // data size
@@ -15,7 +15,7 @@ void ImageGenerator::GenerateImageBMP(BYTE * pData, int width, int height, const
 	bfh.bfReserved2 = 0; // reserved
 	bfh.bfOffBits = bfh.bfSize - size;
 
-	// Î»Í¼µÚ¶ş²¿·Ö£¬Êı¾İĞÅÏ¢
+	// ä½å›¾ç¬¬äºŒéƒ¨åˆ†ï¼Œæ•°æ®ä¿¡æ¯
 	BMPINFOHEADER_T bih;
 	bih.biSize = sizeof(BMPINFOHEADER_T);
 	bih.biWidth = width;

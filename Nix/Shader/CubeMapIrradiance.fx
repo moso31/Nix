@@ -7,7 +7,7 @@ SamplerState ssLinearWrap : register(s0);
 
 float3 GetIrradiance(float3 wi)
 {
-	// ĞÎ³Éwi, wt(tangent), wb(bitangent) ×ø±êÏµ
+	// å½¢æˆwi, wt(tangent), wb(bitangent) åæ ‡ç³»
 	float3 wb = float3(0.0f, 1.0f, 0.0f);
 	float3 wt = normalize(cross(wb, wi));
 	wb = cross(wi, wt);

@@ -55,7 +55,7 @@ void ccmem::DeadListAllocator::ExecuteTasks()
 		{
 			if (m_currentDeadListIndex >= m_deadList.size())
 			{
-				// No more memory. ÏÖÔÚ´¦ÓÚ³õÆÚ¿ª·¢ ÏÈ²»´¦ÀíÕâÖÖÇé¿ö£¬assert±¨¸ö´í¾ÍĞĞ
+				// No more memory. ç°åœ¨å¤„äºåˆæœŸå¼€å‘ å…ˆä¸å¤„ç†è¿™ç§æƒ…å†µï¼ŒassertæŠ¥ä¸ªé”™å°±è¡Œ
 				assert(false);
 				break;
 			}
@@ -77,11 +77,11 @@ void ccmem::DeadListAllocator::ExecuteTasks()
 
 void ccmem::DeadListAllocator::Print()
 {
-	std::cout << "µ±Ç°DeadListAllocator×´Ì¬£º" << std::endl;
-	std::cout << "×ÜÄÚ´æ¿éÊıÁ¿: " << m_deadList.size() << std::endl;
-	std::cout << "ÒÑ·ÖÅäÄÚ´æ¿éÊıÁ¿: " << m_currentDeadListIndex << std::endl;
-	std::cout << "¿ÕÏĞÄÚ´æ¿éÊıÁ¿: " << m_deadList.size() - m_currentDeadListIndex << std::endl;
-	//std::cout << "Î´·ÖÅäÄÚ´æ¿éµØÖ·£º" << std::endl;
+	std::cout << "å½“å‰DeadListAllocatorçŠ¶æ€ï¼š" << std::endl;
+	std::cout << "æ€»å†…å­˜å—æ•°é‡: " << m_deadList.size() << std::endl;
+	std::cout << "å·²åˆ†é…å†…å­˜å—æ•°é‡: " << m_currentDeadListIndex << std::endl;
+	std::cout << "ç©ºé—²å†…å­˜å—æ•°é‡: " << m_deadList.size() - m_currentDeadListIndex << std::endl;
+	//std::cout << "æœªåˆ†é…å†…å­˜å—åœ°å€ï¼š" << std::endl;
 	//for (size_t i = m_currentDeadListIndex; i < m_deadList.size(); i++)
 	//{
 	//	std::cout << "  [" << i << "]: " << static_cast<void*>(m_deadList[i].pMem) << std::endl;

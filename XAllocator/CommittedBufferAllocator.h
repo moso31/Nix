@@ -20,22 +20,22 @@ namespace ccmem
 		};
 
 	public:
-		// pageBlockByteSize = µ¥¸öÄÚ´æ¿éµÄ´óĞ¡ pageFullByteSize = µ¥¸öAllocatorÄÚ´æ´óĞ¡. ÒªÇó±ØĞëÊÇ2µÄn´ÎÃİ
-		// ÕâÀïÔ¼¶¨µ¥¸öÄÚ´æ¿é´óĞ¡ÊÇ64B£¬×ÜÄÚ´æ´óĞ¡ÊÇ2GB
+		// pageBlockByteSize = å•ä¸ªå†…å­˜å—çš„å¤§å° pageFullByteSize = å•ä¸ªAllocatorå†…å­˜å¤§å°. è¦æ±‚å¿…é¡»æ˜¯2çš„næ¬¡å¹‚
+		// è¿™é‡Œçº¦å®šå•ä¸ªå†…å­˜å—å¤§å°æ˜¯64Bï¼Œæ€»å†…å­˜å¤§å°æ˜¯2GB
 		CommittedBufferAllocator(const std::wstring& name, ID3D12Device* pDevice, bool cpuAccessable, bool isReadBack, uint32_t pageBlockByteSize = 64, uint32_t pageFullByteSize = 2147483648);
 		virtual ~CommittedBufferAllocator() {};
 
-		// ·ÖÅäÄÚ´æ¡£½á¹ûÊÇÑÓ³ÙÉú³ÉµÄ£¬ĞèÒªÔÚ»Øµ÷º¯ÊıÖĞ»ñÈ¡·ÖÅäµÄÄÚ´æµØÖ·
+		// åˆ†é…å†…å­˜ã€‚ç»“æœæ˜¯å»¶è¿Ÿç”Ÿæˆçš„ï¼Œéœ€è¦åœ¨å›è°ƒå‡½æ•°ä¸­è·å–åˆ†é…çš„å†…å­˜åœ°å€
 		void Alloc(uint32_t byteSize, const std::function<void(const CommittedBufferAllocTaskResult&)>& callback);
 
-		// ÊÍ·ÅÖ¸¶¨ÄÚ´æpMem
-		// ÄÚ´æ±ØĞëÊÇÓÉ¸ÃAllocator·ÖÅäµÄ£¬·ñÔòÎŞ·¨ÊÍ·Å
+		// é‡Šæ”¾æŒ‡å®šå†…å­˜pMem
+		// å†…å­˜å¿…é¡»æ˜¯ç”±è¯¥Allocatoråˆ†é…çš„ï¼Œå¦åˆ™æ— æ³•é‡Šæ”¾
 		void Free(const XBuddyTaskMemData& memData);
 
-		// Ã¿´ÎÌí¼ÓÒ»¸öAllocatorÊ±£¬µ÷ÓÃÕâ¸öº¯Êı
+		// æ¯æ¬¡æ·»åŠ ä¸€ä¸ªAllocatoræ—¶ï¼Œè°ƒç”¨è¿™ä¸ªå‡½æ•°
 		void OnAllocatorAdded(BuddyAllocatorPage* pAllocator) override;
 
-		// »ñÈ¡D3D×ÊÔ´
+		// è·å–D3Dèµ„æº
 		ID3D12Resource* GetD3DResource(BuddyAllocatorPage* pAllocator); 
 
 		ID3D12Device* GetDevice() { return m_pDevice; }
@@ -45,7 +45,7 @@ namespace ccmem
 		std::unordered_map<BuddyAllocatorPage*, AllocatorData> m_allocatorMap;
 
 		bool m_isReadBack;
-		bool m_cpuAccessable; // ÊÇ·ñÔÊĞíCPU¶Á
-		uint32_t m_pageFullByteSize; // Ã¿¸öAllocatorµÄ×ÜÄÚ´æ´óĞ¡
+		bool m_cpuAccessable; // æ˜¯å¦å…è®¸CPUè¯»
+		uint32_t m_pageFullByteSize; // æ¯ä¸ªAllocatorçš„æ€»å†…å­˜å¤§å°
 	};
 }

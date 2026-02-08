@@ -5,7 +5,7 @@
 #include <vector>
 #include <string>
 
-// ==================== ¾²Ì¬¸¨Öú·½·¨ÊµÏÖ ====================
+// ==================== é™æ€è¾…åŠ©æ–¹æ³•å®ç° ====================
 
 constexpr ImVec4 NXGUIRenderGraph::ImU32ToImVec4(ImU32 color)
 {
@@ -178,7 +178,7 @@ void NXGUIRenderGraph::ShowResourceTooltip(const NXRGGUIResource& res, NXRenderG
 
         ImGui::BeginTooltip();
 
-        // ÏÔÊ¾ÉúÃüÖÜÆÚĞÅÏ¢
+        // æ˜¾ç¤ºç”Ÿå‘½å‘¨æœŸä¿¡æ¯
         if (segmentIndex >= 0 && segmentIndex < (int)res.lifeTimes.size())
         {
             auto& lifeTime = res.lifeTimes[segmentIndex];
@@ -197,7 +197,7 @@ void NXGUIRenderGraph::ShowResourceTooltip(const NXRGGUIResource& res, NXRenderG
                 ImGui::Text("Last Used In Pass: %s", pEndPass->GetName().c_str());
         }
 
-        // Èç¹û×ÊÔ´ÊÇÎÆÀí£¬ÏÔÊ¾ÎÆÀíĞÅÏ¢ºÍÔ¤ÀÀ
+        // å¦‚æœèµ„æºæ˜¯çº¹ç†ï¼Œæ˜¾ç¤ºçº¹ç†ä¿¡æ¯å’Œé¢„è§ˆ
         if (pResource->IsTexture())
         {
             auto pTexture = pResource.As<NXTexture>();
@@ -214,7 +214,7 @@ void NXGUIRenderGraph::ShowResourceTooltip(const NXRGGUIResource& res, NXRenderG
 					ImGui::Text("File: %s", pTexture->GetFilePath().filename().string().c_str());
                 }
 
-                // ÏÔÊ¾ÎÆÀíÔ¤ÀÀ
+                // æ˜¾ç¤ºçº¹ç†é¢„è§ˆ
                 float fW = std::max(ImGui::GetIO().DisplaySize.x * 0.2f, 200.0f);
                 float fH = (float)pTexture->GetHeight() * (fW / (float)pTexture->GetWidth());
 
@@ -241,7 +241,7 @@ void NXGUIRenderGraph::ShowResourceTooltip(const NXRGGUIResource& res, NXRenderG
         ImGui::EndTooltip();
     }
 
-// 1. Ö»»æÖÆ¸ßÁÁ¾ØĞÎ£¨ÔÚ²Ã¼ôÇøÓòÄÚµ÷ÓÃ£©
+// 1. åªç»˜åˆ¶é«˜äº®çŸ©å½¢ï¼ˆåœ¨è£å‰ªåŒºåŸŸå†…è°ƒç”¨ï¼‰
 void NXGUIRenderGraph::DrawTimeLayerHighlightRect(int timeLayer, int minTimeLayer, int maxTimeLayer, double resourceCount, float bottomPadding)
 {
         if (!ImPlot::IsPlotHovered())
@@ -252,7 +252,7 @@ void NXGUIRenderGraph::DrawTimeLayerHighlightRect(int timeLayer, int minTimeLaye
         if (currentTimeLayer != timeLayer || currentTimeLayer < minTimeLayer || currentTimeLayer > maxTimeLayer)
             return;
 
-        // »æÖÆ¸ßÁÁÊúÏß£¨´Ó¶¥²¿µ½µ×²¿£¬°üº¬µ×²¿paddingÇøÓò£©
+        // ç»˜åˆ¶é«˜äº®ç«–çº¿ï¼ˆä»é¡¶éƒ¨åˆ°åº•éƒ¨ï¼ŒåŒ…å«åº•éƒ¨paddingåŒºåŸŸï¼‰
         ImPlotPoint p1(currentTimeLayer, -0.5);
         ImPlotPoint p2(currentTimeLayer, resourceCount - 0.5 + bottomPadding);
         ImVec2 screen1 = ImPlot::PlotToPixels(p1);
@@ -260,7 +260,7 @@ void NXGUIRenderGraph::DrawTimeLayerHighlightRect(int timeLayer, int minTimeLaye
         ImPlot::GetPlotDrawList()->AddLine(screen1, screen2, COLOR_HIGHLIGHT_BORDER, 2.0f);
     }
 
-// 2. »æÖÆPassÃû³ÆÎÄ±¾£¨ÔÚ²Ã¼ôÇøÓòÍâµ÷ÓÃ£©
+// 2. ç»˜åˆ¶Passåç§°æ–‡æœ¬ï¼ˆåœ¨è£å‰ªåŒºåŸŸå¤–è°ƒç”¨ï¼‰
 void NXGUIRenderGraph::DrawTimeLayerPassNames(int timeLayer, int minTimeLayer, int maxTimeLayer, double resourceCount, NXRenderGraph* pRenderGraph)
 {
         if (!ImPlot::IsPlotHovered())
@@ -275,7 +275,7 @@ void NXGUIRenderGraph::DrawTimeLayerPassNames(int timeLayer, int minTimeLayer, i
         if (passes.empty())
             return;
 
-        // Ê¹ÓÃ ImGui µÄ WindowDrawList£¬²»ÊÜ Plot ²Ã¼ôÏŞÖÆ
+        // ä½¿ç”¨ ImGui çš„ WindowDrawListï¼Œä¸å— Plot è£å‰ªé™åˆ¶
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
         int lineIndex = 0;
@@ -289,23 +289,23 @@ void NXGUIRenderGraph::DrawTimeLayerPassNames(int timeLayer, int minTimeLayer, i
             float textX = textScreenPos.x;
             ImVec2 textPos(textX - textSize.x * 0.5f, textScreenPos.y - textSize.y * 0.5f);
 
-            // »æÖÆ±³¾°
+            // ç»˜åˆ¶èƒŒæ™¯
             ImVec2 bgMin(textPos.x - 2.0f, textPos.y - 1.0f);
             ImVec2 bgMax(textPos.x + textSize.x + 2.0f, textPos.y + textSize.y + 1.0f);
             draw_list->AddRectFilled(bgMin, bgMax, COLOR_TEXT_BACKGROUND);
 
-            // »æÖÆÎÄ×Ö
+            // ç»˜åˆ¶æ–‡å­—
             draw_list->AddText(textPos, COLOR_TEXT_FOREGROUND, passName.c_str());
             lineIndex++;
         }
     }
 
-// 3. »æÖÆ·Çµ¼Èë×ÊÔ´ºÍµ¼Èë×ÊÔ´Ö®¼äµÄ·Ö¸ôÏß
+// 3. ç»˜åˆ¶éå¯¼å…¥èµ„æºå’Œå¯¼å…¥èµ„æºä¹‹é—´çš„åˆ†éš”çº¿
 void NXGUIRenderGraph::DrawResourceSeparatorLine(size_t nonImportedCount, int minTimeLayer, int maxTimeLayer)
 {
         if (nonImportedCount == 0) return;
 
-        // ÔÚ·Çµ¼Èë×ÊÔ´µÄ×îºóÒ»¸öºÍµ¼Èë×ÊÔ´µÄµÚÒ»¸öÖ®¼ä»­Ïß
+        // åœ¨éå¯¼å…¥èµ„æºçš„æœ€åä¸€ä¸ªå’Œå¯¼å…¥èµ„æºçš„ç¬¬ä¸€ä¸ªä¹‹é—´ç”»çº¿
         double separatorY = (double)nonImportedCount - 0.5;
 
         ImPlotPoint p1(minTimeLayer - 0.5, separatorY);
@@ -314,7 +314,7 @@ void NXGUIRenderGraph::DrawResourceSeparatorLine(size_t nonImportedCount, int mi
         ImVec2 screen1 = ImPlot::PlotToPixels(p1);
         ImVec2 screen2 = ImPlot::PlotToPixels(p2);
 
-    // »æÖÆ°×É«·Ö¸ôÏß
+    // ç»˜åˆ¶ç™½è‰²åˆ†éš”çº¿
     ImPlot::GetPlotDrawList()->AddLine(screen1, screen2, COLOR_SEPARATOR_LINE, 1.0f);
 }
 
@@ -334,7 +334,7 @@ void NXGUIRenderGraph::RenderResourceView(
     static float bottomPadding = 0.0f;
     static float importedResourceOffsetX = 0.5f;
 
-    // ÖØÖÃhover×´Ì¬
+    // é‡ç½®hoverçŠ¶æ€
     hoveredResource = -1;
     hoveredTimeLayer = -1;
     if (isPhysicalMode)
@@ -342,7 +342,7 @@ void NXGUIRenderGraph::RenderResourceView(
         hoveredSegment = -1;
     }
 
-    // ¼ÆËã·Çµ¼Èë×ÊÔ´ÊıÁ¿
+    // è®¡ç®—éå¯¼å…¥èµ„æºæ•°é‡
     size_t nonImportedCount = 0;
     for (const auto& res : displayResources)
     {
@@ -353,13 +353,13 @@ void NXGUIRenderGraph::RenderResourceView(
     if (ImPlot::BeginPlot(plotLabel, ImVec2(-1, -1), ImPlotFlags_NoMouseText | ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect))
     {
         ImPlot::SetupAxis(ImAxis_X1, ImUtf8(""), ImPlotAxisFlags_NoDecorations);
-        ImPlot::SetupAxis(ImAxis_Y1, ImUtf8("×ÊÔ´"), ImPlotAxisFlags_Lock | ImPlotAxisFlags_Invert);
+        ImPlot::SetupAxis(ImAxis_Y1, ImUtf8("èµ„æº"), ImPlotAxisFlags_Lock | ImPlotAxisFlags_Invert);
         ImPlot::SetupAxisLimits(ImAxis_X1, minTimeLayer - paddingAxisX, maxTimeLayer + paddingAxisX, ImPlotCond_Once);
         ImPlot::SetupAxisLimits(ImAxis_Y1, -0.5, (double)displayResources.size() - 0.5 + bottomPadding, ImPlotCond_Always);
         ImPlot::SetupAxisLimitsConstraints(ImAxis_X1, minTimeLayer - paddingAxisX, maxTimeLayer + paddingAxisX);
         ImPlot::SetupAxisFormat(ImAxis_X1, "%.0f");
 
-        // ÉèÖÃ Y Öá±êÇ©
+        // è®¾ç½® Y è½´æ ‡ç­¾
         std::vector<const char*> labels;
         std::vector<double> positions;
         for (size_t i = 0; i < displayResources.size(); i++)
@@ -373,7 +373,7 @@ void NXGUIRenderGraph::RenderResourceView(
 
         ImDrawList* draw_list = ImPlot::GetPlotDrawList();
 
-        // Èç¹ûÊó±êĞüÍ£ÔÚÄ³¸öÊ±¼ä²ã£¬ÏÈ»æÖÆÁĞ¸ßÁÁ
+        // å¦‚æœé¼ æ ‡æ‚¬åœåœ¨æŸä¸ªæ—¶é—´å±‚ï¼Œå…ˆç»˜åˆ¶åˆ—é«˜äº®
         if (ImPlot::IsPlotHovered())
         {
             ImPlotPoint mouse = ImPlot::GetPlotMousePos();
@@ -385,11 +385,11 @@ void NXGUIRenderGraph::RenderResourceView(
         {
             auto& res = displayResources[i];
             
-            // VirtualÄ£Ê½ÏÂÌø¹ı¿ÕÉúÃüÖÜÆÚ
+            // Virtualæ¨¡å¼ä¸‹è·³è¿‡ç©ºç”Ÿå‘½å‘¨æœŸ
             if (!isPhysicalMode && res.lifeTimes.empty()) 
                 continue;
 
-            // »æÖÆÃ¿¸öÊ±¼ä¶Î
+            // ç»˜åˆ¶æ¯ä¸ªæ—¶é—´æ®µ
             for (size_t j = 0; j < res.lifeTimes.size(); j++)
             {
                 auto& lifeTime = res.lifeTimes[j];
@@ -398,7 +398,7 @@ void NXGUIRenderGraph::RenderResourceView(
                 
                 if (res.isImported)
                 {
-                    // µ¼Èë×ÊÔ´»æÖÆÎªÔ²ĞÎ
+                    // å¯¼å…¥èµ„æºç»˜åˆ¶ä¸ºåœ†å½¢
                     double centerX = (lifeTime.start + lifeTime.end) * 0.5 - importedResourceOffsetX;
                     double centerY = (double)i;
 
@@ -411,7 +411,7 @@ void NXGUIRenderGraph::RenderResourceView(
 
                     draw_list->AddCircleFilled(centerScreen, radius, color);
 
-                    // hover¼ì²â
+                    // hoveræ£€æµ‹
                     if (ImPlot::IsPlotHovered())
                     {
                         ImPlotPoint mouse = ImPlot::GetPlotMousePos();
@@ -431,7 +431,7 @@ void NXGUIRenderGraph::RenderResourceView(
                 }
                 else
                 {
-                    // ³£¹æ×ÊÔ´»æÖÆÎª¾ØĞÎ
+                    // å¸¸è§„èµ„æºç»˜åˆ¶ä¸ºçŸ©å½¢
                     ImPlotPoint p1(lifeTime.start, (double)i - rectSizeY);
                     ImPlotPoint p2(lifeTime.end, (double)i + rectSizeY);
 
@@ -440,7 +440,7 @@ void NXGUIRenderGraph::RenderResourceView(
 
                     draw_list->AddRectFilled(screen1, screen2, color);
 
-                    // ¼ì²âÊó±êĞüÍ£
+                    // æ£€æµ‹é¼ æ ‡æ‚¬åœ
                     if (ImPlot::IsPlotHovered())
                     {
                         ImPlotPoint mouse = ImPlot::GetPlotMousePos();
@@ -465,7 +465,7 @@ void NXGUIRenderGraph::RenderResourceView(
             }
         }
 
-        // »æÖÆ·Ö¸ôÏß£¨Èç¹ûÓĞµ¼Èë×ÊÔ´£©
+        // ç»˜åˆ¶åˆ†éš”çº¿ï¼ˆå¦‚æœæœ‰å¯¼å…¥èµ„æºï¼‰
         if (nonImportedCount > 0 && nonImportedCount < displayResources.size())
         {
             DrawResourceSeparatorLine(nonImportedCount, minTimeLayer, maxTimeLayer);
@@ -473,7 +473,7 @@ void NXGUIRenderGraph::RenderResourceView(
 
         ImPlot::PopPlotClipRect();
 
-        // »æÖÆPassÃû³Æ£¨ÔÚ²Ã¼ôÇøÓòÍâ£©
+        // ç»˜åˆ¶Passåç§°ï¼ˆåœ¨è£å‰ªåŒºåŸŸå¤–ï¼‰
         if (ImPlot::IsPlotHovered())
         {
             ImPlotPoint mouse = ImPlot::GetPlotMousePos();
@@ -484,7 +484,7 @@ void NXGUIRenderGraph::RenderResourceView(
         ImPlot::EndPlot();
     }
 
-    // ĞüÍ£ÌáÊ¾
+    // æ‚¬åœæç¤º
     if (hoveredResource >= 0 && hoveredResource < (int)displayResources.size())
     {
         int segmentIndex = isPhysicalMode ? hoveredSegment : 0;
@@ -503,7 +503,7 @@ NXGUIRenderGraph::NXGUIRenderGraph(Renderer* pRenderer) :
 
 void NXGUIRenderGraph::Render()
 {
-    // Èç¹û´°¿Ú¹Ø±Õ£¬Ö±½Ó·µ»Ø£¬±ÜÃâ²»±ØÒªµÄäÖÈ¾¿ªÏú
+    // å¦‚æœçª—å£å…³é—­ï¼Œç›´æ¥è¿”å›ï¼Œé¿å…ä¸å¿…è¦çš„æ¸²æŸ“å¼€é”€
     if (!m_bShowWindow)
         return;
 
@@ -511,7 +511,7 @@ void NXGUIRenderGraph::Render()
     if (!pRenderGraph)
         return;
 
-    // ´Ó RenderGraph »ñÈ¡Ô­Ê¼Êı¾İ
+    // ä» RenderGraph è·å–åŸå§‹æ•°æ®
     auto virtualResources = pRenderGraph->GetGUIVirtualResources();
     auto physicalResources = pRenderGraph->GetGUIPhysicalResources();
     auto importedResources = pRenderGraph->GetGUIImportedResources();
@@ -522,98 +522,98 @@ void NXGUIRenderGraph::Render()
 
     static int hoveredResource = -1;
     static int hoveredSegment = -1;
-    static int hoveredTimeLayer = -1;  // ÓÃÓÚ¼ÇÂ¼Êó±êĞüÍ£µÄÊ±¼ä²ã
+    static int hoveredTimeLayer = -1;  // ç”¨äºè®°å½•é¼ æ ‡æ‚¬åœçš„æ—¶é—´å±‚
     static float paddingAxisX = 0.5f;
     static float rectSizeY = 0.4f;
-    static float bottomPadding = 0.0f;  // µ×²¿¹Ì¶¨Ô¤Áô¿Õ¼ä£¬ÓÃÓÚÏÔÊ¾PassÃû³Æ
-    static float importedResourceOffsetX = 0.5f;  // µ¼Èë×ÊÔ´µÄXÖáÆ«ÒÆÁ¿
+    static float bottomPadding = 0.0f;  // åº•éƒ¨å›ºå®šé¢„ç•™ç©ºé—´ï¼Œç”¨äºæ˜¾ç¤ºPassåç§°
+    static float importedResourceOffsetX = 0.5f;  // å¯¼å…¥èµ„æºçš„Xè½´åç§»é‡
 
-    // Ê¹ÓÃÏÂÀ­²Ëµ¥Ñ¡ÔñÏÔÊ¾Ä£Ê½
-    const char* viewModes[] = { ImUtf8("ĞéÄâ×ÊÔ´"), ImUtf8("ÎïÀí×ÊÔ´") };
+    // ä½¿ç”¨ä¸‹æ‹‰èœå•é€‰æ‹©æ˜¾ç¤ºæ¨¡å¼
+    const char* viewModes[] = { ImUtf8("è™šæ‹Ÿèµ„æº"), ImUtf8("ç‰©ç†èµ„æº") };
     int currentMode = (int)m_viewMode;
     float comboWidth = std::max(ImGui::GetContentRegionAvail().x * 0.5f, 400.0f);
     ImGui::SetNextItemWidth(comboWidth);
-    if (ImGui::Combo(ImUtf8("×ÊÔ´ÊÓÍ¼"), &currentMode, viewModes, IM_ARRAYSIZE(viewModes)))
+    if (ImGui::Combo(ImUtf8("èµ„æºè§†å›¾"), &currentMode, viewModes, IM_ARRAYSIZE(viewModes)))
     {
         m_viewMode = (NXRGGUIResourceViewMode)currentMode;
     }
     ImGui::SameLine();
-    ImGui::Checkbox(ImUtf8("ÏÔÊ¾µ¼Èë×ÊÔ´"), &m_showImportedResources);
+    ImGui::Checkbox(ImUtf8("æ˜¾ç¤ºå¯¼å…¥èµ„æº"), &m_showImportedResources);
 
-    // Ìí¼Ó°ïÖú°´Å¥
+    // æ·»åŠ å¸®åŠ©æŒ‰é’®
     ImGui::SameLine();
     ImGui::TextDisabled("(?)");
     if (ImGui::IsItemHovered())
     {
         ImGui::BeginTooltip();
         ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-        ImGui::TextUnformatted(ImUtf8("äÖÈ¾Í¼×ÊÔ´ÉúÃüÖÜÆÚ¿ÉÊÓ»¯ËµÃ÷:\n\n"));
-        ImGui::BulletText(ImUtf8("ºáÖá: äÖÈ¾PassµÄÖ´ĞĞË³Ğò(Ê±¼ä²ã)"));
-        ImGui::BulletText(ImUtf8("×İÖá: ¸÷¸ö×ÊÔ´"));
+        ImGui::TextUnformatted(ImUtf8("æ¸²æŸ“å›¾èµ„æºç”Ÿå‘½å‘¨æœŸå¯è§†åŒ–è¯´æ˜:\n\n"));
+        ImGui::BulletText(ImUtf8("æ¨ªè½´: æ¸²æŸ“Passçš„æ‰§è¡Œé¡ºåº(æ—¶é—´å±‚)"));
+        ImGui::BulletText(ImUtf8("çºµè½´: å„ä¸ªèµ„æº"));
 
         ImGui::Bullet();
         ImGui::SameLine();
-        ImGui::TextColored(ImU32ToImVec4(COLOR_REGULAR_RESOURCE), ImUtf8("À¶É«Ìõ"));
+        ImGui::TextColored(ImU32ToImVec4(COLOR_REGULAR_RESOURCE), ImUtf8("è“è‰²æ¡"));
         ImGui::SameLine();
-        ImGui::Text(ImUtf8(": ³£¹æ×ÊÔ´µÄÉúÃüÖÜÆÚ,±íÊ¾¸Ã×ÊÔ´½é´´½¨µ½Ïú»ÙµÄÊ±¼ä·¶Î§"));
+        ImGui::Text(ImUtf8(": å¸¸è§„èµ„æºçš„ç”Ÿå‘½å‘¨æœŸ,è¡¨ç¤ºè¯¥èµ„æºä»‹åˆ›å»ºåˆ°é”€æ¯çš„æ—¶é—´èŒƒå›´"));
 
         ImGui::Bullet();
         ImGui::SameLine();
-        ImGui::TextColored(ImU32ToImVec4(COLOR_IMPORTED_RESOURCE), ImUtf8("²İÂÌÉ«Ìõ"));
+        ImGui::TextColored(ImU32ToImVec4(COLOR_IMPORTED_RESOURCE), ImUtf8("è‰ç»¿è‰²æ¡"));
         ImGui::SameLine();
-        ImGui::Text(ImUtf8(": µ¼Èë×ÊÔ´,ÕâĞ©ÊÇÍâ²¿Ìá¹©µÄ×ÊÔ´"));
+        ImGui::Text(ImUtf8(": å¯¼å…¥èµ„æº,è¿™äº›æ˜¯å¤–éƒ¨æä¾›çš„èµ„æº"));
 
-        // ¶Ô"ĞüÍ£ÔÚ×ÊÔ´ÌõÉÏ"¼Ó¿ò
+        // å¯¹"æ‚¬åœåœ¨èµ„æºæ¡ä¸Š"åŠ æ¡†
         ImGui::Bullet();
         ImGui::SameLine();
-        ImGui::Text(ImUtf8("½«Êó±ê"));
+        ImGui::Text(ImUtf8("å°†é¼ æ ‡"));
         ImGui::SameLine(0, 0);
         ImVec2 textPos1 = ImGui::GetCursorScreenPos();
-        ImVec2 textSize1 = ImGui::CalcTextSize(ImUtf8("ĞüÍ£ÔÚ×ÊÔ´ÌõÉÏ"));
+        ImVec2 textSize1 = ImGui::CalcTextSize(ImUtf8("æ‚¬åœåœ¨èµ„æºæ¡ä¸Š"));
         ImGui::GetWindowDrawList()->AddRect(
             ImVec2(textPos1.x - 2, textPos1.y - 1),
             ImVec2(textPos1.x + textSize1.x + 2, textPos1.y + textSize1.y + 1),
-            IM_COL32(255, 255, 0, 255), // »ÆÉ«¿ò
+            IM_COL32(255, 255, 0, 255), // é»„è‰²æ¡†
             2.0f, 0, 1.5f
         );
-        ImGui::Text(ImUtf8("ĞüÍ£ÔÚ×ÊÔ´ÌõÉÏ"));
+        ImGui::Text(ImUtf8("æ‚¬åœåœ¨èµ„æºæ¡ä¸Š"));
         ImGui::SameLine(0, 0);
-        ImGui::Text(ImUtf8("¿É²é¿´ÏêÏ¸ĞÅÏ¢"));
+        ImGui::Text(ImUtf8("å¯æŸ¥çœ‹è¯¦ç»†ä¿¡æ¯"));
 
-        // ¶Ô"ĞüÍ£ÔÚÊ±¼ä²ãÉÏ"¼Óµ×É«(ºÍ»ÆÉ«ÊúÌõÏàÍ¬ÑÕÉ«)
+        // å¯¹"æ‚¬åœåœ¨æ—¶é—´å±‚ä¸Š"åŠ åº•è‰²(å’Œé»„è‰²ç«–æ¡ç›¸åŒé¢œè‰²)
         ImGui::Bullet();
         ImGui::SameLine();
-        ImGui::Text(ImUtf8("½«Êó±ê"));
+        ImGui::Text(ImUtf8("å°†é¼ æ ‡"));
         ImGui::SameLine(0, 0);
         ImVec2 textPos2 = ImGui::GetCursorScreenPos();
-        ImVec2 textSize2 = ImGui::CalcTextSize(ImUtf8("ĞüÍ£ÔÚÊ±¼ä²ãÉÏ"));
+        ImVec2 textSize2 = ImGui::CalcTextSize(ImUtf8("æ‚¬åœåœ¨æ—¶é—´å±‚ä¸Š"));
         ImGui::GetWindowDrawList()->AddRectFilled(
             ImVec2(textPos2.x - 2, textPos2.y - 1),
             ImVec2(textPos2.x + textSize2.x + 2, textPos2.y + textSize2.y + 1),
-            COLOR_COLUMN_HIGHLIGHT // »ÆÉ«°ëÍ¸Ã÷µ×É«,ºÍÊúÌõÑÕÉ«ÏàÍ¬
+            COLOR_COLUMN_HIGHLIGHT // é»„è‰²åŠé€æ˜åº•è‰²,å’Œç«–æ¡é¢œè‰²ç›¸åŒ
         );
-        ImGui::Text(ImUtf8("ĞüÍ£ÔÚÊ±¼ä²ãÉÏ"));
+        ImGui::Text(ImUtf8("æ‚¬åœåœ¨æ—¶é—´å±‚ä¸Š"));
         ImGui::SameLine(0, 0);
-        ImGui::Text(ImUtf8("¿É²é¿´¸Ã²ãÖ´ĞĞµÄPass"));
+        ImGui::Text(ImUtf8("å¯æŸ¥çœ‹è¯¥å±‚æ‰§è¡Œçš„Pass"));
 
-        ImGui::BulletText(ImUtf8("°×É«·Ö¸ôÏß: Çø·Ö³£¹æ×ÊÔ´ºÍµ¼Èë×ÊÔ´"));
+        ImGui::BulletText(ImUtf8("ç™½è‰²åˆ†éš”çº¿: åŒºåˆ†å¸¸è§„èµ„æºå’Œå¯¼å…¥èµ„æº"));
         ImGui::Separator();
-        ImGui::TextUnformatted(ImUtf8("ÊÓÍ¼Ä£Ê½:\n"));
-        ImGui::BulletText(ImUtf8("ĞéÄâ×ÊÔ´: ÏÔÊ¾Âß¼­×ÊÔ´µÄÉúÃüÖÜÆÚ"));
-        ImGui::BulletText(ImUtf8("ÎïÀí×ÊÔ´: ÏÔÊ¾Êµ¼Ê·ÖÅäµÄ×ÊÔ´,¿ÉÄÜ»áÓĞ¶à¸öÊ±¼ä¶Î(×ÊÔ´¸´ÓÃ)"));
+        ImGui::TextUnformatted(ImUtf8("è§†å›¾æ¨¡å¼:\n"));
+        ImGui::BulletText(ImUtf8("è™šæ‹Ÿèµ„æº: æ˜¾ç¤ºé€»è¾‘èµ„æºçš„ç”Ÿå‘½å‘¨æœŸ"));
+        ImGui::BulletText(ImUtf8("ç‰©ç†èµ„æº: æ˜¾ç¤ºå®é™…åˆ†é…çš„èµ„æº,å¯èƒ½ä¼šæœ‰å¤šä¸ªæ—¶é—´æ®µ(èµ„æºå¤ç”¨)"));
         ImGui::PopTextWrapPos();
         ImGui::EndTooltip();
     }
 
     ImGui::Separator();
 
-    // ==================== ĞéÄâ×ÊÔ´ ====================
+    // ==================== è™šæ‹Ÿèµ„æº ====================
     if (m_viewMode == NXRGGUIResourceViewMode::Virtual)
     {
-        // ¸ù¾İ¸´Ñ¡¿òÑ¡ÔñÊı¾İÔ´
+        // æ ¹æ®å¤é€‰æ¡†é€‰æ‹©æ•°æ®æº
         auto displayResources = virtualResources;
 
-        // ¶ÔCreateÀàĞÍµÄ×ÊÔ´ÅÅĞò
+        // å¯¹Createç±»å‹çš„èµ„æºæ’åº
         std::sort(displayResources.begin(), displayResources.end(),
             [](const NXRGGUIResource& a, const NXRGGUIResource& b) {
                 if (a.lifeTimes.empty() || b.lifeTimes.empty()) return false;
@@ -628,13 +628,13 @@ void NXGUIRenderGraph::Render()
         RenderResourceView(displayResources, pRenderGraph, minTimeLayer, maxTimeLayer, "##VirtualResourceLifetime", false);
     }
 
-    // ==================== Êµ¼Ê×ÊÔ´ ====================
+    // ==================== å®é™…èµ„æº ====================
     if (m_viewMode == NXRGGUIResourceViewMode::Physical)
     {
-        // ¸ù¾İ¸´Ñ¡¿òÑ¡ÔñÊı¾İÔ´
+        // æ ¹æ®å¤é€‰æ¡†é€‰æ‹©æ•°æ®æº
         auto displayResources = physicalResources;
 
-        // ¶ÔCreateÀàĞÍµÄ×ÊÔ´ÅÅĞò
+        // å¯¹Createç±»å‹çš„èµ„æºæ’åº
         std::sort(displayResources.begin(), displayResources.end(),
             [](const NXRGGUIResource& a, const NXRGGUIResource& b) {
                 return a.lifeTimes[0].start < b.lifeTimes[0].start;

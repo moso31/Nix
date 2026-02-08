@@ -34,7 +34,7 @@ public:
 protected:
 	AABB m_localAABB;
 
-	// 针对FBX模型所做的适配
+	// 閽堝FBX妯″瀷鎵�鍋氱殑閫傞厤
 	// transformWorldMatrix = localMatrix * parent.transformWorldMatrix;
 	Matrix m_transformWorldMatrix;
 	Matrix m_transformWorldMatrixInv;

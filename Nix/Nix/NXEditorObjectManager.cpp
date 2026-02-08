@@ -23,7 +23,7 @@ void NXEditorObjectManager::Init()
 
 	InitBoundingStructures();
 
-	// EditorObjectsÄ¬ÈÏ²»¿É¼û
+	// EditorObjectsé»˜è®¤ä¸å¯è§
 	SetVisible(false);
 }
 
@@ -39,8 +39,8 @@ void NXEditorObjectManager::UpdateTransform()
 	{
 		pObj->UpdateTransform();
 
-		// 2022.9.26 ÁÙÊ±µÄ Translator rescale£¬¾àÀëÔ½Ô¶scaleÔ½´ó¡£
-		// Ê¹ÆäÊ¼ÖÕÔÚÆÁÄ»ÉÏÄÜ±£³Ö¹Ì¶¨´óÐ¡¡£
+		// 2022.9.26 ä¸´æ—¶çš„ Translator rescaleï¼Œè·ç¦»è¶Šè¿œscaleè¶Šå¤§ã€‚
+		// ä½¿å…¶å§‹ç»ˆåœ¨å±å¹•ä¸Šèƒ½ä¿æŒå›ºå®šå¤§å°ã€‚
 		float dist = Vector3::Distance(camPos, pObj->GetTranslation());
 		pObj->SetScale(Vector3(dist * 0.1f));
 	}

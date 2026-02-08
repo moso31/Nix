@@ -144,7 +144,7 @@ NXSubMeshEditorObjects::NXSubMeshEditorObjects(NXRenderableObject* pRenderableOb
 
 bool NXSubMeshEditorObjects::RayCastLocal(const Ray& localRay, NXHit& outHitInfo, float& outDist)
 {
-	// Editor Objects Ê¹ÓÃË«Ãæ ray-tri isect¡£
+	// Editor Objects ä½¿ç”¨åŒé¢ ray-tri isectã€‚
 	bool bSuccess = false;
 	for (UINT i = 0, faceId = 0; i < m_indices.size(); i += 3, faceId++)
 	{
@@ -177,7 +177,7 @@ void NXSubMeshEditorObjects::CalcLocalAABB()
 
 void NXSubMeshEditorObjects::Update(ID3D12GraphicsCommandList* pCmdList, bool isHighLight)
 {
-	// ÅĞ¶Ïµ±Ç°SubMeshÊÇ·ñ¸ßÁÁÏÔÊ¾
+	// åˆ¤æ–­å½“å‰SubMeshæ˜¯å¦é«˜äº®æ˜¾ç¤º
 	m_cbDataParams.value.x = isHighLight ? 1.0f : 0.0f;
 	m_cbParams.Set(m_cbDataParams);
 

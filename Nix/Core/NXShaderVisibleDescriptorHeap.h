@@ -1,11 +1,11 @@
 #pragma once
 #include "BaseDefs/DX12.h"
 
-// 2024.5.8 DX12ÃèÊö·û¶Ñ
-// Õâ¸öÃèÊö·û¶Ñ»á·ÖÎªÁ½¸öÇøÓò£¬Ò»¸öÊÇÎÈ¶¨ÇøÓò£¬Ò»¸öÊÇ±ä»¯ÇøÓò¡£
-//		Stable Region µÄÃèÊö·ûĞèÒªÊÖ¶¯ÉèÖÃ£¬·ñÔò²»»á±ä»¯£»
-//		Fluid Region µÄÃèÊö·ûÊÇÒ»¸öring Buffer£¬ĞèÒªÔÚÃ¿Ö¡¸üĞÂ¡£
-// m_stableCount ¼ÇÂ¼ÁË Stable Region µÄÃèÊö·ûÊıÁ¿£¬Ò²ÊÇ Stable ºÍ Fluid µÄ·Ö½çÏß¡£be like:
+// 2024.5.8 DX12æè¿°ç¬¦å †
+// è¿™ä¸ªæè¿°ç¬¦å †ä¼šåˆ†ä¸ºä¸¤ä¸ªåŒºåŸŸï¼Œä¸€ä¸ªæ˜¯ç¨³å®šåŒºåŸŸï¼Œä¸€ä¸ªæ˜¯å˜åŒ–åŒºåŸŸã€‚
+//		Stable Region çš„æè¿°ç¬¦éœ€è¦æ‰‹åŠ¨è®¾ç½®ï¼Œå¦åˆ™ä¸ä¼šå˜åŒ–ï¼›
+//		Fluid Region çš„æè¿°ç¬¦æ˜¯ä¸€ä¸ªring Bufferï¼Œéœ€è¦åœ¨æ¯å¸§æ›´æ–°ã€‚
+// m_stableCount è®°å½•äº† Stable Region çš„æè¿°ç¬¦æ•°é‡ï¼Œä¹Ÿæ˜¯ Stable å’Œ Fluid çš„åˆ†ç•Œçº¿ã€‚be like:
 // 
 // 0        (m_stableCount - 1)                            m_maxDescriptors
 // |                 |                                             |
@@ -13,7 +13,7 @@
 // |  Stable Region  ||                Fluid Region                |
 // +-----------------++--------------------------------------------+
 //
-// 0 ~ (m_stableCount - 1) ÊÇÎÈ¶¨ÇøÓò£¬m_stableCount ~ (m_maxDescriptors - 1) ÊÇ±ä»¯ÇøÓò¡£
+// 0 ~ (m_stableCount - 1) æ˜¯ç¨³å®šåŒºåŸŸï¼Œm_stableCount ~ (m_maxDescriptors - 1) æ˜¯å˜åŒ–åŒºåŸŸã€‚
 
 class NXShaderVisibleDescriptorHeap
 {
@@ -21,32 +21,32 @@ public:
 	NXShaderVisibleDescriptorHeap(ID3D12Device* pDevice, UINT stableIndex = 0);
 	virtual ~NXShaderVisibleDescriptorHeap() {}
 
-	// ½« non-shader-visible µÄÃèÊö·û¿½±´µ½ shader-Visible Heap µÄ Stable ÇøÓò
-	// ĞèÒªÊÖ¶¯Ö¸¶¨¾ßÌåµÄË÷Òı¡£
+	// å°† non-shader-visible çš„æè¿°ç¬¦æ‹·è´åˆ° shader-Visible Heap çš„ Stable åŒºåŸŸ
+	// éœ€è¦æ‰‹åŠ¨æŒ‡å®šå…·ä½“çš„ç´¢å¼•ã€‚
 	const D3D12_GPU_DESCRIPTOR_HANDLE SetStableDescriptor(const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle, UINT index);
 
-	// ½« non-shader-visible µÄÃèÊö·û¿½±´µ½ shader-Visible Heap µÄ Fluid ÇøÓò
-	// ÎŞĞèÖ¸¶¨¾ßÌåµÄË÷Òı£¬»á¸ù¾İ ring buffer µÄÎ»ÖÃ×Ô¶¯¸üĞÂ¡£
+	// å°† non-shader-visible çš„æè¿°ç¬¦æ‹·è´åˆ° shader-Visible Heap çš„ Fluid åŒºåŸŸ
+	// æ— éœ€æŒ‡å®šå…·ä½“çš„ç´¢å¼•ï¼Œä¼šæ ¹æ® ring buffer çš„ä½ç½®è‡ªåŠ¨æ›´æ–°ã€‚
 	const D3D12_GPU_DESCRIPTOR_HANDLE SetFluidDescriptor(const D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle);
 
-	// »ñÈ¡Ô­Éú¶ÑÖ¸Õë
+	// è·å–åŸç”Ÿå †æŒ‡é’ˆ
 	ID3D12DescriptorHeap* GetHeap() { return m_shaderVisibleHeap.Get(); }
 
-	D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle(UINT index); // »ñÈ¡ringbufferÖĞ offsetÎ»ÖÃµÄ cpuHandle¡£
-	D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle(UINT index); // »ñÈ¡ringbufferÖĞ offsetÎ»ÖÃµÄ gpuHandle¡£
+	D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle(UINT index); // è·å–ringbufferä¸­ offsetä½ç½®çš„ cpuHandleã€‚
+	D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle(UINT index); // è·å–ringbufferä¸­ offsetä½ç½®çš„ gpuHandleã€‚
 
 private:
 	const UINT m_maxDescriptors;
 	const UINT m_descriptorByteSize;
 	ID3D12Device* m_pDevice;
 
-	// ÎÈ¶¨ÇøÓòµÄÃèÊö·ûÊıÁ¿£¬Ò²ÊÇÎÈ¶¨ÇøÓòºÍ±ä»¯ÇøÓòµÄ·Ö½çÏß
-	// £¨Èô=0£¬Õû¸öÃèÊö·û¶Ñ¶¼ÊÇ±ä»¯ÇøÓò£©
+	// ç¨³å®šåŒºåŸŸçš„æè¿°ç¬¦æ•°é‡ï¼Œä¹Ÿæ˜¯ç¨³å®šåŒºåŸŸå’Œå˜åŒ–åŒºåŸŸçš„åˆ†ç•Œçº¿
+	// ï¼ˆè‹¥=0ï¼Œæ•´ä¸ªæè¿°ç¬¦å †éƒ½æ˜¯å˜åŒ–åŒºåŸŸï¼‰
 	UINT m_stableCount;
 
-	// Fluid ÇøÓòÃèÊö·ûµÄË÷Òı£¬Ã¿Ö¡ÔÚ ring buffer ÉÏ¶¯Ì¬±ä»¯
+	// Fluid åŒºåŸŸæè¿°ç¬¦çš„ç´¢å¼•ï¼Œæ¯å¸§åœ¨ ring buffer ä¸ŠåŠ¨æ€å˜åŒ–
 	UINT m_fluidIndex;
 
-	// Ô­Ê¼±¾Ìå
+	// åŸå§‹æœ¬ä½“
 	ComPtr<ID3D12DescriptorHeap> m_shaderVisibleHeap;
 };

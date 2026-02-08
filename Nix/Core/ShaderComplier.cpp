@@ -158,12 +158,12 @@ HRESULT NXShaderComplier::CompileInternal(const DxcBuffer& sourceBuffer, const s
 	args.push_back(L"./Shader/");
 
 #ifdef DEBUG
-	args.push_back(L"-Od");            // ¹Ø±ÕËùÓĞÓÅ»¯
-	args.push_back(L"-Qembed_debug");  // Ç¶Èë PDB
+	args.push_back(L"-Od");            // å…³é—­æ‰€æœ‰ä¼˜åŒ–
+	args.push_back(L"-Qembed_debug");  // åµŒå…¥ PDB
 	args.push_back(L"-Qsource_in_debug_module");
 #endif
 
-	// °´ÕÕÉÏÃæµÄ²ÎÊı±àÒëshader
+	// æŒ‰ç…§ä¸Šé¢çš„å‚æ•°ç¼–è¯‘shader
 	ComPtr<IDxcResult> pResult;
 	HRESULT hr = m_pDXCCompiler->Compile(&sourceBuffer, args.data(), (UINT)args.size(), m_pDXCIncHandler.Get(), IID_PPV_ARGS(&pResult));
 	if (FAILED(hr))
@@ -191,7 +191,7 @@ HRESULT NXShaderComplier::CompileInternal(const DxcBuffer& sourceBuffer, const s
 		return hrStatus;
 	}
 
-	// »ñÈ¡±àÒë½á¹ûblob
+	// è·å–ç¼–è¯‘ç»“æœblob
 	ComPtr<IDxcBlobUtf16> pShaderName = nullptr;
 	ComPtr<IDxcBlob> pShaderBlob = nullptr;
 	hr = pResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&pShaderBlob), &pShaderName);

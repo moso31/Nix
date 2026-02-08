@@ -60,7 +60,7 @@ void NXTextureLoader::DoTask(const NXTextureLoaderTask& task)
 		return;
 	}
 
-	// Èç¹ûÊÇTexture2DÎÆÀí£¬²¢ÇÒ¶ÁÈ¡µÄÊÇarraySize/TextureCube ÀàĞÍµÄÎÄ¼ş£¬¾ÍÖ»¼ÓÔØµÚÒ»Ãæ¡£
+	// å¦‚æœæ˜¯Texture2Dçº¹ç†ï¼Œå¹¶ä¸”è¯»å–çš„æ˜¯arraySize/TextureCube ç±»å‹çš„æ–‡ä»¶ï¼Œå°±åªåŠ è½½ç¬¬ä¸€é¢ã€‚
 	if (metadata.arraySize > 1 && type == NXResourceType::Tex2D)
 	{
 		std::shared_ptr<ScratchImage> timage(new ScratchImage);
@@ -95,7 +95,7 @@ void NXTextureLoader::DoTask(const NXTextureLoaderTask& task)
 	//	}
 	//}
 
-	// Èç¹ûĞòÁĞ»¯µÄÎÄ¼şÀï¼ÇÂ¼ÁËsRGB/LinearÀàĞÍ£¬¾Í×ö¶ÔÓ¦µÄ×ª»»
+	// å¦‚æœåºåˆ—åŒ–çš„æ–‡ä»¶é‡Œè®°å½•äº†sRGB/Linearç±»å‹ï¼Œå°±åšå¯¹åº”çš„è½¬æ¢
 	if (serializationData.m_textureType == NXTextureMode::sRGB || serializationData.m_textureType == NXTextureMode::Linear)
 	{
 		bool bIsSRGB = serializationData.m_textureType == NXTextureMode::sRGB;

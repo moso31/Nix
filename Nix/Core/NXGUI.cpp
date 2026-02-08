@@ -77,20 +77,20 @@ void NXGUI::Init()
 		m_pCmdList[i]->SetName(std::wstring(L"GUI Command List " + std::to_wstring(i)).c_str());
 	}
 
-	// ImGUIµÄ×ÖÌåÎÆÀí£¬½«Ê¼ÖÕÊ¹ÓÃ ShaderVisibleHeap£¨NXShVisDescHeap£©ÖÐµÄ¾²Ì¬ÃèÊö·ûÇø¡£¾²Ì¬ÃèÊö·ûÊÇNixµÄ¸ÅÄî£¬Ïê¼û¸ÃÀàÖÐµÄ×¢ÊÍËµÃ÷¡£
+	// ImGUIçš„å­—ä½“çº¹ç†ï¼Œå°†å§‹ç»ˆä½¿ç”¨ ShaderVisibleHeapï¼ˆNXShVisDescHeapï¼‰ä¸­çš„é™æ€æè¿°ç¬¦åŒºã€‚é™æ€æè¿°ç¬¦æ˜¯Nixçš„æ¦‚å¿µï¼Œè¯¦è§è¯¥ç±»ä¸­çš„æ³¨é‡Šè¯´æ˜Žã€‚
 	ImGui_ImplDX12_Init(NXGlobalDX::GetDevice(), MultiFrameSets_swapChainCount, DXGI_FORMAT_R8G8B8A8_UNORM, NXShVisDescHeap->GetDescriptorHeap(), NXShVisDescHeap->GetStableCPUHandle(0), NXShVisDescHeap->GetStableGPUHandle(0));
 
 	ImGui_ImplWin32_Init(NXGlobalWindows::hWnd);
 
-	// ÉèÖÃ×ÖÌå
+	// è®¾ç½®å­—ä½“
 	ImFontConfig cfg;
 	cfg.MergeMode = true;
 	cfg.PixelSnapH = true;
 	g_imgui_font_general = io.Fonts->AddFontFromFileTTF("./Resource/fonts/JetBrainsMono-Bold.ttf", 16);
 	g_imgui_font_general = io.Fonts->AddFontFromFileTTF("./Resource/fonts/msyh.ttc", 16.0f, &cfg, io.Fonts->GetGlyphRangesChineseFull());
 
-	// CodeEditor ÐèÒªÊ¹ÓÃ¶ÀÁ¢µÄ×ÖÌåÅäÖÃ¡£
-	// ÈôÖ±½ÓÊ¹ÓÃ»ù±¾×ÖÌå£¬¾ÍËãÊÇµÈ¿í×ÖÌå£¬¶ÔÆëÒ²»áÓÐÎÊÌâ
+	// CodeEditor éœ€è¦ä½¿ç”¨ç‹¬ç«‹çš„å­—ä½“é…ç½®ã€‚
+	// è‹¥ç›´æŽ¥ä½¿ç”¨åŸºæœ¬å­—ä½“ï¼Œå°±ç®—æ˜¯ç­‰å®½å­—ä½“ï¼Œå¯¹é½ä¹Ÿä¼šæœ‰é—®é¢˜
 	ImFontConfig configData;
 	configData.GlyphMinAdvanceX = configData.GlyphMaxAdvanceX = 7.0f;
 	g_imgui_font_codeEditor = io.Fonts->AddFontFromFileTTF("./Resource/fonts/JetBrainsMono-Bold.ttf", 16, &configData);
@@ -153,10 +153,10 @@ void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT, const NXSwapChainBuffer& swapCha
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
-	// ²Î¿¼ imgui_demo.cpp µÄ×¢ÊÍ£º
-	// ImGui::DockSpace »æÖÆË³Ðò±ØÐë¾¡¿ÉÄÜµÄÔç£¬
-	// ÔÚ DockSpace Ö®Ç°»æÖÆµÄ UI ÎÞ·¨Îü¸½µ½ DockSpace ÉÏ¡£
-	// ËùÒÔÕâÀïÐ´ÔÚËùÓÐ UI ×îÇ°Ãæ¡£
+	// å‚è€ƒ imgui_demo.cpp çš„æ³¨é‡Šï¼š
+	// ImGui::DockSpace ç»˜åˆ¶é¡ºåºå¿…é¡»å°½å¯èƒ½çš„æ—©ï¼Œ
+	// åœ¨ DockSpace ä¹‹å‰ç»˜åˆ¶çš„ UI æ— æ³•å¸é™„åˆ° DockSpace ä¸Šã€‚
+	// æ‰€ä»¥è¿™é‡Œå†™åœ¨æ‰€æœ‰ UI æœ€å‰é¢ã€‚
 	m_pGUIWorkspace->Render();
 
 	m_pGUIMaterialShaderEditor->Render();
@@ -206,7 +206,7 @@ void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT, const NXSwapChainBuffer& swapCha
 	pCmdAllocator->Reset();
 	pCmdList->Reset(pCmdAllocator, nullptr);
 
-	// GPU Profiler: ImGui äÖÈ¾¿ªÊ¼
+	// GPU Profiler: ImGui æ¸²æŸ“å¼€å§‹
 	if (g_pGPUProfiler)
 		g_pGPUProfiler->BeginPass(pCmdList, "ImGui Render");
 
@@ -236,12 +236,12 @@ void NXGUI::Render(Ntr<NXTexture2D> pGUIViewRT, const NXSwapChainBuffer& swapCha
 
 	NX12Util::EndEvent(pCmdList);
 
-	// GPU Profiler: ImGui äÖÈ¾½áÊø
+	// GPU Profiler: ImGui æ¸²æŸ“ç»“æŸ
 	if (g_pGPUProfiler)
 		g_pGPUProfiler->EndPass(pCmdList);
 
-	// GPU Profiler: Ö¡½áÊø£¬resolve Ê±¼ä´Á
-	// ·ÅÔÚÕâÀïÈ·±£Í³¼Æ°üº¬ RenderGraph + ImGui µÄËùÓÐ GPU Ê±¼ä
+	// GPU Profiler: å¸§ç»“æŸï¼Œresolve æ—¶é—´æˆ³
+	// æ”¾åœ¨è¿™é‡Œç¡®ä¿ç»Ÿè®¡åŒ…å« RenderGraph + ImGui çš„æ‰€æœ‰ GPU æ—¶é—´
 	if (g_pGPUProfiler)
 		g_pGPUProfiler->EndFrame(pCmdList);
 
@@ -290,7 +290,7 @@ void NXGUI::Release()
 
 void NXGUI::OpenGUITerrainSector2NodeIDPreview()
 {
-	// ´ò¿ª´°¿ÚÊ±·ÖÅäÄÚ´æ
+	// æ‰“å¼€çª—å£æ—¶åˆ†é…å†…å­˜
 	if (!m_pGUITerrainSector2NodeIDPreview)
 	{
 		m_pGUITerrainSector2NodeIDPreview = new NXGUITerrainSector2NodeIDPreview(m_pRenderer);
@@ -304,7 +304,7 @@ void NXGUI::UpdateGUITerrainSector2NodeIDPreview()
 	{
 		m_pGUITerrainSector2NodeIDPreview->Render();
 
-		// ¹Ø±Õ´°¿ÚÊ±ÊÍ·ÅÄÚ´æ
+		// å…³é—­çª—å£æ—¶é‡Šæ”¾å†…å­˜
 		if (!m_pGUITerrainSector2NodeIDPreview->GetVisible())
 		{
 			SafeDelete(m_pGUITerrainSector2NodeIDPreview);
@@ -314,7 +314,7 @@ void NXGUI::UpdateGUITerrainSector2NodeIDPreview()
 
 void NXGUI::OpenGUITerrainStreamingDebug()
 {
-	// ´ò¿ª´°¿ÚÊ±·ÖÅäÄÚ´æ
+	// æ‰“å¼€çª—å£æ—¶åˆ†é…å†…å­˜
 	if (!m_pGUITerrainStreamingDebug)
 	{
 		m_pGUITerrainStreamingDebug = new NXGUITerrainStreamingDebug(m_pRenderer);
@@ -328,7 +328,7 @@ void NXGUI::UpdateGUITerrainStreamingDebug()
 	{
 		m_pGUITerrainStreamingDebug->Render();
 
-		// ¹Ø±Õ´°¿ÚÊ±ÊÍ·ÅÄÚ´æ
+		// å…³é—­çª—å£æ—¶é‡Šæ”¾å†…å­˜
 		if (!m_pGUITerrainStreamingDebug->GetVisible())
 		{
 			SafeDelete(m_pGUITerrainStreamingDebug);
@@ -338,7 +338,7 @@ void NXGUI::UpdateGUITerrainStreamingDebug()
 
 void NXGUI::OpenGUISectorVersionMap()
 {
-	// ´ò¿ª´°¿ÚÊ±·ÖÅäÄÚ´æ
+	// æ‰“å¼€çª—å£æ—¶åˆ†é…å†…å­˜
 	if (!m_pGUISectorVersionMap)
 	{
 		m_pGUISectorVersionMap = new NXGUISectorVersionMap(m_pRenderer);
@@ -352,7 +352,7 @@ void NXGUI::UpdateGUISectorVersionMap()
 	{
 		m_pGUISectorVersionMap->Render();
 
-		// ¹Ø±Õ´°¿ÚÊ±ÊÍ·ÅÄÚ´æ
+		// å…³é—­çª—å£æ—¶é‡Šæ”¾å†…å­˜
 		if (!m_pGUISectorVersionMap->GetVisible())
 		{
 			SafeDelete(m_pGUISectorVersionMap);

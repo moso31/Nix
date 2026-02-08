@@ -28,8 +28,8 @@ public:
 	virtual bool RayCastLocal(const Ray& localRay, NXHit& outHitInfo, float& outDist) = 0;
 	virtual void TryAddBuffers() = 0;
 
-	// ×Ô¶¯¼ÆËã¶¥µãµÄÇĞÏßÊı¾İ¡£
-	// bUpdateVBIB: ÊÇ·ñÍ¬Ê±¸üĞÂVBIB
+	// è‡ªåŠ¨è®¡ç®—é¡¶ç‚¹çš„åˆ‡çº¿æ•°æ®ã€‚
+	// bUpdateVBIB: æ˜¯å¦åŒæ—¶æ›´æ–°VBIB
 	virtual void CalculateTangents(bool bUpdateVBIB) = 0;
 
 	NXRenderableObject* GetRenderableObject() { return m_pRenderableObject; }
@@ -51,8 +51,8 @@ public:
 	void SetReloadingState(NXSubMeshReloadState state) { m_nMatReloadingState = state; }
 
 private:
-	// [Warning!] ²»ÔÊĞíÖ±½ÓÉèÖÃ²ÄÖÊ£¡
-	// ĞèÊ¹ÓÃ BindMaterial() Îª³¡¾°ÎïÌå°ó¶¨²ÄÖÊ
+	// [Warning!] ä¸å…è®¸ç›´æ¥è®¾ç½®æè´¨ï¼
+	// éœ€ä½¿ç”¨ BindMaterial() ä¸ºåœºæ™¯ç‰©ä½“ç»‘å®šæè´¨
 	virtual void SetMaterial(NXMaterial* mat) { m_pMaterial = mat; }
 
 protected:
@@ -67,7 +67,7 @@ protected:
 	std::filesystem::path m_strReplacingPath;
 	NXMaterial* m_pReplacingMaterial;
 
-	// ÅÉÉú³ÉÔ±µÈ£¨Èçvertices indices instancedata£©µÄ×Ö½ÚÊÓÍ¼
+	// æ´¾ç”Ÿæˆå‘˜ç­‰ï¼ˆå¦‚vertices indices instancedataï¼‰çš„å­—èŠ‚è§†å›¾
 	std::vector<NXRawMeshView>	m_rawViews;
 };
 
@@ -194,7 +194,7 @@ public:
 
 	virtual ~NXSubMeshTerrain() {}
 
-	// µØĞÎÖ»ÉÏ´«¶¥µãºÍË÷Òı£¬²»ĞèÒª instance data
+	// åœ°å½¢åªä¸Šä¼ é¡¶ç‚¹å’Œç´¢å¼•ï¼Œä¸éœ€è¦ instance data
 	virtual void TryAddBuffers() override
 	{
 		auto rawBytes = std::as_bytes(std::span(m_vertices));
@@ -206,8 +206,8 @@ public:
 
 	virtual bool IsSubMeshTerrain()		 override { return true; }
 
-	// [Warning!] ²»ÔÊĞíÖ±½ÓÉèÖÃ²ÄÖÊ£¡
-	// ĞèÊ¹ÓÃ BindMaterial() Îª³¡¾°ÎïÌå°ó¶¨²ÄÖÊ
+	// [Warning!] ä¸å…è®¸ç›´æ¥è®¾ç½®æè´¨ï¼
+	// éœ€ä½¿ç”¨ BindMaterial() ä¸ºåœºæ™¯ç‰©ä½“ç»‘å®šæè´¨
 	virtual void SetMaterial(NXMaterial* mat) override;
 
 	virtual void Render(ID3D12GraphicsCommandList* pCommandList) override {}

@@ -102,10 +102,10 @@ Vector2 GetGUIParamsDefaultValue(NXGUICBufferStyle eGUIStyle)
 
 std::filesystem::path GenerateAssetNameJudge(const std::filesystem::path& strFolderPath, const std::string& strSuffix, const std::string& strJudge)
 {
-	// ÕûÌåË¼Â·£º
-	// ÅĞ¶ÏÒ»ÏÂµ±Ç°FolderÏÂËùÓĞÀ©Õ¹ÃûÀàĞÍÎª strSuffix µÄÎÄ¼ş£¬Èç¹ûÎÄ¼şÃûÊÇ strJudge + [ÈÎÒâÊı×Ö] µÄĞÎÊ½£¬¼ÇÏÂÕâ¸öÊı×Ö¡£
-	// ±éÀúÍê³ÉÊ±£¬È·¶¨ ×î´óµÄÄÇ¸öÊı×Ö+1¡£ÈôÃ»ÓĞÕâÖÖÎÄ¼ş£¬ÔòÊ¹ÓÃ 1¡£
-	// È»ºóÔÚµ±Ç°ÎÄ¼ş¼ĞÏÂ·µ»ØÕâ¸öÂ·¾¶¡£
+	// æ•´ä½“æ€è·¯ï¼š
+	// åˆ¤æ–­ä¸€ä¸‹å½“å‰Folderä¸‹æ‰€æœ‰æ‰©å±•åç±»å‹ä¸º strSuffix çš„æ–‡ä»¶ï¼Œå¦‚æœæ–‡ä»¶åæ˜¯ strJudge + [ä»»æ„æ•°å­—] çš„å½¢å¼ï¼Œè®°ä¸‹è¿™ä¸ªæ•°å­—ã€‚
+	// éå†å®Œæˆæ—¶ï¼Œç¡®å®š æœ€å¤§çš„é‚£ä¸ªæ•°å­—+1ã€‚è‹¥æ²¡æœ‰è¿™ç§æ–‡ä»¶ï¼Œåˆ™ä½¿ç”¨ 1ã€‚
+	// ç„¶ååœ¨å½“å‰æ–‡ä»¶å¤¹ä¸‹è¿”å›è¿™ä¸ªè·¯å¾„ã€‚
 
 	UINT nMaxNumber = 0;
 	for (auto& file : std::filesystem::directory_iterator(strFolderPath))

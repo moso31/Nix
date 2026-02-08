@@ -48,9 +48,9 @@ void NXGUIDiffuseProfile::Release()
 
 void NXGUIDiffuseProfile::SetDiffuseProfile(const std::filesystem::path& path)
 {
-	// ÐèÒªÈ·±££¬ÔÚGUIµ÷ÕûProfileµÄÐ§¹ûÄÜÔÚViewÖÐÁ¢¿Ì¿É¼û¡£
-	// ËùÒÔÐèÒªÒ»¸öÖ¸Ïò MaterialManager µÄ m_sssProfilesMap ²ÎÊýµÄÖ¸Õë m_pShowProfile¡£
-	// GUI Àà Ö»¸ºÔð¸Ä m_pShowProfile µÄÖµ£¬MaterialManager »á×Ô¶¯Î¬»¤¼´Ê±¸üÐÂµÄÂß¼­¡£
+	// éœ€è¦ç¡®ä¿ï¼Œåœ¨GUIè°ƒæ•´Profileçš„æ•ˆæžœèƒ½åœ¨Viewä¸­ç«‹åˆ»å¯è§ã€‚
+	// æ‰€ä»¥éœ€è¦ä¸€ä¸ªæŒ‡å‘ MaterialManager çš„ m_sssProfilesMap å‚æ•°çš„æŒ‡é’ˆ m_pShowProfileã€‚
+	// GUI ç±» åªè´Ÿè´£æ”¹ m_pShowProfile çš„å€¼ï¼ŒMaterialManager ä¼šè‡ªåŠ¨ç»´æŠ¤å³æ—¶æ›´æ–°çš„é€»è¾‘ã€‚
 	m_pShowProfile = NXResourceManager::GetInstance()->GetMaterialManager()->GetOrAddSSSProfile(path);
 }
 

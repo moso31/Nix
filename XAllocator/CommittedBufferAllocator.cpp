@@ -38,7 +38,7 @@ void CommittedBufferAllocator::Alloc(uint32_t byteSize, const std::function<void
 
 void ccmem::CommittedBufferAllocator::Free(const XBuddyTaskMemData& memData)
 {
-	// ÕÒµ½¶ÔÓ¦µÄÄÚ´æ¿é£¬È»ºó±ê¼ÇÎª¿ÉÒÔÖØÐÂ·ÖÅä
+	// æ‰¾åˆ°å¯¹åº”çš„å†…å­˜å—ï¼Œç„¶åŽæ ‡è®°ä¸ºå¯ä»¥é‡æ–°åˆ†é…
 	BuddyAllocator::AddFreeTask(memData.pAllocator, memData.byteOffset);
 }
 
@@ -68,7 +68,7 @@ void ccmem::CommittedBufferAllocator::OnAllocatorAdded(BuddyAllocatorPage* pAllo
 	HRESULT hr = m_pDevice->CreateCommittedResource(
 		&props,
 		D3D12_HEAP_FLAG_NONE,
-		&cbDesc, // ×ÊÔ´ÃèÊö
+		&cbDesc, // èµ„æºæè¿°
 		initState,
 		nullptr,
 		IID_PPV_ARGS(&newData.m_pResource)
@@ -76,11 +76,11 @@ void ccmem::CommittedBufferAllocator::OnAllocatorAdded(BuddyAllocatorPage* pAllo
 
 	if (m_cpuAccessable || m_isReadBack)
 	{
-		// Èç¹ûcpu¿É·ÃÎÊ£¬¹¹½¨Ó³ÉäµØÖ·
+		// å¦‚æžœcpuå¯è®¿é—®ï¼Œæž„å»ºæ˜ å°„åœ°å€
 		newData.m_pResource->Map(0, nullptr, reinterpret_cast<void**>(&newData.m_pResourceData));
 	}
 
-	// ÉèÖÃµ÷ÊÔÓÃ×ÊÔ´Ãû³Æ
+	// è®¾ç½®è°ƒè¯•ç”¨èµ„æºåç§°
 	std::wstring bufferName = GetName() + std::to_wstring(pAllocator->GetPageID());
 	newData.m_pResource->SetName(bufferName.c_str());
 }

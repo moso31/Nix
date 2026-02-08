@@ -66,11 +66,11 @@ public:
 	HBVHTree(NXScene* scene);
 	virtual ~HBVHTree() {}
 
-	// ¸ù¾İ³¡¾°ĞÅÏ¢£¬Éú³É¹¹½¨BVHÊ÷ËùĞèÒªµÄĞÅÏ¢¡£
+	// æ ¹æ®åœºæ™¯ä¿¡æ¯ï¼Œç”Ÿæˆæ„å»ºBVHæ ‘æ‰€éœ€è¦çš„ä¿¡æ¯ã€‚
 	void BuildTreesWithScene(HBVHSplitMode mode);
 
-	// BVHÅö×²¼ì²â¡£
-	// ¸ø¶¨ÊÀ½ç×ø±êÉäÏß£¬Êä³öSurfaceInteractionºÍ¶ÔÏóµÄË÷ÒıºÅhitIndex£¬
+	// BVHç¢°æ’æ£€æµ‹ã€‚
+	// ç»™å®šä¸–ç•Œåæ ‡å°„çº¿ï¼Œè¾“å‡ºSurfaceInteractionå’Œå¯¹è±¡çš„ç´¢å¼•å·hitIndexï¼Œ
 	void Intersect(const Ray& worldRay, NXHit& outHitInfo, float tMax = FLT_MAX);
 
 	void Release();
@@ -79,10 +79,10 @@ private:
 	void BuildTree(HBVHTreeNode* node, int stIndex, int edIndex, HBVHSplitMode mode);
 	void RecursiveIntersect(HBVHTreeNode* node, const Ray& worldRay, NXHit& outHitInfo, float& out_tHit);
 
-	// ¹¹½¨HLBVHËùĞèÒªÓÃµ½µÄtreelet¡£Ò»´Î¹¹½¨Ò»¸ö¡£
+	// æ„å»ºHLBVHæ‰€éœ€è¦ç”¨åˆ°çš„treeletã€‚ä¸€æ¬¡æ„å»ºä¸€ä¸ªã€‚
 	HBVHTreeNode* BuildTreelet(int stIndex, int edIndex, int bitIndex);
 
-	// ¹¹½¨ÉÏ²ã×ÜÊ÷¡£
+	// æ„å»ºä¸Šå±‚æ€»æ ‘ã€‚
 	void BuildUpperTree(HBVHTreeNode*& node, int stIndex, int edIndex);
 
 	void ReleaseTreeNode(HBVHTreeNode* node);

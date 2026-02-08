@@ -5,7 +5,7 @@ NXShaderVisibleDescriptorHeap::NXShaderVisibleDescriptorHeap(ID3D12Device* pDevi
 	m_maxDescriptors(10000),
 	m_descriptorByteSize(pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV))
 {
-	// ´´½¨Ò»¸ö shader-visible µÄÃèÊö·û¶Ñ£¬ÓÃÓÚäÖÈ¾Ç°Ã¿Ö¡Ìá½»¡£
+	// åˆ›å»ºä¸€ä¸ª shader-visible çš„æè¿°ç¬¦å †ï¼Œç”¨äºæ¸²æŸ“å‰æ¯å¸§æäº¤ã€‚
 	D3D12_DESCRIPTOR_HEAP_DESC desc = {};
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	desc.NodeMask = 0;

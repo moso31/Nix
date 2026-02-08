@@ -99,29 +99,29 @@ void NXGUIWorkspace::Render()
         }
 
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(7.0f, 7.0f));
-        bool bToolsMenu = ImGui::BeginMenu(ImUtf8("µØĞÎ"));
+        bool bToolsMenu = ImGui::BeginMenu(ImUtf8("åœ°å½¢"));
         ImGui::PopStyleVar();
         if (bToolsMenu)
         {
-            if (ImGui::MenuItem(ImUtf8("HoudiniµØĞÎµ¼³ö"))) 
+            if (ImGui::MenuItem(ImUtf8("Houdiniåœ°å½¢å¯¼å‡º"))) 
             {
                 m_pGUI->GetGUIHoudiniTerrainExporter()->SetVisible(true);
             }
-            if (ImGui::MenuItem(ImUtf8("µØĞÎ²ÄÖÊÎÆÀíÉú³É"))) 
+            if (ImGui::MenuItem(ImUtf8("åœ°å½¢æè´¨çº¹ç†ç”Ÿæˆ"))) 
             {
                 m_pGUI->GetGUITerrainMaterialGenerator()->SetVisible(true);
             }
-            if (ImGui::MenuItem(ImUtf8("ÏÔÊ¾Sector2NodeIDÎÆÀí"))) 
+            if (ImGui::MenuItem(ImUtf8("æ˜¾ç¤ºSector2NodeIDçº¹ç†"))) 
             {
                 m_pGUI->OpenGUITerrainSector2NodeIDPreview();
             }
-            if (ImGui::MenuItem(ImUtf8("ÏÔÊ¾È«¾ÖSector°æ±¾ºÅ"))) 
+            if (ImGui::MenuItem(ImUtf8("æ˜¾ç¤ºå…¨å±€Sectorç‰ˆæœ¬å·"))) 
             {
                 m_pGUI->OpenGUISectorVersionMap();
             }
-            if (ImGui::BeginMenu(ImUtf8("µ÷ÊÔ")))
+            if (ImGui::BeginMenu(ImUtf8("è°ƒè¯•")))
             {
-                if (ImGui::MenuItem(ImUtf8("ÏÔÊ¾µ÷ÊÔ½çÃæ"))) 
+                if (ImGui::MenuItem(ImUtf8("æ˜¾ç¤ºè°ƒè¯•ç•Œé¢"))) 
                 {
                     m_pGUI->OpenGUITerrainStreamingDebug();
                 }
@@ -131,12 +131,12 @@ void NXGUIWorkspace::Render()
         }
 
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(7.0f, 7.0f));
-        bool bDebugMenu = ImGui::BeginMenu(ImUtf8("µ÷ÊÔ"));
+        bool bDebugMenu = ImGui::BeginMenu(ImUtf8("è°ƒè¯•"));
         ImGui::PopStyleVar();
         if (bDebugMenu)
         {
             bool bGPUProfilerVisible = m_pGUI->GetGUIGPUProfiler()->IsVisible();
-            if (ImGui::MenuItem(ImUtf8("ÏÔÊ¾ GPU Profiler"), nullptr, bGPUProfilerVisible))
+            if (ImGui::MenuItem(ImUtf8("æ˜¾ç¤º GPU Profiler"), nullptr, bGPUProfilerVisible))
             {
                 m_pGUI->GetGUIGPUProfiler()->SetVisible(!bGPUProfilerVisible);
             }
@@ -148,17 +148,17 @@ void NXGUIWorkspace::Render()
             }
 
             bool bRGVisible = m_pGUI->GetGUIRenderGraph()->IsVisible();
-            if (ImGui::MenuItem(ImUtf8("¿ÉÊÓ»¯ Render Graph"), nullptr, bRGVisible))
+            if (ImGui::MenuItem(ImUtf8("å¯è§†åŒ– Render Graph"), nullptr, bRGVisible))
             {
                 m_pGUI->GetGUIRenderGraph()->SetVisible(!bRGVisible);
             }
             ImGui::EndMenu();
         }
 
-        // ÑùÊ½£ºÓÒ¶ÔÆë
+        // æ ·å¼ï¼šå³å¯¹é½
         ImGui::SetCursorPosX(fMenuBarWidth - ImGui::CalcTextSize(std::string(m_strVersion + m_strMode).c_str()).x - ImGui::GetScrollX() - 2 * ImGui::GetStyle().ItemSpacing.x);
 
-        // ÑùÊ½£ºÓÒÒÆÒ»Ğ¡¶Î
+        // æ ·å¼ï¼šå³ç§»ä¸€å°æ®µ
         //ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 50.0f);
 
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.0f, 0.6f));

@@ -47,11 +47,11 @@ void NXGUIInspector::DoCommand(const NXGUICommand& cmd)
 	}
 	case NXGUICmd_Inspector_OpenShaderEditor:
 	{
-		// ½«²ÎÊýºÍnsl´úÂë´Ó µ±Ç°GUI²ÄÖÊÀà ÖÐÍ¬²½µ½ MaterialShaderEditor
+		// å°†å‚æ•°å’Œnslä»£ç ä»Ž å½“å‰GUIæè´¨ç±» ä¸­åŒæ­¥åˆ° MaterialShaderEditor
 		m_pGUIMaterialShaderEditor->RequestSyncMaterialData();
 		m_pGUIMaterialShaderEditor->RequestSyncMaterialCodes();
 
-		// ²¢½øÐÐ²ÎÊý±¸·Ý£¨revert¹¦ÄÜÒªÓÃ£©
+		// å¹¶è¿›è¡Œå‚æ•°å¤‡ä»½ï¼ˆrevertåŠŸèƒ½è¦ç”¨ï¼‰
 		m_pGUIMaterialShaderEditor->RequestGenerateBackup();
 
 		m_pGUIMaterialShaderEditor->Show();

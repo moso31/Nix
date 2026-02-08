@@ -6,8 +6,8 @@
 
 NXScript* NXScriptResourceManager::CreateScript(const NXScriptType scriptType, NXScriptable* pObject)
 {
-	// NXScript的内存生命周期由 NXObject 管理，而不用此Manager管理
-	// 因为每个对象的脚本都是独立的
+	// NXScript鐨勫唴瀛樼敓鍛藉懆鏈熺敱 NXObject 绠＄悊锛岃�屼笉鐢ㄦManager绠＄悊
+	// 鍥犱负姣忎釜瀵硅薄鐨勮剼鏈兘鏄嫭绔嬬殑
 	switch (scriptType)
 	{
 	case NXScriptType::NXSCRIPT_FIRST_PERSONAL_CAMERA:

@@ -19,7 +19,7 @@ NXGUITerrainSector2NodeIDPreview::NXGUITerrainSector2NodeIDPreview(Renderer* pRe
 		m_pTexture->SetUAV(i, i);
 	}
 
-	// cbmip ³õÊ¼»¯ÉèÖÃÒ»´Î¾ÍĞĞ
+	// cbmip åˆå§‹åŒ–è®¾ç½®ä¸€æ¬¡å°±è¡Œ
 	for (int i = 0; i < mips; i++)
 	{
 		m_cbMipData[i] = i;
@@ -73,7 +73,7 @@ void NXGUITerrainSector2NodeIDPreview::Update()
 	auto rg = m_pRenderer->GetRenderGraph();
 	if (rg && m_pPassMat)
 	{
-		// Îªµ±Ç°Ñ¡ÖĞµÄ mip µÈ¼¶Ö´ĞĞ Compute Shader
+		// ä¸ºå½“å‰é€‰ä¸­çš„ mip ç­‰çº§æ‰§è¡Œ Compute Shader
 		rg->AddPass<PassData>("TerrainSector2NodeID Preview Pass",
 			[&](NXRGBuilder& builder, PassData& data) 
 			{
@@ -109,7 +109,7 @@ void NXGUITerrainSector2NodeIDPreview::Render()
 		return;
 
 	ImGui::SetNextWindowSize(ImVec2(600.0f, 500.0f), ImGuiCond_FirstUseEver);
-	if (ImGui::Begin(ImUtf8("µØĞÎ Sector2NodeID Ô¤ÀÀ"), &m_bVisible))
+	if (ImGui::Begin(ImUtf8("åœ°å½¢ Sector2NodeID é¢„è§ˆ"), &m_bVisible))
 	{
 		if (m_pRenderer)
 		{
@@ -121,52 +121,52 @@ void NXGUITerrainSector2NodeIDPreview::Render()
 
 				if (pSrcTexture.IsValid() && m_pTexture.IsValid())
 				{
-					// Ê¹ÓÃÁ½ÁĞ²¼¾Ö
+					// ä½¿ç”¨ä¸¤åˆ—å¸ƒå±€
 					ImGui::Columns(2, "PreviewColumns", true);
 
-					// ========== ×óÁĞ£ºÎÆÀíÔ¤ÀÀ ==========
+					// ========== å·¦åˆ—ï¼šçº¹ç†é¢„è§ˆ ==========
 					{
-						ImGui::Text(ImUtf8("Ô¤ÀÀ (Mip %d) - Ëõ·Å: %.2fx"), m_currentMipLevel, m_imageZoomScale);
+						ImGui::Text(ImUtf8("é¢„è§ˆ (Mip %d) - ç¼©æ”¾: %.2fx"), m_currentMipLevel, m_imageZoomScale);
 
-						// Ëõ·Å¿ØÖÆ
-						ImGui::SliderFloat("##ZoomScale", &m_imageZoomScale, 0.1f, 10.0f, ImUtf8("Ëõ·Å: %.2fx"));
+						// ç¼©æ”¾æ§åˆ¶
+						ImGui::SliderFloat("##ZoomScale", &m_imageZoomScale, 0.1f, 10.0f, ImUtf8("ç¼©æ”¾: %.2fx"));
 						ImGui::SameLine();
-						if (ImGui::Button(ImUtf8("ÖØÖÃËõ·Å")))
+						if (ImGui::Button(ImUtf8("é‡ç½®ç¼©æ”¾")))
 						{
 							m_imageZoomScale = 1.0f;
 						}
 
 						ImGui::Separator();
 
-						// ¼ÆËãµ±Ç° mip µÈ¼¶µÄÎÆÀí³ß´ç£¨Ô´ÎÆÀíµÄ mip ³ß´ç£©
+						// è®¡ç®—å½“å‰ mip ç­‰çº§çš„çº¹ç†å°ºå¯¸ï¼ˆæºçº¹ç†çš„ mip å°ºå¯¸ï¼‰
 						uint32_t mipSize = g_terrainStreamConfig.Sector2NodeIDTexSize >> m_currentMipLevel;
 						float texWidth = (float)mipSize;
 						float texHeight = (float)mipSize;
 
-						// »ñÈ¡¿ÉÓÃÇøÓò
+						// è·å–å¯ç”¨åŒºåŸŸ
 						float availWidth = ImGui::GetContentRegionAvail().x - 10.0f;
 						float availHeight = ImGui::GetContentRegionAvail().y - 10.0f;
 
-						// ¼ÆËãÏÔÊ¾³ß´ç£¨±£³Ö×İºá±È£©
+						// è®¡ç®—æ˜¾ç¤ºå°ºå¯¸ï¼ˆä¿æŒçºµæ¨ªæ¯”ï¼‰
 						float aspect = texWidth / texHeight;
 						float displayWidth = availWidth;
 						float displayHeight = displayWidth / aspect;
 
-						// Èç¹û¸ß¶È³¬³ö¿ÉÓÃÇøÓò£¬Ôò°´¸ß¶ÈËõ·Å
+						// å¦‚æœé«˜åº¦è¶…å‡ºå¯ç”¨åŒºåŸŸï¼Œåˆ™æŒ‰é«˜åº¦ç¼©æ”¾
 						if (displayHeight > availHeight)
 						{
 							displayHeight = availHeight;
 							displayWidth = displayHeight * aspect;
 						}
 
-						// Ó¦ÓÃËõ·ÅÏµÊı
+						// åº”ç”¨ç¼©æ”¾ç³»æ•°
 						displayWidth *= m_imageZoomScale;
 						displayHeight *= m_imageZoomScale;
 
-						// ¹ö¶¯ÇøÓòÒÔÖ§³ÖËõ·ÅºóµÄ²é¿´
+						// æ»šåŠ¨åŒºåŸŸä»¥æ”¯æŒç¼©æ”¾åçš„æŸ¥çœ‹
 						ImGui::BeginChild("TextureScrollRegion", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
 
-						// Êó±ê¹öÂÖËõ·ÅÖ§³Ö
+						// é¼ æ ‡æ»šè½®ç¼©æ”¾æ”¯æŒ
 						if (ImGui::IsWindowHovered())
 						{
 							float wheel = ImGui::GetIO().MouseWheel;
@@ -178,9 +178,9 @@ void NXGUITerrainSector2NodeIDPreview::Render()
 							}
 						}
 
-						// »ñÈ¡ SRV ²¢äÖÈ¾
-						// ¼ÆËã UV ·¶Î§£ºÔ´ mip µÄÄÚÈİĞ´Èëµ½ mip0 µÄ×óÉÏ½Ç
-						// UV ·¶Î§ = mipSize / fullSize
+						// è·å– SRV å¹¶æ¸²æŸ“
+						// è®¡ç®— UV èŒƒå›´ï¼šæº mip çš„å†…å®¹å†™å…¥åˆ° mip0 çš„å·¦ä¸Šè§’
+						// UV èŒƒå›´ = mipSize / fullSize
 						float uvMax = (float)mipSize / (float)g_terrainStreamConfig.Sector2NodeIDTexSize;
 						NXShVisDescHeap->PushFluid(m_pTexture->GetSRV());
 						D3D12_GPU_DESCRIPTOR_HANDLE srvHandle = NXShVisDescHeap->Submit();
@@ -190,38 +190,38 @@ void NXGUITerrainSector2NodeIDPreview::Render()
 						ImGui::EndChild();
 					}
 
-					// ========== ÓÒÁĞ£º²ÎÊı¿ØÖÆ ==========
+					// ========== å³åˆ—ï¼šå‚æ•°æ§åˆ¶ ==========
 					ImGui::NextColumn();
 					{
-						ImGui::Text(ImUtf8("²ÎÊıÉèÖÃ"));
+						ImGui::Text(ImUtf8("å‚æ•°è®¾ç½®"));
 						ImGui::Separator();
 
-						// ÏÔÊ¾Ô´ÎÆÀíĞÅÏ¢
-						ImGui::Text(ImUtf8("Ô´ÎÆÀíĞÅÏ¢:"));
-						ImGui::Text(ImUtf8("  ³ß´ç: %d x %d"), pSrcTexture->GetWidth(), pSrcTexture->GetHeight());
-						ImGui::Text(ImUtf8("  ¸ñÊ½: R16_UINT"));
-						ImGui::Text(ImUtf8("  Mip ²ã¼¶Êı: %d"), g_terrainStreamConfig.LODSize);
+						// æ˜¾ç¤ºæºçº¹ç†ä¿¡æ¯
+						ImGui::Text(ImUtf8("æºçº¹ç†ä¿¡æ¯:"));
+						ImGui::Text(ImUtf8("  å°ºå¯¸: %d x %d"), pSrcTexture->GetWidth(), pSrcTexture->GetHeight());
+						ImGui::Text(ImUtf8("  æ ¼å¼: R16_UINT"));
+						ImGui::Text(ImUtf8("  Mip å±‚çº§æ•°: %d"), g_terrainStreamConfig.LODSize);
 
 						ImGui::Spacing();
 						ImGui::Separator();
 						ImGui::Spacing();
 
-						// 1. Mip µÈ¼¶Ñ¡Ôñ
-						ImGui::Text(ImUtf8("Mip ²ã¼¶:"));
+						// 1. Mip ç­‰çº§é€‰æ‹©
+						ImGui::Text(ImUtf8("Mip å±‚çº§:"));
 						ImGui::SliderInt("##MipLevel", &m_currentMipLevel, 0, g_terrainStreamConfig.LODSize - 1, "Mip %d");
 						uint32_t currentMipSize = g_terrainStreamConfig.Sector2NodeIDTexSize >> m_currentMipLevel;
-						ImGui::Text(ImUtf8("  µ±Ç° Mip ³ß´ç: %d x %d"), currentMipSize, currentMipSize);
+						ImGui::Text(ImUtf8("  å½“å‰ Mip å°ºå¯¸: %d x %d"), currentMipSize, currentMipSize);
 
 						ImGui::Spacing();
 						ImGui::Separator();
 						ImGui::Spacing();
 
-						// 2. Remap ²ÎÊı¿ØÖÆ
-						ImGui::Text(ImUtf8("ÖØÓ³Éä·¶Î§ (NodeID -> [0,1]):"));
-						ImGui::DragFloatRange2("##RemapRange", &m_remapMin, &m_remapMax, 1.0f, 0.0f, 1024.0f, ImUtf8("×îĞ¡: %.0f"), ImUtf8("×î´ó: %.0f"));
+						// 2. Remap å‚æ•°æ§åˆ¶
+						ImGui::Text(ImUtf8("é‡æ˜ å°„èŒƒå›´ (NodeID -> [0,1]):"));
+						ImGui::DragFloatRange2("##RemapRange", &m_remapMin, &m_remapMax, 1.0f, 0.0f, 1024.0f, ImUtf8("æœ€å°: %.0f"), ImUtf8("æœ€å¤§: %.0f"));
 						
 						ImGui::SameLine();
-						if (ImGui::Button(ImUtf8("ÖØÖÃ")))
+						if (ImGui::Button(ImUtf8("é‡ç½®")))
 						{
 							m_remapMin = 0.0f;
 							m_remapMax = 1024.0f;
@@ -231,34 +231,34 @@ void NXGUITerrainSector2NodeIDPreview::Render()
 						ImGui::Separator();
 						ImGui::Spacing();
 
-						// 3. ÎŞĞ§ÖµÑÕÉ«ÉèÖÃ
-						ImGui::Text(ImUtf8("ÎŞĞ§ÏñËØÑÕÉ« (0xFFFF):"));
+						// 3. æ— æ•ˆå€¼é¢œè‰²è®¾ç½®
+						ImGui::Text(ImUtf8("æ— æ•ˆåƒç´ é¢œè‰² (0xFFFF):"));
 						ImGui::ColorEdit3("##InvalidColor", m_invalidColor);
 						
 						ImGui::Spacing();
 						ImGui::Separator();
 						ImGui::Spacing();
 
-						// ÏÔÊ¾µ±Ç° remap ËµÃ÷
-						ImGui::TextWrapped(ImUtf8("NodeID ÖµÔÚ [%.0f, %.0f] ·¶Î§ÄÚ½«±»Ó³Éäµ½»Ò¶È [0, 1]¡£"), m_remapMin, m_remapMax);
-						ImGui::TextWrapped(ImUtf8("³¬³ö´Ë·¶Î§µÄÖµ½«±»½Ø¶Ï¡£"));
+						// æ˜¾ç¤ºå½“å‰ remap è¯´æ˜
+						ImGui::TextWrapped(ImUtf8("NodeID å€¼åœ¨ [%.0f, %.0f] èŒƒå›´å†…å°†è¢«æ˜ å°„åˆ°ç°åº¦ [0, 1]ã€‚"), m_remapMin, m_remapMax);
+						ImGui::TextWrapped(ImUtf8("è¶…å‡ºæ­¤èŒƒå›´çš„å€¼å°†è¢«æˆªæ–­ã€‚"));
 					}
 
 					ImGui::Columns(1);
 				}
 				else
 				{
-					ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), ImUtf8("ÎÆÀí²»¿ÉÓÃ"));
+					ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), ImUtf8("çº¹ç†ä¸å¯ç”¨"));
 				}
 			}
 			else
 			{
-				ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), ImUtf8("TerrainLODStreamer Î´³õÊ¼»¯"));
+				ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), ImUtf8("TerrainLODStreamer æœªåˆå§‹åŒ–"));
 			}
 		}
 		else
 		{
-			ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), ImUtf8("äÖÈ¾Æ÷Î´ÉèÖÃ"));
+			ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), ImUtf8("æ¸²æŸ“å™¨æœªè®¾ç½®"));
 		}
 	}
 	ImGui::End();

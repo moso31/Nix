@@ -1,9 +1,9 @@
-// 伪随机梯度噪声，范围[0, 1)
+// 浼殢鏈烘搴﹀櫔澹帮紝鑼冨洿[0, 1)
 // http://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare
 float InterleavedGradientNoise(float2 value, int offset)
 {
 	const float3 magic = float3(0.06711056f * 100, 0.00583715f * 100, 52.9829189f);
-	float2 scale = float2(1.114514f, 2.1919810f);	// scale不要用const，不然offset=0的时候编译器优化不掉
+	float2 scale = float2(1.114514f, 2.1919810f);	// scale涓嶈鐢╟onst锛屼笉鐒秓ffset=0鐨勬椂鍊欑紪璇戝櫒浼樺寲涓嶆帀
 	value += offset * scale;
 	return frac(magic.z * frac(dot(value, magic.xy)));
 }

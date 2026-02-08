@@ -33,14 +33,14 @@ public:
 
 	virtual void UpdateTransform();
 
-	// ¶Ô NXRenderableObject ÅÉÉúÀàµÄ²¹³ä¡£
-	// ÔÚ NXTransform ÖĞÒ²¿ÉÒÔÓÃ´Ë·½·¨ÄÃ m_transformWorldMatrix£¬µ«»áÖ±½Ó·µ»Ø m_worldMatrix¡£
+	// å¯¹ NXRenderableObject æ´¾ç”Ÿç±»çš„è¡¥å……ã€‚
+	// åœ¨ NXTransform ä¸­ä¹Ÿå¯ä»¥ç”¨æ­¤æ–¹æ³•æ‹¿ m_transformWorldMatrixï¼Œä½†ä¼šç›´æ¥è¿”å› m_worldMatrixã€‚
 	virtual Matrix GetTransformWorldMatrix()	{ return m_worldMatrix; }
 	virtual Matrix GetTransformWorldMatrixInv() { return m_worldMatrixInv; }
 
 protected:
 	Vector3 m_translation;
-	// µ±Ç°¶ÔÏóµÄÅ·À­½Ç¡£Ğı×ªË³Ğò£ºX-Y-Z
+	// å½“å‰å¯¹è±¡çš„æ¬§æ‹‰è§’ã€‚æ—‹è½¬é¡ºåºï¼šX-Y-Z
 	Vector3 m_eulerAngle;
 	Quaternion m_rotation;
 	Vector3 m_scale;

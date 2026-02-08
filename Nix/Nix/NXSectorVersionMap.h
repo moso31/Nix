@@ -2,17 +2,17 @@
 #include "BaseDefs/Math.h"
 #include <vector>
 
-// ¼ÇÂ¼Ã¿¸ösectorµÄ°æ±¾ºÅ
-// Ã¿µ±Á÷Ê½¼ÓÔØ¸üĞÂÒ»¸öÇøÓòµÄnodeIDÊ±£¬¶ÔÓ¦ÇøÓòµÄËùÓĞSector°æ±¾+1
-// °æ±¾ºÅÔÚVirtualTextureÖĞÊ¹ÓÃ£¬È·±£ÎïÀíÒ³ÄÜÊ±¿ÌÎ¬³Ö×îĞÂ×´Ì¬¡£
-// °´sector´¢´æ»ù±¾µ¥Î»£¨Ä¬ÈÏ16384^2/64=256^2£©
+// è®°å½•æ¯ä¸ªsectorçš„ç‰ˆæœ¬å·
+// æ¯å½“æµå¼åŠ è½½æ›´æ–°ä¸€ä¸ªåŒºåŸŸçš„nodeIDæ—¶ï¼Œå¯¹åº”åŒºåŸŸçš„æ‰€æœ‰Sectorç‰ˆæœ¬+1
+// ç‰ˆæœ¬å·åœ¨VirtualTextureä¸­ä½¿ç”¨ï¼Œç¡®ä¿ç‰©ç†é¡µèƒ½æ—¶åˆ»ç»´æŒæœ€æ–°çŠ¶æ€ã€‚
+// æŒ‰sectorå‚¨å­˜åŸºæœ¬å•ä½ï¼ˆé»˜è®¤16384^2/64=256^2ï¼‰
 class NXSectorVersionMap
 {
 public:
 	NXSectorVersionMap() : m_size(0, 0) {}
 	~NXSectorVersionMap() {}
 
-	// ³õÊ¼»¯°æ±¾Í¼£¬ÉèÖÃ´óĞ¡²¢½«ËùÓĞ°æ±¾ºÅÇåÁã
+	// åˆå§‹åŒ–ç‰ˆæœ¬å›¾ï¼Œè®¾ç½®å¤§å°å¹¶å°†æ‰€æœ‰ç‰ˆæœ¬å·æ¸…é›¶
 	void Init(const Int2& size)
 	{
 		m_size = size;
@@ -21,9 +21,9 @@ public:
 		memset(m_versions.data(), 0, totalSize * sizeof(uint32_t));
 	}
 
-	// ¸üĞÂÖ¸¶¨ÇøÓòµÄ°æ±¾ºÅ£¨µİÔö£©
-	// pos: ÆğÊ¼sector×ø±ê
-	// size: ÇøÓò´óĞ¡£¨size x size£©
+	// æ›´æ–°æŒ‡å®šåŒºåŸŸçš„ç‰ˆæœ¬å·ï¼ˆé€’å¢ï¼‰
+	// pos: èµ·å§‹sectoråæ ‡
+	// size: åŒºåŸŸå¤§å°ï¼ˆsize x sizeï¼‰
 	void UpdateVersion(const Int2& pos, int size)
 	{
 		for (int y = pos.y; y < pos.y + size; ++y)
@@ -36,17 +36,17 @@ public:
 		}
 	}
 
-	// »ñÈ¡Ö¸¶¨sectorµÄ°æ±¾ºÅ
+	// è·å–æŒ‡å®šsectorçš„ç‰ˆæœ¬å·
 	uint32_t GetVersion(const Int2& pos) const
 	{
 		int index = pos.y * m_size.x + pos.x;
 		return m_versions[index];
 	}
 
-	// »ñÈ¡°æ±¾Í¼´óĞ¡
+	// è·å–ç‰ˆæœ¬å›¾å¤§å°
 	const Int2& GetSize() const { return m_size; }
 
-	// ´òÓ¡°æ±¾ºÅ£¨°´ĞĞÁĞ´òÓ¡£©
+	// æ‰“å°ç‰ˆæœ¬å·ï¼ˆæŒ‰è¡Œåˆ—æ‰“å°ï¼‰
 	void Print() const
 	{
 		printf("SectorVersionMap (%d x %d):\n", m_size.x, m_size.y);
@@ -63,6 +63,6 @@ public:
 	}
 
 private:
-	Int2 m_size;						// °æ±¾Í¼µÄ³ß´ç
-	std::vector<uint32_t> m_versions;	// °æ±¾ºÅÊı×é£¨1D´æ´¢£©
+	Int2 m_size;						// ç‰ˆæœ¬å›¾çš„å°ºå¯¸
+	std::vector<uint32_t> m_versions;	// ç‰ˆæœ¬å·æ•°ç»„ï¼ˆ1Då­˜å‚¨ï¼‰
 };

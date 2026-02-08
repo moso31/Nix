@@ -49,15 +49,15 @@ struct NXVTSector
 		return id == other.id && imageSize == other.imageSize;
 	}
 	
-	// ¹é²¢±È½ÏµÄĞ¡ÓÚ
+	// å½’å¹¶æ¯”è¾ƒçš„å°äº
 	bool Less(const NXVTSector& other)
 	{
 		if (id.x != other.id.x) return id.x < other.id.x;
 		return id.y < other.id.y;
 	}
 
-	Int2 id; // ÊÀ½çsectorID
-	int imageSize; // sectorµÄ´óĞ¡£¬×¢ÒâÊÇlog2size
+	Int2 id; // ä¸–ç•ŒsectorID
+	int imageSize; // sectorçš„å¤§å°ï¼Œæ³¨æ„æ˜¯log2size
 };
 
 template<>
@@ -79,7 +79,7 @@ struct CBufferRemoveSector
 {
 	Int2 imagePos;
 	int imageSize;
-	int maxRemoveMip; // Öµ=NÊ±£¬±íÊ¾Ö»ÒÆ³ıÇ°N¸ömip£¨0~N-1£©
+	int maxRemoveMip; // å€¼=Næ—¶ï¼Œè¡¨ç¤ºåªç§»é™¤å‰Nä¸ªmipï¼ˆ0~N-1ï¼‰
 };
 
 struct CBufferMigrateSector
@@ -88,7 +88,7 @@ struct CBufferMigrateSector
 	Int2 toImagePos;
 	int fromImageSize;
 	int toImageSize;
-	int mipDelta; // Ç¨ÒÆÇ°ºóÁ½¸ösectorµÄmipµÈ¼¶²î
+	int mipDelta; // è¿ç§»å‰åä¸¤ä¸ªsectorçš„mipç­‰çº§å·®
 	int _0;
 };
 
@@ -102,10 +102,10 @@ struct CBufferSector2VirtImg
 
 	CBufferSector2VirtImg(const Int2& sector, int emptyData) : sectorPos(sector), indiTexData(emptyData) {}
 
-	// ÄÄ¸öÏñËØ
+	// å“ªä¸ªåƒç´ 
 	Int2 sectorPos; 
 
-	// ¸Ä³ÉÊ²Ã´Öµ
+	// æ”¹æˆä»€ä¹ˆå€¼
 	int indiTexData; // x(12bit)y(12bit) = indi tex pos; z(8bit) = indi tex size
 	int _0;
 };  
@@ -114,19 +114,19 @@ class NXTexture2D;
 class NXTexture2DArray;
 class NXVirtualTexture
 {
-	constexpr static int VT_SECTOR2VIRTIMG_SIZE = 256; // Sector2VirtImgÊ¹ÓÃµÄ·Ö±æÂÊ
-	constexpr static size_t VTIMAGE_MAX_NODE_SIZE = 256; // ×î´ónodeÊ¹ÓÃµÄ·Ö±æÂÊ
+	constexpr static int VT_SECTOR2VIRTIMG_SIZE = 256; // Sector2VirtImgä½¿ç”¨çš„åˆ†è¾¨ç‡
+	constexpr static size_t VTIMAGE_MAX_NODE_SIZE = 256; // æœ€å¤§nodeä½¿ç”¨çš„åˆ†è¾¨ç‡
 	constexpr static int CB_SECTOR2VIRTIMG_DATA_NUM = 256;
 
-	constexpr static size_t VTSECTOR_LOD_NUM = 7; // VTSectorµÄlodµÈ¼¶
+	constexpr static size_t VTSECTOR_LOD_NUM = 7; // VTSectorçš„lodç­‰çº§
 
 	constexpr static size_t SECTOR_SIZE = 64;
 	constexpr static float	SECTOR_SIZEF = 64.0f;
 	constexpr static float	SECTOR_SIZEF_INV = 1.0 / SECTOR_SIZEF;
 	constexpr static size_t SECTOR_SIZE_LOG2 = 6;
 
-	constexpr static size_t BAKE_PHYSICAL_PAGE_PER_FRAME = 32; // Ã¿Ö¡×î¶àºæ±ºµÄPhysicalPageÊıÁ¿
-	constexpr static size_t UPDATE_INDIRECT_TEXTURE_PER_FRAME = 1024; // Ã¿Ö¡×î¶à¸üĞÂµÄindirectTextureÏñËØÊı
+	constexpr static size_t BAKE_PHYSICAL_PAGE_PER_FRAME = 32; // æ¯å¸§æœ€å¤šçƒ˜ç„™çš„PhysicalPageæ•°é‡
+	constexpr static size_t UPDATE_INDIRECT_TEXTURE_PER_FRAME = 1024; // æ¯å¸§æœ€å¤šæ›´æ–°çš„indirectTextureåƒç´ æ•°
 
 	constexpr static size_t INDIRECT_TEXTURE_SIZE = 2048;
 
@@ -150,14 +150,14 @@ public:
 	// updateindirecttexture
 	const Ntr<NXTexture2D>& GetIndirectTexture() const { return m_pIndirectTexture; }
 
-	// GUI ·ÃÎÊ½Ó¿Ú
+	// GUI è®¿é—®æ¥å£
 	const std::vector<NXVTSector>& GetSectors() const { return m_sectors; }
 	const NXVTImageQuadTree* GetQuadTree() const { return m_pVirtImageQuadTree; }
 	const std::unordered_map<NXVTSector, Int2>& GetSector2VirtImagePos() const { return m_sector2VirtImagePos; }
 	NXVTUpdateState GetUpdateState() const { return m_updateState; }
 	void SetUpdateState(NXVTUpdateState s) { m_updateState = s; }
 
-	// VT Readback Êı¾İ·ÃÎÊ½Ó¿Ú
+	// VT Readback æ•°æ®è®¿é—®æ¥å£
 	Ntr<NXReadbackData>& GetVTReadbackData() { return m_vtReadbackData; }
 	const Int2& GetVTReadbackDataSize() const { return m_vtReadbackDataSize; }
 	void SetVTReadbackDataSize(const Int2& val) { m_vtReadbackDataSize = val; }
@@ -179,7 +179,7 @@ private:
 	void UpdateNearestSectors();
 	void BakePhysicalPages();
 
-	// »ñÈ¡sector-Ïà»ú×î½ü¾àÀëµÄ Æ½·½
+	// è·å–sector-ç›¸æœºæœ€è¿‘è·ç¦»çš„ å¹³æ–¹
 	float GetDist2OfSectorToCamera(const Vector2& camPos, const Int2& sectorPos);
 
 	int GetVTImageSizeFromDist2(const float dist2);
@@ -197,19 +197,19 @@ private:
 	Vector4 m_cbDataVTReadback;
 	NXConstantBuffer<Vector4> m_cbVTReadback;
 
-	// ËÄ²æÊ÷VirtImage
+	// å››å‰æ ‘VirtImage
 	NXVTImageQuadTree* m_pVirtImageQuadTree;
 
-	// ¼ÇÂ¼Ò»¸ösectorµ½VirtImageÎ»ÖÃµÄÓ³Éä
+	// è®°å½•ä¸€ä¸ªsectoråˆ°VirtImageä½ç½®çš„æ˜ å°„
 	std::unordered_map<NXVTSector, Int2> m_sector2VirtImagePos;
 
-	// R32_UINT£¬24bit = ½Ç×ø±êXY£¬8bit = size
+	// R32_UINTï¼Œ24bit = è§’åæ ‡XYï¼Œ8bit = size
 	Ntr<NXTexture2D> m_pSector2VirtImg;
 	std::vector<CBufferSector2VirtImg> m_cbDataSector2VirtImg; 
 	NXConstantBuffer<std::vector<CBufferSector2VirtImg>> m_cbSector2VirtImg;
 	NXConstantBuffer<int> m_cbSector2VirtImgNum;
 
-	// VT Readback Êı¾İ
+	// VT Readback æ•°æ®
 	Ntr<NXReadbackData> m_vtReadbackData;
 	Int2 m_vtReadbackDataSize;
 
@@ -225,23 +225,23 @@ private:
 
 	Ntr<NXTexture2D> m_pIndirectTexture;
 
-	// UpdateNearestSectorÊ±ÅäÌ×µÄ Ò³±í(indirectTexture)Í¬²½
+	// UpdateNearestSectoræ—¶é…å¥—çš„ é¡µè¡¨(indirectTexture)åŒæ­¥
 	std::vector<CBufferRemoveSector> m_cbDataRemoveSector;
 	std::vector<CBufferRemoveSector> m_cbDataMigrateRemoveSector;
 	std::vector<CBufferMigrateSector> m_cbDataMigrateSector;
-	// ×¢Òâ£ºÃ¿¸östructµ¥ÅäCBuffer£¬¶ø²»ÊÇÒ»Õû¸öCB<std::vector>ÌØ»¯£¡
+	// æ³¨æ„ï¼šæ¯ä¸ªstructå•é…CBufferï¼Œè€Œä¸æ˜¯ä¸€æ•´ä¸ªCB<std::vector>ç‰¹åŒ–ï¼
 	std::array<NXConstantBuffer<CBufferRemoveSector>, 1000> m_cbArrayRemoveSector; 
 	std::array<NXConstantBuffer<CBufferRemoveSector>, 1000> m_cbArrayMigrateRemoveSector;
 	std::array<NXConstantBuffer<CBufferMigrateSector>, 1000> m_cbArrayMigrateSector;
 
-	bool m_bNeedClearSector2VirtImg = true; // Ê×Ö¡Çå³ı±ê¼Ç
-	bool m_bNeedClearIndirectTexture = true; // Ê×Ö¡Çå³ı±ê¼Ç
+	bool m_bNeedClearSector2VirtImg = true; // é¦–å¸§æ¸…é™¤æ ‡è®°
+	bool m_bNeedClearIndirectTexture = true; // é¦–å¸§æ¸…é™¤æ ‡è®°
 
-	// ×´Ì¬»ú£¬±£Ö¤Êı¾İ¿çÖ¡Í³Ò»
+	// çŠ¶æ€æœºï¼Œä¿è¯æ•°æ®è·¨å¸§ç»Ÿä¸€
 	NXVTUpdateState m_updateState = NXVTUpdateState::None;
 	bool m_bReadbackFinish = false;
 
-	// debug print¿ØÖÆ
+	// debug printæ§åˆ¶
 	bool m_enableDebugPrint = false;
 
 	// RenderGraph passes

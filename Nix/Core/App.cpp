@@ -70,13 +70,13 @@ void App::Update()
 
 void App::Draw()
 {
-	// Ôö¼ÓÖ¡¼ÆÊý + »½ÐÑVT¹ÜÏß Í¬²½¸üÐÂÒ»´Î£¨¿ÉÄÜ£©
+	// å¢žåŠ å¸§è®¡æ•° + å”¤é†’VTç®¡çº¿ åŒæ­¥æ›´æ–°ä¸€æ¬¡ï¼ˆå¯èƒ½ï¼‰
 	NXGlobalApp::s_frameIndex++;
 
-	// »­äÖÈ¾Ö¡
+	// ç”»æ¸²æŸ“å¸§
 	m_pRenderer->RenderFrame();
 
-	// »­UI
+	// ç”»UI
 	m_pRenderer->RenderGUI(m_pDXResources->GetCurrentSwapChain());
 }
 
@@ -86,10 +86,10 @@ void App::FrameEnd()
 
 	m_pRenderer->FrameEnd();
 
-	// »Ø¶Á¶ÑÖ¡Ä©´¦Àí
+	// å›žè¯»å †å¸§æœ«å¤„ç†
 	NXReadbackSys->UpdatePendingTaskFenceValue(NXGlobalDX::s_globalfenceValue);
 
-	// Çå³ýÍÏÈëÎÄ¼þ
+	// æ¸…é™¤æ‹–å…¥æ–‡ä»¶
 	NXFileDrop->ClearDroppedFiles();
 }
 

@@ -13,7 +13,7 @@ NXTerrainLODStreamer::NXTerrainLODStreamer() :
 {
 	m_streamData.Init(this);
 
-    // nodeDescArray³¤¶È¹Ì¶¨²»±ä
+    // nodeDescArrayé•¿åº¦å›ºå®šä¸å˜
     m_nodeDescArrayInternal.resize(g_terrainStreamConfig.NodeDescArrayInitialSize);
 
     m_sectorVersionMap.Init(Int2(256, 256));
@@ -26,7 +26,7 @@ NXTerrainLODStreamer::~NXTerrainLODStreamer()
 
 void NXTerrainLODStreamer::Init(NXScene* pScene)
 {
-    // ±éÀú³¡¾°ËùÓĞµØĞÎ£¬ÄÃµØĞÎÎ»ÖÃ£¬ÓÉ´ËĞÎ³ÉËÄ²æÊ÷¸ù½Úµã
+    // éå†åœºæ™¯æ‰€æœ‰åœ°å½¢ï¼Œæ‹¿åœ°å½¢ä½ç½®ï¼Œç”±æ­¤å½¢æˆå››å‰æ ‘æ ¹èŠ‚ç‚¹
     m_pScene = pScene;
     auto& pTerrains = m_pScene->GetTerrains();
 
@@ -34,7 +34,7 @@ void NXTerrainLODStreamer::Init(NXScene* pScene)
     {
         NXTerrainLODQuadTreeNode terrainRoot;
         terrainRoot.terrainID = Int2(terraID.x, terraID.y);
-        terrainRoot.positionWS = Int2(terraID.x, terraID.y) * g_terrainConfig.TerrainSize; // µØĞÎ×óÏÂ½ÇÎ»ÖÃ
+        terrainRoot.positionWS = Int2(terraID.x, terraID.y) * g_terrainConfig.TerrainSize; // åœ°å½¢å·¦ä¸‹è§’ä½ç½®
         terrainRoot.size = g_terrainConfig.TerrainSize;
 
         m_terrainRoots.push_back(terrainRoot);
@@ -45,43 +45,43 @@ void NXTerrainLODStreamer::Init(NXScene* pScene)
 
 void NXTerrainLODStreamer::Update()
 {
-    // Èç¹ûµ÷ÊÔÄ£Ê½ÏÂÔİÍ£Òì²½¼ÓÔØ£¬ÔòÌø¹ı±¾´Î¸üĞÂ
+    // å¦‚æœè°ƒè¯•æ¨¡å¼ä¸‹æš‚åœå¼‚æ­¥åŠ è½½ï¼Œåˆ™è·³è¿‡æœ¬æ¬¡æ›´æ–°
     if (g_terrainStreamDebug.bPauseAsyncLoading)
         return;
 
-    // »ñÈ¡6µµLOD¸²¸ÇµÄËùÓĞËÄ²æÊ÷½Úµã
+    // è·å–6æ¡£LODè¦†ç›–çš„æ‰€æœ‰å››å‰æ ‘èŠ‚ç‚¹
     std::vector<std::vector<NXTerrainLODQuadTreeNode>> nodeLists(6);
 
-    // ±éÀúËùÓĞµØĞÎ£¬°´6µµLOD¾àÀë¼ÓÔØnode
+    // éå†æ‰€æœ‰åœ°å½¢ï¼ŒæŒ‰6æ¡£LODè·ç¦»åŠ è½½node
     for (auto& terrainRoot : m_terrainRoots)
     {
         GetNodeDatasInternal(nodeLists, terrainRoot);
     }
 
-    // Í³¼Æ±¾Ö¡ĞèÒª¼ÓÔØµÄnodeId
+    // ç»Ÿè®¡æœ¬å¸§éœ€è¦åŠ è½½çš„nodeId
     std::vector<uint32_t> nextLoadingNodeDescIndices;
 
-    // ±¾Ö¡×î´óÇëÇóÊıÁ¿
+    // æœ¬å¸§æœ€å¤§è¯·æ±‚æ•°é‡
     int maxRequest = std::max((int)g_terrainStreamConfig.MaxRequestLimit - m_asyncLoader->GetWorkingTaskNum(), 0);
     int req = 0;
 
-    // ÕıĞò¼ÓÔØ£¨ÄæĞò¼ÓÔØÃ»ÓĞÒâÒå£¬ping-pong¶ÔÖğ²ãÍÆµ¼ÓĞÇ¿ÒÀÀµ£©
+    // æ­£åºåŠ è½½ï¼ˆé€†åºåŠ è½½æ²¡æœ‰æ„ä¹‰ï¼Œping-pongå¯¹é€å±‚æ¨å¯¼æœ‰å¼ºä¾èµ–ï¼‰
     for (int i = 0; i <= g_terrainStreamConfig.MaxNodeLevel; i++) 
     {
-        // ±éÀú£¬¿´±¾Ö¡¿ìÕÕ¶ÔÓ¦µÄnodeÃÇÊÇ·ñÔÚ»º´æÀï
+        // éå†ï¼Œçœ‹æœ¬å¸§å¿«ç…§å¯¹åº”çš„nodeä»¬æ˜¯å¦åœ¨ç¼“å­˜é‡Œ
         for (auto& node : nodeLists[i])
         {
-            // ¸¨Öú¿ì²émapÌáËÙ£¬Ô­±¾Ö±½Ó¶Ô m_nodeDescArrayInternal×öfind_if ¿ªÏúÓĞµã¸ßÁË
+            // è¾…åŠ©å¿«æŸ¥mapæé€Ÿï¼ŒåŸæœ¬ç›´æ¥å¯¹ m_nodeDescArrayInternalåšfind_if å¼€é”€æœ‰ç‚¹é«˜äº†
             TerrainNodeKey key;
             key.positionWS = node.positionWS;
             key.size = node.size;
             auto itKey = m_keyToNodeMap.find(key);
             if (itKey != m_keyToNodeMap.end())
             {
-                // Èç¹ûnodeÒÑ¾­ÔÚ»º´æ¿ÉÖ±½ÓÌø¹ı
+                // å¦‚æœnodeå·²ç»åœ¨ç¼“å­˜å¯ç›´æ¥è·³è¿‡
                 if (m_nodeDescArrayInternal[itKey->second].isLoading || m_nodeDescArrayInternal[itKey->second].isValid)
                 {
-                    // Î¬»¤ÕıÔÚ¼ÓÔØ/ÒÑ¼ÓÔØÍê»º´æ½Úµã µÄ×îºó¸üĞÂÊ±¼ä£¨lastUpdatedFrame£©
+                    // ç»´æŠ¤æ­£åœ¨åŠ è½½/å·²åŠ è½½å®Œç¼“å­˜èŠ‚ç‚¹ çš„æœ€åæ›´æ–°æ—¶é—´ï¼ˆlastUpdatedFrameï¼‰
                     m_nodeDescArrayInternal[itKey->second].lastUpdatedFrame = NXGlobalApp::s_frameIndex.load();
                     continue;
                 }
@@ -89,15 +89,15 @@ void NXTerrainLODStreamer::Update()
 
             if (req < maxRequest)
             {
-                // Èônode²»ÔÚ»º´æÀï£¬×¼±¸´Ó´ÅÅÌÒì²½¼ÓÔØ£¬´ÓnodeDescÖĞÑ¡Ò»¸ö¿ÕÏĞµÄ»ò×î¾ÃÎ´Ê¹ÓÃµÄ
+                // è‹¥nodeä¸åœ¨ç¼“å­˜é‡Œï¼Œå‡†å¤‡ä»ç£ç›˜å¼‚æ­¥åŠ è½½ï¼Œä»nodeDescä¸­é€‰ä¸€ä¸ªç©ºé—²çš„æˆ–æœ€ä¹…æœªä½¿ç”¨çš„
                 uint64_t oldestFrame = UINT64_MAX;
                 uint32_t oldestIndex = -1;
                 uint32_t selectedIndex = -1;
 
-                // ´Ó»º´æÕÒÒ»¸öÓÅÏÈ¼¶×îµÍµÄ½Úµã
+                // ä»ç¼“å­˜æ‰¾ä¸€ä¸ªä¼˜å…ˆçº§æœ€ä½çš„èŠ‚ç‚¹
                 for (uint32_t descIndex = 0; descIndex < m_nodeDescArrayInternal.size(); descIndex++)
                 {
-                    // ÓÅÏÈÈ¡¿ÕÏĞ£¨!isValid£©£»ÕıÔÚ¼ÓÔØµÄ£¨isLoading£©²»¿¼ÂÇ
+                    // ä¼˜å…ˆå–ç©ºé—²ï¼ˆ!isValidï¼‰ï¼›æ­£åœ¨åŠ è½½çš„ï¼ˆisLoadingï¼‰ä¸è€ƒè™‘
                     auto& nodeDesc = m_nodeDescArrayInternal[descIndex];
                     if (!nodeDesc.isValid && !nodeDesc.isLoading)
                     {
@@ -105,7 +105,7 @@ void NXTerrainLODStreamer::Update()
                         break;
                     }
 
-                    // ÈôÃ»ÓĞ¿ÕÏĞ£¬ÔòÕÒ×î¾ÃÎ´Ê¹ÓÃµÄ
+                    // è‹¥æ²¡æœ‰ç©ºé—²ï¼Œåˆ™æ‰¾æœ€ä¹…æœªä½¿ç”¨çš„
                     if (nodeDesc.isValid && nodeDesc.lastUpdatedFrame < oldestFrame)
                     {
                         oldestFrame = nodeDesc.lastUpdatedFrame;
@@ -118,16 +118,16 @@ void NXTerrainLODStreamer::Update()
                     selectedIndex = oldestIndex;
                 }
 
-                if (selectedIndex != -1) // Ëø¶¨LRUÓÅÏÈ¼¶×îµÍµÄ½Úµã
+                if (selectedIndex != -1) // é”å®šLRUä¼˜å…ˆçº§æœ€ä½çš„èŠ‚ç‚¹
                 {
                     auto& selectedNodeDesc = m_nodeDescArrayInternal[selectedIndex];
                     if (oldestIndex != -1)
                     {
-                        // Èç¹ûÒªÌæ»»×î¾ÃÎ´Ê¹ÓÃµÄ½Úµã ¼ÇÂ¼Ìæ»»Ç°µÄÊı¾İ
+                        // å¦‚æœè¦æ›¿æ¢æœ€ä¹…æœªä½¿ç”¨çš„èŠ‚ç‚¹ è®°å½•æ›¿æ¢å‰çš„æ•°æ®
                         selectedNodeDesc.oldData = selectedNodeDesc.data;
                         selectedNodeDesc.removeOldData = true;
 
-                        // ¸¨Öú¿ì²émap¸üĞÂ
+                        // è¾…åŠ©å¿«æŸ¥mapæ›´æ–°
                         TerrainNodeKey oldKey;
                         oldKey.positionWS = selectedNodeDesc.oldData.positionWS;
                         oldKey.size = selectedNodeDesc.oldData.size;
@@ -138,7 +138,7 @@ void NXTerrainLODStreamer::Update()
                         selectedNodeDesc.removeOldData = false;
                     }
 
-                    // ¸¨Öú¿ì²émap¸üĞÂ
+                    // è¾…åŠ©å¿«æŸ¥mapæ›´æ–°
                     m_keyToNodeMap[key] = selectedIndex;
 
                     selectedNodeDesc.isLoading = true;
@@ -153,32 +153,32 @@ void NXTerrainLODStreamer::Update()
         }
     }
 
-    // ¿ªÊ¼¼ÓÔØĞèÒªµÄÎÆÀí¡£
-    // ¼ÓÔØ¿â±¾Éí¾ÍÊÇÒì²½µÄ£¬ÕâÀïÖ±½Óµ÷½Ó¿Ú¾ÍOK
+    // å¼€å§‹åŠ è½½éœ€è¦çš„çº¹ç†ã€‚
+    // åŠ è½½åº“æœ¬èº«å°±æ˜¯å¼‚æ­¥çš„ï¼Œè¿™é‡Œç›´æ¥è°ƒæ¥å£å°±OK
     for (auto& loadingDesc : nextLoadingNodeDescIndices)
     {
-        // ¶ÔµØĞÎÁôµãÎÄ±¾ËµÃ÷ ·½±ãÒÔºó²ébug£º
-        // ÏÂÃæÕâĞ©Êı¾İ¶¼ÑéÖ¤¹ıÁË£¬³ı·ÇºóÃæÓÖ¸ÄÏà¹Ø¹¤×÷Á÷£¬²»È»²»ÓÃ»³ÒÉ£¡
-        //      Õû¸öÊÀ½çÊÇÒ»¸ö - 8192, -8192 ~8192, 8192 µÄ¾ØĞÎ£¬Ã¿¸ö´óµÄµØĞÎ¿é´óĞ¡Îª2048, 2048
-        //      Nix Ê¹ÓÃ YÉÏXÓÒZÇ° µÄ×óÊÖ×ø±êÏµ¡£
-        //      ÏÂÃæÎÒÃÇËµ×ø±êÊ±£¬ÈçÎŞÌØÊâËµÃ÷£¬Í³Ò»Ê¹ÓÃÃ¿¸öµØĞÎµÄ×óÏÂ½Ç×ø±ê¡£
-        //      Ã¿¸öµØĞÎÓĞÒ»¸ö±àºÅ¡£¸©ÊÓ½Ç¿´£¬´Ó×óÉÏµ½ÓÒÏÂ£¬µÚÒ»ĞĞ£¬0_0, 0_1, 0_2, ..., 0_7.µÚ¶şĞĞ£¬1_0, 1_1....ÒÔ´ËÀàÍÆ¡£
-        //      ×÷Îª²Î¿¼£¬×óÏÂ½ÇµÄµØĞÎÎª7_0£¬ÆäµØĞÎ×óÏÂ½Ç×ø±êÎª£¨-8192, -8192£©¡£
-        //      Ã¿¸öµØĞÎÓë»º´æÈô¸ÉpatchÎÆÀí¡£Í¨³£ÃûÎª
-        //      \{Nix×ÊÔ´ÎÄ¼ş¼Ğ}\Terrain\{µØĞÎĞĞ}_{ µØĞÎÁĞ }\sub\hmap\{patchÎÆÀíÊµ¼Ê´óĞ¡}_{ patchĞĞ }_{ patchÁĞ }.dds
-        //      ´óÖÂ¾ÍÒÔÉÏÕâĞ©¡£
+        // å¯¹åœ°å½¢ç•™ç‚¹æ–‡æœ¬è¯´æ˜ æ–¹ä¾¿ä»¥åæŸ¥bugï¼š
+        // ä¸‹é¢è¿™äº›æ•°æ®éƒ½éªŒè¯è¿‡äº†ï¼Œé™¤éåé¢åˆæ”¹ç›¸å…³å·¥ä½œæµï¼Œä¸ç„¶ä¸ç”¨æ€€ç–‘ï¼
+        //      æ•´ä¸ªä¸–ç•Œæ˜¯ä¸€ä¸ª - 8192, -8192 ~8192, 8192 çš„çŸ©å½¢ï¼Œæ¯ä¸ªå¤§çš„åœ°å½¢å—å¤§å°ä¸º2048, 2048
+        //      Nix ä½¿ç”¨ Yä¸ŠXå³Zå‰ çš„å·¦æ‰‹åæ ‡ç³»ã€‚
+        //      ä¸‹é¢æˆ‘ä»¬è¯´åæ ‡æ—¶ï¼Œå¦‚æ— ç‰¹æ®Šè¯´æ˜ï¼Œç»Ÿä¸€ä½¿ç”¨æ¯ä¸ªåœ°å½¢çš„å·¦ä¸‹è§’åæ ‡ã€‚
+        //      æ¯ä¸ªåœ°å½¢æœ‰ä¸€ä¸ªç¼–å·ã€‚ä¿¯è§†è§’çœ‹ï¼Œä»å·¦ä¸Šåˆ°å³ä¸‹ï¼Œç¬¬ä¸€è¡Œï¼Œ0_0, 0_1, 0_2, ..., 0_7.ç¬¬äºŒè¡Œï¼Œ1_0, 1_1....ä»¥æ­¤ç±»æ¨ã€‚
+        //      ä½œä¸ºå‚è€ƒï¼Œå·¦ä¸‹è§’çš„åœ°å½¢ä¸º7_0ï¼Œå…¶åœ°å½¢å·¦ä¸‹è§’åæ ‡ä¸ºï¼ˆ-8192, -8192ï¼‰ã€‚
+        //      æ¯ä¸ªåœ°å½¢ä¸ç¼“å­˜è‹¥å¹²patchçº¹ç†ã€‚é€šå¸¸åä¸º
+        //      \{Nixèµ„æºæ–‡ä»¶å¤¹}\Terrain\{åœ°å½¢è¡Œ}_{ åœ°å½¢åˆ— }\sub\hmap\{patchçº¹ç†å®é™…å¤§å°}_{ patchè¡Œ }_{ patchåˆ— }.dds
+        //      å¤§è‡´å°±ä»¥ä¸Šè¿™äº›ã€‚
 
 		static Int2 minTerrainID = g_terrainConfig.MinTerrainPos / g_terrainConfig.TerrainSize;
 
         auto& data = m_nodeDescArrayInternal[loadingDesc].data;
-        Int2 relativePos = data.positionWS - data.terrainID * g_terrainConfig.TerrainSize; // µØĞÎ¿éÄÚÏà¶Ô×óÏÂ½ÇµÄÎ»ÖÃ
+        Int2 relativePos = data.positionWS - data.terrainID * g_terrainConfig.TerrainSize; // åœ°å½¢å—å†…ç›¸å¯¹å·¦ä¸‹è§’çš„ä½ç½®
         relativePos.y = 2048 - relativePos.y; // flip Y
         Int2 relativePosID = relativePos / data.size;
         relativePosID.y--; 
         int realSize = data.size + 1;
 
-        // »ñÈ¡minmaxZ
-        int bitOffsetXY = std::countr_zero(data.size); // data.sizeÒ»¶¨ÊÇ2µÄÕûÊı±¶²¢ÇÒ>=64
+        // è·å–minmaxZ
+        int bitOffsetXY = std::countr_zero(data.size); // data.sizeä¸€å®šæ˜¯2çš„æ•´æ•°å€å¹¶ä¸”>=64
         int bitOffsetMip = bitOffsetXY - std::countr_zero(64u);
         Int2 offsetPosWS = data.positionWS - g_terrainConfig.MinTerrainPos;
         int bx = bitOffsetMip;
@@ -188,19 +188,19 @@ void NXTerrainLODStreamer::Update()
         //printf("loading: data.size = %d, mip = %d; posWS = %d %d; minMaxZ: %f %f\n", data.size, bx, by, bz, minmaxZ.x, minmaxZ.y);
 
 		Int2 strID = data.terrainID - minTerrainID;
-        int row = 7 - strID.y;  // »»ËãÁËÏÂÓ¦¸ÃÊÇFlip V
+        int row = 7 - strID.y;  // æ¢ç®—äº†ä¸‹åº”è¯¥æ˜¯Flip V
         int col = strID.x;
         std::string strTerrId = std::to_string(row) + "_" + std::to_string(col);
         std::string strTerrSubID = std::to_string(realSize) + "_" + std::to_string(relativePosID.x) + "_" + std::to_string(relativePosID.y);
 
         TerrainStreamingLoadRequest task;
-        // ĞÂµÄÎ»ÖÃ¡¢´óĞ¡¡¢minmaxz
+        // æ–°çš„ä½ç½®ã€å¤§å°ã€minmaxz
 		task.positionWS = data.positionWS;
         task.size = realSize;
 		task.nodeDescArrayIndex = loadingDesc;
 		task.minMaxZ = minmaxZ;
 
-        // Èç¹ûÓĞ¾ÉµÄĞÅÏ¢taskÒ²¼ÇÒ»ÏÂ£¬Í¬²½µ½GPU£¬ÓĞÉ¾³ı²Ù×÷ÒÀÀµ
+        // å¦‚æœæœ‰æ—§çš„ä¿¡æ¯taskä¹Ÿè®°ä¸€ä¸‹ï¼ŒåŒæ­¥åˆ°GPUï¼Œæœ‰åˆ é™¤æ“ä½œä¾èµ–
         if (m_nodeDescArrayInternal[loadingDesc].removeOldData)
         {
             auto& oldData = m_nodeDescArrayInternal[loadingDesc].oldData;
@@ -224,17 +224,17 @@ void NXTerrainLODStreamer::Update()
 
 void NXTerrainLODStreamer::UpdateAsyncLoader()
 {
-    // Èç¹ûµ÷ÊÔÄ£Ê½ÏÂÔİÍ£Òì²½¼ÓÔØ£¬ÔòÌø¹ı±¾´Î¸üĞÂ
+    // å¦‚æœè°ƒè¯•æ¨¡å¼ä¸‹æš‚åœå¼‚æ­¥åŠ è½½ï¼Œåˆ™è·³è¿‡æœ¬æ¬¡æ›´æ–°
     if (g_terrainStreamDebug.bPauseAsyncLoading)
         return;
 
-	// ¸üĞÂÒì²½¼ÓÔØÆ÷
+	// æ›´æ–°å¼‚æ­¥åŠ è½½å™¨
     m_asyncLoader->Update();
 }
 
 void NXTerrainLODStreamer::ProcessCompletedStreamingTask()
 {
-    m_streamData.ClearNodeDescUpdateIndices(); // ¸üĞÂË÷ÒıÃ¿Ö¡Çå¿Õ
+    m_streamData.ClearNodeDescUpdateIndices(); // æ›´æ–°ç´¢å¼•æ¯å¸§æ¸…ç©º
 
     auto& completeTasks = m_asyncLoader->ConsumeCompletedTasks();
     for (int i = 0; i < completeTasks.size(); i++)
@@ -245,7 +245,7 @@ void NXTerrainLODStreamer::ProcessCompletedStreamingTask()
         m_nodeDescArrayInternal[task.nodeDescArrayIndex].isLoading = false;
         m_nodeDescArrayInternal[task.nodeDescArrayIndex].isValid = true;
 
-        // Òª¸üĞÂµÄË÷Òı¡¢Êı¾İ£»»¹ÓĞ´ËË÷ÒıÉÏ²ĞÁôµÄ¾ÉÊı¾İ(replaced)
+        // è¦æ›´æ–°çš„ç´¢å¼•ã€æ•°æ®ï¼›è¿˜æœ‰æ­¤ç´¢å¼•ä¸Šæ®‹ç•™çš„æ—§æ•°æ®(replaced)
         CBufferTerrainNodeDescription data;
 		data.minmaxZ = task.minMaxZ;
 		data.positionWS = task.positionWS;
@@ -271,9 +271,9 @@ uint32_t NXTerrainLODStreamer::GetLoadTexGroupLimitEachFrame()
 
 void NXTerrainLODStreamer::GetNodeDatasInternal(std::vector<std::vector<NXTerrainLODQuadTreeNode>>& oNodeDataList, const NXTerrainLODQuadTreeNode& node)
 {
-    // ´Ó¸ù½ÚµãÏòÏÂ±éÀúËÄ²æÊ÷£¬¹æÔò£º
-    // - ÏÈÅĞ¶Ï½ÚµãÊÇ·ñÔÚµ±Ç°LOD¾àÀëÄÚ
-    // - Èç¹û½ÚµãÔÚµ±Ç°LOD¾àÀëÄÚ£¬µİ¹éÄÃËÄ¸ö×Ó½Úµã²¢½øÈëÏÂÒ»¼¶LOD£»·ñÔòÖĞÖ¹µİ¹é
+    // ä»æ ¹èŠ‚ç‚¹å‘ä¸‹éå†å››å‰æ ‘ï¼Œè§„åˆ™ï¼š
+    // - å…ˆåˆ¤æ–­èŠ‚ç‚¹æ˜¯å¦åœ¨å½“å‰LODè·ç¦»å†…
+    // - å¦‚æœèŠ‚ç‚¹åœ¨å½“å‰LODè·ç¦»å†…ï¼Œé€’å½’æ‹¿å››ä¸ªå­èŠ‚ç‚¹å¹¶è¿›å…¥ä¸‹ä¸€çº§LODï¼›å¦åˆ™ä¸­æ­¢é€’å½’
 
     uint32_t nodeLevel = node.GetLevel();
     float range = g_terrainStreamConfig.DistRanges[g_terrainStreamConfig.MaxNodeLevel - nodeLevel];
@@ -282,12 +282,12 @@ void NXTerrainLODStreamer::GetNodeDatasInternal(std::vector<std::vector<NXTerrai
     Rect2D nodeRect(Vector2((float)node.positionWS.x, (float)node.positionWS.y), (float)node.size);
     Circle2D camCircle(pCamera->GetTranslation().GetXZ(), range);
 
-    // Èç¹ûÏà»ú·¶Î§-½Úµã Ïà½»
+    // å¦‚æœç›¸æœºèŒƒå›´-èŠ‚ç‚¹ ç›¸äº¤
     if (nodeRect.Intersect(camCircle))
     {
         oNodeDataList[nodeLevel].push_back(node);
 
-        // ¼ÌĞøµİ¹é×Ó½Úµã
+        // ç»§ç»­é€’å½’å­èŠ‚ç‚¹
         if (nodeLevel + 1 <= g_terrainStreamConfig.MaxNodeLevel)
         {
             for (int i = 0; i < 4; i++)
@@ -311,26 +311,26 @@ void NXTerrainLODStreamer::LoadMinmaxZData()
 
     if (FAILED(hr))
     {
-        printf("LoadMinmaxZData: ¼ÓÔØÊ§°Ü %s\n", mmzPath.string().c_str());
+        printf("LoadMinmaxZData: åŠ è½½å¤±è´¥ %s\n", mmzPath.string().c_str());
         return;
     }
 
-    // ÑéÖ¤¸ñÊ½ÊÇ·ñÎª R32G32_FLOAT
+    // éªŒè¯æ ¼å¼æ˜¯å¦ä¸º R32G32_FLOAT
     if (metadata.format != DXGI_FORMAT_R32G32_FLOAT)
     {
-        printf("LoadMinmaxZData: ¸ñÊ½²»Æ¥Åä£¬ÆÚÍû R32G32_FLOAT£¬Êµ¼Ê %d\n", (int)metadata.format);
+        printf("LoadMinmaxZData: æ ¼å¼ä¸åŒ¹é…ï¼ŒæœŸæœ› R32G32_FLOATï¼Œå®é™… %d\n", (int)metadata.format);
         return;
     }
 
-    // ÕâÊÇÒ»¸ö 2D Array ÎÆÀí£º
-    // - mipLevels ¶ÔÓ¦²»Í¬µÄËÄ²æÊ÷ LOD ²ã¼¶
-    // - arraySize = 64£¨8x8 µØĞÎ¿é£©£¬ĞèÒªÆ½Ì¯µ½È«¾Ö x/z ×ø±ê
-    // - slice ÅÅÁĞ£º´Ó×óÉÏµ½ÓÒÏÂ£¬ÏÈĞĞºóÁĞ¡£slice 0 = 0_0£¨×óÉÏ½Ç£©£¬slice 1 = 0_1£¬...£¬slice 8 = 1_0
+    // è¿™æ˜¯ä¸€ä¸ª 2D Array çº¹ç†ï¼š
+    // - mipLevels å¯¹åº”ä¸åŒçš„å››å‰æ ‘ LOD å±‚çº§
+    // - arraySize = 64ï¼ˆ8x8 åœ°å½¢å—ï¼‰ï¼Œéœ€è¦å¹³æ‘Šåˆ°å…¨å±€ x/z åæ ‡
+    // - slice æ’åˆ—ï¼šä»å·¦ä¸Šåˆ°å³ä¸‹ï¼Œå…ˆè¡Œååˆ—ã€‚slice 0 = 0_0ï¼ˆå·¦ä¸Šè§’ï¼‰ï¼Œslice 1 = 0_1ï¼Œ...ï¼Œslice 8 = 1_0
     // 
-    // mmz.dds Ô­Ê¼Êı¾İÊÇ patcher Á£¶È£¨mip0: 256x256 per slice£¬Ã¿ patcher 8x8£©
-    // Á÷Ê½¼ÓÔØµØĞÎÉÏÏßºó£¬ĞèÒªºÏ²¢µ½ node Á£¶È£¨mip0: 32x32 per slice£¬Ã¿ node 64x64£©
-    // Ã¿ 8x8 ¸ö patcher ºÏ²¢³É 1 ¸ö node£¬È¡Õâ 64 ¸ö patcher µÄ min/max
-    // ×îÖÕÊı¾İ½á¹¹£ºm_minmaxZData[mip][globalNodeX][globalNodeZ]
+    // mmz.dds åŸå§‹æ•°æ®æ˜¯ patcher ç²’åº¦ï¼ˆmip0: 256x256 per sliceï¼Œæ¯ patcher 8x8ï¼‰
+    // æµå¼åŠ è½½åœ°å½¢ä¸Šçº¿åï¼Œéœ€è¦åˆå¹¶åˆ° node ç²’åº¦ï¼ˆmip0: 32x32 per sliceï¼Œæ¯ node 64x64ï¼‰
+    // æ¯ 8x8 ä¸ª patcher åˆå¹¶æˆ 1 ä¸ª nodeï¼Œå–è¿™ 64 ä¸ª patcher çš„ min/max
+    // æœ€ç»ˆæ•°æ®ç»“æ„ï¼šm_minmaxZData[mip][globalNodeX][globalNodeZ]
     size_t arraySize = metadata.arraySize;
     size_t mipCount = metadata.mipLevels;
 
@@ -340,25 +340,25 @@ void NXTerrainLODStreamer::LoadMinmaxZData()
 
     for (size_t mip = 0; mip < mipCount; mip++)
     {
-        // »ñÈ¡µÚÒ»¸ö slice À´È·¶¨Õâ¸ö mip ¼¶±ğµÄ³ß´ç
+        // è·å–ç¬¬ä¸€ä¸ª slice æ¥ç¡®å®šè¿™ä¸ª mip çº§åˆ«çš„å°ºå¯¸
         const Image* firstImg = scratchImage.GetImage(mip, 0, 0);
         if (!firstImg)
         {
-            printf("LoadMinmaxZData: »ñÈ¡ mip %zu slice 0 Ê§°Ü\n", mip);
+            printf("LoadMinmaxZData: è·å– mip %zu slice 0 å¤±è´¥\n", mip);
             continue;
         }
 
-        size_t sliceWidth = firstImg->width;   // patcher Á£¶ÈµÄ¿í¶È
-        size_t sliceHeight = firstImg->height; // patcher Á£¶ÈµÄ¸ß¶È
+        size_t sliceWidth = firstImg->width;   // patcher ç²’åº¦çš„å®½åº¦
+        size_t sliceHeight = firstImg->height; // patcher ç²’åº¦çš„é«˜åº¦
 
-        // ¼ÆËã node Á£¶ÈµÄ³ß´ç£¨Ã¿ 8x8 patcher ºÏ²¢Îª 1 ¸ö node£©
-        // ¶ÔÓÚµÍ mip ¼¶±ğ£¬slice ³ß´ç¿ÉÄÜĞ¡ÓÚ 8£¬´ËÊ±²»ĞèÒªºÏ²¢
+        // è®¡ç®— node ç²’åº¦çš„å°ºå¯¸ï¼ˆæ¯ 8x8 patcher åˆå¹¶ä¸º 1 ä¸ª nodeï¼‰
+        // å¯¹äºä½ mip çº§åˆ«ï¼Œslice å°ºå¯¸å¯èƒ½å°äº 8ï¼Œæ­¤æ—¶ä¸éœ€è¦åˆå¹¶
         size_t mergeFactorX = std::min(sliceWidth, (size_t)8);
         size_t mergeFactorZ = std::min(sliceHeight, (size_t)8);
         size_t nodeSliceWidth = (sliceWidth + mergeFactorX - 1) / mergeFactorX;
         size_t nodeSliceHeight = (sliceHeight + mergeFactorZ - 1) / mergeFactorZ;
 
-        // È«¾Ö node ÊıÁ¿ = node slice ´óĞ¡ * 8£¨8x8 µØĞÎ¿é£©
+        // å…¨å±€ node æ•°é‡ = node slice å¤§å° * 8ï¼ˆ8x8 åœ°å½¢å—ï¼‰
         size_t globalNodeWidth = nodeSliceWidth * 8;
         size_t globalNodeHeight = nodeSliceHeight * 8;
 
@@ -368,31 +368,31 @@ void NXTerrainLODStreamer::LoadMinmaxZData()
             m_minmaxZData[mip][x].resize(globalNodeHeight);
         }
 
-        // ±éÀúÃ¿¸ö slice
+        // éå†æ¯ä¸ª slice
         for (size_t slice = 0; slice < arraySize; slice++)
         {
-            // slice ÅÅÁĞ£º´Ó×óÉÏµ½ÓÒÏÂ£¬ÏÈĞĞºóÁĞ
-            // slice 0 = 0_0£¨×óÉÏ½Ç£©£¬slice 1 = 0_1£¬...£¬slice 8 = 1_0
-            size_t sliceRow = slice / 8;  // 0-7£¬0ÊÇÉÏÃæ£¨z ×î´ó£©
-            size_t sliceCol = slice % 8;  // 0-7£¬0ÊÇ×ó±ß£¨x ×îĞ¡£©
+            // slice æ’åˆ—ï¼šä»å·¦ä¸Šåˆ°å³ä¸‹ï¼Œå…ˆè¡Œååˆ—
+            // slice 0 = 0_0ï¼ˆå·¦ä¸Šè§’ï¼‰ï¼Œslice 1 = 0_1ï¼Œ...ï¼Œslice 8 = 1_0
+            size_t sliceRow = slice / 8;  // 0-7ï¼Œ0æ˜¯ä¸Šé¢ï¼ˆz æœ€å¤§ï¼‰
+            size_t sliceCol = slice % 8;  // 0-7ï¼Œ0æ˜¯å·¦è¾¹ï¼ˆx æœ€å°ï¼‰
 
             const Image* img = scratchImage.GetImage(mip, slice, 0);
             if (!img)
             {
-                printf("LoadMinmaxZData: »ñÈ¡ mip %zu slice %zu Ê§°Ü\n", mip, slice);
+                printf("LoadMinmaxZData: è·å– mip %zu slice %zu å¤±è´¥\n", mip, slice);
                 continue;
             }
 
-            // ¼ÆËãÕâ¸ö slice ÔÚÈ«¾Ö node Êı×éÖĞµÄÆğÊ¼Î»ÖÃ
-            // sliceCol Ö±½ÓÓ³Éäµ½ x
-            // sliceRow ĞèÒª·­×ª£ºrow 0£¨ÉÏÃæ£©¶ÔÓ¦È«¾Ö z ×î´ó
+            // è®¡ç®—è¿™ä¸ª slice åœ¨å…¨å±€ node æ•°ç»„ä¸­çš„èµ·å§‹ä½ç½®
+            // sliceCol ç›´æ¥æ˜ å°„åˆ° x
+            // sliceRow éœ€è¦ç¿»è½¬ï¼šrow 0ï¼ˆä¸Šé¢ï¼‰å¯¹åº”å…¨å±€ z æœ€å¤§
             size_t globalNodeStartX = sliceCol * nodeSliceWidth;
             size_t globalNodeStartZ = (7 - sliceRow) * nodeSliceHeight;
 
             const uint8_t* pixels = img->pixels;
             size_t rowPitch = img->rowPitch;
 
-            // ±éÀúÃ¿¸ö node£¨Ã¿¸ö node ¶ÔÓ¦ 8x8 ¸ö patcher£©
+            // éå†æ¯ä¸ª nodeï¼ˆæ¯ä¸ª node å¯¹åº” 8x8 ä¸ª patcherï¼‰
             for (size_t nodeY = 0; nodeY < nodeSliceHeight; nodeY++)
             {
                 for (size_t nodeX = 0; nodeX < nodeSliceWidth; nodeX++)
@@ -400,7 +400,7 @@ void NXTerrainLODStreamer::LoadMinmaxZData()
                     float nodeMinZ = FLT_MAX;
                     float nodeMaxZ = -FLT_MAX;
 
-                    // ±éÀúÕâ¸ö node ÄÚµÄËùÓĞ patcher£¨×î¶à 8x8£©
+                    // éå†è¿™ä¸ª node å†…çš„æ‰€æœ‰ patcherï¼ˆæœ€å¤š 8x8ï¼‰
                     size_t patcherStartX = nodeX * mergeFactorX;
                     size_t patcherStartY = nodeY * mergeFactorZ;
                     size_t patcherEndX = std::min(patcherStartX + mergeFactorX, sliceWidth);
@@ -420,7 +420,7 @@ void NXTerrainLODStreamer::LoadMinmaxZData()
                         }
                     }
 
-                    // Í¼Ïñ y=0 ÔÚÉÏÃæ£¬·­×ªÒÔÊÊÅäÊÀ½ç×ø±ê
+                    // å›¾åƒ y=0 åœ¨ä¸Šé¢ï¼Œç¿»è½¬ä»¥é€‚é…ä¸–ç•Œåæ ‡
                     size_t localNodeZ = nodeSliceHeight - 1 - nodeY;
 
                     size_t gx = globalNodeStartX + nodeX;

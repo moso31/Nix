@@ -23,10 +23,10 @@ struct NXReadbackTask
         mainRenderFenceValue = UINT64_MAX;
     }
 
-    // ÈÎÎñÍê³ÉºóµÄ»Øµ÷
+    // ä»»åŠ¡å®Œæˆåçš„å›è°ƒ
     std::function<void()> pCallback = nullptr;
 
-    // ÔÚRingBufferÖĞµÄÎ»ÖÃºÍ´óĞ¡
+    // åœ¨RingBufferä¸­çš„ä½ç½®å’Œå¤§å°
     uint32_t ringPos = 0;
     uint32_t byteSize = 0;
 
@@ -39,7 +39,7 @@ struct NXReadbackContext
 
     NXReadbackTask* pOwner = nullptr;
 
-    // ringBufferµÄÁÙÊ±×ÊÔ´±¾Ìå¡¢ÁÙÊ±×ÊÔ´ÉÏ´«¶ÑÓ³Éä¡¢ÁÙÊ±×ÊÔ´ÉÏ´«¶ÑÆ«ÒÆÁ¿
+    // ringBufferçš„ä¸´æ—¶èµ„æºæœ¬ä½“ã€ä¸´æ—¶èµ„æºä¸Šä¼ å †æ˜ å°„ã€ä¸´æ—¶èµ„æºä¸Šä¼ å †åç§»é‡
     ID3D12Resource* pResource = nullptr;
     uint8_t* pResourceData = nullptr;
     uint32_t pResourceOffset = 0;
@@ -47,7 +47,7 @@ struct NXReadbackContext
     
     NXReadbackType type = NXReadbackType::Unknown; 
 
-    // »Ø¶ÁÎÆÀíÊ±×¨ÓÃ
+    // å›è¯»çº¹ç†æ—¶ä¸“ç”¨
     D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint = {};
     uint32_t numRows = 0;
     uint64_t rowSizeInBytes = 0;
@@ -69,7 +69,7 @@ public:
 private:
     uint32_t m_size;
 
-    // ¼ÇÂ¼ringÖĞµÄÒÑ·ÖÅä·¶Î§
+    // è®°å½•ringä¸­çš„å·²åˆ†é…èŒƒå›´
     uint32_t m_usedStart;
     uint32_t m_usedEnd;
 
@@ -88,9 +88,9 @@ public:
     NXReadbackSystem(ID3D12Device* pDevice);
     ~NXReadbackSystem();
 
-    // »Ø¶ÁBuffer
+    // å›è¯»Buffer
     bool BuildTask(int byteSize, NXReadbackContext& taskResult);
-    // »Ø¶ÁTexture
+    // å›è¯»Texture
     bool BuildTask(const Ntr<NXTexture>& pTexture, NXReadbackContext& taskResult);
 
     void FinishTask(const NXReadbackContext& result, const std::function<void()>& pCallBack = nullptr);
@@ -107,13 +107,13 @@ private:
 
     NXReadbackRingBuffer m_ringBuffer;
 
-    // »Ø¶ÁtaskÒÀÀµÖ¡Ä©µÄFenceValue
-    // µ«ĞÂÔö»Ø¶ÁtaskÊ±£¬µ±Ç°Ö¡µÄCPUÖ¸Áî»¹Ã»×öÍê£¬Êµ¼Ê²»ÖªµÀÖ¡Ä©µÄFenceValue
-    // ËùÒÔÏÈÓÃpendingTask´æÒ»ÏÂ»Ø¶ÁtaskÖ¸Õë£¬µÈÖ¡Ä©FenceValue¸üĞÂÊ± Í¬²½Ë¢ĞÂÕâÀïµÄÖµ
+    // å›è¯»taskä¾èµ–å¸§æœ«çš„FenceValue
+    // ä½†æ–°å¢å›è¯»taskæ—¶ï¼Œå½“å‰å¸§çš„CPUæŒ‡ä»¤è¿˜æ²¡åšå®Œï¼Œå®é™…ä¸çŸ¥é“å¸§æœ«çš„FenceValue
+    // æ‰€ä»¥å…ˆç”¨pendingTaskå­˜ä¸€ä¸‹å›è¯»taskæŒ‡é’ˆï¼Œç­‰å¸§æœ«FenceValueæ›´æ–°æ—¶ åŒæ­¥åˆ·æ–°è¿™é‡Œçš„å€¼
     std::vector<NXReadbackTask*> m_pendingTask;
 
-    // ÕâÀïµÄËø²ßÂÔÊÇ±È½Ï¼òµ¥´Ö±©µÄ£¬Ã¿¸ö·½·¨¶¼¼ÓËø£¬ÕâĞ©·½·¨µÄ¿ªÏú¶¼²»´ó¡£
-    // ÉÏ´«ÏµÍ³µÄ´óÍ·¿ªÏúÔÚBeginTask()½áÊøºó£¬FinishTask()¿ªÊ¼Ç°Õâ¶ÎÊ±¼äµÄ¸÷ÖÖ²Ù×÷ÉÏ£¬¶øÕâĞ©²Ù×÷ÊÇ±©Â¶ÔÚÉÏ²ã£¬ÔÊĞí¶àÏß³ÌÍ¬Ê±µ÷ÓÃµÄ¡£
+    // è¿™é‡Œçš„é”ç­–ç•¥æ˜¯æ¯”è¾ƒç®€å•ç²—æš´çš„ï¼Œæ¯ä¸ªæ–¹æ³•éƒ½åŠ é”ï¼Œè¿™äº›æ–¹æ³•çš„å¼€é”€éƒ½ä¸å¤§ã€‚
+    // ä¸Šä¼ ç³»ç»Ÿçš„å¤§å¤´å¼€é”€åœ¨BeginTask()ç»“æŸåï¼ŒFinishTask()å¼€å§‹å‰è¿™æ®µæ—¶é—´çš„å„ç§æ“ä½œä¸Šï¼Œè€Œè¿™äº›æ“ä½œæ˜¯æš´éœ²åœ¨ä¸Šå±‚ï¼Œå…è®¸å¤šçº¿ç¨‹åŒæ—¶è°ƒç”¨çš„ã€‚
     std::mutex m_mutex;
     std::condition_variable m_condition;
 };

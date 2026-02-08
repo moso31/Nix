@@ -21,7 +21,7 @@ NXRGHandle NXRenderGraph::Write(NXRGPassNodeBase* passNode, NXRGHandle resID)
 {
 	if (m_resourceMap[resID]->IsImported())
 	{
-		// µ¼Èë×ÊÔ´²»´´½¨ĞÂ°æ±¾£¬Ö±½Ó¸´ÓÃ
+		// å¯¼å…¥èµ„æºä¸åˆ›å»ºæ–°ç‰ˆæœ¬ï¼Œç›´æ¥å¤ç”¨
 		passNode->AddOutput(resID); 
 		m_handlePassNodes[resID].insert(passNode);
 		return resID;
@@ -72,12 +72,12 @@ void NXRenderGraph::Compile()
 
 	for (auto& pass : m_passNodes)
 	{
-		m_indegreePassMap[pass] = 0; // ³õÊ¼»¯Èë¶È±í=0
-		m_timeLayerPassMap[pass] = 0; // ³õÊ¼»¯Ê±¼ä²ã¼¶±í=0
+		m_indegreePassMap[pass] = 0; // åˆå§‹åŒ–å…¥åº¦è¡¨=0
+		m_timeLayerPassMap[pass] = 0; // åˆå§‹åŒ–æ—¶é—´å±‚çº§è¡¨=0
 		pass->ClearBeforeCompile();
 	}
 
-	std::unordered_map<NXRGHandle, NXRGPassNodeBase*> lastWriteMap; // ¹¹½¨ÁÚ½Ó±íÓÃ£¬¼ÇÂ¼Ã¿¸öRGHandleµÄ×îºóĞ´ÈëPass
+	std::unordered_map<NXRGHandle, NXRGPassNodeBase*> lastWriteMap; // æ„å»ºé‚»æ¥è¡¨ç”¨ï¼Œè®°å½•æ¯ä¸ªRGHandleçš„æœ€åå†™å…¥Pass
 	for (auto& pass : m_passNodes)
 	{
 		for (auto& inResID : pass->GetInputs())
@@ -85,10 +85,10 @@ void NXRenderGraph::Compile()
 			auto it = lastWriteMap.find(inResID);
 			if (it != lastWriteMap.end())
 			{
-				// ¹¹½¨Ò»Ìõ´Ó×îºóĞ´Èë¸Ã×ÊÔ´µÄPassµ½µ±Ç°PassµÄ±ß
+				// æ„å»ºä¸€æ¡ä»æœ€åå†™å…¥è¯¥èµ„æºçš„Passåˆ°å½“å‰Passçš„è¾¹
 				auto& lastWritePass = it->second;
 				m_adjTablePassMap[lastWritePass].push_back(pass);
-				m_indegreePassMap[pass]++; // Èë¶È+1
+				m_indegreePassMap[pass]++; // å…¥åº¦+1
 			}
 		}
 
@@ -107,7 +107,7 @@ void NXRenderGraph::Compile()
 		}
 	}
 
-	// khan ÍØÆËÅÅĞò
+	// khan æ‹“æ‰‘æ’åº
 	while (!passQueue.empty())
 	{
 		auto* pass = passQueue.front();
@@ -124,15 +124,15 @@ void NXRenderGraph::Compile()
 		}
 	}
 
-	// È·ÈÏÃ¿¸öresourceµÄÆğÖ¹time
+	// ç¡®è®¤æ¯ä¸ªresourceçš„èµ·æ­¢time
 	for (auto& [resID, resNode] : m_resourceMap)
 	{
-		if (resNode->IsImported()) continue; // import×ÊÔ´²»²ÎÓëÉúÃüÖÜÆÚ¹ÜÀí
+		if (resNode->IsImported()) continue; // importèµ„æºä¸å‚ä¸ç”Ÿå‘½å‘¨æœŸç®¡ç†
 		m_resourceLifeTimeMap[resID] = { std::numeric_limits<int>::max(), std::numeric_limits<int>::min(), nullptr, nullptr };
 	}
 	for (auto& pass : m_passNodes)
 	{
-		int passTimeLayer = m_timeLayerPassMap[pass]; // µ±Ç°passµÄÊ±¼ä²ã¼¶
+		int passTimeLayer = m_timeLayerPassMap[pass]; // å½“å‰passçš„æ—¶é—´å±‚çº§
 
 		for (auto& resID : pass->GetInputs())
 		{
@@ -171,26 +171,26 @@ void NXRenderGraph::Compile()
 		}
 	}
 
-	// Ì°ĞÄ£¬È·ÈÏÊµ¼ÊÓ¦¸Ã·ÖÅäµÄ×ÊÔ´
+	// è´ªå¿ƒï¼Œç¡®è®¤å®é™…åº”è¯¥åˆ†é…çš„èµ„æº
 	for (auto& [resID, lifeTime] : m_resourceLifeTimeMap)
 	{
 		if (lifeTime.start == std::numeric_limits<int>::max() || lifeTime.end == std::numeric_limits<int>::min())
-			continue; // Î´±»ÈÎºÎpassÊ¹ÓÃµÄ×ÊÔ´²»·ÖÅä
+			continue; // æœªè¢«ä»»ä½•passä½¿ç”¨çš„èµ„æºä¸åˆ†é…
 
-		//if (m_resourceMap.find(resID) == m_resourceMap.end()) continue; // ²»ĞèÒªÕâ¾ä;resourceLifeTimeMapÒ»¶¨ÊÇresourceMapµÄ×Ó¼¯
+		//if (m_resourceMap.find(resID) == m_resourceMap.end()) continue; // ä¸éœ€è¦è¿™å¥;resourceLifeTimeMapä¸€å®šæ˜¯resourceMapçš„å­é›†
 		auto& resourceDesc = m_resourceMap[resID]->GetDescription(); 
 
 		bool bFoundReusable = false;
 		if (m_descLifeTimesMap.find(resourceDesc) != m_descLifeTimesMap.end())
 		{
-			// µ±Ç°desc¸²¸ÇµÄÉúÃüÖÜÆÚ
+			// å½“å‰descè¦†ç›–çš„ç”Ÿå‘½å‘¨æœŸ
 			for (auto& singleResourceLifeTime : m_descLifeTimesMap[resourceDesc]) 
 			{
-				// ¼ì²édescµÄËùÓĞÉúÃüÖÜÆÚ£¬¿´¿´ºÍliftTimeÊÇ·ñÖØºÏ
+				// æ£€æŸ¥descçš„æ‰€æœ‰ç”Ÿå‘½å‘¨æœŸï¼Œçœ‹çœ‹å’ŒliftTimeæ˜¯å¦é‡åˆ
 				bool bCanReuse = true;
 				for (auto& resourceLifeTime : singleResourceLifeTime.descLifeTimes)
 				{
-					// ºÍÈÎÒâÒ»¸öÉúÃüÖÜÆÚÏà½»£¬¾Í²»ÄÜ¸´ÓÃ
+					// å’Œä»»æ„ä¸€ä¸ªç”Ÿå‘½å‘¨æœŸç›¸äº¤ï¼Œå°±ä¸èƒ½å¤ç”¨
 					if (!(lifeTime.end < resourceLifeTime.start || lifeTime.start > resourceLifeTime.end))
 					{
 						bCanReuse = false;
@@ -201,7 +201,7 @@ void NXRenderGraph::Compile()
 				if (bCanReuse)
 				{
 					bFoundReusable = true;
-					// Èô¿ÉÒÔ¸´ÓÃ£¬Ö±½Ó¼ÓÈë¸ÃÊµ¼Ê×ÊÔ´ÊµÀıµÄÉúÃüÖÜÆÚÁĞ±í
+					// è‹¥å¯ä»¥å¤ç”¨ï¼Œç›´æ¥åŠ å…¥è¯¥å®é™…èµ„æºå®ä¾‹çš„ç”Ÿå‘½å‘¨æœŸåˆ—è¡¨
 					singleResourceLifeTime.descLifeTimes.push_back(lifeTime);
 					m_allocatedResourceMap[resID] = singleResourceLifeTime.pResource; 
 					m_allocatedHandlesMap[singleResourceLifeTime.pResource].push_back(resID);
@@ -212,7 +212,7 @@ void NXRenderGraph::Compile()
 
 		if (!bFoundReusable) 
 		{
-			// Èç¹ûÃ»ÓĞÕÒµ½¿É¸´ÓÃµÄÊµÀı ĞèÒªĞÂ½¨Ò»¸ö
+			// å¦‚æœæ²¡æœ‰æ‰¾åˆ°å¯å¤ç”¨çš„å®ä¾‹ éœ€è¦æ–°å»ºä¸€ä¸ª
 			NXRGAllocedResourceLifeTimes singleResourceLifeTime;
 			singleResourceLifeTime.pResource = CreateResourceByDescription(resourceDesc, resID);
 			singleResourceLifeTime.descLifeTimes.push_back(lifeTime);
@@ -222,7 +222,7 @@ void NXRenderGraph::Compile()
 		}
 	}
 
-	// ·Ö·¢NXRGHandleµ½Ã¿¸öpassNode.NXRGFrameResources
+	// åˆ†å‘NXRGHandleåˆ°æ¯ä¸ªpassNode.NXRGFrameResources
 	for (auto& pass : m_passNodes)
 	{
 		for (auto& handle : pass->GetInputs())
@@ -252,7 +252,7 @@ void NXRenderGraph::Compile()
 		}
 	}
 
-	// TODO£ºÉÏÒ»Ö¡Î´±»¸´ÓÃµÄ×ÊÔ´½«±»ÒÆ³ı ÕâÀïÏÈ·Åµ½pending£¬µÈfenceÍê³ÉÔÙÏú»Ù
+	// TODOï¼šä¸Šä¸€å¸§æœªè¢«å¤ç”¨çš„èµ„æºå°†è¢«ç§»é™¤ è¿™é‡Œå…ˆæ”¾åˆ°pendingï¼Œç­‰fenceå®Œæˆå†é”€æ¯
 	for (auto& [desc, vec] : m_lastResourceUsingMap)
 	{
 		for (auto& res : vec)
@@ -261,10 +261,10 @@ void NXRenderGraph::Compile()
 		}
 	}
 
-	// Éú³ÉGUIÊı¾İ
+	// ç”ŸæˆGUIæ•°æ®
 	GenerateGUIData();
 
-	// Compile½áÊø£¬×¼±¸ºÃ×ÊÔ´·ÖÅä·½°¸£¬Çå¿ÕÉÏ´ÎµÄ¸´ÓÃ¼ÇÂ¼
+	// Compileç»“æŸï¼Œå‡†å¤‡å¥½èµ„æºåˆ†é…æ–¹æ¡ˆï¼Œæ¸…ç©ºä¸Šæ¬¡çš„å¤ç”¨è®°å½•
 	m_lastResourceUsingMap = std::move(m_resourceUsingMap);
 }
 
@@ -277,7 +277,7 @@ void NXRenderGraph::Execute()
 	cA->Reset();
 	cL->Reset(cA, nullptr);
 
-	// GPU Profiler: Ö¡¿ªÊ¼
+	// GPU Profiler: å¸§å¼€å§‹
 	if (g_pGPUProfiler)
 		g_pGPUProfiler->BeginFrame();
 
@@ -292,21 +292,21 @@ void NXRenderGraph::Execute()
 
 	for (auto pass : m_passNodes)
 	{
-		// GPU Profiler: Pass ¿ªÊ¼
+		// GPU Profiler: Pass å¼€å§‹
 		if (g_pGPUProfiler)
 			g_pGPUProfiler->BeginPass(cL, pass->GetName());
 
 		pass->Execute(cL);
 
-		// GPU Profiler: Pass ½áÊø
+		// GPU Profiler: Pass ç»“æŸ
 		if (g_pGPUProfiler)
 			g_pGPUProfiler->EndPass(cL);
 	}
 
 	NX12Util::EndEvent(cL);
 
-	// ×¢Òâ£ºGPU Profiler µÄ EndFrame() ÒÆÖÁ NXGUI::Render() Ä©Î²
-	// ÒÔÈ·±£Í³¼Æ°üº¬ ImGui äÖÈ¾Ê±¼ä
+	// æ³¨æ„ï¼šGPU Profiler çš„ EndFrame() ç§»è‡³ NXGUI::Render() æœ«å°¾
+	// ä»¥ç¡®ä¿ç»Ÿè®¡åŒ…å« ImGui æ¸²æŸ“æ—¶é—´
 
 	cL->Close();
 
@@ -316,7 +316,7 @@ void NXRenderGraph::Execute()
 
 void NXRenderGraph::Clear()
 {
-	// Çå¿ÕËùÓĞpass
+	// æ¸…ç©ºæ‰€æœ‰pass
 	for (auto& pass : m_passNodes)
 	{
 		delete pass;
@@ -324,14 +324,14 @@ void NXRenderGraph::Clear()
 	m_passNodes.clear();
 	m_handlePassNodes.clear();
 
-	// Çå¿Õ×ÊÔ´Ó³Éä
+	// æ¸…ç©ºèµ„æºæ˜ å°„
 	for (auto& [handle, resNode] : m_resourceMap)
 	{
 		delete resNode;
 	}
 	m_resourceMap.clear();
 	m_importedResourceMap.clear();
-	// Çå¿ÕÆäËû¸¨ÖúÊı¾İ½á¹¹
+	// æ¸…ç©ºå…¶ä»–è¾…åŠ©æ•°æ®ç»“æ„
 	m_adjTablePassMap.clear();
 	m_indegreePassMap.clear();
 	m_timeLayerPassMap.clear();
@@ -342,7 +342,7 @@ void NXRenderGraph::Clear()
 	m_allocatedHandlesMap.clear();
 	m_importedHandlesMap.clear();
 
-	// ÖØÖÃRGHandle ´Ó0¼ÆÊı
+	// é‡ç½®RGHandle ä»0è®¡æ•°
 	NXRGHandle::Reset();
 }
 
@@ -386,7 +386,7 @@ void NXRenderGraph::GenerateGUIData()
 	m_maxTimeLayer = 0;
 	m_minTimeLayer = std::numeric_limits<int>::max();
 
-	// Éú³ÉĞéÄâ×ÊÔ´£¨NXRGResource*£©µÄGUIÊı¾İ
+	// ç”Ÿæˆè™šæ‹Ÿèµ„æºï¼ˆNXRGResource*ï¼‰çš„GUIæ•°æ®
 	for (auto& [handle, lifeTime] : m_resourceLifeTimeMap)
 	{
 		if (lifeTime.start == std::numeric_limits<int>::max() || lifeTime.end == std::numeric_limits<int>::min())
@@ -406,7 +406,7 @@ void NXRenderGraph::GenerateGUIData()
 		m_maxTimeLayer = std::max(m_maxTimeLayer, lifeTime.end);
 	}
 
-	// Éú³ÉÊµ¼Ê×ÊÔ´£¨Ntr<NXResource>£©µÄGUIÊı¾İ-Create²¿·Ö
+	// ç”Ÿæˆå®é™…èµ„æºï¼ˆNtr<NXResource>ï¼‰çš„GUIæ•°æ®-Createéƒ¨åˆ†
 	for (auto& [pResource, handles] : m_allocatedHandlesMap)
 	{
 		NXRGGUIResource res;
@@ -426,7 +426,7 @@ void NXRenderGraph::GenerateGUIData()
 		m_guiPhysicalResources.push_back(res);
 	}
 
-	// Éú³ÉÊµ¼Ê×ÊÔ´£¨Ntr<NXResource>£©µÄGUIÊı¾İ-Import²¿·Ö
+	// ç”Ÿæˆå®é™…èµ„æºï¼ˆNtr<NXResource>ï¼‰çš„GUIæ•°æ®-Importéƒ¨åˆ†
 	for (auto& [pResource, handle] : m_importedHandlesMap)
 	{
 		NXRGGUIResource res;
@@ -435,7 +435,7 @@ void NXRenderGraph::GenerateGUIData()
 		for (auto& pass : m_handlePassNodes[handle])
 		{
 			res.handles.push_back(handle);
-			res.lifeTimes.push_back({ m_timeLayerPassMap[pass], m_timeLayerPassMap[pass] + 1, nullptr, nullptr }); // import×ÊÔ´ÉúÃüÖÜÆÚ¹á´©Ê¼ÖÕ
+			res.lifeTimes.push_back({ m_timeLayerPassMap[pass], m_timeLayerPassMap[pass] + 1, nullptr, nullptr }); // importèµ„æºç”Ÿå‘½å‘¨æœŸè´¯ç©¿å§‹ç»ˆ
 		}
 
 		res.isImported = true;
@@ -448,19 +448,19 @@ Ntr<NXResource> NXRenderGraph::CreateResourceByDescription(const NXRGDescription
 {
 	std::string strResName = "NXRGRes_" + std::to_string(s_resourceId++);
 
-	// ÏÈ³¢ÊÔ´Ó m_lastResourceUsingMap ¸´ÓÃ×ÊÔ´...
+	// å…ˆå°è¯•ä» m_lastResourceUsingMap å¤ç”¨èµ„æº...
 	if (m_lastResourceUsingMap.find(desc) != m_lastResourceUsingMap.end())
 	{
 		if (!m_lastResourceUsingMap[desc].empty())
 		{
-			Ntr<NXResource> pRes = m_lastResourceUsingMap[desc].front(); // ´Ó¶ÓÍ·È¡£¬¾¡Á¿±£³ÖË³Ğò
+			Ntr<NXResource> pRes = m_lastResourceUsingMap[desc].front(); // ä»é˜Ÿå¤´å–ï¼Œå°½é‡ä¿æŒé¡ºåº
 			m_lastResourceUsingMap[desc].erase(m_lastResourceUsingMap[desc].begin());
 			m_resourceUsingMap[desc].push_back(pRes);
 			return pRes;
 		}
 	}
 
-	// ...Èç¹ûÃ»·¨¸´ÓÃ£¬¾ÍĞÂ½¨
+	// ...å¦‚æœæ²¡æ³•å¤ç”¨ï¼Œå°±æ–°å»º
 
 	if (desc.resourceType == NXResourceType::Tex2D)
 	{
@@ -512,8 +512,8 @@ Ntr<NXResource> NXRenderGraph::CreateResourceByDescription(const NXRGDescription
 		return pBuffer;
 	}
 
-	// TODO£ºÔİ²»Ö§³ÖÆäËû×ÊÔ´ÀàĞÍ£¨Tex1D¡¢Tex3D¡¢Tex2DArray Cube£©×Ô½¨RT
-	// £¨shadowMapµÄTex2dArrayÏÖÔÚÊÇimportÖ±Á¬Íâ²¿£¬ÏÈ´ÕºÏ×ÅÓÃ£©
+	// TODOï¼šæš‚ä¸æ”¯æŒå…¶ä»–èµ„æºç±»å‹ï¼ˆTex1Dã€Tex3Dã€Tex2DArray Cubeï¼‰è‡ªå»ºRT
+	// ï¼ˆshadowMapçš„Tex2dArrayç°åœ¨æ˜¯importç›´è¿å¤–éƒ¨ï¼Œå…ˆå‡‘åˆç€ç”¨ï¼‰
 	assert(false);
 	return nullptr;
 }

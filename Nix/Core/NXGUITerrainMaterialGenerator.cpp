@@ -12,7 +12,7 @@ using namespace DirectX;
 
 NXGUITerrainMaterialGenerator::NXGUITerrainMaterialGenerator()
 {
-	// ¹Ì¶¨³õÊ¼»¯256¸öslice£¬Ê¹ÓÃm_sliceCount¿ØÖÆÊµ¼ÊÏÔÊ¾ÊıÁ¿
+	// å›ºå®šåˆå§‹åŒ–256ä¸ªsliceï¼Œä½¿ç”¨m_sliceCountæ§åˆ¶å®é™…æ˜¾ç¤ºæ•°é‡
 	m_slices.resize(256);
 	m_sliceCount = 1;
 }
@@ -27,15 +27,15 @@ void NXGUITerrainMaterialGenerator::Render()
 		return;
 
 	ImGui::SetNextWindowSize(ImVec2(1400.0f, 700.0f), ImGuiCond_FirstUseEver);
-	if (ImGui::Begin(ImUtf8("µØĞÎ²ÄÖÊÎÆÀíÉú³ÉÆ÷"), &m_bVisible))
+	if (ImGui::Begin(ImUtf8("åœ°å½¢æè´¨çº¹ç†ç”Ÿæˆå™¨"), &m_bVisible))
 	{
-		// ÉÏ²¿·Ö: ºÏ³ÉÇøÓò
+		// ä¸Šéƒ¨åˆ†: åˆæˆåŒºåŸŸ
 		RenderComposeSection();
 
 		ImGui::Separator();
 		ImGui::Spacing();
 
-		// ÏÂ²¿·Ö: SliceÁĞ±í£¨Ã¿ĞĞ×ó²àÎÄ¼ş¼ĞÂ·¾¶+Æ¥Åä°´Å¥£¬ÓÒ²àÎÆÀíÔ¤ÀÀ£©
+		// ä¸‹éƒ¨åˆ†: Sliceåˆ—è¡¨ï¼ˆæ¯è¡Œå·¦ä¾§æ–‡ä»¶å¤¹è·¯å¾„+åŒ¹é…æŒ‰é’®ï¼Œå³ä¾§çº¹ç†é¢„è§ˆï¼‰
 		RenderSliceListWithPreview();
 	}
 	ImGui::End();
@@ -43,18 +43,18 @@ void NXGUITerrainMaterialGenerator::Render()
 
 void NXGUITerrainMaterialGenerator::RenderSliceListWithPreview()
 {
-	ImGui::Text(ImUtf8("=== Slice ÁĞ±í ==="));
+	ImGui::Text(ImUtf8("=== Slice åˆ—è¡¨ ==="));
 	
-	// SliceÊıÁ¿¿ØÖÆ
+	// Sliceæ•°é‡æ§åˆ¶
 	ImGui::SetNextItemWidth(100.0f);
-	if (ImGui::InputInt(ImUtf8("SliceÊıÁ¿"), &m_sliceCount))
+	if (ImGui::InputInt(ImUtf8("Sliceæ•°é‡"), &m_sliceCount))
 	{
 		if (m_sliceCount < 1) m_sliceCount = 1;
 		if (m_sliceCount > 256) m_sliceCount = 256;
 	}
 
 	ImGui::SameLine();
-	if (ImGui::Button(ImUtf8("Çå¿ÕËùÓĞÂ·¾¶")))
+	if (ImGui::Button(ImUtf8("æ¸…ç©ºæ‰€æœ‰è·¯å¾„")))
 	{
 		ClearAllSlices();
 	}
@@ -63,7 +63,7 @@ void NXGUITerrainMaterialGenerator::RenderSliceListWithPreview()
 	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.3f, 0.1f, 1.0f));
 	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.7f, 0.4f, 0.2f, 1.0f));
 	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.5f, 0.2f, 0.0f, 1.0f));
-	if (ImGui::Button(ImUtf8("Æ¥ÅäÈ«²¿ÎÆÀí£¨¿ÉÄÜ±È½Ï¾Ã£©")))
+	if (ImGui::Button(ImUtf8("åŒ¹é…å…¨éƒ¨çº¹ç†ï¼ˆå¯èƒ½æ¯”è¾ƒä¹…ï¼‰")))
 	{
 		AutoMatchAllSlices();
 	}
@@ -73,11 +73,11 @@ void NXGUITerrainMaterialGenerator::RenderSliceListWithPreview()
 	ImGui::Spacing();
 	ImGui::SameLine();
 
-	// µ¼³ö/µ¼ÈëÅäÖÃ°´Å¥
+	// å¯¼å‡º/å¯¼å…¥é…ç½®æŒ‰é’®
 	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.4f, 0.6f, 1.0f));
 	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.5f, 0.7f, 1.0f));
 	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.1f, 0.3f, 0.5f, 1.0f));
-	if (ImGui::Button(ImUtf8("µ¼³öÅäÖÃ")))
+	if (ImGui::Button(ImUtf8("å¯¼å‡ºé…ç½®")))
 	{
 		ExportConfig();
 	}
@@ -88,7 +88,7 @@ void NXGUITerrainMaterialGenerator::RenderSliceListWithPreview()
 	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.5f, 0.4f, 0.2f, 1.0f));
 	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.6f, 0.5f, 0.3f, 1.0f));
 	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.4f, 0.3f, 0.1f, 1.0f));
-	if (ImGui::Button(ImUtf8("µ¼ÈëÅäÖÃ")))
+	if (ImGui::Button(ImUtf8("å¯¼å…¥é…ç½®")))
 	{
 		ImportConfig();
 	}
@@ -98,12 +98,12 @@ void NXGUITerrainMaterialGenerator::RenderSliceListWithPreview()
 	ImGui::Separator();
 	ImGui::Spacing();
 
-	// ¹ö¶¯ÇøÓòÏÔÊ¾ËùÓĞslice
+	// æ»šåŠ¨åŒºåŸŸæ˜¾ç¤ºæ‰€æœ‰slice
 	float previewSize = 64.0f;
 	float spacing = 5.0f;
-	float framePadding = ImGui::GetStyle().FramePadding.x; // ImageButton ×óÓÒ¸÷ÓĞ frame padding
-	float buttonWidth = previewSize + framePadding * 2;    // µ¥¸ö°´Å¥Êµ¼Ê¿í¶È
-	float rightColumnWidth = buttonWidth * 5 + spacing * 4 + 10.0f; // 5¸ö°´Å¥ + 4¸ö¼ä¾à + ¶îÍâ±ß¾à
+	float framePadding = ImGui::GetStyle().FramePadding.x; // ImageButton å·¦å³å„æœ‰ frame padding
+	float buttonWidth = previewSize + framePadding * 2;    // å•ä¸ªæŒ‰é’®å®é™…å®½åº¦
+	float rightColumnWidth = buttonWidth * 5 + spacing * 4 + 10.0f; // 5ä¸ªæŒ‰é’® + 4ä¸ªé—´è· + é¢å¤–è¾¹è·
 	
 	ImGui::BeginChild("SliceScrollArea", ImVec2(0, 0), false);
 	
@@ -113,40 +113,40 @@ void NXGUITerrainMaterialGenerator::RenderSliceListWithPreview()
 		
 		ImGui::PushID(i);
 		
-		// Ê¹ÓÃ²»¿É¼ûµÄ±í¸ñ²¼¾Ö£¬×ó²à·ÅÖÃÂ·¾¶/°´Å¥£¬ÓÒ²à·ÅÖÃÍ¼Ïñ
+		// ä½¿ç”¨ä¸å¯è§çš„è¡¨æ ¼å¸ƒå±€ï¼Œå·¦ä¾§æ”¾ç½®è·¯å¾„/æŒ‰é’®ï¼Œå³ä¾§æ”¾ç½®å›¾åƒ
 		if (ImGui::BeginTable("##SliceTable", 2, ImGuiTableFlags_SizingStretchProp))
 		{
-			// ×ó²àÁĞÕ¼ÓÃÊ£Óà¿Õ¼ä
+			// å·¦ä¾§åˆ—å ç”¨å‰©ä½™ç©ºé—´
 			ImGui::TableSetupColumn("Left", ImGuiTableColumnFlags_WidthStretch);
-			// ÓÒ²àÁĞ¹Ì¶¨¿í¶È£¨5ÕÅÍ¼Æ¬ + ¼ä¾à + frame padding£©
+			// å³ä¾§åˆ—å›ºå®šå®½åº¦ï¼ˆ5å¼ å›¾ç‰‡ + é—´è· + frame paddingï¼‰
 			ImGui::TableSetupColumn("Right", ImGuiTableColumnFlags_WidthFixed, rightColumnWidth);
 			
 			ImGui::TableNextRow();
 			
-			// ×ó²àÁĞ£ºÂ·¾¶¡¢Æ¥Åä°´Å¥¡¢Çå¿Õ°´Å¥
+			// å·¦ä¾§åˆ—ï¼šè·¯å¾„ã€åŒ¹é…æŒ‰é’®ã€æ¸…ç©ºæŒ‰é’®
 			ImGui::TableSetColumnIndex(0);
 			ImGui::BeginGroup();
 			
-			// µÚÒ»ĞĞ£ºSlice±êÇ© + ÎÄ¼ş¼ĞÂ·¾¶
+			// ç¬¬ä¸€è¡Œï¼šSliceæ ‡ç­¾ + æ–‡ä»¶å¤¹è·¯å¾„
 			ImGui::Text("Slice %d:", i);
 			ImGui::SameLine();
 			ImGui::SetNextItemWidth(-1);
 			ImGui::InputText("##FolderPath", slice.folderPath, sizeof(slice.folderPath));
 			
-			// µÚ¶şĞĞ£ºÆ¥Åä°´Å¥ºÍÇå¿Õ°´Å¥
-			if (ImGui::Button(ImUtf8("Æ¥Åä")))
+			// ç¬¬äºŒè¡Œï¼šåŒ¹é…æŒ‰é’®å’Œæ¸…ç©ºæŒ‰é’®
+			if (ImGui::Button(ImUtf8("åŒ¹é…")))
 			{
 				AutoMatchFromFolder(i);
 			}
 			ImGui::SameLine();
-			if (ImGui::Button(ImUtf8("Çå¿Õ")))
+			if (ImGui::Button(ImUtf8("æ¸…ç©º")))
 			{
 				ClearSlice(i);
 			}
 			
 			ImGui::EndGroup();
 			
-			// ÓÒ²àÁĞ£º5ÕÅÎÆÀíÔ¤ÀÀ
+			// å³ä¾§åˆ—ï¼š5å¼ çº¹ç†é¢„è§ˆ
 			ImGui::TableSetColumnIndex(1);
 			RenderTexturePreviewRow(i, previewSize);
 			
@@ -181,7 +181,7 @@ void NXGUITerrainMaterialGenerator::RenderTexturePreviewRow(int sliceIndex, floa
 	{
 		ImGui::PushID(i);
 
-		// »ñÈ¡ÎÆÀí£ºÈç¹ûÂ·¾¶ÓĞĞ§Ôò¼ÓÔØÎÆÀí£¬·ñÔòÊ¹ÓÃÄ¬ÈÏ°×É«ÎÆÀí
+		// è·å–çº¹ç†ï¼šå¦‚æœè·¯å¾„æœ‰æ•ˆåˆ™åŠ è½½çº¹ç†ï¼Œå¦åˆ™ä½¿ç”¨é»˜è®¤ç™½è‰²çº¹ç†
 		std::string texPath = pathPtrs[i];
 		Ntr<NXTexture2D> pTex;
 		if (!texPath.empty() && std::filesystem::exists(texPath))
@@ -189,7 +189,7 @@ void NXGUITerrainMaterialGenerator::RenderTexturePreviewRow(int sliceIndex, floa
 		if (pTex.IsNull())
 			pTex = NXResourceManager::GetInstance()->GetTextureManager()->GetCommonTextures(NXCommonTex_White);
 
-		// Ê¹ÓÃ ImageButton ÏÔÊ¾ÎÆÀíÔ¤ÀÀ
+		// ä½¿ç”¨ ImageButton æ˜¾ç¤ºçº¹ç†é¢„è§ˆ
 		ImVec2 size = ImVec2(previewSize, previewSize);
 		ImVec2 uv0 = ImVec2(0.0f, 0.0f);
 		ImVec2 uv1 = ImVec2(1.0f, 1.0f);
@@ -202,18 +202,18 @@ void NXGUITerrainMaterialGenerator::RenderTexturePreviewRow(int sliceIndex, floa
 		std::string btnId = std::string("##TexBtn_") + labels[i];
 		if (ImGui::ImageButton(btnId.c_str(), (ImTextureID)srvHandle.ptr, size, uv0, uv1, bg_col, tint_col))
 		{
-			// µã»÷°´Å¥Ê±µÄ²Ù×÷£¨¿ÉÀ©Õ¹£º´ò¿ªÎÄ¼şÑ¡ÔñÆ÷µÈ£©
+			// ç‚¹å‡»æŒ‰é’®æ—¶çš„æ“ä½œï¼ˆå¯æ‰©å±•ï¼šæ‰“å¼€æ–‡ä»¶é€‰æ‹©å™¨ç­‰ï¼‰
 		}
 
-		// ¼ì²â Win32 ÎÄ¼şÍÏ·Å
+		// æ£€æµ‹ Win32 æ–‡ä»¶æ‹–æ”¾
 		std::filesystem::path droppedFile = NXGUICommon::AcceptWinFileDropImage();
 		if (!droppedFile.empty())
 		{
 			strncpy_s(pathPtrs[i], 512, droppedFile.string().c_str(), _TRUNCATE);
-			printf("Slice %d - %s: ÒÑ½ÓÊÕÍÏÈëÎÄ¼ş %s\n", sliceIndex, labels[i], droppedFile.string().c_str());
+			printf("Slice %d - %s: å·²æ¥æ”¶æ‹–å…¥æ–‡ä»¶ %s\n", sliceIndex, labels[i], droppedFile.string().c_str());
 		}
 
-		// ÔÚÍ¼Æ¬ÓÒÏÂ½ÇÏÔÊ¾±êÇ©
+		// åœ¨å›¾ç‰‡å³ä¸‹è§’æ˜¾ç¤ºæ ‡ç­¾
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 		ImVec2 rectMin = ImGui::GetItemRectMin();
 		ImVec2 rectMax = ImGui::GetItemRectMax();
@@ -221,7 +221,7 @@ void NXGUITerrainMaterialGenerator::RenderTexturePreviewRow(int sliceIndex, floa
 		float labelPadding = 2.0f;
 		ImVec2 labelPos = ImVec2(rectMax.x - textSize.x - labelPadding, rectMax.y - textSize.y - labelPadding);
 		
-		// »æÖÆ±êÇ©±³¾°
+		// ç»˜åˆ¶æ ‡ç­¾èƒŒæ™¯
 		drawList->AddRectFilled(
 			ImVec2(labelPos.x - 2, labelPos.y - 1),
 			ImVec2(rectMax.x, rectMax.y),
@@ -237,14 +237,14 @@ void NXGUITerrainMaterialGenerator::RenderTexturePreviewRow(int sliceIndex, floa
 
 void NXGUITerrainMaterialGenerator::RenderComposeSection()
 {
-	ImGui::Text(ImUtf8("=== ºÏ³É 2D Array ==="));
+	ImGui::Text(ImUtf8("=== åˆæˆ 2D Array ==="));
 	ImGui::Spacing();
 
-	// Êä³öÎÆÀí³ß´çÏÂÀ­²Ëµ¥
+	// è¾“å‡ºçº¹ç†å°ºå¯¸ä¸‹æ‹‰èœå•
 	const char* textureSizes[] = { "256", "512", "1024", "2048" };
 	const int textureSizeValues[] = { 256, 512, 1024, 2048 };
 	
-	ImGui::Text(ImUtf8("Êä³öÎÆÀí³ß´ç:"));
+	ImGui::Text(ImUtf8("è¾“å‡ºçº¹ç†å°ºå¯¸:"));
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(100.0f);
 	if (ImGui::BeginCombo("##TextureSize", textureSizes[m_outputTextureSizeIndex]))
@@ -265,7 +265,7 @@ void NXGUITerrainMaterialGenerator::RenderComposeSection()
     
 	ImGui::SameLine();
 
-	// ºÏ³ÉÑ¡Ïî - ºáÏòÅÅÁĞ
+	// åˆæˆé€‰é¡¹ - æ¨ªå‘æ’åˆ—
 	ImGui::Checkbox("Albedo", &m_bComposeAlbedo);
 	ImGui::SameLine();
 	ImGui::Checkbox("Normal", &m_bComposeNormal);
@@ -278,8 +278,8 @@ void NXGUITerrainMaterialGenerator::RenderComposeSection()
 
 	ImGui::Spacing();
 
-	// Êä³öÂ·¾¶
-	ImGui::Text(ImUtf8("Êä³öÂ·¾¶:"));
+	// è¾“å‡ºè·¯å¾„
+	ImGui::Text(ImUtf8("è¾“å‡ºè·¯å¾„:"));
 	
 	if (m_bComposeAlbedo)
 	{
@@ -323,7 +323,7 @@ void NXGUITerrainMaterialGenerator::RenderComposeSection()
 
 	ImGui::Spacing();
 
-	// ĞÑÄ¿µÄºÏ³É°´Å¥
+	// é†’ç›®çš„åˆæˆæŒ‰é’®
 	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.6f, 0.2f, 1.0f));
 	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.7f, 0.3f, 1.0f));
 	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.1f, 0.5f, 0.1f, 1.0f));
@@ -332,7 +332,7 @@ void NXGUITerrainMaterialGenerator::RenderComposeSection()
 	if (!canCompose)
 		ImGui::BeginDisabled();
 
-	if (ImGui::Button(ImUtf8(">>> ¿ªÊ¼ºÏ³É <<<"), ImVec2(200, 40)))
+	if (ImGui::Button(ImUtf8(">>> å¼€å§‹åˆæˆ <<<"), ImVec2(200, 40)))
 	{
 		if (m_bComposeAlbedo)
 			ComposeAlbedo2DArray();
@@ -362,18 +362,18 @@ void NXGUITerrainMaterialGenerator::AutoMatchFromFolder(int sliceIndex)
 
 	if (!std::filesystem::exists(folderPath) || !std::filesystem::is_directory(folderPath))
 	{
-		printf("AutoMatchFromFolder: ÎÄ¼ş¼Ğ²»´æÔÚ»òÎŞĞ§ %s\n", slice.folderPath);
+		printf("AutoMatchFromFolder: æ–‡ä»¶å¤¹ä¸å­˜åœ¨æˆ–æ— æ•ˆ %s\n", slice.folderPath);
 		return;
 	}
 
-	// Çå¿Õµ±Ç°Â·¾¶
+	// æ¸…ç©ºå½“å‰è·¯å¾„
 	slice.albedoPath[0] = '\0';
 	slice.normalPath[0] = '\0';
 	slice.roughnessPath[0] = '\0';
 	slice.specularPath[0] = '\0';
 	slice.aoPath[0] = '\0';
 
-	// ±éÀúÎÄ¼ş¼ĞÖĞµÄÎÄ¼ş
+	// éå†æ–‡ä»¶å¤¹ä¸­çš„æ–‡ä»¶
 	for (const auto& entry : std::filesystem::directory_iterator(folderPath))
 	{
 		if (!entry.is_regular_file())
@@ -382,13 +382,13 @@ void NXGUITerrainMaterialGenerator::AutoMatchFromFolder(int sliceIndex)
 		std::string fileName = entry.path().filename().string();
 		std::string fullPath = entry.path().string();
 
-		// ¼ì²éÊÇ·ñÊÇÍ¼Æ¬ÎÄ¼ş
+		// æ£€æŸ¥æ˜¯å¦æ˜¯å›¾ç‰‡æ–‡ä»¶
 		std::string ext = entry.path().extension().string();
 		std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 		if (ext != ".png" && ext != ".jpg" && ext != ".jpeg" && ext != ".tga" && ext != ".dds" && ext != ".exr" && ext != ".bmp")
 			continue;
 
-		// Æ¥Åä¸÷ÀàĞÍÎÆÀí
+		// åŒ¹é…å„ç±»å‹çº¹ç†
 		if (ContainsIgnoreCase(fileName, "basecolor") || ContainsIgnoreCase(fileName, "albedo") || ContainsIgnoreCase(fileName, "diffuse"))
 		{
 			strncpy_s(slice.albedoPath, fullPath.c_str(), sizeof(slice.albedoPath) - 1);
@@ -411,17 +411,17 @@ void NXGUITerrainMaterialGenerator::AutoMatchFromFolder(int sliceIndex)
 		}
 	}
 
-	printf("AutoMatchFromFolder: ´Ó %s Æ¥ÅäÍê³É\n", slice.folderPath);
+	printf("AutoMatchFromFolder: ä» %s åŒ¹é…å®Œæˆ\n", slice.folderPath);
 }
 
 void NXGUITerrainMaterialGenerator::AutoMatchAllSlices()
 {
-	printf("AutoMatchAllSlices: ¿ªÊ¼Æ¥ÅäÈ«²¿ %d ¸öslice...\n", m_sliceCount);
+	printf("AutoMatchAllSlices: å¼€å§‹åŒ¹é…å…¨éƒ¨ %d ä¸ªslice...\n", m_sliceCount);
 	for (int i = 0; i < m_sliceCount; i++)
 	{
 		AutoMatchFromFolder(i);
 	}
-	printf("AutoMatchAllSlices: È«²¿Æ¥ÅäÍê³É\n");
+	printf("AutoMatchAllSlices: å…¨éƒ¨åŒ¹é…å®Œæˆ\n");
 }
 
 void NXGUITerrainMaterialGenerator::ClearSlice(int sliceIndex)
@@ -506,7 +506,7 @@ void NXGUITerrainMaterialGenerator::ComposeTexture2DArray(
 {
 	if (texturePaths.empty())
 	{
-		printf("ComposeTexture2DArray: %s Â·¾¶ÁĞ±íÎª¿Õ\n", textureName);
+		printf("ComposeTexture2DArray: %s è·¯å¾„åˆ—è¡¨ä¸ºç©º\n", textureName);
 		return;
 	}
 
@@ -514,7 +514,7 @@ void NXGUITerrainMaterialGenerator::ComposeTexture2DArray(
 	uint32_t width = static_cast<uint32_t>(m_outputTextureSize);
 	uint32_t height = static_cast<uint32_t>(m_outputTextureSize);
 
-	// ¼ÆËãmip²ã¼¶Êı
+	// è®¡ç®—mipå±‚çº§æ•°
 	uint32_t mipLevels = 1;
 	uint32_t tempSize = std::max(width, height);
 	while (tempSize > 1)
@@ -523,40 +523,40 @@ void NXGUITerrainMaterialGenerator::ComposeTexture2DArray(
 		mipLevels++;
 	}
 
-	// ´´½¨ÁÙÊ±µÄRGBA8¸ñÊ½ÎÆÀíÊı×é£¨½ömip0£©
+	// åˆ›å»ºä¸´æ—¶çš„RGBA8æ ¼å¼çº¹ç†æ•°ç»„ï¼ˆä»…mip0ï¼‰
 	std::unique_ptr<ScratchImage> texArray = std::make_unique<ScratchImage>();
 	HRESULT hr = texArray->Initialize2D(DXGI_FORMAT_R8G8B8A8_UNORM, width, height, arraySize, 1);
 	if (FAILED(hr))
 	{
-		printf("ComposeTexture2DArray: %s Initialize2D Ê§°Ü\n", textureName);
+		printf("ComposeTexture2DArray: %s Initialize2D å¤±è´¥\n", textureName);
 		return;
 	}
 
-	// Ìî³äÃ¿¸öslice
+	// å¡«å……æ¯ä¸ªslice
 	for (uint32_t sliceIdx = 0; sliceIdx < arraySize; ++sliceIdx)
 	{
 		const Image* dstImage = texArray->GetImage(0, sliceIdx, 0);
 		if (!dstImage)
 		{
-			printf("ComposeTexture2DArray: %s »ñÈ¡slice %u Ê§°Ü\n", textureName, sliceIdx);
+			printf("ComposeTexture2DArray: %s è·å–slice %u å¤±è´¥\n", textureName, sliceIdx);
 			continue;
 		}
 
 		const std::string& srcPath = texturePaths[sliceIdx];
 		if (srcPath.empty())
 		{
-			// Â·¾¶Îª¿Õ£¬Ìî³äÄ¬ÈÏÑÕÉ« (»ÒÉ«)
+			// è·¯å¾„ä¸ºç©ºï¼Œå¡«å……é»˜è®¤é¢œè‰² (ç°è‰²)
 			memset(dstImage->pixels, 128, dstImage->rowPitch * height);
-			printf("ComposeTexture2DArray: %s slice %u Â·¾¶Îª¿Õ£¬Ìî³äÄ¬ÈÏÑÕÉ«\n", textureName, sliceIdx);
+			printf("ComposeTexture2DArray: %s slice %u è·¯å¾„ä¸ºç©ºï¼Œå¡«å……é»˜è®¤é¢œè‰²\n", textureName, sliceIdx);
 			continue;
 		}
 
-		// ¼ÓÔØÔ´ÎÆÀí
+		// åŠ è½½æºçº¹ç†
 		std::filesystem::path srcFilePath(srcPath);
 		if (!std::filesystem::exists(srcFilePath))
 		{
 			memset(dstImage->pixels, 128, dstImage->rowPitch * height);
-			printf("ComposeTexture2DArray: %s slice %u ÎÄ¼ş²»´æÔÚ %s\n", textureName, sliceIdx, srcPath.c_str());
+			printf("ComposeTexture2DArray: %s slice %u æ–‡ä»¶ä¸å­˜åœ¨ %s\n", textureName, sliceIdx, srcPath.c_str());
 			continue;
 		}
 
@@ -586,11 +586,11 @@ void NXGUITerrainMaterialGenerator::ComposeTexture2DArray(
 		if (FAILED(hr))
 		{
 			memset(dstImage->pixels, 128, dstImage->rowPitch * height);
-			printf("ComposeTexture2DArray: %s slice %u ¼ÓÔØÊ§°Ü %s\n", textureName, sliceIdx, srcPath.c_str());
+			printf("ComposeTexture2DArray: %s slice %u åŠ è½½å¤±è´¥ %s\n", textureName, sliceIdx, srcPath.c_str());
 			continue;
 		}
 
-		// ×ª»»ÎªRGBA8¸ñÊ½£¨Èç¹ûĞèÒª£©
+		// è½¬æ¢ä¸ºRGBA8æ ¼å¼ï¼ˆå¦‚æœéœ€è¦ï¼‰
 		ScratchImage convertedImage;
 		const Image* pSrcImage = srcImage.GetImage(0, 0, 0);
 		if (pSrcImage->format != DXGI_FORMAT_R8G8B8A8_UNORM)
@@ -602,7 +602,7 @@ void NXGUITerrainMaterialGenerator::ComposeTexture2DArray(
 			}
 		}
 
-		// Ëõ·Åµ½Ä¿±ê³ß´ç£¨Èç¹ûĞèÒª£©
+		// ç¼©æ”¾åˆ°ç›®æ ‡å°ºå¯¸ï¼ˆå¦‚æœéœ€è¦ï¼‰
 		ScratchImage resizedImage;
 		if (pSrcImage->width != width || pSrcImage->height != height)
 		{
@@ -614,12 +614,12 @@ void NXGUITerrainMaterialGenerator::ComposeTexture2DArray(
 			else
 			{
 				memset(dstImage->pixels, 128, dstImage->rowPitch * height);
-				printf("ComposeTexture2DArray: %s slice %u Ëõ·ÅÊ§°Ü\n", textureName, sliceIdx);
+				printf("ComposeTexture2DArray: %s slice %u ç¼©æ”¾å¤±è´¥\n", textureName, sliceIdx);
 				continue;
 			}
 		}
 
-		// ¸´ÖÆµ½Ä¿±ê
+		// å¤åˆ¶åˆ°ç›®æ ‡
 		size_t copyRowPitch = std::min(pSrcImage->rowPitch, dstImage->rowPitch);
 		for (uint32_t y = 0; y < height; ++y)
 		{
@@ -628,24 +628,24 @@ void NXGUITerrainMaterialGenerator::ComposeTexture2DArray(
 			memcpy(dstRow, srcRow, copyRowPitch);
 		}
 
-		printf("ComposeTexture2DArray: %s slice %u ¼ÓÔØ³É¹¦ %s\n", textureName, sliceIdx, srcPath.c_str());
+		printf("ComposeTexture2DArray: %s slice %u åŠ è½½æˆåŠŸ %s\n", textureName, sliceIdx, srcPath.c_str());
 	}
 
-	// Éú³Émipmap
+	// ç”Ÿæˆmipmap
 	std::unique_ptr<ScratchImage> texArrayWithMips = std::make_unique<ScratchImage>();
 	hr = GenerateMipMaps(texArray->GetImages(), texArray->GetImageCount(), texArray->GetMetadata(),
 						 TEX_FILTER_LINEAR, 0, *texArrayWithMips);
 	if (FAILED(hr))
 	{
-		printf("ComposeTexture2DArray: %s mipmapÉú³ÉÊ§°Ü£¬Ê¹ÓÃÎŞmip°æ±¾\n", textureName);
+		printf("ComposeTexture2DArray: %s mipmapç”Ÿæˆå¤±è´¥ï¼Œä½¿ç”¨æ— mipç‰ˆæœ¬\n", textureName);
 		texArrayWithMips = std::move(texArray);
 	}
 	else
 	{
-		printf("ComposeTexture2DArray: %s mipmapÉú³É³É¹¦ (%u levels)\n", textureName, (uint32_t)texArrayWithMips->GetMetadata().mipLevels);
+		printf("ComposeTexture2DArray: %s mipmapç”ŸæˆæˆåŠŸ (%u levels)\n", textureName, (uint32_t)texArrayWithMips->GetMetadata().mipLevels);
 	}
 
-	// Ñ¹ËõÎªBC7¸ñÊ½£¨Èç¹ûĞèÒª£©
+	// å‹ç¼©ä¸ºBC7æ ¼å¼ï¼ˆå¦‚æœéœ€è¦ï¼‰
 	std::unique_ptr<ScratchImage> finalImage;
 	if (useBC7Compression)
 	{
@@ -655,12 +655,12 @@ void NXGUITerrainMaterialGenerator::ComposeTexture2DArray(
 					  compressFormat, TEX_COMPRESS_BC7_QUICK | TEX_COMPRESS_PARALLEL, TEX_THRESHOLD_DEFAULT, *finalImage);
 		if (FAILED(hr))
 		{
-			printf("ComposeTexture2DArray: %s BC7Ñ¹ËõÊ§°Ü£¬Ê¹ÓÃÎ´Ñ¹Ëõ¸ñÊ½\n", textureName);
+			printf("ComposeTexture2DArray: %s BC7å‹ç¼©å¤±è´¥ï¼Œä½¿ç”¨æœªå‹ç¼©æ ¼å¼\n", textureName);
 			finalImage = std::move(texArrayWithMips);
 		}
 		else
 		{
-			printf("ComposeTexture2DArray: %s BC7Ñ¹Ëõ³É¹¦ (SRGB=%s)\n", textureName, outputUseSRGB ? "true" : "false");
+			printf("ComposeTexture2DArray: %s BC7å‹ç¼©æˆåŠŸ (SRGB=%s)\n", textureName, outputUseSRGB ? "true" : "false");
 		}
 	}
 	else
@@ -668,17 +668,17 @@ void NXGUITerrainMaterialGenerator::ComposeTexture2DArray(
 		finalImage = std::move(texArrayWithMips);
 	}
 
-	// ±£´æDDS
+	// ä¿å­˜DDS
 	std::filesystem::create_directories(outPath.parent_path());
 	hr = SaveToDDSFile(finalImage->GetImages(), finalImage->GetImageCount(),
 					   finalImage->GetMetadata(), DDS_FLAGS_NONE, outPath.wstring().c_str());
 	if (FAILED(hr))
 	{
-		printf("ComposeTexture2DArray: %s ±£´æDDSÊ§°Ü %s\n", textureName, outPath.string().c_str());
+		printf("ComposeTexture2DArray: %s ä¿å­˜DDSå¤±è´¥ %s\n", textureName, outPath.string().c_str());
 	}
 	else
 	{
-		printf("ComposeTexture2DArray: %s ±£´æ³É¹¦ %s (%ux%ux%u)\n", 
+		printf("ComposeTexture2DArray: %s ä¿å­˜æˆåŠŸ %s (%ux%ux%u)\n", 
 			   textureName, outPath.string().c_str(), width, height, arraySize);
 	}
 }
@@ -702,34 +702,34 @@ void NXGUITerrainMaterialGenerator::ExportConfig()
 {
 	const std::filesystem::path configPath(m_configFilePath);
 	
-	// È·±£Ä¿Â¼´æÔÚ
+	// ç¡®ä¿ç›®å½•å­˜åœ¨
 	std::filesystem::create_directories(configPath.parent_path());
 
 	NXSerializer serializer;
 	serializer.StartObject();
 
-	// ±£´æsliceÊıÁ¿
+	// ä¿å­˜sliceæ•°é‡
 	serializer.Int("sliceCount", m_sliceCount);
 
-	// ±£´æÊä³öÎÆÀí³ß´çË÷Òı
+	// ä¿å­˜è¾“å‡ºçº¹ç†å°ºå¯¸ç´¢å¼•
 	serializer.Int("outputTextureSizeIndex", m_outputTextureSizeIndex);
 	serializer.Int("outputTextureSize", m_outputTextureSize);
 
-	// ±£´æºÏ³ÉÑ¡Ïî
+	// ä¿å­˜åˆæˆé€‰é¡¹
 	serializer.Bool("composeAlbedo", m_bComposeAlbedo);
 	serializer.Bool("composeNormal", m_bComposeNormal);
 	serializer.Bool("composeRoughness", m_bComposeRoughness);
 	serializer.Bool("composeSpecular", m_bComposeSpecular);
 	serializer.Bool("composeAO", m_bComposeAO);
 
-	// ±£´æÊä³öÂ·¾¶
+	// ä¿å­˜è¾“å‡ºè·¯å¾„
 	serializer.String("albedoArrayPath", m_albedoArrayPath);
 	serializer.String("normalArrayPath", m_normalArrayPath);
 	serializer.String("roughnessArrayPath", m_roughnessArrayPath);
 	serializer.String("specularArrayPath", m_specularArrayPath);
 	serializer.String("aoArrayPath", m_aoArrayPath);
 
-	// ±£´æËùÓĞsliceÊı¾İ
+	// ä¿å­˜æ‰€æœ‰sliceæ•°æ®
 	serializer.StartArray("slices");
 	for (int i = 0; i < m_sliceCount; i++)
 	{
@@ -748,7 +748,7 @@ void NXGUITerrainMaterialGenerator::ExportConfig()
 	serializer.EndObject();
 
 	serializer.SaveToFile(configPath);
-	printf("ExportConfig: ÅäÖÃÒÑµ¼³öµ½ %s\n", configPath.string().c_str());
+	printf("ExportConfig: é…ç½®å·²å¯¼å‡ºåˆ° %s\n", configPath.string().c_str());
 }
 
 void NXGUITerrainMaterialGenerator::ImportConfig()
@@ -757,34 +757,34 @@ void NXGUITerrainMaterialGenerator::ImportConfig()
 
 	if (!std::filesystem::exists(configPath))
 	{
-		printf("ImportConfig: ÅäÖÃÎÄ¼ş²»´æÔÚ %s\n", configPath.string().c_str());
+		printf("ImportConfig: é…ç½®æ–‡ä»¶ä¸å­˜åœ¨ %s\n", configPath.string().c_str());
 		return;
 	}
 
 	NXDeserializer deserializer;
 	if (!deserializer.LoadFromFile(configPath))
 	{
-		printf("ImportConfig: ÅäÖÃÎÄ¼ş¼ÓÔØÊ§°Ü %s\n", configPath.string().c_str());
+		printf("ImportConfig: é…ç½®æ–‡ä»¶åŠ è½½å¤±è´¥ %s\n", configPath.string().c_str());
 		return;
 	}
 
-	// ¶ÁÈ¡sliceÊıÁ¿
+	// è¯»å–sliceæ•°é‡
 	m_sliceCount = deserializer.Int("sliceCount", 1);
 	if (m_sliceCount < 1) m_sliceCount = 1;
 	if (m_sliceCount > 256) m_sliceCount = 256;
 
-	// ¶ÁÈ¡Êä³öÎÆÀí³ß´çË÷Òı
+	// è¯»å–è¾“å‡ºçº¹ç†å°ºå¯¸ç´¢å¼•
 	m_outputTextureSizeIndex = deserializer.Int("outputTextureSizeIndex", 2);
 	m_outputTextureSize = deserializer.Int("outputTextureSize", 1024);
 
-	// ¶ÁÈ¡ºÏ³ÉÑ¡Ïî
+	// è¯»å–åˆæˆé€‰é¡¹
 	m_bComposeAlbedo = deserializer.Bool("composeAlbedo", true);
 	m_bComposeNormal = deserializer.Bool("composeNormal", true);
 	m_bComposeRoughness = deserializer.Bool("composeRoughness", true);
 	m_bComposeSpecular = deserializer.Bool("composeSpecular", true);
 	m_bComposeAO = deserializer.Bool("composeAO", true);
 
-	// ¶ÁÈ¡Êä³öÂ·¾¶
+	// è¯»å–è¾“å‡ºè·¯å¾„
 	std::string albedoPath = deserializer.String("albedoArrayPath", "D:\\NixAssets\\Terrain\\terrainAlbedo2DArray.dds");
 	std::string normalPath = deserializer.String("normalArrayPath", "D:\\NixAssets\\Terrain\\terrainNormal2DArray.dds");
 	std::string roughnessPath = deserializer.String("roughnessArrayPath", "D:\\NixAssets\\Terrain\\terrainRoughness2DArray.dds");
@@ -797,10 +797,10 @@ void NXGUITerrainMaterialGenerator::ImportConfig()
 	strncpy_s(m_specularArrayPath, specularPath.c_str(), sizeof(m_specularArrayPath) - 1);
 	strncpy_s(m_aoArrayPath, aoPath.c_str(), sizeof(m_aoArrayPath) - 1);
 
-	// Çå¿ÕËùÓĞslice
+	// æ¸…ç©ºæ‰€æœ‰slice
 	ClearAllSlices();
 
-	// ¶ÁÈ¡ËùÓĞsliceÊı¾İ
+	// è¯»å–æ‰€æœ‰sliceæ•°æ®
 	auto slicesArray = deserializer.Array("slices");
 	int sliceIndex = 0;
 	for (const auto& sliceVal : slicesArray)
@@ -827,5 +827,5 @@ void NXGUITerrainMaterialGenerator::ImportConfig()
 		sliceIndex++;
 	}
 
-	printf("ImportConfig: ÅäÖÃÒÑ´Ó %s µ¼Èë£¬¹² %d ¸öslice\n", configPath.string().c_str(), m_sliceCount);
+	printf("ImportConfig: é…ç½®å·²ä» %s å¯¼å…¥ï¼Œå…± %d ä¸ªslice\n", configPath.string().c_str(), m_sliceCount);
 }

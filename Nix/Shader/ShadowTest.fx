@@ -14,7 +14,7 @@ cbuffer ConstantBufferShadowMapObject : register(b2)
 	matrix m_shadowMapView[8];
 	matrix m_shadowMapProj[8];
 
-	// ��¼ CSM ���� ���ڼ���Transition�Ĺ��� ����Ϣ��
+	// 记录 CSM 各级 用于计算Transition的过渡 的信息。
 	float4 m_frustumParams[8]; // x: frustum far; y : transition length
 
 	int m_cascadeCount;
@@ -31,9 +31,9 @@ static const float SHADOWMAP_SIZE = 2048.0f;
 static const float SHADOWMAP_INVSIZE = 1.0f / SHADOWMAP_SIZE;
 static const float DEPTH_BIAS_FACTOR = 1.0f / 100000.0f;
 
-// ��Ӱ��ͼPCF��
-// ��note 2022.5.14��ʵ���϶�NxN�����Ե�����ز�ֵ�Ϳ����ˣ����Ľ�
-// ��note 2022.6.28��forѭ���ı���̫���ˣ����Ľ�
+// 阴影贴图PCF。
+// 【note 2022.5.14】实际上对NxN块最边缘的像素插值就可以了，待改进
+// 【note 2022.6.28】for循环的遍历太渣了，待改进
 float ShadowMapPCF(Texture2DArray shadowMapTex, SamplerState ss, float2 uv, float pixelDepth, int cascadeIndex)
 {
 	float depthbias = m_depthBias * DEPTH_BIAS_FACTOR;
@@ -60,10 +60,10 @@ float ShadowMapPCF(Texture2DArray shadowMapTex, SamplerState ss, float2 uv, floa
 
 			float4 currPixelDepthQuad = shadowMapTex.Gather(ss, float3(samplePosCenter, (float)cascadeIndex));
 
-			// �Ƚ���ȣ��ж��Ƿ�λ����Ӱ��
+			// 比较深度，判断是否位于阴影中
 			float4 depth = step(currPixelDepthQuad + depthbias, pixelDepth);
 
-			// ����Χ4�����صĽ����˫���Բ�ֵ����ȡ��ƽ�������
+			// 对周围4个像素的结果做双线性插值，获取更平滑的深度
 			float d1 = lerp(depth.w, depth.z, texelPosFraction.x);
 			float d2 = lerp(depth.x, depth.y, texelPosFraction.x);
 			float d = lerp(d1, d2, texelPosFraction.y);
@@ -127,9 +127,9 @@ float4 PS(PS_INPUT input) : SV_Target
 	int cascadeIndex = -1;
 	for (int i = m_cascadeCount - 1; i >= 0; i--)
 	{
-		// 2022.5.16 ������ʹ��z�����жϡ�
-		// Ҳ����ʹ�������뾶�жϴ����ĸ�cascade��������
-		// �������ô����transitionҪ��ô����������ʱû��á�
+		// 2022.5.16 姑且先使用z距离判断。
+		// 也可以使用外接球半径判断处于哪个cascade————
+		// 但如果那么做，transition要怎么处理？我暂时没想好。
 		if (posVS.z < m_frustumParams[i].x) cascadeIndex = i;
 	}
 

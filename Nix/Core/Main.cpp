@@ -1,4 +1,4 @@
-﻿#include "BaseDefs/NixCore.h"
+#include "BaseDefs/NixCore.h"
 #include "BaseDefs/CrtDbg.h"
 #include "BaseDefs/DearImGui.h"
 #include "NXGlobalDefinitions.h"

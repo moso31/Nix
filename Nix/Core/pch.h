@@ -1,10 +1,10 @@
-// pch.h - Ô¤±àÒëÍ·ÎÄ¼ş
-// ´ËÎÄ¼ş°üº¬Æµ·±Ê¹ÓÃµ«²»³£ĞŞ¸ÄµÄ±ê×¼ÏµÍ³Í·ÎÄ¼şºÍÏîÄ¿Í·ÎÄ¼ş
-// ÆôÓÃ PCH ¿ÉÏÔÖø¸ÄÉÆ IntelliSense ÏìÓ¦ËÙ¶ÈºÍ±àÒëĞÔÄÜ
+// pch.h - é¢„ç¼–è¯‘å¤´æ–‡ä»¶
+// æ­¤æ–‡ä»¶åŒ…å«é¢‘ç¹ä½¿ç”¨ä½†ä¸å¸¸ä¿®æ”¹çš„æ ‡å‡†ç³»ç»Ÿå¤´æ–‡ä»¶å’Œé¡¹ç›®å¤´æ–‡ä»¶
+// å¯ç”¨ PCH å¯æ˜¾è‘—æ”¹å–„ IntelliSense å“åº”é€Ÿåº¦å’Œç¼–è¯‘æ€§èƒ½
 
 #pragma once
 
-// ===== Windows SDK ºËĞÄ =====
+// ===== Windows SDK æ ¸å¿ƒ =====
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
@@ -12,14 +12,14 @@
 #define NOMINMAX
 #endif
 #include <Windows.h>
-#include <shellapi.h>  // WIN32_LEAN_AND_MEAN »áÅÅ³ı´ËÍ·ÎÄ¼ş£¬ĞèÊÖ¶¯°üº¬£¨ÓÃÓÚÍÏ·ÅÎÄ¼ş¹¦ÄÜ£©
+#include <shellapi.h>  // WIN32_LEAN_AND_MEAN ä¼šæ’é™¤æ­¤å¤´æ–‡ä»¶ï¼Œéœ€æ‰‹åŠ¨åŒ…å«ï¼ˆç”¨äºæ‹–æ”¾æ–‡ä»¶åŠŸèƒ½ï¼‰
 
-// È¡Ïû Windows ºêÎÛÈ¾£¨±ÜÃâÓë rapidjson µÈ¿â³åÍ»£©
+// å–æ¶ˆ Windows å®æ±¡æŸ“ï¼ˆé¿å…ä¸ rapidjson ç­‰åº“å†²çªï¼‰
 #ifdef GetObject
 #undef GetObject
 #endif
 
-// ===== C++ ±ê×¼¿â =====
+// ===== C++ æ ‡å‡†åº“ =====
 #include <memory>
 #include <string>
 #include <vector>
@@ -46,7 +46,7 @@
 using namespace DirectX;
 using namespace Microsoft::WRL;
 
-// ===== Nix »ù´¡¶¨Òå =====
+// ===== Nix åŸºç¡€å®šä¹‰ =====
 #include "BaseDefs/NixCore.h"
 #include "BaseDefs/DX12.h"
 #include "BaseDefs/Math.h"

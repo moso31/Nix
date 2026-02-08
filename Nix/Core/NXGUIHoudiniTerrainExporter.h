@@ -5,22 +5,22 @@
 #include <string>
 #include <map>
 
-// Houdini EXRÎÄ¼şĞÅÏ¢
+// Houdini EXRæ–‡ä»¶ä¿¡æ¯
 struct HoudiniExrFileInfo
 {
 	std::filesystem::path fullPath;
-	std::string fileName;	// Èç "0_0.exr"
-	int tileX = 0;			// ´ÓÎÄ¼şÃû½âÎöµÄX×ø±ê
-	int tileY = 0;			// ´ÓÎÄ¼şÃû½âÎöµÄY×ø±ê
+	std::string fileName;	// å¦‚ "0_0.exr"
+	int tileX = 0;			// ä»æ–‡ä»¶åè§£æçš„Xåæ ‡
+	int tileY = 0;			// ä»æ–‡ä»¶åè§£æçš„Yåæ ‡
 };
 
-// Nix DDSÎÄ¼şĞÅÏ¢  
+// Nix DDSæ–‡ä»¶ä¿¡æ¯  
 struct NixTerrainDdsInfo
 {
-	std::filesystem::path heightMapPath;	// hmap.ddsÂ·¾¶
-	std::filesystem::path splatMapPath;		// splatmap.ddsÂ·¾¶
-	std::filesystem::path normalMapPath;	// nmap.ddsÂ·¾¶
-	std::string terrainId;					// Èç "0_0"
+	std::filesystem::path heightMapPath;	// hmap.ddsè·¯å¾„
+	std::filesystem::path splatMapPath;		// splatmap.ddsè·¯å¾„
+	std::filesystem::path normalMapPath;	// nmap.ddsè·¯å¾„
+	std::string terrainId;					// å¦‚ "0_0"
 	int tileX = 0;
 	int tileY = 0;
 };
@@ -37,46 +37,46 @@ public:
 	bool GetVisible() const { return m_bVisible; }
 
 private:
-	// GUIäÖÈ¾¸÷ÁĞ
+	// GUIæ¸²æŸ“å„åˆ—
 	void RenderColumn1_HoudiniFiles();
 	void RenderColumn2_ConvertToDDS();
 	void RenderColumn3_BakeSubTiles();
 	void RenderColumn4_Compose2DArray();
 
-	// É¨ÃèHoudini EXRÎÄ¼ş
+	// æ‰«æHoudini EXRæ–‡ä»¶
 	void ScanHoudiniExrFiles();
 	
-	// É¨ÃèNix DDSÎÄ¼ş
+	// æ‰«æNix DDSæ–‡ä»¶
 	void ScanNixDdsFiles();
 
-	// ×ª»»µ¥¸öEXRµ½DDS (heightmap)
+	// è½¬æ¢å•ä¸ªEXRåˆ°DDS (heightmap)
 	void ConvertExrToHeightMapDDS(const HoudiniExrFileInfo& exrInfo, const std::filesystem::path& outPath);
 	
-	// ×ª»»µ¥¸öEXRµ½DDS (splatmap)
+	// è½¬æ¢å•ä¸ªEXRåˆ°DDS (splatmap)
 	void ConvertExrToSplatMapDDS(const HoudiniExrFileInfo& exrInfo, const std::filesystem::path& outPath);
 	
-	// ×ª»»µ¥¸öEXRµ½DDS (normalmap)
+	// è½¬æ¢å•ä¸ªEXRåˆ°DDS (normalmap)
 	void ConvertExrToNormalMapDDS(const HoudiniExrFileInfo& exrInfo, const std::filesystem::path& outPath);
 	
-	// Ö´ĞĞÈ«²¿×ª»»
+	// æ‰§è¡Œå…¨éƒ¨è½¬æ¢
 	void ExecuteConvertAll();
 
-	// ºÏ³É2DArray
+	// åˆæˆ2DArray
 	void ComposeHeightMap2DArray();
 	void ComposeMinMaxZ2DArray();
 	void ComposeSplatMap2DArray();
 	void ComposeNormalMap2DArray();
 
-	// ¸ù¾İÅÅĞòÉèÖÃ»ñÈ¡ÅÅĞòºóµÄsliceË÷Òı
+	// æ ¹æ®æ’åºè®¾ç½®è·å–æ’åºåçš„sliceç´¢å¼•
 	std::vector<int> GetSortedSliceIndices() const;
 
-	// ½âÎöÎÄ¼şÃû "X_Y.exr" »ñÈ¡×ø±ê
+	// è§£ææ–‡ä»¶å "X_Y.exr" è·å–åæ ‡
 	bool ParseTileCoord(const std::string& fileName, int& outX, int& outY);
 
 private:
 	bool m_bVisible = false;
 
-	// === µÚÒ»ÁĞ: Houdini EXR ===
+	// === ç¬¬ä¸€åˆ—: Houdini EXR ===
 	char m_houdiniBasePath[512] = "D:\\Houdini\\NixTerra0\\tex";
 	std::vector<HoudiniExrFileInfo> m_heightExrFiles;
 	std::vector<HoudiniExrFileInfo> m_splatExrFiles;
@@ -85,23 +85,23 @@ private:
 	int m_selectedSplatExrIndex = 0;
 	int m_selectedNormalExrIndex = 0;
 
-	// === µÚ¶şÁĞ: ×ªÂ¼DDS ===
+	// === ç¬¬äºŒåˆ—: è½¬å½•DDS ===
 	char m_nixOutputPath[512] = "D:\\NixAssets\\Terrain";
 	std::vector<NixTerrainDdsInfo> m_nixDdsFiles;
 	int m_selectedDdsIndex = 0;
 	bool m_bConvertHeightMap = true;
-	int m_heightMapRange[2] = { 0, 2048 };	// ¸ß¶ÈÍ¼Ó³Éä·¶Î§ [min, max]
+	int m_heightMapRange[2] = { 0, 2048 };	// é«˜åº¦å›¾æ˜ å°„èŒƒå›´ [min, max]
 	bool m_bConvertSplatMap = true;
 	bool m_bConvertNormalMap = true;
 
-	// === µÚÈıÁĞ: ºæ±º×ÓÇøÓòÎÆÀí ===
-	char m_subTileOutputPath[512] = "D:\\NixAssets\\Terrain";	// ×ÓÇøÓòÎÆÀíÊä³ö¸ùÂ·¾¶
-	bool m_bBakeHeightMapSubTiles = true;	// ºæ±ºHeightMap×ÓÇøÓò
-	bool m_bBakeSplatMapSubTiles = true;	// ºæ±ºSplatMap×ÓÇøÓò
-	bool m_bBakeNormalMapSubTiles = true;	// ºæ±ºNormalMap×ÓÇøÓò
-	bool m_bForceGenerateSubTiles = false;	// Ç¿ÖÆÉú³É£¨ºöÂÔÒÑ´æÔÚµÄÎÄ¼ş£©
+	// === ç¬¬ä¸‰åˆ—: çƒ˜ç„™å­åŒºåŸŸçº¹ç† ===
+	char m_subTileOutputPath[512] = "D:\\NixAssets\\Terrain";	// å­åŒºåŸŸçº¹ç†è¾“å‡ºæ ¹è·¯å¾„
+	bool m_bBakeHeightMapSubTiles = true;	// çƒ˜ç„™HeightMapå­åŒºåŸŸ
+	bool m_bBakeSplatMapSubTiles = true;	// çƒ˜ç„™SplatMapå­åŒºåŸŸ
+	bool m_bBakeNormalMapSubTiles = true;	// çƒ˜ç„™NormalMapå­åŒºåŸŸ
+	bool m_bForceGenerateSubTiles = false;	// å¼ºåˆ¶ç”Ÿæˆï¼ˆå¿½ç•¥å·²å­˜åœ¨çš„æ–‡ä»¶ï¼‰
 
-	// === µÚËÄÁĞ: ºÏ³É2DArray ===
+	// === ç¬¬å››åˆ—: åˆæˆ2DArray ===
 	char m_heightArrayPath[512] = "D:\\NixAssets\\Terrain\\hMap2DArray.dds";
 	char m_minMaxZPath[512] = "D:\\NixAssets\\Terrain\\mmz.dds";
 	char m_splatArrayPath[512] = "D:\\NixAssets\\Terrain\\splatMap2DArray.dds";
@@ -110,9 +110,9 @@ private:
 	bool m_bComposeMinMaxZ = true;
 	bool m_bComposeSplatArray = true;
 	bool m_bComposeNormalArray = true;
-	bool m_bRowAscending = true;	// ĞĞÕıĞò
-	bool m_bColAscending = true;	// ÁĞÕıĞò
-	bool m_bColumnFirst = true;		// ÏÈ±éÀúÁĞ£¨²»¹´Ñ¡ÔòĞĞÓÅÏÈ£©
-	int m_terrainCountX = 0;		// µØĞÎX·½ÏòÊıÁ¿(×Ô¶¯¼ÆËã)
-	int m_terrainCountY = 0;		// µØĞÎY·½ÏòÊıÁ¿(×Ô¶¯¼ÆËã)
+	bool m_bRowAscending = true;	// è¡Œæ­£åº
+	bool m_bColAscending = true;	// åˆ—æ­£åº
+	bool m_bColumnFirst = true;		// å…ˆéå†åˆ—ï¼ˆä¸å‹¾é€‰åˆ™è¡Œä¼˜å…ˆï¼‰
+	int m_terrainCountX = 0;		// åœ°å½¢Xæ–¹å‘æ•°é‡(è‡ªåŠ¨è®¡ç®—)
+	int m_terrainCountY = 0;		// åœ°å½¢Yæ–¹å‘æ•°é‡(è‡ªåŠ¨è®¡ç®—)
 };

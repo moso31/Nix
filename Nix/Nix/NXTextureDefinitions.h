@@ -13,28 +13,28 @@ enum class NXResourceType
 
 enum class NXTextureMode
 {
-    Raw,			// Ê¹ÓÃÔ­Éú¸ñÊ½
-    sRGB,           // sRGBÑÕÉ«ÎÆÀí
-    Linear,         // ÏßĞÔÑÕÉ«ÎÆÀí
-    NormalMap,      // ·¨ÏßÌùÍ¼,
+    Raw,			// ä½¿ç”¨åŸç”Ÿæ ¼å¼
+    sRGB,           // sRGBé¢œè‰²çº¹ç†
+    Linear,         // çº¿æ€§é¢œè‰²çº¹ç†
+    NormalMap,      // æ³•çº¿è´´å›¾,
     Count
 };
 
 struct NXTextureSerializationData
 {
-    // ÎÆÀíÀàĞÍ
+    // çº¹ç†ç±»å‹
     NXTextureMode m_textureType = NXTextureMode::Raw;
 
-    // ÊÇ·ñ·´×ª·¨ÏßYÖá
+    // æ˜¯å¦åè½¬æ³•çº¿Yè½´
     bool m_bInvertNormalY = false;
 
-    // ÊÇ·ñÉú³Émipmap
+    // æ˜¯å¦ç”Ÿæˆmipmap
     bool m_bGenerateMipMap = false;
 
-    // ÊÇ·ñÊÇÁ¢·½ÌåÌùÍ¼
+    // æ˜¯å¦æ˜¯ç«‹æ–¹ä½“è´´å›¾
     bool m_bCubeMap = false;
 
-    // ½ö.rawÎÄ¼şÊ¹ÓÃ£¬¼ÇÂ¼raw¸ñÊ½µÄ¿í¸ßºÍ×Ö½Ú´óĞ¡
+    // ä»….rawæ–‡ä»¶ä½¿ç”¨ï¼Œè®°å½•rawæ ¼å¼çš„å®½é«˜å’Œå­—èŠ‚å¤§å°
     int m_rawWidth = 1;
     int m_rawHeight = 1;
     int m_rawByteSize = 16;

@@ -6,7 +6,7 @@
 #include <vector>
 #include <string>
 
-// µ¥¸öSliceµÄ²ÄÖÊĞÅÏ¢
+// å•ä¸ªSliceçš„æè´¨ä¿¡æ¯
 struct TerrainMaterialSlice
 {
 	char albedoPath[512] = "";
@@ -15,7 +15,7 @@ struct TerrainMaterialSlice
 	char specularPath[512] = "";
 	char aoPath[512] = "";
 	
-	// ÓÃÓÚÎÄ¼ş¼Ğ¿ì½İÆ¥Åä
+	// ç”¨äºæ–‡ä»¶å¤¹å¿«æ·åŒ¹é…
 	char folderPath[512] = "";
 };
 
@@ -31,71 +31,71 @@ public:
 	bool GetVisible() const { return m_bVisible; }
 
 private:
-	// GUIäÖÈ¾
+	// GUIæ¸²æŸ“
 	void RenderSliceListWithPreview();
 	void RenderTexturePreviewRow(int sliceIndex, float previewSize);
 	void RenderComposeSection();
 
-	// ÎÄ¼ş¼Ğ¿ì½İÆ¥Åä
+	// æ–‡ä»¶å¤¹å¿«æ·åŒ¹é…
 	void AutoMatchFromFolder(int sliceIndex);
 	void AutoMatchAllSlices();
 
-	// Çå¿ÕSliceÂ·¾¶
+	// æ¸…ç©ºSliceè·¯å¾„
 	void ClearSlice(int sliceIndex);
 	void ClearAllSlices();
 
-	// µ¼³ö/µ¼ÈëÅäÖÃ
+	// å¯¼å‡º/å¯¼å…¥é…ç½®
 	void ExportConfig();
 	void ImportConfig();
 
-	// ºÏ³É2DArray
+	// åˆæˆ2DArray
 	void ComposeAlbedo2DArray();
 	void ComposeNormal2DArray();
 	void ComposeRoughness2DArray();
 	void ComposeSpecular2DArray();
 	void ComposeAO2DArray();
 
-	// Í¨ÓÃºÏ³Éº¯Êı
+	// é€šç”¨åˆæˆå‡½æ•°
 	void ComposeTexture2DArray(
 		const std::vector<std::string>& texturePaths,
 		const std::filesystem::path& outPath,
 		bool useBC7Compression,
-    	bool inputIsSRGB, // ÊäÈëÊı¾İÊÇ·ñÊÇSRGB±àÂëµÄ
-		bool outputUseSRGB,	// Êä³öÎÆÀíÊÇ·ñÊ¹ÓÃSRGB±àÂë
+    	bool inputIsSRGB, // è¾“å…¥æ•°æ®æ˜¯å¦æ˜¯SRGBç¼–ç çš„
+		bool outputUseSRGB,	// è¾“å‡ºçº¹ç†æ˜¯å¦ä½¿ç”¨SRGBç¼–ç 
 		const char* textureName);
 
-	// ¼ì²é×Ö·û´®ÊÇ·ñ°üº¬×Ó´®(²»Çø·Ö´óĞ¡Ğ´)
+	// æ£€æŸ¥å­—ç¬¦ä¸²æ˜¯å¦åŒ…å«å­ä¸²(ä¸åŒºåˆ†å¤§å°å†™)
 	bool ContainsIgnoreCase(const std::string& str, const std::string& substr);
 
-	// »ñÈ¡ÎÄ¼şÃû(²»°üº¬Â·¾¶)
+	// è·å–æ–‡ä»¶å(ä¸åŒ…å«è·¯å¾„)
 	std::string GetFileName(const std::string& path);
 
 private:
 	bool m_bVisible = false;
 
-	// SliceÊı×é£¨¹Ì¶¨256¸öÔªËØ£¬Ê¹ÓÃm_sliceCount¿ØÖÆÊµ¼ÊÊıÁ¿£©
+	// Sliceæ•°ç»„ï¼ˆå›ºå®š256ä¸ªå…ƒç´ ï¼Œä½¿ç”¨m_sliceCountæ§åˆ¶å®é™…æ•°é‡ï¼‰
 	std::vector<TerrainMaterialSlice> m_slices;
 	int m_sliceCount = 1;
 	int m_selectedSliceIndex = 0;
 
-	// Êä³öÂ·¾¶
+	// è¾“å‡ºè·¯å¾„
 	char m_albedoArrayPath[512] = "D:\\NixAssets\\Terrain\\terrainAlbedo2DArray.dds";
 	char m_normalArrayPath[512] = "D:\\NixAssets\\Terrain\\terrainNormal2DArray.dds";
 	char m_roughnessArrayPath[512] = "D:\\NixAssets\\Terrain\\terrainRoughness2DArray.dds";
 	char m_specularArrayPath[512] = "D:\\NixAssets\\Terrain\\terrainSpecular2DArray.dds";
 	char m_aoArrayPath[512] = "D:\\NixAssets\\Terrain\\terrainAO2DArray.dds";
 
-	// ºÏ³ÉÑ¡Ïî
+	// åˆæˆé€‰é¡¹
 	bool m_bComposeAlbedo = true;
 	bool m_bComposeNormal = true;
 	bool m_bComposeRoughness = false;
 	bool m_bComposeSpecular = false;
 	bool m_bComposeAO = false;
 
-	// Êä³öÎÆÀí³ß´ç
+	// è¾“å‡ºçº¹ç†å°ºå¯¸
 	int m_outputTextureSizeIndex = 2; // 0=256, 1=512, 2=1024, 3=2048
 	int m_outputTextureSize = 1024;
 
-	// ÅäÖÃÎÄ¼şÂ·¾¶
+	// é…ç½®æ–‡ä»¶è·¯å¾„
 	char m_configFilePath[512] = "D:\\NixAssets\\Terrain\\terrainTextureConfig.txt";
 };

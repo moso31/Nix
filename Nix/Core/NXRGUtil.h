@@ -28,43 +28,43 @@ struct NXRGHandle
 class NXRGPassNodeBase;
 struct NXRGLifeTime
 {
-	int start;  // ×ÊÔ´Ê×´ÎÊ¹ÓÃµÄÊ±¼ä²ã¼¶
-	int end;	// ×ÊÔ´×îºóÊ¹ÓÃµÄÊ±¼ä²ã¼¶
-	NXRGPassNodeBase* pStartPass = nullptr; // ×ÊÔ´Ê×´ÎÊ¹ÓÃµÄPass
-	NXRGPassNodeBase* pEndPass = nullptr;   // ×ÊÔ´×îºóÊ¹ÓÃµÄPass
+	int start;  // èµ„æºé¦–æ¬¡ä½¿ç”¨çš„æ—¶é—´å±‚çº§
+	int end;	// èµ„æºæœ€åä½¿ç”¨çš„æ—¶é—´å±‚çº§
+	NXRGPassNodeBase* pStartPass = nullptr; // èµ„æºé¦–æ¬¡ä½¿ç”¨çš„Pass
+	NXRGPassNodeBase* pEndPass = nullptr;   // èµ„æºæœ€åä½¿ç”¨çš„Pass
 };
 
 enum class NXRGResourceUsage
 {
 	None,
-	RenderTarget, // ÓÃÓÚÎÆÀíRT
-	DepthStencil, // ÓÃÓÚÎÆÀíDS
-	ShaderResource, // ÓÃÓÚSRV
-	UnorderedAccess, // ÓÃÓÚUAV
+	RenderTarget, // ç”¨äºçº¹ç†RT
+	DepthStencil, // ç”¨äºçº¹ç†DS
+	ShaderResource, // ç”¨äºSRV
+	UnorderedAccess, // ç”¨äºUAV
 };
 
 struct NXRGDescription
 {
-	// note: import×ÊÔ´²»Ó¦¸ÃÊ¹ÓÃÕâ¸ö£¡
+	// note: importèµ„æºä¸åº”è¯¥ä½¿ç”¨è¿™ä¸ªï¼
 
-	NXResourceType resourceType; // ×ÊÔ´ÀàĞÍ
-	NXRGResourceUsage usage; // ×ÊÔ´ÓÃÍ¾
+	NXResourceType resourceType; // èµ„æºç±»å‹
+	NXRGResourceUsage usage; // èµ„æºç”¨é€”
 
-	union // ÎÆÀí»òbuffer²ÎÊı
+	union // çº¹ç†æˆ–bufferå‚æ•°
 	{
 		struct
 		{
-			DXGI_FORMAT format; // ×ÊÔ´¸ñÊ½
-			uint32_t width;    // ¿í¶È
-			uint32_t height;   // ¸ß¶È
-			uint32_t arraySize; // Êı×é´óĞ¡
-			uint32_t mipLevels; // MIPµÈ¼¶Êı
+			DXGI_FORMAT format; // èµ„æºæ ¼å¼
+			uint32_t width;    // å®½åº¦
+			uint32_t height;   // é«˜åº¦
+			uint32_t arraySize; // æ•°ç»„å¤§å°
+			uint32_t mipLevels; // MIPç­‰çº§æ•°
 		} tex;
 		struct
 		{
-			uint32_t stride;   // bufferÔªËØ´óĞ¡
-			uint32_t arraySize; // bufferÔªËØ×ÜÊı
-			// ×ÜbyteSize = stride * arraySize
+			uint32_t stride;   // bufferå…ƒç´ å¤§å°
+			uint32_t arraySize; // bufferå…ƒç´ æ€»æ•°
+			// æ€»byteSize = stride * arraySize
 		} buf;
 	};
 
@@ -97,7 +97,7 @@ struct NXRGDescription
 	}
 };
 
-// ¸ømap/setµÄ¹şÏ£º¯Êı
+// ç»™map/setçš„å“ˆå¸Œå‡½æ•°
 namespace std 
 {
 	template<class T>
@@ -129,7 +129,7 @@ namespace std
 				desc.resourceType == NXResourceType::TexCube ||
 				desc.resourceType == NXResourceType::Tex3D)
 			{
-				// Èô DXGI_FORMAT µÄ std::hash ²»¿ÉÓÃ£¬¿É¸Ä³É static_cast<int>(desc.tex.format)
+				// è‹¥ DXGI_FORMAT çš„ std::hash ä¸å¯ç”¨ï¼Œå¯æ”¹æˆ static_cast<int>(desc.tex.format)
 				hash_combine(seed, static_cast<int>(desc.tex.format));
 				hash_combine(seed, desc.tex.width);
 				hash_combine(seed, desc.tex.height);
@@ -147,8 +147,8 @@ namespace std
 	};
 }
 
-// ÓÃÓÚGUIÏÔÊ¾µÄ×ÊÔ´ĞÅÏ¢»ùÀà£¬¼È¿ÉÒÔ±íÊ¾ĞéÄâ×ÊÔ´£¨NXRGResource£©£¬Ò²¿ÉÒÔ±íÊ¾ÎïÀí×ÊÔ´£¨Ntr<NXResource>£©
-// ±íÊ¾ĞéÄâ×ÊÔ´µÄÊ±ºòÖ»ÓĞÒ»¸öhandle+ÉúÃüÖÜÆÚ£»±íÊ¾ÎïÀí×ÊÔ´µÄÊ±ºò¿ÉÄÜÓĞ¶à¸öhandle+ÉúÃüÖÜÆÚ
+// ç”¨äºGUIæ˜¾ç¤ºçš„èµ„æºä¿¡æ¯åŸºç±»ï¼Œæ—¢å¯ä»¥è¡¨ç¤ºè™šæ‹Ÿèµ„æºï¼ˆNXRGResourceï¼‰ï¼Œä¹Ÿå¯ä»¥è¡¨ç¤ºç‰©ç†èµ„æºï¼ˆNtr<NXResource>ï¼‰
+// è¡¨ç¤ºè™šæ‹Ÿèµ„æºçš„æ—¶å€™åªæœ‰ä¸€ä¸ªhandle+ç”Ÿå‘½å‘¨æœŸï¼›è¡¨ç¤ºç‰©ç†èµ„æºçš„æ—¶å€™å¯èƒ½æœ‰å¤šä¸ªhandle+ç”Ÿå‘½å‘¨æœŸ
 struct NXRGGUIResource
 {
 	std::string name;

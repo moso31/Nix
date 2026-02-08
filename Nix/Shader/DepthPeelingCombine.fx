@@ -14,7 +14,7 @@ SamplerState ssPointClamp : register(s0);
 
 cbuffer cbParams : register(b4)
 {
-	int m_depthLayer;	// Depth Peeling ²ãÊý
+	int m_depthLayer;	// Depth Peeling å±‚æ•°
 	float3 _0;
 }
 

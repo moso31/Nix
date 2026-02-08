@@ -1,20 +1,20 @@
 /*
-* 2024.9.23 Buddy �ڴ������
-* һ�����ص��ڴ��ʵ�֣�ʹ��Buddy�㷨�����ڴ�
+* 2024.9.23 Buddy 内存分配器
+* 一个朴素的内存池实现，使用Buddy算法管理内存
 * 
-* ԭ����
-*	һ�����ͷ���һ�������ڴ�飬Ȼ���������ָ��2���ݴη���С���ڴ��
-*	ͬʱά��һ��freeList��һ��usedList���ֱ��¼**�����ڴ��**��**�ѷ����ڴ��**��
-*	��ʼ״̬ʱ��ֻ��freeList����һ�������ڴ��
+* 原理：
+*	一上来就分配一个最大的内存块，然后根据需求分割成2的幂次方大小的内存块
+*	同时维护一个freeList和一个usedList，分别记录**空闲内存块**和**已分配内存块**。
+*	初始状态时，只有freeList中有一个最大的内存块
 * 
-*	�����ڴ�ʱ������ByteSize���ҵ���Ӧ��**level**������freeList[level]���Ƿ��п����ڴ�飺
-		����У�ֱ�ӷ���
-		���û�У����ϲ��ң�ֱ���ҵ�һ���п����ڴ���level��
-			Ȼ����ָ��������С���ڴ�飬һ�����ڱ��η��䣬һ������freeList
+*	分配内存时，根据ByteSize，找到对应的**level**。查找freeList[level]下是否有空闲内存块：
+		如果有，直接分配
+		如果没有，向上查找，直到找到一个有空闲内存块的level，
+			然后将其分割成两个更小的内存块，一个用于本次分配，一个放入freeList
 *	
-*	�ͷ��ڴ�ʱ�������ڴ��Ĵ�С���ҵ���Ӧ��level���������freeList
-*		Ȼ��XOR����Ƿ������ڵĿ����ڴ�飬����У��ϲ���һ��������ڴ�飬����freeList��
-*		���������ϵݹ飬ֱ��û�����ڵĿ����ڴ��
+*	释放内存时，根据内存块的大小，找到对应的level，将其放入freeList
+*		然后XOR检查是否有相邻的空闲内存块，如果有，合并成一个更大的内存块，放入freeList，
+*		并继续向上递归，直到没有相邻的空闲内存块
 */
 
 #pragma once
@@ -32,7 +32,7 @@ namespace ccmem
 	const uint32_t MAX_LV = 1 << MAX_LV_LOG2;
 	const uint32_t MIN_LV_LOG2 = 4; // 2^6 = 64 B
 	const uint32_t MIN_LV = 1 << MIN_LV_LOG2;
-	const uint32_t LV_NUM = MAX_LV_LOG2 - MIN_LV_LOG2 + 1; // ������������һ��N��
+	const uint32_t LV_NUM = MAX_LV_LOG2 - MIN_LV_LOG2 + 1; // 链表的数量，一共N个
 
 	class BuddyAllocatorPage;
 
@@ -46,32 +46,32 @@ namespace ccmem
 	{
 		enum class State
 		{
-			// �ȴ�ִ��
+			// 等待执行
 			Pending,
 
-			// �ɹ�
+			// 成功
 			Success,
 
-			// ʧ�ܣ�����ʱ�ڴ�����
+			// 失败：分配时内存已满
 			Failed_Alloc_FullMemory,
 
-			// ʧ�ܣ��ͷ�ʱδ�ҵ���Ӧ�ڴ�
+			// 失败：释放时未找到对应内存
 			Failed_Free_NotFind,
 
-			// δ֪����
+			// 未知错误
 			Failed_Unknown,
 		};
 
-		// ��¼Ҫ�ͷŵ��ڴ��ַ
+		// 记录要释放的内存地址
 		uint8_t* pFreeMem = nullptr; 
 
-		// ��¼Ҫ������ڴ��С
+		// 记录要分配的内存大小
 		uint32_t byteSize = 0;
 
-		// �ص�����
+		// 回调函数
 		std::function<void(const BuddyTaskResult&)> pCallBack = nullptr;
 
-		// ��¼task��ִ��״̬
+		// 记录task的执行状态
 		BuddyTask::State state = BuddyTask::State::Pending;
 	};
 
@@ -103,8 +103,8 @@ namespace ccmem
 		uint8_t* m_pMem;
 		std::atomic_uint32_t m_freeByteSize;
 
-		// ��2���ݴν� �ɷ�����ڴ���С ����N��, ÿ������һ����������
-		// 0 �� = �����ڴ��, N-1 �� = ��С���ڴ��
+		// 按2的幂次将 可分配的内存块大小 划分N级, 每级都用一个链表管理
+		// 0 级 = 最大的内存块, N-1 级 = 最小的内存块
 		std::list<uint8_t*> m_freeList[LV_NUM];
 		std::list<uint8_t*> m_usedList[LV_NUM];
 
@@ -131,13 +131,13 @@ namespace ccmem
 		BuddyTask::State TryAlloc(const BuddyTask& task, BuddyTaskResult& oTaskResult);
 		BuddyTask::State TryFree(const BuddyTask& task);
 
-		// ������У������״������������ӵ�����
+		// 任务队列，任务首次添加总是添加到这里
 		std::list<BuddyTask> m_taskList;
 
-		// �����ȼ�������У�������ִ��ʧ��ʱ���ᱻ�ƶ������
+		// 低优先级任务队列，当任务执行失败时，会被移动到这里，
 		std::list<BuddyTask> m_lowPriorTaskList;
 
-		// ������ͳһ�������е�Allocator
+		// 在这里统一管理所有的Allocator
 		std::list<BuddyAllocatorPage*> m_allocatorPages;
 	};
 }

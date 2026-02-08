@@ -33,26 +33,26 @@ protected:
 
 	XAllocator(UINT eachPageDataNum, UINT pageNumLimit) : m_eachPageDataNum(eachPageDataNum), m_pageNumLimit(pageNumLimit) {}
 
-	// ·ÖÅäÒ»¸ö´óĞ¡Îª size µÄÄÚ´æ¿é
-	// size: Òª·ÖÅäµÄÄÚ´æ¿éµÄ´óĞ¡
-	// oPageIdx: ·ÖÅäµ½µÄÒ³µÄÏÂ±ê
-	// oFirstIdx: ·ÖÅäµ½µÄÒ³ÖĞµÄµÚÒ»¸öÄÚ´æ¿éµÄÏÂ±ê
-	// predicate: ÅĞ¶ÏÎ½´Ê£¬Ö»ÄÜÔÚ´ËÎ½´Ê=trueµÄÒ³ÃæÖĞ·ÖÅäÄÚ´æ¡£Ä¿Ç°ÓÃÀ´½øĞĞÀàĞÍÉ¸Ñ¡¡£
-	// onCreate£ºÈô±¾´ÎAlloc´´½¨ÁËĞÂµÄPage£¬µ÷ÓÃµÄ»Øµ÷º¯Êı¡£Ä¿Ç°ÓÃÓÚ³õÊ¼»¯ĞÂ´´½¨µÄPageµÄÀàĞÍ¡£
-	// onFind£ºÈô±¾´ÎAllocÕÒµ½¿É·ÖÅäÄÚ´æ¿Õ¼ä£¬µ÷ÓÃµÄ»Øµ÷º¯Êı¡£ÒÔÇ°ÓĞÓÃ£¬ºóÀ´±»ÎÒÓÅ»¯µôÁË£¬µ«½Ó¿Ú¿ÉÒÔÁô×Å¡£
+	// åˆ†é…ä¸€ä¸ªå¤§å°ä¸º size çš„å†…å­˜å—
+	// size: è¦åˆ†é…çš„å†…å­˜å—çš„å¤§å°
+	// oPageIdx: åˆ†é…åˆ°çš„é¡µçš„ä¸‹æ ‡
+	// oFirstIdx: åˆ†é…åˆ°çš„é¡µä¸­çš„ç¬¬ä¸€ä¸ªå†…å­˜å—çš„ä¸‹æ ‡
+	// predicate: åˆ¤æ–­è°“è¯ï¼Œåªèƒ½åœ¨æ­¤è°“è¯=trueçš„é¡µé¢ä¸­åˆ†é…å†…å­˜ã€‚ç›®å‰ç”¨æ¥è¿›è¡Œç±»å‹ç­›é€‰ã€‚
+	// onCreateï¼šè‹¥æœ¬æ¬¡Allocåˆ›å»ºäº†æ–°çš„Pageï¼Œè°ƒç”¨çš„å›è°ƒå‡½æ•°ã€‚ç›®å‰ç”¨äºåˆå§‹åŒ–æ–°åˆ›å»ºçš„Pageçš„ç±»å‹ã€‚
+	// onFindï¼šè‹¥æœ¬æ¬¡Allocæ‰¾åˆ°å¯åˆ†é…å†…å­˜ç©ºé—´ï¼Œè°ƒç”¨çš„å›è°ƒå‡½æ•°ã€‚ä»¥å‰æœ‰ç”¨ï¼Œåæ¥è¢«æˆ‘ä¼˜åŒ–æ‰äº†ï¼Œä½†æ¥å£å¯ä»¥ç•™ç€ã€‚
 	bool Alloc(UINT size, UINT& oPageIdx, UINT& oFirstIdx,
 		std::function<bool(Page& page)> predicate = [](Page& page) { return true; },
 		std::function<void(Page& newPage)> onCreate = [](Page& newPage) {},
 		std::function<void(Page& findPage)> onFind = [](Page& findPage) {})
 	{
-		// Èç¹û³¬¹ıÒ³Ãæ´óĞ¡ÏŞÖÆ£¬»òÕßÒÑ¾­²»ÄÜ·ÖÅäĞÂÒ³£¬ÔòAllocÊ§°Ü
+		// å¦‚æœè¶…è¿‡é¡µé¢å¤§å°é™åˆ¶ï¼Œæˆ–è€…å·²ç»ä¸èƒ½åˆ†é…æ–°é¡µï¼Œåˆ™Allocå¤±è´¥
 		if (size > m_eachPageDataNum || m_pages.size() >= m_pageNumLimit) return false;
 
 		for (UINT i = 0; i < (UINT)m_pages.size(); i++)
 		{
 			auto& page = m_pages[i];
 
-			// Èô²»Âú×ãÎ½´Ê£¬ÔòÌø¹ı´ËÒ³
+			// è‹¥ä¸æ»¡è¶³è°“è¯ï¼Œåˆ™è·³è¿‡æ­¤é¡µ
 			if (!predicate(page)) continue;
 
 			for (auto& space : page.freeIntervals)
@@ -62,7 +62,7 @@ protected:
 					oPageIdx = i;
 					oFirstIdx = space.st;
 
-					// Èç¹ûÕÒµ½ºÏÊÊµÄ¿ÕÏĞÄÚ´æ
+					// å¦‚æœæ‰¾åˆ°åˆé€‚çš„ç©ºé—²å†…å­˜
 					if (space.st + size <= space.ed)
 						page.freeIntervals.insert({ space.st + size, space.ed });
 
@@ -75,7 +75,7 @@ protected:
 			}
 		}
 
-		// Èç¹ûÃ»ÓĞÕÒµ½ºÏÊÊµÄ¿ÕÏĞÄÚ´æ£¬ĞèÒªĞÂ·ÖÅäÒ»Ò³
+		// å¦‚æœæ²¡æœ‰æ‰¾åˆ°åˆé€‚çš„ç©ºé—²å†…å­˜ï¼Œéœ€è¦æ–°åˆ†é…ä¸€é¡µ
 		auto& newPage = m_pages.emplace_back(m_eachPageDataNum);
 		newPage.freeIntervals.clear();
 		newPage.freeIntervals.insert({ size, m_eachPageDataNum - 1 });
@@ -87,7 +87,7 @@ protected:
 		return true;
 	}
 
-	// ÒÆ³ı pageIdx Ò³ÃæµÄ£¬´Ó start ¿ªÊ¼³¤¶ÈÎª size µÄÄÚ´æ¿é
+	// ç§»é™¤ pageIdx é¡µé¢çš„ï¼Œä» start å¼€å§‹é•¿åº¦ä¸º size çš„å†…å­˜å—
 	void Remove(UINT pageIdx, UINT start, UINT size)
 	{
 		auto& freeIntervals = m_pages[pageIdx].freeIntervals;
@@ -101,18 +101,18 @@ protected:
 			bool bCombine = false;
 			if (space.st >= start && space.ed <= end)
 			{
-				// Èç¹û space ÊÇ×Ó¼¯£¬É¾³ı
+				// å¦‚æœ space æ˜¯å­é›†ï¼Œåˆ é™¤
 				removing.insert(space);
 			}
 			else if (space.st <= end && start <= space.ed)
 			{
-				// Èç¹û space ÊÇ½»¼¯£¬ºÏ²¢
+				// å¦‚æœ space æ˜¯äº¤é›†ï¼Œåˆå¹¶
 				removing.insert(space);
 				bCombine = true;
 			}
 			else if (space.st < start || space.ed > end)
 			{
-				// Èç¹û space ÊÇ¸¸¼¯£¬Ê²Ã´¶¼²»×ö
+				// å¦‚æœ space æ˜¯çˆ¶é›†ï¼Œä»€ä¹ˆéƒ½ä¸åš
 			}
 			else bCombine = true;
 
@@ -125,7 +125,7 @@ protected:
 
 		for (auto& space : removing) freeIntervals.erase(space);
 
-		// Èç¹û adjust ºÍ m_freeInterval ĞÎ³ÉÁ¬ºÅ£¬ĞèÒªÔÙºÏ²¢Ò»´Î¡£
+		// å¦‚æœ adjust å’Œ m_freeInterval å½¢æˆè¿å·ï¼Œéœ€è¦å†åˆå¹¶ä¸€æ¬¡ã€‚
 		removing.clear();
 		for (auto& space : freeIntervals)
 		{
@@ -173,10 +173,10 @@ protected:
 protected:
 	std::vector<Page> m_pages;
 
-	// Õâ¸öallocatorÖĞ×î¶àÄÜ·Å¶àÉÙ¸öpage
+	// è¿™ä¸ªallocatorä¸­æœ€å¤šèƒ½æ”¾å¤šå°‘ä¸ªpage
 	UINT m_pageNumLimit;
 
-	// Ã¿¸öpageÖĞ×î¶à¿É·Å¶àÉÙ¸ödata
+	// æ¯ä¸ªpageä¸­æœ€å¤šå¯æ”¾å¤šå°‘ä¸ªdata
 	UINT m_eachPageDataNum;
 };
 
@@ -187,13 +187,13 @@ protected:
 //	XAllocator m_allocator(1000, 5);
 //	while (true)
 //	{
-//		// Éú³É true/false£¬true=alloc£¬false=remove
+//		// ç”Ÿæˆ true/falseï¼Œtrue=allocï¼Œfalse=remove
 //		std::uniform_int_distribution<int> d0(0, 1);
 //		UINT bAlloc = d0(rng);
 //
 //		if (bAlloc)
 //		{
-//			// Ëæ»úÉú³É alloc
+//			// éšæœºç”Ÿæˆ alloc
 //			std::uniform_int_distribution<int> d1(0, m_allocator.GetEachPageDataNum() - 1);
 //			UINT size = d1(rng);
 //			UINT nouse;

@@ -9,7 +9,7 @@ bool CommittedAllocator::Alloc(UINT byteSize, ResourceType resourceType, D3D12_G
 {
 	size_t blockByteMask = m_blockByteSize - 1;
 	UINT dataByteSize = (UINT)((byteSize + blockByteMask) & ~blockByteMask);
-	UINT blockSize = dataByteSize / m_blockByteSize; // Õâ´ÎallocĞèÒªÊ¹ÓÃ¶àÉÙ¸öBlock
+	UINT blockSize = dataByteSize / m_blockByteSize; // è¿™æ¬¡allocéœ€è¦ä½¿ç”¨å¤šå°‘ä¸ªBlock
 
 	auto predicate = [resourceType](Page& page) {
 		return page.data.type == resourceType;
@@ -35,7 +35,7 @@ void CommittedAllocator::Remove(UINT pageIdx, UINT pageByteOffset, UINT byteSize
 {
 	size_t blockByteMask = m_blockByteSize - 1;
 	UINT dataByteSize = (UINT)((byteSize + blockByteMask) & ~blockByteMask);
-	UINT blockSize = dataByteSize / m_blockByteSize; // Õâ´ÎremoveĞèÒªÒÆ³ı¶àÉÙ¸öBlock
+	UINT blockSize = dataByteSize / m_blockByteSize; // è¿™æ¬¡removeéœ€è¦ç§»é™¤å¤šå°‘ä¸ªBlock
 	UINT stBlockIdx = pageByteOffset / m_blockByteSize;
 
 	CommittedAllocatorBase::Remove(pageIdx, stBlockIdx, blockSize);
@@ -83,27 +83,27 @@ void CommittedAllocator::CreateNewPage(CommittedAllocatorBase::Page& newPage)
 	heapProperties.CreationNodeMask = 1;
 	heapProperties.VisibleNodeMask = 1;
 
-	// ³õÊ¼×ÊÔ´×´Ì¬£¬Èç¹ûÊÇÉÏ´«¶Ñ£¬ÔòÉèÎª¿É¶Á£»Èç¹ûÊÇÄ¬ÈÏ¶Ñ£¬ÔòÖ±½ÓÉèÎª¸´ÖÆÄ¿±ê¡£
+	// åˆå§‹èµ„æºçŠ¶æ€ï¼Œå¦‚æœæ˜¯ä¸Šä¼ å †ï¼Œåˆ™è®¾ä¸ºå¯è¯»ï¼›å¦‚æœæ˜¯é»˜è®¤å †ï¼Œåˆ™ç›´æ¥è®¾ä¸ºå¤åˆ¶ç›®æ ‡ã€‚
 	auto initResourceState = newPage.data.type == ResourceType_Default ? D3D12_RESOURCE_STATE_COPY_DEST : D3D12_RESOURCE_STATE_GENERIC_READ;
 	newPage.data.resourceState = initResourceState;
 
 	D3D12_RESOURCE_DESC cbDesc;
 	cbDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
 	cbDesc.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
-	cbDesc.Width = m_blockByteSize * m_eachPageDataNum; // ×Ü´óĞ¡£¬µ¥Î»Îª×Ö½Ú
-	cbDesc.Height = 1; // ¶ÔÓÚ»º³åÇø£¬¸ß¶È±ØĞëÎª1
-	cbDesc.DepthOrArraySize = 1; // ¶ÔÓÚ»º³åÇø£¬Éî¶È±ØĞëÎª1
-	cbDesc.MipLevels = 1; // »º³åÇøµÄMIPµÈ¼¶Êı£¬Ó¦Îª1
-	cbDesc.Format = DXGI_FORMAT_UNKNOWN; // »º³åÇø²»Ê¹ÓÃDXGI¸ñÊ½£¬ËùÒÔÉèÖÃÎªUNKNOWN
-	cbDesc.SampleDesc.Count = 1; // ¶àÖØ²ÉÑùµÄÊıÁ¿£¬¶ÔÓÚ»º³åÇø£¬ÕâÓ¦¸ÃÊÇ1
-	cbDesc.SampleDesc.Quality = 0; // ¶àÖØ²ÉÑùµÄÖÊÁ¿£¬Í¨³£Îª0
-	cbDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR; // »º³åÇøµÄ²¼¾Ö£¬Í¨³£ÎªĞĞÖ÷Ğò
-	cbDesc.Flags = D3D12_RESOURCE_FLAG_NONE; // ×ÊÔ´µÄ±êÖ¾£¬¸ù¾İĞèÒª½øĞĞÉèÖÃ
+	cbDesc.Width = m_blockByteSize * m_eachPageDataNum; // æ€»å¤§å°ï¼Œå•ä½ä¸ºå­—èŠ‚
+	cbDesc.Height = 1; // å¯¹äºç¼“å†²åŒºï¼Œé«˜åº¦å¿…é¡»ä¸º1
+	cbDesc.DepthOrArraySize = 1; // å¯¹äºç¼“å†²åŒºï¼Œæ·±åº¦å¿…é¡»ä¸º1
+	cbDesc.MipLevels = 1; // ç¼“å†²åŒºçš„MIPç­‰çº§æ•°ï¼Œåº”ä¸º1
+	cbDesc.Format = DXGI_FORMAT_UNKNOWN; // ç¼“å†²åŒºä¸ä½¿ç”¨DXGIæ ¼å¼ï¼Œæ‰€ä»¥è®¾ç½®ä¸ºUNKNOWN
+	cbDesc.SampleDesc.Count = 1; // å¤šé‡é‡‡æ ·çš„æ•°é‡ï¼Œå¯¹äºç¼“å†²åŒºï¼Œè¿™åº”è¯¥æ˜¯1
+	cbDesc.SampleDesc.Quality = 0; // å¤šé‡é‡‡æ ·çš„è´¨é‡ï¼Œé€šå¸¸ä¸º0
+	cbDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR; // ç¼“å†²åŒºçš„å¸ƒå±€ï¼Œé€šå¸¸ä¸ºè¡Œä¸»åº
+	cbDesc.Flags = D3D12_RESOURCE_FLAG_NONE; // èµ„æºçš„æ ‡å¿—ï¼Œæ ¹æ®éœ€è¦è¿›è¡Œè®¾ç½®
 
 	HRESULT hr = m_pDevice->CreateCommittedResource(
 		&heapProperties,
 		D3D12_HEAP_FLAG_NONE,
-		&cbDesc, // ×ÊÔ´ÃèÊö
+		&cbDesc, // èµ„æºæè¿°
 		initResourceState,
 		nullptr,
 		IID_PPV_ARGS(&newPage.data.pResource)

@@ -26,7 +26,7 @@ void NXGUIGPUProfiler::Render()
 	if (ImGui::Begin("GPU Profiler", &bWindowOpen))
 	{
 		if (!g_pGPUProfiler->IsEnabled())
-			g_pGPUProfiler->SetEnabled(true); // ´°¿Ú´ò¿ªÊ±È·±£ÆôÓÃ
+			g_pGPUProfiler->SetEnabled(true); // çª—å£æ‰“å¼€æ—¶ç¡®ä¿å¯ç”¨
 
         ImGuiIO& io = ImGui::GetIO();
         double gpuTotalMs = g_pGPUProfiler->GetLastFrameTotalTimeMs();
@@ -34,32 +34,32 @@ void NXGUIGPUProfiler::Render()
 
         ImGui::Separator();
 
-        // ¶Ô±ÈÏÔÊ¾n
-        ImGui::Text(ImUtf8("Ö¡Êı (FPS): %.1f"), io.Framerate);
+        // å¯¹æ¯”æ˜¾ç¤ºn
+        ImGui::Text(ImUtf8("å¸§æ•° (FPS): %.1f"), io.Framerate);
         ImGui::SameLine();
-        ImGui::Text(ImUtf8("Ö¡Ê±¼ä (1/FPS): %.3f ms"), frameTimeMs);
+        ImGui::Text(ImUtf8("å¸§æ—¶é—´ (1/FPS): %.3f ms"), frameTimeMs);
 
-        ImGui::Text(ImUtf8("GPU ×ÜºÄÊ±: %.3f ms"), gpuTotalMs);
+        ImGui::Text(ImUtf8("GPU æ€»è€—æ—¶: %.3f ms"), gpuTotalMs);
         ImGui::SameLine();
 
-        // ¼ÆËã²îÖµ
+        // è®¡ç®—å·®å€¼
         double unmeasuredMs = frameTimeMs - gpuTotalMs;
-        ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), ImUtf8("Î´Í³¼ÆÊ±¼ä: %.3f ms"), unmeasuredMs);
+        ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), ImUtf8("æœªç»Ÿè®¡æ—¶é—´: %.3f ms"), unmeasuredMs);
         ImGui::SameLine();
-        ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), ImUtf8("(CPU¹¤×÷, Present, ´¹Ö±Í¬²½, ¶àÊÓ¿Ú)"));
+        ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), ImUtf8("(CPUå·¥ä½œ, Present, å‚ç›´åŒæ­¥, å¤šè§†å£)"));
 
         ImGui::Separator();
 
         const auto& results = g_pGPUProfiler->GetLastFrameResults();
 
-        // ±í¸ñÏÔÊ¾Ã¿¸ö Pass µÄÊ±¼ä
-        // ¼ÆËã¿ÉÓÃ¿Õ¼ä£º´°¿ÚÄÚÈİÇøÓò¼õÈ¥ÒÑÊ¹ÓÃµÄ¿Õ¼ä£¬Ô¤ÁôÒ»Ğ©±ß¾à
+        // è¡¨æ ¼æ˜¾ç¤ºæ¯ä¸ª Pass çš„æ—¶é—´
+        // è®¡ç®—å¯ç”¨ç©ºé—´ï¼šçª—å£å†…å®¹åŒºåŸŸå‡å»å·²ä½¿ç”¨çš„ç©ºé—´ï¼Œé¢„ç•™ä¸€äº›è¾¹è·
         float availableHeight = ImGui::GetContentRegionAvail().y;
         if (ImGui::BeginTable("PassTimings", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY, ImVec2(0, availableHeight)))
         {
-            ImGui::TableSetupColumn(ImUtf8("Pass Ãû³Æ"), ImGuiTableColumnFlags_WidthStretch);
-            ImGui::TableSetupColumn(ImUtf8("ºÄÊ± (ms)"), ImGuiTableColumnFlags_WidthFixed, 80.0f);
-            ImGui::TableSetupColumn(ImUtf8("Õ¼±È"), ImGuiTableColumnFlags_WidthFixed, 50.0f);
+            ImGui::TableSetupColumn(ImUtf8("Pass åç§°"), ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn(ImUtf8("è€—æ—¶ (ms)"), ImGuiTableColumnFlags_WidthFixed, 80.0f);
+            ImGui::TableSetupColumn(ImUtf8("å æ¯”"), ImGuiTableColumnFlags_WidthFixed, 50.0f);
             ImGui::TableHeadersRow();
 
             for (const auto& result : results)
@@ -78,7 +78,7 @@ void NXGUIGPUProfiler::Render()
 	}
 	ImGui::End();
 
-	// ´°¿Ú¹Ø±ÕÊ±½ûÓÃprofiler
+	// çª—å£å…³é—­æ—¶ç¦ç”¨profiler
 	if (!bWindowOpen)
 		SetVisible(false);
 }

@@ -5,25 +5,25 @@
 #include "NXTextureLoader.h"
 #include "NXNullDescriptor.h"
 
-// ×ÊÔ´
+// èµ„æº
 #define NXAllocator_CB		NXAllocatorManager::GetInstance()->GetCBAllocator()			// cb
 #define NXAllocator_SB		NXAllocatorManager::GetInstance()->GetSBAllocator()			// vb, ib, instance-data
 #define NXAllocator_RB		NXAllocatorManager::GetInstance()->GetRBAllocator()			// readback buffer
 #define NXAllocator_RWB		NXAllocatorManager::GetInstance()->GetRWBAllocator()		// rw buffer
-#define NXAllocator_Tex		NXAllocatorManager::GetInstance()->GetTextureAllocator()	// texture£¬µ«ÆäÖĞÄ¿Ç°½öÎÄ¼ş¡¢¸ß¶ÈÍ¼¡¢cpu³ÌĞòÉú³ÉÕâ¼¸ÖÖ¡£µ«²»°üÀ¨RT£¨RTµ¥¶À£©
+#define NXAllocator_Tex		NXAllocatorManager::GetInstance()->GetTextureAllocator()	// textureï¼Œä½†å…¶ä¸­ç›®å‰ä»…æ–‡ä»¶ã€é«˜åº¦å›¾ã€cpuç¨‹åºç”Ÿæˆè¿™å‡ ç§ã€‚ä½†ä¸åŒ…æ‹¬RTï¼ˆRTå•ç‹¬ï¼‰
 
-// ÃèÊö·û
+// æè¿°ç¬¦
 #define NXAllocator_SRV		NXAllocatorManager::GetInstance()->GetSRVAllocator()
 #define NXAllocator_RTV		NXAllocatorManager::GetInstance()->GetRTVAllocator()
 #define NXAllocator_DSV		NXAllocatorManager::GetInstance()->GetDSVAllocator()
 #define NXAllocator_NULL 	NXAllocatorManager::GetInstance()->GetNullDescriptorAllocator()
 #define NXShVisDescHeap		NXAllocatorManager::GetInstance()->GetShaderVisibleDescriptorAllocator()
 
-// ÉÏ´«ÏµÍ³
+// ä¸Šä¼ ç³»ç»Ÿ
 #define NXUploadSys			NXAllocatorManager::GetInstance()->GetNXUploadSystem()
 #define NXReadbackSys		NXAllocatorManager::GetInstance()->GetNXReadbackSystem()
 
-// ÎÆÀí¼ÓÔØÆ÷
+// çº¹ç†åŠ è½½å™¨
 #define NXTexLoader			NXAllocatorManager::GetInstance()->GetTextureLoader()
 
 using namespace ccmem;
@@ -74,7 +74,7 @@ private:
 	// shader-visible descriptor allocator
 	std::unique_ptr<DescriptorAllocator<true>> 	m_pShaderVisibleDescAllocator;
 
-	// ÒÔÉÏËùÓĞ¶¼Ê¹ÓÃ¶ÀÁ¢Ïß³ÌÔËĞĞ£¬Ê¹ÓÃÒ»¸öÏß³ÌÈİÆ÷¹ÜÀíËüÃÇ
+	// ä»¥ä¸Šæ‰€æœ‰éƒ½ä½¿ç”¨ç‹¬ç«‹çº¿ç¨‹è¿è¡Œï¼Œä½¿ç”¨ä¸€ä¸ªçº¿ç¨‹å®¹å™¨ç®¡ç†å®ƒä»¬
 	std::vector<std::thread> m_threads;
 	std::atomic<bool> m_bRunning;
 };

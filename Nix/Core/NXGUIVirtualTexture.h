@@ -25,11 +25,11 @@ private:
 
     void BuildDockLayout(ImGuiID dockspace_id);
 
-    // »æÖÆ
+    // ç»˜åˆ¶
     void DrawWorld(ImDrawList* dl, const ImVec2& regionTL, const ImVec2& regionSize);
     ImU32 GetSectorRectColor(int size, bool isFill);
 
-    // ¹¤¾ßº¯Êı
+    // å·¥å…·å‡½æ•°
     void IdxToRowCol(int idx, int& row, int& col);
     int RowColToIdx(int row, int col);
     ImVec2 TileMin(int row, int col);
@@ -37,33 +37,33 @@ private:
 
     ImU32 VTReadbackDecodeData(int val) const;
 
-    // »ñÈ¡NXVirtualTextureÊµÀı
+    // è·å–NXVirtualTextureå®ä¾‹
     NXVirtualTexture* GetVirtualTexture() const;
 
 private:
     NXGUI* m_pOwner;
 
-    // ÊÀ½ç & Íø¸ñ³£Á¿
+    // ä¸–ç•Œ & ç½‘æ ¼å¸¸é‡
     static constexpr int WORLD_MIN = -8192;
     static constexpr int WORLD_MAX = 8192;
     static constexpr int SECTOR_SIZE = 64;
     static constexpr int GRID_COUNT = (WORLD_MAX - WORLD_MIN) / SECTOR_SIZE; // 256
 
-    // UI ×´Ì¬
-    float m_zoom = 1.0f;                // ¶îÍâËõ·Å
-    bool  m_drawGrid = true;            // ÊÇ·ñ»æÖÆÍø¸ñÏß
-    bool  m_showOnlyNear = false;       // ×ó²àÁĞ±íÖ»ÏÔÊ¾Ïà»ú¸½½üµÄ Sector
-    int   m_selectedIdx = -1;           // Ñ¡ÖĞµÄÈ«¾ÖÏßĞÔË÷Òı£¨row*256+col£©
+    // UI çŠ¶æ€
+    float m_zoom = 1.0f;                // é¢å¤–ç¼©æ”¾
+    bool  m_drawGrid = true;            // æ˜¯å¦ç»˜åˆ¶ç½‘æ ¼çº¿
+    bool  m_showOnlyNear = false;       // å·¦ä¾§åˆ—è¡¨åªæ˜¾ç¤ºç›¸æœºé™„è¿‘çš„ Sector
+    int   m_selectedIdx = -1;           // é€‰ä¸­çš„å…¨å±€çº¿æ€§ç´¢å¼•ï¼ˆrow*256+colï¼‰
 
-    // ÊÓÍ¼½»»¥£ºÒÔ¡°ÏñËØ¡±Îªµ¥Î»µÄÆ½ÒÆÆ«ÒÆ£¨Ïà¶Ô¿ÉÊÓÇø×óÉÏ½Ç£©
-    // ¿ÉÑ¡£ººóĞø¿ÉÀ©Õ¹ÓÒ¼üÍÏ×§£»µ±Ç°ÓÃÖĞ¼ü
+    // è§†å›¾äº¤äº’ï¼šä»¥â€œåƒç´ â€ä¸ºå•ä½çš„å¹³ç§»åç§»ï¼ˆç›¸å¯¹å¯è§†åŒºå·¦ä¸Šè§’ï¼‰
+    // å¯é€‰ï¼šåç»­å¯æ‰©å±•å³é”®æ‹–æ‹½ï¼›å½“å‰ç”¨ä¸­é”®
     ImVec2 m_panPix{ 0.0f, 0.0f };
-    // Virtual Image Atlas ËÑË÷
+    // Virtual Image Atlas æœç´¢
     char m_atlasSearchBuf[256] = "";
     bool m_bShowWindow;
     std::vector<std::string> m_strTitle;
 
-    // »º´æÊı¾İ£¬±ÜÃâ×´Ì¬»úÖĞ¼äÖ¡Êı¾İ²»Ò»ÖÂµ¼ÖÂÉÁË¸
+    // ç¼“å­˜æ•°æ®ï¼Œé¿å…çŠ¶æ€æœºä¸­é—´å¸§æ•°æ®ä¸ä¸€è‡´å¯¼è‡´é—ªçƒ
     struct CachedData;
     std::unique_ptr<CachedData> m_cachedData;
 };

@@ -10,10 +10,10 @@ public:
 
 	void Create(uint32_t stride, uint32_t arraySize);
 
-	// ´ÓpSrcDataµØÖ·¿ªÊ¼£¬¿½±´´óĞ¡ÎªarraySize×Ö½ÚµÄÊı¾İµ½µ±Ç°buffer
+	// ä»pSrcDataåœ°å€å¼€å§‹ï¼Œæ‹·è´å¤§å°ä¸ºarraySizeå­—èŠ‚çš„æ•°æ®åˆ°å½“å‰buffer
 	void SetCurrent(const void* pSrcData, uint32_t arraySize);
 	void SetAll(const void* pSrcData, uint32_t arraySize);
-	// Èç¹ûÓĞ±ØÒª£¬µÈ´ıÉÏ´«²Ù×÷Íê³É£¨»á×èÈûÖ÷Í¼ĞÎ¶ÓÁĞ£¡Ö»ÓÃÓÚ¶ÔĞÔÄÜÒªÇó²»¸ßµÄSetAll/SetCurrentĞĞÎª£¬»òÕßµ÷ÊÔ£©
+	// å¦‚æœæœ‰å¿…è¦ï¼Œç­‰å¾…ä¸Šä¼ æ“ä½œå®Œæˆï¼ˆä¼šé˜»å¡ä¸»å›¾å½¢é˜Ÿåˆ—ï¼åªç”¨äºå¯¹æ€§èƒ½è¦æ±‚ä¸é«˜çš„SetAll/SetCurrentè¡Œä¸ºï¼Œæˆ–è€…è°ƒè¯•ï¼‰
 	void WaitForUploadFinish();
 
 	uint32_t GetStride() const { return m_stride; }
@@ -28,7 +28,7 @@ public:
 	D3D12_CPU_DESCRIPTOR_HANDLE GetUAV() const { return m_pUAV.Current(); }
 	D3D12_CPU_DESCRIPTOR_HANDLE GetUAVCounter() const { return m_pUAVCounter.Current(); }
 
-	// ÉèÖÃ±¾ÌåbufferµÄ×ÊÔ´×´Ì¬£»µ«Õâ¸ö²»»áÉèÖÃuavCounter¡¢indirectArgsµÄ×´Ì¬¡£
+	// è®¾ç½®æœ¬ä½“bufferçš„èµ„æºçŠ¶æ€ï¼›ä½†è¿™ä¸ªä¸ä¼šè®¾ç½®uavCounterã€indirectArgsçš„çŠ¶æ€ã€‚
 	void SetResourceState(ID3D12GraphicsCommandList* pCommandList, const D3D12_RESOURCE_STATES& state) override;
 
 	ID3D12Resource* GetD3DResource() const override { return m_pBuffer.Current().Get(); }
@@ -38,20 +38,20 @@ private:
 	void Set_Internal(const void* pSrcData, uint32_t arraySize, ID3D12Resource* pBuffer, ID3D12Resource* pUAVCounterBuffer);
 
 private:
-	// BufferºÍTextureÏàËÆ£¬µ«SRVºÍUAV¶¼ÊÇ×Ô¶¯´´½¨µÄ
+	// Bufferå’ŒTextureç›¸ä¼¼ï¼Œä½†SRVå’ŒUAVéƒ½æ˜¯è‡ªåŠ¨åˆ›å»ºçš„
 	void InitSRV();
 	void InitUAV();
-	void ProcessLoadingViews(); // ¼ÆÊı--£¬Ã¿¼ÓÔØºÃÒ»¸öView£¬µ÷ÓÃÒ»´Î
-	void WaitLoadingViewsFinish(); // µÈ´ıËùÓĞView¶¼¼ÓÔØÍê³É£¬äÖÈ¾´«ViewÊ±µ÷ÓÃ
+	void ProcessLoadingViews(); // è®¡æ•°--ï¼Œæ¯åŠ è½½å¥½ä¸€ä¸ªViewï¼Œè°ƒç”¨ä¸€æ¬¡
+	void WaitLoadingViewsFinish(); // ç­‰å¾…æ‰€æœ‰Viewéƒ½åŠ è½½å®Œæˆï¼Œæ¸²æŸ“ä¼ Viewæ—¶è°ƒç”¨
 
 private:
-	// ´æÒ»ÏÂ»ï°éÄÚ´æ³ØµÄÔ­Ê¼×ÊÔ´Ö¸ÕëºÍÆ«ÒÆÁ¿£¬·½±ãSRV/UAV´´½¨¶¨Î»¡£
+	// å­˜ä¸€ä¸‹ä¼™ä¼´å†…å­˜æ± çš„åŸå§‹èµ„æºæŒ‡é’ˆå’Œåç§»é‡ï¼Œæ–¹ä¾¿SRV/UAVåˆ›å»ºå®šä½ã€‚
 	MultiFrame<ComPtr<ID3D12Resource>> m_pBuffer; 
 
-	// ¼ÆÊıÆ÷buffer£¬ÓÃÓÚUAVµÄ¼ÆÊı
+	// è®¡æ•°å™¨bufferï¼Œç”¨äºUAVçš„è®¡æ•°
 	MultiFrame<ComPtr<ID3D12Resource>> m_pUAVCounterBuffer;
 
-	// ¼ÇÂ¼µ±Ç°×ÊÔ´ÔÚNXUploadSysÖĞµÄFenceValue
+	// è®°å½•å½“å‰èµ„æºåœ¨NXUploadSysä¸­çš„FenceValue
 	MultiFrame<uint64_t> m_lastUploadSysFenceValue_buffer;
 	MultiFrame<uint64_t> m_lastUploadSysFenceValue_uavCounter;
 

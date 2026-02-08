@@ -66,7 +66,7 @@ private:
 	Matrix m_mxViewProjection;
 	Matrix m_mxViewProjectionInv;
 
-	// 编辑器使用的 第一人称控制(FPC)脚本指针
+	// 缂栬緫鍣ㄤ娇鐢ㄧ殑 绗竴浜虹О鎺у埗(FPC)鑴氭湰鎸囬拡
 	NSFirstPersonalCamera* m_pEditorFPCScript;
 
 	float m_aspectRatio;

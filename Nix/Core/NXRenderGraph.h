@@ -11,8 +11,8 @@ class NXRGResource;
 
 struct NXRGAllocedResourceLifeTimes
 {
-	Ntr<NXResource> pResource; // ·ÖÅäµÄ×ÊÔ´Ö¸Õë
-	std::vector<NXRGLifeTime> descLifeTimes; // ´Ë×ÊÔ´Õ¼ÓÃµÄÊ±¼ä¶ÎÁĞ±í
+	Ntr<NXResource> pResource; // åˆ†é…çš„èµ„æºæŒ‡é’ˆ
+	std::vector<NXRGLifeTime> descLifeTimes; // æ­¤èµ„æºå ç”¨çš„æ—¶é—´æ®µåˆ—è¡¨
 };
 
 class NXRenderGraph
@@ -39,22 +39,22 @@ public:
 		return pPassNode;
 	}
 
-	// µ±Ç°×ÊÔ´ÔÚpass×÷ÎªÊäÈë
-	// handle²»±ä£¬ÈÔ·µ»ØresID¡£
+	// å½“å‰èµ„æºåœ¨passä½œä¸ºè¾“å…¥
+	// handleä¸å˜ï¼Œä»è¿”å›resIDã€‚
 	NXRGHandle Read(NXRGHandle resID, NXRGPassNodeBase* passNode);
 
-	// µ±Ç°×ÊÔ´ÔÚpass×÷ÎªÊä³ö¡£
-	// Èç¹ûÊÇImport×ÊÔ´£¬Ôò·µ»ØÍ¬Ò»×ÊÔ´µÄhandle£»
-	// Èç¹ûÊÇCreate×ÊÔ´£¬Ôò´´½¨ĞÂ°æ±¾×ÊÔ´²¢·µ»ØĞÂhandle
+	// å½“å‰èµ„æºåœ¨passä½œä¸ºè¾“å‡ºã€‚
+	// å¦‚æœæ˜¯Importèµ„æºï¼Œåˆ™è¿”å›åŒä¸€èµ„æºçš„handleï¼›
+	// å¦‚æœæ˜¯Createèµ„æºï¼Œåˆ™åˆ›å»ºæ–°ç‰ˆæœ¬èµ„æºå¹¶è¿”å›æ–°handle
 	NXRGHandle Write(NXRGPassNodeBase* passNode,NXRGHandle resID);
 
-	// µ±Ç°×ÊÔ´ÔÚpass×÷Îªµş¼Ó¶ÁĞ´£¨Ö®Ç°µÄpassÒÑ¾­ÓĞ½á¹û£¬ÕâÀïÖ»ÊÇµş¼ÓĞÂµÄÄÚÈİ£©¡£
-	// handle²»±ä£¬ÈÔ·µ»ØresID
+	// å½“å‰èµ„æºåœ¨passä½œä¸ºå åŠ è¯»å†™ï¼ˆä¹‹å‰çš„passå·²ç»æœ‰ç»“æœï¼Œè¿™é‡Œåªæ˜¯å åŠ æ–°çš„å†…å®¹ï¼‰ã€‚
+	// handleä¸å˜ï¼Œä»è¿”å›resID
 	NXRGHandle ReadWrite(NXRGPassNodeBase* passNode, NXRGHandle resID);
 
-	// ¶¨ÒåÒ»¸ö´´½¨Àà×ÊÔ´
+	// å®šä¹‰ä¸€ä¸ªåˆ›å»ºç±»èµ„æº
 	NXRGHandle Create(const std::string& name, const NXRGDescription& desc);
-	// µ¼ÈëÒ»¸öÍâ²¿×ÊÔ´
+	// å¯¼å…¥ä¸€ä¸ªå¤–éƒ¨èµ„æº
 	NXRGHandle Import(const Ntr<NXResource>& importResource);
 
 	void Compile();
@@ -62,20 +62,20 @@ public:
 
 	void Clear();
 
-	// »ñÈ¡×ÊÔ´ºÍpassµÄ½Ó¿Ú
+	// è·å–èµ„æºå’Œpassçš„æ¥å£
 	Ntr<NXResource> GetResource(NXRGHandle handle);
-	Ntr<NXResource> GetUsingResourceByName(const std::string& name); // Í¨¹ı×ÊÔ´Ãû³Æ²éÕÒ×ÊÔ´£»½öµ÷ÊÔÊ¹ÓÃ
+	Ntr<NXResource> GetUsingResourceByName(const std::string& name); // é€šè¿‡èµ„æºåç§°æŸ¥æ‰¾èµ„æºï¼›ä»…è°ƒè¯•ä½¿ç”¨
 
 	const std::vector<NXRGPassNodeBase*>& GetPassNodes() { return m_passNodes; }
 	const std::unordered_map<NXRGHandle, NXRGResource*>& GetResourceMap() { return m_resourceMap; }
 
-	// GUIÊı¾İ½Ó¿Ú
+	// GUIæ•°æ®æ¥å£
 	const std::vector<NXRGGUIResource>& GetGUIVirtualResources() const { return m_guiVirtualResources; }
 	const std::vector<NXRGGUIResource>& GetGUIPhysicalResources() const { return m_guiPhysicalResources; }
 	const std::vector<NXRGGUIResource>& GetGUIImportedResources() const { return m_guiImportedResources; }
-	int GetMinTimeLayer() const { return m_minTimeLayer; } // ĞéÄâ×ÊÔ´ÒÀÀµµÄ×î´ó/×îĞ¡Ê±¼ä½Úµã
-	int GetMaxTimeLayer() const { return m_maxTimeLayer; } // ĞéÄâ×ÊÔ´ÒÀÀµµÄ×î´ó/×îĞ¡Ê±¼ä½Úµã
-	const std::set<std::string>& GetPassesAtTimeLayer(int timeLayer) const; // »ñÈ¡µ±Ç°Ê±¼ä½Úµã¶ÔÓ¦µÄPass£¨¿ÉÄÜÓĞ¶à¸ö£©
+	int GetMinTimeLayer() const { return m_minTimeLayer; } // è™šæ‹Ÿèµ„æºä¾èµ–çš„æœ€å¤§/æœ€å°æ—¶é—´èŠ‚ç‚¹
+	int GetMaxTimeLayer() const { return m_maxTimeLayer; } // è™šæ‹Ÿèµ„æºä¾èµ–çš„æœ€å¤§/æœ€å°æ—¶é—´èŠ‚ç‚¹
+	const std::set<std::string>& GetPassesAtTimeLayer(int timeLayer) const; // è·å–å½“å‰æ—¶é—´èŠ‚ç‚¹å¯¹åº”çš„Passï¼ˆå¯èƒ½æœ‰å¤šä¸ªï¼‰
 
 private:
 	void GenerateGUIData();
@@ -83,45 +83,45 @@ private:
 	Ntr<NXResource> CreateResourceByDescription(const NXRGDescription& desc, NXRGHandle handle);
 
 private:
-	// ¾²Ì¬±äÁ¿¼ÇÂ¼ÎÆÀí±àºÅ
+	// é™æ€å˜é‡è®°å½•çº¹ç†ç¼–å·
 	static uint32_t s_resourceId;
 
-	// Í¼ÒÀÀµµÄËùÓĞpass
+	// å›¾ä¾èµ–çš„æ‰€æœ‰pass
 	std::vector<NXRGPassNodeBase*> m_passNodes;
 	std::unordered_map<NXRGHandle, std::unordered_set<NXRGPassNodeBase*>> m_handlePassNodes;
 
-	// ¼ÇÂ¼RGHandleºÍRGResourceµÄÓ³Éä¹ØÏµ
+	// è®°å½•RGHandleå’ŒRGResourceçš„æ˜ å°„å…³ç³»
 	std::unordered_map<NXRGHandle, NXRGResource*> m_resourceMap;
 
-	// NXRGHandle-µ¼Èë×ÊÔ´ Ó³Éä
+	// NXRGHandle-å¯¼å…¥èµ„æº æ˜ å°„
 	std::unordered_map<NXRGHandle, Ntr<NXResource>> m_importedResourceMap; 
 
-	// CompileÏà¹Ø£º
-	// Compile-ÍØÆËÅÅĞòÏà¹Ø£º
-	std::unordered_map<NXRGPassNodeBase*, std::vector<NXRGPassNodeBase*>> m_adjTablePassMap; // Ã¿¸öPassµÄÁÚ½Ó±í
-	std::unordered_map<NXRGPassNodeBase*, int> m_indegreePassMap; // Ã¿¸öPassµÄÈë¶È
-	std::unordered_map<NXRGPassNodeBase*, int> m_timeLayerPassMap; // Ã¿¸öPassµÄÓÅÏÈË³Ğò£¬Ô½Ğ¡Ô½ÏÈÖ´ĞĞ
-	// Compile-×ÊÔ´ÉúÃüÖÜÆÚ¹ÜÀíÏà¹Ø£º
-	std::unordered_map<NXRGHandle, NXRGLifeTime> m_resourceLifeTimeMap; // Ã¿¸ö×ÊÔ´µÄÆğÖ¹Ê±¼ä
-	// Compile-Ì°ĞÄÈ·ÈÏ×ÊÔ´·ÖÅä·½°¸
-	// Èç¹ûdescÒ»Ñù£¬²¢ÇÒlifetime²»ÖØºÏ£¬ÄÇÃ´¿ÉÒÔ¸´ÓÃ
-	std::unordered_map<NXRGDescription, std::vector<NXRGAllocedResourceLifeTimes>> m_descLifeTimesMap; // Ã¿ÖÖdescÊµ¼Ê¸²¸ÇµÄÉúÃüÖÜÆÚ£¬¶şÎ¬vector=[×ÊÔ´ÊµÀı][¸²¸ÇÉúÃüÖÜÆÚ¶Î]
-	// NXRGHandle-Êµ¼Ê·ÖÅäµÄ×ÊÔ´ Ó³Éä
+	// Compileç›¸å…³ï¼š
+	// Compile-æ‹“æ‰‘æ’åºç›¸å…³ï¼š
+	std::unordered_map<NXRGPassNodeBase*, std::vector<NXRGPassNodeBase*>> m_adjTablePassMap; // æ¯ä¸ªPassçš„é‚»æ¥è¡¨
+	std::unordered_map<NXRGPassNodeBase*, int> m_indegreePassMap; // æ¯ä¸ªPassçš„å…¥åº¦
+	std::unordered_map<NXRGPassNodeBase*, int> m_timeLayerPassMap; // æ¯ä¸ªPassçš„ä¼˜å…ˆé¡ºåºï¼Œè¶Šå°è¶Šå…ˆæ‰§è¡Œ
+	// Compile-èµ„æºç”Ÿå‘½å‘¨æœŸç®¡ç†ç›¸å…³ï¼š
+	std::unordered_map<NXRGHandle, NXRGLifeTime> m_resourceLifeTimeMap; // æ¯ä¸ªèµ„æºçš„èµ·æ­¢æ—¶é—´
+	// Compile-è´ªå¿ƒç¡®è®¤èµ„æºåˆ†é…æ–¹æ¡ˆ
+	// å¦‚æœdescä¸€æ ·ï¼Œå¹¶ä¸”lifetimeä¸é‡åˆï¼Œé‚£ä¹ˆå¯ä»¥å¤ç”¨
+	std::unordered_map<NXRGDescription, std::vector<NXRGAllocedResourceLifeTimes>> m_descLifeTimesMap; // æ¯ç§descå®é™…è¦†ç›–çš„ç”Ÿå‘½å‘¨æœŸï¼ŒäºŒç»´vector=[èµ„æºå®ä¾‹][è¦†ç›–ç”Ÿå‘½å‘¨æœŸæ®µ]
+	// NXRGHandle-å®é™…åˆ†é…çš„èµ„æº æ˜ å°„
 	std::unordered_map<NXRGHandle, Ntr<NXResource>> m_allocatedResourceMap; 
 
-	// ¼ÇÂ¼Êµ¼Ê×ÊÔ´µ½RGHandleµÄ·´Ó³Éä
+	// è®°å½•å®é™…èµ„æºåˆ°RGHandleçš„åæ˜ å°„
 	std::unordered_map<Ntr<NXResource>, std::vector<NXRGHandle>> m_allocatedHandlesMap; 
 	std::unordered_map<Ntr<NXResource>, NXRGHandle> m_importedHandlesMap;
 
-	// ¼ÇÂ¼Ã¿ÖÖdescµÄ×ÊÔ´ÔÚ ÉÏÖ¡+±¾Ö¡ µÄ·ÖÅäÇé¿ö£¬ÒÔÈ·ÈÏ×ÊÔ´¸´ÓÃ
+	// è®°å½•æ¯ç§descçš„èµ„æºåœ¨ ä¸Šå¸§+æœ¬å¸§ çš„åˆ†é…æƒ…å†µï¼Œä»¥ç¡®è®¤èµ„æºå¤ç”¨
 	std::unordered_map<NXRGDescription, std::vector<Ntr<NXResource>>> m_lastResourceUsingMap;
 	std::unordered_map<NXRGDescription, std::vector<Ntr<NXResource>>> m_resourceUsingMap;
 
-	// GUIÊı¾İ
+	// GUIæ•°æ®
 	std::vector<NXRGGUIResource> m_guiVirtualResources;
-	std::vector<NXRGGUIResource> m_guiPhysicalResources; // Create×ÊÔ´
-	std::vector<NXRGGUIResource> m_guiImportedResources; // Import×ÊÔ´
-	// ĞéÄâ×ÊÔ´ÒÀÀµµÄ×î´ó/×îĞ¡Ê±¼ä½Úµã
+	std::vector<NXRGGUIResource> m_guiPhysicalResources; // Createèµ„æº
+	std::vector<NXRGGUIResource> m_guiImportedResources; // Importèµ„æº
+	// è™šæ‹Ÿèµ„æºä¾èµ–çš„æœ€å¤§/æœ€å°æ—¶é—´èŠ‚ç‚¹
 	int m_minTimeLayer = 0; 
 	int m_maxTimeLayer = 0;
 };

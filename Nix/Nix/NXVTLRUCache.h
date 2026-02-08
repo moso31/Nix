@@ -5,34 +5,34 @@
 #include "NXVirtualTextureCommon.h"
 
 /* 
-2026.1.30 Îª·½±ãÈÕºóÊáÀí£¬ÓÃ¸ö¾ßÌåÀı×ÓËµÃ÷ÏÂlru cacheÊÇÔõÃ´ÔË×÷µÄ£º
+2026.1.30 ä¸ºæ–¹ä¾¿æ—¥åæ¢³ç†ï¼Œç”¨ä¸ªå…·ä½“ä¾‹å­è¯´æ˜ä¸‹lru cacheæ˜¯æ€ä¹ˆè¿ä½œçš„ï¼š
 
-ÒÔÒ»¸öcapacity=5µÄÇé¿öÎªÀı£¬¼ÙÉè
-³õÊ¼£º
+ä»¥ä¸€ä¸ªcapacity=5çš„æƒ…å†µä¸ºä¾‹ï¼Œå‡è®¾
+åˆå§‹ï¼š
 umap: [a]=0 [b]=1 [c]=2 [d]=3 [e]=4
 vector: [0]=a [1]=b [2]=c [3]=d [4]=e
 lru(list): 0->1->2->3->4
 
-½ÓÏÂÀ´Ê¾ÀıtouchºÍinsertÁ½ÖÖÇé¿ö¡£
+æ¥ä¸‹æ¥ç¤ºä¾‹touchå’Œinsertä¸¤ç§æƒ…å†µã€‚
 
-touch(d)£º
-umapÕÒµ½d£¬ËùÒÔ²»ĞèÒªÒÆ³ı£¬µ«[d]=3
+touch(d)ï¼š
+umapæ‰¾åˆ°dï¼Œæ‰€ä»¥ä¸éœ€è¦ç§»é™¤ï¼Œä½†[d]=3
 umap: [a]=0 [b]=1 [c]=2 [d]=3 [e]=4
 vector: [0]=a [1]=b [2]=c [3]=d [4]=e
-lru(list)£º3->0->1->2->4
+lru(list)ï¼š3->0->1->2->4
 
-insert(f)£º
-umapÕÒ²»µ½£¬ĞèÒªÒÆ³ı
-È·¶¨Ä©Î²£ºlru(list)=4
+insert(f)ï¼š
+umapæ‰¾ä¸åˆ°ï¼Œéœ€è¦ç§»é™¤
+ç¡®å®šæœ«å°¾ï¼šlru(list)=4
 umap.remove(vector[4])
-lru¸üĞÂ£º4->3->0->1->2
+lruæ›´æ–°ï¼š4->3->0->1->2
 vector[4]=f
 umap[f]=4;
 
-×îÖÕ£º
+æœ€ç»ˆï¼š
 umap: [a]=0 [b]=1 [c]=2 [d]=3 [f]=4
 vector: [0]=a [1]=b [2]=c [3]=d [4]=f
-lru(list)Î¬»¤£º4->3->0->1->2
+lru(list)ç»´æŠ¤ï¼š4->3->0->1->2
 */
 
 class NXVTLRUCache
@@ -49,7 +49,7 @@ public:
 			m_umap[lruKey] = i;
 			m_vector[i] = lruKey;
 
-			auto it = m_lruList.insert(m_lruList.end(), i); // Ä©Î²²åÈë slot£¬²¢ÄÃµ½µü´úÆ÷
+			auto it = m_lruList.insert(m_lruList.end(), i); // æœ«å°¾æ’å…¥ slotï¼Œå¹¶æ‹¿åˆ°è¿­ä»£å™¨
 			m_slot2ListIt[i] = it;
 		}
 	}

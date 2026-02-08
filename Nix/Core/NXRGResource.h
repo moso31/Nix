@@ -5,24 +5,24 @@
 class NXRGResource
 {
 public:
-	// ÓÃÓÚ´´½¨ÀÏ×ÊÔ´µÄĞÂ°æ±¾
+	// ç”¨äºåˆ›å»ºè€èµ„æºçš„æ–°ç‰ˆæœ¬
 	NXRGResource(NXRGResource* pOldResource) :
 		m_name(pOldResource->m_name),
 		m_description(pOldResource->m_description),
 		m_handle(pOldResource->m_handle.index, pOldResource->m_handle.version + 1),
 		m_isImported(pOldResource->m_isImported)
 	{
-		NXRGHandle::s_maxVersions[m_handle.index] = m_handle.version; // ÉÏÃæÒÑ¾­+1ÁË
+		NXRGHandle::s_maxVersions[m_handle.index] = m_handle.version; // ä¸Šé¢å·²ç»+1äº†
 	}
 
-	// ÓÃÓÚ´´½¨ĞÂ×ÊÔ´
+	// ç”¨äºåˆ›å»ºæ–°èµ„æº
 	NXRGResource(const std::string& name, const NXRGDescription& description, bool isImported) :
 		m_name(name),
 		m_description(description),
 		m_handle(NXRGHandle::s_nextIndex++),
 		m_isImported(isImported)
 	{
-		NXRGHandle::s_maxVersions[m_handle.index] = m_handle.version; // ³õÊ¼=0
+		NXRGHandle::s_maxVersions[m_handle.index] = m_handle.version; // åˆå§‹=0
 	}
 
 	~NXRGResource() {}

@@ -50,13 +50,13 @@ public:
 	NXGUIGPUProfiler* GetGUIGPUProfiler() const { return m_pGUIGPUProfiler; }
 	Renderer* GetRenderer() const { return m_pRenderer; }
 
-	// ÑÓ³Ù·ÖÅä£º´ò¿ª´°¿ÚÊ±·ÖÅä£¬¹Ø±Õ´°¿ÚÊ±ÊÍ·Å
+	// å»¶è¿Ÿåˆ†é…ï¼šæ‰“å¼€çª—å£æ—¶åˆ†é…ï¼Œå…³é—­çª—å£æ—¶é‡Šæ”¾
 	void OpenGUITerrainSector2NodeIDPreview();
 	void OpenGUITerrainStreamingDebug();
 	void OpenGUISectorVersionMap();
 
 private:
-	void UpdateGUITerrainSector2NodeIDPreview(); // ÄÚ²¿¸üĞÂ£¬¼ì²éÊÇ·ñĞèÒªÊÍ·Å
+	void UpdateGUITerrainSector2NodeIDPreview(); // å†…éƒ¨æ›´æ–°ï¼Œæ£€æŸ¥æ˜¯å¦éœ€è¦é‡Šæ”¾
 	void UpdateGUITerrainStreamingDebug();
 	void UpdateGUISectorVersionMap();
 

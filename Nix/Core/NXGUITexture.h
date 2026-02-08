@@ -37,12 +37,12 @@ private:
 	NXTextureSerializationData m_texData;
 	int m_guiImgRawWH[2] = { 1, 1 };
 
-	// �����cube����2DArray������Ԥ������slice
+	// 如果是cube或者2DArray，允许预览单个slice
 	int m_preview2DArraySliceIndex;
 
-	// ����Ŀǰ�������GUI�決���η���ͼ
-	// ������Ҫ�ṩһ�������ȷ���εĻ������ݣ������С�͸߶ȷ�Χ
-	// todo��������Ӧ�û�����һ��terrainDataר�Ŵ洢�ȽϺ�
-	// todo���������ݵ����˼�뻹ûȷ�������������Ǻ�terrainDataӲ�󶨣�����ֱ����Ƴɲ��ʲ�����
+	// 由于目前基于这个GUI烘焙地形法线图
+	// 所以需要提供一组参数明确地形的基本数据，比如大小和高度范围
+	// todo：这玩意应该还是做一个terrainData专门存储比较好
+	// todo：地形数据的设计思想还没确定；材质数据是和terrainData硬绑定，还是直接设计成材质参数？
 	NXTerrainNormalMapBakeData m_terrainNormalMapBakeData;
 };

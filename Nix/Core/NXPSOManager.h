@@ -10,21 +10,21 @@ struct NXPSOData
 	UINT64 fenceValue;
 };
 
-// 2024.7.15 PSO¹ÜÀíÆ÷
-// ÓÉÓÚDX12ÐèÒªÊÖ¶¯¹ÜÀí×ÊÔ´£¬Òò´Ë¿ÉÄÜ»á³öÏÖPSO In flighting£¬µ«´ËÊ±ÓÖÐèÒª¸ü»»PSOµÄÇé¿ö
-// Òò´ËÐèÒª×¨ÃÅ×öÒ»¸öPSO¹ÜÀíÆ÷£¬¹ÜÀíPSOµÄÉúÃüÖÜÆÚ£¬²»ÄÜÔÙÏñDX11ÄÇÑùËæÓÃËæÉ¾ÁË
+// 2024.7.15 PSOç®¡ç†å™¨
+// ç”±äºŽDX12éœ€è¦æ‰‹åŠ¨ç®¡ç†èµ„æºï¼Œå› æ­¤å¯èƒ½ä¼šå‡ºçŽ°PSO In flightingï¼Œä½†æ­¤æ—¶åˆéœ€è¦æ›´æ¢PSOçš„æƒ…å†µ
+// å› æ­¤éœ€è¦ä¸“é—¨åšä¸€ä¸ªPSOç®¡ç†å™¨ï¼Œç®¡ç†PSOçš„ç”Ÿå‘½å‘¨æœŸï¼Œä¸èƒ½å†åƒDX11é‚£æ ·éšç”¨éšåˆ äº†
 class NXPSOManager : public NXInstance<NXPSOManager>
 {
 public:
 	NXPSOManager() {}
 	virtual ~NXPSOManager() {}
 
-	// ·Ö³ÉÁ½ÖÖÇé¿ö£¬
-	// Èç¹ûname²»´æÔÚ£¬´´½¨PSO
-	// Èç¹ûnameÒÑ¾­´æÔÚ£¬³ýÁË´´½¨PSO£¬»¹»á½«Ô­À´µÄPSO±ê¼ÇÎªWaitForRelease£¬µÈ´ýGPU²»ÔÙÊ¹ÓÃÊ±ÊÍ·Å£»
+	// åˆ†æˆä¸¤ç§æƒ…å†µï¼Œ
+	// å¦‚æžœnameä¸å­˜åœ¨ï¼Œåˆ›å»ºPSO
+	// å¦‚æžœnameå·²ç»å­˜åœ¨ï¼Œé™¤äº†åˆ›å»ºPSOï¼Œè¿˜ä¼šå°†åŽŸæ¥çš„PSOæ ‡è®°ä¸ºWaitForReleaseï¼Œç­‰å¾…GPUä¸å†ä½¿ç”¨æ—¶é‡Šæ”¾ï¼›
 	ID3D12PipelineState* Create(const D3D12_GRAPHICS_PIPELINE_STATE_DESC& psoDesc, const std::string& name);
 
-	// Ã¿Ö¡½áÊøÊ±µ÷ÓÃ£¬ÇåÀíÒÑ¾­±»Ìæ»»µÄPSO
+	// æ¯å¸§ç»“æŸæ—¶è°ƒç”¨ï¼Œæ¸…ç†å·²ç»è¢«æ›¿æ¢çš„PSO
 	void FrameCleanup();
 
 private:

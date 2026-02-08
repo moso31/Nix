@@ -118,7 +118,7 @@ void NXSubMeshGeometryEditor::CreateCylinder(NXPrimitive* pMesh, float radius, f
 	Vector3 pTop(0.0f, yTop, 0.0f);
 	Vector2 uvBottomTop(0.5f, 0.5f);
 
-	Vector3 tSide = Vector3(1.0f, 0.0f, 0.0f);	// ÉÏÏÂÁ½¸ö¸Ç×ÓµÄÇĞÏß·½Ïò
+	Vector3 tSide = Vector3(1.0f, 0.0f, 0.0f);	// ä¸Šä¸‹ä¸¤ä¸ªç›–å­çš„åˆ‡çº¿æ–¹å‘
 	std::vector<VertexPNTT> vertices;
 	std::vector<uint32_t> indices;
 	vertices.push_back({ pBottom, nBottom, uvBottomTop, tSide });
@@ -184,7 +184,7 @@ void NXSubMeshGeometryEditor::CreateCylinder(NXPrimitive* pMesh, float radius, f
 			Vector2 uvNowDown = { 1.0f - segNow,	1.0f - uvDown };
 			Vector2 uvNextDown = { 1.0f - segNext,	1.0f - uvDown };
 
-			// ¼ÆËãÇĞÏß
+			// è®¡ç®—åˆ‡çº¿
 			Vector3 vNow = { xNow, 0.0f, zNow };
 			Vector3 vNext = { xNext, 0.0f, zNext };
 
@@ -208,7 +208,7 @@ void NXSubMeshGeometryEditor::CreateCylinder(NXPrimitive* pMesh, float radius, f
 		}
 	}
 
-	// Ô²Öù¶¥²¿
+	// åœ†æŸ±é¡¶éƒ¨
 	vertices.push_back({ pTop, nTop, uvBottomTop, tSide });
 	int SaveIdx = currVertIdx++;
 	for (int i = 0; i < segmentCircle; i++)
@@ -373,7 +373,7 @@ void NXSubMeshGeometryEditor::CreateSphere(NXPrimitive* pMesh, float radius, int
 			nNowDown = pNowDown * invRadius;
 			nNextDown = pNextDown * invRadius;
 
-			// ¼ÆËãÇĞÏß
+			// è®¡ç®—åˆ‡çº¿
 			Vector3 vNow = { xNow, 0.0f, zNow };
 			Vector3 vNext = { xNext, 0.0f, zNext };
 
@@ -475,7 +475,7 @@ void NXSubMeshGeometryEditor::CreateSHSphere(NXPrimitive* pMesh, int basis_l, in
 			nNowDown.Normalize();
 			nNextDown.Normalize();
 
-			// ¼ÆËãÇĞÏß
+			// è®¡ç®—åˆ‡çº¿
 			Vector3 vNow = { xNow, 0.0f, zNow };
 			Vector3 vNext = { xNext, 0.0f, zNext };
 
@@ -514,9 +514,9 @@ void NXSubMeshGeometryEditor::CreateSHSphere(NXPrimitive* pMesh, int basis_l, in
 void NXSubMeshGeometryEditor::CreateTerrain(NXTerrain* pTerrain, int gridSize, int sectorSize)
 {
 	if (gridSize % g_terrainConfig.SectorSize != 0)
-		throw std::runtime_error("µØĞÎÊı¾İ´óĞ¡²»·ûºÏÒªÇó£»gridSize ±ØĞëÊÇ g_configTerrain.sectorSize µÄÕûÊı±¶)");
+		throw std::runtime_error("åœ°å½¢æ•°æ®å¤§å°ä¸ç¬¦åˆè¦æ±‚ï¼›gridSize å¿…é¡»æ˜¯ g_configTerrain.sectorSize çš„æ•´æ•°å€)");
 
-	// ¶¥µã¡¢Ë÷Òı£»»ùÓÚsectorSize ¹¹½¨»ù±¾µÄÃæÆ¬£¬Ê¹ÓÃFarCry5µÄÃ××ÖĞÎ£©
+	// é¡¶ç‚¹ã€ç´¢å¼•ï¼›åŸºäºsectorSize æ„å»ºåŸºæœ¬çš„é¢ç‰‡ï¼Œä½¿ç”¨FarCry5çš„ç±³å­—å½¢ï¼‰
 	std::vector<VertexPNTC> vertices;
 	std::vector<uint32_t> indices;
 
@@ -540,7 +540,7 @@ void NXSubMeshGeometryEditor::CreateTerrain(NXTerrain* pTerrain, int gridSize, i
 	{
 		for (int y = 0; y < size; y += 2)
 		{
-			// FarCry5µÄÃ××ÖĞÎÌî³ä²¼¾Ö
+			// FarCry5çš„ç±³å­—å½¢å¡«å……å¸ƒå±€
 			// 0---1---2
 			// | \ | / |
 			// 3---4---5
@@ -569,7 +569,7 @@ void NXSubMeshGeometryEditor::CreateTerrain(NXTerrain* pTerrain, int gridSize, i
 				});
 		}
 	}
-	// È»ºó¹¹½¨SubMesh
+	// ç„¶åæ„å»ºSubMesh
 	std::string subMeshName("_terrainMesh_grid" + std::to_string(pTerrain->m_gridSize) + "_world" + std::to_string(pTerrain->m_worldSize));
 	NXSubMeshTerrain* pSubMesh = new NXSubMeshTerrain(pTerrain, subMeshName);
 	pSubMesh->AppendVertices(std::move(vertices));
@@ -788,10 +788,10 @@ void NXSubMeshGeometryEditor::CreateBuffers(std::vector<NXRawMeshView>& rawViews
 	if (!pMeshView)
 		return;
 
-	// Òì²½´´½¨rawViews£º¶¥µã/Ë÷Òı/instanceDataµÈÊı¾İµÄvbv/ibv£¬²¢ÉÏ´«
-	// ÉÏ²ãÄ¿Ç°»¹ÄÜÈ·±£rawViews ¶¼ÊÇ³ÉÔ±±äÁ¿£¬ËùÒÔÕâÀï²»ĞèÒªµ£ĞÄÉúÃüÖÜÆÚÎÊÌâ£¬µ«½«À´²»ºÃËµ¡­¡­
+	// å¼‚æ­¥åˆ›å»ºrawViewsï¼šé¡¶ç‚¹/ç´¢å¼•/instanceDataç­‰æ•°æ®çš„vbv/ibvï¼Œå¹¶ä¸Šä¼ 
+	// ä¸Šå±‚ç›®å‰è¿˜èƒ½ç¡®ä¿rawViews éƒ½æ˜¯æˆå‘˜å˜é‡ï¼Œæ‰€ä»¥è¿™é‡Œä¸éœ€è¦æ‹…å¿ƒç”Ÿå‘½å‘¨æœŸé—®é¢˜ï¼Œä½†å°†æ¥ä¸å¥½è¯´â€¦â€¦
 
-	// Ïß³ÌA Ö´ĞĞ std::thread
+	// çº¿ç¨‹A æ‰§è¡Œ std::thread
 	std::thread([&rawViews, name, pMeshView]() {
 		for (auto& view : rawViews)
 		{
@@ -801,9 +801,9 @@ void NXSubMeshGeometryEditor::CreateBuffers(std::vector<NXRawMeshView>& rawViews
 				continue;
 			}
 
-			// ÄÚÓĞÒì²½·ÖÅäÂß¼­£¬ÓÉÏß³ÌBÖ´ĞĞ
+			// å†…æœ‰å¼‚æ­¥åˆ†é…é€»è¾‘ï¼Œç”±çº¿ç¨‹Bæ‰§è¡Œ
 			NXStructuredBuffer pBuffer(view.stride, view.span.size());
-			// µÈ´ıÏß³ÌBÍê³É·ÖÅä get GPUAddress.
+			// ç­‰å¾…çº¿ç¨‹Bå®Œæˆåˆ†é… get GPUAddress.
 			pBuffer.WaitCreateComplete();
 
 			view.gpuAddress = pBuffer.GetGPUAddress();
@@ -812,23 +812,23 @@ void NXSubMeshGeometryEditor::CreateBuffers(std::vector<NXRawMeshView>& rawViews
 			NXUploadContext ctx(name + "_Buffer");
 			if (NXUploadSys->BuildTask(byteSize, ctx))
 			{
-				// pUpload ÊÇ ÉÏ´«ÏµÍ³µÄUploadRingBuffer µÄÁÙÊ±×ÊÔ´ºÍÆ«ÒÆÁ¿
-				// pDstResource = pBuffer ÊÇ D3DÄ¬ÈÏ¶ÑÉÏ µÄÆ«ÒÆÁ¿£¬Ò²¾ÍÊÇGPU×ÊÔ´
-				// ²»Òª¸ã»ìÁË
+				// pUpload æ˜¯ ä¸Šä¼ ç³»ç»Ÿçš„UploadRingBuffer çš„ä¸´æ—¶èµ„æºå’Œåç§»é‡
+				// pDstResource = pBuffer æ˜¯ D3Dé»˜è®¤å †ä¸Š çš„åç§»é‡ï¼Œä¹Ÿå°±æ˜¯GPUèµ„æº
+				// ä¸è¦ææ··äº†
 
 				uint8_t* pUpload = ctx.pResourceData + ctx.pResourceOffset;
 
-				// ¿½±´µ½ÉÏ´«¶Ñ
+				// æ‹·è´åˆ°ä¸Šä¼ å †
 				memcpy(pUpload, view.span.data(), byteSize);
 
-				// ´ÓÉÏ´«¶Ñ¿½±´µ½Ä¬ÈÏ¶Ñ
+				// ä»ä¸Šä¼ å †æ‹·è´åˆ°é»˜è®¤å †
 				uint64_t byteOffset = 0;
 				ID3D12Resource* pDstResource = pBuffer.GetD3DResourceAndOffset(byteOffset);
 				ctx.pOwner->pCmdList->CopyBufferRegion(pDstResource, byteOffset, ctx.pResource, ctx.pResourceOffset, byteSize);
 
-				// ÉÏ´«Êı¾İ²¢Í¬²½µ½gpu£¬Òì²½Ïß³ÌC ¸ºÔğÖ´ĞĞ
+				// ä¸Šä¼ æ•°æ®å¹¶åŒæ­¥åˆ°gpuï¼Œå¼‚æ­¥çº¿ç¨‹C è´Ÿè´£æ‰§è¡Œ
 				NXUploadSys->FinishTask(ctx, [pMeshView, name]() {
-					pMeshView->ProcessOne(); // ¶¥µãÊı¾İÉÏ´«Íê³É£¬Í¨Öª loadCounter - 1
+					pMeshView->ProcessOne(); // é¡¶ç‚¹æ•°æ®ä¸Šä¼ å®Œæˆï¼Œé€šçŸ¥ loadCounter - 1
 					});
 			}
 		}

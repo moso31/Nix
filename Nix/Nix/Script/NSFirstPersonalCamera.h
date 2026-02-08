@@ -28,7 +28,7 @@ private:
 	float m_fMoveSpeed;
 	float m_fSensitivity;
 
-	// �������Ҽ��Ƿ��¡����Ҽ�����ʱ����������һ�˳��ӽǡ�
+	// 检测鼠标右键是否按下。当右键按下时才能启动第一人称视角。
 	bool m_bMoveAble;
 	bool m_bLastMoveAble;
 

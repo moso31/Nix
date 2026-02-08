@@ -30,7 +30,7 @@ void NXTextureResourceManager::OnReload()
 	{
 		if (pTex.IsNull()) continue;
 
-		// 2023.3.25 Ä¿Ç°½öÖ§³Ö Texture2D µÄ Reload
+		// 2023.3.25 ç›®å‰ä»…æ”¯æŒ Texture2D çš„ Reload
 		if (pTex.As<NXTexture2D>().IsNull()) continue;
 
 		pTex->ReloadCheck();
@@ -45,7 +45,7 @@ Ntr<NXTexture> NXTextureResourceManager::CreateTextureAuto(const std::string& na
 {
 	if (NXConvert::IsDDSFileExtension(path.extension().string()))
 	{
-		// Èç¹ûÊÇDDSÎÄ¼ş£¬ĞèÒªÅĞ¶ÏÊÇ2D¡¢2DArray¡¢CubeÖĞµÄÄÄÖÖ
+		// å¦‚æœæ˜¯DDSæ–‡ä»¶ï¼Œéœ€è¦åˆ¤æ–­æ˜¯2Dã€2DArrayã€Cubeä¸­çš„å“ªç§
 		DirectX::TexMetadata metaData;
 		if (NXConvert::GetMetadataFromFile(path, metaData))
 		{
@@ -69,7 +69,7 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D(const std::string& na
 {
 	if (!bForce && !filePath.empty())
 	{
-		// ÏÈÔÚÒÑ¼ÓÔØÎÆÀíÀïÃæÕÒµ±Ç°ÎÆÀí£¬ÓĞµÄ»°¾Í²»ÓÃCreateÁË
+		// å…ˆåœ¨å·²åŠ è½½çº¹ç†é‡Œé¢æ‰¾å½“å‰çº¹ç†ï¼Œæœ‰çš„è¯å°±ä¸ç”¨Createäº†
 		auto it = m_pTextureCache.find(filePath);
 		if (it != m_pTextureCache.end() && !it->second->IsSubRegion())
 		{
@@ -79,7 +79,7 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D(const std::string& na
 		}
 	}
 
-	// Èç¹ûÂ·¾¶²»´æÔÚ£¬Ö±½Ó·µ»Ø¿ÕÖ¸Õë
+	// å¦‚æœè·¯å¾„ä¸å­˜åœ¨ï¼Œç›´æ¥è¿”å›ç©ºæŒ‡é’ˆ
 	if (!std::filesystem::exists(filePath))
 	{
 		return nullptr;
@@ -96,7 +96,7 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D(const std::string& na
 		pTexture2D->CreateHeightRaw(name, filePath, flags);
 	}
 
-	// ÎÄ¼şTex2DµÄautoMakeView£ºÖ»´´½¨Ò»¸öSRV
+	// æ–‡ä»¶Tex2Dçš„autoMakeViewï¼šåªåˆ›å»ºä¸€ä¸ªSRV
 	if (bAutoMakeViews)
 	{
 		pTexture2D->SetViews(1, 0, 0, 0);
@@ -104,7 +104,7 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D(const std::string& na
 	}
 
 	if (!bForce && !filePath.empty())
-		m_pTextureCache[filePath] = pTexture2D; // 2023.3.26 Èç¹ûÊÇÇ¿ÖÆ¼ÓÔØ£¬¾Í²»Ó¦¼ÓÈëµ½»º´æÀïÃæ
+		m_pTextureCache[filePath] = pTexture2D; // 2023.3.26 å¦‚æœæ˜¯å¼ºåˆ¶åŠ è½½ï¼Œå°±ä¸åº”åŠ å…¥åˆ°ç¼“å­˜é‡Œé¢
 	return pTexture2D;
 }
 
@@ -113,7 +113,7 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateRenderTexture(const std::string
 	Ntr<NXTexture2D> pTexture2D(new NXTexture2D());
 	pTexture2D->CreateRenderTexture(name, fmt, width, height, flags);
 
-	// 2DRTµÄautomakeView£º´´½¨Ò»¸öSRV£¬Èç¹û×÷ÎªRTÊ¹ÓÃ£¬¾Í´´½¨RTV£»Èç¹û×÷ÎªDSÊ¹ÓÃ£¬¾Í´´½¨DSV
+	// 2DRTçš„automakeViewï¼šåˆ›å»ºä¸€ä¸ªSRVï¼Œå¦‚æœä½œä¸ºRTä½¿ç”¨ï¼Œå°±åˆ›å»ºRTVï¼›å¦‚æœä½œä¸ºDSä½¿ç”¨ï¼Œå°±åˆ›å»ºDSV
 	if (bAutoMakeViews)
 	{
 		uint32_t rtvCount = flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET ? 1 : 0;
@@ -151,9 +151,9 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2D(const std::string& na
 
 Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2DSubRegion(const std::string& name, const std::filesystem::path& filePath, const Int2& subRegionXY, const Int2& subRegionSize, D3D12_RESOURCE_FLAGS flags, bool bAutoMakeViews)
 {
-	// Ôİ²»ÅĞÖØ£¬Ä¿Ç°Ö»ÓĞÁ÷Ê½¼ÓÔØ»áÓÃµ½Õâ¸ö½Ó¿Ú
+	// æš‚ä¸åˆ¤é‡ï¼Œç›®å‰åªæœ‰æµå¼åŠ è½½ä¼šç”¨åˆ°è¿™ä¸ªæ¥å£
 	
-	// Èç¹ûÂ·¾¶²»´æÔÚ£¬Ö±½Ó·µ»Ø¿ÕÖ¸Õë
+	// å¦‚æœè·¯å¾„ä¸å­˜åœ¨ï¼Œç›´æ¥è¿”å›ç©ºæŒ‡é’ˆ
 	if (!std::filesystem::exists(filePath))
 	{
 		return nullptr;
@@ -170,7 +170,7 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2DSubRegion(const std::s
 		pTexture2D->CreateHeightRaw(name, filePath, flags, true, subRegionXY, subRegionSize);
 	}
 
-	// ÎÄ¼şTex2DµÄautoMakeView£ºÖ»´´½¨Ò»¸öSRV
+	// æ–‡ä»¶Tex2Dçš„autoMakeViewï¼šåªåˆ›å»ºä¸€ä¸ªSRV
 	if (bAutoMakeViews)
 	{
 		pTexture2D->SetViews(1, 0, 0, 0);
@@ -182,7 +182,7 @@ Ntr<NXTexture2D> NXTextureResourceManager::CreateTexture2DSubRegion(const std::s
 
 Ntr<NXTextureCube> NXTextureResourceManager::CreateTextureCube(const std::string& name, const std::wstring& filePath, D3D12_RESOURCE_FLAGS flags, bool bAutoMakeViews)
 {
-	// ÏÈÔÚÒÑ¼ÓÔØÎÆÀíÀïÃæÕÒµ±Ç°ÎÆÀí£¬ÓĞµÄ»°¾Í²»ÓÃCreateÁË
+	// å…ˆåœ¨å·²åŠ è½½çº¹ç†é‡Œé¢æ‰¾å½“å‰çº¹ç†ï¼Œæœ‰çš„è¯å°±ä¸ç”¨Createäº†
 	if (!filePath.empty())
 	{
 		auto it = m_pTextureCache.find(filePath);
@@ -197,7 +197,7 @@ Ntr<NXTextureCube> NXTextureResourceManager::CreateTextureCube(const std::string
 	Ntr<NXTextureCube> pTextureCube = new NXTextureCube();
 	pTextureCube->Create(name, filePath, flags);
 
-	// ÎÄ¼ş cubemapµÄautomakeView£º´´½¨Ò»¸öSRV
+	// æ–‡ä»¶ cubemapçš„automakeViewï¼šåˆ›å»ºä¸€ä¸ªSRV
 	if (bAutoMakeViews)
 	{
 		pTextureCube->SetViews(1, 0, 0, 0);
@@ -249,7 +249,7 @@ Ntr<NXTexture2DArray> NXTextureResourceManager::CreateTexture2DArray(const std::
 	Ntr<NXTexture2DArray> pTexture2DArray(new NXTexture2DArray());
 	pTexture2DArray->CreateTexture(debugName, texFormat, width, height, arraySize, mipLevels, flags);
 
-	// 2DArray UAVµÄautomakeView£º×ÜÊÇ´´½¨Ò»¸öSRV£¬Èç¹ûÔÊĞíUAV·ÃÎÊ¾Í´´½¨UAV
+	// 2DArray UAVçš„automakeViewï¼šæ€»æ˜¯åˆ›å»ºä¸€ä¸ªSRVï¼Œå¦‚æœå…è®¸UAVè®¿é—®å°±åˆ›å»ºUAV
 	if (bAutoMakeViews)
 	{
 		uint32_t uavCount = flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS ? 1 : 0;

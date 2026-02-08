@@ -3,14 +3,14 @@
 
 void NXReadbackData::CopyDataFromGPU(uint8_t* pData)
 {
-    // °´m_byteSizeµÄ´óĞ¡×öÈ«Á¿¿½±´
+    // æŒ‰m_byteSizeçš„å¤§å°åšå…¨é‡æ‹·è´
     std::unique_lock<std::mutex> lock(m_mutex);
     std::memcpy(m_data.data(), pData, static_cast<size_t>(m_byteSize));
 }
 
 void NXReadbackData::CopyDataFromGPU(uint8_t* pSrcData, uint32_t dstOffset, uint32_t byteSize)
 {
-    // ½ö¿½±´Ò»²¿·Ö£¨»Ø¶ÁÎÆÀí»áÓÃÕâ¸ö ĞèÒª·Ö¿ª¿½±´footprintµÄÃ¿²¿·Ö£©
+    // ä»…æ‹·è´ä¸€éƒ¨åˆ†ï¼ˆå›è¯»çº¹ç†ä¼šç”¨è¿™ä¸ª éœ€è¦åˆ†å¼€æ‹·è´footprintçš„æ¯éƒ¨åˆ†ï¼‰
     std::unique_lock<std::mutex> lock(m_mutex);
     std::memcpy(m_data.data() + dstOffset, pSrcData, static_cast<size_t>(byteSize));
 }

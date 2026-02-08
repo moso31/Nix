@@ -18,17 +18,17 @@ void NXGPUProfiler::Init(ID3D12Device* pDevice, ID3D12CommandQueue* pCmdQueue, u
 	m_pCmdQueue = pCmdQueue;
 	m_maxQueries = maxQueries;
 
-	// »ñÈ¡Ê±¼ä´ÁÆµÂÊ
+	// è·å–æ—¶é—´æˆ³é¢‘ç‡
 	HRESULT hr = pCmdQueue->GetTimestampFrequency(&m_timestampFrequency);
 	if (FAILED(hr))
 	{
-		// Ä³Ğ© GPU ¿ÉÄÜ²»Ö§³ÖÊ±¼ä´Á²éÑ¯
+		// æŸäº› GPU å¯èƒ½ä¸æ”¯æŒæ—¶é—´æˆ³æŸ¥è¯¢
 		m_bEnabled = false;
 		return;
 	}
 
-	// ´´½¨ Query Heap
-	// Ã¿¸ö pass ĞèÒª 2 ¸ö query£¨¿ªÊ¼ºÍ½áÊø£©£¬ËùÒÔ heap ´óĞ¡ÊÇ maxQueries * 2
+	// åˆ›å»º Query Heap
+	// æ¯ä¸ª pass éœ€è¦ 2 ä¸ª queryï¼ˆå¼€å§‹å’Œç»“æŸï¼‰ï¼Œæ‰€ä»¥ heap å¤§å°æ˜¯ maxQueries * 2
 	D3D12_QUERY_HEAP_DESC queryHeapDesc = {};
 	queryHeapDesc.Type = D3D12_QUERY_HEAP_TYPE_TIMESTAMP;
 	queryHeapDesc.Count = maxQueries * 2;
@@ -41,8 +41,8 @@ void NXGPUProfiler::Init(ID3D12Device* pDevice, ID3D12CommandQueue* pCmdQueue, u
 		return;
 	}
 
-	// ´´½¨ Readback Buffer
-	// Ã¿¸öÊ±¼ä´ÁÊÇ uint64_t (8 bytes)
+	// åˆ›å»º Readback Buffer
+	// æ¯ä¸ªæ—¶é—´æˆ³æ˜¯ uint64_t (8 bytes)
 	D3D12_HEAP_PROPERTIES heapProps = {};
 	heapProps.Type = D3D12_HEAP_TYPE_READBACK;
 
@@ -86,10 +86,10 @@ void NXGPUProfiler::BeginFrame()
 	if (!m_bEnabled || !m_bInitialized)
 		return;
 
-	// ÔÚ¿ªÊ¼ĞÂÒ»Ö¡Ö®Ç°£¬ÏÈ¶ÁÈ¡ÉÏÒ»Ö¡µÄ½á¹û
+	// åœ¨å¼€å§‹æ–°ä¸€å¸§ä¹‹å‰ï¼Œå…ˆè¯»å–ä¸Šä¸€å¸§çš„ç»“æœ
 	ResolveTimestamps();
 
-	// ÖØÖÃµ±Ç°Ö¡µÄ×´Ì¬
+	// é‡ç½®å½“å‰å¸§çš„çŠ¶æ€
 	m_lastFrameQueryCount = m_currentQueryIndex;
 	m_currentQueryIndex = 0;
 	m_currentFramePassNames.clear();
@@ -101,12 +101,12 @@ void NXGPUProfiler::BeginPass(ID3D12GraphicsCommandList* pCmdList, const std::st
 		return;
 
 	if (m_currentQueryIndex >= m_maxQueries)
-		return; // ³¬¹ı×î´ó query ÊıÁ¿
+		return; // è¶…è¿‡æœ€å¤§ query æ•°é‡
 
 	m_currentPassName = passName;
 	m_currentFramePassNames.push_back(passName);
 
-	// Ğ´Èë¿ªÊ¼Ê±¼ä´Á
+	// å†™å…¥å¼€å§‹æ—¶é—´æˆ³
 	uint32_t queryIndex = m_currentQueryIndex * 2;
 	pCmdList->EndQuery(m_pQueryHeap.Get(), D3D12_QUERY_TYPE_TIMESTAMP, queryIndex);
 }
@@ -119,7 +119,7 @@ void NXGPUProfiler::EndPass(ID3D12GraphicsCommandList* pCmdList)
 	if (m_currentQueryIndex >= m_maxQueries)
 		return;
 
-	// Ğ´Èë½áÊøÊ±¼ä´Á
+	// å†™å…¥ç»“æŸæ—¶é—´æˆ³
 	uint32_t queryIndex = m_currentQueryIndex * 2 + 1;
 	pCmdList->EndQuery(m_pQueryHeap.Get(), D3D12_QUERY_TYPE_TIMESTAMP, queryIndex);
 
@@ -134,7 +134,7 @@ void NXGPUProfiler::EndFrame(ID3D12GraphicsCommandList* pCmdList)
 	if (m_currentQueryIndex == 0)
 		return;
 
-	// ½«Ê±¼ä´ÁÊı¾İ´Ó Query Heap ¿½±´µ½ Readback Buffer
+	// å°†æ—¶é—´æˆ³æ•°æ®ä» Query Heap æ‹·è´åˆ° Readback Buffer
 	pCmdList->ResolveQueryData(
 		m_pQueryHeap.Get(),
 		D3D12_QUERY_TYPE_TIMESTAMP,
@@ -152,7 +152,7 @@ void NXGPUProfiler::ResolveTimestamps()
 	if (m_lastFrameQueryCount == 0)
 		return;
 
-	// ¶ÁÈ¡ Readback Buffer ÖĞµÄÊ±¼ä´ÁÊı¾İ
+	// è¯»å– Readback Buffer ä¸­çš„æ—¶é—´æˆ³æ•°æ®
 	uint64_t* pTimestampData = nullptr;
 	D3D12_RANGE readRange = { 0, m_lastFrameQueryCount * 2 * sizeof(uint64_t) };
 	
@@ -163,13 +163,13 @@ void NXGPUProfiler::ResolveTimestamps()
 	m_lastFrameResults.clear();
 	m_lastFrameTotalTimeMs = 0.0;
 
-	// ½âÎöÃ¿¸ö pass µÄÊ±¼ä
+	// è§£ææ¯ä¸ª pass çš„æ—¶é—´
 	for (uint32_t i = 0; i < m_lastFrameQueryCount && i < m_currentFramePassNames.size(); i++)
 	{
 		uint64_t startTick = pTimestampData[i * 2];
 		uint64_t endTick = pTimestampData[i * 2 + 1];
 
-		// ×ª»»ÎªºÁÃë
+		// è½¬æ¢ä¸ºæ¯«ç§’
 		double timeMs = (endTick - startTick) * 1000.0 / m_timestampFrequency;
 
 		NXGPUProfileResult result;
@@ -182,6 +182,6 @@ void NXGPUProfiler::ResolveTimestamps()
 		m_lastFrameTotalTimeMs += timeMs;
 	}
 
-	D3D12_RANGE writeRange = { 0, 0 }; // ÎÒÃÇÃ»ÓĞĞ´Èë£¬ËùÒÔ range Îª¿Õ
+	D3D12_RANGE writeRange = { 0, 0 }; // æˆ‘ä»¬æ²¡æœ‰å†™å…¥ï¼Œæ‰€ä»¥ range ä¸ºç©º
 	m_pReadbackBuffer->Unmap(0, &writeRange);
 }
