@@ -15,7 +15,7 @@ void CS(uint3 dtid : SV_DispatchThreadID)
     CBufferPhysPageUpdateIndex pageData = m_physPageUpdateIndex[dtid.x];
     
     if (pageData.index == -1)
-        m_txIndirectTexture[pageData.mip][pageData.pageID] = 0xFFFFFFFF;
+        m_txIndirectTexture[pageData.mip][pageData.pageID] = 0xFFFF;
     else
-        m_txIndirectTexture[pageData.mip][pageData.pageID] = pageData.index << 16 | pageData.mip;
+        m_txIndirectTexture[pageData.mip][pageData.pageID] = pageData.index;
 }

@@ -31,7 +31,7 @@ void CS_Remove(uint3 dtid : SV_DispatchThreadID)
         if (all(coord < size))
         {
             int2 removePixel = (base >> mip) + coord;
-            m_txIndirectTexture[mip][removePixel] = 0xFFFFFFFF;
+            m_txIndirectTexture[mip][removePixel] = 0xFFFF;
         }
         mip++;
     }
@@ -56,7 +56,7 @@ void CS_Migrate(uint3 dtid : SV_DispatchThreadID)
                 int2 fromPixel = (fromBase >> fromMip) + coord;
                 int2 toPixel = (toBase >> toMip) + coord;
                 m_txIndirectTexture[toMip][toPixel] = m_txIndirectTexture[fromMip][fromPixel];
-                m_txIndirectTexture[fromMip][fromPixel] = 0xFFFFFFFF;
+                m_txIndirectTexture[fromMip][fromPixel] = 0xFFFF;
             }
             fromMip++;
             toMip++;
@@ -73,7 +73,7 @@ void CS_Migrate(uint3 dtid : SV_DispatchThreadID)
                 int2 fromPixel = (fromBase >> fromMip) + coord;
                 int2 toPixel = (toBase >> toMip) + coord;
                 m_txIndirectTexture[toMip][toPixel] = m_txIndirectTexture[fromMip][fromPixel];
-                m_txIndirectTexture[fromMip][fromPixel] = 0xFFFFFFFF;
+                m_txIndirectTexture[fromMip][fromPixel] = 0xFFFF;
             }
             fromMip++;
             toMip++;

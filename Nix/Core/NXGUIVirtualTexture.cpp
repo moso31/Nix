@@ -31,7 +31,8 @@ NXGUIVirtualTexture::NXGUIVirtualTexture(NXGUI* pOwner) :
     m_strTitle = {
         "Sector##child_sector",
         "Virtual image atlas##child_virtImgAtlas",
-        "Readback##child_readback"
+        "Readback##child_readback",
+        "Debug##child_debug"
     };
 }
 
@@ -66,6 +67,7 @@ void NXGUIVirtualTexture::Render()
     Render_Sectors();
     Render_VirtImageAtlas();
     Render_Readback();
+    Render_Debug();
 
     ImGui::End(); // Virtual Texture Debug
 }
@@ -600,6 +602,22 @@ void NXGUIVirtualTexture::Render_Readback()
     ImGui::End();
 }
 
+void NXGUIVirtualTexture::Render_Debug()
+{
+    ImGui::Begin(m_strTitle[3].c_str());
+
+    ImGui::TextUnformatted(ImUtf8("调试选项"));
+    ImGui::Separator();
+
+    ImGui::Checkbox(ImUtf8("暂停回读"), &m_bPauseReadback);
+    if (ImGui::IsItemHovered())
+    {
+        ImGui::SetTooltip(ImUtf8("勾选后将暂停 VirtualTexture 的回读更新逻辑"));
+    }
+
+    ImGui::End();
+}
+
 void NXGUIVirtualTexture::BuildDockLayout(ImGuiID dockspace_id)
 {
     ImGui::DockBuilderRemoveNode(dockspace_id);
@@ -609,6 +627,7 @@ void NXGUIVirtualTexture::BuildDockLayout(ImGuiID dockspace_id)
     ImGui::DockBuilderDockWindow(m_strTitle[0].c_str(), dockspace_id);
     ImGui::DockBuilderDockWindow(m_strTitle[1].c_str(), dockspace_id);
     ImGui::DockBuilderDockWindow(m_strTitle[2].c_str(), dockspace_id);
+    ImGui::DockBuilderDockWindow(m_strTitle[3].c_str(), dockspace_id);
 
     ImGui::DockBuilderFinish(dockspace_id);  // 完成！
 }

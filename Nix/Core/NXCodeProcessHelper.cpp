@@ -595,6 +595,24 @@ struct PS_OUTPUT
 std::string NXCodeProcessHelper::BuildHLSL_PassFuncs(int& ioLineCounter, const NXMaterialData& oMatData, const NXMaterialCode& shaderCode)
 {
 	std::string str = R"(
+uint MatchMip(uint2 indiTexPagePixelMip, inout uint mip, int indiTexMip0Log2Size)
+{
+    while (mip <= indiTexMip0Log2Size)
+    {
+        uint indiTexData = m_VTIndirectTexture.Load(uint3(indiTexPagePixelMip, mip)); 
+        if (indiTexData != 0xFFFF)
+            return indiTexData;
+
+		if (mip == indiTexMip0Log2Size)
+			return 0xFFFF;
+
+        indiTexPagePixelMip >>= 1;
+        mip++;
+    }
+
+    return 0xFFFF;
+}
+
 void EncodeGBuffer(NXGBufferParams gBuffer, PS_INPUT input, out PS_OUTPUT Output)
 {
 	uint uShadingModel = asuint(m.shadingModel);

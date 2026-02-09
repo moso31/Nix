@@ -4,7 +4,7 @@ struct CBufferSector2VirtImg
     int2 sectorPos;
     
 	// 改成什么值
-    int indiTexData; // x(12bit)y(12bit) = indi tex pos; z(8bit) = indi tex size
+    int virtImageData; // x(12bit)y(12bit) = indi tex pos; z(8bit) = indi tex size
     int _0;
 };
 
@@ -29,5 +29,5 @@ void CS(uint3 dtid : SV_DispatchThreadID)
     if (dtid.x >= m_cbDataNum)
         return;
     
-    m_VTSector2VirtImg[m_cbData[dtid.x].sectorPos] = m_cbData[dtid.x].indiTexData;
+    m_VTSector2VirtImg[m_cbData[dtid.x].sectorPos] = m_cbData[dtid.x].virtImageData;
 }

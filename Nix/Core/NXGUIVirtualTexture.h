@@ -18,10 +18,13 @@ public:
     void SetVisible(bool visible) { m_bShowWindow = visible; }
     bool IsVisible() const { return m_bShowWindow; }
 
+    bool IsPauseReadback() const { return m_bPauseReadback; }
+
 private:
     void Render_Sectors();
     void Render_VirtImageAtlas();
     void Render_Readback();
+    void Render_Debug();
 
     void BuildDockLayout(ImGuiID dockspace_id);
 
@@ -62,6 +65,9 @@ private:
     char m_atlasSearchBuf[256] = "";
     bool m_bShowWindow;
     std::vector<std::string> m_strTitle;
+
+    // 调试选项
+    bool m_bPauseReadback = false;
 
     // 缓存数据，避免状态机中间帧数据不一致导致闪烁
     struct CachedData;

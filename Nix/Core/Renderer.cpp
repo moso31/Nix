@@ -8,6 +8,7 @@
 #include "NXTerrainLODStreamer.h"
 #include "NXVirtualTexture.h"
 #include "NXGUI.h"
+#include "NXGUIVirtualTexture.h"
 #include "NXRenderGraph.h"
 #include "NXScene.h"
 
@@ -178,7 +179,13 @@ void Renderer::GenerateRenderGraph()
 		passPatcher = BuildTerrainCullingPasses(pSector2NodeIDTex, hPatcherBuffer, hPatcherDrawIndexArgs);
 
 		auto* pCamera = m_scene->GetMainCamera();
-		m_pVirtualTexture->Update();
+
+		// 检查GUI是否暂停回读
+		bool bPauseReadback = m_pGUI && m_pGUI->GetGUIVirtualTexture() && m_pGUI->GetGUIVirtualTexture()->IsPauseReadback();
+		if (!bPauseReadback)
+		{
+			m_pVirtualTexture->Update();
+		}
 		m_pVirtualTexture->UpdateCBData(pCamera->GetRTSize());
 	}
 
@@ -192,6 +199,11 @@ void Renderer::GenerateRenderGraph()
 			data.vtReadback = builder.Read(gBufferPassData->GetData().VTPageIDTexture);
 		},
 		[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, VTReadbackData& data) {
+			// 检查GUI是否暂停回读
+			bool bPauseReadback = m_pGUI && m_pGUI->GetGUIVirtualTexture() && m_pGUI->GetGUIVirtualTexture()->IsPauseReadback();
+			if (bPauseReadback)
+				return;
+
 			if (m_pVirtualTexture->GetUpdateState() != NXVTUpdateState::WaitReadback)
 				return;
 
