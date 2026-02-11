@@ -1,4 +1,5 @@
 #include "NXVirtualTexture.h"
+#include "NXVTDebugger.h"
 #include "NXRenderGraph.h"
 #include "NXTerrainLODStreamer.h"
 #include "RenderGraphPassData.h"
@@ -51,16 +52,15 @@ void NXVirtualTexture::RegisterClearIndirectTexturePass()
 
 void NXVirtualTexture::RegisterUpdateSector2VirtImgPass()
 {
-	if (m_enableDebugPrint)
 	{
+		auto& dbg = NXVTDebugger::GetInstance();
 		for (auto& data : m_cbDataSector2VirtImg)
 		{
-			//indiTexData(((indiTexPos.x & 0xFFF) << 20) | ((indiTexPos.y & 0xFFF) << 8) | (std::countr_zero((uint32_t)indiTexSize) & 0xFF)) // std::countr_zero = log2 of POTsize;
 			int indiTexPosX = (data.indiTexData >> 20) & 0xFFF;
 			int indiTexPosY = (data.indiTexData >> 8) & 0xFFF;
 			int indiTexSize = 1 << (data.indiTexData & 0xFF);
 
-			VTLog("[UpdateSector2VirtImg] sectorPos: (%d, %d), indiTexPos: (%d, %d), indiTexSize: %d\n",
+			dbg.Log(NXVTDebugCategory::RenderPass, "[UpdateSector2VirtImg] sectorPos: (%d, %d), indiTexPos: (%d, %d), indiTexSize: %d\n",
 				data.sectorPos.x, data.sectorPos.y,
 				indiTexPosX, indiTexPosY,
 				indiTexSize);
@@ -92,11 +92,11 @@ void NXVirtualTexture::RegisterUpdateSector2VirtImgPass()
 
 void NXVirtualTexture::RegisterBakePhysicalPagePass()
 {
-	if (m_enableDebugPrint)
 	{
+		auto& dbg = NXVTDebugger::GetInstance();
 		for (auto& data : m_cbDataPhysPageBake)
 		{
-			VTLog("[BakePhysicalPage] SectorID: (%d, %d), PageID: (%d, %d), GPU Mip: %d, IndiTexLog2Size: %d, bakePhysicalIndex: %d\n", data.sector.x, data.sector.y, data.pageID.x, data.pageID.y, data.gpuMip, data.indiTexLog2Size, data.bakePhysicalPageIndex);
+			dbg.Log(NXVTDebugCategory::RenderPass, "[BakePhysicalPage] SectorID: (%d, %d), PageID: (%d, %d), GPU Mip: %d, IndiTexLog2Size: %d, bakePhysicalIndex: %d\n", data.sector.x, data.sector.y, data.pageID.x, data.pageID.y, data.gpuMip, data.indiTexLog2Size, data.bakePhysicalPageIndex);
 		}
 	}
 
@@ -139,11 +139,11 @@ void NXVirtualTexture::RegisterBakePhysicalPagePass()
 
 void NXVirtualTexture::RegisterUpdateIndirectTexturePass()
 {
-	if (m_enableDebugPrint)
 	{
+		auto& dbg = NXVTDebugger::GetInstance();
 		for (auto& data : m_cbDataUpdateIndex)
 		{
-			VTLog("[UpdateIndirectTexture] PageID: (%d, %d), gpumip: %d, index: %d\n", data.pageID.x, data.pageID.y, data.mip, data.index);
+			dbg.Log(NXVTDebugCategory::RenderPass, "[UpdateIndirectTexture] PageID: (%d, %d), gpumip: %d, index: %d\n", data.pageID.x, data.pageID.y, data.mip, data.index);
 		}
 	}
 
@@ -175,10 +175,7 @@ void NXVirtualTexture::RegisterUpdateIndirectTexturePass()
 
 void NXVirtualTexture::RegisterRemoveIndirectTextureSectorPass(const NXConstantBuffer<CBufferRemoveSector>& pCBRemoveSector, const CBufferRemoveSector& removeData)
 {
-	if (m_enableDebugPrint)
-	{
-		VTLog("RemoveIndirectTextureSectors: ImagePos: (%d, %d), ImageSize: %d, MaxRemoveMip: %d\n", removeData.imagePos.x, removeData.imagePos.y, removeData.imageSize, removeData.maxRemoveMip);
-	}
+	NXVTDebugger::GetInstance().Log(NXVTDebugCategory::RenderPass, "RemoveIndirectTextureSectors: ImagePos: (%d, %d), ImageSize: %d, MaxRemoveMip: %d\n", removeData.imagePos.x, removeData.imagePos.y, removeData.imageSize, removeData.maxRemoveMip);
 
 	m_ctx.pRG->AddPass<RemoveIndirectTextureSectorPassData>("RemoveIndirectTextureSectors",
 		[&](NXRGBuilder& builder, RemoveIndirectTextureSectorPassData& data)
@@ -205,14 +202,11 @@ void NXVirtualTexture::RegisterRemoveIndirectTextureSectorPass(const NXConstantB
 
 void NXVirtualTexture::RegisterMigrateIndirectTextureSectorPass(const NXConstantBuffer<CBufferMigrateSector>& pCBMigrateSector, const CBufferMigrateSector& migrateData)
 {
-	if (m_enableDebugPrint)
-	{
-		VTLog("MigrateIndirectTextureSectors: FromImagePos: (%d, %d), ToImagePos: (%d, %d), FromImageSize: %d, ToImageSize: %d, MipDelta: %d\n",
-			migrateData.fromImagePos.x, migrateData.fromImagePos.y,
-			migrateData.toImagePos.x, migrateData.toImagePos.y,
-			migrateData.fromImageSize, migrateData.toImageSize,
-			migrateData.mipDelta);
-	}
+	NXVTDebugger::GetInstance().Log(NXVTDebugCategory::RenderPass, "MigrateIndirectTextureSectors: FromImagePos: (%d, %d), ToImagePos: (%d, %d), FromImageSize: %d, ToImageSize: %d, MipDelta: %d\n",
+		migrateData.fromImagePos.x, migrateData.fromImagePos.y,
+		migrateData.toImagePos.x, migrateData.toImagePos.y,
+		migrateData.fromImageSize, migrateData.toImageSize,
+		migrateData.mipDelta);
 
 	m_ctx.pRG->AddPass<MigrateIndirectTextureSectorPassData>("MigrateIndirectTextureSectors",
 		[&](NXRGBuilder& builder, MigrateIndirectTextureSectorPassData& data)

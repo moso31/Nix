@@ -1,8 +1,6 @@
 #pragma once
 #include <array>
 #include <bit>
-#include <cstdio>
-#include <cstdarg>
 #include "NXInstance.h"
 #include "BaseDefs/Math.h"
 #include "NXConstantBuffer.h"
@@ -11,21 +9,7 @@
 #include "NXVTImageQuadTree.h"
 #include "NXTerrainCommon.h"
 #include "NXVTLRUCache.h"
-#include "NXVTIndirectTextureTracker.h"
-
-inline void VTLog(const char* fmt, ...)
-{
-	FILE* fp = nullptr;
-	fopen_s(&fp, "D:/1.txt", "a");
-	if (fp)
-	{
-		va_list args;
-		va_start(args, fmt);
-		vfprintf(fp, fmt, args);
-		va_end(args);
-		fclose(fp);
-	}
-}
+#include "NXVTDebugger.h"
 
 // RenderGraph
 #include "NXRGUtil.h"
@@ -257,12 +241,6 @@ private:
 	// 状态机，保证数据跨帧统一
 	NXVTUpdateState m_updateState = NXVTUpdateState::None;
 	bool m_bReadbackFinish = false;
-
-	// debug print控制
-	bool m_enableDebugPrint = 0;
-
-	// IndirectTexture CPU-side tracker (debug)
-	NXVTIndirectTextureTracker m_indirectTextureTracker;
 
 	// RenderGraph passes
 	NXVTRenderGraphContext m_ctx;

@@ -1,4 +1,5 @@
 #include "NXVirtualTexture.h"
+#include "NXVTDebugger.h"
 #include "NXResourceManager.h"
 #include "NXCamera.h"
 #include "NXTexture.h"
@@ -63,7 +64,7 @@ void NXVirtualTexture::Update()
 	if (m_bNeedClearIndirectTexture)
 	{
 		RegisterClearIndirectTexturePass();
-		//m_indirectTextureTracker.Clear();
+		NXVTDebugger::GetInstance().TrackerClear();
 		m_bNeedClearIndirectTexture = false;
 	}
 
@@ -206,7 +207,7 @@ void NXVirtualTexture::UpdateNearestSectors()
 		}
 		else
 		{
-			//VTLog("WARNING: removeSector not found!\n");
+			NXVTDebugger::GetInstance().Log(NXVTDebugCategory::SectorUpdate, "WARNING: removeSector not found!\n");
 		}
 	}
 
@@ -239,13 +240,13 @@ void NXVirtualTexture::UpdateNearestSectors()
 		}
 		else
 		{
-			//VTLog("WARNING: changeSector old sector not found!\n");
+			NXVTDebugger::GetInstance().Log(NXVTDebugCategory::SectorUpdate, "WARNING: changeSector old sector not found!\n");
 		}
 	}
 
 	if (m_cbDataSector2VirtImg.size() >= 256)
 	{
-		//VTLog("WARNING\n");
+		NXVTDebugger::GetInstance().Log(NXVTDebugCategory::SectorUpdate, "WARNING: Sector2VirtImg data >= 256\n");
 	}
 
 	for (int i = 0; i < m_cbDataRemoveSector.size(); i++)
@@ -254,7 +255,7 @@ void NXVirtualTexture::UpdateNearestSectors()
 		auto& removeData = m_cbDataRemoveSector[i];
 		m_cbArrayRemoveSector[i].Update(removeData);
 		RegisterRemoveIndirectTextureSectorPass(m_cbArrayRemoveSector[i], removeData);
-		//m_indirectTextureTracker.SimulateRemove(removeData);
+		NXVTDebugger::GetInstance().TrackerSimulateRemove(removeData);
 	}
 
 	for (int i = 0; i < m_cbDataMigrateSector.size(); i++)
@@ -263,7 +264,7 @@ void NXVirtualTexture::UpdateNearestSectors()
 		auto& migrateData = m_cbDataMigrateSector[i];
 		m_cbArrayMigrateSector[i].Update(migrateData);
 		RegisterMigrateIndirectTextureSectorPass(m_cbArrayMigrateSector[i], migrateData);
-		//m_indirectTextureTracker.SimulateMigrate(migrateData);
+		NXVTDebugger::GetInstance().TrackerSimulateMigrate(migrateData);
 
 		// 降采样，大图换小图，大图的前mip级页表 也需要完全清空
 		if (migrateData.fromImageSize > migrateData.toImageSize)
@@ -291,7 +292,7 @@ void NXVirtualTexture::UpdateNearestSectors()
 		auto& migrateRemoveData = m_cbDataMigrateRemoveSector[i];
 		m_cbArrayMigrateRemoveSector[i].Update(migrateRemoveData);
 		RegisterRemoveIndirectTextureSectorPass(m_cbArrayMigrateRemoveSector[i], migrateRemoveData);
-		//m_indirectTextureTracker.SimulateRemove(migrateRemoveData);
+		NXVTDebugger::GetInstance().TrackerSimulateRemove(migrateRemoveData);
 	}
 
 	// 因为迁移导致的LRU变化
@@ -424,7 +425,7 @@ void NXVirtualTexture::BakePhysicalPages()
 					m_physPageSlotSectorVersion[cacheIdx] = keyVersion;
 					m_cbDataPhysPageBake.push_back(key);
 
-					//VTLog("LRU Update: %d, Sector: (%d, %d), PageID: (%d, %d), GPU Mip: %d, IndiTexLog2Size: %d, cacheIdx: %d\n", data, key.sector.x, key.sector.y, key.pageID.x, key.pageID.y, key.gpuMip, key.indiTexLog2Size, cacheIdx);
+					NXVTDebugger::GetInstance().Log(NXVTDebugCategory::LRUCache, "LRU Update: %d, Sector: (%d, %d), PageID: (%d, %d), GPU Mip: %d, IndiTexLog2Size: %d, cacheIdx: %d\n", data, key.sector.x, key.sector.y, key.pageID.x, key.pageID.y, key.gpuMip, key.indiTexLog2Size, cacheIdx);
 				}
 
 				m_cbDataUpdateIndex.push_back(CBufferPhysPageUpdateIndex(cacheIdx, pageID, gpuMip));
@@ -446,10 +447,10 @@ void NXVirtualTexture::BakePhysicalPages()
 					{
 						m_cbDataUpdateIndex.push_back(CBufferPhysPageUpdateIndex(-1, pageID, gpuMip));
 
-						//VTLog("LRU Replace: cacheIdx: %d, old: PageID(%d,%d) Mip%d Log2Size%d -> new: Sector(%d,%d) PageID(%d,%d) Mip%d Log2Size%d\n",
-						//	cacheIdx,
-						//	pageID.x, pageID.y, gpuMip, log2IndiTexSize,  // 这些是内层变量，被淘汰的旧key
-						//	key.sector.x, key.sector.y, key.pageID.x, key.pageID.y, key.gpuMip, key.indiTexLog2Size);  // 新key
+						NXVTDebugger::GetInstance().Log(NXVTDebugCategory::LRUCache, "LRU Replace: cacheIdx: %d, old: PageID(%d,%d) Mip%d Log2Size%d -> new: Sector(%d,%d) PageID(%d,%d) Mip%d Log2Size%d\n",
+							cacheIdx,
+							pageID.x, pageID.y, gpuMip, log2IndiTexSize,
+							key.sector.x, key.sector.y, key.pageID.x, key.pageID.y, key.gpuMip, key.indiTexLog2Size);
 					}
 
 					lruInsertNum++;
@@ -459,18 +460,18 @@ void NXVirtualTexture::BakePhysicalPages()
 				m_cbDataUpdateIndex.push_back(CBufferPhysPageUpdateIndex(cacheIdx, pageID, gpuMip));
 				lruInsertNum++;
 
-				//VTLog("LRU Insert: %d, Sector: (%d, %d), PageID: (%d, %d), GPU Mip: %d, IndiTexLog2Size: %d, cacheIdx: %d\n", data, key.sector.x, key.sector.y, key.pageID.x, key.pageID.y, key.gpuMip, key.indiTexLog2Size, cacheIdx);
+				NXVTDebugger::GetInstance().Log(NXVTDebugCategory::LRUCache, "LRU Insert: %d, Sector: (%d, %d), PageID: (%d, %d), GPU Mip: %d, IndiTexLog2Size: %d, cacheIdx: %d\n", data, key.sector.x, key.sector.y, key.pageID.x, key.pageID.y, key.gpuMip, key.indiTexLog2Size, cacheIdx);
 			}
 
 			if (lruInsertNum >= UPDATE_INDIRECT_TEXTURE_PER_FRAME)
 			{
-				//VTLog("WARNING: UPDATE_INDIRECT_TEXTURE_PER_FRAME\n");
+				NXVTDebugger::GetInstance().Log(NXVTDebugCategory::LRUCache, "WARNING: UPDATE_INDIRECT_TEXTURE_PER_FRAME\n");
 				break;
 			}
 
 			if (m_cbDataPhysPageBake.size() >= BAKE_PHYSICAL_PAGE_PER_FRAME)
 			{
-				//VTLog("WARNING: BAKE_PHYSICAL_PAGE_PER_FRAME\n");
+				NXVTDebugger::GetInstance().Log(NXVTDebugCategory::LRUCache, "WARNING: BAKE_PHYSICAL_PAGE_PER_FRAME\n");
 				break;
 			}
 		}
@@ -482,7 +483,7 @@ void NXVirtualTexture::BakePhysicalPages()
 		uint32_t test = (cb.pageID.x << 20) | (cb.pageID.y << 8) | (cb.mip << 4);
 		if (x.contains(test))
 		{
-			//VTLog("WARNING: page existed!\n");
+			NXVTDebugger::GetInstance().Log(NXVTDebugCategory::LRUCache, "WARNING: page existed!\n");
 			break;
 		}
 		x.insert(test);
@@ -491,7 +492,7 @@ void NXVirtualTexture::BakePhysicalPages()
 	// Tracker: simulate per-pixel IndirectTexture updates on CPU side
 	for (auto& cb : m_cbDataUpdateIndex)
 	{
-		//m_indirectTextureTracker.SimulateUpdateIndex(cb.index, cb.pageID, cb.mip);
+		NXVTDebugger::GetInstance().TrackerSimulateUpdateIndex(cb.index, cb.pageID, cb.mip);
 	}
 
 	m_cbPhysPageBake.Update(m_cbDataPhysPageBake);

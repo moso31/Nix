@@ -568,7 +568,7 @@
     <ClCompile Include="Nix\NXVirtualTexture.cpp">
       <Filter>Nix\VirtualTexture</Filter>
     </ClCompile>
-    <ClCompile Include="Nix\NXVTIndirectTextureTracker.cpp">
+    <ClCompile Include="Nix\NXVTDebugger.cpp">
       <Filter>Nix\VirtualTexture</Filter>
     </ClCompile>
     <ClCompile Include="Core\NXGUIVirtualTexture.cpp">
@@ -988,7 +988,7 @@
     <ClInclude Include="Nix\NXVirtualTexture.h">
       <Filter>Nix\VirtualTexture</Filter>
     </ClInclude>
-    <ClInclude Include="Nix\NXVTIndirectTextureTracker.h">
+    <ClInclude Include="Nix\NXVTDebugger.h">
       <Filter>Nix\VirtualTexture</Filter>
     </ClInclude>
     <ClInclude Include="Core\NXGUIVirtualTexture.h">
