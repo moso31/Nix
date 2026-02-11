@@ -18,7 +18,10 @@ public:
     void SetVisible(bool visible) { m_bShowWindow = visible; }
     bool IsVisible() const { return m_bShowWindow; }
 
-    bool IsPauseReadback() const { return m_bPauseReadback; }
+    bool IsPauseUpdate() const { return m_bPauseUpdate; }
+    bool IsManualStep() const { return m_bManualStep; }
+    void SetUpdateChangedState(bool v) { m_bUpdateChangedState = v; }
+    bool DidUpdateChangeState() const { return m_bUpdateChangedState; }
 
 private:
     void Render_Sectors();
@@ -67,7 +70,9 @@ private:
     std::vector<std::string> m_strTitle;
 
     // 调试选项
-    bool m_bPauseReadback = false;
+    bool m_bPauseUpdate = false;
+    bool m_bManualStep = false;         // 手动步进一次（在下一帧消费）
+    bool m_bUpdateChangedState = false; // 本帧 Update() 是否产生了状态转移
 
     // 缓存数据，避免状态机中间帧数据不一致导致闪烁
     struct CachedData;

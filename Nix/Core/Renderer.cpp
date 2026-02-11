@@ -180,12 +180,21 @@ void Renderer::GenerateRenderGraph()
 
 		auto* pCamera = m_scene->GetMainCamera();
 
-		// 检查GUI是否暂停回读
-		bool bPauseReadback = m_pGUI && m_pGUI->GetGUIVirtualTexture() && m_pGUI->GetGUIVirtualTexture()->IsPauseReadback();
-		if (!bPauseReadback)
+		// 检查GUI是否暂停状态更新
+		auto* pGUIVT = (m_pGUI ? m_pGUI->GetGUIVirtualTexture() : nullptr);
+		bool bPaused = pGUIVT && pGUIVT->IsPauseUpdate();
+		bool bManualStep = pGUIVT && pGUIVT->IsManualStep();
+
+		NXVTUpdateState stateBefore = m_pVirtualTexture->GetUpdateState();
+		if (!bPaused || bManualStep)
 		{
 			m_pVirtualTexture->Update();
 		}
+		NXVTUpdateState stateAfter = m_pVirtualTexture->GetUpdateState();
+
+		// 记录本帧 Update() 是否产生了状态转移，用于门控 Readback Pass
+		if (pGUIVT) pGUIVT->SetUpdateChangedState(stateBefore != stateAfter);
+
 		m_pVirtualTexture->UpdateCBData(pCamera->GetRTSize());
 	}
 
@@ -199,10 +208,17 @@ void Renderer::GenerateRenderGraph()
 			data.vtReadback = builder.Read(gBufferPassData->GetData().VTPageIDTexture);
 		},
 		[=](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, VTReadbackData& data) {
-			// 检查GUI是否暂停回读
-			bool bPauseReadback = m_pGUI && m_pGUI->GetGUIVirtualTexture() && m_pGUI->GetGUIVirtualTexture()->IsPauseReadback();
-			if (bPauseReadback)
-				return;
+			// 暂停时门控 Readback Pass：仅当手动步进且 Update() 未产生状态转移时放行
+			auto* pGUIVT2 = (m_pGUI ? m_pGUI->GetGUIVirtualTexture() : nullptr);
+			bool bPaused2 = pGUIVT2 && pGUIVT2->IsPauseUpdate();
+			if (bPaused2)
+			{
+				bool bStep2 = pGUIVT2 && pGUIVT2->IsManualStep();
+				bool bUpdateChanged = pGUIVT2 && pGUIVT2->DidUpdateChangeState();
+				// Update() 已经转移了状态 → 本帧不再允许 Readback Pass 再做一次转移
+				if (!bStep2 || bUpdateChanged)
+					return;
+			}
 
 			if (m_pVirtualTexture->GetUpdateState() != NXVTUpdateState::WaitReadback)
 				return;

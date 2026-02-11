@@ -81,6 +81,8 @@ public:
 		return lastSlot;
 	}
 
+	const std::vector<uint64_t>& GetKeys() { return m_vector; }
+
 private:
 	std::unordered_map<uint64_t, size_t> m_umap;
 	std::vector<uint64_t> m_vector;

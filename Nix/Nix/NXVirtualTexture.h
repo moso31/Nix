@@ -1,6 +1,8 @@
 #pragma once
 #include <array>
 #include <bit>
+#include <cstdio>
+#include <cstdarg>
 #include "NXInstance.h"
 #include "BaseDefs/Math.h"
 #include "NXConstantBuffer.h"
@@ -9,6 +11,21 @@
 #include "NXVTImageQuadTree.h"
 #include "NXTerrainCommon.h"
 #include "NXVTLRUCache.h"
+#include "NXVTIndirectTextureTracker.h"
+
+inline void VTLog(const char* fmt, ...)
+{
+	FILE* fp = nullptr;
+	fopen_s(&fp, "D:/1.txt", "a");
+	if (fp)
+	{
+		va_list args;
+		va_start(args, fmt);
+		vfprintf(fp, fmt, args);
+		va_end(args);
+		fclose(fp);
+	}
+}
 
 // RenderGraph
 #include "NXRGUtil.h"
@@ -125,7 +142,7 @@ class NXVirtualTexture
 	constexpr static float	SECTOR_SIZEF_INV = 1.0 / SECTOR_SIZEF;
 	constexpr static size_t SECTOR_SIZE_LOG2 = 6;
 
-	constexpr static size_t BAKE_PHYSICAL_PAGE_PER_FRAME = 32; // 每帧最多烘焙的PhysicalPage数量
+	constexpr static size_t BAKE_PHYSICAL_PAGE_PER_FRAME = 256; // 每帧最多烘焙的PhysicalPage数量
 	constexpr static size_t UPDATE_INDIRECT_TEXTURE_PER_FRAME = 1024; // 每帧最多更新的indirectTexture像素数
 
 	constexpr static size_t INDIRECT_TEXTURE_SIZE = 2048;
@@ -242,7 +259,10 @@ private:
 	bool m_bReadbackFinish = false;
 
 	// debug print控制
-	bool m_enableDebugPrint = false;
+	bool m_enableDebugPrint = 1;
+
+	// IndirectTexture CPU-side tracker (debug)
+	NXVTIndirectTextureTracker m_indirectTextureTracker;
 
 	// RenderGraph passes
 	NXVTRenderGraphContext m_ctx;

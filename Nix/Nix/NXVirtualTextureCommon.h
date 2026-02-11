@@ -21,7 +21,7 @@ struct NXVTLRUKey
 
         gpuMip = int((hash >> 4) & 0xF);
         indiTexLog2Size = int((hash >> 0) & 0xF);
-        bakeIndirectTextureIndex = -1;
+        bakePhysicalPageIndex = -1;
     }
 
     uint64_t GetKey()
@@ -40,7 +40,7 @@ struct NXVTLRUKey
     Int2 pageID;
     int gpuMip;
     int indiTexLog2Size;
-    int bakeIndirectTextureIndex;
+    int bakePhysicalPageIndex;
     int _0;
 };
 

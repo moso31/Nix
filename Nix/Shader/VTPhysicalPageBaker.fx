@@ -23,7 +23,7 @@ struct VTLRUKey
 	int2 pageID;
 	int gpuMip;
 	int indiTexLog2Size;
-    int bakeIndirectTextureIndex;
+    int bakePhysicalPageIndex;
 	int _0;
 };
 
@@ -78,10 +78,10 @@ uint GetBestSector2NodeId(int2 sector)
 void CS(uint3 dtid : SV_DispatchThreadID) 
 {
     VTLRUKey key = m_physPageBakeData[dtid.z];
-    if (key.bakeIndirectTextureIndex < 0)
+    if (key.bakePhysicalPageIndex < 0)
         return;
     
-    int physPageIdx = key.bakeIndirectTextureIndex;
+    int physPageIdx = key.bakePhysicalPageIndex;
     uint nodeID = GetBestSector2NodeId(key.sector);
     
     TerrainNodeDescription nodeDesc = m_nodeDescArray[nodeID];

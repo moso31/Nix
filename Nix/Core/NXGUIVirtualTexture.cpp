@@ -606,13 +606,42 @@ void NXGUIVirtualTexture::Render_Debug()
 {
     ImGui::Begin(m_strTitle[3].c_str());
 
+    // 每帧开头重置上一帧的手动步进标志
+    m_bManualStep = false;
+
     ImGui::TextUnformatted(ImUtf8("调试选项"));
     ImGui::Separator();
 
-    ImGui::Checkbox(ImUtf8("暂停回读"), &m_bPauseReadback);
+    // 显示当前状态机状态
+    auto* pVT = GetVirtualTexture();
+    if (pVT)
+    {
+        const char* stateNames[] = { "None", "Ready", "WaitReadback", "Reading", "PhysicalPageBake", "Finish" };
+        int stateIdx = (int)pVT->GetUpdateState();
+        if (stateIdx >= 0 && stateIdx < IM_ARRAYSIZE(stateNames))
+            ImGui::Text(ImUtf8("当前状态: %s"), stateNames[stateIdx]);
+        else
+            ImGui::Text(ImUtf8("当前状态: Unknown (%d)"), stateIdx);
+    }
+    ImGui::Separator();
+
+    ImGui::Checkbox(ImUtf8("暂停状态更新"), &m_bPauseUpdate);
     if (ImGui::IsItemHovered())
     {
-        ImGui::SetTooltip(ImUtf8("勾选后将暂停 VirtualTexture 的回读更新逻辑"));
+        ImGui::SetTooltip(ImUtf8("勾选后将暂停 VirtualTexture 状态机更新"));
+    }
+
+    if (m_bPauseUpdate)
+    {
+        ImGui::SameLine();
+        if (ImGui::Button(ImUtf8("步进一次")))
+        {
+            m_bManualStep = true;
+        }
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::SetTooltip(ImUtf8("点击后状态机前进一个状态"));
+        }
     }
 
     ImGui::End();

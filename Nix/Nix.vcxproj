@@ -438,6 +438,7 @@
     <ClCompile Include="Nix\NXTerrainLODStreamer.cpp" />
     <ClCompile Include="Nix\NXTexture.cpp" />
     <ClCompile Include="Nix\NXVirtualTexture.cpp" />
+    <ClCompile Include="Nix\NXVTIndirectTextureTracker.cpp" />
     <ClCompile Include="Nix\NXVTImageQuadTree.cpp" />
     <ClCompile Include="Nix\NXVTLRUCache.cpp" />
     <ClCompile Include="Nix\NXVTRenderGraphContext.cpp" />
@@ -583,6 +584,7 @@
     <ClInclude Include="Nix\NXTexture.h" />
     <ClInclude Include="Nix\NXVirtualTextureCommon.h" />
     <ClInclude Include="Nix\NXVirtualTexture.h" />
+    <ClInclude Include="Nix\NXVTIndirectTextureTracker.h" />
     <ClInclude Include="Nix\NXVTImageQuadTree.h" />
     <ClInclude Include="Nix\NXVTLRUCache.h" />
     <ClInclude Include="Nix\Script\NSFirstPersonalCamera.h" />
