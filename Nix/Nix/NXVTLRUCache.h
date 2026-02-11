@@ -83,6 +83,16 @@ public:
 
 	const std::vector<uint64_t>& GetKeys() { return m_vector; }
 
+	void ReplaceKey(uint64_t oldKey, uint64_t newKey)
+	{
+		auto it = m_umap.find(oldKey);
+		if (it == m_umap.end()) return;
+		size_t slot = it->second;
+		m_umap.erase(it);
+		m_vector[slot] = newKey;
+		m_umap[newKey] = slot;
+	}
+
 private:
 	std::unordered_map<uint64_t, size_t> m_umap;
 	std::vector<uint64_t> m_vector;

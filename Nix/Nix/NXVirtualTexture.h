@@ -259,7 +259,7 @@ private:
 	bool m_bReadbackFinish = false;
 
 	// debug print控制
-	bool m_enableDebugPrint = 1;
+	bool m_enableDebugPrint = 0;
 
 	// IndirectTexture CPU-side tracker (debug)
 	NXVTIndirectTextureTracker m_indirectTextureTracker;

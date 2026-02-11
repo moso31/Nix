@@ -63,7 +63,7 @@ void NXVirtualTexture::Update()
 	if (m_bNeedClearIndirectTexture)
 	{
 		RegisterClearIndirectTexturePass();
-		m_indirectTextureTracker.Clear();
+		//m_indirectTextureTracker.Clear();
 		m_bNeedClearIndirectTexture = false;
 	}
 
@@ -141,6 +141,7 @@ void NXVirtualTexture::UpdateNearestSectors()
 	m_cbDataRemoveSector.clear();
 	m_cbDataMigrateRemoveSector.clear();
 	m_cbDataMigrateSector.clear();
+	std::vector<Int2> migrateSectorIDs;
 	int i = 0;
 	int j = 0;
 	while (i < m_lastSectors.size() && j < m_sectors.size())
@@ -205,7 +206,7 @@ void NXVirtualTexture::UpdateNearestSectors()
 		}
 		else
 		{
-			VTLog("WARNING: removeSector not found!\n");
+			//VTLog("WARNING: removeSector not found!\n");
 		}
 	}
 
@@ -234,16 +235,17 @@ void NXVirtualTexture::UpdateNearestSectors()
 			auto& B = migrateData.toImageSize;
 			migrateData.mipDelta = std::countr_zero((uint32_t)(std::max(A, B) / std::min(A, B))); // 例如log2(from:32/to:8)=2，即存在2级mip差
 			m_cbDataMigrateSector.push_back(migrateData);
+			migrateSectorIDs.push_back(s.oldData.id);
 		}
 		else
 		{
-			VTLog("WARNING: changeSector old sector not found!\n");
+			//VTLog("WARNING: changeSector old sector not found!\n");
 		}
 	}
 
 	if (m_cbDataSector2VirtImg.size() >= 256)
 	{
-		VTLog("WARNING\n");
+		//VTLog("WARNING\n");
 	}
 
 	for (int i = 0; i < m_cbDataRemoveSector.size(); i++)
@@ -252,7 +254,7 @@ void NXVirtualTexture::UpdateNearestSectors()
 		auto& removeData = m_cbDataRemoveSector[i];
 		m_cbArrayRemoveSector[i].Update(removeData);
 		RegisterRemoveIndirectTextureSectorPass(m_cbArrayRemoveSector[i], removeData);
-		m_indirectTextureTracker.SimulateRemove(removeData);
+		//m_indirectTextureTracker.SimulateRemove(removeData);
 	}
 
 	for (int i = 0; i < m_cbDataMigrateSector.size(); i++)
@@ -261,7 +263,7 @@ void NXVirtualTexture::UpdateNearestSectors()
 		auto& migrateData = m_cbDataMigrateSector[i];
 		m_cbArrayMigrateSector[i].Update(migrateData);
 		RegisterMigrateIndirectTextureSectorPass(m_cbArrayMigrateSector[i], migrateData);
-		m_indirectTextureTracker.SimulateMigrate(migrateData);
+		//m_indirectTextureTracker.SimulateMigrate(migrateData);
 
 		// 降采样，大图换小图，大图的前mip级页表 也需要完全清空
 		if (migrateData.fromImageSize > migrateData.toImageSize)
@@ -289,15 +291,74 @@ void NXVirtualTexture::UpdateNearestSectors()
 		auto& migrateRemoveData = m_cbDataMigrateRemoveSector[i];
 		m_cbArrayMigrateRemoveSector[i].Update(migrateRemoveData);
 		RegisterRemoveIndirectTextureSectorPass(m_cbArrayMigrateRemoveSector[i], migrateRemoveData);
-		m_indirectTextureTracker.SimulateRemove(migrateRemoveData);
+		//m_indirectTextureTracker.SimulateRemove(migrateRemoveData);
 	}
 
 	// 因为迁移导致的LRU变化
-	for (auto& key : m_lruCache.GetKeys())
+	for (int mi = 0; mi < m_cbDataMigrateSector.size(); mi++)
 	{
-		for (int i = 0; i < m_cbDataMigrateSector.size(); i++)
+		auto& migrateData = m_cbDataMigrateSector[mi];
+		Int2 sectorID = migrateSectorIDs[mi];
+		Int2 fromBase(migrateData.fromImagePos.x * migrateData.fromImageSize, migrateData.fromImagePos.y * migrateData.fromImageSize);
+		Int2 toBase(migrateData.toImagePos.x * migrateData.toImageSize, migrateData.toImagePos.y * migrateData.toImageSize);
+		int newLog2Size = std::countr_zero((uint32_t)migrateData.toImageSize);
+
+		std::vector<std::pair<uint64_t, uint64_t>> replacements;
+		for (auto& keyHash : m_lruCache.GetKeys())
 		{
-			auto& migrateData = m_cbDataMigrateSector[i];
+			NXVTLRUKey key(keyHash);
+			if (key.sector != sectorID) continue;
+
+			int gpuMip = key.gpuMip;
+			Int2 pageID = key.pageID;
+
+			if (migrateData.fromImageSize < migrateData.toImageSize)
+			{
+				// upscale: fromMip = gpuMip, toMip = gpuMip + mipDelta
+				int fromMip = gpuMip;
+				int size = migrateData.fromImageSize >> fromMip;
+				if (size <= 0) continue;
+
+				Int2 coord(pageID.x - (fromBase.x >> fromMip), pageID.y - (fromBase.y >> fromMip));
+				if (coord.x < 0 || coord.x >= size || coord.y < 0 || coord.y >= size) continue;
+
+				int newGpuMip = gpuMip + migrateData.mipDelta;
+				Int2 newPageID(( toBase.x >> newGpuMip) + coord.x, (toBase.y >> newGpuMip) + coord.y);
+
+				NXVTLRUKey newKey;
+				newKey.sector = sectorID;
+				newKey.pageID = newPageID;
+				newKey.gpuMip = newGpuMip;
+				newKey.indiTexLog2Size = newLog2Size;
+				replacements.push_back({ keyHash, newKey.GetKey() });
+			}
+			else
+			{
+				// downscale: fromMip = gpuMip, toMip = gpuMip - mipDelta
+				if (gpuMip < migrateData.mipDelta) continue;
+
+				int toMip = gpuMip - migrateData.mipDelta;
+				int size = migrateData.toImageSize >> toMip;
+				if (size <= 0) continue;
+
+				Int2 coord(pageID.x - (fromBase.x >> gpuMip), pageID.y - (fromBase.y >> gpuMip));
+				if (coord.x < 0 || coord.x >= size || coord.y < 0 || coord.y >= size) continue;
+
+				int newGpuMip = toMip;
+				Int2 newPageID((toBase.x >> newGpuMip) + coord.x, (toBase.y >> newGpuMip) + coord.y);
+
+				NXVTLRUKey newKey;
+				newKey.sector = sectorID;
+				newKey.pageID = newPageID;
+				newKey.gpuMip = newGpuMip;
+				newKey.indiTexLog2Size = newLog2Size;
+				replacements.push_back({ keyHash, newKey.GetKey() });
+			}
+		}
+
+		for (auto& [oldHash, newHash] : replacements)
+		{
+			m_lruCache.ReplaceKey(oldHash, newHash);
 		}
 	}
 
@@ -363,7 +424,7 @@ void NXVirtualTexture::BakePhysicalPages()
 					m_physPageSlotSectorVersion[cacheIdx] = keyVersion;
 					m_cbDataPhysPageBake.push_back(key);
 
-					VTLog("LRU Update: %d, Sector: (%d, %d), PageID: (%d, %d), GPU Mip: %d, IndiTexLog2Size: %d, cacheIdx: %d\n", data, key.sector.x, key.sector.y, key.pageID.x, key.pageID.y, key.gpuMip, key.indiTexLog2Size, cacheIdx);
+					//VTLog("LRU Update: %d, Sector: (%d, %d), PageID: (%d, %d), GPU Mip: %d, IndiTexLog2Size: %d, cacheIdx: %d\n", data, key.sector.x, key.sector.y, key.pageID.x, key.pageID.y, key.gpuMip, key.indiTexLog2Size, cacheIdx);
 				}
 
 				m_cbDataUpdateIndex.push_back(CBufferPhysPageUpdateIndex(cacheIdx, pageID, gpuMip));
@@ -385,10 +446,10 @@ void NXVirtualTexture::BakePhysicalPages()
 					{
 						m_cbDataUpdateIndex.push_back(CBufferPhysPageUpdateIndex(-1, pageID, gpuMip));
 
-						VTLog("LRU Replace: cacheIdx: %d, old: PageID(%d,%d) Mip%d Log2Size%d -> new: Sector(%d,%d) PageID(%d,%d) Mip%d Log2Size%d\n",
-							cacheIdx,
-							pageID.x, pageID.y, gpuMip, log2IndiTexSize,  // 这些是内层变量，被淘汰的旧key
-							key.sector.x, key.sector.y, key.pageID.x, key.pageID.y, key.gpuMip, key.indiTexLog2Size);  // 新key
+						//VTLog("LRU Replace: cacheIdx: %d, old: PageID(%d,%d) Mip%d Log2Size%d -> new: Sector(%d,%d) PageID(%d,%d) Mip%d Log2Size%d\n",
+						//	cacheIdx,
+						//	pageID.x, pageID.y, gpuMip, log2IndiTexSize,  // 这些是内层变量，被淘汰的旧key
+						//	key.sector.x, key.sector.y, key.pageID.x, key.pageID.y, key.gpuMip, key.indiTexLog2Size);  // 新key
 					}
 
 					lruInsertNum++;
@@ -398,18 +459,18 @@ void NXVirtualTexture::BakePhysicalPages()
 				m_cbDataUpdateIndex.push_back(CBufferPhysPageUpdateIndex(cacheIdx, pageID, gpuMip));
 				lruInsertNum++;
 
-				VTLog("LRU Insert: %d, Sector: (%d, %d), PageID: (%d, %d), GPU Mip: %d, IndiTexLog2Size: %d, cacheIdx: %d\n", data, key.sector.x, key.sector.y, key.pageID.x, key.pageID.y, key.gpuMip, key.indiTexLog2Size, cacheIdx);
+				//VTLog("LRU Insert: %d, Sector: (%d, %d), PageID: (%d, %d), GPU Mip: %d, IndiTexLog2Size: %d, cacheIdx: %d\n", data, key.sector.x, key.sector.y, key.pageID.x, key.pageID.y, key.gpuMip, key.indiTexLog2Size, cacheIdx);
 			}
 
 			if (lruInsertNum >= UPDATE_INDIRECT_TEXTURE_PER_FRAME)
 			{
-				VTLog("WARNING: UPDATE_INDIRECT_TEXTURE_PER_FRAME\n");
+				//VTLog("WARNING: UPDATE_INDIRECT_TEXTURE_PER_FRAME\n");
 				break;
 			}
 
 			if (m_cbDataPhysPageBake.size() >= BAKE_PHYSICAL_PAGE_PER_FRAME)
 			{
-				VTLog("WARNING: BAKE_PHYSICAL_PAGE_PER_FRAME\n");
+				//VTLog("WARNING: BAKE_PHYSICAL_PAGE_PER_FRAME\n");
 				break;
 			}
 		}
@@ -421,7 +482,7 @@ void NXVirtualTexture::BakePhysicalPages()
 		uint32_t test = (cb.pageID.x << 20) | (cb.pageID.y << 8) | (cb.mip << 4);
 		if (x.contains(test))
 		{
-			VTLog("WARNING: page existed!\n");
+			//VTLog("WARNING: page existed!\n");
 			break;
 		}
 		x.insert(test);
@@ -430,7 +491,7 @@ void NXVirtualTexture::BakePhysicalPages()
 	// Tracker: simulate per-pixel IndirectTexture updates on CPU side
 	for (auto& cb : m_cbDataUpdateIndex)
 	{
-		m_indirectTextureTracker.SimulateUpdateIndex(cb.index, cb.pageID, cb.mip);
+		//m_indirectTextureTracker.SimulateUpdateIndex(cb.index, cb.pageID, cb.mip);
 	}
 
 	m_cbPhysPageBake.Update(m_cbDataPhysPageBake);

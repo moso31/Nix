@@ -4,7 +4,7 @@
 
 NXVTIndirectTextureTracker::NXVTIndirectTextureTracker()
 {
-	// Ô¤¼ÆËãËùÓÐ mip µÄ×ÜÔªËØÊý: sum of (size>>mip)^2, mip 0..10
+	// é¢„è®¡ç®—æ‰€æœ‰ mip çš„æ€»å…ƒç´ æ•°: sum of (size>>mip)^2, mip 0..10
 	int total = 0;
 	for (int m = 0; m < MIP_LEVELS; m++)
 	{
@@ -33,7 +33,7 @@ uint16_t NXVTIndirectTextureTracker::GetPixel(int mip, int x, int y) const
 	return m_data[MipOffset(mip) + y * s + x];
 }
 
-// ---- Çå³ý ----
+// ---- æ¸…é™¤ ----
 
 void NXVTIndirectTextureTracker::Clear()
 {
@@ -41,8 +41,8 @@ void NXVTIndirectTextureTracker::Clear()
 	VTLog("[Tracker] Clear: all mips set to 0xFFFF\n");
 }
 
-// ---- Ä£ÄâÉ¾³ý ----
-// ¶ÔÓ¦ VTUpdateIndirectTextureBlock.fx ÖÐµÄ CS_Remove
+// ---- æ¨¡æ‹Ÿåˆ é™¤ ----
+// å¯¹åº” VTUpdateIndirectTextureBlock.fx ä¸­çš„ CS_Remove
 
 void NXVTIndirectTextureTracker::SimulateRemove(const CBufferRemoveSector& removeData)
 {
@@ -78,8 +78,8 @@ void NXVTIndirectTextureTracker::SimulateRemove(const CBufferRemoveSector& remov
 	}
 }
 
-// ---- Ä£ÄâÇ¨ÒÆ ----
-// ¶ÔÓ¦ VTUpdateIndirectTextureBlock.fx ÖÐµÄ CS_Migrate
+// ---- æ¨¡æ‹Ÿè¿ç§» ----
+// å¯¹åº” VTUpdateIndirectTextureBlock.fx ä¸­çš„ CS_Migrate
 
 void NXVTIndirectTextureTracker::SimulateMigrate(const CBufferMigrateSector& migrateData)
 {
@@ -88,7 +88,7 @@ void NXVTIndirectTextureTracker::SimulateMigrate(const CBufferMigrateSector& mig
 
 	if (migrateData.fromImageSize < migrateData.toImageSize)
 	{
-		// Éý²ÉÑù
+		// å‡é‡‡æ ·
 		int fromMip = 0;
 		int toMip = migrateData.mipDelta;
 		for (int size = migrateData.fromImageSize; size > 0; size >>= 1)
@@ -132,7 +132,7 @@ void NXVTIndirectTextureTracker::SimulateMigrate(const CBufferMigrateSector& mig
 	}
 	else
 	{
-		// ½µ²ÉÑù
+		// é™é‡‡æ ·
 		int fromMip = migrateData.mipDelta;
 		int toMip = 0;
 		for (int size = migrateData.toImageSize; size > 0; size >>= 1)
@@ -176,8 +176,8 @@ void NXVTIndirectTextureTracker::SimulateMigrate(const CBufferMigrateSector& mig
 	}
 }
 
-// ---- Ä£Äâ¸üÐÂË÷Òý ----
-// ¶ÔÓ¦ UpdateIndirectTexture CS£ºÔÚÖ¸¶¨ gpuMip µÄ (pageID.x, pageID.y) ´¦Ð´Èë physPageIndex¡£
+// ---- æ¨¡æ‹Ÿæ›´æ–°ç´¢å¼• ----
+// å¯¹åº” UpdateIndirectTexture CSï¼šåœ¨æŒ‡å®š gpuMip çš„ (pageID.x, pageID.y) å¤„å†™å…¥ physPageIndexã€‚
 
 void NXVTIndirectTextureTracker::SimulateUpdateIndex(int physPageIndex, const Int2& pageID, int gpuMip)
 {
