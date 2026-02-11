@@ -275,15 +275,16 @@ void NXVirtualTexture::UpdateNearestSectors()
 			m_cbDataMigrateRemoveSector.push_back(migrateRemoveData);
 		}
 
-		// 测试代码：升采样也先清空
-		if (migrateData.fromImageSize < migrateData.toImageSize)
-		{
-			CBufferRemoveSector migrateRemoveData;
-			migrateRemoveData.imagePos = migrateData.toImagePos;
-			migrateRemoveData.imageSize = migrateData.toImageSize;
-			migrateRemoveData.maxRemoveMip = migrateData.mipDelta; 
-			m_cbDataMigrateRemoveSector.push_back(migrateRemoveData);
-		}
+		// 升采样不需要清空，本来就是被清空过的才会被作为migrate目标
+		// 测试代码：升采样清空
+		// if (migrateData.fromImageSize < migrateData.toImageSize)
+		// {
+		// 	CBufferRemoveSector migrateRemoveData;
+		// 	migrateRemoveData.imagePos = migrateData.toImagePos;
+		// 	migrateRemoveData.imageSize = migrateData.toImageSize;
+		// 	migrateRemoveData.maxRemoveMip = migrateData.mipDelta; 
+		// 	m_cbDataMigrateRemoveSector.push_back(migrateRemoveData);
+		// }
 	}
 
 	for (int i = 0; i < m_cbDataMigrateRemoveSector.size(); i++)
@@ -294,7 +295,17 @@ void NXVirtualTexture::UpdateNearestSectors()
 		//m_indirectTextureTracker.SimulateRemove(migrateRemoveData);
 	}
 
-	// 因为迁移导致的LRU变化
+	// 问题：
+	// 页表迁移（升降采样）的时候，对应sector的所有有效像素都会平移到另一个区域，所以LRU记录的pageID也得跟着变
+	// 以前由于没有考虑到这点，迁移sector后，LRU的pageID、mip还是旧的
+	// 然后这个sector就会随着迁移到处流转，LRU也会持续迭代
+	// 一旦后续：
+	// 1. 有一帧LRU把这个{pageID、mip}剔除了，换上新的pageID
+	// 2. 恰好赶上对应sector一直在migrate，也没被移除
+	// 3. 加上此时镜头突然拉近，GBuffer就会读页表-结果拿到了已经有问题的sector-导致渲染错乱。
+	// 这三重因素叠加下就会导致渲染错乱，但该bug只闪烁一帧就会被修复，因为下一轮状态readback发现这个pageID实际并不在LRU中，很快就会发起申请新页。
+	// 解决方案：
+	// 如下，在sector迁移的时候，同步检查所有LRU key并进行维护。
 	for (int mi = 0; mi < m_cbDataMigrateSector.size(); mi++)
 	{
 		auto& migrateData = m_cbDataMigrateSector[mi];
@@ -304,27 +315,32 @@ void NXVirtualTexture::UpdateNearestSectors()
 		int newLog2Size = std::countr_zero((uint32_t)migrateData.toImageSize);
 
 		std::vector<std::pair<uint64_t, uint64_t>> replacements;
-		for (auto& keyHash : m_lruCache.GetKeys())
+		for (auto& keyHash : m_lruCache.GetKeys()) // 遍历所有key
 		{
 			NXVTLRUKey key(keyHash);
-			if (key.sector != sectorID) continue;
+			if (key.sector != sectorID) continue; // 和当前sector没关系就跳
 
+			// LRU上现在记录的pageID和mip
 			int gpuMip = key.gpuMip;
 			Int2 pageID = key.pageID;
-
-			if (migrateData.fromImageSize < migrateData.toImageSize)
+			
+			if (migrateData.fromImageSize < migrateData.toImageSize) 
 			{
 				// upscale: fromMip = gpuMip, toMip = gpuMip + mipDelta
 				int fromMip = gpuMip;
 				int size = migrateData.fromImageSize >> fromMip;
 				if (size <= 0) continue;
 
+				// LRU的位置-迁移起始位置，判断LRU的{page}是否在本次迁移的起始范围内
 				Int2 coord(pageID.x - (fromBase.x >> fromMip), pageID.y - (fromBase.y >> fromMip));
-				if (coord.x < 0 || coord.x >= size || coord.y < 0 || coord.y >= size) continue;
+				if (coord.x < 0 || coord.x >= size || coord.y < 0 || coord.y >= size) continue; // 如果page不在本次迁移的起始范围内，说明没影响，跳过
 
+				// 能走到这里说明页表中有像素受本次迁移影响！得维护LRU了
+				// 把迁移后的pageID位置和mip信息算出来
 				int newGpuMip = gpuMip + migrateData.mipDelta;
-				Int2 newPageID(( toBase.x >> newGpuMip) + coord.x, (toBase.y >> newGpuMip) + coord.y);
+				Int2 newPageID((toBase.x >> newGpuMip) + coord.x, (toBase.y >> newGpuMip) + coord.y);
 
+				// 记录要替换的新旧key pair.
 				NXVTLRUKey newKey;
 				newKey.sector = sectorID;
 				newKey.pageID = newPageID;
@@ -356,6 +372,7 @@ void NXVirtualTexture::UpdateNearestSectors()
 			}
 		}
 
+		// 实际替换LRU key。
 		for (auto& [oldHash, newHash] : replacements)
 		{
 			m_lruCache.ReplaceKey(oldHash, newHash);
