@@ -1,8 +1,11 @@
 #include "NXVTDebugger.h"
+
+#ifdef _DEBUG
+
 #include "NXVirtualTexture.h" // CBufferRemoveSector, CBufferMigrateSector
 #include <algorithm>
 
-// ---- µ¥Àı ----
+// ---- å•ä¾‹ ----
 
 NXVTDebugger& NXVTDebugger::GetInstance()
 {
@@ -12,9 +15,7 @@ NXVTDebugger& NXVTDebugger::GetInstance()
 
 NXVTDebugger::NXVTDebugger()
 {
-	m_categoryEnabled.fill(false);
-
-	// ³õÊ¼»¯ IndirectTexture tracker Êı¾İ
+	// åˆå§‹åŒ– IndirectTexture tracker æ•°æ®
 	int total = 0;
 	for (int m = 0; m < IT_MIP_LEVELS; m++)
 	{
@@ -24,26 +25,11 @@ NXVTDebugger::NXVTDebugger()
 	m_trackerData.assign(total, IT_EMPTY);
 }
 
-// ---- ·ÖÀà¿ª¹Ø ----
+// ---- æ—¥å¿— ----
 
-void NXVTDebugger::SetEnabled(NXVTDebugCategory cat, bool enabled)
+void NXVTDebugger::Log(NXVTDebugBits bits, const char* fmt, ...)
 {
-	if ((size_t)cat < m_categoryEnabled.size())
-		m_categoryEnabled[(size_t)cat] = enabled;
-}
-
-bool NXVTDebugger::IsEnabled(NXVTDebugCategory cat) const
-{
-	if ((size_t)cat < m_categoryEnabled.size())
-		return m_globalEnabled && m_categoryEnabled[(size_t)cat];
-	return false;
-}
-
-// ---- ÈÕÖ¾ ----
-
-void NXVTDebugger::Log(NXVTDebugCategory cat, const char* fmt, ...)
-{
-	if (!IsEnabled(cat))
+	if (!IsEnabled(bits))
 		return;
 
 	va_list args;
@@ -54,12 +40,19 @@ void NXVTDebugger::Log(NXVTDebugCategory cat, const char* fmt, ...)
 
 void NXVTDebugger::LogV(const char* fmt, va_list args)
 {
-	FILE* fp = nullptr;
-	fopen_s(&fp, m_logFilePath, "a");
-	if (fp)
+	if (m_output == NXVTDebugOutput::Console)
 	{
-		vfprintf(fp, fmt, args);
-		fclose(fp);
+		vprintf(fmt, args);
+	}
+	else
+	{
+		FILE* fp = nullptr;
+		fopen_s(&fp, m_logFilePath, "a");
+		if (fp)
+		{
+			vfprintf(fp, fmt, args);
+			fclose(fp);
+		}
 	}
 }
 
@@ -77,7 +70,7 @@ void NXVTDebugger::ClearLogFile()
 }
 
 // ======================================================
-// IndirectTexture CPU-side Ä£Äâ (Ô­ NXVTIndirectTextureTracker)
+// IndirectTexture CPU-side æ¨¡æ‹Ÿ (åŸ NXVTIndirectTextureTracker)
 // ======================================================
 
 int NXVTDebugger::TrackerMipOffset(int mip) const
@@ -102,7 +95,7 @@ uint16_t NXVTDebugger::TrackerGetPixel(int mip, int x, int y) const
 void NXVTDebugger::TrackerClear()
 {
 	std::fill(m_trackerData.begin(), m_trackerData.end(), IT_EMPTY);
-	Log(NXVTDebugCategory::Tracker, "[Tracker] Clear: all mips set to 0xFFFF\n");
+	Log(VTDBG_TrackerClear, "[Tracker] Clear: all mips set to 0xFFFF\n");
 }
 
 void NXVTDebugger::TrackerSimulateRemove(const CBufferRemoveSector& removeData)
@@ -131,7 +124,7 @@ void NXVTDebugger::TrackerSimulateRemove(const CBufferRemoveSector& removeData)
 				if (oldVal != IT_EMPTY)
 				{
 					m_trackerData[offset + py * mipSz + px] = IT_EMPTY;
-					Log(NXVTDebugCategory::Tracker, "[Tracker] Remove: mip%d (%d, %d) : %u -> EMPTY\n", mip, px, py, (unsigned)oldVal);
+					Log(VTDBG_TrackerRemove, "[Tracker] Remove: mip%d (%d, %d) : %u -> EMPTY\n", mip, px, py, (unsigned)oldVal);
 				}
 			}
 		}
@@ -146,7 +139,7 @@ void NXVTDebugger::TrackerSimulateMigrate(const CBufferMigrateSector& migrateDat
 
 	if (migrateData.fromImageSize < migrateData.toImageSize)
 	{
-		// Éı²ÉÑù
+		// å‡é‡‡æ ·
 		int fromMip = 0;
 		int toMip = migrateData.mipDelta;
 		for (int size = migrateData.fromImageSize; size > 0; size >>= 1)
@@ -179,7 +172,7 @@ void NXVTDebugger::TrackerSimulateMigrate(const CBufferMigrateSector& migrateDat
 
 					if (val != IT_EMPTY || oldTo != IT_EMPTY)
 					{
-						Log(NXVTDebugCategory::Tracker, "[Tracker] Migrate(up): fromMip%d (%d,%d)->toMip%d (%d,%d) : val=%u, oldTo=%u\n",
+						Log(VTDBG_TrackerMigrate, "[Tracker] Migrate(up): fromMip%d (%d,%d)->toMip%d (%d,%d) : val=%u, oldTo=%u\n",
 							fromMip, fpx, fpy, toMip, tpx, tpy, (unsigned)val, (unsigned)oldTo);
 					}
 				}
@@ -190,7 +183,7 @@ void NXVTDebugger::TrackerSimulateMigrate(const CBufferMigrateSector& migrateDat
 	}
 	else
 	{
-		// ½µ²ÉÑù
+		// é™é‡‡æ ·
 		int fromMip = migrateData.mipDelta;
 		int toMip = 0;
 		for (int size = migrateData.toImageSize; size > 0; size >>= 1)
@@ -223,7 +216,7 @@ void NXVTDebugger::TrackerSimulateMigrate(const CBufferMigrateSector& migrateDat
 
 					if (val != IT_EMPTY || oldTo != IT_EMPTY)
 					{
-						Log(NXVTDebugCategory::Tracker, "[Tracker] Migrate(down): fromMip%d (%d,%d)->toMip%d (%d,%d) : val=%u, oldTo=%u\n",
+						Log(VTDBG_TrackerMigrate, "[Tracker] Migrate(down): fromMip%d (%d,%d)->toMip%d (%d,%d) : val=%u, oldTo=%u\n",
 							fromMip, fpx, fpy, toMip, tpx, tpy, (unsigned)val, (unsigned)oldTo);
 					}
 				}
@@ -251,7 +244,7 @@ void NXVTDebugger::TrackerSimulateUpdateIndex(int physPageIndex, const Int2& pag
 	{
 		m_trackerData[idx] = IT_EMPTY;
 		if (oldVal != IT_EMPTY)
-			Log(NXVTDebugCategory::Tracker, "[Tracker] UpdateIndex: mip%d (%d, %d) : %u -> EMPTY\n", gpuMip, pageID.x, pageID.y, (unsigned)oldVal);
+			Log(VTDBG_TrackerUpdateIndex, "[Tracker] UpdateIndex: mip%d (%d, %d) : %u -> EMPTY\n", gpuMip, pageID.x, pageID.y, (unsigned)oldVal);
 	}
 	else
 	{
@@ -260,9 +253,11 @@ void NXVTDebugger::TrackerSimulateUpdateIndex(int physPageIndex, const Int2& pag
 		if (oldVal != newVal)
 		{
 			if (oldVal == IT_EMPTY)
-				Log(NXVTDebugCategory::Tracker, "[Tracker] UpdateIndex: mip%d (%d, %d) : EMPTY -> %u\n", gpuMip, pageID.x, pageID.y, (unsigned)newVal);
+				Log(VTDBG_TrackerUpdateIndex, "[Tracker] UpdateIndex: mip%d (%d, %d) : EMPTY -> %u\n", gpuMip, pageID.x, pageID.y, (unsigned)newVal);
 			else
-				Log(NXVTDebugCategory::Tracker, "[Tracker] UpdateIndex: mip%d (%d, %d) : %u -> %u\n", gpuMip, pageID.x, pageID.y, (unsigned)oldVal, (unsigned)newVal);
+				Log(VTDBG_TrackerUpdateIndex, "[Tracker] UpdateIndex: mip%d (%d, %d) : %u -> %u\n", gpuMip, pageID.x, pageID.y, (unsigned)oldVal, (unsigned)newVal);
 		}
 	}
 }
+
+#endif // _DEBUG

@@ -1,16 +1,16 @@
-/*
- * NXVTDebugger ¡ª ĞéÄâÎÆÀíÏµÍ³µÄÍ³Ò»µ÷ÊÔ¹¤¾ß
+/* æ³¨ï¼šè¿™æ®µä»£ç æ˜¯ Vibe coding çš„ï¼
+ * NXVTDebugger â€” è™šæ‹Ÿçº¹ç†ç³»ç»Ÿçš„ç»Ÿä¸€è°ƒè¯•å·¥å…·
  *
- * ÕûºÏËùÓĞ VT Ä£¿éµÄµ÷ÊÔÊä³ö (Ö®Ç°·ÖÉ¢ÔÚ VTLog / m_enableDebugPrint / printf ÖĞ)£¬
- * Ìá¹©·ÖÀà¿ª¹ØºÍÍ³Ò»µÄÈÕÖ¾Ğ´Èë·½Ê½¡£
+ * æ•´åˆæ‰€æœ‰ VT æ¨¡å—çš„è°ƒè¯•è¾“å‡º (ä¹‹å‰åˆ†æ•£åœ¨ VTLog / m_enableDebugPrint / printf ä¸­)ï¼Œ
+ * é€šè¿‡ 32 ä½ä½æ©ç  NXVTDebugBits æ§åˆ¶æ¯ä¸ªå­ç±»åˆ«çš„æ—¥å¿—å¼€å…³ã€‚
  *
- * Ê¹ÓÃ·½Ê½:
+ * ä½¿ç”¨æ–¹å¼:
  *   NXVTDebugger& dbg = NXVTDebugger::GetInstance();
- *   dbg.SetEnabled(NXVTDebugCategory::RenderPass, true);
- *   dbg.Log(NXVTDebugCategory::RenderPass, "[BakePhysicalPage] PageID: (%d, %d)\n", px, py);
+ *   dbg.Enable(VTDBG_BakePhysicalPage | VTDBG_LRUInsert);
+ *   dbg.Log(VTDBG_BakePhysicalPage, "[BakePhysicalPage] PageID: (%d, %d)\n", px, py);
  *
- * IndirectTexture CPU-side Ä£Äâ (Ô­ NXVTIndirectTextureTracker) Ò²¼¯³ÉÔÚ´ËÀàÖĞ£¬
- * Í¨¹ı NXVTDebugCategory::Tracker ¿ØÖÆÆäÈÕÖ¾Êä³ö¡£
+ * IndirectTexture CPU-side æ¨¡æ‹Ÿå™¨ä¹Ÿé›†æˆåœ¨æ­¤ç±»ä¸­ï¼Œ
+ * é€šè¿‡ VTDBG_Tracker_All / VTDBG_TrackerXxx ä½æ§åˆ¶å…¶æ—¥å¿—è¾“å‡ºã€‚
  */
 
 #pragma once
@@ -18,49 +18,95 @@
 #include <cstdarg>
 #include <cstdint>
 #include <vector>
-#include <array>
 #include "BaseDefs/Math.h"
 #include "NXVirtualTextureCommon.h"
 
-// Ç°ÏòÉùÃ÷
+// å‰å‘å£°æ˜
 struct CBufferRemoveSector;
 struct CBufferMigrateSector;
 
-// ---- µ÷ÊÔ·ÖÀà ----
-enum class NXVTDebugCategory : uint32_t
+// ---- è°ƒè¯•åˆ†ç±» (ä½æ ‡å¿—) ----
+// ä½¿ç”¨ 32 ä½æ©ç ï¼Œæ¯ä¸ªç±»åˆ«å  1 bitï¼Œå¯è‡ªç”±ç»„åˆã€‚
+enum NXVTDebugBits : uint32_t
 {
-	RenderPass,		// RegisterXxxPass ÖĞµÄÈÕÖ¾ (Ô­ m_enableDebugPrint ¿ØÖÆµÄÄÚÈİ)
-	LRUCache,		// LRU Insert / Replace / Update ÈÕÖ¾
-	SectorUpdate,	// Sector ĞÂÔö/ÒÆ³ı/Ç¨ÒÆµÄ¾¯¸æĞÅÏ¢
-	Tracker,		// IndirectTexture CPU Ä£Äâ¾µÏñµÄÖğÏñËØÈÕÖ¾
-	Count
+	// RenderPass ç»†åˆ†
+	VTDBG_UpdateSector2VirtImg			= 1u << 0,
+	VTDBG_BakePhysicalPage				= 1u << 1,
+	VTDBG_UpdateIndirectTexture			= 1u << 2,
+	VTDBG_RemoveIndirectTexture			= 1u << 3,
+	VTDBG_MigrateIndirectTexture		= 1u << 4,
+
+	// LRU ç»†åˆ†
+	VTDBG_LRUUpdate						= 1u << 5,
+	VTDBG_LRUInsert						= 1u << 6,
+	VTDBG_LRUReplace					= 1u << 7,
+	VTDBG_LRUWarning					= 1u << 8,
+
+	// Sector ç»†åˆ†
+	VTDBG_SectorRemoveWarn				= 1u << 9,
+	VTDBG_SectorMigrateWarn				= 1u << 10,
+	VTDBG_SectorOverflow				= 1u << 11,
+
+	// Tracker ç»†åˆ†
+	VTDBG_TrackerClear					= 1u << 12,
+	VTDBG_TrackerRemove					= 1u << 13,
+	VTDBG_TrackerMigrate				= 1u << 14,
+	VTDBG_TrackerUpdateIndex			= 1u << 15,
+
+	// ---- ç»„åˆå¿«æ·æ©ç  ----
+	VTDBG_RenderPass_All				= VTDBG_UpdateSector2VirtImg | VTDBG_BakePhysicalPage | VTDBG_UpdateIndirectTexture | VTDBG_RemoveIndirectTexture | VTDBG_MigrateIndirectTexture,
+	VTDBG_LRU_All						= VTDBG_LRUUpdate | VTDBG_LRUInsert | VTDBG_LRUReplace | VTDBG_LRUWarning,
+	VTDBG_Sector_All					= VTDBG_SectorRemoveWarn | VTDBG_SectorMigrateWarn | VTDBG_SectorOverflow,
+	VTDBG_Tracker_All					= VTDBG_TrackerClear | VTDBG_TrackerRemove | VTDBG_TrackerMigrate | VTDBG_TrackerUpdateIndex,
+	VTDBG_All							= 0xFFFFFFFFu,
+	VTDBG_None							= 0u,
 };
+
+// æ”¯æŒä½è¿ç®—ç»„åˆ
+inline NXVTDebugBits operator|(NXVTDebugBits a, NXVTDebugBits b) { return (NXVTDebugBits)((uint32_t)a | (uint32_t)b); }
+inline NXVTDebugBits operator&(NXVTDebugBits a, NXVTDebugBits b) { return (NXVTDebugBits)((uint32_t)a & (uint32_t)b); }
+inline NXVTDebugBits operator~(NXVTDebugBits a) { return (NXVTDebugBits)(~(uint32_t)a); }
+inline NXVTDebugBits& operator|=(NXVTDebugBits& a, NXVTDebugBits b) { return a = a | b; }
+inline NXVTDebugBits& operator&=(NXVTDebugBits& a, NXVTDebugBits b) { return a = a & b; }
+
+// ---- è¾“å‡ºæ¨¡å¼ ----
+enum class NXVTDebugOutput : uint8_t
+{
+	Console,	// printf è¾“å‡ºåˆ° Windows æ§åˆ¶å° (è½»é‡çº§)
+	File,		// å†™å…¥åˆ°æ—¥å¿—æ–‡ä»¶ (å¤§é‡æ—¥å¿—æ—¶ä½¿ç”¨)
+};
+
+#ifdef _DEBUG
 
 class NXVTDebugger
 {
 public:
 	static NXVTDebugger& GetInstance();
 
-	// ---- È«¾Ö¿ª¹Ø ----
-	void SetGlobalEnabled(bool enabled) { m_globalEnabled = enabled; }
-	bool IsGlobalEnabled() const { return m_globalEnabled; }
+	// ---- å¯ç”¨/ç¦ç”¨æ ‡å¿—ä½ ----
+	void Enable(NXVTDebugBits bits)  { m_activeTag |= bits; }
+	void Disable(NXVTDebugBits bits) { m_activeTag &= ~bits; }
+	void SetTag(NXVTDebugBits tag)   { m_activeTag = tag; }
+	NXVTDebugBits GetTag() const     { return m_activeTag; }
 
-	// ---- ·ÖÀà¿ª¹Ø ----
-	void SetEnabled(NXVTDebugCategory cat, bool enabled);
-	bool IsEnabled(NXVTDebugCategory cat) const;
+	bool IsEnabled(NXVTDebugBits bits) const { return (m_activeTag & bits) != 0; }
 
-	// ---- ÈÕÖ¾Êä³ö ----
-	// ×Ô¶¯¼ì²é È«¾Ö + ·ÖÀà ¿ª¹Ø£¬Âú×ãÊ±Ğ´ÈëÎÄ¼ş¡£
-	void Log(NXVTDebugCategory cat, const char* fmt, ...);
+	// ---- è¾“å‡ºæ¨¡å¼ ----
+	void SetOutput(NXVTDebugOutput mode) { m_output = mode; }
+	NXVTDebugOutput GetOutput() const { return m_output; }
 
-	// ---- ÉèÖÃÈÕÖ¾ÎÄ¼şÂ·¾¶ (Ä¬ÈÏ "D:/VTDebug.txt") ----
+	// ---- æ—¥å¿—è¾“å‡º ----
+	// ä»…å½“ bits ä¸­ä»»æ„ä¸€ä½è¢«æ¿€æ´»æ—¶æ‰å†™å…¥æ—¥å¿—ã€‚
+	void Log(NXVTDebugBits bits, const char* fmt, ...);
+
+	// ---- è®¾ç½®æ—¥å¿—æ–‡ä»¶è·¯å¾„ (File æ¨¡å¼ä¸‹ä½¿ç”¨ï¼Œé»˜è®¤ "D:/VTDebug.txt") ----
 	void SetLogFilePath(const char* path);
 
-	// ---- Çå¿ÕÈÕÖ¾ÎÄ¼ş ----
+	// ---- æ¸…ç©ºæ—¥å¿—æ–‡ä»¶ ----
 	void ClearLogFile();
 
 	// ======================================================
-	// IndirectTexture CPU-side Ä£Äâ (Ô­ NXVTIndirectTextureTracker)
+	// IndirectTexture CPU-side æ¨¡æ‹Ÿ
 	// ======================================================
 
 	static constexpr int IT_MIP_LEVELS = 11;
@@ -85,11 +131,45 @@ private:
 	int TrackerMipOffset(int mip) const;
 
 private:
-	bool m_globalEnabled = false;
-	std::array<bool, (size_t)NXVTDebugCategory::Count> m_categoryEnabled{};
+	NXVTDebugBits m_activeTag = VTDBG_None;
+	NXVTDebugOutput m_output = NXVTDebugOutput::Console;
 
 	char m_logFilePath[260] = "D:/VTDebug.txt";
 
-	// IndirectTexture CPU mirror data
+	// IndirectTexture åœ¨ CPU ä¸€ä¾§çš„é™æ€æ•°æ®
+	// ä»…åº”åœ¨è°ƒè¯•æ—¶ä½¿ç”¨
 	std::vector<uint16_t> m_trackerData;
 };
+
+#else // Release: æ‰€æœ‰è°ƒè¯•åŠŸèƒ½ç¼–è¯‘ä¸ºç©ºæ“ä½œï¼Œé›¶å¼€é”€
+
+class NXVTDebugger
+{
+public:
+	static NXVTDebugger& GetInstance() { static NXVTDebugger inst; return inst; }
+
+	void Enable(NXVTDebugBits) {}
+	void Disable(NXVTDebugBits) {}
+	void SetTag(NXVTDebugBits) {}
+	NXVTDebugBits GetTag() const { return VTDBG_None; }
+	bool IsEnabled(NXVTDebugBits) const { return false; }
+
+	void SetOutput(NXVTDebugOutput) {}
+	NXVTDebugOutput GetOutput() const { return NXVTDebugOutput::Console; }
+
+	void Log(NXVTDebugBits, const char*, ...) {}
+	void SetLogFilePath(const char*) {}
+	void ClearLogFile() {}
+
+	static constexpr int IT_MIP_LEVELS = 11;
+	static constexpr int IT_BASE_SIZE = 2048;
+	static constexpr uint16_t IT_EMPTY = 0xFFFF;
+
+	void TrackerClear() {}
+	void TrackerSimulateRemove(const CBufferRemoveSector&) {}
+	void TrackerSimulateMigrate(const CBufferMigrateSector&) {}
+	void TrackerSimulateUpdateIndex(int, const Int2&, int) {}
+	uint16_t TrackerGetPixel(int, int, int) const { return IT_EMPTY; }
+};
+
+#endif // _DEBUG

@@ -36,6 +36,9 @@ NXVirtualTexture::NXVirtualTexture(class NXCamera* pCam, class NXTerrainLODStrea
 	m_physPageSlotSectorVersion.assign(g_virtualTextureConfig.PhysicalPageTileNum, 0);
 
 	m_vtReadbackData = new NXReadbackData("VT Readback CPUdata");
+
+	//NXVTDebugger::GetInstance().Enable(VTDBG_BakePhysicalPage);
+	//NXVTDebugger::GetInstance().SetOutput(NXVTDebugOutput::Console);
 }
 
 NXVirtualTexture::~NXVirtualTexture()
@@ -207,7 +210,7 @@ void NXVirtualTexture::UpdateNearestSectors()
 		}
 		else
 		{
-			NXVTDebugger::GetInstance().Log(NXVTDebugCategory::SectorUpdate, "WARNING: removeSector not found!\n");
+			NXVTDebugger::GetInstance().Log(VTDBG_SectorRemoveWarn, "WARNING: removeSector not found!\n");
 		}
 	}
 
@@ -240,13 +243,13 @@ void NXVirtualTexture::UpdateNearestSectors()
 		}
 		else
 		{
-			NXVTDebugger::GetInstance().Log(NXVTDebugCategory::SectorUpdate, "WARNING: changeSector old sector not found!\n");
+			NXVTDebugger::GetInstance().Log(VTDBG_SectorMigrateWarn, "WARNING: changeSector old sector not found!\n");
 		}
 	}
 
 	if (m_cbDataSector2VirtImg.size() >= 256)
 	{
-		NXVTDebugger::GetInstance().Log(NXVTDebugCategory::SectorUpdate, "WARNING: Sector2VirtImg data >= 256\n");
+		NXVTDebugger::GetInstance().Log(VTDBG_SectorOverflow, "WARNING: Sector2VirtImg data >= 256\n");
 	}
 
 	for (int i = 0; i < m_cbDataRemoveSector.size(); i++)
@@ -299,12 +302,12 @@ void NXVirtualTexture::UpdateNearestSectors()
 	// 问题：
 	// 页表迁移（升降采样）的时候，对应sector的所有有效像素都会平移到另一个区域，所以LRU记录的pageID也得跟着变
 	// 以前由于没有考虑到这点，迁移sector后，LRU的pageID、mip还是旧的
-	// 然后这个sector就会随着迁移到处流转，LRU也会持续迭代
-	// 一旦后续：
+	// 然后这个sector就会随着迁移在页表中到处流转，同时LRU也会持续迭代。一旦后续同时出现：
 	// 1. 有一帧LRU把这个{pageID、mip}剔除了，换上新的pageID
-	// 2. 恰好赶上对应sector一直在migrate，也没被移除
-	// 3. 加上此时镜头突然拉近，GBuffer就会读页表-结果拿到了已经有问题的sector-导致渲染错乱。
-	// 这三重因素叠加下就会导致渲染错乱，但该bug只闪烁一帧就会被修复，因为下一轮状态readback发现这个pageID实际并不在LRU中，很快就会发起申请新页。
+	// 2. 恰好赶上旧的pageID对应的sector，一直在upscale/downscale，从来没remove过
+	// 3. 下一帧镜头出现比较大幅的移动-GBuffer就会读页表-有概率拿到已经有问题的sector-导致渲染错乱。
+	// 这三重因素叠加下就会导致渲染错乱。
+	// 因为下一轮状态机的readback发现这个pageID实际并不在LRU中，很快就会发起申请新页。所以该bug在本轮状态机完成前就会被修复，但一闪而过仍然很扎眼。
 	// 解决方案：
 	// 如下，在sector迁移的时候，同步检查所有LRU key并进行维护。
 	for (int mi = 0; mi < m_cbDataMigrateSector.size(); mi++)
@@ -398,6 +401,19 @@ void NXVirtualTexture::BakePhysicalPages()
 	m_cbDataUpdateIndex.clear();
 
 	std::unordered_set<uint32_t> readbackSets;
+
+	// 给本帧看到的所有sector弄一个保底page
+	for (auto& [sector, virtImagePos] : m_sector2VirtImagePos)
+	{
+		Int2 sectorPositive = sector.id - g_terrainConfig.MinSectorID; // 正坐标
+		Int2 indiTexPosMip0 = sector.imageSize * virtImagePos;
+		uint32_t gpuMip = std::countr_zero((uint32_t)sector.imageSize);
+		Int2 pageID = indiTexPosMip0 >> gpuMip; // 最低一级像素
+
+		uint32_t encode = (pageID.x & 0xFFF) << 20 | (pageID.y & 0xFFF) << 8 | (gpuMip & 0xF) << 4 | gpuMip;
+		readbackSets.insert(encode);
+	}
+
 	const uint32_t* readbackData = reinterpret_cast<const uint32_t*>(pVTReadbackData.data());
 	uint32_t readbackDataNum = m_vtReadbackData->GetWidth();
 	for (int i = 0; i < readbackDataNum; i++)
@@ -442,7 +458,7 @@ void NXVirtualTexture::BakePhysicalPages()
 					m_physPageSlotSectorVersion[cacheIdx] = keyVersion;
 					m_cbDataPhysPageBake.push_back(key);
 
-					NXVTDebugger::GetInstance().Log(NXVTDebugCategory::LRUCache, "LRU Update: %d, Sector: (%d, %d), PageID: (%d, %d), GPU Mip: %d, IndiTexLog2Size: %d, cacheIdx: %d\n", data, key.sector.x, key.sector.y, key.pageID.x, key.pageID.y, key.gpuMip, key.indiTexLog2Size, cacheIdx);
+					NXVTDebugger::GetInstance().Log(VTDBG_LRUUpdate, "LRU Update: %d, Sector: (%d, %d), PageID: (%d, %d), GPU Mip: %d, IndiTexLog2Size: %d, cacheIdx: %d\n", data, key.sector.x, key.sector.y, key.pageID.x, key.pageID.y, key.gpuMip, key.indiTexLog2Size, cacheIdx);
 				}
 
 				m_cbDataUpdateIndex.push_back(CBufferPhysPageUpdateIndex(cacheIdx, pageID, gpuMip));
@@ -464,7 +480,7 @@ void NXVirtualTexture::BakePhysicalPages()
 					{
 						m_cbDataUpdateIndex.push_back(CBufferPhysPageUpdateIndex(-1, pageID, gpuMip));
 
-						NXVTDebugger::GetInstance().Log(NXVTDebugCategory::LRUCache, "LRU Replace: cacheIdx: %d, old: PageID(%d,%d) Mip%d Log2Size%d -> new: Sector(%d,%d) PageID(%d,%d) Mip%d Log2Size%d\n",
+						NXVTDebugger::GetInstance().Log(VTDBG_LRUReplace, "LRU Replace: cacheIdx: %d, old: PageID(%d,%d) Mip%d Log2Size%d -> new: Sector(%d,%d) PageID(%d,%d) Mip%d Log2Size%d\n",
 							cacheIdx,
 							pageID.x, pageID.y, gpuMip, log2IndiTexSize,
 							key.sector.x, key.sector.y, key.pageID.x, key.pageID.y, key.gpuMip, key.indiTexLog2Size);
@@ -477,18 +493,18 @@ void NXVirtualTexture::BakePhysicalPages()
 				m_cbDataUpdateIndex.push_back(CBufferPhysPageUpdateIndex(cacheIdx, pageID, gpuMip));
 				lruInsertNum++;
 
-				NXVTDebugger::GetInstance().Log(NXVTDebugCategory::LRUCache, "LRU Insert: %d, Sector: (%d, %d), PageID: (%d, %d), GPU Mip: %d, IndiTexLog2Size: %d, cacheIdx: %d\n", data, key.sector.x, key.sector.y, key.pageID.x, key.pageID.y, key.gpuMip, key.indiTexLog2Size, cacheIdx);
+				NXVTDebugger::GetInstance().Log(VTDBG_LRUInsert, "LRU Insert: %d, Sector: (%d, %d), PageID: (%d, %d), GPU Mip: %d, IndiTexLog2Size: %d, cacheIdx: %d\n", data, key.sector.x, key.sector.y, key.pageID.x, key.pageID.y, key.gpuMip, key.indiTexLog2Size, cacheIdx);
 			}
 
 			if (lruInsertNum >= UPDATE_INDIRECT_TEXTURE_PER_FRAME)
 			{
-				NXVTDebugger::GetInstance().Log(NXVTDebugCategory::LRUCache, "WARNING: UPDATE_INDIRECT_TEXTURE_PER_FRAME\n");
+				NXVTDebugger::GetInstance().Log(VTDBG_LRUWarning, "WARNING: UPDATE_INDIRECT_TEXTURE_PER_FRAME\n");
 				break;
 			}
 
 			if (m_cbDataPhysPageBake.size() >= BAKE_PHYSICAL_PAGE_PER_FRAME)
 			{
-				NXVTDebugger::GetInstance().Log(NXVTDebugCategory::LRUCache, "WARNING: BAKE_PHYSICAL_PAGE_PER_FRAME\n");
+				NXVTDebugger::GetInstance().Log(VTDBG_LRUWarning, "WARNING: BAKE_PHYSICAL_PAGE_PER_FRAME\n");
 				break;
 			}
 		}
@@ -500,7 +516,7 @@ void NXVirtualTexture::BakePhysicalPages()
 		uint32_t test = (cb.pageID.x << 20) | (cb.pageID.y << 8) | (cb.mip << 4);
 		if (x.contains(test))
 		{
-			NXVTDebugger::GetInstance().Log(NXVTDebugCategory::LRUCache, "WARNING: page existed!\n");
+			NXVTDebugger::GetInstance().Log(VTDBG_LRUWarning, "WARNING: page existed!\n");
 			break;
 		}
 		x.insert(test);

@@ -60,7 +60,7 @@ void NXVirtualTexture::RegisterUpdateSector2VirtImgPass()
 			int indiTexPosY = (data.indiTexData >> 8) & 0xFFF;
 			int indiTexSize = 1 << (data.indiTexData & 0xFF);
 
-			dbg.Log(NXVTDebugCategory::RenderPass, "[UpdateSector2VirtImg] sectorPos: (%d, %d), indiTexPos: (%d, %d), indiTexSize: %d\n",
+			dbg.Log(VTDBG_UpdateSector2VirtImg, "[UpdateSector2VirtImg] sectorPos: (%d, %d), indiTexPos: (%d, %d), indiTexSize: %d\n",
 				data.sectorPos.x, data.sectorPos.y,
 				indiTexPosX, indiTexPosY,
 				indiTexSize);
@@ -96,7 +96,7 @@ void NXVirtualTexture::RegisterBakePhysicalPagePass()
 		auto& dbg = NXVTDebugger::GetInstance();
 		for (auto& data : m_cbDataPhysPageBake)
 		{
-			dbg.Log(NXVTDebugCategory::RenderPass, "[BakePhysicalPage] SectorID: (%d, %d), PageID: (%d, %d), GPU Mip: %d, IndiTexLog2Size: %d, bakePhysicalIndex: %d\n", data.sector.x, data.sector.y, data.pageID.x, data.pageID.y, data.gpuMip, data.indiTexLog2Size, data.bakePhysicalPageIndex);
+			dbg.Log(VTDBG_BakePhysicalPage, "[BakePhysicalPage] SectorID: (%d, %d), PageID: (%d, %d), GPU Mip: %d, IndiTexLog2Size: %d, bakePhysicalIndex: %d\n", data.sector.x, data.sector.y, data.pageID.x, data.pageID.y, data.gpuMip, data.indiTexLog2Size, data.bakePhysicalPageIndex);
 		}
 	}
 
@@ -143,7 +143,7 @@ void NXVirtualTexture::RegisterUpdateIndirectTexturePass()
 		auto& dbg = NXVTDebugger::GetInstance();
 		for (auto& data : m_cbDataUpdateIndex)
 		{
-			dbg.Log(NXVTDebugCategory::RenderPass, "[UpdateIndirectTexture] PageID: (%d, %d), gpumip: %d, index: %d\n", data.pageID.x, data.pageID.y, data.mip, data.index);
+			dbg.Log(VTDBG_UpdateIndirectTexture, "[UpdateIndirectTexture] PageID: (%d, %d), gpumip: %d, index: %d\n", data.pageID.x, data.pageID.y, data.mip, data.index);
 		}
 	}
 
@@ -175,7 +175,7 @@ void NXVirtualTexture::RegisterUpdateIndirectTexturePass()
 
 void NXVirtualTexture::RegisterRemoveIndirectTextureSectorPass(const NXConstantBuffer<CBufferRemoveSector>& pCBRemoveSector, const CBufferRemoveSector& removeData)
 {
-	NXVTDebugger::GetInstance().Log(NXVTDebugCategory::RenderPass, "RemoveIndirectTextureSectors: ImagePos: (%d, %d), ImageSize: %d, MaxRemoveMip: %d\n", removeData.imagePos.x, removeData.imagePos.y, removeData.imageSize, removeData.maxRemoveMip);
+	NXVTDebugger::GetInstance().Log(VTDBG_RemoveIndirectTexture, "RemoveIndirectTextureSectors: ImagePos: (%d, %d), ImageSize: %d, MaxRemoveMip: %d\n", removeData.imagePos.x, removeData.imagePos.y, removeData.imageSize, removeData.maxRemoveMip);
 
 	m_ctx.pRG->AddPass<RemoveIndirectTextureSectorPassData>("RemoveIndirectTextureSectors",
 		[&](NXRGBuilder& builder, RemoveIndirectTextureSectorPassData& data)
@@ -202,7 +202,7 @@ void NXVirtualTexture::RegisterRemoveIndirectTextureSectorPass(const NXConstantB
 
 void NXVirtualTexture::RegisterMigrateIndirectTextureSectorPass(const NXConstantBuffer<CBufferMigrateSector>& pCBMigrateSector, const CBufferMigrateSector& migrateData)
 {
-	NXVTDebugger::GetInstance().Log(NXVTDebugCategory::RenderPass, "MigrateIndirectTextureSectors: FromImagePos: (%d, %d), ToImagePos: (%d, %d), FromImageSize: %d, ToImageSize: %d, MipDelta: %d\n",
+	NXVTDebugger::GetInstance().Log(VTDBG_MigrateIndirectTexture, "MigrateIndirectTextureSectors: FromImagePos: (%d, %d), ToImagePos: (%d, %d), FromImageSize: %d, ToImageSize: %d, MipDelta: %d\n",
 		migrateData.fromImagePos.x, migrateData.fromImagePos.y,
 		migrateData.toImagePos.x, migrateData.toImagePos.y,
 		migrateData.fromImageSize, migrateData.toImageSize,
