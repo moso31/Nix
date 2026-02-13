@@ -78,26 +78,51 @@ void NXVirtualTexture::Update()
 		m_updateState = NXVTUpdateState::Ready;
 		break;
 	case NXVTUpdateState::Ready:
+		// 更新四叉树和Sector2VirtImg纹理
 		UpdateNearestSectors();
-
 		RegisterUpdateSector2VirtImgPass();
 		m_updateState = NXVTUpdateState::WaitReadback;
 		break;
-	case NXVTUpdateState::WaitReadback:
-		break;
+	case NXVTUpdateState::WaitReadback: 
+		// 等NXRG回读期间啥都不做
+		break; 
 	case NXVTUpdateState::Reading:
 		if (m_bReadbackFinish)
 		{
-			BakePhysicalPages();
-
-			RegisterBakePhysicalPagePass();
-			RegisterUpdateIndirectTexturePass();
-			m_updateState = NXVTUpdateState::PhysicalPageBake;
 			m_bReadbackFinish = false;
+
+			// 回读完成以后开始去重
+			if (m_vtReadbackData.IsNull())
+			{
+				m_updateState = NXVTUpdateState::Finish;
+				return;
+			}
+
+			auto pVTReadbackData = m_vtReadbackData->Clone();
+			if (pVTReadbackData.empty())
+			{
+				m_updateState = NXVTUpdateState::Finish;
+				return;
+			}
+
+			DeduplicatePages(pVTReadbackData);
+
+			// 越粗糙的page越优先，确保相对平滑
+			std::sort(m_duplicatedReadbackData.begin(), m_duplicatedReadbackData.end(),
+				[](const NXVTReadbackPageData& a, const NXVTReadbackPageData& b) {
+					return (a.log2IndiTexSize - a.gpuMip) < (b.log2IndiTexSize - b.gpuMip);
+				});
+
+			m_updateState = NXVTUpdateState::PhysicalPageBake;
+			m_bakeIndex = 0;
 		}
 		break;
 	case NXVTUpdateState::PhysicalPageBake:
-		m_updateState = NXVTUpdateState::Finish;
+		BakePhysicalPages();
+		RegisterBakePhysicalPagePass();
+		RegisterUpdateIndirectTexturePass();
+		if (m_bakeIndex == m_duplicatedReadbackData.size())
+			m_updateState = NXVTUpdateState::Finish;
 		break;
 	default:
 		break;
@@ -390,50 +415,19 @@ void NXVirtualTexture::UpdateNearestSectors()
 
 void NXVirtualTexture::BakePhysicalPages()
 {
-	if (m_vtReadbackData.IsNull())
-		return;
-
-	auto pVTReadbackData = m_vtReadbackData->Clone();
-	if (pVTReadbackData.empty())
-		return;
-
 	m_cbDataPhysPageBake.clear();
 	m_cbDataUpdateIndex.clear();
 
-	std::unordered_set<uint32_t> readbackSets;
-
-	// 给本帧看到的所有sector弄一个保底page
-	for (auto& [sector, virtImagePos] : m_sector2VirtImagePos)
-	{
-		Int2 sectorPositive = sector.id - g_terrainConfig.MinSectorID; // 正坐标
-		Int2 indiTexPosMip0 = sector.imageSize * virtImagePos;
-		uint32_t gpuMip = std::countr_zero((uint32_t)sector.imageSize);
-		Int2 pageID = indiTexPosMip0 >> gpuMip; // 最低一级像素
-
-		uint32_t encode = (pageID.x & 0xFFF) << 20 | (pageID.y & 0xFFF) << 8 | (gpuMip & 0xF) << 4 | gpuMip;
-		readbackSets.insert(encode);
-	}
-
-	const uint32_t* readbackData = reinterpret_cast<const uint32_t*>(pVTReadbackData.data());
-	uint32_t readbackDataNum = m_vtReadbackData->GetWidth();
-	for (int i = 0; i < readbackDataNum; i++)
-	{
-		// readbackData: xy = pageID, z = gpu mip, w = log2indiTexSize;
-		auto& data = readbackData[i];
-		if (data == 0xFFFFFFFF) continue;
-		readbackSets.insert(data);
-	}
-
-	std::vector<uint32_t> requeue;
 	auto& sectorVersionMap = m_pTerrainLODStreamer->GetSectorVersionMap();
-	int lruInsertNum = 0;
-	for (auto& data : readbackSets)
+	while (m_bakeIndex < (uint32_t)m_duplicatedReadbackData.size())
 	{
-		Int2 pageID((data >> 20) & 0xFFF, (data >> 8) & 0xFFF);
-		uint32_t gpuMip = (data >> 4) & 0xF;
-		uint32_t log2IndiTexSize = (data >> 0) & 0xF;
-		Int2 pageIDMip0 = pageID << gpuMip;
+		auto& data = m_duplicatedReadbackData[m_bakeIndex];
+		m_bakeIndex++;
 
+		Int2 pageID(data.pageID);
+		uint32_t gpuMip = data.gpuMip;
+		uint32_t log2IndiTexSize = data.log2IndiTexSize;
+		Int2 pageIDMip0 = pageID << gpuMip;
 		Int2 sectorID = m_pVirtImageQuadTree->GetSector(pageIDMip0, log2IndiTexSize);
 		if (sectorID != Int2(INT_MIN))
 		{
@@ -462,7 +456,6 @@ void NXVirtualTexture::BakePhysicalPages()
 				}
 
 				m_cbDataUpdateIndex.push_back(CBufferPhysPageUpdateIndex(cacheIdx, pageID, gpuMip));
-				lruInsertNum++;
 			}
 			else
 			{
@@ -476,7 +469,7 @@ void NXVirtualTexture::BakePhysicalPages()
 					uint32_t gpuMip = (removePage >> 4) & 0xF;
 					uint32_t log2IndiTexSize = (removePage >> 0) & 0xF;
 
-					if (!readbackSets.contains(removePage))
+					if (!m_readbackSets.contains(removePage))
 					{
 						m_cbDataUpdateIndex.push_back(CBufferPhysPageUpdateIndex(-1, pageID, gpuMip));
 
@@ -485,44 +478,23 @@ void NXVirtualTexture::BakePhysicalPages()
 							pageID.x, pageID.y, gpuMip, log2IndiTexSize,
 							key.sector.x, key.sector.y, key.pageID.x, key.pageID.y, key.gpuMip, key.indiTexLog2Size);
 					}
-
-					lruInsertNum++;
 				}
 
 				m_cbDataPhysPageBake.push_back(key);
 				m_cbDataUpdateIndex.push_back(CBufferPhysPageUpdateIndex(cacheIdx, pageID, gpuMip));
-				lruInsertNum++;
 
 				NXVTDebugger::GetInstance().Log(VTDBG_LRUInsert, "LRU Insert: %d, Sector: (%d, %d), PageID: (%d, %d), GPU Mip: %d, IndiTexLog2Size: %d, cacheIdx: %d\n", data, key.sector.x, key.sector.y, key.pageID.x, key.pageID.y, key.gpuMip, key.indiTexLog2Size, cacheIdx);
 			}
 
-			if (lruInsertNum >= UPDATE_INDIRECT_TEXTURE_PER_FRAME)
-			{
-				NXVTDebugger::GetInstance().Log(VTDBG_LRUWarning, "WARNING: UPDATE_INDIRECT_TEXTURE_PER_FRAME\n");
+			if (m_cbDataUpdateIndex.size() >= UPDATE_INDIRECT_TEXTURE_PER_FRAME)
 				break;
-			}
 
 			if (m_cbDataPhysPageBake.size() >= BAKE_PHYSICAL_PAGE_PER_FRAME)
-			{
-				NXVTDebugger::GetInstance().Log(VTDBG_LRUWarning, "WARNING: BAKE_PHYSICAL_PAGE_PER_FRAME\n");
 				break;
-			}
 		}
 	}
 
-	std::unordered_set<uint32_t> x;
-	for (auto& cb : m_cbDataUpdateIndex)
-	{
-		uint32_t test = (cb.pageID.x << 20) | (cb.pageID.y << 8) | (cb.mip << 4);
-		if (x.contains(test))
-		{
-			NXVTDebugger::GetInstance().Log(VTDBG_LRUWarning, "WARNING: page existed!\n");
-			break;
-		}
-		x.insert(test);
-	}
-
-	// Tracker: simulate per-pixel IndirectTexture updates on CPU side
+	// 在CPU层面同步模拟页表更新（调试用）
 	for (auto& cb : m_cbDataUpdateIndex)
 	{
 		NXVTDebugger::GetInstance().TrackerSimulateUpdateIndex(cb.index, cb.pageID, cb.mip);
@@ -530,6 +502,44 @@ void NXVirtualTexture::BakePhysicalPages()
 
 	m_cbPhysPageBake.Update(m_cbDataPhysPageBake);
 	m_cbUpdateIndex.Update(m_cbDataUpdateIndex);
+}
+
+void NXVirtualTexture::DeduplicatePages(const std::vector<uint8_t>& pVTReadbackData)
+{
+	m_readbackSets.clear();
+	m_duplicatedReadbackData.clear();
+
+	// 给本帧看到的所有sector弄一个保底page
+	for (auto& [sector, virtImagePos] : m_sector2VirtImagePos)
+	{
+		Int2 sectorPositive = sector.id - g_terrainConfig.MinSectorID; // 正坐标
+		Int2 indiTexPosMip0 = sector.imageSize * virtImagePos;
+		uint32_t gpuMip = std::countr_zero((uint32_t)sector.imageSize);
+		Int2 pageID = indiTexPosMip0 >> gpuMip; // 最低一级像素
+
+		uint32_t encode = (pageID.x & 0xFFF) << 20 | (pageID.y & 0xFFF) << 8 | (gpuMip & 0xF) << 4 | gpuMip;
+		m_readbackSets.insert(encode);
+	}
+
+	// GBuffer回读出来的page
+	const uint32_t* readbackData = reinterpret_cast<const uint32_t*>(pVTReadbackData.data());
+	uint32_t readbackDataNum = m_vtReadbackData->GetWidth();
+	for (int i = 0; i < readbackDataNum; i++)
+	{
+		// readbackData: xy = pageID, z = gpu mip, w = log2indiTexSize;
+		auto& data = readbackData[i];
+		if (data == 0xFFFFFFFF) continue;
+		m_readbackSets.insert(data);
+	}
+
+	for (auto& data : m_readbackSets)
+	{
+		Int2 pageID((data >> 20) & 0xFFF, (data >> 8) & 0xFFF);
+		uint32_t gpuMip = (data >> 4) & 0xF;
+		uint32_t log2IndiTexSize = (data >> 0) & 0xF;
+
+		m_duplicatedReadbackData.push_back({ pageID, gpuMip, log2IndiTexSize });
+	}
 }
 
 float NXVirtualTexture::GetDist2OfSectorToCamera(const Vector2& camPos, const Int2& sectorCorner)

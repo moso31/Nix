@@ -111,6 +111,13 @@ struct CBufferSector2VirtImg
 	int _0;
 };  
 
+struct NXVTReadbackPageData
+{
+	Int2 pageID;
+	uint32_t gpuMip;
+	uint32_t log2IndiTexSize;
+};
+
 class NXTexture2D;
 class NXTexture2DArray;
 class NXVirtualTexture
@@ -126,8 +133,8 @@ class NXVirtualTexture
 	constexpr static float	SECTOR_SIZEF_INV = 1.0 / SECTOR_SIZEF;
 	constexpr static size_t SECTOR_SIZE_LOG2 = 6;
 
-	constexpr static size_t BAKE_PHYSICAL_PAGE_PER_FRAME = 256; // 每帧最多烘焙的PhysicalPage数量
-	constexpr static size_t UPDATE_INDIRECT_TEXTURE_PER_FRAME = 1024; // 每帧最多更新的indirectTexture像素数
+	constexpr static size_t BAKE_PHYSICAL_PAGE_PER_FRAME = 4; // 每帧最多烘焙的PhysicalPage数量
+	constexpr static size_t UPDATE_INDIRECT_TEXTURE_PER_FRAME = 64; // 每帧最多更新的indirectTexture像素数
 
 	constexpr static size_t INDIRECT_TEXTURE_SIZE = 2048;
 
@@ -179,6 +186,7 @@ private:
 private:
 	void UpdateNearestSectors();
 	void BakePhysicalPages();
+	void DeduplicatePages(const std::vector<uint8_t>& pVTReadbackData);
 
 	// 获取sector-相机最近距离的 平方
 	float GetDist2OfSectorToCamera(const Vector2& camPos, const Int2& sectorPos);
@@ -241,6 +249,11 @@ private:
 	// 状态机，保证数据跨帧统一
 	NXVTUpdateState m_updateState = NXVTUpdateState::None;
 	bool m_bReadbackFinish = false;
+
+	// 去重相关
+	std::unordered_set<uint32_t> m_readbackSets;
+	std::vector<NXVTReadbackPageData> m_duplicatedReadbackData;
+	uint32_t m_bakeIndex = 0;
 
 	// RenderGraph passes
 	NXVTRenderGraphContext m_ctx;
