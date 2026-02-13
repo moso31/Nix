@@ -80,6 +80,7 @@ void NXGUIHoudiniTerrainExporter::RenderColumn1_HoudiniFiles()
 	ImGui::Text(ImUtf8("Height纹理: %d 个"), (int)m_heightExrFiles.size());
 	ImGui::Text(ImUtf8("Splat纹理: %d 个"), (int)m_splatExrFiles.size());
 	ImGui::Text(ImUtf8("Normal纹理: %d 个"), (int)m_normalExrFiles.size());
+	ImGui::Text(ImUtf8("Albedo纹理: %d 个"), (int)m_albedoExrFiles.size());
 
 	ImGui::Spacing();
 	ImGui::Separator();
@@ -183,11 +184,12 @@ void NXGUIHoudiniTerrainExporter::RenderColumn2_ConvertToDDS()
 	ImGui::InputInt2(ImUtf8("高度范围"), m_heightMapRange);
 	ImGui::Checkbox(ImUtf8("转换 SplatMap"), &m_bConvertSplatMap);
 	ImGui::Checkbox(ImUtf8("转换 NormalMap"), &m_bConvertNormalMap);
+	ImGui::Checkbox(ImUtf8("转换 AlbedoMap"), &m_bConvertAlbedoMap);
 
 	ImGui::Spacing();
 
 	// 转换按钮
-	bool canConvert = !m_heightExrFiles.empty() || !m_splatExrFiles.empty();
+	bool canConvert = !m_heightExrFiles.empty() || !m_splatExrFiles.empty() || !m_normalExrFiles.empty() || !m_albedoExrFiles.empty();
 	if (!canConvert)
 		ImGui::BeginDisabled();
 	
@@ -238,6 +240,7 @@ void NXGUIHoudiniTerrainExporter::RenderColumn2_ConvertToDDS()
 			ImGui::TextWrapped(ImUtf8("HeightMap: %s"), dds.heightMapPath.string().c_str());
 			ImGui::TextWrapped(ImUtf8("SplatMap: %s"), dds.splatMapPath.string().c_str());
 			ImGui::TextWrapped(ImUtf8("NormalMap: %s"), dds.normalMapPath.string().c_str());
+			ImGui::TextWrapped(ImUtf8("AlbedoMap: %s"), dds.albedoMapPath.string().c_str());
 		}
 	}
 	else
@@ -267,6 +270,7 @@ void NXGUIHoudiniTerrainExporter::RenderColumn3_BakeSubTiles()
 	ImGui::Checkbox(ImUtf8("烘焙 HeightMap 子区域"), &m_bBakeHeightMapSubTiles);
 	ImGui::Checkbox(ImUtf8("烘焙 SplatMap 子区域"), &m_bBakeSplatMapSubTiles);
 	ImGui::Checkbox(ImUtf8("烘焙 NormalMap 子区域"), &m_bBakeNormalMapSubTiles);
+	ImGui::Checkbox(ImUtf8("烘焙 AlbedoMap 子区域"), &m_bBakeAlbedoMapSubTiles);
 
 	ImGui::Spacing();
 
@@ -286,7 +290,7 @@ void NXGUIHoudiniTerrainExporter::RenderColumn3_BakeSubTiles()
 	ImGui::Separator();
 
 	// 检查是否有DDS文件可供烘焙
-	bool canBake = !m_nixDdsFiles.empty() && (m_bBakeHeightMapSubTiles || m_bBakeSplatMapSubTiles || m_bBakeNormalMapSubTiles);
+	bool canBake = !m_nixDdsFiles.empty() && (m_bBakeHeightMapSubTiles || m_bBakeSplatMapSubTiles || m_bBakeNormalMapSubTiles || m_bBakeAlbedoMapSubTiles);
 	if (!canBake)
 		ImGui::BeginDisabled();
 
@@ -297,6 +301,7 @@ void NXGUIHoudiniTerrainExporter::RenderColumn3_BakeSubTiles()
 		bakeConfig.bGenerateHeightMap = m_bBakeHeightMapSubTiles;
 		bakeConfig.bGenerateSplatMap = m_bBakeSplatMapSubTiles;
 		bakeConfig.bGenerateNormalMap = m_bBakeNormalMapSubTiles;
+		bakeConfig.bGenerateAlbedoMap = m_bBakeAlbedoMapSubTiles;
 
 		// 遍历所有DDS文件，构建烘焙数据
 		for (const auto& ddsInfo : m_nixDdsFiles)
@@ -312,6 +317,7 @@ void NXGUIHoudiniTerrainExporter::RenderColumn3_BakeSubTiles()
 			perTerrainBakeData.pathHeightMap = terrainDir / "hmap.dds";
 			perTerrainBakeData.pathSplatMap = terrainDir / "splatmap.dds";
 			perTerrainBakeData.pathNormalMap = terrainDir / "nmap.dds";
+			perTerrainBakeData.pathAlbedoMap = terrainDir / "albedo.dds";
 
 			bakeConfig.bakeTerrains.push_back(perTerrainBakeData);
 		}
@@ -361,6 +367,13 @@ void NXGUIHoudiniTerrainExporter::RenderColumn4_Compose2DArray()
 	ImGui::InputText("##NormalArrayPath", m_normalArrayPath, sizeof(m_normalArrayPath));
 
 	ImGui::Spacing();
+
+	// AlbedoMap 2DArray路径
+	ImGui::Checkbox(ImUtf8("合成 AlbedoMap 2DArray"), &m_bComposeAlbedoArray);
+	ImGui::SetNextItemWidth(-1);
+	ImGui::InputText("##AlbedoArrayPath", m_albedoArrayPath, sizeof(m_albedoArrayPath));
+
+	ImGui::Spacing();
 	ImGui::Separator();
 
 	// 排序设置
@@ -392,6 +405,8 @@ void NXGUIHoudiniTerrainExporter::RenderColumn4_Compose2DArray()
 			ComposeSplatMap2DArray();
 		if (m_bComposeNormalArray)
 			ComposeNormalMap2DArray();
+		if (m_bComposeAlbedoArray)
+			ComposeAlbedoMap2DArray();
 	}
 
 	if (!canCompose)
@@ -429,9 +444,11 @@ void NXGUIHoudiniTerrainExporter::ScanHoudiniExrFiles()
 	m_heightExrFiles.clear();
 	m_splatExrFiles.clear();
 	m_normalExrFiles.clear();
+	m_albedoExrFiles.clear();
 	m_selectedHeightExrIndex = 0;
 	m_selectedSplatExrIndex = 0;
 	m_selectedNormalExrIndex = 0;
+	m_selectedAlbedoExrIndex = 0;
 
 	std::filesystem::path basePath(m_houdiniBasePath);
 
@@ -486,6 +503,23 @@ void NXGUIHoudiniTerrainExporter::ScanHoudiniExrFiles()
 		}
 	}
 
+	// 扫描albedo文件夹
+	std::filesystem::path albedoDir = basePath / "albedo";
+	if (std::filesystem::exists(albedoDir) && std::filesystem::is_directory(albedoDir))
+	{
+		for (const auto& entry : std::filesystem::directory_iterator(albedoDir))
+		{
+			if (entry.is_regular_file() && entry.path().extension() == ".exr")
+			{
+				HoudiniExrFileInfo info;
+				info.fullPath = entry.path();
+				info.fileName = entry.path().filename().string();
+				ParseTileCoord(info.fileName, info.tileX, info.tileY);
+				m_albedoExrFiles.push_back(info);
+			}
+		}
+	}
+
 	//// 按坐标排序
 	//auto sortByCoord = [](const HoudiniExrFileInfo& a, const HoudiniExrFileInfo& b) {
 	//	if (a.tileY != b.tileY) return a.tileY < b.tileY;
@@ -526,9 +560,10 @@ void NXGUIHoudiniTerrainExporter::ScanNixDdsFiles()
 		info.heightMapPath = entry.path() / "hmap.dds";
 		info.splatMapPath = entry.path() / "splatmap.dds";
 		info.normalMapPath = entry.path() / "nmap.dds";
+		info.albedoMapPath = entry.path() / "albedo.dds";
 
 		// 检查文件是否存在
-		if (std::filesystem::exists(info.heightMapPath) || std::filesystem::exists(info.splatMapPath) || std::filesystem::exists(info.normalMapPath))
+		if (std::filesystem::exists(info.heightMapPath) || std::filesystem::exists(info.splatMapPath) || std::filesystem::exists(info.normalMapPath) || std::filesystem::exists(info.albedoMapPath))
 		{
 			m_nixDdsFiles.push_back(info);
 
@@ -763,6 +798,87 @@ void NXGUIHoudiniTerrainExporter::ConvertExrToNormalMapDDS(const HoudiniExrFileI
 	}
 }
 
+void NXGUIHoudiniTerrainExporter::ConvertExrToAlbedoMapDDS(const HoudiniExrFileInfo& exrInfo, const std::filesystem::path& outPath)
+{
+	// 使用tinyexr读取EXR文件 (32位浮点RGBA)
+	float* exrData = nullptr;
+	int width, height;
+	const char* err = nullptr;
+	
+	int ret = LoadEXR(&exrData, &width, &height, exrInfo.fullPath.string().c_str(), &err);
+	if (ret != TINYEXR_SUCCESS) 
+	{
+		if (err) 
+		{
+			printf("EXR加载失败: %s\n", err);
+			FreeEXRErrorMessage(err);
+		}
+		return;
+	}
+
+	// 先创建R8G8B8A8_UNORM纹理作为中间格式
+	ScratchImage imgUncompressed;
+	HRESULT hr = imgUncompressed.Initialize2D(DXGI_FORMAT_R8G8B8A8_UNORM, width, height, 1, 1);
+	if (FAILED(hr))
+	{
+		printf("ConvertExrToAlbedoMapDDS: Initialize2D 失败\n");
+		free(exrData);
+		return;
+	}
+	
+	const Image* dst = imgUncompressed.GetImage(0, 0, 0);
+	
+	// EXR是RGBA格式，stride=4
+	// Albedo颜色值在0-1范围内，直接使用
+	for (int y = 0; y < height; ++y) 
+	{
+		uint8_t* dstRow = dst->pixels + y * dst->rowPitch;
+		for (int x = 0; x < width; ++x) 
+		{
+			int srcIdx = (y * width + x) * 4; // RGBA
+			float r = exrData[srcIdx];     // R通道
+			float g = exrData[srcIdx + 1]; // G通道
+			float b = exrData[srcIdx + 2]; // B通道
+			float a = exrData[srcIdx + 3]; // A通道
+			
+			// 直接clamp到0-1并转换
+			int dstIdx = x * 4;
+			dstRow[dstIdx]     = static_cast<uint8_t>(std::clamp(r, 0.0f, 1.0f) * 255.0f);
+			dstRow[dstIdx + 1] = static_cast<uint8_t>(std::clamp(g, 0.0f, 1.0f) * 255.0f);
+			dstRow[dstIdx + 2] = static_cast<uint8_t>(std::clamp(b, 0.0f, 1.0f) * 255.0f);
+			dstRow[dstIdx + 3] = static_cast<uint8_t>(std::clamp(a, 0.0f, 1.0f) * 255.0f);
+		}
+	}
+	
+	free(exrData);
+	
+	// 压缩为BC3格式
+	ScratchImage imgCompressed;
+	hr = Compress(imgUncompressed.GetImages(), imgUncompressed.GetImageCount(), imgUncompressed.GetMetadata(),
+				  DXGI_FORMAT_BC3_UNORM, TEX_COMPRESS_DEFAULT, TEX_THRESHOLD_DEFAULT, imgCompressed);
+	if (FAILED(hr))
+	{
+		printf("ConvertExrToAlbedoMapDDS: BC3压缩失败\n");
+		return;
+	}
+	
+	// 确保目录存在
+	std::filesystem::create_directories(outPath.parent_path());
+	
+	// 保存DDS
+	hr = SaveToDDSFile(imgCompressed.GetImages(), imgCompressed.GetImageCount(), imgCompressed.GetMetadata(), 
+				  DDS_FLAGS_NONE, outPath.wstring().c_str());
+	if (FAILED(hr))
+	{
+		printf("ConvertExrToAlbedoMapDDS: 保存DDS失败 %s\n", outPath.string().c_str());
+	}
+	else
+	{
+		printf("ConvertExrToAlbedoMapDDS: %s -> %s 成功\n", 
+			   exrInfo.fullPath.string().c_str(), outPath.string().c_str());
+	}
+}
+
 void NXGUIHoudiniTerrainExporter::ExecuteConvertAll()
 {
 	std::filesystem::path outputBase(m_nixOutputPath);
@@ -806,6 +922,20 @@ void NXGUIHoudiniTerrainExporter::ExecuteConvertAll()
 			
 			std::filesystem::create_directories(outDir);
 			ConvertExrToNormalMapDDS(exr, outPath);
+		}
+	}
+
+	// 转换AlbedoMap
+	if (m_bConvertAlbedoMap)
+	{
+		for (const auto& exr : m_albedoExrFiles)
+		{
+			std::string terrainId = std::to_string(exr.tileX) + "_" + std::to_string(exr.tileY);
+			std::filesystem::path outDir = outputBase / terrainId;
+			std::filesystem::path outPath = outDir / "albedo.dds";
+			
+			std::filesystem::create_directories(outDir);
+			ConvertExrToAlbedoMapDDS(exr, outPath);
 		}
 	}
 
@@ -912,8 +1042,8 @@ void NXGUIHoudiniTerrainExporter::ComposeMinMaxZ2DArray()
 	constexpr uint32_t kMip0Height = kSrcHeight / kStep;
 	constexpr int kMipLevels = 6;
 
-	float kMinHeight = m_heightMapRange[0];
-	float kMaxHeight = m_heightMapRange[1];
+	float kMinHeight = (float)m_heightMapRange[0];
+	float kMaxHeight = (float)m_heightMapRange[1];
 
 	auto pImage = std::make_unique<ScratchImage>();
 	HRESULT hr = pImage->Initialize2D(DXGI_FORMAT_R32G32_FLOAT, kMip0Width, kMip0Height, arraySize, kMipLevels);
@@ -1260,6 +1390,123 @@ void NXGUIHoudiniTerrainExporter::ComposeNormalMap2DArray()
 	else
 	{
 		printf("ComposeNormalMap2DArray: 保存成功 %s\n", outPath.string().c_str());
+	}
+}
+
+void NXGUIHoudiniTerrainExporter::ComposeAlbedoMap2DArray()
+{
+	if (m_nixDdsFiles.empty())
+		return;
+
+	auto sortedIndices = GetSortedSliceIndices();
+	uint32_t arraySize = static_cast<uint32_t>(sortedIndices.size());
+
+	// 假设所有albedomap尺寸相同
+	constexpr uint32_t kWidth = 2049;
+	constexpr uint32_t kHeight = 2049;
+
+	// 先创建未压缩的R8G8B8A8纹理数组
+	std::unique_ptr<ScratchImage> texArrayUncompressed = std::make_unique<ScratchImage>();
+	HRESULT hr = texArrayUncompressed->Initialize2D(DXGI_FORMAT_R8G8B8A8_UNORM, kWidth, kHeight, arraySize, 1);
+	if (FAILED(hr))
+	{
+		printf("ComposeAlbedoMap2DArray: Initialize2D 失败\n");
+		return;
+	}
+
+	for (uint32_t sliceIdx = 0; sliceIdx < arraySize; ++sliceIdx)
+	{
+		int fileIdx = sortedIndices[sliceIdx];
+		if (fileIdx < 0 || fileIdx >= (int)m_nixDdsFiles.size())
+			continue;
+
+		const auto& ddsInfo = m_nixDdsFiles[fileIdx];
+		
+		// 读取单个DDS文件（可能是BC3压缩的）
+		TexMetadata meta;
+		ScratchImage srcImg;
+		hr = LoadFromDDSFile(ddsInfo.albedoMapPath.wstring().c_str(), DDS_FLAGS_NONE, &meta, srcImg);
+		
+		if (SUCCEEDED(hr))
+		{
+			// 如果是压缩格式，先解压
+			ScratchImage decompressedImg;
+			const ScratchImage* pSrcImg = &srcImg;
+			if (IsCompressed(meta.format))
+			{
+				hr = Decompress(srcImg.GetImages(), srcImg.GetImageCount(), srcImg.GetMetadata(),
+								DXGI_FORMAT_R8G8B8A8_UNORM, decompressedImg);
+				if (SUCCEEDED(hr))
+				{
+					pSrcImg = &decompressedImg;
+					meta = decompressedImg.GetMetadata();
+				}
+			}
+
+			const Image* src = pSrcImg->GetImage(0, 0, 0);
+			const Image* dst = texArrayUncompressed->GetImage(0, sliceIdx, 0);
+			
+			if (src && dst && meta.width == kWidth && meta.height == kHeight)
+			{
+				// 逐行复制
+				for (uint32_t y = 0; y < kHeight; ++y)
+				{
+					const uint8_t* srcRow = src->pixels + y * src->rowPitch;
+					uint8_t* dstRow = dst->pixels + y * dst->rowPitch;
+					std::memcpy(dstRow, srcRow, kWidth * 4);
+				}
+			}
+			else
+			{
+				printf("ComposeAlbedoMap2DArray: 尺寸不匹配 %s\n", ddsInfo.albedoMapPath.string().c_str());
+			}
+		}
+		else
+		{
+			printf("ComposeAlbedoMap2DArray: 加载失败 %s\n", ddsInfo.albedoMapPath.string().c_str());
+			// 填充默认黑色 (0, 0, 0, 1)
+			const Image* dst = texArrayUncompressed->GetImage(0, sliceIdx, 0);
+			if (dst)
+			{
+				for (uint32_t y = 0; y < kHeight; ++y)
+				{
+					uint8_t* dstRow = dst->pixels + y * dst->rowPitch;
+					for (uint32_t x = 0; x < kWidth; ++x)
+					{
+						int idx = x * 4;
+						dstRow[idx]     = 0;   // R
+						dstRow[idx + 1] = 0;   // G
+						dstRow[idx + 2] = 0;   // B
+						dstRow[idx + 3] = 255; // A
+					}
+				}
+			}
+		}
+	}
+
+	// 压缩为BC3格式
+	std::unique_ptr<ScratchImage> texArrayCompressed = std::make_unique<ScratchImage>();
+	hr = Compress(texArrayUncompressed->GetImages(), texArrayUncompressed->GetImageCount(), texArrayUncompressed->GetMetadata(),
+				  DXGI_FORMAT_BC3_UNORM, TEX_COMPRESS_DEFAULT, TEX_THRESHOLD_DEFAULT, *texArrayCompressed);
+	if (FAILED(hr))
+	{
+		printf("ComposeAlbedoMap2DArray: BC3压缩失败\n");
+		return;
+	}
+
+	// 保存2DArray
+	std::filesystem::path outPath(m_albedoArrayPath);
+	std::filesystem::create_directories(outPath.parent_path());
+	
+	hr = SaveToDDSFile(texArrayCompressed->GetImages(), texArrayCompressed->GetImageCount(), 
+					   texArrayCompressed->GetMetadata(), DDS_FLAGS_NONE, outPath.wstring().c_str());
+	if (FAILED(hr))
+	{
+		printf("ComposeAlbedoMap2DArray: 保存失败 %s\n", outPath.string().c_str());
+	}
+	else
+	{
+		printf("ComposeAlbedoMap2DArray: 保存成功 %s\n", outPath.string().c_str());
 	}
 }
 

@@ -10,6 +10,7 @@ struct PerTerrainBakeData
 	std::filesystem::path pathHeightMap; // 高度图路径
 	std::filesystem::path pathSplatMap; // SplatMap路径
 	std::filesystem::path pathNormalMap; // NormalMap路径
+	std::filesystem::path pathAlbedoMap; // AlbedoMap路径
 };
 
 struct TerrainTexLODBakeConfig
@@ -19,6 +20,7 @@ struct TerrainTexLODBakeConfig
 	bool bGenerateHeightMap = true; // 是否生成HeightMap
 	bool bGenerateSplatMap = true; // 是否生成SplatMap
 	bool bGenerateNormalMap = true; // 是否生成NormalMap
+	bool bGenerateAlbedoMap = true; // 是否生成AlbedoMap
 };
 
 class NXTextureMaker
@@ -70,6 +72,7 @@ private:
 	static void GenerateTerrainStreamingLODMaps_HeightMap(const TerrainTexLODBakeConfig& bakeConfig);
 	static void GenerateTerrainStreamingLODMaps_SplatMap(const TerrainTexLODBakeConfig& bakeConfig);
 	static void GenerateTerrainStreamingLODMaps_NormalMap(const TerrainTexLODBakeConfig& bakeConfig);
+	static void GenerateTerrainStreamingLODMaps_AlbedoMap(const TerrainTexLODBakeConfig& bakeConfig);
 
 	// 保存地形Tile DDS纹理
 	// src：源数据指针（整个高度图数据）
@@ -79,5 +82,6 @@ private:
 	static void SaveTerrainTileHeightMap(const std::filesystem::path& outPath, const uint16_t* src, uint32_t srcW, uint32_t srcH, uint32_t startX, uint32_t startY, uint32_t tileSize);
 	static void SaveTerrainTileSplatMap(const std::filesystem::path& outPath, const uint8_t* src, uint32_t srcW, uint32_t srcH, uint32_t startX, uint32_t startY, uint32_t tileSize);
 	static void SaveTerrainTileNormalMap(const std::filesystem::path& outPath, const uint32_t* src, uint32_t srcW, uint32_t srcH, uint32_t startX, uint32_t startY, uint32_t tileSize);
+	static void SaveTerrainTileAlbedoMap(const std::filesystem::path& outPath, const uint32_t* src, uint32_t srcW, uint32_t srcH, uint32_t startX, uint32_t startY, uint32_t tileSize);
 };
 

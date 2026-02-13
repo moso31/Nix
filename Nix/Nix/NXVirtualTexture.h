@@ -203,6 +203,7 @@ private:
 	std::vector<NXVTSector> m_sectors;
 	std::vector<NXVTSector> m_lastSectors;
 
+	// 回读RTSize
 	Vector4 m_cbDataVTReadback;
 	NXConstantBuffer<Vector4> m_cbVTReadback;
 
@@ -225,6 +226,7 @@ private:
 	NXVTLRUCache m_lruCache;
 	std::vector<uint32_t> m_physPageSlotSectorVersion;
 
+	// 物理页烘焙
 	NXConstantBuffer<std::vector<NXVTLRUKey>> m_cbPhysPageBake;
 	std::vector<NXVTLRUKey> m_cbDataPhysPageBake;
 	NXConstantBuffer<std::vector<CBufferPhysPageUpdateIndex>> m_cbUpdateIndex;
@@ -232,6 +234,7 @@ private:
 	Ntr<NXTexture2DArray> m_pPhysicalPageAlbedo;
 	Ntr<NXTexture2DArray> m_pPhysicalPageNormal;
 
+	// 页表
 	Ntr<NXTexture2D> m_pIndirectTexture;
 
 	// UpdateNearestSector时配套的 页表(indirectTexture)同步

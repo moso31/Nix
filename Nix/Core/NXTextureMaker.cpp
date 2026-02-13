@@ -273,6 +273,47 @@ void NXTextureMaker::SaveTerrainTileNormalMap(const std::filesystem::path& outPa
         throw std::runtime_error("保存 NormalMap DDS 失败: " + outPath.string());
 }
 
+void NXTextureMaker::SaveTerrainTileAlbedoMap(const std::filesystem::path& outPath, const uint32_t* src, uint32_t srcW, uint32_t srcH, uint32_t startX, uint32_t startY, uint32_t tileSize)
+{
+    const uint32_t kMinTileSize = g_terrainConfig.SectorSize + 1; // 65
+
+    // 输出大小=kMinTileSize的Tile，如果输入tileSize超过这个大小，就做降采样
+    // 先创建未压缩的R8G8B8A8纹理
+    ScratchImage imgUncompressed;
+    HRESULT hr = imgUncompressed.Initialize2D(DXGI_FORMAT_R8G8B8A8_UNORM, kMinTileSize, kMinTileSize, /*arraySize*/1, /*mipLevels*/1);
+    if (FAILED(hr)) throw std::runtime_error("ScratchImage::Initialize2D 失败");
+
+    const Image* dst = imgUncompressed.GetImage(0, 0, 0);
+    uint8_t* dstBase = dst->pixels;
+    const size_t dstRowPitch = dst->rowPitch;
+
+    // 专门针对2整数幂的点降采样
+    const uint32_t step = (tileSize - 1u) / (kMinTileSize - 1u); 
+    for (uint32_t y = 0; y < kMinTileSize; ++y)
+    {
+        const uint32_t sy = startY + y * step;
+        const uint32_t* srcRow = src + size_t(sy) * srcW;
+
+        uint32_t* dstRow = reinterpret_cast<uint32_t*>(dstBase + size_t(y) * dstRowPitch);
+        for (uint32_t x = 0; x < kMinTileSize; ++x)
+        {
+            const uint32_t sx = startX + x * step;
+            dstRow[x] = srcRow[sx];
+        }
+    }
+
+    // 压缩为BC3格式
+    ScratchImage imgCompressed;
+    hr = Compress(imgUncompressed.GetImages(), imgUncompressed.GetImageCount(), imgUncompressed.GetMetadata(),
+                  DXGI_FORMAT_BC3_UNORM, TEX_COMPRESS_DEFAULT, TEX_THRESHOLD_DEFAULT, imgCompressed);
+    if (FAILED(hr))
+        throw std::runtime_error("BC3压缩失败: " + outPath.string());
+
+    hr = SaveToDDSFile(imgCompressed.GetImages(), imgCompressed.GetImageCount(), imgCompressed.GetMetadata(), DDS_FLAGS_NONE, outPath.wstring().c_str());
+    if (FAILED(hr))
+        throw std::runtime_error("保存 AlbedoMap DDS 失败: " + outPath.string());
+}
+
 void NXTextureMaker::GenerateTerrainHeightMap2DArray(const TerrainTexLODBakeConfig& bakeConfig, uint32_t nodeCountX, uint32_t nodeCountY, uint32_t width, uint32_t height, const std::filesystem::path& outDDSPath, std::function<void()> onProgressCount)
 {
     auto& rawPaths = bakeConfig.bakeTerrains;
@@ -601,6 +642,10 @@ void NXTextureMaker::GenerateTerrainStreamingLODMaps(const TerrainTexLODBakeConf
     {
         GenerateTerrainStreamingLODMaps_NormalMap(bakeConfig);
     }
+    if (bakeConfig.bGenerateAlbedoMap)
+    {
+        GenerateTerrainStreamingLODMaps_AlbedoMap(bakeConfig);
+    }
 }
 
 void NXTextureMaker::GenerateTerrainStreamingLODMaps_HeightMap(const TerrainTexLODBakeConfig& bakeConfig)
@@ -776,6 +821,62 @@ void NXTextureMaker::GenerateTerrainStreamingLODMaps_NormalMap(const TerrainTexL
 
                     printf("生成 NormalMap LOD%d tile (%d,%d) : %s\n", L, tx, ty, outPath.string().c_str());
                     SaveTerrainTileNormalMap(outPath, base.data(), kBaseSize, kBaseSize, startX, startY, tileSize);
+                }
+            }
+        }
+    }
+}
+
+void NXTextureMaker::GenerateTerrainStreamingLODMaps_AlbedoMap(const TerrainTexLODBakeConfig& bakeConfig)
+{
+    const uint32_t kMinTileSize = g_terrainConfig.SectorSize + 1; // 65
+    auto& rawPaths = bakeConfig.bakeTerrains;
+
+    for (const auto& item : rawPaths)
+    {
+        const auto& rawPath = item.pathAlbedoMap;
+
+        // 1) 读取原始 RGBA8 DDS（BC3压缩会自动解压）
+        std::vector<uint32_t> base;
+        ReadTerrainDDSRGBA8Unorm(rawPath, base);
+
+        // 2) 输出目录："<tile_dir>\sub\albedo\"
+        const std::filesystem::path tileDir = rawPath.parent_path();
+        const std::filesystem::path outDir = tileDir / "sub" / "albedo";
+        EnsureDir(outDir);
+
+        // 3) 遍历 LOD 层级（0..5）
+        for (uint32_t L = 0; ; ++L)
+        {
+            const uint32_t nTiles = 1u << L;
+            const uint32_t tileSize = (kBaseSize - 1u) / nTiles + 1u; // 2049 -> 1025 -> 513 -> ...
+            if (tileSize < kMinTileSize) break;                       // 到 65 为止（LOD5）
+
+            const uint32_t stride = tileSize - 1u; // 子块起点步长（含重叠边）
+
+            for (uint32_t ty = 0; ty < nTiles; ++ty)
+            {
+                const uint32_t startY = ty * stride;
+
+                for (uint32_t tx = 0; tx < nTiles; ++tx)
+                {
+                    const uint32_t startX = tx * stride;
+
+                    // 文件名：<size>_<x>_<y>.dds 例如：1025_0_1.dds
+                    std::wstring fname = std::to_wstring(tileSize) + L"_" +
+                        std::to_wstring(tx) + L"_" +
+                        std::to_wstring(ty) + L".dds";
+                    const auto outPath = outDir / fname;
+
+                    // 检查文件是否存在，如果不强制生成且文件已存在则跳过
+                    if (!bakeConfig.bForceGenerate && std::filesystem::exists(outPath))
+                    {
+                        printf("跳过已存在的 AlbedoMap LOD%d tile (%d,%d) : %s\n", L, tx, ty, outPath.string().c_str());
+                        continue;
+                    }
+
+                    printf("生成 AlbedoMap LOD%d tile (%d,%d) : %s\n", L, tx, ty, outPath.string().c_str());
+                    SaveTerrainTileAlbedoMap(outPath, base.data(), kBaseSize, kBaseSize, startX, startY, tileSize);
                 }
             }
         }
