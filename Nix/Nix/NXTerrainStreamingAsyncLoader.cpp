@@ -27,6 +27,7 @@ void NXTerrainStreamingAsyncLoader::Update()
 		nextTask.pHeightMap = NXManager_Tex->CreateTexture2D(it->heightMap.name, it->heightMap.path, true);
 		nextTask.pSplatMap  = NXManager_Tex->CreateTexture2D(it->splatMap.name, it->splatMap.path, true);
 		nextTask.pNormalMap = NXManager_Tex->CreateTexture2D(it->normalMap.name, it->normalMap.path, true);
+		nextTask.pAlbedoMap = NXManager_Tex->CreateTexture2D(it->albedoMap.name, it->albedoMap.path, true);
 		nextTask.replacePositionWS = it->replacePositionWS;
 		nextTask.replaceSize = it->replaceSize;
 
@@ -45,7 +46,8 @@ void NXTerrainStreamingAsyncLoader::Update()
 
 		if (it->pHeightMap.IsValid() && it->pHeightMap->IsLoadReady() && 
 			it->pSplatMap.IsValid() && it->pSplatMap->IsLoadReady() && 
-			it->pNormalMap.IsValid() && it->pNormalMap->IsLoadReady())
+			it->pNormalMap.IsValid() && it->pNormalMap->IsLoadReady() &&
+			it->pAlbedoMap.IsValid() && it->pAlbedoMap->IsLoadReady())
 		{
 			m_computeTasks.push_back(std::move(*it));
 			it = m_loadingTasks.erase(it);

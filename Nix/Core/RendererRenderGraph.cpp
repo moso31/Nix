@@ -33,7 +33,7 @@
 // Terrain Streaming Passes
 // =====================================================
 
-void Renderer::BuildTerrainStreamingPasses(NXRGHandle hSector2VirtImg, NXRGHandle pSector2NodeIDTex, NXRGHandle hHeightMapAtlas, NXRGHandle hSplatMapAtlas, NXRGHandle hNormalMapAtlas)
+void Renderer::BuildTerrainStreamingPasses(NXRGHandle hSector2VirtImg, NXRGHandle pSector2NodeIDTex, NXRGHandle hHeightMapAtlas, NXRGHandle hSplatMapAtlas, NXRGHandle hNormalMapAtlas, NXRGHandle hAlbedoMapAtlas)
 {
 	auto& pStreamingData = m_pTerrainLODStreamer->GetStreamingData();
 
@@ -70,11 +70,13 @@ void Renderer::BuildTerrainStreamingPasses(NXRGHandle hSector2VirtImg, NXRGHandl
 		std::vector<NXRGHandle> hToAtlasHeightTextures(groupNum);
 		std::vector<NXRGHandle> hToAtlasSplatTextures(groupNum);
 		std::vector<NXRGHandle> hToAtlasNormalTextures(groupNum);
+		std::vector<NXRGHandle> hToAtlasAlbedoTextures(groupNum);
 		for (int i = 0; i < groupNum; i++)
 		{
 			hToAtlasHeightTextures[i] = m_pRenderGraph->Import(pStreamingData.GetToAtlasHeightTextures()[i]);
 			hToAtlasSplatTextures[i] = m_pRenderGraph->Import(pStreamingData.GetToAtlasSplatTextures()[i]);
 			hToAtlasNormalTextures[i] = m_pRenderGraph->Import(pStreamingData.GetToAtlasNormalTextures()[i]);
+			hToAtlasAlbedoTextures[i] = m_pRenderGraph->Import(pStreamingData.GetToAtlasAlbedoTextures()[i]);
 		}
 
 		m_pRenderGraph->AddPass<TerrainAtlasBakerPassData>("Terrain Atlas Baker: Height",
@@ -142,6 +144,30 @@ void Renderer::BuildTerrainStreamingPasses(NXRGHandle hSector2VirtImg, NXRGHandl
 				pMat->SetConstantBuffer(0, 0, &pStreamingData.GetNodeDescUpdateIndices());
 
 				uint32_t threadGroups = (g_terrainStreamConfig.AtlasNormalMapSize + 7) / 8;
+				pMat->RenderSetTargetAndState(pCmdList);
+				pMat->RenderBefore(pCmdList);
+				pCmdList->Dispatch(threadGroups, threadGroups, groupNum);
+			});
+
+		m_pRenderGraph->AddPass<TerrainAtlasBakerPassData>("Terrain Atlas Baker: Albedo",
+			[&, groupNum](NXRGBuilder& builder, TerrainAtlasBakerPassData& data) {
+				data.pIn.resize(groupNum);
+				for (int i = 0; i < groupNum; i++)
+				{
+					data.pIn[i] = builder.Read(hToAtlasAlbedoTextures[i]);
+				}
+				data.pOutAtlas = builder.Write(hAlbedoMapAtlas);
+			},
+			[&, groupNum](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, TerrainAtlasBakerPassData& data) {
+				auto pMat = static_cast<NXComputePassMaterial*>(NXPassMng->GetPassMaterial("TerrainAtlasBaker:Float4"));
+				for (int i = 0; i < groupNum; i++)
+				{
+					pMat->SetInput(0, i, resMap.GetRes(data.pIn[i]));
+				}
+				pMat->SetOutput(0, 1, resMap.GetRes(data.pOutAtlas)); // TerrainAtlasBaker:Float4 用u1 而不是u0
+				pMat->SetConstantBuffer(0, 0, &pStreamingData.GetNodeDescUpdateIndices());
+
+				uint32_t threadGroups = (g_terrainStreamConfig.AtlasAlbedoMapSize + 7) / 8;
 				pMat->RenderSetTargetAndState(pCmdList);
 				pMat->RenderBefore(pCmdList);
 				pCmdList->Dispatch(threadGroups, threadGroups, groupNum);

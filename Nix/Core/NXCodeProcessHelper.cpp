@@ -485,8 +485,9 @@ StructuredBuffer<TerrainPatchData> m_patchBuffer : register(t0, space1);
 Texture2DArray m_terrainHeightMap : register(t1, space1);
 Texture2DArray m_terrainSplatMap : register(t2, space1);
 Texture2DArray m_terrainNormalMap : register(t3, space1);
-Texture2DArray m_txTerrainBaseColor : register(t4, space1);
-Texture2DArray m_txTerrainNormalMap : register(t5, space1);
+Texture2DArray m_terrainAlbedoMap : register(t4, space1);
+Texture2DArray m_txTerrainBaseColor : register(t5, space1);
+Texture2DArray m_txTerrainNormalMap : register(t6, space1);
 
 RWTexture2D<uint> m_VTPageIDBuffer : register(u0, space0);
 Texture2D<uint> m_VTSector2VirtImg : register(t0, space2);

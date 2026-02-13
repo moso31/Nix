@@ -28,6 +28,7 @@ struct TerrainStreamingLoadRequest
 	StringDatas heightMap;
 	StringDatas splatMap;
 	StringDatas normalMap;
+	StringDatas albedoMap;
 
 	// 是否替换nodeDescArray中的旧data
 	// 旧data只需记录位置和size，能擦除就行
@@ -47,6 +48,7 @@ struct NXTerrainStreamingLoadTextureResult
 	Ntr<NXTexture2D> pHeightMap;
 	Ntr<NXTexture2D> pSplatMap;
 	Ntr<NXTexture2D> pNormalMap;
+	Ntr<NXTexture2D> pAlbedoMap;
 	Int2 replacePositionWS;
 	int replaceSize;
 };

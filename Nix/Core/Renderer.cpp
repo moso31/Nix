@@ -140,6 +140,7 @@ void Renderer::GenerateRenderGraph()
 	NXRGHandle hHeightMapAtlas = m_pRenderGraph->Import(pStreamingData.GetHeightMapAtlas());
 	NXRGHandle hSplatMapAtlas = m_pRenderGraph->Import(pStreamingData.GetSplatMapAtlas());
 	NXRGHandle hNormalMapAtlas = m_pRenderGraph->Import(pStreamingData.GetNormalMapAtlas());
+	NXRGHandle hAlbedoMapAtlas = m_pRenderGraph->Import(pStreamingData.GetAlbedoMapAtlas());
 	NXRGHandle hAlbedoMapArray = m_pRenderGraph->Import(pStreamingData.GetTerrainAlbedo2DArray());
 	NXRGHandle hNormalMapArray = m_pRenderGraph->Import(pStreamingData.GetTerrainNormal2DArray());
 
@@ -162,6 +163,7 @@ void Renderer::GenerateRenderGraph()
 		ctx.hHeightMapAtlas = hHeightMapAtlas;
 		ctx.hSplatMapAtlas = hSplatMapAtlas;
 		ctx.hNormalMapAtlas = hNormalMapAtlas;
+		ctx.hAlbedoMapAtlas = hAlbedoMapAtlas;
 		ctx.hAlbedoMapArray = hAlbedoMapArray;
 		ctx.hNormalMapArray = hNormalMapArray;
 		ctx.hAlbedoPhysicalPage = hVTPhysicalPageAlbedo;
@@ -173,7 +175,7 @@ void Renderer::GenerateRenderGraph()
 	if (g_debug_temporal_enable_terrain_debug)
 	{
 		// 地形流式加载相关 Pass
-		BuildTerrainStreamingPasses(hVTSector2VirtImg, pSector2NodeIDTex, hHeightMapAtlas, hSplatMapAtlas, hNormalMapAtlas);
+		BuildTerrainStreamingPasses(hVTSector2VirtImg, pSector2NodeIDTex, hHeightMapAtlas, hSplatMapAtlas, hNormalMapAtlas, hAlbedoMapAtlas);
 
 		// 地形裁剪相关 Pass
 		passPatcher = BuildTerrainCullingPasses(pSector2NodeIDTex, hPatcherBuffer, hPatcherDrawIndexArgs);

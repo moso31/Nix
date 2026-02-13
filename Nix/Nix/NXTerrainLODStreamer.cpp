@@ -217,6 +217,9 @@ void NXTerrainLODStreamer::Update()
         task.normalMap.path = m_terrainWorkingDir / strTerrId / "sub" / "normal" / (strTerrSubID + ".dds");
         task.normalMap.name = "Terrain_NormalMap_" + strTerrId + "_tile_" + strTerrSubID;
 
+        task.albedoMap.path = m_terrainWorkingDir / strTerrId / "sub" / "albedo" / (strTerrSubID + ".dds");
+        task.albedoMap.name = "Terrain_AlbedoMap_" + strTerrId + "_tile_" + strTerrSubID;
+
         m_asyncLoader->AddTask(task);
         //printf("%d %s\n", task.nodeDescArrayIndex, task.splatMap.path.string().c_str());
     }
@@ -255,6 +258,7 @@ void NXTerrainLODStreamer::ProcessCompletedStreamingTask()
         m_streamData.SetToAtlasHeightTexture(i, task.pHeightMap);
         m_streamData.SetToAtlasSplatTexture(i, task.pSplatMap);
         m_streamData.SetToAtlasNormalTexture(i, task.pNormalMap);
+        m_streamData.SetToAtlasAlbedoTexture(i, task.pAlbedoMap);
 
         Int2 sectorID = (task.positionWS / g_terrainConfig.SectorSize - g_terrainConfig.MinSectorID);
         int sectorSize = (task.size - 1) / g_terrainConfig.SectorSize;

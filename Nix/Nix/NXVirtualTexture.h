@@ -24,6 +24,7 @@ struct NXVTRenderGraphContext
 	NXRGHandle hHeightMapAtlas;
 	NXRGHandle hSplatMapAtlas;
 	NXRGHandle hNormalMapAtlas;
+	NXRGHandle hAlbedoMapAtlas;
 	NXRGHandle hAlbedoMapArray;
 	NXRGHandle hNormalMapArray;
 	NXRGHandle hAlbedoPhysicalPage;

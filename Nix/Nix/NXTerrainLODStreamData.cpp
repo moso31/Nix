@@ -17,6 +17,7 @@ void NXTerrainLODStreamData::Init(NXTerrainLODStreamer* pStreamer)
 	m_pHeightMapAtlas = NXManager_Tex->CreateTexture2DArray("TerrainStreaming_HeightMapAtlas", DXGI_FORMAT_R16_UNORM, g_terrainStreamConfig.AtlasHeightMapSize, g_terrainStreamConfig.AtlasHeightMapSize, g_terrainStreamConfig.AtlasLayerCount, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 	m_pSplatMapAtlas = NXManager_Tex->CreateTexture2DArray("TerrainStreaming_SplatMapAtlas", DXGI_FORMAT_R8_UNORM, g_terrainStreamConfig.AtlasSplatMapSize, g_terrainStreamConfig.AtlasSplatMapSize, g_terrainStreamConfig.AtlasLayerCount, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 	m_pNormalMapAtlas = NXManager_Tex->CreateTexture2DArray("TerrainStreaming_NormalMapAtlas", DXGI_FORMAT_R8G8B8A8_UNORM, g_terrainStreamConfig.AtlasNormalMapSize, g_terrainStreamConfig.AtlasNormalMapSize, g_terrainStreamConfig.AtlasLayerCount, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+	m_pAlbedoMapAtlas = NXManager_Tex->CreateTexture2DArray("TerrainStreaming_AlbedoMapAtlas", DXGI_FORMAT_R8G8B8A8_UNORM, g_terrainStreamConfig.AtlasAlbedoMapSize, g_terrainStreamConfig.AtlasAlbedoMapSize, g_terrainStreamConfig.AtlasLayerCount, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 
 	// 地形材质纹理（存储所有terrain模块常用的材质，跟随splatMap一起使用）
 	m_pTerrainAlbedo2DArray = NXManager_Tex->CreateTexture2DArray("Terrain Albedo Array", L"D:\\NixAssets\\Terrain\\terrainAlbedo2DArray.dds");
@@ -26,6 +27,7 @@ void NXTerrainLODStreamData::Init(NXTerrainLODStreamer* pStreamer)
 	m_pToAtlasHeights.resize(g_terrainStreamConfig.MaxComputeLimit);
 	m_pToAtlasSplats.resize(g_terrainStreamConfig.MaxComputeLimit);
 	m_pToAtlasNormals.resize(g_terrainStreamConfig.MaxComputeLimit);
+	m_pToAtlasAlbedos.resize(g_terrainStreamConfig.MaxComputeLimit);
 
 	// 记录各sector的nodeID
 	uint32_t mips = g_terrainStreamConfig.LODSize; // 6
@@ -127,6 +129,7 @@ void NXTerrainLODStreamData::UpdateGBufferPatcherData(ID3D12GraphicsCommandList*
 	NXShVisDescHeap->PushFluid(m_pHeightMapAtlas.IsValid() ? m_pHeightMapAtlas->GetSRV() : NXAllocator_NULL->GetNullSRV());
 	NXShVisDescHeap->PushFluid(m_pSplatMapAtlas.IsValid() ? m_pSplatMapAtlas->GetSRV() : NXAllocator_NULL->GetNullSRV());
 	NXShVisDescHeap->PushFluid(m_pNormalMapAtlas.IsValid() ? m_pNormalMapAtlas->GetSRV() : NXAllocator_NULL->GetNullSRV());
+	NXShVisDescHeap->PushFluid(m_pAlbedoMapAtlas.IsValid() ? m_pAlbedoMapAtlas->GetSRV() : NXAllocator_NULL->GetNullSRV());
 	NXShVisDescHeap->PushFluid(m_pTerrainAlbedo2DArray.IsValid() ? m_pTerrainAlbedo2DArray->GetSRV() : NXAllocator_NULL->GetNullSRV());
 	NXShVisDescHeap->PushFluid(m_pTerrainNormal2DArray.IsValid() ? m_pTerrainNormal2DArray->GetSRV() : NXAllocator_NULL->GetNullSRV());
 	auto& srvHandle = NXShVisDescHeap->Submit();
@@ -149,6 +152,12 @@ void NXTerrainLODStreamData::SetToAtlasNormalTexture(uint32_t index, const Ntr<N
 {
 	AddToRemovingQueue(m_pToAtlasNormals[index]);
 	m_pToAtlasNormals[index] = pTexture;
+}
+
+void NXTerrainLODStreamData::SetToAtlasAlbedoTexture(uint32_t index, const Ntr<NXTexture2D>& pTexture)
+{
+	AddToRemovingQueue(m_pToAtlasAlbedos[index]);
+	m_pToAtlasAlbedos[index] = pTexture;
 }
 
 void NXTerrainLODStreamData::AddToRemovingQueue(const Ntr<NXTexture2D>& pTexture)

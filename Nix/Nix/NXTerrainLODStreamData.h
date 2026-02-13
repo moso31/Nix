@@ -82,17 +82,20 @@ public:
 	const uint32_t GetNodeDescUpdateIndicesNum() const { return m_nodeDescUpdateIndices.size(); }
 	void ClearNodeDescUpdateIndices();
 
+	const Ntr<NXTexture2D>& GetTerrainAlbedo2DArray() const { return m_pTerrainAlbedo2DArray; }
+	const Ntr<NXTexture2D>& GetTerrainNormal2DArray() const { return m_pTerrainNormal2DArray; }
 	const Ntr<NXTexture2DArray>& GetHeightMapAtlas() const { return m_pHeightMapAtlas; }
 	const Ntr<NXTexture2DArray>& GetSplatMapAtlas() const { return m_pSplatMapAtlas; }
 	const Ntr<NXTexture2DArray>& GetNormalMapAtlas() const { return m_pNormalMapAtlas; }
-	const Ntr<NXTexture2D>& GetTerrainAlbedo2DArray() const { return m_pTerrainAlbedo2DArray; }
-	const Ntr<NXTexture2D>& GetTerrainNormal2DArray() const { return m_pTerrainNormal2DArray; }
+	const Ntr<NXTexture2DArray>& GetAlbedoMapAtlas() const { return m_pAlbedoMapAtlas; }
 	const std::vector<Ntr<NXTexture2D>>& GetToAtlasHeightTextures() const { return m_pToAtlasHeights; }
 	const std::vector<Ntr<NXTexture2D>>& GetToAtlasSplatTextures() const { return m_pToAtlasSplats; }
 	const std::vector<Ntr<NXTexture2D>>& GetToAtlasNormalTextures() const { return m_pToAtlasNormals; }
+	const std::vector<Ntr<NXTexture2D>>& GetToAtlasAlbedoTextures() const { return m_pToAtlasAlbedos; }
 	void SetToAtlasHeightTexture(uint32_t index, const Ntr<NXTexture2D>& pTexture);
 	void SetToAtlasSplatTexture(uint32_t index, const Ntr<NXTexture2D>& pTexture);
 	void SetToAtlasNormalTexture(uint32_t index, const Ntr<NXTexture2D>& pTexture);
+	void SetToAtlasAlbedoTexture(uint32_t index, const Ntr<NXTexture2D>& pTexture);
 	const Ntr<NXTexture2D>& GetSector2NodeIDTexture() const { return m_pSector2NodeIDTexture; }
 
 	bool NeedClearSector2NodeIDTexture() const { return m_bNeedClearSector2NodeIDTexture; }
@@ -130,6 +133,7 @@ private:
 	Ntr<NXTexture2DArray> m_pHeightMapAtlas;
 	Ntr<NXTexture2DArray> m_pSplatMapAtlas;
 	Ntr<NXTexture2DArray> m_pNormalMapAtlas;
+	Ntr<NXTexture2DArray> m_pAlbedoMapAtlas;
 
 	// 地形材质纹理（存储所有terrain模块常用的材质，跟随splatMap一起使用）
 	Ntr<NXTexture2D> m_pTerrainAlbedo2DArray;
@@ -139,6 +143,7 @@ private:
 	std::vector<Ntr<NXTexture2D>> m_pToAtlasHeights;
 	std::vector<Ntr<NXTexture2D>> m_pToAtlasSplats;
 	std::vector<Ntr<NXTexture2D>> m_pToAtlasNormals;
+	std::vector<Ntr<NXTexture2D>> m_pToAtlasAlbedos;
 
 	// 待释放的纹理队列（等待GPU完成后再释放）
 	std::vector<NXTerrainTextureRemoving> m_removingTextures;
