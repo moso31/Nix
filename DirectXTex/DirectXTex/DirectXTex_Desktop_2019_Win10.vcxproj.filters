@@ -117,5 +117,6 @@
     <None Include="Shaders\BC6HEncode.hlsl">
       <Filter>Source Files\Shaders</Filter>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

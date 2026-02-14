@@ -10,4 +10,7 @@
     <ClInclude Include="BuddyAllocTest.h" />
     <ClInclude Include="DeadListAllocText.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
 </Project>

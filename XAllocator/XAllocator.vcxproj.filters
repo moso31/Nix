@@ -16,4 +16,7 @@
     <ClInclude Include="DescriptorAllocator.h" />
     <ClInclude Include="PlacedBufferAllocator.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
 </Project>

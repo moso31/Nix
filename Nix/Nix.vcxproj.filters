@@ -250,7 +250,6 @@
     <None Include="Shader\VTPhysicalPageBaker.fx">
       <Filter>Shader\VirtualTexture</Filter>
     </None>
-    <None Include="packages.config" />
     <None Include="Shader\TerrainAtlasBaker.fx">
       <Filter>Shader\GPUTerrain</Filter>
     </None>
@@ -278,6 +277,7 @@
     <None Include="Shader\VTUpdateIndirectTextureBlock.fx">
       <Filter>Shader\VirtualTexture</Filter>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">
