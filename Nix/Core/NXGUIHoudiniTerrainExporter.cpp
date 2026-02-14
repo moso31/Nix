@@ -77,10 +77,10 @@ void NXGUIHoudiniTerrainExporter::RenderColumn1_HoudiniFiles()
 	ImGui::Spacing();
 
 	// 显示纹理数量
-	ImGui::Text(ImUtf8("Height纹理: %d 个"), (int)m_heightExrFiles.size());
-	ImGui::Text(ImUtf8("Splat纹理: %d 个"), (int)m_splatExrFiles.size());
-	ImGui::Text(ImUtf8("Normal纹理: %d 个"), (int)m_normalExrFiles.size());
-	ImGui::Text(ImUtf8("Albedo纹理: %d 个"), (int)m_albedoExrFiles.size());
+	ImGui::Text(ImUtf8("Height纹理: %d 个 (2049x2049)"), (int)m_heightExrFiles.size());
+	ImGui::Text(ImUtf8("Splat纹理: %d 个 (2049x2049)"), (int)m_splatExrFiles.size());
+	ImGui::Text(ImUtf8("Normal纹理: %d 个 (2049x2049)"), (int)m_normalExrFiles.size());
+	ImGui::Text(ImUtf8("Albedo纹理: %d 个 (2176x2176)"), (int)m_albedoExrFiles.size());
 
 	ImGui::Spacing();
 	ImGui::Separator();
@@ -163,6 +163,34 @@ void NXGUIHoudiniTerrainExporter::RenderColumn1_HoudiniFiles()
 	{
 		ImGui::TextDisabled(ImUtf8("(无文件)"));
 	}
+
+	ImGui::Spacing();
+
+	// Albedo文件下拉菜单
+	ImGui::Text(ImUtf8("Albedo文件列表:"));
+	ImGui::TextDisabled(ImUtf8("(2176x2176, 含64像素防渗色边框)"));
+	if (!m_albedoExrFiles.empty())
+	{
+		ImGui::SetNextItemWidth(-1);
+		if (ImGui::BeginCombo("##AlbedoFiles", m_albedoExrFiles[m_selectedAlbedoExrIndex].fileName.c_str()))
+		{
+			for (int i = 0; i < (int)m_albedoExrFiles.size(); i++)
+			{
+				bool isSelected = (m_selectedAlbedoExrIndex == i);
+				if (ImGui::Selectable(m_albedoExrFiles[i].fileName.c_str(), isSelected))
+				{
+					m_selectedAlbedoExrIndex = i;
+				}
+				if (isSelected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
+	}
+	else
+	{
+		ImGui::TextDisabled(ImUtf8("(无文件)"));
+	}
 }
 
 void NXGUIHoudiniTerrainExporter::RenderColumn2_ConvertToDDS()
@@ -185,6 +213,34 @@ void NXGUIHoudiniTerrainExporter::RenderColumn2_ConvertToDDS()
 	ImGui::Checkbox(ImUtf8("转换 SplatMap"), &m_bConvertSplatMap);
 	ImGui::Checkbox(ImUtf8("转换 NormalMap"), &m_bConvertNormalMap);
 	ImGui::Checkbox(ImUtf8("转换 AlbedoMap"), &m_bConvertAlbedoMap);
+	ImGui::SameLine();
+	if (ImGui::SmallButton("(?)##AlbedoHelp"))
+	{
+		ImGui::OpenPopup("AlbedoMapHelpPopup");
+	}
+	if (ImGui::BeginPopup("AlbedoMapHelpPopup"))
+	{
+		ImGui::Text(ImUtf8("=== Albedo 纹理特殊说明 ==="));
+		ImGui::Separator();
+		ImGui::TextWrapped(ImUtf8(
+			"Albedo纹理使用linear/aniso采样，若像其他纹理一样\n"
+			"采样2049x2049再切分65x65小块，会在边缘形成渗色。\n"
+			"\n"
+			"因此Houdini导出的albedo EXR为2176x2176，\n"
+			"子纹理规格改为68x68（64+两侧各2像素防渗色边框）。\n"
+			"\n"
+			"低mip级别的采样范围按比例扩大，公式为：\n"
+			"纹理大小 = 真实大小 + 4 * (1 << mip)\n"
+			"\n"
+			"mip0:  64m,   68px  (64 + 4*1,  1:1采样)\n"
+			"mip1: 128m,  136px (128 + 4*2,  2x2均值)\n"
+			"mip2: 256m,  272px (256 + 4*4,  4x4均值)\n"
+			"mip3: 512m,  544px (512 + 4*8,  8x8均值)\n"
+			"mip4: 1024m, 1088px(1024+ 4*16, 16x16均值)\n"
+			"mip5: 2048m, 2176px(2048+ 4*32, 32x32均值)\n"
+		));
+		ImGui::EndPopup();
+	}
 
 	ImGui::Spacing();
 
@@ -332,7 +388,19 @@ void NXGUIHoudiniTerrainExporter::RenderColumn3_BakeSubTiles()
 	ImGui::Spacing();
 
 	// 显示帮助信息
-	ImGui::TextWrapped(ImUtf8("说明：此功能将DDS纹理切分成若干子区域(subtile)，用于支持地形流式加载。每个地形将生成多级LOD的子纹理块。"));
+	ImGui::TextWrapped(ImUtf8(
+		"说明：此功能将DDS纹理切分成若干子区域(subtile)，"
+		"用于支持地形流式加载。每个地形将生成多级LOD的子纹理块。"));
+
+	ImGui::Spacing();
+	ImGui::Separator();
+	ImGui::Text(ImUtf8("各纹理子区域分辨率:"));
+	ImGui::BulletText(ImUtf8("Height:  2049x2049 -> 65x65 (点采样)"));
+	ImGui::BulletText(ImUtf8("Splat:   2049x2049 -> 65x65 (点采样)"));
+	ImGui::BulletText(ImUtf8("Normal:  2049x2049 -> 65x65 (点采样)"));
+	ImGui::BulletText(ImUtf8("Albedo:  2176x2176 -> 68x68 (box filter)"));
+	ImGui::TextDisabled(ImUtf8(
+		"Albedo: 64+两侧各2px防渗色=68; 低mip用均值降采样"));
 }
 
 void NXGUIHoudiniTerrainExporter::RenderColumn4_Compose2DArray()
@@ -1401,9 +1469,9 @@ void NXGUIHoudiniTerrainExporter::ComposeAlbedoMap2DArray()
 	auto sortedIndices = GetSortedSliceIndices();
 	uint32_t arraySize = static_cast<uint32_t>(sortedIndices.size());
 
-	// 假设所有albedomap尺寸相同
-	constexpr uint32_t kWidth = 2049;
-	constexpr uint32_t kHeight = 2049;
+	// Albedo纹理为2176x2176（含64像素防渗色边框）
+	constexpr uint32_t kWidth = 2176;
+	constexpr uint32_t kHeight = 2176;
 
 	// 先创建未压缩的R8G8B8A8纹理数组
 	std::unique_ptr<ScratchImage> texArrayUncompressed = std::make_unique<ScratchImage>();

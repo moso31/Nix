@@ -193,6 +193,11 @@ void NXTerrainLODStreamer::Update()
         std::string strTerrId = std::to_string(row) + "_" + std::to_string(col);
         std::string strTerrSubID = std::to_string(realSize) + "_" + std::to_string(relativePosID.x) + "_" + std::to_string(relativePosID.y);
 
+        // Albedo纹理使用不同的命名规则：68/136/272/544/1088/2176（64+4边框 而不是 64+1重叠）
+        // 公式：albedoSize = data.size * 17 / 16 （即 real + real/16）
+        int albedoSize = data.size * 17 / 16;
+        std::string strAlbedoSubID = std::to_string(albedoSize) + "_" + std::to_string(relativePosID.x) + "_" + std::to_string(relativePosID.y);
+
         TerrainStreamingLoadRequest task;
         // 新的位置、大小、minmaxz
 		task.positionWS = data.positionWS;
@@ -217,8 +222,8 @@ void NXTerrainLODStreamer::Update()
         task.normalMap.path = m_terrainWorkingDir / strTerrId / "sub" / "normal" / (strTerrSubID + ".dds");
         task.normalMap.name = "Terrain_NormalMap_" + strTerrId + "_tile_" + strTerrSubID;
 
-        task.albedoMap.path = m_terrainWorkingDir / strTerrId / "sub" / "albedo" / (strTerrSubID + ".dds");
-        task.albedoMap.name = "Terrain_AlbedoMap_" + strTerrId + "_tile_" + strTerrSubID;
+        task.albedoMap.path = m_terrainWorkingDir / strTerrId / "sub" / "albedo" / (strAlbedoSubID + ".dds");
+        task.albedoMap.name = "Terrain_AlbedoMap_" + strTerrId + "_tile_" + strAlbedoSubID;
 
         m_asyncLoader->AddTask(task);
         //printf("%d %s\n", task.nodeDescArrayIndex, task.splatMap.path.string().c_str());

@@ -83,5 +83,10 @@ private:
 	static void SaveTerrainTileSplatMap(const std::filesystem::path& outPath, const uint8_t* src, uint32_t srcW, uint32_t srcH, uint32_t startX, uint32_t startY, uint32_t tileSize);
 	static void SaveTerrainTileNormalMap(const std::filesystem::path& outPath, const uint32_t* src, uint32_t srcW, uint32_t srcH, uint32_t startX, uint32_t startY, uint32_t tileSize);
 	static void SaveTerrainTileAlbedoMap(const std::filesystem::path& outPath, const uint32_t* src, uint32_t srcW, uint32_t srcH, uint32_t startX, uint32_t startY, uint32_t tileSize);
+
+	// 保存地形Tile Albedo纹理（box filter降采样版本）
+	// 输出始终为68x68，通过box filter从 srcTileSize x srcTileSize 降采样
+	// downsampleFactor: 1(直接拷贝), 2(2x2均值), 4(4x4均值), ..., 32(32x32均值)
+	static void SaveTerrainTileAlbedoMapBoxFilter(const std::filesystem::path& outPath, const uint32_t* src, uint32_t srcW, uint32_t srcH, uint32_t srcStartX, uint32_t srcStartY, uint32_t downsampleFactor);
 };
 

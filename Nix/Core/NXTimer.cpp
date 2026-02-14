@@ -12,7 +12,7 @@ NXTimer::~NXTimer()
 
 float NXTimer::GetGlobalTimeSeconds()
 {
-	return (float)m_globalTime / 1000.0f;
+	return (float)m_globalTime / 1000000.0f;
 }
 
 int64_t NXTimer::GetTimeDelta()
@@ -28,7 +28,7 @@ int64_t NXTimer::GetGlobalTime()
 void NXTimer::Tick()
 {
 	auto currTime = std::chrono::steady_clock::now();
-	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(currTime - m_lastTime);
+	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(currTime - m_lastTime);
 	m_timeDelta = duration.count();
 	m_globalTime += m_timeDelta;
 

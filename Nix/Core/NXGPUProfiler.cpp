@@ -1,5 +1,6 @@
 #include "NXGPUProfiler.h"
 #include "NXGlobalDefinitions.h"
+#include <algorithm>
 
 NXGPUProfiler* g_pGPUProfiler = nullptr;
 
@@ -184,4 +185,81 @@ void NXGPUProfiler::ResolveTimestamps()
 
 	D3D12_RANGE writeRange = { 0, 0 }; // 我们没有写入，所以 range 为空
 	m_pReadbackBuffer->Unmap(0, &writeRange);
+
+	// 更新历史数据
+	UpdateHistory();
+	TrimHistory();
+}
+
+void NXGPUProfiler::UpdateHistory()
+{
+	auto now = std::chrono::steady_clock::now();
+	for (const auto& result : m_lastFrameResults)
+	{
+		TimedSample sample;
+		sample.timeMs = result.timeMs;
+		sample.timestamp = now;
+		m_passTimeHistory[result.passName].push_back(sample);
+	}
+}
+
+void NXGPUProfiler::TrimHistory()
+{
+	auto now = std::chrono::steady_clock::now();
+	auto cutoff = now - std::chrono::milliseconds(static_cast<int64_t>(m_historyDuration * 1000.0f));
+
+	for (auto& [passName, samples] : m_passTimeHistory)
+	{
+		while (!samples.empty() && samples.front().timestamp < cutoff)
+		{
+			samples.pop_front();
+		}
+	}
+
+	// 清理空的条目
+	for (auto it = m_passTimeHistory.begin(); it != m_passTimeHistory.end(); )
+	{
+		if (it->second.empty())
+			it = m_passTimeHistory.erase(it);
+		else
+			++it;
+	}
+}
+
+NXGPUProfileStats NXGPUProfiler::GetPassStats(const std::string& passName, float durationSeconds) const
+{
+	NXGPUProfileStats stats;
+
+	auto it = m_passTimeHistory.find(passName);
+	if (it == m_passTimeHistory.end() || it->second.empty())
+		return stats;
+
+	auto now = std::chrono::steady_clock::now();
+	auto cutoff = now - std::chrono::milliseconds(static_cast<int64_t>(durationSeconds * 1000.0f));
+
+	double minMs = std::numeric_limits<double>::max();
+	double maxMs = 0.0;
+	double totalMs = 0.0;
+	uint32_t count = 0;
+
+	for (const auto& sample : it->second)
+	{
+		if (sample.timestamp >= cutoff)
+		{
+			minMs = std::min(minMs, sample.timeMs);
+			maxMs = std::max(maxMs, sample.timeMs);
+			totalMs += sample.timeMs;
+			count++;
+		}
+	}
+
+	if (count > 0)
+	{
+		stats.minMs = minMs;
+		stats.maxMs = maxMs;
+		stats.avgMs = totalMs / count;
+		stats.sampleCount = count;
+	}
+
+	return stats;
 }

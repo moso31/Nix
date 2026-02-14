@@ -2,7 +2,9 @@
 #include "BaseDefs/DX12.h"
 #include <string>
 #include <vector>
+#include <deque>
 #include <unordered_map>
+#include <chrono>
 
 // GPU Profiler 用于测量 RenderGraph 每个 Pass 的 GPU 执行时间
 // 使用 D3D12 Timestamp Query 实现精确的 GPU 时间测量
@@ -13,6 +15,14 @@ struct NXGPUProfileResult
 	double timeMs;			// 毫秒
 	uint64_t startTick;
 	uint64_t endTick;
+};
+
+struct NXGPUProfileStats
+{
+	double minMs = 0.0;
+	double maxMs = 0.0;
+	double avgMs = 0.0;
+	uint32_t sampleCount = 0;
 };
 
 class NXGPUProfiler
@@ -40,12 +50,21 @@ public:
 	// 获取上一帧总 GPU 时间
 	double GetLastFrameTotalTimeMs() const { return m_lastFrameTotalTimeMs; }
 
+	// 获取指定 pass 在指定时间范围内的统计数据（最小/最大/平均）
+	NXGPUProfileStats GetPassStats(const std::string& passName, float durationSeconds) const;
+
+	// 历史数据持续时间（秒）
+	float GetHistoryDuration() const { return m_historyDuration; }
+	void SetHistoryDuration(float seconds) { m_historyDuration = seconds; }
+
 	// 是否启用 profiling
 	void SetEnabled(bool enabled) { m_bEnabled = enabled; }
 	bool IsEnabled() const { return m_bEnabled; }
 
 private:
 	void ResolveTimestamps();
+	void UpdateHistory();
+	void TrimHistory();
 
 private:
 	bool m_bEnabled = false;
@@ -79,6 +98,15 @@ private:
 
 	// 双缓冲：记录上一帧的 query 数量，用于 resolve
 	uint32_t m_lastFrameQueryCount = 0;
+
+	// 历史数据追踪（用于详细统计）
+	struct TimedSample
+	{
+		double timeMs;
+		std::chrono::steady_clock::time_point timestamp;
+	};
+	std::unordered_map<std::string, std::deque<TimedSample>> m_passTimeHistory;
+	float m_historyDuration = 5.0f; // 保留最近多少秒的历史数据
 };
 
 // 全局 GPU Profiler 实例

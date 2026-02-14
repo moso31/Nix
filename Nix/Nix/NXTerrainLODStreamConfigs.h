@@ -12,7 +12,7 @@ struct NXTerrainLODStreamConfigsStruct
 	static constexpr int AtlasHeightMapSize = 65;
 	static constexpr int AtlasSplatMapSize = 65;
 	static constexpr int AtlasNormalMapSize = 65;
-	static constexpr int AtlasAlbedoMapSize = 65;
+	static constexpr int AtlasAlbedoMapSize = 68; // 64+两侧各2px防渗色边框（与Height/Splat/Normal的65不同）
 
 	// Atlas Texture2DArray 的层数（最大可加载的节点数量）
 	static constexpr int AtlasLayerCount = 1024;
