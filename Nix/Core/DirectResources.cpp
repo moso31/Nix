@@ -24,15 +24,16 @@ void DirectResources::InitDevice()
 	//}
 #endif
 
+#ifdef _DEBUG
+	hr = CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&m_pDXGIFactory));
+#else
 	hr = CreateDXGIFactory2(0, IID_PPV_ARGS(&m_pDXGIFactory));
+#endif
 
 	ComPtr<IDXGIAdapter1> pAdapter;
-	m_pDXGIFactory->EnumAdapters1(0, &pAdapter);
+	hr = m_pDXGIFactory->EnumAdapters1(0, &pAdapter);
 
-	ComPtr<IDXGIAdapter4> pAdapter4;
-	hr = pAdapter.As(&pAdapter4);
-
-	NXGlobalDX::Init(pAdapter4.Get());
+	NXGlobalDX::Init(pAdapter.Get());
 
 #if defined(_DEBUG)
 	{

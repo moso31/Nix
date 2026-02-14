@@ -35,8 +35,8 @@ private:
 	void	RemoveSwapChainRTVHeap();
 
 private:
-	ComPtr<IDXGIFactory7>		m_pDXGIFactory;
-	ComPtr<IDXGISwapChain4>		m_pSwapChain;
+	ComPtr<IDXGIFactory4>		m_pDXGIFactory;
+	ComPtr<IDXGISwapChain3>		m_pSwapChain;
 
 	MultiFrame<NXSwapChainBuffer>	m_pSwapChainBuffer;
 	DXGI_FORMAT m_pSwapChainBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;

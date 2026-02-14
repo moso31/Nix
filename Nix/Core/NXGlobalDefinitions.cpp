@@ -5,7 +5,7 @@
 HINSTANCE	NXGlobalWindows::hInst;
 HWND		NXGlobalWindows::hWnd;
 
-ComPtr<ID3D12Device8>							NXGlobalDX::s_device;
+ComPtr<ID3D12Device>							NXGlobalDX::s_device;
 ComPtr<ID3D12CommandQueue>						NXGlobalDX::s_globalCmdQueue;
 ComPtr<ID3D12Fence>								NXGlobalDX::s_globalfence;
 UINT64											NXGlobalDX::s_globalfenceValue = 0;
@@ -14,9 +14,19 @@ MultiFrame<ComPtr<ID3D12CommandAllocator>>		NXGlobalDX::s_cmdAllocator;
 
 bool g_debug_temporal_enable_terrain_debug = false;
 
-void NXGlobalDX::Init(IDXGIAdapter4* pAdapter)
+void NXGlobalDX::Init(IDXGIAdapter1* pAdapter)
 {
 	HRESULT hr = D3D12CreateDevice(pAdapter, D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&s_device));
+	if (FAILED(hr))
+	{
+		hr = D3D12CreateDevice(pAdapter, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&s_device));
+	}
+	if (FAILED(hr) || !s_device)
+	{
+		MessageBox(NULL, L"D3D12 设备创建失败，当前 GPU 可能不支持所需的功能级别 (Feature Level 12_0+)。", L"Error", MB_OK);
+		return;
+	}
+
 	s_globalCmdQueue = NX12Util::CreateCommandQueue(s_device.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT, false);
 	s_globalCmdQueue->SetName(L"Global Static Command Queue");
 

@@ -366,6 +366,14 @@ void NXTexture::AfterTexLoaded(const std::filesystem::path& filePath, D3D12_RESO
 	desc.Dimension = GetResourceDimentionFromType();
 	desc.Width = m_useSubRegion ? subW : srcW;
 	desc.Height = m_useSubRegion ? subH : srcH;
+
+	// BC 格式要求资源宽高为 4 的倍数
+	if (NXConvert::IsBCFormat(metadata.format))
+	{
+		desc.Width  = (desc.Width  + 3) & ~3;
+		desc.Height = (desc.Height + 3) & ~3;
+	}
+
 	desc.DepthOrArraySize = (uint32_t)metadata.arraySize;
 	const uint32_t subMipMax = CalcMipCount((uint32_t)desc.Width, (uint32_t)desc.Height);
 	desc.MipLevels = (uint32_t)std::min<uint32_t>(metadata.mipLevels, subMipMax); // NEW

@@ -2,9 +2,9 @@
 #include "BaseDefs/NixCore.h"
 #include "NXGlobalDefinitions.h"
 
-const std::wstring NXShaderComplier::s_smVersionVS = L"vs_6_5";
-const std::wstring NXShaderComplier::s_smVersionPS = L"ps_6_5";
-const std::wstring NXShaderComplier::s_smVersionCS = L"cs_6_5";
+const std::wstring NXShaderComplier::s_smVersionVS = L"vs_6_0";
+const std::wstring NXShaderComplier::s_smVersionPS = L"ps_6_0";
+const std::wstring NXShaderComplier::s_smVersionCS = L"cs_6_0";
 
 NXShaderComplier::NXShaderComplier() 
 {
