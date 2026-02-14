@@ -2,11 +2,18 @@
 
 using namespace ccmem;
 
-ccmem::PlacedBufferAllocator::PlacedBufferAllocator(const std::wstring& name, ID3D12Device* pDevice, uint32_t pageBlockByteSize, uint32_t pageFullByteSize) :
+ccmem::PlacedBufferAllocator::PlacedBufferAllocator(const std::wstring& name, ID3D12Device* pDevice, D3D12_HEAP_FLAGS heapFlags, uint32_t pageBlockByteSize, uint32_t pageFullByteSize) :
 	m_pageFullByteSize(pageFullByteSize),
 	m_pDevice(pDevice),
+	m_heapFlags(heapFlags),
 	BuddyAllocator(pageBlockByteSize, pageFullByteSize, name)
 {
+	D3D12_FEATURE_DATA_D3D12_OPTIONS options = {};
+	if (SUCCEEDED(m_pDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS, &options, sizeof(options))))
+	{
+		if (options.ResourceHeapTier == D3D12_RESOURCE_HEAP_TIER_2)
+			m_heapFlags = D3D12_HEAP_FLAG_NONE;
+	}
 }
 
 void ccmem::PlacedBufferAllocator::Alloc(D3D12_RESOURCE_DESC* desc, uint32_t byteSize, const std::function<void(const PlacedBufferAllocTaskResult&)>& callback)
@@ -31,7 +38,7 @@ void ccmem::PlacedBufferAllocator::OnAllocatorAdded(BuddyAllocatorPage* pAllocat
 {
 	D3D12_HEAP_DESC desc = {};
 	desc.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
-	desc.Flags = D3D12_HEAP_FLAG_NONE;
+	desc.Flags = m_heapFlags;
 	desc.Properties.Type = D3D12_HEAP_TYPE_DEFAULT;
 	desc.Properties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
 	desc.Properties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;

@@ -19,8 +19,8 @@ void NXAllocatorManager::Init()
 	m_pCBAllocator = std::make_unique<CommittedBufferAllocator>(L"CBAllocator", pDevice, true, false, 64u, Memsize_MB(32));
 	m_pSBAllocator = std::make_unique<CommittedBufferAllocator>(L"SBAllocator", pDevice, false, false, 64u, Memsize_MB(32));
 	m_pRBAllocator = std::make_unique<CommittedBufferAllocator>(L"RBAllocator", pDevice, false, true, 512u, Memsize_MB(32));
-	m_pRWBAllocator = std::make_unique<PlacedBufferAllocator>(L"RWBAllocator", pDevice, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT, Memsize_MB(32));
-	m_pTextureAllocator = std::make_unique<PlacedBufferAllocator>(L"TextureAllocator", pDevice, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT, Memsize_MB(128));
+	m_pRWBAllocator = std::make_unique<PlacedBufferAllocator>(L"RWBAllocator", pDevice, D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT, Memsize_MB(32));
+	m_pTextureAllocator = std::make_unique<PlacedBufferAllocator>(L"TextureAllocator", pDevice, D3D12_HEAP_FLAG_ALLOW_ONLY_NON_RT_DS_TEXTURES, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT, Memsize_MB(128));
 
 	m_pUpdateSystem = std::make_unique<NXUploadSystem>(pDevice);
 	m_pReadbackSystem = std::make_unique<NXReadbackSystem>(pDevice);
