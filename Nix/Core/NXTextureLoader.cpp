@@ -1,33 +1,68 @@
 #include "NXTextureLoader.h"
 #include "NXConverter.h"
 
-NXTextureLoader::NXTextureLoader()
+NXTextureLoader::NXTextureLoader() :
+	m_running(true)
 {
+	uint32_t workerCount = 4;
+	m_workers.reserve(workerCount);
+	for (uint32_t i = 0; i < workerCount; i++)
+	{
+		m_workers.emplace_back([this]() {
+			NXPrint::Write(1, "NXTextureLoader Worker\n");
+			WorkerLoop();
+		});
+	}
 }
 
 NXTextureLoader::~NXTextureLoader()
 {
+	if (!m_running.load()) return;
+	m_running = false;
+
+	std::lock_guard<std::mutex> lock(m_mutex);
+	m_tasks.clear();
+
+	m_cv.notify_all();
+
+	for (auto& w : m_workers)
+	{
+		if (w.joinable())
+			w.join();
+	}
+	m_workers.clear();
 }
 
 void NXTextureLoader::AddTask(const NXTextureLoaderTask& task)
 {
-	std::lock_guard<std::mutex> lock(m_mutex);
-	m_tasks.push_back(task);
-}
+	if (m_running.load() == false)
+		return;
 
-void NXTextureLoader::Update()
-{
-	std::vector<NXTextureLoaderTask> tasks;
 	{
 		std::lock_guard<std::mutex> lock(m_mutex);
-		tasks.swap(m_tasks);
+		m_tasks.push_back(task);
 	}
 
-	for (auto& task : tasks)
+	m_cv.notify_one();
+}
+
+void NXTextureLoader::WorkerLoop() 
+{
+	while (true)
 	{
+		NXTextureLoaderTask task;
+		{
+			std::unique_lock<std::mutex> lock(m_mutex);
+			m_cv.wait(lock, [this]() { return m_running.load() && !m_tasks.empty(); });
+			if (m_running.load() == false)
+				return;
+
+			task = std::move(m_tasks.front());
+			m_tasks.pop_front();
+		}
+
 		DoTask(task);
 	}
-	tasks.clear();
 }
 
 void NXTextureLoader::DoTask(const NXTextureLoaderTask& task)

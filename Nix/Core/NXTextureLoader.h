@@ -1,6 +1,9 @@
 #pragma once
 #include <filesystem>
 #include <mutex>
+#include <deque>
+#include <thread>
+#include <vector>
 #include "NXInstance.h"
 #include "NXTextureDefinitions.h"
 #include "DirectXTex.h"
@@ -29,12 +32,15 @@ public:
 
 	void AddTask(const NXTextureLoaderTask& task);
 
-	void Update();
+	void WorkerLoop();
 
 private:
 	void DoTask(const NXTextureLoaderTask& task);
 
 private:
 	std::mutex m_mutex;
-	std::vector<NXTextureLoaderTask> m_tasks;
+    std::deque<NXTextureLoaderTask> m_tasks;
+    std::vector<std::thread> m_workers;
+    std::condition_variable m_cv;
+    std::atomic<bool> m_running = false;
 };

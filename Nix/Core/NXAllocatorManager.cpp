@@ -52,7 +52,6 @@ void NXAllocatorManager::Init()
 
 	addThread([this]() { m_pUpdateSystem->Update(); }, "NXUploadSystem\n");
 	addThread([this]() { m_pReadbackSystem->Update(); }, "NXReadbackSystem\n");
-	addThread([this]() { m_pTextureLoader->Update(); }, "NXTextureLoader\n");
 	addThread([this]() { m_pCBAllocator->ExecuteTasks(); }, "NXCBAllocator\n");
 	addThread([this]() { m_pSBAllocator->ExecuteTasks(); }, "NXSBAllocator\n");
 	addThread([this]() { m_pRBAllocator->ExecuteTasks(); }, "NXRBAllocator\n");
