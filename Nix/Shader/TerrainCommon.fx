@@ -3,7 +3,7 @@
 
 // 通用宏定义
 #define NodeDescArrayNum 1024
-#define NodeDescUpdateIndicesNum 4
+#define NodeDescUpdateIndicesNum 16
 
 // 最小地形坐标
 #define MinTerrainCoord -8192

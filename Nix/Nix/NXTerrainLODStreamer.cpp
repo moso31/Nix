@@ -5,7 +5,6 @@
 #include "NXGlobalDefinitions.h"
 #include "NXTerrainLODStreamConfigs.h"
 #include "NXTerrainStreamingAsyncLoader.h"
-#include "NXTerrainStreamingBatcher.h"
 #include "DirectXTex.h"
 
 NXTerrainLODStreamer::NXTerrainLODStreamer() :

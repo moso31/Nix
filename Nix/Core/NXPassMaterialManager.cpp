@@ -88,7 +88,7 @@ void NXPassMaterialManager::InitDefaultRenderer()
 		pMat->RegisterUAVSpaceNum(1);
 		pMat->RegisterUAVSlotNum(1);
 		pMat->RegisterSRVSpaceNum(1);
-		pMat->RegisterSRVSlotNum(4);
+		pMat->RegisterSRVSlotNum(16);
 		pMat->FinalizeLayout();
 		AddMaterial(pMat, true);
 	}
@@ -102,7 +102,7 @@ void NXPassMaterialManager::InitDefaultRenderer()
 		pMat->RegisterUAVSpaceNum(1);
 		pMat->RegisterUAVSlotNum(2);
 		pMat->RegisterSRVSpaceNum(1);
-		pMat->RegisterSRVSlotNum(4);
+		pMat->RegisterSRVSlotNum(16);
 		pMat->FinalizeLayout();
 		AddMaterial(pMat, true);
 	}

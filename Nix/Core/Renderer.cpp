@@ -31,7 +31,6 @@
 #include "NXRGResource.h"
 #include "NXRGBuilder.h"
 #include "NXTerrainCommandSignature.h"
-#include "NXTerrainStreamingBatcher.h"
 #include "NXPassMaterial.h"
 #include "NXPassMaterialManager.h"
 #include "NXPBRLight.h"

@@ -21,7 +21,6 @@
 #include "NXRGPassNode.h"
 #include "NXRGResource.h"
 #include "NXRGBuilder.h"
-#include "NXTerrainStreamingBatcher.h"
 #include "NXPassMaterial.h"
 #include "NXPassMaterialManager.h"
 #include "NXPBRLight.h"
