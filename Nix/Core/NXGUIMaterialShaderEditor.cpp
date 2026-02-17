@@ -613,8 +613,8 @@ void NXGUIMaterialShaderEditor::Render_Params(NXCustomMaterial* pMaterial)
 
 			paramCnt++;
 		}
+		ImGui::EndTable();
 	}
-	ImGui::EndTable();
 	ImGui::EndChild();
 }
 

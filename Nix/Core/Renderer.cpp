@@ -402,6 +402,7 @@ void Renderer::Release()
 
 	m_pVirtualTexture->Release();
 	SafeDelete(m_pVirtualTexture);
+	SafeDelete(m_pTerrainLODStreamer);
 	NXAllocatorManager::GetInstance()->Release();
 	NXSubMeshGeometryEditor::GetInstance()->Release();
 }
