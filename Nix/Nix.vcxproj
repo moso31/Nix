@@ -434,7 +434,6 @@
     <ClCompile Include="Nix\NXTerrainLayer.cpp" />
     <ClCompile Include="Nix\NXTerrainLODStreamData.cpp" />
     <ClCompile Include="Nix\NXTerrainStreamingAsyncLoader.cpp" />
-    <ClCompile Include="Nix\NXTerrainStreamingBatcher.cpp" />
     <ClCompile Include="Nix\NXTerrainLODStreamer.cpp" />
     <ClCompile Include="Nix\NXTexture.cpp" />
     <ClCompile Include="Nix\NXVirtualTexture.cpp" />
@@ -575,7 +574,6 @@
     <ClInclude Include="Nix\NXTerrainLODStreamData.h" />
     <ClInclude Include="Nix\NXSectorVersionMap.h" />
     <ClInclude Include="Nix\NXTerrainStreamingAsyncLoader.h" />
-    <ClInclude Include="Nix\NXTerrainStreamingBatcher.h" />
     <ClInclude Include="Nix\NXTerrainLODStreamer.h" />
     <ClInclude Include="Nix\NXTextureDefinitions.h" />
     <ClInclude Include="Nix\NXSimpleSSAO.h" />
