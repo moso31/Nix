@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "2026-01-09.md",
+                "file": "Adaptive Virtual Texture.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "2026-01-09"
+              "title": "Adaptive Virtual Texture"
             }
           }
         ]
@@ -183,11 +183,13 @@
       "command-palette:打开命令面板": false
     }
   },
-  "active": "6baf1a475da8aad2",
+  "active": "8bef40153c6f3c65",
   "lastOpenFiles": [
     "没解决的问题.md",
+    "Adaptive Virtual Texture.md",
     "未命名.base",
     "未命名 1.base",
+    "2026-01-09.md",
     "NXReadback.md",
     "NXBuffer.md",
     "NX Gpu-Driven Terrain.md",

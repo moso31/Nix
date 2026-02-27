@@ -86,6 +86,18 @@ void NXGUIView::Render(ccmem::DescriptorAllocator<true>* pImguiHeap)
 			}
 			isHoveredOnView &= !ImGui::IsItemHovered();
 
+			if (ImGui::MenuItem("2560x1440##view_size_popup_1440p"))
+			{
+				m_viewMode = ViewMode::Fix_2560x1440;
+			}
+			isHoveredOnView &= !ImGui::IsItemHovered();
+
+			if (ImGui::MenuItem("3840x2160##view_size_popup_2160p"))
+			{
+				m_viewMode = ViewMode::Fix_3840x2160;
+			}
+			isHoveredOnView &= !ImGui::IsItemHovered();
+
 			std::string strAutoText = "Auto(" + std::to_string((int)viewRegionX) + "x" + std::to_string((int)viewRegionY) + ")##view_size_popup_auto";
 			if (ImGui::MenuItem(strAutoText.c_str()))
 			{
@@ -128,6 +140,12 @@ void NXGUIView::Render(ccmem::DescriptorAllocator<true>* pImguiHeap)
 		case ViewMode::Fix_1920x1080:
 			m_viewRTSize = { 1920.0f, 1080.0f };
 			break;
+		case ViewMode::Fix_2560x1440:
+			m_viewRTSize = { 2560.0f, 1440.0f };
+			break;
+		case ViewMode::Fix_3840x2160:
+			m_viewRTSize = { 3840.0f, 2160.0f };
+			break;
 		default:
 			break;
 		}
@@ -151,7 +169,13 @@ const std::string NXGUIView::GetViewModeString() const
 		return "Custom";
 		break;
 	case NXGUIView::ViewMode::Fix_1920x1080:
-		return "Fixed";
+		return "1080P";
+		break;
+	case NXGUIView::ViewMode::Fix_2560x1440:
+		return "2K";
+		break;
+	case NXGUIView::ViewMode::Fix_3840x2160:
+		return "4K";
 		break;
 	default:
 		return "*Unknown*";

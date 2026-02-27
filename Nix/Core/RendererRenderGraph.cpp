@@ -349,23 +349,23 @@ NXRGPassNode<TerrainPatcherPassData>* Renderer::BuildTerrainCullingPasses(NXRGHa
 
 NXRGPassNode<GBufferPassData>* Renderer::BuildGBufferPasses(NXRGPassNode<TerrainPatcherPassData>* passPatcher, NXRGHandle hGBuffer0, NXRGHandle hGBuffer1, NXRGHandle hGBuffer2, NXRGHandle hGBuffer3, NXRGHandle hDepthZ, NXRGHandle hVTPageIDTexture, NXRGHandle hVTSector2VirtImg, NXRGHandle hVTIndirectTexture, NXRGHandle hVTPhysicalPageAlbedo, NXRGHandle hVTPhysicalPageNormal)
 {
-	// 调试：清空VTPageIDTexture
-	m_pRenderGraph->AddPass<PageIDTextureClearPassData>("VTPageIDTexture Clear",
-		[&](NXRGBuilder& builder, PageIDTextureClearPassData& data)
-		{
-			data.VTPageIDTexture = builder.Write(hVTPageIDTexture);
-		},
-		[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, PageIDTextureClearPassData& data)
-		{
-			auto pTex = resMap.GetRes(data.VTPageIDTexture).As<NXTexture2D>();
-			pTex->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+	//// 调试：清空VTPageIDTexture
+	//m_pRenderGraph->AddPass<PageIDTextureClearPassData>("VTPageIDTexture Clear",
+	//	[&](NXRGBuilder& builder, PageIDTextureClearPassData& data)
+	//	{
+	//		data.VTPageIDTexture = builder.Write(hVTPageIDTexture);
+	//	},
+	//	[&](ID3D12GraphicsCommandList* pCmdList, const NXRGFrameResources& resMap, PageIDTextureClearPassData& data)
+	//	{
+	//		auto pTex = resMap.GetRes(data.VTPageIDTexture).As<NXTexture2D>();
+	//		pTex->SetResourceState(pCmdList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
-			UINT clearValues[4] = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
-			D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = pTex->GetUAV(0);
-			NXShVisDescHeap->PushFluid(cpuHandle);
-			D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = NXShVisDescHeap->Submit();
-			pCmdList->ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, pTex->GetD3DResource(), clearValues, 0, nullptr);
-		});
+	//		UINT clearValues[4] = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
+	//		D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = pTex->GetUAV(0);
+	//		NXShVisDescHeap->PushFluid(cpuHandle);
+	//		D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = NXShVisDescHeap->Submit();
+	//		pCmdList->ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, pTex->GetD3DResource(), clearValues, 0, nullptr);
+	//	});
 
 	return m_pRenderGraph->AddPass<GBufferPassData>("GBufferPass",
 		[&, passPatcher](NXRGBuilder& builder, GBufferPassData& data) {

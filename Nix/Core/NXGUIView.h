@@ -14,7 +14,9 @@ class NXGUIView
 		None,
 		Auto,
 		Custom,
-		Fix_1920x1080
+		Fix_1920x1080,
+		Fix_2560x1440,
+		Fix_3840x2160
 	};
 
 public:
