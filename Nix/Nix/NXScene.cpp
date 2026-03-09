@@ -252,7 +252,7 @@ void NXScene::Init()
 					pTerrainLayer->SetPath(strTerrLayer, bForceCreate); 
 					pTerrainLayer->Deserialize(); // 暂时先手动反序列化地形层
 					pTerr->SetTerrainLayer(pTerrainLayer);
-					pTerr->SetTranslation(Vector3(2048 * x, 0, 2048 * y));
+					pTerr->SetTranslation(Vector3(2048.0f * x, 0.0f, 2048.0f * y));
 
 					NXResourceManager::GetInstance()->GetMeshManager()->BindMaterial(pTerr, m_pTestCustomMat);
 				}
