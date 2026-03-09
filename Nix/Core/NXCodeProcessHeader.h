@@ -367,8 +367,6 @@ private:
 struct NXMaterialCodeBlock
 {
 	std::string data;
-	int hlslLineBegin = -1;
-	int hlslLineEnd = -1;
 };
 
 struct NXMaterialPassCode

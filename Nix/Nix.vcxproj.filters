@@ -278,6 +278,9 @@
     <None Include="Shader\VTUpdateIndirectTextureBlock.fx">
       <Filter>Shader\VirtualTexture</Filter>
     </None>
+    <None Include="Shader\CustomMatStructures.fx">
+      <Filter>Shader</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\App.cpp">

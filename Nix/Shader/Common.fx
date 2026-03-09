@@ -1,16 +1,6 @@
 #ifndef _COMMON_
 #define _COMMON_
 
-struct NXGBufferParams
-{
-	float3 albedo;
-	float metallic;
-	float3 normal;
-	float roughness;
-	float ao;
-	float3 _0;
-};
-
 struct NXCBGlobalData
 {
 	float Time;

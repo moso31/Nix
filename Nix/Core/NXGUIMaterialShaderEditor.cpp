@@ -1,5 +1,4 @@
 #include "NXGUIMaterialShaderEditor.h"
-#include <regex>
 #include "BaseDefs/DearImGui.h"
 
 #include "NXSSSDiffuseProfile.h"
@@ -70,69 +69,17 @@ void NXGUIMaterialShaderEditor::Render()
 void NXGUIMaterialShaderEditor::ClearShaderErrorMessages()
 {
 	for (int i = 0; i < NXGUI_ERROR_MESSAGE_MAXLIMIT; i++)
-		m_shaderErrMsgs[i] = { std::string(), -1, -1, -1, -1 };
+		m_shaderErrMsgs[i] = { std::string() };
 }
 
 void NXGUIMaterialShaderEditor::UpdateShaderErrorMessages(const std::string& strCompileErrorVS, const std::string& strCompileErrorPS)
 {
 	std::istringstream iss(strCompileErrorPS);
-	int lineCount = 0;
 
 	for (int i = 0; i < NXGUI_ERROR_MESSAGE_MAXLIMIT; i++)
 	{
 		auto& errMsg = m_shaderErrMsgs[i];
-		auto& strMsg = errMsg.data;
 		std::getline(iss, errMsg.data);
-
-		// 创建一个正则表达式对象，用于匹配括号中的行列号
-		// 即：满足(a,b) 或 (a,b-c) 两种格式的任意一种（a,b,c 表任意数字）。
-		std::regex re("\\((\\d+),(\\d+)(-(\\d+))?\\)");
-
-		std::smatch match;
-		if (std::regex_search(strMsg, match, re) && match.size() > 1) 
-		{
-			std::string strRow = match.str(1);
-			std::string strCol0 = match.str(2);
-			std::string strCol1 = match.str(4);
-
-			int row  = std::stoi(strRow);
-			errMsg.col0 = std::stoi(strCol0);
-			errMsg.col1 = strCol1.empty() ? errMsg.col0 : std::stoi(strCol1);
-
-			NXGUICodeEditorPickingData tempPickdata;
-			tempPickdata.mode = 0;
-			for (int j = 0; j < m_guiCodes.passes.size(); j++)
-			{
-				tempPickdata.passFuncId = 0;
-
-				auto& pass = m_guiCodes.passes[j];
-				if (row >= pass.vsFunc.hlslLineBegin && row <= pass.vsFunc.hlslLineEnd)
-				{
-					tempPickdata.passEntryId = 0;
-					errMsg.page = tempPickdata;
-					errMsg.row = row - pass.vsFunc.hlslLineBegin + 1;
-				}
-
-				if (row >= pass.psFunc.hlslLineBegin && row <= pass.psFunc.hlslLineEnd)
-				{
-					tempPickdata.passEntryId = 1;
-					errMsg.page = tempPickdata;
-					errMsg.row = row - pass.psFunc.hlslLineBegin + 1;
-				}
-			}
-
-			tempPickdata.mode = 1;
-			for (int j = 0; j < m_guiCodes.commonFuncs.data.size(); j++)
-			{
-				tempPickdata.customFuncId = j;
-				auto& customFunc = m_guiCodes.commonFuncs.data[j];
-				if (row >= customFunc.hlslLineBegin && row <= customFunc.hlslLineEnd)
-				{
-					errMsg.page = tempPickdata;
-					errMsg.row = row - customFunc.hlslLineBegin + 1;
-				}
-			}
-		}
 	}
 }
 
@@ -960,7 +907,6 @@ void NXGUIMaterialShaderEditor::Render_Settings(NXCustomMaterial* pMaterial)
 void NXGUIMaterialShaderEditor::Render_ErrorMessages()
 {
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.f, 0.f));
-	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
 
 	if (ImGui::BeginTable("##material_shader_editor_errmsg_table", 1, ImGuiTableFlags_Resizable))
 	{
@@ -972,26 +918,11 @@ void NXGUIMaterialShaderEditor::Render_ErrorMessages()
 			if (errMsg.data.empty()) 
 				break;
 
-			if (ImGui::SmallButton(errMsg.data.c_str()))
-			{
-				SyncLastPickingData();
-				m_pickingData = errMsg.page;
-
-				// clear是必须的，SwitchFile 的clear不一定会执行
-				m_pGUICodeEditor->ClearSelection();
-
-				// 在此执行代码高亮标记和跳转
-				int idx = GetCodeEditorIndexOfPickingData(errMsg.page);
-				m_pGUICodeEditor->SwitchFile(idx);
-				m_pGUICodeEditor->GetFocus();
-
-				m_pGUICodeEditor->AddSelection(errMsg.row, true);
-			}
+			ImGui::TextUnformatted(errMsg.data.c_str());
 		}
 		ImGui::EndTable();
 	}
 
-	ImGui::PopStyleColor();
 	ImGui::PopStyleVar();
 }
 

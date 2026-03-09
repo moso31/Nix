@@ -248,15 +248,14 @@ void NXCustomMaterial::CompileShader(const std::string& strGBufferShader, const 
 
 bool NXCustomMaterial::Recompile(const NXMaterialData& guiData, const NXMaterialCode& code, const NXMaterialData& guiDataBackup, const NXMaterialCode& codeBackup, std::string& oErrorMessageVS, std::string& oErrorMessagePS)
 {
-	auto codeCopy = code;
-	std::string strHLSL = NXCodeProcessHelper::BuildHLSL(m_nslPath, guiData, codeCopy, m_bEnableTerrainGPUInstancing);
+	std::string strHLSL = NXCodeProcessHelper::BuildHLSL(m_nslPath, guiData, code, m_bEnableTerrainGPUInstancing);
 	CompileShader(strHLSL, guiData, oErrorMessageVS, oErrorMessagePS);
 
 	m_materialDatas.Destroy();
 	if (m_bCompileSuccess)
 	{
 		m_materialDatas = guiData.Clone();
-		m_codeBlocks = codeCopy;
+		m_codeBlocks = code;
 	}
 	else
 	{

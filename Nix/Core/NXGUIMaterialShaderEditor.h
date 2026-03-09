@@ -17,14 +17,6 @@ struct NXGUIShaderErrorMessage
 {
 	// 具体的编译错误信息
 	std::string data;
-
-	// 出错的具体页面
-	NXGUICodeEditorPickingData page;
-
-	// 出错的，行号，列号左起，列号右至
-	int row = 0;
-	int col0 = 0;
-	int col1 = 0;
 };
 
 class NXCustomMaterial;
