@@ -8,6 +8,10 @@
 
 // GPU Profiler 用于测量 RenderGraph 每个 Pass 的 GPU 执行时间
 // 使用 D3D12 Timestamp Query 实现精确的 GPU 时间测量
+//
+// 三缓冲设计：每帧的 passNames、queryCount、readbackBuffer 绑定在一起，
+// 读取时始终读 2 帧前（由 Fence 保证 GPU 已完成）的数据，
+// 避免 passNames 与 timestamps 来自不同帧导致的错位问题。
 
 struct NXGPUProfileResult
 {
@@ -44,10 +48,10 @@ public:
 	// 帧结束时调用，解析时间戳数据
 	void EndFrame(ID3D12GraphicsCommandList* pCmdList);
 
-	// 获取上一帧的 profiling 结果（因为 GPU/CPU 异步，需要延迟一帧读取）
+	// 获取已完成帧的 profiling 结果（延迟 2 帧，确保 GPU 已完成）
 	const std::vector<NXGPUProfileResult>& GetLastFrameResults() const { return m_lastFrameResults; }
 
-	// 获取上一帧总 GPU 时间
+	// 获取已完成帧总 GPU 时间
 	double GetLastFrameTotalTimeMs() const { return m_lastFrameTotalTimeMs; }
 
 	// 获取指定 pass 在指定时间范围内的统计数据（最小/最大/平均）
@@ -75,29 +79,31 @@ private:
 
 	// Query Heap 用于存储 GPU 时间戳
 	ComPtr<ID3D12QueryHeap> m_pQueryHeap;
-	
-	// Readback Buffer 用于从 GPU 读取时间戳数据
-	ComPtr<ID3D12Resource> m_pReadbackBuffer;
 
 	// 时间戳频率（每秒多少 tick）
 	uint64_t m_timestampFrequency = 0;
 
-	// 当前帧的 query 数量
-	uint32_t m_currentQueryIndex = 0;
 	uint32_t m_maxQueries = 256;
 
-	// 当前帧正在 profiling 的 pass 名称
-	std::string m_currentPassName;
+	// 三缓冲的每帧 Profiler 数据
+	// passNames、queryCount、readbackBuffer 绑定在一起，保证读取时三者来自同一帧
+	struct PerFrameData
+	{
+		ComPtr<ID3D12Resource> pReadbackBuffer;
+		std::vector<std::string> passNames;
+		uint32_t queryCount = 0;
+	};
+	PerFrameData m_frameData[MultiFrameSets_swapChainCount];
 
-	// 当前帧的 pass 名称列表（按 query 顺序）
-	std::vector<std::string> m_currentFramePassNames;
+	// 当前帧正在录制的 query 索引
+	uint32_t m_currentQueryIndex = 0;
 
-	// 上一帧的 profiling 结果
+	// 当前帧总计数（用于追踪启动前几帧还没有可读数据）
+	uint64_t m_totalFrameCount = 0;
+
+	// 解析后的结果（供 GUI 读取）
 	std::vector<NXGPUProfileResult> m_lastFrameResults;
 	double m_lastFrameTotalTimeMs = 0.0;
-
-	// 双缓冲：记录上一帧的 query 数量，用于 resolve
-	uint32_t m_lastFrameQueryCount = 0;
 
 	// 历史数据追踪（用于详细统计）
 	struct TimedSample

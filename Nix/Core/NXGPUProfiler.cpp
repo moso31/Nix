@@ -42,7 +42,7 @@ void NXGPUProfiler::Init(ID3D12Device* pDevice, ID3D12CommandQueue* pCmdQueue, u
 		return;
 	}
 
-	// 创建 Readback Buffer
+	// 为三缓冲的每帧创建独立的 Readback Buffer
 	// 每个时间戳是 uint64_t (8 bytes)
 	D3D12_HEAP_PROPERTIES heapProps = {};
 	heapProps.Type = D3D12_HEAP_TYPE_READBACK;
@@ -57,19 +57,24 @@ void NXGPUProfiler::Init(ID3D12Device* pDevice, ID3D12CommandQueue* pCmdQueue, u
 	bufferDesc.SampleDesc.Count = 1;
 	bufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
-	hr = pDevice->CreateCommittedResource(
-		&heapProps,
-		D3D12_HEAP_FLAG_NONE,
-		&bufferDesc,
-		D3D12_RESOURCE_STATE_COPY_DEST,
-		nullptr,
-		IID_PPV_ARGS(&m_pReadbackBuffer));
-
-	if (FAILED(hr))
+	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
 	{
-		m_pQueryHeap.Reset();
-		m_bEnabled = false;
-		return;
+		hr = pDevice->CreateCommittedResource(
+			&heapProps,
+			D3D12_HEAP_FLAG_NONE,
+			&bufferDesc,
+			D3D12_RESOURCE_STATE_COPY_DEST,
+			nullptr,
+			IID_PPV_ARGS(&m_frameData[i].pReadbackBuffer));
+
+		if (FAILED(hr))
+		{
+			m_pQueryHeap.Reset();
+			for (int j = 0; j < i; j++)
+				m_frameData[j].pReadbackBuffer.Reset();
+			m_bEnabled = false;
+			return;
+		}
 	}
 
 	m_bInitialized = true;
@@ -78,7 +83,12 @@ void NXGPUProfiler::Init(ID3D12Device* pDevice, ID3D12CommandQueue* pCmdQueue, u
 void NXGPUProfiler::Release()
 {
 	m_pQueryHeap.Reset();
-	m_pReadbackBuffer.Reset();
+	for (int i = 0; i < MultiFrameSets_swapChainCount; i++)
+	{
+		m_frameData[i].pReadbackBuffer.Reset();
+		m_frameData[i].passNames.clear();
+		m_frameData[i].queryCount = 0;
+	}
 	m_bInitialized = false;
 }
 
@@ -87,13 +97,15 @@ void NXGPUProfiler::BeginFrame()
 	if (!m_bEnabled || !m_bInitialized)
 		return;
 
-	// 在开始新一帧之前，先读取上一帧的结果
+	// 读取已完成帧的 GPU 时间戳结果
+	// FrameEnd 中的 Fence 保证 2 帧前的 GPU 工作已完成
 	ResolveTimestamps();
 
-	// 重置当前帧的状态
-	m_lastFrameQueryCount = m_currentQueryIndex;
+	// 准备当前帧的录制槽
+	UINT8 writeSlot = MultiFrameSets::swapChainIndex;
+	m_frameData[writeSlot].queryCount = 0;
+	m_frameData[writeSlot].passNames.clear();
 	m_currentQueryIndex = 0;
-	m_currentFramePassNames.clear();
 }
 
 void NXGPUProfiler::BeginPass(ID3D12GraphicsCommandList* pCmdList, const std::string& passName)
@@ -104,8 +116,8 @@ void NXGPUProfiler::BeginPass(ID3D12GraphicsCommandList* pCmdList, const std::st
 	if (m_currentQueryIndex >= m_maxQueries)
 		return; // 超过最大 query 数量
 
-	m_currentPassName = passName;
-	m_currentFramePassNames.push_back(passName);
+	UINT8 writeSlot = MultiFrameSets::swapChainIndex;
+	m_frameData[writeSlot].passNames.push_back(passName);
 
 	// 写入开始时间戳
 	uint32_t queryIndex = m_currentQueryIndex * 2;
@@ -135,14 +147,19 @@ void NXGPUProfiler::EndFrame(ID3D12GraphicsCommandList* pCmdList)
 	if (m_currentQueryIndex == 0)
 		return;
 
-	// 将时间戳数据从 Query Heap 拷贝到 Readback Buffer
+	UINT8 writeSlot = MultiFrameSets::swapChainIndex;
+	m_frameData[writeSlot].queryCount = m_currentQueryIndex;
+
+	// 将时间戳数据从 Query Heap 拷贝到当前帧的 Readback Buffer
 	pCmdList->ResolveQueryData(
 		m_pQueryHeap.Get(),
 		D3D12_QUERY_TYPE_TIMESTAMP,
 		0,
 		m_currentQueryIndex * 2,
-		m_pReadbackBuffer.Get(),
+		m_frameData[writeSlot].pReadbackBuffer.Get(),
 		0);
+
+	m_totalFrameCount++;
 }
 
 void NXGPUProfiler::ResolveTimestamps()
@@ -150,14 +167,24 @@ void NXGPUProfiler::ResolveTimestamps()
 	if (!m_bEnabled || !m_bInitialized)
 		return;
 
-	if (m_lastFrameQueryCount == 0)
+	// 前几帧还没有可读数据，跳过
+	if (m_totalFrameCount < MultiFrameSets_swapChainCount)
+		return;
+
+	// 读取当前 swapChainIndex 槽的数据
+	// 由于三缓冲 Fence 机制：FrameEnd 等待 (swapChainIndex+1)%3 完成后才继续
+	// 到这里该槽对应帧的 GPU 工作已保证完成，Readback Buffer 可安全读取
+	UINT8 readSlot = MultiFrameSets::swapChainIndex;
+	const auto& frameData = m_frameData[readSlot];
+
+	if (frameData.queryCount == 0)
 		return;
 
 	// 读取 Readback Buffer 中的时间戳数据
 	uint64_t* pTimestampData = nullptr;
-	D3D12_RANGE readRange = { 0, m_lastFrameQueryCount * 2 * sizeof(uint64_t) };
+	D3D12_RANGE readRange = { 0, frameData.queryCount * 2 * sizeof(uint64_t) };
 	
-	HRESULT hr = m_pReadbackBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pTimestampData));
+	HRESULT hr = frameData.pReadbackBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pTimestampData));
 	if (FAILED(hr))
 		return;
 
@@ -165,7 +192,8 @@ void NXGPUProfiler::ResolveTimestamps()
 	m_lastFrameTotalTimeMs = 0.0;
 
 	// 解析每个 pass 的时间
-	for (uint32_t i = 0; i < m_lastFrameQueryCount && i < m_currentFramePassNames.size(); i++)
+	// passNames 和 queryCount 和 readbackBuffer 都来自同一帧，不会错位
+	for (uint32_t i = 0; i < frameData.queryCount && i < frameData.passNames.size(); i++)
 	{
 		uint64_t startTick = pTimestampData[i * 2];
 		uint64_t endTick = pTimestampData[i * 2 + 1];
@@ -174,7 +202,7 @@ void NXGPUProfiler::ResolveTimestamps()
 		double timeMs = (endTick - startTick) * 1000.0 / m_timestampFrequency;
 
 		NXGPUProfileResult result;
-		result.passName = m_currentFramePassNames[i];
+		result.passName = frameData.passNames[i];
 		result.timeMs = timeMs;
 		result.startTick = startTick;
 		result.endTick = endTick;
@@ -184,7 +212,7 @@ void NXGPUProfiler::ResolveTimestamps()
 	}
 
 	D3D12_RANGE writeRange = { 0, 0 }; // 我们没有写入，所以 range 为空
-	m_pReadbackBuffer->Unmap(0, &writeRange);
+	frameData.pReadbackBuffer->Unmap(0, &writeRange);
 
 	// 更新历史数据
 	UpdateHistory();

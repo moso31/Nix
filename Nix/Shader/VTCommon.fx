@@ -139,3 +139,21 @@ uint EncodeIndirectTextureData(uint2 indiTexPos, uint gpuMip, uint indiTexLog2Si
 {
     return ((indiTexPos.x & 0xFFF) << 20) | ((indiTexPos.y & 0xFFF) << 8) | ((gpuMip & 0xF) << 4) | indiTexLog2Size; 
 }
+
+uint MatchMip(Texture2D<uint> indirectTex, uint2 indiTexPagePixelMip, inout uint mip, int indiTexMip0Log2Size)
+{
+    while (mip <= indiTexMip0Log2Size)
+    {
+        uint indiTexData = indirectTex.Load(uint3(indiTexPagePixelMip, mip));
+        if (indiTexData != 0xFFFF)
+            return indiTexData;
+
+        if (mip == indiTexMip0Log2Size)
+            return 0xFFFF;
+
+        indiTexPagePixelMip >>= 1;
+        mip++;
+    }
+
+    return 0xFFFF;
+}
