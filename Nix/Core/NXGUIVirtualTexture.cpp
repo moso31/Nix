@@ -92,7 +92,7 @@ void NXGUIVirtualTexture::Render_Sectors()
     ImGui::Separator();
     ImGui::Checkbox("Show only near Sector", &m_showOnlyNear);
     ImGui::Checkbox("Draw grid", &m_drawGrid);
-    ImGui::SliderFloat("Scale", &m_zoom, 0.25f, 4.0f, "%.2fx");
+    ImGui::SliderFloat("Scale", &m_zoom, 0.25f, 16.0f, "%.2fx");
     if (ImGui::Button("Reset view")) {
         m_zoom = 1.0f;
         m_panPix = ImVec2(0.0f, 0.0f);
@@ -701,7 +701,7 @@ void NXGUIVirtualTexture::DrawWorld(ImDrawList* dl, const ImVec2& regionTL, cons
         if (hovered && io.MouseWheel != 0.0f) {
             ImVec2 anchorW = S2W(io.MousePos.x, io.MousePos.y);
             float zoomFactor = (io.MouseWheel > 0.0f) ? 1.1f : 0.9f;
-            float newZoom = ImClamp(m_zoom * zoomFactor, 0.25f, 4.0f);
+            float newZoom = ImClamp(m_zoom * zoomFactor, 0.25f, 16.0f);
             if (newZoom != m_zoom) {
                 float newScale = baseScale * std::max(0.01f, newZoom);
                 // 计算缩放后锚点的屏幕位置，并调整平移量以把锚点“拉回”到鼠标处

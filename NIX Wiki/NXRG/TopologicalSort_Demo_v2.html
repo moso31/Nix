@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>NXRG Compile() 完整可视化</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: #eee; padding: 16px; }
+  h1 { text-align: center; color: #e94560; margin-bottom: 4px; font-size: 1.4em; }
+  .subtitle { text-align: center; color: #888; font-size: 0.8em; margin-bottom: 14px; }
+
+  .container { display: flex; gap: 16px; max-width: 1400px; margin: 0 auto; }
+  .left-panel { flex: 1; min-width: 0; }
+  .right-panel { width: 360px; flex-shrink: 0; }
+
+  /* Phase tabs */
+  .phase-tabs { display: flex; gap: 4px; margin-bottom: 10px; }
+  .phase-tab { padding: 6px 16px; border-radius: 6px 6px 0 0; font-size: 0.82em; font-weight: 600; cursor: default; background: #0d1117; color: #555; border: 1px solid #333; border-bottom: none; }
+  .phase-tab.active { background: #16213e; color: #e94560; border-color: #e94560; }
+
+  /* Graph / Chart areas */
+  .vis-area { background: #16213e; border-radius: 0 12px 12px 12px; padding: 10px; position: relative; min-height: 400px; }
+  svg { width: 100%; height: 100%; }
+  .node { cursor: default; }
+  .node circle { stroke-width: 2.5; transition: fill 0.3s, stroke 0.3s; }
+  .node text { font-size: 12px; fill: #fff; text-anchor: middle; dominant-baseline: central; font-weight: 600; pointer-events: none; }
+  .node .sub { font-size: 8px; fill: #aaa; font-weight: 400; }
+  .edge { stroke: #444; stroke-width: 2; fill: none; marker-end: url(#arrow); transition: stroke 0.3s, opacity 0.3s; }
+  .edge.highlighted { stroke: #e94560; stroke-width: 2.5; }
+  .edge.processed { stroke: #0f3460; stroke-width: 1.5; opacity: 0.35; }
+  .edge-label { font-size: 8.5px; fill: #666; text-anchor: middle; }
+  .node.queued circle { fill: #e94560; stroke: #ff6b6b; }
+  .node.processing circle { fill: #ff9f1c; stroke: #ffbf69; }
+  .node.done circle { fill: #0f3460; stroke: #1a508b; }
+  .node.waiting circle { fill: #16213e; stroke: #555; }
+  .time-band { fill: rgba(255,255,255,0.02); stroke: rgba(255,255,255,0.06); stroke-dasharray: 4 4; }
+  .time-label { font-size: 10px; fill: #555; text-anchor: middle; }
+
+  /* Controls */
+  .controls { display: flex; gap: 8px; margin-top: 10px; justify-content: center; flex-wrap: wrap; }
+  .btn { padding: 7px 18px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.15s; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
+  .btn-next { background: #e94560; color: #fff; }
+  .btn-next:hover { background: #ff6b6b; }
+  .btn-next:disabled { background: #444; cursor: not-allowed; transform: none; }
+  .btn-reset { background: #0f3460; color: #fff; }
+  .btn-reset:hover { background: #1a508b; }
+  .btn-auto { background: #533483; color: #fff; }
+  .btn-auto:hover { background: #7b2d8e; }
+
+  /* Legend */
+  .legend { display: flex; gap: 12px; justify-content: center; margin-top: 6px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 4px; font-size: 0.72em; color: #888; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid; }
+
+  /* Cards */
+  .info-card { background: #16213e; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+  .info-card h3 { color: #e94560; font-size: 0.88em; margin-bottom: 6px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+
+  /* Pass defs */
+  .pass-def { font-size: 0.75em; line-height: 1.5; }
+  .pass-def .pn { color: #58a6ff; font-weight: 600; }
+  .pass-def .res { color: #ff9f1c; }
+  .pass-def .dim { color: #555; }
+
+  /* Queue */
+  .queue-display { display: flex; gap: 5px; flex-wrap: wrap; min-height: 24px; align-items: center; }
+  .queue-item { background: #e94560; color: #fff; padding: 2px 9px; border-radius: 4px; font-size: 0.78em; font-weight: 600; }
+  .queue-empty { color: #555; font-size: 0.78em; font-style: italic; }
+
+  /* Table */
+  .dtable { width: 100%; border-collapse: collapse; font-size: 0.78em; }
+  .dtable th { color: #888; text-align: left; padding: 3px 5px; border-bottom: 1px solid #333; font-weight: 500; }
+  .dtable td { padding: 3px 5px; font-family: 'Consolas', monospace; }
+  .dtable tr.zero td { color: #e94560; font-weight: 700; }
+  .dtable tr.hi td { color: #ff9f1c; font-weight: 700; }
+  .dtable tr.done td { color: #555; }
+
+  /* Log */
+  .log-area { background: #0d1117; border-radius: 6px; padding: 8px; max-height: 150px; overflow-y: auto; font-size: 0.74em; font-family: 'Consolas', monospace; line-height: 1.55; }
+  .log-area .s { color: #e94560; }
+  .log-area .i { color: #58a6ff; }
+  .log-area .d { color: #555; }
+  .log-area .h { color: #ff9f1c; }
+  .log-area .g { color: #2ecc71; }
+</style>
+</head>
+<body>
+
+<h1>NXRenderGraph::Compile() 完整可视化</h1>
+<p class="subtitle">阶段一：Kahn拓扑排序 → 阶段二：资源生命周期计算 → 阶段三：贪心资源复用</p>
+
+<div class="container">
+<div class="left-panel">
+  <!-- Phase Tabs -->
+  <div class="phase-tabs">
+    <div class="phase-tab active" id="tab1">阶段一：拓扑排序</div>
+    <div class="phase-tab" id="tab2">阶段二：生命周期</div>
+    <div class="phase-tab" id="tab3">阶段三：贪心复用</div>
+  </div>
+
+  <!-- Visualization -->
+  <div class="vis-area">
+    <!-- Phase 1: DAG -->
+    <svg id="dagSvg" viewBox="0 0 720 380" style="height:380px">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 6" refX="10" refY="3" markerWidth="7" markerHeight="5" orient="auto"><path d="M0,0 L10,3 L0,6 Z" fill="#666"/></marker>
+        <marker id="arrow-hi" viewBox="0 0 10 6" refX="10" refY="3" markerWidth="7" markerHeight="5" orient="auto"><path d="M0,0 L10,3 L0,6 Z" fill="#e94560"/></marker>
+      </defs>
+      <g id="timeBands"></g>
+      <g id="edges"></g>
+      <g id="nodes"></g>
+    </svg>
+    <!-- Phase 2 & 3: Gantt -->
+    <canvas id="ganttCanvas" width="1400" height="760" style="width:100%;height:380px;display:none"></canvas>
+  </div>
+
+  <div class="legend" id="legendArea">
+    <div class="legend-item"><div class="legend-dot" style="background:#16213e;border-color:#555;"></div>等待</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e94560;border-color:#ff6b6b;"></div>队列中</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ff9f1c;border-color:#ffbf69;"></div>处理中</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#0f3460;border-color:#1a508b;"></div>完成</div>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-reset" onclick="resetAll()">重置 ↺</button>
+    <button class="btn btn-next" id="btnPrev" onclick="prevStep()">◀ 上一步</button>
+    <button class="btn btn-next" id="btnNext" onclick="nextStep()">下一步 ▶</button>
+    <button class="btn btn-auto" id="btnAuto" onclick="toggleAuto()">自动播放 ⏵</button>
+  </div>
+
+  <!-- Pass defs -->
+  <div class="info-card" style="margin-top:10px">
+    <h3>Pass & 资源定义</h3>
+    <div class="pass-def" id="passDefs"></div>
+  </div>
+</div>
+
+<div class="right-panel">
+  <div class="info-card">
+    <h3 id="stepTitle">当前步骤</h3>
+    <div id="stepDesc" style="font-size:0.82em;line-height:1.5;min-height:50px;color:#ccc;">点击「下一步」开始</div>
+  </div>
+  <div class="info-card" id="queueCard">
+    <h3>BFS 队列</h3>
+    <div class="queue-display" id="queueDisplay"><span class="queue-empty">空</span></div>
+  </div>
+  <div class="info-card" id="tableCard">
+    <h3 id="tableTitle">入度表 & 时间层级</h3>
+    <table class="dtable" id="dataTable"></table>
+  </div>
+  <div class="info-card">
+    <h3>执行日志</h3>
+    <div class="log-area" id="logArea"></div>
+  </div>
+</div>
+</div>
+
+<script>
+// ======================================================================
+// DATA
+// ======================================================================
+const passes = [
+  { id:'A', name:'DepthPrepass', reads:[],                    writes:['Depth'] },
+  { id:'B', name:'ShadowMap',    reads:[],                    writes:['Shadow'] },
+  { id:'C', name:'GBuffer',      reads:['Depth'],             writes:['GBuf'] },
+  { id:'D', name:'ShadowTest',   reads:['Depth','Shadow'],    writes:['ShadowMask'] },
+  { id:'E', name:'DeferredLit',  reads:['GBuf','ShadowMask'], writes:['LitResult'] },
+  { id:'F', name:'Translucent',  reads:['Shadow','LitResult'],writes:['Final'] },
+];
+
+// Resource descriptions (format) for greedy aliasing demo
+const resDesc = {
+  'Depth':'RGBA16F', 'Shadow':'R32F', 'GBuf':'RGBA16F',
+  'ShadowMask':'R32F', 'LitResult':'RGBA16F', 'Final':'RGBA16F'
+};
+
+// Collect all resource names in write order
+const allResNames = [];
+passes.forEach(p => p.writes.forEach(r => { if (!allResNames.includes(r)) allResNames.push(r); }));
+
+// Build adjacency
+const lastWrite = {}, adjList = {}, inDegree = {}, edgesData = [];
+passes.forEach(p => { adjList[p.id]=[]; inDegree[p.id]=0; });
+passes.forEach(p => {
+  p.reads.forEach(r => { if(lastWrite[r]){ adjList[lastWrite[r]].push(p.id); edgesData.push({from:lastWrite[r],to:p.id,res:r}); inDegree[p.id]++; }});
+  p.writes.forEach(r => { lastWrite[r]=p.id; });
+});
+const passMap = {}; passes.forEach(p => passMap[p.id]=p);
+
+// Pre-compute final timeLayer
+const finalTL = {};
+{
+  const d={},t={};
+  passes.forEach(p=>{d[p.id]=inDegree[p.id];t[p.id]=0;});
+  const q=[];
+  passes.forEach(p=>{if(d[p.id]===0)q.push(p.id);});
+  while(q.length){const c=q.shift();adjList[c].forEach(nb=>{t[nb]=Math.max(t[nb],t[c]+1);d[nb]--;if(d[nb]===0)q.push(nb);});}
+  passes.forEach(p=>finalTL[p.id]=t[p.id]);
+}
+const maxTL = Math.max(...Object.values(finalTL));
+
+// Fixed node positions for DAG
+const finalPos = {};
+{
+  const layers={};
+  passes.forEach(p=>{const l=finalTL[p.id];if(!layers[l])layers[l]=[];layers[l].push(p.id);});
+  const W=720,H=380,px=90,py=60;
+  const lw=(W-2*px)/Math.max(maxTL,1);
+  for(let l=0;l<=maxTL;l++){
+    const ids=layers[l]||[];const n=ids.length;const gap=(H-2*py)/Math.max(n-1,1);
+    ids.forEach((id,i)=>{finalPos[id]={x:px+l*lw,y:n===1?H/2:py+i*gap};});
+  }
+}
+
+// Compute resource lifetimes
+const resLifetime = {}; // resName -> {start, end}
+allResNames.forEach(r => resLifetime[r] = {start:999, end:-1});
+passes.forEach(p => {
+  const tl = finalTL[p.id];
+  [...p.reads, ...p.writes].forEach(r => {
+    if(tl < resLifetime[r].start) resLifetime[r].start = tl;
+    if(tl > resLifetime[r].end) resLifetime[r].end = tl;
+  });
+});
+
+// Greedy allocation
+function runGreedyAlloc() {
+  // Group resources by desc
+  const physSlots = {}; // desc -> [{name, lifetimes:[{start,end,resName}]}]
+  const allocation = {}; // resName -> {desc, slotIdx, physName}
+  const stepLog = [];
+
+  allResNames.forEach(rName => {
+    const lt = resLifetime[rName];
+    if(lt.start > lt.end) return;
+    const desc = resDesc[rName];
+    if(!physSlots[desc]) physSlots[desc] = [];
+
+    let found = false;
+    for(let si=0; si<physSlots[desc].length; si++){
+      const slot = physSlots[desc][si];
+      let canReuse = true;
+      for(const occ of slot.lifetimes){
+        if(!(lt.end < occ.start || lt.start > occ.end)){ canReuse=false; break; }
+      }
+      if(canReuse){
+        slot.lifetimes.push({start:lt.start, end:lt.end, resName:rName});
+        allocation[rName] = {desc, slotIdx:si, physName:slot.name, reused:true};
+        stepLog.push({rName, desc, lifetime:lt, reused:true, physName:slot.name, slotIdx:si});
+        found = true;
+        break;
+      }
+    }
+    if(!found){
+      const si = physSlots[desc].length;
+      const physName = `Phys_${desc}_${si}`;
+      physSlots[desc].push({name:physName, lifetimes:[{start:lt.start,end:lt.end,resName:rName}]});
+      allocation[rName] = {desc, slotIdx:si, physName, reused:false};
+      stepLog.push({rName, desc, lifetime:lt, reused:false, physName, slotIdx:si});
+    }
+  });
+
+  return {physSlots, allocation, stepLog};
+}
+const greedyResult = runGreedyAlloc();
+
+// ======================================================================
+// BUILD ALL STEPS
+// ======================================================================
+const allSteps = [];
+let phase1End, phase2End;
+
+// --- PHASE 1: Topological Sort ---
+function buildPhase1() {
+  const deg={}, tl={};
+  passes.forEach(p=>{deg[p.id]=inDegree[p.id];tl[p.id]=0;});
+
+  allSteps.push({ phase:1, type:'init',
+    desc:'<b>阶段一 · 第0步：构建依赖图</b><br>遍历所有 Pass 的输入资源，通过 <code>lastWriteMap</code> 找到写入该资源的 Pass，建立有向边并统计<b>入度</b>。',
+    queue:[], degrees:{...deg}, timeLayers:{...tl},
+    nodeStates: Object.fromEntries(passes.map(p=>[p.id,'waiting'])),
+    edgeStates: Object.fromEntries(edgesData.map((_,i)=>[i,'normal'])), processed:[]
+  });
+
+  const queue=[], zeros=[];
+  passes.forEach(p=>{if(deg[p.id]===0){queue.push(p.id);zeros.push(p.id);}});
+  const ns1=Object.fromEntries(passes.map(p=>[p.id,'waiting']));
+  zeros.forEach(id=>ns1[id]='queued');
+  allSteps.push({ phase:1, type:'enqueue-init',
+    desc:`<b>阶段一 · 第1步：入度=0的Pass入队</b><br>无依赖的Pass：<b>${zeros.join(', ')}</b>，压入BFS队列。`,
+    queue:[...queue], degrees:{...deg}, timeLayers:{...tl}, nodeStates:{...ns1},
+    edgeStates: Object.fromEntries(edgesData.map((_,i)=>[i,'normal'])), processed:[]
+  });
+
+  let sc=2;
+  const processed=[];
+  const pNS={...ns1}, pES=Object.fromEntries(edgesData.map((_,i)=>[i,'normal']));
+
+  while(queue.length>0){
+    const cur=queue.shift();
+    const cNS={...pNS}, cES={...pES};
+    cNS[cur]='processing';
+    allSteps.push({ phase:1, type:'dequeue',
+      desc:`<b>阶段一 · 第${sc}步：出队 ${cur} (${passMap[cur].name})</b><br>timeLayer[${cur}] = <b>${tl[cur]}</b>，处理邻居。`,
+      queue:[...queue], degrees:{...deg}, timeLayers:{...tl}, nodeStates:{...cNS}, edgeStates:{...cES}, processing:cur, processed:[...processed]
+    }); sc++;
+
+    adjList[cur].forEach(nb=>{
+      const oldTL=tl[nb];
+      tl[nb]=Math.max(tl[nb],tl[cur]+1);
+      deg[nb]--;
+      const eIdx=edgesData.findIndex(e=>e.from===cur&&e.to===nb);
+      cES[eIdx]='highlighted';
+      let eq='';
+      if(deg[nb]===0){queue.push(nb);cNS[nb]='queued';eq=`<br>→ 入度归零，<b>${nb}</b>入队！`;}
+      allSteps.push({ phase:1, type:'update-nb',
+        desc:`<b>阶段一 · 第${sc}步：更新邻居 ${nb} (${passMap[nb].name})</b><br>入度 ${deg[nb]+1}→<b>${deg[nb]}</b>，timeLayer[${nb}] = max(${oldTL}, ${tl[cur]}+1) = <b>${tl[nb]}</b>${eq}`,
+        queue:[...queue], degrees:{...deg}, timeLayers:{...tl}, nodeStates:{...cNS}, edgeStates:{...cES}, processing:cur, processed:[...processed]
+      }); sc++;
+    });
+
+    adjList[cur].forEach(nb=>{const ei=edgesData.findIndex(e=>e.from===cur&&e.to===nb);cES[ei]='processed';});
+    cNS[cur]='done'; processed.push(cur);
+    Object.assign(pNS,cNS); Object.assign(pES,cES);
+  }
+
+  allSteps.push({ phase:1, type:'topo-done',
+    desc:'<b>阶段一完成：拓扑排序结束</b><br>所有Pass已排序。接下来进入<b>阶段二</b>：根据timeLayer计算每个资源的生命周期。',
+    queue:[], degrees:{...deg}, timeLayers:{...tl},
+    nodeStates:Object.fromEntries(passes.map(p=>[p.id,'done'])),
+    edgeStates:{...pES}, processed:[...processed]
+  });
+  phase1End = allSteps.length - 1;
+}
+
+// --- PHASE 2: Lifetime Computation ---
+function buildPhase2() {
+  // Show lifetime scan
+  const knownLT = {}; // resName -> {start,end} computed so far
+  allResNames.forEach(r => knownLT[r] = null);
+
+  allSteps.push({ phase:2, type:'lt-intro',
+    desc:'<b>阶段二 · 资源生命周期计算</b><br>遍历每个Pass的输入/输出资源，用Pass的<code>timeLayer</code>更新资源的 <b>[start, end]</b>。<br>Import资源不参与（此处示例均为Create资源）。',
+    lifetimes: JSON.parse(JSON.stringify(knownLT)), highlightPass:null, highlightRes:null
+  });
+
+  // Scan each pass in order
+  passes.forEach(p => {
+    const tl = finalTL[p.id];
+    const allRes = [...new Set([...p.reads, ...p.writes])]; // unique resources of this pass
+
+    allRes.forEach(r => {
+      const oldLT = knownLT[r] ? {...knownLT[r]} : null;
+      if(!knownLT[r]) knownLT[r] = {start: tl, end: tl};
+      else {
+        if(tl < knownLT[r].start) knownLT[r].start = tl;
+        if(tl > knownLT[r].end) knownLT[r].end = tl;
+      }
+
+      const newLT = {...knownLT[r]};
+      const isNew = !oldLT;
+      const changed = !isNew && (oldLT.start !== newLT.start || oldLT.end !== newLT.end);
+
+      let descText;
+      if(isNew){
+        descText = `<b>阶段二 · Pass ${p.id} (${p.name}, layer=${tl})</b> → 资源 <b style="color:#ff9f1c">${r}</b><br>首次出现，初始化 lifetime = <b>[${tl}, ${tl}]</b>`;
+      } else if(changed){
+        descText = `<b>阶段二 · Pass ${p.id} (${p.name}, layer=${tl})</b> → 资源 <b style="color:#ff9f1c">${r}</b><br>更新 lifetime: [${oldLT.start}, ${oldLT.end}] → <b>[${newLT.start}, ${newLT.end}]</b>`;
+      } else {
+        descText = `<b>阶段二 · Pass ${p.id} (${p.name}, layer=${tl})</b> → 资源 <b style="color:#ff9f1c">${r}</b><br>lifetime [${newLT.start}, ${newLT.end}] 无变化`;
+      }
+
+      allSteps.push({ phase:2, type:'lt-update',
+        desc: descText,
+        lifetimes: JSON.parse(JSON.stringify(knownLT)),
+        highlightPass: p.id, highlightRes: r
+      });
+    });
+  });
+
+  allSteps.push({ phase:2, type:'lt-done',
+    desc:'<b>阶段二完成：生命周期计算结束</b><br>所有资源的 [start, end] 已确定。接下来进入<b>阶段三</b>：贪心分配物理资源。',
+    lifetimes: JSON.parse(JSON.stringify(knownLT)),
+    highlightPass:null, highlightRes:null
+  });
+  phase2End = allSteps.length - 1;
+}
+
+// --- PHASE 3: Greedy Allocation ---
+function buildPhase3() {
+  const physSlots = {}; // desc -> [{name, lifetimes:[...]}]
+  const alloc = {}; // resName -> physName
+  const allocState = []; // snapshot after each step
+
+  allSteps.push({ phase:3, type:'ga-intro',
+    desc:'<b>阶段三 · 贪心资源复用</b><br>遍历每个虚拟资源，按 <code>NXRGDescription</code>（格式/尺寸）分组。<br>同组内若生命周期<b>不重叠</b>（即 <code>end &lt; other.start || start &gt; other.end</code>），则复用同一物理资源。',
+    physSlots: JSON.parse(JSON.stringify(physSlots)),
+    alloc: {...alloc}, currentRes: null, checkLog: null
+  });
+
+  allResNames.forEach(rName => {
+    const lt = resLifetime[rName];
+    const desc = resDesc[rName];
+    if(!physSlots[desc]) physSlots[desc] = [];
+
+    const checks = [];
+    let found = false, resultSlot = null, resultPhys = null;
+
+    for(let si=0; si<physSlots[desc].length; si++){
+      const slot = physSlots[desc][si];
+      let canReuse = true;
+      const slotChecks = [];
+      for(const occ of slot.lifetimes){
+        const overlap = !(lt.end < occ.start || lt.start > occ.end);
+        slotChecks.push({occRes:occ.resName, occLT:{start:occ.start,end:occ.end}, overlap});
+        if(overlap){ canReuse=false; }
+      }
+      checks.push({physName:slot.name, slotIdx:si, canReuse, slotChecks});
+      if(canReuse && !found){
+        slot.lifetimes.push({start:lt.start, end:lt.end, resName:rName});
+        alloc[rName] = slot.name;
+        found = true; resultSlot = si; resultPhys = slot.name;
+      }
+    }
+
+    if(!found){
+      const si = physSlots[desc].length;
+      const physName = `${desc}#${si}`;
+      physSlots[desc].push({name:physName, lifetimes:[{start:lt.start,end:lt.end,resName:rName}]});
+      alloc[rName] = physName;
+      resultPhys = physName; resultSlot = si;
+    }
+
+    // Build description
+    let d = `<b>阶段三 · 资源 <span style="color:#ff9f1c">${rName}</span></b> [${lt.start},${lt.end}]，desc=<code>${desc}</code><br>`;
+    if(checks.length === 0){
+      d += `该desc组无已有物理资源 → <span style="color:#2ecc71"><b>新建 ${resultPhys}</b></span>`;
+    } else {
+      checks.forEach(ck => {
+        if(ck.canReuse && ck.physName === resultPhys){
+          d += `检查 ${ck.physName}：`;
+          ck.slotChecks.forEach(sc => d += ` ${sc.occRes}[${sc.occLT.start},${sc.occLT.end}]${sc.overlap?'<span style="color:#e94560">重叠</span>':'<span style="color:#2ecc71">不重叠</span>'} `);
+          d += `→ <span style="color:#2ecc71"><b>复用 ${ck.physName}！</b></span><br>`;
+        } else if(!ck.canReuse) {
+          d += `检查 ${ck.physName}：`;
+          const firstOverlap = ck.slotChecks.find(sc=>sc.overlap);
+          if(firstOverlap) d += `与 ${firstOverlap.occRes}[${firstOverlap.occLT.start},${firstOverlap.occLT.end}] <span style="color:#e94560">重叠</span> `;
+          d += `→ 跳过<br>`;
+        }
+      });
+      if(!checks.some(c=>c.canReuse)){
+        d += `所有已有物理资源均重叠 → <span style="color:#2ecc71"><b>新建 ${resultPhys}</b></span>`;
+      }
+    }
+
+    allSteps.push({ phase:3, type:'ga-alloc',
+      desc: d,
+      physSlots: JSON.parse(JSON.stringify(physSlots)),
+      alloc: {...alloc}, currentRes: rName
+    });
+  });
+
+  allSteps.push({ phase:3, type:'ga-done',
+    desc:`<b>阶段三完成：贪心分配结束</b><br>${allResNames.length} 个虚拟资源 → <b>${Object.keys(greedyResult.physSlots).reduce((s,d)=>s+greedyResult.physSlots[d].length,0)}</b> 个物理资源。<br>通过生命周期不重叠的资源复用，节省了GPU显存分配。`,
+    physSlots: JSON.parse(JSON.stringify(greedyResult.physSlots)),
+    alloc: greedyResult.allocation, currentRes: null
+  });
+}
+
+buildPhase1();
+buildPhase2();
+buildPhase3();
+
+// ======================================================================
+// RENDERING
+// ======================================================================
+let currentStep = 0, autoTimer = null;
+
+function renderPassDefs() {
+  document.getElementById('passDefs').innerHTML = passes.map(p => {
+    const rd = p.reads.length>0 ? p.reads.map(r=>`<span class="res">${r}</span> (${resDesc[r]})`).join(', ') : '<span class="dim">无</span>';
+    const wr = p.writes.map(r=>`<span class="res">${r}</span> (${resDesc[r]})`).join(', ');
+    return `<span class="pn">${p.id}:${p.name}</span> <span class="dim">读:</span>${rd} <span class="dim">|写:</span>${wr}`;
+  }).join('<br>');
+}
+
+// --- Phase 1: DAG Rendering ---
+function renderDAG(step) {
+  const bandsG=document.getElementById('timeBands'), edgesG=document.getElementById('edges'), nodesG=document.getElementById('nodes');
+  bandsG.innerHTML=''; edgesG.innerHTML=''; nodesG.innerHTML='';
+
+  const px=90, W=720, lw=(W-2*px)/Math.max(maxTL,1);
+  for(let t=0;t<=maxTL;t++){
+    const bx=px+t*lw-lw*0.38, bw=lw*0.76;
+    bandsG.innerHTML+=`<rect class="time-band" x="${bx}" y="15" width="${bw}" height="355" rx="5"/>`;
+    bandsG.innerHTML+=`<text class="time-label" x="${px+t*lw}" y="10">Layer ${t}</text>`;
+  }
+
+  edgesData.forEach((e,i)=>{
+    const fp=finalPos[e.from],tp=finalPos[e.to];
+    const st=step.edgeStates[i]||'normal';
+    const me=st==='highlighted'?'url(#arrow-hi)':'url(#arrow)';
+    const dx=tp.x-fp.x,dy=tp.y-fp.y;
+    const mx=(fp.x+tp.x)/2,my=(fp.y+tp.y)/2;
+    const off=Math.abs(dx)<1?40:dy*0.2;
+    const cx=mx,cy=my-off,r=30;
+    const a1=Math.atan2(cy-fp.y,cx-fp.x),sx=fp.x+r*Math.cos(a1),sy=fp.y+r*Math.sin(a1);
+    const a2=Math.atan2(tp.y-cy,tp.x-cx),ex=tp.x-r*Math.cos(a2),ey=tp.y-r*Math.sin(a2);
+    edgesG.innerHTML+=`<path class="edge ${st}" d="M${sx},${sy} Q${cx},${cy} ${ex},${ey}" style="marker-end:${me}"/>`;
+    edgesG.innerHTML+=`<text class="edge-label" x="${(sx+cx+ex)/3}" y="${(sy+cy+ey)/3-7}">${e.res}</text>`;
+  });
+
+  passes.forEach(p=>{
+    const st=step.nodeStates[p.id]||'waiting';
+    const pos=finalPos[p.id];
+    nodesG.innerHTML+=`<g class="node ${st}" transform="translate(${pos.x},${pos.y})"><circle r="26"/><text y="-3" style="font-size:12px">${p.id}</text><text class="sub" y="10">${p.name}</text></g>`;
+  });
+}
+
+// --- Phase 2 & 3: Gantt Chart ---
+const resColors = {
+  'Depth':'#e94560','Shadow':'#533483','GBuf':'#58a6ff',
+  'ShadowMask':'#ff9f1c','LitResult':'#2ecc71','Final':'#f39c12'
+};
+
+function renderGantt(step) {
+  const canvas = document.getElementById('ganttCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const isPhase3 = step.phase === 3 && step.physSlots;
+
+  if(!isPhase3) {
+    // Phase 2: Simple lifetime Gantt
+    renderLifetimeGantt(ctx, W, H, step);
+  } else {
+    // Phase 3: Split view - top: lifetime, bottom: physical allocation
+    const splitY = H * 0.42;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(0,0,W,splitY); ctx.clip();
+    renderLifetimeGantt(ctx, W, splitY, step, true);
+    ctx.restore();
+
+    ctx.strokeStyle='#333'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(40, splitY); ctx.lineTo(W-20, splitY); ctx.stroke();
+
+    ctx.save();
+    ctx.translate(0, splitY);
+    ctx.beginPath(); ctx.rect(0,0,W,H-splitY); ctx.clip();
+    renderAllocGantt(ctx, W, H - splitY, step);
+    ctx.restore();
+  }
+}
+
+function renderLifetimeGantt(ctx, W, H, step, compact) {
+  const lt = step.lifetimes || {};
+  const resNames = allResNames;
+  const n = resNames.length;
+
+  const padL=160, padR=40, padT=compact?30:45, padB=compact?20:35;
+  const chartW=W-padL-padR, chartH=H-padT-padB;
+  const rowH = chartH / n;
+  const colW = chartW / (maxTL + 1);
+
+  // Title
+  ctx.fillStyle='#888'; ctx.font=`${compact?'18':'22'}px Segoe UI`; ctx.textAlign='left';
+  ctx.fillText(compact?'虚拟资源生命周期':'虚拟资源生命周期 (Virtual Resource Lifetimes)', padL, padT - (compact?10:18));
+
+  // Column headers (time layers)
+  for(let t=0; t<=maxTL; t++){
+    const x = padL + t*colW + colW/2;
+    ctx.fillStyle='#555'; ctx.font='bold 16px Consolas'; ctx.textAlign='center';
+    ctx.fillText(`L${t}`, x, padT - 2);
+    // Vertical grid
+    ctx.strokeStyle='rgba(255,255,255,0.04)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(padL+t*colW, padT); ctx.lineTo(padL+t*colW, padT+chartH); ctx.stroke();
+  }
+  // Last grid line
+  ctx.beginPath(); ctx.moveTo(padL+(maxTL+1)*colW, padT); ctx.lineTo(padL+(maxTL+1)*colW, padT+chartH); ctx.stroke();
+
+  // Rows
+  resNames.forEach((r, i) => {
+    const y = padT + i * rowH;
+    const isHighlight = step.highlightRes === r;
+
+    // Row label
+    ctx.fillStyle = isHighlight ? '#ff9f1c' : '#aaa';
+    ctx.font = `${isHighlight?'bold ':''}14px Segoe UI`;
+    ctx.textAlign = 'right';
+    ctx.fillText(`${r} (${resDesc[r]})`, padL - 12, y + rowH/2 + 5);
+
+    // Horizontal grid
+    ctx.strokeStyle='rgba(255,255,255,0.03)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(padL, y+rowH); ctx.lineTo(padL+chartW, y+rowH); ctx.stroke();
+
+    // Lifetime bar
+    if(lt[r]) {
+      const s = lt[r].start, e = lt[r].end;
+      const bx = padL + s * colW + 4;
+      const bw = (e - s + 1) * colW - 8;
+      const by = y + rowH*0.2;
+      const bh = rowH*0.6;
+
+      ctx.fillStyle = isHighlight ? resColors[r] : (resColors[r] + 'aa');
+      ctx.beginPath();
+      roundRect(ctx, bx, by, bw, bh, 5);
+      ctx.fill();
+
+      if(isHighlight){
+        ctx.strokeStyle='#fff'; ctx.lineWidth=2;
+        ctx.beginPath(); roundRect(ctx, bx, by, bw, bh, 5); ctx.stroke();
+      }
+
+      // Label on bar
+      ctx.fillStyle='#fff'; ctx.font='bold 13px Consolas'; ctx.textAlign='center';
+      ctx.fillText(`[${s}, ${e}]`, bx+bw/2, by+bh/2+5);
+    }
+  });
+
+  // Highlight pass indicator
+  if(step.highlightPass){
+    const tl = finalTL[step.highlightPass];
+    const x = padL + tl*colW;
+    ctx.strokeStyle='#e94560'; ctx.lineWidth=2; ctx.setLineDash([6,4]);
+    ctx.beginPath(); ctx.moveTo(x+colW/2, padT); ctx.lineTo(x+colW/2, padT+chartH); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#e94560'; ctx.font='bold 14px Segoe UI'; ctx.textAlign='center';
+    ctx.fillText(`Pass ${step.highlightPass}`, x+colW/2, padT+chartH+16);
+  }
+}
+
+function renderAllocGantt(ctx, W, H, step) {
+  const physSlots = step.physSlots || {};
+  const curRes = step.currentRes;
+  const allocMap = step.alloc || {};
+
+  // Flatten physical slots into rows
+  const rows = [];
+  for(const desc of Object.keys(physSlots)){
+    physSlots[desc].forEach(slot => {
+      rows.push({name:slot.name, desc, lifetimes:slot.lifetimes});
+    });
+  }
+
+  const n = Math.max(rows.length, 1);
+  const padL=160, padR=40, padT=35, padB=15;
+  const chartW=W-padL-padR, chartH=H-padT-padB;
+  const rowH = Math.min(chartH / n, 55);
+  const colW = chartW / (maxTL + 1);
+
+  ctx.fillStyle='#888'; ctx.font='18px Segoe UI'; ctx.textAlign='left';
+  ctx.fillText('物理资源分配 (Physical Resource Allocation)', padL, padT - 12);
+
+  // Column headers
+  for(let t=0;t<=maxTL;t++){
+    const x=padL+t*colW+colW/2;
+    ctx.fillStyle='#555'; ctx.font='bold 16px Consolas'; ctx.textAlign='center';
+    ctx.fillText(`L${t}`, x, padT-1);
+    ctx.strokeStyle='rgba(255,255,255,0.04)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(padL+t*colW, padT); ctx.lineTo(padL+t*colW, padT+n*rowH); ctx.stroke();
+  }
+  ctx.beginPath(); ctx.moveTo(padL+(maxTL+1)*colW, padT); ctx.lineTo(padL+(maxTL+1)*colW, padT+n*rowH); ctx.stroke();
+
+  rows.forEach((row, ri) => {
+    const y = padT + ri * rowH;
+
+    // Row label
+    ctx.fillStyle='#aaa'; ctx.font='13px Segoe UI'; ctx.textAlign='right';
+    ctx.fillText(`${row.name}`, padL-12, y+rowH/2+4);
+
+    ctx.strokeStyle='rgba(255,255,255,0.03)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(padL,y+rowH); ctx.lineTo(padL+chartW,y+rowH); ctx.stroke();
+
+    // Lifetime bars
+    row.lifetimes.forEach(occ => {
+      const bx=padL+occ.start*colW+3;
+      const bw=(occ.end-occ.start+1)*colW-6;
+      const by=y+rowH*0.15;
+      const bh=rowH*0.7;
+
+      const isCurrent = curRes === occ.resName;
+      ctx.fillStyle = isCurrent ? resColors[occ.resName] : (resColors[occ.resName]+'99');
+      ctx.beginPath(); roundRect(ctx, bx, by, bw, bh, 4); ctx.fill();
+
+      if(isCurrent){
+        ctx.strokeStyle='#fff'; ctx.lineWidth=2;
+        ctx.beginPath(); roundRect(ctx, bx, by, bw, bh, 4); ctx.stroke();
+      }
+
+      ctx.fillStyle='#fff'; ctx.font='bold 12px Consolas'; ctx.textAlign='center';
+      ctx.fillText(occ.resName, bx+bw/2, by+bh/2+4);
+    });
+  });
+
+  if(rows.length===0){
+    ctx.fillStyle='#555'; ctx.font='italic 16px Segoe UI'; ctx.textAlign='center';
+    ctx.fillText('尚无物理资源分配', W/2, H/2);
+  }
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y); ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+  ctx.lineTo(x+w, y+h-r); ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+  ctx.lineTo(x+r, y+h); ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+  ctx.lineTo(x, y+r); ctx.quadraticCurveTo(x, y, x+r, y);
+}
+
+// --- Table rendering ---
+function renderTopoTable(step) {
+  document.getElementById('tableTitle').textContent = '入度表 & 时间层级';
+  let h='<tr><th>Pass</th><th>入度</th><th>TL</th><th>状态</th></tr>';
+  passes.forEach(p=>{
+    const d=step.degrees[p.id], tl=step.timeLayers[p.id], st=step.nodeStates[p.id];
+    const stT={waiting:'等待',queued:'队列中',processing:'处理中',done:'✓完成'}[st];
+    const cls=d===0&&st!=='done'?'zero':(st==='done'?'done':'');
+    h+=`<tr class="${cls}"><td><b>${p.id}</b> ${p.name}</td><td>${d}</td><td>${tl}</td><td>${stT}</td></tr>`;
+  });
+  document.getElementById('dataTable').innerHTML=h;
+}
+
+function renderLifetimeTable(step) {
+  document.getElementById('tableTitle').textContent = '资源生命周期表';
+  const lt = step.lifetimes || {};
+  let h='<tr><th>资源</th><th>Desc</th><th>Start</th><th>End</th></tr>';
+  allResNames.forEach(r=>{
+    const isHi = step.highlightRes===r;
+    const cls = isHi ? 'hi' : '';
+    if(lt[r]){
+      h+=`<tr class="${cls}"><td><b>${r}</b></td><td>${resDesc[r]}</td><td>${lt[r].start}</td><td>${lt[r].end}</td></tr>`;
+    } else {
+      h+=`<tr><td><b>${r}</b></td><td>${resDesc[r]}</td><td style="color:#555">-</td><td style="color:#555">-</td></tr>`;
+    }
+  });
+  document.getElementById('dataTable').innerHTML=h;
+}
+
+function renderAllocTable(step) {
+  document.getElementById('tableTitle').textContent = '物理资源分配表';
+  const alloc = step.alloc || {};
+  let h='<tr><th>虚拟资源</th><th>[S,E]</th><th>→ 物理资源</th></tr>';
+  allResNames.forEach(r=>{
+    const lt = resLifetime[r];
+    const isHi = step.currentRes===r;
+    const cls = isHi ? 'hi' : (alloc[r] ? '' : 'done');
+    if(alloc[r]){
+      h+=`<tr class="${cls}"><td><b>${r}</b></td><td>[${lt.start},${lt.end}]</td><td>${alloc[r]}</td></tr>`;
+    } else {
+      h+=`<tr class="${cls}"><td><b>${r}</b></td><td>[${lt.start},${lt.end}]</td><td style="color:#555">待分配</td></tr>`;
+    }
+  });
+  document.getElementById('dataTable').innerHTML=h;
+}
+
+function renderQueue(step) {
+  const el=document.getElementById('queueDisplay');
+  if(!step.queue||step.queue.length===0) el.innerHTML='<span class="queue-empty">空</span>';
+  else el.innerHTML=step.queue.map(id=>`<span class="queue-item">${id}</span>`).join('');
+}
+
+// --- Phase switching ---
+function setPhaseUI(phase) {
+  document.getElementById('tab1').className = 'phase-tab'+(phase===1?' active':'');
+  document.getElementById('tab2').className = 'phase-tab'+(phase===2?' active':'');
+  document.getElementById('tab3').className = 'phase-tab'+(phase===3?' active':'');
+
+  document.getElementById('dagSvg').style.display = phase===1?'':'none';
+  document.getElementById('ganttCanvas').style.display = phase>=2?'':'none';
+  document.getElementById('queueCard').style.display = phase===1?'':'none';
+
+  if(phase===1){
+    document.getElementById('legendArea').innerHTML = `
+      <div class="legend-item"><div class="legend-dot" style="background:#16213e;border-color:#555;"></div>等待</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#e94560;border-color:#ff6b6b;"></div>队列中</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#ff9f1c;border-color:#ffbf69;"></div>处理中</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#0f3460;border-color:#1a508b;"></div>完成</div>`;
+  } else {
+    let lg = allResNames.map(r=>`<div class="legend-item"><div class="legend-dot" style="background:${resColors[r]};border-color:${resColors[r]};"></div>${r}</div>`).join('');
+    document.getElementById('legendArea').innerHTML = lg;
+  }
+}
+
+// --- Log ---
+function addLog(msg){ const el=document.getElementById('logArea'); el.innerHTML+=msg+'<br>'; el.scrollTop=el.scrollHeight; }
+
+// --- Main render ---
+function renderStep(idx) {
+  const step = allSteps[idx];
+  setPhaseUI(step.phase);
+
+  if(step.phase===1){
+    renderDAG(step);
+    renderQueue(step);
+    renderTopoTable(step);
+  } else if(step.phase===2){
+    renderGantt(step);
+    renderLifetimeTable(step);
+  } else {
+    renderGantt(step);
+    renderAllocTable(step);
+  }
+
+  document.getElementById('stepDesc').innerHTML = step.desc;
+  document.getElementById('stepTitle').textContent = `步骤 ${idx}/${allSteps.length-1}`;
+
+  document.getElementById('btnNext').disabled = (idx >= allSteps.length-1);
+  document.getElementById('btnPrev').disabled = (idx <= 0);
+}
+
+function emitLog(idx){
+  const step=allSteps[idx];
+  if(idx===0){ addLog(`<span class="s">[阶段一]</span> 构建依赖图，${passes.length} Pass，${edgesData.length} 边`); edgesData.forEach(e=>addLog(`<span class="d">  边:</span> <span class="i">${e.from}→${e.to}</span> <span class="d">(${e.res})</span>`)); }
+  else if(step.type==='enqueue-init') addLog(`<span class="s">[入队]</span> 入度=0: <span class="h">${step.queue.join(', ')}</span>`);
+  else if(step.type==='dequeue') addLog(`<span class="s">[出队]</span> <span class="h">${step.processing}</span> tl=${step.timeLayers[step.processing]}`);
+  else if(step.type==='topo-done') addLog(`<span class="s">[阶段一完成]</span>`);
+  else if(step.type==='lt-intro') addLog(`<span class="s">[阶段二]</span> 开始计算资源生命周期`);
+  else if(step.type==='lt-update'&&step.highlightRes&&step.lifetimes[step.highlightRes]){ const lt=step.lifetimes[step.highlightRes]; addLog(`<span class="i">  ${step.highlightRes}</span> → [${lt.start},${lt.end}] <span class="d">(Pass ${step.highlightPass})</span>`); }
+  else if(step.type==='lt-done'){ addLog(`<span class="s">[阶段二完成]</span>`); allResNames.forEach(r=>{const lt=resLifetime[r];addLog(`<span class="d">  ${r}: [${lt.start},${lt.end}]</span>`);}); }
+  else if(step.type==='ga-intro') addLog(`<span class="s">[阶段三]</span> 开始贪心资源分配`);
+  else if(step.type==='ga-alloc'){ const a=step.alloc[step.currentRes]; const reused=greedyResult.stepLog.find(s=>s.rName===step.currentRes); const tag=reused&&reused.reused?'<span class="g">复用</span>':'<span class="h">新建</span>'; addLog(`<span class="i">  ${step.currentRes}</span> → ${a} ${tag}`); }
+  else if(step.type==='ga-done') addLog(`<span class="s">[阶段三完成]</span>`);
+}
+
+function rebuildLog(upTo){ document.getElementById('logArea').innerHTML=''; for(let i=0;i<=upTo;i++) emitLog(i); }
+
+function prevStep(){ if(currentStep>0){ currentStep--; rebuildLog(currentStep); renderStep(currentStep); }}
+function nextStep(){ if(currentStep<allSteps.length-1){ currentStep++; emitLog(currentStep); renderStep(currentStep); }}
+function resetAll(){ stopAuto(); currentStep=0; rebuildLog(0); renderStep(0); }
+function toggleAuto(){
+  if(autoTimer){stopAuto();}
+  else{
+    document.getElementById('btnAuto').textContent='暂停 ⏸';
+    autoTimer=setInterval(()=>{if(currentStep<allSteps.length-1)nextStep();else stopAuto();},900);
+  }
+}
+function stopAuto(){clearInterval(autoTimer);autoTimer=null;document.getElementById('btnAuto').textContent='自动播放 ⏵';}
+
+// Init
+renderPassDefs();
+rebuildLog(0);
+renderStep(0);
+</script>
+</body>
+</html>

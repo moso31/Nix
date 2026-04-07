@@ -9,6 +9,9 @@ classDiagram
     class NXSerializable{
 	    <<序列化>>
     }
+    class NXScriptable{
+	    <<脚本挂载>>
+    }
 
     IRefCountable <|-- NXRefCountable
     NXRefCountable <|-- NXObject
@@ -22,16 +25,21 @@ classDiagram
     NXSerializable <|-- NXMaterial
     NXSerializable <|-- NXResource
     NXSerializable <|-- NXSSSDiffuseProfile
-    NXSerializable <|-- NXScriptable
+
+    NXScriptable <|-- NXTransform
 
     NXMaterial <|-- NXEasyMaterial
     NXMaterial <|-- NXCustomMaterial
+    NXMaterial <|-- NXPassMaterial
+    NXPassMaterial <|-- NXGraphicPassMaterial
+    NXPassMaterial <|-- NXComputePassMaterial
+    NXPassMaterial <|-- NXReadbackPassMaterial
 
     NXResource <|-- NXBuffer
     NXResource <|-- NXTexture
     NXTexture <|-- NXTexture2D
     NXTexture <|-- NXTextureCube
-    NXTexture <|-- NXTextureArray
+    NXTexture <|-- NXTexture2DArray
 
     NXTransform <|-- NXCamera
     NXTransform <|-- NXCubeMap

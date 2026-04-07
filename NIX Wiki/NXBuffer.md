@@ -46,3 +46,20 @@ CreateUnorderedAccessView(m_pBuffer, m_pUAVCounterBuffer, ...);
 		- 即uavCounter
 
 这种情况下，在cpu层面，就需要明确这个Buffer的`m_pUAVCounterBuffer`的 UAV。
+
+# 异步视图创建
+
+NXBuffer 内部使用 promise/future 模式异步创建 SRV 和 UAV：
+- 初始化时 `m_loadingViews` 计数器设为 3（1 SRV + 2 UAV，每帧）
+- 每个视图分配完成后递减计数器；归零时 promise 完成
+- `WaitLoadingViewsFinish()` 可阻塞等待所有视图就绪
+
+# Fence 同步
+
+每次上传数据时，NXBuffer 会记录上传系统的 fence 值：
+```C++
+MultiFrame<uint64_t> m_lastUploadSysFenceValue_buffer;
+MultiFrame<uint64_t> m_lastUploadSysFenceValue_uavCounter;
+```
+- `WaitForUploadFinish()` 等待 GPU 完成上传后，才允许状态转换
+- `SetResourceState()` 会同时转换 m_pBuffer 和 m_pUAVCounterBuffer 的状态

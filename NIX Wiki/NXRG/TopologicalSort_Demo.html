@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>NXRG 拓扑排序可视化</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: #eee; padding: 20px; }
+  h1 { text-align: center; color: #e94560; margin-bottom: 6px; font-size: 1.5em; }
+  .subtitle { text-align: center; color: #888; font-size: 0.85em; margin-bottom: 18px; }
+
+  .container { display: flex; gap: 20px; max-width: 1300px; margin: 0 auto; }
+  .left-panel { flex: 1; min-width: 0; }
+  .right-panel { width: 340px; flex-shrink: 0; }
+
+  /* Graph Canvas */
+  .graph-area { background: #16213e; border-radius: 12px; padding: 10px; position: relative; height: 420px; }
+  svg { width: 100%; height: 100%; }
+  .node { cursor: default; transition: all 0.3s; }
+  .node circle { stroke-width: 2.5; transition: all 0.3s; }
+  .node text { font-size: 13px; fill: #fff; text-anchor: middle; dominant-baseline: central; font-weight: 600; pointer-events: none; }
+  .node .res-label { font-size: 9.5px; fill: #aaa; font-weight: 400; }
+  .edge { stroke: #444; stroke-width: 2; fill: none; marker-end: url(#arrow); transition: stroke 0.3s, opacity 0.3s; }
+  .edge.highlighted { stroke: #e94560; stroke-width: 2.5; }
+  .edge.processed { stroke: #0f3460; stroke-width: 2; opacity: 0.4; }
+  .edge-label { font-size: 9px; fill: #777; text-anchor: middle; }
+
+  /* Node states */
+  .node.queued circle { fill: #e94560; stroke: #ff6b6b; }
+  .node.processing circle { fill: #ff9f1c; stroke: #ffbf69; animation: pulse 0.6s infinite alternate; }
+  .node.done circle { fill: #0f3460; stroke: #1a508b; }
+  .node.waiting circle { fill: #16213e; stroke: #555; }
+
+  @keyframes pulse { from { r: 28; } to { r: 32; } }
+
+  /* Time layer bands */
+  .time-band { fill: rgba(255,255,255,0.02); stroke: rgba(255,255,255,0.06); stroke-dasharray: 4 4; }
+  .time-label { font-size: 11px; fill: #555; text-anchor: middle; }
+
+  /* Controls */
+  .controls { display: flex; gap: 10px; margin-top: 14px; justify-content: center; flex-wrap: wrap; }
+  .btn { padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.2s; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
+  .btn-next { background: #e94560; color: #fff; }
+  .btn-next:hover { background: #ff6b6b; }
+  .btn-next:disabled { background: #444; cursor: not-allowed; transform: none; }
+  .btn-reset { background: #0f3460; color: #fff; }
+  .btn-reset:hover { background: #1a508b; }
+  .btn-auto { background: #533483; color: #fff; }
+  .btn-auto:hover { background: #7b2d8e; }
+
+  /* Info panels */
+  .info-card { background: #16213e; border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+  .info-card h3 { color: #e94560; font-size: 0.95em; margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 6px; }
+  .info-row { display: flex; justify-content: space-between; padding: 3px 0; font-size: 0.85em; }
+  .info-row .label { color: #888; }
+  .info-row .value { color: #eee; font-weight: 600; font-family: 'Consolas', monospace; }
+
+  /* Queue display */
+  .queue-display { display: flex; gap: 6px; flex-wrap: wrap; min-height: 30px; align-items: center; }
+  .queue-item { background: #e94560; color: #fff; padding: 3px 10px; border-radius: 4px; font-size: 0.8em; font-weight: 600; }
+  .queue-empty { color: #555; font-size: 0.8em; font-style: italic; }
+
+  /* In-degree table */
+  .degree-table { width: 100%; border-collapse: collapse; font-size: 0.82em; }
+  .degree-table th { color: #888; text-align: left; padding: 4px 6px; border-bottom: 1px solid #333; font-weight: 500; }
+  .degree-table td { padding: 4px 6px; font-family: 'Consolas', monospace; }
+  .degree-table tr.zero td { color: #e94560; font-weight: 700; }
+  .degree-table tr.processed td { color: #555; text-decoration: line-through; }
+
+  /* Log */
+  .log-area { background: #0d1117; border-radius: 8px; padding: 10px; max-height: 160px; overflow-y: auto; font-size: 0.78em; font-family: 'Consolas', monospace; line-height: 1.6; }
+  .log-area .step { color: #e94560; }
+  .log-area .info { color: #58a6ff; }
+  .log-area .dim { color: #555; }
+  .log-area .highlight { color: #ff9f1c; }
+
+  /* Legend */
+  .legend { display: flex; gap: 14px; justify-content: center; margin-top: 8px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.75em; color: #888; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid; }
+
+  /* Pass definition table */
+  .pass-def { font-size: 0.78em; line-height: 1.5; }
+  .pass-def .pass-name { color: #58a6ff; font-weight: 600; }
+  .pass-def .arrow { color: #555; margin: 0 4px; }
+  .pass-def .res { color: #ff9f1c; }
+</style>
+</head>
+<body>
+
+<h1>NXRG Kahn 拓扑排序 · 逐步可视化</h1>
+<p class="subtitle">基于 NXRenderGraph::Compile() 中资源读写依赖的拓扑排序算法</p>
+
+<div class="container">
+<div class="left-panel">
+
+  <!-- Graph SVG -->
+  <div class="graph-area">
+    <svg id="graphSvg" viewBox="0 0 720 400">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 6" refX="10" refY="3" markerWidth="8" markerHeight="6" orient="auto">
+          <path d="M0,0 L10,3 L0,6 Z" fill="#666"/>
+        </marker>
+        <marker id="arrow-hi" viewBox="0 0 10 6" refX="10" refY="3" markerWidth="8" markerHeight="6" orient="auto">
+          <path d="M0,0 L10,3 L0,6 Z" fill="#e94560"/>
+        </marker>
+      </defs>
+      <!-- Time layer bands drawn by JS -->
+      <g id="timeBands"></g>
+      <g id="edges"></g>
+      <g id="nodes"></g>
+    </svg>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#16213e;border-color:#555;"></div> 等待中</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e94560;border-color:#ff6b6b;"></div> 在队列中</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ff9f1c;border-color:#ffbf69;"></div> 正在处理</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#0f3460;border-color:#1a508b;"></div> 已完成</div>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-next" id="btnNext" onclick="nextStep()">下一步 ?</button>
+    <button class="btn btn-auto" id="btnAuto" onclick="toggleAuto()">自动播放 ?</button>
+    <button class="btn btn-reset" onclick="resetAll()">重置 ?</button>
+  </div>
+
+  <!-- Pass Definitions -->
+  <div class="info-card" style="margin-top: 14px;">
+    <h3>Pass 定义（资源读写关系）</h3>
+    <div class="pass-def" id="passDefs"></div>
+  </div>
+</div>
+
+<div class="right-panel">
+  <!-- Current Step -->
+  <div class="info-card">
+    <h3>? 当前步骤</h3>
+    <div id="stepDesc" style="font-size:0.85em; line-height:1.5; min-height:40px; color:#ccc;">
+      点击「下一步」开始拓扑排序演示
+    </div>
+  </div>
+
+  <!-- Queue -->
+  <div class="info-card">
+    <h3>? BFS 队列</h3>
+    <div class="queue-display" id="queueDisplay">
+      <span class="queue-empty">空</span>
+    </div>
+  </div>
+
+  <!-- In-degree Table -->
+  <div class="info-card">
+    <h3>? 入度表 &amp; 时间层级</h3>
+    <table class="degree-table" id="degreeTable">
+      <tr><th>Pass</th><th>入度</th><th>TimeLayer</th><th>状态</th></tr>
+    </table>
+  </div>
+
+  <!-- Log -->
+  <div class="info-card">
+    <h3>? 执行日志</h3>
+    <div class="log-area" id="logArea"></div>
+  </div>
+</div>
+</div>
+
+<script>
+// ============================================================
+// Data: Example render passes with resource read/write
+// Mimics NXRG pattern: Pass reads inputs, writes outputs
+// ============================================================
+const passes = [
+  { id: 'A', name: 'DepthPrepass',   reads: [],          writes: ['Depth'],           x: 80,  y: 120 },
+  { id: 'B', name: 'ShadowMap',      reads: [],          writes: ['Shadow'],          x: 80,  y: 280 },
+  { id: 'C', name: 'GBuffer',        reads: ['Depth'],   writes: ['GBuf'],            x: 260, y: 80  },
+  { id: 'D', name: 'ShadowTest',     reads: ['Depth','Shadow'], writes: ['ShadowMask'], x: 260, y: 200 },
+  { id: 'E', name: 'DeferredLit',    reads: ['GBuf','ShadowMask'], writes: ['LitResult'], x: 470, y: 140 },
+  { id: 'F', name: 'Translucent',    reads: ['Shadow','LitResult'], writes: ['Final'],  x: 640, y: 200 },
+];
+
+// Build lastWriteMap and adjacency
+const lastWrite = {};  // resource -> pass id
+const adjList = {};    // passId -> [passId]
+const inDegree = {};
+const timeLayer = {};
+const edgesData = [];
+
+passes.forEach(p => { adjList[p.id] = []; inDegree[p.id] = 0; timeLayer[p.id] = 0; });
+
+passes.forEach(p => {
+  p.reads.forEach(res => {
+    if (lastWrite[res]) {
+      const from = lastWrite[res];
+      adjList[from].push(p.id);
+      edgesData.push({ from, to: p.id, res });
+      inDegree[p.id]++;
+    }
+  });
+  p.writes.forEach(res => { lastWrite[res] = p.id; });
+});
+
+const passMap = {};
+passes.forEach(p => passMap[p.id] = p);
+
+// Pre-compute final timeLayer for layout (run full algorithm once)
+const finalTimeLayer = {};
+{
+  const deg2 = {}, tl2 = {}, adj2 = {};
+  passes.forEach(p => { deg2[p.id] = inDegree[p.id]; tl2[p.id] = 0; adj2[p.id] = [...adjList[p.id]]; });
+  const q2 = [];
+  passes.forEach(p => { if (deg2[p.id] === 0) q2.push(p.id); });
+  while (q2.length > 0) {
+    const cur = q2.shift();
+    for (const nb of adj2[cur]) {
+      tl2[nb] = Math.max(tl2[nb], tl2[cur] + 1);
+      deg2[nb]--;
+      if (deg2[nb] === 0) q2.push(nb);
+    }
+  }
+  passes.forEach(p => finalTimeLayer[p.id] = tl2[p.id]);
+}
+
+// Compute fixed display positions based on final timeLayer
+const finalPos = {};
+{
+  const maxLayer = Math.max(...Object.values(finalTimeLayer));
+  // Group passes by layer
+  const layers = {};
+  passes.forEach(p => {
+    const l = finalTimeLayer[p.id];
+    if (!layers[l]) layers[l] = [];
+    layers[l].push(p.id);
+  });
+  // Assign x,y per layer; spread evenly in y
+  const svgW = 720, svgH = 400, padX = 90, padY = 70;
+  const layerW = (svgW - 2 * padX) / Math.max(maxLayer, 1);
+  for (let l = 0; l <= maxLayer; l++) {
+    const ids = layers[l] || [];
+    const n = ids.length;
+    const gap = (svgH - 2 * padY) / Math.max(n - 1, 1);
+    ids.forEach((id, i) => {
+      finalPos[id] = {
+        x: padX + l * layerW,
+        y: n === 1 ? svgH / 2 : padY + i * gap
+      };
+    });
+  }
+}
+
+// ============================================================
+// Build step sequence for animation
+// ============================================================
+function buildSteps() {
+  const steps = [];
+  const deg = {};
+  const tl = {};
+  passes.forEach(p => { deg[p.id] = inDegree[p.id]; tl[p.id] = 0; });
+
+  // Step 0: show initial state
+  steps.push({
+    type: 'init',
+    desc: '<b>第 0 步：构建依赖图</b><br>遍历所有 Pass 的输入资源，通过 <code>lastWriteMap</code> 找到写入该资源的 Pass，建立有向边。<br>同时统计每个 Pass 的<b>入度</b>。',
+    queue: [],
+    degrees: { ...deg },
+    timeLayers: { ...tl },
+    nodeStates: Object.fromEntries(passes.map(p => [p.id, 'waiting'])),
+    edgeStates: Object.fromEntries(edgesData.map((e,i) => [i, 'normal'])),
+    processed: [],
+  });
+
+  // Step 1: enqueue all with indegree 0
+  const queue = [];
+  const zeroNodes = [];
+  passes.forEach(p => { if (deg[p.id] === 0) { queue.push(p.id); zeroNodes.push(p.id); } });
+  const ns1 = Object.fromEntries(passes.map(p => [p.id, 'waiting']));
+  zeroNodes.forEach(id => ns1[id] = 'queued');
+
+  steps.push({
+    type: 'enqueue-initial',
+    desc: `<b>第 1 步：入度=0 的 Pass 入队</b><br>找到所有入度为 0 的 Pass（无依赖）：<b>${zeroNodes.join(', ')}</b>，压入 BFS 队列。`,
+    queue: [...queue],
+    degrees: { ...deg },
+    timeLayers: { ...tl },
+    nodeStates: { ...ns1 },
+    edgeStates: Object.fromEntries(edgesData.map((e,i) => [i, 'normal'])),
+    processed: [],
+  });
+
+  let stepCount = 2;
+  const processed = [];
+  const prevNodeStates = { ...ns1 };
+  const prevEdgeStates = Object.fromEntries(edgesData.map((e,i) => [i, 'normal']));
+
+  while (queue.length > 0) {
+    const current = queue.shift();
+    const curNodeStates = { ...prevNodeStates };
+    const curEdgeStates = { ...prevEdgeStates };
+    curNodeStates[current] = 'processing';
+
+    // Step: dequeue
+    steps.push({
+      type: 'dequeue',
+      desc: `<b>第 ${stepCount} 步：出队 Pass ${current} (${passMap[current].name})</b><br>timeLayer[${current}] = <b>${tl[current]}</b>，开始处理它的邻居节点。`,
+      queue: [...queue],
+      degrees: { ...deg },
+      timeLayers: { ...tl },
+      nodeStates: { ...curNodeStates },
+      edgeStates: { ...curEdgeStates },
+      processing: current,
+      processed: [...processed],
+    });
+    stepCount++;
+
+    // Process neighbors
+    const neighbors = adjList[current];
+    if (neighbors.length > 0) {
+      neighbors.forEach(nb => {
+        const oldTL = tl[nb];
+        tl[nb] = Math.max(tl[nb], tl[current] + 1);
+        deg[nb]--;
+
+        // Highlight the edge
+        const eIdx = edgesData.findIndex(e => e.from === current && e.to === nb);
+        curEdgeStates[eIdx] = 'highlighted';
+
+        let enqueueMsg = '';
+        if (deg[nb] === 0) {
+          queue.push(nb);
+          curNodeStates[nb] = 'queued';
+          enqueueMsg = `<br>→ 入度归零，<b>${nb}</b> 入队！`;
+        }
+
+        steps.push({
+          type: 'update-neighbor',
+          desc: `<b>第 ${stepCount} 步：更新邻居 ${nb} (${passMap[nb].name})</b><br>` +
+                `边 ${current}→${nb}：入度 ${deg[nb]+1} → <b>${deg[nb]}</b><br>` +
+                `timeLayer[${nb}] = max(${oldTL}, ${tl[current]}+1) = <b>${tl[nb]}</b>` +
+                enqueueMsg,
+          queue: [...queue],
+          degrees: { ...deg },
+          timeLayers: { ...tl },
+          nodeStates: { ...curNodeStates },
+          edgeStates: { ...curEdgeStates },
+          processing: current,
+          processed: [...processed],
+          highlightEdge: eIdx,
+        });
+        stepCount++;
+      });
+
+      // Mark processed edges
+      neighbors.forEach(nb => {
+        const eIdx = edgesData.findIndex(e => e.from === current && e.to === nb);
+        curEdgeStates[eIdx] = 'processed';
+      });
+    }
+
+    // Mark current as done
+    curNodeStates[current] = 'done';
+    processed.push(current);
+    Object.assign(prevNodeStates, curNodeStates);
+    Object.assign(prevEdgeStates, curEdgeStates);
+  }
+
+  // Final step
+  steps.push({
+    type: 'done',
+    desc: `<b>排序完成！?</b><br>所有 Pass 已按拓扑序处理完毕。<br>时间层级决定执行顺序，同层 Pass 可并行。<br>资源生命周期 = [首次使用层级, 末次使用层级]。`,
+    queue: [],
+    degrees: { ...deg },
+    timeLayers: { ...tl },
+    nodeStates: Object.fromEntries(passes.map(p => [p.id, 'done'])),
+    edgeStates: { ...prevEdgeStates },
+    processed: [...processed],
+  });
+
+  return steps;
+}
+
+const allSteps = buildSteps();
+let currentStep = 0;
+let autoTimer = null;
+
+// ============================================================
+// Rendering
+// ============================================================
+function renderPassDefs() {
+  const el = document.getElementById('passDefs');
+  el.innerHTML = passes.map(p => {
+    const reads = p.reads.length > 0 ? p.reads.map(r => `<span class="res">${r}</span>`).join(', ') : '<span style="color:#555">无</span>';
+    const writes = p.writes.map(r => `<span class="res">${r}</span>`).join(', ');
+    return `<span class="pass-name">${p.id}: ${p.name}</span> <span class="arrow">←</span> 读: ${reads} <span class="arrow">|</span> 写: ${writes}`;
+  }).join('<br>');
+}
+
+function renderGraph(step) {
+  // Time bands (based on final time layers, always visible)
+  const bandsG = document.getElementById('timeBands');
+  bandsG.innerHTML = '';
+  const maxTL = Math.max(...Object.values(finalTimeLayer));
+  const padX = 90, svgW = 720;
+  const layerW = (svgW - 2 * padX) / Math.max(maxTL, 1);
+  for (let t = 0; t <= maxTL; t++) {
+    const bx = padX + t * layerW - layerW * 0.4;
+    const bw = layerW * 0.8;
+    bandsG.innerHTML += `<rect class="time-band" x="${bx}" y="20" width="${bw}" height="370" rx="6"/>`;
+    bandsG.innerHTML += `<text class="time-label" x="${padX + t * layerW}" y="14">Layer ${t}</text>`;
+  }
+
+  // Edges — use finalPos for both endpoints
+  const edgesG = document.getElementById('edges');
+  edgesG.innerHTML = '';
+  edgesData.forEach((e, i) => {
+    const fp = finalPos[e.from], tp = finalPos[e.to];
+    const state = step.edgeStates[i] || 'normal';
+    const markerEnd = state === 'highlighted' ? 'url(#arrow-hi)' : 'url(#arrow)';
+
+    const dx = tp.x - fp.x, dy = tp.y - fp.y;
+    const mx = (fp.x + tp.x) / 2, my = (fp.y + tp.y) / 2;
+    const offset = Math.abs(dx) < 1 ? 40 : dy * 0.2;
+    const cx = mx, cy = my - offset;
+
+    const r = 30;
+    const a1 = Math.atan2(cy - fp.y, cx - fp.x);
+    const sx = fp.x + r * Math.cos(a1), sy = fp.y + r * Math.sin(a1);
+    const a2 = Math.atan2(tp.y - cy, tp.x - cx);
+    const ex = tp.x - r * Math.cos(a2), ey = tp.y - r * Math.sin(a2);
+
+    edgesG.innerHTML += `<path class="edge ${state}" d="M${sx},${sy} Q${cx},${cy} ${ex},${ey}" style="marker-end:${markerEnd}"/>`;
+    edgesG.innerHTML += `<text class="edge-label" x="${(sx+cx+ex)/3}" y="${(sy+cy+ey)/3 - 8}">${e.res}</text>`;
+  });
+
+  // Nodes — always at finalPos
+  const nodesG = document.getElementById('nodes');
+  nodesG.innerHTML = '';
+  passes.forEach(p => {
+    const state = step.nodeStates[p.id] || 'waiting';
+    const pos = finalPos[p.id];
+
+    nodesG.innerHTML += `
+      <g class="node ${state}" transform="translate(${pos.x}, ${pos.y})">
+        <circle r="28" cx="0" cy="0"/>
+        <text y="-4">${p.id}</text>
+        <text class="res-label" y="12" style="font-size:8.5px">${p.name}</text>
+      </g>`;
+  });
+}
+
+function renderQueue(step) {
+  const el = document.getElementById('queueDisplay');
+  if (step.queue.length === 0) {
+    el.innerHTML = '<span class="queue-empty">空</span>';
+  } else {
+    el.innerHTML = step.queue.map(id => `<span class="queue-item">${id} (${passMap[id].name})</span>`).join('');
+  }
+}
+
+function renderDegreeTable(step) {
+  const el = document.getElementById('degreeTable');
+  let html = '<tr><th>Pass</th><th>入度</th><th>TimeLayer</th><th>状态</th></tr>';
+  passes.forEach(p => {
+    const d = step.degrees[p.id];
+    const tl = step.timeLayers[p.id];
+    const state = step.nodeStates[p.id];
+    const stateText = { waiting: '等待', queued: '队列中', processing: '处理中', done: '? 完成' }[state];
+    const cls = d === 0 && state !== 'done' ? 'zero' : (state === 'done' ? 'processed' : '');
+    html += `<tr class="${cls}"><td><b>${p.id}</b> ${p.name}</td><td>${d}</td><td>${tl}</td><td>${stateText}</td></tr>`;
+  });
+  el.innerHTML = html;
+}
+
+function addLog(msg) {
+  const el = document.getElementById('logArea');
+  el.innerHTML += msg + '<br>';
+  el.scrollTop = el.scrollHeight;
+}
+
+function renderStep(idx) {
+  const step = allSteps[idx];
+  renderGraph(step);
+  renderQueue(step);
+  renderDegreeTable(step);
+  document.getElementById('stepDesc').innerHTML = step.desc;
+
+  // Log
+  if (idx === 0) {
+    document.getElementById('logArea').innerHTML = '';
+    addLog(`<span class="step">[初始化]</span> 构建依赖图，共 ${passes.length} 个 Pass，${edgesData.length} 条边`);
+    edgesData.forEach(e => addLog(`<span class="dim">  边:</span> <span class="info">${e.from} → ${e.to}</span> <span class="dim">(资源: ${e.res})</span>`));
+  } else if (step.type === 'enqueue-initial') {
+    addLog(`<span class="step">[入队]</span> 入度=0 的 Pass: <span class="highlight">${step.queue.join(', ')}</span>`);
+  } else if (step.type === 'dequeue') {
+    addLog(`<span class="step">[出队]</span> 处理 <span class="highlight">${step.processing}</span>，timeLayer=${step.timeLayers[step.processing]}`);
+  } else if (step.type === 'update-neighbor') {
+    const eIdx = step.highlightEdge;
+    if (eIdx !== undefined) {
+      const e = edgesData[eIdx];
+      addLog(`<span class="info">  → 更新 ${e.to}:</span> 入度=${step.degrees[e.to]}, timeLayer=${step.timeLayers[e.to]}`);
+    }
+  } else if (step.type === 'done') {
+    addLog(`<span class="step">[完成]</span> 拓扑排序结束！`);
+    const order = step.processed.join(' → ');
+    addLog(`<span class="info">处理顺序: ${order}</span>`);
+  }
+
+  // Button state
+  document.getElementById('btnNext').disabled = (idx >= allSteps.length - 1);
+}
+
+function nextStep() {
+  if (currentStep < allSteps.length - 1) {
+    currentStep++;
+    renderStep(currentStep);
+  }
+}
+
+function resetAll() {
+  stopAuto();
+  currentStep = 0;
+  renderStep(0);
+}
+
+function toggleAuto() {
+  if (autoTimer) {
+    stopAuto();
+  } else {
+    document.getElementById('btnAuto').textContent = '暂停 ?';
+    autoTimer = setInterval(() => {
+      if (currentStep < allSteps.length - 1) {
+        nextStep();
+      } else {
+        stopAuto();
+      }
+    }, 1200);
+  }
+}
+
+function stopAuto() {
+  clearInterval(autoTimer);
+  autoTimer = null;
+  document.getElementById('btnAuto').textContent = '自动播放 ?';
+}
+
+// Init
+renderPassDefs();
+renderStep(0);
+</script>
+</body>
+</html>
